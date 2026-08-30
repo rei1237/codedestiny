@@ -131,3 +131,26 @@ test("dev refresh keeps shared UMD billing boundaries out of ESM-only HMR output
   assert.match(nextConfig, /name\.includes\("react-refresh"\)/);
   assert.match(nextConfig, /visitWebpackRules\(config\.module\?\.rules\)/);
 });
+
+test("the free reading closes with the product the server picked for that topic", () => {
+  // 서버는 고민별 상품을 premiumCta 로 지목해 내려보내는데(worker/lib/guardian-fortune-runtime-contract.js),
+  // 화면이 그걸 버리고 초융합 하나만 권했다. 연애 고민에도 같은 문구가 나가 무료→유료 다리가 고민과 무관했다.
+  const client = read("app/fortune-chat/FortuneChatClient.tsx");
+  const css = read("app/fortune-chat/fortune-chat.module.css");
+
+  assert.match(client, /result\.premiumCta/);
+  assert.match(client, /ctaHref: premiumHref/);
+  assert.match(client, /text: premiumLabel \|\|/);
+  assert.match(client, /detail: premiumReason \|\|/);
+  // 초융합 CTA 는 폴백으로 남는다 — 세션을 넘기는 유일한 경로라 지우면 이어보기가 끊긴다.
+  assert.match(client, /onClick=\{beginFusion\}/);
+  // 링크는 서버가 준 내부 경로만 연다. 클라가 targetPath 를 만들지 않는다.
+  assert.match(client, /function isInternalPath/);
+  assert.match(client, /isInternalPath\(message\.ctaHref\)/);
+  assert.doesNotMatch(client, /targetPath: "/);
+  // 계측은 기존 앵커 위임에 얹는다 — 같은 노드에 리스너를 겹치지 않는다(코딩 원칙 6).
+  assert.match(client, /data-cd-cross-sell="\/fortune-chat"/);
+  // 앵커가 primary 스타일을 받도록 CSS 가 열려 있어야 한다. 안 열면 링크가 맨몸 텍스트로 나온다.
+  assert.match(css, /\.actions button,\.actions a,\.input button\{/);
+  assert.match(css, /\.actions a\+button\{/);
+});

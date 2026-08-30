@@ -168,7 +168,18 @@ function useFortuneChatCopy(): FortuneChatCopy {
 type Speaker = "assistant" | "user" | "system";
 type Character = "yeoni" | "neo";
 type Category = "saju" | "ziwei" | "vedic" | "sukuyo" | "astrology" | "tarot";
-type Message = { id: string; speaker: Speaker; text: string; detail?: string; kind?: "reading" | "cta" | "progress" };
+
+// 공유 화면(app/fortune/share/GuardianFortuneShareClient.tsx:205)과 같은 판정이다.
+// 서버가 준 경로만 열고, //evil.example 같은 프로토콜 상대 경로는 내부 경로로 치지 않는다.
+function isInternalPath(value: unknown): value is string {
+  return typeof value === "string" && /^\/[A-Za-z0-9/_?&=.#%-]*$/.test(value) && !value.startsWith("//");
+}
+
+function isPlainObject(value: unknown): value is Record<string, string> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+type Message = { id: string; speaker: Speaker; text: string; detail?: string; kind?: "reading" | "cta" | "progress"; ctaHref?: string };
 type Usage = {
   isLoggedIn: boolean;
   guestFreeRemaining: number;
@@ -446,12 +457,20 @@ export default function FortuneChatClient() {
       if (!attempt.ok || !attempt.payload?.ok) throw new Error(friendlyError(attempt.payload?.message));
 
       const result = attempt.payload.result || {};
+      // 서버는 고민(topic)별 상품을 premiumCta 로 이미 지목해서 내려보낸다
+      // (worker/lib/guardian-fortune-runtime-contract.js 의 GUARDIAN_FORTUNE_CTA_BY_TOPIC).
+      // 지금까지 화면은 그걸 버리고 초융합 하나만 권해, 연애 고민에도 같은 문구가 나갔다.
+      // 🔴 targetPath 를 새로 만들지 않는다 — allowlist 밖 값은 서버가 이미 걸러낸다.
+      const premiumCta = isPlainObject(result.premiumCta) ? result.premiumCta : null;
+      const premiumHref = isInternalPath(premiumCta?.targetPath) ? premiumCta.targetPath : "";
+      const premiumLabel = premiumHref ? String(premiumCta.label || "").trim() : "";
+      const premiumReason = premiumHref ? String(premiumCta.reason || "").trim() : "";
       const evidence = Array.isArray(result.evidenceLines) ? result.evidenceLines : [];
       append([
         { id: id(), speaker: "assistant", kind: "reading", text: result.openingLine || "지금의 흐름을 차분히 읽고 있어요.", detail: [result.innerState, result.coreReading, result.topicAdvice].filter(Boolean).join("\n\n") || "결과를 정리하고 있어요." },
         ...(result.cautionPattern ? [{ id: id(), speaker: "assistant" as const, kind: "reading" as const, text: "조심해서 볼 반복 패턴", detail: result.cautionPattern }] : []),
         { id: id(), speaker: "assistant", kind: "reading", text: "지금 해볼 한 가지", detail: [result.luckyAction, evidence.length ? `읽은 근거\n${evidence.map((line: string) => `· ${line}`).join("\n")}` : ""].filter(Boolean).join("\n\n") || "작은 선택 하나부터 가볍게 시작해 보세요." },
-        { id: id(), speaker: "assistant", kind: "cta", text: "이 고민을 더 넓은 흐름까지 이어 볼까요?", detail: "초융합 심층 리딩은 사주·자미두수·베다점·숙요점·점성술·타로의 공통 신호와 차이를 한 번에 연결해, 반복되는 패턴과 다음 시기의 선택 기준을 정리합니다." },
+        { id: id(), speaker: "assistant", kind: "cta", ctaHref: premiumHref, text: premiumLabel || "이 고민을 더 넓은 흐름까지 이어 볼까요?", detail: premiumReason || "초융합 심층 리딩은 사주·자미두수·베다점·숙요점·점성술·타로의 공통 신호와 차이를 한 번에 연결해, 반복되는 패턴과 다음 시기의 선택 기준을 정리합니다." },
       ]);
       setFollowUps(Array.isArray(result.followUpQuestions) ? result.followUpQuestions.slice(0, 3) : []);
       delivered = true;
@@ -548,7 +567,9 @@ export default function FortuneChatClient() {
       {messages.map((message) => <article key={message.id} className={`${styles.message} ${styles[message.speaker]} ${message.kind ? styles[message.kind] : ""}`}>
         {message.speaker === "assistant" ? <PersonaAvatar persona={character} mood={message.kind === "reading" ? "read" : "listen"} size="sm" decorative /> : null}
         <div className={styles.bubble}><p>{message.text}</p>{message.detail && <details><summary>자세히 보기</summary><p>{message.detail}</p></details>}
-          {message.kind === "cta" && <div className={styles.actions}><button type="button" onClick={beginFusion}>초융합 심층 리딩 이어가기 <span aria-hidden>→</span></button><button type="button" onClick={() => setMessages((current) => current.filter((item) => item.id !== message.id))}>여기까지 볼게요</button></div>}
+          {/* data-cd-cross-sell 은 js/core/analytics.js 의 앵커 위임이 cross_sell_click 으로 집계한다.
+              🔴 리스너를 새로 달지 않는다(CLAUDE.md 코딩 원칙 6). 초융합 버튼은 세션을 넘겨야 해서 앵커가 아니다. */}
+          {message.kind === "cta" && <div className={styles.actions} data-cd-cross-sell="/fortune-chat">{isInternalPath(message.ctaHref) ? <a href={message.ctaHref}>이 상담 보러 가기 <span aria-hidden>→</span></a> : null}<button type="button" onClick={beginFusion}>초융합 심층 리딩 이어가기 <span aria-hidden>→</span></button><button type="button" onClick={() => setMessages((current) => current.filter((item) => item.id !== message.id))}>여기까지 볼게요</button></div>}
         </div>
       </article>)}
       {(busy || isPaying) && <article className={`${styles.message} ${styles.assistant}`}><PersonaAvatar persona={character} mood="think" size="sm" decorative /><p className={styles.typing}><i /><i /><i /><span>{busyLabel}</span></p></article>}
