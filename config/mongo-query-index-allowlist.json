@@ -1,0 +1,13 @@
+{
+  "$comment": "scripts/verify-mongo-query-index-shapes.mjs 의 예외 원장. id 는 가드 실패 출력의 `id:` 줄을 그대로 쓴다. reason 은 필수(8자 이상)이고, 현재 코드에 없는 항목은 가드가 실패시킨다. 사유는 '왜 인덱스 없이 괜찮은가'를 실측(문서 수·호출 빈도·호출부)으로 적는다.",
+  "entries": [
+    {
+      "id": "worker/lib/guardian-fortune-usage.js::GuardianFortuneGuestUsage.updateMany::{reservationUpdatedAt,reserved}",
+      "reason": "releaseStaleReservations 는 호출부 0 (2026-08-31 git grep worker/ __tests__/ — 같은 파일 622행 주석도 '죽어 있었다'고 적음). 실제 회수는 reserveGuest 실패 시 guestIdHash 단건 경로(releaseStaleGuest)로 돈다. 규칙 6(요청 없는 삭제 금지)으로 남겨 둔다."
+    },
+    {
+      "id": "worker/lib/guardian-fortune-usage.js::GuardianFortuneAccountUsage.updateMany::{reservationUpdatedAt,reserved}",
+      "reason": "위와 같은 죽은 메서드 releaseStaleReservations 의 계정 쪽 스윕. 호출부 0 (2026-08-31 git grep). 실제 회수는 userId 단건 경로로 돈다."
+    }
+  ]
+}
