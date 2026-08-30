@@ -1,7 +1,7 @@
 ---
-status: active
+status: done
 updated: 2026-08-31
-next: 스테이징에서 5단계 캐시 hit 판정(`curl -sI https://staging.code-destiny.com/api/insights | grep -i x-cd-cache` 두 번 → miss 다음 hit). 그 뒤 이 문서는 status: done
+next: 없음 — 계획 1~6단계 전부 머지·검증 완료(2026-08-31 스테이징 캐시 miss→hit 확인).
 ---
 
 # MongoDB M10 최적화 — 풀 스캔 제거 · 캐시 확장 (2026-08-30)
@@ -24,7 +24,7 @@ next: 스테이징에서 5단계 캐시 hit 판정(`curl -sI https://staging.cod
 ## 남은 작업
 
 - [x] `users {referralCode}` 인덱스 — 2026-08-31 허가 실행. 선행 `--check` 가 이미 `OK … 누락=0`(실행 전에 존재, 생성 주체 미확인) 이라 apply 는 no-op 였다. 사후 `verify:request-path-indexes` = `누락=0 충돌=0`.
-- [x] 5단계 캐시 확장 — insights 목록/상세·content 피드 완료(위 "지금 상태"). `/api/me/access-state` 는 보류(사유 위). 남은 판정: 스테이징 머지 후 `curl -sI https://staging.code-destiny.com/api/insights | grep -i x-cd-cache` 두 번 → `miss` 다음 `hit`.
+- [x] 5단계 캐시 확장 — insights 목록/상세·content 피드 완료(위 "지금 상태"). `/api/me/access-state` 는 보류(사유 위). 스테이징 판정 완료(2026-08-31): 연속 2회 GET 에서 `X-CD-Cache: miss` → `hit`. 🔴 `curl -sI`(HEAD)는 405 라 헤더가 안 나온다 — `curl -s -D - -o /dev/null https://staging.code-destiny.com/api/insights` 로 잴 것. 응답의 `Cache-Control: no-store` 는 결함이 아니다: 이 캐시는 브라우저/CDN 이 아니라 워커 내부(아이솔레이트 memo + `caches.default`)이고, 판정 신호는 `X-CD-Cache` 하나다.
 - [x] 4단계 정적 가드 — 구현·배선 완료(위 "지금 상태"). PR #1353 CI(run 33319863161) 에서 스텝 "Verify Mongo query shapes match declared indexes" 가 로컬과 같은 수치(위반 0)로 돈 것을 확인(2026-08-31). 남은 판정 없음.
 
 ## 정본 예시
