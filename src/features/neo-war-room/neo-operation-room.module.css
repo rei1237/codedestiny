@@ -2247,6 +2247,30 @@
   text-align: left;
 }
 
+/* 선택한 방식만 그리드 한 줄을 통째로 차지한다 — 이미지가 커지고 상세 설명이 들어갈 폭이 생긴다.
+   🔴 위쪽 .methodCard[data-active="true"] 는 .choiceButton/.intensityCard 와 묶인 공유 규칙이므로
+   여기 값을 그쪽에 합치지 말 것. 합치면 02 주제·04 강도 버튼까지 한 줄씩 차지한다. */
+.methodCard[data-active="true"] {
+  grid-column: 1 / -1;
+  grid-template-columns: minmax(220px, 32%) minmax(0, 1fr);
+  gap: 20px;
+  padding: 18px;
+}
+
+.methodCard[data-active="true"] .methodImageFrame {
+  min-height: 320px;
+  max-height: 460px;
+}
+
+.methodCard[data-active="true"] .methodMeta span:first-child {
+  font-size: 1.6rem;
+}
+
+/* 상세 블록의 '필요 입력' 행과 같은 문구라 활성 카드에서는 접는다. */
+.methodCard[data-active="true"] .methodText small {
+  display: none;
+}
+
 .methodImageFrame {
   width: 100%;
   height: 100%;
@@ -2331,6 +2355,86 @@
   font-weight: 760;
   line-height: 1.45;
   word-break: keep-all;
+}
+
+.methodDetail {
+  display: grid;
+  gap: 11px;
+  margin-top: 3px;
+  border-top: 1px solid rgba(229, 202, 126, 0.24);
+  padding-top: 11px;
+}
+
+.methodDetailBody {
+  color: rgba(226, 232, 244, 0.86);
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.62;
+  word-break: keep-all;
+}
+
+.methodDetailGroup {
+  display: grid;
+  gap: 7px;
+}
+
+.methodDetailLabel {
+  color: rgba(246, 238, 217, 0.6);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  line-height: 1;
+}
+
+.methodDetailChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.methodDetailChip {
+  border: 1px solid rgba(158, 174, 204, 0.28);
+  border-radius: 999px;
+  padding: 4px 9px;
+  color: rgba(226, 232, 244, 0.84);
+  background: rgba(255, 255, 255, 0.05);
+  font-size: 0.76rem;
+  font-weight: 750;
+  line-height: 1.25;
+  word-break: keep-all;
+}
+
+.methodDetailMeta {
+  display: grid;
+  gap: 4px;
+  color: rgba(246, 238, 217, 0.68);
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.45;
+  word-break: keep-all;
+}
+
+.methodDetailMeta b {
+  margin-right: 6px;
+  color: rgba(246, 238, 217, 0.5);
+  font-weight: 900;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .methodDetail {
+    animation: neoMethodDetailReveal 0.2s ease-out;
+  }
+}
+
+@keyframes neoMethodDetailReveal {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 .topicGrid,
@@ -3456,6 +3560,15 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .methodCard[data-active="true"] {
+    grid-template-columns: minmax(180px, 38%) minmax(0, 1fr);
+  }
+
+  .methodCard[data-active="true"] .methodImageFrame {
+    min-height: 260px;
+    max-height: 380px;
+  }
+
   .topicGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -3761,6 +3874,46 @@
     display: none;
   }
 
+  .methodCard[data-active="true"] {
+    /* 🔴 이 한 줄이 없으면 위쪽 .methodCard[data-active="true"] 의 2열 배치가 특이도로 이겨
+       좁은 화면에서도 좌우 분할이 유지된다. 390px 실측에서 본문 열이 111px 로 눌려
+       소개 문단이 15줄로 쪼개졌다. 접힌 카드와 같이 세로로 쌓는다. */
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .methodCard[data-active="true"] .methodImageFrame {
+    justify-self: center;
+    width: min(100%, 200px);
+    min-height: 0;
+    max-height: 282px;
+    aspect-ratio: 1055 / 1491;
+  }
+
+  .methodCard[data-active="true"] .methodMeta span:first-child {
+    font-size: 1.16rem;
+  }
+
+  .methodDetail {
+    gap: 8px;
+    padding-top: 9px;
+  }
+
+  .methodDetailBody {
+    font-size: 0.82rem;
+    line-height: 1.5;
+  }
+
+  .methodDetailChip {
+    padding: 3px 7px;
+    font-size: 0.7rem;
+  }
+
+  .methodDetailMeta {
+    font-size: 0.73rem;
+  }
+
   .choiceButton {
     min-height: 56px;
     padding: 13px 12px;
@@ -3874,6 +4027,15 @@
 
   .methodImageFrame {
     min-height: 0;
+  }
+
+  .methodCard[data-active="true"] {
+    padding: 10px;
+  }
+
+  .methodCard[data-active="true"] .methodImageFrame {
+    width: min(100%, 170px);
+    max-height: 240px;
   }
 
   .startButton {

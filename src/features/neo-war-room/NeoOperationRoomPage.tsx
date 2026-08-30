@@ -953,15 +953,31 @@ function getMethodCardCopy(mode: NeoWarRoomConsultMode, locale: LoadingLocale): 
   return table?.[mode] || methodCardCopy[mode];
 }
 
-const METHOD_SECTION_TEXT: Partial<Record<Exclude<LoadingLocale, "ko">, { title: string; imageAltSuffix: string }>> = {
-  en: { title: "Choose your analysis method", imageAltSuffix: "analysis method" },
-  ja: { title: "分析方式を選択", imageAltSuffix: "分析方式" },
-  "zh-CN": { title: "选择分析方式", imageAltSuffix: "分析方式" },
-  "zh-TW": { title: "選擇分析方式", imageAltSuffix: "分析方式" },
+type NeoMethodSectionText = {
+  title: string;
+  imageAltSuffix: string;
+  computeLabel: string;
+  inputLabel: string;
+  evidenceLabel: string;
 };
 
-function getMethodSectionText(locale: LoadingLocale) {
-  if (locale === "ko") return { title: "분석 방식 선택", imageAltSuffix: "분석 방식" };
+const METHOD_SECTION_TEXT: Partial<Record<Exclude<LoadingLocale, "ko">, NeoMethodSectionText>> = {
+  en: { title: "Choose your analysis method", imageAltSuffix: "analysis method", computeLabel: "What it computes", inputLabel: "Required input", evidenceLabel: "Basis in the result" },
+  ja: { title: "分析方式を選択", imageAltSuffix: "分析方式", computeLabel: "計算する項目", inputLabel: "必要な入力", evidenceLabel: "結果に付く根拠" },
+  "zh-CN": { title: "选择分析方式", imageAltSuffix: "分析方式", computeLabel: "计算项目", inputLabel: "所需输入", evidenceLabel: "结果附带的依据" },
+  "zh-TW": { title: "選擇分析方式", imageAltSuffix: "分析方式", computeLabel: "計算項目", inputLabel: "所需輸入", evidenceLabel: "結果附帶的依據" },
+};
+
+function getMethodSectionText(locale: LoadingLocale): NeoMethodSectionText {
+  if (locale === "ko") {
+    return {
+      title: "분석 방식 선택",
+      imageAltSuffix: "분석 방식",
+      computeLabel: "계산 항목",
+      inputLabel: "필요 입력",
+      evidenceLabel: "결과 근거",
+    };
+  }
   return METHOD_SECTION_TEXT[locale as Exclude<LoadingLocale, "ko">] || METHOD_SECTION_TEXT.en!;
 }
 
@@ -2871,6 +2887,29 @@ export default function NeoOperationRoomPage() {
                       <strong>{item.cardEyebrow}</strong>
                       <em>{getMethodCardCopy(item.mode, dialogueLocale)}</em>
                       <small>{item.inputSummary}</small>
+                      {method === item.mode ? (
+                        <span className={styles.methodDetail}>
+                          <span className={styles.methodDetailBody}>{item.detailBody}</span>
+                          <span className={styles.methodDetailGroup}>
+                            <span className={styles.methodDetailLabel}>{methodSectionText.computeLabel}</span>
+                            <span className={styles.methodDetailChips}>
+                              {item.calculableData.map((entry) => (
+                                <span key={entry} className={styles.methodDetailChip}>{entry}</span>
+                              ))}
+                            </span>
+                          </span>
+                          <span className={styles.methodDetailMeta}>
+                            <span>
+                              <b>{methodSectionText.inputLabel}</b>
+                              {item.inputSummary}
+                            </span>
+                            <span>
+                              <b>{methodSectionText.evidenceLabel}</b>
+                              {item.resultEvidenceLabel}
+                            </span>
+                          </span>
+                        </span>
+                      ) : null}
                     </span>
                   </button>
                 ))}
