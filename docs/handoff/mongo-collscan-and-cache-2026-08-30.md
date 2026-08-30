@@ -25,7 +25,7 @@ next: 4단계 가드 PR(브랜치 `perf/mongo-query-index-shapes`) 머지 → �
 
 - [ ] 사용자 허가 후 `npm run migrate:request-path-indexes` 1회 (선행 `npm run verify:request-path-indexes` 로 MISSING 1건 확인). 판정: 재실행 시 `OK users :: referralCode` + `누락=0`.
 - [x] 5단계 캐시 확장 — insights 목록/상세·content 피드 완료(위 "지금 상태"). `/api/me/access-state` 는 보류(사유 위). 남은 판정: 스테이징 머지 후 `curl -sI https://staging.code-destiny.com/api/insights | grep -i x-cd-cache` 두 번 → `miss` 다음 `hit`.
-- [x] 4단계 정적 가드 — 구현·배선 완료(위 "지금 상태"). 남은 판정: PR 머지 후 `pr-ci.yml` 의 "Verify Mongo query shapes match declared indexes" 스텝이 실제로 돌았는지 `gh run view` 로 1회 확인.
+- [x] 4단계 정적 가드 — 구현·배선 완료(위 "지금 상태"). PR #1353 CI(run 33319863161) 에서 스텝 "Verify Mongo query shapes match declared indexes" 가 로컬과 같은 수치(위반 0)로 돈 것을 확인(2026-08-31). 남은 판정 없음.
 
 ## 정본 예시
 
