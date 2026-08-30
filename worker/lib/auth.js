@@ -10,6 +10,33 @@ import { ensureLotsForBalance, resolveNextExpiry } from "./monthly-credit-lots.j
 export const JWT_ISSUER = "code-destiny-api";
 export const ACCESS_COOKIE_NAME = "fortune_auth_token";
 export const REFRESH_COOKIE_NAME = "fortune_auth_refresh";
+export const APP_REFRESH_TOKEN_HEADER = "x-code-destiny-refresh-token";
+
+// 앱(Capacitor)은 https://localhost 출처라 SameSite=Lax 쿠키를 주고받지 못한다. 그래서 앱 출처와
+// 앱 런타임 헤더가 **둘 다** 맞을 때만 헤더 자격증명을 인정한다 — CSRF 는 브라우저가 자동으로 싣는
+// 쿠키 세션을 악용하는 공격인데 이 조합에는 앰비언트 크리덴셜이 없다. 웹 오리진은 손대지 않는다.
+// 🔴 정본은 여기 하나다 — worker/routes/auth.js 가 이걸 import 해서 쓴다. 사본을 만들지 말 것.
+const MOBILE_APP_REQUEST_ORIGINS = new Set(["https://localhost"]);
+
+export function isMobileAppAuthRequest(request) {
+  const runtime = String(request?.headers?.get("x-code-destiny-runtime") || "").trim().toLowerCase();
+  if (runtime !== "mobile-app") return false;
+  let origin = "";
+  try {
+    origin = new URL(String(request.headers.get("origin") || "").trim()).origin;
+  } catch (e) {
+    return false;
+  }
+  return MOBILE_APP_REQUEST_ORIGINS.has(origin);
+}
+
+// 리프레시 자격증명 읽기 정본. 쿠키가 있으면 언제나 쿠키가 이기므로 웹 경로는 헤더 줄에 닿지 않는다.
+function readRequestRefreshToken(request) {
+  const fromCookie = cookieValue(request, REFRESH_COOKIE_NAME);
+  if (fromCookie) return fromCookie;
+  if (!isMobileAppAuthRequest(request)) return "";
+  return String(request.headers.get(APP_REFRESH_TOKEN_HEADER) || "").trim();
+}
 const FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
 const FLOWER_ADMIN_USER_ID = "flower-admin";
 const PAID_SERVICE_ADMIN_AUTH_PATHS = Object.freeze([
@@ -427,7 +454,11 @@ async function verifyAccessTokenToAuth(token, env, options = {}) {
 }
 
 async function verifyRefreshSessionToAuth(request, env, options = {}) {
-  const refreshToken = cookieValue(request, REFRESH_COOKIE_NAME);
+  // 🔴 쿠키만 읽던 시절, 앱은 액세스 토큰(기본 30분)이 만료되는 순간 이 폴백을 못 타 세션이
+  // 끊겼다. 웹은 refresh 쿠키로 여기서 조용히 되살아나는데 앱만 30분마다 로그아웃된 것이다.
+  // 더 나쁜 건 그 401 이 셸의 부팅 프로브를 타고 __cdForceSignOut 으로 이어져 **리프레시 토큰까지**
+  // 지웠다는 점이다(index.html __cdClearClientAuthState) — 14일짜리 세션이 30분에 죽었다.
+  const refreshToken = readRequestRefreshToken(request);
   if (!refreshToken) return null;
 
   let userId;
@@ -560,7 +591,7 @@ export async function getOptionalUserFromRequest(request, env, options = {}) {
   try {
     const bearerToken = getHeaderBearerToken(request);
     const accessCookieToken = cookieValue(request, ACCESS_COOKIE_NAME);
-    const refreshCookieToken = cookieValue(request, REFRESH_COOKIE_NAME);
+    const refreshCookieToken = readRequestRefreshToken(request);
     const allowTokenDbFallback = options?.allowDbFallback === true || isAuthMeRequest(request);
     const surfaceDbInfraError = options?.surfaceDbInfraError === true;
     // userProjection: 주어지면 access-token 경로와 refresh 폴백 경로 **양쪽** 모두 User 조회를 이 필드까지

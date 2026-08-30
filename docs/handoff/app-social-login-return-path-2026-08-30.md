@@ -1,44 +1,48 @@
 ---
 status: active
 updated: 2026-08-30
-next: PR #1299 → #1300 → #1302 순서로 머지하고, 스테이징 배포 후 기기에서 신규 구글 계정 가입이 앱으로 돌아오는지 본다
+next: PR #1309 를 머지하고 → 프로덕션 승격(사용자 지시 필요) → 기기(1.0.38)에서 로그인 후 30분 경과 뒤 콜드부팅이 로그아웃되지 않는지 본다
 ---
 
-# 앱 소셜 로그인이 커스텀탭에서 돌아오지 못하던 문제
+# 앱 로그인이 성공 직후 스스로 로그아웃되던 문제
 
 ## 왜
 
-안드로이드 앱(1.0.37 디버그)에서 **카카오는 "로그인 완료" 화면 뒤 실패 토스트**, **구글·네이버는 로딩 화면에서 영구 정지**. 회원가입·로그인을 고쳐 기기에서 다시 테스트할 수 있게 해 달라는 요청.
+앱(1.0.37)에서 카카오는 실패 토스트, 구글·네이버는 로딩 화면 정지. 커스텀탭 복귀 경로 자체는 PR #1299 로 고쳤고, 그 뒤 **기기 트레이스로 진짜 원인 3개를 확정**했다.
 
 ## 지금 상태
 
-- PR **#1299**(근본 원인·가드) CI 8/8 초록 · **#1300**(인증 UX) · **#1302**(정리) — 셋 다 **머지 대기**.
-- 🔴 #1300·#1302 는 **스택 PR 이라 지금은 CI 가 한 건도 안 돈다.** 워크플로 전부가 `branches: [main]` 이라 base 가 main 이 아니면 트리거되지 않는다. 부모를 머지하면 base 가 자동으로 main 이 되면서 그때 돈다.
+- PR **#1309** — 원인 3개 수정 + `verify:oauth-app-handoff` [4]절 신설. CI 전 항목 초록, **머지 대기**.
+- 앱 **1.0.38** 로컬 재빌드 진행/완료(versionCode 38). 기기 RFCXB0CP4AR 에는 아직 1.0.37.
+
+## 확정된 원인 3개 (기기 트레이스 2026-08-29 근거)
+
+1. **브릿지가 `/api/*` 를 리타게팅하면서 자격증명을 안 실었다.** 앱 출처가 `https://localhost` 라 `SameSite=Lax` 쿠키가 안 나가는데, 셸에서 `Authorization` 을 다는 곳은 `/api/auth/refresh` 뿐이다 → 부팅 프로브 `/api/auth/me` 가 401 → `__cdForceSignOut('auth-me-probe')` 가 토큰 3종 삭제. 트레이스에 `deepLink:exchangeOk` 가 2번인데 `lsKeys: ["cd_app_trace_v1"]` 뿐이었던 이유.
+2. **`verifyRefreshSessionToAuth` 가 리프레시 토큰을 쿠키에서만 읽었다** → 앱은 액세스 TTL(30분)마다 전 요청 401. 위 1번과 합쳐 30분마다 강제 로그아웃.
+3. **`isAuthInfraFailure` 가 메시지만·대소문자 구분해서 봤다** → `MongoPoolClearedError` 등이 `handleOAuthComplete` 3회 재시도를 못 타고 503 `"Database is temporarily unavailable."` 로 샜다(트레이스의 `exchangeFailed`).
 
 ## 남은 작업
 
-- [ ] **머지 순서 ① #1299 → ② #1300 → ③ #1302.** 각 머지 후 다음 PR 의 CI 가 초록인지 보고 넘어간다.
-- [ ] **기기 재검증 4항목** — ⑴ 신규 구글 계정 가입 → 앱 **안에서** `/signup` 마무리 폼이 뜨는가 ⑵ 카카오 로그인 완주 ⑶ 커스텀탭을 닫고 돌아왔을 때 소셜 버튼 3개가 다시 눌리는가 ⑷ 가입 폼 아래 칸이 키보드에 안 가리는가.
-- [ ] 🔴 ⑴⑵ 는 **워커 수정분이라 스테이징/프로덕션에 올라가기 전엔 기기에서 확인되지 않는다** — 앱 번들의 API base 가 `scripts/build-mobile-app.mjs:32` 에서 `https://code-destiny.com` 로 고정돼 있다. 머지 후 CDP `Page.addScriptToEvaluateOnNewDocument` 로 `window.CODE_DESTINY_API_BASE_URL` 을 스테이징으로 덮어 1회성 검증하거나, 사용자 승인 하에 프로덕션 승격 뒤 본다. ⑶⑷ 는 브릿지·React 라 디버그 APK 재설치로 바로 된다.
-
-## 정본 예시
-
-`worker/routes/auth.js:4608` (`appOAuthRedirect` 확정 지점 — 이 아래 모든 종료 응답이 가드 대상)
+- [ ] **#1309 머지.** 다른 열린 PR(#1307·#1308)과 파일 겹침 0이라 순서 자유.
+- [ ] 🔴 **프로덕션 승격** — 원인 2·3은 워커 수정이라 승격 전엔 기기에 안 닿는다(앱 API base 가 `scripts/build-mobile-app.mjs` 에서 `https://code-destiny.com` 고정). 승격은 사용자 지시가 있어야 실행한다: `gh workflow run "Release Cloudflare Pages and Worker" --ref main -f mode=production`.
+- [ ] **기기 재검증** — ⑴ 카카오/구글/네이버 로그인 완주 ⑵ **로그인 30분 뒤 앱을 완전 종료했다 재실행**해도 로그인 유지 ⑶ 커스텀탭을 닫고 돌아왔을 때 소셜 버튼 3개가 다시 눌리는가 ⑷ 가입 폼이 키보드에 안 가리는가.
 
 ## 함정
 
-- 🔴 **`--cd-app-viewport-h` 는 죽어 있다** — `app/app/_components/AppShell.tsx:36` 이 설정하는데 레포 전체에서 읽는 곳이 **0곳**이다(`git grep` 히트 1건 = setter 자신). `/app/*` 의 키보드 대응은 지금 아무 일도 하지 않는다. 살리면 `/app/*` 레이아웃 높이가 바뀌고 확인도 기기에서만 되므로 이번 범위에서 뺐다.
-- 🔴 **미검증 가설** — 로그인에 성공해도 30분 뒤 조용히 로그아웃될 수 있다. `index.html:12429-12432` 가 만료 토큰을 지우고, `:12458` 의 게스트 판정이 **리프레시를 한 번도 시도하지 않는다.** 기기 트레이스(`localStorage["cd_app_trace_v1"]`)로 먼저 확정할 것. 추측으로 고치지 말 것.
-- 레포에 IME 검증기가 없다(`git grep visualViewport -- scripts/` 0건) → #1300 의 키보드 수정은 **정적 가드 불가, 기기 실측뿐**.
+- 🔴 **`release-signing.properties` 는 gitignore 라 워크트리에 안 딸려온다.** 저장소 루트에서 복사해야 gradle 이 versionCode/키스토어를 읽는다. 여기 있는 값이 곧 빌드 버전이다 — 재빌드 전에 올릴 것.
+- 🔴 **`--cd-app-viewport-h` 는 죽어 있다** — `app/app/_components/AppShell.tsx:36` 이 설정만 하고 읽는 곳이 0곳. `/app/*` 키보드 대응은 지금 아무 일도 안 한다.
+- `worker/routes/auth.js:2412` `readRefreshTokenFromRequest` 는 `worker/lib/auth.js` 정본과 같은 로직의 **사본**이다. 지금은 일치하고 `__tests__/worker/auth.app-refresh-token.test.js` 가 지키지만, 갈리면 이 문제가 재발한다.
+- 레포에 IME 검증기가 없다(`git grep visualViewport -- scripts/` 0건) → 키보드 수정은 정적 가드 불가, 기기 실측뿐.
 
 ## 검증
 
 ```
-npm run verify:oauth-app-handoff   # #1299 의 신규 가드 — 워커·브릿지·Java·Manifest 4면 대조
-npm run verify:guard-wiring
+npm run verify:oauth-app-handoff   # [4]절이 브릿지 부착 4항목·리졸버 수신 3항목을 fail-closed 검사
+npm run verify:auth-p0p1
 npx jest __tests__/worker/auth     # NODE_OPTIONS=--experimental-vm-modules 필요
+npm run mobile:android:sync        # 웹 번들 → cap sync (gradle node_modules 경로 재작성은 커밋 금지)
 ```
 
-## 모르는 것
+## 정본 예시
 
-카카오 교환 실패의 정확한 사유. 후보는 grant TTL 180초 초과(`worker/routes/auth.js:44`) · 이중 콜백 · 네트워크 실패인데 **정적으로 확정 못 했다.** 기기 트레이스의 `deepLink:exchangeFailed` 가 `status`·`message` 로 이름을 알려준다 — 🔴 폰 잠금이 풀려 있어야 웹뷰 DevTools 가 응답한다.
+`scripts/app-native-bridge.js` `installAppApiRetarget` — 앱의 모든 `/api/*` 가 지나는 단일 지점. 인증 헤더는 호출부가 아니라 여기서 붙인다(웹 blast radius 0).

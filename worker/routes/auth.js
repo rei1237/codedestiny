@@ -5,6 +5,7 @@ import { getEnv } from "../lib/env.js";
 import { readThroughCredentialCache } from "../lib/credential-scoped-cache.js";
 import {
   ACCESS_COOKIE_NAME,
+  APP_REFRESH_TOKEN_HEADER,
   REFRESH_COOKIE_NAME,
   getAccessTokenExpiresIn,
   getAccessTokenSecret,
@@ -14,6 +15,7 @@ import {
   getRefreshTokenExpiresIn,
   getRefreshTokenSecret,
   isAuthDbInfraError,
+  isMobileAppAuthRequest,
   refreshSessionMatchesRequest,
   requireAuth,
   requireUserFromRequest,
@@ -1138,21 +1140,16 @@ function requiresSameOriginAuthGuard(method, path) {
 // SameSite=Lax 라 앱 출처로는 세션 쿠키가 나가지도 않는다. 즉 이 공격 모델이 성립하지 않는다.
 // 그래서 앱 출처와 앱 런타임 헤더가 "둘 다" 맞을 때만 면제한다.
 // 웹 오리진 경로는 손대지 않는다 — 거기서 넓히면 진짜 쿠키 세션이 노출된다.
-const MOBILE_APP_REQUEST_ORIGINS = new Set(["https://localhost"]);
-
-function isMobileAppAuthRequest(request) {
-  const runtime = String(request.headers.get("x-code-destiny-runtime") || "").trim().toLowerCase();
-  if (runtime !== "mobile-app") return false;
-  const origin = normalizeOriginOnly(request.headers.get("origin"));
-  return Boolean(origin) && MOBILE_APP_REQUEST_ORIGINS.has(origin);
-}
+// 판정 정본은 worker/lib/auth.js 의 isMobileAppAuthRequest 다(여기 있던 사본을 그리로 옮겼다).
+// 인증 리졸버(verifyRefreshSessionToAuth)가 앱 리프레시 헤더를 받으려면 같은 판정이 필요한데,
+// 사본을 두 벌 두면 한쪽만 고쳐져 "라우트는 앱으로 보고 리졸버는 웹으로 보는" 상태가 난다.
 
 // 같은 이유(SameSite=Lax)로 앱은 리프레시 쿠키를 받지도, 되돌려 보내지도 못한다. 그래서
 // handleRefresh 가 쿠키만 읽던 동안 앱은 액세스 토큰(기본 30분)이 만료되면 되살릴 방법이
 // 없어 세션이 그대로 끊겼다. 쿠키를 쓸 수 없는 앱에 한해 같은 리프레시 토큰을 JSON 본문으로
 // 내려주고 이 헤더로 되돌려 받는다 — 회전·재사용 탐지·세션 폐기는 기존 경로를 그대로 탄다.
 // 웹은 이 분기에 들어오지 않으므로 쿠키 전용 동작이 그대로 유지된다.
-const APP_REFRESH_TOKEN_HEADER = "x-code-destiny-refresh-token";
+// 헤더 이름 정본도 lib/auth.js 다(APP_REFRESH_TOKEN_HEADER import).
 
 function appRefreshTokenField(request, refreshToken) {
   if (!refreshToken || !isMobileAppAuthRequest(request)) return {};
@@ -2368,22 +2365,30 @@ async function normalizeAuthUserResponse(user, env) {
   };
 }
 
+/**
+ * 인증 라우트 재시도 루프의 "일시적 인프라 장애" 판정.
+ *
+ * 🔴 여기서 false 가 나오면 에러가 재시도 루프 **밖으로** 던져지고, 공용 래퍼(worker/lib/http.js)가
+ * 그것을 일반 503 "Database is temporarily unavailable." 로 바꿔 내보낸다 — 즉 재시도가 통째로
+ * 무력화된 채 사용자만 실패를 본다. 2026-08-29 기기 트레이스에서 앱 소셜 로그인이 정확히 그 문구로
+ * 죽었다: `{"step":"deepLink:exchangeFailed","detail":{"status":503,"message":"Database is
+ * temporarily unavailable."}}`. handleOAuthComplete 자신의 503 문구("Social login service is
+ * temporarily unavailable.")가 아니라 래퍼 문구였다는 것이 "샜다"는 증거다.
+ *
+ * 원인은 이 판정이 **메시지 문자열만, 대소문자를 구분해서** 봤다는 것이다. 이름으로만 식별되는
+ * MongoPoolClearedError(메시지 "Connection pool for ... was cleared" 는 소문자 "connect" 를 담지
+ * 않는다)·MongoWaitQueueTimeoutError, 소문자 "mongodb"/"mongoose", EPIPE·ETIMEDOUT·ENOTFOUND 가
+ * 전부 빠져나갔다. 정본 판별기(db.js isTransientMongoError → lib/auth.js isAuthDbInfraError)에
+ * 위임해 정렬한다. 마커 검사는 이 함수만의 몫이라 그대로 남긴다.
+ */
 function isAuthInfraFailure(error, markers = []) {
-  const message = String(error?.message || "");
+  if (isAuthDbInfraError(error)) return true;
+
+  const message = String(error?.message || "").toLowerCase();
   if (!message) return false;
-
-  const infraHint = (
-    message.includes("Mongo")
-    || message.includes("timed out")
-    || message.includes("timeout")
-    || message.includes("ECONN")
-    || message.includes("network")
-    || message.includes("connect")
-    || message.includes("server selection")
-  );
-
-  if (infraHint) return true;
-  return markers.some((marker) => message.includes(marker));
+  // 정본 판별기에 없는 잔여 힌트. 원래와 달리 대소문자를 구분하지 않는다(좁히지 않기 위해 남긴다).
+  if (message.includes("connect")) return true;
+  return markers.some((marker) => message.includes(String(marker).toLowerCase()));
 }
 
 async function sleep(ms) {

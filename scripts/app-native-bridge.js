@@ -48,6 +48,25 @@
 
     var passthroughFetch = window.fetch.bind(window);
 
+    function readStoredToken(key) {
+      try {
+        return String(window.localStorage.getItem(key) || "").trim();
+      } catch (e) { return ""; }
+    }
+
+    // exp 를 못 읽으면 "곧 만료"로 본다 — 그래야 리프레시 폴백이 열린다. 최종 판정은 서버가 한다.
+    function accessTokenIsExpiring(token) {
+      try {
+        var payload = String(token).split(".")[1];
+        if (!payload) return true;
+        var b64 = payload.replace(/-/g, "+").replace(/_/g, "/");
+        while (b64.length % 4) b64 += "=";
+        var exp = Number(JSON.parse(atob(b64)).exp);
+        if (!isFinite(exp) || exp <= 0) return true;
+        return (exp * 1000) - Date.now() <= 60000;
+      } catch (e) { return true; }
+    }
+
     // 호출 시점에 읽는다 — 셸의 rememberSuccessfulApiBase 가 부팅 뒤 이 값을 갈아치운다.
     function retargetBase() {
       try {
@@ -77,8 +96,31 @@
           new Headers(init.headers).forEach(function (value, key) { headers.set(key, value); });
         }
       } catch (e) { /* noop */ }
-      // 워커의 교차 출처 가드는 이 헤더를 든 앱 요청만 면제한다(worker/routes/auth.js isMobileAppAuthRequest).
+      // 워커의 교차 출처 가드는 이 헤더를 든 앱 요청만 면제한다(worker/lib/auth.js isMobileAppAuthRequest).
       if (!headers.has("X-Code-Destiny-Runtime")) headers.set("X-Code-Destiny-Runtime", "mobile-app");
+      // 🔴 여기서 토큰을 싣지 않으면 앱의 **어떤** 요청도 인증되지 않는다. 출처가 https://localhost 라
+      //    SameSite=Lax 인 access 쿠키가 교차 사이트로 나가지 않는데, 셸의 호출부는 Authorization 을
+      //    붙이지 않는다(index.html 전체에서 Bearer 를 직접 다는 곳은 구독 조회와 /api/auth/refresh
+      //    둘뿐이다). 2026-08-29 기기 트레이스가 그 결과다: 소셜 로그인 교환이 두 번 성공(deepLink:
+      //    exchangeOk)했는데도 부팅 프로브 __cdProbeGuestSession 의 /api/auth/me 가 401 을 받아
+      //    __cdForceSignOut('auth-me-probe') 이 저장된 토큰 3종을 전부 지웠고, localStorage 에는
+      //    cd_app_trace_v1 만 남아 있었다.
+      //    🔴 고칠 지점이 호출부가 아니라 여기인 이유는 이 파일 위쪽 리타게팅 주석과 같다 —
+      //    호출부는 웹과 공유하는 파일이고, 이 브릿지는 앱 HTML 에만 주입돼 웹 blast radius 가 0이다.
+      //    이미 Authorization 을 단 호출(구독 조회·리프레시)은 그대로 존중한다.
+      if (!headers.has("Authorization")) {
+        var accessToken = readStoredToken("fortune_auth_token");
+        if (accessToken) headers.set("Authorization", "Bearer " + accessToken);
+        // access 만료 뒤에도 세션이 살아 있게 한다. 웹은 refresh **쿠키**로 워커의 리프레시 폴백
+        // (worker/lib/auth.js verifyRefreshSessionToAuth)을 타는데 앱엔 그 쿠키가 없어 액세스 TTL
+        // (기본 30분)마다 로그아웃됐다. 상시 싣지 않고 부재·만료 임박일 때만 싣는다.
+        if (!accessToken || accessTokenIsExpiring(accessToken)) {
+          var refreshToken = readStoredToken("fortune_auth_refresh_token");
+          if (refreshToken && !headers.has("X-Code-Destiny-Refresh-Token")) {
+            headers.set("X-Code-Destiny-Refresh-Token", refreshToken);
+          }
+        }
+      }
       nextInit.headers = headers;
       // 앱은 SameSite=Lax 쿠키를 못 싣지만 워커가 Allow-Credentials 를 주므로 자격증명 경로는 열어 둔다.
       if (!nextInit.credentials) nextInit.credentials = "include";

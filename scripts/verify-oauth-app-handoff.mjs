@@ -237,6 +237,68 @@ for (const site of callSites) {
 console.log(`  ✓ 호출부 ${callSites.length}곳 검사`);
 
 // ─────────────────────────────────────────────────────────────────────────
+// [4] 교환에 성공한 세션이 앱 요청에 실제로 실리는가
+//
+// 딥링크 교환이 성공해도 이후 요청이 토큰을 안 실으면 사용자에게는 "로그인이 안 된다"와
+// 구분되지 않는다. 2026-08-29 기기 트레이스에서 exchangeOk 두 번 뒤 부팅 프로브의
+// /api/auth/me 가 401 을 받아 __cdForceSignOut 이 저장 토큰 3종을 지웠다.
+// 셸 호출부는 Authorization 을 안 붙이므로 브릿지의 /api/* 리타게팅이 유일한 부착 지점이다.
+// ─────────────────────────────────────────────────────────────────────────
+console.log("[4] 앱 /api/* 리타게팅이 세션 자격증명을 싣는가");
+const retarget = functionBody(bridge, "function installAppApiRetarget(", BRIDGE);
+if (retarget) {
+  if (!/headers\.set\(\s*"Authorization"\s*,\s*"Bearer "/.test(retarget)) {
+    failures.push(
+      `${BRIDGE} installAppApiRetarget 이 Authorization 을 붙이지 않는다 — 앱은 `
+        + `SameSite=Lax 쿠키를 못 실어 모든 /api/* 요청이 게스트로 나간다`,
+    );
+  }
+  if (!retarget.includes("fortune_auth_token")) {
+    failures.push(`${BRIDGE} installAppApiRetarget 이 fortune_auth_token 을 읽지 않는다`);
+  }
+  if (!/headers\.has\(\s*"Authorization"\s*\)/.test(retarget)) {
+    failures.push(
+      `${BRIDGE} installAppApiRetarget 이 호출부가 이미 단 Authorization 을 존중하지 않는다 `
+        + `— 리프레시·구독 조회가 자기 토큰을 잃는다`,
+    );
+  }
+  if (!/headers\.set\(\s*"X-Code-Destiny-Refresh-Token"/.test(retarget)) {
+    failures.push(
+      `${BRIDGE} installAppApiRetarget 이 만료 시 X-Code-Destiny-Refresh-Token 을 싣지 않는다 `
+        + `— 앱엔 refresh 쿠키가 없어 액세스 TTL(기본 30분)마다 세션이 끊긴다`,
+    );
+  }
+}
+
+// 실어 보낸 헤더를 받는 쪽(인증 리졸버)이 실제로 읽는지 — 한쪽만 고치면 조용히 401 이다.
+const LIB_AUTH = "worker/lib/auth.js";
+const libAuth = read(LIB_AUTH);
+// functionBody 는 여기 못 쓴다 — 선언의 `options = {}` 기본값이 첫 중괄호라 본문 대신 그걸 집는다.
+const RESOLVER_DECL = "async function verifyRefreshSessionToAuth(";
+const resolverAt = libAuth ? libAuth.indexOf(RESOLVER_DECL) : -1;
+if (libAuth && resolverAt === -1) {
+  failures.push(`${LIB_AUTH}: \`${RESOLVER_DECL}\` 를 찾지 못했다 — 이름이 바뀌었으면 이 가드를 함께 고쳐야 한다`);
+}
+const refreshResolver = resolverAt === -1
+  ? ""
+  : libAuth.split("\n").slice(lineOf(libAuth, resolverAt) - 1, lineOf(libAuth, resolverAt) + 11).join("\n");
+if (refreshResolver && !refreshResolver.includes("readRequestRefreshToken(")) {
+  failures.push(
+    `${LIB_AUTH} verifyRefreshSessionToAuth 가 쿠키만 읽는다 — 앱은 refresh 쿠키를 받지 못하므로 `
+      + `readRequestRefreshToken(앱 헤더 폴백)을 타야 한다`,
+  );
+}
+if (libAuth && !/export function isMobileAppAuthRequest\(/.test(libAuth)) {
+  failures.push(`${LIB_AUTH} 가 isMobileAppAuthRequest 를 export 하지 않는다 — 판정 사본이 갈린다`);
+}
+if (worker && /^function isMobileAppAuthRequest\(/m.test(worker)) {
+  failures.push(
+    `${WORKER} 에 isMobileAppAuthRequest 사본이 다시 생겼다 — 정본은 ${LIB_AUTH} 하나여야 한다`,
+  );
+}
+console.log("  ✓ 브릿지 부착 4항목 · 리졸버 수신 3항목 검사");
+
+// ─────────────────────────────────────────────────────────────────────────
 if (notes.length > 0) {
   console.log("\n선언된 예외:");
   for (const note of notes) console.log(`  · ${note}`);
