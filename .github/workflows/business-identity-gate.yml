@@ -32,6 +32,10 @@ on:
       - "app/ja/tokushoho/**"
       - "app/contact-us/**"
       - "app/_content/seo-copy.js"
+      - "lib/structured-data.ts"
+      - "app/about/**"
+      - "app/_content/about-copy.js"
+      - "app/editorial-policy/**"
       # ── 게이트 자신 ───────────────────────────────────────
       - "scripts/verify-business-identity.mjs"
       - ".github/workflows/business-identity-gate.yml"
