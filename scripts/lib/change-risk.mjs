@@ -60,7 +60,9 @@ const deepVerificationRules = [
   [/^js\/core\/access-store\.js$/i, "접근 상태 저장소"],
 
   // ── 결제·권한
-  [/^worker\/routes\/(payments|billing|access|app-store)\.js$/i, "결제·권한 라우트"],
+  // access-state 는 정확일치가 아니라 접두 일치가 필요하다 — `access.js` 만 적혀 있어서
+  // `access-state.js`(유료 판정 스냅샷 배달 경로)가 deepRequired 에서 빠져 있었다(2026-08-31).
+  [/^worker\/routes\/(payments|billing|access|access-state|app-store)\.js$/i, "결제·권한 라우트"],
   // billing-feature-registry 는 (categoryKey, subFeatureKey) → featureKey 매핑과 reason 해석 체인을
   // 소유한다 — 서버 coin-gate 와 React 결제창이 같은 함수(getBillingFeaturePricing)로 가격을 푸는 지점이라
   // 여기가 바뀌면 표시가와 청구액이 동시에 움직인다. 목록에 없어서 deepRequired 가 아니었다.

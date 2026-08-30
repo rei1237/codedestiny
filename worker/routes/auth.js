@@ -3,6 +3,9 @@ import { MonthlyCreditLedger, PointHistory, RefreshTokenSession, User } from "..
 import { MONTHLY_CREDIT_TTL_MS } from "../lib/monthly-credit-lots.js";
 import { getEnv } from "../lib/env.js";
 import { readThroughCredentialCache } from "../lib/credential-scoped-cache.js";
+// 🔴 access-state.js 가 아니라 의존 없는 저장소 모듈에서 가져온다 — 그쪽을 가져오면
+// models.js·content-unlocks.js 까지 이 라우트의 모듈 그래프에 딸려 들어온다(그 파일 머리말 참고).
+import { invalidateAccessStateCacheForUser } from "../lib/access-state-cache.js";
 import {
   ACCESS_COOKIE_NAME,
   APP_REFRESH_TOKEN_HEADER,
@@ -4180,6 +4183,13 @@ async function handleWithdraw(request, env) {
     console.error("[auth/withdraw] user anonymize failed:", error);
     return json({ message: "Account withdrawal failed. Please try again." }, { status: 500 });
   }
+
+  // 🔴 이 줄을 지우면 탈퇴한 계정이 최대 60초 동안 유효한 이용권 스냅샷을 계속 받는다.
+  // GET /api/me/access-state 는 캐시 히트 시 requireUserFromRequest 를 건너뛰고(성능 때문에 의도적),
+  // 그 인증이 유일하게 하던 탈퇴 판정(worker/lib/auth.js resolveActiveUserAuth 의 isWithdrawnUser)이
+  // 함께 건너뛰어지기 때문이다. 여기서 비우는 것이 그 경로를 fail-closed 로 닫는 유일한 지점이다.
+  // verify:access-state-cache-order 가 이 호출과 라우트의 조회 순서를 함께 지킨다.
+  invalidateAccessStateCacheForUser(userId);
 
   try {
     await User.db.collection("payments").updateMany(

@@ -5,11 +5,13 @@ import {
   ACCESS_STATE_USER_PROJECTION,
   attachDegradedGuardianUsageToAccessState,
   attachGuardianUsageToAccessState,
+  invalidateAccessStateCacheForUser,
   readAccessStateCache,
   resolveCompleteAccessState,
   writeAccessStateCache,
 } from "../lib/access-state.js";
 import { buildApiMeta, requestIdFromRequest } from "../lib/api-contract.js";
+import { CREDENTIAL_CACHE_REFRESH_HEADER } from "../lib/credential-scoped-cache.js";
 import {
   buildGuardianFortuneUsageStatus,
   createMongoGuardianFortuneStore,
@@ -165,6 +167,43 @@ export async function handleAccessStateRoutes(request, env) {
     userId = await peekAccessTokenUserId(request, env);
     trace.authMs = Date.now() - authStartedAt;
 
+    // 🔴 강제 새로고침(결제 직후)은 이 라우트에서 지금까지 아무 효과가 없었다 — 셸(index.html)과
+    // app/_lib/user-session-cache.ts 가 헤더를 실어 보내도 라우트가 읽지 않아 60초 캐시가 그대로 나갔다.
+    // 조기 조회를 넣으면 그 창이 인증 앞으로 당겨지므로, 헤더를 여기서 실제로 존중한다.
+    const forceRefresh = String(request.headers.get(CREDENTIAL_CACHE_REFRESH_HEADER) || "").trim() === "1";
+    if (forceRefresh && userId) invalidateAccessStateCacheForUser(userId);
+
+    // 🔴 스냅샷 조회는 인증 DB 왕복보다 **앞**이어야 한다. 새 캐시를 덧씌운 게 아니라 이미 있던 것을
+    // 옮긴 것이다(코딩 원칙 6 — 같은 장치가 안팎에 있으면 감싸지 말고 그 지점을 고친다).
+    // 예전에는 이 조회가 requireUserFromRequest 뒤에 있어, 캐시 히트여도 Mongo 핸드셰이크를 그대로 냈다.
+    // 그 핸드셰이크는 요청마다 새로 난다 — Cloudflare 가 요청 컨텍스트 종료 시 소켓을 못 쓰게 만들기 때문이다
+    // (worker/lib/credential-scoped-cache.js 머리말 실측).
+    //
+    // 여기 userId 는 peekAccessTokenUserId 가 액세스 JWT 의 서명·iss·aud·만료를 전부 검증하고 뽑은
+    // 값이라 DB 없이도 위조할 수 없다. 리프레시 폴백 사용자는 "" 이 되어 아래 원래 경로로 그대로 간다.
+    //
+    // 🔴 requestedProfileId 가 있을 때만 탄다. 비어 있으면 readAccessStateCache 가 아이솔레이트 로컬
+    // currentProfileByUser 폴백을 쓰는데(worker/lib/access-state.js), 현재 프로필의 정본은 아래
+    // auth.authUserDoc.destinyProfilesCurrentId 다. 다른 아이솔레이트에서 카드를 바꾼 사용자가
+    // 이전 프로필 스냅샷을 받는 신규 회귀가 생긴다. 지배 호출부(js/core/access-store.js)는 항상
+    // ?profileId= 를 실어 보내므로 이 제한으로 잃는 히트는 거의 없다.
+    //
+    // 🔴 대가는 하나다: 히트하면 requireUserFromRequest 를 건너뛰므로 탈퇴 판정
+    // (worker/lib/auth.js resolveActiveUserAuth 의 isWithdrawnUser)도 함께 건너뛴다. 그래서 탈퇴
+    // 라우트가 worker/routes/auth.js handleWithdraw 에서 invalidateAccessStateCacheForUser 로 이 캐시를
+    // 즉시 비운다 — 🔴 그 호출을 지우면 탈퇴한 계정이 최대 ACCESS_STATE_TTL_MS 동안 유효한 스냅샷을
+    // 받는다. verify:access-state-cache-order 가 이 순서와 그 호출을 함께 지킨다.
+    const earlyCached = !forceRefresh && userId && requestedProfileId
+      ? readAccessStateCache(userId, { profileId: requestedProfileId, include })
+      : null;
+    if (earlyCached) {
+      // 운영에서 "인증을 건너뛴 히트"를 따로 셀 수 있어야 한다 — 탈퇴 무효화가 깨지면 이 수치가 먼저 튄다.
+      trace.cache = "hit-early";
+      trace.authSkipped = true;
+      trace.authPresent = true;
+      return finish(responseFor(earlyCached, false, request), "");
+    }
+
     // 🔴 요청 간 in-flight Promise 공유(globalThis 캐시)는 두지 않는다. Cloudflare Workers 는 한 요청의
     // I/O 컨텍스트에서 만든 Promise 를 다른 요청이 이어받는 것을 금지하며, 위반하면 런타임이
     // "A promise was resolved... from a different request context" 로 continuation 을 취소한다.
@@ -189,7 +228,11 @@ export async function handleAccessStateRoutes(request, env) {
     const storedProfileId = String(auth.authUserDoc?.destinyProfilesCurrentId || "").trim();
     profileId = requestedProfileId || storedProfileId;
 
-    const cached = readAccessStateCache(userId, { profileId, include });
+    // 위 earlyCached 와 같은 캐시다. 여기 한 번 더 읽는 이유는 키가 달라질 수 있기 때문이다 —
+    // 리프레시 폴백이면 위에서 userId 가 "" 였고, 요청에 profileId 가 없으면 여기서야 저장된
+    // 현재 카드(storedProfileId)로 키가 확정된다.
+    if (forceRefresh && userId) invalidateAccessStateCacheForUser(userId);
+    const cached = forceRefresh ? null : readAccessStateCache(userId, { profileId, include });
     if (cached) {
       trace.cache = "hit";
       return finish(responseFor(cached, false, request), "");
