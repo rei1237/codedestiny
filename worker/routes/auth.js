@@ -1321,7 +1321,7 @@ function buildOAuthFrontendUrl(frontendBase, nextPath = "/") {
  */
 function buildOAuthDuplicateCallbackResponse(safeFrontendBase, nextPath, appRedirect, flow) {
   const appTarget = buildAppOAuthRedirect(appRedirect, {
-    flow,
+    flow,  // app-bridge: unused — 로그 · 웹 폴백용 표시값이라 브릿지가 읽을 것이 없다
     next: nextPath !== "/" ? nextPath : "",
   });
   if (appTarget) return buildAppOAuthHandoffResponse(appTarget);
@@ -4690,7 +4690,7 @@ async function handleOAuthCallback(request, env, provider) {
       if (nextPath !== "/") redirectParams.set("next", nextPath);
       const appRedirectTarget = buildAppOAuthRedirect(appRedirect, {
         social_grant: grant,
-        flow,
+        flow,  // app-bridge: unused — 로그 · 웹 폴백용 표시값이라 브릿지가 읽을 것이 없다
         next: nextPath !== "/" ? nextPath : "",
       });
       if (appRedirectTarget) return buildAppOAuthHandoffResponse(appRedirectTarget);
@@ -4760,7 +4760,7 @@ async function handleOAuthCallback(request, env, provider) {
         }, env);
         const appRedirectTarget = buildAppOAuthRedirect(appRedirect, {
           social_grant: grant,
-          flow,
+          flow,  // app-bridge: unused — 로그 · 웹 폴백용 표시값이라 브릿지가 읽을 것이 없다
           next: nextPath !== "/" ? nextPath : "",
         });
         if (appRedirectTarget) {
@@ -5103,7 +5103,7 @@ async function handleOAuthCompleteSignup(request, env) {
     }, env);
     appRedirectUrl = buildAppOAuthRedirect(appRedirect, {
       social_grant: grant,
-      flow,
+      flow,  // app-bridge: unused — 로그 · 웹 폴백용 표시값이라 브릿지가 읽을 것이 없다
       next: nextPath !== "/" ? nextPath : "",
     }) || "";
   }
