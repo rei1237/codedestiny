@@ -22,7 +22,7 @@ next: 1단계 PR(브랜드·저자) 머지 → 프로덕션 승격 → 1-C/1-D/1
 
 ## 지금 상태
 
-- 1단계 PR 1(1-A 브랜드 신호 + 1-B 저자 실명화): 브랜치 `worktree-growth-stage1-brand`, PR 번호는 본문 참조. 머지 대기.
+- 1단계 PR 1(1-A 브랜드 신호 + 1-B 저자 실명화): 브랜치 `worktree-growth-stage1-brand`, PR #1327. 머지 대기.
 - 2~5단계 미착수.
 
 ## 남은 작업
