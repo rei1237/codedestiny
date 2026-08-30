@@ -2,11 +2,11 @@
   "_comment": "셸 잔여 한국어 배치 1 — 히어로·오늘의 운세 패널·오늘의 추천. 용어집(i18n/glossary.json)을 따른다. 브랜드 고유명사(Code Destiny, Neo, Yeoni)는 번역하지 않는다. 가격은 KRW 표기를 유지한다(해외 마켓 미개방, docs/INTERNATIONAL_MARKET_LOCALIZATION.md).",
 
   "shell.normalLogo.moonHeroCopy.kbm4p3d": {
-    "ko": "한 체계의 결론을 다른 체계로 확인합니다. 생년월일만 넣으면 무료로 시작할 수 있습니다.",
-    "en": "We check one system's conclusion against the others. Enter your birth date and start free.",
-    "ja": "一つの体系の結論を、別の体系で確かめます。生年月日を入れるだけで無料で始められます。",
-    "zh-CN": "用另一套体系检验前一套的结论。只需输入生日即可免费开始。",
-    "zh-TW": "用另一套體系檢驗前一套的結論。只需輸入生日即可免費開始。",
+    "ko": "생년월일만 넣으면 오늘의 운세는 무료입니다. 초융합 리딩은 여섯 체계를 교차검증합니다.",
+    "en": "Enter your birth date and today's reading is free. The Fusion reading cross-checks six systems.",
+    "ja": "生年月日を入れれば今日の運勢は無料です。超融合リーディングは六つの体系をクロス検証します。",
+    "zh-CN": "只需输入生日，今日运势即可免费查看。超融合解读会交叉验证六大体系。",
+    "zh-TW": "只需輸入生日，今日運勢即可免費查看。超融合解讀會交叉驗證六大體系。",
     "vi": "Tứ Trụ, tarot, Tử Vi Đẩu Số, Túc Diệu, chiêm tinh Vệ Đà và chiêm tinh phương Tây, cùng cả nhân tướng học — mỗi hệ đọc theo đúng chuẩn mực của riêng nó.",
     "hi": "चार स्तंभ, टैरो, ज़ी वेई दोउ शू, नक्षत्र ज्योतिष, वैदिक और पश्चिमी ज्योतिष, यहाँ तक कि चेहरा पठन भी — हर पद्धति उसी के अपने मानकों से पढ़ी जाती है।",
     "es": "Cuatro Pilares, tarot, Zi Wei Dou Shu, Sukuyo, astrología védica y occidental, y hasta la lectura del rostro: cada uno leído según los criterios de su propia tradición.",
