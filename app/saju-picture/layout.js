@@ -2,7 +2,7 @@ import { withUniqueRouteMetadata } from "../../lib/generate-page-metadata";
 
 const SAJU_PICTURE_LAYOUT_TEXT_TRANSLATIONS = {
   ko: {
-    title: "Saju Guardian으로 이동 | 꿀꿀 만세력",
+    title: "Saju Guardian으로 이동 | 꿀꿀 운세",
     description: "사주 가디언 소환진은 /saju-guardian 경로에서 열립니다.",
   },
   en: {

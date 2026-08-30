@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 
 const SIKOJEN_LAYOUT_TEXT_TRANSLATIONS = {
   ko: {
-    title: '핀란드 주석점 | 꿀꿀 만세력',
+    title: '핀란드 주석점 | 꿀꿀 운세',
     description: '마법의 주석으로 미래를 알아보는 핀란드 전통 점술. 부의 운, 연애운, 행운을 만나보세요.',
     keywords: '주석점, 핀란드 점술, 운세, 타로, 점, 미래',
     ogTitle: '핀란드 주석점 - 신비로운 운명의 이야기',
