@@ -281,7 +281,17 @@
 
   function showAuthProgress(message) {
     try {
-      if (document.getElementById(AUTH_PROGRESS_ID)) return;
+      var existing = document.getElementById(AUTH_PROGRESS_ID);
+      if (existing) {
+        // 겹쳐 만들지 않되 문구는 갱신한다. 예전에는 여기서 그냥 돌아갔기 때문에 딥링크 복귀 직후의
+        // "로그인 정보를 확인하는 중이에요..." 가 화면에 한 번도 나타나지 못했다(커스텀탭을 열 때
+        // 이미 오버레이가 떠 있으므로 항상 이 분기였다).
+        if (message) {
+          var currentLabel = existing.querySelector("[data-cd-auth-progress-label]");
+          if (currentLabel) currentLabel.textContent = String(message);
+        }
+        return;
+      }
       var host = document.body || document.documentElement;
       if (!host) return;
       var overlay = document.createElement("div");
@@ -306,6 +316,7 @@
       ].join(";");
 
       var label = document.createElement("div");
+      label.setAttribute("data-cd-auth-progress-label", "");
       label.textContent = String(message || "우주의 좌표를 동기화하는 중... 잠시만 기다려 주세요.");
       label.style.cssText = "max-width:22rem";
 
@@ -328,6 +339,32 @@
       var node = document.getElementById(AUTH_PROGRESS_ID);
       if (node) node.remove();
     } catch (e) { /* noop */ }
+  }
+
+  // 인증이 성공 없이 끝났음을 화면 쪽에 알린다.
+  //
+  // 오버레이를 걷는 것만으로는 부족하다 — React 로그인 화면(AuthShell)은 소셜 버튼을
+  // "인증 화면으로 이동 중…" 상태로 잠가 두는데, 커스텀탭을 그냥 닫고 돌아오면 그 잠금을 풀 계기가
+  // 없어 버튼 3개가 영구히 굳는다. 🔴 화면 쪽에 visibilitychange 리스너를 새로 달지 말 것 —
+  // 취소 판정은 openAuthStartedAt 을 가진 이 파일에만 있고, 여기서 한 번만 쏜다.
+  function notifyAuthCancelled(reason) {
+    try {
+      window.dispatchEvent(new CustomEvent("cd:auth-cancelled", {
+        detail: { reason: String(reason || "cancelled"), at: Date.now() },
+      }));
+    } catch (e) { /* noop */ }
+  }
+
+  // 서버가 딥링크로 넘긴 social_error 를 사람이 읽을 수 있는 문장으로 바꾼다.
+  // 정본은 worker/routes/auth.js 의 실패 사유 문자열이고, 모르는 값은 원문을 그대로 보여 준다
+  // (조용히 "알 수 없는 오류"로 뭉개면 다음 세션이 사유를 잃는다).
+  function describeSocialError(reason) {
+    var code = String(reason || "").trim();
+    if (/underage/i.test(code)) return "만 14세 미만은 가입할 수 없어요.";
+    if (/guardian/i.test(code)) return "법정대리인 동의가 필요해요. 웹에서 이어서 진행해 주세요.";
+    if (/database|temporarily unavailable|timeout/i.test(code)) return "서버가 잠시 불안정해요. 잠시 후 다시 시도해 주세요.";
+    if (/duplicate|already/i.test(code)) return "이미 처리된 로그인이에요. 다시 시도해 주세요.";
+    return "로그인에 실패했습니다: " + code.slice(0, 80);
   }
 
   // 사용자에게 보이는 짧은 안내. 로그인 실패가 조용히 삼켜지지 않게 한다.
@@ -390,14 +427,26 @@
     return headers;
   }
 
-  async function postJson(path, body) {
-    var response = await fetch(apiBase() + path, {
+  async function postJson(path, body, options) {
+    var opts = options || {};
+    var init = {
       method: "POST",
       headers: authHeaders(),
       credentials: "include",
       cache: "no-store",
       body: JSON.stringify(body || {}),
-    });
+    };
+    // 🔴 상한은 호출부가 정한다 — 기본은 종전대로 무제한이다.
+    //
+    // 이 함수는 구매 복구(runPurchaseRecovery)도 쓰는데, 거기서 조기에 끊으면 "돈은 나갔는데
+    // 콘텐츠가 없는" 상태를 되살릴 유일한 경로가 느린 망에서 죽는다. 그래서 여기에 일괄 타임아웃을
+    // 두지 않고, 사용자가 진행 화면을 보며 기다리는 로그인 교환에만 상한을 건다.
+    // (이 경로 안팎에 다른 타임아웃·재시도는 없다 — 브릿지의 fetch 재타게팅도 셸의
+    // index-inline-runtime.js 래퍼도 signal 을 걸지 않는다. 2026-08-30 확인.)
+    if (opts.timeoutMs > 0 && typeof AbortSignal !== "undefined" && typeof AbortSignal.timeout === "function") {
+      init.signal = AbortSignal.timeout(opts.timeoutMs);
+    }
+    var response = await fetch(apiBase() + path, init);
     var payload = await response.json().catch(function () { return {}; });
     return { ok: response.ok && payload && payload.ok !== false, status: response.status, payload: payload };
   }
@@ -511,16 +560,29 @@
     if (parsed.protocol !== "com.codedestiny.app:" || parsed.host !== "auth") return false;
     var socialGrant = parsed.searchParams.get("social_grant") || parsed.searchParams.get("socialGrant") || "";
     if (!socialGrant) {
+      // 🔴 서버는 실패한 콜백도 이 딥링크로 돌려보낸다(worker/routes/auth.js 의 catch 블록이
+      // social_error 를 실어 buildAppOAuthHandoffResponse 를 반환한다). 예전에는 여기서
+      // noGrant 로 조용히 끝나 그 사유가 화면 어디에도 나타나지 않았고, 사용자는 진행 화면만 봤다.
+      var socialError = parsed.searchParams.get("social_error") || parsed.searchParams.get("socialError") || "";
+      if (socialError) {
+        trace("deepLink:socialError", { reason: socialError.slice(0, 120) });
+        hideAuthProgress();
+        notifyAuthCancelled("social_error");
+        toast(describeSocialError(socialError));
+        // 우리 딥링크가 맞으므로 true 다 — 호출부가 커스텀탭을 닫아 앱으로 되돌린다.
+        return true;
+      }
       trace("deepLink:noGrant", { url: appUrl.slice(0, 120) });
       return false;
     }
 
     var nextPath = parsed.searchParams.get("next") || "/";
     trace("deepLink:exchange", { nextPath: nextPath });
+    // 교환이 멎으면 진행 화면이 영구히 남는다 — 사용자가 보는 화면이므로 상한을 건다.
     var result = await postJson("/api/auth/oauth/complete", {
       socialGrant: socialGrant,
       nextPath: nextPath,
-    });
+    }, { timeoutMs: 20000 });
     if (!result.ok || !result.payload || !result.payload.accessToken) {
       trace("deepLink:exchangeFailed", { status: result.status, message: (result.payload && result.payload.message) || "" });
       throw new Error(String((result.payload && result.payload.message) || "Mobile OAuth completion failed."));
@@ -542,11 +604,21 @@
 
     // 여기서 이동하지 않으면 사용자는 로그인 화면 그대로 돌아온다 —
     // 토큰은 저장됐는데 화면은 그대로라 "로그인이 안 된다"고 느낀다.
+    //
+    // 🔴 2026-08-29 기기 트레이스에서 확정된 사고: 예전 조건은 현재 경로가 /login·/signup 이거나
+    // target 이 "/" 가 아닐 때만 이동했다. 그런데 앱은 딥링크로 콜드 스타트하면 셸 홈
+    // (/index.html)에서 깨어나고 next 도 "/" 라 **두 조건이 모두 거짓**이었다. 결과는 이동도
+    // 오버레이 해제도 없는 상태 — exchangeOk 가 두 번 찍혔는데도 사용자는 진행 화면만 보고
+    // 로그인이 실패했다고 판단해 재시도했다. 이제 어디로 돌아오든 반드시 셸을 다시 그린다.
     var target = (nextPath && nextPath.charAt(0) === "/" && nextPath.charAt(1) !== "/") ? nextPath : "/";
     var current = String(window.location.pathname || "/");
-    if (/^\/(login|signup)(\/|$)/.test(current) || target !== "/") {
-      window.setTimeout(function () { window.location.replace(target); }, 60);
-    }
+    var alreadyThere = target === "/" && (current === "/" || current === "/index.html");
+    window.setTimeout(function () {
+      if (alreadyThere) window.location.reload();
+      else window.location.replace(target);
+    }, 60);
+    // 이동이 막히거나 늦어도 진행 화면이 남아서는 안 된다. 이동이 성공하면 이 타이머는 문서와 함께 사라진다.
+    window.setTimeout(hideAuthProgress, 4000);
     return true;
   }
 
@@ -577,8 +649,14 @@
         .catch(function (error) {
           // 조용히 삼키면 사용자는 "아무 일도 안 일어났다"고만 느낀다.
           hideAuthProgress();
-          trace("deepLink:failed", { message: String(error && error.message || error) });
-          toast("로그인 처리에 실패했습니다. 다시 시도해 주세요.");
+          notifyAuthCancelled("exchange_failed");
+          var message = String(error && error.message || error);
+          trace("deepLink:failed", { message: message });
+          // 사유를 그대로 버리지 않는다 — 기기 트레이스에서 실제로 나온 실패는
+          // 503 "Database is temporarily unavailable." 였고, 고정 문구로는 재시도해야 할지 알 수 없었다.
+          toast(/abort|signal|timed? ?out/i.test(message)
+            ? "로그인 확인이 지연되고 있어요. 다시 시도해 주세요."
+            : describeSocialError(message));
         });
     });
   }
@@ -1037,6 +1115,8 @@
         if (!openAuthStartedAt) return;
         openAuthStartedAt = 0;
         hideAuthProgress();
+        // 오버레이만 걷으면 React 소셜 버튼은 잠긴 채 남는다.
+        notifyAuthCancelled("tab_closed");
         trace("openAuth:cancelled", null);
       }, 1500);
     });

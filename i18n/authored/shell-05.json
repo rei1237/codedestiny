@@ -1,11 +1,11 @@
 {
   "_comment": "셸 잔여 한국어 배치 5 — 고민 카드·왜 우리인가·서비스 파인더·게이트웨이 필터·휴먼 디자인 타일·접근성 라벨. 용어집(i18n/glossary.json)을 따른다. 브랜드 고유명사(Code Destiny, Neo, Yeoni)는 번역하지 않는다. 가격은 KRW 표기를 유지한다(해외 마켓 미개방). 🔴 vi/hi/es/fr/de/nl/ms 는 사용자 지시대로 영어를 그대로 채웠다 — 실번역이 아니라 나중에 일괄 처리할 대상이다. 🔴 n110000·k6uqkuq.ariaLabel 은 사전에 이미 번역이 있어 마킹이 자동으로 끝났다 — 기존 문구를 덮지 않으려고 여기서 뺐다.",
   "shell.moonHeroCopy.moonHeroActions.k107dp07": {
-    "ko": "사주·타로 여섯 체계 교차검증 →",
-    "en": "Six systems cross-checked — Four Pillars to tarot →",
-    "ja": "四柱推命からタロットまで六体系をクロス検証 →",
-    "zh-CN": "四柱八字到塔罗，六大体系交叉验证 →",
-    "zh-TW": "四柱八字到塔羅，六大體系交叉驗證 →",
+    "ko": "초융합 리딩 자세히 보기 →",
+    "en": "See how Fusion reading works →",
+    "ja": "超融合リーディングの詳細 →",
+    "zh-CN": "了解超融合解读 →",
+    "zh-TW": "了解超融合解讀 →",
     "vi": "Six systems cross-checked — Four Pillars to tarot →",
     "hi": "Six systems cross-checked — Four Pillars to tarot →",
     "es": "Six systems cross-checked — Four Pillars to tarot →",

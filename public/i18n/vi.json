@@ -1215,7 +1215,9 @@
       "membership": "Hướng dẫn đăng ký và thẻ",
       "membershipAria": "Kiểm tra thẻ và số dư đăng ký cũng như mở các lợi ích dưới ánh trăng",
       "search": "Tìm mọi dịch vụ",
-      "searchAria": "Tìm mọi dịch vụ bói toán bằng tìm kiếm"
+      "searchAria": "Tìm mọi dịch vụ bói toán bằng tìm kiếm",
+      "why": "What cross-checking means",
+      "whyAria": "Learn what cross-checking six systems means"
     },
     "badges": {
       "yogaGuru": "YOGA GURU",
@@ -1344,6 +1346,15 @@
     },
     "feedback": {
       "rewardPrefix": "Mỗi báo lỗi được chấp nhận"
+    },
+    "whyUs": {
+      "proof": {
+        "head": "This is what cross-checking looks like",
+        "agree": "Same direction",
+        "conditional": "Conditional",
+        "caution": "Slow down",
+        "caption": "Agreement Across Systems · 4 overlapping signals · 2 diverging signals. This is the verdict format the Fusion reading actually produces; the values shown are an example and vary with your input."
+      }
     }
   },
   "terms": {

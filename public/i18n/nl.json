@@ -1215,7 +1215,9 @@
       "membership": "Pass- en abonnementsgids",
       "membershipAria": "Controleer het saldo van je pas en abonnement en open maanlichtvoordelen",
       "search": "Alle diensten zoeken",
-      "searchAria": "Vind elke waarzegdienst via zoeken"
+      "searchAria": "Vind elke waarzegdienst via zoeken",
+      "why": "What cross-checking means",
+      "whyAria": "Learn what cross-checking six systems means"
     },
     "badges": {
       "yogaGuru": "YOGA-GURU",
@@ -1344,6 +1346,15 @@
     },
     "feedback": {
       "rewardPrefix": "Per geaccepteerde bugmelding"
+    },
+    "whyUs": {
+      "proof": {
+        "head": "This is what cross-checking looks like",
+        "agree": "Same direction",
+        "conditional": "Conditional",
+        "caution": "Slow down",
+        "caption": "Agreement Across Systems · 4 overlapping signals · 2 diverging signals. This is the verdict format the Fusion reading actually produces; the values shown are an example and vary with your input."
+      }
     }
   },
   "terms": {

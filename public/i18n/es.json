@@ -1215,7 +1215,9 @@
       "membership": "Guía de pases y suscripciones",
       "membershipAria": "Verifique el saldo del pase y la suscripción y abra los beneficios de la luz de la luna",
       "search": "Buscar todos los servicios",
-      "searchAria": "Encuentra cada servicio de adivinación con la búsqueda"
+      "searchAria": "Encuentra cada servicio de adivinación con la búsqueda",
+      "why": "What cross-checking means",
+      "whyAria": "Learn what cross-checking six systems means"
     },
     "badges": {
       "yogaGuru": "GURU DEL YOGA",
@@ -1344,6 +1346,15 @@
     },
     "feedback": {
       "rewardPrefix": "Por cada informe de error aceptado"
+    },
+    "whyUs": {
+      "proof": {
+        "head": "This is what cross-checking looks like",
+        "agree": "Same direction",
+        "conditional": "Conditional",
+        "caution": "Slow down",
+        "caption": "Agreement Across Systems · 4 overlapping signals · 2 diverging signals. This is the verdict format the Fusion reading actually produces; the values shown are an example and vary with your input."
+      }
     }
   },
   "terms": {
