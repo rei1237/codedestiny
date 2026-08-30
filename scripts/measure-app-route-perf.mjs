@@ -37,6 +37,9 @@
  *   npm run build                                            # dist/ 최신화
  *   node scripts/measure-app-route-perf.mjs --runs=5 --label=baseline
  *   node scripts/measure-app-route-perf.mjs --runs=3 --passes=frames --label=ablation-A
+ *   node scripts/measure-app-route-perf.mjs --segments=neo-prologue --passes=frames --dump-animations
+ *
+ * 🔴 구간은 라우트마다 묶여 있다 — entry|album 은 찻집, neo-prologue 는 네오 작전실. 섞으면 parseArgs 가 죽는다.
  */
 
 import fs from "node:fs";
@@ -74,10 +77,21 @@ const NET = {
 const VSYNC_MS = 1000 / 60;
 /** 1.5 vsync 초과 = 최소 한 프레임을 놓쳤다. 이 비율이 체감 렉의 1차 지표다. */
 const JANK_MS = VSYNC_MS * 1.5;
-/** 입장 스토리를 이만큼 진행시킨다 → 표본 5단계 (ADVANCES + 1). */
+/**
+ * 입장 스토리를 이만큼 진행시킨다 → 표본 5단계 (ADVANCES + 1). 찻집 입장 스토리의 길이에 맞춘 값이다.
+ * 🔴 네오 프롤로그는 대사가 20줄이고 **연출이 붙은 장면(shadow·lion·morph)이 뒤쪽에 있다** — 기본값으로만
+ * 재면 애니메이션이 하나도 없는 앞 두 장면만 보고 "연출 비용 없음"으로 오판한다. `--advances=` 로 늘린다.
+ */
 const ADVANCES = 4;
 /** 한 단계에서 프레임을 이만큼 모은다. 타자기 24ms/글자가 도는 구간을 덮는다. */
 const STAGE_SAMPLE_MS = 3000;
+/**
+ * 측정 가능한 구간과 그 구간이 사는 라우트. 🔴 구간마다 셀렉터가 그 화면 전용이라 라우트를 섞지 못한다
+ * (dist 신선도 검사도 라우트 하나만 본다).
+ */
+const TEA_HOUSE_ROUTE = "/fortune-tea-house/";
+const NEO_ROUTE = "/neo-operation-room/";
+const SEGMENTS = ["entry", "album", "neo-prologue"];
 /** 앨범 스크롤 횟수 · 1회 이동량. 🔴 smooth 금지 — 관성 애니메이션이 프레임 분포를 덮어쓴다. */
 const ALBUM_SCROLLS = 6;
 const ALBUM_SCROLL_PX = 800;
@@ -123,11 +137,20 @@ function parseArgs(argv) {
     const hit = argv.find((arg) => arg.startsWith(`--${name}=`));
     return hit ? hit.slice(name.length + 3) : "";
   };
-  const route = get("url") || "/fortune-tea-house/";
   const segmentsRaw = (get("segments") || "entry,album").split(",").map((s) => s.trim()).filter(Boolean);
   for (const segment of segmentsRaw) {
-    if (!["entry", "album"].includes(segment)) throw new Error(`--segments 는 entry|album 조합이어야 한다 (받은 값: ${segment})`);
+    if (!SEGMENTS.includes(segment)) throw new Error(`--segments 는 ${SEGMENTS.join("|")} 조합이어야 한다 (받은 값: ${segment})`);
   }
+  // 🔴 네오 프롤로그는 라우트가 달라 찻집 구간과 한 실행에 섞지 못한다 — 조용히 한쪽을 못 재는 대신 여기서 죽인다.
+  const explicitUrl = get("url");
+  const wantsNeo = segmentsRaw.includes("neo-prologue");
+  if (wantsNeo && segmentsRaw.length > 1) {
+    throw new Error("--segments=neo-prologue 는 단독으로 돌린다 — 찻집 구간(entry|album)과 라우트가 다르다.");
+  }
+  if (wantsNeo && explicitUrl && !explicitUrl.startsWith(NEO_ROUTE.replace(/\/$/, ""))) {
+    throw new Error(`--segments=neo-prologue 는 ${NEO_ROUTE} 전용이다 (받은 --url: ${explicitUrl}).`);
+  }
+  const route = explicitUrl || (wantsNeo ? NEO_ROUTE : TEA_HOUSE_ROUTE);
   const passesRaw = (get("passes") || "frames,pipeline").split(",").map((s) => s.trim()).filter(Boolean);
   for (const pass of passesRaw) {
     if (!["frames", "pipeline"].includes(pass)) throw new Error(`--passes 는 frames|pipeline 조합이어야 한다 (받은 값: ${pass})`);
@@ -138,6 +161,7 @@ function parseArgs(argv) {
   return {
     route: route.endsWith("/") ? route : `${route}/`,
     runs: Math.min(10, Math.max(1, Number(get("runs")) || 5)),
+    advances: Math.max(1, Number(get("advances")) || ADVANCES),
     segments: segmentsRaw,
     passes: passesRaw,
     cpu: Math.max(1, Number(get("cpu")) || CPU_THROTTLE),
@@ -331,6 +355,35 @@ function advanceStory() {
   if (!next || next.disabled) return false;
   next.click();
   return true;
+}
+
+/**
+ * 프롤로그가 열렸다는 표식. CSS 모듈이 이름을 해싱하므로 부분 일치로 잡는다(entry 구간의 landingActions 와 같은 방식).
+ * SSR HTML 은 언제나 `data-phase="landing"` 이고, 이 값이 `prologue` 로 바뀌는 것은 마운트 훅이 돈 뒤다.
+ */
+const NEO_PROLOGUE_SELECTOR = '[class*="heroSection"][data-phase="prologue"]';
+
+/** 네오는 대사 상자 자체가 진행 버튼이다 — 클릭 핸들러가 붙었는지 확인할 대상. */
+const NEO_DIALOGUE_SELECTOR = '[class*="vnDialogueContent"][role="button"]';
+
+/**
+ * 네오는 대사 상자 자체가 진행 버튼이다(role="button"). 🔴 타자 중의 첫 클릭은 "타자기 즉시 완성"으로
+ * 먹히고 다음 대사로 넘어가지 않는다 — 그래서 눌린 시점의 타자 여부를 함께 돌려준다.
+ */
+function clickNeoDialogue() {
+  const box = document.querySelector("[data-speaker][data-complete]");
+  const content = box && box.querySelector('[role="button"]');
+  if (!content) return null;
+  const typing = box.querySelector('p[data-typing="true"]') !== null;
+  content.click();
+  return { typing };
+}
+
+/** 프롤로그의 현재 대사가 어느 화자·캐릭터인지. entry 구간의 data-entry-stage 자리에 들어간다. */
+function readNeoStage() {
+  const box = document.querySelector("[data-speaker][data-complete]");
+  if (!box) return null;
+  return `${box.getAttribute("data-speaker")}/${box.getAttribute("data-character")}`;
 }
 
 const ALBUM_SELECTOR = '[role="dialog"][aria-labelledby="tarotAlbumTitle"]';
@@ -646,16 +699,61 @@ async function gotoRoute(page, origin) {
  * 판정 근거는 React 가 DOM 노드에 붙이는 `__reactProps$…`/`__reactFiber$…` 키다.
  */
 async function waitForHydrated(page, selector, timeout) {
+  const startedAt = Date.now();
   await page.waitForSelector(selector, { timeout });
-  await page.waitForFunction(
-    (sel) => {
-      const el = document.querySelector(sel);
-      if (!el) return false;
-      return Object.keys(el).some((key) => key.startsWith("__reactProps$") || key.startsWith("__reactFiber$"));
-    },
-    selector,
-    { timeout, polling: 250 },
-  );
+  try {
+    await page.waitForFunction(
+      (sel) => {
+        const el = document.querySelector(sel);
+        if (!el) return false;
+        return Object.keys(el).some((key) => key.startsWith("__reactProps$") || key.startsWith("__reactFiber$"));
+      },
+      selector,
+      { timeout, polling: 250 },
+    );
+  } catch (error) {
+    // 🔴 "Timeout exceeded" 한 줄만 남기면 무엇을 기다리다 죽었는지 알 수 없어 4분짜리 재현을 반복하게 된다.
+    const state = await page
+      .evaluate((sel) => ({
+        readyState: document.readyState,
+        scripts: document.querySelectorAll("script[src]").length,
+        anyHydrated: [...document.querySelectorAll("body *")].some((el) =>
+          Object.keys(el).some((key) => key.startsWith("__reactFiber$")),
+        ),
+        target: (() => {
+          const el = document.querySelector(sel);
+          if (!el) return "선택자에 맞는 요소가 사라졌다";
+          const own = Object.keys(el).filter((key) => key.startsWith("__react")).length;
+          let up = el.parentElement;
+          let depth = 0;
+          while (up && !Object.keys(up).some((key) => key.startsWith("__reactFiber$"))) {
+            up = up.parentElement;
+            depth += 1;
+          }
+          const at = up ? `${up.tagName.toLowerCase()}.${String(up.className).split(" ")[0]}(+${depth})` : "없음";
+          return `요소 있음 · 자체 react 키 ${own}개 · 가장 가까운 하이드레이션 조상 ${at}`;
+        })(),
+        resources: performance.getEntriesByType("resource").length,
+        transferKB: Math.round(
+          performance.getEntriesByType("resource").reduce((sum, e) => sum + (e.transferSize || 0), 0) / 1024,
+        ),
+        slowest: performance
+          .getEntriesByType("resource")
+          .sort((a, b) => b.duration - a.duration)
+          .slice(0, 3)
+          .map((e) => `${e.name.split("/").pop().slice(0, 34)}=${Math.round(e.duration)}ms`),
+      }), selector)
+      .catch(() => null);
+    const detail = state
+      ? `readyState=${state.readyState} · 리소스 ${state.resources}건/${state.transferKB}KB · script[src] ${state.scripts}개`
+        + ` · 페이지에 하이드레이션된 노드 ${state.anyHydrated ? "있음" : "없음"} · 대상 ${state.target}`
+        + ` · 최장 ${state.slowest.join(", ")}`
+      : "페이지 상태를 읽지 못했다";
+    const cause = String(error && error.message).split("\n")[0];
+    throw new Error(
+      `하이드레이션 대기 ${Math.round((Date.now() - startedAt) / 1000)}초 만에 실패 (${selector}) — ${detail} · 원인 ${cause}`,
+    );
+  }
 }
 
 async function sampleWindow(page, cdp, durationMs) {
@@ -685,7 +783,7 @@ async function measureEntry(page, cdp, origin, { tracing, network }) {
   const animations = args.dumpAnimations ? await page.evaluate(censusAnimations) : null;
   if (tracing) await startTracing(cdp);
   const stages = [];
-  for (let step = 0; step <= ADVANCES; step += 1) {
+  for (let step = 0; step <= args.advances; step += 1) {
     const dialogueBefore = await page.evaluate(readDialogue);
     const { raw, metrics } = await sampleWindow(page, cdp, STAGE_SAMPLE_MS);
     const dialogueAfter = await page.evaluate(readDialogue);
@@ -714,7 +812,7 @@ async function measureEntry(page, cdp, origin, { tracing, network }) {
       completeAtEnd: dialogueAfter.complete ?? null,
     });
 
-    if (step === ADVANCES) break;
+    if (step === args.advances) break;
     if (!(await page.evaluate(advanceStory))) {
       failures.push(`단계 ${step}: 다음으로 넘길 버튼이 없다 — 남은 단계를 못 쟀다.`);
       break;
@@ -724,8 +822,95 @@ async function measureEntry(page, cdp, origin, { tracing, network }) {
   const trace = tracing ? digestTrace(await stopTracing(cdp)) : null;
   const layers = await snapshotLayerCount(cdp);
 
-  if (stages.length !== ADVANCES + 1) {
-    failures.push(`입장 스토리 단계를 ${stages.length}개만 쟀다(${ADVANCES + 1}개 기대).`);
+  if (stages.length !== args.advances + 1) {
+    failures.push(`입장 스토리 단계를 ${stages.length}개만 쟀다(${args.advances + 1}개 기대).`);
+  }
+  return { failures, stages, trace, layers, animations, network: network.summary() };
+}
+
+/**
+ * 구간 C — 네오 작전실 프롤로그. 찻집 입장 스토리(구간 A)와 **같은 형태**의 VN 이라(전체화면 연출 레이어 +
+ * setInterval 타자기) 두 라우트를 나란히 읽으려고 둔다. 반환 모양도 A 와 같아 집계기를 공유한다.
+ *
+ * 진행 방식만 다르다 — 찻집은 씬의 마지막 버튼, 네오는 대사 상자 자체가 버튼이고 타자 중 첫 클릭은
+ * 타자기를 끝내는 데 쓰인다(clickNeoDialogue 주석).
+ */
+async function measureNeoPrologue(page, cdp, origin, { tracing, network }) {
+  const failures = [];
+  await gotoRoute(page, origin);
+  network.reset();
+
+  // 🔴 네오 프롤로그는 **입장 버튼을 누르는 것이 아니라 스스로 열린다** — 마운트 훅이 localStorage 의
+  //    "프롤로그 봤음" 표식을 읽어 없으면 그 자리에서 프롤로그를 켠다(NeoOperationRoomPage.tsx 의
+  //    shouldOpenPrologue). 하네스는 매 run 새 컨텍스트라 표식이 늘 비어 있으므로 항상 자동 개막이다.
+  //    랜딩 입장 버튼(vnStartButton[data-phase="landing"])은 **이미 본 방문자에게만** 뜬다 — 그걸 기다리면
+  //    영원히 안 온다. 그래서 개막 자체를 게이트로 쓴다(= 하이드레이션이 끝났다는 증거이기도 하다).
+  try {
+    await page.waitForSelector(NEO_PROLOGUE_SELECTOR, { timeout: BOOT_TIMEOUT_MS });
+    await waitForHydrated(page, NEO_DIALOGUE_SELECTOR, BOOT_TIMEOUT_MS);
+  } catch (error) {
+    return { failures: [`프롤로그에 진입하지 못했다 — ${error.message.split("\n")[0]}`], stages: [] };
+  }
+  await page.waitForTimeout(1200);
+
+  const animations = args.dumpAnimations ? await page.evaluate(censusAnimations) : null;
+  if (tracing) await startTracing(cdp);
+  const stages = [];
+  for (let step = 0; step <= args.advances; step += 1) {
+    const dialogueBefore = await page.evaluate(readDialogue);
+    // 🔴 애니메이션 조사는 **단계마다** 한다 — 네오는 대사마다 캐릭터 씬이 갈리고 연출도 함께 갈린다.
+    //    진입 직후 한 번만 재면 첫 장면(hidden, 애니메이션 0개)만 보고 전체를 판정하게 된다.
+    const stageAnimations = args.dumpAnimations ? await page.evaluate(censusAnimations) : null;
+    const { raw, metrics } = await sampleWindow(page, cdp, STAGE_SAMPLE_MS);
+    const dialogueAfter = await page.evaluate(readDialogue);
+    const stage = await page.evaluate(readNeoStage);
+
+    if (raw.visibilityState !== "visible") {
+      failures.push(`단계 ${step}: visibilityState=${raw.visibilityState} — 레이아웃이 멈춰 표본이 무효다.`);
+      break;
+    }
+    if (!raw.frames.length) {
+      failures.push(`단계 ${step}: rAF 프레임을 하나도 못 모았다 — 표본 0건은 "이상 없음"이 아니다.`);
+      break;
+    }
+    stages.push({
+      step,
+      stage,
+      frames: frameStats(raw.frames),
+      longTasks: { count: raw.longTasks.length, ms: raw.longTasks.reduce((s, d) => s + d, 0), supported: raw.longTaskSupported },
+      metrics,
+      nodes: raw.nodes,
+      typed: dialogueBefore.present && dialogueAfter.present ? dialogueAfter.chars - dialogueBefore.chars : null,
+      completeAtStart: dialogueBefore.complete ?? null,
+      completeAtEnd: dialogueAfter.complete ?? null,
+      animations: stageAnimations,
+    });
+
+    if (step === args.advances) break;
+    const clicked = await page.evaluate(clickNeoDialogue);
+    if (!clicked) {
+      failures.push(`단계 ${step}: 대사 상자를 못 찾았다 — 남은 단계를 못 쟀다.`);
+      break;
+    }
+    if (clicked.typing) {
+      // 첫 클릭이 타자기를 끝냈을 뿐이다 — 다음 대사로 넘기려면 한 번 더 누른다.
+      await page.waitForTimeout(120);
+      await page.evaluate(clickNeoDialogue);
+    }
+    await page.waitForTimeout(400);
+  }
+  const trace = tracing ? digestTrace(await stopTracing(cdp)) : null;
+  const layers = await snapshotLayerCount(cdp);
+
+  if (stages.length !== args.advances + 1) {
+    failures.push(`프롤로그 단계를 ${stages.length}개만 쟀다(${args.advances + 1}개 기대).`);
+  }
+  /**
+   * 🔴 클릭이 안 먹으면 같은 대사를 5번 재고 "네오는 렉이 없다"가 나온다 — 그 위양성을 여기서 막는다.
+   * 대사가 넘어갔다면 새 대사의 타자기가 그 표본 안에서 돌아 글자 수가 늘어난다.
+   */
+  if (stages.length > 1 && !stages.some((s) => (s.typed ?? 0) > 0)) {
+    failures.push("타자기가 한 단계도 안 돌았다 — 진행 클릭이 안 먹었을 가능성이 크다(표본이 같은 대사의 반복).");
   }
   return { failures, stages, trace, layers, animations, network: network.summary() };
 }
@@ -806,7 +991,7 @@ async function main() {
       `${VIEWPORT.width}x${VIEWPORT.height}@${DPR} · CPU ${args.cpu}x · ${args.net === "slow4g" ? "Slow4G" : "네트워크 스로틀 없음"} · label ${args.label}`,
   );
 
-  const collected = { entry: { frames: [], pipeline: [] }, album: { frames: [], pipeline: [] } };
+  const collected = Object.fromEntries(args.segments.map((segment) => [segment, { frames: [], pipeline: [] }]));
   const failures = [];
 
   /**
@@ -850,10 +1035,9 @@ async function main() {
 
           let result;
           try {
-            result =
-              segment === "entry"
-                ? await measureEntry(page, cdp, origin, { tracing: pass === "pipeline", network })
-                : await measureAlbum(page, cdp, origin, { tracing: pass === "pipeline", network });
+            const measure =
+              segment === "entry" ? measureEntry : segment === "neo-prologue" ? measureNeoPrologue : measureAlbum;
+            result = await measure(page, cdp, origin, { tracing: pass === "pipeline", network });
           } catch (error) {
             result = { failures: [`측정 중 예외 — ${error.message.split("\n")[0]}`] };
           }
@@ -919,7 +1103,7 @@ function summarizeExternal(requests) {
 
 function summarizeLine(segment, result) {
   if (result.failures && result.failures.length) return `실패 (${result.failures[0]})`;
-  if (segment === "entry") {
+  if (segment !== "album") {
     const all = result.stages.flatMap((s) => [s.frames.p95]);
     return `단계 ${result.stages.length}개 · p95 ${fmt(median(all), 1)}ms · 레이어 ${result.layers ?? "-"}`;
   }
@@ -941,7 +1125,8 @@ function buildReport(collected) {
       report[segment] = { runs: 0 };
       continue;
     }
-    const perRun = good.map((r) => (segment === "entry" ? aggregateEntryRun(r) : aggregateAlbumRun(r)));
+    // 🔴 neo-prologue 는 entry 와 같은 stages 모양을 돌려주므로 집계기를 공유한다.
+    const perRun = good.map((r) => (segment === "album" ? aggregateAlbumRun(r) : aggregateEntryRun(r)));
     report[segment] = {
       runs: good.length,
       p50: band(perRun.map((r) => r.p50)),
@@ -967,6 +1152,18 @@ function buildReport(collected) {
     // 외부 요청은 run 마다 같아야 정상이라 마지막 run 의 내역을 그대로 싣는다(밴드가 아니라 목록이 정보다).
     report[segment].external = good[good.length - 1].external;
     report[segment].animations = good[good.length - 1].animations || null;
+    // 단계마다 연출이 갈리는 구간(neo-prologue)에서는 단계별 조사가 판정 근거다. run 마다 같아야 정상이라 마지막 run 을 싣는다.
+    const lastStages = good[good.length - 1].stages;
+    if (lastStages && lastStages.some((s) => s.animations)) {
+      report[segment].stageAnimations = lastStages.map((s) => ({
+        step: s.step,
+        stage: s.stage,
+        jankRatio: s.frames.jankRatio,
+        dropped: s.frames.dropped,
+        running: (s.animations || []).reduce((sum, a) => sum + a.running, 0),
+        names: (s.animations || []).filter((a) => a.running > 0).map((a) => `${a.name.replace(/^.*?_([A-Za-z0-9]+)__.*$/, "$1")}×${a.running}${a.infinite ? "∞" : ""}`),
+      }));
+    }
     report[segment].externalCount = band(good.map((r) => r.external?.total));
     const pipeline = collected[segment].pipeline.filter((r) => !(r.failures && r.failures.length));
     if (pipeline.length) {
@@ -1028,7 +1225,12 @@ function summarizePipeline(runs) {
 function printReport(report) {
   for (const segment of args.segments) {
     const data = report[segment];
-    const title = segment === "entry" ? "A. 입장 스토리 (5단계 × 3초)" : `B. 타로 앨범 (스크롤 ${ALBUM_SCROLLS}회 × ${ALBUM_SCROLL_PX}px)`;
+    const title =
+      segment === "entry"
+        ? "A. 입장 스토리 (5단계 × 3초)"
+        : segment === "neo-prologue"
+          ? "C. 네오 작전실 프롤로그 (5단계 × 3초)"
+          : `B. 타로 앨범 (스크롤 ${ALBUM_SCROLLS}회 × ${ALBUM_SCROLL_PX}px)`;
     console.log(`\n── ${title} · frames 패스 ${data.runs ?? 0}회 중앙값 (밴드 min–max) ──`);
     if (!data.runs) {
       console.log("  표본 없음");
@@ -1062,6 +1264,17 @@ function printReport(report) {
       for (const anim of data.animations) {
         const mark = anim.infinite ? "∞" : " ";
         console.log(`    ${String(anim.running).padStart(4)}개 ${mark} ${anim.name.padEnd(22)} ${anim.sample}`);
+      }
+    }
+
+    if (data.stageAnimations) {
+      console.log(`\n  ── 단계별 장면·실행 중 애니메이션·끊긴 프레임 ──`);
+      for (const s of data.stageAnimations) {
+        console.log(
+          `    ${String(s.step).padStart(2)}. ${String(s.stage || "-").padEnd(22)}`
+          + ` 애니 ${String(s.running).padStart(3)}개  끊김 ${fmt(s.jankRatio, 1).padStart(5)}%  놓침 ${String(s.dropped).padStart(3)}회`
+          + `  ${s.names.join(" ")}`,
+        );
       }
     }
 
