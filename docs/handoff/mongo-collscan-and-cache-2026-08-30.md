@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-08-31
-next: 스택 PR 2개(자식 5단계 캐시 → 부모 1·2·3·6단계) 머지 → 사용자 허가 받아 `npm run migrate:request-path-indexes` 1회 → 4단계 정적 가드 별도 PR
+next: 5단계 캐시 PR(브랜치 `perf/insight-public-cache`) 머지 → 사용자 허가 받아 `npm run migrate:request-path-indexes` 1회 → 4단계 정적 가드 별도 PR
 ---
 
 # MongoDB M10 최적화 — 풀 스캔 제거 · 캐시 확장 (2026-08-30)
@@ -12,7 +12,7 @@ next: 스택 PR 2개(자식 5단계 캐시 → 부모 1·2·3·6단계) 머지 �
 
 ## 지금 상태
 
-- 브랜치 `worktree-perf-mongo-collscan-and-cache` — 계획 **1·2·3·6단계 완료**. 브랜치 `perf/insight-public-cache`(위에 스택) — **5단계 캐시 완료**(2026-08-31). PR 번호는 `gh pr list`. 4단계(정적 가드)는 **미착수**.
+- 계획 **1·2·3·6단계 머지 완료**(PR #1346). 브랜치 `perf/insight-public-cache` — **5단계 캐시 완료**(2026-08-31). PR 번호는 `gh pr list`. 4단계(정적 가드)는 **미착수**.
 - 5단계 적용 범위: `/api/insights` 목록(키 1개, 필터·`isPublicInsight` 는 캐시 밖)·상세(슬러그별 키, 404 미캐시, `shareUrl` 은 캐시 밖)·`/rss.xml`·`/sitemap-insights.xml` 피드(키 2개). TTL 300s/stale 900s. 키 원장·무효화: `worker/lib/insight-public-cache.js`, 호출은 `admin.js` Insight 쓰기 7곳. 가드: `verify:public-api-edge-cache`(insights·content 분류 추가, self-test 14). 테스트: `__tests__/worker/insights-public-cache.route.test.js`.
 - 5단계에서 **안 한 것**: `/api/content` 목록·상세 — 소비자 0(2026-08-31 `git grep` 전수, `admin.js:3590` 의 URL 문자열뿐)이고 필터별 키는 엣지에서 못 지운다. `/api/me/access-state` — 이미 60s 인메모리 캐시가 있고(중첩 사전검사, 원칙 6) 병목은 그 앞의 인증 DB 히트라 `readThroughCredentialCache` 로 가야 하는데 그 경로는 ETag/`private` 헤더를 버리고 `profileId`/`include` 가 키에 못 들어간다. 착수하려면 `paid-gate-auditor` 사전 감사부터.
 - 5단계 회귀 위험(수용): 상세 `viewCount` 는 미스 때만 +1(TTL 당 1회 표본). 관련글·이전/다음은 최대 5분 낡음. 예약 발행은 목록에선 즉시, **피드·상세에선 최대 5분 늦게** 실린다.
