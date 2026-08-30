@@ -16,7 +16,7 @@ next: 1-E PR #1334 머지 → 프로덕션 승격 → 2단계 유명인(계획 �
 - 유명인 콘텐츠에서 **자미두수 제외**(생시 의존). 사주 + 숙요 + 베다 달 낙샤트라 근사만.
 - 유명인 고유 서술은 **Claude 가 세션 안에서 초안**, 유료 LLM 호출 0. 사용자(박병하) 검수 후 `reviewedAt`.
 - 이 작업 기간에는 **PR 머지 때마다 프로덕션 승격 위임** —
-  `gh workflow run "Release Cloudflare Pages and Worker" --ref main -f mode=production` + 스모크(홈·/sitemap.xml 200, `npm run check:seo-health`).
+  `gh workflow run "Release Cloudflare Pages and Worker" --ref main -f mode=production` + 스모크(홈·/sitemap.xml 200, `npm run seo:check`).
 - 저자 실명 **박병하, 명리학자 10년**. "대통령 운세 적중" 은 **공개 출처 링크를 받기 전엔 쓰지 않는다**(현재 미수령 → 미기재).
 - 범위 A(브랜드·AdSense) + B(유명인) + C(홈 히어로) + D(MBTI 온사이트) 전부. 한 세션 = 한 단계.
 

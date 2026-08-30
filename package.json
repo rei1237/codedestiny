@@ -26,6 +26,7 @@
     "verify:seo-heading-integrity": "node scripts/verify-seo-heading-integrity.mjs",
     "verify:hydrated-h1-integrity": "node scripts/verify-hydrated-h1-integrity.mjs",
     "verify:indexable-prose-depth": "node scripts/verify-indexable-prose-depth.mjs",
+    "verify:internal-link-depth": "node scripts/verify-internal-link-depth.mjs",
     "adsense:audit": "node scripts/adsense-crawl-audit.mjs https://code-destiny.com 250",
     "adsense:route-audit": "node scripts/generate-adsense-route-audit.mjs",
     "verify:analytics-events": "node scripts/verify-analytics-events.mjs",

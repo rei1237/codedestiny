@@ -142,6 +142,9 @@ const SEO_LINK_GROUPS = [
       { href: "/guides/how-tarot-actually-works/", text: "타로 리딩 구조 이해" },
       { href: "/guides/understanding-your-destiny/", text: "운명 해석 프레임" },
       { href: "/insights/fusion/", text: "초융합 운세 인사이트 허브" },
+      // 2026-08-30 GSC 실측: /stories/ 는 푸터·홈 어디에도 링크가 없어 홈에서 4홉이었고,
+      // 45개 URL 이 전부 노출 0 이었다. 유일한 유입 링크가 /insights 토픽 아카이브 4곳뿐이었다.
+      { href: "/stories/", text: "연이의 운명 노벨 — 사주 판타지 웹소설" },
       { href: "/reviews/", text: "실시간 사용자 후기" },
       { href: "/faq/", text: "자주 묻는 질문" },
       { href: "/insights/sukuyo-basics/", text: "숙요점 기초 가이드" },
