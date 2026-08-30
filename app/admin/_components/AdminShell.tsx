@@ -24,6 +24,7 @@ import {
   X,
 } from "lucide-react";
 
+import { normalizeAppPathname } from "@/app/app/_lib/app-route";
 import { getFlowerAdminToken, redirectToAdminLogin } from "../_lib/admin-api";
 
 interface AdminNavItem {
@@ -55,7 +56,10 @@ function isActive(pathname: string, href: string): boolean {
 }
 
 export default function AdminShell({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname() || "";
+  // 🔴 후행 슬래시를 반드시 벗기고 비교한다. trailingSlash:true 라 배포본의 pathname 은
+  //    "/admin/login/" 이고, BARE_ROUTES 는 슬래시 없는 형태다. 정규화를 빼면 로그인 화면이
+  //    자기 인증 게이트에 걸려 무한 리다이렉트가 된다(2026-08-13 회귀 → 08-30 수정).
+  const pathname = normalizeAppPathname(usePathname() || "");
   const [drawerOpen, setDrawerOpen] = useState(false);
   // 토큰이 없으면 화면을 그리기 전에 로그인으로 보낸다. 예전에는 레이아웃이 아무것도 막지 않아
   // 각 페이지가 첫 요청에서 401 을 받을 때까지 빈 관리자 화면이 그대로 노출됐다.

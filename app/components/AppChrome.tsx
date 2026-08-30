@@ -72,6 +72,9 @@ const CHROMELESS_ROUTES = [
   "/reviews",
   // 휴먼 디자인 바디그래프 — 자체 상단 컨트롤로 화면 전체를 몰입형으로 쓴다.
   "/human-design",
+  // 관리자 콘솔 — AdminShell 이 자체 좌측 네비·상단바·로그아웃을 갖는다. 사이트 헤더·면책배너·
+  // 푸터·하단 탭바가 겹치면 관리 화면이 그만큼 잘리고, 하단 탭바는 저장 버튼을 덮는다.
+  "/admin",
 ];
 
 const FEATURE_NAV_EXTRA_ROUTES = [
@@ -102,6 +105,9 @@ const FEATURE_NAV_SELF_MANAGED_ROUTES = [
   "/reviews",
   // 자체 상단 컨트롤을 갖는다 — 공용 플로팅 나브가 겹치면 차트 위를 덮는다.
   "/human-design",
+  // 🔴 CHROMELESS_ROUTES 에만 넣으면 showFeatureNav 의 `hideChrome ||` 가지가 켜져
+  //    관리자 화면 좌상단에 공용 back/home 나브가 새로 뜬다. 두 배열에 함께 있어야 한다.
+  "/admin",
 ];
 
 const LOCALE_CODES = ["ko", "en", "ja", "zh-CN", "zh-TW", "vi", "hi", "es", "fr", "de", "nl", "ms"] as const;
