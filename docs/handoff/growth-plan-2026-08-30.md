@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-08-30
-next: T1 1차 PR 머지·승격 → 사용자 검수 후 reviewedAt 켜기(12명) → T1 2차(해외 인물은 시주 시간대 검증 선행) 또는 3단계 홈 히어로
+updated: 2026-08-31
+next: 사용자 검수 후 reviewedAt 켜기(12명) → T1 2차(해외 인물은 시주 시간대 검증 선행) 또는 3단계 홈 히어로
 ---
 
 # 성장 계획 2026-08-30 — 검색 유입·AdSense·첫인상
@@ -28,7 +28,7 @@ next: T1 1차 PR 머지·승격 → 사용자 검수 후 reviewedAt 켜기(12명
   - `lib/famous-saju/celebrity-multi-system.ts` — 사주·숙요·베다 3줄 표(자미두수 없음).
   - 색인 분기 3곳(`[slug]/page.tsx` robots · `generate-sitemap.mjs` · `verify-adsense-readiness.mjs`) + `lib/seo-site-urls.ts` 가 전부 `reviewedAt` 하나를 본다. 1-C 잔여(134 URL 열거)도 이걸로 해소.
   - 가드 `verify:famous-saju-editorial` · `verify:famous-saju-multisystem` — PR CI fast 잡 배선 완료.
-- 2단계 2차(T1 1차): 브랜치 `worktree-growth-stage2-celebrity-t1` — 한국 인물 6명 원고 추가(아이유·손흥민·김연아·봉준호·한강·BTS 정국), 전부 `reviewedAt: null`. 아이유만 생시 보유(4주·베다 확정). 해외 T1 10명(오바마·잡스 등)은 **미착수** — 엔진이 시주를 KST 로 세우는지 미검증이라 생시 보유자라도 시주를 원고에 쓰면 안 된다(착수 전 `celebrity-saju-service.ts` 의 시간대 처리를 실측할 것).
+- 2단계 2차(T1 1차): **#1347 머지·프로덕션 승격 완료**(2026-08-31 KST, run 33319085878, main 4e9b2b222; 홈·sitemap·`/insights/famous-saju/iu/`·`/son-heung-min/` 200, 아이유 `noindex, follow`+"검수 전 초안" 배지, 사이트맵에 famous-saju 는 허브 1건뿐, `npm run seo:check` PASS). 한국 인물 6명 원고(아이유·손흥민·김연아·봉준호·한강·BTS 정국), 전부 `reviewedAt: null`. 아이유만 생시 보유(4주·베다 확정). 해외 T1 10명(오바마·잡스 등)은 **미착수** — 엔진이 시주를 KST 로 세우는지 미검증이라 생시 보유자라도 시주를 원고에 쓰면 안 된다(착수 전 `celebrity-saju-service.ts` 의 시간대 처리를 실측할 것).
 - 3~5단계 미착수.
 
 ## 검수 대기 인물 (사용자 = 박병하)
@@ -57,7 +57,7 @@ next: T1 1차 PR 머지·승격 → 사용자 검수 후 reviewedAt 켜기(12명
 
 - [x] #1340 머지·승격·스모크(2026-08-30). 스모크 명령은 `npm run seo:check`(`seo:check` 라는 스크립트는 없다 — 실측 2026-08-30 `npm run` 목록)
 - [ ] 사용자: T0 6명 원고 검수 → `reviewedAt` 켜기(위 절차). **AdSense 재신청은 검수된 인물이 실제로 색인에 오른 승격 + 2주 뒤.**
-- [x] 2단계 2차 T1 1차: 한국 6명 원고(2026-08-30, PR 대기). 검수 대상은 위 표 12명.
+- [x] 2단계 2차 T1 1차: 한국 6명 원고 #1347 머지·승격·스모크(2026-08-31). 검수 대상은 위 표 12명.
 - [ ] T1 2차: 시드 내 한국 인물 6명(후보: 박보검·김수현·전지현·송혜교·BTS RM·블랙핑크 제니 — 검색량 근거는 GSC CSV 를 받은 뒤 확정). 해외 생시 보유 10명은 시주 시간대 실측 뒤에만.
 - [ ] 1-D·1-E 잔여: 프로덕션에서 6개 랜딩 가시 섹션과 `/insights` 하단 아카이브 그리드 **눈으로 1회 확인**(`visual-checker`)
 - [ ] 3단계 홈 히어로(3-A) → 폴드 아래 `<template>` 지연(3-B, 가시 텍스트 1,800자 실측이 선행)
