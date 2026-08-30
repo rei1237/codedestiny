@@ -412,7 +412,7 @@
     "measure:post-deploy-latency": "node scripts/measure-post-deploy-latency.mjs",
     "build:web-vitals": "npx esbuild scripts/web-vitals-console.mjs --bundle --format=esm --outfile=js/web-vitals-console.js --platform=browser",
     "prebuild:cf": "node scripts/with-utf8-console.mjs node scripts/ensure-ads-txt.mjs && node scripts/with-utf8-console.mjs node scripts/fortune-build-data.mjs && node scripts/with-utf8-console.mjs node scripts/sync-music-track-count.mjs && node scripts/with-utf8-console.mjs npm run sync:public && node scripts/with-utf8-console.mjs node scripts/verify-entry-encoding.mjs -- --strict-core && node scripts/with-utf8-console.mjs node scripts/build-shell-cms-defaults.mjs && node scripts/with-utf8-console.mjs node scripts/verify-story-text-sync.mjs",
-    "build:cf": "npm run prebuild:cf && npm run build",
+    "build:cf": "npm run build",
     "deploy:cf:pages": "npm run build:cf && node scripts/with-utf8-console.mjs node scripts/deploy-pages.mjs",
     "deploy:cf:worker": "node scripts/with-utf8-console.mjs node scripts/deploy-worker.mjs",
     "deploy:cf:opennext": "node scripts/with-utf8-console.mjs node scripts/opennext-deploy-retry.mjs",
