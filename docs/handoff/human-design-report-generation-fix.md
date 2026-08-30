@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-08-30
-next: 로그인한 스테이징 세션에서 차트 응답의 `pipeline` 을 읽어 AUTH·ARCHIVE_LOOKUP 을 확인한다 (계산 구간은 아래에서 이미 배제됐다)
+next: 켜진 적 없는 `GUARDIAN_FORTUNE_RATE_LIMIT_ENABLED` 를 배선한다 (호출부를 try 안으로 → 양쪽 `[vars]` → 대조 가드). 차트 병목은 아래 실측에서 AUTH 로 좁혀졌다
 ---
 
 # 휴먼 디자인 유료 리포트 — 생성 복구 · 대기 씬 · 차트 병목
@@ -31,20 +31,42 @@ next: 로그인한 스테이징 세션에서 차트 응답의 `pipeline` 을 읽
   (`worker/lib/guardian-fortune-usage.js:15`·`:290`). **없는 것**은 분당 상한·일일 AI 예산·
   소프트블록·페이로드 상한뿐이고, 결제가 앞을 막으므로 열린 문이 아니라 심층방어 공백이다.
 
+## 차트 병목 실측 — 병목은 `AUTH` (2026-08-30, 스테이징 로그인 세션)
+
+판정 기준 300ms. 출생입력 `1988-11-07 06:02 Asia/Seoul`, 미스 1회 + 히트 5회.
+
+| 경로 | AUTH | ARCHIVE_LOOKUP / _HIT | 계산(PERS+SEARCH+DESIGN) | CHART | wall |
+|---|---|---|---|---|---|
+| miss | 3548ms | 429ms | 487ms | 596ms | 5789ms |
+| hit ×5 중앙값 | **3122ms** | 413ms | – | – | 3688ms |
+
+- **`AUTH` 가 유일한 병목** — 기준의 10배, 히트 wall 의 84%. 아카이브 Mongo 읽기 413~429ms 는
+  기준 초과지만 AUTH 의 1/7.5. 계산 구간 배제 판정은 그대로 유효하다(콜드 487ms · 웜 0ms).
+- 🔴 **콜드 아이솔레이트가 아니라 라우트 고유 비용이다.** 같은 루프에서 번갈아 쏜
+  `GET /api/billing/balance`(웜 인증+Mongo)는 212~276ms 인데, 같은 순간 차트 POST 는
+  **워커 내부 시각**으로 AUTH 3.10~3.15s 였다. `enforceAiRouteSecurity` 래퍼와 지연 임포트는
+  타이머 바깥이라 무관하다(wall − 합계 ≈ 160ms).
+- 🔴 **원인 후보 2개는 미검증** — 접근토큰 경로의 Mongo 접촉은 `User.collection.findOne` 1회
+  (관측 ≈410ms)뿐이라 7.6배가 설명되지 않는다. (a) 액세스 쿠키 만료로 매 요청
+  `verifyRefreshSessionToAuth` 폴백(Mongo 2왕복)을 타는가, (b) `withMongoRetry` 가 재시도를
+  도는가. 가르려면 `requireAuth` 안에 서브마크를 넣는 워커 변경 + 스테이징 배포가 필요하다.
+- 🔴 **전부 스테이징 값이다** — 아래 *모르는 것* 의 "프로덕션에서 몇 ms" 는 여전히 미해결.
+- 재현: 로그인한 브라우저에서 동일 출처 `fetch("/api/human-design/chart", {credentials:"include"})`
+  를 미스 1회 + 히트 5회 돌리고 응답 `pipeline` 을 읽는다. 🔴 캐시버스터 없이 GET 을 반복하면
+  `cache:"no-store"` 여도 0ms 가 찍혀 판독이 통째로 오염된다.
+
+## 씬 렌더 육안 확인 — 3항목 통과 (2026-08-30, 스테이징)
+
+실제 번들에 리포트 API 만 가로채 확인했다. ① `data-state="writing"` 정확히 4줄(done 3 + writing 4
++ pending 11 = 18) ② 차트 로딩 세 점 존재(점 대비 9.79:1 · 제목 16.48:1) ③ `prefers-reduced-motion`
+에서 18줄이 `animation:none; opacity:1` 로 남고 프레임 3장 md5 동일 — 모션 ON 대조군은 3장 전부
+상이하므로 "정지 사진이라 같아 보인 것"이 아니다. 목록은 사라지지 않는다.
+미수정 2건(범위 밖): 배지 우측 끝이 01–07 과 08–18 사이 1.5 CSS px 어긋남 · 배경 와이어프레임
+대비 1.27~1.39:1.
+
+
 ## 남은 작업
 
-- [ ] **`pipeline` 의 AUTH · ARCHIVE_LOOKUP 판독** (남은 유일한 병목 후보). 차트 결과 화면
-      하단에 이미 렌더된다(`app/human-design/HumanDesignClient.tsx:637`). 로그인한 스테이징
-      세션이 필요해 이번 세션에서는 못 읽었다. 판정 기준은 그대로 300ms.
-      🔴 **계산 구간은 이미 배제됐다** — 2026-08-30 node 실측(`worker/lib/human-design-ephemeris.js`
-      직접 호출, 루프백 성력 서버): 콜드 `PERSONALITY=74ms · DESIGN_SEARCH=1ms · DESIGN=0ms`,
-      웜 `total 1~2ms`. 즉 콜드 Swiss 초기화 74ms 가 전부고 나머지는 0에 가깝다. 그래서
-      **순차 `await` 병렬화는 이득이 없고**(웜 1ms), `EPHE_FILES` 축소도 콜드 아이솔레이트의
-      2,097KB 전송분(HD가 안 쓰는 `seas_18.se1`+`sefstars.txt` = 358KB, 17%)에만 걸린다 —
-      공용 모듈이라 위험 대비 이득이 작다. 재현: 위 모듈을 `onStage` 와 함께 4회 연속 호출.
-- [ ] **씬 렌더 육안 확인 (미검증)**. `next dev` 가 이 저장소에서 깨져 있어 실제 모습을 못 봤다.
-      CSS 토큰 존재는 대조했다. 스테이징에서 ① 생성 화면 목록의 "작성 중" 4줄, ② 차트 로딩 중
-      세 점, ③ `prefers-reduced-motion` 켠 상태에서 **목록 18줄이 안 사라지는지**를 본다.
 - [ ] 🔴 **켜진 적 없는 rate limit** (위 감사에서 나온 별건). `/api/fortune/**` 의 유일한 상한인
       `enforceGuardianFortuneRateLimit`(`worker/routes/fortune.js:6236`)은
       `GUARDIAN_FORTUNE_RATE_LIMIT_ENABLED` 가 `"true"` 일 때만 도는데, 그 키가
