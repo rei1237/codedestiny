@@ -196,4 +196,35 @@ const authSource = source("worker/lib/auth.js");
   );
 });
 
+/* Guardian 운세 생성의 rate limit 은 **503 계약을 만드는 try 안**에 있어야 한다.
+   incrementRateLimit 은 Mongo 를 쓴다. 호출이 try 밖이면 DB 가 흔들릴 때 그 예외가 라우트의
+   한국어 503(SERVICE_TEMPORARILY_UNAVAILABLE + retryable)을 건너뛰고 공용 handleRouteError 의
+   영문 503 으로 나가, 클라이언트의 재시도 판정이 사라진다. 같은 형태의 사고가 예약 코드에서
+   이미 한 번 났다(__tests__/worker/guardian-fortune-generate.test.js 의 "reservation" 케이스).
+   플래그 자체가 양쪽 wrangler 에 켜져 있는지는 verify:worker-config-parity 가 본다. */
+const fortune = source("worker/routes/fortune.js");
+const guardianGenerateStart = fortune.indexOf("async function handleGuardianFortuneGenerateRoute");
+assert.ok(guardianGenerateStart > 0, "guardian generate route: 선언을 못 읽었다");
+const guardianGenerateBody = fortune.slice(
+  guardianGenerateStart,
+  fortune.indexOf("\nasync function ", guardianGenerateStart + 1),
+);
+assertContains(
+  guardianGenerateBody,
+  "enforceGuardianFortuneRateLimit(",
+  "guardian generate: rate limit 호출",
+);
+assertBefore(
+  guardianGenerateBody,
+  "let result;",
+  "enforceGuardianFortuneRateLimit(",
+  "guardian generate: rate limit 호출이 503 계약 try 밖으로 나갔다",
+);
+assertBefore(
+  guardianGenerateBody,
+  "enforceGuardianFortuneRateLimit(",
+  "generateGuardianFortuneRequest(",
+  "guardian generate: rate limit 이 생성 뒤로 밀렸다",
+);
+
 console.log("[verify-worker-security-guards] ok");

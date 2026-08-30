@@ -6346,9 +6346,6 @@ async function handleGuardianFortuneGenerateRoute(request, env, ctx, trace) {
       || request.headers.get("x-idempotency-key")
       || createGuardianFortuneRequestId(),
   ).trim().slice(0, 120);
-  const rateLimitResponse = await enforceGuardianFortuneRateLimit({ request, env, identity });
-  if (rateLimitResponse) return guardianFortuneRouteResponse(rateLimitResponse, { cookie: identity.cookie });
-
   let result;
   try {
     // 형제 라우트 /guardian/usage 와 같은 형태로 연결까지만 재시도한다. 맨 connectDb 는 콜드
@@ -6356,6 +6353,12 @@ async function handleGuardianFortuneGenerateRoute(request, env, ctx, trace) {
     // 🔴 generateGuardianFortuneRequest 는 이 래퍼 밖에 둔다 — 안의 verifyPerUsePayment 가
     //    이미 withMongoRetry 를 쓰고(중첩 금지), 감싸면 LLM 생성까지 재시도 대상이 된다.
     await withMongoRetry(env, async () => { trace.dbConnected = true; });
+    // 🔴 rate limit 은 이 try **안**이어야 한다 — incrementRateLimit 이 Mongo 를 쓰므로 밖에 두면
+    //    DB 장애가 아래 한국어 503 계약(SERVICE_TEMPORARILY_UNAVAILABLE + retryable)을 건너뛰고
+    //    공용 handleRouteError 의 영문 503 으로 샌다. 연결은 바로 위 withMongoRetry 가 이미
+    //    세웠으므로 여기서 다시 감싸지 않는다(중첩 재시도 금지).
+    const rateLimitResponse = await enforceGuardianFortuneRateLimit({ request, env, identity });
+    if (rateLimitResponse) return guardianFortuneRouteResponse(rateLimitResponse, { cookie: identity.cookie });
     const store = createMongoGuardianFortuneStore({ env });
     result = await generateGuardianFortuneRequest({
       input: body,
