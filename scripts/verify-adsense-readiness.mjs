@@ -7,6 +7,7 @@ import {
 } from "../app/components/adsense-route-policy.js";
 import { MIN_SELF_CONSENT_AGE } from "../worker/lib/validation.js";
 import { blocksEntireSite } from "./lib/robots-groups.mjs";
+import { getIndexedCelebritySlugs } from "../lib/famous-saju/celebrity-editorial.js";
 
 const rootDir = fileURLToPath(new URL("..", import.meta.url));
 // 나이 고지 마커는 정책 상수에서 파생한다. 문구를 그대로 박아두면 정책이 바뀔 때
@@ -1029,10 +1030,18 @@ function verifyGeneratedPaidFeatureRoutesNoAdsense(baseDir) {
 // "alias 가 다시 빌드되지 않는가" + "정본 상세가 noindex 를 유지하는가".
 // 후자는 예전 구현에서 self-canonical 이라는 이유로 전부 건너뛰어(구 :1019) 사실상
 // 검사되지 않던 부분이라, 이 변경은 커버리지를 줄이는 게 아니라 늘린다.
+// 유명인 상세 라우트는 두 부류다. 검수된 고유 원고(celebrity-editorial.js 의 reviewedAt)가 있는
+// 인물은 index + 사이트맵 등재 + 본문 분량, 나머지는 noindex + 사이트맵 부재. 광고는 양쪽 다 막는다.
+// 🔴 색인된 상세 수가 검수된 원고 수와 정확히 같아야 한다 — 한쪽만 바뀌면(원고는 있는데 페이지가
+//    noindex, 페이지는 index 인데 원고 없음) 그 자리에서 실패한다.
 function verifyFamousSajuAliasRoutesNoindex(baseDir) {
   const htmlFiles = collectIndexHtmlFiles(resolve(rootDir, baseDir));
+  const sitemapPath = `${baseDir}/sitemap.xml`;
+  const sitemapPaths = new Set(getSitemapPaths(readRequired(sitemapPath)));
+  const indexedSlugs = new Set(getIndexedCelebritySlugs());
   const rebuiltAliasRoutes = [];
   let detailRouteCount = 0;
+  let indexedRouteCount = 0;
 
   for (const absolutePath of htmlFiles) {
     const route = routeFromHtmlPath(baseDir, absolutePath);
@@ -1058,8 +1067,24 @@ function verifyFamousSajuAliasRoutesNoindex(baseDir) {
     );
     assert(!embedsAdsenseCode(html), `${htmlPath}: famous-saju detail route must not embed AdSense`);
     assert(canonicalPath.startsWith("/insights/famous-saju/"), `${htmlPath}: famous-saju detail must canonicalize under insights`);
+
+    const slug = route.slice("/insights/famous-saju/".length);
+    if (indexedSlugs.has(slug)) {
+      indexedRouteCount += 1;
+      assert(!robots.includes("noindex"), `${htmlPath}: reviewed famous-saju editorial page must be indexable (robots)`);
+      assert(!googleBot.includes("noindex"), `${htmlPath}: reviewed famous-saju editorial page must be indexable (googlebot)`);
+      assert(sitemapPaths.has(route), `${sitemapPath}: reviewed famous-saju editorial page missing from sitemap: ${route}`);
+      assert(html.includes("data-famous-saju-editorial"), `${htmlPath}: reviewed famous-saju page must render the editorial narrative`);
+      const visibleText = getVisibleText(html);
+      assert(
+        visibleText.length >= minimumBlockedIndexableVisibleTextLength,
+        `${htmlPath}: reviewed famous-saju page visible content is too thin (${visibleText.length} chars)`,
+      );
+      continue;
+    }
     assert(robots.includes("noindex"), `${htmlPath}: famous-saju detail must contain noindex robots`);
     assert(googleBot.includes("noindex"), `${htmlPath}: famous-saju detail googlebot must contain noindex`);
+    assert(!sitemapPaths.has(route), `${sitemapPath}: unreviewed famous-saju detail must not be in sitemap: ${route}`);
   }
 
   assert(
@@ -1067,6 +1092,10 @@ function verifyFamousSajuAliasRoutesNoindex(baseDir) {
     `${baseDir}: /famous-saju/<slug> alias pages must not be built — they are 301'd in public/_redirects (found ${rebuiltAliasRoutes.length}, e.g. ${rebuiltAliasRoutes[0]})`,
   );
   assert(detailRouteCount > 0, `${baseDir}: no famous-saju detail routes were checked`);
+  assert(
+    indexedRouteCount === indexedSlugs.size,
+    `${baseDir}: indexed famous-saju pages (${indexedRouteCount}) must equal reviewed editorial entries (${indexedSlugs.size})`,
+  );
 }
 
 function verifyPrivateNoindexRoutes(baseDir) {

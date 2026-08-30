@@ -31,6 +31,9 @@ const TONES = {
   },
 };
 
+/**
+ * @param {{ contentSource?: string; datePublished?: string | null; dateModified?: string | null; tone?: string; className?: string }} props
+ */
 export default function ContentIntegrityNote({
   contentSource = "template",
   datePublished = null,

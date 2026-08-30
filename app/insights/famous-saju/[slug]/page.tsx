@@ -5,6 +5,10 @@ import { FusionCrossSell } from "../../../components/FusionCrossSell";
 import { generatePageMetadata } from "../../../../lib/generate-page-metadata";
 import { getFamousSajuHeroImage, type FamousSajuHeroImage } from "../../../../lib/famous-saju/famous-saju-image";
 import { getCelebrityRelatedList, getCelebritySajuPage, getFamousSajuSeoMetadata, getPublishedCelebrityStaticSlugs, publishedCelebritySajuSeeds, type CelebritySajuMagazineResult } from "../../../../lib/famous-saju/celebrity-saju-service";
+import { getCelebrityEditorial } from "../../../../lib/famous-saju/celebrity-editorial";
+import { buildCelebrityMultiSystem, type MultiSystemRow } from "../../../../lib/famous-saju/celebrity-multi-system";
+import { buildAuthorPersonJsonLd } from "../../../../lib/structured-data";
+import { truncateToDisplayWidth } from "../../../../lib/seo";
 
 type PageParams = { slug: string };
 type PageProps = { params: Promise<PageParams> };
@@ -12,6 +16,7 @@ type FamousSajuSeoMeta = ReturnType<typeof getFamousSajuSeoMetadata>;
 type MagazinePillar = CelebritySajuMagazineResult["pillars"]["year"];
 type RelatedCelebrity = { slug: string; category: string; nameKo: string; tags: string[] };
 type TocItem = { id: string; title: string };
+type CelebrityEditorialEntry = NonNullable<ReturnType<typeof getCelebrityEditorial>>;
 
 const SITE_ORIGIN = "https://code-destiny.com";
 
@@ -94,6 +99,15 @@ function withNoindexFollow(metadata: ReturnType<typeof generateFamousSajuMetadat
   };
 }
 
+// 검수된 고유 원고가 있는 인물의 제목 규칙(성장 계획 §2). 1900년 이후 출생만 숙요를 세울 수 있어
+// 제목에서도 갈라 둔다 — 세우지도 않은 체계를 제목에 걸면 클릭 뒤 빈 표만 보게 된다.
+function buildEditorialSeoTitle(celebrity: { nameKo: string; birthDate: string | null; isBirthTimeKnown: boolean }) {
+  if (celebrity.isBirthTimeKnown) return `${celebrity.nameKo} 사주 풀이 — 시주까지 본 명식 | 꿀꿀 운세`;
+  const birthYear = Number(String(celebrity.birthDate || "").slice(0, 4));
+  if (birthYear >= 1900) return `${celebrity.nameKo} 사주·숙요 풀이 | 꿀꿀 운세`;
+  return `${celebrity.nameKo} 사주 풀이 — 일주·십성으로 본 행적 | 꿀꿀 운세`;
+}
+
 export function generateStaticParams() {
   return getPublishedCelebrityStaticSlugs().map((slug) => ({ slug }));
 }
@@ -110,11 +124,26 @@ export async function generateMetadata({ params }: PageProps) {
     });
   }
 
-  const metadata = generateFamousSajuMetadata(getFamousSajuSeoMetadata(reading.celebrity, reading));
-  // 정본/별칭 구분 없이 전량 noindex. 상세 페이지는 이름·생년월일만 바뀌는 템플릿
+  const seo = getFamousSajuSeoMetadata(reading.celebrity, reading);
+  const editorial = getCelebrityEditorial(slug);
+  if (editorial?.reviewedAt) {
+    // 🔴 색인 여부의 정본은 celebrity-editorial.js 의 reviewedAt 하나다. 검수된 고유 원고가 있는
+    // 인물만 index 로 내보내고, 사이트맵(generate-sitemap.mjs)과 readiness 가드가 같은 값을 본다.
+    const title = buildEditorialSeoTitle(reading.celebrity);
+    return generateFamousSajuMetadata({
+      ...seo,
+      title,
+      headline: title,
+      description: truncateToDisplayWidth(editorial.seoDescription),
+      updatedAt: editorial.reviewedAt,
+    });
+  }
+
+  const metadata = generateFamousSajuMetadata(seo);
+  // 고유 원고가 없거나 검수 전인 인물은 noindex. 상세 페이지는 이름·생년월일만 바뀌는 템플릿
   // 조립물이라(문장의 83% 가 다른 인물 페이지와 동일) 색인 대상으로 두면
   // Google 의 scaled content abuse 판정을 받는다. 페이지 자체와 내부 링크는 유지하고
-  // 허브(/insights/famous-saju)와 카테고리만 색인·광고 대상으로 남긴다.
+  // 허브(/insights/famous-saju)만 색인·광고 대상으로 남긴다.
   return withNoindexFollow(metadata);
 }
 
@@ -522,6 +551,79 @@ function CelebrityActivityInsightCard({ magazine, highlightedTenGods }: { magazi
   );
 }
 
+// 인물별 고유 원고(celebrity-editorial.js). 초안(reviewedAt null)도 미리보기로 렌더하되
+// 저자·검수 표기는 검수된 뒤에만 붙는다 — 검토했다는 주장은 검토한 페이지만 한다.
+function EditorialNarrative({ editorial }: { editorial: CelebrityEditorialEntry }) {
+  return (
+    <section id="editorial" data-famous-saju-editorial className="mt-6 scroll-mt-24 rounded-lg border border-amber-100/20 bg-[#0f0c1e] p-4 sm:p-6">
+      <SectionHeader label="명리학자의 풀이" title="명식에서 행적으로 — 이 인물만의 해설" />
+      <div className="space-y-4 text-sm leading-8 text-slate-100/85 sm:text-base">
+        {editorial.narrative.map((paragraph, index) => <p key={index}>{paragraph}</p>)}
+      </div>
+      <p className="mt-5 text-xs leading-6 text-amber-100/60 [font-family:var(--font-decorative)]">
+        {editorial.reviewedAt ? `글 · 박병하(명리학자) · 검수 ${editorial.reviewedAt}` : "검수 전 초안 — 검색 색인에 올리지 않은 상태입니다."}
+      </p>
+      <ul className="mt-2 space-y-1 text-xs text-slate-400/80">
+        {editorial.sources.map((source) => (
+          <li key={source.url}>
+            출처: <a href={source.url} rel="noopener noreferrer" target="_blank" className="underline decoration-slate-500/60 hover:text-amber-100">{source.label}</a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+const MULTI_SYSTEM_STATUS_LABEL: Record<MultiSystemRow["status"], string> = {
+  confirmed: "확정",
+  candidate: "후보 2개",
+  unavailable: "산출 안 함",
+};
+
+// 사주·숙요·베다 달 낙샤트라 세 줄. 자미두수 열은 없다(생시 의존 — 2026-08-30 결정).
+// 못 구한 체계도 줄을 지우지 않고 사유(basis)를 보여 준다.
+function MultiSystemTable({ rows }: { rows: MultiSystemRow[] }) {
+  return (
+    <section id="multi-system" data-famous-saju-multi-system className="mt-6 scroll-mt-24 rounded-lg border border-sky-100/15 bg-[#0b1220] p-4 sm:p-6">
+      <SectionHeader label="세 체계로 본 명식" title="사주 · 숙요 27수 · 베다 달 낙샤트라" />
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[560px] text-left text-sm text-slate-200/85">
+          <thead>
+            <tr className="text-xs text-amber-100/70 [font-family:var(--font-decorative)]">
+              <th scope="col" className="py-2 pr-3 font-semibold">체계</th>
+              <th scope="col" className="py-2 pr-3 font-semibold">값</th>
+              <th scope="col" className="py-2 pr-3 font-semibold">상태</th>
+              <th scope="col" className="py-2 font-semibold">산출 근거 · 한계</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row) => (
+              <tr key={row.system} className="border-t border-white/10 align-top">
+                <th scope="row" className="py-3 pr-3 font-semibold text-white">{row.label}</th>
+                <td className="py-3 pr-3">
+                  <p className="font-semibold text-white">{row.value}</p>
+                  {row.detail ? <p className="mt-1 text-xs leading-6 text-slate-300/80">{row.detail}</p> : null}
+                </td>
+                <td className="py-3 pr-3 text-xs">{MULTI_SYSTEM_STATUS_LABEL[row.status]}</td>
+                <td className="py-3 text-xs leading-6 text-slate-400/85">{row.basis}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
+function CrossSystemNote({ editorial }: { editorial: CelebrityEditorialEntry }) {
+  return (
+    <section id="cross-system" className="mt-5 scroll-mt-24 rounded-lg border border-amber-100/15 bg-[#10131d] p-4 sm:p-5">
+      <h2 className="text-lg font-semibold leading-snug text-white sm:text-xl [font-family:var(--font-premium)]">체계 교차 해설</h2>
+      <p className="mt-4 text-sm leading-8 text-slate-200/80 sm:text-base">{editorial.crossSystemNote}</p>
+    </section>
+  );
+}
+
 function CelebritySajuFAQ({ faq }: { faq: CelebritySajuMagazineResult["faq"] }) {
   if (!faq.length) return null;
 
@@ -611,6 +713,9 @@ export default async function FamousSajuInsightDetailPage({ params }: PageProps)
   if (!reading) return <UnknownCelebrityPage slug={slug} />;
 
   const { celebrity, magazine } = reading;
+  const editorial = getCelebrityEditorial(celebrity.slug);
+  const reviewedAt = editorial?.reviewedAt || null;
+  const multiSystem = buildCelebrityMultiSystem({ birthDate: celebrity.birthDate || "", birthTime: celebrity.birthTime, country: celebrity.country, magazine });
   const related = getCelebrityRelatedList(celebrity);
   const relatedSummary: RelatedCelebrity = { slug: celebrity.slug, category: celebrity.category, nameKo: celebrity.nameKo, tags: celebrity.tags };
   const accent = accentFor(magazine.dayElement);
@@ -626,6 +731,8 @@ export default async function FamousSajuInsightDetailPage({ params }: PageProps)
   const finalSection = sectionById(magazine, "final-texture");
 
   const tableOfContents: TocItem[] = [
+    editorial ? { id: "editorial", title: "명리학자의 풀이" } : null,
+    { id: "multi-system", title: "세 체계로 본 명식" },
     { id: "pillars", title: "원국 4주" },
     { id: "conclusion", title: "한 줄 결론" },
     dayPillarSection ? { id: "day-pillar-texture", title: "일주의 결" } : null,
@@ -635,7 +742,10 @@ export default async function FamousSajuInsightDetailPage({ params }: PageProps)
     twelveStageSection ? { id: "twelve-stage", title: "12운성" } : null,
     magazine.deeds.length ? { id: "deeds-and-chart", title: "행적과 사주의 결" } : null,
     finalSection ? { id: "final-texture", title: "맺는 문장" } : null,
+    editorial ? { id: "cross-system", title: "체계 교차 해설" } : null,
   ].filter((item): item is TocItem => Boolean(item));
+  const articleHeadline = reviewedAt ? buildEditorialSeoTitle(celebrity) : seo.headline;
+  const articleDescription = reviewedAt && editorial ? truncateToDisplayWidth(editorial.seoDescription) : seo.description;
 
   const personJsonLd = {
     "@context": "https://schema.org",
@@ -649,14 +759,17 @@ export default async function FamousSajuInsightDetailPage({ params }: PageProps)
   const articleJsonLd = {
     "@context": "https://schema.org",
     "@type": "Article",
-    headline: seo.headline,
-    description: seo.description,
+    headline: articleHeadline,
+    description: articleDescription,
     image: [heroImageUrl],
     url: canonicalUrl,
     mainEntityOfPage: canonicalUrl,
     datePublished: new Date(seo.publishedAt).toISOString(),
-    dateModified: new Date(seo.updatedAt).toISOString(),
-    author: { "@type": "Organization", name: "CODE DESTINY" },
+    // 검수된 원고는 검수일이 곧 수정일이다 — 사이트맵 lastmod(generate-sitemap.mjs)와 같은 값.
+    dateModified: new Date(reviewedAt || seo.updatedAt).toISOString(),
+    // 검수된 원고만 실명 저자(박병하 Person 노드). 템플릿 조립물에 사람의 경력을 붙이지 않는다.
+    author: reviewedAt ? buildAuthorPersonJsonLd() : { "@type": "Organization", name: "CODE DESTINY" },
+    ...(reviewedAt && editorial ? { citation: editorial.sources.map((source) => source.url) } : {}),
     publisher: { "@type": "Organization", name: "CODE DESTINY" },
     articleSection: seo.articleSection,
     keywords: seo.keywords.join(", "),
@@ -713,6 +826,8 @@ body:has(main[data-famous-saju-detail]) {
         <Breadcrumb celebrity={relatedSummary} />
         <CelebritySajuHero magazine={magazine} heroImage={heroImage} />
         <CelebritySajuNotice magazine={magazine} />
+        {editorial ? <EditorialNarrative editorial={editorial} /> : null}
+        <MultiSystemTable rows={multiSystem.rows} />
         <CelebritySajuPillarTable magazine={magazine} />
 
         <div className="mt-5 lg:grid lg:grid-cols-[minmax(0,1fr)_216px] lg:items-start lg:gap-8">
@@ -735,14 +850,19 @@ body:has(main[data-famous-saju-detail]) {
             {twelveStageSection ? <MagazineSection section={twelveStageSection} /> : null}
             <CelebrityActivityInsightCard magazine={magazine} highlightedTenGods={highlightedTenGods} />
             {finalSection ? <MagazineSection section={finalSection} accent={accent.color} /> : null}
+            {editorial ? <CrossSystemNote editorial={editorial} /> : null}
             <CelebritySajuFAQ faq={magazine.faq} />
             <CelebritySajuCTA cta={magazine.cta} />
             <FusionCrossSell fromPath={`/insights/famous-saju/${slug}`} tone="neo" />
             <RelatedCelebritySajuList related={related} />
             <p className="mt-6 text-xs leading-6 text-slate-400/70">{magazine.profile.sourceNote}</p>
-            {/* 이름과 생년월일을 규칙에 대입해 구성한 페이지다. 사람이 한 건씩 검토하지
-                않으므로 그렇게 주장하지 않는다(그래서 이 라우트는 noindex 다). */}
-            <ContentIntegrityNote contentSource="template" />
+            {/* 검수된 고유 원고(reviewedAt)가 있는 인물만 "사람이 검토했다"고 말한다. 나머지는
+                이름과 생년월일을 규칙에 대입해 구성한 페이지라 그렇게 주장하지 않는다(그래서 noindex 다). */}
+            {reviewedAt ? (
+              <ContentIntegrityNote contentSource="editorial" datePublished={seo.publishedAt} dateModified={reviewedAt} />
+            ) : (
+              <ContentIntegrityNote contentSource="template" />
+            )}
           </div>
 
           <aside className="hidden lg:block">

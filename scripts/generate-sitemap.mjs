@@ -25,6 +25,10 @@ const [{ INSIGHT_ARTICLES }, { SEO_GROWTH_ARTICLES }] = await Promise.all([
   import(pathToFileURL(resolve(process.cwd(), "app", "insights", "articles.js")).href),
   import(pathToFileURL(resolve(process.cwd(), "app", "insights", "seo-growth-articles.js")).href),
 ]);
+// 유명인 고유 원고. reviewedAt 이 있는 인물만 상세 라우트가 사이트맵에 오른다(extractFamousSajuRoutes).
+const { CELEBRITY_EDITORIAL } = await import(
+  pathToFileURL(resolve(process.cwd(), "lib", "famous-saju", "celebrity-editorial.js")).href
+);
 const EXPLICITLY_DATED_INSIGHT_SLUGS = new Set(
   [...(INSIGHT_ARTICLES || []), ...(SEO_GROWTH_ARTICLES || [])]
     .filter((article) => String(article?.updatedAt || article?.publishedAt || "").trim())
@@ -468,19 +472,28 @@ function extractFamousSajuRoutes() {
     if (slug) seen.add(slug);
   }
 
-  // 상세 페이지(/insights/famous-saju/<slug>)는 사이트맵에 넣지 않는다.
-  // app/insights/famous-saju/[slug]/page.tsx 가 전량 noindex 이며, 이름·생일만
-  // 바뀌는 템플릿 조립물이라 색인 대상이 아니다.
-  // 카테고리 12개(`/famous-saju/category/<slug>`)도 2026-08-17 에 라우트째 삭제해서 뺐다.
-  // 🔴 그래서 사이트맵에 남는 것은 허브 하나뿐이다. 위 튜플 스캔은 이제 셀럽 데이터의 모양이
-  //    깨지지 않았는지 보는 앵커로만 남는다 — 0건이면 파싱이 깨진 것이므로 통과시키지 않는다.
+  // 상세 페이지(/insights/famous-saju/<slug>)는 **검수된 고유 원고가 있는 인물만** 넣는다.
+  // 나머지는 app/insights/famous-saju/[slug]/page.tsx 가 noindex 로 내보내는 템플릿 조립물이라
+  // 색인 대상이 아니다. 색인 여부의 정본은 lib/famous-saju/celebrity-editorial.js 의 reviewedAt
+  // 하나이고, 페이지 robots · 이 사이트맵 · verify-adsense-readiness 가 전부 그 값을 본다.
+  // 카테고리 12개(`/famous-saju/category/<slug>`)는 2026-08-17 에 라우트째 삭제해서 뺐다.
+  // 🔴 위 튜플 스캔은 셀럽 데이터의 모양이 깨지지 않았는지 보는 앵커다 — 0건이면 파싱이 깨진
+  //    것이므로 통과시키지 않고, 원고의 슬러그가 튜플에 없어도 통과시키지 않는다.
   if (seen.size === 0) {
     throw new Error("[sitemap] celebrity-data.ts 에서 인물을 하나도 파싱하지 못했다 — 튜플 모양이 바뀌었다.");
   }
 
-  // lastmod 를 붙이지 않는다 — 이 라우트의 실제 갱신 시각을 알 수 있는 소스가 없다.
-  // 아래 조립부의 `route.lastmod || today` 폴백을 타서 다른 라우트와 같은 취급을 받는다.
-  return [{ path: "/insights/famous-saju", changefreq: "weekly", priority: 0.89 }];
+  // 허브에는 lastmod 를 붙이지 않는다 — 실제 갱신 시각을 알 수 있는 소스가 없어 원장 폴백을 탄다.
+  const routes = [{ path: "/insights/famous-saju", changefreq: "weekly", priority: 0.89 }];
+  for (const [slug, entry] of Object.entries(CELEBRITY_EDITORIAL)) {
+    if (!entry?.reviewedAt) continue;
+    if (!seen.has(slug)) {
+      throw new Error(`[sitemap] celebrity-editorial.js 의 "${slug}" 가 celebrity-data.ts 의 발행 인물 튜플에 없다.`);
+    }
+    // lastmod 는 검수일 — 페이지의 Article.dateModified 와 같은 값이어야 하므로 원장을 타지 않는다.
+    routes.push({ path: `/insights/famous-saju/${slug}`, lastmod: entry.reviewedAt, changefreq: "monthly", priority: 0.78 });
+  }
+  return routes;
 }
 
 /**
