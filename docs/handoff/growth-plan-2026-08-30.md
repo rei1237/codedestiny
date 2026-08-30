@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-08-30
-next: 2단계 PR #1340 머지 → 프로덕션 승격 → 사용자 검수 후 reviewedAt 켜기 → T1 인물 확장 또는 3단계 홈 히어로
+next: 사용자 검수 후 reviewedAt 켜기 → T1 인물 확장 또는 3단계 홈 히어로(둘 다 새 세션)
 ---
 
 # 성장 계획 2026-08-30 — 검색 유입·AdSense·첫인상
@@ -23,7 +23,7 @@ next: 2단계 PR #1340 머지 → 프로덕션 승격 → 사용자 검수 후 r
 ## 지금 상태
 
 - 1단계(1-A~1-E) 전부 main 머지·프로덕션 승격 완료. 마지막 승격 run 33314844807(2026-08-30, main 9de4ccfe5 = #1334 포함).
-- 2단계 1차: **PR #1340 머지 대기**(브랜치 `worktree-growth-stage2-celebrity-t0`). 내용은 PR 본문이 정본. 요지:
+- 2단계 1차: **#1340 머지·프로덕션 승격 완료**(2026-08-30, run 33315732990, main 66bdb09ac; 홈·sitemap·`/insights/famous-saju/yu-gwan-sun/` 200, `npm run seo:check` PASS, 유관순 페이지에 다체계 표·"검수 전 초안"·`noindex, follow` curl 로 확인). 요지:
   - `lib/famous-saju/celebrity-editorial.js` — T0 6명 원고, **전부 `reviewedAt: null`(초안) → 아직 아무 상세 페이지도 색인되지 않는다.**
   - `lib/famous-saju/celebrity-multi-system.ts` — 사주·숙요·베다 3줄 표(자미두수 없음).
   - 색인 분기 3곳(`[slug]/page.tsx` robots · `generate-sitemap.mjs` · `verify-adsense-readiness.mjs`) + `lib/seo-site-urls.ts` 가 전부 `reviewedAt` 하나를 본다. 1-C 잔여(134 URL 열거)도 이걸로 해소.
@@ -48,7 +48,7 @@ next: 2단계 PR #1340 머지 → 프로덕션 승격 → 사용자 검수 후 r
 
 ## 남은 작업
 
-- [ ] 사용자: #1340 머지 → 에이전트: 프로덕션 승격 + 스모크(위 명령) — 승격 후 `/insights/famous-saju/yu-gwan-sun/` 에서 다체계 표·"검수 전 초안" 문구 눈으로 1회 확인
+- [x] #1340 머지·승격·스모크(2026-08-30). 스모크 명령은 `npm run seo:check`(`seo:check` 라는 스크립트는 없다 — 실측 2026-08-30 `npm run` 목록)
 - [ ] 사용자: T0 6명 원고 검수 → `reviewedAt` 켜기(위 절차). **AdSense 재신청은 검수된 인물이 실제로 색인에 오른 승격 + 2주 뒤.**
 - [ ] 2단계 2차: T1 인물 확장(계획 파일 §2 의 T1 목록). 같은 파일에 항목만 추가하면 나머지는 자동. 한 세션에 6명 내외가 한계(원고 1건 ≈ 900자 × 3 + 교차 해설).
 - [ ] 1-D·1-E 잔여: 프로덕션에서 6개 랜딩 가시 섹션과 `/insights` 하단 아카이브 그리드 **눈으로 1회 확인**(`visual-checker`)
