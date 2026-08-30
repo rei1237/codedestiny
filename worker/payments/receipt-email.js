@@ -229,6 +229,7 @@ export async function sendPendingReceiptEmails(env, db, options = {}) {
   let sent = 0;
   let skipped = 0;
   let failed = 0;
+  let configError = false;
 
   for (const order of orders) {
     const orderId = String(order?.merchantUid || "");
@@ -255,9 +256,14 @@ export async function sendPendingReceiptEmails(env, db, options = {}) {
 
     const { subject, html } = buildReceiptEmail(order);
     let ok = false;
+    let providerConfigError = false;
+    let providerFrom = "";
     try {
       const result = await withTimeout(send(env, { to: address, subject, html }), sendTimeoutMs);
       ok = Boolean(result?.ok);
+      // 🔴 타임아웃(throw)은 여기 오지 않는다 — 설정 오류가 아니라 일시적 실패이기 때문이다.
+      providerConfigError = result?.configError === true;
+      providerFrom = String(result?.from || "");
     } catch {
       ok = false;
     }
@@ -271,8 +277,19 @@ export async function sendPendingReceiptEmails(env, db, options = {}) {
       } catch {
         // 되돌리기까지 실패하면 이 주문은 영수증 없이 남는다. reconcile 로그에 드러난다.
       }
+      // 🔴 계정 설정 실패(401·403·키 누락·발신자 422)는 수신자와 무관하다 — 남은 주문에 보내도
+      //    같은 응답이 온다. 계속 돌면 실패 요청만 주문 수만큼 쌓이고 요약은 failed=N 으로만 보여
+      //    "주소 몇 개가 나빴다"와 구별되지 않는다(일일 운세 크론이 2026-08-19~08-31 에 그랬다).
+      //    선점은 위에서 이미 풀었으므로 설정이 고쳐지면 다음 크론이 그대로 다시 잡는다.
+      if (providerConfigError) {
+        configError = true;
+        console.error(
+          `[payments-v2-reconcile] receipt email aborted: provider config failure (from=${providerFrom || "?"})`,
+        );
+        break;
+      }
     }
   }
 
-  return { scanned: orders.length, sent, skipped, failed };
+  return { scanned: orders.length, sent, skipped, failed, configError };
 }

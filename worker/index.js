@@ -1893,10 +1893,22 @@ export default {
       ["webhook-reconcile", runWebhookReconcileTask],
       ["sns-daily-post", runSnsDailyPostTask],
     ];
-    ctx.waitUntil(Promise.allSettled(tasks.map(([name, run]) => Promise.resolve()
-      .then(() => run(env))
-      .catch((error) => {
-        console.error(`[cron:${name}] task failed:`, error?.message || error);
-      }))));
+    // 🔴 던진 태스크는 로그 한 줄로 끝나지 않는다 — 콘솔만 남기던 시절에 일일 운세 메일이
+    //    2026-08-20 부터 조용히 0통이었다(구독 문서가 그날 이후 갱신조차 되지 않았다).
+    //    실행 1회당 한 통만 보낸다. 알림 실패가 크론을 죽이지 않도록 여기서도 삼킨다.
+    ctx.waitUntil((async () => {
+      const failures = [];
+      await Promise.allSettled(tasks.map(([name, run]) => Promise.resolve()
+        .then(() => run(env))
+        .catch((error) => {
+          failures.push({ name, message: String(error?.message || error) });
+          console.error(`[cron:${name}] task failed:`, error?.message || error);
+        })));
+      if (failures.length === 0) return;
+      const { notifyCronTaskFailures } = await import("./lib/cron-failure-alert.js");
+      await notifyCronTaskFailures(env, failures).catch((error) => {
+        console.error("[cron] 태스크 실패 알림 자체가 실패했다:", error?.message || error);
+      });
+    })());
   },
 };
