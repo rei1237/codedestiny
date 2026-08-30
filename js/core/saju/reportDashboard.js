@@ -990,8 +990,7 @@ function _s4cEnsureCanvasLib() {
 function _s4cCoverSrcCandidates() {
   return [
     '/fuctionassets/사주 네컷.webp',
-    'fuctionassets/사주 네컷.webp',
-    '/public/fuctionassets/사주 네컷.webp'
+    'fuctionassets/사주 네컷.webp'
   ];
 }
 

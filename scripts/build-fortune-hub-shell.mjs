@@ -194,10 +194,10 @@ export function buildHubShell() {
   <meta property="og:url" content="https://code-destiny.com/fortune/">
   <meta property="og:site_name" content="꿀꿀 운세">
   <meta property="og:locale" content="ko_KR">
-  <meta property="og:image" content="https://code-destiny.com/icons/icon-512x512.png">
+  <meta property="og:image" content="https://code-destiny.com/icons/app-logo-512.png">
   <meta name="google-adsense-account" content="ca-pub-9863227498729828">
   <link rel="canonical" href="https://code-destiny.com/fortune/">
-  <link rel="icon" href="/icons/icon-192x192.png">
+  <link rel="icon" href="/icons/app-logo-192.png">
   <script type="application/ld+json">
 ${JSON.stringify(jsonLd, null, 2)}
   </script>
