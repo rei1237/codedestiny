@@ -11177,6 +11177,88 @@ html.neo-mode body .cd-pick-why__alt:focus-visible{outline-color:#c4b5fd}
           <span class="cd-pick__badge" data-cd-trans="shell.cdTodayPick.cdPickInner.k16e565e">맞춤 추천</span>
         </div>
       </section>
+      <!-- 왜 Code Destiny인가 — 대표 상담 앞. "왜 돈을 내야 하나"를 상품보다 먼저 둔다. 상품 카드가 아니라 서비스 전체의
+           차별점 4가지를 설명한다(가격/링크 없음 — js/core/service-registry.js 등록 대상 아님). -->
+      <style id="cd-why-us-v20260824">
+html body .cd-why-us{max-width:var(--cd-w-grid,1280px);margin:32px auto 8px;padding:0 clamp(12px,3vw,24px)}
+html body .cd-why-us__head{margin:0 0 20px;text-align:center}
+html body .cd-why-us__kicker{display:block;font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--cd-accent,#b31955);opacity:.75;margin-bottom:6px}
+html.neo-mode body .cd-why-us__kicker{color:var(--cd-gold,#e8d5a3)}
+html body .cd-why-us__title{margin:6px 0 0;font-family:var(--font-display,serif);font-size:clamp(1.24rem,2.6vw,1.7rem);font-weight:800;line-height:1.32;color:var(--cd-text,#3c1830)}
+html.neo-mode body .cd-why-us__title{color:#f4eeff}
+html body .cd-why-us__grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:20px}
+html body .cd-why-us__card{display:flex;flex-direction:column;gap:6px;padding:18px 16px;border-radius:18px;background:var(--cd-surface,rgba(255,255,255,.96));border:1px solid var(--cd-border,rgba(216,63,120,.16))}
+/* 아이콘 — 컬러 이모지를 단색 라인 글리프로 교체했다(v20260824).
+   고민 선택 섹션(cd-concern)과 같은 어휘다: 24x24 viewBox · stroke 1.6 · currentColor.
+   🔴 색은 accent 가 아니라 뮤트 텍스트다(Accent Budget Rule) — 두 테마 모두 토큰이 처리한다.
+   크기는 font-size 가 아니라 박스로 잡는다. flex column 자식이라 width 를 못 박아야 늘어나지 않는다. */
+html body .cd-why-us__icon{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;width:26px;height:26px;margin:0 0 2px;color:var(--cd-text-muted,#70445c);line-height:0}
+html body .cd-why-us__icon svg{display:block;width:23px;height:23px}
+html body .cd-why-us__card-title{font-size:15px;font-weight:900;line-height:1.3;color:var(--cd-text,#3c1830);letter-spacing:-.01em}
+html.neo-mode body .cd-why-us__card-title{color:#f4eeff}
+html body .cd-why-us__card-desc{font-size:12.5px;line-height:1.62;color:color-mix(in srgb,var(--cd-text,#3c1830) 78%,transparent)}
+html.neo-mode body .cd-why-us__card-desc{color:rgba(228,214,255,.86)}
+@media(min-width:600px){html body .cd-why-us__grid{grid-template-columns:repeat(4,1fr)}}
+@media(min-width:768px){html body .cd-why-us{margin:40px auto 0}}
+/* 초융합 교차검증 증거 스트립 (cd-why-us-proof-v20260830).
+   지어낸 수치가 아니라 실제 결과 화면의 형태다 — 값은 사람마다 달라 "예시"로 명시한다.
+   🔴 의미를 색에만 싣지 않는다(a11y) — stance 는 항상 글자로 함께 쓴다. */
+html body .cd-why-us__proof{margin-top:14px;padding:14px 14px 12px;border-radius:16px;background:var(--cd-surface-soft,rgba(255,255,255,.72));border:1px solid var(--cd-border,rgba(216,63,120,.16))}
+html.neo-mode body .cd-why-us__proof{background:rgba(255,255,255,.05);border-color:rgba(232,213,163,.18)}
+html body .cd-why-us__proof-head{display:block;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--cd-text-muted,#70445c);margin-bottom:10px}
+html.neo-mode body .cd-why-us__proof-head{color:rgba(228,214,255,.7)}
+html body .cd-why-us__proof-row{display:flex;flex-wrap:wrap;gap:6px}
+html body .cd-why-us__sys{display:inline-flex;align-items:baseline;gap:5px;padding:5px 9px;border-radius:999px;font-size:11.5px;line-height:1.3;border:1px solid var(--cd-border,rgba(216,63,120,.16));color:var(--cd-text,#3c1830)}
+html.neo-mode body .cd-why-us__sys{color:#f4eeff;border-color:rgba(232,213,163,.2)}
+html body .cd-why-us__sys b{font-weight:800}
+html body .cd-why-us__sys i{font-style:normal;font-weight:700;color:var(--cd-text-muted,#70445c)}
+html.neo-mode body .cd-why-us__sys i{color:rgba(228,214,255,.72)}
+html body .cd-why-us__sys[data-stance="agree"]{background:color-mix(in srgb,var(--cd-accent,#b31955) 8%,transparent)}
+html body .cd-why-us__sys[data-stance="conditional"]{background:color-mix(in srgb,var(--cd-text,#3c1830) 5%,transparent)}
+html body .cd-why-us__sys[data-stance="caution"]{background:transparent;border-style:dashed}
+html body .cd-why-us__proof-caption{display:block;margin-top:10px;font-size:11.5px;line-height:1.55;color:var(--cd-text-muted,#70445c)}
+html.neo-mode body .cd-why-us__proof-caption{color:rgba(228,214,255,.72)}
+      </style>
+      <section class="cd-why-us" id="cdWhyUs" aria-labelledby="cdWhyUsTitle">
+        <div class="cd-why-us__head">
+          <span class="cd-why-us__kicker">WHY CODE DESTINY</span>
+          <h2 class="cd-why-us__title" id="cdWhyUsTitle" data-cd-trans="shell.cdWhyUs.cdWhyUsHead.CodeDestiny">왜 Code Destiny인가</h2>
+        </div>
+        <div class="cd-why-us__grid">
+          <div class="cd-why-us__card">
+            <span class="cd-why-us__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><path d="M12 2.6 20.1 7.3v9.4L12 21.4 3.9 16.7V7.3Z"/><circle cx="12" cy="12" r="2.6"/></svg></span>
+            <span class="cd-why-us__card-title" data-cd-trans="shell.cdWhyUsGrid.cdWhyUsCard.kv06ho">초융합</span>
+            <span class="cd-why-us__card-desc" data-cd-trans="shell.cdWhyUsGrid.cdWhyUsCard.kdcl9cf">서로 다른 체계가 같은 방향을 가리키는지 교차검증합니다.</span>
+          </div>
+          <div class="cd-why-us__card">
+            <span class="cd-why-us__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><circle cx="8.8" cy="12" r="6"/><circle cx="15.2" cy="12" r="6"/></svg></span>
+            <span class="cd-why-us__card-title" data-cd-trans="shell.cdWhyUsGrid.cdWhyUsCard.kfr2fu8">여러 관점</span>
+            <span class="cd-why-us__card-desc" data-cd-trans="shell.cdWhyUsGrid.cdWhyUsCard.k1lclup9">사주·자미두수·베다점·숙요점 같은 동양의 체계와 서양 점성술·타로를 함께 봅니다.</span>
+          </div>
+          <div class="cd-why-us__card">
+            <span class="cd-why-us__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><path d="M12 20.9c-1.5-2.3-2.3-4.9-2.3-7.8a2.3 2.3 0 0 1 4.6 0c0 1.8.3 3.4 1 5"/><path d="M7 18.7a12.4 12.4 0 0 1-1.1-5.6 6.1 6.1 0 0 1 12.2 0c0 1.4-.2 2.8-.6 4.1"/><path d="M3.3 14.6a8.7 8.7 0 0 1 17.4-1.4"/></svg></span>
+            <span class="cd-why-us__card-title" data-cd-trans="shell.cdWhyUsGrid.cdWhyUsCard.kq6mt4">개인화</span>
+            <span class="cd-why-us__card-desc" data-cd-trans="shell.cdWhyUsGrid.cdWhyUsCard.k1wbxeap">생년월일·태어난 시간·출생지를 기반으로 나만의 결과를 계산합니다.</span>
+          </div>
+          <div class="cd-why-us__card">
+            <span class="cd-why-us__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><path d="M12 3.2c.9 4.6 4.2 7.9 8.8 8.8-4.6.9-7.9 4.2-8.8 8.8-.9-4.6-4.2-7.9-8.8-8.8 4.6-.9 7.9-4.2 8.8-8.8Z"/></svg></span>
+            <span class="cd-why-us__card-title" data-cd-trans="shell.cdWhyUsGrid.cdWhyUsCard.k1239k1">AI 해석</span>
+            <span class="cd-why-us__card-desc" data-cd-trans="shell.cdWhyUsGrid.cdWhyUsCard.kvkxft">복잡한 운세 데이터를 이해하기 쉬운 언어로 풀어드립니다.</span>
+          </div>
+        </div>
+        <div class="cd-why-us__proof" aria-labelledby="cdWhyUsProofHead">
+          <span class="cd-why-us__proof-head" id="cdWhyUsProofHead" data-cd-trans data-key="home.whyUs.proof.head">교차검증은 이렇게 보입니다</span>
+          <div class="cd-why-us__proof-row">
+            <span class="cd-why-us__sys" data-stance="agree"><b data-cd-trans data-key="home.fortunePick.saju">사주</b><i data-cd-trans data-key="home.whyUs.proof.agree">같은 방향</i></span>
+            <span class="cd-why-us__sys" data-stance="agree"><b data-cd-trans data-key="home.fortunePick.ziwei">자미두수</b><i data-cd-trans data-key="home.whyUs.proof.agree">같은 방향</i></span>
+            <span class="cd-why-us__sys" data-stance="conditional"><b data-cd-trans data-key="home.fortunePick.vedic">베다점</b><i data-cd-trans data-key="home.whyUs.proof.conditional">조건부</i></span>
+            <span class="cd-why-us__sys" data-stance="agree"><b data-cd-trans data-key="home.fortunePick.sukuyo">숙요점</b><i data-cd-trans data-key="home.whyUs.proof.agree">같은 방향</i></span>
+            <span class="cd-why-us__sys" data-stance="conditional"><b data-cd-trans data-key="home.fortunePick.astrology">점성술</b><i data-cd-trans data-key="home.whyUs.proof.conditional">조건부</i></span>
+            <span class="cd-why-us__sys" data-stance="caution"><b data-cd-trans data-key="home.fortunePick.tarot">타로</b><i data-cd-trans data-key="home.whyUs.proof.caution">속도 조절</i></span>
+          </div>
+          <span class="cd-why-us__proof-caption" data-cd-trans data-key="home.whyUs.proof.caption">체계 간 합의 · 겹치는 신호 4가지 · 엇갈리는 신호 2가지. 초융합 리딩이 실제로 내놓는 판정 형태이며, 값은 입력에 따라 달라지는 예시입니다.</span>
+        </div>
+      </section>
 <section class="cd-sig" id="cdSignatureConsult" data-marker="cd-signature-consult-v20260724" aria-label="대표 운명 상담" data-cd-trans-attr="aria-label:shell.inputPage.logoArea.k16nuyta.ariaLabel">
         <div class="cd-sig__head">
           <h2 class="cd-sig__title" data-cd-trans="shell.cdSignatureConsult.cdSigHead.k16nuyta">대표 운명 상담</h2>
@@ -11287,88 +11369,6 @@ html.neo-mode body .cd-pick-why__alt:focus-visible{outline-color:#c4b5fd}
           <span class="cd-pick-why__mark" aria-hidden="true">✧</span>
           <p class="cd-pick-why__text"><span data-cd-trans="home.pickWhy.prefix">오늘은</span> <b id="cdPickWhyTitle" data-cd-trans="shell.cdPickReason.cdPickWhyText.kntw327">나크샤트라 결정판</b><span id="cdPickWhyJosa" data-cd-trans-skip>이</span> <span data-cd-trans="home.pickWhy.suffix">가장 잘 맞습니다.</span> <span id="cdPickWhyReason" data-cd-trans="shell.cdPickReason.cdPickWhyText.k1s5m1vr">동양 27수와 인도 나크샤트라를 함께 보면 같은 사주도 훨씬 또렷하게 읽힙니다.</span></p>
           <a class="cd-pick-why__alt" id="cdPickWhyAlt" href="/fortune-tea-house/"><span data-cd-trans="shell.cdPickWhyAlt.k1d6ftfz">대신 운명의 찻집</span> <i aria-hidden="true">→</i></a>
-        </div>
-      </section>
-      <!-- 왜 Code Destiny인가 — 대표 상담 뒤, 무료 시작 앞. 상품 카드가 아니라 서비스 전체의
-           차별점 4가지를 설명한다(가격/링크 없음 — js/core/service-registry.js 등록 대상 아님). -->
-      <style id="cd-why-us-v20260824">
-html body .cd-why-us{max-width:var(--cd-w-grid,1280px);margin:32px auto 8px;padding:0 clamp(12px,3vw,24px)}
-html body .cd-why-us__head{margin:0 0 20px;text-align:center}
-html body .cd-why-us__kicker{display:block;font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--cd-accent,#b31955);opacity:.75;margin-bottom:6px}
-html.neo-mode body .cd-why-us__kicker{color:var(--cd-gold,#e8d5a3)}
-html body .cd-why-us__title{margin:6px 0 0;font-family:var(--font-display,serif);font-size:clamp(1.24rem,2.6vw,1.7rem);font-weight:800;line-height:1.32;color:var(--cd-text,#3c1830)}
-html.neo-mode body .cd-why-us__title{color:#f4eeff}
-html body .cd-why-us__grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:20px}
-html body .cd-why-us__card{display:flex;flex-direction:column;gap:6px;padding:18px 16px;border-radius:18px;background:var(--cd-surface,rgba(255,255,255,.96));border:1px solid var(--cd-border,rgba(216,63,120,.16))}
-/* 아이콘 — 컬러 이모지를 단색 라인 글리프로 교체했다(v20260824).
-   고민 선택 섹션(cd-concern)과 같은 어휘다: 24x24 viewBox · stroke 1.6 · currentColor.
-   🔴 색은 accent 가 아니라 뮤트 텍스트다(Accent Budget Rule) — 두 테마 모두 토큰이 처리한다.
-   크기는 font-size 가 아니라 박스로 잡는다. flex column 자식이라 width 를 못 박아야 늘어나지 않는다. */
-html body .cd-why-us__icon{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;width:26px;height:26px;margin:0 0 2px;color:var(--cd-text-muted,#70445c);line-height:0}
-html body .cd-why-us__icon svg{display:block;width:23px;height:23px}
-html body .cd-why-us__card-title{font-size:15px;font-weight:900;line-height:1.3;color:var(--cd-text,#3c1830);letter-spacing:-.01em}
-html.neo-mode body .cd-why-us__card-title{color:#f4eeff}
-html body .cd-why-us__card-desc{font-size:12.5px;line-height:1.62;color:color-mix(in srgb,var(--cd-text,#3c1830) 78%,transparent)}
-html.neo-mode body .cd-why-us__card-desc{color:rgba(228,214,255,.86)}
-@media(min-width:600px){html body .cd-why-us__grid{grid-template-columns:repeat(4,1fr)}}
-@media(min-width:768px){html body .cd-why-us{margin:40px auto 0}}
-/* 초융합 교차검증 증거 스트립 (cd-why-us-proof-v20260830).
-   지어낸 수치가 아니라 실제 결과 화면의 형태다 — 값은 사람마다 달라 "예시"로 명시한다.
-   🔴 의미를 색에만 싣지 않는다(a11y) — stance 는 항상 글자로 함께 쓴다. */
-html body .cd-why-us__proof{margin-top:14px;padding:14px 14px 12px;border-radius:16px;background:var(--cd-surface-soft,rgba(255,255,255,.72));border:1px solid var(--cd-border,rgba(216,63,120,.16))}
-html.neo-mode body .cd-why-us__proof{background:rgba(255,255,255,.05);border-color:rgba(232,213,163,.18)}
-html body .cd-why-us__proof-head{display:block;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--cd-text-muted,#70445c);margin-bottom:10px}
-html.neo-mode body .cd-why-us__proof-head{color:rgba(228,214,255,.7)}
-html body .cd-why-us__proof-row{display:flex;flex-wrap:wrap;gap:6px}
-html body .cd-why-us__sys{display:inline-flex;align-items:baseline;gap:5px;padding:5px 9px;border-radius:999px;font-size:11.5px;line-height:1.3;border:1px solid var(--cd-border,rgba(216,63,120,.16));color:var(--cd-text,#3c1830)}
-html.neo-mode body .cd-why-us__sys{color:#f4eeff;border-color:rgba(232,213,163,.2)}
-html body .cd-why-us__sys b{font-weight:800}
-html body .cd-why-us__sys i{font-style:normal;font-weight:700;color:var(--cd-text-muted,#70445c)}
-html.neo-mode body .cd-why-us__sys i{color:rgba(228,214,255,.72)}
-html body .cd-why-us__sys[data-stance="agree"]{background:color-mix(in srgb,var(--cd-accent,#b31955) 8%,transparent)}
-html body .cd-why-us__sys[data-stance="conditional"]{background:color-mix(in srgb,var(--cd-text,#3c1830) 5%,transparent)}
-html body .cd-why-us__sys[data-stance="caution"]{background:transparent;border-style:dashed}
-html body .cd-why-us__proof-caption{display:block;margin-top:10px;font-size:11.5px;line-height:1.55;color:var(--cd-text-muted,#70445c)}
-html.neo-mode body .cd-why-us__proof-caption{color:rgba(228,214,255,.72)}
-      </style>
-      <section class="cd-why-us" id="cdWhyUs" aria-labelledby="cdWhyUsTitle">
-        <div class="cd-why-us__head">
-          <span class="cd-why-us__kicker">WHY CODE DESTINY</span>
-          <h2 class="cd-why-us__title" id="cdWhyUsTitle" data-cd-trans="shell.cdWhyUs.cdWhyUsHead.CodeDestiny">왜 Code Destiny인가</h2>
-        </div>
-        <div class="cd-why-us__grid">
-          <div class="cd-why-us__card">
-            <span class="cd-why-us__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><path d="M12 2.6 20.1 7.3v9.4L12 21.4 3.9 16.7V7.3Z"/><circle cx="12" cy="12" r="2.6"/></svg></span>
-            <span class="cd-why-us__card-title" data-cd-trans="shell.cdWhyUsGrid.cdWhyUsCard.kv06ho">초융합</span>
-            <span class="cd-why-us__card-desc" data-cd-trans="shell.cdWhyUsGrid.cdWhyUsCard.kdcl9cf">서로 다른 체계가 같은 방향을 가리키는지 교차검증합니다.</span>
-          </div>
-          <div class="cd-why-us__card">
-            <span class="cd-why-us__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><circle cx="8.8" cy="12" r="6"/><circle cx="15.2" cy="12" r="6"/></svg></span>
-            <span class="cd-why-us__card-title" data-cd-trans="shell.cdWhyUsGrid.cdWhyUsCard.kfr2fu8">여러 관점</span>
-            <span class="cd-why-us__card-desc" data-cd-trans="shell.cdWhyUsGrid.cdWhyUsCard.k1lclup9">사주·자미두수·베다점·숙요점 같은 동양의 체계와 서양 점성술·타로를 함께 봅니다.</span>
-          </div>
-          <div class="cd-why-us__card">
-            <span class="cd-why-us__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><path d="M12 20.9c-1.5-2.3-2.3-4.9-2.3-7.8a2.3 2.3 0 0 1 4.6 0c0 1.8.3 3.4 1 5"/><path d="M7 18.7a12.4 12.4 0 0 1-1.1-5.6 6.1 6.1 0 0 1 12.2 0c0 1.4-.2 2.8-.6 4.1"/><path d="M3.3 14.6a8.7 8.7 0 0 1 17.4-1.4"/></svg></span>
-            <span class="cd-why-us__card-title" data-cd-trans="shell.cdWhyUsGrid.cdWhyUsCard.kq6mt4">개인화</span>
-            <span class="cd-why-us__card-desc" data-cd-trans="shell.cdWhyUsGrid.cdWhyUsCard.k1wbxeap">생년월일·태어난 시간·출생지를 기반으로 나만의 결과를 계산합니다.</span>
-          </div>
-          <div class="cd-why-us__card">
-            <span class="cd-why-us__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><path d="M12 3.2c.9 4.6 4.2 7.9 8.8 8.8-4.6.9-7.9 4.2-8.8 8.8-.9-4.6-4.2-7.9-8.8-8.8 4.6-.9 7.9-4.2 8.8-8.8Z"/></svg></span>
-            <span class="cd-why-us__card-title" data-cd-trans="shell.cdWhyUsGrid.cdWhyUsCard.k1239k1">AI 해석</span>
-            <span class="cd-why-us__card-desc" data-cd-trans="shell.cdWhyUsGrid.cdWhyUsCard.kvkxft">복잡한 운세 데이터를 이해하기 쉬운 언어로 풀어드립니다.</span>
-          </div>
-        </div>
-        <div class="cd-why-us__proof" aria-labelledby="cdWhyUsProofHead">
-          <span class="cd-why-us__proof-head" id="cdWhyUsProofHead" data-cd-trans data-key="home.whyUs.proof.head">교차검증은 이렇게 보입니다</span>
-          <div class="cd-why-us__proof-row">
-            <span class="cd-why-us__sys" data-stance="agree"><b data-cd-trans data-key="home.fortunePick.saju">사주</b><i data-cd-trans data-key="home.whyUs.proof.agree">같은 방향</i></span>
-            <span class="cd-why-us__sys" data-stance="agree"><b data-cd-trans data-key="home.fortunePick.ziwei">자미두수</b><i data-cd-trans data-key="home.whyUs.proof.agree">같은 방향</i></span>
-            <span class="cd-why-us__sys" data-stance="conditional"><b data-cd-trans data-key="home.fortunePick.vedic">베다점</b><i data-cd-trans data-key="home.whyUs.proof.conditional">조건부</i></span>
-            <span class="cd-why-us__sys" data-stance="agree"><b data-cd-trans data-key="home.fortunePick.sukuyo">숙요점</b><i data-cd-trans data-key="home.whyUs.proof.agree">같은 방향</i></span>
-            <span class="cd-why-us__sys" data-stance="conditional"><b data-cd-trans data-key="home.fortunePick.astrology">점성술</b><i data-cd-trans data-key="home.whyUs.proof.conditional">조건부</i></span>
-            <span class="cd-why-us__sys" data-stance="caution"><b data-cd-trans data-key="home.fortunePick.tarot">타로</b><i data-cd-trans data-key="home.whyUs.proof.caution">속도 조절</i></span>
-          </div>
-          <span class="cd-why-us__proof-caption" data-cd-trans data-key="home.whyUs.proof.caption">체계 간 합의 · 겹치는 신호 4가지 · 엇갈리는 신호 2가지. 초융합 리딩이 실제로 내놓는 판정 형태이며, 값은 입력에 따라 달라지는 예시입니다.</span>
         </div>
       </section>
       <!-- 빠른 서비스 — 첫 방문자가 결제 없이 바로 시작할 수 있는 6개 (cd-quick-services-v20260819).
@@ -20033,7 +20033,7 @@ return you.name.restore();</span>
      🔴 레지스트리가 엔진보다 먼저 실행돼야 한다(defer 는 문서 순서를 지킨다). -->
 <script defer src="/js/core/service-registry.js?v=build-f4ec9215082f" data-marker="cd-home-service-registry-v20260819"></script>
 <script defer src="/js/core/home-service-finder.js?v=build-f4ec9215082f" data-marker="cd-home-service-finder-v20260819"></script>
-<script defer src="/js/mobile-interaction-patch.js?v=build-b32f43288dee" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
+<script defer src="/js/mobile-interaction-patch.js?v=build-f4ec9215082f" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
 <script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-f4ec9215082f" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
