@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-08-30
-next: 1-D PR 머지 → 프로덕션 승격 → 1-E 고아 페이지 가드를 새 세션에서(계획 파일 §1-E)
+next: 1-E PR #1334 머지 → 프로덕션 승격 → 2단계 유명인(계획 파일 §2)을 새 세션에서
 ---
 
 # 성장 계획 2026-08-30 — 검색 유입·AdSense·첫인상
@@ -24,14 +24,14 @@ next: 1-D PR 머지 → 프로덕션 승격 → 1-E 고아 페이지 가드를 �
 
 - 1단계 PR 1(1-A+1-B): #1327 머지·프로덕션 승격 완료(2026-08-30, run 33308525595, 홈·sitemap 200, `seo:check` PASS).
 - 1-C: #1328 머지·프로덕션 승격 완료(2026-08-30, run 33310144659, 홈·sitemap 200, `seo:check` PASS, 허브 산문 라이브 확인). sr-only 134 링크 제거와 편집자 노트는 **이미 main 에 있었다**(#1197) — 계획 파일 §1-C 의 그 두 줄은 낡은 서술.
-- 1-D: PR 머지 대기(브랜치 `growth-stage1-thin-landings`). 계획 파일 §1-D 의 "23~1,092자" 도 낡은 수치였다 — #1193·#1195·#1230 이 7개 전부에 1,000자+ 를 이미 넣어 두었고, 남은 차이는 **sr-only 숨김**뿐이라 6개를 `ServiceIntroSection`(가시, 앱 아래)으로 옮겼다. `/oracle/ifa` 는 원래 가시(valueSections). `/saju-fpti` 사이트맵·`/tarot/healing/start` H1 은 각각 08-28·#1230 에서 해소.
+- 1-D: #1330 머지·프로덕션 승격 완료(2026-08-30, run 33311718607, 홈·sitemap 200, `seo:check` PASS). 6개 라우트는 `ServiceIntroSection`(가시)으로 옮겼고 `/oracle/ifa` 는 원래 가시.
+- 1-E: PR #1334 머지 대기(브랜치 `growth-stage1-orphan-guard`). `verify-adsense-readiness.mjs` 의 `verifySitemapRoutesHaveInboundLinks`(dist 전용, sr-only 컨테이너 제외, `.html` 정규화). 첫 실측에서 인사이트 글 11개 + `/compare/sukuyo-vs-vedic` 이 `/insights` 의 sr-only 목차로만 연결돼 있어 목차를 가시 `.cd-guide-index` 블록으로 옮겼다(`app/insights/page.js`).
 - 2~5단계 미착수.
 
 ## 남은 작업
 
 - [ ] 1-C 잔여: `lib/seo-site-urls.ts:41-45` 134 URL 열거 → 2단계 editorial 플래그로 대체(2단계에서 같이)
-- [ ] 1-D 잔여: 프로덕션에서 6개 라우트 가시 섹션 **눈으로 1회 확인**(빌드 실측만 했고 스크린샷은 안 찍었다 — `visual-checker` 로)
-- [ ] 1-E 고아 페이지 가드(`scripts/verify-adsense-readiness.mjs` 안, fail-closed)
+- [ ] 1-D·1-E 잔여: 프로덕션에서 6개 랜딩의 가시 섹션과 `/insights` 하단 아카이브 그리드(~110 링크) **눈으로 1회 확인**(텍스트 실측만 했다 — `visual-checker` 로)
 - [ ] 2단계 유명인: `lib/famous-saju/celebrity-editorial.js` + `celebrity-multi-system.ts` + 가드 2개 + 색인 분기 3곳. T0 6명부터.
 - [ ] 3단계 홈 히어로(3-A) → 폴드 아래 `<template>` 지연(3-B, 가시 텍스트 1,800자 실측이 선행)
 - [ ] 4단계 의도 랜딩 · 5단계 MBTI 는 별도 Plan 세션
