@@ -374,6 +374,7 @@
     "hd:snapshot": "node scripts/human-design-fixture-snapshot.mjs",
     "hd:snapshot:check": "node scripts/human-design-fixture-snapshot.mjs --check",
     "verify:pig-sprite-crop": "node scripts/verify-pig-sprite-crop.mjs",
+    "verify:tea-house-perf-budget": "node scripts/verify-tea-house-perf-budget.mjs",
     "verify:mobile-detail-nonintrusive": "node scripts/verify-mobile-detail-nonintrusive.mjs",
     "verify:mobile-detail-render": "node scripts/verify-mobile-detail-render.mjs",
     "verify:mobile-cdp-smoke": "node scripts/verify-mobile-cdp-smoke.mjs",

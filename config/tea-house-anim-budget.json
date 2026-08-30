@@ -1,0 +1,30 @@
+{
+  "note": "찻집 @keyframes 중 transform 에 var() 를 쓰는 것들. 컴포지터가 못 받아 메인스레드에서 돈다. 늘리지 말 것 — scripts/verify-tea-house-perf-budget.mjs",
+  "updated": "2026-08-30",
+  "keyframesWithVarTransform": [
+    {
+      "name": "honeyDropFall",
+      "file": "src/features/fortune-tea-house/styles/fortune-tea-house.module.css"
+    },
+    {
+      "name": "landingParticleFloat",
+      "file": "src/features/fortune-tea-house/styles/fortune-tea-house.module.css"
+    },
+    {
+      "name": "tarotDeckPrepare",
+      "file": "src/features/fortune-tea-house/styles/fortune-tea-house.module.css"
+    },
+    {
+      "name": "tarotDeckShuffle",
+      "file": "src/features/fortune-tea-house/styles/fortune-tea-house.module.css"
+    },
+    {
+      "name": "tarotOrbit",
+      "file": "src/features/fortune-tea-house/components/DestinyCafeTarotAlbum.tsx"
+    },
+    {
+      "name": "tarotPetalBurst",
+      "file": "src/features/fortune-tea-house/components/DestinyCafeTarotAlbum.tsx"
+    }
+  ]
+}

@@ -188,6 +188,16 @@ jobs:
         run: |
           npm run verify:pig-sprite-crop -- --self-test
           npm run verify:pig-sprite-crop
+      # 🔴 이것도 **fast 잡**이어야 한다. 입력이 찻집 CSS 모듈과 .tsx 라 티어가 fast 로 잡히는데,
+      # build/critical 잡에 두면 정작 지키려는 "연출 한 줄 수정"에 깨어나지 않는다. 정적 파일
+      # 읽기라 1초 미만이다.
+      # 지키는 것: ① @keyframes 의 transform 에 var() 를 새로 늘리는 것(컴포지터가 그 애니메이션을
+      # 못 받아 메인스레드로 내려온다) ② .cdShimmer 애니메이션 선택자를 다시 넓히는 것(안 보이는
+      # 카드 78장이 매 프레임 background-position 을 움직인다).
+      # 둘 다 **화면이 조용한 결함**이다 — 스크린샷·기능 테스트로는 영영 안 잡히고 기기에서만 렉으로
+      # 나타난다. 실측 2026-08-30: 앨범 끊긴 프레임 48.8% → 1.7%, 프롤로그 RecalcStyle 1305 → 839ms.
+      - name: Verify the tea house render budget
+        run: npm run verify:tea-house-perf-budget
 
       # 🔴 노벨 가드 둘. 전부 **fast 잡**이어야 한다 — 입력이 정적 셸(public/codedestiny-novel.html)과
       # 정본 JSON 이라 티어가 fast 로 잡히는데, build/critical 잡에 두면 정작 지키려는 "셸 엔진 한 줄

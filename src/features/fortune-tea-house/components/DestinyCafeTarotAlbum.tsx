@@ -1488,7 +1488,15 @@ function TarotAlbumMotionStyles({ yeoniPoseFrames }: { yeoniPoseFrames: readonly
       .cdFlipFront { transform: rotateY(180deg); }
       .cdFlipInner.is-burst { animation: tarotFlipGlow .8s cubic-bezier(.4, 0, .2, 1) both; }
 
-      .cdShimmer {
+      /* 🔴 셔머는 앞면(.cdFlipFront)에만 있고 그 면은 카드가 뒤집히기 전까지
+         backface-visibility:hidden 이라 보이지 않는다. 선택자를 좁히지 않으면 안 보이는 카드
+         78장이 background-position 을 매 프레임 움직여 앨범 스크롤이 통째로 끊긴다.
+         실측 2026-08-30 (CPU 4배·Slow4G·3회): 끊긴 프레임 48.8% → 1.7%, 메인스레드 3135ms → 1696ms,
+         측정 직전 실행 중 애니메이션 108개 → 30개. 재현: npm run perf:app-route -- --segments=album
+         🔴 handleFlipCard 가 flipped 와 revealed 를 같은 배치에서 켜므로 'flipped && !revealed' 상태는
+         존재하지 않는다 — 즉 이 선택자는 셔머를 사실상 완전히 멈춘다. 화면에서 사라지는 연출은 없고
+         (그 span 은 늘 뒤쪽 면이었다), 나중에 두 상태가 갈리면 스켈레톤이 다시 살아난다. */
+      .cdFlipInner.is-flipped .cdShimmer {
         background-image: linear-gradient(110deg, rgba(216,179,108,.06) 20%, rgba(216,179,108,.22) 42%, rgba(237,239,245,.28) 50%, rgba(216,179,108,.22) 58%, rgba(216,179,108,.06) 80%);
         background-size: 220% 100%;
         animation: tarotGoldShimmer 1.8s ease-in-out infinite;
@@ -1501,7 +1509,7 @@ function TarotAlbumMotionStyles({ yeoniPoseFrames }: { yeoniPoseFrames: readonly
         .cdFlipFront { transform: none; opacity: 0; }
         .cdFlipInner.is-flipped .cdFlipFront { opacity: 1; }
         .cdFlipInner.is-flipped .cdFlipBack { opacity: 0; }
-        .cdShimmer { animation-duration: 1ms; animation-iteration-count: 1; }
+        .cdFlipInner.is-flipped .cdShimmer { animation-duration: 1ms; animation-iteration-count: 1; }
         [style*="tarotMoonGlow"],
         [style*="tarotLavenderBloom"],
         [style*="tarotPetalDrift"],
