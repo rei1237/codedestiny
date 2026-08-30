@@ -1264,7 +1264,7 @@
 
   function ensureMobileBackstackRuntime() {
     if (window.__cdMobileNav) return;
-    loadScript('/js/mobile-backstack-navigation.js?v=build-9af94ba8a5dc').catch(function(err) {
+    loadScript('/js/mobile-backstack-navigation.js?v=build-f4ec9215082f').catch(function(err) {
       console.error('[mobile-interaction-patch] mobile backstack load failed:', err);
     });
   }
@@ -1346,33 +1346,33 @@
   var LAZY_LOAD_ACTIONS = {
     openPhysiognomyApp: [
       'AnalysisEngine.js?v=h96b7981840e2',
-      'PhysiognomyUI.js?v=h96b7981840e2'
+      'PhysiognomyUI.js?v=hfe1d5855449d'
     ],
     openPastLifeFaceApp: [
       'AnalysisEngine.js?v=h96b7981840e2',
-      'PastLifeFaceUI.js?v=h96b7981840e2'
+      'PastLifeFaceUI.js?v=hc1c3840957e8'
     ],
     openMbtiModal: ['js/astral-soul.js'],
     openAnimalTotemModal: [
       'js/services/animal-totem-content-engine.js',
-      'js/animal-totem-experience.js?v=build-9af94ba8a5dc'
+      'js/animal-totem-experience.js?v=build-f4ec9215082f'
     ],
-    openHwatuModal: ['HwatuFortune.js?v=h96b7981840e2'],
+    openHwatuModal: ['HwatuFortune.js?v=h9ee7eacf3957'],
     // NOTE: uiBindings uses the js/... path; keep the mobile patch path aligned.
     // ensure the latest script is loaded on launch.
-    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-9af94ba8a5dc'],
-    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-9af94ba8a5dc'],
-    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-9af94ba8a5dc'],
+    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-f4ec9215082f'],
+    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-f4ec9215082f'],
+    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-f4ec9215082f'],
 
-    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-9af94ba8a5dc'],
-    openDreamModal: ['js/dream-ledger.js?v=build-9af94ba8a5dc'],
-    openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js?v=build-9af94ba8a5dc'],
+    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-f4ec9215082f'],
+    openDreamModal: ['js/dream-ledger.js?v=build-f4ec9215082f'],
+    openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js?v=build-f4ec9215082f'],
     openKemetModal: ['js/oracle-kcg.js'],
     openJuyukModal: ['js/iching-engine.js', 'js/iching-modal.js'],
     openRoyalTeaOracle: [],
     openOlympusOracleModal: ['js/olympus-oracle.js'],
     gotoNamingPremium: [],
-    openSibylModal: ['js/sibyl-system.js?v=build-9af94ba8a5dc']
+    openSibylModal: ['js/sibyl-system.js?v=build-f4ec9215082f']
   };
 
   // 제자리(in-place)에서 모달을 여는 액션인지 판정한다.
