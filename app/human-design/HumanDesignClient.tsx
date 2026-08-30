@@ -49,6 +49,7 @@ import {
 } from "./_copy";
 import { getCurrentLoadingLocale } from "@/constants/loadingMessages";
 import type { HdChart, HdInterpretation, HdPipelineStage, HdSelection } from "./_lib/types";
+import { BIRTH_STORAGE_KEY, writeChartHandoff } from "./_lib/chart-handoff";
 import styles from "./human-design.module.css";
 
 const TIMEZONE_PRESETS = [
@@ -156,7 +157,7 @@ export default function HumanDesignClient({ locale: localeOverride }: { locale?:
       const result = await postPaidBody("/api/human-design/chart", {
         birth: { birthDate, birthTime, timezone: timezone.trim(), calendar },
       });
-      const data = result.data as { ok?: boolean; chart?: HdChart; pipeline?: HdPipelineStage[]; reused?: boolean; message?: string };
+      const data = result.data as { ok?: boolean; chart?: HdChart; pipeline?: HdPipelineStage[]; reused?: boolean; inputHash?: string; message?: string };
       if (!result.response.ok || !data?.ok || !data.chart) {
         setError(data?.message || pick(UI_TEXT.chartFailed, locale));
         return;
@@ -167,14 +168,17 @@ export default function HumanDesignClient({ locale: localeOverride }: { locale?:
       // 프리미엄 리포트 화면이 같은 차트를 다시 불러오는 데 쓴다. 🔴 결제 정보가 아니라
       //    입력값이므로 세션 저장소로 충분하다 — 결제 뒤에 지켜야 하는 reportId 는 리포트
       //    화면이 localStorage 에 따로 적는다.
+      const birth = { birthDate, birthTime, timezone: timezone.trim(), calendar };
       try {
-        window.sessionStorage.setItem(
-          "cd_hd_birth_v1",
-          JSON.stringify({ birthDate, birthTime, timezone: timezone.trim(), calendar }),
-        );
+        window.sessionStorage.setItem(BIRTH_STORAGE_KEY, JSON.stringify(birth));
       } catch {
         /* 프라이빗 모드에서 막혀도 차트 자체는 이미 나왔다. */
       }
+      // 🔴 차트 **자체**도 같이 놓고 간다. 이게 없으면 리포트 화면이 방금 계산한 이 차트를
+      //    서버에 한 번 더 물어보고(아카이브 히트여도 인증 + Mongo 왕복은 그대로 든다),
+      //    그동안 사용자는 "차트를 불러오는 중…" 한 줄만 본다. 표시 전용 계약은
+      //    app/human-design/_lib/chart-handoff.ts 머리말에 있다.
+      writeChartHandoff(birth, String(data.inputHash || ""), data.chart);
     } finally {
       setLoading(false);
     }

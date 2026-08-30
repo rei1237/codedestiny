@@ -183,13 +183,25 @@ export async function findDesignMoment(env, birthUtcMillis, personalitySunLongit
  *
  * @param {object} env Cloudflare Worker env
  * @param {object} birthInput { birthDate, birthTime, timezone, calendar?, latitude?, longitude? }
- * @param {object} [options] { nodeMode?, calculatedAt?, requestUrl?, ...getSwiss 옵션 }
+ * @param {object} [options] { nodeMode?, calculatedAt?, requestUrl?, onStage?, ...getSwiss 옵션 }
+ *
+ * options.onStage(name) 는 **실측 계측 훅**이다. 라우트가 스테이지 타이머의 mark 를 그대로
+ * 넘겨 각 구간이 몇 ms 인지 재고, 그 값은 응답의 pipeline 으로 화면에 그대로 나간다
+ * (요구사항 22 — 시간으로 진행률을 지어내지 않는 대신 실측치를 보여 준다).
+ *
+ * 🔴 SWISS_INIT 을 따로 재지 않는다. 공용 swiss-ephemeris.js 에 워밍업 export 를 새로 뚫어야
+ *    하는데 그 모듈은 사주·서양점성술·베딕이 함께 쓴다. 대신 PERSONALITY 와 DESIGN 은 **같은
+ *    양의 swe_calc_ut**(DIRECT_PLANETS 1회)이라, 콜드 아이솔레이트의 WASM+.se1 적재 비용은
+ *    두 값의 차이로 그대로 읽힌다. 계측을 위해 공용 모듈을 건드리지 않는 쪽을 골랐다.
  */
 export async function calculateHumanDesignChart(env, birthInput, options = {}) {
   const swissOptions = { ...options, nodeMode: options.nodeMode || HD_NODE_MODE };
+  const markStage = typeof options.onStage === "function" ? options.onStage : () => {};
 
   const birth = resolveBirthMoment(birthInput);
+  // 🔴 이 한 번에 Swiss 초기화(WASM + 성력 파일)가 들어 있다 — 아래 DESIGN 과의 차이가 그 비용이다.
   const personalityLongitudes = await longitudesAt(env, birth.utcMillis, swissOptions);
+  markStage("PERSONALITY");
 
   const design = await findDesignMoment(
     env,
@@ -197,7 +209,9 @@ export async function calculateHumanDesignChart(env, birthInput, options = {}) {
     personalityLongitudes[PLANET.SUN],
     swissOptions,
   );
+  markStage("DESIGN_SEARCH");
   const designLongitudes = await longitudesAt(env, design.utcMillis, swissOptions);
+  markStage("DESIGN");
 
   return assembleChart({
     personalityLongitudes,
