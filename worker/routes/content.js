@@ -1,6 +1,13 @@
 import { connectDb } from "../lib/db.js";
 import { Insight } from "../lib/models.js";
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound } from "../lib/http.js";
+import { readCmsThroughCache } from "../lib/cms-cache.js";
+import {
+  CONTENT_FEED_RSS_KEY,
+  CONTENT_FEED_SITEMAP_KEY,
+  INSIGHT_PUBLIC_CACHE_TTL_SECONDS,
+  INSIGHT_PUBLIC_STALE_TTL_SECONDS,
+} from "../lib/insight-public-cache.js";
 
 const CONTENT_PUBLIC_STATUS = "published";
 const CONTENT_SCHEDULED_STATUS = "scheduled";
@@ -263,17 +270,26 @@ async function handleContentDetail(path, request, env) {
   return json({ ok: true, item: serialized });
 }
 
-async function listPublicFeedItems(env, limit) {
-  await connectDb(env);
-
-  const items = await Insight.find(buildPublicStatusQuery())
-    .sort({ publishedAt: -1, updatedAt: -1, createdAt: -1 })
-    .limit(limit)
-    .lean();
-
-  return items
-    .map((item) => toContentItem(item))
-    .filter((item) => item.slug && item.title);
+async function listPublicFeedItems(env, isSitemap) {
+  // /rss.xml·/sitemap-insights.xml 은 public/_worker.js 가 정적 피드에 병합하려고 매 요청 부른다.
+  // 키는 종류별 2개뿐이라 관리자 저장(purgeInsightPublicCache)이 정확히 지운다. 캐시 히트는
+  // connectDb 자체를 건너뛴다(핸드셰이크 ~1.3s). 예약 발행 시각은 load 시점 기준이라 최대 TTL 만큼 늦게 실린다.
+  const { value } = await readCmsThroughCache({
+    key: isSitemap ? CONTENT_FEED_SITEMAP_KEY : CONTENT_FEED_RSS_KEY,
+    ttlSeconds: INSIGHT_PUBLIC_CACHE_TTL_SECONDS,
+    staleTtlSeconds: INSIGHT_PUBLIC_STALE_TTL_SECONDS,
+    load: async () => {
+      await connectDb(env);
+      const items = await Insight.find(buildPublicStatusQuery())
+        .sort({ publishedAt: -1, updatedAt: -1, createdAt: -1 })
+        .limit(isSitemap ? SITEMAP_MAX_ITEMS : FEED_MAX_ITEMS)
+        .lean();
+      return items
+        .map((item) => toContentItem(item))
+        .filter((item) => item.slug && item.title);
+    },
+  });
+  return value;
 }
 
 function xmlResponse(xml, status = 200) {
@@ -357,7 +373,7 @@ async function handleContentFeed(path, request, env) {
   const isInsightsRss = normalizedPath === "/insights/rss.xml";
   if (!isSitemap && !isRootRss && !isInsightsRss) return notFound();
 
-  const items = await listPublicFeedItems(env, isSitemap ? SITEMAP_MAX_ITEMS : FEED_MAX_ITEMS);
+  const items = await listPublicFeedItems(env, isSitemap);
   const xml = isSitemap
     ? buildContentSitemapXml(items, env)
     : buildContentRssXml(items, env, isInsightsRss ? "/insights/rss.xml" : "/rss.xml");
