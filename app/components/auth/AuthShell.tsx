@@ -43,7 +43,7 @@ function markFreshSignup(user?: AuthUser) {
 type Copy = {
   loginTitle: string; signupTitle: string; loginDescription: string; signupDescription: string;
   socialLabel: string; google: string; naver: string; kakao: string; moving: string; orEmail: string;
-  email: string; password: string; name: string; phone: string; phoneHint: string; invalidPhone: string;
+  email: string; password: string; phone: string; phoneHint: string; invalidPhone: string;
   showPassword: string; hidePassword: string; capsLock: string; passwordHint: string; login: string; signup: string;
   processing: string; switchToSignup: string; switchToLogin: string; noAccount: string; hasAccount: string;
   privacy: string; privacySummary: string; terms: string; birthYear: string; invalidAge: string; agreeOnSubmit: string; finishTitle: string;
@@ -58,7 +58,7 @@ const EN: Copy = {
   signupDescription: "Sign up and get 500 moonstones (worth ₩5,000) right away, usable on paid readings for 30 days. We only ask for the essentials.",
   socialLabel: "Continue with a social account", google: "Continue with Google", naver: "Continue with Naver",
   kakao: "Continue with Kakao", moving: "Opening authentication…", orEmail: "or use email",
-  email: "Email", password: "Password", name: "Name", phone: "Mobile number",
+  email: "Email", password: "Password", phone: "Mobile number",
   phoneHint: "Used to identify your account and to process card payments. Korean mobile numbers only (010…).",
   invalidPhone: "Enter a valid Korean mobile number.",
   showPassword: "Show password", hidePassword: "Hide password", capsLock: "Caps Lock is on.",
@@ -85,7 +85,7 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
     signupDescription: "가입하면 월정석 500개(5,000원 상당)를 바로 드려요 — 30일 안에 유료 콘텐츠에 쓸 수 있어요. 계정에는 꼭 필요한 정보만 받아요.",
     socialLabel: "소셜 계정으로 계속하기", google: "Google로 계속하기", naver: "네이버로 계속하기",
     kakao: "카카오로 계속하기", moving: "인증 화면으로 이동 중…", orEmail: "또는 이메일로 계속하기",
-    email: "이메일", password: "비밀번호", name: "이름", phone: "휴대폰 번호",
+    email: "이메일", password: "비밀번호", phone: "휴대폰 번호",
     phoneHint: "계정 확인과 카드 결제 진행에 사용해요. 국내 휴대폰 번호(010…)만 받아요.",
     invalidPhone: "휴대폰 번호를 정확히 입력해 주세요.",
     showPassword: "비밀번호 보기", hidePassword: "비밀번호 숨기기", capsLock: "Caps Lock이 켜져 있어요.",
@@ -111,7 +111,7 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
     signupDescription: "登録すると月光石500個(₩5,000相当)をすぐにプレゼント — 30日以内に有料コンテンツで使えます。必要最小限の情報のみお伺いします。",
     socialLabel: "ソーシャルアカウントで続ける", google: "Googleで続ける", naver: "Naverで続ける",
     kakao: "Kakaoで続ける", moving: "認証画面に移動しています…", orEmail: "またはメールで続ける",
-    email: "メールアドレス", password: "パスワード", name: "お名前", phone: "携帯電話番号",
+    email: "メールアドレス", password: "パスワード", phone: "携帯電話番号",
     phoneHint: "アカウント確認とカード決済に使用します。韓国の携帯電話番号(010…)のみ対応しています。",
     invalidPhone: "有効な韓国の携帯電話番号を入力してください。",
     showPassword: "パスワードを表示", hidePassword: "パスワードを隠す", capsLock: "Caps Lockがオンになっています。",
@@ -137,7 +137,7 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
     signupDescription: "注册即可立即获得500个月光石(价值₩5,000) — 30天内可用于付费内容。我们只收集必要的信息。",
     socialLabel: "使用社交账号继续", google: "使用Google继续", naver: "使用Naver继续",
     kakao: "使用Kakao继续", moving: "正在跳转到认证页面…", orEmail: "或使用邮箱继续",
-    email: "电子邮箱", password: "密码", name: "姓名", phone: "手机号码",
+    email: "电子邮箱", password: "密码", phone: "手机号码",
     phoneHint: "用于账户验证和银行卡支付。仅支持韩国手机号码(010开头)。",
     invalidPhone: "请输入有效的韩国手机号码。",
     showPassword: "显示密码", hidePassword: "隐藏密码", capsLock: "大写锁定已开启。",
@@ -163,7 +163,7 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
     signupDescription: "註冊即可立即獲得500個月光石(價值₩5,000) — 30天內可用於付費內容。我們只收集必要的資訊。",
     socialLabel: "使用社群帳號繼續", google: "使用Google繼續", naver: "使用Naver繼續",
     kakao: "使用Kakao繼續", moving: "正在前往驗證畫面…", orEmail: "或使用電子郵件繼續",
-    email: "電子郵件", password: "密碼", name: "姓名", phone: "手機號碼",
+    email: "電子郵件", password: "密碼", phone: "手機號碼",
     phoneHint: "用於帳戶驗證與卡片付款。僅支援韓國手機號碼(010開頭)。",
     invalidPhone: "請輸入有效的韓國手機號碼。",
     showPassword: "顯示密碼", hidePassword: "隱藏密碼", capsLock: "大寫鎖定已開啟。",
@@ -189,7 +189,7 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
     signupDescription: "Đăng ký để nhận ngay 500 đá mặt trăng (trị giá ₩5.000) — dùng được cho nội dung trả phí trong 30 ngày. Chúng tôi chỉ thu thập thông tin cần thiết.",
     socialLabel: "Tiếp tục bằng tài khoản mạng xã hội", google: "Tiếp tục với Google", naver: "Tiếp tục với Naver",
     kakao: "Tiếp tục với Kakao", moving: "Đang chuyển đến màn hình xác thực…", orEmail: "hoặc dùng email",
-    email: "Email", password: "Mật khẩu", name: "Họ tên", phone: "Số điện thoại di động",
+    email: "Email", password: "Mật khẩu", phone: "Số điện thoại di động",
     phoneHint: "Dùng để xác minh tài khoản và xử lý thanh toán thẻ. Chỉ hỗ trợ số điện thoại di động Hàn Quốc (010…).",
     invalidPhone: "Vui lòng nhập số điện thoại di động Hàn Quốc hợp lệ.",
     showPassword: "Hiện mật khẩu", hidePassword: "Ẩn mật khẩu", capsLock: "Caps Lock đang bật.",
@@ -215,7 +215,7 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
     signupDescription: "साइन अप करते ही आपको तुरंत 500 मूनस्टोन (₩5,000 मूल्य के) मिलेंगे — 30 दिनों तक पेड कंटेंट पर उपयोग कर सकते हैं। हम केवल ज़रूरी जानकारी माँगते हैं।",
     socialLabel: "सोशल खाते से जारी रखें", google: "Google से जारी रखें", naver: "Naver से जारी रखें",
     kakao: "Kakao से जारी रखें", moving: "प्रमाणीकरण स्क्रीन पर जा रहे हैं…", orEmail: "या ईमेल से जारी रखें",
-    email: "ईमेल", password: "पासवर्ड", name: "नाम", phone: "मोबाइल नंबर",
+    email: "ईमेल", password: "पासवर्ड", phone: "मोबाइल नंबर",
     phoneHint: "खाता सत्यापन और कार्ड भुगतान के लिए उपयोग किया जाता है। केवल कोरियाई मोबाइल नंबर (010…) स्वीकार किए जाते हैं।",
     invalidPhone: "कृपया मान्य कोरियाई मोबाइल नंबर दर्ज करें।",
     showPassword: "पासवर्ड दिखाएँ", hidePassword: "पासवर्ड छिपाएँ", capsLock: "Caps Lock चालू है।",
@@ -241,7 +241,7 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
     signupDescription: "Regístrate y recibe al instante 500 piedras lunares (valoradas en ₩5.000) — utilizables en contenido de pago durante 30 días. Solo pedimos lo esencial.",
     socialLabel: "Continuar con una cuenta social", google: "Continuar con Google", naver: "Continuar con Naver",
     kakao: "Continuar con Kakao", moving: "Abriendo la autenticación…", orEmail: "o usa tu correo electrónico",
-    email: "Correo electrónico", password: "Contraseña", name: "Nombre", phone: "Número de móvil",
+    email: "Correo electrónico", password: "Contraseña", phone: "Número de móvil",
     phoneHint: "Se usa para verificar tu cuenta y procesar pagos con tarjeta. Solo se admiten números de móvil coreanos (010…).",
     invalidPhone: "Introduce un número de móvil coreano válido.",
     showPassword: "Mostrar contraseña", hidePassword: "Ocultar contraseña", capsLock: "Bloq Mayús está activado.",
@@ -267,7 +267,7 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
     signupDescription: "Inscrivez-vous et recevez immédiatement 500 pierres de lune (d'une valeur de ₩5 000) — utilisables sur le contenu payant pendant 30 jours. Nous ne demandons que l'essentiel.",
     socialLabel: "Continuer avec un compte social", google: "Continuer avec Google", naver: "Continuer avec Naver",
     kakao: "Continuer avec Kakao", moving: "Ouverture de l'authentification…", orEmail: "ou utilisez votre e-mail",
-    email: "E-mail", password: "Mot de passe", name: "Nom", phone: "Numéro de mobile",
+    email: "E-mail", password: "Mot de passe", phone: "Numéro de mobile",
     phoneHint: "Utilisé pour vérifier votre compte et traiter les paiements par carte. Seuls les numéros de mobile coréens (010…) sont acceptés.",
     invalidPhone: "Veuillez saisir un numéro de mobile coréen valide.",
     showPassword: "Afficher le mot de passe", hidePassword: "Masquer le mot de passe", capsLock: "Le verrouillage majuscules est activé.",
@@ -293,7 +293,7 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
     signupDescription: "Registriere dich und erhalte sofort 500 Mondsteine (im Wert von ₩5.000) — einlösbar für kostenpflichtige Inhalte innerhalb von 30 Tagen. Wir fragen nur das Nötigste ab.",
     socialLabel: "Mit einem sozialen Konto fortfahren", google: "Mit Google fortfahren", naver: "Mit Naver fortfahren",
     kakao: "Mit Kakao fortfahren", moving: "Authentifizierung wird geöffnet…", orEmail: "oder per E-Mail fortfahren",
-    email: "E-Mail", password: "Passwort", name: "Name", phone: "Mobilnummer",
+    email: "E-Mail", password: "Passwort", phone: "Mobilnummer",
     phoneHint: "Wird zur Kontoprüfung und für Kartenzahlungen verwendet. Es werden nur koreanische Mobilnummern (010…) unterstützt.",
     invalidPhone: "Bitte gib eine gültige koreanische Mobilnummer ein.",
     showPassword: "Passwort anzeigen", hidePassword: "Passwort verbergen", capsLock: "Feststelltaste ist aktiviert.",
@@ -319,7 +319,7 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
     signupDescription: "Meld je aan en ontvang direct 500 maanstenen (ter waarde van ₩5.000) — te gebruiken voor betaalde content gedurende 30 dagen. We vragen alleen het hoognodige.",
     socialLabel: "Doorgaan met een sociaal account", google: "Doorgaan met Google", naver: "Doorgaan met Naver",
     kakao: "Doorgaan met Kakao", moving: "Verificatiescherm wordt geopend…", orEmail: "of ga verder met e-mail",
-    email: "E-mail", password: "Wachtwoord", name: "Naam", phone: "Mobiel nummer",
+    email: "E-mail", password: "Wachtwoord", phone: "Mobiel nummer",
     phoneHint: "Wordt gebruikt om je account te verifiëren en kaartbetalingen te verwerken. Alleen Koreaanse mobiele nummers (010…) worden ondersteund.",
     invalidPhone: "Voer een geldig Koreaans mobiel nummer in.",
     showPassword: "Wachtwoord tonen", hidePassword: "Wachtwoord verbergen", capsLock: "Caps Lock staat aan.",
@@ -345,7 +345,7 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
     signupDescription: "Daftar dan terima serta-merta 500 batu bulan (bernilai ₩5,000) — boleh digunakan untuk kandungan berbayar dalam tempoh 30 hari. Kami hanya meminta maklumat yang perlu.",
     socialLabel: "Teruskan dengan akaun sosial", google: "Teruskan dengan Google", naver: "Teruskan dengan Naver",
     kakao: "Teruskan dengan Kakao", moving: "Membuka skrin pengesahan…", orEmail: "atau gunakan e-mel",
-    email: "E-mel", password: "Kata laluan", name: "Nama", phone: "Nombor telefon bimbit",
+    email: "E-mel", password: "Kata laluan", phone: "Nombor telefon bimbit",
     phoneHint: "Digunakan untuk mengesahkan akaun anda dan memproses bayaran kad. Hanya nombor telefon bimbit Korea (010…) disokong.",
     invalidPhone: "Sila masukkan nombor telefon bimbit Korea yang sah.",
     showPassword: "Tunjukkan kata laluan", hidePassword: "Sembunyikan kata laluan", capsLock: "Caps Lock sedang aktif.",
@@ -618,4 +618,3 @@ const inputClass = AUTH_INPUT;
 function Field({ id, label, children }: { id: string; label: string; children: ReactNode }) {
   return <div><label htmlFor={id} className={AUTH_LABEL}>{label}</label>{children}</div>;
 }
-function Check({ id, checked, onChange, children }: { id: string; checked: boolean; onChange: (value: boolean) => void; children: ReactNode }) { return <label htmlFor={id} className="flex min-h-11 cursor-pointer items-center gap-3 rounded-lg px-1 text-sm leading-5 text-[#ddd4ec]"><input id={id} type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} className="h-5 w-5 shrink-0 accent-[#8f6ccc]" /><span>{children}</span></label>; }

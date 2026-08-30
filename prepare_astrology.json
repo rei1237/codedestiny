@@ -1,1 +1,0 @@
-{"ok":false,"success":false,"message":"Authentication is required.","code":"UNAUTHORIZED","errorDetails":{"name":"HttpError","code":"INTERNAL_SERVER_ERROR","route":"unknown","method":"","requestPath":"","requestId":""}}
