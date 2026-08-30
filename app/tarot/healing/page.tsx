@@ -1,6 +1,7 @@
 import { generatePageMetadata } from "../../../lib/generate-page-metadata";
 import TarotHealingRouteClient from "./TarotHealingRouteClient";
 import RouteMetadataLocaleSync from "../../components/RouteMetadataLocaleSync";
+import ServiceIntroSection from "../../components/ServiceIntroSection";
 
 const TAROT_HEALING_METADATA_COPY = {
   ko: {
@@ -48,12 +49,15 @@ export default function SunHealingTarotPage() {
   return (
     <>
       <RouteMetadataLocaleSync entries={TAROT_HEALING_METADATA_COPY} />
+      <TarotHealingRouteClient />
       {/* 리딩 화면은 클라이언트가 그리고, 그 안의 소개 문단은 짧다. 아래 안내는 서버에서
           렌더해 검색엔진이 이 리딩의 구조를 읽을 수 있게 한다. 네 자리의 이름과 역할은
           lib/tarot/spreads.mjs 의 healing_rising_four_card 정의를 그대로 옮긴 것이다.
           🔴 이 섹션에 H1 을 두지 말 것 — 페이지의 H1 은 클라이언트가 이미 소유하고 있어
-          H1 이 2개가 되면 verify:seo-heading-integrity 가 실패한다. */}
-      <section className="sr-only" aria-label="힐링 타로 4카드 안내">
+          H1 이 2개가 되면 verify:seo-heading-integrity 가 실패한다.
+          2026-08-30: sr-only 였던 본문을 ServiceIntroSection 으로 가시화했다(성장 계획 1-D) — 본문 전체를
+          숨긴 형태는 Google 의 Hidden text 정책 소지가 있고 AdSense 검수자에게도 보이지 않는다. 배치는 앱 아래. */}
+      <ServiceIntroSection label="힐링 타로 4카드 안내">
         <h2>힐링 라이징 타로 — 네 자리로 나눠 읽는 회복 리딩</h2>
         <p>
           마음이 지쳤을 때 가장 어려운 일은 감정을 없애는 것이 아니라, 지금 무엇이 나를 소모시키고 있는지
@@ -97,8 +101,7 @@ export default function SunHealingTarotPage() {
           투자, 치료, 안전에 관한 결정은 전문 기관의 도움을 우선해 주세요. 기본 리딩은 회원가입 없이 무료로
           사용할 수 있습니다.
         </p>
-      </section>
-      <TarotHealingRouteClient />
+      </ServiceIntroSection>
     </>
   );
 }
