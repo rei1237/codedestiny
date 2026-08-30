@@ -483,7 +483,7 @@ function ensureLocalCommit(sha, prNumber) {
  *
  * 부모 브랜치로 머지된 자식은 부모가 main 에 스쿼시되는 순간 머지 커밋도 head 커밋도 동시에
  * 고아가 된다. 세 번 났다 — #1061·#1084 는 대장에 손으로 등재해 껐고, #1100 은 부모와 자식이
- * `app/high-value/page.js` 를 둘 다 고쳐서 내용 대조(contentLandedInMain)마저 빗나갔다.
+ * `app/guides/page.js` 를 둘 다 고쳐서 내용 대조(contentLandedInMain)마저 빗나갔다.
  * 내용은 뒤이은 변경에 흔들리지만 **조상 관계는 흔들리지 않는다** — 그래서 이 축을 둔다.
  *
  * 요구 조건 셋을 **전부** 만족해야 참이다:

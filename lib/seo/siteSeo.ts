@@ -344,7 +344,7 @@ export const publicSeoPages: Record<string, PublicSeoPage> = {
     structuredData: ["WebPage", "BreadcrumbList"],
   },
   highValue: {
-    path: "/high-value",
+    path: "/guides",
     title: siteSeoText("siteSeo.023"),
     description:
       "사주, 타로, 궁합, 점성술을 처음 접하는 분도 쉽게 이해할 수 있도록 핵심 개념과 해석 방법을 정리한 가이드입니다.",
@@ -408,10 +408,10 @@ export const noindexPathPrefixes = [
   "/famous",
   "/fortune/sikojen-povailu",
   // AdSense 가 "가치 없는 콘텐츠"로 거절한 뒤 실측(out/, 2026-08-17)해 뺀 얇은 목록형·스텁 라우트.
-  // 고유본문(8-gram shingle 로 공통 크롬 제거) 기준: high-value 카테고리 272~558자,
+  // 고유본문(8-gram shingle 로 공통 크롬 제거) 기준: guides 카테고리 272~558자,
   // famous-saju 카테고리 289~1,859자(4-gram Jaccard 중복도 84.4%), flower 399~449자.
   // 🔴 `isNoindexPath` 의 `=== prefix || startsWith(prefix + "/")` 매칭이라 이웃을 삼키지
-  //    않는다 — `/high-value/<slug>` 12개는 계속 색인 대상이다. 상위 접두로 줄이지 말 것.
+  //    않는다 — `/guides/<slug>` 12개는 계속 색인 대상이다. 상위 접두로 줄이지 말 것.
   //    (`/famous-saju/category` 는 2026-08-17 에 라우트째 삭제해 여기서 뺐다.)
   // 🔴 이 목록을 고치면 scripts/generate-sitemap.mjs 의 복사본도 같은 커밋에서 함께 고친다.
   // 🔴 `/flower` 는 **일부러 여기 없다.** 이 목록은 isNoindexPath → lib/seo.v2.ts:85
@@ -420,7 +420,7 @@ export const noindexPathPrefixes = [
   //    공유 버튼을 렌더하는 유료 랜딩이라, 색인만 끄려다 기능을 지우게 된다.
   //    대신 각 페이지에서 generatePageMetadata({ noindex: true }) 로 선언한다.
   //    아래 카테고리 18개는 ShareWidget 을 쓰지 않아(실측) 이 경로로 안전하다.
-  "/high-value/category",
+  "/guides/category",
   // 🔴 SeoLandingTemplate 계열(/physiognomy·/love·/compatibility·/saju/compatibility·/dream)은
   //    **일부러 여기 없다.** SeoLandingTemplate.jsx:375 가 DeferredShareWidget 을 렌더하므로
   //    /flower 와 같은 사유로 공유 버튼이 사라진다. 그쪽은 페이지 단위 noindex 로 처리했다.

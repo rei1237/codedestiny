@@ -28,7 +28,7 @@ const jsonLd = JSON.stringify({
   "@graph": [
     buildBreadcrumbJsonLd([
       { name: "홈", path: "/" },
-      { name: "운세 인사이트 가이드", path: "/high-value" },
+      { name: "운세 인사이트 가이드", path: "/guides" },
     ]),
     buildCollectionPageJsonLd(seo),
   ],
@@ -70,7 +70,7 @@ export default function HighValueHubPage() {
         <h2>{HIGH_VALUE_PAGE_COPY.ko.categoryHeading}</h2>
         <div className="cd-chip-wrap">
           {HIGH_VALUE_CATEGORIES.map((category) => (
-            <Link key={category.slug} href={`/high-value/category/${category.slug}`} className="cd-chip">
+            <Link key={category.slug} href={`/guides/category/${category.slug}`} className="cd-chip">
               {category.name}
             </Link>
           ))}
@@ -82,7 +82,7 @@ export default function HighValueHubPage() {
           <article key={item.slug} className="cd-card">
             <p style={{ margin: 0, fontSize: "12px", color: "#f8eecb" }}>{item.category}</p>
             <h2>
-              <Link href={`/high-value/${item.slug}`} className="cd-link-reset">
+              <Link href={`/guides/${item.slug}`} className="cd-link-reset">
                 {item.title}
               </Link>
             </h2>

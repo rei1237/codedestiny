@@ -51,7 +51,7 @@ export const ROUTE_ICON_MAP: Record<string, DestinyIconName> = {
   "/emoi_omikuji_v2.html": "torii",
   "/blood-type-app.html": "crystal",
   "/myungwun_final.html": "scroll",
-  "/high-value": "crystal",
+  "/guides": "crystal",
   "/olympus": "stageLight",
   "/psychotest": "seal",
   "/tarot/mingri": "tarot",

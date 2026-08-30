@@ -166,7 +166,7 @@ export const HIGH_VALUE_PAGES = [
     disclaimer: "운세 해석은 자기 이해를 돕는 참고 자료이며 현실의 책임 있는 선택을 대신하지 않습니다.",
     serviceLinks: [
       { href: "/methodology", label: highValueContentText("highValueContent.014") },
-      { href: "/high-value", label: highValueContentText("highValueContent.015") },
+      { href: "/guides", label: highValueContentText("highValueContent.015") },
     ],
     faq: [
       {

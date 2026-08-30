@@ -74,7 +74,7 @@ export function generateMetadata({ params }) {
   }
 
   return buildSeoMetadata({
-    path: `/high-value/${page.slug}`,
+    path: `/guides/${page.slug}`,
     title: `${page.title} | Code Destiny`,
     description: page.summary,
     ogImage: "https://code-destiny.com/og/code-destiny-og-vvip.png?v=d50dc254ba",
@@ -90,7 +90,7 @@ export default function HighValueDetailPage({ params }) {
     ...HIGH_VALUE_PAGES.filter((item) => item.slug !== page.slug && item.categorySlug === page.categorySlug),
     ...HIGH_VALUE_PAGES.filter((item) => item.slug !== page.slug && item.categorySlug !== page.categorySlug),
   ].slice(0, 3);
-  const path = `/high-value/${page.slug}`;
+  const path = `/guides/${page.slug}`;
   const sectionAnchors = page.sections.map((section, index) => ({
     id: `guide-section-${index + 1}`,
     label: section.h2,
@@ -100,7 +100,7 @@ export default function HighValueDetailPage({ params }) {
     "@graph": [
       buildBreadcrumbJsonLd([
         { name: highValueDetailText("home"), path: "/" },
-        { name: highValueDetailText("guide"), path: "/high-value" },
+        { name: highValueDetailText("guide"), path: "/guides" },
         { name: page.title, path },
       ]),
       buildArticleJsonLd({
@@ -127,8 +127,8 @@ export default function HighValueDetailPage({ params }) {
       <div className="mx-auto w-full max-w-6xl">
         <nav aria-label="breadcrumb" className="flex flex-wrap gap-2 text-sm text-slate-300">
           <Link href="/" className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-slate-200 transition hover:border-amber-200/60 hover:text-amber-100">{highValueDetailText("home")}</Link>
-          <Link href="/high-value" className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-slate-200 transition hover:border-amber-200/60 hover:text-amber-100">{highValueDetailText("guide")}</Link>
-          <Link href={`/high-value/category/${page.categorySlug}`} className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-slate-200 transition hover:border-amber-200/60 hover:text-amber-100">{page.category}</Link>
+          <Link href="/guides" className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-slate-200 transition hover:border-amber-200/60 hover:text-amber-100">{highValueDetailText("guide")}</Link>
+          <Link href={`/guides/category/${page.categorySlug}`} className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-slate-200 transition hover:border-amber-200/60 hover:text-amber-100">{page.category}</Link>
         </nav>
 
         <article className="mt-8">
@@ -239,7 +239,7 @@ export default function HighValueDetailPage({ params }) {
                     {relatedPages.map((item) => (
                       <Link
                         key={item.slug}
-                        href={`/high-value/${item.slug}`}
+                        href={`/guides/${item.slug}`}
                         className="group flex min-h-[70px] items-center justify-between gap-4 rounded-[8px] border border-white/10 bg-white/[0.035] px-4 py-3 text-sm font-semibold text-slate-100 transition hover:border-emerald-200/50 hover:bg-emerald-100/[0.05]"
                       >
                         <span className="min-w-0 break-keep">{item.title}</span>
