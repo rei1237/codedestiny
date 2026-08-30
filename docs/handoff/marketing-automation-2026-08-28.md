@@ -1,3 +1,8 @@
+---
+status: active
+updated: 2026-08-31
+next: PR #1359 머지 후 §③-C 의 순서대로 — ① Workers Logs 켜기(API PATCH, 허락 1회) ② 프로덕션 승격(허락 1회) ③ `POST /api/admin/sns-daily-post/run` 1회(공개 채널 실제 발행, 허락 1회) ④ 다음 KST 07:00 크론 뒤 `GET …/status` + 채널 확인
+---
 # 마케팅 자동화 엔진 — 인수인계 (2026-08-28)
 
 > 이 문서만 읽고 이어서 시작할 수 있게 쓴다.
