@@ -3,7 +3,7 @@
   "note": "사이트맵 lastmod 원장. scripts/lib/sitemap-lastmod.mjs 가 라우트별 소스 서명을 계산해 다시 쓴다. 손으로 고치지 말고 npm run sitemap:generate 로 갱신할 것.",
   "routes": {
     "/": {
-      "signature": "65a32e0e205fc5ff",
+      "signature": "32da99c5e1a5aa6d",
       "lastmod": "2026-08-30"
     },
     "/about/": {
@@ -55,7 +55,7 @@
       "lastmod": "2026-08-30"
     },
     "/destiny-compass/": {
-      "signature": "cb09ce4696fbea93",
+      "signature": "7be5a4f9ff4b5674",
       "lastmod": "2026-08-30"
     },
     "/destiny-poker": {
@@ -83,7 +83,7 @@
       "lastmod": "2026-08-30"
     },
     "/en/": {
-      "signature": "6e1c2c8f2bba4e6d",
+      "signature": "ff382b5df1ddcceb",
       "lastmod": "2026-08-30"
     },
     "/en/insights/": {
@@ -603,7 +603,7 @@
       "lastmod": "2026-08-30"
     },
     "/ja/": {
-      "signature": "6e1c2c8f2bba4e6d",
+      "signature": "ff382b5df1ddcceb",
       "lastmod": "2026-08-30"
     },
     "/ja/insights/": {
@@ -819,7 +819,7 @@
       "lastmod": "2026-08-30"
     },
     "/oracle/rune/": {
-      "signature": "81c8802e4e129be8",
+      "signature": "3f0e4d9d891409ca",
       "lastmod": "2026-08-30"
     },
     "/oracle/sukuyo/": {
@@ -1111,7 +1111,7 @@
       "lastmod": "2026-08-30"
     },
     "/tarot/mindscan/": {
-      "signature": "5168038da385a7c9",
+      "signature": "93fb72b14e497338",
       "lastmod": "2026-08-30"
     },
     "/tarot/mingri/": {
@@ -1119,11 +1119,11 @@
       "lastmod": "2026-08-30"
     },
     "/tarot/numerology/": {
-      "signature": "6906cdffb6028e11",
-      "lastmod": "2026-08-29"
+      "signature": "d08622b8bf134e8d",
+      "lastmod": "2026-08-30"
     },
     "/tarot/prompt-maker/": {
-      "signature": "7346b4e8de0a2c15",
+      "signature": "72ea0bd60db046a0",
       "lastmod": "2026-08-30"
     },
     "/tarot/reunion/": {
@@ -1167,7 +1167,7 @@
       "lastmod": "2026-08-30"
     },
     "/zh-tw/": {
-      "signature": "6e1c2c8f2bba4e6d",
+      "signature": "ff382b5df1ddcceb",
       "lastmod": "2026-08-30"
     },
     "/zh-tw/insights/": {
@@ -1207,7 +1207,7 @@
       "lastmod": "2026-08-30"
     },
     "/zh/": {
-      "signature": "6e1c2c8f2bba4e6d",
+      "signature": "ff382b5df1ddcceb",
       "lastmod": "2026-08-30"
     },
     "/zh/insights/": {
