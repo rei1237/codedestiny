@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-08-31
-next: "다음 22:00Z(=KST 07:00) 일일 크론에서 텔레그램 알림이 오는지 본다 — 오면 사유가 곧 원인, 안 오고 발송도 0이면 크론 이벤트가 핸들러에 도달하지 않는 것"
+next: "🔴 프로덕션 승격이 먼저다 — 알림 코드가 프로덕션에 없어서 그전의 밤 크론 관측은 판정을 못 낸다(2026-08-31 사용자 보류). 승격 뒤 첫 22:00Z 크론에서 텔레그램 알림 유무로 판정한다."
 ---
 
 # 운세 이메일 — 일일 크론이 발송을 **시도조차** 안 한다
@@ -30,17 +30,31 @@ next: "다음 22:00Z(=KST 07:00) 일일 크론에서 텔레그램 알림이 오�
 
 ## 🔴 남은 작업
 
-### 1. 다음 일일 실행을 관측한다 — 유일한 다음 수
+### 1. 🔴 프로덕션 승격 — 관측의 전제 (2026-08-31 보류 중)
 
-이 PR 이 머지되면 일일 태스크가 **던졌을 때** 텔레그램으로 한 통이 나간다(`worker/lib/cron-failure-alert.js`).
+알림 코드는 머지됐지만 **프로덕션에 안 나갔다.** 승격 전까지 밤 크론을 봐도 아무것도 판정되지 않는다.
+
+```
+GET https://code-destiny.com/api/version → gitSha 1e747a9e5 (2026-08-31 06:26Z 실측)
+git merge-base --is-ancestor ad75e0a5a 1e747a9e5 → NO   # ad75e0a5a = 알림 PR #1371
+```
+
+마지막 승격은 `workflow_dispatch` 2026-08-30T17:53Z(`1e747a9e5`)이고 알림 PR 은 **그 다음 커밋**이다.
+이후 실행은 전부 `push`/`schedule`(스테이징)이며 `worker/wrangler.staging.toml` 의 `crons = []` 라
+**일일 크론은 프로덕션에서만 돈다.** 사용자가 2026-08-31 에 "진행 중 작업이 있어 대기"로 보류했다.
+
+### 2. 승격 뒤 다음 일일 실행을 관측한다
+
+일일 태스크가 **던지면** 텔레그램으로 한 통이 나간다(`worker/lib/cron-failure-alert.js`).
 
 - **알림이 오면** 그 사유가 곧 원인이다(연결 타임아웃·모듈 오류 등).
 - **알림도 없고 발송도 0이면** 태스크가 던지는 게 아니라 **크론 이벤트가 핸들러에 도달하지 않는 것**이다.
-  그때 볼 곳은 Cloudflare 대시보드의 Cron Triggers 실행 이력. 🔴 `[observability]` 는 꺼져 있어 과거 로그가
-  없다 — 켜는 건 `worker/wrangler.toml` 변경이라 사용자 결정이다.
+  그때 볼 곳은 Cloudflare 대시보드의 Workers Logs · Cron Triggers 실행 이력.
 - 직접 보려면 21:55Z 부터: `wrangler tail code-destiny-web --format json`
+- 🔴 Workers Logs 는 이 PR 이 `[observability] enabled = true` 로 설정에 고정했다(양쪽 toml).
+  그전에는 대시보드 토글뿐이라 아무도 상태를 추적하지 못했다. **이것도 승격돼야 적용된다.**
 
-### 2. 발신 도메인을 바꾸게 되면 (현재는 불필요)
+### 3. 발신 도메인을 바꾸게 되면 (현재는 불필요)
 
 `EMAIL_FROM`(별칭 `RESEND_FROM`)이 `config/env.contract.json` 에 등재돼 있어 코드 수정 없이 바꾼다.
 🔴 `[vars]` 에 넣으면 `worker/lib/resend.js` 의 `DEFAULT_EMAIL_FROM` 폴백이 죽는다.

@@ -302,3 +302,9 @@ SNS_DAILY_POST_ENABLED = "1"
 # "*/10 * * * *" = pending 주문 재조정(PortOne 실제 상태 대조). 문자열은 worker/index.js 의
 #                  PAYMENT_RECONCILE_CRON 과 정확히 일치해야 한다.
 crons = []
+
+[observability]
+# 🔴 프로덕션과 같은 값을 유지한다 — verify:worker-config-parity 가 미분류 차이를 실패시킨다.
+# 스테이징은 crons = [] 라 크론 로그는 안 나오지만, 요청 경로 실패는 여기서도 사후 조사 대상이다.
+# 사유 원문은 worker/wrangler.toml 의 같은 블록에 있다.
+enabled = true
