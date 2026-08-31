@@ -7,8 +7,8 @@
 // REFERENCE_FX_BY_LANG / formatReferenceAmount(유효숫자 2자리라 확정가로 안 보인다). 여기 리터럴은
 // 그 함수의 출력과 글자 단위로 같아야 하고, scripts/verify-nakshatra-price-copy.mjs 가 정본을
 // 실제로 호출해 대조한다. 🔴 환율표를 여기에 다시 적지 말 것 — 두 표는 반드시 갈라진다.
-// 실제 결제는 이니시스/PortOne 정책상 원화(KRW)로 승인되며(일본만 JPY,
-// docs/context/payment-gating.md 참고), 이 환산가는 청구 금액이 아니다.
+// 실제 결제는 이니시스/PortOne 정책상 **전 지역 원화(KRW)로 승인·정산된다** — 해외카드도
+// 마찬가지이고 통화 분기는 어디에도 없다(2026-08-31 전수 확인). 이 환산가는 청구 금액이 아니다.
 
 import { useEffect, useState } from "react";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";

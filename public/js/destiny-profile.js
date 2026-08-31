@@ -2891,6 +2891,13 @@
     if (!api || typeof api.pgWindowLocale !== 'function') return 'KO_KR';
     try { return api.pgWindowLocale(); } catch (_pgLocaleError) { return 'KO_KR'; }
   }
+  // 이니시스 bypass(해외카드 노출)도 같은 정본을 탄다. 🔴 폴백은 null 이다 — bypass 없음이
+  // 곧 종전 동작이므로, 모듈이 안 붙었을 때 손으로 지어낸 값을 보내는 것보다 안전하다.
+  function _dpPortoneBypass() {
+    var api = _dpCheckoutEntry();
+    if (!api || typeof api.portoneBypass !== 'function') return null;
+    try { return api.portoneBypass(); } catch (_bypassError) { return null; }
+  }
   function _dpCheckoutFormatKrw(value) {
     var api = _dpCheckoutEntry();
     if (api && typeof api.formatKrwAmount === 'function') {
@@ -4809,6 +4816,11 @@
       // 🔴 상품권일 때만 붙인다. 카드/계좌이체 요청에 빈 giftCertificate 를 얹지 않는다.
       if (directPayFields.giftCertificate) requestData.giftCertificate = directPayFields.giftCertificate;
       if (config.noticeUrl) requestData.noticeUrls = [config.noticeUrl];
+      // 🔴 이니시스 채널일 때만 bypass 를 얹는다. channelKeyName 이 있으면 사용자가 결제창
+      // 2단계에서 다른 PG(카카오페이 등)를 고른 것이고, 그 채널에 inicis_v2 키를 실었을 때의
+      // 동작은 미문서다 — 거절이라면 결제창이 아예 안 뜬다(PR #104 급 최악).
+      var _dpBypass = directPayFields.channelKeyName ? null : _dpPortoneBypass();
+      if (_dpBypass) requestData.bypass = _dpBypass;
 
       // 확정 본문을 한 번만 만들어 정상 완료와 리다이렉트 복귀가 완전히 같은 값을 쓰게 한다.
       var _dpDirectConfirmBody = Object.assign({}, checkoutPayload, {

@@ -229,28 +229,91 @@
   }
 
   /**
+   * 결제창을 띄우는 기기가 **확실한 데스크톱**인지.
+   *
+   * 🔴 이 판정의 유일한 용도는 pgWindowLocale() 의 중국어 분기다. 이니시스는 PC 결제창에서만
+   *    중국어를 지원하므로(아래 pgWindowLocale 주석), "우리가 데스크톱이라 부르는 집합"이
+   *    "포트원이 PC 결제창으로 보내는 집합"의 **부분집합**이어야 한다.
+   *
+   * 🔴 그래서 5개 조건을 전부 논리곱으로 걸고 **미상은 전부 false 로 떨군다.**
+   *    거짓 음성(진짜 PC 를 모바일로 봄)의 결과는 EN_US = 오늘과 동일이라 회귀가 0 이다.
+   *    위험한 것은 거짓 양성뿐이므로 판정을 한쪽으로만 기울인다.
+   *
+   * 조건 4 는 any-pointer 가 아니라 pointer(주 입력장치)다 — 마우스가 달린 Windows 터치
+   * 노트북은 pointer:fine 이라 PC 로 남는다(터치를 지원한다고 모바일이 아니다).
+   * 조건 5 는 iPadOS 데스크톱 모드 봉합이다 — 터치되는 Macintosh 는 존재하지 않으므로
+   * Macintosh + maxTouchPoints > 0 은 정의상 위장이다.
+   */
+  function isDesktopPgWindow() {
+    try {
+      var win = runtimeWindow();
+      var nav = win && win.navigator;
+      if (!nav) return false;
+      var ua = text(nav.userAgent);
+      if (!ua) return false;
+      if (/Android|iPhone|iPad|iPod|Mobile|Silk|Kindle|BlackBerry|Opera Mini|IEMobile|webOS/i.test(ua)) return false;
+      if (typeof win.matchMedia !== "function") return false;
+      if (win.matchMedia("(pointer: coarse)").matches) return false;
+      if (/Macintosh/i.test(ua) && Number(nav.maxTouchPoints) > 0) return false;
+      return true;
+    } catch (_desktopError) {
+      return false;
+    }
+  }
+
+  /**
    * PG 결제창(이니시스)의 UI 언어.
    *
    * 🔴 쓸 수 있는 값은 우리가 아니라 **PG 가 정한다.** KG이니시스는 PC 결제창에서
-   *    KO_KR·EN_US·ZH_CN 을, 모바일 결제창에서 KO_KR·EN_US 만 지원한다
-   *    (포트원 inicis-v2 연동 가이드, 2026-08-20 확인).
+   *    한국어·영어·중국어(간체)를, 모바일 결제창에서 **한국어·영어만** 지원한다.
+   *    인용 가능한 정본은 npm 배포 아티팩트다 — `@portone/browser-sdk@0.1.9` 의
+   *    `dist/v2/entity/Locale.d.ts` 가 중국어 값에만 "KG이니시스 (PC)" 한정자를
+   *    달아 두었다(2026-08-31 확인). 문서 사이트의 표는 리라이트로 사라진 적이 있으나
+   *    배포된 npm 버전은 고정된다.
    *
-   * 🔴 그래서 **두 결제창이 모두 지원하는 두 값만** 쓴다. 지원 밖 값을 보냈을 때 결제창이
-   *    어떻게 되는지는 실결제 없이 확인할 수 없고, 그 최악은 '결제창이 아예 안 뜬다' 이다
-   *    (PR #104 의 windowType 회귀가 정확히 그 모양이었다). zh-CN 을 PC 에서만 보내려면
-   *    우리 UA 판정과 PG 의 PC/모바일 판정이 어긋나지 않는다는 근거가 먼저 필요하다.
+   * 🔴 지원 밖 값을 보냈을 때의 동작은 **어디에도 문서화돼 있지 않다.** 가장 가까운 선례인
+   *    모바일 빌링키 발급이 "해당 파라미터를 지원하지 않고 항상 한국어로 노출됩니다" 이므로,
+   *    모바일에 중국어를 무조건 보내면 지금(영어)보다 나빠질 수 있다. 그래서 중국어는
+   *    isDesktopPgWindow() 가 참일 때만 나간다 — 거짓 음성은 오늘과 동일한 EN_US 다.
    *
-   * 지금은 언어와 무관하게 전원이 한국어 결제창을 본다 — 한국어가 아니면 EN_US 로 연다.
+   * 🔴 zh-TW 는 데스크톱에서도 EN_US 다 — 이니시스가 지원하는 중국어는 간체이고
+   *    이 레포는 간체/번체를 엄격히 분리해 왔다(번체 사용자에게 간체 결제창을 띄우지 않는다).
+   *
+   * 🔴 리터럴 `return "X"` 형태를 유지할 것 — 가드가 소스에서 정규식으로 전수 추출해
+   *    허용 집합과 대조한다(scripts/verify-portone-single-payment-regression.mjs).
+   *    룩업 테이블로 리팩터하면 그 추출이 조용히 빈 집합이 된다.
+   *
+   * 🔴 windowType 은 이 설계에 등장하지 않는다 — PC/모바일 결제창 선택은 PG 가 하고,
+   *    우리가 지정하면 결제창이 아예 안 뜬다(PR #104 회귀).
    */
   function pgWindowLocale() {
     try {
       var win = runtimeWindow();
       var lang = win && typeof win.cdGetCurrentLanguage === "function" ? text(win.cdGetCurrentLanguage()) : "";
       if (!lang || lang.toLowerCase().indexOf("ko") === 0) return "KO_KR";
+      if (lang === "zh-CN" && isDesktopPgWindow()) return "ZH_CN";
       return "EN_US";
     } catch (_pgLocaleError) {
       return "KO_KR";
     }
+  }
+
+  /**
+   * 이니시스 결제창에 넘길 bypass 파라미터.
+   *
+   * 🔴 `global_visa3d=Y` 는 **모바일 결제창 전용** 해외카드 노출 옵션이고
+   *    bypass.inicis_v2.P_RESERVED 밖에는 실을 자리가 없다. 이걸 안 보내면 해외카드
+   *    특약이 승인돼도 모바일 결제창에 해외카드 탭이 안 뜰 수 있다.
+   *
+   * 🔴 P_RESERVED 는 배열이므로 옵션을 늘릴 때 **append** 한다 — 통째로 갈아끼우면
+   *    기존 플래그가 조용히 사라진다.
+   *
+   * 🔴 이니시스 채널일 때만 붙인다 — 다른 PG 채널에 inicis_v2 키를 실었을 때의 동작은
+   *    미문서이고, 거절이라면 결제창이 아예 안 뜬다. 그 게이팅은 호출부에 있다
+   *    (셸·독립은 directPayFields.channelKeyName 이 비어 있을 때만 부착).
+   */
+  function portoneBypass() {
+    return { inicis_v2: { P_RESERVED: ["global_visa3d=Y"] } };
   }
   /** 금액을 현재 로케일 자릿수 + 통화 문구로 그린다(정적 셸 formatWon 과 같은 계약). */
   function formatKrwAmount(value, fallbackText) {
@@ -974,7 +1037,9 @@
     hasOpenPaymentChoiceModal: hasOpenPaymentChoiceModal,
     text: checkoutText,
     displayLocale: displayLocale,
+    isDesktopPgWindow: isDesktopPgWindow,
     pgWindowLocale: pgWindowLocale,
+    portoneBypass: portoneBypass,
     formatKrwAmount: formatKrwAmount,
     REFERENCE_FX_AS_OF: REFERENCE_FX_AS_OF,
     formatReferenceAmount: formatReferenceAmount,
