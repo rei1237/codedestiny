@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-08-31
-next: **PR #1372(teardown 을 임계 경로 밖으로) 가 CI 초록으로 머지 대기 중 — 사용자 머지 후 스테이징에서 재측정하는 것이 다음 행동이다**(절차는 아래 *단계 계측 판독*, 기대치는 *프로덕션 계측 판독* 의 기준선). 계측은 프로덕션에 승격됐고(run 33326529095 · `1e747a9e5`) 미측정이던 값 넷을 전부 읽었다 — `rttMs=266` · `warmResetMs` 226 · `dnsMs` 2–5 · `helloRttMs` 74–77. 🔴 그 `rttMs 266` 이 `clampTimeoutMs` 하한 300→150 을 **되살릴 근거가 아니라 확정 기각 근거**다(여유 34ms). 갈래는 전부 닫혔고 남은 것은 머지와 재측정뿐
+next: **PR #1372(teardown 을 임계 경로 밖으로)는 머지됐다(`8b6011790`) — 남은 행동은 스테이징 재측정 하나뿐이다**(절차는 아래 *단계 계측 판독*, 기준선은 *프로덕션 계측 판독*). 🔴 2026-08-31 세션에서는 그 재측정을 못 했다 — `wrangler tail` 이 인증에 실패하고(`Failed to fetch auth token: 400`) 에이전트는 `.env*` 를 읽을 수 없다. 계측은 프로덕션에 승격됐고(run 33326529095 · `1e747a9e5`) 미측정이던 값 넷을 전부 읽었다 — `rttMs=266` · `warmResetMs` 226 · `dnsMs` 2–5 · `helloRttMs` 74–77. 🔴 그 `rttMs 266` 이 `clampTimeoutMs` 하한 300→150 을 **되살릴 근거가 아니라 확정 기각 근거**다(여유 34ms). 갈래는 전부 닫혔고 남은 것은 재측정뿐
 ---
 
 # 휴먼 디자인 유료 리포트 — 생성 복구 · 대기 씬 · 차트 병목
@@ -174,20 +174,25 @@ next: **PR #1372(teardown 을 임계 경로 밖으로) 가 CI 초록으로 머�
       확정됐다.
 - [x] **프로덕션에 계측 승격 — 완료** (2026-08-31, run `33326529095` · `1e747a9e5`, PR #1366 이
       프로덕션에 올라갔다). 판독은 아래 *프로덕션 계측 판독*.
-- [ ] 🔴 **teardown 을 임계 경로에서 빼는 별도 PR — 코드는 끝났고 머지 대기다** (PR #1372 /
-      `f17193a46`, CI 8/8 초록). `detachDeadWarmConnection()` 이 ①
-      `connection.close({ skipCloseClient: true })` 로 mongoose 만 떼고(I/O 0) ② 옛
-      `MongoClient.close()` 를 배경으로 내보내 새 핸드셰이크와 겹친다. 실패하면 전량 teardown 으로
-      떨어진다. 🔴 **2026-08-08 경계는 넓어진 게 아니라 좁아졌다** — `countActiveMongoOps() >
-      activeOpsOwned` 가드는 그대로 맨 앞에 있고, 종전 `mongoose.disconnect()` 는 mongoose 가 아직
+- [x] **teardown 을 임계 경로에서 빼기 — 머지 완료** (PR #1372 / `8b6011790`, 2026-08-31).
+      `detachDeadWarmConnection()` 이 ① `connection.close({ skipCloseClient: true })` 로
+      mongoose 만 떼고(I/O 0) ② 옛 `MongoClient.close()` 를 배경으로 내보내 새 핸드셰이크와
+      겹친다. 실패하면 전량 teardown 으로 떨어진다. 🔴 **2026-08-08 경계는 넓어진 게 아니라
+      좁아졌다** — `countActiveMongoOps() > activeOpsOwned` 가드는 그대로 맨 앞에 있고, 종전 `mongoose.disconnect()` 는 mongoose 가 아직
       그 클라이언트를 가리키는 채로 `closeCheckedOutConnections()` 를 불렀지만 지금은 **떼어 낸
       뒤**라 그 클라이언트가 mongoose 를 통해 닿지 않는다.
-      - **남은 것은 머지와 재측정뿐이다.** 🔴 재측정은 사용자가 머지한 뒤에야 가능하다(머지 = 스테이징
-        배포). 절차는 아래 *단계 계측 판독* 과 동일하고, 기대치는 `warmResetMs` 가 스테이징
-        1316 → **한 자릿수**, `startToConnect` 가 1623 → **≈300**(= ping 예산만 남음). 프로덕션은
-        승격까지 해야 226 → 한 자릿수, `startToConnect` 532 → ≈300 이 된다.
+- [ ] 🔴 **머지 후 재측정 — 착수 못 함(2026-08-31).** 스테이징에는 이미 올라가 있다(머지 후
+      릴리스 성공 `2764a5cb3`). 절차는 아래 *단계 계측 판독* 과 **동일**하고(없는 슬러그 404 를
+      4초 간격 10회), 기대치는 `warmResetMs` 가 스테이징 1316 → **한 자릿수**,
+      `startToConnect` 가 1623 → **≈300**(= ping 예산만 남음). 프로덕션은 승격까지 해야
+      226 → 한 자릿수, `startToConnect` 532 → ≈300 이 된다.
       - 🔴 **`[db-detach]` 줄의 `elapsedMs` 도 함께 읽을 것** — 배경 close 의 실비용이고, 이 값이
         요청 간격보다 크면 정리가 겹쳐 쌓인다는 뜻이다(지금 표본에는 아직 없는 값).
+      - 🔴 **막힌 지점은 코드가 아니라 자격증명이다** — `npx wrangler tail` 이
+        `Failed to fetch auth token: 400 Bad Request` 로 죽는다(저장된 OAuth 갱신 실패). `.env*` 는
+        [.claude/settings.json](../../.claude/settings.json) 의 `Read(./.env.*)` deny 로 에이전트가
+        못 읽으므로 토큰을 그쪽에서 꺼낼 수도 없다. `npx wrangler login` 을 한 번 돌리거나
+        `CLOUDFLARE_API_TOKEN` 이 들어 있는 셸에서 재개한다.
 
 ## 승격 후 검증 — 선행 구간이 정확히 700ms 줄었다 (2026-08-31)
 
