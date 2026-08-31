@@ -112,3 +112,33 @@ test("구독자가 없으면 종전대로 조용히 끝난다", async () => {
 
   expect(sendEmail).not.toHaveBeenCalled();
 });
+
+/**
+ * 🔴 아래 둘이 지키는 것: **"던지지 않았다"를 "일했다"로 읽지 않는 것.**
+ * 2026-08-20~08-31 의 12일 침묵에서 구독 문서는 갱신조차 되지 않았다. 대상 조회가 비면 이
+ * 태스크는 정상 반환하므로 호출부는 그 침묵을 성공과 구분할 수 없었다. 요약을 돌려주는 것이
+ * worker/index.js 가 "발송 0 · 건너뜀 0" 실행을 알림에 실을 수 있는 유일한 근거다.
+ */
+test("🔴 구독자가 없으면 0 요약을 돌려준다 — 호출부가 침묵을 성공과 구분해야 한다", async () => {
+  subscriptionFind.mockImplementation(() => fakeQuery([]));
+
+  const summary = await runDailyFortuneTask({});
+
+  expect(summary).toEqual({ subscribers: 0, sent: 0, skipped: 0, failed: 0, processed: 0, abortedReason: "" });
+});
+
+test("보낸 실행은 실제 건수를 요약으로 돌려준다", async () => {
+  subscriptionFind.mockImplementation(() => fakeQuery(makeSubscribers(3)));
+
+  const summary = await runDailyFortuneTask({ DAILY_FORTUNE_TIME_BUDGET_MS: "60000" });
+
+  expect(summary).toMatchObject({ subscribers: 3, sent: 3, skipped: 0, failed: 0, processed: 3 });
+});
+
+test("예산에 잘린 실행은 중단 사유를 요약에 남긴다", async () => {
+  subscriptionFind.mockImplementation(() => fakeQuery(makeSubscribers(10)));
+
+  const summary = await runDailyFortuneTask({ DAILY_FORTUNE_TIME_BUDGET_MS: "60000" });
+
+  expect(summary).toMatchObject({ subscribers: 10, sent: 6, processed: 6, abortedReason: "time_budget" });
+});

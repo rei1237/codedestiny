@@ -504,7 +504,10 @@ export async function runDailyFortuneTask(env, options = {}) {
 
   if (subscribers.length === 0) {
     console.log("[CRON] No active subscribers found.");
-    return;
+    // 🔴 여기서 undefined 를 돌려주면 호출부(worker/index.js 일일 세트)가 "정상 종료"와
+    //    "아무도 못 찾았다"를 구분할 수 없다. 활성 구독자가 실제로 있는데 0명이 나오는 것은
+    //    그 자체가 사고 신호이므로, 그것을 판정할 수 있는 형태로 돌려준다.
+    return { subscribers: 0, sent: 0, skipped: 0, failed: 0, processed: 0, abortedReason: "" };
   }
 
   console.log(`[CRON] Found ${subscribers.length} subscribers.`);
@@ -594,4 +597,13 @@ export async function runDailyFortuneTask(env, options = {}) {
     `[CRON] Daily Fortune Task completed. sent=${sentCount} skipped=${skippedCount} failed=${failedCount}`
     + ` processed=${processed}/${subscribers.length}${abortedReason ? ` aborted=${abortedReason}` : ""}`,
   );
+
+  return {
+    subscribers: subscribers.length,
+    sent: sentCount,
+    skipped: skippedCount,
+    failed: failedCount,
+    processed,
+    abortedReason,
+  };
 }

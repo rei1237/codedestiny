@@ -165,5 +165,6 @@ test("알림 발행이 실패해도 크론은 던지지 않는다", async () => 
   sendTelegramMessage.mockRejectedValue(new Error("telegram down"));
 
   // 같은 크론 실행을 공유하는 나머지 태스크(구독 정산 등)를 이 알림이 죽이면 안 된다.
-  await expect(runDailyFortuneTask({})).resolves.toBeUndefined();
+  // 던지지 않는 것이 이 테스트의 전부다 — 돌려주는 요약은 중단 사유를 그대로 담는다.
+  await expect(runDailyFortuneTask({})).resolves.toMatchObject({ sent: 0, abortedReason: "provider_config" });
 });

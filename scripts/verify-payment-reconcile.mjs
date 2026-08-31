@@ -50,6 +50,31 @@ assert.ok(
   scheduledBody.includes("Promise.allSettled"),
   "일일 태스크는 allSettled 로 격리해야 한다(하나가 throw 해도 나머지가 죽지 않게)",
 );
+
+// 🔴 일일 태스크의 **로드**가 실패 포착 블록 안에 있어야 한다.
+// 2026-08-20~08-31 의 12일 침묵을 알림으로 잡으려고 실패 수집을 붙였는데, 그 시점의 동적
+// import 6개는 ctx.waitUntil 밖에 있었다 — 하나라도 던지면 scheduled 가 통째로 거절되고
+// failures 배열은 만들어지지도 않아, "크론 이벤트가 아예 안 왔다"와 구분이 안 됐다.
+// 즉 알림이 있는데도 정확히 그 증상만 못 보는 fail-open 이다. 로드가 수집기보다 뒤에 와야 한다.
+{
+  // 일일 분기 = 10분 분기의 return; 뒤부터.
+  const dailyBranch = scheduledBody.slice(scheduledBody.indexOf("return;"));
+  const tasksAt = dailyBranch.indexOf("const tasks = [");
+  assert.ok(tasksAt > 0, "일일 분기에 tasks 배열이 있어야 한다");
+  assert.ok(
+    !dailyBranch.slice(0, tasksAt).includes("await import("),
+    "일일 분기는 tasks 배열 앞에서 모듈을 미리 import 하면 안 된다"
+      + " — 그 import 가 던지면 scheduled 가 통째로 거절되고 실패 수집기가 만들어지지도 않는다",
+  );
+  assert.ok(
+    /\["daily-fortune", async \(\) =>/.test(dailyBranch),
+    "일일 태스크는 실패 포착 안에서 지연 로드해야 한다(태스크마다 async () => await import(...))",
+  );
+}
+assert.ok(
+  scheduledBody.includes("notifyCronTaskFailures"),
+  "일일 크론의 실패는 사람에게 도달해야 한다(notifyCronTaskFailures 배선)",
+);
 // V2 자가치유 배선(2026-08-12) — V2 confirm 의 GRANT_PENDING 계약은 크론이 마무리한다는 약속이라,
 // 이 배선이 빠지면 약속만 있고 집행자가 없다(컷오버 직후 실제로 그랬다). 두 크론의 이중 처리
 // 경계는 status:"paid"(V2 전용 기록값) — regrant 필터가 레거시 상태로 넓어지면 역사적 주문
