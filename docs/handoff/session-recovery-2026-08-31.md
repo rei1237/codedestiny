@@ -102,9 +102,10 @@ git fetch origin main; git rebase origin/main   # 충돌 나면 두 판을 손�
 
 [docs/handoff/mongo-collscan-and-cache-2026-08-30.md](mongo-collscan-and-cache-2026-08-30.md) 도 마찬가지 — 마지막 미확인 항목(결제 직후 정합성)이 **PR #1369 로 머지됐다.**
 
-🔴 그 종결 커밋은 **이미 쓰여 있다** — 브랜치 `docs/handoff-mongo-cache-verified`(`aec5900e6`,
-워크트리 `perf-mongo-collscan-and-cache`)가 프론트매터를 `status: done` 으로 바꿔 놓았고
-`origin/main` 에는 아직 없다. 새로 쓰지 말고 **그 브랜치를 PR 로 올리면 끝난다**(§2-A 와 파일이 겹치지 않아 순서 무관).
+🔴 **위 문단의 옛 서술("종결 커밋이 `origin/main` 에 없으니 `docs/handoff-mongo-cache-verified` 브랜치를 올려라")은 틀렸다**(2026-08-31 정정).
+`aec5900e6` 의 내용은 PR #1358(`48c15fdcc`)로 이미 머지됐고, 그 뒤 PR #1365 가 결제 직후 무효화 구멍을
+**새 항목으로 열면서** `status` 를 `active` 로 되돌린 것이다. 그 브랜치를 그대로 올렸으면 그 구멍의 기록이 지워졌다.
+맞는 조치는 프론트매터만 다시 `done` 으로 내리는 것이고, **이 문서와 같은 PR 에서 처리했다 — 2-B 의 mongo 갈래는 닫혔다.**
 
 ### 2-C. 커밋되지 않은 유일본 1건 — ✅ 해소
 
