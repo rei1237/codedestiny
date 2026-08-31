@@ -288,3 +288,17 @@ SNS_DAILY_POST_ENABLED = "1"
 # "*/10 * * * *" = pending 주문 재조정(PortOne 실제 상태 대조). 문자열은 worker/index.js 의
 #                  PAYMENT_RECONCILE_CRON 과 정확히 일치해야 한다.
 crons = ["0 22 * * *", "*/10 * * * *"]
+
+[observability]
+# 🔴 대시보드 토글이 아니라 여기에 두는 이유 — 크론 실패는 사람이 보고 있지 않아서, 로그가 없으면
+# 실패가 통째로 증발한다. 이 레포는 그 대가를 두 번 치렀다(둘 다 실측):
+#   · SNS 일일 발행이 2026-08-29 22:00Z 에 서브요청 흔적만 남기고 실패했는데 사유 기록이 0건이었다
+#     (docs/handoff/marketing-automation-2026-08-28.md §C).
+#   · 일일 운세 메일이 2026-08-19T22:00Z 이후 구독 문서를 갱신조차 못 했는데 — 성공도 실패 표식도 —
+#     원인을 남긴 곳이 어디에도 없었다(docs/handoff/fortune-email-resend-403-2026-08-31.md).
+# 2026-08-30 16:42Z 에 script-settings API 로 한 번 켰지만 그 값은 이 파일에 없어서 아무도 추적하지
+# 못한다. 설정에 두면 배포가 곧 관측 상태의 정본이 되고, 스테이징과도 같은 값을 쓴다.
+# ⚠️ 추정(미검증): `wrangler versions upload --config worker/wrangler.toml`(scripts/deploy-safe.mjs)
+#    이 이 파일 기준으로 버전 설정을 올리므로, 블록이 없던 동안의 승격이 대시보드 토글을 되돌렸을
+#    수 있다. 이 줄이 들어간 뒤로는 그 경로 자체가 사라진다.
+enabled = true
