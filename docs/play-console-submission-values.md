@@ -331,3 +331,18 @@ npm run mobile:android:open                 # Android Studio → bundleRelease �
 ```
 
 테스트 시나리오 12종은 [play-billing-app.md](play-billing-app.md#테스트-시나리오-라이선스-테스터-internal-testing-트랙).
+
+---
+
+## 10. 특수 용도 포그라운드 서비스(FGS) 신고
+
+앱 콘텐츠(App content) → **포그라운드 서비스 권한** 신고에서 `FOREGROUND_SERVICE_SPECIAL_USE` 를 선택해 제출한다. 매니페스트의 `PROPERTY_SPECIAL_USE_FGS_SUBTYPE` 값은 `lockscreen_overlay`.
+
+- 대상: `LockScreenForegroundService` — 사용자가 동의 모달 또는 `/lock-screen-fortune` 설정에서 **옵트인**한 잠금화면 운세 표시.
+- 정당화 요지: 화면 켜짐(`ACTION_SCREEN_ON`)은 Android 8+ 에서 매니페스트 리시버로 받을 수 없어 실행 중 서비스의 런타임 리시버가 유일한 수단이고, 표준 FGS 타입 중 잠금화면 콘텐츠 오버레이에 해당하는 것이 없다. 기능은 완전 옵트인이며 설정 OFF 즉시 서비스가 중지된다.
+- 시연 영상: 동의 모달 → 기능 ON → 화면 끔/켬 → 잠금화면 운세 표시 → 설정 OFF 흐름을 30초 내외로 녹화해 신고 양식에 링크로 첨부한다.
+- 참고: `USE_FULL_SCREEN_INTENT`·`USE_EXACT_ALARM` 은 2026-09-01 매니페스트에서 제거했으므로 해당 신고 항목은 뜨지 않아야 정상이다.
+
+영문 제출 문안:
+
+> Code Destiny offers an opt-in lock-screen fortune feature. When the user explicitly enables it (via a consent dialog or the in-app settings page), the app shows today's fortune sentence over the lock screen each time the screen turns on. Android 8+ delivers ACTION_SCREEN_ON only to receivers registered at runtime by a running service, so a foreground service is the only way to provide this user-visible, continuously available feature. No standard foreground service type covers a lock-screen content overlay, hence FOREGROUND_SERVICE_SPECIAL_USE (subtype: lockscreen_overlay). The service runs only while the feature is enabled, and turning the feature off in settings stops the service immediately.

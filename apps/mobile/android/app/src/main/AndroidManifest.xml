@@ -97,14 +97,15 @@
          사용자 제스처(userActivation) 안에서만 울린다. 런타임 동의가 필요 없는 normal 권한. -->
     <uses-permission android:name="android.permission.VIBRATE" />
 
-    <!-- 잠금화면(네이티브 오버레이) 기능 권한 -->
+    <!-- 잠금화면(네이티브 오버레이) 기능 권한.
+         USE_FULL_SCREEN_INTENT·USE_EXACT_ALARM·WAKE_LOCK 은 일부러 없다 — 앞 둘은 Play 정책상
+         통화·알람시계 앱 전용이라 심사 거절 대상이고(알림은 IMPORTANCE_HIGH 헤즈업 + 탭 진입,
+         정확 알람은 사용자 취소 가능한 SCHEDULE_EXACT_ALARM + 비정확 폴백으로 충분),
+         WAKE_LOCK 은 실사용 코드가 0곳이다(2026-09-01 전수 git grep). 다시 넣지 말 것. -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
-    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
-    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 </manifest>

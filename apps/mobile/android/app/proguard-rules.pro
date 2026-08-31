@@ -40,3 +40,6 @@
 # 셸 applyTheme 의 StatusBar.setStyle 호환 구현. @PluginMethod 이름(setStyle)이 살아
 # 있어야 네오 전환 시 상태바 아이콘이 뒤집힌다.
 -keep class com.codedestiny.app.CodeDestinyStatusBarPlugin { *; }
+# 잠금화면 브리지. @PluginMethod 이름(getState/setState/setEnabled/scheduleAlarms/dismiss/
+# requestOverlayPermission)이 살아 있어야 /lock-screen-fortune 설정 UI 와 동의 모달이 붙는다.
+-keep class com.codedestiny.app.CodeDestinyLockScreenPlugin { *; }
