@@ -44,13 +44,58 @@ describe("notifyCronTaskFailures", () => {
     expect(text).toContain("webhook-reconcile");
   });
 
-  test("🔴 실패가 없으면 보내지 않는다 — 매일 도는 크론이라 무해한 알림도 소음이 된다", async () => {
+  test("🔴 실패도 무위 실행도 없으면 보내지 않는다 — 매일 도는 크론이라 무해한 알림도 소음이 된다", async () => {
     const telegram = recorder();
 
     const result = await notifyCronTaskFailures(ENV, [], { fetchImpl: telegram.fetchImpl });
 
     expect(result).toMatchObject({ ok: true, skipped: true });
     expect(telegram.calls).toHaveLength(0);
+  });
+
+  /**
+   * 🔴 12일 침묵의 실제 모습은 "던졌다"가 아니라 **"아무 일도 안 하고 정상 종료했다"** 일 수도
+   * 있다(대상 조회가 비는 경우). 던진 태스크가 하나도 없다는 이유로 조용히 넘어가면 그 형태는
+   * 알림이 붙은 뒤에도 영원히 안 보인다.
+   */
+  test("🔴 던진 태스크가 없어도 무위 실행이 있으면 한 통을 보낸다", async () => {
+    const telegram = recorder();
+
+    const result = await notifyCronTaskFailures(ENV, [], {
+      fetchImpl: telegram.fetchImpl,
+      idle: [{ name: "daily-fortune", detail: "구독자 0명 · 발송 0 · 건너뜀 0 · 실패 0" }],
+    });
+
+    expect(result.ok).toBe(true);
+    expect(telegram.calls).toHaveLength(1);
+    const text = telegram.calls[0].body.text;
+    expect(text).toContain("daily-fortune");
+    expect(text).toContain("구독자 0명");
+  });
+
+  test("🔴 실패와 무위 실행이 함께 있어도 통수는 하나다", async () => {
+    const telegram = recorder();
+
+    await notifyCronTaskFailures(ENV, [{ name: "webhook-reconcile", message: "boom" }], {
+      fetchImpl: telegram.fetchImpl,
+      idle: [{ name: "daily-fortune", detail: "구독자 0명 · 발송 0" }],
+    });
+
+    expect(telegram.calls).toHaveLength(1);
+    const text = telegram.calls[0].body.text;
+    expect(text).toContain("webhook-reconcile");
+    expect(text).toContain("daily-fortune");
+  });
+
+  test("무위 실행의 detail 도 이스케이프한다", async () => {
+    const telegram = recorder();
+
+    await notifyCronTaskFailures(ENV, [], {
+      fetchImpl: telegram.fetchImpl,
+      idle: [{ name: "daily-fortune", detail: "<i>0</i> & 0" }],
+    });
+
+    expect(telegram.calls[0].body.text).toContain("&lt;i&gt;0&lt;/i&gt; &amp; 0");
   });
 
   test("발행이 실패해도 던지지 않는다 (알림 실패가 크론을 죽이면 안 된다)", async () => {

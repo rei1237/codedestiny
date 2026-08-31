@@ -1873,40 +1873,54 @@ export default {
       return;
     }
 
-    const { runDailyFortuneTask } = await import("./lib/daily-fortune-task.js");
-    const { runCardSubscriptionBillingTask } = await import("./lib/subscription-billing-task.js");
-    const { runServiceExecutionTimeoutTask } = await import("./lib/service-execution-task.js");
-    const { runMonthlyCreditExpiryTask } = await import("./lib/monthly-credit-expiry-task.js");
+    // 🔴 로드도 **실행과 같은 실패로** 센다. 예전에는 이 동적 import 6개가 아래 waitUntil 밖에
+    // 있어서, 하나라도 던지면 scheduled 가 통째로 거절되고 failures 배열은 만들어지지도 않았다.
+    // 알림을 붙인 뒤에도 그 경로만은 "크론 이벤트가 아예 안 왔다"와 구별할 수 없었다 — 지금
+    // 쫓고 있는 증상과 정확히 같은 모습이라, 진단을 시작하기도 전에 눈을 가린다.
     // 웹훅 즉시-ack 전환으로 백그라운드 실패/유실된 Transaction.Paid 지급을 재조정한다.
-    const { runWebhookReconcileTask } = await import("./routes/payments.js");
-    // SNS 일일 자동 발행. 크론을 새로 만들지 않으려고 이 일일 세트에 얹혀 간다
+    // SNS 일일 자동 발행은 크론을 새로 만들지 않으려고 이 일일 세트에 얹혀 간다
     // (worker/wrangler.toml 의 crons 는 수정 금지 대상). 기본값은 꺼짐이라
-    // SNS_DAILY_POST_ENABLED 를 켜기 전에는 이 태스크가 바로 반환한다.
-    const { runSnsDailyPostTask } = await import("./lib/sns-daily-post-task.js");
+    // SNS_DAILY_POST_ENABLED 를 켜기 전에는 그 태스크가 바로 반환한다.
     // 🔴 allSettled — 예전 Promise.all 은 한 태스크가 throw 하면(runServiceExecutionTimeoutTask 는 실제로
     // re-throw 한다) 나머지 태스크가 함께 죽었다. 실패는 반드시 로그로 남긴다(조용히 삼키지 않는다).
     const tasks = [
-      ["daily-fortune", runDailyFortuneTask],
-      ["subscription-billing", runCardSubscriptionBillingTask],
-      ["service-execution-timeout", runServiceExecutionTimeoutTask],
-      ["monthly-credit-expiry", runMonthlyCreditExpiryTask],
-      ["webhook-reconcile", runWebhookReconcileTask],
-      ["sns-daily-post", runSnsDailyPostTask],
+      ["daily-fortune", async () => (await import("./lib/daily-fortune-task.js")).runDailyFortuneTask(env)],
+      ["subscription-billing", async () => (await import("./lib/subscription-billing-task.js")).runCardSubscriptionBillingTask(env)],
+      ["service-execution-timeout", async () => (await import("./lib/service-execution-task.js")).runServiceExecutionTimeoutTask(env)],
+      ["monthly-credit-expiry", async () => (await import("./lib/monthly-credit-expiry-task.js")).runMonthlyCreditExpiryTask(env)],
+      ["webhook-reconcile", async () => (await import("./routes/payments.js")).runWebhookReconcileTask(env)],
+      ["sns-daily-post", async () => (await import("./lib/sns-daily-post-task.js")).runSnsDailyPostTask(env)],
     ];
     // 🔴 던진 태스크는 로그 한 줄로 끝나지 않는다 — 콘솔만 남기던 시절에 일일 운세 메일이
     //    2026-08-20 부터 조용히 0통이었다(구독 문서가 그날 이후 갱신조차 되지 않았다).
     //    실행 1회당 한 통만 보낸다. 알림 실패가 크론을 죽이지 않도록 여기서도 삼킨다.
     ctx.waitUntil((async () => {
       const failures = [];
+      const summaries = new Map();
       await Promise.allSettled(tasks.map(([name, run]) => Promise.resolve()
-        .then(() => run(env))
+        .then(() => run())
+        .then((summary) => {
+          if (summary && typeof summary === "object") summaries.set(name, summary);
+        })
         .catch((error) => {
           failures.push({ name, message: String(error?.message || error) });
           console.error(`[cron:${name}] task failed:`, error?.message || error);
         })));
-      if (failures.length === 0) return;
+      // 🔴 "던지지 않았다"는 "일했다"가 아니다. 구독자를 하나도 못 찾으면 일일 운세 태스크는
+      //    console.log 한 줄만 남기고 정상 반환한다 — 12일 침묵과 겉모습이 같다. 발송도
+      //    건너뜀도 0인 실행은 그 자체가 신호이므로 실패와 **같은 한 통**에 실어 보낸다.
+      const idle = [];
+      const fortune = summaries.get("daily-fortune");
+      if (fortune && fortune.sent === 0 && fortune.skipped === 0) {
+        idle.push({
+          name: "daily-fortune",
+          detail: `구독자 ${fortune.subscribers}명 · 발송 0 · 건너뜀 0 · 실패 ${fortune.failed}`
+            + (fortune.abortedReason ? ` · 중단 ${fortune.abortedReason}` : ""),
+        });
+      }
+      if (failures.length === 0 && idle.length === 0) return;
       const { notifyCronTaskFailures } = await import("./lib/cron-failure-alert.js");
-      await notifyCronTaskFailures(env, failures).catch((error) => {
+      await notifyCronTaskFailures(env, failures, { idle }).catch((error) => {
         console.error("[cron] 태스크 실패 알림 자체가 실패했다:", error?.message || error);
       });
     })());

@@ -171,8 +171,12 @@ function jsonResponse(body, status = 200) {
 {
   const workerIndex = fs.readFileSync(path.join(ROOT, "worker/index.js"), "utf8");
   assert.ok(
-    workerIndex.includes('["sns-daily-post", runSnsDailyPostTask]'),
+    /\["sns-daily-post",[\s\S]{0,120}?sns-daily-post-task\.js/.test(workerIndex),
     "worker/index.js 의 일일 크론 태스크 목록에 sns-daily-post 가 없다 — 만들어 두고 아무도 안 부른다",
+  );
+  assert.ok(
+    workerIndex.includes("runSnsDailyPostTask("),
+    "worker/index.js 가 runSnsDailyPostTask 를 실제로 호출하지 않는다",
   );
   assert.ok(
     workerIndex.includes('await import("./lib/sns-daily-post-task.js")'),
