@@ -1446,11 +1446,6 @@
         "icon": "💳",
         "label": "Veilige Betaling",
         "value": "Stripe-gecertificeerd · Alle kaarten"
-      },
-      {
-        "icon": "🔄",
-        "label": "Garantie",
-        "value": "30-Daagse Terugbetaling"
       }
     ]
   },
@@ -1468,7 +1463,6 @@
       "editorial": "Redactioneel beleid",
       "advertising": "Advertentiebeleid"
     },
-    "refundPolicy": "Aankopen van betaalde digitale content zijn terugbetaalbaar binnen 14 dagen na aankoop als ze ongebruikt zijn, conform de consumentenbeschermingswet.",
     "copyright": "© 2025 Code Destiny. Alle rechten voorbehouden. Uitsluitend voor entertainment en zelfreflectie, geen vervanging voor professioneel advies.",
     "sections": {
       "services": "Diensten",
@@ -1818,7 +1812,7 @@
         "signedOut": "Log in om je saldo te bekijken."
       },
       "legal": {
-        "provisionTiming": "Deze service wordt direct na voltooiing van de betaling geleverd. Het gebruik van de service begint zodra de betaling is bevestigd, en voor reeds geleverde content kan het herroepingsrecht volgens de wet op elektronische handel beperkt zijn."
+        "provisionTiming": "Deze service wordt direct na voltooiing van de betaling geleverd. Het gebruik van de service begint zodra de betaling is bevestigd, en voor reeds geleverde content kan het herroepingsrecht volgens de wet op elektronische handel beperkt zijn. Een overeenkomst die door een minderjarige is gesloten zonder toestemming van diens wettelijke vertegenwoordiger, kan door de minderjarige zelf of door diens wettelijke vertegenwoordiger worden vernietigd."
       },
       "passUpgradeTitle": "Je pas upgraden",
       "recommendBadge": "Aanbevolen",
@@ -2067,8 +2061,8 @@
       "passAppliedContinue": "Geopend met je pas."
     },
     "overseas": {
-      "approx": "approx. {amount}",
-      "chargedInKrw": "Payment is authorized in Korean Won (KRW). International cards (VISA · Mastercard · JCB · Diners) are accepted, and your card issuer applies its own exchange rate."
+      "approx": "ca. {amount}",
+      "chargedInKrw": "De betaling wordt geautoriseerd in Koreaanse won (KRW). Internationale kaarten (VISA · Mastercard · JCB · Diners) worden geaccepteerd en uw kaartuitgever hanteert zijn eigen wisselkoers."
     }
   },
   "auth": {
