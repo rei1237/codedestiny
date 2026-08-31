@@ -14,6 +14,9 @@ const ENV_KEY_ALIASES = {
   MONGODB_URI: ["MONGO_URI", "MONGO_URL", "DATABASE_URL"],
   MONGO_URL: ["MONGO_URI", "MONGODB_URI", "DATABASE_URL"],
   DATABASE_URL: ["MONGO_URI", "MONGODB_URI", "MONGO_URL"],
+  // 🔴 normalizeEnvKey 는 대소문자만 지운다 — THREAD 와 THREADS 는 서로 다른 키로 남는다.
+  // .env.local 의 Thread_access_token 이 THREAD_ACCESS_TOKEN 으로 올라오므로 별칭이 필요하다.
+  THREADS_ACCESS_TOKEN: ["THREAD_ACCESS_TOKEN"],
 };
 
 function normalizeEnvKey(raw) {
