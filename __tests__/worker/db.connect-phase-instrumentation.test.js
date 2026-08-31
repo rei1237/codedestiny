@@ -23,6 +23,10 @@ import { jest } from "@jest/globals";
 
 const PING_HANGS = () => new Promise(() => { /* 좀비 소켓: 영원히 pending */ });
 
+/* worker/lib/db.js 의 MONGO_PING_TIMEOUT_MS 기본값이자 clampTimeoutMs 하한이다. 값을 바꾸면
+   db.vars-code-default-parity 가 코드/[vars] 짝을 따로 잡는다. */
+const PING_BUDGET_MS = 300;
+
 function buildMongooseMock({ pingBehavior, emitPhases = false } = {}) {
   const state = { ping: pingBehavior };
   const client = new EventEmitter();
@@ -105,14 +109,27 @@ test("죽은 웜 소켓은 ping 소진분과 teardown 실비용을 따로 남긴
   await connectDb(env);
   mongooseMock.connection.__setPing(PING_HANGS);
 
-  const timings = {};
-  await connectDb(env, { timings });
+  /* 🔴 예산 소진은 **페이크 타이머로** 몬다. 실시계로 재면 안 된다 — withTimeout 은
+     setTimeout(300) 인데 pingMs 는 Date.now() 차이라, 리눅스 libuv 가 그 타이머를
+     Date.now() 기준 299ms 에 불러 주면 `>= 300` 이 그냥 깨진다. 실제로 무관한 문서 PR 의
+     CI(run 33364366798)가 `Received: 299` 로 떨어졌고, 재실행만으로 통과했다.
+     윈도우 200회 실측은 조기 발화 0건이라 로컬에서는 재현되지 않는다.
+     시계를 직접 몰면 소진분이 예산과 정확히 같아져 오차가 사라진다. */
+  jest.useFakeTimers();
+  try {
+    const timings = {};
+    const pending = connectDb(env, { timings });
+    await jest.advanceTimersByTimeAsync(PING_BUDGET_MS);
+    await pending;
 
-  // ping 예산(하한 300)을 통째로 소진한 뒤에야 죽었다고 판정한다.
-  expect(timings.pingMs).toBeGreaterThanOrEqual(300);
-  // 🔴 teardown 이 임계 경로 위에 있다는 사실 자체를 값으로 고정한다. 이 키가 사라지면
-  // "선행 구간 잔량이 라우트 진입인가 teardown 인가"를 다시 못 가른다.
-  expect(timings.resetMs).toBeGreaterThanOrEqual(0);
-  expect(mongooseMock.disconnect).toHaveBeenCalled();
-  expect(timings.handshakeMs).toBeGreaterThanOrEqual(0);
+    // ping 예산(하한 300)을 통째로 소진한 뒤에야 죽었다고 판정한다.
+    expect(timings.pingMs).toBe(PING_BUDGET_MS);
+    // 🔴 teardown 이 임계 경로 위에 있다는 사실 자체를 값으로 고정한다. 이 키가 사라지면
+    // "선행 구간 잔량이 라우트 진입인가 teardown 인가"를 다시 못 가른다.
+    expect(timings.resetMs).toBeGreaterThanOrEqual(0);
+    expect(mongooseMock.disconnect).toHaveBeenCalled();
+    expect(timings.handshakeMs).toBeGreaterThanOrEqual(0);
+  } finally {
+    jest.useRealTimers();
+  }
 }, 15000);
