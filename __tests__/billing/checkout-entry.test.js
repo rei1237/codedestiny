@@ -366,3 +366,129 @@ describe("해외카드 결제 — 참고 환산과 원화 청구 고지", () => 
     expect(checkoutEntry.REFERENCE_FX_AS_OF).toMatch(/^\d{4}-\d{2}$/);
   });
 });
+
+/**
+ * 🔴 PG 결제창 언어 — 행위 매트릭스(개발자 대면 사본).
+ *
+ * 배포 게이트의 정본은 scripts/verify-portone-single-payment-regression.mjs 다
+ * (deploy:critical·check:critical 배선이라 티어와 무관하게 돈다). 여기 것은 같은 명제를
+ * 개발 중에 빨리 깨뜨려 보기 위한 사본이고, 둘 중 하나만 지우지 않는다.
+ *
+ * 🔴 핵심 양성 그룹을 지우지 말 것 — 그게 없으면 기능이 통째로 죽어도 음성 케이스가
+ *    전부 공허하게 통과한다.
+ */
+describe("PG 결제창 언어 — 데스크톱에서만 중국어", () => {
+  const UA = {
+    windowsChrome:
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+    macSafari:
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15",
+    iphone:
+      "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1",
+    androidPhone:
+      "Mozilla/5.0 (Linux; Android 14; SM-S918B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Mobile Safari/537.36",
+    // 🔴 안드로이드 태블릿에는 Mobile 토큰이 없다. UA 에 Mobile 만 찾으면 여기서 새어 나간다.
+    androidTablet:
+      "Mozilla/5.0 (Linux; Android 13; SM-X710) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+    ipadSafari:
+      "Mozilla/5.0 (iPad; CPU OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1",
+    kakaoInApp:
+      "Mozilla/5.0 (Linux; Android 13; SM-G991N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Mobile Safari/537.36;KAKAOTALK 10.4.0",
+    naverInApp:
+      "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 NAVER(inapp; search; 2000; 12.9.2)",
+    samsungInternet:
+      "Mozilla/5.0 (Linux; Android 13; SAMSUNG SM-S918B) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/23.0 Chrome/115.0.0.0 Mobile Safari/537.36",
+  };
+
+  // ⚠ 이름에 use 접두사를 쓰지 않는다 — react-hooks/rules-of-hooks 가 훅으로 오탐한다.
+  function applyDevice({ lang, ua, maxTouchPoints = 0, coarse = false, navigator = true, matchMedia = true }) {
+    if (lang !== undefined) globalThis.window.cdGetCurrentLanguage = () => lang;
+    if (navigator) globalThis.window.navigator = { userAgent: ua, maxTouchPoints };
+    else delete globalThis.window.navigator;
+    if (matchMedia) {
+      globalThis.window.matchMedia = (query) => ({ matches: /pointer:\s*coarse/.test(String(query)) ? coarse : false });
+    } else {
+      delete globalThis.window.matchMedia;
+    }
+  }
+
+  test.each([
+    ["iPhone Safari", { ua: UA.iphone, coarse: true }],
+    ["Android 폰 Chrome", { ua: UA.androidPhone, coarse: true }],
+    ["Android 태블릿(Mobile 토큰 없음)", { ua: UA.androidTablet, coarse: true }],
+    ["iPad Safari", { ua: UA.ipadSafari, coarse: true }],
+    ["iPad 데스크톱 모드(Macintosh 위장)", { ua: UA.macSafari, maxTouchPoints: 5 }],
+    ["카카오톡 인앱", { ua: UA.kakaoInApp, coarse: true }],
+    ["네이버 인앱", { ua: UA.naverInApp, coarse: true }],
+    ["삼성 인터넷", { ua: UA.samsungInternet, coarse: true }],
+  ])("핵심 음성 — zh-CN %s 에서는 ZH_CN 을 보내지 않는다", (_name, device) => {
+    applyDevice({ lang: "zh-CN", ...device });
+    expect(checkoutEntry.isDesktopPgWindow()).toBe(false);
+    expect(checkoutEntry.pgWindowLocale()).toBe("EN_US");
+  });
+
+  test.each([
+    ["Windows Chrome", { ua: UA.windowsChrome }],
+    ["macOS Safari", { ua: UA.macSafari }],
+    ["Windows 터치 노트북(pointer:fine)", { ua: UA.windowsChrome, maxTouchPoints: 10 }],
+  ])("🔴 핵심 양성 — zh-CN %s 에서는 ZH_CN 을 보낸다", (_name, device) => {
+    applyDevice({ lang: "zh-CN", ...device });
+    expect(checkoutEntry.isDesktopPgWindow()).toBe(true);
+    expect(checkoutEntry.pgWindowLocale()).toBe("ZH_CN");
+  });
+
+  test.each([
+    ["navigator 없음", { ua: UA.windowsChrome, navigator: false }],
+    ["matchMedia 없음", { ua: UA.windowsChrome, matchMedia: false }],
+    ["UA 빈 문자열", { ua: "" }],
+  ])("미상 — %s 이면 데스크톱이라 부르지 않는다", (_name, device) => {
+    applyDevice({ lang: "zh-CN", ...device });
+    expect(checkoutEntry.isDesktopPgWindow()).toBe(false);
+    expect(checkoutEntry.pgWindowLocale()).toBe("EN_US");
+  });
+
+  // 🔴 zh-TW 는 데스크톱에서도 EN_US 다 — 이니시스가 지원하는 중국어는 간체이고
+  //    이 레포는 간/번체를 엄격히 분리한다(번체 사용자에게 간체 결제창을 띄우지 않는다).
+  test.each([
+    ["ko", "KO_KR"],
+    ["en", "EN_US"],
+    ["ja", "EN_US"],
+    ["zh-TW", "EN_US"],
+    ["vi", "EN_US"],
+    ["hi", "EN_US"],
+    ["es", "EN_US"],
+    ["fr", "EN_US"],
+    ["de", "EN_US"],
+    ["nl", "EN_US"],
+    ["ms", "EN_US"],
+  ])("불변 — %s 는 기기와 무관하게 %s 다", (lang, expected) => {
+    applyDevice({ lang, ua: UA.windowsChrome });
+    expect(checkoutEntry.pgWindowLocale()).toBe(expected);
+    applyDevice({ lang, ua: UA.iphone, maxTouchPoints: 5, coarse: true });
+    expect(checkoutEntry.pgWindowLocale()).toBe(expected);
+  });
+
+  test("조회기가 없으면 종전 동작(한국어 결제창)으로 물러난다", () => {
+    expect(checkoutEntry.pgWindowLocale()).toBe("KO_KR");
+  });
+});
+
+describe("이니시스 bypass — 해외카드 노출", () => {
+  test("P_RESERVED 에 global_visa3d=Y 가 실린다", () => {
+    const reserved = checkoutEntry.portoneBypass().inicis_v2.P_RESERVED;
+    expect(Array.isArray(reserved)).toBe(true);
+    expect(reserved).toContain("global_visa3d=Y");
+  });
+
+  test("P_RESERVED 원소는 전부 KEY=VALUE 꼴이다", () => {
+    for (const option of checkoutEntry.portoneBypass().inicis_v2.P_RESERVED) {
+      expect(option).toMatch(/^[A-Za-z0-9_]+=[^=]*$/);
+    }
+  });
+
+  test("🔴 호출마다 새 객체를 준다 — 호출부가 배열을 밀어 넣어도 다음 결제에 새지 않는다", () => {
+    const first = checkoutEntry.portoneBypass();
+    first.inicis_v2.P_RESERVED.push("mutated=1");
+    expect(checkoutEntry.portoneBypass().inicis_v2.P_RESERVED).not.toContain("mutated=1");
+  });
+});

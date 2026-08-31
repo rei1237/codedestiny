@@ -94,6 +94,12 @@ on:
       #    /api/me/access-state 응답을 같은 store 로 흘려보내는 한 쌍이다.
       - "app/_lib/user-session-cache.ts"
       - "lib/payment/**"
+      # 🔴 환불·청약철회 고지의 **정본**과 그 전제인 시장 정책 레지스트리.
+      #    verify:payment-legal-copy 가 이 둘을 열어 읽는다 — 정본의 기한(7일)을 뽑아 사전 12벌과
+      #    대조하고, "구독 해지권 없음" 전제가 뒤집히지 않았는지 확인한다. 여기가 빠져 있으면
+      #    정본만 바꾼 PR 에서 게이트가 깨어나지 않아 화면과 계약이 조용히 갈라진다.
+      - "lib/legal/**"
+      - "lib/market-policy/**"
       - "js/core/access-store.js"
       - "js/core/pass-verdict.js"
       - "js/core/checkout-entry.js"

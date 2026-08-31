@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
+import { createRequire } from "node:module";
 import { sliceFunction, stripComments } from "./lib/js-source-slice.mjs";
 
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
@@ -129,38 +130,95 @@ function runPortOneRequestShapeTests() {
   assertNotContains(portoneClientSource, "windowType", "lib/payment/portone.ts must stay the windowType-free reference shape");
 }
 
-// 🔴 PG 결제창 언어 가드 (2026-08-20, 근거 재확인 2026-08-28)
+// 🔴 PG 결제창 언어 · 해외카드 노출 가드 (2026-08-20 신설 → 2026-08-28 보류 → 2026-08-31 개방)
 //
 // locale 을 안 보내면 PortOne 이 한국어 결제창을 연다 — UI·문구를 전부 번역해 놓고도
 // 사용자가 마지막 화면에서 한국어를 만난다. 요청을 만드는 곳이 네 군데라(정적 셸 ·
 // 독립 정적 · React 단건 · /points 이용권) 한 곳만 빠져도 그 경로만 조용히 한국어로 열린다.
 //
 // 🔴 쓸 수 있는 값은 우리가 아니라 PG 가 정한다. KG이니시스는 **PC 결제창에서
-//    KO_KR·EN_US·ZH_CN, 모바일 결제창에서 KO_KR·EN_US** 만 지원한다. 🔴 2026-08-28 재확인:
-//    렌더된 공개 문서에서는 이 표가 사라졌고("PG마다 지원하는 언어 목록은 차이가 있습니다"만
-//    남았다), 인용 가능한 출처는 문서 저장소 원본 하나뿐이다 — portone-io/developers.portone.io
-//    의 opi/ko/integration/pg/v2/inicis-v2.mdx: "PC 결제의 경우 KO_KR, EN_US, ZH_CN을
-//    지원하며, 모바일 결제의 경우 KO_KR, EN_US만을 지원합니다".
+//    KO_KR·EN_US·ZH_CN, 모바일 결제창에서 KO_KR·EN_US** 만 지원한다.
+//    🔴 인용 가능한 정본이 2026-08-31 에 바뀌었다 — 렌더된 공개 문서에서 이 표가 사라진 뒤
+//    한동안 mdx 원본뿐이었으나, npm 배포 아티팩트가 같은 사실을 **버전 고정 가능한 형태로**
+//    담고 있다: `@portone/browser-sdk@0.1.9` 의 `dist/v2/entity/Locale.d.ts` 가 ZH_CN 에만
+//    "KG이니시스 (PC)" 한정자를 달아 둔다. 문서 사이트는 리라이트되지만 배포된 버전은 안 바뀐다.
 //
-// 🔴 **ZH_CN 을 안 켜는 이유는 '몰라서'가 아니라 하방이 회귀이기 때문이다**(2026-08-28).
-//    ① 모바일에 지원 밖 locale 을 보냈을 때의 동작은 여전히 미문서다. 같은 문서가 밝히는
-//       가장 가까운 사례가 모바일 빌링키 발급이고, 거기서는 "해당 파라미터를 지원하지 않고
-//       항상 한국어로 노출됩니다" — 결제창도 같다면 zh-CN 모바일 사용자는 지금의 영어 대신
-//       **한국어**를 보게 된다. 개선 실패가 아니라 회귀다.
-//    ② PC 한정으로 보내려면 PG 의 PC/모바일 판정 기준을 알아야 하는데 **어느 문서에도 없다.**
-//       남은 경로는 cdn.portone.io/v2/browser-sdk.js(버전 없는 URL) 역공학뿐이고, 언제든
-//       바뀔 수 있는 번들에 우리 판정을 묶는 것은 근거가 아니라 숨은 결합이다.
-//    → 재개 조건은 실결제 1회 관찰(🔴 사용자 허락 필요)이다. 그 전까지 두 결제창이 모두
-//       지원하는 두 값으로 못 박는다. **문서만 다시 읽고 뒤집지 말 것** — 위가 그 결과다.
-const PG_WINDOW_LOCALES = new Set(["KO_KR", "EN_US"]);
+// 🔴 **집합을 3값으로 넓혔다고 '아무 데서나 ZH_CN'이 된 것이 아니다.**
+//    모바일에 지원 밖 locale 을 보냈을 때의 동작은 여전히 미문서이고, 같은 문서가 밝히는 가장
+//    가까운 사례(모바일 빌링키 발급)는 "해당 파라미터를 지원하지 않고 항상 한국어로 노출됩니다"
+//    다. 즉 모바일에 ZH_CN 을 무조건 보내면 지금(영어)보다 **나빠진다.** 그래서 정본은
+//    isDesktopPgWindow() 가 참일 때만 ZH_CN 을 낸다 — 그 판정은 5개 조건의 논리곱이고
+//    미상은 전부 false 다(거짓 음성 = EN_US = 오늘과 동일 = 회귀 0).
+//
+// 🔴 **정적 검사만 보고 행위 매트릭스를 걷어내지 말 것.** 집합이 3값이 된 순간 정적 검사만으로는
+//    "ZH_CN 을 무조건 반환해도 통과"가 된다. 지금 단언해야 하는 명제는 "모바일에서는 ZH_CN 이
+//    절대 나올 수 없다"이고 이건 리터럴 집합으로 표현 불가능한 **행위 명제**다. 둘 다 필요하다 —
+//    정적 전수 추출은 매트릭스에 없는 네 번째 값(예: return "JA_JP")의 등장을 잡고,
+//    행위 매트릭스는 판정 함수가 죽거나 뒤집히는 것을 잡는다. 🔴 핵심 양성 그룹을 지우지 말 것 —
+//    그게 없으면 기능이 통째로 죽어도 음성 테스트가 공허하게 전부 통과한다.
+//
+// 🔴 해외카드 노출 옵션(`global_visa3d=Y`)은 이니시스 **모바일 결제창 전용**이고
+//    bypass.inicis_v2.P_RESERVED 밖에는 실을 자리가 없다. 2026-08-31 이전까지 이 레포는
+//    bypass 를 한 번도 보내지 않았다 — 해외카드 특약이 승인돼도 모바일 결제창에 해외카드 탭이
+//    안 뜰 수 있었다는 뜻이다. 🔴 다른 PG 채널(카카오페이 등)에 inicis_v2 키를 실었을 때의 동작은
+//    미문서이고 거절이라면 결제창이 아예 안 뜬다 — 셸·독립은 channelKeyName 으로 게이팅한다.
+//
+// 🔴 스테이징 실결제창 육안(승인 없이 취소)은 아직 **미검증**이다. 우리 데스크톱 판정이
+//    포트원의 PC 판정의 부분집합이라는 것과, 특약 승인 전 global_visa3d 의 실제 반응이 그 대상이다.
+//    관찰하면 날짜·기기·결과를 여기와 checkout-entry.js 머리주석에 남긴다.
+const PG_WINDOW_LOCALES = new Set(["KO_KR", "EN_US", "ZH_CN"]);
+const PG_WINDOW_MOBILE_LOCALES = new Set(["KO_KR", "EN_US"]);
+const INICIS_BYPASS_OPTION = "global_visa3d=Y";
+
+/** 정본 IIFE 를 node 에서 그대로 부른다(UMD — verify-payment-choice-parity.mjs 와 같은 방식). */
+const checkoutEntryModule = createRequire(import.meta.url)(resolve(root, "js/core/checkout-entry.js"));
+
+/** runtimeWindow() 가 호출 시점마다 window 를 lazy 하게 읽으므로 픽스처를 갈아 끼울 수 있다. */
+function withFixtureWindow(fixture, run) {
+  const had = Object.prototype.hasOwnProperty.call(globalThis, "window");
+  const prev = globalThis.window;
+  globalThis.window = fixture;
+  try {
+    return run();
+  } finally {
+    if (had) globalThis.window = prev;
+    else delete globalThis.window;
+  }
+}
+
+function makeFixtureWindow({ lang, ua, maxTouchPoints = 0, coarse = false, navigator: hasNavigator = true, matchMedia: hasMatchMedia = true }) {
+  const win = {};
+  if (lang !== undefined) win.cdGetCurrentLanguage = () => lang;
+  if (hasNavigator) win.navigator = { userAgent: ua, maxTouchPoints };
+  if (hasMatchMedia) win.matchMedia = (query) => ({ matches: /pointer:\s*coarse/.test(String(query)) ? coarse : false });
+  return win;
+}
+
+// 실기기 UA. 🔴 안드로이드 태블릿은 Mobile 토큰이 없고, iPadOS 데스크톱 모드는 UA 에
+// iPad 조차 없다(Macintosh 로 위장) — 그 둘이 이 판정의 실제 난관이라 반드시 남겨 둔다.
+const UA = {
+  windowsChrome: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+  macSafari: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15",
+  iphone: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1",
+  androidPhone: "Mozilla/5.0 (Linux; Android 14; SM-S918B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Mobile Safari/537.36",
+  androidTablet: "Mozilla/5.0 (Linux; Android 13; SM-X710) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+  ipadSafari: "Mozilla/5.0 (iPad; CPU OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1",
+  kakaoInApp: "Mozilla/5.0 (Linux; Android 13; SM-G991N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Mobile Safari/537.36;KAKAOTALK 10.4.0",
+  naverInApp: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 NAVER(inapp; search; 2000; 12.9.2)",
+  samsungInternet: "Mozilla/5.0 (Linux; Android 13; SAMSUNG SM-S918B) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/23.0 Chrome/115.0.0.0 Mobile Safari/537.36",
+};
+
+const NON_ZH_CN_LANGS = ["ko", "en", "ja", "zh-TW", "vi", "hi", "es", "fr", "de", "nl", "ms"];
 
 function runPgWindowLocaleTests() {
   // ① 네 경로 전부가 locale 을 실어야 한다. 위임 함수 이름까지 고정해 사본 구현을 막는다.
+  const portoneClientSource = readFileSync(resolve(root, "lib/payment/portone.ts"), "utf8");
+  const pointsClientSource = readFileSync(resolve(root, "app/points/PointsClient.tsx"), "utf8");
   const CALLERS = [
     ["index.html", indexSource, "locale: _cdPgWindowLocale()"],
     ["js/destiny-profile.js", destinyProfileSource, "locale: _dpPgWindowLocale()"],
-    ["lib/payment/portone.ts", readFileSync(resolve(root, "lib/payment/portone.ts"), "utf8"), "locale: checkoutEntry.pgWindowLocale()"],
-    ["app/points/PointsClient.tsx", readFileSync(resolve(root, "app/points/PointsClient.tsx"), "utf8"), "locale: checkoutEntry.pgWindowLocale()"],
+    ["lib/payment/portone.ts", portoneClientSource, "locale: checkoutEntry.pgWindowLocale()"],
+    ["app/points/PointsClient.tsx", pointsClientSource, "locale: checkoutEntry.pgWindowLocale()"],
   ];
   for (const [label, source, marker] of CALLERS) {
     assertContains(
@@ -170,8 +228,24 @@ function runPgWindowLocaleTests() {
     );
   }
 
-  // ② 위임 래퍼는 모듈 미부착 시 종전 동작(한국어 결제창)으로 물러나야 한다.
-  //    결제 임계경로라 여기서 던지면 결제창 자체가 안 뜬다.
+  // 🔴 bypass 도 같은 네 경로 전부에 실려야 한다. 한 곳만 빠지면 그 경로의 모바일 결제창에만
+  //    해외카드 탭이 안 뜬다 — 화면상 아무 오류도 없어 발견이 가장 늦는 종류의 결함이다.
+  const BYPASS_CALLERS = [
+    ["index.html", indexSource, "if (_cdBypass) requestData.bypass = _cdBypass;"],
+    ["js/destiny-profile.js", destinyProfileSource, "if (_dpBypass) requestData.bypass = _dpBypass;"],
+    ["lib/payment/portone.ts", portoneClientSource, "requestData.bypass = checkoutEntry.portoneBypass();"],
+    ["app/points/PointsClient.tsx", pointsClientSource, "requestData.bypass = checkoutEntry.portoneBypass();"],
+  ];
+  for (const [label, source, marker] of BYPASS_CALLERS) {
+    assertContains(
+      source,
+      marker,
+      `${label}: requestPayment 이 이니시스 bypass 를 실어야 한다 — 빠지면 그 경로의 모바일 결제창에 해외카드가 안 뜬다`,
+    );
+  }
+
+  // ② 위임 래퍼는 모듈 미부착 시 종전 동작으로 물러나야 한다(결제 임계경로 — 던지면 결제창이 안 뜬다).
+  //    locale 의 종전 동작은 한국어 결제창이고, bypass 의 종전 동작은 '보내지 않음' 이라 null 이다.
   for (const [label, source, fnName] of [
     ["index.html", indexSource, "_cdPgWindowLocale"],
     ["js/destiny-profile.js", destinyProfileSource, "_dpPgWindowLocale"],
@@ -182,17 +256,137 @@ function runPgWindowLocaleTests() {
       `${label}: ${fnName} 은 모듈 미부착·예외에서 'KO_KR' 로 물러나야 한다`,
     );
   }
+  for (const [label, source, fnName] of [
+    ["index.html", indexSource, "_cdPortoneBypass"],
+    ["js/destiny-profile.js", destinyProfileSource, "_dpPortoneBypass"],
+  ]) {
+    const body = sliceFunctionBody(source, `function ${fnName}(`);
+    assert.ok(
+      /return null;/.test(body) && /catch \(/.test(body),
+      `${label}: ${fnName} 은 모듈 미부착·예외에서 null 로 물러나야 한다 — 손으로 지어낸 bypass 를 PG 로 보내지 않는다`,
+    );
+  }
 
   // ③ 정본이 PG 지원 밖 값을 낼 수 없어야 한다. 문자열 리터럴을 전수로 본다.
-  const entryBody = sliceFunctionBody(readFileSync(resolve(root, "js/core/checkout-entry.js"), "utf8"), "function pgWindowLocale(");
+  const entrySource = readFileSync(resolve(root, "js/core/checkout-entry.js"), "utf8");
+  const entryBody = sliceFunctionBody(entrySource, "function pgWindowLocale(");
   const emitted = [...entryBody.matchAll(/return \"([A-Z_]+)\"/g)].map((m) => m[1]);
-  assert.ok(emitted.length >= 2, "js/core/checkout-entry.js: pgWindowLocale 이 값을 돌려주지 않는다 — 추출이 깨졌다");
+  assert.ok(emitted.length >= 3, "js/core/checkout-entry.js: pgWindowLocale 이 값을 돌려주지 않는다 — 추출이 깨졌다");
   for (const value of emitted) {
     assert.ok(
       PG_WINDOW_LOCALES.has(value),
-      `js/core/checkout-entry.js: pgWindowLocale 이 ${value} 를 냅니다 — KG이니시스 모바일 결제창이 지원하는 값은 `
-        + `${[...PG_WINDOW_LOCALES].join(" · ")} 뿐입니다(PC 는 ZH_CN 도 지원하지만 우리 UA 판정과 `
-        + `PG 의 PC/모바일 판정이 어긋나지 않는다는 근거가 아직 없습니다).`,
+      `js/core/checkout-entry.js: pgWindowLocale 이 ${value} 를 냅니다 — KG이니시스 결제창이 받는 값은 `
+        + `${[...PG_WINDOW_LOCALES].join(" · ")} 뿐이고, 그중 모바일이 받는 것은 `
+        + `${[...PG_WINDOW_MOBILE_LOCALES].join(" · ")} 뿐입니다.`,
+    );
+  }
+  // 🔴 제2 방출자 금지 — ZH_CN 리터럴이 pgWindowLocale 본문 밖에 있으면 데스크톱 게이트를
+  //    거치지 않는 경로가 생긴 것이다(주석에는 따옴표 없이 적는다).
+  const zhLiteralCount = (entrySource.match(/\"ZH_CN\"/g) || []).length;
+  assert.equal(
+    zhLiteralCount,
+    1,
+    `js/core/checkout-entry.js: "ZH_CN" 리터럴이 ${zhLiteralCount}개입니다 — pgWindowLocale 안의 한 곳뿐이어야 합니다.`,
+  );
+  assert.ok(entryBody.includes("isDesktopPgWindow()"), "pgWindowLocale 이 데스크톱 판정을 거치지 않습니다 — 모바일에 ZH_CN 이 나갑니다.");
+
+  // ④ 🔴 행위 매트릭스. 정적 집합으로는 표현할 수 없는 명제를 여기서 단언한다.
+  const cases = [];
+  const desktopBase = { maxTouchPoints: 0, coarse: false };
+  // 핵심 음성 — 모바일·인앱·태블릿에서는 ZH_CN 이 절대 나오지 않는다.
+  for (const [name, fixture] of [
+    ["iPhone Safari", { ua: UA.iphone, coarse: true }],
+    ["Android 폰 Chrome", { ua: UA.androidPhone, coarse: true }],
+    ["Android 태블릿(Mobile 토큰 없음)", { ua: UA.androidTablet, coarse: true }],
+    ["iPad Safari", { ua: UA.ipadSafari, coarse: true }],
+    ["iPad 데스크톱 모드(Macintosh 위장)", { ua: UA.macSafari, maxTouchPoints: 5, coarse: false }],
+    ["카카오톡 인앱", { ua: UA.kakaoInApp, coarse: true }],
+    ["네이버 인앱", { ua: UA.naverInApp, coarse: true }],
+    ["삼성 인터넷", { ua: UA.samsungInternet, coarse: true }],
+  ]) {
+    cases.push({ group: "핵심 음성", name, fixture: { lang: "zh-CN", ...desktopBase, ...fixture }, expect: (v) => v !== "ZH_CN", want: "ZH_CN 이 아님" });
+  }
+  // 🔴 핵심 양성 — 이게 없으면 기능이 통째로 죽어도 위 음성 8건이 공허하게 통과한다.
+  for (const [name, fixture] of [
+    ["Windows Chrome", { ua: UA.windowsChrome }],
+    ["macOS Safari", { ua: UA.macSafari }],
+    ["Windows 터치 노트북(pointer:fine)", { ua: UA.windowsChrome, maxTouchPoints: 10 }],
+  ]) {
+    cases.push({ group: "핵심 양성", name, fixture: { lang: "zh-CN", ...desktopBase, ...fixture }, expect: (v) => v === "ZH_CN", want: "ZH_CN" });
+  }
+  // 미상 — 판정 재료가 없으면 데스크톱이라 부르지 않는다.
+  for (const [name, fixture] of [
+    ["navigator 없음", { ua: UA.windowsChrome, navigator: false }],
+    ["matchMedia 없음", { ua: UA.windowsChrome, matchMedia: false }],
+    ["UA 빈 문자열", { ua: "" }],
+  ]) {
+    cases.push({ group: "미상", name, fixture: { lang: "zh-CN", ...desktopBase, ...fixture }, expect: (v) => v !== "ZH_CN", want: "ZH_CN 이 아님" });
+  }
+  // 불변 — zh-CN 이 아닌 11개 언어는 기기와 무관하게 출력이 고정이다. 🔴 zh-TW 는 데스크톱에서도 EN_US.
+  for (const lang of NON_ZH_CN_LANGS) {
+    const want = lang === "ko" ? "KO_KR" : "EN_US";
+    cases.push({ group: "불변(데스크톱)", name: lang, fixture: { lang, ua: UA.windowsChrome, ...desktopBase }, expect: (v) => v === want, want });
+    cases.push({ group: "불변(모바일)", name: lang, fixture: { lang, ua: UA.iphone, maxTouchPoints: 5, coarse: true }, expect: (v) => v === want, want });
+  }
+
+  assert.ok(
+    cases.length >= 24,
+    `행위 매트릭스가 ${cases.length}건뿐입니다 — 표를 비워 통과시키지 마세요(최소 24건).`,
+  );
+  const groups = new Set(cases.map((c) => c.group));
+  for (const required of ["핵심 음성", "핵심 양성", "미상", "불변(데스크톱)", "불변(모바일)"]) {
+    assert.ok(groups.has(required), `행위 매트릭스에서 '${required}' 그룹이 사라졌습니다 — 지우지 마세요.`);
+  }
+
+  for (const testCase of cases) {
+    const actual = withFixtureWindow(
+      makeFixtureWindow(testCase.fixture),
+      () => checkoutEntryModule.pgWindowLocale(),
+    );
+    assert.ok(
+      testCase.expect(actual),
+      `[${testCase.group}] ${testCase.name}: pgWindowLocale() 이 ${actual} 를 냈습니다(기대: ${testCase.want}).`
+        + ` 모바일 결제창은 ${[...PG_WINDOW_MOBILE_LOCALES].join(" · ")} 만 지원하며, 지원 밖 값을 보내면`
+        + ` 한국어로 열릴 수 있습니다(모바일 빌링키 발급의 문서화된 동작).`,
+    );
+    // 어떤 픽스처에서도 지원 밖 값이 나가서는 안 된다.
+    assert.ok(PG_WINDOW_LOCALES.has(actual), `[${testCase.group}] ${testCase.name}: 지원 밖 값 ${actual} 가 나왔습니다.`);
+    if (actual === "ZH_CN") {
+      assert.equal(
+        withFixtureWindow(makeFixtureWindow(testCase.fixture), () => checkoutEntryModule.isDesktopPgWindow()),
+        true,
+        `[${testCase.group}] ${testCase.name}: 데스크톱이 아닌데 ZH_CN 이 나왔습니다.`,
+      );
+    }
+  }
+
+  // ⑤ bypass 행위. 🔴 deepEqual 이 아니라 includes 로 본다 — 옵션 추가를 막지 않기 위해서다.
+  const bypass = checkoutEntryModule.portoneBypass();
+  assert.ok(bypass && typeof bypass === "object", "portoneBypass() 가 객체를 돌려주지 않습니다.");
+  const reserved = bypass.inicis_v2 && bypass.inicis_v2.P_RESERVED;
+  assert.ok(Array.isArray(reserved), "portoneBypass().inicis_v2.P_RESERVED 는 배열이어야 합니다 — 이니시스가 그 자리에 KEY=VALUE 목록을 받습니다.");
+  assert.ok(
+    reserved.includes(INICIS_BYPASS_OPTION),
+    `P_RESERVED 에 ${INICIS_BYPASS_OPTION} 가 없습니다 — 해외카드 특약이 승인돼도 모바일 결제창에 해외카드 탭이 안 뜹니다.`,
+  );
+  for (const option of reserved) {
+    assert.ok(
+      /^[A-Za-z0-9_]+=[^=]*$/.test(String(option)),
+      `P_RESERVED 원소 ${JSON.stringify(option)} 가 KEY=VALUE 꼴이 아닙니다.`,
+    );
+  }
+
+  // ⑥ 🔴 채널 격리. 셸·독립은 사용자가 결제창 2단계에서 다른 PG 를 고를 수 있고, 그 채널에
+  //    inicis_v2 키를 실었을 때의 동작은 미문서다 — 거절이라면 결제창이 아예 안 뜬다.
+  //    방어가 조용히 사라지는 것을 막기 위해 '같은 표현식 안'을 고정한다.
+  for (const [label, source, marker] of [
+    ["index.html", indexSource, "directPayFields.channelKeyName ? null : _cdPortoneBypass()"],
+    ["js/destiny-profile.js", destinyProfileSource, "directPayFields.channelKeyName ? null : _dpPortoneBypass()"],
+  ]) {
+    assertContains(
+      source,
+      marker,
+      `${label}: 이니시스 bypass 는 이니시스 채널일 때만 붙어야 한다 — 비-이니시스 채널의 동작은 미문서이고 최악은 결제창 미노출이다`,
     );
   }
 }

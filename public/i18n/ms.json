@@ -1446,11 +1446,6 @@
         "icon": "💳",
         "label": "Pembayaran Selamat",
         "value": "Disahkan Stripe · Semua kad utama"
-      },
-      {
-        "icon": "🔄",
-        "label": "Jaminan",
-        "value": "Bayaran balik 30 hari"
       }
     ]
   },
@@ -1468,7 +1463,6 @@
       "editorial": "Dasar Editorial",
       "advertising": "Dasar Pengiklanan"
     },
-    "refundPolicy": "Pembelian kandungan digital berbayar boleh dikembalikan dalam masa 14 hari selepas pembelian jika tidak digunakan, mengikut undang-undang perlindungan pengguna.",
     "copyright": "© 2025 Code Destiny. Hak cipta terpelihara. Untuk hiburan dan refleksi diri sahaja, bukan pengganti nasihat profesional.",
     "sections": {
       "services": "Perkhidmatan",
@@ -1818,7 +1812,7 @@
         "signedOut": "Log masuk untuk melihat baki anda."
       },
       "legal": {
-        "provisionTiming": "Perkhidmatan ini disediakan serta-merta selepas pembayaran selesai. Penggunaan perkhidmatan bermula dari saat pembayaran disahkan, dan pembatalan langganan mungkin dihadkan untuk kandungan yang telah disediakan mengikut undang-undang e-dagang."
+        "provisionTiming": "Perkhidmatan ini disediakan serta-merta selepas pembayaran selesai. Penggunaan perkhidmatan bermula dari saat pembayaran disahkan, dan hak anda untuk menarik balik pembelian mungkin dihadkan bagi kandungan yang telah disediakan menurut Akta Perlindungan Pengguna dalam Perdagangan Elektronik Korea. Kontrak yang dimeterai oleh orang bawah umur tanpa persetujuan penjaga sahnya boleh dibatalkan oleh orang bawah umur itu sendiri atau oleh penjaga sahnya."
       },
       "passUpgradeTitle": "Naik taraf pas",
       "recommendBadge": "Disyorkan",
@@ -2058,7 +2052,7 @@
       },
       "monthlyStatusChecking": "Menyemak baki dan status Pas.",
       "monthlyStatusError": "Pengesahan baki tertunda. Anda boleh teruskan dengan pembayaran dan pemilihan Pas.",
-      "provisionNotice": "Pas akan diaktifkan serta-merta selepas pembayaran selesai dan boleh digunakan dengan segera. Selepas pengaktifan, pembatalan langganan mungkin dihadkan mengikut undang-undang yang berkaitan.",
+      "provisionNotice": "Pas akan diaktifkan serta-merta selepas pembayaran selesai dan boleh digunakan dengan segera. Selepas pengaktifan, hak anda untuk menarik balik pembelian mungkin dihadkan mengikut undang-undang yang berkaitan.",
       "monthlyButton": "Bayar dengan {credits} kredit bulanan",
       "monthlyButtonBusy": "Mengaktifkan pas dengan kredit bulanan...",
       "monthlyButtonShort": "Perlu {credits} · baki tidak cukup"
@@ -2067,8 +2061,8 @@
       "passAppliedContinue": "Dibuka dengan pas anda."
     },
     "overseas": {
-      "approx": "approx. {amount}",
-      "chargedInKrw": "Payment is authorized in Korean Won (KRW). International cards (VISA · Mastercard · JCB · Diners) are accepted, and your card issuer applies its own exchange rate."
+      "approx": "kira-kira {amount}",
+      "chargedInKrw": "Pembayaran dibenarkan dalam Won Korea (KRW). Kad antarabangsa (VISA · Mastercard · JCB · Diners) diterima, dan pengeluar kad anda menggunakan kadar pertukaran sendiri."
     }
   },
   "auth": {

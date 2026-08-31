@@ -7,13 +7,13 @@
       "file": "index.html",
       "marker": "  async function _cdChooseServicePaymentMode(options) {",
       "why": "결제수단 선택창의 정본 렌더러. 3벌 중 이것이 기준이고 나머지 2벌이 여기에 맞춰진다.",
-      "sha256": "d544542f937d6ae0"
+      "sha256": "635b1d688247b159"
     },
     {
       "file": "index.html",
       "marker": "  async function _cdRunDirectKrwCheckout(options) {",
       "why": "단건 PortOne 결제 실행 경로. 호출부 6곳이 여기에 물려 있다.",
-      "sha256": "71952e27a1c1bc7c"
+      "sha256": "7f4a6f7b9d1cabe9"
     },
     {
       "file": "index.html",
@@ -25,14 +25,14 @@
       "file": "js/destiny-profile.js",
       "marker": "  function _dpRenderStandalonePaymentChoice(options) {",
       "why": "독립 정적 폴백 렌더러. 셸 정본과 CSS·문구가 같아야 한다(verify:payment-choice-parity).",
-      "sha256": "b1fe9f8655640fa3"
+      "sha256": "c7d8b54fa8be36a2"
     }
   ],
   "wholeFiles": [
     {
       "file": "app/_lib/billing-client.ts",
       "why": "React 결제 코어. 낙관 이용권 grant 와 결제창 렌더러가 여기 있다.",
-      "sha256": "4bd91fe1a884640a"
+      "sha256": "f1739cdd12383505"
     },
     {
       "file": "app/hooks/useCoinGate.ts",
@@ -42,7 +42,7 @@
     {
       "file": "lib/payment/portone.ts",
       "why": "PortOne 브라우저 SDK 로더 + 단건 결제 요청.",
-      "sha256": "56321a4e87cb8d8f"
+      "sha256": "9a02007823235861"
     }
   ],
   "growthCeilings": [

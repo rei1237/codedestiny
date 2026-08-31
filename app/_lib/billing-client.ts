@@ -450,7 +450,7 @@ const BILLING_FETCH_DEFAULT_TIMEOUT_MS = 20000;
 const BILLING_FETCH_CHECKOUT_TIMEOUT_MS = 40000;
 const BILLING_FETCH_CONFIRM_TIMEOUT_MS = 60000;
 const PAYMENT_CHOICE_IN_FLIGHT_TTL_MS = 45000;
-export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-c92b9a159779";
+export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-f61c6a2afbe9";
 // 🔴 이용권 스냅샷의 상수·읽기·쓰기·판정은 전부 js/core/pass-verdict.js 가 소유한다.
 // 셸(index.html)·독립 정적(js/destiny-profile.js)과 **같은 localStorage 키**를 공유하므로 값이 갈리면
 // 같은 사용자가 어느 런타임에서 클릭했느냐에 따라 판정이 달라지고, 한쪽이 만료로 보고 지운 캐시가
@@ -1254,7 +1254,7 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
         ${directMethodStepHtml ? `<div data-choice-step="methods" hidden>${directMethodStepHtml}</div>` : ""}
         <div class="cd-direct-payment-status" data-payment-status role="status" aria-live="polite"></div>
         ${overseasNoticeHtml}
-        <p class="cd-direct-payment-legal">${escapePaymentText(checkoutEntry.text("payment.directModal.legal.provisionTiming", "본 서비스는 결제 완료 즉시 제공됩니다. 결제가 확인되는 시점부터 서비스 이용이 시작되며, 서비스 제공이 개시된 콘텐츠는 전자상거래법에 따라 청약철회가 제한될 수 있습니다."))}</p>
+        <p class="cd-direct-payment-legal">${escapePaymentText(checkoutEntry.text("payment.directModal.legal.provisionTiming", "본 서비스는 결제 완료 즉시 제공됩니다. 결제가 확인되는 시점부터 서비스 이용이 시작되며, 서비스 제공이 개시된 콘텐츠는 전자상거래법에 따라 청약철회가 제한될 수 있습니다. 미성년자가 법정대리인의 동의 없이 체결한 계약은 미성년자 본인 또는 법정대리인이 취소할 수 있습니다."))}</p>
         <div class="cd-direct-payment-actions">
           <button type="button" class="cd-direct-payment-cancel" data-mode="cancel">${escapePaymentText(checkoutEntry.text("common.cancel", "취소"))}</button>
         </div>

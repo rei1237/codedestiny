@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-08-28
-next: "§2 남은 항목 — 폐지 재화 표현의 마지막 조각인 URL 경로명 `/points` 정리부터"
+updated: 2026-08-31
+next: "§10 다음 작업 — worker/routes/payments.js:5836 의 죽은 미성년자 차단 술어(P0)부터"
 ---
 
 # 해외 결제(이니시스 해외카드) — 2026-08-28 인수인계
@@ -33,7 +33,7 @@ PG 심사 탈락 사유이고, 환율이 움직일 때마다 판매가가 바뀌
 
 | 층 | 파일 | 내용 |
 |---|---|---|
-| 정본 | `js/core/checkout-entry.js` | `REFERENCE_FX_BY_LANG`(11통화, 2026-08) · `REFERENCE_FX_AS_OF` · `formatReferenceAmount()` · `buildOverseasChargeNoticeHtml()` |
+| 정본 | `js/core/checkout-entry.js` | `REFERENCE_FX_BY_LANG`(11개 로케일 / **8통화** — EUR 을 de·fr·nl·es 가 공유, 2026-08) · `REFERENCE_FX_AS_OF` · `formatReferenceAmount()` · `buildOverseasChargeNoticeHtml()` |
 | 타입 | `js/core/checkout-entry.d.ts` | 위 3개 시그니처 |
 | 결제창 3종 | `index.html` `_cdChooseServicePaymentMode` · `app/_lib/billing-client.ts` `openReactPaymentChoiceModalInner` · `js/destiny-profile.js` `_dpRenderStandalonePaymentChoice` | `overseasNoticeHtml` 을 legal 문단 앞에 삽입 |
 | 이용권 상점 2종 | `app/points/PointsClient.tsx` `useOverseasCharge()` · `index.html` `overseasStoreNoticeHtml` | 플랜 카드 개산가 + 섹션 하단 고지 |
@@ -147,22 +147,21 @@ displayPrice: `${pass.amountKRW.toLocaleString("ko-KR")}원`,
 죽었다는 증거가 아니다). 앱 상점은 Play SKU 가 통화를 따로 지역화하는 별개 표면이기도 하다
 (관련 메모 `new-price-point-needs-play-sku-in-three-places`).
 
-### ③ PG 결제창 중국어(ZH_CN) — **보류 확정** (2026-08-28 근거 재조사 완료)
+### ③ PG 결제창 중국어(ZH_CN) — **완료** (2026-08-31, PR #1387)
 
-`js/core/checkout-entry.js:245-254` `pgWindowLocale()` 이 `KO_KR`/`EN_US` 둘만 낸다. 그대로 둔다.
-**문서를 다시 읽는 방식으로는 열 수 없음이 확인됐다** — 아래가 그 재조사 결과다.
+`js/core/checkout-entry.js` `pgWindowLocale()` 이 3값을 낸다. **`lang === "zh-CN"` 이고 `isDesktopPgWindow()` 가 참일 때만** `ZH_CN`.
 
-| 확인한 것 | 결과 |
-|---|---|
-| 인수인계의 전제 | **맞다.** 다만 **렌더된 공개 문서에서는 이 표가 사라졌고**(SDK `payment-request` 는 "PG마다 지원하는 언어 목록은 차이가 있습니다"만 말한다), 인용 가능한 출처는 문서 저장소 원본 하나뿐이다 — `portone-io/developers.portone.io` 의 `opi/ko/integration/pg/v2/inicis-v2.mdx`: "PC 결제의 경우 `KO_KR`, `EN_US`, `ZH_CN`을 지원하며, 모바일 결제의 경우 `KO_KR`, `EN_US`만을 지원합니다" |
-| 모바일에 ZH_CN 을 보내면? | **여전히 미문서.** 🔴 다만 같은 문서의 가장 가까운 사례(모바일 빌링키 발급)는 "해당 파라미터를 지원하지 않고 **항상 한국어로 노출**됩니다" 라고 말한다 → 결제창도 같다면 zh-CN 모바일 사용자는 **지금의 영어 대신 한국어**를 본다. 개선 실패가 아니라 **회귀**다 |
-| PG 의 PC/모바일 판정 기준 | 🔴 **어느 문서에도 없다.** 남은 경로는 `cdn.portone.io/v2/browser-sdk.js`(버전 없는 URL) 역공학뿐인데, 언제든 바뀌는 번들에 우리 판정을 묶는 것은 근거가 아니라 숨은 결합이다 |
+🔴 **보류를 푼 것은 새 문서가 아니라 새 출처다** — `@portone/browser-sdk@0.1.9` 의 `dist/v2/entity/Locale.d.ts` 가
+`ZH_CN` 에 "KG이니시스 (PC)" 한정자를 달아 둔다. npm 배포 아티팩트는 **버전 고정이 가능하고 문서 리라이트로 사라지지 않는다.**
+"렌더된 공개 문서에서 표가 사라져 인용 가능한 출처는 mdx 원본뿐"이라던 이 절의 옛 서술은 낡았다.
 
-**재개 조건은 실결제 1회 관찰 하나다**(🔴 사용자 허락 필요 — 규칙 2 급). 그 전까지 뒤집지 말 것.
+**모바일에 `ZH_CN` 을 보내면 어떻게 되는지는 여전히 미문서다.** 그래서 설계를 그 질문에 의존시키지 않았다 —
+{우리가 데스크톱이라 부르는 집합} ⊆ {포트원이 PC 로 보내는 집합} 이 되도록 5개 조건의 논리곱으로 좁히고 미상은 전부 모바일로 떨군다.
+거짓 음성(진짜 PC 를 모바일로 봄)은 `EN_US` = 오늘과 동일이라 **회귀가 0** 이고, 위험한 것은 거짓 양성뿐이다.
+zh-TW 는 `EN_US` 유지 — 이니시스 `ZH_CN` 은 간체이고 이 레포는 간/번체를 엄격히 분리해 왔다.
 
-근거는 가드 `scripts/verify-portone-single-payment-regression.mjs` 의 `PG_WINDOW_LOCALES` 머리주석에
-날짜·출처·인용문과 함께 남겼다. 🔴 **정본 `js/core/checkout-entry.js` 는 일부러 안 건드렸다** —
-주석 한 줄에도 core 캐시 핀이 22곳 돌아 90파일 diff 가 된다(§5-1).
+🔴 **아직 안 본 것은 하나뿐이다** — zh-CN 데스크톱에서 결제창이 실제로 중국어로 뜨는가(우리 판정 ⊆ 포트원 판정).
+스테이징 육안 절차와 관찰 결과 기록 자리는 `js/core/checkout-entry.js` 머리주석에 있다.
 
 ### ④ i18n 사전에 구워진 가격 문자열 — **완료** (2026-08-28, 드리프트 가드로 해결)
 
@@ -486,7 +485,40 @@ for (const k of ['vedic-ai-consultation','fusion-fortune-consultation'])
 ## 9. 남아있는 위험요소
 
 1. **특약이 심사 중** — 승인 전에는 해외카드 탭이 실제로 뜨는지 검증 불가.
-   코드는 승인되면 **추가 배포 없이** 동작한다(채널키가 그대로이므로).
+   🔴 **"승인되면 추가 배포 없이 동작한다"는 틀렸다**(2026-08-31 실측 정정). 해외카드 노출은 이니시스 **모바일** 결제창의
+   `bypass.inicis_v2.P_RESERVED = ["global_visa3d=Y"]` 로 켜지는데, `git grep "bypass\|P_RESERVED\|global_visa3d\|acceptmethod"`
+   결과 결제 코드에 **0건**이었다. 특약이 승인돼도 탭이 안 떴을 것이다. PR #1387 이 그 배선을 넣었으므로 **이제는** 그 문장이 맞다.
+   🔴 승인 **전에** 이 플래그를 보내는 동작은 미문서다 — 무시(무해)이거나 "탭은 뜨는데 승인 실패"다. 사용자가 위험을 알고 함께 배포하기로 결정했다.
 2. **비실물 콘텐츠는 PG사 협의 후 승인** — 자동으로 켜지지 않는다. §2① 이 여기 걸린다.
 3. **환산율 수기 갱신** — `REFERENCE_FX_AS_OF = "2026-08"` 이 낡아도 자동으로 알 수 없다.
    참고 표기라 결제에는 무영향이지만 주기적 갱신이 필요하다.
+
+## 10. 다음 작업 (2026-08-31 기준, 우선순위 순)
+
+PR #1387(결제창 언어 3값화 + 해외카드 배선) 과 #1388(결제창 법정 고지) 로 §2③ 과 법정 고지를 닫았다.
+🔴 **머지 순서는 #1388(자식) → #1387(부모)** 이고, 자식 PR 은 base 가 main 이 아니라 **체크가 0개**다(정상).
+
+1. 🔴 **`worker/routes/payments.js:5836` 의 죽은 미성년자 차단 술어 — P0.**
+   정의되지 않은 `ageCheck.requiresGuardianConsent` 를 읽어 **항상 `return null`** 이다
+   (`worker/lib/validation.js:61-115` 의 반환은 `{isValid, age, error}` 뿐). 단언하는 테스트도 0건.
+   🔴 고치는 것은 카피 변경이 아니라 **결제 경로 동작 변경**(오늘 결제되던 계정이 즉시 403)이라 별도 PR 로 낸다.
+   `MIN_SELF_CONSENT_AGE = 14` 라 살아나도 막는 건 만 14세 미만뿐 — 전상법 §13②5 가 겨냥하는 **만 14~18세는 여전히 고지로만** 다뤄진다(#1388 이 그 고지다).
+   함께 필요: `__tests__/worker/` 회귀 테스트 + `payment.error.minorBlocked` 키 신설
+   (🔴 이 레포엔 결제 오류 코드용 클라이언트 i18n 표가 **없다** — `payment.error.*` 0건, 서버 `message` 를 그대로 노출한다).
+
+2. **스테이징 결제창 육안** — 사용자 허락을 받아 둔 항목이며 **승인 버튼은 누르지 않는다**.
+   #1388 → #1387 이 스테이징에 올라간 뒤 7케이스: zh-CN 데스크톱(→간체) · zh-CN 모바일 실기기(→영어) ·
+   zh-CN iPad 데스크톱 모드(→영어) · zh-TW 데스크톱(→영어) · 모바일 해외카드 탭 노출 여부 ·
+   카카오페이 개창(bypass 채널 격리) · 전 케이스 payload 에 `windowType` **없음**(PR #104 회귀).
+   결과는 날짜·기기와 함께 `js/core/checkout-entry.js` 머리주석에 남긴다.
+
+3. **zh-TW 간체 오염** — 사전 전체 약 250키. `payment.*` 93키는 #1388 이 `ZH_TW_SIMP_CEILING` 으로 **줄어드는 방향으로만** 고정해 뒀다.
+
+4. **해외 결제자 영수증이 한국어 단벌** — `lib/legal/refund-policy-rows.js` 를 `worker/payments/receipt-email.js:27,159` 가 그대로 발송한다.
+   🔴 로케일별로 나누면 그 파일 머리주석의 "여기 한 벌만 둔다" 계약을 건드리므로 설계부터 정해야 한다.
+
+5. **`lib/legal/refundContent.ts:41-59`** 의 `REFUND_JURISDICTION_NOTES.en`/`.zh` 가 `null`.
+
+6. **푸터 정책 링크 로케일 분기** — 🔴 `__tests__/ui/locale-footer.static.test.js:114-115,129-131` 이 현 상태(ko 고정)를 고정하고 있어 테스트 재조준이 선행한다.
+
+7. **`app/points/PointsClient.tsx:1787-1789,4591-4593`** 하드코딩 한국어 환불 불릿 + ko 고정 링크.

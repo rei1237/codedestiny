@@ -1542,11 +1542,6 @@
         "icon": "💳",
         "label": "Secure Checkout",
         "value": "Stripe-verified · All major cards"
-      },
-      {
-        "icon": "🔄",
-        "label": "Guarantee",
-        "value": "30-day money-back promise"
       }
     ]
   },
@@ -1570,7 +1565,6 @@
       "editorial": "Editorial Policy",
       "advertising": "Advertising Policy"
     },
-    "refundPolicy": "Paid digital content purchases are refundable within 14 days of purchase if unused, in accordance with consumer protection law. Content that has already been used is non-refundable. Contact support for assistance.",
     "copyright": "© 2025 Code Destiny. All rights reserved. For entertainment & self-reflection purposes only — not a substitute for professional advice.",
     "privacyNotice": "This service collects and uses birth date, birth time, and gender only within the scope necessary to provide saju/fortune results and related customer support. When the purpose of collection is achieved or the service ends, the information is destroyed without delay unless retention is required by law.",
     "policyLinksAria": "Policy and contact links",
@@ -1818,7 +1812,7 @@
         "signedOut": "Sign in to check your balance."
       },
       "legal": {
-        "provisionTiming": "This service is provided immediately upon payment completion. Service use begins at the time payment is confirmed, and cancellation of subscription may be restricted for content already provided, in accordance with e-commerce laws."
+        "provisionTiming": "This service is provided immediately upon payment completion. Service use begins at the time payment is confirmed, and your right to withdraw the purchase may be restricted for content already provided, under Korea's Act on Consumer Protection in Electronic Commerce. A contract entered into by a minor without the consent of their legal guardian may be cancelled by the minor or by their legal guardian."
       },
       "passUpgradeTitle": "Upgrade your pass",
       "recommendBadge": "Recommended",
@@ -2058,7 +2052,7 @@
       },
       "monthlyStatusChecking": "Checking remaining balance and Pass status.",
       "monthlyStatusError": "Checking balance is delayed. You can still proceed with payment and Pass selection.",
-      "provisionNotice": "Your Pass will be activated immediately upon payment completion and can be used right away. After activation, cancellation of subscription may be restricted in accordance with relevant laws.",
+      "provisionNotice": "Your Pass will be activated immediately upon payment completion and can be used right away. After activation, your right to withdraw the purchase may be restricted in accordance with relevant laws.",
       "monthlyButton": "Pay with {credits} monthly credits",
       "monthlyButtonBusy": "Activating your pass with monthly credits...",
       "monthlyButtonShort": "{credits} needed · balance short"

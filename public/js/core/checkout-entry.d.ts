@@ -133,10 +133,20 @@ declare const checkoutEntry: {
    */
   displayLocale(): string;
   /**
-   * PG 결제창(이니시스) UI 언어. KG이니시스가 PC·모바일 양쪽에서 지원하는 두 값만 낸다
-   * — 지원 밖 값은 결제창 미노출 위험이 있어 쓰지 않는다.
+   * 결제창을 띄우는 기기가 확실한 데스크톱인지. ZH_CN 분기 전용 판정이며 미상은 전부 false 다
+   * — 거짓 음성의 결과는 EN_US(오늘과 동일)이라 회귀가 없고, 위험한 것은 거짓 양성뿐이다.
    */
-  pgWindowLocale(): "KO_KR" | "EN_US";
+  isDesktopPgWindow(): boolean;
+  /**
+   * PG 결제창(이니시스) UI 언어. 모바일 결제창은 KO_KR·EN_US 만 지원하므로 ZH_CN 은
+   * isDesktopPgWindow() 가 참일 때만 난다. zh-TW 는 데스크톱에서도 EN_US 다(간/번체 분리).
+   */
+  pgWindowLocale(): "KO_KR" | "EN_US" | "ZH_CN";
+  /**
+   * 이니시스 결제창 bypass. P_RESERVED 의 global_visa3d=Y 가 모바일 해외카드 노출 옵션이다.
+   * 🔴 이니시스 채널일 때만 부착한다 — 다른 채널에 실었을 때의 동작이 미문서다.
+   */
+  portoneBypass(): { inicis_v2: { P_RESERVED: string[] } };
   /** 금액을 현재 로케일 자릿수 + payment.currency.krw 문구로 그린다. */
   formatKrwAmount(value: number, fallbackText?: string): string;
   /**

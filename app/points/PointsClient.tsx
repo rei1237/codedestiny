@@ -410,7 +410,12 @@ type PortOnePaymentRequest = {
   customData: Record<string, unknown>;
   noticeUrls?: string[];
   /** 결제창 UI 언어. 값의 범위는 js/core/checkout-entry.js 의 pgWindowLocale 머리주석 참고. */
-  locale?: "KO_KR" | "EN_US";
+  locale?: "KO_KR" | "EN_US" | "ZH_CN";
+  /**
+   * PG 사별 원본 파라미터 통로. 이니시스는 P_RESERVED 한 줄에 `KEY=VALUE` 를 담고,
+   * global_visa3d=Y 가 모바일 결제창의 해외카드 노출 옵션이다(portoneBypass 머리주석).
+   */
+  bypass?: { inicis_v2?: { P_RESERVED?: string[] } };
 };
 
 /** Toast 알림 하나의 데이터 구조 */
@@ -4306,6 +4311,9 @@ export default function PointsPage() {
       };
 
       if (paymentConfig.noticeUrl) requestData.noticeUrls = [paymentConfig.noticeUrl];
+      // 이용권 결제는 이니시스 단일 채널이라 채널 분기 없이 붙인다(셸·독립은 사용자가 2단계에서
+      // 다른 PG 를 고를 수 있어 channelKeyName 으로 게이팅한다).
+      requestData.bypass = checkoutEntry.portoneBypass();
 
       savePendingSubscriptionOrder({
         merchantUid: order.merchantUid,

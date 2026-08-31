@@ -3,7 +3,7 @@
   "note": "사이트맵 lastmod 원장. scripts/lib/sitemap-lastmod.mjs 가 라우트별 소스 서명을 계산해 다시 쓴다. 손으로 고치지 말고 npm run sitemap:generate 로 갱신할 것.",
   "routes": {
     "/": {
-      "signature": "79a087f52b46aa9c",
+      "signature": "a61269f75404205a",
       "lastmod": "2026-08-31"
     },
     "/about/": {
@@ -55,7 +55,7 @@
       "lastmod": "2026-08-30"
     },
     "/destiny-compass/": {
-      "signature": "bec29c035f379a25",
+      "signature": "354d100faa203697",
       "lastmod": "2026-08-31"
     },
     "/destiny-poker": {
@@ -83,7 +83,7 @@
       "lastmod": "2026-08-30"
     },
     "/en/": {
-      "signature": "b3ad3ce539ed3688",
+      "signature": "d4221ff1335562a0",
       "lastmod": "2026-08-31"
     },
     "/en/insights/": {
@@ -127,7 +127,7 @@
       "lastmod": "2026-08-30"
     },
     "/fortune-tea-house/": {
-      "signature": "c27cf88b7bdc3545",
+      "signature": "8da2ab0fe834d7c5",
       "lastmod": "2026-08-31"
     },
     "/fortune/": {
@@ -235,7 +235,7 @@
       "lastmod": "2026-08-31"
     },
     "/fortune/prompt-hub/": {
-      "signature": "156fa5da70c603f2",
+      "signature": "e814096765c4e1ae",
       "lastmod": "2026-08-31"
     },
     "/fortune/today/": {
@@ -603,7 +603,7 @@
       "lastmod": "2026-08-30"
     },
     "/ja/": {
-      "signature": "b3ad3ce539ed3688",
+      "signature": "d4221ff1335562a0",
       "lastmod": "2026-08-31"
     },
     "/ja/insights/": {
@@ -647,7 +647,7 @@
       "lastmod": "2026-08-30"
     },
     "/karma-destiny-ai/": {
-      "signature": "1433deb6e13a768a",
+      "signature": "5cc935c07645da48",
       "lastmod": "2026-08-31"
     },
     "/kkul-kkul-unse/": {
@@ -655,11 +655,11 @@
       "lastmod": "2026-08-30"
     },
     "/life-book-ai/": {
-      "signature": "867d784256508eaf",
+      "signature": "99ebdf35aa047fb2",
       "lastmod": "2026-08-31"
     },
     "/love-secret-ai/": {
-      "signature": "32ee99906c32e7fd",
+      "signature": "6468a14cb7122501",
       "lastmod": "2026-08-31"
     },
     "/love/": {
@@ -671,7 +671,7 @@
       "lastmod": "2026-08-30"
     },
     "/master-love-codex/": {
-      "signature": "cdeb7ab69c8d0d77",
+      "signature": "0a7a006551428c9e",
       "lastmod": "2026-08-31"
     },
     "/mayan-calendar/guide/": {
@@ -687,8 +687,8 @@
       "lastmod": "2026-08-30"
     },
     "/nakshatra/": {
-      "signature": "9b9e38d575230539",
-      "lastmod": "2026-08-30"
+      "signature": "74cf9801ee32a958",
+      "lastmod": "2026-08-31"
     },
     "/nakshatra/codex/0/": {
       "signature": "9cff073d48ee0a70",
@@ -799,15 +799,15 @@
       "lastmod": "2026-08-30"
     },
     "/naming-ai/": {
-      "signature": "ee4ac33ff7c15b81",
+      "signature": "0c55700d3c702786",
       "lastmod": "2026-08-31"
     },
     "/neo-operation-room/": {
-      "signature": "41c244ad6064acce",
+      "signature": "f9b2b6ac06e6007a",
       "lastmod": "2026-08-31"
     },
     "/new-year-ai-consultation/": {
-      "signature": "96db92f26c8659fa",
+      "signature": "33e8353bcb791804",
       "lastmod": "2026-08-31"
     },
     "/oracle/hwatu-life/": {
@@ -819,7 +819,7 @@
       "lastmod": "2026-08-30"
     },
     "/oracle/rune/": {
-      "signature": "e6ab474d1bb07775",
+      "signature": "385ec79d49d49cfc",
       "lastmod": "2026-08-31"
     },
     "/oracle/sukuyo/": {
@@ -843,11 +843,11 @@
       "lastmod": "2026-08-30"
     },
     "/saju-fpti/": {
-      "signature": "496171b09d3cdb6d",
+      "signature": "816ff1d00ffa67a8",
       "lastmod": "2026-08-31"
     },
     "/saju-guardian/": {
-      "signature": "0c4632568eaa7406",
+      "signature": "4394a6ae2ec9d294",
       "lastmod": "2026-08-31"
     },
     "/saju/": {
@@ -871,7 +871,7 @@
       "lastmod": "2026-08-30"
     },
     "/saju/destiny-meeting-place/": {
-      "signature": "351076076146815f",
+      "signature": "22fce4fb618e2d14",
       "lastmod": "2026-08-31"
     },
     "/saju/five-elements/": {
@@ -883,7 +883,7 @@
       "lastmod": "2026-08-30"
     },
     "/saju/love-simulation/": {
-      "signature": "bf775e983973b8fa",
+      "signature": "23107b805d742297",
       "lastmod": "2026-08-31"
     },
     "/saju/sibyl/": {
@@ -1075,7 +1075,7 @@
       "lastmod": "2026-08-30"
     },
     "/sukuyo-compatibility-ai/": {
-      "signature": "17b516ba33f1d4d3",
+      "signature": "6c6a7633c2bf4406",
       "lastmod": "2026-08-31"
     },
     "/sukuyo/": {
@@ -1111,7 +1111,7 @@
       "lastmod": "2026-08-30"
     },
     "/tarot/mindscan/": {
-      "signature": "c115489aa44e3972",
+      "signature": "d4633e44b1174c01",
       "lastmod": "2026-08-31"
     },
     "/tarot/mingri/": {
@@ -1119,11 +1119,11 @@
       "lastmod": "2026-08-30"
     },
     "/tarot/numerology/": {
-      "signature": "932d137170fbe1f0",
+      "signature": "7c5199a45f28a68b",
       "lastmod": "2026-08-31"
     },
     "/tarot/prompt-maker/": {
-      "signature": "0cda8628cdd13a64",
+      "signature": "fb813f8a5099db22",
       "lastmod": "2026-08-31"
     },
     "/tarot/reunion/": {
@@ -1147,7 +1147,7 @@
       "lastmod": "2026-08-30"
     },
     "/vedic-ai/": {
-      "signature": "62c204d89e721f0a",
+      "signature": "3bdf58155549b7c6",
       "lastmod": "2026-08-31"
     },
     "/vedic/": {
@@ -1167,7 +1167,7 @@
       "lastmod": "2026-08-30"
     },
     "/zh-tw/": {
-      "signature": "b3ad3ce539ed3688",
+      "signature": "d4221ff1335562a0",
       "lastmod": "2026-08-31"
     },
     "/zh-tw/insights/": {
@@ -1207,7 +1207,7 @@
       "lastmod": "2026-08-30"
     },
     "/zh/": {
-      "signature": "b3ad3ce539ed3688",
+      "signature": "d4221ff1335562a0",
       "lastmod": "2026-08-31"
     },
     "/zh/insights/": {
@@ -1247,7 +1247,7 @@
       "lastmod": "2026-08-30"
     },
     "/ziwei-ai/": {
-      "signature": "3793b03e5504a411",
+      "signature": "b8f72b2ba83561b3",
       "lastmod": "2026-08-31"
     },
     "/ziwei/": {
@@ -1255,7 +1255,7 @@
       "lastmod": "2026-08-30"
     },
     "/ziwei/chart/": {
-      "signature": "d118f57c2dc14065",
+      "signature": "9173156411183d69",
       "lastmod": "2026-08-31"
     },
     "/ziwei/guide/": {

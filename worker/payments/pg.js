@@ -1,8 +1,9 @@
 /**
  * 단계 ③ PG 결제 · ④ 서버 결제 검증. **아무것도 쓰지 않는다.**
  *
- * worker/lib/portone.js 는 동결 대상이다 — PG credentials·webhook 계약·Idempotency-Key 정규화가
- * 거기 있고, 그건 재작성 대상이 아니라 보존 대상이다. 이 파일은 그 위의 얇은 어댑터로,
+ * worker/lib/portone.js 는 config/payment-freeze.json 의 notFrozen 이다(해시 동결 대상이 아니다).
+ * 다만 PG credentials·webhook 계약·Idempotency-Key 정규화가 거기 있어 재작성 대상이 아니라
+ * 보존 대상이라는 뜻이고, 이 파일은 그 위의 얇은 어댑터로,
  * **PG 가 말하는 사실**과 **우리 주문**을 대조하는 책임만 갖는다.
  *
  * ## 검증은 네 가지 전부가 성립해야 한다
