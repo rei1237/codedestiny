@@ -3,9 +3,11 @@ import { IdempotencyKey } from "./models.js";
 import { getEnv } from "./env.js";
 import { getKstDateKey, getKstDateParts, getSiteBaseUrl, getTodayPillars } from "./daily-fortune-task.js";
 import { escapeTelegramHtml, sendTelegramMessage } from "./telegram.js";
+import { postThreadsChain } from "./threads.js";
+import { buildThreadsPostChain } from "./threads-daily-content.js";
 
 /**
- * SNS 일일 자동 발행 태스크.
+ * SNS 일일 자동 발행 태스크. 채널은 텔레그램 · Threads(Meta) 둘이다.
  *
  * 🔴 문안은 **템플릿으로만** 조립한다. LLM 실호출은 0회다(CLAUDE.md 절대 규칙 1) — 하루 한 번
  * 나가는 홍보 문구를 만들자고 과금 모델을 부르는 것은 비용 대비 얻는 것이 없고, 크론에서
@@ -13,10 +15,19 @@ import { escapeTelegramHtml, sendTelegramMessage } from "./telegram.js";
  *
  * 🔴 기본값은 **꺼짐**이다. 공개 채널에 글이 나가는 것은 되돌릴 수 없는 외부 행위라,
  * 토큰이 우연히 들어와 있다는 이유로 발행이 시작되면 안 된다. SNS_DAILY_POST_ENABLED 를
- * 명시적으로 켜야 돈다.
+ * 명시적으로 켜야 돌고, Threads 는 거기에 더해 SNS_THREADS_POST_ENABLED **와** 토큰 존재를
+ * 둘 다 요구한다(스테이징에는 토큰을 넣지 않는다).
  *
  * 🔴 크론을 새로 만들지 않는다. worker/wrangler.toml 의 crons 는 수정 금지 대상이라
  * 기존 일일 크론("0 22 * * *" = KST 07:00)의 태스크 목록에 얹혀 간다.
+ *
+ * 🔴 **채널이 하나라도 실패하면 마지막에 던진다.** 예전에는 {ok:false} 를 돌려주고 끝냈는데,
+ * worker/index.js 의 크론 래퍼는 **던진 것만** 잡아 사람에게 알린다. 그래서 2026-08-29 에
+ * 발행이 0건이었는데도 알림이 0건이었다. 잠금 문서에 사유를 기록한 **뒤에** 던진다.
+ *
+ * 🔴 이 파일과 threads-daily-content.js 는 서로를 import 한다(WEEKDAY_PICKS ↔ buildThreadsPostChain).
+ * 두 모듈 다 평가 시점에는 상대의 바인딩을 건드리지 않고 **호출 시점에만** 쓰므로 순환이 안전하다.
+ * WEEKDAY_PICKS 를 저쪽으로 옮기면 scripts/verify-sns-daily-post.mjs 의 소스 파싱이 깨진다.
  */
 
 // 중복 발행 잠금은 기존 IdempotencyKey 를 그대로 쓴다. {userId, endpoint, keyHash} 에 unique
@@ -25,12 +36,19 @@ import { escapeTelegramHtml, sendTelegramMessage } from "./telegram.js";
 const SNS_POST_ENDPOINT = "cron:sns-daily-post";
 const DEDUPE_TTL_MS = 3 * 24 * 60 * 60 * 1000;
 
+// 🔴 채널마다 잠금 키가 다르다 — 한 채널이 실패해도 다른 채널의 재시도를 막지 않는다.
+// 텔레그램은 **접미사 없이 dateKey 그대로** 둔다(기존 잠금 문서를 고아로 만들지 않는다).
+const THREADS_KEY_SUFFIX = ":threads";
+
+// 장기 토큰 수명은 60일이다(Threads 공식 문서, 2026-08-31 확인). D-14 에 경고를 시작한다.
+const THREADS_TOKEN_WARN_AFTER_DAYS = 46;
+
 /**
  * 요일별 소개 코너. 인덱스는 getKstDateParts().day (0=일요일) 와 같은 축이다.
  * 🔴 경로는 전부 sitemap.xml 에 실재하는 것만 골랐다(2026-08-28 확인) — 링크가 404 면
  * 발행 자체가 역효과다. 여기에 경로를 더할 때도 사이트맵에서 먼저 확인할 것.
  */
-const WEEKDAY_PICKS = [
+export const WEEKDAY_PICKS = [
   { path: "/tarot/", label: "타로", line: "한 장 뽑아 오늘의 마음을 읽어 보세요." },
   { path: "/saju/", label: "사주 분석", line: "타고난 기운의 균형부터 확인해 보세요." },
   { path: "/compatibility/", label: "궁합", line: "그 사람과의 결이 어떻게 맞물리는지 봅니다." },
@@ -40,9 +58,23 @@ const WEEKDAY_PICKS = [
   { path: "/ziwei/", label: "자미두수", line: "명반으로 보는 올해의 큰 흐름입니다." },
 ];
 
-function isEnabled(env) {
-  const raw = String(getEnv(env, "SNS_DAILY_POST_ENABLED") || "").trim().toLowerCase();
+function isSwitchOn(env, key) {
+  const raw = String(getEnv(env, key) || "").trim().toLowerCase();
   return raw === "1" || raw === "true" || raw === "on" || raw === "yes";
+}
+
+function isEnabled(env) {
+  return isSwitchOn(env, "SNS_DAILY_POST_ENABLED");
+}
+
+/**
+ * Threads 를 돌려도 되는지. 못 돌리는 사유 문자열을 돌려주고, 돌려도 되면 null 이다.
+ * 🔴 스위치와 토큰을 **둘 다** 요구한다 — 어느 하나만으로 공개 발행이 시작되면 안 된다.
+ */
+export function getThreadsSkipReason(env) {
+  if (!isSwitchOn(env, "SNS_THREADS_POST_ENABLED")) return "threads_disabled";
+  if (!getEnv(env, "THREADS_ACCESS_TOKEN")) return "missing_threads_token";
+  return null;
 }
 
 function isDuplicateKeyError(error) {
@@ -50,7 +82,8 @@ function isDuplicateKeyError(error) {
 }
 
 /**
- * 그날의 발행 본문. 순수 함수라 검증 스크립트가 시각만 주입해 그대로 확인할 수 있다.
+ * 그날의 텔레그램 발행 본문. 순수 함수라 검증 스크립트가 시각만 주입해 그대로 확인할 수 있다.
+ * 🔴 parse_mode:"HTML" 전용이다 — Threads 는 태그를 해석하지 않으므로 이 문안을 재사용하지 않는다.
  * @param {Object} env
  * @param {number} [now] epoch ms
  */
@@ -75,27 +108,19 @@ export function buildDailyPostText(env, now = Date.now()) {
 }
 
 /**
- * @param {Object} env
- * @param {Object} [options]
- * @param {number} [options.now] 검증용 시각 주입
- * @param {Function} [options.fetchImpl] 검증용 fetch 주입 — 실제 발행 없이 계약을 확인한다
+ * 한 채널의 잠금 선점 → 발행 → 결과 기록. 채널끼리 공유하는 것은 이 절차 하나뿐이고,
+ * 잠금 키(keyHash)와 발행 함수(send)는 채널마다 다르다.
+ *
+ * @param {Object} params
+ * @param {number} params.now
+ * @param {string} params.keyHash 채널별 잠금 키
+ * @param {Function} params.send 발행 실행부. {ok, status, error?, permanent?, ref} 를 돌려주고 던지지 않는다.
  */
-export async function runSnsDailyPostTask(env, options = {}) {
-  const now = typeof options.now === "number" ? options.now : Date.now();
-  const { fetchImpl } = options;
-
-  if (!isEnabled(env)) {
-    console.log("[CRON] SNS Daily Post: SNS_DAILY_POST_ENABLED 가 꺼져 있다 — 건너뛴다.");
-    return { ok: true, skipped: "disabled" };
-  }
-
-  const dateKey = getKstDateKey(now);
-  await connectDb(env);
-
+async function runChannel({ now, keyHash, send }) {
   // 🔴 그날 "실패" 로 남은 문서는 재선점한다 — 실패는 흔적으로 남기되(아래) 재시도를 막지는 않는다.
   // 관리자 수동 실행(routes/admin-sns.js)이 이 경로로 같은 날 다시 시도한다.
   const reclaimed = await IdempotencyKey.findOneAndUpdate(
-    { userId: null, endpoint: SNS_POST_ENDPOINT, keyHash: dateKey, status: "failed" },
+    { userId: null, endpoint: SNS_POST_ENDPOINT, keyHash, status: "failed" },
     { $set: { status: "processing", updatedAt: new Date(now), expiresAt: new Date(now + DEDUPE_TTL_MS) } },
     { new: true },
   );
@@ -105,51 +130,158 @@ export async function runSnsDailyPostTask(env, options = {}) {
     try {
       await IdempotencyKey.create({
         endpoint: SNS_POST_ENDPOINT,
-        keyHash: dateKey,
+        keyHash,
         status: "processing",
         expiresAt: new Date(now + DEDUPE_TTL_MS),
       });
     } catch (error) {
       if (isDuplicateKeyError(error)) {
-        console.log(`[CRON] SNS Daily Post: ${dateKey} 는 이미 발행됐다 — 건너뛴다.`);
-        return { ok: true, skipped: "already_posted", dateKey };
+        console.log(`[CRON] SNS Daily Post: ${keyHash} 는 이미 발행됐다 — 건너뛴다.`);
+        return { ok: true, skipped: "already_posted", keyHash };
       }
       throw error;
     }
   }
 
-  const text = buildDailyPostText(env, now);
-  const result = await sendTelegramMessage(env, { text, fetchImpl });
+  const result = await send();
+  const at = new Date(now).toISOString();
 
   if (!result.ok) {
     // 🔴 실패는 **지우지 않고 failed 로 남긴다.** 예전에는 잠금을 삭제했는데, 그러면 DB 에 흔적이 0건이라
     // 2026-08-29 크론이 왜 발행을 못 했는지 아무도 알 수 없었다(Workers Logs 도 꺼져 있었다).
     // failed 문서는 위 findOneAndUpdate 가 재선점하므로 재시도 경로도 그대로 열려 있다.
     await IdempotencyKey.updateOne(
-      { endpoint: SNS_POST_ENDPOINT, keyHash: dateKey },
+      { endpoint: SNS_POST_ENDPOINT, keyHash },
       {
         $set: {
           status: "failed",
-          responseRef: { error: result.error, status: result.status ?? null, at: new Date(now).toISOString() },
+          responseRef: { error: result.error, status: result.status ?? null, at, ...(result.ref || {}) },
           updatedAt: new Date(now),
         },
       },
     ).catch(() => {});
-    console.error(`[CRON] SNS Daily Post: 발행 실패(${result.error}) — failed 로 기록했다.`);
-    return { ok: false, error: result.error, dateKey };
+    console.error(`[CRON] SNS Daily Post: ${keyHash} 발행 실패(${result.error}) — failed 로 기록했다.`);
+    return { ok: false, error: result.error, status: result.status ?? null, permanent: Boolean(result.permanent), keyHash };
   }
 
   await IdempotencyKey.updateOne(
-    { endpoint: SNS_POST_ENDPOINT, keyHash: dateKey },
-    {
-      $set: {
-        status: "success",
-        responseRef: { messageId: result.data?.result?.message_id ?? null, at: new Date(now).toISOString() },
-        updatedAt: new Date(now),
-      },
-    },
+    { endpoint: SNS_POST_ENDPOINT, keyHash },
+    { $set: { status: "success", responseRef: { at, ...(result.ref || {}) }, updatedAt: new Date(now) } },
   ).catch(() => {});
 
-  console.log(`[CRON] SNS Daily Post: ${dateKey} 발행 완료.`);
-  return { ok: true, dateKey };
+  console.log(`[CRON] SNS Daily Post: ${keyHash} 발행 완료.`);
+  return { ok: true, keyHash, ref: result.ref || null };
+}
+
+async function sendTelegramChannel(env, now, fetchImpl) {
+  const result = await sendTelegramMessage(env, { text: buildDailyPostText(env, now), fetchImpl });
+  return { ...result, ref: { messageId: result.data?.result?.message_id ?? null } };
+}
+
+async function sendThreadsChannel(env, now, fetchImpl) {
+  const texts = buildThreadsPostChain(env, now);
+  if (!texts.length) {
+    console.error("[CRON] SNS Daily Post: Threads 본문을 만들지 못했다 — 발행을 건너뛴다.");
+    return { ok: false, status: 0, error: "empty_chain", ref: { posts: 0 } };
+  }
+  const result = await postThreadsChain(env, { texts, fetchImpl });
+  return { ...result, ref: { ids: result.ids || [], posts: texts.length, ...(result.failedAt == null ? {} : { failedAt: result.failedAt }) } };
+}
+
+/**
+ * Threads 장기 토큰 만료 경고. 발급 후 THREADS_TOKEN_WARN_AFTER_DAYS 일이 지나면
+ * 갱신할 때까지 **매일 한 건** 텔레그램으로 올린다 — 사용자 결정(2026-08-31)이 "만료 임박 경고만"이라
+ * 자동 갱신은 하지 않고 사람이 회전시킨다. 회전 런북은 docs/handoff/marketing-automation-2026-08-28.md §③C.
+ *
+ * 발행 성공·실패와 무관하게 도는 별개 경로이고, 실패해도 던지지 않는다(경고가 발행을 막으면 안 된다).
+ */
+export async function warnThreadsTokenExpiry(env, now = Date.now(), fetchImpl) {
+  const issued = String(getEnv(env, "THREADS_TOKEN_ISSUED_AT") || "").trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(issued)) return { ok: true, skipped: "no_issued_at" };
+
+  const issuedMs = Date.parse(`${issued}T00:00:00Z`);
+  if (!Number.isFinite(issuedMs)) return { ok: true, skipped: "no_issued_at" };
+
+  const ageDays = Math.floor((now - issuedMs) / (24 * 60 * 60 * 1000));
+  if (ageDays < THREADS_TOKEN_WARN_AFTER_DAYS) return { ok: true, skipped: "not_due", ageDays };
+
+  const text = [
+    "<b>⚠️ Threads 액세스 토큰 갱신 필요</b>",
+    "",
+    `발급일 ${escapeTelegramHtml(issued)} 로부터 ${ageDays}일 지났습니다(장기 토큰 수명 60일).`,
+    "갱신 절차: docs/handoff/marketing-automation-2026-08-28.md 의 Threads 토큰 회전 런북",
+  ].join("\n");
+
+  return await sendTelegramMessage(env, { text, fetchImpl });
+}
+
+/**
+ * @param {Object} env
+ * @param {Object} [options]
+ * @param {number} [options.now] 검증용 시각 주입
+ * @param {Function} [options.fetchImpl] 검증용 fetch 주입 — 실제 발행 없이 계약을 확인한다
+ * @param {"all"|"telegram"|"threads"} [options.channel] 기본 "all"
+ * @returns {Promise<{ok: true, dateKey?: string, skipped?: string, channels?: Object}>}
+ * @throws 채널이 하나라도 실패하면 던진다 — 크론 래퍼가 그때만 사람에게 알린다.
+ */
+export async function runSnsDailyPostTask(env, options = {}) {
+  const now = typeof options.now === "number" ? options.now : Date.now();
+  const { fetchImpl } = options;
+  const channel = String(options.channel || "all").toLowerCase();
+
+  if (!isEnabled(env)) {
+    console.log("[CRON] SNS Daily Post: SNS_DAILY_POST_ENABLED 가 꺼져 있다 — 건너뛴다.");
+    return { ok: true, skipped: "disabled" };
+  }
+
+  const dateKey = getKstDateKey(now);
+  await connectDb(env);
+
+  const channels = {};
+
+  // 🔴 채널마다 try 로 감싼다 — 한 채널의 DB/네트워크 예외가 다른 채널의 발행을 막으면 안 된다.
+  // 사유는 아래에서 한꺼번에 던져 알림에 실린다.
+  const guarded = async (name, run) => {
+    try {
+      channels[name] = await run();
+    } catch (error) {
+      console.error(`[CRON] SNS Daily Post: ${name} 채널이 예외로 끝났다 —`, error?.message || error);
+      channels[name] = { ok: false, error: String(error?.message || "channel_threw") };
+    }
+  };
+
+  if (channel === "all" || channel === "telegram") {
+    await guarded("telegram", () =>
+      runChannel({ now, keyHash: dateKey, send: () => sendTelegramChannel(env, now, fetchImpl) }),
+    );
+  }
+
+  if (channel === "all" || channel === "threads") {
+    const skipReason = getThreadsSkipReason(env);
+    if (skipReason) {
+      console.log(`[CRON] SNS Daily Post: Threads 를 건너뛴다 — ${skipReason}.`);
+      channels.threads = { ok: true, skipped: skipReason };
+    } else {
+      await guarded("threads", () =>
+        runChannel({
+          now,
+          keyHash: `${dateKey}${THREADS_KEY_SUFFIX}`,
+          send: () => sendThreadsChannel(env, now, fetchImpl),
+        }),
+      );
+      await warnThreadsTokenExpiry(env, now, fetchImpl).catch(() => {});
+    }
+  }
+
+  const failed = Object.entries(channels).filter(([, result]) => !result.ok);
+  if (failed.length) {
+    const error = new Error(
+      `SNS 일일 발행 실패(${dateKey}): ${failed.map(([name, result]) => `${name}=${result.error}`).join(", ")}`,
+    );
+    error.dateKey = dateKey;
+    error.channels = channels;
+    throw error;
+  }
+
+  return { ok: true, dateKey, channels };
 }

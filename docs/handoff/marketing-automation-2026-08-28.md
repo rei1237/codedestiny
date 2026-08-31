@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-08-31
-next: 2026-09-01 07:00 KST 크론 뒤 `GET /api/admin/sns-daily-post/status` 에 `2026-09-01 success` + `t.me/Codedestinyofficial` 새 글 확인 — 있으면 이 문서 status: done. 없으면 Cloudflare 대시보드 Workers Logs(켜져 있음)에서 `[CRON] SNS Daily Post` 사유를 본다.
+next: ① 2026-09-01 07:00 KST 크론 뒤 `GET /api/admin/sns-daily-post/status` 에 `2026-09-01 success` + `t.me/Codedestinyofficial` 새 글 확인. 없으면 Cloudflare 대시보드 Workers Logs(켜져 있음)에서 `[CRON] SNS Daily Post` 사유를 본다. ② Threads 축은 §③C-2 — 프로덕션 승격 뒤 `--only-key=THREADS_ACCESS_TOKEN` 투입 → `?channel=threads` 1회 발행이 남아 있다(코드는 머지 완료, 발행 0건).
 ---
 # 마케팅 자동화 엔진 — 인수인계 (2026-08-28)
 
@@ -190,6 +190,56 @@ A·B 는 끝났다(#1241 머지, 승격 완료 — 라이브 버전 바인딩에
 
 부수 발견(범위 밖): `dailyfortunesubscriptions.lastMailError` = Resend `domain is not verified … 403`(07-25),
 마지막 발송 08-19 — 운세 메일 축도 죽어 있을 가능성. 별도 작업.
+
+### C-2. Threads(Meta) 축 — 🔴 2026-08-31 추가, **승격 전이라 아직 발행 0건**
+
+SNS 발행이 텔레그램 단일 채널 → **텔레그램 + Threads 2채널**이 됐다. 코드는 전부 들어갔고
+크론은 프로덕션에서만 도므로(스테이징 `crons = []`) **프로덕션 승격 전까지 아무 일도 일어나지 않는다.**
+
+- 콘텐츠: `worker/lib/threads-daily-content.js` — 루트 1 + 답글 3 체인(각 480자 클램프, 평문).
+  원천은 `buildTodaySajuPublic`(날짜만으로 나오는 상세 사주 해설) + `ganji()`. **LLM 0회 · DB 0회.**
+- 발행: `worker/lib/threads.js` — `POST me/threads`(컨테이너) → `POST me/threads_publish`, 2글째부터
+  `reply_to_id` = 직전 발행 id. 토큰은 **POST 본문에만** 싣고 URL 을 로그에 남기지 않는다.
+- 스위치는 **둘 다** 필요하다: `SNS_THREADS_POST_ENABLED`(양쪽 toml `[vars]`) **AND** `THREADS_ACCESS_TOKEN`
+  (시크릿). 스테이징에는 토큰을 넣지 않는다 — 토큰 없으면 `skipped:"missing_threads_token"`.
+- 잠금은 **채널별 독립**: 텔레그램 `keyHash = <dateKey>`(기존 문서 유지), Threads `<dateKey>:threads`.
+  한 채널이 실패해도 다른 채널은 발행되고, 실패한 채널만 다음 실행에서 재선점된다.
+- 🔴 **태스크가 이제 던진다** — 채널이 하나라도 실패하면 잠금에 사유를 기록한 **뒤** throw 해서
+  `worker/index.js` 크론 래퍼의 기존 `notifyCronTaskFailures` 가 텔레그램으로 사람에게 올린다.
+  위 §C 가 "사유 기록 0"이었던 구멍이 여기서 닫힌다. 텔레그램만 실패하던 날에도 이제 알림이 뜬다.
+- 관리자: `POST /api/admin/sns-daily-post/run?channel=all|telegram|threads`(기본 `all`),
+  `GET …/status` 는 채널을 나눠 보여준다(28건 = 14일 × 2채널).
+- 가드: `npm run verify:sns-daily-post` (⑩~⑰ 추가, PR CI **fast 잡**이라 모든 PR 에서 돈다).
+
+**승격 뒤 실행 순서 (각각 되돌릴 수 없는 외부 행위 — 사용자 허락 1회씩):**
+
+1. `node scripts/sync-cloudflare-worker-secrets.mjs --only-key=THREADS_ACCESS_TOKEN`
+   🔴 **등호 필수.** 인자 없이 돌리면 프로덕션 시크릿 27개를 전부 덮어쓴다.
+   `.env.local` 의 `Thread_access_token` 을 별칭으로 집어 `THREADS_ACCESS_TOKEN` 이름으로 올린다
+   (별칭 3곳: `worker/lib/env.js` · `config/env.contract.json` · 이 스크립트).
+2. `POST /api/admin/sns-daily-post/run?channel=threads` **1회** — 🔴 공개 계정에 실제 글 4개가 올라간다.
+   권한 오류가 나면 Meta 앱이 Live 모드인지·계정이 앱 테스터인지 확인한다(문서로 확정 못 한 부분).
+3. `GET …/status` 에 `<dateKey>:threads` = `success` + `responseRef.ids` 4건.
+4. 다음 22:00Z 크론에서 두 채널 자동 발행 확인.
+
+**토큰 회전 런북 (60일 수명 · D-14 경고가 텔레그램으로 온다):**
+
+경고는 `THREADS_TOKEN_ISSUED_AT`(양쪽 toml `[vars]`) 로부터 **46일**째부터 발행 성공·실패와 무관하게
+매일 1건 나간다. 값은 사람이 지킨다 — 실제 발급일과 어긋나면 틀린 날 뜬다.
+
+1. `GET https://graph.threads.net/refresh_access_token?grant_type=th_refresh_token&access_token=<현재 토큰>`
+   → 새 60일 토큰. (발급 후 24시간이 지나야 호출된다.)
+2. `.env.local` 의 `Thread_access_token` 을 새 값으로 교체 — 🔴 에이전트는 `.env*` 를 읽지도 고치지도
+   않는다. 사람이 직접 바꾼다.
+3. `node scripts/sync-cloudflare-worker-secrets.mjs --only-key=THREADS_ACCESS_TOKEN`
+4. `THREADS_TOKEN_ISSUED_AT` 을 갱신일로 바꾸는 PR (양쪽 toml **같은 값** — 다르면
+   `verify:worker-config-parity` 가 잡는다) → 머지 → 승격.
+
+**아직 안 고친 것(사유 있음):** `worker/lib/daily-fortune-task.js:81` 의 `getTodayPillars` 가
+연주를 `(y-4)%60` 달력 연도로 내 **입춘을 무시한다**(2026-01-02 실측: 병오 ↔ 정본 `ganji()` 는 을사).
+현행 텔레그램 문안과 일일 운세 메일이 1/1~입춘 사이 틀린 연주를 말한다. Threads 문안은 정본을 쓴다.
+같이 안 고친 이유는 그 함수가 **조사 중인 일일 운세 메일 본문**을 함께 만들어 관측이 오염되기 때문
+([fortune-email-resend-403-2026-08-31.md](fortune-email-resend-403-2026-08-31.md)). 메일 원인 규명 뒤 별도 PR.
 
 ### D. 재방문 이메일 (PR 4) — 보류
 
