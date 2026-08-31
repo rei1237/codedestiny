@@ -102,6 +102,27 @@
       '.cd-direct-payment-option.is-disabled{cursor:not-allowed;filter:saturate(.4) brightness(.86);border-color:rgba(232,200,138,.1)}',
       '.cd-direct-payment-option.is-disabled:hover{filter:saturate(.4) brightness(.86);border-color:rgba(232,200,138,.1);transform:none}',
       '.cd-direct-payment-option.is-loading{pointer-events:none;filter:saturate(.7)}',
+      // 상품권 묶음 카드. 🔴 컨테이너에 .cd-direct-payment-option 을 **붙이지 않는다** — 그 클래스의
+      // `.cd-direct-payment-option span{display:block}` 가 (0,1,1) 이라 칩 라벨 클래스 (0,1,0) 을 이겨
+      // 칩이 세로로 쌓인다. 카드 외형은 아래에서 직접 그린다(값은 --secondary 와 동일).
+      // 🔴 컨테이너는 <button> 이 아니다(버튼 중첩 금지). 누를 수 있는 건 칩뿐이고, 칩이
+      // data-pay-method 를 들고 있어 렌더러 3종의 closest('[data-pay-method]') 델리게이션을 그대로 탄다.
+      '.cd-direct-payment-giftgroup{width:100%;margin:0;padding:11px 13px;border:1px solid rgba(232,200,138,.16);border-radius:14px;background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,0) 55%),#251F45;box-shadow:inset 0 1px 0 rgba(237,232,245,.06);color:inherit;text-align:left}',
+      '.cd-direct-payment-giftgroup .cd-direct-payment-cardhead{display:flex;align-items:center;gap:8px;margin:0 0 6px}',
+      '.cd-direct-payment-giftgroup-title{display:block;margin:0 0 2px;font-size:13.5px;font-weight:700;line-height:1.32;color:#F5F1FB;word-break:keep-all}',
+      '.cd-direct-payment-giftgroup-desc{display:block;margin:0 0 8px;font-size:11.5px;line-height:1.45;color:rgba(155,146,184,.85);word-break:keep-all}',
+      '.cd-direct-payment-giftchips{display:flex;flex-wrap:wrap;gap:6px}',
+      '.cd-direct-payment-giftchip{display:inline-flex;align-items:center;justify-content:center;gap:5px;flex:1 1 auto;min-width:0;margin:0;padding:8px 10px;border:1px solid rgba(232,200,138,.22);border-radius:999px;background:#1E1836;color:rgba(237,232,245,.9);font-size:11.5px;font-weight:700;line-height:1.3;cursor:pointer;transition:border-color 170ms ease,background 170ms ease,transform 170ms ease}',
+      '.cd-direct-payment-giftchip:hover{border-color:rgba(232,200,138,.5);background:#251F45}',
+      '.cd-direct-payment-giftchip:focus{outline:0}',
+      '.cd-direct-payment-giftchip:focus-visible{outline:2px solid #E8C88A;outline-offset:2px}',
+      '.cd-direct-payment-giftchip:active{transform:scale(.97)}',
+      '.cd-direct-payment-giftchip-glyph{flex:0 0 auto}',
+      '.cd-direct-payment-giftchip-label{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.cd-direct-payment-giftchip.is-disabled{cursor:not-allowed;filter:saturate(.4) brightness(.86);border-color:rgba(232,200,138,.1)}',
+      '.cd-direct-payment-giftchip.is-disabled:hover{filter:saturate(.4) brightness(.86);border-color:rgba(232,200,138,.1);background:#1E1836}',
+      '@media(max-width:760px){.cd-direct-payment-giftgroup{padding:10px 12px}.cd-direct-payment-giftchip{padding:7px 9px;font-size:11px}}',
+      '@media(prefers-reduced-motion:reduce){.cd-direct-payment-giftchip{transition:none}.cd-direct-payment-giftchip:active{transform:none}}',
       '.cd-direct-payment-balance-check{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin:0;padding:9px 12px;border:1px solid rgba(232,200,138,.3);border-radius:999px;background:rgba(232,200,138,.06);color:#E8C88A;font-size:12.5px;font-weight:700;line-height:1.35;cursor:pointer;transition:border-color 170ms ease,background 170ms ease}',
       '.cd-direct-payment-balance-check:hover{border-color:rgba(232,200,138,.55);background:rgba(232,200,138,.12)}',
       '.cd-direct-payment-balance-check[disabled]{opacity:.6;cursor:default}',
@@ -589,7 +610,7 @@
   ];
   var DIRECT_PAY_METHODS = {
     CARD: { enabled: true, payMethod: "CARD", glyph: "💳" },
-    TRANSFER: { enabled: true, payMethod: "TRANSFER", glyph: "🏦" },
+    TRANSFER: { enabled: true, payMethod: "TRANSFER", orderMethod: "transfer", glyph: "🏦" },
     // 🔴 카카오페이만 **채널이 다르다**. 나머지 수단은 전부 이니시스 채널 하나를 공유하지만,
     // PortOne V2 는 requestPayment 호출당 채널키를 하나만 받으므로 카카오페이는 자기 채널키를
     // 써야 한다. 표에는 값이 아니라 **서버 config 의 필드 이름**을 둔다 — 값을 두려면 이 코어에
@@ -604,9 +625,9 @@
     MOBILE: { enabled: false, payMethod: "MOBILE", glyph: "📱" },
     // 🔴 KG이니시스가 PortOne V2 로 태울 수 있는 상품권은 이 3종뿐이다. 해피머니·CULTURE_GIFT 는
     // 이니시스 상점에 등록돼 있어도 이 경로에 대응 값이 없어 넣을 수 없다.
-    GIFT_CULTURELAND: { enabled: true, payMethod: "GIFT_CERTIFICATE", giftCertificateType: "CULTURELAND", glyph: "🎁" },
-    GIFT_BOOKNLIFE: { enabled: true, payMethod: "GIFT_CERTIFICATE", giftCertificateType: "BOOKNLIFE", glyph: "📚" },
-    GIFT_SMART_MUNSANG: { enabled: true, payMethod: "GIFT_CERTIFICATE", giftCertificateType: "SMART_MUNSANG", glyph: "🎮" },
+    GIFT_CULTURELAND: { enabled: true, payMethod: "GIFT_CERTIFICATE", giftCertificateType: "CULTURELAND", orderMethod: "gift_cultureland", glyph: "🎁" },
+    GIFT_BOOKNLIFE: { enabled: true, payMethod: "GIFT_CERTIFICATE", giftCertificateType: "BOOKNLIFE", orderMethod: "gift_booknlife", glyph: "📚" },
+    GIFT_SMART_MUNSANG: { enabled: true, payMethod: "GIFT_CERTIFICATE", giftCertificateType: "SMART_MUNSANG", orderMethod: "gift_smart_munsang", glyph: "🎮" },
   };
   var DEFAULT_DIRECT_PAY_METHOD = "CARD";
 
@@ -627,6 +648,15 @@
     if (id === "GIFT_BOOKNLIFE") return checkoutText("payment.directModal.method.giftBooknlife", "도서문화상품권");
     if (id === "GIFT_SMART_MUNSANG") return checkoutText("payment.directModal.method.giftSmartMunsang", "스마트문상");
     return "";
+  }
+
+  /**
+   * 상품권 묶음 카드의 제목. 개별 상품권 이름은 directPayMethodLabel 이 그대로 담당하므로
+   * 새로 만드는 로케일 키는 이것 하나뿐이다.
+   * 🔴 위 directPayMethodLabel 과 같은 이유로 키·폴백을 문자열 리터럴로 적는다.
+   */
+  function directPayGiftGroupLabel() {
+    return checkoutText("payment.directModal.method.giftGroup", "상품권");
   }
 
   /** 아직 열리지 않은 수단의 상태 문구. 렌더러가 상태줄에 그대로 쓴다. */
@@ -653,9 +683,7 @@
     var escape = opts.escape || function (value) { return String(value === null || value === undefined ? "" : value); };
     var comingSoon = directPayMethodComingSoonText();
     var activeHint = checkoutText("payment.directModal.directHint", "지금 보고 있는 콘텐츠 하나만 바로 열려요.");
-    var cards = DIRECT_PAY_METHOD_ORDER.map(function (id) {
-      var entry = DIRECT_PAY_METHODS[id];
-      if (!entry) return "";
+    function renderMethodCard(id, entry) {
       var enabled = entry.enabled === true;
       var label = directPayMethodLabel(id);
       return (
@@ -671,6 +699,56 @@
         + "<strong>" + escape(label) + "</strong>"
         + '<span class="cd-direct-payment-desc">' + escape(enabled ? activeHint : comingSoon) + "</span>"
         + "</button>"
+      );
+    }
+
+    // 상품권 칩. 카드와 같은 data-pay-method 를 들고 있어 선택 경로는 완전히 동일하다.
+    function renderGiftChip(id, entry) {
+      var enabled = entry.enabled === true;
+      var label = directPayMethodLabel(id);
+      return (
+        '<button type="button" class="cd-direct-payment-giftchip'
+        + (enabled ? "" : " is-disabled") + '" data-pay-method="' + id + '"'
+        + (enabled ? "" : ' aria-disabled="true"')
+        + ' aria-label="' + escape(enabled ? label : label + " (" + comingSoon + ")") + '">'
+        + '<span class="cd-direct-payment-giftchip-glyph" aria-hidden="true">' + entry.glyph + "</span>"
+        + '<span class="cd-direct-payment-giftchip-label">' + escape(label) + "</span>"
+        + "</button>"
+      );
+    }
+
+    // 🔴 상품권은 카드 3칸이 아니라 **묶음 카드 1칸 + 칩 3개**로 그린다. PortOne V2 가
+    // giftCertificateType 을 창 열기 전에 요구해서 창 하나로 3사를 못 덮으므로 선택지 자체는 3개로
+    // 남지만, 결제창에서 3칸을 먹을 이유는 없다(2026-08-31 사용자 요청).
+    // 🔴 묶음 대상은 표에서 전수 발견한다 — id 를 손으로 나열하면 상품권이 하나 늘 때 조용히 빠진다.
+    // 🔴 DOM 상 [data-pay-method] 의 **개수와 순서는 그대로 7개**여야 한다. 묶음은 첫 상품권이 있던
+    // 자리에 통째로 들어가고 칩 순서는 표 순서를 따른다 — verify-checkout-pass-card 가 렌더 결과의
+    // id 목록을 DIRECT_PAY_METHOD_ORDER 와 deepEqual 로 대조한다.
+    var giftIds = DIRECT_PAY_METHOD_ORDER.filter(function (id) {
+      var entry = DIRECT_PAY_METHODS[id];
+      return !!(entry && entry.giftCertificateType);
+    });
+    var giftGroupRendered = false;
+    var cards = DIRECT_PAY_METHOD_ORDER.map(function (id) {
+      var entry = DIRECT_PAY_METHODS[id];
+      if (!entry) return "";
+      if (!entry.giftCertificateType) return renderMethodCard(id, entry);
+      if (giftGroupRendered) return "";
+      giftGroupRendered = true;
+      var groupLabel = directPayGiftGroupLabel();
+      var anyEnabled = giftIds.some(function (giftId) {
+        return DIRECT_PAY_METHODS[giftId].enabled === true;
+      });
+      return (
+        '<div class="cd-direct-payment-giftgroup" role="group" aria-label="' + escape(groupLabel) + '">'
+        + '<span class="cd-direct-payment-cardhead"><span class="cd-direct-payment-badge">'
+        + '<span class="cd-direct-payment-glyph" aria-hidden="true">🎁</span>'
+        + (anyEnabled ? "" : escape(comingSoon)) + "</span></span>"
+        + '<strong class="cd-direct-payment-giftgroup-title">' + escape(groupLabel) + "</strong>"
+        + '<span class="cd-direct-payment-giftgroup-desc">' + escape(anyEnabled ? activeHint : comingSoon) + "</span>"
+        + '<span class="cd-direct-payment-giftchips">'
+        + giftIds.map(function (giftId) { return renderGiftChip(giftId, DIRECT_PAY_METHODS[giftId]); }).join("")
+        + "</span></div>"
       );
     }).join("");
     return (
