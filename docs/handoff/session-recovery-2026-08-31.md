@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-08-31
-next: "§0 을 먼저 실행해 로컬 main 을 origin/main 으로 맞춘다(28 커밋 뒤처짐). 그 다음 §1 → §2 순서로, 한 세션에 한 갈래만 집는다"
+next: "§0 으로 로컬 main 을 맞춘 뒤 §2-A → §2-B 순서로 문서 PR 3건을 올린다. §1 의 코드 갈래는 전부 닫혔다(2026-08-31 재측정)"
 ---
 
 # 세션 복구 색인 (2026-08-31)
@@ -9,6 +9,9 @@ next: "§0 을 먼저 실행해 로컬 main 을 origin/main 으로 맞춘다(28 
 > 컴퓨터가 꺼지면서 진행 중이던 세션들이 통째로 날아갔다. 이 문서는 **그날 살아 있던 갈래를 실측으로 재구성한 색인**이다.
 > 각 항목은 `이어받을 문서` + `첫 명령` + `끝났다고 볼 조건` 만 담는다. 상세는 항상 링크된 문서가 정본이다.
 > 🔴 **한 세션 = 한 갈래.** 여러 개를 한 세션에 묶지 말고, 끝나면 그 갈래의 문서를 갱신하고 `/clear`.
+
+🔴 **재측정 2026-08-31 (2차)** — 최초 작성 이후 PR #1373·#1374·#1375 가 머지되면서 §1 이 통째로 바뀌었다.
+> 1-A(카카오페이)와 1-C(인증 CTA)는 **끝났다.** 지금 남은 것은 §2 의 문서 PR 3건과 §1-B 판단 하나뿐이다.
 
 측정 시각 2026-08-31, 저장소 루트 `D:\Development\code-destiny`.
 재현: `git fetch origin main && git worktree list && gh pr list --state open`
@@ -19,7 +22,7 @@ next: "§0 을 먼저 실행해 로컬 main 을 origin/main 으로 맞춘다(28 
 
 실측된 사실 셋:
 
-- **로컬 `main` 이 `origin/main` 보다 28 커밋 뒤처져 있다** — 로컬 `8f6540347`(#1344) vs 원격 `8b6011790`(#1372). 이 상태로 진단하면 **이미 머지된 수정을 미해결로 오진**한다.
+- **로컬 `main` 이 `origin/main` 보다 뒤처져 있다** — 이 상태로 진단하면 **이미 머지된 수정을 미해결로 오진**한다. 🔴 뒤처진 커밋 수는 재측정할 때마다 늘어나므로 숫자를 인용하지 말고 `git fetch origin main` 후 `git rev-list --count main..origin/main` 로 직접 잰다(최초 작성 시점 28, 2차 재측정 시점에는 #1375 까지 더 벌어졌다).
 - **열린 PR 0건.** 머지를 기다리는 것은 없다. 즉 남은 것은 "머지 안 된 브랜치"거나 "사람이 할 일"이거나 "관측 대기"다.
 - 작업 트리에 **낡은 인수인계 사본 3개**가 미추적으로 남아 `git pull` 을 막는다.
 
@@ -41,42 +44,32 @@ git merge --ff-only origin/main
 
 ## 1. 머지되지 않은 코드 — 지금 이어서 끝낼 수 있는 것
 
-### 1-A. 카카오페이 결제수단 배관 🔴 최우선
+### 1-A. 카카오페이 결제수단 배관 — ✅ 닫힘 (2026-08-31 재측정)
 
-작업이 **거의 다 돼 있는데 PR 이 안 올라간 채로 끊겼다.** 커밋 `d6f1d9712` 1건이 `origin/main` 에 없다(`git log origin/main --grep=카카오페이` → 0건).
+**PR #1375 로 머지됐다**(`2764a5cb3`). 워크트리 `portone-kakaopay-plumbing` 의 브랜치는 `origin/main` 과
+`git diff` 가 비어 있다 — 즉 코드로 남은 일이 없다. 가드도 초록이다(`verify:checkout-pass-card` PASS ·
+`verify:payment-freeze` region 4 · file 3, 2026-08-31 실측).
 
-| | |
-|---|---|
-| 읽을 것 | 승인된 계획 `C:\Users\user\.claude\plans\sdk-pure-blossom.md` (「PortOne V2 카카오페이 결제수단 추가」) |
-| 워크트리 | `.claude\worktrees\portone-kakaopay-plumbing` (브랜치 `worktree-portone-kakaopay-plumbing`, `node_modules` 정션 있음, origin/main 대비 2 커밋 뒤) |
-| 핵심 코드 | `worker/lib/portone.js`(채널키 + `getPortOnePublicConfig` 노출) · `js/core/checkout-entry.js`(`DIRECT_PAY_METHODS` 의 `channelKeyName`) · `config/env.contract.json` · `scripts/verify-checkout-pass-card.mjs`(+44줄) |
+남은 것은 **PG 계약 → 시크릿 투입 → `enabled` 한 줄 플립** 뿐이고 전부 사용자 승인이 앞선다.
+절차·함정·검증은 [kakaopay-golive-2026-08-31.md](kakaopay-golive-2026-08-31.md) 로 옮겼다.
 
-```powershell
-cd D:\Development\code-destiny\.claude\worktrees\portone-kakaopay-plumbing
-git show --stat d6f1d9712      # 무엇이 들어 있는지부터 본다
-git fetch origin main; git rebase origin/main
-npm run lint; npm run typecheck
-npm run verify:checkout-pass-card; npm run verify:payment-choice-parity; npm run verify:paid-gate-ui; npm run verify:payment-freeze
-```
-
-- 🔴 **결제 코드다.** 손대기 전에 [docs/context/payment-gating.md](../context/payment-gating.md) 를 읽고, 커밋 전 `verify:payment-freeze` 가 초록인지 본다(`--update` 로 매니페스트 갱신).
-- 🔴 커밋 안의 주석이 남긴 두 함정을 지우지 말 것 — (1) `PORTONE_KAKAOPAY_CHANNEL_KEY` 를 `PORTONE_REQUIRED_ENV_KEYS` 에 넣으면 **카드·계좌이체·상품권까지 전부 503**, (2) 접두사 없는 `KAKAOPAY_CHANNEL_KEY` 를 `sync-cloudflare-worker-secrets` 의 `SECRET_KEYS` 에 넣으면 프로덕션 채널키가 스테이징 워커로 동기화된다.
-- **끝 조건**: PR 생성 → CI 초록 → 사용자 머지. 채널키 실투입은 별건(사용자 승인 필요).
-- 참고: 같은 시각대의 워크트리 `.claude\worktrees\kakaopay-channel` 은 **자기 커밋 0건**(빈 껍데기). 무시하고 지워도 된다.
+- 워크트리 `.claude\worktrees\kakaopay-channel` 은 **자기 커밋 0건**(빈 껍데기). 정리 대상이다.
 
 ### 1-B. 간지 표면 패리티 하네스 — 오래된 잔여 (낮음)
 
-`feat/ganji-surface-parity-harness` 에 미머지 커밋 2건(`973d8e4d0` wip, `50f58eae4` stdout 절단 수정). PR-B(`da383b755`)만 #1231 로 머지됐다. **origin/main 대비 144 커밋 뒤**라 사실상 재작성 수준.
+`feat/ganji-surface-parity-harness` 에 미머지 커밋 2건(`973d8e4d0` wip, `50f58eae4` stdout 절단 수정). PR-B(`da383b755`)만 #1231 로 머지됐다. **origin/main 대비 147 커밋 뒤**(2026-08-31 재측정)라 사실상 재작성 수준.
 
 - 워크트리 `.claude\worktrees\worktree-korean-calendar-core` 에 `scripts/verify-ganji-surface-parity.mjs` **미커밋 3줄**이 남아 있다 — 먼저 `git diff` 로 내용을 본다.
 - 상위 맥락: [docs/handoff/korean-calendar-migration-2026-08-27.md](korean-calendar-migration-2026-08-27.md) (`status: blocked`).
 - 🔴 착수 전에 판단할 것: stdout 절단은 이미 메모리에 "POSIX 에서만 잘린다"로 정리돼 있고 `scripts/verify-ganji-surface-parity.mjs` 는 이미 `origin/main` 에 있다. **되살릴 가치가 있는지부터 확인**하고, 없으면 브랜치를 버린다.
 
-### 1-C. 인증 CTA 재디자인 — 🔴 소실 (복구 불가)
+### 1-C. 인증 CTA 재디자인 — ✅ 닫힘 (2026-08-31 재측정)
 
-`.claude\worktrees\auth-cta-luxe` · `auth-cta-redesign` 두 워크트리가 **08-31 13:59 에 생성된 직후 끊겼다** — 커밋 0건, 미커밋 변경 0건, 둘 다 `origin/main` HEAD 그대로. 계획 파일도 없다(가장 최근 계획은 03:05).
+이 절의 "소실, 복구 불가" 판정은 **틀렸다.** 판정 직후 같은 워크트리에서 작업이 다시 진행돼
+**PR #1374 로 머지됐다**(`c3c5fedd7`, 달빛 Primary + 꽃잎 Ghost 2세트). 워크트리
+`auth-cta-luxe`·`auth-cta-redesign` 은 이제 정리 대상이다.
 
-남은 것은 **"인증 CTA(luxe) 재디자인"이라는 의도뿐**이다. 이어가려면 요구사항부터 다시 받아야 한다. 두 워크트리는 잠겨 있고 비어 있으니 정리 대상이다.
+🔴 교훈: "워크트리에 커밋이 0건"은 **그 시각의 스냅샷일 뿐** 갈래가 죽었다는 증거가 아니다.
 
 ---
 
@@ -88,8 +81,8 @@ npm run verify:checkout-pass-card; npm run verify:payment-choice-parity; npm run
 
 | 브랜치 | 커밋 | 내용 | origin/main 기준 |
 |---|---|---|---|
-| `docs/db-teardown-remeasurement` | `e3dfb2104` (+66/-23) | 프로덕션 계측 판독 4값(`rttMs=266`·`warmResetMs` 226·`dnsMs` 2–5·`helloRttMs` 74–77)과 `clampTimeoutMs` 하한 인하 **확정 기각** | 0 커밋 뒤 (바로 올릴 수 있음) |
-| `worktree-handoff-fortune-security-audit` | `70f924002` (+18/-5) | `/api/fortune` 보안 계층 판정 + **한 번도 켜진 적 없는 rate limit** 기록 | 43 커밋 뒤 (리베이스 필요) |
+| `docs/db-teardown-remeasurement` | `e3dfb2104` (+66/-23) | 프로덕션 계측 판독 4값(`rttMs=266`·`warmResetMs` 226·`dnsMs` 2–5·`helloRttMs` 74–77)과 `clampTimeoutMs` 하한 인하 **확정 기각** | 3 커밋 뒤 (2026-08-31 재측정) |
+| `worktree-handoff-fortune-security-audit` | `70f924002` (+18/-5) | `/api/fortune` 보안 계층 판정 + **한 번도 켜진 적 없는 rate limit** 기록 | 46 커밋 뒤 (리베이스 필요, 2026-08-31 재측정) |
 
 ```powershell
 # 먼저 뒤처지지 않은 쪽부터
@@ -107,7 +100,11 @@ git fetch origin main; git rebase origin/main   # 충돌 나면 두 판을 손�
 
 [docs/handoff/human-design-report-generation-fix.md](human-design-report-generation-fix.md) 의 `next` 는 "teardown 을 임계 경로에서 빼는 PR" 을 가리키는데, 그건 **PR #1372 로 이미 머지됐다**. 2-A 를 올리면 이 문서는 닫힌다.
 
-[docs/handoff/mongo-collscan-and-cache-2026-08-30.md](mongo-collscan-and-cache-2026-08-30.md) 도 마찬가지 — 마지막 미확인 항목(결제 직후 정합성)이 **PR #1369 로 머지됐다.** `status: done` 으로 바꾸는 1줄 PR 이면 끝난다.
+[docs/handoff/mongo-collscan-and-cache-2026-08-30.md](mongo-collscan-and-cache-2026-08-30.md) 도 마찬가지 — 마지막 미확인 항목(결제 직후 정합성)이 **PR #1369 로 머지됐다.**
+
+🔴 그 종결 커밋은 **이미 쓰여 있다** — 브랜치 `docs/handoff-mongo-cache-verified`(`aec5900e6`,
+워크트리 `perf-mongo-collscan-and-cache`)가 프론트매터를 `status: done` 으로 바꿔 놓았고
+`origin/main` 에는 아직 없다. 새로 쓰지 말고 **그 브랜치를 PR 로 올리면 끝난다**(§2-A 와 파일이 겹치지 않아 순서 무관).
 
 ### 2-C. 커밋되지 않은 유일본 1건
 
@@ -178,3 +175,12 @@ done | sort -r
 - 프로덕션이 현재 어느 커밋에 서 있는지 — §4 의 "TBT 재승격 필요"는 문서의 08-29 진술을 그대로 옮긴 것이다. 승격 전에 실제 배포 상태를 먼저 확인할 것.
 - 1-B 간지 하네스의 미커밋 3줄이 무엇인지 — 파일만 확인했고 내용은 안 읽었다.
 - 워크트리 24개 중 §1·§2 에 나오지 않은 것들은 전부 "자기 커밋이 origin/main 에 이미 있음"으로 판정했다. 판정 방법은 커밋 제목의 `origin/main` 로그 대조 + 대표 문자열 `git grep` 이며, 스쿼시 머지로 제목이 바뀐 경우 오탐 여지가 있다.
+- 🔴 **2026-08-31 2차 재측정에서 그 오탐이 실제로 있었다.** 08-29 이후 브랜치 106개를 `git cherry` 로
+  훑으면 41개가 미머지로 보이는데, **패치 id 는 스쿼시 머지에서 전부 깨지므로 그 41개는 거의 다 위양성이다**
+  (`worktree-auth-cta-luxe`·`worktree-portone-kakaopay-plumbing` 도 머지됐는데 "+"로 나왔다).
+  믿을 수 있는 판정은 **내용 대조** 하나뿐이다 — 브랜치 고유 커밋이 만진 파일을 골라
+  `git show origin/main:<파일>` 과 `git show <브랜치>:<파일>` 을 문자열로 비교하고,
+  `public/**`·`sitemap.xml`·`config/sitemap-lastmod.json` 은 리베이스마다 흔들리므로 제외한다.
+  그 방법으로 §2 의 3건 + §1-B 만 실제 미머지로 남았고, `docs-sns-first-post-confirmed` ·
+  `docs/handoff-reviewed-at-live` · `worktree-neo-method-card-detail` 은 **내용이 이미 main 에 있었다**.
+  `worktree-telegram-sns-observability` 는 반대로 **브랜치 쪽이 더 낡았다**(올리면 퇴행).
