@@ -55,13 +55,22 @@ git merge --ff-only origin/main
 
 - 워크트리 `.claude\worktrees\kakaopay-channel` 은 **자기 커밋 0건**(빈 껍데기). 정리 대상이다.
 
-### 1-B. 간지 표면 패리티 하네스 — 오래된 잔여 (낮음)
+### 1-B. 간지 표면 패리티 하네스 — ✅ 닫힘 (2026-08-31, 브랜치 폐기)
 
-`feat/ganji-surface-parity-harness` 에 미머지 커밋 2건(`973d8e4d0` wip, `50f58eae4` stdout 절단 수정). PR-B(`da383b755`)만 #1231 로 머지됐다. **origin/main 대비 147 커밋 뒤**(2026-08-31 재측정)라 사실상 재작성 수준.
+**되살릴 가치가 없다고 판정하고 폐기했다** — 로컬 브랜치 `feat/ganji-surface-parity-harness`(마지막 `50f58eae4`) 삭제 + 워크트리 `worktree-korean-calendar-core` 제거. 원격에는 애초에 없었다(`git ls-remote --heads origin | grep ganji` → 0건).
 
-- 워크트리 `.claude\worktrees\worktree-korean-calendar-core` 에 `scripts/verify-ganji-surface-parity.mjs` **미커밋 3줄**이 남아 있다 — 먼저 `git diff` 로 내용을 본다.
-- 상위 맥락: [docs/handoff/korean-calendar-migration-2026-08-27.md](korean-calendar-migration-2026-08-27.md) (`status: blocked`).
-- 🔴 착수 전에 판단할 것: stdout 절단은 이미 메모리에 "POSIX 에서만 잘린다"로 정리돼 있고 `scripts/verify-ganji-surface-parity.mjs` 는 이미 `origin/main` 에 있다. **되살릴 가치가 있는지부터 확인**하고, 없으면 브랜치를 버린다.
+판정 근거는 전부 내용 대조 실측이다. **브랜치에 main 에 없는 코드는 0줄이었다.**
+
+| 브랜치가 갖고 있던 것 | `origin/main` 대조 |
+|---|---|
+| `973d8e4d0` wip — `scripts/lib/kst-clock.mjs` · `scripts/lib/shell-ganji-harness.cjs` · `scripts/lib/ziwei-engine-harness.cjs` | **세 파일 모두 바이트 동일** (`git diff origin/main <브랜치> -- <세 파일>` 출력 0) |
+| `50f58eae4` stdout 절단 수정 | **이미 main 에 있다** — `verify-ganji-surface-parity.mjs:284` · `verify-shell-korean-calendar.mjs:149` 의 `await new Promise((resolve) => process.stdout.write(..., resolve))` 와 진단 문구의 `parseError` 까지 전부 |
+| 미커밋 3줄 | **주석 한 문단뿐**이고, 살리면 안 되는 값이었다(아래) |
+
+- `da383b755`(PR-B)는 #1231 로 스쿼시 머지돼 SHA 만 다르다.
+- main 쪽 가드는 그 사이 더 커졌다 — 2026-08-31 실행 `npm run verify:ganji-surface-parity` → **통과 검사 66건 · 표본 1645건 · 표면 13벌 · TZ 6종**(브랜치 시절은 37건 / 1516건 / 12벌). 배선도 살아 있다: `package.json:364` + `.github/workflows/pr-ci.yml:362`.
+- 🔴 **미커밋 3줄은 자식 봉투 크기를 "약 250KB"에서 "189,173 bytes"로 못 박는 주석이었다.** 오늘 실제로 재니 **323,629 bytes** 다(`CD_GANJI_SURFACE_PROBE=1 node scripts/verify-ganji-surface-parity.mjs` 의 stdout, 표본 1645건). 표본 수를 따라 움직이는 값이라 어느 쪽을 박아도 곧 틀린다 — main 의 주석은 이 PR 에서 **날짜와 재현 명령을 단 실측**으로 고쳤다. 주석이 실제로 지키는 것은 "64KB 파이프 버퍼를 훌쩍 넘는다"이고 그건 세 값 모두에서 참이다.
+- 상위 맥락은 [ganji-wallclock-parts-migration.md](ganji-wallclock-parts-migration.md) 이며, 그 문서에 남은 것은 이 브랜치와 무관한 **별건-3(MongoDB 박제 간지 값 — 결제 문서라 사용자 판단 대기)** 하나뿐이다. [korean-calendar-migration-2026-08-27.md](korean-calendar-migration-2026-08-27.md) 의 `status: blocked` 는 KASI 절기 프레임 대조 갈래라 이것과 별개다.
 
 ### 1-C. 인증 CTA 재디자인 — ✅ 닫힘 (2026-08-31 재측정)
 
@@ -173,7 +182,6 @@ done | sort -r
 ## 이 문서가 확인하지 않은 것 (미검증)
 
 - 프로덕션이 현재 어느 커밋에 서 있는지 — §4 의 "TBT 재승격 필요"는 문서의 08-29 진술을 그대로 옮긴 것이다. 승격 전에 실제 배포 상태를 먼저 확인할 것.
-- 1-B 간지 하네스의 미커밋 3줄이 무엇인지 — 파일만 확인했고 내용은 안 읽었다.
 - 워크트리 24개 중 §1·§2 에 나오지 않은 것들은 전부 "자기 커밋이 origin/main 에 이미 있음"으로 판정했다. 판정 방법은 커밋 제목의 `origin/main` 로그 대조 + 대표 문자열 `git grep` 이며, 스쿼시 머지로 제목이 바뀐 경우 오탐 여지가 있다.
 - 🔴 **2026-08-31 2차 재측정에서 그 오탐이 실제로 있었다.** 08-29 이후 브랜치 106개를 `git cherry` 로
   훑으면 41개가 미머지로 보이는데, **패치 id 는 스쿼시 머지에서 전부 깨지므로 그 41개는 거의 다 위양성이다**
