@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-08-29
-next: 사용자가 `Desktop\CodeDestiny-업로드-준비\_전부하기.ps1` 을 실행해 versionCode 40 / 1.0.40 AAB 를 다시 빌드한 뒤 Play 업로드. 그 뒤 로그인이 필요한 기기검증 잔여 항목.
+updated: 2026-08-31
+next: "빌드는 끝났다(2026-08-31 실측) — 남은 것은 Play 업로드뿐이다. AAB 는 Desktop\CodeDestiny-Build\20260830-2147-1.0.40-40-f746f878d\ 에 있다. 그 뒤 로그인이 필요한 기기검증 잔여 항목."
 ---
 
 # Android 앱 ↔ 웹 동기화 · 가격 동일화 · 릴리스
@@ -42,7 +42,13 @@ next: 사용자가 `Desktop\CodeDestiny-업로드-준비\_전부하기.ps1` 을 
 
 ## 남은 작업
 
-- [ ] **1. 앱 재빌드 (versionCode 40)** — 🔴 **versionCode 37 은 Play 가 거부했다**
+> 🟢 **2026-08-31 실측 — 1번은 이미 끝났다.** `Desktop\CodeDestiny-Build\20260830-2147-1.0.40-40-f746f878d\`
+> 에 versionCode 40 / 1.0.40 AAB 가 있다(빌드 2026-08-30 21:47). `_전부하기.ps1` 을 **다시 돌리지 말 것** —
+> 돌리면 같은 40 으로 또 빌드된다. 빌드로그가 남긴 다음 행동은 "Play Console 에서 인앱 상품 가격을
+> 먼저 내린 뒤 AAB 업로드"이고, "업로드 키 재설정은 필요 없다(첫 업로드가 곧 업로드 키 등록)"이다.
+> `apps/mobile/android/release-signing.properties` 도 이미 `CODE_DESTINY_ANDROID_VERSION_CODE=40` 이다.
+
+- [x] **1. 앱 재빌드 (versionCode 40)** — 🔴 **versionCode 37 은 Play 가 거부했다**
       ("37 버전 코드는 이미 사용되었습니다"). 즉 37 은 이미 올라가 있다 — 19:08 폴더의
       구버전 AAB(116.6MB, PR #1279 이미지 최적화 없음)가 Play 초안/트랙에 남아 있을 수
       있으니 업로드 전에 확인할 것.
