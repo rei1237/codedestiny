@@ -736,11 +736,17 @@ console.log("\n[13] 단건결제 2단계 결제수단 흐름");
       "worker/routes/payments.js",
     ];
     let named = 0;
+    const orderMethods = [];
     for (const row of rows) {
       const id = row.match(/^\s*([A-Z0-9_]+):/)[1];
       const channelKeyName = (row.match(/channelKeyName:\s*"([^"]+)"/) || [])[1];
+      const orderMethod = (row.match(/orderMethod:\s*"([^"]+)"/) || [])[1];
+      if (orderMethod) orderMethods.push([id, orderMethod]);
       if (/payMethod:\s*"EASY_PAY"/.test(row)) {
         assert.ok(channelKeyName, `${id}: 간편결제는 이니시스와 다른 채널이라 channelKeyName 이 필수다`);
+        // 🔴 간편결제를 payMethod 만 보고 보내면 주문이 기본값(card_general)으로 기록돼 결제내역·환불
+        // 화면이 카카오페이 결제를 "카드 결제"로 보여준다. 카드가 자기 기록 코드를 선언하게 강제한다.
+        assert.ok(orderMethod, `${id}: 간편결제는 주문 기록 코드(orderMethod)가 필수다 — 없으면 "카드 결제"로 기록된다`);
       }
       if (!channelKeyName) continue;
       named += 1;
@@ -752,6 +758,23 @@ console.log("\n[13] 단건결제 2단계 결제수단 흐름");
       }
     }
     assert.ok(named > 0, "channelKeyName 을 쓰는 카드가 하나도 없다 — 검사 대상이 없으면 통과시키지 않는다");
+    // 🔴 기록 코드는 서버 라벨표가 아는 값이어야 한다 — 모르는 값은 resolvePaymentMethodLabel 의 마지막
+    // return 이 코드 원문을 그대로 화면에 노출한다(예: 결제내역에 "easy_pay").
+    if (orderMethods.length > 0) {
+      const labelSource = fs.readFileSync(path.join(ROOT, "worker/routes/payments.js"), "utf8");
+      for (const [id, method] of orderMethods) {
+        assert.ok(
+          labelSource.includes(`normalized === "${method}"`),
+          `${id}: worker 라벨표에 "${method}" 분기가 없다 — 결제내역이 코드 원문을 그대로 보여준다`,
+        );
+      }
+      for (const file of ["index.html", "js/destiny-profile.js"]) {
+        assert.ok(
+          fs.readFileSync(path.join(ROOT, file), "utf8").includes("orderMethod || 'card_general'"),
+          `${file}: 요청 조립부가 orderMethod 를 읽지 않는다 — 전용 기록 코드를 가진 수단이 "카드 결제"로 기록된다`,
+        );
+      }
+    }
     for (const file of ["index.html", "js/destiny-profile.js"]) {
       assert.ok(
         fs.readFileSync(path.join(ROOT, file), "utf8").includes("directPayFields.channelKeyName"),

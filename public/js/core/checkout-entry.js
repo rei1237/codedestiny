@@ -596,7 +596,11 @@
     // 서버 config 를 주입해야 하고, 그러면 resolveDirectPayFields 시그니처가 바뀐다.
     // easyPayProvider 는 넣지 않는다 — 카카오페이는 PG사 자체가 간편결제사라 채워도 무시된다
     // (PortOne V2 카카오페이 연동 문서, 2026-08-31 확인).
-    KAKAOPAY: { enabled: false, payMethod: "EASY_PAY", channelKeyName: "kakaopayChannelKey", glyph: "💛" },
+    // 🔴 orderMethod 는 **주문에 기록될 결제수단 코드**이지 PortOne 의 payMethod 가 아니다. EASY_PAY 를
+    // 그대로 기록하거나 기본값 card_general 로 두면 결제내역·환불 화면이 카카오페이 결제를 "카드 결제"로
+    // 표시한다. 값은 서버 라벨표(worker/routes/payments.js resolvePaymentMethodLabel)가 아는 코드와 맞춘다 —
+    // 모르는 값을 보내면 그 화면이 코드 원문을 그대로 노출한다.
+    KAKAOPAY: { enabled: true, payMethod: "EASY_PAY", channelKeyName: "kakaopayChannelKey", orderMethod: "kakaopay", glyph: "💛" },
     MOBILE: { enabled: false, payMethod: "MOBILE", glyph: "📱" },
     // 🔴 KG이니시스가 PortOne V2 로 태울 수 있는 상품권은 이 3종뿐이다. 해피머니·CULTURE_GIFT 는
     // 이니시스 상점에 등록돼 있어도 이 경로에 대응 값이 없어 넣을 수 없다.
@@ -749,6 +753,9 @@
       // 비어 있으면 config.channelKey 로 폴백하지 말고 던져야 한다 — 폴백하면 "카카오페이를 눌렀는데
       // 이니시스 카드창"이 뜬다(giftCertificateType 누락과 같은 실패 모드).
       if (entry.channelKeyName) fields.channelKeyName = entry.channelKeyName;
+      // 🔴 주문에 기록할 결제수단 코드. 선언하지 않은 카드는 조립부가 지금대로 card_general 을 쓴다 —
+      // 이미 살아 있는 수단(카드·계좌이체·상품권)의 기록 값을 이 변경으로 흔들지 않기 위해서다.
+      if (entry.orderMethod) fields.orderMethod = entry.orderMethod;
       return fields;
     }
     return { payMethod: text(configPayMethod).toUpperCase() || DEFAULT_DIRECT_PAY_METHOD };
