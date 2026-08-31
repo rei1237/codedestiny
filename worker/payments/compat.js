@@ -25,6 +25,8 @@
  * (PAID→"paid"→completed). 이건 우연이 아니라 확인한 사실이고, 아래 테스트가 고정한다.
  */
 
+import { resolvePaymentMethodLabel } from "../lib/payment-method-label.js";
+
 /** 구 응답과 같은 마스킹. 끝 4자만 남긴다(payments.js maskPaymentIdentifier 와 동일). */
 export function maskIdentifier(value) {
   const text = String(value ?? "").trim();
@@ -59,7 +61,10 @@ export function toLegacyOrderDetail(order) {
     paymentType: String(order.paymentType || ""),
     subscriptionTier: String(order.subscriptionTier || ""),
     paymentMethod: String(order.paymentMethod || ""),
-    paymentMethodLabel: String(order.paymentMethodLabel || order.paymentMethod || ""),
+    // 🔴 paymentMethodLabel 은 저장되는 필드가 아니다(worker/lib/models.js 에 없다). 예전 폴백
+    // `order.paymentMethodLabel || order.paymentMethod` 는 그래서 **항상** 코드 원문으로 떨어졌고,
+    // 주문 상세가 "paymentmethodeasypay" 같은 내부 코드를 그대로 보여줬다(2026-08-31).
+    paymentMethodLabel: resolvePaymentMethodLabel(order),
     // resolveStatus 는 status 와 orderState 를 이어 붙여 본다. 신규 코드는 orderState 도 계속
     // 쓰고 있으므로 둘 다 그대로 넘긴다 — 여기서 5상태로 접지 않는다(구 판정 로직을 건드리지 않는다).
     status: String(order.status || ""),

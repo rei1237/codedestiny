@@ -61,6 +61,7 @@ const isPartialSingleCancel = isPartialCancel;
 import { enforceSensitiveEndpointSecurity, writeSecurityLog } from "../lib/security/index.js";
 import { MIN_SELF_CONSENT_AGE, validateBirthDateWithAge } from "../lib/validation.js";
 import { buildApiError, buildApiMeta } from "../lib/api-contract.js";
+import { resolvePaymentMethodLabel } from "../lib/payment-method-label.js";
 
 const SUKYO_YEARLY_FORTUNE_PRODUCT_KEY = "sukyo_yearly_fortune_unlock";
 const SUKYO_YEARLY_FORTUNE_SERVICE_KEY = "sukuyo";
@@ -660,30 +661,6 @@ function parseCustomDataUserId(customData) {
   const userId = String(parsed?.userId || parsed?.uid || "").trim();
   if (!userId || !mongoose.Types.ObjectId.isValid(userId)) return null;
   return userId;
-}
-
-function resolvePaymentMethodLabel(payment) {
-  const metadata = payment?.metadata && typeof payment.metadata === "object" ? payment.metadata : {};
-  const method = String(payment?.paymentMethod || "").trim();
-  const normalized = method.toLowerCase();
-  const accessType = String(payment?.accessType || "").trim().toLowerCase();
-  const currency = String(metadata.currency || "").trim().toUpperCase();
-
-  if (normalized === "moonlight_stone" || normalized === "monthly_credit" || normalized === "monthly" || accessType === "membership_credit" || currency === "MOONLIGHT_STONE" || currency === "MONTHLY_CREDIT") {
-    return "이용권 혜택";
-  }
-  if (normalized === "card_general" || normalized === "card") return "카드 결제";
-  if (normalized === "virtual_account") return "가상계좌";
-  if (normalized === "transfer") return "실시간 계좌이체";
-  if (normalized === "kakaopay") return "카카오페이";
-  if (normalized === "naverpay") return "네이버페이";
-  // 상품권은 발행사별로 다른 코드로 기록된다(js/core/checkout-entry.js DIRECT_PAY_METHODS.orderMethod).
-  // 🔴 여기 없는 코드는 아래 return 이 **코드 원문을 그대로 노출**하므로 표에 orderMethod 를 늘리면
-  // 반드시 같은 커밋에서 이 분기도 늘린다.
-  if (normalized === "gift_cultureland") return "컬쳐랜드 문화상품권";
-  if (normalized === "gift_booknlife") return "도서문화상품권";
-  if (normalized === "gift_smart_munsang") return "스마트문상";
-  return method || "-";
 }
 
 function isSinglePurchaseDigitalPayment(payment) {
