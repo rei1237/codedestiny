@@ -1,10 +1,10 @@
 ---
-status: blocked
+status: ready
 updated: 2026-08-31
-next: "PortOne 콘솔에서 카카오페이 채널키를 받아 프로덕션 워커에 넣는다(`--only-key=`). 그 값이 들어가기 전에는 이 브랜치를 머지하지 않는다 — 카드가 활성인데 채널키가 없으면 카카오페이만 오류로 떨어진다."
+next: "PR #1390 을 머지하고 프로덕션으로 수동 승격한다. 채널키는 프로덕션 워커에 이미 들어갔다. 🔴 스테이징에는 넣지 않았으므로(정책) 스테이징에서 카카오페이를 고르면 오류가 나는 것이 정상이다."
 ---
 
-# 카카오페이 결제수단 — 개통 (배관·플립 완료, 채널키 대기)
+# 카카오페이 결제수단 — 개통 (머지·승격만 남음)
 
 ## 왜
 
@@ -14,27 +14,35 @@ next: "PortOne 콘솔에서 카카오페이 채널키를 받아 프로덕션 워
 ## 지금 상태
 
 - **배관은 끝났다.** PR #1375 머지(`2764a5cb3`). 셸·dp 코어·워커·env 계약·가드까지 양끝이 이어져 있다.
-- **플립도 준비돼 있다.** 브랜치 `worktree-kakaopay-golive`(draft PR) — `enabled: false → true` + 미러 + 캐시 핀.
-  🔴 **채널키 투입 전에는 머지하지 않는다.**
-- **이니시스 쪽 별도 허가는 필요 없다**(사용자 확인 2026-08-31). 남은 관문은 PortOne 채널키 하나뿐이다.
+- **플립도 끝났다.** 브랜치 `worktree-kakaopay-golive` / PR #1390 — `enabled: false → true` + 미러 + 캐시 핀.
+- **이니시스 쪽 별도 허가는 필요 없다**(사용자 확인 2026-08-31). 남은 관문은 머지와 승격뿐이다.
 - **주문 기록 코드도 맞췄다**(`92d96e318`). 정본 표의 `orderMethod: "kakaopay"` 가 셸·dp 코어의 요청
   조립부를 거쳐 주문에 실리므로 결제내역·환불 화면이 "카카오페이"로 뜬다(전에는 전부 `card_general`).
-- 스테이징 실측 2026-08-31: `/api/payments/config` → `kakaopayChannelKey:""` · `kakaopayConfigured:false`.
-  프로덕션 응답에는 두 필드가 아예 없다(워커가 main 보다 뒤처져 있다 — 정상).
+- **채널키를 프로덕션 워커에 넣었다**(2026-08-31, `--only-key=PORTONE_KAKAOPAY_CHANNEL_KEY`,
+  `wrangler secret put` 성공). 🔴 **스테이징에는 넣지 않았다** — 정책상 `/^PORTONE_/` 는 스테이징에서
+  비워 둔다(`scripts/lib/staging-secret-policy.mjs`).
+- 실측 2026-08-31 (`curl /api/payments/config`):
+  - 프로덕션: kakaopay 필드가 **아예 없다** — 워커가 main 보다 뒤처져 있어서다(정상). 승격해야 나타난다.
+  - 스테이징: `kakaopayChannelKey:""` · `kakaopayConfigured:false` — 채널키를 안 넣었으니 맞는 값이다.
 
 ## 남은 작업
 
-- [ ] **1. 채널키 수령 (사용자)** — PortOne 콘솔에서 카카오페이 채널을 만들고 채널키를 받는다.
-- [ ] **2. 시크릿 투입 (사용자 승인 1회)** — 저장소 루트 `.env.local` 에
+- [x] **1. 채널키 수령 (사용자)** — 완료(2026-08-31).
+- [x] **2. 시크릿 투입** — 완료(2026-08-31). 저장소 루트 `.env.local` 에
       `PORTONE_KAKAOPAY_CHANNEL_KEY=<채널키>` 를 넣은 뒤:
       ```
       npm run secrets:cf:worker -- --target=production --only-key=PORTONE_KAKAOPAY_CHANNEL_KEY
       ```
       🔴 **`--only-key=` 를 빠뜨리지 말 것.** 없으면 프로덕션 시크릿 27개를 통째로 덮어쓴다.
       🔴 등호(`=`) 형식이다(`--only-key PORTONE_...` 는 인자로 안 잡힌다 — `scripts/sync-cloudflare-worker-secrets.mjs:12`).
-      판정: `/api/payments/config` 의 `kakaopayConfigured` 가 `true`.
-- [ ] **3. 머지 (사용자)** — draft 해제 → 머지 → 스테이징 자동 배포 → 프로덕션 수동 승격.
-      판정: 결제창 2단계에서 카카오페이가 활성으로 뜨고, 누르면 카카오페이 창이 열린다(이니시스 카드창이 아니라).
+      🔴 이 명령은 **저장소 루트에서** 돌린다 — 스크립트가 `process.cwd()` 를 기준으로 `.env.local` 과
+      `worker/wrangler.toml` 을 찾는다. 워크트리 안에는 `.env.local` 이 없다.
+- [ ] **3. 머지 (사용자)** — PR #1390 머지 → 스테이징 자동 배포 → 프로덕션 수동 승격.
+      판정(프로덕션): `/api/payments/config` 의 `kakaopayConfigured` 가 `true` → 결제창 2단계에서
+      카카오페이가 활성으로 뜨고, 누르면 카카오페이 창이 열린다(이니시스 카드창이 아니라).
+      🔴 **스테이징에서는 카카오페이가 오류로 떨어진다** — 채널키를 안 넣었기 때문이고 버그가 아니다.
+      스테이징에서도 눌러 보려면 PortOne **테스트** 채널키를 `.env.staging.local` 에 두고
+      `--target=staging --only-key=PORTONE_KAKAOPAY_CHANNEL_KEY` 로 넣는다.
 
 ## 정본 예시
 
@@ -53,6 +61,10 @@ next: "PortOne 콘솔에서 카카오페이 채널키를 받아 프로덕션 워
   조용히 이니시스 채널로 폴백하지 않는 것은 의도다("카카오페이를 눌렀는데 이니시스 카드창" 방지).
 - 🔴 `PORTONE_KAKAOPAY_CHANNEL_KEY` 를 `PORTONE_REQUIRED_ENV_KEYS` 에 **넣지 말 것** — 넣으면 값이 없을 때
   카드·계좌이체·상품권까지 전부 503 이 된다. `config/env.contract.json` 의 `required_in: []` 은 의도된 빈 값이다.
+- 🔴 **`--only-key=` 는 스테이징 제외 목록을 우회한다**(`sync-cloudflare-worker-secrets.mjs` 의
+  `targetFilteredKeys`). 그래서 `--target=staging --only-key=PORTONE_KAKAOPAY_CHANNEL_KEY` 를
+  `.env.local` 만 채운 채로 돌리면 **프로덕션 채널키가 스테이징 워커로 들어간다.** 스테이징에 넣을
+  때는 반드시 테스트 채널키를 `.env.staging.local` 에 먼저 둔다(그 파일이 스테이징에서 가장 먼저 읽힌다).
 - 🔴 접두사 없는 `KAKAOPAY_CHANNEL_KEY` 를 `scripts/sync-cloudflare-worker-secrets.mjs` 의 `SECRET_KEYS` 에
   **넣지 말 것** — `scripts/lib/staging-secret-policy.mjs` 가 `/^PORTONE_/` 로 결제 시크릿을 걸러 스테이징
   동기화에서 빼므로, 접두사가 없으면 **프로덕션 채널키가 스테이징 워커로 들어간다.**
@@ -97,7 +109,6 @@ node scripts/verify-payment-freeze.mjs
 
 ## 모르는 것
 
-- PortOne 콘솔에 카카오페이 채널이 이미 있는지 **확인하지 못했다.** 콘솔 접근은 사용자만 가능하다.
 - 카카오페이의 최소 결제금액 제약 여부. 이니시스 일반 카드결제는 1,000원 미만을 거부하는데
   (`lib/music-access-policy.js:2`) 카카오페이에도 같은 하한이 있는지는 미검증이다.
   🔴 추측해서 코드에 하한을 넣지 말고 개통 시 실제로 확인할 것.
