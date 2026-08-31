@@ -290,10 +290,14 @@ const SECRET_KEYS = [
   // .env.local 에 값을 넣어 둬도 프로덕션 워커에는 영영 도달하지 않는다.
   "TELEGRAM_BOT_TOKEN",
   "TELEGRAM_CHAT_ID",
+  // Threads(Meta) 일일 발행(worker/lib/threads.js). .env.local 에는 Thread_access_token 으로
+  // 들어 있어 process.env 에 THREAD_ACCESS_TOKEN 으로 올라온다 — 아래 별칭이 그것을 집는다.
+  "THREADS_ACCESS_TOKEN",
 ];
 
 const SECRET_KEY_ALIASES = {
   AUTH_SECRET: ["NEXTAUTH_SECRET"],
+  THREADS_ACCESS_TOKEN: ["THREAD_ACCESS_TOKEN"],
   JWT_SECRET: ["AUTH_SECRET", "NEXTAUTH_SECRET"],
   AUTH_URL: ["NEXTAUTH_URL"],
   AUTH_TRUST_HOST: ["NEXTAUTH_TRUST_HOST"],
