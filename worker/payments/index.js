@@ -739,6 +739,8 @@ const ROUTES = {
         pg: config.pg,
         storeId: config.storeId,
         channelKey: config.channelKey,
+        kakaopayChannelKey: config.kakaopayChannelKey,
+        kakaopayConfigured: Boolean(config.kakaopayConfigured),
         currency: config.currency,
         payMethod: config.payMethod,
         noticeUrl: config.noticeUrl,

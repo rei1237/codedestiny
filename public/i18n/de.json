@@ -1842,6 +1842,7 @@
         "prompt": "Wie möchten Sie bezahlen?",
         "card": "Kreditkarte · Express-Zahlung",
         "transfer": "Echtzeit-Banküberweisung",
+        "kakaopay": "KakaoPay",
         "mobile": "Zahlung per Mobilfunkrechnung",
         "giftCultureland": "Cultureland gift certificate",
         "giftBooknlife": "Book&Life gift certificate",

@@ -73,6 +73,18 @@ export function getPortOneConfig(env) {
       "PORTONE_STOREID",
       "PORTONE_V2_STORE_ID",
     ]),
+    // 🔴 카카오페이는 이니시스와 **다른 채널**이다. PortOne V2 의 requestPayment 는 호출당 채널키를
+    // 하나만 받으므로, 이 값이 없으면 카카오페이 결제창을 열 방법이 아예 없다(같은 창에 합칠 수 없다).
+    // 🔴 PORTONE_REQUIRED_ENV_KEYS 에 넣지 말 것 — 넣으면 이 채널키를 투입하기 전까지 카드·계좌이체·
+    // 상품권까지 전부 503 이 된다. 미설정은 "카카오페이 카드만 비활성"으로 끝나야 한다.
+    portoneKakaopayChannelKey: getExactEnvWithAlias(env, "PORTONE_KAKAOPAY_CHANNEL_KEY", [
+      "PORTONE_KAKAOPAY_CHANNEL",
+      "PORTONE_CHANNEL_KEY_KAKAOPAY",
+      // 로컬 .env.local 관용 표기. 🔴 이 접두사 없는 이름을 sync-cloudflare-worker-secrets 의
+      // SECRET_KEYS 에는 넣지 말 것 — staging-secret-policy 가 /^PORTONE_/ 로 결제 시크릿을
+      // 판별하므로, 그 이름으로 등록하면 프로덕션 채널키가 스테이징 워커로 동기화된다.
+      "KAKAOPAY_CHANNEL_KEY",
+    ]),
     inicisMid: getExactEnvWithAlias(env, "MID", [
       "INICISMID",
       "INIstoreId",
@@ -246,6 +258,7 @@ export function getPortOnePublicConfig(env) {
   const config = getPortOneConfig(env);
   const storeId = config.portoneStoreId;
   const channelKey = config.portoneChannelKey;
+  const kakaopayChannelKey = config.portoneKakaopayChannelKey;
   const inicisConfigured = Boolean(config.inicisMid && config.inicisSignKey && config.inicisApiKey && config.inicisApiIv);
   const serverVerificationConfigured = Boolean(config.portoneApiSecret);
   const webhookSecretConfigured = Boolean(config.portoneWebhookSecret);
@@ -256,10 +269,16 @@ export function getPortOnePublicConfig(env) {
     pg: "kg-inicis",
     storeId,
     channelKey,
+    // 🔴 수단별 채널키. 클라이언트는 이 **필드 이름**을 checkout-entry 의 DIRECT_PAY_METHODS 표에서
+    // 받아(channelKeyName) 여기서 값을 꺼낸다. 새 수단을 추가할 때 이름만 늘리면 된다.
+    kakaopayChannelKey,
     currency: "CURRENCY_KRW",
     payMethod: "CARD",
     noticeUrl,
+    // 🔴 configured 에 카카오페이를 넣지 않는다 — 카카오페이 채널키가 없어도 기존 3수단 결제는
+    // 그대로 살아야 한다. 카카오페이 가용 여부는 아래 kakaopayConfigured 하나로만 말한다.
     configured: Boolean(storeId && channelKey && serverVerificationConfigured),
+    kakaopayConfigured: Boolean(kakaopayChannelKey),
     serverVerificationConfigured,
     webhookSecretConfigured,
     webhookUrlConfigured: Boolean(webhookUrl),

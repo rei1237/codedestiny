@@ -1842,6 +1842,7 @@
         "prompt": "Bạn muốn thanh toán bằng cách nào?",
         "card": "Thẻ tín dụng · Thanh toán nhanh",
         "transfer": "Chuyển khoản ngân hàng tức thì",
+        "kakaopay": "KakaoPay",
         "mobile": "Thanh toán qua cước điện thoại",
         "giftCultureland": "Cultureland gift certificate",
         "giftBooknlife": "Book&Life gift certificate",

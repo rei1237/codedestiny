@@ -502,6 +502,7 @@ const CORE_METHOD_KEYS = [
   "payment.directModal.method.prompt",
   "payment.directModal.method.card",
   "payment.directModal.method.transfer",
+  "payment.directModal.method.kakaopay",
   "payment.directModal.method.mobile",
   "payment.directModal.method.giftCultureland",
   "payment.directModal.method.giftBooknlife",

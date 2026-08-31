@@ -715,6 +715,50 @@ console.log("\n[13] 단건결제 2단계 결제수단 흐름");
     assert.ok(checked > 0, "활성 수단이 하나도 없다 — 결제창 2단계가 통째로 잠겼다");
     entry.clearSelectedDirectPayMethod();
   });
+  // 🔴 위 검사는 **활성** 수단만 본다. 채널키가 아직 없어 비활성으로 둔 수단(카카오페이)은 그 루프에
+  // 잡히지 않으므로, 배관이 끊긴 채로 켜는 순간 "그 수단만 결제창이 안 뜬다"가 된다. 그래서 표를
+  // 소스에서 전수로 읽어 활성 여부와 무관하게 채널키 이름의 양끝을 잇는다.
+  check("전용 채널을 쓰는 수단은 채널키 이름이 서버 config 까지 이어져 있다", () => {
+    const coreSource = fs.readFileSync(path.join(ROOT, "js/core/checkout-entry.js"), "utf8");
+    const table = coreSource.match(/var DIRECT_PAY_METHODS = \{([\s\S]*?)\n {2}\};/);
+    assert.ok(table, "DIRECT_PAY_METHODS 표를 찾지 못했다 — 표를 옮겼다면 이 검사도 함께 고쳐라");
+    const rows = table[1].split("\n").filter((line) => /^\s*[A-Z0-9_]+:\s*\{/.test(line));
+    assert.equal(
+      rows.length,
+      Array.from(entry.DIRECT_PAY_METHOD_ORDER).length,
+      `표에서 읽은 카드 ${rows.length}개가 DIRECT_PAY_METHOD_ORDER 와 개수가 다르다 — 미분류를 통과시키지 않는다`,
+    );
+    // 채널키 이름을 실어야 하는 곳. 하나라도 빠지면 셸이 그 값을 영영 못 보고 증상은 "200인데 화면만 빔"이다.
+    const CHANNEL_KEY_CARRIERS = [
+      "worker/lib/portone.js",
+      "worker/payments/index.js",
+      "worker/payments/compat.js",
+      "worker/routes/payments.js",
+    ];
+    let named = 0;
+    for (const row of rows) {
+      const id = row.match(/^\s*([A-Z0-9_]+):/)[1];
+      const channelKeyName = (row.match(/channelKeyName:\s*"([^"]+)"/) || [])[1];
+      if (/payMethod:\s*"EASY_PAY"/.test(row)) {
+        assert.ok(channelKeyName, `${id}: 간편결제는 이니시스와 다른 채널이라 channelKeyName 이 필수다`);
+      }
+      if (!channelKeyName) continue;
+      named += 1;
+      for (const file of CHANNEL_KEY_CARRIERS) {
+        assert.ok(
+          fs.readFileSync(path.join(ROOT, file), "utf8").includes(channelKeyName),
+          `${id}: ${file} 가 ${channelKeyName} 를 싣지 않는다 — 그 경로에서만 결제창이 안 뜬다`,
+        );
+      }
+    }
+    assert.ok(named > 0, "channelKeyName 을 쓰는 카드가 하나도 없다 — 검사 대상이 없으면 통과시키지 않는다");
+    for (const file of ["index.html", "js/destiny-profile.js"]) {
+      assert.ok(
+        fs.readFileSync(path.join(ROOT, file), "utf8").includes("directPayFields.channelKeyName"),
+        `${file}: 요청 조립부가 directPayFields.channelKeyName 을 읽지 않는다 — 전용 채널 수단이 이니시스 채널로 나간다`,
+      );
+    }
+  });
 
   clickNode('[data-mode="direct"]');
   await flush();

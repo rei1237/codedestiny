@@ -42,6 +42,8 @@ export type PortOnePaymentResponse = {
 };
 
 export type PortOnePaymentConfig = {
+  /** 카카오페이처럼 이니시스와 다른 채널을 쓰는 수단용 채널키. 서버 config 가 실어 준다. */
+  kakaopayChannelKey?: string;
   storeId: string;
   channelKey: string;
   noticeUrl?: string;
