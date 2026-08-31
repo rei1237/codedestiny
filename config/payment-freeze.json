@@ -54,7 +54,7 @@
     {
       "file": "worker/routes/payments.js",
       "why": "위와 같다.",
-      "maxLines": 5961
+      "maxLines": 5963
     }
   ],
   "notFrozen": {

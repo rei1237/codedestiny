@@ -114,6 +114,26 @@ export function validateBirthDateWithAge(birthDateStr, now = null) {
   return { isValid: true, age, error: null };
 }
 
+/**
+ * 만 14세 미만인가(KST 기준). 결제 차단 술어의 **정본**이다.
+ *
+ * 🔴 `validateBirthDateWithAge().isValid` 로는 이 판정을 할 수 없다 — 형식 오류·미래 날짜·
+ *    만 14세 미만이 **전부 `isValid:false`** 라, isValid 만 보면 오타 하나로 성인을 막는다.
+ *    둘을 가르는 유일한 값이 `age` 이고(판정 불가는 `-1`), 그래서 여기서 age 로 가른다.
+ *
+ * 🔴 판정할 수 없으면 `false`(=통과)다. 이 방향은 의도적이다 — 이 술어의 거짓 양성은
+ *    "정상 사용자의 결제가 막힌다"이고, 거짓 음성은 "오늘과 같다"이다. 값이 비었거나
+ *    형식이 깨졌다는 이유로 결제를 막지 않는다.
+ *
+ * @param {string} birthDateStr - YYYY-MM-DD
+ * @param {Date} [now] - 기준일 (기본값: 현재)
+ * @returns {boolean}
+ */
+export function isUnderSelfConsentAge(birthDateStr, now = null) {
+  const { age } = validateBirthDateWithAge(birthDateStr, now);
+  return age >= 0 && age < MIN_SELF_CONSENT_AGE;
+}
+
 // 🔴 신규 비밀번호(가입·변경)에만 적용되는 최소 길이다. 로그인 검증기(validateLoginPayload)의
 // 8자는 절대 따라 올리지 말 것 — 올리는 순간 이미 8~9자를 쓰는 기존 회원이 전부 로그인 불가가 된다.
 export const MIN_NEW_PASSWORD_LENGTH = 10;

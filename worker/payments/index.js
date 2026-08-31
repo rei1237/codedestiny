@@ -19,7 +19,8 @@
  * 로그가 잡는다.
  */
 import { getRequestMeta, json } from "../lib/http.js";
-import { peekAccessTokenUserId } from "../lib/auth.js";
+import { peekAccessTokenIdentity } from "../lib/auth.js";
+import { MIN_SELF_CONSENT_AGE, isUnderSelfConsentAge } from "../lib/validation.js";
 import { CREDENTIAL_CACHE_PREFIXES, purgeCredentialCache } from "../lib/credential-scoped-cache.js";
 // 🔴 leaf 를 import 한다(../lib/access-state.js 가 아니라). 그쪽은 models.js·content-unlocks.js 를
 //    딸고 오므로 models.js 를 부분 모킹한 스위트가 통째로 죽는다(2026-08-31 실측 11개 스위트 109건).
@@ -692,7 +693,10 @@ async function grantOrderEntitlement(db, order) {
 /* ── 라우트 표 ───────────────────────────────────────────────────────────
    키는 `METHOD /path` 이고, `:id` 자리는 하나의 세그먼트를 받는다.
    auth: "required" 면 토큰에서 userId 를 뽑아 넘긴다(**Mongo 읽기 0회**),
-         "none" 이면 신원을 보지 않는다(webhook·카탈로그). */
+         "none" 이면 신원을 보지 않는다(webhook·카탈로그).
+   blocksMinors: true 면 만 14세 미만 계정을 403 으로 막는다 — **주문을 새로 만드는 라우트에만**
+         붙인다. confirm/webhook 에는 붙이지 않는다: 이미 승인된 결제를 여기서 막으면 돈만 빠지고
+         지급이 안 된다(구 payments.js MINOR_BLOCKED_PAYMENT_PATHS 와 같은 경계다). */
 const ROUTES = {
   "GET /features": {
     auth: "none",
@@ -764,6 +768,7 @@ const ROUTES = {
 
   "POST /orders": {
     auth: "required",
+    blocksMinors: true,
     async handle({ env, ctx, userId, body, withDb }) {
       const product = resolveProduct({
         productId: body.productId, featureKey: body.featureKey, reason: body.reason,
@@ -797,6 +802,7 @@ const ROUTES = {
    */
   "POST /prepare": {
     auth: "required",
+    blocksMinors: true,
     async handle({ request, env, ctx, userId, body, withDb, legacyEnvelope }) {
       // 이용권형 바디는 이용권 경로로 위임 — 구 billing.js handleCheckout 의 isSubscription 분기 승계.
       // 구 코드도 이때 billing-checkout 래퍼 없이 subscription prepare 봉투를 그대로 돌려줬다.
@@ -1200,6 +1206,7 @@ const ROUTES = {
    */
   "POST /subscription/prepare": {
     auth: "required",
+    blocksMinors: true,
     async handle(args) {
       return handlePassPrepare(args);
     },
@@ -1337,10 +1344,26 @@ export async function handlePaymentsContext(request, env, options = {}) {
   let errorCode = "";
   let stage = "";
   try {
-    const userId = matched.route.auth === "required"
-      ? requireUser(await peekAccessTokenUserId(request, env)) // JWT 만 본다 — Mongo 읽기 0회
-      : "";
+    // JWT 만 본다 — Mongo 읽기 0회. birthDate 클레임까지 같이 받아 만 14세 미만 차단에 쓴다.
+    const identity = matched.route.auth === "required"
+      ? await peekAccessTokenIdentity(request, env)
+      : { userId: "", birthDate: "" };
+    const userId = matched.route.auth === "required" ? requireUser(identity.userId) : "";
     ctx.userId = userId;
+
+    /* 만 14세 미만 결제 차단. 🔴 이 게이트가 V2 에도 있어야 하는 이유: 구 payments.js 의
+       enforceMinorPaymentRestriction 은 /prepare·/subscription/prepare 를 대상으로 적었지만,
+       그 경로들은 worker/index.js 에서 **여기로 먼저 갈라져** 구 핸들러에 닿지 않는다.
+       (/api/billing/checkout 도 POST /prepare 로 재작성돼 이 줄을 지난다.)
+       🔴 판정은 "판정 불가는 통과"다 — 클레임이 없거나 형식이 깨지면 막지 않는다.
+       이 게이트의 거짓 양성은 '정상 사용자의 결제 차단'이라, 예전 PortOne-401 게이트를
+       제거한 것과 같은 이유로 확신이 있을 때만 막는다. */
+    if (matched.route.blocksMinors && isUnderSelfConsentAge(identity.birthDate)) {
+      throw paymentError(
+        "MINOR_PAYMENT_BLOCKED",
+        `만 ${MIN_SELF_CONSENT_AGE}세 미만 계정은 유료 결제를 이용할 수 없습니다. 무료 기능만 이용해 주세요.`,
+      );
+    }
 
     const rawBody = matched.route.rawBody ? await request.text() : "";
     let body = {};

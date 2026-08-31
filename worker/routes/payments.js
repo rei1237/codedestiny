@@ -59,7 +59,7 @@ import {
 // 부분취소 판정도 환불 코어와 같은 함수를 쓴다(사본 금지). 기존 호출부 이름을 그대로 유지한다.
 const isPartialSingleCancel = isPartialCancel;
 import { enforceSensitiveEndpointSecurity, writeSecurityLog } from "../lib/security/index.js";
-import { MIN_SELF_CONSENT_AGE, validateBirthDateWithAge } from "../lib/validation.js";
+import { MIN_SELF_CONSENT_AGE, isUnderSelfConsentAge } from "../lib/validation.js";
 import { buildApiError, buildApiMeta } from "../lib/api-contract.js";
 
 const SUKYO_YEARLY_FORTUNE_PRODUCT_KEY = "sukyo_yearly_fortune_unlock";
@@ -5831,9 +5831,10 @@ async function enforceMinorPaymentRestriction(env, auth, method, path) {
   }
   if (!birthDate) return null;
 
-  // 나이 판정은 가입 검증과 같은 함수(KST 기준)를 쓴다.
-  const ageCheck = validateBirthDateWithAge(birthDate);
-  if (!ageCheck.isValid || !ageCheck.requiresGuardianConsent) return null;
+  // 🔴 여기 있던 `!ageCheck.isValid || !ageCheck.requiresGuardianConsent` 로 되돌리지 말 것 —
+  // 그 이름은 validateBirthDateWithAge 의 반환값에 없어서 술어가 **항상 통과**였다(도입 이래 무동작).
+  // 판정은 V2 와 공유하는 정본 하나로만 한다(lib/validation.js isUnderSelfConsentAge).
+  if (!isUnderSelfConsentAge(birthDate)) return null;
 
   return json({
     message: `만 ${MIN_SELF_CONSENT_AGE}세 미만 계정은 유료 결제를 이용할 수 없습니다. 무료 기능만 이용해 주세요.`,
@@ -5941,6 +5942,7 @@ export async function handlePaymentRoutes(request, env, ctx) {
 }
 
 export const __paymentsTestUtils = {
+  enforceMinorPaymentRestriction,
   handlePrepare,
   handleSinglePaymentStart,
   handleSinglePaymentComplete,

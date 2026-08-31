@@ -647,8 +647,19 @@ export async function getOptionalUserFromRequest(request, env, options = {}) {
 // JWT 서명만 로컬 검증해 userId를 얻는다. 유효한 토큰이 없으면 "" 반환(게스트 → 캐시 미사용).
 // 실제 인증/권한 판정에는 쓰지 말 것 — 토큰 유효성만 볼 뿐 유저 활성/탈퇴 여부는 확인하지 않는다.
 export async function peekAccessTokenUserId(request, env) {
+  return (await peekAccessTokenIdentity(request, env)).userId;
+}
+
+// peekAccessTokenUserId 와 같은 경량 검증인데, 토큰이 들고 있는 birthDate 클레임까지 함께 준다
+// (signAuthToken 이 클레임에 싣는다). 결제 V2 가 만 14세 미만 차단을 **Mongo 읽기 0회**로 하려고 쓴다.
+// 🔴 birthDate 는 **토큰 발급 시점의 값**이다 — 생일을 고쳐도 토큰이 만료될 때까지 옛 값이 남고,
+//    구형 토큰에는 클레임 자체가 없을 수 있다. 그래서 이 값을 쓰는 판정은 반드시 "판정 불가는 통과"
+//    여야 한다(worker/lib/validation.js isUnderSelfConsentAge 가 그 계약이다).
+// 🔴 위와 같은 이유로 실제 인증/권한 판정에는 쓰지 말 것 — 토큰만 볼 뿐 유저 활성/탈퇴는 안 본다.
+export async function peekAccessTokenIdentity(request, env) {
+  const empty = { userId: "", birthDate: "" };
   const secret = getAccessTokenSecret(env);
-  if (!secret) return "";
+  if (!secret) return empty;
   const issuer = getJwtIssuer(env);
   const audience = getJwtAudience(env);
   const bearerToken = getHeaderBearerToken(request);
@@ -658,12 +669,12 @@ export async function peekAccessTokenUserId(request, env) {
     try {
       const payload = await verifyJwt(token, secret, { issuer, audience });
       const userId = extractTokenUserId(payload);
-      if (userId) return userId;
+      if (userId) return { userId, birthDate: typeof payload?.birthDate === "string" ? payload.birthDate : "" };
     } catch (_) {
       // 무효/만료 토큰은 조용히 다음 후보로 넘어간다(게스트 취급).
     }
   }
-  return "";
+  return empty;
 }
 
 export async function requireUserFromRequest(request, env, options = {}) {
