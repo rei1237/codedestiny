@@ -13,7 +13,8 @@ import androidx.core.app.NotificationCompat;
 /**
  * 잠금화면 운세 기능의 알림 채널/알림 생성 헬퍼.
  *   - 상시(포그라운드 서비스) 알림: IMPORTANCE_MIN, 조용한 필수 고지.
- *   - 시간 알림(오늘의 꽃/감정상담소): IMPORTANCE_HIGH + 전체화면 인텐트로 잠금화면 위 표시.
+ *   - 시간 알림(오늘의 꽃/감정상담소): IMPORTANCE_HIGH 헤즈업 + 탭 진입. 전체화면 인텐트는
+ *     Play 정책상 통화·알람시계 앱 전용이라 쓰지 않는다(화면 켜짐 자동 표시는 FGS 가 담당).
  */
 final class LockScreenNotify {
     static final String CHANNEL_SERVICE = "cd_lockscreen_service";
@@ -54,7 +55,7 @@ final class LockScreenNotify {
         if (nm == null) return;
         Intent lock = new Intent(ctx, LockScreenActivity.class)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        PendingIntent fsi = PendingIntent.getActivity(ctx, id, lock, piFlags());
+        PendingIntent tap = PendingIntent.getActivity(ctx, id, lock, piFlags());
         Notification n = new NotificationCompat.Builder(ctx, CHANNEL_ALARM)
                 .setSmallIcon(ctx.getApplicationInfo().icon)
                 .setContentTitle(title)
@@ -63,8 +64,7 @@ final class LockScreenNotify {
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setCategory(NotificationCompat.CATEGORY_REMINDER)
                 .setAutoCancel(true)
-                .setContentIntent(fsi)
-                .setFullScreenIntent(fsi, true)
+                .setContentIntent(tap)
                 .build();
         nm.notify(id, n);
     }
