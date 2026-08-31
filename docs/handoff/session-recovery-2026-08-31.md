@@ -106,9 +106,9 @@ git fetch origin main; git rebase origin/main   # 충돌 나면 두 판을 손�
 워크트리 `perf-mongo-collscan-and-cache`)가 프론트매터를 `status: done` 으로 바꿔 놓았고
 `origin/main` 에는 아직 없다. 새로 쓰지 말고 **그 브랜치를 PR 로 올리면 끝난다**(§2-A 와 파일이 겹치지 않아 순서 무관).
 
-### 2-C. 커밋되지 않은 유일본 1건
+### 2-C. 커밋되지 않은 유일본 1건 — ✅ 해소
 
-`docs/handoff/reengagement-email-blocked-2026-08-28.md` — 이탈 유저 재방문 이메일이 **"안 했다"가 아니라 "지금 구조에서는 0명에게 발송된다"** 는 착수 불가 진단서. `origin/main` 에 없다. 워크트리로 옮겨 커밋해 두지 않으면 다음 사고 때 사라진다.
+[docs/handoff/reengagement-email-blocked-2026-08-28.md](reengagement-email-blocked-2026-08-28.md) 를 커밋했다(`status: blocked`). 이탈 유저 재방문 이메일이 **"안 했다"가 아니라 "지금 구조에서는 0명에게 발송된다"** 는 착수 불가 진단서다. 착수하려면 §3-B 의 메일 축 복구가 먼저다.
 
 ---
 
