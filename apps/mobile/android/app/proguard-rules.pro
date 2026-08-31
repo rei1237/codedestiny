@@ -17,6 +17,14 @@
 # 플러그인을 등록한다. 어노테이션이 지워지면 플러그인이 하나도 잡히지 않는다.
 -keepattributes *Annotation*,Signature,InnerClasses,EnclosingMethod
 
+# ── 어노테이션 클래스 자체도 keep (vc41 크래시의 근본원인, 2026-09-01) ──
+# -keepattributes 만으로는 부족하다: 어노테이션 "클래스"가 keep 루트가 아니면 R8 이
+# getAnnotation(CapacitorPlugin.class) 를 항상-null 로 추론해 Plugin.getPermissionStates
+# 본문을 통째로 `throw null` 로 접는다(vc41 dexdump 실측 — dex 에는 어노테이션 데이터가
+# 남아 있는데 코드만 null 가정으로 최적화돼, 릴리스에서만 setEnabled 가 즉사했다).
+# getPermissionState / requestPermissionForAlias 등 권한 모델 전체가 이 클래스들에 걸린다.
+-keep class com.getcapacitor.annotation.** { *; }
+
 # ── WebView JS 브릿지 (최우선) ──
 # com.getcapacitor.MessageHandler 의 @JavascriptInterface postMessage 가 JS↔네이티브
 # 통신 전부다. Capacitor consumer 규칙은 Plugin 서브클래스만 덮으므로 여기서 보호한다.

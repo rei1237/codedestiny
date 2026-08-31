@@ -64,10 +64,19 @@ public class CodeDestinyLockScreenPlugin extends Plugin {
             LockScreenForegroundService.start(app);
             // Android 13+ 는 POST_NOTIFICATIONS 를 런타임으로 받아야 시간 알림이 보인다.
             // 서비스는 권한과 무관하게 돌므로 먼저 켜 두고, 미허용이면 여기서 한 번 묻는다.
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
-                    && getPermissionState("notifications") != PermissionState.GRANTED) {
-                requestPermissionForAlias("notifications", call, "onNotificationsPermission");
-                return;
+            // getPermissionState 까지 try 안에 둔다: vc41 릴리스에서 R8 이 이 호출을
+            // `throw null` 로 접어 설정 ON 즉시 앱이 죽었다(2026-09-01, proguard-rules.pro 참조).
+            // 근본원인은 keep 규칙으로 고쳤지만, Capacitor 브리지가 플러그인 예외를
+            // 프로세스 크래시로 바꾸므로 권한 UX 는 어떤 실패에도 기능 활성을 막으면 안 된다.
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                try {
+                    if (getPermissionState("notifications") != PermissionState.GRANTED) {
+                        requestPermissionForAlias("notifications", call, "onNotificationsPermission");
+                        return;
+                    }
+                } catch (Exception ignored) {
+                    // 다이얼로그를 못 띄워도(액티비티 소멸 직후 등) 기능 활성 자체는 성공이다.
+                }
             }
         } else {
             LockScreenForegroundService.stop(app);

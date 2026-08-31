@@ -193,8 +193,12 @@
     try {
       var p = cdLockPlugin();
       if (p) {
-        if (p.requestOverlayPermission) { try { p.requestOverlayPermission(); } catch (e) {} }
-        if (p.setEnabled) { try { p.setEnabled({ enabled: true }); } catch (e) {} }
+        // 순서가 안전 조건이다: 오버레이 권한 설정 화면으로 나가면 앱이 백그라운드가 되는데,
+        // Android 12+ 는 백그라운드에서 포그라운드 서비스 시작을 금지한다. 설정 이동 전,
+        // 앱이 아직 포그라운드인 지금 setEnabled(서비스 시작)를 끝내야 한다 — 반대 순서는
+        // startForeground 가 거부돼 몇 초 뒤 프로세스가 강제 종료됐다(동의 직후 앱 튕김).
+        var enablePromise = null;
+        if (p.setEnabled) { try { enablePromise = p.setEnabled({ enabled: true }); } catch (e) {} }
         if (p.scheduleAlarms) {
           try {
             p.scheduleAlarms({ value: JSON.stringify({ enabled: true, alarms: [
@@ -202,6 +206,16 @@
               { on: true, time: "15:00", label: "감정상담소" },
             ] }) });
           } catch (e) {}
+        }
+        var openOverlaySettings = function () {
+          if (p.requestOverlayPermission) { try { p.requestOverlayPermission(); } catch (e) {} }
+        };
+        // setEnabled 는 Android 13+ 알림 권한 다이얼로그가 닫혀야 resolve 된다. 그 뒤에
+        // 설정으로 이동해야 다이얼로그가 설정 화면에 깔려 묻히지 않는다. 실패해도 이동은 한다.
+        if (enablePromise && typeof enablePromise.then === "function") {
+          enablePromise.then(openOverlaySettings, openOverlaySettings);
+        } else {
+          openOverlaySettings();
         }
       }
     } catch (e) { /* noop */ }

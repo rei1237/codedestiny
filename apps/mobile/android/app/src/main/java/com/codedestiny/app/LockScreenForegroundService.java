@@ -23,24 +23,33 @@ import androidx.core.content.ContextCompat;
 public class LockScreenForegroundService extends Service {
     private static final int NOTIF_ID = 4711;
     private ScreenReceiver screenReceiver;
+    private boolean foregroundAsserted = false;
 
     static void start(Context ctx) {
-        Intent i = new Intent(ctx, LockScreenForegroundService.class);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            ctx.startForegroundService(i);
-        } else {
-            ctx.startService(i);
-        }
+        // 잠금화면은 부가 기능이다 — FGS 시작 제약(Android 12+ 백그라운드 시작 금지 등)에
+        // 걸려도 앱을 죽이면 안 된다. Capacitor 브리지는 플러그인 메서드의 예외를
+        // RuntimeException 으로 재던져 프로세스를 통째로 죽이고(Bridge.callPluginMethod),
+        // BootReceiver 의 onReceive 도 무보호라 이 한 곳에서 흡수한다.
+        // 실패해도 KEY_ENABLED 는 남으므로 다음 앱 실행(MainActivity)·부팅(BootReceiver)이 복구한다.
+        try {
+            Intent i = new Intent(ctx, LockScreenForegroundService.class);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                ctx.startForegroundService(i);
+            } else {
+                ctx.startService(i);
+            }
+        } catch (Exception ignored) {}
     }
 
     static void stop(Context ctx) {
-        ctx.stopService(new Intent(ctx, LockScreenForegroundService.class));
+        try {
+            ctx.stopService(new Intent(ctx, LockScreenForegroundService.class));
+        } catch (Exception ignored) {}
     }
 
     @Override
     public void onCreate() {
         super.onCreate();
-        startAsForeground();
         screenReceiver = new ScreenReceiver();
         IntentFilter filter = new IntentFilter();
         filter.addAction(Intent.ACTION_SCREEN_ON);
@@ -49,21 +58,32 @@ public class LockScreenForegroundService extends Service {
         ContextCompat.registerReceiver(this, screenReceiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED);
     }
 
-    private void startAsForeground() {
-        Notification n = LockScreenNotify.buildServiceNotification(this);
+    private boolean startAsForeground() {
+        if (foregroundAsserted) return true;
         try {
+            Notification n = LockScreenNotify.buildServiceNotification(this);
             if (Build.VERSION.SDK_INT >= 34) {
                 startForeground(NOTIF_ID, n, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
             } else {
                 startForeground(NOTIF_ID, n);
             }
-        } catch (Exception ignored) {
-            // 알림 권한 미허용 등으로 실패해도 앱 크래시는 막는다.
+            foregroundAsserted = true;
+            return true;
+        } catch (Exception e) {
+            return false;
         }
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        // startForegroundService 의 계약(수 초 내 startForeground 호출)은 호출마다 생긴다.
+        // onCreate 는 최초 1회뿐이라 여기서 보장한다(이미 실행 중일 때의 중복 시작 포함).
+        if (!startAsForeground()) {
+            // 실패를 삼킨 채 살아 있으면 시스템이 몇 초 뒤 "did not then call startForeground" 로
+            // 프로세스를 강제 종료한다(설정 ON 직후 앱 튕김의 실체, 2026-09-01). 즉시 내려서 막는다.
+            stopSelf(startId);
+            return START_NOT_STICKY;
+        }
         return START_STICKY;
     }
 
