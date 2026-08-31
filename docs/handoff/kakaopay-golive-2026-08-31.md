@@ -17,6 +17,8 @@ next: "PortOne 콘솔에서 카카오페이 채널키를 받아 프로덕션 워
 - **플립도 준비돼 있다.** 브랜치 `worktree-kakaopay-golive`(draft PR) — `enabled: false → true` + 미러 + 캐시 핀.
   🔴 **채널키 투입 전에는 머지하지 않는다.**
 - **이니시스 쪽 별도 허가는 필요 없다**(사용자 확인 2026-08-31). 남은 관문은 PortOne 채널키 하나뿐이다.
+- **주문 기록 코드도 맞췄다**(`92d96e318`). 정본 표의 `orderMethod: "kakaopay"` 가 셸·dp 코어의 요청
+  조립부를 거쳐 주문에 실리므로 결제내역·환불 화면이 "카카오페이"로 뜬다(전에는 전부 `card_general`).
 - 스테이징 실측 2026-08-31: `/api/payments/config` → `kakaopayChannelKey:""` · `kakaopayConfigured:false`.
   프로덕션 응답에는 두 필드가 아예 없다(워커가 main 보다 뒤처져 있다 — 정상).
 
@@ -55,6 +57,14 @@ next: "PortOne 콘솔에서 카카오페이 채널키를 받아 프로덕션 워
   **넣지 말 것** — `scripts/lib/staging-secret-policy.mjs` 가 `/^PORTONE_/` 로 결제 시크릿을 걸러 스테이징
   동기화에서 빼므로, 접두사가 없으면 **프로덕션 채널키가 스테이징 워커로 들어간다.**
   그 별칭은 로컬 `.env.local` 전용이다(`scripts/dev-with-local-auth.mjs:12`).
+- 🔴 **`payMethod` 와 `orderMethod` 는 다른 값이다.** 앞은 PortOne 에 보내는 enum(`EASY_PAY`), 뒤는
+  주문에 기록되는 코드(`kakaopay`)다. 뒤를 서버 라벨표(`worker/routes/payments.js`
+  `resolvePaymentMethodLabel`)가 모르는 값으로 두면 결제내역에 코드 원문이 그대로 노출된다 —
+  `verify:checkout-pass-card` 가 그 존재를 확인한다.
+- **인접한 기존 부정확**(미수정, 2026-08-31 실측): 계좌이체·상품권 3종도 주문에는 `card_general` 로
+  기록돼 결제내역이 "카드 결제"로 뜬다. 고치려면 워커 라벨표와 `app/points/PointsClient.tsx:1131`
+  로케일 라벨표를 함께 늘려야 해서(로케일 문구 작업 동반) 이번 범위에서 뺐다. 카카오페이는 라벨
+  분기가 이미 있어 문구 작업 없이 정확해진다.
 - `easyPayProvider` 는 넣지 않는다 — 카카오페이는 PG사 자체가 간편결제사라 채워도 무시된다.
 - 결제 코드이므로 손대기 전 [docs/context/payment-gating.md](../context/payment-gating.md) 를 읽는다.
   `verify:payment-freeze` 는 이 플립에 반응하지 않았다(2026-08-31 실측: 통과 — region 4 · file 3 · 상한 2).
