@@ -3897,7 +3897,8 @@
       paymentAmount: amountKrw,
       amountKrw: amountKrw,
       coinPriceBasis: coinPrice,
-      paymentMethod: 'card_general',
+      // 🔴 셸(index.html)과 같은 규칙. 고른 카드가 자기 주문 기록 코드를 선언했으면 그것을 쓴다.
+      paymentMethod: _dpResolveDirectPayFields('').orderMethod || 'card_general',
       requestId: String(opts.requestId || '').trim(),
     }, opts.checkoutPayload || {});
 
@@ -4832,7 +4833,8 @@
         paymentMode: 'DIRECT_KRW',
         provider: 'PORTONE_V2',
         pg: 'KG_INICIS',
-        paymentMethod: 'card_general',
+        // 준비 때 기록한 값을 그대로 확정에 싣는다(리다이렉트 복귀 티켓도 이 본문을 쓴다).
+        paymentMethod: checkoutPayload.paymentMethod || 'card_general',
       });
 
       // [regression-guard] No wait overlay before the PG window opens. This used to raise an
