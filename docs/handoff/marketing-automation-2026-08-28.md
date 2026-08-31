@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-08-31
-next: ① 2026-09-01 07:00 KST 크론 뒤 `GET /api/admin/sns-daily-post/status` 에 `2026-09-01 success` + `t.me/Codedestinyofficial` 새 글 확인. 없으면 Cloudflare 대시보드 Workers Logs(켜져 있음)에서 `[CRON] SNS Daily Post` 사유를 본다. ② Threads 축은 §③C-2 — 프로덕션 승격 뒤 `--only-key=THREADS_ACCESS_TOKEN` 투입 → `?channel=threads` 1회 발행이 남아 있다(코드는 머지 완료, 발행 0건).
+next: 2026-09-01 07:00 KST 크론 뒤 `GET /api/admin/sns-daily-post/status` 에서 **두 채널** 확인 — `2026-09-01:telegram`=success(+`t.me/Codedestinyofficial` 새 글) AND `2026-09-01:threads`=success + `responseRef.ids` 4건(공개 Threads 계정 루트1+답글3). 없으면 Cloudflare Workers Logs 의 `[CRON] SNS Daily Post` 사유를 본다. 🔴 threads 축은 이제 **코드·vars·토큰·크론 전부 라이브**(승격 `7d6cbbed7`, 2026-08-31) — 첫 발행을 수동 대신 크론에 위임한 건 사용자 결정이므로, 실패해도 재수동발행 전에 사유부터 본다.
 ---
 # 마케팅 자동화 엔진 — 인수인계 (2026-08-28)
 
@@ -191,10 +191,13 @@ A·B 는 끝났다(#1241 머지, 승격 완료 — 라이브 버전 바인딩에
 부수 발견(범위 밖): `dailyfortunesubscriptions.lastMailError` = Resend `domain is not verified … 403`(07-25),
 마지막 발송 08-19 — 운세 메일 축도 죽어 있을 가능성. 별도 작업.
 
-### C-2. Threads(Meta) 축 — 🔴 2026-08-31 추가, **승격 전이라 아직 발행 0건**
+### C-2. Threads(Meta) 축 — 🔴 2026-08-31 갱신: **승격 완료(`7d6cbbed7`)·토큰 등재 완료·첫 발행은 크론 위임(사용자 결정)**
 
-SNS 발행이 텔레그램 단일 채널 → **텔레그램 + Threads 2채널**이 됐다. 코드는 전부 들어갔고
-크론은 프로덕션에서만 도므로(스테이징 `crons = []`) **프로덕션 승격 전까지 아무 일도 일어나지 않는다.**
+SNS 발행이 텔레그램 단일 채널 → **텔레그램 + Threads 2채널**이 됐다. 2026-08-31 로 코드·vars 승격 완료
+(프로덕션 `/api/version` = `7d6cbbed7`), `THREADS_ACCESS_TOKEN` 시크릿 등재 실측 확인(`wrangler secret list`).
+크론은 프로덕션에서만 돈다(스테이징 `crons = []`). **첫 발행을 수동(`?channel=threads`)으로 하지 않고
+다음 크론에 위임했다 — 사용자 결정(2026-08-31).** 즉 아래 "승격 뒤 실행 순서"의 1번(토큰)은 완료,
+2번(수동 1회)은 건너뛰고 4번(크론 자동)으로 직행한다. 첫 자동 발행 검증은 09-01 07:00 KST.
 
 - 콘텐츠: `worker/lib/threads-daily-content.js` — 루트 1 + 답글 3 체인(각 480자 클램프, 평문).
   원천은 `buildTodaySajuPublic`(날짜만으로 나오는 상세 사주 해설) + `ganji()`. **LLM 0회 · DB 0회.**
@@ -211,7 +214,7 @@ SNS 발행이 텔레그램 단일 채널 → **텔레그램 + Threads 2채널**�
   `GET …/status` 는 채널을 나눠 보여준다(28건 = 14일 × 2채널).
 - 가드: `npm run verify:sns-daily-post` (⑩~⑰ 추가, PR CI **fast 잡**이라 모든 PR 에서 돈다).
 
-**승격 뒤 실행 순서 (각각 되돌릴 수 없는 외부 행위 — 사용자 허락 1회씩):**
+**승격 뒤 실행 순서 (각각 되돌릴 수 없는 외부 행위 — 사용자 허락 1회씩) — 🔴 상태(2026-08-31): 1=완료, 2=건너뜀(크론 위임), 4=대기(09-01 07:00 KST):**
 
 1. `node scripts/sync-cloudflare-worker-secrets.mjs --only-key=THREADS_ACCESS_TOKEN`
    🔴 **등호 필수.** 인자 없이 돌리면 프로덕션 시크릿 27개를 전부 덮어쓴다.
