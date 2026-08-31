@@ -216,9 +216,17 @@ describe("buildReceiptEmail", () => {
   });
 
   test("HTML 특수문자를 이스케이프한다", () => {
-    const { html } = buildReceiptEmail({ ...order, paymentMethod: "<script>x</script>" });
+    // 🔴 문서를 그대로 싣는 칸으로 잰다. 결제수단 칸은 2026-08-31 부터 라벨표를 거치므로
+    // (worker/lib/payment-method-label.js) 원문이 애초에 도달하지 않아 이스케이프를 못 잰다.
+    const { html } = buildReceiptEmail({ ...order, merchantUid: "<script>x</script>" });
     expect(html).not.toContain("<script>");
     expect(html).toContain("&lt;script&gt;");
+  });
+
+  test("🔴 결제수단 칸에 내부 코드 원문이 실리지 않는다", () => {
+    const { html } = buildReceiptEmail({ ...order, paymentMethod: "paymentmethodgiftcertificate" });
+    expect(html).not.toContain("paymentmethodgiftcertificate");
+    expect(html).toContain("상품권");
   });
 });
 

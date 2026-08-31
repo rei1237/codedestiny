@@ -205,6 +205,31 @@ describe("T2 · 확정", () => {
     expect(paid.confirmAttempts).toBe(1);
   });
 
+  // 🔴 2026-08-31 실장애. PortOne V2 는 method.type 으로 `PaymentMethodEasyPay` 까지만 알려준다.
+  // 그 값을 그대로 쓰면 결제창에서 고른 카카오페이·계좌이체·상품권이 승인 순간 지워져,
+  // 결제내역이 전부 "카드 결제"로 뭉개졌다. 수단별 전수는 verify:checkout-pass-card 가 본다.
+  test("🔴 확정이 결제창에서 고른 결제수단을 PG 의 굵은 타입으로 덮지 않는다", async () => {
+    const db = makeFakeDb();
+    const created = await createOrder(db, { userId: USER, product: PRODUCT, idempotencyKey: "idem-1" });
+    const order = { ...created, paymentMethod: "kakaopay" };
+    const paid = await markOrderPaid(db, {
+      orderId: order.merchantUid, order,
+      pg: { ...PG, method: "paymentmethodeasypay" },
+    });
+    expect(paid.paymentMethod).toBe("kakaopay");
+  });
+
+  test("계열이 다르면 실제로 승인된 PG 수단을 기록한다", async () => {
+    const db = makeFakeDb();
+    const created = await createOrder(db, { userId: USER, product: PRODUCT, idempotencyKey: "idem-1" });
+    const order = { ...created, paymentMethod: "card_general" };
+    const paid = await markOrderPaid(db, {
+      orderId: order.merchantUid, order,
+      pg: { ...PG, method: "paymentmethodvirtualaccount" },
+    });
+    expect(paid.paymentMethod).toBe("virtual_account");
+  });
+
   test("🔴 두 번째 확정은 null — 클라·webhook·크론이 동시에 와도 한 번만 처리된다", async () => {
     const db = makeFakeDb();
     const order = await createOrder(db, { userId: USER, product: PRODUCT, idempotencyKey: "idem-1" });

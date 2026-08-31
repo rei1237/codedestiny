@@ -1119,6 +1119,18 @@ function isPassCoveredPayment(payment: Pick<PaymentHistoryItem, "paymentMethod" 
     || accessType === "pass" || accessType === "family" || accessType === "membership_pass";
 }
 
+// 🔴 확정 시점에 PortOne V2 의 method.type 이 그대로 저장된 주문이 있다(worker/payments/orders.js).
+// 내부 코드로 접지 않으면 계좌이체·상품권 결제가 아래 기본값에 삼켜져 "카드 결제"로 보인다.
+// 서버 정본은 worker/lib/payment-method-label.js 의 같은 표다.
+const PG_METHOD_CODE: Record<string, string> = {
+  paymentmethodcard: "card_general",
+  paymentmethodeasypay: "easy_pay",
+  paymentmethodtransfer: "transfer",
+  paymentmethodvirtualaccount: "virtual_account",
+  paymentmethodgiftcertificate: "gift_certificate",
+  paymentmethodmobile: "mobile",
+};
+
 function langSensitiveLabel(copy: PointsPageCopy, ko: string, en: string) {
   return copy === POINTS_PAGE_COPY.ko ? ko : en;
 }
@@ -1131,16 +1143,20 @@ function formatPaymentMethodLabel(payment: PaymentHistoryItem, copy: PointsPageC
   const method = String(payment.paymentMethod || "").trim();
   const normalized = method.toLowerCase();
   if (!method) return String(payment.paymentMethodLabel || "").trim() || "-";
-  if (normalized === "virtual_account") return langSensitiveLabel(copy, "가상계좌", "Virtual account");
-  if (normalized === "transfer") return langSensitiveLabel(copy, "실시간 계좌이체", "Real-time bank transfer");
-  if (normalized === "kakaopay") return "KakaoPay";
-  if (normalized === "naverpay") return "Naver Pay";
+  const code = PG_METHOD_CODE[normalized] || normalized;
+  if (code === "virtual_account") return langSensitiveLabel(copy, "가상계좌", "Virtual account");
+  if (code === "transfer") return langSensitiveLabel(copy, "실시간 계좌이체", "Real-time bank transfer");
+  if (code === "kakaopay") return "KakaoPay";
+  if (code === "naverpay") return "Naver Pay";
+  if (code === "easy_pay") return langSensitiveLabel(copy, "간편결제", "Easy pay");
+  if (code === "mobile") return langSensitiveLabel(copy, "휴대폰 소액결제", "Mobile carrier billing");
   // 상품권은 발행사별로 코드가 다르다(js/core/checkout-entry.js DIRECT_PAY_METHODS.orderMethod).
   // 🔴 여기 없는 코드는 아래 기본값이 삼켜서 "카드 결제"로 보인다 — 표에 orderMethod 를 늘리면
   // 워커 라벨표(resolvePaymentMethodLabel)와 이 분기를 같은 커밋에서 함께 늘린다.
-  if (normalized === "gift_cultureland") return langSensitiveLabel(copy, "컬쳐랜드 문화상품권", "Cultureland gift certificate");
-  if (normalized === "gift_booknlife") return langSensitiveLabel(copy, "도서문화상품권", "Book&Life gift certificate");
-  if (normalized === "gift_smart_munsang") return langSensitiveLabel(copy, "스마트문상", "Smart Munsang gift certificate");
+  if (code === "gift_certificate") return langSensitiveLabel(copy, "상품권", "Gift certificate");
+  if (code === "gift_cultureland") return langSensitiveLabel(copy, "컬쳐랜드 문화상품권", "Cultureland gift certificate");
+  if (code === "gift_booknlife") return langSensitiveLabel(copy, "도서문화상품권", "Book&Life gift certificate");
+  if (code === "gift_smart_munsang") return langSensitiveLabel(copy, "스마트문상", "Smart Munsang gift certificate");
   // 준비 단계 레코드는 paymentMethod가 single_purchase/unknown으로 저장된다(payments.js prepare 기본값).
   // 어느 쪽이든 원화 단건 결제 건이므로 내부 코드명이 그대로 노출되지 않게 카드 결제로 묶는다.
   return copy.paymentMethods.cardGeneral?.label || langSensitiveLabel(copy, "카드 결제", "Card payment");

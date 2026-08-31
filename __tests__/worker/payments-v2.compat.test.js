@@ -160,3 +160,27 @@ describe("🔴 신규 5상태가 구 판정 로직을 그대로 통과한다", (
     expect(resolveStatusLikeClient("refunded", "CANCELLED")).toBe("refunded");
   });
 });
+
+/**
+ * 🔴 2026-08-31 실장애. `paymentMethodLabel` 은 저장되는 필드가 아닌데(worker/lib/models.js 에 없다)
+ * 어댑터가 `order.paymentMethodLabel || order.paymentMethod` 로 폴백해서, 주문 상세가 **항상**
+ * 내부 코드 원문을 보여줬다. 라벨표 정본은 worker/lib/payment-method-label.js 하나뿐이다.
+ */
+describe("🔴 주문 상세가 코드 원문을 내보내지 않는다", () => {
+  test("확정이 저장한 PortOne V2 타입도 사람이 읽는 라벨로 나간다", () => {
+    const detail = toLegacyOrderDetail({ ...ORDER, paymentMethod: "paymentmethodeasypay" });
+    expect(detail.paymentMethodLabel).toBe("간편결제");
+    expect(detail.paymentMethodLabel).not.toMatch(/paymentmethod/i);
+  });
+
+  test("표에 없는 코드도 원문이 새지 않는다", () => {
+    const detail = toLegacyOrderDetail({ ...ORDER, paymentMethod: "some_future_pg_code" });
+    expect(detail.paymentMethodLabel).not.toContain("some_future_pg_code");
+  });
+
+  test("판정용 원본 코드는 그대로 남는다 — 클라가 라벨이 아니라 코드로 분기한다", () => {
+    const detail = toLegacyOrderDetail({ ...ORDER, paymentMethod: "kakaopay" });
+    expect(detail.paymentMethod).toBe("kakaopay");
+    expect(detail.paymentMethodLabel).toBe("카카오페이");
+  });
+});

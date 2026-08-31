@@ -22,6 +22,7 @@
  */
 
 import { Payment, User } from "../lib/models.js";
+import { resolvePaymentMethodLabel } from "../lib/payment-method-label.js";
 import { sendEmail as sendEmailViaResend } from "../lib/resend.js";
 import { BUSINESS_IDENTITY, BUSINESS_PHONE_INTL, SUPPORT_EMAIL } from "../../lib/site-policy-config.js";
 import { RECEIPT_WITHDRAWAL_ROWS } from "../../lib/legal/refund-policy-rows.js";
@@ -117,7 +118,8 @@ const ROWS = [
   ["결제일시 / Paid at", (order) => formatKstDateTime(order.paidAt || order.updatedAt)],
   ["상품명 / Item", (order) => resolveOrderProductName(order)],
   ["결제금액 / Amount", (order) => `${Number(order.paymentAmount || 0).toLocaleString("ko-KR")}원 (KRW)`],
-  ["결제수단 / Method", (order) => String(order.paymentMethod || "card")],
+  // 🔴 영수증은 법정 통지라 내부 코드가 그대로 나가면 안 된다(예전엔 order.paymentMethod 원문이었다).
+  ["결제수단 / Method", (order) => resolvePaymentMethodLabel(order)],
   ["제공시점 / Delivered", () => "결제 승인 직후 디지털 콘텐츠로 제공 / Digital content, delivered immediately after approval"],
 ];
 

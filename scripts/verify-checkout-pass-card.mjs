@@ -97,6 +97,17 @@ function flush() {
   return new Promise((resolve) => { setTimeout(resolve, 0); });
 }
 
+// 공유 라벨표(worker/lib/payment-method-label.js)를 **실행 가능한 형태로** 가져온다. package.json 이
+// commonjs 라 워커 ESM 을 그냥 import 할 수 없어서, 소스를 읽어 export 만 벗기고 평가한다.
+// 🔴 이 모듈은 import 가 하나도 없다는 전제 위에 있다 — 생기면 여기가 먼저 터진다(원하는 동작이다).
+function loadPaymentMethodLabels() {
+  const source = fs.readFileSync(path.join(ROOT, "worker/lib/payment-method-label.js"), "utf8");
+  assert.ok(!/^\s*import\s/m.test(source), "payment-method-label.js 에 import 가 생겼다 — 이 로더를 고쳐라");
+  const names = Array.from(source.matchAll(/^export\s+(?:function|const)\s+([A-Za-z0-9_]+)/gm), (m) => m[1]);
+  assert.ok(names.length > 0, "payment-method-label.js 에서 export 를 하나도 못 찾았다 — 대상이 없으면 통과시키지 않는다");
+  return new Function(`${source.replace(/^export\s+/gm, "")}\nreturn { ${names.join(", ")} };`)();
+}
+
 const failures = [];
 function check(label, fn) {
   try {
@@ -758,14 +769,38 @@ console.log("\n[13] 단건결제 2단계 결제수단 흐름");
       }
     }
     assert.ok(named > 0, "channelKeyName 을 쓰는 카드가 하나도 없다 — 검사 대상이 없으면 통과시키지 않는다");
-    // 🔴 기록 코드는 서버 라벨표가 아는 값이어야 한다 — 모르는 값은 resolvePaymentMethodLabel 의 마지막
-    // return 이 코드 원문을 그대로 화면에 노출한다(예: 결제내역에 "easy_pay").
+    // 🔴 기록 코드는 서버 라벨표가 아는 값이어야 한다 — 모르는 값은 라벨 해석기가 "카드 결제"로 접어
+    // 버려, 카카오페이·계좌이체·상품권 결제가 결제내역에서 전부 카드로 보인다(2026-08-31 실장애).
+    // 🔴 문자열 존재 검사가 아니라 공유 모듈을 **실제로 실행**한다 — 표가 객체로 바뀌어도 계속 유효하다.
     if (orderMethods.length > 0) {
-      const labelSource = fs.readFileSync(path.join(ROOT, "worker/routes/payments.js"), "utf8");
+      const labels = loadPaymentMethodLabels();
       for (const [id, method] of orderMethods) {
+        const label = labels.resolvePaymentMethodLabel({ paymentMethod: method });
+        assert.ok(label && label !== method, `${id}: 라벨표가 "${method}" 를 그대로 돌려준다 — 코드 원문이 화면에 나간다`);
+        if (!/^card/.test(method)) {
+          assert.notEqual(
+            label,
+            labels.GENERIC_PAID_LABEL,
+            `${id}: 라벨표에 "${method}" 분기가 없어 "${labels.GENERIC_PAID_LABEL}" 로 접힌다`,
+          );
+        }
+        // 🔴 확정(markOrderPaid)이 PG 의 굵은 타입으로 이 코드를 덮으면 위 라벨은 아무 의미가 없다.
+        const family = labels.paymentMethodFamily(method);
+        assert.ok(family, `${id}: "${method}" 가 계열 표에 없다 — 확정 시점에 PG 타입이 이겨 코드가 사라진다`);
+        for (const [pgType, coarse] of Object.entries(labels.PG_METHOD_CODE)) {
+          if (labels.paymentMethodFamily(coarse) !== family) continue;
+          assert.equal(
+            labels.resolveConfirmedPaymentMethod(method, pgType),
+            method,
+            `${id}: 확정이 "${method}" 를 PG 의 "${pgType}" 로 덮는다 — 결제내역이 다시 "카드 결제"로 뭉개진다`,
+          );
+        }
+      }
+      // 읽기 경로가 하나라도 공유 라벨표를 안 거치면 그 화면에서만 코드 원문이 샌다.
+      for (const file of ["worker/routes/payments.js", "worker/payments/compat.js", "worker/payments/receipt-email.js"]) {
         assert.ok(
-          labelSource.includes(`normalized === "${method}"`),
-          `${id}: worker 라벨표에 "${method}" 분기가 없다 — 결제내역이 코드 원문을 그대로 보여준다`,
+          fs.readFileSync(path.join(ROOT, file), "utf8").includes("payment-method-label.js"),
+          `${file}: 공유 라벨표를 import 하지 않는다 — 이 경로가 코드 원문을 그대로 내보낸다`,
         );
       }
       for (const file of ["index.html", "js/destiny-profile.js"]) {

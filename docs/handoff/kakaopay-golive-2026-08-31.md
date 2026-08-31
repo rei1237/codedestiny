@@ -28,9 +28,10 @@ next: "실기기에서 카카오페이 1건을 실제로 결제해 리다이렉�
 - [ ] **실사용 1건** — 모바일에서 카카오페이를 실제로 결제해 리다이렉트 복귀 확인.
       판정: 복귀 후 콘텐츠가 열리고 결제내역에 "카카오페이"로 뜬다.
       🔴 실결제는 사용자만 실행한다(CLAUDE.md 절대규칙 2).
-- [ ] **V2 컷오버 때** `worker/payments/compat.js:62` 에는 라벨표가 없다 — `paymentMethodLabel` 을
-      쓰는 곳이 하나도 없어 `order.paymentMethod` 원문(`gift_cultureland` 등)이 그대로 노출된다.
-      지금 라이브 읽기 경로는 `worker/routes/payments.js:743` 이라 **현재 영향 0**.
+- [x] (2026-08-31 해결) 결제수단 코드 원문 노출. 🔴 앞선 기록의 "현재 영향 0" 은 **오판이었다** —
+      주문 상세는 이미 V2(`worker/index.js` 의 `legacyShape`)를 타므로 `compat.js` 가 라이브였고,
+      게다가 `markOrderPaid` 가 승인 순간 `paymentMethod` 를 PortOne 타입으로 덮어써 카카오페이·
+      계좌이체·상품권이 지워지고 있었다. 라벨 정본은 `worker/lib/payment-method-label.js` 하나다.
 
 ## 정본 예시
 
@@ -49,6 +50,12 @@ next: "실기기에서 카카오페이 1건을 실제로 결제해 리다이렉�
 - 🔴 새 채널키를 `PORTONE_REQUIRED_ENV_KEYS` 에 넣지 말 것 — 값이 없을 때 카드·계좌이체·상품권까지 503.
 - 🔴 `--only-key=` 는 스테이징 제외 필터를 우회한다 — `.env.staging.local` 이 비면 프로덕션 키가 스테이징으로 간다.
 - `easyPayProvider` 는 넣지 않는다 — 카카오페이는 PG사 자체가 간편결제사라 채워도 무시된다.
+- 🔴 **결제수단 라벨표를 어느 파일 안에 직접 두지 말 것.** 읽기 경로가 셋이라(주문 상세 `compat.js` ·
+  결제내역 `routes/payments.js` · 영수증 메일) 표를 복제하면 반드시 갈라진다. 정본은
+  `worker/lib/payment-method-label.js` 뿐이고, `verify:checkout-pass-card` 가 그 모듈을 **실행해**
+  결제창 표의 `orderMethod` 전수를 단언한다.
+- 🔴 **확정은 PG 가 준 굵은 타입으로 우리 코드를 덮지 않는다.** PortOne V2 는 `PaymentMethodEasyPay`
+  까지만 알려줘서, 그대로 저장하면 결제창에서 고른 브랜드가 승인 순간 사라진다.
 
 ## 검증
 

@@ -28,6 +28,7 @@
  * 기존 행 100% 가 그대로 매핑된다.
  */
 import { Payment } from "../lib/models.js";
+import { resolveConfirmedPaymentMethod } from "../lib/payment-method-label.js";
 import { paymentError } from "./errors.js";
 import { toObjectId } from "./db.js";
 
@@ -191,7 +192,9 @@ export async function markOrderPaid(db, { orderId, order, pg }) {
         orderState: "PAID_VERIFIED",
         impUid: pg.pgTransactionId,
         paidAt: pg.paidAt || new Date(),
-        paymentMethod: pg.method || "unknown",
+        // 🔴 PG 의 굵은 타입으로 결제창에서 고른 수단을 덮지 않는다 — PortOne V2 는 EasyPay 까지만
+        // 알려줘서, 그대로 쓰면 카카오페이·계좌이체·상품권이 승인 순간 지워진다(2026-08-31).
+        paymentMethod: resolveConfirmedPaymentMethod(order?.paymentMethod, pg.method),
         chargedPoints: Number(order?.expectedChargedPoints || 0),
         rawPortOne: pg.summary, // 요약본이다 — customer(PII)는 pg.js 가 이미 떨어뜨렸다
         failureCode: "", failureMessage: "", failureStage: "",
