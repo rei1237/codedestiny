@@ -1,4 +1,3 @@
-    if (_cdBypass) requestData.bypass = _cdBypass;
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -22802,6 +22801,7 @@ return you.name.restore();</span>
     // 2단계에서 다른 PG(카카오페이 등)를 고른 것이고, 그 채널에 inicis_v2 키를 실었을 때의
     // 동작은 미문서다 — 거절이라면 결제창이 아예 안 뜬다(PR #104 급 최악).
     var _cdBypass = directPayFields.channelKeyName ? null : _cdPortoneBypass();
+    if (_cdBypass) requestData.bypass = _cdBypass;
     try {
       console.info('[main-paid-service-gate] direct checkout payload ready', {
         featureKey: String(order.featureKey || checkoutPayload.featureKey || directFeatureKey || ''),
