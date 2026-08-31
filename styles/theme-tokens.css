@@ -199,6 +199,25 @@ html[data-cd-theme="neo"] {
   --cd-btn-pad: 12px 24px;
   --cd-btn-h-lg: 56px;
   --cd-btn-pad-lg: 16px 38px;
+
+  /* 계정 진입 CTA (cd-auth-cta-v20260831) — 회원가입=Primary, 로그인=Secondary(Ghost).
+     연이는 딥플럼+로즈, 네오는 밤하늘(#1a1025)+샴페인 골드. 계열이 갈리는 것은 Hue-Stays Rule
+     때문이다(연이가 네이비·퍼플로 새면 안 되고, 네오에 핑크를 넣으면 One Accent Rule 위반).
+     대비 실측(2026-08-31, WCAG 상대휘도 계산):
+       연이 Primary  #fff1f7 on #3a0e28 = 15.06:1
+       연이 Ghost    #8e3f63 on 크림 #fffaf7 = 6.66:1 / hover #b31955 on #f7e4e7 = 5.40:1
+       네오 Primary  #f4e9c8 on #1a1025 = 15.14:1
+       네오 Ghost    #e8d5a3 on 다크 컨테이너 = 13.19:1
+     🔴 클래식 로즈골드 #b76e79 은 크림 위 3.67:1 로 본문 4.5:1 미달이라 쓰지 않는다. */
+  --cd-cta-primary-bg: #3a0e28;
+  --cd-cta-primary-bg-2: #24081a;
+  --cd-cta-primary-ink: #fff1f7;
+  --cd-cta-hairline: rgba(234, 208, 137, 0.55);
+  --cd-cta-glow: rgba(234, 208, 137, 0.34);
+  --cd-cta-ghost-ink: #8e3f63;
+  --cd-cta-ghost-line: rgba(216, 63, 120, 0.32);
+  --cd-cta-ghost-fill: rgba(179, 25, 85, 0.1);
+  --cd-cta-ghost-ink-on: #b31955;
 }
 
 html.neo-mode,
@@ -210,6 +229,17 @@ html[data-cd-theme="neo"] {
   --cd-hairline: rgba(232, 213, 163, 0.44);
   --cd-skeleton-base: rgba(28, 22, 58, 0.82);
   --cd-skeleton-sheen: rgba(196, 181, 253, 0.16);
+
+  /* 계정 진입 CTA — 네오 세트. 대비 실측치는 :root 쪽 주석에 함께 있다. */
+  --cd-cta-primary-bg: #1a1025;
+  --cd-cta-primary-bg-2: #0e0818;
+  --cd-cta-primary-ink: #f4e9c8;
+  --cd-cta-hairline: rgba(232, 213, 163, 0.44);
+  --cd-cta-glow: rgba(232, 213, 163, 0.38);
+  --cd-cta-ghost-ink: #e8d5a3;
+  --cd-cta-ghost-line: rgba(232, 213, 163, 0.34);
+  --cd-cta-ghost-fill: rgba(232, 213, 163, 0.16);
+  --cd-cta-ghost-ink-on: #f4e9c8;
 }
 
 @media (prefers-reduced-motion: reduce) {
