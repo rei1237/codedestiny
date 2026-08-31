@@ -596,7 +596,7 @@
     // 서버 config 를 주입해야 하고, 그러면 resolveDirectPayFields 시그니처가 바뀐다.
     // easyPayProvider 는 넣지 않는다 — 카카오페이는 PG사 자체가 간편결제사라 채워도 무시된다
     // (PortOne V2 카카오페이 연동 문서, 2026-08-31 확인).
-    KAKAOPAY: { enabled: false, payMethod: "EASY_PAY", channelKeyName: "kakaopayChannelKey", glyph: "💛" },
+    KAKAOPAY: { enabled: true, payMethod: "EASY_PAY", channelKeyName: "kakaopayChannelKey", glyph: "💛" },
     MOBILE: { enabled: false, payMethod: "MOBILE", glyph: "📱" },
     // 🔴 KG이니시스가 PortOne V2 로 태울 수 있는 상품권은 이 3종뿐이다. 해피머니·CULTURE_GIFT 는
     // 이니시스 상점에 등록돼 있어도 이 경로에 대응 값이 없어 넣을 수 없다.
