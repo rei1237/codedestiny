@@ -269,6 +269,7 @@
     "verify:payment-choice-parity": "node scripts/verify-payment-choice-parity.mjs",
     "verify:payment-phone-consent": "node scripts/verify-payment-phone-consent.mjs",
     "verify:payment-copy-dictionary": "node scripts/verify-payment-copy-dictionary.mjs",
+    "verify:payment-legal-copy": "node scripts/verify-payment-legal-copy.mjs",
     "verify:overseas-payment-notice": "node scripts/verify-overseas-payment-notice.mjs",
     "verify:nakshatra-price-copy": "node scripts/verify-nakshatra-price-copy.mjs",
     "verify:i18n-price-drift": "node scripts/verify-i18n-price-drift.mjs",

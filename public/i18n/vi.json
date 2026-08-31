@@ -1542,11 +1542,6 @@
         "icon": "💳",
         "label": "Thanh toán an toàn",
         "value": "Đã được xác minh sọc · Tất cả các thẻ chính"
-      },
-      {
-        "icon": "🔄",
-        "label": "Bảo đảm",
-        "value": "Lời hứa hoàn tiền trong 30 ngày"
       }
     ]
   },
@@ -1570,7 +1565,6 @@
       "editorial": "Chính sách biên tập",
       "advertising": "Chính sách quảng cáo"
     },
-    "refundPolicy": "Nội dung số trả phí được hoàn lại trong vòng 14 ngày kể từ ngày mua nếu chưa sử dụng, theo luật bảo vệ người tiêu dùng. Nội dung đã sử dụng sẽ không được hoàn lại. Liên hệ hỗ trợ để được hỗ trợ.",
     "copyright": "© 2025 Code Destiny. Mọi quyền được bảo lưu. Chỉ nhằm mục đích giải trí và tự suy ngẫm - không thay thế cho lời khuyên chuyên môn.",
     "privacyNotice": "Dịch vụ này chỉ thu thập và sử dụng ngày sinh, giờ sinh và giới tính trong phạm vi cần thiết để cung cấp kết quả saju/bói và hỗ trợ khách hàng liên quan. Khi mục đích thu thập đã đạt được hoặc dịch vụ kết thúc, thông tin sẽ bị hủy ngay lập tức trừ khi pháp luật yêu cầu lưu giữ.",
     "policyLinksAria": "Chính sách và liên kết liên hệ",
@@ -1818,7 +1812,7 @@
         "signedOut": "Đăng nhập để xem số dư."
       },
       "legal": {
-        "provisionTiming": "Dịch vụ này được cung cấp ngay sau khi thanh toán hoàn tất. Việc sử dụng dịch vụ bắt đầu từ thời điểm thanh toán được xác nhận, và các nội dung đã được cung cấp có thể bị hạn chế quyền hủy bỏ theo Luật Thương mại điện tử."
+        "provisionTiming": "Dịch vụ này được cung cấp ngay sau khi thanh toán hoàn tất. Việc sử dụng dịch vụ bắt đầu từ thời điểm thanh toán được xác nhận, và các nội dung đã được cung cấp có thể bị hạn chế quyền hủy bỏ theo Luật Thương mại điện tử. Hợp đồng do người chưa thành niên giao kết mà không có sự đồng ý của người đại diện theo pháp luật có thể bị chính người chưa thành niên hoặc người đại diện theo pháp luật hủy bỏ."
       },
       "passUpgradeTitle": "Nâng cấp vé",
       "recommendBadge": "Đề xuất",
@@ -2067,8 +2061,8 @@
       "passAppliedContinue": "Đã mở bằng thẻ của bạn."
     },
     "overseas": {
-      "approx": "approx. {amount}",
-      "chargedInKrw": "Payment is authorized in Korean Won (KRW). International cards (VISA · Mastercard · JCB · Diners) are accepted, and your card issuer applies its own exchange rate."
+      "approx": "khoảng {amount}",
+      "chargedInKrw": "Thanh toán được ủy quyền bằng Won Hàn Quốc (KRW). Chấp nhận thẻ quốc tế (VISA · Mastercard · JCB · Diners), và đơn vị phát hành thẻ của bạn áp dụng tỷ giá riêng."
     }
   },
   "auth": {

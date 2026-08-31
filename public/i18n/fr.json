@@ -1446,11 +1446,6 @@
         "icon": "💳",
         "label": "Paiement Sécurisé",
         "value": "Certifié Stripe · Cartes principales"
-      },
-      {
-        "icon": "🔄",
-        "label": "Garantie",
-        "value": "Remboursement sous 30 jours"
       }
     ]
   },
@@ -1468,7 +1463,6 @@
       "editorial": "Politique éditoriale",
       "advertising": "Politique en matière de publicité"
     },
-    "refundPolicy": "Les achats de contenu numérique payant sont remboursables dans les 14 jours suivant l'achat s'ils n'ont pas été utilisés, conformément à la loi sur la protection des consommateurs.",
     "copyright": "© 2025 Code Destiny. Tous droits réservés. À des fins de divertissement et d'introspection uniquement, ne remplace pas un conseil professionnel.",
     "sections": {
       "services": "Services",
@@ -1818,7 +1812,7 @@
         "signedOut": "Connectez-vous pour voir votre solde."
       },
       "legal": {
-        "provisionTiming": "Ce service est fourni immédiatement après le paiement. L'utilisation du service commence dès la confirmation du paiement, et le droit de rétractation peut être limité pour le contenu déjà fourni, conformément à la loi sur le commerce électronique."
+        "provisionTiming": "Ce service est fourni immédiatement après le paiement. L'utilisation du service commence dès la confirmation du paiement, et le droit de rétractation peut être limité pour le contenu déjà fourni, conformément à la loi sur le commerce électronique. Un contrat conclu par un mineur sans le consentement de son représentant légal peut être annulé par le mineur lui-même ou par son représentant légal."
       },
       "passUpgradeTitle": "Passer à un pass supérieur",
       "recommendBadge": "Recommandé",
@@ -2067,8 +2061,8 @@
       "passAppliedContinue": "Ouvert avec votre pass."
     },
     "overseas": {
-      "approx": "approx. {amount}",
-      "chargedInKrw": "Payment is authorized in Korean Won (KRW). International cards (VISA · Mastercard · JCB · Diners) are accepted, and your card issuer applies its own exchange rate."
+      "approx": "env. {amount}",
+      "chargedInKrw": "Le paiement est autorisé en wons coréens (KRW). Les cartes internationales (VISA · Mastercard · JCB · Diners) sont acceptées, et votre émetteur de carte applique son propre taux de change."
     }
   },
   "auth": {
