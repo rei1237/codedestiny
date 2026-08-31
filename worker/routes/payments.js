@@ -674,8 +674,15 @@ function resolvePaymentMethodLabel(payment) {
   }
   if (normalized === "card_general" || normalized === "card") return "카드 결제";
   if (normalized === "virtual_account") return "가상계좌";
+  if (normalized === "transfer") return "실시간 계좌이체";
   if (normalized === "kakaopay") return "카카오페이";
   if (normalized === "naverpay") return "네이버페이";
+  // 상품권은 발행사별로 다른 코드로 기록된다(js/core/checkout-entry.js DIRECT_PAY_METHODS.orderMethod).
+  // 🔴 여기 없는 코드는 아래 return 이 **코드 원문을 그대로 노출**하므로 표에 orderMethod 를 늘리면
+  // 반드시 같은 커밋에서 이 분기도 늘린다.
+  if (normalized === "gift_cultureland") return "컬쳐랜드 문화상품권";
+  if (normalized === "gift_booknlife") return "도서문화상품권";
+  if (normalized === "gift_smart_munsang") return "스마트문상";
   return method || "-";
 }
 

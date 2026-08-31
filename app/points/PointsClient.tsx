@@ -1132,8 +1132,15 @@ function formatPaymentMethodLabel(payment: PaymentHistoryItem, copy: PointsPageC
   const normalized = method.toLowerCase();
   if (!method) return String(payment.paymentMethodLabel || "").trim() || "-";
   if (normalized === "virtual_account") return langSensitiveLabel(copy, "가상계좌", "Virtual account");
+  if (normalized === "transfer") return langSensitiveLabel(copy, "실시간 계좌이체", "Real-time bank transfer");
   if (normalized === "kakaopay") return "KakaoPay";
   if (normalized === "naverpay") return "Naver Pay";
+  // 상품권은 발행사별로 코드가 다르다(js/core/checkout-entry.js DIRECT_PAY_METHODS.orderMethod).
+  // 🔴 여기 없는 코드는 아래 기본값이 삼켜서 "카드 결제"로 보인다 — 표에 orderMethod 를 늘리면
+  // 워커 라벨표(resolvePaymentMethodLabel)와 이 분기를 같은 커밋에서 함께 늘린다.
+  if (normalized === "gift_cultureland") return langSensitiveLabel(copy, "컬쳐랜드 문화상품권", "Cultureland gift certificate");
+  if (normalized === "gift_booknlife") return langSensitiveLabel(copy, "도서문화상품권", "Book&Life gift certificate");
+  if (normalized === "gift_smart_munsang") return langSensitiveLabel(copy, "스마트문상", "Smart Munsang gift certificate");
   // 준비 단계 레코드는 paymentMethod가 single_purchase/unknown으로 저장된다(payments.js prepare 기본값).
   // 어느 쪽이든 원화 단건 결제 건이므로 내부 코드명이 그대로 노출되지 않게 카드 결제로 묶는다.
   return copy.paymentMethods.cardGeneral?.label || langSensitiveLabel(copy, "카드 결제", "Card payment");

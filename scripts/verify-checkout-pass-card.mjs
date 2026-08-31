@@ -783,6 +783,47 @@ console.log("\n[13] 단건결제 2단계 결제수단 흐름");
     }
   });
 
+  // 🔴 위 검사는 "이름이 문자열로 존재하는가"까지만 본다. 2026-08-31 카카오페이 사고는 그 이름이 셸에도
+  // 워커에도 다 있는데 **클라이언트 투영기가 값을 떨어뜨려서** 났다 — 인라인 config 를 5개 키
+  // 화이트리스트로 만들었고, 그 뒤 early-return 때문에 키를 제대로 싣는 /api/payments/config 폴백이
+  // 영영 안 돌았다. 그래서 여기서는 투영기를 소스에서 잘라 내 **실제로 호출**한다.
+  // 🔴 검사할 채널키 이름을 배열로 적지 않는다 — 표에서 전수 발견하고, 하나도 못 찾으면 실패시킨다.
+  check("클라이언트 투영기가 표의 전용 채널키를 하나도 떨어뜨리지 않는다", () => {
+    const coreSource = fs.readFileSync(path.join(ROOT, "js/core/checkout-entry.js"), "utf8");
+    const table = coreSource.match(/var DIRECT_PAY_METHODS = \{([\s\S]*?)\n {2}\};/);
+    assert.ok(table, "DIRECT_PAY_METHODS 표를 찾지 못했다 — 표를 옮겼다면 이 검사도 함께 고쳐라");
+    const channelKeyNames = Array.from(new Set(
+      Array.from(table[1].matchAll(/channelKeyName:\s*"([^"]+)"/g), (m) => m[1]),
+    ));
+    assert.ok(channelKeyNames.length > 0, "표에서 channelKeyName 을 하나도 못 찾았다 — 대상이 없으면 통과시키지 않는다");
+
+    for (const [file, fnName] of [
+      ["index.html", "_cdProjectInlineCheckoutConfig"],
+      ["js/destiny-profile.js", "_dpProjectInlineCheckoutConfig"],
+    ]) {
+      const source = fs.readFileSync(path.join(ROOT, file), "utf8");
+      assert.match(
+        source,
+        new RegExp(`=\\s*${fnName}\\(order, checkoutData\\)`),
+        `${file}: 결제 요청 조립부가 ${fnName} 을 쓰지 않는다 — 투영을 인라인으로 되돌리면 이 검사가 무력해진다`,
+      );
+      const fnSource = sliceFunction(source, `function ${fnName}(`, fnName);
+      const project = new Function(`${fnSource}\nreturn ${fnName};`)();
+      for (const name of channelKeyNames) {
+        for (const [origin, order, checkoutData] of [
+          ["order", { storeId: "s", channelKey: "c", [name]: "v" }, null],
+          ["checkoutData", null, { storeId: "s", channelKey: "c", [name]: "v" }],
+        ]) {
+          assert.equal(
+            project(order, checkoutData)[name],
+            "v",
+            `${file}: ${name} 이(가) ${origin} 투영에서 사라졌다 — 그 수단은 100% "설정값 누락"으로 죽는다`,
+          );
+        }
+      }
+    }
+  });
+
   clickNode('[data-mode="direct"]');
   await flush();
   check("단건 카드는 창을 닫지 않고 2단계로 전환한다", () => {

@@ -3976,6 +3976,31 @@
     return fallback || 'Code Destiny';
   }
 
+  // checkout 응답에 실려 온 PG 설정을 결제 요청용 config 로 투영한다(셸의 _cdProjectInlineCheckoutConfig 짝).
+  // 🔴 이 함수가 키를 떨어뜨리면 그 수단은 환경과 무관하게 100% 채널키 누락으로 죽는다 — 호출부는
+  // storeId/channelKey 만 채워지면 /api/payments/config 폴백을 건너뛰기 때문이다(2026-08-31 카카오페이 사고:
+  // 5개 키 화이트리스트가 kakaopayChannelKey 를 버렸다).
+  // 🔴 그래서 수단 전용 채널키는 이름을 고정하지 않고 접미사로 전수 통과시킨다. DIRECT_PAY_METHODS 에
+  // 채널키가 하나 늘 때마다 여기를 같이 고쳐야 하는 구조 자체가 사고의 원인이었다.
+  function _dpProjectInlineCheckoutConfig(order, checkoutData) {
+    var config = {
+      storeId: String((order && order.storeId) || (checkoutData && checkoutData.storeId) || '').trim(),
+      channelKey: String((order && order.channelKey) || (checkoutData && checkoutData.channelKey) || '').trim(),
+      currency: (order && order.currency) || (checkoutData && checkoutData.currency),
+      payMethod: (order && order.payMethod) || (checkoutData && checkoutData.payMethod),
+      noticeUrl: (order && order.noticeUrl) || (checkoutData && checkoutData.noticeUrl),
+    };
+    [order, checkoutData].forEach(function (source) {
+      if (!source || typeof source !== 'object') return;
+      Object.keys(source).forEach(function (key) {
+        if (key === 'channelKey' || !/ChannelKey$/.test(key) || config[key]) return;
+        var value = String(source[key] || '').trim();
+        if (value) config[key] = value;
+      });
+    });
+    return config;
+  }
+
   // PortOne V2 는 실패를 reject 하지 않고 {code, message} 로 resolve 한다. 사용자 취소만 취소로 분류한다.
   function _dpIsPortOneUserCancelCode(code) {
     var normalized = String(code || '').trim().toUpperCase();
@@ -4747,13 +4772,7 @@
       // currency/payMethod/noticeUrl \uB3C4 \uD568\uAED8 \uBC1B\uB294\uB2E4 \u2014 storeId/channelKey \uB9CC \uC77D\uC73C\uBA74 /api/payments/config
       // \uD3F4\uBC31\uC774 \uC0AC\uB77C\uC9C4 \uC21C\uAC04 noticeUrls(\uC6F9\uD6C5 \uD1B5\uC9C0 URL)\uAC00 \uC870\uC6A9\uD788 \uBE60\uC9C4\uB2E4. \uC178\uC758 _cdResolveDirectCheckoutConfig
       // \uC640 \uAC19\uC740 \uD544\uB4DC \uC9D1\uD569\uC73C\uB85C \uB9DE\uCD98\uB2E4.
-      var config = {
-        storeId: String((order && order.storeId) || (checkoutData && checkoutData.storeId) || '').trim(),
-        channelKey: String((order && order.channelKey) || (checkoutData && checkoutData.channelKey) || '').trim(),
-        currency: (order && order.currency) || (checkoutData && checkoutData.currency),
-        payMethod: (order && order.payMethod) || (checkoutData && checkoutData.payMethod),
-        noticeUrl: (order && order.noticeUrl) || (checkoutData && checkoutData.noticeUrl),
-      };
+      var config = _dpProjectInlineCheckoutConfig(order, checkoutData);
       if (!config.storeId || !config.channelKey) {
         var configRes = await _dpPaymentFetchJson('/api/payments/config', { method: 'GET' });
         if (!configRes.ok) throw new Error(_dpReadBillingMessage(configRes.payload, '\uACB0\uC81C \uD658\uACBD \uC124\uC815\uC744 \uD655\uC778\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4.'));
@@ -4784,7 +4803,11 @@
         ? String(config[directPayFields.channelKeyName] || '').trim()
         : config.channelKey;
       if (!channelKey) {
-        throw new Error('선택한 결제수단의 포트원 채널 설정이 없습니다.');
+        // 🔴 전용 채널키만 빈 경우는 결제 배관이 아니라 "그 수단만" 못 쓰는 상태다 — 다른 수단으로
+        // 돌아가면 결제를 끝낼 수 있다는 걸 문구가 말해 줘야 사용자가 이탈하지 않는다.
+        throw new Error(directPayFields.channelKeyName
+          ? '선택한 결제수단은 현재 이용할 수 없습니다. 다른 결제수단으로 다시 시도해 주세요.'
+          : '선택한 결제수단의 포트원 채널 설정이 없습니다.');
       }
       var requestData = {
         storeId: config.storeId,
