@@ -262,7 +262,16 @@
       if (item.desc) {
         var desc = document.createElement("span");
         desc.className = "fortune-gateway__rec-desc";
-        desc.textContent = item.desc;
+        /* 카드는 언어 전환 이후에도 다시 그려지므로 마커를 같이 남긴다.
+           data-cd-origin-text 를 한국어로 못 박아 두는 게 핵심이다 — 안 그러면
+           markNativeNodes 가 방금 칠한 번역문을 원문으로 저장해, ko 로 되돌릴 때
+           영어가 그대로 굳는다(cd-lang-native.js 의 applyNativeTranslations ko 분기). */
+        var descKey = "home.svcDesc." + item.id;
+        desc.setAttribute("data-cd-trans", "");
+        desc.setAttribute("data-key", descKey);
+        desc.setAttribute("data-cd-origin-text", item.desc);
+        desc.classList.add("notranslate");
+        desc.textContent = translate(descKey, item.desc);
         node.appendChild(desc);
       }
 
