@@ -1210,6 +1210,7 @@
       "neoSubmit": "Abonnieren"
     },
     "heroTrust": {
+      "compat": "Free compatibility check",
       "free": "Kostenloser Start verfügbar",
       "freeAria": "Gehen Sie zur kostenlosen Schicksalskarte",
       "insights": "Einblicke in die Zukunft",

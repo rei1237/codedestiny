@@ -1210,6 +1210,7 @@
       "neoSubmit": "Subscribe"
     },
     "heroTrust": {
+      "compat": "Free compatibility check",
       "free": "Free start available",
       "freeAria": "Go to the free destiny card",
       "insights": "Fortune insights",

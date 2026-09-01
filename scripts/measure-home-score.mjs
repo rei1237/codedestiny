@@ -36,8 +36,9 @@
  *   - 첫 화면 가림: 진단의 "결함 2건"은 **가린 고정 레이어 수**다(요소 수로는 4개). 그래서 여기서도
  *     덮은 요소의 고정/스티키 조상으로 묶어 센다.
  *   - 첫 화면 서비스 링크: `window.__cdServiceRegistry` 의 href/action 과 일치하는 것만 센다.
- *     🔴 2026-09-01 실측으로 레지스트리 43개에 `/fusion-fortune` 이 **없다**(js/core/service-registry.js
- *     전수 검색 0건). 히어로의 유일한 실서비스 링크가 그것이라 이 지표가 낮게 나오는 원인 절반이 그거다.
+ *     🔴 2026-09-01 진단 시점의 레지스트리 43개에는 `/fusion-fortune` 이 없었다. 히어로의 유일한
+ *     실서비스 링크가 그것이라 이 지표가 낮게 나오는 원인 절반이 그거였다 — PR-2 에서 등록해
+ *     항목이 44개가 됐고, 축4 문안 커버리지 분모도 43 -> 44 로 함께 옮겼다.
  *
  * 점수는 docs/handoff/home-ux-audit-2026-09-01.md 「점수와 목표」의 루브릭 그대로다.
  * 🔴 임계(100점/0점 기준)는 **선언한 잣대**이지 업계 상수가 아니다. 바꾸려면 RUBRIC 만 고친다.
@@ -156,7 +157,7 @@ const RUBRIC = [
     key: "axis4", label: "축4 설명", target: 60,
     metrics: [
       { key: "previewSurfaces", label: "프리뷰 도달 표면(/4)", weight: 0.35, best: 4, worst: 0, baseline: 1 },
-      { key: "copyCoverage", label: "문안 커버리지(/43)", weight: 0.3, best: 43, worst: 0, baseline: 16 },
+      { key: "copyCoverage", label: "문안 커버리지(/44)", weight: 0.3, best: 44, worst: 0, baseline: 16 },
       { key: "freeCopyCoverage", label: "무료 문안 커버리지(/23)", weight: 0.2, best: 23, worst: 0, baseline: 2 },
       { key: "descLocales", label: "desc 로케일(/12)", weight: 0.15, best: 12, worst: 0, baseline: 1 },
     ],
