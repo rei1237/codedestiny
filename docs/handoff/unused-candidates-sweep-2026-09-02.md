@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: active
 updated: 2026-09-02
 next: PR #1427 머지 후, 「사용자 판단 대기」 7개 그룹에 대한 사용자 결정을 받아 2차 스윕
 ---
