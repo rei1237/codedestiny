@@ -353,9 +353,10 @@ async function buildRealRouteRewriteMap(text, re) {
 // <a href="/route"> → <a href="/route/index.html">  (실제 페이지만; #hash·?query 보존)
 // 대용량 VN·음원 자산을 번들에서 빼고 CDN 으로 참조한다(게임 앱의 자산 스트리밍 방식).
 //
-// codedestinyassets 는 앱 번들 최대 블록(102MB)이다. 그중 CDN 에 실재하는 74개(99.8MB)만 빼고,
-// CDN 에 없는 20개(캐릭터 스프라이트 webp, 2.5MB)는 반드시 남긴다 — 빼면 캐릭터가 깨진다.
-// 목록은 scripts/app-remote-assets.json 이 정본이며 verify-app-remote-assets.mjs 가 CDN 실재를 검증한다.
+// codedestinyassets 는 앱 번들 최대 블록(102MB)이다. 그중 CDN 에 실재하는 remote 80개만 빼고,
+// CDN 에 없는 bundledLocalOnly 17개(캐릭터 스프라이트 webp)는 반드시 남긴다 — 빼면 캐릭터가 깨진다.
+// 목록은 scripts/app-remote-assets.json 이 정본이다. 🔴 CDN 실재를 검증하는 스크립트는 없다 —
+// 목록을 고칠 때는 CDN(assets.code-destiny.com)에서 해당 경로를 손으로 확인할 것.
 //
 // 참조 재작성은 VN 의 `var X = PROD ? "<CDN>" : "<로컬>";` 삼항에서 베이스를 **파싱해서** 쓴다.
 // 하드코딩하면 CDN 주소가 바뀔 때 조용히 어긋난다.
