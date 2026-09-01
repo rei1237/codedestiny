@@ -1468,6 +1468,13 @@ function scrollSelectorIntoViewExpression(selector) {
   return `(() => {
     const el = document.querySelector(${JSON.stringify(selector)});
     if (!el) return false;
+    // 🔴 접힌 <details> 안의 대상은 scrollIntoView 로 끌어올 수 없다 — 닫혀 있는 동안
+    //    내용이 렌더 트리에 없어서 스크롤이 통째로 무시되고, 호출부는 \"뷰포트 밖\"으로 죽는다.
+    //    실제 사용자도 <summary> 를 눌러 펼친 뒤에 만지므로 그 한 단계를 여기서 밟는다.
+    //    단언은 그대로다 — 펼치기는 대상 도달 수단이지 검사 완화가 아니다.
+    for (let node = el.parentElement; node; node = node.parentElement) {
+      if (node.tagName === 'DETAILS' && !node.open) node.open = true;
+    }
     el.scrollIntoView({ block: 'center', inline: 'center', behavior: 'instant' });
     return true;
   })()`;
