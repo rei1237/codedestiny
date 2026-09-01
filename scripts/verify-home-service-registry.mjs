@@ -278,6 +278,71 @@ for (const { role, label } of PLACEMENTS) {
 }
 notes.push(`배치 대조 quick ${(placed.get("quick") || []).length}개 · recommended ${(placed.get("recommended") || []).length}개`);
 
+/* ── 4. 레지스트리 항목 ↔ 상세 문안 전수 대조 (cd-registry-copy-coverage) ─────
+ *
+ * 왜 — #cdFinder 추천 카드는 진입 전에 상세 시트를 연다. 자기 문안이 없는 항목은
+ * 카테고리 템플릿만으로 설명되어 그 상품 이야기가 아닌 문구가 뜬다(2026-09-01 홈 감사).
+ * 🔴 fail-closed: 셸에서 FEATURE_MARKETING_COPY 최상위 키를 전수 추출하고, 키를 하나도
+ * 못 읽으면 그 자체로 실패한다. 예외 목록은 두지 않는다 — 새 항목을 레지스트리에 넣으면
+ * 문안도 같이 넣어야 통과한다.
+ *
+ * 조회 규칙은 셸의 _marketingKeys 와 같다: data-feature-key → data-action → href.
+ * href 는 정규화 없이 리터럴로 찾으므로 슬래시 유무 두 벌을 모두 후보로 둔다.
+ */
+function extractCopyKeys(html) {
+  const anchor = "var FEATURE_MARKETING_COPY={";
+  const start = html.indexOf(anchor);
+  if (start < 0) return null;
+  const open = start + anchor.length - 1;
+  let depth = 0;
+  let quote = null;
+  for (let i = open; i < html.length; i += 1) {
+    const c = html[i];
+    if (quote) {
+      if (c === "\\") { i += 1; continue; }
+      if (c === quote) quote = null;
+      continue;
+    }
+    if (c === "'" || c === '"' || c === "`") { quote = c; continue; }
+    if (c === "{") depth += 1;
+    else if (c === "}") {
+      depth -= 1;
+      if (depth === 0) {
+        try {
+          return Object.keys(new Function(`return ${html.slice(open, i + 1)};`)());
+        } catch {
+          return null;
+        }
+      }
+    }
+  }
+  return null;
+}
+
+const copyKeys = extractCopyKeys(shell);
+if (!copyKeys || !copyKeys.length) {
+  fail("FEATURE_MARKETING_COPY 를 셸에서 읽지 못했습니다 — 문안 대조를 통째로 건너뛸 수 없습니다.");
+} else {
+  const copySet = new Set(copyKeys);
+  const missing = [];
+  for (const item of registry) {
+    const href = String(item.href || "");
+    const candidates = [
+      item.featureKey,
+      item.action,
+      href,
+      href.endsWith("/") ? href.slice(0, -1) : href ? `${href}/` : "",
+    ].filter(Boolean);
+    if (!candidates.some((key) => copySet.has(key))) missing.push(`${item.id}(${candidates.join(" | ")})`);
+  }
+  if (missing.length) {
+    fail(
+      `상세 문안이 없는 레지스트리 항목 ${missing.length}건 — index.html 의 FEATURE_MARKETING_COPY 에 ` +
+        `href/action/featureKey 중 하나를 키로 추가하세요: ${missing.join(", ")}`,
+    );
+  }
+  notes.push(`상세 문안 대조 ${registry.length - missing.length}/${registry.length}`);
+}
 /* ── 결과 ──────────────────────────────────────────────────────── */
 if (errors.length) {
   console.error(`[home-service-registry] 실패 ${errors.length}건 (${notes.join(" · ")})`);
