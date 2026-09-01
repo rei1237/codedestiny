@@ -239,6 +239,14 @@ try {
 
     await navigate(cdp, totemHomeUrl);
     await delay(400);
+    // 🔴 홈 축약(cd-home-secondary-v20260817)이 이 블록(2026-08-15)보다 뒤에 들어오면서
+    // .fg-group--animal 이 [data-cd-home-secondary] 로 접혔다 — 토글이 0×0 이 되어 이 스모크는
+    // 그 뒤로 계속 실패해 왔다(verify:guard-wiring 상 미배선이라 CI 가 못 잡았다. 2026-09-01
+    // 실측: HEAD 에서도 같은 자리에서 같은 오류). 아래 이용권 블록과 같은 방식으로, 가드를
+    // 낮추지 않고 사용자와 같은 경로("모두 펼치기")로 먼저 펼친 뒤에 잰다.
+    await dismissCookieConsent(cdp);
+    await tapSelector(cdp, "#cdHomeExpandToggle");
+    await delay(400);
     // 컬렉션은 접힌 채 시작한다 — 열어야 타일이 히트 테스트를 받는다.
     // 셸이 로드 직후 스크롤 위치를 복원하므로(index.html 의 window.scrollTo(0, savedScrollY)),
     // tapSelector 안의 scrollIntoView 만 믿으면 그 복원에 밀려 좌표가 뷰포트 밖으로 나간다.
@@ -272,6 +280,10 @@ try {
     // tapSelector 가 throw 하고, throw 는 쌓인 실패 목록을 통째로 잃는다. 항상 새 페이지에서 시작한다.
     await navigate(cdp, totemHomeUrl);
     await delay(400);
+    // 새 페이지라 홈이 다시 접혀 있다 — 위와 같은 경로로 펼친다.
+    await dismissCookieConsent(cdp);
+    await tapSelector(cdp, "#cdHomeExpandToggle");
+    await delay(400);
     await waitForSelector(cdp, animalToggle);
     await evaluate(cdp, scrollSelectorIntoViewExpression(animalToggle), "re-scroll animal collection toggle into view");
     await delay(500);
@@ -300,8 +312,21 @@ try {
   }
 
   if (!focusAllFortunes) {
-  await tapSelector(cdp, ".moon-hero__cta--primary[href=\"#cdConcernPick\"]");
-  // 단일 반응형 홈의 주 CTA는 고민 선택 블록으로 내려간다(문서 전환 없음). 히어로 스크립트가
+  // 🔴 주 CTA 의 목적지는 홈 개편마다 바뀐다(#cdConcernPick → #cdTodayHub, 6c605edd4).
+  // 셀렉터에 목적지를 박아 두면 가드가 "존재하지 않음"으로 죽는다 — 실제 href 를 읽어서 잰다.
+  const heroCtaTarget = await evaluate(cdp, `(() => {
+    const el = document.querySelector('.moon-hero__cta--primary');
+    if (!el) return { exists: false, id: '' };
+    const href = String(el.getAttribute('href') || '');
+    return { exists: true, href, id: href.charAt(0) === '#' ? href.slice(1) : '' };
+  })()`, "hero primary CTA target");
+  assert(
+    heroCtaTarget.exists && !!heroCtaTarget.id,
+    "the hero primary CTA points at an in-page anchor",
+    heroCtaTarget,
+  );
+  await tapSelector(cdp, ".moon-hero__cta--primary");
+  // 단일 반응형 홈의 주 CTA는 같은 문서 안 블록으로 내려간다(문서 전환 없음). 히어로 스크립트가
   // preventDefault 후 스무스 스크롤하므로 해시가 아니라 **실제 위치**로 재야 한다 — 해시로 재면
   // 스크롤이 정상이어도 틀리게 실패한다. 스무스 스크롤 완료까지 짧은 폴링이 안정적이다.
   let afterPrimaryTap = { top: null, inView: false };
@@ -310,7 +335,7 @@ try {
     afterPrimaryTap = await evaluate(
       cdp,
       `(() => {
-        const el = document.getElementById('cdConcernPick');
+        const el = document.getElementById(${JSON.stringify(heroCtaTarget.id)});
         if (!el) return { top: null, inView: false };
         const r = el.getBoundingClientRect();
         return { top: Math.round(r.top), inView: r.top < innerHeight * 0.5 && r.bottom > 0 };
@@ -321,7 +346,7 @@ try {
   }
   assert(
     afterPrimaryTap.inView,
-    "primary CTA scrolls the concern picker into view",
+    `primary CTA scrolls its target (#${heroCtaTarget.id}) into view`,
     afterPrimaryTap,
   );
 
@@ -632,7 +657,7 @@ try {
       console.log("Mobile CDP smoke OK");
       console.log("- Viewport: 412x823");
       if (!focusAllFortunes) {
-        console.log("- Primary CTA scrolls the concern picker into view: OK");
+        console.log("- Primary CTA scrolls its in-page target into view: OK");
         console.log("- Tarot touch: OK");
         console.log("- Bottom nav 5-tab tarot touch: OK");
         console.log("- Membership benefits CTA routes to the pass guide: OK");
@@ -1382,7 +1407,9 @@ function mobileStateExpression() {
   return `(() => {
     const home = document.querySelector('#inputPage');
     const nav = document.querySelector('#cdMobileBottomNav');
-    const cta = document.querySelector('.moon-hero__cta--primary[href="#cdConcernPick"]');
+    // 🔴 목적지를 셀렉터에 박지 않는다 — 앵커가 바뀌면 cta 가 null 이 되어 이 단언이
+    // "첫 화면에 없다"로 조용히 뒤집힌다(2026-09-01 실측: #cdConcernPick 하드코드 탓에 실패 중이었다).
+    const cta = document.querySelector('.moon-hero__cta--primary');
     const quickRail = document.querySelector('#cdMobileBottomNav .cd-mobile-bottom-nav__quick');
     const mainNavItems = Array.from(document.querySelectorAll('#cdMobileBottomNav .cd-mobile-bottom-nav__main [data-nav-key]'));
     const langDropdown = document.querySelector('#langDropdown');
