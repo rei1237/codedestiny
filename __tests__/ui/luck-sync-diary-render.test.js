@@ -295,6 +295,44 @@ test("[문구 새로고침]이 누를 때마다 다른 I AM 선언을 내놓는�
   assert.ok(new Set(seen).size >= 3, `7회 동안 고유 문구가 ${new Set(seen).size}종뿐이다: ${[...new Set(seen)].join(" / ")}`);
 });
 
+// 바로 위 테스트는 확률적이다 — 위험한 것은 첫 클릭 하나뿐이고 문구가 5종이라 회귀를
+// 15%(실측 100회 중 15회) 확률로만 잡는다. 결함의 실체는 "열 때 뽑은 문구와 그 직전 인덱스를
+// 저장하지 않는다" 이므로 저장소를 직접 본다.
+test("모달을 열 때 뽑은 명상 문구가 저장까지 간다", () => {
+  const { window, doc } = openDiary();
+
+  // 저장소 키를 여기 박으면 키가 바뀔 때 "저장 안 됨" 이라는 엉뚱한 실패로 뒤집힌다.
+  const lsKey = fs.readFileSync(path.join(root, "js/luck-sync-diary.js"), "utf8").match(/var LS_KEY = '([^']+)'/)?.[1];
+  assert.ok(lsKey, "LS_KEY 를 소스에서 찾지 못했다");
+
+  const stored = JSON.parse(window.localStorage.getItem(lsKey) || "{}");
+  const key = Object.keys(stored).filter((k) => /^\d{4}-\d{2}-\d{2}$/.test(k)).pop();
+  assert.ok(key, "모달을 열었는데 오늘 항목이 저장되지 않았다");
+  const entry = stored[key];
+
+  // 인덱스가 -1 로 남으면 [문구 새로고침]이 방금 보여 준 문구를 그대로 다시 뽑을 수 있다.
+  assert.ok(entry.iAmAffirmation, "I AM 확언이 저장되지 않았다");
+  assert.ok(entry.iAmLastIndex >= 0, `iAmLastIndex 가 ${entry.iAmLastIndex} 다 — 뽑은 인덱스가 저장되지 않았다`);
+  assert.ok(entry.satsScene, "사트 장면이 저장되지 않았다");
+  assert.ok(entry.satsSceneLastIndex >= 0, `satsSceneLastIndex 가 ${entry.satsSceneLastIndex} 다 — 뽑은 인덱스가 저장되지 않았다`);
+
+  // 저장값과 화면이 갈리면 확언 완료(카드 문장을 그대로 타이핑)가 영영 통과하지 못한다.
+  const card = (doc.getElementById("lsdIamCard")?.textContent || "").trim();
+  assert.ok(card.includes(entry.iAmAffirmation), `카드(${JSON.stringify(card)})와 저장값(${JSON.stringify(entry.iAmAffirmation)})이 다르다`);
+
+  // 확언만 비어 있는 항목(ensureEntryShape 가 구버전 기록에 만드는 상태)에서도 저장까지 가야 한다.
+  // 사트 장면이 이미 차 있으면 "채웠으니 저장" 판정이 확언 하나에만 걸린다.
+  const stale = JSON.parse(window.localStorage.getItem(lsKey));
+  stale[key].iAmAffirmation = "";
+  stale[key].iAmLastIndex = -1;
+  window.localStorage.setItem(lsKey, JSON.stringify(stale));
+  window.LuckSyncDiary.open();
+
+  const refilled = JSON.parse(window.localStorage.getItem(lsKey))[key];
+  assert.ok(refilled.iAmAffirmation, "확언만 빈 항목을 다시 열었는데 확언이 저장되지 않았다");
+  assert.ok(refilled.iAmLastIndex >= 0, `재오픈 후 iAmLastIndex 가 ${refilled.iAmLastIndex} 다`);
+});
+
 test("I AM 확언 풀이 키워드 6종 모두에 복수 문구를 갖는다", () => {
   // 맵 1개(키워드당 문구 1개)로 되돌아가면 새로고침 버튼이 조용히 죽는다.
   const src = fs.readFileSync(path.join(root, "js/luck-sync-diary.js"), "utf8");

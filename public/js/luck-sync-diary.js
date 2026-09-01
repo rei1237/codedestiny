@@ -2427,11 +2427,17 @@ return true;
     var iAmInput = document.getElementById('lsdIamInput');
     var pts = document.getElementById('lsdMeditationPoints');
 
+    var filledDefaults = false;
     if (!entry.revisionOriginal && entry.practiceNote) entry.revisionOriginal = entry.practiceNote;
-    if (!entry.satsKeyword) entry.satsKeyword = getTomorrowLuckKeyword(entry);
-    if (!entry.satsScene) entry.satsScene = buildSatsSceneText(entry.satsKeyword, entry);
-    if (!entry.iAmAffirmation) entry.iAmAffirmation = buildIamAffirmation(entry);
+    if (!entry.satsKeyword) { entry.satsKeyword = getTomorrowLuckKeyword(entry); filledDefaults = true; }
+    if (!entry.satsScene) { entry.satsScene = buildSatsSceneText(entry.satsKeyword, entry); filledDefaults = true; }
+    if (!entry.iAmAffirmation) { entry.iAmAffirmation = buildIamAffirmation(entry); filledDefaults = true; }
     entry.meditationPoints = calcMeditationPoints(entry);
+    // 사트 장면과 I AM 확언은 여기서 처음 뽑히고, 그때 직전 인덱스(satsSceneLastIndex·iAmLastIndex)도
+    // 함께 기록된다. 그런데 호출자 11곳의 saveDiary 는 전부 이 앞에서 돌아 그 인덱스를 담지 못했다.
+    // 저장이 없으면 [문구 새로고침]이 loadDiary 로 -1 을 다시 읽어 방금 보여 준 문구를 그대로 다시
+    // 뽑는다(실측 2026-09-02: 100회 중 15회). 채운 경우에만 담아 여는 것만으로 쓰기가 늘지 않게 한다.
+    if (filledDefaults && diary) saveDiary(diary);
 
     if (originalInput) originalInput.value = entry.revisionOriginal || '';
     if (revisedInput) revisedInput.value = entry.revisionImagined || '';
