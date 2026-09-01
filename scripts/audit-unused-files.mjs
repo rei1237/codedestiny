@@ -55,6 +55,9 @@ const PROTECTED_EXACT = new Set([
   "worker/wrangler.toml",
   "next.config.mjs",
   "middleware.js",
+  // 🔴 리포 안에 참조가 0건인데 살아 있다 — Cloudflare Pages 대시보드의 "Build ignore command" 가
+  //    이 파일을 부른다. 지우면 Cloudflare 네이티브 Git 빌드가 되살아나 GitHub Actions 배포와 충돌한다.
+  "scripts/cloudflare-ignore.sh",
 ]);
 
 // 아래 뒤쪽 5개는 정적 임포트 그래프로는 영영 도달할 수 없는 축이다(2026-09-02 실측: 이것들만으로
@@ -432,6 +435,7 @@ function makeUnusedReport(allFiles, allFilesSet, entryPoints, reachable, graphEd
     notes: [
       "This report does not delete files.",
       "Candidates are heuristic and require manual validation for runtime/dynamic links.",
+      "scripts/ 후보 대부분은 죽은 코드가 아니라 손으로 돌리는 운영 도구다 — 마이그레이션 원장·읽기 전용 프로덕션 조회·라이브 스모크·1회성 코드모드(2026-09-02 전수 판정).",
     ],
   };
 }
