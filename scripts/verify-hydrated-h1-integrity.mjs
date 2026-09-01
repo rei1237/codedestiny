@@ -58,6 +58,8 @@ const DECLARED_EXCEPTIONS = new Map([
 ]);
 
 const failures = [];
+/** DYNAMIC_CALL 이 해석하지 못한 dynamic() 호출을 가진 파일. 비어 있지 않으면 실패한다. */
+const unparsedDynamicCallFiles = new Set();
 function fail(message) {
   failures.push(message);
 }
@@ -113,8 +115,18 @@ function sliceFunctionBody(source, functionName) {
   return null;
 }
 
+// 🔴 이 정규식이 놓치는 dynamic() 은 정적 import 로도 lazy 로도 세어지지 않아 그 서브트리가
+//    순회에서 통째로 빠진다 — 가드가 초록불인 채로 fail-open 이 된다.
+//    실측 2026-09-02(app/ + components/ 전수 875파일): 실제 호출 66곳 중 **10곳**이 보이지
+//    않았다. 형태별로 `.then()` 3곳 · 옵션 인자 생략 6곳 · 인자 뒤 끝 쉼표 1곳.
+//    그래서 셋을 모두 허용한다: ① import(X).then((m) => m.Y) ② 옵션 객체 생략(ssr 기본 true)
+//    ③ 마지막 인자 뒤 끝 쉼표. 옵션이 없으면 두 번째 그룹이 undefined 라 ssr:false 판정에서
+//    자연히 빠져 정적(서버 렌더) 쪽으로 세어진다 — 그게 맞는 취급이다.
 const DYNAMIC_CALL =
-  /dynamic\s*\(\s*(?:async\s*)?\(\s*\)\s*=>\s*import\s*\(\s*["']([^"']+)["']\s*\)\s*,\s*(\{[\s\S]{0,600}?\})\s*\)/g;
+  /dynamic\s*\(\s*(?:async\s*)?\(\s*\)\s*=>\s*import\s*\(\s*["']([^"']+)["']\s*\)(?:\s*\.then\s*\((?:[^()]|\([^()]*\))*\))?(?:\s*,\s*(\{[\s\S]{0,600}?\}))?\s*,?\s*\)/g;
+// 🔴 원칙 10(fail-closed): 위 정규식을 넓히는 것만으로는 다음 변종이 또 조용히 빠진다.
+//    "호출 머리는 있는데 전체 매칭이 없는 자리"를 세어 실패시킨다.
+const LAZY_CALL_HEAD = /dynamic\s*\(\s*(?:async\s*)?\(\s*\)\s*=>\s*import\s*\(/g;
 const STATIC_IMPORT = /^\s*import\s+[\s\S]*?\s*from\s*["']([^"']+)["']/gm;
 
 function analyzeModule(source) {
@@ -122,9 +134,11 @@ function analyzeModule(source) {
   const lazySpecifiers = [];
   const loadingShellNames = [];
 
+  const parsedCallOffsets = new Set();
   for (const match of source.matchAll(DYNAMIC_CALL)) {
     const [, specifier, options] = match;
-    if (/ssr\s*:\s*false/.test(options)) {
+    parsedCallOffsets.add(match.index);
+    if (/ssr\s*:\s*false/.test(options ?? "")) {
       lazySpecifiers.push(specifier);
       const shell = options.match(/loading\s*:\s*\(\s*\)\s*=>\s*<\s*([A-Z][\w]*)/);
       if (shell) loadingShellNames.push(shell[1]);
@@ -134,6 +148,11 @@ function analyzeModule(source) {
   }
   for (const match of source.matchAll(STATIC_IMPORT)) staticSpecifiers.push(match[1]);
 
+  let unparsedDynamicCalls = 0;
+  for (const head of source.matchAll(LAZY_CALL_HEAD)) {
+    if (!parsedCallOffsets.has(head.index)) unparsedDynamicCalls += 1;
+  }
+
   // loading 셸 본문의 h1 은 하이드레이션 때 교체돼 사라지므로 뺀다.
   let countable = source;
   for (const name of loadingShellNames) {
@@ -142,7 +161,7 @@ function analyzeModule(source) {
   }
   const h1Count = (countable.match(/<h1[\s>]/gi) || []).length;
 
-  return { staticSpecifiers, lazySpecifiers, h1Count };
+  return { staticSpecifiers, lazySpecifiers, h1Count, unparsedDynamicCalls };
 }
 
 function walk(entryFile, seen, onFile) {
@@ -155,6 +174,10 @@ function walk(entryFile, seen, onFile) {
     return;
   }
   const analyzed = analyzeModule(source);
+  if (analyzed.unparsedDynamicCalls > 0) {
+    const shown = relative(rootDir, entryFile).replace(/\\/g, "/");
+    unparsedDynamicCallFiles.add(`${shown} (${analyzed.unparsedDynamicCalls}건)`);
+  }
   onFile(entryFile, analyzed);
   for (const specifier of analyzed.staticSpecifiers) {
     const resolved = resolveModule(entryFile, specifier);
@@ -238,6 +261,13 @@ for (const htmlFile of collectRoutes(buildDir)) {
   );
 }
 
+if (unparsedDynamicCallFiles.size > 0) {
+  fail(
+    "dynamic(() => import(...)) 호출을 DYNAMIC_CALL 정규식이 해석하지 못했다 " +
+      `(${[...unparsedDynamicCallFiles].join(", ")}) — 그 서브트리는 순회에서 통째로 빠져 ` +
+      "이 가드가 초록불인 채로 죽는다. 새 호출 형태까지 정규식을 넓힐 것.",
+  );
+}
 if (checkedRoutes === 0) {
   fail(
     `${outDir}/ 에서 검사한 App Router 라우트가 0개다 — 산출물 구조나 app/ 경로가 어긋났을 ` +
