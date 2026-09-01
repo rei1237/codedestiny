@@ -518,15 +518,15 @@ for (const shell of [
     source.includes("html.neo-mode body .cd-sig-card__title"),
     `${shell}: 네오 모드 텍스트 오버라이드가 빠지면 배경만 바뀌고 글자가 안 보입니다(반쪽 오버라이드 금지)`,
   );
-  // 대표 상담은 4장(마스터 인연의 서·운명의 찻집·나크샤트라 결정판·팩폭 전략소)이다.
+  // 대표 상담은 5장(초융합 심층 리딩·마스터 인연의 서·운명의 찻집·나크샤트라 결정판·팩폭 전략소)이다.
   // 나침반·섬은 VVIP 서고로 이관했다. 개수를 고정하는 이유는 미관이 아니라 중복 노출 방지 —
-  // 다른 컬렉션으로 옮긴 카드가 슬그머니 되돌아오는 것을 막는다(2026-08-01: 3 → 4).
+  // 다른 컬렉션으로 옮긴 카드가 슬그머니 되돌아오는 것을 막는다(2026-08-01: 3 → 4, 2026-09-02: 4 → 5).
   const section = source.slice(source.indexOf('id="cdSignatureConsult"'));
   const sectionEnd = section.indexOf("</section>");
   const sectionHtml = sectionEnd > 0 ? section.slice(0, sectionEnd) : section;
   assert(
-    (sectionHtml.match(/<a class="cd-sig-card/g) || []).length === 4,
-    `${shell}: 대표 운명 상담 카드는 4장이어야 합니다 (현재 ${(sectionHtml.match(/<a class="cd-sig-card/g) || []).length}장)`,
+    (sectionHtml.match(/<a class="cd-sig-card/g) || []).length === 5,
+    `${shell}: 대표 운명 상담 카드는 5장이어야 합니다 (현재 ${(sectionHtml.match(/<a class="cd-sig-card/g) || []).length}장)`,
   );
   // 🔴 슬래시 유무를 둘 다 본다. 내부 링크에 후행 슬래시를 붙이면서 `href="/destiny-compass"` 만
   // 보던 이 부정 단언이 하마터면 **영원히 통과하는 빈 검사**가 될 뻔했다.

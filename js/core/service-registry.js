@@ -211,6 +211,7 @@ window.__cdServiceRegistry = [
     methods: ["saju", "ziwei", "vedic", "sukuyo", "astrology", "tarot"],
     keys: "초융합 교차검증 종합 심층 여섯 체계 2만자",
     badge: "최종 판정",
+    roles: ["recommended"],
   },
 
   /* ── 운세 체계 허브 (무료 진입) ──────────────────────────────── */
