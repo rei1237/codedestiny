@@ -21,6 +21,14 @@
 /.claude/skills/
 /.impeccable/
 
+# 세션 워크트리 — 저장소 전체의 사본이라 Glob 결과가 통째로 중복된다.
+# 🔴 .gitignore:135 가 이미 빼 주지만 그건 rg(=Grep 툴)에만 먹는다. Glob 은 .gitignore 를
+# 따르지 않는다 — 2026-09-01 실측: Glob("**/package.json") 이 워크트리 사본 16개를 그대로
+# 반환했고, .claude/worktrees 아래 파일이 132,255개(메인 추적 4,441개)로 약 30배였다.
+# Glob 은 100건에서 잘리므로 그만큼 진짜 파일이 결과에서 밀려난다.
+# 위 헤더와 같은 계약이다 — Read <경로>·git grep 은 그대로 되고, rg 탈출구는 -uu 다.
+/.claude/worktrees/
+
 # 대용량 데이터/콘텐츠 파일 — 관련 없는 작업에서 검색 노이즈 방지.
 # 위 헤더와 같은 계약이다 — Grep/Glob 에서만 빠지고 Read·git grep 은 그대로 된다.
 # 직접 읽어야 할 때는 Read <경로> 로 가능.

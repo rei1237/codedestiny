@@ -12,6 +12,12 @@
  * 검색에 안 잡히고(실측: `rg --files` 3,784개 중 워크트리 경로 0개), 트랜스크립트는 애초에
  * 컨텍스트가 아니다. 이건 디스크 문제다. 토큰 문제로 착각하면 엉뚱한 것을 지우게 된다.
  *
+ * 🔴 정정(2026-09-01) — 위 문장은 **rg 기준으로만 옳다.** Glob 툴은 `.gitignore` 를 따르지
+ *    않아서 워크트리를 그대로 훑는다. 그날 실측: 전 경로 package.json Glob 조회가 사본
+ *    16개를 반환했고 `.claude/worktrees` 아래 파일이 132,255개(메인 추적 4,441개)였다.
+ *    Glob 은 100건에서 잘리므로 그만큼 진짜 파일이 밀려난다. 그래서 루트 `.ignore` 에
+ *    `/.claude/worktrees/` 를 넣었다 — 정리 자체보다 그 한 줄이 검색 비용을 줄인다.
+ *
  * 사용:
  *   node scripts/list-cleanup-candidates.mjs
  *   node scripts/list-cleanup-candidates.mjs --size    # 디스크 사용량까지(느리다)
