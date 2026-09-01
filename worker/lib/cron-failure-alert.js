@@ -36,6 +36,9 @@ export async function notifyCronTaskFailures(env, failures, options = {}) {
       ...rows.map(({ name, message }) => `• ${escapeTelegramHtml(String(name))}: ${escapeTelegramHtml(String(message || "unknown").slice(0, 200))}`),
       "",
       "이 태스크들은 이번 실행에서 아무 일도 하지 않았다. 일일 운세 메일이 여기 있으면 오늘 발송은 0통이다.",
+      // 🔴 이 메시지는 공개 채널에 가고 지워질 수 있다(2026-08-31 알림이 실제로 지워져 근거가 사라졌다).
+      // 사유는 200자에서 잘리기도 하므로, 지워지지 않는 사본이 어디 있는지 매번 같이 적는다.
+      "사유가 잘렸거나 이 알림을 지웠으면 Cloudflare Workers Logs 에서 [cron: 로 검색한다(stage=load 는 모듈 로드 실패).",
     );
   }
   if (idleRows.length > 0) {

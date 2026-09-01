@@ -175,13 +175,14 @@ async function runChannel({ now, keyHash, send }) {
       {
         $set: {
           status: "failed",
-          responseRef: { error: result.error, status: result.status ?? null, at, ...(result.ref || {}) },
+          // stage 를 함께 굳힌다 — 알림은 지워지지만(2026-08-31 에 실제로 지워졌다) 이 문서는 TTL 3일간 남는다.
+          responseRef: { error: result.error, stage: "send", permanent: Boolean(result.permanent), status: result.status ?? null, at, ...(result.ref || {}) },
           updatedAt: new Date(now),
         },
       },
     ).catch(() => {});
     console.error(`[CRON] SNS Daily Post: ${keyHash} 발행 실패(${result.error}) — failed 로 기록했다.`);
-    return { ok: false, error: result.error, status: result.status ?? null, permanent: Boolean(result.permanent), keyHash };
+    return { ok: false, stage: "send", error: result.error, status: result.status ?? null, permanent: Boolean(result.permanent), keyHash };
   }
 
   await IdempotencyKey.updateOne(
@@ -255,7 +256,19 @@ export async function runSnsDailyPostTask(env, options = {}) {
   }
 
   const dateKey = getKstDateKey(now);
-  await connectDb(env);
+
+  // 🔴 connectDb 실패는 채널 루프에 **닿기도 전에** 던지므로 잠금 문서가 한 건도 안 생긴다.
+  // 흔적을 DB 에 남길 수 없는 유일한 구간이라(DB 가 안 붙는 순간이다) 던지는 문구에 단계를 박는다.
+  // 2026-08-31 22:00Z 실측: idempotency_keys 의 cron:sns-daily-post 문서는 08-30 수동 실행 1건뿐이고
+  // 09-01·09-01:threads 는 0건이었다 — 그날 실패는 여기 아니면 모듈 로드(worker/index.js 의 loadFailed)다.
+  try {
+    await connectDb(env);
+  } catch (error) {
+    const failure = new Error(`SNS 일일 발행 실패(${dateKey}): stage=connect_db ${String(error?.message || error)}`);
+    failure.dateKey = dateKey;
+    failure.stage = "connect_db";
+    throw failure;
+  }
 
   const channels = {};
 
@@ -266,7 +279,8 @@ export async function runSnsDailyPostTask(env, options = {}) {
       channels[name] = await run();
     } catch (error) {
       console.error(`[CRON] SNS Daily Post: ${name} 채널이 예외로 끝났다 —`, error?.message || error);
-      channels[name] = { ok: false, error: String(error?.message || "channel_threw") };
+      // send() 는 계약상 던지지 않으므로(verify-sns-daily-post ②) 여기까지 오는 예외는 잠금 문서 쓰기다.
+      channels[name] = { ok: false, stage: "lock", error: String(error?.message || "channel_threw") };
     }
   };
 
@@ -293,10 +307,15 @@ export async function runSnsDailyPostTask(env, options = {}) {
     }
   }
 
+  // 🔴 성공한 채널을 **같은 문구에** 적는다. 한 채널만 죽어도 태스크는 통째로 던지므로, 성공을 빼면
+  // 알림 한 줄이 "오늘 아무것도 안 나갔다"로 읽힌다 — Threads 토큰이 죽어 있는 동안 매일 그렇게 읽힌다.
+  // permanent(OAuth·code 190/200)는 재시도로 안 풀리므로 사람이 할 일을 문구에 박는다.
   const failed = Object.entries(channels).filter(([, result]) => !result.ok);
   if (failed.length) {
+    const sent = Object.entries(channels).filter(([, r]) => r.ok).map(([name, r]) => `${name}=${r.skipped || "sent"}`);
+    const reasons = failed.map(([name, r]) => `${name}(stage=${r.stage || "send"})=${r.error}${r.permanent ? " [토큰 회전 필요]" : ""}`);
     const error = new Error(
-      `SNS 일일 발행 실패(${dateKey}): ${failed.map(([name, result]) => `${name}=${result.error}`).join(", ")}`,
+      `SNS 일일 발행 실패(${dateKey}): ${reasons.join(", ")} / 성공 ${sent.length ? sent.join(", ") : "0건"}`,
     );
     error.dateKey = dateKey;
     error.channels = channels;

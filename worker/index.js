@@ -1883,13 +1883,21 @@ export default {
     // SNS_DAILY_POST_ENABLED 를 켜기 전에는 그 태스크가 바로 반환한다.
     // 🔴 allSettled — 예전 Promise.all 은 한 태스크가 throw 하면(runServiceExecutionTimeoutTask 는 실제로
     // re-throw 한다) 나머지 태스크가 함께 죽었다. 실패는 반드시 로그로 남긴다(조용히 삼키지 않는다).
+    // 🔴 **로드 실패와 실행 실패를 알림에서 가른다.** 위 배치 덕에 로드 실패도 failures 에 담기지만,
+    // 담기는 문구는 실행 중 예외와 구별되지 않는다. 2026-08-31 의 sns-daily-post 가 정확히 그 상태였다 —
+    // idempotency_keys 에 그날 문서가 0건이라 "모듈을 못 읽었다"와 "읽고 나서 DB 에 못 붙었다"가
+    // DB 로도 알림으로도 갈리지 않았고, 알림 한 통을 지우자 근거가 통째로 사라졌다.
+    // stage 를 문구 맨 앞에 박는 이유는 알림이 사유를 200자에서 자르기 때문이다(cron-failure-alert.js).
+    const loadFailed = (error) => {
+      throw new Error(`stage=load ${String(error?.message || error)}`);
+    };
     const tasks = [
-      ["daily-fortune", async () => (await import("./lib/daily-fortune-task.js")).runDailyFortuneTask(env)],
-      ["subscription-billing", async () => (await import("./lib/subscription-billing-task.js")).runCardSubscriptionBillingTask(env)],
-      ["service-execution-timeout", async () => (await import("./lib/service-execution-task.js")).runServiceExecutionTimeoutTask(env)],
-      ["monthly-credit-expiry", async () => (await import("./lib/monthly-credit-expiry-task.js")).runMonthlyCreditExpiryTask(env)],
-      ["webhook-reconcile", async () => (await import("./routes/payments.js")).runWebhookReconcileTask(env)],
-      ["sns-daily-post", async () => (await import("./lib/sns-daily-post-task.js")).runSnsDailyPostTask(env)],
+      ["daily-fortune", async () => (await import("./lib/daily-fortune-task.js").catch(loadFailed)).runDailyFortuneTask(env)],
+      ["subscription-billing", async () => (await import("./lib/subscription-billing-task.js").catch(loadFailed)).runCardSubscriptionBillingTask(env)],
+      ["service-execution-timeout", async () => (await import("./lib/service-execution-task.js").catch(loadFailed)).runServiceExecutionTimeoutTask(env)],
+      ["monthly-credit-expiry", async () => (await import("./lib/monthly-credit-expiry-task.js").catch(loadFailed)).runMonthlyCreditExpiryTask(env)],
+      ["webhook-reconcile", async () => (await import("./routes/payments.js").catch(loadFailed)).runWebhookReconcileTask(env)],
+      ["sns-daily-post", async () => (await import("./lib/sns-daily-post-task.js").catch(loadFailed)).runSnsDailyPostTask(env)],
     ];
     // 🔴 던진 태스크는 로그 한 줄로 끝나지 않는다 — 콘솔만 남기던 시절에 일일 운세 메일이
     //    2026-08-20 부터 조용히 0통이었다(구독 문서가 그날 이후 갱신조차 되지 않았다).
