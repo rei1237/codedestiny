@@ -53,6 +53,17 @@
     return "vvip";
   }
 
+  /* 진입 전 상세 시트(#tilePvwOverlay)용 유료 판정.
+     🔴 featureKey 가 있고 가격이 무료가 아닌 항목만 유료다. 경계 항목 둘이 여기서 갈린다 —
+        `points`(이용권 상점: 키가 없다) 는 무료가 아니지만 유료 기능이 아니라 결제 지점 그
+        자체다. 유료로 넘기면 셸 델리게이션이 앵커를 가로채고 CTA 가 `location.href` 로
+        /points 를 여는데, 그건 앱에서 금지된 프로그래매틱 이동이다
+        (docs/context/payment-gating.md ⑦ · docs/payment-policy-flow.md).
+        `human-design`(키는 있으나 "무료 시작") 은 반대로 무료 쪽에 남아야 한다. */
+  function isPaidItem(featureKey, price) {
+    return !!featureKey && !!price && bucketOf(price) !== "free";
+  }
+
   /* ── 레지스트리 정규화 ──────────────────────────────────────── */
   var CURATED = REGISTRY.map(function (item) {
     return {
@@ -63,6 +74,8 @@
       collection: "",
       price: item.price || "",
       bucket: bucketOf(item.price),
+      featureKey: item.featureKey || "",
+      paid: isPaidItem(item.featureKey, item.price),
       purposes: item.purposes || [],
       methods: item.methods || [],
       badge: item.badge || "",
@@ -126,6 +139,7 @@
 
       var desc = String((metaEl && metaEl.textContent) || "").trim();
       var price = String((priceEl && priceEl.textContent) || "").trim();
+      var featureKey = el.getAttribute("data-feature-key") || "";
       out.push({
         name: name,
         desc: desc,
@@ -134,6 +148,8 @@
         collection: collection,
         price: price,
         bucket: price ? bucketOf(price) : "",
+        featureKey: featureKey,
+        paid: isPaidItem(featureKey, price),
         purposes: [],
         methods: [],
         badge: "",
@@ -183,6 +199,21 @@
     else node.type = "button";
     if (item.action) node.setAttribute("data-action", item.action);
     if (item.collection) node.setAttribute("data-cd-open-collection", item.collection);
+    /* 진입 전 상세 시트 신호(2026-09-01 결정 ⓒ). 이 카드는 원본 타일과 같은 기능으로 가는
+       두 번째 입구인데, 지금까지 셸 델리게이션 선택자에 걸리는 표식이 하나도 없어 시트가
+       열리지 않았다.
+       🔴 data-coin-cost·data-tile-lock-cost·data-tile-lock-key 는 절대 붙이지 않는다 —
+          셋 중 하나라도 있으면 _cdRunPerUseCoinGate 가 이 카드에서 결제 게이트를 무장한다.
+          값 없는 data-feature-key 는 결제 키가 아니라는 것이 이 레포의 기존 규약이다
+          (js/core/saju/reportDashboard.js 가 같은 조합을 쓴다).
+       🔴 무료 항목에는 featureKey 를 싣지 않는다 — 시트가 카탈로그 가격을 찾아내면
+          그 무료 기능을 '유료'로 프레이밍한다(index.html 의 _resolvePreviewData 주석). */
+    if (item.paid) {
+      if (item.featureKey) node.setAttribute("data-feature-key", item.featureKey);
+      node.setAttribute("data-pvw-paid", "1");
+    } else if (item.bucket === "free") {
+      node.setAttribute("data-pvw-free", "1");
+    }
     return node;
   }
 
@@ -215,7 +246,12 @@
       var node = openerNode(item, "fortune-gateway__rec");
       var name = document.createElement("span");
       name.className = "fortune-gateway__rec-name";
-      name.appendChild(document.createTextNode(item.name));
+      /* 시트 제목은 _pvwTileText 가 [data-pvw-title] 의 textContent 로 읽는다. 배지(<b>)를
+         제목에 섞지 않으려고 이름만 따로 감싼다 — 없으면 제목이 '기능 상세'로 떨어진다. */
+      var nameText = document.createElement("span");
+      nameText.setAttribute("data-pvw-title", "");
+      nameText.textContent = item.name;
+      name.appendChild(nameText);
       if (item.badge) {
         var badge = document.createElement("b");
         badge.textContent = item.badge;

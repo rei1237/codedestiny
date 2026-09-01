@@ -109,6 +109,15 @@ on:
       - "app/nakshatra/**"
       - "js/core/payment-service.js"
       - "js/core/feature-pricing-store.js"
+      # 🔴 홈 탐색기(#cdFinder)가 만드는 추천 카드는 유료 기능으로 가는 두 번째 입구다.
+      #    그 카드의 유료 표식(data-pvw-paid)과 featureKey 배선이 여기서 정해지는데, 두 파일이
+      #    트리거에 없어 "finder 만 고친 PR" 은 결제 게이트를 하나도 깨우지 못했다(2026-09-01).
+      #    표식을 잘못 붙이면 이용권 상점(/points) 앵커까지 가로채 앱에서 금지된 프로그래매틱
+      #    이동이 된다 — verify:home-service-registry 가 그 대조를 갖고 있다.
+      - "js/core/home-service-finder.js"
+      - "js/core/service-registry.js"
+      - "public/js/core/home-service-finder.js"
+      - "public/js/core/service-registry.js"
       - "js/destiny-profile.js"
       # 미러도 함께 건다 — verify:payment-choice-parity 가 이 사본을 실제로 열어 검사한다.
       - "public/js/destiny-profile.js"
