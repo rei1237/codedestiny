@@ -72,7 +72,7 @@ for (const featureKey of ["tarot-love-relationship", "vedic-ai-consultation", "f
 }
 
 console.log("\n[2] 영구 해금(UNLOCK)은 기록되는가");
-for (const featureKey of ["section_daewun", "flower-fc", "premium-naming"]) {
+for (const featureKey of ["section_daewun", "flower-fc", "premium-ziwei"]) {
   const product = resolveProductForFeature(featureKey);
   const update = product ? buildEntitlementUpdate({ product }) : null;
   check(

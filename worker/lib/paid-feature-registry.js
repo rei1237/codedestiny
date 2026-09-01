@@ -337,7 +337,6 @@ const RAW_PIG_COIN_UNLOCK_PRODUCTS = Object.freeze({
   "unlock.section_compat": { featureKey: "section_compat", cost: 50, reason: "Section compat unlock" },
   "unlock.flower_fc": { featureKey: "flower-fc", cost: 100, reason: "Destiny flower atelier full unlock" },
   "unlock.olympus_fc": { featureKey: "olympus-fc", cost: 100, reason: "Olympus profile unlock" },
-  "unlock.all_paid_saju": { featureKey: "allPaidSaju", cost: 700, reason: "All paid saju unlock" },
   "unlock.rpg_character": { featureKey: "rpgCharacter", cost: 30, reason: "RPG character unlock" },
   "unlock.travel_destiny": { featureKey: "travelDestiny", cost: 50, reason: "Travel destiny unlock" },
   "unlock.health_report": { featureKey: "healthReport", cost: 50, reason: "Health report unlock" },
@@ -353,33 +352,30 @@ const RAW_PIG_COIN_UNLOCK_PRODUCTS = Object.freeze({
   "unlock.ziwei_twelve_palaces": { featureKey: "ziwei_twelve_palaces", cost: 100, reason: "자미두수 12궁 정밀 해설 해금" },
   "unlock.ziwei_symbolic_layer": { featureKey: "ziwei_symbolic_layer", cost: 100, reason: "자미두수 상징 보조층 해금" },
   "unlock.ziwei_life_yearly_flow": { featureKey: "ziwei_life_yearly_flow", cost: 100, reason: "자미두수 생애 총론과 연간 흐름 해금" },
-  "unlock.premium_astrology": { featureKey: "premium-astrology", cost: 390, reason: "Premium astrology unlock" },
-  "unlock.premium_sukuyo": { featureKey: "premium-sukuyo", cost: 390, reason: "Premium sukuyo unlock" },
-  "unlock.premium_veda": { featureKey: "premium-veda", cost: 390, reason: "Premium veda unlock" },
-  "unlock.premium_naming": { featureKey: "premium-naming", cost: 700, reason: "Premium naming unlock" },
   "unlock.nakshatra_lord_report": { featureKey: "nakshatra-lord-report", cost: 100, reason: "나크샤트라 지배성 심화 리포트 해금" },
   "unlock.nakshatra_dasha_map": { featureKey: "nakshatra-dasha-map", cost: 100, reason: "나크샤트라 다샤 인생지도 해금" },
 });
 
 export const PIG_COIN_UNLOCK_PRODUCTS = normalizeRegistryPricingTable(RAW_PIG_COIN_UNLOCK_PRODUCTS);
 
+// 드리프트 검출기이지 영구 기록이 아니다 — 의도한 개정이면 기준선도 함께 옮긴다.
+// 개정 이력:
+//  · 2026-09-01 번들 해금 5종(unlock.all_paid_saju · premium_astrology · premium_sukuyo ·
+//    premium_veda · premium_naming) 삭제. 어느 화면도 이 키로 결제를 시작하지 않아
+//    Play SKU 두 개(cd_content_tier_11 ₩39,000 · cd_content_tier_13 ₩70,000)만 남기고 있었다.
+//    __tests__/worker/paid-feature-registry.legacy-65de451.test.js 의 사본과 항상 짝으로 고친다.
 const LEGACY_UNLOCK_PRODUCTS_65DE451 = Object.freeze({
   "unlock.section_daewun": { featureKey: "section_daewun", cost: 50, reason: "Section daewun unlock" },
   "unlock.section_summary": { featureKey: "section_summary", cost: 50, reason: "Section summary unlock" },
   "unlock.section_compat": { featureKey: "section_compat", cost: 50, reason: "Section compat unlock" },
   "unlock.flower_fc": { featureKey: "flower-fc", cost: 100, reason: "Destiny flower atelier full unlock" },
   "unlock.olympus_fc": { featureKey: "olympus-fc", cost: 100, reason: "Olympus profile unlock" },
-  "unlock.all_paid_saju": { featureKey: "allPaidSaju", cost: 700, reason: "All paid saju unlock" },
   "unlock.rpg_character": { featureKey: "rpgCharacter", cost: 30, reason: "RPG character unlock" },
   "unlock.travel_destiny": { featureKey: "travelDestiny", cost: 50, reason: "Travel destiny unlock" },
   "unlock.health_report": { featureKey: "healthReport", cost: 50, reason: "Health report unlock" },
   "unlock.secret_house_episodes": { featureKey: "secretHouseEpisodes", cost: 50, reason: "Secret house episodes unlock" },
   "unlock.premium_divination_pack": { featureKey: "premiumDivinationPack", cost: 300, reason: "Premium divination pack unlock" },
   "unlock.premium_ziwei": { featureKey: "premium-ziwei", cost: 200, reason: "Premium ziwei unlock" },
-  "unlock.premium_astrology": { featureKey: "premium-astrology", cost: 390, reason: "Premium astrology unlock" },
-  "unlock.premium_sukuyo": { featureKey: "premium-sukuyo", cost: 390, reason: "Premium sukuyo unlock" },
-  "unlock.premium_veda": { featureKey: "premium-veda", cost: 390, reason: "Premium veda unlock" },
-  "unlock.premium_naming": { featureKey: "premium-naming", cost: 700, reason: "Premium naming unlock" },
 });
 
 export const UNLOCK_PRODUCT_BY_FEATURE_KEY = Object.freeze(
@@ -580,7 +576,6 @@ export function isUnlockPaidFeatureKey(featureKey) {
 
 export const PAID_FEATURE_KEY_ALIASES = Object.freeze({
   "saju_ai_prompt_generator": "saju_ai_question_prompt",
-  "premium-sukyo": "premium-sukuyo",
   "openjuyuk": "openJuyukModal",
   "openkemet": "openKemetModal",
   "opengeomancy": "openGeomancyOracle",

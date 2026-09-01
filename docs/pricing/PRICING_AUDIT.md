@@ -172,6 +172,13 @@ AI 상담의 표준 가격대. **`PREMIUM_QUOTA_MIN_COIN_COST = 300` 문턱과 �
 
 **레지스트리 상품 9개 + reason 전용 가격 2건이 상한 ₩29,000을 초과**한다. 상품 9개 중 **5개가 `unlock.*` 번들 해금**(점성술/숙요/베다 전체 해금 ₩39,000 ×3, 사주 전체 해금·작명 전체 해금 ₩70,000 ×2)이라, (b)기능 분할보다 **(a)인하 또는 (d)번들 재구성**이 자연스럽다.
 
+> ✅ **2026-09-01 종결 — 번들 해금 5종을 삭제했다.** 결론은 (a)인하도 (d)재구성도 아닌 **삭제**다.
+> 전수 `git grep`(소스 + `__tests__/` + `scripts/verify-*`, `sync:public` 미러 포함) 결과 이 5개 키로
+> 결제를 여는 화면이 **0건**이었다 — 서비스가 존재한 적이 없는 상품이다. 5종 전용이던 Play SKU
+> `cd_content_tier_11`(₩39,000)·`cd_content_tier_13`(₩70,000)도 `CONTENT_TIER_TABLE` 에서 함께 뺐다.
+> Play Console 비활성화는 사람 손 — [PLAY_CONSOLE_TASKS.md](PLAY_CONSOLE_TASKS.md) 1절.
+> **남은 상한 초과는 500코인 4종 + reason 전용 690코인 1건**이며 그 처리는 미결이다.
+
 ### A-8. 이용권 플랜 — **상한 적용 대상 아님** (사용자 확정)
 
 정본: `worker/payments/passes.js:30` `PASS_MONTHLY_WON`. `planId = ${tier}_1m`, 30일 단품(자동갱신 없음).
@@ -442,6 +449,13 @@ CSS 주석 2건(`fusion-fortune.module.css:802`, `codex.module.css:470`).
 `scripts/verify-vedic-ai-flow.mjs:62,108`은 **React 클라이언트와 워커 라우트에 `premium_pdf_vedic`가 없을 것**을 단언한다 — 즉 이 키는 의도적으로 폐기된 경로이고 레거시 번들만 살아 있다.
 
 **위험도: 높음 / 우선 확인 필요.** Phase 2 이전에 별건으로 처리할지 결정 권장.
+
+> ✅ **2026-09-01 종결 — 이 경로는 이미 사라져 있었다.** 표 첫 줄의 `js/vedic-ai-consultation.js` ·
+> `js/vedic-book.js` 는 **레포에 없다**. 전수 `git grep premium_pdf_vedic` 로 남은 자리는 셋뿐이다:
+> `index.html:29322`(결제 개시가 아니라 **결제 후 응답 featureKey 정규화표**) ·
+> `scripts/verify-vedic-ai-flow.mjs:63,122`(부재 단언) · `worker/lib/vedic-premium-generator.js:1874`
+> (산출 JSON 의 메타 필드). `premium_pdf_vedic` 는 지금도 가격 레지스트리·별칭 표 어디에도 없어
+> **이 키로는 390코인이 매겨지지 않는다.** 390 가격대 자체도 2026-09-01 에 없어졌다(A-7 종결 노트).
 
 ### D-2. 🔴 랜딩 가격 카드가 환산 규칙과 정면 충돌 — `GlobalPricingCard.jsx`
 

@@ -25,7 +25,6 @@ export const REVIEW_PRODUCTS = Object.freeze([
       "loveSimulation",
       "section_daewun",
       "section_summary",
-      "allPaidSaju",
       "healthReport",
       "travelDestiny",
       "rpt_quantumCard",
@@ -130,7 +129,6 @@ export const REVIEW_PRODUCTS = Object.freeze([
       "astro_stellar_growth_room",
       "astro_monthly_transit",
       "astro_yearly_transit",
-      "premium-astrology",
     ]),
   },
   {
@@ -142,7 +140,6 @@ export const REVIEW_PRODUCTS = Object.freeze([
       "vedic-ai-consultation",
       "vedic_ai_prompt_generator",
       "vedic_prashna_prompt",
-      "premium-veda",
     ]),
   },
   {
@@ -187,7 +184,6 @@ export const REVIEW_PRODUCTS = Object.freeze([
       "sukuyo-nature-deep-dive",
       "sukuyo-monthly-fortune",
       "sukyo_yearly_fortune_unlock",
-      "premium-sukuyo",
     ]),
   },
   {
@@ -253,7 +249,6 @@ export const REVIEW_PRODUCTS = Object.freeze([
     href: "/naming-ai",
     featureKeys: Object.freeze([
       "premium-naming-prompt",
-      "premium-naming",
     ]),
   },
   {
