@@ -142,8 +142,20 @@ export function buildDailyPostText(env, now = Date.now()) {
 async function runChannel({ now, keyHash, send }) {
   // 🔴 그날 "실패" 로 남은 문서는 재선점한다 — 실패는 흔적으로 남기되(아래) 재시도를 막지는 않는다.
   // 관리자 수동 실행(routes/admin-sns.js)이 이 경로로 같은 날 다시 시도한다.
+  //
+  // 🔴 단 **이미 일부라도 공개된 날은 재선점하지 않는다**(responseRef.ids 가 비어 있어야 한다).
+  // Threads 체인은 언제나 1번 글부터 발행하므로, 2번째 글에서 죽은 날을 재시도하면 이미 나간 1번 글이
+  // 계정에 한 번 더 올라간다. 2026-09-02 에 실제로 그렇게 중복 발행됐다(같은 날 관리자 실행 2회).
+  // "나간 데부터 이어 붙이기"는 성립하지 않는다 — 문안은 실행할 때마다 새로 쓰므로 재시도분은 다른
+  // 원고의 뒷부분이 된다. 그래서 부분 발행된 날은 그대로 두고 다음 날 dateKey 에서 다시 시작한다.
   const reclaimed = await IdempotencyKey.findOneAndUpdate(
-    { userId: null, endpoint: SNS_POST_ENDPOINT, keyHash, status: "failed" },
+    {
+      userId: null,
+      endpoint: SNS_POST_ENDPOINT,
+      keyHash,
+      status: "failed",
+      $or: [{ "responseRef.ids": { $exists: false } }, { "responseRef.ids": { $size: 0 } }],
+    },
     { $set: { status: "processing", updatedAt: new Date(now), expiresAt: new Date(now + DEDUPE_TTL_MS) } },
     { new: true },
   );
@@ -159,8 +171,17 @@ async function runChannel({ now, keyHash, send }) {
       });
     } catch (error) {
       if (isDuplicateKeyError(error)) {
-        console.log(`[CRON] SNS Daily Post: ${keyHash} 는 이미 발행됐다 — 건너뛴다.`);
-        return { ok: true, skipped: "already_posted", keyHash };
+        // 여기까지 왔는데 문서가 아직 failed 라면 위 재선점이 ids 조건에서 걸렸다는 뜻 — 부분 발행된 날이다.
+        // 성공/진행 중과 구분해 남긴다(관리자 status 응답과 실행 요약 줄에 이 값이 그대로 보인다).
+        const existing = await IdempotencyKey.findOne({ endpoint: SNS_POST_ENDPOINT, keyHash }).catch(() => null);
+        const partial = existing?.status === "failed";
+        const posted = Array.isArray(existing?.responseRef?.ids) ? existing.responseRef.ids.length : 0;
+        console.log(
+          partial
+            ? `[CRON] SNS Daily Post: ${keyHash} 는 ${posted}개가 이미 나간 날이다 — 중복 발행을 막으려고 건너뛴다.`
+            : `[CRON] SNS Daily Post: ${keyHash} 는 이미 발행됐다 — 건너뛴다.`,
+        );
+        return { ok: true, skipped: partial ? "already_posted_partial" : "already_posted", keyHash };
       }
       throw error;
     }
@@ -185,7 +206,7 @@ async function runChannel({ now, keyHash, send }) {
       },
     ).catch(() => {});
     console.error(`[CRON] SNS Daily Post: ${keyHash} 발행 실패(${result.error}) — failed 로 기록했다.`);
-    return { ok: false, stage: "send", error: result.error, status: result.status ?? null, permanent: Boolean(result.permanent), keyHash };
+    return { ok: false, stage: "send", error: result.error, status: result.status ?? null, code: result.code ?? null, endpoint: result.endpoint ?? null, permanent: Boolean(result.permanent), keyHash };
   }
 
   await IdempotencyKey.updateOne(
@@ -224,6 +245,17 @@ async function sendThreadsChannel(env, now, fetchImpl, generateImpl) {
       // 늘 같다는 신고가 오면 여기부터 본다(GET /api/admin/sns-daily-post/status 로 보인다).
       aiModel: copy?.model || null,
       ...(result.failedAt == null ? {} : { failedAt: result.failedAt }),
+      // 🔴 실패한 날은 Graph 가 말한 사유를 그대로 굳힌다. 알림은 지워지고 Workers Logs 는 못 볼 수도
+      // 있지만 이 문서는 TTL 3일간 남는다 — 2026-09-02 실패가 code 없이 남는 바람에 스코프인지
+      // 답글 대상 문제인지 못 갈랐다. endpoint 는 컨테이너 생성/발행 중 어디서 죽었는지를 가른다.
+      ...(result.ok
+        ? {}
+        : {
+            endpoint: result.endpoint ?? null,
+            code: result.code ?? null,
+            type: result.type ?? null,
+            subcode: result.subcode ?? null,
+          }),
     },
   };
 }
@@ -330,10 +362,13 @@ export async function runSnsDailyPostTask(env, options = {}) {
   // 🔴 성공한 채널을 **같은 문구에** 적는다. 한 채널만 죽어도 태스크는 통째로 던지므로, 성공을 빼면
   // 알림 한 줄이 "오늘 아무것도 안 나갔다"로 읽힌다 — Threads 토큰이 죽어 있는 동안 매일 그렇게 읽힌다.
   // permanent(OAuth·code 190/200)는 재시도로 안 풀리므로 사람이 할 일을 문구에 박는다.
+  // 🔴 Graph 원본 code 와 죽은 엔드포인트도 사유 바로 뒤에 박는다 — 문구만으로는 "스코프가 없다"와
+  // "답글 대상을 못 찾았다"가 똑같이 읽힌다(2026-09-02 실측: 1번째 글은 발행됐고 2번째 답글만 400).
+  // 알림은 사유를 200자에서 자르므로 뒤가 아니라 사유 바로 뒤다.
   const failed = Object.entries(channels).filter(([, result]) => !result.ok);
   if (failed.length) {
     const sent = Object.entries(channels).filter(([, r]) => r.ok).map(([name, r]) => `${name}=${r.skipped || "sent"}`);
-    const reasons = failed.map(([name, r]) => `${name}(stage=${r.stage || "send"})=${r.error}${r.permanent ? " [토큰 회전 필요]" : ""}`);
+    const reasons = failed.map(([name, r]) => `${name}(stage=${r.stage || "send"})=${r.error}${r.code == null ? "" : ` [code=${r.code}${r.endpoint ? ` @${r.endpoint}` : ""}]`}${r.permanent ? " [토큰 회전 필요]" : ""}`);
     const error = new Error(
       `SNS 일일 발행 실패(${dateKey}): ${reasons.join(", ")} / 성공 ${sent.length ? sent.join(", ") : "0건"}`,
     );

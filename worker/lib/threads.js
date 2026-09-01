@@ -52,9 +52,16 @@ function classifyThreadsError(payload, status) {
 
   const permanent = type === "OAuthException" || code === 190 || code === 200 || code === 10 || status === 401 || status === 403;
 
+  // 🔴 code·type·error_subcode 를 버리지 않는다. 2026-09-02 실행이 정확히 이것 때문에 헛돌았다 —
+  // 잠금 문서에도 알림에도 문구("The requested resource does not exist") 하나뿐이라, 스코프 부족인지
+  // 답글 대상을 못 찾은 것인지 가를 수 없어 재현 1회가 통째로 낭비됐다. Graph 는 사유를 code 로 말한다.
+  const subcode = Number(detail?.error_subcode);
+
   return {
     error: message || `http_${status}`,
     code: Number.isFinite(code) ? code : null,
+    type: type || null,
+    subcode: Number.isFinite(subcode) ? subcode : null,
     permanent,
   };
 }
@@ -93,14 +100,17 @@ async function callThreadsApi(doFetch, token, endpoint, params) {
 
   if (!response.ok || !payload || payload.error) {
     const classified = classifyThreadsError(payload, response.status);
-    console.error("[THREADS] 호출 실패:", { endpoint, status: response.status, error: classified.error, permanent: classified.permanent });
-    return { ok: false, status: response.status, ...classified };
+    // 🔴 endpoint 를 결과에도 싣는다(로그에만 있으면 Workers Logs 를 못 볼 때 사라진다). 2단계 발행이라
+    // 같은 문구가 "컨테이너 생성이 거절됐다"와 "만든 컨테이너를 발행하지 못했다" 양쪽에서 나오는데,
+    // 답글 체인이 깨졌을 때 그 둘은 원인이 완전히 다르다(답글 대상 부재 vs 컨테이너 준비 전 발행).
+    console.error("[THREADS] 호출 실패:", { endpoint, status: response.status, error: classified.error, code: classified.code, type: classified.type, subcode: classified.subcode, permanent: classified.permanent });
+    return { ok: false, status: response.status, endpoint, ...classified };
   }
 
   const id = String(payload.id || "").trim();
   if (!id) {
     console.error("[THREADS] 응답에 id 가 없다:", { endpoint, status: response.status });
-    return { ok: false, status: response.status, error: "missing_id_in_response", permanent: false };
+    return { ok: false, status: response.status, endpoint, error: "missing_id_in_response", permanent: false };
   }
 
   return { ok: true, status: response.status, id };

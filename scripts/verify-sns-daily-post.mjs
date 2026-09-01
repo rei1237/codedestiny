@@ -294,6 +294,13 @@ function jsonResponse(body, status = 200) {
     "failed 문서를 재선점하는 findOneAndUpdate 가 없다 — 실패한 날은 재시도가 영영 막힌다(⑧)",
   );
   assert.ok(/responseRef:\s*\{\s*error:/.test(taskSource), "실패 사유(responseRef.error)를 남기지 않는다(⑧)");
+  /* 🔴 부분 발행된 날(responseRef.ids 가 이미 차 있는 날)은 재선점하지 않는다.
+     Threads 체인은 언제나 1번 글부터 발행하므로 재시도가 곧 중복 발행이다 — 2026-09-02 에 실제로
+     같은 글이 계정에 두 번 올라갔다. 문안은 실행마다 새로 쓰므로 이어 붙이기로도 못 푼다. */
+  assert.ok(
+    /findOneAndUpdate\([\s\S]{0,400}?status: "failed",[\s\S]{0,240}?responseRef\.ids[\s\S]{0,160}?\$size: 0/.test(taskSource),
+    "failed 재선점이 responseRef.ids 가 빈 문서로 한정되지 않는다 — 부분 발행된 날을 재시도해 같은 글이 두 번 나간다(⑧)",
+  );
 }
 
 /* ⑨ 관리자 수동 실행·상태 조회가 배선돼 있고, 크론과 **같은** runSnsDailyPostTask 를 부른다 —
