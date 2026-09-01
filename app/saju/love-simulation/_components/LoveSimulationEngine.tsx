@@ -8,6 +8,7 @@ import { fetchSajuPillar } from "../_services/sajuApi";
 import { applyEffects, getRelationshipMetrics } from "../_utils/loveCodeScoring";
 import { buildSajuCoupleCompatibility, formatTemplate, matchLoveCharactersFromSaju, LOVE_MATCHING_COPY_KO, type LoveCharacterMatchResult, type LoveMatchingCopy, type SajuCoupleCompatibility } from "../_utils/loveCharacterMatching";
 import { useLoveSimCopy } from "../_utils/loveSimCopy";
+import { useAmbientMotionEnabled } from "../_utils/useAmbientMotion";
 import { computeCompatibilityProfile } from "../_engine/compatibilityEngine";
 import { normalizeSajuForPerson } from "../_engine/normalizeSaju";
 import { getCharacterNormalizedSaju } from "../_data/characterCharts";
@@ -309,6 +310,31 @@ type ProfileSeed = {
 
 const MIN_PLAYABLE_SCENES = 10;
 const LOVE_CODE_HERO_ASSET = "/fuctionassets/love code.webp";
+// 🔴 srcset 은 공백을 URL/디스크립터 구분자로 파싱한다. 이 파일명에 공백이 있으므로 %20 이 필수다.
+//    게다가 scripts/build-mobile-app.mjs 의 SAME_ORIGIN_RESIZE_RE 는 [^"'()\s] 라 공백이 섞이면
+//    한 건도 매칭하지 못하고 fail-closed 두 개 중 어느 것도 그걸 잡지 못한다 → 앱에서 무음 404 가 된다.
+// 🔴 컴포넌트 안에서 템플릿 리터럴로 조립하지 말 것 — 번들에 조각 리터럴만 남아 앱 재작성기가 못 잡는다.
+// 실측(프로덕션, 2026-09-02): w=640 29,093 B · w=960 55,486 B · 원본 133,869 B.
+const LOVE_CODE_HERO_SRCSET = [
+  "/cdn-cgi/image/width=640,quality=60,format=auto/fuctionassets/love%20code.webp 640w",
+  "/cdn-cgi/image/width=960,quality=65,format=auto/fuctionassets/love%20code.webp 960w",
+  "/fuctionassets/love%20code.webp 1672w",
+].join(", ");
+// 장식 배경(alt="" · aria-hidden)이라 의도적으로 낮게 신고한다. 모바일 밴드의 실제 CSS 폭은
+// 뷰포트 폭과 같지만 DPR 2~3 에서도 640w 로 충분하다. lg 이상은 100vw → 원본을 고른다.
+const LOVE_CODE_HERO_SIZES = "(max-width: 1023px) 50vw, 100vw";
+
+// 스테이징(*.pages.dev)에는 Cloudflare Image Resizing 이 없어 /cdn-cgi/image/ 가 404 다.
+// 앱에서도 접두어가 스트립된 뒤 퍼센트 인코딩 경로가 남는다(서빙 여부 미검증).
+// 어느 쪽이든 실패하면 srcSet/sizes 를 걷어내고 원본 리터럴로 1회만 떨어진다.
+function handleHeroSrcSetFailure(event: React.SyntheticEvent<HTMLImageElement>) {
+  const img = event.currentTarget;
+  if (img.dataset.heroFallback === "1") return;
+  img.dataset.heroFallback = "1";
+  img.srcset = "";
+  img.sizes = "";
+  img.src = LOVE_CODE_HERO_ASSET;
+}
 
 const ELEMENT_LOVE_NARRATIVE: Record<LoveCharacter["element"], { label: string; atmosphere: string; harmony: string; shadow: string; datePulse: string }> = {
   wood: {
@@ -657,8 +683,10 @@ function CharacterProfileCrop({ character, className = "", alt }: { character: L
       <img
         src={character.asset}
         alt={alt}
+        loading="lazy"
+        decoding="async"
         style={getProfileCropStyle(character)}
-        className="z-10 max-w-none drop-shadow-[0_18px_28px_rgba(0,0,0,0.34)]"
+        className="z-10 max-w-none drop-shadow-[0_18px_28px_rgba(0,0,0,0.34)] max-lg:filter-none"
       />
     </div>
   );
@@ -911,7 +939,7 @@ function RecommendedMatchCard({
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -8 }}
-      className="overflow-hidden rounded-lg border border-rose-100/22 bg-white/[0.12] shadow-[0_22px_60px_rgba(244,114,182,0.16)] backdrop-blur-2xl"
+      className="overflow-hidden rounded-lg border border-rose-100/22 bg-white/[0.12] shadow-[0_22px_60px_rgba(244,114,182,0.16)] backdrop-blur-2xl max-lg:backdrop-filter-none max-lg:bg-[rgba(38,20,34,0.92)]"
     >
       <div className="grid gap-0 sm:grid-cols-[0.42fr_0.58fr]">
         <CharacterProfileCrop
@@ -1423,6 +1451,9 @@ function ResultCard({
 }
 
 export const LoveSimulationEngine: React.FC = () => {
+  // lg 미만 / reduced-motion 에서는 상시 연출을 통째로 끈다. 화면 4개가 전부 early return 이라
+  // 훅 호출은 반드시 여기(첫 return 위)에 있어야 한다.
+  const ambient = useAmbientMotionEnabled();
   const [screen, setScreen] = useState<"intro" | "select" | "play" | "result">("intro");
   const [locale, setLocale] = useState<LoveSimulationLocale>("ko");
   const [selectedId, setSelectedId] = useState<CharacterId | null>(null);
@@ -1738,33 +1769,75 @@ export const LoveSimulationEngine: React.FC = () => {
   if (screen === "intro") {
     return (
       <section className="relative min-h-[100svh] overflow-hidden bg-[#08060d] text-white">
-        <m.img
-          src={LOVE_CODE_HERO_ASSET}
-          alt=""
+        {/* lg 미만에서는 히어로를 원본 종횡비 그대로의 상단 밴드에 가둔다. 예전에는 inset-0 +
+            object-cover 라 폼까지 쌓인 ~2000px 높이를 덮느라 배율 2.13 이 걸려 가로 11% 만 보였다.
+            🔴 이 래퍼에는 transform/filter/opacity/z-index 를 넣지 말 것 — 스태킹 컨텍스트가 생기면
+               아래 오버레이 두 겹이 히어로 밑으로 내려간다. lg 이상 박스는 예전과 동일하다. */}
+        <div
           aria-hidden="true"
-          className="absolute inset-0 h-full w-full object-cover object-center opacity-72"
-          animate={{ scale: [1.02, 1.055, 1.02], x: [0, -10, 0] }}
-          transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(8,6,13,0.94)_0%,rgba(24,11,24,0.82)_34%,rgba(35,14,31,0.46)_58%,rgba(7,8,14,0.76)_100%)]" />
+          className="pointer-events-none absolute inset-x-0 top-0 aspect-[1672/941] max-h-[46svh] overflow-hidden lg:inset-0 lg:aspect-auto lg:max-h-none"
+        >
+          {/* 🔴 opacity-72 는 Tailwind 에 없는 클래스였다(빌드 CSS 31개 전수 0건 = 실효 opacity 1.0).
+              "복원"하면 데스크톱 히어로가 28% 어두워진다 — 되살리지 말 것. */}
+          <m.img
+            src={LOVE_CODE_HERO_ASSET}
+            srcSet={LOVE_CODE_HERO_SRCSET}
+            sizes={LOVE_CODE_HERO_SIZES}
+            onError={handleHeroSrcSetFailure}
+            alt=""
+            decoding="async"
+            fetchPriority="high"
+            className="h-full w-full object-cover object-center"
+            {...(ambient
+              ? {
+                  animate: { scale: [1.02, 1.055, 1.02], x: [0, -10, 0] },
+                  transition: { duration: 18, repeat: Infinity, ease: "easeInOut" },
+                }
+              : {})}
+          />
+          {/* 🔴 고정 높이 페이드로 두지 말 것 — 밴드 높이는 뷰포트 폭에 따라 219px(390) ~ 432px(768)
+              로 변한다. 고정 h-24 였을 때 768 에서 서브카피가 밝은 로고아트 위에 놓여 대비 1.76:1 이었다
+              (visual-checker 실측 2026-09-02). 비율 스톱이라 밴드 하단은 항상 배경색 #08060d 로 닫힌다. */}
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(8,6,13,0)_0%,rgba(8,6,13,0.06)_36%,rgba(8,6,13,0.58)_74%,#08060d_100%)] lg:hidden" />
+          {/* 🔴 위 레이어는 비율 스톱이라 밴드 하단을 배경색으로 닫아 주지만, 카피의 y 좌표는 폭과 무관하게
+              고정이다(실측 2026-09-02: eyebrow 162~182px · h1 198px · desc 342px — 360~1023 전 폭 동일).
+              밴드만 커지므로(219px@390 → 432px@768) 같은 줄이 밴드의 74% 에서 38% 로 올라가 알파가 0.58 →
+              0.06 으로 무너진다. 실제로 768 에서 eyebrow 대비가 1.52:1 이었다.
+              그래서 이 레이어는 **px 앵커**다 — 스톱을 밴드 높이가 아니라 카피 위치에 맞춘다.
+              🔴 sm(640) 미만은 붙이지 않는다. 390/430 은 이미 7.08:1 로 통과하는데 여기서 덧칠하면
+              폰에서 보이는 아트만 다시 줄어든다(그게 이번 작업의 목적이었다). */}
+          <div className="absolute inset-0 hidden bg-[linear-gradient(180deg,rgba(8,6,13,0)_118px,rgba(8,6,13,0.55)_150px,rgba(8,6,13,0.8)_176px,rgba(8,6,13,0.8)_100%)] sm:block lg:hidden" />
+        </div>
+        {/* 90deg 그라디언트는 2열 레이아웃에서 왼쪽 텍스트를 읽히게 하려는 장치다(좌측 알파 0.94).
+            1열이 되면 목적을 잃고 그림만 덮으므로 모바일에서는 세로 그라디언트로 대체한다. */}
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(8,6,13,0.94)_0%,rgba(24,11,24,0.82)_34%,rgba(35,14,31,0.46)_58%,rgba(7,8,14,0.76)_100%)] max-lg:bg-[linear-gradient(180deg,rgba(8,6,13,0.10)_0%,rgba(8,6,13,0.34)_30%,rgba(8,6,13,0.78)_100%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_28%_24%,rgba(255,221,236,0.22)_0%,rgba(255,221,236,0)_38%),linear-gradient(180deg,rgba(255,244,231,0.08)_0%,rgba(255,255,255,0)_34%,rgba(4,6,12,0.58)_100%)]" />
-        <m.div
-          className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-rose-100/70 to-transparent"
-          animate={{ opacity: [0.35, 0.9, 0.35] }}
-          transition={{ duration: 3.8, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <m.div
-          className="absolute left-0 top-0 h-full w-1/2 bg-[linear-gradient(105deg,rgba(255,255,255,0)_0%,rgba(255,226,235,0.14)_48%,rgba(255,255,255,0)_100%)]"
-          animate={{ x: ["-120%", "220%"] }}
-          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", repeatDelay: 2.4 }}
-        />
+        {/* 🔴 hidden lg:block 이 아니라 조건 렌더다 — display:none 이어도 framer 는 루프를 계속 돈다. */}
+        {ambient ? (
+          <m.div
+            className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-rose-100/70 to-transparent"
+            animate={{ opacity: [0.35, 0.9, 0.35] }}
+            transition={{ duration: 3.8, repeat: Infinity, ease: "easeInOut" }}
+          />
+        ) : null}
+        {ambient ? (
+          <m.div
+            className="absolute left-0 top-0 h-full w-1/2 bg-[linear-gradient(105deg,rgba(255,255,255,0)_0%,rgba(255,226,235,0.14)_48%,rgba(255,255,255,0)_100%)]"
+            animate={{ x: ["-120%", "220%"] }}
+            transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", repeatDelay: 2.4 }}
+          />
+        ) : null}
         <div className="relative mx-auto flex min-h-[100svh] w-full max-w-6xl flex-col justify-between px-5 py-7 sm:px-8 lg:px-10">
           <header className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <m.span
-                className="flex h-11 w-11 items-center justify-center rounded-lg border border-rose-100/30 bg-white/12 shadow-[0_16px_42px_rgba(244,114,182,0.24)] backdrop-blur-xl"
-                animate={{ y: [0, -3, 0], boxShadow: ["0 16px 42px rgba(244,114,182,0.18)", "0 20px 52px rgba(255,214,232,0.30)", "0 16px 42px rgba(244,114,182,0.18)"] }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                className="flex h-11 w-11 items-center justify-center rounded-lg border border-rose-100/30 bg-white/12 shadow-[0_16px_42px_rgba(244,114,182,0.24)] backdrop-blur-xl max-lg:backdrop-filter-none max-lg:bg-[rgba(22,13,26,0.92)]"
+                {...(ambient
+                  ? {
+                      animate: { y: [0, -3, 0], boxShadow: ["0 16px 42px rgba(244,114,182,0.18)", "0 20px 52px rgba(255,214,232,0.30)", "0 16px 42px rgba(244,114,182,0.18)"] },
+                      transition: { duration: 4, repeat: Infinity, ease: "easeInOut" },
+                    }
+                  : {})}
               >
                 <Sparkles className="h-5 w-5 text-rose-100" />
               </m.span>
@@ -1775,9 +1848,13 @@ export const LoveSimulationEngine: React.FC = () => {
           <div className="grid items-center gap-9 py-8 lg:grid-cols-[0.96fr_1.04fr] lg:py-10">
             <m.div initial={{ opacity: 0, y: 22 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, ease: "easeOut" }} className="max-w-2xl">
               <m.div
-                className="mb-6 inline-flex items-center gap-2 rounded-full border border-rose-100/26 bg-white/[0.09] px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-rose-50/86 shadow-[0_16px_42px_rgba(0,0,0,0.22)] backdrop-blur-xl"
-                animate={{ y: [0, -2, 0] }}
-                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+                className="mb-6 inline-flex items-center gap-2 rounded-full border border-rose-100/26 bg-white/[0.09] px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-rose-50/86 shadow-[0_16px_42px_rgba(0,0,0,0.22)] backdrop-blur-xl max-lg:backdrop-filter-none max-lg:bg-[rgba(22,13,26,0.92)]"
+                {...(ambient
+                  ? {
+                      animate: { y: [0, -2, 0] },
+                      transition: { duration: 5, repeat: Infinity, ease: "easeInOut" },
+                    }
+                  : {})}
               >
                 <Sparkles className="h-3.5 w-3.5 text-rose-100" />
                 Visual Novel Match
@@ -1791,7 +1868,7 @@ export const LoveSimulationEngine: React.FC = () => {
               </p>
               <div className="mt-6 grid max-w-xl gap-2 text-sm font-bold text-white/72 sm:grid-cols-3">
                 {[copy.introChips.saju, copy.introChips.dialogue, copy.introChips.flow].map((label) => (
-                  <div key={label} className="rounded-lg border border-white/12 bg-black/18 px-4 py-3 shadow-[0_14px_34px_rgba(0,0,0,0.18)] backdrop-blur-xl">
+                  <div key={label} className="rounded-lg border border-white/12 bg-black/18 px-4 py-3 shadow-[0_14px_34px_rgba(0,0,0,0.18)] backdrop-blur-xl max-lg:backdrop-filter-none max-lg:bg-black/45">
                     {label}
                   </div>
                 ))}
@@ -1816,7 +1893,7 @@ export const LoveSimulationEngine: React.FC = () => {
                 <button
                   onClick={() => void matchPartner()}
                   disabled={!canMatchPartner}
-                  className="inline-flex min-h-13 items-center justify-center gap-2 rounded-lg border border-rose-100/32 bg-white/[0.12] px-6 py-4 text-sm font-black text-white/90 shadow-[0_18px_42px_rgba(0,0,0,0.24)] backdrop-blur-xl transition hover:bg-white/20 disabled:cursor-not-allowed disabled:text-white/38 disabled:hover:bg-white/10"
+                  className="inline-flex min-h-13 items-center justify-center gap-2 rounded-lg border border-rose-100/32 bg-white/[0.12] px-6 py-4 text-sm font-black text-white/90 shadow-[0_18px_42px_rgba(0,0,0,0.24)] backdrop-blur-xl transition hover:bg-white/20 disabled:cursor-not-allowed disabled:text-white/38 disabled:hover:bg-white/10 max-lg:backdrop-filter-none max-lg:bg-white/[0.18]"
                 >
                   {isMatching ? copy.matchingReadingButton : copy.matchWithPartnerButton}
                   <ChevronRight className="h-4 w-4" />
@@ -1844,7 +1921,7 @@ export const LoveSimulationEngine: React.FC = () => {
                   hasTime: partnerHasTime,
                 });
               }}
-              className="rounded-lg border border-rose-100/20 bg-white/[0.09] p-5 shadow-[0_30px_80px_rgba(0,0,0,0.38)] backdrop-blur-2xl sm:p-7"
+              className="rounded-lg border border-rose-100/20 bg-white/[0.09] p-5 shadow-[0_30px_80px_rgba(0,0,0,0.38)] backdrop-blur-2xl sm:p-7 max-lg:backdrop-filter-none max-lg:bg-[rgba(22,13,26,0.94)] max-lg:shadow-[0_18px_44px_rgba(0,0,0,0.42)]"
               aria-label={copy.matchFormAria}
             >
               <div className="mb-5">
@@ -2042,7 +2119,7 @@ export const LoveSimulationEngine: React.FC = () => {
         <div className="absolute inset-0 bg-[linear-gradient(130deg,#151721_0%,#301a29_42%,#46233b_64%,#111827_100%)]" />
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,244,231,0.08)_0%,rgba(255,255,255,0)_34%,rgba(4,6,12,0.48)_100%)]" />
         <div className="relative mx-auto w-full max-w-6xl px-5 py-7 sm:px-8 lg:px-10">
-          <header className="mb-8 flex items-center justify-between gap-4 rounded-lg border border-white/10 bg-white/[0.07] px-4 py-3 shadow-[0_20px_56px_rgba(0,0,0,0.24)] backdrop-blur-xl">
+          <header className="mb-8 flex items-center justify-between gap-4 rounded-lg border border-white/10 bg-white/[0.07] px-4 py-3 shadow-[0_20px_56px_rgba(0,0,0,0.24)] backdrop-blur-xl max-lg:backdrop-filter-none max-lg:bg-white/[0.10]">
             <button
               onClick={() => setScreen("intro")}
               className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-white/10 bg-white/10 text-white transition hover:bg-white/20"
@@ -2063,10 +2140,10 @@ export const LoveSimulationEngine: React.FC = () => {
               return (
                 <m.article
                   key={item.id}
-                  layout
-                  initial={{ opacity: 0, y: 16 }}
+                  layout={ambient}
+                  initial={ambient ? { opacity: 0, y: 16 } : false}
                   animate={{ opacity: 1, y: 0 }}
-                  whileHover={{ y: -4 }}
+                  whileHover={ambient ? { y: -4 } : undefined}
                   onClick={() => setExpandedProfileId(isExpanded ? null : item.id)}
                   onKeyDown={(event) => {
                     if (event.key !== "Enter" && event.key !== " ") return;
@@ -2086,7 +2163,7 @@ export const LoveSimulationEngine: React.FC = () => {
                         className={`relative flex items-end justify-center overflow-hidden bg-black/18 ${isExpanded ? "h-[min(72svh,620px)] min-h-[360px]" : "h-auto"}`}
                         style={isExpanded ? undefined : { aspectRatio: getProfileCropAspect(item) }}
                       >
-                        <div className={`absolute inset-x-8 bottom-12 h-44 rounded-full blur-3xl ${item.palette.halo}`} />
+                        <div className={`absolute inset-x-8 bottom-12 h-44 rounded-full blur-3xl ${isExpanded ? "" : "max-lg:hidden"} ${item.palette.halo}`} />
                         {isExpanded ? (
                           <img
                             src={item.asset}
@@ -2101,7 +2178,7 @@ export const LoveSimulationEngine: React.FC = () => {
                           />
                         )}
                       </div>
-                      <div className="border-t border-white/10 bg-white/[0.04] p-5 backdrop-blur-xl">
+                      <div className="border-t border-white/10 bg-white/[0.04] p-5 backdrop-blur-xl max-lg:backdrop-filter-none max-lg:bg-white/[0.07]">
                         <div className="flex flex-wrap items-start justify-between gap-3">
                           <div className="min-w-0">
                             <p className={`text-sm font-bold ${item.palette.accent}`}>{characterCopy[item.id].archetype}</p>
