@@ -66,10 +66,28 @@
       purposes: item.purposes || [],
       methods: item.methods || [],
       badge: item.badge || "",
+      roles: item.roles || [],
       tagged: true,
       hay: norm([item.name, item.desc, item.price, item.keys].join(" "))
     };
   });
+
+  /* ── 기본 목록 (검색·칩을 건드리기 전) ──────────────────────
+     예전에는 입력·칩 선택 전까지 아무것도 렌더하지 않아, 홈에서 가장 강한 탐색 도구가 빈 채로
+     서 있고 그 뒤로 타일 62개를 사용자가 직접 훑어야 했다.
+
+     🔴 기본으로 깔 것은 **바로 위 두 섹션이 이미 보여 주지 않는 것**이어야 한다 —
+        #cdSignatureConsult(roles:"recommended" 4개) · #cdQuickServices(roles:"quick" 6개)가
+        탐색기 **바로 위**에 붙어 있어서(index.html 11334 / 11451 / 11493), roles 를 가진 항목을
+        여기 다시 깔면 같은 카드가 한 화면에 두 번 나오고 인터랙티브 요소만 늘어난다.
+     그래서 roles 가 없고(= 상단 미노출) 무료로 시작할 수 있는 앞쪽 6개를 쓴다.
+     'free' 판정은 bucketOf() 하나에서만 파생한다 — 가격 문자열을 여기서 다시 해석하지 않는다.
+
+     🔴 filterServices() 를 타지 않는다 — 그 안의 ensureCatalogue() 가 DOM 스윕(scrapeTiles)을
+        돌려서, 지금은 idle 로 미뤄 둔 카탈로그 생성이 첫 렌더로 앞당겨진다. */
+  var DEFAULT_PICKS = CURATED.filter(function (item) {
+    return !item.roles.length && item.bucket === "free";
+  }).slice(0, 6);
 
   /* ── DOM 스크래핑 (태그 없음 · 검색 전용) ───────────────────── */
   var TILE_SELECTOR = [
@@ -285,12 +303,8 @@
     function render() {
       var current = state();
       var active = current.query || current.purposes.length || current.methods.length || current.buckets.length;
-      if (!active) {
-        panel.hidden = true;
-        panel.textContent = "";
-        return;
-      }
-      var list = filterServices(current);
+      /* 아무것도 고르지 않은 상태 = 기본 목록. 필터를 켰다가 모두 끄면 이리로 되돌아온다. */
+      var list = active ? filterServices(current) : DEFAULT_PICKS;
       if (config.layout === "rich") renderRichResults(panel, list, current);
       else renderCompactResults(panel, list);
     }
@@ -339,6 +353,13 @@
          🔴 focus 안에서 동기로 만들지 말 것 — 비용이 focus 지연으로 옮겨갈 뿐이다. */
       input.addEventListener("focus", warmCatalogue, { once: true });
     }
+
+    /* 첫 렌더로 기본 목록을 깐다. 이건 사용자 행동의 결과가 아니므로 aria-live 를 잠깐 떼어,
+       스크린리더가 페이지 로드 직후 6개를 읽어 내려가지 않게 한다. 이후 렌더는 그대로 알린다. */
+    var live = panel.getAttribute("aria-live");
+    if (live) panel.removeAttribute("aria-live");
+    render();
+    if (live) panel.setAttribute("aria-live", live);
 
     return { render: render };
   }
