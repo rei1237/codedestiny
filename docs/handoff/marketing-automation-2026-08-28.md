@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-01
-next: §C-3 을 읽는다. 09-01 크론은 **두 채널 다 실패**했고 원인은 후보 2개(모듈 로드 · connectDb)로 좁혀졌지만 확정되지 않았다. 단계 표식 PR 을 머지 → 프로덕션 승격 → **09-02 07:00 KST 크론 1회**의 텔레그램 알림 문구에서 `stage=load` / `stage=connect_db` / `stage=send` 중 무엇인지 읽고 그때 고친다. 🔴 알림을 지우기 전에 그 한 줄을 복사해 둘 것 — 08-31 알림을 지워서 근거가 통째로 사라졌다. 별개로 **Threads 액세스 토큰이 죽어 있다**(§C-3) — 회전 전에는 threads 축이 매일 실패한다. 🔴 Threads 문안은 §C-4 에서 일간 10개 명리 브리핑으로 교체됐고(하이브리드), 토큰 회전 전에는 그것도 안 나간다.
+next: §C-3 을 읽는다. 09-01 크론은 **두 채널 다 실패**했고 원인은 후보 2개(모듈 로드 · connectDb)로 좁혀졌지만 확정되지 않았다. 단계 표식 PR 을 머지 → 프로덕션 승격 → **09-02 07:00 KST 크론 1회**의 텔레그램 알림 문구에서 `stage=load` / `stage=connect_db` / `stage=send` 중 무엇인지 읽고 그때 고친다. 🔴 알림을 지우기 전에 그 한 줄을 복사해 둘 것 — 08-31 알림을 지워서 근거가 통째로 사라졌다. 🔴 **Threads 토큰은 살아 있다**(2026-09-01 재실측 `200`, §C-3) — 08-31 의 `API access blocked` 는 재현되지 않았다. **회전하지 말 것.** 문안(§C-4 일간 10개 명리 브리핑) 6글 생성도 로컬 실측 통과라, 발행 경로에서 안 풀린 것은 위 크론 pre-loop 실패 하나뿐이다. 🔴 **그런데 계정에는 이미 매일 글이 나가고 있다** — 이 워커 밖에서 일간 10개가 1시간 간격으로(§C-3 말미 실측). 크론을 살리면 같은 날 두 벌이 나가므로 **고치기 전에 중복 발행부터 사용자와 정할 것.** 🔴 관리자 라우트 수동 실행은 **에이전트가 못 한다** — `FLOWER_ADMIN_SECRET` 이 로컬에 없어 사람이 `/admin/login` 으로 해야 한다.
 ---
 # 마케팅 자동화 엔진 — 인수인계 (2026-08-28)
 
@@ -225,7 +225,9 @@ SNS 발행이 텔레그램 단일 채널 → **텔레그램 + Threads 2채널**�
 3. `GET …/status` 에 `<dateKey>:threads` = `success` + `responseRef.ids` 4건.
 4. 다음 22:00Z 크론에서 두 채널 자동 발행 확인.
 
-**토큰 회전 런북 (60일 수명 · D-14 경고가 텔레그램으로 온다):**
+**토큰 회전 런북 (60일 수명 · D-14 경고가 텔레그램으로 온다) — 🔴 2026-09-01 현재 돌릴 때가 아니다.**
+토큰은 재실측에서 `200` 이다(§C-3). 지금 이 런북을 돌리면 멀쩡한 토큰을 버린다. D-14 경고가 실제로
+올 때(발급일 2026-08-31 + 46일 = 2026-10-16)만 쓴다.
 
 경고는 `THREADS_TOKEN_ISSUED_AT`(양쪽 toml `[vars]`) 로부터 **46일**째부터 발행 성공·실패와 무관하게
 매일 1건 나간다. 값은 사람이 지킨다 — 실제 발급일과 어긋나면 틀린 날 뜬다.
@@ -276,25 +278,52 @@ SNS 발행이 텔레그램 단일 채널 → **텔레그램 + Threads 2채널**�
 `wrangler` CLI 에도 과거 로그 조회 명령이 없다(`tail` 은 실시간뿐). 사람이 대시보드에서 보거나
 **Workers Observability Read 권한의 API 토큰**을 따로 발급해야 한다.
 
-**남은 별개 결함 — Threads 토큰이 죽었다.** `GET https://graph.threads.net/v1.0/me` →
-`400 {"message":"API access blocked.","type":"OAuthException","code":200}` (2026-09-01, 로컬 IP 에서 측정 —
-Cloudflare 엣지에서도 같은지는 **미검증**). `code 200` 은 `classifyThreadsError` 가 `permanent:true` 로 읽으므로
-**재시도로 안 풀린다.** 그동안 threads 축은 매일 실패하고, 그 때문에 텔레그램이 성공해도 태스크는 통째로
-던진다(그래서 이 PR 이 성공 채널을 문구에 넣었다).
+**🔴 2026-09-01 재실측 — 토큰은 살아 있다. 앞선 "토큰이 죽었다" 진단은 틀렸다.**
 
-🔴 **2026-09-01 정정 — 이건 만료가 아니라 인가 문제이고, §C-2 의 회전 런북은 틀린 레버다.** 근거 셋:
-① 이 토큰으로 **성공한 Threads 호출이 한 번도 없다** — §C-2 가 첫 발행을 크론에 위임했고 그 크론이 채널
-루프 전에 죽어 `<dateKey>:threads` 잠금이 0건이다. "한때 살아 있었다"는 전제 자체가 미검증이다.
-② `THREADS_TOKEN_ISSUED_AT="2026-08-31"` = 60일 수명의 D+1 이라 만료일 수 없다.
-③ 회전 1단계 `refresh_access_token` 은 **유효한 장기 토큰**을 전제하고 발급 후 24시간이 지나야 도는데,
-지금은 같은 사유로 막힌다.
-**사람이 Meta 대시보드에서 볼 것**(에이전트는 `.env*` 를 읽지 않으므로 여기가 한계):
-(a) 앱에 **Threads 전용 use case** 가 있고 토큰이 **그 use case 가 발급한 app ID/secret** 으로 나왔나 —
-Threads API 는 Facebook Login 자격증명과 **다른** 앱 자격증명을 쓴다. 다른 흐름에서 받은 토큰이면 거부된다.
-(b) 스코프 `threads_basic`(필수) + `threads_content_publish`, 답글 체인을 쓰므로 `threads_manage_replies`
-— 각각 개별 심사다. (c) 앱이 Development 모드면 발행 계정이 그 앱의 역할(관리자/개발자/테스터)을 가져야 한다.
-(d) 앱 제한 배너(비즈니스 인증 미완료 등).
-🔴 (a)~(d) 는 **정황 추론**이다 — Meta 의 Threads 문제해결 문서에 `code 200`·`API access blocked` 항목이 없다(실측).
+`.env.local` 의 `Thread_access_token` 을 그대로 써서 `GET https://graph.threads.net/v1.0/me?fields=id,username`
+(토큰은 URL 이 아니라 `Authorization: Bearer` 헤더) → **`200 {"id":"27631393193230212","username":"codedestiny_official"}`**.
+토큰 모양도 정상이다 — 길이 187 · 접두 `THA` · 파이프 없음(= Threads 가 발급한 장기 사용자 토큰).
+같은 주의 `400 / API access blocked / code 200` 은 **재현되지 않았고** 원인은 미확정이다
+(질의 문자열 vs 헤더 전달 차이 · Meta 쪽 일시 차단 · 측정 실수 중 하나). 근거로 삼지 말 것.
+
+🔴 **그래서 §C-2 의 토큰 회전 런북을 돌리지 말 것** — 멀쩡한 토큰을 버리게 된다.
+사용자 확인(2026-09-01): Meta 앱 대시보드 설정은 "대부분 제대로 되어 있다".
+
+**문안 생성 경로도 실측 통과.** `worker/lib/threads-daily-content.js` 를 esbuild 로 묶어 로컬 실행(LLM·DB·네트워크 0회):
+`getThreadsSkipReason`=null · `buildThreadsDayContext` rows=10 · `buildThreadsPostChain` **6글**
+(257·225·226·224·222·294자 — 전부 500자 이내).
+
+**남은 결함은 하나다 — 크론이 채널 루프에 닿기 전에 죽는 것**(위 표 + `stage=` 관측장치).
+토큰·문안·스위치는 전부 살아 있다.
+
+🔴 **아직 못 한 확인 — 그리고 Bash 권한을 열어도 에이전트는 못 한다(2026-09-01 실측):**
+프로덕션 관리자 라우트(`POST /api/admin/sns-daily-post/run?channel=threads`)는 flower-admin 토큰을 요구하는데,
+서명 비밀 `FLOWER_ADMIN_SECRET` 이 **`.env.local` 에 없고 Cloudflare 워커 시크릿에만 있다**(이름은 보이지만 값은 못 읽는다).
+남은 정식 경로는 사람이 `/admin/login` 에서 `POST /api/admin/entry/password` 로 로그인해 `flower_admin_token`
+쿠키를 받는 것뿐이고, 그 비밀번호도 `ADMIN_ENTRY_PASSWORD_HASH`(워커 시크릿)로만 검증된다.
+즉 **이 호출은 사람이 해야 한다** — 권한 문제가 아니라 자격증명이 로컬에 없다.
+이 경로가 성공하면 "모듈 로드·connectDb 는 따뜻한 아이솔레이트에서 정상"이 확정되어 원인이 크론 동시성 쪽으로 좁혀진다.
+
+**시크릿 미등재는 배제됐다** (2026-09-01, `npx wrangler secret list --config worker/wrangler.toml` — 이름만 나오고 값은 안 나온다):
+프로덕션 워커에 `THREADS_ACCESS_TOKEN`·`TELEGRAM_BOT_TOKEN`·`TELEGRAM_CHAT_ID`·`FLOWER_ADMIN_SECRET` 이 **전부 등재돼 있다.**
+
+**승격 시각 정본** (같은 날 `npx wrangler deployments list --config worker/wrangler.toml`):
+#1400 `f94cada` → `2026-09-01T07:57:06Z` · #1404 `4101b59` → `2026-09-01T09:14:43Z` ·
+실패한 크론(`08-31T22:00Z`) 직전의 마지막 배포는 `08-31T14:29Z`(`7d6cbbe` #1394).
+`GET https://code-destiny.com/api/version` 도 `gitSha 4101b597…` 로 일치한다 — **11시간 앞선 크론에는 `stage=` 가 없었다.**
+
+**🔴 계정에는 이미 매일 글이 나가고 있다 — 이 워커 밖에서** (2026-09-01 실측,
+`GET https://graph.threads.net/v1.0/me/threads?fields=id,text,timestamp,media_type&limit=25`):
+`갑목` `08-31T15:00Z` 부터 `계수` `09-01T06:00Z` 까지 **일간 10개가 1시간 간격 최상위 글로** 올라가 있다.
+이 워커가 낸 것이 아니다 — 크론은 `["0 22 * * *", "*/10 * * * *"]` 둘뿐이라 hourly 가 없고,
+`.github/workflows/` 에 Threads 발행이 없으며, 태스크가 내는 모양은 최상위 10글이 아니라
+**루트 1글 + 오행 짝 답글 5글**이다(`worker/lib/threads-daily-content.js` 머리말).
+🔴 **그래서 크론이 살아나는 날 같은 내용이 두 벌 나간다.** 고치기 전에 사용자에게
+"손발행을 멈출지 / 크론 문안을 바꿀지"를 먼저 확인할 것 — 공개 채널이라 되돌릴 수 없다.
+
+**순환 import 재확인(2026-09-01, 위 표와 독립된 두 번째 근거):** `threads-daily-content.js` 가 되받아 쓰는
+`THREADS_ROOT_HASHTAG`·`WEEKDAY_PICKS` 는 **함수 본문 안에서만** 읽힌다(같은 파일 65·131행).
+모듈 평가 시점에 건드리지 않으므로 TDZ 가 날 수 없다 — `stage=load` 후보에서 빼도 된다.
 
 **다음 사람이 할 일 (순서 고정) — 🔴 2026-09-01 갱신: 1번 완료:**
 1. ~~머지 → 프로덕션 승격(§B)~~ **완료.** #1400 은 `workflow_dispatch` run 33483939984(09-01T07:48:43Z),
@@ -306,7 +335,9 @@ Threads API 는 Facebook Login 자격증명과 **다른** 앱 자격증명을 �
    `connectPromise` 를 **실패한 호출자마다 각자** null 로 만들고 `resetMongooseConnection()` 을 돌린다.
    🔴 **추정·미검증**이고 db.js 는 전 라우트 공용이라, 확정 전에 손대면 회귀 범위가 이 버그보다 크다).
    `stage=send` → 그날은 루프까지 닿은 것이고 사유가 문구와 잠금 문서 양쪽에 있다.
-4. `GET /api/admin/sns-daily-post/status` 로 그날 두 채널의 `status`·`responseRef` 대조.
+4. `GET /api/admin/sns-daily-post/status` 로 그날 두 채널의 `status`·`responseRef` 대조
+   (🔴 사람이 `/admin/login` 로그인 후 — 위 "아직 못 한 확인" 참조).
+5. 🔴 **고치기 전에 중복 발행부터 정한다** — 계정은 이미 매일 일간 10개를 받고 있다(위). 크론을 살리면 겹친다.
 
 ### C-4. 🔴 2026-09-01 — Threads 문안을 **일간 10개 명리 브리핑**으로 교체 (사용자 요구, 이 PR)
 
@@ -340,10 +371,9 @@ Threads API 는 Facebook Login 자격증명과 **다른** 앱 자격증명을 �
 ㉑㉒ 는 `generateImpl` 주입으로 **Gemini 실호출 0회**로 AI 경로를 밟는다. 음성 3종 실측 통과(붕괴 축 되돌리기 · 검증기 무력화 · 일간 짝 삭제).
 
 **🔴 남은 것 — 2026-09-01 갱신: 2·3 해소, 남은 건 1번뿐이다.**
-1. §C-3 의 `stage=` 관측 결과 확정(09-02 07:00 KST 크론)과 **Threads 토큰 인가 해결**(현재
-   `code 200 API access blocked`)이 **선행**이다. 🔴 그 토큰은 **회전 대상이 아니다** — 왜 회전이 틀린
-   레버인지와 사람이 볼 체크리스트는 §C-3 의 "2026-09-01 정정" 문단에 있다. 그동안은 문안이 아무리 좋아도
-   threads 축이 매일 실패한다.
+1. 남은 것은 §C-3 의 `stage=` 관측 결과 확정(09-02 07:00 KST 크론) **하나뿐이다.** 🔴 토큰은
+   2026-09-01 재실측에서 `200` 이라 **회전 대상이 아니다**(§C-3) — 회전하면 멀쩡한 토큰을 버린다.
+   문안 6글 생성도 로컬 실측 통과다. 크론의 pre-loop 실패만 풀리면 그날부터 나간다.
 2. ~~머지 → 프로덕션 승격(§B)~~ **완료**(run 33490438170). 승격 뒤 첫 확인은
    `GET /api/admin/sns-daily-post/status` 의 `responseRef.aiModel` — 비어 있으면 그날은 결정론 문안이 나간 것이다.
 3. ~~`build:worker`·`verify:worker-size` 로컬 미검증~~ **해소** — PR #1404 CI `Build Pages and Worker` pass(4m12s).
