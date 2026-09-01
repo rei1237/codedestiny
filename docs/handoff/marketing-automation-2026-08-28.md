@@ -270,15 +270,36 @@ SNS 발행이 텔레그램 단일 채널 → **텔레그램 + Threads 2채널**�
 가드는 `verify:sns-daily-post` ⑲(fail-closed, 음성 4종 실측 통과).
 🔴 **한계(정직하게):** `stage=connect_db` 인 경우 DB 가 안 붙는 순간이라 **DB 사본은 물리적으로 불가능**하다.
 그때의 지워지지 않는 사본은 Cloudflare Workers Logs 뿐이다(`enabled:true`, 08-30 에 켬).
+🔴 **그런데 에이전트는 그 로그를 못 읽는다**(2026-09-01 실측). wrangler OAuth 토큰으로
+`POST /accounts/<id>/workers/observability/telemetry/{query,keys}` 는 **403 Authentication error** 다 —
+같은 토큰으로 `GET /workers/scripts` 는 200 이니 만료가 아니라 **스코프에 observability 가 없다**.
+`wrangler` CLI 에도 과거 로그 조회 명령이 없다(`tail` 은 실시간뿐). 사람이 대시보드에서 보거나
+**Workers Observability Read 권한의 API 토큰**을 따로 발급해야 한다.
 
 **남은 별개 결함 — Threads 토큰이 죽었다.** `GET https://graph.threads.net/v1.0/me` →
 `400 {"message":"API access blocked.","type":"OAuthException","code":200}` (2026-09-01, 로컬 IP 에서 측정 —
 Cloudflare 엣지에서도 같은지는 **미검증**). `code 200` 은 `classifyThreadsError` 가 `permanent:true` 로 읽으므로
-**재시도로 안 풀린다.** 회전 런북은 위 §C-2 의 4단계. 회전 전에는 threads 축이 매일 실패하고, 그 때문에
-텔레그램이 성공해도 태스크는 통째로 던진다(그래서 이 PR 이 성공 채널을 문구에 넣었다).
+**재시도로 안 풀린다.** 그동안 threads 축은 매일 실패하고, 그 때문에 텔레그램이 성공해도 태스크는 통째로
+던진다(그래서 이 PR 이 성공 채널을 문구에 넣었다).
 
-**다음 사람이 할 일 (순서 고정):**
-1. 이 PR 머지 → 프로덕션 승격(§B). 승격 전에는 관측장치가 안 돈다.
+🔴 **2026-09-01 정정 — 이건 만료가 아니라 인가 문제이고, §C-2 의 회전 런북은 틀린 레버다.** 근거 셋:
+① 이 토큰으로 **성공한 Threads 호출이 한 번도 없다** — §C-2 가 첫 발행을 크론에 위임했고 그 크론이 채널
+루프 전에 죽어 `<dateKey>:threads` 잠금이 0건이다. "한때 살아 있었다"는 전제 자체가 미검증이다.
+② `THREADS_TOKEN_ISSUED_AT="2026-08-31"` = 60일 수명의 D+1 이라 만료일 수 없다.
+③ 회전 1단계 `refresh_access_token` 은 **유효한 장기 토큰**을 전제하고 발급 후 24시간이 지나야 도는데,
+지금은 같은 사유로 막힌다.
+**사람이 Meta 대시보드에서 볼 것**(에이전트는 `.env*` 를 읽지 않으므로 여기가 한계):
+(a) 앱에 **Threads 전용 use case** 가 있고 토큰이 **그 use case 가 발급한 app ID/secret** 으로 나왔나 —
+Threads API 는 Facebook Login 자격증명과 **다른** 앱 자격증명을 쓴다. 다른 흐름에서 받은 토큰이면 거부된다.
+(b) 스코프 `threads_basic`(필수) + `threads_content_publish`, 답글 체인을 쓰므로 `threads_manage_replies`
+— 각각 개별 심사다. (c) 앱이 Development 모드면 발행 계정이 그 앱의 역할(관리자/개발자/테스터)을 가져야 한다.
+(d) 앱 제한 배너(비즈니스 인증 미완료 등).
+🔴 (a)~(d) 는 **정황 추론**이다 — Meta 의 Threads 문제해결 문서에 `code 200`·`API access blocked` 항목이 없다(실측).
+
+**다음 사람이 할 일 (순서 고정) — 🔴 2026-09-01 갱신: 1번 완료:**
+1. ~~머지 → 프로덕션 승격(§B)~~ **완료.** #1400 은 `workflow_dispatch` run 33483939984(09-01T07:48:43Z),
+   #1404 는 run 33490438170 으로 승격했다. 🔴 **승격이 실패한 크론(08-31T22:00Z)보다 뒤였다** — 그래서
+   어제 실패에는 `stage=` 가 아예 없고, 표식은 **09-02 07:00 KST 크론부터** 나온다.
 2. **09-02 07:00 KST 크론 1회** 뒤 텔레그램 알림의 `• sns-daily-post:` 줄을 **지우기 전에 복사**.
 3. `stage=load` → 모듈 평가가 던진 것(런타임에서만 나는 실패). `stage=connect_db` → 크론 콜드 아이솔레이트에서
    6개 태스크가 동시에 `connectDb` 를 때리는 herd 를 의심한다(`worker/lib/db.js:872-900` — 공유
@@ -318,12 +339,15 @@ Cloudflare 엣지에서도 같은지는 **미검증**). `code 200` 은 `classify
 ⑳ 은 60갑자 × 일간 10개를 **정본 `tenGodFor` 로 다시 유도해** 대조하고 위 붕괴 최솟값을 단언한다.
 ㉑㉒ 는 `generateImpl` 주입으로 **Gemini 실호출 0회**로 AI 경로를 밟는다. 음성 3종 실측 통과(붕괴 축 되돌리기 · 검증기 무력화 · 일간 짝 삭제).
 
-**🔴 남은 것 — 이 PR 만으로는 아직 안 나간다.**
-1. §C-3 의 `stage=` 관측 결과 확정과 **Threads 토큰 회전**(현재 `code 200 API access blocked`)이 **선행**이다.
-   토큰이 죽어 있는 동안은 문안이 아무리 좋아도 threads 축이 매일 실패한다.
-2. 머지 → 프로덕션 승격(§B) 전에는 이 문안이 안 나간다. 승격 뒤 첫 확인은
+**🔴 남은 것 — 2026-09-01 갱신: 2·3 해소, 남은 건 1번뿐이다.**
+1. §C-3 의 `stage=` 관측 결과 확정(09-02 07:00 KST 크론)과 **Threads 토큰 인가 해결**(현재
+   `code 200 API access blocked`)이 **선행**이다. 🔴 그 토큰은 **회전 대상이 아니다** — 왜 회전이 틀린
+   레버인지와 사람이 볼 체크리스트는 §C-3 의 "2026-09-01 정정" 문단에 있다. 그동안은 문안이 아무리 좋아도
+   threads 축이 매일 실패한다.
+2. ~~머지 → 프로덕션 승격(§B)~~ **완료**(run 33490438170). 승격 뒤 첫 확인은
    `GET /api/admin/sns-daily-post/status` 의 `responseRef.aiModel` — 비어 있으면 그날은 결정론 문안이 나간 것이다.
-3. `build:worker`·`verify:worker-size` 는 **로컬 미검증**(이 워크트리에 `workers-og` 가 설치돼 있지 않아 번들이 안 만들어진다). CI 가 돌린다.
+3. ~~`build:worker`·`verify:worker-size` 로컬 미검증~~ **해소** — PR #1404 CI `Build Pages and Worker` pass(4m12s).
+   로컬은 `workers-og` 미설치라 여전히 안 돈다.
 
 ### D. 재방문 이메일 (PR 4) — 보류
 
