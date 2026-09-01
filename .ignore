@@ -76,7 +76,6 @@
 /public/js/chunks/compat.chunk.js
 /public/js/chunks/extra-fortune.chunk.js
 /public/js/chunks/saju-analysis.chunk.js
-/public/js/collection-action-bridge.js
 /public/js/compat-llm-prompts.js
 /public/js/core/access-store.js
 /public/js/core/analytics.js
@@ -146,7 +145,6 @@
 /public/js/services/destiny-flower-art.js
 /public/js/services/fortuneService.js
 /public/js/services/sajuService.js
-/public/js/services/sajuWorkerExamples.js
 /public/js/services/sajuWorkerService.js
 /public/js/services/sajuWorkerServiceAdvanced.js
 /public/js/share-reward.js
@@ -160,8 +158,6 @@
 /public/js/tarot-self-esteem-experience.js
 /public/js/tarot-year-fortune-experience.js
 /public/js/touch-perf.js
-/public/js/utils/date.js
-/public/js/utils/dom.js
 /public/js/vendor/sweph-wasm/ephe/seas_18.se1
 /public/js/vendor/sweph-wasm/ephe/semo_18.se1
 /public/js/vendor/sweph-wasm/ephe/sepl_18.se1
