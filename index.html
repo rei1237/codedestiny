@@ -5689,7 +5689,11 @@ body.cd-overlay-shell-open #langWrap{opacity:0;visibility:hidden;pointer-events:
      #cdCookieSettingsBtn 으로 나옴). 네비 z-index 를 올리는 방식은 쓰지 않는다 —
      동의 UI 를 가려 동의 자체를 못 하게 된다. */
   @media (max-width: 768px), (hover: none) and (pointer: coarse) {
-    .cd-cookie-consent{bottom:calc(14px + var(--cd-mobile-nav-h,84px))}
+    /* 🔴 탭바의 자기 bottom(max(6px, safe-area))도 함께 더한다 — var(--cd-mobile-nav-h) 는 탭바
+       '높이'일 뿐이라, 노치 기기에서 탭바가 바닥에서 띄워진 만큼을 빼먹는다. 2026-09-02 실측
+       (verify:mobile-bottom-nav-clearance): safe-area 47px 에서 배너가 33px 겹쳐 위 주석이 말하는
+       "탭 5개 전부 안 눌림"이 그대로 재현됐다. safe-area 0px 에서는 6+71+8=85px 로 종전과 같다. */
+    .cd-cookie-consent{bottom:calc(max(6px, env(safe-area-inset-bottom,0px)) + var(--cd-mobile-nav-h,84px) + 8px)}
     body.cd-mobile-nav-hidden .cd-cookie-consent{bottom:calc(14px + env(safe-area-inset-bottom,0px))}
   }
   .cd-cookie-consent__panel{position:relative;width:min(640px,calc(100vw - 28px));overflow:hidden;border:1px solid rgba(232,223,200,.22);border-radius:22px;background:radial-gradient(circle at 12% 0%,rgba(201,168,76,.18),transparent 32%),radial-gradient(circle at 92% 10%,rgba(74,111,165,.22),transparent 38%),linear-gradient(145deg,rgba(10,11,26,.96),rgba(15,16,53,.94) 52%,rgba(26,21,80,.9));box-shadow:0 24px 70px rgba(4,5,18,.54),0 0 28px rgba(201,168,76,.12),inset 0 1px 0 rgba(240,238,232,.13);color:#E8DFC8;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
@@ -5714,7 +5718,7 @@ body.cd-overlay-shell-open #langWrap{opacity:0;visibility:hidden;pointer-events:
   .cd-cookie-consent__switch{display:inline-flex;align-items:center;justify-content:center;min-width:54px;height:30px;border-radius:999px;border:1px solid rgba(201,168,76,.36);background:rgba(232,223,200,.08);color:#E8DFC8;font-size:.68rem;font-weight:950}
   .cd-cookie-consent__check{width:48px;height:28px;accent-color:#C9A84C}
   @keyframes cdCookieMoonFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
-  @media(max-width:560px){.cd-cookie-consent{bottom:calc(10px + var(--cd-mobile-nav-h,84px));padding:0 10px}.cd-cookie-consent__main{grid-template-columns:1fr;padding:15px}.cd-cookie-consent__moon{display:none}.cd-cookie-consent__actions{display:grid;grid-template-columns:1fr 1fr}.cd-cookie-consent__btn{padding:0 10px}.cd-cookie-consent__btn--primary{grid-column:1/-1}.cd-cookie-consent__settings{margin:0 15px 15px}.cd-cookie-consent__row{grid-template-columns:1fr}}
+  @media(max-width:560px){.cd-cookie-consent{bottom:calc(max(6px, env(safe-area-inset-bottom,0px)) + var(--cd-mobile-nav-h,84px) + 8px);padding:0 10px}.cd-cookie-consent__main{grid-template-columns:1fr;padding:15px}.cd-cookie-consent__moon{display:none}.cd-cookie-consent__actions{display:grid;grid-template-columns:1fr 1fr}.cd-cookie-consent__btn{padding:0 10px}.cd-cookie-consent__btn--primary{grid-column:1/-1}.cd-cookie-consent__settings{margin:0 15px 15px}.cd-cookie-consent__row{grid-template-columns:1fr}}
   @media(prefers-reduced-motion:reduce){.cd-cookie-consent,.cd-cookie-consent__btn,.cd-cookie-consent__moon{transition:none;animation:none}}
 </style>
 
