@@ -627,6 +627,7 @@ function _lsdText(key) {
     if (typeof entry.satsCompleted !== 'boolean') entry.satsCompleted = false;
     if (typeof entry.iAmAffirmation !== 'string') entry.iAmAffirmation = '';
     if (typeof entry.iAmCompleted !== 'boolean') entry.iAmCompleted = false;
+    if (typeof entry.iAmLastIndex !== 'number') entry.iAmLastIndex = -1;
     if (typeof entry.meditationMinutes !== 'number') entry.meditationMinutes = 0;
     if (typeof entry.meditationPoints !== 'number') entry.meditationPoints = 0;
     if (typeof entry.memoNote !== 'string') entry.memoNote = '';
@@ -831,6 +832,7 @@ return true;
         satsCompleted: false,
         iAmAffirmation: '',
         iAmCompleted: false,
+        iAmLastIndex: -1,
         meditationMinutes: 0,
         meditationPoints: 0,
         meditationLogs: []
@@ -2329,15 +2331,60 @@ return true;
 
   function buildIamAffirmation(entry) {
     var keyword = getTomorrowLuckKeyword(entry);
-    var map = {
-      '재물운 상승': '나는 오늘 흐름을 읽고 부를 정확히 다루는 사람이다.',
-      '귀인 상봉': '나는 오늘 좋은 인연을 자연스럽게 끌어당기는 사람이다.',
-      '회복력 강화': '나는 오늘 안정된 호흡과 체력으로 중심을 지키는 사람이다.',
-      '집중 성과 실현': '나는 오늘 가장 중요한 일을 끝까지 완성하는 사람이다.',
-      '성과와 인정': '나는 오늘 신뢰를 증명하고 인정받는 사람이다.',
-      '직감력 상승': '나는 오늘 필요한 신호를 정확히 감지하는 사람이다.'
+    var affirmations = {
+      '재물운 상승': [
+        '나는 오늘 흐름을 읽고 부를 정확히 다루는 사람이다.',
+        '나는 오늘 들어오는 기회를 놓치지 않는 사람이다.',
+        '나는 오늘 쓸 곳과 남길 곳을 분명히 아는 사람이다.',
+        '나는 오늘 내 가치를 제값으로 주고받는 사람이다.',
+        '나는 오늘 풍요를 당연하게 받아들이는 사람이다.'
+      ],
+      '귀인 상봉': [
+        '나는 오늘 좋은 인연을 자연스럽게 끌어당기는 사람이다.',
+        '나는 오늘 먼저 손을 내밀 줄 아는 사람이다.',
+        '나는 오늘 도움을 편하게 청하고 받는 사람이다.',
+        '나는 오늘 만나는 사람에게 좋은 기운을 남기는 사람이다.',
+        '나는 오늘 나를 지지하는 사람들과 이어지는 사람이다.'
+      ],
+      '회복력 강화': [
+        '나는 오늘 안정된 호흡과 체력으로 중심을 지키는 사람이다.',
+        '나는 오늘 내 몸이 보내는 신호를 존중하는 사람이다.',
+        '나는 오늘 충분히 쉬고 가볍게 회복하는 사람이다.',
+        '나는 오늘 긴장을 내려놓고 편안해지는 사람이다.',
+        '나는 오늘 하루를 버틸 힘이 이미 있는 사람이다.'
+      ],
+      '집중 성과 실현': [
+        '나는 오늘 가장 중요한 일을 끝까지 완성하는 사람이다.',
+        '나는 오늘 하나에 몰입해 끝을 보는 사람이다.',
+        '나는 오늘 미루지 않고 지금 시작하는 사람이다.',
+        '나는 오늘 방해를 걷어내고 앞으로 나아가는 사람이다.',
+        '나는 오늘 작은 완료를 차곡차곡 쌓는 사람이다.'
+      ],
+      '성과와 인정': [
+        '나는 오늘 신뢰를 증명하고 인정받는 사람이다.',
+        '나는 오늘 준비된 실력을 그대로 보여주는 사람이다.',
+        '나는 오늘 맡은 자리에서 분명한 결과를 내는 사람이다.',
+        '나는 오늘 내 몫의 공을 당당히 받는 사람이다.',
+        '나는 오늘 말과 행동이 일치하는 사람이다.'
+      ],
+      '직감력 상승': [
+        '나는 오늘 필요한 신호를 정확히 감지하는 사람이다.',
+        '나는 오늘 첫 느낌을 믿고 선택하는 사람이다.',
+        '나는 오늘 조용한 마음으로 답을 알아채는 사람이다.',
+        '나는 오늘 흐름을 거스르지 않고 올라타는 사람이다.',
+        '나는 오늘 아니라고 느끼면 멈출 줄 아는 사람이다.'
+      ]
     };
-    return map[keyword] || '나는 오늘 운의 흐름을 선택하고 실천하는 사람이다.';
+    var pool = affirmations[keyword] || [
+      '나는 오늘 운의 흐름을 선택하고 실천하는 사람이다.',
+      '나는 오늘 하루를 내 뜻대로 이끌어가는 사람이다.',
+      '나는 오늘 있는 그대로 충분히 좋은 사람이다.'
+    ];
+    var prev = entry && typeof entry.iAmLastIndex === 'number' ? entry.iAmLastIndex : -1;
+    var idx = Math.floor(Math.random() * pool.length);
+    if (pool.length > 1 && idx === prev) idx = (idx + 1 + Math.floor(Math.random() * (pool.length - 1))) % pool.length;
+    if (entry && typeof entry === 'object') entry.iAmLastIndex = idx;
+    return pool[idx];
   }
 
   function calcMeditationPoints(entry) {
