@@ -72,6 +72,20 @@ describe("🔴 서명은 기존 구현과 동일하다", () => {
     expect(await legacyVerify(SECRET, body, headers)).toBe(true);
     expect(await verifyWebhookSignature(SECRET, body, headers)).toBe(true);
   });
+
+  test("🔴 x-webhook-* 별칭 헤더 + 평문 시크릿도 두 구현 모두 통과시킨다", async () => {
+    // PortOne 이 프록시 뒤에서 x- 접두 헤더로 보내는 경로다. 별칭을 놓치면 서명이 맞는데도
+    // 헤더가 비어 보여 전량 거부되고, webhook 이 결제 확정의 복구 경로이므로 그대로 장애다.
+    const body = '{"type":"Transaction.Paid","data":{"paymentId":"cdorder1"}}';
+    const timestamp = "1786000000";
+    const headers = headersOf({
+      "x-webhook-id": EVENT,
+      "x-webhook-timestamp": timestamp,
+      "x-webhook-signature": `v1,${await signWebhookPayload(PLAIN_SECRET, EVENT, timestamp, body)}`,
+    });
+    expect(await legacyVerify(PLAIN_SECRET, body, headers)).toBe(true);
+    expect(await verifyWebhookSignature(PLAIN_SECRET, body, headers)).toBe(true);
+  });
 });
 
 describe("서명 검증", () => {

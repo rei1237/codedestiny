@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-01
-next: 아래 6개 중 `verify-portone-webhook-signature.mjs` 부터 — 단언을 jest 로 옮길지 package.json 에 배선할지 사용자에게 묻는다
+next: 남은 5개 중 `verify-admin-monthly-credit-grant.mjs` 부터 — 배선 / jest 이관 / 삭제 중 택일
 ---
 
 # 미배선 verify 스크립트 6종 — 배선인가 이관인가
@@ -13,14 +13,14 @@ next: 아래 6개 중 `verify-portone-webhook-signature.mjs` 부터 — 단언�
 ## 지금 상태
 
 - PR #1416·#1418 머지 완료 — `.ignore` 정정과 스크립트 10개 삭제까지 끝났다.
-- 아래 6개는 **손대지 않았다.** 저장소에 그대로 있고 `package.json` 에도 없다.
+- 첫 항목(portone webhook)은 jest 이관 후 삭제했다. **남은 5개는 손대지 않았다** — 저장소에 그대로 있고 `package.json` 에도 없다.
 - `verify:guard-wiring` 은 이들을 잡지 못한다 — 그 가드의 universe 는 `scripts/` 디렉터리가 아니라 **`package.json` 의 `verify:*` 키**다(`scripts/verify-guard-wiring.mjs:294`). 즉 "미배선으로 걸리고 있다"는 가설은 기각됐다.
 
 ## 남은 작업
 
-6개 각각에 대해 **배선(package.json 등록) / jest 이관 / 삭제** 중 하나를 고른다. 판정 기준은 "이 스크립트가 사라지면 단언이 0이 되는 제품 코드가 있는가".
+남은 5개 각각에 대해 **배선(package.json 등록) / jest 이관 / 삭제** 중 하나를 고른다. 판정 기준은 "이 스크립트가 사라지면 단언이 0이 되는 제품 코드가 있는가".
 
-- [ ] `verify-portone-webhook-signature.mjs` — 🔴 **결제 축, 먼저 처리.** `worker/routes/payments.js:240-242` 의 `x-webhook-*` 별칭 분기를 단언하는 유일한 코드(해당 스크립트 38-49행). 나머지 단언은 `__tests__/worker/payments-v2.webhook.test.js:60-97` 이 이미 덮는다 → **별칭 케이스만 그 테스트로 옮기면 삭제 가능.**
+- [x] `verify-portone-webhook-signature.mjs` — **jest 이관 후 삭제 완료.** 별칭 단언을 `__tests__/worker/payments-v2.webhook.test.js` 의 「기존 구현과 동일하다」 블록으로 옮겼고, 신구 두 구현(`worker/routes/payments.js:240-242` · `worker/payments/webhook.js:127-129`)을 함께 단언한다. 별칭 분기를 지우면 그 테스트 1건만 실패하는 것을 실측했다.
 - [ ] `verify-admin-monthly-credit-grant.mjs` — `worker/routes/admin-monthly-credits.js:239` 의 `__adminMonthlyCreditGrantTestUtils` 유일 소비자. 지운다면 그 export 도 함께(워커 크기 축).
 - [ ] `test-saju-ai-prompt-advanced-factors.mjs` · `test-saju-calibration-prompt.mjs` — `worker/lib/saju-calibration.js` 의 유일한 실행 경로. `__tests__` 커버리지 0건.
 - [ ] `verify-ziwei-deep-counseling-quality.cjs` — `app/_lib/generate-ziwei-deep-chapter.ts` 를 제품 코드 밖에서 실행하는 유일한 코드. **배선된 `verify:ziwei-deep-report-flow` 와 단언이 중복인지 미대조.**
