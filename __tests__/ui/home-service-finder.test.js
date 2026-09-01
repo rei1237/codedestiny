@@ -188,3 +188,53 @@ test("표시 가격은 레지스트리 값을 그대로 쓴다", async () => {
   assert.ok(codex, "궁합 결과에 마스터 인연의 서가 없다");
   assert.match(codex.querySelector(".fortune-gateway__rec-foot i").textContent, /20,000원/);
 });
+
+// 회귀 배경: 입력·칩 선택 전에는 `panel.hidden = true` 로 아무것도 렌더하지 않아, 홈에서 가장 강한
+// 탐색 도구가 빈 채로 서 있었다(2026-09-01 진단). 기본 목록을 깔되 **바로 위 두 섹션과 겹치면 안 된다** —
+// #cdSignatureConsult(roles:"recommended") · #cdQuickServices(roles:"quick") 가 탐색기 바로 위에 있다.
+
+test("검색·칩 이전에도 기본 목록을 보여 준다", async () => {
+  const { doc } = await boot();
+  const panel = doc.getElementById("fortuneGatewayRecs");
+
+  assert.equal(panel.hidden, false, "기본 목록이 렌더되지 않아 탐색기가 빈 채로 서 있다");
+  const hits = names(panel);
+  assert.ok(hits.length >= 4 && hits.length <= 8, `기본 목록 개수가 범위를 벗어났다: ${hits.length}`);
+
+  // 첫 렌더 동안만 떼었다가 되돌려 놓아야 한다 — 안 돌아오면 이후 검색 결과가 안내되지 않는다.
+  assert.equal(panel.getAttribute("aria-live"), "polite", "첫 렌더 뒤 aria-live 가 복구되지 않았다");
+});
+
+test("기본 목록은 홈 상단 두 섹션의 카드와 겹치지 않는다", async () => {
+  const { doc, window } = await boot();
+  const panel = doc.getElementById("fortuneGatewayRecs");
+
+  const placed = new Set(
+    window.__cdServiceRegistry.filter((i) => (i.roles || []).length).map((i) => i.name),
+  );
+  assert.ok(placed.size > 0, "roles 를 선언한 항목이 0개다 — 대조 자체가 무의미하다");
+
+  const hits = names(panel);
+  assert.ok(hits.length > 0, "기본 목록이 비어 있다 — 중복 대조가 공회전한다(fail-open)");
+
+  const dup = hits.filter((n) => placed.has(n));
+  assert.deepEqual(
+    dup,
+    [],
+    `기본 목록이 #cdQuickServices·#cdSignatureConsult 카드와 중복된다: ${dup.join(", ")}`,
+  );
+});
+
+test("필터를 켰다가 모두 끄면 기본 목록으로 되돌아온다", async () => {
+  const { doc } = await boot();
+  const panel = doc.getElementById("fortuneGatewayRecs");
+  const base = names(panel);
+  assert.ok(base.length > 0, "기본 목록이 비어 있다 — 복귀 대조가 공회전한다(fail-open)");
+
+  const chip = doc.querySelector('#fortuneGatewayDiscover [data-purpose="love"]');
+  chip.click();
+  assert.notDeepEqual(names(panel), base, "칩을 눌렀는데 목록이 기본 그대로다");
+
+  chip.click(); // 같은 칩을 다시 누르면 해제된다
+  assert.deepEqual(names(panel), base, "필터를 모두 껐는데 기본 목록으로 돌아오지 않았다");
+});
