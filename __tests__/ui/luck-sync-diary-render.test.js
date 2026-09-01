@@ -272,3 +272,56 @@ test("월간 달력의 5등급이 최종 캐스케이드에서 서로 다른 색
     assert.ok(gap >= 16, `${label} 셀이 기본 배경(${base})과 거리 ${gap.toFixed(0)} 뿐이다`);
   }
 });
+
+test("[문구 새로고침]이 누를 때마다 다른 I AM 선언을 내놓는다", () => {
+  const { doc } = openDiary();
+
+  const card = doc.getElementById("lsdIamCard");
+  const button = doc.getElementById("lsdRegenerateIam");
+  assert.ok(card, "#lsdIamCard 가 없다");
+  assert.ok(button, "#lsdRegenerateIam 가 없다");
+
+  // 직전 인덱스 회피 로직 덕분에 연속 클릭은 항상 달라야 한다 — 랜덤이지만 결정론적으로 단언 가능.
+  const seen = [(card.textContent || "").trim()];
+  for (let i = 0; i < 6; i += 1) {
+    button.click();
+    const now = (card.textContent || "").trim();
+    assert.ok(now, `${i + 1}번째 클릭 후 카드가 비었다`);
+    assert.notEqual(now, seen[seen.length - 1], `${i + 1}번째 클릭이 같은 문구를 다시 그렸다: ${JSON.stringify(now)}`);
+    seen.push(now);
+  }
+
+  // 한두 문장을 왕복하는 것도 "여러 확언"이 아니다.
+  assert.ok(new Set(seen).size >= 3, `7회 동안 고유 문구가 ${new Set(seen).size}종뿐이다: ${[...new Set(seen)].join(" / ")}`);
+});
+
+test("I AM 확언 풀이 키워드 6종 모두에 복수 문구를 갖는다", () => {
+  // 맵 1개(키워드당 문구 1개)로 되돌아가면 새로고침 버튼이 조용히 죽는다.
+  const src = fs.readFileSync(path.join(root, "js/luck-sync-diary.js"), "utf8");
+  const block = src.match(/function buildIamAffirmation\(entry\) \{[\s\S]*?\n {2}\}/);
+  assert.ok(block, "buildIamAffirmation 를 소스에서 찾지 못했다");
+
+  // getTomorrowLuckKeyword 가 낼 수 있는 값 전부
+  const keywords = ["재물운 상승", "귀인 상봉", "회복력 강화", "집중 성과 실현", "성과와 인정", "직감력 상승"];
+  const build = new Function("getTomorrowLuckKeyword", "return " + block[0]);
+
+  for (const keyword of keywords) {
+    const pick = build(() => keyword);
+    const entry = { iAmLastIndex: -1 };
+    const got = new Set();
+    for (let i = 0; i < 40; i += 1) got.add(pick(entry));
+    assert.ok(got.size >= 2, `'${keyword}' 확언이 ${got.size}종뿐이다 (최소 2)`);
+    for (const line of got) {
+      assert.match(line, /^나는 오늘 .+사람이다\.$/, `'${keyword}' 확언 형식 이탈: ${JSON.stringify(line)}`);
+      // 선언 완료는 카드 문장을 그대로 타이핑해야 통과한다 — 길면 사실상 완료 불가.
+      assert.ok(line.length <= 32, `'${keyword}' 확언이 ${line.length}자로 너무 길다: ${JSON.stringify(line)}`);
+    }
+  }
+
+  // 키워드가 없을 때(폴백)도 복수여야 한다
+  const fallback = build(() => "존재하지 않는 키워드");
+  const entry = { iAmLastIndex: -1 };
+  const fallbackSeen = new Set();
+  for (let i = 0; i < 40; i += 1) fallbackSeen.add(fallback(entry));
+  assert.ok(fallbackSeen.size >= 2, `폴백 확언이 ${fallbackSeen.size}종뿐이다 (최소 2)`);
+});
