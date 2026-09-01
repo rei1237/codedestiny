@@ -38,19 +38,19 @@ export function FusionResultThread({ result, openSection, onToggleSection, expor
     <ThreadRow systemKey="fusion" index={0} exporting={exporting} pdfSection>
       <ThreadBubble systemKey="fusion" exporting={exporting}>
         <ThreadSpeaker label="Fusion Core" note={<span className="rounded-full bg-[var(--tint-veil)] px-2.5 py-0.5 text-[0.7rem] text-white/80">{copy.analysisCompleteBadge}</span>} />
-        <p className={`m-0 max-w-[72ch] whitespace-pre-wrap ${styles.reading} text-[1.06rem] leading-[1.95] text-[var(--fx-ink-2)] [text-wrap:pretty]`}>{result.openingMessage}</p>
+        <p className={`m-0 max-w-[72ch] whitespace-pre-wrap ${styles.reading} text-[var(--fx-ink-2)] [text-wrap:pretty]`}>{result.openingMessage}</p>
       </ThreadBubble>
     </ThreadRow>
 
     <ThreadRow systemKey="fusion" index={1} exporting={exporting} pdfSection>
       <ThreadBubble systemKey="fusion" tone="gold" exporting={exporting}>
         <ThreadSpeaker label={copy.firstParagraphSpeaker} />
-        <p className={`m-0 max-w-[72ch] whitespace-pre-wrap ${styles.reading} text-[1.06rem] leading-[1.95] text-[var(--fx-ink-1)] [text-wrap:pretty]`}>{result.executiveSummary}</p>
+        <p className={`m-0 max-w-[72ch] whitespace-pre-wrap ${styles.reading} text-[var(--fx-ink-1)] [text-wrap:pretty]`}>{result.executiveSummary}</p>
       </ThreadBubble>
     </ThreadRow>
 
     {result.visualization && <ThreadRow systemKey="fusion" index={2} exporting={exporting} pdfSection>
-      <ThreadBubble systemKey="fusion" exporting={exporting} className="px-3 sm:px-5">
+      <ThreadBubble systemKey="fusion" exporting={exporting}>
         <ThreadSpeaker label={copy.sixSystemsDirectionSpeaker} />
         {/* 텍스트 PDF 는 본문을 직접 조판하지만 이 도표만은 그림이라 여기만 캡처한다. */}
         <div data-fusion-visual="true"><FusionVisualization data={result.visualization} /></div>
@@ -69,16 +69,16 @@ export function FusionResultThread({ result, openSection, onToggleSection, expor
               aria-expanded={expanded}
               aria-controls={`fusion-section-${key}`}
               onClick={() => onToggleSection(key)}
-              className={`flex min-h-11 w-full items-center justify-between gap-3 text-left ${styles.readingTitle} text-[1.14rem] leading-snug text-[var(--fx-ink-1)] transition-colors hover:text-[color:var(--tint)] motion-reduce:transition-none`}
+              className={`flex min-h-11 w-full items-center justify-between gap-3 text-left ${styles.readingTitle} ${styles.readingSectionTitle} text-[var(--fx-ink-1)] transition-colors hover:text-[color:var(--tint)] motion-reduce:transition-none`}
             >
               <span className="min-w-0">{result[key].title}</span>
               <b className="shrink-0 rounded-full border border-white/[0.16] px-3 py-1 text-[0.74rem] font-normal text-white/75">{expanded ? copy.collapseButton : copy.viewEvidenceButton}</b>
             </button>
           </h3>
           {expanded && <div id={`fusion-section-${key}`} className="mt-3 border-t border-white/[0.07] pt-4">
-            <p className={`m-0 max-w-[72ch] whitespace-pre-wrap ${styles.reading} text-[1.06rem] leading-[1.95] text-[var(--fx-ink-2)] [text-wrap:pretty]`}>{result[key].content}</p>
+            <p className={`m-0 max-w-[72ch] whitespace-pre-wrap ${styles.reading} text-[var(--fx-ink-2)] [text-wrap:pretty]`}>{result[key].content}</p>
             <ul className="mt-4 grid max-w-[72ch] list-none gap-2.5 p-0">
-              {result[key].keyPoints.map((point) => <li key={point} className="grid grid-cols-[0.375rem_minmax(0,1fr)] items-start gap-3 text-[0.94rem] leading-[1.8] text-[var(--fx-ink-3)]">
+              {result[key].keyPoints.map((point) => <li key={point} className={`grid grid-cols-[0.375rem_minmax(0,1fr)] items-start gap-3 ${styles.readingBullet} text-[var(--fx-ink-3)]`}>
                 <i aria-hidden className="mt-[0.62em] size-1.5 rounded-full bg-[color:var(--tint)]" /><span>{point}</span>
               </li>)}
             </ul>
@@ -98,19 +98,19 @@ export function FusionResultThread({ result, openSection, onToggleSection, expor
               aria-expanded={expanded}
               aria-controls="fusion-section-timing"
               onClick={() => onToggleSection("timing")}
-              className={`flex min-h-11 w-full items-center justify-between gap-3 text-left ${styles.readingTitle} text-[1.14rem] leading-snug text-[var(--fx-ink-1)] transition-colors hover:text-[color:var(--tint)] motion-reduce:transition-none`}
+              className={`flex min-h-11 w-full items-center justify-between gap-3 text-left ${styles.readingTitle} ${styles.readingSectionTitle} text-[var(--fx-ink-1)] transition-colors hover:text-[color:var(--tint)] motion-reduce:transition-none`}
             >
               <span className="min-w-0">{result.timingAndAction.title}</span>
               <b className="shrink-0 rounded-full border border-white/[0.16] px-3 py-1 text-[0.74rem] font-normal text-white/75">{expanded ? copy.collapseButton : copy.viewActionButton}</b>
             </button>
           </h3>
           {expanded && <div id="fusion-section-timing" className="mt-3 border-t border-white/[0.07] pt-4">
-            <p className={`m-0 max-w-[72ch] whitespace-pre-wrap ${styles.reading} text-[1.06rem] leading-[1.95] text-[var(--fx-ink-2)] [text-wrap:pretty]`}>{result.timingAndAction.content}</p>
+            <p className={`m-0 max-w-[72ch] whitespace-pre-wrap ${styles.reading} text-[var(--fx-ink-2)] [text-wrap:pretty]`}>{result.timingAndAction.content}</p>
             {([[copy.thingsToDoHeading, result.timingAndAction.luckyActions], [copy.patternsToWatchHeading, result.timingAndAction.cautionPatterns]] as const).map(([heading, items]) => (
               <div key={heading} className="mt-5">
                 <h4 className="m-0 font-display text-[0.92rem] text-[var(--fx-gold)]">{heading}</h4>
                 <ul className="mt-2.5 grid max-w-[72ch] list-none gap-2.5 p-0">
-                  {items.map((item) => <li key={item} className="grid grid-cols-[0.375rem_minmax(0,1fr)] items-start gap-3 text-[0.94rem] leading-[1.8] text-[var(--fx-ink-3)]">
+                  {items.map((item) => <li key={item} className={`grid grid-cols-[0.375rem_minmax(0,1fr)] items-start gap-3 ${styles.readingBullet} text-[var(--fx-ink-3)]`}>
                     <i aria-hidden className="mt-[0.62em] size-1.5 rounded-full bg-[color:var(--tint)]" /><span>{item}</span>
                   </li>)}
                 </ul>
@@ -150,7 +150,7 @@ export function FusionResultThread({ result, openSection, onToggleSection, expor
             </li>
           ))}
         </ul>
-        <p className={`m-0 mt-6 max-w-[72ch] whitespace-pre-wrap ${styles.reading} text-[1.04rem] leading-[1.95] text-[var(--fx-ink-2)] [text-wrap:pretty]`}>{result.finalVerdict.rationale}</p>
+        <p className={`m-0 mt-6 max-w-[72ch] whitespace-pre-wrap ${styles.reading} text-[var(--fx-ink-2)] [text-wrap:pretty]`}>{result.finalVerdict.rationale}</p>
         <div className="mt-6 grid gap-5 sm:grid-cols-2">
           {([[copy.doNowHeading, result.finalVerdict.doNow, "text-[var(--fx-mint)]"], [copy.avoidNowHeading, result.finalVerdict.avoid, "text-[var(--fx-rose)]"]] as const).map(([heading, items, tone]) => (
             <div key={heading}>
@@ -167,7 +167,7 @@ export function FusionResultThread({ result, openSection, onToggleSection, expor
     <ThreadRow systemKey="fusion" index={12} exporting={exporting} pdfSection>
       <ThreadBubble systemKey="fusion" exporting={exporting}>
         <ThreadSpeaker label="Fusion Core" />
-        <p id="fusion-closing-message" className={`m-0 max-w-[72ch] whitespace-pre-wrap ${styles.reading} text-[1.06rem] leading-[1.95] text-[var(--fx-ink-2)] [text-wrap:pretty]`}>{result.closingMessage}</p>
+        <p id="fusion-closing-message" className={`m-0 max-w-[72ch] whitespace-pre-wrap ${styles.reading} text-[var(--fx-ink-2)] [text-wrap:pretty]`}>{result.closingMessage}</p>
       </ThreadBubble>
     </ThreadRow>
   </>;
