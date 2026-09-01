@@ -105,15 +105,34 @@ const LANDING_SECTIONS_20260901 = [
 ];
 
 /**
- * 진입 전 상세 시트(#tilePvwOverlay)에 도달해야 하는 표면 4종.
+ * 진입 전 상세 시트(#tilePvwOverlay)에 도달해야 하는 표면.
  * 판정은 **정말 눌러 보고** 시트가 뜨는지로 한다 — 선택자 대조로는 마스터 게이트와
  * 조기 반환을 못 본다(실제로 그 둘 때문에 선택자만 보면 틀린 답이 나온다).
+ *
+ * 🔴 분모는 2 다(2026-09-01 결정 ⓒ 반영, 이전에는 4). 나머지 둘은 "닫아야 할 구멍"이
+ *    아니어서 점수에서 뺐고, 진단용으로만 계속 찍는다:
+ *    - `.cd-svc-hit` 는 **존재하지 않는 표면**이다. 두 번째 mount() 를 2026-08-19 에
+ *      사용자 요청으로 지웠고(js/core/home-service-finder.js boot() 주석), 되살릴 계획이
+ *      없다. 없는 표면을 분모에 두면 만점이 영구히 불가능하다.
+ *    - `[data-pvw-free]` 는 무료 표식이라 **모바일에서 안 열리는 것이 정상**이다.
+ *      열리는지로 채점하면 결정 ⓒ 를 지킨 코드가 감점된다. 표식이 붙어 있는지만 센다.
+ *
+ * `requirePaid` 표면은 유료 노드를 골라 누른다 — 첫 노드(무료일 때가 많다)를 누르면
+ * 결정 ⓒ 가 정상적으로 거절한 것을 "회귀"로 오독한다.
  */
 const PREVIEW_SURFACES = [
-  { key: "collection-tile", label: "컬렉션 타일", selector: ".tarot-tile,.lifebook-tile,.lovebible-tile,.moon-preview-card" },
-  { key: "finder-rec", label: "#cdFinder 추천 카드", selector: ".fortune-gateway__rec" },
-  { key: "service-index-hit", label: "서비스 인덱스 결과 카드", selector: ".cd-svc-hit" },
-  { key: "free-exempt", label: "무료 항목 면제 표식", selector: "[data-pvw-free]" },
+  {
+    key: "collection-tile", label: "컬렉션 타일(유료)", scored: true, requirePaid: true,
+    selector: ".tarot-tile,.lifebook-tile,.lovebible-tile,.moon-preview-card",
+  },
+  {
+    key: "finder-rec", label: "#cdFinder 추천 카드(유료)", scored: true, requirePaid: true,
+    /* 기본 목록 6개는 전부 무료라(DEFAULT_PICKS) 가격 칩을 켜야 유료 카드가 나온다. */
+    prepare: "paid-filter",
+    selector: ".fortune-gateway__rec",
+  },
+  { key: "service-index-hit", label: "서비스 인덱스 결과 카드(설계상 없음·비채점)", selector: ".cd-svc-hit" },
+  { key: "free-exempt", label: "무료 항목 면제 표식(비채점)", presenceOnly: true, selector: "[data-pvw-free]" },
 ];
 
 /** 레지스트리 `price` 가 이 셋이면 무료 취급(진단의 무료 23개 = 무료 12 + 무료 시작 10 + 이용권 1). */
@@ -156,7 +175,7 @@ const RUBRIC = [
   {
     key: "axis4", label: "축4 설명", target: 60,
     metrics: [
-      { key: "previewSurfaces", label: "프리뷰 도달 표면(/4)", weight: 0.35, best: 4, worst: 0, baseline: 1 },
+      { key: "previewSurfaces", label: "프리뷰 도달 표면(/2)", weight: 0.35, best: 2, worst: 0, baseline: 0 },
       { key: "copyCoverage", label: "문안 커버리지(/44)", weight: 0.3, best: 44, worst: 0, baseline: 16 },
       { key: "freeCopyCoverage", label: "무료 문안 커버리지(/23)", weight: 0.2, best: 23, worst: 0, baseline: 2 },
       { key: "descLocales", label: "desc 로케일(/12)", weight: 0.15, best: 12, worst: 0, baseline: 1 },
@@ -556,8 +575,8 @@ async function probeSurface(context, surface) {
   try {
     await open(page);
     const result = await page.evaluate(
-      async ({ selector }) => {
-        const settle = () => new Promise((r) => setTimeout(r, 350));
+      async ({ selector, prepare, requirePaid, presenceOnly }) => {
+        const settle = (ms) => new Promise((r) => setTimeout(r, ms || 350));
         const sheet = () => {
           const ov = document.getElementById("tilePvwOverlay");
           if (!ov) return false;
@@ -566,8 +585,29 @@ async function probeSurface(context, surface) {
         };
         if (sheet()) return { count: 0, opened: false, note: "누르기 전에 이미 시트가 열려 있다 — 판정 불가" };
 
+        if (prepare === "paid-filter") {
+          /* 가격 칩(무료 제외)을 전부 켜면 추천 목록이 유료 항목만 남는다. */
+          const chips = Array.from(document.querySelectorAll('.fortune-gateway__fchip[data-price]'))
+            .filter((c) => c.getAttribute("data-price") !== "free");
+          chips.forEach((c) => c.click());
+          await settle(400);
+        }
+
         const nodes = Array.from(document.querySelectorAll(selector));
         if (!nodes.length) return { count: 0, opened: false, note: "그 표면의 요소가 DOM 에 없다" };
+        if (presenceOnly) return { count: nodes.length, opened: false, note: "표식 존재만 센다(모바일에서 안 열리는 것이 정상)" };
+
+        /* 결정 ⓒ 의 유료 판정을 그대로 흉내 낸다(index.html _hasPaidPreviewSignal 의
+           속성 축. href 화이트리스트는 여기서 재현하지 않는다). */
+        const isPaid = (el) =>
+          Number(el.getAttribute("data-coin-cost") || 0) > 0 ||
+          Number(el.getAttribute("data-tile-lock-cost") || 0) > 0 ||
+          !!el.getAttribute("data-tile-lock-key") ||
+          !!el.getAttribute("data-pvw-paid");
+        const paidNodes = nodes.filter(isPaid);
+        if (requirePaid && !paidNodes.length) {
+          return { count: nodes.length, opened: false, note: "요소는 있는데 유료 노드가 하나도 없다 — 유료 표식 배선을 볼 것" };
+        }
 
         let navigated = false;
         document.addEventListener(
@@ -579,11 +619,12 @@ async function probeSurface(context, surface) {
           true,
         );
 
-        const target = nodes[0];
+        const target = requirePaid ? paidNodes[0] : nodes[0];
         target.click();
         await settle();
         return {
           count: nodes.length,
+          paidCount: paidNodes.length,
           opened: sheet(),
           reachedDefault: navigated,
           sample: (target.textContent || "").trim().slice(0, 30),
@@ -591,7 +632,12 @@ async function probeSurface(context, surface) {
           href: target.getAttribute("href") || "",
         };
       },
-      { selector: surface.selector },
+      {
+        selector: surface.selector,
+        prepare: surface.prepare || "",
+        requirePaid: !!surface.requirePaid,
+        presenceOnly: !!surface.presenceOnly,
+      },
     );
     return { ...surface, ...result };
   } finally {
@@ -757,7 +803,7 @@ function toRubricValues(m, perf) {
     },
     axis3: { ...perf.metrics },
     axis4: {
-      previewSurfaces: m.surfaces.filter((s) => s.opened).length,
+      previewSurfaces: m.surfaces.filter((s) => s.scored && s.opened).length,
       copyCoverage: covered.length,
       freeCopyCoverage: freeCovered.length,
       descLocales: m.descLocalized ? 12 : 1,
@@ -815,10 +861,12 @@ function report(m, perf, scored) {
   console.log(`- 모바일 유료-한정 window.__cdFeatureMarketingPreviewPaidOnly = ${String(m.previewPaidOnly)}` +
     (m.previewPaidOnly === true ? " (무료 표면은 시트 없이 즉시 진입이 정상이다)" : ""));
   console.log(`- 델리게이션 선택자: ${source.delegationSelector}`);
+  console.log(`- 채점 대상은 ${PREVIEW_SURFACES.filter((s) => s.scored).length}종이다(나머지는 진단용 — 정의는 PREVIEW_SURFACES 주석).`);
   for (const surface of m.surfaces) {
-    const state = surface.opened ? "열림" : "안 열림";
+    const state = surface.presenceOnly ? "표식만 확인" : surface.opened ? "열림" : "안 열림";
     const why = surface.note ? ` — ${surface.note}` : surface.count ? ` — 요소 ${surface.count}개, 시트 대신 기본 동작` : "";
-    console.log(`- ${surface.label} (${surface.selector}): ${state}${why}`);
+    const paid = typeof surface.paidCount === "number" ? ` [유료 ${surface.paidCount}/${surface.count}]` : "";
+    console.log(`- ${surface.label}${surface.scored ? "" : " *비채점*"} (${surface.selector}): ${state}${paid}${why}`);
   }
   console.log("");
 

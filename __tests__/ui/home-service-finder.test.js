@@ -147,8 +147,8 @@ test("방식은 이름 정규식이 아니라 선언된 값으로 판정한다",
 
 test("검색은 레지스트리에 없는 컬렉션 타일도 찾아 준다", async () => {
   const { doc, window } = await boot();
-  const input = doc.getElementById("fortuneGatewaySearch");
   const panel = doc.getElementById("fortuneGatewayRecs");
+  const input = doc.getElementById("fortuneGatewaySearch");
 
   input.value = "우리는 무슨 사이";
   input.dispatchEvent(new window.Event("input"));
@@ -237,4 +237,59 @@ test("필터를 켰다가 모두 끄면 기본 목록으로 되돌아온다", as
 
   chip.click(); // 같은 칩을 다시 누르면 해제된다
   assert.deepEqual(names(panel), base, "필터를 모두 껐는데 기본 목록으로 돌아오지 않았다");
+});
+
+// 회귀 배경: 추천 카드는 원본 타일과 같은 기능으로 가는 두 번째 입구인데 진입 전 상세 시트의
+// 델리게이션 선택자에 걸리는 표식이 하나도 없어 시트가 안 열렸다(2026-09-01 실측: 표면 0/2).
+// 🔴 여기서 지키는 것은 "무엇이 붙는가" 보다 **무엇이 안 붙는가** 다 — data-coin-cost 계열이
+//    붙는 순간 이 카드에서 _cdRunPerUseCoinGate 가 결제 게이트를 무장한다.
+test("추천 카드는 결제 게이트를 무장하지 않고 유료/무료 표식만 싣는다", async () => {
+  const { doc } = await boot();
+  const panel = doc.getElementById("fortuneGatewayRecs");
+  const input = doc.getElementById("fortuneGatewaySearch");
+
+  doc.querySelector('#fortuneGatewayDiscover [data-purpose="compatibility"]').click();
+  const cards = Array.from(panel.querySelectorAll(".fortune-gateway__rec"));
+  const paid = cards.find((c) => c.textContent.includes("마스터 인연의 서"));
+  assert.ok(paid, "궁합 결과에 20,000원 상담이 없다 — 유료 표식 대조가 공회전한다(fail-open)");
+
+  assert.equal(paid.getAttribute("data-pvw-paid"), "1", "유료 카드에 유료 표식이 없다");
+  assert.ok(paid.getAttribute("data-feature-key"), "유료 카드에 featureKey 가 실리지 않았다");
+  assert.equal(paid.getAttribute("data-pvw-free"), null, "유료 카드에 무료 면제 표식이 붙었다");
+  for (const banned of ["data-coin-cost", "data-tile-lock-cost", "data-tile-lock-key"]) {
+    assert.equal(paid.getAttribute(banned), null, `추천 카드에 ${banned} 가 붙어 결제 게이트가 무장된다`);
+  }
+  assert.equal(
+    paid.querySelector("[data-pvw-title]").textContent,
+    "마스터 인연의 서",
+    "시트 제목으로 읽힐 노드가 없거나 배지 문구가 섞였다",
+  );
+
+  const free = cards.find((c) => c.getAttribute("data-pvw-free"));
+  assert.ok(free, "무료 면제 표식이 붙은 카드가 하나도 없다");
+  assert.equal(free.getAttribute("data-pvw-paid"), null, "무료 카드에 유료 표식이 붙었다");
+  assert.equal(free.getAttribute("data-feature-key"), null, "무료 카드에 featureKey 가 실려 유료로 프레이밍된다");
+
+  // 경계 항목 둘. 여기가 갈리면 /points 프로그래매틱 이동(결제 금지 패턴 ⑦)이 열린다.
+  // 🔴 가격 칩으로 고른다 — 검색 입력은 120ms 디바운스라 이 동기 단언이 이전 목록을 읽는다.
+  doc.querySelector('#fortuneGatewayDiscover [data-purpose="compatibility"]').click(); // 해제
+  const byPrice = (bucket, name) => {
+    const chip = doc.querySelector(`#fortuneGatewayDiscover .fortune-gateway__fchip[data-price="${bucket}"]`);
+    chip.click();
+    const hit = Array.from(panel.querySelectorAll(".fortune-gateway__rec")).find((c) =>
+      c.textContent.includes(name),
+    );
+    chip.click(); // 다시 눌러 해제
+    return hit;
+  };
+
+  const points = byPrice("vvip", "달빛 이용권");
+  assert.ok(points, "이용권 상점 카드를 못 찾았다 — 경계 대조가 공회전한다(fail-open)");
+  assert.equal(points.getAttribute("data-pvw-paid"), null, "이용권 상점이 유료로 분류됐다 — /points 앵커가 가로채인다");
+  assert.equal(points.getAttribute("data-feature-key"), null, "이용권 상점에 featureKey 가 실렸다");
+
+  const hd = byPrice("free", "휴먼 디자인");
+  assert.ok(hd, "휴먼 디자인 카드를 못 찾았다 — 경계 대조가 공회전한다(fail-open)");
+  assert.equal(hd.getAttribute("data-pvw-paid"), null, "'무료 시작'인 휴먼 디자인이 유료로 분류됐다");
+  assert.equal(hd.getAttribute("data-pvw-free"), "1", "'무료 시작'인 휴먼 디자인에 무료 표식이 없다");
 });
