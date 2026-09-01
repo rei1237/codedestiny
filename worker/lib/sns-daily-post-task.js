@@ -4,14 +4,17 @@ import { getEnv } from "./env.js";
 import { getKstDateKey, getKstDateParts, getSiteBaseUrl, getTodayPillars } from "./daily-fortune-task.js";
 import { escapeTelegramHtml, sendTelegramMessage } from "./telegram.js";
 import { postThreadsChain } from "./threads.js";
-import { buildThreadsPostChain } from "./threads-daily-content.js";
+import { buildThreadsDayContext, buildThreadsPostChain } from "./threads-daily-content.js";
+import { writeDailyThreadsCopy } from "./threads-ai-writer.js";
 
 /**
  * SNS 일일 자동 발행 태스크. 채널은 텔레그램 · Threads(Meta) 둘이다.
  *
- * 🔴 문안은 **템플릿으로만** 조립한다. LLM 실호출은 0회다(CLAUDE.md 절대 규칙 1) — 하루 한 번
- * 나가는 홍보 문구를 만들자고 과금 모델을 부르는 것은 비용 대비 얻는 것이 없고, 크론에서
- * 부르면 실패해도 아무도 안 본다.
+ * 🔴 **텔레그램 문안은 템플릿 전용이고 LLM 을 부르지 않는다.** Threads 문안만 2026-09-01 부터
+ * 하이브리드다(사용자 결정): 십성·십이운성·신살·좋은 글자는 정본 표가 계산하고(daily-stem-guidance.js),
+ * 모델은 그 사실을 문장으로 옮기기만 한다(threads-ai-writer.js). 스위치 SNS_THREADS_AI_ENABLED 가
+ * 꺼져 있거나 호출·검증이 실패하면 **문안 전체가 결정론 템플릿으로 되돌아가고 발행은 계속된다** —
+ * 모델이 죽었다고 그날 글이 안 나가면 안 된다.
  *
  * 🔴 기본값은 **꺼짐**이다. 공개 채널에 글이 나가는 것은 되돌릴 수 없는 외부 행위라,
  * 토큰이 우연히 들어와 있다는 이유로 발행이 시작되면 안 된다. SNS_DAILY_POST_ENABLED 를
@@ -199,14 +202,30 @@ async function sendTelegramChannel(env, now, fetchImpl) {
   return { ...result, ref: { messageId: result.data?.result?.message_id ?? null } };
 }
 
-async function sendThreadsChannel(env, now, fetchImpl) {
-  const texts = buildThreadsPostChain(env, now);
+async function sendThreadsChannel(env, now, fetchImpl, generateImpl) {
+  // 🔴 문안 생성 실패는 발행 실패가 아니다 — copy 가 null 이면 결정론 문안이 그대로 나간다.
+  const context = buildThreadsDayContext(env, now);
+  const copy = context
+    ? await writeDailyThreadsCopy(env, { day: context.day, rows: context.rows, generateImpl }).catch(() => null)
+    : null;
+
+  const texts = buildThreadsPostChain(env, now, copy);
   if (!texts.length) {
     console.error("[CRON] SNS Daily Post: Threads 본문을 만들지 못했다 — 발행을 건너뛴다.");
     return { ok: false, status: 0, error: "empty_chain", ref: { posts: 0 } };
   }
   const result = await postThreadsChain(env, { texts, fetchImpl });
-  return { ...result, ref: { ids: result.ids || [], posts: texts.length, ...(result.failedAt == null ? {} : { failedAt: result.failedAt }) } };
+  return {
+    ...result,
+    ref: {
+      ids: result.ids || [],
+      posts: texts.length,
+      // 그날 문안을 모델이 썼는지 결정론으로 갔는지를 잠금 문서에 남긴다 — 발행은 됐는데 문장이
+      // 늘 같다는 신고가 오면 여기부터 본다(GET /api/admin/sns-daily-post/status 로 보인다).
+      aiModel: copy?.model || null,
+      ...(result.failedAt == null ? {} : { failedAt: result.failedAt }),
+    },
+  };
 }
 
 /**
@@ -241,13 +260,14 @@ export async function warnThreadsTokenExpiry(env, now = Date.now(), fetchImpl) {
  * @param {Object} [options]
  * @param {number} [options.now] 검증용 시각 주입
  * @param {Function} [options.fetchImpl] 검증용 fetch 주입 — 실제 발행 없이 계약을 확인한다
+ * @param {Function} [options.generateImpl] 검증용 LLM 주입 — 실제 과금 호출 없이 문안 경로를 확인한다
  * @param {"all"|"telegram"|"threads"} [options.channel] 기본 "all"
  * @returns {Promise<{ok: true, dateKey?: string, skipped?: string, channels?: Object}>}
  * @throws 채널이 하나라도 실패하면 던진다 — 크론 래퍼가 그때만 사람에게 알린다.
  */
 export async function runSnsDailyPostTask(env, options = {}) {
   const now = typeof options.now === "number" ? options.now : Date.now();
-  const { fetchImpl } = options;
+  const { fetchImpl, generateImpl } = options;
   const channel = String(options.channel || "all").toLowerCase();
 
   if (!isEnabled(env)) {
@@ -300,7 +320,7 @@ export async function runSnsDailyPostTask(env, options = {}) {
         runChannel({
           now,
           keyHash: `${dateKey}${THREADS_KEY_SUFFIX}`,
-          send: () => sendThreadsChannel(env, now, fetchImpl),
+          send: () => sendThreadsChannel(env, now, fetchImpl, generateImpl),
         }),
       );
       await warnThreadsTokenExpiry(env, now, fetchImpl).catch(() => {});
