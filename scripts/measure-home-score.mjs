@@ -222,6 +222,7 @@ async function measure() {
   const layout = await probeLayout(page);
   const registry = await probeRegistry(page);
   const previewGate = await page.evaluate(() => window.__cdFeatureMarketingPreviewEnabled);
+  const previewPaidOnly = await page.evaluate(() => window.__cdFeatureMarketingPreviewPaidOnly);
   const descLocalized = await page.evaluate(
     () => document.querySelectorAll(".fortune-gateway__rec-desc[data-cd-trans]").length > 0,
   );
@@ -248,7 +249,7 @@ async function measure() {
 
   await context.close();
 
-  return { sweep, firstVisit, revisit, layout, registry, previewGate, descLocalized, cookieAccepted: accepted, surfaces };
+  return { sweep, firstVisit, revisit, layout, registry, previewGate, previewPaidOnly, descLocalized, cookieAccepted: accepted, surfaces };
 }
 
 async function open(page) {
@@ -544,7 +545,8 @@ function probeRegistry(page) {
 /**
  * 표면 하나를 **정말 눌러** 진입 전 상세 시트가 열리는지 본다.
  *
- * 🔴 정적 선택자 대조로는 틀린 답이 나온다 — 마스터 게이트(window.__cdFeatureMarketingPreviewEnabled)와
+ * 🔴 정적 선택자 대조로는 틀린 답이 나온다 — 마스터 게이트(window.__cdFeatureMarketingPreviewEnabled),
+ *    모바일 유료-한정 게이트(window.__cdFeatureMarketingPreviewPaidOnly, 2026-09-01 결정 ⓒ)와
  *    `<a href>` 조기 반환이 선택자 뒤에 하나씩 더 있다.
  * 이동을 막는 방법: document 캡처에 **앱의 핸들러보다 나중에** 등록한 리스너로 preventDefault 한다.
  * 앱이 시트를 열면 stopImmediatePropagation 을 부르므로 이 리스너는 아예 안 돈다.
@@ -810,6 +812,8 @@ function report(m, perf, scored) {
   /* ── 판정 재료 — 점수만으로는 다음에 뭘 고쳐야 하는지 안 보인다 ── */
   console.log("### 프리뷰 도달 표면");
   console.log(`- 마스터 게이트 window.__cdFeatureMarketingPreviewEnabled = ${String(m.previewGate)}`);
+  console.log(`- 모바일 유료-한정 window.__cdFeatureMarketingPreviewPaidOnly = ${String(m.previewPaidOnly)}` +
+    (m.previewPaidOnly === true ? " (무료 표면은 시트 없이 즉시 진입이 정상이다)" : ""));
   console.log(`- 델리게이션 선택자: ${source.delegationSelector}`);
   for (const surface of m.surfaces) {
     const state = surface.opened ? "열림" : "안 열림";
