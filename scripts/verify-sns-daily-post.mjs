@@ -18,7 +18,7 @@
  *   ⑧ 발행 실패가 DB 에 failed 로 **남는다**(잠금 삭제 금지) — 2026-08-29 크론이 흔적 없이 실패했다.
  *     같은 날 재시도는 failed 문서 재선점(findOneAndUpdate)으로만 연다.
  *   ⑨ 관리자 수동 실행·상태 조회(/api/admin/sns-daily-post)가 배선돼 있고 크론과 같은 태스크를 부른다.
- *   ⑩ Threads 체인이 2~5글이고 각 글이 상한 안이며 주입한 시각을 반영한다.
+ *   ⑩ Threads 체인이 루트 1글 + 오행 짝 답글 5글이고 각 글이 상한 안이며 주입한 시각을 반영한다.
  *   ⑪ Threads 문안이 **평문**이다 — 태그·엔티티가 섞이면 글자 그대로 노출된다.
  *   ⑫ 일진 원천 교차검증 — getTodayPillars 와 역법 코어 ganji() 의 일주가 365일 표본에서 일치한다.
  *   ⑬ Threads 액세스 토큰이 URL 쿼리에 실리지 않고 URL 이 로그에 남지 않는다.
@@ -27,6 +27,10 @@
  *   ⑯ 채널별 잠금 키가 분리돼 있고, 실패한 채널이 있으면 태스크가 **던진다**(크론 알림이 그때만 뜬다).
  *   ⑰ Threads 스위치·토큰 발급일이 두 wrangler 설정에 같은 값으로 있다.
  *   ⑱ 해시태그가 두 채널 문안에 **살아남는다** — Threads 루트 1개, 텔레그램 고정 3개 + 요일 코너 1개.
+ *   ⑲ 실패가 어느 단계에서 났는지가 알림 문구에 남는다(load/connect_db/send).
+ *   ⑳ 일간 10개 축이 정본 판정과 일치하고, 10개가 **서로 다른 답**을 받는다(60갑자 전수).
+ *   ㉑ AI 문안은 덧칠이다 — 스위치가 꺼지면 모델 호출 0회, 켜져도 실패하면 결정론 문안이 그대로 나간다.
+ *   ㉒ 사실에 없는 십성이 섞인 문안은 그 항목만 버려지고, 프롬프트에는 확정된 사실이 박힌다.
  *
  * 실행: npm run verify:sns-daily-post
  */
@@ -44,6 +48,7 @@ for (const key of [
   "TELEGRAM_CHAT_ID",
   "SNS_DAILY_POST_ENABLED",
   "SNS_THREADS_POST_ENABLED",
+  "SNS_THREADS_AI_ENABLED",
   "THREADS_ACCESS_TOKEN",
   "THREAD_ACCESS_TOKEN",
   "THREADS_TOKEN_ISSUED_AT",
@@ -54,9 +59,17 @@ for (const key of [
 const { sendTelegramMessage, escapeTelegramHtml } = await import("../worker/lib/telegram.js");
 // 🔴 순환 import(sns-daily-post-task ↔ threads-daily-content)를 **콘텐츠 쪽부터** 들어가 깬다.
 // 두 진입 순서 중 위험한 쪽이 이쪽이고, 여기서 TDZ 가 나면 워커 번들에서도 난다.
-const { buildThreadsPostChain, clampThreadsText, appendRootHashtag } = await import(
+const { buildThreadsPostChain, buildThreadsDayContext, clampThreadsText, appendRootHashtag } = await import(
   "../worker/lib/threads-daily-content.js"
 );
+const { DAY_STEM_GROUPS, TEN_GOD_GROUP, buildAllStemGuidance } = await import(
+  "../worker/lib/daily-stem-guidance.js"
+);
+const { buildMyeongriPrompt, findUnsupportedTenGod, isThreadsAiEnabled, writeDailyThreadsCopy } = await import(
+  "../worker/lib/threads-ai-writer.js"
+);
+const { HIDDEN_STEMS, STEM_ELEMENT, tenGodFor } = await import("../worker/lib/life-book-ai-saju.js");
+const { TEN_GOD_LINE } = await import("../worker/lib/today-saju-detail.js");
 const { postThreadsChain, threadsTextWeight, THREADS_TEXT_LIMIT } = await import("../worker/lib/threads.js");
 const {
   buildDailyPostText,
@@ -308,8 +321,13 @@ function jsonResponse(body, status = 200) {
   const friday = Date.UTC(2026, 0, 2, 0, 0, 0);
   const chain = buildThreadsPostChain(SITE_ENV, friday);
 
-  // 🔴 대상이 0개일 때 통과하는 검사는 가드가 아니다(CLAUDE.md 원칙 10).
-  assert.ok(chain.length >= 2 && chain.length <= 5, `Threads 체인이 ${chain.length}글이다 — 2~5글이어야 한다(⑩)`);
+  // 🔴 개수를 손으로 적지 않는다 — 오행 짝(DAY_STEM_GROUPS)에서 유도해야 짝을 늘렸을 때 가드가 따라온다.
+  const expectedPosts = 1 + DAY_STEM_GROUPS.length;
+  assert.equal(
+    chain.length,
+    expectedPosts,
+    `Threads 체인이 ${chain.length}글이다 — 루트 1글 + 오행 짝 ${DAY_STEM_GROUPS.length}글이어야 한다(⑩)`,
+  );
 
   for (const [index, text] of chain.entries()) {
     const weight = threadsTextWeight(text);
@@ -321,6 +339,11 @@ function jsonResponse(body, status = 200) {
   assert.ok(chain[0].includes("2026-01-02"), "루트 글에 주입한 날짜가 없다 — 시각 인자가 무시된다(⑩)");
   assert.ok(chain[0].includes("(금)"), "루트 글에 요일이 없다(⑩)");
   assert.ok(chain[0].includes("https://code-destiny.com/fortune/"), "루트 글에 오늘의 운세 링크가 없다(⑩)");
+  // 🔴 AI 서문이 card.body 를 대체해도 오늘의 기둥(천간·지지)은 루트에 남아야 한다.
+  assert.ok(
+    chain[0].includes("천간:") && chain[0].includes("지지:"),
+    "루트 글에 오늘의 기둥(천간·지지)이 없다 — 서문이 대체되면 그 두 오행이 통째로 사라진다(⑩)",
+  );
 
   const saturday = Date.UTC(2026, 0, 3, 0, 0, 0);
   assert.notEqual(
@@ -545,7 +568,7 @@ function jsonResponse(body, status = 200) {
       해석한다. 🔴 [vars] 값이 프로덕션의 값이고 코드 기본값은 죽는다(CLAUDE.md 규칙 4). */
 {
   const declared = new Map();
-  for (const key of ["SNS_THREADS_POST_ENABLED", "THREADS_TOKEN_ISSUED_AT"]) {
+  for (const key of ["SNS_THREADS_POST_ENABLED", "SNS_THREADS_AI_ENABLED", "THREADS_TOKEN_ISSUED_AT"]) {
     const values = [];
     for (const configPath of ["worker/wrangler.toml", "worker/wrangler.staging.toml"]) {
       const source = fs.readFileSync(path.join(ROOT, configPath), "utf8");
@@ -569,6 +592,14 @@ function jsonResponse(body, status = 200) {
   } else {
     assert.equal(gate, null, `SNS_THREADS_POST_ENABLED="${switchValue}" 를 코드가 켜짐으로 안 읽는다 — 조용히 꺼짐이 된다(⑰)`);
   }
+
+  // AI 스위치도 같은 이유로 해석 가능해야 한다 — 오타는 조용히 꺼짐이 되고, 아무도 못 알아챈다.
+  const aiValue = declared.get("SNS_THREADS_AI_ENABLED");
+  assert.equal(
+    isThreadsAiEnabled({ SNS_THREADS_AI_ENABLED: aiValue }),
+    !["0", "false", "off", "no", ""].includes(aiValue.toLowerCase()),
+    `SNS_THREADS_AI_ENABLED="${aiValue}" 를 코드가 반대로 읽는다 — 조용한 꺼짐/켜짐이 된다(⑰)`,
+  );
 
   // 발급일이 날짜꼴이 아니면 만료 경고가 영영 안 뜨고, 토큰은 60일 뒤 소리 없이 죽는다.
   const issuedAt = declared.get("THREADS_TOKEN_ISSUED_AT");
@@ -701,4 +732,225 @@ function jsonResponse(body, status = 200) {
   );
 }
 
-console.log("[verify-sns-daily-post] 통과 — 기본 꺼짐 · throw 없음 4종 · 토큰 URL 미로깅 2종 · 링크 실재 8건 · 시각 반영 · 크론 배선 · 배포 스위치 해석 가능 3종 · 실패 기록 유지 · 관리자 수동 실행 배선 · Threads 체인 4글 · 평문 계약 · 일진 대조 365일 · 채널별 잠금 분리 · 실패 시 throw(실제 발행 0회) · 해시태그 생존(Threads 루트 1 · 텔레그램 4) · 단계 표식(load/connect_db/send · 태스크 6개 전수)");
+/* ⑳ 일간 10개 축 — 체인이 일간 10개를 전부 다루고, 그 명리 값이 정본 판정과 일치하며,
+      10개가 **서로 다른 답**을 받는다.
+      🔴 여기서 명리 규칙을 복제하지 않는다 — daily-stem-guidance.js 가 낸 값을 정본 tenGodFor 로
+      다시 유도해 대조한다. 규칙을 베껴 오면 같은 오타가 양쪽에 생겨 가드가 통과한다.
+      🔴 붕괴 가드가 핵심이다: 첫 구현은 '계열이 生하는 다음 계열' 축을 썼는데 그 축은 오늘 천간의
+      오행 하나로 접혀 **일간 10개가 전부 같은 글자**를 받았다(2026-09-01 실측, 갑자일 전부 병·정).
+      그러면 '각 일간에 어떤 글자가 좋다'는 이 기능의 요구 자체가 죽는데 다른 검사는 전부 통과한다. */
+{
+  const dayStems = Object.keys(STEM_ELEMENT);
+  const dayBranches = Object.keys(HIDDEN_STEMS);
+  assert.equal(dayStems.length, 10, `천간 표가 ${dayStems.length}개다(⑳)`);
+  assert.equal(dayBranches.length, 12, `지지 표가 ${dayBranches.length}개다(⑳)`);
+
+  // 체인이 일간 10개를 전부, 계산된 십성 그대로 적는다.
+  const friday = Date.UTC(2026, 0, 2, 0, 0, 0);
+  const ctx = buildThreadsDayContext(SITE_ENV, friday);
+  assert.ok(ctx, "그날의 발행 재료를 못 만들었다 — 체인이 통째로 빈다(⑳)");
+  assert.equal(ctx.rows.length, 10, `일간 판정이 ${ctx.rows.length}개다 — 10개여야 한다(⑳)`);
+
+  const body = buildThreadsPostChain(SITE_ENV, friday).join("\n");
+  for (const row of ctx.rows) {
+    assert.ok(
+      body.includes(`${row.stemKo}(${row.stem}) ${row.tenGod}`),
+      `체인에 ${row.stemKo}(${row.stem}) 일간의 십성 줄이 없다 — 열 중 하나가 조용히 빠졌다(⑳)`,
+    );
+    assert.ok(
+      body.includes(`좋은 십성 ${row.flowTenGods.join("·")}`),
+      `체인에 ${row.stemKo} 일간의 좋은 십성이 없다(⑳)`,
+    );
+  }
+
+  // 60갑자 전수 — 값 대조와 붕괴 가드.
+  let checked = 0;
+  for (let index = 0; index < 60; index += 1) {
+    const today = { stem: dayStems[index % 10], branch: dayBranches[index % 12] };
+    const label = `${today.stem}${today.branch}`;
+    const rows = buildAllStemGuidance(today).flatMap((group) => group.rows);
+    assert.equal(rows.length, 10, `${label} 일에 일간 판정이 ${rows.length}개다(⑳)`);
+
+    for (const row of rows) {
+      assert.equal(row.tenGod, tenGodFor(row.stem, today.stem), `${label} 일 ${row.stem} 일간의 십성이 정본과 다르다(⑳)`);
+      assert.equal(
+        row.branchMainTenGod,
+        tenGodFor(row.stem, HIDDEN_STEMS[today.branch][0]),
+        `${label} 일 ${row.stem} 일간의 지지 본기 십성이 정본과 다르다(⑳)`,
+      );
+      assert.equal(row.flowTenGods.length, 2, `${label} 일 ${row.stem} 의 좋은 십성이 ${row.flowTenGods.length}개다 — 계열은 2종이다(⑳)`);
+      assert.equal(row.goodStems.length, 2, `${label} 일 ${row.stem} 의 좋은 천간이 ${row.goodStems.length}개다 — 양간·음간 2개다(⑳)`);
+      assert.ok(row.goodBranches.length > 0, `${label} 일 ${row.stem} 에 좋은 지지가 하나도 없다(⑳)`);
+      for (const good of row.goodStems) {
+        assert.ok(
+          row.flowTenGods.includes(tenGodFor(row.stem, good)),
+          `${label} 일 ${row.stem} 의 좋은 글자 ${good} 이 좋은 십성 계열 밖이다 — 글자와 십성이 어긋난 채 발행된다(⑳)`,
+        );
+      }
+      for (const good of row.goodBranches) {
+        assert.ok(
+          row.flowTenGods.includes(tenGodFor(row.stem, HIDDEN_STEMS[good][0])),
+          `${label} 일 ${row.stem} 의 좋은 지지 ${good} 의 본기가 좋은 십성 계열 밖이다(⑳)`,
+        );
+      }
+      assert.ok(TEN_GOD_LINE[row.tenGod], `${label} 일 ${row.stem} 의 십성 ${row.tenGod} 에 폴백 문장이 없다 — AI 가 죽으면 그 자리가 빈다(⑳)`);
+    }
+
+    // 🔴 붕괴 가드. 실측 최솟값은 글자 3종 · 십성 4종이다(60갑자 전수, 2026-09-01).
+    const letterSets = new Set(rows.map((row) => row.goodStems.join("")));
+    const godSets = new Set(rows.map((row) => row.flowTenGods.join("")));
+    assert.ok(
+      letterSets.size >= 3,
+      `${label} 일에 좋은 글자가 ${letterSets.size}종뿐이다 — 일간 10개가 같은 답을 받으면 '각 일간에' 가 죽는다(⑳)`,
+    );
+    assert.ok(godSets.size >= 4, `${label} 일에 좋은 십성이 ${godSets.size}종뿐이다 — 최소 4종이어야 한다(⑳)`);
+    checked += 1;
+  }
+  assert.equal(checked, 60, `60갑자 표본이 ${checked}일이다 — 대상 0개로 통과하는 검사는 가드가 아니다(⑳)`);
+}
+
+/* ㉑ AI 문안은 **덧칠**이다 — 스위치가 꺼지면 모델 호출 0회, 켜져도 실패하면 결정론 문안이 그대로 나간다.
+      🔴 이 스크립트는 Gemini 를 한 번도 부르지 않는다. generateImpl 을 주입해 호출 횟수만 센다
+      (CLAUDE.md 절대 규칙 1 — 과금 LLM 실호출 금지). */
+{
+  const friday = Date.UTC(2026, 0, 2, 0, 0, 0);
+  const ctx = buildThreadsDayContext(SITE_ENV, friday);
+  assert.ok(ctx && ctx.rows.length === 10, "AI 검증용 재료를 못 만들었다(㉑)");
+  const ON = { SNS_THREADS_AI_ENABLED: "1" };
+
+  // 기본값 꺼짐 — env 가 비면 모델을 부르지 않는다.
+  assert.equal(isThreadsAiEnabled({}), false, "SNS_THREADS_AI_ENABLED 없이 AI 문안이 켜졌다(㉑)");
+  let calls = 0;
+  const off = await writeDailyThreadsCopy({}, {
+    day: ctx.day,
+    rows: ctx.rows,
+    generateImpl: () => { calls += 1; return { ok: true, text: "{}" }; },
+  });
+  assert.equal(off, null, "스위치가 꺼졌는데 AI 문안이 나왔다(㉑)");
+  assert.equal(calls, 0, "스위치가 꺼졌는데 모델을 불렀다 — 하루 한 번이라도 과금이고, 기본값은 꺼짐이어야 한다(㉑)");
+
+  // 실패·예외·헛소리 — 어느 쪽도 던지지 않고 null 이며, 체인은 결정론 문안 그대로다.
+  const deterministic = buildThreadsPostChain(SITE_ENV, friday, null);
+  for (const [why, impl] of [["ok:false", () => ({ ok: false, error: "boom" })], ["throw", () => { throw new Error("boom"); }], ["non-json", () => ({ ok: true, text: "그냥 문장" })]]) {
+    const copy = await writeDailyThreadsCopy(ON, { day: ctx.day, rows: ctx.rows, generateImpl: impl });
+    assert.equal(copy, null, `${why} 응답을 문안으로 받아들였다 — 검증 없이 공개 계정에 나간다(㉑)`);
+    assert.deepEqual(
+      buildThreadsPostChain(SITE_ENV, friday, copy),
+      deterministic,
+      `${why} 일 때 체인이 결정론 문안으로 안 돌아왔다 — 모델이 죽으면 그날 발행이 죽는다(㉑)`,
+    );
+  }
+
+  // 통과하는 문안은 실제로 체인에 실린다. 코드펜스로 감싸 와도 읽는다.
+  const advice = {};
+  for (const row of ctx.rows) {
+    advice[row.stem] = `${row.stemKo} 일간은 오늘 ${row.tenGod} 기운을 받습니다. ${row.flowTenGods[0]} 쪽으로 한 걸음만 옮겨 보세요.`;
+  }
+  const intro = "오늘은 중심을 잡는 하루입니다. 서두르지 말고 하나씩 매듭지으면 저녁에 손에 남는 것이 있습니다.";
+  const payload = JSON.stringify({ intro, ...advice });
+  const ok = await writeDailyThreadsCopy(ON, {
+    day: ctx.day,
+    rows: ctx.rows,
+    generateImpl: () => ({ ok: true, text: "```json\n" + payload + "\n```", model: "test-model" }),
+  });
+  assert.ok(ok, "정상 응답인데 문안이 null 이다(㉑)");
+  assert.equal(ok.model, "test-model", "쓴 모델 이름이 안 남는다 — 잠금 문서의 aiModel 이 비면 사후 추적이 끊긴다(㉑)");
+  assert.equal(Object.keys(ok.advice).length, 10, `AI 문안이 ${Object.keys(ok.advice).length}개만 통과했다 — 10개여야 한다(㉑)`);
+  const written = buildThreadsPostChain(SITE_ENV, friday, ok);
+  const writtenBody = written.join("\n");
+  assert.ok(writtenBody.includes(intro), "AI 서문이 루트에 안 실렸다(㉑)");
+  for (const row of ctx.rows) {
+    assert.ok(writtenBody.includes(ok.advice[row.stem]), `${row.stemKo} 일간의 AI 문안이 체인에 안 실렸다(㉑)`);
+  }
+  assert.equal(written.length, deterministic.length, `AI 문안이 실리자 체인이 ${written.length}글이 됐다(㉑)`);
+  for (const [index, text] of written.entries()) {
+    const weight = threadsTextWeight(text);
+    assert.ok(weight <= 480, `AI 문안이 실린 ${index + 1}번째 글이 ${weight}자다 — 상한을 넘기면 발행 자체가 거절된다(㉑)`);
+  }
+  assert.ok(written[0].endsWith(`#${THREADS_ROOT_HASHTAG}`), "AI 서문이 들어가자 루트 토픽 태그가 잘렸다(㉑)");
+}
+
+/* ㉒ 사실에 없는 십성이 섞인 문안은 **그 항목만** 버려지고, 프롬프트에는 확정된 사실이 박힌다.
+      🔴 모델이 명리를 지어내는 것이 이 기능의 유일한 실질 위험이다 — 하루 한 번 공개 계정에 나가고
+      되돌릴 수 없다. 계산은 언제나 정본 표가 하고, 모델은 그 사실을 문장으로 옮기기만 한다. */
+{
+  const friday = Date.UTC(2026, 0, 2, 0, 0, 0);
+  const ctx = buildThreadsDayContext(SITE_ENV, friday);
+  const ON = { SNS_THREADS_AI_ENABLED: "1" };
+
+  // 검증기 자체 — 허용 목록 밖은 잡고, 안은 오탐하지 않는다.
+  assert.equal(findUnsupportedTenGod("정관이 들어오는 날입니다.", ["비견", "겁재"]), "정관", "사실에 없는 십성을 못 잡았다(㉒)");
+  assert.equal(findUnsupportedTenGod("비견 쪽으로 힘을 쓰세요.", ["비견", "겁재"]), "", "허용된 십성을 오탐했다 — 통과할 문안이 전부 버려진다(㉒)");
+
+  // 열 중 하나만 지어내면 그 하나만 버리고 아홉은 살린다.
+  const rogue = {};
+  for (const row of ctx.rows) {
+    rogue[row.stem] = `${row.stemKo} 일간은 오늘 ${row.tenGod} 기운을 받습니다. ${row.flowTenGods[0]} 쪽으로 옮겨 보세요.`;
+  }
+  const victim = ctx.rows[0];
+  const allTenGods = Object.keys(TEN_GOD_GROUP);
+  assert.equal(allTenGods.length, 10, `십성 표가 ${allTenGods.length}개다(㉒)`);
+  rogue[victim.stem] = `오늘은 ${allTenGods.join("·")} 가 함께 오는 날입니다.`;
+
+  const copy = await writeDailyThreadsCopy(ON, {
+    day: ctx.day,
+    rows: ctx.rows,
+    generateImpl: () => ({ ok: true, text: JSON.stringify({ intro: "오늘은 하나씩 매듭지으면 좋은 하루입니다. 서두르지 마세요.", ...rogue }), model: "test-model" }),
+  });
+  assert.ok(copy, "부분 거절인데 문안이 통째로 null 이 됐다 — 아홉의 좋은 문장까지 잃는다(㉒)");
+  assert.equal(
+    copy.advice[victim.stem],
+    undefined,
+    `${victim.stemKo} 일간이 사실에 없는 십성을 썼는데 통과했다 — 틀린 명리가 공개 계정에 나간다(㉒)`,
+  );
+  assert.equal(Object.keys(copy.advice).length, 9, `버려진 항목이 ${10 - Object.keys(copy.advice).length}건이다 — 1건이어야 한다(㉒)`);
+
+  // 버려진 자리는 정본 문장표로 메워진다(빈칸이 아니다).
+  const body = buildThreadsPostChain(SITE_ENV, friday, copy).join("\n");
+  assert.ok(!body.includes(rogue[victim.stem]), "버린 문안이 그대로 발행됐다(㉒)");
+  assert.ok(
+    body.includes(TEN_GOD_LINE[victim.tenGod].good),
+    `${victim.stemKo} 일간 자리가 정본 문장으로 안 메워졌다 — 조언 줄이 빈다(㉒)`,
+  );
+
+  // 길이 초과·마크업도 같은 자리에서 걸린다.
+  const bloated = { ...rogue };
+  bloated[victim.stem] = "가".repeat(400);
+  const clipped = await writeDailyThreadsCopy(ON, {
+    day: ctx.day,
+    rows: ctx.rows,
+    generateImpl: () => ({ ok: true, text: JSON.stringify({ intro: "오늘은 하나씩 매듭지으면 좋은 하루입니다. 서두르지 마세요.", ...bloated }), model: "t" }),
+  });
+  assert.equal(clipped.advice[victim.stem], undefined, "상한을 넘긴 문안이 통과했다 — 답글이 잘려 나간다(㉒)");
+
+  // 프롬프트에 그 일간의 확정된 사실이 실제로 박힌다(모델이 계산하게 두지 않는다).
+  const prompt = buildMyeongriPrompt(ctx.day, ctx.rows);
+  assert.ok(prompt.includes(ctx.day.dayPillarKo), `프롬프트에 오늘 일진(${ctx.day.dayPillarKo})이 없다(㉒)`);
+  for (const row of ctx.rows) {
+    assert.ok(prompt.includes(`"${row.stem}"`), `프롬프트에 ${row.stem} 일간의 출력 키가 없다 — 그 일간 문안이 영영 안 나온다(㉒)`);
+    assert.ok(prompt.includes(row.tenGod), `프롬프트에 ${row.stem} 일간의 십성이 사실로 안 박혔다(㉒)`);
+    assert.ok(prompt.includes(row.flowTenGods.join("·")), `프롬프트에 ${row.stem} 일간의 좋은 십성이 사실로 안 박혔다(㉒)`);
+  }
+
+  // 배선 — 본문 조립부는 LLM 을 모르고, 태스크는 주입 구현을 그대로 넘긴다.
+  const contentSource = fs.readFileSync(path.join(ROOT, "worker/lib/threads-daily-content.js"), "utf8");
+  assert.ok(
+    !/gemini|workers-ai|callGeminiText/i.test(contentSource),
+    "본문 조립부가 LLM 을 직접 부른다 — 모델이 죽으면 발행도 함께 죽는다(㉒)",
+  );
+  const taskSource = fs.readFileSync(path.join(ROOT, "worker/lib/sns-daily-post-task.js"), "utf8");
+  assert.ok(
+    /const \{ fetchImpl, generateImpl \} = options;/.test(taskSource),
+    "태스크가 generateImpl 을 옵션에서 안 푼다 — 검증이 실호출 없이 AI 경로를 못 밟는다(㉒)",
+  );
+  assert.ok(
+    /sendThreadsChannel\(env, now, fetchImpl, generateImpl\)/.test(taskSource),
+    "주입한 generateImpl 이 Threads 채널까지 안 내려간다(㉒)",
+  );
+  assert.ok(
+    /writeDailyThreadsCopy\([\s\S]{0,240}?\)\s*\.catch\(\(\) => null\)/.test(taskSource),
+    "문안 생성 실패가 발행 실패로 번진다 — .catch 로 결정론 문안까지 내려가야 한다(㉒)",
+  );
+}
+
+console.log("[verify-sns-daily-post] 통과 — 기본 꺼짐 · throw 없음 4종 · 토큰 URL 미로깅 2종 · 링크 실재 8건 · 시각 반영 · 크론 배선 · 배포 스위치 해석 가능 3종 · 실패 기록 유지 · 관리자 수동 실행 배선 · Threads 체인 6글(루트+오행 짝 5) · 평문 계약 · 일진 대조 365일 · 채널별 잠금 분리 · 실패 시 throw(실제 발행 0회) · 해시태그 생존(Threads 루트 1 · 텔레그램 4) · 단계 표식(load/connect_db/send · 태스크 6개 전수) · 일간 10개 축 대조 60갑자 전수 · AI 덧칠 계약(실호출 0회)");
