@@ -420,24 +420,30 @@ try {
   const restoredFortunesState = await evaluate(cdp, "({ currentCollection: window.cdMobileCollectionFullscreen?.getCurrent?.() || null, overlayOpen: !!window.cdMobileCollectionFullscreen?.isOpen?.() })", "restored all-fortunes state");
   assert(restoredFortunesState.overlayOpen && restoredFortunesState.currentCollection === "miscCollection", "reopening all-fortunes preserves its selected collection", restoredFortunesState);
 
-  // ── 모바일 직접 진입 구간 (2026-08-15 계약 변경) ────────────────────────────
-  // 🔴 모바일은 이제 카드 탭 = 즉시 진입이다. 기능 상세 팝업(바텀시트)은 데스크톱 전용이 됐고,
-  // 셸이 __cdFeatureMarketingPreviewEnabled 를 false 로 세워 두 생산 지점을 모두 끈다.
+  // ── 모바일 상세 시트 구간 (2026-09-01 계약 변경 ⓒ) ──────────────────────────
+  // 🔴 모바일은 **유료 항목만** 상세 시트를 연다. 무료 항목은 2026-08-15 그대로 즉시 진입이다.
+  // 셸이 __cdFeatureMarketingPreviewEnabled=true 와 __cdFeatureMarketingPreviewPaidOnly=true 를
+  // 함께 세우고, 상세 팝업의 두 생산 지점(document 클릭 인터셉터 · window._cdOpenTilePreview)이
+  // 같은 판정(_hasPaidPreviewSignal)으로 갈린다.
   //
-  // 왜 바꿨나: ①상세 팝업이 있는 타일은 46개고 나머지 44개는 원래 바로 진입해, 같은 자리에서
-  // 같은 동작이 갈렸다 ②유료 타일은 가격 조회가 끝날 때까지 팝업 CTA 가 disabled +
-  // pointer-events:none 이라 "열자마자 누르면 아무 일도 안 일어나는" 창이 있었다.
+  // 2026-08-15 에 모바일 전체를 껐던 근거는 둘이었다. ①상세 팝업이 있는 타일 46개와 없는 타일
+  // 44개가 같은 자리에서 다르게 동작했다 — 유료/무료로 가르면 "돈이 드는 것만 먼저 설명한다"는,
+  // 사용자가 배울 수 있는 규칙이 된다. ②유료 타일은 가격 조회가 끝날 때까지 CTA 가 disabled +
+  // pointer-events:none 이라 "열자마자 누르면 아무 일도 안 일어나는" 창이 있었다 — 그 뒤 _onCta 가
+  // 버튼을 죽이는 대신 조회를 기다리도록 고쳐져 사라졌고, 아래 "CTA 가 열리자마자 눌린다" 단언이
+  // 그 회귀를 대신 막는다.
   //
   // 데스크톱 팝업 계약은 scripts/verify-rpt-preview-cta-flow.mjs 가 1280x900 에서 계속 고정한다.
-  // 아래 단언들은 예전 CTA 경로에 걸려 있던 것을 타일 탭 뒤로 옮긴 것이다 — 값은 그대로다:
-  // inert 누수 0, 컬렉션이 접히지 않음, 진입한 기능이 히트 테스트를 소유, 닫기 버튼이 안 덮임.
+  // 시트 뒤의 단언들(inert 누수 0, 컬렉션이 접히지 않음, 진입한 기능이 히트 테스트를 소유,
+  // 닫기 버튼이 안 덮임)은 값이 그대로다 — 진입 지점만 타일 탭에서 시트 CTA 로 돌아왔을 뿐이다.
   await navigate(cdp, `http://127.0.0.1:${server.port}/index.html`);
   await tapSelector(cdp, "#cdMobileBottomNav .cd-mobile-bottom-nav__main [data-nav-key=\"fortunes\"]");
   await delay(700);
   await tapSelector(cdp, '.cd-fov__cat[data-collection-id="tarotCollection"]');
   await delay(450);
 
-  const GATED_TILE = '.tarot-tile[data-feature-key="tarot-love-relationship"]';
+  const GATED_TILE = '.tarot-tile[data-feature-key="tarot-love-relationship"]'; // data-coin-cost="50" → 유료
+  const FREE_TILE = '.tarot-tile--healing';                                     // 가격 속성 없음 → 무료
   const inertProbe = `(() => {
     const ov = document.getElementById('tilePvwOverlay');
     const stuck = Array.prototype.slice.call(document.body.children)
@@ -451,19 +457,106 @@ try {
     };
   })()`;
 
+  // ① 진입점 판정. 시트는 켜 두되 무료 타일은 진입점에서 거절돼야 한다.
+  //    🔴 인터셉터가 아니라 window._cdOpenTilePreview 에 직접 묻는다 — 인터셉터에는
+  //    `<a href>` 조기 반환이 하나 더 있어서, 무료 타일이 거절된 이유가 "유료가 아니라서"인지
+  //    "href 가 있어서"인지 구분되지 않는다. 진입점에는 그 분기가 없으므로 이 한 번의 호출이
+  //    새 유료-한정 판정만을 그대로 통과한다. 🔴 셀렉터를 따로 박지 않는다 — 바로 아래에서
+  //    실제로 탭하는 그 타일로 물어야 두 단언이 같은 대상을 말한다.
+  await waitForSelector(cdp, FREE_TILE);
+  const previewPolicy = await evaluate(cdp, `(() => {
+    const free = document.querySelector(${JSON.stringify(FREE_TILE)});
+    const entryPointReady = typeof window._cdOpenTilePreview === 'function';
+    return {
+      previewFlag: window.__cdFeatureMarketingPreviewEnabled,
+      paidOnly: window.__cdFeatureMarketingPreviewPaidOnly,
+      entryPointReady: entryPointReady,
+      freeTilePresent: !!free,
+      freeTileOpens: (!free || !entryPointReady)
+        ? null
+        : (() => { try { return !!window._cdOpenTilePreview(free); } catch (_) { return null; } })(),
+      sheetOpen: !!document.querySelector('#tilePvwOverlay.pvw-open')
+    };
+  })()`, "mobile preview policy flags");
+  assert(
+    previewPolicy.previewFlag === true && previewPolicy.paidOnly === true && previewPolicy.entryPointReady,
+    "mobile arms the paid-only preview policy on a live entry point",
+    previewPolicy,
+  );
+  assert(
+    previewPolicy.freeTilePresent && previewPolicy.freeTileOpens === false && !previewPolicy.sheetOpen,
+    "on mobile the preview entry point refuses a free tile",
+    previewPolicy,
+  );
+
+  // ② 무료 타일 탭 = 즉시 진입. 🔴 두 단언을 쌍으로 둔다 — "시트가 안 뜬다"만 보면
+  //    아무것도 안 열리는 상태도 초록이 된다(2026-08-14 13cc7e6d7 이 그렇게 두 릴리스를 통과했다).
+  await tapSelector(cdp, FREE_TILE);
+  await delay(1400);
+  const freeEntry = await evaluate(cdp, `(() => ({
+    sheetOpen: !!document.querySelector('#tilePvwOverlay.pvw-open'),
+    path: location.pathname
+  }))()`, "free tile tap on mobile");
+  assert(!freeEntry.sheetOpen, "on mobile a free fortune tile tap does not open the detail sheet", freeEntry);
+  assert(
+    freeEntry.path.indexOf("/tarot/healing") === 0,
+    "on mobile a free fortune tile tap enters the feature directly",
+    freeEntry,
+  );
+
+  // ③ 유료 타일 탭 = 상세 시트. 진입은 시트 CTA 가 맡는다.
+  await navigate(cdp, `http://127.0.0.1:${server.port}/index.html`);
+  await tapSelector(cdp, "#cdMobileBottomNav .cd-mobile-bottom-nav__main [data-nav-key=\"fortunes\"]");
+  await delay(700);
+  await tapSelector(cdp, '.cd-fov__cat[data-collection-id="tarotCollection"]');
+  await delay(450);
   await waitForSelector(cdp, GATED_TILE);
   await tapSelector(cdp, GATED_TILE);
+  await delay(700);
+
+  const paidSheet = await evaluate(cdp, `(() => {
+    const sheetEl = document.getElementById('tilePvwOverlay');
+    const cta = document.getElementById('tilePvwCtaBtn');
+    const cs = cta ? getComputedStyle(cta) : null;
+    const r = cta ? cta.getBoundingClientRect() : null;
+    const top = r && r.width > 0 && r.height > 0
+      ? document.elementFromPoint(Math.round(r.left + r.width / 2), Math.round(r.top + r.height / 2))
+      : null;
+    return {
+      sheetOpen: !!(sheetEl && sheetEl.classList.contains('pvw-open')),
+      sheetAriaHidden: sheetEl ? sheetEl.getAttribute('aria-hidden') : null,
+      ctaPresent: !!cta,
+      ctaDisabled: cta ? !!cta.disabled : null,
+      ctaPointerEvents: cs ? cs.pointerEvents : null,
+      ctaHits: !!(top && top.closest('#tilePvwCtaBtn')),
+      topEl: top ? (top.id || top.className || top.tagName) : null
+    };
+  })()`, "paid tile tap opens the detail sheet");
+  assert(
+    paidSheet.sheetOpen && paidSheet.sheetAriaHidden === "false",
+    "on mobile a paid fortune tile tap opens the detail sheet",
+    paidSheet,
+  );
+  // 🔴 2026-08-15 근거 ② 의 회귀 가드. 열리자마자 눌려야 한다 — disabled 나
+  //    pointer-events:none 이면 "열자마자 누르면 아무 일도 안 일어나는" 창이 돌아온 것이다.
+  assert(
+    paidSheet.ctaPresent && paidSheet.ctaDisabled === false
+      && paidSheet.ctaPointerEvents !== "none" && paidSheet.ctaHits,
+    "the detail sheet CTA is clickable the moment the sheet opens",
+    paidSheet,
+  );
+
+  await tapSelector(cdp, "#tilePvwCtaBtn");
   // 진입은 스크립트 로드를 동반한다. CTA 경로에서 쓰던 대기와 같은 예산을 준다.
   await delay(2600);
 
-  // 🔴 두 단언을 쌍으로 둔다. "시트가 안 뜬다"만 보면 아무것도 안 열리는 상태도 초록이 된다 —
-  //    2026-08-14 13cc7e6d7 이 정확히 그렇게 두 릴리스를 통과했다.
   const directEntry = await evaluate(cdp, `(() => {
     const sheetEl = document.getElementById('tilePvwOverlay');
     const ov = document.getElementById('tarotLoveOverlay');
     const cs = ov ? getComputedStyle(ov) : null;
     return {
       previewFlag: window.__cdFeatureMarketingPreviewEnabled,
+      paidOnly: window.__cdFeatureMarketingPreviewPaidOnly,
       sheetOpen: !!(sheetEl && sheetEl.classList.contains('pvw-open')),
       path: location.pathname,
       scriptLoaded: typeof window.openTarotLoveModal === 'function',
@@ -472,17 +565,17 @@ try {
       visibility: cs ? cs.visibility : null,
       isOpen: !!(ov && ov.classList.contains('is-open'))
     };
-  })()`, "gated tile tap opens the feature directly");
+  })()`, "sheet CTA opens the feature directly");
   assert(
-    directEntry.previewFlag === false && !directEntry.sheetOpen,
-    "on mobile a gated fortune tile tap does not open the detail sheet",
+    !directEntry.sheetOpen,
+    "the detail sheet closes once its CTA opens the paid feature",
     directEntry,
   );
   assert(
     directEntry.scriptLoaded && directEntry.inDocument
       && directEntry.display !== "none" && directEntry.visibility !== "hidden"
       && directEntry.isOpen,
-    "a gated fortune tile tap opens the paid feature directly",
+    "the detail sheet CTA opens the paid feature",
     directEntry,
   );
   assert(
