@@ -128,7 +128,7 @@ export function ThreadAvatar({ systemKey, dimmed = false }: { systemKey?: Fusion
     <span
       aria-hidden
       style={tintVars(systemKey)}
-      className={`relative grid size-9 shrink-0 place-items-center overflow-hidden rounded-full bg-[var(--fx-deep)] ring-1 ring-[color:var(--tint-ring)] ${dimmed ? "opacity-40 grayscale" : "shadow-[0_0_20px_-7px_var(--tint)]"}`}
+      className={`relative grid size-7 shrink-0 place-items-center sm:size-9 overflow-hidden rounded-full bg-[var(--fx-deep)] ring-1 ring-[color:var(--tint-ring)] ${dimmed ? "opacity-40 grayscale" : "shadow-[0_0_20px_-7px_var(--tint)]"}`}
     >
       {core || orb?.image
         ? <Image src={core ? FUSION_CORE_ORB : (orb?.image as string)} alt="" width={320} height={320} className="size-full object-cover" />
@@ -158,7 +158,7 @@ export function ThreadRow({ systemKey, dimmed, index = 0, dataState, exporting =
     <li
       data-state={dataState}
       {...(pdfSection ? { "data-fusion-pdf-section": "true" } : {})}
-      className={`grid grid-cols-[2.25rem_minmax(0,1fr)] items-start gap-x-3.5 ${exporting ? "" : "animate-fade-in-up opacity-0 motion-reduce:animate-none motion-reduce:opacity-100"} ${className}`}
+      className={`grid grid-cols-[1.75rem_minmax(0,1fr)] items-start gap-x-2.5 sm:grid-cols-[2.25rem_minmax(0,1fr)] sm:gap-x-3.5 ${exporting ? "" : "animate-fade-in-up opacity-0 motion-reduce:animate-none motion-reduce:opacity-100"} ${className}`}
       style={exporting ? undefined : { animationDelay: `${Math.min(index, 14) * 60}ms` }}
     >
       <ThreadAvatar systemKey={systemKey} dimmed={dimmed} />
@@ -199,7 +199,7 @@ export function ThreadBubble({ systemKey, tone = "plain", deferRender = false, e
   return (
     <div
       style={tintVars(systemKey)}
-      className={`relative min-w-0 overflow-hidden rounded-[1.375rem] rounded-tl-md border px-5 py-4 sm:px-6 sm:py-5 ${
+      className={`relative min-w-0 overflow-hidden rounded-[1.375rem] rounded-tl-md border px-4 py-4 sm:px-6 sm:py-5 ${
         tone === "gold"
           ? "border-[rgba(232,213,163,0.28)] bg-[linear-gradient(150deg,rgba(232,213,163,0.11),rgba(255,255,255,0.03))]"
           : "border-white/[0.09] bg-white/[0.035]"

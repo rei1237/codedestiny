@@ -2443,9 +2443,9 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
         </div>
       </header>
 
-      <ol className="relative m-0 grid list-none gap-5 px-4 py-7 sm:px-9 sm:py-9">
-        {/* 대화의 척추. 좌표 = 목록 좌우 여백(16/36px) + 아바타 반지름(18px). */}
-        <span aria-hidden className="pointer-events-none absolute bottom-12 left-[34px] top-12 w-px bg-[linear-gradient(180deg,transparent,rgba(201,181,243,0.3),transparent)] sm:left-[54px]" />
+      <ol className="relative m-0 grid list-none gap-5 px-3 py-7 sm:px-9 sm:py-9">
+        {/* 대화의 척추. 좌표 = 목록 좌우 여백(12/36px) + 아바타 반지름(14/18px). */}
+        <span aria-hidden className="pointer-events-none absolute bottom-12 left-[26px] top-12 w-px sm:left-[54px] bg-[linear-gradient(180deg,transparent,rgba(201,181,243,0.3),transparent)]" />
 
         {/* 생성 중에는 끝난 체계와 지금 쓰는 체계만 말한다. 아직 없는 내용을 자리로 약속하지 않는다. */}
         {!result && fusionStages.map((stage, index) => {
@@ -2460,7 +2460,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
                   ? <span className="rounded-full bg-[var(--tint-veil)] px-2.5 py-0.5 text-[0.7rem] text-white/80">{copy.speakerCompletedBadge}</span>
                   : <span className="inline-flex items-center gap-2 rounded-full bg-[var(--tint-veil)] px-2.5 py-0.5 text-[0.7rem] text-white/80"><TypingDots />{copy.speakerWritingBadge}</span>}
               />
-              <p className={`m-0 max-w-[72ch] ${styles.reading} text-[1rem] leading-[1.9] text-[var(--fx-ink-2)]`}>{state === "completed" ? stage.done : stage.message}</p>
+              <p className={`m-0 max-w-[72ch] ${styles.reading} text-[var(--fx-ink-2)]`}>{state === "completed" ? stage.done : stage.message}</p>
               {stage.key === "fusion" && composeProgress && <div className="mt-4 rounded-xl border border-white/[0.08] bg-black/25 px-4 py-3.5">
                 <p className="m-0 text-[0.85rem] text-[var(--fx-ink-3)]">
                   <strong className="font-display text-[var(--fx-gold)]">{composeProgress.completed} / {composeProgress.total}</strong>
@@ -2482,15 +2482,15 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
           </ThreadRow>;
         })}
 
-        {!result && loading && fusionStages.some((stage) => stageStates[stage.key] === "pending") && <li className="grid grid-cols-[2.25rem_minmax(0,1fr)] items-center gap-x-3.5">
-          <span aria-hidden className="grid size-9 place-items-center"><i className="size-1.5 rounded-full bg-white/30" /></span>
+        {!result && loading && fusionStages.some((stage) => stageStates[stage.key] === "pending") && <li className="grid grid-cols-[1.75rem_minmax(0,1fr)] items-center gap-x-2.5 sm:grid-cols-[2.25rem_minmax(0,1fr)] sm:gap-x-3.5">
+          <span aria-hidden className="grid size-7 place-items-center sm:size-9"><i className="size-1.5 rounded-full bg-white/30" /></span>
           <p className="m-0 text-[0.84rem] leading-relaxed text-white/55">
             {fusionStages.filter((stage) => stageStates[stage.key] === "pending").map((stage) => stage.label).join(" · ")}{copy.waitingSuffix}
           </p>
         </li>}
 
         {result && qualityNotice && <li>
-          <div role="status" className="rounded-[1.375rem] border border-[rgba(232,213,163,0.3)] bg-[rgba(232,213,163,0.08)] px-5 py-4 sm:px-6">
+          <div role="status" className="rounded-[1.375rem] border border-[rgba(232,213,163,0.3)] bg-[rgba(232,213,163,0.08)] px-4 py-4 sm:px-6">
             <p className="m-0 font-display text-[0.82rem] text-[var(--fx-gold)]">{copy.qualityNoticeHeading}</p>
             <p className="m-0 mt-1.5 max-w-[64ch] text-[0.9rem] leading-[1.8] text-[var(--fx-gold-2)]">{qualityNotice}</p>
           </div>

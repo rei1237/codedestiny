@@ -63,12 +63,36 @@
   font-family: var(--fx-serif);
   letter-spacing: -0.005em;
   word-break: keep-all;
+  /* 흩어져 있던 임의값(text-[1.06rem] 외 5종)의 정본. 좁은 화면 값은 그대로 두고
+     — 모바일 가독성은 글자를 줄이는 대신 스레드 열 폭으로 푼다 — 폭이 남는 화면에서만 키운다. */
+  font-size: 1.06rem;
+  line-height: 1.95;
 }
 .readingTitle {
   font-family: var(--fx-serif);
   font-weight: 700;
   letter-spacing: -0.02em;
   word-break: keep-all;
+}
+@media (min-width: 1024px) {
+  .reading {
+    font-size: 1.125rem;
+  }
+}
+/* 접기 버튼의 소제목. 44px 터치 타깃(min-h-11)은 호출부가 유지한다. */
+.readingSectionTitle {
+  font-size: 1.14rem;
+  line-height: 1.375;
+}
+@media (min-width: 1024px) {
+  .readingSectionTitle {
+    font-size: 1.22rem;
+  }
+}
+/* 근거 항목. 본문보다 한 칸 작다. */
+.readingBullet {
+  font-size: 0.94rem;
+  line-height: 1.8;
 }
 .page :focus-visible {
   outline: 3px solid #f1d896;
@@ -757,7 +781,9 @@
     padding: 10px;
   }
   .hero {
-    min-height: 650px;
+    /* 세로가 짧은 기기에서 히어로 하나가 첫 화면을 통째로 먹지 않게 한다.
+       svh 는 주소창이 접히고 펴져도 값이 안 튀는 단위다. */
+    min-height: min(650px, 86svh);
     grid-template-columns: 1fr;
     align-items: end;
   }
@@ -781,7 +807,8 @@
     margin-bottom: 14px;
   }
   .hero h1 {
-    font-size: clamp(2.6rem, 13vw, 4rem);
+    /* 실측 360x640: 13vw(46.8px)에서 제목이 4줄이었다. 11vw(39.6px)면 2줄로 앉는다. */
+    font-size: clamp(2.2rem, 11vw, 4rem);
   }
   .orb {
     grid-area: 1/1;
@@ -822,7 +849,7 @@
 }
 @media (max-width: 390px) {
   .hero {
-    min-height: 620px;
+    min-height: min(620px, 86svh);
   }
   .heroCopy {
     padding: 22px 18px;
@@ -839,9 +866,6 @@
   }
   .ticket {
     padding: 22px 16px;
-  }
-  .page {
-    font-size: 15px;
   }
 }
 
