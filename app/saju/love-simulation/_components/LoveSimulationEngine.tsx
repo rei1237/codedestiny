@@ -1860,9 +1860,14 @@ export const LoveSimulationEngine: React.FC = () => {
                 Visual Novel Match
               </m.div>
               <p className="mb-4 text-sm font-black text-rose-100/92">{copy.introEyebrow}</p>
-              <h1 className="max-w-[760px] text-5xl font-black leading-[1.02] text-white drop-shadow-[0_12px_38px_rgba(0,0,0,0.55)] sm:text-6xl lg:text-7xl">
+              {/* 🔴 h1 이 아니라 h2 다 — 이 라우트의 h1 은 page.tsx 의 ServiceIntroSection 이 소유한다.
+                  이 컴포넌트는 dynamic(ssr:false) 라 서버 HTML 에는 안 나오지만 하이드레이션 뒤에는
+                  같은 문서에 함께 존재하므로, h1 로 두면 브라우저에서 h1 이 2개가 된다.
+                  가드: npm run verify:hydrated-h1-integrity (서버 HTML 만 보는 seo-heading-integrity 가
+                  아니다 — 그쪽은 이 파일을 애초에 보지 못한다). */}
+              <h2 className="max-w-[760px] text-5xl font-black leading-[1.02] text-white drop-shadow-[0_12px_38px_rgba(0,0,0,0.55)] sm:text-6xl lg:text-7xl">
                 {copy.introTitle}
-              </h1>
+              </h2>
               <p className="mt-6 max-w-xl text-base font-semibold leading-8 text-rose-50/78 drop-shadow-[0_10px_30px_rgba(0,0,0,0.45)] sm:text-lg">
                 {copy.introDescription}
               </p>
@@ -1875,9 +1880,9 @@ export const LoveSimulationEngine: React.FC = () => {
               </div>
               <div className="hidden">
               <p className="mb-5 text-sm font-black text-rose-100/92">{copy.introEyebrow}</p>
-              <h1 className="text-5xl font-black leading-[0.98] text-white sm:text-6xl lg:text-7xl">
+              <h2 className="text-5xl font-black leading-[0.98] text-white sm:text-6xl lg:text-7xl">
                 {copy.introTitle}
-              </h1>
+              </h2>
               <p className="mt-6 max-w-xl text-base font-semibold leading-8 text-white/66 sm:text-lg">
                 {copy.introDescription}
               </p>
@@ -2338,7 +2343,7 @@ export const LoveSimulationEngine: React.FC = () => {
                 </span>
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/50">Final Code</p>
-                  <h1 className="text-2xl font-bold sm:text-3xl">{result.title}</h1>
+                  <h2 className="text-2xl font-bold sm:text-3xl">{result.title}</h2>
                 </div>
               </div>
 
@@ -2472,7 +2477,7 @@ export const LoveSimulationEngine: React.FC = () => {
             </button>
             <div className="rounded-lg border border-white/10 bg-black/28 p-5 backdrop-blur-xl">
               <p className={`text-sm font-bold ${character.palette.accent}`}>{character.dayMaster} 일간</p>
-              <h1 className="mt-2 text-4xl font-black">{characterCopy[character.id].name}</h1>
+              <h2 className="mt-2 text-4xl font-black">{characterCopy[character.id].name}</h2>
               <p className="mt-3 text-sm leading-7 text-white/68">{characterCopy[character.id].profileLine}</p>
               <p className="mt-3 text-xs font-bold text-white/42">
                 {entryMode === "sajuMatch" ? copy.entryModeMatchNote : copy.entryModePresetNote}

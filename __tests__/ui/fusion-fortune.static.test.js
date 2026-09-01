@@ -82,6 +82,22 @@ test("fusion fortune mobile UI covers compact widths and reduced motion", () => 
   assert.match(resultThread, /min-h-11/);
 });
 
+/**
+ * 실측 2026-09-02(360x640): 히어로 아래 폼이 4128px(약 6.5화면) 지점이라 첫 화면에서
+ * 폼으로 갈 방법이 아예 없었다. 앵커와 목적지는 한 쌍이라 한쪽만 사라지면 링크가
+ * 조용히 죽는다 — 목적지 이름을 박지 않고 소스에서 읽어 짝을 맞춘다.
+ */
+test("the hero reaches the form in one tap", () => {
+  const client = read(CLIENT);
+  const css = read("app/fusion-fortune/fusion-fortune.module.css");
+  const anchor = client.match(/href="#([a-z0-9-]+)"/);
+  assert.ok(anchor, "히어로에 폼으로 가는 앵커가 없다");
+  assert.match(client, new RegExp(`id="${anchor[1]}"`), `앵커 #${anchor?.[1]} 의 목적지가 없다`);
+  assert.match(client, /styles\.heroCta/);
+  // 44px 최소 터치 타깃 — 히어로 CTA 도 예외가 아니다.
+  assert.match(css, /\.heroCta \{[\s\S]*?min-height: 48px/);
+});
+
 test("fusion fortune consumes server-sent completion stages", () => {
   const client = read(CLIENT);
   const thread = read(THREAD);

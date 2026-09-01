@@ -61,8 +61,12 @@ export default function LoveSimulationPage() {
       {/* 시뮬레이션은 클라이언트에서만 그려져 크롤러에게는 완전히 빈 페이지였다(2026-08-24
           실측: 가시 텍스트 45자). 아래 안내는 서버에서 렌더한다. 등장인물의 일간과 유형,
           다섯 수치의 초기값은 _data/loveCodeMvp.ts 의 LOVE_CHARACTERS · INITIAL_STATS 를 따랐다.
-          🔴 이 라우트는 클라이언트가 H1 을 갖지 않는다 — 그래서 여기가 H1 을 소유한다.
-          클라이언트에 H1 을 추가하면 verify:seo-heading-integrity 가 실패한다.
+          🔴 이 라우트의 H1 은 여기가 소유한다 — 클라이언트(LoveSimulationEngine)의 제목은 전부 h2 다.
+          2026-09-02 정정: 이 자리에 있던 "클라이언트가 H1 을 갖지 않는다"는 서술은 사실이 아니었다.
+          엔진에 h1 이 4개 있었고, verify:hydrated-h1-integrity 의 dynamic() 탐지 정규식이
+          LoveSimulationClient 의 `import(X).then(...)` 형태를 놓쳐 순회에서 통째로 빠져 있었다.
+          🔴 막는 가드는 verify:hydrated-h1-integrity 다. verify:seo-heading-integrity 는 서버 HTML 만
+          보므로 ssr:false 인 이 클라이언트의 h1 을 애초에 세지 못한다.
           2026-08-30: sr-only 였던 본문을 ServiceIntroSection 으로 가시화했다(성장 계획 1-D) — 본문 전체를
           숨긴 형태는 Google 의 Hidden text 정책 소지가 있고 AdSense 검수자에게도 보이지 않는다. 배치는 앱 아래. */}
       <ServiceIntroSection label="LOVE CODE 사주 연애 시뮬레이션 안내">
