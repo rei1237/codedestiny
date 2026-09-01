@@ -97,7 +97,18 @@ assert(unknownReading.magazine.pillars.day.ganji === unknownReading.saju.pillars
 });
 
 assert(serviceSource.includes("CELEBRITY_SAJU_DIRECT_READING_CONTRACT"), "Famous saju direct reading contract is required");
-assert(serviceSource.includes("유명인 사주 본문은 계산 엔진이 산출한 년주·월주·일주·시주, 오행, 십성, 신살, 12운성 값을 바탕으로 직접 구성한다."), "Direct calculated reading contract is required");
+// 계약 5개 절을 전부 못 박는다. 예전에는 첫 절 하나만 봤는데, 나머지 넷(생시 미상 3주 · 계산값
+// 밖 임의 보충 금지 · 건강/사고/범죄/연애/가족 추측 금지 · 단정형 예언 금지)은 실존 인물을
+// 다루는 이 화면의 안전 제약이라 지워져도 아무도 실패하지 않았다(2026-09-02 변이 실측).
+[
+  "유명인 사주 본문은 계산 엔진이 산출한 년주·월주·일주·시주, 오행, 십성, 신살, 12운성 값을 바탕으로 직접 구성한다.",
+  "본문은 공개 생년월일과 로컬 사주 계산 결과 밖의 값을 임의로 채우지 않는다.",
+  "생시 미상은 반드시 3주 기준으로 쓰고 시주를 추정하지 않는다.",
+  "공개 생년월일과 로컬 계산값 밖의 건강, 사고, 범죄, 연애, 가족 문제는 추측하지 않는다.",
+  "단정형 예언 대신 명리학적으로 읽을 수 있는 결, 흐름, 주의 신호로 부드럽게 쓴다.",
+].forEach((clause) => {
+  assert(serviceSource.includes(clause), `Direct reading contract clause is required: ${clause.slice(0, 20)}…`);
+});
 const mechanicalCopyRe = /이\s*기능은|이\s*결과는|분석\s*결과는|\uFFFD/;
 assert(!mechanicalCopyRe.test(`${detailPage}\n${serviceSource}`), "Mechanical copy or replacement characters must not be exposed");
 

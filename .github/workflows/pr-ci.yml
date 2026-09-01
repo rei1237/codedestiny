@@ -176,10 +176,17 @@ jobs:
       # 원고 분량·출처·엔진 산출값 정합·원고 간 중복도, 그리고 숙요 시각 무관성·1900년 이전 null·
       # 베다 확정/후보 규칙·자미두수 열 부재를 본다. 입력이 lib/·scripts/ 라 티어가 fast 로 잡히므로
       # 여기 둔다. 정적 소스 + 엔진 계산뿐이라 네트워크 없이 수 초다.
+      #
+      # magazine 은 앞의 둘과 단언이 겹치지 않는다(2026-09-02 대조): 시 미상 3주 명식 분기
+      # (birthTimeKnown=false → pillars.hour null · 오행 합계 6 vs 8 · "시 미상" 라벨),
+      # 매거진↔엔진 연/월/일주 간지 일치, 상세 페이지 구성요소 12종 존재, 직접 리딩 계약 문장,
+      # 기계적 상투구·U+FFFD 금지를 본다. lib/famous-saju/celebrity-saju-service.ts 를 제품 밖에서
+      # 실행하는 유일한 코드라 이것이 없으면 그 분기의 단언이 0이 된다.
       - name: Verify celebrity editorial entries and the multi-system table
         run: |
           npm run verify:famous-saju-editorial
           npm run verify:famous-saju-multisystem
+          npm run verify:famous-saju-magazine
 
       # 🔴 이 두 가드는 **fast 잡**에 있어야 한다. 입력이 CSS·정적 셸·package.json 이라
       # build/critical 잡에 두면 `styles/mobile-lite.css` 한 줄 수정에는 깨어나지 않는데,
@@ -251,6 +258,20 @@ jobs:
       # 선택지에 없어 **도달 자체가 불가능**했다. 파일 셋을 읽고 대조할 뿐이라 2초 미만이다.
       - name: Verify ziwei consultation categories stay in sync
         run: npm run verify:ziwei-consult-categories
+
+      # 🔴 이것도 **fast 잡**이어야 한다. 입력이 app/_lib/generate-ziwei-deep-chapter.ts 하나라
+      # 티어가 standard 로 잡히는데, critical 잡에 두면 정작 지켜야 할 "챕터 문안 한 줄 수정"에
+      # 깨어나지 않는다.
+      #
+      # 배선된 verify:ziwei-deep-report-flow 와 겹치지 않는다(2026-09-02 대조): 그쪽은 워커
+      # 라우트·프롬프트·패널 흐름을 보고 이 파일을 아예 읽지 않는다(`git grep generate-ziwei-deep-chapter`
+      # 결과 제품 참조는 app/_lib/ziwei-deep-runtime.ts 하나뿐이며 __tests__ 커버리지는 0건).
+      # 여기서 보는 것: 12궁 각각 카테고리 8·섹션 8, 섹션 본문 450자 하한, 커버리지 신호 4개 하한,
+      # 내부 토큰(usedSignals·payload·fallback 등) 유출 금지, 문장 반복, 다른 궁 인트로 오삽입,
+      # 공궁 안내문, 명궁↔재백궁 자카드 유사도 0.82 상한. TS 를 vm 으로 한 번 변환·실행할 뿐이라
+      # 네트워크 없이 1초 미만이다(실측 0.5s).
+      - name: Verify ziwei deep chapter counseling quality
+        run: npm run verify:ziwei-deep-counseling-quality
 
       # 🔴 이것도 **fast 잡**이어야 한다. 궁간·대한사화·자화·소한은 worker/lib/ziwei-ai-chart.js 와
       # worker/routes/ziwei-ai.js 에 걸쳐 있는데, 앞의 것만 고치는 PR 은 티어가 critical 로 안 올라간다
