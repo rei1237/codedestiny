@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-01
-next: "PR-0·PR-2·PR-3·PR-4 완료, PR-1 은 **부분 완료**(2026-09-01 결정 ⓒ — 모바일은 유료 항목만 상세 시트, 무료는 즉시 진입. 마스터 게이트만 열었고 `#cdFinder` 추천 카드 신호는 그대로다 — 모르는 것 3번). 🔴 **다음은 PR-5(축 1 접기) 와 PR-6(축 4 문안)** — 둘 다 있어야 총점 70 을 넘는다. 🔴 PR-1 머지 후 `measure:home-score` 로 축 4 를 재측정하고 프리뷰 표면 분모를 정정한다(아직 안 했다). 축 3 을 더 밀 거면 레버는 CSS 가 아니라 **홈 문서의 인라인 `<style>` 645.8KB** 다(축 3 절 PR-4 실측). 점수 루브릭·목표·PR 6건 순서의 정본은 `C:\\Users\\user\\.claude\\plans\\docs-handoff-home-ux-audit-2026-09-01-md-crispy-badger.md`"
+next: "PR-0·PR-2·PR-3·PR-4 완료, PR-1 은 **부분 완료**(2026-09-01 결정 ⓒ — 모바일은 유료 항목만 상세 시트, 무료는 즉시 진입. 마스터 게이트만 열었고 `#cdFinder` 추천 카드 신호는 그대로다 — 모르는 것 3번). 🔴 **다음은 PR-5(축 1 접기) 와 PR-6(축 4 문안)** — 둘 다 있어야 총점 70 을 넘는다. 🔴 PR-1 머지 후 `measure:home-score` 로 축 4 를 재측정하고 프리뷰 표면 분모를 정정한다(아직 안 했다). PR-5 의 전제였던 **모르는 것 5번(`<details>` 접힘과 AdSense 분량)은 2026-09-01 에 닫혔다** — 접어도 분량은 안 깎이고, 함정은 `hidden`/`sr-only` 로 구현했을 때의 **내부 링크 소실**이다. 축 3 을 더 밀 거면 레버는 CSS 가 아니라 **홈 문서의 인라인 `<style>` 645.8KB** 다(축 3 절 PR-4 실측). 점수 루브릭·목표·PR 6건 순서의 정본은 `C:\\Users\\user\\.claude\\plans\\docs-handoff-home-ux-audit-2026-09-01-md-crispy-badger.md`"
 ---
 
 # 홈 4축 현황 진단 (2026-09-01)
@@ -238,7 +238,7 @@ npm run measure:home-score
 | ~~2~~ | ~~축 2 가림 2건 + 첫 화면 서비스 링크 + `/fusion-fortune` 레지스트리 등재~~ **완료** | 2: 26.1→**80.8** |
 | ~~3~~ | ~~홈 INP (기존 PR-A)~~ **완료 — 명세와 다른 수정**. 진입 시 홈 펼치기를 늦춰 탭 지연 760→280ms(로컬). 🔴 축 3 점수는 프로덕션 INP 재측정 전까지 그대로 37.8 이다 | 3: 38→**재측정 필요** |
 | ~~4~~ | ~~렌더 블로킹 CSS + `app-logo-512.webp` 크기~~ **완료 — 레버 3개 중 2개 기각**. `fortune-gateway.css` 만 논블로킹으로 뺐고 FCP 는 −3ms(노이즈). 🔴 남은 레버는 인라인 `<style>` 645.8KB | 3: 변화 없음 |
-| 5 | 축 1 접기 — 첫 3화면 밖 섹션 아코디언 (삭제·통합 0건) | 1: 32→67 |
+| 5 | 축 1 접기 — 첫 3화면 밖 섹션 아코디언 (삭제·통합 0건). 🔴 **`<details>` 로 접을 것 — `hidden` 속성·`sr-only` 는 금지**(모르는 것 5번) | 1: 32→67 |
 | 6 | 축 4 문안 27개 + en 1벌 → 10개 로케일 복사 | 4: 49→96 |
 
 🔴 **PR-5 와 PR-6 이 둘 다 있어야 70을 넘는다** — 한쪽만이면 65 또는 68에서 멈춘다.
@@ -257,7 +257,10 @@ npm run measure:home-score
    - 히어로 2번 CTA `/fusion-fortune/`(`index.html:9320`)은 첫 화면 안(y708)이 맞다. **첫 방문에는 쿠키 배너가 완전히 덮고**, 재방문에는 보인다 — 가림 가설은 이 링크에 한해 사실이다.
    - 그런데 `/fusion-fortune` 은 **`window.__cdServiceRegistry` 43개에 없다**(`js/core/service-registry.js` 전수 검색 0건). 그래서 레지스트리 기준 첫 화면 서비스 링크는 배너를 닫아도 **1개**(`/points/` "이용권", 하단 탭바)뿐이다.
    - 🔴 파생 결함: 초융합 리딩이 레지스트리에 없다는 것은 **`#cdFinder` 검색·추천에서도 안 나온다**는 뜻이었다. **PR-2 에서 등재했다**(44개). 축 4 문안 커버리지 분모도 같은 커밋에서 43 → 44 로 옮겼다(`scripts/measure-home-score.mjs`).
-5. `<details>` 접힘이 `[adsense-readiness]` 의 `getVisibleText` 에 어떻게 잡히는지 **미검증**. `hidden` 은 안 본다는 것만 알려져 있다 — 다르면 PR-5 가 홈 분량을 무너뜨린다.
+5. ~~`<details>` 접힘이 `[adsense-readiness]` 의 `getVisibleText` 에 어떻게 잡히는지~~ — **2026-09-01 소스 실측으로 닫았다. 접어도 분량은 안 깎인다.**
+   - `getVisibleText`(`scripts/verify-adsense-readiness.mjs:602`)는 `<script>`·`<style>`·`<svg>` 블록만 걷어내고 나머지 태그를 공백으로 치환하는 **문자열 스캔**이다. `open` 속성도 `hidden` 도 CSS 도 아예 안 본다. `verify:indexable-prose-depth` 도 같다(`scripts/verify-indexable-prose-depth.mjs:127` 의 `split(/<[^>]*>/)`).
+   - 🔴 **진짜 함정은 분량이 아니라 링크다.** 인바운드(고아 페이지) 가드 `collectVisibleInternalLinkTargets`(`scripts/verify-adsense-readiness.mjs:1748-1761`)는 앵커 여는 태그에 `hidden`·`sr-only`·`aria-hidden="true"` 가 있거나 `sr-only` 컨테이너 안이면 **가시 링크로 안 센다.** `<details>` 접기는 이 셋 중 아무것도 아니라 안전하지만, **PR-5 를 `hidden` 속성이나 `sr-only` 클래스로 구현하면 접힌 섹션의 내부 링크가 통째로 사라져 그 링크를 받던 라우트가 고아로 잡힌다.** CSS 로만 숨긴 것은 정적 판정 불가라 가드가 안 본다(같은 파일 1695 주석).
+   - 검색 범위: `git grep -n "getVisibleText" -- scripts/` → 5개 파일(`verify-adsense-readiness` · `audit-content-headroom` · `generate-adsense-route-audit` · `verify-editor-notes` · `verify-insight-authored`). **다섯 구현 전부 열어 확인**했고 모두 같은 문자열 스캔이다.
 
 ## 검증
 
