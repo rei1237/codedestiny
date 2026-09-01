@@ -123,6 +123,9 @@ const LANDING_SECTIONS_20260901 = [
 const PREVIEW_SURFACES = [
   {
     key: "collection-tile", label: "컬렉션 타일(유료)", scored: true, requirePaid: true,
+    /* 홈 첫 화면의 .moon-preview-card 12개는 전부 무료다 — 유료 타일은 컬렉션을 열어야
+       나온다(2026-09-01 실측: 열기 전 유료 노드 0/12). 실제 사용자 경로대로 먼저 연다. */
+    prepare: "open-collection",
     selector: ".tarot-tile,.lifebook-tile,.lovebible-tile,.moon-preview-card",
   },
   {
@@ -585,6 +588,12 @@ async function probeSurface(context, surface) {
         };
         if (sheet()) return { count: 0, opened: false, note: "누르기 전에 이미 시트가 열려 있다 — 판정 불가" };
 
+        if (prepare === "open-collection") {
+          const opener = document.querySelector("[data-cd-open-collection]");
+          if (!opener) return { count: 0, opened: false, note: "컬렉션 여는 버튼이 DOM 에 없다" };
+          opener.click();
+          await settle(1500);
+        }
         if (prepare === "paid-filter") {
           /* 가격 칩(무료 제외)을 전부 켜면 추천 목록이 유료 항목만 남는다. */
           const chips = Array.from(document.querySelectorAll('.fortune-gateway__fchip[data-price]'))
@@ -603,10 +612,14 @@ async function probeSurface(context, surface) {
           Number(el.getAttribute("data-coin-cost") || 0) > 0 ||
           Number(el.getAttribute("data-tile-lock-cost") || 0) > 0 ||
           !!el.getAttribute("data-tile-lock-key") ||
-          !!el.getAttribute("data-pvw-paid");
+          !!el.getAttribute("data-pvw-paid") ||
+          (el.tagName === "A" &&
+            /^\/(premium-unlock|life-book-ai|love-secret-ai|ziwei-ai|saju\/love-simulation|saju\/destiny-bias|saju\/destiny-meeting-place|tarot\/prompt-maker|palm-reading)/.test(
+              el.getAttribute("href") || "",
+            ));
         const paidNodes = nodes.filter(isPaid);
         if (requirePaid && !paidNodes.length) {
-          return { count: nodes.length, opened: false, note: "요소는 있는데 유료 노드가 하나도 없다 — 유료 표식 배선을 볼 것" };
+          return { count: nodes.length, opened: false, note: "유료 노드가 0개다 — 준비 단계까지 마친 뒤에도 유료 항목이 DOM 에 없다(홈의 컬렉션 타일은 오버레이가 붙어야 나온다)" };
         }
 
         let navigated = false;
@@ -619,6 +632,8 @@ async function probeSurface(context, surface) {
           true,
         );
 
+        /* 컬렉션 오버레이 자체가 시트를 띄웠다면 아래 클릭 판정이 무의미하다. */
+        if (sheet()) return { count: nodes.length, paidCount: paidNodes.length, opened: false, note: "준비 단계에서 시트가 먼저 열렸다 — 판정 불가" };
         const target = requirePaid ? paidNodes[0] : nodes[0];
         target.click();
         await settle();
