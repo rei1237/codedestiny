@@ -57,12 +57,19 @@ const PROTECTED_EXACT = new Set([
   "middleware.js",
 ]);
 
+// 아래 뒤쪽 5개는 정적 임포트 그래프로는 영영 도달할 수 없는 축이다(2026-09-02 실측: 이것들만으로
+// 후보 1,012건 중 429건이 위양성이었다). 소비자가 네이티브 빌드·글롭·fs.readFileSync 라 그래프에 안 잡힌다.
 const PROTECTED_PREFIXES = [
   "public/",
   "app/",
   "worker/",
   "utils/astrology/",
   "fortune/",
+  "apps/",
+  "docs/",
+  "i18n/",
+  "config/",
+  "store-assets/",
 ];
 
 const LARGE_FILE_THRESHOLD = 512 * 1024;
@@ -125,13 +132,11 @@ function isExternalSpecifier(spec) {
   return /^(https?:|data:|mailto:|tel:|javascript:|#)/i.test(spec);
 }
 
-function hasKnownExtension(relPath) {
-  return Boolean(path.extname(relPath));
-}
-
+// 🔴 확장자가 이미 있는지로 조기 반환하지 말 것 — `@/lib/seo.v2` 의 확장자를 `.v2` 로,
+//    `locale-normalize.d` 를 `.d` 로 읽어 점 있는 파일명이 전부 미해석으로 남았다(2026-09-02).
+//    후보를 더 얹는 것은 allFilesSet 조회로 걸러지므로 위양성을 만들지 않는다.
 function candidateWithExtensions(relPath) {
   const candidates = [relPath];
-  if (hasKnownExtension(relPath)) return candidates;
 
   const exts = [".js", ".mjs", ".cjs", ".ts", ".tsx", ".jsx", ".json", ".html", ".css"];
   for (const ext of exts) candidates.push(`${relPath}${ext}`);
@@ -193,7 +198,7 @@ function extractSpecifiers(content) {
     /(?:href|src|action)\s*=\s*["']([^"']+)["']/g,
     /url\(\s*["']?([^"')]+)["']?\s*\)/g,
     /(?:location\.assign|location\.replace|window\.open)\s*\(\s*["'`]([^"'`]+)["'`]/g,
-    /["'`](\/[A-Za-z0-9_./-]+(?:\.[A-Za-z0-9]+)?(?:\?[^"]*)?)["'`]/g,
+    /["'`](\/[A-Za-z0-9_./-]+(?:\.[A-Za-z0-9]+)?(?:\?[^"'`]*)?)["'`]/g,
     /["'`]([A-Za-z0-9_.-]+\.(?:js|mjs|cjs|ts|tsx|jsx|css|html|json|png|jpg|jpeg|webp|svg|ico|xml|txt))(?:\?[^"'`]*)?["'`]/g,
   ];
 
@@ -258,13 +263,55 @@ function collectWranglerEntries(allFilesSet) {
   return entries;
 }
 
+function collectWorkflowEntries(allFilesSet) {
+  const entries = new Set();
+  const dir = path.join(rootDir, ".github", "workflows");
+  if (!fs.existsSync(dir)) return entries;
+
+  // 워크플로의 `run:` 은 따옴표 없이 `node scripts/x.mjs` 로 부른다 — extractSpecifiers 의 패턴이 못 문다.
+  const nodeFileRe = /(?:^|\s)(?:node|tsx|ts-node)\s+([^\s;'"]+\.(?:mjs|cjs|js|ts))/g;
+
+  for (const name of fs.readdirSync(dir)) {
+    if (!/\.ya?ml$/.test(name)) continue;
+    const rel = path.posix.join(".github/workflows", name);
+    if (allFilesSet.has(rel)) entries.add(rel);
+
+    let txt = "";
+    try {
+      txt = fs.readFileSync(path.join(dir, name), "utf8");
+    } catch (e) {
+      continue;
+    }
+
+    let match;
+    nodeFileRe.lastIndex = 0;
+    while ((match = nodeFileRe.exec(txt)) !== null) {
+      const script = toPosix(match[1].replace(/^\.\//, ""));
+      if (allFilesSet.has(script)) entries.add(script);
+    }
+  }
+
+  return entries;
+}
+
 function collectEntryPoints(allFiles, allFilesSet) {
   const entries = new Set();
 
   for (const rel of allFiles) {
-    if (!rel.includes("/") && rel.endsWith(".html") && !path.basename(rel).startsWith("_tmp_")) entries.add(rel);
+    // 루트 파일은 전부 진입점이다 — 정적 셸·도구 설정·문서. _tmp_ 산출물만 뺀다.
+    if (!rel.includes("/") && !path.basename(rel).startsWith("_tmp_")) entries.add(rel);
     if (rel.startsWith("public/") && rel.endsWith(".html")) entries.add(rel);
     if (rel.startsWith("app/") && /\.(js|jsx|ts|tsx)$/.test(rel)) entries.add(rel);
+    // jest 는 __tests__ 를 roots 로 디스커버리한다(jest.config.cjs). 진입점에서 빠지면
+    // 테스트 파일 자신은 물론 테스트만 부르는 소스까지 통째로 후보로 쏟아진다.
+    if (rel.startsWith("__tests__/")) entries.add(rel);
+    // Next pages-router 관례 — 파일 존재 자체가 라우트다.
+    if (rel.startsWith("pages/") && /\.(js|jsx|ts|tsx)$/.test(rel)) entries.add(rel);
+    if (rel.startsWith(".github/workflows/") && /\.ya?ml$/.test(rel)) entries.add(rel);
+    // ambient/sidecar 선언은 임포트되지 않고 tsc 가 include 로 소비한다.
+    if (rel.endsWith(".d.ts")) entries.add(rel);
+    // `{"type":"module"}` 사이드카를 포함한 모든 매니페스트 — 임포트되지 않고 런타임·번들러가 읽는다.
+    if (path.basename(rel) === "package.json") entries.add(rel);
   }
 
   [
@@ -283,6 +330,10 @@ function collectEntryPoints(allFiles, allFilesSet) {
   }
 
   for (const rel of collectWranglerEntries(allFilesSet)) {
+    entries.add(rel);
+  }
+
+  for (const rel of collectWorkflowEntries(allFilesSet)) {
     entries.add(rel);
   }
 
@@ -326,6 +377,7 @@ function buildReachability(allFiles, allFilesSet, entryPoints) {
 
 function isProtected(relPath) {
   if (PROTECTED_EXACT.has(relPath)) return true;
+  if (relPath.toLowerCase().endsWith(".md")) return true;
   for (const prefix of PROTECTED_PREFIXES) {
     if (relPath === prefix.slice(0, -1) || relPath.startsWith(prefix)) return true;
   }
