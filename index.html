@@ -9265,7 +9265,13 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
       
         <div data-cd-funnel-section="hero" class="normal-logo moon-hero relative isolate overflow-hidden" data-marker="cd-hero-destiny-island-v20260723">
         <div class="cd-hero-island" aria-hidden="true">
-          <img class="cd-hero-island__img" alt="" width="1600" height="900"
+          <!-- 🔴 data-lcp-candidate 는 mobile-interaction-patch 의 일괄 lazy 와
+               io-image-lazy-loader 의 뷰포트 밖 lazy 를 둘 다 비켜 가는 옵트아웃이다.
+               이 마커가 없어서 소스의 loading="eager" 가 런타임에 lazy 로 덮였고,
+               Lighthouse lcp-discovery-insight 가 5/5 회차에서 이 요소를 LCP 로 잡은 채
+               "lazy load not applied" 만 실패했다(2026-09-02 실측). honeypigLogo 에만
+               마커가 있었는데 실제 LCP 요소는 면적이 더 큰 이 배경 이미지다. -->
+          <img class="cd-hero-island__img" data-lcp-candidate="1" alt="" width="1600" height="900"
             src="https://assets.code-destiny.com/cdn-cgi/image/width=1280,quality=72,format=auto/%EB%84%A4%EC%98%A4%EC%99%80%20%EC%97%B0%EC%9D%B4%EC%9D%98%20%EC%9A%B4%EB%AA%85%EC%9D%98%20%EC%84%AC.webp"
             srcset="https://assets.code-destiny.com/cdn-cgi/image/width=480,quality=72,format=auto/%EB%84%A4%EC%98%A4%EC%99%80%20%EC%97%B0%EC%9D%B4%EC%9D%98%20%EC%9A%B4%EB%AA%85%EC%9D%98%20%EC%84%AC.webp 480w, https://assets.code-destiny.com/cdn-cgi/image/width=768,quality=72,format=auto/%EB%84%A4%EC%98%A4%EC%99%80%20%EC%97%B0%EC%9D%B4%EC%9D%98%20%EC%9A%B4%EB%AA%85%EC%9D%98%20%EC%84%AC.webp 768w, https://assets.code-destiny.com/cdn-cgi/image/width=1280,quality=72,format=auto/%EB%84%A4%EC%98%A4%EC%99%80%20%EC%97%B0%EC%9D%B4%EC%9D%98%20%EC%9A%B4%EB%AA%85%EC%9D%98%20%EC%84%AC.webp 1280w, https://assets.code-destiny.com/cdn-cgi/image/width=1920,quality=72,format=auto/%EB%84%A4%EC%98%A4%EC%99%80%20%EC%97%B0%EC%9D%B4%EC%9D%98%20%EC%9A%B4%EB%AA%85%EC%9D%98%20%EC%84%AC.webp 1920w"
             sizes="(max-width: 480px) 78vw, (max-width: 1600px) 86vw, 1260px" loading="eager" fetchpriority="high" decoding="async"
@@ -12062,13 +12068,21 @@ html.neo-mode body .cd-why-us__proof-caption{color:rgba(228,214,255,.72)}
               ev.stopPropagation();
             }, true);
 
-            function enable(){
+            /* measure=true 일 때만 rect 를 읽는다 — 뷰포트가 바뀌어 다시 켜지는 경로 전용이다. */
+            function enable(measure){
               buildDots();
               vp.classList.add('is-carousel');
               vp.addEventListener('scroll', onScroll, { passive: true });
               vp.addEventListener('pointerdown', onPointerDown, false);
-              active = -1;
-              syncActive();
+              /* 🔴 첫 로드에서는 재지 말고 0 으로 확정한다 — 그 시점 scrollLeft 는 0 이라
+                 syncActive() 가 내는 답과 같은데, 방금 쓴 is-carousel 뒤에서 rect 를 읽으면
+                 문서 전체 레이아웃을 그 자리에서 강제한다(2026-09-02 Lighthouse 실측:
+                 홈 강제 리플로 1위 195ms). requestAnimationFrame 으로 미루는 것으로는 안 된다 —
+                 rAF 콜백은 프레임 '시작'(레이아웃 전)에 돌아 똑같이 강제한다(같은 날 재측정 203.9ms).
+                 뷰포트 전환으로 다시 켜질 때만 measure=true 로 실제 위치를 읽는다. */
+              active = 0;
+              for (var n = 0; n < cards.length; n += 1) cards[n].classList.toggle('is-active', n === 0);
+              if (measure) { active = -1; syncActive(); }
             }
             function disable(){
               vp.classList.remove('is-carousel', 'is-dragging');
@@ -12077,11 +12091,15 @@ html.neo-mode body .cd-why-us__proof-caption{color:rgba(228,214,255,.72)}
               for (var i = 0; i < cards.length; i += 1) cards[i].classList.remove('is-active');
               active = -1;
             }
-            function sync(){ if (mq.matches) enable(); else disable(); }
-            sync();
+            function sync(measure){ if (mq.matches) enable(measure); else disable(); }
+            sync(false);
             try {
-              if (typeof mq.addEventListener === 'function') mq.addEventListener('change', sync);
-              else if (typeof mq.addListener === 'function') mq.addListener(sync);
+              /* 🔴 리스너를 sync 로 바로 걸면 MediaQueryListEvent 가 measure 자리에 들어와
+                 항상 truthy 가 된다 — 전환 경로에서만 재는 것이 의도이므로 그건 맞지만,
+                 의도를 코드로 남기려고 명시해서 감싼다. */
+              function onChange(){ sync(true); }
+              if (typeof mq.addEventListener === 'function') mq.addEventListener('change', onChange);
+              else if (typeof mq.addListener === 'function') mq.addListener(onChange);
             } catch (_) {}
           })();
 
@@ -13452,7 +13470,9 @@ html.neo-mode body .cd-why-us__proof-caption{color:rgba(228,214,255,.72)}
           var h = Math.round(nav.getBoundingClientRect().height);
           if (h > 0) document.documentElement.style.setProperty('--cd-mobile-nav-h', h + 'px');
         };
-        apply();
+        /* 🔴 여기서 동기로 재지 않는다 — 파싱 도중 rect 를 읽으면 문서 전체 레이아웃을
+           강제한다(2026-09-02 Lighthouse 실측 48ms). 아래 rAF 와 ResizeObserver 가 같은 값을
+           쓰므로 동기 호출은 중복이었고, 그 사이 한 프레임은 위 주석의 CSS 폴백이 덮는다. */
         window.requestAnimationFrame(apply);
         if (window.ResizeObserver && !nav.__cdNavHeightRO) {
           nav.__cdNavHeightRO = new ResizeObserver(apply);
@@ -20343,7 +20363,7 @@ return you.name.restore();</span>
      🔴 레지스트리가 엔진보다 먼저 실행돼야 한다(defer 는 문서 순서를 지킨다). -->
 <script defer src="/js/core/service-registry.js?v=build-a9af69d69ade" data-marker="cd-home-service-registry-v20260819"></script>
 <script defer src="/js/core/home-service-finder.js?v=build-a9af69d69ade" data-marker="cd-home-service-finder-v20260819"></script>
-<script defer src="/js/mobile-interaction-patch.js?v=build-b32f43288dee" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
+<script defer src="/js/mobile-interaction-patch.js?v=build-a9af69d69ade" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
 <script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-a9af69d69ade" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
