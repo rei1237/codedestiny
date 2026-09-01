@@ -2,7 +2,7 @@ import { BRANCH_HANGUL, BRANCH_HANJA, STEM_HANGUL, STEM_HANJA, ganji } from "../
 import { getKstDateParts, getSiteBaseUrl, getTodayPillars } from "./daily-fortune-task.js";
 import { buildTodaySajuPublic } from "./today-saju-detail.js";
 import { threadsTextWeight, THREADS_TEXT_LIMIT } from "./threads.js";
-import { WEEKDAY_PICKS } from "./sns-daily-post-task.js";
+import { THREADS_ROOT_HASHTAG, WEEKDAY_PICKS } from "./sns-daily-post-task.js";
 
 /**
  * Threads 일일 발행 본문.
@@ -45,6 +45,18 @@ export function clampThreadsText(text, limit = CHAIN_TEXT_LIMIT) {
   return `${kept.trimEnd()}…`;
 }
 
+/**
+ * 루트 글 끝에 토픽 태그를 붙인다.
+ *
+ * 🔴 **태그를 붙인 뒤 클램프하면 태그가 먼저 잘린다** — clampThreadsText 는 문자열 끝에서 자른다.
+ * 그래서 태그 몫을 예산에서 먼저 빼고 **본문만** 클램프한 뒤 태그를 잇는다.
+ * 🔴 태그는 하나뿐이다 — Threads 는 게시물당 토픽 태그가 1개만 기능하고, 두 번째부터는
+ * 글자 그대로 노출된다(sns-daily-post-task.js 의 THREADS_ROOT_HASHTAG 주석).
+ */
+export function appendRootHashtag(text, limit) {
+  const suffix = `\n\n#${THREADS_ROOT_HASHTAG}`;
+  return `${clampThreadsText(text, limit - threadsTextWeight(suffix))}${suffix}`;
+}
 function findSection(card, key) {
   return (card?.sections || []).find((section) => section?.key === key) || null;
 }
@@ -77,7 +89,7 @@ export function getTodayCorePillars(now = Date.now()) {
  *
  * @param {Object} env
  * @param {number} [now] epoch ms
- * @returns {string[]} 각 글은 CHAIN_TEXT_LIMIT 이하로 클램프된 평문
+ * @returns {string[]} 각 글은 CHAIN_TEXT_LIMIT 이하로 클램프된 평문(루트는 토픽 태그 1개 포함)
  */
 export function buildThreadsPostChain(env, now = Date.now()) {
   const pillars = getTodayCorePillars(now);
@@ -122,5 +134,7 @@ export function buildThreadsPostChain(env, now = Date.now()) {
   // ── 답글 3: 요일 코너 (링크는 sitemap.xml 실재 확인 대상 — sns-daily-post-task.js:30 참조)
   posts.push([`③ ${pick.label}`, "", pick.line, `${base}${pick.path}`].join("\n"));
 
-  return posts.map((text) => clampThreadsText(text, Math.min(CHAIN_TEXT_LIMIT, THREADS_TEXT_LIMIT)));
+  const limit = Math.min(CHAIN_TEXT_LIMIT, THREADS_TEXT_LIMIT);
+  // 태그는 루트에만 단다. 답글에 붙여도 토픽으로 안 잡히고 글자 수만 는다.
+  return posts.map((text, index) => (index === 0 ? appendRootHashtag(text, limit) : clampThreadsText(text, limit)));
 }
