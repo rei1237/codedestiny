@@ -637,4 +637,68 @@ function jsonResponse(body, status = 200) {
     `태그를 포함한 길이가 상한을 넘었다(${threadsTextWeight(crowded)}자, ⑱)`,
   );
 }
-console.log("[verify-sns-daily-post] 통과 — 기본 꺼짐 · throw 없음 4종 · 토큰 URL 미로깅 2종 · 링크 실재 8건 · 시각 반영 · 크론 배선 · 배포 스위치 해석 가능 3종 · 실패 기록 유지 · 관리자 수동 실행 배선 · Threads 체인 4글 · 평문 계약 · 일진 대조 365일 · 채널별 잠금 분리 · 실패 시 throw(실제 발행 0회) · 해시태그 생존(Threads 루트 1 · 텔레그램 4)");
+
+/* ⑲ 실패가 **어느 단계에서** 났는지가 알림 문구에 남는다.
+      🔴 2026-08-31 22:00Z 실측: 크론은 돌았고(Cloudflare GraphQL, 그 분 버킷 req=2 · sub=19 · status=success)
+      스위치도 켜져 있었는데(그 시각 실행 버전의 바인딩에 SNS_DAILY_POST_ENABLED="1"), 그날
+      idempotency_keys 의 cron:sns-daily-post 문서는 08-30 수동 실행 1건뿐이었다 — 09-01 도, 09-01:threads 도
+      0건. runChannel 은 **첫 동작이 Mongo 쓰기**이고 발행 실패조차 failed 문서를 남기므로, 문서 0건은
+      "채널 루프에 닿기 전에 죽었다"는 뜻이다. 그 지점은 모듈 로드와 connectDb 둘뿐인데 알림 문구는
+      양쪽이 똑같았고, 알림 한 통이 지워지자 근거가 통째로 사라졌다. 단계 표식이 그 재발을 막는다.
+      🔴 대상 목록을 손으로 적지 않는다 — tasks 배열을 소스에서 전수 발견해 미표식을 실패시킨다(원칙 10). */
+{
+  const workerIndex = fs.readFileSync(path.join(ROOT, "worker/index.js"), "utf8");
+  const tasksAt = workerIndex.indexOf("const tasks = [");
+  assert.ok(tasksAt > 0, "worker/index.js 에서 일일 tasks 배열을 찾지 못했다(⑲)");
+  const tasksBlock = workerIndex.slice(tasksAt, workerIndex.indexOf("];", tasksAt));
+
+  const taskEntries = tasksBlock.split("\n").filter((line) => line.includes("await import("));
+  assert.ok(taskEntries.length >= 6, `일일 태스크를 ${taskEntries.length}개만 찾았다 — 대상 0개로 통과하는 검사는 가드가 아니다(⑲)`);
+  for (const line of taskEntries) {
+    const name = (line.match(/\["([^"]+)"/) || [, line.trim().slice(0, 40)])[1];
+    assert.ok(
+      line.includes(".catch(loadFailed)"),
+      `일일 태스크 ${name} 의 동적 import 에 .catch(loadFailed) 가 없다`
+        + " — 모듈 로드 실패가 실행 중 예외와 같은 문구가 되어 알림만으로는 갈리지 않는다(⑲)",
+    );
+  }
+  assert.ok(
+    /const loadFailed = \(error\) => \{\s*throw new Error\(`stage=load /.test(workerIndex),
+    "loadFailed 가 stage=load 로 시작하는 문구를 던지지 않는다 — 알림이 사유를 200자에서 자르므로 단계는 맨 앞이어야 한다(⑲)",
+  );
+
+  const taskSource = fs.readFileSync(path.join(ROOT, "worker/lib/sns-daily-post-task.js"), "utf8");
+  assert.ok(
+    /try \{\s*await connectDb\(env\);\s*\} catch \(error\) \{[\s\S]{0,400}?stage=connect_db/.test(taskSource),
+    "connectDb 실패가 stage=connect_db 로 표시되지 않는다 — DB 가 안 붙는 순간이라 흔적을 DB 에 남길 수 없고,"
+      + " 던지는 문구가 유일한 근거다(⑲)",
+  );
+  const connectCalls = (taskSource.match(/await connectDb\(/g) || []).length;
+  assert.equal(
+    connectCalls,
+    1,
+    `connectDb 호출이 ${connectCalls}곳이다 — 위 try 밖에 하나라도 더 생기면 그 경로의 실패는 단계 표식 없이 나간다(⑲)`,
+  );
+  assert.ok(
+    /responseRef:\s*\{\s*error: result\.error,\s*stage: "send"/.test(taskSource),
+    "발행 실패의 stage 가 잠금 문서에 안 남는다 — 알림은 지워질 수 있고(2026-08-31 에 실제로 지워졌다)"
+      + " TTL 3일짜리 이 문서가 지워지지 않는 사본이다(⑲)",
+  );
+  assert.ok(
+    /성공 \$\{sent\.length \? sent\.join\(", "\) : "0건"\}/.test(taskSource),
+    "던지는 문구에 성공한 채널이 안 실린다 — 한 채널만 죽어도 태스크는 통째로 던지므로"
+      + " 알림 한 줄이 '오늘 아무것도 안 나갔다'로 읽힌다(⑲)",
+  );
+  assert.ok(
+    /r\.permanent \? " \[토큰 회전 필요\]"/.test(taskSource),
+    "permanent 실패(OAuth·code 190/200)에 사람이 할 일이 안 붙는다 — 재시도로는 안 풀린다(⑲)",
+  );
+
+  const alertSource = fs.readFileSync(path.join(ROOT, "worker/lib/cron-failure-alert.js"), "utf8");
+  assert.ok(
+    alertSource.includes("Cloudflare Workers Logs"),
+    "실패 알림이 지워지지 않는 사본의 위치를 안 알려 준다 — 이 메시지는 공개 채널에 가고 지워질 수 있다(⑲)",
+  );
+}
+
+console.log("[verify-sns-daily-post] 통과 — 기본 꺼짐 · throw 없음 4종 · 토큰 URL 미로깅 2종 · 링크 실재 8건 · 시각 반영 · 크론 배선 · 배포 스위치 해석 가능 3종 · 실패 기록 유지 · 관리자 수동 실행 배선 · Threads 체인 4글 · 평문 계약 · 일진 대조 365일 · 채널별 잠금 분리 · 실패 시 throw(실제 발행 0회) · 해시태그 생존(Threads 루트 1 · 텔레그램 4) · 단계 표식(load/connect_db/send · 태스크 6개 전수)");

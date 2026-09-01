@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-08-31
-next: 2026-09-01 07:00 KST 크론 뒤 `GET /api/admin/sns-daily-post/status` 에서 **두 채널** 확인 — `2026-09-01:telegram`=success(+`t.me/Codedestinyofficial` 새 글) AND `2026-09-01:threads`=success + `responseRef.ids` 4건(공개 Threads 계정 루트1+답글3). 없으면 Cloudflare Workers Logs 의 `[CRON] SNS Daily Post` 사유를 본다. 🔴 threads 축은 이제 **코드·vars·토큰·크론 전부 라이브**(승격 `7d6cbbed7`, 2026-08-31) — 첫 발행을 수동 대신 크론에 위임한 건 사용자 결정이므로, 실패해도 재수동발행 전에 사유부터 본다.
+updated: 2026-09-01
+next: §C-3 을 읽는다. 09-01 크론은 **두 채널 다 실패**했고 원인은 후보 2개(모듈 로드 · connectDb)로 좁혀졌지만 확정되지 않았다. 단계 표식 PR 을 머지 → 프로덕션 승격 → **09-02 07:00 KST 크론 1회**의 텔레그램 알림 문구에서 `stage=load` / `stage=connect_db` / `stage=send` 중 무엇인지 읽고 그때 고친다. 🔴 알림을 지우기 전에 그 한 줄을 복사해 둘 것 — 08-31 알림을 지워서 근거가 통째로 사라졌다. 별개로 **Threads 액세스 토큰이 죽어 있다**(§C-3) — 회전 전에는 threads 축이 매일 실패한다.
 ---
 # 마케팅 자동화 엔진 — 인수인계 (2026-08-28)
 
@@ -243,6 +243,49 @@ SNS 발행이 텔레그램 단일 채널 → **텔레그램 + Threads 2채널**�
 현행 텔레그램 문안과 일일 운세 메일이 1/1~입춘 사이 틀린 연주를 말한다. Threads 문안은 정본을 쓴다.
 같이 안 고친 이유는 그 함수가 **조사 중인 일일 운세 메일 본문**을 함께 만들어 관측이 오염되기 때문
 ([fortune-email-resend-403-2026-08-31.md](fortune-email-resend-403-2026-08-31.md)). 메일 원인 규명 뒤 별도 PR.
+
+### C-3. 🔴 2026-09-01 — 첫 자동 발행이 **두 채널 다 실패**. 원인 후보 2개로 좁혔고 확정은 다음 크론 1회
+
+사용자 보고: "또 발행이 안 된다"(실패 알림은 텔레그램으로 받았고 **읽고 지웠다** — 그래서 사유 원문이 없다).
+
+**배제한 것(전부 실측 2026-09-01, 프로덕션 쓰기 0건):**
+
+| 용의자 | 실측 | 판정 |
+|---|---|---|
+| 크론 미발화 | GraphQL `workersInvocationsAdaptive` 08-31T22:00Z 버킷 req=2(일일+`*/10`) sub=19 wall 6288ms status=success | 발화함 |
+| 스위치 꺼짐 | 그 시각 라이브 버전 `27c7b62d…` 바인딩에 `SNS_DAILY_POST_ENABLED="1"`·`SNS_THREADS_POST_ENABLED="1"`·시크릿 3종 | 켜짐 |
+| Mongo 자체 장애 | 같은 실행의 `monthly-credit-expiry`(`User.findOneAndUpdate`)가 `users.updatedAt` 을 22:00:39.216Z 로 갱신 | DB 는 붙었다 |
+| 잠금 문서 TTL 소멸 | TTL 3일, `cron:sns-daily-post` 문서는 08-30 수동 실행 1건뿐(`success`, `messageId:2`) | 소멸 아님 |
+| `[env.*]` vars 미상속 | `worker/wrangler.toml` 에 `[env.*]` 절 없음 | 해당 없음 |
+| 순환 import TDZ | `sns-daily-post-task.js` ↔ `threads-daily-content.js` 를 esbuild ESM 번들로 묶어 로드·실행 성공 | 아님 |
+
+**핵심 근거:** `runChannel` 은 **첫 동작이 Mongo 쓰기**이고 발행 실패조차 `failed` 문서를 남긴다.
+그런데 `2026-09-01` 도 `2026-09-01:threads` 도 **0건**이다 → 채널 루프에 닿기 전에 죽었다.
+그 앞은 ①`await import("./lib/sns-daily-post-task.js")` ②`await connectDb(env)` 둘뿐인데, 그때의
+알림 문구는 양쪽이 **완전히 같았다**. 그래서 알림 한 통을 지운 순간 근거가 0이 됐다.
+
+**이 PR 이 심은 것 (관측장치 — 사용자 지시 "관측장치부터 박아달라"):**
+`stage=load`(worker/index.js `loadFailed`, 태스크 6개 전수) · `stage=connect_db`(task 의 connectDb try/catch) ·
+`stage=send`(잠금 문서 `responseRef.stage` + 던지는 문구). 던지는 문구에 **성공한 채널도** 함께 싣는다.
+가드는 `verify:sns-daily-post` ⑲(fail-closed, 음성 4종 실측 통과).
+🔴 **한계(정직하게):** `stage=connect_db` 인 경우 DB 가 안 붙는 순간이라 **DB 사본은 물리적으로 불가능**하다.
+그때의 지워지지 않는 사본은 Cloudflare Workers Logs 뿐이다(`enabled:true`, 08-30 에 켬).
+
+**남은 별개 결함 — Threads 토큰이 죽었다.** `GET https://graph.threads.net/v1.0/me` →
+`400 {"message":"API access blocked.","type":"OAuthException","code":200}` (2026-09-01, 로컬 IP 에서 측정 —
+Cloudflare 엣지에서도 같은지는 **미검증**). `code 200` 은 `classifyThreadsError` 가 `permanent:true` 로 읽으므로
+**재시도로 안 풀린다.** 회전 런북은 위 §C-2 의 4단계. 회전 전에는 threads 축이 매일 실패하고, 그 때문에
+텔레그램이 성공해도 태스크는 통째로 던진다(그래서 이 PR 이 성공 채널을 문구에 넣었다).
+
+**다음 사람이 할 일 (순서 고정):**
+1. 이 PR 머지 → 프로덕션 승격(§B). 승격 전에는 관측장치가 안 돈다.
+2. **09-02 07:00 KST 크론 1회** 뒤 텔레그램 알림의 `• sns-daily-post:` 줄을 **지우기 전에 복사**.
+3. `stage=load` → 모듈 평가가 던진 것(런타임에서만 나는 실패). `stage=connect_db` → 크론 콜드 아이솔레이트에서
+   6개 태스크가 동시에 `connectDb` 를 때리는 herd 를 의심한다(`worker/lib/db.js:872-900` — 공유
+   `connectPromise` 를 **실패한 호출자마다 각자** null 로 만들고 `resetMongooseConnection()` 을 돌린다.
+   🔴 **추정·미검증**이고 db.js 는 전 라우트 공용이라, 확정 전에 손대면 회귀 범위가 이 버그보다 크다).
+   `stage=send` → 그날은 루프까지 닿은 것이고 사유가 문구와 잠금 문서 양쪽에 있다.
+4. `GET /api/admin/sns-daily-post/status` 로 그날 두 채널의 `status`·`responseRef` 대조.
 
 ### D. 재방문 이메일 (PR 4) — 보류
 
