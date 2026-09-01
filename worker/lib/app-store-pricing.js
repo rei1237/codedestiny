@@ -48,9 +48,10 @@ const CONTENT_TIER_TABLE = Object.freeze([
   { productId: "cd_content_tier_06", amountKRW: 10000, webAmountKRW: 10000, coinPrices: Object.freeze([100]) },
   { productId: "cd_content_tier_09", amountKRW: 20000, webAmountKRW: 20000, coinPrices: Object.freeze([200]) },
   { productId: "cd_content_tier_10", amountKRW: 30000, webAmountKRW: 30000, coinPrices: Object.freeze([300]) },
-  // 아래 둘은 티어 사다리 밖 "전체 해금형 번들" 전용이다(상한 예외).
-  { productId: "cd_content_tier_11", amountKRW: 39000, webAmountKRW: 39000, coinPrices: Object.freeze([390]) },
-  { productId: "cd_content_tier_13", amountKRW: 70000, webAmountKRW: 70000, coinPrices: Object.freeze([700]) },
+  // 2026-09-01 폐기: cd_content_tier_11(390코인/₩39,000)·cd_content_tier_13(700코인/₩70,000).
+  // 이 둘은 "전체 해금형 번들" 5종(unlock.all_paid_saju·premium_astrology·premium_sukuyo·
+  // premium_veda·premium_naming) 전용이었는데, 그 5종을 결제로 여는 화면이 하나도 없어
+  // 레지스트리에서 함께 지웠다. 🔴 두 ID 는 Play 에서 영구 점유이므로 되살려 쓰지 말 것.
 ]);
 
 // 이용권: 30일, 자동갱신 없음. 건당 커버 범위 안이면 몇 번이든 무료지만, 등급별 월 이용

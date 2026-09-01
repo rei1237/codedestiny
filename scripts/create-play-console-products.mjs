@@ -47,9 +47,7 @@ const CONTENT_LISTINGS = {
   cd_content_tier_08: { title: "운세 콘텐츠 19,000원", description: "선택하신 심화 분석 기능 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다." },
   cd_content_tier_09: { title: "운세 콘텐츠 20,000원", description: "선택하신 궁합·심화 상담 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다." },
   cd_content_tier_10: { title: "AI 상담 30,000원", description: "선택하신 AI 운세 상담 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다." },
-  cd_content_tier_11: { title: "프리미엄 해금 39,000원", description: "선택하신 프리미엄 운세 묶음을 영구 해금하는 단건 결제입니다." },
   cd_content_tier_12: { title: "AI 상담 65,000원", description: "선택하신 심층 AI 운세 상담 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다." },
-  cd_content_tier_13: { title: "프리미엄 전체 해금 70,000원", description: "선택하신 프리미엄 전체 묶음을 영구 해금하는 단건 결제입니다." },
   cd_content_tier_14: { title: "운세 콘텐츠 7,000원", description: "선택하신 심화 운세 기능 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다." },
 };
 

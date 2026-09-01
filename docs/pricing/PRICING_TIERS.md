@@ -34,15 +34,21 @@
 
 🔴 **티어 값을 바꾸려면 `PASS_LIMITS`·`PREMIUM_QUOTA_MIN_COIN_COST`를 함께 봐야 한다.** `scripts/verify-billing-pass-policy.mjs`가 전 기능에 대해 `standard = (cost ≤ 30)` / `premium = (cost ≤ 50)` / `vvip = (cost ≤ 100 || cost ≥ 300)`을 전수 단언한다.
 
-## 2. 티어 밖 예외 3종
+## 2. 티어 밖 예외 1종
 
 | 예외 | 가격 | 근거 |
 |---|---:|---|
-| 전체 해금형 번들 (3종) | ₩39,000 (390코인) | `unlock.premium_{astrology,sukuyo,veda}` — 한 체계의 유료 콘텐츠 전부를 여는 묶음. 개별 해금이 ₩5,000이라 10개 이상 묶이면 여전히 할인 구조다 |
-| 전체 해금형 번들 (2종) | ₩70,000 (700코인) | `unlock.all_paid_saju` · `unlock.premium_naming` |
 | 음악 트랙 MP3 다운로드 | ₩1,000 (10코인) | **PG 하한.** KG이니시스가 1,000원 미만 카드결제를 거부해 300원→1,000원으로 올린 값이며 `verify:billing-pass-policy`가 강제한다. 운세 콘텐츠 카탈로그가 아니라 `lib/music-access-policy.js`의 별도 정책(E유형)이다 |
 
 **예외 판별 기준은 "여러 기능을 통째로 여는 묶음인가"** 하나다. 단품 AI 상담은 아무리 분량이 커도 T5로 내린다 — 이 기준이 흐려지면 예외가 계속 늘어난다.
+
+🔴 **2026-09-01 — 그 기준에 걸리던 "전체 해금형 번들" 5종을 레지스트리에서 지웠다.** ₩39,000(390코인)
+`unlock.premium_{astrology,sukuyo,veda}` 와 ₩70,000(700코인) `unlock.all_paid_saju`·`unlock.premium_naming`
+은 **어느 화면도 이 키로 결제를 열지 않았다** — 전수 `git grep`(소스 + `__tests__/` + `scripts/verify-*`,
+`sync:public` 미러 포함)에서 결제 개시 지점 0건. 두 가격 포인트만 담고 있던 Play SKU
+`cd_content_tier_11`·`cd_content_tier_13` 도 함께 폐기했다(비활성화 절차는
+[PLAY_CONSOLE_TASKS.md](PLAY_CONSOLE_TASKS.md) 1절). 🔴 번들 예외를 되살리더라도 **그 두 SKU ID 는
+재사용하지 말 것** — Play 는 상품 ID 를 영구 점유한다.
 
 앱에서는 `APP_FREE_MAX_COIN_PRICE = 10` 이하가 무료 통과라 **음악 다운로드는 앱에서 무료**다(Play 최저 판매가 미달로 SKU를 만들 수 없다).
 

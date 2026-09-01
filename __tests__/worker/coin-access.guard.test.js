@@ -226,12 +226,12 @@ describe("Fortune coin access guard", () => {
       env: { NODE_ENV: "production" },
       productSpec: null,
       requestedCost: 1,
-      featureKey: "premium-sukyo",
-      reason: "Premium sukuyo unlock",
+      featureKey: "navigateToZiweiChart",
+      reason: "Premium ziwei unlock",
     });
 
     expect(priced.ok).toBe(true);
-    expect(priced.cost).toBe(390);
+    expect(priced.cost).toBe(200);
     expect(priced.pricingSource).toBe("unlock-feature");
   });
 
