@@ -14,19 +14,20 @@ next: "PR-A(홈 INP · 강제 동기 레이아웃 2곳)를 다음 세션에서 �
 |---|---:|---|---|---|
 | 마케팅 | 41 | 미크롤 173건 전부 `1970-01-01` | SNS 발행 문안에 해시태그 | ✅ **머지됨 — PR #1398** (`2f64dc581`) |
 | 성능 | 54 | INP 616ms (기준 200) | 강제 동기 레이아웃 2곳 제거 | 미착수 |
-| UI/UX | 62 | 인터랙티브 308개 / 문서 12,121px | `#cdFinder` 기본 렌더 신설 | 미착수 |
+| UI/UX | 62 | 인터랙티브 308개 / 문서 12,121px | `#cdFinder` 기본 렌더 신설 | **PR #1402 — 머지 대기** |
 
 사용자 결정 3건이 전제다: ① 해시태그는 푸터가 아니라 **SNS 발행 문안**에. ② 성능은 **동작 변경을 포함한 INP 수정**까지 간다. ③ UI/UX 는 **검색 기본 렌더 하나만**.
 
 ## 지금 상태
 
 - **PR-C 닫힘** — PR #1398 머지(`2f64dc581`, 2026-09-01). 텔레그램 4개(고정 3 + 요일 코너 1) · Threads 루트 1개 · 답글 0개. `clampThreadsText` 가 끝에서 자르므로 `appendRootHashtag` 가 태그 몫을 상한에서 먼저 뺀다. 음성 대조 실측(본문 2,000자 · 상한 480): 붙인 뒤 클램프 → 태그 소실, 예산 먼저 확보 → 생존. 가드는 `verify:sns-daily-post` ⑱.
-- **PR-A · PR-B 미착수.** 계획 문서에 줄 번호·함정·검증 명령이 그대로 있다.
+- **PR-B 는 PR #1402 로 열렸다** — CI 전건 통과, 사용자 머지 대기. **PR-A 만 미착수**이고 계획 문서에 줄 번호·함정·검증 명령이 그대로 있다.
+- 홈 4축(정리·모바일·성능·서비스 설명) 현황 진단은 [home-ux-audit-2026-09-01.md](home-ux-audit-2026-09-01.md) 로 분리했다.
 
 ## 남은 작업
 
 - [ ] **PR-A — 홈 INP**: `openOverlay` 의 `savedScrollY` 읽기를 `__cdExpandHome()` **위로**(317ms), `showOverview` 의 `panel.scrollTop` 대입을 `classList.add` **앞으로**(143ms). 🔴 전자는 **동작 변경**(복원 위치가 "펼치기 전")이고 사용자가 동의했다.
-- [ ] **PR-B — `#cdFinder` 기본 렌더**: `render()` 의 `!active` 분기를 "감추기"에서 "`CURATED` 앞쪽 6~8개"로. 새 카피 0 · 새 렌더러 0.
+- [x] **PR-B — `#cdFinder` 기본 렌더** (PR #1402): 채택안은 계획 원문의 "`CURATED` 앞쪽 6~8개"가 아니라 **`roles` 없음 + `bucket === "free"` 앞쪽 6개**다 — 앞쪽 8개는 바로 위 `#cdSignatureConsult`·`#cdQuickServices` 와 겹쳤다. `perf:home` CLS 0.001(기준선과 동일).
 - 판정 기준: PR-A 는 `perf:recalc-origin` 기준선 656 [640-688] 과 밴드 비겹침, PR-B 는 `perf:home` CLS 가 기준선 0.001 근처.
 
 ## 정본
@@ -37,7 +38,7 @@ next: "PR-A(홈 INP · 강제 동기 레이아웃 2곳)를 다음 세션에서 �
 
 ## 함정
 
-- 🔴 **PR 순서**: PR-C(독립) → PR-A(`index.html` + 미러 6벌) → PR-B(**PR-A 위에 스택, 자식부터 머지**). A·B 는 둘 다 `sync:public` 미러를 재생성해 병렬로 열면 생성 파일이 충돌한다.
+- 🔴 **PR 순서**: 계획 원문은 "PR-B 를 PR-A 위에 스택"이었으나, PR-A 가 미착수인 채로 B 가 먼저 끝나 **B 를 `origin/main` 에서 단독으로 땄다**(#1402). 그래서 **이제는 PR-A 가 B 뒤로 밀린다** — B 머지 후 `origin/main` 에서 딸 것. 둘 다 `sync:public` 미러를 재생성해 병렬로 열면 생성 파일이 충돌한다.
 - 🔴 `index.html` 은 **CRLF** 다 — Edit/sed 말고 node 패치 스크립트로 고치고 개행 개수를 검산한다.
 - 🔴 PR-B 는 홈 노출 텍스트가 늘어 `build:cf` 의 `[adsense-readiness]` 와 `verify:indexable-prose-depth` 를 반드시 통과시켜야 한다. `build:cf` 가 흔드는 `rss.xml` `lastBuildDate` 는 되돌리고 `sync:public` 산출물은 담는다.
 - 홈 검색 카탈로그를 첫 타이핑 때 만들었다가 **CLS 0.3185** 를 낸 실사고가 있다(`js/core/home-service-finder.js:336-339`). 기본 렌더는 boot 시점이라 안전할 것으로 **추정**이며, `perf:home` 으로 실제 수치를 재서 보고할 것.
