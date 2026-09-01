@@ -92,6 +92,9 @@ describe("Saju AI prompt domain templates", () => {
     expect(built.factSnapshot.fixedTenGodTable.find((row) => row.stem === "癸")?.tenGod).toBe("식신");
     expect(built.factCard).toContain("壬(임):상관");
     expect(built.factCard).toContain("癸(계):식신");
+    expect(built.prompt).toContain("[명식 사실 카드]");
+    // 프롬프트 본문에도 신금-임수 정정을 못 박아 둔다(사실 카드만으로는 LLM 이 자주 되돌린다).
+    expect(built.prompt).toContain("신금(辛) 일간에게 임수(壬)는 식신이 아니라 상관");
     expect(built.prompt).toContain("[카테고리별 상담 품질 기준]");
     expect(built.categoryRubric.domain).toBe("life_direction");
     expect(sajuPrompt.validateSajuMyeongsikTenGodText("임수는 상관으로 작동합니다.", built.factSnapshot).ok).toBe(true);
