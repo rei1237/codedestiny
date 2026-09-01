@@ -458,6 +458,8 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 18px;
+  /* 히어로 CTA 가 여기로 뛴다 — 폼 소개 문구가 상단에 붙지 않게 여백을 둔다. */
+  scroll-margin-top: 16px;
 }
 .formIntro {
   grid-column: 1/-1;
@@ -806,6 +808,9 @@
   .guardianLink {
     margin-bottom: 14px;
   }
+  .heroCta {
+    width: 100%;
+  }
   .hero h1 {
     /* 실측 360x640: 13vw(46.8px)에서 제목이 4줄이었다. 11vw(39.6px)면 2줄로 앉는다. */
     font-size: clamp(2.2rem, 11vw, 4rem);
@@ -876,6 +881,24 @@
   padding-left: 12px;
   color: #f4e8ff !important;
   font-size: 0.92rem !important;
+}
+/* 히어로에서 폼까지가 360x640 기준 4128px(약 6.5화면)이라 첫 화면에서 폼으로 갈 방법이
+   없었다. 스크롤 대신 앵커 한 번으로 간다 — 사이 콘텐츠는 그대로 둔다. */
+.heroCta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  margin-top: 20px;
+  padding: 0 26px;
+  border: 1px solid rgba(240, 218, 158, 0.85);
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(240, 216, 158, 0.96), rgba(212, 176, 104, 0.94));
+  color: #1a1230;
+  text-decoration: none;
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
 }
 .coreButton,
 .profileReload {

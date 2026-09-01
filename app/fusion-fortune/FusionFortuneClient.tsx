@@ -240,6 +240,7 @@ type FusionFortuneCopy = {
   heroWordCount: string;
   heroSaveNote: string;
   chatLead: string;
+  heroFormCta: string;
   readingFlowAriaLabel: string;
   readingFlowLead: string;
   readingFlowFinalTitle: string;
@@ -370,6 +371,7 @@ const FUSION_FORTUNE_EN: FusionFortuneCopy = {
   heroWordCount: "20,000+ characters",
   heroSaveNote: "Saved · Reopenable · PDF",
   chatLead: "Fusion AI tells you, right on this screen, as each of the six systems finishes.",
+  heroFormCta: "Start my reading",
   readingFlowAriaLabel: "The order this Fusion reading follows",
   readingFlowLead: "The path this consultation follows",
   readingFlowFinalTitle: "One cross reading",
@@ -501,6 +503,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     heroWordCount: "20,000자 이상",
     heroSaveNote: "저장 · 재열람 · PDF",
     chatLead: "Fusion AI가 여섯 체계의 완료 흐름을 이 화면에서 차례로 알려드려요.",
+    heroFormCta: "지금 리딩 시작하기",
     readingFlowAriaLabel: "초융합 리딩이 지나가는 순서",
     readingFlowLead: "이 상담이 지나가는 길",
     readingFlowFinalTitle: "교차 판정 하나",
@@ -631,6 +634,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     heroWordCount: "20,000字以上",
     heroSaveNote: "保存 · 再閲覧 · PDF",
     chatLead: "Fusion AIが六体系の完了状況をこの画面で順番にお知らせします。",
+    heroFormCta: "今すぐ鑑定を始める",
     readingFlowAriaLabel: "フュージョンリーディングが進む順序",
     readingFlowLead: "この相談が進む道のり",
     readingFlowFinalTitle: "ひとつのクロス判定",
@@ -760,6 +764,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     heroWordCount: "20,000字以上",
     heroSaveNote: "保存 · 可重新查看 · PDF",
     chatLead: "Fusion AI会在这个页面上依次告知您六大体系的完成情况。",
+    heroFormCta: "立即开始解读",
     readingFlowAriaLabel: "本次融合解读的进行顺序",
     readingFlowLead: "本次咨询的进行路径",
     readingFlowFinalTitle: "一份交叉判定",
@@ -889,6 +894,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     heroWordCount: "20,000字以上",
     heroSaveNote: "儲存 · 可重新查看 · PDF",
     chatLead: "Fusion AI會在這個頁面上依序告知您六大體系的完成情況。",
+    heroFormCta: "立即開始解讀",
     readingFlowAriaLabel: "本次融合解讀的進行順序",
     readingFlowLead: "本次諮詢的進行路徑",
     readingFlowFinalTitle: "一份交叉判定",
@@ -1018,6 +1024,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     heroWordCount: "Hơn 20.000 ký tự",
     heroSaveNote: "Đã lưu · Có thể mở lại · PDF",
     chatLead: "Fusion AI cho bạn biết ngay trên màn hình này khi mỗi hệ thống trong sáu hệ thống hoàn thành.",
+    heroFormCta: "Bắt đầu luận giải ngay",
     readingFlowAriaLabel: "Thứ tự bài đọc Vận Mệnh Hợp Nhất diễn ra",
     readingFlowLead: "Con đường buổi tư vấn này đi qua",
     readingFlowFinalTitle: "Một bài đọc chéo",
@@ -1147,6 +1154,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     heroWordCount: "20,000+ अक्षर",
     heroSaveNote: "सहेजा गया · फिर से खोला जा सकता है · PDF",
     chatLead: "फ्यूज़न AI आपको इसी स्क्रीन पर बताता है, जैसे-जैसे छह में से प्रत्येक प्रणाली पूरी होती है।",
+    heroFormCta: "अभी रीडिंग शुरू करें",
     readingFlowAriaLabel: "यह फ्यूज़न रीडिंग जिस क्रम में आगे बढ़ती है",
     readingFlowLead: "यह परामर्श जिस पथ का अनुसरण करता है",
     readingFlowFinalTitle: "एक क्रॉस रीडिंग",
@@ -1276,6 +1284,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     heroWordCount: "Más de 20,000 caracteres",
     heroSaveNote: "Guardado · Reabrible · PDF",
     chatLead: "Fusion AI te avisa, justo en esta pantalla, a medida que cada uno de los seis sistemas termina.",
+    heroFormCta: "Comenzar mi lectura",
     readingFlowAriaLabel: "El orden que sigue esta lectura de Fusión",
     readingFlowLead: "El camino que sigue esta consulta",
     readingFlowFinalTitle: "Una lectura cruzada",
@@ -1405,6 +1414,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     heroWordCount: "Plus de 20 000 caractères",
     heroSaveNote: "Enregistré · Réouvrable · PDF",
     chatLead: "Fusion AI vous informe, directement sur cet écran, à mesure que chacun des six systèmes se termine.",
+    heroFormCta: "Commencer ma lecture",
     readingFlowAriaLabel: "L'ordre suivi par cette lecture Fusion",
     readingFlowLead: "Le chemin suivi par cette consultation",
     readingFlowFinalTitle: "Une lecture croisée",
@@ -1534,6 +1544,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     heroWordCount: "Über 20.000 Zeichen",
     heroSaveNote: "Gespeichert · Wieder öffenbar · PDF",
     chatLead: "Fusion AI informiert Sie direkt auf diesem Bildschirm, sobald jedes der sechs Systeme fertig ist.",
+    heroFormCta: "Reading jetzt starten",
     readingFlowAriaLabel: "Die Reihenfolge, in der diese Fusion-Deutung abläuft",
     readingFlowLead: "Der Weg, den diese Beratung nimmt",
     readingFlowFinalTitle: "Eine Kreuzdeutung",
@@ -1663,6 +1674,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     heroWordCount: "Meer dan 20.000 tekens",
     heroSaveNote: "Opgeslagen · Opnieuw te openen · PDF",
     chatLead: "Fusion AI laat het je precies op dit scherm weten zodra elk van de zes systemen klaar is.",
+    heroFormCta: "Start mijn reading",
     readingFlowAriaLabel: "De volgorde waarin deze Fusion-lezing verloopt",
     readingFlowLead: "Het pad dat dit consult volgt",
     readingFlowFinalTitle: "Eén kruislezing",
@@ -1792,6 +1804,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     heroWordCount: "Lebih 20,000 aksara",
     heroSaveNote: "Disimpan · Boleh dibuka semula · PDF",
     chatLead: "Fusion AI memberitahu anda, terus di skrin ini, apabila setiap satu daripada enam sistem selesai.",
+    heroFormCta: "Mula bacaan sekarang",
     readingFlowAriaLabel: "Susunan bacaan Fusion ini berlangsung",
     readingFlowLead: "Laluan yang diikuti perundingan ini",
     readingFlowFinalTitle: "Satu bacaan silang",
@@ -2340,6 +2353,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
           <span>{copy.heroSaveNote}</span>
         </div>
         <p className={styles.chatLead}>{copy.chatLead}</p>
+        <a className={styles.heroCta} href="#fusion-form">{copy.heroFormCta}</a>
       </div>
       <FusionOrb orbCoreAlt={sharedCopy.orbCoreAlt} />
     </section>
@@ -2372,7 +2386,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
         <div><span>{copy.statusMethodLabel}</span><strong>{copy.statusMethodValue}</strong><small>{copy.statusMethodNote}</small></div>
         <button className={styles.coreButton} type="button" onClick={() => coreDialogRef.current?.showModal()} aria-haspopup="dialog">{copy.coreButtonLabel}</button>
       </div>
-      {<form ref={formRef} className={styles.form} onSubmit={submit} onInputCapture={() => { profileTouchedRef.current = true; }}>
+      {<form id="fusion-form" ref={formRef} className={styles.form} onSubmit={submit} onInputCapture={() => { profileTouchedRef.current = true; }}>
         <div className={styles.formIntro}>
           <h2>{copy.formIntroHeading}</h2>
           <p>{copy.formIntroDesc}</p>
