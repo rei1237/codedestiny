@@ -1931,6 +1931,9 @@
           "title": "Comprobando el estado del pago",
           "message": "Comprobar el estado del pago y los derechos de acceso.",
           "meta": "Comprobando la autenticación de pago y los derechos de acceso en orden."
+        },
+        "cardMethod": {
+          "title": "Abriendo la ventana de pago de {method}."
         }
       },
       "default": {

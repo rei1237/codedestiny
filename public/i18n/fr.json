@@ -1931,6 +1931,9 @@
           "title": "Vérification de l'état du paiement",
           "message": "Vérification de l'état du paiement et des droits d'accès.",
           "meta": "Vérification de l'authentification du paiement et des droits d'accès dans l'ordre."
+        },
+        "cardMethod": {
+          "title": "Ouverture de la fenêtre de paiement {method}."
         }
       },
       "default": {

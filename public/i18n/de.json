@@ -1931,6 +1931,9 @@
           "title": "Zahlungsstatus prüfen",
           "message": "Zahlungsstatus und Zugriffsrechte prüfen.",
           "meta": "Zahlungsauthentifizierung und Zugriffsrechte werden der Reihe nach überprüft."
+        },
+        "cardMethod": {
+          "title": "{method}-Zahlungsfenster wird geöffnet."
         }
       },
       "default": {

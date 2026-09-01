@@ -205,6 +205,10 @@ declare const checkoutEntry: {
   DEFAULT_DIRECT_PAY_METHOD: DirectPayMethodId;
   /** PG 계약이 끝나 실제로 결제할 수 있는 수단인가. 정본은 DIRECT_PAY_METHODS 표 하나다. */
   isDirectPayMethodEnabled(id: unknown): boolean;
+  /** 결제창 2단계 타일에 찍히는 수단 표시 이름. 모르는 id 면 빈 문자열. */
+  directPayMethodLabel(id: unknown): string;
+  /** 고른 수단의 표시 이름(미선택·TTL 만료면 ""). 결제 대기 오버레이 제목이 쓴다. */
+  selectedDirectPayMethodLabel(): string;
   /** 아직 열리지 않은 수단의 상태 문구. 렌더러가 결제창 상태줄에 그대로 쓴다. */
   directPayMethodComingSoonText(): string;
   /**

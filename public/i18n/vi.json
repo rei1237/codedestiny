@@ -1931,6 +1931,9 @@
           "title": "Kiểm tra trạng thái thanh toán",
           "message": "Kiểm tra trạng thái thanh toán và quyền truy cập.",
           "meta": "Kiểm tra thứ tự xác thực thanh toán và quyền truy cập."
+        },
+        "cardMethod": {
+          "title": "Đang mở cửa sổ thanh toán {method}."
         }
       },
       "default": {

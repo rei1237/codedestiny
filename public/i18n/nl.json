@@ -1931,6 +1931,9 @@
           "title": "Betalingsstatus controleren",
           "message": "Betalingsstatus en toegangsrechten controleren.",
           "meta": "Betalingsauthenticatie en toegangsrechten in orde controleren."
+        },
+        "cardMethod": {
+          "title": "Het betaalvenster van {method} wordt geopend."
         }
       },
       "default": {

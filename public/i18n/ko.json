@@ -1499,6 +1499,9 @@
       "clean": {
         "card": {
           "title": "PG사 결제창을 로드하는 중입니다."
+        },
+        "cardMethod": {
+          "title": "{method} 결제창을 여는 중입니다."
         }
       },
       "deliveryProcessing": {
