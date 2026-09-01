@@ -20171,7 +20171,7 @@ return you.name.restore();</span>
      🔴 레지스트리가 엔진보다 먼저 실행돼야 한다(defer 는 문서 순서를 지킨다). -->
 <script defer src="/js/core/service-registry.js?v=build-7993837f05a4" data-marker="cd-home-service-registry-v20260819"></script>
 <script defer src="/js/core/home-service-finder.js?v=build-7993837f05a4" data-marker="cd-home-service-finder-v20260819"></script>
-<script defer src="/js/mobile-interaction-patch.js?v=build-b32f43288dee" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
+<script defer src="/js/mobile-interaction-patch.js?v=build-7993837f05a4" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
 <script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-7993837f05a4" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
@@ -20809,6 +20809,12 @@ return you.name.restore();</span>
     var api = _cdCheckoutEntry();
     if (!api || typeof api.clearSelectedDirectPayMethod !== 'function') return;
     try { api.clearSelectedDirectPayMethod(); } catch (_clearError) { /* noop */ }
+  }
+  // 고른 결제수단의 표시 이름. 대기 오버레이 제목이 끼워 넣는다. 모듈이 없거나 미선택이면 ''.
+  function _cdSelectedDirectPayMethodLabel() {
+    var api = _cdCheckoutEntry();
+    if (!api || typeof api.selectedDirectPayMethodLabel !== 'function') return '';
+    try { return api.selectedDirectPayMethodLabel() || ''; } catch (_payLabelError) { return ''; }
   }
   // PortOne 요청에 병합할 결제수단 필드({ payMethod, giftCertificate? }).
   // 모듈이 없으면 서버 config 값(=CARD)이 그대로 간다.
@@ -24717,8 +24723,18 @@ return you.name.restore();</span>
       var cleanCopy = cleanCopyMap[normalizedMode];
       var cleanTitle = cleanCopy.title;
       var cleanBody = normalizePaymentOverlayBody(normalizedMode, text, cleanCopy.message);
+      // 🔴 mode 'card' 은 카드만이 아니라 계좌이체·카카오페이·상품권도 지나는 구간이다. 2단계에서
+      // 고른 수단을 알면 제목에 그 이름을 끼워 "무엇을 여는 중인지" 를 맞춘다. 모르면 종전 문구.
+      // 🔴 키는 리터럴로 적는다 — 조립 키는 verify:payment-copy-dictionary 의 12로케일 검사를
+      // 빠져나가고 비-ko 사용자만 "Translation pending" 을 본다.
+      var cleanPayMethodLabel = normalizedMode === 'card' ? _cdSelectedDirectPayMethodLabel() : '';
+      if (cleanPayMethodLabel) {
+        cleanTitle = _cdPaymentI18n('payment.overlay.clean.cardMethod.title', '{method} 결제창을 여는 중입니다.', { method: cleanPayMethodLabel });
+      }
       if (normalizedMode === 'card' && /준비|여는 중|열고 있|주문 정보를 확인|보안 결제창|결제를 처리하고 있어요|창을 닫지 말아 주세요|진행 중입니다/.test(text)) {
-        cleanTitle = _cdPaymentI18n('payment.overlay.clean.card.title', 'PG사 결제창을 로드하는 중입니다.');
+        cleanTitle = cleanPayMethodLabel
+          ? _cdPaymentI18n('payment.overlay.clean.cardMethod.title', '{method} 결제창을 여는 중입니다.', { method: cleanPayMethodLabel })
+          : _cdPaymentI18n('payment.overlay.clean.card.title', 'PG사 결제창을 로드하는 중입니다.');
         cleanBody = cleanCopy.message;
       }
       if (normalizedMode === 'pass-applied' && text) {

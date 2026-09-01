@@ -1931,6 +1931,9 @@
           "title": "Checking payment status",
           "message": "Checking payment status and access rights.",
           "meta": "Checking payment authentication and access rights in order."
+        },
+        "cardMethod": {
+          "title": "Opening the {method} payment window."
         }
       },
       "default": {

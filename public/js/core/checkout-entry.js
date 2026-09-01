@@ -801,6 +801,15 @@
   }
 
   /**
+   * 고른 수단의 표시 이름. 아직 안 골랐거나 TTL 이 지났으면 "". 결제 대기 오버레이가 제목에 끼운다.
+   * 🔴 peek 이라 소비하지 않는다 — 재귀 진입에서 값이 사라지면 안 되는 이유는 아래 resolve 머리주석.
+   */
+  function selectedDirectPayMethodLabel() {
+    var picked = peekSelectedDirectPayMethod();
+    return picked ? directPayMethodLabel(picked) : "";
+  }
+
+  /**
    * PortOne 요청에 실을 payMethod. 결제수단 요청 조립부(셸 _cdRunDirectKrwCheckout · 독립 정적
    * _dpRunDirectKrwCheckout)가 `config.payMethod || 'CARD'` 대신 이걸 부른다.
    *
@@ -1135,6 +1144,8 @@
     DIRECT_PAY_METHOD_ORDER: DIRECT_PAY_METHOD_ORDER,
     DEFAULT_DIRECT_PAY_METHOD: DEFAULT_DIRECT_PAY_METHOD,
     isDirectPayMethodEnabled: isDirectPayMethodEnabled,
+    directPayMethodLabel: directPayMethodLabel,
+    selectedDirectPayMethodLabel: selectedDirectPayMethodLabel,
     directPayMethodComingSoonText: directPayMethodComingSoonText,
     buildDirectPayMethodStepHtml: buildDirectPayMethodStepHtml,
     setSelectedDirectPayMethod: setSelectedDirectPayMethod,

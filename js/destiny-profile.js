@@ -2699,7 +2699,15 @@
       case 'monthly':
       case 'subscription':
         return { title: '월정석 사용 중', desc: '보유한 월정석으로 이용 권한을 확인하고 있어요.', done: false, fallback: '월정석 잔량을 확인하고 있습니다.' };
-      case 'card':
+      // 🔴 'card' 구간만 수단 이름을 끼운다(셸 _cdResolvePaymentOverlayCopy 와 같은 범위).
+      // 'checkout' 은 아직 수단을 고르기 전이라 직전 시도의 잔여 선택이 새어 나올 수 있다.
+      case 'card': {
+        var dpCardMethodLabel = _dpSelectedDirectPayMethodLabel();
+        var dpCardTitle = dpCardMethodLabel
+          ? _dpCheckoutText('payment.overlay.clean.cardMethod.title', '{method} 결제창을 여는 중입니다.', { method: dpCardMethodLabel })
+          : '결제 진행 중';
+        return { title: dpCardTitle, desc: '결제를 안전하게 진행하고 있어요.', done: false, fallback: '결제가 진행 중입니다.' };
+      }
       case 'checkout':
       case 'confirm':
         return { title: '결제 진행 중', desc: '결제를 안전하게 진행하고 있어요.', done: false, fallback: '결제가 진행 중입니다.' };
@@ -2847,6 +2855,12 @@
     var api = _dpCheckoutEntry();
     if (!api || typeof api.clearSelectedDirectPayMethod !== 'function') return;
     try { api.clearSelectedDirectPayMethod(); } catch (_clearError) { /* noop */ }
+  }
+  // 고른 결제수단의 표시 이름. 대기 오버레이 제목이 끼워 넣는다. 모듈이 없거나 미선택이면 ''.
+  function _dpSelectedDirectPayMethodLabel() {
+    var api = _dpCheckoutEntry();
+    if (!api || typeof api.selectedDirectPayMethodLabel !== 'function') return '';
+    try { return api.selectedDirectPayMethodLabel() || ''; } catch (_payLabelError) { return ''; }
   }
   // PortOne 요청에 병합할 결제수단 필드({ payMethod, giftCertificate? }).
   // 모듈이 없으면 서버 config 값(=CARD)이 그대로 간다.

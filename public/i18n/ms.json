@@ -1931,6 +1931,9 @@
           "title": "Menyemak status pembayaran",
           "message": "Menyemak status pembayaran dan hak akses.",
           "meta": "Menyemak pengesahan pembayaran dan hak akses mengikut urutan."
+        },
+        "cardMethod": {
+          "title": "Membuka tetingkap pembayaran {method}."
         }
       },
       "default": {
