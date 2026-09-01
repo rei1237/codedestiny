@@ -26,6 +26,7 @@
  *   ⑮ 답글 체인이 **직전 발행 글**에 이어 붙고, 글 N개가 요청 2N회다.
  *   ⑯ 채널별 잠금 키가 분리돼 있고, 실패한 채널이 있으면 태스크가 **던진다**(크론 알림이 그때만 뜬다).
  *   ⑰ Threads 스위치·토큰 발급일이 두 wrangler 설정에 같은 값으로 있다.
+ *   ⑱ 해시태그가 두 채널 문안에 **살아남는다** — Threads 루트 1개, 텔레그램 고정 3개 + 요일 코너 1개.
  *
  * 실행: npm run verify:sns-daily-post
  */
@@ -53,9 +54,18 @@ for (const key of [
 const { sendTelegramMessage, escapeTelegramHtml } = await import("../worker/lib/telegram.js");
 // 🔴 순환 import(sns-daily-post-task ↔ threads-daily-content)를 **콘텐츠 쪽부터** 들어가 깬다.
 // 두 진입 순서 중 위험한 쪽이 이쪽이고, 여기서 TDZ 가 나면 워커 번들에서도 난다.
-const { buildThreadsPostChain, clampThreadsText } = await import("../worker/lib/threads-daily-content.js");
+const { buildThreadsPostChain, clampThreadsText, appendRootHashtag } = await import(
+  "../worker/lib/threads-daily-content.js"
+);
 const { postThreadsChain, threadsTextWeight, THREADS_TEXT_LIMIT } = await import("../worker/lib/threads.js");
-const { buildDailyPostText, runSnsDailyPostTask, getThreadsSkipReason } = await import(
+const {
+  buildDailyPostText,
+  runSnsDailyPostTask,
+  getThreadsSkipReason,
+  DAILY_HASHTAGS,
+  THREADS_ROOT_HASHTAG,
+  WEEKDAY_PICKS,
+} = await import(
   "../worker/lib/sns-daily-post-task.js"
 );
 const { getKstDateParts, getTodayPillars } = await import("../worker/lib/daily-fortune-task.js");
@@ -573,4 +583,58 @@ function jsonResponse(body, status = 200) {
   assert.equal(stale.error, "missing_bot_token", "만료 경고가 텔레그램 발송 경로를 타지 않는다(⑰)");
 }
 
-console.log("[verify-sns-daily-post] 통과 — 기본 꺼짐 · throw 없음 4종 · 토큰 URL 미로깅 2종 · 링크 실재 8건 · 시각 반영 · 크론 배선 · 배포 스위치 해석 가능 3종 · 실패 기록 유지 · 관리자 수동 실행 배선 · Threads 체인 4글 · 평문 계약 · 일진 대조 365일 · 채널별 잠금 분리 · 실패 시 throw(실제 발행 0회)");
+
+/* ⑱ 해시태그가 두 채널 문안에 살아남는다. 🔴 태그를 붙인 **뒤** 클램프하면 태그부터 잘린다 —
+      clampThreadsText 는 문자열 끝에서 자르기 때문이다. 예산을 먼저 빼는 구현을 여기서 고정한다.
+      개수는 채널마다 다르다: Threads 는 게시물당 토픽 태그가 1개만 기능하고(나머지는 글자 그대로
+      노출된다), 텔레그램은 태그가 채널 내 검색 대상이라 여러 개가 값을 낸다. */
+{
+  const friday = Date.UTC(2026, 0, 2, 0, 0, 0);
+
+  // 🔴 대상이 0개일 때 통과하는 검사는 가드가 아니다(CLAUDE.md 원칙 10).
+  assert.ok(DAILY_HASHTAGS.length >= 3, `고정 해시태그가 ${DAILY_HASHTAGS.length}개뿐이다(⑱)`);
+  assert.ok(
+    WEEKDAY_PICKS.every((pick) => pick.tag),
+    "요일 코너에 tag 가 없는 항목이 있다 — 그날만 태그가 하나 준다(⑱)",
+  );
+
+  // 텔레그램: 고정 3개 + 그날 요일 코너 1개.
+  const telegram = buildDailyPostText(SITE_ENV, friday);
+  for (const tag of DAILY_HASHTAGS) {
+    assert.ok(telegram.includes(`#${escapeTelegramHtml(tag)}`), `텔레그램 문안에 고정 태그 #${tag} 가 없다(⑱)`);
+  }
+  const telegramTags = telegram.match(/#[^\s#]+/g) || [];
+  assert.equal(
+    telegramTags.length,
+    DAILY_HASHTAGS.length + 1,
+    `텔레그램 태그가 ${telegramTags.length}개다 — 고정 ${DAILY_HASHTAGS.length}개 + 요일 코너 1개여야 한다(⑱)`,
+  );
+
+  // Threads: 루트에만 1개, 답글에는 0개.
+  const chain = buildThreadsPostChain(SITE_ENV, friday);
+  assert.ok(chain.length >= 2, "Threads 체인이 짧아 루트와 답글을 구분할 수 없다(⑱)");
+  assert.ok(
+    chain[0].endsWith(`#${THREADS_ROOT_HASHTAG}`),
+    "Threads 루트가 토픽 태그로 끝나지 않는다(⑱)",
+  );
+  assert.equal(
+    (chain[0].match(/#[^\s#]+/g) || []).length,
+    1,
+    "Threads 루트의 토픽 태그가 1개가 아니다 — 두 번째부터는 글자 그대로 노출된다(⑱)",
+  );
+  for (const [index, text] of chain.slice(1).entries()) {
+    assert.ok(!text.includes("#"), `${index + 2}번째 Threads 답글에 태그가 있다 — 토픽으로 안 잡히고 글자 수만 는다(⑱)`);
+  }
+
+  // 🔴 본문이 상한을 꽉 채워도 태그가 남아야 한다. 이 단언 하나가 '붙인 뒤 클램프' 회귀를 잡는다.
+  const crowded = appendRootHashtag("가".repeat(2000), 480);
+  assert.ok(
+    crowded.endsWith(`#${THREADS_ROOT_HASHTAG}`),
+    "본문이 길면 태그가 잘린다 — 태그 몫을 예산에서 먼저 빼지 않았다(⑱)",
+  );
+  assert.ok(
+    threadsTextWeight(crowded) <= 480,
+    `태그를 포함한 길이가 상한을 넘었다(${threadsTextWeight(crowded)}자, ⑱)`,
+  );
+}
+console.log("[verify-sns-daily-post] 통과 — 기본 꺼짐 · throw 없음 4종 · 토큰 URL 미로깅 2종 · 링크 실재 8건 · 시각 반영 · 크론 배선 · 배포 스위치 해석 가능 3종 · 실패 기록 유지 · 관리자 수동 실행 배선 · Threads 체인 4글 · 평문 계약 · 일진 대조 365일 · 채널별 잠금 분리 · 실패 시 throw(실제 발행 0회) · 해시태그 생존(Threads 루트 1 · 텔레그램 4)");

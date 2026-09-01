@@ -49,14 +49,26 @@ const THREADS_TOKEN_WARN_AFTER_DAYS = 46;
  * 발행 자체가 역효과다. 여기에 경로를 더할 때도 사이트맵에서 먼저 확인할 것.
  */
 export const WEEKDAY_PICKS = [
-  { path: "/tarot/", label: "타로", line: "한 장 뽑아 오늘의 마음을 읽어 보세요." },
-  { path: "/saju/", label: "사주 분석", line: "타고난 기운의 균형부터 확인해 보세요." },
-  { path: "/compatibility/", label: "궁합", line: "그 사람과의 결이 어떻게 맞물리는지 봅니다." },
-  { path: "/dream/", label: "꿈해몽", line: "간밤의 꿈이 무엇을 가리키는지 찾아봅니다." },
-  { path: "/astrology/", label: "점성술", line: "오늘의 별자리 흐름을 짚어 봅니다." },
-  { path: "/love/", label: "연애운", line: "이번 주 인연의 온도를 확인해 보세요." },
-  { path: "/ziwei/", label: "자미두수", line: "명반으로 보는 올해의 큰 흐름입니다." },
+  { path: "/tarot/", label: "타로", line: "한 장 뽑아 오늘의 마음을 읽어 보세요.", tag: "타로" },
+  { path: "/saju/", label: "사주 분석", line: "타고난 기운의 균형부터 확인해 보세요.", tag: "사주" },
+  { path: "/compatibility/", label: "궁합", line: "그 사람과의 결이 어떻게 맞물리는지 봅니다.", tag: "궁합" },
+  { path: "/dream/", label: "꿈해몽", line: "간밤의 꿈이 무엇을 가리키는지 찾아봅니다.", tag: "꿈해몽" },
+  { path: "/astrology/", label: "점성술", line: "오늘의 별자리 흐름을 짚어 봅니다.", tag: "별자리운세" },
+  { path: "/love/", label: "연애운", line: "이번 주 인연의 온도를 확인해 보세요.", tag: "연애운" },
+  { path: "/ziwei/", label: "자미두수", line: "명반으로 보는 올해의 큰 흐름입니다.", tag: "자미두수" },
 ];
+
+/**
+ * 발행 문안에 붙는 고정 해시태그(앞의 # 은 렌더 시점에 붙인다).
+ * 🔴 채널마다 기능이 달라 개수를 통일하지 않는다:
+ *   - 텔레그램: 해시태그가 채널 내 검색 대상이라 여러 개가 값을 낸다.
+ *   - Threads: **게시물당 토픽 태그 1개만 기능한다.** 두 번째부터는 글자 그대로 보인다.
+ * 🔴 공백·문장부호를 넣지 말 것 — 두 채널 모두 첫 공백에서 태그가 끊긴다.
+ */
+export const DAILY_HASHTAGS = ["오늘의운세", "무료운세", "코드데스티니"];
+
+/** Threads 루트 글의 토픽 태그. 위 규칙 때문에 **1개뿐이다.** */
+export const THREADS_ROOT_HASHTAG = "오늘의운세";
 
 function isSwitchOn(env, key) {
   const raw = String(getEnv(env, key) || "").trim().toLowerCase();
@@ -81,6 +93,12 @@ function isDuplicateKeyError(error) {
   return error?.code === 11000 || String(error?.message || "").includes("E11000");
 }
 
+/** 텔레그램 문안의 해시태그 줄. 고정 태그 뒤에 그날 요일 코너 태그를 하나 더 붙인다. */
+function telegramHashtagLine(pick) {
+  const tags = pick?.tag ? DAILY_HASHTAGS.concat(pick.tag) : DAILY_HASHTAGS;
+  return tags.map((tag) => `#${escapeTelegramHtml(tag)}`).join(" ");
+}
+
 /**
  * 그날의 텔레그램 발행 본문. 순수 함수라 검증 스크립트가 시각만 주입해 그대로 확인할 수 있다.
  * 🔴 parse_mode:"HTML" 전용이다 — Threads 는 태그를 해석하지 않으므로 이 문안을 재사용하지 않는다.
@@ -102,6 +120,8 @@ export function buildDailyPostText(env, now = Date.now()) {
     "",
     `<b>${escapeTelegramHtml(pick.label)}</b> ${escapeTelegramHtml(pick.line)}`,
     `${escapeTelegramHtml(base)}${escapeTelegramHtml(pick.path)}`,
+    "",
+    telegramHashtagLine(pick),
   ];
 
   return lines.join("\n");
