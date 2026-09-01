@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-09-01
-next: "PR-0·PR-2·PR-3·PR-4 완료, PR-1 은 **부분 완료**(2026-09-01 결정 ⓒ — 모바일은 유료 항목만 상세 시트, 무료는 즉시 진입. 마스터 게이트만 열었고 `#cdFinder` 추천 카드 신호는 그대로다 — 모르는 것 3번). 🔴 **다음은 PR-5(축 1 접기) 와 PR-6(축 4 문안)** — 둘 다 있어야 총점 70 을 넘는다. 🔴 PR-1 머지 후 `measure:home-score` 로 축 4 를 재측정하고 프리뷰 표면 분모를 정정한다(아직 안 했다). PR-5 의 전제였던 **모르는 것 5번(`<details>` 접힘과 AdSense 분량)은 2026-09-01 에 닫혔다** — 접어도 분량은 안 깎이고, 함정은 `hidden`/`sr-only` 로 구현했을 때의 **내부 링크 소실**이다. 축 3 을 더 밀 거면 레버는 CSS 가 아니라 **홈 문서의 인라인 `<style>` 645.8KB** 다(축 3 절 PR-4 실측). 점수 루브릭·목표·PR 6건 순서의 정본은 `C:\\Users\\user\\.claude\\plans\\docs-handoff-home-ux-audit-2026-09-01-md-crispy-badger.md`"
+updated: 2026-09-02
+next: "PR-0~PR-4 완료. **다음은 PR-5(축 1 접기) → PR-6(축 4 문안)** — 둘 다 있어야 총점 70 을 넘는다. 현재 하네스 총점은 **44.0**(축1 33.7 · 축2 80.8 · 축3 30.9 · 축4 30.5, 2026-09-02 실측). 🔴 축 3 의 37.8 → 30.9 는 코드 회귀가 아니라 **그날 `perf:home` 의 LCP 6.8초**(기준선 4.58초)다 — 로컬 성능 수치는 회차 편차가 크니 판정에 쓰지 말 것. 🔴 **남은 구멍 하나**: 프리뷰 표면 2개 중 유료 **컬렉션 타일**이 안 열린다 — 오버레이가 붙어야 DOM 에 들어오는데 하네스가 `[data-cd-open-collection]` 을 눌러도 1500ms 뒤까지 유료 노드 0/12(프로덕션 결함인지 하네스 한계인지 **미확정**). 축 4 의 나머지 절반이 그것이다. PR-5 의 레버는 CSS 가 아니라 **홈 문서 인라인 `<style>` 645.8KB**(축 3 절 PR-4 실측). 루브릭·목표·PR 6건 순서의 정본은 `C:\\Users\\user\\.claude\\plans\\docs-handoff-home-ux-audit-2026-09-01-md-crispy-badger.md`"
 ---
 
 # 홈 4축 현황 진단 (2026-09-01)
@@ -227,14 +227,14 @@ npm run measure:home-score
 | 4 설명 | 23 | ≥60 | 96 | 무료 서비스 문안 2/23 (9점) |
 | **총점** | **28** | **≥70** | **77** | |
 
-🔴 위 "현재" 열은 손측정이다. **PR-0 하네스 기준선은 축1 33.0 · 축2 26.1 · 축3 37.8 · 축4 12.6 → 총점 27.4**, **PR-2 후는 축1 33.7 · 축2 80.8 · 축3 37.8 · 축4 13.0 → 총점 41.4** 이고, 판정은 이쪽이다. 축 4 가 23 → 12.6 으로 내려간 것은 회귀가 아니라 **프리뷰 표면 1/4 이 실제로는 0/4** 였다는 정정이다(축 4 절 1번). "도달 후" 열은 손측정 기준으로 계산된 값이다. PR-1 정책은 2026-09-01 에 **ⓒ(유료 한정)** 로 정해졌으므로 무료 표면은 애초에 시트 대상이 아니다 — 🔴 **분모 정정과 축 4 재측정이 아직 남았다**(미검증. PR-1 머지 후 `measure:home-score`).
+🔴 위 "현재" 열은 손측정이다. **PR-0 하네스 기준선은 축1 33.0 · 축2 26.1 · 축3 37.8 · 축4 12.6 → 총점 27.4**, **PR-2 후는 축1 33.7 · 축2 80.8 · 축3 37.8 · 축4 13.0 → 총점 41.4** 이고, 판정은 이쪽이다. 축 4 가 23 → 12.6 으로 내려간 것은 회귀가 아니라 **프리뷰 표면 1/4 이 실제로는 0/4** 였다는 정정이다(축 4 절 1번). "도달 후" 열은 손측정 기준으로 계산된 값이다. PR-1 정책은 2026-09-01 에 **ⓒ(유료 한정)** 로 정해졌으므로 무료 표면은 애초에 시트 대상이 아니다 — ~~🔴 **분모 정정과 축 4 재측정이 아직 남았다**~~ **둘 다 했다(2026-09-02)** — 분모는 4 → **2**. 뺀 둘: `.cd-svc-hit` 은 2026-08-19 에 지운 **존재하지 않는 표면**이라 분모에 두면 만점이 영구히 불가능하고, `[data-pvw-free]` 는 모바일에서 **안 열리는 것이 정상**이라 열림으로 채점하면 결정 ⓒ 를 지킨 코드가 감점된다(둘 다 진단용으로는 계속 찍는다).
 
 **실행 순서** — 누적 총점 28 → 35 → 50 → 54 → 56 → 65 → **77** (실제 진행: 27.4 → PR-2 후 **41.4**)
 
 | PR | 내용 | 움직이는 축 |
 |---|---|---|
 | ~~0~~ | ~~점수 하네스~~ **완료** — `scripts/measure-home-score.mjs` (`measure:home-score`) | 판정 수단 |
-| ~~1~~ | ~~축 4 배선~~ **부분 완료**(2026-09-01 결정 ⓒ) — 모바일 마스터 게이트를 **유료 한정**으로 열었다. `index.html` 3곳(마스터 게이트 · 델리게이션 인터셉터 · `_cdOpenTilePreview`) + `verify:mobile-cdp-smoke` 모바일 계약 재작성 + `measure:home-score` 가 두 플래그를 함께 찍는다. 🔴 **남은 절반**: `#cdFinder` 추천 카드 `openerNode` 의 프리뷰 신호(모르는 것 3번) | 4: 13→재측정 필요 |
+| ~~1~~ | ~~축 4 배선~~ **부분 완료**(2026-09-01 결정 ⓒ) — 모바일 마스터 게이트를 **유료 한정**으로 열었다. `index.html` 3곳(마스터 게이트 · 델리게이션 인터셉터 · `_cdOpenTilePreview`) + `verify:mobile-cdp-smoke` 모바일 계약 재작성 + `measure:home-score` 가 두 플래그를 함께 찍는다. ~~🔴 **남은 절반**~~ **완료(2026-09-02)** — `openerNode()` 가 `data-pvw-paid`/`data-pvw-free`·유료 항목 한정 `data-feature-key`·`[data-pvw-title]` 을 낸다. 유료 판정은 `featureKey && price && bucket!=="free"` 하나뿐이고, 그래야 `points`(이용권 상점)와 `human-design`(무료 시작)이 유료에서 빠진다 | 4: 13.0 → **30.5**(총점 39.6 → **44.0**) |
 | ~~2~~ | ~~축 2 가림 2건 + 첫 화면 서비스 링크 + `/fusion-fortune` 레지스트리 등재~~ **완료** | 2: 26.1→**80.8** |
 | ~~3~~ | ~~홈 INP (기존 PR-A)~~ **완료 — 명세와 다른 수정**. 진입 시 홈 펼치기를 늦춰 탭 지연 760→280ms(로컬). 🔴 축 3 점수는 프로덕션 INP 재측정 전까지 그대로 37.8 이다 | 3: 38→**재측정 필요** |
 | ~~4~~ | ~~렌더 블로킹 CSS + `app-logo-512.webp` 크기~~ **완료 — 레버 3개 중 2개 기각**. `fortune-gateway.css` 만 논블로킹으로 뺐고 FCP 는 −3ms(노이즈). 🔴 남은 레버는 인라인 `<style>` 645.8KB | 3: 변화 없음 |
@@ -251,7 +251,9 @@ npm run measure:home-score
 
 1. ~~**로케일 정책**~~ — 2026-09-01 결정: **ko 저작 + en 1벌 → 나머지 10개 복사**. 자동 번역은 유료 실호출이라 하지 않는다.
 2. ~~**축 1 의 섹션 통합 대상**~~ — 2026-09-01 결정: 통합하지 않고 **첫 3화면 밖을 접는다**. 삭제·통합 0건.
-3. `openerNode()` 에 프리뷰 신호를 붙였을 때 결제 게이팅에 미치는 영향은 **여전히 미검증**. 🔴 PR-1(ⓒ)은 여기를 **안 건드렸다** — 마스터 게이트만 열었다. `data-feature-key` 가 `_cdPaidFeatureKey`(`index.html:31355`·`31402`)의 입력이라 결제 인터셉터와 맞물린다. 착수 전 `paid-gate-auditor` 를 태운다.
+3. ~~`openerNode()` 에 프리뷰 신호를 붙였을 때 결제 게이팅에 미치는 영향~~ **닫힘(2026-09-02, `paid-gate-auditor`)**. 결론만: `data-feature-key` 리더 35곳 중 결제로 이어지는 것은 3곳뿐이고 셋 다 **비용 속성이 있어야** 무장된다(`_cdRunPerUseCoinGate` 진입점 5곳 전부 `data-coin-cost>0` 또는 `data-tile-lock-key`+`cost>0` 요구). `_applyRegistryPricingToTiles` 만이 벌거벗은 featureKey 로 `data-coin-cost` 를 써 넣는데 선택자가 `.tarot-tile/.lifebook-tile/.lovebible-tile` 로 고정이라 추천 카드에 안 닿는다 — 🔴 **그 세 클래스 중 하나라도 추천 카드에 붙이면 그 순간 게이트가 무장된다(리뷰 체크포인트)**. `_hasPaidPreviewSignal` 호출부 6곳은 전부 표시 계층이고 금전 이동 0건. 결제 동결 매니페스트는 4 region·3 file 어디에도 안 걸린다. 감사가 잡은 위험 4건은 이 PR 에서 함께 닫았다(경계 항목 2건 = `points`·`human-design`, 시트 프레이밍 불일치, CI 트리거 구멍). 아래는 착수 전 기록이다:
+
+   > `openerNode()` 의 결제 영향은 미검증이었다. 🔴 PR-1(ⓒ)은 여기를 **안 건드렸다** — 마스터 게이트만 열었다. `data-feature-key` 가 `_cdPaidFeatureKey`(`index.html:31355`·`31402`)의 입력이라 결제 인터셉터와 맞물린다. 착수 전 `paid-gate-auditor` 를 태운다.
 4. ~~**"첫 화면 서비스 링크 0개"가 쿠키 배너 가림 탓일 가능성**~~ — PR-0 에서 판정했다. **셋 다 맞물린 결과였고, PR-2 의 3번 항목은 없어지지 않는다.**
    - 히어로 1번 CTA "✦ 무료로 오늘의 운세 보기"(`index.html:9319`)는 `href="#cdTodayHub"` — **같은 페이지 앵커라 애초에 서비스 링크가 아니다.**
    - 히어로 2번 CTA `/fusion-fortune/`(`index.html:9320`)은 첫 화면 안(y708)이 맞다. **첫 방문에는 쿠키 배너가 완전히 덮고**, 재방문에는 보인다 — 가림 가설은 이 링크에 한해 사실이다.
@@ -275,7 +277,9 @@ npm run measure:home-score                       # 표 + JSON(%TEMP%/code-destin
 PR-2 에서 돌린 것: `lint`(경고만, 기존) · `typecheck`(clean) · `verify:home-service-registry`(레지스트리 44개 OK) · `verify:hero-contrast` · `verify:mobile-detail-nonintrusive` · `verify:i18n-public-parity`/`i18n-ko-coverage`/`locale-main-sync`/`i18n-no-hardcoded-korean` · `verify:payment-freeze` · `verify:guard-wiring` · `build:cf`(`[adsense-readiness] OK`) · `test:node`·`jest`(615/615) · `measure:home-score`(축2 80.8 / 총점 41.4) · `perf:home -- --runs=3 --preset=mobile`(**CLS 0.00082**, 기준선 0.001 이하).
 🔴 `verify:public-mirror-fresh` 는 윈도우에서 `.ignore` 개행 하나로 헛실패한다(내용 diff 0줄) — 판정은 CI 를 믿는다.
 
-PR-1 에서 돌린 것: `lint`(경고만, 기존) · `typecheck`(clean) · `verify:mobile-cdp-smoke`(**손으로** — CI 미배선. 모바일 계약 재작성 후 OK) · `verify:rpt-preview-cta`(데스크톱 20단언) · `verify:paid-gate-ui` · `verify:payment-freeze` · `verify:sitemap-drift` · `verify:home-service-registry`(44/31) · `verify:shell-overlay-nav-coverage` · `verify:mobile-lazy-mount-openers`(22/22) · `verify:fortune-hub-shell` · `verify:hero-firstpaint-lock` · `verify:auth-bar-reservation` · `verify:js-module-graph` · `verify:guard-wiring`. 🔴 `measure:home-score` 로 축 4 를 다시 재지는 **않았다**(미검증). 🔴 smoke 의 "tarot touch opens route, sheet, or modal" 단언은 **간헐 실패**한다 — 같은 빌드 재실행에서 통과했고, 컬렉션 오프너 캡처 핸들러가 프리뷰 인터셉터보다 먼저 `preventDefault` 하므로 ⓒ 플래그와 무관하다.
+🔴 **PR-1 남은 절반(2026-09-02)에서 돌린 것**: `test:node` **616/616** · `lint`(오류 0, 경고는 기존) · `typecheck`(clean) · `verify:payment-freeze` · `verify:home-service-registry`(44/31) · `verify:rpt-preview-cta` · `verify:payment-choice-parity` · `verify:paid-gate-ui` · `verify:checkout-pass-card` · `verify:billing-pass-policy` · `verify:portone-single-payment` · `verify:mobile-lazy-mount-openers`(22/22) · `verify:guard-wiring` · `verify:mobile-cdp-smoke`(손으로 — CI 미배선, OK) · `build:cf` → `measure:home-score`. 🔴 `npm test`(jest) 는 2179 중 **2 실패**인데 `__tests__/worker/fortune-today-hub.route.test.js` 의 **5초 타임아웃**이고 단언 실패가 아니다 — 이 PR 이 건드린 파일과 겹치지 않는다(환경/속도 플레이크로 판단, **미확정**). `verify:public-mirror-fresh` 는 `.ignore` **하나만** 어긋난다고 실패하는데 내용 diff 는 0 이고 개행뿐인 알려진 윈도우 헛실패다.
+
+PR-1(전반)에서 돌린 것: `lint`(경고만, 기존) · `typecheck`(clean) · `verify:mobile-cdp-smoke`(**손으로** — CI 미배선. 모바일 계약 재작성 후 OK) · `verify:rpt-preview-cta`(데스크톱 20단언) · `verify:paid-gate-ui` · `verify:payment-freeze` · `verify:sitemap-drift` · `verify:home-service-registry`(44/31) · `verify:shell-overlay-nav-coverage` · `verify:mobile-lazy-mount-openers`(22/22) · `verify:fortune-hub-shell` · `verify:hero-firstpaint-lock` · `verify:auth-bar-reservation` · `verify:js-module-graph` · `verify:guard-wiring`. 🔴 `measure:home-score` 로 축 4 를 다시 재지는 **않았다**(미검증). 🔴 smoke 의 "tarot touch opens route, sheet, or modal" 단언은 **간헐 실패**한다 — 같은 빌드 재실행에서 통과했고, 컬렉션 오프너 캡처 핸들러가 프리뷰 인터셉터보다 먼저 `preventDefault` 하므로 ⓒ 플래그와 무관하다.
 
 PR-4 에서 돌린 것: `lint`(경고만, 기존) · `typecheck`(clean) · `verify:paid-gate-ui` · `verify:portone-single-payment` · `verify:payment-freeze` · `verify:hero-firstpaint-lock` · `verify:hero-contrast` · `verify:guard-wiring` · `verify:mobile-cdp-smoke`(**손으로** — CI 미배선) · `build:cf`(`[adsense-readiness] OK`) · `test:node`(615/615) · `test:jest`(191스위트 / 2,179 테스트) · `perf:home -- --runs=5` A/B 2회 · `measure:home-score`.
 
