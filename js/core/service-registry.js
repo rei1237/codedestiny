@@ -200,6 +200,18 @@ window.__cdServiceRegistry = [
     methods: ["saju", "ai"],
     keys: "작명 이름 개명 훈민정음",
   },
+  {
+    id: "fusion-fortune",
+    name: "초융합 심층 리딩",
+    desc: "여섯 체계가 겹치는 신호와 엇갈리는 신호를 함께 짚는 최종 교차 판정",
+    href: "/fusion-fortune/",
+    featureKey: "fusion-fortune-consultation",
+    price: "30,000원",
+    purposes: ["life", "self", "career", "love"],
+    methods: ["saju", "ziwei", "vedic", "sukuyo", "astrology", "tarot"],
+    keys: "초융합 교차검증 종합 심층 여섯 체계 2만자",
+    badge: "최종 판정",
+  },
 
   /* ── 운세 체계 허브 (무료 진입) ──────────────────────────────── */
   {

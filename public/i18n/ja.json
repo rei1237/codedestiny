@@ -1210,6 +1210,7 @@
       "neoSubmit": "申し込む"
     },
     "heroTrust": {
+      "compat": "無料の相性診断",
       "free": "無料で開始可能",
       "freeAria": "無料の運命カードへ移動",
       "insights": "運勢インサイト",
