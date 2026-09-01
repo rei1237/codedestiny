@@ -37,6 +37,10 @@
 **전부 유형 = 인앱 상품(one-time).** 이용권도 자동갱신이 없어 정기 결제(subs)가 **아니다**.
 **상품 ID는 등록 후 변경 불가** — 아래 그대로 입력할 것.
 
+🔴 **지금 살아 있는 SKU 는 12개**(콘텐츠 티어 8 + 이용권 4)다 — `npm run verify:play-console-products`
+출력이 정본이다. 제목·2-1 절의 "17개/13개"는 2026-08-12 정비 **전** 개수이며, 폐기한 6개는 ID 재사용
+금지라 아래 표에 남겨 두지 않는다. Play Console 에서 12개만 보이는 것이 정상이다.
+
 소모성/비소모성은 Play Console에서 고르는 항목이 아니다. 앱이 `consume()` 호출 여부로 결정한다(회당 결제만 소비).
 
 ### 2-1. 콘텐츠 티어 13개 — **단건 결제**의 가격대 그릇
@@ -69,7 +73,7 @@
 > 비활성화 절차와 기존 구매자 영향은 [docs/pricing/PLAY_CONSOLE_TASKS.md](pricing/PLAY_CONSOLE_TASKS.md) 참고.
 > 🔴 폐기한 productId 는 **재사용 금지** — Play 는 상품 ID 를 영구 점유한다.
 >
-> **2026-08-27 — `cd_content_tier_14`(₩7,000 / 70코인) 1개가 새로 필요하다(미등록).**
+> **2026-08-27 — `cd_content_tier_14`(₩7,000 / 70코인) 1개가 새로 필요했고, 2026-09-01 Play Console 등록을 마쳤다**(사용자 확인).
 > 타로 오라클 상담을 카드 수 구간 4단계로 나누며 웹 ₩7,000 가격 포인트가 생겼다.
 > 같은 코인가를 쓰던 `cd_content_tier_04` 는 폐기된 ID 라 되살리지 않고 새 번호를 썼다.
 > 등록 절차는 [docs/pricing/PLAY_CONSOLE_TASKS.md](pricing/PLAY_CONSOLE_TASKS.md) 3절.
