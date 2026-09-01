@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-02
-next: "**PR-0~PR-6 전부 완료. 목표 달성 — 총점 74.0 / 목표 70**(축1 73.8 · 축2 77.1 · 축3 45.2 · 축4 100.0, 2026-09-02 실측). 남은 것은 **축 3 성능 하나뿐**(45.2 / 목표 60)이고 그 계획은 아직 없다. 🔴 축 3 수치를 다시 재려면 **`npm run perf:home -- --runs=3 --preset=mobile` 을 먼저 돌린다** — 하네스는 성능을 직접 재지 않고 `%TEMP%/code-destiny-perf/perf-head.json` 을 읽으므로 안 돌리면 남의 회차 값을 인용한다. 🔴 그 LCP(2026-09-02 기준 9575ms)는 **시뮬레이션 스로틀 값이고 관측값은 1667ms** 이며 LCP 요소가 `assets.code-destiny.com` 의 크로스오리진 히어로 이미지라 **네트워크 의존**이다 — 회차 편차가 크니 단독 수치로 회귀를 단정하지 말 것. 축 3 의 남은 레버는 **홈 문서 인라인 `<style>` 645.8KB**(축 3 절 PR-4 실측). 루브릭·목표·PR 6건 순서의 정본은 `C:\\Users\\user\\.claude\\plans\\docs-handoff-home-ux-audit-2026-09-01-md-crispy-badger.md`"
+next: "**PR-0~PR-7 전부 완료. 총점 77.3 / 목표 70, 축 3 만 59.0 으로 목표 60 에 1.0 부족하다**(축1 73.8 · 축2 77.1 · 축3 59.0 · 축4 100.0, 2026-09-02 실측). 🔴 **그 1.0 은 LCP 행 하나이고 코드 레버가 아니라 루브릭 문제다** — 점수가 먹는 simulated LCP 는 9,462ms 인데 observed 는 1,272ms 이고, 그 94%가 simulated Slow 4G 에서의 교차출처 히어로 다운로드다(preconnect·preload·fetchpriority 는 이미 다 붙어 있다). **다음 세션은 성능 코드를 더 짜지 말고 셋 중 하나를 고른다** — ① 사용자에게 **LCP 임계를 observed 기준으로 바꿀지** 묻는다, ② 축 2 의 `44px 미만 탭 타깃 37.0%`(0점)를 손본다(🔴 절대 개수는 39 → 27 로 줄었고 **비율만** 올랐다 — PR-5 접기로 분모가 162 → 73 이 된 탓이라 회귀가 아니다), ③ 축 1 의 `랜딩 섹션 수 14`(25점)·`목적지 중복 쌍 2 → 4`. 🔴 **축 3 을 다시 재려면 `npm run build:cf` 다음에 `npm run perf:home -- --runs=5 --preset=mobile` 을 먼저 돌린다** — 하네스는 성능을 직접 재지 않고 `%TEMP%/code-destiny-perf/perf-head.json` 을 읽으므로, 안 돌리면 남의 회차를 인용한다(이 문서가 한동안 45.2 를 적고 있던 이유다). 루브릭·축별 가중·임계표의 정본은 `C:\\Users\\user\\.claude\\plans\\docs-handoff-home-ux-audit-2026-09-01-md-crispy-badger.md`"
 ---
 
 # 홈 4축 현황 진단 (2026-09-01)
@@ -23,7 +23,10 @@ next: "**PR-0~PR-6 전부 완료. 목표 달성 — 총점 74.0 / 목표 70**(�
 - 🔴 **PR-4 완료(2026-09-01, 머지 대기) — 레버 3개 중 2개는 실측으로 기각됐다.** 넣은 것은 `styles/fortune-gateway.css` 를 렌더 블로킹에서 뺀 것 하나뿐이고, **FCP 는 −3ms(노이즈)** 다. 상세와 기각 사유는 [축 3 절](#축-3--성능)의 "PR-4 실측".
 - 🔴 **PR-5 완료(#1426 머지, 2026-09-02).** 첫 3화면 밖 랜딩 섹션을 `<details>` 로 접었다(삭제·통합 0건). 축1 **33.7 → 73.8**.
 - 🔴 **PR-6 완료(#1430, 머지 대기, 2026-09-02).** 레지스트리 44개에 진입 전 상세 문안(16/44 → **44/44**)과 카드 `desc` 의 12개 로케일을 채웠다. 축4 **30.5 → 100.0**.
-- ✅ **목표 달성 — 총점 74.0 / 목표 70** (축1 73.8 · 축2 77.1 · 축3 45.2 · 축4 100.0). **미달은 축 3(성능) 하나**이고 후속 계획은 아직 없다.
+- 🔴 **PR-7 완료(#1442, 머지 대기, 2026-09-02).** 로드 중 강제 동기 레이아웃 3건을 걷어냈다. 축3 **44.2 → 59.0**(목표 60 에 1.0 부족) · 총점 **77.3**. 곁들여 **노치 기기에서 쿠키 배너가 하단 탭 5개를 덮던 결함**(PR-2 #1410 때부터 존재, `verify:mobile-bottom-nav-clearance` 는 CI 미배선이라 조용히 통과해 왔다)을 같은 PR 에서 고쳤다.
+- 🔴 **이 문서가 적었던 축3 45.2 · 총점 74.0 은 낡은 INP 인용값 탓이다.** 하네스는 축 3 을 직접 재지 않고 `perf-head.json` 을 읽는데 그 값이 PR-3 이전 것이었다. `perf:home` 을 실제로 다시 돌린 `origin/main`(04101c757) 기준선은 축3 **32.7** 이고, PR-3 이후 프로덕션에서 INP 를 재측정(**328ms**, 밴드 288–328 / PR-3 이전 **656** [640-688])해 인용값을 바로잡으면 축3 **44.2 · 총점 73.6** 이 옳다(#1442 첫 커밋). PR-7 의 델타는 그 위에서 잰 것이다.
+- ✅ **4축 목표 달성 — 총점 77.3 / 목표 70.** 축별 최저 60 은 **축 3 만 1.0 부족**하고, 그 부족분은 LCP 행 하나다(아래 축 3 절 "PR-7 실측").
+- 🔴 **축 2·축 1 의 남은 저점은 PR-7 이 안 건드렸다.** 축 2 `44px 미만 탭 타깃` 이 24.1%(09-01) → **37.0%**(0점)로 올랐는데 **회귀가 아니다** — 절대 개수는 39 → **27** 로 줄었고, PR-5 접기로 보이는 인터랙티브 요소가 162 → **73** 이 되며 분모가 준 탓이다. 축 1 은 `랜딩 섹션 수 14`(25점)·`목적지 중복 쌍 2 → 4` 가 남았다.
 
 ## 측정 하네스 (모든 수치의 조건)
 
@@ -187,6 +190,18 @@ npm run measure:home-score
 
 ---
 
+### PR-7 실측 (2026-09-02) — 병목은 JS 바이트가 아니라 **강제 동기 레이아웃 횟수**였다
+
+파서 블로킹 셸 JS 729KB 중 80%를 차지하는 두 청크(307KB·276KB)는 롱태스크 목록에 **한 번도 안 나오고**, 7,753바이트짜리 청크가 409ms 태스크를 냈다. 답은 메인스레드 내역에 있었다 — **Style & Layout 2,915ms vs Script Evaluation 718ms**. 비용은 4,506개 DOM + 약 657KB 인라인 `<style>` 를 **로드 중 몇 번 강제로 레이아웃시키느냐**이고, Lighthouse 의 강제 리플로 귀속이 그 지점을 정확히 짚어 준다. 고친 3곳(캐러셀 init · 하단 탭바 높이 동기 읽기 · 히어로 `data-lcp-candidate`)의 상세는 #1442 본문과 커밋 메시지에 있다.
+
+🔴 **`requestAnimationFrame` 으로 미뤄도 강제 레이아웃은 안 피해진다.** 캐러셀의 rect 읽기를 rAF 로 미뤘더니 75.3ms → **203.9ms 로 되레 늘었다** — rAF 콜백은 프레임 **시작**(레이아웃 패스 전)에 돌기 때문이다. 해법은 미루기가 아니라 **안 재기**였다.
+
+A/B(로컬 `dist`, mobile preset, 각 **n=5**): Performance 49 → **63** · TBT 735 → **237ms** · SI 5,039 → 4,576 · Style & Layout 3,802 → **2,875ms** · CLS 0.001 유지. 원시 TBT 는 base `[735,735,713,637,1772]` vs fix `[850,222,237,227,289]` 로 밴드가 거의 안 겹친다. 총 강제 리플로 297.3 → **155.9ms(−47.6%)**.
+
+🔴 **남은 강제 리플로 2건은 일부러 안 건드렸다** — `initMobileSajuDetails`(51.1ms, 사주 폼의 첫 펼침 상태를 결정)과 `--cd-safe-vh`(43.7ms). 둘 다 **첫 페인트 상태를 정하는 코드**라 미루면 페인트 후 접힘/리플로가 눈에 보인다. 루브릭 1.3점과 실사용 회귀를 맞바꾸지 않았다.
+
+🔴 **축 3 에 남은 유일한 0점(LCP)은 코드가 아니라 루브릭 문제다.** 점수는 simulated **9,462ms** 를 먹지만 observed 는 **1,272ms** 이고, 그 9.4초의 94%가 simulated Slow 4G 에서의 교차출처 히어로 다운로드다. 이미지엔 preconnect·preload(`imagesrcset`/`imagesizes`)·`fetchpriority=high`·`width`/`height` 가 이미 전부 붙어 있다. 문서 구조 개편은 `measure-home-lcp-budget.mjs` 로 이미 쟀고 살아남은 최선안이 **−188ms**(필요분 약 **−5,700ms**)라 기각됐다. **다음 세션은 코드를 더 짜지 말고 사용자에게 임계 변경 여부를 물어야 한다.**
+
 ## 축 4 · 서비스 설명 (사용자 결정: 카드 설명 + 진입 전 상세)
 
 🔴 **실측이 전제를 뒤집었다 — 풍부한 진입 전 화면은 이미 있다.** 없는 것은 문안이 아니라 **배선**이다.
@@ -253,8 +268,9 @@ npm run measure:home-score
 | ~~4~~ | ~~렌더 블로킹 CSS + `app-logo-512.webp` 크기~~ **완료 — 레버 3개 중 2개 기각**. `fortune-gateway.css` 만 논블로킹으로 뺐고 FCP 는 −3ms(노이즈). 🔴 남은 레버는 인라인 `<style>` 645.8KB | 3: 변화 없음 |
 | ~~5~~ | ~~축 1 접기~~ **완료(#1426, 2026-09-02)** — 첫 3화면 밖 섹션을 `<details>` 로 접었다. 삭제·통합 0건, `hidden`·`sr-only` 0건 | 1: 33.7→**73.8** |
 | ~~6~~ | ~~축 4 문안 27개 + en 1벌 → 10개 로케일 복사~~ **완료(#1430, 2026-09-02)** — 문안 **16/44 → 44/44**(무료 23/23), 카드 `desc` 에 `data-cd-trans` 배선으로 **desc 로케일 12/12**. 저작은 `i18n/authored/core-04.json`(44키 × 12 로케일), 대조는 `verify:home-service-registry` 가 fail-closed 로 집행 | 4: 30.5→**100.0** |
+| ~~7~~ | ~~축 3 성능~~ **완료(#1442, 머지 대기, 2026-09-02)** — 로드 중 강제 동기 레이아웃 3건 제거. TBT 735 → **237ms**, Performance 49 → **63**. 🔴 남은 0점(LCP)은 루브릭 문제라 코드 레버가 없다 | 3: 44.2→**59.0** |
 
-🔴 ~~**PR-5 와 PR-6 이 둘 다 있어야 70을 넘는다**~~ — **둘 다 끝났고 총점 74.0 으로 목표 70 을 넘겼다(2026-09-02).** 남은 미달 축은 3(성능) 45.2 하나다.
+🔴 ~~**PR-5 와 PR-6 이 둘 다 있어야 70을 넘는다**~~ — **PR-7 까지 끝나 총점 77.3 이다(2026-09-02).** 축별 최저 60 은 **축 3 만 1.0 부족**(59.0)이고, 그 1.0 은 LCP 행이라 코드로 못 메운다 — **다음 행동은 사용자에게 임계 변경 여부를 묻는 것**이다.
 
 **사용자 결정 3건**(아래 "모르는 것" 1·2를 닫는다): ① 로케일은 **ko 저작 + en 1벌 → 나머지 10개 복사**(유료 번역 실호출 없음). ② 축 1 은 통합이 아니라 **접기**. ③ 목표는 **총점 70 · 축별 최저 60**.
 
@@ -286,6 +302,9 @@ npm run build:cf
 npm run perf:home -- --runs=3 --preset=mobile   # 축 3 재료. 생략하면 축 3 은 인용값
 npm run measure:home-score                       # 표 + JSON(%TEMP%/code-destiny-home-score/)
 ```
+
+PR-7 에서 돌린 것: `lint`(경고만, 기존) · `typecheck`(clean) · `verify:sitemap-drift` · `verify:payment-freeze` · `verify:hero-contrast` · `verify:mobile-detail-nonintrusive` · `verify:mobile-bottom-nav-sync` · `verify:mobile-bottom-nav-clearance`(**손으로** — CI 미배선. safe-area 0px·47px 통과) · `verify:app-bottom-clearance` · `verify:hero-firstpaint-lock` · `verify:home-service-registry`(44/31) · `perf:home -- --runs=5 --preset=mobile` **A/B 2회** · `measure:home-score`. PR CI(#1442) 는 `Typecheck and lint`·`Build Pages and Worker` 포함 전부 통과.
+🔴 **셸(`index.html`)을 고쳤으면 `config/sitemap-lastmod.json` 의 `/`·`/en/`·`/ja/`·`/zh/`·`/zh-tw/` 서명 5개를 같은 PR 에 담아야 한다** — `build:cf` 생성물이라고 되돌리면 PR CI 의 `Typecheck and lint` 가 실패한다. 반대로 `js/**`·`public/**` 의 `?v=build-` 대량 회전은 `sync:public` 산출물이라 **담는 게 맞다**(PR-7 에서 비-캐시버스트 변경 줄 0 임을 확인하고 담았다).
 
 PR-2 에서 돌린 것: `lint`(경고만, 기존) · `typecheck`(clean) · `verify:home-service-registry`(레지스트리 44개 OK) · `verify:hero-contrast` · `verify:mobile-detail-nonintrusive` · `verify:i18n-public-parity`/`i18n-ko-coverage`/`locale-main-sync`/`i18n-no-hardcoded-korean` · `verify:payment-freeze` · `verify:guard-wiring` · `build:cf`(`[adsense-readiness] OK`) · `test:node`·`jest`(615/615) · `measure:home-score`(축2 80.8 / 총점 41.4) · `perf:home -- --runs=3 --preset=mobile`(**CLS 0.00082**, 기준선 0.001 이하).
 🔴 `verify:public-mirror-fresh` 는 윈도우에서 `.ignore` 개행 하나로 헛실패한다(내용 diff 0줄) — 판정은 CI 를 믿는다.
