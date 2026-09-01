@@ -413,6 +413,7 @@
     "test:signup": "node scripts/test-signup.mjs",
     "perf:psi:audit": "node scripts/psi-lighthouse-audit.mjs",
     "perf:home": "node scripts/with-utf8-console.mjs node scripts/measure-home-lighthouse.mjs",
+    "measure:home-score": "node scripts/with-utf8-console.mjs node scripts/measure-home-score.mjs",
     "perf:style-cost": "node scripts/with-utf8-console.mjs node scripts/measure-home-style-cost.mjs",
     "perf:interaction": "node scripts/with-utf8-console.mjs node scripts/measure-home-interaction.mjs",
     "perf:tap-cost": "node scripts/with-utf8-console.mjs node scripts/measure-tap-fixed-cost.mjs",

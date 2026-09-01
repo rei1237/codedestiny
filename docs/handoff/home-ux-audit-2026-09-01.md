@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-01
-next: "PR-0(점수 하네스 `scripts/measure-home-score.mjs`) → PR-1(축 4 배선). 점수 루브릭·목표·PR 6건 순서의 정본은 `C:\\Users\\user\\.claude\\plans\\docs-handoff-home-ux-audit-2026-09-01-md-crispy-badger.md`"
+next: "PR-0 완료(하네스 `scripts/measure-home-score.mjs`). 🔴 **다음은 PR-1 이 아니라 PR-2** — PR-1(축 4 배선)은 모바일 마스터 게이트 때문에 재설계가 먼저다(축 4 절 1번 참고). 점수 루브릭·목표·PR 6건 순서의 정본은 `C:\\Users\\user\\.claude\\plans\\docs-handoff-home-ux-audit-2026-09-01-md-crispy-badger.md`"
 ---
 
 # 홈 4축 현황 진단 (2026-09-01)
@@ -15,14 +15,27 @@ next: "PR-0(점수 하네스 `scripts/measure-home-score.mjs`) → PR-1(축 4 �
 ## 지금 상태
 
 - PR **#1402**(`#cdFinder` 기본 추천 6개) · PR **#1403**(이 문서) 모두 머지됐다(2026-09-01).
-- 아래 실측에 루브릭을 씌워 **점수화와 목표 설정이 끝났다** — [점수와 목표](#점수와-목표-2026-09-01-확정) 절. 착수는 PR-0 부터.
+- 아래 실측에 루브릭을 씌워 **점수화와 목표 설정이 끝났다** — [점수와 목표](#점수와-목표-2026-09-01-확정) 절.
+- 🔴 **PR-0(하네스) 완료.** 하네스 기준선(2026-09-01, `dist/` PR-B 반영본): **축1 33.0 · 축2 26.1 · 축3 37.8 · 축4 12.6 → 총점 27.4**. 손측정 28 과의 차이는 위 정의 3건과 **축 4 프리뷰 표면 1 → 0**(아래) 때문이다. 앞으로의 델타는 이 숫자를 기준으로 잰다.
 - PR-A(홈 INP · 강제 동기 레이아웃 2곳)는 그 계획의 **PR-3** 으로 편입됐다. 근거는 `docs/handoff/home-three-axis-2026-09-01.md`.
 
 ## 측정 하네스 (모든 수치의 조건)
 
 `npm run build:cf` 로 만든 `dist/` 를 정적 서버로 띄우고, Playwright chromium **390×844 / DPR 3 / 모바일 UA** 로 계측했다. 성능만 `npm run perf:home --runs=3 --preset=mobile`.
 
-🔴 계측용 임시 스크립트 5개는 작업 후 삭제했다 — 재현하려면 위 조건으로 다시 작성해야 한다. **PR-0 이 이 하네스를 `scripts/measure-home-score.mjs` 정본으로 되살린다**(그게 없으면 점수를 다시 못 재고 목표 달성을 판정할 수 없다). 아래 수치는 전부 **2026-09-01**, `dist/` 는 PR-B 반영본이다.
+**PR-0 이 그 하네스를 `scripts/measure-home-score.mjs` 로 되살렸다.** 재측정은 두 줄이다:
+
+```
+npm run build:cf
+npm run measure:home-score
+```
+
+축 3 은 하네스가 재지 않고 `perf:home` 산출물(`%TEMP%/code-destiny-perf/perf-head.json`)을 읽는다. 없으면 아래 2026-09-01 값을 **인용으로 표시하고** 돈다. INP 는 언제나 인용이거나 `--inp=` 주입값이다. 아래 수치는 전부 **2026-09-01**, `dist/` 는 PR-B 반영본이다.
+
+🔴 **하네스와 아래 손측정의 정의가 갈리는 지표 3개** (이제는 하네스가 정본, 아래 표는 참고선):
+- **랜딩 섹션** 13 → **14**. 하네스는 `#inputPage section[id]` 중 CSS 로 보이는 것을 센다. 아래 13개 목록에 없는 `moonMusicEntry`·`cdFeedbackGate`·`cdReviews` 가 더 잡히고, `display:none` 인 `destinyCardForm`·`cdTodayPick` 이 빠진다.
+- **가림 결함** 2건 = 덮은 **고정 레이어 수**다(요소 수로는 4개). 하네스도 고정/스티키 조상으로 묶어 센다.
+- **첫 화면 서비스 링크** 0 → **1**. 아래 4번 문단 참고.
 
 ---
 
@@ -117,7 +130,19 @@ next: "PR-0(점수 하네스 `scripts/measure-home-score.mjs`) → PR-1(축 4 �
 
 **문제 4건**
 
-1. **탐색기·인덱스 결과 카드는 프리뷰를 아예 안 탄다.** 클릭 델리게이션(`index.html:~34044`)의 선택자는 `.tarot-tile, .lifebook-tile, .lovebible-tile, .moon-preview-card, [data-coin-cost], [data-tile-lock-cost], [data-tile-lock-key], [data-pvw-free]` 인데, 카드를 만드는 `openerNode()`(`js/core/home-service-finder.js:179-187`)는 이 중 어느 것도 붙이지 않는다(`fortune-gateway__rec` · `cd-svc-hit`).
+1. 🔴 **모바일에서는 프리뷰가 통째로 꺼져 있다 — PR-1 은 이대로면 아무것도 안 바꾼다.** PR-0 하네스가 표면 4종을 **실제로 눌러** 판정했다(390×844 / 모바일 UA):
+
+   | 표면 | 선택자 | 요소 | 시트 |
+   |---|---|---:|---|
+   | 컬렉션 타일 | `.tarot-tile,…,.moon-preview-card` | 12 | 안 열림 |
+   | `#cdFinder` 추천 카드 | `.fortune-gateway__rec` | 6 | 안 열림 |
+   | 서비스 인덱스 결과 | `.cd-svc-hit` | **0** | 안 열림 |
+   | 무료 면제 표식 | `[data-pvw-free]` | **0** | 안 열림 |
+
+   원인은 선택자가 아니라 **마스터 게이트**다. `index.html:2040-2042` 의 `applyCdMobilePreviewPolicy()` 가 모바일에서 `window.__cdFeatureMarketingPreviewEnabled = false` 로 두고, 델리게이션 핸들러(`index.html:~34044`)의 **첫 줄이 그 플래그를 보고 즉시 return** 한다. 실측 게이트 값 `false`. 이건 버그가 아니라 2026-08-15 의 의도적 정책(주석: "모바일은 카드 탭 = 즉시 진입이다")이다. 그래서 **축 4 프리뷰 표면은 1/4 이 아니라 0/4** 이고, 선택자만 늘리는 PR-1 은 모바일에서 0줄짜리 변경이 된다.
+   🔴 **PR-1 착수 전 사용자 결정이 필요하다** — ⓐ 모바일 정책을 뒤집어 시트를 켠다(2026-08-15 결정을 되돌리는 것) · ⓑ 시트 대신 카드 자리에서 설명을 늘린다(축 4 를 문안 축으로만 끌고 간다) · ⓒ 유료 항목만 시트를 켠다.
+
+   `.cd-svc-hit` 는 **DOM 에 0개다** — `renderSimpleResults()`(`js/core/home-service-finder.js:261`)를 부르는 곳이 없고(유일한 마운트가 `layout:"rich"`), 그래서 루브릭의 분모 4 에는 **존재하지 않는 표면**이 하나 들어 있다. 정책이 정해지면 분모도 같이 정정한다.
 2. **무료 서비스는 조기 반환에 걸린다.** `<a href>` 이면서 cost·lock·`data-pvw-free`·유료 신호가 없으면 그대로 이동한다. `data-pvw-free` 는 `index.html` 전체에 **2번**뿐이다.
 3. **문안 커버리지 16/43** — 유료 14/20, **무료 2/23**. PR-B 가 새로 노출한 기본 추천 6개 중 **5개**에 진입 전 문안이 없다.
 4. **`desc` 는 12개 로케일 전부 한국어다.** `renderRichResults()` 가 `desc.textContent = item.desc` 로만 넣고 `data-cd-trans` 를 붙이지 않는다. 레지스트리 43개 `desc` 는 최소 9자 / 중앙 17자 / 최대 27자.
@@ -144,13 +169,15 @@ next: "PR-0(점수 하네스 `scripts/measure-home-score.mjs`) → PR-1(축 4 �
 | 4 설명 | 23 | ≥60 | 96 | 무료 서비스 문안 2/23 (9점) |
 | **총점** | **28** | **≥70** | **77** | |
 
+🔴 위 "현재" 열은 손측정이다. **PR-0 하네스 기준선은 축1 33.0 · 축2 26.1 · 축3 37.8 · 축4 12.6 → 총점 27.4** 이고, 앞으로의 판정은 이쪽이다. 축 4 가 23 → 12.6 으로 내려간 것은 회귀가 아니라 **프리뷰 표면 1/4 이 실제로는 0/4** 였다는 정정이다(축 4 절 1번). "도달 후" 열은 손측정 기준으로 계산된 값이라 **PR-1 정책이 정해지면 다시 계산해야 한다.**
+
 **실행 순서** — 누적 총점 28 → 35 → 50 → 54 → 56 → 65 → **77**
 
 | PR | 내용 | 움직이는 축 |
 |---|---|---|
-| 0 | 점수 하네스 `scripts/measure-home-score.mjs` (`measure:home-score`) | 판정 수단 |
-| 1 | 축 4 배선 — 델리게이션 선택자 + `data-pvw-free`. **문안 0줄** | 4: 23→49 |
-| 2 | 축 2 가림 2건 + 첫 화면 서비스 링크 | 2: 20→81 |
+| ~~0~~ | ~~점수 하네스~~ **완료** — `scripts/measure-home-score.mjs` (`measure:home-score`) | 판정 수단 |
+| 1 | 축 4 배선 — 🔴 **보류·재설계**. 모바일 마스터 게이트 때문에 선택자만으로는 0줄 변경이다(축 4 절 1번의 ⓐⓑⓒ 결정 필요) | 4: 13→? |
+| 2 | 축 2 가림 2건 + 첫 화면 서비스 링크 + 🔴 `/fusion-fortune` 레지스트리 등재 | 2: 26→81 |
 | 3 | 홈 INP (기존 PR-A) | 3: 38→55 |
 | 4 | 렌더 블로킹 CSS + `app-logo-512.webp` 크기 | 3: 55→63 |
 | 5 | 축 1 접기 — 첫 3화면 밖 섹션 아코디언 (삭제·통합 0건) | 1: 32→67 |
@@ -167,14 +194,21 @@ next: "PR-0(점수 하네스 `scripts/measure-home-score.mjs`) → PR-1(축 4 �
 1. ~~**로케일 정책**~~ — 2026-09-01 결정: **ko 저작 + en 1벌 → 나머지 10개 복사**. 자동 번역은 유료 실호출이라 하지 않는다.
 2. ~~**축 1 의 섹션 통합 대상**~~ — 2026-09-01 결정: 통합하지 않고 **첫 3화면 밖을 접는다**. 삭제·통합 0건.
 3. `openerNode()` 에 프리뷰 신호를 붙였을 때 결제 게이팅에 미치는 영향은 **미검증**. 유료 항목이 섞이므로 착수 전 `paid-gate-auditor` 를 태운다.
-4. 🔴 **"첫 화면 안의 운세 서비스 링크 0개"가 쿠키 배너 가림 탓일 가능성** — 히어로 액션의 `/fusion-fortune/`(`index.html:9320`)은 `h1`(y440) 바로 아래라 첫 화면 안일 텐데 배너(y521~750)에 덮인다. 사실이면 PR-2 의 배너 이동만으로 이 지표가 회복되고 PR-2 의 3번 항목이 없어진다. **PR-0 에서 판정한다.**
+4. ~~**"첫 화면 서비스 링크 0개"가 쿠키 배너 가림 탓일 가능성**~~ — PR-0 에서 판정했다. **셋 다 맞물린 결과였고, PR-2 의 3번 항목은 없어지지 않는다.**
+   - 히어로 1번 CTA "✦ 무료로 오늘의 운세 보기"(`index.html:9319`)는 `href="#cdTodayHub"` — **같은 페이지 앵커라 애초에 서비스 링크가 아니다.**
+   - 히어로 2번 CTA `/fusion-fortune/`(`index.html:9320`)은 첫 화면 안(y708)이 맞다. **첫 방문에는 쿠키 배너가 완전히 덮고**, 재방문에는 보인다 — 가림 가설은 이 링크에 한해 사실이다.
+   - 그런데 `/fusion-fortune` 은 **`window.__cdServiceRegistry` 43개에 없다**(`js/core/service-registry.js` 전수 검색 0건). 그래서 레지스트리 기준 첫 화면 서비스 링크는 배너를 닫아도 **1개**(`/points/` "이용권", 하단 탭바)뿐이다.
+   - 🔴 파생 결함: 초융합 리딩이 레지스트리에 없다는 것은 **`#cdFinder` 검색·추천에서도 안 나온다**는 뜻이다. PR-2 의 첫 항목으로 레지스트리 등재를 넣는다(등재하면 축 4 분모 43 → 44 로 움직이니 같은 PR 에서 하네스를 다시 돌린다).
 5. `<details>` 접힘이 `[adsense-readiness]` 의 `getVisibleText` 에 어떻게 잡히는지 **미검증**. `hidden` 은 안 본다는 것만 알려져 있다 — 다르면 PR-5 가 홈 분량을 무너뜨린다.
 
 ## 검증
 
-이 문서는 코드 변경 0건이라 회귀 검증 대상이 없다. 재측정 명령:
+재측정 명령(PR 하나 머지할 때마다 이대로 돌려 델타를 잰다):
 
 ```
 npm run build:cf
-npm run perf:home -- --runs=3 --preset=mobile
+npm run perf:home -- --runs=3 --preset=mobile   # 축 3 재료. 생략하면 축 3 은 인용값
+npm run measure:home-score                       # 표 + JSON(%TEMP%/code-destiny-home-score/)
 ```
+
+PR-0 에서 돌린 것: `npx eslint scripts/measure-home-score.mjs`(0) · `npm run verify:guard-wiring`(OK — `measure:*` 라 배선 의무 없음) · `npm run measure:home-score`(위 기준선). 🔴 축 3 은 이 하네스가 재지 않으므로 성능 PR 의 판정은 `perf:home` 을 먼저 돌린 뒤에만 유효하고, **CLS 는 프로덕션에서만 유효하다**(스테이징은 광고발 CLS 를 숨긴다).
