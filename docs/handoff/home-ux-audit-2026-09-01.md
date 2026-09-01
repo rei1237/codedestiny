@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-01
-next: "PR-0·PR-2·PR-3 완료. 🔴 **다음은 PR-4(홈 성능 나머지 레버)** — PR-1(축 4 배선)은 여전히 보류이고 모바일 프리뷰 마스터 게이트에 대한 사용자 결정 ⓐⓑⓒ 가 먼저다(축 4 절 1번). 점수 루브릭·목표·PR 6건 순서의 정본은 `C:\\Users\\user\\.claude\\plans\\docs-handoff-home-ux-audit-2026-09-01-md-crispy-badger.md`"
+next: "PR-0·PR-2·PR-3·PR-4 완료. 🔴 **다음은 PR-5(축 1 접기) 와 PR-6(축 4 문안)** — 둘 다 있어야 총점 70 을 넘는다. PR-1(축 4 배선)은 여전히 보류이고 모바일 프리뷰 마스터 게이트에 대한 사용자 결정 ⓐⓑⓒ 가 먼저다(축 4 절 1번). 축 3 을 더 밀 거면 레버는 CSS 가 아니라 **홈 문서의 인라인 `<style>` 645.8KB** 다(축 3 절 PR-4 실측). 점수 루브릭·목표·PR 6건 순서의 정본은 `C:\\Users\\user\\.claude\\plans\\docs-handoff-home-ux-audit-2026-09-01-md-crispy-badger.md`"
 ---
 
 # 홈 4축 현황 진단 (2026-09-01)
@@ -20,6 +20,7 @@ next: "PR-0·PR-2·PR-3 완료. 🔴 **다음은 PR-4(홈 성능 나머지 레�
 - 🔴 **PR-2 완료(2026-09-01, 머지 대기).** 현재 하네스 값: **축1 33.7 · 축2 80.8 · 축3 37.8 · 축4 13.0 → 총점 41.4**. 축 2 는 목표 60 을 넘겼다. 아래 축 2 절의 표가 그 전/후다.
 - PR-A(홈 INP · 강제 동기 레이아웃 2곳)는 그 계획의 **PR-3** 으로 편입됐다. 근거는 `docs/handoff/home-three-axis-2026-09-01.md`.
 - 🔴 **PR-3 완료(2026-09-01, 머지 대기) — 다만 명세대로가 아니다.** 명세된 편집 2건(`savedScrollY` 를 `__cdExpandHome()` 앞으로 · `panel.scrollTop` 을 rAF 로)은 **실측 변화 없음**이라 둘 다 넣지 않았다. 대신 실측이 지목한 원인 한 곳만 고쳤다. 상세는 [축 3 절](#축-3--성능)의 "PR-3 실측"을 볼 것.
+- 🔴 **PR-4 완료(2026-09-01, 머지 대기) — 레버 3개 중 2개는 실측으로 기각됐다.** 넣은 것은 `styles/fortune-gateway.css` 를 렌더 블로킹에서 뺀 것 하나뿐이고, **FCP 는 −3ms(노이즈)** 다. 상세와 기각 사유는 [축 3 절](#축-3--성능)의 "PR-4 실측".
 
 ## 측정 하네스 (모든 수치의 조건)
 
@@ -141,10 +142,29 @@ npm run measure:home-score
 
 🔴 **이 검증기는 여전히 CI 미배선이다.** 배선은 이 PR 범위 밖이라 손대지 않았다(게이트 추가는 지시가 있어야 한다). 홈 셸을 고치는 세션은 `npm run verify:mobile-cdp-smoke` 를 **손으로** 돌릴 것.
 
+### PR-4 실측 (2026-09-01) — 🔴 레버 3개 중 2개는 기각, 남은 하나도 FCP 를 안 움직인다
+
+같은 빌드 위에서 `dist/index.html` 의 전달 방식만 바꿔 **5런씩 A/B** 했다(390×844 · mobile preset · 로컬 dist).
+
+| | 블로킹(기존) | 지연(적용본) |
+|---|---:|---:|
+| Performance | 53 (52–56) | 53 (51–57) |
+| FCP | 2,902ms | **2,899ms** |
+| LCP 중앙 [범위] | 6,010 [4,358–6,796] | 6,667 [4,349–6,826] |
+| TBT | 703ms | 712ms |
+| CLS | 0.001 | 0.001 |
+| 렌더 블로킹 감사(`savingsFcp`) | 650ms | **500ms** |
+
+- **넣은 것**: `styles/fortune-gateway.css`(32.7KB raw / 6.1KB br)를 `rel=preload as=style` + `<noscript>` 로 뺐다. 이 시트가 칠하는 호스트 4개가 전부 폴드보다 최소 **4,043px** 아래다(2026-09-01 실측, dist·networkidle, 모바일 기준 top: `.cd-quick__grid` 4283 · `#cdFinder` 4611 · `#fortuneGatewayEntry` 5894 · `#cdDiaryPlannerEntry` 7036). 로드 후 `rel` 이 stylesheet 로 바뀌고 규칙이 적용되는 것(`display:grid`·`border-radius:16px`)까지 확인했다.
+- 🔴 **FCP 는 안 움직인다(−3ms).** 결정적으로 움직인 건 감사 수치(650→500)뿐이다. LCP·TBT 차이는 **범위가 거의 완전히 겹쳐** 노이즈다. 이유: FCP 를 잡고 있는 건 CSS 가 아니라 **문서 자신**이다 — `dist/index.html` 은 1,231KB raw / **199KB 전송**이고 그중 **인라인 `<style>` 85블록이 645.8KB(52.4%)**, 마크업 500.2KB(40.6%), 인라인 `<script>` 85.3KB(6.9%)다. 하네스 주석(`scripts/measure-home-lighthouse.mjs:283`)의 "cosmic-main 2,120ms 제거 → FCP +1ms" 와 같은 현상이다.
+- 🔴 **"렌더 블로킹 제거 시 FCP −600ms" 는 틀린 전제였다.** `cosmic-main.css`(258KB)는 애초에 블로킹이 아니다 — `index.html:867` 의 `rel=preload as=style` 이 이미 데운다. 남은 블로킹 4개는 전부 못 뺀다: `core-ui.css`(`verify:paid-gate-ui` 가 blocking 링크를 리터럴로 못 박음) · `theme-tokens.css`(테마 플래시) · `mobile-lite.css` · `mobile-totem-flower-fix.css`(문서상 blocking 유지 대상).
+- 🔴 **"미사용 CSS 67KB" 기각.** 세 시트 모두 **이미 논블로킹**이라 FCP 와 무관하고 잘라낼 수도 없다 — `fonts-serif.css`(110KB · `@font-face` **189개**)의 13KB 는 브라우저가 애초에 안 받는 unicode-range 서브셋, `cosmic-main.css` 는 258KB 중 25KB(**9.7%**)만 미사용, `fortune-ui-home.css` 는 이미 `build-fortune-ui-critical.mjs` 가 만든 크리티컬 서브셋이다.
+- 🔴 **`app-logo-512.webp` 기각 — 손대면 안 된다.** ⑴ `index.html:609-616` 정책 주석이 "이 로고에는 리사이즈(`/cdn-cgi/image/`)를 쓰지 않는다"고 못 박는다(URL 이 한 글자라도 갈리면 캐시키가 쪼개져 결제 오버레이가 콜드캐시가 된다). ⑵ `verify:portone-single-payment`(:846·:852)와 `verify:paid-gate-ui`(:182·:204)가 리터럴 URL 을 단언한다. ⑶ **"63KB 전송 / 60KB 낭비" 자체가 로컬 하네스 산물이다** — 실파일은 **31,916B** 이고, `measure-home-lighthouse.mjs` 의 정적 서버가 `cache-control: no-store` 를 주는 탓에 `<img>` 와 CSS `background-image` 가 같은 파일을 두 번 받아 한 줄로 합산된다. 프로덕션은 `public/_headers:348` `/icons/*` 가 `max-age=604800` 이다.
+
 **후보 레버**
 1. ~~PR-A(강제 동기 레이아웃 2곳)~~ — 위 실측으로 기각. 그 자리의 실제 레버였던 진입 시 홈 펼치기는 **PR-3 에서 처리했다.**
-2. 렌더 블로킹 CSS 정리 — FCP 600ms, 미사용 CSS 67KB.
-3. `app-logo-512.webp` 크기 정정 — 60KB, 위험도 최저.
+2. ~~렌더 블로킹 CSS 정리 — FCP 600ms, 미사용 CSS 67KB~~ · ~~`app-logo-512.webp` 크기 정정~~ — **PR-4 에서 전부 판정했다**(위 절). 남은 것은 없다.
+3. 🔴 **인라인 `<style>` 645.8KB(문서의 52.4%)** — 축 3 에 남은 유일한 큰 레버. 미착수.
 4. DOM 4,436개 축소는 축 1(섹션 정리)과 같은 작업이다.
 
 **기각한 것**
@@ -215,7 +235,7 @@ npm run measure:home-score
 | 1 | 축 4 배선 — 🔴 **보류·재설계**. 모바일 마스터 게이트 때문에 선택자만으로는 0줄 변경이다(축 4 절 1번의 ⓐⓑⓒ 결정 필요) | 4: 13→? |
 | ~~2~~ | ~~축 2 가림 2건 + 첫 화면 서비스 링크 + `/fusion-fortune` 레지스트리 등재~~ **완료** | 2: 26.1→**80.8** |
 | ~~3~~ | ~~홈 INP (기존 PR-A)~~ **완료 — 명세와 다른 수정**. 진입 시 홈 펼치기를 늦춰 탭 지연 760→280ms(로컬). 🔴 축 3 점수는 프로덕션 INP 재측정 전까지 그대로 37.8 이다 | 3: 38→**재측정 필요** |
-| 4 | 렌더 블로킹 CSS + `app-logo-512.webp` 크기 | 3: 55→63 |
+| ~~4~~ | ~~렌더 블로킹 CSS + `app-logo-512.webp` 크기~~ **완료 — 레버 3개 중 2개 기각**. `fortune-gateway.css` 만 논블로킹으로 뺐고 FCP 는 −3ms(노이즈). 🔴 남은 레버는 인라인 `<style>` 645.8KB | 3: 변화 없음 |
 | 5 | 축 1 접기 — 첫 3화면 밖 섹션 아코디언 (삭제·통합 0건) | 1: 32→67 |
 | 6 | 축 4 문안 27개 + en 1벌 → 10개 로케일 복사 | 4: 49→96 |
 
@@ -249,5 +269,7 @@ npm run measure:home-score                       # 표 + JSON(%TEMP%/code-destin
 
 PR-2 에서 돌린 것: `lint`(경고만, 기존) · `typecheck`(clean) · `verify:home-service-registry`(레지스트리 44개 OK) · `verify:hero-contrast` · `verify:mobile-detail-nonintrusive` · `verify:i18n-public-parity`/`i18n-ko-coverage`/`locale-main-sync`/`i18n-no-hardcoded-korean` · `verify:payment-freeze` · `verify:guard-wiring` · `build:cf`(`[adsense-readiness] OK`) · `test:node`·`jest`(615/615) · `measure:home-score`(축2 80.8 / 총점 41.4) · `perf:home -- --runs=3 --preset=mobile`(**CLS 0.00082**, 기준선 0.001 이하).
 🔴 `verify:public-mirror-fresh` 는 윈도우에서 `.ignore` 개행 하나로 헛실패한다(내용 diff 0줄) — 판정은 CI 를 믿는다.
+
+PR-4 에서 돌린 것: `lint`(경고만, 기존) · `typecheck`(clean) · `verify:paid-gate-ui` · `verify:portone-single-payment` · `verify:payment-freeze` · `verify:hero-firstpaint-lock` · `verify:hero-contrast` · `verify:guard-wiring` · `verify:mobile-cdp-smoke`(**손으로** — CI 미배선) · `build:cf`(`[adsense-readiness] OK`) · `test:node`(615/615) · `test:jest`(191스위트 / 2,179 테스트) · `perf:home -- --runs=5` A/B 2회 · `measure:home-score`.
 
 PR-0 에서 돌린 것: `npx eslint scripts/measure-home-score.mjs`(0) · `npm run verify:guard-wiring`(OK — `measure:*` 라 배선 의무 없음) · `npm run measure:home-score`(위 기준선). 🔴 축 3 은 이 하네스가 재지 않으므로 성능 PR 의 판정은 `perf:home` 을 먼저 돌린 뒤에만 유효하고, **CLS 는 프로덕션에서만 유효하다**(스테이징은 광고발 CLS 를 숨긴다).
