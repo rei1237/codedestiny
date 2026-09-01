@@ -37,6 +37,10 @@
 **전부 유형 = 인앱 상품(one-time).** 이용권도 자동갱신이 없어 정기 결제(subs)가 **아니다**.
 **상품 ID는 등록 후 변경 불가** — 아래 그대로 입력할 것.
 
+🔴 **지금 살아 있는 SKU 는 10개**(콘텐츠 티어 6 + 이용권 4)다 — `npm run verify:play-console-products`
+출력이 정본이다. 제목·2-1 절의 "17개/13개"는 2026-08-12 정비 **전** 개수이며, 폐기한 8개는 ID 재사용
+금지라 아래 표에 남겨 두지 않는다. Play Console 에서 10개만 보이는 것이 정상이다.
+
 소모성/비소모성은 Play Console에서 고르는 항목이 아니다. 앱이 `consume()` 호출 여부로 결정한다(회당 결제만 소비).
 
 ### 2-1. 콘텐츠 티어 13개 — **단건 결제**의 가격대 그릇
@@ -60,8 +64,6 @@
 | `cd_content_tier_06` | `10000` | 운세 콘텐츠 10,000원 | 선택하신 운세·상담 기능 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다. |
 | `cd_content_tier_09` | `20000` | 운세 콘텐츠 20,000원 | 선택하신 궁합·심화 상담 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다. |
 | `cd_content_tier_10` | `30000` | AI 상담 30,000원 | 선택하신 AI 운세 상담 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다. |
-| `cd_content_tier_11` | `39000` | 프리미엄 해금 39,000원 | 선택하신 프리미엄 운세 묶음을 영구 해금하는 단건 결제입니다. |
-| `cd_content_tier_13` | `70000` | 프리미엄 전체 해금 70,000원 | 선택하신 프리미엄 전체 묶음을 영구 해금하는 단건 결제입니다. |
 | `cd_content_tier_14` | `7000` | 운세 콘텐츠 7,000원 | 선택하신 심화 운세 기능 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다. |
 
 > **2026-08-12 가격 티어 정비로 6개 SKU(`tier_03`·`04`·`05`·`07`·`08`·`12`)가 판매 중단됐다.**
@@ -69,10 +71,17 @@
 > 비활성화 절차와 기존 구매자 영향은 [docs/pricing/PLAY_CONSOLE_TASKS.md](pricing/PLAY_CONSOLE_TASKS.md) 참고.
 > 🔴 폐기한 productId 는 **재사용 금지** — Play 는 상품 ID 를 영구 점유한다.
 >
-> **2026-08-27 — `cd_content_tier_14`(₩7,000 / 70코인) 1개가 새로 필요하다(미등록).**
+> **2026-08-27 — `cd_content_tier_14`(₩7,000 / 70코인) 1개가 새로 필요했고, 2026-09-01 Play Console 등록을 마쳤다**(사용자 확인).
 > 타로 오라클 상담을 카드 수 구간 4단계로 나누며 웹 ₩7,000 가격 포인트가 생겼다.
 > 같은 코인가를 쓰던 `cd_content_tier_04` 는 폐기된 ID 라 되살리지 않고 새 번호를 썼다.
 > 등록 절차는 [docs/pricing/PLAY_CONSOLE_TASKS.md](pricing/PLAY_CONSOLE_TASKS.md) 3절.
+>
+> 🔴 **2026-09-01 — `cd_content_tier_11`(₩39,000)·`cd_content_tier_13`(₩70,000) 2개를 폐기했다.**
+> 이 둘은 "전체 해금형 번들" 5종(`unlock.all_paid_saju` · `premium_astrology` · `premium_sukuyo` ·
+> `premium_veda` · `premium_naming`) 전용 가격 그릇이었는데, **그 5종을 결제로 여는 화면이 하나도 없었다**
+> (2026-09-01 전수 `git grep` — 클라이언트에서 이 featureKey 로 결제를 시작하는 지점 0건, `allPaidSaju` 는
+> 보유자 별칭 표에만 존재). 레지스트리에서 5종을 지우면서 두 티어도 함께 지웠다.
+> Play Console 쪽 처리(판매 중단, 삭제 금지)는 [docs/pricing/PLAY_CONSOLE_TASKS.md](pricing/PLAY_CONSOLE_TASKS.md) 1절.
 
 **각 티어가 실제로 커버하는 기능** (레지스트리 실측 — 참고용, Play Console 입력 불필요)
 
@@ -84,8 +93,6 @@
 | `cd_content_tier_06` | 10,000 | 10,000 | 50 | tarot-year-fortune, fortune-tea-house-saju-consultation, ziwei_love_deep |
 | `cd_content_tier_09` | 20,000 | 20,000 | 10 | cosmic-soul-meditation, life-book-ai-consultation, master-love-codex |
 | `cd_content_tier_10` | 30,000 | 30,000 | 18 | vedic-ai-consultation, karma-destiny-ai-consultation, fusion-fortune-consultation |
-| `cd_content_tier_11` | 39,000 | 39,000 | 3 | unlock.premium_astrology / _sukuyo / _veda |
-| `cd_content_tier_13` | 70,000 | 70,000 | 2 | unlock.all_paid_saju, unlock.premium_naming |
 
 ### 2-2. 이용권 4개
 

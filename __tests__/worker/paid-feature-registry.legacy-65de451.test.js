@@ -15,6 +15,9 @@ beforeAll(async () => {
  * 개정 이력:
  *  · 2026-08-23 unlock.flower_fc 200 → 100 (운명의 꽃 카드 4장을 1장으로 합치며 전체 해금 1만원).
  *    worker/lib/paid-feature-registry.js 의 같은 이름 상수와 항상 짝으로 고친다.
+ *  · 2026-09-01 번들 해금 5종 삭제 — unlock.all_paid_saju · premium_astrology · premium_sukuyo ·
+ *    premium_veda · premium_naming. 어느 화면도 이 키로 결제를 시작하지 않아 Play SKU
+ *    cd_content_tier_11(₩39,000)·cd_content_tier_13(₩70,000) 만 남기고 있었다.
  */
 const LEGACY_UNLOCK_PRODUCTS_65DE451 = Object.freeze({
   "unlock.section_daewun": { featureKey: "section_daewun", cost: 50, reason: "Section daewun unlock", forceDeduct: true },
@@ -22,7 +25,6 @@ const LEGACY_UNLOCK_PRODUCTS_65DE451 = Object.freeze({
   "unlock.section_compat": { featureKey: "section_compat", cost: 50, reason: "Section compat unlock", forceDeduct: true },
   "unlock.flower_fc": { featureKey: "flower-fc", cost: 100, reason: "Destiny flower atelier full unlock", forceDeduct: true },
   "unlock.olympus_fc": { featureKey: "olympus-fc", cost: 100, reason: "Olympus profile unlock", forceDeduct: true },
-  "unlock.all_paid_saju": { featureKey: "allPaidSaju", cost: 700, reason: "All paid saju unlock", forceDeduct: true },
   "unlock.rpg_character": { featureKey: "rpgCharacter", cost: 30, reason: "RPG character unlock", forceDeduct: true },
   "unlock.travel_destiny": { featureKey: "travelDestiny", cost: 50, reason: "Travel destiny unlock", forceDeduct: true },
   "unlock.health_report": { featureKey: "healthReport", cost: 50, reason: "Health report unlock", forceDeduct: true },
@@ -30,10 +32,6 @@ const LEGACY_UNLOCK_PRODUCTS_65DE451 = Object.freeze({
   "unlock.secret_house_episodes": { featureKey: "secretHouseEpisodes", cost: 50, reason: "Secret house episodes unlock", forceDeduct: true },
   "unlock.premium_divination_pack": { featureKey: "premiumDivinationPack", cost: 300, reason: "Premium divination pack unlock", forceDeduct: true },
   "unlock.premium_ziwei": { featureKey: "premium-ziwei", cost: 200, reason: "Premium ziwei unlock", forceDeduct: true },
-  "unlock.premium_astrology": { featureKey: "premium-astrology", cost: 390, reason: "Premium astrology unlock", forceDeduct: true },
-  "unlock.premium_sukuyo": { featureKey: "premium-sukuyo", cost: 390, reason: "Premium sukuyo unlock", forceDeduct: true },
-  "unlock.premium_veda": { featureKey: "premium-veda", cost: 390, reason: "Premium veda unlock", forceDeduct: true },
-  "unlock.premium_naming": { featureKey: "premium-naming", cost: 700, reason: "Premium naming unlock", forceDeduct: true },
 });
 
 describe("Paid feature registry legacy baseline (65de451)", () => {

@@ -144,16 +144,16 @@ describe("catalog: 가격 정본과 어긋나지 않는다", () => {
   });
 
   test("해금 상품은 productId 로도 featureKey 로도 같은 답이 나온다", () => {
-    const byId = resolveProduct({ productId: "unlock.premium_naming" });
-    const byKey = resolveProduct({ featureKey: "premium-naming" });
-    expect(byId.priceCoins).toBe(700);
-    expect(byId.priceKRW).toBe(70000); // KRW_PER_COIN = 100
+    const byId = resolveProduct({ productId: "unlock.premium_ziwei" });
+    const byKey = resolveProduct({ featureKey: "premium-ziwei" });
+    expect(byId.priceCoins).toBe(200);
+    expect(byId.priceKRW).toBe(20000); // KRW_PER_COIN = 100
     expect(byKey.productId).toBe(byId.productId);
     expect(byKey.priceKRW).toBe(byId.priceKRW);
   });
 
   test("별칭 featureKey 도 정규화된다", () => {
-    expect(resolveProduct({ featureKey: "premium-sukyo" }).featureKey).toBe("premium-sukuyo");
+    expect(resolveProduct({ featureKey: "openSajuGuardianPage" }).featureKey).toBe("saju-guardian-unlock");
   });
 
   test("없는 상품과 가격 0 인 항목은 PRODUCT_NOT_FOUND", () => {
@@ -189,7 +189,7 @@ describe("catalog: 이용권 제외 판정이 기존 billing.js 와 동일하다
   });
 
   test("제외 대상이 아닌 기능은 양쪽 모두 false", () => {
-    for (const featureKey of ["master-love-codex", "premium-naming", "ziwei-island-deep-report"]) {
+    for (const featureKey of ["master-love-codex", "premium-ziwei", "ziwei-island-deep-report"]) {
       expect(isPassExcludedPricing({ featureKey })).toBe(false);
       expect(resolveProduct({ featureKey }).passExcluded).toBe(false);
     }
