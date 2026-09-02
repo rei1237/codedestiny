@@ -5964,7 +5964,12 @@
       "kzgth9gl": "확인된 정보와 현재 질문의 결을 중심으로 읽었습니다.",
       "kzpuejo8": "7일 회복 루틴",
       "kzqvnuoc": "현재 상황에서의 의미",
-      "kzr8vqho": "입력된 출생정보 안에서 보이는 흐름만 읽습니다."
+      "kzr8vqho": "입력된 출생정보 안에서 보이는 흐름만 읽습니다.",
+      "pdfButton": "PDF 저장",
+      "pdfButtonBusy": "PDF 만드는 중…",
+      "pdfSaved": "상담 결과를 PDF로 저장했어요.",
+      "pdfFailed": "PDF 저장에 실패했어요. 잠시 후 다시 시도해 주세요.",
+      "pdfFileName": "운명의-찻집-{title}-{date}.pdf"
     },
     "fortuneTeaHouseDebugPanel": {
       "k1lcnd8v": "있음",

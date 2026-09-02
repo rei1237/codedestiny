@@ -1,0 +1,73 @@
+{
+  "_comment": "운명의 찻집 결과 시트의 PDF 저장 버튼 5키. 이미 결제가 끝난 상담 결과를 그대로 내려받는 무료 부가기능이라 가격·결제 문구를 넣지 않는다. pdfFileName 의 {title}/{date} 는 기존 downloadFileName 과 같은 자리표시자다.",
+  "fortuneTeaHouse.resultSheet.pdfButton": {
+    "ko": "PDF 저장",
+    "en": "Save as PDF",
+    "ja": "PDFで保存",
+    "zh-CN": "保存为 PDF",
+    "zh-TW": "儲存為 PDF",
+    "vi": "Save as PDF",
+    "hi": "Save as PDF",
+    "es": "Save as PDF",
+    "fr": "Save as PDF",
+    "de": "Save as PDF",
+    "nl": "Save as PDF",
+    "ms": "Save as PDF"
+  },
+  "fortuneTeaHouse.resultSheet.pdfButtonBusy": {
+    "ko": "PDF 만드는 중…",
+    "en": "Building your PDF…",
+    "ja": "PDFを作成中…",
+    "zh-CN": "正在生成 PDF…",
+    "zh-TW": "正在製作 PDF…",
+    "vi": "Building your PDF…",
+    "hi": "Building your PDF…",
+    "es": "Building your PDF…",
+    "fr": "Building your PDF…",
+    "de": "Building your PDF…",
+    "nl": "Building your PDF…",
+    "ms": "Building your PDF…"
+  },
+  "fortuneTeaHouse.resultSheet.pdfSaved": {
+    "ko": "상담 결과를 PDF로 저장했어요.",
+    "en": "Saved the reading as a PDF.",
+    "ja": "相談結果をPDFで保存しました。",
+    "zh-CN": "已将咨询结果保存为 PDF。",
+    "zh-TW": "已將諮詢結果儲存為 PDF。",
+    "vi": "Saved the reading as a PDF.",
+    "hi": "Saved the reading as a PDF.",
+    "es": "Saved the reading as a PDF.",
+    "fr": "Saved the reading as a PDF.",
+    "de": "Saved the reading as a PDF.",
+    "nl": "Saved the reading as a PDF.",
+    "ms": "Saved the reading as a PDF."
+  },
+  "fortuneTeaHouse.resultSheet.pdfFailed": {
+    "ko": "PDF 저장에 실패했어요. 잠시 후 다시 시도해 주세요.",
+    "en": "We couldn't save the PDF. Please try again in a moment.",
+    "ja": "PDFの保存に失敗しました。しばらくしてからもう一度お試しください。",
+    "zh-CN": "PDF 保存失败，请稍后再试。",
+    "zh-TW": "PDF 儲存失敗，請稍後再試。",
+    "vi": "We couldn't save the PDF. Please try again in a moment.",
+    "hi": "We couldn't save the PDF. Please try again in a moment.",
+    "es": "We couldn't save the PDF. Please try again in a moment.",
+    "fr": "We couldn't save the PDF. Please try again in a moment.",
+    "de": "We couldn't save the PDF. Please try again in a moment.",
+    "nl": "We couldn't save the PDF. Please try again in a moment.",
+    "ms": "We couldn't save the PDF. Please try again in a moment."
+  },
+  "fortuneTeaHouse.resultSheet.pdfFileName": {
+    "ko": "운명의-찻집-{title}-{date}.pdf",
+    "en": "destiny-tea-house-{title}-{date}.pdf",
+    "ja": "運命の茶館-{title}-{date}.pdf",
+    "zh-CN": "运命茶馆-{title}-{date}.pdf",
+    "zh-TW": "運命茶館-{title}-{date}.pdf",
+    "vi": "destiny-tea-house-{title}-{date}.pdf",
+    "hi": "destiny-tea-house-{title}-{date}.pdf",
+    "es": "destiny-tea-house-{title}-{date}.pdf",
+    "fr": "destiny-tea-house-{title}-{date}.pdf",
+    "de": "destiny-tea-house-{title}-{date}.pdf",
+    "nl": "destiny-tea-house-{title}-{date}.pdf",
+    "ms": "destiny-tea-house-{title}-{date}.pdf"
+  }
+}

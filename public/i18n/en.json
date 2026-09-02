@@ -13085,7 +13085,12 @@
       "kzgth9gl": "Read around the confirmed details and the grain of your present question.",
       "kzpuejo8": "7-day recovery routine",
       "kzqvnuoc": "Meaning in your present situation",
-      "kzr8vqho": "We read only the flow visible within the birth details you entered."
+      "kzr8vqho": "We read only the flow visible within the birth details you entered.",
+      "pdfButton": "Save as PDF",
+      "pdfButtonBusy": "Building your PDF…",
+      "pdfSaved": "Saved the reading as a PDF.",
+      "pdfFailed": "We couldn't save the PDF. Please try again in a moment.",
+      "pdfFileName": "destiny-tea-house-{title}-{date}.pdf"
     },
     "fortuneTeaHouseDebugPanel": {
       "k1lcnd8v": "Yes",
