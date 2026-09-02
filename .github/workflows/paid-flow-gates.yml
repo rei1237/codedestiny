@@ -196,6 +196,10 @@ on:
       - "worker/lib/gemini.js"
       - "worker/lib/gemini-client.js"
       - "worker/lib/structured-consultation.js"
+      # 🔴 CMS 모델 파라미터 오버라이드의 클램프(verify:llm-generation-resilience 가 이 파일을 열고
+      #    import 해서 밴드를 단언한다). 클램프가 풀리면 관리자 오타 한 번이 유료 생성을 잘린 결과나
+      #    타임아웃으로 만드는데, 트리거에 없으면 이 파일만 고친 PR 에서 게이트가 안 깨어난다.
+      - "worker/lib/cms-prompts.js"
       - "worker/lib/llm-cache-store.js"
       - "lib/llm-client.ts"
       # 🔴 verify:vedic-ai-flow 가 이 파일들을 열어 client contract(문구·aria-label·API 경로)를

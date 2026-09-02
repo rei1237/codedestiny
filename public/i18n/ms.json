@@ -4582,6 +4582,7 @@
     "priceFree": "Free",
     "priceLoading": "Checking the price",
     "priceUnknown": "Price needs checking",
+    "priceAriaLabel": "Price",
     "accessFree": "Free feature",
     "accessPaid": "Returns to the same screen after payment",
     "navPending": "Opening...",
@@ -6279,7 +6280,7 @@
         "k16bs": "Utama",
         "kwp0s": "Saya",
         "kxro3": "Konsultasi",
-        "kxvio": "Empat Tiang",
+        "kxvio": "4 Tiang",
         "k16cq4to": "Semua",
         "ku6gdz": "Pas",
         "kb86wy0": {

@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-03
-next: "E4 = PR #1507 머지 대기(사용자). 그 다음 새 세션·새 워크트리에서 PR-C(중복 검출) → PR-B(클램프 배선). i18n 11파일을 다시 만지는 PR-5·E3·레거시 D 저작은 서로 비병행이므로 하나씩."
+next: "PR-B = PR #1512 머지 대기(사용자, CI 8종 초록). 그 다음 새 세션·새 워크트리에서 W3 = E5(PaidValueSection+nakshatra) → E6(island). i18n 11파일을 다시 만지는 PR-5·E3·레거시 D 저작은 서로 비병행이므로 하나씩."
 ---
 
 # 전문가 상담 품질·진입 UX·PDF 전면 제공 (13 PR 계획)
@@ -13,13 +13,13 @@ next: "E4 = PR #1507 머지 대기(사용자). 그 다음 새 세션·새 워크
 ## 지금 상태
 
 - 확정 계획 정본: `C:\Users\user\.claude\plans\goofy-leaping-curry.md` (13 PR + 후속 3, 축1 PDF / 축2 진입 UX / 축3 AI 품질). 사용자 승인 완료.
-- 축1 PDF 4건 · PR-A · W1(E1) · E2 · 축4 PR-6 머지 완료(번호는 `gh pr list --state merged`).
-- **E4(fusion 정본화) = PR #1507.** 머지는 사용자. 열린 PR 은 이것 하나뿐이라 순서 제약 없음.
-- 나머지 5 PR 전부 미착수.
+- 축1 PDF 4건 · PR-A · W1(E1) · E2 · 축4 PR-6 · W2 의 E4·PR-C 머지 완료(번호는 `gh pr list --state merged`).
+- **PR-B(클램프 배선) = PR #1512.** CI 8종 초록, 머지는 사용자. 내 열린 PR 은 이것 하나뿐이라 순서 제약 없음.
+- 나머지 4 PR(E5·E6·PR-5·E3) 전부 미착수.
 
 ## 남은 작업
 
-- [ ] W2: ~~E4(fusion 정본화)~~ = #1507 대기 · PR-C(중복 검출) · PR-B(클램프 배선)
+- [ ] W2: ~~E4 #1507~~ · ~~PR-C #1510~~ 머지됨 · PR-B = #1512 대기
 - [ ] W3: E5(PaidValueSection+nakshatra) → E6(island)
 - [ ] W4: PR-5(셸 saju AI PDF, i18n 11파일) → E3(잔재 키 청소, 백로그)
 - [ ] W5(후속): PR-F(pdf.save→deliverPdf 앱 분기, 실기기 검증 필수) · PR-B2
@@ -28,6 +28,7 @@ next: "E4 = PR #1507 머지 대기(사용자). 그 다음 새 세션·새 워크
 - [ ] PR-3·PR-4 브라우저 실측 — PR-4 는 **미해금 계정에 버튼이 아예 없는 것**과 해금 계정에서 커버+요약+7챕터가 전부 실리는 것 둘 다 볼 것.
 - [ ] PR-A 관리자 화면 실측 — `/admin/prompts` 에서 초융합을 골라 그룹 4개가 셀렉트에 뜨고 그룹마다 프롬프트가 다른지. 로컬에선 좌표를 넣으면 Swiss ephemeris URL 이 없어 `partial` 로 내려오는데, 프로덕션 env 에는 그 값이 있으므로 여기서만 확인 가능하다.
 - [ ] E4 브라우저 실측 — 머지 후 스테이징 `/fusion-fortune` 결제 전 화면에서 "미리 밝혀 두는 것" 4줄과 비교표가 셸(홈 상세 시트)과 **같은 문장**인지. 로컬은 정적 프리렌더까지만 확인했다(미검증).
+- [ ] PR-B 후속 관측(미검증) — astrology/vedic/ziwei 3라우트는 30일 TTL `deterministic` LLM 캐시를 쓴다. CMS 로 온도·토큰만 바꾸고 프롬프트가 그대로면 캐시가 옛 결과를 돌려주므로, 관리자 변경을 실제로 반영시키려면 `keyExtra` 도 함께 올려야 한다. 아직 배선하지 않았다(PR-B2 후보).
 - 판정 기준: 각 PR 은 계획 문서의 해당 절 검증 목록 전부 통과 + 사용자 머지.
 
 ## 직렬 제약 (이것만 지키면 순서 자유)
@@ -42,7 +43,7 @@ next: "E4 = PR #1507 머지 대기(사용자). 그 다음 새 세션·새 워크
 
 셸 카피 파서·`safeKey`·상속 해소의 정본은 `scripts/lib/feature-marketing-extract.mjs`(가드 2개 + 생성기가 공유). 생성물은 `lib/marketing/feature-marketing-copy.generated.json`.
 
-**PR-C 진입점 실측(2026-09-03, `worker/lib/fusion-fortune.js`).** 계획서가 말한 자리는 전부 여기에 있다 — :720 `runGroup(group,{attempts,timeoutMs,extraInstruction,progress})` · :732 `buildFusionSectionGroupPrompt` · :770 1차 병렬 `Promise.allSettled(FUSION_SECTION_GROUP_SPECS.map(...))` · :782 미달 그룹 선별 `shortGroups`(`countFusionGroupChars < targetChars * FUSION_GROUP_RETRY_RATIO`) · :783 `retryTargets = [...failedGroups, ...shortGroups]` · :792 repair 웨이브의 `extraInstruction: buildFusionShortfallInstruction(...)`. 중복 조건은 :782 의 선별식에 더하고 digest 는 :792 에만 실는다. 🔴 :814-816 이 "품질 미달이어도 모델이 실제로 쓴 본문을 우선하고 안전 위반일 때만 갈아탄다" 이므로 **중복을 배달 차단 사유로 승격하지 말 것** — 기록 자리는 반환 객체의 `qualityTier`/`qualityIssues`/`qualityNotice` 다.
+CMS 모델 파라미터 클램프 정본은 `worker/lib/cms-prompts.js` 의 `clampPromptModelConfig`/`cmsPromptModelConfig` 다. 라우트는 `cmsPromptConfig` 를 직접 부르면 안 되고(가드가 문다), 밴드는 `[tokensRequiredForChars(그 호출의 계약 최소 분량), 코드 기본값]`. 온도는 [0, 1.2].
 
 ## 셸 카피 번역 축 (PR-6 #1503 에서 닫은 것 · 남은 것)
 

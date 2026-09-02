@@ -91,37 +91,44 @@ const RISK_CHECKS = [
  *    실패하고, 여기 있는데 스캔에서 안 나오면 낡은 항목으로 보고 역시 실패한다.
  */
 const ACCEPTED = new Map([
-  // --- 결제창: 확인된 P0 (PR-2 에서 걷어낸다) ---
-  [
-    ".cd-direct-payment-badge|flex-rigid",
-    {
-      why:
-        "TODO(P0): PR-2 에서 제거. 배지와 추천 리본이 둘 다 flex:0 0 auto 이고 부모 " +
-        ".cd-direct-payment-cardhead 에 flex-wrap 이 없어, 등급 접두가 붙는 es 에서 헤드 폭을 " +
-        "넘긴다. 다이얼로그가 overflow-x:hidden 이라 스크롤바 없이 조용히 잘린다.",
-    },
-  ],
+  // --- 결제창: 전제가 살아있는 동안만 유효한 예외 ---
   [
     ".cd-direct-payment-recommend|flex-rigid",
-    { why: "TODO(P0): PR-2 에서 제거. 위 .cd-direct-payment-badge 와 같은 행의 반대편." },
+    {
+      why:
+        "추천 리본 — 짧은 고정 문구이고, 부모 .cd-direct-payment-cardhead 가 flex-wrap:wrap 이라 " +
+        "한 줄에 못 들어가면 다음 줄로 내려간다(2026-09-03 PR-2). 축소를 허용하면 " +
+        "border-radius:999px 모서리가 글자를 먹으므로 flex:0 0 auto 를 유지한다. 같은 행의 " +
+        "배지는 flex:0 1 auto 로 바꿔 축소를 허용했다(min-width 는 auto=min-content 로 둔다).",
+      needs: {
+        file: "js/core/checkout-entry.js",
+        test: /.cd-direct-payment-option .cd-direct-payment-cardhead{[^}]*flex-wrap:wrap/,
+        note: ".cd-direct-payment-cardhead 의 flex-wrap:wrap 이 사라졌다 — 리본이 다시 헤드를 넘긴다",
+      },
+    },
   ],
 
-  // --- 탭바: 확인된 P0 (PR-2 에서 걷어낸다) ---
+  // --- 탭바: nowrap 을 유지하고 문자열 길이로 푼 자리 ---
   [
     ".cd-mobile-bottom-nav__item|nowrap",
     {
       why:
-        "TODO(P0): PR-2 에서 제거. nowrap 인데 text-overflow 가 없어 말줄임 없이 하드 클립된다. " +
-        "라벨 전용 클래스가 없어 텍스트가 항목 직속 노드다.",
+        "탭 칸은 58px 고정이고 두 줄이 들어갈 높이가 없다 — nowrap 을 유지하고 라벨 문자열 자체를 " +
+        "칸에 맞춘다(규칙 B 가 사전 쪽에서 폭을 지킨다). 🔴 여기엔 App Router 쪽과 달리 " +
+        "text-overflow 가 없어, 예산이 뚫리면 말줄임 없이 하드 클립된다 — 규칙 B 를 느슨하게 만들지 말 것.",
     },
   ],
   [
     ".cd-mnav__label|nowrap",
-    { why: "TODO(P0): PR-2 에서 제거. 5개 로케일에서 의미가 잘린다(규칙 B 가 폭으로도 잡는다)." },
+    {
+      why:
+        "위 셸 탭바와 같은 판단 — App Router 탭 칸도 58px 다(2026-09-03 dist 실측). 다만 이쪽 " +
+        "글꼴이 11px 로 셸(10.36px)보다 커서 같은 문자열이 먼저 잘린다.",
+    },
   ],
   [
     ".cd-mnav__label|ellipsis",
-    { why: "TODO(P0): PR-2 에서 제거. 위와 같은 행 — 말줄임 자체가 아니라 예산 초과가 원인이다." },
+    { why: "예산이 뚫렸을 때의 안전망 — 하드 클립보다 낫다. 안 뚫리게 하는 것은 규칙 B 다." },
   ],
 
   // --- 검토 대기 (P1) ---
@@ -372,9 +379,16 @@ const widthPx = (text, fontPx) => Math.round(widthEm(text) * fontPx * 10) / 10;
  * 임계는 칸 58px 에서 2px 를 뺀 56px 로 둔다: 모델의 최대 과소평가가 −2.9px 이라 칸값을
  * 그대로 쓰면 경계에서 놓칠 수 있다. 이 임계에서 60표본 중 적발 1건(ms "Empat Tiang",
  * 실측 58.84px)이고 그 1건이 실제로 유일하게 잘리는 라벨이다.
- * 🔴 이 값은 **셸 탭바** 기준이다. App Router 탭바(.cd-mnav__label, styles/mobile-bottom-nav.css)
- * 는 아직 실측하지 않았다 — 재려면 dist 빌드 후 measure:locale-text-fit 에 App Router 라우트를
- * 준다. 라벨 문자열 자체는 두 탭바가 같은 i18n 키를 쓴다.
+ * 🔴 이 값은 **셸 탭바** 기준이고, 더 빡빡한 쪽은 App Router 탭바다 — 2026-09-03 실측
+ * (dist /points/ 360x800): .cd-mnav__label 의 가용폭도 **58px** 인데 computed font-size 가
+ * **11px** 라 셸(10.36px)보다 6.2% 크게 그려진다. 즉 같은 문자열이 App Router 에서 먼저 잘린다
+ * (같은 측정에서 es "Cuatro Pilares" +11px, fr "Quatre Piliers" +9px, ms "Empat Tiang" +4px
+ * 말줄임. 셸에서 잘리던 것은 ms 하나뿐이었다).
+ * 🔴 그런데도 이 상수를 11px 로 올리지 않는다 — 근사 모델의 오차대(±3.6px)가 칸 폭보다 먼저
+ * 터져서, 실제로 3px 여유를 두고 들어가는 en "Four Pillars"(모델 55.4px, 셸 실측 잉크 51.8px)를
+ * 오탐으로 잡는다. 이 상수는 **사전을 고치는 순간 싸게 거르는 프록시**로 남기고, 이 표면의
+ * 판정 정본은 measure:locale-text-fit 이다:
+ *   npm run build:cf && npm run measure:locale-text-fit -- --routes=/points/ --target=dist --viewports=360x800
  */
 const TAB_LABEL_BUDGET_PX = 56;
 const TAB_LABEL_FONT_PX = 10.36; // 실측 computed font-size (360px 뷰포트)
@@ -410,15 +424,7 @@ const lookup = (dict, key) => key.split(".").reduce((node, part) => (node ? node
  * 근사 모델이라 경계 로케일이 흔들리기 때문이다. 대신 "이 키는 아직 어딘가에서 넘친다"만
  * 예외로 두고, 아무 데서도 안 넘치게 되면 낡은 항목으로 보고 실패시킨다.
  */
-const ACCEPTED_BUDGET = new Map([
-  [
-    "home.nav.saju",
-    "TODO(P0): PR-2 에서 제거. ms \"Empat Tiang\" 이 58px 칸에서 잉크 58.84px 로 잘린다" +
-      "(2026-09-03 실측, measure:locale-text-fit). 같은 키의 de \"Vier Säulen\"(53.1px)·" +
-      "en \"Four Pillars\"(51.8px)·nl \"Vier Pijlers\"(49.3px) 은 들어간다 — 즉 파손 로케일은 " +
-      "ms 하나다. 폰트를 더 줄이는 것은 인체공학 하한 위반이라 불가하므로 짧은 라벨 키가 해법이다.",
-  ],
-]);
+const ACCEPTED_BUDGET = new Map([]);
 
 function checkTabLabelBudgets() {
   const source = read("app/_lib/mobile-tabs.ts");
@@ -501,14 +507,15 @@ function checkCardheadBudget() {
     }
   }
   const over = rows.filter((row) => row.over);
-  // 카드 헤드는 규칙 A 가 이미 구조 결함(flex:0 0 auto 쌍)으로 잡고 있으므로, 여기서는
-  // 폭이 실제로 넘치는지만 보고한다. 넘치면 그 구조 결함이 눈에 보이는 파손이 됐다는 뜻이다.
+  // 2026-09-03(PR-2)부터 헤드는 flex-wrap:wrap 이라 넘쳐도 잘리지 않고 두 줄이 된다. 그래서
+  // 이 예산은 "잘림" 이 아니라 "레이아웃이 한 줄 늘어나는 지점" 을 지킨다 — 카드 높이가 커지면
+  // 목록 전체가 밀리므로 여전히 회귀로 본다.
   for (const row of over) {
     fail(
       "결제 카드 헤드 폭 예산",
       `${row.locale}(${row.label}) 배지+리본 ${row.total}px 가 헤드 예산 ${CARDHEAD_BUDGET_PX}px 를 ` +
-        "넘는다 — .cd-direct-payment-cardhead 에 flex-wrap 을 주고 배지를 flex:1 1 auto;min-width:0 로 " +
-        "바꾸세요(js/core/checkout-entry.js).",
+        "넘는다 — 헤드가 두 줄이 되어 카드가 세로로 커진다. 더 짧은 배지·리본 문구를 쓰거나, " +
+        "그 높이를 감수할 수 있다면 CARDHEAD_BUDGET_PX 를 실측 근거와 함께 올리세요.",
     );
   }
   return rows;
@@ -554,6 +561,6 @@ if (failures.length) {
 const cardheadWorst = cardhead.reduce((max, row) => Math.max(max, row.total), 0);
 console.log(
   `Locale text fit OK — 위험 선언 ${ACCEPTED.size}건 분류 완료(결제 CSS 1 · CSS ${CSS_FILES.length} · ` +
-    `셸 ${SHELL_FILES.length}), 탭 라벨 예산 초과 ${tabOver ? tabOver.size : 0}키(예외 등재됨), ` +
+    `셸 ${SHELL_FILES.length}), 탭 라벨 예산 초과 ${tabOver ? tabOver.size : 0}키(예외 ${ACCEPTED_BUDGET.size}건), ` +
     `카드 헤드 최대 ${cardheadWorst}px / ${CARDHEAD_BUDGET_PX}px, 로케일 ${RUNTIME_LOCALES.length}개.`,
 );

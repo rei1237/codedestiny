@@ -10,7 +10,8 @@ import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
-import { cmsPromptText } from "../lib/cms-prompts.js";
+import { cmsPromptModelConfig, cmsPromptText } from "../lib/cms-prompts.js";
+import { tokensRequiredForChars } from "../lib/llm-budget.js";
 import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { calculateVedicAiChart } from "../lib/vedic-ai-chart.js";
@@ -1301,14 +1302,23 @@ async function generateVedicGroup(env, input, chart, group, context, repairLines
   // 동기 생성이라 엣지가 100초에 요청을 끊는다. clamp 를 걸어야 라우트가 먼저 판정해
   // 짧아진 결과라도 degrade 경로로 전달하고, 생성 실패 기록·선차감 복원이 실행된다.
   const vedicTimeoutMs = clampSyncLlmTimeoutMs(Number(env?.VEDIC_AI_TIMEOUT_MS) || 180000);
+  // CMS 오버라이드는 이 그룹의 계약 하한과 코드 기본값 사이에서만 움직인다(clampPromptModelConfig 주석).
+  const modelConfig = await cmsPromptModelConfig(env, "vedic-ai", {
+    minTokens: tokensRequiredForChars(group.minChars),
+    maxTokens: VEDIC_GROUP_MAX_OUTPUT_TOKENS,
+  });
+  const groupBaseTokens = modelConfig.maxOutputTokens ?? VEDIC_GROUP_MAX_OUTPUT_TOKENS;
   try {
     const result = await callGeminiJsonWithRetry(env, buildGroupPrompt(input, chart, group, repairLines), {
       systemPrompt: await cmsPromptText(env, "vedic-ai", SYSTEM_PROMPT),
       taskType: "fortune",
-      temperature: repairLines.length ? 0.62 : 0.72,
+      // 재작성 웨이브는 온도를 낮춰 부른다 — 오버라이드가 있어도 그 관계는 유지한다.
+      temperature: repairLines.length
+        ? Math.min(modelConfig.temperature ?? 0.72, 0.62)
+        : (modelConfig.temperature ?? 0.72),
       attempts: 2,
-      baseTokens: VEDIC_GROUP_MAX_OUTPUT_TOKENS,
-      capTokens: Math.round(VEDIC_GROUP_MAX_OUTPUT_TOKENS * 1.3),
+      baseTokens: groupBaseTokens,
+      capTokens: Math.round(groupBaseTokens * 1.3),
       responseMimeType: "application/json",
       timeoutMs: vedicTimeoutMs,
       // 그룹 단위 문턱 — 전체 목표가 아니라 이 그룹 목표의 40%.

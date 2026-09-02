@@ -4582,6 +4582,7 @@
     "priceFree": "免费",
     "priceLoading": "正在确认价格",
     "priceUnknown": "需要确认价格",
+    "priceAriaLabel": "使用价格",
     "accessFree": "免费功能",
     "accessPaid": "付款后返回原画面",
     "navPending": "正在打开…",

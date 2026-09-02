@@ -67,7 +67,11 @@ export const MOBILE_TABS: readonly MobileTab[] = [
     label: "사주",
     href: `/?action=${SAJU_TAB_ACTION}`,
     ariaLabel: "내 프로필로 사주 보기",
-    transKey: "home.nav.saju",
+    // 🔴 셸 탭바와 같은 탭 전용 키를 쓴다. home.nav.saju 는 카드·링크용 정식 명칭이라 탭 칸(58px)에
+    // 안 들어간다 — es "Cuatro Pilares" 66.8px, fr "Quatre Piliers" 64.2px, ms "Empat Tiang" 60.3px.
+    // Main 네임스페이스에는 그 자리용 짧은 형(es "4 Pilares")이 이미 저작돼 있고,
+    // verify-mobile-bottom-nav-sync 가 이 네임스페이스에 12자 상한을 건다.
+    transKey: "shell.cdMobileBottomNav.cdMobileBottomNavMain.kxvio",
     ariaTransKey: "shell.cdMobileBottomNav.cdMobileBottomNavMain.kb86wy0.ariaLabel",
     glyph: "命",
     shellAction: SAJU_TAB_ACTION,

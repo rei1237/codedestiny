@@ -994,4 +994,74 @@ for (const [path, expected] of Object.entries(EXPECTED_LLM_CALL_SITES)) {
   );
 }
 
+// ── 6. CMS 모델 파라미터 클램프 배선 ──────────────────
+// 관리자가 CMS 에서 넣은 temperature·maxTokens 를 클램프 없이 실으면 오타 한 번이 유료 생성을 두 방향으로
+// 망가뜨린다 — 토큰을 낮추면 잘린 결과가 정상 결제로 배달되고, 올리면 동기 생성이 엣지 100초를 넘겨
+// 결제만 남고 결과가 없다(worker/lib/cms-prompts.js 의 clampPromptModelConfig 주석).
+// 그래서 라우트는 cmsPromptConfig 를 직접 부르지 않고, 그 호출의 밴드를 넘겨 cmsPromptModelConfig 만 부른다.
+const { clampPromptModelConfig, PROMPT_TEMPERATURE_MAX } = await import("../worker/lib/cms-prompts.js");
+
+// 첫 상담을 CMS 오버라이드로 조율하는 라우트. 배선이 사라지면(오버라이드가 죽으면) 여기서 실패한다.
+const CLAMPED_PROMPT_ROUTES = new Map([
+  ["worker/routes/astrology-ai.js", "astrology-ai"],
+  ["worker/routes/vedic-ai.js", "vedic-ai"],
+  ["worker/routes/ziwei-ai.js", "ziwei-ai"],
+]);
+
+const clampWiredFiles = new Set();
+for (const path of LLM_CALL_FILES) {
+  const source = read(path);
+  // 직접 호출은 클램프를 통째로 건너뛴다 — LLM 을 부르는 파일 어디서든 금지한다.
+  checks += 1;
+  assert(
+    !/(^|[^A-Za-z0-9_.])cmsPromptConfig\s*\(/.test(source),
+    `${path}: cmsPromptConfig 직접 호출 — 클램프를 건너뛴다. `
+    + "cmsPromptModelConfig(env, key, { minTokens, maxTokens }) 를 쓸 것",
+  );
+  for (const match of source.matchAll(/cmsPromptModelConfig\s*\(\s*env\s*,\s*"([^"]+)"/g)) {
+    clampWiredFiles.add(path);
+    const open = source.indexOf("(", match.index);
+    const close = matchBalanced(source, open, "(", ")");
+    const args = close < 0 ? "" : source.slice(open + 1, close);
+    const line = source.slice(0, match.index).split("\n").length;
+    checks += 1;
+    assert(
+      /minTokens\s*:\s*tokensRequiredForChars\(/.test(args) && /maxTokens\s*:/.test(args),
+      `${path}:${line}: cmsPromptModelConfig("${match[1]}") 에 밴드가 없다 — `
+      + "minTokens 는 tokensRequiredForChars(그 호출의 계약 최소 분량), maxTokens 는 그 호출의 코드 기본값이어야 한다",
+    );
+  }
+}
+for (const [path, key] of CLAMPED_PROMPT_ROUTES) {
+  checks += 1;
+  assert(
+    clampWiredFiles.has(path) && read(path).includes(`cmsPromptModelConfig(env, "${key}"`),
+    `${path}: cmsPromptModelConfig(env, "${key}", …) 배선이 없다 — CMS 오버라이드가 클램프 없이 흐르거나 아예 죽는다`,
+  );
+}
+
+// 빈 칸이 값이 되는 함정: Number("") 는 0 이라 "지정 안 함"이 "온도 0"(같은 답만 나오는 생성)이 된다.
+{
+  const promptsSource = read("worker/lib/cms-prompts.js");
+  checks += 1;
+  assert(
+    /function finiteFieldNumber\(/.test(promptsSource) && !/Number\.isFinite\(Number\(fields\./.test(promptsSource),
+    "worker/lib/cms-prompts.js: CMS 숫자 필드를 finiteFieldNumber 로 읽지 않는다 — 빈 칸이 0 으로 읽힌다",
+  );
+  checks += 1;
+  assert(
+    clampPromptModelConfig({ temperature: "" }, { minTokens: 100, maxTokens: 200 }).temperature === undefined,
+    "clampPromptModelConfig: 빈 문자열 온도가 값으로 통과했다",
+  );
+  const band = { minTokens: 1000, maxTokens: 2000 };
+  checks += 1;
+  assert(
+    clampPromptModelConfig({ maxTokens: 999999 }, band).maxOutputTokens === 2000
+    && clampPromptModelConfig({ maxTokens: 1 }, band).maxOutputTokens === 1000
+    && clampPromptModelConfig({ temperature: 9 }, band).temperature === PROMPT_TEMPERATURE_MAX
+    && clampPromptModelConfig({ maxTokens: 1500 }, { minTokens: 3000, maxTokens: 2000 }).maxOutputTokens === undefined,
+    "clampPromptModelConfig: 밴드 밖의 오버라이드가 그대로 통과했다",
+  );
+}
+
 console.log(`${LABEL} ok (${checks} checks)`);

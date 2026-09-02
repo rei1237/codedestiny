@@ -37324,6 +37324,13 @@ html.neo-mode .tile-pvw-overlay.pvw-prem .tile-pvw-cta-sticky,body.neo-mode .til
   max-width:340px !important;
   margin:0 auto !important;
   padding:24px 20px 26px !important;
+  /* 🔴 문구가 긴 로케일에서 카드가 잘렸다 — 부모 #sajuLoaderOverlay 가 overflow:hidden 에
+     세로 중앙정렬이라, 높이 제한도 스크롤도 없으면 카드 위아래가 화면 밖으로 나가 사라진다.
+     React 결제 오버레이(app/components/PaymentProcessingContext.tsx)와 같은 규격을 쓴다.
+     앞줄 vh 는 svh/dvh 를 모르는 구형 웹뷰용 폴백이다(뒷줄이 무효 선언이 되어 버려진다). */
+  max-height:88vh !important;
+  max-height:min(88svh,88dvh) !important;
+  overflow-y:auto !important;
 }
 #sajuLoaderOverlay[data-marker~="honey-fortune-logo-payment-ux-v20260618"] .saju-loader-visual{
   width:150px !important;
