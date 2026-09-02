@@ -178,7 +178,7 @@
 
 .actionLink {
   justify-self: start;
-  min-height: 40px;
+  min-height: 44px;
   padding: 7px 12px;
   border-radius: 999px;
   color: var(--moon-gold);
@@ -310,7 +310,7 @@
 }
 
 .tab {
-  min-height: 40px;
+  min-height: 44px;
   border: 1px solid var(--moon-line-strong);
   border-radius: 999px;
   padding: 7px 14px;
@@ -481,7 +481,7 @@
 
 .errorAction {
   display: inline-flex;
-  min-height: 40px;
+  min-height: 44px;
   align-items: center;
   margin-top: 8px;
   padding: 4px 0;

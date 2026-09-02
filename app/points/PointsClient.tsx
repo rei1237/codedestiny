@@ -2517,7 +2517,7 @@ function MoonlightActivePassCard({
         </div>
 
         <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <a href="/terms/#refund-policy" target="_blank" rel="noreferrer" className="text-sm font-black text-[color:var(--moon-glow)] underline-offset-4 hover:underline">
+          <a href="/terms/#refund-policy" target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center text-sm font-black text-[color:var(--moon-glow)] underline-offset-4 hover:underline">
             환불 요청 안내 보기 →
           </a>
           {isActivePass ? (
@@ -2525,7 +2525,7 @@ function MoonlightActivePassCard({
               type="button"
               disabled={isProcessing}
               onClick={() => onCancelSubscription(Boolean(subscription.cancelAtPeriodEnd))}
-              className="btn-moonlight-ghost inline-flex min-h-10 items-center justify-center rounded-xl px-4 text-sm font-black disabled:cursor-not-allowed disabled:opacity-50"
+              className="btn-moonlight-ghost inline-flex min-h-11 items-center justify-center rounded-xl px-4 text-sm font-black disabled:cursor-not-allowed disabled:opacity-50"
             >
               이용권 상태 확인
             </button>
@@ -2590,7 +2590,7 @@ function MoonlightMonthlyCreditCard({
           <p className="mt-2 max-w-md text-sm font-semibold leading-6 text-[color:var(--moon-mist)]">
             잔량과 사용 내역은 곧 다시 확인할 수 있어요.
           </p>
-          <button type="button" onClick={onRetry} className="btn-moonlight mt-5 inline-flex min-h-10 items-center justify-center rounded-xl px-4 text-sm font-black">
+          <button type="button" onClick={onRetry} className="btn-moonlight mt-5 inline-flex min-h-11 items-center justify-center rounded-xl px-4 text-sm font-black">
             다시 확인하기
           </button>
         </div>
@@ -2738,7 +2738,7 @@ function MoonlightShopPlans({
             type="button"
             disabled={isProcessing}
             onClick={() => onCancelSubscription(Boolean(subscription.cancelAtPeriodEnd))}
-            className="btn-moonlight-ghost inline-flex min-h-10 items-center justify-center rounded-xl px-4 text-sm font-black disabled:cursor-not-allowed disabled:opacity-50"
+            className="btn-moonlight-ghost inline-flex min-h-11 items-center justify-center rounded-xl px-4 text-sm font-black disabled:cursor-not-allowed disabled:opacity-50"
           >
             이용권 상태 확인
           </button>
@@ -2858,7 +2858,7 @@ function MoonlightOrderHistory({
           <p className="mt-2 max-w-md text-sm font-semibold leading-6 text-[color:var(--moon-mist)]">
             결제 기능은 그대로 유지되며, 내역은 잠시 뒤 다시 확인할 수 있어요.
           </p>
-          <button type="button" onClick={onRetry} className="btn-moonlight mt-5 inline-flex min-h-10 items-center justify-center rounded-xl px-4 text-sm font-black">
+          <button type="button" onClick={onRetry} className="btn-moonlight mt-5 inline-flex min-h-11 items-center justify-center rounded-xl px-4 text-sm font-black">
             다시 확인하기
           </button>
         </div>
@@ -2875,7 +2875,7 @@ function MoonlightOrderHistory({
       {historyDeferred ? (
         <div className="moon-empty flex flex-col items-center rounded-[18px] px-4 py-8 text-center">
           <p className="text-base font-black text-white">주문 내역은 별도 화면에서 확인할 수 있어요.</p>
-          <Link href="/points/history" className="mt-3 text-sm font-bold text-[#f3dd9a] hover:text-[#ffe8a3]">이용권 주문 내역</Link>
+          <Link href="/points/history" className="mt-3 inline-flex min-h-11 items-center text-sm font-bold text-[#f3dd9a] hover:text-[#ffe8a3]">이용권 주문 내역</Link>
         </div>
       ) : payments.length === 0 ? (
         <div className="moon-empty flex flex-col items-center rounded-[18px] px-4 py-8 text-center">
@@ -2929,7 +2929,7 @@ function MoonlightOrderHistory({
                 ) : (
                 <div className="mt-3 flex flex-wrap items-center gap-2">
                   {payment.receiptUrl ? (
-                    <a href={payment.receiptUrl} target="_blank" rel="noreferrer" className="btn-moonlight-ghost inline-flex min-h-9 items-center rounded-lg px-3 text-xs font-black">
+                    <a href={payment.receiptUrl} target="_blank" rel="noreferrer" className="btn-moonlight-ghost inline-flex min-h-11 items-center rounded-lg px-3 text-xs font-black">
                       영수증 보기
                     </a>
                   ) : (
@@ -2939,7 +2939,7 @@ function MoonlightOrderHistory({
                     type="button"
                     disabled={!canCancel || cancelingPaymentId === payment.id}
                     onClick={() => requestCancelPayment(payment)}
-                    className="inline-flex min-h-9 items-center rounded-lg border border-rose-300/45 bg-rose-400/10 px-3 text-xs font-black text-rose-100 transition-colors hover:bg-rose-400/16 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="inline-flex min-h-11 items-center rounded-lg border border-rose-300/45 bg-rose-400/10 px-3 text-xs font-black text-rose-100 transition-colors hover:bg-rose-400/16 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {cancelingPaymentId === payment.id ? "취소 처리 중..." : "결제 취소 요청"}
                   </button>
@@ -4738,7 +4738,7 @@ export default function PointsPage() {
               <p className="mt-1 font-bold text-[#f3dd9a]">이용권은 원화 단건 결제로만 활성화할 수 있으며, 월정석으로는 구매할 수 없습니다.</p>
               <p className="mt-1 font-bold text-[#cab8ff]">보유한 월정석은 이용권 구매에 사용할 수 없습니다. 월정석 자체는 구매·충전하거나 현금 환불할 수 없으며, 각 지급분은 지급일로부터 30일간만 유효하고 미사용분은 소멸합니다.</p>
               <p className="mt-1">원화 결제된 30일 이용권은 유료 기능 이용 전 결제일로부터 7일 이내 환불 요청이 가능하며, 이용권 혜택 사용이 시작된 부분은 환불이 제한될 수 있습니다.</p>
-              <a href="/terms/#refund-policy" target="_blank" rel="noreferrer" className="mt-2 inline-flex font-black text-[#cab8ff] underline">
+              <a href="/terms/#refund-policy" target="_blank" rel="noreferrer" className="mt-2 inline-flex min-h-11 items-center font-black text-[#cab8ff] underline">
                 자세한 환불 규정 보기
               </a>
             </div>
