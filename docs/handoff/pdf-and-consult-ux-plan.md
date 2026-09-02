@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-03
-next: "PR-B = PR #1512 머지 대기(사용자, CI 8종 초록). 그 다음 새 세션·새 워크트리에서 W3 = E5(PaidValueSection+nakshatra) → E6(island). i18n 11파일을 다시 만지는 PR-5·E3·레거시 D 저작은 서로 비병행이므로 하나씩."
+next: "E5 = PR #1517 머지 대기(사용자). E6 는 셸 카피 부재로 보류 — 축4 PR-6 저작 목록으로 넘겼다(아래 '남은 것 3'). 그 다음은 새 세션·새 워크트리에서 W4 = PR-5(셸 saju AI PDF) → E3. i18n 11파일을 다시 만지는 PR-5·E3·레거시 D 저작은 서로 비병행이므로 하나씩."
 ---
 
 # 전문가 상담 품질·진입 UX·PDF 전면 제공 (13 PR 계획)
@@ -13,14 +13,15 @@ next: "PR-B = PR #1512 머지 대기(사용자, CI 8종 초록). 그 다음 새 
 ## 지금 상태
 
 - 확정 계획 정본: `C:\Users\user\.claude\plans\goofy-leaping-curry.md` (13 PR + 후속 3, 축1 PDF / 축2 진입 UX / 축3 AI 품질). 사용자 승인 완료.
-- 축1 PDF 4건 · PR-A · W1(E1) · E2 · 축4 PR-6 · W2 의 E4·PR-C 머지 완료(번호는 `gh pr list --state merged`).
-- **PR-B(클램프 배선) = PR #1512.** CI 8종 초록, 머지는 사용자. 내 열린 PR 은 이것 하나뿐이라 순서 제약 없음.
-- 나머지 4 PR(E5·E6·PR-5·E3) 전부 미착수.
+- 축1 PDF 4건 · PR-A · W1(E1) · E2 · 축4 PR-6 · W2(E4·PR-C·PR-B) 머지 완료(번호는 `gh pr list --state merged`).
+- **E5 = PR #1517 머지 대기(사용자).** 공용 원자 `app/components/PaidValueSection.tsx` + 나크샤트라 배선 + `PriceBadge` + CTA 금액을 레지스트리 라벨로. 가드 `__tests__/ui/paid-value-section.static.test.js`(7테스트, 변이 9종 확인). 파일이 겹치는 열린 PR 없음(#1515·#1516 과 무교집합) → 순서 제약 없음.
+- **E6 보류** — 카피 부재. 아래 '남은 것 3'.
+- 나머지 2 PR(PR-5·E3) 미착수.
 
 ## 남은 작업
 
-- [ ] W2: ~~E4 #1507~~ · ~~PR-C #1510~~ 머지됨 · PR-B = #1512 대기
-- [ ] W3: E5(PaidValueSection+nakshatra) → E6(island)
+- [x] W2: ~~E4 #1507 · PR-C #1510 · PR-B #1512~~ 전부 머지됨
+- [ ] W3: E5 = **#1517 대기** · E6 = **보류**(카피 부재, '남은 것 3' 으로 이관)
 - [ ] W4: PR-5(셸 saju AI PDF, i18n 11파일) → E3(잔재 키 청소, 백로그)
 - [ ] W5(후속): PR-F(pdf.save→deliverPdf 앱 분기, 실기기 검증 필수) · PR-B2
 - [ ] PR-1 브라우저 실측(실제 PDF 저장 1회) — 머지 후 스테이징에서. 판정: 커버+21섹션이 각자 새 페이지로 실리고 접힘 상태가 복원되면 끝.
@@ -53,6 +54,8 @@ E2 가 넘긴 6건 중 5건을 #1503 에서 닫았다. 아래는 **남은 것과
 
 **남은 것 2 — 랜딩 `ServiceCard` 의 `featureKey`·`slug`·`accessType`. 실측 후 의도적 보류.** `MainLandingPage.tsx` 의 href 32개 중 **25개가 href 만으로는 COPY 키에 안 닿는데**, 그중 셸 타일에서 되살릴 수 있는 것은 **6개뿐**이다(`openRuneOracle`·`openGeomancyOracle`·`openAstroModal`·`openZiweiModal`/`navigateToZiweiChart`·`openNevilleMeditationPage`·`openYogaGuru`). 나머지 19개는 **어떤 키로도 저작된 카피가 없다** — href 색인을 넣어도 6개만 고쳐지고 19개는 그대로다. 카드 40여 곳에 `featureKey` 를 손으로 다는 값도 안 된다. 되살리려면 먼저 그 19개의 카피를 저작해야 한다.
 
+**남은 것 3 — `island-consult` 카피 미저작(E6 를 막고 있다).** `IslandConsultClient.tsx` 의 `FEATURE_KEY = "ziwei-island-palace-consult"` 에 닿는 셸 카피가 **없다**. 생성 JSON 141개 항목을 **키와 `featureId` 양쪽으로 전수 조회**한 실측(2026-09-03): `ziwei-island-palace-consult` · `ziwei-island-deep-report` · `/island-consult` · `/island-consult/` 전부 0건이고, island 계열은 `/destiny-island.html`(featureId `ziwei-destiny-island`) 하나인데 그건 **무료 도구**라 다른 상품이다. E5 의 `PaidValueSection` 은 그대로 재사용 가능하므로, `index.html` 의 `FEATURE_MARKETING_COPY` 에 그 키로 `feats`·`answersQuestions`·`valueCompare`·`trustNotes`·`faq` 를 저작하고 `sync:marketing-copy` 를 돌린 뒤 한 줄 배선하면 E6 가 끝난다. 저작 없이는 붙이지 말 것 — 무료 도구 카피를 유료 랜딩에 돌리면 없는 비교표를 지어내게 된다.
+
 **닫은 것에서 다음 세션이 알아야 할 것 하나 — 별칭 ns 는 경로 대조로 못 잡는다.** 셸은 `_pvwSafeKey(_originMarketingKey(copyKey,0))` 로 **원본 키**의 ns 를 쓰는데, 별칭 48개 중 원본에 없는 경로를 만드는 것이 **0개**라 ns 를 되돌려도 경로 검사는 전부 통과한다. 그래서 가드가 그 한 줄과 `_originMarketingKey` 의 `inherit` 추적을 **정규식 소스 계약**으로 문다 — 그 자리를 리팩터하면 정규식도 같이 갱신해야 한다(안 그러면 가드가 "없다"로 뒤집혀 엉뚱한 실패를 낸다).
 
 ## 함정
@@ -60,6 +63,7 @@ E2 가 넘긴 6건 중 5건을 #1503 에서 닫았다. 아래는 **남은 것과
 - 전 검증 mock/정적 — 과금 LLM 실호출 0.
 - 🔴 **로컬 빌드 검증은 `npm run build:cf` 로만.** `npm run build` 를 직접 부르면 npm `pre` 훅이 `prebuild:cf` 를 못 찾아 통째로 건너뛰고, export 단계에서 `fortune/data/daily-<오늘>.json` ENOENT 로 죽는다 — 컴파일이 끝난 뒤라 "내 변경이 빌드를 깼나" 로 오진한다(E4 에서 재현). 빌드 뒤엔 `.ignore`·`rss.xml` 4개가 되쓰여 있으니 `git checkout --` 로 되돌린다.
 - 🔴 **생성 JSON 키는 타입 검사가 안 지킨다** — `tsconfig.json` 이 `strict:false`(→`noImplicitAny` OFF)라 `book.items["없는키"].copy.previewText` 가 `any` 로 조용히 통과한다(2026-09-03 프로브 실측). 카피 키를 읽는 화면을 새로 만들면 정적 테스트로 키 존재를 직접 물 것. 놓쳐도 정적 프리렌더가 TypeError 로 죽으므로 빈 화면이 배포되지는 않는다.
+- 🔴 **`PaidValueSection` 을 다른 랜딩에 붙일 때 `target.accessType: "paid"` 를 빼지 말 것** — 없으면 `isPaidMarketingTarget` 의 href 휴리스틱이 무료로 판정해 **무료/유료 비교표만 조용히 사라진다**(나머지 블록은 정상이라 눈치채기 어렵다). 그리고 이 섹션은 랜딩에 상시 붙어 있어 `useT` 사전 도착 전에는 제목 다섯 줄이 "번역을 준비 중입니다" 가 되므로 프로브 게이트가 필수다 — 모달은 사용자가 연 뒤라 이 문제가 없었다(E5 실측).
 - 관리자 랩 조립기를 새로 만들면 **출생지 좌표가 `null` 로 온다**(`worker/routes/admin.js` 의 `buildAdminLabBody`). `Number(null) === 0` 이라 그냥 실으면 위경도 (0,0) 명식이 조용히 만들어진다 — 좌표가 유한수일 때만 실을 것(PR-A 실측).
 - 축4 진행분(`docs/handoff/home-ux-audit-2026-09-01.md`)과 PR-5·PR-6·E1 이 겹친다 — 그 문서 먼저 읽을 것.
 - copy.ts·NakshatraAiClient.tsx 등 nakshatra 파일, `IslandConsultClient.tsx`, `components/fpti/**` 는 순수 CRLF — node 패치 스크립트로만 수정(3세션 연속 실전 확인).
