@@ -2669,7 +2669,7 @@ export default function ComprehensivePromptHubPage() {
 
                 {currentTool.fields.some((field) => field.advanced) ? (
                   <details className="mt-4 rounded-2xl border border-[color:var(--hairline)] bg-[color:var(--surface-2)] p-4">
-                    <summary className="min-h-[24px] cursor-pointer text-sm font-black text-[color:var(--ink-2)]">{copy.advancedSettings}</summary>
+                    <summary className="min-h-11 cursor-pointer py-3 text-sm font-black text-[color:var(--ink-2)]">{copy.advancedSettings}</summary>
                     <div className="mt-4 grid gap-4 sm:grid-cols-2">
                       {currentTool.fields.filter((field) => field.advanced).map(renderToolField)}
                     </div>

@@ -3206,14 +3206,14 @@ export default function PalmDestinyMain() {
                     <button
                       type="button"
                       onClick={handleRetryWithOtherHand}
-                      className="cd-ghost-btn min-h-[40px] rounded-lg border border-[#c8a84b]/40 bg-[#0d0808] px-3 py-2 text-xs font-bold text-[#e8d090]"
+                      className="cd-ghost-btn min-h-11 rounded-lg border border-[#c8a84b]/40 bg-[#0d0808] px-3 py-2 text-xs font-bold text-[#e8d090]"
                     >
                       {copy.viewOtherHandAction}
                     </button>
                     <button
                       type="button"
                       onClick={handleBackToMain}
-                      className="cd-red-btn min-h-[40px] rounded-lg border border-[#9b1a1a]/70 px-3 py-2 text-xs font-bold text-[#ffd8d8]"
+                      className="cd-red-btn min-h-11 rounded-lg border border-[#9b1a1a]/70 px-3 py-2 text-xs font-bold text-[#ffd8d8]"
                       style={{ background: "linear-gradient(136deg, rgba(100,15,15,0.95), rgba(70,25,10,0.95))" }}
                     >
                       {copy.backToMainAction}

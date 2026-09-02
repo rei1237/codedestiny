@@ -550,7 +550,7 @@ export default function TarotHealingLandingContent() {
           <p className="mt-3 text-sm leading-7 text-stone-700">{copy.noticeBody}</p>
           <div className="mt-5 flex flex-col gap-2 text-sm font-bold text-amber-900">
             {copy.relatedLinks.map(([href, label]) => (
-              <Link key={href} href={href}>{label}</Link>
+              <Link key={href} href={href} className="inline-flex min-h-11 items-center">{label}</Link>
             ))}
           </div>
         </aside>

@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-03
-next: "배치 6 콘텐츠·정책 라우트. 시드는 app/_lib/serviceSections.js 의 href 55종 중 배치 1~4 에서 안 훑은 나머지(/reviews/ 포함). 아래 레시피 절차. 배치 5 잔여는 원장 표의 index.html 행(공용 푸터 결정 대기)과 미측정 4종"
+next: "배치 없음 — serviceSections.js 시드 55종 소진(09-03 실측 대조). 남은 것은 원장 표의 대기 3행(공용 푸터 75건 · 하단 탭바 SA 8px · 루트 셸 index.html)이고 셋 다 사용자 결정 대기다. 새 라우트가 생기면 같은 레시피로 이어간다"
 ---
 
 # 기능별 모바일 순회 원장
@@ -28,11 +28,12 @@ next: "배치 6 콘텐츠·정책 라우트. 시드는 app/_lib/serviceSections.
 | 결제 화면 | /points /points/history /premium-unlock | 3 | 09-02 | — | #1486 | 완료 |
 | 유료 AI 단독 18종 | /life-book-ai /love-secret-ai /naming-ai /ziwei-ai /astrology-ai /vedic-ai /sukuyo-compatibility-ai /island-consult /destiny-compass /saju/{love-simulation,destiny-bias,animal-destiny,destiny-meeting-place} /tarot/{love,reunion,year,crystal-soul,mindscan} | 4 | 09-03 | — | #1493 | 완료 |
 | 루트 정적 셸 20종 | 리포 루트 *.html (index.html 제외) | 5 | 09-03 | TT<44 46→1 · IN<16 18→0 · OF 0 | #1497 | 완료 |
+| 콘텐츠·정책 32종 | /about /faq /methodology /terms /refund-policy /contact /privacy /advertising-policy /editorial-policy /disclaimer /reviews /ziwei/chart /fortune/prompt-hub /tarot/healing /tarot/prompt-maker /palm-reading + FeatureLandingPage 16종 + /oracle/rune /saju-guardian | 6 | 09-03 | 고유 TT<44 95→29 · IN<16 14→0 · OF 0 (잔여 29 = 인라인 예외 20 · sr-only 파일입력 4 · 체크박스 라벨 5) | #1501 | 완료 |
 | 루트 셸 index.html | / | 5 | 09-03 | TT<44 36건 — 공용 푸터 링크·언어칩·소셜 30건 + input#subDailyHome 13x13 + a.cd-mobile-header__brand 34x34 | — | 대기 — 아래 공용 푸터 행에 종속 |
 | 공용 푸터(SiteFooterHub) | 크롬리스 아닌 전 라우트 | — | 09-02 | TT<44 75건(링크 16px) | — | 대기 — 사용자 결정 |
 | 공용 하단 탭바(nav.cd-mnav) | App Router 전 라우트 | — | 09-02 | SA 내용물 여유 8px | — | 대기 — 사용자 결정 |
 
-배치 1~5 완료. 다음은 배치 6(콘텐츠·정책). 배치 5 잔여는 위 표의 index.html 행과 미측정 4종(아래 비고).
+배치 1~6 완료 — 시드 55종을 09-03 에 실측 대조해 소진을 확인했다(배치 6 이 남은 26종을 덮었다). 남은 것은 위 표의 대기 3행뿐이고 전부 사용자 결정 대기다. 배치 5 미측정 4종은 아래 비고.
 
 ## 배치 (사용자 확정: 유료 대표부터)
 
@@ -69,4 +70,9 @@ next: "배치 6 콘텐츠·정책 라우트. 시드는 app/_lib/serviceSections.
 - 🔴 **낡은 `type=` 셀렉터가 폼 하나를 통째로 무스타일로 남긴다** — destiny-island 의 `.field input[type=date],.field input[type=time]` 이 실제 마크업 `type="text" inputmode="numeric"`(`destiny-island.html:565-566`)과 안 맞아 생년월일·시각 입력이 173x19 · 글꼴 13.3px 로 렌더됐다. **둘째 화면이라 스캐너는 0 으로 보고했고**, 강제 진입 하네스로만 발견됐다. 배치 6 에서는 CSS 셀렉터의 `type=` 과 마크업의 실제 `type` 을 먼저 대조한다.
 - 🔴 **루트 셸은 `public/` 과 세 가지 관계를 가진다 — 하나만 고치면 배포에 안 나간다.** ① `sync:public` staticTargets 17종은 자동 미러 ② `ifa-oracle-about.html` 은 미러 대상이 아니고 루트 사본과 **바이트 동일**해야 한다(파일 머리 주석) ③ `ifa_oracle_v2_full.html` 의 실제 배포본은 **다른 파일인 `public/ifa-oracle.html`** 로, head 4줄만 다르고 나머지는 같다. 배치 5 에서 ②③은 손으로 같이 고쳤다. 루트 셸을 고치기 전에 `git grep -n "<파일 이름>" scripts/sync-public.mjs` 와 `diff -u <루트 파일 경로> <public 후보 경로>` 를 먼저 돌린다.
 - 배치 5 미측정 4종 — `blood-type-app`·`geomancy-oracle-v4` 는 첫 화면 컨트롤이 스캐너의 INTERACTIVE_SELECTOR 밖이라 scanned=0 INVALID, `neville-meditation` 은 인증 우회를 심어도 보임 요소 0, `prompt-hub-3004` 는 소스 루트에 `_next` 청크가 없어 못 뜬다(정본은 App Router `/fortune/prompt-hub` 라 배치 6 대상). 넷 다 결함이 아니라 **측정 불가**로 남긴다.
+- 🔴 **위 52번의 `min-h-*` 전수 grep 이 임의값과 고정높이를 놓친다** — `min-h-[36px]`·`min-h-[40px]`·`min-h-[24px]` 와 `h-10 w-10` 류가 그 패턴 밖이다. 배치 6 실제 위반의 대부분이 여기서 나왔고(리뷰 필터칩·정렬 select·작성모달 닫기·손금 결과 버튼·수호신 리포트 탭), **배치 2 범위였던 `SignFortuneView.tsx` 기간 칩 2건도 이 구멍으로 살아남아 있었다**(같은 PR 에서 인접 결함으로 함께 고쳤다). 다음부터는 `git grep -n "min-h-\[" ` 와 `git grep -nE "\bh-(8|9|10)\b"` 를 함께 돌린다.
+- 🔴 **스캐너 호출은 PowerShell 로 한다** — Git Bash 로 `--routes=/about/,…` 을 넘기면 MSYS 가 선두 라우트를 `/C:/Program Files/Git/…` 로 재작성해 MISSING 이 된다. 그리고 `--help` 는 없어서 exit 1 을 낸다 — 인자는 `--routes --target --viewports --insets --settle --out --label --allow-stale` 뿐이다. 없는 라우트를 하나만 섞어도 전체 exit 이 1 이 되므로(`/fortune/daily/…` 는 없는 경로다 — SignFortuneView 표본은 `/fortune/today/aries/`) 목록을 dist 로 먼저 대조한다.
+- 시드에 있으나 스캔 대상이 아닌 것 넷 — `/animal/totem/`·`/oracle/kemet/` 은 dist 에 페이지가 없어 404 다(위 index.html /services/ 7종과 같은 부류). `/oracle/hwatu/`·`/oracle/juyuk/` 은 App Router 가 아니라 **루트 정적 셸 승격본**이라(`scripts/static-canonical-route-map.mjs` 의 `source: "static-shell"`) 거기서 나온 위반(`input#subDailyHome` 13x13 · `cd-footer-legal__link` 15.1px · `cd-footer-langpick__btn` 32px · `a.cd-mobile-header__brand` 34x34)은 전부 위 표의 index.html 행 소관이다.
+- 🔴 **배치 6 의 처방 3개는 공용 CSS 라 배치 밖으로 번진다** — `.cd-chip`(app 소비자 20파일) 36.8→44px, `.policy-doc__toc-link` `display:block`→`flex`+44px(≥1024px 은 `min-height:0` 으로 기존 높이 유지), `.policy-input` 15→16px(가입 동의 임베드 `policy-embed-*` 와 공유). 표본 `/astrology/guide/` 재계측에서 고유 TT<44=0·IN<16=0 으로 회귀 없음(09-03).
+- 정책 문서 본문의 인라인 링크는 `destiny-poker` 선례대로 WCAG 2.5.8 Inline 예외로 두었다 — `/contact/` 4 · `/privacy/` 3 · `/advertising-policy/` 3 · `/editorial-policy/` 2 · `/disclaimer/` 1 · `/fortune/prompt-hub/` 의 `<li>` 업셀 7. `/palm-reading/` 의 4건은 보이지 않는 `1x1 input.sr-only` 파일 입력이고 방아쇠는 44px 이상 버튼이다.
 - `destiny-poker` 의 TT<44 1건(115.9x20 `a "코드 데스티니 홈"`)은 문장 안 인라인 링크라 WCAG 2.5.8 Inline 예외 — 의도적으로 안 고쳤다. 🔴 인증 게이트가 있는 루트 셸(myungwun_final·yoga-guru·cosmic-soul-meditation 등)은 로컬에서 `/api/auth/me` 가 실패해 `window.history.back()` 으로 튕긴다. Playwright `addInitScript` 로 `sessionStorage.flower_admin_token` 에 `^[A-Za-z0-9_-]{20,}[.][0-9a-f]{64}$` 를 만족하는 더미 문자열을 심으면 통과한다(셸이 형식만 검사).

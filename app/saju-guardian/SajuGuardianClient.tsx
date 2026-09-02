@@ -1908,7 +1908,7 @@ function ResultCard({
                     key={key}
                     type="button"
                     onClick={() => setActivePanel(key)}
-                    className={`min-h-10 rounded-md px-3 text-xs font-black transition ${
+                    className={`min-h-11 rounded-md px-3 text-xs font-black transition ${
                       activePanel === key ? "bg-amber-200 text-slate-950" : "text-slate-300 hover:bg-white/10"
                     }`}
                     aria-pressed={activePanel === key}
