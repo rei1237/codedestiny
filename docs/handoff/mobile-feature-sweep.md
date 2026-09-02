@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-09-02
-next: "배치 4 유료 AI 단독 ~15종. 시드는 app/_lib/serviceSections.js 의 href 55종에서 배치 1~3 소진분을 뺀 나머지. 아래 레시피 절차"
+updated: 2026-09-03
+next: "배치 5 루트 정적 셸 21종. `npm run measure:mobile-routes -- --target=source --routes=…` (dist 아님). 시드는 리포 루트의 *.html 21개. 아래 레시피 절차"
 ---
 
 # 기능별 모바일 순회 원장
@@ -26,10 +26,11 @@ next: "배치 4 유료 AI 단독 ~15종. 시드는 app/_lib/serviceSections.js �
 | 낙샤트라 | /nakshatra/ | 1 | 09-02 | — | #1452 | 완료 |
 | 무료 허브 8종 | /saju /tarot /ziwei /sukuyo /astrology /today /compatibility /fortune/기간 | 2 | 09-02 | — | #1481 | 완료 |
 | 결제 화면 | /points /points/history /premium-unlock | 3 | 09-02 | — | #1486 | 완료 |
+| 유료 AI 단독 18종 | /life-book-ai /love-secret-ai /naming-ai /ziwei-ai /astrology-ai /vedic-ai /sukuyo-compatibility-ai /island-consult /destiny-compass /saju/{love-simulation,destiny-bias,animal-destiny,destiny-meeting-place} /tarot/{love,reunion,year,crystal-soul,mindscan} | 4 | 09-03 | — | #1493 | 완료 |
 | 공용 푸터(SiteFooterHub) | 크롬리스 아닌 전 라우트 | — | 09-02 | TT<44 75건(링크 16px) | — | 대기 — 사용자 결정 |
 | 공용 하단 탭바(nav.cd-mnav) | App Router 전 라우트 | — | 09-02 | SA 내용물 여유 8px | — | 대기 — 사용자 결정 |
 
-배치 1·2·3 완료. 다음은 배치 4(유료 AI 단독).
+배치 1·2·3·4 완료. 다음은 배치 5(루트 정적 셸 21종, `--target=source`).
 
 ## 배치 (사용자 확정: 유료 대표부터)
 
@@ -53,7 +54,12 @@ next: "배치 4 유료 AI 단독 ~15종. 시드는 app/_lib/serviceSections.js �
 - 찻집에서 끝내 도달 못 한 표면(#1471 미검증): 달빛 앨범 내부 탭·검색(앨범 잠김), 꿀돼지 QnA(5,000원 결과 화면 뒤), `.honeyModeToggle`. 유료 경로가 열리는 환경이 생기면 이 셋부터 잰다.
 - 🔴 **배치 2 이후 남은 위반은 전부 공용 푸터다** — 라우트당 TT<44 75건이 모두 `SiteFooterHub` 링크(16px)이고, 사용자 결정으로 **별도 안건**(위 표 대기 행). 09-02 시뮬레이션(360×800·/saju/): 44px 처방 = 푸터 +742px·문서 +10.5%, 24px(WCAG 2.5.8 AA) = +226px·+3.2%. 대상은 `.sfhLink` 65개 + `.sfhPolicyLink` 10개이고 크롤러용 내부 링크 51개를 진다.
 - **공용 컴포넌트 처방은 배치 밖으로 번진다** — 배치 2 의 브레드크럼 수정은 `SeoLandingTemplate`(app 소비자 21곳)이라 배치 밖 11개 라우트(dream·love·manse·physiognomy·vedic·premium 등)도 함께 44px 이 됐다. 표본 4개(dream·love·vedic·tarot/reunion) 재스캔에서 OF=0·열폭 328px·IN<16 0 으로 회귀 없음(09-02).
-- 공용 `ServiceIntroSection`(라우트 17종)의 읽는 열폭은 #1462 로 286→302px 이 됐다. 배치 4/6 에서 만날 라우트 중 09-02 관찰분: `/reviews/` 302px·TT<44 2건·IN<16 1건, `/naming-ai/` 282px·TT<44 5건·IN<16 6건.
+- 공용 `ServiceIntroSection`(라우트 17종)의 읽는 열폭은 #1462 로 286→302px 이 됐다. 배치 6 에서 만날 `/reviews/` 는 09-02 관찰에서 302px·TT<44 2건·IN<16 1건이었다.
+- 🔴 **열폭 1px 은 결함이 아니라 `sr-only` 를 읽은 산출물이다** — `/saju/animal-destiny/`·`/saju/destiny-meeting-place/` 가 그렇고, 실체는 `<section className="sr-only">` SEO 블록이다(`app/saju/animal-destiny/page.tsx:40`, `app/saju/destiny-meeting-place/page.tsx:51`). 배치 5/6 에서 1px·한 자릿수 열폭이 나오면 먼저 `sr-only` 를 의심한다.
+- 🔴 **`<summary>` 에 `flex min-h-11` 을 반사적으로 주지 말 것** — 배치 2 의 그 처방은 대상이 **이미 `list-none marker:content-none` 을 달고 있었기 때문에** 안전했다. 안 달린 summary 에 `display:flex` 를 주면 디스클로저 삼각형이 조용히 사라진다(인체공학 축 밖의 재디자인). `/tarot/mindscan/`(#1493)은 그래서 `py-2.5` 로 25.9→45.9px 을 만들어 `display:list-item` 을 유지했다. 먼저 마커 유무를 확인하고 고른다.
+- 🔴 **`/…/result/` 는 스캔이 못 열어도 Gap B 위반이 산다** — 배치 4 의 `min-h-*` 전수 grep 에서 `love-secret-ai/result`(칩 36px·초기화 36px)·`naming-ai/result`(복사 40px)가 나왔고, `astrology-ai` 의 재시도·초기화 2건은 `error` 상태에서만 렌더돼 첫 화면 스캔에 안 잡혔다(#1493 에서 소스 기준 수정, 렌더 실측 없음). **라우트 스캔을 마쳤어도 그 배치 디렉터리에 `min-h-*` 전수 grep 을 한 번 더 돌린다.**
+- 🔴 `/destiny-compass/` 는 hub 단계만 실측했다(0건). `map`→`processing`→`reveal`→`result` 이후 단계는 AI 실호출이 필요해 **미검증**이다 — 유료 경로가 열리는 환경이 생기면 `app/destiny-compass/_components/CompassApp.tsx:31-108` 의 단계 9개를 재측정한다.
+- 🔴 **App Router `page.tsx` 를 건드리면 sitemap 원장 서명이 깨진다** — `npm run sitemap:generate` 를 같은 커밋에 담아야 한다(#1493 은 서명 9건). 이때 `/fortune/*` 72건의 lastmod 가 오늘 날짜로 함께 밀리는데 그건 휘발성 라우트의 의도된 롤오버다(`scripts/generate-sitemap.mjs:812-821` 이 `--check` 에서 마스킹). 배치 5 는 루트 정적 셸이라 해당 없고, 배치 6 은 다시 걸린다.
 - 🔴 **`/premium-unlock/**` 편집은 결제 게이트를 하나도 안 깨운다**(09-02 paid-gate-auditor) — `paid-flow-gates.yml` 의 `paths` 에 없고 `node scripts/lib/change-risk.mjs app/premium-unlock/PremiumSalesContent.tsx` 가 `level=medium deepRequired=false` 를 낸다. 유일한 가드 `verify:life-book-ai-flow` 가 PR CI 에서 안 도니 그 파일을 만졌으면 손으로 돌리고 출력을 보고에 남긴다. 배선 자체(paths 추가 또는 deepVerificationRules 등재)는 별도 PR 로 사용자 판단이 필요하다. 반대로 `app/points/**` 는 게이트 전체가 돈다.
 - `app/points/PointsClient.tsx` 의 `{false && (` 죽은 블록(09-02 기준 4870 근처) 안에 구 헤더·`WalletCard`·`SubscriptionStatusCard` 가 통째로 들어 있다 — `app/points/SubscriptionStatusCard.tsx` 의 유일한 참조도 여기라 그 파일 전체가 도달 불가다. 인체공학 축 밖이라 배치 3 은 손대지 않았다. 삭제하려면 `deletion-auditor` 선행(`verify:billing-pass-policy` 가 그 JSX 리터럴을 단언한다).
 - index.html 의 /services/ 링크 7종(tarot·face-reading·palm-reading·animal-totem·omikuji·bias-destiny·stonehenge-rune)은 dist 에 산출물이 없어 404 다(09-02 실측). 링크 정리/페이지 신설은 별도 결정 필요.

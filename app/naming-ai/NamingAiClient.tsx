@@ -1947,7 +1947,7 @@ function makeRequestId(prefix: string) {
 }
 
 // ── 네오 정본(달빛 다크) 스코프 클래스 — DESIGN.md 팔레트/Glow-Not-Shadow 준수 ──
-const FIELD = "w-full rounded-2xl border border-[#c4b5fd]/20 bg-[#090718]/70 px-4 py-3 text-sm text-[#f4eeff] outline-none transition placeholder:text-[#a294cf] focus:border-[#c4b5fd]/60 focus:shadow-[0_0_0_3px_rgba(196,181,253,0.14)] disabled:opacity-50";
+const FIELD = "w-full rounded-2xl border border-[#c4b5fd]/20 bg-[#090718]/70 px-4 py-3 text-base text-[#f4eeff] outline-none transition placeholder:text-[#a294cf] focus:border-[#c4b5fd]/60 focus:shadow-[0_0_0_3px_rgba(196,181,253,0.14)] disabled:opacity-50";
 const LABEL = "flex flex-col gap-1.5 text-sm font-semibold text-[#e6ddfa]";
 const PANEL = "rounded-[28px] border border-[#c4b5fd]/20 bg-[#13102a]/70";
 const VIOLET_GLOW = "shadow-[0_0_0_1px_rgba(167,139,250,0.14),0_0_28px_-10px_rgba(147,51,234,0.4)]";
@@ -1984,7 +1984,7 @@ function ChipGroup({
             aria-pressed={active}
             onClick={() => onToggle(option)}
             disabled={disabled}
-            className={`min-h-9 rounded-full border px-3 py-1.5 text-xs font-semibold transition disabled:opacity-50 ${
+            className={`min-h-11 rounded-full border px-3 py-1.5 text-xs font-semibold transition disabled:opacity-50 ${
               active
                 ? "border-[#e8d5a3]/70 bg-[#e8d5a3]/20 text-[#f7efdc]"
                 : "border-[#e8d5a3]/25 bg-[#e8d5a3]/[0.06] text-[#f2e9d3] hover:border-[#e8d5a3]/55"
@@ -2407,7 +2407,7 @@ export default function NamingAiClient() {
                       type="button"
                       onClick={() => setStep(index)}
                       aria-current={active ? "step" : undefined}
-                      className={`inline-flex min-h-10 items-center gap-2 rounded-full border px-4 text-sm font-bold transition ${
+                      className={`inline-flex min-h-11 items-center gap-2 rounded-full border px-4 text-sm font-bold transition ${
                         active
                           ? "border-[#c4b5fd]/60 bg-[#c4b5fd]/15 text-[#f4eeff]"
                           : done
@@ -2507,7 +2507,7 @@ export default function NamingAiClient() {
                     </label>
                   </div>
                   <div className="mt-4 flex flex-wrap gap-5 text-sm text-[#e6ddfa]">
-                    <label className="flex items-center gap-2">
+                    <label className="flex min-h-11 items-center gap-2">
                       <input
                         type="checkbox"
                         checked={form.birthTimeUnknown}
@@ -2517,7 +2517,7 @@ export default function NamingAiClient() {
                       />
                       {copy.birthTimeUnknownCheckbox}
                     </label>
-                    <label className="flex items-center gap-2">
+                    <label className="flex min-h-11 items-center gap-2">
                       <input
                         type="checkbox"
                         checked={form.isLeapMonth}

@@ -116,7 +116,7 @@ export default function AnimalDestinyPage() {
         </div>
         <a
           href="/"
-          className="-mr-1 inline-flex items-center justify-center rounded-full border border-transparent p-2 text-[#6b3f1d] transition-all hover:border-[#8a5a2b]/35 hover:bg-[#f4e3c7]"
+          className="-mr-1 inline-flex min-h-11 min-w-11 items-center justify-center rounded-full border border-transparent p-2 text-[#6b3f1d] transition-all hover:border-[#8a5a2b]/35 hover:bg-[#f4e3c7]"
           aria-label={copy.homeAria}
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">

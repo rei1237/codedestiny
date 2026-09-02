@@ -1276,7 +1276,7 @@ function LoveSecretResultPageContent({
                     type="button"
                     onClick={() => setActivePage(target.page)}
                     aria-current={activePage === target.page ? "true" : undefined}
-                    className={`${theme.focusRing} min-h-9 rounded-full border px-3.5 text-xs font-bold transition ${
+                    className={`${theme.focusRing} min-h-11 rounded-full border px-3.5 text-xs font-bold transition ${
                       activePage === target.page
                         ? "border-[var(--ls-accent)] bg-[var(--ls-accent)] text-[var(--ls-accent-ink)]"
                         : "border-[var(--ls-line-control)] bg-[var(--ls-surface)] text-[var(--ls-text)] hover:bg-[var(--ls-surface-sunken)]"

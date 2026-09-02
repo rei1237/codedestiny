@@ -2151,10 +2151,10 @@ export default function AstrologyAiClient() {
                     <p className="leading-6">{error}</p>
                   </div>
                   <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-1">
-                    <button type="submit" form="astrology-ai-form" className="min-h-10 rounded-lg bg-rose-100 px-3 font-bold text-rose-950">
+                    <button type="submit" form="astrology-ai-form" className="min-h-11 rounded-lg bg-rose-100 px-3 font-bold text-rose-950">
                       {copy.retryCta}
                     </button>
-                    <button type="button" onClick={reset} className="min-h-10 rounded-lg border border-white/15 px-3 font-bold text-white">
+                    <button type="button" onClick={reset} className="min-h-11 rounded-lg border border-white/15 px-3 font-bold text-white">
                       {copy.resetCta}
                     </button>
                   </div>

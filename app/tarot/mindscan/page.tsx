@@ -201,7 +201,7 @@ export default function MindScanTarotPage() {
         <div className="mt-4 space-y-3">
           {landing.faqs.map((faq) => (
             <details key={faq.question} className="rounded-lg border border-slate-700/70 bg-slate-900/40 p-4">
-              <summary className="cursor-pointer font-semibold text-slate-100">{faq.question}</summary>
+              <summary className="cursor-pointer py-2.5 font-semibold text-slate-100">{faq.question}</summary>
               <p className="mt-3 leading-7 text-slate-300">{faq.answer}</p>
             </details>
           ))}
@@ -209,7 +209,7 @@ export default function MindScanTarotPage() {
 
         <nav className="mt-7 flex flex-wrap gap-3" aria-label="관련 타로 서비스">
           {relatedLinks.map((link) => (
-            <Link key={link.path} href={link.path} className="rounded-md border border-violet-300/30 px-3 py-2 text-sm text-violet-100">
+            <Link key={link.path} href={link.path} className="inline-flex min-h-11 items-center rounded-md border border-violet-300/30 px-3 py-2 text-sm text-violet-100">
               {link.label}
             </Link>
           ))}
