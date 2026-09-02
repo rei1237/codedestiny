@@ -25,7 +25,7 @@ next: "배치 4 유료 AI 단독 ~15종. 시드는 app/_lib/serviceSections.js �
 | 운세 챗 | /fortune-chat/ | 1 | 09-02 | — | #1447 | 완료 |
 | 낙샤트라 | /nakshatra/ | 1 | 09-02 | — | #1452 | 완료 |
 | 무료 허브 8종 | /saju /tarot /ziwei /sukuyo /astrology /today /compatibility /fortune/기간 | 2 | 09-02 | — | #1481 | 완료 |
-| 결제 화면 | /points /points/history /premium-unlock | 3 | 09-02 | — | #PR3 | 완료 |
+| 결제 화면 | /points /points/history /premium-unlock | 3 | 09-02 | — | #1486 | 완료 |
 | 공용 푸터(SiteFooterHub) | 크롬리스 아닌 전 라우트 | — | 09-02 | TT<44 75건(링크 16px) | — | 대기 — 사용자 결정 |
 | 공용 하단 탭바(nav.cd-mnav) | App Router 전 라우트 | — | 09-02 | SA 내용물 여유 8px | — | 대기 — 사용자 결정 |
 
