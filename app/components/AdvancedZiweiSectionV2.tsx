@@ -1713,7 +1713,7 @@ export default function AdvancedZiweiSectionV2({
                 <input
                   value={form.name}
                   onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
-                  className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none ring-0 placeholder:text-slate-500"
+                  className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-base text-white outline-none ring-0 placeholder:text-slate-500"
                   placeholder={copy.namePlaceholder}
                 />
               </label>
@@ -1722,7 +1722,7 @@ export default function AdvancedZiweiSectionV2({
                 <select
                   value={form.gender}
                   onChange={(e) => setForm((prev) => ({ ...prev, gender: e.target.value as ZiweiGender }))}
-                  className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none"
+                  className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-base text-white outline-none"
                 >
                   <option value="F">{copy.genderLabels.female}</option>
                   <option value="M">{copy.genderLabels.male}</option>
@@ -1734,7 +1734,7 @@ export default function AdvancedZiweiSectionV2({
                   type="number"
                   value={form.birthYear}
                   onChange={(e) => setForm((prev) => ({ ...prev, birthYear: e.target.value }))}
-                  className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500"
+                  className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-base text-white outline-none placeholder:text-slate-500"
                 />
               </label>
               <label className="space-y-2">
@@ -1746,7 +1746,7 @@ export default function AdvancedZiweiSectionV2({
                   placeholder="MM"
                   value={form.birthMonth}
                   onChange={(e) => setForm((prev) => ({ ...prev, birthMonth: digitsOnly(e.target.value, 2) }))}
-                  className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500"
+                  className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-base text-white outline-none placeholder:text-slate-500"
                 />
               </label>
               <label className="space-y-2">
@@ -1758,7 +1758,7 @@ export default function AdvancedZiweiSectionV2({
                   placeholder="DD"
                   value={form.birthDay}
                   onChange={(e) => setForm((prev) => ({ ...prev, birthDay: digitsOnly(e.target.value, 2) }))}
-                  className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500"
+                  className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-base text-white outline-none placeholder:text-slate-500"
                 />
               </label>
               <label className="space-y-2">
@@ -1770,7 +1770,7 @@ export default function AdvancedZiweiSectionV2({
                   placeholder="HH"
                   value={form.birthHour}
                   onChange={(e) => setForm((prev) => ({ ...prev, birthHour: digitsOnly(e.target.value, 2) }))}
-                  className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500"
+                  className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-base text-white outline-none placeholder:text-slate-500"
                   disabled={form.unknownHour}
                 />
               </label>
@@ -1779,7 +1779,7 @@ export default function AdvancedZiweiSectionV2({
                 <select
                   value={form.calendarType}
                   onChange={(e) => setForm((prev) => ({ ...prev, calendarType: e.target.value as "solar" | "lunar" }))}
-                  className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none"
+                  className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-base text-white outline-none"
                 >
                   <option value="solar">{copy.calendarLabels.solar}</option>
                   <option value="lunar">{copy.calendarLabels.lunar}</option>
@@ -1790,7 +1790,7 @@ export default function AdvancedZiweiSectionV2({
                 <input
                   value={form.birthPlace}
                   onChange={(e) => setForm((prev) => ({ ...prev, birthPlace: e.target.value }))}
-                  className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500"
+                  className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-base text-white outline-none placeholder:text-slate-500"
                   placeholder={copy.birthPlacePlaceholder}
                 />
               </label>
@@ -1799,14 +1799,14 @@ export default function AdvancedZiweiSectionV2({
                 <input
                   value={form.timezone}
                   onChange={(e) => setForm((prev) => ({ ...prev, timezone: e.target.value }))}
-                  className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500"
+                  className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-base text-white outline-none placeholder:text-slate-500"
                   placeholder="Asia/Seoul"
                 />
               </label>
             </div>
 
             <div className="mt-4 flex flex-wrap gap-4 text-xs text-slate-300">
-              <label className="inline-flex items-center gap-2">
+              <label className="inline-flex min-h-11 items-center gap-2">
                 <input
                   type="checkbox"
                   checked={form.unknownHour}
@@ -1815,7 +1815,7 @@ export default function AdvancedZiweiSectionV2({
                 />
                 {copy.unknownHourCheckboxLabel}
               </label>
-              <label className="inline-flex items-center gap-2">
+              <label className="inline-flex min-h-11 items-center gap-2">
                 <input
                   type="checkbox"
                   checked={form.isLeapMonth}

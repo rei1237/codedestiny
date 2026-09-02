@@ -3219,7 +3219,7 @@ export default function TarotPromptMakerPage() {
                         onChange={(e) => { setQuestion(e.target.value); setFeedback(""); setQuestionStatus(""); }}
                         maxLength={220}
                         placeholder={isLenormandMode ? questionPlaceholder.lenormand : questionPlaceholder.tarot}
-                        className="w-full min-h-[140px] resize-none bg-transparent text-[#f3e8ff] text-sm sm:text-base leading-relaxed outline-none placeholder:text-[#7c3aed]/50"
+                        className="w-full min-h-[140px] resize-none bg-transparent text-[#f3e8ff] text-base leading-relaxed outline-none placeholder:text-[#7c3aed]/50"
                       />
                       <div className="flex items-start justify-between gap-3 mt-2">
                         <div className="text-xs leading-relaxed text-[#a78bfa]/75">{questionStatus || questionQualityNotice}</div>

@@ -1087,7 +1087,7 @@ export default function ReviewsClient() {
           <Link
             href="/"
             aria-label={copy.backHomeAriaLabel}
-            className="inline-flex min-h-[44px] items-center gap-1.5 text-sm font-medium text-[#70445c] hover:text-[#b31955] dark:text-[#c99cb2] dark:hover:text-[#f4bed1]"
+            className="inline-flex min-h-[44px] min-w-11 items-center justify-center gap-1.5 text-sm font-medium text-[#70445c] hover:text-[#b31955] dark:text-[#c99cb2] dark:hover:text-[#f4bed1]"
           >
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
             {copy.homeLabel}
@@ -1149,7 +1149,7 @@ export default function ReviewsClient() {
             <button
               type="button"
               onClick={() => setProductFilter("")}
-              className={`min-h-[36px] shrink-0 rounded-full border px-3 text-xs font-medium transition-colors ${
+              className={`min-h-11 shrink-0 rounded-full border px-3 text-xs font-medium transition-colors ${
                 productFilter === ""
                   ? "border-[#b31955] bg-[#b31955] text-white dark:border-[#f4bed1] dark:bg-[#f4bed1] dark:text-[#3c1830]"
                   : "border-[#f0d4de] bg-white text-[#70445c] hover:border-[#e0aec2] dark:border-[#5a3348] dark:bg-[#2b0c1f] dark:text-[#c99cb2]"
@@ -1162,7 +1162,7 @@ export default function ReviewsClient() {
                 key={product.productId}
                 type="button"
                 onClick={() => setProductFilter(product.productId)}
-                className={`min-h-[36px] shrink-0 rounded-full border px-3 text-xs font-medium transition-colors ${
+                className={`min-h-11 shrink-0 rounded-full border px-3 text-xs font-medium transition-colors ${
                   productFilter === product.productId
                     ? "border-[#b31955] bg-[#b31955] text-white dark:border-[#f4bed1] dark:bg-[#f4bed1] dark:text-[#3c1830]"
                     : "border-[#f0d4de] bg-white text-[#70445c] hover:border-[#e0aec2] dark:border-[#5a3348] dark:bg-[#2b0c1f] dark:text-[#c99cb2]"
@@ -1179,14 +1179,14 @@ export default function ReviewsClient() {
               id="review-sort"
               value={sortKey}
               onChange={(event) => setSortKey(event.target.value as SortKey)}
-              className="min-h-[40px] rounded-lg border border-[#f0d4de] bg-white px-3 text-sm text-[#3c1830] outline-none focus:border-[#b31955] dark:border-[#5a3348] dark:bg-[#2b0c1f] dark:text-[#fff1f7]"
+              className="min-h-11 rounded-lg border border-[#f0d4de] bg-white px-3 text-base text-[#3c1830] outline-none focus:border-[#b31955] dark:border-[#5a3348] dark:bg-[#2b0c1f] dark:text-[#fff1f7]"
             >
               {SORT_KEYS.map((key) => (
                 <option key={key} value={key}>{copy.sortLabels[key]}</option>
               ))}
             </select>
 
-            <label className="inline-flex min-h-[40px] cursor-pointer items-center gap-2 text-sm text-[#70445c] dark:text-[#c99cb2]">
+            <label className="inline-flex min-h-11 cursor-pointer items-center gap-2 text-sm text-[#70445c] dark:text-[#c99cb2]">
               <input
                 type="checkbox"
                 checked={verifiedOnly}
@@ -1270,7 +1270,7 @@ export default function ReviewsClient() {
                 type="button"
                 onClick={() => setWriterOpen(false)}
                 aria-label={copy.writerCloseAriaLabel}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full text-[#70445c] hover:bg-[#f7e6ec] dark:text-[#c99cb2] dark:hover:bg-[#3a0e28]"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-full text-[#70445c] hover:bg-[#f7e6ec] dark:text-[#c99cb2] dark:hover:bg-[#3a0e28]"
               >
                 <X className="h-5 w-5" aria-hidden="true" />
               </button>
@@ -1316,7 +1316,7 @@ export default function ReviewsClient() {
                     id="review-product"
                     value={formProductId}
                     onChange={(event) => setFormProductId(event.target.value)}
-                    className="min-h-[44px] w-full rounded-lg border border-[#f0d4de] bg-white px-3 text-sm outline-none focus:border-[#b31955] dark:border-[#5a3348] dark:bg-[#2b0c1f] dark:text-[#fff1f7]"
+                    className="min-h-[44px] w-full rounded-lg border border-[#f0d4de] bg-white px-3 text-base outline-none focus:border-[#b31955] dark:border-[#5a3348] dark:bg-[#2b0c1f] dark:text-[#fff1f7]"
                   >
                     <option value="">{copy.selectProductPlaceholder}</option>
                     {eligible.map((item) => (
@@ -1363,7 +1363,7 @@ export default function ReviewsClient() {
                     value={formTitle}
                     onChange={(event) => setFormTitle(event.target.value)}
                     maxLength={60}
-                    className="min-h-[44px] w-full rounded-lg border border-[#f0d4de] bg-white px-3 text-sm outline-none focus:border-[#b31955] dark:border-[#5a3348] dark:bg-[#2b0c1f] dark:text-[#fff1f7]"
+                    className="min-h-[44px] w-full rounded-lg border border-[#f0d4de] bg-white px-3 text-base outline-none focus:border-[#b31955] dark:border-[#5a3348] dark:bg-[#2b0c1f] dark:text-[#fff1f7]"
                   />
                 </div>
 
@@ -1378,7 +1378,7 @@ export default function ReviewsClient() {
                     rows={6}
                     maxLength={1000}
                     placeholder={copy.bodyPlaceholder}
-                    className="w-full rounded-lg border border-[#f0d4de] bg-white px-3 py-2 text-sm leading-7 outline-none focus:border-[#b31955] dark:border-[#5a3348] dark:bg-[#2b0c1f] dark:text-[#fff1f7]"
+                    className="w-full rounded-lg border border-[#f0d4de] bg-white px-3 py-2 text-base leading-7 outline-none focus:border-[#b31955] dark:border-[#5a3348] dark:bg-[#2b0c1f] dark:text-[#fff1f7]"
                   />
                   <p className="text-right text-xs text-[#8a6478] dark:text-[#c99cb2]">{formBody.trim().length} / 1000</p>
                 </div>

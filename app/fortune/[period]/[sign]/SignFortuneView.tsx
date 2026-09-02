@@ -339,7 +339,7 @@ export default function SignFortuneView({ vm }: { vm: SignViewModel }) {
                   <li key={item.id}>
                     <Link
                       href={`/fortune/${period}/${item.id}/`}
-                      className="inline-flex min-h-[36px] items-center rounded-full border border-[#0f766e]/30 px-3 text-xs font-bold text-[#0f766e] hover:bg-[#0f766e]/10 dark:border-emerald-300/30 dark:text-emerald-100"
+                      className="inline-flex min-h-11 items-center rounded-full border border-[#0f766e]/30 px-3 text-xs font-bold text-[#0f766e] hover:bg-[#0f766e]/10 dark:border-emerald-300/30 dark:text-emerald-100"
                     >
                       {item.symbol} {item.nameKo}
                     </Link>
@@ -354,7 +354,7 @@ export default function SignFortuneView({ vm }: { vm: SignViewModel }) {
                   <li key={item.id}>
                     <Link
                       href={`/fortune/${period}/${item.id}/`}
-                      className="inline-flex min-h-[36px] items-center rounded-full border border-[#b31955]/30 px-3 text-xs font-bold text-[#b31955] hover:bg-[#b31955]/10 dark:border-rose-300/30 dark:text-rose-100"
+                      className="inline-flex min-h-11 items-center rounded-full border border-[#b31955]/30 px-3 text-xs font-bold text-[#b31955] hover:bg-[#b31955]/10 dark:border-rose-300/30 dark:text-rose-100"
                     >
                       {item.symbol} {item.nameKo}
                     </Link>
