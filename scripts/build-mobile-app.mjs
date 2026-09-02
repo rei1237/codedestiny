@@ -158,8 +158,10 @@ async function removeAppForbiddenRoutes() {
 // 참조 검사 방식이 아니라 명시 목록인 이유: og/ 는 <meta og:image> 절대 URL 속 파일명을
 // buildReferencedNameIndex 가 "참조 있음"으로 잡아 보호해 버린다(메타 태그는 앱이 fetch 하지 않는데도).
 // 그래서 이 삭제는 색인 생성보다 먼저 돌아야 한다 — main() 의 호출 순서를 옮기지 말 것.
-// admin/ 은 지우지 않는다 — index.html 이 /admin/login 으로 실제 네비게이션한다(기능 축소는 사용자 승인 필요).
-const WEB_ONLY_ARTIFACTS = ["_worker.js", "_routes.json", "_headers", "sitemap.xml", "robots.txt", "og", "404", "500"];
+// admin/ 은 2026-09-03 사용자 결정으로 앱에서 제외한다 — 관리자 진입은 웹에서만 한다.
+// 셸의 유일한 진입점(#cdAdminFlowerWrap)은 아래 stripAppOnlyBlocks 가 같은 빌드에서 걷어내므로
+// 앱에 도달 경로가 남지 않는다. 둘 중 하나만 하면 "눌렀는데 404" 가 된다 — 함께 유지할 것.
+const WEB_ONLY_ARTIFACTS = ["_worker.js", "_routes.json", "_headers", "sitemap.xml", "robots.txt", "og", "404", "500", "admin"];
 
 async function removeWebOnlyArtifacts() {
   const removed = [];
@@ -519,6 +521,70 @@ export function stripSameOriginResizePrefixes(text) {
   return { text: out, rewritten };
 }
 
+// 앱 전용 스트립 — 소스가 `<!--cd-app-strip-->` … `<!--/cd-app-strip-->` 로 감싼 구간을 걷어낸다.
+//
+// 왜 마커인가: 셸 index.html 은 문자열로 읽는 verify 스크립트가 61개라 소스에서 지울 수 없고,
+// 클래스·id 를 정규식으로 겨누면 마크업이 조금만 바뀌어도 조용히 빗나간다. 마커는 무엇을 지우는지가
+// 소스 옆에 남고, 옮겨도 따라간다.
+//
+// 🔴 이 마커는 scripts/strip-dist-html-comments.mjs 의 mustKeep 이 보존해 준다 — 그 예외를 빼면
+//    postbuild 가 표식을 먼저 지워 이 패스가 대상 0건으로 죽는다(아래 fail-closed 가 그때 문다).
+//
+// 현재 대상(둘 다 index.html 푸터):
+//   · cd-footer-shell — SEO 내부 링크 허브. 앱에는 하단 네비·홈 IA 가 같은 진입을 갖고,
+//     그 안의 /insights/ 는 REMOVED_ROUTE_DIRS 로 앱에서 지워지는 죽은 링크다.
+//   · cdAdminFlowerWrap — 관리자 진입. WEB_ONLY_ARTIFACTS 의 admin/ 제거와 한 쌍이다.
+// 남기는 것: 개인정보 수집 안내문 · 정책 링크 6개 · 사업자 정보 · 언어 선택기(법적·기능 필수).
+const APP_STRIP_RE = /<!--cd-app-strip-->[\s\S]*?<!--\/cd-app-strip-->/g;
+const APP_STRIP_MARKER_RE = /<!--\/?cd-app-strip-->/g;
+
+export function stripAppOnlyBlocks(html) {
+  let stripped = 0;
+  const out = html.replace(APP_STRIP_RE, () => {
+    stripped += 1;
+    return "";
+  });
+  return { html: out, stripped };
+}
+
+export async function stripAppOnlyMarkedBlocks(dist = DIST) {
+  const files = await walk(dist, (file) => file.toLowerCase().endsWith(".html"));
+  let touched = 0;
+  let stripped = 0;
+  for (const file of files) {
+    const original = await fs.readFile(file, "utf8");
+    if (!original.includes("<!--cd-app-strip-->")) continue;
+    const result = stripAppOnlyBlocks(original);
+    if (!result.stripped) continue;
+    await fs.writeFile(file, result.html, "utf8");
+    touched += 1;
+    stripped += result.stripped;
+  }
+
+  // fail-closed ①: 대상이 0건이면 통과가 아니라 실패다 — 소스에서 마커가 사라졌거나
+  // postbuild 의 주석 제거가 표식을 먹은 것이다(stripSameOriginImageResizing 과 같은 정책).
+  if (stripped === 0) {
+    throw new Error(
+      "앱 전용 스트립 마커(<!--cd-app-strip-->)를 한 건도 찾지 못했다.\n" +
+        "   · 소스 index.html 에서 마커가 지워졌는지\n" +
+        "   · scripts/strip-dist-html-comments.mjs 의 mustKeep 이 여전히 마커를 보존하는지 확인할 것."
+    );
+  }
+
+  // fail-closed ②: 짝이 안 맞아 남은 표식이 있으면 그 구간은 앱에 그대로 남았다는 뜻이다.
+  const remaining = [];
+  for (const file of files) {
+    const text = await fs.readFile(file, "utf8");
+    const left = (text.match(APP_STRIP_MARKER_RE) || []).length;
+    if (left) remaining.push(`${path.relative(dist, file).split(path.sep).join("/")} (표식 ${left}개)`);
+  }
+  if (remaining.length) {
+    throw new Error(`짝이 맞지 않는 앱 스트립 표식이 남았다:\n   - ${remaining.join("\n   - ")}`);
+  }
+
+  return { files: touched, stripped };
+}
+
 const RESIZE_SCAN_EXTENSIONS = /\.(?:html|css|js|mjs|json|webmanifest|xml|txt)$/i;
 
 export async function stripSameOriginImageResizing(dist = DIST) {
@@ -578,6 +644,10 @@ async function main() {
 
   const webOnly = await removeWebOnlyArtifacts();
   console.log(`  ✅ 웹 전용 산출물 제거: ${webOnly.join(", ")}`);
+
+  // 색인보다 먼저 — 지워진 마크업이 참조하던 자산까지 죽은 것으로 잡히게(라우트 제거와 같은 이유).
+  const appStripped = await stripAppOnlyMarkedBlocks();
+  console.log(`  ✅ 앱 전용 스트립 구간 제거: ${appStripped.stripped}블록 / HTML ${appStripped.files}개`);
 
   // 라우트를 지운 뒤에 색인을 만든다 — 지워진 SEO 페이지가 참조하던 자산까지 죽은 것으로 잡히게.
   const referenced = await buildReferencedNameIndex();

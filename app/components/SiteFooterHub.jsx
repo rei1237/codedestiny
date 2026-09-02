@@ -1,6 +1,7 @@
 import styles from "./SiteFooterHub.module.css";
 import SocialFooter from "../_components/SocialFooter";
 import { BUSINESS_IDENTITY } from "../../lib/site-policy-config";
+import { IS_APP_BUILD } from "../../lib/app-build-target";
 
 const SITE_FOOTER_HUB_TEXT_TRANSLATIONS = {
   ko: {
@@ -177,26 +178,36 @@ export default function SiteFooterHub() {
 
       <div className={styles.sfhShell}>
         <section aria-label={siteFooterHubText("siteFooter.012")}>
-          <p className={styles.sfhKicker}>Constellation Navigation</p>
-          <p className={styles.sfhTitle}>서비스 링크 허브</p>
-          <p className={styles.sfhSubtitle}>
-            주요 운세와 랜딩 페이지를 성좌 지도로 재배열해 탐색 흐름과 검색 신호를 함께 강화했습니다.
-          </p>
+          {/* 🔴 링크 허브와 SNS 채널은 **검색 신호 전용**이라 앱 번들에서는 렌더하지 않는다
+              (2026-09-03 사용자 결정). 앱에는 하단 탭바와 홈 IA 가 같은 진입을 이미 갖고 있고,
+              크롤러가 없으니 내부 링크 51개는 순수 비용이다. 셸(index.html)의 cd-footer-shell 을
+              build-mobile-app.mjs 가 걷어내는 것과 같은 규칙이다.
+              🔴 아래 환불 안내·사업자 정보·정책 링크는 **앱에서도 남긴다** — Play 정책과
+              전자상거래법상 앱 안에 접근 경로가 있어야 한다. 같이 지우지 말 것. */}
+          {!IS_APP_BUILD && (
+            <>
+              <p className={styles.sfhKicker}>Constellation Navigation</p>
+              <p className={styles.sfhTitle}>서비스 링크 허브</p>
+              <p className={styles.sfhSubtitle}>
+                주요 운세와 랜딩 페이지를 성좌 지도로 재배열해 탐색 흐름과 검색 신호를 함께 강화했습니다.
+              </p>
 
-          <div className={styles.sfhGroupGrid}>
-            {SEO_LINK_GROUPS.map((group) => (
-              <section key={group.title} className={styles.sfhCard} aria-label={group.title}>
-                <h2 className={styles.sfhGroupTitle}>{group.title}</h2>
-                <nav className={styles.sfhLinkNav} aria-label={`${group.title} 링크`}>
-                  {group.links.map((link) => (
-                    <a key={link.href} href={link.href} className={styles.sfhLink}>
-                      {link.text}
-                    </a>
-                  ))}
-                </nav>
-              </section>
-            ))}
-          </div>
+              <div className={styles.sfhGroupGrid}>
+                {SEO_LINK_GROUPS.map((group) => (
+                  <section key={group.title} className={styles.sfhCard} aria-label={group.title}>
+                    <h2 className={styles.sfhGroupTitle}>{group.title}</h2>
+                    <nav className={styles.sfhLinkNav} aria-label={`${group.title} 링크`}>
+                      {group.links.map((link) => (
+                        <a key={link.href} href={link.href} className={styles.sfhLink}>
+                          {link.text}
+                        </a>
+                      ))}
+                    </nav>
+                  </section>
+                ))}
+              </div>
+            </>
+          )}
 
           <section aria-label="환불 정책 안내">
             <h2 style={{ fontSize: '1.25rem', marginTop: '2rem', marginBottom: '1rem', fontWeight: 600 }}>디지털 운세 서비스 환불 안내</h2>
@@ -223,7 +234,7 @@ export default function SiteFooterHub() {
           </section>
         </section>
 
-        <SocialFooter copy={KO_SOCIAL_COPY} />
+        {!IS_APP_BUILD && <SocialFooter copy={KO_SOCIAL_COPY} />}
 
         <section aria-label="사업자 정보" style={{ marginTop: '1.5rem', fontSize: '0.8rem', lineHeight: 1.7, opacity: 0.85 }}>
           <h2 style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.5rem' }}>사업자 정보</h2>

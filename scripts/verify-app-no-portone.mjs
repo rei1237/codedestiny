@@ -343,6 +343,44 @@ if (DIST) {
         missingBridge.length ? `누락: ${missingBridge.join(", ")}` : "",
       );
     }
+    {
+      // 앱 전용 스트립(build-mobile-app.mjs 의 stripAppOnlyMarkedBlocks) 결과를 독립적으로 단언한다.
+      // 🔴 목록을 빌드 쪽과 공유하지 않는다 — 빌드가 조용히 죽어도 여기서 물게 하려는 것이다.
+      //
+      // 지워졌어야 하는 것 / 남아 있어야 하는 것을 함께 본다. "0건"만 세면 푸터를 통째로 날려
+      // 개인정보처리방침·이용약관·사업자 정보가 앱에서 사라진 것도 통과시킨다(Play 정책·전자상거래법).
+      const htmlFiles = await walk(DIST, (file) => file.toLowerCase().endsWith(".html"));
+      const strayMarkers = [];
+      const strayBlocks = [];
+      let scanned = 0;
+      for (const file of htmlFiles) {
+        const html = await fs.readFile(file, "utf8").catch(() => "");
+        if (!html) continue;
+        scanned += 1;
+        const rel = path.relative(DIST, file).replace(/\\/g, "/");
+        if (html.includes("<!--cd-app-strip-->") || html.includes("<!--/cd-app-strip-->")) strayMarkers.push(rel);
+        if (html.includes('class="cd-footer-shell"') || html.includes('id="cdAdminFlowerWrap"')) strayBlocks.push(rel);
+      }
+      check(
+        `앱 스트립 표식 잔존 0건 (HTML ${scanned}개 스캔)`,
+        strayMarkers.length === 0,
+        strayMarkers.length ? `잔존: ${strayMarkers.slice(0, 5).join(", ")}` : "",
+      );
+      check(
+        "SEO 링크 허브·관리자 진입 버튼 제거됨",
+        strayBlocks.length === 0,
+        strayBlocks.length ? `잔존: ${strayBlocks.slice(0, 5).join(", ")}` : "",
+      );
+
+      const shellHtml = await fs.readFile(path.join(DIST, "index.html"), "utf8").catch(() => "");
+      const legalKept = ['href="/privacy/', 'href="/terms/', 'cd-footer-business-details'];
+      const missingLegal = legalKept.filter((needle) => !shellHtml.includes(needle));
+      check(
+        "법적 고지 존치: 개인정보처리방침·이용약관 링크 + 사업자 정보",
+        shellHtml.length > 0 && missingLegal.length === 0,
+        missingLegal.length ? `누락: ${missingLegal.join(", ")}` : "dist/index.html 을 읽지 못했다",
+      );
+    }
 
     for (const prefix of ["", "en", "ja", "zh"]) {
       const label = prefix ? `/${prefix}/points` : "/points";
@@ -356,11 +394,9 @@ if (DIST) {
 
     // 웹 배포 전용 산출물 — build-mobile-app.mjs 의 removeWebOnlyArtifacts 가 지웠어야 한다.
     // 목록을 일부러 공유하지 않는다: 빌드 쪽 목록이 줄어도 이 단언이 독립적으로 문다(fail-closed).
-    for (const name of ["_worker.js", "_routes.json", "_headers", "sitemap.xml", "robots.txt", "og", "404", "500"]) {
+    for (const name of ["_worker.js", "_routes.json", "_headers", "sitemap.xml", "robots.txt", "og", "404", "500", "admin"]) {
       check(`웹 전용 산출물 제거됨: /${name}`, !(await exists(path.join(DIST, name))));
     }
-    // admin/ 은 의도적으로 남긴다 — index.html 이 /admin/login 으로 실제 네비게이션한다(기능 축소는 사용자 승인 필요).
-    check("실사용 라우트 존치: /admin (앱 내 관리자 진입)", await exists(path.join(DIST, "admin")));
 
     // 참조되는 자산은 살아남아야 한다 — 프루닝이 실사용 자산을 먹으면 앱에서 이미지가 깨진다.
     // (다마고치는 index.html이 /tadagochi로 링크하는 실제 기능이고, tadagochi.html이
