@@ -1817,7 +1817,7 @@ export default function NeoOperationRoomPage() {
       const savedPrologueSeen = window.localStorage.getItem(NEO_STRATEGY_PROLOGUE_SEEN_KEY) === "true";
       const forceReplay = search.get("neoPrologue") === "replay";
       setHasSeenPrologue(savedPrologueSeen);
-      shouldOpenPrologue = forceReplay || !savedPrologueSeen;
+      shouldOpenPrologue = forceReplay;
     } catch {
       shouldOpenPrologue = false;
     }
@@ -2050,9 +2050,12 @@ export default function NeoOperationRoomPage() {
   function enterWarRoom() {
     setEntryRevision(NEO_OPERATION_ROOM_ENTRY_REVISION);
     setHasEnteredWarRoom(true);
-    setHasCompletedPrologue(false);
-    setPrologueStep(0);
-    window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+    setHasCompletedPrologue(true);
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        document.getElementById("neo-operation-command-deck")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    });
   }
 
   function markPrologueSeen() {
@@ -2066,14 +2069,7 @@ export default function NeoOperationRoomPage() {
 
   function revealCommandDeck() {
     markPrologueSeen();
-    setEntryRevision(NEO_OPERATION_ROOM_ENTRY_REVISION);
-    setHasEnteredWarRoom(true);
-    setHasCompletedPrologue(true);
-    window.requestAnimationFrame(() => {
-      window.requestAnimationFrame(() => {
-        document.getElementById("neo-operation-command-deck")?.scrollIntoView({ behavior: "smooth", block: "start" });
-      });
-    });
+    enterWarRoom();
   }
 
   function advanceHeroDialogue() {
