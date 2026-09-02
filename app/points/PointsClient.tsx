@@ -416,6 +416,11 @@ type PortOnePaymentRequest = {
    * global_visa3d=Y 가 모바일 결제창의 해외카드 노출 옵션이다(portoneBypass 머리주석).
    */
   bypass?: { inicis_v2?: { P_RESERVED?: string[] } };
+  /**
+   * 상품권 종류. PortOne V2 는 payMethod:"GIFT_CERTIFICATE" 에 이 값을 **필수**로 요구하고,
+   * 없으면 결제창을 그리기 전에 거절한다. 값은 js/core/checkout-entry.js 의 표가 정한다.
+   */
+  giftCertificate?: { giftCertificateType: string };
 };
 
 /** Toast 알림 하나의 데이터 구조 */
@@ -2994,9 +2999,44 @@ export default function PointsPage() {
   const copy = POINTS_PAGE_COPY[lang] || POINTS_PAGE_COPY.ko;
   const formatLocale = FORMAT_LOCALE_BY_LANG[lang] || FORMAT_LOCALE_BY_LANG.ko;
 
+  /**
+   * 이용권 결제 확인 모달의 결제수단 목록.
+   *
+   * 🔴 **id·라벨·활성여부를 여기에 손으로 적지 않는다.** 정본은 결제창 표(js/core/checkout-entry.js 의
+   * DIRECT_PAY_METHODS) 하나이고, 콘텐츠 단건결제가 이미 그 표를 그린다. 여기서 복제하면 PG 가 새 수단을
+   * 승인했을 때 결제창만 늘고 이용권 상점은 조용히 낡는다(2026-09-02 이 화면이 카드 하나로 굳어 있던 이유).
+   *
+   * 결제창 2단계와 달리 buildDirectPayMethodStepHtml 을 쓰지 않는다 — 그 마크업은 cd-direct-payment-* CSS
+   * (PAYMENT_CHOICE_CSS_RULES)를 전제하는데 /points 는 Tailwind 화면이라 그 배열의 4번째 주입자를
+   * 만들게 된다. 표는 그대로 읽고 마크업만 이 화면 어휘로 그린다.
+   *
+   * lang 이 바뀌면 다시 계산한다 — checkoutEntry.text 는 cdTranslate(LocaleRuntimeBridge)를 통해 읽으므로
+   * 사전 로드 전에는 한국어 폴백이 나온다.
+   */
+  const passPayMethods = useMemo(() => {
+    const decorate = (id: string) => ({
+      id,
+      label: checkoutEntry.directPayMethodLabel(id),
+      glyph: checkoutEntry.directPayMethodMeta(id)?.glyph || "",
+      enabled: checkoutEntry.isDirectPayMethodEnabled(id),
+    });
+    const isGift = (id: string) => Boolean(checkoutEntry.directPayMethodMeta(id)?.isGiftCertificate);
+    return {
+      // 🔴 상품권은 타일 3칸이 아니라 묶음 1칸 + 칩 3개다(결제창 2단계와 같은 구성). PortOne V2 가
+      // giftCertificateType 을 창 열기 전에 요구해 선택지 자체는 3개로 남지만 칸을 3개 먹을 이유는 없다.
+      tiles: checkoutEntry.DIRECT_PAY_METHOD_ORDER.filter((id) => !isGift(id)).map(decorate),
+      gifts: checkoutEntry.DIRECT_PAY_METHOD_ORDER.filter(isGift).map(decorate),
+      giftGroupLabel: checkoutEntry.directPayGiftGroupLabel(),
+      comingSoon: checkoutEntry.directPayMethodComingSoonText(),
+      prompt: checkoutEntry.text("payment.directModal.method.prompt", "어떤 방법으로 결제할까요?"),
+    };
+    // checkoutEntry.text 는 런타임 사전(globalThis.cdTranslate)을 읽으므로 ESLint 가 이 memo 의
+    // 언어 의존을 볼 수 없다 — lang 을 빼면 로케일을 바꿔도 라벨이 옛 언어로 굳는다.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lang]);
+
   /* ── 상태 ──────────────────────────────────────────────────────── */
   const [authUser, setAuthUser] = useState<AuthUser | null>(null);
-  const [selectedMethod] = useState<string>("card_general");
 
   const [isBooting, setIsBooting] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -3093,8 +3133,9 @@ export default function PointsPage() {
     return { status: response.status, data: { ...data, ok: response.ok && Boolean(data.order) } };
   }, [apiBase]);
 
-  const startSubscriptionPrepare = useCallback((plan: SubscriptionPlan): SubscriptionPrepareEntry => {
-    const method = selectedMethod || "card_general";
+  // 🔴 method 는 인자로 받는다. 예전에는 카드 고정 state 를 읽었지만, 이제 사용자가 결제 확인 모달에서
+  // 수단을 고르고 같은 클릭에서 바로 여기까지 오므로 state 로 넘기면 그 tick 에서 옛 값을 읽는다.
+  const startSubscriptionPrepare = useCallback((plan: SubscriptionPlan, method: string): SubscriptionPrepareEntry => {
     const existing = subscriptionPrepareRef.current;
     if (existing && existing.planId === plan.planId && existing.method === method) return existing;
 
@@ -3117,10 +3158,13 @@ export default function PointsPage() {
       });
     subscriptionPrepareRef.current = entry;
     return entry;
-  }, [requestSubscriptionPrepare, selectedMethod]);
+  }, [requestSubscriptionPrepare]);
 
   useEffect(() => {
     setIsSubscriptionRefundAgreed(false);
+    // 🔴 선택 슬롯(window.__cdSelectedDirectPayMethod)은 콘텐츠 결제창과 **같은 자리**다. 비우지 않으면
+    // 직전에 콘텐츠를 상품권으로 산 사용자가 이용권 모달을 열자마자 상품권이 고른 상태로 상속된다.
+    checkoutEntry.clearSelectedDirectPayMethod();
     // 결제 모달을 여는 것만으로는 결제 준비 API를 호출하지 않는다 —
     // config/prepare/payment-phone은 실제 원화 결제 버튼을 누른 뒤에만 준비한다.
     if (!pendingSubscriptionPaymentPlan) {
@@ -4222,6 +4266,28 @@ export default function PointsPage() {
     syncSubscriptionAppliedStage,
   ]);
 
+  /**
+   * 이용권 결제 확인 모달의 타일·칩 하나를 눌렀을 때.
+   *
+   * 🔴 **고른 수단을 handleSubscribe 의 인자로 넘기지 않는다.** 코어의 window 슬롯
+   * (setSelectedDirectPayMethod → TTL 120초)에 넣고, handleSubscribe 가 진입에서 resolveDirectPayFields("")
+   * 로 한 번 푼다 — 셸·독립 정적 결제창과 **같은 기전**이라 새 상태 경로를 만들지 않는다.
+   * React state 로 넘기면 같은 tick 에서 옛 값을 읽는다.
+   */
+  const startPassCheckoutWithMethod = (methodId: string) => {
+    const plan = pendingSubscriptionPaymentPlan;
+    if (!plan) return;
+    // 🔴 실제 disabled 가 아니라 aria-disabled 로 잠가 두었으므로 클릭이 여기까지 온다. 결제창과 같은
+    // 이유다 — 잠긴 타일이 클릭을 삼키면 "왜 안 되는지"를 설명할 자리가 사라진다.
+    if (!checkoutEntry.isDirectPayMethodEnabled(methodId)) {
+      pushToast("info", checkoutEntry.directPayMethodComingSoonText());
+      return;
+    }
+    checkoutEntry.setSelectedDirectPayMethod(methodId);
+    setPendingSubscriptionPaymentPlan(null);
+    void handleSubscribe(plan);
+  };
+
   /* ── 이용권(30일) 결제 핸들러 — PortOne V2 · KG이니시스 ─────────── */
   const handleSubscribe = async (plan: SubscriptionPlan) => {
     if (pendingSubscriptionConfirmRef.current) return;
@@ -4244,11 +4310,17 @@ export default function PointsPage() {
       return;
     }
 
-    const actionLockKey = `subscription:${plan.planId}:${selectedMethod || "card_general"}`;
+    // 🔴 **여기서 한 번만 푼다.** 선택 슬롯의 TTL 은 120초인데 아래 ensurePaymentPhoneNumber 가 사용자의
+    // 번호 입력을 그보다 오래 기다릴 수 있다. 조립부에서 다시 풀면 그 사이 슬롯이 만료돼, 주문에는
+    // 카카오페이가 기록됐는데 PG 는 이니시스 카드창을 여는 어긋남이 난다(멱등키·주문·요청이 갈라진다).
+    const directPayFields = checkoutEntry.resolveDirectPayFields("");
+    const orderMethod = directPayFields.orderMethod || "card_general";
+
+    const actionLockKey = `subscription:${plan.planId}:${orderMethod}`;
     if (!acquirePaymentActionLock(actionLockKey)) return;
 
     try {
-      const prepareEntry = startSubscriptionPrepare(plan);
+      const prepareEntry = startSubscriptionPrepare(plan, orderMethod);
       // SDK 로드·config 조회는 prepare 결과와 아무 의존이 없다. 예전에는 prepare 뒤로 직렬화돼 있어
       // 결제창 오픈이 두 홉을 기다렸다 — 같은 클릭에서 함께 발사해 한 홉으로 접는다.
       // prepare 실패로 아래에서 조기 return 될 때 unhandled rejection 이 되지 않도록 catch 를 먼저 건다.
@@ -4281,7 +4353,7 @@ export default function PointsPage() {
           const retryAttempt = await requestSubscriptionPrepare(
             plan,
             `membership-retry-${plan.planId}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
-            selectedMethod || "card_general",
+            orderMethod,
           );
           prepareStatus = retryAttempt.status;
           prepareData = retryAttempt.data;
@@ -4328,14 +4400,30 @@ export default function PointsPage() {
       if (!window.PortOne?.requestPayment) throw new Error("포트원 V2 결제 SDK가 초기화되지 않았습니다.");
       const customer = buildPortOneCustomer(authUser, order.merchantUid, customerPhoneNumber);
 
+      // 🔴 카카오페이만 채널이 다르다. PortOne V2 는 requestPayment 호출당 채널키를 하나만 받으므로
+      // 표가 channelKeyName 을 준 수단은 그 키를 쓴다. 🔴 **비어 있으면 던지고 끝낸다** —
+      // paymentConfig.channelKey 로 폴백하면 "카카오페이를 눌렀는데 이니시스 카드창"이 뜬다.
+      const channelKey = directPayFields.channelKeyName
+        ? String((paymentConfig as unknown as Record<string, unknown>)[directPayFields.channelKeyName] || "").trim()
+        : String(paymentConfig.channelKey || "").trim();
+      // 🔴 두 실패를 구분해서 알린다(셸 index.html 과 같은 순서·같은 문구). 전용 채널키만 비었다면 결제
+      // 배관 자체는 멀쩡하고 "그 수단만" 못 쓰는 상태라 다른 수단으로 돌아가면 결제를 끝낼 수 있다.
+      // 설정값 누락과 같은 문구로 뭉뚱그리면 사용자는 결제 전체가 죽은 줄 알고 이탈한다.
+      if (paymentConfig.storeId && !channelKey && directPayFields.channelKeyName) {
+        throw new Error("선택한 결제수단은 현재 이용할 수 없습니다. 다른 결제수단으로 다시 시도해 주세요.");
+      }
+      if (!paymentConfig.storeId || !channelKey) {
+        throw new Error("포트원 V2 결제 설정값(storeId/channelKey)이 누락되었습니다.");
+      }
+
       const requestData: PortOnePaymentRequest = {
         storeId: paymentConfig.storeId,
-        channelKey: paymentConfig.channelKey,
+        channelKey,
         paymentId: order.merchantUid,
         orderName: order.productName,
         totalAmount: order.paymentAmount,
         currency: paymentConfig.currency || "CURRENCY_KRW",
-        payMethod: paymentConfig.payMethod || "CARD",
+        payMethod: directPayFields.payMethod || paymentConfig.payMethod || "CARD",
         // 🔴 안 보내면 PG 가 한국어 결제창을 연다. 값의 범위는 PG 가 정한다(pgWindowLocale 머리주석).
         locale: checkoutEntry.pgWindowLocale(),
         redirectUrl: redirectUrl.toString(),
@@ -4348,14 +4436,18 @@ export default function PointsPage() {
           durationDays: 30,
           productType: plan.productType,
           subscriptionSource: "pass",
-          paymentMethod: selectedMethod || "card_general",
+          paymentMethod: orderMethod,
         },
       };
 
       if (paymentConfig.noticeUrl) requestData.noticeUrls = [paymentConfig.noticeUrl];
-      // 이용권 결제는 이니시스 단일 채널이라 채널 분기 없이 붙인다(셸·독립은 사용자가 2단계에서
-      // 다른 PG 를 고를 수 있어 channelKeyName 으로 게이팅한다).
-      requestData.bypass = checkoutEntry.portoneBypass();
+      // 🔴 상품권은 payMethod 만으로 부족하다 — PortOne V2 가 giftCertificateType 을 요구하고,
+      // 없으면 **결제창을 그리기 전에** 거절해 "그 카드만 창이 안 뜬다"가 된다.
+      if (directPayFields.giftCertificate) requestData.giftCertificate = directPayFields.giftCertificate;
+      // 🔴 bypass 는 이니시스 전용 페이로드다. 전용 채널(카카오페이)에 실으면 그 PG 가 모르는 키라
+      // 창이 안 열리거나 조용히 무시된다 — 셸·독립 정적과 같은 채널 게이팅을 쓴다.
+      const passBypass = directPayFields.channelKeyName ? null : checkoutEntry.portoneBypass();
+      if (passBypass) requestData.bypass = passBypass;
 
       savePendingSubscriptionOrder({
         merchantUid: order.merchantUid,
@@ -4363,7 +4455,7 @@ export default function PointsPage() {
         tier: plan.tier,
         planId: plan.planId,
         durationMonths: plan.durationMonths,
-        paymentMethod: selectedMethod || "card_general",
+        paymentMethod: orderMethod,
       });
       savePendingSubscriptionPass(plan.tier, order.merchantUid);
 
@@ -4384,7 +4476,7 @@ export default function PointsPage() {
           reasonCode: raw.code ? `pg_${raw.code}` : "subscription_client_cancel_or_fail",
           // 표시용 문장이 아니라 PG 원문을 남긴다 — 매핑된 문장은 원인을 지운다.
           reasonMessage: raw.message || message,
-          paymentMethod: selectedMethod || "card_general",
+          paymentMethod: orderMethod,
         });
         pushToast("error", message);
         return;
@@ -4404,7 +4496,7 @@ export default function PointsPage() {
           currency: "KRW",
           productType: plan.productType,
           customerUid: order.customerUid,
-          paymentMethod: selectedMethod || "card_general",
+          paymentMethod: orderMethod,
         };
         pendingSubscriptionConfirmRef.current = {
           payload: confirmPayload,
@@ -4451,7 +4543,7 @@ export default function PointsPage() {
           impUid: paymentId,
           reasonCode: "subscription_confirm_failed",
           reasonMessage: getErrorMessage(error, "이용권 결제 확인에 실패했습니다."),
-          paymentMethod: selectedMethod || "card_general",
+          paymentMethod: orderMethod,
         });
         pushToast("error", getErrorMessage(error, "이용권 결제 확인에 실패했습니다."));
       }
@@ -4465,6 +4557,10 @@ export default function PointsPage() {
       pushToast("error", message);
     } finally {
       releasePaymentActionLock(actionLockKey);
+      // 결제가 끝났으니(성공·취소·실패 모두) 고른 수단을 놓아 준다. 리다이렉트 결제는 여기 오기 전에
+      // 페이지를 떠나므로 그쪽은 TTL 이 닫는다. 🔴 이 함수는 자기 자신을 재귀 호출하지 않아
+      // (셸·독립 조립부와 달리) 여기서 비워도 진행 중인 결제의 수단이 사라지지 않는다.
+      checkoutEntry.clearSelectedDirectPayMethod();
       if (!pendingSubscriptionConfirmRef.current) {
         setIsProcessing(false);
       }
@@ -4655,21 +4751,67 @@ export default function PointsPage() {
               />
               <span>{copy.refundAgreement}</span>
             </label>
-            <div className="mt-4 grid gap-2">
-              <button
-                type="button"
-                disabled={isProcessing || !isSubscriptionRefundAgreed}
-                onClick={() => {
-                  const plan = pendingSubscriptionPaymentPlan;
-                  if (!plan) return;
-                  setPendingSubscriptionPaymentPlan(null);
-                  void handleSubscribe(plan);
-                }}
-                className="rounded-[14px] border border-amber-200/45 bg-amber-200 px-4 py-3 text-left text-[#151832] shadow-[0_10px_22px_rgba(243,221,154,0.18)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <span className="block text-sm font-black">원화 결제</span>
-                <span className="mt-1 block text-[12px] font-semibold">콘텐츠 가치는 원화로 표시되며 보안 결제창에서 결제합니다.</span>
-              </button>
+            {/*
+              결제수단 그리드. 🔴 월정석 타일은 여기에 **없다** — 목록이 결제창 표(DIRECT_PAY_METHODS)에서
+              오는데 그 표는 PortOne 으로 나가는 단건 레일만 담고, 서버도 이용권 상품에서 "pg" 외 결제수단을
+              전부 거절한다(worker/lib/entitlement-policy.js). 위 안내 문구까지 3중 방어다.
+              환불 동의 전에는 그리드 전체가 잠긴다 — 기존 [원화 결제] 버튼이 지키던 순서를 그대로 유지한다.
+            */}
+            <div className="mt-4">
+              <p className="text-[12px] font-black text-slate-200">{passPayMethods.prompt}</p>
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                {passPayMethods.tiles.map((method) => (
+                  <button
+                    key={method.id}
+                    type="button"
+                    disabled={isProcessing || !isSubscriptionRefundAgreed}
+                    /* 🔴 준비 중은 aria-disabled 로만 잠근다. 진짜 disabled 를 걸면 클릭이 삼켜져
+                       "왜 안 되는지"를 알려 줄 자리가 사라진다(결제창 2단계와 같은 규칙). */
+                    aria-disabled={!method.enabled}
+                    data-pass-pay-method={method.id}
+                    onClick={() => startPassCheckoutWithMethod(method.id)}
+                    className={`flex min-h-[76px] flex-col items-start justify-center gap-1 rounded-[14px] border px-3.5 py-3 text-left transition disabled:cursor-not-allowed disabled:opacity-50 ${
+                      method.enabled
+                        ? "border-amber-200/45 bg-amber-200/12 text-amber-50 hover:bg-amber-200/20"
+                        : "border-white/12 bg-white/[0.05] text-slate-400 hover:bg-white/[0.08]"
+                    }`}
+                  >
+                    <span aria-hidden="true" className="text-lg leading-none">{method.glyph}</span>
+                    <span className="text-[13px] font-black leading-snug">{method.label}</span>
+                    {!method.enabled && (
+                      <span className="rounded-full border border-white/15 bg-white/10 px-1.5 py-0.5 text-[10px] font-bold text-slate-300">
+                        {passPayMethods.comingSoon}
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+              {passPayMethods.gifts.length > 0 && (
+                <div className="mt-2 rounded-[14px] border border-white/12 bg-white/[0.05] px-3.5 py-3">
+                  <p className="text-[12px] font-black text-slate-200">
+                    <span aria-hidden="true" className="mr-1">{passPayMethods.gifts[0].glyph}</span>
+                    {passPayMethods.giftGroupLabel}
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {passPayMethods.gifts.map((gift) => (
+                      <button
+                        key={gift.id}
+                        type="button"
+                        disabled={isProcessing || !isSubscriptionRefundAgreed}
+                        aria-disabled={!gift.enabled}
+                        data-pass-pay-method={gift.id}
+                        onClick={() => startPassCheckoutWithMethod(gift.id)}
+                        className="rounded-full border border-amber-200/40 bg-amber-200/12 px-3 py-1.5 text-[12px] font-bold text-amber-50 transition hover:bg-amber-200/20 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        {gift.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <p className="mt-2 text-[11px] font-semibold leading-relaxed text-slate-400">
+                콘텐츠 가치는 원화로 표시되며 보안 결제창에서 결제합니다.
+              </p>
             </div>
             <button
               type="button"

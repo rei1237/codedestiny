@@ -99,9 +99,34 @@ export function isPassLikeProductType(value) {
   return PASS_LIKE_PRODUCT_TYPES.has(normalizePurchaseProductType(value));
 }
 
+// PortOne 결제창으로 나가는 단건 결제 레일. 결제창 표(js/core/checkout-entry.js 의 DIRECT_PAY_METHODS)
+// 가 만드는 orderMethod 가 전부 여기에 있어야 그 수단으로 이용권을 살 수 있다
+// (아래 validatePurchasePolicy 가 이용권 상품에서 "pg" 외 전부를 거절한다).
+// 🔴 월정석·이용권·가족·코인 계열을 여기에 넣지 말 것 — 그 거절이 "이용권은 월정석으로 못 산다" 의 정책 계층이다.
+const PG_PAYMENT_METHODS = new Set([
+  "card",
+  "card_general",
+  "direct",
+  "direct_krw",
+  "pg",
+  "portone",
+  "inicis",
+  "single_purchase",
+  "transfer",
+  "kakaopay",
+  "naverpay",
+  "easy_pay",
+  "mobile",
+  "virtual_account",
+  "gift_certificate",
+  "gift_cultureland",
+  "gift_booknlife",
+  "gift_smart_munsang",
+]);
+
 export function normalizePurchasePaymentMethod(value) {
   const raw = lower(value).replace(/[\s-]+/g, "_");
-  if (!raw || ["card", "card_general", "direct", "direct_krw", "pg", "portone", "inicis", "single_purchase"].includes(raw)) {
+  if (!raw || PG_PAYMENT_METHODS.has(raw)) {
     return "pg";
   }
   if (["monthly", "monthly_credit", "membership_credit", "moonlight_stone", "moonlight_credit", "monthly_billing"].includes(raw)) {

@@ -234,7 +234,8 @@ function runPgWindowLocaleTests() {
     ["index.html", indexSource, "if (_cdBypass) requestData.bypass = _cdBypass;"],
     ["js/destiny-profile.js", destinyProfileSource, "if (_dpBypass) requestData.bypass = _dpBypass;"],
     ["lib/payment/portone.ts", portoneClientSource, "requestData.bypass = checkoutEntry.portoneBypass();"],
-    ["app/points/PointsClient.tsx", pointsClientSource, "requestData.bypass = checkoutEntry.portoneBypass();"],
+    // 이용권 경로는 사용자가 수단을 고르므로 채널 게이팅을 거쳐 붙인다(아래 ⑥ 이 그 표현식을 고정한다).
+    ["app/points/PointsClient.tsx", pointsClientSource, "if (passBypass) requestData.bypass = passBypass;"],
   ];
   for (const [label, source, marker] of BYPASS_CALLERS) {
     assertContains(
@@ -376,12 +377,14 @@ function runPgWindowLocaleTests() {
     );
   }
 
-  // ⑥ 🔴 채널 격리. 셸·독립은 사용자가 결제창 2단계에서 다른 PG 를 고를 수 있고, 그 채널에
+  // ⑥ 🔴 채널 격리. 셸·독립·이용권 상점은 사용자가 다른 PG 를 고를 수 있고, 그 채널에
   //    inicis_v2 키를 실었을 때의 동작은 미문서다 — 거절이라면 결제창이 아예 안 뜬다.
   //    방어가 조용히 사라지는 것을 막기 위해 '같은 표현식 안'을 고정한다.
+  //    🔴 lib/payment/portone.ts 는 여기 없다 — 그 경로는 수단 선택이 없어 항상 이니시스 채널이다.
   for (const [label, source, marker] of [
     ["index.html", indexSource, "directPayFields.channelKeyName ? null : _cdPortoneBypass()"],
     ["js/destiny-profile.js", destinyProfileSource, "directPayFields.channelKeyName ? null : _dpPortoneBypass()"],
+    ["app/points/PointsClient.tsx", pointsClientSource, "directPayFields.channelKeyName ? null : checkoutEntry.portoneBypass()"],
   ]) {
     assertContains(
       source,

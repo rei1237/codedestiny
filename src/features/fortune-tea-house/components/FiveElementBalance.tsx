@@ -20,7 +20,7 @@ export default function FiveElementBalance({ elements }: FiveElementBalanceProps
   const copy = useTeaHouseCopy("fiveElementBalance", KO);
   if (!elements?.length) {
     return (
-      <section className={styles.sajuPanelSection} aria-labelledby="fiveElementBalanceTitle">
+      <section className={styles.sajuPanelSection} aria-labelledby="fiveElementBalanceTitle" data-tea-pdf-section>
         <div className={styles.sajuPanelSectionHeader}>
           <span>{copy.eyebrow}</span>
           <h4 id="fiveElementBalanceTitle">{copy.title}</h4>
@@ -31,7 +31,7 @@ export default function FiveElementBalance({ elements }: FiveElementBalanceProps
   }
 
   return (
-    <section className={styles.sajuPanelSection} aria-labelledby="fiveElementBalanceTitle">
+    <section className={styles.sajuPanelSection} aria-labelledby="fiveElementBalanceTitle" data-tea-pdf-section>
       <div className={styles.sajuPanelSectionHeader}>
         <span>{copy.eyebrow}</span>
         <h4 id="fiveElementBalanceTitle">{copy.title}</h4>

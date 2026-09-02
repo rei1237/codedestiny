@@ -140,8 +140,8 @@ function addFooterToAllPages(pdf: JsPDFInstance, watermarkText: string, bodyFont
 
 /**
  * 결과 화면 DOM을 캡처해 PDF로 저장하는 공용 유틸.
- * html2canvas 캡처 + JPEG 압축 + 페이지네이션을 8개 AI 상담 기능이 공유한다.
- * (운명의 찻집·네오의 팩폭 전략실은 이 유틸을 쓰지 않는다 — 스코프 밖)
+ * html2canvas 캡처 + JPEG 압축 + 페이지네이션을 AI 상담 기능들이 공유한다(호출부는 `git grep export-result-pdf`).
+ * 운명의 찻집 3종(사주·사주궁합·수쿠요)도 이 유틸을 쓴다. 타로 앨범은 자체 PDF 가 있어 예외다.
  */
 export async function exportResultPdf(options: ExportResultPdfOptions): Promise<void> {
   const {

@@ -101,7 +101,7 @@ export default function TeaHouseSajuCompatResultPanel({ result }: TeaHouseSajuCo
   if (!compat?.available) {
     return (
       <section className={styles.sukuyoResultPanel} data-available="false" aria-labelledby="sajuCompatResultPanelTitle">
-        <header className={styles.sukuyoResultHeader}>
+        <header className={styles.sukuyoResultHeader} data-tea-pdf-section>
           <div>
             <span>{copy.eyebrow}</span>
             <h3 id="sajuCompatResultPanelTitle">{copy.emptyTitle}</h3>
@@ -116,7 +116,7 @@ export default function TeaHouseSajuCompatResultPanel({ result }: TeaHouseSajuCo
   const interaction = compat.interaction;
   return (
     <section className={styles.sukuyoResultPanel} data-available="true" aria-labelledby="sajuCompatResultPanelTitle">
-      <header className={styles.sukuyoResultHeader}>
+      <header className={styles.sukuyoResultHeader} data-tea-pdf-section>
         <div>
           <span>{copy.eyebrow}</span>
           <h3 id="sajuCompatResultPanelTitle">{compat.title}</h3>
@@ -125,13 +125,13 @@ export default function TeaHouseSajuCompatResultPanel({ result }: TeaHouseSajuCo
         <AssetImage className={styles.sukuyoResultImage} src={fortuneTeaHouseAssets.consultModes.saju} alt={copy.headerAlt} />
       </header>
 
-      <div className={styles.sukuyoMoonGrid}>
+      <div className={styles.sukuyoMoonGrid} data-tea-pdf-section>
         <PersonSajuCard person={compat.user} label={copy.mineLabel} />
         <PersonSajuCard person={compat.partner} label={copy.partnerLabel} />
       </div>
 
       {interaction ? (
-        <div className={styles.sukuyoRelationGrid}>
+        <div className={styles.sukuyoRelationGrid} data-tea-pdf-section>
           <article>
             <span>{copy.dayMasterEyebrow}</span>
             <strong>{interaction.dayMasterRelation || copy.dayMasterEmpty}</strong>
@@ -146,7 +146,7 @@ export default function TeaHouseSajuCompatResultPanel({ result }: TeaHouseSajuCo
       ) : null}
 
       {interaction?.strengths?.length ? (
-        <section className={styles.sukuyoPanelSection} aria-labelledby="sajuCompatStrengthTitle">
+        <section className={styles.sukuyoPanelSection} aria-labelledby="sajuCompatStrengthTitle" data-tea-pdf-section>
           <div>
             <span>{copy.strengthEyebrow}</span>
             <h4 id="sajuCompatStrengthTitle">{copy.strengthTitle}</h4>
@@ -166,7 +166,7 @@ export default function TeaHouseSajuCompatResultPanel({ result }: TeaHouseSajuCo
       ) : null}
 
       {interaction?.cautions?.length ? (
-        <section className={styles.sukuyoPanelSection} aria-labelledby="sajuCompatCautionTitle">
+        <section className={styles.sukuyoPanelSection} aria-labelledby="sajuCompatCautionTitle" data-tea-pdf-section>
           <div>
             <span>{copy.cautionEyebrow}</span>
             <h4 id="sajuCompatCautionTitle">{copy.cautionTitle}</h4>
@@ -180,7 +180,7 @@ export default function TeaHouseSajuCompatResultPanel({ result }: TeaHouseSajuCo
       ) : null}
 
       {compat.adviceKeywords?.length ? (
-        <div className={styles.sukuyoKeywordList}>
+        <div className={styles.sukuyoKeywordList} data-tea-pdf-section>
           {compat.adviceKeywords.map((keyword) => (
             <span key={keyword}>{keyword}</span>
           ))}

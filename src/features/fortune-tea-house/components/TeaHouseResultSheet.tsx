@@ -1,7 +1,7 @@
 "use client";
 
 import type { CSSProperties } from "react";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { authFetch } from "@/app/_lib/auth-client";
 import LlmParagraphs from "@/components/fortune/LlmParagraphs";
 import { useLazySpriteSource, useSpritePlaybackGate } from "@/src/hooks/useSpritePlaybackGate";
@@ -359,6 +359,11 @@ const KO = {
   kzpuejo8: "7일 회복 루틴",
   kzqvnuoc: "현재 상황에서의 의미",
   kzr8vqho: "입력된 출생정보 안에서 보이는 흐름만 읽습니다.",
+  pdfButton: "PDF 저장",
+  pdfButtonBusy: "PDF 만드는 중…",
+  pdfFailed: "PDF 저장에 실패했어요. 잠시 후 다시 시도해 주세요.",
+  pdfFileName: "운명의-찻집-{title}-{date}.pdf",
+  pdfSaved: "상담 결과를 PDF로 저장했어요.",
   relationTemp: "{percent}%의 관계 온도",
   reversed: "역방향",
   roleMine: "나: {action}",
@@ -405,6 +410,8 @@ export default function TeaHouseResultSheet({
   const [honeyLetterLoading, setHoneyLetterLoading] = useState(false);
   const [honeyLetterMessage, setHoneyLetterMessage] = useState("");
   const [saveStatus, setSaveStatus] = useState("");
+  const [pdfBusy, setPdfBusy] = useState(false);
+  const resultSheetRef = useRef<HTMLElement>(null);
   const [activeTarotCardIndex, setActiveTarotCardIndex] = useState(0);
   const resultYeoniGate = useSpritePlaybackGate<HTMLSpanElement>();
   const resultPigGate = useSpritePlaybackGate<HTMLSpanElement>();
@@ -594,6 +601,38 @@ export default function TeaHouseResultSheet({
       setSaveStatus(copy.k9ad09zt);
     }
   }
+
+  // 이미 결제가 끝난 상담 결과를 그대로 내려받는 무료 부가기능이다 — 버튼에 가격·결제 문구를 붙이지 않는다.
+  // 캡처 대상은 마커(data-tea-pdf-section)를 붙인 본문 섹션뿐이라 하단 버튼 줄과 꿀편지 CTA는 빠진다.
+  // 접힌 영역이 없어 펼치기·rAF 대기가 필요 없고, data-export 는 게이지 등장 애니메이션만 끈다
+  // (html2canvas 는 클론 문서에서 @keyframes 를 t=0 부터 다시 시작해 `both` 의 0% 프레임을 찍는다).
+  async function saveResultAsPdf() {
+    const sheet = resultSheetRef.current;
+    if (!sheet || pdfBusy) return;
+    setPdfBusy(true);
+    sheet.setAttribute("data-export", "true");
+    try {
+      const date = new Date().toISOString().slice(0, 10);
+      const { exportResultPdf } = await import("@/lib/pdf/export-result-pdf");
+      await exportResultPdf({
+        captureTargets: ["[data-tea-pdf-section]"],
+        fileName: copy.pdfFileName.replace("{title}", safeFilePart(result.sessionTitle)).replace("{date}", date),
+        backgroundColor: "#1a102c",
+        cover: {
+          title: result.sessionTitle,
+          subtitle: result.questionSummary,
+          date,
+        },
+      });
+      setSaveStatus(copy.pdfSaved);
+    } catch {
+      setSaveStatus(copy.pdfFailed);
+    } finally {
+      sheet.removeAttribute("data-export");
+      setPdfBusy(false);
+    }
+  }
+
   return (
     <section
       className={`${styles.resultScene} ${resultSceneUi}`}
@@ -619,10 +658,11 @@ export default function TeaHouseResultSheet({
       </aside>
 
       <article
+        ref={resultSheetRef}
         className={`${styles.resultSheet} ${resultSheetUi}`}
         data-mode={consultationMode}
       >
-        <header className={`${styles.resultHeader} ${resultHeaderUi}`}>
+        <header className={`${styles.resultHeader} ${resultHeaderUi}`} data-tea-pdf-section>
           <picture className={styles.resultHeroArtwork} aria-hidden="true">
             <source media="(max-width: 640px)" srcSet={fortuneTeaHouseAssets.premium.resultReadingMobile} />
             <img src={fortuneTeaHouseAssets.premium.resultReadingDesktop} alt="" loading="eager" decoding="async" />
@@ -639,7 +679,7 @@ export default function TeaHouseResultSheet({
           ) : null}
         </header>
 
-        <div className={styles.resultSummaryGrid}>
+        <div className={styles.resultSummaryGrid} data-tea-pdf-section>
           <div className={`${resultGlassCardUi} ${resultLiftCardUi}`}>
             <span>{copy.kwxbfnz8}</span>
             <strong>{result.teaCup.name}</strong>
@@ -680,7 +720,7 @@ export default function TeaHouseResultSheet({
           </div>
         </div>
 
-        <section className={`${styles.resultPriorityStrip} ${resultGlassCardUi}`} aria-labelledby="resultPriorityTitle">
+        <section className={`${styles.resultPriorityStrip} ${resultGlassCardUi}`} aria-labelledby="resultPriorityTitle" data-tea-pdf-section>
           <h3 id="resultPriorityTitle">{copy.kpmsdgrf}</h3>
           <div className={styles.resultPriorityGrid}>
             {priorityCards.map((item) => (
@@ -693,7 +733,7 @@ export default function TeaHouseResultSheet({
           </div>
         </section>
 
-        <section className={`${styles.resultBlock} ${resultGlassCardUi}`} aria-labelledby="teaCupTopicTitle">
+        <section className={`${styles.resultBlock} ${resultGlassCardUi}`} aria-labelledby="teaCupTopicTitle" data-tea-pdf-section>
           <h3 id="teaCupTopicTitle">{copy.kvfqzxf5}</h3>
           <LlmParagraphs text={resultPrelude} pClassName={styles.sajuSummary} />
           <p className={styles.sajuCaution}>
@@ -807,7 +847,7 @@ export default function TeaHouseResultSheet({
         </section>
         ) : null}
 
-        <section className={`${styles.resultBlock} ${styles.synthesisBlock} ${resultGlassCardUi}`} aria-labelledby="synthesisResultTitle">
+        <section className={`${styles.resultBlock} ${styles.synthesisBlock} ${resultGlassCardUi}`} aria-labelledby="synthesisResultTitle" data-tea-pdf-section>
           <h3 id="synthesisResultTitle">{synthesis.title}</h3>
           <div className={styles.synthesisVisualPair} aria-label={isSajuMode ? copy.kdfxgroy : isSukuyoMode ? copy.kythmj75 : copy.kq4huqsk}>
             {isSukuyoMode ? (
@@ -846,7 +886,7 @@ export default function TeaHouseResultSheet({
           {synthesis.sajuTarotBridge ? <strong>{synthesis.sajuTarotBridge}</strong> : null}
         </section>
 
-        <section className={styles.resultBlock} aria-labelledby="emotionResultTitle">
+        <section className={styles.resultBlock} aria-labelledby="emotionResultTitle" data-tea-pdf-section>
           <h3 id="emotionResultTitle">{copy.kytzswpf}</h3>
           <div className={styles.resultEmotionPigStage}>
             <span className={styles.resultEmotionPigGlow} aria-hidden />
@@ -889,7 +929,7 @@ export default function TeaHouseResultSheet({
           </div>
         </section>
 
-        <section className={`${styles.resultBlock} ${resultGlassCardUi}`} aria-labelledby="yeoniReadingTitle">
+        <section className={`${styles.resultBlock} ${resultGlassCardUi}`} aria-labelledby="yeoniReadingTitle" data-tea-pdf-section>
           <h3 id="yeoniReadingTitle">{isSajuMode ? copy.kst4ojam : isSukuyoMode ? copy.kuwufcwj : copy.ks0lanlt}</h3>
           {isTarotMode ? (
             <TarotAssetCard
@@ -930,7 +970,7 @@ export default function TeaHouseResultSheet({
           </div>
         </section>
 
-        <section className={styles.resultBlock} aria-labelledby="choiceSimulationTitle">
+        <section className={styles.resultBlock} aria-labelledby="choiceSimulationTitle" data-tea-pdf-section>
           <h3 id="choiceSimulationTitle">{choiceSimulationTitle}</h3>
           <AssetImage className={styles.resultSectionMascot} src={fortuneTeaHouseAssets.cutout.flowerPig} alt="" />
           <div className={styles.choiceGrid}>
@@ -946,7 +986,7 @@ export default function TeaHouseResultSheet({
         </section>
 
         {result.actionPrescription || previewKeywords.length ? (
-        <section className={`${styles.actionPrescription} ${resultGlassCardUi}`} aria-labelledby="actionPrescriptionTitle">
+        <section className={`${styles.actionPrescription} ${resultGlassCardUi}`} aria-labelledby="actionPrescriptionTitle" data-tea-pdf-section>
           <h3 id="actionPrescriptionTitle">{copy.kedjmzci}</h3>
           <AssetImage className={styles.resultSectionMascot} src={fortuneTeaHouseAssets.consultModes[consultationMode] || fortuneTeaHouseAssets.cutout.flowerPig} alt="" />
           {result.actionPrescription ? (
@@ -981,8 +1021,9 @@ export default function TeaHouseResultSheet({
                 </div>
               </div>
 
+              {/* 마커는 받은 편지에만 붙인다 — 아래 꿀 CTA(재화 안내)는 PDF 에 담지 않는다. */}
               {honeyLetter ? (
-                <article className={styles.honeyLetterCard} aria-live="polite">
+                <article className={styles.honeyLetterCard} aria-live="polite" data-tea-pdf-section>
                   <h4>{honeyLetter.title || copy.kykvjtg8}</h4>
                   {/* 편지는 문단 분할 없이 원문 개행 그대로 (white-space: pre-line) */}
                   <p>{honeyLetter.body}</p>
@@ -1010,7 +1051,7 @@ export default function TeaHouseResultSheet({
         </section>
 
         {result.closingLine ? (
-        <section className={`${styles.resultBlock} ${resultGlassCardUi}`} aria-labelledby="closingResultTitle">
+        <section className={`${styles.resultBlock} ${resultGlassCardUi}`} aria-labelledby="closingResultTitle" data-tea-pdf-section>
           <h3 id="closingResultTitle">{copy.kqhu9dwn}</h3>
           <AssetImage className={styles.resultSectionMascot} src={fortuneTeaHouseAssets.yeoni.transparent.bust} alt="" />
           <div className={styles.yeoniReadingItem}>
@@ -1025,6 +1066,12 @@ export default function TeaHouseResultSheet({
             
             {copy.khvyisuj}
           </TeaHouseButton>
+          {/* 타로는 앨범(DestinyCafeTarotAlbum)이 자체 PDF 를 갖고 있어 여기서 버튼을 세우지 않는다. */}
+          {isTarotMode ? null : (
+            <TeaHouseButton variant="secondary" onClick={saveResultAsPdf} loading={pdfBusy}>
+              {pdfBusy ? copy.pdfButtonBusy : copy.pdfButton}
+            </TeaHouseButton>
+          )}
         </div>
         {saveStatus ? <strong className={styles.honeyLetterStatus} aria-live="polite">{saveStatus}</strong> : null}
       </article>

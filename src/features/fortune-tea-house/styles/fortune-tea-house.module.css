@@ -17008,3 +17008,11 @@
     transition: none;
   }
 }
+
+/* PDF 저장(html2canvas)은 문서를 복제해 찍는데, 복제본에서 @keyframes 가 t=0 부터 다시 시작한다.
+   게이지 막대는 `softFadeIn ... both` 라 0% 프레임(opacity: 0)이 그대로 찍혀 빈 칸으로 나온다 —
+   내보내는 동안만 애니메이션을 끈다. 그 밖의 반투명·backdrop-filter 는 캡처 결함이 아니라 손대지 않는다.
+   선택자 특이도 (0,3,1) 이라 원본 `.resultGaugeTrack span` (0,1,1) 을 이긴다. */
+.resultSheet[data-export="true"] .resultGaugeTrack span {
+  animation: none;
+}

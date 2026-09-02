@@ -113,7 +113,7 @@ export default function TeaHouseSukuyoResultPanel({ result }: TeaHouseSukuyoResu
   if (!compatibility?.available) {
     return (
       <section className={styles.sukuyoResultPanel} data-available="false" aria-labelledby="sukuyoResultPanelTitle">
-        <header className={styles.sukuyoResultHeader}>
+        <header className={styles.sukuyoResultHeader} data-tea-pdf-section>
           <div>
             <span>{copy.eyebrow}</span>
             <h3 id="sukuyoResultPanelTitle">{copy.emptyTitle}</h3>
@@ -127,7 +127,7 @@ export default function TeaHouseSukuyoResultPanel({ result }: TeaHouseSukuyoResu
 
   return (
     <section className={styles.sukuyoResultPanel} data-available="true" aria-labelledby="sukuyoResultPanelTitle">
-      <header className={styles.sukuyoResultHeader}>
+      <header className={styles.sukuyoResultHeader} data-tea-pdf-section>
         <div>
           <span>{copy.eyebrow}</span>
           <h3 id="sukuyoResultPanelTitle">{compatibility.title}</h3>
@@ -136,12 +136,12 @@ export default function TeaHouseSukuyoResultPanel({ result }: TeaHouseSukuyoResu
         <AssetImage className={styles.sukuyoResultImage} src={fortuneTeaHouseAssets.consultModes.sukuyo} alt={copy.headerAlt} />
       </header>
 
-      <div className={styles.sukuyoMoonGrid}>
+      <div className={styles.sukuyoMoonGrid} data-tea-pdf-section>
         <PersonMoonCard person={compatibility.user} label={copy.mineLabel} />
         <PersonMoonCard person={compatibility.partner} label={copy.partnerLabel} />
       </div>
 
-      <div className={styles.sukuyoRelationGrid}>
+      <div className={styles.sukuyoRelationGrid} data-tea-pdf-section>
         <article>
           <span>{copy.relationEyebrow}</span>
           <strong>{compatibility.relationType || copy.relationEmpty} {compatibility.relationTypeHan ? `· ${compatibility.relationTypeHan}` : ""}</strong>
@@ -160,7 +160,7 @@ export default function TeaHouseSukuyoResultPanel({ result }: TeaHouseSukuyoResu
       </div>
 
       {compatibility.relationDetail || compatibility.elementHarmony || compatibility.scores ? (
-        <div className={styles.sukuyoDataGrid}>
+        <div className={styles.sukuyoDataGrid} data-tea-pdf-section>
           {compatibility.relationDetail ? (
             <article className={styles.sukuyoDataCard}>
               <span>{copy.directionalEyebrow}</span>
@@ -193,7 +193,7 @@ export default function TeaHouseSukuyoResultPanel({ result }: TeaHouseSukuyoResu
         </div>
       ) : null}
 
-      <section className={styles.sukuyoPanelSection} aria-labelledby="sukuyoStrengthTitle">
+      <section className={styles.sukuyoPanelSection} aria-labelledby="sukuyoStrengthTitle" data-tea-pdf-section>
         <div>
           <span>{copy.strengthEyebrow}</span>
           <h4 id="sukuyoStrengthTitle">{copy.strengthTitle}</h4>
@@ -211,7 +211,7 @@ export default function TeaHouseSukuyoResultPanel({ result }: TeaHouseSukuyoResu
         </div>
       </section>
 
-      <section className={styles.sukuyoPanelSection} aria-labelledby="sukuyoCautionTitle">
+      <section className={styles.sukuyoPanelSection} aria-labelledby="sukuyoCautionTitle" data-tea-pdf-section>
         <div>
           <span>{copy.cautionEyebrow}</span>
           <h4 id="sukuyoCautionTitle">{copy.cautionTitle}</h4>
@@ -224,7 +224,7 @@ export default function TeaHouseSukuyoResultPanel({ result }: TeaHouseSukuyoResu
       </section>
 
       {compatibility.roleGuide ? (
-        <section className={styles.sukuyoRoleGuide} aria-labelledby="sukuyoRoleGuideTitle">
+        <section className={styles.sukuyoRoleGuide} aria-labelledby="sukuyoRoleGuideTitle" data-tea-pdf-section>
           <span>{copy.roleEyebrow}</span>
           <h4 id="sukuyoRoleGuideTitle">{copy.roleTitle}</h4>
           <div>
@@ -234,7 +234,7 @@ export default function TeaHouseSukuyoResultPanel({ result }: TeaHouseSukuyoResu
         </section>
       ) : null}
 
-      <div className={styles.sukuyoKeywordList}>
+      <div className={styles.sukuyoKeywordList} data-tea-pdf-section>
         {compatibility.adviceKeywords.map((keyword) => (
           <span key={keyword}>{keyword}</span>
         ))}

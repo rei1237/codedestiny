@@ -38,7 +38,7 @@ export default function SajuPillarBoard({ pillars }: SajuPillarBoardProps) {
   const visiblePillars = pillars?.length ? pillars : fallbackPillars;
 
   return (
-    <section className={styles.sajuPanelSection} aria-labelledby="sajuPillarBoardTitle">
+    <section className={styles.sajuPanelSection} aria-labelledby="sajuPillarBoardTitle" data-tea-pdf-section>
       <div className={styles.sajuPanelSectionHeader}>
         <span>{copy.eyebrow}</span>
         <h4 id="sajuPillarBoardTitle">{copy.title}</h4>
