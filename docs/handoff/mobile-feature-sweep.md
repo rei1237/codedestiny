@@ -29,9 +29,9 @@ next: "없음 — 시드 55종 + 대기 3행까지 전부 소진(09-03). 공용 
 | 유료 AI 단독 18종 | /life-book-ai /love-secret-ai /naming-ai /ziwei-ai /astrology-ai /vedic-ai /sukuyo-compatibility-ai /island-consult /destiny-compass /saju/{love-simulation,destiny-bias,animal-destiny,destiny-meeting-place} /tarot/{love,reunion,year,crystal-soul,mindscan} | 4 | 09-03 | — | #1493 | 완료 |
 | 루트 정적 셸 20종 | 리포 루트 *.html (index.html 제외) | 5 | 09-03 | TT<44 46→1 · IN<16 18→0 · OF 0 | #1497 | 완료 |
 | 콘텐츠·정책 32종 | /about /faq /methodology /terms /refund-policy /contact /privacy /advertising-policy /editorial-policy /disclaimer /reviews /ziwei/chart /fortune/prompt-hub /tarot/healing /tarot/prompt-maker /palm-reading + FeatureLandingPage 16종 + /oracle/rune /saju-guardian | 6 | 09-03 | 고유 TT<44 95→29 · IN<16 14→0 · OF 0 (잔여 29 = 인라인 예외 20 · sr-only 파일입력 4 · 체크박스 라벨 5) | #1501 | 완료 |
-| 루트 셸 index.html | / | 5 | 09-03 | TT<44 36→27(360×800)·37→28(412×823) · 푸터 AA 위반 2→0 · IN<16 0 · OF 0 (잔여는 푸터 링크 = 아래 행) | PR-TBD | 완료 |
+| 루트 셸 index.html | / | 5 | 09-03 | TT<44 36→27(360×800)·37→28(412×823) · 푸터 AA 위반 2→0 · IN<16 0 · OF 0 (잔여는 푸터 링크 = 아래 행) | #1504 | 완료 |
 | 공용 푸터(SiteFooterHub) | 크롬리스 아닌 전 라우트 | — | 09-03 | TT<44 75건이나 **WCAG 2.5.8 AA 위반 0**(Spacing 예외) — 코드 변경 없이 종결 | — | 완료 — 수정 불요 |
-| 공용 하단 탭바(nav.cd-mnav) | App Router 전 라우트 | — | 09-03 | SA 내용물 여유 8→12px · 인접결함 `--cd-mnav-bar-h` 56→68px(실측 64.1→68.1) | PR-TBD | 완료 |
+| 공용 하단 탭바(nav.cd-mnav) | App Router 전 라우트 | — | 09-03 | SA 내용물 여유 8→12px · 인접결함 `--cd-mnav-bar-h` 56→68px(실측 64.1→68.1) | #1504 | 완료 |
 
 배치 1~6 + 대기 3행 완료 — 시드 55종을 09-03 에 실측 대조해 소진을 확인했다(배치 6 이 남은 26종을 덮었다). 순회는 여기서 끝이고, 새 라우트가 생기면 아래 레시피로 이어간다. 배치 5 미측정 4종은 아래 비고.
 
