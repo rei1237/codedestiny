@@ -22,9 +22,9 @@ Ensure every production deployment serves the latest HTML, logo/images, and JS/C
 ## Mandatory checks after deploy
 
 1. Compare `/version.json` on both domains.
-2. Confirm HTML and version endpoints are `no-store`.
+2. Confirm HTML is `no-cache` and `/version.json` / `/service-worker.js` are `no-store, …`.
 3. Confirm `/_next/static/*` responses are immutable.
-4. Confirm non-hashed assets (logo/icons/js/css) are no-cache or no-store.
+4. Confirm non-hashed assets carry the policy `public/_headers` declares for their path.
 
 ## Header probes
 
@@ -38,11 +38,21 @@ curl -I https://code-destiny.com/icons/꿀꿀 운세 로고.webp
 curl -I https://code-destiny.com/_next/static/chunks/<sample>.js
 ```
 
-Expected:
+Expected (matches `public/_headers`; that file is the source of truth):
 
-- `/`, `/index.html`, `/*.html`, `/version.json`, `/service-worker.js`: `Cache-Control: no-cache, no-store, must-revalidate`
+- `/`, `/index.html`, `/*.html`, `/*/`: `Cache-Control: no-cache`
+- `/version.json`, `/service-worker.js`: `Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate`
 - `/_next/static/*`: `Cache-Control: public, max-age=31536000, immutable`
-- `/icons/꿀꿀 운세 로고.webp`: `Cache-Control: no-cache, no-store, must-revalidate`
+- `/icons/*`: `Cache-Control: public, max-age=604800, stale-while-revalidate=2592000`
+
+🔴 **HTML never carries `ETag` or `Last-Modified`, so `no-cache` can never produce a 304 here.**
+Cloudflare JavaScript Detections rewrites every HTML body at the edge to inject
+`/cdn-cgi/challenge-platform/scripts/jsd/main.js`, which drops `Content-Length` and `ETag`
+(`Transfer-Encoding: chunked`). Non-HTML assets keep their validators. This is a dashboard
+toggle, not a `_headers` or code problem, and the owner chose to keep bot protection on
+(2026-09-02). Do not re-diagnose — see
+`docs/handoff/app-optimization-remaining-2026-09-02.md` §2 for the comparison table and the
+four hypotheses already ruled out.
 
 ## Browser-side stale cleanup (when needed)
 
