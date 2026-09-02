@@ -338,6 +338,11 @@ export interface NakshatraCopy {
   aiFusionSectionTitle: string;
   aiTopInsightsTitle: string;
   aiDisclaimer: string;
+  // ── ai 결과 PDF 저장(결제로 연 결과의 무료 부가 기능) ─────────────
+  aiPdfSavingButton: string;
+  aiPdfSaveButton: string;
+  aiPdfFailMessage: string;
+  aiPdfFileName: (sukuyoKo: string, nakshatraKo: string) => string;
 
   // ── ai/page, result/page 지연 로드 폴백 ───────────────
   aiFallbackText: string;
@@ -686,6 +691,10 @@ const NAKSHATRA_COPY_EN: NakshatraCopy = {
   aiFusionSectionTitle: "Reading Two Views Layered Together — Fusion Interpretation",
   aiTopInsightsTitle: "The Three Most Important Things in This Reading",
   aiDisclaimer: "This service is traditional astrology culture content and cannot be used as a basis for medical, legal, or investment decisions. The consultation is written based on your calculated chart (natal Sukuyo mansion · Vedic nakshatra), and the fusion interpretation is Code Destiny's original creation.",
+  aiPdfSavingButton: "Building the PDF…",
+  aiPdfSaveButton: "Save as PDF",
+  aiPdfFailMessage: "Couldn't save the PDF. Please try again in a moment.",
+  aiPdfFileName: (sukuyoKo, nakshatraKo) => `nakshatra-ai-consult-${[sukuyoKo, nakshatraKo].filter(Boolean).join("-") || "result"}.pdf`,
 
   aiFallbackText: "Opening the two masters' consultation room…",
   resultFallbackText: "Opening the two constellations side by side…",
@@ -1034,6 +1043,10 @@ const NAKSHATRA_COPY: Partial<Record<LoadingLocale, NakshatraCopy>> = {
     aiFusionSectionTitle: "두 시선을 겹쳐 읽다 — 융합 해석",
     aiTopInsightsTitle: "이 해석에서 가장 중요한 세 가지",
     aiDisclaimer: "본 서비스는 전통 별자리 문화 콘텐츠이며, 의료·법률·투자 판단의 근거로 사용할 수 없습니다. 상담문은 계산된 명식(숙요 본명수·베다 나크샤트라)을 근거로 작성되었고, 융합 해석은 Code Destiny의 창작입니다.",
+    aiPdfSavingButton: "PDF 만드는 중…",
+    aiPdfSaveButton: "PDF로 소장하기",
+    aiPdfFailMessage: "PDF 저장에 실패했어요. 잠시 후 다시 시도해 주세요.",
+    aiPdfFileName: (sukuyoKo, nakshatraKo) => `나크샤트라-심화상담-${[sukuyoKo, nakshatraKo].filter(Boolean).join("-") || "결과"}.pdf`,
 
     aiFallbackText: "두 대가의 상담실을 여는 중입니다.",
     resultFallbackText: "두 별자리를 나란히 여는 중입니다.",
@@ -1380,6 +1393,10 @@ const NAKSHATRA_COPY: Partial<Record<LoadingLocale, NakshatraCopy>> = {
     aiFusionSectionTitle: "二つの視点を重ねて読む — 融合解釈",
     aiTopInsightsTitle: "この解釈で最も重要な3つのこと",
     aiDisclaimer: "本サービスは伝統的な星座文化コンテンツであり、医療・法律・投資判断の根拠として使用できません。相談文は計算された命式(宿曜本命宿・ヴェーダのナクシャトラ)を根拠に作成され、融合解釈はCode Destinyの創作です。",
+    aiPdfSavingButton: "PDFを作成中…",
+    aiPdfSaveButton: "PDFとして保存",
+    aiPdfFailMessage: "PDFの保存に失敗しました。しばらくしてからもう一度お試しください。",
+    aiPdfFileName: (sukuyoKo, nakshatraKo) => `nakshatra-ai-consult-${[sukuyoKo, nakshatraKo].filter(Boolean).join("-") || "result"}.pdf`,
 
     aiFallbackText: "二人の賢者の相談室を開いています。",
     resultFallbackText: "二つの星座を並べて開いています。",
@@ -1726,6 +1743,10 @@ const NAKSHATRA_COPY: Partial<Record<LoadingLocale, NakshatraCopy>> = {
     aiFusionSectionTitle: "重叠解读两种视角 — 融合解读",
     aiTopInsightsTitle: "本次解读中最重要的三件事",
     aiDisclaimer: "本服务为传统星座文化内容,不能作为医疗·法律·投资判断的依据。咨询文以计算所得命式(宿曜本命宿·吠陀纳沙特拉)为依据撰写,融合解读为Code Destiny的原创内容。",
+    aiPdfSavingButton: "正在生成PDF…",
+    aiPdfSaveButton: "保存为PDF",
+    aiPdfFailMessage: "PDF保存失败。请稍后重试。",
+    aiPdfFileName: (sukuyoKo, nakshatraKo) => `nakshatra-ai-consult-${[sukuyoKo, nakshatraKo].filter(Boolean).join("-") || "result"}.pdf`,
 
     aiFallbackText: "正在开启两位大师的咨询室。",
     resultFallbackText: "正在并列开启两个星座。",
@@ -2072,6 +2093,10 @@ const NAKSHATRA_COPY: Partial<Record<LoadingLocale, NakshatraCopy>> = {
     aiFusionSectionTitle: "疊加解讀兩種視角 — 融合解讀",
     aiTopInsightsTitle: "本次解讀中最重要的三件事",
     aiDisclaimer: "本服務為傳統星座文化內容,不能作為醫療·法律·投資判斷的依據。諮詢文以計算所得命式(宿曜本命宿·吠陀納沙特拉)為依據撰寫,融合解讀為Code Destiny的原創內容。",
+    aiPdfSavingButton: "正在產生PDF…",
+    aiPdfSaveButton: "儲存為PDF",
+    aiPdfFailMessage: "PDF儲存失敗。請稍後重試。",
+    aiPdfFileName: (sukuyoKo, nakshatraKo) => `nakshatra-ai-consult-${[sukuyoKo, nakshatraKo].filter(Boolean).join("-") || "result"}.pdf`,
 
     aiFallbackText: "正在開啟兩位大師的諮詢室。",
     resultFallbackText: "正在並列開啟兩個星座。",
@@ -2418,6 +2443,10 @@ const NAKSHATRA_COPY: Partial<Record<LoadingLocale, NakshatraCopy>> = {
     aiFusionSectionTitle: "Đọc Chồng Hai Góc Nhìn — Diễn Giải Hợp Nhất",
     aiTopInsightsTitle: "Ba Điều Quan Trọng Nhất Trong Bài Đọc Này",
     aiDisclaimer: "Dịch vụ này là nội dung văn hóa chiêm tinh truyền thống và không thể dùng làm căn cứ cho quyết định y tế, pháp lý hay đầu tư. Bài tư vấn được viết dựa trên mệnh cách đã tính (cung bản mệnh Sukuyo · nakshatra Vệ Đà), và diễn giải hợp nhất là sáng tạo riêng của Code Destiny.",
+    aiPdfSavingButton: "Đang tạo PDF…",
+    aiPdfSaveButton: "Lưu làm PDF",
+    aiPdfFailMessage: "Lưu PDF thất bại. Vui lòng thử lại sau một chút.",
+    aiPdfFileName: (sukuyoKo, nakshatraKo) => `nakshatra-ai-consult-${[sukuyoKo, nakshatraKo].filter(Boolean).join("-") || "result"}.pdf`,
 
     aiFallbackText: "Đang mở phòng tư vấn của hai bậc thầy…",
     resultFallbackText: "Đang mở song song hai chòm sao…",
@@ -2764,6 +2793,10 @@ const NAKSHATRA_COPY: Partial<Record<LoadingLocale, NakshatraCopy>> = {
     aiFusionSectionTitle: "दो दृष्टिकोणों को साथ पढ़ना — एकीकृत व्याख्या",
     aiTopInsightsTitle: "इस व्याख्या की तीन सबसे महत्वपूर्ण बातें",
     aiDisclaimer: "यह सेवा पारंपरिक राशि संस्कृति सामग्री है और इसे चिकित्सा, कानूनी या निवेश निर्णयों के आधार के रूप में उपयोग नहीं किया जा सकता। परामर्श लेख गणना की गई कुंडली (सुक्यो जन्म नक्षत्र-मंडल · वैदिक नक्षत्र) के आधार पर लिखा गया है, और एकीकृत व्याख्या Code Destiny की मौलिक रचना है।",
+    aiPdfSavingButton: "PDF बना रहे हैं…",
+    aiPdfSaveButton: "PDF के रूप में सहेजें",
+    aiPdfFailMessage: "PDF सहेजना विफल रहा। कृपया कुछ देर बाद फिर कोशिश करें।",
+    aiPdfFileName: (sukuyoKo, nakshatraKo) => `nakshatra-ai-consult-${[sukuyoKo, nakshatraKo].filter(Boolean).join("-") || "result"}.pdf`,
 
     aiFallbackText: "दोनों विशेषज्ञों का परामर्श कक्ष खुल रहा है।",
     resultFallbackText: "दोनों राशियाँ साथ-साथ खुल रही हैं।",
@@ -3110,6 +3143,10 @@ const NAKSHATRA_COPY: Partial<Record<LoadingLocale, NakshatraCopy>> = {
     aiFusionSectionTitle: "Leyendo Dos Visiones Superpuestas — Interpretación de Fusión",
     aiTopInsightsTitle: "Las Tres Cosas Más Importantes de Esta Lectura",
     aiDisclaimer: "Este servicio es contenido cultural astrológico tradicional y no puede usarse como base para decisiones médicas, legales o de inversión. La consulta se escribe con base en tu carta calculada (mansión Sukuyo natal · nakshatra védico), y la interpretación de fusión es una creación original de Code Destiny.",
+    aiPdfSavingButton: "Generando el PDF…",
+    aiPdfSaveButton: "Guardar como PDF",
+    aiPdfFailMessage: "No se pudo guardar el PDF. Inténtalo de nuevo en un momento.",
+    aiPdfFileName: (sukuyoKo, nakshatraKo) => `nakshatra-ai-consult-${[sukuyoKo, nakshatraKo].filter(Boolean).join("-") || "result"}.pdf`,
 
     aiFallbackText: "Abriendo la sala de consulta de los dos maestros…",
     resultFallbackText: "Abriendo las dos constelaciones lado a lado…",
@@ -3456,6 +3493,10 @@ const NAKSHATRA_COPY: Partial<Record<LoadingLocale, NakshatraCopy>> = {
     aiFusionSectionTitle: "Lecture Superposée de Deux Points de Vue — Interprétation de Fusion",
     aiTopInsightsTitle: "Les Trois Choses les Plus Importantes de Cette Lecture",
     aiDisclaimer: "Ce service est un contenu culturel astrologique traditionnel et ne peut être utilisé comme base pour des décisions médicales, juridiques ou d'investissement. La consultation est rédigée à partir de votre thème calculé (demeure Sukuyo natale · nakshatra védique), et l'interprétation de fusion est une création originale de Code Destiny.",
+    aiPdfSavingButton: "Génération du PDF…",
+    aiPdfSaveButton: "Enregistrer en PDF",
+    aiPdfFailMessage: "Impossible d'enregistrer le PDF. Réessayez dans un instant.",
+    aiPdfFileName: (sukuyoKo, nakshatraKo) => `nakshatra-ai-consult-${[sukuyoKo, nakshatraKo].filter(Boolean).join("-") || "result"}.pdf`,
 
     aiFallbackText: "Ouverture de la salle de consultation des deux maîtres…",
     resultFallbackText: "Ouverture des deux constellations côte à côte…",
@@ -3802,6 +3843,10 @@ const NAKSHATRA_COPY: Partial<Record<LoadingLocale, NakshatraCopy>> = {
     aiFusionSectionTitle: "Zwei Perspektiven Überlagert Lesen — Fusionsinterpretation",
     aiTopInsightsTitle: "Die Drei Wichtigsten Dinge Dieser Lesung",
     aiDisclaimer: "Dieser Dienst ist traditionelle astrologische Kulturinhalte und kann nicht als Grundlage für medizinische, rechtliche oder Investitionsentscheidungen verwendet werden. Die Beratung basiert auf deinem berechneten Geburtshoroskop (Sukuyo-Geburtshaus · vedisches Nakshatra), und die Fusionsinterpretation ist eine Originalkreation von Code Destiny.",
+    aiPdfSavingButton: "PDF wird erstellt…",
+    aiPdfSaveButton: "Als PDF speichern",
+    aiPdfFailMessage: "PDF konnte nicht gespeichert werden. Versuch es in einem Moment erneut.",
+    aiPdfFileName: (sukuyoKo, nakshatraKo) => `nakshatra-ai-consult-${[sukuyoKo, nakshatraKo].filter(Boolean).join("-") || "result"}.pdf`,
 
     aiFallbackText: "Der Beratungsraum der beiden Meister wird geöffnet…",
     resultFallbackText: "Die beiden Sternbilder werden nebeneinander geöffnet…",
@@ -4148,6 +4193,10 @@ const NAKSHATRA_COPY: Partial<Record<LoadingLocale, NakshatraCopy>> = {
     aiFusionSectionTitle: "Twee Perspectieven Overlappend Lezen — Fusie-interpretatie",
     aiTopInsightsTitle: "De Drie Belangrijkste Dingen van Deze Lezing",
     aiDisclaimer: "Deze dienst is traditionele astrologische cultuurcontent en kan niet worden gebruikt als basis voor medische, juridische of financiële beslissingen. Het advies is geschreven op basis van je berekende geboortekaart (Sukuyo-geboortehuis · Vedische nakshatra), en de fusie-interpretatie is een originele creatie van Code Destiny.",
+    aiPdfSavingButton: "PDF wordt gemaakt…",
+    aiPdfSaveButton: "Opslaan als PDF",
+    aiPdfFailMessage: "PDF opslaan is mislukt. Probeer het straks opnieuw.",
+    aiPdfFileName: (sukuyoKo, nakshatraKo) => `nakshatra-ai-consult-${[sukuyoKo, nakshatraKo].filter(Boolean).join("-") || "result"}.pdf`,
 
     aiFallbackText: "De adviesruimte van de twee meesters wordt geopend…",
     resultFallbackText: "De twee sterrenbeelden worden naast elkaar geopend…",
@@ -4494,6 +4543,10 @@ const NAKSHATRA_COPY: Partial<Record<LoadingLocale, NakshatraCopy>> = {
     aiFusionSectionTitle: "Membaca Dua Perspektif Bertindih — Tafsiran Gabungan",
     aiTopInsightsTitle: "Tiga Perkara Paling Penting dalam Bacaan Ini",
     aiDisclaimer: "Perkhidmatan ini adalah kandungan budaya astrologi tradisional dan tidak boleh digunakan sebagai asas keputusan perubatan, undang-undang atau pelaburan. Konsultasi ditulis berdasarkan carta yang dikira (mahligai kelahiran Sukuyo · nakshatra Veda), dan tafsiran gabungan adalah ciptaan asli Code Destiny.",
+    aiPdfSavingButton: "Sedang menjana PDF…",
+    aiPdfSaveButton: "Simpan sebagai PDF",
+    aiPdfFailMessage: "Gagal menyimpan PDF. Sila cuba lagi sebentar lagi.",
+    aiPdfFileName: (sukuyoKo, nakshatraKo) => `nakshatra-ai-consult-${[sukuyoKo, nakshatraKo].filter(Boolean).join("-") || "result"}.pdf`,
 
     aiFallbackText: "Sedang membuka bilik konsultasi kedua-dua pakar…",
     resultFallbackText: "Sedang membuka kedua-dua buruj secara bersebelahan…",

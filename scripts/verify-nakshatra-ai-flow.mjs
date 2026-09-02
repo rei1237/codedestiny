@@ -210,5 +210,25 @@ ok(/\/api\/nakshatra-ai/.test(indexSrc), "/api/nakshatra-ai 경로 배선");
 // AI(유료·인증) 블록이 무료 블록보다 먼저 검사되는지(정규식으로 위치 비교)
 ok(indexSrc.indexOf("/api/nakshatra-ai") < indexSrc.indexOf('url.pathname === "/api/nakshatra"'), "AI 라우팅이 무료 라우팅보다 먼저");
 
+// ── (D) 클라이언트 PDF 배선 정적 계약(결과 화면 무료 부가 기능) ─────────────
+section("클라이언트 PDF 배선(NakshatraAiClient · AiConsultDecks)");
+{
+  const clientSrc = readFileSync(path.join(repoRoot, "app/nakshatra/ai/NakshatraAiClient.tsx"), "utf8");
+  const decksSrc = readFileSync(path.join(repoRoot, "app/nakshatra/ai/AiConsultDecks.tsx"), "utf8");
+  const decksCss = readFileSync(path.join(repoRoot, "app/nakshatra/ai/consult-decks.module.css"), "utf8");
+  ok(clientSrc.includes('import("@/lib/pdf/export-result-pdf")'), "exportResultPdf 동적 import(초기 번들 미포함)");
+  ok(clientSrc.includes('captureTargets: ["[data-nakai-pdf-section]"]'), "captureTargets 가 nakai 마커 선택자 사용");
+  ok(clientSrc.includes('setAttribute("data-export", "true")') && clientSrc.includes('removeAttribute("data-export")'), "data-export CSS 스위치 켜기 + finally 복원");
+  ok(clientSrc.includes('querySelectorAll("details")') && clientSrc.includes("previousOpenStates"), "접힌 <details> 강제 오픈 + 이전 상태 복원(빈 캔버스 방지)");
+  ok(["aiPdfSavingButton", "aiPdfSaveButton", "aiPdfFailMessage", "aiPdfFileName"].every((key) => clientSrc.includes(key)), "버튼·에러·파일명 로케일 키 배선");
+  const markerCount = (decksSrc.match(/data-nakai-pdf-section/g) || []).length;
+  ok(markerCount >= 4, "AiConsultDecks 마커 4곳 이상(요약 헤더·details·핵심 통찰·주의문) — 현재 " + markerCount);
+  ok((decksSrc.split("<details")[1] || "").slice(0, 220).includes("data-nakai-pdf-section"), "<details> 태그 자체에 마커(섹션당 새 페이지 시작)");
+  const exportCssIdx = decksCss.indexOf('[data-export="true"] .summary');
+  const exportCssBlock = exportCssIdx === -1 ? "" : decksCss.slice(exportCssIdx, decksCss.indexOf("}", exportCssIdx) + 1);
+  ok(exportCssBlock.includes("position: static"), "export 시 sticky 요약 해제(캡처에 요약이 겹치는 것 방지)");
+  ok(exportCssBlock.includes("backdrop-filter: none"), "export 시 backdrop-filter 해제(html2canvas 미지원 오염 방지)");
+}
+
 console.log(`\n${failures === 0 ? "✅ 모든 검증 통과" : `❌ ${failures}건 실패`}`);
 process.exit(failures === 0 ? 0 : 1);

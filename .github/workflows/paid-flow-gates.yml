@@ -265,6 +265,11 @@ on:
       - "vedic-astrology.html"
       - "public/vedic-astrology.html"
       - "scripts/verify-vedic-basic-quality.mjs"
+      # ── 나크샤트라 심화 상담(nakshatra-ai) — 결과 PDF 배선 포함 ──
+      # verify:nakshatra-ai-flow 의 파일명은 아래 와일드카드(*billing*·*paid* 등)에 걸리지
+      # 않으므로 따로 적는다(CLAUDE.md 원칙 10). 가드가 읽는 app/nakshatra/** 와
+      # worker/routes/*-ai.js 는 이미 위 항목들에 있다.
+      - "scripts/verify-nakshatra-ai-flow.mjs"
       # ── 게이트 자신 ───────────────────────────────────────
       # 🔴 스위트 목록의 정본 파일. 여기가 빠져 있으면 목록에 가드를 더하거나 빼는 PR 이
       #    정작 이 게이트를 깨우지 않는다.
