@@ -35,7 +35,7 @@ function sliceById(html, id) {
 
 // jsdom 은 생성 직후 readyState 가 "loading" 이라 엔진이 DOMContentLoaded 를 기다린다.
 // 그 이벤트를 실제로 기다린다 — 손으로 dispatch 하면 jsdom 이 뒤이어 한 번 더 쏘아 이중 부팅된다.
-async function boot() {
+async function boot(extraTiles = []) {
   const markup = [
     '<main id="inputPage">',
     sliceById(shell, "fortuneGatewayDiscover"),
@@ -46,6 +46,7 @@ async function boot() {
     '<span class="tarot-tile__desc">말과 행동 사이의 온도</span>',
     '<span class="tarot-tile__coin-badge">1회 5,000원</span>',
     "</a>",
+    ...extraTiles,
     "</main>",
   ].join("\n");
 
@@ -292,4 +293,50 @@ test("추천 카드는 결제 게이트를 무장하지 않고 유료/무료 표
   assert.ok(hd, "휴먼 디자인 카드를 못 찾았다 — 경계 대조가 공회전한다(fail-open)");
   assert.equal(hd.getAttribute("data-pvw-paid"), null, "'무료 시작'인 휴먼 디자인이 유료로 분류됐다");
   assert.equal(hd.getAttribute("data-pvw-free"), "1", "'무료 시작'인 휴먼 디자인에 무료 표식이 없다");
+});
+
+// 회귀 배경(2026-09-03 실측): 중복 제거 키가 `name|href|action` 이라 표시 이름에 이모지·수식어가
+// 붙은 스크랩 타일이 큐레이션 항목과 다른 항목으로 잡혔다. 홈 검색 "해몽" 이 같은 기능을 3건으로
+// 보여 준 원인이다. 이제 "무엇을 여는가"(action → featureKey → 정규화 href) 로 판정한다.
+const DEDUPE_TILES = [
+  // ① 큐레이션 dream 과 같은 액션 — 이름이 달라도 걸러져야 한다.
+  '<a class="tarot-tile" href="/dream/" data-action="openDreamModal">',
+  '<span class="tarot-tile__title">🕯️ 해몽 중복본</span>',
+  "</a>",
+  // ② 액션 없이 큐레이션 tarot 과 같은 목적지 — 슬래시 유무가 달라도 걸러져야 한다.
+  '<a class="tarot-tile" href="/tarot">',
+  '<span class="tarot-tile__title">🔮 타로 중복본</span>',
+  "</a>",
+  // ③ 목적지는 겹치지만 여는 화면이 다르다 — 반드시 살아남아야 한다.
+  '<a class="tarot-tile" href="/ziwei/" data-action="navigateToZiweiChart">',
+  '<span class="tarot-tile__title">자미두수 심화본</span>',
+  "</a>",
+];
+
+/** 검색 입력은 120ms 디바운스라 결과를 동기적으로 읽을 수 없다. */
+function search(window, doc, query) {
+  const input = doc.getElementById("fortuneGatewaySearch");
+  input.value = query;
+  input.dispatchEvent(new window.Event("input"));
+  return new Promise((done) => setTimeout(() => done(names(doc.getElementById("fortuneGatewayRecs"))), 200));
+}
+
+test("같은 기능을 여는 스크랩 타일은 이름이 달라도 중복으로 걸러진다", async () => {
+  const { doc, window } = await boot(DEDUPE_TILES);
+
+  const byAction = await search(window, doc, "해몽 중복본");
+  assert.deepEqual(byAction, [], `액션이 같은 스크랩 타일이 중복 노출됐다: ${byAction.join(", ")}`);
+
+  const byHref = await search(window, doc, "타로 중복본");
+  assert.deepEqual(byHref, [], `목적지가 같은 스크랩 타일이 중복 노출됐다: ${byHref.join(", ")}`);
+});
+
+test("목적지를 공유하되 다른 화면을 여는 타일은 남는다", async () => {
+  const { doc, window } = await boot(DEDUPE_TILES);
+
+  const hits = await search(window, doc, "자미두수 심화본");
+  assert.ok(
+    hits.includes("자미두수 심화본"),
+    `href 만 겹치고 액션이 다른 타일까지 지워졌다 — 중복 제거가 과하다: ${hits.join(", ")}`,
+  );
 });
