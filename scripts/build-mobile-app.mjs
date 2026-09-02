@@ -153,6 +153,30 @@ async function removeAppForbiddenRoutes() {
   return removed;
 }
 
+// 웹 배포 전용 산출물 — 앱(Capacitor 로컬 번들) 런타임은 아무도 읽지 않는다.
+// 2026-09-02 3면 git grep 감사: 앱 코드·네이티브(MainActivity/RouteProcessor)·가드 스크립트에 fetch·참조 0건.
+// 참조 검사 방식이 아니라 명시 목록인 이유: og/ 는 <meta og:image> 절대 URL 속 파일명을
+// buildReferencedNameIndex 가 "참조 있음"으로 잡아 보호해 버린다(메타 태그는 앱이 fetch 하지 않는데도).
+// 그래서 이 삭제는 색인 생성보다 먼저 돌아야 한다 — main() 의 호출 순서를 옮기지 말 것.
+// admin/ 은 지우지 않는다 — index.html 이 /admin/login 으로 실제 네비게이션한다(기능 축소는 사용자 승인 필요).
+const WEB_ONLY_ARTIFACTS = ["_worker.js", "_routes.json", "_headers", "sitemap.xml", "robots.txt", "og", "404", "500"];
+
+async function removeWebOnlyArtifacts() {
+  const removed = [];
+  for (const name of WEB_ONLY_ARTIFACTS) {
+    const target = path.join(DIST, name);
+    if (!(await exists(target))) continue;
+    await fs.rm(target, { recursive: true, force: true });
+    removed.push(name);
+  }
+  // fail-closed: 한 건도 못 지웠다면 dist 구조가 바뀐 것이다 — 조용히 넘어가면
+  // 검증기(verify-app-no-portone)의 부재 단언과 이 목록이 서로 다른 것을 보게 된다.
+  if (removed.length === 0) {
+    throw new Error("웹 전용 산출물을 한 건도 찾지 못했다 — dist 구조가 바뀌었거나 이 단계가 두 번 돌았다.");
+  }
+  return removed;
+}
+
 /**
  * dist의 모든 텍스트 파일을 한 번만 읽어 "참조된 파일명" 색인을 만든다.
  * (파일마다 grep하면 1080개라 못 쓴다)
@@ -551,6 +575,9 @@ async function main() {
 
   const aliased = await aliasStandaloneHtmlRoutes();
   console.log(`  ✅ 단독 HTML 라우트 별칭: ${aliased.length ? aliased.join(", ") : "(없음)"}`);
+
+  const webOnly = await removeWebOnlyArtifacts();
+  console.log(`  ✅ 웹 전용 산출물 제거: ${webOnly.join(", ")}`);
 
   // 라우트를 지운 뒤에 색인을 만든다 — 지워진 SEO 페이지가 참조하던 자산까지 죽은 것으로 잡히게.
   const referenced = await buildReferencedNameIndex();

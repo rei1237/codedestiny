@@ -354,6 +354,14 @@ if (DIST) {
       check(`/${route} 라우트 제거됨`, !(await exists(path.join(DIST, route))));
     }
 
+    // 웹 배포 전용 산출물 — build-mobile-app.mjs 의 removeWebOnlyArtifacts 가 지웠어야 한다.
+    // 목록을 일부러 공유하지 않는다: 빌드 쪽 목록이 줄어도 이 단언이 독립적으로 문다(fail-closed).
+    for (const name of ["_worker.js", "_routes.json", "_headers", "sitemap.xml", "robots.txt", "og", "404", "500"]) {
+      check(`웹 전용 산출물 제거됨: /${name}`, !(await exists(path.join(DIST, name))));
+    }
+    // admin/ 은 의도적으로 남긴다 — index.html 이 /admin/login 으로 실제 네비게이션한다(기능 축소는 사용자 승인 필요).
+    check("실사용 라우트 존치: /admin (앱 내 관리자 진입)", await exists(path.join(DIST, "admin")));
+
     // 참조되는 자산은 살아남아야 한다 — 프루닝이 실사용 자산을 먹으면 앱에서 이미지가 깨진다.
     // (다마고치는 index.html이 /tadagochi로 링크하는 실제 기능이고, tadagochi.html이
     //  fuctionassets/tadagochi* 이미지를 쓴다. 한때 이걸 '참조 0건'으로 오판했다.)
