@@ -229,7 +229,7 @@ export default function SeoLandingBirthForm({ heading, submitLabel, submitHref, 
               onChange={(event) => update({ birthTime: event.target.value })}
               className={`mt-1.5 ${INPUT_CLASS} disabled:opacity-50`}
             />
-            <label className="mt-2 flex items-center gap-2 text-[0.82rem] text-[rgba(244,238,255,0.75)]">
+            <label className="mt-2 flex min-h-11 items-center gap-2 text-[0.82rem] text-[rgba(244,238,255,0.75)]">
               <input
                 type="checkbox"
                 checked={form.birthTimeUnknown}

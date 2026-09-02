@@ -198,7 +198,7 @@ export default function GlobalHeader() {
         <div className="mx-auto flex min-h-[58px] w-[min(1240px,100%-20px)] items-center gap-3 py-2">
           <a
             href="/index.html"
-            className="shrink-0 bg-gradient-to-r from-violet-300 via-fuchsia-200 to-amber-100 bg-clip-text text-[17px] font-black text-transparent"
+            className="inline-flex min-h-11 shrink-0 items-center bg-gradient-to-r from-violet-300 via-fuchsia-200 to-amber-100 bg-clip-text text-[17px] font-black text-transparent"
           >
             Code Destiny
           </a>
