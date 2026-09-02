@@ -402,6 +402,11 @@ export default function IslandConsultClient() {
   const reportFetchedRef = useRef(false);
   const reportRef = useRef<HTMLElement | null>(null);
   const wantsReportViewRef = useRef(false);
+  // PDF 저장 상태 — 이미 결제로 열린 두 결과의 무료 부가 기능이다(가격·결제 문구 금지).
+  const [reportExporting, setReportExporting] = useState(false);
+  const [reportPdfError, setReportPdfError] = useState("");
+  const [consultPdfBusy, setConsultPdfBusy] = useState(false);
+  const [consultPdfError, setConsultPdfError] = useState("");
 
   useEffect(() => { if (hasLedgerUnlock(REPORT_FEATURE_KEY)) setLedgerUnlocked(true); }, []);
 
@@ -523,6 +528,63 @@ export default function IslandConsultClient() {
     void refetchUnlocks({ force: true });
   }
 
+  // ₩5,000 12궁 리포트 PDF — 잠금 필터는 이 버튼의 렌더 조건(reportUnlocked && report)이다.
+  // 뷰어가 '한 장씩' 모드면 나머지 장이 display:none 이라 빈 캔버스가 되므로,
+  // 뷰어가 이미 가진 expandForExport 로 전부 펼친 뒤(2×rAF+120ms) 장 단위로 캡처한다.
+  async function saveReportPdf() {
+    if (!report || reportExporting) return;
+    setReportPdfError("");
+    setReportExporting(true);
+    try {
+      await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+      await sleep(120);
+      const today = new Date().toISOString().slice(0, 10);
+      const { exportResultPdf } = await import("@/lib/pdf/export-result-pdf");
+      await exportResultPdf({
+        captureTargets: [".ic-report--open [data-ic-report-pdf-page]"],
+        fileName: `운명의섬-12궁-심층리포트-${today}.pdf`,
+        backgroundColor: "#211a47",
+        cover: {
+          title: "12궁 전체 심층 리포트",
+          subtitle: [report.biome?.label, report.season].filter(Boolean).join(" · "),
+          name: form.name.trim() || undefined,
+          date: today,
+        },
+      });
+    } catch {
+      setReportPdfError("PDF 저장에 실패했어요. 잠시 후 다시 시도해 주세요.");
+    } finally {
+      setReportExporting(false);
+    }
+  }
+
+  // ₩20,000 궁 상담 PDF — 캡처 대상은 본문 섹션(.ic-sec)뿐이다. 히어로 이미지는 마커를 안 붙여
+  // 캡처에서 빠지고, 궁 이름·대운은 표지 페이지가 대신 싣는다. 접힌 영역이 없어 펼치기가 필요 없다.
+  async function saveConsultPdf() {
+    if (!result || consultPdfBusy) return;
+    setConsultPdfError("");
+    setConsultPdfBusy(true);
+    try {
+      const today = new Date().toISOString().slice(0, 10);
+      const { exportResultPdf } = await import("@/lib/pdf/export-result-pdf");
+      await exportResultPdf({
+        captureTargets: [".ic-result [data-ic-pdf-section]"],
+        fileName: `운명의섬-${result.palaceKey}-심층상담-${today}.pdf`,
+        backgroundColor: "#211a47",
+        cover: {
+          title: `${result.palaceKey} · ${result.palaceTitle}`,
+          subtitle: toText(result.result?.meta?.daeun) || PALACES.find((p) => p.name === result.palaceKey)?.theme || "",
+          name: form.name.trim() || undefined,
+          date: today,
+        },
+      });
+    } catch {
+      setConsultPdfError("PDF 저장에 실패했어요. 잠시 후 다시 시도해 주세요.");
+    } finally {
+      setConsultPdfBusy(false);
+    }
+  }
+
   function pickPalace(p: Palace) { setPalace(p); setError(""); setPhase("form"); }
 
   async function pollResult(sessionId: string): Promise<ApiResult> {
@@ -624,7 +686,7 @@ export default function IslandConsultClient() {
         id: "__intro",
         label: intro.title,
         content: (
-          <div className="ic-rpt-page">
+          <div className="ic-rpt-page" data-ic-report-pdf-page>
             <h3 className="ic-rpt-page__title"><span className="ic-rpt-page__mark" aria-hidden="true">✦</span> {intro.title}</h3>
             <p className="ic-rpt-page__meta">{intro.focus}</p>
             {intro.sections.map((sec) => (
@@ -647,7 +709,7 @@ export default function IslandConsultClient() {
         id: name,
         label: `${name} · ${entry.title}`,
         content: (
-          <div className="ic-rpt-page">
+          <div className="ic-rpt-page" data-ic-report-pdf-page>
             <h3 className="ic-rpt-page__title">{meta ? <PalaceBadge palace={meta} size="small" /> : <span className="ic-rpt-page__mark" aria-hidden="true">✦</span>} {name} · {entry.title}</h3>
             <p className="ic-rpt-page__meta">{entry.tierLabel} · {entry.focus}</p>
             {entry.sections.map((sec) => (
@@ -677,7 +739,14 @@ export default function IslandConsultClient() {
             deckLabel="12궁 전체 심층 리포트"
             viewAll={reportViewAll}
             onViewAllChange={setReportViewAll}
+            expandForExport={reportExporting}
           />
+          <div className="ic-report__actions">
+            <button type="button" className="ic-back-btn" onClick={saveReportPdf} disabled={reportExporting}>
+              {reportExporting ? "PDF 만드는 중…" : "📄 PDF로 소장하기"}
+            </button>
+          </div>
+          {reportPdfError && <p className="ic-err" role="alert">{reportPdfError}</p>}
         </section>
       );
     }
@@ -812,16 +881,18 @@ export default function IslandConsultClient() {
             const sec = result.result?.sections?.[key];
             if (!sec || !sec.body) return null;
             return (
-              <section key={key} className="ic-sec">
+              <section key={key} className="ic-sec" data-ic-pdf-section>
                 <h3>{sec.title || key}</h3>
                 {String(sec.body).split(/\n{2,}|\n/).filter(Boolean).map((para, i) => <p key={i}>{para}</p>)}
               </section>
             );
           })}
           <div className="ic-result__foot">
+            <button type="button" className="ic-back-btn" onClick={saveConsultPdf} disabled={consultPdfBusy}>{consultPdfBusy ? "PDF 만드는 중…" : "📄 PDF로 소장하기"}</button>
             <button type="button" className="ic-back-btn" onClick={() => { setResult(null); setPhase("hub"); setPalace(null); }}>다른 궁도 상담하기</button>
             <a className="ic-back" href="/destiny-island">← 운명의 섬으로</a>
           </div>
+          {consultPdfError && <p className="ic-err" role="alert">{consultPdfError}</p>}
         </article>
       )}
 
@@ -982,6 +1053,9 @@ const CSS = `
 .ic-result{max-width:760px;padding:18px}.ic-result__hero{height:190px;margin:-2px -2px 18px;overflow:hidden;border-radius:18px;border:1px solid rgba(232,213,163,.28);background:#171131}.ic-result__hero img{width:100%;height:100%;object-fit:cover;object-position:center 48%;opacity:.9}.ic-result__heading{display:flex;align-items:center;gap:12px;margin:0 4px 5px}.ic-result__eyebrow{margin:0 0 2px;color:#f2d994;font-size:.76rem;font-weight:800;letter-spacing:.08em}.ic-result__title{color:#fff4d9;margin:0}.ic-result__meta{color:#cbbde8}.ic-sec{padding:14px 0 2px;border-top:1px dashed rgba(210,196,255,.2)}.ic-sec h3{color:#f2d994}.ic-sec p{color:#e1d6f6}
 .ic-back-btn,.ic-back{color:#f2d994;border-color:rgba(232,213,163,.4);background:rgba(232,213,163,.08)}
 .ic-foot{color:#cbbde8}
+/* PDF 저장 — 캡처 대상은 마커가 붙은 본문뿐이라 이 버튼 행은 캡처에 실리지 않는다. */
+.ic-back-btn:disabled{opacity:.55;cursor:wait}
+.ic-report__actions{display:flex;justify-content:flex-end;margin-top:14px}
 @media (max-width:720px){.ic-head{min-height:510px;border-radius:24px}.ic-head::after{background:linear-gradient(180deg,rgba(20,15,46,.9) 0%,rgba(20,15,46,.74) 34%,rgba(20,15,46,.08) 75%,rgba(20,15,46,.4) 100%)}.ic-hero-art img{object-position:62% center}.ic-head__content{width:100%;padding:38px 22px 26px}.ic-sub{max-width:32ch}.ic-guides{margin-top:16px}.ic-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.ic-card{min-height:176px;padding:14px 8px 12px}.ic-palace-art{width:82px;height:62px}.ic-result__hero{height:148px}.ic-report__visual{height:112px}}
 @media (prefers-reduced-motion:reduce){.ic-card,.ic-primary,.ic-topbar__back{transition:none}.ic-orb{animation:none}}
 `;
