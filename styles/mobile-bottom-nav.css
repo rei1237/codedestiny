@@ -28,7 +28,12 @@
  *    (커밋 9f7648605) 아래 블록이 항상 이겨 죽은 선언이 됐다 — 둘을 합쳤다.
  */
 :root {
-  --cd-mnav-bar-h: 56px;
+  /* 렌더된 바의 **바깥 높이**다 — 토큰이 아니라 실측값이다(상단 패딩 6 + 링크 50 + 하단 여유 12).
+     2026-09-03 실측 360x800·412x823/DPR 1.75: 68.1px. 🔴 예전 값 56px 는 바 자신의 패딩 14px 를
+     빼먹은 값이라, --cd-mnav-offset 을 쓰는 14곳(app-shell·destiny-compass·island-consult·
+     prompt-hub·destiny-bias·master-love-codex·neo-war-room)의 플로팅 UI 가 전부 그만큼 바에
+     걸쳐 있었다. .cd-mnav 의 패딩이나 .cd-mnav__link 의 높이를 바꾸면 여기도 다시 재서 고친다. */
+  --cd-mnav-bar-h: 68px;
   /* 데스크탑에서 접었을 때 남는 손잡이 높이. 모바일에서는 쓰이지 않는다. */
   --cd-mnav-handle-h: 22px;
   --cd-mnav-offset: calc(var(--cd-mnav-bar-h) + env(safe-area-inset-bottom, 0px));
@@ -56,7 +61,7 @@ body.cd-mnav-mounted .cd-feature-nav {
   bottom: 0;
   z-index: 960;
   display: block;
-  padding: 6px max(12px, env(safe-area-inset-right, 0px)) calc(8px + env(safe-area-inset-bottom, 0px))
+  padding: 6px max(12px, env(safe-area-inset-right, 0px)) calc(12px + env(safe-area-inset-bottom, 0px))
     max(12px, env(safe-area-inset-left, 0px));
   background: linear-gradient(180deg, rgba(24, 20, 52, 0.96), rgba(13, 10, 30, 0.98));
   border-top: 1px solid rgba(196, 181, 253, 0.22);
@@ -157,10 +162,11 @@ body.cd-mobile-nav-hidden .cd-mnav {
   pointer-events: none;
 }
 
-/* 하단 고정 네비에 가려지지 않도록 본문 여백 확보(바 높이 + 여유 8px).
-   토큰으로 쓰지만 계산값은 종전과 같다 — 56 + 8 = 64px. */
+/* 하단 고정 네비에 가려지지 않도록 본문 여백 확보(바 바깥 높이 + 여유 12px = 80px + safe).
+   🔴 예전에는 56 + 8 = 64px 였는데 바의 실제 높이가 64.1px 이라 여유가 0 이었다 — 본문 마지막
+   줄이 바에 붙어 있었다(2026-09-03 실측). 12px 는 measure-mobile-routes 의 MIN_GAP 과 같다. */
 body.cd-mnav-mounted {
-  padding-bottom: calc(var(--cd-mnav-bar-h) + 8px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(var(--cd-mnav-bar-h) + 12px + env(safe-area-inset-bottom, 0px));
 }
 
 /*
