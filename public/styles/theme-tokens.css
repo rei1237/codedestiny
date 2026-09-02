@@ -375,3 +375,27 @@ html[data-cd-theme="neo"] {
   --cd-shade-2: 0 2px 6px rgba(0, 0, 0, 0.34), 0 12px 26px -12px rgba(0, 0, 0, 0.55);
   --cd-shade-3: 0 6px 18px -8px rgba(167, 139, 250, 0.4);
 }
+
+/*
+ * 달빛 예화(月花) 라인아트 모티프 토큰 (2026-09-03, additive) — 소비처 styles/yehwa-motifs.css(생성물).
+ * 선(1px 급 라인아트)은 SVG 마스크의 알파이고 이 토큰이 칠한다. 연이는 로즈골드, 네오는 샴페인 골드.
+ * 🔴 장식 전용이다 — 텍스트·아이콘 색으로 쓰지 말 것(로즈골드 #C9A46A 는 크림 위 2.2:1 로 본문 대비 미달).
+ * 🔴 Two Covers Rule: 아래 네오 블록이 같은 토큰을 전부 다시 정의한다. 한쪽만 추가하지 말 것.
+ */
+:root {
+  --cd-yehwa-line: #c9a46a;
+  --cd-yehwa-line-2: #d4af7a;
+  /* 히어로 일러스트(중간 명도) 위 전용 — 로즈골드 원색은 그 위에서 1.07:1 로 사라졌다(2026-09-03 실측). */
+  --cd-yehwa-line-deep: #a97b3e;
+  /* 달 디스크 바탕. 반투명이면 뒤가 비쳐 "흐린 유리 원"이 되므로 두 모드 다 불투명. */
+  --cd-yehwa-ivory: #fdf6f0;
+}
+
+html.neo-mode,
+body.neo-mode,
+html[data-cd-theme="neo"] {
+  --cd-yehwa-line: #e8d5a3;
+  --cd-yehwa-line-2: #c4b5fd;
+  --cd-yehwa-line-deep: #e8d5a3;
+  --cd-yehwa-ivory: #dcc48e;
+}
