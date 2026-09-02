@@ -58,11 +58,11 @@
 
       if (isPremiumGotoAction) {
         if (action === 'gotoZiweiPremium') {
-          window.location.href = '/ziwei-ai';
+          window.location.href = '/ziwei-ai/';
           return;
         }
         if (action === 'gotoAstrologyPremium') {
-          window.location.href = '/astrology-ai';
+          window.location.href = '/astrology-ai/';
           return;
         }
 

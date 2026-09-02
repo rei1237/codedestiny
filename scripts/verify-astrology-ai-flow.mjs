@@ -136,8 +136,11 @@ assertMissing(html, retiredRuntimeTerms, "index.html");
 
 const bindings = read("js/core/uiBindings.js");
 const runtime = read("js/core/index-inline-runtime.js");
-assert(bindings.includes("window.location.assign('/astrology-ai')"), "uiBindings navigation missing");
-assert(runtime.includes("window.location.assign('/astrology-ai')"), "runtime navigation missing");
+// 후행 슬래시 유무를 고정하지 않는다 — 지켜야 할 것은 "그 라우트로 간다"이지 표기가 아니다.
+// (next.config 의 trailingSlash:true 에 맞춰 슬래시를 붙이자 이 가드가 뒤집혔다, 2026-09-03)
+const ASTRO_AI_NAV = /window\.location\.assign\('\/astrology-ai\/?'\)/;
+assert(ASTRO_AI_NAV.test(bindings), "uiBindings navigation missing");
+assert(ASTRO_AI_NAV.test(runtime), "runtime navigation missing");
 assertMissing(bindings, ["/js/astro-book.js"], "uiBindings");
 assertMissing(runtime, ["/js/astro-book.js"], "index-inline-runtime");
 

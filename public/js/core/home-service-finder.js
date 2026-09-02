@@ -111,6 +111,36 @@
     "#inputPage .feature-card"
   ].join(", ");
 
+  /* 중복 제거는 표시 이름이 아니라 "무엇을 여는가" 로 판정한다. 이름 기반 키
+     (`name|href|action`)는 이모지·수식어가 붙은 스크랩 타일(`🕯️ 정신분석 해몽`)을
+     큐레이션 항목과 다른 항목으로 봐서 같은 기능을 두 번 노출시켰다. */
+  function normHref(href) {
+    var value = String(href || "").trim();
+    if (!value || value.charAt(0) === "#") return "";
+    value = value.split("#")[0].split("?")[0];
+    if (value.length > 1 && value.charAt(value.length - 1) === "/") value = value.slice(0, -1);
+    return value;
+  }
+
+  function registerKeys(known, action, featureKey, href, collection) {
+    if (action) known["a:" + action] = 1;
+    if (featureKey) known["f:" + featureKey] = 1;
+    var path = normHref(href);
+    if (path) known["h:" + path] = 1;
+    if (!action && !featureKey && !path && collection) known["c:" + collection] = 1;
+  }
+
+  /* 액션·featureKey 가 있으면 그 식별자로만 판정한다 — 같은 href 를 공유하되 다른
+     화면을 여는 항목(예: `/ziwei/` + `navigateToZiweiChart`)을 살려 두기 위해서다. */
+  function isDuplicate(known, action, featureKey, href, collection) {
+    if (action && known["a:" + action]) return true;
+    if (featureKey && known["f:" + featureKey]) return true;
+    if (action || featureKey) return false;
+    var path = normHref(href);
+    if (path) return !!known["h:" + path];
+    return !!(collection && known["c:" + collection]);
+  }
+
   function scrapeTiles(knownKeys) {
     var out = [];
     var nodes = document.querySelectorAll(TILE_SELECTOR);
@@ -133,13 +163,12 @@
       var collection = el.getAttribute("data-cd-open-collection") || "";
       if (!href && !action && !collection) continue;
 
-      var key = name + "|" + (href || "") + "|" + action;
-      if (knownKeys[key]) continue;
-      knownKeys[key] = 1;
+      var featureKey = el.getAttribute("data-feature-key") || "";
+      if (isDuplicate(knownKeys, action, featureKey, href, collection)) continue;
+      registerKeys(knownKeys, action, featureKey, href, collection);
 
       var desc = String((metaEl && metaEl.textContent) || "").trim();
       var price = String((priceEl && priceEl.textContent) || "").trim();
-      var featureKey = el.getAttribute("data-feature-key") || "";
       out.push({
         name: name,
         desc: desc,
@@ -165,7 +194,7 @@
     if (catalogue) return catalogue;
     var known = Object.create(null);
     CURATED.forEach(function (item) {
-      known[item.name + "|" + item.href + "|" + item.action] = 1;
+      registerKeys(known, item.action, item.featureKey, item.href, item.collection);
     });
     catalogue = CURATED.concat(scrapeTiles(known));
     return catalogue;
