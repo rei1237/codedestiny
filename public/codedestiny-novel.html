@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="robots" content="noindex,nofollow" />
 <title>Code Destiny Novel · 연이의 운명 노벨</title>
 <style>
@@ -502,6 +502,11 @@ button{font-family:inherit;color:inherit;background:none;border:none;cursor:poin
 body.reduce-motion .bgImg{animation:none;transform:scale(1.02)!important}
 body.reduce-motion .bgStage{transform:none;transition:none}
 body.reduce-motion .ambientLayer{animation:none!important}
+/* 대사창 블러는 켄번스로 계속 움직이는 배경 위에 얹혀 매 프레임 대면적 재합성을 부른다.
+   모션 줄이기에서는 배경이 멈추므로 블러도 함께 내려 저사양 기기의 합성 비용을 없앤다. */
+body.reduce-motion .dlg{backdrop-filter:none}
+/* 성운 44개는 무한 애니메이션이라 불투명한 플레이어 뒤에서도 계속 합성된다. 플레이어가 떠 있는 동안 뺀다. */
+body.novel-playing #nebula{display:none}
 </style>
 </head>
 <body>
@@ -884,6 +889,12 @@ S.reduce=reduceMQ.matches;
    설정에서 "모션 줄이기"를 켜도 배경 연출이 그대로 돌았다. */
 function applyReduceMotion(){document.body.classList.toggle("reduce-motion",!!S.reduce);}
 applyReduceMotion();
+/* OS 설정을 읽는 시점이 부팅 한 번뿐이라, 읽는 도중 접근성 설정을 바꿔도 반영되지 않았다.
+   단 설정 패널에서 손으로 켜고 끈 뒤에는 OS 변화가 그 선택을 덮지 않는다. */
+var _reduceManual=false;
+if(reduceMQ&&typeof reduceMQ.addEventListener==="function"){
+  reduceMQ.addEventListener("change",function(e){if(_reduceManual)return;S.reduce=e.matches;applyReduceMotion();});
+}
 
 /* 책갈피(이어읽기) — localStorage 영속(불가 시 메모리 폴백) */
 var BOOKMARK_KEY="cd_novel_bookmark";
@@ -1057,7 +1068,7 @@ function pxTick(){
 var dlg=document.getElementById("dlg"),dlgBody=document.getElementById("dlgBody"),
     spkIcon=document.getElementById("spkIcon"),spkName=document.getElementById("spkName");
 var typeTimer=null,fullText="",shownLen=0,curBeat=null;
-var LOG=[];
+var LOG=[],LOG_MAX=200;
 
 function preloadFirstBg(ep){
   try{var b=EPISODES[ep]&&EPISODES[ep].beats;if(!b)return;
@@ -1069,15 +1080,22 @@ function preloadFirstBg(ep){
 function preloadCoreSprites(){
   try{[PIGSHEET,PIGPOSE,PIG.base,YEON.base,YEONI_SHEET,NEO].forEach(function(u){if(u){var im=new Image();im.src=u;}});}catch(e){}
 }
+/* 플레이어가 불투명하게 덮고 있는 동안에는 배경 성운 애니메이션을 합성할 이유가 없다. */
+function setNovelPlaying(on){document.body.classList.toggle("novel-playing",!!on);}
 /* 소설 진입 — 메인→플레이어 크로스페이드(빈 화면 최소화), 재개 시 상태복원 */
 async function startNovel(fromStart){
   window.removeEventListener("mousemove",heroParallax);
-  if(!fromStart&&S.save){S.ep=resolveSavedEpisode(S.save);}else{S.ep=0;}
-  await ensureEpisodeLoaded(S.ep);
+  /* 🔴 resolveSavedEpisode 는 EPISODES 의 id 를 훑는다 — 매니페스트가 적용되기 전에는 배열이 비어 있어
+     저장된 화가 있어도 언제나 프롤로그(0)를 돌려줬다. 매니페스트를 먼저 기다린 뒤에 푼다. */
+  try{
+    if(!fromStart&&S.save){await initNovelData();S.ep=resolveSavedEpisode(S.save);}else{S.ep=0;}
+    await ensureEpisodeLoaded(S.ep);
+  }catch(e){showNovelDataError(e);return;}
   if(!fromStart&&S.save){S.bi=resolveSavedBeat(S.ep,S.save);}else{S.bi=0;}
   preloadFirstBg(S.ep);preloadCoreSprites();
   S.screen="player";buildCtl();S.started=true;
   var p=document.getElementById("player");p.classList.remove("hidden");requestAnimationFrame(function(){p.classList.add("on");});
+  setNovelPlaying(true);
   document.getElementById("main").classList.remove("on");
   setTimeout(function(){document.getElementById("main").classList.add("hidden");},650);
   if(S.bi>0){hydrateTo(S.ep,S.bi);}else{enterEpisode(S.ep,true);}
@@ -1090,6 +1108,7 @@ async function bootDirectPlay(){
     document.getElementById("main").classList.add("hidden");
     S.screen="player";S.ep=0;S.bi=0;
     var p=document.getElementById("player");p.classList.remove("hidden");p.classList.add("on");
+    setNovelPlaying(true);
     buildCtl();S.started=true;preloadCoreSprites();
     await ensureEpisodeLoaded(0);
     preloadFirstBg(0);
@@ -1107,6 +1126,7 @@ function showNovelDataError(error){
   clearTimeout(typeTimer);
   S.screen="player";S.started=false;S.typing=false;
   var p=document.getElementById("player");if(p){p.classList.remove("hidden");p.classList.add("on");}
+  setNovelPlaying(true);
   var main=document.getElementById("main");if(main){main.classList.add("hidden");}
   var enter=document.getElementById("enter");if(enter){enter.classList.add("hidden");}
   var tag=document.getElementById("epTag");if(tag)tag.textContent="데이터 연결 확인 필요";
@@ -1117,6 +1137,7 @@ function showNovelDataError(error){
 }
 function backToMain(){
   document.getElementById("player").classList.remove("on");
+  setNovelPlaying(false);
   setTimeout(function(){document.getElementById("player").classList.add("hidden");showMain();},550);
   playTrack("main",0.5);
 }
@@ -1159,15 +1180,28 @@ function ctlAct(k,b){
   else if(k==="skip"){S.skip=!S.skip;b.classList.toggle("active",S.skip);if(S.skip)doSkipStep();}
   else if(k==="log")openLog();
   else if(k==="save"){saveBookmark(S.ep,S.bi);toast("저장했어요 · 이 자리에서 이어볼 수 있어요");}
-  else if(k==="load"){if(S.save){hydrateTo(S.save.ep,S.save.bi);toast("불러왔어요");}else toast("저장된 지점이 없어요");}
+  else if(k==="load")jumpToBookmark();
   else if(k==="set")openOv("setOv");
+}
+/* 🔴 저장은 episodeId·beatId 까지 남기는데 불러오기만 인덱스를 그대로 썼다 — 정본 빌드로 화·비트
+   순서가 바뀌면 엉뚱한 자리로 뛴다. 저장·부팅과 같은 해석기를 태우고, 청크가 붙은 뒤에 알린다. */
+async function jumpToBookmark(){
+  if(!S.save){toast("저장된 지점이 없어요");return;}
+  var ep=resolveSavedEpisode(S.save);
+  try{await ensureEpisodeLoaded(ep);}catch(e){showNovelDataError(e);return;}
+  await hydrateTo(ep,resolveSavedBeat(ep,S.save));
+  toast("불러왔어요");
 }
 
 async function enterEpisode(ei,showCard){
+  var token=++_navReq;
   var eps=EPISODES[ei];if(!eps)return;
   /* 청크는 현재+다음 2개만 들고 있다 — ⏮ 로 앞 화로 돌아가거나 설정에서 "처음부터"를 누르면 그 화는
      비어 있어 runBeat 가 곧장 터진다. hydrateTo 와 같은 방식으로 여기서 한 번만 채운다. */
-  if(!Array.isArray(eps.beats)){try{eps=await ensureEpisodeLoaded(ei);}catch(e){showNovelDataError(e);return;}}
+  if(!Array.isArray(eps.beats)){
+    try{eps=await ensureEpisodeLoaded(ei);}catch(e){showNovelDataError(e);return;}
+    if(token!==_navReq)return;
+  }
   clearCardTimers(); /* 앞 화의 카드 타이머를 물려받으면 이 화의 컷 0이 두 번 돈다 */
   S.ep=ei;
   warmNextEpisode(ei);
@@ -1239,7 +1273,11 @@ function preloadNextBg(){
   }catch(e){}
 }
 async function nextEpisode(){
-  if(S.ep+1<EPISODES.length){await ensureEpisodeLoaded(S.ep+1);S.bi=0;enterEpisode(S.ep+1,true);}
+  if(S.ep+1<EPISODES.length){
+    /* 세션 도중 청크 페치가 실패하면 여기서 unhandled rejection 이 나고 화면이 그대로 멈췄다. */
+    try{await ensureEpisodeLoaded(S.ep+1);}catch(e){showNovelDataError(e);return;}
+    S.bi=0;enterEpisode(S.ep+1,true);
+  }
   else{endStory();}
 }
 function endStory(){
@@ -1254,10 +1292,17 @@ function endStory(){
 /* 리플레이 중 DOM 쓰기를 억제하는 플래그와, 그때 모아 두는 최종 상태.
    슬롯 배치 규칙(빈 슬롯 우선 / 만석이면 연이 외 교체)은 autoStageSpeaker 가 이미 갖고 있으므로
    복제하지 않는다 — 기존 함수를 그대로 돌리고 화면에 그리는 것만 막는다. */
-var _hydrating=false,_hSlot={l:null,c:null,r:null},_hBg=null,_hBgm=null;
+var _hydrating=false,_hSlot={l:null,c:null,r:null},_hBg=null,_hBgm=null,_hScene=null;
+/* 🔴 이동 세대 토큰 — 청크를 기다리는 동안 목차에서 다른 화를 또 고르면, 늦게 도착한 앞선 요청이
+   화면을 통째로 덮어썼다. 진입 경로 둘(hydrateTo·enterEpisode)이 같은 카운터를 쓴다. */
+var _navReq=0;
 async function hydrateTo(ep,bi){
+  var token=++_navReq;
   var eps=EPISODES[ep];if(!eps)return;
-  if(!Array.isArray(eps.beats)){try{eps=await ensureEpisodeLoaded(ep);}catch(e){return;}}
+  if(!Array.isArray(eps.beats)){
+    try{eps=await ensureEpisodeLoaded(ep);}catch(e){return;}
+    if(token!==_navReq)return;
+  }
   if(!eps||!Array.isArray(eps.beats))return;
   if(bi<0)bi=0;
   var beats=eps.beats;if(bi>=beats.length)bi=beats.length-1;
@@ -1265,7 +1310,7 @@ async function hydrateTo(ep,bi){
   /* hardClearSlots() 를 쓰지 않는다 — 캐릭터 DOM 을 전멸시킨 뒤 다시 만들면 새 <img> 가 디코드될
      때까지 빈 칸이라, 뒤로가기 한 번에 캐릭터가 사라졌다 나타났다. 상태만 비운다(안 비우면
      autoStageSpeaker 의 빈 슬롯 판정이 직전 화면에 오염된다). DOM 은 루프가 끝난 뒤 한 번만 맞춘다. */
-  _hydrating=true;_hSlot={l:null,c:null,r:null};_hBg=null;_hBgm=null;
+  _hydrating=true;_hSlot={l:null,c:null,r:null};_hBg=null;_hBgm=null;_hScene=null;
   S.slotWho={l:null,c:null,r:null};S.active=null;setSceneDirection(null);
   S.form=formAt(ep,0); /* enterEpisode 와 같은 함수 — 두 진입 경로가 다른 답을 내지 않게 한다 */
   for(var i=0;i<=bi;i++){
@@ -1297,6 +1342,7 @@ function hydrateFlush(){
   updateActive();
   if(_hBgm)playTrack(_hBgm);
   if(_hBg)setBg(_hBg.k,_hBg.t,true);
+  setSceneDirection(_hScene); /* 리플레이 동안 모아 둔 최종 카메라·앰비언트를 한 번만 적용 */
 }
 async function stepPrev(){
   if(S.typing){finishType();return;}
@@ -1423,6 +1469,9 @@ function setBg(key,tone,instant){
 /* 비트가 실어 오는 scene(카메라·앰비언트)을 화면 연출로 옮긴다.
    정본 빌드가 붙이는 scene.camera / scene.ambient 를 CSS data 속성으로 전달한다. */
 function setSceneDirection(scene){
+  /* 리플레이 중에는 최종값만 기억한다 — 200비트 점프가 그대로 통과하면 data 속성 쓰기가 최대 200회
+     일어나고 그때마다 앰비언트 CSS 가 재시작한다. hydrateFlush 가 마지막 한 번만 적용한다. */
+  if(_hydrating){_hScene=scene||null;return;}
   var bgLayer=document.getElementById("bgLayer"),ambient=document.getElementById("ambientLayer");
   if(!bgLayer||!ambient)return;
   if(!scene){bgLayer.removeAttribute("data-camera");ambient.removeAttribute("data-ambient");return;}
@@ -1453,9 +1502,12 @@ function slotOfWho(who){
 /* 이미 화면에 떠 있는 캐릭터의 src 를 그냥 갈면 디코드 전까지 빈 프레임이 opacity:1 로 보인다.
    프로브로 먼저 받아 두고 준비되면 교체한다. 🔴 프로브를 document.createElement("img") 로 만드는
    이유는 진짜 HTMLImageElement 가 필요해서다 — 테스트 하네스가 window.Image 를 스텁으로 덮는다. */
+/* 🔴 최신성 가드 — setCharImg 가 프로브를 걸기 전에 dataset.spriteUrl 을 이 url 로 찍어 두므로,
+   그 값이 이미 다른 url 로 바뀌었다면 이 교체는 한물간 것이다. 없으면 표정을 연속으로 갈 때
+   400ms 폴백 타이머가 옛 스프라이트로 되돌린다. setBg 의 _bgReq 와 같은 취지다. */
 function swapCharSrc(el,url){
   var probe=document.createElement("img"),done=false;
-  var swap=function(){if(done)return;done=true;el.src=url;};
+  var swap=function(){if(done)return;done=true;if(el.dataset.spriteUrl!==url)return;el.src=url;};
   probe.addEventListener("load",swap);probe.addEventListener("error",swap);
   probe.src=url;
   setTimeout(swap,400);
@@ -1557,7 +1609,9 @@ function showDialogue(b){
   fullText=b.t||"";shownLen=0;dlgBody.innerHTML="";
   dlg.dataset.done="false";dlg.dataset.typing="true";S.typing=true;
   // log + 자동 책갈피
+  /* 로그는 openLog 가 마지막 60줄만 그린다 — 8,844비트를 통째로 들고 있을 이유가 없어 상한을 둔다. */
   LOG.push({s:spk,t:fullText});
+  if(LOG.length>LOG_MAX)LOG.splice(0,LOG.length-LOG_MAX);
   saveBookmark(S.ep,S.bi);
   if(S.reduce||S.skip){finishType();return;}
   typeStep();
@@ -1569,11 +1623,17 @@ function typeStep(){
   var sp=(curBeat&&curBeat.s==="neo")?Math.max(8,Math.min(S.speed,Math.floor(2600/Math.max(1,fullText.length)))):S.speed;
   typeTimer=setTimeout(typeStep,Math.max(4,sp));
 }
+/* 🔴 스킵 진행은 반드시 한 줄기여야 한다 — doSkipStep 이 타이핑 중이면 finishType 을 부르는데,
+   그 finishType 이 다음 걸음을 예약하고 곧이어 advance() 가 새 비트를 띄우며 또 예약해 체인이
+   둘로 갈라졌다(스킵을 타이핑 도중에 켜면 배속). 예약 창구를 하나로 모으고, doSkipStep 안에서
+   부른 finishType 은 예약하지 않는다. */
+var _skipTimer=0,_inSkipStep=false;
+function scheduleSkipStep(){clearTimeout(_skipTimer);_skipTimer=setTimeout(doSkipStep,120);}
 function finishType(){
   clearTimeout(typeTimer);shownLen=fullText.length;dlgBody.textContent=fullText;
   dlg.dataset.typing="false";dlg.dataset.done="true";S.typing=false;
   if(S.auto)scheduleAuto();
-  if(S.skip)setTimeout(doSkipStep,120);
+  if(S.skip&&!_inSkipStep)scheduleSkipStep();
 }
 function advance(){
   if(flushCard())return; /* 챕터 카드 중 클릭 시 beat0을 스킵하지 않고 실행 */
@@ -1581,7 +1641,12 @@ function advance(){
   if(S.typing){finishType();return;}
   S.bi++;runBeat();
 }
-function doSkipStep(){if(!S.skip)return;if(S.typing){finishType();}advance();}
+function doSkipStep(){
+  clearTimeout(_skipTimer);_skipTimer=0;
+  if(!S.skip)return;
+  if(S.typing){_inSkipStep=true;try{finishType();}finally{_inSkipStep=false;}}
+  advance();
+}
 var autoT=null;
 function scheduleAuto(){clearTimeout(autoT);if(!S.auto)return;autoT=setTimeout(function(){if(S.auto&&!S.typing)advance();},Math.min(4200,1100+fullText.length*55));}
 function showBeatText(b){showDialogue(b);}
@@ -1978,7 +2043,7 @@ function toast(msg){var t=document.getElementById("toast");t.textContent=msg;t.c
 
 /* settings wiring */
 document.getElementById("setBgm").addEventListener("click",function(){setBgm(!S.bgmOn);});
-document.getElementById("setReduce").addEventListener("click",function(){S.reduce=!S.reduce;this.classList.toggle("on",S.reduce);applyReduceMotion();});
+document.getElementById("setReduce").addEventListener("click",function(){_reduceManual=true;S.reduce=!S.reduce;this.classList.toggle("on",S.reduce);applyReduceMotion();});
 document.getElementById("setSpeed").addEventListener("input",function(){S.speed=+this.value;document.getElementById("setSpeedV").textContent=this.value+"ms";});
 document.getElementById("setRestart").addEventListener("click",function(){clearBookmark();S.ep=0;S.bi=0;closeOv(document.getElementById("setOv"));enterEpisode(0,true);});
 document.getElementById("bgmBtn").addEventListener("click",function(){setBgm(!S.bgmOn);});
