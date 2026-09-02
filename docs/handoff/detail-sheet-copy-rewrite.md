@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-02
-next: "PR-C(로케일 드리프트) — en 손저작 + 10개 복사로 확정됨(사용자 결정 2026-09-02). 그 다음이 PR-B·배치1 톤패스"
+next: "PR-B(#cdFinder 배선, paid-gate-auditor 선행). 톤 패스는 #1479 로 끝났다 — 🔴 머지는 #1473 → #1479 순서"
 ---
 
 # 인수인계 — 상세 팝업 문구를 사실 기반으로 재작성
@@ -28,7 +28,9 @@ next: "PR-C(로케일 드리프트) — en 손저작 + 10개 복사로 확정됨
 | #634 | 이 인수인계 문서 + 코딩 원칙 13 | 머지·라이브 |
 | 배치 1 | **숫자 주장 12종 재작성**(아래 "진행 상황") | PR 생성 |
 | #1457 | **배치 2 = PR-A1** — 유료 15종(타로 4 · 오라클 6 · 해금형 4) 재작성 + `'/tarot/prompt-maker/'` 별칭 + "63개 스프레드"→77 정정 | 머지됨 |
-| #1467 | **배치 3 = PR-A2** — 사주 파생 4 · 명상/요가 2 · 작명 1 · 상담 3 재작성 + 최애운명 무료 오분류 수정 + 손금 `featureId` 정정 | PR 생성 |
+| #1467 | **배치 3 = PR-A2** — 사주 파생 4 · 명상/요가 2 · 작명 1 · 상담 3 재작성 + 최애운명 무료 오분류 수정 + 손금 `featureId` 정정 | 머지됨 |
+| #1473 | **PR-C** — 재작성 24종을 11개 로케일에 반영 + 하이픈 죽은 키 10개 정리 + `feats` 오염 5종 수정 + 새 가드 | PR 생성·CI 통과 |
+| #1479 | **톤 패스** — App Router 모달의 지어낸 결과 예시 17블록 제거 + 사전 223노드 정리 + 가드를 허브까지 확장 | PR 생성·CI 통과 · 🔴 #1473 뒤에 머지 |
 
 #629 로 **명백한 허위(없는 결과물을 결과라고 보여주던 것)는 제거됐다.** 가드도 반전돼
 `sampleReport`/`resultPreview` 는 이제 **금지 필드**다(`scripts/verify-feature-marketing-schema.mjs`).
@@ -205,19 +207,62 @@ console.log('feats 있음',k.filter(x=>M[x].feats).length);"
 3. **레거시 `D` 의 royal-tea `cost` 가 3,000원**인데 레지스트리는 5,000원(`paid-feature-registry.js:201`).
    시트 표시는 레지스트리를 쓰므로 정상이나 D 값이 낡았다.
 
+### PR-C — 로케일 드리프트 (2026-09-02, PR #1473 · CI 통과)
+
+재작성 24종의 영어를 손저작해 11개 로케일에 넣었다(사용자 결정대로 en 1개만 저작 후 복사, 과금 실호출 없음).
+**근거 표와 병합 규칙은 PR #1473 본문이 정본.** 다음 세션이 알아야 할 것만 남긴다.
+
+🔴 **하이픈이 든 사전 키는 셸에서 영영 조회되지 않는다** — `_pvwSafeKey`(`index.html:33522`)가 `[^A-Za-z0-9]+` 를
+`_` 로 바꾼다. 새 네임스페이스를 만들 때 **하이픈을 쓰지 말 것.** 이번에 10개를 정리했다(5 흡수 · 5 rename).
+
+🔴 **사전 `feats` 가 `painPoints` 번역본이던 5종을 고쳤다** — 셸은 `feats` 를 먼저 쓰는데(`index.html:33850`
+`if(!merged.feats)`) 사전이 옛 공감 문구를 들고 있어 11개 로케일이 그것을 봤고 ko 4번째 줄은 한국어가 샜다.
+`feats`/`painPoints` 를 둘 다 가진 36종 중 **길이가 같아 조용히 어긋나는 것은 0개**라 개수 기반 가드로 오늘은 충분하다.
+
+**새 가드 `npm run verify:feature-marketing-dictionary`** (`scripts/verify-feature-marketing-dictionary.mjs`,
+`pr-ci.yml` i18n 스텝에 배선). 변이 4종 전부 물었다. 한계: 카테고리 템플릿이 채우는 몫은 안 세므로
+요구 경로 수는 **하한**이다 — 통과가 "화면 전체 번역됨"을 뜻하지 않는다.
+
+🔴 **남은 구멍 2건**
+1. **사전이 아예 없는 COPY 키 28개** — 홈 개편으로 생긴 무료 허브·상담 타일(`/saju/`·`/tarot/`·`/ziwei/`·
+   `/daily-fortune/`·`/today/`·`openMbtiModal`·`openSukuyoModal`·`/points/`·`/music/` 등). **11개 로케일에
+   한국어가 그대로 나간다.** 가드의 `UNTRANSLATED_BUDGET=28` 래칫이 증가만 막고 있다.
+2. ~~**App Router 모달의 `resultPreview`**~~ → **#1479 로 해결**(아래).
+
+### 톤 패스 (2026-09-02, PR #1479 · CI 통과)
+
+배치 1 12종의 문안을 손보러 들어갔다가 **더 큰 것**을 찾았다. `FeatureMarketingDetailModal.tsx` 가
+지어낸 결과 예시를 **17블록** 들고 있었다 — `EXPLICIT_COPY` 의 `resultPreview` 9종뿐 아니라
+`CATEGORY_COPY` 의 `sampleReport` **8종**까지. 후자는 카테고리 기본값이라 그 카테고리로 떨어지는
+**모든** 상품에 붙는다. 캡션이 "실제 … 결과의 도입부를 **그대로 옮긴** 샘플"이라고 단언한다.
+
+🔴 **가드가 초록불이었던 이유**: `verify:feature-marketing-schema` 는 그 필드를 금지하지만
+**`index.html` 만 읽었다.** `/app` 사본은 아무도 안 봤다. 이제 허브 모달까지 보고, 파일을 못 읽으면
+실패한다(fail-closed). 변이 주입으로 무는 것을 확인했다.
+
+지운 것: 데이터 17블록 · 죽은 코드(타입 2·필드 2·localize 2·렌더 섹션 ③) = `.tsx` **-99줄** ·
+사전 **223노드**(11개 로케일 × 17 + `preview.sample*` 3키 × 12).
+
+🔴 **배치 1 12종의 문안 자체는 손대지 않았다.** 그중 7종이 카테고리 템플릿의 일반 `analysisSteps` 를
+물려받지만, 워커 라우트를 확인하니 **7종 전부 실제로 질문 입력을 받는다**
+(`karma-destiny-ai.js:433,561` · `life-book-ai.js:1027` · `love-secret-ai.js:294` ·
+`sukuyo-compatibility-ai.js:334` · `new-year-ai.js:291,877` · `neo-operation-room.js:188`).
+**거짓이 아니라 일반적일 뿐**이라 기능별 저작은 선택 사항으로 남긴다.
+
 ### 다음 배치 후보 (권고 순서)
 
-1. **PR-C** — 🔴 **로케일 드리프트.** 배치 2·3 의 ko 재작성으로 비ko 11개 로케일의 `featureMarketing.*` 이
-   옛 문구를 계속 서빙한다. **이를 잡는 가드가 없다**(`verify:payment-copy-dictionary` 의 SOURCES 에 `_pvwTr` 계열 부재).
-   🔴 **방식 확정(사용자 결정 2026-09-02): en 을 손으로 저작하고 나머지 10개 로케일에 복사한다. Gemini 유료 실호출은 하지 않는다.**
-   (저작 범위 규칙은 메모리 `locale-authoring-scope-is-four-locales` 와 다르다 — 이번 건은 en 1개만 저작이다.)
-2. **배치 1 완료 12종의 톤 패스** — PR-A2 에서 넘어온 잔여분. 검증된 사실 재사용, 새 주장 추가 금지.
-3. **PR-B** — `#cdFinder` 추천 카드 배선. 🔴 `data-feature-key` 가 결제 인터셉터 입력이라 **`paid-gate-auditor` 선행**.
-4. 사주 `rpt_*` 13종 — `js/core/saju/*` 규칙 엔진이라 산출 구조를 그대로 읽을 수 있다.
+1. **PR-B** — `#cdFinder` 추천 카드 배선. 🔴 `data-feature-key` 가 결제 인터셉터 입력이라 **`paid-gate-auditor` 선행**.
+2. **사전 없는 28종 저작** — 위 남은 구멍 1번.
+3. 사주 `rpt_*` 13종 — `js/core/saju/*` 규칙 엔진이라 산출 구조를 그대로 읽을 수 있다.
+4. (선택) 배치 1 중 7종의 기능별 `analysisSteps` 저작 — 위 톤 패스 절 참고. 급하지 않다.
 
 ## 작업 규칙 (이 레포 고유 — 어기면 CI 가 막는다)
 
 - `index.html` 을 고치면 **반드시** `npm run sync:public` (셸 7종 + js 미러 동기화)
+- 🔴 **스택 PR 의 base 를 부모 브랜치로 두면 CI 가 한 건도 안 돈다** — `pr-ci.yml` 트리거가
+  `branches: [main]` 이다. `no checks reported` 는 GitHub 이 이벤트를 흘린 게 아니라 이것이다.
+  base 를 `main` 으로 바꾼 뒤 **close → reopen** 해야 런이 뜬다(`edited` 는 트리거 타입에 없다).
+  머지 순서 제약은 base 와 무관하게 그대로다 — 부모 PR 을 먼저 머지한다.
 - 격리 워크트리에서 작업한다 — 메인 작업 디렉터리를 다른 세션이 동시에 쓴다(실사고 있음):
   ```
   git worktree add .claude/worktrees/<name> -b <branch> origin/main
@@ -231,7 +276,8 @@ console.log('feats 있음',k.filter(x=>M[x].feats).length);"
 ### 검증 (문구 변경 시)
 
 ```
-npm run verify:feature-marketing-schema   # 금지 필드(resultPreview/sampleReport) 재발 차단
+npm run verify:feature-marketing-schema      # 금지 필드(resultPreview/sampleReport) 재발 차단
+npm run verify:feature-marketing-dictionary  # 🔴 ko 카피만 고치면 11개 로케일이 옛 문구를 계속 낸다
 npm run verify:rpt-preview-cta            # 실제 Chrome — 팝업이 뜨고 CTA 로 진입되는지
 npm run verify:mobile-cdp-smoke           # MOBILE_CDP_FOCUS=all-fortunes
 npm run verify:public-parity

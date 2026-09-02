@@ -98,18 +98,6 @@ function expectedLookups(copy) {
     push(`faq.${i}.q`, null);
     push(`faq.${i}.a`, null);
   });
-  if (copy.sampleReport) {
-    copy.sampleReport.sections.forEach((section, i) => {
-      if (section.heading) push(`sampleReport.sections.${i}.heading`, null);
-      push(`sampleReport.sections.${i}.body`, null);
-    });
-    if (copy.sampleReport.continuation) push("sampleReport.continuation", null);
-    if (copy.sampleReport.caption) push("sampleReport.caption", null);
-  }
-  if (copy.resultPreview) {
-    copy.resultPreview.lines.forEach((_line, i) => push(`resultPreview.lines.${i}`, null));
-    if (copy.resultPreview.caption) push("resultPreview.caption", null);
-  }
   return lookups;
 }
 
@@ -124,7 +112,9 @@ test("모달이 조회하는 필드 목록이 소스와 어긋나지 않는다",
     ...Object.keys(SIMPLE_FIELDS),
     ...Object.keys(MAPPED_TEXT),
     ...Object.keys(MAPPED_LIST),
-    "category", "trustNotes", "analysisSteps", "valueCompare", "faq", "sampleReport", "resultPreview",
+    // sampleReport·resultPreview 는 없다 — 지어낸 결과 예시라 걷어냈고,
+    // verify:feature-marketing-schema 가 이 파일에 다시 들어오는 것을 막는다.
+    "category", "trustNotes", "analysisSteps", "valueCompare", "faq",
   ]);
   const uncovered = declared.filter((field) => !covered.has(field));
   assert.deepEqual(uncovered, [], `이 테스트가 모르는 필드: ${uncovered.join(", ")}`);

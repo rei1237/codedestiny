@@ -4566,9 +4566,6 @@
     "scaleReadMinutes": "约{count}分钟阅读量",
     "questionsLabel": "这些问题都能得到解答",
     "stepsLabel": "分析是如何进行的",
-    "sampleLabel": "真实报告示例",
-    "sampleChip": "示例",
-    "sampleContinuation": "接下来将根据您填写的信息继续进行个性化分析。",
     "compareLabel": "为什么需要付费",
     "compareFree": "免费",
     "comparePremium": "高级版",
@@ -8053,23 +8050,6 @@
       ],
       "badge": "深度解读",
       "headline": "把你的八字反复发出的信号，再读得深一点。",
-      "sampleReport": {
-        "sections": {
-          "0": {
-            "heading": "天生的性情",
-            "body": "以日干来看，你属于先掂量、后行动的类型。不是决定得慢，而是确认完成之后手才动。"
-          },
-          "1": {
-            "heading": "当下的流向",
-            "body": "当下经过的运势，收拾整理的力量强过开疆拓土。新开始的事情格外迟缓，原因就在这里。"
-          },
-          "2": {
-            "heading": "选择的标准",
-            "body": "两件事同时抓，两件都会拖慢。先定下要先完成的那一件，其余的往后挪。"
-          }
-        },
-        "caption": "这是直接取自真实八字解读开头的示例。文句与结论会随你的命式而不同。"
-      },
       "hubTagline": "把气质、流向与反复出现的选择模式一并梳理的解读。",
       "hubPremiumIntro": "八字解读不会用吉凶来吓唬你，而是平静地摊开当下的流向与选择的标准。"
     },
@@ -8147,24 +8127,7 @@
         }
       ],
       "badge": "牌阵解读",
-      "headline": "把还留在心里的那个问题，用牌的象征摊开来看。",
-      "sampleReport": {
-        "sections": {
-          "0": {
-            "heading": "此刻的氛围",
-            "body": "抽到的牌指向的不是正面冲突，而是彼此观望的状态。两个人都在等对方先动。"
-          },
-          "1": {
-            "heading": "情感的走向",
-            "body": "对方的心并没有冷掉，只是表达的速度慢。你越催促，那速度只会更慢。"
-          },
-          "2": {
-            "heading": "现在该做的事",
-            "body": "这一周该说的话和该忍住的话是分开的。光是守住顺序，距离就会拉近。"
-          }
-        },
-        "caption": "这是直接取自真实塔罗解读开头的示例。内容会随你亲手抽到的牌而不同。"
-      }
+      "headline": "把还留在心里的那个问题，用牌的象征摊开来看。"
     },
     "template_sukuyo": {
       "tagline": "以关系的质地、冲突模式与缘分节奏为核心的解读。",
@@ -8240,24 +8203,7 @@
         }
       ],
       "badge": "关系解读",
-      "headline": "把两个人之间的吸引与距离，读得比好坏更细致。",
-      "sampleReport": {
-        "sections": {
-          "0": {
-            "heading": "两人所处的位置",
-            "body": "两位的本命宿彼此吸引，却不以相同的速度前行。错位就是从这里开始的。"
-          },
-          "1": {
-            "heading": "冲突产生之处",
-            "body": "越靠近，对方越在丈量距离，而你想要确认。这段错开的节奏，才是争执的真正原因。"
-          },
-          "2": {
-            "heading": "关系上的建议",
-            "body": "该先开口的话和绝不能开口的话是分开的。光是守住顺序，结果就会不同。"
-          }
-        },
-        "caption": "这是直接取自真实宿曜关系解读开头的示例。内容会随两位的本命宿而不同。"
-      }
+      "headline": "把两个人之间的吸引与距离，读得比好坏更细致。"
     },
     "template_ziwei": {
       "tagline": "沿着各宫流向与星曜配置来审视长期方向的解读。",
@@ -8333,24 +8279,7 @@
         }
       ],
       "badge": "深度解读",
-      "headline": "在命盘之中，静下心读出人生的结构与当下的方向。",
-      "sampleReport": {
-        "sections": {
-          "0": {
-            "heading": "命宫所说的气质",
-            "body": "命宫中的星曜排布，首先说明你做决定的速度与方式。眼下的烦恼之所以沉重，也是从这里开始的。"
-          },
-          "1": {
-            "heading": "财与事业的流向",
-            "body": "财帛宫的流向会在今年下半年转向。这段时间要把该开展的和该收拢的分开，损失才会变小。"
-          },
-          "2": {
-            "heading": "反复出现的模式",
-            "body": "在官禄宫与命宫相接之处，同样的模式一再出现。察觉到它的那一刻，选择的余地就不一样了。"
-          }
-        },
-        "caption": "这是直接取自真实紫微斗数解读开头的示例。内容会随你的命盘而不同。"
-      }
+      "headline": "在命盘之中，静下心读出人生的结构与当下的方向。"
     },
     "template_astrology": {
       "tagline": "同时解读心理流向与时机感的占星解读。",
@@ -8426,24 +8355,7 @@
         }
       ],
       "badge": "星座解读",
-      "headline": "看看星座与行星的流动，此刻正为你的心指向何方。",
-      "sampleReport": {
-        "sections": {
-          "0": {
-            "heading": "天生的气质",
-            "body": "上升星座造就的第一印象，与你真实的气质之间存在落差。别人误解你的地方正在这里。"
-          },
-          "1": {
-            "heading": "情绪的复原方式",
-            "body": "月亮的位置决定了情绪如何复原。是自己消化更快，还是必须说出来才行，就在这里分野。"
-          },
-          "2": {
-            "heading": "当下的时期",
-            "body": "当下经过的行星流动，更接近收拾而非扩张。在开始新事之前，还有该了结的事。"
-          }
-        },
-        "caption": "这是直接取自真实占星解读开头的示例。内容会随你的出生星盘而不同。"
-      }
+      "headline": "看看星座与行星的流动，此刻正为你的心指向何方。"
     },
     "template_vedic": {
       "tagline": "以吠陀占星的象征与时机感来整理选择方向的解读。",
@@ -8519,24 +8431,7 @@
         }
       ],
       "badge": "时机解读",
-      "headline": "把问题浮现的这个时点，与你内在的流动一起看。",
-      "sampleReport": {
-        "sections": {
-          "0": {
-            "heading": "天生的配置",
-            "body": "以上升点为准来看，你属于收尾时才发力的配置。别把开头的迟缓读成失败。"
-          },
-          "1": {
-            "heading": "当下的大运周期",
-            "body": "当下经过的周期，是累积实力而非经营关系的区间。这段时间仓促铺开的缘分留不长。"
-          },
-          "2": {
-            "heading": "情绪的节奏",
-            "body": "月亮所在的宿星决定了情绪复原的速度。从崩塌到重新站起的节奏就在这里。"
-          }
-        },
-        "caption": "这是直接取自真实吠陀占星解读开头的示例。内容会随你的出生资料而不同。"
-      }
+      "headline": "把问题浮现的这个时点，与你内在的流动一起看。"
     },
     "template_oracle": {
       "tagline": "在做选择之前梳理心境的神谕式占卜。",
@@ -8612,24 +8507,7 @@
         }
       ],
       "badge": "象征解读",
-      "headline": "用象征的语言，简短地确认此刻最容易错过的讯号。",
-      "sampleReport": {
-        "sections": {
-          "0": {
-            "heading": "此刻浮现的讯号",
-            "body": "抽到的象征不是要你往前推进，而是指向再看一次你已经走过的地方。"
-          },
-          "1": {
-            "heading": "你一直忽略的事",
-            "body": "挡住决定的不是信息不足，而是不肯承认自己早已知道的那颗心。"
-          },
-          "2": {
-            "heading": "此刻该有的姿态",
-            "body": "一急，就会回到原地。这一次，晚一拍再回答也不迟。"
-          }
-        },
-        "caption": "这是直接取自真实神谕解读开头的示例。内容会随抽到的象征而不同。"
-      }
+      "headline": "用象征的语言，简短地确认此刻最容易错过的讯号。"
     },
     "template_report": {
       "tagline": "把当下的烦恼与流向梳理得更具体的高级解读。",
@@ -8705,24 +8583,7 @@
         }
       ],
       "badge": "深度咨询型",
-      "headline": "把散落的念头，收拢成一份完整的解读。",
-      "sampleReport": {
-        "sections": {
-          "0": {
-            "heading": "天生的性情",
-            "body": "你不是拖延决定的人，而是搜集资讯搜集得太久的人。先定下标准，速度才会跟上。"
-          },
-          "1": {
-            "heading": "此刻卡住的地方",
-            "body": "你正在失守的战线不是工作，而是关系。从这里漏掉的力气，会把其余的全部啃光。"
-          },
-          "2": {
-            "heading": "下一步行动",
-            "body": "接下来三个月内收掉一件，其余才活得下来。要收掉哪一件，其实早已定了。"
-          }
-        },
-        "caption": "这是直接取自真实高级报告开头的示例。内容会随你输入的资料与提问而不同。"
-      }
+      "headline": "把散落的念头，收拢成一份完整的解读。"
     },
     "template_music": {
       "tagline": "以音乐与角色世界观氛围为核心体验的感性内容。",
@@ -8799,77 +8660,86 @@
       ]
     },
     "gotoZiweiPremium": {
-      "fallbackTitle": "静下心来看看星曜的排布正把你现在的问题引向何方。",
-      "tagline": "把命宫与十二宫的流向，连结到烦恼核心与下一步选择基准的解读。",
-      "premiumIntro": "紫微斗数专家咨询不会直接下定论，而是先照亮此刻的问题落在你命盘结构中的哪个位置。",
-      "fallbackCta": "开启紫微斗数咨询",
-      "ctaNote": "付款后立即开启十二宫解读。",
+      "badge": "专家咨询型",
+      "headline": "静下心读一读，星曜的排布正把此刻的提问引向何处。",
+      "tagline": "The main text runs to at least 20,700 characters, and once you have the result you can keep asking follow-up questions at no extra charge.",
       "feats": {
-        "0": "好奇现在的选择触及哪个宫位压力时",
-        "1": "工作、金钱、关系该看重哪个还很模糊时",
-        "2": "比起单纯吉凶更需要结构性说明时"
+        "0": "Builds your twelve-palace chart from your birth date and time",
+        "1": "Organizes the consultation into 14 separate topics",
+        "2": "The main text runs to at least 20,700 characters",
+        "3": "Follow-up questions after the result carry no extra charge",
+        "4": "The consultation is saved so you can open it again"
       },
+      "premiumIntro": "This is not a one-shot report but a consultation you can read and question back.",
       "premiumAudience": {
-        "0": "换工作、搬家、结婚等重大决定前需要判断依据的人",
-        "1": "持续努力却觉得成果无法集中的人",
-        "2": "想一次整理人生结构而非只看片段今日运势的人"
+        "0": "Those who want one proper look at their Ziwei Doushu chart",
+        "1": "Those who want to ask back after reading",
+        "2": "Those who want a long-form interpretation"
       },
       "premiumChapters": {
-        "0": "把命宫、财帛、官禄、夫妻宫连结到问题的解读",
-        "1": "当下烦恼中强烈浮现的星曜要点",
-        "2": "需留意的反复模式与现实可行的下一步",
-        "3": "确认结果后可继续追问的流程"
+        "0": "Reading of the twelve-palace chart",
+        "1": "A consultation split into 14 topics",
+        "2": "Main text of at least 20,700 characters",
+        "3": "Continuing follow-up questions",
+        "4": "Re-opening the saved result"
       },
       "premiumOutcomes": {
-        "0": "付款前可以先确认功能内容。",
-        "1": "通行券、月光石或单次付款的判定沿用现有付款政策。",
-        "2": "运势结果仅供参考，重要选择请结合现实判断再确认。"
+        "0": "You can check what the feature does before paying.",
+        "1": "Pass, moonstone, and single-payment decisions follow the existing payment policy as-is.",
+        "2": "Fortune results are for reference; please confirm important choices alongside real-world judgment."
       },
       "answersQuestions": {
-        "0": "现在换工作合适吗？",
-        "1": "该更看重工作还是金钱？",
-        "2": "这段关系要继续维持吗？"
+        "0": "Is it all right to change jobs now?",
+        "1": "Where should I put my weight, money or work?",
+        "2": "Can I make a big decision this year?"
+      },
+      "fallbackCta": "Open the Ziwei Doushu consultation",
+      "ctaNote": "After payment, the twelve-palace chart and the 14-topic consultation open.",
+      "analysisSteps": {
+        "0": {
+          "label": "Chart construction",
+          "detail": "Places the major stars and the Four Transformations across the twelve palaces from your birth date and time."
+        },
+        "1": {
+          "label": "Palace strength",
+          "detail": "Sorts out which palaces carry weight and which are empty."
+        },
+        "2": {
+          "label": "Topic-by-topic writing",
+          "detail": "Splits the work into 14 topics and writes a consultation for each."
+        },
+        "3": {
+          "label": "Follow-up questions",
+          "detail": "After reading the result you can keep asking what is left, at no extra charge."
+        }
       },
       "valueCompare": {
         "0": {
-          "axis": "分析范围",
-          "free": "命宫、身宫基础命盘",
-          "premium": "配合问题连结的十二宫解读"
+          "axis": "Length",
+          "premium": "Main text of at least 20,700 characters"
         },
         "1": {
-          "axis": "问题反映",
-          "free": "无",
-          "premium": "连烦恼触及哪个宫位压力都会说明"
+          "axis": "Structure",
+          "premium": "A consultation split into 14 topics"
         },
         "2": {
-          "axis": "延续性",
-          "free": "无",
-          "premium": "查看结果后可连结追加提问"
+          "axis": "Follow-up questions",
+          "premium": "No extra charge for questions that follow the result"
         }
       },
       "faq": {
         "0": {
-          "q": "和基础命盘有什么不同？",
-          "a": "基础命盘只呈现星曜配置。咨询会把该配置贴合你当下的烦恼，整理到该做什么决定为止。"
+          "q": "Do follow-up questions have to be paid for separately?",
+          "a": "No. Questions that follow after you receive the result carry no extra charge."
         },
         "1": {
-          "q": "一定要知道出生时间吗？",
-          "a": "是的。时间一变命宫本身就会移动，所以紫微斗数对出生时间特别敏感。"
+          "q": "Can I see the result again later?",
+          "a": "The consultation is saved, so you can open it again."
         },
         "2": {
-          "q": "结果要多久才出来？",
-          "a": "付款后会立即在画面上生成。因篇幅较长，可能需要稍等片刻。"
+          "q": "How long is it?",
+          "a": "It comes out at at least 20,700 characters of main text."
         }
-      },
-      "badge": "专家咨询型",
-      "headline": "静下心读一读，星曜的排布正把此刻的提问引向何处。",
-      "resultPreview": {
-        "lines": {
-          "0": "命宫中的星曜排布，首先说明你做决定的速度与方式。眼下的烦恼之所以沉重，也是从这里开始的。",
-          "1": "财帛宫的流向会在今年下半年转向。这段时间要把开展的和收拢的分开，损失才会变小。",
-          "2": "在官禄宫与命宫相接之处，同样的模式一再出现。察觉到它的那一刻，选择的余地就不一样了。"
-        },
-        "caption": "这是真实咨询结果画面的示例。付款后可看到依你命盘计算的十二宫完整解读，以及后续提问。"
       }
     },
     "neo_operation_room": {
@@ -8944,77 +8814,89 @@
         }
       },
       "badge": "战略咨询型",
-      "headline": "把散落的烦恼，整理成一张作战地图。",
-      "resultPreview": {
-        "lines": {
-          "0": "你正在失守的战线不是工作，而是关系。从这里漏掉的力气，会把其余的全部啃光。",
-          "1": "你不是拖延决定的人，而是搜集资讯搜集得太久的人。得先把标准定下来。",
-          "2": "接下来三个月内收掉一件，其余才活得下来。要收掉哪一件，其实早已定了。"
-        },
-        "caption": "这是真实作战室咨询结果开头的示例。付款后会接上把你的命式与星图捆在一起的整体战略与行动顺序。"
-      }
+      "headline": "把散落的烦恼，整理成一张作战地图。"
     },
     "openNamingPromptModal": {
-      "fallbackTitle": "在仓促决定名字候选之前，让专家先整理好八字与音、汉字的质感。",
-      "tagline": "根据出生年月日时与取名条件验证用神、喜神，并综合声音五行、字源五行与笔画数理，由专家亲自完成取名结果。",
-      "premiumIntro": "专家取名不会替你直接定名，而是提供符合八字、并附带依据的候选，让你能更从容地挑选。",
-      "fallbackCta": "开始取名",
-      "ctaNote": "付款后候选名字与汉字、笔画解读将一并开启。",
+      "tagline": "Proposes 5 to 7 new names in an eight-chapter naming book, and hands you the original prompt that produced that book as well.",
       "feats": {
-        "0": "有候选名字却不知道该以什么标准挑选时",
-        "1": "想同时看到八字补强、声音五行、汉字含义时",
-        "2": "不只想看结果，还想确认背后依据（提示词）时"
+        "0": "The naming book is made up of eight chapters",
+        "1": "Proposes 5 to 7 candidate new names",
+        "2": "If you enter candidates of your own, it evaluates them and then proposes 3 to 5 more",
+        "3": "Checks each name's five-element makeup against the favorable and supporting elements",
+        "4": "Looks at the sound five-element flow and the four numerology frames together",
+        "5": "The main text runs to at least 5,000 characters",
+        "6": "Includes the original prompt used to produce the naming book"
       },
+      "premiumIntro": "Input and the draft suggestions open for free. Payment happens when you take the eight-chapter naming book and the original prompt.",
       "premiumAudience": {
-        "0": "想在给孩子取名前先确认依据的人",
-        "1": "正在考虑改名、需要缩小候选范围的人",
-        "2": "想连名字的读音与汉字含义都仔细斟酌的人"
+        "0": "Those who want to settle on a child's name with reasons attached",
+        "1": "Those who want the candidates they were given checked",
+        "2": "Those who want the naming criteria left behind as a document"
       },
       "premiumChapters": {
-        "0": "自动反映个人资料、八字信息与取名条件",
-        "1": "涵盖用神、喜神验证到最终推荐的完整取名结果",
-        "2": "汉字组合、声音五行、原亨利贞笔画数理的详细分析",
-        "3": "结果PDF保存 + 查看生成所用的原始提示词"
+        "0": "An eight-chapter naming book",
+        "1": "5 to 7 proposed new names",
+        "2": "Evaluation of your own candidates plus 3 to 5 more proposals",
+        "3": "Checks by favorable element, sound five elements, and the four numerology frames",
+        "4": "The original prompt, included"
       },
       "premiumOutcomes": {
-        "0": "输入信息与免费初稿推荐可免费开放使用。",
-        "1": "点击高级取名开始按钮时会进行现有的付款确认。",
-        "2": "取名结果仅供参考，实际使用前需结合现实情况确认。"
+        "0": "Input and the free draft suggestions open for free.",
+        "1": "The existing payment check runs when you press the premium naming button.",
+        "2": "Naming results are for reference and need real-world checking before actual use."
       },
       "answersQuestions": {
-        "0": "这个名字适合孩子的八字吗？",
-        "1": "候选名字中该选哪一个？",
-        "2": "可以改名吗？"
+        "0": "Does this name suit my child's Saju?",
+        "1": "What changes if I change the hanja?",
+        "2": "Why was this name recommended?"
+      },
+      "fallbackCta": "Start naming",
+      "ctaNote": "After payment, the eight-chapter naming book and the original prompt open together.",
+      "analysisSteps": {
+        "0": {
+          "label": "Saju calculation",
+          "detail": "Builds the natal chart from your birth date and time and sorts out the favorable and supporting elements."
+        },
+        "1": {
+          "label": "Candidate generation",
+          "detail": "Creates 5 to 7 new names that fit those elements. If you entered candidates of your own, those are evaluated first."
+        },
+        "2": {
+          "label": "Name verification",
+          "detail": "Filters the candidates again through the sound five-element flow and the four numerology frames."
+        },
+        "3": {
+          "label": "Writing the naming book",
+          "detail": "Organizes everything into eight chapters and includes the original prompt used to build it."
+        }
       },
       "valueCompare": {
         "0": {
-          "axis": "候选",
-          "free": "免费初稿推荐",
-          "premium": "经用神、喜神验证的完整候选"
+          "axis": "Scope of proposals",
+          "free": "Input and draft suggestions",
+          "premium": "5 to 7 new names, plus 3 to 5 more after evaluating your own candidates"
         },
         "1": {
-          "axis": "依据",
-          "free": "无",
-          "premium": "声音五行、字源五行、原亨利贞笔画解读"
+          "axis": "Verification axes",
+          "premium": "Favorable and supporting elements, sound five elements, and the four numerology frames"
         },
         "2": {
-          "axis": "产出",
-          "free": "仅画面查看",
-          "premium": "PDF保存 + 查看原始提示词"
+          "axis": "Deliverable",
+          "premium": "An eight-chapter naming book plus the original prompt"
         }
       },
       "faq": {
         "0": {
-          "q": "和免费推荐有什么不同？",
-          "a": "免费版只显示候选名字。付费版还会附上八字用神验证与汉字、笔画解读等依据。"
+          "q": "How far can I go for free?",
+          "a": "Input and the draft suggestions open for free."
         },
         "1": {
-          "q": "会替我直接定名吗？",
-          "a": "不会。只会提供有依据支撑的候选，最终选择权在您自己。"
+          "q": "Will you look at a name I thought of myself?",
+          "a": "If you enter candidates, they are evaluated first, and 3 to 5 more are proposed on top of them."
         },
         "2": {
-          "q": "也能用于改名吗？",
-          "a": "可以。可以把现有名字与候选名字放在一起比较。"
+          "q": "Why do you hand over the original prompt?",
+          "a": "So you can see exactly what criteria the names were built on and reuse it yourself."
         }
       }
     },
@@ -9085,71 +8967,81 @@
       }
     },
     "astrology_ai_consultation": {
-      "fallbackTitle": "找出出生星盘正把你现在的烦恼推向哪个方向。",
-      "tagline": "把太阳、月亮、上升星座与当前行运行星的流向一起解读，将心理状态与现实时机结合为一体的咨询型解读。",
-      "premiumIntro": "占星专家咨询不止步于星座性格论，还会指出这个时期正在向你要求什么。",
-      "fallbackCta": "开启占星咨询",
-      "ctaNote": "付款后将开启以本人出生星盘计算出的咨询内容。",
+      "tagline": "The main text runs to at least 15,000 characters, and after reading it you can keep asking follow-up questions.",
       "feats": {
-        "0": "感觉心境和现实状况各走各的时",
-        "1": "需要确定该行动的时机时",
-        "2": "自己的星座解读总是流于表面时"
+        "0": "Calculates your birth chart from the birth details you enter",
+        "1": "Organizes the consultation into 6 separate topics",
+        "2": "The main text runs to at least 15,000 characters",
+        "3": "You can keep asking follow-up questions after reading"
       },
+      "premiumIntro": "This is not a horoscope shared by the twelve signs -- it is written from your own chart, calculated from the birth details you enter.",
       "premiumAudience": {
-        "0": "比起性格解读，更需要当下时期判断依据的人",
-        "1": "想把情绪起伏的原因当作结构来理解的人",
-        "2": "需要为换工作、搬家、告白等选定时点的人"
+        "0": "Those left wanting more by shared sun-sign horoscopes",
+        "1": "Those who want one proper look at their own chart",
+        "2": "Those who want to ask back after reading"
       },
       "premiumChapters": {
-        "0": "透过太阳、月亮、上升星座看到的气质轴线",
-        "1": "当前行运行星与烦恼的交汇点",
-        "2": "反复困扰你的心理模式",
-        "3": "适合行动的时期与该延后的时期"
+        "0": "Calculation of your own birth chart",
+        "1": "A consultation split into 6 topics",
+        "2": "Main text of at least 15,000 characters",
+        "3": "Continuing follow-up questions"
       },
       "premiumOutcomes": {
-        "0": "基于星盘的功能会受输入出生时间准确度的影响。",
-        "1": "付款政策沿用现有通行券、月光石、单次付款标准。",
-        "2": "运势结果仅供参考。"
+        "0": "Chart-based features are affected by how accurate the birth time you enter is.",
+        "1": "The payment policy follows the existing pass, moonstone, and single-payment rules.",
+        "2": "Fortune results are for reference."
       },
       "answersQuestions": {
-        "0": "为什么心境和现实状况总是各走各的？",
-        "1": "什么时候行动比较好？",
-        "2": "这个时期该决定什么？"
+        "0": "Why do my feelings and my circumstances keep pulling apart?",
+        "1": "When is a good time to move?",
+        "2": "How do I look to other people?"
+      },
+      "fallbackCta": "Open the astrology consultation",
+      "ctaNote": "After payment, a 6-topic consultation calculated from your own birth chart opens.",
+      "analysisSteps": {
+        "0": {
+          "label": "Birth chart calculation",
+          "detail": "Calculates planetary positions and houses from the birth details you enter."
+        },
+        "1": {
+          "label": "Topic split",
+          "detail": "Divides the consultation into 6 topics."
+        },
+        "2": {
+          "label": "Topic-by-topic writing",
+          "detail": "Writes each topic while naming which placement in the chart it rests on."
+        },
+        "3": {
+          "label": "Follow-up questions",
+          "detail": "After reading the result you can keep asking what is left."
+        }
       },
       "valueCompare": {
         "0": {
-          "axis": "分析范围",
-          "free": "太阳、月亮、上升摘要",
-          "premium": "完整星盘与当前行运"
+          "axis": "Subject",
+          "premium": "Your own chart, calculated from the birth details you enter"
         },
         "1": {
-          "axis": "篇幅",
-          "free": "摘要水平",
-          "premium": "15,000字以上"
+          "axis": "Length",
+          "premium": "Main text of at least 15,000 characters"
         },
         "2": {
-          "axis": "时机",
-          "free": "无",
-          "premium": "适合行动的时期与该延后的时期"
-        },
-        "3": {
-          "axis": "问题反映",
-          "free": "无",
-          "premium": "以输入的烦恼为基准重新构成"
+          "axis": "Structure",
+          "premium": "A consultation split into 6 topics"
         }
       },
       "faq": {
         "0": {
-          "q": "不知道出生时间怎么办？",
-          "a": "上升星座与宫位计算会变得不准确。仍可提供以太阳、月亮为中心的解读，但时机建议的精确度会下降。"
+          "q": "What happens if I don't know my birth time?",
+          "a": "This is a chart-based reading, so the accuracy of the birth time affects the result."
         },
         "1": {
-          "q": "和星座运势有什么不同？",
-          "a": "不只看太阳星座，而是看出生那一刻的整个天空。"
+          "q": "How long is it?",
+          "a": "It comes out at at least 15,000 characters of main text."
         },
         "2": {
-          "q": "也需要出生地吗？",
-          "a": "是的。即使时间相同，地区不同宫位配置也会不同。"
+          "q": "Can I ask more after reading?",
+          "a": "You can keep asking follow-up questions once you have the result."
         }
       }
     },
@@ -9221,71 +9113,82 @@
       }
     },
     "vedic_ai_consultation": {
-      "fallbackTitle": "在吠陀星盘的时间流向中读懂当下的问题。",
-      "tagline": "以Lagna、月亮、Nakshatra、Dasha流向为基础，整理当前选择意义的咨询型解读。",
-      "premiumIntro": "吠陀占星咨询不会急着给出答案，而是先审视此刻正站在怎样的选择之门前。",
-      "fallbackCta": "开启吠陀占星咨询",
-      "ctaNote": "付款后将开启以本人出生信息计算出的星盘与Dasha。",
+      "tagline": "The origins of karma, material achievement and dharma, bonds and soul partners, and your current dasha flow with its upaya -- at least 15,000 characters of main text.",
       "feats": {
-        "0": "好奇现在的选择是否符合长期流向时",
-        "1": "感觉内心方向与现实时机不一致时",
-        "2": "想静下心整理并咨询一个问题时"
+        "0": "Derives your Rasi chart and the Moon's nakshatra from the birth details you enter",
+        "1": "Writes across four topics: the origins of karma, material achievement and dharma, bonds and soul partners, and your current dasha flow with its upaya",
+        "2": "Fills each topic to at least 3,800 characters",
+        "3": "The main text runs to at least 15,000 characters",
+        "4": "Sets out separately the flow that the reading was based on"
       },
+      "premiumIntro": "Using the dasha (period) system of Indian astrology, it sets out which planet's period you are in now and what to do within it.",
       "premiumAudience": {
-        "0": "想确认已做的决定是否符合长期流向的人",
-        "1": "感觉努力的时机总是对不上的人",
-        "2": "长期抱着一个问题、现在想彻底了结的人"
+        "0": "Those who want Indian astrology rather than Western astrology",
+        "1": "Those who want to know the character of the period they are in",
+        "2": "Those who want to see the reasoning as well"
       },
       "premiumChapters": {
-        "0": "基于出生信息的吠陀星盘咨询",
-        "1": "以Lagna、月亮、Nakshatra为中心的解读",
-        "2": "Dasha流向与当前问题的连结",
-        "3": "咨询结束后进入现有的吠陀占运势结果流程"
+        "0": "Rasi chart and nakshatra derivation",
+        "1": "A consultation across four topics",
+        "2": "Main text of at least 15,000 characters",
+        "3": "A summary of the flow behind the reading"
       },
       "premiumOutcomes": {
-        "0": "基于星盘的功能会受输入信息准确度的影响。",
-        "1": "付款政策沿用现有通行券、月光石、单次付款标准。",
-        "2": "运势结果仅供参考。"
+        "0": "Chart-based features are affected by how accurate the details you enter are.",
+        "1": "The payment policy follows the existing pass, moonstone, and single-payment rules.",
+        "2": "Fortune results are for reference."
       },
       "answersQuestions": {
-        "0": "已做的决定符合长期流向吗？",
-        "1": "为什么努力的时机总是对不上？",
-        "2": "这个时期该扩张还是该积累？"
+        "0": "Does the decision I am making now fit the longer flow?",
+        "1": "Why does the timing of my effort keep missing?",
+        "2": "What should I be preparing for in this period?"
+      },
+      "fallbackCta": "Open the Vedic consultation",
+      "ctaNote": "After payment, a consultation grounded in your Rasi chart and dasha flow opens.",
+      "analysisSteps": {
+        "0": {
+          "label": "Chart calculation",
+          "detail": "Derives the Rasi chart and the Moon's nakshatra from your birth details."
+        },
+        "1": {
+          "label": "Dasha check",
+          "detail": "Checks which planet's period you are currently passing through."
+        },
+        "2": {
+          "label": "Topic-by-topic writing",
+          "detail": "Splits the work into four topics and writes each to at least 3,800 characters."
+        },
+        "3": {
+          "label": "Reasoning summary",
+          "detail": "Sets out separately the flow that the reading was based on."
+        }
       },
       "valueCompare": {
         "0": {
-          "axis": "分析范围",
-          "free": "拉希、Nakshatra摘要",
-          "premium": "完整星盘与Dasha流向"
+          "axis": "System",
+          "premium": "Rasi chart, nakshatra, and dasha"
         },
         "1": {
-          "axis": "篇幅",
-          "free": "摘要水平",
-          "premium": "15,000字以上"
+          "axis": "Length",
+          "premium": "At least 15,000 characters of main text (at least 3,800 per topic)"
         },
         "2": {
-          "axis": "时间表",
-          "free": "无",
-          "premium": "按Dasha周期划分的机会与考验"
-        },
-        "3": {
-          "axis": "问题反映",
-          "free": "无",
-          "premium": "以输入的烦恼为基准重新构成"
+          "axis": "Structure",
+          "premium": "Four topics plus the flow behind the reading"
         }
       },
       "faq": {
         "0": {
-          "q": "和西方占星术有什么不同？",
-          "a": "星座的基准点不同，并使用Dasha这一时期概念。相比性格，更擅长解读时间的流向。"
+          "q": "How does this differ from Western astrology?",
+          "a": "It uses the Rasi chart, together with the dasha system that looks at which planet's period you are passing through."
         },
         "1": {
-          "q": "前世或业力是事实吗？",
-          "a": "作为象征性概念处理，并非事实判定，而是说明反复模式的框架。"
+          "q": "How long is it?",
+          "a": "At least 15,000 characters of main text, and at least 3,800 characters per topic."
         },
         "2": {
-          "q": "一定要知道出生时间吗？",
-          "a": "是的。Lagna与宫位会随时间变化，准确度会有很大差别。"
+          "q": "What is an upaya?",
+          "a": "It means a practice recommended in response to your current period. It is included in the fourth topic."
         }
       }
     },
@@ -9424,33 +9327,6 @@
         "2": "象征解读仅供参考。"
       }
     },
-    "flower-fc": {
-      "fallbackTitle": "解读你的命式，绽放成世上独一无二的花朵。",
-      "tagline": "从八字、占星、紫微斗数、宿曜中挑选想要的分支，把该计算结果原样转化为花朵色彩与形态的可视化内容。",
-      "premiumIntro": "命运之花不只是画出好看的图案，还会一并说明每种颜色与形态背后蕴含的计算依据。",
-      "fallbackCta": "绽放命运之花",
-      "feats": {
-        "0": "仅靠解读文字总觉得不够贴切时",
-        "1": "想把自己的命运留成看得见的形态时",
-        "2": "想要一份做一次、能长久珍藏的成果时"
-      },
-      "premiumAudience": {
-        "0": "比起文字更习惯用图像记忆的人",
-        "1": "想从四个分支中挑选喜欢方式来看的人",
-        "2": "想解锁一次、长久拿出来看的人"
-      },
-      "premiumChapters": {
-        "0": "八字、占星、紫微斗数、宿曜四大分支的花朵",
-        "1": "旺盛的气以颜色表现，不足的气以形态表现",
-        "2": "花朵各部分含义的解说",
-        "3": "解锁后可随时再次查看"
-      },
-      "premiumOutcomes": {
-        "0": "生成结果是计算数值的可视化呈现，仅供参考。",
-        "1": "解锁后可以再次查看。",
-        "2": "从四个分支中选择想要的方式生成。"
-      }
-    },
     "openCosmicSoulMeditation": {
       "fallbackTitle": "30分钟或60分钟，坐下来跟随到底的冥想课程。",
       "tagline": "把R=VD协议拆分成阶段，按照引导语句与计时器设计、可一次完成的课程型内容。",
@@ -9508,98 +9384,6 @@
         }
       }
     },
-    "palm-reading": {
-      "fallbackTitle": "拍下手掌纹路上传，我们会顺着纹理读出你现在的流向。",
-      "tagline": "分析生命线、感情线、智慧线的长度与分叉，整理性向与近期流向的图像式解读。",
-      "premiumIntro": "手相分析不会光看手就断定命运，而是整理线条纹理所诉说的性向与近期流向。",
-      "fallbackCta": "开始手相分析",
-      "feats": {
-        "0": "想找一个不需要出生日期也能看的解读时",
-        "1": "从没好好听过手相解读时",
-        "2": "想从另一个角度确认自己的性向时"
-      },
-      "premiumAudience": {
-        "0": "不知道出生时间、觉得八字很难的人",
-        "1": "想用一张照片简单看看的人",
-        "2": "从没好好被解读过手相的人"
-      },
-      "premiumChapters": {
-        "0": "三大主线的长度、深浅、分叉分析",
-        "1": "性向与能量使用方式",
-        "2": "近期流向中最突出的一点",
-        "3": "延伸到详细分析与AI咨询"
-      },
-      "premiumOutcomes": {
-        "0": "分析准确度会因图片质量而不同。",
-        "1": "分析结果仅供参考。",
-        "2": "不能替代健康判断。"
-      }
-    },
-    "tarot-celestial-harmony": {
-      "fallbackTitle": "以十一颗行星的位置，指出此刻你的心被困在何处。",
-      "tagline": "不是一张牌，而是以行星别配置分开解读情感、关系、工作各轴向的扩展型宇宙塔罗。",
-      "premiumIntro": "天体的旋律不会只给出一个答案，而是展开心中多个轴向此刻如何错位。",
-      "fallbackCta": "查看天体旋律",
-      "feats": {
-        "0": "短短一张牌的解读不够时",
-        "1": "多个烦恼纠缠在一起、不知从何看起时",
-        "2": "想把情感与现实分开整理时"
-      },
-      "premiumAudience": {
-        "0": "烦恼不止一个、分成多个方向的人",
-        "1": "总觉得短解读不够尽兴的人",
-        "2": "想把情感与现实分开来看的人"
-      },
-      "premiumChapters": {
-        "0": "以十一行星配置划分的领域别解读",
-        "1": "现在作用最强的轴向",
-        "2": "彼此冲突的心理点位",
-        "3": "为下个月准备的行动基准"
-      },
-      "premiumOutcomes": {
-        "0": "卡牌解读仅供参考。",
-        "1": "付款与权限确认沿用现有政策。",
-        "2": "不会确定或保证未来。"
-      }
-    },
-    "tarot-prompt-maker": {
-      "fallbackTitle": "即使抽到同一张牌，问题浅了答案也会浅。",
-      "tagline": "把符合自身状况的塔罗提问与咨询流程写成句子，帮助解读走得更深的工具。",
-      "premiumIntro": "提示词库不会替你直接给出答案，而是磨砺你的问题，好让更好的答案浮现。",
-      "fallbackCta": "查看提示词",
-      "feats": {
-        "0": "连该问什么都毫无头绪时",
-        "1": "解读结果总是含糊收场时",
-        "2": "想把咨询继续深挖下去时"
-      },
-      "premiumAudience": {
-        "0": "经常看塔罗却总觉得答案很浅的人",
-        "1": "想在咨询前先整理好问题的人",
-        "2": "想自己试着延续解读的人"
-      },
-      "premiumChapters": {
-        "0": "贴合自身状况的核心提问句",
-        "1": "延续解读的后续提问流程",
-        "2": "牌意模糊时该如何再次提问",
-        "3": "可直接复制使用的原始提示词"
-      },
-      "premiumOutcomes": {
-        "0": "提示词是辅助解读的工具，不保证结果。",
-        "1": "卡牌解读仅供参考。",
-        "2": "沿用现有付款政策。"
-      },
-      "badge": "提示词型",
-      "headline": "先把贴合你提问的塔罗咨询语句整理出来。",
-      "resultPreview": {
-        "lines": {
-          "0": "在眼下的处境里，「是什么让这段关系停住了」比「这个人喜欢我吗」更容易打开。",
-          "1": "第一个问题打开之后，接着要问的第二、第三个问题都已备好。",
-          "2": "牌面出得含糊时该如何重问的语句，也另外收录在内。"
-        },
-        "caption": "这是真实提示词结果开头的示例。付款后可获得贴合处境的提问组与提示词全文。"
-      },
-      "hubTagline": "把要让牌义解读走得更深的提问与咨询流程，捆成一份提示词的功能。"
-    },
     "openTarotLoveModal": {
       "fallbackTitle": "摊开牌卡，看看言语与行动之间残留的关系温度。",
       "tagline": "与其断言对方的心意，不如把此刻两人之间流动的氛围与该留意的界线分开来读。",
@@ -9628,131 +9412,264 @@
       }
     },
     "openTarotReunionModal": {
-      "fallbackTitle": "静静展开一段尚未彻底关闭的关系的温度。",
-      "tagline": "不保证复合，而是通过牌卡的象征解读残留的情感与重新靠近的流向。",
-      "premiumIntro": "复合运不断言结果，而是以关系可能重新变动的地方与现在该避免的反应为核心解读。",
-      "fallbackCta": "确认复合流向",
+      "tagline": "Five card seats trace everything from the warmth still left to the conditions for repairing the relationship, closing with a low-pressure opening line and a 7-day recovery routine.",
       "feats": {
-        "0": "还在意对方的心意时",
-        "1": "犹豫要不要联络时",
-        "2": "在放手与紧握之间摇摆时"
+        "0": "A five-seat reading: warmth still left · their feelings now · why contact stopped · what lies beneath the words · conditions for repair",
+        "1": "Detailed interpretation reading every card along eight strands",
+        "2": "A standard for whether to move first, and a suggested low-pressure opening line",
+        "3": "A 7-day recovery routine and a reunion checklist"
       },
+      "premiumIntro": "This is not a reading that promises reunion. It separates the feelings still left and the conditions for getting close again into five seats, and works out the opening line with you.",
       "premiumAudience": {
-        "0": "分手后心情依然无法整理的人",
-        "1": "每天在联络与否之间摇摆的人",
-        "2": "想确认是否还有理由坚持下去的人"
+        "0": "People whose feelings have not settled since the breakup",
+        "1": "People weighing when to start talking again",
+        "2": "People who want to check whether a reason to hold on remains"
       },
       "premiumChapters": {
-        "0": "当前关系的氛围",
-        "1": "两人之间残留的情感纹理",
-        "2": "可能重新靠近的流向",
-        "3": "现在该留意的行为"
+        "0": "The cards on the five seats and the interpretation for each",
+        "1": "Your standard for reaching out again, and the opening line",
+        "2": "What to hold back for now",
+        "3": "A reunion checklist to keep for 7 days"
       },
       "premiumOutcomes": {
-        "0": "不保证复合结果。",
-        "1": "卡牌解读仅供参考。",
-        "2": "付款政策沿用现有标准。"
+        "0": "Reunion outcomes are not guaranteed.",
+        "1": "Card interpretations are for reference.",
+        "2": "The existing payment policy applies."
+      },
+      "answersQuestions": {
+        "0": "Do they still have feelings for me?",
+        "1": "Is it all right to contact them now?",
+        "2": "Can this relationship be picked up again?"
+      },
+      "fallbackCta": "Start the Reunion Lighthouse reading",
+      "analysisSteps": {
+        "0": {
+          "label": "Settle your mind",
+          "detail": "The reading opens calmly, with a short breathing guide."
+        },
+        "1": {
+          "label": "Open the five seats",
+          "detail": "A card is turned for each seat, from the feelings left to the conditions for repair."
+        },
+        "2": {
+          "label": "Recovery guide",
+          "detail": "It closes with the opening line, what to hold back, the 7-day routine and the checklist."
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "Do I have to enter a question or my birth date?",
+          "a": "No. The five-seat card reading starts straight away with no input."
+        },
+        "1": {
+          "q": "Can I see the result again later?",
+          "a": "There is no separate save feature, so it is a reading you check on the spot; you can share it from the result screen."
+        }
       }
     },
     "openTarotYearFortuneModal": {
-      "fallbackTitle": "按月份平静地拆分解读整年的流向。",
-      "tagline": "把近期的选择与情感变化整理成卡牌流向的年度塔罗解读。",
-      "premiumIntro": "年度塔罗不会预言一切，而是整理每月容易错过的情感与选择要点。",
-      "fallbackCta": "查看年度流向",
+      "tagline": "Twelve major cards are laid one per month and read alongside the guardian story of your birth year, organizing the flow across twelve fields plus turning points and lucky actions.",
       "feats": {
-        "0": "想一次整理今年的大方向时",
-        "1": "想不错过重要时期地留意时",
-        "2": "想知道各月份的心态与注意事项时"
+        "0": "This year's core card and the yearly overview read as one continuous flow",
+        "1": "A drill-down that reopens each monthly card, January to December, as three cards: cause, process, result",
+        "2": "Readings for twelve fields including money, work and business, love, and helpful people",
+        "3": "This year's turning points and lucky actions you can take right away",
+        "4": "The result is saved so you can open it again at any time"
       },
+      "premiumIntro": "Rather than nailing the year down as prophecy, it organizes the flow that is easy to miss month by month, and the moments where a choice is made.",
       "premiumAudience": {
-        "0": "想在制定年度计划前先看看流向的人",
-        "1": "在纠结重要日程该安排在哪个月的人",
-        "2": "想减少每月反复出现的情绪起伏的人"
+        "0": "People who want to see the flow before planning their year",
+        "1": "People wondering which month to place an important event in",
+        "2": "People who want a deep reading with the guardian narrative"
       },
       "premiumChapters": {
-        "0": "按月份的卡牌流向",
-        "1": "强烈浮现的机会与注意要点",
-        "2": "容易反复出现的情感模式",
-        "3": "为下个月做准备的现实建议"
+        "0": "An in-depth interpretation of this year's core card",
+        "1": "The twelve monthly cards and the flow by field",
+        "2": "Choices to be careful with, and this year's opportunities",
+        "3": "Reopening the saved result"
       },
       "premiumOutcomes": {
-        "0": "不会确定未来。",
-        "1": "卡牌解读仅供参考。",
-        "2": "沿用现有付款政策。"
+        "0": "It does not fix the future.",
+        "1": "Card interpretations are for reference.",
+        "2": "The existing payment policy applies."
+      },
+      "answersQuestions": {
+        "0": "Which period this year should I be most careful in?",
+        "1": "How will money and work or business flow?",
+        "2": "What opportunity is coming to me this year?"
+      },
+      "fallbackCta": "Start the Zodiac Year reading",
+      "analysisSteps": {
+        "0": {
+          "label": "Find your guardian",
+          "detail": "Your birth year identifies your guardian among the twelve."
+        },
+        "1": {
+          "label": "Lay the twelve cards",
+          "detail": "Twelve major cards are placed one per month."
+        },
+        "2": {
+          "label": "Fields and turning points",
+          "detail": "The flow across the twelve fields, the turning points and the lucky actions are organized."
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "Can I see the result again later?",
+          "a": "Yes. A paid result is saved and you can pick it up again when you return."
+        },
+        "1": {
+          "q": "How do I read the monthly readings?",
+          "a": "Opening a month's card reveals the three-card drill-down — cause, process, result — and the interpretation by field."
+        }
       }
     },
     "openLoveSimulation": {
-      "fallbackTitle": "确认你的恋爱模式在哪些场景中闪光、又在哪些场景中动摇。",
-      "tagline": "以八字五行与日干流向为基础，像模拟一样呈现关系化学反应与对话要点。",
-      "premiumIntro": "LOVE CODE不保证爱情，而是展示八字流向中经常出现的关系反应与选择要点。",
-      "fallbackCta": "查看LOVE CODE",
-      "feats": {
-        "0": "好奇反复出现的恋爱模式原因时",
-        "1": "想更具体地看看和对方的化学反应时",
-        "2": "想知道对话与约会流程中该注意什么时"
-      },
-      "premiumAudience": {
-        "0": "恋爱总是以相似方式结束的人",
-        "1": "想知道自己容易对什么样的人心动的人",
-        "2": "想在下一段恋爱中尝试不同做法的人"
-      },
-      "premiumChapters": {
-        "0": "基于八字的恋爱人设",
-        "1": "五行相性流向与关系化学反应",
-        "2": "依情境而异的对话与约会场景",
-        "3": "解锁后进入现有的LOVE CODE画面"
-      },
-      "premiumOutcomes": {
-        "0": "不保证关系结果。",
-        "1": "解锁与付款沿用现有政策。",
-        "2": "运势结果仅供参考。"
-      },
       "badge": "恋爱模拟",
       "headline": "看看你的恋爱模式在哪些场景里发光，在哪些场景里动摇。",
-      "resultPreview": {
-        "lines": {
-          "0": "你不是一开始就全然敞开心的人，而是一旦敞开就收不回来的人。",
-          "1": "你被吸引的类型，和真正合适的类型并不相同。反复就产生于这道落差。",
-          "2": "关系动摇的时点，多半出现在第三道坎。"
+      "tagline": "16 partner characters with 20 scenes each; every choice moves five meters — affection, trust, chemistry, tension and stability.",
+      "feats": {
+        "0": "16 partner characters · 20 scenes per character, with 3 choices in every scene",
+        "1": "Each choice shifts five meters: affection, trust, chemistry, tension and stability",
+        "2": "Compatibility is scored 0-100 on 5 axes: attraction, stability, communication, conflict pattern and long-term durability",
+        "3": "Every item shows its grounds and confidence level — day-stem unions and clashes, branch relations, useful and adverse elements, ten gods, and the peach-blossom and red-flame stars"
+      },
+      "premiumIntro": "As you pick a choice, the five meters — affection, trust, chemistry, tension, stability — move on the spot, and compatibility is calculated from signals drawn out of both charts.",
+      "premiumAudience": {
+        "0": "People who want to experience compatibility as scenes",
+        "1": "People who want to compare how it unfolds by partner type",
+        "2": "People who want to see the grounds behind a compatibility score"
+      },
+      "premiumChapters": {
+        "0": "All 16 partner characters available to choose",
+        "1": "Playing through 20 scenes per character",
+        "2": "A compatibility result reflecting how the five meters moved",
+        "3": "The 5-axis scores with per-item saju grounds and confidence"
+      },
+      "premiumOutcomes": {
+        "0": "Compatibility is calculated inside the app, directly from the birth details you enter.",
+        "1": "It does not guarantee any actual relationship or outcome.",
+        "2": "Fortune results are for reference; please check important choices against practical judgement as well."
+      },
+      "answersQuestions": {
+        "0": "Why does tension rise so much when I am with this person?",
+        "1": "What kinds of situations do we usually clash in?",
+        "2": "Is this a relationship that can last?"
+      },
+      "fallbackCta": "Open Love Code",
+      "analysisSteps": {
+        "0": {
+          "label": "Choose a partner",
+          "detail": "Pick one of the 16 characters and enter both people's birth details."
         },
-        "caption": "这是真实 LOVE CODE 结果开头的示例。付款后可看到依你八字计算的完整恋爱模式。"
+        "1": {
+          "label": "Play the scenes",
+          "detail": "Pick one of 3 choices in each scene, and the five meters shift on the spot."
+        },
+        "2": {
+          "label": "Signal extraction",
+          "detail": "Compatibility signals are drawn from both charts' day-stem unions and clashes, branch relations, useful and adverse elements, ten gods and the stars."
+        },
+        "3": {
+          "label": "Result",
+          "detail": "It shows the 5-axis scores — attraction, stability, communication, conflict pattern, long-term durability — with the grounds and confidence for each signal."
+        }
+      },
+      "valueCompare": {
+        "0": {
+          "axis": "Play volume",
+          "premium": "16 partner characters · 20 scenes per character"
+        },
+        "1": {
+          "axis": "Compatibility result",
+          "premium": "5-axis scores, 0-100"
+        },
+        "2": {
+          "axis": "Grounds shown",
+          "premium": "Saju signals and confidence per item"
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "What are the compatibility scores based on?",
+          "a": "Signals are drawn from both people's day-stem unions and clashes, branch relations, useful and adverse elements, ten gods, and the peach-blossom and red-flame stars, and every item is shown with its grounds and confidence level."
+        },
+        "1": {
+          "q": "Do my choices affect the result?",
+          "a": "Every choice shifts the five meters — affection, trust, chemistry, tension, stability — and that state is reflected on the result screen."
+        },
+        "2": {
+          "q": "How many partners can I see?",
+          "a": "16 characters are available, and each one has its own 20 scenes."
+        }
       }
     },
     "openDestinyBias": {
-      "fallbackTitle": "一张一张展开你与本命之间浮现的氛围与情感密码。",
-      "tagline": "把粉丝心意与关系想象整理成卡片式句子，轻松解读当下的心动与距离感。",
-      "premiumIntro": "本命命运不会断言真实的关系，而是把追星心中浮现的情感纹理像卡片一样整理出来。",
-      "fallbackCta": "查看本命命运",
-      "feats": {
-        "0": "每次想起本命都会浮现同样的感情时",
-        "1": "想把追星的心动整理成感性卡片时",
-        "2": "想轻松看看今日的氛围与行动提示时"
-      },
-      "premiumAudience": {
-        "0": "想有趣地看看自己与本命之间距离的人",
-        "1": "想把追星心意留成卡片形式的人",
-        "2": "在找轻松享受的解读的人"
-      },
-      "premiumChapters": {
-        "0": "你与本命之间的氛围信号",
-        "1": "关系能量与对话时机提示",
-        "2": "适合保存、分享的卡片式句子",
-        "3": "付款后进入现有的本命命运画面"
-      },
-      "premiumOutcomes": {
-        "0": "不保证真实关系或结果。",
-        "1": "沿用现有付款政策。",
-        "2": "请在参考与娱乐的范围内看待这次解读。"
-      },
       "badge": "小卡解读",
       "headline": "把你与本命之间浮现的氛围与情感密码，一张一张摊开来。",
-      "resultPreview": {
-        "lines": {
-          "0": "两人的气不是正面相撞，而是彼此映照的排布。",
-          "1": "吸引你的不是耀眼，而是那份撑住的态度。",
-          "2": "今年这份心意最浓的时期，另有其时。"
+      "tagline": "It opens with sign-in alone, and produces five scores — total, emotion, fandom, longevity and support — along with a card image, right on the spot.",
+      "feats": {
+        "0": "A free feature that opens with sign-in alone",
+        "1": "Produces five scores — total, emotion, fandom, longevity, support — and a destiny grade",
+        "2": "Draws an aura type and material, mood keywords and matching tags, and builds them into a photocard image",
+        "3": "Splits the result across five tabs: one-line chemistry · five-element compatibility · day-stem relation · branch chemistry · booster tips",
+        "4": "Shows your and your favorite's five-element distribution together with day-stem, day-branch and ten-god signals",
+        "5": "Relationship MBTI · past life · grade meme · hashtags come with it"
+      },
+      "premiumIntro": "Favorite-Person Destiny does not pronounce on your actual relationship; it organizes both charts' saju signals into scores and card lines. The same details give the same result.",
+      "premiumAudience": {
+        "0": "People who want to keep their compatibility with a favorite as a card",
+        "1": "People who want the five-element and day-stem grounds shown too",
+        "2": "People looking for a light, free reading"
+      },
+      "premiumChapters": {
+        "0": "The five scores and the destiny grade",
+        "1": "A photocard reflecting the aura type and material",
+        "2": "Detail tabs for five-element compatibility, day-stem relation and branch chemistry",
+        "3": "Relationship MBTI and hashtags"
+      },
+      "premiumOutcomes": {
+        "0": "A free feature with no payment step beyond signing in.",
+        "1": "It does not guarantee any actual relationship or outcome.",
+        "2": "Please take the reading as reference and for enjoyment."
+      },
+      "answersQuestions": {
+        "0": "In what ways are my favorite and I alike?",
+        "1": "What type is my way of supporting them?",
+        "2": "Where does the chemistry between us come from?"
+      },
+      "fallbackCta": "Open Favorite-Person Destiny",
+      "analysisSteps": {
+        "0": {
+          "label": "Enter details",
+          "detail": "You enter your own and your favorite's birth details."
         },
-        "caption": "这是真实《本命命运》结果开头的示例。付款后可看到全部卡片与氛围解读。"
+        "1": {
+          "label": "Signal extraction",
+          "detail": "Compatibility signals are drawn from day-stem relation, day-branch relation, five-element balance and ten-god relations."
+        },
+        "2": {
+          "label": "Scoring",
+          "detail": "The five scores — total, emotion, fandom, longevity, support — and the destiny grade are calculated."
+        },
+        "3": {
+          "label": "Card generation",
+          "detail": "The aura type and mood keywords are layered on to build the photocard image and the five detail tabs."
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "Is it paid?",
+          "a": "No. It is a free feature that opens with sign-in alone."
+        },
+        "1": {
+          "q": "Does the result change if I enter the same details again?",
+          "a": "The same input gives the same result."
+        },
+        "2": {
+          "q": "What are the scores based on?",
+          "a": "Signals are drawn from the two charts' day-stem relation, day-branch relation, five-element balance and ten-god relations, and converted into the five scores."
+        }
       }
     },
     "openPsychoDreamModal": {
@@ -9783,30 +9700,59 @@
       }
     },
     "openKemetModal": {
-      "fallbackTitle": "以古埃及的象征，映照此刻留在心中的疑问。",
-      "tagline": "不强求给出选择的答案，而是像神谕卡一样整理当下流向中容易错过的信号。",
-      "premiumIntro": "神谕解读不保证给出正确答案，而是柔和地照见问题周围浮现的象征与情感方向。",
-      "fallbackCta": "查看神谕",
+      "tagline": "Pick three cards yourself — past, present and future — from the twelve gods including Ra, Osiris, Isis and Horus, and the reading unfolds seat by seat and then as the union of the three gods, following the grain of your question.",
       "feats": {
-        "0": "面对决定时心情难以平静时",
-        "1": "想看看此刻纠结的问题背后的象征时",
-        "2": "需要一次简短却有氛围感的神谕式解读时"
+        "0": "Cards for twelve gods: Ra · Osiris · Isis · Horus · Thoth · Anubis and more",
+        "1": "Three seats — past · present · future — with all three cards chosen by you",
+        "2": "A combined reading of the union of the three gods, following the seat-by-seat interpretation",
+        "3": "A category reading matched to the grain of your question, read from where its focus lies"
       },
+      "premiumIntro": "The Nile Oracle does not draw for you. It is a rite in which you choose three cards yourself, standing before the cards of the twelve gods.",
       "premiumAudience": {
-        "0": "面对决定时心情反复不定的人",
-        "1": "想用简短而有象征意味的答案整理思绪的人",
-        "2": "被埃及神话象征吸引的人"
+        "0": "People drawn to the symbols of Egyptian myth",
+        "1": "People who want the ritual feel of choosing for themselves",
+        "2": "People who want their situation organized as a flow of three cards"
       },
       "premiumChapters": {
-        "0": "契合当前问题的象征信息",
-        "1": "该留意的流向与心态",
-        "2": "为做选择准备的简短现实建议",
-        "3": "付款后进入现有的神谕画面"
+        "0": "What the gods on the three seats mean",
+        "1": "The narrative running from past to future",
+        "2": "The direction the union of the three gods points to",
+        "3": "Advice matched to the grain of your question"
       },
       "premiumOutcomes": {
-        "0": "神谕结果仅供参考。",
-        "1": "沿用现有付款政策。",
-        "2": "重要选择请结合现实判断加以确认。"
+        "0": "Oracle interpretations are for reference.",
+        "1": "This content is a modern reconstruction of mythic symbolism.",
+        "2": "The existing payment policy applies."
+      },
+      "answersQuestions": {
+        "0": "Where did this situation come from and where is it going?",
+        "1": "What do the gods point to in my question right now?",
+        "2": "What attitude should I take from here?"
+      },
+      "fallbackCta": "Ask the three gods",
+      "analysisSteps": {
+        "0": {
+          "label": "Offer your question",
+          "detail": "You write the question on your mind, in three characters or more."
+        },
+        "1": {
+          "label": "Choose three cards",
+          "detail": "You pick past, present and future from the cards of the twelve gods."
+        },
+        "2": {
+          "label": "Oracle reading",
+          "detail": "The answer is organized from the seat-by-seat interpretation and the union of the three gods."
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "Are the cards drawn automatically?",
+          "a": "No. You choose three of the twelve gods' cards yourself."
+        },
+        "1": {
+          "q": "Can I see the result again?",
+          "a": "There is no separate save feature, so it is an oracle you read on the spot."
+        }
       }
     },
     "rpt_healthReportCard": {
@@ -9890,258 +9836,506 @@
         "2": "沿用现有付款政策。"
       }
     },
-    "animal-destiny-unlock": {
-      "fallbackTitle": "看看你八字十二运星能量会以哪种动物原型呈现。",
-      "tagline": "把八字的基本流向翻译成动物性向，一次整理性格、恋爱、职业、关系与今日任务的报告。",
-      "premiumIntro": "动物测试不保证真的会变身，而是有趣地读出你的八字能量最接近哪种动物的本能。",
-      "fallbackCta": "召唤你的守护动物",
-      "feats": {
-        "0": "想用更直观的动物来理解自己的八字性格时",
-        "1": "想通过动物行为生动地学习十二运星含义时",
-        "2": "想同时从性格、恋爱、职业三个角度被分析时"
-      },
-      "premiumAudience": {
-        "0": "好奇与对方第一印象相性的人",
-        "1": "想用面相看性向的人",
-        "2": "在找轻松一笑的相性测试的人"
-      },
-      "premiumChapters": {
-        "0": "确定你的守护动物原型",
-        "1": "基于动物性向的性格、恋爱、职业分析",
-        "2": "整理关系相性的动物类型",
-        "3": "今日行动任务与该避免的模式"
-      },
-      "premiumOutcomes": {
-        "0": "测试是仅供参考的分析。",
-        "1": "动物是象征，不是划分性格的绝对标准。",
-        "2": "沿用现有付款政策。"
-      }
-    },
     "openJuyukModal": {
-      "fallbackTitle": "以龟壳裂开而出的卦象，解读当下局势的形势。",
-      "tagline": "从六十四卦中抽出对应当前处境的卦，分辨该前进还是该停下的东方古典占法。",
-      "premiumIntro": "龟卜不会通报吉凶，而是告诉你现在处于哪个局面、以及在该局面该采取的态度。",
-      "fallbackCta": "查看龟卜",
+      "tagline": "Offer a question, pass through the turtle-shell rite, and one of the sixty-four hexagrams opens, with the shape of the situation read along five strands: love, career, money, exams and contracts.",
       "feats": {
-        "0": "不知道现在该推进还是该等待时",
-        "1": "想知道情况走到哪个阶段时",
-        "2": "需要古老方式沉稳建议时"
+        "0": "Interpretations for all sixty-four hexagrams, from Qian to Wei Ji",
+        "1": "The shape of substance and function, read from the relation of upper and lower trigrams",
+        "2": "Readings along five strands: love and bonds / career and achievement / money and dealings / exams and reviews / documents and contracts",
+        "3": "A turtle-shell rite that mirrors the energy of your question"
       },
+      "premiumIntro": "Turtle-shell divination does not announce good or bad luck; it tells you which phase you are in and what stance to take within it.",
       "premiumAudience": {
-        "0": "站在必须决定进退的岔路口的人",
-        "1": "想衡量事情时机的人",
-        "2": "比起简单占卜更想要古典解读的人"
+        "0": "People standing at a fork, having to decide whether to advance or withdraw",
+        "1": "People who want to gauge the timing of a matter",
+        "2": "People who want a classical reading rather than a light one"
       },
       "premiumChapters": {
-        "0": "对应当前处境的卦象及其含义",
-        "1": "该前进与该停下的区分",
-        "2": "变爻所指向的下一个局面",
-        "3": "现实中该采取的具体态度"
+        "0": "The hexagram matching your situation and what it means",
+        "1": "Telling the time to advance from the time to stop",
+        "2": "The shape of the situation across five strands",
+        "3": "The concrete stance to take in practice"
       },
       "premiumOutcomes": {
-        "0": "卦象解读仅供参考。",
-        "1": "沿用现有付款政策。",
-        "2": "重要选择请结合现实判断加以确认。"
+        "0": "The divination is for reference.",
+        "1": "Please check important choices against practical judgement as well.",
+        "2": "The existing payment policy applies."
+      },
+      "answersQuestions": {
+        "0": "Can I push this forward now?",
+        "1": "What is the shape of this contract or exam?",
+        "2": "Is this a time to advance, or to step back?"
+      },
+      "fallbackCta": "Cast the turtle shell",
+      "analysisSteps": {
+        "0": {
+          "label": "Offer your question",
+          "detail": "You write the question on your mind."
+        },
+        "1": {
+          "label": "The shell rite",
+          "detail": "The turtle shell cracks and the hexagram is decided."
+        },
+        "2": {
+          "label": "Reading the shape",
+          "detail": "The situation is read through the hexagram's meaning, substance and function, and the five strands."
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "Does the hexagram change with the question?",
+          "a": "The hexagram is decided at the moment of the rite, and the question you write is used to match the strands of the reading."
+        },
+        "1": {
+          "q": "Can I see the result again?",
+          "a": "There is no separate save feature, so it is a divination you read on the spot."
+        }
       }
     },
     "openIfaOracle": {
-      "fallbackTitle": "以西非伊法（IFÀ）的奥杜，接收此刻你所需要的讯息。",
-      "tagline": "256个奥杜中开启其一，其中蕴含的故事与禁忌，便成为回应当下处境的答案。",
-      "premiumIntro": "伊法神谕不会罗列预言，而是指出此刻你该坚守与该放下的东西。",
-      "fallbackCta": "查看伊法神谕",
+      "tagline": "Following the West African Yoruba Ifá method, 16 base Odu pair up to form 256 oracles, and the story and taboos inside the one that opens become the answer to your situation.",
       "feats": {
-        "0": "熟悉方式的建议已不再触动你时",
-        "1": "好奇自己是否遗漏了某个禁忌时",
-        "2": "想以陌生传统的视角看待处境时"
+        "0": "A system of 256 oracles formed by pairing the 16 base Odu",
+        "1": "A tailored reading along four strands: overall / love and relationships / money and business / health and inner life",
+        "2": "A sequential reveal rite in which the opele chain opens the eight positions one by one",
+        "3": "Guidance on rites and taboos delivered with the oracle",
+        "4": "Download the result as a text file to keep"
       },
+      "premiumIntro": "The Ifá oracle does not lay out prophecies; it points to what you should keep and what you should let go of right now.",
       "premiumAudience": {
-        "0": "对常见运势方式感到厌倦的人",
-        "1": "想知道自己正在违背什么原则的人",
-        "2": "想体验不同文化解读的人"
+        "0": "People bored with the usual fortune formats",
+        "1": "People who want to know which of their own principles they are breaking",
+        "2": "People who want to experience a reading from another culture"
       },
       "premiumChapters": {
-        "0": "开启的奥杜与其中的故事",
-        "1": "回应当下处境的讯息",
-        "2": "该遵守的禁忌与该避免的态度",
-        "3": "日常中可实践的具体行动"
+        "0": "The Odu that opened and the story inside it",
+        "1": "The message that answers your situation now",
+        "2": "The taboos to keep and the attitudes to avoid",
+        "3": "Concrete actions to practise day to day"
       },
       "premiumOutcomes": {
-        "0": "神谕结果仅供参考。",
-        "1": "沿用现有付款政策。",
-        "2": "本内容是对传统解读的现代重构。"
+        "0": "Oracle results are for reference.",
+        "1": "This content is a modern reconstruction of a traditional reading.",
+        "2": "The existing payment policy applies."
+      },
+      "answersQuestions": {
+        "0": "Can I go ahead with this now?",
+        "1": "What should I be careful of?",
+        "2": "Which strand of fortune should I look at first?"
+      },
+      "fallbackCta": "Open the Ifá oracle",
+      "analysisSteps": {
+        "0": {
+          "label": "Choose a strand",
+          "detail": "You pick the strand of your question from overall · love · money · health."
+        },
+        "1": {
+          "label": "Open the eight positions",
+          "detail": "The opele chain opens the eight positions in turn."
+        },
+        "2": {
+          "label": "Odu reading",
+          "detail": "You receive the story of the Odu that opened, with its taboos and practice guidance."
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "Are all 256 different?",
+          "a": "The meanings of the 16 base Odu combine in pairs, so the message differs according to which pair opens."
+        },
+        "1": {
+          "q": "Can I keep the result?",
+          "a": "You can download it as a text file from the result screen and keep it."
+        }
       }
     },
     "openRuneOracle": {
-      "fallbackTitle": "以刻在石头上的三枚符文，指出你走过的地方、现在的位置、以及下一个位置。",
-      "tagline": "把北欧符文放入过去、现在、未来三个位置，一次读出流向与阻碍的解读。",
-      "premiumIntro": "符文解读不会通报命运，而是告诉你从当前位置迈向下一个位置的条件。",
-      "fallbackCta": "查看符文神谕",
-      "feats": {
-        "0": "不知道现在的处境从何开始时",
-        "1": "感觉停留在同一个地方时",
-        "2": "想简短却扎实地确认下一个局面时"
-      },
-      "premiumAudience": {
-        "0": "想把流向拆成过去、现在、未来来看的人",
-        "1": "想要简短却有分量的建议的人",
-        "2": "被北欧象征体系吸引的人"
-      },
-      "premiumChapters": {
-        "0": "放置在三个位置的符文及其含义",
-        "1": "此刻阻挡你流向的障碍",
-        "2": "迈向下一个局面的条件",
-        "3": "符文所建议的具体态度"
-      },
-      "premiumOutcomes": {
-        "0": "符文解读仅供参考。",
-        "1": "沿用现有付款政策。",
-        "2": "不会确定或保证未来。"
-      },
       "badge": "卢恩解读",
       "headline": "把此刻抉择之前浮现的卢恩象征，静静地摊开来。",
-      "resultPreview": {
-        "lines": {
-          "0": "第一颗石头指向已经做过的选择。那个选择不是失误，而是必要的过程。",
-          "1": "中间那颗石头意味着停顿。此刻需要的不是前进的力量，而是撑住的力量。",
-          "2": "最后那颗石头是门开启的位置。只是，得先放开手里已握着的东西才会开。"
-        },
-        "caption": "这是真实卢恩神谕结果开头的示例。付款后可看到三枚卢恩的完整解读与组合释义。"
-      },
-      "hubTagline": "以卢恩文字的象征，读出当下提问与下一步行动质地的神谕解读。"
-    },
-    "openGeomancyOracle": {
-      "fallbackTitle": "以点出的图形，像计算一样解读现实条件。",
-      "tagline": "运用中世纪欧洲使用的十六个土占图形，比起情感更优先权衡状况与条件的占法。",
-      "premiumIntro": "土占不会安抚情绪，而是先计算当下条件是有利还是不利。",
-      "fallbackCta": "查看土占",
+      "hubTagline": "以卢恩文字的象征，读出当下提问与下一步行动质地的神谕解读。",
+      "tagline": "A 25-rune system — the 24 runes plus the blank rune Wyrd — reads the flow across three seats, past Urd · present Verdandi · future Skuld, splitting each rune into upright and reversed.",
       "feats": {
-        "0": "比起情绪安慰更需要现实判断时",
-        "1": "想整理清楚条件与变量时",
-        "2": "想冷静看待结果可能性时"
+        "0": "A 25-rune system: the 24 runes plus the blank rune Wyrd",
+        "1": "A three-seat layout of the three Norns: past Urd · present Verdandi · future Skuld",
+        "2": "Upright and reversed interpretations, split for each rune",
+        "3": "The special reading of the blank rune Wyrd — the signal that nothing is settled yet"
       },
+      "premiumIntro": "A three-rune reading does not nail the answer down; it lights up your present choice through the flow of three seats — past, present and future.",
       "premiumAudience": {
-        "0": "需要计算而非安慰的人",
-        "1": "面临金钱、合约、搬迁等条件纠缠问题的人",
-        "2": "偏好有图形与规则的占法的人"
+        "0": "People who want to experience a symbol system other than tarot",
+        "1": "People who want the context before and after the flow",
+        "2": "People who want a short, dense three-seat reading"
       },
       "premiumChapters": {
-        "0": "为问题配置的图形及其性质",
-        "1": "有利条件与不利条件的区分",
-        "2": "事情成功可能性的方向",
-        "3": "现实中需要调整的变量"
+        "0": "The runes on the three seats and the interpretation for each",
+        "1": "The meanings that upright and reversed split apart",
+        "2": "The flow that runs from the past into the present",
+        "3": "How to meet the road ahead"
       },
       "premiumOutcomes": {
-        "0": "占法解读仅供参考。",
-        "1": "沿用现有付款政策。",
-        "2": "不能替代投资或合约判断。"
+        "0": "Rune interpretations are for reference.",
+        "1": "It does not fix the future.",
+        "2": "The existing payment policy applies."
+      },
+      "answersQuestions": {
+        "0": "Where did this flow begin?",
+        "1": "Where am I standing right now?",
+        "2": "Which way does the road ahead go?"
+      },
+      "fallbackCta": "Open three runes",
+      "analysisSteps": {
+        "0": {
+          "label": "Check the spread",
+          "detail": "The reading runs on the three-seat layout: past · present · future."
+        },
+        "1": {
+          "label": "Open three runes",
+          "detail": "Runes are placed on the Urd, Verdandi and Skuld seats."
+        },
+        "2": {
+          "label": "Read the flow",
+          "detail": "You read the seat-by-seat interpretation and what upright or reversed means."
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "Are there reversed readings too?",
+          "a": "Yes. Runes whose shape is symmetrical, and the blank rune Wyrd, are read upright only."
+        },
+        "1": {
+          "q": "Can I see the result again?",
+          "a": "There is no separate save feature, so it is a reading you check on the spot."
+        }
+      }
+    },
+    "openGeomancyOracle": {
+      "tagline": "Sixteen figures from Via to Populus build a 15-position shield chart running through Mothers, Daughters, Nieces and Witnesses to the Judge, and AI reads out cause, flow and oracle on the grounds of the figures alone.",
+      "feats": {
+        "0": "A system of 16 geomantic figures: Via · Populus · Puer and the rest",
+        "1": "A 15-position shield chart: 4 Mothers · 4 Daughters · 4 Nieces · 2 Witnesses, reaching the Judge",
+        "2": "An AI reading that brings cause, flow and oracle together on the grounds of the figures alone",
+        "3": "A 7-day · 21-day · 40-day time axis with actions you can take straight away"
+      },
+      "premiumIntro": "Geomancy is a Western tradition that raises figures from marked points and reads, as a structure, whether the question favours you.",
+      "premiumAudience": {
+        "0": "People facing a decision who want to weigh what favours them",
+        "1": "People who want to experience a structural divination",
+        "2": "People curious about a system other than tarot or astrology"
+      },
+      "premiumChapters": {
+        "0": "The whole 15-position shield chart",
+        "1": "What the Judge figure — which settles the core — means",
+        "2": "A combined reading linking cause · flow · oracle",
+        "3": "Cautions and suggested actions by time axis"
+      },
+      "premiumOutcomes": {
+        "0": "The reading is written by AI and is for reference.",
+        "1": "It does not stand in for investment or contract decisions.",
+        "2": "The existing payment policy applies."
+      },
+      "answersQuestions": {
+        "0": "Does the shape of this matter favour me or not?",
+        "1": "Where does the cause of the problem lie?",
+        "2": "Around when does the flow start to move?"
+      },
+      "fallbackCta": "Raise the shield chart",
+      "analysisSteps": {
+        "0": {
+          "label": "Enter your question",
+          "detail": "You write the question you want cast."
+        },
+        "1": {
+          "label": "Raise the chart",
+          "detail": "The marked points become the 16 figures and stack into the 15-position shield chart."
+        },
+        "2": {
+          "label": "AI combined reading",
+          "detail": "Cause · flow · oracle and the suggested actions are organized on the grounds of the figures."
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "How is the reading produced?",
+          "a": "AI writes the reading on the grounds of the raised figures alone; if generation does not go smoothly, a prepared interpretation is used instead."
+        },
+        "1": {
+          "q": "Can I see the result again?",
+          "a": "There is no separate save feature, so it is a reading you check on the spot."
+        }
       }
     },
     "openRoyalTeaOracle": {
-      "fallbackTitle": "以杯中残留的茶叶形状，读出你现在的心情与近期将发生的事。",
-      "tagline": "以英式茶叶占卜方式，把杯缘、杯中、杯底残留的形状分开解读，点出近日的氛围。",
-      "premiumIntro": "红茶占卜不会决定人生，而是轻轻映照今天与近几天的纹理。",
-      "fallbackCta": "查看红茶占卜",
+      "tagline": "Fourteen tea-leaf shapes meet five question areas to make seventy strands of reading, and the cup's rim, wall and bottom divide the timing — a British tea-leaf reading.",
       "feats": {
-        "0": "想不带负担地换换心情时",
-        "1": "好奇最近几天的氛围时",
-        "2": "想要如一杯茶般轻松的解读时"
+        "0": "14 tea-leaf shapes × 5 question areas (love and bonds / work and career / money and wealth / relationships and family / change and choice) = 70 strands of reading",
+        "1": "Timing read across three seats: rim (now-2 weeks) · wall (2 weeks-3 months) · bottom (after 3 months)",
+        "2": "Feeling and practical advice that also weighs the four directions a shape sits in and its three levels of density",
+        "3": "The same input gives the same cup for one day — a daily reading that is brewed anew when the date turns"
       },
+      "premiumIntro": "Tea-leaf reading is a European tradition that reads the traces left in a finished cup, taking the grain of the coming three months in three seats.",
       "premiumAudience": {
-        "0": "比起沉重咨询更需要轻松换气的人",
-        "1": "只想知道近日氛围的人",
-        "2": "喜欢可爱精致解读方式的人"
+        "0": "People curious about the flow of the near future",
+        "1": "People who want one cup a day, read like a ritual",
+        "2": "People who love the romance of British teatime"
       },
       "premiumChapters": {
-        "0": "按杯中位置分开的茶叶形状",
-        "1": "近几天的氛围",
-        "2": "心之所向",
-        "3": "今天值得留意的小习惯"
+        "0": "The shapes formed in the cup and the reading for each seat",
+        "1": "Timing divided into rim · wall · bottom",
+        "2": "The grain that direction and density add",
+        "3": "The practical advice today's cup offers"
       },
       "premiumOutcomes": {
-        "0": "解读结果仅供参考。",
-        "1": "沿用现有付款政策。",
-        "2": "本内容用于轻松换心情。"
+        "0": "The tea-leaf reading is for reference.",
+        "1": "It does not fix the future.",
+        "2": "The existing payment policy applies."
+      },
+      "answersQuestions": {
+        "0": "What moves in the next couple of weeks?",
+        "1": "Will the answer to this question come within three months?",
+        "2": "What advice do I need today?"
+      },
+      "fallbackCta": "Open today's cup",
+      "analysisSteps": {
+        "0": {
+          "label": "Choose an area",
+          "detail": "You pick from the five areas: love · work · money · relationships · change."
+        },
+        "1": {
+          "label": "Brew the cup",
+          "detail": "The tea-leaf shapes form in today's cup."
+        },
+        "2": {
+          "label": "Read three seats",
+          "detail": "You read the shapes at the rim, wall and bottom, with their direction and density."
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "Does the result change every time I look?",
+          "a": "With the same input you get the same cup on the same day, and it is brewed anew when the date turns."
+        },
+        "1": {
+          "q": "Can I see the result again?",
+          "a": "There is no save-to-account feature, but within the same day the same input brings back the same cup."
+        }
       }
     },
     "openOlympusOracleModal": {
-      "fallbackTitle": "确认十二位奥林匹斯神祇中，此刻站在你这边的是谁。",
-      "tagline": "回应你的神会随问题性质而变化，那位神的性情就成为你现在该采取的态度。",
-      "premiumIntro": "奥林匹斯神谕不会预告胜负，而是告诉你现在该以怎样的方式去战斗。",
-      "fallbackCta": "查看奥林匹斯神谕",
+      "tagline": "Each star sign has its own Greek god as guardian, and today's oracle opens anew each day on top of a planetary layout based on the Swiss Ephemeris.",
       "feats": {
-        "0": "不知道该以什么方式推进时",
-        "1": "不确定该把自己的强项用在哪里时",
-        "2": "想体验带有叙事的解读时"
+        "0": "A fixed Greek guardian for each of the twelve signs — Hades, Kronos and Prometheus among them",
+        "1": "The positions of eight planets, calculated with the Swiss Ephemeris",
+        "2": "Sections with names of their own: Hard Truth Alert · Aphrodite's Pick · Surviving the Olympus Office",
+        "3": "Today's oracle, which changes with the date",
+        "4": "Open it once and keep it for good — re-enter any time"
       },
+      "premiumIntro": "The Olympus Oracle is a temple that reads your day in the voice of your guardian, rather than in solemn prophecy.",
       "premiumAudience": {
-        "0": "想决定该如何运用自身强项的人",
-        "1": "喜欢带有神话叙事的解读的人",
-        "2": "想解锁一次、反复打开来看的人"
+        "0": "People who enjoy star-sign readings",
+        "1": "People who want a reading with a humorous tone",
+        "2": "People who want new content every day"
       },
       "premiumChapters": {
-        "0": "回应你问题的神祇及其性情",
-        "1": "此刻对你的要求态度",
-        "2": "该避免的傲慢与急躁",
-        "3": "神话给出的具体建议"
+        "0": "Your sign's guardian profile and oracle",
+        "1": "The grain of today, lit by the planetary layout",
+        "2": "Pointed advice wrapped in humour",
+        "3": "A permanent unlock, with a new oracle each day"
       },
       "premiumOutcomes": {
-        "0": "神谕结果仅供参考。",
-        "1": "解锁后可以再次查看。",
-        "2": "重要选择请结合现实判断加以确认。"
+        "0": "The interpretation mixes in humour and is for reference.",
+        "1": "It does not fix the future.",
+        "2": "The existing payment policy applies."
+      },
+      "answersQuestions": {
+        "0": "Who is my star sign's guardian?",
+        "1": "What kind of day does today's planetary layout make for me?",
+        "2": "What would my guardian say to me right now?"
+      },
+      "fallbackCta": "Enter the temple for good",
+      "analysisSteps": {
+        "0": {
+          "label": "Find your sign",
+          "detail": "Your birthday sets your star sign and its guardian."
+        },
+        "1": {
+          "label": "Planetary layout",
+          "detail": "The positions of eight planets are calculated with the Swiss Ephemeris."
+        },
+        "2": {
+          "label": "Today's oracle",
+          "detail": "Today's oracle opens in the voice of your guardian."
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "How is the guardian decided?",
+          "a": "Each star sign has its own Greek god assigned, so identifying your sign settles your guardian."
+        },
+        "1": {
+          "q": "If I pay once, can I keep viewing it?",
+          "a": "Yes. It is a permanent unlock, so you can re-enter any time, and the oracle opens anew with the date."
+        }
       }
     },
     "openNevilleMeditationPage": {
-      "fallbackTitle": "当心情急切、现实感却动摇时，试着先把呼吸整理一下。",
-      "tagline": "跟随内维尔·戈达德的想象训练流程，静心感受想要的场景的冥想练习。",
-      "premiumIntro": "内维尔冥想不保证现实会改变，而是静心练习抓住你想留住的感觉的时间。",
-      "fallbackCta": "开启冥想练习",
+      "tagline": "Choose the 30-minute course in 4 stages or the 60-minute course in 5, and the guidance lines appear in order, on a second-by-second timetable.",
       "feats": {
-        "0": "有想要的方向却情绪跟不上时",
-        "1": "想暂时放下不安的念头时",
-        "2": "想温柔地整理反复出现的自我怀疑时"
+        "0": "Choose between the 30-minute course (4 stages) and the 60-minute course (5 stages)",
+        "1": "30 minutes: rapid relaxation → entering pure awareness → the core loop (SATS) → fixing it and returning",
+        "2": "60 minutes: preparation and alignment → progressive relaxation → the state of emptiness (SATS) → imagining from within the result → setting the feeling and returning",
+        "3": "Across both courses, 242 guidance lines are prepared on a second-by-second timetable",
+        "4": "The background music changes with each stage"
       },
+      "premiumIntro": "It does not simply tell you what to imagine; it guides you second by second on what to do at which minute.",
       "premiumAudience": {
-        "0": "难以具体描绘期望场景的人",
-        "1": "开始冥想却总是不了了之的人",
-        "2": "希望有人告知练习步骤的人"
+        "0": "People who want to follow SATS in order",
+        "1": "People whose flow breaks when practising alone",
+        "2": "People who want to finish the practice within a set time"
       },
       "premiumChapters": {
-        "0": "引导式冥想流程",
-        "1": "稳定把握想象场景的阶段",
-        "2": "冥想后整理心情的时间",
-        "3": "付款后进入现有的冥想画面"
+        "0": "The whole guided course, 30 minutes or 60",
+        "1": "Stage-by-stage guidance on a second-by-second timetable",
+        "2": "Background music that changes with the stage",
+        "3": "A session you simply follow, without watching the clock"
       },
       "premiumOutcomes": {
-        "0": "冥想体验因人而异。",
-        "1": "不能替代健康或心理治疗。",
-        "2": "沿用现有付款政策。"
+        "0": "The meditation experience can differ from person to person.",
+        "1": "It does not replace medical or psychological treatment.",
+        "2": "The 30-minute and 60-minute courses are priced differently."
+      },
+      "answersQuestions": {
+        "0": "In what order do I do SATS?",
+        "1": "How long should one session be?",
+        "2": "What should I focus on at each stage?"
+      },
+      "fallbackCta": "Open the meditation practice",
+      "analysisSteps": {
+        "0": {
+          "label": "Choose a course",
+          "detail": "You pick between 30 minutes (4 stages) and 60 minutes (5 stages)."
+        },
+        "1": {
+          "label": "Relaxation",
+          "detail": "You are guided into letting the body go until awareness settles."
+        },
+        "2": {
+          "label": "SATS practice",
+          "detail": "The core stretch, in which you repeatedly picture the scene you want, in the state just before sleep."
+        },
+        "3": {
+          "label": "Fixing and returning",
+          "detail": "You set that feeling and come back to waking awareness."
+        }
+      },
+      "valueCompare": {
+        "0": {
+          "axis": "Course length",
+          "premium": "30 minutes in 4 stages, or 60 minutes in 5"
+        },
+        "1": {
+          "axis": "Guidance",
+          "premium": "Stage-by-stage lines on a second-by-second timetable"
+        },
+        "2": {
+          "axis": "Background music",
+          "premium": "Switches automatically with each stage"
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "What is different between 30 and 60 minutes?",
+          "a": "30 minutes has 4 stages, 60 minutes has 5. The 60-minute course has a longer relaxation stretch and a separate stage for staying inside the result."
+        },
+        "1": {
+          "q": "Is it all right if this is my first meditation?",
+          "a": "The guidance lines tell you what to do as the time passes, so you only need to follow along."
+        },
+        "2": {
+          "q": "Are the two courses the same price?",
+          "a": "No. The 60-minute course costs more than the 30-minute one."
+        }
       }
     },
     "openYogaGuru": {
-      "fallbackTitle": "试着把身心的流动整理得更均衡。",
-      "tagline": "根据当前状态审视能量与惯例的瑜伽指南功能。",
-      "premiumIntro": "瑜伽指南不保证效果，而是提出可参考的惯例，帮助整理今天的身心。",
-      "fallbackCta": "开启瑜伽指南",
+      "tagline": "Choose 30 or 60 minutes and it builds one continuous piece — the order of the poses and the breathing guidance, from warm-up to closing relaxation.",
       "feats": {
-        "0": "同时感到身体紧绷与心思散乱时",
-        "1": "想挑选今天该以哪种惯例开始时",
-        "2": "需要能温和转换气息的实践时"
+        "0": "Choose the session length: 30 minutes or 60",
+        "1": "The sequence is built in order: warm-up · asana · pranayama · meditation · relaxation",
+        "2": "Every pose shows its Sanskrit name, its English and Korean names, and the hold time",
+        "3": "Every pose comes with 3 lines of guidance, the breathing method, the physical effect, the mental meaning and cautions",
+        "4": "Difficulty (beginner · intermediate · advanced), the focus area and the chakra theme are set out together",
+        "5": "The session closes with a final mantra",
+        "6": "If the course cannot be generated, the amount used is refunded automatically"
       },
+      "premiumIntro": "This is not a list of pre-made videos; the sequence is built on the spot from the conditions you choose and shown to you as a document.",
       "premiumAudience": {
-        "0": "身体僵硬到连冥想姿势都吃力的人",
-        "1": "在寻找适合自己体质呼吸法的人",
-        "2": "需要一份哪怕简短也能每天坚持惯例的人"
+        "0": "People who want to follow a set order",
+        "1": "People who want to learn the pose names alongside the breathing",
+        "2": "People who want to practise within a fixed time"
       },
       "premiumChapters": {
-        "0": "确认当前能量类型",
-        "1": "体式与冥想惯例指引",
-        "2": "参考脉轮流向整理的文句",
-        "3": "付款后进入现有的瑜伽画面"
+        "0": "The full sequence, 30 minutes or 60",
+        "1": "Each pose's name, hold time and 3 lines of guidance",
+        "2": "Breathing methods and cautions",
+        "3": "Difficulty, focus area and chakra theme",
+        "4": "The closing mantra"
       },
       "premiumOutcomes": {
-        "0": "这不是医学建议，请避免勉强的动作。",
-        "1": "沿用现有付款政策。",
-        "2": "请根据身体状况安全确认。"
+        "0": "This is not medical advice; please avoid straining into any pose.",
+        "1": "Please work safely, in line with the state of your body.",
+        "2": "The 30-minute and 60-minute sessions are priced differently."
+      },
+      "answersQuestions": {
+        "0": "What order should I practise in today?",
+        "1": "How should I breathe in this pose?",
+        "2": "How far can I get in 30 minutes?"
+      },
+      "fallbackCta": "Open the yoga guide",
+      "analysisSteps": {
+        "0": {
+          "label": "Choose conditions",
+          "detail": "You pick the session length (30 or 60 minutes) and the direction you want."
+        },
+        "1": {
+          "label": "Build the sequence",
+          "detail": "The order of poses from warm-up to closing relaxation is laid out, with the hold time for each."
+        },
+        "2": {
+          "label": "Write the guidance",
+          "detail": "Every pose gets 3 lines of guidance, the breathing method, the physical effect, the mental meaning and cautions."
+        },
+        "3": {
+          "label": "Close",
+          "detail": "Difficulty, focus area and chakra theme are set out, and the closing mantra ends the session."
+        }
+      },
+      "valueCompare": {
+        "0": {
+          "axis": "Session length",
+          "premium": "30 minutes or 60"
+        },
+        "1": {
+          "axis": "Structure",
+          "premium": "The full run: warm-up · asana · pranayama · meditation · relaxation"
+        },
+        "2": {
+          "axis": "Pose guidance",
+          "premium": "Name · hold time · 3 lines of guidance · breathing · cautions"
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "Do I get the same order every time?",
+          "a": "It is built afresh each time, to the conditions you choose."
+        },
+        "1": {
+          "q": "Is it all right if this is my first time doing yoga?",
+          "a": "Difficulty is marked beginner, intermediate or advanced, and every pose comes with its cautions."
+        },
+        "2": {
+          "q": "What happens if generation fails?",
+          "a": "If the course cannot be built, the amount used is refunded automatically."
+        }
       }
     },
     "life_book_ai": {
@@ -10211,14 +10405,6 @@
       },
       "badge": "专家咨询型",
       "headline": "给自己一段时间，把人生的大流向好好整理一次。",
-      "resultPreview": {
-        "lines": {
-          "0": "你的日干是静静渗透的水之气。表面看似柔软，但方向一旦定下就很难回头。",
-          "1": "第一个大转折点已经过去了。我们先从当时那个选择如何连到今日的位置说起。",
-          "2": "反复轮回的根源，位于财之气与责任之气相撞的地方。解开这一点，下一章就会打开。"
-        },
-        "caption": "这是真实《人生之书》开头的示例。付款后会继续到依你八字计算出的全部章节与分期策略。"
-      },
       "hubTagline": "以八字流向为基础，用咨询的形式梳理人生方向与反复模式的高级功能。",
       "hubFeats": {
         "0": "想从大框架上梳理人生方向时",
@@ -10294,14 +10480,6 @@
       },
       "badge": "专家咨询型",
       "headline": "以命式为据，把人生、事业、财富、关系的大流向一路推到底。",
-      "resultPreview": {
-        "lines": {
-          "0": "庚金日干生于巳月，调候急迫。在炙热之地本该淬硬，但若无降温之气，就容易疲惫。",
-          "1": "财星虽强，却被比劫分走。比起进钱的速度，得先把漏财的通道堵上。",
-          "2": "当前大运是官星得力的区间。责任会变重，同时也需要立起能承接这份重量的印星。"
-        },
-        "caption": "这是真实《人生总运》开头的示例。付款后会接上全部十章与四篇命式深度判读。"
-      },
       "hubTagline": "如果说《人生之书》是故事，《人生总运》就是诊断。十章全部附上日干、用神、十神、大运的依据，以三万字的篇幅展开。",
       "hubFallbackCta": "阅览人生总运"
     },
@@ -10312,9 +10490,10 @@
       "fallbackCta": "查看恋爱秘策",
       "ctaNote": "付款后将开启完整的关系分析。",
       "feats": {
-        "0": "完全摸不清对方真心时",
-        "1": "总是错过欲擒故纵的时机时",
-        "2": "对该守住还是放手这段缘分毫无把握时"
+        "0": "Reads your love style, strengths, weaknesses, and attachment pattern from your own chart, item by item",
+        "1": "Enter the other person's birth details and it also computes compatibility, ideal type, and emotional distance",
+        "2": "Presents this year's love fortune together with favorable dates picked from the calculated daily energy",
+        "3": "Sensitive topics — reunion conditions, infidelity, self-protection — are split into their own sections"
       },
       "premiumAudience": {
         "0": "因无法确认对方真心而感到疲惫的人",
@@ -10470,40 +10649,86 @@
       }
     },
     "saju_destiny_meeting_place": {
-      "fallbackTitle": "看看你的缘分容易停留的场所的纹理。",
-      "tagline": "以八字流向为基础，整理缘分、场所与时机象征的解读。",
-      "premiumIntro": "缘分之所不保证会相遇，而是整理出与你的流向相合的场所象征，供你参考。",
-      "fallbackCta": "查看缘分之所",
-      "feats": {
-        "0": "好奇新相遇的氛围时",
-        "1": "想知道让自己安心的场所纹理时",
-        "2": "想以更具体的图像看看缘分流向时"
-      },
-      "premiumAudience": {
-        "0": "完全没有头绪该在哪里遇见缘分的人",
-        "1": "有考虑改变活动范围的人",
-        "2": "想同时看看相遇的时机与场所的人"
-      },
-      "premiumChapters": {
-        "0": "缘分与场所的象征解读",
-        "1": "时机与氛围关键词",
-        "2": "关系容易开启的环境提示",
-        "3": "付款后进入现有的缘分之所画面"
-      },
-      "premiumOutcomes": {
-        "0": "不保证真实相遇或结果。",
-        "1": "沿用现有付款政策。",
-        "2": "运势结果仅供参考。"
-      },
       "badge": "场所解读",
       "headline": "看看你的缘分最容易停驻的那些场所，是什么样的质地。",
-      "resultPreview": {
-        "lines": {
-          "0": "你的缘分不在开阔之地展开，而在狭窄且反复造访的地方打开。",
-          "1": "就方位而言，以你现在居住之处为准，某一侧明显更有利。",
-          "2": "相遇往往落在人潮聚集之外、错开一拍的时期。"
+      "tagline": "5 recommended places, 5 countries and 4 types of encounter, set out with the season, month and time band, and the items that draw a bond.",
+      "feats": {
+        "0": "Picks 5 recommended places and 5 recommended countries",
+        "1": "Suggests 4 types of encounter",
+        "2": "Narrows the lucky timing to 3 seasons · 4 months · 3 time bands",
+        "3": "Gives 5 bond-drawing items along with a styling guide",
+        "4": "Sets out separately the settings to avoid and an action plan",
+        "5": "Includes 7 prompts for generating images"
+      },
+      "premiumIntro": "Instead of vague advice, it narrows place, country, type and timing into lists. The result is calculated from the birth details you enter.",
+      "premiumAudience": {
+        "0": "People who want to settle on a concrete setting for meeting someone",
+        "1": "People who want to narrow down when to move",
+        "2": "People who want what to bring and how to dress included"
+      },
+      "premiumChapters": {
+        "0": "5 recommended places · 5 countries",
+        "1": "4 types of encounter and the lucky timing",
+        "2": "Bond-drawing items and the styling guide",
+        "3": "Settings to avoid and the action plan",
+        "4": "The 7 prompts"
+      },
+      "premiumOutcomes": {
+        "0": "It does not guarantee any actual meeting or outcome.",
+        "1": "The result is calculated from the birth details you enter.",
+        "2": "Fortune results are for reference."
+      },
+      "answersQuestions": {
+        "0": "In what kind of setting does a bond open up for me?",
+        "1": "When would be a good time to move?",
+        "2": "What should I carry to a meeting?"
+      },
+      "fallbackCta": "Open the places of destiny",
+      "analysisSteps": {
+        "0": {
+          "label": "Enter birth details",
+          "detail": "Your chart is calculated from your birth date and time."
         },
-        "caption": "这是真实《缘分之地》结果开头的示例。付款后可看到依你八字计算的场所、方位与时机解读。"
+        "1": {
+          "label": "Read the energy",
+          "detail": "The direction and grain in which bonds open are drawn from the five-element layout."
+        },
+        "2": {
+          "label": "Pick places and timing",
+          "detail": "5 places, 5 countries, 4 types and the season, month and time band matching that grain are chosen."
+        },
+        "3": {
+          "label": "Write the plan",
+          "detail": "The bond-drawing items, styling, settings to avoid and the action plan are set out together."
+        }
+      },
+      "valueCompare": {
+        "0": {
+          "axis": "Recommendation range",
+          "premium": "5 places · 5 countries · 4 types of encounter"
+        },
+        "1": {
+          "axis": "Timing",
+          "premium": "3 seasons · 4 months · 3 time bands"
+        },
+        "2": {
+          "axis": "Preparation",
+          "premium": "5 items · styling · settings to avoid · action plan"
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "Does the result take long to arrive?",
+          "a": "There is no generation wait; it is calculated from the birth details you enter and shown straight away."
+        },
+        "1": {
+          "q": "Do overseas places come up too?",
+          "a": "5 recommended countries come with it."
+        },
+        "2": {
+          "q": "What are the prompts for?",
+          "a": "They are 7 prepared lines for turning the scenes you were given into images."
+        }
       }
     },
     "rpt_specialCharmCard": {
@@ -10870,30 +11095,59 @@
       }
     },
     "openSajuGuardianPage": {
-      "fallbackTitle": "召唤守护你八字的守护动物及其力量。",
-      "tagline": "以十二种动物的象征解开命盘中蕴含的气场，呈现守护你的守护神及其能力的分析。",
-      "premiumIntro": "八字守护神不是模糊的护身符，而是以象征解开你的命盘由哪种动物之气守护。",
-      "fallbackCta": "召唤守护神",
+      "tagline": "The day pillar of your birth decides your guardian among the sixty jiazi, and the same chart always summons the same figure. Five panels of reading and a talisman pouch open with it.",
       "feats": {
-        "0": "好奇自己八字可靠的靠山时",
-        "1": "想知道天生的保护气场与弱点时",
-        "2": "想把守护象征留在身边时"
+        "0": "60 guardian characters, following the sixty jiazi exactly",
+        "1": "The same chart, the same figure — your guardian drawn by AI",
+        "2": "Five panels: the core guardian seal · handling relationships, work and money · today's fortune-turning rite · the 7-day guardian mission · the practical guardian guide",
+        "3": "A talisman pouch holding today's colour · a summoning phrase · a small action · a time key"
       },
+      "premiumIntro": "The guardian carries saju terminology over into the language of a character, so you meet your chart as a being that protects it.",
       "premiumAudience": {
-        "0": "想知道是什么气场在守护自己的人",
-        "1": "想把护身符或象征留在身边的人",
-        "2": "想解锁一次、长久珍藏的人"
+        "0": "People who found saju terminology hard going",
+        "1": "People who want a guardian character of their own",
+        "2": "People who want a short fortune-turning routine"
       },
       "premiumChapters": {
-        "0": "你的守护动物及其象征",
-        "1": "守护神守护的领域与力量",
-        "2": "弥补脆弱时期的开运要点",
-        "3": "与守护神同在的今日建议"
+        "0": "Your day pillar's guardian and its AI image",
+        "1": "The core guardian seal, and handling relationships · work · money",
+        "2": "Today's fortune-turning rite and the 7-day guardian mission",
+        "3": "The talisman pouch — today's colour · summoning phrase · small action · time key"
       },
       "premiumOutcomes": {
-        "0": "象征解读仅供参考。",
-        "1": "守护神是性格、运势的隐喻。",
-        "2": "沿用现有服务标准。"
+        "0": "The reading is for reference.",
+        "1": "The character image is generated by AI.",
+        "2": "The existing payment policy applies."
+      },
+      "answersQuestions": {
+        "0": "What does my day pillar's guardian look like?",
+        "1": "How should I handle relationships, work and money?",
+        "2": "What rite protects me today?"
+      },
+      "fallbackCta": "Summon your guardian",
+      "analysisSteps": {
+        "0": {
+          "label": "Chart calculation",
+          "detail": "Your day pillar is set from your birth date and time."
+        },
+        "1": {
+          "label": "Summon the guardian",
+          "detail": "Your guardian is decided from the sixty jiazi and appears in the same figure each time."
+        },
+        "2": {
+          "label": "Reading and talisman",
+          "detail": "The five panels of reading and the talisman pouch open."
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "Does the guardian change each time I look?",
+          "a": "No. The same chart always summons the same guardian in the same figure."
+        },
+        "1": {
+          "q": "Do I have to sign in?",
+          "a": "You can use it without signing in."
+        }
       }
     },
     "openZiweiModal": {
@@ -11011,9 +11265,10 @@
       "fallbackCta": "查看恋爱解读书",
       "ctaNote": "付款后全部20个章节将依序开启。",
       "feats": {
-        "0": "恋爱总是以相似方式结束时",
-        "1": "不知道自己容易对什么样的人心动时",
-        "2": "简短的解读总让人觉得不够尽兴时"
+        "0": "Calculates both your Saju natal chart and your Zi Wei Dou Shu chart from your birth date and time",
+        "1": "Generates twenty chapters in order, using each chapter as the basis for the next",
+        "2": "States the basis in every chapter — day master, ten gods, the spouse palace, the travel palace",
+        "3": "Sets out your love DNA indicators and the next three years of relationship flow in their own chapters"
       },
       "premiumAudience": {
         "0": "想彻底整理一次恋爱模式的人",
@@ -11095,9 +11350,10 @@
       "fallbackCta": "查看相性解读书",
       "ctaNote": "以两人命盘计算出的20个章节将会开启。",
       "feats": {
-        "0": "看似合拍却频繁冲突时",
-        "1": "不知道这段关系该不该继续时",
-        "2": "简短的相性分数无法给出答案时"
+        "0": "Calculates each person's Saju natal chart and Zi Wei Dou Shu chart from both birth dates and times",
+        "1": "Reads each of you separately, then compares the contact points through day-master relations, ten-god interactions, and the combinations and clashes of the earthly branches",
+        "2": "Splits into chapters the mutual placement of the two charts, the cross-comparison of the spouse palaces, and the exchange of the four transformations",
+        "3": "Sets out your relationship DNA indicators and the next three years of relationship flow in their own chapters"
       },
       "premiumAudience": {
         "0": "面临结婚等重大决定的人",
@@ -11172,16 +11428,17 @@
         }
       }
     },
-    "ziwei-deep-pdf": {
+    "ziwei_deep_pdf": {
       "fallbackTitle": "逐一点出十二宫，把一张命盘化为十五章文字解开。",
       "tagline": "从命宫总论到各宫的星曜强弱与格局，把紫微斗数命盘按章解说并留存为PDF的深层报告。",
       "premiumIntro": "深层报告不断言吉凶，而是逐章冷静地解开命盘每个位置所代表的意义。",
       "fallbackCta": "查看深层报告",
       "ctaNote": "付款后15个章节与PDF保存将一并开启。",
       "feats": {
-        "0": "只看命盘图不知道是什么意思时",
-        "1": "想整理清楚各宫分别代表什么意思时",
-        "2": "想制作一次、长久保存来看时"
+        "0": "Builds your chart from your birth date and time, then writes the overview, the twelve palaces, and two in-depth chapters in order",
+        "1": "Explains all twelve palaces — life, spouse, wealth and more — each as its own chapter",
+        "2": "Uses the four transformations and the three-harmony/four-cardinal view to lay out how the stars act on each other, in a separate chapter",
+        "3": "Places the strategy along the time axis in the final chapter, as a major-cycle and annual master plan"
       },
       "premiumAudience": {
         "0": "想把命盘用文字解读来读的人",
@@ -11256,16 +11513,17 @@
         }
       }
     },
-    "nakshatra-ai-consultation": {
+    "nakshatra_ai_consultation": {
       "fallbackTitle": "把本命宿与Nakshatra放在一起，回答此刻的问题。",
       "tagline": "把东方的27宿（宿曜）与印度的Nakshatra并列解读，一次整理天生纹理与当下时期的咨询。",
       "premiumIntro": "27宿咨询不会把两个体系混为一谈。宿曜大师与吠陀大师各自解读后，把两种解读并列，探讨哪里说法一致、哪里分歧、以及为何产生这种差异，以10篇融合解读延续下去。",
       "fallbackCta": "开启27宿咨询",
       "ctaNote": "付款后两个体系的解读将一并开启。",
       "feats": {
-        "0": "好奇自己天生纹理是什么样时",
-        "1": "不知道现在是该行动还是该忍耐时",
-        "2": "只靠一个体系的解读不够时"
+        "0": "Calculates your 27-mansion birth mansion from your birth date, and with a birth time your nakshatra and Vimshottari dasha as well",
+        "1": "Writes five master-level Sukuyo pieces and six master-level Vedic pieces separately, each in its own tradition's language",
+        "2": "Ten fusion pieces set the two readings side by side and mark where they agree and where they part",
+        "3": "The final section gives the three things that matter most and what to do starting today"
       },
       "premiumAudience": {
         "0": "想同时看宿曜与吠陀的人",
@@ -11337,7 +11595,7 @@
         }
       }
     },
-    "nakshatra-compat-ai": {
+    "nakshatra_compat_ai": {
       "fallbackTitle": "解读两人的Nakshatra所形成的距离与节奏。",
       "tagline": "对照各自的本命宿与Nakshatra，整理吸引、冲突与长久条件的相性咨询。",
       "premiumIntro": "相性咨询不会打分数，而是先呈现两人的节奏在哪里契合、在哪里出现分歧。",
@@ -11419,7 +11677,7 @@
         }
       }
     },
-    "nakshatra-vvip-codex": {
+    "nakshatra_vvip_codex": {
       "fallbackTitle": "开启把27宿全体汇整成一册的最高阶典籍。",
       "tagline": "不止于本命宿解读，而是在27宿全体地形中标出你的位置，把缘分、时机、方向一次整理清楚的最高阶结构。",
       "premiumIntro": "典籍不是零散解读的集合，而是在27宿这张地图上说明你位置的一册书。",
@@ -11501,7 +11759,7 @@
         }
       }
     },
-    "premium-veda-compatibility-addon": {
+    "premium_veda_compatibility_addon": {
       "fallbackTitle": "为吠陀相性附加两人的详细对照。",
       "tagline": "在基础相性结果之上，加入Ashtakuta各项目对照与时机建议，连为何得出该结果都能确认的扩展分析。",
       "premiumIntro": "扩展分析不会只是重复总分，而是逐一解开该总分是从哪些项目得来的。",
@@ -11580,6 +11838,316 @@
         "3": {
           "label": "整理补救方案",
           "detail": "为每个不合项目附上切实可行的补救方法。"
+        }
+      }
+    },
+    "flower_fc": {
+      "tagline": "The calculated values of four branches -- Saju, astrology, Ziwei Doushu, and Sukuyo -- each decide a flower's species and color, blooming your flower out of a catalogue of eighty-nine. One unlock opens all four branches.",
+      "feats": {
+        "0": "One unlock covers all four branches: Saju, astrology, Ziwei Doushu, and Sukuyo",
+        "1": "A catalogue of eighty-nine flower species",
+        "2": "Rule-based visualization in which the chart's calculated values decide species and color",
+        "3": "An explanation of which calculation is reflected in each part of the flower",
+        "4": "An AI art prompt for drawing your own flower"
+      },
+      "premiumIntro": "The Destiny Flower is not a random picture -- it is a visualization in which the chart's calculated values decide species and color by rule.",
+      "premiumAudience": {
+        "0": "Those who want to keep a result as an image",
+        "1": "Those who enjoy several divination methods",
+        "2": "Those who want a fortune pretty enough to give as a gift"
+      },
+      "premiumChapters": {
+        "0": "A Destiny Flower for each of the four branches",
+        "1": "An explanation of the calculation behind the species and color",
+        "2": "A blooming record you can pick up again on the same device",
+        "3": "A permanent unlock you can bloom again anytime"
+      },
+      "premiumOutcomes": {
+        "0": "The reading and the visualization are for reference.",
+        "1": "Flower matching is a rule-based calculation.",
+        "2": "The existing payment policy applies."
+      },
+      "answersQuestions": {
+        "0": "What flower does my chart bloom into?",
+        "1": "How do the flowers of the four branches differ from each other?",
+        "2": "Why were the flower's color and shape decided this way?"
+      },
+      "fallbackCta": "Bloom your Destiny Flower",
+      "analysisSteps": {
+        "0": {
+          "label": "Choose a branch",
+          "detail": "Pick from Saju, astrology, Ziwei Doushu, and Sukuyo."
+        },
+        "1": {
+          "label": "Chart calculation",
+          "detail": "The calculated values decide the flower's species and color by rule."
+        },
+        "2": {
+          "label": "Blooming and explanation",
+          "detail": "The flower blooms and the part-by-part explanation of the calculation opens."
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "What does unlocking open?",
+          "a": "A single unlock opens all four branches, and you can view them again anytime."
+        },
+        "1": {
+          "q": "Can I save the flower image?",
+          "a": "An AI art prompt for drawing the flower is provided, so you can make and keep the image with the AI of your choice."
+        }
+      }
+    },
+    "palm_reading": {
+      "tagline": "Checks 4 major lines, 9 minor lines, 7 mounts of the palm, and 6 special markings, then writes a reading of at least 1,200 characters.",
+      "feats": {
+        "0": "Upload photos of both hands at once and each is read",
+        "1": "Reads the 4 major lines: life, head, heart, and fate",
+        "2": "Checks 9 minor lines and the 7 mounts of the palm as well",
+        "3": "Of the 6 special markings, only those confirmed in the photo are written up",
+        "4": "Pick one of 6 consultation purposes and the reading is built on that axis",
+        "5": "The reading runs to at least 1,200 characters"
+      },
+      "premiumIntro": "Only the lines and markings confirmed in the photo are used as grounds. Lines that are blurred or not picked up are not written up as present.",
+      "premiumAudience": {
+        "0": "Those who want their palm read with reasons attached",
+        "1": "Those who want to compare both hands",
+        "2": "Those who want the reading built around a specific concern"
+      },
+      "premiumChapters": {
+        "0": "A line reading for each hand",
+        "1": "A summary of 4 major lines, 9 minor lines, and 7 mounts",
+        "2": "A reading matched to your consultation purpose",
+        "3": "A reading of at least 1,200 characters"
+      },
+      "premiumOutcomes": {
+        "0": "Analysis accuracy varies with image quality.",
+        "1": "Lines that could not be confirmed are not written into the result.",
+        "2": "This does not replace a health assessment."
+      },
+      "answersQuestions": {
+        "0": "Which line stands out most on my palm?",
+        "1": "Why do my two hands look different?",
+        "2": "Which line touches on what I am worried about now?"
+      },
+      "fallbackCta": "Start the palm analysis",
+      "analysisSteps": {
+        "0": {
+          "label": "Photo upload",
+          "detail": "Upload photos of both hands and pick one of 6 consultation purposes."
+        },
+        "1": {
+          "label": "Lines and mounts",
+          "detail": "Reads both hands together and checks 4 major lines, 9 minor lines, 7 mounts, and 6 special markings."
+        },
+        "2": {
+          "label": "Scoring",
+          "detail": "Converts the reading into scores across 6 items."
+        },
+        "3": {
+          "label": "Writing the reading",
+          "detail": "Writes at least 1,200 characters around the purpose you chose."
+        }
+      },
+      "valueCompare": {
+        "0": {
+          "axis": "Reading scope",
+          "premium": "Each hand separately, 4 major lines, 9 minor lines, 7 mounts"
+        },
+        "1": {
+          "axis": "Reading length",
+          "premium": "A reading of at least 1,200 characters"
+        },
+        "2": {
+          "axis": "Purpose reflected",
+          "premium": "Rebuilt around the axis you chose from 6 consultation purposes"
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "Do I have to upload both hands?",
+          "a": "If you upload both hands together, each is read and compared."
+        },
+        "1": {
+          "q": "What if the photo is blurry?",
+          "a": "Lines and markings that could not be confirmed are not written up as present. Please shoot in good light with the whole palm in frame."
+        },
+        "2": {
+          "q": "Can it tell me about my health?",
+          "a": "It does not make medical diagnoses. Palm readings are for reference."
+        }
+      }
+    },
+    "tarot_celestial_harmony": {
+      "tagline": "Cards are laid across eleven planetary seats and tied together by a final integration card, so love, work, money and health are read as separate axes in one extended cosmic tarot reading.",
+      "feats": {
+        "0": "A large spread running from eleven planetary seats to an integration card",
+        "1": "Every card read through eight separate perspectives",
+        "2": "Four areas organized: love, work, money and health",
+        "3": "A starlight tuning guide for the next 7 days"
+      },
+      "premiumIntro": "Celestial Harmony does not hand you a single answer. It spreads out where the different axes of your mind are sitting right now, following the planetary seats.",
+      "premiumAudience": {
+        "0": "People whose worry is not one thing but several at once",
+        "1": "People who always found short readings unsatisfying",
+        "2": "People who want feelings and practical reality read separately"
+      },
+      "premiumChapters": {
+        "0": "The full card interpretation for every planetary seat",
+        "1": "The axis acting on you most strongly right now",
+        "2": "The points where your feelings collide with each other",
+        "3": "The 7-day starlight tuning guide"
+      },
+      "premiumOutcomes": {
+        "0": "The interpretation is written by AI and does not fix the future.",
+        "1": "Card interpretations are for reference.",
+        "2": "The existing payment policy applies."
+      },
+      "answersQuestions": {
+        "0": "Which axis is shaking me the most right now?",
+        "1": "Should I put my energy into love or into work?",
+        "2": "How should I spend the coming week?"
+      },
+      "fallbackCta": "Start Celestial Harmony",
+      "analysisSteps": {
+        "0": {
+          "label": "Card placement",
+          "detail": "Cards are placed on the eleven planetary seats and the integration seat."
+        },
+        "1": {
+          "label": "AI integrated reading",
+          "detail": "AI ties the whole spread together and writes a long-form interpretation."
+        },
+        "2": {
+          "label": "Areas and 7 days",
+          "detail": "It is organized into the four areas — love, work, money, health — and a 7-day tuning guide."
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "How is the interpretation produced?",
+          "a": "AI ties the whole card spread together and writes the interpretation; if generation does not go smoothly, a prepared interpretation is used instead."
+        },
+        "1": {
+          "q": "Can I see the result again?",
+          "a": "On the same device the most recent result is restored. There is no separate save-to-account feature."
+        }
+      }
+    },
+    "tarot_prompt_maker": {
+      "badge": "提示词型",
+      "headline": "先把贴合你提问的塔罗咨询语句整理出来。",
+      "hubTagline": "把要让牌义解读走得更深的提问与咨询流程，捆成一份提示词的功能。",
+      "tagline": "Pick the structure that fits your situation from 77 spreads and turn the cards yourself; AI then writes the consultation from exactly that layout and shows you the original prompt it used.",
+      "feats": {
+        "0": "Choose the structure yourself from 77 spreads, ranging from 1 card to 14",
+        "1": "Pick cards yourself from the 78-card deck and set upright or reversed",
+        "2": "AI writes a real consultation from exactly the layout you chose",
+        "3": "View and copy the original prompt used for the consultation",
+        "4": "Choose the tone you want from 3 writing styles"
+      },
+      "premiumIntro": "The Tarot Prompt Library starts by sharpening the question, then carries the card layout you chose straight through into an AI consultation.",
+      "premiumAudience": {
+        "0": "People who read tarot often but find the answers shallow",
+        "1": "People who want a spread that fits their exact situation",
+        "2": "People who want to shape the reading lines themselves"
+      },
+      "premiumChapters": {
+        "0": "An AI tarot consultation matched to your own layout",
+        "1": "Interpretation and practical advice reflecting position and orientation",
+        "2": "The original prompt used for the consultation, shown as it is",
+        "3": "Finished lines you can copy to keep your own consultation going"
+      },
+      "premiumOutcomes": {
+        "0": "The consultation is written by AI and does not guarantee outcomes.",
+        "1": "Card interpretations are for reference.",
+        "2": "The existing payment policy applies."
+      },
+      "answersQuestions": {
+        "0": "Which spread fits this situation?",
+        "1": "What does the card layout I drew mean?",
+        "2": "How should I put this worry to the cards?"
+      },
+      "fallbackCta": "Start the AI consultation",
+      "analysisSteps": {
+        "0": {
+          "label": "Choose a spread",
+          "detail": "Pick the structure that fits your question from 77 options."
+        },
+        "1": {
+          "label": "Turn the cards yourself",
+          "detail": "Choose your cards from the 78-card deck and set upright or reversed."
+        },
+        "2": {
+          "label": "AI writes the consultation",
+          "detail": "You receive a consultation reflecting the layout, plus the original prompt."
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "How is the price decided?",
+          "a": "The amount is set by the number of cards in the spread you chose, and you can check it first on the payment screen."
+        },
+        "1": {
+          "q": "What happens if generation fails?",
+          "a": "You can retry a set number of times within the same payment, and if it still does not work you receive the finished prompt instead."
+        }
+      }
+    },
+    "animal_destiny_unlock": {
+      "tagline": "Your day pillar's twelve life stages are set using the Korea Astronomy and Space Science Institute calendar, and your guardian animal is decided from twelve — from the Sprout Deer to the Sage Owl — unfolding personality, love, work and relationships.",
+      "feats": {
+        "0": "The day pillar's twelve life stages, set by the Korea Astronomy and Space Science Institute calendar",
+        "1": "Twelve guardian animals including the Sprout Deer, Sun Lion and Sage Owl",
+        "2": "Readings for personality · love · work · relationships, plus today's mission",
+        "3": "A destiny compendium of all twelve animals and compatibility grades",
+        "4": "Save the result card as a high-resolution image"
+      },
+      "premiumIntro": "The twelve life stages are the axis of saju that reads the growth stage of your energy. Those stages are carried over into twelve animal characters, so anyone can read them.",
+      "premiumAudience": {
+        "0": "People who found saju terminology hard going",
+        "1": "People who want to keep their disposition as a character",
+        "2": "People who want a light compatibility comparison with a partner or friend"
+      },
+      "premiumChapters": {
+        "0": "An in-depth reading of your guardian animal",
+        "1": "Interpretation along four strands: personality · love · work · relationships",
+        "2": "The twelve-animal destiny compendium and compatibility grades",
+        "3": "Saving the result card as a high-resolution image"
+      },
+      "premiumOutcomes": {
+        "0": "The reading is for reference.",
+        "1": "It does not fix your future or your disposition.",
+        "2": "The existing payment policy applies."
+      },
+      "answersQuestions": {
+        "0": "What is my guardian animal?",
+        "1": "How does my disposition show up in love and at work?",
+        "2": "What is the compatibility grade between that person and me?"
+      },
+      "fallbackCta": "Meet your guardian animal",
+      "analysisSteps": {
+        "0": {
+          "label": "Chart calculation",
+          "detail": "The day pillar and its twelve life stages are set using the Korea Astronomy and Space Science Institute calendar."
+        },
+        "1": {
+          "label": "Guardian animal",
+          "detail": "Your guardian animal is decided from among the twelve."
+        },
+        "2": {
+          "label": "Compendium and compatibility",
+          "detail": "The in-depth reading, the destiny compendium and the compatibility grades open."
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "If I pay once, can I keep viewing it?",
+          "a": "Yes. It is a permanent unlock, so you can open it again at any time."
+        },
+        "1": {
+          "q": "Can I keep the result?",
+          "a": "You can save the result card as a portrait high-resolution image."
         }
       }
     }
