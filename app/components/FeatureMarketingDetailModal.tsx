@@ -401,7 +401,9 @@ const EXPLICIT_DICT_NS: Record<string, string> = {
   loveSimulation: "openLoveSimulation",
   destiny_meeting_place: "saju_destiny_meeting_place",
   "destiny-bias-analyze": "openDestinyBias",
-  "tarot-prompt-maker": "tarot-prompt-maker",
+  // 🔴 하이픈 그대로 두면 셸이 못 읽는다 — `_pvwSafeKey` 가 하이픈을 `_` 로 바꾸므로
+  //    셸은 언제나 `tarot_prompt_maker` 를 찾는다(이 모달만 옛 이름을 보고 있었다).
+  "tarot-prompt-maker": "tarot_prompt_maker",
   stonehengeRunes: "openRuneOracle",
 };
 

@@ -8799,68 +8799,6 @@
       ]
     },
     "gotoZiweiPremium": {
-      "fallbackTitle": "星の配置が今の質問をどこへ導いているのか、落ち着いて読んでみましょう。",
-      "tagline": "命宮と12宮の流れを、悩みの中心と次の選択基準に結びつける相談型解釈です。",
-      "premiumIntro": "紫微斗数の専門家相談は答えを断定するのではなく、自分の命盤の構造の中で今の質問がどこにあるのかをまず照らします。",
-      "fallbackCta": "紫微斗数相談を開く",
-      "ctaNote": "決済後すぐに12宮解釈が開きます。",
-      "feats": {
-        "0": "今の選択がどの宮の圧力に触れているのか気になる時",
-        "1": "仕事・お金・関係のどこに重きを置くべきか曖昧な時",
-        "2": "単純な吉凶より構造的な説明が必要な時"
-      },
-      "premiumAudience": {
-        "0": "転職・引っ越し・結婚のような大きな決断を前に判断根拠が必要な方",
-        "1": "努力は続けているのに成果が一つに集まらないと感じる方",
-        "2": "断片的な今日の運勢よりも人生の構造を一度整理したい方"
-      },
-      "premiumChapters": {
-        "0": "命宮・財帛・官禄・夫妻宮を質問に合わせて結んだ解釈",
-        "1": "現在の悩みで強く浮かび上がる星のポイント",
-        "2": "注意すべき反復パターンと現実的な次の行動",
-        "3": "相談結果確認後に続けて質問できる流れ"
-      },
-      "premiumOutcomes": {
-        "0": "決済前に機能の内容を先に確認できます。",
-        "1": "利用券・月光石・単発決済の判定は既存の決済ポリシーにそのまま従います。",
-        "2": "運勢の結果は参考用です。重要な選択は現実的な判断と合わせて確認してください。"
-      },
-      "answersQuestions": {
-        "0": "今転職しても大丈夫な時期でしょうか？",
-        "1": "仕事とお金のどちらに重きを置くべきでしょうか？",
-        "2": "この関係を続けても良いでしょうか？"
-      },
-      "valueCompare": {
-        "0": {
-          "axis": "分析範囲",
-          "free": "命宮・身宮の基本命盤",
-          "premium": "質問に合わせて結んだ12宮解釈"
-        },
-        "1": {
-          "axis": "質問の反映",
-          "free": "なし",
-          "premium": "入力した悩みがどの宮の圧力かまで"
-        },
-        "2": {
-          "axis": "つながり",
-          "free": "なし",
-          "premium": "結果確認後、追加質問へ連結"
-        }
-      },
-      "faq": {
-        "0": {
-          "q": "基本命盤と何が違いますか？",
-          "a": "基本命盤は星の配置を見せるだけです。相談はその配置を今の悩みに当てはめ、何を決めるべきかまで整理します。"
-        },
-        "1": {
-          "q": "生まれた時間が必ず必要ですか？",
-          "a": "はい。時間が変われば命宮自体が移動するため、紫微斗数は出生時間の影響が特に大きいです。"
-        },
-        "2": {
-          "q": "結果が出るまでどのくらいかかりますか？",
-          "a": "決済後、画面上ですぐに生成されます。分量が長いため少しお待ちいただく場合があります。"
-        }
-      },
       "badge": "専門家相談型",
       "headline": "星の配置が今の問いをどこへ導いているのか、落ち着いて読んでみてください。",
       "resultPreview": {
@@ -8870,6 +8808,85 @@
           "2": "官禄宮と命宮が出会う場所で、同じパターンが繰り返されます。そのパターンに気づいた瞬間、選択の幅が変わります。"
         },
         "caption": "実際の相談結果画面の例です。決済後は、ご本人の命式で計算された十二宮すべての解釈と、続く質問まで確認できます。"
+      },
+      "tagline": "The main text runs to at least 20,700 characters, and once you have the result you can keep asking follow-up questions at no extra charge.",
+      "feats": {
+        "0": "Builds your twelve-palace chart from your birth date and time",
+        "1": "Organizes the consultation into 14 separate topics",
+        "2": "The main text runs to at least 20,700 characters",
+        "3": "Follow-up questions after the result carry no extra charge",
+        "4": "The consultation is saved so you can open it again"
+      },
+      "premiumIntro": "This is not a one-shot report but a consultation you can read and question back.",
+      "premiumAudience": {
+        "0": "Those who want one proper look at their Ziwei Doushu chart",
+        "1": "Those who want to ask back after reading",
+        "2": "Those who want a long-form interpretation"
+      },
+      "premiumChapters": {
+        "0": "Reading of the twelve-palace chart",
+        "1": "A consultation split into 14 topics",
+        "2": "Main text of at least 20,700 characters",
+        "3": "Continuing follow-up questions",
+        "4": "Re-opening the saved result"
+      },
+      "premiumOutcomes": {
+        "0": "You can check what the feature does before paying.",
+        "1": "Pass, moonstone, and single-payment decisions follow the existing payment policy as-is.",
+        "2": "Fortune results are for reference; please confirm important choices alongside real-world judgment."
+      },
+      "answersQuestions": {
+        "0": "Is it all right to change jobs now?",
+        "1": "Where should I put my weight, money or work?",
+        "2": "Can I make a big decision this year?"
+      },
+      "fallbackCta": "Open the Ziwei Doushu consultation",
+      "ctaNote": "After payment, the twelve-palace chart and the 14-topic consultation open.",
+      "analysisSteps": {
+        "0": {
+          "label": "Chart construction",
+          "detail": "Places the major stars and the Four Transformations across the twelve palaces from your birth date and time."
+        },
+        "1": {
+          "label": "Palace strength",
+          "detail": "Sorts out which palaces carry weight and which are empty."
+        },
+        "2": {
+          "label": "Topic-by-topic writing",
+          "detail": "Splits the work into 14 topics and writes a consultation for each."
+        },
+        "3": {
+          "label": "Follow-up questions",
+          "detail": "After reading the result you can keep asking what is left, at no extra charge."
+        }
+      },
+      "valueCompare": {
+        "0": {
+          "axis": "Length",
+          "premium": "Main text of at least 20,700 characters"
+        },
+        "1": {
+          "axis": "Structure",
+          "premium": "A consultation split into 14 topics"
+        },
+        "2": {
+          "axis": "Follow-up questions",
+          "premium": "No extra charge for questions that follow the result"
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "Do follow-up questions have to be paid for separately?",
+          "a": "No. Questions that follow after you receive the result carry no extra charge."
+        },
+        "1": {
+          "q": "Can I see the result again later?",
+          "a": "The consultation is saved, so you can open it again."
+        },
+        "2": {
+          "q": "How long is it?",
+          "a": "It comes out at at least 20,700 characters of main text."
+        }
       }
     },
     "neo_operation_room": {
@@ -8955,66 +8972,86 @@
       }
     },
     "openNamingPromptModal": {
-      "fallbackTitle": "名前の候補を急いで決める前に、専門家が四柱推命と音・漢字の質感を先に整理します。",
-      "tagline": "生年月日時と名前の条件を基に用神・喜神を検証し、音五行・資源五行・数理まで総合した作名結果を専門家が直接完成させます。",
-      "premiumIntro": "専門家作名は名前を代わりに確定するのではなく、四柱推命に合った候補を根拠と共に提示し、より落ち着いて選べるよう助けます。",
-      "fallbackCta": "作名を始める",
-      "ctaNote": "決済後、候補と漢字・数理の解釈が一緒に開きます。",
+      "tagline": "Proposes 5 to 7 new names in an eight-chapter naming book, and hands you the original prompt that produced that book as well.",
       "feats": {
-        "0": "名前の候補はあるがどんな基準で選ぶべきか分からない時",
-        "1": "四柱推命の補完・音五行・漢字の意味を一緒に見たい時",
-        "2": "結果だけでなくその根拠（プロンプト）まで確認したい時"
+        "0": "The naming book is made up of eight chapters",
+        "1": "Proposes 5 to 7 candidate new names",
+        "2": "If you enter candidates of your own, it evaluates them and then proposes 3 to 5 more",
+        "3": "Checks each name's five-element makeup against the favorable and supporting elements",
+        "4": "Looks at the sound five-element flow and the four numerology frames together",
+        "5": "The main text runs to at least 5,000 characters",
+        "6": "Includes the original prompt used to produce the naming book"
       },
+      "premiumIntro": "Input and the draft suggestions open for free. Payment happens when you take the eight-chapter naming book and the original prompt.",
       "premiumAudience": {
-        "0": "子供の名前を付ける前に根拠を確認したい方",
-        "1": "改名を検討中で候補を絞る必要がある方",
-        "2": "名前の音と漢字の意味まで検討したい方"
+        "0": "Those who want to settle on a child's name with reasons attached",
+        "1": "Those who want the candidates they were given checked",
+        "2": "Those who want the naming criteria left behind as a document"
       },
       "premiumChapters": {
-        "0": "プロフィール・四柱推命情報と名前の条件を自動反映",
-        "1": "用神・喜神検証から最終推薦まで盛り込んだ完成型作名結果",
-        "2": "漢字の組み合わせ・音五行・原亨利貞数理の詳細分析",
-        "3": "結果PDF保存＋生成に使われたプロンプト原文閲覧"
+        "0": "An eight-chapter naming book",
+        "1": "5 to 7 proposed new names",
+        "2": "Evaluation of your own candidates plus 3 to 5 more proposals",
+        "3": "Checks by favorable element, sound five elements, and the four numerology frames",
+        "4": "The original prompt, included"
       },
       "premiumOutcomes": {
-        "0": "入力と無料初稿推薦は無料で開放されます。",
-        "1": "プレミアム作名開始ボタンを押す時、既存の決済確認が行われます。",
-        "2": "作名結果は参考用であり、実際の使用前に現実的な確認が必要です。"
+        "0": "Input and the free draft suggestions open for free.",
+        "1": "The existing payment check runs when you press the premium naming button.",
+        "2": "Naming results are for reference and need real-world checking before actual use."
       },
       "answersQuestions": {
-        "0": "この名前は子供の四柱推命に合っていますか？",
-        "1": "候補のうちどの名前を選ぶべきでしょうか？",
-        "2": "改名しても大丈夫でしょうか？"
+        "0": "Does this name suit my child's Saju?",
+        "1": "What changes if I change the hanja?",
+        "2": "Why was this name recommended?"
+      },
+      "fallbackCta": "Start naming",
+      "ctaNote": "After payment, the eight-chapter naming book and the original prompt open together.",
+      "analysisSteps": {
+        "0": {
+          "label": "Saju calculation",
+          "detail": "Builds the natal chart from your birth date and time and sorts out the favorable and supporting elements."
+        },
+        "1": {
+          "label": "Candidate generation",
+          "detail": "Creates 5 to 7 new names that fit those elements. If you entered candidates of your own, those are evaluated first."
+        },
+        "2": {
+          "label": "Name verification",
+          "detail": "Filters the candidates again through the sound five-element flow and the four numerology frames."
+        },
+        "3": {
+          "label": "Writing the naming book",
+          "detail": "Organizes everything into eight chapters and includes the original prompt used to build it."
+        }
       },
       "valueCompare": {
         "0": {
-          "axis": "候補",
-          "free": "無料初稿推薦",
-          "premium": "用神・喜神検証を経た完成型候補"
+          "axis": "Scope of proposals",
+          "free": "Input and draft suggestions",
+          "premium": "5 to 7 new names, plus 3 to 5 more after evaluating your own candidates"
         },
         "1": {
-          "axis": "根拠",
-          "free": "なし",
-          "premium": "音五行・資源五行・原亨利貞数理の解釈"
+          "axis": "Verification axes",
+          "premium": "Favorable and supporting elements, sound five elements, and the four numerology frames"
         },
         "2": {
-          "axis": "成果物",
-          "free": "画面確認",
-          "premium": "PDF保存＋プロンプト原文閲覧"
+          "axis": "Deliverable",
+          "premium": "An eight-chapter naming book plus the original prompt"
         }
       },
       "faq": {
         "0": {
-          "q": "無料推薦と何が違いますか？",
-          "a": "無料は候補だけを見せます。有料は四柱推命の用神検証と漢字・数理の解釈まで根拠と共に出します。"
+          "q": "How far can I go for free?",
+          "a": "Input and the draft suggestions open for free."
         },
         "1": {
-          "q": "名前を代わりに確定してくれますか？",
-          "a": "いいえ。根拠を備えた候補を提示するだけで、選ぶのはご本人です。"
+          "q": "Will you look at a name I thought of myself?",
+          "a": "If you enter candidates, they are evaluated first, and 3 to 5 more are proposed on top of them."
         },
         "2": {
-          "q": "改名にも使えますか？",
-          "a": "はい。現在の名前と候補を一緒に並べて比較できます。"
+          "q": "Why do you hand over the original prompt?",
+          "a": "So you can see exactly what criteria the names were built on and reuse it yourself."
         }
       }
     },
@@ -9085,71 +9122,81 @@
       }
     },
     "astrology_ai_consultation": {
-      "fallbackTitle": "出生チャートが今の悩みをどちらに押しているのか突き止めましょう。",
-      "tagline": "太陽・月・上昇宮と現在通過中の惑星の流れを一緒に読み、心理状態と現実のタイミングを一つに結ぶ相談型解釈です。",
-      "premiumIntro": "占星術の専門家相談は星座の性格論で止まらず、今この時期があなたに何を求めているのかまで突き止めます。",
-      "fallbackCta": "占星術相談を開く",
-      "ctaNote": "決済後、本人の出生チャートで計算された相談文が開きます。",
+      "tagline": "The main text runs to at least 15,000 characters, and after reading it you can keep asking follow-up questions.",
       "feats": {
-        "0": "心と状況が別々に動いていると感じる時",
-        "1": "いつ動くべきか時期を決めなければならない時",
-        "2": "自分の星座解釈がいつも表面的で終わる時"
+        "0": "Calculates your birth chart from the birth details you enter",
+        "1": "Organizes the consultation into 6 separate topics",
+        "2": "The main text runs to at least 15,000 characters",
+        "3": "You can keep asking follow-up questions after reading"
       },
+      "premiumIntro": "This is not a horoscope shared by the twelve signs -- it is written from your own chart, calculated from the birth details you enter.",
       "premiumAudience": {
-        "0": "性格解釈より今の時期の判断根拠が必要な方",
-        "1": "感情の起伏の原因を構造として理解したい方",
-        "2": "転職・引っ越し・告白のように時点を選ばなければならない方"
+        "0": "Those left wanting more by shared sun-sign horoscopes",
+        "1": "Those who want one proper look at their own chart",
+        "2": "Those who want to ask back after reading"
       },
       "premiumChapters": {
-        "0": "太陽・月・上昇宮で見る気質の軸",
-        "1": "現在通過中の惑星の流れと悩みの接点",
-        "2": "繰り返し引っかかる心理パターン",
-        "3": "動くのに良い時期と先延ばしすべき時期"
+        "0": "Calculation of your own birth chart",
+        "1": "A consultation split into 6 topics",
+        "2": "Main text of at least 15,000 characters",
+        "3": "Continuing follow-up questions"
       },
       "premiumOutcomes": {
-        "0": "チャート基盤の機能は入力した出生時間の正確度に影響を受けます。",
-        "1": "決済ポリシーは既存の利用券・月光石・単発決済基準に従います。",
-        "2": "運勢の結果は参考用です。"
+        "0": "Chart-based features are affected by how accurate the birth time you enter is.",
+        "1": "The payment policy follows the existing pass, moonstone, and single-payment rules.",
+        "2": "Fortune results are for reference."
       },
       "answersQuestions": {
-        "0": "なぜ心と状況が別々に動くのでしょうか？",
-        "1": "いつ動くのが良いでしょうか？",
-        "2": "この時期に何を決めるべきですか？"
+        "0": "Why do my feelings and my circumstances keep pulling apart?",
+        "1": "When is a good time to move?",
+        "2": "How do I look to other people?"
+      },
+      "fallbackCta": "Open the astrology consultation",
+      "ctaNote": "After payment, a 6-topic consultation calculated from your own birth chart opens.",
+      "analysisSteps": {
+        "0": {
+          "label": "Birth chart calculation",
+          "detail": "Calculates planetary positions and houses from the birth details you enter."
+        },
+        "1": {
+          "label": "Topic split",
+          "detail": "Divides the consultation into 6 topics."
+        },
+        "2": {
+          "label": "Topic-by-topic writing",
+          "detail": "Writes each topic while naming which placement in the chart it rests on."
+        },
+        "3": {
+          "label": "Follow-up questions",
+          "detail": "After reading the result you can keep asking what is left."
+        }
       },
       "valueCompare": {
         "0": {
-          "axis": "分析範囲",
-          "free": "太陽・月・上昇宮の要約",
-          "premium": "全体の配置と現在通過中の流れ"
+          "axis": "Subject",
+          "premium": "Your own chart, calculated from the birth details you enter"
         },
         "1": {
-          "axis": "分量",
-          "free": "要約レベル",
-          "premium": "15,000字以上"
+          "axis": "Length",
+          "premium": "Main text of at least 15,000 characters"
         },
         "2": {
-          "axis": "時期",
-          "free": "なし",
-          "premium": "動くのに良い時期と先延ばしすべき時期"
-        },
-        "3": {
-          "axis": "質問の反映",
-          "free": "なし",
-          "premium": "入力した悩みを基準に再構成"
+          "axis": "Structure",
+          "premium": "A consultation split into 6 topics"
         }
       },
       "faq": {
         "0": {
-          "q": "出生時間が分からない場合は？",
-          "a": "上昇宮とハウスの計算が不正確になります。太陽・月中心の解釈は出ますが、時期アドバイスの精度が落ちます。"
+          "q": "What happens if I don't know my birth time?",
+          "a": "This is a chart-based reading, so the accuracy of the birth time affects the result."
         },
         "1": {
-          "q": "星座占いと何が違いますか？",
-          "a": "太陽星座一つではなく、生まれた瞬間の空全体を見ます。"
+          "q": "How long is it?",
+          "a": "It comes out at at least 15,000 characters of main text."
         },
         "2": {
-          "q": "出生地も必要ですか？",
-          "a": "はい。同じ時刻でも地域が異なるとハウスの配置が変わります。"
+          "q": "Can I ask more after reading?",
+          "a": "You can keep asking follow-up questions once you have the result."
         }
       }
     },
@@ -9221,71 +9268,82 @@
       }
     },
     "vedic_ai_consultation": {
-      "fallbackTitle": "今の質問をヴェーダチャートの時間の流れの中で読んでみましょう。",
-      "tagline": "Lagna、Moon、Nakshatra、Dashaの流れを基に現在の選択の意味を整理する相談型解釈です。",
-      "premiumIntro": "ヴェーダ占相談は答えを急がず、今この時点がどんな選択の扉の前にあるのかからまず見つめます。",
-      "fallbackCta": "ヴェーダ占相談を開く",
-      "ctaNote": "決済後、本人の出生情報で計算されたチャートとダシャーが開きます。",
+      "tagline": "The origins of karma, material achievement and dharma, bonds and soul partners, and your current dasha flow with its upaya -- at least 15,000 characters of main text.",
       "feats": {
-        "0": "今の選択が長期の流れに合っているか気になる時",
-        "1": "内面の方向と現実のタイミングがずれていると感じる時",
-        "2": "一つの質問を落ち着いて整理し相談したい時"
+        "0": "Derives your Rasi chart and the Moon's nakshatra from the birth details you enter",
+        "1": "Writes across four topics: the origins of karma, material achievement and dharma, bonds and soul partners, and your current dasha flow with its upaya",
+        "2": "Fills each topic to at least 3,800 characters",
+        "3": "The main text runs to at least 15,000 characters",
+        "4": "Sets out separately the flow that the reading was based on"
       },
+      "premiumIntro": "Using the dasha (period) system of Indian astrology, it sets out which planet's period you are in now and what to do within it.",
       "premiumAudience": {
-        "0": "今下した決定が長期の流れに合っているか確認したい方",
-        "1": "努力のタイミングが度々ずれると感じる方",
-        "2": "一つの質問を長く抱えていて、今度こそ結論をつけたい方"
+        "0": "Those who want Indian astrology rather than Western astrology",
+        "1": "Those who want to know the character of the period they are in",
+        "2": "Those who want to see the reasoning as well"
       },
       "premiumChapters": {
-        "0": "出生情報に基づくヴェーダチャート相談",
-        "1": "Lagna・Moon・Nakshatra中心の解釈",
-        "2": "Dashaの流れと現在の質問のつながり",
-        "3": "相談後、既存のヴェーダ占結果の流れへ移動"
+        "0": "Rasi chart and nakshatra derivation",
+        "1": "A consultation across four topics",
+        "2": "Main text of at least 15,000 characters",
+        "3": "A summary of the flow behind the reading"
       },
       "premiumOutcomes": {
-        "0": "チャート基盤の機能は入力情報の正確度に影響を受けます。",
-        "1": "決済ポリシーは既存の利用券・月光石・単発決済基準に従います。",
-        "2": "運勢の結果は参考用です。"
+        "0": "Chart-based features are affected by how accurate the details you enter are.",
+        "1": "The payment policy follows the existing pass, moonstone, and single-payment rules.",
+        "2": "Fortune results are for reference."
       },
       "answersQuestions": {
-        "0": "今下した決定は長期の流れに合っているでしょうか？",
-        "1": "なぜ努力のタイミングが度々ずれるのでしょうか？",
-        "2": "この時期は広げる時ですか、積み上げる時ですか？"
+        "0": "Does the decision I am making now fit the longer flow?",
+        "1": "Why does the timing of my effort keep missing?",
+        "2": "What should I be preparing for in this period?"
+      },
+      "fallbackCta": "Open the Vedic consultation",
+      "ctaNote": "After payment, a consultation grounded in your Rasi chart and dasha flow opens.",
+      "analysisSteps": {
+        "0": {
+          "label": "Chart calculation",
+          "detail": "Derives the Rasi chart and the Moon's nakshatra from your birth details."
+        },
+        "1": {
+          "label": "Dasha check",
+          "detail": "Checks which planet's period you are currently passing through."
+        },
+        "2": {
+          "label": "Topic-by-topic writing",
+          "detail": "Splits the work into four topics and writes each to at least 3,800 characters."
+        },
+        "3": {
+          "label": "Reasoning summary",
+          "detail": "Sets out separately the flow that the reading was based on."
+        }
       },
       "valueCompare": {
         "0": {
-          "axis": "分析範囲",
-          "free": "ラーシ・ナクシャトラの要約",
-          "premium": "チャート全体とダシャーの流れ"
+          "axis": "System",
+          "premium": "Rasi chart, nakshatra, and dasha"
         },
         "1": {
-          "axis": "分量",
-          "free": "要約レベル",
-          "premium": "15,000字以上"
+          "axis": "Length",
+          "premium": "At least 15,000 characters of main text (at least 3,800 per topic)"
         },
         "2": {
-          "axis": "時間表",
-          "free": "なし",
-          "premium": "ダシャー期間別の機会と試練"
-        },
-        "3": {
-          "axis": "質問の反映",
-          "free": "なし",
-          "premium": "入力した悩みを基準に再構成"
+          "axis": "Structure",
+          "premium": "Four topics plus the flow behind the reading"
         }
       },
       "faq": {
         "0": {
-          "q": "西洋占星術と何が違いますか？",
-          "a": "星座の基準点が異なり、ダシャーという時期の概念を使います。性格より時間の流れを読むことに強いです。"
+          "q": "How does this differ from Western astrology?",
+          "a": "It uses the Rasi chart, together with the dasha system that looks at which planet's period you are passing through."
         },
         "1": {
-          "q": "前世や業は事実ですか？",
-          "a": "象徴的概念として扱います。事実判定ではなく、繰り返されるパターンを説明する枠組みです。"
+          "q": "How long is it?",
+          "a": "At least 15,000 characters of main text, and at least 3,800 characters per topic."
         },
         "2": {
-          "q": "生まれた時間が必ず必要ですか？",
-          "a": "はい。ラグナとハウスが時間によって変わるため、正確度が大きく変わります。"
+          "q": "What is an upaya?",
+          "a": "It means a practice recommended in response to your current period. It is included in the fourth topic."
         }
       }
     },
@@ -9424,33 +9482,6 @@
         "2": "象徴の解釈は参考用です。"
       }
     },
-    "flower-fc": {
-      "fallbackTitle": "あなたの命式を読み取り、世界に一つだけの花として咲かせます。",
-      "tagline": "四柱推命・占星術・紫微斗数・宿曜のうち望む系統を選ぶと、その計算結果をそのまま花の色と形に映し出す視覚化コンテンツです。",
-      "premiumIntro": "運命の花はきれいな絵を描くだけで終わらず、色と形それぞれにどんな計算が込められているかも一緒に説明します。",
-      "fallbackCta": "運命の花を咲かせる",
-      "feats": {
-        "0": "解釈の文章だけではしっくりこない時",
-        "1": "自分の運命を目に見える形で残したい時",
-        "2": "一度作って長く大切にしたい結果物が欲しい時"
-      },
-      "premiumAudience": {
-        "0": "文章よりイメージで記憶する方",
-        "1": "四つの系統のうち望む方式を選んで見たい方",
-        "2": "一度解錠して長く取り出して見たい方"
-      },
-      "premiumChapters": {
-        "0": "四柱推命・占星術・紫微斗数・宿曜の四系統の花",
-        "1": "強い気は色で、不足した気は形で表現",
-        "2": "花の各部分が何を意味するかの解説",
-        "3": "解錠後はいつでも再閲覧"
-      },
-      "premiumOutcomes": {
-        "0": "生成結果は計算値を視覚化したもので参考用です。",
-        "1": "解錠後は再び閲覧できます。",
-        "2": "四つの系統のうち望む方式を選んで生成します。"
-      }
-    },
     "openCosmicSoulMeditation": {
       "fallbackTitle": "30分または60分、座って最後まで付いていく瞑想セッションです。",
       "tagline": "R=VDプロトコルを段階に分け、案内文とタイマーに従って一度で完走できるよう設計されたセッション型コンテンツです。",
@@ -9508,98 +9539,6 @@
         }
       }
     },
-    "palm-reading": {
-      "fallbackTitle": "手のひらの線を撮って上げれば、その結に沿って今の流れをお読みします。",
-      "tagline": "生命線・感情線・頭脳線の長さと分岐を分析し、気質と最近の流れを整理する画像ベースのリーディングです。",
-      "premiumIntro": "手相分析は手を見て運命を断定するのではなく、線の結が語る性向と最近の流れを整理します。",
-      "fallbackCta": "手相分析を始める",
-      "feats": {
-        "0": "生年月日なしでも見られるリーディングを探している時",
-        "1": "手相の解釈をちゃんと聞いたことがない時",
-        "2": "自分の気質を別の角度から確認したい時"
-      },
-      "premiumAudience": {
-        "0": "出生時間が分からず四柱推命が難しい方",
-        "1": "写真一枚で簡単に見たい方",
-        "2": "手相をきちんと読んでもらったことがない方"
-      },
-      "premiumChapters": {
-        "0": "主要3線の長さ・深さ・分岐の分析",
-        "1": "気質とエネルギーの使い方",
-        "2": "最近の流れで際立つ地点",
-        "3": "詳細分析とAI相談へつながる拡張"
-      },
-      "premiumOutcomes": {
-        "0": "画像の品質によって分析の正確度が変わります。",
-        "1": "分析結果は参考用です。",
-        "2": "健康判断の代わりにはなりません。"
-      }
-    },
-    "tarot-celestial-harmony": {
-      "fallbackTitle": "十一の惑星の配置で、今心がどこに縛られているのか指摘します。",
-      "tagline": "一枚のカードではなく惑星別の配置で感情・関係・仕事の軸を分けて読む拡張型コズミックタロットです。",
-      "premiumIntro": "天体の旋律は一枚の答えを与えるより、心の複数の軸が今どうずれているかを広げて見せます。",
-      "fallbackCta": "天体の旋律を閲覧する",
-      "feats": {
-        "0": "短い一枚リーディングでは答えが足りない時",
-        "1": "複数の悩みが絡み合ってどこから見るべきか分からない時",
-        "2": "感情と現実を分けて整理したい時"
-      },
-      "premiumAudience": {
-        "0": "悩みが一つではなく複数に分かれている方",
-        "1": "短いリーディングではいつも物足りなかった方",
-        "2": "感情と現実を分離して見たい方"
-      },
-      "premiumChapters": {
-        "0": "11惑星配置で分けた領域別解釈",
-        "1": "今最も強く作用している軸",
-        "2": "互いに衝突している心の地点",
-        "3": "来月のための行動基準"
-      },
-      "premiumOutcomes": {
-        "0": "カード解釈は参考用です。",
-        "1": "決済と権限確認は既存ポリシーに従います。",
-        "2": "未来を確定したり保証したりしません。"
-      }
-    },
-    "tarot-prompt-maker": {
-      "fallbackTitle": "同じカードを引いても、質問が浅ければ答えも浅く出ます。",
-      "tagline": "自分の状況に合ったタロットの質問と相談の流れを文章にして、リーディングをはるかに深く導く道具です。",
-      "premiumIntro": "プロンプトライブラリは答えを代わりに出すのではなく、より良い答えが出るよう質問を研ぎ澄まします。",
-      "fallbackCta": "プロンプトを閲覧する",
-      "feats": {
-        "0": "何を尋ねるべきかから分からない時",
-        "1": "リーディング結果がいつも曖昧に終わる時",
-        "2": "相談をさらに掘り下げていきたい時"
-      },
-      "premiumAudience": {
-        "0": "タロットをよく見るのにいつも答えが浅く感じる方",
-        "1": "相談前に質問を整理したい方",
-        "2": "自分でリーディングを続けてみたい方"
-      },
-      "premiumChapters": {
-        "0": "自分の状況に合わせた核心質問文",
-        "1": "リーディングを続ける後続質問の流れ",
-        "2": "カードが曖昧な時に再度尋ねる方法",
-        "3": "そのままコピーして使えるプロンプト原文"
-      },
-      "premiumOutcomes": {
-        "0": "プロンプトは解釈を助ける道具であり結果を保証しません。",
-        "1": "カード解釈は参考用です。",
-        "2": "既存の決済ポリシーに従います。"
-      },
-      "badge": "プロンプト型",
-      "headline": "自分の問いに合ったタロット相談の文章を、まず整理してみてください。",
-      "resultPreview": {
-        "lines": {
-          "0": "今の状況では「この人は私を好きだろうか」より「何がこの関係を止めているのか」のほうがよく開きます。",
-          "1": "最初の問いが開けば、続けて尋ねる二つ目・三つ目の問いが用意されています。",
-          "2": "カードが曖昧に出たときに聞き直す文章も、別に収められています。"
-        },
-        "caption": "実際のプロンプト結果の冒頭例です。決済後は状況に合わせた質問セットとプロンプト原文の全体を受け取れます。"
-      },
-      "hubTagline": "カード解釈をより深く続けるための質問と相談の流れを、プロンプトとして束ねる機能です。"
-    },
     "openTarotLoveModal": {
       "fallbackTitle": "言葉と行動の間に残る関係の温度を、カードで広げてみましょう。",
       "tagline": "相手の感情を断定するより、今二人の間に流れる雰囲気と気をつけるべき線を分けて読みます。",
@@ -9628,85 +9567,119 @@
       }
     },
     "openTarotReunionModal": {
-      "fallbackTitle": "まだ心が閉じていない関係の温度を、静かに広げてみましょう。",
-      "tagline": "再会を保証せず、残った感情と再び近づける流れをカードの象徴で読みます。",
-      "premiumIntro": "再会運は結果を断定せず、関係がまた動きうる地点と今避けるべき反応を中心に解釈します。",
-      "fallbackCta": "再会の流れを確認する",
+      "tagline": "Five card seats trace everything from the warmth still left to the conditions for repairing the relationship, closing with a low-pressure opening line and a 7-day recovery routine.",
       "feats": {
-        "0": "相手の心がまだ気になる時",
-        "1": "連絡していいか迷う時",
-        "2": "手放すべきか掴むべきか心が揺れる時"
+        "0": "A five-seat reading: warmth still left · their feelings now · why contact stopped · what lies beneath the words · conditions for repair",
+        "1": "Detailed interpretation reading every card along eight strands",
+        "2": "A standard for whether to move first, and a suggested low-pressure opening line",
+        "3": "A 7-day recovery routine and a reunion checklist"
       },
+      "premiumIntro": "This is not a reading that promises reunion. It separates the feelings still left and the conditions for getting close again into five seats, and works out the opening line with you.",
       "premiumAudience": {
-        "0": "別れた後も心が整理されない方",
-        "1": "連絡するかどうか毎日揺れる方",
-        "2": "掴む理由が残っているか確認したい方"
+        "0": "People whose feelings have not settled since the breakup",
+        "1": "People weighing when to start talking again",
+        "2": "People who want to check whether a reason to hold on remains"
       },
       "premiumChapters": {
-        "0": "現在の関係の雰囲気",
-        "1": "二人の間に残った感情の結",
-        "2": "再び近づける流れ",
-        "3": "今気をつけるべき行動"
+        "0": "The cards on the five seats and the interpretation for each",
+        "1": "Your standard for reaching out again, and the opening line",
+        "2": "What to hold back for now",
+        "3": "A reunion checklist to keep for 7 days"
       },
       "premiumOutcomes": {
-        "0": "再会の結果を保証しません。",
-        "1": "カード解釈は参考用です。",
-        "2": "決済ポリシーは既存基準に従います。"
+        "0": "Reunion outcomes are not guaranteed.",
+        "1": "Card interpretations are for reference.",
+        "2": "The existing payment policy applies."
+      },
+      "answersQuestions": {
+        "0": "Do they still have feelings for me?",
+        "1": "Is it all right to contact them now?",
+        "2": "Can this relationship be picked up again?"
+      },
+      "fallbackCta": "Start the Reunion Lighthouse reading",
+      "analysisSteps": {
+        "0": {
+          "label": "Settle your mind",
+          "detail": "The reading opens calmly, with a short breathing guide."
+        },
+        "1": {
+          "label": "Open the five seats",
+          "detail": "A card is turned for each seat, from the feelings left to the conditions for repair."
+        },
+        "2": {
+          "label": "Recovery guide",
+          "detail": "It closes with the opening line, what to hold back, the 7-day routine and the checklist."
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "Do I have to enter a question or my birth date?",
+          "a": "No. The five-seat card reading starts straight away with no input."
+        },
+        "1": {
+          "q": "Can I see the result again later?",
+          "a": "There is no separate save feature, so it is a reading you check on the spot; you can share it from the result screen."
+        }
       }
     },
     "openTarotYearFortuneModal": {
-      "fallbackTitle": "一年の流れを月ごとに落ち着いて分けて読んでみましょう。",
-      "tagline": "近い選択と感情の変化をカードの流れで整理する年間タロットリーディングです。",
-      "premiumIntro": "年間タロットはすべてを予言するより、月ごとに見逃しやすい感情と選択のポイントを整理します。",
-      "fallbackCta": "年間の流れを閲覧する",
+      "tagline": "Twelve major cards are laid one per month and read alongside the guardian story of your birth year, organizing the flow across twelve fields plus turning points and lucky actions.",
       "feats": {
-        "0": "今年の大きな流れを一度整理したい時",
-        "1": "重要な時期を逃さず見守りたい時",
-        "2": "月別の心構えと注意点を知りたい時"
+        "0": "This year's core card and the yearly overview read as one continuous flow",
+        "1": "A drill-down that reopens each monthly card, January to December, as three cards: cause, process, result",
+        "2": "Readings for twelve fields including money, work and business, love, and helpful people",
+        "3": "This year's turning points and lucky actions you can take right away",
+        "4": "The result is saved so you can open it again at any time"
       },
+      "premiumIntro": "Rather than nailing the year down as prophecy, it organizes the flow that is easy to miss month by month, and the moments where a choice is made.",
       "premiumAudience": {
-        "0": "一年の計画を立てる前に流れを見たい方",
-        "1": "重要な予定をどの月に置くか悩んでいる方",
-        "2": "毎月繰り返される感情の起伏を減らしたい方"
+        "0": "People who want to see the flow before planning their year",
+        "1": "People wondering which month to place an important event in",
+        "2": "People who want a deep reading with the guardian narrative"
       },
       "premiumChapters": {
-        "0": "月別のカードの流れ",
-        "1": "強く浮かび上がる機会と注意ポイント",
-        "2": "繰り返されやすい感情パターン",
-        "3": "来月を準備する現実的なアドバイス"
+        "0": "An in-depth interpretation of this year's core card",
+        "1": "The twelve monthly cards and the flow by field",
+        "2": "Choices to be careful with, and this year's opportunities",
+        "3": "Reopening the saved result"
       },
       "premiumOutcomes": {
-        "0": "未来を確定しません。",
-        "1": "カード解釈は参考用です。",
-        "2": "既存の決済ポリシーにそのまま従います。"
+        "0": "It does not fix the future.",
+        "1": "Card interpretations are for reference.",
+        "2": "The existing payment policy applies."
+      },
+      "answersQuestions": {
+        "0": "Which period this year should I be most careful in?",
+        "1": "How will money and work or business flow?",
+        "2": "What opportunity is coming to me this year?"
+      },
+      "fallbackCta": "Start the Zodiac Year reading",
+      "analysisSteps": {
+        "0": {
+          "label": "Find your guardian",
+          "detail": "Your birth year identifies your guardian among the twelve."
+        },
+        "1": {
+          "label": "Lay the twelve cards",
+          "detail": "Twelve major cards are placed one per month."
+        },
+        "2": {
+          "label": "Fields and turning points",
+          "detail": "The flow across the twelve fields, the turning points and the lucky actions are organized."
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "Can I see the result again later?",
+          "a": "Yes. A paid result is saved and you can pick it up again when you return."
+        },
+        "1": {
+          "q": "How do I read the monthly readings?",
+          "a": "Opening a month's card reveals the three-card drill-down — cause, process, result — and the interpretation by field."
+        }
       }
     },
     "openLoveSimulation": {
-      "fallbackTitle": "自分の恋愛パターンがどんな場面で輝き、揺らぐのか確認してみましょう。",
-      "tagline": "四柱推命の五行と日干の流れを基に、関係のケミストリーと会話のポイントをシミュレーションのように見せます。",
-      "premiumIntro": "LOVE CODEは恋愛を保証せず、四柱推命の流れでよく現れる関係の反応と選択のポイントを見せます。",
-      "fallbackCta": "LOVE CODEを閲覧する",
-      "feats": {
-        "0": "繰り返される恋愛パターンの理由が気になる時",
-        "1": "相手とのケミストリーをより具体的に見たい時",
-        "2": "会話やデートの流れで気をつけるべき点を知りたい時"
-      },
-      "premiumAudience": {
-        "0": "恋愛が毎回似たような形で終わる方",
-        "1": "自分がどんな人に弱いのか知りたい方",
-        "2": "次の恋愛では違うやり方を試したい方"
-      },
-      "premiumChapters": {
-        "0": "四柱推命に基づく恋愛ペルソナ",
-        "1": "五行相性の流れと関係のケミストリー",
-        "2": "状況別の会話とデートの場面",
-        "3": "解錠後、既存のLOVE CODE画面へ移動"
-      },
-      "premiumOutcomes": {
-        "0": "関係の結果を保証しません。",
-        "1": "解錠と決済は既存ポリシーに従います。",
-        "2": "運勢の結果は参考用です。"
-      },
       "badge": "恋愛シミュレーション",
       "headline": "自分の恋愛パターンがどの場面で輝き、どの場面で揺れるのか確かめてみてください。",
       "resultPreview": {
@@ -9716,34 +9689,85 @@
           "2": "関係が揺れる時点は、たいてい三度目の山場でやってきます。"
         },
         "caption": "実際のLOVE CODE結果の冒頭例です。決済後は、ご本人の四柱で計算された恋愛パターン全体を確認できます。"
+      },
+      "tagline": "16 partner characters with 20 scenes each; every choice moves five meters — affection, trust, chemistry, tension and stability.",
+      "feats": {
+        "0": "16 partner characters · 20 scenes per character, with 3 choices in every scene",
+        "1": "Each choice shifts five meters: affection, trust, chemistry, tension and stability",
+        "2": "Compatibility is scored 0-100 on 5 axes: attraction, stability, communication, conflict pattern and long-term durability",
+        "3": "Every item shows its grounds and confidence level — day-stem unions and clashes, branch relations, useful and adverse elements, ten gods, and the peach-blossom and red-flame stars"
+      },
+      "premiumIntro": "As you pick a choice, the five meters — affection, trust, chemistry, tension, stability — move on the spot, and compatibility is calculated from signals drawn out of both charts.",
+      "premiumAudience": {
+        "0": "People who want to experience compatibility as scenes",
+        "1": "People who want to compare how it unfolds by partner type",
+        "2": "People who want to see the grounds behind a compatibility score"
+      },
+      "premiumChapters": {
+        "0": "All 16 partner characters available to choose",
+        "1": "Playing through 20 scenes per character",
+        "2": "A compatibility result reflecting how the five meters moved",
+        "3": "The 5-axis scores with per-item saju grounds and confidence"
+      },
+      "premiumOutcomes": {
+        "0": "Compatibility is calculated inside the app, directly from the birth details you enter.",
+        "1": "It does not guarantee any actual relationship or outcome.",
+        "2": "Fortune results are for reference; please check important choices against practical judgement as well."
+      },
+      "answersQuestions": {
+        "0": "Why does tension rise so much when I am with this person?",
+        "1": "What kinds of situations do we usually clash in?",
+        "2": "Is this a relationship that can last?"
+      },
+      "fallbackCta": "Open Love Code",
+      "analysisSteps": {
+        "0": {
+          "label": "Choose a partner",
+          "detail": "Pick one of the 16 characters and enter both people's birth details."
+        },
+        "1": {
+          "label": "Play the scenes",
+          "detail": "Pick one of 3 choices in each scene, and the five meters shift on the spot."
+        },
+        "2": {
+          "label": "Signal extraction",
+          "detail": "Compatibility signals are drawn from both charts' day-stem unions and clashes, branch relations, useful and adverse elements, ten gods and the stars."
+        },
+        "3": {
+          "label": "Result",
+          "detail": "It shows the 5-axis scores — attraction, stability, communication, conflict pattern, long-term durability — with the grounds and confidence for each signal."
+        }
+      },
+      "valueCompare": {
+        "0": {
+          "axis": "Play volume",
+          "premium": "16 partner characters · 20 scenes per character"
+        },
+        "1": {
+          "axis": "Compatibility result",
+          "premium": "5-axis scores, 0-100"
+        },
+        "2": {
+          "axis": "Grounds shown",
+          "premium": "Saju signals and confidence per item"
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "What are the compatibility scores based on?",
+          "a": "Signals are drawn from both people's day-stem unions and clashes, branch relations, useful and adverse elements, ten gods, and the peach-blossom and red-flame stars, and every item is shown with its grounds and confidence level."
+        },
+        "1": {
+          "q": "Do my choices affect the result?",
+          "a": "Every choice shifts the five meters — affection, trust, chemistry, tension, stability — and that state is reflected on the result screen."
+        },
+        "2": {
+          "q": "How many partners can I see?",
+          "a": "16 characters are available, and each one has its own 20 scenes."
+        }
       }
     },
     "openDestinyBias": {
-      "fallbackTitle": "推しと自分の間に浮かぶムードと感情コードを一枚ずつ広げてみましょう。",
-      "tagline": "推し活と関係の想像をカード型の文章に整理し、今のときめきと距離感を軽やかに読むリーディングです。",
-      "premiumIntro": "推し運命は実際の関係を断定せず、推し活の中で浮かぶ感情の結をカードのように整理します。",
-      "fallbackCta": "推し運命を閲覧する",
-      "feats": {
-        "0": "推しを思い浮かべると繰り返される感情がある時",
-        "1": "推し活のときめきを感性カードに整理したい時",
-        "2": "今日のムードと行動のヒントを気軽に見たい時"
-      },
-      "premiumAudience": {
-        "0": "推しと自分の距離を楽しく見たい方",
-        "1": "推し活をカードの形で残したい方",
-        "2": "気軽に楽しめるリーディングを探している方"
-      },
-      "premiumChapters": {
-        "0": "推しと自分のムードシグナル",
-        "1": "関係のエネルギーと会話タイミングのヒント",
-        "2": "保存・共有しやすいカード型の文章",
-        "3": "決済後、既存の推し運命画面へ移動"
-      },
-      "premiumOutcomes": {
-        "0": "実際の関係や結果を保証しません。",
-        "1": "既存の決済ポリシーに従います。",
-        "2": "リーディングは参考と楽しみの範囲でご確認ください。"
-      },
       "badge": "フォトカードリーディング",
       "headline": "推しと自分のあいだに浮かぶムードと感情コードを、一枚ずつ広げてみてください。",
       "resultPreview": {
@@ -9753,6 +9777,70 @@
           "2": "今年この想いが最も濃くなる時期が別にあります。"
         },
         "caption": "実際の「推し運命」結果の冒頭例です。決済後はカード全体とムード解釈を確認できます。"
+      },
+      "tagline": "It opens with sign-in alone, and produces five scores — total, emotion, fandom, longevity and support — along with a card image, right on the spot.",
+      "feats": {
+        "0": "A free feature that opens with sign-in alone",
+        "1": "Produces five scores — total, emotion, fandom, longevity, support — and a destiny grade",
+        "2": "Draws an aura type and material, mood keywords and matching tags, and builds them into a photocard image",
+        "3": "Splits the result across five tabs: one-line chemistry · five-element compatibility · day-stem relation · branch chemistry · booster tips",
+        "4": "Shows your and your favorite's five-element distribution together with day-stem, day-branch and ten-god signals",
+        "5": "Relationship MBTI · past life · grade meme · hashtags come with it"
+      },
+      "premiumIntro": "Favorite-Person Destiny does not pronounce on your actual relationship; it organizes both charts' saju signals into scores and card lines. The same details give the same result.",
+      "premiumAudience": {
+        "0": "People who want to keep their compatibility with a favorite as a card",
+        "1": "People who want the five-element and day-stem grounds shown too",
+        "2": "People looking for a light, free reading"
+      },
+      "premiumChapters": {
+        "0": "The five scores and the destiny grade",
+        "1": "A photocard reflecting the aura type and material",
+        "2": "Detail tabs for five-element compatibility, day-stem relation and branch chemistry",
+        "3": "Relationship MBTI and hashtags"
+      },
+      "premiumOutcomes": {
+        "0": "A free feature with no payment step beyond signing in.",
+        "1": "It does not guarantee any actual relationship or outcome.",
+        "2": "Please take the reading as reference and for enjoyment."
+      },
+      "answersQuestions": {
+        "0": "In what ways are my favorite and I alike?",
+        "1": "What type is my way of supporting them?",
+        "2": "Where does the chemistry between us come from?"
+      },
+      "fallbackCta": "Open Favorite-Person Destiny",
+      "analysisSteps": {
+        "0": {
+          "label": "Enter details",
+          "detail": "You enter your own and your favorite's birth details."
+        },
+        "1": {
+          "label": "Signal extraction",
+          "detail": "Compatibility signals are drawn from day-stem relation, day-branch relation, five-element balance and ten-god relations."
+        },
+        "2": {
+          "label": "Scoring",
+          "detail": "The five scores — total, emotion, fandom, longevity, support — and the destiny grade are calculated."
+        },
+        "3": {
+          "label": "Card generation",
+          "detail": "The aura type and mood keywords are layered on to build the photocard image and the five detail tabs."
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "Is it paid?",
+          "a": "No. It is a free feature that opens with sign-in alone."
+        },
+        "1": {
+          "q": "Does the result change if I enter the same details again?",
+          "a": "The same input gives the same result."
+        },
+        "2": {
+          "q": "What are the scores based on?",
+          "a": "Signals are drawn from the two charts' day-stem relation, day-branch relation, five-element balance and ten-god relations, and converted into the five scores."
+        }
       }
     },
     "openPsychoDreamModal": {
@@ -9783,30 +9871,59 @@
       }
     },
     "openKemetModal": {
-      "fallbackTitle": "古代エジプトの象徴で、今心に残る問いを映してみましょう。",
-      "tagline": "選択の答えを強要せず、現在の流れで見逃しやすいシグナルをオラクルカードのように整理します。",
-      "premiumIntro": "オラクルリーディングは正解を保証するより、質問の周りに浮かぶ象徴と感情の方向を柔らかく照らします。",
-      "fallbackCta": "オラクルを閲覧する",
+      "tagline": "Pick three cards yourself — past, present and future — from the twelve gods including Ra, Osiris, Isis and Horus, and the reading unfolds seat by seat and then as the union of the three gods, following the grain of your question.",
       "feats": {
-        "0": "決定を前に心がなかなか整理できない時",
-        "1": "今抱えている問いの象徴を見たい時",
-        "2": "短くても雰囲気のある神託型リーディングが必要な時"
+        "0": "Cards for twelve gods: Ra · Osiris · Isis · Horus · Thoth · Anubis and more",
+        "1": "Three seats — past · present · future — with all three cards chosen by you",
+        "2": "A combined reading of the union of the three gods, following the seat-by-seat interpretation",
+        "3": "A category reading matched to the grain of your question, read from where its focus lies"
       },
+      "premiumIntro": "The Nile Oracle does not draw for you. It is a rite in which you choose three cards yourself, standing before the cards of the twelve gods.",
       "premiumAudience": {
-        "0": "決定を前に心がずっとひっくり返る方",
-        "1": "短く象徴的な答えで考えを整理したい方",
-        "2": "エジプト神話の象徴に惹かれる方"
+        "0": "People drawn to the symbols of Egyptian myth",
+        "1": "People who want the ritual feel of choosing for themselves",
+        "2": "People who want their situation organized as a flow of three cards"
       },
       "premiumChapters": {
-        "0": "現在の質問に合わせた象徴メッセージ",
-        "1": "気をつけるべき流れと心構え",
-        "2": "選択のための短い現実的アドバイス",
-        "3": "決済後、既存のオラクル画面へ移動"
+        "0": "What the gods on the three seats mean",
+        "1": "The narrative running from past to future",
+        "2": "The direction the union of the three gods points to",
+        "3": "Advice matched to the grain of your question"
       },
       "premiumOutcomes": {
-        "0": "神託の結果は参考用です。",
-        "1": "既存の決済ポリシーに従います。",
-        "2": "重要な選択は現実的な判断と共に確認してください。"
+        "0": "Oracle interpretations are for reference.",
+        "1": "This content is a modern reconstruction of mythic symbolism.",
+        "2": "The existing payment policy applies."
+      },
+      "answersQuestions": {
+        "0": "Where did this situation come from and where is it going?",
+        "1": "What do the gods point to in my question right now?",
+        "2": "What attitude should I take from here?"
+      },
+      "fallbackCta": "Ask the three gods",
+      "analysisSteps": {
+        "0": {
+          "label": "Offer your question",
+          "detail": "You write the question on your mind, in three characters or more."
+        },
+        "1": {
+          "label": "Choose three cards",
+          "detail": "You pick past, present and future from the cards of the twelve gods."
+        },
+        "2": {
+          "label": "Oracle reading",
+          "detail": "The answer is organized from the seat-by-seat interpretation and the union of the three gods."
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "Are the cards drawn automatically?",
+          "a": "No. You choose three of the twelve gods' cards yourself."
+        },
+        "1": {
+          "q": "Can I see the result again?",
+          "a": "There is no separate save feature, so it is an oracle you read on the spot."
+        }
       }
     },
     "rpt_healthReportCard": {
@@ -9890,113 +10007,120 @@
         "2": "既存の決済ポリシーに従います。"
       }
     },
-    "animal-destiny-unlock": {
-      "fallbackTitle": "自分の四柱推命の十二運星エネルギーがどんな動物アーキタイプで表現されるのか出会ってみましょう。",
-      "tagline": "四柱推命の基本の流れを動物の性向に翻訳し、性格・恋愛・職業・関係・今日のミッションを一度に整理するレポートです。",
-      "premiumIntro": "動物テストは実際の変身を保証せず、自分の四柱推命エネルギーがどの動物の本能に一番近いかを楽しく読んでくれます。",
-      "fallbackCta": "守護動物を召喚する",
-      "feats": {
-        "0": "自分の四柱推命の性格をより直感的な動物で理解したい時",
-        "1": "十二運星の意味を動物の行動で生き生きと学びたい時",
-        "2": "性格・恋愛・職業の3つの角度から同時に分析されたい時"
-      },
-      "premiumAudience": {
-        "0": "相手との第一印象の相性が気になる方",
-        "1": "顔の印象で性向を見たい方",
-        "2": "軽く笑いながら見られる相性を探している方"
-      },
-      "premiumChapters": {
-        "0": "自分の守護動物アーキタイプの確定",
-        "1": "動物の性向に基づく性格・恋愛・職業分析",
-        "2": "関係相性の動物タイプの整理",
-        "3": "今日の行動ミッションと避けるべきパターン"
-      },
-      "premiumOutcomes": {
-        "0": "テストは参考用の分析です。",
-        "1": "動物は象徴であり性格分類の絶対基準ではありません。",
-        "2": "既存の決済ポリシーに従います。"
-      }
-    },
     "openJuyukModal": {
-      "fallbackTitle": "亀の甲羅を割って出た卦で、今の状況の形勢を読みます。",
-      "tagline": "六十四卦のうち今の立場に当たる卦を引き、進むべき時と止まるべき時を見分ける東洋古典占法です。",
-      "premiumIntro": "亀卜は吉凶を通知するのではなく、今がどの局面かとその局面で取るべき態度を教えます。",
-      "fallbackCta": "亀卜を見る",
+      "tagline": "Offer a question, pass through the turtle-shell rite, and one of the sixty-four hexagrams opens, with the shape of the situation read along five strands: love, career, money, exams and contracts.",
       "feats": {
-        "0": "今押すべきか待つべきか分からない時",
-        "1": "状況がどの段階に来ているか知りたい時",
-        "2": "昔ながらの重みのある助言が必要な時"
+        "0": "Interpretations for all sixty-four hexagrams, from Qian to Wei Ji",
+        "1": "The shape of substance and function, read from the relation of upper and lower trigrams",
+        "2": "Readings along five strands: love and bonds / career and achievement / money and dealings / exams and reviews / documents and contracts",
+        "3": "A turtle-shell rite that mirrors the energy of your question"
       },
+      "premiumIntro": "Turtle-shell divination does not announce good or bad luck; it tells you which phase you are in and what stance to take within it.",
       "premiumAudience": {
-        "0": "進退を決めるべき岐路に立つ方",
-        "1": "物事の時機を見極めたい方",
-        "2": "軽い占いより古典的な解釈を望む方"
+        "0": "People standing at a fork, having to decide whether to advance or withdraw",
+        "1": "People who want to gauge the timing of a matter",
+        "2": "People who want a classical reading rather than a light one"
       },
       "premiumChapters": {
-        "0": "今の状況に当たる卦とその意味",
-        "1": "進むべき時と止まるべき時の区別",
-        "2": "変爻が指し示す次の局面",
-        "3": "現実で取るべき具体的な態度"
+        "0": "The hexagram matching your situation and what it means",
+        "1": "Telling the time to advance from the time to stop",
+        "2": "The shape of the situation across five strands",
+        "3": "The concrete stance to take in practice"
       },
       "premiumOutcomes": {
-        "0": "占卦は参考用です。",
-        "1": "既存の決済ポリシーに従います。",
-        "2": "重要な選択は現実的な判断と共に確認してください。"
+        "0": "The divination is for reference.",
+        "1": "Please check important choices against practical judgement as well.",
+        "2": "The existing payment policy applies."
+      },
+      "answersQuestions": {
+        "0": "Can I push this forward now?",
+        "1": "What is the shape of this contract or exam?",
+        "2": "Is this a time to advance, or to step back?"
+      },
+      "fallbackCta": "Cast the turtle shell",
+      "analysisSteps": {
+        "0": {
+          "label": "Offer your question",
+          "detail": "You write the question on your mind."
+        },
+        "1": {
+          "label": "The shell rite",
+          "detail": "The turtle shell cracks and the hexagram is decided."
+        },
+        "2": {
+          "label": "Reading the shape",
+          "detail": "The situation is read through the hexagram's meaning, substance and function, and the five strands."
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "Does the hexagram change with the question?",
+          "a": "The hexagram is decided at the moment of the rite, and the question you write is used to match the strands of the reading."
+        },
+        "1": {
+          "q": "Can I see the result again?",
+          "a": "There is no separate save feature, so it is a divination you read on the spot."
+        }
       }
     },
     "openIfaOracle": {
-      "fallbackTitle": "西アフリカのイファ（IFÀ）のオドゥで、今あなたに必要なメッセージを受け取ります。",
-      "tagline": "256のオドゥのうち一つが開かれ、その中に込められた物語とタブーが今の状況に対応する答えになります。",
-      "premiumIntro": "イファ神託は予言を並べるより、今あなたが守るべきものと手放すべきものを指摘します。",
-      "fallbackCta": "イファ神託を閲覧する",
+      "tagline": "Following the West African Yoruba Ifá method, 16 base Odu pair up to form 256 oracles, and the story and taboos inside the one that opens become the answer to your situation.",
       "feats": {
-        "0": "馴染みの方式の助言がもう響かない時",
-        "1": "自分が見逃しているタブーがあるか気になる時",
-        "2": "見慣れない伝統の視点で状況を見たい時"
+        "0": "A system of 256 oracles formed by pairing the 16 base Odu",
+        "1": "A tailored reading along four strands: overall / love and relationships / money and business / health and inner life",
+        "2": "A sequential reveal rite in which the opele chain opens the eight positions one by one",
+        "3": "Guidance on rites and taboos delivered with the oracle",
+        "4": "Download the result as a text file to keep"
       },
+      "premiumIntro": "The Ifá oracle does not lay out prophecies; it points to what you should keep and what you should let go of right now.",
       "premiumAudience": {
-        "0": "ありふれた運勢の方式に飽きた方",
-        "1": "自分が破っている原則が何か知りたい方",
-        "2": "他の文化圏の解釈を経験したい方"
+        "0": "People bored with the usual fortune formats",
+        "1": "People who want to know which of their own principles they are breaking",
+        "2": "People who want to experience a reading from another culture"
       },
       "premiumChapters": {
-        "0": "開かれたオドゥとその中の物語",
-        "1": "今の状況に対応するメッセージ",
-        "2": "守るべきタブーと避けるべき態度",
-        "3": "日常で実践する具体的な行動"
+        "0": "The Odu that opened and the story inside it",
+        "1": "The message that answers your situation now",
+        "2": "The taboos to keep and the attitudes to avoid",
+        "3": "Concrete actions to practise day to day"
       },
       "premiumOutcomes": {
-        "0": "神託の結果は参考用です。",
-        "1": "既存の決済ポリシーに従います。",
-        "2": "伝統的解釈を現代的に再構成したコンテンツです。"
+        "0": "Oracle results are for reference.",
+        "1": "This content is a modern reconstruction of a traditional reading.",
+        "2": "The existing payment policy applies."
+      },
+      "answersQuestions": {
+        "0": "Can I go ahead with this now?",
+        "1": "What should I be careful of?",
+        "2": "Which strand of fortune should I look at first?"
+      },
+      "fallbackCta": "Open the Ifá oracle",
+      "analysisSteps": {
+        "0": {
+          "label": "Choose a strand",
+          "detail": "You pick the strand of your question from overall · love · money · health."
+        },
+        "1": {
+          "label": "Open the eight positions",
+          "detail": "The opele chain opens the eight positions in turn."
+        },
+        "2": {
+          "label": "Odu reading",
+          "detail": "You receive the story of the Odu that opened, with its taboos and practice guidance."
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "Are all 256 different?",
+          "a": "The meanings of the 16 base Odu combine in pairs, so the message differs according to which pair opens."
+        },
+        "1": {
+          "q": "Can I keep the result?",
+          "a": "You can download it as a text file from the result screen and keep it."
+        }
       }
     },
     "openRuneOracle": {
-      "fallbackTitle": "石に刻まれたルーン三つで、通ってきた場所・今の場所・次の場所を指し示します。",
-      "tagline": "北欧のルーン文字を過去・現在・未来の三つの位置に置き、流れの方向とつまずきを一度に読むリーディングです。",
-      "premiumIntro": "ルーンリーディングは運命を通知するのではなく、今の位置から次の位置へ移る条件を教えてくれます。",
-      "fallbackCta": "ルーンオラクルを閲覧する",
-      "feats": {
-        "0": "今の状況がどこから始まったか分からない時",
-        "1": "同じ場所に止まっていると感じる時",
-        "2": "次の局面を短く確実に確認したい時"
-      },
-      "premiumAudience": {
-        "0": "流れを過去・現在・未来に分けて見たい方",
-        "1": "短くても重みのあるアドバイスを望む方",
-        "2": "北欧の象徴体系に惹かれる方"
-      },
-      "premiumChapters": {
-        "0": "三つの位置に置かれたルーンとそれぞれの意味",
-        "1": "今の流れを塞いでいるつまずき",
-        "2": "次の局面へ移る条件",
-        "3": "ルーンが勧める具体的な態度"
-      },
-      "premiumOutcomes": {
-        "0": "ルーン解釈は参考用です。",
-        "1": "既存の決済ポリシーに従います。",
-        "2": "未来を確定したり保証したりしません。"
-      },
       "badge": "ルーンリーディング",
       "headline": "今の選択の前に浮かんだルーンの象徴を、静かに広げてみてください。",
       "resultPreview": {
@@ -10007,141 +10131,390 @@
         },
         "caption": "実際のルーンオラクル結果の冒頭例です。決済後は三つのルーンの全体解釈と組み合わせの読み解きを確認できます。"
       },
-      "hubTagline": "ルーン文字の象徴で、今の問いと次の行動の質感を読むオラクルリーディングです。"
-    },
-    "openGeomancyOracle": {
-      "fallbackTitle": "点を打って作った図形で、現実の条件を計算するように読みます。",
-      "tagline": "中世ヨーロッパで使われたジオマンシー図形十六個を配置し、感情より状況と条件を先に見極める占法です。",
-      "premiumIntro": "ジオマンシーは心を慰めるより、今の条件が有利か不利かを先に計算します。",
-      "fallbackCta": "土占を閲覧する",
+      "hubTagline": "ルーン文字の象徴で、今の問いと次の行動の質感を読むオラクルリーディングです。",
+      "tagline": "A 25-rune system — the 24 runes plus the blank rune Wyrd — reads the flow across three seats, past Urd · present Verdandi · future Skuld, splitting each rune into upright and reversed.",
       "feats": {
-        "0": "感情の慰めより現実的な判断が必要な時",
-        "1": "条件と変数を整理してみたい時",
-        "2": "結果の可能性を冷静に見たい時"
+        "0": "A 25-rune system: the 24 runes plus the blank rune Wyrd",
+        "1": "A three-seat layout of the three Norns: past Urd · present Verdandi · future Skuld",
+        "2": "Upright and reversed interpretations, split for each rune",
+        "3": "The special reading of the blank rune Wyrd — the signal that nothing is settled yet"
       },
+      "premiumIntro": "A three-rune reading does not nail the answer down; it lights up your present choice through the flow of three seats — past, present and future.",
       "premiumAudience": {
-        "0": "慰めより計算が必要な方",
-        "1": "お金・契約・移動のように条件が絡む問題を持つ方",
-        "2": "図形とルールがある占法を好む方"
+        "0": "People who want to experience a symbol system other than tarot",
+        "1": "People who want the context before and after the flow",
+        "2": "People who want a short, dense three-seat reading"
       },
       "premiumChapters": {
-        "0": "質問に配置された図形とその性質",
-        "1": "有利な条件と不利な条件の区別",
-        "2": "物事が成る可能性の方向",
-        "3": "現実で調整すべき変数"
+        "0": "The runes on the three seats and the interpretation for each",
+        "1": "The meanings that upright and reversed split apart",
+        "2": "The flow that runs from the past into the present",
+        "3": "How to meet the road ahead"
       },
       "premiumOutcomes": {
-        "0": "占法の解釈は参考用です。",
-        "1": "既存の決済ポリシーに従います。",
-        "2": "投資・契約の判断の代わりにはなりません。"
+        "0": "Rune interpretations are for reference.",
+        "1": "It does not fix the future.",
+        "2": "The existing payment policy applies."
+      },
+      "answersQuestions": {
+        "0": "Where did this flow begin?",
+        "1": "Where am I standing right now?",
+        "2": "Which way does the road ahead go?"
+      },
+      "fallbackCta": "Open three runes",
+      "analysisSteps": {
+        "0": {
+          "label": "Check the spread",
+          "detail": "The reading runs on the three-seat layout: past · present · future."
+        },
+        "1": {
+          "label": "Open three runes",
+          "detail": "Runes are placed on the Urd, Verdandi and Skuld seats."
+        },
+        "2": {
+          "label": "Read the flow",
+          "detail": "You read the seat-by-seat interpretation and what upright or reversed means."
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "Are there reversed readings too?",
+          "a": "Yes. Runes whose shape is symmetrical, and the blank rune Wyrd, are read upright only."
+        },
+        "1": {
+          "q": "Can I see the result again?",
+          "a": "There is no separate save feature, so it is a reading you check on the spot."
+        }
+      }
+    },
+    "openGeomancyOracle": {
+      "tagline": "Sixteen figures from Via to Populus build a 15-position shield chart running through Mothers, Daughters, Nieces and Witnesses to the Judge, and AI reads out cause, flow and oracle on the grounds of the figures alone.",
+      "feats": {
+        "0": "A system of 16 geomantic figures: Via · Populus · Puer and the rest",
+        "1": "A 15-position shield chart: 4 Mothers · 4 Daughters · 4 Nieces · 2 Witnesses, reaching the Judge",
+        "2": "An AI reading that brings cause, flow and oracle together on the grounds of the figures alone",
+        "3": "A 7-day · 21-day · 40-day time axis with actions you can take straight away"
+      },
+      "premiumIntro": "Geomancy is a Western tradition that raises figures from marked points and reads, as a structure, whether the question favours you.",
+      "premiumAudience": {
+        "0": "People facing a decision who want to weigh what favours them",
+        "1": "People who want to experience a structural divination",
+        "2": "People curious about a system other than tarot or astrology"
+      },
+      "premiumChapters": {
+        "0": "The whole 15-position shield chart",
+        "1": "What the Judge figure — which settles the core — means",
+        "2": "A combined reading linking cause · flow · oracle",
+        "3": "Cautions and suggested actions by time axis"
+      },
+      "premiumOutcomes": {
+        "0": "The reading is written by AI and is for reference.",
+        "1": "It does not stand in for investment or contract decisions.",
+        "2": "The existing payment policy applies."
+      },
+      "answersQuestions": {
+        "0": "Does the shape of this matter favour me or not?",
+        "1": "Where does the cause of the problem lie?",
+        "2": "Around when does the flow start to move?"
+      },
+      "fallbackCta": "Raise the shield chart",
+      "analysisSteps": {
+        "0": {
+          "label": "Enter your question",
+          "detail": "You write the question you want cast."
+        },
+        "1": {
+          "label": "Raise the chart",
+          "detail": "The marked points become the 16 figures and stack into the 15-position shield chart."
+        },
+        "2": {
+          "label": "AI combined reading",
+          "detail": "Cause · flow · oracle and the suggested actions are organized on the grounds of the figures."
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "How is the reading produced?",
+          "a": "AI writes the reading on the grounds of the raised figures alone; if generation does not go smoothly, a prepared interpretation is used instead."
+        },
+        "1": {
+          "q": "Can I see the result again?",
+          "a": "There is no separate save feature, so it is a reading you check on the spot."
+        }
       }
     },
     "openRoyalTeaOracle": {
-      "fallbackTitle": "カップに残った茶葉が描く形で、今の気分と近い出来事を読みます。",
-      "tagline": "英国式ティーリーディングの方式でカップの縁・中間・底に残った形を分け、近い日々の雰囲気を指し示します。",
-      "premiumIntro": "紅茶占いは人生を決定せず、今日と近い数日の結を軽やかに照らします。",
-      "fallbackCta": "紅茶占いを閲覧する",
+      "tagline": "Fourteen tea-leaf shapes meet five question areas to make seventy strands of reading, and the cup's rim, wall and bottom divide the timing — a British tea-leaf reading.",
       "feats": {
-        "0": "重くならずに気分を換気したい時",
-        "1": "近い数日の雰囲気が気になる時",
-        "2": "お茶一杯の余裕のようなリーディングを望む時"
+        "0": "14 tea-leaf shapes × 5 question areas (love and bonds / work and career / money and wealth / relationships and family / change and choice) = 70 strands of reading",
+        "1": "Timing read across three seats: rim (now-2 weeks) · wall (2 weeks-3 months) · bottom (after 3 months)",
+        "2": "Feeling and practical advice that also weighs the four directions a shape sits in and its three levels of density",
+        "3": "The same input gives the same cup for one day — a daily reading that is brewed anew when the date turns"
       },
+      "premiumIntro": "Tea-leaf reading is a European tradition that reads the traces left in a finished cup, taking the grain of the coming three months in three seats.",
       "premiumAudience": {
-        "0": "重い相談より軽い気分転換が必要な方",
-        "1": "近い日々の雰囲気だけ知りたい方",
-        "2": "かわいらしいリーディングが好きな方"
+        "0": "People curious about the flow of the near future",
+        "1": "People who want one cup a day, read like a ritual",
+        "2": "People who love the romance of British teatime"
       },
       "premiumChapters": {
-        "0": "カップの位置別に分けた茶葉の形",
-        "1": "近い数日の雰囲気",
-        "2": "心が傾く方向",
-        "3": "今日心がけると良い小さな習慣"
+        "0": "The shapes formed in the cup and the reading for each seat",
+        "1": "Timing divided into rim · wall · bottom",
+        "2": "The grain that direction and density add",
+        "3": "The practical advice today's cup offers"
       },
       "premiumOutcomes": {
-        "0": "リーディングの結果は参考用です。",
-        "1": "既存の決済ポリシーに従います。",
-        "2": "軽い気分転換のためのコンテンツです。"
+        "0": "The tea-leaf reading is for reference.",
+        "1": "It does not fix the future.",
+        "2": "The existing payment policy applies."
+      },
+      "answersQuestions": {
+        "0": "What moves in the next couple of weeks?",
+        "1": "Will the answer to this question come within three months?",
+        "2": "What advice do I need today?"
+      },
+      "fallbackCta": "Open today's cup",
+      "analysisSteps": {
+        "0": {
+          "label": "Choose an area",
+          "detail": "You pick from the five areas: love · work · money · relationships · change."
+        },
+        "1": {
+          "label": "Brew the cup",
+          "detail": "The tea-leaf shapes form in today's cup."
+        },
+        "2": {
+          "label": "Read three seats",
+          "detail": "You read the shapes at the rim, wall and bottom, with their direction and density."
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "Does the result change every time I look?",
+          "a": "With the same input you get the same cup on the same day, and it is brewed anew when the date turns."
+        },
+        "1": {
+          "q": "Can I see the result again?",
+          "a": "There is no save-to-account feature, but within the same day the same input brings back the same cup."
+        }
       }
     },
     "openOlympusOracleModal": {
-      "fallbackTitle": "オリュンポスの十二神のうち、今あなたの味方についた神が誰か確認します。",
-      "tagline": "質問の性質によって応える神が変わり、その神の性情がそのまま今取るべき態度になります。",
-      "premiumIntro": "オリュンポス神託は勝敗を予告せず、今どんな方式で戦うべきかを教えます。",
-      "fallbackCta": "オリュンポス神託を閲覧する",
+      "tagline": "Each star sign has its own Greek god as guardian, and today's oracle opens anew each day on top of a planetary layout based on the Swiss Ephemeris.",
       "feats": {
-        "0": "どんな方式で押し進めるべきか分からない時",
-        "1": "自分の強みをどこに使うべきか迷う時",
-        "2": "物語のあるリーディングを経験したい時"
+        "0": "A fixed Greek guardian for each of the twelve signs — Hades, Kronos and Prometheus among them",
+        "1": "The positions of eight planets, calculated with the Swiss Ephemeris",
+        "2": "Sections with names of their own: Hard Truth Alert · Aphrodite's Pick · Surviving the Olympus Office",
+        "3": "Today's oracle, which changes with the date",
+        "4": "Open it once and keep it for good — re-enter any time"
       },
+      "premiumIntro": "The Olympus Oracle is a temple that reads your day in the voice of your guardian, rather than in solemn prophecy.",
       "premiumAudience": {
-        "0": "自分の強みをどう使うか決めたい方",
-        "1": "神話的な物語のあるリーディングが好きな方",
-        "2": "一度解錠して繰り返し開いてみたい方"
+        "0": "People who enjoy star-sign readings",
+        "1": "People who want a reading with a humorous tone",
+        "2": "People who want new content every day"
       },
       "premiumChapters": {
-        "0": "質問に応えた神とその性情",
-        "1": "今あなたに求められる態度",
-        "2": "避けるべき傲慢さと焦り",
-        "3": "神話が贈る具体的なアドバイス"
+        "0": "Your sign's guardian profile and oracle",
+        "1": "The grain of today, lit by the planetary layout",
+        "2": "Pointed advice wrapped in humour",
+        "3": "A permanent unlock, with a new oracle each day"
       },
       "premiumOutcomes": {
-        "0": "神託の結果は参考用です。",
-        "1": "解錠後は再び閲覧できます。",
-        "2": "重要な選択は現実的な判断と共に確認してください。"
+        "0": "The interpretation mixes in humour and is for reference.",
+        "1": "It does not fix the future.",
+        "2": "The existing payment policy applies."
+      },
+      "answersQuestions": {
+        "0": "Who is my star sign's guardian?",
+        "1": "What kind of day does today's planetary layout make for me?",
+        "2": "What would my guardian say to me right now?"
+      },
+      "fallbackCta": "Enter the temple for good",
+      "analysisSteps": {
+        "0": {
+          "label": "Find your sign",
+          "detail": "Your birthday sets your star sign and its guardian."
+        },
+        "1": {
+          "label": "Planetary layout",
+          "detail": "The positions of eight planets are calculated with the Swiss Ephemeris."
+        },
+        "2": {
+          "label": "Today's oracle",
+          "detail": "Today's oracle opens in the voice of your guardian."
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "How is the guardian decided?",
+          "a": "Each star sign has its own Greek god assigned, so identifying your sign settles your guardian."
+        },
+        "1": {
+          "q": "If I pay once, can I keep viewing it?",
+          "a": "Yes. It is a permanent unlock, so you can re-enter any time, and the oracle opens anew with the date."
+        }
       }
     },
     "openNevilleMeditationPage": {
-      "fallbackTitle": "心は急いでいるのに現実の感覚が揺らぐ時、一度呼吸を整えてみましょう。",
-      "tagline": "ネヴィル・ゴダードの想像訓練の流れに沿って、望む場面を落ち着いて感じてみる瞑想実習です。",
-      "premiumIntro": "ネヴィル瞑想は現実の変化を保証せず、自分が掴みたい感覚を落ち着いて練習する時間です。",
-      "fallbackCta": "瞑想実習を開く",
+      "tagline": "Choose the 30-minute course in 4 stages or the 60-minute course in 5, and the guidance lines appear in order, on a second-by-second timetable.",
       "feats": {
-        "0": "望む方向はあるのに感情がついてこない時",
-        "1": "不安な考えをしばらく下ろしたい時",
-        "2": "繰り返される自己疑念を柔らかく整理したい時"
+        "0": "Choose between the 30-minute course (4 stages) and the 60-minute course (5 stages)",
+        "1": "30 minutes: rapid relaxation → entering pure awareness → the core loop (SATS) → fixing it and returning",
+        "2": "60 minutes: preparation and alignment → progressive relaxation → the state of emptiness (SATS) → imagining from within the result → setting the feeling and returning",
+        "3": "Across both courses, 242 guidance lines are prepared on a second-by-second timetable",
+        "4": "The background music changes with each stage"
       },
+      "premiumIntro": "It does not simply tell you what to imagine; it guides you second by second on what to do at which minute.",
       "premiumAudience": {
-        "0": "望む場面を具体的に描きにくい方",
-        "1": "瞑想を始めても毎回うやむやになった方",
-        "2": "実習の順序を教えてほしい方"
+        "0": "People who want to follow SATS in order",
+        "1": "People whose flow breaks when practising alone",
+        "2": "People who want to finish the practice within a set time"
       },
       "premiumChapters": {
-        "0": "ガイド型瞑想の流れ",
-        "1": "想像の場面を安定して掴む段階",
-        "2": "瞑想後に心を整理する時間",
-        "3": "決済後、既存の瞑想画面へ移動"
+        "0": "The whole guided course, 30 minutes or 60",
+        "1": "Stage-by-stage guidance on a second-by-second timetable",
+        "2": "Background music that changes with the stage",
+        "3": "A session you simply follow, without watching the clock"
       },
       "premiumOutcomes": {
-        "0": "瞑想の経験は個人によって異なる場合があります。",
-        "1": "健康・心理治療の代わりにはなりません。",
-        "2": "既存の決済ポリシーに従います。"
+        "0": "The meditation experience can differ from person to person.",
+        "1": "It does not replace medical or psychological treatment.",
+        "2": "The 30-minute and 60-minute courses are priced differently."
+      },
+      "answersQuestions": {
+        "0": "In what order do I do SATS?",
+        "1": "How long should one session be?",
+        "2": "What should I focus on at each stage?"
+      },
+      "fallbackCta": "Open the meditation practice",
+      "analysisSteps": {
+        "0": {
+          "label": "Choose a course",
+          "detail": "You pick between 30 minutes (4 stages) and 60 minutes (5 stages)."
+        },
+        "1": {
+          "label": "Relaxation",
+          "detail": "You are guided into letting the body go until awareness settles."
+        },
+        "2": {
+          "label": "SATS practice",
+          "detail": "The core stretch, in which you repeatedly picture the scene you want, in the state just before sleep."
+        },
+        "3": {
+          "label": "Fixing and returning",
+          "detail": "You set that feeling and come back to waking awareness."
+        }
+      },
+      "valueCompare": {
+        "0": {
+          "axis": "Course length",
+          "premium": "30 minutes in 4 stages, or 60 minutes in 5"
+        },
+        "1": {
+          "axis": "Guidance",
+          "premium": "Stage-by-stage lines on a second-by-second timetable"
+        },
+        "2": {
+          "axis": "Background music",
+          "premium": "Switches automatically with each stage"
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "What is different between 30 and 60 minutes?",
+          "a": "30 minutes has 4 stages, 60 minutes has 5. The 60-minute course has a longer relaxation stretch and a separate stage for staying inside the result."
+        },
+        "1": {
+          "q": "Is it all right if this is my first meditation?",
+          "a": "The guidance lines tell you what to do as the time passes, so you only need to follow along."
+        },
+        "2": {
+          "q": "Are the two courses the same price?",
+          "a": "No. The 60-minute course costs more than the 30-minute one."
+        }
       }
     },
     "openYogaGuru": {
-      "fallbackTitle": "体と心の流れを一度均等に整えてみましょう。",
-      "tagline": "現在の状態に合わせてエネルギーとルーティンを見つめるヨガガイド型機能です。",
-      "premiumIntro": "ヨガガイドは効果を保証せず、今日の体と心を整えるのに参考になるルーティンを提案します。",
-      "fallbackCta": "ヨガガイドを開く",
+      "tagline": "Choose 30 or 60 minutes and it builds one continuous piece — the order of the poses and the breathing guidance, from warm-up to closing relaxation.",
       "feats": {
-        "0": "体の緊張と心の散漫さが一緒に感じられる時",
-        "1": "今日どんなルーティンで始めるか選びたい時",
-        "2": "気を穏やかに転換する実践が必要な時"
+        "0": "Choose the session length: 30 minutes or 60",
+        "1": "The sequence is built in order: warm-up · asana · pranayama · meditation · relaxation",
+        "2": "Every pose shows its Sanskrit name, its English and Korean names, and the hold time",
+        "3": "Every pose comes with 3 lines of guidance, the breathing method, the physical effect, the mental meaning and cautions",
+        "4": "Difficulty (beginner · intermediate · advanced), the focus area and the chakra theme are set out together",
+        "5": "The session closes with a final mantra",
+        "6": "If the course cannot be generated, the amount used is refunded automatically"
       },
+      "premiumIntro": "This is not a list of pre-made videos; the sequence is built on the spot from the conditions you choose and shown to you as a document.",
       "premiumAudience": {
-        "0": "体が固まって瞑想の姿勢からつらい方",
-        "1": "自分の体質に合った呼吸法を探している方",
-        "2": "短くても毎日続けられるルーティンが必要な方"
+        "0": "People who want to follow a set order",
+        "1": "People who want to learn the pose names alongside the breathing",
+        "2": "People who want to practise within a fixed time"
       },
       "premiumChapters": {
-        "0": "現在のエネルギータイプの確認",
-        "1": "アーサナと瞑想ルーティンの案内",
-        "2": "チャクラの流れを参考にした整理文",
-        "3": "決済後、既存のヨガ画面へ移動"
+        "0": "The full sequence, 30 minutes or 60",
+        "1": "Each pose's name, hold time and 3 lines of guidance",
+        "2": "Breathing methods and cautions",
+        "3": "Difficulty, focus area and chakra theme",
+        "4": "The closing mantra"
       },
       "premiumOutcomes": {
-        "0": "医学的アドバイスではなく、無理な動作は避けてください。",
-        "1": "既存の決済ポリシーに従います。",
-        "2": "体の状態に合わせて安全に確認してください。"
+        "0": "This is not medical advice; please avoid straining into any pose.",
+        "1": "Please work safely, in line with the state of your body.",
+        "2": "The 30-minute and 60-minute sessions are priced differently."
+      },
+      "answersQuestions": {
+        "0": "What order should I practise in today?",
+        "1": "How should I breathe in this pose?",
+        "2": "How far can I get in 30 minutes?"
+      },
+      "fallbackCta": "Open the yoga guide",
+      "analysisSteps": {
+        "0": {
+          "label": "Choose conditions",
+          "detail": "You pick the session length (30 or 60 minutes) and the direction you want."
+        },
+        "1": {
+          "label": "Build the sequence",
+          "detail": "The order of poses from warm-up to closing relaxation is laid out, with the hold time for each."
+        },
+        "2": {
+          "label": "Write the guidance",
+          "detail": "Every pose gets 3 lines of guidance, the breathing method, the physical effect, the mental meaning and cautions."
+        },
+        "3": {
+          "label": "Close",
+          "detail": "Difficulty, focus area and chakra theme are set out, and the closing mantra ends the session."
+        }
+      },
+      "valueCompare": {
+        "0": {
+          "axis": "Session length",
+          "premium": "30 minutes or 60"
+        },
+        "1": {
+          "axis": "Structure",
+          "premium": "The full run: warm-up · asana · pranayama · meditation · relaxation"
+        },
+        "2": {
+          "axis": "Pose guidance",
+          "premium": "Name · hold time · 3 lines of guidance · breathing · cautions"
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "Do I get the same order every time?",
+          "a": "It is built afresh each time, to the conditions you choose."
+        },
+        "1": {
+          "q": "Is it all right if this is my first time doing yoga?",
+          "a": "Difficulty is marked beginner, intermediate or advanced, and every pose comes with its cautions."
+        },
+        "2": {
+          "q": "What happens if generation fails?",
+          "a": "If the course cannot be built, the amount used is refunded automatically."
+        }
       }
     },
     "life_book_ai": {
@@ -10312,9 +10685,10 @@
       "fallbackCta": "恋愛秘策を閲覧する",
       "ctaNote": "決済後、関係分析全体が開きます。",
       "feats": {
-        "0": "相手の本心がどうしても掴めない時",
-        "1": "駆け引きのタイミングを毎回逃す時",
-        "2": "この縁を掴むべきか手放すべきか確信が持てない時"
+        "0": "Reads your love style, strengths, weaknesses, and attachment pattern from your own chart, item by item",
+        "1": "Enter the other person's birth details and it also computes compatibility, ideal type, and emotional distance",
+        "2": "Presents this year's love fortune together with favorable dates picked from the calculated daily energy",
+        "3": "Sensitive topics — reunion conditions, infidelity, self-protection — are split into their own sections"
       },
       "premiumAudience": {
         "0": "相手の本心を確認する方法がなく疲れてきた方",
@@ -10470,31 +10844,6 @@
       }
     },
     "saju_destiny_meeting_place": {
-      "fallbackTitle": "自分の縁が留まりやすい場所の結を見つめてみましょう。",
-      "tagline": "四柱推命の流れを基に、縁と場所、タイミングの象徴を整理するリーディングです。",
-      "premiumIntro": "縁の場所は出会いを保証せず、自分の流れとよく合う場所の象徴を参考にできるよう整理します。",
-      "fallbackCta": "縁の場所を閲覧する",
-      "feats": {
-        "0": "新しい出会いの雰囲気が気になる時",
-        "1": "自分が落ち着く場所の結を知りたい時",
-        "2": "縁の流れをより具体的なイメージで見たい時"
-      },
-      "premiumAudience": {
-        "0": "どこで縁に出会うか感覚がつかめない方",
-        "1": "活動範囲を変えてみる考えがある方",
-        "2": "出会いの時期と場所を一緒に見たい方"
-      },
-      "premiumChapters": {
-        "0": "縁と場所の象徴解釈",
-        "1": "タイミングと雰囲気のキーワード",
-        "2": "関係が開きやすい環境のヒント",
-        "3": "決済後、既存の縁の場所画面へ移動"
-      },
-      "premiumOutcomes": {
-        "0": "実際の出会いや結果を保証しません。",
-        "1": "既存の決済ポリシーに従います。",
-        "2": "運勢の結果は参考用です。"
-      },
       "badge": "場所リーディング",
       "headline": "自分の縁がとどまりやすい場所の質感を見てみてください。",
       "resultPreview": {
@@ -10504,6 +10853,85 @@
           "2": "人が集まる時期よりも、一拍ずれた時期に出会いが決まります。"
         },
         "caption": "実際の「縁の場所」結果の冒頭例です。決済後は、ご本人の四柱で計算された場所・方位・時期の解釈を確認できます。"
+      },
+      "tagline": "5 recommended places, 5 countries and 4 types of encounter, set out with the season, month and time band, and the items that draw a bond.",
+      "feats": {
+        "0": "Picks 5 recommended places and 5 recommended countries",
+        "1": "Suggests 4 types of encounter",
+        "2": "Narrows the lucky timing to 3 seasons · 4 months · 3 time bands",
+        "3": "Gives 5 bond-drawing items along with a styling guide",
+        "4": "Sets out separately the settings to avoid and an action plan",
+        "5": "Includes 7 prompts for generating images"
+      },
+      "premiumIntro": "Instead of vague advice, it narrows place, country, type and timing into lists. The result is calculated from the birth details you enter.",
+      "premiumAudience": {
+        "0": "People who want to settle on a concrete setting for meeting someone",
+        "1": "People who want to narrow down when to move",
+        "2": "People who want what to bring and how to dress included"
+      },
+      "premiumChapters": {
+        "0": "5 recommended places · 5 countries",
+        "1": "4 types of encounter and the lucky timing",
+        "2": "Bond-drawing items and the styling guide",
+        "3": "Settings to avoid and the action plan",
+        "4": "The 7 prompts"
+      },
+      "premiumOutcomes": {
+        "0": "It does not guarantee any actual meeting or outcome.",
+        "1": "The result is calculated from the birth details you enter.",
+        "2": "Fortune results are for reference."
+      },
+      "answersQuestions": {
+        "0": "In what kind of setting does a bond open up for me?",
+        "1": "When would be a good time to move?",
+        "2": "What should I carry to a meeting?"
+      },
+      "fallbackCta": "Open the places of destiny",
+      "analysisSteps": {
+        "0": {
+          "label": "Enter birth details",
+          "detail": "Your chart is calculated from your birth date and time."
+        },
+        "1": {
+          "label": "Read the energy",
+          "detail": "The direction and grain in which bonds open are drawn from the five-element layout."
+        },
+        "2": {
+          "label": "Pick places and timing",
+          "detail": "5 places, 5 countries, 4 types and the season, month and time band matching that grain are chosen."
+        },
+        "3": {
+          "label": "Write the plan",
+          "detail": "The bond-drawing items, styling, settings to avoid and the action plan are set out together."
+        }
+      },
+      "valueCompare": {
+        "0": {
+          "axis": "Recommendation range",
+          "premium": "5 places · 5 countries · 4 types of encounter"
+        },
+        "1": {
+          "axis": "Timing",
+          "premium": "3 seasons · 4 months · 3 time bands"
+        },
+        "2": {
+          "axis": "Preparation",
+          "premium": "5 items · styling · settings to avoid · action plan"
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "Does the result take long to arrive?",
+          "a": "There is no generation wait; it is calculated from the birth details you enter and shown straight away."
+        },
+        "1": {
+          "q": "Do overseas places come up too?",
+          "a": "5 recommended countries come with it."
+        },
+        "2": {
+          "q": "What are the prompts for?",
+          "a": "They are 7 prepared lines for turning the scenes you were given into images."
+        }
       }
     },
     "rpt_specialCharmCard": {
@@ -10870,30 +11298,59 @@
       }
     },
     "openSajuGuardianPage": {
-      "fallbackTitle": "あなたの四柱推命を守る守護動物とその力を召喚します。",
-      "tagline": "命式に宿った気を十二動物の象徴で解き明かし、自分を守る守護神とその能力を見せる分析です。",
-      "premiumIntro": "四柱推命守護神は漠然としたお守りではなく、自分の命式がどんな動物の気で守られているかを象徴で解き明かします。",
-      "fallbackCta": "守護神を召喚する",
+      "tagline": "The day pillar of your birth decides your guardian among the sixty jiazi, and the same chart always summons the same figure. Five panels of reading and a talisman pouch open with it.",
       "feats": {
-        "0": "自分の四柱推命の頼もしい後ろ盾が気になる時",
-        "1": "生まれ持った保護の気と弱点を知りたい時",
-        "2": "自分を守る象徴を身近に置きたい時"
+        "0": "60 guardian characters, following the sixty jiazi exactly",
+        "1": "The same chart, the same figure — your guardian drawn by AI",
+        "2": "Five panels: the core guardian seal · handling relationships, work and money · today's fortune-turning rite · the 7-day guardian mission · the practical guardian guide",
+        "3": "A talisman pouch holding today's colour · a summoning phrase · a small action · a time key"
       },
+      "premiumIntro": "The guardian carries saju terminology over into the language of a character, so you meet your chart as a being that protects it.",
       "premiumAudience": {
-        "0": "自分を守ってくれる気が何か知りたい方",
-        "1": "お守りや象徴を身近に置きたい方",
-        "2": "一度解錠して長く大切にしたい方"
+        "0": "People who found saju terminology hard going",
+        "1": "People who want a guardian character of their own",
+        "2": "People who want a short fortune-turning routine"
       },
       "premiumChapters": {
-        "0": "自分の守護動物とその象徴",
-        "1": "守護神が守ってくれる領域と力",
-        "2": "弱い時期を補う開運ポイント",
-        "3": "守護神と共にある今日のアドバイス"
+        "0": "Your day pillar's guardian and its AI image",
+        "1": "The core guardian seal, and handling relationships · work · money",
+        "2": "Today's fortune-turning rite and the 7-day guardian mission",
+        "3": "The talisman pouch — today's colour · summoning phrase · small action · time key"
       },
       "premiumOutcomes": {
-        "0": "象徴の解釈は参考用です。",
-        "1": "守護神は性格・運の隠喩です。",
-        "2": "既存のサービス基準に従います。"
+        "0": "The reading is for reference.",
+        "1": "The character image is generated by AI.",
+        "2": "The existing payment policy applies."
+      },
+      "answersQuestions": {
+        "0": "What does my day pillar's guardian look like?",
+        "1": "How should I handle relationships, work and money?",
+        "2": "What rite protects me today?"
+      },
+      "fallbackCta": "Summon your guardian",
+      "analysisSteps": {
+        "0": {
+          "label": "Chart calculation",
+          "detail": "Your day pillar is set from your birth date and time."
+        },
+        "1": {
+          "label": "Summon the guardian",
+          "detail": "Your guardian is decided from the sixty jiazi and appears in the same figure each time."
+        },
+        "2": {
+          "label": "Reading and talisman",
+          "detail": "The five panels of reading and the talisman pouch open."
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "Does the guardian change each time I look?",
+          "a": "No. The same chart always summons the same guardian in the same figure."
+        },
+        "1": {
+          "q": "Do I have to sign in?",
+          "a": "You can use it without signing in."
+        }
       }
     },
     "openZiweiModal": {
@@ -11011,9 +11468,10 @@
       "fallbackCta": "恋愛解釈書を閲覧する",
       "ctaNote": "決済後、20個の章全体が順番に開きます。",
       "feats": {
-        "0": "恋愛が毎回似たような形で終わる時",
-        "1": "自分がどんな人に弱いのか分からない時",
-        "2": "短い解釈ではいつも物足りなかった時"
+        "0": "Calculates both your Saju natal chart and your Zi Wei Dou Shu chart from your birth date and time",
+        "1": "Generates twenty chapters in order, using each chapter as the basis for the next",
+        "2": "States the basis in every chapter — day master, ten gods, the spouse palace, the travel palace",
+        "3": "Sets out your love DNA indicators and the next three years of relationship flow in their own chapters"
       },
       "premiumAudience": {
         "0": "恋愛パターンを一度きちんと整理したい方",
@@ -11095,9 +11553,10 @@
       "fallbackCta": "相性解釈書を閲覧する",
       "ctaNote": "お二人の命式で計算された20個の章が開きます。",
       "feats": {
-        "0": "合っているようなのに度々ぶつかる時",
-        "1": "この関係を続けて良いか分からない時",
-        "2": "短い相性点数では答えにならない時"
+        "0": "Calculates each person's Saju natal chart and Zi Wei Dou Shu chart from both birth dates and times",
+        "1": "Reads each of you separately, then compares the contact points through day-master relations, ten-god interactions, and the combinations and clashes of the earthly branches",
+        "2": "Splits into chapters the mutual placement of the two charts, the cross-comparison of the spouse palaces, and the exchange of the four transformations",
+        "3": "Sets out your relationship DNA indicators and the next three years of relationship flow in their own chapters"
       },
       "premiumAudience": {
         "0": "結婚のような大きな決断を前にした方",
@@ -11172,16 +11631,17 @@
         }
       }
     },
-    "ziwei-deep-pdf": {
+    "ziwei_deep_pdf": {
       "fallbackTitle": "12宮を一つずつ指し示し、命盤一枚を十五章の文章で解き明かします。",
       "tagline": "命宮総論から各宮の星の強さと格局まで、紫微斗数の命盤を章別に解説してPDFで残す深層レポートです。",
       "premiumIntro": "深層レポートは吉凶を断定せず、命盤の各位置が何を意味するのかを章ごとに落ち着いて解き明かします。",
       "fallbackCta": "深層レポートを閲覧する",
       "ctaNote": "決済後、15個の章とPDF保存が一緒に開きます。",
       "feats": {
-        "0": "命盤の図だけ見ても意味が分からない時",
-        "1": "宮ごとにどんな意味か整理したい時",
-        "2": "一度作って長く見たい時"
+        "0": "Builds your chart from your birth date and time, then writes the overview, the twelve palaces, and two in-depth chapters in order",
+        "1": "Explains all twelve palaces — life, spouse, wealth and more — each as its own chapter",
+        "2": "Uses the four transformations and the three-harmony/four-cardinal view to lay out how the stars act on each other, in a separate chapter",
+        "3": "Places the strategy along the time axis in the final chapter, as a major-cycle and annual master plan"
       },
       "premiumAudience": {
         "0": "命盤を文章で読み解きたい方",
@@ -11256,16 +11716,17 @@
         }
       }
     },
-    "nakshatra-ai-consultation": {
+    "nakshatra_ai_consultation": {
       "fallbackTitle": "本命宿とナクシャトラを一緒に置いて、今の質問に答えます。",
       "tagline": "東洋の27宿（宿曜）とインドのナクシャトラを並べて読み、生まれ持った結と今の時期を一度に整理する相談です。",
       "premiumIntro": "27宿相談は二つの体系を混ぜてぼかしません。宿曜大家とヴェーダ大家がそれぞれ読んだ後、二つの解釈を並べてどこで同じことを言い、どこで分かれるのか、その違いがなぜ生まれるのかまで融合解釈10編でつなげていきます。",
       "fallbackCta": "27宿相談を開く",
       "ctaNote": "決済後、二つの体系の解釈が一緒に開きます。",
       "feats": {
-        "0": "自分の生まれ持った結が何か気になる時",
-        "1": "今が動く時か我慢する時か分からない時",
-        "2": "一つの体系の解釈だけでは足りない時"
+        "0": "Calculates your 27-mansion birth mansion from your birth date, and with a birth time your nakshatra and Vimshottari dasha as well",
+        "1": "Writes five master-level Sukuyo pieces and six master-level Vedic pieces separately, each in its own tradition's language",
+        "2": "Ten fusion pieces set the two readings side by side and mark where they agree and where they part",
+        "3": "The final section gives the three things that matter most and what to do starting today"
       },
       "premiumAudience": {
         "0": "宿曜とヴェーダを一緒に見たい方",
@@ -11337,7 +11798,7 @@
         }
       }
     },
-    "nakshatra-compat-ai": {
+    "nakshatra_compat_ai": {
       "fallbackTitle": "二人のナクシャトラが作る距離とリズムを読みます。",
       "tagline": "各自の本命宿とナクシャトラを対照し、惹かれ・衝突・長く続く条件を整理する相性相談です。",
       "premiumIntro": "相性相談は点数をつけるのではなく、二人のリズムがどこで合いどこでずれるのかをまず見せます。",
@@ -11419,7 +11880,7 @@
         }
       }
     },
-    "nakshatra-vvip-codex": {
+    "nakshatra_vvip_codex": {
       "fallbackTitle": "27宿全体を一冊にまとめた最上位のコデックスを開きます。",
       "tagline": "本命宿の解釈にとどまらず、27宿全体の地形の中で自分の位置を指し示し、縁・時期・方向をまとめて整理する最上位構成です。",
       "premiumIntro": "コデックスは個別解釈を寄せ集めたものではなく、27宿という地図の上で自分の位置を説明する一冊です。",
@@ -11501,7 +11962,7 @@
         }
       }
     },
-    "premium-veda-compatibility-addon": {
+    "premium_veda_compatibility_addon": {
       "fallbackTitle": "ヴェーダ相性に二人の詳細対照を付け加えます。",
       "tagline": "基本相性結果の上にアシュタクータ項目別対照と時期アドバイスを加え、なぜその結果が出たのかまで確認する拡張分析です。",
       "premiumIntro": "拡張分析は総点を繰り返し伝えるのではなく、その総点がどの項目から来たのかを一つずつ解き明かして見せます。",
@@ -11580,6 +12041,324 @@
         "3": {
           "label": "補完案整理",
           "detail": "ずれている項目ごとに現実的な補完方法を付けます。"
+        }
+      }
+    },
+    "flower_fc": {
+      "tagline": "The calculated values of four branches -- Saju, astrology, Ziwei Doushu, and Sukuyo -- each decide a flower's species and color, blooming your flower out of a catalogue of eighty-nine. One unlock opens all four branches.",
+      "feats": {
+        "0": "One unlock covers all four branches: Saju, astrology, Ziwei Doushu, and Sukuyo",
+        "1": "A catalogue of eighty-nine flower species",
+        "2": "Rule-based visualization in which the chart's calculated values decide species and color",
+        "3": "An explanation of which calculation is reflected in each part of the flower",
+        "4": "An AI art prompt for drawing your own flower"
+      },
+      "premiumIntro": "The Destiny Flower is not a random picture -- it is a visualization in which the chart's calculated values decide species and color by rule.",
+      "premiumAudience": {
+        "0": "Those who want to keep a result as an image",
+        "1": "Those who enjoy several divination methods",
+        "2": "Those who want a fortune pretty enough to give as a gift"
+      },
+      "premiumChapters": {
+        "0": "A Destiny Flower for each of the four branches",
+        "1": "An explanation of the calculation behind the species and color",
+        "2": "A blooming record you can pick up again on the same device",
+        "3": "A permanent unlock you can bloom again anytime"
+      },
+      "premiumOutcomes": {
+        "0": "The reading and the visualization are for reference.",
+        "1": "Flower matching is a rule-based calculation.",
+        "2": "The existing payment policy applies."
+      },
+      "answersQuestions": {
+        "0": "What flower does my chart bloom into?",
+        "1": "How do the flowers of the four branches differ from each other?",
+        "2": "Why were the flower's color and shape decided this way?"
+      },
+      "fallbackCta": "Bloom your Destiny Flower",
+      "analysisSteps": {
+        "0": {
+          "label": "Choose a branch",
+          "detail": "Pick from Saju, astrology, Ziwei Doushu, and Sukuyo."
+        },
+        "1": {
+          "label": "Chart calculation",
+          "detail": "The calculated values decide the flower's species and color by rule."
+        },
+        "2": {
+          "label": "Blooming and explanation",
+          "detail": "The flower blooms and the part-by-part explanation of the calculation opens."
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "What does unlocking open?",
+          "a": "A single unlock opens all four branches, and you can view them again anytime."
+        },
+        "1": {
+          "q": "Can I save the flower image?",
+          "a": "An AI art prompt for drawing the flower is provided, so you can make and keep the image with the AI of your choice."
+        }
+      }
+    },
+    "palm_reading": {
+      "tagline": "Checks 4 major lines, 9 minor lines, 7 mounts of the palm, and 6 special markings, then writes a reading of at least 1,200 characters.",
+      "feats": {
+        "0": "Upload photos of both hands at once and each is read",
+        "1": "Reads the 4 major lines: life, head, heart, and fate",
+        "2": "Checks 9 minor lines and the 7 mounts of the palm as well",
+        "3": "Of the 6 special markings, only those confirmed in the photo are written up",
+        "4": "Pick one of 6 consultation purposes and the reading is built on that axis",
+        "5": "The reading runs to at least 1,200 characters"
+      },
+      "premiumIntro": "Only the lines and markings confirmed in the photo are used as grounds. Lines that are blurred or not picked up are not written up as present.",
+      "premiumAudience": {
+        "0": "Those who want their palm read with reasons attached",
+        "1": "Those who want to compare both hands",
+        "2": "Those who want the reading built around a specific concern"
+      },
+      "premiumChapters": {
+        "0": "A line reading for each hand",
+        "1": "A summary of 4 major lines, 9 minor lines, and 7 mounts",
+        "2": "A reading matched to your consultation purpose",
+        "3": "A reading of at least 1,200 characters"
+      },
+      "premiumOutcomes": {
+        "0": "Analysis accuracy varies with image quality.",
+        "1": "Lines that could not be confirmed are not written into the result.",
+        "2": "This does not replace a health assessment."
+      },
+      "answersQuestions": {
+        "0": "Which line stands out most on my palm?",
+        "1": "Why do my two hands look different?",
+        "2": "Which line touches on what I am worried about now?"
+      },
+      "fallbackCta": "Start the palm analysis",
+      "analysisSteps": {
+        "0": {
+          "label": "Photo upload",
+          "detail": "Upload photos of both hands and pick one of 6 consultation purposes."
+        },
+        "1": {
+          "label": "Lines and mounts",
+          "detail": "Reads both hands together and checks 4 major lines, 9 minor lines, 7 mounts, and 6 special markings."
+        },
+        "2": {
+          "label": "Scoring",
+          "detail": "Converts the reading into scores across 6 items."
+        },
+        "3": {
+          "label": "Writing the reading",
+          "detail": "Writes at least 1,200 characters around the purpose you chose."
+        }
+      },
+      "valueCompare": {
+        "0": {
+          "axis": "Reading scope",
+          "premium": "Each hand separately, 4 major lines, 9 minor lines, 7 mounts"
+        },
+        "1": {
+          "axis": "Reading length",
+          "premium": "A reading of at least 1,200 characters"
+        },
+        "2": {
+          "axis": "Purpose reflected",
+          "premium": "Rebuilt around the axis you chose from 6 consultation purposes"
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "Do I have to upload both hands?",
+          "a": "If you upload both hands together, each is read and compared."
+        },
+        "1": {
+          "q": "What if the photo is blurry?",
+          "a": "Lines and markings that could not be confirmed are not written up as present. Please shoot in good light with the whole palm in frame."
+        },
+        "2": {
+          "q": "Can it tell me about my health?",
+          "a": "It does not make medical diagnoses. Palm readings are for reference."
+        }
+      }
+    },
+    "tarot_celestial_harmony": {
+      "tagline": "Cards are laid across eleven planetary seats and tied together by a final integration card, so love, work, money and health are read as separate axes in one extended cosmic tarot reading.",
+      "feats": {
+        "0": "A large spread running from eleven planetary seats to an integration card",
+        "1": "Every card read through eight separate perspectives",
+        "2": "Four areas organized: love, work, money and health",
+        "3": "A starlight tuning guide for the next 7 days"
+      },
+      "premiumIntro": "Celestial Harmony does not hand you a single answer. It spreads out where the different axes of your mind are sitting right now, following the planetary seats.",
+      "premiumAudience": {
+        "0": "People whose worry is not one thing but several at once",
+        "1": "People who always found short readings unsatisfying",
+        "2": "People who want feelings and practical reality read separately"
+      },
+      "premiumChapters": {
+        "0": "The full card interpretation for every planetary seat",
+        "1": "The axis acting on you most strongly right now",
+        "2": "The points where your feelings collide with each other",
+        "3": "The 7-day starlight tuning guide"
+      },
+      "premiumOutcomes": {
+        "0": "The interpretation is written by AI and does not fix the future.",
+        "1": "Card interpretations are for reference.",
+        "2": "The existing payment policy applies."
+      },
+      "answersQuestions": {
+        "0": "Which axis is shaking me the most right now?",
+        "1": "Should I put my energy into love or into work?",
+        "2": "How should I spend the coming week?"
+      },
+      "fallbackCta": "Start Celestial Harmony",
+      "analysisSteps": {
+        "0": {
+          "label": "Card placement",
+          "detail": "Cards are placed on the eleven planetary seats and the integration seat."
+        },
+        "1": {
+          "label": "AI integrated reading",
+          "detail": "AI ties the whole spread together and writes a long-form interpretation."
+        },
+        "2": {
+          "label": "Areas and 7 days",
+          "detail": "It is organized into the four areas — love, work, money, health — and a 7-day tuning guide."
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "How is the interpretation produced?",
+          "a": "AI ties the whole card spread together and writes the interpretation; if generation does not go smoothly, a prepared interpretation is used instead."
+        },
+        "1": {
+          "q": "Can I see the result again?",
+          "a": "On the same device the most recent result is restored. There is no separate save-to-account feature."
+        }
+      }
+    },
+    "tarot_prompt_maker": {
+      "badge": "プロンプト型",
+      "headline": "自分の問いに合ったタロット相談の文章を、まず整理してみてください。",
+      "resultPreview": {
+        "lines": {
+          "0": "今の状況では「この人は私を好きだろうか」より「何がこの関係を止めているのか」のほうがよく開きます。",
+          "1": "最初の問いが開けば、続けて尋ねる二つ目・三つ目の問いが用意されています。",
+          "2": "カードが曖昧に出たときに聞き直す文章も、別に収められています。"
+        },
+        "caption": "実際のプロンプト結果の冒頭例です。決済後は状況に合わせた質問セットとプロンプト原文の全体を受け取れます。"
+      },
+      "hubTagline": "カード解釈をより深く続けるための質問と相談の流れを、プロンプトとして束ねる機能です。",
+      "tagline": "Pick the structure that fits your situation from 77 spreads and turn the cards yourself; AI then writes the consultation from exactly that layout and shows you the original prompt it used.",
+      "feats": {
+        "0": "Choose the structure yourself from 77 spreads, ranging from 1 card to 14",
+        "1": "Pick cards yourself from the 78-card deck and set upright or reversed",
+        "2": "AI writes a real consultation from exactly the layout you chose",
+        "3": "View and copy the original prompt used for the consultation",
+        "4": "Choose the tone you want from 3 writing styles"
+      },
+      "premiumIntro": "The Tarot Prompt Library starts by sharpening the question, then carries the card layout you chose straight through into an AI consultation.",
+      "premiumAudience": {
+        "0": "People who read tarot often but find the answers shallow",
+        "1": "People who want a spread that fits their exact situation",
+        "2": "People who want to shape the reading lines themselves"
+      },
+      "premiumChapters": {
+        "0": "An AI tarot consultation matched to your own layout",
+        "1": "Interpretation and practical advice reflecting position and orientation",
+        "2": "The original prompt used for the consultation, shown as it is",
+        "3": "Finished lines you can copy to keep your own consultation going"
+      },
+      "premiumOutcomes": {
+        "0": "The consultation is written by AI and does not guarantee outcomes.",
+        "1": "Card interpretations are for reference.",
+        "2": "The existing payment policy applies."
+      },
+      "answersQuestions": {
+        "0": "Which spread fits this situation?",
+        "1": "What does the card layout I drew mean?",
+        "2": "How should I put this worry to the cards?"
+      },
+      "fallbackCta": "Start the AI consultation",
+      "analysisSteps": {
+        "0": {
+          "label": "Choose a spread",
+          "detail": "Pick the structure that fits your question from 77 options."
+        },
+        "1": {
+          "label": "Turn the cards yourself",
+          "detail": "Choose your cards from the 78-card deck and set upright or reversed."
+        },
+        "2": {
+          "label": "AI writes the consultation",
+          "detail": "You receive a consultation reflecting the layout, plus the original prompt."
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "How is the price decided?",
+          "a": "The amount is set by the number of cards in the spread you chose, and you can check it first on the payment screen."
+        },
+        "1": {
+          "q": "What happens if generation fails?",
+          "a": "You can retry a set number of times within the same payment, and if it still does not work you receive the finished prompt instead."
+        }
+      }
+    },
+    "animal_destiny_unlock": {
+      "tagline": "Your day pillar's twelve life stages are set using the Korea Astronomy and Space Science Institute calendar, and your guardian animal is decided from twelve — from the Sprout Deer to the Sage Owl — unfolding personality, love, work and relationships.",
+      "feats": {
+        "0": "The day pillar's twelve life stages, set by the Korea Astronomy and Space Science Institute calendar",
+        "1": "Twelve guardian animals including the Sprout Deer, Sun Lion and Sage Owl",
+        "2": "Readings for personality · love · work · relationships, plus today's mission",
+        "3": "A destiny compendium of all twelve animals and compatibility grades",
+        "4": "Save the result card as a high-resolution image"
+      },
+      "premiumIntro": "The twelve life stages are the axis of saju that reads the growth stage of your energy. Those stages are carried over into twelve animal characters, so anyone can read them.",
+      "premiumAudience": {
+        "0": "People who found saju terminology hard going",
+        "1": "People who want to keep their disposition as a character",
+        "2": "People who want a light compatibility comparison with a partner or friend"
+      },
+      "premiumChapters": {
+        "0": "An in-depth reading of your guardian animal",
+        "1": "Interpretation along four strands: personality · love · work · relationships",
+        "2": "The twelve-animal destiny compendium and compatibility grades",
+        "3": "Saving the result card as a high-resolution image"
+      },
+      "premiumOutcomes": {
+        "0": "The reading is for reference.",
+        "1": "It does not fix your future or your disposition.",
+        "2": "The existing payment policy applies."
+      },
+      "answersQuestions": {
+        "0": "What is my guardian animal?",
+        "1": "How does my disposition show up in love and at work?",
+        "2": "What is the compatibility grade between that person and me?"
+      },
+      "fallbackCta": "Meet your guardian animal",
+      "analysisSteps": {
+        "0": {
+          "label": "Chart calculation",
+          "detail": "The day pillar and its twelve life stages are set using the Korea Astronomy and Space Science Institute calendar."
+        },
+        "1": {
+          "label": "Guardian animal",
+          "detail": "Your guardian animal is decided from among the twelve."
+        },
+        "2": {
+          "label": "Compendium and compatibility",
+          "detail": "The in-depth reading, the destiny compendium and the compatibility grades open."
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "If I pay once, can I keep viewing it?",
+          "a": "Yes. It is a permanent unlock, so you can open it again at any time."
+        },
+        "1": {
+          "q": "Can I keep the result?",
+          "a": "You can save the result card as a portrait high-resolution image."
         }
       }
     }
