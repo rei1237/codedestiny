@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-09-02
-next: PR-4 머지 확인 후, 새 세션·새 워크트리에서 W1 잔여(PR-A 권장, 그다음 E1) 시작
+updated: 2026-09-03
+next: "E1 머지 확인 후, 새 세션·새 워크트리에서 W2 시작 — E2(모달 전환, 대형) 를 먼저. 🔴 E2 는 `lib/marketing/feature-marketing-copy.generated.json`(E1 산출물, 407KB) 을 읽는데 **정적 import 하면 클라이언트 번들에 통째로 실린다** — 서버 컴포넌트나 동적 import 로 들어갈 자리부터 정하고 시작할 것."
 ---
 
 # 전문가 상담 품질·진입 UX·PDF 전면 제공 (13 PR 계획)
@@ -13,13 +13,14 @@ next: PR-4 머지 확인 후, 새 세션·새 워크트리에서 W1 잔여(PR-A 
 ## 지금 상태
 
 - 확정 계획 정본: `C:\Users\user\.claude\plans\goofy-leaping-curry.md` (13 PR + 후속 3, 축1 PDF / 축2 진입 UX / 축3 AI 품질). 사용자 승인 완료.
-- **축1 PDF 머지 완료: PR-1(#1451) · PR-2(#1460) · PR-3(#1475).**
-- **PR-4(FPTI ₩20,000 심층 리포트) = 이 PR.** 머지는 사용자.
-- 나머지 9 PR 전부 미착수.
+- **축1 PDF 머지 완료: PR-1(#1451) · PR-2(#1460) · PR-3(#1475) · PR-4(#1488).**
+- **PR-A(초융합 랩 등록 + CMS 카탈로그 드리프트) 머지 완료(#1491).**
+- **E1(카피 추출 파이프라인) = 이 PR.** 머지는 사용자. 머지되면 W1 이 닫힌다.
+- 나머지 8 PR 전부 미착수.
 
 ## 남은 작업
 
-- [ ] W1 잔여 2개: PR-A(랩 등록+드리프트) · E1(카피 추출 파이프라인)
+- [x] W1: PR-A(#1491) 머지 · E1(카피 추출 파이프라인) = 이 PR
 - [ ] W2: E2(모달 전환, 대형) · E4(fusion 정본화) · PR-C(중복 검출) · PR-B(클램프 배선)
 - [ ] W3: 축4 PR-6(문안 저작, 축4 소유) · E5(PaidValueSection+nakshatra) → E6(island)
 - [ ] W4: PR-5(셸 saju AI PDF, i18n 11파일) → E3(잔재 키 청소, 백로그)
@@ -27,6 +28,7 @@ next: PR-4 머지 확인 후, 새 세션·새 워크트리에서 W1 잔여(PR-A 
 - [ ] PR-1 브라우저 실측(실제 PDF 저장 1회) — 머지 후 스테이징에서. 판정: 커버+21섹션이 각자 새 페이지로 실리고 접힘 상태가 복원되면 끝.
 - [ ] PR-2 브라우저 실측 — 리포트는 **'한 장씩' 모드로 둔 채** 저장해 13장(안내+12궁)이 전부 실리는지, 상담은 히어로 이미지가 안 실리는지. `PalaceBadge` 스프라이트가 캔버스에 비면 그건 알려진 허용 결함.
 - [ ] PR-3·PR-4 브라우저 실측 — PR-4 는 **미해금 계정에 버튼이 아예 없는 것**과 해금 계정에서 커버+요약+7챕터가 전부 실리는 것 둘 다 볼 것.
+- [ ] PR-A 관리자 화면 실측 — `/admin/prompts` 에서 초융합을 골라 그룹 4개가 셀렉트에 뜨고 그룹마다 프롬프트가 다른지. 로컬에선 좌표를 넣으면 Swiss ephemeris URL 이 없어 `partial` 로 내려오는데, 프로덕션 env 에는 그 값이 있으므로 여기서만 확인 가능하다.
 - 판정 기준: 각 PR 은 계획 문서의 해당 절 검증 목록 전부 통과 + 사용자 머지.
 
 ## 직렬 제약 (이것만 지키면 순서 자유)
@@ -39,9 +41,12 @@ next: PR-4 머지 확인 후, 새 세션·새 워크트리에서 W1 잔여(PR-A 
 
 배선 관용구: `app/destiny-compass/_components/ReportActions.tsx:38` · PDF 유틸: `lib/pdf/export-result-pdf.ts:146`
 
+E1 산출물(E2 가 소비할 것): `lib/marketing/feature-marketing-copy.generated.json` = `{ items: { "<셸 카피 키>": { dictNs, copy } }, templates: { "<카테고리>": { dictNs: "template_<카테고리>", copy } } }`. `inherit` 은 이미 해소돼 남아 있지 않고 `dictNs` 는 `featureMarketing.<dictNs>` 조회용으로 미리 계산돼 있다. 파서·`safeKey`·상속 해소의 정본은 `scripts/lib/feature-marketing-extract.mjs`(가드 2개와 공유).
+
 ## 함정
 
 - 전 검증 mock/정적 — 과금 LLM 실호출 0.
+- 관리자 랩 조립기를 새로 만들면 **출생지 좌표가 `null` 로 온다**(`worker/routes/admin.js` 의 `buildAdminLabBody`). `Number(null) === 0` 이라 그냥 실으면 위경도 (0,0) 명식이 조용히 만들어진다 — 좌표가 유한수일 때만 실을 것(PR-A 실측).
 - 축4 진행분(`docs/handoff/home-ux-audit-2026-09-01.md`)과 PR-5·PR-6·E1 이 겹친다 — 그 문서 먼저 읽을 것.
 - copy.ts·NakshatraAiClient.tsx 등 nakshatra 파일, `IslandConsultClient.tsx`, `components/fpti/**` 는 순수 CRLF — node 패치 스크립트로만 수정(3세션 연속 실전 확인).
 - 🔴 **가드는 통과가 아니라 변이로 확인한다.** PR-4 는 변이 12종(게이트 제거·마커 무조건 부착·데이터 절단 제거·강제 마운트 제거 등)을 하나씩 넣고 전부 실패하는 것을 확인했다. "초록불"만으로는 무는지 알 수 없다.

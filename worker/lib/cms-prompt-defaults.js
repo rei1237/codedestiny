@@ -70,6 +70,12 @@ const SYSTEM_PROMPT_SOURCES = [
     service: "베다",
     load: async () => (await import("../routes/vedic-ai.js")).getDefaultSystemPrompt(),
   },
+  {
+    key: "animal-totem",
+    label: "동물 토템 AI 상담",
+    service: "동물 토템",
+    load: async () => (await import("../routes/animal-totem.js")).getDefaultSystemPrompt(),
+  },
 ];
 
 /** prompt.domain — 체계별 × 분야별 분석 관점/예시 질문. 키는 `체계:도메인`. */

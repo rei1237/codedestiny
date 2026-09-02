@@ -9757,29 +9757,82 @@
     },
     "rpt_healthReportCard": {
       "fallbackTitle": "Find your Saju's inborn energy weak points and health biorhythm.",
-      "tagline": "A report that precisely analyzes which body parts tire easily and when energy runs low, due to a Five-Elements imbalance.",
+      "tagline": "A report that combines your natal chart with today’s day pillar and lays out Five-Elements balance and organ-system risks across five sections.",
       "premiumIntro": "The Myeongni Health Report doesn't predict disease -- it calmly points out health issues in your Saju flow that need care ahead of time.",
       "fallbackCta": "Check the Health Report",
       "feats": {
-        "0": "When you're often fatigued from an inborn constitutional weakness",
-        "1": "When you're curious about body patterns even doctors don't point out",
-        "2": "When you want to realistically compensate for a Five-Elements imbalance"
+        "0": "Calculates your natal chart together with today’s day pillar and lays it out in five sections",
+        "1": "Reads today’s constitutional balance, separating what is in excess from what is lacking",
+        "2": "Maps excess and deficient elements to liver/gallbladder, heart/small intestine, spleen/stomach, lung/large intestine and kidney/bladder",
+        "3": "Picks ten meal suggestions for today along with foods to avoid",
+        "4": "Closes with exercises, a lucky stretch and today’s luck-opening health mission"
       },
       "premiumAudience": {
-        "0": "Those who often fall ill and want to know the cause",
-        "1": "Those who want to know ahead of time when their stamina drops",
+        "0": "Those who fall ill often and want to know the cause",
+        "1": "Those who want meals and exercise matched to today’s condition",
         "2": "Those unsure where to start fixing their lifestyle habits"
       },
       "premiumChapters": {
-        "0": "Identifying your energy-vampire points",
-        "1": "Weak periods and recovery windows by body part",
-        "2": "A customized health-improvement method plus nutrition/exercise guide",
-        "3": "Weekly health missions and patterns to avoid"
+        "0": "Today’s constitutional balance reading",
+        "1": "Excess/deficient elements mapped to five organ systems",
+        "2": "Ten meal picks for today plus foods to avoid",
+        "3": "Luck-opening exercises and today’s health mission"
       },
       "premiumOutcomes": {
         "0": "This is not a medical diagnosis or treatment.",
         "1": "The health analysis is for reference only and doesn't replace a hospital diagnosis.",
         "2": "The existing payment policy applies."
+      },
+      "answersQuestions": {
+        "0": "Which way is my Five-Elements balance leaning today?",
+        "1": "Which organ system should I look after first?",
+        "2": "What should I eat and how should I move today?"
+      },
+      "analysisSteps": {
+        "0": {
+          "label": "Chart and day pillar",
+          "detail": "Builds the natal chart from your birth date and time, then attaches today’s day pillar."
+        },
+        "1": {
+          "label": "Balance reading",
+          "detail": "Combines chart and day pillar to separate today’s excess elements from the lacking ones."
+        },
+        "2": {
+          "label": "Organ mapping",
+          "detail": "Maps excess and deficient elements onto the five organ systems and writes the risks."
+        },
+        "3": {
+          "label": "Lifestyle prescription",
+          "detail": "Selects ten meals, foods to avoid, exercises, a stretch and today’s mission."
+        }
+      },
+      "valueCompare": {
+        "0": {
+          "axis": "Structure",
+          "premium": "Five sections: balance, organ risks, meals, exercise, mission"
+        },
+        "1": {
+          "axis": "Basis",
+          "premium": "Natal chart + today’s day pillar"
+        },
+        "2": {
+          "axis": "Action items",
+          "premium": "Ten meal picks, foods to avoid, a lucky stretch, today’s mission"
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "Does it diagnose illness?",
+          "a": "No. This is not a medical diagnosis but reference content that maps Five-Elements balance onto organ systems. See a doctor if you have symptoms."
+        },
+        "1": {
+          "q": "Does the result change daily?",
+          "a": "The natal chart stays the same, but today’s day pillar changes daily, so the balance reading, meals and mission change with it."
+        },
+        "2": {
+          "q": "Does an AI write it?",
+          "a": "No. Everything is computed in your browser from Saju rules on the spot. There is no server AI call."
+        }
       }
     },
     "rpt_quantumCard": {
@@ -9788,9 +9841,11 @@
       "premiumIntro": "Quantum Myeongni doesn't re-judge fortune as good or bad -- it clarifies which energy in your Saju structure genuinely acts strongest and the standard for interpreting it.",
       "fallbackCta": "Open Quantum Myeongni",
       "feats": {
-        "0": "When you understand the Saju basics but need a deeper strategy",
-        "1": "When you need a complex interpretation for cases with multiple identical Ten Gods",
-        "2": "When you want to see short-term flow and long-term structure together"
+        "0": "Expands the four pillars in detail, down to palace positions, hidden stems, the twelve stages and void branches",
+        "1": "Reads the chart’s internal structure through combination, clash, punishment, break, harm, resentment and the triple/directional combinations",
+        "2": "Separates visible from hidden Ten Gods and measures real strength through season, ground and support",
+        "3": "Determines the useful and hostile element per element and analyses transformation and clash mutations separately",
+        "4": "Lays out the full luck cycle plus 5 years, 12 months and 7 days across 18 sections"
       },
       "premiumAudience": {
         "0": "Those who want to sort out concepts like Yongsin and He-hua",
@@ -9798,15 +9853,66 @@
         "2": "Those who want to bundle fragmented readings into one"
       },
       "premiumChapters": {
-        "0": "A reorganization centered on Five-Elements He-hua and Yongsin",
-        "1": "A Cheongi map and key points",
-        "2": "Standards for long-term flow and short-term choices",
-        "3": "Permanently unlocked -- check back anytime"
+        "0": "Chart structure and the yongsin matrix",
+        "1": "Sinsal energy analysis and the Cheongi action plan",
+        "2": "The full luck cycle plus 5 years, 12 months and 7 days",
+        "3": "Permanently unlocked, so you can reopen it anytime"
       },
       "premiumOutcomes": {
         "0": "The deep analysis is for reference only.",
         "1": "Yongsin interpretation can vary by school.",
         "2": "The existing payment policy applies."
+      },
+      "answersQuestions": {
+        "0": "Which element actually holds power in my chart?",
+        "1": "On what basis are my useful and hostile elements decided?",
+        "2": "In what order do my coming luck cycles run?"
+      },
+      "analysisSteps": {
+        "0": {
+          "label": "Detailed chart expansion",
+          "detail": "Expands the four pillars down to palace positions, hidden stems, the twelve stages and void branches."
+        },
+        "1": {
+          "label": "Internal structure",
+          "detail": "Reads how the chart is entangled through combination, clash, punishment, break, harm, resentment and triple/directional combinations."
+        },
+        "2": {
+          "label": "Yongsin matrix",
+          "detail": "Measures real elemental strength through season, ground and support, then names the useful and hostile element."
+        },
+        "3": {
+          "label": "Luck flow",
+          "detail": "Joins the full luck cycle with 5 years, 12 months and 7 days of flow."
+        }
+      },
+      "valueCompare": {
+        "0": {
+          "axis": "Structure",
+          "premium": "18 sections, from the expert verdict to the Cheongi action plan"
+        },
+        "1": {
+          "axis": "Analysis items",
+          "premium": "12 items including four-pillar detail, hidden stems, twelve stages, void branches and combination/clash"
+        },
+        "2": {
+          "axis": "Luck flow",
+          "premium": "Full luck cycle, 5 years, 12 months, 7 days"
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "How is this different from an ordinary reading?",
+          "a": "It does not just hand you interpretations. It lays out the grounds for each judgement across 18 sections, including palace positions, hidden stems, the twelve stages, void branches and strength measures."
+        },
+        "1": {
+          "q": "Can I reopen it after paying?",
+          "a": "Yes. It is a permanently unlocked item, so you can reopen it after payment."
+        },
+        "2": {
+          "q": "Does an AI write it?",
+          "a": "No. Everything is computed in your browser from Saju rules on the spot. There is no server AI call."
+        }
       }
     },
     "rpt_skillTreeCard": {
@@ -9815,9 +9921,10 @@
       "premiumIntro": "The RPG Skill Tree doesn't guarantee the future -- it shows where your stats are currently concentrated and which area has room to grow.",
       "fallbackCta": "Open the Skill Tree",
       "feats": {
-        "0": "When you want to clearly separate your strengths from your weaknesses",
-        "1": "When you want to understand your Saju intuitively, like stats",
-        "2": "When you don't know where to start investing in growth"
+        "0": "Converts the Five Elements into five stats: creativity, charisma, stability, decisiveness and intuition",
+        "1": "Assigns a character class name, a RANK chip and a growth-flow score",
+        "2": "Separates your main skills, owned skills and still-locked skills",
+        "3": "Draws this year’s level-up Cheongi from the annual pillar"
       },
       "premiumAudience": {
         "0": "Those who want to see their strengths as stats",
@@ -9825,15 +9932,66 @@
         "2": "Those who want to map out a growth path like a game"
       },
       "premiumChapters": {
-        "0": "Visualizes 8 stat levels",
-        "1": "Checks your inborn strong stats and weak stats",
-        "2": "A growth route and level-up strategy for each stat",
-        "3": "Reward missions provided when you reach a level"
+        "0": "Five element stats: creativity, charisma, stability, decisiveness, intuition",
+        "1": "Character class name, RANK chip and growth-flow score",
+        "2": "Main, owned and locked skills separated",
+        "3": "This year’s level-up Cheongi based on the annual pillar"
       },
       "premiumOutcomes": {
         "0": "The game format is analysis for reference only.",
         "1": "Stats can change through personal effort.",
         "2": "The existing payment policy applies."
+      },
+      "answersQuestions": {
+        "0": "Which stat axis are my abilities concentrated in?",
+        "1": "Which skills are open now and which are still locked?",
+        "2": "Which side should I grow first this year?"
+      },
+      "analysisSteps": {
+        "0": {
+          "label": "Chart calculation",
+          "detail": "Builds the natal chart from your birth date and time and derives the elemental spread."
+        },
+        "1": {
+          "label": "Stat conversion",
+          "detail": "Turns the Five Elements into five numbers: creativity, charisma, stability, decisiveness, intuition."
+        },
+        "2": {
+          "label": "Class reading",
+          "detail": "Sets the character class, RANK and growth-flow score from how the stats are distributed."
+        },
+        "3": {
+          "label": "Skill tree",
+          "detail": "Splits main, owned and locked skills and attaches this year’s level-up Cheongi."
+        }
+      },
+      "valueCompare": {
+        "0": {
+          "axis": "Stats",
+          "premium": "Five element axes (creativity, charisma, stability, decisiveness, intuition)"
+        },
+        "1": {
+          "axis": "Reading",
+          "premium": "Character class, RANK chip, growth-flow score"
+        },
+        "2": {
+          "axis": "Skills",
+          "premium": "Main / owned / locked skills plus this year’s level-up Cheongi"
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "How many stat axes are there?",
+          "a": "Five, matching the Five Elements: creativity, charisma, stability, decisiveness and intuition."
+        },
+        "1": {
+          "q": "Do the numbers change with effort?",
+          "a": "The numbers are fixed values derived from your natal chart. The content suggests directions for opening locked skills, for reference."
+        },
+        "2": {
+          "q": "Does an AI write it?",
+          "a": "No. Everything is computed in your browser from Saju rules on the spot."
+        }
       }
     },
     "openJuyukModal": {
@@ -10733,13 +10891,15 @@
     },
     "rpt_specialCharmCard": {
       "fallbackTitle": "Check your charm-star coordinates to see why you've been catching attention lately.",
-      "tagline": "A report that points out your unique charm points and the grain of your appeal through the distribution of stars like Peach Blossom, Red Glow, and Traveling Horse.",
+      "tagline": "A report that unpacks the three charm sinsal — dohwa, yeokma and hwagae — and your elemental charm magnetism across nine sections.",
       "premiumIntro": "The Charm Stat doesn't rate your looks -- it's a fun organization of what kind of charm your Saju stars express.",
       "fallbackCta": "Check Your Charm Stat",
       "feats": {
-        "0": "When you're curious where your charm comes from",
-        "1": "When you want to know why you get noticed at particular moments",
-        "2": "When you want to make the most of your strengths in love and relationships"
+        "0": "Names your charm class and pulls out a charm core summary",
+        "1": "Unpacks the three charm sinsal — dohwa, yeokma and hwagae — as stat cards",
+        "2": "Sorts the grain of your appeal through elemental charm magnetism",
+        "3": "Suggests a situational charm-activation report and the stages that suit you",
+        "4": "Finishes across nine sections with blunt-truth cards, the Cheongi prescription and today’s charm mission"
       },
       "premiumAudience": {
         "0": "Those curious why they've been catching attention lately",
@@ -10747,15 +10907,66 @@
         "2": "Those who want to decide how to use their first impression"
       },
       "premiumChapters": {
-        "0": "A diagnosis of your Peach Blossom, Red Glow, and Traveling Horse distribution",
-        "1": "The charm point that acts strongly by situation",
-        "2": "A style and timing hint to grow your appeal",
-        "3": "A charm-stat card good for saving and sharing"
+        "0": "Stats for the three charm sinsal: dohwa, yeokma, hwagae",
+        "1": "A situational charm-activation report",
+        "2": "Elemental charm magnetism and the stages that suit you",
+        "3": "Blunt-truth cards, the Cheongi prescription and today’s charm mission"
       },
       "premiumOutcomes": {
         "0": "The analysis is for reference only.",
         "1": "Star interpretation can vary by school.",
         "2": "The existing payment policy applies."
+      },
+      "answersQuestions": {
+        "0": "Which sinsal does my charm come from?",
+        "1": "In which situations does my charm work hardest?",
+        "2": "What can I do today to put that charm to use?"
+      },
+      "analysisSteps": {
+        "0": {
+          "label": "Chart calculation",
+          "detail": "Builds the natal chart from your birth date and time and checks sinsal and elements."
+        },
+        "1": {
+          "label": "Charm sinsal reading",
+          "detail": "Scores where and how strongly dohwa, yeokma and hwagae attach."
+        },
+        "2": {
+          "label": "Elemental conversion",
+          "detail": "Turns the elemental spread into the grain of your appeal and draws the magnetism map."
+        },
+        "3": {
+          "label": "Practical prescription",
+          "detail": "Writes the situational activation report, suited stages, blunt-truth cards and today’s mission."
+        }
+      },
+      "valueCompare": {
+        "0": {
+          "axis": "Structure",
+          "premium": "Nine sections, from charm class to today’s mission"
+        },
+        "1": {
+          "axis": "Sinsal",
+          "premium": "Stats for the three charm sinsal: dohwa, yeokma, hwagae"
+        },
+        "2": {
+          "axis": "Use",
+          "premium": "Situational activation report, suited stages, Cheongi prescription"
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "Does it judge my looks?",
+          "a": "No. It does not assess appearance; it sorts the grain of attraction created by your sinsal and elements."
+        },
+        "1": {
+          "q": "Which sinsal does it look at?",
+          "a": "It treats dohwa, yeokma and hwagae as the three charm sinsal and unpacks them as stat cards."
+        },
+        "2": {
+          "q": "Can I save it as an image?",
+          "a": "There is no image-save feature. It is a report you read directly on screen across nine sections."
+        }
       }
     },
     "rpt_energyCoordCard": {
@@ -10764,9 +10975,11 @@
       "premiumIntro": "The Destination Reading doesn't state unconditional fortune or misfortune -- it organizes the place and direction where your Five Elements can breathe comfortably right now.",
       "fallbackCta": "Check the Destination Reading",
       "feats": {
-        "0": "When you're wondering where to go for a refresh",
-        "1": "When you want to know a travel direction that fits your energy",
-        "2": "When you need a hint to reference for the timing of moving or relocating"
+        "0": "Lays out the elements you need to top up, the deficit level and your useful and hostile elements on one dashboard",
+        "1": "Offers 5–6 domestic and 5–6 overseas places with coordinates, match labels and trip difficulty",
+        "2": "Points out your target energy direction alongside the current seasonal balance axis",
+        "3": "Splits recommendations across six trip types: day trip, one night, solo, couple, creative/study reset and burnout recovery",
+        "4": "Leaves you three energy-recharge missions and the travel patterns to avoid"
       },
       "premiumAudience": {
         "0": "Those unsure where to go to refill their energy",
@@ -10774,15 +10987,66 @@
         "2": "Those who don't feel refreshed even after resting"
       },
       "premiumChapters": {
-        "0": "Recommended destinations based on your Five-Elements balance",
-        "1": "Domestic/overseas coordinates and a lucky direction",
-        "2": "A travel concept that lifts your energy",
-        "3": "A seasonal/timing reference point"
+        "0": "Elemental deficiency reading with useful/hostile element dashboard",
+        "1": "5–6 domestic and 5–6 overseas coordinates plus your target direction",
+        "2": "Recommendations for six trip types and elemental travel prescriptions",
+        "3": "Three energy-recharge missions and travel patterns to avoid"
       },
       "premiumOutcomes": {
         "0": "The reading is for reference only.",
         "1": "Please judge an actual trip alongside real-world conditions.",
         "2": "The existing payment policy applies."
+      },
+      "answersQuestions": {
+        "0": "Which element am I short of right now?",
+        "1": "Which direction and what kind of terrain should I head for?",
+        "2": "What shape should this trip take?"
+      },
+      "analysisSteps": {
+        "0": {
+          "label": "Chart calculation",
+          "detail": "Builds the natal chart from your birth date and time and measures the elemental spread."
+        },
+        "1": {
+          "label": "Deficiency reading",
+          "detail": "Identifies the elements needing a top-up along with your useful and hostile elements."
+        },
+        "2": {
+          "label": "Coordinate matching",
+          "detail": "Picks 5–6 domestic and 5–6 overseas destinations by terrain and environment matching those elements."
+        },
+        "3": {
+          "label": "Trip design",
+          "detail": "Closes with the target direction, six trip types, recharge missions and patterns to avoid."
+        }
+      },
+      "valueCompare": {
+        "0": {
+          "axis": "Structure",
+          "premium": "Elemental dashboard, domestic/overseas coordinates, type-based picks, recharge missions"
+        },
+        "1": {
+          "axis": "Coordinates",
+          "premium": "5–6 domestic and 5–6 overseas"
+        },
+        "2": {
+          "axis": "Action",
+          "premium": "Target direction, six trip types, three missions, patterns to avoid"
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "How many destinations are suggested?",
+          "a": "5–6 domestic and 5–6 overseas, each with coordinates, a match label and trip difficulty."
+        },
+        "1": {
+          "q": "Does it book flights or lodging?",
+          "a": "No. It only proposes coordinates and trip concepts. Judge the actual plan alongside your real circumstances."
+        },
+        "2": {
+          "q": "Can I redraw the recommendations?",
+          "a": "Yes, with the daily energy roulette inside the result."
+        }
       }
     },
     "rpt_villainCard": {
@@ -10791,9 +11055,11 @@
       "premiumIntro": "The Villain Report doesn't single out any specific person -- it points out the grain of relationships you often get caught up in, and where to be careful.",
       "fallbackCta": "Check Your Villain Type",
       "feats": {
-        "0": "When you keep getting pushed around by a certain type of person",
-        "1": "When you're curious about the cause of recurring relationship stress",
-        "2": "When you want to know ahead of time the signals to avoid"
+        "0": "Reads ten relationship-villain archetypes you are prone to running into repeatedly",
+        "1": "Shows today’s final boss, your chart’s weak button and a survival phrase as summary cards",
+        "2": "Scores each archetype for villain power and ranks it S, A+, A, B or watchlist",
+        "3": "Sorts three red flags, three defence routines and three conflict triggers",
+        "4": "Gives three copyable emergency lines plus a five-question self-check"
       },
       "premiumAudience": {
         "0": "Those constantly worn down by a certain type",
@@ -10801,15 +11067,66 @@
         "2": "Those who want to set a standard for keeping distance"
       },
       "premiumChapters": {
-        "0": "A diagnosis of the villain type that drains you",
-        "1": "Organizing the relationship pattern most prone to repeating",
-        "2": "Warning signals and timing to keep your distance",
-        "3": "A realistic hint for protecting your relationships"
+        "0": "A ten-archetype villain codex with villain-power ranks",
+        "1": "Today’s final boss, your weak button and a survival phrase",
+        "2": "Three red flags and three defence routines per archetype",
+        "3": "Three copyable emergency lines and a five-question self-check"
       },
       "premiumOutcomes": {
         "0": "The analysis is for reference only.",
         "1": "It doesn't define a specific individual.",
         "2": "The existing payment policy applies."
+      },
+      "answersQuestions": {
+        "0": "Which relationship type am I most vulnerable to?",
+        "1": "Where should I catch the warning signs?",
+        "2": "How do I get out once I am caught up in it?"
+      },
+      "analysisSteps": {
+        "0": {
+          "label": "Chart calculation",
+          "detail": "Builds the natal chart from your birth date and time and reads the Ten Gods spread."
+        },
+        "1": {
+          "label": "Weak axis reading",
+          "detail": "Identifies which Ten Gods axis is easiest to press and sets it as your weak button."
+        },
+        "2": {
+          "label": "Archetype scoring",
+          "detail": "Scores the ten villain archetypes for villain power and assigns ranks."
+        },
+        "3": {
+          "label": "Defence write-up",
+          "detail": "Sorts red flags, defence routines, conflict triggers and emergency lines."
+        }
+      },
+      "valueCompare": {
+        "0": {
+          "axis": "Structure",
+          "premium": "Three summary cards plus a ten-archetype villain codex"
+        },
+        "1": {
+          "axis": "Reading",
+          "premium": "Villain-power score and S/A+/A/B/watchlist rank per archetype"
+        },
+        "2": {
+          "axis": "Action",
+          "premium": "3 red flags, 3 defence routines, 3 copyable emergency lines, 5-question self-check"
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "Does it name a specific person?",
+          "a": "No. It does not label people; it shows, as archetypes, the relationship types you tend to be drawn into repeatedly."
+        },
+        "1": {
+          "q": "How many types appear?",
+          "a": "Ten archetypes, each with a villain-power score and an S, A+, A, B or watchlist rank."
+        },
+        "2": {
+          "q": "Does an AI write it?",
+          "a": "No. Everything is computed in your browser from Saju rules on the spot."
+        }
       }
     },
     "rpt_secretHouseEntryCard": {
@@ -10818,9 +11135,11 @@
       "premiumIntro": "Secret House doesn't predict your actual love life -- it's interactive content that turns the grain of your Day Master into a story to enjoy.",
       "fallbackCta": "Enter Secret House",
       "feats": {
-        "0": "When you need light, immersive love content",
-        "1": "When you're curious about your Saju-based love style",
-        "2": "When you want to experience an ending that changes with your choices"
+        "0": "Reads your day stem directly and starts you with one of five partners",
+        "1": "Runs 14 episodes of choices across five days",
+        "2": "Branches into seven ending tones per character based on the choices you stack up",
+        "3": "Shows a relationship-flow reading at the ending and why it branched that way",
+        "4": "Lets you send the share text via KakaoTalk, device share or copying the link"
       },
       "premiumAudience": {
         "0": "Those who prefer participation over reading fortune",
@@ -10828,15 +11147,66 @@
         "2": "Those looking for light, immersive content"
       },
       "premiumChapters": {
-        "0": "A story that progresses with automatic Day-Master linking",
-        "1": "Multiple endings that branch based on your choices",
-        "2": "Saving and sharing your ending card",
-        "3": "An immersive love-scenario experience"
+        "0": "Five partners linked to your day stem",
+        "1": "14 episodes of choices across five days",
+        "2": "Seven ending tones per character depending on your choices",
+        "3": "An ending reading plus share text"
       },
       "premiumOutcomes": {
         "0": "This content is for entertainment.",
         "1": "Fortune results are for reference only.",
         "2": "The existing payment policy applies."
+      },
+      "answersQuestions": {
+        "0": "What kind of partner connects with my day stem?",
+        "1": "How do my choices change the temperature of the relationship?",
+        "2": "Which ending did it lead to?"
+      },
+      "analysisSteps": {
+        "0": {
+          "label": "Day stem",
+          "detail": "Takes the day stem straight from your Saju result and assigns a partner."
+        },
+        "1": {
+          "label": "Episodes",
+          "detail": "Stacks up your choices across 14 scenes over five days."
+        },
+        "2": {
+          "label": "Ending",
+          "detail": "Picks one of seven ending tones from the choices you stacked."
+        },
+        "3": {
+          "label": "Wrap-up",
+          "detail": "Writes the relationship-flow reading, why it branched, and the share text."
+        }
+      },
+      "valueCompare": {
+        "0": {
+          "axis": "Length",
+          "premium": "14 episodes across five days"
+        },
+        "1": {
+          "axis": "Branching",
+          "premium": "5 partners × 7 ending tones"
+        },
+        "2": {
+          "axis": "Result",
+          "premium": "Relationship-flow reading, why it branched, share text"
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "Does it predict real romance?",
+          "a": "No. It is a choice-driven story built on Saju as its material."
+        },
+        "1": {
+          "q": "How many endings are there?",
+          "a": "Five partners, each with seven ending tones."
+        },
+        "2": {
+          "q": "Can I save it as an image?",
+          "a": "There is no image-save feature. You can send the share text from the result screen via KakaoTalk, device share or by copying the link."
+        }
       }
     },
     "rpt_aiPromptCard": {
@@ -10845,9 +11215,11 @@
       "premiumIntro": "The Saju Prompt is a free tool -- no separate payment -- that lets you carry your Saju's mood straight into an image prompt.",
       "fallbackCta": "Get the Prompt for Free",
       "feats": {
-        "0": "When you want to turn your Saju image into AI art",
-        "1": "When you need a concept prompt for a profile or avatar",
-        "2": "When you want to picture an ideal-type face as an image"
+        "0": "Builds thirteen image-generation prompts from your Saju",
+        "1": "Includes Saju imagery, an animal avatar, your ideal face, a life-movie poster and lucky-charm wallpaper",
+        "2": "Also produces a soul room, a destiny brand logo, your past life and a destiny RPG class",
+        "3": "Continues through a lucky dessert, a guardian spirit, a destiny album cover and a wealth treasure map",
+        "4": "Each line copies with one button so you can paste it into an external AI image tool"
       },
       "premiumAudience": {
         "0": "Those who want to see their Saju mood as an image",
@@ -10855,15 +11227,52 @@
         "2": "Those who want to make a new profile image"
       },
       "premiumChapters": {
-        "0": "Object-symbolism, avatar, and ideal-type-face prompts",
-        "1": "Image-generation text ready to copy and use immediately",
-        "2": "Various concept ideas for your Saju image",
-        "3": "Use for free, no additional payment"
+        "0": "Prompts for Saju imagery, an animal avatar and your ideal face",
+        "1": "A life-movie poster, lucky-charm wallpaper and your soul room",
+        "2": "Thirteen concepts including brand logo, past life, RPG class and guardian spirit",
+        "3": "Free, with no extra payment"
       },
       "premiumOutcomes": {
         "0": "You can use it right now, for free.",
         "1": "The generated image is created by an external AI tool.",
         "2": "The result is for reference and entertainment."
+      },
+      "answersQuestions": {
+        "0": "What wording should I use to turn my Saju into an image?",
+        "1": "How many concepts do I get?",
+        "2": "How do I take the generated lines with me?"
+      },
+      "analysisSteps": {
+        "0": {
+          "label": "Chart calculation",
+          "detail": "Builds the natal chart from your birth date and time and derives the elemental spread."
+        },
+        "1": {
+          "label": "Concept assignment",
+          "detail": "Distributes the grain of your elements and Ten Gods across thirteen image concepts."
+        },
+        "2": {
+          "label": "Prompt writing",
+          "detail": "Writes, for each concept, the line to feed an image-generation tool."
+        },
+        "3": {
+          "label": "Copy buttons",
+          "detail": "Attaches a copy button to every line so you can take it straight away."
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "Does it generate the images too?",
+          "a": "No. It only writes the prompts. You paste the copied line into an external AI image tool and generate it yourself."
+        },
+        "1": {
+          "q": "How many do I get?",
+          "a": "Thirteen concepts at once."
+        },
+        "2": {
+          "q": "Do I need to pay?",
+          "a": "No. It opens inside your Saju result with no extra payment."
+        }
       }
     },
     "rpt_tTestCard": {
@@ -10872,9 +11281,11 @@
       "premiumIntro": "The Extreme-T Test doesn't define your personality -- it's a free, playful reflection of how much your judgment leans toward reason.",
       "fallbackCta": "Diagnose for Free",
       "feats": {
-        "0": "When you're curious how rational a type you are",
-        "1": "When logic often gets ahead of emotion for you",
-        "2": "When you want a light check on your judgment style"
+        "0": "Measures the metal element, authority, expression and climate in your chart to produce a T score of 0–100 and a tier",
+        "1": "Shows four stats: metal hardware, forced-control instinct, blunt-fact debugging and the cold-dry formation",
+        "2": "Separates strengths from error patterns through a [Strength Scan] and a [Fatal Bug] reading",
+        "3": "Puts six chips on the summary card: type, score, logic temperature, emotional expression, tone risk and dating difficulty",
+        "4": "[Relationship Circuit], [Love Algorithm], [Reality Processing], [Saju-based Extreme-T Reading] and [Debugging Prescription] open after a separate unlock"
       },
       "premiumAudience": {
         "0": "Those curious which comes first, emotion or reason",
@@ -10882,15 +11293,52 @@
         "2": "Those looking for a light test to try"
       },
       "premiumChapters": {
-        "0": "A diagnosis of your logic temperature (T score)",
-        "1": "A breakdown of your thinking/judgment pattern",
-        "2": "The T tendency that shows up in relationships",
-        "3": "Use for free, no additional payment"
+        "0": "T score 0–100 with tier and type name",
+        "1": "Four stats: metal hardware, control instinct, blunt-fact debugging, climate",
+        "2": "A [Strength Scan] and a [Fatal Bug] reading",
+        "3": "Six summary chips plus today’s mission"
       },
       "premiumOutcomes": {
-        "0": "You can use it right now, for free.",
-        "1": "The test is for reference and entertainment.",
-        "2": "Temperament can vary by situation."
+        "0": "You can use it free right now.",
+        "1": "[Relationship Circuit], [Love Algorithm], [Reality Processing], [Saju-based Extreme-T Reading] and [Debugging Prescription] open after a separate unlock.",
+        "2": "The test is for reference and fun."
+      },
+      "answersQuestions": {
+        "0": "What is my T score?",
+        "1": "Where in my chart does that score come from?",
+        "2": "What error pattern shows up when people get close to me?"
+      },
+      "analysisSteps": {
+        "0": {
+          "label": "Chart calculation",
+          "detail": "Builds the natal chart from your birth date and time."
+        },
+        "1": {
+          "label": "Four measures",
+          "detail": "Converts the metal element, authority, expression and climate into scores."
+        },
+        "2": {
+          "label": "T score",
+          "detail": "Adds the four up into 0–100, a tier and an extreme-T type name."
+        },
+        "3": {
+          "label": "Wrap-up",
+          "detail": "Writes the strength scan, fatal bug, today’s mission and the six summary chips."
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "Is this an MBTI test?",
+          "a": "No. You do not answer questionnaire items. It scores the metal element, authority, expression and climate in your natal chart, for fun."
+        },
+        "1": {
+          "q": "How much is free?",
+          "a": "The T score, tier, type name, four stats, [Strength Scan], [Fatal Bug], today’s mission and the summary card are all free."
+        },
+        "2": {
+          "q": "Why can’t I see the relationship sections?",
+          "a": "[Relationship Circuit], [Love Algorithm], [Reality Processing], [Saju-based Extreme-T Reading] and [Debugging Prescription] require a separate unlock and open once it is unlocked."
+        }
       }
     },
     "rpt_hormone_vibe_section": {
@@ -10899,9 +11347,10 @@
       "premiumIntro": "The Teto/Egen analysis doesn't rank one above the other -- it's a free organization of how your charm pulls people in.",
       "fallbackCta": "Check for Free",
       "feats": {
-        "0": "When you want to know your charm style in one word",
-        "1": "When you're curious what kind of grain your pull has",
-        "2": "When you want to know your energy type in love and relationships"
+        "0": "Tallies the Ten Gods across all seven positions except the day stem",
+        "1": "Groups the Ten Gods into peers, output, resource, authority and wealth",
+        "2": "Calculates a Teto score and an Egen score and reads your type from them",
+        "3": "Shows the reasoning behind that reading alongside it"
       },
       "premiumAudience": {
         "0": "Those curious how their charm actually works",
@@ -10909,26 +11358,64 @@
         "2": "Those looking for a short, fun diagnosis"
       },
       "premiumChapters": {
-        "0": "A Teto vs Egen charm-type diagnosis",
-        "1": "An explanation of the grain of your charm energy",
-        "2": "The pull style that shows up in relationships",
-        "3": "Use for free, no additional payment"
+        "0": "Teto and Egen scores with a type reading",
+        "1": "Ten Gods tallied across seven positions excluding the day stem",
+        "2": "Weightings for the five groups: peers, output, resource, authority, wealth",
+        "3": "Free, with no extra payment"
       },
       "premiumOutcomes": {
         "0": "You can use it right now, for free.",
         "1": "The analysis is for reference and entertainment.",
         "2": "Your charm type can vary by situation."
+      },
+      "answersQuestions": {
+        "0": "Am I a Teto type or an Egen type?",
+        "1": "What is the basis for that result?",
+        "2": "Which group are my Ten Gods concentrated in?"
+      },
+      "analysisSteps": {
+        "0": {
+          "label": "Chart calculation",
+          "detail": "Builds the natal chart from your birth date and time."
+        },
+        "1": {
+          "label": "Ten Gods tally",
+          "detail": "Counts the Ten Gods across the seven positions excluding the day stem."
+        },
+        "2": {
+          "label": "Group weighting",
+          "detail": "Derives the weighting of the five groups: peers, output, resource, authority, wealth."
+        },
+        "3": {
+          "label": "Type reading",
+          "detail": "Weighs the Teto score against the Egen score and writes the type and its reasoning."
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "Does it actually measure hormones?",
+          "a": "No. This is not a medical measurement but a fun analysis that sorts your Ten Gods spread under the Teto and Egen labels."
+        },
+        "1": {
+          "q": "Does the result change daily?",
+          "a": "It uses only the Ten Gods in your natal chart, so the same birth date and time always gives the same result."
+        },
+        "2": {
+          "q": "Do I need to pay?",
+          "a": "No. It opens inside your Saju result with no extra payment."
+        }
       }
     },
     "rpt_lottoCard": {
       "fallbackTitle": "Get today's lucky numbers drawn from your Saju's Five Elements and number symbolism, for free.",
-      "tagline": "A free, fun feature that lightly suggests symbolic numbers and a lucky routine that match today's fortune wave.",
+      "tagline": "A free, for-fun feature that seeds five games from your natal chart plus today’s day pillar and luck cycle.",
       "premiumIntro": "The Saju Lotto is a fun feature that doesn't predict a win -- it freely draws a symbolic number that fits today's fortune.",
       "fallbackCta": "Draw Numbers for Free",
       "feats": {
-        "0": "When you're curious about today's lucky numbers",
-        "1": "When you need light, fun content",
-        "2": "When you want to see symbolic numbers that fit your Five Elements"
+        "0": "Seeds the numbers from your natal chart plus today’s day pillar, luck cycle and round counter",
+        "1": "Builds five games at once and labels them flow, stable, reversal, instinct and balance",
+        "2": "Raises the round counter and produces a new set each time you redraw",
+        "3": "Keeps a record of how many times you have opened it and how many games you have made"
       },
       "premiumAudience": {
         "0": "Those who want lucky numbers just for fun",
@@ -10936,15 +11423,52 @@
         "2": "Those looking for content to lightly check every day"
       },
       "premiumChapters": {
-        "0": "Symbolic numbers based on your Saju's Five Elements",
-        "1": "A lucky routine matching today's fortune",
-        "2": "A number card good for saving and sharing",
-        "3": "Use for free, no additional payment"
+        "0": "Numbers seeded from your chart, today’s day pillar and luck cycle",
+        "1": "Five games at once, each with a concept name",
+        "2": "Redraw to raise the round counter and get a new set",
+        "3": "Free, with no extra payment"
       },
       "premiumOutcomes": {
         "0": "You can use it right now, for free.",
         "1": "This is fun content that doesn't guarantee a win.",
         "2": "Please judge an actual purchase carefully."
+      },
+      "answersQuestions": {
+        "0": "Which number set matches my chart today?",
+        "1": "How many games do I get at once?",
+        "2": "Do the numbers change if I redraw?"
+      },
+      "analysisSteps": {
+        "0": {
+          "label": "Chart and day pillar",
+          "detail": "Builds the natal chart from your birth date and time, then attaches today’s day pillar and luck cycle."
+        },
+        "1": {
+          "label": "Seed",
+          "detail": "Combines chart, day pillar, luck cycle and round counter into a single seed."
+        },
+        "2": {
+          "label": "Number draw",
+          "detail": "Draws five sets of numbers from that seed."
+        },
+        "3": {
+          "label": "Record",
+          "detail": "Labels each game with a concept name and stores the round and view history."
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "Does it predict a win?",
+          "a": "No. It has nothing to do with winning and is purely for fun. Please judge any actual purchase carefully."
+        },
+        "1": {
+          "q": "Do the numbers change daily?",
+          "a": "Today’s day pillar and the round counter go into the seed, so the set changes when the date or round changes."
+        },
+        "2": {
+          "q": "Can I save or share the number card?",
+          "a": "The free number draw has no save or share feature. You read it directly on screen."
+        }
       }
     },
     "rpt_sajuFourCutCard": {
@@ -10953,9 +11477,11 @@
       "premiumIntro": "The Saju Four-Cut doesn't state your fortune definitively -- it's free content that lets you enjoy your Saju as a fun, snapshot-style card.",
       "fallbackCta": "Make a Four-Cut for Free",
       "feats": {
-        "0": "When you need fun Saju content to post on social media",
-        "1": "When you want to see your Saju in short, punchy sentences",
-        "2": "When you need a roast card to share with a friend"
+        "0": "Builds four-cut lines from today’s day pillar energy",
+        "1": "Lets you switch between four versions: form check, reply warmth, routine save and impulse lock",
+        "2": "Each version gives four cuts, with a radar, a first-cut comparison, a brain map and a lucky item/BGM attached",
+        "3": "Lets you drag stickers on to decorate and save the four cuts as an image",
+        "4": "Sends it out via KakaoTalk, device share or copying the link, whichever is available"
       },
       "premiumAudience": {
         "0": "Those who want to keep their Saju as an image",
@@ -10963,15 +11489,52 @@
         "2": "Those looking for light, fun content"
       },
       "premiumChapters": {
-        "0": "Four-cut sentences based on your Saju",
-        "1": "Filter versions in various concepts",
-        "2": "Save the image / share on KakaoTalk",
-        "3": "Use for free, no additional payment"
+        "0": "Four-cut lines carrying today’s energy",
+        "1": "Four versions: form check, reply warmth, routine save, impulse lock",
+        "2": "Cut extras: radar, comparison, brain map, lucky item and BGM",
+        "3": "Image save plus KakaoTalk, device share or link copy"
       },
       "premiumOutcomes": {
         "0": "You can use it right now, for free.",
         "1": "The sentences are for reference and entertainment.",
         "2": "The existing service standard applies."
+      },
+      "answersQuestions": {
+        "0": "What does my energy today look like on a single card?",
+        "1": "Which versions can I draw?",
+        "2": "How do I save and share the four cuts I made?"
+      },
+      "analysisSteps": {
+        "0": {
+          "label": "Chart and day pillar",
+          "detail": "Builds the natal chart from your birth date and time and attaches today’s day pillar."
+        },
+        "1": {
+          "label": "Version choice",
+          "detail": "Pick one of form check, reply warmth, routine save or impulse lock."
+        },
+        "2": {
+          "label": "Four cuts",
+          "detail": "Writes the four-cut lines and per-cut extras for the version you chose."
+        },
+        "3": {
+          "label": "Decorate and send",
+          "detail": "Add stickers, then save as an image or share it."
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "How many versions are there?",
+          "a": "Four — form check, reply warmth, routine save and impulse lock — and the one you pick is kept for next time."
+        },
+        "1": {
+          "q": "Can I save it as an image?",
+          "a": "Yes. You can save the four cuts as an image with your stickers in place."
+        },
+        "2": {
+          "q": "Do I need to pay?",
+          "a": "No. It opens inside your Saju result with no extra payment."
+        }
       }
     },
     "rpt_dopamineCard": {
@@ -10980,9 +11543,11 @@
       "premiumIntro": "This doesn't diagnose addiction -- it's a fun read, through your Saju flow, of where you draw energy from and where you burn out quickly.",
       "fallbackCta": "See Your Stimulation Score for Free",
       "feats": {
-        "0": "When you start well but never seem to finish",
-        "1": "When you're curious why you get bored of things so quickly",
-        "2": "When you want to know where you get absorbed"
+        "0": "Converts your stimulation-seeking tendency into a 0–100 score, an SSS–D grade and a type name",
+        "1": "Draws an eight-axis stimulation radar: new experiences, social media, shopping, gaming, study, travel, romance and exercise",
+        "2": "Sorts eight immersion fields, your happiness switches and the situations where interest drops",
+        "3": "Leaves you the environments where you focus best, tailored advice, today’s one-liner and today’s mission",
+        "4": "Attaches earned badges and lets you save and share the result card"
       },
       "premiumAudience": {
         "0": "Those curious if they're easily drawn to new stimulation",
@@ -11000,6 +11565,43 @@
         "0": "You can use it right now, for free.",
         "1": "This is content for temperament reference and entertainment.",
         "2": "The existing service standard applies."
+      },
+      "answersQuestions": {
+        "0": "Do I chase stimulation, or do I prefer stability?",
+        "1": "Which stimuli do I react to most strongly?",
+        "2": "Where does my focus last longest?"
+      },
+      "analysisSteps": {
+        "0": {
+          "label": "Chart calculation",
+          "detail": "Builds the natal chart from your birth date and time and derives the elemental and Ten Gods spread."
+        },
+        "1": {
+          "label": "Score",
+          "detail": "Converts that spread into 0–100 and sets the SSS–D grade and type name."
+        },
+        "2": {
+          "label": "Radar",
+          "detail": "Scores how strongly you react on each of the eight stimulation axes."
+        },
+        "3": {
+          "label": "Wrap-up",
+          "detail": "Writes the immersion fields, happiness switches, focus environments, today’s mission and badges."
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "Does it diagnose addiction?",
+          "a": "No. This is not a medical diagnosis but reference and entertainment content that reads the grain of your reactions from your Saju flow."
+        },
+        "1": {
+          "q": "Does an AI write the result?",
+          "a": "No. Every sentence, including the “How AI sees you” passage inside the result, is computed in your browser from Saju rules."
+        },
+        "2": {
+          "q": "How many radar axes are there?",
+          "a": "Eight: new experiences, social media, shopping, gaming, study, travel, romance and exercise."
+        }
       }
     },
     "new_year_ai_consultation": {

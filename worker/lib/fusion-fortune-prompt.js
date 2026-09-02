@@ -386,3 +386,78 @@ export function buildFusionFortunePrompt({ context = {} } = {}) {
 }
 
 export { EXPERT_CONTRACTS, SECTION_WRITING_RULES };
+
+/* ─────────── 관리자 프롬프트 랩 ─────────── */
+
+/** 랩 프롬프트가 열 때마다 달라지면 문안 비교가 안 된다. 타로 시드를 고정한다. */
+const ADMIN_LAB_TAROT_SEED = "admin-prompt-lab";
+
+function labGender(value) {
+  const text = String(value || "").trim().toLowerCase();
+  if (text === "m" || text === "male") return "male";
+  if (text === "f" || text === "female") return "female";
+  return "unspecified";
+}
+
+function labNumber(value) {
+  if (value === null || value === undefined || value === "") return Number.NaN;
+  return Number(value);
+}
+
+/**
+ * 관리자 폼은 출생지를 도시 이름만 받고 좌표는 비운 채 넘긴다(worker/routes/admin.js 의 buildAdminLabBody).
+ * 그대로 실으면 normalizeFusionFortuneInput 이 null 을 0 으로 읽어 위경도 (0,0) 명식이 만들어지고,
+ * 랩은 birthPlaceKnown: true 인 거짓 프롬프트를 보여 준다. 좌표가 실제 숫자일 때만 싣는다.
+ */
+function labBirthPlace(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return undefined;
+  const latitude = labNumber(value.latitude);
+  const longitude = labNumber(value.longitude);
+  const timezone = String(value.timezone || "").trim();
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude) || !timezone) return undefined;
+  return { city: String(value.city || value.name || ""), country: String(value.country || ""), latitude, longitude, timezone };
+}
+
+/**
+ * 관리자 프롬프트 랩 조립기.
+ * 🔴 프로덕션 buildFusionSectionGroupPrompt 만 부른다 — 랩 전용 문안을 여기서 쓰면 랩이 거짓말을 한다.
+ * 초융합은 4그룹 병렬 생성이라 프롬프트가 하나가 아니다. 그룹을 variants 로 노출한다.
+ */
+export async function buildAdminLabPrompt(body = {}, options = {}) {
+  const group = FUSION_SECTION_GROUP_SPECS.find((item) => item.id === options.variant) || FUSION_SECTION_GROUP_SPECS[0];
+  const variants = FUSION_SECTION_GROUP_SPECS.map((item) => ({ key: item.id, label: `${item.label} (${item.stageLabel})` }));
+
+  let context = {};
+  let partialReason = "";
+  try {
+    // 정적 import 는 순환이다 — fusion-fortune.js 가 이 모듈을 먼저 읽는다.
+    const { buildFusionFortuneContext } = await import("./fusion-fortune.js");
+    const built = await buildFusionFortuneContext({
+      birthDate: String(body.birthDate || ""),
+      birthTime: String(body.birthTime || ""),
+      birthTimeUnknown: body.birthTimeUnknown === true,
+      calendarType: String(body.calendarType || "solar"),
+      gender: labGender(body.gender),
+      concern: String(body.question || ""),
+      birthPlace: labBirthPlace(body.birthPlace),
+    }, { env: options.env || {}, tarotSeed: ADMIN_LAB_TAROT_SEED });
+    if (built?.ok && built.context) context = built.context;
+    else partialReason = `서버 컨텍스트 계산이 ${built?.failedSystem || "알 수 없는 체계"}에서 멈춰, 데이터 칸이 빈 프롬프트 골격만 표시합니다.`;
+  } catch (error) {
+    partialReason = `서버 컨텍스트를 계산하지 못해 데이터 칸이 빈 프롬프트 골격만 표시합니다: ${String(error?.message || error).slice(0, 160)}`;
+  }
+
+  const { systemPrompt, userPrompt } = buildFusionSectionGroupPrompt({ context, group });
+  return {
+    systemPrompt,
+    prompt: userPrompt,
+    partial: Boolean(partialReason),
+    partialReason,
+    variantKey: group.id,
+    variants,
+    notes: [
+      `초융합은 한 번에 뽑지 않고 ${FUSION_SECTION_GROUP_SPECS.length}개 그룹을 병렬로 생성한다. 지금 보는 것은 “${group.label}” 그룹의 프롬프트다.`,
+      `타로 카드는 매번 달라지면 비교가 안 되므로 랩에서만 시드를 "${ADMIN_LAB_TAROT_SEED}" 로 고정한다.`,
+    ],
+  };
+}
