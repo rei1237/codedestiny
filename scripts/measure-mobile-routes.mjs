@@ -269,7 +269,13 @@ async function probe(params) {
       if (rect.top >= window.innerHeight) continue;
       seenFixed.add(el);
       const gap = Number((window.innerHeight - inset - rect.bottom).toFixed(1));
-      fixedBottom.push({ label: describe(el), position: cs.position, cssBottom: cs.bottom, bottom: Number(rect.bottom.toFixed(1)), gap });
+      // 🔴 판정은 contentGap — 박스 하단만 재면 padding-bottom:env(safe-area-inset-bottom) 관용구
+      // (배경은 화면 끝까지, 내용물은 인셋 위 — 채팅 컴포저의 정석)가 전부 -inset 오탐이 된다
+      // (fortune-chat 실측 2026-09-02: 올바른 컴포저가 -47px 로 찍혔다). env() 미배선 바는
+      // 인셋을 줘도 패딩이 안 자라 여전히 걸리므로 이 완화는 fail-open 이 아니다.
+      const paddingBottom = Number((parseFloat(cs.paddingBottom) || 0).toFixed(1));
+      const contentGap = Number((gap + paddingBottom).toFixed(1));
+      fixedBottom.push({ label: describe(el), position: cs.position, cssBottom: cs.bottom, bottom: Number(rect.bottom.toFixed(1)), gap, paddingBottom, contentGap });
     }
   };
 
@@ -366,8 +372,8 @@ async function probe(params) {
     readingCol: widths.length
       ? { min: widths[0], median: widths[Math.floor(widths.length / 2)], samples: readingTop }
       : null,
-    fixedBottom: fixedBottom.sort((a, b) => a.gap - b.gap),
-    fixedBottomViolations: fixedBottom.filter((f) => f.gap < minGap),
+    fixedBottom: fixedBottom.sort((a, b) => a.contentGap - b.contentGap),
+    fixedBottomViolations: fixedBottom.filter((f) => f.contentGap < minGap),
     bottomNavVisible,
     exitFound,
   };
@@ -476,7 +482,7 @@ async function main() {
             console.error(`✗ INVALID ${tag} — ${leg.invalidReason}`);
             continue;
           }
-          const sa = leg.fixedBottom.length ? `${Math.min(...leg.fixedBottom.map((f) => f.gap))}px` : "—";
+          const sa = leg.fixedBottom.length ? `${Math.min(...leg.fixedBottom.map((f) => f.contentGap))}px` : "—";
           console.log(
             `· ${tag} scanned=${leg.visibleInteractive}/${leg.scanned} ` +
               `OF=${leg.docOverflow ? leg.overflowOffenders.length + "건" : "0"} ` +
@@ -485,7 +491,8 @@ async function main() {
               `이탈=${leg.bottomNavVisible ? "탭바" : leg.exitFound.length ? "유" : "수동확인"}`,
           );
           for (const off of leg.overflowOffenders) console.log(`    ↔ ${off.overPx}px 초과: ${off.label}`);
-          for (const v of leg.fixedBottomViolations) console.log(`    ⚠ safe-area ${v.gap}px 여유: ${v.label}`);
+          for (const v of leg.fixedBottomViolations)
+            console.log(`    ⚠ safe-area 내용물 여유 ${v.contentGap}px (박스 ${v.gap}px + 하단패딩 ${v.paddingBottom}px): ${v.label}`);
         }
       }
       runs.push({ route, legs });
