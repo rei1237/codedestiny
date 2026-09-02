@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-03
-next: "E1 머지 확인 후, 새 세션·새 워크트리에서 W2 시작 — E2(모달 전환, 대형) 를 먼저. 🔴 E2 는 `lib/marketing/feature-marketing-copy.generated.json`(E1 산출물, 407KB) 을 읽는데 **정적 import 하면 클라이언트 번들에 통째로 실린다** — 서버 컴포넌트나 동적 import 로 들어갈 자리부터 정하고 시작할 것."
+next: "E2(#1498) 머지 확인 후, 새 세션·새 워크트리에서 W2 나머지 — E4(fusion 정본화) → PR-C(중복 검출) → PR-B(클램프 배선). 🔴 축4 PR-6(문안 저작) 에 들어가기 전에 아래 'E2 가 남긴 것'을 읽을 것 — 셸 별칭 23종이 번역을 못 받고 있고 가드가 그 축을 안 본다."
 ---
 
 # 전문가 상담 품질·진입 UX·PDF 전면 제공 (13 PR 계획)
@@ -15,13 +15,14 @@ next: "E1 머지 확인 후, 새 세션·새 워크트리에서 W2 시작 — E2
 - 확정 계획 정본: `C:\Users\user\.claude\plans\goofy-leaping-curry.md` (13 PR + 후속 3, 축1 PDF / 축2 진입 UX / 축3 AI 품질). 사용자 승인 완료.
 - **축1 PDF 머지 완료: PR-1(#1451) · PR-2(#1460) · PR-3(#1475) · PR-4(#1488).**
 - **PR-A(초융합 랩 등록 + CMS 카탈로그 드리프트) 머지 완료(#1491).**
-- **E1(카피 추출 파이프라인) = 이 PR.** 머지는 사용자. 머지되면 W1 이 닫힌다.
-- 나머지 8 PR 전부 미착수.
+- **W1 닫힘: E1(카피 추출 파이프라인) 머지 완료(#1490 뒤 78be90504).**
+- **E2(허브 모달 전환) = PR #1498.** CI 5종 통과, 머지는 사용자.
+- 나머지 7 PR 전부 미착수.
 
 ## 남은 작업
 
-- [x] W1: PR-A(#1491) 머지 · E1(카피 추출 파이프라인) = 이 PR
-- [ ] W2: E2(모달 전환, 대형) · E4(fusion 정본화) · PR-C(중복 검출) · PR-B(클램프 배선)
+- [x] W1: PR-A(#1491) 머지 · E1(카피 추출 파이프라인) 머지
+- [ ] W2: ~~E2(모달 전환)~~ = #1498 대기 · E4(fusion 정본화) · PR-C(중복 검출) · PR-B(클램프 배선)
 - [ ] W3: 축4 PR-6(문안 저작, 축4 소유) · E5(PaidValueSection+nakshatra) → E6(island)
 - [ ] W4: PR-5(셸 saju AI PDF, i18n 11파일) → E3(잔재 키 청소, 백로그)
 - [ ] W5(후속): PR-F(pdf.save→deliverPdf 앱 분기, 실기기 검증 필수) · PR-B2
@@ -43,6 +44,17 @@ next: "E1 머지 확인 후, 새 세션·새 워크트리에서 W2 시작 — E2
 
 E1 산출물(E2 가 소비할 것): `lib/marketing/feature-marketing-copy.generated.json` = `{ items: { "<셸 카피 키>": { dictNs, copy } }, templates: { "<카테고리>": { dictNs: "template_<카테고리>", copy } } }`. `inherit` 은 이미 해소돼 남아 있지 않고 `dictNs` 는 `featureMarketing.<dictNs>` 조회용으로 미리 계산돼 있다. 파서·`safeKey`·상속 해소의 정본은 `scripts/lib/feature-marketing-extract.mjs`(가드 2개와 공유).
 
+## E2 가 남긴 것 (축4 PR-6 입력 · 전부 미조치, 2026-09-03 실측)
+
+React 모달은 전부 옳게 고쳤고 아래는 **셸(index.html) 쪽** 이거나 문안 저작 소유다. 축2 는 셸 0-diff 라 여기서 손댈 수 없었다.
+
+- 🔴 **별칭 네임스페이스 누락** — `inherit` 별칭 40개 중 **23개가 타일 속성으로 도달 가능**한데 셸은 별칭 자기 이름으로 사전을 찾아 번역이 안 붙는다. `verify:feature-marketing-dictionary` 는 별칭을 통째로 건너뛰어 이 축을 못 본다(대신 `__tests__/ui/feature-marketing-copy-generated.static.test.js` 의 "모든 dictNs 가 en 사전에 실재한다" 가 생성 JSON 축을 문다).
+- 🔴 **셸 단일 ns 누수 204건(en 기준)** — 셸은 병합 객체 전체를 상품 ns 하나로 조회해서, 템플릿에서 상속받은 값은 상품 ns 에 없어 한국어로 남는다. React 는 필드마다 값이 온 ns 를 본다.
+- `template_music` 의 `badge`·`headline` 사전 구멍 2건 — 모달 테스트에 래칫으로 고정(늘어도 낡아도 실패).
+- 카테고리 표기표 미매핑 6종(상담·휴먼 디자인·관상·심리·읽을거리·이용권, 항목 12개) → 템플릿 이름으로 내려간다.
+- `en.featureMarketingTrust.paid.1` 이 셸 문장이 아니라 **삭제된 React 포크의 문장**을 번역하고 있다.
+- 랜딩 `ServiceCard` 는 `featureKey`·`slug`·`accessType` 을 안 넘겨 href 로만 매칭된다(가격은 E2-5 의 `featureId` 폴백으로 구제됨).
+
 ## 함정
 
 - 전 검증 mock/정적 — 과금 LLM 실호출 0.
@@ -58,7 +70,7 @@ E1 산출물(E2 가 소비할 것): `lib/marketing/feature-marketing-copy.genera
 
 ```
 npm run verify:nakshatra-ai-flow   # PR-1 가드(섹션 D 9단언 추가됨)
-npm run test:node                  # PR-2·PR-3·PR-4 가드 포함(*-pdf-export.static.test.js)
+npm run test:node                  # PR-2·PR-3·PR-4·E2 가드 포함(*.static.test.js)
 node scripts/generate-sitemap.mjs --check   # 결과 화면 파일을 고치면 원장이 드리프트한다
 ```
 
