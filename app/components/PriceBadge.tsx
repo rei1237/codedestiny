@@ -17,19 +17,22 @@ export function PriceBadge({
   suffix?: string;
   className?: string;
 }) {
-  const { label, loading } = useServerPrice(priceInput);
+  // 🔴 loading 은 이 훅에서 언제나 false 다 — 가격 정본이 빌드타임 레지스트리라 비동기
+  //    구간 자체가 없다(useServerPrice 의 상태 쓰기 4곳 전부 loading: false).
+  //    그래서 예전의 "가격 확인 중" 분기는 도달 불가였다.
+  const { label } = useServerPrice(priceInput);
   // 🔴 useT 가 아니라 useTPick — 사전이 아직 안 왔을 때 useT 는 "번역을 준비 중입니다" 를
   //    돌려준다. 이 배지는 첫 페인트에 17곳이 함께 뜨므로 그 자리표시자가 그대로 보인다.
   const pick = useTPick();
 
   if (!label) {
-    if (!loading && !priceInput.featureKey && !priceInput.subFeatureKey && !priceInput.categoryKey) return null;
+    if (!priceInput.featureKey && !priceInput.subFeatureKey && !priceInput.categoryKey) return null;
     return (
       <span
         className={className || "inline-flex items-center rounded-full border border-amber-200/25 bg-amber-100/10 px-3 py-1 text-xs font-bold text-amber-100/60"}
         aria-live="polite"
       >
-        {loading ? pick("preview.priceLoading", "가격 확인 중") : pick("preview.priceUnknown", "가격 확인 필요")}
+        {pick("preview.priceUnknown", "가격 확인 필요")}
       </span>
     );
   }
@@ -37,7 +40,7 @@ export function PriceBadge({
   return (
     <span
       className={className || "inline-flex items-center rounded-full border border-amber-200/35 bg-amber-100/10 px-3 py-1 text-xs font-bold text-amber-100"}
-      aria-label={`이용 가격 ${label}`}
+      aria-label={`${pick("preview.priceAriaLabel", "이용 가격")} ${label}`}
     >
       {prefix}
       {label}

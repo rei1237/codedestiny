@@ -644,9 +644,8 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
   const isUnlockFeature = resolveFeatureAccessModel(paidMeta?.featureKey) === "unlock";
   // 가격을 못 푼 상태의 문구. PriceBadge 와 **같은 키**를 쓴다 — 사본을 만들면 두 화면이 갈라진다.
   const pick = useTPick();
-  const pricePendingLabel = (paidPrice.loading
-    ? pick("preview.priceLoading", "가격 확인 중")
-    : pick("preview.priceUnknown", "가격 확인 필요")) || "";
+  // paidPrice.loading 은 언제나 false 다 — useServerPrice 는 빌드타임 레지스트리를 동기로 읽는다.
+  const pricePendingLabel = pick("preview.priceUnknown", "가격 확인 필요") || "";
 
   const category = basePath.split("/")[1] ?? "tarot";
   const baseTheme = THEMES[category] ?? THEMES.tarot;
