@@ -15,6 +15,7 @@ const LOADERS = {
   "karma-destiny": () => import("../routes/karma-destiny-ai.js"),
   "life-book": () => import("../routes/life-book-ai.js"),
   "ziwei-deep-report": () => import("./ziwei-deep-report-prompt.mjs"),
+  "fusion-fortune": () => import("./fusion-fortune-prompt.js"),
 
   // ── 궁합 · 관계 ──
   "sukuyo-compatibility": () => import("../routes/sukuyo-compatibility-ai.js"),
