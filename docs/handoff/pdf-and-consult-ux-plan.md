@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-03
-next: "PR-6(#1503) 머지 확인 후, 새 세션·새 워크트리에서 W2 나머지 — E4(fusion 정본화) → PR-C(중복 검출) → PR-B(클램프 배선). i18n 11파일을 다시 만지는 PR-5·E3·레거시 D 저작은 서로 비병행이므로 하나씩."
+next: "E4 = PR #1507 머지 대기(사용자). 그 다음 새 세션·새 워크트리에서 PR-C(중복 검출) → PR-B(클램프 배선). i18n 11파일을 다시 만지는 PR-5·E3·레거시 D 저작은 서로 비병행이므로 하나씩."
 ---
 
 # 전문가 상담 품질·진입 UX·PDF 전면 제공 (13 PR 계획)
@@ -13,20 +13,21 @@ next: "PR-6(#1503) 머지 확인 후, 새 세션·새 워크트리에서 W2 나�
 ## 지금 상태
 
 - 확정 계획 정본: `C:\Users\user\.claude\plans\goofy-leaping-curry.md` (13 PR + 후속 3, 축1 PDF / 축2 진입 UX / 축3 AI 품질). 사용자 승인 완료.
-- 축1 PDF 4건 · PR-A · W1(E1) · E2 머지 완료(번호는 `gh pr list --state merged`).
-- **축4 PR-6(문안 저작) = PR #1503.** 머지는 사용자.
-- 나머지 6 PR 전부 미착수.
+- 축1 PDF 4건 · PR-A · W1(E1) · E2 · 축4 PR-6 머지 완료(번호는 `gh pr list --state merged`).
+- **E4(fusion 정본화) = PR #1507.** 머지는 사용자. 열린 PR 은 이것 하나뿐이라 순서 제약 없음.
+- 나머지 5 PR 전부 미착수.
 
 ## 남은 작업
 
-- [ ] W2: E4(fusion 정본화) · PR-C(중복 검출) · PR-B(클램프 배선)
-- [ ] W3: ~~축4 PR-6(문안 저작)~~ = #1503 대기 · E5(PaidValueSection+nakshatra) → E6(island)
+- [ ] W2: ~~E4(fusion 정본화)~~ = #1507 대기 · PR-C(중복 검출) · PR-B(클램프 배선)
+- [ ] W3: E5(PaidValueSection+nakshatra) → E6(island)
 - [ ] W4: PR-5(셸 saju AI PDF, i18n 11파일) → E3(잔재 키 청소, 백로그)
 - [ ] W5(후속): PR-F(pdf.save→deliverPdf 앱 분기, 실기기 검증 필수) · PR-B2
 - [ ] PR-1 브라우저 실측(실제 PDF 저장 1회) — 머지 후 스테이징에서. 판정: 커버+21섹션이 각자 새 페이지로 실리고 접힘 상태가 복원되면 끝.
 - [ ] PR-2 브라우저 실측 — 리포트는 **'한 장씩' 모드로 둔 채** 저장해 13장(안내+12궁)이 전부 실리는지, 상담은 히어로 이미지가 안 실리는지. `PalaceBadge` 스프라이트가 캔버스에 비면 그건 알려진 허용 결함.
 - [ ] PR-3·PR-4 브라우저 실측 — PR-4 는 **미해금 계정에 버튼이 아예 없는 것**과 해금 계정에서 커버+요약+7챕터가 전부 실리는 것 둘 다 볼 것.
 - [ ] PR-A 관리자 화면 실측 — `/admin/prompts` 에서 초융합을 골라 그룹 4개가 셀렉트에 뜨고 그룹마다 프롬프트가 다른지. 로컬에선 좌표를 넣으면 Swiss ephemeris URL 이 없어 `partial` 로 내려오는데, 프로덕션 env 에는 그 값이 있으므로 여기서만 확인 가능하다.
+- [ ] E4 브라우저 실측 — 머지 후 스테이징 `/fusion-fortune` 결제 전 화면에서 "미리 밝혀 두는 것" 4줄과 비교표가 셸(홈 상세 시트)과 **같은 문장**인지. 로컬은 정적 프리렌더까지만 확인했다(미검증).
 - 판정 기준: 각 PR 은 계획 문서의 해당 절 검증 목록 전부 통과 + 사용자 머지.
 
 ## 직렬 제약 (이것만 지키면 순서 자유)
@@ -41,6 +42,8 @@ next: "PR-6(#1503) 머지 확인 후, 새 세션·새 워크트리에서 W2 나�
 
 셸 카피 파서·`safeKey`·상속 해소의 정본은 `scripts/lib/feature-marketing-extract.mjs`(가드 2개 + 생성기가 공유). 생성물은 `lib/marketing/feature-marketing-copy.generated.json`.
 
+**PR-C 진입점 실측(2026-09-03, `worker/lib/fusion-fortune.js`).** 계획서가 말한 자리는 전부 여기에 있다 — :720 `runGroup(group,{attempts,timeoutMs,extraInstruction,progress})` · :732 `buildFusionSectionGroupPrompt` · :770 1차 병렬 `Promise.allSettled(FUSION_SECTION_GROUP_SPECS.map(...))` · :782 미달 그룹 선별 `shortGroups`(`countFusionGroupChars < targetChars * FUSION_GROUP_RETRY_RATIO`) · :783 `retryTargets = [...failedGroups, ...shortGroups]` · :792 repair 웨이브의 `extraInstruction: buildFusionShortfallInstruction(...)`. 중복 조건은 :782 의 선별식에 더하고 digest 는 :792 에만 실는다. 🔴 :814-816 이 "품질 미달이어도 모델이 실제로 쓴 본문을 우선하고 안전 위반일 때만 갈아탄다" 이므로 **중복을 배달 차단 사유로 승격하지 말 것** — 기록 자리는 반환 객체의 `qualityTier`/`qualityIssues`/`qualityNotice` 다.
+
 ## 셸 카피 번역 축 (PR-6 #1503 에서 닫은 것 · 남은 것)
 
 E2 가 넘긴 6건 중 5건을 #1503 에서 닫았다. 아래는 **남은 것과 그 판단 근거**다.
@@ -54,6 +57,8 @@ E2 가 넘긴 6건 중 5건을 #1503 에서 닫았다. 아래는 **남은 것과
 ## 함정
 
 - 전 검증 mock/정적 — 과금 LLM 실호출 0.
+- 🔴 **로컬 빌드 검증은 `npm run build:cf` 로만.** `npm run build` 를 직접 부르면 npm `pre` 훅이 `prebuild:cf` 를 못 찾아 통째로 건너뛰고, export 단계에서 `fortune/data/daily-<오늘>.json` ENOENT 로 죽는다 — 컴파일이 끝난 뒤라 "내 변경이 빌드를 깼나" 로 오진한다(E4 에서 재현). 빌드 뒤엔 `.ignore`·`rss.xml` 4개가 되쓰여 있으니 `git checkout --` 로 되돌린다.
+- 🔴 **생성 JSON 키는 타입 검사가 안 지킨다** — `tsconfig.json` 이 `strict:false`(→`noImplicitAny` OFF)라 `book.items["없는키"].copy.previewText` 가 `any` 로 조용히 통과한다(2026-09-03 프로브 실측). 카피 키를 읽는 화면을 새로 만들면 정적 테스트로 키 존재를 직접 물 것. 놓쳐도 정적 프리렌더가 TypeError 로 죽으므로 빈 화면이 배포되지는 않는다.
 - 관리자 랩 조립기를 새로 만들면 **출생지 좌표가 `null` 로 온다**(`worker/routes/admin.js` 의 `buildAdminLabBody`). `Number(null) === 0` 이라 그냥 실으면 위경도 (0,0) 명식이 조용히 만들어진다 — 좌표가 유한수일 때만 실을 것(PR-A 실측).
 - 축4 진행분(`docs/handoff/home-ux-audit-2026-09-01.md`)과 PR-5·PR-6·E1 이 겹친다 — 그 문서 먼저 읽을 것.
 - copy.ts·NakshatraAiClient.tsx 등 nakshatra 파일, `IslandConsultClient.tsx`, `components/fpti/**` 는 순수 CRLF — node 패치 스크립트로만 수정(3세션 연속 실전 확인).
