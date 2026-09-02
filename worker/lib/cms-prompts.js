@@ -78,17 +78,92 @@ export async function cmsPromptText(env, key, fallback) {
   return typeof text === "string" && text.trim() ? text : fallback;
 }
 
+/**
+ * CMS 필드에서 숫자를 읽는다. 숫자와 비어 있지 않은 문자열만 값으로 친다.
+ *
+ * 🔴 `Number.isFinite(Number(v))` 로 바로 재면 안 된다. 관리자가 칸을 비워 두면 필드가 빈 문자열로
+ * 저장되는데 `Number("")` 는 0 이라, "지정 안 함"이 "온도 0"(같은 답만 나오는 결정론 생성)이 된다.
+ * `null`·`[]`·`true` 도 같은 함정이다.
+ */
+function finiteFieldNumber(value) {
+  if (typeof value === "number") return Number.isFinite(value) ? value : null;
+  if (typeof value === "string" && value.trim()) {
+    const num = Number(value);
+    return Number.isFinite(num) ? num : null;
+  }
+  return null;
+}
+
 /** 모델 파라미터 오버라이드. 지정되지 않은 값은 키 자체를 빼서 호출부 기본값이 살아있게 한다. */
 export async function cmsPromptConfig(env, key) {
   const overrides = await loadPromptOverrides(env);
   const fields = overrides?.["prompt.system"]?.[String(key)] || {};
   const config = {};
 
-  if (Number.isFinite(Number(fields.temperature))) config.temperature = Number(fields.temperature);
-  if (Number.isFinite(Number(fields.topP))) config.topP = Number(fields.topP);
-  if (Number.isFinite(Number(fields.maxTokens))) config.maxTokens = Number(fields.maxTokens);
+  const temperature = finiteFieldNumber(fields.temperature);
+  const topP = finiteFieldNumber(fields.topP);
+  const maxTokens = finiteFieldNumber(fields.maxTokens);
+  if (temperature !== null) config.temperature = temperature;
+  if (topP !== null) config.topP = topP;
+  if (maxTokens !== null) config.maxTokens = maxTokens;
 
   return config;
+}
+
+/**
+ * 온도의 허용 범위. Gemini 는 2까지 받지만 1.2 위는 상담문이 사실 관계를 놓치기 시작한다 —
+ * 유료 상담에서 그 구간을 관리자가 실수로 고를 수 있게 두지 않는다.
+ */
+export const PROMPT_TEMPERATURE_MIN = 0;
+export const PROMPT_TEMPERATURE_MAX = 1.2;
+
+function clampNumber(value, min, max) {
+  return Math.min(max, Math.max(min, value));
+}
+
+/**
+ * CMS 모델 파라미터 오버라이드를 라우트가 견딜 수 있는 범위로 자른다.
+ *
+ * 🔴 클램프 없이 배선하면 관리자 한 번의 오타가 유료 생성을 통째로 망가뜨린다. 두 방향 다 사고다:
+ *   · 토큰을 낮추면 요구 분량을 못 채워 잘린 결과가 정상 결제로 배달된다.
+ *   · 토큰을 올리면 생성이 라우트 타임아웃(동기 생성은 엣지 100초)을 넘겨 결제만 남고 결과가 없다.
+ * 그래서 토큰은 [계약 하한, 코드 기본값] 안에서만 움직인다. 위쪽을 코드 기본값으로 막는 이유는
+ * 그 값이 각 라우트의 타임아웃에 맞춰 고른 수라서다 — 그 위는 코드가 검증한 적 없는 구간이다.
+ *
+ * 🔴 topP 는 돌려주지 않는다. callGeminiText 가 읽지 않는 옵션이라 넘겨도 조용히 버려지는데,
+ * 그걸 배선하면 관리자 화면에서는 값이 걸린 것처럼 보인다. 같은 함정을 두 라우트가 이미 밟고
+ * 지웠다(worker/routes/oracle.js:165 · worker/routes/yoga-guru.js:355 의 주석). 프로바이더가
+ * topP 를 읽게 되는 날 이 함수에 한 줄 더하면 세 라우트가 동시에 따라온다.
+ *
+ * @param {{temperature?: number, topP?: number, maxTokens?: number}} config cmsPromptConfig 결과
+ * @param {{minTokens: number, maxTokens: number}} limits 그 호출의 계약 하한 · 코드 기본값
+ * @returns {{temperature?: number, maxOutputTokens?: number}} 지정되지 않은 값은 키 자체를 뺀다
+ */
+export function clampPromptModelConfig(config = {}, limits = {}) {
+  const minTokens = finiteFieldNumber(limits?.minTokens);
+  const maxTokens = finiteFieldNumber(limits?.maxTokens);
+  const temperature = finiteFieldNumber(config?.temperature);
+  const requestedTokens = finiteFieldNumber(config?.maxTokens);
+  const resolved = {};
+
+  if (temperature !== null) {
+    resolved.temperature = clampNumber(temperature, PROMPT_TEMPERATURE_MIN, PROMPT_TEMPERATURE_MAX);
+  }
+  // 밴드가 없거나 하한이 코드 기본값보다 크면(계약이 기본값보다 큰 예산을 요구하면) 범위가 뒤집힌다.
+  // 그때는 오버라이드를 통째로 버린다 — 뒤집힌 범위에서 고른 값은 어느 쪽 계약도 지키지 못한다.
+  if (requestedTokens !== null && minTokens !== null && maxTokens !== null && minTokens <= maxTokens) {
+    resolved.maxOutputTokens = Math.round(clampNumber(requestedTokens, minTokens, maxTokens));
+  }
+
+  return resolved;
+}
+
+/**
+ * 모델 파라미터 오버라이드를 읽어 그 자리에서 클램프한다. 라우트는 이 함수만 부른다 —
+ * cmsPromptConfig 를 직접 부르면 클램프를 건너뛰게 되므로 호출부를 여기 하나로 모은다.
+ */
+export async function cmsPromptModelConfig(env, key, limits) {
+  return clampPromptModelConfig(await cmsPromptConfig(env, key), limits);
 }
 
 /**

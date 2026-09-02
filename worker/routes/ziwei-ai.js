@@ -5,7 +5,8 @@ import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFrom
 import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
 import { clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
-import { cmsPromptText } from "../lib/cms-prompts.js";
+import { cmsPromptModelConfig, cmsPromptText } from "../lib/cms-prompts.js";
+import { tokensRequiredForChars } from "../lib/llm-budget.js";
 import { MonthlyCreditLedger, Payment, PointHistory, User, ZiweiAiConsultation } from "../lib/models.js";
 import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { decryptPhoneNumber } from "../lib/pii-crypto.js";
@@ -1636,7 +1637,8 @@ async function generateConsultationText(env, prompt, options = {}) {
   const ziweiCallOptions = {
     systemPrompt: await resolveSystemPrompt(env),
     taskType: "fortune",
-    temperature: 0.72,
+    // 호출부가 CMS 오버라이드(클램프 후)를 넘기면 그 값을 쓴다. follow-up 처럼 안 넘기면 기본값.
+    temperature: options.temperature ?? 0.72,
     timeoutMs: ziweiTimeoutMs,
     cache: ziweiLlmCache,
   };
@@ -1694,7 +1696,8 @@ async function generateConsultationText(env, prompt, options = {}) {
   ].filter(Boolean).join("\n"), {
     systemPrompt: await resolveSystemPrompt(env),
     taskType: "fortune",
-    temperature: 0.58,
+    // 금칙어 재작성 웨이브는 본 생성보다 뜨겁지 않아야 한다 — 오버라이드가 낮게 내려와도 그 관계를 지킨다.
+    temperature: Math.min(ziweiCallOptions.temperature, 0.58),
     maxOutputTokens: options.maxOutputTokens || INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS,
     // 45,000토큰 재작성은 90s에 잘린다 — 초기 생성과 동일한 상한을 쓴다.
     timeoutMs: ziweiTimeoutMs,
@@ -1804,6 +1807,17 @@ async function generateInitialConsultation(env, { input, chart, logContext = {} 
   const remainingMs = () => INITIAL_CONSULTATION_DEADLINE_MS - (Date.now() - startedAt);
   const retryTimeoutMs = () => Math.max(18000, Math.min(SECTION_GROUP_TIMEOUT_MS, remainingMs() - 6000));
 
+  // CMS 오버라이드는 이 라우트의 계약 하한과 코드 기본값 사이에서만 움직인다(clampPromptModelConfig 주석).
+  // 오버라이드는 총량으로 받고 그룹 몫은 SECTION_GROUP_TARGET_TOKENS 와 같은 방식으로 나눈다 —
+  // 관리자가 그룹 수를 알 필요가 없어야 하고, 총량으로 잡아야 20,700자 계약과 직접 대응한다.
+  const modelConfig = await cmsPromptModelConfig(env, "ziwei-ai", {
+    minTokens: tokensRequiredForChars(MIN_INITIAL_CONSULTATION_BODY_CHARS),
+    maxTokens: INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS,
+  });
+  const groupTargetTokens = modelConfig.maxOutputTokens
+    ? Math.floor(modelConfig.maxOutputTokens / SECTION_GROUP_SPECS.length)
+    : SECTION_GROUP_TARGET_TOKENS;
+
   const runGroup = (group, { attempts = SECTION_GROUP_ATTEMPTS, timeoutMs = SECTION_GROUP_TIMEOUT_MS, extraPrompt = "" } = {}) => {
     const basePrompt = buildSectionGroupPrompt(input, chart, group);
     // 재생성은 프롬프트가 달라지므로 캐시 키도 달라진다 — 직전의 짧은 결과를 다시 집지 않는다.
@@ -1811,7 +1825,8 @@ async function generateInitialConsultation(env, { input, chart, logContext = {} 
     const groupMinChars = Math.round(group.targetChars * 0.4);
     return generateConsultationText(env, prompt, {
       minLength: 200,
-      maxOutputTokens: SECTION_GROUP_TARGET_TOKENS,
+      maxOutputTokens: groupTargetTokens,
+      temperature: modelConfig.temperature,
       responseMimeType: "application/json",
       attempts,
       timeoutMs,
@@ -1825,7 +1840,9 @@ async function generateInitialConsultation(env, { input, chart, logContext = {} 
   const settled = await Promise.allSettled([
     generateConsultationText(env, buildMetaPrompt(input, chart), {
       minLength: 120,
+      // meta 는 점수·표제만 담는 작은 호출이라 총량 오버라이드를 나눠 받지 않는다(온도만 따른다).
       maxOutputTokens: 2600,
+      temperature: modelConfig.temperature,
       responseMimeType: "application/json",
       attempts: SECTION_GROUP_ATTEMPTS,
       timeoutMs: SECTION_GROUP_TIMEOUT_MS,

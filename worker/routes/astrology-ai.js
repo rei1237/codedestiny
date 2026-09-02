@@ -16,7 +16,8 @@ import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
 import { canUseByPass, normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
 import { callGeminiText } from "../lib/gemini.js";
-import { cmsPromptText } from "../lib/cms-prompts.js";
+import { cmsPromptModelConfig, cmsPromptText } from "../lib/cms-prompts.js";
+import { tokensRequiredForChars } from "../lib/llm-budget.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { getSwissWesternChart } from "../lib/swiss-ephemeris.js";
@@ -1126,11 +1127,16 @@ async function generateSectionedConsultation(env, input, chart, options = {}) {
   };
 
   const runSection = async (section, repairLines, attempt) => {
+    // CMS 오버라이드는 이 섹션의 계약 하한과 코드 기본값 사이에서만 움직인다(clampPromptModelConfig 주석).
+    const modelConfig = await cmsPromptModelConfig(env, "astrology-ai", {
+      minTokens: tokensRequiredForChars(section.minChars),
+      maxTokens: sectionMaxOutputTokens,
+    });
     const ai = await callGeminiText(env, buildSectionPrompt(input, chart, section, repairLines), {
       systemPrompt: await resolveSystemPrompt(env),
       taskType: "fortune",
-      temperature: options.temperature ?? 0.72,
-      maxOutputTokens: sectionMaxOutputTokens,
+      temperature: modelConfig.temperature ?? options.temperature ?? 0.72,
+      maxOutputTokens: modelConfig.maxOutputTokens ?? sectionMaxOutputTokens,
       timeoutMs,
       fallbackToWorkersAI: options.fallbackToWorkersAI,
       // 섹션 단위 문턱 — 전체 목표가 아니라 이 섹션 목표의 40%.
