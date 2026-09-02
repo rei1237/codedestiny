@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-02
-next: "배치 2 무료 허브 8종 전 스캔 — /saju /tarot /ziwei /sukuyo /astrology /today /compatibility /fortune/기간. 아래 레시피 절차"
+next: "배치 3 결제 화면 — /points /premium-unlock. 🔴 payment-freeze 매니페스트 + paid-gate-auditor 선행. 아래 레시피 절차"
 ---
 
 # 기능별 모바일 순회 원장
@@ -10,7 +10,7 @@ next: "배치 2 무료 허브 8종 전 스캔 — /saju /tarot /ziwei /sukuyo /a
 
 ## 스캔 방법
 
-`npm run build` 후 `npm run measure:mobile-routes -- --routes=/라우트/` (루트 정적 셸은 `--target=source`). 매트릭스 412×823·360×800 × inset 0/47. exit 1 은 측정 무효(INVALID)이지 발견이 아니다. 상세 JSON 은 임시 디렉터리에 남는다(커밋 금지).
+`npm run build:cf` 후 `npm run measure:mobile-routes -- --routes=/라우트/` (루트 정적 셸은 `--target=source`). 매트릭스 412×823·360×800 × inset 0/47. exit 1 은 측정 무효(INVALID)이지 발견이 아니다. 상세 JSON 은 임시 디렉터리에 남는다(커밋 금지).
 
 ## 원장 — 완료 행은 상세를 지우고 PR#·날짜만 남긴다
 
@@ -24,8 +24,10 @@ next: "배치 2 무료 허브 8종 전 스캔 — /saju /tarot /ziwei /sukuyo /a
 | 네오 작전실 | /neo-operation-room/ | 1 | 09-02 | — | #1462 | 완료 |
 | 운세 챗 | /fortune-chat/ | 1 | 09-02 | — | #1447 | 완료 |
 | 낙샤트라 | /nakshatra/ | 1 | 09-02 | — | #1452 | 완료 |
+| 무료 허브 8종 | /saju /tarot /ziwei /sukuyo /astrology /today /compatibility /fortune/기간 | 2 | 09-02 | — | #1481 | 완료 |
+| 공용 푸터(SiteFooterHub) | 크롬리스 아닌 전 라우트 | — | 09-02 | TT<44 75건(링크 16px) | — | 대기 — 사용자 결정 |
 
-배치 1(유료 대표상담 5종) 완료. 다음은 배치 2.
+배치 1·2 완료. 다음은 배치 3(결제 화면).
 
 ## 배치 (사용자 확정: 유료 대표부터)
 
@@ -38,12 +40,14 @@ next: "배치 2 무료 허브 8종 전 스캔 — /saju /tarot /ziwei /sukuyo /a
 ## 비고
 
 - 로컬 dist 서버엔 API 가 없다 → usage/가격 fetch 실패·부분 렌더는 정상. 빈 화면은 scanned=0 INVALID 가 잡는다.
-- 이탈=수동 인 몰입형은 수정 세션에서 손으로 확인. 09-02(#1452)부터 스캐너가 공용 크롬리스 나브(.cd-feature-nav)를 이탈로 인식한다 — 작전실의 '수동'도 같은 감지 구멍이었고 재스캔에서 '유' 로 확정됐다(#1462). 남은 '수동'은 초융합 하나뿐.
+- 이탈=수동 인 몰입형은 수정 세션에서 손으로 확인. 09-02(#1452)부터 스캐너가 공용 크롬리스 나브(.cd-feature-nav)를 이탈로 인식한다 — 작전실의 '수동'도 같은 감지 구멍이었고 재스캔에서 '유' 로 확정됐다(#1462). 남은 '수동'은 초융합 하나뿐. 🔴 반대 방향 오탐도 있다 — `/today/` 이탈=0 은 크롬리스 설계에 `hardNavigateToShellHome()` 을 부르는 `<button>` 이 있는데 이탈 셀렉터가 `a[href]` 만 봐서 나온 값이다.
 - 🔴 **스캐너는 첫 화면만 본다** — 인터랙션 뒤에 나오는 폼은 IN/TT 가 0 으로 보인다. 작전실 좌표 입력 폼(방식·주제 선택 두 단계 뒤)은 실제로 input/select 7개가 전부 15.2px 였는데 원장에는 IN 0 으로 적혀 있었다(#1462 에서 손으로 진입해 발견). 단계형 기능은 수정 세션에서 반드시 손으로 진입해 다시 잰다. 진입 레시피는 메모리 `driving-neo-war-room-in-a-browser`.
-- 탭 타깃은 요소가 아니라 **감싸는 라벨**로 판정한다 — 작전실 `.checkField input` 은 18x18px 이지만 `<label>` 이 300x44 라 실효 44px 을 만족해 손대지 않았다. #1452(낙샤트라)는 라벨이 없어 수정 대상이었다.
-- 🔴 **전역 44px 바닥이 `<a>` 를 안 덮는다** — `styles/globals.css:128-133` 의 규칙은 `button, [role=button], input[type=button|submit|reset], label[for]` 만 겨눈다. 러브코덱스 나브에서 나란히 놓인 `<button>` '돌아가기'(71x44)와 `<Link>` '홈으로'(57.8x**21**)가 눈에는 같은데 실측이 갈렸다(#1465). 링크형 컨트롤이 있는 라우트는 이 구멍을 먼저 의심한다. 처방은 `min-h-11`(같은 페이지 연관 링크가 이미 쓰는 값).
+- 탭 타깃은 요소가 아니라 **감싸는 라벨**로 판정한다 — 작전실 `.checkField input` 은 18x18px 이지만 `<label>` 이 300x44 라 실효 44px 을 만족해 손대지 않았다. #1452(낙샤트라)는 라벨이 없어 수정 대상이었다. 🔴 **스캐너는 이 규칙을 모른다** — `scripts/measure-mobile-routes.mjs:312` 는 요소 자기 rect 만 잰다. 배치 2 의 `input.h-4.w-4` 4건은 라벨을 44px 로 올려 실효 해결했지만 스캐너 수치에는 라우트당 +1 로 남는다.
+- 🔴 **전역 44px 바닥이 `<a>` 를 안 덮는다** — `styles/globals.css:128-133` 의 규칙은 `button, [role=button], input[type=button|submit|reset], label[for]` 만 겨눈다. 러브코덱스 나브에서 나란히 놓인 `<button>` '돌아가기'(71x44)와 `<Link>` '홈으로'(57.8x**21**)가 눈에는 같은데 실측이 갈렸다(#1465). 링크형 컨트롤이 있는 라우트는 이 구멍을 먼저 의심한다. 처방은 `min-h-11`(같은 페이지 연관 링크가 이미 쓰는 값). 배치 2 의 수정 6곳도 전부 이 구멍이었다(헤더 로고·브레드크럼 2종·기간 칩·별자리 카드·FAQ `summary`). 한 글자 링크는 `min-w-11 justify-center` 까지 필요하다 — 높이만 올리면 12x44 로 여전히 위반이다.
 - 체크박스 44px 처방은 #1452 와 #1465 가 같은 코드다 — `appearance:none` 44x44 히트박스 + 16px `::before` 글리프 + 가로 `-14px` 마진 + 줄 `margin-top` 축소(글리프 중심 고정). 다음 기능도 이 블록을 그대로 옮겨 쓰면 된다: `src/features/master-love-codex/styles/codex.module.css` 의 `.checkLine`.
 - 🔴 **몰입형 기능의 오버레이는 라우트 스캔이 못 잡는다** — 찻집 꿀방울 도크·안내 패널·앨범은 첫 화면에 있지만 스캐너가 본 TT<44 는 2건, 손으로 열어 잰 것은 5건이었다(#1471). 오버레이·패널이 있는 기능은 `data-*` 를 강제해서라도 열어 재고, 안 열리면 미검증으로 적는다.
 - 찻집에서 끝내 도달 못 한 표면(#1471 미검증): 달빛 앨범 내부 탭·검색(앨범 잠김), 꿀돼지 QnA(5,000원 결과 화면 뒤), `.honeyModeToggle`. 유료 경로가 열리는 환경이 생기면 이 셋부터 잰다.
+- 🔴 **배치 2 이후 남은 위반은 전부 공용 푸터다** — 라우트당 TT<44 75건이 모두 `SiteFooterHub` 링크(16px)이고, 사용자 결정으로 **별도 안건**(위 표 대기 행). 09-02 시뮬레이션(360×800·/saju/): 44px 처방 = 푸터 +742px·문서 +10.5%, 24px(WCAG 2.5.8 AA) = +226px·+3.2%. 대상은 `.sfhLink` 65개 + `.sfhPolicyLink` 10개이고 크롤러용 내부 링크 51개를 진다.
+- **공용 컴포넌트 처방은 배치 밖으로 번진다** — 배치 2 의 브레드크럼 수정은 `SeoLandingTemplate`(app 소비자 21곳)이라 배치 밖 11개 라우트(dream·love·manse·physiognomy·vedic·premium 등)도 함께 44px 이 됐다. 표본 4개(dream·love·vedic·tarot/reunion) 재스캔에서 OF=0·열폭 328px·IN<16 0 으로 회귀 없음(09-02).
 - 공용 `ServiceIntroSection`(라우트 17종)의 읽는 열폭은 #1462 로 286→302px 이 됐다. 배치 4/6 에서 만날 라우트 중 09-02 관찰분: `/reviews/` 302px·TT<44 2건·IN<16 1건, `/naming-ai/` 282px·TT<44 5건·IN<16 6건.
 - index.html 의 /services/ 링크 7종(tarot·face-reading·palm-reading·animal-totem·omikuji·bias-destiny·stonehenge-rune)은 dist 에 산출물이 없어 404 다(09-02 실측). 링크 정리/페이지 신설은 별도 결정 필요.
