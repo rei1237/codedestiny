@@ -84,6 +84,20 @@ if (validator) {
   console.log(`    → 조건부 재요청: ${probe.status} (304 면 재방문 본문 0바이트)`);
 } else {
   console.log("    🔴 검증자가 없다 — 조건부 요청이 불가능하므로 `no-cache` 여도 재방문은 전량 재전송이다.");
+  // 여기서 멈추면 다음 세션이 원인을 처음부터 다시 찾는다(실제로 세 번 그랬다).
+  // 원인 신호를 같은 자리에서 함께 찍는다 — 판정은 2026-09-02 에 이미 끝났다.
+  console.log(`    transfer-encoding: ${res.headers.get("transfer-encoding") ?? "(없음)"}`);
+  console.log(`    content-length   : ${res.headers.get("content-length") ?? "(없음)"}`);
+  const jsdHits = (html.match(/\/cdn-cgi\/challenge-platform\//g) || []).length;
+  console.log(`    challenge-platform 주입: ${jsdHits}건 (소스 index.html 은 0건)`);
+  if (jsdHits > 0) {
+    console.log("    🔴 원인 확정 — Cloudflare JavaScript Detections 가 HTML 본문을 재작성 중이다.");
+    console.log("       본문을 다시 쓰면서 content-length 와 etag 가 함께 사라지므로 검증자 소실은 정상 귀결이다.");
+    console.log("       🔴 _headers 로도 코드로도 못 고친다 — 대시보드 토글이 유일한 레버이고, 사용자는 봇 보호를 유지하기로 했다.");
+    console.log("       근거·기각된 가설 4종: docs/handoff/app-optimization-remaining-2026-09-02.md §2");
+  } else {
+    console.log("    ⚠️ JSD 주입이 안 보인다 — 2026-09-02 확정 원인과 다른 상황이다. 위 §2 의 대조표를 다시 돌릴 것.");
+  }
 }
 
 const blocks = styleBlocks(html);

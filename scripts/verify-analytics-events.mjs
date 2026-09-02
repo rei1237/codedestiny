@@ -23,6 +23,7 @@
  *      한 리스너로 합친 뒤에도 cross_sell_click 과 함께 산다.
  *   ⑪ 홈 셸(index.html)의 표식이 실제로 붙어 있고, 결과 페이지 구간에는 하나도 없다.
  *   ⑫ 앱 라우터의 크로스셀 면이 전부 표식을 달았거나, 안 다는 이유가 적혀 있다(미분류는 실패).
+ *   ⑬ 앱 런타임에서는 동의 배너를 띄우지 않고, 그 판정은 정본 __cdAppContext.isApp() 뿐이다.
  */
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -425,4 +426,48 @@ const eventNames = (calls) => events(calls).map((c) => c[1]);
   }
 }
 
-console.log("[verify-analytics-events] 통과 — consent 순서·상태 3종 · share_receive · retention_visit · cross_sell_click · 깨진 ID no-op · page_view 단일 발화 · useAnalytics 훅 계약 · home_section_click 위임 · 홈 셸 표식 · 앱 라우터 크로스셀 면 분류");
+/* ⑬ 앱 런타임에서는 동의 배너를 띄우지 않는다 (2026-09-02) */
+{
+  /**
+   * 앱은 런처가 곧 첫 화면이라 이 오버레이가 첫 인상을 통째로 가린다. 억제는 CSS 가 아니라
+   * "띄울지 말지" 를 정하는 지점에 있어야 하고(원칙 6), 그 지점은 배너 IIFE 안의 조기 반환이다.
+   *
+   * 세 가지를 함께 고정한다 — 셋 중 하나만 어긋나도 억제가 조용히 죽는다:
+   *   (a) 억제가 IIFE 블록 **안**에 있을 것 (블록을 못 찾으면 통과가 아니라 실패)
+   *   (b) 판정이 정본 window.__cdAppContext.isApp() 일 것
+   *       🔴 `!!window.Capacitor` 로 재구현하면 웹뷰 아닌 브라우저까지 앱으로 읽어 웹에서 배너가 사라진다.
+   *   (c) 억제가 setTimeout(show, 900) **앞**에 올 것 — 뒤로 가면 타이머가 이미 걸려 배너가 뜬다.
+   */
+  const MARKER = 'cookie-request-policy-v20260704';
+  const scriptStart = SHELL_SOURCE.indexOf(`<script data-marker="${MARKER}">`);
+  assert.ok(
+    scriptStart > -1,
+    `index.html 에서 <script data-marker="${MARKER}"> 를 못 찾았다 — 이 검사가 통째로 안 돌게 된다`,
+  );
+  const scriptEnd = SHELL_SOURCE.indexOf("</script>", scriptStart);
+  assert.ok(scriptEnd > scriptStart, "쿠키 동의 스크립트 블록의 끝을 못 찾았다 — 이 검사가 통째로 안 돌게 된다");
+  // 🔴 주석을 걷어낸 뒤에 센다. 억제 코드 옆 주석이 "window.Capacitor 로 재구현하지 말 것" 이라고
+  //    경고하는데, 그 문장을 살아 있는 호출로 세면 가드가 자기 경고문에 걸려 실패한다(⑪ 과 같은 계열).
+  const consentScript = SHELL_SOURCE.slice(scriptStart, scriptEnd)
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/(^|[^:])\/\/[^\n]*/g, "$1");
+
+  const guardAt = consentScript.search(/__cdAppContext[\s\S]{0,240}?isApp\s*\(\s*\)/);
+  assert.ok(
+    guardAt > -1,
+    "쿠키 동의 배너에 앱 억제(window.__cdAppContext.isApp())가 없다 — 앱 첫 화면이 배너에 통째로 가려진다",
+  );
+  const timerAt = consentScript.indexOf("setTimeout(show,");
+  assert.ok(timerAt > -1, "쿠키 배너의 setTimeout(show, …) 를 못 찾았다 — 이 검사가 통째로 안 돌게 된다");
+  assert.ok(
+    guardAt < timerAt,
+    "앱 억제가 setTimeout(show, 900) 뒤에 있다 — 타이머가 이미 걸려 배너가 그대로 뜬다",
+  );
+  assert.equal(
+    (consentScript.match(/window\.Capacitor/g) || []).length,
+    0,
+    "쿠키 배너가 window.Capacitor 를 직접 본다 — 정본 __cdAppContext.isApp() 만 쓸 것(브라우저 과탐지로 웹에서 배너가 사라진다)",
+  );
+}
+
+console.log("[verify-analytics-events] 통과 — consent 순서·상태 3종 · share_receive · retention_visit · cross_sell_click · 깨진 ID no-op · page_view 단일 발화 · useAnalytics 훅 계약 · home_section_click 위임 · 홈 셸 표식 · 앱 라우터 크로스셀 면 분류 · 배너 앱 억제");
