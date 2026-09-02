@@ -8,6 +8,7 @@ import {
 import { getRefundSection, LEGAL_TRANSLATION_NOTICE } from "../../lib/legal/refundContent";
 import { I18N_ROUTE_MAP } from "../../lib/i18n/routes";
 import { BUSINESS_IDENTITY } from "../../lib/site-policy-config";
+import { IS_APP_BUILD } from "../../lib/app-build-target";
 
 /**
  * 로케일(`/ja`·`/zh`·`/zh-tw`·`/en`) 전용 푸터.
@@ -90,37 +91,45 @@ export default function LocaleFooterHub({ locale }) {
 
       <div className={styles.sfhShell}>
         <section aria-label={copy.hubAriaLabel}>
-          <p className={styles.sfhKicker}>{copy.kicker}</p>
-          <p className={styles.sfhTitle}>{copy.title}</p>
-          <p className={styles.sfhSubtitle}>{copy.subtitle}</p>
+          {/* SEO 내부 링크 허브 — 앱 번들에서는 렌더하지 않는다(2026-09-03 사용자 결정).
+              앱은 하단 탭바와 홈 IA 가 같은 진입을 이미 갖고 있어 중복이고, 색인 목적의 링크 격자는
+              앱에 의미가 없다. 🔴 아래 환불 정책·사업자 정보·정책 링크는 이 범위 밖이다 —
+              Play 정책·전자상거래법상 앱에도 있어야 하므로 함께 걷어내지 말 것. */}
+          {!IS_APP_BUILD && (
+            <>
+              <p className={styles.sfhKicker}>{copy.kicker}</p>
+              <p className={styles.sfhTitle}>{copy.title}</p>
+              <p className={styles.sfhSubtitle}>{copy.subtitle}</p>
 
-          <div className={styles.sfhGroupGrid}>
-            <section className={styles.sfhCard} aria-label={copy.localeNavTitle}>
-              <h2 className={styles.sfhGroupTitle}>{copy.localeNavTitle}</h2>
-              <nav className={styles.sfhLinkNav} aria-label={`${copy.localeNavTitle} ${copy.linkNavSuffix}`}>
-                {localeNavLinks.map((link) => (
-                  <a key={link.href} href={link.href} className={styles.sfhLink}>
-                    {link.text}
-                  </a>
-                ))}
-              </nav>
-            </section>
-            {FOOTER_LINK_GROUPS.map((group) => {
-              const groupTitle = copy.groupTitles[group.titleKey];
-              return (
-                <section key={group.titleKey} className={styles.sfhCard} aria-label={groupTitle}>
-                  <h2 className={styles.sfhGroupTitle}>{groupTitle}</h2>
-                  <nav className={styles.sfhLinkNav} aria-label={`${groupTitle} ${copy.linkNavSuffix}`}>
-                    {group.hrefs.map((href) => (
-                      <a key={href} href={href} className={styles.sfhLink}>
-                        {copy.linkLabels[href]}
+              <div className={styles.sfhGroupGrid}>
+                <section className={styles.sfhCard} aria-label={copy.localeNavTitle}>
+                  <h2 className={styles.sfhGroupTitle}>{copy.localeNavTitle}</h2>
+                  <nav className={styles.sfhLinkNav} aria-label={`${copy.localeNavTitle} ${copy.linkNavSuffix}`}>
+                    {localeNavLinks.map((link) => (
+                      <a key={link.href} href={link.href} className={styles.sfhLink}>
+                        {link.text}
                       </a>
                     ))}
                   </nav>
                 </section>
-              );
-            })}
-          </div>
+                {FOOTER_LINK_GROUPS.map((group) => {
+                  const groupTitle = copy.groupTitles[group.titleKey];
+                  return (
+                    <section key={group.titleKey} className={styles.sfhCard} aria-label={groupTitle}>
+                      <h2 className={styles.sfhGroupTitle}>{groupTitle}</h2>
+                      <nav className={styles.sfhLinkNav} aria-label={`${groupTitle} ${copy.linkNavSuffix}`}>
+                        {group.hrefs.map((href) => (
+                          <a key={href} href={href} className={styles.sfhLink}>
+                            {copy.linkLabels[href]}
+                          </a>
+                        ))}
+                      </nav>
+                    </section>
+                  );
+                })}
+              </div>
+            </>
+          )}
 
           <section aria-label={copy.refundAriaLabel}>
             <h2 style={{ fontSize: '1.25rem', marginTop: '2rem', marginBottom: '1rem', fontWeight: 600 }}>{copy.refundTitle}</h2>
@@ -143,7 +152,7 @@ export default function LocaleFooterHub({ locale }) {
         </section>
 
         {/* 카피를 prop 으로 내린다 — SocialFooter 가 직접 import 하면 클라이언트 번들로 샌다. */}
-        <SocialFooter copy={copy.social} />
+        {!IS_APP_BUILD && <SocialFooter copy={copy.social} />}
 
         <section aria-label={copy.businessAriaLabel} style={{ marginTop: '1.5rem', fontSize: '0.8rem', lineHeight: 1.7, opacity: 0.85 }}>
           <h2 style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.5rem' }}>{copy.businessTitle}</h2>

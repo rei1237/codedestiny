@@ -94,9 +94,19 @@ function findComments(html) {
   return comments;
 }
 
-/** 남겨야 하는 주석인가 — 조건부 주석과 하이드레이션 마커 모양. */
+/**
+ * 남겨야 하는 주석인가 — 조건부 주석, 하이드레이션 마커 모양, 그리고 앱 스트립 마커.
+ *
+ * 🔴 `<!--cd-app-strip-->`/`<!--/cd-app-strip-->` 는 저작 주석이 아니라 **다음 단계가 읽는 표식**이다.
+ *    앱 빌드는 postbuild(=이 스크립트) 뒤에 scripts/build-mobile-app.mjs 를 돌리고, 거기서
+ *    이 두 표식 사이를 통째로 걷어낸다. 여기서 지우면 그 패스가 대상 0건으로 실패한다.
+ *    웹 dist 에는 표식만(셸 1벌당 4개, 76B) 남는데, 이 단계가 셸에서 지우는 46,890B 에 비하면 무시할 수준이다.
+ */
+const APP_STRIP_MARKER_RE = /^<!--\/?cd-app-strip-->$/;
+
 function mustKeep(comment) {
   if (/^<!--\s*\[if\b/i.test(comment)) return true;
+  if (APP_STRIP_MARKER_RE.test(comment)) return true;
   const inner = comment.slice(4, -3);
   return /^[$/!?\s]*$/.test(inner);
 }
