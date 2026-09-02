@@ -169,14 +169,16 @@
   display: grid;
   gap: clamp(16px, 2.4vw, 26px);
   overflow: hidden;
-  border: 1px solid rgba(179, 25, 85, .2);
+  /* v20260902 로즈핑크·아이보리·로즈골드. 끝자락의 라벤더(#f4e7ff)는 뺐다 — 연이 면은 핑크 계열로만. */
+  border: 1px solid rgba(201, 132, 116, .32);
   border-radius: 28px;
   padding: clamp(24px, 3.2vw, 40px);
   background:
-    radial-gradient(circle at 82% 6%, rgba(255, 232, 185, .78), transparent 26%),
-    radial-gradient(circle at 10% 94%, rgba(255, 185, 213, .5), transparent 40%),
-    linear-gradient(112deg, #fffdf9 0%, #fff4f8 54%, #f4e7ff 100%);
-  box-shadow: 0 20px 48px -34px rgba(91, 23, 65, .75);
+    radial-gradient(circle at 84% 8%, rgba(255, 236, 214, .85), transparent 24%),
+    radial-gradient(circle at 8% 96%, rgba(255, 196, 214, .55), transparent 42%),
+    radial-gradient(circle at 58% 42%, rgba(255, 255, 255, .55), transparent 48%),
+    linear-gradient(112deg, #fffaf6 0%, #fff1f6 52%, #fbe4ec 100%);
+  box-shadow: 0 20px 48px -34px rgba(91, 23, 65, .6), 0 0 36px rgba(255, 214, 226, .35);
 }
 
 .fortune-gateway__entry-shell::before {
@@ -197,12 +199,49 @@
   z-index: 0;
   width: 88px;
   aspect-ratio: 1;
-  border: 1px solid rgba(255, 255, 255, .8);
+  border: 1px solid rgba(255, 255, 255, .9);
   border-radius: 50%;
-  background: rgba(255, 251, 230, .58);
-  box-shadow: 0 0 40px rgba(255, 226, 161, .72);
+  background: radial-gradient(circle at 40% 36%, #fffdf7, #fff3e2 58%, #f9dfcc 100%);
+  box-shadow: 0 0 44px rgba(245, 200, 170, .8), 0 0 96px rgba(255, 214, 190, .42);
   content: '';
   pointer-events: none;
+}
+
+/* ── 장식 라인아트 (fortune-gateway__flora / door--chat::before) v20260902 ──────
+ * 작약·장미·벚꽃과 금빛 잎가지를 CSS mask 로 그린다. 선 자체는 SVG(data URI) 의 알파이고
+ * 색은 background 가 칠하므로, 네오 모드는 아래 html.neo-mode 블록에서 background 만 바꾼다.
+ * 🔴 셸 레벨(.fortune-gateway__flora)에는 우상단 금빛 잎가지만 둔다 — 카드가 셸 폭을 다 덮어
+ *    좌하단은 어차피 안 보인다. 작약 클러스터는 카드(.door--chat::before) 안 연이 뒤에 깐다.
+ * SVG 원본·생성기: 손으로 고치지 말고 다시 생성한다(경로 좌표는 스크립트 산출물이다). */
+.fortune-gateway__entry-shell {
+  --fg-flora-rose: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 260 260'%3E%3Cpath fill='none' stroke='%23000' stroke-width='1.3' stroke-linejoin='round' stroke-linecap='round' d='M164 176Q177.7 214.4 139.2 227.6M139.2 227.6L130.9 217.3M139.2 227.6Q117.7 262.2 83.3 240.3M83.3 240.3L86.3 227.5M83.3 240.3Q42.9 245.1 38.5 204.6M38.5 204.6L50.4 198.9M38.5 204.6Q9.6 176 38.5 147.4M38.5 147.4L50.4 153.1M38.5 147.4Q42.9 106.9 83.3 111.7M83.3 111.7L86.3 124.5M83.3 111.7Q117.7 89.8 139.2 124.4M139.2 124.4L130.9 134.7M139.2 124.4Q177.7 137.6 164 176M164 176L150.8 176M164 176M144.5 194.8Q139.4 229 105 225.7M105 225.7L103.6 215.7M105 225.7Q72.8 238.3 58.5 206.9M58.5 206.9L66.4 200.7M58.5 206.9Q31.4 185.4 51.5 157.2M51.5 157.2L60.8 161M51.5 157.2Q56.6 123 91 126.3M91 126.3L92.4 136.3M91 126.3Q123.2 113.7 137.5 145.1M137.5 145.1L129.6 151.3M137.5 145.1Q164.6 166.6 144.5 194.8M144.5 194.8L135.2 191M144.5 194.8M121.8 202.5Q103 223.5 80.2 206.9M80.2 206.9L83.7 200.7M80.2 206.9Q54.4 195.4 63.1 168.6M63.1 168.6L70.1 170.1M63.1 168.6Q66 140.5 94.3 140.6M94.3 140.6L95 147.6M94.3 140.6Q121.9 134.6 130.6 161.5M130.6 161.5L124 164.4M130.6 161.5Q144.7 185.9 121.8 202.5M121.8 202.5L117.1 197.2M121.8 202.5M120.1 179.9Q115.2 200.6 94.1 198.1M94.1 198.1L94.9 193.7M94.1 198.1Q73.4 193.2 75.9 172.1M75.9 172.1L80.3 172.9M75.9 172.1Q80.8 151.4 101.9 153.9M101.9 153.9L101.1 158.3M101.9 153.9Q122.6 158.8 120.1 179.9M120.1 179.9L115.7 179.1M120.1 179.9M99 174.3L100.1 174.4L101.2 175.3L101.9 176.8L101.7 178.7L100.6 180.6L98.6 181.9L96 182.3L93.1 181.4L90.8 179.2L89.4 176L89.6 172.2L91.4 168.6L94.7 166L99.2 164.8L103.9 165.7L108.1 168.6L110.9 173.3L111.6 178.9L109.7 184.5L105.6 189.1M236 228Q243.5 248.9 222.4 256.1M222.4 256.1L218 250.5M222.4 256.1Q210.7 275 192 263.1M192 263.1L193.6 256.1M192 263.1Q169.9 265.7 167.6 243.6M167.6 243.6L174.1 240.5M167.6 243.6Q151.8 228 167.6 212.4M167.6 212.4L174.1 215.5M167.6 212.4Q169.9 190.3 192 192.9M192 192.9L193.6 199.9M192 192.9Q210.7 181 222.4 199.9M222.4 199.9L218 205.5M222.4 199.9Q243.5 207.1 236 228M236 228L228.8 228M236 228M225.4 238.2Q222.6 256.9 203.8 255.1M203.8 255.1L203 249.7M203.8 255.1Q186.3 262 178.4 244.8M178.4 244.8L182.8 241.5M178.4 244.8Q163.7 233.1 174.6 217.8M174.6 217.8L179.7 219.8M174.6 217.8Q177.4 199.1 196.2 200.9M196.2 200.9L197 206.3M196.2 200.9Q213.7 194 221.6 211.2M221.6 211.2L217.2 214.5M221.6 211.2Q236.3 222.9 225.4 238.2M225.4 238.2L220.3 236.2M225.4 238.2M213 242.4Q202.7 253.9 190.3 244.8M190.3 244.8L192.2 241.5M190.3 244.8Q176.2 238.6 181 224M181 224L184.8 224.8M181 224Q182.6 208.6 198 208.7M198 208.7L198.4 212.5M198 208.7Q213 205.4 217.8 220.1M217.8 220.1L214.2 221.7M217.8 220.1Q225.5 233.4 213 242.4M213 242.4L210.4 239.6M213 242.4M212.1 230.1Q209.4 241.4 197.9 240.1M197.9 240.1L198.3 237.6M197.9 240.1Q186.6 237.4 187.9 225.9M187.9 225.9L190.4 226.3M187.9 225.9Q190.6 214.6 202.1 215.9M202.1 215.9L201.7 218.4M202.1 215.9Q213.4 218.6 212.1 230.1M212.1 230.1L209.6 229.7M212.1 230.1M200.5 227.1L201.2 227.2L201.8 227.6L202.1 228.4L202 229.5L201.4 230.5L200.3 231.2L198.9 231.4L197.4 230.9L196.1 229.8L195.3 228L195.4 226L196.4 224L198.2 222.5L200.6 221.9L203.2 222.4L205.5 224L207 226.5L207.4 229.6L206.4 232.7L204.1 235.2M150 128Q190.4 114.7 212 78Q171.6 91.3 150 128M150 128L212 78M142 132Q165.3 99.7 168 60Q144.7 92.3 142 132M142 132L168 60M46 232Q21.9 237.6 8 258Q32.1 252.4 46 232M46 232L8 258M160 214Q146.2 236.2 150 262Q163.8 239.8 160 214M160 214L150 262M180 148Q175.6 137.2 179.5 133.3Q182.6 133.2 182.1 136.2Q182.6 133.2 185.5 134.4Q187.8 139.3 180 148M180 148Q189 140.5 193.8 143Q194.9 145.9 191.9 146.3Q194.9 145.9 194.7 149Q190.7 152.8 180 148M180 148Q189.9 154.2 189.1 159.6Q186.6 161.5 185.3 158.8Q186.6 161.5 183.6 162.3Q178.8 159.6 180 148M180 148Q177.2 159.4 171.8 160.2Q169.2 158.4 171.4 156.3Q169.2 158.4 167.5 155.8Q168.6 150.4 180 148M180 148Q168.3 148.8 165.9 143.9Q166.8 141 169.4 142.4Q166.8 141 168.7 138.6Q174.2 137.9 180 148M178.5 148a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0 -3 0M28 100Q29.3 90.7 33.5 89.6Q35.7 90.8 34.2 92.6Q35.7 90.8 37.3 92.8Q36.9 97.1 28 100M28 100Q37.2 98.4 39.6 102Q39.1 104.5 36.9 103.6Q39.1 104.5 37.7 106.6Q33.5 107.6 28 100M28 100Q32.4 108.3 29.6 111.6Q27.2 112 27.3 109.6Q27.2 112 24.8 111.3Q22.5 107.6 28 100M28 100Q21.5 106.7 17.4 105.2Q16.4 102.9 18.7 102.3Q16.4 102.9 16.2 100.4Q19.1 97.1 28 100M28 100Q19.6 95.9 19.8 91.5Q21.6 89.8 22.9 91.9Q21.6 89.8 24 88.9Q28 90.6 28 100M26.8 100a1.2 1.2 0 1 0 2.4 0a1.2 1.2 0 1 0 -2.4 0M240 168Q235.5 160.7 237.8 157.5Q240 157 240 159.2Q240 157 242.2 157.5Q244.5 160.7 240 168M240 168Q245.5 161.4 249.3 162.6Q250.5 164.6 248.4 165.3Q250.5 164.6 250.7 166.9Q248.3 170.1 240 168M240 168Q248 171.2 248 175.2Q246.5 176.9 245.2 175.1Q246.5 176.9 244.4 177.8Q240.6 176.6 240 168M240 168Q239.4 176.6 235.6 177.8Q233.5 176.9 234.8 175.1Q233.5 176.9 232 175.2Q232 171.2 240 168M240 168Q231.7 170.1 229.3 166.9Q229.5 164.6 231.6 165.3Q229.5 164.6 230.7 162.6Q234.5 161.4 240 168M238.9 168a1.1 1.1 0 1 0 2.2 0a1.1 1.1 0 1 0 -2.2 0M60 56Q58.8 49.4 64.5 48.2Q66.3 53.7 60 56M126 34Q131.6 31.9 133.5 36.7Q129 39.2 126 34M226 46Q230.5 48.6 228.4 52.6Q224.2 50.9 226 46M16 156Q17.8 160.9 13.6 162.6Q11.5 158.6 16 156M246 112Q245.2 116.4 241.4 115.9Q241.5 112 246 112'/%3E%3C/svg%3E");
+  --fg-flora-gold: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 240'%3E%3Cpath fill='none' stroke='%23000' stroke-width='1.3' stroke-linejoin='round' stroke-linecap='round' d='M16 232Q96 124 228 34M32.5 210.6Q47.3 220.6 63.2 212.3Q48.4 202.2 32.5 210.6M32.5 210.6L63.2 212.3M50.1 189.5Q55.2 173.2 43.2 161Q38.1 177.3 50.1 189.5M50.1 189.5L43.2 161M68.7 168.8Q81.5 179 96.5 172.4Q83.7 162.3 68.7 168.8M68.7 168.8L96.5 172.4M88.3 148.5Q94 134 83.9 122.1Q78.2 136.6 88.3 148.5M88.3 148.5L83.9 122.1M109 128.5Q120 138.5 134 133.5Q123 123.5 109 128.5M109 128.5L134 133.5M130.7 108.9Q136.8 96.2 128.4 84.8Q122.3 97.6 130.7 108.9M130.7 108.9L128.4 84.8M153.5 89.6Q162.7 99.2 175.5 95.6Q166.3 86 153.5 89.6M153.5 89.6L175.5 95.6M177.3 70.7Q183.4 59.7 176.5 49.2Q170.4 60.2 177.3 70.7M177.3 70.7L176.5 49.2M202.1 52.2Q209.8 61.1 221.3 58.6Q213.6 49.6 202.1 52.2M202.1 52.2L221.3 58.6M118 236Q190 204 236 126M138 225.9Q144.8 235.9 156.9 234.7Q150.1 224.7 138 225.9M138 225.9L156.9 234.7M157 214Q163 204.3 157.2 194.4Q151.3 204.1 157 214M157 214L157.2 194.4M174.9 200.1Q182.5 207.7 192.7 204.6Q185.1 197 174.9 200.1M174.9 200.1L192.7 204.6M191.8 184.4Q195.4 175.1 188.8 167.6Q185.3 176.9 191.8 184.4M191.8 184.4L188.8 167.6M207.6 166.8Q215.2 172.1 223.4 167.9Q215.8 162.6 207.6 166.8M207.6 166.8L223.4 167.9M222.3 147.3Q224 139 217.4 133.6Q215.8 141.9 222.3 147.3M222.3 147.3L217.4 133.6M87 76Q92.6 91.7 76.8 97.1M76.8 97.1L73.5 92.9M76.8 97.1Q68.1 111.3 54 102.3M54 102.3L55.2 97.1M54 102.3Q37.4 104.3 35.7 87.7M35.7 87.7L40.5 85.4M35.7 87.7Q23.8 76 35.7 64.3M35.7 64.3L40.5 66.6M35.7 64.3Q37.4 47.7 54 49.7M54 49.7L55.2 54.9M54 49.7Q68.1 40.7 76.8 54.9M76.8 54.9L73.5 59.1M76.8 54.9Q92.6 60.3 87 76M87 76L81.6 76M87 76M79 83.7Q76.9 97.7 62.9 96.3M62.9 96.3L62.3 92.3M62.9 96.3Q49.7 101.5 43.8 88.6M43.8 88.6L47.1 86.1M43.8 88.6Q32.8 79.8 41 68.3M41 68.3L44.8 69.9M41 68.3Q43.1 54.3 57.1 55.7M57.1 55.7L57.7 59.7M57.1 55.7Q70.3 50.5 76.2 63.4M76.2 63.4L72.9 65.9M76.2 63.4Q87.2 72.2 79 83.7M79 83.7L75.2 82.1M79 83.7M69.8 86.8Q62 95.4 52.7 88.6M52.7 88.6L54.2 86.1M52.7 88.6Q42.2 83.9 45.7 73M45.7 73L48.6 73.6M45.7 73Q46.9 61.5 58.5 61.5M58.5 61.5L58.8 64.4M58.5 61.5Q69.8 59.1 73.3 70.1M73.3 70.1L70.7 71.3M73.3 70.1Q79.1 80.1 69.8 86.8M69.8 86.8L67.8 84.7M69.8 86.8M69 77.6Q67.1 86.1 58.4 85M58.4 85L58.7 83.2M58.4 85Q49.9 83.1 51 74.4M51 74.4L52.8 74.7M51 74.4Q52.9 65.9 61.6 67M61.6 67L61.3 68.8M61.6 67Q70.1 68.9 69 77.6M69 77.6L67.2 77.3M69 77.6M60.4 75.3L60.9 75.4L61.3 75.7L61.6 76.3L61.5 77.1L61.1 77.9L60.3 78.4L59.2 78.6L58 78.2L57 77.3L56.5 76L56.5 74.5L57.3 73L58.7 71.9L60.5 71.4L62.4 71.8L64.2 73L65.3 74.9L65.5 77.2L64.8 79.5L63.1 81.4M210 92Q207.9 82.1 211.8 79.4Q214.4 79.8 213.6 82.2Q214.4 79.8 216.8 81.2Q218 85.8 210 92M210 92Q218.8 86.9 222.5 89.8Q223 92.5 220.4 92.4Q223 92.5 222.4 95.1Q218.4 97.7 210 92M210 92Q217.5 98.8 216 103.2Q213.6 104.5 212.9 102Q213.6 104.5 210.9 104.7Q207.2 101.7 210 92M210 92Q205.9 101.3 201.2 101.2Q199.2 99.3 201.4 97.8Q199.2 99.3 198.2 96.8Q199.9 92.4 210 92M210 92Q199.9 90.9 198.5 86.4Q199.8 84 201.8 85.6Q199.8 84 201.8 82.2Q206.5 82.5 210 92M208.7 92a1.3 1.3 0 1 0 2.6 0a1.3 1.3 0 1 0 -2.6 0M150 51Q150 60 159 60Q150 60 150 69Q150 60 141 60Q150 60 150 51M40 144Q40 150 46 150Q40 150 40 156Q40 150 34 150Q40 150 40 144M204 153Q204 160 211 160Q204 160 204 167Q204 160 197 160Q204 160 204 153M100 19Q100 24 105 24Q100 24 100 29Q100 24 95 24Q100 24 100 19M120 110Q125.2 109.1 126.1 113.5Q121.8 114.9 120 110M170 150Q171.5 145.8 175.2 147Q174.4 150.8 170 150'/%3E%3C/svg%3E");
+}
+
+.fortune-gateway__flora {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.fortune-gateway__flora::before {
+  position: absolute;
+  top: 34px;
+  right: 3%;
+  width: 236px;
+  height: 236px;
+  background: linear-gradient(160deg, #dfb27a 0%, #c48a52 100%);
+  opacity: .7;
+  content: '';
+  -webkit-mask-image: var(--fg-flora-gold);
+  mask-image: var(--fg-flora-gold);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
 }
 
 .fortune-gateway__entry-copy {
@@ -211,7 +250,10 @@
   max-width: 62ch;
 }
 
-.fortune-gateway__eyebrow {
+/* 🔴 셸의 `.logo-area p`(0,1,1 — index.html·fortune-ui-home.css·fortune-ui.css 에 4벌)가 색·font-size·
+   margin-top 을 덮어 이 두 문단이 회색 #bbb(대비 1.8:1)로 렌더됐다(2026-09-02 실측). 조상 클래스를
+   붙여 (0,2,0) 으로 이긴다 — 접두를 떼면 조용히 회색으로 돌아간다. */
+.fortune-gateway__entry-shell .fortune-gateway__eyebrow {
   margin: 0;
   color: #9f1c52;
   font-size: 11px;
@@ -265,11 +307,33 @@
   transition: transform 220ms cubic-bezier(.22, 1, .36, 1), box-shadow 220ms cubic-bezier(.22, 1, .36, 1);
 }
 
-/* 연이 문 — 핑크 크림. 밝은 표면 위에 로즈 크림슨 텍스트. */
+/* 연이 문 — 아이보리→블러시 크림. 밝은 표면 위에 로즈 크림슨 텍스트, 테두리는 로즈골드. */
 .fortune-gateway__door--chat {
-  border: 1px solid rgba(179, 25, 85, .24);
-  background: linear-gradient(150deg, #fffdfb 0%, #fff1f6 56%, #ffe6f0 100%);
-  box-shadow: 0 16px 34px -28px rgba(102, 29, 74, .68), inset 0 1px 0 rgba(255, 255, 255, .82);
+  border: 1px solid rgba(201, 132, 116, .36);
+  background:
+    radial-gradient(circle at 88% 28%, rgba(255, 238, 226, .95), transparent 34%),
+    linear-gradient(150deg, #fffcf9 0%, #fff3f7 50%, #ffe7ef 100%);
+  box-shadow: 0 18px 38px -28px rgba(120, 40, 80, .55), 0 0 28px rgba(255, 214, 226, .35), inset 0 1px 0 rgba(255, 255, 255, .9);
+}
+
+/* 연이 뒤에 깔리는 작약 클러스터. isolation:isolate 덕에 z-index:-1 이 카드 배경 위·본문 아래다. */
+.fortune-gateway__door--chat::before {
+  position: absolute;
+  right: -28px;
+  bottom: -38px;
+  z-index: -1;
+  width: 300px;
+  height: 300px;
+  background: linear-gradient(160deg, #dc8ea4 0%, #c66f88 100%);
+  opacity: .5;
+  content: '';
+  pointer-events: none;
+  -webkit-mask-image: var(--fg-flora-rose);
+  mask-image: var(--fg-flora-rose);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
 }
 
 /*
@@ -307,7 +371,7 @@
   background: transparent;
 }
 
-.fortune-gateway__door--chat .fortune-gateway__door-art img { filter: drop-shadow(0 16px 18px rgba(101, 37, 74, .24)); }
+.fortune-gateway__door--chat .fortune-gateway__door-art img { filter: drop-shadow(0 18px 20px rgba(160, 60, 100, .22)); }
 .fortune-gateway__door--fusion .fortune-gateway__door-art img { filter: drop-shadow(0 0 26px rgba(232, 213, 163, .3)); }
 
 .fortune-gateway__door-halo {
@@ -316,14 +380,61 @@
   border-radius: 50%;
 }
 
-.fortune-gateway__door--chat .fortune-gateway__door-halo { background: radial-gradient(circle, rgba(255, 226, 161, .5), transparent 62%); }
+/* 연이 뒤 글로우 — 안쪽 아이보리 빛 + 바깥 로즈·샴페인 링. 그림자 대신 빛(DESIGN.md Glow-Not-Shadow). */
+.fortune-gateway__door--chat .fortune-gateway__door-halo {
+  /* 아래쪽은 0 — 연이가 바닥에 선다. 원형 그라데이션은 상자 아래변에서 아직 알파가 남아 직선
+     경계가 생기므로(2026-09-03 실측 x≈878–1030 에 150px 절단선) 세로 마스크로 바닥에서 0 까지 뺀다. */
+  inset: -10% -8% 0;
+  -webkit-mask-image: linear-gradient(to bottom, #000 58%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 58%, transparent 100%);
+  background:
+    radial-gradient(circle at 50% 56%, rgba(255, 255, 255, .95), rgba(255, 245, 236, .6) 26%, rgba(255, 216, 228, .38) 50%, transparent 68%),
+    radial-gradient(circle at 50% 50%, rgba(255, 226, 190, .55), transparent 62%);
+  animation: fgHaloBreathe 6s ease-in-out infinite;
+}
 .fortune-gateway__door--fusion .fortune-gateway__door-halo { background: radial-gradient(circle, rgba(232, 213, 163, .3), transparent 64%); }
 
+/* 발밑 그림자 한 점 — "서 있는" 연이를 바닥에 붙인다. */
+.fortune-gateway__door--chat .fortune-gateway__door-art::after {
+  position: absolute;
+  left: 20%;
+  bottom: 5%;
+  z-index: 0;
+  width: 60%;
+  height: 9%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(160, 70, 110, .2), transparent 70%);
+  content: '';
+}
+
+.fortune-gateway__door--chat .fortune-gateway__door-art-yeon { animation: fgYeonFloat 5.5s ease-in-out infinite; }
+
+@keyframes fgYeonFloat {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, -5px, 0); }
+}
+
+@keyframes fgHaloBreathe {
+  0%, 100% { opacity: .85; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.04); }
+}
+
 .fortune-gateway__door-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   color: #9f1c52;
   font-size: 11px;
   font-weight: 900;
   letter-spacing: .13em;
+}
+
+/* 키커 앞 로즈골드 선 하나 — 팔레트의 세 번째 색을 텍스트가 아니라 장식으로 쓴다(대비 무관). */
+.fortune-gateway__door-kicker::before {
+  width: 18px;
+  height: 1px;
+  background: linear-gradient(90deg, #d9a98a, #c98a7a);
+  content: '';
 }
 
 .fortune-gateway__door-title {
@@ -352,9 +463,9 @@
 }
 
 .fortune-gateway__door-meta b {
-  border: 1px solid rgba(179, 25, 85, .26);
+  border: 1px solid rgba(201, 132, 116, .55);
   border-radius: 999px;
-  background: rgba(179, 25, 85, .1);
+  background: rgba(255, 255, 255, .62);
   padding: 4px 11px;
   color: #8b1747;
   font-size: 12px;
@@ -413,26 +524,16 @@
  * 🔴 이 규칙은 전부 --single 로 스코프된다. 문이 둘로 돌아오면 클래스만 떼면 원래대로다.
  */
 
-/* 문안이 약속하는 "따뜻한 연이와 직설적인 네오" 두 사람을 이 카드에서 처음으로 실제로
-   보여 준다(직전까지는 연이 하나뿐이라 문안과 그림이 어긋났다). */
-.fortune-gateway__doors--single .fortune-gateway__door-art--duo .fortune-gateway__door-art-yeon {
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  width: 76%;
-  height: 76%;
-}
-
-.fortune-gateway__doors--single .fortune-gateway__door-art--duo .fortune-gateway__door-art-neo {
-  position: absolute;
-  right: 0;
-  top: 2%;
-  width: 54%;
-  height: 54%;
+/* 2026-09-02: 카드의 마스코트는 연이 한 명이다(사용자 결정 — 네오 아이콘·듀오 배치 제거).
+   연이는 아트 칸을 꽉 채우고 바닥에 선다. object-position 이 발을 발밑 그림자(::after)에 맞춘다. */
+.fortune-gateway__doors--single .fortune-gateway__door-art-yeon {
+  width: 100%;
+  height: 100%;
+  object-position: center bottom;
 }
 
 /* CTA 를 알약 버튼으로. 문이 둘일 때는 "카드 두 장" 자체가 선택지라 텍스트 링크로 충분했지만,
-   하나가 되면 카드 안에서 누를 곳이 어디인지가 유일한 정보다. */
+   하나가 되면 카드 안에서 누를 곳이 어디인지가 유일한 정보다. 로즈골드 림은 장식(대비 무관). */
 .fortune-gateway__doors--single .fortune-gateway__door-go {
   align-self: start;
   justify-self: start;
@@ -441,7 +542,7 @@
   border-radius: 999px;
   background: linear-gradient(135deg, #b31955 0%, #8b1747 100%);
   color: #fff6fa;
-  box-shadow: 0 14px 24px -15px rgba(139, 23, 71, .92);
+  box-shadow: 0 14px 24px -15px rgba(139, 23, 71, .92), 0 0 0 1px rgba(255, 214, 196, .6), 0 0 18px rgba(255, 196, 214, .35);
 }
 
 /* 🔴 네오 모드의 `html.neo-mode body .fortune-gateway__door-go`(0,2,2) 가 위 색(0,2,0)을
@@ -457,10 +558,10 @@ html.neo-mode body .fortune-gateway__doors--single .fortune-gateway__door-go {
 
   .fortune-gateway__doors--single .fortune-gateway__door {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 232px;
+    grid-template-columns: minmax(0, 1fr) 256px;
     column-gap: clamp(20px, 3vw, 40px);
     align-content: center;
-    min-height: 246px;
+    min-height: 262px;
     padding: 28px 30px 26px;
   }
 
@@ -473,8 +574,8 @@ html.neo-mode body .fortune-gateway__doors--single .fortune-gateway__door-go {
     grid-column: 2;
     grid-row: 1 / span 5;
     place-self: center;
-    width: 232px;
-    height: 232px;
+    width: 256px;
+    height: 256px;
   }
 
   .fortune-gateway__doors--single .fortune-gateway__door-kicker,
@@ -487,14 +588,21 @@ html.neo-mode body .fortune-gateway__doors--single .fortune-gateway__door-go {
 }
 
 /* 좁은 화면은 위 (max-width: 680px) 블록이 이미 세로형 그리드로 바꿔 둔다. 여기서는
-   2인이 된 아트가 96px 안에서 뭉개지지 않게 자리만 조금 넓힌다. */
+   아트가 96px 안에서 뭉개지지 않게 자리만 조금 넓히고, 장식 라인아트는 본문 뒤로 가므로 더 옅게 줄인다. */
 @media (max-width: 680px) {
-  .fortune-gateway__doors--single .fortune-gateway__door { grid-template-columns: minmax(0, 1fr) 112px; }
-  .fortune-gateway__doors--single .fortune-gateway__door-art { width: 112px; height: 112px; }
+  .fortune-gateway__doors--single .fortune-gateway__door { grid-template-columns: minmax(0, 1fr) 118px; }
+  .fortune-gateway__doors--single .fortune-gateway__door-art { width: 118px; height: 118px; }
   .fortune-gateway__doors--single .fortune-gateway__door-go { margin-top: 12px; padding: 10px 18px; font-size: 12.5px; }
+  .fortune-gateway__door--chat::before { right: -54px; bottom: -70px; width: 220px; height: 220px; opacity: .34; }
+  /* 제목 2행 꼬리(x≈270)와 겹치던 잎가지를 작게·위로 올린다. 남는 겹침은 1.3:1 선이라 제목(14:1)을 안 가린다. */
+  .fortune-gateway__flora::before { top: -12px; right: -26px; width: 118px; height: 118px; opacity: .42; }
+  /* 아트 옆 폭이 ~140px 라 "FORTUNE CHAT" 이 두 줄로 꺾였다(2026-09-02 실측). 장식 선을 빼고 한 줄로 고정. */
+  .fortune-gateway__door-kicker { white-space: nowrap; }
+  .fortune-gateway__door-kicker::before { display: none; }
 }
 
-.fortune-gateway__entry-note {
+/* 접두 이유는 .fortune-gateway__entry-shell .fortune-gateway__eyebrow 주석 참고(.logo-area p 가 덮는다). */
+.fortune-gateway__entry-shell .fortune-gateway__entry-note {
   position: relative;
   z-index: 2;
   margin: 0;
@@ -576,7 +684,17 @@ html.neo-mode body .fortune-gateway__door--fusion .fortune-gateway__door-meta b 
 }
 html.neo-mode body .fortune-gateway__door-meta i { color: rgba(218, 206, 255, .84); }
 html.neo-mode body .fortune-gateway__door-go { color: #e8d5a3; }
-html.neo-mode body .fortune-gateway__door--chat .fortune-gateway__door-halo { background: radial-gradient(circle, rgba(196, 181, 253, .26), transparent 62%); }
+html.neo-mode body .fortune-gateway__door--chat .fortune-gateway__door-halo {
+  background:
+    radial-gradient(circle at 50% 56%, rgba(228, 214, 255, .5), rgba(196, 181, 253, .26) 40%, transparent 68%),
+    radial-gradient(circle at 50% 50%, rgba(232, 213, 163, .22), transparent 62%);
+}
+html.neo-mode body .fortune-gateway__door--chat .fortune-gateway__door-art::after { background: radial-gradient(ellipse at center, rgba(0, 0, 0, .42), transparent 70%); }
+html.neo-mode body .fortune-gateway__door--chat .fortune-gateway__door-art img { filter: drop-shadow(0 0 22px rgba(196, 181, 253, .34)); }
+/* 라인아트는 선(마스크)은 그대로 두고 칠만 바꾼다 — 잎가지는 샴페인 골드, 작약은 바이올렛. */
+html.neo-mode body .fortune-gateway__flora::before { background: linear-gradient(160deg, #e8d5a3, #c9a96a); opacity: .42; }
+html.neo-mode body .fortune-gateway__door--chat::before { background: linear-gradient(160deg, #c4b5fd, #a78bfa); opacity: .26; }
+html.neo-mode body .fortune-gateway__door-kicker::before { background: linear-gradient(90deg, #c4b5fd, #e8d5a3); }
 html.neo-mode body .fortune-gateway__door:focus-visible { outline-color: #e8d5a3; }
 
 @media (max-width: 680px) {
@@ -626,7 +744,7 @@ html.neo-mode body .fortune-gateway__door:focus-visible { outline-color: #e8d5a3
 .fortune-gateway__door-desc { grid-column: 1 / -1; max-width: none; font-size: 12.5px; }
 .fortune-gateway__door-meta { grid-column: 1 / -1; margin-top: 10px; }
 .fortune-gateway__door-go { grid-column: 1 / -1; padding-top: 14px; }
-.fortune-gateway__entry-note { font-size: 11.5px; }
+.fortune-gateway__entry-shell .fortune-gateway__entry-note { font-size: 11.5px; }
 }
 
 /* ===== 운명의 문 탐색 허브 (fortune-gateway__discover) v20260817 ===== */
@@ -839,7 +957,11 @@ html.neo-mode body .fortune-gateway__all:hover {
 .fortune-gateway__rec:hover,
 .fortune-gateway__all:hover,
 .fortune-gateway__all:hover em { transform: none; }
+  .fortune-gateway__door--chat .fortune-gateway__door-art-yeon,
+.fortune-gateway__door--chat .fortune-gateway__door-halo { animation: none; }
 }
+.cd-reduced-motion .fortune-gateway__door--chat .fortune-gateway__door-art-yeon,
+.cd-reduced-motion .fortune-gateway__door--chat .fortune-gateway__door-halo { animation: none; }
 
 
 /* ===== 빠른 서비스 + 통합 운세 탐색기 (cd-quick-services-v20260819 / cd-finder-v20260819) =====

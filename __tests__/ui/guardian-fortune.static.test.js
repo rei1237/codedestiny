@@ -39,7 +39,21 @@ test('the destiny gate stands on its own after the inline home widget was retire
   assert.match(css, /\.fortune-gateway__doors--single \.fortune-gateway__door-art \{[\s\S]*?position: relative/);
   // CTA 는 문이 하나일 때 카드 안에서 "누를 곳"이 되므로 알약 버튼이어야 한다.
   assert.match(css, /\.fortune-gateway__doors--single \.fortune-gateway__door-go \{[\s\S]*?border-radius: 999px/);
-  assert.doesNotMatch(css, /https?:\/\//);
+  // 외부 URL 을 fetch 하는 자산은 금지. 인라인 SVG data URI 의 xmlns 는 네임스페이스 식별자라 네트워크를 안 탄다.
+  assert.doesNotMatch(css, /https?:\/\/(?!www\.w3\.org\/2000\/svg')/);
+  // 장식 라인아트는 mask 로 그려 네오 모드가 background 만 바꿔 다시 칠한다 — 마스크가 빠지면 사각 판이 뜬다.
+  assert.match(css, /\.fortune-gateway__flora::before \{[\s\S]*?mask-image: var\(--fg-flora-gold\)/);
+  assert.match(css, /\.fortune-gateway__door--chat::before \{[\s\S]*?mask-image: var\(--fg-flora-rose\)/);
+  assert.match(css, /--fg-flora-rose: url\("data:image\/svg\+xml,/);
+  assert.match(css, /--fg-flora-gold: url\("data:image\/svg\+xml,/);
+  // 🔴 셸의 `.logo-area p`(0,1,1)가 눈썹·안내문의 색을 #bbb 로 덮어 대비 1.8:1 이 됐었다(2026-09-02 실측).
+  //    조상 클래스를 붙인 (0,2,0) 선택자만 이긴다 — 접두 없는 단일 클래스 규칙으로 되돌리면 조용히 회색이 된다.
+  assert.match(css, /\.fortune-gateway__entry-shell \.fortune-gateway__eyebrow \{[\s\S]*?color: #9f1c52/);
+  assert.match(css, /\.fortune-gateway__entry-shell \.fortune-gateway__entry-note \{/);
+  assert.doesNotMatch(css, /^\s*\.fortune-gateway__(eyebrow|entry-note) \{/m);
+  // 부유·호흡 애니메이션은 감속 선호에서 꺼져야 한다(미디어 쿼리 + html.cd-reduced-motion 둘 다).
+  assert.match(css, /prefers-reduced-motion: reduce\) \{[\s\S]*?\.fortune-gateway__door-halo \{ animation: none; \}/);
+  assert.match(css, /\.cd-reduced-motion \.fortune-gateway__door--chat \.fortune-gateway__door-art-yeon/);
 });
 
 // 🔴 단언을 셸 전체가 아니라 이 섹션 안으로 좁힌다. 예전 단언은 홈 어디에든 문자열이 있으면
@@ -64,10 +78,12 @@ test('the destiny gate leads to the conversational reading in every shell', () =
     assert.doesNotMatch(gate, /fortune-gateway__door--fusion|href="\/fusion-fortune\/"/, shell);
     // 문이 하나가 되면 --single 이 가로형 레이아웃을 켜는 유일한 스위치다(styles/fortune-gateway.css).
     assert.match(gate, /class="fortune-gateway__doors fortune-gateway__doors--single"/, shell);
-    // 문안이 "따뜻한 연이와 직설적인 네오"를 약속하므로 두 사람이 다 보여야 한다.
-    // 직전까지는 연이 하나뿐이라 그림이 문안을 배신하고 있었다.
+    // 🔴 2026-09-02 사용자 결정: 이 카드의 마스코트는 연이 한 명이다(네오 아이콘·왕관 배지 제거).
+    //    문안의 "네오"는 상담 안 페르소나 설명이지 카드 그림의 약속이 아니다. 되살리려면 그 결정부터.
     assert.match(gate, /fortune-gateway__door-art-yeon/, shell);
-    assert.match(gate, /fortune-gateway__door-art-neo/, shell);
+    assert.doesNotMatch(gate, /fortune-gateway__door-art-neo|\/icons\/neo-130\.webp/, shell);
+    // 장식 라인아트는 텍스트 없는 빈 span 하나로 두고 그림은 CSS mask 가 그린다.
+    assert.match(gate, /<span class="fortune-gateway__flora" aria-hidden="true"><\/span>/, shell);
     // 가격과 무료 횟수를 카드에서 바로 읽을 수 있어야 한다.
     // 태그에 속성을 허용한다 — i18n 마커(data-cd-trans)가 붙어도 계약은 그대로다.
     assert.match(gate, /<b[^>]*>회원가입 무료 1회<\/b>/, shell);
