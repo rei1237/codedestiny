@@ -47,7 +47,7 @@
  *   npm run build:cf
  *   npm run perf:home -- --runs=3 --preset=mobile     # 축 3 재료(없으면 인용값으로 돈다)
  *   npm run measure:home-score
- *   npm run measure:home-score -- --perf-json=<경로> --inp=616 --out=<디렉터리>
+ *   npm run measure:home-score -- --perf-json=<경로> --inp=328 --out=<디렉터리>
  *
  * 산출물은 저장소가 아니라 --out 디렉터리(기본 OS temp)에 쓴다 — 측정 결과는 커밋 대상이 아니다.
  */
@@ -737,6 +737,14 @@ function extractObjectKeys(text, marker) {
  * 축 3 은 이 하네스가 재지 않는다. perf:home 이 남긴 JSON 을 읽고, 없으면 진단 문서의
  * 2026-09-01 값을 **인용으로 표시**하고 돈다. INP 는 perf:home 이 내지 않는 값이라
  * 항상 인용이거나 `--inp=` 로 주입한 값이다.
+ *
+ * 🔴 인용 INP 는 **328ms** 다 — 2026-09-02 프로덕션 재측정값이다(PR-3 #1412 반영 후).
+ *   재현: `npm run perf:recalc-origin -- --passes=stack --variants=A --runs=5`
+ *   (기본값이 프로덕션 URL · 탭 대상 `#cdMobileBottomNav [data-nav-key='fortunes']` ·
+ *    390x844 · DPR3 · CPU 4x · Slow 4G · 정착 6000ms). 회차 288/304/328/328/328 → 중앙 328.
+ *   같은 도구의 PR-3 이전 프로덕션 기준선은 **656 [640-688]** 이었다(밴드 비겹침).
+ *   🔴 이 도구의 절대 시간에는 트레이싱 오버헤드가 실린다 — 오버헤드 없는 손측정 스케일의
+ *   옛 값 616 과 직접 빼지 말 것. 328 은 그래서 **보수적인**(부풀려진) 인용이다.
  */
 function loadPerf() {
   const explicit = args.perfJson ? path.resolve(args.perfJson) : path.join(os.tmpdir(), "code-destiny-perf", "perf-head.json");
@@ -746,8 +754,8 @@ function loadPerf() {
       source: "인용(2026-09-01 진단)",
       path: explicit,
       measuredAt: null,
-      metrics: { performance: 63, lcp: 4580, tbt: 495, cls: 0.001, inp: inp === null ? 616 : inp },
-      inpSource: inp === null ? "인용(2026-09-01 perf:interaction)" : "--inp",
+      metrics: { performance: 63, lcp: 4580, tbt: 495, cls: 0.001, inp: inp === null ? 328 : inp },
+      inpSource: inp === null ? "인용(2026-09-02 perf:recalc-origin 프로덕션 n=5)" : "--inp",
     };
   }
   const raw = JSON.parse(fs.readFileSync(explicit, "utf8"));
@@ -765,9 +773,9 @@ function loadPerf() {
       lcp: mobile.lcp.median,
       tbt: mobile.tbt.median,
       cls: mobile.cls.median,
-      inp: inp === null ? 616 : inp,
+      inp: inp === null ? 328 : inp,
     },
-    inpSource: inp === null ? "인용(2026-09-01 perf:interaction)" : "--inp",
+    inpSource: inp === null ? "인용(2026-09-02 perf:recalc-origin 프로덕션 n=5)" : "--inp",
   };
 }
 
