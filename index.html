@@ -3104,7 +3104,10 @@ body.cd-overlay-shell-open #langWrap{opacity:0;visibility:hidden;pointer-events:
   /* 🔴 가로 중앙은 margin-left 로 잡는다 — transform 으로 잡으면 styles/fortune-ui.css:1508 의
      button:active{transform:scale(.97)!important} 이 누르는 순간 그 translate 를 지워 손잡이가
      옆으로 튀고, mouseup 이 아래 요소에 떨어져 click 이 아예 안 난다(2026-09-02 실측). */
-  .cd-mobile-bottom-nav__toggle{position:absolute;left:50%;top:-22px;display:flex;align-items:center;justify-content:center;width:72px;height:22px;min-width:0;min-height:0;margin:0 0 0 -36px;padding:0;border:1px solid rgba(179,25,85,.14);border-bottom:0;border-radius:10px 10px 0 0;background:#fffaf7;color:#8e2354;font:inherit;cursor:pointer;transition:background-color 180ms ease,color 180ms ease;-webkit-tap-highlight-color:transparent}
+  .cd-mobile-bottom-nav__toggle{position:absolute;left:50%;top:-22px;display:flex;align-items:center;justify-content:center;width:72px;height:22px;min-width:0;min-height:0;margin:0 0 0 -36px;padding:0;border:1px solid rgba(179,25,85,.65);border-bottom:0;border-radius:10px 10px 0 0;background:#fffaf7;box-shadow:0 -2px 6px rgba(179,25,85,.1);color:#8e2354;font:inherit;cursor:pointer;transition:background-color 180ms ease,color 180ms ease;-webkit-tap-highlight-color:transparent}
+  /* 🔴 테두리 알파는 .14 가 아니라 .6 이다 — .14 는 손잡이 면 대비 1.28:1, 뒤 배경 대비
+     1.09:1 이라 폭 72px 짜리 판이 눈에 전혀 안 잡히고 셰브런만 떠 보였다. .65 가 면 대비
+     3.18:1 로 3:1 을 넘긴다(2026-09-02 sharp 픽셀 실측). 그림자는 형태 보강용. */
   .cd-mobile-bottom-nav__toggle:hover{background:#fff3f7;color:#b31955}
   .cd-mobile-bottom-nav__toggle:focus-visible{outline:2px solid #b31955;outline-offset:2px}
   /* 셰브런 — 펼침은 ∨(눌러서 내린다), 접힘은 ∧(눌러서 올린다) */
