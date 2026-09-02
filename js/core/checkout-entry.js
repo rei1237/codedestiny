@@ -670,6 +670,25 @@
   }
 
   /**
+   * 표의 표시용 메타(아이콘·상품권 여부). 자기 마크업을 직접 그리는 렌더러 — 결제창 CSS 를 쓰지 않는
+   * /points 의 이용권 결제수단 그리드 — 가 buildDirectPayMethodStepHtml 을 못 쓰면서도 표를 정본으로
+   * 삼을 수 있게 한다.
+   *
+   * 🔴 **표 객체 자체를 내보내지 않는다.** 참조를 넘기면 소비자가 항목을 고쳐 정본이 조용히 갈라지고,
+   * payMethod·channelKeyName 을 직접 읽어 resolveDirectPayFields 를 우회하는 조립부가 생긴다
+   * (그러면 상품권의 giftCertificateType 이 빠져 창이 안 뜬다). 복사본만, 표시에 필요한 값만 돌려준다.
+   */
+  function directPayMethodMeta(id) {
+    var entry = DIRECT_PAY_METHODS[text(id).toUpperCase()];
+    if (!entry) return null;
+    return {
+      glyph: entry.glyph || "",
+      isGiftCertificate: !!entry.giftCertificateType,
+      enabled: entry.enabled === true,
+    };
+  }
+
+  /**
    * 2단계(결제수단 고르기) 패널 HTML. 세 렌더러(정적 셸·React·독립 정적)가 각자 그리지 않고
    * 이 하나를 부른다 — 사본을 만들면 한 렌더러만 준비중 목록이 낡는다.
    *
@@ -1144,7 +1163,9 @@
     DIRECT_PAY_METHOD_ORDER: DIRECT_PAY_METHOD_ORDER,
     DEFAULT_DIRECT_PAY_METHOD: DEFAULT_DIRECT_PAY_METHOD,
     isDirectPayMethodEnabled: isDirectPayMethodEnabled,
+    directPayMethodMeta: directPayMethodMeta,
     directPayMethodLabel: directPayMethodLabel,
+    directPayGiftGroupLabel: directPayGiftGroupLabel,
     selectedDirectPayMethodLabel: selectedDirectPayMethodLabel,
     directPayMethodComingSoonText: directPayMethodComingSoonText,
     buildDirectPayMethodStepHtml: buildDirectPayMethodStepHtml,

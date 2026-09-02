@@ -121,6 +121,31 @@ describe("server purchase policy", () => {
     },
   );
 
+  // 🔴 이용권은 "카드 한 가지"가 아니라 PortOne 결제창이 여는 단건 레일 전부로 살 수 있다.
+  //    결제창 표(js/core/checkout-entry.js 의 DIRECT_PAY_METHODS)가 주는 orderMethod 가
+  //    여기서 "pg" 로 정규화되지 않으면 결제창은 뜨는데 prepare 가 죽는다.
+  //    표 전수 대조는 scripts/verify-checkout-pass-card.mjs ⑭ 가 한다 — 여기는 정규화 자체를 고정한다.
+  test.each(["transfer", "kakaopay", "gift_cultureland", "gift_booknlife", "gift_smart_munsang", "mobile", "card_general"])(
+    "%s normalizes to the PG rail so a 30-day pass can be bought with it",
+    (method) => {
+      expect(policy.normalizePurchasePaymentMethod(method)).toBe("pg");
+      expect(
+        policy.validatePurchasePolicy({ productType: "membership_pass", requestedPaymentMethod: method }).allowed,
+      ).toBe(true);
+    },
+  );
+
+  // 🔴 위 확장의 반대쪽. 월정석으로는 이용권을 살 수 없다는 것이 사용자 요구의 핵심 제약이다.
+  test.each(["monthly_credit", "monthly-credit", "monthly", "moonlight_stone", "moonlight_credit", "membership_credit", "moonstone", "coin", "credit"])(
+    "%s still cannot buy a 30-day pass",
+    (method) => {
+      expect(policy.normalizePurchasePaymentMethod(method)).not.toBe("pg");
+      expect(
+        policy.validatePurchasePolicy({ productType: "membership_pass", requestedPaymentMethod: method }).allowed,
+      ).toBe(false);
+    },
+  );
+
   test("client coveredByPass tampering is rejected for pass products", () => {
     const result = policy.validatePurchasePolicy({
       productType: "subscription",

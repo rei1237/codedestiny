@@ -39,6 +39,13 @@ export type DirectPayFields = {
    * 꺼내며, 비어 있으면 config.channelKey 로 폴백하지 말고 던진다.
    */
   channelKeyName?: string;
+  /**
+   * 주문에 기록할 결제수단 코드(예: "kakaopay"·"transfer"·"gift_cultureland").
+   * 표가 선언하지 않은 카드면 없으며, 그때 조립부는 지금대로 "card_general" 을 쓴다.
+   * 🔴 서버가 이 값을 그대로 받는다 — worker/lib/entitlement-policy.js 의 PG 목록에 있어야
+   * 이용권 결제가 통과한다(verify:checkout-pass-card 가 표 전수로 대조한다).
+   */
+  orderMethod?: string;
 };
 
 export type CheckoutReturnPoint = {
@@ -205,8 +212,16 @@ declare const checkoutEntry: {
   DEFAULT_DIRECT_PAY_METHOD: DirectPayMethodId;
   /** PG 계약이 끝나 실제로 결제할 수 있는 수단인가. 정본은 DIRECT_PAY_METHODS 표 하나다. */
   isDirectPayMethodEnabled(id: unknown): boolean;
+  /**
+   * 표의 표시용 메타(복사본). 결제창 CSS 를 쓰지 않아 buildDirectPayMethodStepHtml 을 못 쓰는
+   * 렌더러(/points 이용권 결제수단 그리드)가 표를 정본으로 삼게 한다. 모르는 id 면 null.
+   * 🔴 payMethod·channelKeyName 은 일부러 빼 두었다 — PG 로 나가는 값은 resolveDirectPayFields 만 만든다.
+   */
+  directPayMethodMeta(id: unknown): { glyph: string; isGiftCertificate: boolean; enabled: boolean } | null;
   /** 결제창 2단계 타일에 찍히는 수단 표시 이름. 모르는 id 면 빈 문자열. */
   directPayMethodLabel(id: unknown): string;
+  /** 상품권 묶음 카드의 제목. 개별 상품권 이름은 directPayMethodLabel 이 담당한다. */
+  directPayGiftGroupLabel(): string;
   /** 고른 수단의 표시 이름(미선택·TTL 만료면 ""). 결제 대기 오버레이 제목이 쓴다. */
   selectedDirectPayMethodLabel(): string;
   /** 아직 열리지 않은 수단의 상태 문구. 렌더러가 결제창 상태줄에 그대로 쓴다. */

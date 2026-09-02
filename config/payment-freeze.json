@@ -42,7 +42,7 @@
     {
       "file": "lib/payment/portone.ts",
       "why": "PortOne 브라우저 SDK 로더 + 단건 결제 요청.",
-      "sha256": "9a02007823235861"
+      "sha256": "8ed341736c568c26"
     }
   ],
   "growthCeilings": [
