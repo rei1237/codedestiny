@@ -1,16 +1,18 @@
 ---
 status: active
 updated: 2026-09-02
-next: PR #1458(27숙 달력 터치 타깃) 사용자 머지 → 남은 잔여 결함(월 입력 터치 타깃·쿠키 배너 앱 억제)은 디자인/컴플라이언스 판단 후 착수
+next: 이 로드맵의 에이전트 몫은 끝났다 — 남은 것은 [app-optimization-remaining-2026-09-02.md](app-optimization-remaining-2026-09-02.md) 로 이관
 ---
 
 # 앱 최적화 로드맵 — 상태 저장소 (2026-09-02)
 
 계획 정본: `C:\Users\user\.claude\plans\humming-dancing-bubble.md` (사용자 승인, 레포에 없음). 결정 3건: ① 앱 체감 결함 우선 ② N3 는 조사만(산출물: [n3-shell-inline-css-externalization.md](n3-shell-inline-css-externalization.md)) ③ 모바일 검증기 4종 CI 배선 안 함(수동 유지).
 
-## 열린 PR
+## 남은 작업은 어디에 있나
 
-- **#1458** — 27숙 달력 월 이동 버튼 히트 영역 44px(`::after`, 시각 크기 유지). CI 전 게이트 통과, 사용자 머지 대기. 그 외 열린 PR 없음.
+이 로드맵의 항목은 전부 해결·이관됐다. **다음 세션은 [app-optimization-remaining-2026-09-02.md](app-optimization-remaining-2026-09-02.md) 를 먼저 읽는다** — 남은 후보 6건, 다시 하지 말 것 목록, 그리고 터치 타깃을 실효값으로 재는 법(`npm run measure:touch-targets`)이 거기 있다.
+
+🔴 PR #1458(27숙 달력 히트 영역)은 **무효였다** — 셸 전역 `button{min-height:48px}` 규칙이 이미 그 버튼을 48x48 로 만들고 있었다. 되돌렸다. 선언값으로 터치 타깃을 세지 말 것.
 
 ## 계획의 PR-1·PR-2 는 이미 해결돼 있다 (2026-09-02 실측)
 
