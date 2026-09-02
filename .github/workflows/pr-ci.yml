@@ -537,6 +537,14 @@ jobs:
           npm run verify:guard-wiring -- --self-test
           npm run verify:guard-wiring
 
+      # 🔴 fast 잡이어야 한다. 이 self-test 는 원래 critical 잡에 있었는데,
+      # scripts/verify-merge-landed.mjs 단독 변경은 티어가 standard 라(실측 2026-09-02:
+      # resolveTier(['scripts/verify-merge-landed.mjs']) === 'standard') **착지 판정기를
+      # 고치는 PR 에서 정확히 그 판정기의 self-test 가 잠들었다.** 워치독이 3단 스택 PR 을
+      # 좌초로 오탐해 4시간 내리 빨간불이던 것을 고칠 때 드러났다(#1449).
+      - name: Verify landing watchdog verdicts
+        run: npm run verify:merge-landed-test
+
       # SNS 일일 자동 발행은 공개 채널로 나가는 되돌릴 수 없는 외부 행위다. 이 가드는 실제
       # 발행 없이(fetch 주입) 계약을 고정한다 — 기본값 꺼짐 · 채널 모듈(telegram.js·threads.js)은
       # throw 금지 · 반대로 **태스크는 채널이 하나라도 실패하면 throw** 한다(크론 래퍼가 던진 것만
@@ -769,7 +777,6 @@ jobs:
           node scripts/apply-staging-noindex.mjs --self-test
           npm run verify:pages-worker-parity-test
           npm run verify:deployed-sha -- --self-test
-          npm run verify:merge-landed-test
 
       # 공개 API 3개(리뷰 목록·요약·오늘의 운세 허브)가 엣지 캐시를 지나는지, 캐시 조회가
       # connectDb 보다 앞인지, 그리고 🔴 생년이 실린 개인화 응답이 그 **공유** 캐시에 새지 않는지.
