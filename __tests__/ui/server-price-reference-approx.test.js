@@ -131,6 +131,45 @@ test("PriceBadge 의 aria-label 이 i18n 키를 탄다 — 한국어 고정이�
   }
 });
 
+// 🔴 2026-09-03 스테이징에서 /tarot/numerology/ 만 세 로케일 전부 가격 문자열이 안 잡혔다.
+//    원인 둘: (1) 가격이 하드코딩 리터럴 "3,000원" 이라 12개 로케일에서 한국어로 나가고
+//    참고 개산가도 안 붙었다, (2) 가격이 덱 생성 뒤(카드를 다 뽑은 뒤)에야 처음 보였다.
+//    verify:paid-gate-price-coverage 는 "게이트 호출부에서 레지스트리 가격이 풀리는가" 만 보고
+//    **화면에 렌더되는지는 안 보므로** 초록불인 채로 이 구멍이 남아 있었다.
+test("수비학 타로 가격이 레지스트리를 탄다 — 리터럴이면 12개 로케일에서 한국어로 나간다", () => {
+  const rel = "app/tarot/numerology/NumerologyTarotClient.tsx";
+  const src = fs.readFileSync(path.join(root, rel), "utf8");
+
+  assert.match(
+    src,
+    /useServerPrice\(\{ featureKey: NUMEROLOGY_READING_FEATURE_KEY \}\)/,
+    `${rel}: 가격이 useServerPrice 를 안 탑니다.`,
+  );
+
+  // 주석을 뺀 실코드에 원화 가격 리터럴이 남아 있으면 안 된다.
+  const code = src
+    .split(/\r?\n/)
+    .filter((line) => !line.trim().startsWith("//") && !line.trim().startsWith("*"))
+    .join("\n");
+  assert.doesNotMatch(
+    code,
+    /["'\`]\s*\d{1,3}(?:,\d{3})+원/,
+    `${rel}: 하드코딩된 원화 가격 리터럴이 되살아났습니다.`,
+  );
+
+  // 첫 화면에서도 가격이 보여야 한다 — 덱이 생기기 전 구간의 안내.
+  assert.match(
+    src,
+    /\{!deck \? \(/,
+    `${rel}: 첫 화면 가격 안내의 !deck 분기가 사라졌습니다.`,
+  );
+  // 🔴 배지는 `.includedList .includedBadgePaid` 로만 칠해진다 — includedList 밖으로 나가면 무색이 된다.
+  const firstPaint = src.match(/\{!deck \? \([\s\S]*?\) : null\}/);
+  assert.ok(firstPaint, `${rel}: 첫 화면 가격 안내 블록을 못 찾았습니다.`);
+  assert.match(firstPaint[0], /className=\{styles\.includedList\}/, `${rel}: 배지가 includedList 밖에 있습니다.`);
+  assert.match(firstPaint[0], /\{deepPriceLabel\}/, `${rel}: 첫 화면 안내에 가격이 없습니다.`);
+});
+
 test("런타임이 아직 없으면 예외가 호출부로 전파된다 — 그래서 호출부가 반드시 감싼다", async () => {
   const { appendReferenceApprox } = await loadHook();
   // checkoutEntryRuntime 은 SSR·레거시 코어 로드 전에 throw 하는 프록시다
