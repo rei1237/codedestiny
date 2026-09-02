@@ -63,6 +63,57 @@ test('yehwa-motifs.css is generated, paired for Safari, quiet, and repainted for
   assert.match(css, /\.moon-hero__yehwa\s*\{[^}]*z-index:\s*0/);
 });
 
+// ── PR-2 (2026-09-03) — 카드 인장·스파클 ───────────────────────────────────────
+// 인장은 두 카드 모두 "모서리 밖으로 걸쳐 두고 카드의 overflow 로 자른다"는 한 가지 방식으로 놓았고,
+// 그래서 호스트 카드의 담기(position/isolation/overflow)가 빠지면 조용히 사라지거나 카드 밖으로 샌다.
+
+test('seals are child spans on the two host cards, sparkles sit inside the art box', () => {
+  const html = read('index.html');
+  assert.equal((html.match(/<span class="cd-yehwa-seal"/g) || []).length, 6, 'expected 6 seals (운명의 문 1 + 대표 상담 5)');
+  assert.equal((html.match(/class="cd-yehwa-seal" aria-hidden="true"/g) || []).length, 6, 'every seal must be aria-hidden');
+  // 🔴 ::before/::after 로 바꾸지 말 것 — .cd-sig-card 는 animation-fill-mode:backwards 인 cdSigRise 를 돌아
+  // 의사요소가 시작 프레임 값에 붙들린다. 자식 span 이라야 카드와 함께 움직인다(hover/active 실측 동일 좌표).
+  const sig = html.match(/<a class="cd-sig-card(?: cd-sig-card--[a-z]+)?"[^>]*>[^<]*<span class="cd-yehwa-seal"/g) || [];
+  assert.equal(sig.length, 5, `대표 상담 카드 5장 전부에 인장이 있어야 한다 (현재 ${sig.length})`);
+  // 🔴 빠른 서비스 카드에는 인장을 두지 않는다(2026-09-03 사용자 결정) — 182x106px 카드에서
+  // 72px 인장은 높이의 68% 이고, 그 크기에서는 꽃잎이 직선 방사살로 잘려 "시계 밴드"로 읽혔다.
+  const quick = html.match(/<a class="cd-quick-card"[^>]*>[^<]*<span class="cd-yehwa-seal"/g) || [];
+  assert.equal(quick.length, 0, `빠른 서비스 카드에는 인장이 없어야 한다 (현재 ${quick.length})`);
+  const doorStart = html.indexOf('<a class="fortune-gateway__door fortune-gateway__door--chat"');
+  assert.ok(doorStart > 0, '운명의 문 카드 마커가 없다');
+  const doorHead = html.slice(doorStart, html.indexOf('fortune-gateway__door-art', doorStart));
+  assert.ok(doorHead.includes('<span class="cd-yehwa-seal"'), '운명의 문 카드 인장이 아트 상자 앞에 없다');
+
+  // 스파클은 아트 상자 안에만 둔다 — 카드 기준 px 로 놓으면 문구가 바뀔 때 글자를 덮는다.
+  const artStart = html.indexOf('<span class="fortune-gateway__door-art" aria-hidden="true">');
+  assert.ok(artStart > 0, '.fortune-gateway__door-art 마커가 없다');
+  const artEnd = html.indexOf('</span>\n              <span class="fortune-gateway__door-kicker">', artStart);
+  assert.ok(artEnd > artStart, '아트 상자의 끝을 찾지 못했다');
+  const art = html.slice(artStart, artEnd);
+  for (const cls of ['cd-yehwa-sparkle--a', 'cd-yehwa-sparkle--b', 'cd-yehwa-sparkle--c']) {
+    assert.ok(art.includes(cls), `${cls} 가 아트 상자 밖에 있다`);
+  }
+  assert.equal((html.match(/cd-yehwa-sparkle--/g) || []).length, 3, '스파클은 아트 상자 안 3개뿐이어야 한다');
+});
+
+test('seal and sparkle placements are generated for every host and repainted for neo', () => {
+  const css = read('styles/yehwa-motifs.css');
+  for (const sel of ['.fortune-gateway__door--chat .cd-yehwa-seal', '.cd-sig-card .cd-yehwa-seal']) {
+    assert.ok(css.includes(`${sel} {`), `${sel} 배치 규칙이 없다`);
+  }
+  assert.ok(!css.includes('.cd-quick-card .cd-yehwa-seal'), '빠른 서비스 카드용 인장 규칙은 두지 않는다');
+  assert.match(css, /\.cd-yehwa-seal \{[^}]*z-index:\s*-1/);
+  assert.match(css, /html\.neo-mode body \.cd-yehwa-seal[^{]*\{[^}]*background:/);
+  assert.match(css, /html\.neo-mode body \.cd-yehwa-sparkle[^{]*\{[^}]*background:/);
+  // 인장·스파클은 히어로 문양(<= .5)보다 진하지만 선문양의 상한은 있다 — 넘기면 장식이 아니라 그림이 된다.
+  const blocks = css.match(/\.cd-yehwa-(?:seal|sparkle)[^{]*\{[^}]*\}/g) || [];
+  assert.ok(blocks.length >= 4);
+  for (const block of blocks) {
+    const m = block.match(/opacity:\s*(\.\d+|\d(?:\.\d+)?)/);
+    if (m) assert.ok(Number(m[1]) <= 0.6, `card motif opacity too high: ${block.slice(0, 48)} → ${m[1]}`);
+  }
+});
+
 test('the generator reproduces the committed stylesheet byte for byte', () => {
   execFileSync(process.execPath, [path.join(root, 'scripts/design/gen-yehwa-motifs.mjs'), '--check'], {
     cwd: root,
