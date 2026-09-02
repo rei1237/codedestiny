@@ -73,7 +73,7 @@ export default function TodayReadingGuide() {
             <a
               key={period}
               href={`/fortune/${period}/`}
-              className="rounded-full border border-amber-400/40 bg-amber-400/10 px-4 py-2 text-xs font-bold text-amber-200 transition-colors hover:border-amber-300 hover:bg-amber-400/20"
+              className="inline-flex min-h-11 items-center rounded-full border border-amber-400/40 bg-amber-400/10 px-4 py-2 text-xs font-bold text-amber-200 transition-colors hover:border-amber-300 hover:bg-amber-400/20"
             >
               {PERIOD_LABEL[period]} 운세
             </a>
@@ -91,7 +91,7 @@ export default function TodayReadingGuide() {
                 <a
                   key={profile.id}
                   href={`/fortune/today/${profile.id}/`}
-                  className="rounded-xl border border-slate-700/60 bg-slate-900/80 px-3 py-2 text-sm text-slate-200 transition-colors hover:border-amber-400/40 hover:text-amber-100"
+                  className="inline-flex min-h-11 items-center rounded-xl border border-slate-700/60 bg-slate-900/80 px-3 py-2 text-sm text-slate-200 transition-colors hover:border-amber-400/40 hover:text-amber-100"
                 >
                   <span aria-hidden="true" className="mr-1.5 text-slate-400">
                     {profile.symbol}
@@ -114,7 +114,7 @@ export default function TodayReadingGuide() {
               key={faq.question}
               className="group rounded-2xl border border-slate-700/60 bg-slate-900/80 px-5 py-4 transition-colors hover:border-amber-400/40"
             >
-              <summary className="cursor-pointer list-none break-keep text-sm font-bold text-slate-100 marker:content-none">
+              <summary className="flex min-h-11 cursor-pointer list-none items-center break-keep text-sm font-bold text-slate-100 marker:content-none">
                 {faq.question}
               </summary>
               <p className="mt-3 break-keep text-sm leading-7 text-slate-300">{faq.answer}</p>

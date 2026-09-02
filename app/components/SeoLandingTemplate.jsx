@@ -218,7 +218,7 @@ export default function SeoLandingTemplate({ page }) {
               ) : null}
               <Link
                 href={item.path}
-                className={`inline-flex items-center rounded-[4px] py-2 underline-offset-4 transition-colors duration-200 hover:text-[#e8d5a3] hover:underline ${FOCUS_RING}`}
+                className={`inline-flex min-h-11 items-center rounded-[4px] py-2 underline-offset-4 transition-colors duration-200 hover:text-[#e8d5a3] hover:underline ${FOCUS_RING}`}
               >
                 {item.name}
               </Link>
