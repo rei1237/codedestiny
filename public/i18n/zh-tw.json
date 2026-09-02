@@ -12517,7 +12517,12 @@
       "kzgth9gl": "以已確認的資訊與此刻問題的紋路為中心解讀。",
       "kzpuejo8": "7天復原日常",
       "kzqvnuoc": "在此刻情境中的含義",
-      "kzr8vqho": "只讀出你填寫的出生資訊中看得見的流向。"
+      "kzr8vqho": "只讀出你填寫的出生資訊中看得見的流向。",
+      "pdfButton": "儲存為 PDF",
+      "pdfButtonBusy": "正在製作 PDF…",
+      "pdfSaved": "已將諮詢結果儲存為 PDF。",
+      "pdfFailed": "PDF 儲存失敗，請稍後再試。",
+      "pdfFileName": "運命茶館-{title}-{date}.pdf"
     },
     "fortuneTeaHouseDebugPanel": {
       "k1lcnd8v": "有",

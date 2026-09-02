@@ -89,7 +89,7 @@ export default function TeaHouseSajuResultPanel({ result, onShowTarot, onEditBir
   if (!saju.available) {
     return (
       <section className={styles.sajuResultPanel} data-available="false" aria-labelledby="sajuResultPanelTitle">
-        <header className={styles.sajuResultHeader}>
+        <header className={styles.sajuResultHeader} data-tea-pdf-section>
           <div>
             <span>{copy.eyebrow}</span>
             <h3 id="sajuResultPanelTitle">{copy.title}</h3>
@@ -103,8 +103,9 @@ export default function TeaHouseSajuResultPanel({ result, onShowTarot, onEditBir
           />
         </header>
 
+        {/* 마커는 카드에만 붙인다 — 그리드에 붙이면 SajuPillarBoard 자신의 마커와 중첩돼 PDF 에 두 번 담긴다. */}
         <div className={styles.sajuLockedGrid}>
-          <article className={styles.sajuLockedMoonCard}>
+          <article className={styles.sajuLockedMoonCard} data-tea-pdf-section>
             <span>{copy.lockedEyebrow}</span>
             <strong>{copy.lockedTitle}</strong>
             <p>{saju.cautionReading}</p>
@@ -124,7 +125,7 @@ export default function TeaHouseSajuResultPanel({ result, onShowTarot, onEditBir
 
   return (
     <section className={styles.sajuResultPanel} data-available="true" aria-labelledby="sajuResultPanelTitle">
-      <header className={styles.sajuResultHeader}>
+      <header className={styles.sajuResultHeader} data-tea-pdf-section>
         <div>
           <span>{copy.eyebrow}</span>
           <h3 id="sajuResultPanelTitle">{copy.title}</h3>
@@ -138,7 +139,7 @@ export default function TeaHouseSajuResultPanel({ result, onShowTarot, onEditBir
         />
       </header>
 
-      <section className={styles.sajuSummaryCard} aria-label={copy.summaryAria}>
+      <section className={styles.sajuSummaryCard} aria-label={copy.summaryAria} data-tea-pdf-section>
         <div className={styles.sajuSummaryIntro}>
           <span>{copy.summaryHeading.replace("{name}", birth?.nickname || copy.guestFallback)}</span>
           <strong>{saju.title}</strong>
@@ -184,7 +185,7 @@ export default function TeaHouseSajuResultPanel({ result, onShowTarot, onEditBir
       <FiveElementBalance elements={saju.fiveElements} />
 
       {categoryGauges.length ? (
-        <section className={styles.sajuPanelSection} aria-labelledby="sajuCategoryGaugeTitle">
+        <section className={styles.sajuPanelSection} aria-labelledby="sajuCategoryGaugeTitle" data-tea-pdf-section>
           <div className={styles.sajuPanelSectionHeader}>
             <span>{copy.gaugeEyebrow.replace("{cup}", result.teaCup.name)}</span>
             <h4 id="sajuCategoryGaugeTitle">{copy.gaugeTitle}</h4>
@@ -206,7 +207,7 @@ export default function TeaHouseSajuResultPanel({ result, onShowTarot, onEditBir
         </section>
       ) : null}
 
-      <section className={styles.sajuPanelSection} aria-labelledby="sajuTenGodTitle">
+      <section className={styles.sajuPanelSection} aria-labelledby="sajuTenGodTitle" data-tea-pdf-section>
         <div className={styles.sajuPanelSectionHeader}>
           <span>{copy.tenGodEyebrow}</span>
           <h4 id="sajuTenGodTitle">{copy.tenGodTitle}</h4>
@@ -232,7 +233,7 @@ export default function TeaHouseSajuResultPanel({ result, onShowTarot, onEditBir
         )}
       </section>
 
-      <section className={styles.sajuPanelSection} aria-labelledby="sajuYeoniReadingTitle">
+      <section className={styles.sajuPanelSection} aria-labelledby="sajuYeoniReadingTitle" data-tea-pdf-section>
         <div className={styles.sajuPanelSectionHeader}>
           <span>{copy.readingEyebrow}</span>
           <h4 id="sajuYeoniReadingTitle">{copy.readingTitle}</h4>
@@ -246,7 +247,7 @@ export default function TeaHouseSajuResultPanel({ result, onShowTarot, onEditBir
       </section>
 
       {deepSections.length ? (
-        <section className={styles.sajuDeepResultSection} aria-labelledby="sajuDeepResultTitle">
+        <section className={styles.sajuDeepResultSection} aria-labelledby="sajuDeepResultTitle" data-tea-pdf-section>
           <div className={styles.sajuPanelSectionHeader}>
             <span>{copy.deepEyebrow}</span>
             <h4 id="sajuDeepResultTitle">{copy.deepTitle}</h4>
@@ -268,13 +269,13 @@ export default function TeaHouseSajuResultPanel({ result, onShowTarot, onEditBir
         </section>
       ) : null}
 
-      <section className={styles.sajuCautionBlock} aria-labelledby="sajuCautionTitle">
+      <section className={styles.sajuCautionBlock} aria-labelledby="sajuCautionTitle" data-tea-pdf-section>
         <span>{copy.cautionEyebrow}</span>
         <h4 id="sajuCautionTitle">{copy.cautionTitle}</h4>
         <LlmParagraphs text={saju.cautionReading} />
       </section>
 
-      <section className={styles.sajuActionBlock} aria-labelledby="sajuActionTitle">
+      <section className={styles.sajuActionBlock} aria-labelledby="sajuActionTitle" data-tea-pdf-section>
         <span>{copy.actionEyebrow}</span>
         <h4 id="sajuActionTitle">{copy.actionTitle}</h4>
         <LlmParagraphs text={saju.actionPrescription} />

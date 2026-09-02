@@ -12517,7 +12517,12 @@
       "kzgth9gl": "確かめられた情報と今の質問の筋目を中心に読みました。",
       "kzpuejo8": "7日 回復ルーティン",
       "kzqvnuoc": "今の状況における意味",
-      "kzr8vqho": "入力された出生情報の中で見える流れだけを読みます。"
+      "kzr8vqho": "入力された出生情報の中で見える流れだけを読みます。",
+      "pdfButton": "PDFで保存",
+      "pdfButtonBusy": "PDFを作成中…",
+      "pdfSaved": "相談結果をPDFで保存しました。",
+      "pdfFailed": "PDFの保存に失敗しました。しばらくしてからもう一度お試しください。",
+      "pdfFileName": "運命の茶館-{title}-{date}.pdf"
     },
     "fortuneTeaHouseDebugPanel": {
       "k1lcnd8v": "あり",
