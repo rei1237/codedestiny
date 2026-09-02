@@ -47,6 +47,19 @@ export const PROFILE_SHEET_ACTION = "dpOpenList";
 /** 새로고침·뒤로가기에서 활성 탭을 유지하기 위한 sessionStorage 키. */
 export const MOBILE_TAB_STATE_KEY = "cd.mobileTab.v1";
 
+/**
+ * 데스크탑에서 하단 네비를 접어 둔 상태. 활성 탭(sessionStorage)과 달리 세션을 넘겨
+ * 기억해야 하므로 localStorage 다. 값이 "1"/"0" 문자열인 것은 정적 셸의 인라인 스크립트
+ * (index.html 의 cd-mnav-collapse 블록)가 JSON 파서 없이 같은 키를 읽고 쓰기 때문이다.
+ */
+export const MNAV_COLLAPSED_KEY = "cd.mnavCollapsed.v1";
+
+/** 접기 버튼의 aria-label 사전 키. 정적 셸 토글과 같은 문구를 공유한다. */
+export const MNAV_TOGGLE_TRANS_KEY = "shell.cdMobileBottomNav.k13uxius.ariaLabel";
+
+/** 위 키가 사전에서 풀리지 않을 때 쓰는 원문. index.html 의 aria-label 과 글자 그대로 같다. */
+export const MNAV_TOGGLE_LABEL_KO = "하단 메뉴 접기/펼치기";
+
 export const MOBILE_TABS: readonly MobileTab[] = [
   { key: "home", label: "홈", href: "/", ariaLabel: "홈", glyph: "⌂", transKey: "home.nav.home", ariaTransKey: "home.nav.home" },
   {
@@ -152,6 +165,24 @@ export function writeStoredTabKey(key: MobileTabKey): void {
     window.sessionStorage.setItem(MOBILE_TAB_STATE_KEY, key);
   } catch {
     /* 사파리 프라이빗 모드 등 storage 차단 환경 — 활성 표시만 포기하고 진행 */
+  }
+}
+
+export function readMnavCollapsed(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return window.localStorage.getItem(MNAV_COLLAPSED_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+export function writeMnavCollapsed(collapsed: boolean): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(MNAV_COLLAPSED_KEY, collapsed ? "1" : "0");
+  } catch {
+    /* storage 차단 환경 — 다음 방문에 펼친 상태로 돌아갈 뿐이므로 조용히 넘긴다 */
   }
 }
 

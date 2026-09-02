@@ -20,14 +20,18 @@
 
 /**
  * 하단 네비가 차지하는 높이. 자체 sticky CTA 를 가진 화면이 이 값만큼 위로 올라오면 된다.
- * 네비가 보이지 않는 뷰포트에서는 0 이므로 그대로 바닥에 붙는다.
+ * 소비처가 11곳이라(app/app/_components/AppShell.tsx · master-love-codex · neo-war-room ·
+ * destiny-compass …) 데스크탑 접힘도 **이 변수 하나만** 바꿔 전파한다 — 소비처를 따로 고치지 않는다.
+ *
+ * 🔴 예전에는 `--cd-mnav-offset: 0px` 만 든 :root 블록이 위에 하나 더 있었다. 탭바가 모바일
+ *    전용이던 시절 "네비가 없는 뷰포트에서는 0" 을 뜻했는데, 데스크탑 게이팅이 사라지면서
+ *    (커밋 9f7648605) 아래 블록이 항상 이겨 죽은 선언이 됐다 — 둘을 합쳤다.
  */
 :root {
-  --cd-mnav-offset: 0px;
-}
-
-:root {
-  --cd-mnav-offset: calc(56px + env(safe-area-inset-bottom, 0px));
+  --cd-mnav-bar-h: 56px;
+  /* 데스크탑에서 접었을 때 남는 손잡이 높이. 모바일에서는 쓰이지 않는다. */
+  --cd-mnav-handle-h: 22px;
+  --cd-mnav-offset: calc(var(--cd-mnav-bar-h) + env(safe-area-inset-bottom, 0px));
 }
 
 /**
@@ -38,6 +42,8 @@
  * index.html 의 `.result-home-shortcut{display:none}`.
  * 🔴 이 규칙은 반드시 하단 네비 표시 규칙과 함께 바뀐다. 두 나브는 서로의 대체재라
  *    한쪽만 다른 조건으로 뒤집으면 둘 다 보이는 구간이 생긴다.
+ * 데스크탑 접힘(body.cd-mnav-collapsed)에서도 이 숨김은 **그대로 둔다** — 손잡이 한 번이면
+ * 탭바가 돌아오므로 대체 나브가 필요 없고, 되살리면 "둘 다 보이는 구간"이 바로 생긴다.
  */
 body.cd-mnav-mounted .cd-feature-nav {
   display: none;
@@ -110,6 +116,12 @@ body.cd-mnav-mounted .cd-feature-nav {
   line-height: 24px;
 }
 
+/* 접기 손잡이는 데스크탑 전용이다 — 실제 모양은 파일 끝의 @media (min-width: 769px) 에 있다.
+   모바일에서 탭바는 유일한 내비라 접을 수 있으면 안 된다. */
+.cd-mnav__handle {
+  display: none;
+}
+
 .cd-mnav__label {
   display: block;
   max-width: 100%;
@@ -145,9 +157,10 @@ body.cd-mobile-nav-hidden .cd-mnav {
   pointer-events: none;
 }
 
-/* 하단 고정 네비에 가려지지 않도록 본문 여백 확보. */
+/* 하단 고정 네비에 가려지지 않도록 본문 여백 확보(바 높이 + 여유 8px).
+   토큰으로 쓰지만 계산값은 종전과 같다 — 56 + 8 = 64px. */
 body.cd-mnav-mounted {
-  padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(var(--cd-mnav-bar-h) + 8px + env(safe-area-inset-bottom, 0px));
 }
 
 /*
@@ -210,8 +223,142 @@ body:has(main.cd-yeoni-surface) .cd-mnav__link:focus-visible {
   }
 }
 
+/**
+ * 데스크탑 접기 — 마우스 사용자는 상단 헤더로 같은 곳에 갈 수 있어 탭바가 하단 56px 을
+ * 상시 점유할 이유가 없다. 그래서 데스크탑에서만 손잡이로 접었다 펼 수 있게 한다.
+ *
+ * 🔴 폭 판정은 **오직 이 미디어쿼리**다. 상태 클래스(body.cd-mnav-collapsed)는 JS 가 붙이지만
+ *    아무것도 감추지 않으므로, 접은 채 창을 좁히면 탭바가 저절로 온전히 돌아온다 —
+ *    모바일에서 유일한 내비를 스스로 지운 채 갇히는 경우가 없다.
+ * 🔴 접기는 transform 이동이 아니라 "리스트를 감추고 바를 손잡이 높이로 줄이기"다. 이동시키면
+ *    손잡이까지 화면 밖으로 나가고 --cd-mnav-offset 을 따로 계산해야 한다.
+ */
+@media (min-width: 769px) {
+  /* 펼침: 바 위쪽 모서리에 올라탄 nub. 바 자체의 높이는 건드리지 않는다. */
+  .cd-mnav__handle {
+    position: absolute;
+    left: 50%;
+    top: calc(-1 * var(--cd-mnav-handle-h));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 72px;
+    height: var(--cd-mnav-handle-h);
+    /* 🔴 min-* 을 0 으로 되돌린다 — 셸이 함께 로드하는 fortune-ui.css 의 button{min-height:48px}
+       계열이 손잡이를 48px 로 부풀려 바 안쪽까지 밀고 들어온다(정적 셸에서 2026-09-02 실측). */
+    min-width: 0;
+    min-height: 0;
+    /* 🔴 가로 중앙은 margin-left 로 잡는다 — transform 으로 잡으면 styles/fortune-ui.css:1508 의
+       button:active{transform:scale(.97)!important} 이 누르는 순간 그 translate 를 지워 손잡이가
+       옆으로 튀고, mouseup 이 아래 요소에 떨어져 click 이 아예 안 난다(정적 셸에서 2026-09-02 실측). */
+    margin: 0 0 0 -36px;
+    padding: 0;
+    border: 1px solid rgba(196, 181, 253, 0.22);
+    border-bottom: 0;
+    border-radius: 10px 10px 0 0;
+    background: linear-gradient(180deg, rgba(24, 20, 52, 0.96), rgba(18, 14, 40, 0.98));
+    color: rgba(222, 215, 245, 0.88);
+    cursor: pointer;
+    transition: color 0.2s ease, background 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .cd-mnav__handle:hover {
+    background: linear-gradient(180deg, rgba(34, 28, 68, 0.98), rgba(24, 20, 52, 0.98));
+    color: #f7f3ff;
+  }
+
+  .cd-mnav__handle:focus-visible {
+    outline: 2px solid #a78bfa;
+    outline-offset: 2px;
+  }
+
+  /* 셰브런 — 펼침은 ∨(눌러서 내린다), 접힘은 ∧(눌러서 올린다). */
+  .cd-mnav__chevron {
+    display: block;
+    width: 8px;
+    height: 8px;
+    margin-top: -3px;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: rotate(45deg);
+    transition: transform 0.2s ease;
+  }
+
+  /* 접힘: 리스트를 감추고 바를 손잡이만 남은 투명 스트립으로 줄인다. */
+  body.cd-mnav-mounted.cd-mnav-collapsed {
+    --cd-mnav-offset: calc(var(--cd-mnav-handle-h) + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(var(--cd-mnav-handle-h) + 8px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* 클래스를 셋 겹친 건 연이 표면 스코프(body:has(main.cd-yeoni-surface) .cd-mnav = 0,2,2)를
+     확실히 이기기 위해서다. 그쪽이 이기면 접힌 스트립에 크림 그라디언트가 그대로 남는다. */
+  body.cd-mnav-mounted.cd-mnav-collapsed .cd-mnav {
+    padding-top: 0;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    background: none;
+    border-top: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    /* 투명해진 스트립이 그 아래 콘텐츠의 클릭을 먹지 않도록. 손잡이만 되살린다. */
+    pointer-events: none;
+  }
+
+  body.cd-mnav-collapsed .cd-mnav__list {
+    display: none;
+  }
+
+  body.cd-mnav-collapsed .cd-mnav__handle {
+    position: static;
+    top: auto;
+    margin: 0 auto;
+    pointer-events: auto;
+  }
+
+  body.cd-mnav-collapsed .cd-mnav__chevron {
+    margin-top: 3px;
+    transform: rotate(-135deg);
+  }
+
+  /* 연이 표면(/fortune/{period} 계열) — 표면·테두리·잉크를 한 세트로 맞춘다. */
+  body:has(main.cd-yeoni-surface) .cd-mnav__handle {
+    border-color: rgba(244, 190, 209, 0.42);
+    background: linear-gradient(180deg, rgba(255, 249, 236, 0.98), rgba(255, 245, 230, 0.96));
+    color: #7a3457;
+  }
+
+  body:has(main.cd-yeoni-surface) .cd-mnav__handle:hover {
+    background: linear-gradient(180deg, #fffdf7, rgba(255, 248, 236, 0.98));
+    color: #7a1038;
+  }
+
+  body:has(main.cd-yeoni-surface) .cd-mnav__handle:focus-visible {
+    outline-color: #b31955;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    body:has(main.cd-yeoni-surface) .cd-mnav__handle {
+      border-color: rgba(244, 190, 209, 0.38);
+      background: linear-gradient(180deg, #3a0e28, #2c0a20);
+      color: rgba(255, 214, 232, 0.86);
+    }
+
+    body:has(main.cd-yeoni-surface) .cd-mnav__handle:hover {
+      background: linear-gradient(180deg, #47122f, #3a0e28);
+      color: #fff1f7;
+    }
+
+    body:has(main.cd-yeoni-surface) .cd-mnav__handle:focus-visible {
+      outline-color: #f4bed1;
+    }
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .cd-mnav,
+  .cd-mnav__handle,
+  .cd-mnav__chevron,
   .cd-mnav__link {
     transition: none;
   }

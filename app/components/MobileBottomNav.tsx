@@ -9,6 +9,10 @@ import {
   resolveActiveTabKey,
   readStoredTabKey,
   writeStoredTabKey,
+  readMnavCollapsed,
+  writeMnavCollapsed,
+  MNAV_TOGGLE_TRANS_KEY,
+  MNAV_TOGGLE_LABEL_KO,
   type MobileTab,
   type MobileTabKey,
 } from "@/app/_lib/mobile-tabs";
@@ -69,6 +73,9 @@ function MobileBottomNav() {
   // 활성 표시는 클라이언트 전용 정보라 마운트 이후에 확정해도 문제가 없다.
   const [activeKey, setActiveKey] = useState<MobileTabKey | null>(null);
   const [pendingKey, setPendingKey] = useState<MobileTabKey | null>(null);
+  // 데스크탑 접힘 상태. SSR/하이드레이션 불일치를 피하려고 초깃값은 항상 false 이고,
+  // 실제 값은 마운트 이펙트에서 localStorage 로 확정한다.
+  const [collapsed, setCollapsed] = useState(false);
   const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
   // 탭 라벨·aria 문구는 정적 셸이 쓰던 코어 사전 키를 그대로 읽는다. useTPick 은 값이
   // 없으면 넘긴 한국어를 돌려주므로 한국어 화면이 비지 않는다.
@@ -102,8 +109,20 @@ function MobileBottomNav() {
 
   useEffect(() => {
     document.body.classList.add("cd-mnav-mounted");
+    setCollapsed(readMnavCollapsed());
     return () => document.body.classList.remove("cd-mnav-mounted");
   }, []);
+
+  /**
+   * 접힘은 **데스크탑 전용**이지만 폭 판정은 여기서 하지 않는다 — 상태 클래스만 붙이고
+   * 실제로 무언가를 감추는 규칙은 styles/mobile-bottom-nav.css 의
+   * `@media (min-width: 769px)` 안에만 있다. 그래서 데스크탑에서 접은 채 창을 좁히면
+   * 탭바가 저절로 온전히 돌아오고(모바일 사용자가 갇히지 않는다) 다시 넓히면 접힌 채다.
+   */
+  useEffect(() => {
+    document.body.classList.toggle("cd-mnav-collapsed", collapsed);
+    return () => document.body.classList.remove("cd-mnav-collapsed");
+  }, [collapsed]);
 
   // 경로가 실제로 바뀌면 대기 표시를 내린다.
   useEffect(() => {
@@ -138,9 +157,28 @@ function MobileBottomNav() {
     // React 라우트(/points)는 next/link 기본 이동에 맡기고 대기 표시만 남긴다.
   }, [pendingKey]);
 
+  const toggleCollapsed = useCallback(() => {
+    setCollapsed((previous) => {
+      const next = !previous;
+      writeMnavCollapsed(next);
+      return next;
+    });
+  }, []);
+
   return (
     <nav className="cd-mnav" aria-label={getNavAriaLabel(locale)}>
-      <ul className="cd-mnav__list">
+      {/* 데스크탑 전용 접기 손잡이 — 모바일 폭에서는 CSS 가 감춘다(그쪽은 탭바가 유일한 내비다). */}
+      <button
+        type="button"
+        className="cd-mnav__handle"
+        aria-expanded={!collapsed}
+        aria-controls="cd-mnav-list"
+        aria-label={pick(MNAV_TOGGLE_TRANS_KEY, MNAV_TOGGLE_LABEL_KO)}
+        onClick={toggleCollapsed}
+      >
+        <span className="cd-mnav__chevron" aria-hidden="true" />
+      </button>
+      <ul className="cd-mnav__list" id="cd-mnav-list">
         {MOBILE_TABS.map((tab) => {
           const isActive = activeKey === tab.key;
           const loading = pendingKey === tab.key;
