@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-08-15
-next: "\"남은 작업\" 절의 남은 52종을 `openTarotLoveModal` 정본 예시대로 재작성한다"
+updated: 2026-09-02
+next: "PR-A2(사주 파생 4 · 명상/요가 2 · 작명 1 · 미검증 상담 3 + 배치1 톤패스)를 배치 2 방식대로 저작한다"
 ---
 
 # 인수인계 — 상세 팝업 문구를 사실 기반으로 재작성
@@ -27,6 +27,7 @@ next: "\"남은 작업\" 절의 남은 52종을 `openTarotLoveModal` 정본 예�
 | #632 | paid-flow-gates 가 결제 diff 에서만 돌도록 선판정 추가 | 머지·라이브 |
 | #634 | 이 인수인계 문서 + 코딩 원칙 13 | 머지·라이브 |
 | 배치 1 | **숫자 주장 12종 재작성**(아래 "진행 상황") | PR 생성 |
+| #1457 | **배치 2 = PR-A1** — 유료 15종(타로 4 · 오라클 6 · 해금형 4) 재작성 + `'/tarot/prompt-maker/'` 별칭 + "63개 스프레드"→77 정정 | CI 통과·머지 대기 |
 
 #629 로 **명백한 허위(없는 결과물을 결과라고 보여주던 것)는 제거됐다.** 가드도 반전돼
 `sampleReport`/`resultPreview` 는 이제 **금지 필드**다(`scripts/verify-feature-marketing-schema.mjs`).
@@ -36,9 +37,10 @@ next: "\"남은 작업\" 절의 남은 52종을 `openTarotLoveModal` 정본 예�
 `index.html` 의 `var FEATURE_MARKETING_COPY` 에 있는 **실작성 64개 항목**(전체 92개 중 28개는 `inherit:` 별칭)의
 **산문 필드가 아직 손으로 쓴 문구이고, 각 기능 구현과 대조되지 않았다.**
 
-> 🔴 **개수 정정(2026-08-15 실측)**: 이 문서가 처음 적은 "실작성 67 / 전체 95"는 #629 이전 수치였다.
-> 정본은 `index.html:34427~34523` 을 파싱한 값이며, 재현 명령은 아래 "진행 상황"의 카운트 스니펫이다.
-> 배치 1(12종)이 끝났으므로 **남은 것은 52종**이다.
+> 🔴 **개수는 그날의 측정값이다 — 인용하지 말고 아래 카운트 스니펫을 다시 돌려라.**
+> 2026-09-02 실측: 전체 141키 = 별칭 48 + 실작성 93, 그중 `feats` 보유 27 · `faq` 보유 50.
+> (2026-08-15 에 적힌 "전체 92 / 실작성 64 / 남은 52" 는 그날의 값이고 지금과 다르다.)
+> 배치 1(12종) + 배치 2(15종)가 끝났고, **유료 표면 기준 남은 것은 아래 "다음 배치 후보" 의 A2 묶음**이다.
 
 대상 필드:
 - `headline` / `subheadline` → 팝업의 `tagline`
@@ -143,13 +145,50 @@ console.log('total',k.length,'alias',k.filter(x=>M[x].inherit).length,'authored'
 console.log('feats 있음',k.filter(x=>M[x].feats).length);"
 ```
 
+### 배치 2 = PR-A1 — 타로 4 · 오라클 6 · 해금형 4 (2026-09-02, PR #1457 · CI 통과)
+
+15종을 전부 구현 대조 후 재작성했다. **서빙 키와 근거 파일:줄은 PR #1457 본문의 표가 정본**이므로
+여기 옮겨 적지 않는다. 다음 배치가 알아야 할 것만 남긴다.
+
+**이번에 확정된 렌더러 사실 (다음 배치도 그대로 적용된다)**
+- `_resolvePreviewData`(`index.html:33751`)는 `Object.assign({}, template, D, COPY)` 다.
+  🔴 **COPY 에 `feats` 를 안 쓰면 레거시 `D.feats` 의 옛 주장이 그대로 렌더된다.** 이번 15종 중 11종이
+  그 상태였다(주역 "한자 원문", 이파 "블리윗", 룬 "24룬", 케멧 "47개 신", 홍차 "20가지 상징" 등 전부 허위).
+  **재작성 대상마다 `feats` 를 반드시 저작할 것.**
+- 키 조회(`_marketingKeys`)에 **trailing-slash 정규화가 없다.** `trailingSlash` 설정 때문에 실제 경로는
+  슬래시가 붙으므로 `'/x'` 키만 있으면 그 화면은 폴백 템플릿을 탄다. 이번에 `'/tarot/prompt-maker/'` 를 추가했고,
+  다음 배치도 `href`/`path` 로 서빙되는 키가 있으면 같은 점검이 필요하다.
+- COPY 의 키 표기는 **파일 안에서 섞여 있다**(식별자 키는 따옴표 없이, 경로·하이픈 키는 작은따옴표).
+  패치 스크립트를 쓸 때 한쪽만 가정하면 매칭 0건이 난다.
+- 🔴 **`index.html` 은 이 워크트리에서 LF 다**(`.gitattributes` 의 `eol=lf`). "CRLF 파일" 로 알려져 있었으나
+  2026-09-02 실측은 CRLF 0 · LF 37,393. 패치 스크립트는 개행을 **감지해서 되쓸 것**.
+- `app/_lib/serviceFeatureRegistry.ts`·`serviceSections.js` 를 고치면 **sitemap 원장이 무효화된다.**
+  `npm run sitemap:generate` 를 돌려 같은 커밋에 담는다(이번엔 `/about/` + 4개 로케일 insights 의 lastmod 만 이동).
+
+**이번에 의도적으로 비운 것** — `reportScale`·`valueCompare`·`ctaNote` 를 15종 전부에서 생략했다.
+규칙 엔진 상품에는 서버 강제 분량 하한이 없고(천체의 선율의 4,800은 `minWords` 가 아니라 **문자** 하한),
+무료 티어 대비 주장도 근거가 없다. **다음 배치도 근거 없으면 비우는 쪽이 정답이다.**
+
+### 🔴 미해결 — 사용자 판단이 필요한 결제 결함 3건 (PR #1457 본문에도 있음)
+
+1. **`saju-guardian-unlock` 이 영구 해금 집합에 없다.** 시트·타일은 "영구 해금 10,000원" 으로 파는데
+   `worker/routes/fortune.js:2214-2253` 의 `PERSISTENT_UNLOCK_KEY_SET` 과 `index.html:29263` 의
+   `_CD_PERSISTENT_UNLOCK_BASE_KEYS` 에 그 키가 없다. **결제자가 재열람을 못 할 수 있다.**
+   그래서 이번 문안에서 가디언만 "영구/재열람" 표현을 뺐다 — 고쳐지면 문구도 함께 보강할 것.
+2. **가격 표기가 표면마다 어긋난다** — `app/_lib/serviceSections.js:36` "영구 해금 10,000원" vs 같은 파일의
+   "5,000 per use" vs 런타임 정본(`worker/lib/paid-feature-registry.js`)의 프롬프트 메이커 4구간(3,000~10,000).
+3. **레거시 `D` 의 royal-tea `cost` 가 3,000원**인데 레지스트리는 5,000원(`paid-feature-registry.js:201`).
+   시트 표시는 레지스트리를 쓰므로 정상이나 D 값이 낡았다.
+
 ### 다음 배치 후보 (권고 순서)
 
-1. **사주 `rpt_*` 13종** — `rpt_healthReportCard`·`rpt_quantumCard`·`rpt_lottoCard` 등. 구현이 `js/core/saju/*` 규칙 엔진이라
-   LLM 없이 산출 구조를 그대로 읽을 수 있다. `rpt_skillTreeCard` 는 "8가지", `animal-destiny-unlock` 은 "3가지"를 주장 중 — **미검증**.
-2. **오라클 7종** — `openIfaOracle` 이 "256개"를 주장 중(**미검증**), 나머지는 규칙 엔진.
-3. **타로 5종** — `openTarotLoveModal` 은 이미 검증 완료(위 정본 예시). 나머지 4종.
-4. 자미두수 5종 / 베다 4종 / 기타.
+1. **PR-A2** — 사주 파생 4 · 명상/요가 2 · 작명 1 · 미검증 상담 3(`astrology-ai`·`vedic-ai`·`ziwei-ai` — 배치 1 미포함)
+   + 배치 1 완료 12종의 **톤 패스**(검증된 사실 재사용, 새 주장 추가 금지).
+2. **PR-B** — `#cdFinder` 추천 카드 배선. 🔴 `data-feature-key` 가 결제 인터셉터 입력이라 **`paid-gate-auditor` 선행**.
+3. **PR-C** — 🔴 **로케일 드리프트.** 배치 2 의 ko 재작성으로 비ko 11개 로케일의 `featureMarketing.*` 이
+   옛 문구를 계속 서빙한다. **이를 잡는 가드가 없다**(`verify:payment-copy-dictionary` 의 SOURCES 에 `_pvwTr` 계열 부재).
+   번역 방식은 사용자 결정 1건 대기(Gemini 배치 번역 = 유료 실호출 1회 허락 필요 vs en 손저작 + 10개 복사).
+4. 사주 `rpt_*` 13종 — `js/core/saju/*` 규칙 엔진이라 산출 구조를 그대로 읽을 수 있다.
 
 ## 작업 규칙 (이 레포 고유 — 어기면 CI 가 막는다)
 

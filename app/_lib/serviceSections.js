@@ -33,7 +33,7 @@ const SERVICE_SECTION_DEFINITIONS = [
       {
         href: "/tarot/prompt-maker",
         fallbackTitle: "타로 프롬프트 라이브러리",
-        fallbackDesc: "질문 설계 + 카드 드로우 + 오라클 문장 정리 · 영구 해금 10,000원 · 63 스프레드",
+        fallbackDesc: "질문 설계 + 카드 드로우 + 오라클 문장 정리 · 영구 해금 10,000원 · 77 스프레드",
         image: "/fuctionassets/연애 재회 타로 프롬프트 메이커.webp",
         fallbackAlt: "타로 프롬프트 라이브러리",
       },
@@ -127,7 +127,7 @@ const SERVICE_SECTION_TRANSLATIONS = {
       items: [
         ["Myeongri Tarot", "A reading that connects cards and Ten Gods · Free"],
         ["What Are We?", "6-card love relationship reading · KRW 5,000"],
-        ["Tarot Prompt Library", "Question design, card draw, and oracle sentence summary · KRW 5,000 per use · 63 spreads", "Tarot Prompt Library"],
+        ["Tarot Prompt Library", "Question design, card draw, and oracle sentence summary · KRW 5,000 per use · 77 spreads", "Tarot Prompt Library"],
         ["Warm Sun Healing Tarot", "Emotional temperature and recovery routines · Free"],
         ["Self-Esteem Level Up", "A 5-card reading that helps you stand again · Free"],
         ["Reunion Lighthouse Tarot", "The safe distance for reconnecting · KRW 5,000"],
@@ -196,7 +196,7 @@ const SERVICE_SECTION_TRANSLATIONS = {
       items: [
         ["命理タロット", "カードと十神をつなぐリーディング · 無料"],
         ["私たちはどんな関係？", "6枚カード恋愛関係リーディング · 5,000ウォン"],
-        ["タロットプロンプトライブラリ", "質問設計 + カードドロー + オラクル文整理 · 1回 5,000ウォン · 63スプレッド", "タロットプロンプトライブラリ"],
+        ["タロットプロンプトライブラリ", "質問設計 + カードドロー + オラクル文整理 · 1回 5,000ウォン · 77スプレッド", "タロットプロンプトライブラリ"],
         ["あたたかな太陽回復タロット", "感情の温度と回復ルーティン · 無料"],
         ["自己肯定感レベルアップ", "自分をもう一度立て直す5枚カード · 無料"],
         ["復縁運 灯台タロット", "もう一度届いても安全な距離 · 5,000ウォン"],
@@ -265,7 +265,7 @@ const SERVICE_SECTION_TRANSLATIONS = {
       items: [
         ["命理塔罗", "连接卡牌与十神的解读 · 免费"],
         ["我们是什么关系？", "6张牌恋爱关系解读 · 5,000韩元"],
-        ["塔罗提示词库", "问题设计 + 抽牌 + 神谕句整理 · 每次5,000韩元 · 63个牌阵", "塔罗提示词库"],
+        ["塔罗提示词库", "问题设计 + 抽牌 + 神谕句整理 · 每次5,000韩元 · 77个牌阵", "塔罗提示词库"],
         ["暖阳疗愈塔罗", "情绪温度与恢复日常 · 免费"],
         ["自尊感升级", "重新支撑自己的5张牌 · 免费"],
         ["复合灯塔塔罗", "再次靠近也安全的距离 · 5,000韩元"],
@@ -334,7 +334,7 @@ const SERVICE_SECTION_TRANSLATIONS = {
       items: [
         ["命理塔羅", "連接卡牌與十神的解讀 · 免費"],
         ["我們是什麼關係？", "6張牌戀愛關係解讀 · 5,000韓元"],
-        ["塔羅提示詞庫", "問題設計 + 抽牌 + 神諭句整理 · 每次5,000韓元 · 63個牌陣", "塔羅提示詞庫"],
+        ["塔羅提示詞庫", "問題設計 + 抽牌 + 神諭句整理 · 每次5,000韓元 · 77個牌陣", "塔羅提示詞庫"],
         ["暖陽療癒塔羅", "情緒溫度與恢復日常 · 免費"],
         ["自尊感升級", "重新支撐自己的5張牌 · 免費"],
         ["復合燈塔塔羅", "再次靠近也安全的距離 · 5,000韓元"],
@@ -403,7 +403,7 @@ const SERVICE_SECTION_TRANSLATIONS = {
       items: [
         ["Myeongri Tarot", "Bài đọc nối lá bài với Thập Thần · Miễn phí"],
         ["Chúng ta là gì của nhau?", "Bài đọc quan hệ tình yêu 6 lá · 5.000 KRW"],
-        ["Thư viện prompt Tarot", "Thiết kế câu hỏi + rút bài + tổng hợp câu oracle · 5.000 KRW/lần · 63 trải bài", "Thư viện prompt Tarot"],
+        ["Thư viện prompt Tarot", "Thiết kế câu hỏi + rút bài + tổng hợp câu oracle · 5.000 KRW/lần · 77 trải bài", "Thư viện prompt Tarot"],
         ["Tarot Mặt Trời Hồi Phục", "Nhiệt độ cảm xúc và routine hồi phục · Miễn phí"],
         ["Nâng cấp lòng tự trọng", "5 lá giúp bạn đứng vững lại · Miễn phí"],
         ["Tarot Ngọn Hải Đăng Tái Hợp", "Khoảng cách an toàn để chạm lại · 5.000 KRW"],
@@ -472,7 +472,7 @@ const SERVICE_SECTION_TRANSLATIONS = {
       items: [
         ["Tarot Myeongri", "Lectura que une cartas y Diez Dioses · Gratis"],
         ["¿Qué somos?", "Lectura de relación amorosa de 6 cartas · 5.000 KRW"],
-        ["Biblioteca de prompts de tarot", "Diseño de pregunta + robo de cartas + frase oracular · 5.000 KRW por uso · 63 tiradas", "Biblioteca de prompts de tarot"],
+        ["Biblioteca de prompts de tarot", "Diseño de pregunta + robo de cartas + frase oracular · 5.000 KRW por uso · 77 tiradas", "Biblioteca de prompts de tarot"],
         ["Tarot Sanador del Sol Cálido", "Temperatura emocional y rutina de recuperación · Gratis"],
         ["Sube tu autoestima", "5 cartas para volver a sostenerte · Gratis"],
         ["Tarot Faro de Reencuentro", "La distancia segura para volver a acercarse · 5.000 KRW"],
@@ -541,7 +541,7 @@ const SERVICE_SECTION_TRANSLATIONS = {
       items: [
         ["Tarot Myeongri", "Lecture reliant cartes et Dix Dieux · Gratuit"],
         ["Que sommes-nous ?", "Lecture relation amoureuse en 6 cartes · 5 000 KRW"],
-        ["Bibliothèque de prompts tarot", "Conception de question + tirage + phrase oracle · 5 000 KRW par usage · 63 tirages", "Bibliothèque de prompts tarot"],
+        ["Bibliothèque de prompts tarot", "Conception de question + tirage + phrase oracle · 5 000 KRW par usage · 77 tirages", "Bibliothèque de prompts tarot"],
         ["Tarot du Soleil réparateur", "Température émotionnelle et routine de récupération · Gratuit"],
         ["Estime de soi niveau supérieur", "5 cartes pour vous remettre debout · Gratuit"],
         ["Tarot Phare de Réunion", "La distance sûre pour se rejoindre · 5 000 KRW"],
@@ -610,7 +610,7 @@ const SERVICE_SECTION_TRANSLATIONS = {
       items: [
         ["Myeongri Tarot", "Lesung, die Karten und Zehn Götter verbindet · Kostenlos"],
         ["Was sind wir?", "6-Karten-Liebesbeziehungslesung · 5.000 KRW"],
-        ["Tarot-Prompt-Bibliothek", "Fragedesign + Kartenziehung + Orakelsatz · 5.000 KRW pro Nutzung · 63 Legungen", "Tarot-Prompt-Bibliothek"],
+        ["Tarot-Prompt-Bibliothek", "Fragedesign + Kartenziehung + Orakelsatz · 5.000 KRW pro Nutzung · 77 Legungen", "Tarot-Prompt-Bibliothek"],
         ["Warmes Sonnen-Heiltarot", "Emotionale Temperatur und Erholungsroutine · Kostenlos"],
         ["Selbstwert-Level-up", "5 Karten, die dich wieder aufrichten · Kostenlos"],
         ["Wiedervereinigungs-Leuchtturm-Tarot", "Sichere Distanz zum erneuten Kontakt · 5.000 KRW"],
@@ -679,7 +679,7 @@ const SERVICE_SECTION_TRANSLATIONS = {
       items: [
         ["Myeongri टैरो", "कार्ड और दश देवों को जोड़ने वाली रीडिंग · मुफ्त"],
         ["हमारा रिश्ता क्या है?", "6 कार्ड प्रेम संबंध रीडिंग · 5,000 KRW"],
-        ["टैरो प्रॉम्प्ट लाइब्रेरी", "प्रश्न रचना + कार्ड ड्रॉ + ओरेकल वाक्य सार · प्रति उपयोग 5,000 KRW · 63 स्प्रेड", "टैरो प्रॉम्प्ट लाइब्रेरी"],
+        ["टैरो प्रॉम्प्ट लाइब्रेरी", "प्रश्न रचना + कार्ड ड्रॉ + ओरेकल वाक्य सार · प्रति उपयोग 5,000 KRW · 77 स्प्रेड", "टैरो प्रॉम्प्ट लाइब्रेरी"],
         ["गर्म सूर्य उपचार टैरो", "भावनात्मक तापमान और पुनर्संतुलन रूटीन · मुफ्त"],
         ["आत्मसम्मान स्तर-उन्नयन", "आपको फिर से खड़ा करने वाली 5 कार्ड रीडिंग · मुफ्त"],
         ["पुनर्मिलन दीपस्तंभ टैरो", "फिर जुड़ने के लिए सुरक्षित दूरी · 5,000 KRW"],
@@ -748,7 +748,7 @@ const SERVICE_SECTION_TRANSLATIONS = {
       items: [
         ["Myeongri Tarot", "Lezing die kaarten en Ten Gods verbindt · Gratis"],
         ["Wat zijn wij?", "6-kaarten liefdesrelatielezing · KRW 5.000"],
-        ["Tarotpromptbibliotheek", "Vraagontwerp + kaarttrekking + orakelzin · KRW 5.000 per gebruik · 63 spreads", "Tarotpromptbibliotheek"],
+        ["Tarotpromptbibliotheek", "Vraagontwerp + kaarttrekking + orakelzin · KRW 5.000 per gebruik · 77 spreads", "Tarotpromptbibliotheek"],
         ["Warme zon healingtarot", "Emotionele temperatuur en herstelroutine · Gratis"],
         ["Zelfwaardering omhoog", "5 kaarten die je weer laten staan · Gratis"],
         ["Herenigingsvuurtoren-tarot", "Veilige afstand om opnieuw te verbinden · KRW 5.000"],
@@ -817,7 +817,7 @@ const SERVICE_SECTION_TRANSLATIONS = {
       items: [
         ["Myeongri Tarot", "Bacaan yang menghubungkan kad dan Ten Gods · Percuma"],
         ["Apakah hubungan kita?", "Bacaan hubungan cinta 6 kad · KRW 5,000"],
-        ["Perpustakaan Prompt Tarot", "Reka soalan + cabut kad + susun ayat oracle · KRW 5,000 setiap guna · 63 spread", "Perpustakaan Prompt Tarot"],
+        ["Perpustakaan Prompt Tarot", "Reka soalan + cabut kad + susun ayat oracle · KRW 5,000 setiap guna · 77 spread", "Perpustakaan Prompt Tarot"],
         ["Tarot Penyembuhan Matahari Hangat", "Suhu emosi dan rutin pemulihan · Percuma"],
         ["Naik Taraf Harga Diri", "5 kad untuk menegakkan diri semula · Percuma"],
         ["Tarot Rumah Api Pertemuan Semula", "Jarak selamat untuk bersambung semula · KRW 5,000"],
