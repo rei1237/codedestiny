@@ -439,6 +439,7 @@ declare global {
 ══════════════════════════════════════════════════════════════════ */
 
 const PORTONE_MOBILE_REDIRECT_PATH = process.env.NEXT_PUBLIC_PORTONE_MOBILE_REDIRECT_PATH || "/points";
+const PORTONE_SDK_READY_TIMEOUT_MS = 8000; // 셸 CD_PORTONE_SDK_BUDGET_MS 와 같은 예산 — 클릭 제스처가 살아 있는 동안 실패를 알린다
 const PAYMENT_ACTION_LOCK_TTL_MS = 15 * 60 * 1000;
 const PAYMENT_REDIRECT_LOCK_TTL_MS = 90 * 1000;
 const PAYMENT_REDIRECT_LOCK_PREFIX = "fortune_payment_redirect_confirm_lock:";
@@ -1519,29 +1520,47 @@ function ensurePortoneSdk() {
     }
     if (window.PortOne?.requestPayment) { resolve(); return; }
     const scriptId = "portone-v2-sdk";
-    const existingScript = document.getElementById(scriptId) as HTMLScriptElement | null;
-    if (existingScript) {
-      existingScript.addEventListener("load", () => {
-        if (window.PortOne?.requestPayment) resolve();
-        else reject(new Error("포트원 V2 SDK가 초기화되지 않았습니다."));
-      }, { once: true });
-      existingScript.addEventListener(
-        "error",
-        () => reject(new Error("결제 SDK를 불러오지 못했습니다.")),
-        { once: true },
-      );
-      return;
-    }
-    const script = document.createElement("script");
-    script.id = scriptId;
-    script.src = "https://cdn.portone.io/v2/browser-sdk.js";
-    script.async = true;
-    script.onload = () => {
-      if (window.PortOne?.requestPayment) resolve();
-      else reject(new Error("포트원 V2 SDK가 초기화되지 않았습니다."));
+
+    /* 🔴 load 이벤트에만 기대면 안 된다 — 이미 발화가 끝났거나 실패한 기존 태그에 리스너만 달면
+       그 이벤트는 영영 울리지 않아 이 Promise 가 영원히 풀리지 않는다(이용권 결제 멈춤 제보의 실체).
+       상한도 짧아야 한다: 클릭 핸들러 안이라 오래 기다리면 브라우저가 사용자 제스처로 보지 않아
+       결제창이 팝업 차단된다. lib/payment/portone.ts 의 ensurePortOneSdk 와 같은 패턴. */
+    let settled = false;
+    let pollTimer: ReturnType<typeof setInterval> | null = null;
+    let capTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const finish = (ok: boolean) => {
+      if (settled) return;
+      settled = true;
+      if (pollTimer) clearInterval(pollTimer);
+      if (capTimer) clearTimeout(capTimer);
+      if (ok && window.PortOne?.requestPayment) {
+        resolve();
+        return;
+      }
+      // 죽은 태그를 남기면 다음 시도가 그것을 물려받아 새 요청 없이 상한까지만 기다린다.
+      try {
+        document.getElementById(scriptId)?.remove();
+      } catch { /* 제거 실패는 무시 */ }
+      reject(new Error("결제 SDK를 불러오지 못했습니다. 네트워크 상태를 확인한 뒤 다시 시도해 주세요."));
     };
-    script.onerror = () => reject(new Error("결제 SDK를 불러오지 못했습니다."));
-    document.body.appendChild(script);
+
+    const existingScript = document.getElementById(scriptId) as HTMLScriptElement | null;
+    const script = existingScript || document.createElement("script");
+    if (!existingScript) {
+      script.id = scriptId;
+      script.src = "https://cdn.portone.io/v2/browser-sdk.js";
+      script.async = true;
+    }
+
+    script.addEventListener("load", () => finish(true), { once: true });
+    script.addEventListener("error", () => finish(false), { once: true });
+
+    // 이미 로드가 끝난 태그를 구제하는 경로. 50ms 는 클릭 반응으로 체감되지 않는 간격이다.
+    pollTimer = setInterval(() => { if (window.PortOne?.requestPayment) finish(true); }, 50);
+    capTimer = setTimeout(() => finish(false), PORTONE_SDK_READY_TIMEOUT_MS);
+
+    if (!existingScript) document.body.appendChild(script);
   });
 }
 
@@ -4228,18 +4247,18 @@ export default function PointsPage() {
     const actionLockKey = `subscription:${plan.planId}:${selectedMethod || "card_general"}`;
     if (!acquirePaymentActionLock(actionLockKey)) return;
 
-    const prepareEntry = startSubscriptionPrepare(plan);
-    // SDK 로드·config 조회는 prepare 결과와 아무 의존이 없다. 예전에는 prepare 뒤로 직렬화돼 있어
-    // 결제창 오픈이 두 홉을 기다렸다 — 같은 클릭에서 함께 발사해 한 홉으로 접는다.
-    // prepare 실패로 아래에서 조기 return 될 때 unhandled rejection 이 되지 않도록 catch 를 먼저 건다.
-    const checkoutAssets = Promise.all([ensurePortoneSdk(), fetchPortOnePaymentConfigCached(apiBase)]);
-    checkoutAssets.catch(() => {});
-
-    setPendingSubscriptionPaymentPlan(null);
-    setProcessingStage("30일 이용권 결제 정보를 준비하고 있어요.\n중복 결제를 시도하지 말아 주세요.", "checkout");
-    setIsProcessing(true);
-
     try {
+      const prepareEntry = startSubscriptionPrepare(plan);
+      // SDK 로드·config 조회는 prepare 결과와 아무 의존이 없다. 예전에는 prepare 뒤로 직렬화돼 있어
+      // 결제창 오픈이 두 홉을 기다렸다 — 같은 클릭에서 함께 발사해 한 홉으로 접는다.
+      // prepare 실패로 아래에서 조기 return 될 때 unhandled rejection 이 되지 않도록 catch 를 먼저 건다.
+      const checkoutAssets = Promise.all([ensurePortoneSdk(), fetchPortOnePaymentConfigCached(apiBase)]);
+      checkoutAssets.catch(() => {});
+
+      setPendingSubscriptionPaymentPlan(null);
+      setProcessingStage("30일 이용권 결제 정보를 준비하고 있어요.\n중복 결제를 시도하지 말아 주세요.", "checkout");
+      setIsProcessing(true);
+
       const prepareAttempt = await prepareEntry.promise;
       let prepareStatus = prepareAttempt.status;
       let prepareData = prepareAttempt.data;
