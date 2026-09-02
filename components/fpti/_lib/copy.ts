@@ -111,6 +111,13 @@ export interface FptiSharedCopy {
   chapterLockedNotice: string;
   firstChapterPreviewNotice: string;
   currentChapterProgress: (n: number, total: number) => string;
+  /** 해금된 심층 리포트를 PDF 로 내려받는 보너스 버튼용 문구 — 추가 과금이 아니므로 가격·결제 표현을 쓰지 않는다. */
+  pdfButtonLabel: string;
+  pdfButtonBusyLabel: string;
+  pdfSavedNotice: string;
+  pdfFailedNotice: string;
+  pdfCoverTitle: string;
+  pdfFileName: (code: string, date: string) => string;
 }
 
 const FPTI_SHARED_COPY_EN: FptiSharedCopy = {
@@ -241,6 +248,12 @@ const FPTI_SHARED_COPY_EN: FptiSharedCopy = {
   chapterLockedNotice: "🔒 This chapter is locked. Unlock the FPTI Deep Report to read the full text.",
   firstChapterPreviewNotice: "Chapter 1 is offered as a 1-2 sentence preview. Unlocking opens all 7 chapters.",
   currentChapterProgress: (n, total) => `Chapter ${n} of ${total}`,
+  pdfButtonLabel: "Save as PDF",
+  pdfButtonBusyLabel: "Preparing PDF…",
+  pdfSavedNotice: "Your deep report has been saved as a PDF.",
+  pdfFailedNotice: "We couldn't create the PDF. Please try again in a moment.",
+  pdfCoverTitle: "Saju FPTI Deep Report",
+  pdfFileName: (code, date) => `saju-fpti-${code}-${date}.pdf`,
 };
 
 const FPTI_SHARED_COPY: Partial<Record<LoadingLocale, FptiSharedCopy>> = {
@@ -372,6 +385,12 @@ const FPTI_SHARED_COPY: Partial<Record<LoadingLocale, FptiSharedCopy>> = {
     chapterLockedNotice: "🔒 이 챕터는 잠금 상태입니다. FPTI 심층 리포트 잠금 해제 후 전체 본문을 볼 수 있습니다.",
     firstChapterPreviewNotice: "1챕터는 1~2문장 미리보기로 제공됩니다. 잠금 해제 시 7개 챕터 전체가 열립니다.",
     currentChapterProgress: (n, total) => `현재 ${n}/${total}장`,
+    pdfButtonLabel: "PDF 저장",
+    pdfButtonBusyLabel: "PDF 만드는 중…",
+    pdfSavedNotice: "심층 리포트를 PDF로 저장했어요.",
+    pdfFailedNotice: "PDF를 만들지 못했어요. 잠시 후 다시 시도해 주세요.",
+    pdfCoverTitle: "사주 FPTI 심층 리포트",
+    pdfFileName: (code, date) => `사주-FPTI-심층리포트-${code}-${date}.pdf`,
   },
   ja: {
     elementBalanceTitle: "五行エネルギーバランス",
@@ -501,6 +520,12 @@ const FPTI_SHARED_COPY: Partial<Record<LoadingLocale, FptiSharedCopy>> = {
     chapterLockedNotice: "🔒 この章はロックされています。FPTI深層レポートのロック解除後に全文を読めます。",
     firstChapterPreviewNotice: "1章は1〜2文のプレビューとして提供されます。ロック解除で7章すべてが開きます。",
     currentChapterProgress: (n, total) => `現在 ${n}/${total}章`,
+    pdfButtonLabel: "PDFで保存",
+    pdfButtonBusyLabel: "PDFを作成中…",
+    pdfSavedNotice: "詳細レポートをPDFで保存しました。",
+    pdfFailedNotice: "PDFを作成できませんでした。しばらくしてからもう一度お試しください。",
+    pdfCoverTitle: "四柱推命FPTI 詳細レポート",
+    pdfFileName: (code, date) => `saju-fpti-${code}-${date}.pdf`,
   },
   "zh-CN": {
     elementBalanceTitle: "五行能量平衡",
@@ -630,6 +655,12 @@ const FPTI_SHARED_COPY: Partial<Record<LoadingLocale, FptiSharedCopy>> = {
     chapterLockedNotice: "🔒 本章节已锁定。解锁 FPTI 深度报告后可阅读全文。",
     firstChapterPreviewNotice: "第 1 章以 1-2 句预览形式提供，解锁后即可查看全部 7 个章节。",
     currentChapterProgress: (n, total) => `当前第 ${n}/${total} 章`,
+    pdfButtonLabel: "保存为 PDF",
+    pdfButtonBusyLabel: "正在生成 PDF…",
+    pdfSavedNotice: "已将深度报告保存为 PDF。",
+    pdfFailedNotice: "PDF 生成失败，请稍后再试。",
+    pdfCoverTitle: "四柱 FPTI 深度报告",
+    pdfFileName: (code, date) => `saju-fpti-${code}-${date}.pdf`,
   },
   "zh-TW": {
     elementBalanceTitle: "五行能量平衡",
@@ -759,6 +790,12 @@ const FPTI_SHARED_COPY: Partial<Record<LoadingLocale, FptiSharedCopy>> = {
     chapterLockedNotice: "🔒 本章節已鎖定。解鎖 FPTI 深度報告後可閱讀全文。",
     firstChapterPreviewNotice: "第 1 章以 1-2 句預覽形式提供，解鎖後即可查看全部 7 個章節。",
     currentChapterProgress: (n, total) => `目前第 ${n}/${total} 章`,
+    pdfButtonLabel: "儲存為 PDF",
+    pdfButtonBusyLabel: "正在產生 PDF…",
+    pdfSavedNotice: "已將深度報告儲存為 PDF。",
+    pdfFailedNotice: "PDF 產生失敗，請稍後再試。",
+    pdfCoverTitle: "四柱 FPTI 深度報告",
+    pdfFileName: (code, date) => `saju-fpti-${code}-${date}.pdf`,
   },
   en: FPTI_SHARED_COPY_EN,
 };

@@ -540,6 +540,8 @@ export default function FptiResultCard({ result }: Props) {
   const [accessChecking, setAccessChecking] = useState(true);
   const [accessState, setAccessState] = useState<FptiReportAccessState>({ isUnlocked: false });
   const [deepReport, setDeepReport] = useState<FptiDeepReport>(() => normalizeDeepReport(createInitialDeepReport(result), false));
+  const [pdfBusy, setPdfBusy] = useState(false);
+  const [pdfExporting, setPdfExporting] = useState(false);
   const unlockingRef = useRef(false);
   const accessSnapshot = useAccessStoreSnapshot();
   const fptiSnapshotUnlocked = useMemo(
@@ -700,6 +702,42 @@ export default function FptiResultCard({ result }: Props) {
     }
   };
 
+  // 🔴 PDF 저장은 ₩20,000 심층 리포트를 이미 해금한 이용자에게만 열린다(추가 과금 없음).
+  //    잠금 상태에서 캡처가 도는 것을 막는 방어는 3중이다: ①이 핸들러와 버튼의 isUnlocked 게이트
+  //    ②마커를 조건부 스프레드로만 붙여 잠금 챕터가 선택자에 안 걸리게 한다
+  //    ③normalizeDeepReport 가 잠금 챕터의 sections 를 애초에 DOM 에 안 넣는다(무수정).
+  const handleSaveDeepReportPdf = async () => {
+    if (pdfBusy) return;
+    if (!accessState.isUnlocked) return;
+    setPdfBusy(true);
+    setDeepError("");
+    setDeepNotice("");
+    setPdfExporting(true);
+    try {
+      // 접힌 챕터를 전부 펼친 뒤 두 프레임 + 120ms 기다려 레이아웃을 확정한다(캡처 전 필수).
+      await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+      await new Promise<void>((resolve) => setTimeout(resolve, 120));
+      const { exportResultPdf } = await import("@/lib/pdf/export-result-pdf");
+      const today = new Date().toISOString().slice(0, 10);
+      await exportResultPdf({
+        captureTargets: ["[data-fpti-pdf-section]"],
+        fileName: copy.pdfFileName(result?.code || "FPTI", today),
+        backgroundColor: "#081329",
+        cover: {
+          title: copy.pdfCoverTitle,
+          subtitle: `${deepReport?.typeName || result?.typeName || ""} (${deepReport?.userTypeCode || result?.code || ""})`,
+          date: today,
+        },
+      });
+      setDeepNotice(copy.pdfSavedNotice);
+    } catch {
+      setDeepError(copy.pdfFailedNotice);
+    } finally {
+      setPdfExporting(false);
+      setPdfBusy(false);
+    }
+  };
+
   return (
     <m.section
       initial={{ opacity: 0, y: 16 }}
@@ -853,9 +891,19 @@ export default function FptiResultCard({ result }: Props) {
             </button>
           )}
           {accessState.isUnlocked && (
-            <button type="button" disabled className="rounded-full border border-emerald-200/30 bg-emerald-500/20 px-5 py-2.5 text-sm font-semibold text-emerald-50 opacity-90">
-              {copy.alreadyUnlockedButton}
-            </button>
+            <div className="flex flex-wrap items-center gap-2">
+              <button type="button" disabled className="rounded-full border border-emerald-200/30 bg-emerald-500/20 px-5 py-2.5 text-sm font-semibold text-emerald-50 opacity-90">
+                {copy.alreadyUnlockedButton}
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveDeepReportPdf}
+                disabled={pdfBusy}
+                className="inline-flex min-h-11 items-center justify-center rounded-full border border-cyan-200/35 bg-white/5 px-5 py-2.5 text-sm font-semibold text-cyan-100 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {pdfBusy ? copy.pdfButtonBusyLabel : copy.pdfButtonLabel}
+              </button>
+            </div>
           )}
         </div>
         <div className="mt-3 rounded-xl border border-white/15 bg-black/20 p-3 text-sm text-slate-100">
@@ -867,7 +915,10 @@ export default function FptiResultCard({ result }: Props) {
       </div>
 
       <section className={`${styles.cosmicNeonCard} rounded-3xl p-5 pb-[calc(5.5rem+env(safe-area-inset-bottom))]`}>
-        <div className="rounded-3xl border border-cyan-200/20 bg-[radial-gradient(circle_at_0%_0%,rgba(125,211,252,0.2),transparent_34%),linear-gradient(145deg,rgba(8,16,40,0.92),rgba(20,28,58,0.82))] p-4">
+        <div
+          className="rounded-3xl border border-cyan-200/20 bg-[radial-gradient(circle_at_0%_0%,rgba(125,211,252,0.2),transparent_34%),linear-gradient(145deg,rgba(8,16,40,0.92),rgba(20,28,58,0.82))] p-4"
+          {...(accessState.isUnlocked ? { "data-fpti-pdf-section": "" } : {})}
+        >
           <p className="text-xs tracking-[0.16em] text-cyan-200">FPTI DEEP REPORT</p>
           <h4 className={`${styles.neonTextCyan} mt-1 text-lg font-semibold`}>{deepReport?.typeName || "리포트"} ({deepReport?.userTypeCode || ""})</h4>
           <ReadableReportText text={deepReport?.summary?.preview || ""} fallback="사주 십성 기반으로 성향, 관계, 일, 돈, 스트레스 패턴을 단계적으로 해석한 리포트입니다." />
@@ -910,10 +961,15 @@ export default function FptiResultCard({ result }: Props) {
 
         <div className="mt-4 space-y-3">
           {Array.isArray(deepReport?.chapters) && deepReport.chapters.map((chapter, idx) => {
-            const open = idx === activeChapter;
+            // export 중에는 모든 챕터를 펼쳐 둔다 — 접힌 챕터는 DOM 에 없어 캡처에서 통째로 빠진다.
+            const open = pdfExporting || idx === activeChapter;
             const lockedChapter = !accessState.isUnlocked && idx > 0;
             return (
-              <article key={`${chapter?.roman}-${chapter?.order}`} className={`overflow-hidden rounded-2xl border border-white/15 bg-[linear-gradient(145deg,rgba(255,255,255,0.055),rgba(8,16,40,0.38))] ${lockedChapter ? "opacity-90" : ""}`}>
+              <article
+                key={`${chapter?.roman}-${chapter?.order}`}
+                className={`overflow-hidden rounded-2xl border border-white/15 bg-[linear-gradient(145deg,rgba(255,255,255,0.055),rgba(8,16,40,0.38))] ${lockedChapter ? "opacity-90" : ""}`}
+                {...(accessState.isUnlocked && !lockedChapter ? { "data-fpti-pdf-section": "" } : {})}
+              >
                 <button
                   type="button"
                   onClick={() => setActiveChapter(idx)}
@@ -923,7 +979,8 @@ export default function FptiResultCard({ result }: Props) {
                     <p className="text-[11px] font-semibold text-cyan-200">{toRoman(Number(chapter?.order || idx + 1))}. {CHAPTER_LENS_LABELS[idx] || "심층 해석"}</p>
                     <h5 className="mt-1 text-sm font-semibold leading-6 text-sky-100">{stripRomanPrefix(chapter?.title)}</h5>
                   </div>
-                  <span className="shrink-0 rounded-full border border-white/15 bg-white/10 px-2.5 py-1 text-xs text-slate-200">{lockedChapter ? copy.chapterLockedBadge : open ? copy.chapterCollapseLabel : copy.chapterOpenLabel}</span>
+                  {/* 캡처 중에는 접기/펼치기 배지를 렌더하지 않는다 — PDF 에 화면 상태 UI 가 남으면 안 된다. */}
+                  {!pdfExporting && <span className="shrink-0 rounded-full border border-white/15 bg-white/10 px-2.5 py-1 text-xs text-slate-200">{lockedChapter ? copy.chapterLockedBadge : open ? copy.chapterCollapseLabel : copy.chapterOpenLabel}</span>}
                 </button>
                 {open && (
                   <div className="border-t border-white/10 px-4 pb-4 pt-3">
