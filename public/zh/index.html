@@ -843,17 +843,25 @@ html.cd-mobile-runtime #destinyCardForm { content-visibility: auto; contain-intr
 html.cd-mobile-runtime #honeyMembershipMini { content-visibility: auto; contain-intrinsic-size: auto 514px; }
 html.cd-mobile-runtime #moonMusicEntry { content-visibility: auto; contain-intrinsic-size: auto 208px; }
 html.cd-mobile-runtime .wrap > footer { content-visibility: auto; contain-intrinsic-size: auto 906px; }
+/* ↓ 2026-09-02: 접기를 푼 섹션을 이 축으로 되돌린다. 값은 실측 콘텐츠 박스 높이다
+   (node scripts/measure-home-section-heights.mjs, 390x844 · networkidle). 같은 실행에서
+   #cdSignatureConsult 가 792 로 나와 위 기존 줄과 일치했다 — 측정기가 검증된 값이다. */
+html.cd-mobile-runtime #cdWhyUs { content-visibility: auto; contain-intrinsic-size: auto 662px; }
+html.cd-mobile-runtime #cdQuickServices { content-visibility: auto; contain-intrinsic-size: auto 345px; }
+html.cd-mobile-runtime #fortuneGatewayEntry { content-visibility: auto; contain-intrinsic-size: auto 835px; }
+html.cd-mobile-runtime .cd-home-guide { content-visibility: auto; contain-intrinsic-size: auto 2692px; }
 
-/* 🔴 2026-09-02(PR-5): #fortuneGatewayEntry · .cd-home-guide 는 <details class="cd-home-fold">
- *   로 접혔으므로 위 목록에서 뺐다. 닫힌 <details> 는 내용을 아예 렌더 트리에 올리지 않아
- *   content-visibility 보다 강한 지연이고, 둘을 겹쳐 걸면 코딩 원칙 6(중첩 사전검사, 지연로딩
- *   축)에 걸린다. 접기를 푸는 날 그 줄들을 되살릴 것 — 아래 #cdSignatureConsult 가 그 선례다.
- * 🔴 #cdSignatureConsult 는 2026-09-02 에 접기를 풀고 위 두 블록에 되돌려 놓았다. 그 섹션은
- *   초융합 심층 리딩(30,000원)을 노출하는 자리라 펼치기 전에는 안 보이면 노출 자체가 목적을
- *   잃는다. 높이는 재측정값이다 — 배너 카드가 데스크탑에서 전폭 한 줄을 더 쓰므로 PR-5 가
- *   빼 간 666px 을 그대로 쓰면 299px 을 덜 예약해 첫 노출에서 스크롤이 튄다(모바일은 캐러셀
- *   슬라이드라 792px 그대로). 실측 2026-09-02, dist + Playwright, containment 를 푼 콘텐츠 박스:
- *   모바일 390x844 = 792px · 데스크탑 1350x940 = 965px. */
+/* 🔴 2026-09-02: 홈 접기(<details class="cd-home-fold">) 8개를 전부 풀었다. 사용자 요청은
+ *   "접어서 가리지 말고 다 보이면서 깔끔하게" 이고, 접기는 그 반대였다. 지연은 접기가 아니라
+ *   content-visibility 축으로 되돌린다 — 보이되 화면 밖 렌더링만 건너뛴다. 코딩 원칙 6(중첩
+ *   사전검사, 지연로딩 축)에 따라 두 축을 겹쳐 걸지 않으므로, 접기를 지운 지금이 이 목록에
+ *   되돌릴 자리다. contain-intrinsic-size 는 전부 실측값이다(측정: scripts/measure-home-section-heights.mjs).
+ * 🔴 아래 둘은 실측으로 뺐다.
+ *   #featureBegin(달빛 컬렉션) — styles/cosmic-main.css:2232 가 .moon-collection-nav 에
+ *     content-visibility:visible!important 를 걸어 무력화된다(위 제외 목록과 같은 사유).
+ *   #cdFinder — paint containment 가 잉크를 자른다. 자손 button.fortune-gateway__chip 이
+ *     섹션 보더 박스 밖으로 506px 나간다(2026-09-02 실측, 390x844). 컨테인먼트를 걸면
+ *     그 칩이 잘려 사라진다. */
 /* 데스크탑(비터치)에도 같은 축을 건다 — 2026-08-29 실측.
  * 왜: 스테이징 홈을 데스크탑 1350x940 · CPU 4x 로 트레이스하면 Layout 이 3,339~3,527ms 로
  *   메인스레드 최대 항목이었다(Script Evaluation 은 1,520~1,626ms). 폴드 아래 섹션이 레이아웃
@@ -871,6 +879,11 @@ html:not(.cd-mobile-runtime) #cdAiFeatures { content-visibility: auto; contain-i
 html:not(.cd-mobile-runtime) #cdFortunePick { content-visibility: auto; contain-intrinsic-size: auto 773px; }
 html:not(.cd-mobile-runtime) #moonMusicEntry { content-visibility: auto; contain-intrinsic-size: auto 168px; }
 html:not(.cd-mobile-runtime) .wrap > footer { content-visibility: auto; contain-intrinsic-size: auto 1074px; }
+/* ↓ 2026-09-02: 위 모바일 목록과 같은 4개. 실측 1350x940. */
+html:not(.cd-mobile-runtime) #cdWhyUs { content-visibility: auto; contain-intrinsic-size: auto 342px; }
+html:not(.cd-mobile-runtime) #cdQuickServices { content-visibility: auto; contain-intrinsic-size: auto 158px; }
+html:not(.cd-mobile-runtime) #fortuneGatewayEntry { content-visibility: auto; contain-intrinsic-size: auto 589px; }
+html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-intrinsic-size: auto 1524px; }
 </style>
 <!-- 브랜드 세리프 @font-face(R2 미러 청크, 189개). 내용이 전부 @font-face 라 레이아웃 규칙이 없고
      전 항목 font-display:swap 이라 글자는 폴백으로 먼저 그려진다. 그런데도 렌더차단 <link> 로 두면
@@ -9557,58 +9570,11 @@ html body .cd-home-secondary-panel__inner{min-height:0;overflow:hidden}
 html.cd-home-expanded body .cd-home-secondary-panel{grid-template-rows:1fr;opacity:1}
 @media (prefers-reduced-motion:reduce){html body .cd-home-secondary-panel{transition:none}}
       </style>
-      <style id="cd-home-fold-v20260902">
-/* 홈 접기 — 첫 3화면(2,532px) 밖 섹션 8개를 <details> 로 접는다. 삭제·통합 0건.
-   🔴 2026-09-02 에 #cdSignatureConsult 를 이 목록에서 뺐다(9 → 8개). 초융합 심층 리딩
-      (30,000원)을 노출하는 자리라 펼치기 전에 안 보이면 노출 자체가 목적을 잃는다.
-      대신 위 content-visibility 목록(834·864행)에 되돌려 놓았다 — 사유는 842행 주석.
-   🔴 hidden 속성·sr-only 로 접지 말 것 — verify-adsense-readiness 의
-      collectVisibleInternalLinkTargets 가 그 두 표식이 붙은 <a> 를 버려서,
-      접는 순간 색인 대상 라우트의 인바운드 링크가 통째로 사라진다.
-      <details> 는 문자열 스캔에 잡히지 않으므로 본문 분량·내부 링크가 그대로 남는다.
-   🔴 접은 섹션에 content-visibility 를 겹쳐 걸지 않는다(코딩 원칙 6, 지연로딩 축).
-      .cd-home-guide 에 걸려 있던 규칙 2줄은 이 접기로 대체돼 위에서 제거했다. */
-html body .cd-home-fold > summary.cd-home-fold__sum{display:block;position:relative;cursor:pointer;list-style:none;padding-right:34px}
-html body .cd-home-fold > summary.cd-home-fold__sum::-webkit-details-marker{display:none}
-html body .cd-home-fold > summary.cd-home-fold__sum::after{content:"";position:absolute;right:10px;top:50%;width:9px;height:9px;margin-top:-7px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);opacity:.5;transition:transform .18s ease}
-html body .cd-home-fold[open] > summary.cd-home-fold__sum::after{transform:rotate(-135deg);margin-top:-3px}
-html body .cd-home-fold > summary.cd-home-fold__sum:focus-visible{outline:2px solid var(--cd-focus-ring,#b31955);outline-offset:3px;border-radius:12px}
-html body .cd-home-fold__label{display:inline-flex;align-items:center;min-height:var(--cd-btn-h,48px);font-weight:800;font-size:.95rem}
-html body .cd-home-fold > summary.cd-home-fold__sum > .cd-home-fold__label{padding-left:2px}
-@media (prefers-reduced-motion:reduce){html body .cd-home-fold > summary.cd-home-fold__sum::after{transition:none}}
+      <style id="cd-home-section-label-v20260902">
+/* 달빛 컬렉션 내비게이션의 섹션 라벨. 2026-09-02 에 홈 접기(<details class="cd-home-fold">)를
+   전부 풀면서 그 스타일시트를 지웠고, 라벨 규칙 한 줄만 여기로 옮겼다. */
+html body .cd-section-label{display:block;margin:0 0 10px;font-weight:800;font-size:.95rem;opacity:.85}
       </style>
-      <script data-marker="cd-home-fold-v20260902">
-        /* 접힌 섹션으로 가는 앵커(#cdWhyUs 히어로 신뢰 배지 등)는 눌린 순간 펼친다.
-           🔴 캡처 단계에 건다 — 히어로 신뢰 배지의 기존 버블 리스너가 scrollIntoView 하기 전에
-              펼쳐 두지 않으면 접힌 높이로 스크롤해 엉뚱한 위치에 선다. */
-        (function () {
-          function open(el) {
-            if (!el) return;
-            for (var n = el; n; n = n.parentElement) {
-              if (n.tagName === 'DETAILS' && n.classList.contains('cd-home-fold')) n.open = true;
-            }
-            var inner = el.querySelectorAll ? el.querySelectorAll('details.cd-home-fold') : [];
-            for (var i = 0; i < inner.length; i += 1) inner[i].open = true;
-          }
-          function byId(id) {
-            if (!id) return null;
-            try { return document.getElementById(id); } catch (_) { return null; }
-          }
-          function fromHash() { open(byId(String(location.hash || '').slice(1))); }
-          document.addEventListener('click', function (event) {
-            var el = event.target instanceof Element
-              ? event.target.closest('a[href^="#"],[data-cd-hero-trust-target]')
-              : null;
-            if (!el) return;
-            var id = el.getAttribute('data-cd-hero-trust-target')
-              || String(el.getAttribute('href') || '').slice(1);
-            open(byId(id));
-          }, true);
-          window.addEventListener('hashchange', fromHash);
-          if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fromHash);
-          else fromHash();
-        })();
-      </script>
       <style id="dp-destiny-panel-v20260820">
 /* 프로필 카드 + 종합 운세 입력폼 한 몸 패널 (home-profile-card-form-panel-v20260820).
    프로필 카드는 홈 초기 화면에 늘 보이고, 입력폼은 #dpDestinyFormToggle 을 누르기 전까지 접혀 있다.
@@ -11438,13 +11404,13 @@ html body .cd-why-us__proof-caption{display:block;margin-top:10px;font-size:11.5
 html.neo-mode body .cd-why-us__proof-caption{color:rgba(228,214,255,.72)}
       </style>
       <section data-cd-funnel-section="why_us" class="cd-why-us" id="cdWhyUs" aria-labelledby="cdWhyUsTitle">
-        <details class="cd-home-fold" data-cd-home-fold>
-<summary class="cd-home-fold__sum">
+        
+
 <div class="cd-why-us__head">
           <span class="cd-why-us__kicker">WHY CODE DESTINY</span>
           <h2 class="cd-why-us__title" id="cdWhyUsTitle" data-cd-trans="shell.cdWhyUs.cdWhyUsHead.CodeDestiny">왜 Code Destiny인가</h2>
         </div>
-</summary>
+
         <div class="cd-why-us__grid">
           <div class="cd-why-us__card">
             <span class="cd-why-us__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><path d="M12 2.6 20.1 7.3v9.4L12 21.4 3.9 16.7V7.3Z"/><circle cx="12" cy="12" r="2.6"/></svg></span>
@@ -11479,7 +11445,7 @@ html.neo-mode body .cd-why-us__proof-caption{color:rgba(228,214,255,.72)}
           </div>
           <span class="cd-why-us__proof-caption" data-cd-trans data-key="home.whyUs.proof.caption">체계 간 합의 · 겹치는 신호 4가지 · 엇갈리는 신호 2가지. 초융합 리딩이 실제로 내놓는 판정 형태이며, 값은 입력에 따라 달라지는 예시입니다.</span>
         </div>
-      </details>
+      
 </section>
 <section data-cd-funnel-section="signature_consult" class="cd-sig" id="cdSignatureConsult" data-marker="cd-signature-consult-v20260724" aria-label="대표 운명 상담" data-cd-trans-attr="aria-label:shell.inputPage.logoArea.k16nuyta.ariaLabel">
         <div class="cd-sig__head">
@@ -11625,12 +11591,12 @@ html.neo-mode body .cd-why-us__proof-caption{color:rgba(228,214,255,.72)}
            🔴 여기에 유료 대표 상담을 섞지 말 것 — 그 역할은 위 #cdSignatureConsult 가 맡는다.
            (2026-08-21 홈 개편으로 #cdConcernPick 뒤·#cdSignatureConsult/#cdWhyUs 뒤로 재배치됨.) -->
       <section data-cd-funnel-section="quick_services" class="cd-quick" id="cdQuickServices" aria-labelledby="cdQuickTitle" data-marker="cd-quick-services-v20260819">
-        <details class="cd-home-fold" data-cd-home-fold>
-<summary class="cd-home-fold__sum">
+        
+
 <div class="moon-section-head cd-quick__head">
           <h2 id="cdQuickTitle" data-cd-trans data-key="home.quickServices.title">무료로 바로 시작하기</h2>
         </div>
-</summary>
+
         <div class="cd-quick__grid">
           <a class="cd-quick-card" href="/daily-fortune/" data-cd-service-id="daily-fortune">
             <span class="cd-quick-card__sigil" aria-hidden="true">🌙</span>
@@ -11663,7 +11629,7 @@ html.neo-mode body .cd-why-us__proof-caption{color:rgba(228,214,255,.72)}
             <span class="cd-quick-card__price" data-cd-trans data-key="home.quickServices.freeStart">무료 시작</span>
           </a>
         </div>
-      </details>
+      
 </section>
       <!-- 통합 운세 탐색기 — 홈의 유일한 서비스 탐색 UI (cd-finder-v20260819).
            검색 · 궁금한 것 · 운세 방식 · 가격이 하나의 필터 상태를 공유하고 결과가 바로 아래 붙는다.
@@ -11671,12 +11637,12 @@ html.neo-mode body .cd-why-us__proof-caption{color:rgba(228,214,255,.72)}
               (#cdConcernPick · #cdPurposePick · 운명의 문 디스커버 · #cdServiceIndex).
            엔진과 데이터는 js/core/home-service-finder.js · js/core/service-registry.js 에 있다. -->
       <section data-cd-funnel-section="finder" class="cd-finder" id="cdFinder" aria-labelledby="cdFinderTitle" data-marker="cd-finder-v20260819">
-        <details class="cd-home-fold" data-cd-home-fold>
-<summary class="cd-home-fold__sum">
+        
+
 <div class="moon-section-head cd-finder__head">
           <h2 id="cdFinderTitle" data-cd-trans="shell.cdFinder.moonSectionHead.kf1ogji">필요한 서비스를 찾아보세요</h2>
         </div>
-</summary>
+
 <div class="fortune-gateway__discover" id="fortuneGatewayDiscover" data-fortune-gateway-discover>
             <div class="fortune-gateway__search" role="search">
               <span class="fortune-gateway__search-icon" aria-hidden="true">🔍</span>
@@ -11722,18 +11688,18 @@ html.neo-mode body .cd-why-us__proof-caption{color:rgba(228,214,255,.72)}
               <span data-cd-trans="shell.fortuneGatewayDiscover.fortuneGatewayAll.kqk7ooc">전체 보기</span><em aria-hidden="true">→</em>
             </a>
           </div>
-      </details>
+      
 </section>
       <section class="fortune-gateway" id="fortuneGatewayEntry" data-fortune-gateway-entry aria-labelledby="fortuneGatewayTitle">
         <div class="fortune-gateway__entry-shell">
-          <details class="cd-home-fold" data-cd-home-fold>
-<summary class="cd-home-fold__sum">
+          
+
 <div class="fortune-gateway__entry-copy">
             <p class="fortune-gateway__eyebrow" data-cd-trans="shell.fortuneGatewayEntryShell.fortuneGatewayEntryCopy.kjx6wsf">운명의 문</p>
             <h2 id="fortuneGatewayTitle"><span data-cd-trans="shell.fortuneGatewayTitle.kxunqxo">오늘의 한마디부터</span><br><span data-cd-trans="shell.fortuneGatewayTitle.kzg9wm">여섯 체계의 깊은 리딩까지</span></h2>
             <p data-cd-trans="shell.fortuneGatewayEntryShell.fortuneGatewayEntryCopy.k1i0ttch">가벼운 고민은 연이·네오와 대화로 풀고, 삶의 큰 흐름은 여섯 체계를 하나로 엮은 초융합 리딩으로 살펴보세요.</p>
           </div>
-</summary>
+
           <div class="fortune-gateway__doors">
             <a class="fortune-gateway__door fortune-gateway__door--chat" href="/fortune-chat/">
               <span class="fortune-gateway__door-art" aria-hidden="true">
@@ -11760,7 +11726,7 @@ html.neo-mode body .cd-why-us__proof-caption{color:rgba(228,214,255,.72)}
           </div>
           
           <p class="fortune-gateway__entry-note" data-cd-trans="shell.fortuneGatewayEntry.fortuneGatewayEntryShell.klg50va">대화와 분석은 각 화면 안에서만 진행되고, 이 화면에서는 어떤 정보도 보내지 않아요.</p>
-        </details>
+        
 </div>
       </section>
       <script>
@@ -14955,8 +14921,8 @@ html.neo-mode body .cd-why-us__proof-caption{color:rgba(228,214,255,.72)}
       </script>
 
     <!-- 주요 서비스 바로가기: 실제 존재하는 컬렉션 액션만 사용 -->
-    <details class="cd-home-fold" data-cd-home-fold>
-      <summary class="cd-home-fold__sum"><span class="cd-home-fold__label" data-cd-trans data-key="home.collectionNav.aria">달빛 운명 컬렉션 바로가기</span></summary>
+    
+      <span class="cd-section-label" data-cd-trans data-key="home.collectionNav.aria">달빛 운명 컬렉션 바로가기</span>
       <nav class="moon-collection-nav" id="featureBegin" aria-label="달빛 운명 컬렉션 바로가기" data-cd-trans-attr="aria-label:home.collectionNav.aria" data-marker="main-service-css-dedupe-v20260611" data-design-marker="lunar-cartography-index-v20260612">
       <a class="moon-preview-card" href="/tarot/mingri/" data-action="openTarotModal" data-cd-open-collection="tarotCollection" aria-label="타로 바로가기" data-cd-trans-attr="aria-label:home.previewCards.tarotAria">
         <span class="moon-preview-card__sigil moon-preview-card__sigil--tarot" aria-hidden="true">🔮</span>
@@ -15021,7 +14987,7 @@ html.neo-mode body .cd-why-us__proof-caption{color:rgba(228,214,255,.72)}
         <span class="moon-preview-card__meta" data-cd-trans data-key="home.previewCards.yeonStarHugMeta">감정 별빛 루틴</span>
       </a>
     </nav>
-    </details>
+    
 
     
 <script>
@@ -18956,13 +18922,13 @@ return you.name.restore();</span>
 
     <!-- 홈 화면 운세 이메일 신청 서비스 박스 -->
     <aside class="subscription-wrap" id="emailSubBoxHome" style="margin:0 auto 28px;" aria-label="Home Email Subscription" data-cd-trans-attr="aria-label:home.emailSubscription.aria">
-      <details class="cd-home-fold" data-cd-home-fold>
-<summary class="cd-home-fold__sum">
+      
+
 <div class="sub-header">
         <span class="sub-title pig-only" data-cd-trans data-key="home.emailSubscription.pigTitle">💌 맞춤 운세 이메일 신청</span>
         <span class="sub-title neo-only" data-cd-trans data-key="home.emailSubscription.neoTitle">⚠️ 전략 리포트 이메일 신청</span>
       </div>
-</summary>
+
       <div class="sub-desc pig-only">
         <span data-cd-trans data-key="home.emailSubscription.pigDesc">사주 분석을 완료하면 연이의 따뜻한 일일 운세를 이메일로 받아볼 수 있어요.</span><br>
       </div>
@@ -18979,7 +18945,7 @@ return you.name.restore();</span>
         <button type="button" class="btn-subscribe neo-only" data-action="subscribeEmailHome" data-cd-trans data-key="home.emailSubscription.neoSubmit">신청하기 🦁</button>
       </div>
       <p id="subEmailHomeStatus" class="sub-status" role="status" aria-live="polite" style="display:none;margin:12px auto 0;max-width:560px;padding:10px 12px;border-radius:12px;border:1px solid rgba(148,163,184,.28);background:rgba(15,23,42,.28);color:#e2e8f0;font-size:.9rem;line-height:1.55;text-align:center;"></p>
-    </details>
+    
 </aside>
       <!-- 이용자 후기 — 기존 리뷰 시스템(/api/reviews) 런타임 연동. 승인된 후기만 노출되며,
            데이터가 없거나 조회 실패 시 섹션은 hidden 으로 남는다(오늘의 운세 허브와 동일한 패턴). -->
@@ -19013,20 +18979,20 @@ return you.name.restore();</span>
           .cd-reviews__all:hover{border-color:color-mix(in srgb,var(--cd-accent,#b31955) 55%,transparent);background:color-mix(in srgb,var(--cd-accent,#b31955) 6%,transparent)}
           @media (max-width:860px){.cd-reviews{padding:32px 14px 8px}.cd-reviews__grid{grid-template-columns:1fr;gap:12px}}
         </style>
-        <details class="cd-home-fold" data-cd-home-fold>
-<summary class="cd-home-fold__sum">
+        
+
 <div class="cd-reviews__head">
           <span class="cd-reviews__kicker" data-cd-trans data-key="home.reviews.kicker">REAL REVIEWS</span>
           <h2 class="cd-reviews__title" id="cdReviewsTitle" data-cd-trans data-key="home.reviews.title">이용자 후기</h2>
           <p class="cd-reviews__lead" data-cd-trans data-key="home.reviews.lead">실제 이용자들이 남긴 상담 후기입니다.</p>
         </div>
-</summary>
+
         <div class="cd-reviews__summary" id="cdReviewsSummary" hidden></div>
         <div class="cd-reviews__grid" id="cdReviewsGrid" aria-live="polite"></div>
         <div class="cd-reviews__all-wrap">
           <a class="cd-reviews__all" href="/reviews/" data-cd-trans data-key="home.reviews.allCta">전체 후기 보기 →</a>
         </div>
-      </details>
+      
 </section>
       <script data-marker="cd-reviews-v20260819">
         (function () {
@@ -20152,14 +20118,14 @@ return you.name.restore();</span>
   
   <section class="cd-home-guide" aria-labelledby="cdHomeGuideTitle">
     <div class="cd-home-guide__inner">
-      <details class="cd-home-fold" data-cd-home-fold>
-<summary class="cd-home-fold__sum">
+      
+
 <header class="cd-home-guide__head">
         <span class="cd-home-guide__kicker" data-cd-trans="home.homeGuide.kicker">FORTUNE GUIDE</span>
         <h2 id="cdHomeGuideTitle" class="cd-home-guide__title" data-cd-trans="home.homeGuide.title">무료 사주 풀이부터 자미두수·숙요점·베다점까지, 이렇게 읽습니다</h2>
         <p class="cd-home-guide__lead" data-cd-trans="home.homeGuide.lead">꿀꿀 운세(옛 꿀꿀 만세력)는 꽃돼지 연이와 함께하는 Code Destiny(코드 데스티니)의 한국어 운세 서비스입니다. 생년월일과 태어난 시간을 넣으면 무료 사주 풀이부터 만세력, 타로, 자미두수, 서양 점성술과 베다점, 숙요점, 궁합까지 여러 운세를 한 번에 살펴볼 수 있습니다. 자신의 운세를 한 가지 방식으로만 확인하기보다 여러 관점을 나란히 놓고 비교하고 싶을 때 쓰는 쪽이 맞습니다. 처음 접하는 분도 흐름을 이해할 수 있도록 각 운세가 무엇을 보고 어떻게 읽는지 짧게 정리했습니다. 모든 해석은 미래를 단정하는 예언이 아니라, 오늘의 선택을 정돈하고 자신을 차분히 돌아보게 돕는 참고 자료입니다.</p>
       </header>
-</summary>
+
       <ul class="cd-home-guide__grid" data-marker="cd-home-guide-icons-v20260724">
         <li class="cd-home-guide__card"><span class="cd-home-guide__ico" aria-hidden="true">🎴</span><h3 data-cd-trans="home.homeGuide.sajuTitle">사주팔자·만세력</h3><p data-cd-trans="home.homeGuide.sajuBody">태어난 연·월·일·시를 네 기둥으로 세우고, 천간과 지지에 담긴 오행의 균형과 십성, 대운의 흐름을 읽습니다. 이 네 기둥을 절기 기준으로 뽑아 주는 계산표가 만세력이며, 꿀꿀 만세력이라는 이름으로 찾아오신 분들이 쓰시던 바로 그 기능입니다. 무료 사주 풀이로 타고난 기질과 지금 지나는 시기의 리듬을 확인한 뒤, 재물운·연애운·직업운처럼 지금 걸리는 주제를 따로 짚어 볼 수 있습니다.</p></li>
         <li class="cd-home-guide__card"><span class="cd-home-guide__ico" aria-hidden="true">🃏</span><h3 data-cd-trans="home.homeGuide.tarotTitle">타로 리딩</h3><p data-cd-trans="home.homeGuide.tarotBody">78장의 카드가 지닌 상징으로 지금의 질문과 마음의 결을 비춥니다. 연애와 재회, 관계와 진로처럼 답이 하나로 떨어지지 않는 고민을 여러 각도에서 정리하고 싶을 때 잘 맞습니다.</p></li>
@@ -20200,7 +20166,7 @@ return you.name.restore();</span>
         <a href="/stories/" data-cd-trans="home.homeGuide.linkStories">연이의 운명 노벨</a>
         <a href="/kkul-kkul-unse/" data-cd-trans="home.nav.brandAlias">꿀꿀 운세</a>
       </nav>
-    </details>
+    
 </div>
   </section>
 
@@ -20354,7 +20320,7 @@ return you.name.restore();</span>
      🔴 레지스트리가 엔진보다 먼저 실행돼야 한다(defer 는 문서 순서를 지킨다). -->
 <script defer src="/js/core/service-registry.js?v=build-8acb8caa5d62" data-marker="cd-home-service-registry-v20260819"></script>
 <script defer src="/js/core/home-service-finder.js?v=build-8acb8caa5d62" data-marker="cd-home-service-finder-v20260819"></script>
-<script defer src="/js/mobile-interaction-patch.js?v=build-b32f43288dee" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
+<script defer src="/js/mobile-interaction-patch.js?v=build-8acb8caa5d62" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
 <script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-8acb8caa5d62" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
