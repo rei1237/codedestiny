@@ -292,10 +292,9 @@ export default function CodexBirthGate({
               ))}
             </div>
             {value.calendarType === "lunar" ? (
-              <label className="mt-3 flex items-center gap-2" style={{ fontSize: "var(--codex-caption)", color: "var(--codex-ink-text-muted)" }}>
+              <label className={styles.checkLine}>
                 <input
                   type="checkbox"
-                  className="h-4 w-4 accent-[#e8d5a3]"
                   checked={value.isLeapMonth}
                   onChange={(event) => patch({ isLeapMonth: event.target.checked })}
                 />
@@ -314,10 +313,9 @@ export default function CodexBirthGate({
               disabled={value.birthTimeUnknown}
               onChange={(event) => patch({ birthTime: event.target.value })}
             />
-            <label className="mt-3 flex items-center gap-2" style={{ fontSize: "var(--codex-caption)", color: "var(--codex-ink-text-muted)" }}>
+            <label className={styles.checkLine}>
               <input
                 type="checkbox"
-                className="h-4 w-4 accent-[#e8d5a3]"
                 checked={value.birthTimeUnknown}
                 onChange={(event) => patch({ birthTimeUnknown: event.target.checked, birthTime: event.target.checked ? "" : value.birthTime })}
               />
@@ -408,10 +406,9 @@ export default function CodexBirthGate({
                     ))}
                   </div>
                   {partner.calendarType === "lunar" ? (
-                    <label className="mt-3 flex items-center gap-2" style={{ fontSize: "var(--codex-caption)", color: "var(--codex-ink-text-muted)" }}>
+                    <label className={styles.checkLine}>
                       <input
                         type="checkbox"
-                        className="h-4 w-4 accent-[#e8d5a3]"
                         checked={partner.isLeapMonth}
                         onChange={(event) => patchPartner({ isLeapMonth: event.target.checked })}
                       />
@@ -430,10 +427,9 @@ export default function CodexBirthGate({
                     disabled={partner.birthTimeUnknown}
                     onChange={(event) => patchPartner({ birthTime: event.target.value })}
                   />
-                  <label className="mt-3 flex items-center gap-2" style={{ fontSize: "var(--codex-caption)", color: "var(--codex-ink-text-muted)" }}>
+                  <label className={styles.checkLine}>
                     <input
                       type="checkbox"
-                      className="h-4 w-4 accent-[#e8d5a3]"
                       checked={partner.birthTimeUnknown}
                       onChange={(event) => patchPartner({ birthTimeUnknown: event.target.checked, birthTime: event.target.checked ? "" : partner.birthTime })}
                     />

@@ -316,6 +316,55 @@
   text-decoration: underline;
 }
 
+/* 체크박스 줄 — 네이티브 16x16 은 탭 타깃 44px 미달이다(실측 2026-09-02 360x800:
+   감싼 라벨이 24px). input 을 44x44 히트박스로 키우고 16px 글리프는 ::before/::after
+   로 그린다 — #1452(app/nakshatra/nakshatra.module.css)와 같은 처방이다.
+   가로 -14px 마진으로 글리프-텍스트 간격을, margin-top 2px 로 줄 간격을 종전과 같게
+   유지한다(라벨이 24→44px 로 자라며 위아래로 10px 씩 번지므로 mt-3=12px 를 덜어낸다). */
+.checkLine {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  margin-top: 2px;
+  color: var(--codex-ink-text-muted, #b9ad99);
+  font-size: var(--codex-caption, 0.9375rem);
+  cursor: pointer;
+}
+.checkLine input {
+  -webkit-appearance: none;
+  appearance: none;
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  margin: 0 -14px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+.checkLine input::before,
+.checkLine input::after { content: ""; grid-area: 1 / 1; }
+.checkLine input::before {
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--codex-rule, rgba(232, 213, 163, 0.22));
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.04);
+  transition:
+    border-color var(--cd-dur-base, 220ms) ease,
+    background var(--cd-dur-base, 220ms) ease;
+}
+.checkLine input::after {
+  width: 10px;
+  height: 10px;
+  background: var(--codex-ink, #0a0818);
+  transform: scale(0);
+  transition: transform var(--cd-dur-base, 220ms) ease;
+  clip-path: polygon(14% 44%, 0 59%, 39% 100%, 100% 18%, 84% 5%, 36% 68%);
+}
+.checkLine input:checked::before { background: var(--codex-gold, #e8d5a3); border-color: var(--codex-gold, #e8d5a3); }
+.checkLine input:checked::after { transform: scale(1); }
+.checkLine input:focus-visible::before { border-color: var(--codex-gold, #e8d5a3); box-shadow: 0 0 0 2px rgba(232, 213, 163, 0.28); }
+
 /* 배경음 토글 — .root 밖(형제)에 떠서 토큰을 못 받으므로 값을 직접 쓴다.
    몰입 오버레이(.overlay, z-index 60)보다 위, 결제 게이트 오버레이보다 아래. */
 .bgmToggle {
@@ -323,7 +372,9 @@
   right: max(16px, env(safe-area-inset-right));
   bottom: max(16px, env(safe-area-inset-bottom));
   z-index: 70;
-  min-height: 40px;
+  /* 전역 button 바닥(styles/globals.css 의 min-height:44px)을 40px 로 덮고 있었다.
+     탭 타깃 계약이 44px 이므로 되돌린다 — 실측 2026-09-02 100.4x40. */
+  min-height: 44px;
   display: inline-flex;
   align-items: center;
   gap: 8px;
