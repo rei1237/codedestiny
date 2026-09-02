@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-03
-next: "배치 5 루트 정적 셸 21종. `npm run measure:mobile-routes -- --target=source --routes=…` (dist 아님). 시드는 리포 루트의 *.html 21개. 아래 레시피 절차"
+next: "배치 6 콘텐츠·정책 라우트. 시드는 app/_lib/serviceSections.js 의 href 55종 중 배치 1~4 에서 안 훑은 나머지(/reviews/ 포함). 아래 레시피 절차. 배치 5 잔여는 원장 표의 index.html 행(공용 푸터 결정 대기)과 미측정 4종"
 ---
 
 # 기능별 모바일 순회 원장
@@ -27,10 +27,12 @@ next: "배치 5 루트 정적 셸 21종. `npm run measure:mobile-routes -- --tar
 | 무료 허브 8종 | /saju /tarot /ziwei /sukuyo /astrology /today /compatibility /fortune/기간 | 2 | 09-02 | — | #1481 | 완료 |
 | 결제 화면 | /points /points/history /premium-unlock | 3 | 09-02 | — | #1486 | 완료 |
 | 유료 AI 단독 18종 | /life-book-ai /love-secret-ai /naming-ai /ziwei-ai /astrology-ai /vedic-ai /sukuyo-compatibility-ai /island-consult /destiny-compass /saju/{love-simulation,destiny-bias,animal-destiny,destiny-meeting-place} /tarot/{love,reunion,year,crystal-soul,mindscan} | 4 | 09-03 | — | #1493 | 완료 |
+| 루트 정적 셸 20종 | 리포 루트 *.html (index.html 제외) | 5 | 09-03 | TT<44 46→1 · IN<16 18→0 · OF 0 | #1497 | 완료 |
+| 루트 셸 index.html | / | 5 | 09-03 | TT<44 36건 — 공용 푸터 링크·언어칩·소셜 30건 + input#subDailyHome 13x13 + a.cd-mobile-header__brand 34x34 | — | 대기 — 아래 공용 푸터 행에 종속 |
 | 공용 푸터(SiteFooterHub) | 크롬리스 아닌 전 라우트 | — | 09-02 | TT<44 75건(링크 16px) | — | 대기 — 사용자 결정 |
 | 공용 하단 탭바(nav.cd-mnav) | App Router 전 라우트 | — | 09-02 | SA 내용물 여유 8px | — | 대기 — 사용자 결정 |
 
-배치 1·2·3·4 완료. 다음은 배치 5(루트 정적 셸 21종, `--target=source`).
+배치 1~5 완료. 다음은 배치 6(콘텐츠·정책). 배치 5 잔여는 위 표의 index.html 행과 미측정 4종(아래 비고).
 
 ## 배치 (사용자 확정: 유료 대표부터)
 
@@ -63,3 +65,8 @@ next: "배치 5 루트 정적 셸 21종. `npm run measure:mobile-routes -- --tar
 - 🔴 **`/premium-unlock/**` 편집은 결제 게이트를 하나도 안 깨운다**(09-02 paid-gate-auditor) — `paid-flow-gates.yml` 의 `paths` 에 없고 `node scripts/lib/change-risk.mjs app/premium-unlock/PremiumSalesContent.tsx` 가 `level=medium deepRequired=false` 를 낸다. 유일한 가드 `verify:life-book-ai-flow` 가 PR CI 에서 안 도니 그 파일을 만졌으면 손으로 돌리고 출력을 보고에 남긴다. 배선 자체(paths 추가 또는 deepVerificationRules 등재)는 별도 PR 로 사용자 판단이 필요하다. 반대로 `app/points/**` 는 게이트 전체가 돈다.
 - `app/points/PointsClient.tsx` 의 `{false && (` 죽은 블록(09-02 기준 4870 근처) 안에 구 헤더·`WalletCard`·`SubscriptionStatusCard` 가 통째로 들어 있다 — `app/points/SubscriptionStatusCard.tsx` 의 유일한 참조도 여기라 그 파일 전체가 도달 불가다. 인체공학 축 밖이라 배치 3 은 손대지 않았다. 삭제하려면 `deletion-auditor` 선행(`verify:billing-pass-policy` 가 그 JSX 리터럴을 단언한다).
 - index.html 의 /services/ 링크 7종(tarot·face-reading·palm-reading·animal-totem·omikuji·bias-destiny·stonehenge-rune)은 dist 에 산출물이 없어 404 다(09-02 실측). 링크 정리/페이지 신설은 별도 결정 필요.
+- 🔴 **투명 테두리 히트박스 확장은 네이티브 체크박스에 안 통한다** — 크롬이 `input[type=checkbox]` 위젯에는 저자 `border` 를 무시한다. 09-03 실측: `<button>` 에 준 `border-top/bottom:7px solid transparent` + `margin -7px` + `background-clip:padding-box` 는 의도대로 rect 52x44 · 페인트 52x30 이 됐지만(destiny-island `.toggle`), 같은 처방을 체크박스에 주니 `clientWidth` 가 44 로 나와 **위젯 자체가 44x44 로 커졌다**(시각 회귀). 체크박스는 감싸는 `<label>` 을 44px 로 올려 실효 해결하고 스캐너 수치에 +1 이 남는 것을 받아들인다(위 라벨 항목과 같은 규칙). 🔴 그리고 `background` 단축 속성은 `background-clip` 을 `border-box` 로 되돌리므로, 이 처방을 쓴 요소의 상태 규칙에서는 `background-color` 롱핸드만 쓴다.
+- 🔴 **낡은 `type=` 셀렉터가 폼 하나를 통째로 무스타일로 남긴다** — destiny-island 의 `.field input[type=date],.field input[type=time]` 이 실제 마크업 `type="text" inputmode="numeric"`(`destiny-island.html:565-566`)과 안 맞아 생년월일·시각 입력이 173x19 · 글꼴 13.3px 로 렌더됐다. **둘째 화면이라 스캐너는 0 으로 보고했고**, 강제 진입 하네스로만 발견됐다. 배치 6 에서는 CSS 셀렉터의 `type=` 과 마크업의 실제 `type` 을 먼저 대조한다.
+- 🔴 **루트 셸은 `public/` 과 세 가지 관계를 가진다 — 하나만 고치면 배포에 안 나간다.** ① `sync:public` staticTargets 17종은 자동 미러 ② `ifa-oracle-about.html` 은 미러 대상이 아니고 루트 사본과 **바이트 동일**해야 한다(파일 머리 주석) ③ `ifa_oracle_v2_full.html` 의 실제 배포본은 **다른 파일인 `public/ifa-oracle.html`** 로, head 4줄만 다르고 나머지는 같다. 배치 5 에서 ②③은 손으로 같이 고쳤다. 루트 셸을 고치기 전에 `git grep -n "<파일 이름>" scripts/sync-public.mjs` 와 `diff -u <루트 파일 경로> <public 후보 경로>` 를 먼저 돌린다.
+- 배치 5 미측정 4종 — `blood-type-app`·`geomancy-oracle-v4` 는 첫 화면 컨트롤이 스캐너의 INTERACTIVE_SELECTOR 밖이라 scanned=0 INVALID, `neville-meditation` 은 인증 우회를 심어도 보임 요소 0, `prompt-hub-3004` 는 소스 루트에 `_next` 청크가 없어 못 뜬다(정본은 App Router `/fortune/prompt-hub` 라 배치 6 대상). 넷 다 결함이 아니라 **측정 불가**로 남긴다.
+- `destiny-poker` 의 TT<44 1건(115.9x20 `a "코드 데스티니 홈"`)은 문장 안 인라인 링크라 WCAG 2.5.8 Inline 예외 — 의도적으로 안 고쳤다. 🔴 인증 게이트가 있는 루트 셸(myungwun_final·yoga-guru·cosmic-soul-meditation 등)은 로컬에서 `/api/auth/me` 가 실패해 `window.history.back()` 으로 튕긴다. Playwright `addInitScript` 로 `sessionStorage.flower_admin_token` 에 `^[A-Za-z0-9_-]{20,}[.][0-9a-f]{64}$` 를 만족하는 더미 문자열을 심으면 통과한다(셸이 형식만 검사).
