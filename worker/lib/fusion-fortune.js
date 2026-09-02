@@ -677,6 +677,60 @@ function buildFusionShortfallInstruction(group, currentChars) {
 }
 
 /**
+ * 교차 섹션 중복 — **서로 다른 섹션**에 같은 문장이 그대로 다시 나온 것.
+ *
+ * 🔴 `hasRepeatedLongSentence` 와 다른 축이다. 그쪽은 70자 이상이 **세 섹션 이상**에 나올 때만
+ *    참/거짓 하나를 돌려주므로 (a) 두 섹션짜리 베끼기를 놓치고 (b) 어느 그룹이 베꼈는지 모른다.
+ *    재생성 대상을 고르고 그 그룹에만 문장을 되돌려 주려면 문장별 출처 목록이 필요하다.
+ *
+ * 🔴 60자·2건은 실측값이다(2026-09-03, `generateFusionFortuneWithMockLLM` 기준). 결정론 폴백은
+ *    같은 렌즈 문장을 여러 섹션에 재사용하는 구조라 같은 잣대를 40자로 내리면 24건이 잡힌다.
+ *    60자에서는 1건(근거 없음 고지 한 줄)뿐이라, 그룹당 2건부터 세면 그 바닥 소음 위에서만 문다.
+ */
+const FUSION_DUPLICATE_MIN_SENTENCE = 60;
+const FUSION_GROUP_DUPLICATE_LIMIT = 2;
+const FUSION_DUPLICATE_DIGEST_MAX = 4;
+const FUSION_DUPLICATE_DIGEST_CHARS = 160;
+
+/** 중복을 볼 산문 필드와 그 필드가 속한 그룹 키. 구조 데이터(visualization·keyPoints)는 보지 않는다. */
+function fusionSectionProse(source = {}) {
+  return [
+    ["executiveSummary", source.executiveSummary],
+    ...SECTION_KEYS.map((key) => [key, source[key]?.content]),
+    ["timingAndAction", source.timingAndAction?.content],
+    ["finalVerdict", source.finalVerdict?.rationale],
+    ["closingMessage", source.closingMessage],
+  ].filter(([, value]) => typeof value === "string" && value.length > 0);
+}
+
+export function collectFusionCrossSectionDuplicates(source = {}) {
+  const seen = new Map();
+  for (const [key, prose] of fusionSectionProse(source)) {
+    // 섹션 **안**의 반복은 여기서 세지 않는다 — 그건 전체 검증(hasRepeatedLongSentence)의 몫이다.
+    const unique = new Set(prose.split(/(?<=[.!?。！？])\s+/).map((sentence) => sentence.replace(/\s+/g, " ").trim()).filter((sentence) => sentence.length >= FUSION_DUPLICATE_MIN_SENTENCE));
+    for (const sentence of unique) {
+      if (!seen.has(sentence)) seen.set(sentence, []);
+      seen.get(sentence).push(key);
+    }
+  }
+  return [...seen.entries()].filter(([, keys]) => keys.length >= 2).map(([sentence, keys]) => ({ sentence, keys }));
+}
+
+function countFusionGroupDuplicates(duplicates, group) {
+  return duplicates.filter((item) => item.keys.some((key) => group.keys.includes(key))).length;
+}
+
+/** 재생성 프롬프트에 되돌려 줄 중복 문장 요약. 프롬프트가 불어나지 않도록 4건·항목당 160자로 자른다. */
+function buildFusionDuplicateInstruction(group, duplicates) {
+  const mine = duplicates.filter((item) => item.keys.some((key) => group.keys.includes(key))).slice(0, FUSION_DUPLICATE_DIGEST_MAX);
+  if (!mine.length) return "";
+  return [
+    "직전 시도는 아래 문장을 다른 섹션에도 그대로 다시 썼습니다. 같은 문장을 재사용하지 말고, 이 묶음에서는 다른 서버 확정값과 다른 장면으로 새로 쓰세요.",
+    ...mine.map((item) => `- ${item.sentence.slice(0, FUSION_DUPLICATE_DIGEST_CHARS)}`),
+  ].join("\n");
+}
+
+/**
  * 초융합 생성 — 네 그룹을 병렬로 부르고 하나의 결과 JSON으로 병합한다.
  *
  * 왜 병렬인가: 목표 20,000자를 단일 호출로 뽑으려면 Gemini 출력 상한(16,384토큰)과 요청
@@ -780,7 +834,11 @@ export async function generateFusionFortuneWithRealLLM({
 
   // 실패했거나 목표를 크게 밑돈 그룹만 다시 부른다. 그룹 단위라 예산 안에 들어온다.
   const shortGroups = FUSION_SECTION_GROUP_SPECS.filter((group) => !failedGroups.includes(group) && countFusionGroupChars(merged, group) < group.targetChars * FUSION_GROUP_RETRY_RATIO);
-  const retryTargets = [...failedGroups, ...shortGroups];
+  // 🔴 중복은 **모델이 쓴 본문끼리만** 본다. composed(결정론 폴백이 섞인 것)로 재면 폴백이 제
+  //    렌즈 문장을 여러 섹션에 재사용하는 구조 때문에 모델 잘못이 아닌 중복이 잡힌다(실측 24건/40자).
+  const duplicates = collectFusionCrossSectionDuplicates(merged);
+  const duplicatedGroups = FUSION_SECTION_GROUP_SPECS.filter((group) => !failedGroups.includes(group) && !shortGroups.includes(group) && countFusionGroupDuplicates(duplicates, group) >= FUSION_GROUP_DUPLICATE_LIMIT);
+  const retryTargets = [...failedGroups, ...shortGroups, ...duplicatedGroups];
   // 연결이 끊긴 뒤에 보완 호출을 또 태우지 않는다. 1차 호출은 provider 안에서 이미 진행 중이라
   // 여기서 못 끊지만, **두 번째 물결**은 막을 수 있다(비용의 절반이 여기다).
   if (retryTargets.length && !abortSignal?.aborted && remainingMs() > FUSION_GROUP_RETRY_MIN_BUDGET_MS) {
@@ -789,14 +847,24 @@ export async function generateFusionFortuneWithRealLLM({
     const retried = await Promise.allSettled(retryTargets.map((group) => runGroup(group, {
       attempts: 1,
       timeoutMs: retryTimeoutMs,
-      extraInstruction: buildFusionShortfallInstruction(group, countFusionGroupChars(merged, group)),
+      // 🔴 분량 지시는 실제로 짧은 그룹에만 준다. 중복만으로 불려 온 그룹에 붙이면 "목표에 크게
+      //    못 미칩니다" 가 사실이 아닌 채로 나가 모델이 엉뚱한 곳을 늘린다.
+      extraInstruction: [
+        failedGroups.includes(group) || shortGroups.includes(group) ? buildFusionShortfallInstruction(group, countFusionGroupChars(merged, group)) : "",
+        buildFusionDuplicateInstruction(group, duplicates),
+      ].filter(Boolean).join("\n\n"),
       progress: repairProgress,
     })));
     retried.forEach((outcome, index) => {
       if (outcome.status !== "fulfilled" || !outcome.value.ok) return;
       const group = retryTargets[index];
-      // 재생성이 더 길 때만 교체한다 — 더 짧아진 결과로 기존 본문을 덮어쓰지 않는다.
-      if (countFusionGroupChars(outcome.value.value, group) <= countFusionGroupChars(merged, group)) return;
+      const previousChars = countFusionGroupChars(merged, group);
+      const nextChars = countFusionGroupChars(outcome.value.value, group);
+      // 재생성이 더 길 때 교체한다 — 더 짧아진 결과로 기존 본문을 덮어쓰지 않는다.
+      // 다만 중복을 실제로 줄였다면 분량이 조금 준 것은 받는다. 안 그러면 중복만으로 부른
+      // 재생성이 "덜 베꼈지만 몇 자 짧다"는 이유로 전부 버려져 이 물결이 통째로 헛돈다.
+      const reducedDuplicates = countFusionGroupDuplicates(collectFusionCrossSectionDuplicates({ ...merged, ...outcome.value.value }), group) < countFusionGroupDuplicates(duplicates, group);
+      if (nextChars <= previousChars && !(reducedDuplicates && nextChars >= previousChars * FUSION_GROUP_RETRY_RATIO)) return;
       Object.assign(merged, outcome.value.value);
       const stillFailedIndex = failedGroups.indexOf(group);
       if (stillFailedIndex >= 0) failedGroups.splice(stillFailedIndex, 1);
@@ -818,10 +886,18 @@ export async function generateFusionFortuneWithRealLLM({
   const provider = [...providers][0] || "gemini";
   const resolvedModel = [...models][0] || model;
 
+  // 🔴 중복은 **배달 차단 사유로 승격하지 않는다**(바로 위 강등 배달 원칙). 재생성을 유도하고,
+  //    그래도 남으면 사유로 기록만 한다 — 등급(qualityTier)과 사용자 고지는 건드리지 않는다.
+  //    `evaluateFusionFortuneResult` 에 넣지 않는 이유도 같다: 그 검사는 폴백이 섞인 composed 를
+  //    보므로, 넣으면 폴백의 제 문장 재사용 때문에 모델 잘못이 아닌 강등이 생긴다.
+  const remainingDuplicates = collectFusionCrossSectionDuplicates(merged);
+  const duplicatedAfterRepair = FUSION_SECTION_GROUP_SPECS.filter((group) => countFusionGroupDuplicates(remainingDuplicates, group) >= FUSION_GROUP_DUPLICATE_LIMIT).map((group) => group.id);
+
   if (decision.deliverable) {
     const generationSource = usedFallbackGroups.length === 0 ? "gemini" : usedFallbackGroups.length === FUSION_SECTION_GROUP_SPECS.length ? "context_fallback" : "gemini_partial";
-    console.info("[fusion-fortune-llm-metric]", { requestId: text(requestId, 120), provider, model: resolvedModel, providerCalls, success: true, fallbackUsed: usedFallbackGroups.length > 0, fallbackGroups: usedFallbackGroups, length: decision.length, qualityTier: decision.tier, qualityIssues: decision.issues });
-    return { result: decision.value, deliverable: true, generationSource, providerCalls, qualityTier: decision.tier, qualityIssues: decision.issues, qualityNotice: decision.qualityNotice };
+    const qualityIssues = duplicatedAfterRepair.length ? [...decision.issues, "cross_section_duplicate"] : decision.issues;
+    console.info("[fusion-fortune-llm-metric]", { requestId: text(requestId, 120), provider, model: resolvedModel, providerCalls, success: true, fallbackUsed: usedFallbackGroups.length > 0, fallbackGroups: usedFallbackGroups, length: decision.length, qualityTier: decision.tier, qualityIssues, duplicateGroups: duplicatedAfterRepair });
+    return { result: decision.value, deliverable: true, generationSource, providerCalls, qualityTier: decision.tier, qualityIssues, qualityNotice: decision.qualityNotice };
   }
 
   const fallback = await buildValidatedFusionFallback({ context, input, now });

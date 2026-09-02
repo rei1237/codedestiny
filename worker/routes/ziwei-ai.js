@@ -1745,6 +1745,51 @@ function countSectionChars(sections, keys) {
   return keys.reduce((sum, key) => sum + clean(sections?.[key]?.body).length, 0);
 }
 
+// 분량 계약(20,700자)만 보면 같은 문장을 두 섹션에 그대로 옮겨 적어도 통과한다. ₩30,000 을 낸
+// 사용자가 실제로 받는 내용은 그만큼 줄어든다. 아래 도구는 그 중복을 재생성으로 되돌리는 데만 쓴다 —
+// 🔴 배달 차단 사유로 승격하지 않는다(생성 실패는 환불·접근권 복원 경로를 태우므로 무게가 다르다).
+const CROSS_SECTION_DUPLICATE_MIN_SENTENCE = 60;
+const GROUP_DUPLICATE_LIMIT = 2;
+const DUPLICATE_DIGEST_MAX = 4;
+const DUPLICATE_DIGEST_CHARS = 160;
+
+/** 같은 문장이 서로 다른 섹션 둘 이상에 실린 경우만 센다(한 섹션 안의 반복은 대상이 아니다). */
+function collectZiweiCrossSectionDuplicates(sections = {}) {
+  const seen = new Map();
+  for (const [key, section] of Object.entries(sections || {})) {
+    const body = clean(section?.body);
+    if (!body) continue;
+    const unique = new Set(
+      body.split(/(?<=[.!?。！？])\s+/)
+        .map((sentence) => sentence.replace(/\s+/g, " ").trim())
+        .filter((sentence) => sentence.length >= CROSS_SECTION_DUPLICATE_MIN_SENTENCE),
+    );
+    for (const sentence of unique) {
+      if (!seen.has(sentence)) seen.set(sentence, []);
+      seen.get(sentence).push(key);
+    }
+  }
+  return [...seen.entries()]
+    .filter(([, keys]) => keys.length >= 2)
+    .map(([sentence, keys]) => ({ sentence, keys }));
+}
+
+function countGroupDuplicates(duplicates, group) {
+  return duplicates.filter((item) => item.keys.some((key) => group.sections.includes(key))).length;
+}
+
+/** 재생성 웨이브에만 붙는다 — 1차 병렬 호출은 서로의 결과를 모르므로 붙일 중복이 없다. */
+function buildZiweiDuplicateInstruction(duplicates, group) {
+  const mine = duplicates
+    .filter((item) => item.keys.some((key) => group.sections.includes(key)))
+    .slice(0, DUPLICATE_DIGEST_MAX);
+  if (!mine.length) return "";
+  return [
+    "직전 시도는 아래 문장을 다른 섹션에도 그대로 다시 썼습니다. 같은 문장을 재사용하지 말고, 이 묶음에서는 아직 인용하지 않은 별·궁·강약 표기·사화 배치를 근거로 새로 쓰세요.",
+    ...mine.map((item) => `  · ${item.sentence.slice(0, DUPLICATE_DIGEST_CHARS)}`),
+  ].join("\n");
+}
+
 /**
  * 초기 상담 생성 — meta 1회 + 섹션 그룹 5회를 병렬로 부르고 하나의 구조화 JSON으로 병합한다.
  *
@@ -1840,29 +1885,48 @@ async function generateInitialConsultation(env, { input, chart, logContext = {} 
       .map((item) => item.group);
     shortGroups.push(...extra);
   }
-  const retryTargets = [...failedGroups, ...shortGroups];
+  // 분량은 채웠지만 다른 섹션의 문장을 그대로 옮겨 적은 그룹도 다시 부른다. 재생성은 병렬이라
+  // 대상이 늘어도 벽시계는 그대로다. 한 그룹에 한 건은 우연일 수 있어 2건부터 문다.
+  const duplicates = collectZiweiCrossSectionDuplicates(sections);
+  const duplicatedGroups = SECTION_GROUP_SPECS.filter((group) => (
+    !failedGroups.includes(group) && !shortGroups.includes(group)
+    && countGroupDuplicates(duplicates, group) >= GROUP_DUPLICATE_LIMIT
+  ));
+  const retryTargets = [...failedGroups, ...shortGroups, ...duplicatedGroups];
   if (retryTargets.length && remainingMs() > SECTION_GROUP_RETRY_MIN_BUDGET_MS) {
     const retried = await Promise.allSettled(retryTargets.map((group) => {
       const currentChars = countSectionChars(sections, group.sections);
       const perSection = buildSectionCharTargets(group);
+      // duplicatedGroups 는 failed·short 와 서로소다 — 여기 걸린 그룹은 분량이 아니라 중복 때문에 왔다.
+      const duplicateOnly = duplicatedGroups.includes(group);
       return runGroup(group, {
         attempts: 1,
         timeoutMs: retryTimeoutMs(),
-        // 얼마나 모자란지 숫자로 알려 준다. "더 촘촘하게" 같은 정성적 지시만으로는 분량이 안 는다.
         extraPrompt: [
-          `직전 시도는 이 부분을 ${currentChars.toLocaleString("ko-KR")}자로 썼습니다. 목표 ${Number(group.targetChars).toLocaleString("ko-KR")}자에 크게 못 미칩니다.`,
-          "처음부터 다시 쓰되, 아래 섹션별 최소 분량을 반드시 채우세요:",
-          ...group.sections.map((key) => `  · ${key}: 최소 ${Number(perSection[key] || 0).toLocaleString("ko-KR")}자`),
-          "같은 말을 바꿔 쓰지 말고, 아직 인용하지 않은 별·궁·강약 표기·사화 배치를 새로 끌어와 근거를 더하고 현실의 장면으로 풀어 늘리세요.",
-        ].join("\n"),
+          // 얼마나 모자란지 숫자로 알려 준다. "더 촘촘하게" 같은 정성적 지시만으로는 분량이 안 는다.
+          // 🔴 목표를 이미 채운 그룹에 "크게 못 미칩니다"를 붙이면 사실이 아닌 지시가 나간다.
+          ...(duplicateOnly ? [] : [
+            `직전 시도는 이 부분을 ${currentChars.toLocaleString("ko-KR")}자로 썼습니다. 목표 ${Number(group.targetChars).toLocaleString("ko-KR")}자에 크게 못 미칩니다.`,
+            "처음부터 다시 쓰되, 아래 섹션별 최소 분량을 반드시 채우세요:",
+            ...group.sections.map((key) => `  · ${key}: 최소 ${Number(perSection[key] || 0).toLocaleString("ko-KR")}자`),
+            "같은 말을 바꿔 쓰지 말고, 아직 인용하지 않은 별·궁·강약 표기·사화 배치를 새로 끌어와 근거를 더하고 현실의 장면으로 풀어 늘리세요.",
+          ]),
+          buildZiweiDuplicateInstruction(duplicates, group),
+        ].filter(Boolean).join("\n"),
       });
     }));
     retried.forEach((result, index) => {
       if (result.status !== "fulfilled") return;
       const group = retryTargets[index];
       const next = parseSectionsFromGroupText(result.value.text);
+      const previousChars = countSectionChars(sections, group.sections);
+      const nextChars = countSectionChars(next, group.sections);
+      // 중복이 줄었으면 몇 자 짧아도 받는다. 안 그러면 중복 때문에 부른 재생성이 "덜 베꼈지만
+      // 조금 짧다"는 이유로 전부 버려져 물결이 헛돈다. 대신 SECTION_GROUP_RETRY_RATIO 아래로는 안 받는다.
+      const reducedDuplicates = countGroupDuplicates(collectZiweiCrossSectionDuplicates({ ...sections, ...next }), group)
+        < countGroupDuplicates(duplicates, group);
       // 재생성이 더 길 때만 교체한다 — 더 짧아진 결과로 기존 본문을 덮어쓰지 않는다.
-      if (countSectionChars(next, group.sections) > countSectionChars(sections, group.sections)) {
+      if (nextChars > previousChars || (reducedDuplicates && nextChars >= previousChars * SECTION_GROUP_RETRY_RATIO)) {
         Object.assign(sections, next);
         if (result.value.provider) providers.add(clean(result.value.provider));
       }
@@ -1915,12 +1979,18 @@ async function generateInitialConsultation(env, { input, chart, logContext = {} 
   // 정상 결제로 배달됐다. 목표의 55% 아래면 실패로 돌려 기존 환불·접근권 복원 경로를 그대로 타게 한다.
   const minDeliverableChars = Math.round(MIN_INITIAL_CONSULTATION_BODY_CHARS * 0.55);
 
+  // 재생성해도 계속 베끼는 모델이라면 여기 남는다. 배달은 그대로 하고 사유만 관측한다.
+  const remainingDuplicates = collectZiweiCrossSectionDuplicates(sections);
+
   logZiweiAi("Section Groups Merged", {
     ...logContext,
     bodyChars: finalBodyChars,
     elapsedMs: Date.now() - startedAt,
     failedGroups: failedGroups.map((group) => group.id),
     retriedGroups: retryTargets.map((group) => group.id),
+    duplicateGroups: SECTION_GROUP_SPECS
+      .filter((group) => countGroupDuplicates(remainingDuplicates, group) >= GROUP_DUPLICATE_LIMIT)
+      .map((group) => group.id),
   });
 
   if (finalBodyChars < minDeliverableChars) {
@@ -2625,4 +2695,8 @@ export const __ziweiAiTestUtils = {
   buildMetaPrompt,
   parseSectionsFromGroupText,
   countSectionChars,
+  collectZiweiCrossSectionDuplicates,
+  buildZiweiDuplicateInstruction,
+  GROUP_DUPLICATE_LIMIT,
+  CROSS_SECTION_DUPLICATE_MIN_SENTENCE,
 };
