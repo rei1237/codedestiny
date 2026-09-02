@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { CSSProperties } from "react";
+import appContext from "@/js/core/app-context.js";
 import styles from "../styles/fortune-tea-house.module.css";
 
 const petals = [
@@ -36,7 +37,8 @@ function useLowEndPetalLimit() {
     const memory = Number(nav.deviceMemory || 0);
     const cores = Number(nav.hardwareConcurrency || 0);
     const effectiveType = String(nav.connection?.effectiveType || "").toLowerCase();
-    const isApp = Boolean((window as { Capacitor?: unknown }).Capacitor);
+    // 🔴 `!!window.Capacitor` 단독 판정은 과대판정으로 영구 배제된 패턴 — 정본 위임(js/core/app-context.js).
+    const isApp = appContext.isApp();
     const isLowEnd =
       Boolean(nav.connection?.saveData) ||
       (memory > 0 && memory <= 4) ||
