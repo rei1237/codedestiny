@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-09-02
-next: 셸 ETag(§2)와 쿠키 배너(후보 3)는 **종결**됐다. 남은 유일한 코드 레버는 **N3**(조사·이득 실측 완료 — 재방문 −79~92KB, 첫 방문 +8.8KB, 남은 미지수는 왕복 1회의 LCP 영향뿐) 이고 **실행 여부는 사용자 결정 대기**. 나머지 후보(월 입력 44px 현행 유지 · admin/ 프루닝 · 실기기 검증 · vc41 릴리스)는 사용자 판단·액션 대기
+updated: 2026-09-03
+next: 셸 ETag(§2)·쿠키 배너(후보 3)·admin 프루닝(후보 5)은 **종결**됐다. 남은 유일한 코드 레버는 **N3**(조사·이득 실측 완료 — 재방문 −79~92KB, 첫 방문 +8.8KB, 남은 미지수는 왕복 1회의 LCP 영향뿐) 이고 **실행 여부는 사용자 결정 대기**. 나머지 후보(월 입력 44px 현행 유지 · 실기기 검증 · vc41 릴리스)는 사용자 판단·액션 대기
 ---
 
 # 앱 최적화 — 남은 작업 (2026-09-02)
@@ -33,7 +33,7 @@ next: 셸 ETag(§2)와 쿠키 배너(후보 3)는 **종결**됐다. 남은 유�
 2. ✅ **셸에 ETag·Last-Modified 가 없다 — 원인 확정, 코드로는 못 고침 (2026-09-02 종결)**. 아래 §2 참조. 후보에서 **제외**한다.
 3. ✅ **쿠키 배너 앱 억제 — 완료 (2026-09-02)**. 앱에서는 배너를 띄우지 않고 **동의는 미설정으로 남긴다**(사용자 결정). `js/core/analytics.js` 가 `cd_cookie_consent` 부재를 `analytics_storage: denied` 로 읽으므로 추적은 꺼진 상태가 된다. 판정은 정본 `window.__cdAppContext.isApp()` 뿐이고, 회귀 가드는 `verify:analytics-events` ⑬ 이다(그 가드를 pr-ci 의 critical → fast 잡으로 옮겼다 — index.html 은 change-risk 상 **low** 라 critical 잡에 있으면 셸만 고친 PR 에서 통째로 스킵된다). 🔴 **앱에는 동의를 다시 열 경로가 없다** — `#cdCookieSettingsBtn` 이 배너 안에만 있기 때문이다. 나중에 앱에서 동의를 받아야 하면 배너 재노출이 아니라 설정 화면에 진입점을 만들어야 한다.
 4. **`.sy-basic-calendar__month`(월 입력 112x32)** — **현행 유지 결정(2026-09-02).** `<input type=month>` 는 터치 타깃 절 1)의 전역 규칙 대상이 아니고 의사요소도 안 먹는다. 44px 로 올리면 헤드가 12px 커지는 디자인 변경이라, 근소차 1건 대비 이득이 낮다고 판단했다.
-5. **admin/ 프루닝** — 사용자 결정 대기. index.html 이 `/admin/login` 으로 실제 네비게이션하므로 지우면 앱 내 관리자 진입이 죽는다. 승인 시 `build-mobile-app.mjs` 의 `WEB_ONLY_ARTIFACTS` 에 `"admin"` 추가 + `verify-app-no-portone.mjs` 의 존치 단언 교체.
+5. ~~**admin/ 프루닝**~~ — **종결(2026-09-03, PR #1492)**. 승인받아 `dist/admin` 을 앱에서 빼고, 셸의 유일한 진입점 `#cdAdminFlowerWrap` 을 같은 빌드에서 제거했다(둘 중 하나만 하면 "눌렀는데 404"). 같은 PR 에서 앱에 불필요한 SEO 링크 허브(셸 28링크 + App Router 51링크)도 뺐다. 🔴 **정책 링크·사업자 정보·환불 안내·언어 선택은 앱에 존치**한다(Play 정책·전자상거래법) — `verify-app-no-portone.mjs` 가 제거와 존치를 함께 단언한다. 셸 분기 수단은 `<!--cd-app-strip-->` 표식이며, `strip-dist-html-comments.mjs` 의 `mustKeep` 이 그 표식을 보존해야 성립한다.
 6. **실기기 검증** — IME(키보드), OS다크+연이 라이트 다크 플래시. 정적 검증기로는 안 잡힌다.
 7. **vc41 릴리스(사용자 액션)** — `VERSION_CODE 40→41` → `mobile:android:sync` → `bundleRelease` → AAB+mapping 업로드 → FGS 신고. 근거: [android-vc41-r8-crash-2026-09-01.md](android-vc41-r8-crash-2026-09-01.md).
 
