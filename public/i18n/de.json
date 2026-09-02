@@ -1808,6 +1808,7 @@
       "musicTrackSub": "Mit dem Mondscheinpass hörst du alle Titel sofort. MP3-Downloads gibt es nur für Titel, die per Einzelkauf oder mit Mondsteinen gekauft wurden.",
       "defaultTitle": "Kostenpflichtiger Dienst",
       "passApplyFailed": "Dein Pass konnte nicht angewendet werden.",
+      "passAppliedUiFailed": "Dein Pass wurde angewendet, aber die Anzeige wurde nicht aktualisiert. Bitte nicht bezahlen – tippe einfach noch einmal auf diese Karte.",
       "monthlyInsufficient": "Nicht genug Mondsteine. Bitte wähle stattdessen den Einzelkauf.",
       "monthlyUnknown": "Dein Mondstein-Guthaben konnte nicht geprüft werden. Bitte öffne es erneut.",
       "monthlyAria": {
@@ -1823,6 +1824,8 @@
         "withPass": "Wähle zwischen Pass, Mondsteinen oder Karte.",
         "directOnly": "Dieser Inhalt öffnet sich per Kartenzahlung.",
         "passUnknown": "Wenn du einen Pass hast, tippe unten auf die Pass-Karte – wir prüfen ihn sofort.",
+        "passSaveUnverified": "Das Ergebnis der Pass-Anwendung konnte nicht gespeichert werden. Prüfe es unten mit der Pass-Karte erneut oder wähle eine andere Zahlungsart.",
+        "passCheckFailed": "Wir konnten deinen Pass nicht prüfen. Versuche es unten mit der Pass-Karte erneut oder wähle eine andere Zahlungsart.",
         "passMiss": "Dein Pass öffnet diesen Inhalt nicht kostenlos – hier sind die Zahlungsoptionen."
       },
       "passBadge": "Mondscheinpass",

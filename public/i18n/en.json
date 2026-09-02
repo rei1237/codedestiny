@@ -1808,6 +1808,7 @@
       "musicTrackSub": "With a Moonlight Pass you can stream every track right away. MP3 downloads are only for tracks bought with a single purchase or with moonstones.",
       "defaultTitle": "Paid service",
       "passApplyFailed": "We couldn't apply your pass.",
+      "passAppliedUiFailed": "Your pass was applied but the screen didn't update. Please don't pay — just tap this card once more.",
       "monthlyInsufficient": "Not enough moonstones. Please choose the single payment instead.",
       "monthlyUnknown": "We couldn't check your moonstone balance. Please open it again.",
       "monthlyAria": {
@@ -1823,6 +1824,8 @@
         "withPass": "Choose from a pass, moonstones, or card.",
         "directOnly": "This content opens with card payment.",
         "passUnknown": "If you have a pass, tap the pass card below and we'll check it right here.",
+        "passSaveUnverified": "We couldn't save the result of applying your pass. Check again with the pass card below, or choose another payment method.",
+        "passCheckFailed": "We couldn't check your pass. Check again with the pass card below, or choose another payment method.",
         "passMiss": "Your pass does not open this content for free, so here are the payment options."
       },
       "passBadge": "Moonlight Pass",

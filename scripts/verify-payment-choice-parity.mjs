@@ -369,6 +369,8 @@ const RENDERER_EXTRA_KEYS = {
     // 셸만 갖는 결제창 상태 문구 3종. React 는 자체 토스트 표(billingClient.message.*)를,
     // 독립 폴백은 이 분기 자체를 갖고 있지 않다.
     "payment.directModal.passApplyFailed",
+    // 서버가 이용권을 이미 소비했는데 화면 반영만 실패한 경우 — 카드 결제를 권하면 중복 청구가 된다.
+    "payment.directModal.passAppliedUiFailed",
     "payment.directModal.monthlyInsufficient",
     "payment.directModal.monthlyUnknown",
   ],

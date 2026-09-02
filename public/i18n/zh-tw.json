@@ -1808,6 +1808,7 @@
       "musicTrackSub": "擁有月光通行券即可立即聆聽全部曲目。MP3 下載僅限單次購買或以月精石購買的曲目。",
       "defaultTitle": "付費服務",
       "passApplyFailed": "通行券套用失敗。",
+      "passAppliedUiFailed": "通行券已套用，但畫面未更新。請勿付款，再次點擊此卡片即可。",
       "monthlyInsufficient": "月精石不足。請改選單次付款。",
       "monthlyUnknown": "無法確認月精石餘量。請重新開啟。",
       "monthlyAria": {
@@ -1823,6 +1824,8 @@
         "withPass": "可以在通行證、月精石和信用卡中選擇。",
         "directOnly": "此內容透過信用卡付款打開。",
         "passUnknown": "如果你有通行證，點擊下方通行證卡片即可當場確認。",
+        "passSaveUnverified": "未能儲存通行券的套用結果。可用下方的通行券卡片重新確認，或選擇其他付款方式。",
+        "passCheckFailed": "通行券確認失敗。可用下方的通行券卡片重新確認，或選擇其他付款方式。",
         "passMiss": "你的通行證無法免費開啟此內容，請選擇付款方式。"
       },
       "passBadge": "月光通行券",

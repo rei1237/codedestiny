@@ -1808,6 +1808,7 @@
       "musicTrackSub": "Dengan Pas Cahaya Bulan, anda boleh terus mendengar semua lagu. Muat turun MP3 hanya untuk lagu yang dibeli secara tunggal atau dengan batu bulan.",
       "defaultTitle": "Perkhidmatan berbayar",
       "passApplyFailed": "Kami tidak dapat menggunakan Pas anda.",
+      "passAppliedUiFailed": "Pas anda telah digunakan, tetapi paparan tidak dikemas kini. Jangan bayar — ketik kad ini sekali lagi.",
       "monthlyInsufficient": "Batu bulan tidak mencukupi. Sila pilih pembayaran tunggal.",
       "monthlyUnknown": "Kami tidak dapat menyemak baki batu bulan anda. Sila buka semula.",
       "monthlyAria": {
@@ -1823,6 +1824,8 @@
         "withPass": "Pilih antara pas, batu bulan atau kad.",
         "directOnly": "Kandungan ini dibuka dengan bayaran kad.",
         "passUnknown": "Jika anda ada pas, ketik kad pas di bawah dan kami semak terus di sini.",
+        "passSaveUnverified": "Kami tidak dapat menyimpan hasil penggunaan Pas anda. Semak semula dengan kad Pas di bawah, atau pilih kaedah pembayaran lain.",
+        "passCheckFailed": "Kami tidak dapat menyemak Pas anda. Cuba semula dengan kad Pas di bawah, atau pilih kaedah pembayaran lain.",
         "passMiss": "Pas anda tidak membuka kandungan ini secara percuma, jadi ini pilihan pembayaran."
       },
       "passBadge": "Pas Cahaya Bulan",
