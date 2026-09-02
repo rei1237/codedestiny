@@ -22,9 +22,15 @@ export default function ServiceIntroSection({
       aria-label={label}
       className="mx-auto w-full max-w-3xl px-4 pb-14 pt-6 text-slate-100 md:px-6"
     >
+      {/* 좌우 여백은 좁은 화면에서만 줄인다(#1435 와 같은 처방 — 글자를 줄이는 대신 열을 넓힌다).
+          실측 2026-09-02 /neo-operation-room/ 360x800: 바깥 px-4(16) + 카드 px-5(20) + ul pl-5(20)
+          이 겹쳐 li 본문 열이 266px 였다(#1435 기준선: 254px 문제 · 274px 수용). 카드 안쪽만
+          12px 로 좁혀 p 286→302px · li 266→282px 를 회수한다. 바깥 px-4 는 그대로 둔다 —
+          바로 아래 ImmersiveRelatedLinks 가 같은 px-4 를 써서 두 블록의 좌변이 맞아 있다.
+          폭이 남는 sm(640px) 이상에서는 기존 값으로 돌아간다. */}
       <div
         className={[
-          "rounded-3xl border border-white/10 bg-[#10172b] px-5 py-6 md:px-8 md:py-8",
+          "rounded-3xl border border-white/10 bg-[#10172b] px-3 py-6 sm:px-5 md:px-8 md:py-8",
           "[&_h1]:text-2xl [&_h1]:font-semibold [&_h1]:leading-tight [&_h1]:text-amber-50 md:[&_h1]:text-3xl",
           "[&_h2]:mt-8 [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:text-amber-100",
           "[&_h3]:mt-4 [&_h3]:text-sm [&_h3]:font-semibold [&_h3]:text-slate-100",

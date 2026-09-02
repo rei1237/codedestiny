@@ -2495,7 +2495,10 @@
   color: #fff8e8;
   background: rgba(3, 7, 14, 0.76);
   font: inherit;
-  font-size: 0.95rem;
+  /* 16px 미만이면 iOS 가 포커스 시 자동 확대한다 — design-and-ui.md 인체공학 계약.
+     실측 2026-09-02(360x800, dist): 이 규칙이 걸린 좌표 입력 7개가 전부 15.2px 였다.
+     스캐너는 방식·주제 선택 두 단계 뒤에야 나오는 이 폼에 닿지 못해 계속 IN=0 으로 보였다. */
+  font-size: 1rem;
   font-weight: 700;
 }
 
@@ -3197,7 +3200,8 @@
   color: #fff7de;
   background: rgba(3, 7, 16, 0.66);
   font: inherit;
-  font-size: 0.98rem;
+  /* 15.68px 였다 — 위 .fieldLabel 과 같은 사유로 16px 로 올린다. */
+  font-size: 1rem;
   line-height: 1.6;
   outline: none;
 }

@@ -764,7 +764,9 @@
   color: #fff7de;
   background: rgba(3, 7, 16, 0.66);
   font: inherit;
-  font-size: 0.98rem;
+  /* 15.68px 였다 — iOS 포커스 자동 확대 방지(design-and-ui.md 인체공학 계약).
+     입력 화면의 .realityFreeformLabel textarea 와 같은 값으로 맞춘다. */
+  font-size: 1rem;
   line-height: 1.6;
   outline: none;
 }
