@@ -47,6 +47,9 @@ type FeatureMarketingCopy = {
   faq?: { q: string; a: string }[];
   ctaNote?: string;
   ctaLabel?: string;
+  /* 셸이 이 상품의 가격을 조회할 때 쓰는 결제 키. 호출부가 featureKey 를 안 넘겼을 때의
+     가격 조회 폴백이다 — 어디서 왔든 정본은 셸이므로 새로 짓지 않고 그대로 싣는다. */
+  featureId?: string;
 };
 
 /* ── 정본 카피(생성 JSON) ────────────────────────────────────────────────────
@@ -309,6 +312,8 @@ function buildMarketingCopy(
       : undefined,
     ctaNote: text("ctaNote", "ctaNote"),
     ctaLabel: text("ctaLabel", "fallbackCta"),
+    // 🔴 reportScale 과 같은 이유로 상품 항목만 본다 — 카테고리 템플릿의 결제 키는 남의 가격이다.
+    featureId: item?.copy.featureId,
   };
 }
 
@@ -408,9 +413,14 @@ export function FeatureMarketingDetailModal({
   const [navPending, setNavPending] = useState(false);
   const t = useT();
   const copy = useFeatureMarketingCopy(target, open);
-  const canonicalPrice = useServerPrice({ featureKey: target.featureKey });
+  // 🔴 호출부가 featureKey 를 안 넘기면 가격이 영영 빈칸이고 그러면 priceReady 가 false 라
+  // CTA 가 잠긴다(2026-09-03 실측: /app 허브 유료 8종 중 손금 1종 — 레지스트리에 featureKey 가
+  // 없다). 셸 카피가 그 상품의 결제 키(`featureId`)를 이미 들고 있으므로 그것으로 메운다.
+  const canonicalPrice = useServerPrice({ featureKey: target.featureKey || copy?.featureId });
   const isPaidTarget = isPaidMarketingTarget(target);
   const priceReady = !isPaidTarget || Boolean(canonicalPrice.label);
+  // 결제 키를 카피에서 받아야 하는 호출부에서는 카피가 오기 전까지 "가격 미정" 대신 로딩으로 둔다.
+  const priceState = !target.featureKey && !copy ? { ...canonicalPrice, loading: true } : canonicalPrice;
   useBodyScrollLock(open);
 
   // 오픈 시각은 `open` 이 바뀔 때만 갱신한다 — onClose 처럼 매 렌더 새로 만들어지는 값에
@@ -626,7 +636,7 @@ export function FeatureMarketingDetailModal({
 
         <div className="sticky bottom-0 -mx-4 mt-4 border-t border-white/10 bg-[linear-gradient(to_top,#070b1d_76%,rgba(7,11,29,0))] px-4 pb-1 pt-4 sm:-mx-6 sm:px-6">
           <div className="mb-2 flex items-center justify-between gap-3 text-xs font-bold text-slate-300">
-            <span aria-live="polite">{priceText(target, canonicalPrice, t)}</span>
+            <span aria-live="polite">{priceText(target, priceState, t)}</span>
             <span>{t(target.accessType === "free" ? "preview.accessFree" : "preview.accessPaid")}</span>
           </div>
           <Link

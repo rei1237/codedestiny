@@ -258,3 +258,76 @@ test("팝업 섹션 라벨은 ko 를 포함한 12개 로케일 전부에 있다"
     }
   }
 });
+
+/**
+ * 🔴 유료 카드인데 가격 라벨이 빈칸이면 `priceReady` 가 false 라 **CTA 가 영구히 잠긴다**
+ * (`aria-disabled` + `pointer-events-none`). 팝업은 정상으로 보이고 버튼만 안 눌린다.
+ * 가격 조회 키는 호출부의 `featureKey` 이고, 그게 없으면 셸 카피의 `featureId` 로 메운다 —
+ * 2026-09-03 실측으로 /app 허브 유료 8종 중 손금이 그 상태였다(레지스트리에 featureKey 없음).
+ * 두 축을 함께 문다: ① 모달이 그 폴백을 실제로 쓰는가 ② 유료 카드가 전부 가격 키를 얻는가.
+ */
+test("유료 허브 카드는 전부 가격 키가 잡힌다", () => {
+  assert.match(
+    source,
+    /useServerPrice\(\{\s*featureKey:\s*target\.featureKey\s*\|\|\s*copy\?\.featureId\s*\}\)/,
+    "가격 조회가 target.featureKey 만 봅니다 — featureKey 없는 호출부에서 CTA 가 잠깁니다.",
+  );
+  assert.match(source, /featureId:\s*item\?\.copy\.featureId/, "카피에 featureId 를 싣지 않으면 위 폴백이 항상 undefined 입니다.");
+
+  const registry = require("../../worker/lib/paid-feature-registry.js");
+  const unlockByFeatureKey = Object.fromEntries(
+    Object.values(registry.PIG_COIN_UNLOCK_PRODUCTS)
+      .filter((entry) => entry && entry.featureKey)
+      .map((entry) => [String(entry.featureKey), entry]),
+  );
+  const hasPrice = (featureKey) => {
+    const key = String(featureKey || "").trim();
+    if (!key) return false;
+    const normalized = registry.normalizePaidFeatureKey(key);
+    const pricing = registry.FEATURE_KEY_PRICE_TABLE[normalized] || registry.FEATURE_KEY_PRICE_TABLE[key]
+      || unlockByFeatureKey[normalized] || unlockByFeatureKey[key];
+    if (!pricing) return false;
+    return Boolean(String(pricing.displayPrice || "").trim())
+      || (Number(pricing.amountKRW || pricing.cashPrice || 0) || Number(pricing.cost || pricing.coinPrice || 0) * 100) > 0;
+  };
+
+  /* 허브가 넘기는 target 과 같은 후보 순서로 카피를 찾는다(모달 `marketingKeys`). */
+  const featureIdIndex = new Map();
+  for (const [key, entry] of Object.entries(book.items)) {
+    if (entry.copy.featureId && !featureIdIndex.has(entry.copy.featureId)) featureIdIndex.set(entry.copy.featureId, key);
+  }
+  const copyFeatureId = (feature) => {
+    const routePath = String(feature.launchRoute || "").split("?")[0].split("#")[0];
+    const candidates = [
+      feature.featureKey,
+      feature.slug,
+      (/[?&]action=([^&#]+)/.exec(feature.launchRoute) || [])[1],
+      feature.launchRoute,
+      routePath,
+      routePath && routePath !== "/" ? (routePath.endsWith("/") ? routePath.replace(/\/+$/, "") : `${routePath}/`) : "",
+    ];
+    for (const key of candidates) if (key && book.items[key]) return book.items[key].copy.featureId;
+    const aliased = feature.featureKey ? featureIdIndex.get(feature.featureKey) : "";
+    return aliased && book.items[aliased] ? book.items[aliased].copy.featureId : "";
+  };
+
+  const registrySource = fs.readFileSync(path.join(root, "app/_lib/serviceFeatureRegistry.ts"), "utf8").replace(/\r/g, "");
+  const paid = [];
+  for (const match of registrySource.matchAll(/\n {2}\{\n([\s\S]*?)\n {2}\},/g)) {
+    const body = match[1];
+    const field = (name) => (new RegExp(`\\b${name}:\\s*"([^"]*)"`).exec(body) || [])[1] || "";
+    const slug = field("slug");
+    const accessType = field("accessType");
+    if (!slug || !accessType || accessType === "free") continue;
+    paid.push({ slug, accessType, featureKey: field("featureKey"), launchRoute: field("launchRoute") });
+  }
+  assert.ok(paid.length >= 5, `유료 허브 카드를 ${paid.length}개만 찾았습니다 — 레지스트리 파서가 깨졌는지 확인하세요.`);
+
+  const locked = paid.filter((feature) => !hasPrice(feature.featureKey) && !hasPrice(copyFeatureId(feature)));
+  assert.deepEqual(
+    locked.map((feature) => feature.slug),
+    [],
+    "가격 키를 못 찾는 유료 카드가 있습니다 — 팝업은 열리지만 CTA 가 잠깁니다. "
+    + "레지스트리에 featureKey 를 넣거나 셸 카피에 featureId 를 넣으세요.",
+  );
+});
