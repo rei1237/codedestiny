@@ -7,15 +7,17 @@
  * 하나만 어긋나도 git 이 조용히 기본 병합으로 되돌아가기 때문이다(= 해시 충돌 재발).
  *
  * 검사:
- *   1) 해시만 다른 병합 → 충돌 없이 자동 병합된다
- *   2) 해시 + 실제 내용이 함께 다른 병합 → 충돌 마커가 남는다 (진짜 충돌을 삼키지 않는다)
- *   3) .gitattributes 에 등록된 경로가 실제로 존재한다
+ *   1) 정규화→복원 왕복이 항등이다 — 서로 다른 해시가 섞여도 자리마다 제 값으로 돌아온다
+ *   2) 해시만 다른 병합 → 충돌 없이 자동 병합되고, 자산마다 제 해시가 살아남는다
+ *   3) 해시 + 실제 내용이 함께 다른 병합 → 충돌 마커가 남는다 (진짜 충돌을 삼키지 않는다)
+ *   4) .gitattributes 에 등록된 경로가 실제로 존재한다
  */
 
 import { spawnSync } from "node:child_process";
 import { mkdtempSync, rmSync, writeFileSync, readFileSync, existsSync, mkdirSync, cpSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve, dirname } from "node:path";
+import { normalizeCacheBust, restampCacheBust } from "./lib/cachebust-pattern.mjs";
 
 const repoRoot = process.cwd();
 const driverRel = "scripts/git/cachebust-merge-driver.mjs";
@@ -34,6 +36,24 @@ function check(label, ok, detail = "") {
 function git(cwd, args, opts = {}) {
   return spawnSync("git", args, { cwd, encoding: "utf8", ...opts });
 }
+
+/** 개행 차이는 이 가드의 관심사가 아니다(임시 저장소의 autocrlf 설정에 따라 갈린다). */
+const nl = (text) => String(text).replace(/\r\n/g, "\n");
+
+// 1) 정규화→복원 왕복 — git 없이 도는 빠른 검사.
+// 🔴 서로 다른 해시를 반드시 섞는다. 예전 복원기는 형식마다 donor 토큰 하나를 골라 그 형식의
+// 자리표시자 전부에 덮어썼고, 모든 자산이 같은 해시인 픽스처로는 그 붕괴가 보이지 않았다
+// (2026-09-02: 실제 rebase 5건에서 매번 자산 3종 12건이 첫 해시로 붕괴했다).
+const roundTripSample = [
+  '<script src="/js/a.js?v=build-1111111111a1"></script>',
+  '<script src="/js/b.js?v=build-2222222222b2"></script>',
+  '<script src="/HwatuFortune.js?v=h3333333333c3"></script><script src="/AnalysisEngine.js?v=h4444444444d4"></script>',
+].join("\n");
+check(
+  "정규화→복원 왕복이 항등이다 (서로 다른 해시가 섞여도)",
+  restampCacheBust(normalizeCacheBust(roundTripSample), [roundTripSample]) === roundTripSample,
+  restampCacheBust(normalizeCacheBust(roundTripSample), [roundTripSample]),
+);
 
 // 3) .gitattributes 등록 경로가 실제 파일인지
 const attrs = readFileSync(resolve(repoRoot, ".gitattributes"), "utf8");
@@ -61,24 +81,26 @@ try {
   const shell = join(work, "shell.html");
   // 두 형식을 모두 담는다: /js/** 는 `?v=build-<hex>`, 루트 bare 자산은 `?v=h<hex>`.
   // h- 형식을 빠뜨렸다가 HwatuFortune.js 한 줄 때문에 전체가 수동 해결 대상이 된 적이 있다.
-  const build = (hash, extra = "") =>
-    `<script src="/js/a.js?v=build-${hash}"></script>\n` +
-    `<script src="/js/b.js?v=build-${hash}"></script>\n` +
-    `<script src="/HwatuFortune.js?v=h${hash}"></script>\n` +
+  // 🔴 자산마다 다른 해시를 쓴다 — 같은 해시로만 만든 픽스처는 형식별 덮어쓰기 붕괴를 못 잡는다.
+  const build = (seed, extra = "") =>
+    `<script src="/js/a.js?v=build-${seed}a1"></script>\n` +
+    `<script src="/js/b.js?v=build-${seed}b2"></script>\n` +
+    `<script src="/HwatuFortune.js?v=h${seed}c3"></script>\n` +
+    `<script src="/AnalysisEngine.js?v=h${seed}d4"></script>\n` +
     `<nav>메뉴</nav>\n${extra}`;
 
-  writeFileSync(shell, build("aaaaaaaaaaaa"));
+  writeFileSync(shell, build("aaaaaaaaaa"));
   git(work, ["add", "-A"]);
   git(work, ["commit", "-qm", "base"]);
   const baseSha = git(work, ["rev-parse", "HEAD"]).stdout.trim();
 
   // 1) 해시만 다른 두 갈래
   git(work, ["checkout", "-q", "-b", "feature"]);
-  writeFileSync(shell, build("bbbbbbbbbbbb"));
+  writeFileSync(shell, build("bbbbbbbbbb"));
   git(work, ["commit", "-qam", "feature: rehash"]);
 
   git(work, ["checkout", "-q", "main"]);
-  writeFileSync(shell, build("cccccccccccc"));
+  writeFileSync(shell, build("cccccccccc"));
   git(work, ["commit", "-qam", "main: rehash"]);
 
   const merge1 = git(work, ["merge", "--no-edit", "feature"]);
@@ -95,16 +117,23 @@ try {
     merged1.split("\n").slice(0, 3).join(" | "),
   );
   check("자리표시자가 결과물에 남지 않는다", !merged1.includes("CDCACHEBUST"), merged1.slice(0, 160));
+  // 붕괴하면 자산 넷이 전부 같은 해시가 된다. ours(main) 값이 그대로 남아야 한다.
+  const merged1Hashes = [...merged1.matchAll(/\?v=(?:build-|h)([0-9a-f]{6,})/g)].map((m) => m[1]);
+  check(
+    "자산마다 제 해시가 살아남는다 (ours 값 그대로, 붕괴 없음)",
+    nl(merged1) === nl(build("cccccccccc")) && new Set(merged1Hashes).size === 4,
+    `hashes=${merged1Hashes.join(",")}`,
+  );
 
   // 2) 해시 + 실제 내용이 함께 다른 두 갈래 — 충돌이 남아야 한다
   git(work, ["reset", "-q", "--hard", baseSha]);
   git(work, ["checkout", "-q", "-B", "feature2", baseSha]);
-  writeFileSync(shell, build("dddddddddddd", "<p>기능 브랜치 문단</p>\n"));
+  writeFileSync(shell, build("dddddddddd", "<p>기능 브랜치 문단</p>\n"));
   git(work, ["commit", "-qam", "feature2: content"]);
 
   git(work, ["checkout", "-q", "main"]);
   git(work, ["reset", "-q", "--hard", baseSha]);
-  writeFileSync(shell, build("eeeeeeeeeeee", "<p>메인 브랜치 문단</p>\n"));
+  writeFileSync(shell, build("eeeeeeeeee", "<p>메인 브랜치 문단</p>\n"));
   git(work, ["commit", "-qam", "main: different content"]);
 
   const merge2 = git(work, ["merge", "--no-edit", "feature2"]);
