@@ -191,7 +191,7 @@ function inferTemplate(target: FeatureMarketingTarget) {
    하지 않는다). 카테고리 템플릿 ns 9종은 `template_music` 의 badge·headline 을 빼면 전부 번역돼 있다. */
 
 /** 사전에 값이 실제로 있는지. `useTPick` 은 없으면 넘긴 값을 돌려주므로 표식으로 판별한다. */
-const PROBE = " probe";
+const PROBE = "__probe__";
 function hasTranslation(pick: TranslatePick, key: string) {
   return pick(key, PROBE) !== PROBE;
 }

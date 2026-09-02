@@ -114,6 +114,19 @@ test("사전 필드 표가 모달 소스와 어긋나지 않는다", () => {
 });
 
 /**
+ * 🔴 아래 `lookupPlan` 은 모달의 출처 선택을 **다시 구현한 것**이라, 모달이 병합본을 ns 하나로
+ * 조회하는 옛 모양으로 되돌아가도 그 자체로는 눈치채지 못한다. 그래서 여기서 소스를 직접 본다 —
+ * 모든 `featureMarketing.` 조회의 네임스페이스는 **값과 함께 따라온 것**(`…ns` / `…dictNs`)이어야
+ * 하고, 미리 정해 둔 변수 하나(`ns`)를 전 필드에 돌려 쓰면 실패한다. 그게 옛 버그의 모양이다.
+ */
+test("사전 조회가 값과 함께 온 네임스페이스만 쓴다", () => {
+  const namespaces = [...source.matchAll(/`featureMarketing\.\$\{([^}]+)\}/g)].map((match) => match[1]);
+  assert.ok(namespaces.length >= 8, `featureMarketing 조회를 ${namespaces.length}건만 찾았습니다 — 파서를 확인하세요.`);
+  const merged = namespaces.filter((expression) => !/\.(ns|dictNs)$/.test(expression.replace(/!/g, "")));
+  assert.deepEqual(merged, [], "값의 출처와 무관한 네임스페이스로 사전을 조회합니다 — 남의 상품 번역이 붙거나 한국어가 남습니다.");
+});
+
+/**
  * 모달이 조회할 (네임스페이스, 사전 키) 전부. `buildMarketingCopy` 의 출처 선택과 같은 규칙이다 —
  * 값이 항목에 있으면 항목 ns, 없으면 카테고리 템플릿 ns.
  *
