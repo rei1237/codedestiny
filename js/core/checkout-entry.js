@@ -82,8 +82,14 @@
       '.cd-direct-payment-option span{display:block;font-size:12.5px;line-height:1.45;color:#9B92B8}',
       '.cd-direct-payment-option br{display:none}',
       '.cd-direct-payment-option .cd-direct-payment-desc{display:block;font-size:12.5px;line-height:1.45;color:#9B92B8;word-break:keep-all}',
-      '.cd-direct-payment-option .cd-direct-payment-cardhead{display:flex;align-items:center;gap:8px;margin:0 0 9px}',
-      '.cd-direct-payment-cardhead .cd-direct-payment-badge{flex:0 0 auto;display:inline-flex;align-items:center;min-height:22px;padding:0 11px 0 15px;border-radius:6px;border:1px solid rgba(232,200,138,.32);background:#1E1836;font-size:11px;font-weight:700;letter-spacing:.01em;color:#E8C88A;clip-path:polygon(0% 50%,9% 0%,100% 0%,100% 100%,9% 100%);-webkit-clip-path:polygon(0% 50%,9% 0%,100% 0%,100% 100%,9% 100%)}',
+      // 🔴 헤드는 줄바꿈이 가능해야 한다 — 배지(등급 접두가 붙는 es 에서 가장 길다)와 추천 리본이
+      // 한 줄에 못 들어가면 다이얼로그의 overflow-x:hidden 이 스크롤바 없이 조용히 잘라 낸다.
+      // gap:8px 이 줄 간격도 겸한다.
+      '.cd-direct-payment-option .cd-direct-payment-cardhead{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 9px}',
+      // 🔴 배지는 축소만 허용하고(flex:0 1) 확장은 막는다 — 이 선택자는 배지가 유일한 자식인
+      // 2단계 카드에도 걸려서, flex-grow 를 주면 배지가 헤드 폭까지 늘어나 clip-path 화살촉이
+      // 뭉개진다. min-width 는 auto(=min-content) 로 둬야 글자가 배지 안에서 안 잘린다.
+      '.cd-direct-payment-cardhead .cd-direct-payment-badge{flex:0 1 auto;display:inline-flex;align-items:center;min-height:22px;padding:0 11px 0 15px;border-radius:6px;border:1px solid rgba(232,200,138,.32);background:#1E1836;font-size:11px;font-weight:700;letter-spacing:.01em;color:#E8C88A;clip-path:polygon(0% 50%,9% 0%,100% 0%,100% 100%,9% 100%);-webkit-clip-path:polygon(0% 50%,9% 0%,100% 0%,100% 100%,9% 100%)}',
       '.cd-direct-payment-badge .cd-direct-payment-glyph{display:inline;margin-right:5px;font-size:11.5px;line-height:1}',
       '.cd-direct-payment-cardhead .cd-direct-payment-recommend{margin-left:auto;flex:0 0 auto;display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;border:1px solid rgba(244,190,209,.55);background:linear-gradient(135deg,#FDF2D9,#E8C88A);color:#170F2A;font-size:10.5px;font-weight:800;letter-spacing:.01em;box-shadow:0 0 10px rgba(244,190,209,.35)}',
       '.cd-direct-payment-option strong .cd-direct-payment-amount{display:inline;color:#E8C88A;font-size:17px;font-weight:800;letter-spacing:.01em}',
@@ -108,7 +114,7 @@
       // 🔴 컨테이너는 <button> 이 아니다(버튼 중첩 금지). 누를 수 있는 건 칩뿐이고, 칩이
       // data-pay-method 를 들고 있어 렌더러 3종의 closest('[data-pay-method]') 델리게이션을 그대로 탄다.
       '.cd-direct-payment-giftgroup{width:100%;margin:0;padding:11px 13px;border:1px solid rgba(232,200,138,.16);border-radius:14px;background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,0) 55%),#251F45;box-shadow:inset 0 1px 0 rgba(237,232,245,.06);color:inherit;text-align:left}',
-      '.cd-direct-payment-giftgroup .cd-direct-payment-cardhead{display:flex;align-items:center;gap:8px;margin:0 0 6px}',
+      '.cd-direct-payment-giftgroup .cd-direct-payment-cardhead{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 6px}',
       '.cd-direct-payment-giftgroup-title{display:block;margin:0 0 2px;font-size:13.5px;font-weight:700;line-height:1.32;color:#F5F1FB;word-break:keep-all}',
       '.cd-direct-payment-giftgroup-desc{display:block;margin:0 0 8px;font-size:11.5px;line-height:1.45;color:rgba(155,146,184,.85);word-break:keep-all}',
       '.cd-direct-payment-giftchips{display:flex;flex-wrap:wrap;gap:6px}',
