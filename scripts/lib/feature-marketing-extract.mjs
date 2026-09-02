@@ -104,22 +104,41 @@ export function resolveMarketingCopy(copy, key, depth = 0) {
   return clonePreviewData(data);
 }
 
+/**
+ * `inherit` 을 끝까지 따라간 **원본 키**. 사전 네임스페이스는 이 키로 정한다.
+ *
+ * 🔴 별칭 자신의 키로 ns 를 만들면 11개 로케일에 한국어가 샌다 — 2026-09-03 실측:
+ * COPY 141키 중 en 사전에 자기 네임스페이스가 없는 40키가 **전부** 별칭이고, 그 40개의
+ * 원본은 **전부** 네임스페이스를 갖고 있다(고아 0). `verify:feature-marketing-dictionary` 는
+ * 별칭을 건너뛰므로("별칭은 원본에서 검사된다") 이 어긋남을 잡지 못한다.
+ */
+export function originMarketingKey(copy, key, depth = 0) {
+  if (!key || depth > 6) return key || "";
+  const data = copy[key];
+  if (data && data.inherit) return originMarketingKey(copy, data.inherit, depth + 1);
+  return key;
+}
+
 /* ── 생성 JSON ─────────────────────────────────────────────────────── */
 
 /**
  * 셸 HTML → 생성 JSON 데이터. 소비자가 셸 파싱도 상속 해소도 하지 않도록 미리 끝내 둔다.
  *   items[셸 카피 키]   = { dictNs, copy }   — dictNs 는 `featureMarketing.<dictNs>` 조회용
  *   templates[카테고리] = { dictNs, copy }   — 카테고리 템플릿, ns 는 `template_<카테고리>`
+ *   categoryKeyByKo     = { 한국어 표기: 키 } — `featureMarketingCategory.<키>` 조회용
  */
 export function buildFeatureMarketingCopy(html) {
   const rawCopy = extractObjectLiteral(html, "FEATURE_MARKETING_COPY");
   const rawTemplates = extractObjectLiteral(html, "FEATURE_MARKETING_TEMPLATES");
+  // 카테고리 칩의 한국어 표기 → 사전 키. 셸 `_localizeMarketingCopy` 가 쓰는 표와 같은 것을
+  // 그대로 옮긴다 — React 쪽에 손으로 베끼면 표가 갈려 칩만 한국어로 남는다(그 상태였다).
+  const categoryKeyByKo = extractObjectLiteral(html, "_MARKETING_CATEGORY_KEY_BY_KO");
 
   const items = {};
   for (const key of Object.keys(rawCopy)) {
     const resolved = resolveMarketingCopy(rawCopy, key);
     if (!resolved) continue;
-    items[key] = { dictNs: safeKey(key), copy: resolved };
+    items[key] = { dictNs: safeKey(originMarketingKey(rawCopy, key)), copy: resolved };
   }
 
   const templates = {};
@@ -127,7 +146,7 @@ export function buildFeatureMarketingCopy(html) {
     templates[id] = { dictNs: `template_${id}`, copy: clonePreviewData(entry) };
   }
 
-  return { templates, items };
+  return { categoryKeyByKo, templates, items };
 }
 
 /** 객체 키를 재귀적으로 정렬한다 — 셸에서 항목 순서만 바뀌어도 생성물이 흔들리지 않게. */

@@ -26,12 +26,13 @@ const data = buildFeatureMarketingCopy(readShellHtml());
 
 const itemCount = Object.keys(data.items).length;
 const templateCount = Object.keys(data.templates).length;
+const categoryCount = Object.keys(data.categoryKeyByKo).length;
 
 // fail-closed: 추출이 깨지면 빈 JSON 을 커밋해 소비자를 조용히 비우는 대신 여기서 멈춘다.
-if (!itemCount || !templateCount) {
+if (!itemCount || !templateCount || !categoryCount) {
   console.error(
-    `[sync:marketing-copy] 추출이 비었습니다(항목 ${itemCount} / 템플릿 ${templateCount}) — ` +
-    "index.html 의 FEATURE_MARKETING_COPY 구조가 바뀌었는지 확인하세요.",
+    `[sync:marketing-copy] 추출이 비었습니다(항목 ${itemCount} / 템플릿 ${templateCount} / ` +
+    `카테고리 표기 ${categoryCount}) — index.html 의 FEATURE_MARKETING_COPY 구조가 바뀌었는지 확인하세요.`,
   );
   process.exit(1);
 }
@@ -40,4 +41,7 @@ mkdirSync(dirname(GENERATED_COPY_PATH), { recursive: true });
 writeFileSync(GENERATED_COPY_PATH, serializeFeatureMarketingCopy(data), "utf8");
 
 const shown = relative(resolve(process.cwd()), GENERATED_COPY_PATH).split("\\").join("/");
-console.log(`[sync:marketing-copy] OK — 항목 ${itemCount}개 / 템플릿 ${templateCount}종 → ${shown}`);
+console.log(
+  `[sync:marketing-copy] OK — 항목 ${itemCount}개 / 템플릿 ${templateCount}종 / ` +
+  `카테고리 표기 ${categoryCount}종 → ${shown}`,
+);

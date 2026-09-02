@@ -1,4 +1,28 @@
 {
+  "categoryKeyByKo": {
+    "꿈 상징": "dream",
+    "명상": "meditation",
+    "베다 점성술": "vedicastro",
+    "베다점": "vedic",
+    "사주": "saju",
+    "사주 수호신": "guardian",
+    "서양 점성술": "westernastro",
+    "숙요점": "sukuyo",
+    "시빌라 시스템": "sibyl",
+    "신년운세": "newyear",
+    "연애 명리": "love",
+    "오라클": "oracle",
+    "요가": "yoga",
+    "음악": "music",
+    "인생 명리": "life",
+    "자미두수": "ziwei",
+    "자미두수 심화": "ziweideep",
+    "작명": "naming",
+    "점성술": "astrology",
+    "초융합": "fusion",
+    "타로": "tarot",
+    "프리미엄 리포트": "report"
+  },
   "items": {
     "/astrology-ai": {
       "copy": {
@@ -95,7 +119,7 @@
           ]
         }
       },
-      "dictNs": "astrology_ai"
+      "dictNs": "astrology_ai_consultation"
     },
     "/astrology/": {
       "copy": {
@@ -190,7 +214,7 @@
           "7일 별빛 조율 가이드"
         ]
       },
-      "dictNs": "celestial_harmony_html"
+      "dictNs": "tarot_celestial_harmony"
     },
     "/codedestiny-novel.html": {
       "copy": {
@@ -317,7 +341,7 @@
           ]
         }
       },
-      "dictNs": "cosmic_soul_meditation_html"
+      "dictNs": "openCosmicSoulMeditation"
     },
     "/daily-fortune/": {
       "copy": {
@@ -762,7 +786,7 @@
           "일상에서 실천할 구체적 행동"
         ]
       },
-      "dictNs": "ifa_oracle_html"
+      "dictNs": "openIfaOracle"
     },
     "/insights/famous-saju": {
       "copy": {
@@ -905,7 +929,7 @@
           ]
         }
       },
-      "dictNs": "karma_destiny_ai"
+      "dictNs": "karma_destiny_ai_consultation"
     },
     "/life-book-ai": {
       "copy": {
@@ -1388,7 +1412,7 @@
           "오래 가는 처방과 오늘의 질문"
         ]
       },
-      "dictNs": "oracle_sukuyo"
+      "dictNs": "openSukuyoModal"
     },
     "/oracle/sukuyo/": {
       "copy": {
@@ -1468,7 +1492,7 @@
           "오래 가는 처방과 오늘의 질문"
         ]
       },
-      "dictNs": "oracle_sukuyo"
+      "dictNs": "openSukuyoModal"
     },
     "/palm-reading": {
       "copy": {
@@ -1843,7 +1867,7 @@
           "관계 MBTI와 해시태그"
         ]
       },
-      "dictNs": "saju_destiny_bias"
+      "dictNs": "openDestinyBias"
     },
     "/saju/destiny-meeting-place": {
       "copy": {
@@ -2030,7 +2054,7 @@
           ]
         }
       },
-      "dictNs": "saju_love_simulation"
+      "dictNs": "openLoveSimulation"
     },
     "/saju/sibyl": {
       "copy": {
@@ -2459,7 +2483,7 @@
           ]
         }
       },
-      "dictNs": "ziwei_ai"
+      "dictNs": "gotoZiweiPremium"
     },
     "/ziwei/": {
       "copy": {
@@ -2719,7 +2743,7 @@
           ]
         }
       },
-      "dictNs": "cosmic_soul_meditation"
+      "dictNs": "openCosmicSoulMeditation"
     },
     "destiny-bias-analyze": {
       "copy": {
@@ -2797,7 +2821,7 @@
           "관계 MBTI와 해시태그"
         ]
       },
-      "dictNs": "destiny_bias_analyze"
+      "dictNs": "openDestinyBias"
     },
     "destiny-compass-life-voyage": {
       "copy": {
@@ -2824,7 +2848,7 @@
         ],
         "subheadline": "사주 흐름과 지금의 선택지를 함께 놓고, 방향과 시점을 나눠 읽어 주는 리포트형 해석입니다."
       },
-      "dictNs": "destiny_compass_life_voyage"
+      "dictNs": "destiny_compass"
     },
     "destiny_meeting_place": {
       "copy": {
@@ -2919,7 +2943,7 @@
           ]
         }
       },
-      "dictNs": "destiny_meeting_place"
+      "dictNs": "saju_destiny_meeting_place"
     },
     "dream-psycho-analysis": {
       "copy": {
@@ -2952,7 +2976,7 @@
           "결제 후 기존 정신분석 해몽 화면으로 이동"
         ]
       },
-      "dictNs": "dream_psycho_analysis"
+      "dictNs": "openPsychoDreamModal"
     },
     "flower-fc": {
       "copy": {
@@ -3048,7 +3072,7 @@
         ],
         "subheadline": "연이와 네오 두 화자가 같은 질문을 다른 결로 받아, 주고받는 대화 속에서 지금 상황의 초점을 좁혀 가는 상담입니다."
       },
-      "dictNs": "fortune_chat_consultation"
+      "dictNs": "fortune_chat"
     },
     "fortune-tea-house-tarot-consultation": {
       "copy": {
@@ -3075,7 +3099,7 @@
         ],
         "subheadline": "연이가 이야기를 먼저 듣고, 타로와 사주 상징을 섞어 지금 마음의 자리와 다음 한 걸음을 정리해 주는 대화형 상담입니다."
       },
-      "dictNs": "fortune_tea_house_tarot_consultation"
+      "dictNs": "fortune_tea_house"
     },
     "fusion-fortune-consultation": {
       "copy": {
@@ -3190,7 +3214,7 @@
           ]
         }
       },
-      "dictNs": "fusion_fortune_consultation"
+      "dictNs": "fusion_fortune"
     },
     "gotoAstrologyPremium": {
       "copy": {
@@ -3287,7 +3311,7 @@
           ]
         }
       },
-      "dictNs": "gotoAstrologyPremium"
+      "dictNs": "astrology_ai_consultation"
     },
     "gotoSukuyoPremium": {
       "copy": {
@@ -3499,7 +3523,7 @@
         "subheadline": "출생 데이터로 타입·전략·내적권위·센터 정의를 계산해, 결정과 소모의 방식이 어떻게 설계돼 있는지 보여 줍니다.",
         "unlockBenefits": []
       },
-      "dictNs": "human_design_chart"
+      "dictNs": "human_design"
     },
     "ifa-oracle": {
       "copy": {
@@ -3568,7 +3592,7 @@
           "일상에서 실천할 구체적 행동"
         ]
       },
-      "dictNs": "ifa_oracle"
+      "dictNs": "openIfaOracle"
     },
     "karma-destiny-ai-consultation": {
       "copy": {
@@ -3734,7 +3758,7 @@
           ]
         }
       },
-      "dictNs": "life_book_ai_consultation"
+      "dictNs": "life_book_ai"
     },
     "life-fortune-ai-consultation": {
       "copy": {
@@ -3817,7 +3841,7 @@
           ]
         }
       },
-      "dictNs": "life_fortune_ai_consultation"
+      "dictNs": "premium_unlock"
     },
     "love-secret-ai-consultation": {
       "copy": {
@@ -3901,7 +3925,7 @@
           ]
         }
       },
-      "dictNs": "love_secret_ai_consultation"
+      "dictNs": "love_secret_ai"
     },
     "loveSimulation": {
       "copy": {
@@ -3993,7 +4017,7 @@
           ]
         }
       },
-      "dictNs": "loveSimulation"
+      "dictNs": "openLoveSimulation"
     },
     "luck-sync-diary": {
       "copy": {
@@ -4023,7 +4047,7 @@
         "subheadline": "오늘의 흐름을 기록하고 월간 플래너에서 지난 기록과 나란히 볼 수 있는 다이어리입니다.",
         "unlockBenefits": []
       },
-      "dictNs": "luck_sync_diary"
+      "dictNs": "openLuckSyncDiary"
     },
     "master-love-codex": {
       "copy": {
@@ -4257,7 +4281,7 @@
         "subheadline": "두 사람의 유형을 각각 동물 토템으로 옮기고, 그 조합이 어떤 방식으로 맞물리는지 관계 궁합으로 풀어 줍니다.",
         "unlockBenefits": []
       },
-      "dictNs": "mbti_animal_compat"
+      "dictNs": "openMbtiModal"
     },
     "nakshatra-ai-consultation": {
       "copy": {
@@ -4695,7 +4719,7 @@
           ]
         }
       },
-      "dictNs": "neville_meditation"
+      "dictNs": "openNevilleMeditationPage"
     },
     "new-year-ai-consultation": {
       "copy": {
@@ -4845,7 +4869,7 @@
           "질문의 결에 맞춘 조언"
         ]
       },
-      "dictNs": "openAnimalTotemModal"
+      "dictNs": "openKemetModal"
     },
     "openAstroModal": {
       "copy": {
@@ -4979,7 +5003,7 @@
           "7일 별빛 조율 가이드"
         ]
       },
-      "dictNs": "openCelestialHarmony"
+      "dictNs": "tarot_celestial_harmony"
     },
     "openCosmicSoulMeditation": {
       "copy": {
@@ -6116,7 +6140,7 @@
           "부적 주머니 — 오늘의 색 · 소환 주문 · 작은 실행 · 시간 열쇠"
         ]
       },
-      "dictNs": "openSajuAnimalPage"
+      "dictNs": "openSajuGuardianPage"
     },
     "openSajuGuardianPage": {
       "copy": {
@@ -6830,7 +6854,7 @@
           ]
         }
       },
-      "dictNs": "premium_naming_prompt"
+      "dictNs": "openNamingPromptModal"
     },
     "premium-sibyl-dominator": {
       "copy": {
@@ -6857,7 +6881,7 @@
         ],
         "subheadline": "원국과 지금 지나는 운을 함께 놓고, 반복되는 패턴과 그 뿌리까지 짚어 주는 심층 상담형 해석입니다."
       },
-      "dictNs": "premium_sibyl_dominator"
+      "dictNs": "saju_sibyl"
     },
     "premium-veda-compatibility-addon": {
       "copy": {
@@ -8153,7 +8177,7 @@
           ]
         }
       },
-      "dictNs": "sukuyo_compatibility_ai"
+      "dictNs": "gotoSukuyoPremium"
     },
     "tarot-celestial-harmony": {
       "copy": {
@@ -8254,7 +8278,7 @@
           "결제 후 기존 타로 리딩 화면으로 이동"
         ]
       },
-      "dictNs": "tarot_love_relationship"
+      "dictNs": "openTarotLoveModal"
     },
     "tarot-numerology-reading": {
       "copy": {
@@ -8281,7 +8305,7 @@
         ],
         "subheadline": "생명수와 오늘수를 계산해 그 수에 맞는 카드를 배치하고, 타고난 결과 오늘의 흐름을 다섯 장으로 나눠 읽는 리딩입니다."
       },
-      "dictNs": "tarot_numerology_reading"
+      "dictNs": "tarot_numerology"
     },
     "tarot-prompt-maker": {
       "copy": {
@@ -8418,7 +8442,7 @@
           "7일 안에 지킬 재회 체크리스트"
         ]
       },
-      "dictNs": "tarot_reunion_reading"
+      "dictNs": "openTarotReunionModal"
     },
     "tarot-year-fortune": {
       "copy": {
@@ -8487,7 +8511,7 @@
           "저장된 결과 다시 보기"
         ]
       },
-      "dictNs": "tarot_year_fortune"
+      "dictNs": "openTarotYearFortuneModal"
     },
     "vedic-ai-consultation": {
       "copy": {
@@ -8681,7 +8705,7 @@
           ]
         }
       },
-      "dictNs": "yoga_guru_per_use"
+      "dictNs": "openYogaGuru"
     },
     "ziwei-ai-consultation": {
       "copy": {
@@ -8780,7 +8804,7 @@
           ]
         }
       },
-      "dictNs": "ziwei_ai_consultation"
+      "dictNs": "gotoZiweiPremium"
     },
     "ziwei-deep-pdf": {
       "copy": {

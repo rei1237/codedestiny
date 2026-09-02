@@ -86,11 +86,53 @@ test("별칭이 해소돼 inherit 이 남아 있지 않다", async () => {
 
 test("dictNs 가 셸의 사전 조회 키와 같은 규칙을 따른다", async () => {
   const { lib, data } = await load();
+  const raw = lib.extractObjectLiteral(lib.readShellHtml(), "FEATURE_MARKETING_COPY");
   for (const [key, entry] of Object.entries(data.items)) {
-    assert.equal(entry.dictNs, lib.safeKey(key), `${key}: dictNs 가 _pvwSafeKey 규칙과 다릅니다.`);
+    assert.equal(
+      entry.dictNs,
+      lib.safeKey(lib.originMarketingKey(raw, key)),
+      `${key}: dictNs 가 _pvwSafeKey(원본 키) 규칙과 다릅니다.`,
+    );
     assert.match(entry.dictNs, /^[A-Za-z0-9_]+$/, `${key}: dictNs 에 사전 키로 못 쓰는 문자가 있습니다.`);
   }
   for (const [id, entry] of Object.entries(data.templates)) {
     assert.equal(entry.dictNs, `template_${id}`, `template ${id}: dictNs 가 셸 규칙(template_<카테고리>)과 다릅니다.`);
   }
+});
+
+/**
+ * 🔴 `verify:feature-marketing-dictionary` 가 못 보는 축이다 — 그 가드는 별칭(`inherit`)을
+ * 통째로 건너뛰므로, 별칭이 자기 이름으로 사전을 찾다가 못 찾는 상황을 잡지 못한다.
+ * 여기서 "생성 JSON 의 모든 dictNs 가 en 사전에 실재한다"를 직접 문다.
+ */
+test("모든 dictNs 가 en 사전에 실재한다", async () => {
+  const { data } = await load();
+  const en = JSON.parse(readFileSync(path.resolve(ROOT, "public/i18n/en.json"), "utf8"));
+  const dict = en.featureMarketing || {};
+  assert.ok(Object.keys(dict).length > 0, "en.json 에 featureMarketing 네임스페이스가 없습니다.");
+
+  const missing = [];
+  for (const [key, entry] of Object.entries(data.items)) {
+    if (!dict[entry.dictNs]) missing.push(`${key} → ${entry.dictNs}`);
+  }
+  assert.equal(
+    missing.length,
+    0,
+    `사전에 없는 네임스페이스를 가리키는 카피 키가 있습니다(11개 로케일에 한국어가 그대로 나갑니다): ${missing.join(", ")}`,
+  );
+});
+
+test("카테고리 표기표가 featureMarketingCategory 사전과 맞는다", async () => {
+  const { data } = await load();
+  const table = data.categoryKeyByKo || {};
+  assert.ok(Object.keys(table).length >= 20, `카테고리 표기표가 ${Object.keys(table).length}건입니다 — 추출이 깨졌는지 확인하세요.`);
+
+  const en = JSON.parse(readFileSync(path.resolve(ROOT, "public/i18n/en.json"), "utf8"));
+  const dict = en.featureMarketingCategory || {};
+  const missing = Object.entries(table).filter(([, key]) => typeof dict[key] !== "string" || !dict[key]);
+  assert.equal(
+    missing.length,
+    0,
+    `featureMarketingCategory 사전에 없는 키가 있습니다: ${missing.map(([ko, key]) => `${ko}→${key}`).join(", ")}`,
+  );
 });
