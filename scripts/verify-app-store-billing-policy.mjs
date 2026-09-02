@@ -39,8 +39,9 @@ function check(label, condition, detail = "") {
 function buildEntitlementUpdate({ product }) {
   if (product.billingType === PAID_FEATURE_BILLING_TYPES.PER_USE) return null;
   const update = { $addToSet: { unlockedFeatures: product.featureKey, paidFeatures: product.featureKey } };
-  // Google Play pass SKUs are legacy/deprecated and cannot grant new access.
-  if (product.kind === "pass") return null;
+  if (product.kind === "pass" && product.passTier) {
+    update.$set = { "profileSubscription.tier": product.passTier, "profileSubscription.passTier": product.passTier };
+  }
   return update;
 }
 
@@ -82,14 +83,14 @@ for (const featureKey of ["section_daewun", "flower-fc", "premium-ziwei"]) {
   );
 }
 
-console.log("\n[3] Google Play 이용권 신규 권한 지급은 차단되는가");
+console.log("\n[3] 이용권은 inapp인데도 profileSubscription이 갱신되는가");
 for (const passTier of ["standard", "premium", "vvip", "family"]) {
   const pass = resolveAppPassProduct(passTier);
   const product = pass && { kind: "pass", featureKey: `app-pass-${passTier}`, passTier, billingType: PAID_FEATURE_BILLING_TYPES.UNLOCK };
   const update = product ? buildEntitlementUpdate({ product }) : null;
   check(
-    `${passTier} 이용권 → 신규 권한 지급 차단`,
-    update === null,
+    `${passTier} 이용권 → profileSubscription.passTier 세팅`,
+    update?.$set?.["profileSubscription.passTier"] === passTier,
     pass ? `productId=${pass.productId}` : "이용권 상품 없음",
   );
 }

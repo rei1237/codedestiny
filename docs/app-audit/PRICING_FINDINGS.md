@@ -3,8 +3,9 @@
 > Phase 0 진단 중 마주친 가격·결제 영역 관찰 기록. 프롬프트 §1-A/§1-B에 따라 **1줄도 수정하지 않았다.**
 > 이 목록은 "고쳐야 한다"가 아니라 "별도 트랙에서 판단할 것"이다.
 
-## 1. 앱 이용권 신규 구매가 코드로 비활성화되어 있음
-- `app/app/store/AppPassStoreClient.tsx:73` — `APP_PASS_PURCHASE_DISABLED = true`. Google Play 이용권 신규 구매가 꺼져 있고 "웹 PG 단건 결제로만" 안내 문구를 렌더(:208-216). 의도된 상태인지(정책) 임시 조치인지 확인 필요.
+## 1. 앱 이용권 신규 구매가 코드로 비활성화되어 있음 — 해소(2026-09-03)
+- (당시) `app/app/store/AppPassStoreClient.tsx:73` — `APP_PASS_PURCHASE_DISABLED = true`. Google Play 이용권 신규 구매가 꺼져 있고 "웹 PG 단건 결제로만" 안내 문구를 렌더(:208-216).
+- 판정: 임시 조치였다. 앱 내 이용권 구매가 의도된 동작이라 플래그와 서버 4개 게이트(`PASS_PURCHASE_CHANNEL_DISABLED`)를 걷어냈다.
 
 ## 2. 금액 포맷터가 정본 외 로컬 중복 5곳
 - 정본: `lib/payment/coin-pricing.ts` `formatKrwFromCoins`
@@ -18,8 +19,8 @@
 - `scripts/app-payment-guard.js:161-167` — `window.PortOne`을 undefined로 고정(configurable:false), `:180-181` `_cdRunDirectKrwCheckout`/`_dpRunDirectKrwCheckout` 핀 고정, `:207-214` alert에서 PG 문구 제거. 앱 결제 진입은 `window.__cdOpenChargeModal` → `/app/store/` 고정(:184-200).
 - 이 가드 스크립트 자체가 **빌드 후처리 주입**이므로, 주입 실패 시 웹 결제 UI가 앱에 그대로 노출될 수 있는 구조적 의존이 있다(판별 단일화 이슈 — DIAGNOSIS_REPORT §0-1 P0 #2와 동일 뿌리).
 
-## 5. 앱 상점의 가격 칸이 전부 `—`로 렌더되는 상태
-- `APP_PASS_PURCHASE_DISABLED = true`의 연쇄: `loadProducts()`가 `nativeReady=false`로 조기 종료(`AppPassStoreClient.tsx:104-108`) → Play `formattedPrice`가 채워지지 않아 모든 가격 칸이 `—`(`:264`). 레이아웃 버그가 아니라 플래그 상태의 결과.
+## 5. 앱 상점의 가격 칸이 전부 `—`로 렌더되는 상태 — 해소(2026-09-03, 1번과 같은 원인)
+- (당시) `APP_PASS_PURCHASE_DISABLED = true`의 연쇄: `loadProducts()`가 `nativeReady=false`로 조기 종료(`AppPassStoreClient.tsx:104-108`) → Play `formattedPrice`가 채워지지 않아 모든 가격 칸이 `—`(`:264`). 레이아웃 버그가 아니라 플래그 상태의 결과.
 - productId 정본: `cd_pass_{standard,premium,vvip,family}_30d`(`:30-53`). 커버 금액은 `/api/app-store/products?passTier=` 서버 응답.
 
 ## 6. 앱 번들에 남는 PortOne 흔적 (가드가 런타임에만 봉쇄)
