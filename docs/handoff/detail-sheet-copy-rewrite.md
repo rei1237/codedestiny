@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-02
-next: "배치 1 완료 12종 톤 패스(PR-A2 잔여) → PR-B(#cdFinder 배선, paid-gate-auditor 선행). PR-C 는 #1473 으로 끝났다"
+next: "PR-B(#cdFinder 배선, paid-gate-auditor 선행). 톤 패스는 #1479 로 끝났다 — 🔴 머지는 #1473 → #1479 순서"
 ---
 
 # 인수인계 — 상세 팝업 문구를 사실 기반으로 재작성
@@ -30,6 +30,7 @@ next: "배치 1 완료 12종 톤 패스(PR-A2 잔여) → PR-B(#cdFinder 배선,
 | #1457 | **배치 2 = PR-A1** — 유료 15종(타로 4 · 오라클 6 · 해금형 4) 재작성 + `'/tarot/prompt-maker/'` 별칭 + "63개 스프레드"→77 정정 | 머지됨 |
 | #1467 | **배치 3 = PR-A2** — 사주 파생 4 · 명상/요가 2 · 작명 1 · 상담 3 재작성 + 최애운명 무료 오분류 수정 + 손금 `featureId` 정정 | 머지됨 |
 | #1473 | **PR-C** — 재작성 24종을 11개 로케일에 반영 + 하이픈 죽은 키 10개 정리 + `feats` 오염 5종 수정 + 새 가드 | PR 생성·CI 통과 |
+| #1479 | **톤 패스** — App Router 모달의 지어낸 결과 예시 17블록 제거 + 사전 223노드 정리 + 가드를 허브까지 확장 | PR 생성·CI 통과 · 🔴 #1473 뒤에 머지 |
 
 #629 로 **명백한 허위(없는 결과물을 결과라고 보여주던 것)는 제거됐다.** 가드도 반전돼
 `sampleReport`/`resultPreview` 는 이제 **금지 필드**다(`scripts/verify-feature-marketing-schema.mjs`).
@@ -226,21 +227,42 @@ console.log('feats 있음',k.filter(x=>M[x].feats).length);"
 1. **사전이 아예 없는 COPY 키 28개** — 홈 개편으로 생긴 무료 허브·상담 타일(`/saju/`·`/tarot/`·`/ziwei/`·
    `/daily-fortune/`·`/today/`·`openMbtiModal`·`openSukuyoModal`·`/points/`·`/music/` 등). **11개 로케일에
    한국어가 그대로 나간다.** 가드의 `UNTRANSLATED_BUDGET=28` 래칫이 증가만 막고 있다.
-2. **App Router 모달의 `resultPreview`** — `FeatureMarketingDetailModal.tsx` 의 `EXPLICIT_COPY` 9종이 아직
-   **지어낸 결과 예시 줄**을 들고 있다. 셸에서는 `verify:feature-marketing-schema` 가 그 필드를 금지한다
-   ("가짜 결과 예시 0"). 사용자가 처음 지적한 것과 같은 종류다 — **톤 패스에서 처리할 것.**
+2. ~~**App Router 모달의 `resultPreview`**~~ → **#1479 로 해결**(아래).
+
+### 톤 패스 (2026-09-02, PR #1479 · CI 통과)
+
+배치 1 12종의 문안을 손보러 들어갔다가 **더 큰 것**을 찾았다. `FeatureMarketingDetailModal.tsx` 가
+지어낸 결과 예시를 **17블록** 들고 있었다 — `EXPLICIT_COPY` 의 `resultPreview` 9종뿐 아니라
+`CATEGORY_COPY` 의 `sampleReport` **8종**까지. 후자는 카테고리 기본값이라 그 카테고리로 떨어지는
+**모든** 상품에 붙는다. 캡션이 "실제 … 결과의 도입부를 **그대로 옮긴** 샘플"이라고 단언한다.
+
+🔴 **가드가 초록불이었던 이유**: `verify:feature-marketing-schema` 는 그 필드를 금지하지만
+**`index.html` 만 읽었다.** `/app` 사본은 아무도 안 봤다. 이제 허브 모달까지 보고, 파일을 못 읽으면
+실패한다(fail-closed). 변이 주입으로 무는 것을 확인했다.
+
+지운 것: 데이터 17블록 · 죽은 코드(타입 2·필드 2·localize 2·렌더 섹션 ③) = `.tsx` **-99줄** ·
+사전 **223노드**(11개 로케일 × 17 + `preview.sample*` 3키 × 12).
+
+🔴 **배치 1 12종의 문안 자체는 손대지 않았다.** 그중 7종이 카테고리 템플릿의 일반 `analysisSteps` 를
+물려받지만, 워커 라우트를 확인하니 **7종 전부 실제로 질문 입력을 받는다**
+(`karma-destiny-ai.js:433,561` · `life-book-ai.js:1027` · `love-secret-ai.js:294` ·
+`sukuyo-compatibility-ai.js:334` · `new-year-ai.js:291,877` · `neo-operation-room.js:188`).
+**거짓이 아니라 일반적일 뿐**이라 기능별 저작은 선택 사항으로 남긴다.
 
 ### 다음 배치 후보 (권고 순서)
 
-1. **배치 1 완료 12종의 톤 패스** — PR-A2 에서 넘어온 잔여분. 검증된 사실 재사용, 새 주장 추가 금지.
-   위 PR-C 남은 구멍 2번(App Router `resultPreview`)을 여기서 같이 없앤다.
-2. **PR-B** — `#cdFinder` 추천 카드 배선. 🔴 `data-feature-key` 가 결제 인터셉터 입력이라 **`paid-gate-auditor` 선행**.
-3. **사전 없는 28종 저작** — 위 남은 구멍 1번.
-4. 사주 `rpt_*` 13종 — `js/core/saju/*` 규칙 엔진이라 산출 구조를 그대로 읽을 수 있다.
+1. **PR-B** — `#cdFinder` 추천 카드 배선. 🔴 `data-feature-key` 가 결제 인터셉터 입력이라 **`paid-gate-auditor` 선행**.
+2. **사전 없는 28종 저작** — 위 남은 구멍 1번.
+3. 사주 `rpt_*` 13종 — `js/core/saju/*` 규칙 엔진이라 산출 구조를 그대로 읽을 수 있다.
+4. (선택) 배치 1 중 7종의 기능별 `analysisSteps` 저작 — 위 톤 패스 절 참고. 급하지 않다.
 
 ## 작업 규칙 (이 레포 고유 — 어기면 CI 가 막는다)
 
 - `index.html` 을 고치면 **반드시** `npm run sync:public` (셸 7종 + js 미러 동기화)
+- 🔴 **스택 PR 의 base 를 부모 브랜치로 두면 CI 가 한 건도 안 돈다** — `pr-ci.yml` 트리거가
+  `branches: [main]` 이다. `no checks reported` 는 GitHub 이 이벤트를 흘린 게 아니라 이것이다.
+  base 를 `main` 으로 바꾼 뒤 **close → reopen** 해야 런이 뜬다(`edited` 는 트리거 타입에 없다).
+  머지 순서 제약은 base 와 무관하게 그대로다 — 부모 PR 을 먼저 머지한다.
 - 격리 워크트리에서 작업한다 — 메인 작업 디렉터리를 다른 세션이 동시에 쓴다(실사고 있음):
   ```
   git worktree add .claude/worktrees/<name> -b <branch> origin/main
