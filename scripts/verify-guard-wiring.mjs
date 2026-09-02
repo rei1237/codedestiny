@@ -165,7 +165,6 @@ const UNWIRED_BY_DESIGN = [
   ["verify:fusion-fortune-delivery-floor", "배선 후보(미승인) — 초융합 배달 바닥(품질 미달은 강등 배달, 안전 위반은 반려)"],
   ["verify:fusion-fortune-pdf", "배선 후보(미승인) — 초융합 텍스트 PDF 문서 구성(본문 누락·빈 장·개인정보)"],
   ["verify:no-timestamp-conflict", "배선 후보(미승인) — 현재 worker/payments 3건 오탐 상태라 배선 전 수정 필요"],
-  ["verify:vn-override-safety", "배선 후보(미승인) — VN 오버라이드 안전성"],
   ["verify:cms-registry", "배선 후보(미승인) — CMS 레지스트리"],
   ["verify:today-hub-gate", "배선 후보(미승인) — 오늘 허브 게이트"],
   ["verify:app-no-portone", "배선 후보(미승인) — build:mobile:app 이 파일 경로로 직접 부른다"],

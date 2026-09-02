@@ -2,12 +2,11 @@
 // 플레이어 청크와 텍스트 리더는 뒤이은 story:generate에서 함께 다시 생성된다.
 import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { BEAT_MAX_LENGTH, FORBIDDEN_IN_BEAT } from "./lib/novel-constraints.mjs";
 
 const ROOT = resolve(import.meta.dirname, "..");
 const SOURCE_PATH = resolve(ROOT, "content/novel/episodes.source.json");
 const OVERRIDES_PATH = resolve(ROOT, "lib/stories/vn/overrides.generated.json");
-const BEAT_MAX_LENGTH = 250;
-const FORBIDDEN_IN_BEAT = ["\"", "\\", "</script"];
 
 function toEpisodeSlug(no, index) {
   const raw = String(no || "").trim();
@@ -50,7 +49,7 @@ function applyEpisodeOverride(episode, override, slug, report) {
       report.warnings.push(`${slug}: 비트 인덱스 ${readerIndexRaw}가 범위를 벗어나 건너뜁니다.`); continue;
     }
     if (!isSafeBeatText(text)) {
-      report.warnings.push(`${slug}: 비트 ${readerIndexRaw} 텍스트가 안전 규칙(250자·금칙문자)에 걸려 건너뜁니다.`); continue;
+      report.warnings.push(`${slug}: 비트 ${readerIndexRaw} 텍스트가 안전 규칙(${BEAT_MAX_LENGTH}자·금칙문자)에 걸려 건너뜁니다.`); continue;
     }
     const rawIndex = readerToRaw[readerIndex];
     if (episode.beats[rawIndex].t !== text) { episode.beats[rawIndex].t = text; report.beats += 1; changed = true; }

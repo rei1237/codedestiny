@@ -6,7 +6,7 @@ next: "남은 것 없음(세션 6 + PR #1182 로 마감). 새 요구가 생기�
 
 # 라이트 노벨 개선 인수인계 (2026-08-27 · 세션 4까지 완료)
 
-> **이 문서만 읽고 시작할 수 있게 쓴다.** 정본은 44화 8,836비트 · 한글 41.9만 자라 한 세션에 다 못 한다.
+> **이 문서만 읽고 시작할 수 있게 쓴다.** 정본은 44화 8,844비트 · 한글 41.9만 자라 한 세션에 다 못 한다.
 
 ## 🚩 여기서 시작 — 다음 세션이 읽을 순서
 
@@ -312,7 +312,7 @@ next: "남은 것 없음(세션 6 + PR #1182 로 마감). 새 요구가 생기�
 ## 2. 반드시 알고 시작할 것 — 구조와 제약
 
 ```
-content/novel/episodes.source.json   ← 유일한 손편집 대상 (44화 8,836비트, 2.27MB)
+content/novel/episodes.source.json   ← 유일한 손편집 대상 (44화 8,844비트, 2.27MB)
   │  npm run novel:build
   ├→ public/data/novel/manifest.json + episodes/*.json (44청크)
   ├→ lib/stories/vn/episodes.generated.json   ← 텍스트 리더 /stories
@@ -830,7 +830,7 @@ for(const e of d.episodes)e.beats.forEach((b,i)=>{if(!b.skill)return;
   4. §4 떡밥 원장에 행 추가: `EP.23 문지방의 두 번째 그림자 / 「고객님」` → 회수 `EP.24 회장님 관심 자산` · `EP.27 스팅어` · `EP.41 소망 정체`
 - `docs/webnovel_review/webnovel_story_guideline.md` — ✅ 개명 반영 · ✅ 오행 표에 루나 행(류 流)·사의 결 추가(PR #1172) / ⬜ **남은 것: §VN 범위 「4부 인성」 갱신 · 결말 분기 명기**
 - `docs/webnovel_review/webnovel_ending_arc_outline.md` — ✅ 개명 반영 + 이름 이력(묘아 → 박지은 → 서한비) 기재(PR #1172). 레온→박병하 브릿지 설명은 유지했다 / ⬜ **남은 것: 결말 분기 명기**
-- **`docs/context/content-assets.md:13` — 기존 오류 수정**: 「VN = 단일 자립형 `public/codedestiny-novel.html`(EP1~5)」는 낡았다. 실제는 프롤로그+EP.01~43(44화·8,836비트), 정본 = `content/novel/episodes.source.json`, 산출물 2계통. PR #1166 이후 플레이어는 청크를 fetch 한다.
+- **`docs/context/content-assets.md:13` — 기존 오류 수정**: 「VN = 단일 자립형 `public/codedestiny-novel.html`(EP1~5)」는 낡았다. 실제는 프롤로그+EP.01~43(44화·8,844비트), 정본 = `content/novel/episodes.source.json`, 산출물 2계통. PR #1166 이후 플레이어는 청크를 fetch 한다.
 
 ## 8. 검증
 

@@ -107,6 +107,9 @@ push(`${MUSIC}/Meditation/${enc("Still Lake Mind.mp3")}`, "music/Meditation/Stil
 ["LUCKY RUSH_Title.mp3", "Fate Rider.mp3", "불꽃의 운명.mp3"]
   .forEach((n) => push(`${MUSIC}/DEST1NOVA/${enc("DEST1NOVA 2집/" + n)}`, `music/DEST1NOVA/DEST1NOVA 2집/${n}`));
 
+// LunaBloom(귀인 NPC 테마) — 플레이어 TRK 의 lunaGuest 가 가리키는 유일한 곳
+push(`${MUSIC}/lunabloom/${enc("귀인 NPC Key.mp3")}`, "music/lunabloom/귀인 NPC Key.mp3");
+
 const exists = async (p) => { try { await access(p); return true; } catch { return false; } };
 
 let ok = 0, skip = 0, fail = 0;
