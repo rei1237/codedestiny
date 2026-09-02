@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-03
-next: 사용자가 만든 연이 일러스트(작약 화관·진주 목걸이) 를 받아 index.html 의 img src 한 줄만 바꾸고 sync:public
+next: 사용자가 만든 연이 일러스트(작약 화관·진주 목걸이) 를 받아 public/images/fortune-tea-house/yeon-peony-crown.webp 를 덮어쓰고 sync:public
 ---
 
 # 운명의 문 — 연이 화관 일러스트 교체
@@ -13,13 +13,13 @@ next: 사용자가 만든 연이 일러스트(작약 화관·진주 목걸이) �
 ## 지금 상태
 
 - CSS/HTML/가드 쪽은 이 브랜치의 PR 로 끝났다(팔레트·라인아트·글로우·네오 제거·`.logo-area p` 대비 결함 수정). `gh pr list` 로 확인.
-- 카드는 임시로 `public/images/fortune-tea-house/flower-pig-single-b.webp`(보라 리본 연이)를 쓴다.
+- 경로 배선은 끝났다(2026-09-03, 사용자 결정 "기존 이미지 사용"): `index.html` 의 `src` 는 `public/images/fortune-tea-house/yeon-peony-crown.webp` 를 가리키고, 그 파일은 **flower-pig-single-b 의 투명 여백을 잘라 1024×1024 바닥에 세운 임시본**(63.6KB, 하단 여백 1.95%)이다. 즉 그림은 아직 보라 스카프 연이다.
+- `?v=` 는 손으로 붙이지 않는다 — `sync:public` 이 `?v=build-…` 로 다시 쓴다(손으로 `?v=20260903` 을 붙였더니 그대로 덮였다).
 
 ## 남은 작업
 
-- [ ] 일러스트 1장 생성(아래 프롬프트) → 배경 제거 → **투명 WebP 1024×1024, 120KB 이하**, 발이 캔버스 하단에 닿게 크롭(여백 ≤ 4%).
-- [ ] `public/images/fortune-tea-house/yeon-peony-crown.webp` 로 저장하고 `index.html` 의 `.fortune-gateway__door-art-yeon` `src` 한 줄 교체(`?v=20260903` 캐시키 붙일 것 — 새 경로는 엣지 404 캐시 함정).
-- [ ] `npm run sync:public` → 미러 커밋 → 아래 검증. 됐다의 기준: 데스크탑 1350/모바일 390 × 연이/네오 4장에서 돼지가 안 잘리고 발밑 그림자(`.door-art::after`)에 발이 닿는다.
+- [ ] 일러스트 1장 생성(아래 프롬프트) → 배경 제거 → **투명 WebP 1024×1024, 120KB 이하**, 발이 캔버스 하단에 닿게 크롭(여백 ≤ 4%). 크롭·리사이즈는 `sharp` 로 하면 된다(이번 임시본이 그 방식: 알파>8 bbox → 하단 20px 남기고 lanczos3).
+- [ ] 같은 경로 `public/images/fortune-tea-house/yeon-peony-crown.webp` 에 **덮어쓰기**(src 는 안 건드린다) → `npm run sync:public` → 미러 커밋 → 아래 검증. 됐다의 기준: 데스크탑 1350/모바일 390 × 연이/네오 4장에서 돼지가 안 잘리고 발밑 그림자(`.door-art::after`)에 발이 닿는다.
 
 ### 생성 프롬프트(영문, 그대로 붙여넣기)
 
