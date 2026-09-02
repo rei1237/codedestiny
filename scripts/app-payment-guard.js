@@ -33,15 +33,46 @@
     return headers;
   }
 
+  // intent/verify/free-grant 왕복 상한. 셸(index.html resolveTimeoutMs)의 /api/billing/checkout·confirm
+  // 과 같은 25s — 같은 워커 스택(인증 + 보안가드 + Mongo 쓰기)을 타므로 콜드 시 ~25s 까지 걸린다.
+  // 상한이 없으면 망 전환 등으로 응답이 영영 안 올 때 아래 inFlight 가 풀리지 않아 재시도 버튼도
+  // 먹지 않고 앱을 재시작해야 했다(2026-09-03 전수 조사). 테스트는 window.__cdAppStoreFetchTimeoutMs 로 줄인다.
+  var APP_STORE_FETCH_TIMEOUT_MS = 25000;
+
+  function fetchTimeoutMs() {
+    var override = Number(window.__cdAppStoreFetchTimeoutMs);
+    return override > 0 ? override : APP_STORE_FETCH_TIMEOUT_MS;
+  }
+
   async function postJson(path, body) {
-    var response = await fetch(apiBase() + path, {
-      method: "POST",
-      headers: authHeaders(),
-      credentials: "include",
-      cache: "no-store",
-      body: JSON.stringify(body || {}),
-    });
-    var payload = await response.json().catch(function () { return {}; });
+    var controller = typeof AbortController === "function" ? new AbortController() : null;
+    var timedOut = false;
+    var timer = setTimeout(function () {
+      timedOut = true;
+      if (controller) controller.abort();
+    }, fetchTimeoutMs());
+    var response;
+    var payload;
+    try {
+      response = await fetch(apiBase() + path, {
+        method: "POST",
+        headers: authHeaders(),
+        credentials: "include",
+        cache: "no-store",
+        body: JSON.stringify(body || {}),
+        signal: controller ? controller.signal : undefined,
+      });
+      // 본문 읽기도 같은 상한 안에 둔다 — 헤더만 오고 본문이 안 오는 연결도 같은 무한 대기다.
+      payload = await response.json().catch(function (e) {
+        if (timedOut) throw e;
+        return {};
+      });
+    } catch (e) {
+      if (timedOut) throw failure("APP_STORE_REQUEST_TIMEOUT", "결제 서버 응답이 늦어지고 있습니다. 네트워크 상태를 확인한 뒤 다시 시도해 주세요.");
+      throw e;
+    } finally {
+      clearTimeout(timer);
+    }
     return { ok: response.ok && payload && payload.ok !== false, status: response.status, payload: payload };
   }
 
