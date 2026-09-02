@@ -1881,8 +1881,8 @@ var __cdLazyActionLoaders = {
   openDestinyEggPage: function() { return Promise.resolve(window.location.assign('/tadagochi.html')); },
   openTarotLoveModal: function() { return __cdLoadScriptOnce('/js/tarot-love-experience.js?v=build-7a42e789d4d1'); },
   openTarotReunionModal: function() { return __cdLoadScriptOnce('/js/tarot-reunion-experience.js?v=build-7a42e789d4d1'); },
-  openTarotHealingModal: function() { return Promise.resolve(window.location.assign('/tarot/healing')); },
-  openTarotHealingPage: function() { return Promise.resolve(window.location.assign('/tarot/healing')); },
+  openTarotHealingModal: function() { return Promise.resolve(window.location.assign('/tarot/healing/')); },
+  openTarotHealingPage: function() { return Promise.resolve(window.location.assign('/tarot/healing/')); },
   openTarotSelfEsteemModal: function() { return __cdLoadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-7a42e789d4d1'); },
   openTarotYearFortuneModal: function() { return __cdLoadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-7a42e789d4d1'); },
   openSibylModal: function() {
@@ -1890,37 +1890,37 @@ var __cdLazyActionLoaders = {
       if (typeof window.openSibylModal === 'function') window.openSibylModal();
     });
   },
-  goLoveSecretAi: function() { window.location.assign('/love-secret-ai'); return Promise.resolve(); },
-  openLoveSecretModal: function() { window.location.assign('/love-secret-ai'); return Promise.resolve(); },
+  goLoveSecretAi: function() { window.location.assign('/love-secret-ai/'); return Promise.resolve(); },
+  openLoveSecretModal: function() { window.location.assign('/love-secret-ai/'); return Promise.resolve(); },
   closeLoveSecretModal: function() { return Promise.resolve(); },
-  generateLoveSecret: function() { window.location.assign('/love-secret-ai'); return Promise.resolve(); },
-  openLoveSecretLatestReport: function() { window.location.assign('/love-secret-ai'); return Promise.resolve(); },
-  downloadLoveSecretPdf: function() { window.location.assign('/love-secret-ai'); return Promise.resolve(); },
+  generateLoveSecret: function() { window.location.assign('/love-secret-ai/'); return Promise.resolve(); },
+  openLoveSecretLatestReport: function() { window.location.assign('/love-secret-ai/'); return Promise.resolve(); },
+  downloadLoveSecretPdf: function() { window.location.assign('/love-secret-ai/'); return Promise.resolve(); },
   shareLoveSecretKakao: function() { return Promise.resolve(); },
-  openLifeBookModal: function() { window.location.assign('/life-book-ai'); return Promise.resolve(); },
+  openLifeBookModal: function() { window.location.assign('/life-book-ai/'); return Promise.resolve(); },
   closeLifeBookModal: function() { return Promise.resolve(); },
-  generateLifeBook: function() { window.location.assign('/life-book-ai'); return Promise.resolve(); },
-  openAstroBookModal: function() { window.location.assign('/astrology-ai'); return Promise.resolve(true); },
+  generateLifeBook: function() { window.location.assign('/life-book-ai/'); return Promise.resolve(); },
+  openAstroBookModal: function() { window.location.assign('/astrology-ai/'); return Promise.resolve(true); },
   closeAstroBookModal: function() { return Promise.resolve(true); },
-  generateAstroBook: function() { window.location.assign('/astrology-ai'); return Promise.resolve(true); },
-  downloadAstroBookPdf: function() { window.location.assign('/astrology-ai'); return Promise.resolve(true); },
-  gotoAstrologyPremium: function() { window.location.assign('/astrology-ai'); return Promise.resolve(true); },
+  generateAstroBook: function() { window.location.assign('/astrology-ai/'); return Promise.resolve(true); },
+  downloadAstroBookPdf: function() { window.location.assign('/astrology-ai/'); return Promise.resolve(true); },
+  gotoAstrologyPremium: function() { window.location.assign('/astrology-ai/'); return Promise.resolve(true); },
   gotoZiweiPremium: function() { return __cdGotoZiweiAi(); },
-  openSajuNewYearModal: function() { window.location.assign('/new-year-ai-consultation'); return Promise.resolve(true); },
+  openSajuNewYearModal: function() { window.location.assign('/new-year-ai-consultation/'); return Promise.resolve(true); },
   closeSajuNewYearModal: function() { return Promise.resolve(true); },
-  generateSajuNewYear: function() { window.location.assign('/new-year-ai-consultation'); return Promise.resolve(true); },
-  downloadSajuNewYearPdf: function() { window.location.assign('/new-year-ai-consultation'); return Promise.resolve(true); },
-  openVedicBookModal: function() { window.location.assign('/vedic-ai'); return Promise.resolve(true); },
-  closeVedicBookModal: function() { window.location.assign('/vedic-ai'); return Promise.resolve(true); },
-  generateVedicBook: function() { window.location.assign('/vedic-ai'); return Promise.resolve(true); },
-  downloadVedicBookPdf: function() { window.location.assign('/vedic-ai'); return Promise.resolve(true); },
-  gotoVedicPremium: function() { window.location.assign('/vedic-ai'); return Promise.resolve(true); },
+  generateSajuNewYear: function() { window.location.assign('/new-year-ai-consultation/'); return Promise.resolve(true); },
+  downloadSajuNewYearPdf: function() { window.location.assign('/new-year-ai-consultation/'); return Promise.resolve(true); },
+  openVedicBookModal: function() { window.location.assign('/vedic-ai/'); return Promise.resolve(true); },
+  closeVedicBookModal: function() { window.location.assign('/vedic-ai/'); return Promise.resolve(true); },
+  generateVedicBook: function() { window.location.assign('/vedic-ai/'); return Promise.resolve(true); },
+  downloadVedicBookPdf: function() { window.location.assign('/vedic-ai/'); return Promise.resolve(true); },
+  gotoVedicPremium: function() { window.location.assign('/vedic-ai/'); return Promise.resolve(true); },
   openSukuyoBookModal: function() { return __cdEnsureSukuyoAIConsultationReady(); },
   closeSukuyoBookModal: function() { return __cdEnsureSukuyoAIConsultationReady(); },
   generateSukuyoBook: function() { return __cdEnsureSukuyoAIConsultationReady(); },
   downloadSukuyoBookPdf: function() { return __cdEnsureSukuyoAIConsultationReady(); },
   gotoSukuyoPremium: function() { return __cdEnsureSukuyoAIConsultationReady(); },
-  openLoveSimulation: function() { try { window.location.assign('/saju/love-simulation'); } catch(e) { window.open('/saju/love-simulation', '_self'); } return Promise.resolve(); },
+  openLoveSimulation: function() { try { window.location.assign('/saju/love-simulation/'); } catch(e) { window.open('/saju/love-simulation/', '_self'); } return Promise.resolve(); },
   setTarotMode: function() { return __cdEnsureSajuCoreLoaded(); },
   selectTarotCategory: function() { return __cdEnsureSajuCoreLoaded(); },
   startTarotReading: function() { return __cdEnsureSajuCoreLoaded(); },
@@ -1947,7 +1947,7 @@ window.__cdLazyActionLoaders = __cdLazyActionLoaders;
 var __cdLazyActionState = {};
 
 function __cdGotoZiweiAi() {
-  window.location.assign('/ziwei-ai');
+  window.location.assign('/ziwei-ai/');
   return Promise.resolve(true);
 }
 
@@ -9002,7 +9002,7 @@ window.startMindScanTarot = startMindScanTarot;
 window.startCrystalSoulTarot = startCrystalSoulTarot;
 
 function openSajuLifeBookBuilder() {
-  window.location.assign('/life-book-ai');
+  window.location.assign('/life-book-ai/');
 }
 
 window.openSajuLifeBookBuilder = openSajuLifeBookBuilder;
