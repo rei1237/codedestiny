@@ -55,15 +55,16 @@ html,body{margin:0;padding:0;background:#040200;color:var(--text);font-family:Ge
 .hero h1{margin:8px 0 0;font-size:54px;letter-spacing:10px;line-height:1;color:var(--gold);text-shadow:0 0 18px rgba(214,166,75,.22)}
 .hero .sub{margin-top:8px;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#9d8b6a}
 .hero .guide-link{
-  display:inline-block;
-  margin-top:10px;
+  display:inline-flex;
+  align-items:center;
+  min-height:44px;
+  margin-top:4px;
   font-size:12px;
   color:#d8b56a;
-  text-decoration:none;
-  border-bottom:1px dashed rgba(214,166,75,.45);
-  padding-bottom:2px;
+  text-decoration:underline dashed rgba(214,166,75,.45);
+  text-underline-offset:3px;
 }
-.hero .guide-link:hover{color:#f1d28f;border-bottom-color:#f1d28f}
+.hero .guide-link:hover{color:#f1d28f;text-decoration-color:#f1d28f}
 .divider{display:flex;align-items:center;justify-content:center;gap:12px;margin:16px auto}
 .divider .line{height:1px;width:68px;background:linear-gradient(90deg,transparent,var(--line),transparent)}
 .divider .gem{color:var(--gold);font-size:12px}
@@ -88,7 +89,7 @@ html,body{margin:0;padding:0;background:#040200;color:var(--text);font-family:Ge
 .cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 @media (max-width:420px){.cat-grid{grid-template-columns:1fr}}
 .cat-btn{
-  border:1px solid #725035;background:#1b100b;color:var(--text);padding:10px 10px;border-radius:11px;
+  border:1px solid #725035;background:#1b100b;color:var(--text);padding:10px 10px;min-height:44px;border-radius:11px;
   font-size:13px;letter-spacing:.2px;cursor:pointer;transition:.2s ease all;
 }
 .cat-btn:hover{border-color:var(--gold-soft);transform:translateY(-1px)}

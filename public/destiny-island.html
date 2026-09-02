@@ -102,7 +102,7 @@ img{max-width:100%;display:block}
 .gate-card-item .gc-badge.f{color:var(--rose);border-color:rgba(244,190,209,.5)}
 .gate-card-item .gc-meta{font-size:.8rem;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .gate-card-item .gc-go{flex:none;color:var(--gold);font-size:.9rem;opacity:.7}
-.gate-bgm{display:inline-flex;align-items:center;gap:7px;font-size:.86rem;color:var(--text-muted);min-height:40px;cursor:pointer}
+.gate-bgm{display:inline-flex;align-items:center;gap:7px;font-size:.86rem;color:var(--text-muted);min-height:44px;cursor:pointer}
 .gate-bgm input{width:18px;height:18px;accent-color:var(--violet-deep)}
 .btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:52px;padding:12px 30px;
   border-radius:999px;background:linear-gradient(135deg,var(--violet) 0%,var(--violet-deep) 100%);
@@ -121,7 +121,7 @@ img{max-width:100%;display:block}
 .form-card .hint{color:var(--text-muted);font-size:.88rem;margin-bottom:18px}
 .field{margin-bottom:14px}
 .field label{display:block;font-size:.85rem;font-weight:700;color:var(--text-muted);margin-bottom:6px}
-.field input[type=date],.field input[type=time]{width:100%;min-height:48px;padding:10px 12px;border-radius:12px;
+.field input[type=text],.field input[type=date],.field input[type=time]{width:100%;min-height:48px;padding:10px 12px;border-radius:12px;
   background:rgba(10,8,24,.75);border:1px solid var(--panel-line);color:var(--text);font:inherit;color-scheme:dark}
 .field input:focus{outline:2px solid var(--violet-deep);outline-offset:1px}
 .seg{display:flex;gap:6px}
@@ -185,7 +185,7 @@ img{max-width:100%;display:block}
   border:1px solid var(--panel-line);color:var(--text);font:inherit;text-align:center;font-size:1.05rem}
 .intro-name input:focus{outline:2px solid var(--violet-deep)}
 .name-sug{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:12px 0 16px}
-.name-sug button{padding:8px 14px;min-height:40px;border-radius:999px;border:1px solid var(--panel-line);color:var(--text-muted);
+.name-sug button{padding:8px 14px;min-height:44px;border-radius:999px;border:1px solid var(--panel-line);color:var(--text-muted);
   font-size:.85rem;transition:color .15s,border-color .15s,background .15s}
 .name-sug button:hover{color:var(--text);border-color:var(--violet-deep);background:rgba(167,139,250,.12)}
 
@@ -413,7 +413,7 @@ body.ph-night .fireflies{opacity:1}
 .sheet.on{transform:translate(-50%,0)}
 .sheet h2{font-family:var(--font-serif);font-size:1.2rem;margin-bottom:2px}
 .sheet .sub{color:var(--text-muted);font-size:.85rem;margin-bottom:14px}
-.sheet-close{position:absolute;top:12px;right:12px;width:38px;height:38px;border-radius:50%;border:1px solid var(--panel-line);
+.sheet-close{position:absolute;top:9px;right:9px;width:44px;height:44px;border-radius:50%;border:1px solid var(--panel-line);
   color:var(--text-muted);font-size:1rem;display:flex;align-items:center;justify-content:center}
 .quest{display:flex;gap:12px;align-items:flex-start;padding:12px;border:1px solid var(--panel-line);border-radius:14px;margin-bottom:10px;
   transition:border-color .2s,background .2s}
@@ -422,7 +422,7 @@ body.ph-night .fireflies{opacity:1}
 .quest .qbody{flex:1}
 .quest .qtitle{font-weight:800;font-size:.95rem}
 .quest .qdesc{font-size:.84rem;color:var(--text-muted);line-height:1.6}
-.quest .qbtn{flex:none;min-height:40px;padding:6px 14px;border-radius:999px;border:1px solid var(--violet-deep);
+.quest .qbtn{flex:none;min-height:44px;padding:6px 14px;border-radius:999px;border:1px solid var(--violet-deep);
   color:var(--violet);font-size:.82rem;font-weight:800;transition:background .15s}
 .quest .qbtn:hover{background:rgba(167,139,250,.15)}
 .quest.done .qbtn{border-color:rgba(232,213,163,.5);color:var(--gold);pointer-events:none}
@@ -434,9 +434,9 @@ body.ph-night .fireflies{opacity:1}
 .set-row:last-child{border-bottom:0}
 .set-row .t{font-weight:700;font-size:.94rem}
 .set-row .d{font-size:.8rem;color:var(--text-muted)}
-.toggle{width:52px;height:30px;border-radius:999px;background:rgba(196,181,253,.2);position:relative;transition:background .2s;flex:none}
+.toggle{width:52px;height:44px;border-top:7px solid transparent;border-bottom:7px solid transparent;margin-top:-7px;margin-bottom:-7px;border-radius:999px;background:rgba(196,181,253,.2);background-clip:padding-box;position:relative;transition:background .2s;flex:none}
 .toggle::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:var(--text);transition:transform .2s var(--ease-out)}
-.toggle[aria-pressed=true]{background:var(--violet-deep)}
+.toggle[aria-pressed=true]{background-color:var(--violet-deep)}
 .toggle[aria-pressed=true]::after{transform:translateX(22px)}
 
 /* ── 토스트 ── */

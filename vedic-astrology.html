@@ -68,9 +68,10 @@ body::after{
 h1,h2,h3,.cinzel{font-family:var(--font-display);letter-spacing:0.05em}
 input,select,textarea{
   background:rgba(255,255,255,0.06);border:1px solid rgba(139,92,246,0.35);border-radius:10px;
-  padding:10px 14px;color:#fff;font-size:14px;outline:none;width:100%;
+  padding:10px 14px;min-height:44px;color:#fff;font-size:16px;outline:none;width:100%;
   font-family:var(--font-body);transition:border-color 0.2s;
 }
+input[type=checkbox],input[type=radio]{min-height:0}
 input:focus,select:focus{border-color:var(--purple2);box-shadow:0 0 0 3px rgba(167,139,250,0.15)}
 select option{background:#1a0040;color:#fff}
 input::placeholder{color:var(--text3)}
@@ -497,7 +498,7 @@ button{cursor:pointer;font-family:var(--font-body);border:none;outline:none}
   background:rgba(255,255,255,0.06);
   color:rgba(240,232,255,0.85);
   border-radius:999px;
-  padding:8px 12px;
+  padding:8px 12px;min-height:44px;
   display:inline-flex;
   align-items:center;
   gap:8px;
