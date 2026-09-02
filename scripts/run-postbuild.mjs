@@ -46,6 +46,16 @@ if (String(process.env.CD_DEPLOY_TARGET || "").trim().toLowerCase() === "staging
   steps.push("scripts/apply-staging-noindex.mjs");
 }
 
+// 🔴 앱 번들(build:mobile → NEXT_PUBLIC_RUNTIME_TARGET=mobile-app)은 AdSense·사이트맵 검증을 건너뛴다.
+//    app/components/{Site,Locale}FooterHub 가 IS_APP_BUILD 로 SEO 링크 허브를 빼고 렌더하고(PR #1492),
+//    build-mobile-app.mjs 가 sitemap.xml·robots.txt 자체를 지우므로 "사이트맵 URL 의 내부 링크 0" 은
+//    앱에서 결함이 아니다 — 같은 커밋의 웹 빌드가 CI 에서 같은 검증기를 돈다.
+//    실측 2026-09-03: 앱 빌드가 고아 9건(/en·/ja·/zh·/zh-tw·/ja/tokushoho·/oracle/ifa …)으로 실패했다.
+//    배열에서 지우지 않고 여기서 빼는 이유: verify-guard-wiring 이 steps 의 리터럴 경로로 배선을 본다.
+if (process.env.NEXT_PUBLIC_RUNTIME_TARGET === "mobile-app") {
+  steps.splice(steps.indexOf("scripts/verify-adsense-readiness.mjs"), 1);
+}
+
 function wait(ms) {
   Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
 }
