@@ -27,6 +27,8 @@ import { readFileSync, readdirSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { extractObjectLiteral, safeKey } from "./lib/feature-marketing-extract.mjs";
+
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const SHELL = resolve(ROOT, "index.html");
 const I18N_DIR = resolve(ROOT, "public/i18n");
@@ -48,41 +50,11 @@ const html = readFileSync(SHELL, "utf8");
 
 /* ── 1. 셸에서 카피와 키 정규화 규칙을 그대로 가져온다 ─────────────── */
 
-function extractObjectLiteral(name) {
-  const anchor = `var ${name}={`;
-  const start = html.indexOf(anchor);
-  if (start < 0) throw new Error(`${name} 을 찾을 수 없습니다.`);
-  const open = start + anchor.length - 1;
-  let depth = 0;
-  let quote = null;
-  for (let i = open; i < html.length; i++) {
-    const c = html[i];
-    if (quote) {
-      if (c === "\\") { i++; continue; }
-      if (c === quote) quote = null;
-      continue;
-    }
-    if (c === "'" || c === '"' || c === "`") { quote = c; continue; }
-    if (c === "{") depth++;
-    else if (c === "}") {
-      depth--;
-      if (depth === 0) return new Function(`return ${html.slice(open, i + 1)};`)();
-    }
-  }
-  throw new Error(`${name} 의 끝을 찾을 수 없습니다.`);
-}
-
-/** index.html 의 `_pvwSafeKey` 와 같은 계약. 여기가 어긋나면 사전 조회가 통째로 빗나간다. */
-function safeKey(value) {
-  return String(value || "")
-    .replace(/^#/, "")
-    .replace(/^\//, "")
-    .replace(/[^A-Za-z0-9]+/g, "_")
-    .replace(/^_+|_+$/g, "") || "default";
-}
+// 파서와 `safeKey` 는 scripts/lib/feature-marketing-extract.mjs 가 정본이다
+// (스키마 가드·sync:marketing-copy 와 공유 — 사본이 갈리면 한 곳만 조용히 빗나간다).
 
 // 정규화 규칙이 셸에서 바뀌면 이 가드는 엉뚱한 네임스페이스를 검사하게 된다 — 원문과 대조한다.
-// 공백·줄바꿈은 무시하고 치환 체인만 본다(셸은 여러 줄, 이 사본은 한 줄일 수 있다).
+// 공백·줄바꿈은 무시하고 치환 체인만 본다(셸은 여러 줄, 공용 모듈 사본은 한 줄일 수 있다).
 {
   const anchor = "function _pvwSafeKey(";
   const start = html.indexOf(anchor);
@@ -103,7 +75,7 @@ function safeKey(value) {
 
 let COPY;
 try {
-  COPY = extractObjectLiteral("FEATURE_MARKETING_COPY");
+  COPY = extractObjectLiteral(html, "FEATURE_MARKETING_COPY");
 } catch (err) {
   console.error(`[verify:feature-marketing-dictionary] ${err.message}`);
   process.exit(1);

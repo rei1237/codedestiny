@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-03
-next: PR-A(#1491) 머지 확인 후, 새 세션·새 워크트리에서 E1(카피 추출 파이프라인) 시작 — 그러면 W1 이 닫힌다
+next: "E1 머지 확인 후, 새 세션·새 워크트리에서 W2 시작 — E2(모달 전환, 대형) 를 먼저. 🔴 E2 는 `lib/marketing/feature-marketing-copy.generated.json`(E1 산출물, 407KB) 을 읽는데 **정적 import 하면 클라이언트 번들에 통째로 실린다** — 서버 컴포넌트나 동적 import 로 들어갈 자리부터 정하고 시작할 것."
 ---
 
 # 전문가 상담 품질·진입 UX·PDF 전면 제공 (13 PR 계획)
@@ -14,12 +14,13 @@ next: PR-A(#1491) 머지 확인 후, 새 세션·새 워크트리에서 E1(카�
 
 - 확정 계획 정본: `C:\Users\user\.claude\plans\goofy-leaping-curry.md` (13 PR + 후속 3, 축1 PDF / 축2 진입 UX / 축3 AI 품질). 사용자 승인 완료.
 - **축1 PDF 머지 완료: PR-1(#1451) · PR-2(#1460) · PR-3(#1475) · PR-4(#1488).**
-- **PR-A(초융합 랩 등록 + CMS 카탈로그 드리프트) = 이 PR(#1491).** 머지는 사용자.
+- **PR-A(초융합 랩 등록 + CMS 카탈로그 드리프트) 머지 완료(#1491).**
+- **E1(카피 추출 파이프라인) = 이 PR.** 머지는 사용자. 머지되면 W1 이 닫힌다.
 - 나머지 8 PR 전부 미착수.
 
 ## 남은 작업
 
-- [ ] W1 잔여 1개: E1(카피 추출 파이프라인)
+- [x] W1: PR-A(#1491) 머지 · E1(카피 추출 파이프라인) = 이 PR
 - [ ] W2: E2(모달 전환, 대형) · E4(fusion 정본화) · PR-C(중복 검출) · PR-B(클램프 배선)
 - [ ] W3: 축4 PR-6(문안 저작, 축4 소유) · E5(PaidValueSection+nakshatra) → E6(island)
 - [ ] W4: PR-5(셸 saju AI PDF, i18n 11파일) → E3(잔재 키 청소, 백로그)
@@ -39,6 +40,8 @@ next: PR-A(#1491) 머지 확인 후, 새 세션·새 워크트리에서 E1(카�
 ## 정본 예시
 
 배선 관용구: `app/destiny-compass/_components/ReportActions.tsx:38` · PDF 유틸: `lib/pdf/export-result-pdf.ts:146`
+
+E1 산출물(E2 가 소비할 것): `lib/marketing/feature-marketing-copy.generated.json` = `{ items: { "<셸 카피 키>": { dictNs, copy } }, templates: { "<카테고리>": { dictNs: "template_<카테고리>", copy } } }`. `inherit` 은 이미 해소돼 남아 있지 않고 `dictNs` 는 `featureMarketing.<dictNs>` 조회용으로 미리 계산돼 있다. 파서·`safeKey`·상속 해소의 정본은 `scripts/lib/feature-marketing-extract.mjs`(가드 2개와 공유).
 
 ## 함정
 

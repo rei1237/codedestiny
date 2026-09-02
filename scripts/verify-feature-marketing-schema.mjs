@@ -18,6 +18,8 @@ import { readFileSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { extractObjectLiteral } from "./lib/feature-marketing-extract.mjs";
+
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const SHELL = resolve(ROOT, "index.html");
 const HIGH_PRICE_KRW = 30000;
@@ -78,35 +80,14 @@ for (const id of ORDER) {
 
 /* ── 2. 카피 데이터 추출 ───────────────────────────────────────────── */
 
-function extractObjectLiteral(name) {
-  const anchor = `var ${name}={`;
-  const start = html.indexOf(anchor);
-  if (start < 0) throw new Error(`${name} 을 찾을 수 없습니다.`);
-  const open = start + anchor.length - 1;
-  let depth = 0;
-  let quote = null;
-  for (let i = open; i < html.length; i++) {
-    const c = html[i];
-    if (quote) {
-      if (c === "\\") { i++; continue; }
-      if (c === quote) quote = null;
-      continue;
-    }
-    if (c === "'" || c === '"' || c === "`") { quote = c; continue; }
-    if (c === "{") depth++;
-    else if (c === "}") {
-      depth--;
-      if (depth === 0) return new Function(`return ${html.slice(open, i + 1)};`)();
-    }
-  }
-  throw new Error(`${name} 의 끝을 찾을 수 없습니다.`);
-}
+// 파서는 scripts/lib/feature-marketing-extract.mjs 가 정본이다
+// (사전 가드·sync:marketing-copy 와 공유 — 사본이 갈리면 한 곳만 조용히 빗나간다).
 
 let COPY;
 let TEMPLATES;
 try {
-  COPY = extractObjectLiteral("FEATURE_MARKETING_COPY");
-  TEMPLATES = extractObjectLiteral("FEATURE_MARKETING_TEMPLATES");
+  COPY = extractObjectLiteral(html, "FEATURE_MARKETING_COPY");
+  TEMPLATES = extractObjectLiteral(html, "FEATURE_MARKETING_TEMPLATES");
 } catch (err) {
   console.error(`[verify:feature-marketing-schema] ${err.message}`);
   process.exit(1);
