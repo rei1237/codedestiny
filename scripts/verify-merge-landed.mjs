@@ -478,6 +478,9 @@ function ensureLocalCommit(sha, prNumber) {
   return git(["cat-file", "-e", `${sha}^{commit}`]).status === 0;
 }
 
+/** 스택 조상 추적의 상한. 초과는 false 가 아니라 null 로 떨어진다(아래 참조). */
+const PARENT_CHAIN_MAX_DEPTH = 5;
+
 /**
  * 스택 자식이 **부모 PR 의 스쿼시에 흡수돼** 착지했는가.
  *
@@ -488,21 +491,45 @@ function ensureLocalCommit(sha, prNumber) {
  *
  * 요구 조건 셋을 **전부** 만족해야 참이다:
  *   ① 이 PR 의 base 브랜치를 head 로 갖는 **머지된** PR(= 부모)이 있다
- *   ② 그 부모의 머지 커밋이 main 의 조상이다 (부모가 실제로 착지했는가)
+ *   ② 그 부모가 main 에 착지했다 — 🔴 **전이적으로** 묻는다(아래)
  *   ③ 이 PR 의 머지 커밋이 그 부모의 head 커밋의 조상이다 (자식이 정말 그 안에 담겼는가)
  *
- * 🔴 fail-closed 다. 조회 실패·SHA 형식 불일치·커밋 확보 실패·isAncestor 가 null → 전부
- *    null(= 좌초 유지)로 떨어진다. 부모를 못 찾은 것이 확실하면 false 다. 이 축은 경보를
- *    끄는 근거이지 못 본 것을 눈감는 근거가 아니다.
+ * 🔴 ②를 "부모의 머지 커밋이 main 의 조상인가" 한 번으로만 물으면 **깊이 3 이상의 스택이
+ * 영구 좌초**가 된다. 부모가 또 다른 브랜치로 머지된 경우 그 머지 커밋도 main 에 없기
+ * 때문이다. 2026-09-02 #1449 가 그랬다 — #1449 → `worktree-touch-targets-44px`(#1446)
+ * → `worktree-ime-viewport-meta`(#1444) → main 의 3단이라, 중간의 #1446 머지 커밋
+ * 1f91b93f 가 main 조상이 아니어서 자식이 critical 로 남았고 워치독이 4시간 내리 빨간불이
+ * 됐다. 그래서 ②는 부모 자신에게 같은 질문을 다시 던진다. 스쿼시 머지에서는 매 단계
+ * **자식의 머지 커밋 == 부모의 headRefOid** 라 ③은 단계마다 그대로 성립한다.
+ *
+ * 🔴 fail-closed 다. 조회 실패·SHA 형식 불일치·커밋 확보 실패·isAncestor 가 null·깊이
+ *    초과·순환 → 전부 null(= 좌초 유지)로 떨어진다. 부모를 못 찾은 것이 확실하면 false 다.
+ *    이 축은 경보를 끄는 근거이지 못 본 것을 눈감는 근거가 아니다.
+ *
+ * 조회를 인자로 받는 것은 self-test 가 이 재귀에 닿게 하기 위해서다 — git 도 gh 도 부르지
+ * 않는 픽스처로 3단·4단·깊이 초과·순환을 그대로 재현한다.
  */
-function parentAbsorbedInMain({ baseRefName, mergeCommitOid }, baseRef) {
+export function resolveParentAbsorption(input) {
+  const {
+    baseRefName,
+    mergeCommitOid,
+    mainRef,
+    lookupParents,
+    isAncestorOf,
+    ensureCommit,
+    depth = 0,
+    maxDepth = PARENT_CHAIN_MAX_DEPTH,
+    seen = new Set(),
+  } = input || {};
+
   if (!baseRefName || baseRefName === "main") return false;
   if (!/^[0-9a-f]{7,40}$/i.test(String(mergeCommitOid || ""))) return null;
+  // 🔴 상한 초과와 순환은 "모른다"이지 "아니다"가 아니다. false 로 두면 fail-open 이 된다.
+  if (depth > maxDepth) return null;
+  if (seen.has(baseRefName)) return null;
+  const visited = new Set(seen).add(baseRefName);
 
-  const parents = ghJson([
-    "pr", "list", "--state", "merged", "--head", baseRefName, "--limit", "10",
-    "--json", "number,headRefOid,mergeCommit",
-  ]);
+  const parents = lookupParents(baseRefName);
   if (!parents) return null;
   if (!parents.length) return false;
 
@@ -514,18 +541,44 @@ function parentAbsorbedInMain({ baseRefName, mergeCommitOid }, baseRef) {
       undecided = true;
       continue;
     }
-    // ② 부모가 실제로 main 에 들어갔는가. 아니면 자식도 아직 착지한 것이 아니다.
-    const parentLanded = isAncestor(parentMerge, baseRef);
+    // ② 부모가 실제로 main 에 들어갔는가. 머지 커밋이 main 조상이 아니어도 부모 자신이
+    //    **자기 부모의 스쿼시에 흡수돼** 착지했을 수 있으므로 거기서 끊지 않고 한 단계 더 판다.
+    let parentLanded = isAncestorOf(parentMerge, mainRef);
     if (parentLanded === null) { undecided = true; continue; }
-    if (parentLanded !== true) continue;
+    if (parentLanded !== true) {
+      parentLanded = resolveParentAbsorption({
+        ...input,
+        baseRefName: parent.baseRefName,
+        mergeCommitOid: parentMerge,
+        depth: depth + 1,
+        seen: visited,
+      });
+      if (parentLanded === null) { undecided = true; continue; }
+      if (parentLanded !== true) continue;
+    }
     // ③ 자식의 머지 커밋이 부모 head 안에 있는가. 부모 head 를 먼저 로컬에 확보해야
     //    merge-base 가 exit 128 로 죽지 않는다(부모 브랜치는 대개 삭제돼 있다).
-    if (!ensureLocalCommit(parentHead, parent.number)) { undecided = true; continue; }
-    const contained = isAncestor(mergeCommitOid, parentHead);
+    if (!ensureCommit(parentHead, parent.number)) { undecided = true; continue; }
+    const contained = isAncestorOf(mergeCommitOid, parentHead);
     if (contained === null) { undecided = true; continue; }
     if (contained === true) return true;
   }
   return undecided ? null : false;
+}
+
+/** 위 판정에 실제 gh·git 조회를 물린 배선. baseRefName 은 전이 판정에 쓰이므로 함께 받는다. */
+function parentAbsorbedInMain({ baseRefName, mergeCommitOid }, baseRef) {
+  return resolveParentAbsorption({
+    baseRefName,
+    mergeCommitOid,
+    mainRef: baseRef,
+    lookupParents: (head) => ghJson([
+      "pr", "list", "--state", "merged", "--head", head, "--limit", "10",
+      "--json", "number,headRefOid,mergeCommit,baseRefName",
+    ]),
+    isAncestorOf: isAncestor,
+    ensureCommit: ensureLocalCommit,
+  });
 }
 
 /**
@@ -940,6 +993,55 @@ function selfTest() {
     [inFlightCase(null), "deploying", "런 상태를 모르면 옛 시간 유예로 폴백한다"],
     [drift({ pages: { sha: other }, inFlight: true }).state, "deploying", "유예가 지났어도 도는 런이 있으면 기다린다"],
     [drift({ pages: { sha: other }, inFlight: null }).state, "drifted", "유예가 지났고 근거가 없으면 드리프트"],
+  );
+
+  // 🔴 부모 흡수의 **전이** 축. 2026-09-02 #1449 가 3단 스택(#1449 → #1446 → #1444 → main)
+  // 이라 중간 부모의 머지 커밋이 main 조상이 아니었고, 1단계만 보던 판정이 자식을 영구
+  // 좌초로 찍어 워치독이 내리 빨간불이었다. 픽스처는 그 실제 체인 모양을 그대로 쓴다 —
+  // 스쿼시 머지에서는 **자식의 머지 커밋 == 부모의 headRefOid** 다.
+  const chainSha = (n) => String(n).repeat(40).slice(0, 40);
+  //   c1 ← 자식 머지 커밋(= 부모 head), c2 ← 부모 머지 커밋(= 조부모 head), c3 ← 조부모 머지 커밋
+  const [c1, c2, c3, c4] = [chainSha(1), chainSha(2), chainSha(3), chainSha(4)];
+  const link = (number, headRefOid, mergeOid, baseRefName) =>
+    ({ number, headRefOid, mergeCommit: { oid: mergeOid }, baseRefName });
+  const absorbed = (overrides) =>
+    resolveParentAbsorption({
+      baseRefName: "br-a",
+      mergeCommitOid: c1,
+      mainRef: "origin/main",
+      lookupParents: (head) => overrides.chain?.[head] ?? [],
+      // main 에 실제로 들어간 커밋만 조상이다. 그 밖의 조상 관계는 체인 모양대로 답한다.
+      isAncestorOf: (target, ref) =>
+        (ref === "origin/main" ? target === (overrides.inMain ?? c3) : target === ref),
+      ensureCommit: () => true,
+      ...overrides,
+    });
+  const twoLevel = { "br-a": [link(11, c1, c2, "main")] };
+  const threeLevel = { "br-a": [link(11, c1, c2, "br-b")], "br-b": [link(12, c2, c3, "main")] };
+  const fourLevel = {
+    "br-a": [link(11, c1, c2, "br-b")],
+    "br-b": [link(12, c2, c3, "br-c")],
+    "br-c": [link(13, c3, c4, "main")],
+  };
+
+  cases.push(
+    [absorbed({ chain: twoLevel, inMain: c2 }), true, "2단 스택: 부모 머지 커밋이 main 조상이면 흡수다"],
+    [absorbed({ chain: threeLevel }), true, "3단 스택(#1449 재현): 중간 부모가 고아여도 조부모가 main 이면 흡수다"],
+    [absorbed({ chain: fourLevel, inMain: c4 }), true, "4단 스택도 끝까지 따라간다"],
+    [absorbed({ chain: threeLevel, inMain: chainSha(9) }), false, "체인이 main 에 못 닿으면 흡수가 아니다"],
+    [absorbed({ chain: { "br-a": [link(11, c1, c2, "br-b")] } }), false, "조부모 PR 이 없으면 체인이 끊긴 것이므로 흡수가 아니다"],
+    [absorbed({ chain: threeLevel, lookupParents: () => null }), null, "부모 조회 실패는 fail-closed"],
+    [absorbed({ chain: {} }), false, "부모가 아예 없으면 흡수가 아니다"],
+    [absorbed({ chain: threeLevel, maxDepth: 0 }), null, "깊이 초과는 false 가 아니라 판정 불가다(fail-open 금지)"],
+    [absorbed({
+      chain: { "br-a": [link(11, c1, c2, "br-b")], "br-b": [link(12, c2, c3, "br-a")] },
+      inMain: chainSha(9),
+    }), null, "순환 스택은 무한 재귀 없이 판정 불가로 끝난다"],
+    // ③ 축은 전이 이후에도 그대로 산다 — 부모가 착지해도 자식이 그 안에 없으면 흡수가 아니다.
+    [absorbed({ chain: threeLevel, mergeCommitOid: chainSha(8) }), false, "자식 머지 커밋이 부모 head 밖이면 흡수가 아니다"],
+    [absorbed({ chain: threeLevel, ensureCommit: () => false }), null, "부모 head 를 못 받아오면 fail-closed"],
+    [absorbed({ chain: twoLevel, inMain: c2, baseRefName: "main" }), false, "base 가 main 이면 부모 흡수를 묻지 않는다"],
+    [absorbed({ chain: twoLevel, inMain: c2, mergeCommitOid: "" }), null, "머지 커밋 SHA 가 없으면 판정 불가"],
   );
 
   const flight = (list, currentRunId) => releaseInFlight({ mainSha: sha, runs: list, currentRunId });
