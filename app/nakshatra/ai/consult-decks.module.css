@@ -34,6 +34,14 @@
   -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--hair);
 }
+/* PDF 캡처 스위치 — sticky·backdrop-filter 는 html2canvas 캡처를 깨뜨린다(겹침·미지원 오염).
+   export 중에만 루트의 data-export 로 해제하고 반투명 그라디언트는 불투명 잉크로 바꾼다. */
+[data-export="true"] .summary {
+  position: static;
+  background: var(--ink-800);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
 .summaryRow { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 14px; }
 .natal { margin: 0; font-size: 19px; font-weight: 800; letter-spacing: -0.01em; color: var(--t-100); }
 .natalHan { color: var(--east-soft); }

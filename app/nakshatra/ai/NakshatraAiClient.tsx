@@ -106,6 +106,9 @@ export default function NakshatraAiClient() {
   const [progress, setProgress] = useState({ completed: 0, total: TOTAL_SECTIONS, phase: "decks" });
   const [askedQuestion, setAskedQuestion] = useState("");
   const busyRef = useRef(false);
+  const exportRootRef = useRef<HTMLDivElement | null>(null);
+  const [pdfBusy, setPdfBusy] = useState(false);
+  const [pdfError, setPdfError] = useState("");
   const { seed: profileSeed } = useAiProfileSeed();
 
   useEffect(() => {
@@ -320,6 +323,38 @@ export default function NakshatraAiClient() {
     }
   }, [birth, question, finish, fail, startConsult, copy]);
 
+  // PDF 저장 — 이미 결제로 열린 결과의 무료 부가 기능(가격·결제 문구 금지).
+  // 접힌 <details> 는 빈 캔버스가 되므로 강제 오픈 → 2×rAF+120ms 렌더 대기 → 캡처 → 이전 상태 복원.
+  // data-export 는 consult-decks.module.css 의 캡처용 스위치(sticky 요약·backdrop-filter 해제).
+  const savePdf = useCallback(async () => {
+    const root = exportRootRef.current;
+    if (!root || pdfBusy) return;
+    setPdfBusy(true);
+    setPdfError("");
+    root.setAttribute("data-export", "true");
+    const detailsElements = Array.from(root.querySelectorAll("details"));
+    const previousOpenStates = detailsElements.map((details) => details.open);
+    try {
+      detailsElements.forEach((details) => { details.open = true; });
+      await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+      await sleep(120);
+      const { exportResultPdf } = await import("@/lib/pdf/export-result-pdf");
+      const subtitle = [identity?.sukuyoHan ? identity.sukuyoHan + "宿" : "", toText(identity?.nakshatraKo)].filter(Boolean).join(" · ");
+      await exportResultPdf({
+        captureTargets: ["[data-nakai-pdf-section]"],
+        fileName: copy.aiPdfFileName(toText(identity?.sukuyoKo), toText(identity?.nakshatraKo)),
+        backgroundColor: "#0a0818",
+        cover: { title: copy.aiFeatureTitle, subtitle, date: new Date().toISOString().slice(0, 10) },
+      });
+    } catch {
+      setPdfError(copy.aiPdfFailMessage);
+    } finally {
+      detailsElements.forEach((details, index) => { details.open = previousOpenStates[index] ?? details.open; });
+      root.removeAttribute("data-export");
+      setPdfBusy(false);
+    }
+  }, [pdfBusy, identity, copy]);
+
   const bgClass =
     "relative isolate min-h-[100dvh] overflow-hidden bg-[radial-gradient(circle_at_18%_8%,rgba(179,25,85,0.14),transparent_34%),radial-gradient(circle_at_85%_10%,rgba(212,175,55,0.12),transparent_36%),linear-gradient(160deg,#0a0818_0%,#12102a_55%,#070510_100%)] px-4 py-8 text-slate-100 md:py-12";
 
@@ -348,13 +383,27 @@ export default function NakshatraAiClient() {
     return (
       <main className={bgClass}>
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10" />
-        <AiConsultDecks
-          decks={decks}
-          natal={identity}
-          question={askedQuestion}
-          topInsights={topInsights}
-          totalChars={totalChars}
-        />
+        <div ref={exportRootRef}>
+          <AiConsultDecks
+            decks={decks}
+            natal={identity}
+            question={askedQuestion}
+            topInsights={topInsights}
+            totalChars={totalChars}
+          />
+          {/* PDF 버튼 행 — 마커가 없어 캡처에 실리지 않는다. 무료 부가 기능이라 가격·결제 문구 금지. */}
+          <div className="mx-auto mt-2 flex max-w-[1180px] flex-col items-center gap-3 px-5 pb-16">
+            <button
+              type="button"
+              onClick={savePdf}
+              disabled={pdfBusy}
+              className="inline-flex min-h-11 items-center justify-center rounded-xl border border-amber-200/40 px-6 text-sm font-bold text-amber-100 outline-none transition hover:border-amber-200/70 hover:bg-amber-200/10 focus-visible:ring-2 focus-visible:ring-amber-200/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0818] disabled:cursor-wait disabled:opacity-60"
+            >
+              {pdfBusy ? copy.aiPdfSavingButton : copy.aiPdfSaveButton}
+            </button>
+            {pdfError ? <p role="alert" className="text-sm text-rose-300">{pdfError}</p> : null}
+          </div>
+        </div>
       </main>
     );
   }

@@ -42,7 +42,7 @@ interface AiConsultDecksProps {
 /** 섹션 하나 = 접히는 아코디언. 첫 항목만 펼친 채 시작해 장문의 진입 장벽을 낮춘다. */
 function SectionItem({ section, index, variant }: { section: DeckSection; index: number; variant: "column" | "card" }) {
   return (
-    <details className={variant === "card" ? styles.itemCard : styles.item} open={index === 0}>
+    <details className={variant === "card" ? styles.itemCard : styles.item} open={index === 0} data-nakai-pdf-section>
       <summary className={styles.head}>
         <span className={styles.headText}>
           <span className={styles.headTitle}>{section.title}</span>
@@ -94,7 +94,7 @@ export default function AiConsultDecks({ decks, natal, question, topInsights = [
   return (
     <div className={`${styles.vars} ${styles.wrap}`}>
       {/* 어디를 읽든 내 명식과 분량이 보이도록 상단에 고정한다(2만자 장문의 길잡이). */}
-      <header className={styles.summary}>
+      <header className={styles.summary} data-nakai-pdf-section>
         <div className={styles.summaryRow}>
           <h1 className={styles.natal}>
             {hasNatal ? (
@@ -147,7 +147,7 @@ export default function AiConsultDecks({ decks, natal, question, topInsights = [
             <h2 className={styles.sectionTitle}>{copy.aiTopInsightsTitle}</h2>
             <span className={styles.sectionRule} aria-hidden="true" />
           </div>
-          <ol className={styles.insights}>
+          <ol className={styles.insights} data-nakai-pdf-section>
             {topInsights.slice(0, 3).map((insight, index) => (
               <li key={insight.title} className={styles.insight}>
                 <span className={styles.insightNo} aria-hidden="true">{index + 1}</span>
@@ -159,7 +159,7 @@ export default function AiConsultDecks({ decks, natal, question, topInsights = [
         </>
       ) : null}
 
-      <p className={styles.note}>
+      <p className={styles.note} data-nakai-pdf-section>
         {copy.aiDisclaimer}
       </p>
     </div>
