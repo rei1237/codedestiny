@@ -128,6 +128,12 @@ Code Destiny는 한 명의 사용자가 언제든 펼쳐볼 수 있는 두 권�
 - 골드(`#ead089`)는 두 명도에서 모두 보조 포인트로 공통 사용.
 - 적용처: 로그인 사용자 카드(`.cd-user-card`) — 네오와 같은 구조·레이아웃에 색 계열만 다르게 입힌 대표 사례.
 
+### 달빛 예화(月花) 모티프 — 라인아트 장식 토큰
+홈 셸의 배경 꽃 라인아트·달·섹션 구분선(2026-09-03). 정본은 `scripts/design/gen-yehwa-motifs.mjs` → `styles/yehwa-motifs.css`(생성물, 손으로 고치지 않는다), 색은 `styles/theme-tokens.css` 의 `--cd-yehwa-*`.
+- **Rose Gold Line** (`--cd-yehwa-line` `#c9a46a` → `--cd-yehwa-line-2` `#d4af7a`, 딥 `--cd-yehwa-line-deep` `#a97b3e`): 연이의 1px 라인 드로잉 색. 네오는 같은 마스크를 Champagne Gold — Neo(`#e8d5a3`) 로, 끝 15% 만 Twilight Violet 로 재도색한다(One Accent Rule).
+- **Moon Ivory** (`--cd-yehwa-ivory` `#fdf6f0`, 네오 `#dcc48e`): 우상단 달 디스크와 구분선 미니 달의 바탕. 🔴 두 모드 다 **불투명** — 반투명이면 뒤 일러스트가 비쳐 "흐린 유리 원"이 된다(2026-09-03 실측).
+- 라인 알파는 "15~25%"가 아니라 **선 대비 1.3~1.7:1 이 목표**다(실측: 연이 히어로 일러스트 위 원색 .22 = 1.07:1 로 보이지 않음 → 딥 로즈골드 .5 = 1.31:1; 네오는 .16 = 1.39:1). 항상 텍스트 **뒤**(`z-index:0`, 카피는 2) 에 두고 텍스트 박스와는 여백으로 떨어뜨린다. 장식이므로 대비 기준 면제(위 표)지만 텍스트 위를 지나가면 안 된다 — 모바일 히어로는 카피가 카드를 다 채우므로 우상 가지를 끄고 달을 28px 로 모서리에 둔다.
+
 ### Legacy (사용 지양)
 - `midnight-ink`(#0A0E1A), `deep-indigo`(#1B2340), `moonveil-silver`(#A8B3C7), `pearl-mist`(#EDEFF5), 정적 `champagne-gold`(#D8B36C), 정적 `twilight-violet`(#9C87D4) — Tailwind 정적 색상으로, `--cd-*` 이전 세대의 네오 전용 팔레트. 신규 작업은 `cd-*` 토큰을 우선 사용하고, 이 값들은 점진적으로 대체한다.
 
