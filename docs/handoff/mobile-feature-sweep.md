@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-02
-next: "운세 찻집(/fortune-tea-house/) 수정 세션 — 탭 타깃 2건. 아래 레시피 절차. 그다음 배치 2"
+next: "배치 2 무료 허브 8종 전 스캔 — /saju /tarot /ziwei /sukuyo /astrology /today /compatibility /fortune/기간. 아래 레시피 절차"
 ---
 
 # 기능별 모바일 순회 원장
@@ -20,12 +20,12 @@ next: "운세 찻집(/fortune-tea-house/) 수정 세션 — 탭 타깃 2건. 아
 |---|---|---|---|---|---|---|
 | 초융합 심층 리딩 | /fusion-fortune/ | 1 | 09-02 | — | #1435 | 완료 |
 | 러브 코덱스 | /master-love-codex/ | 1 | 09-02 | — | #1465 | 완료 |
-| 운세 찻집 | /fortune-tea-house/ | 1 | 09-02 | 0/2/0/765px/302px(#1462 후)/유 | | 스캔됨 |
+| 운세 찻집 | /fortune-tea-house/ | 1 | 09-02 | — | #1471 | 완료 |
 | 네오 작전실 | /neo-operation-room/ | 1 | 09-02 | — | #1462 | 완료 |
 | 운세 챗 | /fortune-chat/ | 1 | 09-02 | — | #1447 | 완료 |
 | 낙샤트라 | /nakshatra/ | 1 | 09-02 | — | #1452 | 완료 |
 
-수정 우선순위: 찻집(탭 타깃 2건) → 배치 2.
+배치 1(유료 대표상담 5종) 완료. 다음은 배치 2.
 
 ## 배치 (사용자 확정: 유료 대표부터)
 
@@ -43,5 +43,7 @@ next: "운세 찻집(/fortune-tea-house/) 수정 세션 — 탭 타깃 2건. 아
 - 탭 타깃은 요소가 아니라 **감싸는 라벨**로 판정한다 — 작전실 `.checkField input` 은 18x18px 이지만 `<label>` 이 300x44 라 실효 44px 을 만족해 손대지 않았다. #1452(낙샤트라)는 라벨이 없어 수정 대상이었다.
 - 🔴 **전역 44px 바닥이 `<a>` 를 안 덮는다** — `styles/globals.css:128-133` 의 규칙은 `button, [role=button], input[type=button|submit|reset], label[for]` 만 겨눈다. 러브코덱스 나브에서 나란히 놓인 `<button>` '돌아가기'(71x44)와 `<Link>` '홈으로'(57.8x**21**)가 눈에는 같은데 실측이 갈렸다(#1465). 링크형 컨트롤이 있는 라우트는 이 구멍을 먼저 의심한다. 처방은 `min-h-11`(같은 페이지 연관 링크가 이미 쓰는 값).
 - 체크박스 44px 처방은 #1452 와 #1465 가 같은 코드다 — `appearance:none` 44x44 히트박스 + 16px `::before` 글리프 + 가로 `-14px` 마진 + 줄 `margin-top` 축소(글리프 중심 고정). 다음 기능도 이 블록을 그대로 옮겨 쓰면 된다: `src/features/master-love-codex/styles/codex.module.css` 의 `.checkLine`.
+- 🔴 **몰입형 기능의 오버레이는 라우트 스캔이 못 잡는다** — 찻집 꿀방울 도크·안내 패널·앨범은 첫 화면에 있지만 스캐너가 본 TT<44 는 2건, 손으로 열어 잰 것은 5건이었다(#1471). 오버레이·패널이 있는 기능은 `data-*` 를 강제해서라도 열어 재고, 안 열리면 미검증으로 적는다.
+- 찻집에서 끝내 도달 못 한 표면(#1471 미검증): 달빛 앨범 내부 탭·검색(앨범 잠김), 꿀돼지 QnA(5,000원 결과 화면 뒤), `.honeyModeToggle`. 유료 경로가 열리는 환경이 생기면 이 셋부터 잰다.
 - 공용 `ServiceIntroSection`(라우트 17종)의 읽는 열폭은 #1462 로 286→302px 이 됐다. 배치 4/6 에서 만날 라우트 중 09-02 관찰분: `/reviews/` 302px·TT<44 2건·IN<16 1건, `/naming-ai/` 282px·TT<44 5건·IN<16 6건.
 - index.html 의 /services/ 링크 7종(tarot·face-reading·palm-reading·animal-totem·omikuji·bias-destiny·stonehenge-rune)은 dist 에 산출물이 없어 404 다(09-02 실측). 링크 정리/페이지 신설은 별도 결정 필요.
