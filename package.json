@@ -419,6 +419,7 @@
     "measure:home-score": "node scripts/with-utf8-console.mjs node scripts/measure-home-score.mjs",
     "measure:touch-targets": "node scripts/with-utf8-console.mjs node scripts/measure-touch-targets.mjs",
     "measure:mobile-routes": "node scripts/with-utf8-console.mjs node scripts/measure-mobile-routes.mjs",
+    "measure:shell-css": "node scripts/with-utf8-console.mjs node scripts/measure-shell-css-externalization.mjs",
     "perf:style-cost": "node scripts/with-utf8-console.mjs node scripts/measure-home-style-cost.mjs",
     "perf:interaction": "node scripts/with-utf8-console.mjs node scripts/measure-home-interaction.mjs",
     "perf:tap-cost": "node scripts/with-utf8-console.mjs node scripts/measure-tap-fixed-cost.mjs",
