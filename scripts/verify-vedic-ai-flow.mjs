@@ -133,8 +133,11 @@ assertIncludes(registry, 'gotoVedicPremium: "vedic-ai-consultation"', "registry 
 
 const bindings = read("js/core/uiBindings.js");
 const runtime = read("js/core/index-inline-runtime.js");
-assertIncludes(bindings, "window.location.assign('/vedic-ai')", "uiBindings navigation");
-assertIncludes(runtime, "window.location.assign('/vedic-ai')", "runtime navigation");
+// 후행 슬래시 유무를 고정하지 않는다 — 지켜야 할 것은 "그 라우트로 간다"이지 표기가 아니다.
+// (next.config 의 trailingSlash:true 에 맞춰 슬래시를 붙이자 이 가드가 뒤집혔다, 2026-09-03)
+const VEDIC_AI_NAV = /window\.location\.assign\('\/vedic-ai\/?'\)/;
+assert(VEDIC_AI_NAV.test(bindings), `[verify:vedic-ai-flow] uiBindings navigation missing: ${VEDIC_AI_NAV}`);
+assert(VEDIC_AI_NAV.test(runtime), `[verify:vedic-ai-flow] runtime navigation missing: ${VEDIC_AI_NAV}`);
 
 const { handleVedicAiRoutes, __vedicAiTestUtils } = await import(new URL("../worker/routes/vedic-ai.js", import.meta.url).href);
 const readingSectionKeys = [

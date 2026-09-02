@@ -150,8 +150,11 @@ assertMissing(html, retiredTerms.filter((term) => term !== "premium-ziwei-report
 
 const bindings = read("js/core/uiBindings.js");
 const runtime = read("js/core/index-inline-runtime.js");
-assert(bindings.includes("window.location.assign('/ziwei-ai')"), "uiBindings navigation missing");
-assert(runtime.includes("window.location.assign('/ziwei-ai')"), "runtime navigation missing");
+// 후행 슬래시 유무를 고정하지 않는다 — 지켜야 할 것은 "그 라우트로 간다"이지 표기가 아니다.
+// (next.config 의 trailingSlash:true 에 맞춰 슬래시를 붙이자 이 가드가 뒤집혔다, 2026-09-03)
+const ZIWEI_AI_NAV = /window\.location\.assign\('\/ziwei-ai\/?'\)/;
+assert(ZIWEI_AI_NAV.test(bindings), "uiBindings navigation missing");
+assert(ZIWEI_AI_NAV.test(runtime), "runtime navigation missing");
 assertMissing(bindings, retiredTerms, "uiBindings");
 assertMissing(runtime, retiredTerms, "index-inline-runtime");
 
