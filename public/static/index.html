@@ -1576,6 +1576,9 @@ html.neo-mode .auth-quick-links,body.neo-mode .auth-quick-links{background:linea
 .cd-user-card__retry-note{display:block;margin-top:3px;max-width:292px;color:rgba(226,232,240,.82);font-size:.8rem;font-weight:600;line-height:1.55;letter-spacing:0}
 .cd-user-card__retry-btn{appearance:none;-webkit-appearance:none;display:inline-flex;align-items:center;justify-content:center;min-height:34px;padding:0 16px;border:1px solid rgba(186,230,253,.5);border-radius:999px;background:linear-gradient(135deg,rgba(14,116,144,.78),rgba(109,40,217,.72),rgba(126,75,18,.42));color:#fff;font-family:var(--font-body,'Noto Sans KR',sans-serif);font-size:.78rem;font-weight:900;letter-spacing:0;line-height:1;box-shadow:0 10px 22px rgba(8,13,35,.32),0 0 18px rgba(56,189,248,.22),inset 0 1px 0 rgba(255,255,255,.2);cursor:pointer;transition:transform .2s ease,filter .2s ease,box-shadow .2s ease}
 .cd-user-card__retry-btn:hover,.cd-user-card__retry-btn:focus-visible{transform:translateY(-1px);filter:brightness(1.08);box-shadow:0 13px 26px rgba(8,13,35,.38),0 0 24px rgba(56,189,248,.3),0 0 16px rgba(252,211,77,.16),inset 0 1px 0 rgba(255,255,255,.24);outline:none}
+/* 시각 34px 는 카드 비례상 유지하고 히트 영역만 44px 로 — index.html:2475 의 의사요소 관례 */
+.cd-user-card__retry-btn{position:relative}
+.cd-user-card__retry-btn::after{content:"";position:absolute;left:0;right:0;top:50%;height:44px;transform:translateY(-50%)}
 .cd-user-card__pass-line{display:inline-flex;align-items:center;justify-content:center;gap:7px;margin-top:3px;padding:7px 12px;border-radius:999px;border:1px solid rgba(245,219,154,.32);background:linear-gradient(135deg,rgba(17,10,42,.68),rgba(87,54,174,.38));color:#f8edc8;font-size:.76rem;font-weight:900;box-shadow:0 8px 18px rgba(0,0,0,.22)}
 .cd-user-card__pass-line::before{content:'';width:7px;height:7px;border-radius:50%;background:#f7d878;box-shadow:0 0 10px rgba(247,216,120,.72)}
 .cd-user-card__name{font-size:1.48rem;font-weight:900;background:linear-gradient(92deg,#f3e8ff 0%,#d8b4fe 33%,#fbcfe8 72%,#e9d5ff 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-.01em;line-height:1.24;text-shadow:0 0 20px rgba(199,141,255,0.28)}
@@ -5695,7 +5698,7 @@ body.cd-overlay-shell-open #langWrap{opacity:0;visibility:hidden;pointer-events:
   .cd-cookie-consent__title{margin:0;color:#F0EEE8;font-family:var(--font-display,'Noto Sans KR',sans-serif);font-size:1.02rem;font-weight:950;line-height:1.36;letter-spacing:0}
   .cd-cookie-consent__text{margin:0;color:rgba(232,223,200,.88);font-size:.84rem;font-weight:700;line-height:1.58;letter-spacing:0;word-break:keep-all}
   .cd-cookie-consent__actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
-  .cd-cookie-consent__btn{appearance:none;-webkit-appearance:none;min-height:38px;border-radius:12px;padding:0 14px;border:1px solid rgba(232,223,200,.18);font-family:var(--font-body,'Noto Sans KR',sans-serif);font-size:.8rem;font-weight:950;letter-spacing:0;cursor:pointer;transition:transform .2s ease,filter .2s ease,border-color .2s ease,background .2s ease}
+  .cd-cookie-consent__btn{appearance:none;-webkit-appearance:none;min-height:44px;border-radius:12px;padding:0 14px;border:1px solid rgba(232,223,200,.18);font-family:var(--font-body,'Noto Sans KR',sans-serif);font-size:.8rem;font-weight:950;letter-spacing:0;cursor:pointer;transition:transform .2s ease,filter .2s ease,border-color .2s ease,background .2s ease}
   .cd-cookie-consent__btn:hover{transform:translateY(-1px);filter:brightness(1.06)}
   .cd-cookie-consent__btn--primary{border-color:rgba(201,168,76,.52);background:linear-gradient(135deg,#E8DFC8,#C9A84C);color:#0A0B1A;box-shadow:0 10px 22px rgba(201,168,76,.18)}
   .cd-cookie-consent__btn--ghost{background:rgba(232,223,200,.07);color:#E8DFC8}
@@ -20315,7 +20318,7 @@ return you.name.restore();</span>
      🔴 레지스트리가 엔진보다 먼저 실행돼야 한다(defer 는 문서 순서를 지킨다). -->
 <script defer src="/js/core/service-registry.js?v=build-c45ac7a830ee" data-marker="cd-home-service-registry-v20260819"></script>
 <script defer src="/js/core/home-service-finder.js?v=build-c45ac7a830ee" data-marker="cd-home-service-finder-v20260819"></script>
-<script defer src="/js/mobile-interaction-patch.js?v=build-b32f43288dee" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
+<script defer src="/js/mobile-interaction-patch.js?v=build-c45ac7a830ee" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
 <script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-c45ac7a830ee" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
@@ -36078,6 +36081,9 @@ html.neo-mode .tile-pvw-overlay.pvw-prem .tile-pvw-cta-sticky,body.neo-mode .til
   .cd-mobile-collection-chrome.is-open{visibility:visible;pointer-events:auto;transform:translate3d(0,0,0);opacity:1;transition-delay:0s}
   .cd-mobile-collection-close{flex:0 0 auto;width:44px;height:44px;min-height:44px;border:1px solid rgba(168,85,247,.32);border-radius:8px;background:rgba(139,92,246,.12);color:#e9d5ff;font:inherit;font-size:1.1rem;font-weight:900;line-height:1;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;display:flex;align-items:center;justify-content:center}
   .cd-mobile-collection-close:active{background:rgba(139,92,246,.24)}
+  /* compact 모드(:is-compact)가 38px 로 줄여도 히트 영역은 44px 를 유지한다 — :2475 의 의사요소 관례 */
+  .cd-mobile-collection-close{position:relative}
+  .cd-mobile-collection-close::after{content:"";position:absolute;left:50%;top:50%;width:44px;height:44px;transform:translate(-50%,-50%)}
   .cd-mobile-collection-tabs{display:flex;flex:1;gap:2px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding:2px 0;min-width:0}
   .cd-mobile-collection-tabs::-webkit-scrollbar{display:none}
   .cd-mobile-collection-tab{flex:0 0 auto;min-height:32px;padding:6px 10px;border:1px solid rgba(168,85,247,.24);border-radius:8px;background:rgba(88,28,135,.4);color:#d8b4fe;font:inherit;font-size:.7rem;font-weight:900;line-height:1.1;white-space:nowrap;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:background .15s ease,color .15s ease,border-color .15s ease}
