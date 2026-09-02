@@ -331,8 +331,14 @@ const eventNames = (calls) => events(calls).map((c) => c[1]);
   assert.ok(homeStart > -1, 'index.html 에서 <main id="inputPage"> 를 못 찾았다 — 이 검사가 통째로 안 돌게 된다');
   assert.ok(resultStart > homeStart, 'index.html 에서 <article id="resultPage"> 를 홈 뒤에서 못 찾았다 — 이 검사가 통째로 안 돌게 된다');
 
-  const home = SHELL_SOURCE.slice(homeStart, resultStart);
-  const outsideHome = SHELL_SOURCE.slice(0, homeStart) + SHELL_SOURCE.slice(resultStart);
+  // 🔴 표식을 세기 전에 HTML 주석을 걷어낸다. 주석 안에 리터럴로 적힌
+  //    data-cd-funnel-section="..." 을 살아 있는 표식으로 세면, 실제로는 한 개뿐인 면이
+  //    "값 중복" 으로 잡혀 가드가 없는 회귀를 만든다 — 2026-09-02 에 실제로 났다(래퍼 div 를
+  //    지우지 말라는 주석에 그 속성명을 그대로 적었더니 secondary_panel 이 2개로 세어졌다).
+  //    주석은 마크업이 아니므로 이 제거는 검사를 느슨하게 만들지 않는다.
+  const stripComments = (s) => s.replace(/<!--[\s\S]*?-->/g, "");
+  const home = stripComments(SHELL_SOURCE.slice(homeStart, resultStart));
+  const outsideHome = stripComments(SHELL_SOURCE.slice(0, homeStart) + SHELL_SOURCE.slice(resultStart));
   const marks = [...home.matchAll(/data-cd-funnel-section="([^"]*)"/g)].map((m) => m[1]);
 
   assert.ok(

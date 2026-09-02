@@ -29,13 +29,17 @@ test("fortune planner entry is folded into the diary modal", () => {
   const diaryTitle = html.match(/id="cdDiaryPlannerTitle">([\s\S]*?)<\/h2>/);
   assert.ok(diaryTitle, "#cdDiaryPlannerTitle 을 찾지 못했다");
   assert.match(diaryTitle[1], /운기·기일 다이어리와[\s\S]*나의 운세 플래너/);
-  // 2026-08-21(cd-home-secondary-panel-v20260821): 다이어리 진입은 지운 것이 아니라
-  // #cdHomeSecondaryPanel 안으로 옮겨 감춘다. data-cd-home-secondary 속성 대신 래퍼
-  // 기준으로 접는 이유는 이 패널이 grid-template-rows 트랜지션으로 부드럽게 펼쳐져야 해서다
-  // (display:none 즉시 전환인 속성 방식과 같은 곳에 중첩하지 않는다 — 원칙 6).
+  // 2026-09-02: 다이어리 진입은 여전히 #cdHomeSecondaryPanel 안에 있지만 그 패널의 접기를
+  // 풀었다 — 지킬 것이 뒤집힌다. 예전에는 "접혀 있다"(grid-template-rows:0fr)를 지켰고,
+  // 지금은 "접히지 않는다"를 지킨다. 래퍼 div 자체는 남는다: data-cd-funnel-section
+  // ="secondary_panel" 이 애널리틱스 귀속 단위라 지우면 이 3개 섹션의 클릭이 어디에도 안 잡힌다.
+  // 🔴 아래 doesNotMatch 2건이 이 가드가 무는 지점이다 — 초기값 0fr 이나 .cd-home-expanded
+  // 오버라이드가 되살아나면 여기서 잡힌다(match 만 두면 규칙을 덧붙여 되접어도 통과한다).
   assert.match(html, /<section class="cd-diary-planner-entry" id="cdDiaryPlannerEntry"/);
   assert.ok(html.indexOf('id="cdHomeSecondaryPanel"') < html.indexOf('id="cdDiaryPlannerEntry"'));
-  assert.match(html, /html body \.cd-home-secondary-panel\{display:grid;grid-template-rows:0fr/);
+  assert.match(html, /html body \.cd-home-secondary-panel\{display:grid;grid-template-rows:1fr\}/);
+  assert.doesNotMatch(html, /\.cd-home-secondary-panel\{[^}]*grid-template-rows:0fr/);
+  assert.doesNotMatch(html, /html\.cd-home-expanded body \.cd-home-secondary-panel/);
   // 2026-08-20(home-profile-card-form-panel-v20260820): 프로필 카드 + 폼 패널이 히어로 바로
   // 아래·페이지 맨 위로 승격되며 대표 상담(cdSignatureConsult)보다도 앞으로 올라왔다.
   // 2026-08-19(cd-finder-v20260819)에는 대표 상담이 통합 탐색기 바로 아래로 승격되며 폼보다
