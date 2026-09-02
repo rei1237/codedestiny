@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { RefreshCw, Save, Share2 } from "lucide-react";
 import { useCoinGate } from "../../hooks/useCoinGate";
 import { useAiProfileSeed } from "../../hooks/useAiProfileSeed";
+import { useServerPrice } from "@/app/hooks/useServerPrice";
 import { lookupServerCoinPrice } from "@/app/_lib/serviceCoinPrice";
 import { showSubscriptionIncludedNotice } from "../../components/subscriptionNotice";
 import { showToast } from "../../components/Toast";
@@ -499,7 +500,6 @@ const PAID_BENEFITS = [
 ];
 
 const NUMEROLOGY_READING_FEATURE_KEY = "tarot-numerology-reading";
-const NUMEROLOGY_READING_PRICE_LABEL = "3,000원";
 // v2 — 무료/유료 경계가 바뀌며 스냅샷 구조가 달라졌다. 구버전 키는 자연 폐기된다.
 const READING_ENTITLEMENT_STORAGE_KEY = "cd:numerology-tarot:entitlement:v2";
 const READING_RESULT_STORAGE_PREFIX = "cd:numerology-tarot:result:v2:";
@@ -916,6 +916,10 @@ export default function NumerologyTarotClient() {
   const copy = useNumerologyTarotCopy();
   const router = useRouter();
   const { ensurePaidAccess, isPaying } = useCoinGate();
+  // 🔴 가격은 레지스트리 정본에서만 읽는다. 예전에는 "3,000원" 리터럴이라 12개 로케일
+  //    전부에서 한국어로 나갔고 해외 참고 개산가도 안 붙었다(2026-09-03 스테이징 실측).
+  //    ko 출력은 그대로 "3,000원" 이다 — formatRegistryAmount 가 ko 에서 같은 문자열을 만든다.
+  const { label: deepPriceLabel } = useServerPrice({ featureKey: NUMEROLOGY_READING_FEATURE_KEY });
   // 생년 정보 자동 프리필 — 공용 훅을 재사용한다(프로필 조회 로직을 새로 만들지 않는다).
   const { seed: profileSeed, seedVersion: profileSeedVersion } = useAiProfileSeed();
   const screenRef = useRef<HTMLElement | null>(null);
@@ -1352,7 +1356,7 @@ export default function NumerologyTarotClient() {
           return;
         }
         if (paymentResult.code === "INSUFFICIENT_COINS" || paymentResult.code === "PAYMENT_REQUIRED") {
-          setError(`결제 가능 금액이 부족합니다. ${NUMEROLOGY_READING_PRICE_LABEL} 결제가 필요합니다.`);
+          setError(`결제 가능 금액이 부족합니다. ${deepPriceLabel} 결제가 필요합니다.`);
           return;
         }
         setError(paymentResult.message || "결제를 완료하지 못했습니다.");
@@ -1387,7 +1391,7 @@ export default function NumerologyTarotClient() {
           : "";
         showToast(`월정석 ${formatKrwFromMonthlyCredits(paymentContext.monthlyCreditsSpent)} 상당으로 수비학 타로 심층 상담이 열렸습니다.${remaining}`, "info");
       } else if (paymentResult.chargedCoins > 0) {
-        showToast(`수비학 타로 심층 상담 ${NUMEROLOGY_READING_PRICE_LABEL} 결제가 승인되었습니다.`, "info");
+        showToast(`수비학 타로 심층 상담 ${deepPriceLabel} 결제가 승인되었습니다.`, "info");
       }
       await runReading(paidEntitlement, nextReadingId);
     } catch (paymentError) {
@@ -1566,6 +1570,17 @@ export default function NumerologyTarotClient() {
                   ))}
                 </div>
 
+                {/* 심층 상담 가격을 첫 화면에서 미리 밝힌다 — 카드를 다 뽑은 뒤에야 알게 되지 않도록.
+                    덱이 생기면 아래 픽 단계가 같은 안내를 그리므로 그때는 접는다. */}
+                {!deck ? (
+                  <div className={styles.includedList} aria-label={copy.includedDeepListAria}>
+                    <span className={styles.includedBadgePaid}>{deepPriceLabel}</span>
+                    {PAID_BENEFITS.map((item) => (
+                      <span key={item}>{item}</span>
+                    ))}
+                  </div>
+                ) : null}
+
                 <div className={styles.actions}>
                   <button type="button" onClick={beginDraw} disabled={loading} className={styles.mainBtn}>
                     {cards.length || deck ? "카드 다시 뽑기" : "카드 5장 직접 뽑기 · 무료"}
@@ -1718,12 +1733,12 @@ export default function NumerologyTarotClient() {
                         ? "결제 확인 중..."
                         : hasPaidAccess
                           ? "심층 상담 결과 다시 불러오기"
-                          : `심층 상담 결과 보기 · ${NUMEROLOGY_READING_PRICE_LABEL}`}
+                          : `심층 상담 결과 보기 · ${deepPriceLabel}`}
                   </button>
                 </div>
 
                 <div className={styles.includedList} aria-label={copy.includedDeepListAria}>
-                  <span className={styles.includedBadgePaid}>{NUMEROLOGY_READING_PRICE_LABEL}</span>
+                  <span className={styles.includedBadgePaid}>{deepPriceLabel}</span>
                   {PAID_BENEFITS.map((item) => (
                     <span key={item}>{item}</span>
                   ))}
