@@ -46,6 +46,22 @@ if (/id="tilePvwSampleDoc"/.test(html)) {
   fail("#tilePvwSampleDoc 이 되살아났습니다 — 지어낸 결과 예시 블록은 다시 넣지 않습니다.");
 }
 
+// 🔴 같은 금지가 App Router 허브 모달에도 걸린다. 셸에서 지운 지어낸 결과 예시가 /app 사본에
+// 그대로 남아 있었고(2026-09-02 에 sampleReport 8 + resultPreview 9 = 17블록 제거), 그동안
+// 이 가드는 셸만 읽어 초록불이었다. 파일을 못 읽으면 통과가 아니라 실패다(fail-closed).
+const HUB_MODAL = resolve(ROOT, "app/components/FeatureMarketingDetailModal.tsx");
+let hubSource = "";
+try {
+  hubSource = readFileSync(HUB_MODAL, "utf8");
+} catch (err) {
+  fail(`app/components/FeatureMarketingDetailModal.tsx 를 읽지 못했습니다(${err.code || err.message}) — 파일을 옮겼다면 이 가드의 경로도 함께 고치세요.`);
+}
+for (const banned of ["sampleReport", "resultPreview"]) {
+  if (hubSource.includes(banned)) {
+    fail(`FeatureMarketingDetailModal.tsx 에 ${banned} 가 다시 들어왔습니다 — 지어낸 결과 예시는 셸과 허브 양쪽에서 금지입니다.`);
+  }
+}
+
 // 순서 계약: 무엇을 얻는가 → 어떻게 분석 → 리포트 예시 → 누구에게 → 가격 → FAQ
 const ORDER = [
   "tilePvwPremiumBlock", "tilePvwScaleSec", "tilePvwQuestSec", "tilePvwStepsSec",

@@ -4566,9 +4566,6 @@
     "scaleReadMinutes": "約{count}分鐘閱讀量",
     "questionsLabel": "這些問題都能獲得解答",
     "stepsLabel": "分析是如何進行的",
-    "sampleLabel": "真實報告範例",
-    "sampleChip": "範例",
-    "sampleContinuation": "接下來將依據您填寫的資訊繼續進行個人化分析。",
     "compareLabel": "為什麼需要付費",
     "compareFree": "免費",
     "comparePremium": "進階版",
@@ -8053,23 +8050,6 @@
       ],
       "badge": "深度解讀",
       "headline": "把你的八字反覆發出的訊號，再讀得深一點。",
-      "sampleReport": {
-        "sections": {
-          "0": {
-            "heading": "天生的性情",
-            "body": "以日干來看，你屬於先掂量、後行動的類型。不是決定得慢，而是確認完成之後手才動。"
-          },
-          "1": {
-            "heading": "當下的流向",
-            "body": "當下經過的運勢，收拾整理的力量強過開疆拓土。新開始的事情格外遲緩，原因就在這裡。"
-          },
-          "2": {
-            "heading": "選擇的標準",
-            "body": "兩件事同時抓，兩件都會拖慢。先定下要先完成的那一件，其餘的往後挪。"
-          }
-        },
-        "caption": "這是直接取自真實八字解讀開頭的範例。文句與結論會隨你的命式而不同。"
-      },
       "hubTagline": "把氣質、流向與反覆出現的選擇模式一併梳理的解讀。",
       "hubPremiumIntro": "八字解讀不會用吉凶來嚇唬你，而是平靜地攤開當下的流向與選擇的標準。"
     },
@@ -8147,24 +8127,7 @@
         }
       ],
       "badge": "牌陣解讀",
-      "headline": "把還留在心裡的那個問題，用牌的象徵攤開來看。",
-      "sampleReport": {
-        "sections": {
-          "0": {
-            "heading": "此刻的氛圍",
-            "body": "抽到的牌指向的不是正面衝突，而是彼此觀望的狀態。兩個人都在等對方先動。"
-          },
-          "1": {
-            "heading": "情感的走向",
-            "body": "對方的心並沒有冷掉，只是表達的速度慢。你越催促，那速度只會更慢。"
-          },
-          "2": {
-            "heading": "現在該做的事",
-            "body": "這一週該說的話和該忍住的話是分開的。光是守住順序，距離就會拉近。"
-          }
-        },
-        "caption": "這是直接取自真實塔羅解讀開頭的範例。內容會隨你親手抽到的牌而不同。"
-      }
+      "headline": "把還留在心裡的那個問題，用牌的象徵攤開來看。"
     },
     "template_sukuyo": {
       "tagline": "以關係的質地、衝突模式與緣分節奏為核心的解讀。",
@@ -8240,24 +8203,7 @@
         }
       ],
       "badge": "關係解讀",
-      "headline": "把兩個人之間的吸引與距離，讀得比好壞更細緻。",
-      "sampleReport": {
-        "sections": {
-          "0": {
-            "heading": "兩人所處的位置",
-            "body": "兩位的本命宿彼此吸引，卻不以相同的速度前行。錯位就是從這裡開始的。"
-          },
-          "1": {
-            "heading": "衝突產生之處",
-            "body": "越靠近，對方越在丈量距離，而你想要確認。這段錯開的節奏，才是爭執的真正原因。"
-          },
-          "2": {
-            "heading": "關係上的建議",
-            "body": "該先開口的話和絕不能開口的話是分開的。光是守住順序，結果就會不同。"
-          }
-        },
-        "caption": "這是直接取自真實宿曜關係解讀開頭的範例。內容會隨兩位的本命宿而不同。"
-      }
+      "headline": "把兩個人之間的吸引與距離，讀得比好壞更細緻。"
     },
     "template_ziwei": {
       "tagline": "沿著各宮流向與星曜配置來審視長期方向的解讀。",
@@ -8333,24 +8279,7 @@
         }
       ],
       "badge": "深度解讀",
-      "headline": "在命盤之中，靜下心讀出人生的結構與當下的方向。",
-      "sampleReport": {
-        "sections": {
-          "0": {
-            "heading": "命宮所說的氣質",
-            "body": "命宮中的星曜排布，首先說明你做決定的速度與方式。眼下的煩惱之所以沉重，也是從這裡開始的。"
-          },
-          "1": {
-            "heading": "財與事業的流向",
-            "body": "財帛宮的流向會在今年下半年轉向。這段時間要把該開展的和該收攏的分開，損失才會變小。"
-          },
-          "2": {
-            "heading": "反覆出現的模式",
-            "body": "在官祿宮與命宮相接之處，同樣的模式一再出現。察覺到它的那一刻，選擇的餘地就不一樣了。"
-          }
-        },
-        "caption": "這是直接取自真實紫微斗數解讀開頭的範例。內容會隨你的命盤而不同。"
-      }
+      "headline": "在命盤之中，靜下心讀出人生的結構與當下的方向。"
     },
     "template_astrology": {
       "tagline": "同時解讀心理流向與時機感的占星解讀。",
@@ -8426,24 +8355,7 @@
         }
       ],
       "badge": "星座解讀",
-      "headline": "看看星座與行星的流動，此刻正為你的心指向何方。",
-      "sampleReport": {
-        "sections": {
-          "0": {
-            "heading": "天生的氣質",
-            "body": "上升星座造就的第一印象，與你真實的氣質之間存在落差。別人誤解你的地方正在這裡。"
-          },
-          "1": {
-            "heading": "情緒的復原方式",
-            "body": "月亮的位置決定了情緒如何復原。是自己消化更快，還是必須說出來才行，就在這裡分野。"
-          },
-          "2": {
-            "heading": "當下的時期",
-            "body": "當下經過的行星流動，更接近收拾而非擴張。在開始新事之前，還有該了結的事。"
-          }
-        },
-        "caption": "這是直接取自真實占星解讀開頭的範例。內容會隨你的出生星盤而不同。"
-      }
+      "headline": "看看星座與行星的流動，此刻正為你的心指向何方。"
     },
     "template_vedic": {
       "tagline": "以吠陀占星的象徵與時機感來整理選擇方向的解讀。",
@@ -8519,24 +8431,7 @@
         }
       ],
       "badge": "時機解讀",
-      "headline": "把問題浮現的這個時點，與你內在的流動一起看。",
-      "sampleReport": {
-        "sections": {
-          "0": {
-            "heading": "天生的配置",
-            "body": "以上升點為準來看，你屬於收尾時才發力的配置。別把開頭的遲緩讀成失敗。"
-          },
-          "1": {
-            "heading": "當下的大運週期",
-            "body": "當下經過的週期，是累積實力而非經營關係的區間。這段時間倉促鋪開的緣分留不長。"
-          },
-          "2": {
-            "heading": "情緒的節奏",
-            "body": "月亮所在的宿星決定了情緒復原的速度。從崩塌到重新站起的節奏就在這裡。"
-          }
-        },
-        "caption": "這是直接取自真實吠陀占星解讀開頭的範例。內容會隨你的出生資料而不同。"
-      }
+      "headline": "把問題浮現的這個時點，與你內在的流動一起看。"
     },
     "template_oracle": {
       "tagline": "在做選擇之前梳理心境的神諭式占卜。",
@@ -8612,24 +8507,7 @@
         }
       ],
       "badge": "象徵解讀",
-      "headline": "用象徵的語言，簡短地確認此刻最容易錯過的訊號。",
-      "sampleReport": {
-        "sections": {
-          "0": {
-            "heading": "此刻浮現的訊號",
-            "body": "抽到的象徵不是要你往前推進，而是指向再看一次你已經走過的地方。"
-          },
-          "1": {
-            "heading": "你一直忽略的事",
-            "body": "擋住決定的不是資訊不足，而是不肯承認自己早已知道的那顆心。"
-          },
-          "2": {
-            "heading": "此刻該有的姿態",
-            "body": "一急，就會回到原地。這一次，晚一拍再回答也不遲。"
-          }
-        },
-        "caption": "這是直接取自真實神諭解讀開頭的範例。內容會隨抽到的象徵而不同。"
-      }
+      "headline": "用象徵的語言，簡短地確認此刻最容易錯過的訊號。"
     },
     "template_report": {
       "tagline": "把當下的煩惱與流向梳理得更具體的高級解讀。",
@@ -8705,24 +8583,7 @@
         }
       ],
       "badge": "深度諮詢型",
-      "headline": "把散落的念頭，收攏成一份完整的解讀。",
-      "sampleReport": {
-        "sections": {
-          "0": {
-            "heading": "天生的性情",
-            "body": "你不是拖延決定的人，而是蒐集資訊蒐集得太久的人。先定下標準，速度才會跟上。"
-          },
-          "1": {
-            "heading": "此刻卡住的地方",
-            "body": "你正在失守的戰線不是工作，而是關係。從這裡漏掉的力氣，會把其餘的全部啃光。"
-          },
-          "2": {
-            "heading": "下一步行動",
-            "body": "接下來三個月內收掉一件，其餘才活得下來。要收掉哪一件，其實早已定了。"
-          }
-        },
-        "caption": "這是直接取自真實高級報告開頭的範例。內容會隨你輸入的資料與提問而不同。"
-      }
+      "headline": "把散落的念頭，收攏成一份完整的解讀。"
     },
     "template_music": {
       "tagline": "以音樂與角色世界觀氛圍為核心體驗的感性內容。",
@@ -8801,14 +8662,6 @@
     "gotoZiweiPremium": {
       "badge": "專家諮詢型",
       "headline": "靜下心讀一讀，星曜的排布正把此刻的提問引向何處。",
-      "resultPreview": {
-        "lines": {
-          "0": "命宮中的星曜排布，首先說明你做決定的速度與方式。眼下的煩惱之所以沉重，也是從這裡開始的。",
-          "1": "財帛宮的流向會在今年下半年轉向。這段時間要把開展的和收攏的分開，損失才會變小。",
-          "2": "在官祿宮與命宮相接之處，同樣的模式一再出現。察覺到它的那一刻，選擇的餘地就不一樣了。"
-        },
-        "caption": "這是真實諮詢結果畫面的範例。付款後可看到依你命盤計算的十二宮完整解讀，以及後續提問。"
-      },
       "tagline": "The main text runs to at least 20,700 characters, and once you have the result you can keep asking follow-up questions at no extra charge.",
       "feats": {
         "0": "Builds your twelve-palace chart from your birth date and time",
@@ -8961,15 +8814,7 @@
         }
       },
       "badge": "戰略諮詢型",
-      "headline": "把散落的煩惱，整理成一張作戰地圖。",
-      "resultPreview": {
-        "lines": {
-          "0": "你正在失守的戰線不是工作，而是關係。從這裡漏掉的力氣，會把其餘的全部啃光。",
-          "1": "你不是拖延決定的人，而是蒐集資訊蒐集得太久的人。得先把標準定下來。",
-          "2": "接下來三個月內收掉一件，其餘才活得下來。要收掉哪一件，其實早已定了。"
-        },
-        "caption": "這是真實作戰室諮詢結果開頭的範例。付款後會接上把你的命式與星圖綁在一起的整體戰略與行動順序。"
-      }
+      "headline": "把散落的煩惱，整理成一張作戰地圖。"
     },
     "openNamingPromptModal": {
       "tagline": "Proposes 5 to 7 new names in an eight-chapter naming book, and hands you the original prompt that produced that book as well.",
@@ -9682,14 +9527,6 @@
     "openLoveSimulation": {
       "badge": "戀愛模擬",
       "headline": "看看你的戀愛模式在哪些場景裡發光，在哪些場景裡動搖。",
-      "resultPreview": {
-        "lines": {
-          "0": "你不是一開始就全然敞開心的人，而是一旦敞開就收不回來的人。",
-          "1": "你被吸引的類型，和真正合適的類型並不相同。反覆就產生於這道落差。",
-          "2": "關係動搖的時點，多半出現在第三道坎。"
-        },
-        "caption": "這是真實 LOVE CODE 結果開頭的範例。付款後可看到依你八字計算的完整戀愛模式。"
-      },
       "tagline": "16 partner characters with 20 scenes each; every choice moves five meters — affection, trust, chemistry, tension and stability.",
       "feats": {
         "0": "16 partner characters · 20 scenes per character, with 3 choices in every scene",
@@ -9770,14 +9607,6 @@
     "openDestinyBias": {
       "badge": "小卡解讀",
       "headline": "把你與本命之間浮現的氛圍與情感密碼，一張一張攤開來。",
-      "resultPreview": {
-        "lines": {
-          "0": "兩人的氣不是正面相撞，而是彼此映照的排布。",
-          "1": "吸引你的不是耀眼，而是那份撐住的態度。",
-          "2": "今年這份心意最濃的時期，另有其時。"
-        },
-        "caption": "這是真實《本命命運》結果開頭的範例。付款後可看到全部卡片與氛圍解讀。"
-      },
       "tagline": "It opens with sign-in alone, and produces five scores — total, emotion, fandom, longevity and support — along with a card image, right on the spot.",
       "feats": {
         "0": "A free feature that opens with sign-in alone",
@@ -10123,14 +9952,6 @@
     "openRuneOracle": {
       "badge": "盧恩解讀",
       "headline": "把此刻抉擇之前浮現的盧恩象徵，靜靜地攤開來。",
-      "resultPreview": {
-        "lines": {
-          "0": "第一顆石頭指向已經做過的選擇。那個選擇不是失誤，而是必要的過程。",
-          "1": "中間那顆石頭意味著停頓。此刻需要的不是前進的力量，而是撐住的力量。",
-          "2": "最後那顆石頭是門開啟的位置。只是，得先放開手裡已握著的東西才會開。"
-        },
-        "caption": "這是真實盧恩神諭結果開頭的範例。付款後可看到三枚盧恩的完整解讀與組合釋義。"
-      },
       "hubTagline": "以盧恩文字的象徵，讀出當下提問與下一步行動質地的神諭解讀。",
       "tagline": "A 25-rune system — the 24 runes plus the blank rune Wyrd — reads the flow across three seats, past Urd · present Verdandi · future Skuld, splitting each rune into upright and reversed.",
       "feats": {
@@ -10584,14 +10405,6 @@
       },
       "badge": "專家諮詢型",
       "headline": "給自己一段時間，把人生的大流向好好整理一次。",
-      "resultPreview": {
-        "lines": {
-          "0": "你的日干是靜靜滲透的水之氣。表面看似柔軟，但方向一旦定下就很難回頭。",
-          "1": "第一個大轉折點已經過去了。我們先從當時那個選擇如何連到今日的位置說起。",
-          "2": "反覆輪迴的根源，位於財之氣與責任之氣相撞的地方。解開這一點，下一章就會打開。"
-        },
-        "caption": "這是真實《人生之書》開頭的範例。付款後會繼續到依你八字計算出的全部章節與分期策略。"
-      },
       "hubTagline": "以八字流向為基礎，用諮詢的形式梳理人生方向與反覆模式的高級功能。",
       "hubFeats": {
         "0": "想從大框架上梳理人生方向時",
@@ -10667,14 +10480,6 @@
       },
       "badge": "專家諮詢型",
       "headline": "以命式為據，把人生、事業、財富、關係的大流向一路推到底。",
-      "resultPreview": {
-        "lines": {
-          "0": "庚金日干生於巳月，調候急迫。在炙熱之地本該淬硬，但若無降溫之氣，就容易疲憊。",
-          "1": "財星雖強，卻被比劫分走。比起進錢的速度，得先把漏財的通道堵上。",
-          "2": "當前大運是官星得力的區間。責任會變重，同時也需要立起能承接這份重量的印星。"
-        },
-        "caption": "這是真實《人生總運》開頭的範例。付款後會接上全部十章與四篇命式深度判讀。"
-      },
       "hubTagline": "如果說《人生之書》是故事，《人生總運》就是診斷。十章全部附上日干、用神、十神、大運的依據，以三萬字的篇幅展開。",
       "hubFallbackCta": "閱覽人生總運"
     },
@@ -10846,14 +10651,6 @@
     "saju_destiny_meeting_place": {
       "badge": "場所解讀",
       "headline": "看看你的緣分最容易停駐的那些場所，是什麼樣的質地。",
-      "resultPreview": {
-        "lines": {
-          "0": "你的緣分不在開闊之地展開，而在狹窄且反覆造訪的地方打開。",
-          "1": "就方位而言，以你現在居住之處為準，某一側明顯更有利。",
-          "2": "相遇往往落在人潮聚集之外、錯開一拍的時期。"
-        },
-        "caption": "這是真實《緣分之地》結果開頭的範例。付款後可看到依你八字計算的場所、方位與時機解讀。"
-      },
       "tagline": "5 recommended places, 5 countries and 4 types of encounter, set out with the season, month and time band, and the items that draw a bond.",
       "feats": {
         "0": "Picks 5 recommended places and 5 recommended countries",
@@ -12240,14 +12037,6 @@
     "tarot_prompt_maker": {
       "badge": "提示詞型",
       "headline": "先把貼合你提問的塔羅諮詢語句整理出來。",
-      "resultPreview": {
-        "lines": {
-          "0": "在眼下的處境裡，「是什麼讓這段關係停住了」比「這個人喜歡我嗎」更容易打開。",
-          "1": "第一個問題打開之後，接著要問的第二、第三個問題都已備好。",
-          "2": "牌面出得含糊時該如何重問的語句，也另外收錄在內。"
-        },
-        "caption": "這是真實提示詞結果開頭的範例。付款後可獲得貼合處境的提問組與提示詞全文。"
-      },
       "hubTagline": "把要讓牌義解讀走得更深的提問與諮詢流程，綁成一份提示詞的功能。",
       "tagline": "Pick the structure that fits your situation from 77 spreads and turn the cards yourself; AI then writes the consultation from exactly that layout and shows you the original prompt it used.",
       "feats": {
