@@ -900,6 +900,28 @@
   font-weight: 800;
   letter-spacing: 0.01em;
 }
+/* 🔴 360x640 에서 CTA 아래 여유가 7px 뿐이었다(#1438 실측, 390x844 는 203px). 글자 크기와
+   줄높이는 그대로 두고 문안 블록의 **세로 간격만** 좁혀 CTA 를 위로 끌어올린다 — 좁은 화면에서
+   본문을 줄이면 축 2(가독성 개선)를 되돌리는 셈이라 여백만 손댄다. 합계 -32px.
+   🔴 위쪽 @media (max-width:390px) 블록(:855)으로 합치지 말 것 — .chatLead 의 margin-top 이
+      !important 라, 같은 특이도에서 이기려면 이 블록이 그 선언보다 소스에서 아래여야 한다. */
+@media (max-width: 390px) {
+  .heroCopy {
+    padding-top: 16px;
+  }
+  .guardianLink {
+    margin-bottom: 8px;
+  }
+  .heroMeta {
+    margin-top: 18px;
+  }
+  .chatLead {
+    margin-top: 12px !important;
+  }
+  .heroCta {
+    margin-top: 16px;
+  }
+}
 .coreButton,
 .profileReload {
   min-height: 44px;
