@@ -1,6 +1,6 @@
 ---
 status: active
-updated: 2026-08-16
+updated: 2026-09-02
 next: "§5 \"다음에 할 일\" 우선순위대로 — 착수 전 §3-A 가 PR #720(C안)으로 이미 끝났는지 대조한다"
 ---
 
@@ -64,11 +64,20 @@ curl -sI https://code-destiny.com/insights/sukuyo-ankai/ | grep -iE 'etag|cache-
 curl -s https://code-destiny.com/rss.xml | grep -o '<lastBuildDate>[^<]*'         # → 최근 날짜 기대
 ```
 
-🔴 **#673 의 미검증 2건** — 배포 전에는 확인 불가:
-1. `no-store` 를 지우면 Cloudflare Pages 가 실제로 `ETag` 를 발급하는가.
-2. Cloudflare **대시보드 Cache Rules** 에 HTML 대상 Bypass 규칙이 있어 `_headers` 를 이기고 있지는 않은가.
-   (`docs/context/delivery-and-ci.md:25` 에 `next-static-404-no-store` 라는 대시보드 규칙이 실재한다는 기록이 있다.)
-   → 위 `curl -sI` 에서 ETag 가 안 나오면 2번을 의심하고 대시보드/API 로 zone 의 Cache Rules 를 전량 나열할 것.
+🔴 **#673 의 미검증 2건 — 2026-09-02 에 둘 다 "아니다"로 종결됐다. 다시 조사하지 말 것.**
+1. ~~`no-store` 를 지우면 Cloudflare Pages 가 실제로 `ETag` 를 발급하는가.~~
+   → **아니다.** `no-cache` 는 적용됐지만 HTML 에는 여전히 검증자가 없다.
+2. ~~대시보드 Cache Rules 가 `_headers` 를 이기고 있지는 않은가.~~
+   → **아니다.** `no-cache` 를 가진 `/version.json`·`/manifest.json` 에는 ETag 가 멀쩡히 있고,
+   `_headers` 가 Content-Type 을 재지정하는 `/ads.txt` 에도 있다. 규칙 축이 아니라 **HTML 축**이다.
+
+진짜 원인은 Cloudflare **JavaScript Detections(Bot Fight Mode)** 다 — 엣지가 HTML 본문에
+`/cdn-cgi/challenge-platform/scripts/jsd/main.js` 를 주입하며 응답을 다시 쓰고, 그때
+`Content-Length` 와 `ETag` 가 함께 사라진다. 워커 경로와 정적 경로가 동일 증상이라 오리진이 아니라
+엣지 후처리이며, `_headers` 로도 코드로도 못 고친다(대시보드 토글이 유일한 레버이고, 사용자는 봇
+보호를 유지하기로 결정했다). 대조표는
+[app-optimization-remaining-2026-09-02.md](app-optimization-remaining-2026-09-02.md) §2,
+재현은 `npm run measure:shell-css` 의 `[1]` 절.
 
 ---
 

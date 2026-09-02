@@ -1,6 +1,6 @@
 ---
 status: done
-updated: 2026-08-27
+updated: 2026-09-02
 next: "§10 이후 남은 것은 후속 docs/handoff/seo-followups-2026-08-27.md 가 갖는다"
 ---
 
@@ -115,10 +115,16 @@ GET https://code-destiny.com/saju/  (UA: Googlebot/2.1)
 
 🔴 **`docs/handoff/seo-indexing-2026-08-15.md` §2 가 "배포 전에는 확인 불가" 로 남겨 둔 2건에
 대한 답이다.** PR #673 의 `no-store → no-cache` 는 **적용돼 있다**(cache-control 이 no-cache).
-그런데 **ETag 는 발급되지 않는다.** 원인은 대시보드 Cache Rules 가 아니라
-`cf-cache-status: DYNAMIC` — HTML 이 Pages 정적 자산 핸들러가 아니라 **Worker 를 타고 나간다.**
-Worker 응답에는 ETag 가 없으므로 304 재검증이 불가능하고, 크롤러는 재방문마다 전문을 다시 받는다
-(median 93KB, `/insights` 는 1.8MB).
+그런데 **ETag 는 발급되지 않는다.** 그래서 304 재검증이 불가능하고, 크롤러는 재방문마다 전문을
+다시 받는다(median 93KB, `/insights` 는 1.8MB).
+
+🔴 **아래 "Worker 를 타고 나간다" 는 원인 진단은 틀렸다 — 2026-09-02 에 기각됐다.**
+`/tarot/guide/` 는 `_routes.json` include 밖(= Pages 정적 핸들러)인데 증상이 **동일**하다.
+진짜 원인은 Cloudflare **JavaScript Detections(Bot Fight Mode)** 다: 엣지가 모든 HTML 본문에
+`/cdn-cgi/challenge-platform/scripts/jsd/main.js` 를 주입하느라 응답을 다시 쓰고, 그 과정에서
+`Content-Length` 와 `ETag` 가 함께 사라진다(`Transfer-Encoding: chunked`). 자세한 대조표와
+기각된 가설 3종은 [app-optimization-remaining-2026-09-02.md](app-optimization-remaining-2026-09-02.md) §2.
+`_headers` 로도 코드로도 못 고치며, 사용자는 봇 보호를 유지하기로 결정했다(2026-09-02).
 
 ### 3-6. 그 밖에 잰 것 (색인 대상 388개, dist 기준)
 

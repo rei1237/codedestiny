@@ -1,6 +1,6 @@
 ---
 status: active
-updated: 2026-08-28
+updated: 2026-09-02
 next: "\"다음 세션은 여기서 시작한다\" → §9-6 다음 착수점(`activateNavItem` 519~542ms)"
 ---
 
@@ -320,8 +320,14 @@ Slow 4G 1.6Mbps/150ms), 게이트 해제 후 6초 정착, **n=5**. 각 회차의
 
 ### D. TTFB / 문서 캐시 — [seo-followups-2026-08-27.md](seo-followups-2026-08-27.md) §4 와 한 묶음
 
-HTML 이 Worker 를 타고 `no-cache`·`cf-cache-status: DYNAMIC` 으로 나가 ETag 재검증이 없다.
+HTML 이 `no-cache` 로 나가는데 ETag 가 없어 재검증(304)이 성립하지 않는다.
 TTFB ~650ms 는 기준 안이라 LCP 기여도는 A 보다 작다. 사용자가 2026-08-27 에 보류한 항목이다.
+
+🔴 **여기 있던 "Worker 를 타고 나가서" 라는 원인 설명은 2026-09-02 에 기각됐다.**
+Pages 정적 경로(`/tarot/guide/`)도 증상이 같다. 진짜 원인은 Cloudflare **JavaScript Detections**
+가 HTML 본문에 `challenge-platform` 스크립트를 주입하며 응답을 다시 쓰는 것이고, 코드로는 못 고친다
+(사용자가 봇 보호 유지 결정). 근거는
+[app-optimization-remaining-2026-09-02.md](app-optimization-remaining-2026-09-02.md) §2.
 
 ---
 
