@@ -2035,6 +2035,7 @@
     "priceFree": "무료",
     "priceLoading": "가격 확인 중",
     "priceUnknown": "가격 확인 필요",
+    "priceAriaLabel": "이용 가격",
     "accessFree": "무료 기능",
     "accessPaid": "결제 후 기존 화면으로 이동",
     "navPending": "열고 있어요…",

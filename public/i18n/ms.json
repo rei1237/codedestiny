@@ -4579,6 +4579,7 @@
     "priceFree": "Free",
     "priceLoading": "Checking the price",
     "priceUnknown": "Price needs checking",
+    "priceAriaLabel": "Price",
     "accessFree": "Free feature",
     "accessPaid": "Returns to the same screen after payment",
     "navPending": "Opening...",

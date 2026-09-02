@@ -31,32 +31,24 @@ async function loadHook() {
 }
 
 /** 한국어 화면의 실제 동작: formatReferenceAmount 가 빈 문자열을 돌려준다. */
-const koRuntime = {
-  formatReferenceAmount: () => "",
-  text: () => {
-    throw new Error("ko 화면에서는 문구 조회까지 가면 안 된다");
-  },
-};
+const koRuntime = { formatReferenceAmount: () => "" };
 
 function fakeRuntime(amount) {
-  return {
-    formatReferenceAmount: () => amount,
-    text: (key, fallback, vars) => {
-      assert.equal(key, "payment.overseas.approx");
-      return `approx. ${vars.amount}`;
-    },
-  };
+  return { formatReferenceAmount: () => amount };
 }
+
+// 실제 사전값(public/i18n/en.json 의 payment.overseas.approx).
+const EN_TEMPLATE = "approx. {amount}";
 
 test("ko 화면에서는 라벨이 한 글자도 바뀌지 않는다", async () => {
   const { appendReferenceApprox } = await loadHook();
-  assert.equal(appendReferenceApprox("30,000원", 30000, koRuntime), "30,000원");
+  assert.equal(appendReferenceApprox("30,000원", 30000, koRuntime, "약 {amount} 상당"), "30,000원");
 });
 
 test("해외 화면에서는 원화 라벨 뒤에 개산가가 붙는다", async () => {
   const { appendReferenceApprox } = await loadHook();
   assert.equal(
-    appendReferenceApprox("KRW 30,000", 30000, fakeRuntime("$22")),
+    appendReferenceApprox("KRW 30,000", 30000, fakeRuntime("$22"), EN_TEMPLATE),
     "KRW 30,000 (approx. $22)",
   );
 });
@@ -67,13 +59,76 @@ test("금액이 없거나 라벨이 비면 환산을 시도하지 않는다", as
     formatReferenceAmount: () => {
       throw new Error("불려서는 안 된다");
     },
-    text: () => {
-      throw new Error("불려서는 안 된다");
-    },
   };
-  assert.equal(appendReferenceApprox("", 30000, explode), "");
-  assert.equal(appendReferenceApprox("KRW 0", 0, explode), "KRW 0");
-  assert.equal(appendReferenceApprox("KRW 0", Number.NaN, explode), "KRW 0");
+  assert.equal(appendReferenceApprox("", 30000, explode, EN_TEMPLATE), "");
+  assert.equal(appendReferenceApprox("KRW 0", 0, explode, EN_TEMPLATE), "KRW 0");
+  assert.equal(appendReferenceApprox("KRW 0", Number.NaN, explode, EN_TEMPLATE), "KRW 0");
+});
+
+// 🔴 2026-09-03 스테이징에서 실제로 나간 결함의 회귀 가드.
+//    /naming-ai/?lang=en 이 `KRW 30,000 (약 $22 상당)`, /vedic-ai/?lang=ja 가
+//    `… (약 ¥3,300 상당)` 을 그렸다. 숫자·통화기호는 맞는데 감싸는 문구만 한국어였다.
+//    원인은 checkoutEntry.text → cdTranslate 이고, 그 함수는 사전이 아직 없으면
+//    **호출부의 한국어 폴백**을 돌려준다(LocaleRuntimeBridge.tsx 의 activeDictionary 분기).
+//    브리지가 cd:locale-ready 를 사전 로드 **전에** 쏘므로 로케일 구독으로는 못 막는다.
+test("사전이 오기 전에는 접미를 아예 붙이지 않는다 — 한국어 문구가 해외 화면에 새지 않게", async () => {
+  const { appendReferenceApprox } = await loadHook();
+  assert.equal(
+    appendReferenceApprox("KRW 30,000", 30000, fakeRuntime("$22"), ""),
+    "KRW 30,000",
+    "사전 미도착 상태에서 접미가 붙었습니다 — 그 문구는 한국어 폴백일 수 있습니다.",
+  );
+
+  // 런타임 계약에 문구 조회가 남아 있으면 같은 결함이 되살아난다.
+  assert.doesNotMatch(
+    hookSource,
+    /runtime\.text\(/,
+    `${HOOK_REL}: 런타임에서 문구를 다시 읽고 있습니다 — 문구는 React 사전에서만 읽어야 합니다.`,
+  );
+  assert.doesNotMatch(
+    hookSource,
+    /text\(key: string/,
+    `${HOOK_REL}: ReferenceApproxRuntime 에 text 계약이 되살아났습니다.`,
+  );
+  // 사전이 도착하면 effect 가 다시 돌아야 접미가 붙는다.
+  assert.match(
+    hookSource,
+    /const approxTemplate = /,
+    `${HOOK_REL}: approxTemplate 계산이 사라졌습니다.`,
+  );
+  const deps = hookSource.match(/\}, \[([^\]]*)\]\);/g) || [];
+  assert.ok(
+    deps.some((entry) => entry.includes("approxTemplate")),
+    `${HOOK_REL}: effect 의존성에서 approxTemplate 이 빠졌습니다 — 사전이 와도 접미가 안 붙습니다.`,
+  );
+});
+
+test("12벌 사전 전부에 payment.overseas.approx 가 있다 — 없으면 그 로케일만 접미가 사라진다", () => {
+  const dir = path.join(root, "public/i18n");
+  const locales = fs.readdirSync(dir).filter((name) => name.endsWith(".json"));
+  assert.ok(locales.length >= 12, `public/i18n: 사전이 ${locales.length}벌입니다.`);
+  for (const name of locales) {
+    const data = JSON.parse(fs.readFileSync(path.join(dir, name), "utf8"));
+    const value = data?.payment?.overseas?.approx;
+    assert.equal(typeof value, "string", `public/i18n/${name}: payment.overseas.approx 가 없습니다.`);
+    assert.match(value, /\{amount\}/, `public/i18n/${name}: {amount} 자리표시자가 없습니다.`);
+  }
+});
+
+test("PriceBadge 의 aria-label 이 i18n 키를 탄다 — 한국어 고정이면 스크린리더가 전 로케일에서 한국어를 읽는다", () => {
+  const badgeRel = "app/components/PriceBadge.tsx";
+  const badge = fs.readFileSync(path.join(root, badgeRel), "utf8");
+  assert.doesNotMatch(badge, /aria-label=\{`이용 가격/, `${badgeRel}: aria-label 이 한국어 리터럴로 되돌아갔습니다.`);
+  assert.match(badge, /pick\("preview\.priceAriaLabel"/, `${badgeRel}: preview.priceAriaLabel 조회가 없습니다.`);
+  const dir = path.join(root, "public/i18n");
+  for (const name of fs.readdirSync(dir).filter((f) => f.endsWith(".json"))) {
+    const data = JSON.parse(fs.readFileSync(path.join(dir, name), "utf8"));
+    assert.equal(
+      typeof data?.preview?.priceAriaLabel,
+      "string",
+      `public/i18n/${name}: preview.priceAriaLabel 이 없습니다.`,
+    );
+  }
 });
 
 test("런타임이 아직 없으면 예외가 호출부로 전파된다 — 그래서 호출부가 반드시 감싼다", async () => {
@@ -85,7 +140,7 @@ test("런타임이 아직 없으면 예외가 호출부로 전파된다 — 그�
       throw new Error("Checkout entry runtime is not ready.");
     },
   });
-  assert.throws(() => appendReferenceApprox("KRW 30,000", 30000, notReady));
+  assert.throws(() => appendReferenceApprox("KRW 30,000", 30000, notReady, EN_TEMPLATE));
 
   // 🔴 그러므로 훅의 유일한 호출부는 try 안에 있어야 한다. 이게 "환율 실패 폴백" 의
   //    실제 실패 모드다(정적 참고표라 네트워크 실패는 구조적으로 존재하지 않는다).
@@ -109,7 +164,7 @@ test("런타임이 아직 없으면 예외가 호출부로 전파된다 — 그�
 test("로케일 변경이 effect 를 다시 돌린다 — 구독이 빠지면 개산가가 영원히 안 붙는다", () => {
   assert.match(
     hookSource,
-    /import \{ useLocale \} from "@\/lib\/i18n\/useT";/,
+    /import \{ useLocale, useTPick \} from "@\/lib\/i18n\/useT";/,
     `${HOOK_REL}: useLocale 임포트가 사라졌습니다.`,
   );
   assert.match(

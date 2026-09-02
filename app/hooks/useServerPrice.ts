@@ -9,7 +9,7 @@ import {
 import { getCurrentLoadingLocale } from "@/constants/loadingMessages";
 import { formatKrwFromCoins } from "@/lib/payment/coin-pricing";
 import { checkoutEntryRuntime } from "@/app/_lib/legacy-core-runtime";
-import { useLocale } from "@/lib/i18n/useT";
+import { useLocale, useTPick } from "@/lib/i18n/useT";
 
 export type ServerPriceInput = {
   featureKey?: string;
@@ -129,8 +129,14 @@ function formatResolvedPrice(resolved: ResolvedPrice, locale: string): string {
 /** `appendReferenceApprox` 가 쓰는 참고 환산 런타임의 최소 계약(테스트에서 가짜를 주입한다). */
 export type ReferenceApproxRuntime = {
   formatReferenceAmount(krwAmount: number): string;
-  text(key: string, fallback: string, vars?: Record<string, string | number>): string;
 };
+
+/**
+ * 사전이 아직 안 왔을 때 `useTPick` 이 그대로 돌려줄 표식.
+ * payment.overseas.approx 는 12벌 전부에 있으므로(실측 2026-09-03), 이 값이 되돌아왔다는
+ * 것은 **사전 미도착** 하나뿐이다.
+ */
+const APPROX_TEMPLATE_PENDING = "cd:approx-template-pending";
 
 /**
  * 원화 라벨 뒤에 **표시 전용** 개산가를 덧붙인다.
@@ -140,17 +146,27 @@ export type ReferenceApproxRuntime = {
  *    여기서는 그 결과를 문자열로 붙이기만 한다. 가드: scripts/verify-overseas-payment-notice.mjs
  *
  * 한국어 화면에서는 formatReferenceAmount 가 "" 를 돌려주므로 라벨이 한 글자도 바뀌지 않는다.
+ *
+ * `approxTemplate` 은 **React 사전에서 이미 해석된** 문구다(`"approx. {amount}"`). 빈 문자열이면
+ * 접미를 통째로 건너뛴다 — 아래 주석 참고.
  */
 export function appendReferenceApprox(
   label: string,
   amountKRW: number,
   runtime: ReferenceApproxRuntime,
+  approxTemplate: string,
 ): string {
   if (!label || !Number.isFinite(amountKRW) || amountKRW <= 0) return label;
   const amount = runtime.formatReferenceAmount(amountKRW);
   if (!amount) return label;
-  const approx = runtime.text("payment.overseas.approx", "약 {amount} 상당", { amount });
-  return approx ? `${label} (${approx})` : label;
+  // 🔴 문구는 checkoutEntry.text 로 읽지 않는다. cdTranslate 는 사전이 아직 없으면
+  //    **호출부의 한국어 폴백**을 돌려주고(LocaleRuntimeBridge.tsx 의 activeDictionary 분기),
+  //    브리지는 cd:locale-ready 를 사전 로드 **전에** 쏘므로 구독만으로는 못 막는다.
+  //    그래서 영어 화면에 `KRW 30,000 (약 $22 상당)` 이 나갔다
+  //    (2026-09-03 스테이징 실측: /naming-ai/?lang=en · /vedic-ai/?lang=ja).
+  //    사전이 오기 전에는 원화 라벨만 두고, 도착하면 그때 붙인다.
+  if (!approxTemplate) return label;
+  return `${label} (${approxTemplate.replace(/\{amount\}/g, amount)})`;
 }
 
 /**
@@ -170,6 +186,12 @@ export function useServerPrice(input: ServerPriceInput): ServerPriceState {
   //    formatReferenceAmount 는 언어를 몰라 한국어 화면으로 판정해 "" 를 돌려준다.
   //    GlobalHeader.tsx:186 이 같은 순서 문제로 네비가 ko 로 굳었던 자리다.
   const locale = useLocale();
+  // 🔴 개산가 문구는 React 사전에서만 읽는다(appendReferenceApprox 안의 주석이 이유다).
+  //    사전이 도착하면 이 값이 표식에서 실문구로 바뀌므로, effect 의존성에 그대로 넣어
+  //    그때 접미가 붙게 한다. useT 가 아니라 useTPick 인 이유는 PriceBadge 와 같다.
+  const pick = useTPick();
+  const approxRaw = pick("payment.overseas.approx", APPROX_TEMPLATE_PENDING);
+  const approxTemplate = approxRaw === APPROX_TEMPLATE_PENDING ? "" : String(approxRaw || "");
   const cached = hasQuery ? resolveCachedRegistryPrice(input) : null;
   const fallback = hasQuery ? "" : resolveFallbackLabel(input);
 
@@ -190,15 +212,15 @@ export function useServerPrice(input: ServerPriceInput): ServerPriceState {
     let display = label;
     if (label && resolved && !resolved.displayPrice) {
       try {
-        display = appendReferenceApprox(label, resolved.amountKRW, checkoutEntryRuntime);
+        display = appendReferenceApprox(label, resolved.amountKRW, checkoutEntryRuntime, approxTemplate);
       } catch {
         /* 런타임이 아직 없으면 원화 라벨만 보여 준다 */
       }
     }
     setState({ label: display, loading: false, source: "registry" });
-    // 레지스트리 키와 로케일이 이 표시 조회의 완전한 의존이다.
+    // 레지스트리 키·로케일·개산가 문구가 이 표시 조회의 완전한 의존이다.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key, fallback, locale]);
+  }, [key, fallback, locale, approxTemplate]);
 
   return state;
 }

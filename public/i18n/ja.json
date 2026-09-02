@@ -4579,6 +4579,7 @@
     "priceFree": "無料",
     "priceLoading": "価格を確認中",
     "priceUnknown": "価格の確認が必要です",
+    "priceAriaLabel": "利用料金",
     "accessFree": "無料機能",
     "accessPaid": "決済後、元の画面へ移動します",
     "navPending": "開いています…",
