@@ -155,9 +155,9 @@
 - `profileSubscription` is the canonical entitlement. Legacy fields are read-only compatibility data and never elevate the canonical tier.
 - Conflicting active legacy entitlements fail closed with `LEGACY_ENTITLEMENT_CONFLICT`.
 - `standard`, `premium`, and `vvip` feature access uses the shared 30/50/100 coin limits. Family is feature access only and is never a payment substitute.
-- `pass`, `subscription`, `bundle`, and `family` products require direct `pg` checkout. `monthly_credit`, pass, entitlement, family, coin, balance, and credit methods cannot purchase pass-like products.
+- `pass`, `subscription`, `bundle`, and `family` products require direct `pg` checkout on the web. `monthly_credit`, pass, entitlement, family, coin, balance, and credit methods cannot purchase pass-like products.
 - Server checkout preparation and confirmation must call `validatePurchasePolicy`. Client fields such as `coveredByPass` and `userEntitlement` are untrusted.
-- Google Play pass SKUs are legacy/deprecated for new entitlement grants. Content SKUs remain a separate policy surface.
+- In the Android app, pass SKUs (`cd_pass_*_30d`, Play `inapp`, 앱가 = 웹가) are purchased through Google Play Billing (`worker/routes/app-store.js` intent → verify → consume) and grant `profileSubscription` the same way the web pass does. Re-enabled 2026-09-03 (the 2026-08-02 `PASS_PURCHASE_CHANNEL_DISABLED` block was not the intended policy). Content SKUs remain a separate policy surface.
 - Policy implementation: `worker/lib/entitlement-policy.js`; audit events are written through `writeSecurityLog` without payment credentials or raw personal data.
 
 ## Unlock state and shop read separation

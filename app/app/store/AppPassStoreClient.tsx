@@ -51,8 +51,6 @@ function buildBenefits(copy: AppShellCopy, plan: PassPlan, coverageKRW: number |
 
 type PurchaseState = { tier: string; phase: "idle" | "purchasing" | "verifying" };
 
-const APP_PASS_PURCHASE_DISABLED = true;
-
 export default function AppPassStoreClient() {
   const copy = useAppShellCopy();
   const passPlans = useMemo(() => buildPassPlans(copy), [copy]);
@@ -84,7 +82,7 @@ export default function AppPassStoreClient() {
     setCoverage(coverageByTier);
 
     // 브리지 설치 직후에는 아직 안 붙어 있을 수 있다.
-    if (APP_PASS_PURCHASE_DISABLED || !isNativeBillingReady()) {
+    if (!isNativeBillingReady()) {
       setNativeReady(false);
       setLoadingProducts(false);
       return;
@@ -103,10 +101,6 @@ export default function AppPassStoreClient() {
   }, [loadProducts]);
 
   const buy = useCallback(async (plan: PassPlan) => {
-    if (APP_PASS_PURCHASE_DISABLED) {
-      setMessage(copy.purchaseDisabledMessage);
-      return;
-    }
     // 중복 탭 방지 — 결제창이 두 번 뜨면 두 번 청구된다.
     if (purchase.phase !== "idle") return;
     setMessage("");
@@ -189,8 +183,8 @@ export default function AppPassStoreClient() {
     <section className="grid gap-3 px-4 pb-6" aria-label={copy.storeAriaLabel}>
       {!nativeReady ? (
         <div className="cd-app-surface p-4">
-          <p className="cd-app-heading">{copy.purchaseDisabledTitle}</p>
-          <p className="cd-app-body mt-2">{copy.purchaseDisabledBody}</p>
+          <p className="cd-app-heading">{copy.billingNotReadyTitle}</p>
+          <p className="cd-app-body mt-2">{copy.billingNotReadyBody}</p>
           <button
             type="button"
             onClick={() => void loadProducts()}
@@ -207,7 +201,7 @@ export default function AppPassStoreClient() {
         : passPlans.map((plan, index) => {
           const detail = products[plan.productId];
           const busy = purchase.tier === plan.passTier;
-          const disabled = APP_PASS_PURCHASE_DISABLED || purchase.phase !== "idle" || !detail;
+          const disabled = purchase.phase !== "idle" || !detail;
           return (
             <article
               key={plan.passTier}

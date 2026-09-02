@@ -16,33 +16,12 @@ import {
 } from "../lib/app-store-pricing.js";
 import { PASS_LIMITS } from "../lib/profile-limits.js";
 import { AppPurchaseIntent, APP_PURCHASE_INTENT_TTL_MS } from "../lib/app-store-models.js";
-import { writeSecurityLog } from "../lib/security/index.js";
 
 const GOOGLE_ANDROID_PUBLISHER_SCOPE = "https://www.googleapis.com/auth/androidpublisher";
 let cachedGoogleAccessToken = null;
 
 function cleanText(value) {
   return String(value || "").trim();
-}
-
-async function rejectGooglePlayPassPurchase(request, env, auth, product) {
-  await writeSecurityLog({
-    env,
-    request,
-    userId: auth?.userId,
-    endpoint: new URL(request.url).pathname,
-    reason: "PASS_PURCHASE_CHANNEL_DISABLED",
-    metadata: {
-      provider: "GOOGLE_PLAY",
-      productId: cleanText(product?.productId),
-      passTier: cleanText(product?.passTier || product?.subscriptionTier),
-    },
-  });
-  return json({
-    ok: false,
-    code: "PASS_PURCHASE_CHANNEL_DISABLED",
-    message: "이용권 신규 구매는 웹 PG 단건 결제로만 진행할 수 있습니다.",
-  }, { status: 403 });
 }
 
 function base64UrlEncode(value) {
@@ -624,8 +603,6 @@ async function handleGoogleIntent(request, env) {
     ? resolveAppPassPurchaseProduct({ ...body, passTier: body.passTier || knownPass?.passTier })
     : resolveProduct(resolvePricing(body), env, body);
 
-  if (product.kind === "pass") return rejectGooglePlayPassPurchase(request, env, auth, product);
-
   if (product.freeInApp) {
     return json({ ok: false, code: "APP_STORE_PRODUCT_FREE_IN_APP", message: "This content is free in the app." }, { status: 400 });
   }
@@ -823,8 +800,6 @@ async function handleGoogleVerify(request, env) {
   const purchaseToken = cleanText(body.purchaseToken);
   const packageName = cleanText(body.packageName || getEnv(env, "GOOGLE_PLAY_PACKAGE_NAME") || getEnv(env, "CODE_DESTINY_ANDROID_PACKAGE_ID") || "com.codedestiny.app");
 
-  if (product.kind === "pass") return rejectGooglePlayPassPurchase(request, env, auth, product);
-
   // 앱에서 무료로 통과시키는 저가 콘텐츠는 Play 상품 자체가 없다.
   if (product.freeInApp) {
     return json({ ok: false, code: "APP_STORE_PRODUCT_FREE_IN_APP", message: "This content is free in the app." }, { status: 400 });
@@ -944,12 +919,6 @@ async function handleGoogleRestore(request, env) {
           productId,
           productType,
         }, auth);
-        if (product.kind === "pass") {
-          const error = new Error("Google Play pass restore is disabled for new entitlement grants.");
-          error.code = "PASS_PURCHASE_CHANNEL_DISABLED";
-          error.status = 403;
-          throw error;
-        }
         const googlePurchase = await verifyGooglePurchase(env, {
           packageName,
           productId: product.productId,
@@ -1209,13 +1178,16 @@ async function handleGoogleRtdn(request, env) {
   if (!payment) {
     return json({ ok: true, data: { provider: "GOOGLE_PLAY", ignored: true, reason: "payment_not_found" } });
   }
+  /* 이용권은 Play `inapp` 이라 환불 외의 알림은 PURCHASED 뿐이고, 그건 verify 가 이미 지급·소비했다.
+     여기서 다시 조회하면 소비된 토큰은 products.get 이 실패할 수 있어(아래 voided 주석) 멀쩡한
+     이용권을 revokeGoogleEntitlement 로 끊게 된다 — 환불(voided)만 아래에서 회수하고 나머지는 무시한다. */
   if (payment.paymentType === "membership_pass" && !notification.voided) {
     return json({
       ok: true,
       data: {
         provider: "GOOGLE_PLAY",
         ignored: true,
-        reason: "PASS_PURCHASE_CHANNEL_DISABLED",
+        reason: "membership_pass_non_voided",
       },
     });
   }
