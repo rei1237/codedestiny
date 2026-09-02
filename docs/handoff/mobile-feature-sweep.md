@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-03
-next: "배치 없음 — serviceSections.js 시드 55종 소진(09-03 실측 대조). 남은 것은 원장 표의 대기 3행(공용 푸터 75건 · 하단 탭바 SA 8px · 루트 셸 index.html)이고 셋 다 사용자 결정 대기다. 새 라우트가 생기면 같은 레시피로 이어간다"
+next: "없음 — 시드 55종 + 대기 3행까지 전부 소진(09-03). 공용 푸터 75건은 WCAG 2.5.8 AA 통과라 코드 변경 없이 닫았고, 탭바·루트 셸 index.html 은 수정했다. 새 라우트가 생기면 같은 레시피로 이어간다"
 ---
 
 # 기능별 모바일 순회 원장
@@ -29,11 +29,11 @@ next: "배치 없음 — serviceSections.js 시드 55종 소진(09-03 실측 대
 | 유료 AI 단독 18종 | /life-book-ai /love-secret-ai /naming-ai /ziwei-ai /astrology-ai /vedic-ai /sukuyo-compatibility-ai /island-consult /destiny-compass /saju/{love-simulation,destiny-bias,animal-destiny,destiny-meeting-place} /tarot/{love,reunion,year,crystal-soul,mindscan} | 4 | 09-03 | — | #1493 | 완료 |
 | 루트 정적 셸 20종 | 리포 루트 *.html (index.html 제외) | 5 | 09-03 | TT<44 46→1 · IN<16 18→0 · OF 0 | #1497 | 완료 |
 | 콘텐츠·정책 32종 | /about /faq /methodology /terms /refund-policy /contact /privacy /advertising-policy /editorial-policy /disclaimer /reviews /ziwei/chart /fortune/prompt-hub /tarot/healing /tarot/prompt-maker /palm-reading + FeatureLandingPage 16종 + /oracle/rune /saju-guardian | 6 | 09-03 | 고유 TT<44 95→29 · IN<16 14→0 · OF 0 (잔여 29 = 인라인 예외 20 · sr-only 파일입력 4 · 체크박스 라벨 5) | #1501 | 완료 |
-| 루트 셸 index.html | / | 5 | 09-03 | TT<44 36건 — 공용 푸터 링크·언어칩·소셜 30건 + input#subDailyHome 13x13 + a.cd-mobile-header__brand 34x34 | — | 대기 — 아래 공용 푸터 행에 종속 |
-| 공용 푸터(SiteFooterHub) | 크롬리스 아닌 전 라우트 | — | 09-02 | TT<44 75건(링크 16px) | — | 대기 — 사용자 결정 |
-| 공용 하단 탭바(nav.cd-mnav) | App Router 전 라우트 | — | 09-02 | SA 내용물 여유 8px | — | 대기 — 사용자 결정 |
+| 루트 셸 index.html | / | 5 | 09-03 | TT<44 36→27(360×800)·37→28(412×823) · 푸터 AA 위반 2→0 · IN<16 0 · OF 0 (잔여는 푸터 링크 = 아래 행) | #1504 | 완료 |
+| 공용 푸터(SiteFooterHub) | 크롬리스 아닌 전 라우트 | — | 09-03 | TT<44 75건이나 **WCAG 2.5.8 AA 위반 0**(Spacing 예외) — 코드 변경 없이 종결 | — | 완료 — 수정 불요 |
+| 공용 하단 탭바(nav.cd-mnav) | App Router 전 라우트 | — | 09-03 | SA 내용물 여유 8→12px · 인접결함 `--cd-mnav-bar-h` 56→68px(실측 64.1→68.1) | #1504 | 완료 |
 
-배치 1~6 완료 — 시드 55종을 09-03 에 실측 대조해 소진을 확인했다(배치 6 이 남은 26종을 덮었다). 남은 것은 위 표의 대기 3행뿐이고 전부 사용자 결정 대기다. 배치 5 미측정 4종은 아래 비고.
+배치 1~6 + 대기 3행 완료 — 시드 55종을 09-03 에 실측 대조해 소진을 확인했다(배치 6 이 남은 26종을 덮었다). 순회는 여기서 끝이고, 새 라우트가 생기면 아래 레시피로 이어간다. 배치 5 미측정 4종은 아래 비고.
 
 ## 배치 (사용자 확정: 유료 대표부터)
 
@@ -55,7 +55,7 @@ next: "배치 없음 — serviceSections.js 시드 55종 소진(09-03 실측 대
 - 🔴 **몰입형 기능의 오버레이는 라우트 스캔이 못 잡는다** — 찻집 꿀방울 도크·안내 패널·앨범은 첫 화면에 있지만 스캐너가 본 TT<44 는 2건, 손으로 열어 잰 것은 5건이었다(#1471). 오버레이·패널이 있는 기능은 `data-*` 를 강제해서라도 열어 재고, 안 열리면 미검증으로 적는다.
 - 🔴 **`/points/` 는 API 없이 106개 중 14개만 렌더된다** — 라우트 스캔만 믿으면 결제 확인 모달 전체를 놓친다(09-02). 모달은 Playwright 로 `button:has-text("구매하기")` 를 클릭하면 열리고 보임 요소가 24개로 는다. 결제 데이터가 있어야 나오는 주문내역 링크 2건은 끝내 못 열어, **같은 스타일시트에 소스 마크업을 그대로 주입해** 쟀다(107.8x20 · 90.2x36). 배치 4 의 유료 라우트도 이 두 수단이 필요하다.
 - 찻집에서 끝내 도달 못 한 표면(#1471 미검증): 달빛 앨범 내부 탭·검색(앨범 잠김), 꿀돼지 QnA(5,000원 결과 화면 뒤), `.honeyModeToggle`. 유료 경로가 열리는 환경이 생기면 이 셋부터 잰다.
-- 🔴 **배치 2 이후 남은 위반은 전부 공용 푸터다** — 라우트당 TT<44 75건이 모두 `SiteFooterHub` 링크(16px)이고, 사용자 결정으로 **별도 안건**(위 표 대기 행). 09-02 시뮬레이션(360×800·/saju/): 44px 처방 = 푸터 +742px·문서 +10.5%, 24px(WCAG 2.5.8 AA) = +226px·+3.2%. 대상은 `.sfhLink` 65개 + `.sfhPolicyLink` 10개이고 크롤러용 내부 링크 51개를 진다.
+- 🔴 **공용 푸터 75건은 결함이 아니었다 — WCAG 2.5.8 AA 위반 0건(09-03 실측)이라 코드 변경 없이 종결했다.** 라우트당 TT<44 75건(`.sfhLink` 65 + `.sfhPolicyLink` 10, 16px)은 전부 **Spacing 예외**를 만족한다 — 각 타깃 박스 중심의 24px 지름 원이 다른 타깃의 박스와도, 다른 미달 타깃의 원과도 안 겹친다. 44px 은 AAA(2.5.5)일 뿐이고, 09-02 시뮬레이션(360×800·/saju/)대로 그 처방은 푸터 +742px·문서 +10.5%(24px 처방도 +226px·+3.2%)를 **전 라우트에** 물린다 — 적합성 이득 0 에 문서 무게만 늘어 기각했다. 🔴 **스캐너는 44px(AAA) 기준이라 앞으로도 라우트마다 이 75건을 계속 보고한다** — 다음 세션이 미해결로 다시 읽지 말 것.
 - **공용 컴포넌트 처방은 배치 밖으로 번진다** — 배치 2 의 브레드크럼 수정은 `SeoLandingTemplate`(app 소비자 21곳)이라 배치 밖 11개 라우트(dream·love·manse·physiognomy·vedic·premium 등)도 함께 44px 이 됐다. 표본 4개(dream·love·vedic·tarot/reunion) 재스캔에서 OF=0·열폭 328px·IN<16 0 으로 회귀 없음(09-02).
 - 공용 `ServiceIntroSection`(라우트 17종)의 읽는 열폭은 #1462 로 286→302px 이 됐다. 배치 6 에서 만날 `/reviews/` 는 09-02 관찰에서 302px·TT<44 2건·IN<16 1건이었다.
 - 🔴 **열폭 1px 은 결함이 아니라 `sr-only` 를 읽은 산출물이다** — `/saju/animal-destiny/`·`/saju/destiny-meeting-place/` 가 그렇고, 실체는 `<section className="sr-only">` SEO 블록이다(`app/saju/animal-destiny/page.tsx:40`, `app/saju/destiny-meeting-place/page.tsx:51`). 배치 5/6 에서 1px·한 자릿수 열폭이 나오면 먼저 `sr-only` 를 의심한다.
@@ -76,3 +76,8 @@ next: "배치 없음 — serviceSections.js 시드 55종 소진(09-03 실측 대
 - 🔴 **배치 6 의 처방 3개는 공용 CSS 라 배치 밖으로 번진다** — `.cd-chip`(app 소비자 20파일) 36.8→44px, `.policy-doc__toc-link` `display:block`→`flex`+44px(≥1024px 은 `min-height:0` 으로 기존 높이 유지), `.policy-input` 15→16px(가입 동의 임베드 `policy-embed-*` 와 공유). 표본 `/astrology/guide/` 재계측에서 고유 TT<44=0·IN<16=0 으로 회귀 없음(09-03).
 - 정책 문서 본문의 인라인 링크는 `destiny-poker` 선례대로 WCAG 2.5.8 Inline 예외로 두었다 — `/contact/` 4 · `/privacy/` 3 · `/advertising-policy/` 3 · `/editorial-policy/` 2 · `/disclaimer/` 1 · `/fortune/prompt-hub/` 의 `<li>` 업셀 7. `/palm-reading/` 의 4건은 보이지 않는 `1x1 input.sr-only` 파일 입력이고 방아쇠는 44px 이상 버튼이다.
 - `destiny-poker` 의 TT<44 1건(115.9x20 `a "코드 데스티니 홈"`)은 문장 안 인라인 링크라 WCAG 2.5.8 Inline 예외 — 의도적으로 안 고쳤다. 🔴 인증 게이트가 있는 루트 셸(myungwun_final·yoga-guru·cosmic-soul-meditation 등)은 로컬에서 `/api/auth/me` 가 실패해 `window.history.back()` 으로 튕긴다. Playwright `addInitScript` 로 `sessionStorage.flower_admin_token` 에 `^[A-Za-z0-9_-]{20,}[.][0-9a-f]{64}$` 를 만족하는 더미 문자열을 심으면 통과한다(셸이 형식만 검사).
+- 🔴 **`--cd-mnav-bar-h` 는 토큰이 아니라 실측값이다** — 56px 은 바 자신의 세로 패딩(위 6 + 아래 8)을 빼먹은 값이었고 실제 바깥 높이는 64.1px 이었다(09-03 실측 360×800·412×823/DPR 1.75). 그래서 ① `body.cd-mnav-mounted` 의 '여유 8px' 이 실제로는 **0px** 이라 본문 마지막 줄이 바에 붙었고 ② `--cd-mnav-offset`(= bar-h + safe-area)을 쓰는 **14곳**의 플로팅 UI 가 전부 8.1px 씩 바에 걸쳐 있었다(app-shell·destiny-compass·island-consult·prompt-hub·destiny-bias·master-love-codex·neo-war-room). 하단 패딩 8→12px 과 함께 토큰을 68px 로 고쳤고 수정 후 바는 정확히 68.1px 이다. 소비자 14곳은 전부 **바에서 멀어지는** 쪽으로 12px 움직이므로 교정 방향이고, `scripts/verify-master-love-codex-flow.mjs:601` 은 문자열 존재만 단언해 수치 가드가 안 깨진다.
+- 🔴 **그 사고 형태를 무는 가드는 `__tests__/ui/mobile-bottom-nav-geometry.static.test.js`** (`test:node` 가 `__tests__/ui/*.test.js` 를 통째로 잡으므로 별도 배선 불필요). 토큰 < 상단패딩 + 링크 min-height + 하단여유 이면 실패한다 — 변이 5종(하단여유 12→8 · 본문여유 12→8 · bar-h 68→56 · bar-h 선언 삭제 · link min-height 선언 삭제)으로 실제로 무는 것을 확인했다. 🔴 **CSS 만 읽으므로 링크 내용물이 min-height 를 넘겨 자라는 것(실측 49~50px vs 선언 48px)은 못 본다** — 렌더 실측은 `measure-mobile-routes.mjs` 가 정본이다.
+- 🔴 **앱 웹뷰의 탭바는 다른 파일이라 이번 수정이 안 간다** — `styles/mobile-lite.css:462-478` 의 `html.cd-mobile-runtime body #cdMobileBottomNav` 가 별도 표면이고 하단 여유 기본값이 아직 8px 이다. 이번 행의 범위(App Router `.cd-mnav`) 밖이라 손대지 않았다 — 앱 표면을 재는 세션이 생기면 같은 12px 로 맞춘다.
+- **루트 셸 index.html 처방 4개**(09-03, 전부 인라인 `<style>` 안): 소셜 링크 34→44px · 언어칩 `min-height` 32→44px · `.cd-footer-legal__link` 에 `padding:5px 0`(15.1→25.1px — 줄바꿈으로 세로 인접했던 `이용약관`↔`Advertising Policy` 의 24px 원 교차 2건이 사라진다) · `.sub-daily-option` 신규 규칙(종전 CSS 0줄이라 체크박스가 13x13 이었다 → 44px `inline-flex` 행 + 18x18 체크박스, `#subDailyHome`·`#subDaily` 둘 다 덮는다). `a.cd-mobile-header__brand` 34x34 는 AA 통과라 뒀다 — 키우면 고정 헤더 높이가 바뀐다. 문서 높이 영향은 `/` 16344→16371(+0.17%) · `/about/` 8730→8746(+0.18%).
+- 🔴 **index.html 또는 `styles/**/*.css` 를 건드리면 캐시버스트 키가 움직인다** — `sync:public` 의 `resolveDeterministicCacheKey()` 가 그 둘을 해시 재료로 쓰므로 `js/**` 의 `?v=build-…` 참조와 `public/**` 미러를 **같은 커밋에** 다시 만들어 담아야 한다. 이번 행에서 재생성된 것은 `js/` 6개 + `public/` 13개다. `build:cf` 부산물(`rss.xml`·`insights/rss.xml` 과 그 public 사본)은 되돌린다.
