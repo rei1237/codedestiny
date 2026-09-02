@@ -33718,6 +33718,19 @@ function updateBadge() {
     return _clonePreviewData(data);
   }
 
+  /* 🔴 `inherit` 을 끝까지 따라간 **원본 키**. 사전 네임스페이스는 이 키로 정한다.
+     별칭 자기 키로 조회하면 사전에 그 ns 가 아예 없어 11개 로케일에 한국어가 그대로 나간다 —
+     2026-09-03 실측: 별칭 48개 중 40개가 자기 ns 없음이고 그 40개의 원본은 전부 ns 를 갖고 있다.
+     별칭은 `inherit` 말고 다른 필드를 하나도 덮어쓰지 않으므로(48개 전수 확인) 원본 ns 로 옮겨도
+     남의 문구가 붙지 않는다. scripts/lib/feature-marketing-extract.mjs 의 originMarketingKey 와
+     같은 계약이다 — 한쪽만 고치면 셸과 React 모달의 번역이 갈린다. */
+  function _originMarketingKey(key,depth){
+    if(!key||depth>6)return key||'';
+    var data=FEATURE_MARKETING_COPY[key];
+    if(data&&data.inherit)return _originMarketingKey(data.inherit,depth+1);
+    return key;
+  }
+
   function _marketingKeys(tile,href){
     var keys=[];
     if(tile){
@@ -33800,6 +33813,39 @@ function updateBadge() {
     return template?template[name]:null;
   }
 
+  /* 🔴 값과 함께 **그 값이 온 층의 사전 네임스페이스**를 돌려준다.
+     병합 객체를 만들어 놓고 상품 ns 하나로만 조회하면, 카테고리 템플릿이 채워 준 값은 상품
+     사전에 없어 11개 로케일에 한국어가 그대로 남는다 — 2026-09-03 실측(en 기준) 조회 5,184경로
+     중 2,669건(항목 121개)이 그 자리였고, 그중 2,630건은 템플릿 ns·원본 ns 에 번역이 이미
+     저작돼 있었다. 나머지 39건은 레거시 D 층에서 온 값이라 따로 저작이 필요하다.
+     React 상세 모달의 from(field) 과 같은 계약이다(app/components/FeatureMarketingDetailModal.tsx)
+     — 한쪽만 고치면 홈 시트와 허브 모달이 같은 상품을 다른 말로 설명한다.
+     값 자체는 바꾸지 않는다: first 는 기존 `a||b||c` 체인과 같은 순서·같은 truthy 판정을,
+     pick 은 `_pickPreviewField` 와 같은 `!=null` 판정을 그대로 쓴다. */
+  function _makeMarketingSource(copy,base,template,itemNs,templateNs){
+    function layer(field,nullish){
+      var present=nullish
+        ?function(value){return value!=null;}
+        :function(value){return value!==undefined;};
+      if(copy&&present(copy[field]))return {value:copy[field],ns:itemNs};
+      if(base&&present(base[field]))return {value:base[field],ns:itemNs};
+      if(template&&present(template[field]))return {value:template[field],ns:templateNs};
+      return null;
+    }
+    return {
+      first:function(){
+        for(var i=0;i<arguments.length;i++){
+          var src=layer(arguments[i],false);
+          if(src&&src.value)return src;
+        }
+        return null;
+      },
+      pick:function(field){return layer(field,true);},
+      /* 위 체인이 전부 비었을 때의 마지막 후보(기존 `||template.xxx` 꼬리). */
+      fromTemplate:function(value){return value?{value:value,ns:templateNs}:null;}
+    };
+  }
+
   /* 🔴 카테고리 템플릿이 공급해도 되는 것은 톤(badge)뿐이다. 아래 필드는 "이 상품이 무엇을
      해 주는가" 에 대한 사실 주장이라, 자기 마케팅 카피가 없는 타일에 카테고리 값을 물려주면
      팝업이 실제 기능과 다른 설명을 하게 된다 — 혈액형 테스트에 '명식 계산' 분석 단계가,
@@ -33851,10 +33897,21 @@ function updateBadge() {
     var template=_templateForTile(
       FEATURE_MARKETING_TEMPLATES[templateId]||FEATURE_MARKETING_TEMPLATES.saju,
       !!copy,!!base);
+    /* 사전 네임스페이스: 상품은 별칭이 아닌 **원본 키**, 카테고리 템플릿은 `template_<카테고리>`.
+       필드마다 값이 온 층의 ns 를 nsOf 에 적어 _localizeMarketingCopy 로 넘긴다 —
+       값 자체는 아래 체인 그대로이고 달라지는 것은 조회할 네임스페이스뿐이다. */
+    var itemNs=copyKey?_pvwSafeKey(_originMarketingKey(copyKey,0)):('template_'+templateId);
+    var templateNs='template_'+templateId;
+    var src=_makeMarketingSource(copy,base,template,itemNs,templateNs);
+    var nsOf={};
     var merged=Object.assign({},template,base||{},copy||{});
+    function take(field,source,fallback){
+      merged[field]=source?source.value:fallback;
+      nsOf[field]=source?source.ns:itemNs;
+    }
     merged.cat=merged.category||merged.cat||template.category;
-    merged.fallbackTitle=merged.fallbackTitle||merged.title||_pvwTileText(tile)||'기능 상세';
-    merged.tagline=merged.subheadline||merged.headline||merged.tagline||template.subheadline;
+    take('fallbackTitle',src.first('fallbackTitle','title'),_pvwTileText(tile)||'기능 상세');
+    take('tagline',src.first('subheadline','headline','tagline')||src.fromTemplate(template.subheadline));
     // 🔴 실제 기능 목록(feats)이 마케팅 문구(painPoints)에 덮이지 않게 한다.
     // 예전에는 painPoints 가 먼저라, 카피가 있는 기능은 "무엇을 해 주는가"가 사라지고
     // "이런 고민 있죠?" 문구만 남았다 — 팝업 설명이 실제 기능과 달라지는 원인 중 하나였다.
@@ -33862,29 +33919,31 @@ function updateBadge() {
     // featsLabel 을 비워 두어 DOM 의 번역된 제목(preview.featuresLabel = "주요 기능")을 쓰게 한다 —
     // 예전에는 두 경우 모두 "이런 생각이 들 때…" 한국어 리터럴로 덮어써서, 기능 목록에 고민 제목이
     // 붙고 비한국어 로케일에는 한국어가 그대로 노출됐다.
-    if(!merged.feats){
-      merged.feats=merged.painPoints||template.painPoints;
+    var featsSrc=src.first('feats');
+    if(!featsSrc){
+      featsSrc=src.first('painPoints')||src.fromTemplate(template.painPoints);
       merged.featsLabel=merged.featsLabel||'이런 생각이 들 때 열어보면 좋아요.';
     }
-    merged.premiumIntro=merged.previewText||merged.premiumIntro||template.previewText;
-    merged.premiumAudience=merged.recommendedFor||merged.premiumAudience||[];
-    merged.premiumChapters=merged.unlockBenefits||merged.premiumChapters||template.unlockBenefits;
-    merged.premiumRequired=merged.requiredInfo||merged.premiumRequired||[];
+    take('feats',featsSrc);
+    take('premiumIntro',src.first('previewText','premiumIntro')||src.fromTemplate(template.previewText));
+    take('premiumAudience',src.first('recommendedFor','premiumAudience'),[]);
+    take('premiumChapters',src.first('unlockBenefits','premiumChapters')||src.fromTemplate(template.unlockBenefits));
+    take('premiumRequired',src.first('requiredInfo','premiumRequired'),[]);
     // 기본 문구는 무료/유료가 갈린 뒤(아래 과금 판정) 붙인다 — 여기서 결제 문구를 먼저
     // 박아 넣으면 무료 기능의 '안심하고 확인하세요' 에 결제 안내가 그대로 남는다.
-    merged.premiumOutcomes=merged.trustNotes||merged.premiumOutcomes||null;
+    take('premiumOutcomes',src.first('trustNotes','premiumOutcomes'),null);
     /* 신규 필드는 위 Object.assign 결과를 쓰지 않는다. 얕은 병합이라 copy 에 해당 키가 없으면
        template 의 값이 그대로 살아남는데, 그러면 "이 상품 전용 샘플"을 두고 카테고리 일반 샘플이
        이기는 일이 생긴다. 상품(copy) → 레거시(base) → 카테고리(template) 순으로 다시 확정한다. */
-    merged.answersQuestions=_pickPreviewField('answersQuestions',copy,base,template)||[];
-    merged.analysisSteps=_pickPreviewField('analysisSteps',copy,base,template)||[];
-    merged.valueCompare=_pickPreviewField('valueCompare',copy,base,template)||null;
-    merged.faq=_pickPreviewField('faq',copy,base,template)||[];
-    merged.ctaNote=_pickPreviewField('ctaNote',copy,base,template)||'';
+    take('answersQuestions',src.pick('answersQuestions'),[]);
+    take('analysisSteps',src.pick('analysisSteps'),[]);
+    take('valueCompare',src.pick('valueCompare'),null);
+    take('faq',src.pick('faq'),[]);
+    take('ctaNote',src.pick('ctaNote'),'');
     // 분석 깊이만 template 을 보지 않는다 — 카테고리 공용 숫자는 그 상품의 실제 분량이 아니다.
     merged.reportScale=_pickPreviewField('reportScale',copy,base,null)||null;
     // 샘플: 상품 전용 > 상품 레거시 > 카테고리 전용 > 카테고리 레거시
-    merged.fallbackCta=merged.ctaLabel||merged.fallbackCta;
+    take('fallbackCta',src.first('ctaLabel','fallbackCta'));
     var pricingFeatureKey=(tile&&tile.getAttribute('data-feature-key'))||merged.featureId||'';
     var pricingLockKey=(tile&&tile.getAttribute('data-tile-lock-key'))||'';
     var featurePricing=_getFeaturePricing(pricingFeatureKey);
@@ -33906,7 +33965,7 @@ function updateBadge() {
        자기 카피에 표가 들어 있어도 무료면 렌더하지 않는다(그 표의 목적이 가격 정당화다). */
     if(merged.ct!=='paid')merged.valueCompare=null;
     if(!merged.premiumOutcomes)merged.premiumOutcomes=merged.ct==='paid'?_PAID_TRUST_NOTES:_FREE_TRUST_NOTES;
-    return _localizeMarketingCopy(merged,templateId,copyKey);
+    return _localizeMarketingCopy(merged,nsOf,itemNs);
   }
 
   /* 🔴 이 모달의 "라벨"(섹션 제목·버튼 문구)은 이미 data-cd-trans/_pvwTr 로 로케일화돼 있었지만,
@@ -33922,7 +33981,12 @@ function updateBadge() {
     '연애 명리':'love','초융합':'fusion','신년운세':'newyear',
     '시빌라 시스템':'sibyl','사주 수호신':'guardian',
     '자미두수 심화':'ziweideep','서양 점성술':'westernastro',
-    '베다 점성술':'vedicastro'
+    '베다 점성술':'vedicastro',
+    /* 여기 없는 category 값은 _pvwTrKeep 을 아예 안 거쳐 11개 로케일에 한국어가 그대로 나간다.
+       2026-09-03 실측으로 아래 6종(상품 12개)이 그 상태였다 — 새 카테고리를 만들면 이 표와
+       11개 로케일의 featureMarketingCategory 를 같은 커밋에 채운다. */
+    '상담':'consult','심리':'psychology','휴먼 디자인':'humandesign',
+    '관상':'physiognomy','읽을거리':'article','이용권':'pass'
   };
 
   /* _pvwTr 은 fallback 이 문자열이 아니면 ko 로케일에서 번역 키 문자열 자체를 그대로 돌려준다
@@ -33946,47 +34010,51 @@ function updateBadge() {
     return _pvwTrList(ns,'premiumOutcomes',list);
   }
 
-  function _localizeMarketingCopy(merged,templateId,copyKey){
-    var itemKey=copyKey?_pvwSafeKey(copyKey):('template_'+(templateId||'saju'));
-    var ns='featureMarketing.'+itemKey;
+  /* nsOf 는 `_resolvePreviewData` 가 필드마다 적어 준 "값이 온 층의 네임스페이스"다.
+     itemNs 는 그 표에 없는 필드(값을 어느 층에서도 못 받은 자리)의 기본값이다. */
+  function _localizeMarketingCopy(merged,nsOf,itemNs){
+    function ns(field){return 'featureMarketing.'+((nsOf&&nsOf[field])||itemNs);}
 
     var catKey=_MARKETING_CATEGORY_KEY_BY_KO[merged.cat];
     if(catKey)merged.cat=_pvwTrKeep('featureMarketingCategory.'+catKey,merged.cat);
 
-    merged.fallbackTitle=_pvwTrKeep(ns+'.fallbackTitle',merged.fallbackTitle);
-    merged.tagline=_pvwTrKeep(ns+'.tagline',merged.tagline);
-    merged.feats=_pvwTrList(ns,'feats',merged.feats);
-    merged.premiumIntro=_pvwTrKeep(ns+'.premiumIntro',merged.premiumIntro);
-    merged.premiumAudience=_pvwTrList(ns,'premiumAudience',merged.premiumAudience);
-    merged.premiumChapters=_pvwTrList(ns,'premiumChapters',merged.premiumChapters);
-    merged.premiumRequired=_pvwTrList(ns,'premiumRequired',merged.premiumRequired);
-    merged.premiumOutcomes=_localizeTrustNotes(ns,merged.premiumOutcomes);
-    merged.answersQuestions=_pvwTrList(ns,'answersQuestions',merged.answersQuestions);
-    merged.fallbackCta=_pvwTrKeep(ns+'.fallbackCta',merged.fallbackCta);
-    merged.ctaNote=_pvwTrKeep(ns+'.ctaNote',merged.ctaNote);
+    merged.fallbackTitle=_pvwTrKeep(ns('fallbackTitle')+'.fallbackTitle',merged.fallbackTitle);
+    merged.tagline=_pvwTrKeep(ns('tagline')+'.tagline',merged.tagline);
+    merged.feats=_pvwTrList(ns('feats'),'feats',merged.feats);
+    merged.premiumIntro=_pvwTrKeep(ns('premiumIntro')+'.premiumIntro',merged.premiumIntro);
+    merged.premiumAudience=_pvwTrList(ns('premiumAudience'),'premiumAudience',merged.premiumAudience);
+    merged.premiumChapters=_pvwTrList(ns('premiumChapters'),'premiumChapters',merged.premiumChapters);
+    merged.premiumRequired=_pvwTrList(ns('premiumRequired'),'premiumRequired',merged.premiumRequired);
+    merged.premiumOutcomes=_localizeTrustNotes(ns('premiumOutcomes'),merged.premiumOutcomes);
+    merged.answersQuestions=_pvwTrList(ns('answersQuestions'),'answersQuestions',merged.answersQuestions);
+    merged.fallbackCta=_pvwTrKeep(ns('fallbackCta')+'.fallbackCta',merged.fallbackCta);
+    merged.ctaNote=_pvwTrKeep(ns('ctaNote')+'.ctaNote',merged.ctaNote);
 
     if(Array.isArray(merged.analysisSteps)){
+      var stepsNs=ns('analysisSteps');
       merged.analysisSteps=merged.analysisSteps.map(function(step,i){
         return {
-          label:_pvwTrKeep(ns+'.analysisSteps.'+i+'.label',step&&step.label),
-          detail:_pvwTrKeep(ns+'.analysisSteps.'+i+'.detail',step&&step.detail)
+          label:_pvwTrKeep(stepsNs+'.analysisSteps.'+i+'.label',step&&step.label),
+          detail:_pvwTrKeep(stepsNs+'.analysisSteps.'+i+'.detail',step&&step.detail)
         };
       });
     }
     if(merged.valueCompare&&Array.isArray(merged.valueCompare.rows)){
+      var compareNs=ns('valueCompare');
       merged.valueCompare={rows:merged.valueCompare.rows.map(function(row,i){
         return {
-          axis:_pvwTrKeep(ns+'.valueCompare.'+i+'.axis',row&&row.axis),
-          free:_pvwTrKeep(ns+'.valueCompare.'+i+'.free',row&&row.free),
-          premium:_pvwTrKeep(ns+'.valueCompare.'+i+'.premium',row&&row.premium)
+          axis:_pvwTrKeep(compareNs+'.valueCompare.'+i+'.axis',row&&row.axis),
+          free:_pvwTrKeep(compareNs+'.valueCompare.'+i+'.free',row&&row.free),
+          premium:_pvwTrKeep(compareNs+'.valueCompare.'+i+'.premium',row&&row.premium)
         };
       })};
     }
     if(Array.isArray(merged.faq)){
+      var faqNs=ns('faq');
       merged.faq=merged.faq.map(function(item,i){
         return {
-          q:_pvwTrKeep(ns+'.faq.'+i+'.q',item&&item.q),
-          a:_pvwTrKeep(ns+'.faq.'+i+'.a',item&&item.a)
+          q:_pvwTrKeep(faqNs+'.faq.'+i+'.q',item&&item.q),
+          a:_pvwTrKeep(faqNs+'.faq.'+i+'.a',item&&item.a)
         };
       });
     }

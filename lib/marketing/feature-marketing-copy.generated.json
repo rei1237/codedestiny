@@ -1,27 +1,33 @@
 {
   "categoryKeyByKo": {
+    "관상": "physiognomy",
     "꿈 상징": "dream",
     "명상": "meditation",
     "베다 점성술": "vedicastro",
     "베다점": "vedic",
     "사주": "saju",
     "사주 수호신": "guardian",
+    "상담": "consult",
     "서양 점성술": "westernastro",
     "숙요점": "sukuyo",
     "시빌라 시스템": "sibyl",
     "신년운세": "newyear",
+    "심리": "psychology",
     "연애 명리": "love",
     "오라클": "oracle",
     "요가": "yoga",
     "음악": "music",
+    "이용권": "pass",
     "인생 명리": "life",
+    "읽을거리": "article",
     "자미두수": "ziwei",
     "자미두수 심화": "ziweideep",
     "작명": "naming",
     "점성술": "astrology",
     "초융합": "fusion",
     "타로": "tarot",
-    "프리미엄 리포트": "report"
+    "프리미엄 리포트": "report",
+    "휴먼 디자인": "humandesign"
   },
   "items": {
     "/astrology-ai": {

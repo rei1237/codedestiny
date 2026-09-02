@@ -203,6 +203,27 @@ test("모달이 조회할 사전 키가 11개 로케일에 전부 있다", () =>
   }
 });
 
+/**
+ * 🔴 위 test 는 `categoryKeyByKo` 에 **적힌** 것만 본다 — 표에 없는 category 값은 셸이
+ * `_pvwTrKeep` 를 아예 안 거쳐서 11개 로케일에 한국어 칩이 그대로 나가는데도 초록불이었다.
+ * 2026-09-03 실측으로 상담·심리·휴먼 디자인·관상·읽을거리·이용권 6종(상품 12개)이 그 상태였다.
+ * 그래서 대상은 손으로 적지 않고 카피에서 전수 발견한다(CLAUDE.md 코딩 원칙 10).
+ */
+test("카피가 쓰는 category 값이 전부 카테고리 표에 있다", () => {
+  const used = new Set();
+  for (const item of Object.values(book.items)) {
+    const category = item && item.copy && item.copy.category;
+    if (typeof category === "string" && category) used.add(category);
+  }
+  assert.ok(used.size >= 20, `category 값을 찾지 못했습니다 (${used.size}개) — 생성 JSON 의 모양이 바뀌었습니다.`);
+  const unmapped = [...used].filter((category) => !book.categoryKeyByKo[category]).sort();
+  assert.deepEqual(
+    unmapped,
+    [],
+    "이 category 값이 _MARKETING_CATEGORY_KEY_BY_KO 에 없습니다 — 그 타일의 카테고리 칩은 11개 로케일에 한국어로 나갑니다.",
+  );
+});
+
 test("카테고리 칩·공용 신뢰 문구가 11개 로케일에 있다", () => {
   for (const file of NON_KO_LOCALE_FILES) {
     const dictionary = loadDictionary(file);
@@ -223,9 +244,10 @@ test("카테고리 칩·공용 신뢰 문구가 11개 로케일에 있다", () =
 /**
  * badge·headline 은 셸이 렌더하지 않아 사전에 드문드문 있다(en 기준 항목 ns 282칸 중 242칸 없음).
  * 모달은 그때 카테고리 템플릿 ns 로 내려가므로, **템플릿 쪽에 구멍이 있는 만큼만** 한국어가 남는다.
- * 아래 목록은 그 구멍의 전량이고 축4 PR-6(문안 저작) 몫이다. 늘어나도, 채워져 목록이 낡아도 실패한다.
+ * 아래 목록은 그 구멍의 전량이다. 늘어나도, 채워져 목록이 낡아도 실패한다.
+ * 2026-09-03(축4 PR-6)에 남아 있던 `template_music.badge`·`headline` 을 11개 로케일에 저작해 비었다.
  */
-const KNOWN_TONE_GAPS = ["template_music.badge", "template_music.headline"];
+const KNOWN_TONE_GAPS = [];
 
 test("badge·headline 폴백 구멍이 알려진 목록 그대로다", () => {
   const dictionary = loadDictionary("en");

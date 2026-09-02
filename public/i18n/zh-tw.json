@@ -8586,6 +8586,8 @@
       "headline": "把散落的念頭，收攏成一份完整的解讀。"
     },
     "template_music": {
+      "badge": "感性體驗型",
+      "headline": "把此刻最貼近你心情的氛圍，像一首歌的場景那樣打開。",
       "tagline": "以音樂與角色世界觀氛圍為核心體驗的感性內容。",
       "feats": [
         "想用氛圍而非言語整理情緒時",
@@ -13384,12 +13386,18 @@
     "guardian": "八字守護神",
     "ziweideep": "紫微斗數深化",
     "westernastro": "西方占星",
-    "vedicastro": "吠陀占星"
+    "vedicastro": "吠陀占星",
+    "consult": "諮詢",
+    "psychology": "心理",
+    "humandesign": "人類圖",
+    "physiognomy": "面相",
+    "article": "讀物",
+    "pass": "通行券"
   },
   "featureMarketingTrust": {
     "paid": {
       "0": "付款前可以先確認功能內容。",
-      "1": "通行券、月光石或單次付款的判定沿用現有服務標準。",
+      "1": "通行券或單次付款的判定沿用現有服務標準。",
       "2": "運勢結果僅供參考，重要選擇請結合現實判斷再確認。"
     },
     "free": {
