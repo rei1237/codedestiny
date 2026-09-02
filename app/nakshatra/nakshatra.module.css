@@ -234,13 +234,34 @@
 .fld label { display: block; font-size: 11px; letter-spacing: 0.04em; color: var(--gold); margin-bottom: 6px; }
 .fld input, .fld select {
   width: 100%; padding: 11px 12px; border-radius: 10px; background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--line); color: var(--t-100); font-family: var(--font-body); font-size: 15px; outline: none; transition: 0.16s;
+  /* 16px 미만이면 iOS 가 포커스 시 자동 확대한다 — design-and-ui.md 인체공학 계약 */
+  border: 1px solid var(--line); color: var(--t-100); font-family: var(--font-body); font-size: 16px; outline: none; transition: 0.16s;
 }
 .fld input::placeholder { color: var(--t-400); }
 .fld input:focus, .fld select:focus { border-color: rgba(229, 199, 137, 0.6); background: rgba(255, 255, 255, 0.07); }
 .fld select option { background: #0e1124; }
-.check { margin-top: 11px; display: flex; align-items: center; gap: 9px; font-size: 13px; color: var(--t-300); cursor: pointer; }
-.check input { width: 16px; height: 16px; accent-color: var(--gold); }
+.check { margin-top: 0; display: flex; align-items: center; gap: 9px; font-size: 13px; color: var(--t-300); cursor: pointer; }
+/* 네이티브 16×16 체크박스는 탭 타깃 44px 미달(스캔 실측 2026-09-02 유일 TT 위반).
+   input 자체를 44×44 히트박스로 키우고 16px 글리프는 ::before/::after 로 그린다
+   (appearance:none + input 의사요소 — styles/life-book.css 숙요 모달 선례).
+   가로 -14px 마진으로 글리프-텍스트 간격을 종전과 같게 유지한다. */
+.check input {
+  -webkit-appearance: none; appearance: none; flex: 0 0 auto;
+  width: 44px; height: 44px; margin: 0 -14px;
+  display: grid; place-items: center; cursor: pointer;
+}
+.check input::before, .check input::after { content: ""; grid-area: 1 / 1; }
+.check input::before {
+  width: 16px; height: 16px; border-radius: 4px;
+  border: 1px solid var(--line); background: rgba(255, 255, 255, 0.04); transition: 0.16s;
+}
+.check input::after {
+  width: 10px; height: 10px; background: #1a0f16; transform: scale(0); transition: transform 0.16s;
+  clip-path: polygon(14% 44%, 0 59%, 39% 100%, 100% 18%, 84% 5%, 36% 68%);
+}
+.check input:checked::before { background: var(--gold); border-color: var(--gold); }
+.check input:checked::after { transform: scale(1); }
+.check input:focus-visible::before { border-color: var(--gold); box-shadow: 0 0 0 2px rgba(229, 199, 137, 0.28); }
 .note { margin-top: 8px; font-size: 12px; color: var(--east-soft); display: flex; gap: 7px; align-items: flex-start; }
 .note svg { flex: 0 0 auto; margin-top: 2px; }
 .geoStatus { display: block; margin-top: 7px; font-size: 12px; color: var(--t-400); }
