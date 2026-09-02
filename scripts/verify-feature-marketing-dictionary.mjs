@@ -35,10 +35,11 @@ const I18N_DIR = resolve(ROOT, "public/i18n");
 const SOURCE_LOCALE = "ko";
 
 /**
- * 사전 없이 나가는 COPY 키의 허용 상한(래칫). 2026-09-02 실측 28개 — 홈 개편으로 새로 생긴
- * 무료 허브·상담 타일들이라 아직 저작 전이다. 줄이는 것은 자유고, 늘리면 실패한다.
+ * 사전 없이 나가는 COPY 키의 허용 상한(래칫). 2026-09-02 에 남아 있던 28개를 저작해 0 이 됐다
+ * (무료 허브·도구 타일 28종 × 362경로 × 11로케일). 줄이는 것은 자유고, 늘리면 실패한다.
+ * 🔴 0 은 "새 COPY 키를 넣으면 같은 커밋에 11개 로케일도 채워야 한다"는 뜻이다.
  */
-const UNTRANSLATED_BUDGET = 28;
+const UNTRANSLATED_BUDGET = 0;
 
 const errors = [];
 const fail = (msg) => errors.push(msg);

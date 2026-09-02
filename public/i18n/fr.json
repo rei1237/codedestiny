@@ -12150,6 +12150,614 @@
           "a": "You can save the result card as a portrait high-resolution image."
         }
       }
+    },
+    "fortune_tea_house": {
+      "tagline": "A conversational reading where Yeon-i listens to your story first, then blends tarot and saju symbolism to lay out where your heart is sitting right now and what the next single step could be.",
+      "feats": [
+        "When there is nowhere you can say what you actually feel",
+        "When you need things sorted out before you need a verdict",
+        "When you want someone to listen, not to advise"
+      ],
+      "premiumIntro": "Instead of handing you a flat verdict, it starts by naming what your feelings are caught on.",
+      "premiumAudience": [
+        "Anyone who wants to talk a worry through out loud",
+        "Anyone who prefers a warm, unhurried tone",
+        "Anyone who wants tarot and saju referenced together"
+      ],
+      "answersQuestions": [
+        "How should I make sense of what I'm feeling?",
+        "Is this a time to wait, or a time to move?",
+        "Is it all right to keep holding on to this relationship?"
+      ],
+      "fallbackCta": "Start a reading at the tea house"
+    },
+    "fortune_chat": {
+      "tagline": "A reading where two voices, Yeon-i and Neo, take the same question from different angles and narrow the focus of your situation through the back-and-forth.",
+      "feats": [
+        "When a one-line interpretation never gets you to an answer",
+        "When you're stuck on what to even ask",
+        "When you keep circling the same worry"
+      ],
+      "premiumIntro": "There is no fixed questionnaire -- you read an answer, then ask again, and the situation narrows from there.",
+      "premiumAudience": [
+        "Anyone who thinks best by asking and answering",
+        "Anyone whose situation is too long for a fixed form",
+        "Anyone who wants both Yeon-i's and Neo's differing takes"
+      ],
+      "answersQuestions": [
+        "In my situation, which way is better?",
+        "What is the risk in this choice?",
+        "Is there something I'm missing right now?"
+      ],
+      "fallbackCta": "Start a destiny conversation"
+    },
+    "destiny_compass": {
+      "tagline": "A report-style reading that puts your saju flow next to the options in front of you and reads direction and timing as two separate things.",
+      "feats": [
+        "When you have options but no standard to judge them by",
+        "When the direction is settled but the timing worries you",
+        "When every piece of advice you get says something different"
+      ],
+      "premiumIntro": "Rather than picking the answer for you, it sets a standard for which way costs you less in the current flow.",
+      "premiumAudience": [
+        "Anyone facing a big call -- a job move, a relocation, a career shift",
+        "Anyone who has been putting a decision off for a long time",
+        "Anyone who wants their reasoning written down"
+      ],
+      "answersQuestions": [
+        "Is it all right to change direction now?",
+        "When would moving cost me the least?",
+        "What should I sort out first?"
+      ],
+      "fallbackCta": "Open the compass reading"
+    },
+    "saju_sibyl": {
+      "tagline": "An in-depth consultation-style reading that puts your natal chart next to the luck period you are passing through and traces the repeating patterns back to their root.",
+      "feats": [
+        "When the free summary always leaves you short",
+        "When the same problem has been repeating for years",
+        "When you want your saju explained properly"
+      ],
+      "premiumIntro": "Not a short description of your disposition -- it carries on to why things flow the way they do.",
+      "premiumAudience": [
+        "Anyone who has had saju readings several times already",
+        "Anyone who wants reasoning, not surface advice",
+        "Anyone laying out a long-term plan"
+      ],
+      "answersQuestions": [
+        "What is the core of my saju, in the end?",
+        "What phase is this period for me?",
+        "Where do I break the repeating pattern?"
+      ],
+      "fallbackCta": "Open the Sibyl in-depth reading"
+    },
+    "tarot_numerology": {
+      "tagline": "It calculates your life number and today's number, places the cards that match those numbers, and reads your innate grain and today's flow across five positions.",
+      "feats": [
+        "When a single card leaves the story unfinished",
+        "When you want today's flow read with a bit more grounding",
+        "When you want numbers and cards seen together"
+      ],
+      "premiumIntro": "Not one random card -- cards are attached to calculated numbers and read across five positions.",
+      "premiumAudience": [
+        "Anyone interested in numerology",
+        "Anyone who wants a read on the daily flow",
+        "Anyone who wants tarot with a bit more structure"
+      ],
+      "answersQuestions": [
+        "What attitude do I need today?",
+        "What does my life number say?",
+        "Where is the current flow heading?"
+      ],
+      "fallbackCta": "Open the 5-card numerology tarot"
+    },
+    "compatibility": {
+      "tagline": "A free compatibility reading that calculates each person's chart and shows separately where your energies mesh and where they grind.",
+      "feats": [
+        "When all you're told is whether you match or not",
+        "When you keep colliding at the same point",
+        "When you need a clue for understanding the other person"
+      ],
+      "premiumIntro": "It doesn't just score you -- it separates out which areas are strong and which call for care.",
+      "premiumAudience": [
+        "Anyone who wants a read on a partner or spouse",
+        "Anyone trying to understand a recurring friction",
+        "Anyone who knows the other person's birth date"
+      ],
+      "answersQuestions": [
+        "Where do the two of us fit well?",
+        "Where do we collide?",
+        "What should we be careful about in this relationship?"
+      ],
+      "fallbackCta": "See the free compatibility reading"
+    },
+    "saju": {
+      "tagline": "A basic reading that calculates the eight characters of your saju and lays out your innate temperament and the large turns of your life. You can start for free.",
+      "feats": [
+        "When you can't put your own disposition into words",
+        "When you want to see the broad arc of your life once",
+        "When saju is new and you don't know where to start"
+      ],
+      "premiumIntro": "No scare-mongering about good and bad fortune -- it explains your innate grain and the current flow calmly.",
+      "premiumAudience": [
+        "Anyone reading their saju for the first time",
+        "Anyone who wants their temperament laid out",
+        "Anyone who wants to check the broad flow first"
+      ],
+      "answersQuestions": [
+        "What is my innate disposition like?",
+        "How does the broad arc of my life run?",
+        "What kind of period am I in now?"
+      ],
+      "fallbackCta": "Read your saju for free"
+    },
+    "tarot": {
+      "tagline": "Basic tarot: settle on a question, draw the cards, and see how their symbolism reflects your current feelings and choices.",
+      "feats": [
+        "When your thoughts won't come together and it's frustrating",
+        "When you want to check where your heart is today",
+        "When tarot is new and feels hard to approach"
+      ],
+      "premiumIntro": "It doesn't declare a verdict -- it attaches the cards' symbolism to your actual situation.",
+      "premiumAudience": [
+        "Anyone reading tarot for the first time",
+        "Anyone who wants a read on today's mood",
+        "Anyone who wants to try a light question"
+      ],
+      "answersQuestions": [
+        "What state is my heart in right now?",
+        "Where will this choice lead?",
+        "What am I missing?"
+      ],
+      "fallbackCta": "Draw tarot for free"
+    },
+    "ziwei": {
+      "tagline": "A basic Zi Wei Dou Shu reading that builds your chart from your birth date and time and reads wealth and career flow from how the stars sit in the palaces.",
+      "feats": [
+        "When you want work and money read structurally",
+        "When you're curious about a reading from a different angle than saju",
+        "When even the word 'chart' is unfamiliar"
+      ],
+      "premiumIntro": "Instead of listing star names, it explains what shape of daily life that arrangement shows up as.",
+      "premiumAudience": [
+        "Anyone curious about their wealth flow",
+        "Anyone new to Zi Wei Dou Shu",
+        "Anyone who wants to compare systems beyond saju"
+      ],
+      "answersQuestions": [
+        "What is my wealth flow like?",
+        "What kind of work suits me?",
+        "What phase is my career luck in now?"
+      ],
+      "fallbackCta": "See your chart for free"
+    },
+    "sukuyo": {
+      "tagline": "A basic Sukuyo reading that calculates your birth mansion from your birth date and reads your innate rhythm and the distance you keep in relationships.",
+      "feats": [
+        "When you're not sure what your own pace is",
+        "When adjusting distance in relationships is hard",
+        "When you want an easy way into Eastern astrology"
+      ],
+      "premiumIntro": "Rather than sorting things into good and bad, it names what rhythm you move to.",
+      "premiumAudience": [
+        "Anyone who wants to know their own rhythm",
+        "Anyone troubled by distance in relationships",
+        "Anyone new to Sukuyo"
+      ],
+      "answersQuestions": [
+        "What is my birth mansion?",
+        "What rhythm do I move to?",
+        "What distance is comfortable for me in a relationship?"
+      ],
+      "fallbackCta": "See your Sukuyo reading for free"
+    },
+    "vedic": {
+      "tagline": "A basic Vedic astrology reading that calculates your lagna, your moon's placement, and your nakshatra, and shows your innate disposition alongside the period you are passing through.",
+      "feats": [
+        "When Western star-sign results differ and it's confusing",
+        "When you want to know what period you're in",
+        "When Vedic astrology is unfamiliar"
+      ],
+      "premiumIntro": "It doesn't stop at a star-sign personality sketch -- it reads the flow of time alongside it.",
+      "premiumAudience": [
+        "Anyone who wants to compare with Western astrology",
+        "Anyone who needs a read on timing",
+        "Anyone curious about Indian astrology"
+      ],
+      "answersQuestions": [
+        "What is my lagna?",
+        "What period am I passing through now?",
+        "What is my innate temperament like?"
+      ],
+      "fallbackCta": "See your Vedic reading for free"
+    },
+    "astrology": {
+      "tagline": "A basic astrology reading that calculates your birth chart and reads your disposition and the flow of your relationships from the placements.",
+      "feats": [
+        "When every star-sign personality article reads the same",
+        "When you're curious about the patterns that repeat in your relationships",
+        "When you don't know how to read a chart"
+      ],
+      "premiumIntro": "Not a single sun sign -- it separates out the grain using the combination of three placements.",
+      "premiumAudience": [
+        "Anyone who wants to go a little deeper than sun signs",
+        "Anyone curious about their relationship tendencies",
+        "Anyone who knows their birth time"
+      ],
+      "answersQuestions": [
+        "What combination makes up my disposition?",
+        "What pattern repeats in my relationships?",
+        "What is the current flow like?"
+      ],
+      "fallbackCta": "See your birth chart for free"
+    },
+    "human_design": {
+      "tagline": "It calculates your type, strategy, inner authority, and defined centers from your birth data, and shows how your way of deciding and of spending energy is designed.",
+      "feats": [
+        "When you're always trying hard and always ending up drained",
+        "When you don't know how you should be making decisions",
+        "When personality-test results never quite fit"
+      ],
+      "premiumIntro": "Not a personality classification -- it shows the energy blueprint calculated from your birth data as it is.",
+      "premiumAudience": [
+        "Anyone who wants to know how they decide",
+        "Anyone who wants to cut down on draining patterns",
+        "Anyone looking for a self-understanding tool beyond MBTI"
+      ],
+      "answersQuestions": [
+        "What type am I?",
+        "How should I actually be making decisions?",
+        "Where is my energy leaking?"
+      ],
+      "fallbackCta": "Calculate your chart for free"
+    },
+    "nakshatra": {
+      "tagline": "It calculates which of the 27 nakshatras your moon occupied at birth, and lays out the temperament and life direction that placement carries.",
+      "feats": [
+        "When your sun sign alone doesn't explain enough",
+        "When you want your essence named in one line",
+        "When you only want the core of Indian astrology"
+      ],
+      "premiumIntro": "Not the whole complicated chart -- it focuses on the single placement that points at your essence.",
+      "premiumAudience": [
+        "Anyone who wants their essence pinned down",
+        "Anyone who only wants the core of Vedic astrology",
+        "Anyone who knows their birth time"
+      ],
+      "answersQuestions": [
+        "What is my nakshatra?",
+        "What is my innate grain like?",
+        "What direction suits me?"
+      ],
+      "fallbackCta": "See your nakshatra for free"
+    },
+    "maya": {
+      "tagline": "Using the Tzolk'in calendar, it calculates the energy of your birth date and of today, and shows your innate seal alongside today's flow.",
+      "feats": [
+        "When you're curious about a grain different from the fortune-telling you know",
+        "When you want a light check on today's energy",
+        "When the Mayan calendar is unfamiliar"
+      ],
+      "premiumIntro": "It attaches a different symbol to each date and names the attitude to carry through the day.",
+      "premiumAudience": [
+        "Anyone who wants to try a new system",
+        "Anyone who wants to check today's energy",
+        "Anyone who enjoys reading symbols"
+      ],
+      "answersQuestions": [
+        "What kind of energy does today carry?",
+        "What is my Mayan seal?",
+        "What should I focus on today?"
+      ],
+      "fallbackCta": "See your Mayan reading for free"
+    },
+    "daily_fortune": {
+      "tagline": "It checks today's date against your birth date and gives you a short account of what to push on and what to hold off on for the day.",
+      "feats": [
+        "When you have no time to read a long interpretation",
+        "When you just want a direction for the day in the morning",
+        "When you need a light daily reference point"
+      ],
+      "premiumIntro": "It doesn't pad things out -- only as much as the day actually needs.",
+      "premiumAudience": [
+        "Anyone who wants a short daily check",
+        "Anyone curious about how today will feel",
+        "Anyone who wants fortune-reading as a habit"
+      ],
+      "answersQuestions": [
+        "What is the flow of my day today?",
+        "What should I watch out for today?",
+        "What would be good to do today?"
+      ],
+      "fallbackCta": "See today's fortune"
+    },
+    "today": {
+      "tagline": "A hub that puts today's reading from three systems on one screen, so you can compare where the signals overlap and where they diverge.",
+      "feats": [
+        "When one interpretation alone doesn't convince you",
+        "When you want to know whether the systems disagree",
+        "When moving between pages is a nuisance"
+      ],
+      "premiumIntro": "It doesn't give you one branch's conclusion -- it lines up three side by side so you can compare.",
+      "premiumAudience": [
+        "Anyone who wants to compare several systems",
+        "Anyone who wants to cross-check today's flow",
+        "Anyone who wants it all on one screen"
+      ],
+      "answersQuestions": [
+        "How do the three systems read today?",
+        "What signal do they all point at?",
+        "What is today's priority?"
+      ],
+      "fallbackCta": "Open today's fortune hub"
+    },
+    "physiognomy": {
+      "tagline": "A face-reading interpretation that analyses the shape and balance of the features in your photo and lays out the temperament your impression conveys and the paths that suit it.",
+      "feats": [
+        "When you want to know what you can read without a birth date",
+        "When you want to know how you come across to others",
+        "When face reading feels like nothing but superstition"
+      ],
+      "premiumIntro": "It doesn't sort faces into good and bad -- it explains the perception your impression creates and the strengths in it.",
+      "premiumAudience": [
+        "Anyone curious about their first impression",
+        "Anyone who wants a reading without a birth date",
+        "Anyone looking for their strengths from another angle"
+      ],
+      "answersQuestions": [
+        "How is my impression read?",
+        "What strengths show through?",
+        "What kind of work suits me?"
+      ],
+      "fallbackCta": "See your face reading for free"
+    },
+    "dream": {
+      "tagline": "Dream interpretation: it unpacks the material and situations in your dream and explains how that symbolism touches your current state of mind and circumstances.",
+      "feats": [
+        "When the same dream keeps repeating",
+        "When a dream leaves an uneasy residue",
+        "When every search result interprets it differently"
+      ],
+      "premiumIntro": "Rather than sorting dreams into lucky and unlucky, it reads what the symbolism reflects right now.",
+      "premiumAudience": [
+        "Anyone who has had a striking dream",
+        "Anyone with a recurring dream",
+        "Anyone curious about the psychological meaning"
+      ],
+      "answersQuestions": [
+        "What does this dream mean?",
+        "Why do I keep having this dream?",
+        "What state is my mind in right now?"
+      ],
+      "fallbackCta": "Interpret your dream for free"
+    },
+    "psychotest": {
+      "tagline": "A collection of psychological tests: answer a few short questions and it lays out your disposition and current state. No birth date needed.",
+      "feats": [
+        "When fortune-telling feels like too much and you want something light",
+        "When you need words to describe yourself",
+        "When you're looking for something to do with a friend"
+      ],
+      "premiumIntro": "It doesn't mark you right or wrong -- it puts the grain that showed in your answers into sentences.",
+      "premiumAudience": [
+        "Anyone who wants to start light",
+        "Anyone uneasy about entering a birth date",
+        "Anyone who wants to share results with a friend"
+      ],
+      "answersQuestions": [
+        "What kind of disposition do I have?",
+        "What state am I in right now?",
+        "What kind of relationship suits me?"
+      ],
+      "fallbackCta": "Take a free psychological test"
+    },
+    "manse": {
+      "tagline": "A Manseryeok tool: enter your birth date and time and it calculates your saju natal chart and luck cycles on solar-term boundaries, laid out as a table.",
+      "feats": [
+        "When you want to check the eight characters of your saju yourself",
+        "When your birthday falls on a solar-term boundary and it's confusing",
+        "When you want to cross-check against results from elsewhere"
+      ],
+      "premiumIntro": "It adds no interpretation -- it shows the calculated natal chart and luck cycles as they are.",
+      "premiumAudience": [
+        "Anyone studying saju themselves",
+        "Anyone who wants to cross-check a calculation",
+        "Anyone who wants their natal chart on record"
+      ],
+      "answersQuestions": [
+        "What are the eight characters of my saju?",
+        "When do my luck cycles change?",
+        "Does my birth fall on a solar-term boundary?"
+      ],
+      "fallbackCta": "Open the Manseryeok"
+    },
+    "insights_famous_saju": {
+      "tagline": "Reading material that takes real people's charts as examples and works through which arrangements showed up as which shape of life.",
+      "feats": [
+        "When reading the terminology alone gives you no feel for it",
+        "When you need background to understand your own reading",
+        "When learning from examples is faster for you"
+      ],
+      "premiumIntro": "Not a personal fortune reading -- a set of case studies explaining the principles from publicly available information.",
+      "premiumAudience": [
+        "Anyone who wants to learn how saju works",
+        "Anyone who prefers learning from examples",
+        "Anyone looking for something to read"
+      ],
+      "answersQuestions": [
+        "What shape of life does this arrangement show up as?",
+        "Why do the same characters produce different outcomes?",
+        "What does my own chart resemble?"
+      ],
+      "fallbackCta": "Read famous people's saju"
+    },
+    "openMbtiModal": {
+      "tagline": "It maps each person's type onto an animal totem and works through how that combination meshes as a relationship reading.",
+      "feats": [
+        "When every MBTI compatibility table looks the same",
+        "When you want to understand the difference between you and someone else",
+        "When you want a compatibility reading without birth dates"
+      ],
+      "premiumIntro": "It doesn't just hand you a compatibility score -- it separates out where the two types mesh and where they slip.",
+      "premiumAudience": [
+        "Anyone who knows both people's MBTI",
+        "Anyone who wants to understand a difference in a relationship",
+        "Anyone who wants a quick check"
+      ],
+      "answersQuestions": [
+        "What is our combination like?",
+        "Where are we likely to collide?",
+        "What does each of us need from the other?"
+      ],
+      "fallbackCta": "See the MBTI animal compatibility"
+    },
+    "openLuckSyncDiary": {
+      "tagline": "A diary for recording today's flow and seeing it next to your past entries in a monthly planner.",
+      "feats": [
+        "When you can't remember whether a reading turned out right",
+        "When you want to see how your mood and the flow connect",
+        "When keeping a record going is hard"
+      ],
+      "premiumIntro": "It adds no prediction -- it simply places the day you recorded next to that day's flow.",
+      "premiumAudience": [
+        "Anyone building a habit of writing things down",
+        "Anyone who wants to check readings against what happened",
+        "Anyone who wants to see the flow month by month"
+      ],
+      "answersQuestions": [
+        "How did this month's flow go?",
+        "How closely did my records match the readings?",
+        "What should I prepare for next month?"
+      ],
+      "fallbackCta": "Open the luck-sync diary"
+    },
+    "music": {
+      "tagline": "A player collecting the tracks written for Yeon-i and Neo's world. You can leave it running in the background while you read your fortune.",
+      "feats": [
+        "When your mind is unsettled after reading a result",
+        "When you need background sound to concentrate",
+        "When you're curious about the world behind the service"
+      ],
+      "premiumIntro": "Not a fortune reading -- a music collection that carries the mood of the service as it is.",
+      "premiumAudience": [
+        "Anyone who likes background music while reading",
+        "Anyone fond of Yeon-i and Neo's world",
+        "Anyone who wants to settle their mind quietly"
+      ],
+      "answersQuestions": [
+        "What tracks are there?",
+        "Can I play it while reading my fortune?",
+        "How does it connect to the world of the service?"
+      ],
+      "fallbackCta": "Open the moonlight player"
+    },
+    "codedestiny_novel_html": {
+      "tagline": "A light novel serialised in the world of the service. You can enjoy it as reading material quite apart from the fortune readings.",
+      "feats": [
+        "When you're looking for something to read rather than a reading",
+        "When you're curious about the characters' backgrounds",
+        "When you want to pass some time lightly"
+      ],
+      "premiumIntro": "This is a work of fiction, not a fortune reading. It has no effect on your results.",
+      "premiumAudience": [
+        "Anyone fond of the Yeon-i and Neo characters",
+        "Anyone who enjoys a serial",
+        "Anyone who wants to know more about the world"
+      ],
+      "answersQuestions": [
+        "What kind of story is it?",
+        "Is it connected to the fortune readings?",
+        "Where should I start reading?"
+      ],
+      "fallbackCta": "Open the library of destiny"
+    },
+    "points": {
+      "tagline": "A moonlight pass lets you use paid features for a set period. You can check what you hold and how you've used it here.",
+      "feats": [
+        "When paying every single time is a nuisance",
+        "When you don't know how much of your pass is left",
+        "When you're unclear on what it can be used for"
+      ],
+      "premiumIntro": "Not a fortune reading -- a screen for checking what passes you hold and what they cover.",
+      "premiumAudience": [
+        "Anyone who uses paid features often",
+        "Anyone who wants to check their balance",
+        "Anyone comparing payment methods"
+      ],
+      "answersQuestions": [
+        "What can I use a pass on?",
+        "How much do I have left right now?",
+        "How does it differ from a single payment?"
+      ],
+      "fallbackCta": "Check your passes"
+    },
+    "openSukuyoModal": {
+      "tagline": "It calculates each person's birth mansion among the 27, determines the relationship type and the distance between them, and reads it across six themes: dating, marriage, reunion, secret romance, long distance, and working together.",
+      "feats": [
+        "Calculating your own birth mansion and its basic reading is free -- payment of ₩5,000 per use applies only when you open the compatibility reading",
+        "Enter the other person's birth date, birth time, solar/lunar calendar, and gender to calculate their birth mansion too",
+        "Six relationship types -- myeong, eoptae, yeongchin, useo, angoe, seongwi -- and a near, middle, or far distance verdict",
+        "Dating, marriage, reunion, secret romance, long distance, and working together, each interpreted separately"
+      ],
+      "premiumIntro": "This compatibility reading is derived from the 27-mansion calculation rules. The same two people get the same result whenever they open it; if you want the wording written fresh each time, that is the ₩30,000 Sukuyo compatibility expert consultation.",
+      "premiumAudience": [
+        "Anyone strangely drawn to someone yet always colliding with them",
+        "Anyone deciding whether to read this as dating, marriage, or reunion",
+        "Anyone who also wants to read non-romantic ties like long distance or collaboration"
+      ],
+      "premiumChapters": [
+        "The relationship type and its nickname, both people's mansions, and each person's role",
+        "The nature of the tie, what surfaces as you get closer, and the recurring emotional pattern",
+        "The felt pace, the advantages of the distance, and the distance to watch and how to manage it",
+        "Good timing -- the best window and the window to be careful with",
+        "Interpretation and cautions for each of the six themes: dating, marriage, reunion, secret romance, long distance, and working together",
+        "What keeps it going long-term, and today's question"
+      ],
+      "premiumOutcomes": [
+        "Without the other person's birth date, you can only go as far as the reading of your own birth mansion.",
+        "If the birth time is unknown, it is calculated as 12:00 noon.",
+        "It is charged per use, and can also be opened with a pass or moonstone.",
+        "The relationship type tells you the character of the distance between you; it does not guarantee an outcome."
+      ],
+      "answersQuestions": [
+        "What kind of distance is the tie between us?",
+        "What about collaboration or long distance rather than romance?",
+        "Why do we collide the closer we get?"
+      ],
+      "fallbackCta": "Open Sukuyo",
+      "ctaNote": "Open Sukuyo and check your own birth mansion first, then enter the other person's details in the compatibility reading.",
+      "analysisSteps": [
+        {
+          "label": "Deriving your birth mansion",
+          "detail": "It calculates your birth mansion among the 27 from your birth date. This much is free."
+        },
+        {
+          "label": "Deriving the other person's birth mansion",
+          "detail": "It takes the other person's birth date, birth time, solar/lunar calendar, and gender, and calculates their birth mansion."
+        },
+        {
+          "label": "Determining relationship type and distance",
+          "detail": "It settles which of the six relationship types the two mansions form, and whether the distance is near, middle, or far."
+        },
+        {
+          "label": "Theme-by-theme interpretation",
+          "detail": "It separates the six themes and lays out the state, what to do now, and what to watch for in each."
+        }
+      ],
+      "faq": [
+        {
+          "q": "Do I really need the other person's birth date?",
+          "a": "Yes. The relationship type only comes out once their birth mansion is calculated. Without it you can only see the reading of your own birth mansion."
+        },
+        {
+          "q": "How does this differ from the ₩30,000 Sukuyo compatibility expert consultation?",
+          "a": "This compatibility reading derives the relationship type and the six themes from the 27-mansion calculation rules. The expert consultation writes the consultation text fresh each time on top of the same calculation."
+        },
+        {
+          "q": "How does payment work?",
+          "a": "It is charged per use. Reading it for a different person means paying again at that point, and it can also be opened with a pass or moonstone."
+        }
+      ]
     }
   },
   "featureMarketingCategory": {
