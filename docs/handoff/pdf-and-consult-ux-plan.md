@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-03
-next: "E2(#1498) 머지 확인 후, 새 세션·새 워크트리에서 W2 나머지 — E4(fusion 정본화) → PR-C(중복 검출) → PR-B(클램프 배선). 🔴 축4 PR-6(문안 저작) 에 들어가기 전에 아래 'E2 가 남긴 것'을 읽을 것 — 셸 별칭 23종이 번역을 못 받고 있고 가드가 그 축을 안 본다."
+next: "PR-6(#1503) 머지 확인 후, 새 세션·새 워크트리에서 W2 나머지 — E4(fusion 정본화) → PR-C(중복 검출) → PR-B(클램프 배선). i18n 11파일을 다시 만지는 PR-5·E3·레거시 D 저작은 서로 비병행이므로 하나씩."
 ---
 
 # 전문가 상담 품질·진입 UX·PDF 전면 제공 (13 PR 계획)
@@ -13,17 +13,14 @@ next: "E2(#1498) 머지 확인 후, 새 세션·새 워크트리에서 W2 나머
 ## 지금 상태
 
 - 확정 계획 정본: `C:\Users\user\.claude\plans\goofy-leaping-curry.md` (13 PR + 후속 3, 축1 PDF / 축2 진입 UX / 축3 AI 품질). 사용자 승인 완료.
-- **축1 PDF 머지 완료: PR-1(#1451) · PR-2(#1460) · PR-3(#1475) · PR-4(#1488).**
-- **PR-A(초융합 랩 등록 + CMS 카탈로그 드리프트) 머지 완료(#1491).**
-- **W1 닫힘: E1(카피 추출 파이프라인) 머지 완료(#1490 뒤 78be90504).**
-- **E2(허브 모달 전환) = PR #1498.** CI 5종 통과, 머지는 사용자.
-- 나머지 7 PR 전부 미착수.
+- 축1 PDF 4건 · PR-A · W1(E1) · E2 머지 완료(번호는 `gh pr list --state merged`).
+- **축4 PR-6(문안 저작) = PR #1503.** 머지는 사용자.
+- 나머지 6 PR 전부 미착수.
 
 ## 남은 작업
 
-- [x] W1: PR-A(#1491) 머지 · E1(카피 추출 파이프라인) 머지
-- [ ] W2: ~~E2(모달 전환)~~ = #1498 대기 · E4(fusion 정본화) · PR-C(중복 검출) · PR-B(클램프 배선)
-- [ ] W3: 축4 PR-6(문안 저작, 축4 소유) · E5(PaidValueSection+nakshatra) → E6(island)
+- [ ] W2: E4(fusion 정본화) · PR-C(중복 검출) · PR-B(클램프 배선)
+- [ ] W3: ~~축4 PR-6(문안 저작)~~ = #1503 대기 · E5(PaidValueSection+nakshatra) → E6(island)
 - [ ] W4: PR-5(셸 saju AI PDF, i18n 11파일) → E3(잔재 키 청소, 백로그)
 - [ ] W5(후속): PR-F(pdf.save→deliverPdf 앱 분기, 실기기 검증 필수) · PR-B2
 - [ ] PR-1 브라우저 실측(실제 PDF 저장 1회) — 머지 후 스테이징에서. 판정: 커버+21섹션이 각자 새 페이지로 실리고 접힘 상태가 복원되면 끝.
@@ -42,18 +39,17 @@ next: "E2(#1498) 머지 확인 후, 새 세션·새 워크트리에서 W2 나머
 
 배선 관용구: `app/destiny-compass/_components/ReportActions.tsx:38` · PDF 유틸: `lib/pdf/export-result-pdf.ts:146`
 
-E1 산출물(E2 가 소비할 것): `lib/marketing/feature-marketing-copy.generated.json` = `{ items: { "<셸 카피 키>": { dictNs, copy } }, templates: { "<카테고리>": { dictNs: "template_<카테고리>", copy } } }`. `inherit` 은 이미 해소돼 남아 있지 않고 `dictNs` 는 `featureMarketing.<dictNs>` 조회용으로 미리 계산돼 있다. 파서·`safeKey`·상속 해소의 정본은 `scripts/lib/feature-marketing-extract.mjs`(가드 2개와 공유).
+셸 카피 파서·`safeKey`·상속 해소의 정본은 `scripts/lib/feature-marketing-extract.mjs`(가드 2개 + 생성기가 공유). 생성물은 `lib/marketing/feature-marketing-copy.generated.json`.
 
-## E2 가 남긴 것 (축4 PR-6 입력 · 전부 미조치, 2026-09-03 실측)
+## 셸 카피 번역 축 (PR-6 #1503 에서 닫은 것 · 남은 것)
 
-React 모달은 전부 옳게 고쳤고 아래는 **셸(index.html) 쪽** 이거나 문안 저작 소유다. 축2 는 셸 0-diff 라 여기서 손댈 수 없었다.
+E2 가 넘긴 6건 중 5건을 #1503 에서 닫았다. 아래는 **남은 것과 그 판단 근거**다.
 
-- 🔴 **별칭 네임스페이스 누락** — `inherit` 별칭 40개 중 **23개가 타일 속성으로 도달 가능**한데 셸은 별칭 자기 이름으로 사전을 찾아 번역이 안 붙는다. `verify:feature-marketing-dictionary` 는 별칭을 통째로 건너뛰어 이 축을 못 본다(대신 `__tests__/ui/feature-marketing-copy-generated.static.test.js` 의 "모든 dictNs 가 en 사전에 실재한다" 가 생성 JSON 축을 문다).
-- 🔴 **셸 단일 ns 누수 204건(en 기준)** — 셸은 병합 객체 전체를 상품 ns 하나로 조회해서, 템플릿에서 상속받은 값은 상품 ns 에 없어 한국어로 남는다. React 는 필드마다 값이 온 ns 를 본다.
-- `template_music` 의 `badge`·`headline` 사전 구멍 2건 — 모달 테스트에 래칫으로 고정(늘어도 낡아도 실패).
-- 카테고리 표기표 미매핑 6종(상담·휴먼 디자인·관상·심리·읽을거리·이용권, 항목 12개) → 템플릿 이름으로 내려간다.
-- `en.featureMarketingTrust.paid.1` 이 셸 문장이 아니라 **삭제된 React 포크의 문장**을 번역하고 있다.
-- 랜딩 `ServiceCard` 는 `featureKey`·`slug`·`accessType` 을 안 넘겨 href 로만 매칭된다(가격은 E2-5 의 `featureId` 폴백으로 구제됨).
+**남은 것 1 — 레거시 `D` 층 결손 75건(후속 PR, 수기 저작만 가능).** 셸의 미리보기 병합은 `Object.assign({}, template, D[key], copy)` 3층이고, 그중 **레거시 `D` 가 화면을 이기는데 사전이 그 문장을 번역한 것이 아닌 자리**가 75건이다(`fallbackTitle` 22 + `feats` 항목 53). 성격 둘: 사전 없음 39건(11개 로케일에 한국어가 그대로), 다른 문장 번역 36건(사전에 있으나 화면과 내용이 다름 — 상품 카피의 `painPoints` 를 번역한 것). `verify:feature-marketing-dictionary` 의 `LEGACY_LAYER_BUDGET = 75` 래칫이 고정한다 — 줄이면 통과, 늘리면 실패. 0 으로 만드는 방법은 그 75자리의 한국어 원문을 11개 로케일에 **손으로** 쓰는 것뿐이다(자동 번역 = 과금 실호출 금지).
+
+**남은 것 2 — 랜딩 `ServiceCard` 의 `featureKey`·`slug`·`accessType`. 실측 후 의도적 보류.** `MainLandingPage.tsx` 의 href 32개 중 **25개가 href 만으로는 COPY 키에 안 닿는데**, 그중 셸 타일에서 되살릴 수 있는 것은 **6개뿐**이다(`openRuneOracle`·`openGeomancyOracle`·`openAstroModal`·`openZiweiModal`/`navigateToZiweiChart`·`openNevilleMeditationPage`·`openYogaGuru`). 나머지 19개는 **어떤 키로도 저작된 카피가 없다** — href 색인을 넣어도 6개만 고쳐지고 19개는 그대로다. 카드 40여 곳에 `featureKey` 를 손으로 다는 값도 안 된다. 되살리려면 먼저 그 19개의 카피를 저작해야 한다.
+
+**닫은 것에서 다음 세션이 알아야 할 것 하나 — 별칭 ns 는 경로 대조로 못 잡는다.** 셸은 `_pvwSafeKey(_originMarketingKey(copyKey,0))` 로 **원본 키**의 ns 를 쓰는데, 별칭 48개 중 원본에 없는 경로를 만드는 것이 **0개**라 ns 를 되돌려도 경로 검사는 전부 통과한다. 그래서 가드가 그 한 줄과 `_originMarketingKey` 의 `inherit` 추적을 **정규식 소스 계약**으로 문다 — 그 자리를 리팩터하면 정규식도 같이 갱신해야 한다(안 그러면 가드가 "없다"로 뒤집혀 엉뚱한 실패를 낸다).
 
 ## 함정
 
@@ -61,6 +57,7 @@ React 모달은 전부 옳게 고쳤고 아래는 **셸(index.html) 쪽** 이거
 - 관리자 랩 조립기를 새로 만들면 **출생지 좌표가 `null` 로 온다**(`worker/routes/admin.js` 의 `buildAdminLabBody`). `Number(null) === 0` 이라 그냥 실으면 위경도 (0,0) 명식이 조용히 만들어진다 — 좌표가 유한수일 때만 실을 것(PR-A 실측).
 - 축4 진행분(`docs/handoff/home-ux-audit-2026-09-01.md`)과 PR-5·PR-6·E1 이 겹친다 — 그 문서 먼저 읽을 것.
 - copy.ts·NakshatraAiClient.tsx 등 nakshatra 파일, `IslandConsultClient.tsx`, `components/fpti/**` 는 순수 CRLF — node 패치 스크립트로만 수정(3세션 연속 실전 확인).
+- 🔴 **셸 카피 병합 순서는 field-major, layer-minor 다** — `src.first('subheadline','headline')` 은 `subheadline` 을 copy→D→template 3층에서 먼저 찾고, **그 다음에** `headline` 으로 넘어간다. 층을 바깥 루프로 놓고 세면 레거시 승리를 과다 계산한다. `_inferMarketingTemplate` 이 DOM 의존이라 정적으로는 템플릿을 못 고르므로, 가드는 **9종 전부에서 레거시가 이길 때만** 결손으로 세고 그 판정이 정확하도록 템플릿 키 집합이 전부 같다는 것을 단언한다(달라지면 실패하며 이유를 알려준다).
 - 🔴 **가드는 통과가 아니라 변이로 확인한다.** PR-4 는 변이 12종(게이트 제거·마커 무조건 부착·데이터 절단 제거·강제 마운트 제거 등)을 하나씩 넣고 전부 실패하는 것을 확인했다. "초록불"만으로는 무는지 알 수 없다.
 - 🔴 **PR 마다 가드 자리를 실측할 것.** 계획서가 지목한 `verify:*` 가 (a) 소스를 안 읽거나 (b) `verify-guard-wiring` 에 미배선으로 선언돼 있으면 거기 얹은 단언은 CI 에서 영영 안 돈다. PR-2 가 그 경우여서(`verify:ziwei-island` = 엔진 전용 + 미배선) `__tests__/ui/*.static.test.js` 로 돌렸다 — `test:node` 가 글로브로 집어 pr-ci fast 잡(상시)에서 문다.
 - 캡처 대상에 `sticky`/`transform`/`fill-mode: both` 등장 애니메이션이 있으면 `[data-export]` CSS 스위치가 필요하고(PR-1·PR-3), 없으면 불필요하다(PR-2·PR-4). 조상에 있는 건 상관없다 — html2canvas 는 캡처 노드의 서브트리만 그린다. `backdrop-filter` 는 html2canvas 가 아예 무시하므로 스위치 사유가 못 된다(PR-3 실측).
@@ -70,9 +67,12 @@ React 모달은 전부 옳게 고쳤고 아래는 **셸(index.html) 쪽** 이거
 
 ```
 npm run verify:nakshatra-ai-flow   # PR-1 가드(섹션 D 9단언 추가됨)
-npm run test:node                  # PR-2·PR-3·PR-4·E2 가드 포함(*.static.test.js)
+npm run test:node                  # PR-2·PR-3·PR-4·E2·PR-6 가드 포함(*.static.test.js)
 node scripts/generate-sitemap.mjs --check   # 결과 화면 파일을 고치면 원장이 드리프트한다
+npm run verify:feature-marketing-dictionary # 셸 카피를 만지면: 상품·템플릿·레거시 3층
 ```
+
+`index.html` 을 고치면 `sync:marketing-copy` · `sitemap:generate` · `sync:public` 산출물을 **같은 커밋에** 담는다. `verify:public-mirror-fresh` 가 윈도우에서 `.ignore` 하나로 헛실패하는데(개행만 다름 — CRLF 209 vs 43, 내용 정규화하면 동일), 그 파일만이면 CI 를 믿는다.
 
 축1 PDF PR 은 매번 `sitemap:generate` 로 원장을 갱신해 같은 커밋에 담아야 한다(PR-3 은 9개, PR-4 는 `/saju-fpti/` 1개 드리프트).
 

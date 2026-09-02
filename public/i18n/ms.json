@@ -8586,6 +8586,8 @@
       "headline": "Tie your scattered thoughts together into a single reading."
     },
     "template_music": {
+      "badge": "Emotional experience",
+      "headline": "Open the mood closest to how you feel right now, like a scene set to a single song.",
       "tagline": "An emotional content experience centered on the mood of the music and character universe.",
       "feats": [
         "When you want to organize feelings through mood rather than words",
@@ -13384,12 +13386,18 @@
     "guardian": "Saju Guardian",
     "ziweideep": "Ziwei Doushu Deep Dive",
     "westernastro": "Western Astrology",
-    "vedicastro": "Vedic Astrology"
+    "vedicastro": "Vedic Astrology",
+    "consult": "Consultation",
+    "psychology": "Psychology",
+    "humandesign": "Human Design",
+    "physiognomy": "Face Reading",
+    "article": "Reading",
+    "pass": "Pass"
   },
   "featureMarketingTrust": {
     "paid": {
       "0": "You can check what the feature covers before paying.",
-      "1": "Pass, monthly-stone, or single-payment eligibility follows the existing service policy.",
+      "1": "Pass or single-payment eligibility follows the existing service policy.",
       "2": "Fortune results are for reference only -- please confirm important decisions against your real-world judgment."
     },
     "free": {
