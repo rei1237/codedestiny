@@ -27,7 +27,7 @@ next: "배치 6 콘텐츠·정책 라우트. 시드는 app/_lib/serviceSections.
 | 무료 허브 8종 | /saju /tarot /ziwei /sukuyo /astrology /today /compatibility /fortune/기간 | 2 | 09-02 | — | #1481 | 완료 |
 | 결제 화면 | /points /points/history /premium-unlock | 3 | 09-02 | — | #1486 | 완료 |
 | 유료 AI 단독 18종 | /life-book-ai /love-secret-ai /naming-ai /ziwei-ai /astrology-ai /vedic-ai /sukuyo-compatibility-ai /island-consult /destiny-compass /saju/{love-simulation,destiny-bias,animal-destiny,destiny-meeting-place} /tarot/{love,reunion,year,crystal-soul,mindscan} | 4 | 09-03 | — | #1493 | 완료 |
-| 루트 정적 셸 20종 | 리포 루트 *.html (index.html 제외) | 5 | 09-03 | TT<44 46→1 · IN<16 18→0 · OF 0 | #PR | 완료 |
+| 루트 정적 셸 20종 | 리포 루트 *.html (index.html 제외) | 5 | 09-03 | TT<44 46→1 · IN<16 18→0 · OF 0 | #1497 | 완료 |
 | 루트 셸 index.html | / | 5 | 09-03 | TT<44 36건 — 공용 푸터 링크·언어칩·소셜 30건 + input#subDailyHome 13x13 + a.cd-mobile-header__brand 34x34 | — | 대기 — 아래 공용 푸터 행에 종속 |
 | 공용 푸터(SiteFooterHub) | 크롬리스 아닌 전 라우트 | — | 09-02 | TT<44 75건(링크 16px) | — | 대기 — 사용자 결정 |
 | 공용 하단 탭바(nav.cd-mnav) | App Router 전 라우트 | — | 09-02 | SA 내용물 여유 8px | — | 대기 — 사용자 결정 |
