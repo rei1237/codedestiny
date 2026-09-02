@@ -143,6 +143,30 @@ await Promise.all([
 ]);
 check("연타 시 결제 의도(intent)가 1회만 전송됨", intentCalls === 1, `intent 호출 ${intentCalls}회`);
 
+// 응답이 영영 안 오는 intent — 상한 안에 실패해야 하고, 실패 뒤에는 single-flight 가 풀려
+// 다음 시도가 intent 를 다시 보내야 한다(상한이 없던 시절엔 앱을 재시작해야 풀렸다).
+alertDom.window.__cdAppStoreFetchTimeoutMs = 50;
+let hungIntentCalls = 0;
+alertDom.window.fetch = (url, init) => new Promise((_resolve, reject) => {
+  if (String(url).includes("/google/intent")) hungIntentCalls += 1;
+  // 실제 fetch 처럼 signal 이 abort 될 때만 끝난다.
+  if (init?.signal) init.signal.addEventListener("abort", () => reject(new Error("aborted")));
+});
+// 상한이 빠지면 이 await 자체가 영영 안 풀리므로(node 가 exit 13 으로 죽는다) 검사 쪽에서 2s 로 자른다.
+const hungRun = () => Promise.race([
+  alertDom.window.__cdAppPaymentGuard.runPlayBillingCheckout({ featureKey: "x", coinPrice: 30 }).then(() => null, (error) => error),
+  new Promise((resolve) => { setTimeout(() => resolve({ code: "STILL_HANGING" }), 2000); }),
+]);
+const hungError = await hungRun();
+check(
+  "응답 없는 intent 가 상한 안에 APP_STORE_REQUEST_TIMEOUT 으로 실패함",
+  hungError?.code === "APP_STORE_REQUEST_TIMEOUT",
+  `code=${hungError?.code}`,
+);
+await hungRun();
+check("타임아웃 뒤 single-flight 가 풀려 재시도가 intent 를 다시 보냄", hungIntentCalls === 2, `intent 호출 ${hungIntentCalls}회`);
+delete alertDom.window.__cdAppStoreFetchTimeoutMs;
+
 // --- 2) 가드가 PortOne을 호출하지 않는가 (소스 검사) ---------------------
 console.log("\n[2] 가드 자체가 외부 결제를 호출하지 않는가");
 check("가드에 cdn.portone.io 참조 없음", !guardSource.includes("cdn.portone.io"));
