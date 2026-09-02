@@ -20,7 +20,8 @@ async function waitFor(check, label) {
   throw new Error(`timed out: ${label}`);
 }
 
-function createPlayerDom({ hash = "", failManifest = false, bookmark = null, appRuntime = false } = {}) {
+/* clampTimers=false 는 타이밍 경합 전용이다 — 나머지 검사는 클램프가 있어야 빨리 끝난다. */
+function createPlayerDom({ hash = "", failManifest = false, bookmark = null, appRuntime = false, clampTimers = true } = {}) {
   const errors = [];
   const virtualConsole = new VirtualConsole();
   virtualConsole.on("jsdomError", (error) => errors.push(`jsdom: ${error.message}`));
@@ -33,7 +34,7 @@ function createPlayerDom({ hash = "", failManifest = false, bookmark = null, app
     virtualConsole,
     beforeParse(window) {
       const originalTimeout = window.setTimeout.bind(window);
-      window.setTimeout = (callback, delay = 0, ...args) => originalTimeout(callback, Math.min(Number(delay) || 0, 20), ...args);
+      if (clampTimers) window.setTimeout = (callback, delay = 0, ...args) => originalTimeout(callback, Math.min(Number(delay) || 0, 20), ...args);
       window.fetch = async (input) => {
         const url = new URL(typeof input === "string" ? input : input.url, window.location.href);
         if (failManifest && url.pathname.endsWith("/data/novel/manifest.json")) return new Response("unavailable", { status: 503 });
@@ -364,6 +365,62 @@ async function verifyAppRuntimeAssetOrigin() {
     }
   }
 }
+/* 타이밍 경합 회귀 가드(2026-09-02). 위 검사들은 setTimeout 을 20ms 로 클램프하므로 120ms(스킵)·
+   400ms(스프라이트 프로브) 가 얽히는 이 두 가지를 구조적으로 못 본다 — 여기서만 클램프를 끈다.
+   둘 다 실제로 났던 회귀다: 스킵을 타이핑 도중에 켜면 진행 체인이 둘로 갈라져 배속됐고,
+   표정을 연속으로 갈면 앞 프로브의 폴백이 이미 지나간 스프라이트로 화면을 되돌렸다(PR #1248). */
+async function verifyTimingRaces() {
+  // ① 스킵 진행은 한 줄기여야 한다. advance 를 계수 스텁으로 막아 예약된 걸음만 센다.
+  {
+    const { dom, errors } = createPlayerDom({ clampTimers: false });
+    try {
+      const win = dom.window;
+      await waitFor(() => win.__NOVEL_READY === true, "novel manifest (skip race)");
+      win.S.screen = "player";
+      win.S.started = true;
+      await win.ensureEpisodeLoaded(0);
+      win.showDialogue({ s: "n", t: "타이핑이 아직 끝나지 않은 긴 문장 위에서 스킵을 켠다." });
+      assert.equal(win.S.typing, true, "the skip race case needs a beat that is still typing");
+      let advances = 0;
+      win.advance = () => { advances += 1; };
+      win.S.skip = true;
+      win.doSkipStep();
+      await wait(400);
+      assert.equal(advances, 1, `toggling skip mid-typing scheduled ${advances} progress chains (must be 1)`);
+      assert.deepEqual(errors, [], "the skip race case emitted runtime errors");
+    } finally {
+      dom.window.close();
+    }
+  }
+
+  // ② 늦게 도착한 스프라이트 프로브가 더 새 표정을 덮어쓰면 안 된다.
+  {
+    const { dom, errors } = createPlayerDom({ clampTimers: false });
+    try {
+      const win = dom.window;
+      const { document } = win;
+      await waitFor(() => win.__NOVEL_READY === true, "novel manifest (sprite race)");
+      const el = document.createElement("img");
+      el.className = "char c";
+      el.classList.add("show");
+      el.src = "https://novel.test/sprite-old.png";
+      el.dataset.spriteUrl = el.src;
+      document.getElementById("charLayer").appendChild(el);
+      const first = "https://novel.test/sprite-first.png";
+      const second = "https://novel.test/sprite-second.png";
+      win.setCharImg(el, first);
+      await wait(100);
+      win.setCharImg(el, second);
+      await wait(360); // 첫 프로브의 400ms 폴백이 막 지난 자리 — 둘째 폴백은 아직 안 왔다.
+      assert.notEqual(el.src, first, "a stale sprite probe reverted the character to the previous expression");
+      await wait(200);
+      assert.equal(el.src, second, "the newest expression never reached the character element");
+      assert.deepEqual(errors, [], "the sprite race case emitted runtime errors");
+    } finally {
+      dom.window.close();
+    }
+  }
+}
 await verifyDirectStart();
 await verifyMainEntry();
 await verifyLoadFailureIsVisible();
@@ -372,4 +429,5 @@ await verifyBackgroundStability();
 await verifyFormContinuity();
 await verifyChapterCardTimers();
 await verifyAppRuntimeAssetOrigin();
-console.log("[novel-player-start] OK: direct start, main entry, visible load failure, event visuals, background stability, Yeon form continuity, chapter card timers, and app-runtime asset origin verified");
+await verifyTimingRaces();
+console.log("[novel-player-start] OK: direct start, main entry, visible load failure, event visuals, background stability, Yeon form continuity, chapter card timers, app-runtime asset origin, and timing races verified");
