@@ -21,6 +21,9 @@ import { sliceFunction } from "./lib/js-source-slice.mjs";
 // 🔴 기대 등급을 리터럴로 박지 않는다 — 적용 가격 범위가 바뀌면 같은 금액의 답이 달라진다.
 //    (2026-08-24 상한 상향에서 'premium' 리터럴이 실제로 여기서 걸렸다.)
 import { PASS_LIMITS } from "../worker/lib/profile-limits.js";
+// 🔴 서버 정책을 문자열로 흉내 내지 않고 **실제로 실행한다** — 결제창 표가 만든 orderMethod 를
+//    그대로 넣어 이용권 구매가 통과하는지, 월정석 계열은 여전히 막히는지를 ⑭ 가 확인한다.
+import { normalizePurchasePaymentMethod, validatePurchasePolicy } from "../worker/lib/entitlement-policy.js";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 // 🔴 payment-service.js 가 맨 앞이어야 한다 — 실제 독립 정적 페이지의 로드 순서가 그렇고
@@ -907,6 +910,123 @@ console.log("\n[13] 단건결제 2단계 결제수단 흐름");
   await cancelled;
   check("취소로 닫으면 선택이 남지 않는다", () => {
     assert.equal(entry.peekSelectedDirectPayMethod(), "");
+  });
+}
+
+// ── ⑭ 이용권도 결제창 표의 수단 전부로 살 수 있다(표 ↔ 서버 정책 ↔ /points) ──
+//
+// 🔴 UI 만 고치면 prepare 가 INVALID_PAYMENT_METHOD_FOR_PASS_PRODUCT 로 죽는다 — 서버가 이용권
+//    상품에서 정규화 결과 "pg" 가 아닌 결제수단을 전부 거절하기 때문이다. 그 양끝이 갈라지면 증상은
+//    "그 수단만 결제가 안 된다"이고, 결제창은 멀쩡히 뜨므로 늦게 드러난다.
+//    그래서 손으로 쓴 목록을 대조하지 않고 **표의 orderMethod 를 전수로 꺼내 정책 함수에 실제로
+//    넣어 본다**(원칙 10) — 결제창 표에 수단을 추가하면 서버가 그 코드를 받기 전까지 여기가 먼저 실패한다.
+console.log("\n[14] 이용권 결제수단 — 결제창 표와 서버 정책의 양끝");
+{
+  const { window } = bootRuntime();
+  const entry = window.__cdCheckoutEntry;
+  const coreSource = fs.readFileSync(path.join(ROOT, "js/core/checkout-entry.js"), "utf8");
+  const pointsSource = fs.readFileSync(path.join(ROOT, "app/points/PointsClient.tsx"), "utf8");
+
+  // 🔴 활성 수단만 보면 안 된다. 아직 꺼 둔 수단(휴대폰)을 켜는 순간 서버가 거절하면 그때야 드러난다.
+  //    그래서 resolveDirectPayFields 루프가 아니라 표를 소스에서 전수로 읽는다.
+  const table = coreSource.match(/var DIRECT_PAY_METHODS = \{([\s\S]*?)\n {2}\};/);
+  assert.ok(table, "DIRECT_PAY_METHODS 표를 찾지 못했다 — 표를 옮겼다면 이 검사도 함께 고쳐라");
+  const rows = table[1].split("\n").filter((line) => /^\s*[A-Z0-9_]+:\s*\{/.test(line));
+  const orderMethods = rows.map((line) => {
+    const id = line.match(/^\s*([A-Z0-9_]+):/)[1];
+    const declared = line.match(/orderMethod:\s*"([^"]+)"/);
+    // orderMethod 를 선언하지 않은 카드는 조립부가 "card_general" 을 쓴다(코어 표 머리주석).
+    return [id, declared ? declared[1] : "card_general"];
+  });
+
+  check("표에서 읽은 카드 수가 정본 순서와 같다", () => {
+    assert.equal(
+      orderMethods.length,
+      Array.from(entry.DIRECT_PAY_METHOD_ORDER).length,
+      `표에서 읽은 카드 ${orderMethods.length}개가 DIRECT_PAY_METHOD_ORDER 와 개수가 다르다 — 미분류를 통과시키지 않는다`,
+    );
+    assert.ok(orderMethods.length > 0, "표가 비어 있다 — 검사 대상이 없으면 통과시키지 않는다");
+  });
+
+  check("표의 모든 orderMethod 가 서버에서 PG 레일로 정규화된다", () => {
+    for (const [id, orderMethod] of orderMethods) {
+      assert.equal(
+        normalizePurchasePaymentMethod(orderMethod),
+        "pg",
+        `${id}: orderMethod "${orderMethod}" 가 서버에서 PG 로 정규화되지 않는다 — worker/lib/entitlement-policy.js 의 PG_PAYMENT_METHODS 에 추가하라`,
+      );
+    }
+  });
+
+  check("표의 모든 orderMethod 로 이용권(30일) 구매가 허용된다", () => {
+    for (const [id, orderMethod] of orderMethods) {
+      const verdict = validatePurchasePolicy({
+        productType: "membership_pass",
+        requestedPaymentMethod: orderMethod,
+      });
+      assert.equal(
+        verdict.allowed,
+        true,
+        `${id}: 이용권 구매가 거절됐다(${verdict.denialReason || "사유 없음"}) — 결제창에는 뜨는데 prepare 가 죽는다`,
+      );
+    }
+  });
+
+  // 🔴 위 두 검사는 "넓히기"만 확인한다. 너무 넓혀 월정석까지 통과시켜 놓고도 초록이 될 수 있으므로
+  //    반대쪽을 같은 자리에서 고정한다. 사용자 요구의 핵심 제약이다: 이용권은 월정석으로 못 산다.
+  check("🔴 월정석·이용권·코인 계열로는 여전히 이용권을 살 수 없다", () => {
+    for (const denied of ["monthly_credit", "monthly-credit", "monthly", "moonlight_stone", "moonlight_credit", "membership_credit", "moonstone", "pass", "membership_pass", "family", "coin", "credit", "balance", "entitlement"]) {
+      const verdict = validatePurchasePolicy({
+        productType: "membership_pass",
+        requestedPaymentMethod: denied,
+      });
+      assert.equal(verdict.allowed, false, `"${denied}" 로 이용권을 살 수 있게 됐다 — 월정석 금지가 뚫렸다`);
+    }
+  });
+
+  check("/points 이용권 모달이 결제창 표를 정본으로 읽는다", () => {
+    for (const marker of [
+      "checkoutEntry.DIRECT_PAY_METHOD_ORDER",
+      "checkoutEntry.directPayMethodLabel(",
+      "checkoutEntry.directPayMethodMeta(",
+      "checkoutEntry.isDirectPayMethodEnabled(",
+      "checkoutEntry.setSelectedDirectPayMethod(",
+      "checkoutEntry.clearSelectedDirectPayMethod();",
+      "checkoutEntry.resolveDirectPayFields(",
+      "directPayFields.channelKeyName",
+    ]) {
+      assert.ok(pointsSource.includes(marker), `app/points/PointsClient.tsx 에 ${marker} 가 없다 — 목록을 손으로 복제했는지 확인하라`);
+    }
+  });
+
+  check("🔴 이용권 요청이 카드 고정 조립부로 되돌아가지 않았다", () => {
+    assert.ok(
+      !pointsSource.includes('payMethod: paymentConfig.payMethod || "CARD"'),
+      "이용권 PortOne 요청이 다시 카드 고정이다 — 고른 결제수단이 PG 로 전달되지 않는다",
+    );
+    assert.ok(
+      pointsSource.includes('payMethod: directPayFields.payMethod || paymentConfig.payMethod || "CARD"'),
+      "이용권 PortOne 요청이 고른 수단의 payMethod 를 먼저 쓰지 않는다",
+    );
+  });
+
+  // 🔴 전용 채널(카카오페이)의 채널키가 비었을 때 config.channelKey 로 폴백하면 "카카오페이를 눌렀는데
+  //    이니시스 카드창"이 뜬다. 사용자는 다른 PG 에 결제하고 주문에는 카카오페이가 남는다.
+  check("🔴 전용 채널 수단은 채널키가 없으면 폴백하지 않고 던진다", () => {
+    // 🔴 셸(index.html)과 **같은 두 갈래**여야 한다. 하나로 뭉치면 설정값이 통째로 빠진 상황에도
+    //    "다른 수단으로 다시 시도" 라고 안내해, 결제 배관이 죽은 것을 사용자가 자기 선택 탓으로 읽는다.
+    assert.ok(
+      pointsSource.includes("if (paymentConfig.storeId && !channelKey && directPayFields.channelKeyName) {"),
+      "이용권 조립부에 전용 채널키 fail-closed 검사가 없다",
+    );
+    assert.ok(
+      pointsSource.includes("if (!paymentConfig.storeId || !channelKey) {"),
+      "이용권 조립부가 storeId/channelKey 누락을 별도 문구로 구분하지 않는다",
+    );
+    assert.ok(
+      !/channelKey\s*\|\|\s*paymentConfig\.channelKey/.test(pointsSource),
+      "전용 채널키가 비었을 때 기본 채널키로 폴백하고 있다",
+    );
   });
 }
 

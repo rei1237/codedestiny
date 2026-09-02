@@ -71,6 +71,15 @@ type PortOnePaymentRequest = {
    * global_visa3d=Y 가 모바일 결제창의 해외카드 노출 옵션이다(portoneBypass 머리주석).
    */
   bypass?: { inicis_v2?: { P_RESERVED?: string[] } };
+  /**
+   * 상품권 종류. PortOne V2 는 payMethod:"GIFT_CERTIFICATE" 에 이 값을 **필수**로 요구하고,
+   * 없으면 결제창을 그리기 전에 거절한다. 값의 정본은 js/core/checkout-entry.js 의 표다.
+   *
+   * 🔴 이 파일이 직접 쓰지는 않지만(여기는 수단 선택이 없는 단건 경로다) 타입에는 있어야 한다 —
+   * 아래 `declare global` 의 Window.PortOne 이 app/points/PointsClient.tsx 의 같은 선언과
+   * **글로벌 병합**되므로, 한쪽에만 필드가 있으면 TS2717 로 빌드가 선다.
+   */
+  giftCertificate?: { giftCertificateType: string };
 };
 
 export type PortOneSinglePaymentRequestResult =
