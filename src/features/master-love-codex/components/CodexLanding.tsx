@@ -52,7 +52,7 @@ export default function CodexLanding({ hasSeenPrologue, chapterCount, onEnter, o
           <ChevronLeft className="h-3.5 w-3.5" aria-hidden="true" />
           {copy.backButton}
         </button>
-        <Link href="/" className={`${styles.quiet} inline-flex items-center gap-1`}>
+        <Link href="/" className={`${styles.quiet} inline-flex min-h-11 items-center gap-1`}>
           <Home className="h-3.5 w-3.5" aria-hidden="true" />
           {copy.homeButton}
         </Link>
