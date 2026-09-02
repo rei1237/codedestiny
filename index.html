@@ -9859,6 +9859,170 @@ html body .dp-destiny-panel__toggle[aria-expanded="true"] .dp-destiny-panel__che
       <p class="dp-kakao-referral-note" id="dpKakaoReferralNote" aria-live="polite" data-cd-trans="home.input.referralNote">달빛 초대 링크로 친구를 초대할 수 있습니다.</p>
     </section>
     </div>
+      <!-- 빠른 서비스 — 첫 방문자가 결제 없이 바로 시작할 수 있는 6개 (cd-quick-services-v20260819).
+           카드 문구·가격은 js/core/service-registry.js 의 roles:['quick'] 항목과 1:1 이어야 하며
+           npm run verify:home-service-registry 가 이름·가격·링크를 결제 정본까지 대조한다.
+           🔴 여기에 유료 대표 상담을 섞지 말 것 — 그 역할은 위 #cdSignatureConsult 가 맡는다.
+           (2026-09-02 목업 IA 개편으로 히어로·생년정보 카드 바로 뒤로 올렸다 — 첫 방문자가 두 번째
+           화면에서 서비스 6개를 보게 하는 것이 목적이고, 그전에는 다섯 번째 화면(y4253)에 있었다.) -->
+      <section data-cd-funnel-section="quick_services" class="cd-quick" id="cdQuickServices" aria-labelledby="cdQuickTitle" data-marker="cd-quick-services-v20260819">
+        
+
+<div class="moon-section-head cd-quick__head">
+          <h2 id="cdQuickTitle" data-cd-trans data-key="home.quickServices.title">무료로 바로 시작하기</h2>
+        </div>
+
+        <div class="cd-quick__grid">
+          <a class="cd-quick-card" href="/daily-fortune/" data-cd-service-id="daily-fortune">
+            <span class="cd-quick-card__sigil" aria-hidden="true">🌙</span>
+            <span class="cd-quick-card__name" data-cd-trans data-key="footer.svc.daily">오늘의 운세</span>
+            <span class="cd-quick-card__price" data-cd-trans data-key="home.tiles.freeBadge">무료</span>
+          </a>
+          <a class="cd-quick-card" href="/saju/" data-cd-service-id="saju">
+            <span class="cd-quick-card__sigil" aria-hidden="true">☯</span>
+            <span class="cd-quick-card__name" data-cd-trans data-key="home.nav.saju">사주</span>
+            <span class="cd-quick-card__price" data-cd-trans data-key="home.quickServices.freeStart">무료 시작</span>
+          </a>
+          <a class="cd-quick-card" href="/tarot/" data-cd-service-id="tarot">
+            <span class="cd-quick-card__sigil" aria-hidden="true">🔮</span>
+            <span class="cd-quick-card__name" data-cd-trans data-key="home.previewCards.tarotName">타로</span>
+            <span class="cd-quick-card__price" data-cd-trans data-key="home.quickServices.freeStart">무료 시작</span>
+          </a>
+          <a class="cd-quick-card" href="/ziwei/" data-cd-service-id="ziwei">
+            <span class="cd-quick-card__sigil" aria-hidden="true">✺</span>
+            <span class="cd-quick-card__name" data-cd-trans data-key="home.previewCards.ziweiName">자미두수</span>
+            <span class="cd-quick-card__price" data-cd-trans data-key="home.quickServices.freeStart">무료 시작</span>
+          </a>
+          <a class="cd-quick-card" href="/sukuyo/" data-cd-service-id="sukuyo">
+            <span class="cd-quick-card__sigil" aria-hidden="true">宿</span>
+            <span class="cd-quick-card__name" data-cd-trans data-key="home.startCards.sukuyoTitle">숙요점</span>
+            <span class="cd-quick-card__price" data-cd-trans data-key="home.quickServices.freeStart">무료 시작</span>
+          </a>
+          <a class="cd-quick-card" href="/astrology/" data-cd-service-id="astrology">
+            <span class="cd-quick-card__sigil" aria-hidden="true">✦</span>
+            <span class="cd-quick-card__name" data-cd-trans data-key="home.previewCards.astrologyName">점성술</span>
+            <span class="cd-quick-card__price" data-cd-trans data-key="home.quickServices.freeStart">무료 시작</span>
+          </a>
+        </div>
+      
+</section>
+      <section data-cd-funnel-section="why_us" class="cd-why-us" id="cdWhyUs" aria-labelledby="cdWhyUsTitle">
+        
+
+<div class="cd-why-us__head">
+          <span class="cd-why-us__kicker">WHY CODE DESTINY</span>
+          <h2 class="cd-why-us__title" id="cdWhyUsTitle" data-cd-trans="shell.cdWhyUs.cdWhyUsHead.CodeDestiny">왜 Code Destiny인가</h2>
+        </div>
+
+        <div class="cd-why-us__grid">
+          <div class="cd-why-us__card">
+            <span class="cd-why-us__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><path d="M12 2.6 20.1 7.3v9.4L12 21.4 3.9 16.7V7.3Z"/><circle cx="12" cy="12" r="2.6"/></svg></span>
+            <span class="cd-why-us__card-title" data-cd-trans="shell.cdWhyUsGrid.cdWhyUsCard.kv06ho">초융합</span>
+            <span class="cd-why-us__card-desc" data-cd-trans="shell.cdWhyUsGrid.cdWhyUsCard.kdcl9cf">서로 다른 체계가 같은 방향을 가리키는지 교차검증합니다.</span>
+          </div>
+          <div class="cd-why-us__card">
+            <span class="cd-why-us__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><circle cx="8.8" cy="12" r="6"/><circle cx="15.2" cy="12" r="6"/></svg></span>
+            <span class="cd-why-us__card-title" data-cd-trans="shell.cdWhyUsGrid.cdWhyUsCard.kfr2fu8">여러 관점</span>
+            <span class="cd-why-us__card-desc" data-cd-trans="shell.cdWhyUsGrid.cdWhyUsCard.k1lclup9">사주·자미두수·베다점·숙요점 같은 동양의 체계와 서양 점성술·타로를 함께 봅니다.</span>
+          </div>
+          <div class="cd-why-us__card">
+            <span class="cd-why-us__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><path d="M12 20.9c-1.5-2.3-2.3-4.9-2.3-7.8a2.3 2.3 0 0 1 4.6 0c0 1.8.3 3.4 1 5"/><path d="M7 18.7a12.4 12.4 0 0 1-1.1-5.6 6.1 6.1 0 0 1 12.2 0c0 1.4-.2 2.8-.6 4.1"/><path d="M3.3 14.6a8.7 8.7 0 0 1 17.4-1.4"/></svg></span>
+            <span class="cd-why-us__card-title" data-cd-trans="shell.cdWhyUsGrid.cdWhyUsCard.kq6mt4">개인화</span>
+            <span class="cd-why-us__card-desc" data-cd-trans="shell.cdWhyUsGrid.cdWhyUsCard.k1wbxeap">생년월일·태어난 시간·출생지를 기반으로 나만의 결과를 계산합니다.</span>
+          </div>
+          <div class="cd-why-us__card">
+            <span class="cd-why-us__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><path d="M12 3.2c.9 4.6 4.2 7.9 8.8 8.8-4.6.9-7.9 4.2-8.8 8.8-.9-4.6-4.2-7.9-8.8-8.8 4.6-.9 7.9-4.2 8.8-8.8Z"/></svg></span>
+            <span class="cd-why-us__card-title" data-cd-trans="shell.cdWhyUsGrid.cdWhyUsCard.k1239k1">AI 해석</span>
+            <span class="cd-why-us__card-desc" data-cd-trans="shell.cdWhyUsGrid.cdWhyUsCard.kvkxft">복잡한 운세 데이터를 이해하기 쉬운 언어로 풀어드립니다.</span>
+          </div>
+        </div>
+        <div class="cd-why-us__proof" aria-labelledby="cdWhyUsProofHead">
+          <span class="cd-why-us__proof-head" id="cdWhyUsProofHead" data-cd-trans data-key="home.whyUs.proof.head">교차검증은 이렇게 보입니다</span>
+          <div class="cd-why-us__proof-row">
+            <span class="cd-why-us__sys" data-stance="agree"><b data-cd-trans data-key="home.fortunePick.saju">사주</b><i data-cd-trans data-key="home.whyUs.proof.agree">같은 방향</i></span>
+            <span class="cd-why-us__sys" data-stance="agree"><b data-cd-trans data-key="home.fortunePick.ziwei">자미두수</b><i data-cd-trans data-key="home.whyUs.proof.agree">같은 방향</i></span>
+            <span class="cd-why-us__sys" data-stance="conditional"><b data-cd-trans data-key="home.fortunePick.vedic">베다점</b><i data-cd-trans data-key="home.whyUs.proof.conditional">조건부</i></span>
+            <span class="cd-why-us__sys" data-stance="agree"><b data-cd-trans data-key="home.fortunePick.sukuyo">숙요점</b><i data-cd-trans data-key="home.whyUs.proof.agree">같은 방향</i></span>
+            <span class="cd-why-us__sys" data-stance="conditional"><b data-cd-trans data-key="home.fortunePick.astrology">점성술</b><i data-cd-trans data-key="home.whyUs.proof.conditional">조건부</i></span>
+            <span class="cd-why-us__sys" data-stance="caution"><b data-cd-trans data-key="home.fortunePick.tarot">타로</b><i data-cd-trans data-key="home.whyUs.proof.caution">속도 조절</i></span>
+          </div>
+          <span class="cd-why-us__proof-caption" data-cd-trans data-key="home.whyUs.proof.caption">체계 간 합의 · 겹치는 신호 4가지 · 엇갈리는 신호 2가지. 초융합 리딩이 실제로 내놓는 판정 형태이며, 값은 입력에 따라 달라지는 예시입니다.</span>
+        </div>
+      
+</section>
+      <section data-cd-funnel-section="today_hub" class="cd-today" id="cdTodayHub" data-marker="cd-today-hub-v20260808" aria-labelledby="cdTodayHubTitle">
+        <div class="cd-today__head">
+          <h2 class="cd-today__title" id="cdTodayHubTitle" data-cd-trans data-key="home.todayHub.title">오늘의 운세</h2>
+          <p class="cd-today__date" id="cdTodayHubDate" data-cd-trans data-key="home.todayHub.lead">사주 일진 · 숙요 27수 · 베다 달자리로 오늘의 길흉을 봅니다.</p>
+        </div>
+        <!-- 프로필 카드가 없으면 결과 대신 이것만 보인다(카드 판정 전에는 둘 다 숨겨 깜빡임을 막는다). -->
+        <div class="cd-today__gate" id="cdTodayHubGate" hidden>
+          <p class="cd-today__gate-title" data-cd-trans data-key="home.todayHub.gateTitle">프로필 카드를 만들면 오늘의 길흉을 봅니다</p>
+          <p class="cd-today__gate-desc" data-cd-trans data-key="home.todayHub.gateDesc">오늘의 운세는 내 생년월일을 기준으로 계산합니다. 프로필 카드를 만들면 사주 일진·숙요 27수·베다 달자리를 내 명식과 견주어 대길일인지 주의일인지까지 짚어 드립니다. 음력 환산과 절기 시각은 한국천문연구원 역법 데이터를 먼저 씁니다.</p>
+          <button class="cd-today__gate-cta" type="button" id="cdTodayHubGateCta" data-cd-trans data-key="home.todayHub.gateCta">✦ 프로필 카드 만들기</button>
+        </div>
+        <div class="cd-today__body" id="cdTodayHubBody" hidden>
+          <div class="cd-today__tabs" role="tablist" aria-label="오늘의 운세 점술 전환" data-cd-trans-attr="aria-label:home.todayHub.tabsAria">
+            <button class="cd-today__tab" type="button" role="tab" aria-selected="true" tabindex="0" aria-controls="cdTodayPanelSaju" id="cdTodayTabSaju" data-cd-today-tab="saju"><i aria-hidden="true">🎴</i> <span data-cd-trans data-key="home.todayHub.tabSaju">사주</span></button>
+            <button class="cd-today__tab" type="button" role="tab" aria-selected="false" tabindex="-1" aria-controls="cdTodayPanelSukuyo" id="cdTodayTabSukuyo" data-cd-today-tab="sukuyo"><i aria-hidden="true">🌙</i> <span data-cd-trans data-key="home.todayHub.tabSukuyo">숙요점</span></button>
+            <button class="cd-today__tab" type="button" role="tab" aria-selected="false" tabindex="-1" aria-controls="cdTodayPanelVedic" id="cdTodayTabVedic" data-cd-today-tab="vedic"><i aria-hidden="true">✨</i> <span data-cd-trans data-key="home.todayHub.tabVedic">베다점</span></button>
+          </div>
+          <div class="cd-today__panels">
+            <article class="cd-today-card" id="cdTodayPanelSaju" role="tabpanel" aria-labelledby="cdTodayTabSaju" data-cd-today-panel="saju" aria-live="polite">
+              <div class="cd-today-card__top">
+                <p class="cd-today-card__anchor" data-cd-today-field="anchor"><span aria-hidden="true">🎴</span> <span data-cd-trans="shell.cdTodayCardTop.cdTodayCardAnchor.kl74ww4">오늘의 일진</span></p>
+                <span class="cd-today-card__verdict" data-cd-today-field="verdict" hidden></span>
+              </div>
+              <p class="cd-today-card__headline" data-cd-today-field="headline" data-cd-trans="shell.cdTodayPanelSaju.kv58y0g">그날의 천간과 지지가 내 일간에 어떤 결을 만드는지 읽어 드립니다.</p>
+              <p class="cd-today-card__body" data-cd-today-field="body" data-cd-trans="shell.cdTodayPanelSaju.kkmdg9l">사주는 오늘의 일진과 내 일간의 십성 관계로 하루의 길흉을 봅니다. 일간이 강한 사주와 약한 사주는 같은 날도 반대로 읽히기 때문에, 내 명식을 알아야 오늘이 대길일인지 주의일인지가 정해집니다.</p>
+              <ul class="cd-today-card__highlights" data-cd-today-field="highlights" hidden></ul>
+              <p class="cd-today-card__detail" data-cd-today-field="detail" hidden></p>
+            </article>
+            <article class="cd-today-card" id="cdTodayPanelSukuyo" role="tabpanel" aria-labelledby="cdTodayTabSukuyo" data-cd-today-panel="sukuyo" aria-live="polite" hidden>
+              <div class="cd-today-card__top">
+                <p class="cd-today-card__anchor" data-cd-today-field="anchor"><span aria-hidden="true">🌙</span> <span data-cd-trans="shell.cdTodayCardTop.cdTodayCardAnchor.k1j6dp92">오늘의 수(宿)</span></p>
+                <span class="cd-today-card__verdict" data-cd-today-field="verdict" hidden></span>
+              </div>
+              <p class="cd-today-card__headline" data-cd-today-field="headline" data-cd-trans="shell.cdTodayPanelSukuyo.kd5ukqs">달이 머무는 별자리가 내 본명수와 만나는 자리를 봅니다.</p>
+              <p class="cd-today-card__body" data-cd-today-field="body" data-cd-trans="shell.cdTodayPanelSukuyo.k6mrnix">숙요점은 태어난 날의 음력으로 본명수(27수)를 정하고, 오늘 달이 머무는 수가 그 본명수에게 어떤 자리인지로 길흉을 가릅니다. 영친·안괴·업태처럼 자리마다 대길일과 흉일이 갈립니다.</p>
+              <ul class="cd-today-card__highlights" data-cd-today-field="highlights" hidden></ul>
+              <p class="cd-today-card__detail" data-cd-today-field="detail" hidden></p>
+            </article>
+            <article class="cd-today-card" id="cdTodayPanelVedic" role="tabpanel" aria-labelledby="cdTodayTabVedic" data-cd-today-panel="vedic" aria-live="polite" hidden>
+              <div class="cd-today-card__top">
+                <p class="cd-today-card__anchor" data-cd-today-field="anchor"><span aria-hidden="true">✨</span> <span data-cd-trans="shell.cdTodayCardTop.cdTodayCardAnchor.khs81qk">오늘의 달자리</span></p>
+                <span class="cd-today-card__verdict" data-cd-today-field="verdict" hidden></span>
+              </div>
+              <p class="cd-today-card__headline" data-cd-today-field="headline" data-cd-trans="shell.cdTodayPanelVedic.kom45ly">오늘 달이 실제로 지나는 별자리를 내 본명 자리와 견줍니다.</p>
+              <p class="cd-today-card__body" data-cd-today-field="body" data-cd-trans="shell.cdTodayPanelVedic.k451jpc">베다 점성술은 오늘 달의 시데리얼 위치로 나크샤트라를 정하고, 내 본명 자리에서 몇 번째인지로 타라 발라 아홉 자리를 봅니다. 삼파트·크셰마는 길하고 비파트·바다는 큰 결정을 미루는 자리입니다.</p>
+              <ul class="cd-today-card__highlights" data-cd-today-field="highlights" hidden></ul>
+              <p class="cd-today-card__detail" data-cd-today-field="detail" hidden></p>
+            </article>
+          </div>
+          <p class="cd-today__note" id="cdTodayHubNote" hidden></p>
+          <div class="cd-today__actions">
+            <a class="cd-today__cta" href="/today/" data-cd-trans data-key="home.todayHub.ctaAll">✦ 오늘의 운세 전체 보기</a>
+            <button class="cd-today__share" type="button" id="cdTodayHubShare" data-cd-trans data-key="home.todayHub.share">공유하기</button>
+          </div>
+        </div>
+      </section>
+      <!-- 오늘의 운명 — 오늘의 운세 허브 바로 뒤의 개인화 추천 밴드. 정적 기본값으로 먼저 그리고(CLS 0 · SEO 집계)
+           __cdTodayRecommendation() 이 텍스트/링크만 개인화로 교체한다(새 로직 없음).
+           🔴 2026-09-02: [data-cd-home-secondary] 를 뗐다 — 접기 축에 있어 display:none 이었고,
+              목업이 이 자리를 "인기 콘텐츠"로 요구한다. 접기 축 자체는 나머지 10개로 그대로 살아 있다. -->
+      <section data-cd-funnel-section="today_pick" class="cd-pick" id="cdTodayPick" aria-label="오늘의 추천 상담" data-cd-trans-attr="aria-label:shell.inputPage.logoArea.k52dhv3.ariaLabel">
+        <div class="cd-pick__inner">
+          <span class="cd-pick__moon" aria-hidden="true"></span>
+          <div class="cd-pick__copy">
+            <span class="cd-pick__kicker" data-cd-trans="shell.cdPickInner.cdPickCopy.kl74p3h">오늘의 운명</span>
+            <p class="cd-pick__lede" data-cd-trans="shell.cdPickInner.cdPickCopy.kg9at99">오늘 당신에게 가장 어울리는 상담</p>
+            <p class="cd-pick__title" id="cdTodayPickTitle" data-cd-trans="shell.cdPickInner.cdPickCopy.kntw327">나크샤트라 결정판</p>
+            <p class="cd-pick__line" id="cdTodayPickLine" data-cd-trans="shell.cdPickInner.cdPickCopy.k4byd9a">하나의 별을 인도 베다점과 한국 명리학, 두 개의 언어로 동시에 읽습니다.</p>
+          </div>
+          <a class="cd-pick__cta" id="cdTodayPickCta" href="/nakshatra/"><span data-cd-trans="shell.cdTodayPickCta.k1cco6tp">바로 시작</span> <i aria-hidden="true">→</i></a>
+          <span class="cd-pick__badge" data-cd-trans="shell.cdTodayPick.cdPickInner.k16e565e">맞춤 추천</span>
+        </div>
+      </section>
       <section data-cd-funnel-section="concern_pick" class="cd-concern" id="cdConcernPick" aria-labelledby="cdConcernPickTitle" data-marker="cd-concern-pick-v20260824">
         <div class="moon-section-head cd-concern__head">
           <span class="moon-section-kicker">START HERE</span>
@@ -10103,62 +10267,6 @@ html body .dp-destiny-panel__toggle[aria-expanded="true"] .dp-destiny-panel__che
           html body .cd-today .cd-today-card__body{font-size:14.5px}
         }
       </style>
-      <section data-cd-funnel-section="today_hub" class="cd-today" id="cdTodayHub" data-marker="cd-today-hub-v20260808" aria-labelledby="cdTodayHubTitle">
-        <div class="cd-today__head">
-          <h2 class="cd-today__title" id="cdTodayHubTitle" data-cd-trans data-key="home.todayHub.title">오늘의 운세</h2>
-          <p class="cd-today__date" id="cdTodayHubDate" data-cd-trans data-key="home.todayHub.lead">사주 일진 · 숙요 27수 · 베다 달자리로 오늘의 길흉을 봅니다.</p>
-        </div>
-        <!-- 프로필 카드가 없으면 결과 대신 이것만 보인다(카드 판정 전에는 둘 다 숨겨 깜빡임을 막는다). -->
-        <div class="cd-today__gate" id="cdTodayHubGate" hidden>
-          <p class="cd-today__gate-title" data-cd-trans data-key="home.todayHub.gateTitle">프로필 카드를 만들면 오늘의 길흉을 봅니다</p>
-          <p class="cd-today__gate-desc" data-cd-trans data-key="home.todayHub.gateDesc">오늘의 운세는 내 생년월일을 기준으로 계산합니다. 프로필 카드를 만들면 사주 일진·숙요 27수·베다 달자리를 내 명식과 견주어 대길일인지 주의일인지까지 짚어 드립니다. 음력 환산과 절기 시각은 한국천문연구원 역법 데이터를 먼저 씁니다.</p>
-          <button class="cd-today__gate-cta" type="button" id="cdTodayHubGateCta" data-cd-trans data-key="home.todayHub.gateCta">✦ 프로필 카드 만들기</button>
-        </div>
-        <div class="cd-today__body" id="cdTodayHubBody" hidden>
-          <div class="cd-today__tabs" role="tablist" aria-label="오늘의 운세 점술 전환" data-cd-trans-attr="aria-label:home.todayHub.tabsAria">
-            <button class="cd-today__tab" type="button" role="tab" aria-selected="true" tabindex="0" aria-controls="cdTodayPanelSaju" id="cdTodayTabSaju" data-cd-today-tab="saju"><i aria-hidden="true">🎴</i> <span data-cd-trans data-key="home.todayHub.tabSaju">사주</span></button>
-            <button class="cd-today__tab" type="button" role="tab" aria-selected="false" tabindex="-1" aria-controls="cdTodayPanelSukuyo" id="cdTodayTabSukuyo" data-cd-today-tab="sukuyo"><i aria-hidden="true">🌙</i> <span data-cd-trans data-key="home.todayHub.tabSukuyo">숙요점</span></button>
-            <button class="cd-today__tab" type="button" role="tab" aria-selected="false" tabindex="-1" aria-controls="cdTodayPanelVedic" id="cdTodayTabVedic" data-cd-today-tab="vedic"><i aria-hidden="true">✨</i> <span data-cd-trans data-key="home.todayHub.tabVedic">베다점</span></button>
-          </div>
-          <div class="cd-today__panels">
-            <article class="cd-today-card" id="cdTodayPanelSaju" role="tabpanel" aria-labelledby="cdTodayTabSaju" data-cd-today-panel="saju" aria-live="polite">
-              <div class="cd-today-card__top">
-                <p class="cd-today-card__anchor" data-cd-today-field="anchor"><span aria-hidden="true">🎴</span> <span data-cd-trans="shell.cdTodayCardTop.cdTodayCardAnchor.kl74ww4">오늘의 일진</span></p>
-                <span class="cd-today-card__verdict" data-cd-today-field="verdict" hidden></span>
-              </div>
-              <p class="cd-today-card__headline" data-cd-today-field="headline" data-cd-trans="shell.cdTodayPanelSaju.kv58y0g">그날의 천간과 지지가 내 일간에 어떤 결을 만드는지 읽어 드립니다.</p>
-              <p class="cd-today-card__body" data-cd-today-field="body" data-cd-trans="shell.cdTodayPanelSaju.kkmdg9l">사주는 오늘의 일진과 내 일간의 십성 관계로 하루의 길흉을 봅니다. 일간이 강한 사주와 약한 사주는 같은 날도 반대로 읽히기 때문에, 내 명식을 알아야 오늘이 대길일인지 주의일인지가 정해집니다.</p>
-              <ul class="cd-today-card__highlights" data-cd-today-field="highlights" hidden></ul>
-              <p class="cd-today-card__detail" data-cd-today-field="detail" hidden></p>
-            </article>
-            <article class="cd-today-card" id="cdTodayPanelSukuyo" role="tabpanel" aria-labelledby="cdTodayTabSukuyo" data-cd-today-panel="sukuyo" aria-live="polite" hidden>
-              <div class="cd-today-card__top">
-                <p class="cd-today-card__anchor" data-cd-today-field="anchor"><span aria-hidden="true">🌙</span> <span data-cd-trans="shell.cdTodayCardTop.cdTodayCardAnchor.k1j6dp92">오늘의 수(宿)</span></p>
-                <span class="cd-today-card__verdict" data-cd-today-field="verdict" hidden></span>
-              </div>
-              <p class="cd-today-card__headline" data-cd-today-field="headline" data-cd-trans="shell.cdTodayPanelSukuyo.kd5ukqs">달이 머무는 별자리가 내 본명수와 만나는 자리를 봅니다.</p>
-              <p class="cd-today-card__body" data-cd-today-field="body" data-cd-trans="shell.cdTodayPanelSukuyo.k6mrnix">숙요점은 태어난 날의 음력으로 본명수(27수)를 정하고, 오늘 달이 머무는 수가 그 본명수에게 어떤 자리인지로 길흉을 가릅니다. 영친·안괴·업태처럼 자리마다 대길일과 흉일이 갈립니다.</p>
-              <ul class="cd-today-card__highlights" data-cd-today-field="highlights" hidden></ul>
-              <p class="cd-today-card__detail" data-cd-today-field="detail" hidden></p>
-            </article>
-            <article class="cd-today-card" id="cdTodayPanelVedic" role="tabpanel" aria-labelledby="cdTodayTabVedic" data-cd-today-panel="vedic" aria-live="polite" hidden>
-              <div class="cd-today-card__top">
-                <p class="cd-today-card__anchor" data-cd-today-field="anchor"><span aria-hidden="true">✨</span> <span data-cd-trans="shell.cdTodayCardTop.cdTodayCardAnchor.khs81qk">오늘의 달자리</span></p>
-                <span class="cd-today-card__verdict" data-cd-today-field="verdict" hidden></span>
-              </div>
-              <p class="cd-today-card__headline" data-cd-today-field="headline" data-cd-trans="shell.cdTodayPanelVedic.kom45ly">오늘 달이 실제로 지나는 별자리를 내 본명 자리와 견줍니다.</p>
-              <p class="cd-today-card__body" data-cd-today-field="body" data-cd-trans="shell.cdTodayPanelVedic.k451jpc">베다 점성술은 오늘 달의 시데리얼 위치로 나크샤트라를 정하고, 내 본명 자리에서 몇 번째인지로 타라 발라 아홉 자리를 봅니다. 삼파트·크셰마는 길하고 비파트·바다는 큰 결정을 미루는 자리입니다.</p>
-              <ul class="cd-today-card__highlights" data-cd-today-field="highlights" hidden></ul>
-              <p class="cd-today-card__detail" data-cd-today-field="detail" hidden></p>
-            </article>
-          </div>
-          <p class="cd-today__note" id="cdTodayHubNote" hidden></p>
-          <div class="cd-today__actions">
-            <a class="cd-today__cta" href="/today/" data-cd-trans data-key="home.todayHub.ctaAll">✦ 오늘의 운세 전체 보기</a>
-            <button class="cd-today__share" type="button" id="cdTodayHubShare" data-cd-trans data-key="home.todayHub.share">공유하기</button>
-          </div>
-        </div>
-      </section>
       <script>
       /* 오늘의 운세 허브 렌더러.
          계산은 전부 서버(/api/fortune/today-hub)가 각 점술의 기존 엔진으로 한다 —
@@ -11405,25 +11513,10 @@ html.neo-mode body .cd-pick-why__alt:focus-visible{outline-color:#c4b5fd}
   html body .cd-cookie-consent__btn--primary { grid-column: auto !important; }
 }
 </style>
-      <!-- 오늘의 운명 — 오늘의 운세 허브 바로 뒤, 대표 상담 카드 앞에 놓인 개인화 추천 밴드
-           (2026-08-21 홈 개편으로 더보기 뒤에서 꺼내 기본 노출로 승격 — 관심사 기반 개인화를
-           히어로 바로 다음 구간에서 보여주기 위함, 새 로직 없이 기존 __cdTodayRecommendation() 재사용).
-           정적 기본값으로 먼저 그리고(CLS 0 · SEO 집계), __cdTodayRecommendation() 이 텍스트/링크만 개인화로 교체한다. -->
-      <section data-cd-funnel-section="today_pick" class="cd-pick" id="cdTodayPick" data-cd-home-secondary aria-label="오늘의 추천 상담" data-cd-trans-attr="aria-label:shell.inputPage.logoArea.k52dhv3.ariaLabel">
-        <div class="cd-pick__inner">
-          <span class="cd-pick__moon" aria-hidden="true"></span>
-          <div class="cd-pick__copy">
-            <span class="cd-pick__kicker" data-cd-trans="shell.cdPickInner.cdPickCopy.kl74p3h">오늘의 운명</span>
-            <p class="cd-pick__lede" data-cd-trans="shell.cdPickInner.cdPickCopy.kg9at99">오늘 당신에게 가장 어울리는 상담</p>
-            <p class="cd-pick__title" id="cdTodayPickTitle" data-cd-trans="shell.cdPickInner.cdPickCopy.kntw327">나크샤트라 결정판</p>
-            <p class="cd-pick__line" id="cdTodayPickLine" data-cd-trans="shell.cdPickInner.cdPickCopy.k4byd9a">하나의 별을 인도 베다점과 한국 명리학, 두 개의 언어로 동시에 읽습니다.</p>
-          </div>
-          <a class="cd-pick__cta" id="cdTodayPickCta" href="/nakshatra/"><span data-cd-trans="shell.cdTodayPickCta.k1cco6tp">바로 시작</span> <i aria-hidden="true">→</i></a>
-          <span class="cd-pick__badge" data-cd-trans="shell.cdTodayPick.cdPickInner.k16e565e">맞춤 추천</span>
-        </div>
-      </section>
-      <!-- 왜 Code Destiny인가 — 대표 상담 앞. "왜 돈을 내야 하나"를 상품보다 먼저 둔다. 상품 카드가 아니라 서비스 전체의
-           차별점 4가지를 설명한다(가격/링크 없음 — js/core/service-registry.js 등록 대상 아님). -->
+      <!-- 왜 Code Destiny인가 (#cdWhyUs) 의 스타일. 🔴 섹션 자체는 2026-09-02 에 히어로 쪽으로 올라갔고
+           이 <style> 만 여기 남겼다 — 같은 특이도 규칙은 문서 순서가 이기므로 style 을 함께 옮기면
+           뒤 블록들과의 캐스케이드가 바뀐다. 섹션을 다시 옮길 때도 style 은 여기 두는 편이 안전하다.
+           내용: 상품 카드가 아니라 서비스 전체의 차별점 4가지(가격/링크 없음 — service-registry 등록 대상 아님). -->
       <style id="cd-why-us-v20260824">
 html body .cd-why-us{max-width:var(--cd-w-grid,1280px);margin:32px auto 8px;padding:0 clamp(12px,3vw,24px)}
 html body .cd-why-us__head{margin:0 0 20px;text-align:center}
@@ -11464,50 +11557,6 @@ html body .cd-why-us__sys[data-stance="caution"]{background:transparent;border-s
 html body .cd-why-us__proof-caption{display:block;margin-top:10px;font-size:11.5px;line-height:1.55;color:var(--cd-text-muted,#70445c)}
 html.neo-mode body .cd-why-us__proof-caption{color:rgba(228,214,255,.72)}
       </style>
-      <section data-cd-funnel-section="why_us" class="cd-why-us" id="cdWhyUs" aria-labelledby="cdWhyUsTitle">
-        
-
-<div class="cd-why-us__head">
-          <span class="cd-why-us__kicker">WHY CODE DESTINY</span>
-          <h2 class="cd-why-us__title" id="cdWhyUsTitle" data-cd-trans="shell.cdWhyUs.cdWhyUsHead.CodeDestiny">왜 Code Destiny인가</h2>
-        </div>
-
-        <div class="cd-why-us__grid">
-          <div class="cd-why-us__card">
-            <span class="cd-why-us__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><path d="M12 2.6 20.1 7.3v9.4L12 21.4 3.9 16.7V7.3Z"/><circle cx="12" cy="12" r="2.6"/></svg></span>
-            <span class="cd-why-us__card-title" data-cd-trans="shell.cdWhyUsGrid.cdWhyUsCard.kv06ho">초융합</span>
-            <span class="cd-why-us__card-desc" data-cd-trans="shell.cdWhyUsGrid.cdWhyUsCard.kdcl9cf">서로 다른 체계가 같은 방향을 가리키는지 교차검증합니다.</span>
-          </div>
-          <div class="cd-why-us__card">
-            <span class="cd-why-us__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><circle cx="8.8" cy="12" r="6"/><circle cx="15.2" cy="12" r="6"/></svg></span>
-            <span class="cd-why-us__card-title" data-cd-trans="shell.cdWhyUsGrid.cdWhyUsCard.kfr2fu8">여러 관점</span>
-            <span class="cd-why-us__card-desc" data-cd-trans="shell.cdWhyUsGrid.cdWhyUsCard.k1lclup9">사주·자미두수·베다점·숙요점 같은 동양의 체계와 서양 점성술·타로를 함께 봅니다.</span>
-          </div>
-          <div class="cd-why-us__card">
-            <span class="cd-why-us__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><path d="M12 20.9c-1.5-2.3-2.3-4.9-2.3-7.8a2.3 2.3 0 0 1 4.6 0c0 1.8.3 3.4 1 5"/><path d="M7 18.7a12.4 12.4 0 0 1-1.1-5.6 6.1 6.1 0 0 1 12.2 0c0 1.4-.2 2.8-.6 4.1"/><path d="M3.3 14.6a8.7 8.7 0 0 1 17.4-1.4"/></svg></span>
-            <span class="cd-why-us__card-title" data-cd-trans="shell.cdWhyUsGrid.cdWhyUsCard.kq6mt4">개인화</span>
-            <span class="cd-why-us__card-desc" data-cd-trans="shell.cdWhyUsGrid.cdWhyUsCard.k1wbxeap">생년월일·태어난 시간·출생지를 기반으로 나만의 결과를 계산합니다.</span>
-          </div>
-          <div class="cd-why-us__card">
-            <span class="cd-why-us__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><path d="M12 3.2c.9 4.6 4.2 7.9 8.8 8.8-4.6.9-7.9 4.2-8.8 8.8-.9-4.6-4.2-7.9-8.8-8.8 4.6-.9 7.9-4.2 8.8-8.8Z"/></svg></span>
-            <span class="cd-why-us__card-title" data-cd-trans="shell.cdWhyUsGrid.cdWhyUsCard.k1239k1">AI 해석</span>
-            <span class="cd-why-us__card-desc" data-cd-trans="shell.cdWhyUsGrid.cdWhyUsCard.kvkxft">복잡한 운세 데이터를 이해하기 쉬운 언어로 풀어드립니다.</span>
-          </div>
-        </div>
-        <div class="cd-why-us__proof" aria-labelledby="cdWhyUsProofHead">
-          <span class="cd-why-us__proof-head" id="cdWhyUsProofHead" data-cd-trans data-key="home.whyUs.proof.head">교차검증은 이렇게 보입니다</span>
-          <div class="cd-why-us__proof-row">
-            <span class="cd-why-us__sys" data-stance="agree"><b data-cd-trans data-key="home.fortunePick.saju">사주</b><i data-cd-trans data-key="home.whyUs.proof.agree">같은 방향</i></span>
-            <span class="cd-why-us__sys" data-stance="agree"><b data-cd-trans data-key="home.fortunePick.ziwei">자미두수</b><i data-cd-trans data-key="home.whyUs.proof.agree">같은 방향</i></span>
-            <span class="cd-why-us__sys" data-stance="conditional"><b data-cd-trans data-key="home.fortunePick.vedic">베다점</b><i data-cd-trans data-key="home.whyUs.proof.conditional">조건부</i></span>
-            <span class="cd-why-us__sys" data-stance="agree"><b data-cd-trans data-key="home.fortunePick.sukuyo">숙요점</b><i data-cd-trans data-key="home.whyUs.proof.agree">같은 방향</i></span>
-            <span class="cd-why-us__sys" data-stance="conditional"><b data-cd-trans data-key="home.fortunePick.astrology">점성술</b><i data-cd-trans data-key="home.whyUs.proof.conditional">조건부</i></span>
-            <span class="cd-why-us__sys" data-stance="caution"><b data-cd-trans data-key="home.fortunePick.tarot">타로</b><i data-cd-trans data-key="home.whyUs.proof.caution">속도 조절</i></span>
-          </div>
-          <span class="cd-why-us__proof-caption" data-cd-trans data-key="home.whyUs.proof.caption">체계 간 합의 · 겹치는 신호 4가지 · 엇갈리는 신호 2가지. 초융합 리딩이 실제로 내놓는 판정 형태이며, 값은 입력에 따라 달라지는 예시입니다.</span>
-        </div>
-      
-</section>
 <section data-cd-funnel-section="signature_consult" class="cd-sig" id="cdSignatureConsult" data-marker="cd-signature-consult-v20260724" aria-label="대표 운명 상담" data-cd-trans-attr="aria-label:shell.inputPage.logoArea.k16nuyta.ariaLabel">
         <div class="cd-sig__head">
           <h2 class="cd-sig__title" data-cd-trans="shell.cdSignatureConsult.cdSigHead.k16nuyta">대표 운명 상담</h2>
@@ -11645,52 +11694,6 @@ html.neo-mode body .cd-why-us__proof-caption{color:rgba(228,214,255,.72)}
           <p class="cd-pick-why__text"><span data-cd-trans="home.pickWhy.prefix">오늘은</span> <b id="cdPickWhyTitle" data-cd-trans="shell.cdPickReason.cdPickWhyText.kntw327">나크샤트라 결정판</b><span id="cdPickWhyJosa" data-cd-trans-skip>이</span> <span data-cd-trans="home.pickWhy.suffix">가장 잘 맞습니다.</span> <span id="cdPickWhyReason" data-cd-trans="shell.cdPickReason.cdPickWhyText.k1s5m1vr">동양 27수와 인도 나크샤트라를 함께 보면 같은 사주도 훨씬 또렷하게 읽힙니다.</span></p>
           <a class="cd-pick-why__alt" id="cdPickWhyAlt" href="/fortune-tea-house/"><span data-cd-trans="shell.cdPickWhyAlt.k1d6ftfz">대신 운명의 찻집</span> <i aria-hidden="true">→</i></a>
         </div>
-</section>
-      <!-- 빠른 서비스 — 첫 방문자가 결제 없이 바로 시작할 수 있는 6개 (cd-quick-services-v20260819).
-           카드 문구·가격은 js/core/service-registry.js 의 roles:['quick'] 항목과 1:1 이어야 하며
-           npm run verify:home-service-registry 가 이름·가격·링크를 결제 정본까지 대조한다.
-           🔴 여기에 유료 대표 상담을 섞지 말 것 — 그 역할은 위 #cdSignatureConsult 가 맡는다.
-           (2026-08-21 홈 개편으로 #cdConcernPick 뒤·#cdSignatureConsult/#cdWhyUs 뒤로 재배치됨.) -->
-      <section data-cd-funnel-section="quick_services" class="cd-quick" id="cdQuickServices" aria-labelledby="cdQuickTitle" data-marker="cd-quick-services-v20260819">
-        
-
-<div class="moon-section-head cd-quick__head">
-          <h2 id="cdQuickTitle" data-cd-trans data-key="home.quickServices.title">무료로 바로 시작하기</h2>
-        </div>
-
-        <div class="cd-quick__grid">
-          <a class="cd-quick-card" href="/daily-fortune/" data-cd-service-id="daily-fortune">
-            <span class="cd-quick-card__sigil" aria-hidden="true">🌙</span>
-            <span class="cd-quick-card__name" data-cd-trans data-key="footer.svc.daily">오늘의 운세</span>
-            <span class="cd-quick-card__price" data-cd-trans data-key="home.tiles.freeBadge">무료</span>
-          </a>
-          <a class="cd-quick-card" href="/saju/" data-cd-service-id="saju">
-            <span class="cd-quick-card__sigil" aria-hidden="true">☯</span>
-            <span class="cd-quick-card__name" data-cd-trans data-key="home.nav.saju">사주</span>
-            <span class="cd-quick-card__price" data-cd-trans data-key="home.quickServices.freeStart">무료 시작</span>
-          </a>
-          <a class="cd-quick-card" href="/tarot/" data-cd-service-id="tarot">
-            <span class="cd-quick-card__sigil" aria-hidden="true">🔮</span>
-            <span class="cd-quick-card__name" data-cd-trans data-key="home.previewCards.tarotName">타로</span>
-            <span class="cd-quick-card__price" data-cd-trans data-key="home.quickServices.freeStart">무료 시작</span>
-          </a>
-          <a class="cd-quick-card" href="/ziwei/" data-cd-service-id="ziwei">
-            <span class="cd-quick-card__sigil" aria-hidden="true">✺</span>
-            <span class="cd-quick-card__name" data-cd-trans data-key="home.previewCards.ziweiName">자미두수</span>
-            <span class="cd-quick-card__price" data-cd-trans data-key="home.quickServices.freeStart">무료 시작</span>
-          </a>
-          <a class="cd-quick-card" href="/sukuyo/" data-cd-service-id="sukuyo">
-            <span class="cd-quick-card__sigil" aria-hidden="true">宿</span>
-            <span class="cd-quick-card__name" data-cd-trans data-key="home.startCards.sukuyoTitle">숙요점</span>
-            <span class="cd-quick-card__price" data-cd-trans data-key="home.quickServices.freeStart">무료 시작</span>
-          </a>
-          <a class="cd-quick-card" href="/astrology/" data-cd-service-id="astrology">
-            <span class="cd-quick-card__sigil" aria-hidden="true">✦</span>
-            <span class="cd-quick-card__name" data-cd-trans data-key="home.previewCards.astrologyName">점성술</span>
-            <span class="cd-quick-card__price" data-cd-trans data-key="home.quickServices.freeStart">무료 시작</span>
-          </a>
-        </div>
-      
 </section>
       <!-- 통합 운세 탐색기 — 홈의 유일한 서비스 탐색 UI (cd-finder-v20260819).
            검색 · 궁금한 것 · 운세 방식 · 가격이 하나의 필터 상태를 공유하고 결과가 바로 아래 붙는다.
@@ -17400,7 +17403,12 @@ html.neo-mode body .cd-why-us__proof-caption{color:rgba(228,214,255,.72)}
           </div>
         </section>
 
-        <section data-cd-home-secondary class="membership-recap-cta" aria-label="이용권 하단 안내" data-cd-trans-attr="aria-label:home.passFooter.aria" data-design-marker="moonlight-pass-banner-v20260626">
+        <!-- 이용권 안내 배너 — 목업의 "이용권" 블록. /points 이용권 상점으로만 보내고 결제는 하지 않는다.
+             🔴 2026-09-02: [data-cd-home-secondary] 를 뗐다(접기 축이라 display:none 이었다).
+             🔴 형제인 #honeyMembershipMini 는 계속 접어 둔다 — scripts/verify-mobile-cdp-smoke.mjs 의
+                membershipFolded 가 "첫 화면에서 접혀 있을 것"을 강제하고, 그 4종 플랜 카드는 모바일에서
+                position:fixed 바텀시트로 열리게 설계돼 인라인 그리드로 꺼낼 수 없다. -->
+        <section class="membership-recap-cta" aria-label="이용권 하단 안내" data-cd-trans-attr="aria-label:home.passFooter.aria" data-design-marker="moonlight-pass-banner-v20260626">
           <span class="membership-recap-cta__eyebrow" data-cd-trans data-key="home.passFooter.eyebrow">Moonlight Pass</span>
           <div class="membership-recap-cta__content">
             <div class="membership-recap-cta__copy">
@@ -20426,7 +20434,7 @@ return you.name.restore();</span>
      🔴 레지스트리가 엔진보다 먼저 실행돼야 한다(defer 는 문서 순서를 지킨다). -->
 <script defer src="/js/core/service-registry.js?v=build-6a0c742d4160" data-marker="cd-home-service-registry-v20260819"></script>
 <script defer src="/js/core/home-service-finder.js?v=build-6a0c742d4160" data-marker="cd-home-service-finder-v20260819"></script>
-<script defer src="/js/mobile-interaction-patch.js?v=build-b32f43288dee" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
+<script defer src="/js/mobile-interaction-patch.js?v=build-6a0c742d4160" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
 <script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-6a0c742d4160" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
