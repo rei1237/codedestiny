@@ -614,7 +614,7 @@ async function probeSurface(context, surface) {
           !!el.getAttribute("data-tile-lock-key") ||
           !!el.getAttribute("data-pvw-paid") ||
           (el.tagName === "A" &&
-            /^\/(premium-unlock|life-book-ai|love-secret-ai|ziwei-ai|saju\/love-simulation|saju\/destiny-bias|saju\/destiny-meeting-place|tarot\/prompt-maker|palm-reading)/.test(
+            /^\/(premium-unlock|life-book-ai|love-secret-ai|ziwei-ai|saju\/love-simulation|saju\/destiny-meeting-place|tarot\/prompt-maker|palm-reading)/.test(
               el.getAttribute("href") || "",
             ));
         const paidNodes = nodes.filter(isPaid);
