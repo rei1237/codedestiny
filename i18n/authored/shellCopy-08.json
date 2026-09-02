@@ -1,0 +1,17 @@
+{
+  "_comment": "운명의 문 진입 문단 1키 — 초융합 문을 뺐으므로(홈에 진입이 이미 세 곳) 문단이 더 이상 '초융합 리딩'을 가리키면 안 된다. ko 는 셸 마크업(index.html #fortuneGatewayEntry)이 정본이고 런타임이 사전을 건너뛰므로(js/cd-lang-native.js), 이 키를 안 고치면 한국어 화면만 새 문안이고 나머지 11개 로케일이 없어진 문을 계속 안내한다. 🔴 저작 정본은 shell-02.json 이지만 사전 반영을 --namespace shell 로 하면 shell-01.json 의 낡은 kerryje 키가 함께 뒤집힌다(docs/handoff/locale-sweep-2026-08-24.md 2번). 그래서 이 파일 + --namespace shellCopy 로 내보낸다.",
+  "shell.fortuneGatewayEntryShell.fortuneGatewayEntryCopy.k1i0ttch": {
+    "ko": "가벼운 고민 하나만 꺼내 놓으면, 연이와 네오가 사주부터 타로까지 여섯 체계로 지금의 흐름을 짚어 드려요.",
+    "en": "Bring just one small worry, and Yeoni and Neo will read the current you're in through six systems, from saju to tarot.",
+    "ja": "軽い悩みをひとつ持ち出してくださるだけで、Yeoni と Neo が四柱推命からタロットまで六つの体系で今の流れを読み解きます。",
+    "zh-CN": "只要说出一个小小的烦恼，Yeoni 与 Neo 便会用从四柱到塔罗的六大体系，为你梳理此刻的流向。",
+    "zh-TW": "只要說出一個小小的煩惱，Yeoni 與 Neo 便會用從四柱到塔羅的六大體系，為你梳理此刻的流向。",
+    "vi": "Chỉ cần mang đến một băn khoăn nhỏ, Yeoni và Neo sẽ đọc dòng chảy hiện tại của bạn qua sáu hệ thống, từ tứ trụ đến tarot.",
+    "hi": "बस एक छोटी-सी उलझन लेकर आइए — Yeoni और Neo साजू से टैरो तक छह पद्धतियों से आपकी मौजूदा धारा पढ़ देंगे।",
+    "es": "Trae una sola preocupación pequeña y Yeoni y Neo leerán la corriente en la que estás con seis sistemas, del saju al tarot.",
+    "fr": "Apportez un seul petit souci : Yeoni et Neo liront le courant qui vous porte à travers six systèmes, du saju au tarot.",
+    "de": "Bringen Sie eine einzige kleine Sorge mit – Yeoni und Neo lesen die Strömung, in der Sie gerade stehen, durch sechs Systeme, von Saju bis Tarot.",
+    "nl": "Breng één kleine zorg mee en Yeoni en Neo lezen de stroming waarin je nu zit via zes systemen, van saju tot tarot.",
+    "ms": "Bawa satu kerisauan kecil sahaja, dan Yeoni serta Neo akan membaca arus anda kini menerusi enam sistem, dari saju hingga tarot."
+  }
+}

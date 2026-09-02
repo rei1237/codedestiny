@@ -1264,7 +1264,7 @@
 
   function ensureMobileBackstackRuntime() {
     if (window.__cdMobileNav) return;
-    loadScript('/js/mobile-backstack-navigation.js?v=build-3a0bbb01e922').catch(function(err) {
+    loadScript('/js/mobile-backstack-navigation.js?v=build-ed0d906cc241').catch(function(err) {
       console.error('[mobile-interaction-patch] mobile backstack load failed:', err);
     });
   }
@@ -1355,24 +1355,24 @@
     openMbtiModal: ['js/astral-soul.js'],
     openAnimalTotemModal: [
       'js/services/animal-totem-content-engine.js',
-      'js/animal-totem-experience.js?v=build-3a0bbb01e922'
+      'js/animal-totem-experience.js?v=build-ed0d906cc241'
     ],
     openHwatuModal: ['HwatuFortune.js?v=h9ee7eacf3957'],
     // NOTE: uiBindings uses the js/... path; keep the mobile patch path aligned.
     // ensure the latest script is loaded on launch.
-    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-3a0bbb01e922'],
-    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-3a0bbb01e922'],
-    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-3a0bbb01e922'],
+    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-ed0d906cc241'],
+    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-ed0d906cc241'],
+    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-ed0d906cc241'],
 
-    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-3a0bbb01e922'],
-    openDreamModal: ['js/dream-ledger.js?v=build-3a0bbb01e922'],
-    openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js?v=build-3a0bbb01e922'],
+    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-ed0d906cc241'],
+    openDreamModal: ['js/dream-ledger.js?v=build-ed0d906cc241'],
+    openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js?v=build-ed0d906cc241'],
     openKemetModal: ['js/oracle-kcg.js'],
     openJuyukModal: ['js/iching-engine.js', 'js/iching-modal.js'],
     openRoyalTeaOracle: [],
     openOlympusOracleModal: ['js/olympus-oracle.js'],
     gotoNamingPremium: [],
-    openSibylModal: ['js/sibyl-system.js?v=build-3a0bbb01e922']
+    openSibylModal: ['js/sibyl-system.js?v=build-ed0d906cc241']
   };
 
   // 제자리(in-place)에서 모달을 여는 액션인지 판정한다.
@@ -2471,7 +2471,18 @@
         lastSafeVh = next;
         root.style.setProperty('--cd-safe-vh', next);
       }
-      update();
+      /* 🔴 부팅 시 첫 update() 하나가 강제 동기 레이아웃 67.3ms 였다(2026-09-02
+         `npm run perf:home -- --runs=3 --preset=mobile` 중앙값, 당시 TBT 584ms).
+         visualViewport.height 는 대기 중인 레이아웃을 flush 시키는데 부팅 시점 문서가
+         가장 무거워서 그 한 번이 제일 비싸다. 위에서 이미 `--cd-safe-vh: 100dvh` 를
+         깔아 두므로 dvh 지원 브라우저에서는 이 첫 읽기가 같은 값을 다시 쓰는 일일 뿐이다.
+         그래서 건너뛰고, 키보드가 올라오는 등 뷰포트가 실제로 바뀌는 순간의 리스너에
+         맡긴다(그때는 레이아웃이 이미 깨끗해 flush 가 싸다).
+         🔴 dvh 미지원 브라우저는 폴백이 100vh 라 주소창·키보드 높이를 못 맞추므로
+         종전대로 즉시 읽는다. */
+      var hasDvh = false;
+      try { hasDvh = !!(window.CSS && window.CSS.supports && window.CSS.supports('height', '100dvh')); } catch (_) {}
+      if (!hasDvh) update();
       window.addEventListener('resize', update, { passive: true });
       window.addEventListener('orientationchange', update, { passive: true });
       if (window.visualViewport) {

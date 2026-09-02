@@ -89,7 +89,9 @@ test("flower pig chat hands an existing session to the real Fusion Fortune route
 
   assert.match(client, /\/fusion-fortune\?fortuneChatSession=/);
   assert.match(client, /초융합 심층 리딩 이어가기/);
-  assert.match(home, /fortune-gateway__door--fusion"(?: style="[^"]*")? href="\/fusion-fortune\/"/);
+  // 홈에서 초융합으로 가는 길 자체는 남아 있다. 2026-09-02 에 뺀 것은 "운명의 문" 안의
+  // 중복 진입 하나뿐이라, 여기서는 카드 클래스가 아니라 경로의 존재만 본다.
+  assert.match(home, /href="\/fusion-fortune\/"/);
 });
 
 test("Yeoni chat sends everything the server requires to build a reading", () => {

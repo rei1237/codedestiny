@@ -404,6 +404,96 @@
 .fortune-gateway__door:hover .fortune-gateway__door-go em { transform: translateX(4px); }
 .fortune-gateway__door:focus-visible { outline: 3px solid #8b1747; outline-offset: 3px; }
 
+/* ── 문이 하나일 때 (fortune-gateway__doors--single) v20260902 ──────────────
+ * 홈에는 초융합 진입이 히어로 CTA·#cdConcernPick·#cdSignatureConsult 로 이미 세 곳 있어서
+ * 2026-09-02 에 이 자리의 초융합 문을 뺐다. 그런데 위 auto-fit 그리드는 카드가 하나 남으면
+ * "세로 카드 비율 그대로 폭만 두 배"로 늘린다 — 설명은 max-width:30ch 에서 끊겨 오른쪽이
+ * 통째로 비고, 절대배치(right/bottom:-18px)된 아트는 overflow:hidden 에 잘린 채 구석에
+ * 박힌다. 그래서 하나일 때는 아트 자리를 따로 잡은 가로형으로 바꾼다.
+ * 🔴 이 규칙은 전부 --single 로 스코프된다. 문이 둘로 돌아오면 클래스만 떼면 원래대로다.
+ */
+
+/* 문안이 약속하는 "따뜻한 연이와 직설적인 네오" 두 사람을 이 카드에서 처음으로 실제로
+   보여 준다(직전까지는 연이 하나뿐이라 문안과 그림이 어긋났다). */
+.fortune-gateway__doors--single .fortune-gateway__door-art--duo .fortune-gateway__door-art-yeon {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 76%;
+  height: 76%;
+}
+
+.fortune-gateway__doors--single .fortune-gateway__door-art--duo .fortune-gateway__door-art-neo {
+  position: absolute;
+  right: 0;
+  top: 2%;
+  width: 54%;
+  height: 54%;
+}
+
+/* CTA 를 알약 버튼으로. 문이 둘일 때는 "카드 두 장" 자체가 선택지라 텍스트 링크로 충분했지만,
+   하나가 되면 카드 안에서 누를 곳이 어디인지가 유일한 정보다. */
+.fortune-gateway__doors--single .fortune-gateway__door-go {
+  align-self: start;
+  justify-self: start;
+  margin-top: 16px;
+  padding: 11px 22px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #b31955 0%, #8b1747 100%);
+  color: #fff6fa;
+  box-shadow: 0 14px 24px -15px rgba(139, 23, 71, .92);
+}
+
+/* 🔴 네오 모드의 `html.neo-mode body .fortune-gateway__door-go`(0,2,2) 가 위 색(0,2,0)을
+   이기므로 알약 배색을 퍼플 계열로 따로 준다 — 안 주면 어두운 표면에 로즈 알약이 뜬다. */
+html.neo-mode body .fortune-gateway__doors--single .fortune-gateway__door-go {
+  background: linear-gradient(135deg, #7c5cff 0%, #4c2fb8 100%);
+  color: #f4eeff;
+  box-shadow: 0 14px 24px -15px rgba(38, 20, 92, .95);
+}
+
+@media (min-width: 681px) {
+  .fortune-gateway__doors--single { grid-template-columns: minmax(0, 1fr); }
+
+  .fortune-gateway__doors--single .fortune-gateway__door {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 232px;
+    column-gap: clamp(20px, 3vw, 40px);
+    align-content: center;
+    min-height: 246px;
+    padding: 28px 30px 26px;
+  }
+
+  /* 🔴 `grid-row: 1 / -1` 은 암시적 행을 안 넘는다(명시 그리드의 마지막 선을 가리킨다).
+     본문 항목이 5개이므로 span 5 로 준다. */
+  .fortune-gateway__doors--single .fortune-gateway__door-art {
+    position: relative;
+    inset: auto;
+    z-index: 0;
+    grid-column: 2;
+    grid-row: 1 / span 5;
+    place-self: center;
+    width: 232px;
+    height: 232px;
+  }
+
+  .fortune-gateway__doors--single .fortune-gateway__door-kicker,
+  .fortune-gateway__doors--single .fortune-gateway__door-title,
+  .fortune-gateway__doors--single .fortune-gateway__door-desc,
+  .fortune-gateway__doors--single .fortune-gateway__door-meta,
+  .fortune-gateway__doors--single .fortune-gateway__door-go { grid-column: 1; }
+
+  .fortune-gateway__doors--single .fortune-gateway__door-desc { max-width: 46ch; font-size: 13.5px; }
+}
+
+/* 좁은 화면은 위 (max-width: 680px) 블록이 이미 세로형 그리드로 바꿔 둔다. 여기서는
+   2인이 된 아트가 96px 안에서 뭉개지지 않게 자리만 조금 넓힌다. */
+@media (max-width: 680px) {
+  .fortune-gateway__doors--single .fortune-gateway__door { grid-template-columns: minmax(0, 1fr) 112px; }
+  .fortune-gateway__doors--single .fortune-gateway__door-art { width: 112px; height: 112px; }
+  .fortune-gateway__doors--single .fortune-gateway__door-go { margin-top: 12px; padding: 10px 18px; font-size: 12.5px; }
+}
+
 .fortune-gateway__entry-note {
   position: relative;
   z-index: 2;
