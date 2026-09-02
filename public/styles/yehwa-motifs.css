@@ -111,12 +111,21 @@
   content: '';
 }
 
-/* ── PR-2 예약: 카드 인장·스파클(마스크만 정의, 홈에는 아직 배선하지 않음) ── */
+/* ── PR-2: 카드 인장·스파클 ──
+ * 인장은 자식 <span> 이다(::before/::after 아님) — .cd-sig-card 는 cdSigRise 등장 애니메이션을
+ * backwards 로 타서 의사요소로 얹으면 시작 프레임에서 함께 튄다.
+ * 🔴 z-index 는 -1 이다. 배치 대상 3곳은 전부 이미 스태킹 컨텍스트라(운명의 문 카드·빠른 서비스
+ * 카드는 isolation:isolate, 대표 상담 카드는 backdrop-filter) 인장이 카드 배경 위·본문 아래에 깔린다.
+ * 0 으로 두면 위치가 지정되지 않은 형제 텍스트보다 위에 칠해진다. */
+/* 🔴 불투명도는 브리프의 "15~25%" 가 아니라 실측값이다 — 원색 .22 는 흰 카드 위에서 선 대비
+ * 1.10:1 로 안 보였다(2026-09-03 A/B 픽셀 측정: 모티프 opacity 0 대비). 선이 1px 보다 가늘어
+ * (인장 stroke 1.2/160 → 88px 에서 0.66px) 안티에일리어싱이 실효 알파를 절반쯤 깎기 때문이다.
+ * 그래서 히어로와 같은 처방 — 딥 로즈골드로 바꾸고 알파를 올린다. */
 .cd-yehwa-seal {
   position: absolute;
-  z-index: 0;
-  background: linear-gradient(160deg, var(--cd-yehwa-line) 0%, var(--cd-yehwa-line-2) 100%);
-  opacity: .22;
+  z-index: -1;
+  background: linear-gradient(160deg, var(--cd-yehwa-line-deep) 0%, var(--cd-yehwa-line) 100%);
+  opacity: .5;
   pointer-events: none;
   -webkit-mask-image: var(--cd-yehwa-mask-seal);
   mask-image: var(--cd-yehwa-mask-seal);
@@ -129,8 +138,8 @@
 .cd-yehwa-sparkle {
   position: absolute;
   z-index: 0;
-  background: var(--cd-yehwa-line);
-  opacity: .25;
+  background: var(--cd-yehwa-line-deep);
+  opacity: .5;
   pointer-events: none;
   -webkit-mask-image: var(--cd-yehwa-mask-sparkle);
   mask-image: var(--cd-yehwa-mask-sparkle);
@@ -140,16 +149,78 @@
   mask-size: 100% 100%;
 }
 
+/* 🔴 인장은 카드 모서리 **밖으로** 절반쯤 걸쳐 overflow:hidden 이 호(弧)만 남기게 둔다.
+ * 안쪽으로 통째로 넣으면 어느 카드에서도 글자를 지난다 — 2026-09-03 실측(Range.getClientRects
+ * 로 잰 글자 잉크 상자, 1350/390): 운명의 문 카드는 CTA 알약이 좌하 x31~182·y242~265 까지 오고,
+ * 빠른 서비스 카드는 181x106 안에 아이콘·이름·가격이 세로로 꽉 찬다.
+ * 아래 좌표는 그 잉크 상자와 겹치지 않는 값이다(가장 좁은 여백 2px, 빠른 서비스 카드 390px). */
+
+/* 운명의 문 — 좌하. 우하는 .fortune-gateway__door--chat::before(작약)와 연이 아트가 이미 쓴다. */
+.fortune-gateway__door--chat .cd-yehwa-seal {
+  left: -40px;
+  bottom: -34px;
+  width: 88px;
+  height: 88px;
+}
+
+/* 연이 곁 스파클 — .fortune-gateway__door-art 는 글자를 담지 않는 아트 전용 상자라
+ * 어느 폭에서도 텍스트와 겹칠 수 없다(카드 기준 px 를 박으면 카피가 바뀔 때 어긋난다).
+ * img(z-index:1) 위로 올린다 — 아래에 두면 투명 픽셀로만 비쳐 크기마다 밝기가 달라진다. */
+.fortune-gateway__door-art .cd-yehwa-sparkle {
+  z-index: 2;
+}
+
+.cd-yehwa-sparkle--a {
+  top: 4%;
+  left: 4%;
+  width: 16px;
+  height: 16px;
+}
+
+.cd-yehwa-sparkle--b {
+  top: 27%;
+  left: -2%;
+  width: 12px;
+  height: 12px;
+}
+
+.cd-yehwa-sparkle--c {
+  top: 1%;
+  right: 6%;
+  width: 13px;
+  height: 13px;
+}
+
+/* 대표 상담 5장 — 우하. 사진(.cd-sig-card__media)은 카드 위쪽을 쓰므로 인장은 본문 아래 모서리로. */
+.cd-sig-card .cd-yehwa-seal {
+  right: -40px;
+  bottom: -34px;
+  width: 88px;
+  height: 88px;
+}
+
+/* 🔴 빠른 서비스 카드(.cd-quick-card)에는 인장을 두지 않는다(2026-09-03 사용자 결정).
+ * 카드가 182x106px 이라 72px 인장이 카드 높이의 68% 를 먹고(대표 상담 19% · 운명의 문 29%),
+ * 그 크기에서는 꽃잎 16장이 직선 방사살로 잘려 "시계 밴드"로 읽혔다(10배 확대 판정).
+ * 6장에 반복하면 배경 타일처럼 보이고, 한 장만 찍으면 "선택됨" 상태 표시로 오독된다.
+ * 인장은 운명의 문 1 + 대표 상담 5 = 6개로 둔다. */
+
 /* ── 네오: 같은 선, 샴페인 골드로 재도색(바이올렛은 그라데이션 끝 15% 만 — One Accent) ── */
-html.neo-mode body .moon-hero__yehwa,
-html.neo-mode body .cd-yehwa-seal {
+html.neo-mode body .moon-hero__yehwa {
   background: linear-gradient(160deg, #e8d5a3 0%, #e8d5a3 85%, #c4b5fd 100%);
   opacity: .16;
 }
 
+/* 인장·스파클은 히어로 문양(.16)보다 높다 — 320px 문양과 달리 88px 이하라 선 길이가 짧고,
+   어두운 네오 표면 위에서 .16 은 1.17:1 로 눌렸다(실측). */
+html.neo-mode body .cd-yehwa-seal {
+  background: linear-gradient(160deg, #e8d5a3 0%, #e8d5a3 85%, #c4b5fd 100%);
+  opacity: .26;
+}
+
 html.neo-mode body .cd-yehwa-sparkle {
   background: #e8d5a3;
-  opacity: .22;
+  opacity: .34;
 }
 
 /* 달은 반투명으로 두면 뒤 일러스트가 비쳐 "흐린 유리 원"이 된다(실측) — 불투명 샴페인 디스크로 칠한다. */
@@ -209,3 +280,44 @@ html.neo-mode body .cd-yehwa-divider::after {
     height: 14px;
   }
 }
+
+/* 인장·스파클의 모바일 값은 호스트 카드가 좁아지는 지점(운명의 문 680px · 빠른 서비스 520px)에
+ * 맞춘다 — 위 768px 블록에 넣으면 카드는 아직 넓은데 인장만 작아진다.
+ * 대표 상담 카드는 390px 에서도 296x443 이라 데스크톱 값 그대로 여백이 남는다(실측). */
+@media (max-width: 680px) {
+  /* 64px 에서 마스크 stroke(1.2/160)는 0.48px 이라 안티에일리어싱이 알파를 반쯤 먹는다 —
+     같은 .5 로는 1.25:1(연이)·1.29:1(네오)까지 눌려 목표 1.3 아래였다(실측). 알파로 되돌린다. */
+  .fortune-gateway__door--chat .cd-yehwa-seal {
+    left: -30px;
+    bottom: -26px;
+    width: 64px;
+    height: 64px;
+    opacity: .6;
+  }
+
+  html.neo-mode body .fortune-gateway__door--chat .cd-yehwa-seal {
+    opacity: .31;
+  }
+
+  /* 아트가 118px 로 줄어 스파클 셋은 뭉친다 — 가운데 하나를 빼고 둘만 남긴다.
+     🔴 12px 아래로는 마스크 stroke(0.8)가 사라지므로 더 줄이지 않는다.
+     🔴 좌상단에 두면 안 된다 — 카드가 세로로 접히면서 아트가 왼쪽 글자단에 붙어
+     360px 에서 "FORTUNE CHAT" 을 13x11px 덮었다(실측). 아래로 내려 글자단 아래를 지난다. */
+  .cd-yehwa-sparkle--a {
+    top: auto;
+    bottom: 6%;
+    left: 3%;
+    width: 13px;
+    height: 13px;
+  }
+
+  .cd-yehwa-sparkle--b {
+    display: none;
+  }
+
+  .cd-yehwa-sparkle--c {
+    width: 12px;
+    height: 12px;
+  }
+}
+
