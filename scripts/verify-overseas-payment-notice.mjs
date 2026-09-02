@@ -19,6 +19,7 @@
 //      빌더(buildOverseasChargeNoticeHtml)를 부른다
 //   ③ 세 렌더러가 그 결과를 **실제로 마크업에 끼운다** — 변수만 만들고 안 쓰면 고지가 안 뜬다
 //   ④ 환산 결과가 결제 요청 필드로 흘러가지 않는다 (totalAmount·paymentAmount·currency·amountKrw)
+//      — 검사 대상은 손으로 적지 않고 추적 파일 전수에서 **발견**한다
 //   ⑤ 승인 통화 단언(CURRENCY_KRW)이 살아 있다 — 다통화는 이 계약에 없다
 //   ⑥ 이 검사기가 읽는 파일이 전부 paid-flow-gates 트리거 경로에 있다
 //
@@ -30,6 +31,7 @@
 //
 // 실행: npm run verify:overseas-payment-notice
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
@@ -118,8 +120,36 @@ for (const renderer of RENDERERS) {
 
 // ── 4) 환산값이 결제 요청 필드로 새지 않는다 ─────────────────────────────────────────
 // formatReferenceAmount 는 표시 전용이다. 아래 필드에 그 결과가 대입되면 화면 금액 ≠ 승인 금액이 된다.
+//
+// 🔴 대상을 손으로 적지 않는다(CLAUDE.md 원칙 10: "손으로 쓴 대상 목록은 가드가 아니다").
+//    4개짜리 손배열이던 동안, 환산을 새로 쓰기 시작한 lib/seo/paid-offer.ts 와
+//    app/nakshatra/_lib/copy.ts 는 이 누출 검사를 **한 번도 받지 않았다**(2026-09-03 실측).
+//    추적 파일 전수에서 호출부를 발견하고, 발견 수가 하한 아래로 내려가면 실패시킨다.
 const PAYMENT_FIELDS = ["totalAmount", "paymentAmount", "amountKrw", "amountKRW", "currency"];
-const LEAK_SCAN_TARGETS = [CORE, SHELL, REACT_CLIENT, STANDALONE];
+const REFERENCE_FN = "formatReferenceAmount";
+// 미러(public/**)·타입선언·검사기·테스트·문서는 렌더 경로가 아니다. 미러 동일성은
+// verify:payment-choice-single-instance 가 따로 강제한다(위 "범위" 주석 참고).
+const LEAK_SCAN_EXCLUDED = /^(public\/|scripts\/|__tests__\/|docs\/)|\.d\.ts$/;
+
+const trackedSources = execFileSync("git", ["ls-files"], { cwd: root, encoding: "utf8" })
+  .split("\n")
+  .map((rel) => rel.trim())
+  .filter((rel) => /\.(html|ts|tsx|js|mjs)$/.test(rel) && !LEAK_SCAN_EXCLUDED.test(rel));
+assert.ok(
+  trackedSources.length > 100,
+  `git ls-files 가 ${trackedSources.length}개만 돌려줬습니다 — 누출 검사가 대상 없이 통과할 뻔했습니다.`,
+);
+
+const discoveredTargets = trackedSources.filter((rel) => read(rel).includes(REFERENCE_FN));
+const LEAK_SCAN_TARGETS = [...new Set([...discoveredTargets, CORE, SHELL, REACT_CLIENT, STANDALONE])];
+// 🔴 하한. 확장자 필터나 제외 정규식이 어긋나 "대상 0개" 로 조용히 통과하는 것이 이 가드의
+//    유일한 실패 모드다. 호출부를 정말 줄였다면 근거를 남기고 이 숫자를 함께 내린다.
+const MIN_LEAK_SCAN_TARGETS = 8; // 2026-09-03 실측
+assert.ok(
+  LEAK_SCAN_TARGETS.length >= MIN_LEAK_SCAN_TARGETS,
+  `누출 검사 대상이 ${LEAK_SCAN_TARGETS.length}개입니다(최소 ${MIN_LEAK_SCAN_TARGETS}). `
+    + `${REFERENCE_FN} 호출부를 못 찾고 있다면 확장자 필터·제외 정규식을 먼저 보세요.`,
+);
 for (const rel of LEAK_SCAN_TARGETS) {
   const source = read(rel);
   for (const field of PAYMENT_FIELDS) {
@@ -153,7 +183,9 @@ assert.ok(
 // 🔴 검사기가 멀쩡한 것과 검사기가 **실행되는** 것은 다른 문제다.
 const GATE_WORKFLOW = ".github/workflows/paid-flow-gates.yml";
 const gatePatterns = readGatePatterns(resolve(root, GATE_WORKFLOW));
-const READ_PATHS = [CORE, SHELL, REACT_CLIENT, STANDALONE, PG_VERIFIER, SERVER_CONFIG];
+// 🔴 손배열이 아니라 §4 가 발견한 대상 전체 + 통화 단언 파일이다. 새 환산 호출부가 생기면
+//    그 파일도 자동으로 트리거 등재 대상이 된다.
+const READ_PATHS = [...new Set([...LEAK_SCAN_TARGETS, PG_VERIFIER, SERVER_CONFIG])];
 for (const rel of READ_PATHS) {
   assert.ok(
     gateCoversAny(gatePatterns, rel),
@@ -165,5 +197,6 @@ for (const rel of READ_PATHS) {
 console.log(
   `[verify-overseas-payment-notice] PASS `
     + `(${fxEntryCount} reference currencies, ${RENDERERS.length} renderers, `
-    + `${PAYMENT_FIELDS.length} leak-guarded fields, ${READ_PATHS.length} gate-triggered paths)`,
+    + `${PAYMENT_FIELDS.length} leak-guarded fields x ${LEAK_SCAN_TARGETS.length} discovered targets, `
+    + `${READ_PATHS.length} gate-triggered paths)`,
 );

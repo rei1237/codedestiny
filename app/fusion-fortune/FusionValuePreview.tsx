@@ -4,20 +4,37 @@
  * 왜 있는가: 이 화면은 결과 미리보기도 샘플도 없이 ₩30,000 결제창을 띄웠다. 사용자는
  * 무엇을 받는지 모른 채 "초융합 운세 생성하기" 를 눌렀고, 그제서야 금액을 처음 봤다.
  *
- * 🔴 문구 출처는 정적 셸의 `FEATURE_MARKETING_COPY['/fusion-fortune']`(index.html:35445)다.
- *    그 레지스트리는 홈 상세 시트에서만 렌더돼 결제 화면에는 도달하지 못했다. 여기 있는
- *    `answersQuestions` · `valueCompare` · `trustNotes` · `previewText` 는 그 값을 옮긴 것이라,
- *    한쪽만 고치면 같은 상품이 두 화면에서 다른 말을 한다. 함께 고칠 것.
+ * 🔴 문구 정본은 정적 셸의 `FEATURE_MARKETING_COPY['/fusion-fortune']` 이고, 이 파일은
+ *    `npm run sync:marketing-copy` 가 옮겨 둔 생성 JSON 을 읽는다. 예전에는 여기에
+ *    `answersQuestions` · `valueCompare` · `trustNotes` · `previewText` 를 손으로 베낀
+ *    사본이 있었고, 셸만 고치는 동안 그 사본이 낡아 같은 상품이 홈 상세 시트와 결제 화면에서
+ *    서로 다른 말을 했다. 이제 두 화면이 한 데이터를 본다 — 문구를 고칠 자리는 셸이다.
+ *
+ * 🔴 서버 컴포넌트라서 정적 import 로 읽는다. 400KB 짜리 생성 JSON 은 빌드 시점에만 필요하고
+ *    클라이언트 번들에는 실리지 않는다 — 이 파일에 `"use client"` 를 붙이지 말 것.
  *
  * 🔴 결과 구성 목록은 마케팅 문구가 아니라 **실제 렌더 순서**다 — FusionResultThread.tsx 가
  *    그리는 블록 순서이고, 본문 키의 정본은 fusion-thread.tsx 의 SECTION_KEYS 와
- *    worker/lib/fusion-fortune-prompt.js 의 FUSION_SECTION_GROUP_SPECS 다.
+ *    worker/lib/fusion-fortune-prompt.js 의 FUSION_SECTION_GROUP_SPECS 다. 셸 카피의
+ *    `analysisSteps`(7개 체계 요약)와는 다른 목록이므로 아래 상수로 남는다.
  *
  * 🔴 개인화된 가짜 분석 문장을 지어내지 않는다. 여기서 보여 주는 것은 "결과가 어떤 구조로
  *    오는가" 까지이며, 실제 해석은 결제 후 본인 명식으로만 생성된다.
  */
 
+import marketingBook from "@/lib/marketing/feature-marketing-copy.generated.json";
+
 import styles from "./fusion-fortune.module.css";
+
+/**
+ * 셸 정본 카피.
+ *
+ * 🔴 `tsconfig.json` 의 `strict:false` 로 `noImplicitAny` 가 꺼져 있어, 없는 키를 넣어도
+ *    타입 검사는 조용히 통과한다(2026-09-03 실측). 키가 사라졌을 때의 방어는 두 겹이다 —
+ *    `__tests__/ui/fusion-value-preview.static.test.js` 가 먼저 잡고, 놓쳐도 정적 프리렌더가
+ *    TypeError 로 죽는다. 빈 화면이 조용히 배포되지는 않는다.
+ */
+const COPY = marketingBook.items["/fusion-fortune"].copy;
 
 /** FusionResultThread 가 그리는 순서 그대로. 한 줄 설명은 각 체계가 맡는 축이다. */
 const RESULT_BLOCKS: { name: string; detail: string }[] = [
@@ -34,41 +51,15 @@ const RESULT_BLOCKS: { name: string; detail: string }[] = [
   { name: "최종 판정", detail: "체계별 입장과 확신도, 그리고 지금 할 일과 지금은 피할 일." },
 ];
 
-/** 출처: FEATURE_MARKETING_COPY['/fusion-fortune'].answersQuestions */
-const ANSWERS_QUESTIONS = [
-  "여러 운세가 서로 다른 말을 하는데 무엇을 따라야 할까요?",
-  "올해 남은 기간에 무엇을 준비해야 할까요?",
-  "지금 이 결정을 밀어붙여도 될까요?",
-];
-
-/** 출처: FEATURE_MARKETING_COPY['/fusion-fortune'].valueCompare.rows */
-const VALUE_COMPARE = [
-  { axis: "체계 수", free: "한 번에 하나", premium: "여섯 체계를 한 상담 안에서" },
-  { axis: "교차 검증", free: "없음", premium: "겹치는 신호와 엇갈리는 신호를 나눠 정리" },
-  { axis: "시기", free: "오늘 중심", premium: "앞으로 12개월 시기 라인" },
-  { axis: "분량", free: "요약 수준", premium: "본문 20,000자 이상" },
-];
-
-/** 출처: FEATURE_MARKETING_COPY['/fusion-fortune'].trustNotes */
-const TRUST_NOTES = [
-  "서버가 계산한 값에 없는 별·궁·카드·시기는 만들지 않습니다.",
-  "타인의 마음이나 결과를 확정하지 않습니다.",
-  "완성된 결과는 계정에 남고, 다시 여는 데에는 추가 결제가 없습니다.",
-  "생성이 실패하면 같은 요청으로 다시 시도할 때 추가 결제가 없습니다.",
-];
-
 export function FusionValuePreview() {
   return (
     <section className={styles.valuePreview} aria-labelledby="fusionValuePreviewHeading">
       <h2 id="fusionValuePreviewHeading" className={styles.valueHeading}>결제하면 받는 것</h2>
-      <p className={styles.valueLead}>
-        초융합은 여섯 개의 운세를 나란히 늘어놓지 않습니다. 서로 무엇을 함께 말하고 어디서 갈라지는지를
-        먼저 정리한 뒤, 그 위에서 지금의 선택을 봅니다.
-      </p>
+      <p className={styles.valueLead}>{COPY.previewText}</p>
 
       <h3 className={styles.valueSubheading}>이 상담이 답하는 질문</h3>
       <ul className={styles.valueQuestions}>
-        {ANSWERS_QUESTIONS.map((question) => <li key={question}>{question}</li>)}
+        {COPY.answersQuestions.map((question) => <li key={question}>{question}</li>)}
       </ul>
 
       <h3 className={styles.valueSubheading}>결과 문서에 담기는 것</h3>
@@ -96,7 +87,7 @@ export function FusionValuePreview() {
             </tr>
           </thead>
           <tbody>
-            {VALUE_COMPARE.map((row) => (
+            {COPY.valueCompare.rows.map((row) => (
               <tr key={row.axis}>
                 <th scope="row">{row.axis}</th>
                 <td>{row.free}</td>
@@ -109,7 +100,7 @@ export function FusionValuePreview() {
 
       <h3 className={styles.valueSubheading}>미리 밝혀 두는 것</h3>
       <ul className={styles.valueNotes}>
-        {TRUST_NOTES.map((note) => <li key={note}>{note}</li>)}
+        {COPY.trustNotes.map((note) => <li key={note}>{note}</li>)}
       </ul>
     </section>
   );

@@ -14,6 +14,7 @@
  */
 import {
   buildFusionFortuneContext,
+  collectFusionCrossSectionDuplicates,
   countFusionFortuneVisibleText,
   generateFusionFortuneWithMockLLM,
   generateFusionFortuneWithRealLLM,
@@ -317,6 +318,68 @@ const validationOptions = {
   const normalized = normalizeFusionFinalVerdict(inflated.finalVerdict);
   check("과장된 합의 강도는 stance 분포로 교정", normalized.ok && normalized.value.confidence < 100, String(normalized.value?.confidence));
   console.log("[verdict] 여섯 체계 판정 필수 · 근거 하한 · 합의 강도 교정 확인");
+}
+
+// ── 10. 교차 섹션 중복이 재생성으로 편입되는가 ──────────────────────────────
+// 분량 계약(20,000자)만 보면 같은 문장을 두 섹션에 그대로 실어도 통과한다. 30,000원을 낸
+// 사용자가 실제로 받는 내용은 그만큼 줄어든다. 중복은 배달을 막지 않고(강등 배달 원칙)
+// 재생성을 부른 뒤, 그래도 남으면 사유로만 기록된다.
+{
+  const DUPLICATE_LINES = [
+    "같은 문장을 두 섹션에 그대로 옮겨 적으면 읽는 사람은 새로운 근거를 하나도 받지 못한 채 분량만 늘어난 글을 마주하게 됩니다.",
+    "여섯 체계를 한자리에 모았다는 말만 되풀이하면 어느 체계가 어떤 확정값을 근거로 그렇게 읽었는지가 끝내 드러나지 않습니다.",
+  ];
+  // 표본이 검출 하한(60자)보다 짧아지면 이 절이 조용히 무의미해진다.
+  check("중복 표본이 검출 하한보다 길다", DUPLICATE_LINES.every((line) => line.length >= 60), DUPLICATE_LINES.map((line) => line.length).join(","));
+
+  // synthesis 그룹의 두 산문 키에 같은 문장을 심는다 — 그룹 안이 아니라 **섹션 사이** 중복이다.
+  const withDuplicates = (group) => {
+    const payload = groupPayload(group);
+    if (group.id !== "synthesis") return payload;
+    for (const key of ["tarotSection", "integratedReading"]) payload[key].content += ` ${DUPLICATE_LINES.join(" ")}`;
+    return payload;
+  };
+
+  const attempts = new Map();
+  const repairPrompts = [];
+  const repaired = await generateFusionFortuneWithRealLLM({
+    input: BASE_INPUT,
+    context,
+    env: ENV,
+    requestId: "verify-fusion-duplicate",
+    providerCall: async (_env, prompt, options) => {
+      const groupId = options.logContext.sectionGroup;
+      const round = (attempts.get(groupId) || 0) + 1;
+      attempts.set(groupId, round);
+      const group = FUSION_SECTION_GROUP_SPECS.find((item) => item.id === groupId);
+      if (round > 1) repairPrompts.push(prompt);
+      return { ok: true, provider: "gemini", model: "gemini-2.5-flash", text: JSON.stringify(round === 1 ? withDuplicates(group) : groupPayload(group)) };
+    },
+  });
+  check("중복 그룹은 재생성", (attempts.get("synthesis") || 0) === 2, `synthesis attempts=${attempts.get("synthesis")}`);
+  check("중복 없는 그룹은 재생성하지 않음", (attempts.get("foundation") || 0) === 1, `foundation attempts=${attempts.get("foundation")}`);
+  check("재생성 프롬프트가 중복 문장을 되돌려 준다", repairPrompts.some((prompt) => prompt.includes(DUPLICATE_LINES[0])), `repairPrompts=${repairPrompts.length}`);
+  check("중복만으로 부른 재생성에는 분량 미달 지시를 붙이지 않는다", repairPrompts.every((prompt) => !prompt.includes("크게 못 미칩니다")));
+  const repairedDuplicates = collectFusionCrossSectionDuplicates(repaired.result || {});
+  check("재생성이 중복을 지운다", repairedDuplicates.length === 0, repairedDuplicates.map((item) => item.keys.join("/")).join(","));
+  check("중복이 해소되면 사유로 남기지 않는다", !(repaired.qualityIssues || []).includes("cross_section_duplicate"), (repaired.qualityIssues || []).join(","));
+
+  // 🔴 재생성해도 계속 베끼는 모델이라면? 그래도 배달은 막지 않는다.
+  const persisted = await generateFusionFortuneWithRealLLM({
+    input: BASE_INPUT,
+    context,
+    env: ENV,
+    requestId: "verify-fusion-duplicate-persist",
+    providerCall: async (_env, _prompt, options) => {
+      const group = FUSION_SECTION_GROUP_SPECS.find((item) => item.id === options.logContext.sectionGroup);
+      return { ok: true, provider: "gemini", model: "gemini-2.5-flash", text: JSON.stringify(withDuplicates(group)) };
+    },
+  });
+  check("중복이 남아도 배달한다", persisted.deliverable === true);
+  check("남은 중복은 사유로 기록", (persisted.qualityIssues || []).includes("cross_section_duplicate"), (persisted.qualityIssues || []).join(","));
+  check("중복은 결과 등급을 떨어뜨리지 않는다", persisted.qualityTier === "full", String(persisted.qualityTier));
+  check("중복이 남아도 계약 검증은 그대로", validateFusionFortuneResult(persisted.result || {}, validationOptions).ok);
+  console.log("[duplicate] 교차 섹션 중복 → 재생성 편입 · 남으면 사유만 기록(배달 유지)");
 }
 
 if (failures.length) {

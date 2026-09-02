@@ -78,6 +78,10 @@ on:
       - "worker/routes/profile.js"
       - "app/_lib/billing-client.ts"
       - "app/hooks/useCoinGate.ts"
+      # 🔴 가격 배지 26곳이 공유하는 훅. verify:overseas-payment-notice 가 이 파일을 열어
+      #    참고 개산가(formatReferenceAmount)가 결제 필드로 새지 않는지 단언한다 — 등재하지
+      #    않으면 이 파일만 고친 PR 에서 해외 결제 고지 검증이 아예 돌지 않는다.
+      - "app/hooks/useServerPrice.ts"
       # 🔴 이용권 상점 클라이언트. verify:billing-pass-policy 와 verify:portone-single-payment 이 이 파일을
       #    실제로 열어 검사하는데 트리거에는 없었다 — "가드가 보는 파일은 그 가드를 부르는 워크플로
       #    트리거 paths 에도 있어야 한다"(CLAUDE.md 원칙 10)를 그대로 어긴 구멍이다. 여기만 고친 PR 은

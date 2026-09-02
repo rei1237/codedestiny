@@ -5,6 +5,7 @@ import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { stripLocalePrefix } from "../_lib/localePath";
 import { resolveFeatureAccessModel, useServerPrice } from "@/app/hooks/useServerPrice";
 import { useMobileFortuneRenderTrace } from "@/app/_lib/mobile-fortune-trace";
+import { useTPick } from "@/lib/i18n/useT";
 
 const ShareWidget = lazy(() => import("./ShareWidget"));
 
@@ -641,6 +642,11 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
   });
   // 회당 결제와 영구 해금은 같은 값을 내도 성격이 다르다. 레지스트리의 accessModel 을 그대로 따른다.
   const isUnlockFeature = resolveFeatureAccessModel(paidMeta?.featureKey) === "unlock";
+  // 가격을 못 푼 상태의 문구. PriceBadge 와 **같은 키**를 쓴다 — 사본을 만들면 두 화면이 갈라진다.
+  const pick = useTPick();
+  const pricePendingLabel = (paidPrice.loading
+    ? pick("preview.priceLoading", "가격 확인 중")
+    : pick("preview.priceUnknown", "가격 확인 필요")) || "";
 
   const category = basePath.split("/")[1] ?? "tarot";
   const baseTheme = THEMES[category] ?? THEMES.tarot;
@@ -1055,7 +1061,7 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
             }}>{cfg.icon}</span>
             <span>{isPaidFeature
               ? (isUnlockFeature ? copy.unlockCta : copy.paidCta)(
-                  paidPrice.label || (paidPrice.loading ? "가격 확인 중" : "가격 확인 필요"),
+                  paidPrice.label || pricePendingLabel,
                 )
               : copy.freeCta}</span>
           </a>

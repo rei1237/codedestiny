@@ -8,6 +8,8 @@ import {
 } from "@/worker/lib/paid-feature-registry.js";
 import { getCurrentLoadingLocale } from "@/constants/loadingMessages";
 import { formatKrwFromCoins } from "@/lib/payment/coin-pricing";
+import { checkoutEntryRuntime } from "@/app/_lib/legacy-core-runtime";
+import { useLocale } from "@/lib/i18n/useT";
 
 export type ServerPriceInput = {
   featureKey?: string;
@@ -25,7 +27,12 @@ export type ServerPriceState = {
   source: "registry" | "fallback";
 };
 
-const priceLabelCache = new Map<string, string>();
+/**
+ * 🔴 로케일 의존 **라벨**이 아니라 금액을 캐시한다. 캐시 키에는 로케일이 없어서
+ * (featureKey|subFeatureKey|categoryKey), 라벨을 담아 두면 세션 중 언어를 바꿔도
+ * 첫 로케일의 라벨이 계속 나온다. 금액은 로케일 무관이라 이 키가 구조적으로 안전하다.
+ */
+const priceAmountCache = new Map<string, ResolvedPrice>();
 
 function priceCacheKey(input: ServerPriceInput): string {
   return [input.featureKey || "", input.subFeatureKey || "", input.categoryKey || ""].join("|");
@@ -88,7 +95,10 @@ export function resolveFeatureAccessModel(featureKey?: string): "per_use" | "unl
   return model === "unlock" || model === "per_use" ? model : "";
 }
 
-function resolveRegistryPriceLabel(input: ServerPriceInput): string | null {
+/** 레지스트리에서 뽑은 **로케일 무관** 가격. 포맷은 조회가 아니라 렌더 시점에 한다. */
+type ResolvedPrice = { displayPrice: string; amountKRW: number };
+
+function resolveRegistryPrice(input: ServerPriceInput): ResolvedPrice | null {
   const requestedKey = String(input.featureKey || "").trim();
   if (!requestedKey) return null;
 
@@ -96,20 +106,51 @@ function resolveRegistryPriceLabel(input: ServerPriceInput): string | null {
   if (!pricing) return null;
 
   const displayPrice = String(pricing.displayPrice || "").trim();
-  if (displayPrice) return displayPrice;
-
   const amountKRW = Number(pricing.amountKRW || pricing.cashPrice || 0)
     || Number(pricing.cost || pricing.coinPrice || 0) * 100;
-  return formatRegistryAmount(amountKRW, getCurrentLoadingLocale()) || null;
+  if (!displayPrice && !(Number.isFinite(amountKRW) && amountKRW > 0)) return null;
+  return { displayPrice, amountKRW };
 }
 
-function resolveCachedRegistryPrice(input: ServerPriceInput): string | null {
+function resolveCachedRegistryPrice(input: ServerPriceInput): ResolvedPrice | null {
   const key = priceCacheKey(input);
-  const cached = priceLabelCache.get(key);
+  const cached = priceAmountCache.get(key);
   if (cached) return cached;
-  const label = resolveRegistryPriceLabel(input);
-  if (label) priceLabelCache.set(key, label);
-  return label;
+  const resolved = resolveRegistryPrice(input);
+  if (resolved) priceAmountCache.set(key, resolved);
+  return resolved;
+}
+
+function formatResolvedPrice(resolved: ResolvedPrice, locale: string): string {
+  if (resolved.displayPrice) return resolved.displayPrice;
+  return formatRegistryAmount(resolved.amountKRW, locale);
+}
+
+/** `appendReferenceApprox` 가 쓰는 참고 환산 런타임의 최소 계약(테스트에서 가짜를 주입한다). */
+export type ReferenceApproxRuntime = {
+  formatReferenceAmount(krwAmount: number): string;
+  text(key: string, fallback: string, vars?: Record<string, string | number>): string;
+};
+
+/**
+ * 원화 라벨 뒤에 **표시 전용** 개산가를 덧붙인다.
+ *
+ * 🔴 결제 금액으로 쓰면 안 된다 — KG이니시스 해외카드 특약은 승인·정산이 모두 KRW 다.
+ *    환산 정본은 js/core/checkout-entry.js 의 formatReferenceAmount 하나(정적 참고표)이고
+ *    여기서는 그 결과를 문자열로 붙이기만 한다. 가드: scripts/verify-overseas-payment-notice.mjs
+ *
+ * 한국어 화면에서는 formatReferenceAmount 가 "" 를 돌려주므로 라벨이 한 글자도 바뀌지 않는다.
+ */
+export function appendReferenceApprox(
+  label: string,
+  amountKRW: number,
+  runtime: ReferenceApproxRuntime,
+): string {
+  if (!label || !Number.isFinite(amountKRW) || amountKRW <= 0) return label;
+  const amount = runtime.formatReferenceAmount(amountKRW);
+  if (!amount) return label;
+  const approx = runtime.text("payment.overseas.approx", "약 {amount} 상당", { amount });
+  return approx ? `${label} (${approx})` : label;
 }
 
 /**
@@ -121,11 +162,19 @@ function resolveCachedRegistryPrice(input: ServerPriceInput): string | null {
 export function useServerPrice(input: ServerPriceInput): ServerPriceState {
   const key = priceCacheKey(input);
   const hasQuery = Boolean(input.featureKey || input.subFeatureKey || input.categoryKey);
-  const cached = hasQuery ? resolveCachedRegistryPrice(input) : undefined;
+  // 🔴 재실행 트리거 전용 — 값은 아래 getCurrentLoadingLocale() 이 그대로 읽는다.
+  //    useLocale 이 cd:locale-ready 를 구독하는데, LocaleRuntimeBridge 는 그 이벤트를
+  //    window.cdGetCurrentLanguage 를 심은 **뒤에** 쏜다(LocaleRuntimeBridge.tsx:140→34).
+  //    이 구독이 없으면 개산가가 영원히 안 붙는다 — 그 브리지는 dynamic import 라
+  //    (RuntimeClientGuards.tsx:11) 이 훅의 effect 가 대개 먼저 돌고, 그때
+  //    formatReferenceAmount 는 언어를 몰라 한국어 화면으로 판정해 "" 를 돌려준다.
+  //    GlobalHeader.tsx:186 이 같은 순서 문제로 네비가 ko 로 굳었던 자리다.
+  const locale = useLocale();
+  const cached = hasQuery ? resolveCachedRegistryPrice(input) : null;
   const fallback = hasQuery ? "" : resolveFallbackLabel(input);
 
   const [state, setState] = useState<ServerPriceState>(() => cached
-    ? { label: cached, loading: false, source: "registry" }
+    ? { label: formatResolvedPrice(cached, getCurrentLoadingLocale()), loading: false, source: "registry" }
     : { label: fallback, loading: false, source: "fallback" });
 
   useEffect(() => {
@@ -133,13 +182,23 @@ export function useServerPrice(input: ServerPriceInput): ServerPriceState {
       setState({ label: fallback, loading: false, source: "fallback" });
       return;
     }
-    const label = resolveCachedRegistryPrice(input);
-    setState(label
-      ? { label, loading: false, source: "registry" }
-      : { label: "", loading: false, source: "registry" });
-    // The registry key is the complete dependency for this display lookup.
+    const resolved = resolveCachedRegistryPrice(input);
+    const label = resolved ? formatResolvedPrice(resolved, getCurrentLoadingLocale()) : "";
+    // 🔴 개산가는 **마운트 뒤에만** 붙인다. checkoutEntryRuntime 은 SSR 과 레거시 코어 로드
+    //    전에 throw 하는 프록시라(app/_lib/legacy-core-runtime.ts) 렌더 중에 부르면 서버
+    //    렌더가 죽는다. app/points/PointsClient.tsx 의 useOverseasCharge 와 같은 계약이다.
+    let display = label;
+    if (label && resolved && !resolved.displayPrice) {
+      try {
+        display = appendReferenceApprox(label, resolved.amountKRW, checkoutEntryRuntime);
+      } catch {
+        /* 런타임이 아직 없으면 원화 라벨만 보여 준다 */
+      }
+    }
+    setState({ label: display, loading: false, source: "registry" });
+    // 레지스트리 키와 로케일이 이 표시 조회의 완전한 의존이다.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key, fallback]);
+  }, [key, fallback, locale]);
 
   return state;
 }

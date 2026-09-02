@@ -1,4 +1,5 @@
 import { existsSync, readFileSync } from "node:fs";
+import { __ziweiAiTestUtils } from "../worker/routes/ziwei-ai.js";
 
 function read(path) {
   return readFileSync(path, "utf8");
@@ -161,5 +162,62 @@ assertMissing(runtime, retiredTerms, "index-inline-runtime");
 const sync = read("scripts/sync-legacy-static-to-public.mjs");
 assert(sync.includes("\"js/ziwei-book.js\""), "sync stale removal for ziwei-book missing");
 assertMissing(sync, ["ZIWEI_AI_CONSULTATION_CACHE_KEY"], "sync script");
+
+// ── 교차 섹션 중복이 재생성으로 편입되는가 ─────────────────────────────────
+// 분량 계약(20,700자)만 보면 같은 문장을 두 섹션에 그대로 실어도 통과한다. ₩30,000 을 낸
+// 사용자가 받는 실제 내용은 그만큼 줄어든다. 중복은 배달을 막지 않고(생성 실패는 환불·접근권
+// 복원 경로를 태운다) 재생성을 부른 뒤, 그래도 남으면 로그로만 관측된다.
+{
+  const {
+    collectZiweiCrossSectionDuplicates,
+    buildZiweiDuplicateInstruction,
+    GROUP_DUPLICATE_LIMIT,
+    SECTION_GROUP_SPECS: groupSpecs,
+  } = __ziweiAiTestUtils;
+  assert(typeof collectZiweiCrossSectionDuplicates === "function", "cross-section duplicate detector missing");
+  assert(typeof buildZiweiDuplicateInstruction === "function", "duplicate digest builder missing");
+  assert(GROUP_DUPLICATE_LIMIT >= 2, "한 그룹에 한 건은 우연일 수 있다 — 임계는 2건 이상이어야 한다");
+
+  const LONG_A = "같은 문장을 두 섹션에 그대로 옮겨 적으면 읽는 사람은 새로운 근거를 하나도 받지 못한 채 분량만 늘어난 글을 마주하게 됩니다.";
+  const LONG_B = "명궁과 신궁의 강약을 되풀이해 말하는 것만으로는 어느 별이 어떤 확정값을 근거로 그렇게 읽혔는지가 끝내 드러나지 않습니다.";
+  const SHORT_LINE = "명궁의 별빛이 오늘의 선택을 비춥니다.";
+  // 표본이 검출 하한(60자)을 넘지 못하면 이 절이 조용히 무의미해진다 — 길이 자체를 단언한다.
+  assert(LONG_A.length >= 60 && LONG_B.length >= 60, `duplicate samples too short: ${LONG_A.length},${LONG_B.length}`);
+  assert(SHORT_LINE.length < 60, `short sample must stay under the detection floor: ${SHORT_LINE.length}`);
+
+  const body = (...lines) => ({ title: "t", body: lines.join(" ") });
+  const crossed = collectZiweiCrossSectionDuplicates({ essence: body(LONG_A), flow: body(LONG_A, LONG_B) });
+  assert(crossed.length === 1, `cross-section duplicate not detected: ${crossed.length}`);
+  assert(crossed[0].keys.includes("essence") && crossed[0].keys.includes("flow"), "duplicate must name both sections");
+
+  // 한 섹션 안의 반복은 대상이 아니다(문장 리듬은 글쓰기 판단이지 분량 채우기가 아니다).
+  assert(collectZiweiCrossSectionDuplicates({ essence: body(LONG_A, LONG_A) }).length === 0, "within-section repeat must be ignored");
+  // 하한 아래 짧은 문장은 세지 않는다 — 인사말·전환구가 전부 중복으로 잡히면 재생성이 상시로 돈다.
+  assert(collectZiweiCrossSectionDuplicates({ essence: body(SHORT_LINE), flow: body(SHORT_LINE) }).length === 0, "short sentences must stay below the floor");
+
+  const essenceGroup = groupSpecs.find((group) => group.sections.includes("essence"));
+  const otherGroup = groupSpecs.find((group) => !group.sections.includes("essence") && !group.sections.includes("flow"));
+  assert(essenceGroup && otherGroup, "section group specs must cover essence and an unrelated group");
+  const digest = buildZiweiDuplicateInstruction(crossed, essenceGroup);
+  assert(digest.includes(LONG_A.slice(0, 60)), "digest must quote the duplicated sentence back");
+  assert(digest.split("\n").every((line) => line.length <= 200), "digest lines must stay short enough to not eat the prompt budget");
+  assert(buildZiweiDuplicateInstruction(crossed, otherGroup) === "", "unrelated group must get no duplicate digest");
+
+  // 배선 — 위 도구가 실제 재생성 경로에 연결돼 있는가.
+  assert(route.includes("const retryTargets = [...failedGroups, ...shortGroups, ...duplicatedGroups];"), "duplicated groups must join the retry wave");
+  assert(route.includes("countGroupDuplicates(duplicates, group) >= GROUP_DUPLICATE_LIMIT"), "duplicate group threshold not wired");
+  assert(route.includes("buildZiweiDuplicateInstruction(duplicates, group),"), "repair prompt must carry the duplicate digest");
+  assert(route.includes("...(duplicateOnly ? [] : ["), "분량을 채운 그룹에 '크게 못 미칩니다' 를 붙이면 사실이 아닌 지시가 나간다");
+  assert(route.includes("nextChars > previousChars || (reducedDuplicates && nextChars >= previousChars * SECTION_GROUP_RETRY_RATIO)"),
+    "중복이 줄어든 재생성은 조금 짧아도 받아야 한다 — 아니면 재생성이 전부 버려진다");
+  assert(route.includes("duplicateGroups:"), "남은 중복은 Section Groups Merged 로그로 관측돼야 한다");
+  // 🔴 배달 차단 사유로 승격 금지 — 생성 실패는 환불·접근권 복원 경로를 태운다.
+  const routeLines = route.split(/\r?\n/);
+  const duplicateThrow = routeLines.some((line, index) => (
+    /(?:remainingDuplicates|duplicatedGroups|duplicateGroups|reducedDuplicates|CrossSectionDuplicates|countGroupDuplicates)/.test(line)
+    && routeLines.slice(index, index + 4).some((near) => /\bthrow\b/.test(near))
+  ));
+  assert(!duplicateThrow, "cross-section duplicates must not throw — 재생성 유도와 관측까지만");
+}
 
 console.log("[verify:ziwei-ai-consultation-flow] ok");
