@@ -1435,14 +1435,14 @@ export default function ZiweiAiPage() {
         .consultForm{display:grid;gap:14px;align-self:start;padding:20px;position:sticky;top:16px}
         .formHeader{display:flex;align-items:center;gap:9px;color:#fff0b8;font-family:var(--font-display);font-size:18px}
         .consultForm label{display:grid;gap:7px;color:#ded8ff;font-size:13px;font-weight:820}
-        .consultForm input,.consultForm select,.consultForm textarea{width:100%;min-height:46px;border:1px solid rgba(224,210,255,.26);border-radius:8px;background:rgba(5,8,24,.70);color:#fffaf0;padding:11px 12px;font:inherit;outline:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.06);transition:border-color .18s ease,box-shadow .18s ease,background .18s ease}
+        .consultForm input,.consultForm select,.consultForm textarea{width:100%;min-height:46px;border:1px solid rgba(224,210,255,.26);border-radius:8px;background:rgba(5,8,24,.70);color:#fffaf0;padding:11px 12px;font:inherit;font-size:16px;outline:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.06);transition:border-color .18s ease,box-shadow .18s ease,background .18s ease}
         .consultForm textarea{resize:vertical;min-height:132px;line-height:1.62}
         .consultForm input:hover,.consultForm select:hover,.consultForm textarea:hover{border-color:rgba(244,214,148,.42);background:rgba(9,12,32,.82)}
         .consultForm input:focus,.consultForm select:focus,.consultForm textarea:focus{border-color:#f5d991;box-shadow:0 0 0 3px rgba(245,217,145,.16),0 0 24px rgba(181,152,255,.14)}
         .consultForm textarea::placeholder{color:rgba(226,214,255,.54)}
         .fieldRow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
         .toggles{display:flex;gap:10px;flex-wrap:wrap}
-        .check{display:inline-flex;grid-template-columns:auto 1fr;align-items:center;gap:9px;border:1px solid rgba(224,210,255,.20);border-radius:8px;background:rgba(255,255,255,.055);padding:10px 11px}
+        .check{display:inline-flex;grid-template-columns:auto 1fr;align-items:center;min-height:44px;gap:9px;border:1px solid rgba(224,210,255,.20);border-radius:8px;background:rgba(255,255,255,.055);padding:10px 11px}
         .check input{width:17px;min-width:17px;height:17px;min-height:17px;padding:0;accent-color:#f5d991}
         .primaryBtn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:50px;border:0;border-radius:8px;background:linear-gradient(135deg,#fff0b8,#d9c7ff 47%,#8fa7ff);color:#0c1024;font-family:var(--font-display);font-weight:950;cursor:pointer;box-shadow:0 18px 36px rgba(105,88,198,.30),0 0 30px rgba(244,214,148,.16);transition:transform .18s ease,box-shadow .18s ease,filter .18s ease}
         .primaryBtn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 22px 44px rgba(105,88,198,.38),0 0 36px rgba(244,214,148,.22);filter:saturate(1.05)}

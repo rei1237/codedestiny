@@ -1817,7 +1817,7 @@ export default function LifeBookAiClient() {
                       ["solar", copy.solarLabel],
                       ["lunar", copy.lunarLabel],
                     ] as const).map(([value, label]) => (
-                      <button key={value} type="button" onClick={() => updateField("calendarType", value)} className={`min-h-9 rounded-full text-sm font-black transition ${form.calendarType === value ? "bg-amber-200 text-[#160e08]" : "text-[#f4dfbd] hover:bg-amber-50/10"}`}>
+                      <button key={value} type="button" onClick={() => updateField("calendarType", value)} className={`min-h-11 rounded-full text-sm font-black transition ${form.calendarType === value ? "bg-amber-200 text-[#160e08]" : "text-[#f4dfbd] hover:bg-amber-50/10"}`}>
                         {label}
                       </button>
                     ))}

@@ -677,7 +677,7 @@ export default function NamingAiResultClient() {
                     <button
                       type="button"
                       onClick={() => void handleCopyPrompt()}
-                      className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-[#c4b5fd]/30 bg-[#c4b5fd]/10 px-4 text-xs font-bold text-[#f4eeff] transition hover:border-[#c4b5fd]/60 hover:bg-[#c4b5fd]/20"
+                      className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-[#c4b5fd]/30 bg-[#c4b5fd]/10 px-4 text-xs font-bold text-[#f4eeff] transition hover:border-[#c4b5fd]/60 hover:bg-[#c4b5fd]/20"
                     >
                       {copied ? <Check className="h-3.5 w-3.5 text-[#e8d5a3]" aria-hidden="true" /> : <Copy className="h-3.5 w-3.5" aria-hidden="true" />}
                       {copied ? COPY.copied : COPY.copyPrompt}

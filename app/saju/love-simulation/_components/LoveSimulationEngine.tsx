@@ -1939,7 +1939,7 @@ export const LoveSimulationEngine: React.FC = () => {
                 <div>
                   <label className="mb-2 block text-sm font-black text-white/90" htmlFor="lovePartnerName">{copy.nameFieldLabel}</label>
                   <input
-                    className="min-h-14 w-full rounded-lg border border-white/15 bg-white/95 px-5 text-sm font-bold text-zinc-950 outline-none transition placeholder:text-zinc-400 focus:border-rose-200 focus:ring-4 focus:ring-rose-100/25"
+                    className="min-h-14 w-full rounded-lg border border-white/15 bg-white/95 px-5 text-base font-bold text-zinc-950 outline-none transition placeholder:text-zinc-400 focus:border-rose-200 focus:ring-4 focus:ring-rose-100/25"
                     type="text"
                     id="lovePartnerName"
                     name="partnerName"
@@ -1955,7 +1955,7 @@ export const LoveSimulationEngine: React.FC = () => {
                 <div>
                   <label className="mb-2 block text-sm font-black text-white/90" htmlFor="lovePartnerBirthDate">{copy.birthDateFieldLabel}</label>
                   <input
-                    className="min-h-14 w-full rounded-lg border border-white/15 bg-white/95 px-5 text-sm font-bold text-zinc-950 outline-none transition focus:border-rose-200 focus:ring-4 focus:ring-rose-100/25"
+                    className="min-h-14 w-full rounded-lg border border-white/15 bg-white/95 px-5 text-base font-bold text-zinc-950 outline-none transition focus:border-rose-200 focus:ring-4 focus:ring-rose-100/25"
                     type="text"
                     id="lovePartnerBirthDate"
                     name="partnerBirthDate"
@@ -1995,7 +1995,7 @@ export const LoveSimulationEngine: React.FC = () => {
                 <div>
                   <label className="mb-2 block text-sm font-black text-white/90" htmlFor="lovePartnerTime">{copy.birthTimeFieldLabel}</label>
                   <input
-                    className="min-h-14 w-full rounded-lg border border-white/15 bg-white/95 px-4 text-sm font-bold text-zinc-950 outline-none transition focus:border-rose-200 focus:ring-4 focus:ring-rose-100/25"
+                    className="min-h-14 w-full rounded-lg border border-white/15 bg-white/95 px-4 text-base font-bold text-zinc-950 outline-none transition focus:border-rose-200 focus:ring-4 focus:ring-rose-100/25"
                     type="time"
                     id="lovePartnerTime"
                     name="partnerTime"
@@ -2015,7 +2015,7 @@ export const LoveSimulationEngine: React.FC = () => {
                     {copy.birthCountryFieldLabel} <span className="text-xs font-bold text-zinc-500">{copy.birthCountryNote}</span>
                   </label>
                   <input
-                    className="min-h-14 w-full rounded-lg border border-zinc-200 bg-white px-4 text-sm font-bold outline-none transition focus:border-rose-300 focus:ring-4 focus:ring-rose-200/45"
+                    className="min-h-14 w-full rounded-lg border border-zinc-200 bg-white px-4 text-base font-bold outline-none transition focus:border-rose-300 focus:ring-4 focus:ring-rose-200/45"
                     type="text"
                     list="love-partner-country-presets"
                     id="lovePartnerCountry"
