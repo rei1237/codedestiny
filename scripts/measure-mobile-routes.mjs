@@ -81,6 +81,9 @@ const EXIT_SELECTOR = [
   '[class*="backButton"]',
   '[class*="homeButton"]',
   '[class*="closeButton"]',
+  // 공용 크롬리스 이탈 나브(AppChrome FeatureBackHomeNav). aria-label 이 "이전 페이지로 이동",
+  // 홈 버튼은 텍스트뿐이라 위 패턴에 안 걸려 렌더되는데도 매번 "수동확인"이 났다(낙샤트라 2026-09-02).
+  ".cd-feature-nav button",
 ].join(",");
 
 function parseArgs(argv) {
