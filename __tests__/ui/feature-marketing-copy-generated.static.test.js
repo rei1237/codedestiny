@@ -122,6 +122,31 @@ test("모든 dictNs 가 en 사전에 실재한다", async () => {
   );
 });
 
+/**
+ * 신뢰 문구 기본값은 셸 상수(`_PAID_TRUST_NOTES`/`_FREE_TRUST_NOTES`)를 그대로 옮긴 것이다.
+ * 소비자가 제 문장을 들고 있으면 ko 만 갈리고 비한국어 로케일에는 남의 문장이 붙는다 —
+ * 사전 `featureMarketingTrust.*` 는 셸 문장을 번역한 것이기 때문이다.
+ */
+test("신뢰 문구 기본값이 셸 상수와 같고 사전 줄 수도 맞는다", async () => {
+  const { lib, data } = await load();
+  const html = lib.readShellHtml();
+  assert.deepEqual(data.trustNotes.paid, lib.extractArrayLiteral(html, "_PAID_TRUST_NOTES"));
+  assert.deepEqual(data.trustNotes.free, lib.extractArrayLiteral(html, "_FREE_TRUST_NOTES"));
+  assert.ok(data.trustNotes.paid.length > 0 && data.trustNotes.free.length > 0, "신뢰 문구가 비었습니다.");
+
+  const en = JSON.parse(readFileSync(path.resolve(ROOT, "public/i18n/en.json"), "utf8"));
+  for (const tone of ["paid", "free"]) {
+    // 사전은 배열이 아니라 "0"/"1"/"2" 로 키를 붙인 객체다(로케일 편집기 산출 형식).
+    const translated = (en.featureMarketingTrust || {})[tone];
+    assert.ok(translated && typeof translated === "object", `featureMarketingTrust.${tone} 이 en 사전에 없습니다.`);
+    assert.equal(
+      Object.keys(translated).length,
+      data.trustNotes[tone].length,
+      `featureMarketingTrust.${tone} 의 줄 수가 셸 상수와 다릅니다 — 번역이 빠진 줄은 한국어로 나갑니다.`,
+    );
+  }
+});
+
 test("카테고리 표기표가 featureMarketingCategory 사전과 맞는다", async () => {
   const { data } = await load();
   const table = data.categoryKeyByKo || {};
