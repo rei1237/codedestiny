@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-02
-next: 남은 레버는 N3(셸 인라인 CSS 외부화) 하나뿐 — 착수하려면 dist 를 읽는 검증기 34개 전수 판정이 선행. 나머지는 전부 사용자 판단 대기
+next: N3 착수 조건(검증기 전수 판정)은 끝났다 — 그런데 그 과정에서 **N3 의 이득 전제가 틀린 것**을 찾았다(셸은 no-store 가 아니라 no-cache). 다음은 이득 실측이고, 그 전에 실행 여부 재합의. 나머지 후보는 전부 사용자 판단 대기
 ---
 
 # 앱 최적화 — 남은 작업 (2026-09-02)
@@ -25,7 +25,10 @@ next: 남은 레버는 N3(셸 인라인 CSS 외부화) 하나뿐 — 착수하�
 
 ## 남은 최적화 후보
 
-1. **N3 — 셸 인라인 CSS 외부화** (유일하게 남은 큰 레버). 조사 완료: [n3-shell-inline-css-externalization.md](n3-shell-inline-css-externalization.md). 소스 `index.html` `<style>` 86블록 816.5KB / dist 85블록 645.8KB. 추천안은 **dist 단계 후처리**(소스 분리는 index.html 을 문자열로 읽는 verify 61개가 깨져 불가). 착수 조건: dist 를 읽는 검증기 34개 전수 판정. **실행은 별도 재합의 대상이다.**
+1. **N3 — 셸 인라인 CSS 외부화**. 조사 완료: [n3-shell-inline-css-externalization.md](n3-shell-inline-css-externalization.md). 소스 `index.html` `<style>` 86블록 816.5KB / dist 85블록 645.8KB. 추천안은 **dist 단계 후처리**(소스 분리는 index.html 을 문자열로 읽는 verify 61개가 깨져 불가).
+   - **착수 조건은 충족됐다** — dist 를 읽는 검증기는 34개가 아니라 10개고, CSS 를 텍스트로 읽는 것은 0건이다(2026-09-02 전수 판정, 그 문서의 "dist 검증기 전수 판정" 절).
+   - 🔴 **대신 이득 전제가 무너졌다.** 셸 HTML 은 `no-store` 가 아니라 `no-cache` 다(`public/_headers:187-209`, 2026-08-15 변경). 재방문은 지금도 304 라 "매 방문 646KB 재전송"이 아니다. 남는 이득은 *배포 직후* 재방문과 앱 번들 중복 제거뿐이고, 둘 다 미실측이다.
+   - **다음은 실행이 아니라 그 이득 실측이다. 실행은 여전히 별도 재합의 대상.**
 2. **쿠키 배너 앱 억제 여부** — `#cdCookieConsent` 는 앱에서도 900ms 뒤 뜬다(PG 창 억제만 존재). 앱 첫 화면을 가리는 유일한 오버레이이고 실효 히트 스캔에서도 유일한 전면 가림 요소였다. 컴플라이언스 판단 사항.
 3. **`.sy-basic-calendar__month`(월 입력 112x32)** — `<input type=month>` 는 위 1)의 전역 규칙 대상이 아니고 의사요소도 안 먹는다. 44px 로 올리면 헤드가 12px 커지는 디자인 변경.
 4. **admin/ 프루닝** — 사용자 결정 대기. index.html 이 `/admin/login` 으로 실제 네비게이션하므로 지우면 앱 내 관리자 진입이 죽는다. 승인 시 `build-mobile-app.mjs` 의 `WEB_ONLY_ARTIFACTS` 에 `"admin"` 추가 + `verify-app-no-portone.mjs` 의 존치 단언 교체.
