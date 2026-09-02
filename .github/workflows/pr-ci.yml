@@ -228,6 +228,14 @@ jobs:
       - name: Verify the novel player restores Yeon's form on every entry path
         run: npm run verify:novel-player-start
 
+      # 🔴 이것도 **fast 잡**이다 — 입력이 lib/stories/vn/overrides.generated.json 과 정본 JSON 이고
+      # 네트워크 없이 0.5초다(실측 2026-09-02). 지키는 것: CMS 로 발행한 대본 수정본이 정본에
+      # **조용히 안 먹는 것**. apply-vn-overrides 는 fail-soft 라 슬러그 오타·범위 밖 인덱스·상한
+      # 초과를 경고만 찍고 exit 0 으로 넘어가므로, 관리자 화면에서는 저장이 됐는데 사이트에는
+      # 영영 안 나오는 상태가 된다.
+      - name: Verify published novel overrides can actually apply
+        run: npm run verify:vn-override-safety
+
       # 🔴 이것도 **fast 잡**이어야 한다. 시주를 세는 엔진이 런타임별로 3벌인데(정적 셸 / 워커 /
       # 앱 라우터) 앱 라우터 엔진만 고치면 티어가 standard 라 critical 잡이 통째로 스킵된다 —
       # 즉 거기 두면 세 벌 중 하나가 조용히 갈라지는 경로를 못 잡는다. 세 엔진을 실제로 돌려

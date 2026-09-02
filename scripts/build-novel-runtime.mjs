@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { BEAT_FORMS, BEAT_MAX_LENGTH, BEAT_TONES } from "./lib/novel-constraints.mjs";
 
 const ROOT = resolve(import.meta.dirname, "..");
 export const SOURCE_PATH = resolve(ROOT, "content/novel/episodes.source.json");
@@ -19,7 +20,6 @@ const BARE_DIALOGUE = new Set(["그래.", "응.", "알겠어.", "좋아."]);
 // 작가가 레거시 정본에 남긴 의미값 중, 실물 파일명이 바뀐 경우에만 고정 매핑한다.
 // 무작위 선택은 하지 않으며 BG에 없는 값은 검증에서 실패한다.
 const BACKGROUND_FALLBACKS = Object.freeze({ market: "jae" });
-const MAX_TEXT_LENGTH = 260;
 
 function sha256(value) {
   return createHash("sha256").update(value).digest("hex");
@@ -70,11 +70,14 @@ function validateBeat(beat, context, bgKeys, trackKeys) {
   if (!beat || typeof beat !== "object") throw new Error(`${context}: 비트가 객체가 아닙니다.`);
   if (!SPEAKERS.has(beat.s)) throw new Error(`${context}: 알 수 없는 화자 '${beat.s}'입니다.`);
   if (typeof beat.t !== "string" || !beat.t.trim()) throw new Error(`${context}: 대사가 비어 있습니다.`);
-  if (beat.t.length > MAX_TEXT_LENGTH) throw new Error(`${context}: 대사가 ${MAX_TEXT_LENGTH}자를 초과합니다. 호흡 단위로 나누어 주세요.`);
+  if (beat.t.length > BEAT_MAX_LENGTH) throw new Error(`${context}: 대사가 ${BEAT_MAX_LENGTH}자를 초과합니다. 호흡 단위로 나누어 주세요.`);
   if (beat.s !== "n" && beat.s !== "sys" && BARE_DIALOGUE.has(beat.t.trim())) throw new Error(`${context}: 감정 정보 없는 단답 '${beat.t}'은 보이스에 맞춰 보강해 주세요.`);
   if (beat.bg && !bgKeys.has(beat.bg)) throw new Error(`${context}: 배경 '${beat.bg}'이 BG 맵에 없습니다.`);
   if (beat.bgm && !trackKeys.has(beat.bgm)) throw new Error(`${context}: BGM '${beat.bgm}'이 TRK 맵에 없습니다.`);
   if (beat.fx && !EFFECTS.has(beat.fx)) throw new Error(`${context}: 효과 '${beat.fx}'이 허용 목록에 없습니다.`);
+  // form·tone 은 오타가 나도 플레이어가 조용히 무시한다 — 화면은 멀쩡하고 연출만 사라진다.
+  if (beat.form && !BEAT_FORMS.has(beat.form)) throw new Error(`${context}: 모습 '${beat.form}'이 허용 목록(${[...BEAT_FORMS].join(", ")})에 없습니다.`);
+  if (beat.tone && !BEAT_TONES.has(beat.tone)) throw new Error(`${context}: 톤 '${beat.tone}'이 허용 목록(${[...BEAT_TONES].join(", ")})에 없습니다.`);
   if (beat.c?.who && !CAST_IDS.has(beat.c.who)) throw new Error(`${context}: 중앙 캐릭터 '${beat.c.who}'가 알 수 없는 캐스트입니다.`);
   for (const slot of ["l", "c", "r"]) {
     if (beat[slot]?.who && !CAST_IDS.has(beat[slot].who)) throw new Error(`${context}: ${slot} 슬롯 캐릭터 '${beat[slot].who}'가 알 수 없습니다.`);

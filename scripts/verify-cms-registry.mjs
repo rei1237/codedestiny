@@ -9,22 +9,24 @@
 //   3) 필드 이름 중복 없음, kind 가 알려진 종류
 //   4) listSource: "static" 이면 entries 가 있고 키가 유효·중복 없음
 //   5) build 채널 네임스페이스는 빌드 산출물(cms.generated.json)에 실릴 수 있는 형태여야 함
-//   6) 라이트 노벨 constraints 가 apply-vn-overrides / verify-vn-override-safety 와 일치
+//   6) 라이트 노벨 constraints 가 공유 상수(scripts/lib/novel-constraints.mjs)와 일치
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { walkSourceFiles } from "./lib/i18n-source-scan.mjs";
 import { CMS_GROUPS, CMS_NAMESPACES, isValidCmsKey } from "../lib/cms/registry.mjs";
+import { BEAT_MAX_LENGTH, FORBIDDEN_IN_BEAT, MIN_KOREAN_PER_EPISODE } from "./lib/novel-constraints.mjs";
 
 const CHANNELS = new Set(["runtime", "build"]);
 const EDITORS = new Set(["plain", "rich", "beats", "prompt", "record"]);
 const LIST_SOURCES = new Set(["static", "code", "user"]);
 const FIELD_KINDS = new Set(["text", "textarea", "richtext", "lines", "qa-list", "beats", "record", "json", "number", "select"]);
 
-// apply-vn-overrides.mjs / verify-vn-override-safety.mjs 의 상수와 같아야 한다.
+// 값을 여기에 다시 적지 않는다 — 정본은 scripts/lib/novel-constraints.mjs 하나다.
+// 이 검사는 "관리자 화면이 안내하는 규칙"과 "빌드가 실제로 집행하는 규칙"이 갈리는 것을 막는다.
 const EXPECTED_NOVEL_CONSTRAINTS = {
-  beatMaxLength: 250,
-  forbiddenInBeat: ["\"", "\\", "</script"],
-  minKoreanCharsPerEpisode: 1800,
+  beatMaxLength: BEAT_MAX_LENGTH,
+  forbiddenInBeat: FORBIDDEN_IN_BEAT,
+  minKoreanCharsPerEpisode: MIN_KOREAN_PER_EPISODE,
 };
 
 const rootDir = process.cwd();
@@ -99,7 +101,7 @@ if (!novel) {
 } else {
   const actual = novel.constraints || {};
   if (actual.beatMaxLength !== EXPECTED_NOVEL_CONSTRAINTS.beatMaxLength) {
-    problems.push(`light-novel: beatMaxLength 가 apply-vn-overrides 상수(${EXPECTED_NOVEL_CONSTRAINTS.beatMaxLength})와 다릅니다.`);
+    problems.push(`light-novel: beatMaxLength 가 공유 상수 scripts/lib/novel-constraints.mjs(${EXPECTED_NOVEL_CONSTRAINTS.beatMaxLength})와 다릅니다.`);
   }
   if (actual.minKoreanCharsPerEpisode !== EXPECTED_NOVEL_CONSTRAINTS.minKoreanCharsPerEpisode) {
     problems.push(`light-novel: minKoreanCharsPerEpisode 가 색인 임계값(${EXPECTED_NOVEL_CONSTRAINTS.minKoreanCharsPerEpisode})과 다릅니다.`);

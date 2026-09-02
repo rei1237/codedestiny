@@ -98,7 +98,8 @@ const matrix = JSON.parse(readFileSync(SCENE_MATRIX_PATH, "utf8"));
 if (manifest.sourceHash !== runtime.sourceHash || manifest.episodeCount !== 44 || manifest.beatCount !== EXPECTED_BEAT_COUNT) {
   fail(`manifest is not synchronized with the 44-episode canonical source (expected ${EXPECTED_BEAT_COUNT} beats, canonical source has ${runtime.beatCount}). 정본에 비트를 더하거나 뺐다면 이 파일의 EXPECTED_BEAT_COUNT 를 같은 커밋에서 갱신할 것.`);
 }
-if (matrix.sourceHash !== runtime.sourceHash || matrix.episodes?.length !== runtime.episodeCount || matrix.episodes.some((episode) => episode.emotionPath?.length < 3 || !episode.visualCues?.every((cue) => cue.accessibility))) {
+// 🔴 emotionPath 가 아예 없으면 undefined < 3 이 false 라 통과했다(fail-open). 배열 여부를 먼저 본다.
+if (matrix.sourceHash !== runtime.sourceHash || matrix.episodes?.length !== runtime.episodeCount || matrix.episodes.some((episode) => !Array.isArray(episode.emotionPath) || episode.emotionPath.length < 3 || !episode.visualCues?.every((cue) => cue.accessibility))) {
   fail("scene matrix is stale or missing its three-stage emotion/accessibility cues");
 }
 
@@ -150,6 +151,19 @@ for (const [episodeIndex, beatIndex, background] of preservedEarlyVisualCues) {
     fail(`an existing early-scene background was unexpectedly remapped: ${background}`);
   }
 }
+/* 목차에서 아무 화나 골라 바로 들어와도 첫 화면이 검은 무음이면 안 된다 — 그래서 전 화의
+   beats[0] 이 bg 와 bgm 을 함께 갖는 것이 설계다(2026-09-02 실측 44/44). 이 규칙은 가드가
+   없었고, 틀려도 **쭉 읽는 경로에서는 앞 화의 배경·음악이 남아 조용하다** — 목차 직진입에서만
+   드러난다. 정본에 화를 더하거나 첫 비트를 갈아 끼울 때 실제로 걸리는 자리다. */
+const openersMissingCues = runtime.episodes.flatMap((episode) => {
+  const opener = episode.beats[0];
+  const missing = [!opener?.bg && "bg", !opener?.bgm && "bgm"].filter(Boolean);
+  return missing.length ? [`${episode.id}(${missing.join("·")})`] : [];
+});
+if (openersMissingCues.length > 0) {
+  fail(`목차 직진입용 첫 비트에 배경·BGM 이 없습니다: ${openersMissingCues.join(", ")}. 정본의 각 화 beats[0] 에 bg 와 bgm 을 함께 둘 것.`);
+}
+
 for (const [index, meta] of manifest.episodes.entries()) {
   const path = resolve(dirname(MANIFEST_PATH), "episodes", `${meta.id}.json`);
   if (!existsSync(path)) fail(`missing chunk ${meta.id}`);

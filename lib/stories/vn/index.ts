@@ -1,6 +1,6 @@
 // 텍스트 리더용 스토리 데이터 로더.
 //
-// 본문은 scripts/build-story-text.mjs 가 public/codedestiny-novel.html 에서 추출한
+// 본문은 scripts/build-story-text.mjs 가 정본(content/novel/episodes.source.json)에서 만든
 // episodes.generated.json 을 그대로 읽는다(파생물, 손으로 고치지 말 것).
 // 아래의 로그라인·아크 구성·화자 표시명만 사람이 관리한다.
 //

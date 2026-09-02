@@ -7,7 +7,7 @@
 //   1) 오버라이드 JSON 자체가 읽히는가
 //   2) 슬러그가 실제 화와 매칭되는가 (오타 난 슬러그는 영원히 반영 안 됨)
 //   3) 비트 인덱스가 범위 안인가
-//   4) 텍스트가 250자 이내이고 금칙문자(" \ </script)가 없는가
+//   4) 텍스트가 상한(scripts/lib/novel-constraints.mjs) 이내이고 금칙문자(" \ </script)가 없는가
 //   5) 적용해도 화 수·비트 수가 그대로인가
 //   6) 적용 후에도 화별 한글 1,800자 이상인가 (verify-story-text-sync 의 색인 임계값)
 //
@@ -16,13 +16,11 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { buildStoryPayload } from "./build-story-text.mjs";
+import { BEAT_MAX_LENGTH, FORBIDDEN_IN_BEAT, MIN_KOREAN_PER_EPISODE } from "./lib/novel-constraints.mjs";
 
 const rootDir = process.cwd();
 const OVERRIDES_PATH = resolve(rootDir, "lib", "stories", "vn", "overrides.generated.json");
 
-const BEAT_MAX_LENGTH = 250;
-const FORBIDDEN_IN_BEAT = ["\"", "\\", "</script"];
-const MIN_KOREAN_PER_EPISODE = 1800;
 
 const strict = process.argv.includes("--strict");
 const problems = [];
