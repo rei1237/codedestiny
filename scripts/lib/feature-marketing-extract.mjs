@@ -34,11 +34,11 @@ export function readShellHtml() {
 }
 
 /**
- * `var NAME={…}` 을 중괄호 균형으로 잘라 실제 값으로 평가한다.
- * 이름 grep 이 아니라 본문을 세므로 문자열 안의 중괄호에 속지 않는다.
+ * `var NAME=<괄호>…</괄호>` 를 괄호 균형으로 잘라 실제 값으로 평가한다.
+ * 이름 grep 이 아니라 본문을 세므로 문자열 안의 괄호에 속지 않는다.
  */
-export function extractObjectLiteral(html, name) {
-  const anchor = `var ${name}={`;
+function extractLiteral(html, name, openChar, closeChar) {
+  const anchor = `var ${name}=${openChar}`;
   const start = html.indexOf(anchor);
   if (start < 0) throw new Error(`${name} 을 찾을 수 없습니다.`);
   const open = start + anchor.length - 1;
@@ -52,13 +52,21 @@ export function extractObjectLiteral(html, name) {
       continue;
     }
     if (c === "'" || c === '"' || c === "`") { quote = c; continue; }
-    if (c === "{") depth++;
-    else if (c === "}") {
+    if (c === openChar) depth++;
+    else if (c === closeChar) {
       depth--;
       if (depth === 0) return new Function(`return ${html.slice(open, i + 1)};`)();
     }
   }
   throw new Error(`${name} 의 끝을 찾을 수 없습니다.`);
+}
+
+export function extractObjectLiteral(html, name) {
+  return extractLiteral(html, name, "{", "}");
+}
+
+export function extractArrayLiteral(html, name) {
+  return extractLiteral(html, name, "[", "]");
 }
 
 /** index.html 의 `_pvwSafeKey` 와 같은 계약. 여기가 어긋나면 사전 조회가 통째로 빗나간다. */
@@ -104,22 +112,48 @@ export function resolveMarketingCopy(copy, key, depth = 0) {
   return clonePreviewData(data);
 }
 
+/**
+ * `inherit` 을 끝까지 따라간 **원본 키**. 사전 네임스페이스는 이 키로 정한다.
+ *
+ * 🔴 별칭 자신의 키로 ns 를 만들면 11개 로케일에 한국어가 샌다 — 2026-09-03 실측:
+ * COPY 141키 중 en 사전에 자기 네임스페이스가 없는 40키가 **전부** 별칭이고, 그 40개의
+ * 원본은 **전부** 네임스페이스를 갖고 있다(고아 0). `verify:feature-marketing-dictionary` 는
+ * 별칭을 건너뛰므로("별칭은 원본에서 검사된다") 이 어긋남을 잡지 못한다.
+ */
+export function originMarketingKey(copy, key, depth = 0) {
+  if (!key || depth > 6) return key || "";
+  const data = copy[key];
+  if (data && data.inherit) return originMarketingKey(copy, data.inherit, depth + 1);
+  return key;
+}
+
 /* ── 생성 JSON ─────────────────────────────────────────────────────── */
 
 /**
  * 셸 HTML → 생성 JSON 데이터. 소비자가 셸 파싱도 상속 해소도 하지 않도록 미리 끝내 둔다.
  *   items[셸 카피 키]   = { dictNs, copy }   — dictNs 는 `featureMarketing.<dictNs>` 조회용
  *   templates[카테고리] = { dictNs, copy }   — 카테고리 템플릿, ns 는 `template_<카테고리>`
+ *   categoryKeyByKo     = { 한국어 표기: 키 } — `featureMarketingCategory.<키>` 조회용
+ *   trustNotes          = { paid, free }     — 항목이 제 것을 안 가졌을 때의 기본 문구
  */
 export function buildFeatureMarketingCopy(html) {
   const rawCopy = extractObjectLiteral(html, "FEATURE_MARKETING_COPY");
   const rawTemplates = extractObjectLiteral(html, "FEATURE_MARKETING_TEMPLATES");
+  // 카테고리 칩의 한국어 표기 → 사전 키. 셸 `_localizeMarketingCopy` 가 쓰는 표와 같은 것을
+  // 그대로 옮긴다 — React 쪽에 손으로 베끼면 표가 갈려 칩만 한국어로 남는다(그 상태였다).
+  const categoryKeyByKo = extractObjectLiteral(html, "_MARKETING_CATEGORY_KEY_BY_KO");
+  // 신뢰 문구 기본값도 셸 상수를 그대로 쓴다. 사전 `featureMarketingTrust.paid.N` 은 이 문장을
+  // 번역한 것이라, 소비자가 제 문장을 들고 있으면 ko 만 갈리고 번역은 남의 문장을 붙인다.
+  const trustNotes = {
+    paid: extractArrayLiteral(html, "_PAID_TRUST_NOTES"),
+    free: extractArrayLiteral(html, "_FREE_TRUST_NOTES"),
+  };
 
   const items = {};
   for (const key of Object.keys(rawCopy)) {
     const resolved = resolveMarketingCopy(rawCopy, key);
     if (!resolved) continue;
-    items[key] = { dictNs: safeKey(key), copy: resolved };
+    items[key] = { dictNs: safeKey(originMarketingKey(rawCopy, key)), copy: resolved };
   }
 
   const templates = {};
@@ -127,7 +161,7 @@ export function buildFeatureMarketingCopy(html) {
     templates[id] = { dictNs: `template_${id}`, copy: clonePreviewData(entry) };
   }
 
-  return { templates, items };
+  return { categoryKeyByKo, trustNotes, templates, items };
 }
 
 /** 객체 키를 재귀적으로 정렬한다 — 셸에서 항목 순서만 바뀌어도 생성물이 흔들리지 않게. */
