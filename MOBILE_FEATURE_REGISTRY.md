@@ -100,7 +100,7 @@
 | AI 이모이 오미쿠지 | 기타 컬렉션 | `/emoi_omikuji_v2.html` | 무료 | 정적 HTML 혼재 | static HTML | 기타 chip 내부 |
 | 연이의 마음 별자리 | 기타 컬렉션 | `/yeon-star-hug` | 무료 | 작은 무료 콘텐츠가 묻힘 | Next route bundle | 기타 chip 내부 |
 | 혈액형 테스트 | 기타 컬렉션 | `/blood-type-app.html` | 무료 | 정적 HTML 혼재 | static HTML | 기타 chip 내부 |
-| 최애운명 | 기타 컬렉션 | `/saju/destiny-bias` | 1회 5,000원 | 입력/결과/공유가 긴 route | Next route bundle | 카드 preview 후 이동 |
+| 최애운명 | 기타 컬렉션 | `/saju/destiny-bias` | 무료 | 입력/결과/공유가 긴 route | Next route bundle | 카드 preview 후 이동 |
 | 사주 FPTI | 기타 컬렉션 | `/saju-fpti` | 무료, 심화 리포트 가능 | 무료 테스트와 리포트가 혼재 | route bundle | 무료 시작 후 심화 분리 |
 | 우주 신비 도서관 | 홈 인사이트 섹션 | `/insights`, `/insights/[slug]` | 무료 콘텐츠 | 홈 후반에 있어 찾기 어려움 | 기사/이미지 목록 | 모바일에서는 보조 링크 |
 | 유명인 사주 분석 아카이브 | 홈 아카이브 카드, 인사이트 | `/famous-saju`, `/insights/famous-saju`, `/insights/famous-saju/[slug]` | 무료 콘텐츠 | 홈 후반 검색 UI가 길어짐 | 유명인 DB/카드 렌더 | 상세는 insights 정경로, `/famous-saju/:slug` 는 301 |
