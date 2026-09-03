@@ -153,3 +153,11 @@ Pages 와 Worker 가 서로 다른 코드를 가리키는 것이 이 저장소�
   - `npm run verify:paid-feature-billing-policy`
   - `npm run verify:ai-prompt-billing-policy`
 - **Worker/API 변경 시** 관련 라우트 테스트와, 필요하면 `npm run build:worker` 를 포함한다.
+
+## 격리 워크트리에서 명령 돌리기 (2026-09-04 `CLAUDE.md` 에서 이관)
+
+워크트리를 만들라는 규칙 자체는 `CLAUDE.md` §작업 격리 가 정본이다. 여기 있는 것은 그 안에서 명령이 도는 방식의 실측이다.
+
+- 🔴 **`node_modules` 가 딸려온다고 믿지 말 것** — `.claude/settings.json` 에 `symlinkDirectories: ["node_modules"]` 가 있는데도 실제로는 대개 안 생긴다(2026-08-23 실측: 워크트리 41개 중 **8개만** 보유). 원인은 미확인이다. 그런데도 `npm test`·`typecheck`·`lint`·`verify:*` 는 대개 도는데, 그건 Node·도구들이 상위 디렉터리를 타고 올라가 저장소 루트의 설치본을 주워 쓰기 때문이다.
+- 🔴 그래서 **`<rootDir>/node_modules` 같은 절대 경로를 코드에 박으면 그 한 줄만 빗나간다** — `require.resolve` 를 쓸 것. 상위 탐색이 안 통하는 유일한 자리라, 박은 그 도구만 죽고 나머지는 전부 초록불이라 늦게 발견된다. 두 번 났다: `jest.config`(21개 스위트 사망) · `next-build-with-pages-manifest.mjs` 의 next CLI 경로(lint·typecheck·jest 가 **전부 통과한 채로** 빌드에서만 `Cannot find module`).
+- 빌드를 돌려야 하면 링크부터 확인한다: `ls -ld node_modules`. 없으면 저장소 루트에서 돌리거나 정션을 건다 — `cmd /c mklink /J "<워크트리 경로>\node_modules" "<저장소 루트 경로>\node_modules"`. 🔴 지울 때는 **링크부터 끊는다**(`cmd /c rmdir "<워크트리 경로>\node_modules"`) — 안 그러면 공유 설치본을 지울 위험이 있다.

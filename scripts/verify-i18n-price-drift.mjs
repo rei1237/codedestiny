@@ -113,8 +113,9 @@ for (const locale of locales) {
   walk(data, "");
 }
 
-// 2026-08-28 실측 110. 통화 표기가 바뀌거나 정규식이 깨지면 여기서 걸린다.
-const MINIMUM_PRICE_KEYS = 100;
+// 2026-09-03 실측 87 (죽은 premiumPdf 네임스페이스 23키를 걷어낸 뒤). 통화 표기가 바뀌거나
+// 정규식이 깨지면 여기서 걸린다.
+const MINIMUM_PRICE_KEYS = 78;
 assert.ok(
   byKey.size >= MINIMUM_PRICE_KEYS,
   `금액을 담은 사전 키가 ${byKey.size}개 — 최소 ${MINIMUM_PRICE_KEYS}개여야 합니다. `
@@ -127,7 +128,7 @@ assert.ok(
 const perLocaleCount = Object.fromEntries(
   locales.map((locale) => [locale, [...byKey.values()].filter((m) => m.has(locale)).length]),
 );
-const MINIMUM_PER_LOCALE = 85; // 2026-08-28 실측: 비-ko 11벌 모두 110 (ko 는 제외 대상)
+const MINIMUM_PER_LOCALE = 78; // 2026-09-03 실측: 비-ko 11벌 모두 87 (ko 는 제외 대상)
 for (const locale of locales) {
   if (locale === "ko") continue;
   assert.ok(
