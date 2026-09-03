@@ -112,7 +112,12 @@ export async function runMonthlyCreditExpiryTask(env) {
 
       for (const userDoc of users) {
         try {
-          const res = await sweepExpiredMonthlyCreditForUser(userDoc, now);
+          // 🔴 유저 단위로 통째로 감싼다 — 안에 원장 upsert + lot CAS 두 op 이 있는데, 등록하지 않으면
+          // db.js 의 in-flight 가드가 못 보고 옆 태스크의 ping 실패에 함께 끊긴다(2026-09-03 실사고).
+          // {retries:0} — $inc(membershipCreditLotsVersion)를 포함한다. 버전 CAS 가 이중 적용을 막지만
+          // 재시도로 같은 유저를 두 번 도는 경로를 애초에 만들지 않는다.
+          // 🔴 이 서브트리 안에 재시도를 새로 추가하지 말 것(verify:no-nested-retry 가 잡는다).
+          const res = await withMongoRetry(env, () => sweepExpiredMonthlyCreditForUser(userDoc, now), { retries: 0 });
           if (res.changed) {
             sweptUsers += 1;
             expiredCredits += res.expiredAmount;

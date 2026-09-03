@@ -1870,6 +1870,15 @@ export default {
       ctx.waitUntil(runPaymentsV2Reconcile(env).catch((error) => {
         console.error("[payments-v2-reconcile] task failed:", error?.message || error);
       }));
+      // 🔴 SNS 일일 발행의 **같은 날** 자기복구. 22:00Z 일일 크론이 잠금만 잡고 죽으면(2026-09-03 실사고)
+      // 그 문서는 processing 으로 굳고, 이후 시도는 전부 unique 인덱스에 걸려 already_posted 로 조용히
+      // 건너뛴다. 회수 조건(sns-daily-post-task.js 의 buildReclaimFilter 분기 ②)을 열어 놓아도 그날
+      // 다시 두드릴 실행이 없으면 발동하지 않으므로, 이 10분 주기가 그 두드림을 맡는다.
+      // 창(22:10~22:50) 밖 호출은 DB 도 네트워크도 타지 않고 즉시 반환한다 — 나머지 137회는 무비용이다.
+      const { runSnsDailyPostRecovery } = await import("./lib/sns-daily-post-task.js");
+      ctx.waitUntil(runSnsDailyPostRecovery(env).catch((error) => {
+        console.error("[sns-daily-post-recovery] task failed:", error?.message || error);
+      }));
       return;
     }
 

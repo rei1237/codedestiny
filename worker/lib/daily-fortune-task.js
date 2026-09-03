@@ -1,4 +1,4 @@
-import { connectDb } from "./db.js";
+import { connectDb, withMongoRetry } from "./db.js";
 import { DailyFortuneSubscription } from "./models.js";
 import { sendEmail } from "./resend.js";
 import { escapeTelegramHtml, sendTelegramMessage } from "./telegram.js";
@@ -419,10 +419,13 @@ export async function sendSingleFortune(env, sub, options = {}) {
   if (emailResult.ok) {
     let trackingUpdated = true;
     let trackingError = "";
-    await DailyFortuneSubscription.updateOne(
+    // 🔴 withMongoRetry 로 등록해야 db.js 의 in-flight 가드가 이 op 을 본다 — 등록하지 않으면
+    // 옆 크론 태스크의 ping 실패가 웜 커넥션을 떼면서 `Cannot use a session that has ended` 로
+    // 죽는다(2026-09-03 실사고). .catch 는 래퍼 **바깥**에 둔다(추적 실패는 발송 실패가 아니다).
+    await withMongoRetry(env, () => DailyFortuneSubscription.updateOne(
       { _id: sub._id },
       { $set: { lastSentAt: new Date(), lastMailError: "", lastMailErrorAt: null } }
-    ).catch((error) => {
+    )).catch((error) => {
       trackingUpdated = false;
       trackingError = String(error?.message || "last_sent_update_failed").slice(0, 240);
       console.error(`[EMAIL] Sent but failed to update daily fortune tracking for ${maskEmail(sub.email)}:`, error);
@@ -493,14 +496,14 @@ export async function runDailyFortuneTask(env, options = {}) {
   const batchLimit = clampInt(env?.DAILY_FORTUNE_BATCH_LIMIT, DAILY_FORTUNE_BATCH_LIMIT, 1, 5000);
   const timeBudgetMs = clampInt(env?.DAILY_FORTUNE_TIME_BUDGET_MS, DAILY_FORTUNE_TIME_BUDGET_MS, 5000, 600000);
 
-  const subscribers = await DailyFortuneSubscription.find({
+  const subscribers = await withMongoRetry(env, () => DailyFortuneSubscription.find({
     isActive: true,
     subDaily: true,
   })
     // 오늘 아직 못 받은 사람 우선. lastSentAt 이 없는 구독자가 오름차순 맨 앞에 온다.
     .sort({ lastSentAt: 1 })
     .limit(batchLimit)
-    .lean();
+    .lean());
 
   if (subscribers.length === 0) {
     console.log("[CRON] No active subscribers found.");
@@ -538,10 +541,10 @@ export async function runDailyFortuneTask(env, options = {}) {
         failedCount += 1;
         const mailErrorCode = String(result.errorCode || "daily_mail_failed").slice(0, 240);
         console.error(`[CRON] Email send failed for ${maskEmail(sub.email)}: ${mailErrorCode}`);
-        await DailyFortuneSubscription.updateOne(
+        await withMongoRetry(env, () => DailyFortuneSubscription.updateOne(
           { _id: sub._id },
           { $set: { lastMailError: mailErrorCode, lastMailErrorAt: new Date() } }
-        );
+        ));
         // 🔴 설정성 오류는 수신자와 무관하다 — 남은 구독자에게 보내도 같은 응답이 온다.
         // 계속 돌면 Resend 에 실패 요청만 구독자 수만큼 쌓이고, 요약은 failed=N 으로만 보여
         // 침묵과 구별이 안 된다(2026-08-19~08-31 에 실제로 그렇게 12일이 지났다).
@@ -561,10 +564,10 @@ export async function runDailyFortuneTask(env, options = {}) {
     } catch (err) {
       failedCount += 1;
       console.error(`[CRON] Error processing subscriber ${maskEmail(sub.email)}:`, err);
-      await DailyFortuneSubscription.updateOne(
+      await withMongoRetry(env, () => DailyFortuneSubscription.updateOne(
         { _id: sub._id },
         { $set: { lastMailError: String(err?.message || "daily_mail_failed").slice(0, 240), lastMailErrorAt: new Date() } }
-      );
+      ));
     }
   }
 
