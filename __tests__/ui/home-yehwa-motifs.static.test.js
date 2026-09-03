@@ -124,9 +124,12 @@ test('sprigs, concern seals and peonies are child spans on their hosts', () => {
   assert.equal((html.match(/<span class="cd-yehwa-sprig cd-yehwa-sprig--(?:tl|tr)" aria-hidden="true"><\/span>/g) || []).length, 4, '가지는 전부 aria-hidden 인 --tl/--tr 이어야 한다');
   assert.match(html, /<section data-cd-funnel-section="why_us" class="cd-why-us"[^>]*>\s*<span class="cd-yehwa-sprig cd-yehwa-sprig--tl"/, '왜 우리 섹션 첫 자식이 가지가 아니다');
   assert.match(html, /<section class="cd-ai-feats"[^>]*>\s*<span class="cd-yehwa-sprig cd-yehwa-sprig--tl"/, 'AI 카드 첫 자식이 가지가 아니다');
-  // 🔴 파인더 필터 행에는 두지 않는다(2026-09-03 시각 판정) — 구분선 마스크의 미러 쌍이 방식/가격 행 사이 거터에
-  // 떠서 "나눌 것 없는 자리의 구분선"으로 읽혔다. 단방향 가지 마스크가 생기기 전에는 되살리지 않는다.
-  assert.doesNotMatch(html, /<div class="fortune-gateway__filters"[^>]*>\s*<span class="cd-yehwa/, '파인더 필터 행에 문양을 두지 않는다');
+  // 🔴 파인더 가격 행은 단방향 가지(branch-spray)만 받는다 — 좌우 대칭인 구분선 마스크(branch-h)를 여기 두면
+  // 방식/가격 행 사이 거터에 미러 쌍이 떠서 "나눌 것 없는 자리의 구분선"으로 읽힌다(2026-09-03 시각 판정).
+  // 문양은 필터 묶음(.fortune-gateway__filters)이 아니라 가격 행 안에 있어야 자리가 행 baseline 에 붙는다.
+  assert.doesNotMatch(html, /<div class="fortune-gateway__filters"[^>]*>\s*<span class="cd-yehwa/, '문양은 필터 묶음이 아니라 가격 행 안에 둔다');
+  assert.equal((html.match(/class="cd-yehwa-spray"/g) || []).length, 1, '가지 스프레이는 파인더 가격 행 1개뿐이어야 한다');
+  assert.match(html, /<div class="fortune-gateway__filter-row" role="group" aria-label="가격대로 좁히기"[^>]*>\s*<span class="cd-yehwa-spray" aria-hidden="true"><\/span>/, '가격 행 첫 자식이 가지 스프레이가 아니다');
 
   // 고민 카드 6장 전부에 인장 span 이 있고 CSS 가 aria-expanded=true 인 카드에서만 켠다.
   const concern = html.match(/<button type="button" class="cd-concern__card"[^>]*>\s*<span class="cd-yehwa-seal cd-yehwa-seal--concern" aria-hidden="true"><\/span>/g) || [];
@@ -149,7 +152,14 @@ test('PR-3 placements are generated, ordered by width, and repainted for neo', (
   ]) {
     assert.ok(css.includes(`${sel} {`), `${sel} 배치 규칙이 없다`);
   }
-  assert.ok(!css.includes('.fortune-gateway__filters > .cd-yehwa'), '파인더 필터 행 규칙은 두지 않는다');
+  assert.ok(css.includes('.fortune-gateway__filter-row > .cd-yehwa-spray {'), '파인더 가격 행 스프레이 배치 규칙이 없다');
+  assert.ok(!css.includes('.fortune-gateway__filters > .cd-yehwa'), '문양은 필터 묶음이 아니라 가격 행에 붙인다');
+  // 🔴 파인더에 좌우 대칭 구분선 마스크를 쓰지 않는다 — 단방향 branch-spray 만.
+  const spray = (css.match(/\.fortune-gateway__filter-row > \.cd-yehwa-spray \{[^}]*\}/) || [])[0] || "";
+  assert.match(spray, /mask-image:\s*var\(--cd-yehwa-mask-branch-spray\)/, '스프레이는 branch-spray 마스크여야 한다');
+  assert.ok(!spray.includes('branch-h'), '파인더에 좌우 대칭 구분선 마스크를 쓰지 않는다');
+  // 🔴 행이 스태킹 컨텍스트를 만들어야 z-index:-1 이 패널의 불투명 배경 뒤로 빠지지 않는다.
+  assert.match(css, /\.fortune-gateway__filter-row \{[^}]*position:\s*relative[^}]*z-index:\s*0/, '가격 행에 스태킹 컨텍스트가 없다');
   assert.match(css, /\.cd-yehwa-sprig \{[^}]*z-index:\s*-1/);
   assert.match(css, /\.cd-yehwa-peony \{[^}]*z-index:\s*-1/);
   // 비활성 고민 카드에는 인장이 보이면 안 된다 — 기본 display:none, 활성 카드에서만 block.
@@ -157,6 +167,7 @@ test('PR-3 placements are generated, ordered by width, and repainted for neo', (
   assert.match(css, /\.cd-concern__card\[aria-expanded="true"\] \.cd-yehwa-seal--concern \{[^}]*display:\s*block/);
   assert.match(css, /html\.neo-mode body \.cd-yehwa-sprig[^{]*\{[^}]*background:/);
   assert.match(css, /html\.neo-mode body \.cd-yehwa-peony[^{]*\{[^}]*background:/);
+  assert.match(css, /html\.neo-mode body \.cd-yehwa-spray[^{]*\{[^}]*background:/);
   assert.match(css, /html\.neo-mode body \.cd-concern__card \.cd-yehwa-seal--concern[^{]*\{[^}]*background:/);
   // 🔴 AI 카드 가지의 1200px 축소 규칙은 900px 모바일 규칙보다 앞에 있어야 한다 — 두 --tr 규칙의 특이도가 같아
   // 순서로 이기고, 뒤집히면 모바일에서 170x131 이 남아 제목과 겹친다(2026-09-03 실제로 한 번 뒤집혔다).
@@ -167,9 +178,10 @@ test('PR-3 placements are generated, ordered by width, and repainted for neo', (
   assert.ok(block900.includes('.cd-ai-feats > .cd-yehwa-sprig--tr {'), '900px 블록에 AI 우상단 가지 축소 규칙이 없다');
   assert.match(block900, /\.cd-ai-feats > \.cd-yehwa-sprig--tl \{[^}]*display:\s*none/, '900px 아래에서 AI 좌상단 가지를 꺼야 한다');
   assert.match(block900, /\.cd-yehwa-peony,[^{]*\{[^}]*display:\s*none/, '900px 아래에서 모란을 꺼야 한다');
+  assert.match(block900, /\.fortune-gateway__filter-row > \.cd-yehwa-spray,[^{]*\{[^}]*display:\s*none/, '900px 아래에서 파인더 스프레이를 꺼야 한다');
   // 선문양 상한은 인장과 같다(.6) — 넘기면 장식이 아니라 그림이 된다.
-  const blocks = css.match(/\.cd-yehwa-(?:sprig|peony)[^{]*\{[^}]*\}/g) || [];
-  assert.ok(blocks.length >= 6);
+  const blocks = css.match(/\.cd-yehwa-(?:sprig|peony|spray)[^{]*\{[^}]*\}/g) || [];
+  assert.ok(blocks.length >= 7);
   for (const block of blocks) {
     const m = block.match(/opacity:\s*(\.\d+|\d(?:\.\d+)?)/);
     if (m) assert.ok(Number(m[1]) <= 0.6, `line motif opacity too high: ${block.slice(0, 48)} → ${m[1]}`);
