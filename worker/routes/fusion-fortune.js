@@ -16,6 +16,7 @@ import {
 } from "../lib/fusion-fortune.js";
 import {
   getFusionFortuneConsultation,
+  getFusionFortuneConsultationByRequestId,
   listFusionFortuneConsultations,
   saveFusionFortuneConsultation,
 } from "../lib/fusion-fortune-consultation.js";
@@ -82,6 +83,16 @@ function writeFusionFortuneSse(writer, event, payload) {
  */
 const FUSION_SSE_HEARTBEAT_MS = 15000;
 
+/**
+ * 데드라인을 넘긴 스트림을 서버가 **직접** 닫기까지의 유예.
+ *
+ * 🔴 abort 신호는 SSE 를 한 줄도 쓰지 않는다. 신호가 실제로 종료로 바뀌는 자리는 생성기 안의
+ *    await 경계뿐이라, 그 경계 밖(그룹 병렬 대기·Mongo 저장)에서 걸리면 run 이 영원히 pending
+ *    이고 finally 가 안 돌아 ping 만 15초마다 계속 나간다 — 화면이 영원히 도는 정체가 이것이다.
+ *    유예 뒤에는 종료를 신호에 맡기지 않고 여기서 확정한다.
+ */
+const FUSION_STREAM_HARD_STOP_GRACE_MS = 5000;
+
 function canGenerateFusionFortune(env) {
   return isFusionFortuneMockFlowEnabled(env) || isFusionFortuneRealLlmAllowed(env);
 }
@@ -112,42 +123,7 @@ async function persistFusionDelivery({ userId, input, delivery }) {
   }
 }
 
-/**
- * 보관본 조회. 인자가 없으면 최근 목록, `?id=` 면 단건.
- *
- * 🔴 결제 게이트를 두지 않는다 — 본인이 이미 결제해 받은 결과를 다시 여는 것이다.
- *    생성 플래그(canGenerateFusionFortune)와도 무관하다: 생성이 꺼져도 재열람은 열려 있어야 한다.
- */
-async function handleFusionFortuneResultRoute(request, env) {
-  let auth;
-  try {
-    auth = await requireUserFromRequest(request, env, { allowDbFallback: true });
-  } catch (error) {
-    // DB 장애로 신원을 확인하지 못한 것을 401 로 내리면 로그인한 사용자가 자기 결과를
-    // 못 보고 재로그인을 반복한다. 재시도 가능한 503 으로 표면화한다.
-    if (Number(error?.status) === 401) throw error;
-    return respond({ ok: false, status: 503, retryable: true, error: "FUSION_FORTUNE_RESULT_DEGRADED", message: "결과를 불러오지 못했어요. 잠시 후 다시 시도해 주세요." });
-  }
-  await connectDb(env);
-  const userId = String(auth.userId);
-  const id = new URL(request.url).searchParams.get("id") || "";
-
-  if (!id) {
-    const consultations = await listFusionFortuneConsultations({ userId });
-    return respond({
-      ok: true,
-      consultations: consultations.map((item) => ({
-        id: item.id,
-        title: item.title || "초융합 운세",
-        topic: item.inputSummary?.topic || "",
-        nickname: item.inputSummary?.nickname || "",
-        qualityTier: item.qualityTier || "full",
-        createdAt: item.createdAt,
-      })),
-    });
-  }
-
-  const consultation = await getFusionFortuneConsultation({ userId, id });
+function respondFusionConsultation(consultation) {
   if (!consultation) {
     return respond({ ok: false, status: 404, error: "FUSION_FORTUNE_RESULT_NOT_FOUND", message: "저장된 결과를 찾지 못했어요." });
   }
@@ -165,6 +141,52 @@ async function handleFusionFortuneResultRoute(request, env) {
       createdAt: consultation.createdAt,
     },
   });
+}
+
+/**
+ * 보관본 조회. 인자가 없으면 최근 목록, `?id=` 면 단건, `?requestId=` 면 결제 키로 회수.
+ *
+ * 🔴 결제 게이트를 두지 않는다 — 본인이 이미 결제해 받은 결과를 다시 여는 것이다.
+ *    생성 플래그(canGenerateFusionFortune)와도 무관하다: 생성이 꺼져도 재열람은 열려 있어야 한다.
+ */
+async function handleFusionFortuneResultRoute(request, env) {
+  let auth;
+  try {
+    auth = await requireUserFromRequest(request, env, { allowDbFallback: true });
+  } catch (error) {
+    // DB 장애로 신원을 확인하지 못한 것을 401 로 내리면 로그인한 사용자가 자기 결과를
+    // 못 보고 재로그인을 반복한다. 재시도 가능한 503 으로 표면화한다.
+    if (Number(error?.status) === 401) throw error;
+    return respond({ ok: false, status: 503, retryable: true, error: "FUSION_FORTUNE_RESULT_DEGRADED", message: "결과를 불러오지 못했어요. 잠시 후 다시 시도해 주세요." });
+  }
+  await connectDb(env);
+  const userId = String(auth.userId);
+  const params = new URL(request.url).searchParams;
+  const id = params.get("id") || "";
+  // 🔴 결제 증빙 키로 되찾는 경로. 스트림이 result 를 못 보내고 끊긴 사용자가 3만원짜리
+  //    결과를 회수하는 유일한 자리다 — 저장이 배달보다 먼저 끝나므로 여기 있으면 있다.
+  const requestId = params.get("requestId") || "";
+  if (!id && requestId) {
+    return respondFusionConsultation(await getFusionFortuneConsultationByRequestId({ userId, requestId }));
+  }
+
+  if (!id) {
+    const consultations = await listFusionFortuneConsultations({ userId });
+    return respond({
+      ok: true,
+      consultations: consultations.map((item) => ({
+        id: item.id,
+        title: item.title || "초융합 운세",
+        topic: item.inputSummary?.topic || "",
+        nickname: item.inputSummary?.nickname || "",
+        qualityTier: item.qualityTier || "full",
+        createdAt: item.createdAt,
+      })),
+    });
+  }
+
+  const consultation = await getFusionFortuneConsultation({ userId, id });
+  return respondFusionConsultation(consultation);
 }
 
 async function handleFusionFortuneStreamRoute(request, env, ctx) {
@@ -204,6 +226,36 @@ async function handleFusionFortuneStreamRoute(request, env, ctx) {
   const onClientAbort = () => abortController.abort();
   request.signal?.addEventListener?.("abort", onClientAbort, { once: true });
   const edgeTimer = setTimeout(() => abortController.abort(), edgeDeadlineMs);
+  const streamRequestId = String(body?.requestId || request.headers.get("idempotency-key") || request.headers.get("x-idempotency-key") || "").slice(0, 180);
+  // 🔴 스트림의 **종료 주체**. 이 자리가 비어 있어서 2026-09-03 에 결제한 사용자의 화면이
+  //    영원히 돌았다(원칙 6 확인: 추가가 아니라 없던 주체를 만드는 것 — 종료를 담당하던
+  //    코드는 run 의 finally 뿐이었고, run 이 pending 이면 그 finally 는 영원히 안 돈다).
+  //    성공·실패·하드 스톱 어느 경로로 들어와도 한 번만 실행된다.
+  let hardStopTimer = null;
+  let settled = false;
+  const settleStream = async (errorPayload) => {
+    if (settled) return;
+    settled = true;
+    clearTimeout(edgeTimer);
+    if (hardStopTimer !== null) clearTimeout(hardStopTimer);
+    request.signal?.removeEventListener?.("abort", onClientAbort);
+    stopHeartbeat();
+    if (errorPayload) await writeFusionFortuneSse(writer, "error", errorPayload).catch(() => {});
+    await writer.close().catch(() => {});
+  };
+  hardStopTimer = setTimeout(() => {
+    console.warn("[fusion-fortune-stream-hard-stop]", { requestId: streamRequestId, deadlineMs: edgeDeadlineMs, graceMs: FUSION_STREAM_HARD_STOP_GRACE_MS });
+    void settleStream({
+      error: FUSION_FORTUNE_ERROR_CODES.STREAM_TIMEOUT,
+      message: "시간 안에 결과를 완성하지 못했어요. 같은 요청으로 다시 시도하면 추가 결제는 없습니다.",
+      requestId: streamRequestId,
+      status: 504,
+      retryable: true,
+      // 🔴 결제 증빙 키를 반드시 실어 보낸다. 이 값이 없으면 3만원을 낸 요청을 화면에서
+      //    되찾을 방법이 없다(클라이언트가 이 키로 보관본을 조회한다).
+      retryRequestId: streamRequestId,
+    });
+  }, edgeDeadlineMs + FUSION_STREAM_HARD_STOP_GRACE_MS);
   const run = (async () => {
     try {
       await writeFusionFortuneSse(writer, "status", { status: "started" });
@@ -259,10 +311,8 @@ async function handleFusionFortuneStreamRoute(request, env, ctx) {
         message: "결과를 준비하지 못했어요. 같은 요청으로 다시 시도하면 추가 결제는 없습니다.",
       }).catch(() => {});
     } finally {
-      clearTimeout(edgeTimer);
-      request.signal?.removeEventListener?.("abort", onClientAbort);
-      stopHeartbeat();
-      await writer.close().catch(() => {});
+      // 하드 스톱이 먼저 닫았으면 settleStream 이 아무것도 하지 않는다(이중 종료 방지).
+      await settleStream(null);
     }
   })();
   if (ctx && typeof ctx.waitUntil === "function") ctx.waitUntil(run);

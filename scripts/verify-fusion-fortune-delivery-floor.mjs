@@ -8,10 +8,20 @@
  * **본 결과도 폴백도 같은 이유로 탈락**하고 같은 requestId 재시도가 영원히 같은 자리에서 죽었다.
  * 사용자 화면에는 "결과를 준비하지 못했어요"만 남고 30,000원은 이미 결제된 뒤였다.
  *
- * 이 스크립트가 고정하는 계약은 셋이다:
+ * 이 스크립트가 고정하는 계약은 넷이다:
  *   ① 품질만 미달한 결과는 `tier:"degraded"` 로 **배달된다**(0을 받는 경로가 없다)
  *   ② 안전 위반(개인정보 노출·타로 환각·필수 키 누락)은 **여전히 반려된다**
  *   ③ 첫 위반만 돌려주는 기존 `validateFusionFortuneResult` 계약은 그대로다(가드 단언이 이 모양을 본다)
+ *   ④ 🔴 **입력 조합 전수** — 생시 유무 × 출생지 유무 4조합 모두에서 배달된다
+ *
+ * ④ 를 뒤늦게 넣은 이유(2026-09-03 실사고): 이 스크립트의 유일한 입력 `BASE_INPUT` 이 생시와
+ * 출생지를 **항상** 채우고 있었고 `OPTIONS` 도 `birthTimeKnown/birthPlaceKnown` 을 손으로 `true` 로
+ * 박아 둬서, 나머지 세 조합을 한 번도 밟지 않았다. 그 사이 과장 탐지 정규식이 우리 시스템 자신의
+ * 면책 문장("상승궁·하우스는 단정하지 않고…")을 과장으로 오인해 **생시/출생지 미상 입력 3조합이
+ * 전부 영구 실패**하고 있었다 — 결정론 폴백까지 같은 게이트에 걸려 재시도해도 같은 자리에서 죽었다.
+ * 그래서 조합 목록은 손으로 쓴 배열이 아니라 `[true,false] × [true,false]` 전개로 만든다.
+ * 그리고 검사가 통째로 무력화되지 않았음을 **양방향**으로 고정한다 — 진짜 과장 문장을 주입하면
+ * 해당 조합에서 `birth_*_overclaim` 이 여전히 나와야 한다.
  *
  * 🔴 실제 모델 호출은 하지 않는다. providerCall 을 주입해 가짜 응답만 흘린다
  *    (정본 패턴: scripts/verify-fusion-fortune-quality.mjs).
@@ -75,19 +85,36 @@ const ENV = {
   GEMINI_API_KEY: "verify-only-not-a-real-key",
 };
 
-const built = await buildFusionFortuneContext(BASE_INPUT, { adapters: ADAPTERS });
-if (!built.ok) {
-  console.error(`[verify-fusion-fortune-delivery-floor] context failed: ${built.errorCode} (${built.failedSystem})`);
-  process.exit(1);
+/** 입력 조합 하나를 실제 컨텍스트까지 세운다. 🔴 옵션은 손으로 박지 않고 컨텍스트에서 파생한다
+ *  — 프로덕션의 `fusionValidationOptions` 와 같은 자리에서 같은 값을 읽어야 조합이 진짜로 재현된다. */
+async function buildShape({ birthTimeKnown, birthPlaceKnown }) {
+  const input = { ...BASE_INPUT };
+  if (!birthTimeKnown) { input.birthTime = ""; input.birthTimeUnknown = true; }
+  if (!birthPlaceKnown) delete input.birthPlace;
+  const outcome = await buildFusionFortuneContext(input, { adapters: ADAPTERS });
+  if (!outcome.ok) {
+    console.error(`[verify-fusion-fortune-delivery-floor] context failed: ${outcome.errorCode} (${outcome.failedSystem}) — 생시=${birthTimeKnown} 장소=${birthPlaceKnown}`);
+    process.exit(1);
+  }
+  const shapeContext = outcome.context;
+  return {
+    label: `생시${birthTimeKnown ? "O" : "X"} 장소${birthPlaceKnown ? "O" : "X"}`,
+    input,
+    context: shapeContext,
+    cards: shapeContext.tarotSpread.cards,
+    options: {
+      birthTimeKnown: shapeContext.birthTimeKnown === true,
+      birthPlaceKnown: shapeContext.birthPlaceKnown === true,
+      sensitiveValues: [input.birthDate, input.birthTime, input.concern],
+      selectedTarotCards: shapeContext.tarotSpread.cards,
+    },
+  };
 }
-const context = built.context;
-const cards = context.tarotSpread.cards;
-const OPTIONS = {
-  birthTimeKnown: true,
-  birthPlaceKnown: true,
-  sensitiveValues: [BASE_INPUT.birthDate, BASE_INPUT.birthTime, BASE_INPUT.concern],
-  selectedTarotCards: cards,
-};
+
+const baseShape = await buildShape({ birthTimeKnown: true, birthPlaceKnown: true });
+const context = baseShape.context;
+const cards = baseShape.cards;
+const OPTIONS = baseShape.options;
 
 // ── 기준선: 결정론 폴백 그 자체 ──────────────────────────────────────
 // 이것이 "모델이 통째로 죽었을 때 사용자가 받는 글"이다. 여기가 무너지면 바닥이 없다.
@@ -163,7 +190,7 @@ function filler(seed, minChars) {
 }
 
 /** 계약을 만족하되 목표 분량의 절반만 쓰는 그룹 응답 — 실제 Gemini 미달 케이스를 흉내낸다. */
-function shortGroupPayload(group) {
+function shortGroupPayload(group, groupCards = cards) {
   const payload = {};
   for (const key of group.keys) {
     if (key === "visualization") {
@@ -203,25 +230,31 @@ function shortGroupPayload(group) {
     if (key === "executiveSummary") { payload.executiveSummary = filler("한 문단 요약.", FUSION_FORTUNE_LENGTH.executiveSummary + 60); continue; }
     if (key === "closingMessage") { payload.closingMessage = filler("맺음말.", FUSION_FORTUNE_LENGTH.closingMessage + 60); continue; }
     const minChars = key === "integratedReading" ? FUSION_FORTUNE_LENGTH.integratedReading : FUSION_FORTUNE_LENGTH.section;
-    const cardNames = key === "tarotSection" ? ` ${cards.map((card) => card.name).join(", ")} 카드가 함께 나왔습니다.` : "";
+    const cardNames = key === "tarotSection" ? ` ${groupCards.map((card) => card.name).join(", ")} 카드가 함께 나왔습니다.` : "";
     payload[key] = { title: `${key} 해석`, content: `${filler(`${key} 본문.`, minChars + 40)}${cardNames}`, keyPoints: ["첫 번째 신호", "두 번째 신호", "세 번째 신호"] };
   }
   return payload;
 }
 
-const stageEvents = [];
-const generated = await generateFusionFortuneWithRealLLM({
-  input: BASE_INPUT,
-  context,
-  env: ENV,
-  requestId: "verify-delivery-floor",
-  now: new Date("2026-08-16T00:00:00Z"),
-  onStage: (stage) => { stageEvents.push(stage); },
-  providerCall: async (_env, _prompt, options) => {
-    const group = FUSION_SECTION_GROUP_SPECS.find((spec) => spec.id === options?.logContext?.sectionGroup);
-    return { ok: true, provider: "gemini", model: "gemini-2.5-flash", text: JSON.stringify(shortGroupPayload(group)) };
-  },
-});
+/** 네 묶음이 전부 분량 미달로 돌아오는 실전 경로 — providerCall 주입이라 실호출은 없다. */
+async function runShortGeneration(shape) {
+  const events = [];
+  const outcome = await generateFusionFortuneWithRealLLM({
+    input: shape.input,
+    context: shape.context,
+    env: ENV,
+    requestId: `verify-delivery-floor-${shape.label}`,
+    now: new Date("2026-08-16T00:00:00Z"),
+    onStage: (stage) => { events.push(stage); },
+    providerCall: async (_env, _prompt, options) => {
+      const group = FUSION_SECTION_GROUP_SPECS.find((spec) => spec.id === options?.logContext?.sectionGroup);
+      return { ok: true, provider: "gemini", model: "gemini-2.5-flash", text: JSON.stringify(shortGroupPayload(group, shape.cards)) };
+    },
+  });
+  return { generated: outcome, stageEvents: events };
+}
+
+const { generated, stageEvents } = await runShortGeneration(baseShape);
 
 check("네 묶음이 모두 분량 미달이어도 결과가 배달된다", generated.deliverable === true && Boolean(generated.result),
   `deliverable=${generated.deliverable}`);
@@ -238,6 +271,53 @@ check("진행 카운터가 총량을 넘지 않는다",
 check("보완 국면은 별도 phase 로 알린다",
   composeEvents.every((event) => event.phase === "compose" || event.phase === "repair"),
   composeEvents.map((event) => String(event.phase)).join(","));
+
+// ── ④ 입력 조합 전수: 생시 유무 × 출생지 유무 ────────────────────────
+// 🔴 목록을 손으로 쓰지 않는다. 축을 늘리면 조합이 자동으로 늘고, 빠뜨릴 수 없다.
+const SHAPE_AXES = [true, false];
+const SHAPES = SHAPE_AXES.flatMap((birthTimeKnown) => SHAPE_AXES.map((birthPlaceKnown) => ({ birthTimeKnown, birthPlaceKnown })));
+check("조합 축이 4개 전부를 만든다", SHAPES.length === 4, `조합 수=${SHAPES.length}`);
+
+// 검사가 통째로 지워지지 않았음을 반대 방향으로 고정한다. 조합별로 "미상"인 축에 대해서만
+// 진짜 과장 문장이 여전히 검출돼야 한다 — 정규식을 완화했지 없앤 것이 아니다.
+const GENUINE_OVERCLAIM = {
+  birth_time_overclaim: "상승궁은 사자자리로 확실합니다. 하우스 배치가 분명하게 재물운을 보장합니다.",
+  birth_place_overclaim: "나크샤트라는 아쉬위니로 단정할 수 있습니다. 라그나 역시 처녀자리로 확실합니다.",
+};
+
+for (const axes of SHAPES) {
+  const shape = await buildShape(axes);
+  check(`[${shape.label}] 컨텍스트가 요청한 축을 그대로 반영한다`,
+    shape.options.birthTimeKnown === axes.birthTimeKnown && shape.options.birthPlaceKnown === axes.birthPlaceKnown,
+    `timeKnown=${shape.options.birthTimeKnown} placeKnown=${shape.options.birthPlaceKnown}`);
+
+  // (1) 결정론 폴백 — 모델이 통째로 죽었을 때 사용자가 받는 글. 여기가 무너지면 바닥이 없다.
+  const fallback = await generateFusionFortuneWithMockLLM({ context: shape.context, now: new Date("2026-08-16T00:00:00Z") });
+  const fallbackEval = evaluateFusionFortuneResult(fallback, shape.options);
+  check(`[${shape.label}] 결정론 폴백이 계약을 통과한다`, fallbackEval.issues.length === 0, fallbackEval.issues.join(","));
+  const fallbackDelivery = resolveFusionFortuneDelivery(fallback, shape.options);
+  check(`[${shape.label}] 결정론 폴백은 배달된다`, fallbackDelivery.deliverable === true,
+    `tier=${fallbackDelivery.tier} issues=${(fallbackDelivery.issues || []).join(",")}`);
+
+  // (2) 생성기 전 경로 — 네 묶음이 전부 미달이어도 이 조합에서 0이 나오면 안 된다.
+  const { generated: shapeGenerated } = await runShortGeneration(shape);
+  check(`[${shape.label}] 네 묶음 미달에도 결과가 배달된다`,
+    shapeGenerated.deliverable === true && Boolean(shapeGenerated.result),
+    `deliverable=${shapeGenerated.deliverable} issues=${(shapeGenerated.qualityIssues || []).join(",")}`);
+
+  // (3) 반대 방향 — 진짜 과장은 여전히 잡힌다. 미상인 축에 대해서만 성립하는 검사다.
+  for (const [issue, sentence] of Object.entries(GENUINE_OVERCLAIM)) {
+    const axisKnown = issue === "birth_time_overclaim" ? shape.options.birthTimeKnown : shape.options.birthPlaceKnown;
+    if (axisKnown) continue;
+    const overclaimed = { ...fallback, sajuSection: { ...fallback.sajuSection, content: `${sentence} ${fallback.sajuSection.content}` } };
+    const overclaimedEval = evaluateFusionFortuneResult(overclaimed, shape.options);
+    check(`[${shape.label}] 진짜 과장은 ${issue} 로 여전히 검출된다`,
+      overclaimedEval.issues.includes(issue), `issues=${overclaimedEval.issues.join(",")}`);
+    // 검출되더라도 배달은 막지 않는다 — 막는 자리는 재작성 기회가 있는 그룹 검증이다.
+    check(`[${shape.label}] ${issue} 는 배달을 막지 않는다(강등)`,
+      resolveFusionFortuneDelivery(overclaimed, shape.options).deliverable === true);
+  }
+}
 
 if (failures.length) {
   console.error("\n[verify-fusion-fortune-delivery-floor] FAIL");
