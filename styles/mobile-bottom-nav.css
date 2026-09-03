@@ -96,34 +96,13 @@ body.cd-mnav-mounted .cd-feature-nav {
 }
 
 /**
- * 달빛 예화 장식 ①: 바 윗변에 얹는 1px 헤어라인. 가운데가 짙고 양끝이 사라진다 —
- * styles/yehwa-motifs.css 의 `.cd-yehwa-divider::before` 와 같은 구성이지만 마스크가 필요
- * 없으므로(직선) SVG 없이 그라디언트만 쓴다. 생성기(scripts/design/gen-yehwa-motifs.mjs)를
- * 건드리지 않는 이유가 이것이다.
- *
- * 🔴 `border-top` 을 대체하지 않고 **그 위에 얹는다**. 테두리는 바와 본문을 가르는 기능선이라
- *    지우면 밝은 연이 표면에서 바의 경계가 사라진다. 장식은 그 선을 가운데에서 금빛으로
- *    덥히기만 한다 — 대비 규칙에 걸리는 변경이 아니다.
+ * 🔴 달빛 예화 장식은 바 윗변의 1px 헤어라인이 아니라 **접기 손잡이의 가지 띠**다.
+ *    윗변 선은 손잡이 줄과 다른 행이라 달과 선이 따로 놀았고, 바 padding 이 표면마다 달라
+ *    정렬이 계속 어긋났다(2026-09-04). 지금은 `.cd-mnav__handle::after` 가 달을 가운데 두고
+ *    좌우로 뻗는 매화 가지를 그리며, 기하·마스크 전부 생성물 styles/yehwa-motifs-nav.css 소유다.
+ *    바와 본문을 가르는 기능선은 원래대로 `border-top` 이다 — 그건 건드리지 않았다.
+ *    --cd-mnav-hairline 은 그 가지의 잉크로 그대로 쓰인다(표면별 알파는 아래에서 준다).
  */
-.cd-mnav::before {
-  content: "";
-  position: absolute;
-  /* 🔴 0 이 아니라 -1px — absolute 의 기준은 padding box 라 top:0 은 border-top **아래**에
-     그려져 평평한 보랏빛 테두리와 금빛 선이 2줄로 겹쳐 보인다(미드나잇 실측). -1px 로
-     테두리 행 위에 정확히 얹어 한 줄로 만든다. */
-  top: -1px;
-  left: 10%;
-  right: 10%;
-  height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    var(--cd-mnav-hairline) 26%,
-    var(--cd-mnav-hairline) 74%,
-    transparent 100%
-  );
-  pointer-events: none;
-}
 
 .cd-mnav__list {
   display: grid;
@@ -321,11 +300,6 @@ body.cd-mnav-mounted.cd-mnav-collapsed .cd-mnav {
   pointer-events: none;
 }
 
-/* 그을 바가 없으므로 장식 헤어라인도 함께 사라진다. */
-body.cd-mnav-collapsed .cd-mnav::before {
-  display: none;
-}
-
 body.cd-mnav-collapsed .cd-mnav__list {
   display: none;
 }
@@ -487,11 +461,6 @@ body:has(main.cd-yeoni-surface) .cd-mnav__handle:focus-visible {
     pointer-events: none;
   }
 
-  /* 상단 예화 가름선은 바가 아니라 도크 패널이 갖는다(패널 밖 전폭 선은 도크와 모순이다). */
-  .cd-mnav::before {
-    display: none;
-  }
-
   .cd-mnav__list {
     position: relative;
     pointer-events: auto;
@@ -506,22 +475,15 @@ body:has(main.cd-yeoni-surface) .cd-mnav__handle:focus-visible {
     -webkit-backdrop-filter: blur(14px);
   }
 
-  /* 달빛 예화 가름선 — 모바일 바 상단의 것과 같은 레시피를 패널 상단으로 옮긴 것이다. */
-  .cd-mnav__list::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 12%;
-    right: 12%;
-    height: 1px;
-    background: linear-gradient(
-      90deg,
-      transparent 0%,
-      var(--cd-mnav-hairline) 26%,
-      var(--cd-mnav-hairline) 74%,
-      transparent 100%
-    );
-    pointer-events: none;
+  /* 패널 상단 가름선은 두지 않는다 — 패널이 이미 4면 테두리를 갖고, 달빛 예화 장식은 그 위에
+     올라탄 nub 의 가지 띠가 맡는다. */
+  /* 🔴 가지 띠는 nub 한가운데가 아니라 **패널 윗변**에 앉힌다 — nub 중심(패널 위 11px)에
+     두면 받침 없이 허공에 떠서 끊긴 잔가지로 읽혔다(2026-09-04 픽셀 실측: 패널 테두리 y=106 인데
+     가지가 y=92~97). top:100% 는 손잡이 아래변(=패널 윗변)이고 margin-top:-10px 이 띠를 그 위에
+     반씩 걸치므로, 아래 절반은 z-index:-1 로 불투명한 패널 뒤에 숨고 위 절반만 남아 가지가
+     패널에서 자라 나온 것처럼 보인다. */
+  .cd-mnav__handle::after {
+    top: 100%;
   }
 
   /* 펼침: 바 위쪽 모서리에 올라탄 nub. 바 자체의 높이는 건드리지 않는다. */
