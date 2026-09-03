@@ -135,11 +135,12 @@ export async function reconcilePendingPayments(env, options = {}) {
     // 🔴 클레임 '실패'(Mongo 오류)와 '경합'(다른 실행이 이미 잡음)을 구분한다. 예전에는 둘 다 조용히
     // skipped 로 셌는데, Atlas idle 연결 회수로 콜드 isolate 의 첫 쓰기가 자주 타임아웃 나는 이 환경에서는
     // 크론이 거의 아무것도 못 하는데도 요약이 정상처럼 보였다. 재시도는 다음 크론 틱이 한다 —
-    // 여기에 새 재시도 계층을 만들지 않는다.
+    // 여기에 새 재시도 계층을 만들지 않는다. withMongoRetry 는 retries: 0 으로 op 타임아웃·연결 리셋 보호만
+    // 받는다(verify:cron-mongo-op-coverage 가 크론 도달 DB op 을 보호 밖에 두지 못하게 한다, 2026-09-03).
     let claimed = null;
     let claimFailed = false;
     try {
-      claimed = await Payment.findOneAndUpdate(
+      claimed = await withMongoRetry(env, () => Payment.findOneAndUpdate(
         {
           _id: candidate._id,
           status: candidate.status,
@@ -150,7 +151,7 @@ export async function reconcilePendingPayments(env, options = {}) {
         },
         { $set: { "metadata.reconcile.lastAt": new Date() }, $inc: { "metadata.reconcile.attempts": 1 } },
         { returnDocument: "after" },
-      ).lean();
+      ).lean(), { retries: 0 });
     } catch (error) {
       claimFailed = true;
       console.error("[CRON] payment reconcile claim failed", candidate.merchantUid, error?.message || error);
