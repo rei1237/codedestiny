@@ -32,6 +32,7 @@ if (!/^https?:\/\//i.test(base)) throw new Error("Smoke base must be an absolute
 const failures = [];
 const browserErrors = [];
 const ignoredConsoleErrors = [];
+const pendingServerErrors = [];
 function fail(message) { failures.push(message); }
 function allowedGuestStatus(status) { return status === 200 || status === 401 || status === 403; }
 function isExpectedFontNoise(value) {
@@ -90,6 +91,56 @@ function isExpectedConsoleNoise(value) {
     isIgnorablePreview404(value);
 }
 
+/**
+ * 브라우저가 본 5xx 를 **즉시 실패로 굳히지 않는다.**
+ *
+ * 🔴 이 게이트는 콘솔 에러 1건이면 릴리스를 BLOCKED 로 만들고 Pages·Worker 를 직전 버전으로
+ * 자동 롤백한다. 그런데 Mongo 커넥션 콜드스타트는 첫 요청 하나만 5xx 를 내고 곧 200(다만 7~8초)
+ * 으로 회복하므로, 커밋 내용과 인과가 전혀 없는 롤백이 난다 — 2026-09-03 하루에 두 번 났고
+ * (e475983 `/api/reviews/summary`, d2b0236 `/api/reviews`) 뒤엣것은 문서가 아닌 결제 수정이
+ * 통째로 되돌아갔다. 직후 손으로 재보면 둘 다 200 이었다.
+ *
+ * 그래서 5xx 는 **그 URL 을 들고 나중에 직접 재조회**해 판정한다. 계속 5xx 면 그대로 실패다
+ * — 진짜 장애는 재조회로 낫지 않는다. 재조회할 URL 이 없으면 완화하지 않는다(fail-closed).
+ */
+function transientServerErrorUrl(value) {
+  if (!/server responded with a status of 5\d\d/i.test(value)) return "";
+  const urls = String(value).match(/https?:\/\/[^\s)"'`]+/gi) || [];
+  return urls.length === 1 ? urls[0] : "";
+}
+async function settleServerError(url) {
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    if (attempt) await new Promise((resolve) => setTimeout(resolve, 3000));
+    try {
+      const response = await fetch(url, {
+        headers: { "Cache-Control": "no-store", "X-Code-Destiny-Smoke": "read-only" },
+        signal: AbortSignal.timeout(10000),
+      });
+      if (response.status < 500) return true;
+    } catch {
+      // 다음 시도로 넘긴다. 두 번 다 실패하면 아래에서 진짜 실패로 승격된다.
+    }
+  }
+  return false;
+}
+// 콜드스타트는 엔드포인트 한둘에만 걸린다. 서로 다른 URL 이 여럿 5xx 라면 그것은 워커·오리진이
+// 통째로 죽은 것이므로 완화 대상이 아니다 — 재조회에 시간을 쓰지 않고 곧장 실패로 굳힌다.
+const TRANSIENT_5XX_URL_BUDGET = 3;
+async function resolvePendingServerErrors() {
+  const distinct = [...new Set(pendingServerErrors.map((item) => item.url))];
+  const recovered = new Map();
+  if (distinct.length <= TRANSIENT_5XX_URL_BUDGET) {
+    for (const url of distinct) recovered.set(url, await settleServerError(url));
+  }
+  for (const item of pendingServerErrors) {
+    if (recovered.get(item.url)) {
+      console.log("[deploy-smoke] transient 5xx recovered on re-probe: " + item.detail);
+      continue;
+    }
+    browserErrors.push("console.error: " + item.detail);
+  }
+}
+
 async function checkApi(pathname) {
   const url = apiOrigin + pathname;
   try {
@@ -100,7 +151,14 @@ async function checkApi(pathname) {
       signal: AbortSignal.timeout(15000),
     });
     if (pathname === "/api/__deploy_safe_missing__" && (response.status === 404 || response.status === 503)) return;
-    if (response.status >= 500 || response.status === 503) fail("API " + pathname + " returned HTTP " + response.status);
+    if (response.status >= 500) {
+      if (await settleServerError(url)) {
+        console.log("[deploy-smoke] transient 5xx recovered on re-probe: " + url + " (first response HTTP " + response.status + ")");
+        return;
+      }
+      fail("API " + pathname + " returned HTTP " + response.status);
+      return;
+    }
     if (pathname === "/api/health" && response.status !== 200) fail("API health expected 200, received " + response.status);
     if (pathname === "/api/version" && response.status !== 200) fail("API version expected 200, received " + response.status);
     if (pathname !== "/api/health" && pathname !== "/api/version" && !allowedGuestStatus(response.status)) {
@@ -172,6 +230,11 @@ async function checkPages() {
     // CORS warnings do not indicate a broken page or runtime regression.
     if (isExpectedConsoleNoise(detail)) {
       ignoredConsoleErrors.push(detail);
+      return;
+    }
+    const transientUrl = transientServerErrorUrl(detail);
+    if (transientUrl) {
+      pendingServerErrors.push({ detail, url: transientUrl });
       return;
     }
     browserErrors.push("console.error: " + detail);
@@ -269,6 +332,7 @@ try {
 } catch (error) {
   fail("browser smoke could not run: " + error.message);
 }
+await resolvePendingServerErrors();
 
 if (browserErrors.length) {
   fail("JavaScript/browser errors detected:");
