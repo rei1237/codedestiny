@@ -245,7 +245,9 @@ function render() {
 .moon-hero__ambient,
 .cd-yehwa-divider,
 .cd-yehwa-seal,
-.cd-yehwa-sparkle {
+.cd-yehwa-sparkle,
+.cd-yehwa-sprig,
+.cd-yehwa-peony {
 ${vars}
 }
 
@@ -413,6 +415,126 @@ ${mask('sparkle')}
  * 6장에 반복하면 배경 타일처럼 보이고, 한 장만 찍으면 "선택됨" 상태 표시로 오독된다.
  * 인장은 운명의 문 1 + 대표 상담 5 = 6개로 둔다. */
 
+/* ── PR-3: 섹션 코너 가지 · 파인더 가지 · 고민 활성 카드 인장 ──
+ * 가지는 자식 <span> 이고 z-index -1 이다(인장과 같은 이유). 호스트는 전부 이미 스태킹 컨텍스트다 —
+ * 왜 우리·고민 섹션은 position:relative;z-index:2, AI 카드는 isolation:isolate, 파인더 패널은
+ * z-index:2 (2026-09-03 computed style 실측). 그래서 여기서는 isolation 을 다시 걸지 않는다.
+ * 자리는 글자 잉크 상자(Range.getClientRects, 1350/390)로 잰 빈 모서리다:
+ *   왜 우리 상단 좌우 — 제목이 x525~825 에 있고 카드는 y80 부터. 가지 200x154 를 y-36 에 걸면
+ *     카드 위쪽 116px 만 보이고 나머지는 불투명(.96) 카드 아래로 숨는다. 잎 끝과 카드 윗선 간격 ≥15px
+ *     (y-24 에서는 4.5px 라 "닿음"으로 읽혔다 — 시각 판정 4차). 섹션은 overflow:visible 이고 위쪽
+ *     빠른 서비스 섹션과 40px 여백이 있어 밖으로 나간 36px 은 빈 여백에 그려진다.
+ *   AI 카드 상단 좌우 — 330x165 가 비어 있고 서브카드는 y188 부터(overflow:hidden 이 바깥을 자른다).
+ *   파인더 필터 우측은 뺐다 — 구분선 마스크의 미러 쌍이 방식/가격 행 사이 거터에 떠서 "나눌 것 없는
+ *     자리의 구분선"으로 읽힌다(2026-09-03 시각 판정). 단방향 가지 마스크가 생기기 전에는 되살리지 않는다.
+ *   고민 활성 카드 — 버건디 평면 카드의 오른쪽 절반(126px)이 비어 있다. 인장은 aria-expanded=true 인
+ *     카드에만 보이고 선택을 따라 옮겨 간다(6장 전부에 span 을 두고 CSS 로 켠다).
+ *     🔴 우상단이다 — 우하단은 부제가 석 줄로 접히는 폭(820·768·480 실측)에서 마지막 줄과 겹친다. */
+.cd-yehwa-sprig {
+  position: absolute;
+  z-index: -1;
+  background: linear-gradient(160deg, var(--cd-yehwa-line-deep) 0%, var(--cd-yehwa-line) 100%);
+  opacity: .6;
+  pointer-events: none;
+${mask('branch-corner')}
+}
+
+/* 마스크는 우상단용으로 그려져 있다(히어로 --tr 와 같다). 좌상단은 좌우 반전. */
+.cd-yehwa-sprig--tl {
+  transform: scaleX(-1);
+}
+
+.cd-why-us > .cd-yehwa-sprig {
+  top: -36px;
+  width: 200px;
+  height: 154px;
+}
+
+.cd-why-us > .cd-yehwa-sprig--tl {
+  left: 4px;
+}
+
+.cd-why-us > .cd-yehwa-sprig--tr {
+  right: 4px;
+}
+
+/* 딥 플럼 위에서는 딥 로즈골드가 가라앉는다 — 카드 자체의 금(#ead089)과 같은 계열로 밝게. */
+.cd-ai-feats > .cd-yehwa-sprig {
+  top: -28px;
+  width: 240px;
+  height: 185px;
+  background: linear-gradient(160deg, #ead089 0%, var(--cd-yehwa-line) 100%);
+  opacity: .3;
+}
+
+.cd-ai-feats > .cd-yehwa-sprig--tl {
+  left: -24px;
+}
+
+.cd-ai-feats > .cd-yehwa-sprig--tr {
+  right: -24px;
+}
+
+/* 고민 카드는 overflow:hidden 으로 호(弧)만 남긴다 — 포커스 링은 outline 이라 잘리지 않는다. */
+.cd-concern__card {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.cd-concern__card .cd-yehwa-seal--concern {
+  display: none;
+  top: -30px;
+  right: -30px;
+  width: 88px;
+  height: 88px;
+  background: var(--cd-yehwa-ivory);
+  opacity: .38;
+}
+
+.cd-concern__card[aria-expanded="true"] .cd-yehwa-seal--concern {
+  display: block;
+}
+
+/* ── PR-3: 모란 — 피드백 카드 본문 우측 · 푸터 링크 허브 2행 우측 ──
+ * 피드백 카드(1350 실측): 본문 글자가 x540 에서 끝나고 CTA 는 x1162 부터라 555x188 이 비어 있다.
+ *   가운데 열(.cd-feedback__copy)의 오른쪽 끝에 140px 로 세로 중앙. 카드는 isolation:isolate + overflow:hidden.
+ * 푸터(1350 실측): 링크 허브 5열 그리드의 6번째 열(기능 가이드)이 2행 1열로 내려가 2행의 나머지
+ *   4칸(960x525)이 페이지에서 가장 큰 빈 면이다. 그 우하단에 220px. 900px 아래는 2열 그리드로 접혀 끈다. */
+.cd-yehwa-peony {
+  position: absolute;
+  z-index: -1;
+  background: linear-gradient(160deg, var(--cd-yehwa-line-deep) 0%, var(--cd-yehwa-line) 100%);
+  opacity: .5;
+  pointer-events: none;
+${mask('peony')}
+}
+
+.cd-feedback__copy {
+  position: relative;
+}
+
+.cd-feedback__copy > .cd-yehwa-peony {
+  top: 50%;
+  right: 0;
+  width: 140px;
+  height: 140px;
+  background: linear-gradient(160deg, #ead089 0%, var(--cd-yehwa-line) 100%);
+  opacity: .3;
+  transform: translateY(-50%);
+}
+
+.cd-footer-shell {
+  position: relative;
+}
+
+.cd-footer-shell > .cd-yehwa-peony {
+  right: 32px;
+  bottom: 20px;
+  width: 220px;
+  height: 220px;
+}
+
 /* ── 네오: 같은 선, 샴페인 골드로 재도색(바이올렛은 그라데이션 끝 15% 만 — One Accent) ── */
 html.neo-mode body .moon-hero__yehwa {
   background: linear-gradient(160deg, #e8d5a3 0%, #e8d5a3 85%, #c4b5fd 100%);
@@ -450,6 +572,66 @@ html.neo-mode body .cd-yehwa-divider::after {
   box-shadow: 0 0 14px rgba(196, 181, 253, .4);
 }
 
+/* PR-3 — 네오의 고민 활성 카드는 밝은 바이올렛(--cd-primary)이라 선은 잉크색으로 뒤집는다. */
+html.neo-mode body .cd-yehwa-sprig {
+  background: linear-gradient(160deg, #e8d5a3 0%, #e8d5a3 85%, #c4b5fd 100%);
+  opacity: .22;
+}
+
+html.neo-mode body .cd-ai-feats > .cd-yehwa-sprig {
+  opacity: .22;
+}
+
+html.neo-mode body .cd-concern__card .cd-yehwa-seal--concern {
+  background: #13102a;
+  opacity: .36;
+}
+
+html.neo-mode body .cd-yehwa-peony {
+  background: linear-gradient(160deg, #e8d5a3 0%, #e8d5a3 85%, #c4b5fd 100%);
+  opacity: .22;
+}
+
+/* 피드백 카드의 밝은 금 그라디언트는 네오 잉크 위에서 .22 로는 CR 1.32 — .28 로. */
+html.neo-mode body .cd-feedback__copy > .cd-yehwa-peony {
+  opacity: .28;
+}
+
+/* AI 카드 가지 — 제목(548px, 가운데)이 1100px 부터 가지 아래쪽 y123~168 띠에 닿는다(폭 스윕 실측).
+ * 제목 위쪽(y123)에서 끝나도록 170x131 로 줄인다.
+ * 🔴 900px 블록보다 앞에 둔다 — 아래 --tr 규칙과 특이도가 같아 순서로 이긴다. */
+@media (max-width: 1200px) {
+  .cd-ai-feats > .cd-yehwa-sprig {
+    width: 170px;
+    height: 131px;
+  }
+}
+
+/* 모란 — 900px 아래에서는 피드백 본문이 열 끝까지 차고 푸터는 2열 그리드로 접힌다.
+ * AI 카드 가지 — 820px 아래에서 헤더가 왼쪽 정렬로 바뀌어 제목이 y73(820 은 y82)부터 시작하고
+ *   오른쪽 여백이 560·480px 에서 79·47px 뿐이다(2026-09-03 폭 스윕 실측). 좌상단은 끄고 우상단은
+ *   제목 위(y59)에서 끝나는 100x77 로 줄인다. 네오는 390px 에서 눈썹 라벨이 가운데 정렬(x95~210)이라
+ *   right -24 로 가지 시작을 x228 에 두어 라벨과 18px 띄운다. */
+@media (max-width: 900px) {
+  .cd-yehwa-peony,
+  .cd-ai-feats > .cd-yehwa-sprig--tl {
+    display: none;
+  }
+
+  .cd-ai-feats > .cd-yehwa-sprig--tr {
+    top: -18px;
+    right: -24px;
+    width: 100px;
+    height: 77px;
+    opacity: .5;
+  }
+
+  /* 77x60 만 보이는 가지는 선이 가늘어 데스크톱 불투명도로는 CR 1.34/1.16(pig/neo, 480px A/B 실측). */
+  html.neo-mode body .cd-ai-feats > .cd-yehwa-sprig--tr {
+    opacity: .5;
+  }
+}
+
 /* ── 모바일: 카피 박스가 히어로 카드를 거의 다 채운다(390px 실측: 카드 312px 중 286px).
  * 브랜드 줄이 가운데 정렬이라 우상단 빈 자리는 30px 남짓뿐 — 벚가지는 끄고(글자 위를 지난다),
  * 달은 28px 로 모서리에, 모란은 좌하 모서리 밖으로 더 밀어 신뢰 배지 뒤 귀퉁이만 보이게 한다. ── */
@@ -463,6 +645,11 @@ html.neo-mode body .cd-yehwa-divider::after {
   }
 
   .moon-hero__yehwa--tr {
+    display: none;
+  }
+
+  /* PR-3 — 390px 실측: 왜 우리 제목이 폭을 다 쓴다(x70~245). */
+  .cd-why-us > .cd-yehwa-sprig {
     display: none;
   }
 
@@ -505,6 +692,20 @@ html.neo-mode body .cd-yehwa-divider::after {
 
   html.neo-mode body .fortune-gateway__door--chat .cd-yehwa-seal {
     opacity: .31;
+  }
+
+  /* 고민 카드가 138px 정사각이 되면 우상 빈 자리가 51x50 뿐이다 — 60px 인장, 32x34 만 보인다. */
+  .cd-concern__card .cd-yehwa-seal--concern {
+    top: -26px;
+    right: -28px;
+    width: 60px;
+    height: 60px;
+    opacity: .5;
+  }
+
+  /* 60px 로 줄면 선이 가늘어져 같은 불투명도로는 네오 CR 1.27 — .55 로 올린다(2026-09-03 판정). */
+  html.neo-mode body .cd-concern__card .cd-yehwa-seal--concern {
+    opacity: .55;
   }
 
   /* 아트가 118px 로 줄어 스파클 셋은 뭉친다 — 가운데 하나를 빼고 둘만 남긴다.
