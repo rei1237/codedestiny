@@ -11,7 +11,7 @@
 
 ## 시작 순서
 
-1. **[CLAUDE.md](CLAUDE.md) 전문을 읽는다.** 절대 규칙 6개 · 코딩 원칙 13개 · 결제 게이팅 절대 순서 · 레포 함정 · 작업 격리가 거기 있다.
+1. **[CLAUDE.md](CLAUDE.md) 전문을 읽는다.** 절대 규칙 6개 · 코딩 원칙 14개(3번은 폐기) · 결제 게이팅 절대 순서 · 레포 함정 · 작업 격리가 거기 있다.
 2. CLAUDE.md 의 **작업별 필독 문서 라우팅 표**에서 이번 작업 축에 해당하는 [docs/context/](docs/context/) 문서를 읽는다. 🔴 "대충 알 것 같다"로 건너뛴 것이 이 레포 사고 이력의 대부분이다.
 3. 그래도 애매하면 [docs/CURRENT_DEV_BASELINE.md](docs/CURRENT_DEV_BASELINE.md)(현재 개발 초점) → [docs/CONTEXT_AUDIT.md](docs/CONTEXT_AUDIT.md)(충돌·예외 기록).
 4. 문서끼리 어긋나면 **조용히 합치지 말고** `docs/CONTEXT_AUDIT.md` 에 기록한 뒤 사용자에게 보고한다.
@@ -31,7 +31,7 @@
 
 ## 작업 방식
 
-- **어떻게 일할지의 정본은 [CLAUDE.md](CLAUDE.md) §코딩 원칙 (1~13)** 이다. 여기에 복제하지 않는다 — 거기서 읽는다.
+- **어떻게 일할지의 정본은 [CLAUDE.md](CLAUDE.md) §코딩 원칙 (1~14, 3번은 폐기)** 이다. 여기에 복제하지 않는다 — 거기서 읽는다.
 - 고위험 축(LLM · 결제 · 프로덕션 DB · 배포 · 인증 · Worker 라우팅 · R2 · 과금/접근)에 걸리면 코드를 고치기 전에 **사전 보고 7항목**을 먼저 낸다: [docs/context/coding-principles.md](docs/context/coding-principles.md) §고위험 변경의 사전 보고 7항목.
 - Ignore snapshot, archive, and one-off audit paths unless the user explicitly asks for them — 스냅샷·아카이브·1회성 감사 경로는 사용자가 명시적으로 요청하지 않는 한 무시한다:
   `.claude/worktrees/**` · `.codex-worktrees/**` · `.cleanup/**` · `reports/**` · `docs/performance-audit/results/**`
