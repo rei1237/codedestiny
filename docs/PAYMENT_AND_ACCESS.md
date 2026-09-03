@@ -26,7 +26,7 @@
 - 두 기능은 표준 회당 결제(B유형)로 옮겼다. 가격 정본은 `worker/lib/paid-feature-registry.js`.
   - `fortune-chat-consultation` — 50코인(5,000원). 무료 3회 이후 1회.
   - `fusion-fortune-consultation` — 300코인(30,000원). 선착순 하루 100자리와 별개다.
-- 이용권 커버는 코드 분기가 아니라 `PASS_LIMITS` 금액 상한이 정한다. 5,000원은 standard 이상, 30,000원은 family 등급만 통과하며 `FAMILY_PREMIUM_MIN_COIN_COST`(300)에 걸려 이용권 기간당 10회 정책이 그대로 적용된다.
+- 이용권 커버는 코드 분기가 아니라 `PASS_LIMITS` 건당 상한이 정한다. 5,000원은 standard 이상, 30,000원은 family 등급만 통과한다. family 는 건당 상한이 없고 월 누적 한도(`MONTHLY_PASS_LIMITS.family` = 5,000코인 = 500,000원)만 적용되며 **횟수 제한은 없다** — 예전에 여기 적혀 있던 `FAMILY_PREMIUM_MIN_COIN_COST`(300)·"이용권 기간당 10회"는 2026-08-24 에 폐지된 제도이고 그 상수는 레포에 없다(2026-09-03 정정).
 - 결제 증빙은 `verifyPerUsePayment(env, { userId, featureKey, coinPrice, requestId })` 가 확인한다. 🔴 `proven === null` 은 "결제 안 함"이 아니라 "DB 장애로 확인 못 함"이므로 **503(재시도 가능)** 으로 내보낸다. 402 로 내리면 이미 결제한 사용자가 결제창을 다시 본다.
 - 증빙은 `requestId` 에 묶인다. 생성이 실패하면 **같은 requestId 로 재시도**해야 추가 결제 없이 결과를 받는다. 그래서 실패·중단된 시도(`released`/`blocked`)는 409 로 잠그지 않고 다시 연다.
 - 초융합은 결제보다 **선착순 마감 검사를 먼저** 한다. 결제 후 마감을 만나면 자동 환불 경로가 없다.

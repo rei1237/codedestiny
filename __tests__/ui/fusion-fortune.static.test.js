@@ -307,12 +307,21 @@ test("a paid request survives a page reload so nobody is charged twice", () => {
   // 🔴 결제 증빙 id 가 메모리에만 있으면, 멈춤 화면을 본 사용자가 새로고침하는 순간 id 가
   //    사라지고 다음 제출이 **새 id 로 결제를 한 번 더** 요청한다. 서버는 requestId 로만
   //    증빙을 찾으므로(findPaidPayment) 잃어버린 id 의 30,000원은 회수할 방법이 없다.
-  assert.match(client, /sessionStorage\.setItem\(PAID_REQUEST_KEY/);
-  assert.match(client, /sessionStorage\.getItem\(PAID_REQUEST_KEY/);
+  // 보관은 lib/fusion-paid-request-store.js 가 맡는다 — 화면과 검증기가 같은 코드를 쓰게 하려고
+  // 분리했다(scripts/verify-fusion-fortune-retry-payload.mjs 가 그 모듈을 실제로 구동한다).
+  assert.match(client, /from "@\/lib\/fusion-paid-request-store"/);
+  const store = read("lib/fusion-paid-request-store.js");
+  assert.match(store, /window\.localStorage/);
   // 제출 시 저장소까지 본다 — ref 만 보면 새로고침 뒤 복구가 안 된다.
-  assert.match(client, /paidRequestIdRef\.current \|\| readStoredPaidRequestId\(\)/);
+  assert.match(client, /if \(!requestId\) \{\s*\n\s*const stored = readFusionPaidRequest\(\);/);
+  // 🔴 id 만으로는 모자란다. 새로고침 뒤 폼은 초기값이라, 저장본을 안 보내면 재시도가
+  //    "같은 결제 · 다른 질문"으로 나간다(2026-09-03: birthPlace 가 조용히 빠졌다).
+  assert.match(client, /const requestBody: FusionRequestBody = paidRequestBodyRef\.current \|\|/);
+  // 저장은 스트림 POST **전에** — 뒤에 하면 그 사이 닫힌 탭의 질문이 사라진다.
+  const persistAt = client.indexOf("rememberPaidRequest(requestId, requestBody);");
+  assert.ok(persistAt > 0 && persistAt < client.indexOf("/api/fusion-fortune/generate/stream"), "입력을 스트림 POST 전에 저장해야 한다");
   // 지우는 시점은 결과를 실제로 받은 뒤 하나뿐이다.
-  assert.match(client, /결과를 받았으면 이 결제는 소진됐다[\s\S]{0,120}rememberPaidRequestId\(""\)/);
+  assert.match(client, /결과를 받았으면 이 결제는 소진됐다[\s\S]{0,120}rememberPaidRequest\(""\)/);
   // 남아 있는 결제를 사용자에게 먼저 알린다(모르면 처음부터 다시 하는 줄 알고 또 결제한다).
   assert.match(client, /이미 결제가 끝난 요청이 남아 있어요/);
 

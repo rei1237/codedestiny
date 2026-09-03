@@ -1,6 +1,7 @@
 "use client";
 
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
+import { clearFusionPaidRequest, readFusionPaidRequest, writeFusionPaidRequest } from "@/lib/fusion-paid-request-store";
 import Image from "next/image";
 import Link from "next/link";
 import { FormEvent, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -65,14 +66,28 @@ const DEFAULT_BIRTH_PLACES: BirthPlaceOption[] = [{ label: "대한민국 · 서�
 const FUSION_HANDOFF_KEY = "cdGuardianFusionHandoffV1";
 
 /**
- * 결제 증빙 id 보관 키.
+ * 결제 증빙(id + 그때 보낸 입력)의 보관은 lib/fusion-paid-request-store.js 가 맡는다.
  *
  * 🔴 메모리(ref)에만 두면 생성이 멈춘 화면에서 사용자가 새로고침하는 순간 id 가 사라지고,
  * 다음 제출이 **새 id 로 결제를 한 번 더** 요청한다. 서버는 requestId 로만 증빙을 찾으므로
  * (worker/lib/nakshatra-paid-access.js 의 findPaidPayment) 잃어버린 id 에 묶인 30,000원은
  * 회수할 방법이 없다. 결과를 실제로 받은 뒤에만 지운다.
+ *
+ * 🔴 그리고 id 만으로는 모자란다 — 폼은 새로고침으로 초기값이 되므로, 저장본이 없으면
+ * 재시도가 "같은 결제 · 다른 질문"으로 나간다(2026-09-03: birthPlace 가 조용히 빠졌다).
  */
-const PAID_REQUEST_KEY = "cdFusionPaidRequestIdV1";
+type FusionRequestBody = {
+  birthDate?: string;
+  birthTime?: string;
+  birthTimeUnknown?: boolean;
+  calendarType?: string;
+  gender?: string;
+  nickname?: string;
+  topic?: string;
+  concern?: string;
+  /** city 는 출생지 목록의 label 그대로다 — 폼 복원이 이 값을 birthPlaceKey 로 되돌린다. */
+  birthPlace?: { city?: string; country?: string; latitude?: number; longitude?: number; timezone?: string };
+};
 
 /** 서버 심박이 15초 간격이라 세 번을 놓치면 연결이 끊긴 것으로 본다. */
 const STREAM_SILENCE_MS = 45000;
@@ -85,21 +100,6 @@ const STREAM_SILENCE_MS = 45000;
  * 값은 서버 데드라인 120초 + 하드 스톱 유예 5초(worker/routes/fusion-fortune.js) + 네트워크 여유다.
  */
 const STREAM_HARD_CAP_MS = 165000;
-
-function readStoredPaidRequestId(): string {
-  if (typeof window === "undefined") return "";
-  try { return window.sessionStorage.getItem(PAID_REQUEST_KEY) || ""; } catch { return ""; }
-}
-
-function storePaidRequestId(value: string) {
-  if (typeof window === "undefined") return;
-  try {
-    if (value) window.sessionStorage.setItem(PAID_REQUEST_KEY, value);
-    else window.sessionStorage.removeItem(PAID_REQUEST_KEY);
-  } catch {
-    // 저장소를 못 써도 이번 화면의 ref 는 그대로 동작한다 — 새로고침 복구만 못 할 뿐이다.
-  }
-}
 
 /**
  * 입력폼의 각 항목을 실제로 읽는 체계. 장식이 아니라 "이 정보를 누가 쓰는가"의 축소판이다
@@ -1936,6 +1936,8 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
    * 추가 결제 없이 결과를 받는다(worker/lib/fusion-fortune.js 의 retryRequestId 계약).
    */
   const paidRequestIdRef = useRef("");
+  /** 그 결제로 실제로 보낸 입력. 재시도는 폼이 아니라 이것을 보낸다. */
+  const paidRequestBodyRef = useRef<FusionRequestBody | null>(null);
   const requestAbortRef = useRef<AbortController | null>(null);
   const profileTouchedRef = useRef(false);
   const coreDialogRef = useRef<HTMLDialogElement>(null);
@@ -1989,19 +1991,40 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
 
   useEffect(() => { void refresh(); }, [refresh]);
 
-  /** 결제 증빙 id 를 ref·저장소·화면 상태에 한꺼번에 반영한다. 세 곳이 어긋나면 이중 결제가 난다. */
-  const rememberPaidRequestId = useCallback((value: string) => {
+  /** 결제 증빙(id + 입력)을 ref·저장소·화면 상태에 한꺼번에 반영한다. 세 곳이 어긋나면 이중 결제가 난다. */
+  const rememberPaidRequest = useCallback((value: string, body: FusionRequestBody | null = null) => {
     paidRequestIdRef.current = value;
-    storePaidRequestId(value);
+    paidRequestBodyRef.current = value ? body : null;
+    if (value) writeFusionPaidRequest({ requestId: value, body });
+    else clearFusionPaidRequest();
     setPendingPaidRequest(Boolean(value));
   }, []);
 
   // 새로고침으로 돌아온 사용자의 결제 증빙을 되살린다 — 이게 없으면 다음 제출이 재결제다.
   useEffect(() => {
-    const stored = readStoredPaidRequestId();
+    const stored = readFusionPaidRequest();
     if (!stored) return;
-    paidRequestIdRef.current = stored;
+    paidRequestIdRef.current = stored.requestId;
+    paidRequestBodyRef.current = stored.body;
     setPendingPaidRequest(true);
+    const body: FusionRequestBody | null = stored.body;
+    if (!body) return;
+    // 🔴 폼도 되살린다. 재시도가 보내는 것은 저장본이지만, 화면이 다른 질문을 보여 주면
+    //    사용자는 자기가 무엇을 물었는지 확인할 방법이 없다. birthPlaceKey 는 저장본의
+    //    birthPlace.city 가 곧 목록의 label 이라(제출 때 그렇게 넣는다) 그대로 복원된다 —
+    //    출생지 목록 스크립트가 아직 안 왔어도 값 자체는 유지된다.
+    setForm((previous) => ({
+      ...previous,
+      birthDate: body.birthDate || previous.birthDate,
+      birthTime: body.birthTime || previous.birthTime,
+      birthTimeUnknown: Boolean(body.birthTimeUnknown),
+      calendarType: body.calendarType || previous.calendarType,
+      gender: body.gender || previous.gender,
+      nickname: body.nickname || previous.nickname,
+      topic: body.topic || previous.topic,
+      concern: body.concern || previous.concern,
+      birthPlaceKey: body.birthPlace?.city || previous.birthPlaceKey,
+    }));
   }, []);
 
   // 스트림 무음 감시. 서버가 15초마다 심박을 보내므로 45초 침묵은 연결이 끊겼다는 뜻이다.
@@ -2161,7 +2184,11 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
 
     // 앞선 시도가 결제까지 끝났다면 그 requestId 를 재사용한다 — 새 id 로 보내면 증빙을
     // 못 찾아 이미 낸 3만원이 사라진다. 저장소까지 보는 이유는 새로고침으로 ref 가 비기 때문이다.
-    let requestId = paidRequestIdRef.current || readStoredPaidRequestId();
+    let requestId = paidRequestIdRef.current;
+    if (!requestId) {
+      const stored = readFusionPaidRequest();
+      if (stored) { requestId = stored.requestId; paidRequestBodyRef.current = stored.body; }
+    }
     if (!requestId) {
       requestId = `${PAID_FEATURE_KEY}:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
       const gate = await ensurePaidAccess({
@@ -2176,7 +2203,8 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
         if (gate.code !== "PAYMENT_CANCELLED") setError(gate.message || copy.paymentFailedMessage);
         return;
       }
-      rememberPaidRequestId(requestId);
+      // 🔴 결제 직후 id 만 먼저 남긴다. 입력을 만들기 전에 탭이 닫혀도 결제는 살아 있어야 한다.
+      rememberPaidRequest(requestId);
     }
 
     requestAbortRef.current?.abort();
@@ -2189,7 +2217,11 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
     setLoading(true);
     try {
       const selectedPlace = birthPlaces.find((place) => place.label === form.birthPlaceKey);
-      const requestBody = {
+      // 🔴 결제 한 건에 질문은 하나다. 앞선 시도의 저장본이 있으면 폼을 다시 읽지 않고 그대로
+      //    보낸다 — 새로고침 뒤 폼이 초기값이면 birthPlaces 조회가 빗나가 birthPlace 가
+      //    payload 에서 **조용히 빠지고**, 출생지 미상 입력으로 바뀐 채 재시도가 나간다
+      //    (2026-09-03 사용자 보고: 재시도가 birth_place_overclaim 으로 실패).
+      const requestBody: FusionRequestBody = paidRequestBodyRef.current || {
         birthDate: form.birthDate,
         birthTime: form.birthTimeUnknown ? "" : form.birthTime,
         birthTimeUnknown: form.birthTimeUnknown,
@@ -2200,6 +2232,9 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
         concern: form.concern,
         ...(selectedPlace ? { birthPlace: { city: selectedPlace.label, country: selectedPlace.country, latitude: selectedPlace.lat, longitude: selectedPlace.lon, timezone: selectedPlace.tz } } : {}),
       };
+      // 🔴 스트림 POST **직전**에 저장한다. 요청이 나간 뒤에 저장하면 그 사이에 탭이 닫힌
+      //    결제의 질문이 통째로 사라진다.
+      rememberPaidRequest(requestId, requestBody);
       const response = await authFetch(`${apiBase}/api/fusion-fortune/generate/stream`, {
         method: "POST", credentials: "include", signal: controller.signal,
         headers: { "Content-Type": "application/json", Accept: "text/event-stream", "Idempotency-Key": requestId },
@@ -2256,18 +2291,18 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
         window.setTimeout(() => window.location.assign(`/fortune-chat?session=${encodeURIComponent(fortuneChatSessionId)}`), 300);
       }
       // 결과를 받았으면 이 결제는 소진됐다. 다음 상담은 새로 결제한다.
-      rememberPaidRequestId("");
+      rememberPaidRequest("");
     } catch (cause) {
       // 결제는 생성 전에 끝났다. "차감되지 않았다"고 말하면 거짓이므로, 실제로 안전한 것
       // (같은 requestId 재시도에 추가 결제가 없다는 점)만 안내한다.
       const aborted = (cause as Error)?.name === "AbortError";
       // 🔴 실패로 단정하기 전에 결제 키로 보관본을 한 번 조회한다 — 저장이 배달보다 먼저라
       //    스트림이 끊긴 요청의 완성품이 이미 계정에 있을 수 있다.
-      if (await recoverPaidResult(paidRequestIdRef.current || readStoredPaidRequestId())) {
+      if (await recoverPaidResult(paidRequestIdRef.current || readFusionPaidRequest()?.requestId || "")) {
         setNotice(copy.resultCompletedNotice);
         void loadRecentList();
         // 결과를 실제로 받았으므로 이 결제는 소진됐다.
-        rememberPaidRequestId("");
+        rememberPaidRequest("");
       } else if (aborted && !capAbortedRef.current) setNotice(copy.analysisCancelledNotice);
       else setFailure({
         message: cause instanceof Error ? cause.message : copy.resultGenerationFailedMessage,
