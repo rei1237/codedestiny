@@ -316,7 +316,7 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "premium-fpti-report": { cost: 200, reason: "FPTI 프리미엄 리포트 생성" },
   tetogen_deep_report: { cost: 100, reason: "테토 에겐 상세 리포트 해금" },
   "premium-naming-prompt": { cost: 300, amountKRW: 30000, reason: "사주 맞춤 작명 프롬프트 생성" },
-  "premium-sukuyo-compat-extra": { cost: 100, reason: "숙요점 정밀 궁합 확장 분석" },
+  "premium-sukuyo-compat-extra": { cost: 50, reason: "숙요점 정밀 궁합 확장 분석" },
   "premium-veda-compatibility-addon": { cost: 300, reason: "프리미엄 베다점 궁합 확장 분석 추가" },
   "profile-card-manage": { cost: 50, reason: "프로필 카드 추가/수정/삭제" },
   rpt_specialCharmCard: { cost: 30, reason: "나의 매력 클래스 영구 해금" },

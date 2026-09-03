@@ -7409,7 +7409,7 @@ var SY_PAID_FEATURES = Object.freeze({
   pastLifeReading: { key: 'sukuyo-past-life-reading', cost: 100, reason: '숙요 인연 레이더' },
   monthlyFortune: { key: 'sukuyo-monthly-fortune', cost: 30, reason: '월별 숙요 운세 확장' },
   compatibility: { key: 'compat-sukuyo-compatibility', cost: 50, reason: '숙요점 궁합 분석' },
-  compatibilityPrecision: { key: 'premium-sukuyo-compat-extra', cost: 100, reason: '숙요점 정밀 궁합 확장 분석' }
+  compatibilityPrecision: { key: 'premium-sukuyo-compat-extra', cost: 50, reason: '숙요점 정밀 궁합 확장 분석' }
 });
 
 function syResolveCurrentProfileIdForPaidGate() {
@@ -16503,10 +16503,10 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
                   <div style="font-size:0.74rem;color:#fde68a;letter-spacing:0.08em;text-transform:uppercase;font-weight:900;margin-bottom:5px;">정밀 궁합 확장</div>
                   <div style="font-size:1rem;color:#fff7ed;font-weight:900;line-height:1.45;">목적별 리딩, 30일 타이밍, 위험·회복 루틴까지 더 깊게 엽니다.</div>
                 </div>
-                <span style="font-size:0.72rem;color:#fef3c7;border:1px solid rgba(251,191,36,0.34);background:rgba(251,191,36,0.1);padding:4px 9px;border-radius:999px;">10,000원</span>
+                <span style="font-size:0.72rem;color:#fef3c7;border:1px solid rgba(251,191,36,0.34);background:rgba(251,191,36,0.1);padding:4px 9px;border-radius:999px;">5,000원</span>
               </div>
               <p style="margin:0 0 10px;color:#fde68a;font-size:0.82rem;line-height:1.72;">기본 궁합 5,000원에서 드러난 관계 결 위로, 세부 시나리오와 회복 문장이 더 깊게 열립니다.</p>
-              <button type="button" data-sy-precision-unlock style="width:100%;min-height:44px;border-radius:11px;border:1px solid rgba(251,191,36,0.46);background:rgba(251,191,36,0.16);color:#fef3c7;font-size:0.84rem;font-weight:900;cursor:pointer;">정밀 궁합 확장 열기 · 10,000원</button>
+              <button type="button" data-sy-precision-unlock style="width:100%;min-height:44px;border-radius:11px;border:1px solid rgba(251,191,36,0.46);background:rgba(251,191,36,0.16);color:#fef3c7;font-size:0.84rem;font-weight:900;cursor:pointer;">정밀 궁합 확장 열기 · 5,000원</button>
               <div data-sy-precision-content style="display:none;margin-top:12px;"></div>
               <div data-sy-precision-status style="margin-top:8px;color:#fde68a;font-size:0.76rem;line-height:1.6;"></div>
             </section>`;
