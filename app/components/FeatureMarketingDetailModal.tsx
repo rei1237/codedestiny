@@ -355,7 +355,7 @@ export function isPaidMarketingTarget(target: FeatureMarketingTarget) {
   if ((target.coinPrice || 0) > 0) return true;
   const badgeText = (target.badges || []).map((badge) => badge.text || "").join(" ");
   const raw = `${target.href} ${target.description || ""} ${target.subtitle || ""} ${target.priceLabel || ""} ${badgeText}`;
-  return /(원|결제|코인|유료|해금|premium|paid|life-book-ai|love-secret-ai|ziwei-ai|tarot\/prompt-maker|saju\/love-simulation|saju\/destiny-bias|saju\/destiny-meeting-place|palm-reading)/i.test(raw);
+  return /(원|결제|코인|유료|해금|premium|paid|life-book-ai|love-secret-ai|ziwei-ai|tarot\/prompt-maker|saju\/love-simulation|saju\/destiny-meeting-place|palm-reading)/i.test(raw);
 }
 
 /** 생성 JSON 이 도착하기 전에는 `null` 이다 — 호출부는 제목·가격·CTA 만으로 먼저 그린다. */

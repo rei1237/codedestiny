@@ -191,7 +191,6 @@ const MAIN_LANDING_COPY_EN: MainLandingCopy = {
     "관리": "Manage",
     "해금 10,000원": "Unlock KRW 10,000",
     "궁합 5,000원": "Compatibility KRW 5,000",
-    "1회 5,000원": "KRW 5,000 per reading",
     "포토카드": "Photocard",
   },
 };
@@ -376,7 +375,7 @@ const MISC_DIVINATION_ITEMS_COPY: ServiceCardModel[] = [
     href: "/saju/destiny-bias",
     emoji: "✨",
     image: "/fuctionassets/%EC%B5%9C%EC%95%A0%EC%9A%B4%EB%AA%85.webp",
-    badges: [{ text: "1회 5,000원", tone: "coin" }, { text: "포토카드", tone: "new" }],
+    badges: [{ text: "무료", tone: "free" }, { text: "포토카드", tone: "new" }],
     cta: "최애운명 시작",
   },
 ];
