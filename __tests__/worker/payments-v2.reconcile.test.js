@@ -7,6 +7,7 @@
  * 주체**가 없으면 그 보장은 종이다. 이 테스트가 확인하는 것은 그 주체가 (a) 고쳐야 할 것만 고르고
  * (b) 하나의 실패가 나머지를 막지 않으며 (c) 정상 흐름을 앞질러 끼어들지 않는다는 것이다.
  */
+import { jest } from "@jest/globals";
 import {
   PENDING_EXPIRY_MS,
   expireStalePendingOrders,
@@ -84,11 +85,28 @@ describe("PAID 인데 권한이 없는 주문", () => {
       { merchantUid: "cd1", status: "paid", entitlementGrantedAt: null, updatedAt: ago(10 * 60_000) },
       { merchantUid: "cd2", status: "paid", entitlementGrantedAt: null, updatedAt: ago(10 * 60_000) },
     ]);
+    const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
     const report = await regrantUnfulfilledOrders(db, {
       grant: async (o) => { if (o.merchantUid === "cd1") throw new Error("boom"); },
       now: NOW,
     });
     expect(report).toMatchObject({ scanned: 2, repaired: 1, failed: 1 });
+    // 주문별 사유가 남는다 — 요약 숫자만으로는 어느 주문이 왜 안 열리는지 알 수 없다.
+    expect(errorSpy).toHaveBeenCalledWith("[payments] regrant failed", expect.objectContaining({ orderId: "cd1", message: "boom" }));
+    errorSpy.mockRestore();
+  });
+
+  test("🔴 최신 주문부터 본다 — 영구 실패 건이 상한을 독점하면 방금 결제된 건이 영영 스캔되지 않는다", async () => {
+    const db = makeFakePaymentDb();
+    await seed(db, [
+      { merchantUid: "cd-old", status: "paid", entitlementGrantedAt: null, updatedAt: ago(60 * 60_000) },
+      { merchantUid: "cd-new", status: "paid", entitlementGrantedAt: null, updatedAt: ago(2 * 60_000) },
+      { merchantUid: "cd-mid", status: "paid", entitlementGrantedAt: null, updatedAt: ago(30 * 60_000) },
+    ]);
+    const granted = [];
+    const report = await regrantUnfulfilledOrders(db, { grant: async (o) => granted.push(o.merchantUid), now: NOW, limit: 2 });
+    expect(report).toMatchObject({ scanned: 2, repaired: 2 });
+    expect(granted).toEqual(["cd-new", "cd-mid"]);
   });
 });
 

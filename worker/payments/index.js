@@ -52,6 +52,7 @@ import {
   presentPassSubscription,
   recordPassUsageEvidence,
   resolvePassPlan,
+  revokePassGrantForOrder,
 } from "./passes.js";
 import {
   isPassLikeProductType,
@@ -167,7 +168,16 @@ async function applyNonPaidPgEvent(db, { eventType, orderId }) {
     // PG 콘솔 전액 취소 = 돈이 이미 돌아갔다. 주문을 환불로 정산하고 권한을 회수한다.
     // 회수가 매칭되지 않으면(이미 회수됨·비활성) 사람이 확인하도록 검토 마커를 남긴다.
     const refunded = await settleRefund(db, { orderId });
-    const revoked = await revokeEntitlementForOrder(db, { orderId });
+    // 이용권은 ContentEntitlement 가 아니라 User.profileSubscription 이라 회수 경로가 따로 있다 —
+    // 없으면 환불된 이용권이 만료일까지 활성으로 남는다(2026-09-03 발견). 이 주문이 최신 활성 주문이
+    // 아니면(lastPassOrderId 불일치) 손대지 않고 아래 검토 마커로 사람이 본다.
+    const revoked = String(order.paymentType || "") === "membership_pass"
+      ? await revokePassGrantForOrder(db, {
+        userId: order.userId,
+        orderId,
+        durationMonths: Number(order?.metadata?.durationMonths || 1),
+      })
+      : await revokeEntitlementForOrder(db, { orderId });
     await recordPgCancellationMarkers(db, { orderId, partial: false, reviewRequired: !revoked });
     invalidateBalanceSnapshot(order?.userId);
     return { event: "cancelled", refunded, revoked, reviewRequired: !revoked };
@@ -529,7 +539,14 @@ function evaluateConfirmable(ctx, order, { orderId, actorUserId = "" }) {
     // 재생. PG 를 다시 부르지 않는다 — PortOne 지연이 확정 경로의 지배적 비용이다.
     return { order, replayed: true, granted: Boolean(order.entitlementGrantedAt), settled: true };
   }
-  if (status !== "PENDING") {
+  // 🔴 PG_PAYMENT_NOT_PAID 로 닫힌 FAILED 는 되살린다(2026-09-03). 결제창을 연 뒤 60초 지나 /points 부팅
+  // 재확인이 돌면 PG 가 아직 ready 라 422 → failed 가 되는데, 그 뒤 실제 결제가 나면 웹훅·크론이 이 주문을
+  // 다시 만난다. 이 코드는 pg.js verifyPgPayment 만 던지므로(git grep 2026-09-03) V2 주문에 한정되고,
+  // markOrderPaid CAS 는 failed 를 제외하지 않아 그대로 PAID 로 넘어가며 failure* 를 비운다. PG 가 여전히
+  // 미결제면 markOrderFailed(status:"pending" 정확 일치)가 no-op 이고 422 만 다시 나간다.
+  // 그 밖의 FAILED(다른 failureCode)·CANCELLED·REFUNDED 는 종전대로 409 다.
+  const revivable = status === "FAILED" && String(order.failureCode || "") === "PG_PAYMENT_NOT_PAID";
+  if (status !== "PENDING" && !revivable) {
     throw paymentError("ORDER_NOT_CONFIRMABLE", "이 주문은 확정할 수 없는 상태입니다.", { orderId, status });
   }
   return { order, settled: false };
@@ -627,14 +644,21 @@ function isPerUseFeatureKey(featureKey) {
  */
 async function grantPassOrderEntitlement(db, order) {
   const plan = resolvePassPlan(order.subscriptionTier, Number(order?.metadata?.durationMonths || 1));
-  if (!plan) return false;
-  const userId = String(order.userId || "");
   const orderId = String(order.merchantUid || "");
+  // 🔴 false 반환은 던지지 않으므로 여기서 로그하지 않으면 '돈은 받았는데 지급 안 됨'이 로그 0줄로 남는다.
+  if (!plan) {
+    console.error("[payments] pass grant skipped", { orderId, code: "PLAN_NOT_FOUND", tier: String(order.subscriptionTier || "") });
+    return false;
+  }
+  const userId = String(order.userId || "");
   const userDoc = await db.findOne(User, { _id: toObjectId(userId) });
   const replay = String(userDoc?.profileSubscription?.lastPassOrderId || "") === orderId;
   const paidAt = order.paidAt || new Date();
   const transition = evaluatePassTierTransition(userDoc?.profileSubscription, plan.tier);
-  if (transition.code === "DOWNGRADE_BLOCKED" && !replay) return false;
+  if (transition.code === "DOWNGRADE_BLOCKED" && !replay) {
+    console.error("[payments] pass grant skipped", { orderId, code: "DOWNGRADE_BLOCKED", userId });
+    return false;
+  }
   await activatePassSubscription(db, {
     userId,
     plan,
@@ -1466,6 +1490,10 @@ export async function runPaymentsV2Reconcile(env) {
           if (!granted) throw paymentError("INTERNAL_ERROR", "entitlement grant failed", { orderId: String(order?.merchantUid || "") });
         }),
       });
+      // 재지급 대상이 있었던 틱만 요약을 남긴다 — 무음이면 미지급이 쌓여도 로그로는 보이지 않는다.
+      if (Number(report?.regrant?.scanned || 0) > 0) {
+        console.warn("[CRON] payments-v2 regrant", report.regrant);
+      }
       /* 월정석 고아 예약 정리. spendMoonstone 은 원장 예약을 효과보다 먼저 쓰므로, 그 사이에서
          죽으면 **미정산 예약 + 미차감 잔액** 이 남는다(사용자는 과금되지 않았다).
          재시도가 오는 경우는 spendMoonstone 이 그 자리에서 이어받으므로(90초 나이 게이트), 여기 남는
