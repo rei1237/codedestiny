@@ -161,10 +161,6 @@ const ACCEPTED = new Map([
   [".cd-direct-payment-modal.is-open::before|fixed-width", { why: "위와 같은 장식 의사요소." }],
   [".cd-direct-payment-modal.is-open::after|fixed-height", { why: "위와 같은 장식 의사요소." }],
   [".cd-direct-payment-modal.is-open::after|fixed-width", { why: "위와 같은 장식 의사요소." }],
-  [
-    ".cd-mnav::before|fixed-height",
-    { why: "탭바 상단 달빛 예화 헤어라인 1px — 장식 의사요소라 글자를 담지 않는다." },
-  ],
   [".cd-mnav__chevron|fixed-height", { why: "펼침 화살표 아이콘 — 글자를 담지 않는다." }],
   [".cd-mnav__chevron|fixed-width", { why: "펼침 화살표 아이콘." }],
   [
@@ -185,14 +181,6 @@ const ACCEPTED = new Map([
   [".cd-mnav__icon|fixed-height", { why: "탭 아이콘 24x24 — 글자를 담지 않는다." }],
   [".cd-mnav__icon|fixed-width", { why: "탭 아이콘 24x24." }],
   [
-    ".cd-mnav__list::before|fixed-height",
-    {
-      why:
-        "데스크탑 예화 도크 패널 상단 헤어라인 1px — 장식 의사요소라 글자를 담지 않고 " +
-        "로케일 팽창과 무관하다(.cd-mnav::before 와 같은 사유).",
-    },
-  ],
-  [
     ".cd-mobile-bottom-nav__chevron|fixed-height",
     { why: "셸 탭바 접기 화살표 — 글자를 담지 않는다." },
   ],
@@ -202,14 +190,6 @@ const ACCEPTED = new Map([
     { why: "선택 상태 배경 장식 의사요소 — 글자를 담지 않는다." },
   ],
   [".cd-mobile-bottom-nav__item::before|fixed-width", { why: "위와 같은 장식 의사요소." }],
-  [
-    ".cd-mobile-bottom-nav__main::before|fixed-height",
-    {
-      why:
-        "셸 데스크탑 예화 도크 패널 상단 헤어라인 1px — 장식 의사요소라 글자를 담지 않는다 " +
-        "(App Router 짝인 .cd-mnav__list::before 와 같은 사유).",
-    },
-  ],
   [
     ".cd-mobile-bottom-nav__toggle|fixed-height",
     {

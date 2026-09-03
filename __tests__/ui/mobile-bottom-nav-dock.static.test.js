@@ -1,5 +1,5 @@
 /**
- * 하단 탭바 "달빛 예화 도크"(2026-09-04) 의 함정 세 가지를 고정한다.
+ * 하단 탭바 "달빛 예화 도크"(2026-09-04) 의 함정들을 고정한다.
  * 기하(높이 토큰)는 mobile-bottom-nav-geometry.static.test.js 가 따로 본다 — 여기는 배선·순서다.
  */
 const test = require("node:test");
@@ -58,4 +58,46 @@ test("접힌 손잡이는 두 탭바 모두 left·top 을 함께 푼다", () => 
   assert.ok(appRouter, "styles/mobile-bottom-nav.css: body.cd-mnav-collapsed .cd-mnav__handle 블록을 못 찾았다");
   assert.match(appRouter[0], /left:\s*auto/, "App Router 접힘 규칙이 left 를 되돌리지 않는다");
   assert.match(appRouter[0], /top:\s*auto/, "App Router 접힘 규칙이 top 을 되돌리지 않는다");
+});
+
+test("가지 띠의 굵기 역보정이 박스 크기와 짝을 유지한다", () => {
+  // 🔴 마스크는 viewBox(branch-h 640px)로 그려져 목표 박스로 축소되므로 실제 획 =
+  //    strokeWidth × (렌더폭 / 640) 이다. 박스 200px 과 stroke 3.2 가 짝이 되어 1.00px 이 된다.
+  //    한쪽만 바꾸면 반 픽셀 획이 안티에일리어싱에 펴져 문양이 사실상 사라진다(2026-09-04 실측:
+  //    원판 1.2 일 때 인장 대비 1.20:1). 두 값이 다른 파일에 있어 따로 움직이기 쉬워 여기서 묶는다.
+  const sheet = read("styles/yehwa-motifs-nav.css");
+  const band = sheet.match(
+    /\.cd-mnav__handle::after,\s*\.cd-mobile-bottom-nav__toggle::after \{[^}]*\}/,
+  );
+  assert.ok(band, "yehwa-motifs-nav.css: 두 탭바 공용 가지 띠 규칙을 못 찾았다");
+  assert.match(band[0], /width:\s*200px/, "가지 띠 폭이 200px 이 아니다");
+  assert.match(band[0], /mask-image:\s*var\(--cd-yehwa-mask-branch-h\)/, "가지 띠가 branch-h 마스크를 안 쓴다");
+  assert.match(band[0], /z-index:\s*-1/, "가지 띠가 z-index:-1 이 아니다 — 달·nub 위로 지나간다");
+
+  const branchVar = sheet.match(/--cd-yehwa-mask-branch-h:[^;]*;/);
+  assert.ok(branchVar, "yehwa-motifs-nav.css: --cd-yehwa-mask-branch-h 선언을 못 찾았다");
+  assert.match(
+    branchVar[0],
+    /stroke-width='3\.2'/,
+    "branch-h 마스크 굵기가 3.2 가 아니다 — 띠 폭 200px 과 짝이 맞지 않는다(생성기 renderNav 참조)",
+  );
+
+  assert.match(
+    sheet,
+    /body\.cd-mnav-collapsed \.cd-mnav__handle::after,\s*body\.cd-mnav-collapsed \.cd-mobile-bottom-nav__toggle::after \{\s*display:\s*none;/,
+    "접었을 때 가지 띠를 끄지 않는다 — 88px 알약 밖으로 200px 가지가 삐져나온다",
+  );
+});
+
+test("탭바를 접으면 무료 운세 CTA 도 함께 접힌다", () => {
+  // 🔴 사용자 요구(2026-09-04): 접힘은 '하단 크롬을 치운다'는 뜻인데 CTA 만 남으면 받침 없는
+  //    색면이 화면 아래에 떠 있는 꼴이 된다. .is-visible 은 스크롤 관측자가 소유한 상태라
+  //    건드리지 않고, CSS 로 기본값(translateY(200%)·opacity:0)으로 되돌리기만 한다.
+  const rule = read("index.html").match(
+    /html body\.cd-mnav-collapsed \.cd-sticky-cta\.is-visible\{[^}]*\}/,
+  );
+  assert.ok(rule, "index.html: 접힘이 CTA 를 되돌리는 규칙이 없다");
+  assert.match(rule[0], /transform:translateY\(200%\)/, "접힘 CTA 규칙이 transform 을 안 되돌린다");
+  assert.match(rule[0], /opacity:0/, "접힘 CTA 규칙이 opacity 를 안 되돌린다");
+  assert.match(rule[0], /pointer-events:none/, "접힘 CTA 규칙이 pointer-events 를 안 되돌린다");
 });

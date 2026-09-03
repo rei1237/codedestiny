@@ -2286,3 +2286,216 @@ body:not(.neo-mode) #birthCountryListbox{
 body:not(.neo-mode) #birthCountryListbox li{color:#35143f}
 body:not(.neo-mode) #birthCountryListbox li[aria-selected="true"],
 body:not(.neo-mode) #birthCountryListbox li:hover{background:rgba(244,190,209,.4)}
+
+/* ── 상단 헤더 달빛 예화(月花) 확정 · cd-topbar-yehwa-v20260904 ────────────────
+   앞쪽 블록들(연이 1690~1699 캔디 글래스 / 네오 803·1788~1792 웜블랙+골드)에
+   오버라이드가 흩어져 있어 여기서 최종 확정한다. 되돌리지 말 것.
+
+   구조·레이아웃은 두 모드가 동일하고 색 계열만 다르다(.cd-user-card 와 같은 규약).
+   표면·텍스트·강조색을 항상 세트로 바꾸기 위해 --mtb-* 사설 토큰을 .logo-area 에
+   스코프한다 — 전역 --cd-* 를 서브트리에서 덮으면 나중에 공용 위젯이 들어왔을 때
+   조용히 뒤집히는 원격 작용이 생긴다(가이드 --gd-*, 푸터 --sfh-* 와 같은 이유).
+
+   연이 = 딥 플럼 #3a0e28→#24081a + 로즈 #f4bed1 + 샴페인 골드 #ead089
+   네오 = 미드나잇 잉크 #13102a/#0a0818 + 트와일라잇 바이올렛 #c4b5fd + 샴페인 골드 #e8d5a3
+   (DESIGN.md "연이 Dark(핑크 다크)" · 네오 팔레트 정본. Hue-Stays Rule 상 연이가
+    네이비·퍼플로, 네오가 핑크로 새면 안 된다.)
+
+   🔴 연이 유리 알파가 .90~.95 로 높은 것은 실수가 아니다 — 연이 .logo-area 배경은
+   크림(#fff5f7)이라, 알파를 낮추면 중간 스톱이 중명도 모브(#905c76)로 합성돼
+   비활성 탭·태그라인·고스트 잉크가 3.5~4.1:1 로 떨어진다(2026-09-04 측정).
+   현재 값 기준 최악 대비: 연이 8.87 / 7.07 / 6.50 / 7.51, 네오 13.84 / 9.70 / 9.10 / 10.82.
+   알파나 중간 스톱을 손대면 합성색 위에서 다시 잴 것(토큰 hex 끼리 재면 과대평가된다). */
+
+html body .logo-area {
+	--mtb-glass-1: rgba(58,14,40,.92);
+	--mtb-glass-2: rgba(90,26,60,.90);
+	--mtb-glass-3: rgba(36,8,26,.95);
+	--mtb-line: rgba(244,190,209,.30);
+	--mtb-line-strong: rgba(244,190,209,.52);
+	--mtb-ink: #fff1f7;
+	--mtb-ink-dim: #f2d4e1;
+	--mtb-accent: #f4bed1;
+	--mtb-accent-soft: rgba(244,190,209,.20);
+	--mtb-gold: #ead089;
+	--mtb-glow: rgba(179,25,85,.38);
+	--mtb-brand-1: #fff4ea;
+	--mtb-brand-2: #ead089;
+	--mtb-brand-3: #f4bed1;
+	--mtb-tag-ink: #f2c8d9;
+}
+html.neo-mode body .logo-area,
+html body.neo-mode .logo-area {
+	--mtb-glass-1: rgba(19,16,42,.88);
+	--mtb-glass-2: rgba(58,31,74,.70);
+	--mtb-glass-3: rgba(10,8,24,.92);
+	--mtb-line: rgba(196,181,253,.22);
+	--mtb-line-strong: rgba(196,181,253,.46);
+	--mtb-ink: #f4eeff;
+	--mtb-ink-dim: #cfc7e8;
+	--mtb-accent: #c4b5fd;
+	--mtb-accent-soft: rgba(196,181,253,.20);
+	--mtb-gold: #e8d5a3;
+	--mtb-glow: rgba(124,92,214,.36);
+	--mtb-brand-1: #fff7dd;
+	--mtb-brand-2: #e8d5a3;
+	--mtb-brand-3: #c3d0ef;
+	--mtb-tag-ink: #b6c6e4;
+}
+
+/* 유리 상단바 — 뒤의 배경이 은은히 비치도록 반투명 + blur */
+html body .logo-area .moon-topbar {
+	position: relative !important;
+	border: 1px solid var(--mtb-line) !important;
+	background: linear-gradient(112deg, var(--mtb-glass-1) 0%, var(--mtb-glass-2) 52%, var(--mtb-glass-3) 100%) !important;
+	box-shadow: 0 18px 46px rgba(6,4,20,.52), inset 0 1px 0 rgba(255,255,255,.10) !important;
+	backdrop-filter: blur(18px) saturate(132%) !important;
+	-webkit-backdrop-filter: blur(18px) saturate(132%) !important;
+}
+/* 상단 1px — 강조색에서 금으로 넘어가는 '운명의 실' */
+html body .logo-area .moon-topbar::before {
+	content: '' !important;
+	position: absolute;
+	top: 0;
+	left: 22px;
+	right: 22px;
+	height: 1px;
+	border-radius: 1px;
+	background: linear-gradient(90deg, transparent, var(--mtb-line-strong) 22%, var(--mtb-gold) 54%, var(--mtb-line-strong) 78%, transparent);
+	opacity: .72;
+	pointer-events: none;
+}
+/* 별빛 입자 + 구름 결 — 산만해지지 않도록 7% 로 절제 */
+html body .logo-area .moon-topbar::after {
+	content: '' !important;
+	position: absolute;
+	inset: 0;
+	border-radius: inherit;
+	opacity: .07;
+	pointer-events: none;
+	background-image:
+		radial-gradient(1.4px 1.4px at 12% 30%, #fff, transparent),
+		radial-gradient(1px 1px at 27% 72%, #fff, transparent),
+		radial-gradient(1.6px 1.6px at 44% 22%, #fff, transparent),
+		radial-gradient(1px 1px at 63% 66%, #fff, transparent),
+		radial-gradient(1.3px 1.3px at 78% 34%, #fff, transparent),
+		radial-gradient(1px 1px at 91% 62%, #fff, transparent),
+		radial-gradient(60% 130% at 30% 120%, var(--mtb-accent), transparent 70%),
+		radial-gradient(52% 120% at 74% -20%, var(--mtb-gold), transparent 70%);
+}
+
+/* 브랜드 — 금박+강조색 그라데이션 워드마크, 뒤에 은은한 발광 */
+html body .logo-area .moon-topbar__brand span {
+	border-color: rgba(255,255,255,.16) !important;
+	background: var(--mtb-accent-soft) !important;
+	box-shadow: inset 0 1px 0 rgba(255,255,255,.14) !important;
+}
+html body .logo-area .moon-topbar__brand span::before {
+	background: var(--mtb-gold) !important;
+	box-shadow: 0 0 12px var(--mtb-gold), 34px 0 46px var(--mtb-glow) !important;
+}
+html body .logo-area .moon-topbar__brand strong {
+	background: linear-gradient(96deg, var(--mtb-brand-1) 0%, var(--mtb-brand-2) 44%, var(--mtb-brand-3) 100%) !important;
+	-webkit-background-clip: text !important;
+	background-clip: text !important;
+	-webkit-text-fill-color: transparent !important;
+	color: transparent !important;
+	text-shadow: none !important;
+}
+html body .logo-area .moon-topbar__brand em {
+	border-left-color: var(--mtb-line) !important;
+	color: var(--mtb-tag-ink) !important;
+	text-shadow: none !important;
+}
+
+/* 탭 — 알약 대신 12px 라운드, 비활성은 활자만 남긴다 */
+html body .logo-area .moon-topbar__nav a,
+html body .logo-area .moon-topbar__nav button {
+	border-radius: 12px !important;
+	border: 1px solid transparent !important;
+	background: none !important;
+	color: var(--mtb-ink-dim) !important;
+	box-shadow: none !important;
+	text-shadow: none !important;
+	transition: color var(--cd-dur-base,200ms) ease, background var(--cd-dur-base,200ms) ease, border-color var(--cd-dur-base,200ms) ease !important;
+}
+/* 캔디 시절의 내부 흰 테두리(1695)와 상단 광선(1696)을 걷어낸다 */
+html body .logo-area .moon-topbar__nav a::before,
+html body .logo-area .moon-topbar__nav button::before {
+	display: none !important;
+	content: none !important;
+}
+/* hover — 아래에서 올라오는 광원. 이동·확대 없이 빛만 켠다 */
+html body .logo-area .moon-topbar__nav a:hover,
+html body .logo-area .moon-topbar__nav button:hover,
+html body .logo-area .moon-topbar__nav a:focus-visible,
+html body .logo-area .moon-topbar__nav button:focus-visible {
+	color: var(--mtb-ink) !important;
+	background: radial-gradient(124% 150% at 50% 122%, var(--mtb-accent-soft), transparent 72%) !important;
+	border-color: var(--mtb-line) !important;
+	box-shadow: none !important;
+	transform: none !important;
+}
+html body .logo-area .moon-topbar__brand:focus-visible,
+html body .logo-area .moon-topbar__nav a:focus-visible,
+html body .logo-area .moon-topbar__nav button:focus-visible {
+	outline: 2px solid var(--mtb-accent) !important;
+	outline-offset: 3px !important;
+}
+/* 활성 — 달빛이 스며든 테두리 + 옅은 세로 그라데이션 */
+html body .logo-area .moon-topbar__nav a[aria-current="page"] {
+	color: var(--mtb-ink) !important;
+	border-color: var(--mtb-line-strong) !important;
+	background: linear-gradient(180deg, var(--mtb-accent-soft), transparent) !important;
+	box-shadow: 0 8px 22px var(--mtb-glow), inset 0 1px 0 rgba(255,255,255,.18) !important;
+	transform: none !important;
+}
+/* 활성 인장 — 하단 중앙의 금색 마름모 (하단 도크의 인장과 같은 어휘) */
+html body .logo-area .moon-topbar__nav a::after,
+html body .logo-area .moon-topbar__nav button::after {
+	display: none !important;
+	content: none !important;
+}
+html body .logo-area .moon-topbar__nav a[aria-current="page"]::after {
+	display: block !important;
+	content: '' !important;
+	position: absolute !important;
+	left: 50% !important;
+	right: auto !important;
+	top: auto !important;
+	bottom: 3px !important;
+	width: 4px !important;
+	height: 4px !important;
+	border: 0 !important;
+	border-radius: 0 !important;
+	transform: translateX(-50%) rotate(45deg) !important;
+	background: var(--mtb-gold) !important;
+	box-shadow: 0 0 8px var(--mtb-gold) !important;
+	opacity: 1 !important;
+}
+
+/* 계정 진입 바 — 상단바와 같은 유리로 묶는다.
+   🔴 컨테이너가 어두워지므로 고스트 CTA 잉크를 이 컨테이너 안에서만 다시 스코프한다.
+   연이 전역 --cd-cta-ghost-ink(#8e3f63)는 크림 배경 기준 6.66:1 로 잰 값이라
+   딥 플럼 위에 그대로 두면 배경만 바뀐 반쪽 오버라이드가 된다. 네오는 전역 토큰이
+   이미 다크 컨테이너 기준(13.19:1)이라 건드리지 않는다. */
+html body .logo-area .auth-quick-links {
+	border: 1px solid var(--mtb-line) !important;
+	background: linear-gradient(112deg, var(--mtb-glass-1) 0%, var(--mtb-glass-2) 52%, var(--mtb-glass-3) 100%) !important;
+	box-shadow: 0 14px 34px rgba(6,4,20,.44), inset 0 1px 0 rgba(255,255,255,.10) !important;
+}
+html body:not(.neo-mode) .logo-area .auth-quick-links {
+	--cd-cta-ghost-ink: #f7dbe6;
+	--cd-cta-ghost-line: rgba(244,190,209,.44);
+	--cd-cta-ghost-fill: rgba(244,190,209,.14);
+	--cd-cta-ghost-ink-on: #fff1f7;
+}
+
+/* 모바일에서 blur 를 끄는 것은 성능 결정이다(1166·1685). 위 규칙이 특이도로
+   되살리지 않도록 여기서 다시 못 박는다. */
+@media (max-width: 860px) {
+	html body .logo-area .moon-topbar {
+		backdrop-filter: none !important;
+		-webkit-backdrop-filter: none !important;
+	}
+}
