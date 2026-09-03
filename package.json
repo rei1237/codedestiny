@@ -280,6 +280,7 @@
     "verify:overseas-payment-notice": "node scripts/verify-overseas-payment-notice.mjs",
     "verify:nakshatra-price-copy": "node scripts/verify-nakshatra-price-copy.mjs",
     "verify:i18n-price-drift": "node scripts/verify-i18n-price-drift.mjs",
+    "verify:krw-copy-canonical": "node scripts/verify-krw-copy-canonical.mjs",
     "verify:paid-service-offer": "node scripts/verify-paid-service-offer.mjs",
     "verify:checkout-pass-card": "node scripts/verify-checkout-pass-card.mjs",
     "verify:pg-window-no-conflict": "node scripts/verify-pg-window-no-conflict.mjs",
