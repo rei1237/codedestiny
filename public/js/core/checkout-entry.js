@@ -874,8 +874,9 @@
   }
 
   /**
-   * 이용권 상점 진입 URL. cdco=1 이 붙은 진입만 /points 가 결제 확인 모달을 자동으로 연다
-   * (app/points/PointsClient.tsx) — 그냥 상점 구경으로 들어온 사용자에게는 열지 않는다.
+   * 이용권 상점 진입 URL. plan 프리셋은 /points 가 해당 플랜을 강조만 한다 — 결제 확인 모달을 자동으로
+   * 열지 않는다(cdco=1 자동 오픈은 2026-09-03 제거, 사용자 결정: 상점 화면에서 다른 플랜·기간을 먼저
+   * 볼 수 있어야 한다).
    */
   function buildPassStoreUrl(options) {
     var opts = options || {};
@@ -883,7 +884,6 @@
     var params = [];
     if (plan) params.push("plan=" + encodeURIComponent(plan));
     params.push("source=" + encodeURIComponent(text(opts.source) || "payment-choice-pass-store"));
-    params.push("cdco=1");
     return "/points?" + params.join("&");
   }
 

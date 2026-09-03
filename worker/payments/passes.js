@@ -273,6 +273,39 @@ export async function activatePassSubscription(db, {
   return { user, replayed: false };
 }
 
+/**
+ * 환불 회수 — 이 주문이 늘린 durationMonths 만큼 expiresAt 을 되감고, 과거가 되면 free 로 내린다.
+ * worker/lib/payment-refund.js revokeMembershipPassGrant(관리자 환불)와 같은 의미론을 V2 db 래퍼 위에서
+ * 재현한 것이다(웹훅 컨텍스트는 mongoose 모델을 직접 쓰지 않는다).
+ * 🔴 lastPassOrderId 가 이 주문일 때만 손댄다 — 그 뒤 다른 주문이 활성화됐다면 되감기가 그 주문의 기간을
+ * 깎으므로 건드리지 않고 false 를 돌려준다(호출부가 검토 마커를 남겨 사람이 본다).
+ */
+export async function revokePassGrantForOrder(db, { userId, orderId, durationMonths, now = new Date() }) {
+  const months = Math.max(0, Math.floor(Number(durationMonths || 0)));
+  const uid = toObjectId(userId);
+  if (!uid || months <= 0) return false;
+  const user = await db.findOne(User, { _id: uid });
+  const sub = user?.profileSubscription && typeof user.profileSubscription === "object" ? user.profileSubscription : null;
+  if (!sub || String(sub.lastPassOrderId || "") !== String(orderId)) return false;
+  const currentExpiresAt = sub.expiresAt ? new Date(sub.expiresAt) : null;
+  if (!currentExpiresAt || Number.isNaN(currentExpiresAt.getTime())) return false;
+  const rewound = new Date(currentExpiresAt);
+  rewound.setMonth(rewound.getMonth() - months);
+  const set = {
+    "profileSubscription.expiresAt": rewound,
+    "profileSubscription.updatedAt": now,
+  };
+  if (rewound <= now) {
+    set["profileSubscription.tier"] = "free";
+    set["profileSubscription.passTier"] = "";
+    set["profileSubscription.passLimit"] = 0;
+    set["profileSubscription.maxCoveredCoin"] = 0;
+    set["profileSubscription.freeLimit"] = 0;
+  }
+  const result = await db.updateOne(User, { _id: uid }, { $set: set });
+  return Number(result?.matchedCount ?? 0) > 0;
+}
+
 /** 클라이언트가 실제로 읽는 subscription 응답(구 17키 + 실제로 읽히지만 구가 빠뜨렸던 startedAt). */
 export function presentPassSubscription(profileSubscription, plan, { customerUid = "", paymentMethod = "" } = {}) {
   const sub = profileSubscription && typeof profileSubscription === "object" ? profileSubscription : {};

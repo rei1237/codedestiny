@@ -148,7 +148,17 @@ export function makeFakePaymentDb(options = {}) {
     rows,
     ctx,
     async findOne(_Model, filter) { ctx.ops += 1; return rows.find((r) => matches(r, filter)) || null; },
-    async find(_Model, filter) { ctx.ops += 1; return rows.filter((r) => matches(r, filter)); },
+    async find(_Model, filter, options = {}) {
+      ctx.ops += 1;
+      let out = rows.filter((r) => matches(r, filter));
+      // 드라이버 FindOptions 의 sort/limit 만 흉내 낸다(단일 키). 크론 재지급의 "최신 우선"이 여기 기댄다.
+      if (options.sort && typeof options.sort === "object") {
+        const [key, dir] = Object.entries(options.sort)[0] || [];
+        if (key) out = [...out].sort((a, b) => (a[key] > b[key] ? 1 : a[key] < b[key] ? -1 : 0) * (Number(dir) < 0 ? -1 : 1));
+      }
+      if (Number.isFinite(Number(options.limit)) && Number(options.limit) > 0) out = out.slice(0, Number(options.limit));
+      return out;
+    },
     async countDocuments(_Model, filter) { ctx.ops += 1; return rows.filter((r) => matches(r, filter)).length; },
     async insertOne(_Model, doc) {
       ctx.ops += 1;

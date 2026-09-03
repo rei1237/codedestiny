@@ -151,6 +151,18 @@ test("single payment keeps uncertain confirmation locked and supports same-tab r
   assert.match(successBlock, /결제와 상품 반영은 완료됐어요/);
 });
 
+test("subscription payment choice modal scrolls inside the viewport and is never auto-opened by a query param", () => {
+  // 모바일에서 카드가 뷰포트보다 길면 잘렸다(2026-09-03). 카드 자체가 스크롤 컨테이너여야 한다.
+  const modalBlock = between(pointsSource, "{pendingSubscriptionPaymentPlan && (", 'id="subscriptionPaymentChoiceTitle"');
+  assert.ok(modalBlock.length > 0, "결제 방식 선택 모달 블록을 찾지 못했다");
+  assert.match(modalBlock, /max-h-\[calc\(100dvh-2rem\)\]/);
+  assert.match(modalBlock, /overflow-y-auto/);
+  assert.match(modalBlock, /safe-area-inset-bottom/);
+  // ?plan= 은 강조만 — 결제 확인 모달을 쿼리 파라미터로 자동 오픈하지 않는다(사용자 결정 2026-09-03).
+  assert.doesNotMatch(pointsSource, /query\.get\("cdco"\)/);
+  assert.doesNotMatch(pointsSource, /checkoutHandoff/);
+});
+
 test("static shell does not call payments/me as a moonlight balance fallback", () => {
   const monthlySyncBlock = between(shellSource, "async function syncGoldenMonthlyCreditsFromPaymentsMe", "function ChargeModal");
 
