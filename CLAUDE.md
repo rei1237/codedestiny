@@ -90,7 +90,7 @@
 ## 검증 · 커밋
 
 - 🔴 **끝은 "검증했다"까지다** — 변경마다 **실행한 명령과 그 출력**을 근거로 보고한다. 출력을 안 보고 "통과"라고 쓰지 않는다. 못 돌린 검증은 **"미검증"으로 명시**한다. 최종 보고에 수정 파일 · 의도 · 안 건드린 영역 · 검증 명령과 출력 · 추가 확인이 필요한 지점을 남긴다.
-- 순서: **고친 기능의 `verify:*`** → `lint` → `typecheck` → **변경 파일만** `git add` → Conventional Commits. 커밋 전 `git diff --name-only` 로 요청 범위와 일치하는지, `git diff --numstat` 로 비정상 대량 변경이 없는지 확인한다. 범위 밖 파일이 섞이면 staging 을 풀고 다시 검증한다([Rules/agent-regression-guard.md](Rules/agent-regression-guard.md)).
+- 순서: **고친 기능의 `verify:*`** → `lint` → `typecheck` → `check:quick`(**sitemap 드리프트**까지 로컬에서 먼저 잡는다 — PR CI 실패 1위였다) → **변경 파일만** `git add` → Conventional Commits. 커밋 전 `git diff --name-only` 로 요청 범위와 일치하는지, `git diff --numstat` 로 비정상 대량 변경이 없는지 확인한다. 범위 밖 파일이 섞이면 staging 을 풀고 다시 검증한다([Rules/agent-regression-guard.md](Rules/agent-regression-guard.md)).
 - `verify:*` 전체 목록·배선 상태의 정본은 `npm run verify:guard-wiring` 출력이다 — **개수를 문서에 적지 않는다.** 결제 최소: `verify:billing-pass-policy` · `verify:portone-single-payment` · `verify:paid-gate-ui` · `verify:payment-choice-parity` · `verify:checkout-pass-card`. UI: `verify:hero-contrast` + `verify:mobile-detail-nonintrusive`.
 - 🔴 **CI 대기는 폴링하지 않는다** — `gh pr checks <PR 번호> --watch --fail-fast` 한 콜로 끝낸다.
 - 🔴 **의존 없는 확인은 한 응답에 묶는다** — 왕복 자체가 비용이다. 순서가 필요 없는 `git status`·`grep`·`cat` 은 함께 보내고, 짧은 확인은 다음 명령에 합친다. 파일 일부만 필요하면 `sed -n` 대신 Read 의 `offset`/`limit` 을 쓴다.

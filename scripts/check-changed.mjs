@@ -77,6 +77,9 @@ function main() {
 
   const source = files.filter((file) => /\.(?:[cm]?js|[cm]?ts|tsx|jsx)$/.test(file));
   if (source.length) run("changed-file lint", npm, ["exec", "--", "eslint", "--quiet", ...source]);
+  // PR CI 실패 1위가 sitemap 드리프트다. 로컬 4초짜리를 느린 typecheck 앞에 둬서
+  // 라우트를 건드린 커밋이 CI 왕복을 한 번 더 돌지 않게 한다.
+  run("sitemap drift", npm, ["run", "verify:sitemap-drift"]);
   run("typecheck", npm, ["run", "typecheck"]);
   if (risk !== "low") run("mock core smoke", npm, ["run", "smoke:core"]);
   if (risk === "high") run("critical mock gates", npm, ["run", "check:critical"]);
