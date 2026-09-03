@@ -114,6 +114,68 @@ test('seal and sparkle placements are generated for every host and repainted for
   }
 });
 
+// ── PR-3 (2026-09-03) — 섹션 코너 가지 · 고민 활성 카드 인장 · 모란 ────────────────
+// 가지·모란도 인장과 같은 방식이다: 호스트의 자식 <span>, z-index -1, 호스트가 이미 가진 스태킹 컨텍스트에 기댄다.
+// 자리는 전부 폭 스윕(1350→390, 12단계)으로 글자 잉크와 겹침 0 을 확인한 좌표이므로 옮길 때는 같은 스윕을 다시 돈다.
+
+test('sprigs, concern seals and peonies are child spans on their hosts', () => {
+  const html = read('index.html');
+  assert.equal((html.match(/class="cd-yehwa-sprig /g) || []).length, 4, '가지는 왜 우리 2 + AI 카드 2 = 4개');
+  assert.equal((html.match(/<span class="cd-yehwa-sprig cd-yehwa-sprig--(?:tl|tr)" aria-hidden="true"><\/span>/g) || []).length, 4, '가지는 전부 aria-hidden 인 --tl/--tr 이어야 한다');
+  assert.match(html, /<section data-cd-funnel-section="why_us" class="cd-why-us"[^>]*>\s*<span class="cd-yehwa-sprig cd-yehwa-sprig--tl"/, '왜 우리 섹션 첫 자식이 가지가 아니다');
+  assert.match(html, /<section class="cd-ai-feats"[^>]*>\s*<span class="cd-yehwa-sprig cd-yehwa-sprig--tl"/, 'AI 카드 첫 자식이 가지가 아니다');
+  // 🔴 파인더 필터 행에는 두지 않는다(2026-09-03 시각 판정) — 구분선 마스크의 미러 쌍이 방식/가격 행 사이 거터에
+  // 떠서 "나눌 것 없는 자리의 구분선"으로 읽혔다. 단방향 가지 마스크가 생기기 전에는 되살리지 않는다.
+  assert.doesNotMatch(html, /<div class="fortune-gateway__filters"[^>]*>\s*<span class="cd-yehwa/, '파인더 필터 행에 문양을 두지 않는다');
+
+  // 고민 카드 6장 전부에 인장 span 이 있고 CSS 가 aria-expanded=true 인 카드에서만 켠다.
+  const concern = html.match(/<button type="button" class="cd-concern__card"[^>]*>\s*<span class="cd-yehwa-seal cd-yehwa-seal--concern" aria-hidden="true"><\/span>/g) || [];
+  assert.equal(concern.length, 6, `고민 카드 6장 전부에 인장이 있어야 한다 (현재 ${concern.length})`);
+  assert.equal((html.match(/cd-yehwa-seal--concern"/g) || []).length, 6, '고민 인장은 카드 안 6개뿐이어야 한다');
+
+  assert.ok(html.includes('<div class="cd-feedback__copy"><span class="cd-yehwa-peony" aria-hidden="true"></span>'), '피드백 카드 가운데 열의 모란이 없다');
+  assert.ok(html.includes('<div class="cd-footer-shell" data-marker="cd-footer-refine-v20260724"><span class="cd-yehwa-peony" aria-hidden="true"></span>'), '푸터 링크 허브의 모란이 없다');
+  assert.equal((html.match(/class="cd-yehwa-peony"/g) || []).length, 2, '모란은 피드백 카드 + 푸터 2개뿐이어야 한다');
+});
+
+test('PR-3 placements are generated, ordered by width, and repainted for neo', () => {
+  const css = read('styles/yehwa-motifs.css');
+  for (const sel of [
+    '.cd-why-us > .cd-yehwa-sprig',
+    '.cd-ai-feats > .cd-yehwa-sprig',
+    '.cd-concern__card[aria-expanded="true"] .cd-yehwa-seal--concern',
+    '.cd-feedback__copy > .cd-yehwa-peony',
+    '.cd-footer-shell > .cd-yehwa-peony',
+  ]) {
+    assert.ok(css.includes(`${sel} {`), `${sel} 배치 규칙이 없다`);
+  }
+  assert.ok(!css.includes('.fortune-gateway__filters > .cd-yehwa'), '파인더 필터 행 규칙은 두지 않는다');
+  assert.match(css, /\.cd-yehwa-sprig \{[^}]*z-index:\s*-1/);
+  assert.match(css, /\.cd-yehwa-peony \{[^}]*z-index:\s*-1/);
+  // 비활성 고민 카드에는 인장이 보이면 안 된다 — 기본 display:none, 활성 카드에서만 block.
+  assert.match(css, /\.cd-concern__card \.cd-yehwa-seal--concern \{[^}]*display:\s*none/);
+  assert.match(css, /\.cd-concern__card\[aria-expanded="true"\] \.cd-yehwa-seal--concern \{[^}]*display:\s*block/);
+  assert.match(css, /html\.neo-mode body \.cd-yehwa-sprig[^{]*\{[^}]*background:/);
+  assert.match(css, /html\.neo-mode body \.cd-yehwa-peony[^{]*\{[^}]*background:/);
+  assert.match(css, /html\.neo-mode body \.cd-concern__card \.cd-yehwa-seal--concern[^{]*\{[^}]*background:/);
+  // 🔴 AI 카드 가지의 1200px 축소 규칙은 900px 모바일 규칙보다 앞에 있어야 한다 — 두 --tr 규칙의 특이도가 같아
+  // 순서로 이기고, 뒤집히면 모바일에서 170x131 이 남아 제목과 겹친다(2026-09-03 실제로 한 번 뒤집혔다).
+  const w1200 = css.indexOf('@media (max-width: 1200px)');
+  const w900 = css.indexOf('@media (max-width: 900px)');
+  assert.ok(w1200 > 0 && w900 > w1200, `1200px 블록(${w1200})이 900px 블록(${w900})보다 앞에 있어야 한다`);
+  const block900 = css.slice(w900, css.indexOf('@media', w900 + 1));
+  assert.ok(block900.includes('.cd-ai-feats > .cd-yehwa-sprig--tr {'), '900px 블록에 AI 우상단 가지 축소 규칙이 없다');
+  assert.match(block900, /\.cd-ai-feats > \.cd-yehwa-sprig--tl \{[^}]*display:\s*none/, '900px 아래에서 AI 좌상단 가지를 꺼야 한다');
+  assert.match(block900, /\.cd-yehwa-peony,[^{]*\{[^}]*display:\s*none/, '900px 아래에서 모란을 꺼야 한다');
+  // 선문양 상한은 인장과 같다(.6) — 넘기면 장식이 아니라 그림이 된다.
+  const blocks = css.match(/\.cd-yehwa-(?:sprig|peony)[^{]*\{[^}]*\}/g) || [];
+  assert.ok(blocks.length >= 6);
+  for (const block of blocks) {
+    const m = block.match(/opacity:\s*(\.\d+|\d(?:\.\d+)?)/);
+    if (m) assert.ok(Number(m[1]) <= 0.6, `line motif opacity too high: ${block.slice(0, 48)} → ${m[1]}`);
+  }
+});
+
 test('the generator reproduces the committed stylesheet byte for byte', () => {
   execFileSync(process.execPath, [path.join(root, 'scripts/design/gen-yehwa-motifs.mjs'), '--check'], {
     cwd: root,
