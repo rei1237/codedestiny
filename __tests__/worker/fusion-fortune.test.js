@@ -362,6 +362,37 @@ describe("Fusion Fortune per-use billing and mock generation", () => {
     expect([...store.attempts.values()].filter((item) => item.status === "completed")).toHaveLength(0);
   });
 
+  it("🔴 delivers a finished result even when the request was cancelled during generation", async () => {
+    // 2026-09-03: 배달 직전·직후에 취소 검사가 있어, 완성된 3만원짜리 글을 손에 쥔 채로
+    // CANCELLED 를 던지는 경로가 둘 있었다. 결제는 생성 **전에** 끝나므로 그 순간의 취소는
+    // 사용자 손실이다. 취소는 아직 만들지 않은 것을 안 만들게 하는 장치일 뿐이다.
+    const controller = new AbortController();
+    const dateKey = getFusionFortuneDateKey(new Date("2026-08-04T05:00:00.000Z"));
+    const store = emptyStore();
+    const delivered = [];
+    const generated = await generateFusionFortuneRequest({
+      input,
+      userId: "user",
+      requestId: "stream-cancelled-after-generation",
+      dateKey,
+      store,
+      resolvePaidAccess: paidAccess,
+      contextBuilder,
+      // 생성을 마친 직후 연결이 끊긴 상황.
+      generator: async (args) => {
+        const result = await generateFusionFortuneWithMockLLM(args);
+        controller.abort();
+        return result;
+      },
+      abortSignal: controller.signal,
+      onDelivery: async (delivery) => { delivered.push(delivery); },
+    });
+
+    expect(delivered).toHaveLength(1);
+    expect(generated).toMatchObject({ ok: true });
+    expect([...store.attempts.values()].filter((item) => item.status === "completed")).toHaveLength(1);
+  });
+
   it("does not consume a ticket or daily slot when the stream cannot deliver the final result", async () => {
     const dateKey = getFusionFortuneDateKey(new Date("2026-08-04T05:00:00.000Z"));
     const store = emptyStore();
