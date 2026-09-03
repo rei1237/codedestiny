@@ -186,8 +186,8 @@ export default function PhoneChangeClient() {
   useEffect(() => {
     const sync = () => setLocale(getCurrentLoadingLocale());
     window.addEventListener("languagechange", sync);
-    document.addEventListener("cd:language-change", sync);
-    return () => { window.removeEventListener("languagechange", sync); document.removeEventListener("cd:language-change", sync); };
+    window.addEventListener("cd:locale-ready", sync);
+    return () => { window.removeEventListener("languagechange", sync); window.removeEventListener("cd:locale-ready", sync); };
   }, []);
 
   // 현재 번호는 마스킹된 형태로만 받아 화면에 띄운다(원문을 굳이 이 화면까지 끌고 오지 않는다).

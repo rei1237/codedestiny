@@ -905,10 +905,8 @@ export function useAnimalDestinyCopy(): AnimalDestinyCopy {
     const sync = () => setLocale(getCurrentLoadingLocale());
     sync();
     window.addEventListener("cd:locale-ready", sync);
-    window.addEventListener("cd:locale-change", sync);
     return () => {
       window.removeEventListener("cd:locale-ready", sync);
-      window.removeEventListener("cd:locale-change", sync);
     };
   }, []);
   return getAnimalDestinyCopy(locale);

@@ -45,10 +45,8 @@ export default function RouteMetadataLocaleSync({ entries }: { entries: RouteMet
     const sync = () => applyEntry(pickEntry(entries, getCurrentLoadingLocale()));
     sync();
     window.addEventListener("cd:locale-ready", sync);
-    window.addEventListener("cd:locale-change", sync);
     return () => {
       window.removeEventListener("cd:locale-ready", sync);
-      window.removeEventListener("cd:locale-change", sync);
     };
   }, [entries]);
 

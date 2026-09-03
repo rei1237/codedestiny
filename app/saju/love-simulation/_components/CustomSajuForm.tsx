@@ -276,10 +276,10 @@ export const CustomSajuForm: React.FC<CustomSajuFormProps> = ({ onClose, onPerso
 
   useEffect(() => {
     const syncLocale = () => setLocale(getCurrentLoadingLocale());
-    window.addEventListener("cd:locale-change", syncLocale);
+    window.addEventListener("cd:locale-ready", syncLocale);
     window.addEventListener("storage", syncLocale);
     return () => {
-      window.removeEventListener("cd:locale-change", syncLocale);
+      window.removeEventListener("cd:locale-ready", syncLocale);
       window.removeEventListener("storage", syncLocale);
     };
   }, []);

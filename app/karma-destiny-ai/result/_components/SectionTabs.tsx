@@ -38,10 +38,10 @@ function useSectionTabsCopy(): SectionTabsCopy {
   useEffect(() => {
     const sync = () => setLocale(getCurrentLoadingLocale());
     window.addEventListener("languagechange", sync);
-    document.addEventListener("cd:language-change", sync);
+    window.addEventListener("cd:locale-ready", sync);
     return () => {
       window.removeEventListener("languagechange", sync);
-      document.removeEventListener("cd:language-change", sync);
+      window.removeEventListener("cd:locale-ready", sync);
     };
   }, []);
   return getSectionTabsCopy(locale);

@@ -142,11 +142,9 @@ export function PhaseReveal() {
     const syncLocale = () => setLocale(getCurrentLoadingLocale());
     syncLocale();
     window.addEventListener('cd:locale-ready', syncLocale);
-    window.addEventListener('cd:locale-change', syncLocale);
     window.addEventListener('storage', syncLocale);
     return () => {
       window.removeEventListener('cd:locale-ready', syncLocale);
-      window.removeEventListener('cd:locale-change', syncLocale);
       window.removeEventListener('storage', syncLocale);
     };
   }, []);

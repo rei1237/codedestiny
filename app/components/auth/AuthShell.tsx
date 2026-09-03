@@ -403,8 +403,8 @@ export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
   useEffect(() => {
     const sync = () => setLocale(getCurrentLoadingLocale());
     window.addEventListener("languagechange", sync);
-    document.addEventListener("cd:language-change", sync);
-    return () => { window.removeEventListener("languagechange", sync); document.removeEventListener("cd:language-change", sync); };
+    window.addEventListener("cd:locale-ready", sync);
+    return () => { window.removeEventListener("languagechange", sync); window.removeEventListener("cd:locale-ready", sync); };
   }, []);
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
