@@ -317,7 +317,7 @@ const KARMA_DESTINY_EN: KarmaDestinyCopy = {
   heroDescription: "In the recurring flow of your life, we reveal the pattern you need to break and the new path you need to open now.",
   premiumMapAriaLabel: "Karma Destiny Consultation Composition",
   premiumMapHeading: "A Karma Destiny Report Spanning 30,000+ Characters",
-  premiumMapDesc: "Fitting a $35 consultation, we weave Saju, astrology, and Vedic symbolism together with real-world action strategies across a 16-chapter narrative.",
+  premiumMapDesc: "Fitting a premium consultation, we weave Saju, astrology, and Vedic symbolism together with real-world action strategies across a 16-chapter narrative.",
   formHeading: "Information to Read the Thread of Your Destiny",
   profileLoadAria: "Load birth information from profile card",
   profileLoadCta: "Load from profile card",
@@ -443,7 +443,7 @@ const KARMA_DESTINY_COPY: Partial<Record<LoadingLocale, KarmaDestinyCopy>> = {
     heroDescription: "반복되는 인생의 흐름 속에서, 지금 끊어내야 할 패턴과 새롭게 열어야 할 길을 읽어드립니다.",
     premiumMapAriaLabel: "운명의 업 상담 구성",
     premiumMapHeading: "30,000자 이상으로 여는 운명의 업 리포트",
-    premiumMapDesc: "5만 원 상담에 맞게 명리, 점성, 베다 상징과 현실 행동 전략을 16장 장문 흐름으로 엮습니다.",
+    premiumMapDesc: "프리미엄 상담에 맞게 명리, 점성, 베다 상징과 현실 행동 전략을 16장 장문 흐름으로 엮습니다.",
     formHeading: "운명의 실을 읽기 위한 정보",
     profileLoadAria: "프로필 카드에서 출생 정보 불러오기",
     profileLoadCta: "프로필 카드에서 불러오기",
@@ -568,7 +568,7 @@ const KARMA_DESTINY_COPY: Partial<Record<LoadingLocale, KarmaDestinyCopy>> = {
     heroDescription: "繰り返される人生の流れの中で、今断ち切るべきパターンと新たに開くべき道を読み解きます。",
     premiumMapAriaLabel: "運命の業相談の構成",
     premiumMapHeading: "30,000字以上で開く運命の業レポート",
-    premiumMapDesc: "5万ウォンの相談に見合うよう、命理・占星・ヴェーダの象徴と現実的な行動戦略を16章の長文で編みます。",
+    premiumMapDesc: "プレミアム相談に見合うよう、命理・占星・ヴェーダの象徴と現実的な行動戦略を16章の長文で編みます。",
     formHeading: "運命の糸を読むための情報",
     profileLoadAria: "プロフィールカードから出生情報を読み込む",
     profileLoadCta: "プロフィールカードから読み込む",
@@ -2692,7 +2692,7 @@ export default function KarmaDestinyAiPage() {
 
           {notice && <p className="kdai-notice">{notice}</p>}
           {error && <p className="kdai-error">{error}</p>}
-          {/* 5만원이 무엇을 사는지 숫자로 밝힌다. 값은 worker/routes/karma-destiny-ai.js 의
+          {/* 프리미엄 상담이 무엇을 사는지 숫자로 밝힌다. 값은 worker/routes/karma-destiny-ai.js 의
               INITIAL_CONSULTATION_MIN_LENGTH·PREMIUM_CHAPTERS·PREMIUM_REINFORCEMENT_MAX_ATTEMPTS
               가 실제로 강제하는 계약이다. */}
           <DeliverableSpec
