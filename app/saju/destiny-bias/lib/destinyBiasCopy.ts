@@ -14,7 +14,7 @@ const DESTINY_BIAS_COPY_TRANSLATIONS = {
         "두 사람의 생년월일로 케미를 읽고, 업로드 이미지까지 합성한 글래스 포토카드를 만들어드려요. 덕질 모드에 딱 맞는 결과를 한 번에!",
       ctaPrimary: "운명 연결 시작하기",
       ctaSecondary: "Cosmic Stage 입장",
-      coinBadge: "1회 5,000원 · 글래스 포토카드 포함",
+      coinBadge: "무료 · 글래스 포토카드 포함",
     },
   },
   en: {
@@ -32,7 +32,7 @@ const DESTINY_BIAS_COPY_TRANSLATIONS = {
         "Read the chemistry between two birth dates and create a glass photocard with your uploaded image. A fandom-ready result in one flow.",
       ctaPrimary: "Start destiny connection",
       ctaSecondary: "Enter Cosmic Stage",
-      coinBadge: "KRW 5,000 per use · includes glass photocard",
+      coinBadge: "Free · includes glass photocard",
     },
   },
   ja: {
@@ -50,7 +50,7 @@ const DESTINY_BIAS_COPY_TRANSLATIONS = {
         "二人の生年月日からケミを読み、アップロード画像まで合成したグラスフォトカードを作ります。推し活モードにぴったりの結果を一度に。",
       ctaPrimary: "運命の接続を始める",
       ctaSecondary: "Cosmic Stageへ入る",
-      coinBadge: "1回5,000ウォン · グラスフォトカード付き",
+      coinBadge: "無料 · グラスフォトカード付き",
     },
   },
 } as const;

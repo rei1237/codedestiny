@@ -23,7 +23,7 @@ const DESTINY_BIAS_PROMO_EN: DestinyBiasPromoCopy = {
   chipPhotoCard: "Sticker-decorated photocard",
   cta: "Start Destiny Bias",
   imageAlt: "Destiny Bias service banner",
-  priceBadge: "✨ 5,000 KRW per reading · Photocard included",
+  priceBadge: "✨ Free · Photocard included",
 };
 
 const DESTINY_BIAS_PROMO_COPY: Partial<Record<LoadingLocale, DestinyBiasPromoCopy>> = {
@@ -35,7 +35,7 @@ const DESTINY_BIAS_PROMO_COPY: Partial<Record<LoadingLocale, DestinyBiasPromoCop
     chipPhotoCard: "스티커 탑꾸 포토카드",
     cta: "최애운명 시작하기",
     imageAlt: "최애운명 서비스 배너",
-    priceBadge: "✨ 1회 5,000원 · 포토카드 포함",
+    priceBadge: "✨ 무료 · 포토카드 포함",
   },
   ja: {
     eyebrow: "DESTINY BIAS WORLD",
@@ -45,7 +45,7 @@ const DESTINY_BIAS_PROMO_COPY: Partial<Record<LoadingLocale, DestinyBiasPromoCop
     chipPhotoCard: "ステッカーデコフォトカード",
     cta: "推し運命を始める",
     imageAlt: "推し運命サービスバナー",
-    priceBadge: "✨ 1回 5,000ウォン · フォトカード込み",
+    priceBadge: "✨ 無料 · フォトカード込み",
   },
   "zh-CN": {
     eyebrow: "DESTINY BIAS WORLD",
@@ -55,7 +55,7 @@ const DESTINY_BIAS_PROMO_COPY: Partial<Record<LoadingLocale, DestinyBiasPromoCop
     chipPhotoCard: "贴纸装饰拍立得",
     cta: "开始本命命运",
     imageAlt: "本命命运服务横幅",
-    priceBadge: "✨ 每次 5,000 韩元 · 含拍立得",
+    priceBadge: "✨ 免费 · 含拍立得",
   },
   "zh-TW": {
     eyebrow: "DESTINY BIAS WORLD",
@@ -65,7 +65,7 @@ const DESTINY_BIAS_PROMO_COPY: Partial<Record<LoadingLocale, DestinyBiasPromoCop
     chipPhotoCard: "貼紙裝飾拍立得",
     cta: "開始本命命運",
     imageAlt: "本命命運服務橫幅",
-    priceBadge: "✨ 每次 5,000 韓元 · 含拍立得",
+    priceBadge: "✨ 免費 · 含拍立得",
   },
   vi: {
     eyebrow: "DESTINY BIAS WORLD",
@@ -75,7 +75,7 @@ const DESTINY_BIAS_PROMO_COPY: Partial<Record<LoadingLocale, DestinyBiasPromoCop
     chipPhotoCard: "Photocard trang trí sticker",
     cta: "Bắt đầu Vận Mệnh Thần Tượng",
     imageAlt: "Banner dịch vụ Vận Mệnh Thần Tượng",
-    priceBadge: "✨ 5.000 KRW mỗi lần · Kèm photocard",
+    priceBadge: "✨ Miễn phí · Kèm photocard",
   },
   hi: {
     eyebrow: "DESTINY BIAS WORLD",
@@ -85,7 +85,7 @@ const DESTINY_BIAS_PROMO_COPY: Partial<Record<LoadingLocale, DestinyBiasPromoCop
     chipPhotoCard: "स्टिकर-सजाया फोटोकार्ड",
     cta: "डेस्टिनी बायस शुरू करें",
     imageAlt: "डेस्टिनी बायस सेवा बैनर",
-    priceBadge: "✨ प्रति रीडिंग 5,000 KRW · फोटोकार्ड शामिल",
+    priceBadge: "✨ मुफ्त · फोटोकार्ड शामिल",
   },
   es: {
     eyebrow: "DESTINY BIAS WORLD",
@@ -95,7 +95,7 @@ const DESTINY_BIAS_PROMO_COPY: Partial<Record<LoadingLocale, DestinyBiasPromoCop
     chipPhotoCard: "Fotocarta decorada con pegatinas",
     cta: "Empezar Destiny Bias",
     imageAlt: "Banner del servicio Destiny Bias",
-    priceBadge: "✨ 5.000 KRW por lectura · Fotocarta incluida",
+    priceBadge: "✨ Gratis · Fotocarta incluida",
   },
   fr: {
     eyebrow: "DESTINY BIAS WORLD",
@@ -105,7 +105,7 @@ const DESTINY_BIAS_PROMO_COPY: Partial<Record<LoadingLocale, DestinyBiasPromoCop
     chipPhotoCard: "Photocarte décorée d'autocollants",
     cta: "Démarrer Destiny Bias",
     imageAlt: "Bannière du service Destiny Bias",
-    priceBadge: "✨ 5 000 KRW par lecture · Photocarte incluse",
+    priceBadge: "✨ Gratuit · Photocarte incluse",
   },
   de: {
     eyebrow: "DESTINY BIAS WORLD",
@@ -115,7 +115,7 @@ const DESTINY_BIAS_PROMO_COPY: Partial<Record<LoadingLocale, DestinyBiasPromoCop
     chipPhotoCard: "Mit Stickern verzierte Fotokarte",
     cta: "Destiny Bias starten",
     imageAlt: "Destiny-Bias-Service-Banner",
-    priceBadge: "✨ 5.000 KRW pro Deutung · Fotokarte inklusive",
+    priceBadge: "✨ Kostenlos · Fotokarte inklusive",
   },
   nl: {
     eyebrow: "DESTINY BIAS WORLD",
@@ -125,7 +125,7 @@ const DESTINY_BIAS_PROMO_COPY: Partial<Record<LoadingLocale, DestinyBiasPromoCop
     chipPhotoCard: "Met stickers versierde fotokaart",
     cta: "Start Destiny Bias",
     imageAlt: "Destiny Bias-servicebanner",
-    priceBadge: "✨ 5.000 KRW per lezing · Fotokaart inbegrepen",
+    priceBadge: "✨ Gratis · Fotokaart inbegrepen",
   },
   ms: {
     eyebrow: "DESTINY BIAS WORLD",
@@ -135,7 +135,7 @@ const DESTINY_BIAS_PROMO_COPY: Partial<Record<LoadingLocale, DestinyBiasPromoCop
     chipPhotoCard: "Kad foto berhias pelekat",
     cta: "Mulakan Destiny Bias",
     imageAlt: "Sepanduk perkhidmatan Destiny Bias",
-    priceBadge: "✨ 5,000 KRW setiap bacaan · Termasuk kad foto",
+    priceBadge: "✨ Percuma · Termasuk kad foto",
   },
 };
 
