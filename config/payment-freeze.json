@@ -7,7 +7,7 @@
       "file": "index.html",
       "marker": "  async function _cdChooseServicePaymentMode(options) {",
       "why": "결제수단 선택창의 정본 렌더러. 3벌 중 이것이 기준이고 나머지 2벌이 여기에 맞춰진다.",
-      "sha256": "635b1d688247b159"
+      "sha256": "f0962062de37e48c"
     },
     {
       "file": "index.html",

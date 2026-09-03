@@ -1808,6 +1808,7 @@
       "musicTrackSub": "Avec le Pass Clair de Lune, vous écoutez tous les morceaux immédiatement. Le téléchargement MP3 n'est possible que pour les morceaux achetés à l'unité ou avec des pierres de lune.",
       "defaultTitle": "Service payant",
       "passApplyFailed": "Nous n'avons pas pu appliquer votre pass.",
+      "passAppliedUiFailed": "Votre pass a été appliqué, mais l'affichage n'a pas été mis à jour. Ne payez pas : appuyez à nouveau sur cette carte.",
       "monthlyInsufficient": "Pas assez de pierres de lune. Choisissez plutôt le paiement unique.",
       "monthlyUnknown": "Nous n'avons pas pu vérifier votre solde de pierres de lune. Rouvrez la fenêtre.",
       "monthlyAria": {
@@ -1823,6 +1824,8 @@
         "withPass": "Choisissez entre pass, pierres de lune ou carte.",
         "directOnly": "Ce contenu s'ouvre par paiement par carte.",
         "passUnknown": "Si vous avez un pass, touchez la carte de pass ci-dessous : nous le vérifions immédiatement.",
+        "passSaveUnverified": "Nous n'avons pas pu enregistrer le résultat de l'application de votre pass. Vérifiez à nouveau avec la carte pass ci-dessous ou choisissez un autre moyen de paiement.",
+        "passCheckFailed": "Nous n'avons pas pu vérifier votre pass. Réessayez avec la carte pass ci-dessous ou choisissez un autre moyen de paiement.",
         "passMiss": "Votre pass n'ouvre pas ce contenu gratuitement, voici les options de paiement."
       },
       "passBadge": "Pass Clair de Lune",

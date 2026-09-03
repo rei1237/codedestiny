@@ -268,6 +268,7 @@
     "verify:admin-route-error-context": "node scripts/verify-admin-route-error-context.mjs",
     "verify:entry-fanout": "node scripts/verify-entry-fanout.mjs",
     "verify:payment-freeze": "node scripts/verify-payment-freeze.mjs",
+    "verify:paid-gate-no-dead-end": "node scripts/verify-paid-gate-no-dead-end.mjs",
     "verify:paid-gate-ui": "node scripts/verify-paid-gate-ui-regression.mjs",
     "verify:payment-choice-parity": "node scripts/verify-payment-choice-parity.mjs",
     "verify:payment-phone-consent": "node scripts/verify-payment-phone-consent.mjs",
