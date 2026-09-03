@@ -7159,9 +7159,73 @@ function syWheelRelationFromDistance(distance) {
   if ([7, 16, 25].indexOf(d) >= 0) return { short: '쇠', label: _sajuQuantumText("sq_6452_prop_label"), color: 'rgba(96,165,250,0.42)' };
   if ([3, 12, 21].indexOf(d) >= 0) return { short: '안', label: _sajuQuantumText("sq_6453_prop_label"), color: 'rgba(244,114,182,0.42)' };
   if ([6, 15, 24].indexOf(d) >= 0) return { short: '괴', label: _sajuQuantumText("sq_6454_prop_label"), color: 'rgba(239,68,68,0.42)' };
-  if ([4, 13, 22].indexOf(d) >= 0) return { short: '성', label: _sajuQuantumText("sq_6455_prop_label"), color: 'rgba(167,139,250,0.42)' };
-  if ([5, 14, 23].indexOf(d) >= 0) return { short: '위', label: _sajuQuantumText("sq_6456_prop_label"), color: 'rgba(129,140,248,0.42)' };
+  // 정본 worker/lib/sukuyo-relation-core.js 및 전통 순서(1榮 2友 3安 4危 5成 6壞 7衰 8親 9業)
+  // 기준으로 순행 +4/13/22 는 내가 危(위), +5/14/23 이 成(성)이다. 예전에는 두 줄이 뒤집혀 있었다.
+  if ([5, 14, 23].indexOf(d) >= 0) return { short: '성', label: _sajuQuantumText("sq_6455_prop_label"), color: 'rgba(167,139,250,0.42)' };
+  if ([4, 13, 22].indexOf(d) >= 0) return { short: '위', label: _sajuQuantumText("sq_6456_prop_label"), color: 'rgba(129,140,248,0.42)' };
   return { short: '우', label: _sajuQuantumText("sq_6457_prop_label"), color: 'rgba(56,189,248,0.4)' };
+}
+
+// 27수 자리(役) 정본표 — worker/lib/sukuyo-relation-core.js 의 SUKUYO_ROLE_PROFILES 와
+// han·meaning·experience·advice 가 글자까지 같아야 한다(verify:sukuyo-role-direction 이 대조).
+// 브라우저 전역 스크립트라 워커 ESM 을 import 할 수 없어 여기에 저작한다.
+var SY_ROLE_PROFILE = {
+  '명': { han: '命', label: '공명자', icon: '🪞', meaning: '같은 리듬을 비추는 거울의 자리', experience: '상대의 반응이 내 속마음처럼 읽혀서, 말을 아껴도 통한다고 느낍니다.', advice: '닮았다는 이유로 확인을 건너뛰지 말고, 당연해 보이는 것부터 한 번씩 말로 맞춰 보세요.' },
+  '업': { han: '業', label: '숙제자', icon: '🔗', meaning: '오래된 숙제를 되짚게 하는 자리', experience: '내 쪽에서 지난 숙제를 끌고 와, 이 사람 앞에서만 같은 장면이 되풀이되는 기분이 듭니다.', advice: '되풀이되는 장면을 상대 탓으로 돌리지 말고, 내가 반복하는 반응 하나에 이름을 붙여 두세요.' },
+  '태': { han: '胎', label: '태동자', icon: '🌱', meaning: '새 마음을 품고 시작하게 하는 자리', experience: '상대가 데려온 무게가 버겁다가도, 그 덕에 처음 해 보는 마음이 생깁니다.', advice: '상대의 속도에 끌려가지 말고, 새로 품은 마음 가운데 내가 이어갈 것만 골라 남기세요.' },
+  '영': { han: '榮', label: '번영자', icon: '🌟', meaning: '상대를 빛나게 하고 베풀게 되는 자리', experience: '주고 싶은 마음이 먼저 나서서, 챙기고 나면 뿌듯한 만큼 허전함도 함께 옵니다.', advice: '베푸는 양을 줄일 필요는 없지만, 내가 무엇을 받고 싶은지도 같은 크기로 말해 두세요.' },
+  '친': { han: '親', label: '친밀자', icon: '🤝', meaning: '가까이 기대며 마음을 붙이는 자리', experience: '이 사람 곁에서는 긴장이 풀려, 어리광에 가까운 모습까지 편하게 나옵니다.', advice: '편안함에 익숙해지기 전에, 받은 것을 말로 되돌려 주는 습관을 하나 만들어 두세요.' },
+  '우': { han: '友', label: '동반자', icon: '🧭', meaning: '곁을 지키는 동반의 자리', experience: '특별히 애쓰지 않아도 보폭이 맞아, 오래 함께 있어도 쉽게 지치지 않습니다.', advice: '편한 사이일수록 예의가 먼저 흐려지니, 부탁과 고마움은 매번 또렷하게 건네세요.' },
+  '쇠': { han: '衰', label: '소진자', icon: '🍂', meaning: '기운을 내어주다 쉽게 소모되는 자리', experience: '함께 있을 땐 좋은데, 헤어지고 나면 유독 기운이 빠져 있는 자신을 발견합니다.', advice: '관계가 나쁘다는 뜻이 아니라 회복할 시간이 필요하다는 신호이니, 만남 사이에 쉬는 간격을 두세요.' },
+  '안': { han: '安', label: '안정자', icon: '🛡️', meaning: '안심과 편안함을 건네는 자리', experience: '내가 크게 애쓰지 않아도 상대가 놓여나는 게 보여, 자연스레 받쳐 주게 됩니다.', advice: '안정을 맡은 쪽이 먼저 지치기 쉬우니, 힘든 날은 숨기지 말고 그대로 알리세요.' },
+  '괴': { han: '壞', label: '파괴자', icon: '⚔️', meaning: '흔들림과 변화를 일으키는 자리', experience: '나로서는 평소대로 했을 뿐인데, 상대의 균형이 크게 흔들리는 일이 반복됩니다.', advice: '흔드는 힘 자체가 잘못은 아니니, 큰 변화를 꺼낼 때는 미리 알리고 속도를 상대에게 맞추세요.' },
+  '성': { han: '成', label: '성취자', icon: '🏹', meaning: '일을 이루도록 밀어주는 자리', experience: '내가 건넨 말과 손길이 상대의 일을 밀어 올리는 게 보여, 자꾸 더 나서게 됩니다.', advice: '밀어주는 힘이 강한 자리이니, 성과를 재촉하기 전에 상대가 감당할 수 있는 속도부터 물어보세요.' },
+  '위': { han: '危', label: '긴장자', icon: '⚡', meaning: '긴장과 자극을 일으키는 자리', experience: '이 사람 앞에서는 긴장이 잘 풀리지 않아, 잘하고 싶은 마음과 조바심이 함께 올라옵니다.', advice: '긴장을 위험 신호로만 읽지 말고, 감당할 몫과 미룰 몫을 나눠 적어 두면 자극이 추진력으로 바뀝니다.' }
+};
+
+// 자리 짝 → 관계명. 두 사람은 같은 관계 안에서 서로 다른 자리에 선다.
+var SY_ROLE_RELATION = {
+  '명': { type: '명', han: '命' },
+  '업': { type: '업태', han: '業胎' }, '태': { type: '업태', han: '業胎' },
+  '영': { type: '영친', han: '榮親' }, '친': { type: '영친', han: '榮親' },
+  '우': { type: '우쇠', han: '友衰' }, '쇠': { type: '우쇠', han: '友衰' },
+  '안': { type: '안괴', han: '安壞' }, '괴': { type: '안괴', han: '安壞' },
+  '성': { type: '성위', han: '成危' }, '위': { type: '성위', han: '成危' }
+};
+
+// 순행 거리 D → 나의 자리와 상대의 자리. 상대의 자리는 역행 거리 (27 - D) % 27 의 극이다.
+// 안괴 6개 거리만 알던 예전 ankaiRole 을 27거리 전부로 넓힌 것이며, me/other/icon 반환은
+// 기존 호출부(안괴 분기의 isAn 판정·아이콘)를 깨지 않도록 그대로 유지한다.
+function syRoleFromForwardDistance(distance) {
+  var raw = Number(distance);
+  if (!Number.isFinite(raw)) return null;
+  var d = ((Math.floor(raw) % 27) + 27) % 27;
+  var rd = (27 - d) % 27;
+  var mine = syWheelRelationFromDistance(d);
+  var theirs = syWheelRelationFromDistance(rd);
+  var mp = mine && SY_ROLE_PROFILE[mine.short];
+  var op = theirs && SY_ROLE_PROFILE[theirs.short];
+  if (!mp || !op) return null;
+  var relation = SY_ROLE_RELATION[mine.short] || SY_ROLE_RELATION['명'];
+  return {
+    me: mp.han + '(' + mp.label + ')',
+    other: op.han + '(' + op.label + ')',
+    icon: mp.icon,
+    meShort: mine.short,
+    otherShort: theirs.short,
+    meHan: mp.han,
+    otherHan: op.han,
+    meMeaning: mp.meaning,
+    otherMeaning: op.meaning,
+    meExperience: mp.experience,
+    otherExperience: op.experience,
+    meAdvice: mp.advice,
+    otherAdvice: op.advice,
+    relationType: relation.type,
+    relationTypeHan: relation.han,
+    forwardDistance: d,
+    reverseDistance: rd
+  };
 }
 
 function syWheelRelationByIndex(myIdx, targetIdx) {
@@ -10732,13 +10796,12 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       return                   { text: '❄️ 북극의 냉기 (Frozen)',      color: '#a29bfe' };
     }
 
-    // 안·괴 주도권 판별 (D = tIdx - myIdx + 27) % 27  )
-    // D가 3·12·21 → 상대가 나를 壞(파괴) = 나는 安(피해자)
-    // D가 6·15·24 → 내가 상대를 壞(파괴) = 나는 壞(가해자)
+    // 방향별 자리 판별 (D = (tIdx - myIdx + 27) % 27).
+    // D가 3·12·21 → 나는 安(안정자), 상대는 壞(파괴자) / D가 6·15·24 → 그 반대.
+    // 예전에는 안괴 6개 거리에만 값을 줘서 나머지 21개 거리가 자리를 잃었다. 이제는
+    // 27거리 전부를 syRoleFromForwardDistance 가 덮는다(이름은 기존 호출부 때문에 유지).
     function ankaiRole(D) {
-      if ([3, 12, 21].includes(D)) return { me: '安(안정자)', other: '壞(파괴자)', icon: '🛡️' };
-      if ([6, 15, 24].includes(D)) return { me: '壞(파괴자)', other: '安(안정자)', icon: '⚔️' };
-      return null;
+      return syRoleFromForwardDistance(D);
     }
 
     // ── 자력(Magnetism) 수치: 거리에 따른 감정 밀도 ──
@@ -11251,6 +11314,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       }
 
       var resolved = applyArchiveVariance(base, D);
+      // 안괴 분기만 자리를 채워 왔다. 나머지 21개 거리도 같은 정본 자리를 갖게 여기서 채운다.
+      if (!resolved.ankaiRole) resolved.ankaiRole = syRoleFromForwardDistance(D);
       var myIdx = context && context.myIdx != null ? syWheelNormalizeIndex(context.myIdx) : null;
       var partnerIdx = context && context.partnerIdx != null ? syWheelNormalizeIndex(context.partnerIdx) : null;
 
@@ -13608,8 +13673,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     var stability = syCompatClamp(ctx.dailyLifeChemistry, 20, 99);
     var attraction = syCompatClamp(ctx.physicalMagnetism, 20, 99);
     var longTerm = syCompatClamp(ctx.longTermPotential, 20, 99);
-    var roleA = String(ctx.roleA || '공진자');
-    var roleB = String(ctx.roleB || '공진자');
+    var roleA = String(ctx.roleA || '나');
+    var roleB = String(ctx.roleB || '상대');
     var relationRisk = {
       ankai: {
         title: _sajuQuantumText("sq_11745_prop_title"),
@@ -14787,8 +14852,12 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     var relationKo = syCompatRelationKo(ctx.rel);
     var distanceKo = syCompatDistanceKo(ctx.distInfo);
     var relationTypeRaw = String((ctx.rel && (ctx.rel.typeLabel || ctx.rel.type)) || '숙요 인연');
-    var roleA = (ctx.rel && ctx.rel.ankaiRole && ctx.rel.ankaiRole.me) ? String(ctx.rel.ankaiRole.me) : '공진자';
-    var roleB = (ctx.rel && ctx.rel.ankaiRole && ctx.rel.ankaiRole.other) ? String(ctx.rel.ankaiRole.other) : '공진자';
+    // 예전에는 안괴가 아니면 나·상대가 모두 '공진자'로 붕괴해 방향 서술이 사라졌다.
+    var ctxRoleInfo = (ctx.rel && ctx.rel.ankaiRole)
+      ? ctx.rel.ankaiRole
+      : syRoleFromForwardDistance(ctx.rel && ctx.rel.distanceMetrics ? ctx.rel.distanceMetrics.forwardDistance : null);
+    var roleA = (ctxRoleInfo && ctxRoleInfo.me) ? String(ctxRoleInfo.me) : '命(공명자)';
+    var roleB = (ctxRoleInfo && ctxRoleInfo.other) ? String(ctxRoleInfo.other) : '命(공명자)';
 
     var baseCompat = Number(ctx.compatibilityIndex || (ctx.rel && ctx.rel.score) || 60);
     var karma = syCompatClamp(ctx.rel && ctx.rel.score, 25, 99);
@@ -15934,12 +16003,19 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
             const elementHarmony = rel.elementHarmony || {};
             const strengthShadowMap = rel.strengthShadowMap || {};
             const relationVariant = rel.relationVariant || '';
+            const lastRoleInfo = rel.ankaiRole || syRoleFromForwardDistance(D);
 
           window._syLastCompat = {
             myIdx: myIdx,
             partnerIdx: tIdx,
             partnerMansion: tData.mansion || '',
             relationType: rel.typeLabel || rel.type || '',
+            // 자리는 맨 이름('안')으로 보낸다 — 워커가 정본 라벨로 넓힌다.
+            myRole: lastRoleInfo ? lastRoleInfo.meShort : '',
+            partnerRole: lastRoleInfo ? lastRoleInfo.otherShort : '',
+            relationTypeHan: lastRoleInfo ? lastRoleInfo.relationTypeHan : '',
+            forwardDistance: lastRoleInfo ? lastRoleInfo.forwardDistance : D,
+            reverseDistance: lastRoleInfo ? lastRoleInfo.reverseDistance : (27 - D) % 27,
             distanceLabel: distInfo.label || '',
             temperature: rel.temperature || 0,
             score: rel.score || 0,
@@ -16365,10 +16441,17 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
               </div>
             </section>`;
 
+          // 나·상대의 자리(누가 安이고 누가 壞인지)는 27거리 전부에서 정해진다.
+          const roleInfo = rel.ankaiRole || syRoleFromForwardDistance(rel.distanceMetrics ? rel.distanceMetrics.forwardDistance : D);
+
           const roleSection = `
             <section style="background:rgba(30,41,59,0.52);border:1px solid rgba(147,197,253,0.3);border-radius:14px;padding:14px 14px 10px;margin-bottom:14px;">
               <div style="font-size:0.74rem;color:#93c5fd;letter-spacing:0.12em;text-transform:uppercase;font-weight:900;margin-bottom:8px;">Section 13 · 역할 분석 강화</div>
               <div style="font-size:0.82rem;color:#dbeafe;line-height:1.85;">나의 역할은 <strong>${enhanced.roleA}</strong>, 상대의 역할은 <strong>${enhanced.roleB}</strong>로 읽힙니다. 이는 고정된 운명이 아니라 관계 안에서 자주 맡게 되는 반응 방식에 가깝습니다. 가까워질수록 역할이 바뀌기도 하므로, “나는 지금 안정이 필요해 / 자극이 필요해”처럼 현재 상태를 말하는 편이 좋습니다.</div>
+              ${roleInfo ? `<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:9px;">
+                <div style="background:rgba(2,6,23,0.45);border:1px solid rgba(251,191,36,0.28);border-radius:10px;padding:9px 10px;font-size:0.8rem;color:#fde68a;line-height:1.75;">나에게 걸린 몫 · <strong style="color:#fff7ed;">${syCanonicalEsc(roleInfo.meShort)}(${syCanonicalEsc(roleInfo.meHan)})</strong><br>${syCanonicalEsc(roleInfo.meAdvice)}</div>
+                <div style="background:rgba(2,6,23,0.45);border:1px solid rgba(244,114,182,0.28);border-radius:10px;padding:9px 10px;font-size:0.8rem;color:#fbcfe8;line-height:1.75;">상대에게 걸린 몫 · <strong style="color:#fff1f2;">${syCanonicalEsc(roleInfo.otherShort)}(${syCanonicalEsc(roleInfo.otherHan)})</strong><br>${syCanonicalEsc(roleInfo.otherAdvice)}</div>
+              </div>` : ''}
               <div style="font-size:0.8rem;color:#e2e8f0;line-height:1.8;background:rgba(2,6,23,0.45);border:1px solid rgba(148,163,184,0.24);border-radius:10px;padding:9px 10px;margin-top:8px;">내가 지치기 쉬운 지점은 역할을 혼자 오래 떠맡는 순간입니다. 상대가 불안해지는 지점은 거절당했다는 느낌이 반복될 때입니다. 감정을 단정하기보다 다음 행동을 합의하면 관계가 덜 소모됩니다.</div>
             </section>`;
 
@@ -16420,10 +16503,10 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
                   <div style="font-size:0.74rem;color:#fde68a;letter-spacing:0.08em;text-transform:uppercase;font-weight:900;margin-bottom:5px;">정밀 궁합 확장</div>
                   <div style="font-size:1rem;color:#fff7ed;font-weight:900;line-height:1.45;">목적별 리딩, 30일 타이밍, 위험·회복 루틴까지 더 깊게 엽니다.</div>
                 </div>
-                <span style="font-size:0.72rem;color:#fef3c7;border:1px solid rgba(251,191,36,0.34);background:rgba(251,191,36,0.1);padding:4px 9px;border-radius:999px;">12,000원</span>
+                <span style="font-size:0.72rem;color:#fef3c7;border:1px solid rgba(251,191,36,0.34);background:rgba(251,191,36,0.1);padding:4px 9px;border-radius:999px;">10,000원</span>
               </div>
-              <p style="margin:0 0 10px;color:#fde68a;font-size:0.82rem;line-height:1.72;">기본 궁합 10,000원에서 드러난 관계 결 위로, 세부 시나리오와 회복 문장이 더 깊게 열립니다.</p>
-              <button type="button" data-sy-precision-unlock style="width:100%;min-height:44px;border-radius:11px;border:1px solid rgba(251,191,36,0.46);background:rgba(251,191,36,0.16);color:#fef3c7;font-size:0.84rem;font-weight:900;cursor:pointer;">정밀 궁합 확장 열기 · 12,000원</button>
+              <p style="margin:0 0 10px;color:#fde68a;font-size:0.82rem;line-height:1.72;">기본 궁합 5,000원에서 드러난 관계 결 위로, 세부 시나리오와 회복 문장이 더 깊게 열립니다.</p>
+              <button type="button" data-sy-precision-unlock style="width:100%;min-height:44px;border-radius:11px;border:1px solid rgba(251,191,36,0.46);background:rgba(251,191,36,0.16);color:#fef3c7;font-size:0.84rem;font-weight:900;cursor:pointer;">정밀 궁합 확장 열기 · 10,000원</button>
               <div data-sy-precision-content style="display:none;margin-top:12px;"></div>
               <div data-sy-precision-status style="margin-top:8px;color:#fde68a;font-size:0.76rem;line-height:1.6;"></div>
             </section>`;
@@ -16486,15 +16569,44 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
             '@media(max-width:760px){.sy-compat-moon-hero,.sy-compat-yearly-head{grid-template-columns:1fr}.sy-compat-metric-grid,.sy-compat-yearly-views,.sy-compat-yearline{grid-template-columns:1fr}.sy-compat-indicator-grid{grid-template-columns:1fr}.sy-compat-indicator--full{grid-column:auto;display:block}.sy-report [style*="grid-template-columns:repeat(2"],.sy-report [style*="grid-template-columns:repeat(3"],.sy-report [style*="grid-template-columns:repeat(4"],.sy-report [style*="grid-template-columns:repeat(7"],.sy-report [style*="grid-template-columns:1fr 1fr 1fr"]{grid-template-columns:1fr!important}}'
           ].join('');
 
-          // ── 안·괴 포지션 배지 ──
+          // ── 자리 배지 ── 예전에는 안괴에서만 떴다. 자리는 27거리 전부에 있으므로 항상 띄운다.
           let ankaiBadge = '';
-          if (rel.ankaiRole) {
+          if (roleInfo) {
               ankaiBadge = `<div style="margin-bottom:14px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
-                <span style="background:rgba(214,48,49,0.18); border:1px solid #d63031; color:#ff7675; padding:5px 12px; border-radius:20px; font-size:0.8rem; font-weight:800;">나 · ${rel.ankaiRole.me}</span>
+                <span style="background:rgba(214,48,49,0.18); border:1px solid #d63031; color:#ff7675; padding:5px 12px; border-radius:20px; font-size:0.8rem; font-weight:800;">나 · ${syCanonicalEsc(roleInfo.me)}</span>
                 <span style="color:#555;">↔️</span>
-                <span style="background:rgba(116,185,255,0.18); border:1px solid #74b9ff; color:#74b9ff; padding:5px 12px; border-radius:20px; font-size:0.8rem; font-weight:800;">상대 · ${rel.ankaiRole.other}</span>
+                <span style="background:rgba(116,185,255,0.18); border:1px solid #74b9ff; color:#74b9ff; padding:5px 12px; border-radius:20px; font-size:0.8rem; font-weight:800;">상대 · ${syCanonicalEsc(roleInfo.other)}</span>
               </div>`;
           }
+
+          // ── 자리 본문 블록 ── 관계명 한자 풀이 → 나의 자리 → 상대의 자리 → 비대칭이 드러나는 방식 → 자리별 조언.
+          const roleTierTone = roleInfo
+            ? ((distInfo && distInfo.tier === 'near') || (distInfo && distInfo.tier === 'same')
+                ? ' 거리가 가까운 조합이라 두 자리의 차이가 일상에서 매일 드러납니다.'
+                : ((distInfo && distInfo.tier === 'far')
+                    ? ' 거리가 먼 조합이라 차이는 드물게, 대신 크게 한 번씩 드러납니다.'
+                    : ''))
+            : '';
+          const roleDirectionSection = roleInfo ? `
+            <section data-sy-role-direction="20260903-sukuyo-role-direction" style="background:rgba(15,23,42,0.55);border:1px solid rgba(196,181,253,0.32);border-radius:14px;padding:14px 14px 12px;margin-bottom:14px;">
+              <div style="font-size:0.74rem;color:#ddd6fe;letter-spacing:0.12em;text-transform:uppercase;font-weight:900;margin-bottom:8px;">누가 어느 자리에 서는가</div>
+              <div style="font-size:0.84rem;color:#ede9fe;line-height:1.8;margin-bottom:10px;">두 사람은 <strong>${syCanonicalEsc(roleInfo.relationType)}(${syCanonicalEsc(roleInfo.relationTypeHan)})</strong> 관계입니다. 같은 관계라도 두 사람이 서는 자리는 서로 다릅니다 — 나에게서 상대까지는 순행 ${roleInfo.forwardDistance}칸, 상대에게서 나까지는 순행 ${roleInfo.reverseDistance}칸이고, 그 차이가 자리를 갈라 놓습니다.</div>
+              <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;">
+                <div style="background:rgba(2,6,23,0.5);border:1px solid rgba(251,191,36,0.3);border-radius:11px;padding:10px;">
+                  <div style="font-size:0.82rem;font-weight:900;color:#fff7ed;margin-bottom:5px;">${roleInfo.icon} 나는 <strong>${syCanonicalEsc(roleInfo.meShort)}(${syCanonicalEsc(roleInfo.meHan)})</strong></div>
+                  <div style="font-size:0.79rem;color:#fde68a;line-height:1.75;">${syCanonicalEsc(roleInfo.meMeaning)}.<br>${syCanonicalEsc(roleInfo.meExperience)}</div>
+                </div>
+                <div style="background:rgba(2,6,23,0.5);border:1px solid rgba(244,114,182,0.3);border-radius:11px;padding:10px;">
+                  <div style="font-size:0.82rem;font-weight:900;color:#fff1f2;margin-bottom:5px;">상대는 <strong>${syCanonicalEsc(roleInfo.otherShort)}(${syCanonicalEsc(roleInfo.otherHan)})</strong></div>
+                  <div style="font-size:0.79rem;color:#fbcfe8;line-height:1.75;">${syCanonicalEsc(roleInfo.otherMeaning)}.<br>${syCanonicalEsc(roleInfo.otherExperience)}</div>
+                </div>
+              </div>
+              <div style="font-size:0.8rem;color:#e2e8f0;line-height:1.8;background:rgba(2,6,23,0.42);border:1px solid rgba(148,163,184,0.24);border-radius:10px;padding:9px 10px;margin-top:9px;">같은 장면에서도 나는 <strong>${syCanonicalEsc(roleInfo.meShort)}</strong> 쪽의 몫을, 상대는 <strong>${syCanonicalEsc(roleInfo.otherShort)}</strong> 쪽의 몫을 먼저 떠안습니다. 그래서 서로 같은 크기로 주고받았다고 느끼기 어렵고, 그 어긋남을 성의 부족으로 읽으면 오해가 쌓입니다.${roleTierTone}</div>
+              <div style="display:grid;gap:7px;margin-top:9px;font-size:0.8rem;line-height:1.78;">
+                <div style="background:rgba(2,6,23,0.42);border:1px solid rgba(251,191,36,0.22);border-radius:10px;padding:9px 10px;color:#fde68a;">나에게 필요한 것 · ${syCanonicalEsc(roleInfo.meAdvice)}</div>
+                <div style="background:rgba(2,6,23,0.42);border:1px solid rgba(244,114,182,0.22);border-radius:10px;padding:9px 10px;color:#fbcfe8;">상대에게 필요한 것 · ${syCanonicalEsc(roleInfo.otherAdvice)}</div>
+              </div>
+            </section>` : '';
 
           // ── 장점 카드 3개 ──
           const advantageCards = (rel.advantages || []).map(a => `
@@ -16735,6 +16847,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
               ${precisionUnlockSection}
 
               ${ankaiBadge}
+
+              ${roleDirectionSection}
 
               <div class="sy-sec" id="syCompatAiPromptCard" style="background:radial-gradient(140% 135% at 8% 0%, rgba(196,181,253,0.2), transparent 44%), linear-gradient(145deg, rgba(22,28,64,0.9), rgba(15,23,42,0.94)); border:1px solid rgba(196,181,253,0.35); box-shadow:0 20px 44px rgba(76,29,149,0.34); border-radius:14px;">
                 <div class="sy-sec-title" style="color:#ddd6fe;">💫 궁합 전용 AI 상담</div>
