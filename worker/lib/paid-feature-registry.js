@@ -304,8 +304,12 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   // 연이 운명 상담 — 무료 횟수(비회원 1회 + 계정 3회)를 모두 쓴 뒤부터 회당 결제.
   // 전용 "대화권" 재화를 폐지하고 표준 회당 결제로 옮긴 자리다(2026-08-07).
   "fortune-chat-consultation": { cost: 50, amountKRW: 5000, reason: "연이 운명 상담 1회" },
-  // 초융합 운세 — 여섯 체계를 한 번에 엮는 2만자 이상 리딩. 300코인이라 이용권 커버는
-  // family 등급만 통과하고, FAMILY_PREMIUM_MIN_COIN_COST(300)에 걸려 이용권 기간당 10회로 제한된다.
+  // 초융합 운세 — 여섯 체계를 한 번에 엮는 2만자 이상 리딩. 300코인이라 건당 상한
+  // (PASS_LIMITS: standard 50 · premium 100 · vvip 200)을 넘어 **family 등급만** 커버한다.
+  // family 는 건당 상한이 없고 월 누적 한도(MONTHLY_PASS_LIMITS.family = 5,000코인 = 500,000원)
+  // 만 적용된다. 횟수 제한은 없다 — FAMILY_PREMIUM_MIN_COIN_COST 와 "이용권 기간당 10회"는
+  // 2026-08-24 에 폐지된 제도이고 그 상수는 레포에 존재하지 않는다(2026-09-03 정정).
+  // 전수 가드: scripts/verify-billing-pass-policy.mjs 의 "family must cover every paid service".
   "fusion-fortune-consultation": { cost: 300, amountKRW: 30000, reason: "초융합 운세 상담 1회" },
   "premium-sibyl-dominator": { cost: 100, reason: "시빌라 도미네이터 리포트" },
   "ziwei_decade_luck": { cost: 100, reason: "자미두수 대한 흐름 해금" },
