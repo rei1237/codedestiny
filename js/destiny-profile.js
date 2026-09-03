@@ -2697,8 +2697,11 @@
       case 'payment-complete':
         return { title: '결제 완료', desc: '결제가 확인되어 콘텐츠를 여는 중입니다.', done: true, fallback: '곧 콘텐츠가 열립니다.' };
       case 'monthly':
-      case 'subscription':
         return { title: '월정석 사용 중', desc: '보유한 월정석으로 이용 권한을 확인하고 있어요.', done: false, fallback: '월정석 잔량을 확인하고 있습니다.' };
+      // 🔴 mode 'subscription' 은 월정석이 아니라 이용권 결제 승인·활성화 구간이다. 한 case 로
+      // 묶여 있어서 이용권 사용자에게 '월정석 잔량' 문구가 렌더됐다.
+      case 'subscription':
+        return { title: '이용권 적용 중', desc: '이용권 결제 승인과 활성화를 확인하고 있어요.', done: false, fallback: '이용권 등급과 기간을 반영하고 있습니다.' };
       // 🔴 'card' 구간만 수단 이름을 끼운다(셸 _cdResolvePaymentOverlayCopy 와 같은 범위).
       // 'checkout' 은 아직 수단을 고르기 전이라 직전 시도의 잔여 선택이 새어 나올 수 있다.
       case 'card': {

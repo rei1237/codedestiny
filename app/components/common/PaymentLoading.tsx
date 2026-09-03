@@ -44,7 +44,8 @@ const UNIFIED_PAYMENT_MARKER = "cd-react-static-matched-payment-ui-v20260618";
 function resolveLoadingContextFromVariant(variant: NonNullable<PaymentLoadingProps["variant"]>): { stage: LoadingStage; paymentType: PaymentType } | null {
   if (variant === "pass-checking") return { stage: "access_check", paymentType: "pass" };
   if (variant === "pass-applied") return { stage: "result_loading", paymentType: "pass" };
-  if (variant === "subscription") return { stage: "pg_processing", paymentType: "subscription" };
+  // 🔴 variant 'subscription' 을 만드는 셸 모드는 전부 이용권 결제다(/api/payments/subscription/*).
+  if (variant === "subscription") return { stage: "pg_processing", paymentType: "pass" };
   if (variant === "monthly") return { stage: "access_check", paymentType: "subscription" };
   if (variant === "checkout" || variant === "confirm") return { stage: "pg_processing", paymentType: "single" };
   if (variant === "payment-complete" || variant === "unlock-saving") return { stage: "result_loading", paymentType: "single" };

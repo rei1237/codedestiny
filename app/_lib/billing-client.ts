@@ -454,7 +454,7 @@ const BILLING_FETCH_DEFAULT_TIMEOUT_MS = 20000;
 const BILLING_FETCH_CHECKOUT_TIMEOUT_MS = 40000;
 const BILLING_FETCH_CONFIRM_TIMEOUT_MS = 60000;
 const PAYMENT_CHOICE_IN_FLIGHT_TTL_MS = 45000;
-export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-f79154defc95";
+export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-e573b86e07d2";
 // 🔴 이용권 스냅샷의 상수·읽기·쓰기·판정은 전부 js/core/pass-verdict.js 가 소유한다.
 // 셸(index.html)·독립 정적(js/destiny-profile.js)과 **같은 localStorage 키**를 공유하므로 값이 갈리면
 // 같은 사용자가 어느 런타임에서 클릭했느냐에 따라 판정이 달라지고, 한쪽이 만료로 보고 지운 캐시가
@@ -2724,7 +2724,9 @@ function resolvePaymentWaitKind(input: {
   if (mode === "MOONLIGHT_STONE" || /\b(monthly_credit|membership_credit|moonlight_stone|monthly_subscription|monthly)\b/.test(haystack)) return "monthly";
   if (mode === "MEMBERSHIP_PASS" || /\b(membership_pass|license_pass|subscription_pass|family_pass|pass_applied)\b/.test(haystack)) return "pass";
   if (mode === "DIRECT_KRW" || /direct_krw|one[-_ ]?time|single|단건|원화|카드|checkout/.test(haystack)) return "single";
-  if (/subscription|구독|플랜|달빛 이용권 결제|이용권 결제/.test(haystack)) return "subscription";
+  // 🔴 이 레포에서 'subscription'·'이용권 결제' 는 월정석이 아니라 이용권이다
+  // (useCoinGate 가 이용권 커버를 accessSource: "subscription" 으로 내보낸다).
+  if (/subscription|구독|플랜|달빛 이용권 결제|이용권 결제/.test(haystack)) return "pass";
   // '잠금 해제(영구 해금)' 문구는 콘텐츠 유형이 실제로 재열람형(unlock/PDF 리포트)일 때만 쓴다.
   // featureKey를 레지스트리로 판정(권위 소스). 과거의 넓은 정규식(권한/premium/pdf/리포트/잠금/해제)은
   // per-use 상태 문구의 '이용 권한 확인' 같은 표현까지 unlock으로 오분류해 1회당 결제에도
@@ -2797,7 +2799,7 @@ function formatPassLoadingMessage(stage: LoadingStage, detail?: Record<string, u
 
 function resolvePaymentTypeForWaitKind(kind: string, fallback: PaymentType = "single"): PaymentType {
   if (kind === "pass") return "pass";
-  if (kind === "monthly" || kind === "subscription") return "subscription";
+  if (kind === "monthly") return "subscription";
   if (kind === "single") return "single";
   return fallback;
 }
@@ -2926,18 +2928,18 @@ function resolvePaymentWaitOverlay(status: string, message?: string, detail?: Re
     const paymentType = resolvePaymentTypeForWaitKind(kind, "single");
     return {
       message: formatLoadingMessage("pg_processing", paymentType === "pass" ? "single" : paymentType),
-      mode: paymentType === "subscription" ? "subscription" : "card",
+      mode: paymentType === "subscription" ? "monthly" : "card",
     };
   }
   if (status === "paymentWindowOpen") {
     const paymentType = resolvePaymentTypeForWaitKind(kind, "single");
     return {
       message: formatLoadingMessage("pg_processing", paymentType === "pass" ? "single" : paymentType),
-      mode: paymentType === "subscription" ? "subscription" : "card",
+      mode: paymentType === "subscription" ? "monthly" : "card",
     };
   }
   if (status === "opening" || status === "loadingProducts" || status === "readyToPay") {
-    if (kind === "subscription" || kind === "monthly") return { message: formatLoadingMessage("access_check", "subscription"), mode: "monthly" };
+    if (kind === "monthly") return { message: formatLoadingMessage("access_check", "subscription"), mode: "monthly" };
     if (kind === "unlock") return { message: text || "잠금 해제 준비 중입니다.", mode: "unlock-saving" };
     // 🔴 접근 확인 단계에서 access_check.single("단건으로 카드 결제를 준비 중이에요")을 쓰지 않는다.
     // 이 두 줄이 셸 오버레이로 중계돼 'PAYMENT CHECK · 결제 상태 확인 중 · 단건으로 카드 결제를
@@ -2948,14 +2950,14 @@ function resolvePaymentWaitOverlay(status: string, message?: string, detail?: Re
   }
   if (status === "paymentProcessing") {
     if (kind === "pass") return { message: formatPassLoadingMessage("access_check", detail), mode: "pass" };
-    if (kind === "subscription" || kind === "monthly") return { message: formatLoadingMessage("pg_processing", "subscription"), mode: "subscription" };
+    if (kind === "monthly") return { message: formatLoadingMessage("pg_processing", "subscription"), mode: "monthly" };
     if (kind === "single") return { message: formatLoadingMessage("pg_processing", "single"), mode: "confirm" };
     if (kind === "unlock") return { message: text || "콘텐츠 잠금 해제를 반영하고 있습니다.", mode: "unlock-saving" };
     return { message: formatLoadingMessage("pg_processing", "single"), mode: "confirm" };
   }
   if (status === "paymentSuccess") {
     if (kind === "pass") return { message: formatPassLoadingMessage("result_loading", detail), mode: "pass-applied" };
-    if (kind === "subscription" || kind === "monthly") return { message: formatLoadingMessage("result_loading", "subscription"), mode: "payment-complete" };
+    if (kind === "monthly") return { message: formatLoadingMessage("result_loading", "subscription"), mode: "payment-complete" };
     if (kind === "single") return { message: formatLoadingMessage("result_loading", "single"), mode: "payment-complete" };
     if (kind === "unlock") return { message: text || "콘텐츠 잠금 해제가 완료되었습니다.", mode: "payment-complete" };
     return { message: formatLoadingMessage("result_loading", "single"), mode: "payment-complete" };
