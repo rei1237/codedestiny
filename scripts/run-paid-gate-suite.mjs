@@ -132,6 +132,7 @@ const SUITE = [
   { run: "npm run verify:naming-prompt", why: "작명 AI(premium-naming-prompt, 30,000원)의 프롬프트 배선·로케일 프로파일 전수·ko 프롬프트 골든 스냅샷·한국 전용 수리 누출 줄 단위 검사. 순수 정적이다(스크립트 헤더가 그렇게 적고 있고, 실제로 import 하는 것은 paid-feature-registry.js 뿐이다). 지키는 것 중 가장 조용한 실패는 골든 스냅샷이다 — 로케일 분기가 ko 프롬프트를 건드려도 아무도 모른 채 한국어 작명첩만 달라진다." },
   { run: "npm run verify:fortune-chat-reading", why: "연이 운명 상담(fortune-chat, 무료 3회 이후 회당 5,000원)의 결과 계약 — 분량 1,500~2,500자, evidenceLines·followUpQuestions, 폴백이 하한을 채우는지, 대화 맥락이 프롬프트에 실리는지. 🔴 실제 모델 호출은 하지 않는다(providerCall 주입, 정본 패턴은 verify-mindscan-reading.mjs 의 fetchImpl 주입). 출력 마지막 줄에 'mock only — 실제 모델 호출 없음'을 찍는다." },
   { run: "npm run verify:fusion-fortune-quality", why: "초융합 상담(fusion-fortune-consultation, 30,000원)의 그룹 생성·재시도·결정론 백필·여섯 체계 판정 계약. 🔴 기본 경로가 mock 이다 — 실호출은 --live 뒤에 있고 키도 'verify-only-not-a-real-key' 를 넣는다. CI 는 플래그 없이 부르므로 과금이 발생하지 않는다." },
+  { run: "npm run verify:fusion-fortune-delivery-floor", why: "초융합의 **배달 바닥** — 생시 유무 × 출생지 유무 4조합 전부에서 결제한 사용자가 0을 받지 않는지. 2026-09-03 프로덕션 사고로 배선했다: 과장 탐지 정규식이 우리 시스템 자신의 면책 문장을 과장으로 오인해 4조합 중 3조합이 결정론 폴백까지 반려됐고, 결정론이라 재시도해도 같은 자리에서 영원히 죽었다(30,000원 결제 후 0 배달). 이 스크립트만 그 조합을 밟는다 — verify:fusion-fortune-quality 는 생시·출생지가 항상 채워진 입력 하나만 본다. mock 전용이라 실호출은 없다." },
   { run: "npm run verify:vedic-basic-quality", why: "무료 베다점 해석 품질 — 서양 점성술 용어 누출, 토픽 7개 최소 분량, 헤지 표현, 서로 다른 명식이 같은 문단을 뱉는 템플릿 고착. vedic-astrology.html 의 인라인 엔진을 jsdom 으로 **실제 구동**한다. LLM 은 관여하지 않는다." },
 
   // verify:all-paid-services-payment-flow 는 여기 넣지 않는다 — 코드 가드가 아니라 MONGO_URI

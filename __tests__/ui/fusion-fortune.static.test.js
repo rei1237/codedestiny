@@ -329,7 +329,15 @@ test("the stream never goes silent long enough to look dead", () => {
   assert.match(route, /FUSION_SSE_HEARTBEAT_MS = \d+/);
   assert.match(route, /writeFusionFortuneSse\(writer, "ping"/);
   // 심박은 반드시 멈춰야 한다 — 안 멈추면 닫힌 writer 에 계속 쓴다.
-  assert.match(route, /stopHeartbeat\(\);\s*\n\s*await writer\.close/);
+  assert.match(route, /stopHeartbeat\(\);\s*\n\s*if \(errorPayload\)[\s\S]{0,200}?await writer\.close/);
+  // 🔴 그리고 종료 주체가 있어야 한다. 2026-09-03 사고: 데드라인 타이머가 abort 만 했는데
+  //    abort 는 SSE 를 한 줄도 쓰지 않아, 생성기가 await 경계 밖에서 걸리면 finally 가 영원히
+  //    안 돌고 ping 만 계속 나갔다(결제한 화면이 무한히 돎). 유예 뒤에는 서버가 직접 닫는다.
+  assert.match(route, /FUSION_STREAM_HARD_STOP_GRACE_MS = \d+/);
+  assert.match(route, /hardStopTimer = setTimeout\(/);
+  assert.match(route, /settleStream\(\{[\s\S]{0,400}?STREAM_TIMEOUT/);
+  // 종료는 한 번만 — 하드 스톱과 finally 가 겹쳐도 writer 를 두 번 닫지 않는다.
+  assert.match(route, /if \(settled\) return;\s*\n\s*settled = true;/);
 
   // 클라이언트는 무음을 감지해 보관함으로 안내한다(이 화면에는 타임아웃이 하나도 없었다).
   assert.match(client, /STREAM_SILENCE_MS = \d+/);
