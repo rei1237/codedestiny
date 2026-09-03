@@ -43,8 +43,18 @@ const SECTION_KEYS = ["sajuSection", "ziweiSection", "vedicSection", "sukuyoSect
 const REQUIRED_KEYS = ["title", "openingMessage", "executiveSummary", "timingAndAction", "closingMessage"];
 // 그룹 검증과 전체 검증이 같은 기준을 보도록 정규식을 한곳에 둔다.
 const INTERNAL_DATA_PATTERN = /(raw[_ ]?(prompt|response|context)|paymentId|merchantUid|ticketRemaining|totalRemaining)/i;
-const BIRTH_TIME_OVERCLAIM_PATTERN = /(상승궁|라그나|정밀 명반|하우스).{0,24}(확실|분명|단정|결정|보장)/;
-const BIRTH_PLACE_OVERCLAIM_PATTERN = /(라그나|상승궁|하우스|나크샤트라).{0,24}(확실|분명|단정|결정|보장)/;
+// 🔴 과장 탐지는 **문장 안**에서만, 그리고 **부정 표현이 뒤따르지 않을 때만** 잡는다.
+//    예전 `.{0,24}` 는 두 가지를 동시에 놓쳐 시스템 자신의 면책 문장을 과장으로 오인했다:
+//     · 문장 경계를 넘었다 — "정밀 명반은 계산하지 않았습니다. 생시 기반 궁위는 단정" 이 한 건으로 매칭됐다.
+//     · 부정을 못 봤다 — guardian-fortune-context 가 넣는 "상승궁·하우스는 단정하지 않고" 가 그대로 걸렸다.
+//    그 결과 생시/출생지 미상 입력(4조합 중 3조합)은 결정론 폴백까지 반려돼 **재시도해도 영원히 실패**했다.
+//    GAP 이 `"` 와 백슬래시를 뺀 이유: 검사 대상이 JSON.stringify 결과라 필드 경계(`","`)와
+//    이스케이프된 개행(\n)을 넘어가지 않게 하려는 것이다. 진짜 과장은 한 필드·한 문장 안에 있다.
+const OVERCLAIM_GAP = '[^.。!?"\\n\\\\]';
+const OVERCLAIM_NEGATION = `(?!${OVERCLAIM_GAP}{0,14}(않|없|말고|못|어렵|삼가|유보|배제|아니))`;
+const OVERCLAIM_ASSERTION = `${OVERCLAIM_GAP}{0,24}(확실|분명|단정|결정|보장)${OVERCLAIM_NEGATION}`;
+const BIRTH_TIME_OVERCLAIM_PATTERN = new RegExp(`(상승궁|라그나|정밀 명반|하우스)${OVERCLAIM_ASSERTION}`);
+const BIRTH_PLACE_OVERCLAIM_PATTERN = new RegExp(`(라그나|상승궁|하우스|나크샤트라)${OVERCLAIM_ASSERTION}`);
 
 function text(value, max = 1200) { return String(value || "").trim().slice(0, max); }
 function count(value) { return Math.max(0, Number(value || 0)); }
@@ -419,10 +429,17 @@ function hasRepeatedLongSentence(result = {}) {
 }
 
 // 결과 계약에는 성격이 다른 두 판정이 섞여 있다. 이 구분이 "3만원 내고 0을 받는" 경로를 없앤다.
-//  · 안전 — 개인정보 노출·위험 표현·타로 환각·생시/출생지 단정. 어기면 배달하지 않는다.
-//  · 품질 — 분량 하한/상한·섹션 깊이·문장 반복. 미달이면 사유를 밝히고 강등 배달한다.
+//  · 안전 — 개인정보 노출·위험 표현·타로 환각. 어기면 배달하지 않는다.
+//  · 품질 — 분량 하한/상한·섹션 깊이·문장 반복·생시/출생지 단정. 미달이면 사유를 밝히고 강등 배달한다.
+//
+// 🔴 birth_time_overclaim·birth_place_overclaim 이 여기(품질)에 있는 이유: 이 둘은 **정규식 추정**이라
+//    오탐이 나면 배달 자체가 막힌다. 실제로 그렇게 됐다 — 생시/출생지 미상 입력에서 정규식이 우리
+//    면책 문장을 잡아 결정론 폴백까지 반려됐고, 결제한 사용자가 재시도해도 영원히 0을 받았다.
+//    막는 자리는 `validateFusionFortuneGroup` 이다 — 거기서 걸면 보완 물결이 그 그룹을 **다시 쓴다**.
+//    배달 게이트에서까지 막는 것은 재작성 기회가 이미 끝난 뒤라, 남는 효과가 "사용자 손실"뿐이다.
 const FUSION_QUALITY_ISSUES = Object.freeze(new Set([
   "section_depth", "summary_or_action_depth", "final_verdict_depth", "repeated_sentence", "length",
+  "birth_time_overclaim", "birth_place_overclaim",
 ]));
 
 export const FUSION_DEGRADED_NOTICE = "일부 묶음이 목표 분량에 못 미친 상태로 전해 드립니다. 같은 요청으로 다시 시도하면 추가 결제 없이 새로 씁니다.";
@@ -551,7 +568,14 @@ async function buildValidatedFusionFallback({ context, input, now = new Date() }
   const result = attachQuestionFocusedFusionReading(await generateFusionFortuneWithMockLLM({ context, now }), context);
   // 🔴 최후 폴백은 품질 미달로 버리지 않는다. 여기서 undefined 를 돌려주면 결제가 끝난
   //    사용자가 받는 것이 0 이 되고, 결정론 폴백이라 재시도해도 결과가 같다.
-  return resolveFusionFortuneDelivery(result, fusionValidationOptions(context, input));
+  const decision = resolveFusionFortuneDelivery(result, fusionValidationOptions(context, input));
+  if (decision.deliverable) return decision;
+  // 🔴 여기까지 왔다는 건 **우리 코드의 버그**다 — 서버가 제 컨텍스트로 만든 결정론 산출물이
+  //    안전 검사에 걸렸다는 뜻이고, 결정론이라 재시도해도 같은 자리에서 또 죽는다. 반려로
+  //    사용자 손실을 만들지 말고 강등 배달한 뒤 로그로 잡는다(2026-09-03: birth_place_overclaim
+  //    오탐이 정확히 이 경로로 3만원 결제 후 0 배달을 만들었다).
+  console.error("[fusion-fortune-fallback-rejected]", { issues: decision.issues || [], errorCode: text(decision.errorCode, 80), length: decision.length });
+  return { deliverable: true, tier: "degraded", value: result, length: decision.length, issues: decision.issues || [], qualityNotice: FUSION_DEGRADED_NOTICE };
 }
 
 // ── 4그룹 병렬 생성 ───────────────────────────────────────────────────

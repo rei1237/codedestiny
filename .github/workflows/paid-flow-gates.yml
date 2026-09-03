@@ -300,6 +300,7 @@ on:
       - "src/features/master-love-codex/constants.ts"
       - "scripts/run-paid-gate-suite.mjs"
       - "scripts/verify-fusion-fortune-quality.mjs"
+      - "scripts/verify-fusion-fortune-delivery-floor.mjs"
       # 🔴 아래 와일드카드(*billing*·*paid*·*pass*·*payment*·*auth*)에 이 파일명이 걸리지 않는다.
       - "scripts/verify-per-use-never-unlocks.mjs"
       - "scripts/verify-*billing*.mjs"

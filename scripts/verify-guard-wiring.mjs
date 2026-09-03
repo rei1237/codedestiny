@@ -162,7 +162,6 @@ const UNWIRED_BY_DESIGN = [
   ["verify:pet-saju", "배선 후보(미승인) — 반려동물 사주 결정성"],
   ["verify:rpg-phase9", "배선 후보(미승인) — RPG 페이즈9 계약"],
   ["verify:fusion-fortune-reopen", "배선 후보(미승인) — 융합 운세 재열람"],
-  ["verify:fusion-fortune-delivery-floor", "배선 후보(미승인) — 초융합 배달 바닥(품질 미달은 강등 배달, 안전 위반은 반려)"],
   ["verify:fusion-fortune-pdf", "배선 후보(미승인) — 초융합 텍스트 PDF 문서 구성(본문 누락·빈 장·개인정보)"],
   ["verify:no-timestamp-conflict", "배선 후보(미승인) — 현재 worker/payments 3건 오탐 상태라 배선 전 수정 필요"],
   ["verify:cms-registry", "배선 후보(미승인) — CMS 레지스트리"],
