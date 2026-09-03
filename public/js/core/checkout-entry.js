@@ -670,6 +670,48 @@
     return checkoutText("payment.directModal.method.comingSoon", "준비 중");
   }
 
+  /**
+   * 카드 id("KAKAOPAY")와 주문 기록 코드("kakaopay") 둘 다 받아 표의 키로 맞춘다.
+   * 대기 문구는 **결제가 끝난 뒤**(주문에 남은 orderMethod 만 아는 시점)에도 불려야 해서, 두 표기를
+   * 호출부마다 삼항으로 바꾸던 것(PointsClient 의 `method === "card_general" ? "CARD" : …`)을 여기 모은다.
+   */
+  function normalizeDirectPayMethodId(value) {
+    var id = text(value).toUpperCase();
+    if (id === "CARD_GENERAL") return "CARD";
+    return id;
+  }
+
+  /**
+   * 결제창을 띄운 뒤 사용자가 **그 수단에서 무엇을 해야 하는지** 알려주는 한 줄. 모바일은 PG 가 상위
+   * 프레임을 리다이렉트하거나(카드·계좌이체) 아예 다른 앱으로 이탈하므로(카카오페이), 이 안내가 없으면
+   * 사용자가 "멈췄다"고 판단해 창을 닫는다 — 그 순간 결제는 승인되고 화면만 사라진다.
+   * 🔴 위 directPayMethodLabel 과 같은 이유로 키·폴백을 문자열 리터럴로 적는다.
+   */
+  function directPayMethodWaitText(id) {
+    var key = normalizeDirectPayMethodId(id);
+    if (key === "CARD") return checkoutText("payment.directModal.wait.card", "카드사 인증을 마치면 이 화면으로 자동으로 돌아옵니다.");
+    if (key === "TRANSFER") return checkoutText("payment.directModal.wait.transfer", "출금 계좌 인증을 마치면 이 화면으로 자동으로 돌아옵니다.");
+    if (key === "KAKAOPAY") return checkoutText("payment.directModal.wait.kakaopay", "카카오톡으로 이동해 결제를 완료해 주세요. 끝나면 자동으로 돌아옵니다.");
+    if (key === "MOBILE") return checkoutText("payment.directModal.wait.mobile", "휴대폰 본인 인증을 마치면 이 화면으로 자동으로 돌아옵니다.");
+    if (key === "GIFT_CULTURELAND" || key === "GIFT_BOOKNLIFE" || key === "GIFT_SMART_MUNSANG") {
+      return checkoutText("payment.directModal.wait.gift", "상품권 핀번호 인증을 마치면 이 화면으로 자동으로 돌아옵니다.");
+    }
+    return "";
+  }
+
+  /**
+   * "{수단 이름} · {그 수단에서 할 일}" 한 줄. 대기 오버레이를 그리는 세 런타임이 각자 라벨과 안내를
+   * 이어 붙이지 않게 한다(붙이는 순서가 갈리면 로케일 검사가 문장 단위로 못 잡는다).
+   * 알 수 없는 수단이면 빈 문자열 — 호출부는 이 값이 비면 안내줄을 아예 그리지 않는다.
+   */
+  function directPayMethodWaitLine(id) {
+    var label = directPayMethodLabel(normalizeDirectPayMethodId(id));
+    var wait = directPayMethodWaitText(id);
+    if (!label) return wait;
+    if (!wait) return label;
+    return label + " · " + wait;
+  }
+
   function isDirectPayMethodEnabled(id) {
     var entry = DIRECT_PAY_METHODS[text(id).toUpperCase()];
     return !!(entry && entry.enabled === true);
@@ -832,6 +874,16 @@
   function selectedDirectPayMethodLabel() {
     var picked = peekSelectedDirectPayMethod();
     return picked ? directPayMethodLabel(picked) : "";
+  }
+
+  /**
+   * 고른 수단에서 **지금 무엇을 해야 하는지**. 대기 오버레이 본문줄이 끼운다(제목은 위 라벨).
+   * 아직 안 골랐거나 TTL 이 지났으면 "" — 호출부는 그때 종전 범용 문구를 그대로 쓴다.
+   * 🔴 peek 이라 소비하지 않는다(위 라벨과 같은 이유).
+   */
+  function selectedDirectPayMethodWaitText() {
+    var picked = peekSelectedDirectPayMethod();
+    return picked ? directPayMethodWaitText(picked) : "";
   }
 
   /**
@@ -1029,6 +1081,70 @@
     }
   }
 
+  function localStore() {
+    try {
+      if (typeof localStorage === "undefined" || !localStorage) return null;
+      return localStorage;
+    } catch (_localError) {
+      return null;
+    }
+  }
+
+  /* ── PG 리다이렉트 복귀 티켓 ───────────────────────────────────────────────
+     모바일은 PortOne 이 상위 프레임을 리다이렉트해 requestPayment 프로미스가 페이지와 함께 죽는다.
+     그래서 확정은 "복귀한 문서가 티켓을 읽어 스스로 재개"하는 것 하나에 달려 있다.
+
+     🔴 저장은 **localStorage** 다. 예전에는 셸·destiny-profile 이 각자 sessionStorage 에 썼는데,
+     카카오페이처럼 다른 앱으로 이탈했다 돌아오는 수단은 안드로이드가 **새 탭으로 복귀**시키는 일이
+     흔하고 그러면 sessionStorage 가 통째로 비어 티켓이 사라진다 — 결제는 승인됐는데 화면은 아무
+     것도 안 하는 상태가 정확히 이것이다(재조정 크론이 최대 20분 뒤에야 정산한다).
+     읽기는 localStorage → sessionStorage 순으로 폴백한다: 배포 시점에 구 코드가 sessionStorage 에
+     남긴 티켓으로 결제 중인 사용자가 있다. */
+  var DIRECT_RESUME_KEY = "cd_direct_payment_resume";
+  var DIRECT_RESUME_TTL_MS = 30 * 60 * 1000;
+
+  function saveDirectPaymentResumeTicket(ticket) {
+    var store = localStore() || sessionStore();
+    if (!store || !ticket) return false;
+    try {
+      store.setItem(DIRECT_RESUME_KEY, JSON.stringify({
+        at: Number(ticket.at) || Date.now(),
+        merchantUid: text(ticket.merchantUid),
+        paymentMethod: text(ticket.paymentMethod || (ticket.confirmBody && ticket.confirmBody.paymentMethod)),
+        confirmBody: ticket.confirmBody || null,
+      }));
+      return true;
+    } catch (_writeError) {
+      return false;
+    }
+  }
+
+  /** TTL 이 지난 티켓은 없는 것으로 본다(회수까지 하지는 않는다 — 회수는 확정·실패가 결정한다). */
+  function readDirectPaymentResumeTicket() {
+    var stores = [localStore(), sessionStore()];
+    for (var i = 0; i < stores.length; i += 1) {
+      if (!stores[i]) continue;
+      var raw = "";
+      try { raw = String(stores[i].getItem(DIRECT_RESUME_KEY) || ""); } catch (_readError) { continue; }
+      if (!raw) continue;
+      var parsed = null;
+      try { parsed = JSON.parse(raw); } catch (_parseError) { continue; }
+      if (!parsed || typeof parsed !== "object") continue;
+      if (Date.now() - (Number(parsed.at) || 0) > DIRECT_RESUME_TTL_MS) continue;
+      return parsed;
+    }
+    return null;
+  }
+
+  /** 두 저장소를 모두 지운다 — 한쪽만 지우면 구 티켓이 남아 죽은 결제를 다시 확정하려 든다. */
+  function clearDirectPaymentResumeTicket() {
+    var stores = [localStore(), sessionStore()];
+    for (var i = 0; i < stores.length; i += 1) {
+      if (!stores[i]) continue;
+      try { stores[i].removeItem(DIRECT_RESUME_KEY); } catch (_clearError) { /* 지우기 실패는 삼킨다 */ }
+    }
+  }
+
   /** 이용권을 사러 떠나기 직전에 남기는 복귀 지점. 이동 전에 호출한다. */
   function rememberCheckoutReturn(options) {
     var store = sessionStore();
@@ -1173,7 +1289,16 @@
     directPayMethodLabel: directPayMethodLabel,
     directPayGiftGroupLabel: directPayGiftGroupLabel,
     selectedDirectPayMethodLabel: selectedDirectPayMethodLabel,
+    selectedDirectPayMethodWaitText: selectedDirectPayMethodWaitText,
     directPayMethodComingSoonText: directPayMethodComingSoonText,
+    normalizeDirectPayMethodId: normalizeDirectPayMethodId,
+    directPayMethodWaitText: directPayMethodWaitText,
+    directPayMethodWaitLine: directPayMethodWaitLine,
+    DIRECT_RESUME_KEY: DIRECT_RESUME_KEY,
+    DIRECT_RESUME_TTL_MS: DIRECT_RESUME_TTL_MS,
+    saveDirectPaymentResumeTicket: saveDirectPaymentResumeTicket,
+    readDirectPaymentResumeTicket: readDirectPaymentResumeTicket,
+    clearDirectPaymentResumeTicket: clearDirectPaymentResumeTicket,
     buildDirectPayMethodStepHtml: buildDirectPayMethodStepHtml,
     setSelectedDirectPayMethod: setSelectedDirectPayMethod,
     clearSelectedDirectPayMethod: clearSelectedDirectPayMethod,

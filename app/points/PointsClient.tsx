@@ -1658,10 +1658,30 @@ function subscriptionMethodLabel(orderMethod: string | undefined) {
   }
 }
 
-/** 대기 화면 문구 앞에 "{수단} 이용권 결제" 한 줄을 붙인다 — 어느 수단의 결제를 기다리는지 화면이 말한다. */
-function withSubscriptionMethod(orderMethod: string | undefined, text: string) {
+/** 주문에 기록된 결제수단에서 **지금 무엇을 해야 하는지** 한 줄. 정본은 checkout-entry 의 표다. 모르면 "". */
+function subscriptionMethodWaitText(orderMethod: string | undefined) {
+  const method = String(orderMethod || "").trim();
+  if (!method) return "";
+  try {
+    // 표기 정규화(card_general → CARD)는 코어가 맡는다 — 호출부마다 삼항을 두지 않는다.
+    const wait = checkoutEntry.directPayMethodWaitText(method);
+    return typeof wait === "string" ? wait.trim() : "";
+  } catch {
+    return "";
+  }
+}
+
+/**
+ * 대기 화면 문구 앞에 "{수단} 이용권 결제" 한 줄을 붙인다 — 어느 수단의 결제를 기다리는지 화면이 말한다.
+ * `wait` 를 켜면 그 수단에서 지금 해야 할 일 한 줄을 뒤에 더 붙인다.
+ * 🔴 켜는 곳은 **결제창을 띄우기 직전 단계 하나뿐이다.** 복귀 뒤 확인 화면에서 "인증을 마치면 돌아옵니다"
+ * 는 이미 돌아온 사용자에게 거짓이고, 카카오페이라면 없는 카카오톡을 다시 찾아 나가게 만든다.
+ */
+function withSubscriptionMethod(orderMethod: string | undefined, text: string, options?: { wait?: boolean }) {
   const label = subscriptionMethodLabel(orderMethod);
-  return label ? `${label} 이용권 결제\n${text}` : text;
+  const head = label ? `${label} 이용권 결제\n${text}` : text;
+  const wait = options?.wait ? subscriptionMethodWaitText(orderMethod) : "";
+  return wait ? `${head}\n${wait}` : head;
 }
 
 /** PG 결제창에서 페이지가 통째로 리다이렉트돼 돌아온 복귀인지. 낙관 이용권 표시의 유일한 발동 조건이다. */
@@ -2993,6 +3013,8 @@ export default function PointsPage() {
 
   /** 모바일 리디렉션 복귀를 한 번만 처리하기 위한 플래그 */
   const redirectHandledRef = useRef(false);
+  // 리다이렉트 복귀 효과가 이용권 confirm 을 **실제로 발사했는지**. 부팅 폴백의 양보 기준이다.
+  const redirectConfirmStartedRef = useRef(false);
   const pendingSubscriptionBootRetryRef = useRef(false);
   const paymentActionLockRef = useRef<{ key: string; startedAt: number } | null>(null);
   const confirmPaymentInFlightRef = useRef(new Map<string, Promise<ConfirmResponse>>());
@@ -4099,13 +4121,18 @@ export default function PointsPage() {
     const query = new URLSearchParams(window.location.search);
     const redirectMarked = query.get("portone_redirect");
     const subscriptionRedirectMarked = query.get("portone_subscription_redirect");
-    const impSuccess = String(query.get("imp_success") || query.get("code") || "").toLowerCase();
+    const impSuccess = String(query.get("imp_success") || "").toLowerCase();
+    // 🔴 PG 는 실패를 `code=FAILURE_TYPE_PG_PROVIDER` 처럼 **코드로** 알린다. 예전처럼 code 를 imp_success 와
+    // 한 변수에 합쳐 `=== "false"` 로만 재면 그 복귀가 성공으로 읽혀 승인되지도 않은 주문에 confirm 을 쏜다.
+    // dp(_dpResumeDirectPaymentAfterRedirect)는 처음부터 code 존재를 실패로 봤다 — 판정을 그쪽에 맞춘다.
+    const failureCode = String(query.get("code") || "").trim();
+    const redirectFailed = impSuccess === "false" || failureCode !== "";
     const impUid = query.get("paymentId") || query.get("payment_id") || query.get("imp_uid");
     const pendingSingleSession = readPendingSinglePaymentSession();
     const isSubscriptionRedirect = !!subscriptionRedirectMarked;
     const effectiveImpUid = impUid || (!isSubscriptionRedirect ? pendingSingleSession?.impUid : undefined);
 
-    if (!effectiveImpUid && impSuccess !== "false" && !redirectMarked && !subscriptionRedirectMarked) return;
+    if (!effectiveImpUid && !redirectFailed && !redirectMarked && !subscriptionRedirectMarked) return;
 
     redirectHandledRef.current = true;
 
@@ -4115,7 +4142,7 @@ export default function PointsPage() {
     const effectiveMerchantUid = merchantUidFromQuery || pendingSingleSession?.merchantUid;
     const redirectConfirmKey = `${isSubscriptionRedirect ? "subscription" : "point"}:${effectiveImpUid || "missing"}:${effectiveMerchantUid || (isSubscriptionRedirect ? pendingSubscription?.merchantUid : pending?.merchantUid) || ""}`;
 
-    if (!effectiveImpUid || impSuccess === "false") {
+    if (!effectiveImpUid || redirectFailed) {
       clearPendingOrder();
       discardPendingSubscriptionPass();
       clearPendingSinglePaymentSession();
@@ -4153,7 +4180,7 @@ export default function PointsPage() {
       const pendingSub = pendingSubscription;
       const merchantUid = merchantUidFromQuery || pendingSub?.merchantUid;
 
-      if (!pendingSub || !merchantUid) {
+      if (!merchantUid) {
         discardPendingSubscriptionPass();
         // 복귀 정보가 없어도 PG 승인분은 웹훅·재조정 크론이 정산한다 — 재결제를 유도하지 않는다.
         pushToast("info", "이용권 결제 복귀 정보를 찾지 못했습니다. 결제가 승인됐다면 잠시 뒤(최대 20분) 자동으로 반영되니 다시 결제하지 마세요.");
@@ -4165,17 +4192,23 @@ export default function PointsPage() {
         return;
       }
 
+      /* 🔴 대기 정보(pendingSub)가 없어도 **주문번호 하나로** 확정한다. 카카오페이처럼 앱을 왕복하는 수단은
+         새 탭으로 돌아오는 일이 있고 그때 로컬 대기 정보는 통째로 비어 있다 — 거기서 포기하면 돈만 나간
+         화면이 된다. tier 가 비면 서버(handlePassConfirm)가 주문의 subscriptionTier 로 채우고, 소유자
+         검사(assertOrderOwner)와 등급 위조 검사는 그대로 돈다. */
       const confirmPayload: SubscriptionConfirmPayload = {
           impUid: effectiveImpUid,
           merchantUid,
-          tier: pendingSub.tier,
-          planId: pendingSub.planId,
-          durationMonths: pendingSub.durationMonths || 1,
+          tier: pendingSub?.tier || "",
+          planId: pendingSub?.planId,
+          durationMonths: pendingSub?.durationMonths || 1,
           productType: "membership_pass",
-          customerUid: pendingSub.customerUid,
-          paymentMethod: pendingSub.paymentMethod,
+          customerUid: pendingSub?.customerUid,
+          paymentMethod: pendingSub?.paymentMethod,
           durationDays: 30,
       };
+      // 위 효과가 확정을 **실제로 시작했는지** 아래 부팅 폴백이 본다(마커 존재만으로 물러나지 않게).
+      redirectConfirmStartedRef.current = true;
       pendingSubscriptionConfirmRef.current = {
         payload: confirmPayload,
         fromRedirect: true,
@@ -4192,12 +4225,12 @@ export default function PointsPage() {
               expiresAt: data.subscription?.expiresAt || null,
               profileLimit: typeof data.subscription?.profileLimit === "number"
                 ? data.subscription.profileLimit
-                : getSubscriptionPolicyProfileLimit(data.subscription?.tier || pendingSub.tier),
-              durationMonths: normalizeSubscriptionDurationMonths(data.subscription?.durationMonths ?? pendingSub.durationMonths) ?? pendingSub.durationMonths,
+                : getSubscriptionPolicyProfileLimit(data.subscription?.tier || pendingSub?.tier),
+              durationMonths: normalizeSubscriptionDurationMonths(data.subscription?.durationMonths ?? pendingSub?.durationMonths) ?? pendingSub?.durationMonths,
               lowBalanceWarning: false,
               cancelAtPeriodEnd: !!data.subscription?.cancelAtPeriodEnd,
               cancelRequestedAt: data.subscription?.cancelRequestedAt || null,
-              freeLimit: getSubscriptionPolicyFreeLimit(data.subscription?.tier || pendingSub.tier),
+              freeLimit: getSubscriptionPolicyFreeLimit(data.subscription?.tier || pendingSub?.tier),
             };
             setSubscription((prev) => mergeSubscriptionState(prev, newSub));
             persistSubscriptionCache(newSub);
@@ -4206,7 +4239,7 @@ export default function PointsPage() {
           clearPendingSubscriptionOrder();
           optimisticPassBackupRef.current = null;
           pendingSubscriptionConfirmRef.current = null;
-          await syncSubscriptionAppliedStage(data.subscription?.tier || pendingSub.tier);
+          await syncSubscriptionAppliedStage(data.subscription?.tier || pendingSub?.tier);
           pushToast("success", data.message || "이용권 결제가 완료되어 이용권이 활성화되었습니다.");
           setShowStarBurst(true);
           setTimeout(() => setShowStarBurst(false), 1200);
@@ -4226,7 +4259,7 @@ export default function PointsPage() {
             impUid: effectiveImpUid,
             reasonCode: "subscription_redirect_confirm_failed",
             reasonMessage: getErrorMessage(error, "모바일 이용권 결제 검증에 실패했습니다."),
-            paymentMethod: pendingSub.paymentMethod,
+            paymentMethod: pendingSub?.paymentMethod,
           });
           pushToast("error", getErrorMessage(error, "모바일 이용권 결제 검증에 실패했습니다."));
           if (window.location.search) {
@@ -4308,12 +4341,14 @@ export default function PointsPage() {
   useEffect(() => {
     if (isBooting || pendingSubscriptionBootRetryRef.current) return;
     if (typeof window === "undefined") return;
-    // 리다이렉트 복귀는 위 효과가 맡는다 — 복귀 마커가 있으면 여기서는 손대지 않는다.
+    // 리다이렉트 복귀는 위 효과가 맡는다 — 다만 **확정을 실제로 시작했을 때만** 양보한다.
+    // 🔴 마커 존재만으로 물러나면, 위 효과가 락 충돌·복귀 정보 부재로 확정 없이 끝났을 때 아무도 확정하지 않는다.
     const query = new URLSearchParams(window.location.search);
-    if (
+    const hasRedirectMarker = !!(
       query.get("portone_redirect") || query.get("portone_subscription_redirect")
       || query.get("paymentId") || query.get("payment_id") || query.get("imp_uid")
-    ) return;
+    );
+    if (hasRedirectMarker && redirectConfirmStartedRef.current) return;
     pendingSubscriptionBootRetryRef.current = true;
     if (pendingSubscriptionConfirmRef.current) return;
 
@@ -4391,7 +4426,7 @@ export default function PointsPage() {
 
       setPendingSubscriptionPaymentPlan(null);
       setProcessingStage(
-        withSubscriptionMethod(orderMethod, "30일 이용권 결제 정보를 준비하고 있어요.\n중복 결제를 시도하지 말아 주세요."),
+        withSubscriptionMethod(orderMethod, "30일 이용권 결제 정보를 준비하고 있어요.\n중복 결제를 시도하지 말아 주세요.", { wait: true }),
         "checkout",
       );
       setIsProcessing(true);

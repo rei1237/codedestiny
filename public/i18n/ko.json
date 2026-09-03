@@ -1545,7 +1545,14 @@
         "back": "뒤로"
       },
       "passMonthlyExhausted": "이번 달 이용권 한도를 모두 사용했어요. 다음 달에 다시 열리고, 지금은 단건 결제나 월정석으로 열 수 있어요.",
-      "passMonthlyRemaining": "이번 달 남은 한도 {remaining} / {limit}"
+      "passMonthlyRemaining": "이번 달 남은 한도 {remaining} / {limit}",
+      "wait": {
+        "card": "카드사 인증을 마치면 이 화면으로 자동으로 돌아옵니다.",
+        "transfer": "출금 계좌 인증을 마치면 이 화면으로 자동으로 돌아옵니다.",
+        "kakaopay": "카카오톡으로 이동해 결제를 완료해 주세요. 끝나면 자동으로 돌아옵니다.",
+        "mobile": "휴대폰 본인 인증을 마치면 이 화면으로 자동으로 돌아옵니다.",
+        "gift": "상품권 핀번호 인증을 마치면 이 화면으로 자동으로 돌아옵니다."
+      }
     },
     "overlay": {
       "unlockPreparing": {

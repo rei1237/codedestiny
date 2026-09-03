@@ -1,0 +1,73 @@
+{
+  "_comment": "결제창에서 수단을 고른 뒤 뜨는 대기 화면의 '지금 무엇을 해야 하는지' 한 줄. 코드 정본은 js/core/checkout-entry.js 의 directPayMethodWaitText 이고 ko 값은 그 폴백과 글자까지 같아야 한다(verify:payment-copy-dictionary). 모바일은 PG 가 상위 프레임을 리다이렉트하거나 다른 앱으로 이탈해, 이 안내가 없으면 사용자가 '멈췄다'고 판단해 창을 닫는다 — 그 순간 결제는 승인되고 화면만 사라진다.",
+  "payment.directModal.wait.card": {
+    "ko": "카드사 인증을 마치면 이 화면으로 자동으로 돌아옵니다.",
+    "en": "You'll return to this screen automatically once your card verification is complete.",
+    "ja": "カード会社の認証が完了すると、この画面に自動で戻ります。",
+    "zh-CN": "完成银行卡认证后将自动返回此页面。",
+    "zh-TW": "完成信用卡認證後將自動返回此頁面。",
+    "vi": "You'll return to this screen automatically once your card verification is complete.",
+    "hi": "You'll return to this screen automatically once your card verification is complete.",
+    "es": "You'll return to this screen automatically once your card verification is complete.",
+    "fr": "You'll return to this screen automatically once your card verification is complete.",
+    "de": "You'll return to this screen automatically once your card verification is complete.",
+    "nl": "You'll return to this screen automatically once your card verification is complete.",
+    "ms": "You'll return to this screen automatically once your card verification is complete."
+  },
+  "payment.directModal.wait.transfer": {
+    "ko": "출금 계좌 인증을 마치면 이 화면으로 자동으로 돌아옵니다.",
+    "en": "You'll return to this screen automatically once your bank account verification is complete.",
+    "ja": "出金口座の認証が完了すると、この画面に自動で戻ります。",
+    "zh-CN": "完成付款账户认证后将自动返回此页面。",
+    "zh-TW": "完成付款帳戶認證後將自動返回此頁面。",
+    "vi": "You'll return to this screen automatically once your bank account verification is complete.",
+    "hi": "You'll return to this screen automatically once your bank account verification is complete.",
+    "es": "You'll return to this screen automatically once your bank account verification is complete.",
+    "fr": "You'll return to this screen automatically once your bank account verification is complete.",
+    "de": "You'll return to this screen automatically once your bank account verification is complete.",
+    "nl": "You'll return to this screen automatically once your bank account verification is complete.",
+    "ms": "You'll return to this screen automatically once your bank account verification is complete."
+  },
+  "payment.directModal.wait.kakaopay": {
+    "ko": "카카오톡으로 이동해 결제를 완료해 주세요. 끝나면 자동으로 돌아옵니다.",
+    "en": "Continue in KakaoTalk to finish the payment. You'll return here automatically when it's done.",
+    "ja": "KakaoTalk に移動して決済を完了してください。終わると自動でこの画面に戻ります。",
+    "zh-CN": "请前往 KakaoTalk 完成支付，完成后将自动返回此页面。",
+    "zh-TW": "請前往 KakaoTalk 完成付款，完成後將自動返回此頁面。",
+    "vi": "Continue in KakaoTalk to finish the payment. You'll return here automatically when it's done.",
+    "hi": "Continue in KakaoTalk to finish the payment. You'll return here automatically when it's done.",
+    "es": "Continue in KakaoTalk to finish the payment. You'll return here automatically when it's done.",
+    "fr": "Continue in KakaoTalk to finish the payment. You'll return here automatically when it's done.",
+    "de": "Continue in KakaoTalk to finish the payment. You'll return here automatically when it's done.",
+    "nl": "Continue in KakaoTalk to finish the payment. You'll return here automatically when it's done.",
+    "ms": "Continue in KakaoTalk to finish the payment. You'll return here automatically when it's done."
+  },
+  "payment.directModal.wait.mobile": {
+    "ko": "휴대폰 본인 인증을 마치면 이 화면으로 자동으로 돌아옵니다.",
+    "en": "You'll return to this screen automatically once your mobile identity verification is complete.",
+    "ja": "携帯電話の本人認証が完了すると、この画面に自動で戻ります。",
+    "zh-CN": "完成手机实名认证后将自动返回此页面。",
+    "zh-TW": "完成手機實名認證後將自動返回此頁面。",
+    "vi": "You'll return to this screen automatically once your mobile identity verification is complete.",
+    "hi": "You'll return to this screen automatically once your mobile identity verification is complete.",
+    "es": "You'll return to this screen automatically once your mobile identity verification is complete.",
+    "fr": "You'll return to this screen automatically once your mobile identity verification is complete.",
+    "de": "You'll return to this screen automatically once your mobile identity verification is complete.",
+    "nl": "You'll return to this screen automatically once your mobile identity verification is complete.",
+    "ms": "You'll return to this screen automatically once your mobile identity verification is complete."
+  },
+  "payment.directModal.wait.gift": {
+    "ko": "상품권 핀번호 인증을 마치면 이 화면으로 자동으로 돌아옵니다.",
+    "en": "You'll return to this screen automatically once your gift certificate PIN is verified.",
+    "ja": "商品券のPIN認証が完了すると、この画面に自動で戻ります。",
+    "zh-CN": "完成礼品券 PIN 码验证后将自动返回此页面。",
+    "zh-TW": "完成禮券 PIN 碼驗證後將自動返回此頁面。",
+    "vi": "You'll return to this screen automatically once your gift certificate PIN is verified.",
+    "hi": "You'll return to this screen automatically once your gift certificate PIN is verified.",
+    "es": "You'll return to this screen automatically once your gift certificate PIN is verified.",
+    "fr": "You'll return to this screen automatically once your gift certificate PIN is verified.",
+    "de": "You'll return to this screen automatically once your gift certificate PIN is verified.",
+    "nl": "You'll return to this screen automatically once your gift certificate PIN is verified.",
+    "ms": "You'll return to this screen automatically once your gift certificate PIN is verified."
+  }
+}

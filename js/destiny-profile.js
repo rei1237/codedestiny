@@ -2706,7 +2706,10 @@
         var dpCardTitle = dpCardMethodLabel
           ? _dpCheckoutText('payment.overlay.clean.cardMethod.title', '{method} 결제창을 여는 중입니다.', { method: dpCardMethodLabel })
           : '결제 진행 중';
-        return { title: dpCardTitle, desc: '결제를 안전하게 진행하고 있어요.', done: false, fallback: '결제가 진행 중입니다.' };
+        // 🔴 수단마다 사용자가 해야 하는 일이 다르다(카카오페이는 앱으로 이탈, 상품권은 핀번호 입력).
+        // 범용 문구만 보이면 "멈췄다"고 판단해 창을 닫고, 그 순간 승인된 결제가 화면에서 사라진다.
+        var dpCardWaitText = _dpSelectedDirectPayMethodWaitText();
+        return { title: dpCardTitle, desc: dpCardWaitText || '결제를 안전하게 진행하고 있어요.', done: false, fallback: '결제가 진행 중입니다.' };
       }
       case 'checkout':
       case 'confirm':
@@ -2861,6 +2864,12 @@
     var api = _dpCheckoutEntry();
     if (!api || typeof api.selectedDirectPayMethodLabel !== 'function') return '';
     try { return api.selectedDirectPayMethodLabel() || ''; } catch (_payLabelError) { return ''; }
+  }
+  // 고른 결제수단에서 지금 해야 할 일 한 줄. 대기 오버레이 본문이 끼워 넣는다. 모르면 ''.
+  function _dpSelectedDirectPayMethodWaitText() {
+    var api = _dpCheckoutEntry();
+    if (!api || typeof api.selectedDirectPayMethodWaitText !== 'function') return '';
+    try { return api.selectedDirectPayMethodWaitText() || ''; } catch (_payWaitError) { return ''; }
   }
   // PortOne 요청에 병합할 결제수단 필드({ payMethod, giftCertificate? }).
   // 모듈이 없으면 서버 config 값(=CARD)이 그대로 간다.
@@ -4046,17 +4055,31 @@
   var _DP_DIRECT_RESUME_KEY = 'cd_direct_payment_resume';
   var _DP_DIRECT_RESUME_TTL_MS = 30 * 60 * 1000;
 
+  // 🔴 티켓 저장소 정본도 checkout-entry 다(saveDirectPaymentResumeTicket 머리주석에 localStorage 인 이유).
+  // 모듈이 아직 안 붙었을 때만 종전 sessionStorage 경로로 떨어진다 — 결제 흐름을 죽이지 않는다.
   function _dpWriteDirectResumeTicket(ticket) {
+    var api = _dpCheckoutEntry();
+    if (api && typeof api.saveDirectPaymentResumeTicket === 'function') {
+      api.saveDirectPaymentResumeTicket(ticket);
+      return;
+    }
     try {
       sessionStorage.setItem(_DP_DIRECT_RESUME_KEY, JSON.stringify(ticket));
     } catch (_) {}
   }
 
   function _dpClearDirectResumeTicket() {
+    var api = _dpCheckoutEntry();
+    if (api && typeof api.clearDirectPaymentResumeTicket === 'function') {
+      api.clearDirectPaymentResumeTicket();
+      return;
+    }
     try { sessionStorage.removeItem(_DP_DIRECT_RESUME_KEY); } catch (_) {}
   }
 
   function _dpReadDirectResumeTicket() {
+    var api = _dpCheckoutEntry();
+    if (api && typeof api.readDirectPaymentResumeTicket === 'function') return api.readDirectPaymentResumeTicket();
     var raw = '';
     try { raw = String(sessionStorage.getItem(_DP_DIRECT_RESUME_KEY) || ''); } catch (_) { return null; }
     if (!raw) return null;
@@ -4074,19 +4097,34 @@
     return parsed;
   }
 
+  // /points 는 코인·이용권 복귀를 PointsClient 가 통째로 맡는다(구독 마커가 없는 코인 복귀 포함).
+  // dp 는 App Router 전역에 프리로드되므로 여기서 걸러 두지 않으면 같은 복귀를 둘이 확정하려 든다.
+  // 🔴 trailingSlash 라 '/points/' 로도 온다 — 정확 일치로 재면 조용히 어긋난다.
+  function _dpIsPointsShopPath() {
+    try { return /\/points\/?$/.test(String(window.location.pathname || '')); } catch (_) { return false; }
+  }
+
   async function _dpResumeDirectPaymentAfterRedirect() {
-    if (typeof window === 'undefined' || typeof sessionStorage === 'undefined') return;
+    if (typeof window === 'undefined') return;
     var query;
     try { query = new URLSearchParams(window.location.search || ''); } catch (_) { return; }
     if (query.get('portone_redirect') !== '1') return;
+    // 이용권·월정석·코인 복귀는 /points 의 몫이다.
+    if (query.get('portone_subscription_redirect') || _dpIsPointsShopPath()) return;
 
     var ticket = _dpReadDirectResumeTicket();
-    // 티켓이 없으면 이 복귀는 우리 것이 아니다(예: /points 가 자기 키로 처리하는 이용권·월정석 결제).
-    if (!ticket || !ticket.confirmBody) return;
-
-    var paymentId = String(
-      query.get('paymentId') || query.get('payment_id') || query.get('imp_uid') || ticket.merchantUid || '',
+    var queryPaymentId = String(
+      query.get('paymentId') || query.get('payment_id') || query.get('imp_uid') || '',
     ).trim();
+    /* 🔴 티켓이 없다고 포기하지 않는다.
+       카카오페이처럼 외부 앱을 거쳐 오는 수단은 브라우저가 **새 탭으로 복귀**시키는 일이 흔하고,
+       그러면 세션 저장소가 통째로 비어 티켓이 사라진다 — 돈은 나갔는데 화면은 아무 것도 안 하는
+       상태가 정확히 이것이었다(재조정 크론이 최대 20분 뒤에야 정산한다). 단건 확정은 주문번호
+       하나로 성립하므로(서버가 금액·승인 사실을 PortOne 원본과 대조한다) 쿼리의 paymentId 만
+       있으면 확정을 시도한다. 우리가 requestPayment 에 넘긴 paymentId 가 곧 merchantUid 다. */
+    if ((!ticket || !ticket.confirmBody) && !queryPaymentId) return;
+
+    var paymentId = String(queryPaymentId || (ticket && ticket.merchantUid) || '').trim();
     var failed = String(query.get('code') || '').trim() !== ''
       || String(query.get('imp_success') || '').toLowerCase() === 'false';
 
@@ -4101,7 +4139,7 @@
          서버 500/503 이 하나도 없는데 결제만 실패하는 상태가 정확히 이것이다. */
       var failCode = String(query.get('code') || query.get('error_code') || '').trim();
       var failMessage = String(query.get('message') || query.get('error_msg') || '').trim();
-      var failOrderId = String(ticket.merchantUid || query.get('paymentId') || query.get('imp_uid') || '').trim();
+      var failOrderId = String((ticket && ticket.merchantUid) || query.get('paymentId') || query.get('imp_uid') || '').trim();
       try {
         console.error('[direct-payment-failed]', JSON.stringify({
           code: failCode, message: failMessage.slice(0, 200), orderId: failOrderId,
@@ -4134,7 +4172,10 @@
       _dpSetPaymentPending(true, '결제 승인과 콘텐츠 이용 권한을 확인하고 있습니다.', 'confirm');
       // 🔴 티켓은 confirm 성공 뒤에 지운다. 먼저 지우면 5xx 한 번에 승인된 결제의 복구 수단이 사라진다.
       // 티켓은 30분 TTL(_DP_DIRECT_RESUME_TTL_MS)로 스스로 만료되므로 남겨 둬도 되살아나지 않는다.
-      var dpResumeBody = JSON.stringify(Object.assign({}, ticket.confirmBody, {
+      /* 🔴 티켓이 없어도(새 탭 복귀) 확정은 성립한다 — 단건 confirm 의 필수 입력은 주문번호 하나이고
+         금액·승인 사실은 서버가 PortOne 원본과 대조한다. 여기서 ticket.confirmBody 를 그대로 읽으면
+         티켓 없는 복귀가 TypeError 로 catch 에 떨어져, 정작 살리려던 경로가 오류 알림이 된다. */
+      var dpResumeBody = JSON.stringify(Object.assign({ merchantUid: paymentId }, (ticket && ticket.confirmBody) || null, {
         impUid: paymentId,
         paymentId: paymentId,
       }));

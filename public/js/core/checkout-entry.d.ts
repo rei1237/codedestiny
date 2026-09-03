@@ -55,6 +55,14 @@ export type CheckoutReturnPoint = {
   featureKey: string;
 };
 
+/** PG 리다이렉트 복귀 티켓. 확정에 필요한 최소 입력은 merchantUid 하나다. */
+export type DirectPaymentResumeTicket = {
+  at: number;
+  merchantUid: string;
+  paymentMethod: string;
+  confirmBody: Record<string, unknown> | null;
+};
+
 export type CheckoutFunnelEventName =
   | "checkout_opened"
   | "checkout_option_click"
@@ -220,10 +228,18 @@ declare const checkoutEntry: {
   directPayMethodMeta(id: unknown): { glyph: string; isGiftCertificate: boolean; enabled: boolean } | null;
   /** 결제창 2단계 타일에 찍히는 수단 표시 이름. 모르는 id 면 빈 문자열. */
   directPayMethodLabel(id: unknown): string;
+  /** 카드 id("KAKAOPAY")와 주문 기록 코드("kakaopay"·"card_general") 둘 다 표의 키로 맞춘다. */
+  normalizeDirectPayMethodId(id: unknown): string;
+  /** 그 수단에서 **지금 무엇을 해야 하는지** 한 줄(대기 오버레이 본문). 모르는 id 면 빈 문자열. */
+  directPayMethodWaitText(id: unknown): string;
+  /** "{수단 이름} · {할 일}" 한 줄. 이어 붙이는 순서를 세 런타임이 각자 정하지 않게 한다. */
+  directPayMethodWaitLine(id: unknown): string;
   /** 상품권 묶음 카드의 제목. 개별 상품권 이름은 directPayMethodLabel 이 담당한다. */
   directPayGiftGroupLabel(): string;
   /** 고른 수단의 표시 이름(미선택·TTL 만료면 ""). 결제 대기 오버레이 제목이 쓴다. */
   selectedDirectPayMethodLabel(): string;
+  /** 고른 수단에서 지금 해야 할 일(미선택·TTL 만료면 ""). 결제 대기 오버레이 본문이 쓴다. */
+  selectedDirectPayMethodWaitText(): string;
   /** 아직 열리지 않은 수단의 상태 문구. 렌더러가 결제창 상태줄에 그대로 쓴다. */
   directPayMethodComingSoonText(): string;
   /**
@@ -258,6 +274,17 @@ declare const checkoutEntry: {
   /** 복귀 지점을 읽고 즉시 지운다(복귀 루프 방지). 만료·부재면 null. */
   consumeCheckoutReturn(): CheckoutReturnPoint | null;
   trackCheckoutEvent(name: CheckoutFunnelEventName, payload?: CheckoutFunnelPayload): boolean;
+  /**
+   * PG 리다이렉트 복귀 티켓. 모바일은 requestPayment 프로미스가 페이지와 함께 죽으므로 복귀한
+   * 문서가 이 티켓으로 스스로 확정을 재개한다. 저장은 localStorage(새 탭 복귀를 견딘다),
+   * 읽기는 localStorage → sessionStorage 폴백, 회수는 두 저장소 모두.
+   */
+  DIRECT_RESUME_KEY: string;
+  DIRECT_RESUME_TTL_MS: number;
+  saveDirectPaymentResumeTicket(ticket: DirectPaymentResumeTicket): boolean;
+  /** TTL 이 지난 티켓은 없는 것으로 본다(회수는 확정·실패가 결정한다). */
+  readDirectPaymentResumeTicket(): DirectPaymentResumeTicket | null;
+  clearDirectPaymentResumeTicket(): void;
 };
 
 export default checkoutEntry;

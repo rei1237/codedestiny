@@ -21139,6 +21139,31 @@ return you.name.restore();</span>
     if (!api || typeof api.selectedDirectPayMethodLabel !== 'function') return '';
     try { return api.selectedDirectPayMethodLabel() || ''; } catch (_payLabelError) { return ''; }
   }
+  // 고른 결제수단에서 지금 해야 할 일 한 줄. 대기 오버레이 본문이 끼워 넣는다. 모르면 ''.
+  function _cdSelectedDirectPayMethodWaitText() {
+    var api = _cdCheckoutEntry();
+    if (!api || typeof api.selectedDirectPayMethodWaitText !== 'function') return '';
+    try { return api.selectedDirectPayMethodWaitText() || ''; } catch (_payWaitError) { return ''; }
+  }
+  // 🔴 리다이렉트 복귀 티켓의 저장소 정본은 checkout-entry 다(거기 머리주석에 localStorage 인 이유).
+  // 셸·destiny-profile 이 각자 sessionStorage 에 쓰던 것을 한 곳으로 모은 것이고, 모듈이 아직 안
+  // 붙었을 때만 종전 경로로 떨어진다 — 결제 흐름을 죽이지 않는다.
+  function _cdWriteDirectResumeTicket(ticket) {
+    var api = _cdCheckoutEntry();
+    if (api && typeof api.saveDirectPaymentResumeTicket === 'function') {
+      api.saveDirectPaymentResumeTicket(ticket);
+      return;
+    }
+    try { sessionStorage.setItem('cd_direct_payment_resume', JSON.stringify(ticket)); } catch (_resumeTicketErr) {}
+  }
+  function _cdClearDirectResumeTicket() {
+    var api = _cdCheckoutEntry();
+    if (api && typeof api.clearDirectPaymentResumeTicket === 'function') {
+      api.clearDirectPaymentResumeTicket();
+      return;
+    }
+    try { sessionStorage.removeItem('cd_direct_payment_resume'); } catch (_resumeClearErr) {}
+  }
   // PortOne 요청에 병합할 결제수단 필드({ payMethod, giftCertificate? }).
   // 모듈이 없으면 서버 config 값(=CARD)이 그대로 간다.
   // 🔴 payMethod 하나가 아니라 묶음인 이유: 상품권은 PortOne V2 가 giftCertificate.giftCertificateType
@@ -23321,13 +23346,12 @@ return you.name.restore();</span>
       // 준비 때 기록한 값을 그대로 확정에 싣는다(리다이렉트 복귀 티켓도 이 본문을 쓴다).
       paymentMethod: checkoutPayload.paymentMethod || 'card_general'
     });
-    try {
-      sessionStorage.setItem('cd_direct_payment_resume', JSON.stringify({
-        at: Date.now(),
-        merchantUid: order.merchantUid,
-        confirmBody: _cdDirectConfirmBody
-      }));
-    } catch (_resumeTicketErr) {}
+    _cdWriteDirectResumeTicket({
+      at: Date.now(),
+      merchantUid: order.merchantUid,
+      paymentMethod: _cdDirectConfirmBody.paymentMethod,
+      confirmBody: _cdDirectConfirmBody
+    });
     // PG의 상위 프레임 리다이렉트는 의도된 이동이다 — React PaymentProcessingProvider 가 같은
     // 문서에 마운트된 경우 beforeunload 차단이 그 이동을 막아 "결제창이 안 열린 것처럼" 보인다.
     window.__cdSuppressPaymentUnloadBlock = true;
@@ -23368,7 +23392,7 @@ return you.name.restore();</span>
       if (!_cdDuplicateConfirmFallback) {
         // 이 시도는 죽었다(취소 또는 PG 거절) — 티켓을 남기면 30분 안의 새로고침이 죽은 결제를
         // 재확인하려 든다. 중복 결제 폴백만은 확정을 이어가야 하므로 티켓을 유지한다.
-        try { sessionStorage.removeItem('cd_direct_payment_resume'); } catch (_resumeClearErr) {}
+        _cdClearDirectResumeTicket();
       }
       if (!isUserCancel) {
         try {
@@ -23469,7 +23493,7 @@ return you.name.restore();</span>
     _cdClearPaidPrecheckCache('single-payment-success');
     _cdRefreshAccessStateAfterPayment('single-payment-success');
     // 확정이 검증까지 끝났다 — 이제서야 복귀 티켓을 회수한다(위 requestPayment 직후 회수 금지 주석 참고).
-    try { sessionStorage.removeItem('cd_direct_payment_resume'); } catch (_resumeDoneErr) {}
+    _cdClearDirectResumeTicket();
     return confirmRes.payload;
   }
 
@@ -25103,6 +25127,9 @@ return you.name.restore();</span>
       // 🔴 키는 리터럴로 적는다 — 조립 키는 verify:payment-copy-dictionary 의 12로케일 검사를
       // 빠져나가고 비-ko 사용자만 "Translation pending" 을 본다.
       var cleanPayMethodLabel = normalizedMode === 'card' ? _cdSelectedDirectPayMethodLabel() : '';
+      // 🔴 수단마다 사용자가 해야 하는 일이 다르다(카카오페이는 앱으로 이탈, 상품권은 핀번호 입력).
+      // 범용 문구만 보이면 "멈췄다"고 판단해 창을 닫고, 그 순간 승인된 결제가 화면에서 사라진다.
+      var cleanPayMethodWaitText = normalizedMode === 'card' ? _cdSelectedDirectPayMethodWaitText() : '';
       if (cleanPayMethodLabel) {
         cleanTitle = _cdPaymentI18n('payment.overlay.clean.cardMethod.title', '{method} 결제창을 여는 중입니다.', { method: cleanPayMethodLabel });
       }
@@ -25112,6 +25139,7 @@ return you.name.restore();</span>
           : _cdPaymentI18n('payment.overlay.clean.card.title', 'PG사 결제창을 로드하는 중입니다.');
         cleanBody = cleanCopy.message;
       }
+      if (cleanPayMethodWaitText) cleanBody = cleanPayMethodWaitText;
       if (normalizedMode === 'pass-applied' && text) {
         var cleanLines = text.split(/\n+/).map(function(line) { return String(line || '').trim(); }).filter(Boolean);
         if (cleanLines.length > 1) {
