@@ -1808,6 +1808,7 @@
       "musicTrackSub": "Con el Pase a la luz de la luna puedes escuchar todas las pistas al instante. La descarga en MP3 solo está disponible para las pistas compradas con una compra única o con piedras lunares.",
       "defaultTitle": "Servicio de pago",
       "passApplyFailed": "No hemos podido aplicar tu pase.",
+      "passAppliedUiFailed": "Tu pase se aplicó, pero la pantalla no se actualizó. No pagues: vuelve a pulsar esta tarjeta.",
       "monthlyInsufficient": "No tienes suficientes piedras lunares. Elige el pago único.",
       "monthlyUnknown": "No hemos podido comprobar tu saldo de piedras lunares. Ábrelo de nuevo.",
       "monthlyAria": {
@@ -1823,6 +1824,8 @@
         "withPass": "Elige entre pase, piedras lunares o tarjeta.",
         "directOnly": "Este contenido se abre con pago con tarjeta.",
         "passUnknown": "Si tienes un pase, toca la tarjeta de pase de abajo y lo comprobamos aquí mismo.",
+        "passSaveUnverified": "No hemos podido guardar el resultado de aplicar tu pase. Vuelve a comprobarlo con la tarjeta de pase de abajo o elige otro método de pago.",
+        "passCheckFailed": "No hemos podido comprobar tu pase. Vuelve a intentarlo con la tarjeta de pase de abajo o elige otro método de pago.",
         "passMiss": "Tu pase no abre este contenido gratis, así que aquí tienes las opciones de pago."
       },
       "passBadge": "Pase a la luz de la luna",

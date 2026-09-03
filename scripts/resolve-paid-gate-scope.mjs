@@ -38,7 +38,15 @@ const SHELL_PAYMENT_SYMBOLS = [
   "_cdOpenPaidServiceGate",
   "_cdRunPerUseCoinGate",
   "__cdRunPerUseCoinGateFromTile",
-  "__cdRequireTileLockGate",
+  // 🔴 이용권 해금 판정·저장 경로. 결제창을 여는 것은 이 함수들이고, 여기서 dead-end(return)가
+  //    하나 생기면 이용권 보유자가 어떤 수단으로도 결제할 수 없게 된다(2026-09-03 실사고).
+  //    이 목록에 없으면 그 수정 PR 이 "셸의 비결제 변경"으로 판정돼 결제 게이트가 통째로 스킵된다.
+  "tryUnlockFeature",
+  "_cdFinalizeUnlockState",
+  "saveTileLocks",
+  "writeTileLockMapToStorage",
+  // `__cdRequireTileLockGate` 는 셸에서 js/core/index-inline-runtime.js 로 옮겨가 index.html 에
+  // 0건이다 — 슬라이스가 조용히 실패해 아무것도 지키지 못하므로 목록에서 뺀다.
 ];
 
 const SHELLS = new Set([

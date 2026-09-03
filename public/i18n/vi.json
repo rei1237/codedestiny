@@ -1808,6 +1808,7 @@
       "musicTrackSub": "Có Thẻ ánh trăng, bạn nghe được toàn bộ bài hát ngay lập tức. Tải MP3 chỉ áp dụng cho bài đã mua lẻ hoặc mua bằng nguyệt tinh thạch.",
       "defaultTitle": "Dịch vụ trả phí",
       "passApplyFailed": "Không thể áp dụng Pass của bạn.",
+      "passAppliedUiFailed": "Pass của bạn đã được áp dụng nhưng màn hình chưa cập nhật. Đừng thanh toán — hãy nhấn lại thẻ này.",
       "monthlyInsufficient": "Không đủ nguyệt tinh thạch. Vui lòng chọn thanh toán một lần.",
       "monthlyUnknown": "Không thể kiểm tra số dư nguyệt tinh thạch. Vui lòng mở lại.",
       "monthlyAria": {
@@ -1823,6 +1824,8 @@
         "withPass": "Chọn giữa vé, nguyệt tinh thạch hoặc thẻ.",
         "directOnly": "Nội dung này mở bằng thanh toán thẻ.",
         "passUnknown": "Nếu bạn có vé, hãy chạm vào thẻ vé bên dưới, chúng tôi sẽ kiểm tra ngay.",
+        "passSaveUnverified": "Chúng tôi không lưu được kết quả áp dụng Pass. Hãy kiểm tra lại bằng thẻ Pass bên dưới hoặc chọn phương thức thanh toán khác.",
+        "passCheckFailed": "Chúng tôi không kiểm tra được Pass của bạn. Hãy thử lại bằng thẻ Pass bên dưới hoặc chọn phương thức thanh toán khác.",
         "passMiss": "Vé của bạn không mở nội dung này miễn phí, đây là các tuỳ chọn thanh toán."
       },
       "passBadge": "Thẻ ánh trăng",
