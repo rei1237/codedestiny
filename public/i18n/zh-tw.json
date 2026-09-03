@@ -1909,7 +1909,14 @@
         "back": "返回"
       },
       "passMonthlyExhausted": "本月通行證額度已用完。下月將重置，現在可以透過單次付款或月精石解鎖。",
-      "passMonthlyRemaining": "本月剩餘額度 {remaining} / {limit}"
+      "passMonthlyRemaining": "本月剩餘額度 {remaining} / {limit}",
+      "wait": {
+        "card": "完成信用卡認證後將自動返回此頁面。",
+        "transfer": "完成付款帳戶認證後將自動返回此頁面。",
+        "kakaopay": "請前往 KakaoTalk 完成付款，完成後將自動返回此頁面。",
+        "mobile": "完成手機實名認證後將自動返回此頁面。",
+        "gift": "完成禮券 PIN 碼驗證後將自動返回此頁面。"
+      }
     },
     "overlay": {
       "unlockPreparing": {

@@ -121,7 +121,7 @@ test("subscription checkout keeps the shared payment wait UI visible across each
   const subscribeBlock = between(pointsSource, "const handleSubscribe = async", "const handleSubscriptionCancel");
 
   assert.doesNotMatch(subscribeBlock, /showPrepareOverlay/);
-  assert.match(subscribeBlock, /withSubscriptionMethod\(orderMethod, "30일 이용권 결제 정보를 준비하고 있어요\.\\n중복 결제를 시도하지 말아 주세요\."\),\s*"checkout",/);
+  assert.match(subscribeBlock, /withSubscriptionMethod\(orderMethod, "30일 이용권 결제 정보를 준비하고 있어요\.\\n중복 결제를 시도하지 말아 주세요\.", \{ wait: true \}\),\s*"checkout",/);
   assert.match(subscribeBlock, /결제 승인 내역을 안전하게 확인하고 있어요/);
   assert.match(pointsSource, /계정에 반영하고 있어요/);
   assert.match(pointsSource, /최신 월정석 잔량을 확인했어요/);

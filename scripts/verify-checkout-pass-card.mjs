@@ -730,6 +730,40 @@ console.log("\n[13] 단건결제 2단계 결제수단 흐름");
     assert.ok(checked > 0, "활성 수단이 하나도 없다 — 결제창 2단계가 통째로 잠겼다");
     entry.clearSelectedDirectPayMethod();
   });
+  // 🔴 대기 오버레이가 "지금 무엇을 해야 하는지" 말하지 못하면 사용자는 멈춘 줄 알고 창을 닫는다 —
+  // 그 순간 결제는 승인되고 화면만 사라진다(모바일 이용권 미적용 신고의 실체). 표를 전수로 돌아
+  // 안내가 비는 수단을 통과시키지 않는다. 주문 기록 코드(소문자)로도 같은 답이 나와야 한다 —
+  // 복귀한 화면에는 그 코드밖에 남아 있지 않다.
+  check("모든 결제수단이 수단별 대기 안내를 가진다", () => {
+    const coreSource = fs.readFileSync(path.join(ROOT, "js/core/checkout-entry.js"), "utf8");
+    const table = coreSource.match(/var DIRECT_PAY_METHODS = \{([\s\S]*?)\n {2}\};/);
+    assert.ok(table, "DIRECT_PAY_METHODS 표를 찾지 못했다 — 표를 옮겼다면 이 검사도 함께 고쳐라");
+    const tableRows = table[1].split("\n");
+    const order = Array.from(entry.DIRECT_PAY_METHOD_ORDER);
+    assert.ok(order.length > 0, "정본 표가 비어 있다 — 검사 대상이 없으면 통과시키지 않는다");
+    for (const id of order) {
+      const wait = entry.directPayMethodWaitText(id);
+      assert.ok(
+        typeof wait === "string" && wait.trim().length > 0,
+        `${id}: 수단별 대기 안내가 비어 있다 — 대기 화면이 무엇을 하라고 말하지 못한다`,
+      );
+      const row = tableRows.find((line) => new RegExp(`^\\s*${id}:\\s*\\{`).test(line));
+      assert.ok(row, `${id} 의 표 행을 찾지 못했다`);
+      const orderMethod = (row.match(/orderMethod:\s*"([^"]+)"/) || [])[1];
+      if (!orderMethod) continue;
+      assert.equal(
+        entry.directPayMethodWaitText(orderMethod),
+        wait,
+        `${id}: 주문 기록 코드(${orderMethod})로는 다른 안내가 나온다 — 복귀 화면이 문구를 잃는다`,
+      );
+    }
+    // 표에 orderMethod 가 없는 카드는 주문에 기본 코드로 기록된다(서버 resolvePassRequest 기본값).
+    assert.equal(
+      entry.directPayMethodWaitText("card_general"),
+      entry.directPayMethodWaitText("CARD"),
+      "주문 기록 기본 코드 card_general 이 카드 안내로 풀리지 않는다",
+    );
+  });
   // 🔴 위 검사는 **활성** 수단만 본다. 채널키가 아직 없어 비활성으로 둔 수단(카카오페이)은 그 루프에
   // 잡히지 않으므로, 배관이 끊긴 채로 켜는 순간 "그 수단만 결제창이 안 뜬다"가 된다. 그래서 표를
   // 소스에서 전수로 읽어 활성 여부와 무관하게 채널키 이름의 양끝을 잇는다.

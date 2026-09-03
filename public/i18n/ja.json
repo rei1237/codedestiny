@@ -1909,7 +1909,14 @@
         "back": "戻る"
       },
       "passMonthlyExhausted": "今月のパス利用上限に達しました。来月にリセットされます。今は単品購入または月霊石で開けます。",
-      "passMonthlyRemaining": "今月の残り上限 {remaining} / {limit}"
+      "passMonthlyRemaining": "今月の残り上限 {remaining} / {limit}",
+      "wait": {
+        "card": "カード会社の認証が完了すると、この画面に自動で戻ります。",
+        "transfer": "出金口座の認証が完了すると、この画面に自動で戻ります。",
+        "kakaopay": "KakaoTalk に移動して決済を完了してください。終わると自動でこの画面に戻ります。",
+        "mobile": "携帯電話の本人認証が完了すると、この画面に自動で戻ります。",
+        "gift": "商品券のPIN認証が完了すると、この画面に自動で戻ります。"
+      }
     },
     "overlay": {
       "unlockPreparing": {

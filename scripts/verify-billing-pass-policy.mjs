@@ -614,8 +614,18 @@ const subscriptionCancelStart = pointsSource.indexOf("const handleSubscriptionCa
 assert.ok(handleSubscribeStart >= 0 && subscriptionCancelStart > handleSubscribeStart, "points page subscription handlers found");
 const cardSubscriptionSource = pointsSource.slice(handleSubscribeStart, subscriptionCancelStart);
 // 대기 문구는 결제수단 라벨을 앞에 붙인다(withSubscriptionMethod) — 카카오페이·카드가 같은 문구를 보이지 않는다.
-assertContains(cardSubscriptionSource, 'withSubscriptionMethod(orderMethod, "30일 이용권 결제 정보를 준비하고 있어요.\\n중복 결제를 시도하지 말아 주세요."),', "card subscription prepare uses method-aware checkout wait copy");
+assertContains(cardSubscriptionSource, 'withSubscriptionMethod(orderMethod, "30일 이용권 결제 정보를 준비하고 있어요.\\n중복 결제를 시도하지 말아 주세요.", { wait: true }),', "card subscription prepare uses method-aware checkout wait copy");
 assertBefore(cardSubscriptionSource, 'withSubscriptionMethod(orderMethod, "30일 이용권 결제 정보를 준비하고 있어요.', '"checkout",', "card subscription prepare uses checkout wait UI");
+// 🔴 수단별 "지금 할 일" 한 줄은 **결제창을 띄우기 직전 단계에서만** 켠다. 정본은 checkout-entry 의 표다 —
+// /points 가 자기 문구를 따로 쓰면 셸·dp 와 갈라지고, 카카오페이처럼 앱으로 이탈하는 수단에서 사용자가
+// 멈춘 줄 알고 창을 닫는다(그 순간 결제는 승인되고 화면만 사라진다).
+assertContains(pointsSource, "const wait = options?.wait ? subscriptionMethodWaitText(orderMethod) : \"\";", "subscription wait copy appends the per-method instruction only when asked");
+assertContains(pointsSource, "checkoutEntry.directPayMethodWaitText(method)", "per-method wait copy comes from the checkout-entry table");
+// 🔴 복귀 확정은 **주문번호 하나로** 성립해야 한다. 카카오페이는 새 탭으로 돌아오는 일이 있어 로컬 대기
+// 정보가 통째로 빈다 — 거기서 포기하면 돈만 나간 화면이 되고 재조정 크론까지 최대 20분이 빈다.
+assertContains(pointsSource, 'tier: pendingSub?.tier || ""', "subscription redirect confirms from the order id when the local pending order is gone");
+// 🔴 PG 실패는 `code=...` 로 온다. `imp_success === "false"` 로만 재면 실패 복귀에 confirm 을 쏜다.
+assertContains(pointsSource, 'const redirectFailed = impSuccess === "false" || failureCode !== "";', "subscription redirect treats a PG failure code as a failure");
 assertNotContains(cardSubscriptionSource, 'setProcessingStage("월정석 정보를 확인하는 중이에요", "monthly")', "card subscription checkout must not use monthly wait UI");
 // 🔴 오버레이 정리는 **await 하지 않는다**. 예전에는 이 함수가 rAF 를 await 해서 PG 창을 여는 직전에
 // 한 프레임을 더 먹었다 — 쓸모없는 지연이고, 사용자 제스처와 requestPayment 사이가 벌어져 모바일에서
