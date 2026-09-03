@@ -1854,7 +1854,7 @@ function SubscriptionSection({
           </p>
           <ul className="mt-2 space-y-1.5 text-[12.5px] leading-5 text-slate-100">
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">모든 신규 판매 이용권은 <strong>결제 검증 성공 시점부터 30일 동안 유효</strong>합니다.</span></li>
-            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">스탠다드·프리미엄·VVIP는 일반 유료 서비스가 각 3,000원/5,000원/10,000원 이하일 때 이용권으로 이용할 수 있습니다.</span></li>
+            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">스탠다드·프리미엄·VVIP는 일반 유료 서비스가 각 5,000원/10,000원/20,000원 이하일 때 이용권으로 이용할 수 있습니다.</span></li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">Code Destiny Family는 허용된 기능 접근 권한으로만 이용되며, 더 높은 상품의 결제 수단이 아닙니다.</span></li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">PDF 서비스와 일반 유료 서비스 조건은 상품별 안내에서 확인할 수 있습니다.</span></li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">기간 종료 후 추가 결제 없이 무료 플랜으로 전환됩니다.</span></li>
@@ -2977,7 +2977,7 @@ function MoonlightOrderHistory({
 function MoonlightPaymentNotice() {
   return (
     <section className="moon-card rounded-[20px] px-5 py-4 text-sm font-semibold leading-7 text-[color:var(--moon-silver)]">
-      각 이용권은 정해진 금액 범위의 유료 리딩을 30일 동안 열어 줍니다. Family는 3만원 이상 상담(초융합 포함)을 이용권 기간당 10회까지 포함하며, 이용권은 원화 단건 결제로만 구매할 수 있습니다.
+      각 이용권은 정해진 금액 범위의 유료 리딩을 30일 동안 열어 줍니다. Family는 3만원 이상 상담(초융합 포함)도 이용권 기간 안에서 포함하며, 이용권은 원화 단건 결제로만 구매할 수 있습니다.
     </section>
   );
 }
@@ -5034,7 +5034,7 @@ export default function PointsPage() {
           aria-label={copy.wonSinglePaymentAria}
           className="rounded-[20px] border border-white/16 bg-[#0b1028]/82 px-5 py-4 text-[15px] leading-7 text-slate-100"
         >
-          각 이용권은 정해진 금액 범위의 유료 리딩을 30일 동안 열어 줍니다. Family는 3만원 이상 상담(초융합 포함)을 이용권 기간당 10회까지 포함하며, 이용권은 원화 단건 결제로만 구매할 수 있습니다.
+          각 이용권은 정해진 금액 범위의 유료 리딩을 30일 동안 열어 줍니다. Family는 3만원 이상 상담(초융합 포함)도 이용권 기간 안에서 포함하며, 이용권은 원화 단건 결제로만 구매할 수 있습니다.
         </section>
 
         <section className="rounded-[20px] border border-white/16 bg-[#0b1028]/82 p-5">

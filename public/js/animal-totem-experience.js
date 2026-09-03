@@ -132,7 +132,7 @@
         },
         five: {
           title: "별자리 다섯 동물",
-          price: "6,000원",
+          price: "5,000원",
           tagline: "이성 · 감정 · 그림자 · 선물 · 행동",
           perks: ["다섯 자리 전체 심층 리딩", "그림자 ↔ 선물 통합 해설", "오늘의 실천 플랜 3가지"]
         },
@@ -258,7 +258,7 @@
         },
         five: {
           title: "Five Constellation Animals",
-          price: "KRW 6,000",
+          price: "KRW 5,000",
           tagline: "Mind · Heart · Shadow · Gift · Action",
           perks: ["Deep reading across all five seats", "Shadow ↔ Gift synthesis", "3 practical steps for today"]
         },
@@ -384,7 +384,7 @@
         },
         five: {
           title: "星座の五つの動物",
-          price: "6,000ウォン",
+          price: "5,000ウォン",
           tagline: "理性・感情・影・贈り物・行動",
           perks: ["五つの席すべてを深く読む", "影 ↔ 贈り物の統合解説", "今日の実践プラン3つ"]
         },
@@ -514,7 +514,7 @@
     };
     zh.modes.five = {
       title: "星座五兽",
-      price: "6,000韩元",
+      price: "5,000韩元",
       tagline: "理性・情感・阴影・礼物・行动",
       perks: ["五个位置全面深读", "阴影 ↔ 礼物整合解说", "今日3项可行步骤"]
     };

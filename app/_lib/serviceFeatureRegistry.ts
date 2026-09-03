@@ -686,7 +686,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "subtitle": "명식과 지금의 질문으로 읽는 나의 인생 서사",
       "description": "생년월일, 성별, 출생시간, 상담 주제를 바탕으로 삶의 흐름과 반복 패턴을 따뜻한 1:1 상담처럼 풀어드립니다.",
       "heroImageAlt": "인생의 책 전문가 상담 대표 이미지",
-      "priceLabel": "50,000원",
+      "priceLabel": "20,000원",
       "tags": ["전문가 상담", "명리학", "인생 서사"],
       "highlights": ["명식 기반 상담", "삶의 핵심 주제", "추가 질문 대화"],
       "howItWorks": [
@@ -1451,7 +1451,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "subtitle": "A one-on-one reading that follows your life as a living story.",
       "description": "Enter birth details and a life theme, then receive a warm consultation shaped by chart structure, recurring patterns, strengths, relationships, work, money, and the choice in front of you.",
       "heroImageAlt": "Life Book Expert Consultation representative image",
-      "priceLabel": "KRW 50,000",
+      "priceLabel": "KRW 20,000",
       "tags": ["Expert Consultation", "Saju", "Life Story"],
       "highlights": ["Chart-based counsel", "Core life theme", "Follow-up questions"],
       "howItWorks": [
@@ -1537,7 +1537,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "subtitle": "Ancient rune symbols open a compact oracle reading for the question in front of you.",
       "description": "Ancient rune symbols open a compact oracle reading for the question in front of you.",
       "heroImageAlt": "Stonehenge Rune Oracle symbolic preview",
-      "priceLabel": "KRW 3,000~12,000",
+      "priceLabel": "KRW 3,000~10,000",
       "tags": ["Runes", "Oracle", "Stonehenge"],
       "highlights": ["Guided input flow", "Clear result reading", "Follow-up guidance for the next step"],
       "howItWorks": [
@@ -1580,7 +1580,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "subtitle": "A guardian-animal message that reflects the current state of your heart and path.",
       "description": "A guardian-animal message that reflects the current state of your heart and path.",
       "heroImageAlt": "Animal Totem symbolic preview",
-      "priceLabel": "KRW 3,000~6,000",
+      "priceLabel": "KRW 3,000~5,000",
       "tags": ["Animal Totem", "Guardian Message", "Oracle"],
       "highlights": ["Guided input flow", "Clear result reading", "Follow-up guidance for the next step"],
       "howItWorks": [
@@ -2216,7 +2216,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "subtitle": "A one-on-one reading that follows your life as a living story.",
       "description": "Enter birth details and a life theme, then receive a warm consultation shaped by chart structure, recurring patterns, strengths, relationships, work, money, and the choice in front of you.",
       "heroImageAlt": "Life Book Expert Consultation representative image",
-      "priceLabel": "KRW 50,000",
+      "priceLabel": "KRW 20,000",
       "tags": ["Expert Consultation", "Saju", "Life Story"],
       "highlights": ["Chart-based counsel", "Core life theme", "Follow-up questions"],
       "howItWorks": [
@@ -2302,7 +2302,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "subtitle": "古代ルーンの象徴が、今の問いに短く深い答えを開きます。",
       "description": "古代ルーンの象徴が、今の問いに短く深い答えを開きます。",
       "heroImageAlt": "ストーンヘンジ ルーン神託の象徴イメージ",
-      "priceLabel": "3,000~12,000ウォン",
+      "priceLabel": "3,000~10,000ウォン",
       "tags": ["Runes", "Oracle", "Stonehenge"],
       "highlights": ["案内つき入力フロー", "見やすい鑑定結果", "次の一歩まで整える助言"],
       "howItWorks": [
@@ -2345,7 +2345,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "subtitle": "守護動物のメッセージが今の心と道筋を映します。",
       "description": "守護動物のメッセージが今の心と道筋を映します。",
       "heroImageAlt": "アニマルトーテムの象徴イメージ",
-      "priceLabel": "3,000~6,000ウォン",
+      "priceLabel": "3,000~5,000ウォン",
       "tags": ["Animal Totem", "Guardian Message", "Oracle"],
       "highlights": ["案内つき入力フロー", "見やすい鑑定結果", "次の一歩まで整える助言"],
       "howItWorks": [
@@ -2981,7 +2981,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "subtitle": "A one-on-one reading that follows your life as a living story.",
       "description": "Enter birth details and a life theme, then receive a warm consultation shaped by chart structure, recurring patterns, strengths, relationships, work, money, and the choice in front of you.",
       "heroImageAlt": "Life Book Expert Consultation representative image",
-      "priceLabel": "KRW 50,000",
+      "priceLabel": "KRW 20,000",
       "tags": ["Expert Consultation", "Saju", "Life Story"],
       "highlights": ["Chart-based counsel", "Core life theme", "Follow-up questions"],
       "howItWorks": [
@@ -3067,7 +3067,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "subtitle": "古老卢恩符号为眼前的问题开启简洁而深刻的答案。",
       "description": "古老卢恩符号为眼前的问题开启简洁而深刻的答案。",
       "heroImageAlt": "巨石阵卢恩神谕象征图像",
-      "priceLabel": "3,000~12,000韩元",
+      "priceLabel": "3,000~10,000韩元",
       "tags": ["Runes", "Oracle", "Stonehenge"],
       "highlights": ["引导式输入流程", "清晰的解读结果", "整理下一步行动建议"],
       "howItWorks": [
@@ -3110,7 +3110,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "subtitle": "守护动物讯息映照此刻的心境与道路。",
       "description": "守护动物讯息映照此刻的心境与道路。",
       "heroImageAlt": "动物图腾象征图像",
-      "priceLabel": "3,000~6,000韩元",
+      "priceLabel": "3,000~5,000韩元",
       "tags": ["Animal Totem", "Guardian Message", "Oracle"],
       "highlights": ["引导式输入流程", "清晰的解读结果", "整理下一步行动建议"],
       "howItWorks": [
@@ -3746,7 +3746,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "subtitle": "A one-on-one reading that follows your life as a living story.",
       "description": "Enter birth details and a life theme, then receive a warm consultation shaped by chart structure, recurring patterns, strengths, relationships, work, money, and the choice in front of you.",
       "heroImageAlt": "Life Book Expert Consultation representative image",
-      "priceLabel": "KRW 50,000",
+      "priceLabel": "KRW 20,000",
       "tags": ["Expert Consultation", "Saju", "Life Story"],
       "highlights": ["Chart-based counsel", "Core life theme", "Follow-up questions"],
       "howItWorks": [
@@ -3832,7 +3832,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "subtitle": "古老盧恩符號為眼前的問題開啟簡潔而深刻的答案。",
       "description": "古老盧恩符號為眼前的問題開啟簡潔而深刻的答案。",
       "heroImageAlt": "巨石陣盧恩神諭象徵圖像",
-      "priceLabel": "3,000~12,000韓元",
+      "priceLabel": "3,000~10,000韓元",
       "tags": ["Runes", "Oracle", "Stonehenge"],
       "highlights": ["引導式輸入流程", "清晰的解讀結果", "整理下一步行動建議"],
       "howItWorks": [
@@ -3875,7 +3875,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "subtitle": "守護動物訊息映照此刻的心境與道路。",
       "description": "守護動物訊息映照此刻的心境與道路。",
       "heroImageAlt": "動物圖騰象徵圖像",
-      "priceLabel": "3,000~6,000韓元",
+      "priceLabel": "3,000~5,000韓元",
       "tags": ["Animal Totem", "Guardian Message", "Oracle"],
       "highlights": ["引導式輸入流程", "清晰的解讀結果", "整理下一步行動建議"],
       "howItWorks": [

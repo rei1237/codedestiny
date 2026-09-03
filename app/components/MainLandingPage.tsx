@@ -382,7 +382,7 @@ const MISC_DIVINATION_ITEMS_COPY: ServiceCardModel[] = [
 ];
 
 const PREMIUM_ITEMS_COPY: ServiceCardModel[] = [
-  { title: "명운 프리미엄 작명", description: "오행·수리 기반 작명", href: "/myungwun_final.html", emoji: "🖋️", badges: [{ text: "70,000원", tone: "coin" }] },
+  { title: "명운 프리미엄 작명", description: "오행·수리 기반 작명", href: "/myungwun_final.html", emoji: "🖋️", badges: [{ text: "30,000원", tone: "coin" }] },
   { title: "결제/멤버십 관리", description: "멤버십과 결제 내역 관리", href: "/points", emoji: "💳", badges: [{ text: "관리", tone: "soft" }] },
 ];
 
