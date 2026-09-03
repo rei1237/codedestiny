@@ -268,3 +268,59 @@ test("the preview smoke only forgives 404s that cannot be app defects", () => {
   assert.ok(!/status of 404/.test(corsNoise), "isExpectedPreviewCorsNoise 에 무제한 404 규칙이 남아 있습니다");
   assert.ok(!/status of 404/.test(pagesNoise), "isExpectedPagesPreviewNoise 에 무제한 404 규칙이 남아 있습니다");
 });
+
+// 🔴 콜드스타트 5xx 한 건이 무관한 커밋을 롤백시키던 구멍의 회귀 가드 (2026-09-03).
+//
+// 스모크는 콘솔 에러 1건이면 릴리스를 BLOCKED 로 만들고 Pages·Worker 를 직전 버전으로 자동
+// 롤백한다. Mongo 커넥션 콜드스타트가 첫 요청 하나만 5xx 를 내는 탓에, 그날 두 릴리스가
+// (e475983 /api/reviews/summary, d2b0236 /api/reviews) 커밋과 무관하게 되돌아갔다.
+// 완화는 넣되 **딱 그 형태에만** 걸려야 한다 — 넓어지면 진짜 5xx 장애가 조용히 승격된다.
+function loadTransientServerErrorUrl() {
+  const body = extractFunctionSource(smoke, "function transientServerErrorUrl(value) {");
+  return new Function(body + "; return transientServerErrorUrl;")();
+}
+
+test("the smoke only defers 5xx console errors that name exactly one resource URL", () => {
+  const transient = loadTransientServerErrorUrl();
+  const line = (status, url) =>
+    `Failed to load resource: the server responded with a status of ${status} () ${url}`;
+  const api = "https://staging.code-destiny.com/api/reviews?sort=latest&limit=6";
+
+  // 실제로 두 번 롤백을 일으킨 형태 — 이 한 줄이 이 완화의 존재 이유다.
+  assert.equal(transient(line(503, api)), api, "콜드스타트 503 을 재조회 대상으로 잡지 않습니다");
+  assert.equal(transient(line(530, api)), api, "530 을 재조회 대상으로 잡지 않습니다");
+
+  // 5xx 가 아닌 것은 이 완화의 소관이 아니다 — 404 는 isIgnorablePreview404 가 판정한다.
+  assert.equal(transient(line(404, api)), "", "404 를 5xx 완화로 넘깁니다");
+  assert.equal(transient(line(401, api)), "", "401 을 5xx 완화로 넘깁니다");
+
+  // 재조회할 URL 이 없으면 완화하지 않는다(fail-closed). URL 이 둘이면 무엇을 재볼지 모른다.
+  assert.equal(
+    transient("Failed to load resource: the server responded with a status of 503 ()"),
+    "",
+    "URL 없는 5xx 를 완화합니다",
+  );
+  assert.equal(transient(line(503, api) + " https://staging.code-destiny.com/api/health"), "", "URL 이 둘인데 완화합니다");
+});
+
+test("deferred 5xx errors are re-probed, bounded, and fail closed when they persist", () => {
+  // 판정을 미루기만 하고 다시 보지 않으면 게이트가 눈을 감은 것이다.
+  assert.ok(smoke.includes("await resolvePendingServerErrors();"), "보류한 5xx 를 재판정하지 않습니다");
+
+  const resolver = extractFunctionSource(smoke, "async function resolvePendingServerErrors() {");
+  // 회복하지 못한 것은 원래대로 실패로 돌아가야 한다.
+  assert.ok(
+    resolver.includes('browserErrors.push("console.error: " + item.detail)'),
+    "회복하지 못한 5xx 를 실패로 승격하지 않습니다",
+  );
+  // 서로 다른 URL 이 여럿 5xx 면 콜드스타트가 아니라 오리진 장애다 — 완화 예산을 둔다.
+  assert.ok(
+    resolver.includes("distinct.length <= TRANSIENT_5XX_URL_BUDGET"),
+    "완화 대상 URL 수에 상한이 없습니다",
+  );
+
+  // 재조회가 무한정 늘어나면 릴리스가 장애 때 멈춘 것처럼 보인다. 시도 횟수를 고정한다.
+  const settle = extractFunctionSource(smoke, "async function settleServerError(url) {");
+  assert.ok(settle.includes("attempt < 2"), "재조회 시도 횟수가 고정돼 있지 않습니다");
+  assert.ok(settle.includes("response.status < 500"), "재조회 판정이 상태코드를 보지 않습니다");
+});
