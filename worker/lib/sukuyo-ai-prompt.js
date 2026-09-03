@@ -3,6 +3,10 @@ import {
   classifyQuestionToSukuyoDomain,
   getSukuyoPromptTemplate,
 } from "./sukuyo-ai-prompt-templates.mjs";
+import {
+  SUKUYO_ROLE_PROFILES,
+  relationFromForwardDistance,
+} from "./sukuyo-relation-core.js";
 
 const DEFAULT_TEXT = "미상";
 
@@ -196,6 +200,21 @@ function normalizeBasicResult(raw) {
   };
 }
 
+// "안(安) · 안심과 편안함을 건네는 자리" 형태의 자리 라벨. 정본에 없는 자리면 null.
+function sukuyoRoleLabel(role) {
+  const profile = SUKUYO_ROLE_PROFILES[role];
+  if (!profile) return null;
+  return `${role}(${profile.han}) · ${profile.meaning}`;
+}
+
+// 별칭 체인이 '안' 같은 맨 자리 이름을 주면 정본 라벨로 넓힌다. 정본에 없는 문자열은
+// 손대지 않고 그대로 돌려준다(구버전 클라가 넣던 자유 문구 보존).
+function expandSukuyoRole(value) {
+  const text = toOptionalText(value);
+  if (!text) return "";
+  return sukuyoRoleLabel(text) || text;
+}
+
 function normalizeCompatibilityResult(raw, basicResult) {
   if (!raw || typeof raw !== "object") return null;
 
@@ -206,6 +225,12 @@ function normalizeCompatibilityResult(raw, basicResult) {
   if (basicResult && toSafeNumber(basicResult.mansionIdx, null) !== null && myIdx !== basicResult.mansionIdx) {
     return null;
   }
+
+  // 구버전 클라·캐시 payload 는 자리와 방향을 안 싣는다. 지수 두 개만 있으면 정본으로
+  // 되살릴 수 있으므로, 별칭 체인이 전부 빈 경우의 마지막 폴백으로 여기서 파생한다.
+  const forwardDistance = (partnerIdx - myIdx + 27) % 27;
+  const reverseDistance = (myIdx - partnerIdx + 27) % 27;
+  const derivedRelation = relationFromForwardDistance(forwardDistance);
 
   const partnerProfile = raw?.partner && typeof raw.partner === "object" ? raw.partner : (raw?.personB && typeof raw.personB === "object" ? raw.personB : {});
   const distanceMetrics = raw?.distanceMetrics && typeof raw.distanceMetrics === "object" ? raw.distanceMetrics : {};
@@ -225,10 +250,16 @@ function normalizeCompatibilityResult(raw, basicResult) {
     relationTypeHan: toOptionalText(raw.relationTypeHan),
     distanceLabel: toText(raw.distanceLabel || enhanced.distanceKo),
     shortestDistance: firstFiniteNumber(raw.shortestDistance, raw.distance, distanceMetrics.shortestDistance),
-    myRole: firstOptionalText(raw.myRole, raw.aRole, roleActionGuide.myRole, roleActionGuide.aRole, roleActionGuide.roleA, raw?.ankaiRole?.me, enhanced.roleA),
-    partnerRole: firstOptionalText(raw.partnerRole, raw.bRole, roleActionGuide.partnerRole, roleActionGuide.bRole, roleActionGuide.roleB, raw?.ankaiRole?.other, enhanced.roleB),
-    directionFromAToB: firstOptionalText(raw.directionFromAToB, raw.forwardDirection, distanceMetrics.forwardDirection, distanceMetrics.forwardDistance),
-    directionFromBToA: firstOptionalText(raw.directionFromBToA, raw.reverseDirection, distanceMetrics.reverseDirection, distanceMetrics.reverseDistance),
+    myRole: firstOptionalText(
+      expandSukuyoRole(firstOptionalText(raw.myRole, raw.aRole, roleActionGuide.myRole, roleActionGuide.aRole, roleActionGuide.roleA, raw?.ankaiRole?.me, enhanced.roleA)),
+      sukuyoRoleLabel(derivedRelation?.aRole)
+    ),
+    partnerRole: firstOptionalText(
+      expandSukuyoRole(firstOptionalText(raw.partnerRole, raw.bRole, roleActionGuide.partnerRole, roleActionGuide.bRole, roleActionGuide.roleB, raw?.ankaiRole?.other, enhanced.roleB)),
+      sukuyoRoleLabel(derivedRelation?.bRole)
+    ),
+    directionFromAToB: firstOptionalText(raw.directionFromAToB, raw.forwardDirection, distanceMetrics.forwardDirection, `순행 +${forwardDistance}`),
+    directionFromBToA: firstOptionalText(raw.directionFromBToA, raw.reverseDirection, distanceMetrics.reverseDirection, `역행 +${reverseDistance}`),
     temperature: toSafeNumber(raw.temperature, null),
     score: toSafeNumber(raw.score, null),
     magnetism: toSafeNumber(raw.magnetism, null),

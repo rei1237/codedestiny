@@ -49,8 +49,9 @@ function describeSukuyoDirectionalRelation(forwardDistance, reverseDistance) {
   if (forward == null || reverse == null) return null;
   const relation = relationFromForwardDistance(forward);
   if (!relation) return null;
-  const aProfile = SUKUYO_ROLE_PROFILES[relation.aRole] || { han: "", meaning: "확인된 자리" };
-  const bProfile = SUKUYO_ROLE_PROFILES[relation.bRole] || { han: "", meaning: "확인된 자리" };
+  const emptyProfile = { han: "", meaning: "확인된 자리", experience: "", advice: "" };
+  const aProfile = SUKUYO_ROLE_PROFILES[relation.aRole] || emptyProfile;
+  const bProfile = SUKUYO_ROLE_PROFILES[relation.bRole] || emptyProfile;
   let directionalDistanceGuide;
   if (forward === 0 && reverse === 0) {
     directionalDistanceGuide = "두 사람은 같은 자리에서 만나는 동숙이라 다가감과 되돌아옴의 간격이 똑같이 짧습니다. 익숙함이 빠른 만큼 변화의 신호도 함께 무뎌질 수 있어요.";
@@ -70,10 +71,14 @@ function describeSukuyoDirectionalRelation(forwardDistance, reverseDistance) {
     aRoleHan: aProfile.han,
     aRoleLabel: `${relation.aRole}(${aProfile.han})`,
     aRoleMeaning: aProfile.meaning,
+    aRoleExperience: aProfile.experience || "",
+    aRoleAdvice: aProfile.advice || "",
     bRole: relation.bRole,
     bRoleHan: bProfile.han,
     bRoleLabel: `${relation.bRole}(${bProfile.han})`,
     bRoleMeaning: bProfile.meaning,
+    bRoleExperience: bProfile.experience || "",
+    bRoleAdvice: bProfile.advice || "",
     directionalDistanceGuide,
   };
 }
@@ -112,7 +117,18 @@ function buildDistanceMetrics(forwardDistance, reverseDistance, shortestDistance
   };
 }
 
+// 자리(aRole/bRole)가 정본 프로필에 있으면 자리별 조언을 그대로 쓴다. 같은 관계라도
+// 방향이 바뀌면 자리가 바뀌므로(예: 안괴 순행 3 → 안/괴, 순행 6 → 괴/안) 두 문장이
+// 실질적으로 달라진다. 자리를 못 찾는 구버전 payload 는 기존 관계명 분기로 폴백한다.
 function buildRoleGuide(relationType, aRole, bRole, shortestDistance) {
+  const aProfile = SUKUYO_ROLE_PROFILES[aRole];
+  const bProfile = SUKUYO_ROLE_PROFILES[bRole];
+  if (aProfile?.advice && bProfile?.advice) {
+    return {
+      meAction: `${aRole}(${aProfile.han}) — ${aProfile.meaning}. ${aProfile.advice}`,
+      otherAction: `${bRole}(${bProfile.han}) — ${bProfile.meaning}. ${bProfile.advice}`,
+    };
+  }
   if (relationType === "안괴") return { meAction: "상처가 올라오는 순간 바로 결론을 내리기보다 감정의 온도를 낮추는 시간이 필요합니다.", otherAction: "상대의 방어를 공격으로만 보지 않고 불안의 표현인지 살피는 태도가 도움이 됩니다." };
   if (relationType === "영친") return { meAction: "호감과 돌봄이 자연스럽지만, 한쪽만 계속 맞추는 흐름은 피해야 합니다.", otherAction: "따뜻함을 당연하게 여기지 말고 고마움을 말로 확인하는 편이 좋습니다." };
   if (relationType === "우쇠") return { meAction: "친밀함과 경쟁심이 함께 움직이므로 비교보다 각자의 장점을 인정해야 합니다.", otherAction: "자존심이 다칠 때 침묵으로 벌주지 않는 대화가 중요합니다." };
