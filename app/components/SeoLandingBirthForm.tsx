@@ -71,10 +71,8 @@ function useSeoLandingBirthFormCopy(): SeoLandingBirthFormCopy {
     const syncLocale = () => setLocale(getCurrentLoadingLocale());
     syncLocale();
     window.addEventListener("cd:locale-ready", syncLocale);
-    window.addEventListener("cd:locale-change", syncLocale);
     return () => {
       window.removeEventListener("cd:locale-ready", syncLocale);
-      window.removeEventListener("cd:locale-change", syncLocale);
     };
   }, []);
 

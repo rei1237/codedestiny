@@ -389,7 +389,7 @@ Wave 7 도중 `LoveSecretAiResultClient.tsx`를 열다가 "AI가 생성한 상�
 
 2차 세션에서 정밀 재조사(git grep + ripgrep 교차검증) 결과 **정확한 현재 수치는 100개 파일 / 275건**(admin 10파일·28건 제외 시 **공개 라우트 90개 파일 / 247건** — 1차 세션의 337건/115개 파일은 집계 방식이 달랐거나 그 사이 변경분이 있었을 가능성, 이 275건이 2026-08-21 기준 정확한 값이다).
 
-**핵심 발견**: `useT()` 훅은 앱 전체에서 **`app/components/DeliverableSpec.tsx` 단 1곳에서만** 쓰인다. `getCurrentLoadingLocale()`+`COPY` 객체 패턴도 상위 10개 공개 파일 중 `PointsClient.tsx` 한 곳뿐이었다(이번 세션에 6건 전부 처리 — PR #896). **나머지 파일은 로케일 인프라 자체가 전무해서, "문자열을 t()로 바꾸는" 수준이 아니라 파일마다 로케일 감지+사전 배선을 처음부터 만들어야 한다.** `en.json`에도 이 파일들과 겹치는 재사용 가능 네임스페이스가 없다(존재하는 4개 네임스페이스 `loveSecretAi`/`premiumUnlock`/`karmaDestiny`/`numerologyTarot`는 alt/aria와 무관한 마케팅/항목 라벨용). 3개 파일 모두 파일 로컬 `Copy` 타입 + `getCurrentLoadingLocale()` 초기값 + `languagechange`/`cd:language-change` 리스너 훅 패턴을 그대로 재사용했다 — 다음 파일들도 이 패턴을 복제하면 된다.
+**핵심 발견**: `useT()` 훅은 앱 전체에서 **`app/components/DeliverableSpec.tsx` 단 1곳에서만** 쓰인다. `getCurrentLoadingLocale()`+`COPY` 객체 패턴도 상위 10개 공개 파일 중 `PointsClient.tsx` 한 곳뿐이었다(이번 세션에 6건 전부 처리 — PR #896). **나머지 파일은 로케일 인프라 자체가 전무해서, "문자열을 t()로 바꾸는" 수준이 아니라 파일마다 로케일 감지+사전 배선을 처음부터 만들어야 한다.** `en.json`에도 이 파일들과 겹치는 재사용 가능 네임스페이스가 없다(존재하는 4개 네임스페이스 `loveSecretAi`/`premiumUnlock`/`karmaDestiny`/`numerologyTarot`는 alt/aria와 무관한 마케팅/항목 라벨용). 3개 파일 모두 파일 로컬 `Copy` 타입 + `getCurrentLoadingLocale()` 초기값 + 리스너 훅 패턴을 그대로 재사용했다 — 다음 파일들도 이 패턴을 복제하면 된다. 🔴 **다만 리스너 이름은 `cd:locale-ready` 여야 하고 `window` 에 건다.** 당시 복제하던 `languagechange`/`cd:language-change` 조합은 dispatcher 가 한 번도 없었고(2026-09-03 실측: 리스너 48개 파일 / dispatcher 0건) `document` 에 걸려 있어 브리지의 `window.dispatchEvent` 를 구조적으로 받을 수 없었다. 48개 파일 전부 교체했고 `__tests__/ui/custom-event-wiring.static.test.js` 가 재발을 막는다.
 
 공개 라우트 건수 상위(2026-08-21 실측):
 | 파일 | 건수 |

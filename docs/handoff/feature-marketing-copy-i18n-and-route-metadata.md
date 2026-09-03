@@ -78,7 +78,7 @@ main
 
 ## ② 완료 — 10개 라우트 파일 메타데이터 로케일 동기화 (PR #996)
 
-18개 라우트 파일이 이미 `ko/en/ja/zh` 4개 언어 메타데이터 객체를 갖고 있었는데 `generateMetadata()`가 항상 `.ko`만 읽던 문제. `middleware` 없이는 서버 컴포넌트가 방문자 로케일을 알 수 없어(1) `cookies()` 강제 동적 렌더링(캐싱 비용) 또는 (2) 클라이언트 사후 패치 중 (2)를 선택 — 신규 컴포넌트 `app/components/RouteMetadataLocaleSync.tsx`가 `LocaleRuntimeBridge`와 같은 `cd:locale-ready`/`cd:locale-change` 이벤트를 듣고 하이드레이션 후 `document.title`/`<meta name="description">`만 패치한다. SSR/크롤러가 보는 메타데이터는 그대로 한국어로 안전하게 유지(hreflang/canonical 불일치 위험 회피, 이 레포의 과거 사고 이력과 같은 급).
+18개 라우트 파일이 이미 `ko/en/ja/zh` 4개 언어 메타데이터 객체를 갖고 있었는데 `generateMetadata()`가 항상 `.ko`만 읽던 문제. `middleware` 없이는 서버 컴포넌트가 방문자 로케일을 알 수 없어(1) `cookies()` 강제 동적 렌더링(캐싱 비용) 또는 (2) 클라이언트 사후 패치 중 (2)를 선택 — 신규 컴포넌트 `app/components/RouteMetadataLocaleSync.tsx`가 `LocaleRuntimeBridge`가 쏘는 `cd:locale-ready` 이벤트를 듣고(2026-09-03: 함께 듣던 `cd:locale-change` 는 dispatcher 0건이라 제거했다) 하이드레이션 후 `document.title`/`<meta name="description">`만 패치한다. SSR/크롤러가 보는 메타데이터는 그대로 한국어로 안전하게 유지(hreflang/canonical 불일치 위험 회피, 이 레포의 과거 사고 이력과 같은 급).
 
 **10개 파일 완료**: `app/psychotest/page.tsx`, `app/ziwei/chart/page.tsx`, `app/tarot/self-esteem/page.tsx`, `app/tarot/healing/page.tsx`, `app/saju/sibyl/page.tsx`, `app/saju/destiny-meeting-place/page.tsx`, `app/saju-fpti/page.tsx`, `app/palm-reading/page.tsx`, `app/oracle/sikojen-povailu/page.tsx`, `app/oracle/royal-tea/page.tsx`, `app/maya/page.tsx`.
 
