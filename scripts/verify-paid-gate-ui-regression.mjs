@@ -11,6 +11,7 @@ const checkoutEntrySource = readFileSync(resolve(root, "js/core/checkout-entry.j
 const staticIndexSource = readFileSync(resolve(root, "public/static/index.html"), "utf8");
 const billingClientSource = readFileSync(resolve(root, "app/_lib/billing-client.ts"), "utf8");
 const paymentProcessingContextSource = readFileSync(resolve(root, "app/components/PaymentProcessingContext.tsx"), "utf8");
+const paymentLoadingSource = readFileSync(resolve(root, "app/components/common/PaymentLoading.tsx"), "utf8");
 const loadingMessagesSource = readFileSync(resolve(root, "constants/loadingMessages.ts"), "utf8");
 const billingRouteSource = readFileSync(resolve(root, "worker/routes/billing.js"), "utf8");
 const paymentsRouteSource = readFileSync(resolve(root, "worker/routes/payments.js"), "utf8");
@@ -227,7 +228,7 @@ assertNotContains(billingClientSource, "BILLING_FETCH_MUTATION_TIMEOUT_MS", "Rea
 // 키가 3종(build-a300cf84f0f5 · build-4b96ba87f36f · 셸 키)으로 갈라져 있었고, destiny-profile.js
 // 를 고쳐도 그 참조들은 엣지 캐시(/*.js max-age 7일)의 옛 파일을 계속 받았다.
 // 지금은 셋을 셸 키로 통일했다. destiny-profile.js 를 고치면 이 값도 함께 올려야 한다.
-assertContains(billingClientSource, 'PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-f79154defc95"', "React paid runtime cache key carries the moonstone 409 same-requestId retry");
+assertContains(billingClientSource, 'PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-e573b86e07d2"', "React paid runtime cache key carries the moonstone 409 same-requestId retry");
 assertNotContains(billingClientSource, "build-20260622-inicis-phone", "React paid runtime must not load stale Inicis phone runtime");
 assertContains(billingClientSource, "function isMonthlyCreditAccessType", "React billing has monthly-credit access resolver");
 assertContains(billingClientSource, "function resolveAppliedBillingPayment", "React billing resolves applied payment method from server response");
@@ -347,6 +348,25 @@ const reactWaitKindSource = section(billingClientSource, "function resolvePaymen
 assertBefore(reactWaitKindSource, 'if (mode === "MOONLIGHT_STONE"', 'if (mode === "MEMBERSHIP_PASS"', "React wait kind checks monthly before pass");
 assertContains(reactWaitKindSource, "membership_credit", "React wait kind treats membership_credit as monthly");
 assertNotContains(reactWaitKindSource, "이용권으로|membership", "React pass wait kind must not use broad membership regex");
+
+// 🔴 이용권(30일 이용권)과 월정석(이벤트 재화)은 별개 재화다. 대기 UI 축에서 이 둘이 섞이면
+// 이용권 사용자에게 '월정석 잔량' 문구가 뜬다(2026-09-04 사용자 보고). 아래 넷이 그 배선을 고정한다.
+const shellWaitKindSource = section(indexSource, "function _cdResolvePaymentWaitKind(", "var CD_LOADING_MESSAGES", "shell payment wait kind");
+// 이용권 제품명이 "달빛 이용권"이라 맨 '달빛' 을 월정석 신호로 쓰면 이용권이 월정석으로 접힌다.
+assertNotContains(shellWaitKindSource, "|달빛/", "shell wait kind must not treat bare 달빛 as moonstone");
+assertNotContains(shellWaitKindSource, "|달빛|", "shell wait kind must not treat bare 달빛 as moonstone");
+assertBefore(shellWaitKindSource, "mode === 'MEMBERSHIP_PASS'", "mode === 'MOONLIGHT_STONE'", "shell wait kind checks pass before moonstone free text");
+
+// kind 'subscription' 은 이용권 신호이므로 월정석 문구 축(PaymentType 'subscription')으로 매핑하지 않는다.
+const shellWaitTypeSource = section(indexSource, "function _cdPaymentTypeFromWaitKind(", "function _cdLoadingCopy(", "shell wait kind to payment type");
+assertNotContains(shellWaitTypeSource, "kind === 'subscription'", "shell must not map wait kind subscription to moonstone copy");
+const reactWaitTypeSource = section(billingClientSource, "function resolvePaymentTypeForWaitKind(", "function normalizeLicenseTier(", "React wait kind to payment type");
+assertNotContains(reactWaitTypeSource, 'kind === "subscription"', "React must not map wait kind subscription to moonstone copy");
+
+// variant 'subscription' 을 만드는 셸 모드는 전부 이용권 결제다(/api/payments/subscription/*).
+assertContains(paymentLoadingSource, 'if (variant === "subscription") return { stage: "pg_processing", paymentType: "pass" };', "PaymentLoading maps subscription variant to pass copy");
+assertContains(paymentLoadingSource, 'if (variant === "monthly") return { stage: "access_check", paymentType: "subscription" };', "PaymentLoading keeps monthly variant on moonstone copy");
+assertContains(destinyProfileSource, "title: '이용권 적용 중'", "destiny fallback subscription overlay speaks pass, not moonstone");
 
 const reactBillingOverlayOwnershipSource = section(billingClientSource, "function paymentLoadingOwnsPaidFeatureStatus(", "function resolvePaymentWaitKind", "React billing overlay ownership");
 assertNotContains(reactBillingOverlayOwnershipSource, '"checkingEntitlement"', "React billing entitlement check must stay in paid gate UI");

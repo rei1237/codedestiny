@@ -490,11 +490,13 @@ function resolvePaymentLoadingVariant(message?: string, mode?: string): PaymentL
   if (normalizedMode === "refund") return "refund";
 
   const normalizedMessage = String(message || "");
-  if (/이용권을 적용|이용권 확인|30일 이용권|이용권 권한|membership_pass|pass_applied|달빛 결제 시스템/i.test(normalizedMessage)) return "pass-checking";
+  if (/이용권을 적용|이용권 적용|이용권 확인|이용권 혜택|이용권 결제|이용권이 활성화|30일 이용권|이용권 권한|membership_pass|pass_applied|달빛 결제 시스템/i.test(normalizedMessage)) return "pass-checking";
   if (/결제창|주문|checkout|prepare|연결|열고/i.test(normalizedMessage)) return "checkout";
   if (/결제 결과|결제 승인|카드 승인|서버 검증|검증|승인|confirm|복귀 신호/i.test(normalizedMessage)) return "confirm";
   if (/moonlight[\s_-]*stone|moonstone|monthly_credit|membership_credit/i.test(normalizedMessage)) return "monthly";
-  if (/이용권 결제|월정석|subscription|플랜|활성화/i.test(normalizedMessage)) return "subscription";
+  // 🔴 '이용권 결제'·'활성화' 는 이용권 신호다 — 위 pass 분기가 먼저 잡는다. 여기 남겨 두면
+  // 이용권 문구가 월정석 문구 축(paymentType 'subscription')으로 흘러간다.
+  if (/월정석|subscription|플랜/i.test(normalizedMessage)) return "subscription";
   if (/권한 저장|저장|해금|잠금 해제|결과 화면/i.test(normalizedMessage)) return "unlock-saving";
   if (/환불|refund|복구/i.test(normalizedMessage)) return "refund";
   return "payment";
@@ -512,10 +514,12 @@ function resolvePaymentLoadingStage(variant: PaymentLoadingVariant, message?: st
 
 function resolvePaymentLoadingType(variant: PaymentLoadingVariant, message?: string): PaymentType {
   const normalizedMessage = String(message || "");
-  if (/이용권을 확인하는 중이에요|이용권 확인|이용권을 확인했어요|30일 이용권으로/.test(normalizedMessage)) return "pass";
-  if (/월정석|활성화되고/.test(normalizedMessage)) return "subscription";
+  if (/이용권을 확인하는 중이에요|이용권 확인|이용권을 확인했어요|이용권 적용|이용권 혜택|이용권이 활성화|30일 이용권으로/.test(normalizedMessage)) return "pass";
+  if (/월정석/.test(normalizedMessage)) return "subscription";
   if (/단건|결제가 완료됐어요|결제를 처리하고 있어요/.test(normalizedMessage)) return "single";
-  if (variant === "subscription" || variant === "monthly") return "subscription";
+  // 🔴 variant 'subscription' = 이용권 결제 승인/활성화, 'monthly' = 월정석. 두 재화는 별개다.
+  if (variant === "subscription") return "pass";
+  if (variant === "monthly") return "subscription";
   if (variant === "pass-checking" || variant === "pass-applied") return "pass";
   // 🔴 variant 'payment' 은 결제 수단이 확정되지 않은 기본 상태다(기본 prop · 초기 state · 리셋값).
   // 여기서 'single' 을 돌려주면 access_check × single = "단건으로 카드 결제를 준비 중이에요" 가 되어
