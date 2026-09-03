@@ -28,7 +28,8 @@ let lastPoolResetAt = 0;
 // 그래서 타이머 없이 **읽는 시점에 나이로 만료**시킨다. 버려진 작업은 소켓 정리 시간이 지나면
 // 더는 공유 소켓을 쓰고 있지 않으므로, 그때부터는 보호 대상에서 빼는 것이 옳다.
 const activeMongoOps = new Set();
-// 버려진 작업을 회계에서 제외하기까지의 시간. socketTimeoutMS(기본 11초) + 여유 —
+// 버려진 작업을 회계에서 제외하기까지의 시간. socketTimeoutMS(프로덕션 [vars] 7초 — 실측값은
+// wrangler [vars]/db.vars-code-default-parity 테스트가 정본, 2026-08-31) + 여유 —
 // 그 시점이면 드라이버가 소켓을 이미 정리했으므로 '살아서 실행 중'으로 볼 근거가 없다.
 const ABANDONED_OP_MAX_AGE_MS = 15000;
 
@@ -779,7 +780,8 @@ export async function connectDb(env = {}, options = {}) {
           //   · 풀 2 구간에서 체크아웃 **257건 시도 / 219건 실패(85%)**, inFlightOps 가 6까지 올라
           //     커넥션 2개로는 아이솔레이트 내부 동시성을 감당하지 못했다.
           // 즉 병목은 전역 상한이 아니라 **아이솔레이트 내부 풀 고갈**이고, 그건 소켓 점유 시간을
-          // 줄이는 쪽(socketTimeoutMS 11초)이 맞는 처방이었다. 근거 없이 다시 줄이지 말 것.
+          // 줄이는 쪽(당시 socketTimeoutMS 11초 — 현재값은 [vars]/패리티 테스트가 정본, 2026-08-31)이 맞는
+          // 처방이었다. 근거 없이 다시 줄이지 말 것.
           //
           // 🔴 5 → 10 (2026-08-12). 위 진단이 여전히 맞고, 소켓 점유 시간을 줄이는 것만으로는
           // 부족하다는 것이 프로덕션 실측으로 드러났다. 결제 경로 응답 시간이 **두 덩어리로 뭉친다**:
@@ -944,7 +946,8 @@ export async function connectDb(env = {}, options = {}) {
 // 재연결 후 재시도하면 대개 성공하므로 여기서 판별한다.
 // ── 결제 전용 커넥션 레인 ──────────────────────────────────────────────
 // "PG 결제창이 아예 안 뜬다"(2026-08-12 실브라우저 재현)의 원인: 페이지 부팅 요청 폭풍이 공유
-// 풀(maxPoolSize 5)의 소켓을 선점·장점유(M0 지연 시 op 당 최대 11s)하면, 결제 checkout 이
+// 풀(당시 maxPoolSize 5 · M0 지연 시 op 당 최대 11s — 현재값은 [vars]/패리티 테스트가 정본,
+// 2026-08-31)의 소켓을 선점·장점유하면, 결제 checkout 이
 // waitQueue(5s)×재시도까지 굶다가 "Timed out while checking out a connection" → DB_BUSY 503.
 // admission 노브(8→12)로는 드라이버 풀 자체의 기아를 못 막는다. 그래서 결제 컨텍스트
 // (worker/payments/, 네이티브 컬렉션 호출만 사용)에 전용 소켓 풀을 분리한다 — 결제는 배경
@@ -1111,7 +1114,8 @@ const SELF_INFLICTED_FAILURE_WINDOW_MS = 3000;
  *
  * 8000ms 인 이유: 이 트랜잭션들의 콜백은 전부 순수 Mongo 연산이다(PortOne 검증 같은 외부 HTTP 는
  * 트랜잭션 **밖**에서 끝난다). 문서 26k 규모라 실제 소요는 밀리초 단위이므로 8초는 대단히 넉넉하고,
- * 동시에 12초 op 예산 안에 확실히 들어온다. 이건 튜닝 노브가 아니라 **안전 상한**이다.
+ * 동시에 op 예산(당시 12초, 현재 [vars] MONGO_OP_ATTEMPT_TIMEOUT_MS=8000 과 같은 값 — 정본은
+ * [vars]/패리티 테스트, 2026-08-31) 안에 들어온다. 이건 튜닝 노브가 아니라 **안전 상한**이다.
  *
  * 🔴 이 옵션을 빼지 말 것 — 빼면 조용히 120초로 돌아간다.
  */
@@ -1379,7 +1383,8 @@ export async function withMongoRetry(env = {}, operation, options = {}) {
         // (`[db-connect] ... elapsedMs`)이 그 전제를 반증했다 — 핸드셰이크 중앙값은 1497ms 로 싸다.
         // 실측 결과 느린 요청 비율도 74%(수정 전) → 78%(수정 후)로 개선이 없었고, 쿼리가 멈춘 연결을
         // 그대로 붙들고 있을 위험만 남았다. 같은 아이디어를 다시 넣으려면 먼저 계측으로 전제를 세울 것.
-        // 실제 병목은 연결 수립이 아니라 **수립된 연결 위에서 쿼리가 12초를 넘기는 것**이다.
+        // 실제 병목은 연결 수립이 아니라 **수립된 연결 위에서 쿼리가 op 예산(당시 12초, 현재 [vars]
+        // MONGO_OP_ATTEMPT_TIMEOUT_MS=8000 — 정본은 [vars]/패리티 테스트, 2026-08-31)을 넘기는 것**이다.
         if (isConnectionLevelFailure) {
           lastHealthyAt = 0;
           connectPromise = null;
@@ -1387,7 +1392,7 @@ export async function withMongoRetry(env = {}, operation, options = {}) {
           // disconnect 는 bufferCommands:false 라 그 순간 살아 있던 동시 요청의 작업을 함께 죽인다.
           // 그 실패들은 새로운 정보가 아니라 **우리 리셋의 메아리**인데, 그대로 세면 한 번의 리셋이
           // 곧바로 다음 forceReset(연속 3회)을 재장전해 자기지속 폭풍이 된다 — 프로덕션에서 관측된
-          // 형태다(리셋 흔적 lastCheckOutFailReason:"poolClosed" 가 반복되는 내내 12초 op-타임아웃이
+          // 형태다(리셋 흔적 lastCheckOutFailReason:"poolClosed" 가 반복되는 내내 op-타임아웃(당시 12초)이
           // 이어지고 유료 라우트가 INFRA_503_AUTH 를 냈다).
           // 리셋 직후 짧은 창에서는 진짜 장애와 메아리를 구분할 방법이 없고, 방금 복구를 실행했으므로
           // 재장전을 잠시 미루는 쪽이 안전하다. 창을 지나서도 실패가 계속되면 그때 정상적으로 센다.

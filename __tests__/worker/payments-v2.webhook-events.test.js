@@ -107,6 +107,54 @@ test("Transaction.Cancelled: 회수할 활성 권한이 없으면 관리자 검�
   expect(order.failureStage).toBe("webhook_cancel_admin_review");
 });
 
+const PASS_USER = "64b000000000000000000011";
+const DAY_MS = 86_400_000;
+
+function seedPassUser(db, profileSubscription) {
+  const user = { _id: PASS_USER, email: "pass@example.com", profileSubscription };
+  db.rows.push(user);
+  return user;
+}
+
+test("🔴 Transaction.Cancelled: PAID 이용권 주문은 profileSubscription 을 되감는다 — ContentEntitlement 가 아니라 여기가 이용권의 실체다", async () => {
+  const db = makeDb();
+  const order = seedOrder(db, {
+    userId: PASS_USER, paymentType: "membership_pass", subscriptionTier: "standard",
+    status: PAID_STATUS, paidAt: new Date(), entitlementGrantedAt: new Date(),
+    metadata: { durationMonths: 1 },
+  });
+  const user = seedPassUser(db, {
+    tier: "standard", passTier: "standard", passLimit: 50, maxCoveredCoin: 50, freeLimit: 50,
+    expiresAt: new Date(Date.now() + 20 * DAY_MS), lastPassOrderId: order.merchantUid,
+  });
+  const { payload } = await postWebhook(db, { type: "Transaction.Cancelled", data: { paymentId: order.merchantUid } });
+  expect(payload).toMatchObject({ ok: true, event: "cancelled", refunded: true, revoked: true, reviewRequired: false });
+  expect(order.status).toBe("refunded");
+  // 20일 남은 만료를 1개월 되감으면 과거 → free 강등.
+  expect(user.profileSubscription.tier).toBe("free");
+  expect(user.profileSubscription.passTier).toBe("");
+  expect(user.profileSubscription.passLimit).toBe(0);
+  expect(user.profileSubscription.maxCoveredCoin).toBe(0);
+  expect(new Date(user.profileSubscription.expiresAt).getTime()).toBeLessThan(Date.now());
+});
+
+test("Transaction.Cancelled: 이용권 주문이 최신 활성 주문이 아니면 손대지 않고 검토 마커를 남긴다", async () => {
+  const db = makeDb();
+  const order = seedOrder(db, {
+    userId: PASS_USER, paymentType: "membership_pass", subscriptionTier: "standard",
+    status: PAID_STATUS, paidAt: new Date(), entitlementGrantedAt: new Date(),
+    metadata: { durationMonths: 1 },
+  });
+  const expiresAt = new Date(Date.now() + 50 * DAY_MS);
+  const user = seedPassUser(db, { tier: "premium", passTier: "premium", expiresAt, lastPassOrderId: "cdorder-later" });
+  const { payload } = await postWebhook(db, { type: "Transaction.Cancelled", data: { paymentId: order.merchantUid } });
+  expect(payload).toMatchObject({ ok: true, event: "cancelled", refunded: true, revoked: false, reviewRequired: true });
+  expect(order.status).toBe("refunded");
+  expect(order.metadata.cancellationReviewRequired).toBe(true);
+  expect(user.profileSubscription.tier).toBe("premium");
+  expect(user.profileSubscription.expiresAt).toBe(expiresAt);
+});
+
 test("Transaction.PartialCancelled: 상태·권한은 건드리지 않고 검토 마커만 남긴다", async () => {
   const db = makeDb();
   const order = seedOrder(db, { status: PAID_STATUS, paidAt: new Date(), entitlementGrantedAt: new Date() });

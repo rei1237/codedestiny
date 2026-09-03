@@ -173,7 +173,8 @@ MONGO_CONNECT_TIMEOUT_MS = "5000"
 MONGO_SOCKET_TIMEOUT_MS = "7000"
 MONGO_WORKER_CONNECT_GUARD_MS = "10000"
 MONGO_WORKER_CONNECT_RETRIES = "2"
-# 건강확인 ping 상한. 🔴 3500 → 1000 (2026-08-16). 이 타이머는 "느린 서버를 기다리는 예산"이
+# 건강확인 ping 상한. 🔴 3500 → 1000 (2026-08-16) → 300 (현재값 — 정본은 이 [vars] 와
+# db.vars-code-default-parity 테스트, 2026-08-31). 이 타이머는 "느린 서버를 기다리는 예산"이
 # 아니라 **죽은 커넥션을 얼마나 빨리 포기하는가**다 — 늦게 포기한 만큼이 그대로 결제창 앞 지연이 된다.
 MONGO_PING_TIMEOUT_MS = "300"
 MONGO_IP_FAMILY = "4"

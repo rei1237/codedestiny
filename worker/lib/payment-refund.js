@@ -98,7 +98,11 @@ async function revokeMembershipPassGrant(payment) {
   const userId = payment?.userId;
   if (!userId) return { reverted: false, adminReviewRequired: true, reason: "MISSING_USER" };
 
-  const durationMonths = Math.max(0, Math.floor(Number(payment?.pricingSnapshot?.durationMonths || payment?.durationMonths || 0)));
+  // V2 이용권 주문(passes.js createPayablePassOrder)은 metadata.durationMonths 에만 기간을 쓴다 — 이 항이
+  // 없으면 V2 주문 전부가 UNKNOWN_DURATION 으로 빠져 관리자 환불이 이용권을 회수하지 못한다(2026-09-03).
+  const durationMonths = Math.max(0, Math.floor(Number(
+    payment?.pricingSnapshot?.durationMonths || payment?.durationMonths || payment?.metadata?.durationMonths || 0,
+  )));
   const user = await User.findById(userId).select("profileSubscription").lean();
   const sub = user?.profileSubscription || null;
   if (!sub) return { reverted: false, adminReviewRequired: true, reason: "NO_SUBSCRIPTION" };
@@ -362,6 +366,8 @@ export async function refundPaymentAsOperator({
 }
 
 // mongoose ObjectId 검증은 호출부 여러 곳에서 필요하다.
+export const __paymentRefundTestUtils = { revokeMembershipPassGrant };
+
 export function isValidObjectId(value) {
   return mongoose.Types.ObjectId.isValid(String(value || ""));
 }

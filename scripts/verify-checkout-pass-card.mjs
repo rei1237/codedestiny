@@ -8,7 +8,8 @@
  * 고정하는 성질:
  *   ① 결제창에 이용권/단건/월정석 3옵션이 모두 렌더된다.
  *   ② 이용권이 커버하면 결제 없이 'pass' 로 닫힌다(= 호출부가 무료로 연다). 이동하지 않는다.
- *   ③ 커버하지 않으면 /points 로 인계하되 plan 프리셋과 cdco=1 이 붙고, 복귀 지점이 저장된다.
+ *   ③ 커버하지 않으면 /points 로 인계하되 plan 프리셋만 붙고(cdco 자동 오픈 없음 — 상점 화면에서 다른
+ *      플랜을 볼 수 있어야 한다, 2026-09-03), 복귀 지점이 저장된다.
  *   ④ 🔴 앱 런타임에서는 절대 /points 로 이동하지 않고 __cdOpenChargeModal(= /app/store/) 을 탄다.
  *      앱 번들에는 /points 가 없고 app-payment-guard 는 앵커 클릭만 가로채므로 이동하면 빈 화면이다.
  */
@@ -273,7 +274,7 @@ console.log("\n[2] 이용권 카드 클릭 → 커버되면 결제 없이 'pass'
   check("충전 모달도 열지 않음", () => assert.equal(chargeModalCalls, 0));
 }
 
-// ── ③ 미커버면 plan 프리셋 + cdco=1 로 상점에 인계하고 복귀 지점을 남긴다 ──
+// ── ③ 미커버면 plan 프리셋으로 상점 화면에 인계하고 복귀 지점을 남긴다(cdco=1 자동 오픈은 2026-09-03 제거) ──
 console.log("\n[3] 이용권 카드 클릭 → 미커버면 /points 로 인계하는가");
 {
   const { window, storeUrls } = bootRuntime();
@@ -297,7 +298,7 @@ console.log("\n[3] 이용권 카드 클릭 → 미커버면 /points 로 인계�
     assert.ok(expected, "이 금액을 덮는 등급이 하나도 없다 — 정책이 깨졌다");
     assert.match(storeUrls[0], new RegExp(`[?&]plan=${expected}(&|$)`));
   });
-  check("cdco=1 이 붙어야 결제 확인 모달이 자동으로 열린다", () => assert.match(storeUrls[0], /[?&]cdco=1(&|$)/));
+  check("cdco 가 붙지 않는다 — 상점 화면 자체로 인계해 다른 플랜·기간을 볼 수 있어야 한다", () => assert.doesNotMatch(storeUrls[0], /[?&]cdco=/));
   check("복귀 지점 저장(결제 후 원래 화면으로 돌아간다)", () => {
     const raw = window.sessionStorage.getItem("cd_checkout_return_v1");
     assert.ok(raw, "cd_checkout_return_v1 없음");

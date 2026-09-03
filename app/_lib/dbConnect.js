@@ -64,6 +64,8 @@ export async function dbConnect() {
     // 인스턴스 수 × poolSize 이고 같은 클러스터를 Worker 와 공유하므로, 이쪽만 큰 풀을 잡으면
     // Worker 의 연결 예산을 조용히 잠식한다. 10 → 5 (2026-08-12, Atlas M0 상한 500 기준) →
     // 다시 10 (2026-08-12, M10 전환으로 상한이 1500 이 되어 Worker 쪽이 5 → 10 으로 올랐다).
+    // Worker 쪽 현재값은 worker/wrangler.toml [vars] MONGO_MAX_POOL_SIZE=10 이 정본이다(코드 기본값이 아니라
+    // [vars] 가 프로덕션 값 — db.vars-code-default-parity 테스트, 2026-08-31).
     // 더 올리려면 Worker 쪽 주석의 조건([db-connect-error] 0 확인)과 함께 양쪽을 같이 판단할 것.
     maxPoolSize: 10,
     minPoolSize: 0,

@@ -450,6 +450,65 @@ describe("webhook·크론 주체 — grantOrderEntitlement 이용권 분기", ()
     expect(db.rows.find((r) => r.eventId === "evt_replay_grant").status).toBe("processed");
   });
 
+  async function postPaidWebhook(db, orderId, eventId) {
+    const { signWebhookPayload } = await import("../../worker/payments/webhook.js");
+    const secret = "whsec_dGVzdC1zZWNyZXQtdmFsdWU=";
+    const rawBody = JSON.stringify({ type: "Transaction.Paid", data: { paymentId: orderId } });
+    const timestamp = String(Math.floor(Date.now() / 1000));
+    const request = new Request("https://code-destiny.com/api/payments/webhook", {
+      method: "POST",
+      body: rawBody,
+      headers: {
+        "content-type": "application/json",
+        "webhook-id": eventId,
+        "webhook-timestamp": timestamp,
+        "webhook-signature": `v1,${await signWebhookPayload(secret, eventId, timestamp, rawBody)}`,
+      },
+    });
+    return handlePaymentsContext(request, { ...ENV, PORTONE_WEBHOOK_SECRET: secret }, {
+      prefix: "/api/payments",
+      withDb: (_env, _ctx, fn) => fn(db),
+    });
+  }
+
+  test("🔴 PG_PAYMENT_NOT_PAID 로 닫힌 이용권 주문에 Paid 웹훅이 오면 되살려 지급한다 — 결제창 이탈 뒤 늦게 결제된 건", async () => {
+    // A5 잔여 함정(2026-09-03): 결제창을 연 뒤 60초 지나 /points 부팅 재확인이 PG ready 를 보고 422 → failed.
+    // 그 뒤 사용자가 실제로 결제하면 웹훅이 이 주문을 만난다 — 여기서 409 로 막히면 돈만 나가고 영구 미지급이다.
+    const db = makeFakePaymentDb({ uniqueKeys: [["provider", "eventId"]] });
+    const user = seedUser(db);
+    const order = await prepareOrder(db, "standard", "sub-revive-not-paid");
+    const row = db.rows.find((r) => r.merchantUid === order.merchantUid);
+    Object.assign(row, {
+      status: "failed", orderState: "FAILED",
+      failureCode: "PG_PAYMENT_NOT_PAID", failureMessage: "not paid", failureStage: "pg-verify",
+    });
+    mockPortOnePayment({ paymentId: order.merchantUid, amount: Number(row.paymentAmount) });
+
+    const response = await postPaidWebhook(db, order.merchantUid, "evt_revive_not_paid");
+    expect(response.status).toBe(200);
+    expect(row.status).toBe("paid");
+    expect(row.failureCode).toBeFalsy();
+    expect(row.entitlementGrantedAt).toBeTruthy();
+    expect(user.profileSubscription.tier).toBe("standard");
+    expect(user.profileSubscription.lastPassOrderId).toBe(order.merchantUid);
+  });
+
+  test("🔴 다른 사유로 닫힌 FAILED 주문은 Paid 웹훅으로도 되살리지 않는다(ORDER_NOT_CONFIRMABLE 유지)", async () => {
+    const db = makeFakePaymentDb({ uniqueKeys: [["provider", "eventId"]] });
+    const user = seedUser(db);
+    const order = await prepareOrder(db, "standard", "sub-failed-other");
+    const row = db.rows.find((r) => r.merchantUid === order.merchantUid);
+    Object.assign(row, { status: "failed", orderState: "FAILED", failureCode: "pg_webhook_failed" });
+    mockPortOnePayment({ paymentId: order.merchantUid, amount: Number(row.paymentAmount) });
+
+    const response = await postPaidWebhook(db, order.merchantUid, "evt_failed_other");
+    const payload = await response.json();
+    expect(response.status).not.toBe(200);
+    expect(payload.code).toBe("ORDER_NOT_CONFIRMABLE");
+    expect(row.status).toBe("failed");
+    expect(user.profileSubscription.tier).toBe("free");
+  });
+
   test("🔴 구 재조정 크론의 정산 — PENDING 이용권 주문을 PG 결과 주입으로 확정·지급한다 (settleOrderFromReconcile)", async () => {
     const db = makeFakePaymentDb();
     const user = seedUser(db);

@@ -72,14 +72,27 @@ export async function reconcilePendingPayments(env, options = {}) {
   const now = Date.now();
 
   const candidates = await withMongoRetry(env, () => Payment.find({
-    status: { $in: ["pending", "processing"] },
-    createdAt: { $lte: new Date(now - minAgeMs), $gte: new Date(now - windowMs) },
-    $or: [
-      { "metadata.reconcile.attempts": { $exists: false } },
-      { "metadata.reconcile.attempts": { $lt: maxAttempts } },
+    $and: [
+      {
+        $or: [
+          { status: { $in: ["pending", "processing"] } },
+          // 🔴 PG_PAYMENT_NOT_PAID 로 닫힌 V2 주문(2026-09-03). 결제창을 연 뒤 60초 지나 /points 부팅 재확인이
+          // PG ready 를 보면 422 → failed 가 되는데, 그 뒤 실제 결제가 나도 웹훅이 놓치면 되살릴 주체가
+          // 여기뿐이다. 이 코드는 worker/payments/pg.js 만 쓰므로 V2 주문에 한정되고, 시도 상한(maxAttempts)이
+          // 그대로 적용된다. 다른 failureCode 의 failed 는 종전대로 후보가 아니다.
+          { status: "failed", failureCode: "PG_PAYMENT_NOT_PAID" },
+        ],
+      },
+      {
+        $or: [
+          { "metadata.reconcile.attempts": { $exists: false } },
+          { "metadata.reconcile.attempts": { $lt: maxAttempts } },
+        ],
+      },
     ],
+    createdAt: { $lte: new Date(now - minAgeMs), $gte: new Date(now - windowMs) },
   })
-    .select("userId merchantUid impUid status orderState paymentAmount paymentType accessType featureKey pricingSnapshot createdAt metadata")
+    .select("userId merchantUid impUid status orderState failureCode paymentAmount paymentType accessType featureKey pricingSnapshot createdAt metadata")
     // 🔴 최신 주문 우선. 예전에는 오래된 것부터(createdAt:1) 처리했는데, 앞자리를 며칠 지난 '결제창
     // 이탈' 주문들이 차지해 방금 결제된 건이 대기열 맨 뒤로 밀렸다. 한 틱이 상한까지 못 돌면(운영에서
     // 실제로 그랬다) 정작 급한 건은 영영 처리되지 않는다. 지급이 급한 쪽은 방금 결제된 주문이고,
@@ -187,8 +200,13 @@ export async function reconcilePendingPayments(env, options = {}) {
     if (status === "paid") {
       const isSinglePurchase = String(candidate.paymentType || "") === "digital_content"
         && String(candidate.accessType || "") === "single_purchase";
-      // V2 주문(orderState 보유)은 유형과 무관하게 V2 확정 경로가 정산한다 — 이용권이 여기 해당한다.
-      if (!isSinglePurchase && String(candidate.orderState || "") === "PENDING") {
+      const revivable = String(candidate.status || "") === "failed"
+        && String(candidate.failureCode || "") === "PG_PAYMENT_NOT_PAID";
+      // 비-단건 V2 주문(orderState PENDING — 이용권이 여기 해당)과 PG_PAYMENT_NOT_PAID 로 닫힌 주문은 V2 확정
+      // 경로가 정산한다. 🔴 단건(digital_content+single_purchase)은 V2 주문이어도 아래 레거시
+      // settleSinglePaymentForReconcile 로 간다(fulfilled 로 닫고 entitlementGrantedAt 을 쓰지 않는다) —
+      // 레거시 주문도 orderState 를 쓰므로 그 값만으로 V2/레거시를 가를 수 없어 순서를 바꾸지 않았다(2026-09-03).
+      if (revivable || (!isSinglePurchase && String(candidate.orderState || "") === "PENDING")) {
         try {
           const { settleOrderFromReconcile } = await import("../payments/index.js");
           await settleOrderFromReconcile(env, { orderId: candidate.merchantUid, pgPayment: portOnePayment });

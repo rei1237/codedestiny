@@ -44,7 +44,9 @@ export async function regrantUnfulfilledOrders(db, { grant, now = new Date(), li
       // 방금 확정된 주문은 건드리지 않는다 — 정상 흐름이 지급을 마무리하는 중일 수 있다.
       updatedAt: { $lt: cutoff },
     },
-    { limit },
+    // 🔴 최신 우선. 정렬이 없으면 지급이 영구히 실패하는 옛 주문(DOWNGRADE_BLOCKED 등)이 상한 50건을
+    // 독점해 방금 결제된 건이 영영 스캔되지 않는다 — 구 크론(payment-reconcile-task)과 같은 근거다.
+    { limit, sort: { updatedAt: -1 } },
   );
 
   let repaired = 0;
@@ -55,6 +57,11 @@ export async function regrantUnfulfilledOrders(db, { grant, now = new Date(), li
       repaired += 1;
     } catch (error) {
       // 한 주문의 실패가 나머지를 막지 않는다. 다음 크론에 다시 만난다.
+      // 주문별 사유를 남긴다 — 없으면 "돈은 받았는데 안 열림"이 요약의 failed 숫자로만 보인다.
+      console.error("[payments] regrant failed", {
+        orderId: String(order?.merchantUid || ""),
+        message: String(error?.message || error).slice(0, 200),
+      });
       failed += 1;
     }
   }

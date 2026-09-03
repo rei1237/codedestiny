@@ -103,6 +103,33 @@ test("V2 정산이 던지면 실패로 세고 다음 틱에 다시 만난다(마
   expect(setCalls().some((s) => s.failureStage === "reconcile_paid_unsupported_type")).toBe(false);
 });
 
+test("🔴 PG_PAYMENT_NOT_PAID 로 닫힌 주문이 PG PAID 면 V2 확정 경로로 되살린다 — 결제창 이탈 뒤 늦게 결제된 건", async () => {
+  // A5 잔여 함정(2026-09-03): /points 부팅 재확인이 PG ready 를 보고 422 → failed 로 닫은 뒤 실제 결제가 났다.
+  paymentFind.mockReturnValue(fakeQuery([candidate({ status: "failed", orderState: "FAILED", failureCode: "PG_PAYMENT_NOT_PAID" })]));
+  const pg = { status: "PAID", amount: { total: 9900 }, method: { type: "PaymentMethodEasyPay" } };
+  fetchPortOnePayment.mockResolvedValue(pg);
+
+  const summary = await reconcilePendingPayments({}, { timeBudgetMs: 25000 });
+
+  expect(settleOrderFromReconcile).toHaveBeenCalledWith({}, { orderId: "cd-pass-1", pgPayment: pg });
+  expect(summary.settled).toBe(1);
+  // 클레임 CAS 는 후보의 실제 status("failed")로 건다 — "pending" 으로 걸면 항상 경합 패배다.
+  expect(paymentFindOneAndUpdate.mock.calls[0][0]).toMatchObject({ _id: "id-pass", status: "failed" });
+});
+
+test("🔴 후보 쿼리는 pending/processing 에 더해 failed+PG_PAYMENT_NOT_PAID 만 포함한다 — 다른 failed 는 후보가 아니다", async () => {
+  paymentFind.mockReturnValue(fakeQuery([]));
+  await reconcilePendingPayments({}, { timeBudgetMs: 25000 });
+  const filter = paymentFind.mock.calls[0][0];
+  const statusClause = filter.$and[0].$or;
+  expect(statusClause).toEqual([
+    { status: { $in: ["pending", "processing"] } },
+    { status: "failed", failureCode: "PG_PAYMENT_NOT_PAID" },
+  ]);
+  expect(filter.$and[1].$or).toHaveLength(2);
+  expect(filter.createdAt).toBeDefined();
+});
+
 test("orderState 가 없는 구 주문(비-단건)은 종전대로 검토 마커만 남긴다", async () => {
   paymentFind.mockReturnValue(fakeQuery([candidate({ orderState: undefined, paymentType: "subscription" })]));
   fetchPortOnePayment.mockResolvedValue({ status: "PAID" });

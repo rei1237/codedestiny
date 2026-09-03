@@ -3082,9 +3082,6 @@ export default function PointsPage() {
   const [pointStateError, setPointStateError] = useState<string | null>(null);
   const [cancelingPaymentId, setCancelingPaymentId] = useState<string | null>(null);
   const [landingPlanPreset, setLandingPlanPreset] = useState<"standard" | "premium" | "vvip" | "family" | null>(null);
-  // 결제창에서 인계(cdco=1)받은 진입인지. 인계일 때만 결제 확인 모달을 자동으로 연다.
-  const [checkoutHandoffRequested, setCheckoutHandoffRequested] = useState(false);
-  const checkoutHandoffFiredRef = useRef(false);
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
   const [pendingSubscriptionPaymentPlan, setPendingSubscriptionPaymentPlan] = useState<SubscriptionPlan | null>(null);
   const [isSubscriptionRefundAgreed, setIsSubscriptionRefundAgreed] = useState(false);
@@ -3217,26 +3214,9 @@ export default function PointsPage() {
     if (raw === "standard" || raw === "premium" || raw === "vvip" || raw === "family") {
       setLandingPlanPreset(raw);
     }
-    // 결제창의 '이용권으로 구매'에서 넘어온 진입(cdco=1)만 결제 확인 모달을 자동으로 연다.
-    // 그냥 상점을 구경하러 들어온 사용자에게는 열지 않는다.
-    if (query.get("cdco") === "1") setCheckoutHandoffRequested(true);
+    // ?plan= 은 강조만 한다. 결제 확인 모달 자동 오픈(cdco=1)은 2026-09-03 제거 — 결제창에서 넘어온
+    // 사용자도 상점 화면에서 다른 플랜·기간을 먼저 볼 수 있어야 한다(사용자 결정).
   }, []);
-
-  /**
-   * 🔴 결제창 → 이용권 상점 원클릭 인계. 예전에는 ?plan= 이 플랜을 '강조'만 해서 사용자가 그 플랜을
-   * 다시 찾아 누르고 결제 버튼을 또 눌러야 했다(클릭 2회 + 화면 탐색). 여기서 결제 확인 모달까지
-   * 바로 열어 준다 — 결제 버튼을 누르면 그 시점에 PortOne SDK·prepare·config를 준비한다.
-   * 결제 모달만 열린 상태에서는 결제 관련 API를 호출하지 않는다.
-   * 비로그인이면 열지 않는다(기존 로그인 유도 흐름을 그대로 둔다). ref 가드로 한 번만 발화한다.
-   */
-  useEffect(() => {
-    if (!checkoutHandoffRequested || checkoutHandoffFiredRef.current) return;
-    if (!landingPlanPreset || !authUser) return;
-    const plan = SUBSCRIPTION_PLANS.find((item) => item.tier === landingPlanPreset && item.durationMonths === 1);
-    if (!plan) return;
-    checkoutHandoffFiredRef.current = true;
-    setPendingSubscriptionPaymentPlan(plan);
-  }, [checkoutHandoffRequested, landingPlanPreset, authUser]);
 
   /* ── Toast 헬퍼 ───────────────────────────────────────────────── */
 
@@ -4802,7 +4782,7 @@ export default function PointsPage() {
 
       {pendingSubscriptionPaymentPlan && (
         <div
-          className="fixed inset-0 z-[180] flex items-center justify-center bg-slate-950/72 px-4 backdrop-blur-sm"
+          className="fixed inset-0 z-[180] flex items-center justify-center bg-slate-950/72 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur-sm"
           role="dialog"
           aria-modal="true"
           aria-labelledby="subscriptionPaymentChoiceTitle"
@@ -4810,7 +4790,7 @@ export default function PointsPage() {
             if (event.target === event.currentTarget && !isProcessing) setPendingSubscriptionPaymentPlan(null);
           }}
         >
-          <div className="w-full max-w-md rounded-[20px] border border-amber-200/35 bg-[#111832] p-5 text-slate-100 shadow-[0_24px_70px_rgba(0,0,0,0.45)]">
+          <div className="max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto overscroll-contain rounded-[20px] border border-amber-200/35 bg-[#111832] p-5 text-slate-100 shadow-[0_24px_70px_rgba(0,0,0,0.45)]">
             <p id="subscriptionPaymentChoiceTitle" className="text-base font-black text-white">
               달빛 이용권 결제 방식 선택
             </p>
