@@ -289,6 +289,7 @@ function render() {
  * 그래서 연이 히어로만 딥 로즈골드(--cd-yehwa-line-deep) + .5 로 올렸다(네오는 .16 에서 1.39:1 로 충분). */
 .moon-hero__ambient,
 .cd-yehwa-divider,
+.cd-yehwa-vine,
 .cd-yehwa-seal,
 .cd-yehwa-sparkle,
 .cd-yehwa-spray,
@@ -377,6 +378,33 @@ ${mask('branch-h')}
   content: '';
 }
 
+
+/* ── 홈 "접어 둔 섹션 펼치기" 알약을 감싸는 가지 띠 ──
+ * 이 버튼(.cd-home-more)은 자기가 여는 섹션 바로 위에 있어 구분선을 겸한다. 예전에는 1px 헤어라인
+ * 두 줄이었는데, 구분선 마스크(branch-h)는 가운데 76/640(11.9%)이 비어 있어 알약을 그 자리에
+ * 앉히면 한 띠가 장식과 구분선을 함께 한다.
+ * 🔴 z-index 는 -1 이다 — 호스트 .cd-home-more 가 position:relative;z-index:1 로 이미 스태킹
+ *   컨텍스트라(index.html 의 cd-home-more 블록) 띠가 알약 뒤·그리드 배경 위에 깔린다. 0 으로 두면
+ *   위치가 지정되지 않은 형제인 버튼보다 위에 칠해져 꽃가지가 알약을 지난다.
+ * 🔴 높이가 곧 그림의 폭이다 — 마스크 SVG 는 viewBox 만 있고 preserveAspectRatio 기본값(meet)이라
+ *   mask-size:100% 100% 로도 늘어나지 않고 짧은 축에 맞춰 letterbox 된다. viewBox 가 640x64 이므로
+ *   실제 그림 폭 = min(요소 폭, 높이 x 10) 이다. 처음 46px 로 뒀더니 그림이 460px 로 접혀
+ *   알약(368px) 양옆에 35px 짜리 잔가지 토막만 남았다(2026-09-04 A/B 픽셀 실측: 기여 324px,
+ *   범위가 알약 경계 ±35px 뿐). 760px 를 채우려면 높이가 76px 여야 한다.
+ * 좁은 폭에서는 요소 폭이 먼저 걸려 그림이 자동으로 함께 낮아진다 — 그래서 높이를 따로 안 줄인다. */
+.cd-yehwa-vine {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: -1;
+  width: min(760px, 100%);
+  height: 76px;
+  background: linear-gradient(90deg, var(--cd-yehwa-line) 0%, var(--cd-yehwa-line-deep) 50%, var(--cd-yehwa-line) 100%);
+  opacity: .5;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+${mask('branch-h')}
+}
 /* ── PR-2: 카드 인장·스파클 ──
  * 인장은 자식 <span> 이다(::before/::after 아님) — .cd-sig-card 는 cdSigRise 등장 애니메이션을
  * backwards 로 타서 의사요소로 얹으면 시작 프레임에서 함께 튄다.
@@ -643,6 +671,13 @@ html.neo-mode body .cd-yehwa-divider::after {
   box-shadow: 0 0 14px rgba(196, 181, 253, .4);
 }
 
+/* 띠는 구분선과 같은 칠이되 알파를 조금 높인다 — 46px 로 납작해 선이 가늘고(1.2/64 → 0.86px)
+   알약의 어두운 표면 옆에서 .22 는 가라앉았다. */
+html.neo-mode body .cd-yehwa-vine {
+  background: linear-gradient(90deg, #c4b5fd 0%, #e8d5a3 50%, #c4b5fd 100%);
+  opacity: .3;
+}
+
 /* PR-3 — 네오의 고민 활성 카드는 밝은 바이올렛(--cd-primary)이라 선은 잉크색으로 뒤집는다. */
 html.neo-mode body .cd-yehwa-sprig {
   background: linear-gradient(160deg, #e8d5a3 0%, #e8d5a3 85%, #c4b5fd 100%);
@@ -763,6 +798,17 @@ html.neo-mode body .cd-feedback__copy > .cd-yehwa-peony {
   .cd-yehwa-divider::after {
     width: 14px;
     height: 14px;
+  }
+
+  /* 좁은 폭에서는 알약이 행을 거의 다 덮는다(390px: 행 308 중 알약 279) — 행 폭 그대로면 좌우에
+     13px 스트립만 남아 가지가 안 보였다(A/B 실측: 연이 기여 30px). 행 바깥 거터로 36px 씩 내보낸다.
+     🔴 72px 는 거터(≤640px 에서 좌우 41px, 768px 에서 56px) 안에 드는 값이다 — 더 키우면 문서가
+     가로로 넘친다. 높이 48 은 알약(56~68px)을 좌우로 40px 이상 넘기기 위한 그림 폭 480px 몫이다.
+     선이 0.7px 로 얇아지므로 불투명도를 함께 올린다(구분선과 같은 처방). */
+  .cd-yehwa-vine {
+    width: calc(100% + 72px);
+    height: 48px;
+    opacity: .78;
   }
 }
 
