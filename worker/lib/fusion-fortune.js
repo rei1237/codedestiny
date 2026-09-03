@@ -36,6 +36,9 @@ export const FUSION_FORTUNE_ERROR_CODES = Object.freeze({
   RESULT_INVALID: "FUSION_FORTUNE_RESULT_INVALID",
   COMMIT_FAILED: "FUSION_FORTUNE_COMMIT_FAILED",
   CANCELLED: "FUSION_FORTUNE_CANCELLED",
+  // 생성이 데드라인 + 유예를 넘겨 스트림을 서버가 강제로 닫은 경우. GENERATION_FAILED 와
+  // 구분해야 "검증에서 반려된 것"과 "시간 안에 못 끝낸 것"을 문의에서 가릴 수 있다.
+  STREAM_TIMEOUT: "FUSION_FORTUNE_STREAM_TIMEOUT",
 });
 
 const FORBIDDEN = ["무조건", "반드시", "100%", "확실히 된다", "확실히 망한다", "큰일 난다", "결제해야 해결된다", "유료로 봐야만 답이 나온다", "투자하면 오른다", "반드시 매수해라", "병이 있다", "고소하면 이긴다", "상대는 반드시 돌아온다"];
@@ -595,6 +598,10 @@ const FUSION_GROUP_RETRY_RATIO = 0.8;
 // 생성 전체(1차 병렬 + 미달 그룹 재생성)의 벽시계 예산.
 export const FUSION_GENERATION_DEADLINE_MS = 120000;
 const FUSION_GROUP_RETRY_MIN_BUDGET_MS = 25000;
+// 🔴 마지막 LLM 호출이 끝난 뒤에도 남아 있어야 하는 예산. 이 구간에서 2만자 폴백 조립 +
+//    2만자 JSON.stringify 검증 + 100KB Mongo upsert + 100KB SSE 전송이 전부 일어난다.
+//    예전 값 8초로는 이 꼬리가 안 끝나 데드라인을 넘겼고, 그러면 화면이 결과 없이 멈췄다.
+const FUSION_TAIL_RESERVE_MS = 20000;
 // 🔴 예약(FusionFortuneGenerationAttempt) 이 "reserved"로 멈춘 채 발견되면 이 시간이 지나야
 //    같은 requestId 재시도를 허용한다. 생성 예산(FUSION_GENERATION_DEADLINE_MS) + 여유(컨텍스트
 //    빌드·검증·onDelivery·store.commit 소요)를 더해, 정상 진행 중인 요청을 조기에 이중 실행하지
@@ -806,7 +813,7 @@ export async function generateFusionFortuneWithRealLLM({
       console.warn("[fusion-fortune-group-skipped-deadline]", { requestId: text(requestId, 120), sectionGroup: group.id, remainingMs: remainingBeforeCall });
       return { ok: false, group, issue: "deadline_exhausted" };
     }
-    const clampedTimeoutMs = Math.max(1000, Math.min(timeoutMs, remainingBeforeCall - 8000));
+    const clampedTimeoutMs = Math.max(1000, Math.min(timeoutMs, remainingBeforeCall - FUSION_TAIL_RESERVE_MS));
     const groupPrompt = buildFusionSectionGroupPrompt({ context, group, extraInstruction });
     providerCalls += 1;
     let response;
@@ -866,7 +873,7 @@ export async function generateFusionFortuneWithRealLLM({
   // 연결이 끊긴 뒤에 보완 호출을 또 태우지 않는다. 1차 호출은 provider 안에서 이미 진행 중이라
   // 여기서 못 끊지만, **두 번째 물결**은 막을 수 있다(비용의 절반이 여기다).
   if (retryTargets.length && !abortSignal?.aborted && remainingMs() > FUSION_GROUP_RETRY_MIN_BUDGET_MS) {
-    const retryTimeoutMs = Math.max(20000, Math.min(groupTimeoutMs, remainingMs() - 8000));
+    const retryTimeoutMs = Math.min(groupTimeoutMs, remainingMs() - FUSION_TAIL_RESERVE_MS);
     const repairProgress = { phase: "repair", total: retryTargets.length, done: 0 };
     const retried = await Promise.allSettled(retryTargets.map((group) => runGroup(group, {
       attempts: 1,
@@ -1059,11 +1066,13 @@ export async function generateFusionFortuneRequest({ input = {}, userId = "", re
       ? { deliverable: true, tier: generated.qualityTier, value: result, issues: generated.qualityIssues || [], qualityNotice: generated.qualityNotice }
       : resolveFusionFortuneDelivery(result, fusionValidationOptions(contextResult.context, normalized));
     if (!delivery.deliverable) throw Object.assign(new Error("result"), { code: FUSION_FORTUNE_ERROR_CODES.RESULT_INVALID, issues: delivery.issues });
-    throwIfFusionFortuneAborted(abortSignal);
+    // 🔴 여기서부터는 abort 검사를 하지 않는다. 결제는 생성 **전에** 끝났으므로, 완성된 글을
+    //    손에 쥔 채 취소로 던지면 30,000원을 받고 0을 주는 것이 된다. 취소는 아직 만들지 않은
+    //    것을 안 만들게 하는 장치이지, 이미 만든 것을 버리는 장치가 아니다.
+    //    (2026-09-03 사고: 배달 직전·직후 두 곳의 취소 검사가 완성품을 버리고 있었다.)
     if (typeof onDelivery === "function") {
       await onDelivery({ requestId: safeId, result: delivery.value, generationSource: generated?.generationSource || "mock", qualityTier: delivery.tier, qualityNotice: delivery.qualityNotice });
     }
-    throwIfFusionFortuneAborted(abortSignal);
     const commitResult = await store.commit(reservation, now);
     if (!commitResult) {
       console.warn("[fusion-fortune-commit-failed-after-delivery]", {

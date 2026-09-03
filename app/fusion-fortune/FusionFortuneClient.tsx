@@ -77,6 +77,15 @@ const PAID_REQUEST_KEY = "cdFusionPaidRequestIdV1";
 /** 서버 심박이 15초 간격이라 세 번을 놓치면 연결이 끊긴 것으로 본다. */
 const STREAM_SILENCE_MS = 45000;
 
+/**
+ * 절대 상한 — 이 시계는 **무엇으로도 되돌아가지 않는다**.
+ *
+ * 🔴 무음 감시(STREAM_SILENCE_MS)와 다른 시계다. 그쪽은 심박(ping) 하나에 리셋되므로,
+ * 서버가 ping 만 보내면서 영원히 도는 상태를 원리적으로 못 잡는다(2026-09-03 사고의 정체).
+ * 값은 서버 데드라인 120초 + 하드 스톱 유예 5초(worker/routes/fusion-fortune.js) + 네트워크 여유다.
+ */
+const STREAM_HARD_CAP_MS = 165000;
+
 function readStoredPaidRequestId(): string {
   if (typeof window === "undefined") return "";
   try { return window.sessionStorage.getItem(PAID_REQUEST_KEY) || ""; } catch { return ""; }
@@ -127,6 +136,8 @@ function FieldSystems({ field, copy }: { field: keyof typeof FIELD_SYSTEMS; copy
     </span>
   );
 }
+
+type OpenedConsultation = { id: string; result: Result; qualityTier?: string; qualityNotice?: string; inputSummary?: { topic?: string; nickname?: string } };
 
 async function parseJson<T>(response: Response, copy: FusionFortuneCopy): Promise<T> {
   if (!response.headers.get("content-type")?.includes("application/json")) throw new Error(copy.serverResponseInvalidMessage);
@@ -1936,6 +1947,10 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
   /** 스트림이 조용해진 지 얼마나 됐는지 판정한다. 서버 심박(ping)이 오면 다시 false 가 된다. */
   const [stalled, setStalled] = useState(false);
   const lastEventAtRef = useRef(0);
+  /** 스트림 시작 시각. 절대 상한 판정용이라 이벤트가 와도 갱신하지 않는다. */
+  const startedAtRef = useRef(0);
+  /** 이번 abort 가 사용자의 취소인지 절대 상한인지. 안내 문구가 갈린다. */
+  const capAbortedRef = useRef(false);
   /** 결제는 끝났는데 결과를 못 받은 요청이 남아 있는가. 새로고침을 건너 살아남는다. */
   const [pendingPaidRequest, setPendingPaidRequest] = useState(false);
   /** 목표 분량에 못 미친 채 배달된 결과의 안내. 재열람에서도 같은 문구가 붙는다. */
@@ -1994,8 +2009,14 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
   useEffect(() => {
     if (!loading) { setStalled(false); return undefined; }
     lastEventAtRef.current = Date.now();
+    startedAtRef.current = Date.now();
     const timer = window.setInterval(() => {
       setStalled(Date.now() - lastEventAtRef.current > STREAM_SILENCE_MS);
+      // 🔴 상한은 이벤트로 되돌아가지 않으므로, ping 만 계속 오는 스트림을 끊는 유일한 장치다.
+      //    끊은 뒤에는 실패로 단정하지 않고 결제 키로 보관본을 한 번 되찾아 본다.
+      if (Date.now() - startedAtRef.current <= STREAM_HARD_CAP_MS) return;
+      capAbortedRef.current = true;
+      requestAbortRef.current?.abort();
     }, 5000);
     return () => window.clearInterval(timer);
   }, [loading]);
@@ -2012,6 +2033,40 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
     }
   }, [apiBase, copy]);
 
+  /** 보관본 하나를 화면에 올린다. 재열람(?cid=)과 결제 키 회수가 같은 모양이어야 한다. */
+  const applyOpenedConsultation = useCallback((consultation: OpenedConsultation) => {
+    setResult(consultation.result);
+    // 재열람 PDF 의 표지는 폼이 아니라 보관본의 요약에서 온다 — 새 탭에서 열면 폼이 비어 있다.
+    setOpenedSummary(consultation.inputSummary || null);
+    // 강등 배달이었으면 다시 열었을 때도 같은 안내가 붙는다 — 화면에서만 알리면 근거가 사라진다.
+    setQualityNotice(consultation.qualityTier === "degraded" ? (consultation.qualityNotice || "") : "");
+    setFailure(null);
+    setOpenSection("");
+    setOpenedConsultationId(consultation.id);
+    rememberConsultationUrl(consultation.id);
+  }, []);
+
+  /**
+   * 결제 키로 보관본을 되찾는다. 찾았으면 화면에 올리고 true.
+   *
+   * 🔴 서버는 result SSE 를 보내기 **전에** 저장한다(worker/routes/fusion-fortune.js 의 onDelivery).
+   * 그래서 스트림이 끊겨도 완성된 결과가 계정에 이미 있을 수 있다. 이 조회를 건너뛰면 3만원짜리
+   * 완성품을 실패 화면으로 덮게 된다. 실패는 조용히 삼킨다 — 회수는 부가 시도지 새 실패 원인이 아니다.
+   */
+  const recoverPaidResult = useCallback(async (requestId: string) => {
+    if (!requestId) return false;
+    try {
+      const response = await authFetch(`${apiBase}/api/fusion-fortune/result?requestId=${encodeURIComponent(requestId)}`, { credentials: "include" }, { retryOn401: true, apiBase });
+      if (!response.ok) return false;
+      const payload = await parseJson<{ ok?: boolean; consultation?: OpenedConsultation }>(response, copy);
+      if (!payload.ok || !payload.consultation?.result) return false;
+      applyOpenedConsultation(payload.consultation);
+      return true;
+    } catch {
+      return false;
+    }
+  }, [apiBase, copy, applyOpenedConsultation]);
+
   /** 저장된 결과를 연다. 이미 결제한 본인 결과라 추가 결제가 없다. */
   const openConsultation = useCallback(async (id: string) => {
     if (!id) return;
@@ -2019,24 +2074,16 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
     setError("");
     try {
       const response = await authFetch(`${apiBase}/api/fusion-fortune/result?id=${encodeURIComponent(id)}`, { credentials: "include" }, { retryOn401: true, apiBase });
-      const payload = await parseJson<{ ok?: boolean; consultation?: { id: string; result: Result; qualityTier?: string; qualityNotice?: string; inputSummary?: { topic?: string; nickname?: string } }; message?: string }>(response, copy);
+      const payload = await parseJson<{ ok?: boolean; consultation?: OpenedConsultation; message?: string }>(response, copy);
       if (!response.ok || !payload.ok || !payload.consultation?.result) throw new Error(payload.message || copy.storedResultLoadFailedMessage);
-      setResult(payload.consultation.result);
-      // 재열람 PDF 의 표지는 폼이 아니라 보관본의 요약에서 온다 — 새 탭에서 열면 폼이 비어 있다.
-      setOpenedSummary(payload.consultation.inputSummary || null);
-      // 강등 배달이었으면 다시 열었을 때도 같은 안내가 붙는다 — 화면에서만 알리면 근거가 사라진다.
-      setQualityNotice(payload.consultation.qualityTier === "degraded" ? (payload.consultation.qualityNotice || "") : "");
-      setFailure(null);
-      setOpenSection("");
-      setOpenedConsultationId(payload.consultation.id);
-      rememberConsultationUrl(payload.consultation.id);
+      applyOpenedConsultation(payload.consultation);
       threadRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : copy.storedResultLoadFailedMessage);
     } finally {
       setReopeningId("");
     }
-  }, [apiBase, copy]);
+  }, [apiBase, copy, applyOpenedConsultation]);
 
   // 첫 진입: ?cid= 가 있으면 그 보관본을 열고, 이어서 목록을 채운다.
   // useSearchParams 를 쓰면 정적 내보내기에서 이 페이지가 통째로 CSR 로 떨어지므로 URL 을 직접 읽는다.
@@ -2135,6 +2182,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
     requestAbortRef.current?.abort();
     const controller = new AbortController();
     requestAbortRef.current = controller;
+    capAbortedRef.current = false;
     setStageStates(initialStageStates());
     setComposeProgress(null);
     setOpenedConsultationId("");
@@ -2212,7 +2260,15 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
     } catch (cause) {
       // 결제는 생성 전에 끝났다. "차감되지 않았다"고 말하면 거짓이므로, 실제로 안전한 것
       // (같은 requestId 재시도에 추가 결제가 없다는 점)만 안내한다.
-      if ((cause as Error)?.name === "AbortError") setNotice(copy.analysisCancelledNotice);
+      const aborted = (cause as Error)?.name === "AbortError";
+      // 🔴 실패로 단정하기 전에 결제 키로 보관본을 한 번 조회한다 — 저장이 배달보다 먼저라
+      //    스트림이 끊긴 요청의 완성품이 이미 계정에 있을 수 있다.
+      if (await recoverPaidResult(paidRequestIdRef.current || readStoredPaidRequestId())) {
+        setNotice(copy.resultCompletedNotice);
+        void loadRecentList();
+        // 결과를 실제로 받았으므로 이 결제는 소진됐다.
+        rememberPaidRequestId("");
+      } else if (aborted && !capAbortedRef.current) setNotice(copy.analysisCancelledNotice);
       else setFailure({
         message: cause instanceof Error ? cause.message : copy.resultGenerationFailedMessage,
         // 결제 증빙이 남아 있으면(=paidRequestIdRef) 같은 id 재시도에 추가 결제가 없다.
@@ -2221,6 +2277,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
           .filter(Boolean).join(" · "),
       });
     } finally {
+      capAbortedRef.current = false;
       if (requestAbortRef.current === controller) requestAbortRef.current = null;
       setLoading(false);
     }
@@ -2488,13 +2545,17 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
                     ? copy.composeRepairNote
                     : copy.composeNormalNote}
                 </small>
-                {stalled && <p className="m-0 mt-3 border-t border-white/[0.08] pt-3 text-[0.78rem] leading-relaxed text-[var(--fx-rose)]">
-                  {copy.stalledNotice}
-                </p>}
               </div>}
             </ThreadBubble>
           </ThreadRow>;
         })}
+
+        {/* 🔴 진행 카운터(composeProgress) 안에 있던 안내다. 거기 두면 첫 진행 이벤트가 오기
+            전에 멈춘 경우 — 정확히 사용자가 겪는 상황 — 화면에 한 글자도 안 뜬다. */}
+        {!result && loading && stalled && <li className="grid grid-cols-[1.75rem_minmax(0,1fr)] items-start gap-x-2.5 sm:grid-cols-[2.25rem_minmax(0,1fr)] sm:gap-x-3.5">
+          <span aria-hidden className="grid size-7 place-items-center sm:size-9"><i className="size-1.5 rounded-full bg-[var(--fx-rose)]" /></span>
+          <p className="m-0 max-w-[72ch] text-[0.8rem] leading-relaxed text-[var(--fx-rose)]">{copy.stalledNotice}</p>
+        </li>}
 
         {!result && loading && fusionStages.some((stage) => stageStates[stage.key] === "pending") && <li className="grid grid-cols-[1.75rem_minmax(0,1fr)] items-center gap-x-2.5 sm:grid-cols-[2.25rem_minmax(0,1fr)] sm:gap-x-3.5">
           <span aria-hidden className="grid size-7 place-items-center sm:size-9"><i className="size-1.5 rounded-full bg-white/30" /></span>
