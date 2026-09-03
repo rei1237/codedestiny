@@ -292,6 +292,16 @@ const BIRTH_FIELDS_OPTIONAL_COPY: FieldConfig[] = BIRTH_FIELDS_COPY.map((field) 
   field.id === "birthDate" ? { ...field, required: false } : field,
 );
 
+// 성별은 사주 대운의 순행/역행과 자미두수 명반 배치에만 쓰인다. 그 둘을 산출하는 도구에만 붙여
+// 나머지 도구 프롬프트에 쓰이지 않는 줄이 늘지 않게 한다.
+const GENDER_FIELD_COPY: FieldConfig = {
+  id: "gender",
+  label: "성별",
+  type: "select",
+  options: ["선택 안 함", "남성", "여성"],
+  help: "사주 대운의 순행/역행과 자미두수 명반 배치를 산출하는 데 쓰입니다.",
+};
+
 const TOOL_REGISTRY_COPY: ToolConfig[] = [
   {
     id: "comprehensive",
@@ -303,9 +313,10 @@ const TOOL_REGISTRY_COPY: ToolConfig[] = [
     theme: { accent: "#a13f5d", accentStrong: "#7f1d3a", accentSoft: "#ffe4ed", surface: "#fff8f1", text: "#24151b", motif: "얇은 궤도와 달빛 점선" },
     fields: [
       ...COMMON_FIELDS_COPY,
-      { id: "systems", label: "활용할 운세 체계", type: "multiselect", required: true, options: ["사주/명리학", "타로", "점성술", "수비학", "꿈/상징", "숙요점"] },
+      { id: "systems", label: "활용할 운세 체계", type: "multiselect", required: true, options: ["사주/명리학", "자미두수", "타로", "점성술", "베다점", "수비학", "꿈/상징", "숙요점"] },
       { id: "period", label: "상담 기간", type: "select", options: ["오늘", "이번 주", "이번 달", "3개월", "올해"] },
       ...BIRTH_FIELDS_OPTIONAL_COPY,
+      GENDER_FIELD_COPY,
     ],
     exampleValues: {
       topic: "올해의 일과 사랑 흐름",
@@ -323,9 +334,21 @@ const TOOL_REGISTRY_COPY: ToolConfig[] = [
     generateLabel: "종합 운세 프롬프트 생성하기",
     resultLabel: "완성된 종합 운세 상담 프롬프트",
     emptyState: "질문, 배경, 활용할 체계를 적으면 여러 운세의 언어가 한 문장 안에서 차분히 정돈됩니다.",
-    role: "여러 운세 체계를 조화롭게 엮는 명리·타로 통합 상담가",
-    principles: ["체계별 해석을 섞되 근거를 구분합니다.", "질문자의 선택권을 흐리지 않습니다.", "상징은 가능성의 언어로 전합니다."],
-    answerSections: ["질문의 핵심", "체계별로 드러나는 흐름", "겹쳐지는 신호", "현실적인 선택지", "오늘부터 할 수 있는 작은 실천"],
+    role: "사주 명식·자미두수 명반·출생 차트 같은 확정 산출값을 먼저 읽고 체계 간 신호를 대조하는 통합 운세 상담가",
+    principles: [
+      "해석마다 어느 체계의 어느 값에서 나왔는지 근거를 밝힙니다(예: 월지 신 금왕절, 명궁 태음, 상승궁 천칭자리).",
+      "체계마다 신호가 어긋나면 억지로 하나로 합치지 말고, 어긋난다는 사실과 각각의 근거를 함께 보여 줍니다.",
+      "체계 수만큼 결론을 늘리지 말고, 여러 체계가 겹쳐 가리키는 지점을 먼저 짚습니다.",
+      "질문자의 선택권을 흐리지 않고, 상징은 가능성의 언어로 전합니다.",
+    ],
+    answerSections: [
+      "질문의 핵심 정리",
+      "체계별 근거와 해석 (고른 체계마다 어떤 값에서 무엇을 읽었는지)",
+      "체계 간 겹치는 신호와 어긋나는 신호",
+      "상담 기간에 따른 흐름과 주의할 구간",
+      "현실적인 선택지와 각각의 대가",
+      "오늘부터 할 수 있는 작은 실천",
+    ],
     keywords: ["통합", "달빛", "상담", "여러 체계"],
     ready: "ready",
   },
@@ -367,7 +390,7 @@ const TOOL_REGISTRY_COPY: ToolConfig[] = [
     detail: "한지 위에 명식을 기록하듯 생년월일, 시각, 지역을 정리해 오행과 십성의 흐름을 읽는 프롬프트를 만듭니다.",
     icon: "印",
     theme: { accent: "#b5482b", accentStrong: "#7c2d12", accentSoft: "#ffe5d5", surface: "#fbf6ea", text: "#231915", motif: "오행, 천간지지, 인장" },
-    fields: [...COMMON_FIELDS_COPY, ...BIRTH_FIELDS_COPY, { id: "focusPillar", label: "중점 영역", type: "select", options: ["성향", "일과 재능", "관계", "재물", "대운 흐름"] }],
+    fields: [...COMMON_FIELDS_COPY, ...BIRTH_FIELDS_COPY, GENDER_FIELD_COPY, { id: "focusPillar", label: "중점 영역", type: "select", options: ["성향", "일과 재능", "관계", "재물", "대운 흐름"] }],
     exampleValues: {
       topic: "일과 관계의 균형",
       question: "내 사주에서 지금 일에 힘을 실어도 좋은 시기인지 알고 싶습니다.",
@@ -611,7 +634,7 @@ const TOOL_REGISTRY_COPY: ToolConfig[] = [
     detail: "명궁 격자에 별을 놓듯 생년월일과 분석 궁을 정리해 권위 있고 섬세한 상담 프롬프트를 만듭니다.",
     icon: "紫",
     theme: { accent: "#9a5baf", accentStrong: "#5b1b6f", accentSoft: "#f0ddff", surface: "#fbf3ff", text: "#241029", motif: "명궁 격자와 별" },
-    fields: [...COMMON_FIELDS_COPY, ...BIRTH_FIELDS_COPY, { id: "palace", label: "분석 궁", type: "select", options: ["명궁", "재백궁", "관록궁", "부처궁", "복덕궁", "천이궁"] }],
+    fields: [...COMMON_FIELDS_COPY, ...BIRTH_FIELDS_COPY, GENDER_FIELD_COPY, { id: "palace", label: "분석 궁", type: "select", options: ["명궁", "재백궁", "관록궁", "부처궁", "복덕궁", "천이궁"] }],
     exampleValues: {
       topic: "직업 방향과 재능",
       question: "내가 오래 가져갈 수 있는 일의 결이 무엇인지 알고 싶습니다.",
@@ -838,6 +861,7 @@ type PromptHubCopy = {
   requiredCount: string;
   requiredInputMessage: string;
   advancedSettings: string;
+  generating: string;
   exampleInput: string;
   reset: string;
   resultEyebrow: string;
@@ -898,6 +922,7 @@ const PROMPT_HUB_COPY_EN: PromptHubCopy = {
   requiredCount: "{count} required",
   requiredInputMessage: "{label} is required.",
   advancedSettings: "Advanced Settings",
+  generating: "Computing chart data…",
   exampleInput: "Use Example",
   reset: "Reset",
   resultEyebrow: "Moonlight Result",
@@ -1025,6 +1050,7 @@ const PROMPT_HUB_COPY_EN: PromptHubCopy = {
     "생년월일": "Date of Birth",
     "출생 시각": "Birth Time",
     "출생 지역": "Birthplace",
+    "성별": "Gender",
     "윤달 여부": "Leap Month",
     "출생 시각 모름": "Birth Time Unknown",
     "활용할 운세 체계": "Fortune Systems to Use",
@@ -1241,6 +1267,7 @@ const PROMPT_HUB_COPY_EN: PromptHubCopy = {
     "징후": "Sign",
     "입력한 출생 정보는 이 화면에서 프롬프트 문장에만 반영됩니다. 실제 상담에 붙여넣기 전 민감한 정보는 직접 조정해 주세요.": "The birth information you enter is only reflected in the prompt sentence on this screen. Please adjust any sensitive details yourself before pasting it into an actual reading.",
     "정확하지 않다면 고급 설정에서 모름을 선택해 주세요.": "If you're not sure, select Unknown in Advanced Settings.",
+    "사주 대운의 순행/역행과 자미두수 명반 배치를 산출하는 데 쓰입니다.": "Used to compute the Saju luck-cycle direction and the Zi Wei Dou Shu chart.",
     "예/아니오로 좁힐 수 있을 만큼 선명한 질문이 좋습니다.": "A question clear enough to be narrowed to yes or no works best.",
     "이름은 숫자 진동을 정리하는 단서로만 프롬프트에 포함됩니다. 공유 전 이니셜로 바꿔도 좋습니다.": "Your name is included in the prompt only as a clue for organizing numerological vibration. Feel free to swap it for your initials before sharing.",
     "이번 주": "This Week",
@@ -1366,6 +1393,7 @@ const PROMPT_HUB_COPY_KO: PromptHubCopy = {
   requiredCount: "{count}개 필수",
   requiredInputMessage: "{label} 입력이 필요합니다.",
   advancedSettings: "고급 설정",
+  generating: "산출 데이터 계산 중…",
   exampleInput: "예시 입력",
   reset: "초기화",
   resultEyebrow: "Moonlight Result",
@@ -1536,6 +1564,55 @@ function formatDraftValue(value: ToolDraftValue | undefined) {
   return String(value || "").trim();
 }
 
+/**
+ * 도구별 확정 산출값 블록. 무거운 엔진(사주 명식 304KB·자미두수 명반)과 서버 왕복(지오코딩·차트)이
+ * 들어 있어 전부 await import() 로 지연 로드한다 — 정적 import 로 바꾸면 허브 첫 페인트가 그만큼 늦어진다.
+ * 산출기는 전부 실패 시 "" 를 돌려주는 계약이라 여기서 따로 감싸지 않는다(골격 프롬프트로 폴백된다).
+ */
+async function buildComputedFactsFor(toolId: ToolId, draft: ToolDraft): Promise<string> {
+  const birth = {
+    birthDate: formatDraftValue(draft.birthDate),
+    calendarType: formatDraftValue(draft.calendarType),
+    leapMonth: draft.leapMonth === true,
+    birthTime: formatDraftValue(draft.birthTime),
+    birthTimeUnknown: draft.birthTimeUnknown === true,
+    birthPlace: formatDraftValue(draft.birthPlace),
+    gender: formatDraftValue(draft.gender),
+  };
+  switch (toolId) {
+    case "comprehensive": {
+      const { buildComprehensivePromptFacts } = await import("./comprehensive-prompt-facts");
+      return buildComprehensivePromptFacts({ ...birth, systems: Array.isArray(draft.systems) ? draft.systems : [] });
+    }
+    case "saju": {
+      const { buildSajuPromptFacts } = await import("./saju-prompt-facts");
+      return buildSajuPromptFacts(birth);
+    }
+    case "ziwei": {
+      const { buildZiweiPromptFacts } = await import("./ziwei-prompt-facts");
+      return buildZiweiPromptFacts({ ...birth, palace: formatDraftValue(draft.palace) }, { scope: "full" });
+    }
+    case "astrology": {
+      const { buildAstrologyPromptFacts } = await import("./astro-prompt-facts");
+      return buildAstrologyPromptFacts(birth, { scope: "full" });
+    }
+    case "vedic": {
+      const { buildVedicPromptFacts } = await import("./astro-prompt-facts");
+      return buildVedicPromptFacts(birth);
+    }
+    case "sukuyo":
+      return buildSukuyoPromptFacts({
+        birthDate: birth.birthDate,
+        calendarType: birth.calendarType,
+        partnerBirthDate: formatDraftValue(draft.partnerBirthDate),
+        partnerCalendarType: formatDraftValue(draft.partnerCalendarType),
+        relationshipType: formatDraftValue(draft.relationshipType),
+      });
+    default:
+      return "";
+  }
+}
+
 function buildStructuredFortunePrompt(config: ToolConfig, values: ToolDraft, computedFacts = "") {
   const filledFields = config.fields
     .map((field) => {
@@ -1634,6 +1711,8 @@ export default function ComprehensivePromptHubPage() {
       }, {} as Record<ToolId, boolean>),
   );
   const [copiedToolId, setCopiedToolId] = useState<ToolId | null>(null);
+  // 생성이 서버 왕복을 타는 동안 제출 버튼을 잠그는 표시용 상태(실제 인플라이트 판정은 generatingRef).
+  const [isGenerating, setIsGenerating] = useState(false);
   const [chatGptPopupBlockedToolId, setChatGptPopupBlockedToolId] = useState<ToolId | null>(null);
   const [heroImageError, setHeroImageError] = useState(false);
   // 좁은 화면에서는 히어로 우상단에 띄우고, lg 부터는 오른쪽 열 안에 흐름 요소로 놓는다.
@@ -1665,6 +1744,7 @@ export default function ComprehensivePromptHubPage() {
   // 게이트를 띄운 이유(생성 시도인지 저장 시도인지)를 로그인 복귀 후에도 이어 가려고 기억한다.
   const gateIntentRef = useRef<PromptHubResumeIntent>("generate");
   const gateCheckRef = useRef(false);
+  const generatingRef = useRef(false);
   const resumeHandledRef = useRef(false);
   const localeRef = useRef(locale);
   localeRef.current = locale;
@@ -1772,7 +1852,7 @@ export default function ComprehensivePromptHubPage() {
       if (!restored) return;
       // 로그인을 취소하고 돌아온 경우엔 입력만 되살리고 생성은 하지 않는다.
       if (!getAuthState().isAuthenticated) return;
-      const entry = runPromptGeneration(restored.toolId, restored.draft);
+      const entry = await runPromptGeneration(restored.toolId, restored.draft);
       // 저장하려다 로그인하러 갔던 것이라면, 다시 누르게 하지 않고 저장까지 끝낸다.
       if (resuming?.intent === "save") {
         persistResultToLibrary(resolveLibraryOwnerKey(getAuthState().user), restored.toolId, entry);
@@ -1858,18 +1938,9 @@ export default function ComprehensivePromptHubPage() {
    * 실제 조립부. 재개 흐름에서 setState 직후에도 불려야 해서 toolId·draft 를 인자로 받는다
    * (state 를 읽으면 방금 복원한 값이 아니라 이전 draft 를 집는다).
    */
-  function runPromptGeneration(toolId: ToolId, draft: ToolDraft) {
+  async function runPromptGeneration(toolId: ToolId, draft: ToolDraft) {
     const config = toolConfigById[toolId];
-    const computedFacts =
-      config.id === "sukuyo"
-        ? buildSukuyoPromptFacts({
-            birthDate: formatDraftValue(draft.birthDate),
-            calendarType: formatDraftValue(draft.calendarType),
-            partnerBirthDate: formatDraftValue(draft.partnerBirthDate),
-            partnerCalendarType: formatDraftValue(draft.partnerCalendarType),
-            relationshipType: formatDraftValue(draft.relationshipType),
-          })
-        : "";
+    const computedFacts = await buildComputedFactsFor(config.id, draft);
     const entry = {
       prompt: buildStructuredFortunePrompt(config, draft, computedFacts),
       // 재개 흐름은 마운트 시점 클로저로 이 함수를 붙잡으므로 locale 을 ref 로 읽는다.
@@ -1901,26 +1972,36 @@ export default function ComprehensivePromptHubPage() {
     setCopiedToolId(null);
     if (missingFields.length) return;
 
-    // ② 로그인 사용자는 무제한 — 카운터를 읽지도 않는다.
-    if (getAuthState().isAuthenticated) {
-      runPromptGeneration(toolId, draft);
-      return;
-    }
+    // 산출값 주입에 서버 왕복(지오코딩·차트)이 들어가 연타가 곧 중복 요청이다. state 는 리렌더 뒤에야
+    // 버튼에 닿으므로 인플라이트 판정은 ref 로 하고, state 는 버튼 표시에만 쓴다.
+    if (generatingRef.current) return;
+    generatingRef.current = true;
+    setIsGenerating(true);
+    try {
+      // ② 로그인 사용자는 무제한 — 카운터를 읽지도 않는다.
+      if (getAuthState().isAuthenticated) {
+        await runPromptGeneration(toolId, draft);
+        return;
+      }
 
-    // ③ 무료 체험이 남았으면 인증 왕복 없이 바로 만들어 준다. 첫 방문 경험을 그대로 둔다.
-    if (hasFreeGenerationLeft()) {
-      runPromptGeneration(toolId, draft);
-      recordFreeGeneration();
-      return;
-    }
+      // ③ 무료 체험이 남았으면 인증 왕복 없이 바로 만들어 준다. 첫 방문 경험을 그대로 둔다.
+      if (hasFreeGenerationLeft()) {
+        await runPromptGeneration(toolId, draft);
+        recordFreeGeneration();
+        return;
+      }
 
-    // ④ 체험을 다 썼다면 게스트로 보이는 로그인 사용자를 먼저 걸러낸다.
-    if (await confirmAuthenticated()) {
-      runPromptGeneration(toolId, draft);
-      return;
+      // ④ 체험을 다 썼다면 게스트로 보이는 로그인 사용자를 먼저 걸러낸다.
+      if (await confirmAuthenticated()) {
+        await runPromptGeneration(toolId, draft);
+        return;
+      }
+      gateIntentRef.current = "generate";
+      setLoginGateOpen(true);
+    } finally {
+      generatingRef.current = false;
+      setIsGenerating(false);
     }
-    gateIntentRef.current = "generate";
-    setLoginGateOpen(true);
   }
 
   /**
@@ -2685,12 +2766,12 @@ export default function ComprehensivePromptHubPage() {
                 <div className="mt-5 flex flex-wrap gap-2">
                   <button
                     type="submit"
-                    disabled={Boolean(disabledReason)}
+                    disabled={Boolean(disabledReason) || isGenerating}
                     className="inline-flex min-h-[48px] items-center gap-2 rounded-2xl bg-[color:var(--tool-accent-strong)] px-5 text-sm font-black text-[color:var(--on-accent-strong)] shadow-[var(--lift)] transition hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-[color:var(--tool-accent-soft)] disabled:cursor-not-allowed disabled:opacity-55 motion-reduce:hover:translate-y-0"
                     title={disabledReason || tx(currentTool.generateLabel)}
                   >
                     <WandSparkles size={17} />
-                    {tx(currentTool.generateLabel)}
+                    {isGenerating ? copy.generating : tx(currentTool.generateLabel)}
                   </button>
                   <button
                     type="button"
@@ -2982,12 +3063,12 @@ export default function ComprehensivePromptHubPage() {
         <button
           type="button"
           onClick={generateCurrentToolPrompt}
-          disabled={Boolean(disabledReason)}
+          disabled={Boolean(disabledReason) || isGenerating}
           className="inline-flex min-h-[52px] w-full items-center justify-center gap-2 rounded-2xl bg-[color:var(--tool-accent-strong)] px-5 text-sm font-black text-[color:var(--on-accent-strong)] disabled:cursor-not-allowed disabled:opacity-55"
           title={disabledReason || tx(currentTool.generateLabel)}
         >
           <WandSparkles size={17} />
-          {tx(currentTool.generateLabel)}
+          {isGenerating ? copy.generating : tx(currentTool.generateLabel)}
         </button>
         {disabledReason ? (
           <p className="mt-1.5 line-clamp-2 text-center text-xs font-bold text-[color:var(--ink-3)]">{disabledReason}</p>
