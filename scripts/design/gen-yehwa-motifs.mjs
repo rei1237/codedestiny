@@ -188,6 +188,47 @@ function branchH() {
   return half(1) + half(-1);
 }
 
+/** 파인더 가격 행 — 단방향(우하 뿌리 → 좌상 칩) 가지 스프레이.
+ * 구분선(branch-h)과 달리 미러 쌍이 없다 — 좌우 대칭은 '나눌 것 없는 자리의 구분선'으로 읽힌다. */
+function branchSpray() {
+  return [
+    branch([[314, 104], [264, 96], [210, 80], [156, 66], [104, 50], [54, 36], [16, 26]]),
+    branch([[210, 80], [206, 60], [198, 44], [190, 32]]),
+    branch([[104, 50], [90, 62], [74, 70], [60, 80]]),
+    // 꽃자루 — 가지에서 꽃잎 경계까지. 없으면 꽃이 선 옆에 떠 보인다(2026-09-03 시각 판정).
+    branch([[277, 98], [280, 93], [278, 89]]),
+    // 🔴 226 꽃(rot 55)은 아래쪽이 꽃잎 사이 홈이라 반지름(76)에서 멈추면 2.2px 뜬다 — 홈 안 73 까지 넣는다.
+    branch([[225, 85], [229, 80], [226, 73]]),
+    branch([[171, 70], [175, 75], [172, 79]]),
+    branch([[117, 54], [121, 49], [118, 45]]),
+    branch([[201, 48], [196, 45], [191, 48]]),
+    // 🔴 소화 중심은 가지에서 "반지름 + 8px" 이상 비껴 앉힌다 — 중심 기준 12px 은 꽃잎 끝이 선에 닿아
+    //    꿰뚫린 것처럼 보였다(1350px 픽셀 실측: 선 폭 1.1px 자리가 4px 로 뭉침).
+    blossom(278, 76, 13, 20),
+    blossom(226, 64, 12, 55),
+    blossom(172, 90, 11, 0),
+    blossom(118, 34, 11, 45),
+    blossom(182, 48, 9, 40),
+    // 🔴 봉오리 밑동 원(r 1.2)과 가지 끝 캡(r 0.6)의 중심 거리는 1.8 안팎 — 그래야 접선으로 붙는다.
+    //    4 를 주면 2px 떠 보이고, 0 을 주면 덩어리로 뭉친다(둘 다 1350px 확대 실측).
+    bud(190, 30, -100, 11),
+    bud(59, 81, 140, 10),
+    bud(14, 24, -160, 11),
+    // 잎은 밑동을 가지에서 2~6px 떼고 가지 반대쪽으로만 뻗는다 — 대신 잎자루로 이어 붙인다
+    //    (꽃만 꽃자루를 갖고 잎은 떠 있으면 부착 논리가 어긋나 보인다).
+    branch([[250, 92], [250, 94], [250, 96]]),
+    branch([[138, 60], [138, 58], [138, 55]]),
+    branch([[82, 65], [82, 63], [82, 61]]),
+    leaf(250, 96, 125, 15),
+    leaf(138, 55, -60, 16),
+    leaf(82, 61, -130, 14),
+    drift(34, 62, 200, 8),
+    drift(88, 18, 215, 7),
+    drift(148, 16, 225, 7),
+    drift(214, 22, 210, 6),
+  ].join('');
+}
+
 /** PR-2 카드 인장 — 외원 r72 + 내원 r58, 그 사이에 꽃잎 16 장(양쪽 원에 닿지 않게), 내부는 비움 */
 function seal() {
   const cx = 80;
@@ -220,6 +261,7 @@ const MASKS = [
   { name: 'peony', viewBox: '0 0 260 260', strokeWidth: 1.3, d: peony },
   { name: 'branch-corner', viewBox: '0 0 260 200', strokeWidth: 1.2, d: branchCorner },
   { name: 'branch-h', viewBox: '0 0 640 64', strokeWidth: 1.2, d: branchH },
+  { name: 'branch-spray', viewBox: '0 0 320 116', strokeWidth: 1.2, d: branchSpray },
   { name: 'seal', viewBox: '0 0 160 160', strokeWidth: 1.2, d: seal },
   { name: 'sparkle', viewBox: '0 0 32 32', strokeWidth: 0.8, d: sparkle },
 ];
@@ -246,6 +288,7 @@ function render() {
 .cd-yehwa-divider,
 .cd-yehwa-seal,
 .cd-yehwa-sparkle,
+.cd-yehwa-spray,
 .cd-yehwa-sprig,
 .cd-yehwa-peony {
 ${vars}
@@ -425,8 +468,9 @@ ${mask('sparkle')}
  *     (y-24 에서는 4.5px 라 "닿음"으로 읽혔다 — 시각 판정 4차). 섹션은 overflow:visible 이고 위쪽
  *     빠른 서비스 섹션과 40px 여백이 있어 밖으로 나간 36px 은 빈 여백에 그려진다.
  *   AI 카드 상단 좌우 — 330x165 가 비어 있고 서브카드는 y188 부터(overflow:hidden 이 바깥을 자른다).
- *   파인더 필터 우측은 뺐다 — 구분선 마스크의 미러 쌍이 방식/가격 행 사이 거터에 떠서 "나눌 것 없는
- *     자리의 구분선"으로 읽힌다(2026-09-03 시각 판정). 단방향 가지 마스크가 생기기 전에는 되살리지 않는다.
+ *   파인더 가격 행 우측 — 아래 .cd-yehwa-spray 가 맡는다. 구분선 마스크(branch-h)는 좌우 대칭이라
+ *     방식/가격 행 사이 거터에 뜬 미러 쌍이 "나눌 것 없는 자리의 구분선"으로 읽혔다(2026-09-03 시각 판정).
+ *     그래서 단방향 branch-spray 를 새로 그려 가격 행 baseline 에 앉혔다.
  *   고민 활성 카드 — 버건디 평면 카드의 오른쪽 절반(126px)이 비어 있다. 인장은 aria-expanded=true 인
  *     카드에만 보이고 선택을 따라 옮겨 간다(6장 전부에 span 을 두고 CSS 로 켠다).
  *     🔴 우상단이다 — 우하단은 부제가 석 줄로 접히는 폭(820·768·480 실측)에서 마지막 줄과 겹친다. */
@@ -473,6 +517,30 @@ ${mask('branch-corner')}
 
 .cd-ai-feats > .cd-yehwa-sprig--tr {
   right: -24px;
+}
+
+/* ── 파인더 가격 행 — 단방향 가지 스프레이 ──
+ * 행 오른쪽 거터는 이 패널에서 가장 넓고 안정적인 빈 사각형이다(1350/1100/900/820/768px 실측:
+ *   712 / 482 / 298 / 240 / 192px). 뿌리를 우하에 두고 칩 쪽으로 한 방향으로만 뻗는다.
+ * 🔴 행에 z-index:0 을 함께 준다 — position:relative 만으로는 스태킹 컨텍스트가 안 생겨 z-index:-1 자식이
+ *   패널(#fortuneGatewayDiscover)의 불투명 그라디언트 뒤로 빠져 아예 안 보인다.
+ * 480px 이하는 칩이 두 줄로 접혀 거터가 사라진다 — 900px 아래에서 끈다. */
+.fortune-gateway__filter-row {
+  position: relative;
+  z-index: 0;
+}
+
+.fortune-gateway__filter-row > .cd-yehwa-spray {
+  position: absolute;
+  right: 0;
+  bottom: -10px;
+  z-index: -1;
+  width: 300px;
+  height: 109px;
+  background: linear-gradient(160deg, var(--cd-yehwa-line-deep) 0%, var(--cd-yehwa-line) 100%);
+  opacity: .5;
+  pointer-events: none;
+${mask('branch-spray')}
 }
 
 /* 고민 카드는 overflow:hidden 으로 호(弧)만 남긴다 — 포커스 링은 outline 이라 잘리지 않는다. */
@@ -582,6 +650,11 @@ html.neo-mode body .cd-ai-feats > .cd-yehwa-sprig {
   opacity: .22;
 }
 
+html.neo-mode body .cd-yehwa-spray {
+  background: linear-gradient(160deg, #e8d5a3 0%, #e8d5a3 85%, #c4b5fd 100%);
+  opacity: .22;
+}
+
 html.neo-mode body .cd-concern__card .cd-yehwa-seal--concern {
   background: #13102a;
   opacity: .36;
@@ -607,6 +680,19 @@ html.neo-mode body .cd-feedback__copy > .cd-yehwa-peony {
   }
 }
 
+/* 파인더 스프레이 — 1024px 부터 방식 행 칩이 두 줄로 접혀 300x109 의 위쪽이 칩 글자에 닿는다
+ * (1024/950/901px 실측: 잉크 겹침 60/725/1482px²). 가격 행 띠 안에 머무는 200x73 으로 줄인다.
+ * 🔴 불투명도를 함께 올린다 — mask-size 가 선까지 같이 줄여(획 1.12px → 0.78px 실측) 대비 1.35:1 이상
+ *   픽셀이 4.12% → 1.38% 로 빠졌다. 상한 .6 안에서 .58 로 보정한다. */
+@media (max-width: 1200px) {
+  .fortune-gateway__filter-row > .cd-yehwa-spray {
+    bottom: -6px;
+    width: 200px;
+    height: 73px;
+    opacity: .58;
+  }
+}
+
 /* 모란 — 900px 아래에서는 피드백 본문이 열 끝까지 차고 푸터는 2열 그리드로 접힌다.
  * AI 카드 가지 — 820px 아래에서 헤더가 왼쪽 정렬로 바뀌어 제목이 y73(820 은 y82)부터 시작하고
  *   오른쪽 여백이 560·480px 에서 79·47px 뿐이다(2026-09-03 폭 스윕 실측). 좌상단은 끄고 우상단은
@@ -614,6 +700,7 @@ html.neo-mode body .cd-feedback__copy > .cd-yehwa-peony {
  *   right -24 로 가지 시작을 x228 에 두어 라벨과 18px 띄운다. */
 @media (max-width: 900px) {
   .cd-yehwa-peony,
+  .fortune-gateway__filter-row > .cd-yehwa-spray,
   .cd-ai-feats > .cd-yehwa-sprig--tl {
     display: none;
   }
