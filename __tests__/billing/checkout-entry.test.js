@@ -149,10 +149,11 @@ describe("buildPaymentChoiceCardsHtml", () => {
 });
 
 describe("buildPassStoreUrl", () => {
-  it("cdco=1 이 붙어야 /points 가 결제 확인 모달을 자동으로 연다", () => {
+  it("plan 프리셋과 source 만 붙는다 — cdco 자동 오픈은 붙이지 않는다(상점 화면 자체로 인계)", () => {
     // 50코인(5,000원)은 standard 적용 범위 안이라 가장 낮은 등급이 실린다.
     const url = checkoutEntry.buildPassStoreUrl({ costCoins: 50, source: "shell" });
-    expect(url).toBe("/points?plan=standard&source=shell&cdco=1");
+    expect(url).toBe("/points?plan=standard&source=shell");
+    expect(url).not.toMatch(/cdco/);
   });
 });
 
