@@ -1838,7 +1838,8 @@
         "passUnknown": "Nếu bạn có vé, hãy chạm vào thẻ vé bên dưới, chúng tôi sẽ kiểm tra ngay.",
         "passSaveUnverified": "Chúng tôi không lưu được kết quả áp dụng Pass. Hãy kiểm tra lại bằng thẻ Pass bên dưới hoặc chọn phương thức thanh toán khác.",
         "passCheckFailed": "Chúng tôi không kiểm tra được Pass của bạn. Hãy thử lại bằng thẻ Pass bên dưới hoặc chọn phương thức thanh toán khác.",
-        "passMiss": "Vé của bạn không mở nội dung này miễn phí, đây là các tuỳ chọn thanh toán."
+        "passMiss": "Vé của bạn không mở nội dung này miễn phí, đây là các tuỳ chọn thanh toán.",
+        "passMonthlyExhausted": "You've used this month's pass allowance, so here are the payment options. It resets next month."
       },
       "passBadge": "Thẻ ánh trăng",
       "passStoreTitle": "Cửa hàng vé ánh trăng",
@@ -1906,7 +1907,9 @@
         "giftGroup": "Gift certificate",
         "comingSoon": "Sắp ra mắt",
         "back": "Quay lại"
-      }
+      },
+      "passMonthlyExhausted": "You've used this month's pass allowance. It resets next month; for now you can open this with a one-time payment or moonstones.",
+      "passMonthlyRemaining": "Remaining this month {remaining} / {limit}"
     },
     "overlay": {
       "unlockPreparing": {

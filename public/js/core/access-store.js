@@ -994,6 +994,19 @@
     return true;
   }
 
+  // 키 단위 낙관 제거. rollbackOptimisticUpdate 는 state.optimistic 을 통째로 비워 무관한 정당한
+  // 낙관 해금까지 죽이므로, 월 한도 402 회수는 그 키(와 별칭)만 지운다. 확정 해금은 건드리지 않는다.
+  function forgetOptimisticUnlock(featureKey) {
+    var key = String(featureKey || '').trim();
+    if (!key || !state.optimistic[key]) return false;
+    delete state.optimistic[key];
+    syncLegacyFeatureMap();
+    saveCache();
+    notify();
+    dispatch('cd:unlocks-changed', { source: 'access-store-forget-optimistic', featureKey: key });
+    return true;
+  }
+
   function markConfirmedUnlocked(featureKey, profileId, metadata) {
     var key = String(featureKey || '').trim();
     if (!key) return false;
@@ -1143,6 +1156,7 @@
     applyPaymentPayload: applyPaymentPayload,
     markConfirmedUnlocked: markConfirmedUnlocked,
     markOptimisticallyUnlocked: markOptimisticallyUnlocked,
+    forgetOptimisticUnlock: forgetOptimisticUnlock,
     applyOptimisticUpdate: function (update) {
       var payload = update && update.payload || update || {};
       return applyPaymentPayload(payload, update || {});

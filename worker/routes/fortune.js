@@ -5766,6 +5766,12 @@ async function handleSubscriptionStatus(request, env, auth) {
     ? Number(canonicalEntitlement.maxCoveredCoin || policy.freeLimit || 0)
     : Number(policy.freeLimit || 0);
   const membershipCreditBalance = Math.max(0, Math.floor(Number(sub.membershipCreditBalance || 0)));
+  // 월 누적 한도 잔여. 클라이언트 스냅샷(js/core/pass-verdict.js)이 이 값으로 월 한도 소진자를
+  // 진입 시점에 확정 거부한다. cycleKey 를 못 구하면(만료일 없음) applies=false 라 내려보내지
+  // 않고, 클라이언트는 null 을 "모름" 으로 두어 서버 판정(coin-gate)에 맡긴다.
+  const monthlyQuota = isActive ? resolveMonthlySpendQuota(sub, canonicalEntitlement, 0) : null;
+  const monthlyPassLimit = monthlyQuota && monthlyQuota.applies ? monthlyQuota.limitCoin : null;
+  const monthlySpendRemaining = monthlyQuota && monthlyQuota.applies ? monthlyQuota.remainingCoin : null;
 
   return json({
     ok: true,
@@ -5803,6 +5809,8 @@ async function handleSubscriptionStatus(request, env, auth) {
     passLimit,
     maxCoveredCoin: passLimit,
     membershipCreditBalance,
+    monthlyPassLimit,
+    monthlySpendRemaining,
     recommendedCoins: policy.recommendedCoins,
   });
 }

@@ -1838,7 +1838,8 @@
         "passUnknown": "If you have a pass, tap the pass card below and we'll check it right here.",
         "passSaveUnverified": "We couldn't save the result of applying your pass. Check again with the pass card below, or choose another payment method.",
         "passCheckFailed": "We couldn't check your pass. Check again with the pass card below, or choose another payment method.",
-        "passMiss": "Your pass does not open this content for free, so here are the payment options."
+        "passMiss": "Your pass does not open this content for free, so here are the payment options.",
+        "passMonthlyExhausted": "You've used this month's pass allowance, so here are the payment options. It resets next month."
       },
       "passBadge": "Moonlight Pass",
       "passStoreTitle": "Moonlight Pass Shop",
@@ -1906,7 +1907,9 @@
         "giftGroup": "Gift certificate",
         "comingSoon": "Coming soon",
         "back": "Back"
-      }
+      },
+      "passMonthlyExhausted": "You've used this month's pass allowance. It resets next month; for now you can open this with a one-time payment or moonstones.",
+      "passMonthlyRemaining": "Remaining this month {remaining} / {limit}"
     },
     "overlay": {
       "unlockPreparing": {

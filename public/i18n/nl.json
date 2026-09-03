@@ -1838,7 +1838,8 @@
         "passUnknown": "Heb je een pas? Tik hieronder op de paskaart, dan controleren we hem meteen.",
         "passSaveUnverified": "We konden het resultaat van het toepassen van je pas niet opslaan. Controleer het opnieuw met de paskaart hieronder of kies een andere betaalmethode.",
         "passCheckFailed": "We konden je pas niet controleren. Probeer het opnieuw met de paskaart hieronder of kies een andere betaalmethode.",
-        "passMiss": "Je pas opent deze inhoud niet gratis; hier zijn de betaalopties."
+        "passMiss": "Je pas opent deze inhoud niet gratis; hier zijn de betaalopties.",
+        "passMonthlyExhausted": "You've used this month's pass allowance, so here are the payment options. It resets next month."
       },
       "passBadge": "Maanlichtpas",
       "passStoreTitle": "Moonlight Pass-winkel",
@@ -1906,7 +1907,9 @@
         "giftGroup": "Gift certificate",
         "comingSoon": "Binnenkort beschikbaar",
         "back": "Terug"
-      }
+      },
+      "passMonthlyExhausted": "You've used this month's pass allowance. It resets next month; for now you can open this with a one-time payment or moonstones.",
+      "passMonthlyRemaining": "Remaining this month {remaining} / {limit}"
     },
     "overlay": {
       "unlockPreparing": {

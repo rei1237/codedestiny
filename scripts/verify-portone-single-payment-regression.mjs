@@ -666,7 +666,9 @@ function runInstantPgLatencyTests() {
   // 사용자가 60초마다 차단형 서버 왕복으로 되돌아가고, 그게 정확히 이 가드가 막으려던 지연이다.
   assertContains(verdictBody, "allowStaleNone: true", "verdict must accept a stale 'none' snapshot (SWR) instead of blocking on the server");
   // ①-c 커버 확답이면 낙관 통과(서버 기록은 백그라운드). 이 분기가 이용권 보유자의 무료 즉시 실행이다.
-  assertContains(verdictBody, "_cdRecordMembershipPassInBackground(item, coinCost, requestId);", "covered snapshot must grant optimistically and record in the background");
+  // featureKey 를 함께 넘긴다 — 월 한도 402 가 왔을 때 백그라운드 기록 함수가 그 기능의 낙관 잠금해제를
+  // 되돌려야 하기 때문이다(PR B, 2026-09-03). item 에 featureKey 가 없는 호출부가 있어 해석값을 덧붙인다.
+  assertContains(verdictBody, "_cdRecordMembershipPassInBackground(Object.assign({}, item, { featureKey: featureKey || item.featureKey }), coinCost, requestId);", "covered snapshot must grant optimistically and record in the background");
   assertContains(indexSource, "return status === 'payment_required' || status === 'already_unlocked' || status === 'pass_applied';", "pass-applied snapshot prechecks must be cached during the short precheck window");
   assertContains(indexSource, "if (cachedStatus === 'pass_applied') return false;", "cached pass-applied prechecks must not be force-refreshed into intermittent 503 failures");
 

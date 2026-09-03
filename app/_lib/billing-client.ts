@@ -218,6 +218,9 @@ export type SubscriptionSnapshot = {
   // TTL 을 넘긴 'none' 을 stale-while-revalidate 로 읽었을 때만 true. 낙관 통과(무료 제공)에는 절대
   // 쓰지 않고 '미보유 확정 → 결제창 직행' 방향으로만 쓴다(readSubscriptionSnapshotForUser 주석 참고).
   stale?: boolean;
+  /** 월 이용 한도 잔여(coin). null/undefined 면 "모름" — 판정은 pass-verdict 가 월 검사를 건너뛴다. */
+  monthlySpendRemainingCoin?: number | null;
+  monthlyCheckedAt?: number | null;
 };
 
 export type EntitlementPlan = "NONE" | "STANDARD" | "PREMIUM" | "VVIP" | "FAMILY";
@@ -270,6 +273,7 @@ type RuntimeMembershipPassApplyResult = {
   message?: string;
   requestId?: string;
   payload?: Record<string, unknown>;
+  raw?: Record<string, unknown>;
 };
 type RuntimeMembershipPassApply = (options: Record<string, unknown>) => Promise<RuntimeMembershipPassApplyResult> | RuntimeMembershipPassApplyResult;
 type PaymentChoiceMode = "direct" | "monthly" | "pass" | "pass-store" | "refresh" | "cancel";
@@ -450,7 +454,7 @@ const BILLING_FETCH_DEFAULT_TIMEOUT_MS = 20000;
 const BILLING_FETCH_CHECKOUT_TIMEOUT_MS = 40000;
 const BILLING_FETCH_CONFIRM_TIMEOUT_MS = 60000;
 const PAYMENT_CHOICE_IN_FLIGHT_TTL_MS = 45000;
-export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-995c81863cef";
+export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-e49824e2d16f";
 // 🔴 이용권 스냅샷의 상수·읽기·쓰기·판정은 전부 js/core/pass-verdict.js 가 소유한다.
 // 셸(index.html)·독립 정적(js/destiny-profile.js)과 **같은 localStorage 키**를 공유하므로 값이 갈리면
 // 같은 사용자가 어느 런타임에서 클릭했느냐에 따라 판정이 달라지고, 한쪽이 만료로 보고 지운 캐시가
@@ -767,7 +771,9 @@ function buildSnapshotPaymentEligibility(input: {
   const passTier = snapshot.state === "active" && snapshot.tier !== "free"
     ? snapshot.tier as PaymentEligibility["pass"]["tier"]
     : null;
-  const canUseByPass = snapshot.state === "active" && passLimit > 0 && coinCost > 0 && (snapshot.tier === "family" || coinCost <= passLimit);
+  // 🔴 판정은 pass-verdict 하나가 한다 — 여기서 한도를 따로 계산하면 월 이용 한도를 모르는 네 번째 사본이
+  // 되어, 소진된 사용자에게 phase:'pass' 경로가 계속 무료를 약속한다.
+  const canUseByPass = coinCost > 0 && passVerdict.resolveVerdict(snapshot, coinCost).coversNow;
   const paymentOptions = {
     hasActivePass: snapshot.state === "active",
     passTier,
@@ -1107,7 +1113,20 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
     : checkoutEntry.text("payment.directModal.passHint.store", "한 번 결제하고 30일 동안 여러 콘텐츠를 열 수 있어요. 이미 있다면 눌러서 바로 확인돼요.");
   // 한도 라벨은 등급을 실제로 아는 경우에만 덧붙인다. 미보유(=한도 미상)일 때 붙이면
   // "…바로 확인됩니다. 플랜별 기준 확인" 처럼 의미 없는 꼬리가 남는다.
-  const passHint = hasActivePassTier ? formatMembershipPassLimitLabel(passTier, passLimit) : "";
+  const passLimitHint = hasActivePassTier ? formatMembershipPassLimitLabel(passTier, passLimit) : "";
+  // 활성 스냅샷이 월 잔여를 알면 "이번 달 남은 한도"를 덧붙인다(coin-gate 응답이 되쓴 값). 모르면 붙이지 않는다.
+  const passMonthlySnapshot = hasActivePassTier ? readSubscriptionSnapshotForUser() : null;
+  const passMonthlyRemaining = passMonthlySnapshot && passMonthlySnapshot.state === "active"
+    ? Number(passMonthlySnapshot.monthlySpendRemainingCoin)
+    : Number.NaN;
+  const passMonthlyLimit = passMonthlySnapshot ? passVerdict.monthlyLimitForTier(passMonthlySnapshot.tier) : 0;
+  const passMonthlyHint = Number.isFinite(passMonthlyRemaining) && passMonthlyLimit > 0
+    ? checkoutEntry.text("payment.directModal.passMonthlyRemaining", "이번 달 남은 한도 {remaining} / {limit}", {
+      remaining: formatCoinValueWon(Math.max(0, Math.floor(passMonthlyRemaining))),
+      limit: formatCoinValueWon(passMonthlyLimit),
+    })
+    : "";
+  const passHint = [passLimitHint, passMonthlyHint].filter(Boolean).join(" · ");
 
   // 🔴 소비자에게 PG사 이름(PortOne·KG이니시스)을 보여주지 않는다 — 구매 결정에 도움이 안 되는 내부 인프라다.
   // 앱(Play Billing)만 'Google Play 결제'를 유지한다: 외부 PG 안내는 사실과도 다르고 Play 정책에도 걸린다.
@@ -1477,6 +1496,15 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
           }
           button.disabled = false;
           button.classList.remove("is-loading");
+          // 서버 판정의 월 잔여를 활성 스냅샷에 되쓴다 — 다음 진입은 스냅샷만으로 판정한다.
+          const passDeniedPayload = (passResult?.payload ?? (passResult?.raw as { payload?: unknown } | undefined)?.payload) ?? null;
+          try { passVerdict.storeMonthlyQuotaFromPayload(resolveSubscriptionSnapshotUserId(), passDeniedPayload); } catch {}
+          // 월 한도 소진(decisionReason MONTHLY_PASS_LIMIT_EXCEEDED)은 이용권이 **있는** 상태다 — 상점으로 보내면
+          // 이미 가진 이용권을 또 사라는 화면이 된다. 모달을 연 채 단건·월정석을 고르게 한다.
+          if (passVerdict.isMonthlyLimitPayload(passDeniedPayload)) {
+            setStatus(checkoutEntry.text("payment.directModal.passMonthlyExhausted", "이번 달 이용권 한도를 모두 사용했어요. 다음 달에 다시 열리고, 지금은 단건 결제나 월정석으로 열 수 있어요."), true);
+            return;
+          }
           setStatus("보유하신 이용권으로는 열리지 않아 이용권 상점으로 이동합니다.");
           leavingForPassStore = true;
           close("cancel");
@@ -3794,6 +3822,9 @@ async function recordMembershipPassInBackground(input: BillingCoinGateInput, att
       body: JSON.stringify({ ...billingInput, paymentMode: "MEMBERSHIP_PASS", attemptId }),
     }, { timeoutMs: BILLING_PASS_PROBE_TIMEOUT_MS });
     const parsed = await parseBillingResponse<BillingCoinGateData>(response);
+    // 🔴 월 한도 되쓰기는 성공 조기 반환보다 **앞**이다 — 성공 200 이 소비 **후** 잔여를 싣고 오고,
+    // 402 는 잔여 0 을 싣는다. 활성 스냅샷에만 반영된다(buildSnapshotFromStatus 를 거치지 않는다).
+    try { passVerdict.storeMonthlyQuotaFromPayload(resolveSubscriptionSnapshotUserId(), parsed.raw); } catch {}
     if (parsed.ok && parsed.data) {
       invalidateBillingBalanceCache();
       normalizeBillingBalanceFields(parsed.data as BillingCoinGateData & Record<string, unknown>);
@@ -3809,7 +3840,9 @@ async function recordMembershipPassInBackground(input: BillingCoinGateInput, att
       // 서버는 거절)만 잠그고 세션·스냅샷을 정정한다.
       const snapshotAtDenial = readSubscriptionSnapshotForUser(undefined, { allowStaleNone: true });
       const deniedCoinCost = resolveKnownCoinCost(input, null);
+      // 월 한도 소진 402 도 잠그지 않는다 — 위에서 스냅샷 잔여를 0 으로 되썼으므로 다음 판정은 스냅샷이 스스로 거절한다.
       const deniedByPassLimitOnly = code === "PRICE_EXCEEDS_PASS_LIMIT"
+        || passVerdict.isMonthlyLimitPayload(parsed.raw)
         || Boolean(
           snapshotAtDenial
           && snapshotAtDenial.state === "active"

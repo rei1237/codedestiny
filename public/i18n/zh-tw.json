@@ -1838,7 +1838,8 @@
         "passUnknown": "如果你有通行證，點擊下方通行證卡片即可當場確認。",
         "passSaveUnverified": "未能儲存通行券的套用結果。可用下方的通行券卡片重新確認，或選擇其他付款方式。",
         "passCheckFailed": "通行券確認失敗。可用下方的通行券卡片重新確認，或選擇其他付款方式。",
-        "passMiss": "你的通行證無法免費開啟此內容，請選擇付款方式。"
+        "passMiss": "你的通行證無法免費開啟此內容，請選擇付款方式。",
+        "passMonthlyExhausted": "本月通行證額度已用完，因此開啟了付款方式選擇視窗。下月將重置。"
       },
       "passBadge": "月光通行券",
       "passStoreTitle": "月光通行券商店",
@@ -1906,7 +1907,9 @@
         "giftGroup": "禮券",
         "comingSoon": "敬請期待",
         "back": "返回"
-      }
+      },
+      "passMonthlyExhausted": "本月通行證額度已用完。下月將重置，現在可以透過單次付款或月精石解鎖。",
+      "passMonthlyRemaining": "本月剩餘額度 {remaining} / {limit}"
     },
     "overlay": {
       "unlockPreparing": {

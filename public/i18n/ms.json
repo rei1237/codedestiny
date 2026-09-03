@@ -1838,7 +1838,8 @@
         "passUnknown": "Jika anda ada pas, ketik kad pas di bawah dan kami semak terus di sini.",
         "passSaveUnverified": "Kami tidak dapat menyimpan hasil penggunaan Pas anda. Semak semula dengan kad Pas di bawah, atau pilih kaedah pembayaran lain.",
         "passCheckFailed": "Kami tidak dapat menyemak Pas anda. Cuba semula dengan kad Pas di bawah, atau pilih kaedah pembayaran lain.",
-        "passMiss": "Pas anda tidak membuka kandungan ini secara percuma, jadi ini pilihan pembayaran."
+        "passMiss": "Pas anda tidak membuka kandungan ini secara percuma, jadi ini pilihan pembayaran.",
+        "passMonthlyExhausted": "You've used this month's pass allowance, so here are the payment options. It resets next month."
       },
       "passBadge": "Pas Cahaya Bulan",
       "passStoreTitle": "Kedai Moonlight Pass",
@@ -1906,7 +1907,9 @@
         "giftGroup": "Gift certificate",
         "comingSoon": "Akan datang",
         "back": "Kembali"
-      }
+      },
+      "passMonthlyExhausted": "You've used this month's pass allowance. It resets next month; for now you can open this with a one-time payment or moonstones.",
+      "passMonthlyRemaining": "Remaining this month {remaining} / {limit}"
     },
     "overlay": {
       "unlockPreparing": {

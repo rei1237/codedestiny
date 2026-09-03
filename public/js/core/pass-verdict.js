@@ -53,9 +53,14 @@
   // 건당 상한과는 별개의 AND 게이트 — 이번 건이 건당 상한을 통과해도 이번 사이클
   // 누적 사용액이 이 값을 넘으면 이용권으로 커버되지 않는다.
   var MONTHLY_PASS_LIMIT_BY_TIER = { family: 5000, vvip: 2000, premium: 1000, standard: 300, free: 0 };
-  // 월 누적 잔여 캐시(monthlySpendRemainingCoin)를 신선하다고 볼 상한. 이 안에서는 서버
-  // 왕복 없이 로컬 값으로 판정하고, 넘기면 "모름"으로 남겨 서버 최종 판정으로 넘긴다.
-  var MONTHLY_QUOTA_CACHE_TTL_MS = ACTIVE_TTL_MS;
+  // 월 누적 잔여 캐시(monthlySpendRemainingCoin)에는 신선도 상한이 없다. 잔여는 사이클 안에서
+  // 단조 감소(소비만 있고 환불은 드묾)하므로 낡은 캐시로 내린 '부족' 판정은 여전히 참이고,
+  // 사이클이 바뀌면 서버 상태 응답(storeStatus)이 새 잔여로 덮어쓴다. 예전엔 TTL(5분) 밖의
+  // 캐시를 "모름"으로 버려 한도 소진자가 매번 낙관 통과→백그라운드 402 를 겪었다(2026-09-03).
+  // 거부 사유 문자열은 서버 billing.js 의 deny reason 과 같은 값을 쓴다.
+  var REASON_MONTHLY_LIMIT = "monthly_pass_limit_exceeded";
+  var REASON_PASS_LIMIT = "snapshot_pass_limit_exceeded";
+  var REASON_NONE = "subscription_snapshot_none";
   /* 🔴 '프리미엄 상담 포함 횟수'는 2026-08-24 폐지됐다(서버 정본
      worker/lib/profile-limits.js 의 PREMIUM_QUOTA_INCLUDED_USES_BY_TIER 가 빈 표다).
      그래서 여기에도 그 개념이 없다 — 판정은 건당 상한 + 월 이용 한도 둘뿐이다.
@@ -66,6 +71,14 @@
 
   function text(value) {
     return String(value === null || value === undefined ? "" : value).trim();
+  }
+
+  // 🔴 Number(null) === 0 이다. 월 한도 필드는 "없음"(null/undefined/"")과 "잔여 0"이 정반대
+  // 뜻이라 — 전자는 검사 생략, 후자는 확정 거부 — 없음을 NaN 으로 돌려 둘을 갈라 둔다.
+  // 2026-09-03 에 이 구분이 없어 월 한도 정보 없는 활성 이용권이 전부 거부됐다(테스트가 잡음).
+  function numberOrNaN(value) {
+    if (value === null || value === undefined || value === "") return NaN;
+    return Number(value);
   }
 
   function getStorage() {
@@ -163,8 +176,8 @@
       var tier = normalizeTier(parsed.tier);
       var checkedAt = Number(parsed.checkedAt);
       var expiresAt = normalizeDate(parsed.expiresAt);
-      var monthlySpendRemainingCoin = Number(parsed.monthlySpendRemainingCoin);
-      var monthlyCheckedAt = Number(parsed.monthlyCheckedAt);
+      var monthlySpendRemainingCoin = numberOrNaN(parsed.monthlySpendRemainingCoin);
+      var monthlyCheckedAt = numberOrNaN(parsed.monthlyCheckedAt);
       if (snapshotUserId !== uid || !state || !Number.isFinite(checkedAt) || (state === "active" && tier === "free")) {
         removeSnapshot(uid);
         return null;
@@ -280,7 +293,7 @@
     // 캐시로 반영하고(monthlyCheckedAt=지금), 없으면 null로 남겨 resolveVerdict가 "모름"으로 처리한다.
     var monthlySpendRemainingRaw = data.monthlySpendRemaining ?? nested.monthlySpendRemaining
       ?? membership.monthlySpendRemaining ?? membershipPass.monthlySpendRemaining;
-    var monthlySpendRemainingCoin = Number(monthlySpendRemainingRaw);
+    var monthlySpendRemainingCoin = numberOrNaN(monthlySpendRemainingRaw);
     var hasMonthlySpendRemaining = state === "active" && Number.isFinite(monthlySpendRemainingCoin);
     return {
       userId: normalizeUserId(userId),
@@ -306,8 +319,8 @@
     var uid = normalizeUserId(userId);
     if (!storage || !uid || !snapshot) return null;
     try {
-      var monthlySpendRemainingCoin = Number(snapshot.monthlySpendRemainingCoin);
-      var monthlyCheckedAt = Number(snapshot.monthlyCheckedAt);
+      var monthlySpendRemainingCoin = numberOrNaN(snapshot.monthlySpendRemainingCoin);
+      var monthlyCheckedAt = numberOrNaN(snapshot.monthlyCheckedAt);
       var hasMonthly = Number.isFinite(monthlySpendRemainingCoin) && Number.isFinite(monthlyCheckedAt);
       // 이번 갱신에 월 한도 정보가 없으면(예: 이용권 정보만 담은 다른 상태 응답) 무작정 지우지
       // 않는다 — 같은 이용권(같은 등급·만료일)이면 기존 캐시를 그대로 보존한다. 등급/만료일이
@@ -401,10 +414,14 @@
       hasActivePass: false,
       coversNow: false,
       cannotCover: false,
+      // cannotCover 일 때만 채워진다. 호출부는 이 값을 payment_required 의 reason 으로 쓰고,
+      // 결제창은 REASON_MONTHLY_LIMIT 이면 '이용권 상점' 으로 튕기지 않는다(이용권은 있다).
+      reason: "",
     };
     if (!snapshot || !(cost > 0)) return result;
     if (snapshot.state === "none") {
       result.cannotCover = true;
+      result.reason = REASON_NONE;
       return result;
     }
     if (snapshot.state !== "active") return result;
@@ -416,20 +433,22 @@
     // 월 이용 한도 검사로 넘어간다. 나머지 등급은 상한을 넘으면 여기서 확정 거부다.
     if (cost > limit) {
       result.cannotCover = true;
+      result.reason = REASON_PASS_LIMIT;
       return result;
     }
-    // 월 이용 한도: 로컬 캐시가 신선하고(TTL 이내) 남은 한도가 이번 건보다 적다는 게 확인될
-    // 때만 확정 거부한다. 캐시가 없거나 낡았으면 검사를 건너뛰고 기존처럼 낙관 통과시킨다 —
-    // "캐시가 없으면 결제창으로" 를 택하면, 캐시가 아직 한 번도 채워지지 않은 모든 사용자가
-    // 매번 서버 왕복을 타게 되어 이 파일이 막으려는 바로 그 회귀(TTL 초과 시 재왕복)가 다시
-    // 생긴다. 최종 확정은 실제 소비 시점의 서버 재검사(consumeTierPassIfAvailable)가 맡는다.
+    // 월 이용 한도: 로컬 캐시에 남은 한도가 있고 그 값이 이번 건보다 적으면 확정 거부한다.
+    // 캐시 나이는 보지 않는다(상단 REASON_MONTHLY_LIMIT 주석). 캐시가 없으면(null) 검사를
+    // 건너뛰고 낙관 통과시킨다 — "캐시가 없으면 결제창으로" 를 택하면, 캐시가 아직 한 번도
+    // 채워지지 않은 모든 사용자가 매번 서버 왕복을 타게 된다. 최종 확정은 실제 소비 시점의
+    // 서버 재검사(consumeTierPassIfAvailable)가 맡고, 그 402 는 storeMonthlyQuotaFromPayload 로
+    // 캐시에 반영돼 다음 진입부터 여기서 걸린다.
     var monthlyLimit = monthlyLimitForTier(snapshot.tier);
     if (monthlyLimit > 0) {
-      var monthlyRemaining = Number(snapshot.monthlySpendRemainingCoin);
-      var monthlyAge = Date.now() - Number(snapshot.monthlyCheckedAt);
-      var monthlyFresh = Number.isFinite(snapshot.monthlyCheckedAt) && monthlyAge >= 0 && monthlyAge <= MONTHLY_QUOTA_CACHE_TTL_MS;
-      if (Number.isFinite(monthlyRemaining) && monthlyFresh && monthlyRemaining < cost) {
+      // "캐시 없음"(null) 은 검사 생략, "잔여 0" 은 확정 거부 — numberOrNaN 이 둘을 가른다.
+      var monthlyRemaining = numberOrNaN(snapshot.monthlySpendRemainingCoin);
+      if (Number.isFinite(monthlyRemaining) && monthlyRemaining < cost) {
         result.cannotCover = true;
+        result.reason = REASON_MONTHLY_LIMIT;
         return result;
       }
     }
@@ -452,11 +471,51 @@
       coinCost: cost,
       canUseByPass: verdict.coversNow,
       stale: verdict.stale,
+      // 거부 사유. 호출부가 payment_required 의 reason 으로 쓰고, 결제창의 pass-store 핸들러는
+      // REASON_MONTHLY_LIMIT 이면 상점으로 보내지 않는다.
+      deniedReason: verdict.reason,
       // 'none' 의 source 는 고정 문자열이다 — 호출부가 이 값을 payment_required 의 reason 으로 그대로 쓴다.
       source: snapshot.state === "none"
-        ? "subscription_snapshot_none"
+        ? REASON_NONE
         : (text(sourceLabel) || text(snapshot.source) || "subscription_snapshot_active"),
     };
+  }
+
+  // coin-gate 응답(성공 200·거부 402 모두)의 월 한도 필드를 **활성 스냅샷에만** 반영한다.
+  // 스냅샷 생성 경로(buildSnapshotFromStatus)는 건드리지 않는다 — coin-gate 응답에는 이용권
+  // 상태가 없어 그걸로 스냅샷을 만들면 'none' 을 날조한다. 기존 캐시가 있으면 더 작은 값을
+  // 택한다(잔여는 단조 감소; 늦게 도착한 옛 응답이 캐시를 되돌리지 못하게). checkedAt 은
+  // 이용권 상태의 신선도라 여기서 바꾸지 않는다.
+  function storeMonthlyQuotaFromPayload(userId, payload) {
+    var uid = normalizeUserId(userId);
+    if (!uid || !payload || typeof payload !== "object") return null;
+    var data = payload.data && typeof payload.data === "object" ? payload.data : payload;
+    var error = payload.error && typeof payload.error === "object" ? payload.error : {};
+    // 성공 200 은 data.paymentOptions(=buildPassPaymentDecision) 안에, 402 는 최상위 스프레드에 있다.
+    var options = data.paymentOptions && typeof data.paymentOptions === "object" ? data.paymentOptions : {};
+    var remainingRaw = data.monthlySpendRemaining ?? options.monthlySpendRemaining
+      ?? payload.monthlySpendRemaining ?? error.monthlySpendRemaining;
+    var remaining = Number(remainingRaw);
+    if (remainingRaw === null || remainingRaw === undefined || !Number.isFinite(remaining)) return null;
+    var existing = readSnapshot(uid);
+    if (!existing || existing.state !== "active") return null;
+    var next = Math.max(0, Math.floor(remaining));
+    if (Number.isFinite(existing.monthlySpendRemainingCoin)) next = Math.min(next, existing.monthlySpendRemainingCoin);
+    return writeSnapshot(uid, Object.assign({}, existing, {
+      monthlySpendRemainingCoin: next,
+      monthlyCheckedAt: Date.now(),
+    }));
+  }
+
+  // coin-gate 402 가 '월 한도 소진' 때문인지 판정한다. 서버 정본은 buildPassPaymentDecision 의
+  // decisionReason 이고, 402 는 최상위 스프레드·paymentOptions·data 세 자리 중 하나에 실려 온다.
+  // 세 결제창 렌더러가 이 한 함수로 "이용권은 있으니 상점으로 보내지 않는다"를 판정한다.
+  function isMonthlyLimitPayload(payload) {
+    if (!payload || typeof payload !== "object") return false;
+    var data = payload.data && typeof payload.data === "object" ? payload.data : payload;
+    var options = data.paymentOptions && typeof data.paymentOptions === "object" ? data.paymentOptions : {};
+    var reason = data.decisionReason ?? options.decisionReason ?? payload.decisionReason;
+    return String(reason || "").trim().toUpperCase() === "MONTHLY_PASS_LIMIT_EXCEEDED";
   }
 
   return {
@@ -467,6 +526,9 @@
     NONE_STALE_MAX_MS: NONE_STALE_MAX_MS,
     ACTIVE_NO_EXPIRY_MAX_MS: ACTIVE_NO_EXPIRY_MAX_MS,
     ACTIVE_STALE_MAX_MS: ACTIVE_STALE_MAX_MS,
+    REASON_MONTHLY_LIMIT: REASON_MONTHLY_LIMIT,
+    REASON_PASS_LIMIT: REASON_PASS_LIMIT,
+    REASON_NONE: REASON_NONE,
     normalizeTier: normalizeTier,
     passLimitForTier: passLimitForTier,
     monthlyLimitForTier: monthlyLimitForTier,
@@ -480,5 +542,7 @@
     storeStatus: storeStatus,
     resolveVerdict: resolveVerdict,
     coverageFromSnapshot: coverageFromSnapshot,
+    storeMonthlyQuotaFromPayload: storeMonthlyQuotaFromPayload,
+    isMonthlyLimitPayload: isMonthlyLimitPayload,
   };
 });
