@@ -149,9 +149,10 @@ export function resolvePaymentId(body) {
 
 /**
  * 이벤트를 점유한다.
- * @returns {{ claimed: boolean, duplicate: boolean }}
- *   duplicate=true 면 이미 처리됐거나 살아 있는 형제가 처리 중이다 → 200 으로 조용히 끝낸다
- *   (PortOne 에 재전송을 요구할 이유가 없다).
+ * @returns {{ claimed: boolean, duplicate: boolean, busy: boolean }}
+ *   duplicate=true 는 **이미 처리 완료(processed)** 된 이벤트다 → 200 으로 조용히 끝낸다.
+ *   busy=true 는 살아 있는 형제가 아직 처리 중이다 → 409 로 돌려 PortOne 재전송을 살려 둔다.
+ *   (형제가 결국 실패하면 그 재전송이 유일한 복구 장치다 — 200 을 주면 사다리가 끊긴다.)
  */
 export async function reserveEvent(db, { eventId, eventType, paymentId, now = new Date(), payload = null }) {
   try {
@@ -170,26 +171,32 @@ export async function reserveEvent(db, { eventId, eventType, paymentId, now = ne
       createdAt: now,
       updatedAt: now,
     });
-    return { claimed: true, duplicate: false };
+    return { claimed: true, duplicate: false, busy: false };
   } catch (error) {
     if (Number(error?.code) !== 11000) throw error;
   }
 
-  /* 이미 있다. 살아 있는 처리인지 죽은 처리인지는 마지막 시도 시각이 말해 준다.
-     processed 는 재점유하지 않는다 — 성공한 처리를 다시 도는 것이 곧 중복 지급이다. */
+  /* 이미 있다. failed 는 즉시 재점유한다(재전송이 곧 재시도). processing 은 살아 있는지 죽었는지를
+     마지막 시도 시각이 말해 준다. processed 는 재점유하지 않는다 — 성공한 처리를 다시 도는 것이 곧 중복 지급이다. */
   const staleBefore = new Date(now.getTime() - WEBHOOK_STALE_PROCESSING_MS);
   const reclaimed = await db.updateOne(
     PaymentWebhookEvent,
     {
       provider: "portone",
       eventId,
-      status: { $in: ["processing", "failed"] },
-      lastAttemptAt: { $lt: staleBefore },
+      $or: [
+        { status: "processing", lastAttemptAt: { $lt: staleBefore } },
+        { status: "failed" },
+      ],
     },
     { $set: { status: "processing", lastAttemptAt: now, updatedAt: now }, $inc: { attempts: 1 } },
   );
   const claimed = Number(reclaimed?.modifiedCount || 0) === 1;
-  return { claimed, duplicate: !claimed };
+  if (claimed) return { claimed: true, duplicate: false, busy: false };
+
+  const existing = await db.findOne(PaymentWebhookEvent, { provider: "portone", eventId });
+  const processed = String(existing?.status || "") === "processed";
+  return { claimed: false, duplicate: processed, busy: !processed };
 }
 
 export async function markEventProcessed(db, { eventId, now = new Date() }) {

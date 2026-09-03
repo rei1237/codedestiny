@@ -419,6 +419,61 @@ describe("webhook·크론 주체 — grantOrderEntitlement 이용권 분기", ()
     expect(row.entitlementGrantedAt).toBeTruthy();
   });
 
+  test("🔴 PAID+미지급 주문에 웹훅 재생이 오면 지급을 마무리한다 — 재생 단락이 지급을 건너뛰면 안 된다", async () => {
+    const db = makeFakePaymentDb({ uniqueKeys: [["provider", "eventId"]] });
+    const user = seedUser(db);
+    const order = await prepareOrder(db, "premium", "sub-webhook-replay-grant");
+    const row = db.rows.find((r) => r.merchantUid === order.merchantUid);
+    Object.assign(row, { status: "paid", paidAt: new Date(), entitlementGrantedAt: null });
+
+    const { signWebhookPayload } = await import("../../worker/payments/webhook.js");
+    const secret = "whsec_dGVzdC1zZWNyZXQtdmFsdWU=";
+    const rawBody = JSON.stringify({ type: "Transaction.Paid", data: { paymentId: order.merchantUid } });
+    const timestamp = String(Math.floor(Date.now() / 1000));
+    const request = new Request("https://code-destiny.com/api/payments/webhook", {
+      method: "POST",
+      body: rawBody,
+      headers: {
+        "content-type": "application/json",
+        "webhook-id": "evt_replay_grant",
+        "webhook-timestamp": timestamp,
+        "webhook-signature": `v1,${await signWebhookPayload(secret, "evt_replay_grant", timestamp, rawBody)}`,
+      },
+    });
+    const response = await handlePaymentsContext(request, { ...ENV, PORTONE_WEBHOOK_SECRET: secret }, {
+      prefix: "/api/payments",
+      withDb: (_env, _ctx, fn) => fn(db),
+    });
+    expect(response.status).toBe(200); // PG 재조회 없이(fetch 모킹 없음) 재생으로 통과
+    expect(user.profileSubscription.tier).toBe("premium");
+    expect(row.entitlementGrantedAt).toBeTruthy();
+    expect(db.rows.find((r) => r.eventId === "evt_replay_grant").status).toBe("processed");
+  });
+
+  test("🔴 구 재조정 크론의 정산 — PENDING 이용권 주문을 PG 결과 주입으로 확정·지급한다 (settleOrderFromReconcile)", async () => {
+    const db = makeFakePaymentDb();
+    const user = seedUser(db);
+    const order = await prepareOrder(db, "standard", "sub-reconcile-settle");
+    const row = db.rows.find((r) => r.merchantUid === order.merchantUid);
+    expect(row.status).toBe("pending");
+
+    const { settleOrderFromReconcile } = await import("../../worker/payments/index.js");
+    const pgPayment = {
+      paymentId: order.merchantUid, status: "paid", amount: Number(row.paymentAmount), currency: "KRW",
+      pay_method: "kakaopay", paid_at: Math.floor(Date.now() / 1000),
+    };
+    const result = await settleOrderFromReconcile(ENV, { orderId: order.merchantUid, pgPayment }, { withDb: (_e, _c, fn) => fn(db) });
+    expect(result).toEqual({ ok: true, replayed: false, granted: true });
+    expect(row.status).toBe("paid");
+    expect(row.entitlementGrantedAt).toBeTruthy();
+    expect(user.profileSubscription.tier).toBe("standard");
+    expect(user.profileSubscription.lastPassOrderId).toBe(order.merchantUid);
+
+    // 두 번째 정산(다음 틱)은 재생으로 멱등 — 이중 지급 없음.
+    const again = await settleOrderFromReconcile(ENV, { orderId: order.merchantUid, pgPayment }, { withDb: (_e, _c, fn) => fn(db) });
+    expect(again).toMatchObject({ ok: true, replayed: true, granted: true });
+  });
+
   /* 🔴 카드는 이미 승인됐다. 여기서 503 을 내면 사용자는 결제된 돈에 대해 "실패"를 보고, 재시도해도
      주문이 PAID 라 같은 답만 돌아온다 — confirmOrder 머리주석이 "구 코드의 모순"이라며 제거를 선언한
      그 패턴이 이용권 경로에만 남아 있었다. 마무리는 웹훅 재생과 재조정 크론이 맡는다. */

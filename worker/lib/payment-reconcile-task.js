@@ -180,12 +180,26 @@ export async function reconcilePendingPayments(env, options = {}) {
     }
 
     const status = String(portOnePayment?.status || "").toLowerCase();
+    // 마지막으로 본 PG 상태를 남긴다 — V2 만료(reconcile.js expireStalePendingOrders)는 이 값이 있고
+    // paid 가 아닐 때만 PENDING 을 취소한다(fail-closed). 없으면 "아직 PG 와 대조 안 됨"이다.
+    await Payment.findByIdAndUpdate(candidate._id, { $set: { "metadata.reconcile.lastPgStatus": status } }).catch(() => {});
 
     if (status === "paid") {
-      // 단건 디지털콘텐츠만 자동 정산한다. 다른 유형은 정산 규칙이 이 태스크에 없으므로 손대지 않고
-      // 관리자 화면에서 보이도록 사유만 남긴다(임의 지급 금지).
       const isSinglePurchase = String(candidate.paymentType || "") === "digital_content"
         && String(candidate.accessType || "") === "single_purchase";
+      // V2 주문(orderState 보유)은 유형과 무관하게 V2 확정 경로가 정산한다 — 이용권이 여기 해당한다.
+      if (!isSinglePurchase && String(candidate.orderState || "") === "PENDING") {
+        try {
+          const { settleOrderFromReconcile } = await import("../payments/index.js");
+          await settleOrderFromReconcile(env, { orderId: candidate.merchantUid, pgPayment: portOnePayment });
+          summary.settled += 1;
+        } catch (error) {
+          console.error(`[CRON] payment reconcile v2 settle failed: ${candidate.merchantUid} ${String(error?.message || error).slice(0, 200)}`);
+          summary.failed += 1;
+        }
+        continue;
+      }
+      // 그 밖의 유형은 정산 규칙이 이 태스크에 없으므로 손대지 않고 관리자 화면에서 보이도록 사유만 남긴다(임의 지급 금지).
       if (!isSinglePurchase) {
         await markPayment(candidate._id, {
           failureCode: "reconcile_manual_review",
