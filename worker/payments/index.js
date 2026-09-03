@@ -685,6 +685,12 @@ async function grantOrderEntitlement(db, order) {
     invalidateBalanceSnapshot(order?.userId); // 해금 스냅샷(unlockedFeatures/unlockMap) 갱신 반영
     return true;
   } catch (error) {
+    // 무음이면 "PAID 인데 이용권 없음"이 로그에 한 줄도 안 남는다. 크론 regrant 가 다시 시도하므로 던지지는 않는다.
+    console.error("[payments] entitlement grant failed", {
+      orderId: String(order?.merchantUid || ""),
+      code: error?.code || "",
+      message: error?.message || String(error),
+    });
     return false;
   }
 }
@@ -1249,7 +1255,9 @@ const ROUTES = {
       const accepted = await withDb(env, ctx, async (db) => {
         const event = await acceptWebhook(env, db, { rawBody, headers: request.headers });
         ctx.orderId = event.paymentId;
-        // 중복은 조용히 성공이다 — PortOne 에 재전송을 요구할 이유가 없다.
+        // 처리 완료된 중복은 조용히 성공이다 — PortOne 에 재전송을 요구할 이유가 없다.
+        // 처리 중(busy)은 409 — 형제가 결국 실패하면 PortOne 재전송이 유일한 복구 장치라 200 으로 끊지 않는다.
+        if (event.busy) throw paymentError("WEBHOOK_IN_PROGRESS", "webhook event is being processed", { orderId: event.paymentId });
         if (!event.claimed) return { ...event, outcome: { duplicate: true } };
 
         if (event.eventType && !/paid/i.test(event.eventType)) {
@@ -1268,7 +1276,11 @@ const ROUTES = {
         await confirmOrder(env, ctx, { orderId: accepted.paymentId }, {
           withDb,
           begun: accepted.begun,
-          afterSettle: (db) => markEventProcessed(db, { eventId: accepted.eventId }),
+          afterSettle: async (db, settled) => {
+            // PAID 인데 지급이 안 된 주문(재생 포함)은 여기서 지급을 마무리한다 — handlePassConfirm 과 같은 규칙.
+            if (!settled.granted) await grantOrderEntitlement(db, settled.order);
+            await markEventProcessed(db, { eventId: accepted.eventId });
+          },
         });
       } catch (error) {
         /* 실패를 기록하고 **그대로 올린다.** 200 을 주면 PortOne 이 재전송을 멈춰 그 결제가
@@ -1412,6 +1424,27 @@ function applyServerTiming(response, ctx) {
   } catch {
     // 계측은 절대 응답 경로를 바꾸지 않는다.
   }
+}
+
+/**
+ * 🔴 구 재조정 크론(payment-reconcile-task)의 정산 주체 — PENDING 인데 PortOne 이 PAID 라고 말하는
+ * **V2 주문**(이용권 포함)을 웹훅과 같은 confirmOrder 로 확정·지급한다. 이 배선이 없던 동안 이용권은
+ * "자동 정산 경로 없음" 마커만 받고 PENDING 으로 남았다가 30분 만료 취소를 맞았다(2026-09-03).
+ * PG 재조회는 태스크가 이미 한 결과(pgPayment)를 주입해 생략한다 — 슬롯 안 fetch 금지 원칙 유지.
+ * @returns {Promise<{ ok: true, replayed: boolean, granted: boolean }>}
+ */
+export async function settleOrderFromReconcile(env, { orderId, pgPayment = null }, { withDb = withPaymentDb } = {}) {
+  const ctx = createPaymentContext({ requestId: `reconcile-${Date.now().toString(36)}`, route: "CRON payment-reconcile settle" });
+  ctx.orderId = orderId;
+  let granted = false;
+  const result = await confirmOrder(env, ctx, { orderId }, {
+    withDb,
+    deps: pgPayment ? { fetchPayment: async () => pgPayment } : {},
+    afterSettle: async (db, settled) => {
+      granted = settled.granted || await grantOrderEntitlement(db, settled.order);
+    },
+  });
+  return { ok: true, replayed: Boolean(result.replayed), granted };
 }
 
 /**

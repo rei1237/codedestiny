@@ -1646,6 +1646,24 @@ function clearPendingSubscriptionOrder() {
   localStorage.removeItem("fortune_pending_subscription_pass");
 }
 
+/** 주문에 기록된 결제수단(orderMethod)을 대기 화면 문구용 라벨로 푼다. 모르면 빈 문자열 → 종전 문구 그대로. */
+function subscriptionMethodLabel(orderMethod: string | undefined) {
+  const method = String(orderMethod || "").trim().toLowerCase();
+  if (!method) return "";
+  try {
+    const label = checkoutEntry.directPayMethodLabel(method === "card_general" ? "CARD" : method.toUpperCase());
+    return typeof label === "string" ? label.trim() : "";
+  } catch {
+    return "";
+  }
+}
+
+/** 대기 화면 문구 앞에 "{수단} 이용권 결제" 한 줄을 붙인다 — 어느 수단의 결제를 기다리는지 화면이 말한다. */
+function withSubscriptionMethod(orderMethod: string | undefined, text: string) {
+  const label = subscriptionMethodLabel(orderMethod);
+  return label ? `${label} 이용권 결제\n${text}` : text;
+}
+
 /** PG 결제창에서 페이지가 통째로 리다이렉트돼 돌아온 복귀인지. 낙관 이용권 표시의 유일한 발동 조건이다. */
 function isPortOneSubscriptionRedirectReturn() {
   if (typeof window === "undefined") return false;
@@ -1704,6 +1722,8 @@ function savePendingSubscriptionPass(tier: PendingSubscriptionPass["tier"], merc
 // 낙관 이용권은 "PG 결제창에 다녀오는 동안"만 유효하다. 결제창에서 탭을 닫는 등으로 정리 코드가
 // 돌지 못하면 키가 그대로 남는데, TTL 이 없으면 며칠 뒤 재방문에도 이용권 보유로 보인다.
 const PENDING_SUBSCRIPTION_PASS_TTL_MS = 15 * 60 * 1000;
+/** 부팅 재확인이 결제창 직후(아직 PG 창이 열려 있을 수 있는 구간)의 주문을 건드리지 않게 하는 최소 경과 시간. */
+const PENDING_SUBSCRIPTION_BOOT_RETRY_MIN_AGE_MS = 60 * 1000;
 
 function readPendingSubscriptionPass() {
   if (typeof window === "undefined") return null;
@@ -2973,6 +2993,7 @@ export default function PointsPage() {
 
   /** 모바일 리디렉션 복귀를 한 번만 처리하기 위한 플래그 */
   const redirectHandledRef = useRef(false);
+  const pendingSubscriptionBootRetryRef = useRef(false);
   const paymentActionLockRef = useRef<{ key: string; startedAt: number } | null>(null);
   const confirmPaymentInFlightRef = useRef(new Map<string, Promise<ConfirmResponse>>());
   const confirmSubscriptionInFlightRef = useRef(new Map<string, Promise<ConfirmSubscriptionResponse>>());
@@ -3791,10 +3812,14 @@ export default function PointsPage() {
   );
 
   const markSubscriptionPaymentUnknown = useCallback(() => {
-    const merchantUid = pendingSubscriptionConfirmRef.current?.payload.merchantUid || "";
+    const pendingPayload = pendingSubscriptionConfirmRef.current?.payload;
+    const merchantUid = pendingPayload?.merchantUid || "";
     const orderHint = merchantUid ? `\n주문번호 끝자리 ${merchantUid.slice(-4)}` : "";
     setProcessingStage(
-      `결제 결과를 확인하는 데 시간이 걸리고 있어요.\n중복 결제를 시도하지 말아 주세요.${orderHint}`,
+      withSubscriptionMethod(
+        pendingPayload?.paymentMethod,
+        `결제 결과를 확인하는 데 시간이 걸리고 있어요.\n중복 결제를 시도하지 말아 주세요.${orderHint}`,
+      ),
       "subscription",
     );
     setProcessingAction({
@@ -3803,14 +3828,17 @@ export default function PointsPage() {
     });
   }, [setProcessingAction, setProcessingStage]);
 
-  const checkPendingSubscriptionPayment = useCallback(async () => {
+  const checkPendingSubscriptionPayment = useCallback(async (options?: { silentFailure?: boolean }) => {
     const pending = pendingSubscriptionConfirmRef.current;
     if (!pending || subscriptionStatusCheckInFlightRef.current) return;
 
     subscriptionStatusCheckInFlightRef.current = true;
     setProcessingAction(null);
     setIsProcessing(true);
-    setProcessingStage("결제 상태를 다시 확인하고 있어요.\n중복 결제를 시도하지 말아 주세요.", "subscription");
+    setProcessingStage(
+      withSubscriptionMethod(pending.payload.paymentMethod, "결제 상태를 다시 확인하고 있어요.\n중복 결제를 시도하지 말아 주세요."),
+      "subscription",
+    );
 
     try {
       const data = await confirmSubscriptionWithServer(pending.payload);
@@ -3832,7 +3860,10 @@ export default function PointsPage() {
         pendingSubscriptionConfirmRef.current = null;
         discardPendingSubscriptionPass();
         setIsProcessing(false);
-        pushToast("error", getErrorMessage(error, "결제 결과를 확인하지 못했습니다. 잠시 후 다시 확인해 주세요."));
+        // 부팅 재확인(결제창을 닫고 나온 사용자)에는 오류를 띄우지 않는다 — 사용자가 시작한 확인만 알린다.
+        if (!options?.silentFailure) {
+          pushToast("error", getErrorMessage(error, "결제 결과를 확인하지 못했습니다. 잠시 후 다시 확인해 주세요."));
+        }
       }
     } finally {
       subscriptionStatusCheckInFlightRef.current = false;
@@ -4133,7 +4164,7 @@ export default function PointsPage() {
     setIsProcessing(true);
     setProcessingStage(
       isSubscriptionRedirect
-        ? "결제 결과를 확인하고 있어요.\n중복 결제를 시도하지 말아 주세요."
+        ? withSubscriptionMethod(pendingSubscription?.paymentMethod, "결제 결과를 확인하고 있어요.\n중복 결제를 시도하지 말아 주세요.")
         : "결제 결과를 확인하고 있어요.\n중복 결제를 시도하지 말아 주세요.",
       isSubscriptionRedirect ? "subscription" : "confirm",
     );
@@ -4144,7 +4175,8 @@ export default function PointsPage() {
 
       if (!pendingSub || !merchantUid) {
         discardPendingSubscriptionPass();
-        pushToast("error", "이용권 결제 복귀 정보를 찾지 못했습니다. 다시 시도해 주세요.");
+        // 복귀 정보가 없어도 PG 승인분은 웹훅·재조정 크론이 정산한다 — 재결제를 유도하지 않는다.
+        pushToast("info", "이용권 결제 복귀 정보를 찾지 못했습니다. 결제가 승인됐다면 잠시 뒤(최대 20분) 자동으로 반영되니 다시 결제하지 마세요.");
         if (window.location.search) {
           window.history.replaceState({}, "", window.location.pathname);
         }
@@ -4288,6 +4320,56 @@ export default function PointsPage() {
     void handleSubscribe(plan);
   };
 
+  /* ── 부팅 시 미확정 이용권 주문 재확인 ─────────────────────────────
+     결제창 승인 뒤 confirm 이 22초 타임아웃·탭 이탈로 끊기면 대기 payload 는 메모리에만 있어 사라졌다.
+     localStorage 의 대기 주문이 살아 있으면(15분 TTL) 리다이렉트 복귀가 아니어도 한 번 다시 확정한다.
+     🔴 락은 리다이렉트 복귀와 같은 키 체계를 쓴다(새 락 금지) — 같은 주문을 두 경로가 동시에 확정하지 않는다.
+     확정 실패는 조용히 버린다(결제창을 닫고 나온 사용자에게 오류를 띄우지 않는다). */
+  useEffect(() => {
+    if (isBooting || pendingSubscriptionBootRetryRef.current) return;
+    if (typeof window === "undefined") return;
+    // 리다이렉트 복귀는 위 효과가 맡는다 — 복귀 마커가 있으면 여기서는 손대지 않는다.
+    const query = new URLSearchParams(window.location.search);
+    if (
+      query.get("portone_redirect") || query.get("portone_subscription_redirect")
+      || query.get("paymentId") || query.get("payment_id") || query.get("imp_uid")
+    ) return;
+    pendingSubscriptionBootRetryRef.current = true;
+    if (pendingSubscriptionConfirmRef.current) return;
+
+    const pendingSub = readPendingSubscriptionOrder();
+    if (!pendingSub?.merchantUid) return;
+    const pendingPass = readPendingSubscriptionPass();
+    if (!pendingPass || pendingPass.merchantUid !== pendingSub.merchantUid) {
+      // 15분 TTL 이 지났거나 짝이 안 맞는다 — 그 뒤는 서버(웹훅·재조정 크론)가 정산 주체다.
+      clearPendingSubscriptionOrder();
+      return;
+    }
+    // 결제창이 아직 열려 있을 수 있는 직후는 건드리지 않는다 — 미결제 주문을 confirm 하면 서버가 실패로 확정한다.
+    if (Date.now() - pendingPass.startedAt < PENDING_SUBSCRIPTION_BOOT_RETRY_MIN_AGE_MS) return;
+
+    // V2 는 paymentId == merchantUid 다(결제창 요청에 주문번호를 그대로 싣는다).
+    const retryKey = `subscription:${pendingSub.merchantUid}:${pendingSub.merchantUid}`;
+    if (!acquirePaymentRedirectLock(retryKey)) return;
+    pendingSubscriptionConfirmRef.current = {
+      payload: {
+        impUid: pendingSub.merchantUid,
+        merchantUid: pendingSub.merchantUid,
+        tier: pendingSub.tier,
+        planId: pendingSub.planId,
+        durationMonths: pendingSub.durationMonths || 1,
+        productType: "membership_pass",
+        customerUid: pendingSub.customerUid,
+        paymentMethod: pendingSub.paymentMethod,
+        durationDays: 30,
+      },
+      fromRedirect: false,
+    };
+    void checkPendingSubscriptionPayment({ silentFailure: true }).finally(() => {
+      releasePaymentRedirectLock(retryKey);
+    });
+  }, [checkPendingSubscriptionPayment, isBooting]);
+
   /* ── 이용권(30일) 결제 핸들러 — PortOne V2 · KG이니시스 ─────────── */
   const handleSubscribe = async (plan: SubscriptionPlan) => {
     if (pendingSubscriptionConfirmRef.current) return;
@@ -4328,7 +4410,10 @@ export default function PointsPage() {
       checkoutAssets.catch(() => {});
 
       setPendingSubscriptionPaymentPlan(null);
-      setProcessingStage("30일 이용권 결제 정보를 준비하고 있어요.\n중복 결제를 시도하지 말아 주세요.", "checkout");
+      setProcessingStage(
+        withSubscriptionMethod(orderMethod, "30일 이용권 결제 정보를 준비하고 있어요.\n중복 결제를 시도하지 말아 주세요."),
+        "checkout",
+      );
       setIsProcessing(true);
 
       const prepareAttempt = await prepareEntry.promise;
@@ -4483,7 +4568,10 @@ export default function PointsPage() {
       }
 
       try {
-        setProcessingStage("결제 승인 내역을 안전하게 확인하고 있어요.\n중복 결제를 시도하지 말아 주세요.", "subscription");
+        setProcessingStage(
+          withSubscriptionMethod(orderMethod, "결제 승인 내역을 안전하게 확인하고 있어요.\n중복 결제를 시도하지 말아 주세요."),
+          "subscription",
+        );
         setIsProcessing(true);
         const confirmPayload: SubscriptionConfirmPayload = {
           impUid: paymentId,

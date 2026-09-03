@@ -134,15 +134,15 @@ describe("중복 수신", () => {
 
   test("처음 받으면 점유한다", async () => {
     const db = makeWebhookDb();
-    expect(await reserveEvent(db, base)).toEqual({ claimed: true, duplicate: false });
+    expect(await reserveEvent(db, base)).toEqual({ claimed: true, duplicate: false, busy: false });
     expect(db.rows).toHaveLength(1);
     expect(db.rows[0].status).toBe("processing");
   });
 
-  test("🔴 같은 이벤트를 두 번 받으면 두 번째는 처리하지 않는다", async () => {
+  test("🔴 같은 이벤트를 두 번 받으면 두 번째는 처리하지 않는다 — 형제가 살아 있으면 busy 다", async () => {
     const db = makeWebhookDb();
     await reserveEvent(db, base);
-    expect(await reserveEvent(db, base)).toEqual({ claimed: false, duplicate: true });
+    expect(await reserveEvent(db, base)).toEqual({ claimed: false, duplicate: false, busy: true });
     expect(db.rows).toHaveLength(1);
   });
 
@@ -151,7 +151,7 @@ describe("중복 수신", () => {
     await reserveEvent(db, base);
     await markEventProcessed(db, { eventId: EVENT });
     const long = new Date(Date.now() + WEBHOOK_STALE_PROCESSING_MS * 10);
-    expect(await reserveEvent(db, { ...base, now: long })).toEqual({ claimed: false, duplicate: true });
+    expect(await reserveEvent(db, { ...base, now: long })).toEqual({ claimed: false, duplicate: true, busy: false });
     expect(db.rows[0].status).toBe("processed");
   });
 
@@ -160,16 +160,16 @@ describe("중복 수신", () => {
     const start = new Date("2026-08-11T00:00:00Z");
     await reserveEvent(db, { ...base, now: start });
     const later = new Date(start.getTime() + WEBHOOK_STALE_PROCESSING_MS + 1000);
-    expect(await reserveEvent(db, { ...base, now: later })).toEqual({ claimed: true, duplicate: false });
+    expect(await reserveEvent(db, { ...base, now: later })).toEqual({ claimed: true, duplicate: false, busy: false });
     expect(db.rows[0].attempts).toBe(2);
   });
 
-  test("살아 있는 형제가 처리 중이면 기다린다", async () => {
+  test("🔴 살아 있는 형제가 처리 중이면 duplicate 가 아니라 busy 다 — 200 을 주면 재전송 사다리가 끊긴다", async () => {
     const db = makeWebhookDb();
     const start = new Date("2026-08-11T00:00:00Z");
     await reserveEvent(db, { ...base, now: start });
     const soon = new Date(start.getTime() + 30_000);
-    expect(await reserveEvent(db, { ...base, now: soon })).toEqual({ claimed: false, duplicate: true });
+    expect(await reserveEvent(db, { ...base, now: soon })).toEqual({ claimed: false, duplicate: false, busy: true });
   });
 
   test("실패한 이벤트는 재전송 때 다시 시도된다", async () => {
@@ -179,6 +179,16 @@ describe("중복 수신", () => {
     await markEventFailed(db, { eventId: EVENT, reason: "boom", now: start });
     const later = new Date(start.getTime() + WEBHOOK_STALE_PROCESSING_MS + 1000);
     expect((await reserveEvent(db, { ...base, now: later })).claimed).toBe(true);
+  });
+
+  test("🔴 실패한 이벤트는 2분을 기다리지 않고 즉시 재점유한다 — PortOne 첫 재전송(1분)이 그 창 안에 온다", async () => {
+    const db = makeWebhookDb();
+    const start = new Date("2026-08-11T00:00:00Z");
+    await reserveEvent(db, { ...base, now: start });
+    await markEventFailed(db, { eventId: EVENT, reason: "boom", now: start });
+    const soon = new Date(start.getTime() + 60_000);
+    expect(await reserveEvent(db, { ...base, now: soon })).toEqual({ claimed: true, duplicate: false, busy: false });
+    expect(db.rows[0].attempts).toBe(2);
   });
 });
 

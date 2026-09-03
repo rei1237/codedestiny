@@ -128,6 +128,58 @@ test("Transaction.VirtualAccountIssued: 카드 전용 서비스 — ack 만 하�
   expect(order.status).toBe("pending");
 });
 
+test("🔴 같은 이벤트를 형제가 처리 중이면 409 WEBHOOK_IN_PROGRESS — 200 은 PortOne 재전송 사다리를 끊는다", async () => {
+  const db = makeDb();
+  seedOrder(db);
+  // 첫 수신이 아직 processing 인 상태를 시드한다(2분 재점유 창 안).
+  db.rows.push({
+    provider: "portone", eventId: "evt_busy", status: "processing", attempts: 1,
+    receivedAt: new Date(), lastAttemptAt: new Date(),
+  });
+  const rawBody = JSON.stringify({ type: "Transaction.Paid", data: { paymentId: "cdorder1" } });
+  const timestamp = String(Math.floor(Date.now() / 1000));
+  const request = new Request("https://code-destiny.com/api/payments/webhook", {
+    method: "POST",
+    body: rawBody,
+    headers: {
+      "content-type": "application/json",
+      "webhook-id": "evt_busy",
+      "webhook-timestamp": timestamp,
+      "webhook-signature": `v1,${await signWebhookPayload(SECRET, "evt_busy", timestamp, rawBody)}`,
+    },
+  });
+  const response = await handlePaymentsContext(request, ENV, { prefix: "/api/payments", withDb: async (_e, _c, fn) => fn(db) });
+  const payload = await response.json();
+  expect(response.status).toBe(409);
+  expect(payload.code).toBe("WEBHOOK_IN_PROGRESS");
+  expect(payload.retryable).toBe(true);
+  // 형제의 점유는 그대로다 — 뺏지도, 처리 완료로 바꾸지도 않는다.
+  const event = db.rows.find((r) => r.eventId === "evt_busy");
+  expect(event.status).toBe("processing");
+  expect(event.attempts).toBe(1);
+});
+
+test("🔴 이미 처리 완료된 이벤트의 재수신은 200 duplicate — 재전송을 요구하지 않는다", async () => {
+  const db = makeDb();
+  seedOrder(db);
+  db.rows.push({ provider: "portone", eventId: "evt_done", status: "processed", attempts: 1, lastAttemptAt: new Date() });
+  const rawBody = JSON.stringify({ type: "Transaction.Paid", data: { paymentId: "cdorder1" } });
+  const timestamp = String(Math.floor(Date.now() / 1000));
+  const request = new Request("https://code-destiny.com/api/payments/webhook", {
+    method: "POST",
+    body: rawBody,
+    headers: {
+      "content-type": "application/json",
+      "webhook-id": "evt_done",
+      "webhook-timestamp": timestamp,
+      "webhook-signature": `v1,${await signWebhookPayload(SECRET, "evt_done", timestamp, rawBody)}`,
+    },
+  });
+  const response = await handlePaymentsContext(request, ENV, { prefix: "/api/payments", withDb: async (_e, _c, fn) => fn(db) });
+  expect(response.status).toBe(200);
+  expect(await response.json()).toMatchObject({ ok: true, duplicate: true });
+});
+
 test("모르는 주문의 취소 이벤트는 조용히 ack 한다(재전송 요구 없음)", async () => {
   const db = makeDb();
   const { response, payload } = await postWebhook(db, { type: "Transaction.Cancelled", data: { paymentId: "cd-unknown" } });

@@ -96,14 +96,35 @@ describe("오래된 PENDING 주문", () => {
   test("유예를 넘긴 것만 취소한다", async () => {
     const db = makeFakePaymentDb();
     await seed(db, [
-      { merchantUid: "cd-old", status: "pending", createdAt: ago(PENDING_EXPIRY_MS + 60_000) },
-      { merchantUid: "cd-new", status: "pending", createdAt: ago(60_000) },
+      { merchantUid: "cd-old", status: "pending", createdAt: ago(PENDING_EXPIRY_MS + 60_000), metadata: { reconcile: { lastPgStatus: "ready" } } },
+      { merchantUid: "cd-new", status: "pending", createdAt: ago(60_000), metadata: { reconcile: { lastPgStatus: "ready" } } },
     ]);
     const report = await expireStalePendingOrders(db, { now: NOW });
     expect(report).toMatchObject({ scanned: 1, cancelled: 1 });
     expect(db.rows.find((r) => r.merchantUid === "cd-old").status).toBe("cancelled");
     expect(db.rows.find((r) => r.merchantUid === "cd-old").failureCode).toBe("ORDER_EXPIRED");
     expect(db.rows.find((r) => r.merchantUid === "cd-new").status).toBe("pending");
+  });
+
+  test("🔴 PG 와 대조한 적 없는 PENDING 은 취소하지 않는다 — 취소하면 돈만 나가고 되살릴 주체가 없다", async () => {
+    const db = makeFakePaymentDb();
+    await seed(db, [
+      { merchantUid: "cd-unprobed", status: "pending", createdAt: ago(PENDING_EXPIRY_MS * 10) },
+      { merchantUid: "cd-claimed-only", status: "pending", createdAt: ago(PENDING_EXPIRY_MS * 10), metadata: { reconcile: { attempts: 1 } } },
+    ]);
+    expect(await expireStalePendingOrders(db, { now: NOW })).toEqual({ scanned: 0, cancelled: 0 });
+    expect(db.rows.every((r) => r.status === "pending")).toBe(true);
+  });
+
+  test("🔴 PortOne 이 PAID 라고 본 PENDING 은 취소하지 않는다 — 구 태스크의 정산(settleOrderFromReconcile) 몫이다", async () => {
+    const db = makeFakePaymentDb();
+    await seed(db, [
+      { merchantUid: "cd-pg-paid", status: "pending", createdAt: ago(PENDING_EXPIRY_MS * 10), metadata: { reconcile: { lastPgStatus: "paid" } } },
+      { merchantUid: "cd-pg-failed", status: "pending", createdAt: ago(PENDING_EXPIRY_MS * 10), metadata: { reconcile: { lastPgStatus: "failed" } } },
+    ]);
+    expect(await expireStalePendingOrders(db, { now: NOW })).toEqual({ scanned: 1, cancelled: 1 });
+    expect(db.rows.find((r) => r.merchantUid === "cd-pg-paid").status).toBe("pending");
+    expect(db.rows.find((r) => r.merchantUid === "cd-pg-failed").status).toBe("cancelled");
   });
 
   test("🔴 PAID 주문은 절대 취소되지 않는다", async () => {
@@ -140,7 +161,7 @@ describe("크론 진입점", () => {
     const db = makeFakePaymentDb();
     await seed(db, [
       { merchantUid: "cd1", status: "paid", entitlementGrantedAt: null, updatedAt: ago(10 * 60_000) },
-      { merchantUid: "cd2", status: "pending", createdAt: ago(PENDING_EXPIRY_MS + 60_000) },
+      { merchantUid: "cd2", status: "pending", createdAt: ago(PENDING_EXPIRY_MS + 60_000), metadata: { reconcile: { lastPgStatus: "ready" } } },
       { merchantUid: "cd3", status: "paid", entitlementGrantedAt: ago(1), refundLock: ago(REFUND_LOCK_TTL_MS + 10_000) },
     ]);
     const report = await runPaymentReconcile(db, { grant: async () => {}, now: NOW });

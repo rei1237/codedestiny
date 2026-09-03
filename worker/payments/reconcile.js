@@ -61,12 +61,22 @@ export async function regrantUnfulfilledOrders(db, { grant, now = new Date(), li
   return { scanned: orders.length, repaired, failed };
 }
 
-/** 오래된 PENDING 주문을 취소한다. 주체가 없으므로 나이 조건이 소유권을 대신한다. */
+/**
+ * 오래된 PENDING 주문을 취소한다. 주체가 없으므로 나이 조건이 소유권을 대신한다.
+ * 🔴 fail-closed: 구 재조정 태스크가 PortOne 과 대조해 남긴 `metadata.reconcile.lastPgStatus` 가 있고
+ * 그 값이 paid 가 아닌 주문만 취소한다. 대조한 적 없는 주문·PG 가 PAID 라는 주문은 그대로 둔다 —
+ * 그 주문은 다음 틱의 구 태스크가 정산(settleOrderFromReconcile)한다. 취소해 버리면 돈만 나가고
+ * 어떤 주체도 되살릴 수 없다(2026-09-03 이용권 미적용 사고).
+ */
 export async function expireStalePendingOrders(db, { now = new Date(), limit = 50, olderThanMs = PENDING_EXPIRY_MS } = {}) {
   const cutoff = new Date(now.getTime() - olderThanMs);
   const orders = await db.find(
     Payment,
-    { status: "pending", createdAt: { $lt: cutoff } },
+    {
+      status: "pending",
+      createdAt: { $lt: cutoff },
+      "metadata.reconcile.lastPgStatus": { $exists: true, $nin: ["paid"] },
+    },
     { limit },
   );
 

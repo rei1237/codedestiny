@@ -76,6 +76,8 @@ export const PAYMENT_ERROR_TABLE = Object.freeze({
   SUBSCRIPTION_DOWNGRADE_BLOCKED: { status: 409 },
   // 아래 셋은 "지금은 안 되지만 곧 된다" — 장애가 아니라 동시성이라 409 이면서 retryable 이다.
   REFUND_IN_PROGRESS: { status: 409, retryable: true },
+  // 같은 웹훅 이벤트를 살아 있는 형제가 처리 중 — non-2xx 라야 PortOne 재전송 사다리가 살아 있다.
+  WEBHOOK_IN_PROGRESS: { status: 409, retryable: true },
   MOONSTONE_CONTENDED: { status: 409, retryable: true },
   MOONSTONE_IN_PROGRESS: { status: 409, retryable: true },
 

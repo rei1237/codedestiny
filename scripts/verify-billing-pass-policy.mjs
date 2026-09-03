@@ -613,14 +613,16 @@ const handleSubscribeStart = pointsSource.indexOf("const handleSubscribe = async
 const subscriptionCancelStart = pointsSource.indexOf("const handleSubscriptionCancel = async", handleSubscribeStart);
 assert.ok(handleSubscribeStart >= 0 && subscriptionCancelStart > handleSubscribeStart, "points page subscription handlers found");
 const cardSubscriptionSource = pointsSource.slice(handleSubscribeStart, subscriptionCancelStart);
-assertContains(cardSubscriptionSource, 'setProcessingStage("30일 이용권 결제 정보를 준비하고 있어요.\\n중복 결제를 시도하지 말아 주세요.", "checkout")', "card subscription prepare uses checkout wait UI");
+// 대기 문구는 결제수단 라벨을 앞에 붙인다(withSubscriptionMethod) — 카카오페이·카드가 같은 문구를 보이지 않는다.
+assertContains(cardSubscriptionSource, 'withSubscriptionMethod(orderMethod, "30일 이용권 결제 정보를 준비하고 있어요.\\n중복 결제를 시도하지 말아 주세요."),', "card subscription prepare uses method-aware checkout wait copy");
+assertBefore(cardSubscriptionSource, 'withSubscriptionMethod(orderMethod, "30일 이용권 결제 정보를 준비하고 있어요.', '"checkout",', "card subscription prepare uses checkout wait UI");
 assertNotContains(cardSubscriptionSource, 'setProcessingStage("월정석 정보를 확인하는 중이에요", "monthly")', "card subscription checkout must not use monthly wait UI");
 // 🔴 오버레이 정리는 **await 하지 않는다**. 예전에는 이 함수가 rAF 를 await 해서 PG 창을 여는 직전에
 // 한 프레임을 더 먹었다 — 쓸모없는 지연이고, 사용자 제스처와 requestPayment 사이가 벌어져 모바일에서
 // 결제창이 차단될 위험까지 만든다. 정리 → 곧바로 requestPayment 순서만 고정한다.
 assertNotContains(cardSubscriptionSource, "await closeProcessingOverlayBeforeExternalCheckout();", "overlay cleanup must not be awaited before opening the PG window");
 assertBefore(cardSubscriptionSource, "closeProcessingOverlayBeforeExternalCheckout();", "const rsp = await window.PortOne.requestPayment(requestData);", "subscription PG opens right after the React overlay is cleared");
-assertBefore(cardSubscriptionSource, "const rsp = await window.PortOne.requestPayment(requestData);", "setProcessingStage(\"결제 승인 내역을 안전하게 확인하고 있어요.", "subscription confirm wait starts only after PG response");
+assertBefore(cardSubscriptionSource, "const rsp = await window.PortOne.requestPayment(requestData);", "withSubscriptionMethod(orderMethod, \"결제 승인 내역을 안전하게 확인하고 있어요.", "subscription confirm wait starts only after PG response");
 assertContains(pointsSource, "PDF 서비스와 일반 유료 서비스 조건은 상품별 안내에서 확인할 수 있습니다.", "standard pass paid-service policy UI");
 assertContains(pointsSource, "subscriptions?: Record<string, unknown>[]", "points page reads payments/me subscriptions");
 assertContains(pointsSource, "normalizeSubscriptionStatusFromPayload", "points page normalizes subscription payloads");
