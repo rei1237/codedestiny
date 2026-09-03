@@ -426,14 +426,22 @@ async function handlePassPrepare({ request, env, ctx, userId, body, withDb }) {
 }
 
 async function handlePassConfirm({ request, env, ctx, userId, body, withDb }) {
-  const { plan, paymentMethod } = resolvePassRequest(body);
-  ctx.productId = plan.planId;
   const impUid = String(body.impUid || body.paymentId || "").trim();
   if (!impUid) throw paymentError("INVALID_REQUEST", "impUid 가 필요합니다.");
   // 구 계약 승계: merchantUid 부재 시 impUid 로 조회한다(V2 는 paymentId=merchantUid 라 동치).
   const orderId = String(body.merchantUid || body.merchant_uid || impUid).trim();
   ctx.orderId = orderId;
   const customerUid = String(body.customerUid || "").trim() || buildPassCustomerUid(userId);
+  const tierFromBody = String(body.tier || body.passTier || body.subscriptionTier || "").trim();
+  let plan = null;
+  let paymentMethod = "";
+  /* 🔴 등급이 실려 오면 예전처럼 **주문을 읽기 전에** 전부 검증한다 — 월정석 결제수단 차단·기간·가격
+     오류는 주문 조회 한 왕복도 쓰지 않고 400 이어야 한다(구 계약, payments-v2.subscription.test.js
+     의 `db.ctx.ops === 0`). 등급이 없을 때만 주문에서 복원할 수 있어 그 경우에만 아래로 미룬다. */
+  if (tierFromBody) {
+    ({ plan, paymentMethod } = resolvePassRequest(body));
+    ctx.productId = plan.planId;
+  }
 
   /* 이용권 고유의 사전 검증(등급 일치·구매 정책·하위등급 차단)을 판정 슬롯 안에서 함께 끝낸다.
      주문은 여기서 한 번만 읽고 그 문서를 evaluateConfirmable 에 그대로 넘긴다. */
@@ -441,6 +449,25 @@ async function handlePassConfirm({ request, env, ctx, userId, body, withDb }) {
     const order = await findOrder(db, { orderId });
     if (!order) throw paymentError("ORDER_NOT_FOUND", "이용권 주문을 찾을 수 없습니다.", { orderId });
     assertOrderOwner(order, userId);
+    /* 🔴 등급은 body 가 없어도 **주문에서 복원**한다. 모바일은 PG 가 상위 프레임을 리다이렉트하는데
+       카카오페이처럼 다른 앱을 거쳐 돌아오면 안드로이드가 새 탭을 여는 일이 흔하고, 그러면 /points 가
+       남긴 대기 정보(localStorage)를 못 읽는 문서가 복귀를 처리하게 된다. 예전에는 그 상태에서
+       resolvePassRequest 가 INVALID_SUBSCRIPTION_TIER 로 죽어 "결제는 승인됐는데 클라이언트가 확정을
+       시도조차 못 하는" 창이 열렸다(재조정 크론이 최대 20분 뒤에야 정산). 주문은 소유자 검사를 이미
+       통과했고 등급도 서버가 기록한 사실이라, 클라 값이 없을 때 그것을 쓰는 것이 더 정확하다.
+       body 에 등급이 실려 오면 종전대로 대조한다 — 위조 방어(SUBSCRIPTION_PLAN_MISMATCH)는 그대로다. */
+    if (!plan) {
+      const resolved = resolvePassRequest({
+        ...body,
+        tier: String(order.subscriptionTier || ""),
+        paymentMethod: String(body.paymentMethod || "").trim()
+          || (String(order.paymentMethod || "") !== "unknown" ? String(order.paymentMethod || "") : "")
+          || undefined,
+      });
+      plan = resolved.plan;
+      paymentMethod = resolved.paymentMethod;
+      ctx.productId = plan.planId;
+    }
     if (String(order.subscriptionTier || "") !== plan.tier) {
       throw paymentError("SUBSCRIPTION_PLAN_MISMATCH", "이용권 주문의 등급이 일치하지 않습니다.");
     }

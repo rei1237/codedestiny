@@ -1909,7 +1909,14 @@
         "back": "Atrás"
       },
       "passMonthlyExhausted": "You've used this month's pass allowance. It resets next month; for now you can open this with a one-time payment or moonstones.",
-      "passMonthlyRemaining": "Remaining this month {remaining} / {limit}"
+      "passMonthlyRemaining": "Remaining this month {remaining} / {limit}",
+      "wait": {
+        "card": "You'll return to this screen automatically once your card verification is complete.",
+        "transfer": "You'll return to this screen automatically once your bank account verification is complete.",
+        "kakaopay": "Continue in KakaoTalk to finish the payment. You'll return here automatically when it's done.",
+        "mobile": "You'll return to this screen automatically once your mobile identity verification is complete.",
+        "gift": "You'll return to this screen automatically once your gift certificate PIN is verified."
+      }
     },
     "overlay": {
       "unlockPreparing": {

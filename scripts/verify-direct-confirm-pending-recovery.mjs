@@ -31,7 +31,9 @@ const SHELL_FILES = [
   "public/static/index.html",
 ];
 
-const REMOVE_MARKER = "sessionStorage.removeItem('cd_direct_payment_resume')";
+// 회수는 checkout-entry 의 티켓 저장소 접근자로 위임됐다(localStorage 우선 + sessionStorage 폴백).
+// 마커가 호출 한 줄이 되어도 "정확히 2곳" 계약은 그대로다.
+const REMOVE_MARKER = "_cdClearDirectResumeTicket()";
 
 for (const file of SHELL_FILES) {
   const source = readFileSync(path.join(root, file), "utf8");
