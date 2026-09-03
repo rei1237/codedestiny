@@ -4,10 +4,12 @@ const DEFAULTS = Object.freeze({
   provider: "mock",
   model: "gemini-2.5-flash",
   temperature: 0.7,
-  // 본문 1,500~2,500자 + 근거 5줄 + 후속 질문 3개 + JSON 구조를 담아야 한다.
+  // 본문 2,600~3,600자 + 근거 5줄 + 후속 질문 3개 + JSON 구조를 담아야 한다.
   // 한국어는 대략 글자당 1토큰이라 상한을 이보다 낮추면 결과가 잘려 폴백으로 떨어진다.
-  maxOutputTokens: 3600,
-  timeoutMs: 32000,
+  maxOutputTokens: 5200,
+  // 출력 토큰이 늘어난 만큼 생성 시간도 는다. 클라이언트 abort 는 100초라(app/fortune-chat/
+  // FortuneChatClient.tsx) 40초까지는 여유가 있다.
+  timeoutMs: 40000,
   maxRetries: 0,
   responseMimeType: "application/json",
 });
@@ -22,7 +24,7 @@ function isTrue(env, key) {
 
 export function getGuardianFortuneLLMConfig(env = {}) {
   const maxRetries = Math.min(1, Math.max(0, Number.parseInt(valueOf(env, "GUARDIAN_FORTUNE_LLM_MAX_RETRIES"), 10) || DEFAULTS.maxRetries));
-  const maxOutputTokens = Math.min(4600, Math.max(2400, Number.parseInt(valueOf(env, "GUARDIAN_FORTUNE_LLM_MAX_TOKENS"), 10) || DEFAULTS.maxOutputTokens));
+  const maxOutputTokens = Math.min(6400, Math.max(3600, Number.parseInt(valueOf(env, "GUARDIAN_FORTUNE_LLM_MAX_TOKENS"), 10) || DEFAULTS.maxOutputTokens));
   const timeoutMs = Math.min(45000, Math.max(5000, Number.parseInt(valueOf(env, "GUARDIAN_FORTUNE_LLM_TIMEOUT_MS"), 10) || DEFAULTS.timeoutMs));
   const temperature = Math.min(1, Math.max(0, Number.parseFloat(valueOf(env, "GUARDIAN_FORTUNE_LLM_TEMPERATURE")) || DEFAULTS.temperature));
   const provider = valueOf(env, "GUARDIAN_FORTUNE_LLM_PROVIDER").toLowerCase() || DEFAULTS.provider;

@@ -9,12 +9,18 @@
 /**
  * 산문 필드(VISIBLE_RESULT_FIELDS)의 합계 길이 계약.
  * 무료 3회 이후 1회 5,000원을 받게 되면서 800~1,500자에서 상향했다(2026-08-07).
+ * 그 뒤에도 "5,000원치고 분량이 적다"는 지적이 있어 1,500~2,500자에서 한 번 더
+ * 올렸다(2026-09-03). 필드를 늘리지 않고 기존 6개 산문 필드의 합계만 키운 것이라
+ * 결과 스키마·렌더러는 그대로다.
+ * 🔴 이 값을 올리면 폴백(guardian-fortune-fallback.js)과 enrich(guardian-fortune-result.js)가
+ * 새 하한을 스스로 채울 수 있는지 함께 확인해야 한다 — 못 채우면 LLM 실패 시 폴백까지
+ * 검증에서 탈락해 요청이 통째로 실패한다. 판정은 scripts/verify-fortune-chat-reading.mjs.
  * followUpQuestions·evidenceLines 는 목록이라 이 합계에 넣지 않는다 — 넣으면 길이를
  * 목록 개수로 채우는 우회가 생긴다.
  */
 export const GUARDIAN_FORTUNE_RESULT_LENGTH = Object.freeze({
-  min: 1500,
-  max: 2500,
+  min: 2600,
+  max: 3600,
 });
 
 /** 후속 질문 제안(대화를 잇는 동력)과 근거 줄(선택 체계의 계산 근거)의 개수 계약. */
