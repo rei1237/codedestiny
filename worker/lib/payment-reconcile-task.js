@@ -29,8 +29,11 @@ function isNotFoundLookupError(error) {
   return /PAYMENT_NOT_FOUND|not found|Unauthorized|UNAUTHORIZED/i.test(String(error?.message || ""));
 }
 
-async function markPayment(paymentId, set) {
-  await Payment.findByIdAndUpdate(paymentId, { $set: { ...set, lastErrorAt: new Date() } }).catch(() => {});
+// $set 만 쓰는 멱등 쓰기라 withMongoRetry 의 기본 재시도로 감싼다 — 콜드 아이솔레이트의 첫 쓰기가
+// Atlas idle 연결 회수로 타임아웃 나던 자리다. 실패는 여전히 삼킨다(사유 기록 실패가 재조정 자체를
+// 멈추면 안 된다). 🔴 안쪽에 재시도를 더 넣지 않는다 — verify:no-nested-retry 가 잡는다.
+async function markPayment(env, paymentId, set) {
+  await withMongoRetry(env, () => Payment.findByIdAndUpdate(paymentId, { $set: { ...set, lastErrorAt: new Date() } })).catch(() => {});
 }
 
 /**
@@ -137,6 +140,8 @@ export async function reconcilePendingPayments(env, options = {}) {
     // 크론이 거의 아무것도 못 하는데도 요약이 정상처럼 보였다. 재시도는 다음 크론 틱이 한다 —
     // 여기에 새 재시도 계층을 만들지 않는다. withMongoRetry 는 retries: 0 으로 op 타임아웃·연결 리셋 보호만
     // 받는다(verify:cron-mongo-op-coverage 가 크론 도달 DB op 을 보호 밖에 두지 못하게 한다, 2026-09-03).
+    // 🔴 retries 가 0 이어야 하는 이유는 이 쓰기가 attempts 를 $inc 하기 때문이다 — 재시도하면 시도
+    // 횟수를 두 번 세서, 손대지도 않은 주문이 maxAttempts 에 먼저 닿아 재조정 대상에서 조용히 빠진다.
     let claimed = null;
     let claimFailed = false;
     try {
@@ -196,7 +201,7 @@ export async function reconcilePendingPayments(env, options = {}) {
     const status = String(portOnePayment?.status || "").toLowerCase();
     // 마지막으로 본 PG 상태를 남긴다 — V2 만료(reconcile.js expireStalePendingOrders)는 이 값이 있고
     // paid 가 아닐 때만 PENDING 을 취소한다(fail-closed). 없으면 "아직 PG 와 대조 안 됨"이다.
-    await Payment.findByIdAndUpdate(candidate._id, { $set: { "metadata.reconcile.lastPgStatus": status } }).catch(() => {});
+    await withMongoRetry(env, () => Payment.findByIdAndUpdate(candidate._id, { $set: { "metadata.reconcile.lastPgStatus": status } })).catch(() => {});
 
     if (status === "paid") {
       const isSinglePurchase = String(candidate.paymentType || "") === "digital_content"
@@ -220,7 +225,7 @@ export async function reconcilePendingPayments(env, options = {}) {
       }
       // 그 밖의 유형은 정산 규칙이 이 태스크에 없으므로 손대지 않고 관리자 화면에서 보이도록 사유만 남긴다(임의 지급 금지).
       if (!isSinglePurchase) {
-        await markPayment(candidate._id, {
+        await markPayment(env, candidate._id, {
           failureCode: "reconcile_manual_review",
           failureMessage: "PortOne reports PAID but this payment type has no automatic settlement path.",
           failureStage: "reconcile_paid_unsupported_type",
@@ -248,7 +253,7 @@ export async function reconcilePendingPayments(env, options = {}) {
         status: CONTENT_ENTITLEMENT_STATUSES.CANCELLED,
         reason: "reconcile_portone_cancelled",
       });
-      await markPayment(candidate._id, {
+      await markPayment(env, candidate._id, {
         status: "cancelled",
         orderState: "CANCELLED",
         rawPortOne: portOnePayment,
@@ -262,7 +267,7 @@ export async function reconcilePendingPayments(env, options = {}) {
     }
 
     if (status === "failed") {
-      await markPayment(candidate._id, {
+      await markPayment(env, candidate._id, {
         status: "failed",
         orderState: "FAILED",
         rawPortOne: portOnePayment,
@@ -288,7 +293,7 @@ export async function reconcilePendingPayments(env, options = {}) {
   if (pendingExpire.length) {
     if (sawSuccessfulLookup) {
       for (const paymentId of pendingExpire) {
-        await markPayment(paymentId, {
+        await markPayment(env, paymentId, {
           status: "failed",
           orderState: "FAILED",
           failureCode: "portone_order_never_created",
