@@ -3,9 +3,10 @@
  * 연이 운명 상담(fortune-chat) 결과 계약 검증 — **mock 기본**.
  *
  * 무료 3회 이후 1회 5,000원을 받게 되면서 분량 계약을 800~1,500자에서 1,500~2,500자로
- * 올리고 evidenceLines·followUpQuestions 를 추가했다. 이 스크립트는 프로바이더 응답을
- * 주입해 그 계약이 지켜지는지, 폴백이 하한을 채우는지, 대화 맥락이 프롬프트에 실리는지를
- * 확인한다.
+ * 올리고 evidenceLines·followUpQuestions 를 추가했다. 그 뒤에도 5,000원치고 분량이 적다는
+ * 지적이 있어 2026-09-03 에 2,600~3,600자로 한 번 더 올렸다.
+ * 이 스크립트는 프로바이더 응답을 주입해 그 계약이 지켜지는지, 폴백이 하한을 채우는지,
+ * 대화 맥락이 프롬프트에 실리는지를 확인한다.
  *
  * 🔴 실제 모델 호출은 하지 않는다. providerCall 을 주입해 가짜 응답만 흘린다
  *    (정본 패턴: scripts/verify-mindscan-reading.mjs 의 fetchImpl 주입).
@@ -124,10 +125,21 @@ async function contextFor({ topic, category, mode, recentTurns }) {
   const context = await contextFor({ topic: "money_work", category: "saju", mode: "neo" });
   const input = { ...BASE_INPUT, topic: "money_work", category: "saju", mode: "neo" };
   const base = buildFallbackGuardianFortuneResult({ input, context, reason: "verify" });
-  const bloated = { ...base, coreReading: `${base.coreReading} ${"오늘의 흐름은 순서를 정리할수록 선명해집니다. ".repeat(60)}` };
+  // 🔴 한 필드에만 부풀리면 sanitize 의 필드당 1,200자 컷에 먼저 걸려 상한을 못 넘고,
+  // 그러면 이 절이 "자르는지"가 아니라 "안 자른 값"을 재게 된다(하한 상향 때 실제로 그랬다).
+  const filler = "오늘의 흐름은 순서를 정리할수록 선명해집니다. ".repeat(40);
+  const bloated = { ...base };
+  for (const field of ["coreReading", "topicAdvice", "innerState", "cautionPattern"]) {
+    bloated[field] = `${base[field]} ${filler}`;
+  }
+  const bloatedLength = countGuardianFortuneVisibleTextLength(bloated);
+  check("bloat actually exceeds the ceiling before trimming",
+    bloatedLength > GUARDIAN_FORTUNE_RESULT_LENGTH.max, `bloated=${bloatedLength}`);
   const validated = validateAndNormalizeGuardianFortuneResult({ parsed: bloated, input, context });
   check("long result is trimmed into the contract", validated.ok, (validated.issues || []).join(","));
-  if (validated.ok) console.log(`[trim] 과다 응답 → ${validated.length}자 (상한 ${GUARDIAN_FORTUNE_RESULT_LENGTH.max})`);
+  check("trimmed length is inside the ceiling", validated.ok && validated.length <= GUARDIAN_FORTUNE_RESULT_LENGTH.max,
+    `length=${validated.length}`);
+  if (validated.ok) console.log(`[trim] 과다 응답 ${bloatedLength}자 → ${validated.length}자 (상한 ${GUARDIAN_FORTUNE_RESULT_LENGTH.max})`);
 }
 
 // ── 4. 대화 맥락이 프롬프트에 실리는가 / 민감정보 턴이 걸러지는가 ───────────

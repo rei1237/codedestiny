@@ -341,11 +341,24 @@ export function enrichShortGuardianFortuneResult(result = {}, { context = {}, in
     "지금의 흐름은 좋고 나쁨으로 나뉘기보다, 어떤 속도로 움직이면 덜 지치는지를 알려주는 쪽에 가깝습니다. 서두르면 놓치기 쉬운 신호가 있고, 너무 미루면 선택지가 줄어드는 지점도 함께 있어요.",
     "결정을 앞두고 마음이 무거워지면, 그 무게가 상황의 크기 때문인지 아직 확인하지 못한 정보 때문인지 구분해보세요. 대부분의 부담은 사실이 부족할 때 더 크게 느껴집니다.",
     "오늘 하루의 결론을 지금 내리지 않아도 괜찮아요. 흐름은 한 번에 뒤집히기보다 작은 확인이 쌓이면서 방향을 바꾸는 경우가 훨씬 많습니다.",
+    `${getTopicContract(topic).label}에서 지금 필요한 것은 더 많은 정보가 아니라, 이미 가진 정보 중 무엇을 기준으로 삼을지 정하는 일일 수 있어요. 기준이 하나 정해지면 나머지 신호는 판단을 흔드는 소음이 아니라 참고 자료가 됩니다.`,
+    "확신이 서지 않는 상태에서 내린 결정도 되돌릴 수 있는 크기라면 충분히 시도해볼 만합니다. 중요한 것은 옳은 선택을 한 번에 고르는 일이 아니라, 틀렸을 때 빨리 알아차릴 수 있는 방식으로 움직이는 일이에요.",
+    `${getTopicContract(topic).label}의 흐름이 답답하게 느껴진다면, 상황이 멈춰 있어서가 아니라 변화가 아직 눈에 보이는 크기로 쌓이지 않았기 때문일 수 있어요. 이런 구간에서는 결과를 확인하는 주기를 조금 길게 잡는 편이 덜 지칩니다.`,
+    "다른 사람의 반응을 기준으로 내 상태를 판단하면, 같은 하루도 매번 다르게 평가됩니다. 오늘은 바깥의 반응보다 내가 실제로 무엇을 했는지를 먼저 적어보세요.",
+    "지금 흐름에서 가장 소모가 큰 것은 결정 자체가 아니라, 결정을 미룬 채 계속 생각하는 상태입니다. 오늘 정할 수 있는 작은 것 하나만 먼저 닫아도 남은 판단이 가벼워져요.",
+    `${getTopicContract(topic).label}에서 반복되는 장면이 있다면 그 장면 자체보다, 그 앞에 늘 놓이는 조건을 살펴보세요. 대부분의 반복은 상황이 같아서가 아니라 시작하는 조건이 같아서 생깁니다.`,
+    "마음이 급할수록 선택지를 늘리게 되지만, 선택지가 많아질수록 결정은 더 늦어집니다. 오늘은 후보를 늘리기보다 확실히 빼도 되는 것을 먼저 지워보세요.",
+    "몸이 지쳐 있을 때의 판단은 상황보다 컨디션을 더 많이 반영합니다. 중요한 결정을 앞두고 있다면 쉬고 난 뒤에 같은 질문을 한 번 더 던져보는 것이 좋아요.",
+    `${getTopicContract(topic).label}은 한 번의 큰 변화보다 매번 같은 자리에서 조금씩 달라지는 선택으로 방향이 바뀝니다. 오늘의 작은 차이가 당장은 표시가 나지 않아도 흐름의 기울기는 이미 달라지고 있어요.`,
+    "결과가 마음에 들지 않았던 선택도 그 당시 가진 정보 안에서는 최선이었을 수 있습니다. 지난 판단을 탓하는 대신, 그때 없던 정보가 무엇이었는지만 확인해두면 다음에 쓸 기준이 하나 늘어납니다.",
   ].map((value) => safeText(value, 420)).filter(Boolean);
 
+  // 🔴 sanitizeGuardianFortuneResult 가 필드마다 1,200자로 자른다. 두 필드에만 덧붙이면
+  // 합산 상한이 2,400자라 하한(2,600자)에 구조적으로 도달할 수 없어 네 필드로 나눈다.
+  const targetFields = ["coreReading", "topicAdvice", "innerState", "cautionPattern"];
   let index = 0;
   while (countGuardianFortuneVisibleTextLength(next) < GUARDIAN_FORTUNE_RESULT_LENGTH.min && index < additions.length * 3) {
-    appendUnique(next, index % 2 === 0 ? "coreReading" : "topicAdvice", additions[index % additions.length]);
+    appendUnique(next, targetFields[index % targetFields.length], additions[index % additions.length]);
     index += 1;
   }
   return next;

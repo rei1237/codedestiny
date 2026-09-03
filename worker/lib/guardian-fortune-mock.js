@@ -42,9 +42,12 @@ function applyMockScenario(result, scenario) {
     next.luckyAction = "한 가지를 적어보세요.";
   }
   if (scenario === "too_long") {
+    // 🔴 sanitizeGuardianFortuneResult 가 필드마다 1,200자로 자르므로 한 필드에 몰아 넣으면
+    // 아무리 늘려도 상한을 넘지 못한다. 상한(3,600자)을 확실히 넘기려면 필드를 나눠야 한다.
     const repeated = " 이 흐름은 한 번에 결론을 내리기보다 오늘 확인 가능한 작은 장면을 통해 다음 순서를 정리할 때 더 안정적으로 읽힙니다.";
-    next.coreReading += repeated.repeat(18);
-    next.topicAdvice += repeated.repeat(12);
+    for (const field of ["coreReading", "topicAdvice", "innerState", "cautionPattern", "luckyAction"]) {
+      next[field] += repeated.repeat(10);
+    }
   }
   if (scenario === "forbidden_content") {
     next.coreReading = "무조건 투자하면 오른다. 반드시 지금 결제해야만 해결된다.";
