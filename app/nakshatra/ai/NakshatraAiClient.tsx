@@ -6,6 +6,10 @@ import { authFetch } from "@/app/_lib/auth-client";
 import { runBillingCoinGate, formatPaymentWon } from "@/app/_lib/billing-client";
 import { isRetriableResultPollFailure } from "@/app/_lib/consultationResultPolling";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
+import { useServerPrice } from "@/app/hooks/useServerPrice";
+import { PriceBadge } from "@/app/components/PriceBadge";
+import { PaidValueSection } from "@/app/components/PaidValueSection";
+import { type FeatureMarketingTarget } from "@/app/components/FeatureMarketingDetailModal";
 import { NAKSHATRA_RESULT_STORAGE_KEY } from "../NakshatraFormClient";
 import { birthFromProfileSeed, type NakshatraBirthInput } from "../nakshatra-birth";
 import { useNakshatraCopy, type NakshatraCopy } from "../_lib/copy";
@@ -15,6 +19,20 @@ const FEATURE_KEY = "nakshatra-ai-consultation";
 const SERVICE_ID = "nakshatra-ai";
 const PRICE_KRW = 30000;
 const COIN_PRICE = 300;
+
+/**
+ * 결제 전에 보여 줄 가치 카피의 조회 키. 문구 정본은 정적 셸의 `FEATURE_MARKETING_COPY` 이고
+ * 여기서는 그 항목을 가리키기만 한다.
+ *
+ * 🔴 `accessType` 을 빼면 `isPaidMarketingTarget` 의 휴리스틱이 이 href 를 무료로 읽어
+ *    무료↔유료 비교표가 통째로 사라진다(셸의 `if(ct!=='paid')valueCompare=null` 계약).
+ */
+const MARKETING_TARGET: FeatureMarketingTarget = {
+  title: "", // 카피 조회에만 쓰는 타깃이라 표시용 제목이 없다
+  href: "/nakshatra/ai/",
+  featureKey: FEATURE_KEY,
+  accessType: "paid",
+};
 const ACCESS_TOKEN_HEADER = "x-nakshatra-ai-access-token";
 const API = {
   ensureAccess: "/api/nakshatra-ai/ensure-access",
@@ -415,15 +433,19 @@ export default function NakshatraAiClient() {
       {working ? (
         <WaitingView phase={phase} statusMsg={statusMsg} identity={identity} progress={progress} copy={copy} />
       ) : (
-        <IntroView
-          identity={identity}
-          birth={birth}
-          question={question}
-          onQuestion={setQuestion}
-          onStart={beginConsultation}
-          errorMsg={phase === "error" ? errorMsg : ""}
-          copy={copy}
-        />
+        <div className="mx-auto grid w-full max-w-lg gap-4">
+          <IntroView
+            identity={identity}
+            birth={birth}
+            question={question}
+            onQuestion={setQuestion}
+            onStart={beginConsultation}
+            errorMsg={phase === "error" ? errorMsg : ""}
+            copy={copy}
+          />
+          {/* 결제 결정 전에 "무엇을 받는지" 를 같은 화면에서 보여 준다. 문구 정본은 정적 셸이다. */}
+          <PaidValueSection target={MARKETING_TARGET} />
+        </div>
       )}
     </main>
   );
@@ -440,9 +462,16 @@ function IntroView({
   errorMsg: string;
   copy: NakshatraCopy;
 }) {
+  // 🔴 표시 가격 정본은 빌드타임 레지스트리다. formatPaymentWon 은 "원" 을 박아 넣어
+  //    비한국어 화면에도 원화 접미가 그대로 나갔다. 결제 호출부(runBillingCoinGate)의
+  //    금액 필드는 손대지 않는다 — 표시만 옮긴다.
+  const price = useServerPrice({ featureKey: FEATURE_KEY });
   return (
-    <div className="mx-auto w-full max-w-lg rounded-2xl border border-amber-200/20 bg-white/[0.03] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.4)] motion-safe:animate-fade-in-up md:p-8">
-      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-100/70">{copy.aiIntroEyebrow}</p>
+    <div className="rounded-2xl border border-amber-200/20 bg-white/[0.03] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.4)] motion-safe:animate-fade-in-up md:p-8">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-100/70">{copy.aiIntroEyebrow}</p>
+        <PriceBadge featureKey={FEATURE_KEY} />
+      </div>
       <h1 className="mt-3 text-balance break-keep text-2xl font-bold leading-tight text-slate-50 md:text-3xl">{copy.aiIntroTitle}</h1>
       <p className="mt-3 break-keep text-sm leading-7 text-slate-200">
         {identity?.sukuyoHan ? <><span className="font-semibold text-blue-100">{identity.sukuyoHan}宿</span> · </> : null}
@@ -474,7 +503,7 @@ function IntroView({
         onClick={onStart}
         className="mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-amber-200 px-5 text-sm font-bold text-slate-950 shadow-[0_16px_44px_rgba(251,191,36,0.22)] outline-none transition-all duration-200 ease-out hover:bg-amber-100 hover:shadow-moon-glow focus-visible:ring-2 focus-visible:ring-amber-200/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0818] active:scale-[0.99]"
       >
-        {copy.aiSubmitButtonPrefix}{formatPaymentWon(PRICE_KRW)}
+        {copy.aiSubmitButtonPrefix}{price.label || formatPaymentWon(PRICE_KRW)}
       </button>
       <p className="mt-3 text-center text-xs leading-6 text-slate-400">{copy.aiHasPassNote}</p>
     </div>
