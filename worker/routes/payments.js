@@ -3486,7 +3486,7 @@ export async function settleSinglePaymentForReconcile(env, { paymentId, userId }
 export async function runWebhookReconcileTask(env, { limit = 20, maxAttempts = 10 } = {}) {
   await connectDb(env);
   const staleCutoff = new Date(Date.now() - WEBHOOK_STALE_PROCESSING_MS);
-  const candidates = await PaymentWebhookEvent.find({
+  const candidates = await withMongoRetry(env, () => PaymentWebhookEvent.find({
     provider: "portone",
     eventType: PORTONE_WEBHOOK_EVENTS.PAID,
     attempts: { $lt: maxAttempts },
@@ -3497,20 +3497,20 @@ export async function runWebhookReconcileTask(env, { limit = 20, maxAttempts = 1
   })
     .sort({ lastAttemptAt: 1 })
     .limit(limit)
-    .lean();
+    .lean());
 
   const summary = { scanned: candidates.length, processed: 0, failed: 0, skipped: 0 };
   for (const candidate of candidates) {
     // 원자적 재클레임: 늦게 도착한 waitUntil이나 동시 크론이 같은 이벤트를 두 번 잡지 않도록
     // 조회 시점의 status/lastAttemptAt를 조건에 걸어 한 실행만 이기게 한다.
-    const claimed = await PaymentWebhookEvent.findOneAndUpdate(
+    const claimed = await withMongoRetry(env, () => PaymentWebhookEvent.findOneAndUpdate(
       { _id: candidate._id, status: candidate.status, lastAttemptAt: candidate.lastAttemptAt },
       { $set: { status: "processing", lastAttemptAt: new Date() }, $inc: { attempts: 1 } },
       { returnDocument: "after" },
-    ).lean();
+    ).lean(), { retries: 0 });
     if (!claimed) { summary.skipped += 1; continue; }
     if (!claimed.paymentId) {
-      await markPortOneWebhookEventFailed(claimed, new Error("Reconcile skipped: missing paymentId."));
+      await withMongoRetry(env, () => markPortOneWebhookEventFailed(claimed, new Error("Reconcile skipped: missing paymentId.")));
       summary.failed += 1;
       continue;
     }

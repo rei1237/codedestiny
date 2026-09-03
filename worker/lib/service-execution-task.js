@@ -1,4 +1,4 @@
-import { connectDb, mongoose } from "./db.js";
+import { connectDb, mongoose, withMongoRetry } from "./db.js";
 import { CONTENT_ENTITLEMENT_STATUSES, MonthlyCreditLedger, Payment, PointHistory, ServiceExecutionTransaction, User } from "./models.js";
 import { restoreMonthlyCreditLot } from "./monthly-credit-store.js";
 import { cancelPortOnePayment } from "./portone.js";
@@ -781,13 +781,16 @@ async function runPaymentCancel(env, paymentRef = {}, reason, execution = {}) {
   const paymentId = String(paymentRef.paymentId || execution.paymentId || impUid || merchantUid || "").trim();
   if (!impUid && !merchantUid && !paymentId) return { cancelled: false, skipped: true };
 
-  const payment = await Payment.findOne({
+  // 🔴 이 함수 **자체**는 withMongoRetry 로 감싸지 않는다 — 아래 cancelPortOnePayment 가 외부 HTTP 라
+  // 한 시도가 18s clamp 를 넘길 수 있다. 대신 DB 접촉 3곳을 각각 등록한다(등록의 목적은 재시도가 아니라
+  // db.js 의 in-flight 가드에 "지금 쓰는 중"을 알리는 것이다 — 2026-09-03 실사고).
+  const payment = await withMongoRetry(env, () => Payment.findOne({
     $or: [
       ...(impUid ? [{ impUid }] : []),
       ...(merchantUid ? [{ merchantUid }] : []),
       ...(paymentId ? [{ impUid: paymentId }, { merchantUid: paymentId }, { requestId: paymentId }] : []),
     ],
-  }).lean();
+  }).lean());
 
   if (!payment) return { cancelled: false, skipped: true };
   if (String(payment.status || "") === "cancelled" || String(payment.status || "") === "refunded") {
@@ -825,11 +828,12 @@ async function runPaymentCancel(env, paymentRef = {}, reason, execution = {}) {
   let revocation = { unlockRevoked: false, adminReviewRequired: false };
   if (singlePurchasePayment) {
     try {
-      revocation = await revokePaymentContentAccess({
+      // 🔴 이 서브트리 안에 재시도를 새로 추가하지 말 것(verify:no-nested-retry 가 잡는다).
+      revocation = await withMongoRetry(env, () => revokePaymentContentAccess({
         payment,
         revokedStatus: CONTENT_ENTITLEMENT_STATUSES.REFUNDED,
         reason: "service_delivery_auto_refund",
-      });
+      }), { retries: 0 });
     } catch (error) {
       revocation = {
         unlockRevoked: false,
@@ -838,7 +842,7 @@ async function runPaymentCancel(env, paymentRef = {}, reason, execution = {}) {
       };
     }
   }
-  await Payment.updateOne(
+  await withMongoRetry(env, () => Payment.updateOne(
     { _id: payment._id },
     {
       $set: {
@@ -858,7 +862,7 @@ async function runPaymentCancel(env, paymentRef = {}, reason, execution = {}) {
         "metadata.unlockRevocationError": revocation.error || "",
       },
     },
-  );
+  ));
 
   return {
     cancelled: true,
@@ -871,7 +875,7 @@ async function runPaymentCancel(env, paymentRef = {}, reason, execution = {}) {
 }
 
 async function settleExecutionById(env, executionId, reasonCode, reasonMessage) {
-  let execution = await ServiceExecutionTransaction.findById(executionId).lean();
+  let execution = await withMongoRetry(env, () => ServiceExecutionTransaction.findById(executionId).lean());
   if (!execution) return { ok: false, status: "missing" };
   if (execution.status !== "pending") {
     logPaidServiceEvent("[PaidService Duplicate Refund Blocked]", execution, {
@@ -895,7 +899,10 @@ async function settleExecutionById(env, executionId, reasonCode, reasonMessage) 
   if (existingLockToken.startsWith("svc-lock-")) {
     lockClauses.push({ "lock.token": existingLockToken });
   }
-  const claimed = await ServiceExecutionTransaction.findOneAndUpdate(
+  // 🔴 {retries:0} — 클레임이 성공했는데 응답만 유실되면, 재시도는 lockClauses(호출 시점 스냅샷)로
+  // 자기가 방금 건 락을 못 알아보고 null 을 받아 "idempotent" 로 빠진다. 그러면 이미 잠긴 건이
+  // 환급되지 않은 채 조용히 넘어간다.
+  const claimed = await withMongoRetry(env, () => ServiceExecutionTransaction.findOneAndUpdate(
     {
       _id: execution._id,
       status: "pending",
@@ -918,10 +925,10 @@ async function settleExecutionById(env, executionId, reasonCode, reasonMessage) 
       },
     },
     { returnDocument: "after" },
-  ).lean();
+  ).lean(), { retries: 0 });
 
   if (!claimed) {
-    const latest = await ServiceExecutionTransaction.findById(execution._id).lean();
+    const latest = await withMongoRetry(env, () => ServiceExecutionTransaction.findById(execution._id).lean());
     logPaidServiceEvent("[PaidService Duplicate Refund Blocked]", latest || execution, {
       refundStatus: latest?.refundStatus || execution.refundStatus,
       deliveryStatus: resolveDeliveryStatus(latest || execution),
@@ -936,7 +943,10 @@ async function settleExecutionById(env, executionId, reasonCode, reasonMessage) 
   });
 
   try {
-    const coinResult = await runCoinRefund({
+    // 🔴 환급 두 갈래는 **호출 통째로** 감싼다 — 안에 PointHistory.create / MonthlyCreditLedger.create /
+    // User $inc 가 있어 op 단위로 쪼개면 그 사이에 웜 커넥션이 끊길 수 있다(부분 환급).
+    // {retries:0} 은 이중 환급 방지이고, 이 서브트리 안에 재시도를 새로 추가하지 말 것.
+    const coinResult = await withMongoRetry(env, () => runCoinRefund({
       userId: execution.userId,
       featureKey: execution.featureKey,
       cost: Number(execution.cost || 0),
@@ -944,9 +954,12 @@ async function settleExecutionById(env, executionId, reasonCode, reasonMessage) 
       executionId: String(execution._id),
       requestId,
       reason: `${reason.message}`.slice(0, 120),
-    });
+    }), { retries: 0 });
 
-    const monthlyCreditResult = await runMonthlyCreditRefund({
+    // attemptTimeoutMS 15000 — 조회 5회 + 원장 생성 + 갱신 2회로 이 파일에서 가장 긴 단위다.
+    // 🔴 15000 을 넘기지 않는다: db.js 의 ABANDONED_OP_MAX_AGE_MS 가 15초라, 그보다 오래 도는 콜백은
+    // 꼬리에서 in-flight 집계가 풀려 감싼 의미가 사라진다.
+    const monthlyCreditResult = await withMongoRetry(env, () => runMonthlyCreditRefund({
       userId: execution.userId,
       featureKey: execution.featureKey,
       sourceTransactionId: execution.sourceTransactionId,
@@ -954,7 +967,7 @@ async function settleExecutionById(env, executionId, reasonCode, reasonMessage) 
       requestId,
       execution,
       reason: `${reason.message}`.slice(0, 120),
-    });
+    }), { retries: 0, attemptTimeoutMS: 15000 });
 
     const paymentResult = await runPaymentCancel(env, execution.paymentRef || {}, reason.message, execution);
 
@@ -964,7 +977,7 @@ async function settleExecutionById(env, executionId, reasonCode, reasonMessage) 
       ? "refunded"
       : "failed";
     const now = nowDate();
-    await ServiceExecutionTransaction.updateOne(
+    await withMongoRetry(env, () => ServiceExecutionTransaction.updateOne(
       { _id: execution._id },
       {
         $set: {
@@ -1001,7 +1014,7 @@ async function settleExecutionById(env, executionId, reasonCode, reasonMessage) 
           "lock.acquiredAt": null,
         },
       },
-    );
+    ));
 
     logPaidServiceEvent(
       nextStatus === "refunded" ? "[PaidService Auto Refund Success]" : "[PaidService Auto Refund Failed]",
@@ -1024,7 +1037,8 @@ async function settleExecutionById(env, executionId, reasonCode, reasonMessage) 
     const nextRetryCount = Number(execution.retryCount || 0) + 1;
     const exhausted = nextRetryCount >= Number(execution.maxRetries || 5);
 
-    await ServiceExecutionTransaction.updateOne(
+    // 🔴 {retries:0} — $inc: retryCount. 재시도하면 소진 판정(maxRetries)이 실제보다 빨리 온다.
+    await withMongoRetry(env, () => ServiceExecutionTransaction.updateOne(
       { _id: execution._id },
       {
         $set: {
@@ -1043,7 +1057,7 @@ async function settleExecutionById(env, executionId, reasonCode, reasonMessage) 
         },
         $inc: { retryCount: 1 },
       },
-    );
+    ), { retries: 0 });
 
     return {
       ok: false,
@@ -1496,7 +1510,9 @@ export async function sweepStaleServiceExecutions(env, options = {}) {
   };
 
   for (let i = 0; i < limit; i += 1) {
-    const locked = await lockNextTimedOutExecution();
+    // 🔴 {retries:0} — 이 findOneAndUpdate 는 락 클레임이다. 재시도하면 같은 실행 건에 두 번째 토큰을
+    // 발급하거나 다음 건을 함께 잠글 수 있다.
+    const locked = await withMongoRetry(env, () => lockNextTimedOutExecution(), { retries: 0 });
     if (!locked) break;
 
     result.scanned += 1;

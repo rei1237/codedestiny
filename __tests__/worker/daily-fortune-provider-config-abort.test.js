@@ -42,7 +42,12 @@ function makeSubscribers(count) {
 
 beforeAll(async () => {
   await Promise.all([
-    jest.unstable_mockModule("../../worker/lib/db.js", () => ({ connectDb: jest.fn() })),
+    jest.unstable_mockModule("../../worker/lib/db.js", () => ({
+      connectDb: jest.fn(),
+      // 🔴 통과형 스텁이다. 크론 DB op 은 activeMongoOps 등록을 위해 withMongoRetry 를 타는데
+      // (2026-09-03 실사고), 여기서 콜백을 삼키면 아래 모델 스텁 단언이 통째로 위양성이 된다.
+      withMongoRetry: jest.fn((env, operation) => operation()),
+    })),
     jest.unstable_mockModule("../../worker/lib/models.js", () => ({
       DailyFortuneSubscription: { find: subscriptionFind, updateOne: subscriptionUpdateOne },
     })),

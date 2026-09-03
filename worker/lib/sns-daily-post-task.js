@@ -1,4 +1,4 @@
-import { connectDb } from "./db.js";
+import { connectDb, withMongoRetry } from "./db.js";
 import { IdempotencyKey } from "./models.js";
 import { getEnv } from "./env.js";
 import { getKstDateKey, getKstDateParts, getSiteBaseUrl, getTodayPillars } from "./daily-fortune-task.js";
@@ -42,6 +42,29 @@ const DEDUPE_TTL_MS = 3 * 24 * 60 * 60 * 1000;
 // 🔴 채널마다 잠금 키가 다르다 — 한 채널이 실패해도 다른 채널의 재시도를 막지 않는다.
 // 텔레그램은 **접미사 없이 dateKey 그대로** 둔다(기존 잠금 문서를 고아로 만들지 않는다).
 const THREADS_KEY_SUFFIX = ":threads";
+
+/**
+ * 굳은 잠금(= processing 인 채 남은 문서)을 회수해도 되는 최소 나이.
+ *
+ * 🔴 **이 값은 안전 장치가 아니다.** 안전은 아래 markSendStarted 표식이 진다 — 표식이 없는
+ * processing 은 "네트워크 호출이 0회였음"이 증명된 상태다. 시간만으로 회수하면 ⓐ 아무것도 안 나갔다
+ * ⓑ 일부 나갔다 ⓒ 다 나갔는데 기록만 실패했다가 DB 상 구분되지 않는데, Threads 는 6글 × 왕복 12회라
+ * 벽시계 대부분이 ⓑ·ⓒ 구간이다(2026-09-02 에 실제로 그렇게 중복 발행됐다).
+ *
+ * 그래서 여기서 정하는 것은 **동시성뿐이다**: 10분 크론 주기보다 크고, 살아 있는 실행의
+ * 선점→표식 구간(DB 왕복 1회, op 예산 8초)보다 두 자릿수 배 크다.
+ */
+const STALE_PROCESSING_MS = 15 * 60 * 1000;
+
+/**
+ * 같은 날 자동 재시도 창(UTC). 일일 크론은 22:00Z 에 돌고 10분 크론은 매 10분마다 도는데,
+ * 22:00 정각은 두 크론이 같은 아이솔레이트에서 겹치므로 분 10 부터 연다(22:10~22:50, 하루 5회).
+ *
+ * 🔴 창을 넓히면 안 된다 — KST 자정(15:00Z)을 넘기면 dateKey 가 바뀌어 **다음 날 글을 00:10 에**
+ * 발행하게 된다. 발행 시각을 바꾸는 것은 요청받은 적 없는 동작 변경이다.
+ */
+const RECOVERY_UTC_HOUR = 22;
+const RECOVERY_MIN_UTC_MINUTE = 10;
 
 // 장기 토큰 수명은 60일이다(Threads 공식 문서, 2026-08-31 확인). D-14 에 경고를 시작한다.
 const THREADS_TOKEN_WARN_AFTER_DAYS = 46;
@@ -131,49 +154,128 @@ export function buildDailyPostText(env, now = Date.now()) {
 }
 
 /**
+ * 그날 잠금 문서를 **재선점해도 되는** 조건.
+ *
+ * 인라인 객체가 아니라 내보내는 순수 함수인 이유는 verify:sns-daily-post 가 정규식이 아니라
+ * **실제 필터 객체**를 검사하게 하기 위해서다 — 예전 정규식 단언은 `[\s\S]*?` 가 파일 끝까지 훑어
+ * 아래 실패 기록의 `status:"failed"` 를 우연히 잡고 **잘못된 이유로** 통과했다.
+ *
+ * 🔴 공통 조건 — **이미 일부라도 공개된 날은 어떤 분기로도 재선점하지 않는다**
+ * (responseRef.ids 가 없거나 비어 있어야 한다). Threads 체인은 언제나 1번 글부터 발행하므로,
+ * 2번째 글에서 죽은 날을 재시도하면 이미 나간 1번 글이 계정에 한 번 더 올라간다. 2026-09-02 에
+ * 실제로 그렇게 중복 발행됐다(같은 날 관리자 실행 2회). "나간 데부터 이어 붙이기"는 성립하지 않는다 —
+ * 문안은 실행할 때마다 새로 쓰므로 재시도분은 다른 원고의 뒷부분이 된다. 그래서 부분 발행된 날은
+ * 그대로 두고 다음 날 dateKey 에서 다시 시작한다.
+ *
+ * 분기 ① `failed` — 실패는 흔적으로 남기되(아래 runChannel) 재시도를 막지는 않는다.
+ *   관리자 수동 실행(routes/admin-sns.js)이 이 경로로 같은 날 다시 시도한다.
+ * 분기 ② 굳은 `processing` — 잠금을 잡은 뒤 **표식(sendStartedAt)을 남기기 전에** 죽은 문서.
+ *   🔴 표식이 없다는 것은 send() 를 한 번도 안 불렀다는 **증명**이라 중복 발행 위험이 0 이다.
+ *   이 분기가 없으면 2026-09-03 처럼 잠금만 잡고 죽은 날이 영원히 unique 인덱스에 걸려
+ *   `already_posted` 로 조용히 건너뛰어진다(관리자 수동 실행도 같은 이유로 막힌다).
+ */
+export function buildReclaimFilter(keyHash, now) {
+  return {
+    userId: null,
+    endpoint: SNS_POST_ENDPOINT,
+    keyHash,
+    $and: [
+      { $or: [{ "responseRef.ids": { $exists: false } }, { "responseRef.ids": { $size: 0 } }] },
+      {
+        $or: [
+          { status: "failed" },
+          {
+            status: "processing",
+            updatedAt: { $lt: new Date(now - STALE_PROCESSING_MS) },
+            "responseRef.sendStartedAt": { $exists: false },
+          },
+        ],
+      },
+    ],
+  };
+}
+
+/**
+ * send() 를 부르기 **직전에** 굳히는 표식. 이 쓰기가 성공해야만 네트워크로 나간다.
+ *
+ * 🔴 순서를 뒤집으면 buildReclaimFilter 분기 ②의 불변식("표식 없음 = 호출 0회")이 통째로 무너져
+ * 중복 발행이 열린다. verify:sns-daily-post 가 이 함수와 `await send()` 의 위치 관계를 단언한다.
+ * 실패하면 던진다 — 호출부가 발행을 포기하고 stage="mark" 로 보고한다.
+ *
+ * 🔴 점 표기(`$set: {"responseRef.sendStartedAt": …}`)를 쓰지 않는다 — responseRef 의 스키마
+ * 기본값이 `null` 이라(models.js) create 로 갓 만든 문서와 2026-09-03 에 굳은 좀비 문서에서
+ * "Cannot create field 'sendStartedAt' in element {responseRef: null}" 로 서버가 거절한다.
+ * 파이프라인 업데이트로 null 을 흡수하면서 기존 실패 흔적(error·stage)은 그대로 보존한다.
+ */
+async function markSendStarted(env, keyHash, now) {
+  await withMongoRetry(
+    env,
+    () => IdempotencyKey.updateOne(
+      { endpoint: SNS_POST_ENDPOINT, keyHash },
+      [
+        {
+          $set: {
+            responseRef: { $mergeObjects: [{ $ifNull: ["$responseRef", {}] }, { sendStartedAt: new Date(now) }] },
+            updatedAt: new Date(now),
+          },
+        },
+      ],
+    ),
+    { retries: 0 },
+  );
+}
+
+/**
  * 한 채널의 잠금 선점 → 발행 → 결과 기록. 채널끼리 공유하는 것은 이 절차 하나뿐이고,
  * 잠금 키(keyHash)와 발행 함수(send)는 채널마다 다르다.
  *
+ * 🔴 DB op 을 전부 withMongoRetry 로 감싼다 — 등록하지 않으면 db.js 의 in-flight 가드
+ * (`countActiveMongoOps() > activeOpsOwned`)가 이 op 들을 못 보고, 옆 태스크의 ping 실패가
+ * 웜 커넥션을 떼어 내면서 `Cannot use a session that has ended` 로 죽인다(2026-09-03 실사고).
+ * 🔴 이 서브트리 안에 재시도를 새로 추가하지 말 것(verify:no-nested-retry 가 잡는다).
+ *
  * @param {Object} params
+ * @param {Object} params.env withMongoRetry 용 워커 env
  * @param {number} params.now
  * @param {string} params.keyHash 채널별 잠금 키
  * @param {Function} params.send 발행 실행부. {ok, status, error?, permanent?, ref} 를 돌려주고 던지지 않는다.
  */
-async function runChannel({ now, keyHash, send }) {
-  // 🔴 그날 "실패" 로 남은 문서는 재선점한다 — 실패는 흔적으로 남기되(아래) 재시도를 막지는 않는다.
-  // 관리자 수동 실행(routes/admin-sns.js)이 이 경로로 같은 날 다시 시도한다.
-  //
-  // 🔴 단 **이미 일부라도 공개된 날은 재선점하지 않는다**(responseRef.ids 가 비어 있어야 한다).
-  // Threads 체인은 언제나 1번 글부터 발행하므로, 2번째 글에서 죽은 날을 재시도하면 이미 나간 1번 글이
-  // 계정에 한 번 더 올라간다. 2026-09-02 에 실제로 그렇게 중복 발행됐다(같은 날 관리자 실행 2회).
-  // "나간 데부터 이어 붙이기"는 성립하지 않는다 — 문안은 실행할 때마다 새로 쓰므로 재시도분은 다른
-  // 원고의 뒷부분이 된다. 그래서 부분 발행된 날은 그대로 두고 다음 날 dateKey 에서 다시 시작한다.
-  const reclaimed = await IdempotencyKey.findOneAndUpdate(
-    {
-      userId: null,
-      endpoint: SNS_POST_ENDPOINT,
-      keyHash,
-      status: "failed",
-      $or: [{ "responseRef.ids": { $exists: false } }, { "responseRef.ids": { $size: 0 } }],
-    },
-    { $set: { status: "processing", updatedAt: new Date(now), expiresAt: new Date(now + DEDUPE_TTL_MS) } },
-    { new: true },
+async function runChannel({ env, now, keyHash, send }) {
+  // 🔴 재시도 금지({retries:0}) — 1차 선점이 성공했는데 응답만 유실되면 2차가 같은 문서를 다시
+  // processing 으로 만들고, 그 사이 표식이 없으므로 두 실행이 같은 날을 동시에 발행할 수 있다.
+  const reclaimed = await withMongoRetry(
+    env,
+    () => IdempotencyKey.findOneAndUpdate(
+      buildReclaimFilter(keyHash, now),
+      { $set: { status: "processing", updatedAt: new Date(now), expiresAt: new Date(now + DEDUPE_TTL_MS) } },
+      { new: true },
+    ),
+    { retries: 0 },
   );
 
   // 선점 실패(중복 키)는 "오늘 이미 나갔다(성공 또는 진행 중)"는 뜻이다. 크론 재시도로 같은 글이 두 번 나가는 것을 막는다.
   if (!reclaimed) {
     try {
-      await IdempotencyKey.create({
-        endpoint: SNS_POST_ENDPOINT,
-        keyHash,
-        status: "processing",
-        expiresAt: new Date(now + DEDUPE_TTL_MS),
-      });
+      // 🔴 재시도 금지({retries:0}) — 1차 create 가 성공했는데 응답만 유실되면 2차가 E11000 을 받고
+      // `already_posted` 로 {ok:true} 를 돌려준다. 그러면 그날 발행이 0건인데 알림도 안 뜬다(조용한 누락).
+      await withMongoRetry(
+        env,
+        () => IdempotencyKey.create({
+          endpoint: SNS_POST_ENDPOINT,
+          keyHash,
+          status: "processing",
+          expiresAt: new Date(now + DEDUPE_TTL_MS),
+        }),
+        { retries: 0 },
+      );
     } catch (error) {
       if (isDuplicateKeyError(error)) {
         // 여기까지 왔는데 문서가 아직 failed 라면 위 재선점이 ids 조건에서 걸렸다는 뜻 — 부분 발행된 날이다.
         // 성공/진행 중과 구분해 남긴다(관리자 status 응답과 실행 요약 줄에 이 값이 그대로 보인다).
-        const existing = await IdempotencyKey.findOne({ endpoint: SNS_POST_ENDPOINT, keyHash }).catch(() => null);
+        const existing = await withMongoRetry(
+          env,
+          () => IdempotencyKey.findOne({ endpoint: SNS_POST_ENDPOINT, keyHash }),
+        ).catch(() => null);
         const partial = existing?.status === "failed";
         const posted = Array.isArray(existing?.responseRef?.ids) ? existing.responseRef.ids.length : 0;
         console.log(
@@ -187,6 +289,17 @@ async function runChannel({ now, keyHash, send }) {
     }
   }
 
+  // 🔴 **여기서부터 네트워크로 나간다.** 표식을 먼저 굳혀야 "표식 없는 processing = 호출 0회" 라는
+  // buildReclaimFilter 분기 ②의 불변식이 성립한다. 이 쓰기가 실패하면 발행하지 않는다 —
+  // 발행해 놓고 표식이 없으면 다음 회수가 같은 날을 한 번 더 내보낸다.
+  try {
+    await markSendStarted(env, keyHash, now);
+  } catch (error) {
+    const message = error?.message || String(error);
+    console.error(`[CRON] SNS Daily Post: ${keyHash} 발행 표식을 남기지 못했다(${message}) — 발행을 건너뛴다.`);
+    return { ok: false, stage: "mark", error: message, keyHash };
+  }
+
   const result = await send();
   const at = new Date(now).toISOString();
 
@@ -194,25 +307,41 @@ async function runChannel({ now, keyHash, send }) {
     // 🔴 실패는 **지우지 않고 failed 로 남긴다.** 예전에는 잠금을 삭제했는데, 그러면 DB 에 흔적이 0건이라
     // 2026-08-29 크론이 왜 발행을 못 했는지 아무도 알 수 없었다(Workers Logs 도 꺼져 있었다).
     // failed 문서는 위 findOneAndUpdate 가 재선점하므로 재시도 경로도 그대로 열려 있다.
-    await IdempotencyKey.updateOne(
-      { endpoint: SNS_POST_ENDPOINT, keyHash },
-      {
-        $set: {
-          status: "failed",
-          // stage 를 함께 굳힌다 — 알림은 지워지지만(2026-08-31 에 실제로 지워졌다) 이 문서는 TTL 3일간 남는다.
-          responseRef: { error: result.error, stage: "send", permanent: Boolean(result.permanent), status: result.status ?? null, at, ...(result.ref || {}) },
-          updatedAt: new Date(now),
+    await withMongoRetry(
+      env,
+      () => IdempotencyKey.updateOne(
+        { endpoint: SNS_POST_ENDPOINT, keyHash },
+        {
+          $set: {
+            status: "failed",
+            // stage 를 함께 굳힌다 — 알림은 지워지지만(2026-08-31 에 실제로 지워졌다) 이 문서는 TTL 3일간 남는다.
+            responseRef: { error: result.error, stage: "send", permanent: Boolean(result.permanent), status: result.status ?? null, at, ...(result.ref || {}) },
+            updatedAt: new Date(now),
+          },
         },
-      },
-    ).catch(() => {});
+      ),
+      // 🔴 여기서 던지면 안 된다(발행 결과 보고가 기록 실패에 묻힌다). 다만 조용히 삼키지도 않는다 —
+      // 이 쓰기가 실패한 순간이 곧 좀비 문서가 생기는 순간인데, 예전 `.catch(() => {})` 는
+      // 그 순간을 로그에 한 줄도 남기지 않았다.
+    ).catch((error) => {
+      console.error(`[CRON] SNS Daily Post: ${keyHash} 실패 기록을 남기지 못했다(${error?.message || error}).`);
+    });
     console.error(`[CRON] SNS Daily Post: ${keyHash} 발행 실패(${result.error}) — failed 로 기록했다.`);
     return { ok: false, stage: "send", error: result.error, status: result.status ?? null, code: result.code ?? null, endpoint: result.endpoint ?? null, permanent: Boolean(result.permanent), keyHash };
   }
 
-  await IdempotencyKey.updateOne(
-    { endpoint: SNS_POST_ENDPOINT, keyHash },
-    { $set: { status: "success", responseRef: { at, ...(result.ref || {}) }, updatedAt: new Date(now) } },
-  ).catch(() => {});
+  // 🔴 성공 기록이 실패하면 문서는 processing + 표식 있음으로 남는다 — 회수 대상이 **아니다**
+  // (buildReclaimFilter 분기 ②가 표식을 요구한다). 나간 글을 한 번 더 내보내지 않기 위한 의도된 정지이고,
+  // 사람이 채널을 보고 판단해야 하므로 이 로그가 유일한 단서다.
+  await withMongoRetry(
+    env,
+    () => IdempotencyKey.updateOne(
+      { endpoint: SNS_POST_ENDPOINT, keyHash },
+      { $set: { status: "success", responseRef: { at, ...(result.ref || {}) }, updatedAt: new Date(now) } },
+    ),
+  ).catch((error) => {
+    console.error(`[CRON] SNS Daily Post: ${keyHash} 성공 기록을 남기지 못했다(${error?.message || error}) — 발행 자체는 끝났다.`);
+  });
 
   console.log(`[CRON] SNS Daily Post: ${keyHash} 발행 완료.`);
   return { ok: true, keyHash, ref: result.ref || null };
@@ -338,7 +467,7 @@ export async function runSnsDailyPostTask(env, options = {}) {
 
   if (channel === "all" || channel === "telegram") {
     await guarded("telegram", () =>
-      runChannel({ now, keyHash: dateKey, send: () => sendTelegramChannel(env, now, fetchImpl) }),
+      runChannel({ env, now, keyHash: dateKey, send: () => sendTelegramChannel(env, now, fetchImpl) }),
     );
   }
 
@@ -350,6 +479,7 @@ export async function runSnsDailyPostTask(env, options = {}) {
     } else {
       await guarded("threads", () =>
         runChannel({
+          env,
           now,
           keyHash: `${dateKey}${THREADS_KEY_SUFFIX}`,
           send: () => sendThreadsChannel(env, now, fetchImpl, generateImpl),
@@ -378,4 +508,33 @@ export async function runSnsDailyPostTask(env, options = {}) {
   }
 
   return { ok: true, dateKey, channels };
+}
+
+/**
+ * 같은 날 안에서의 자동 재시도. 매 10분 크론이 부른다(wrangler.toml 의 두 번째 스케줄).
+ *
+ * 🔴 이 함수가 없으면 buildReclaimFilter 분기 ②는 **영원히 발동하지 않는다** — 22:00Z 일일 크론이
+ * 그날 유일한 시도이고, 굳은 문서가 회수 가능해지는 15분 뒤에는 아무도 다시 두드리지 않기 때문이다.
+ *
+ * 새 잠금도 새 발행 경로도 만들지 않는다 — 창을 확인한 뒤 runSnsDailyPostTask 를 그대로 부른다.
+ * 이미 성공한 날은 unique 인덱스에 걸려 `already_posted` 로 즉시 빠지므로 정상적인 날의 비용은
+ * connectDb 1회 + 채널당 조회 2회다.
+ *
+ * 🔴 알림은 붙이지 않는다 — cron-failure-alert 가 10분 크론 알림을 금지하고 있고, 그날 실패는
+ * 22:00Z 가 이미 한 통 보냈다. 여기서 또 던져 봐야 같은 사실을 5번 더 말할 뿐이다.
+ */
+export async function runSnsDailyPostRecovery(env, options = {}) {
+  const now = typeof options.now === "number" ? options.now : Date.now();
+  const at = new Date(now);
+  const hour = at.getUTCHours();
+  const minute = at.getUTCMinutes();
+
+  // 🔴 22:00 정각은 일일 크론과 같은 아이솔레이트에서 겹치므로 뺀다(둘이 같은 잠금을 두고 경합한다).
+  // 창을 22시대 밖으로 넓히면 KST 자정(15:00Z)을 넘긴 실행이 **다음 날 dateKey** 로 발행해
+  // 발행 시각 자체가 바뀐다 — 요청받은 적 없는 동작 변경이다.
+  if (hour !== RECOVERY_UTC_HOUR || minute < RECOVERY_MIN_UTC_MINUTE) {
+    return { ok: true, skipped: "outside_recovery_window" };
+  }
+
+  return await runSnsDailyPostTask(env, options);
 }

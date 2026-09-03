@@ -11,7 +11,7 @@ const { JSDOM } = require("jsdom");
 
 const root = path.resolve(__dirname, "../..");
 
-function openDiary({ desktop = false } = {}) {
+function openDiary({ desktop = false, deterministicRandom = false } = {}) {
   const dom = new JSDOM("<!doctype html><html><body></body></html>", {
     url: "https://code-destiny.com/",
     pretendToBeVisual: true,
@@ -29,11 +29,30 @@ function openDiary({ desktop = false } = {}) {
   const warnings = [];
   window.console = Object.assign({}, console, { warn: (...a) => warnings.push(a.join(" ")) });
 
+  // 🔴 기본은 꺼짐이다. 켜면 이 창의 **모든** 무작위 경로(명상 트랙·스핀·색종이)가 함께 굳으므로,
+  // 무작위를 실제로 검사하는 테스트에서만 켠다. 프로덕션 코드는 한 줄도 안 고친다.
+  // 큐가 비면 폴백 0.5 를 돌려주고 그 횟수를 센다 — 호출부가 "뽑기 횟수 가정이 깨졌다"를 볼 수 있어야 한다.
+  let random = null;
+  if (deterministicRandom) {
+    const queue = [];
+    let fallbacks = 0;
+    window.Math.random = () => {
+      if (queue.length) return queue.shift();
+      fallbacks += 1;
+      return 0.5;
+    };
+    random = {
+      feed(values) { queue.length = 0; queue.push(...values); fallbacks = 0; },
+      remaining: () => queue.length,
+      fallbacks: () => fallbacks,
+    };
+  }
+
   window.eval(fs.readFileSync(path.join(root, "js/luck-sync-diary.js"), "utf8"));
   assert.equal(typeof window.LuckSyncDiary?.open, "function", "window.LuckSyncDiary.open is not exposed");
   window.LuckSyncDiary.open();
 
-  return { window, doc: window.document, warnings };
+  return { window, doc: window.document, warnings, random };
 }
 
 test("diary modal renders its hero from real data", () => {
@@ -274,30 +293,61 @@ test("월간 달력의 5등급이 최종 캐스케이드에서 서로 다른 색
 });
 
 test("[문구 새로고침]이 누를 때마다 다른 I AM 선언을 내놓는다", () => {
-  const { doc } = openDiary();
+  // 🔴 이 테스트는 2026-09-02 까지 무작위였고, 그 흔들림이 **운세 페이지 야간 발행을 통째로 멈췄다.**
+  // .github/workflows/fortune-daily-publish.yml 은 그때 라이브였던 SHA 를 그대로 재배포하는데,
+  // deploy-safe 가 test:node 를 돌리므로 여기서 한 번 빨간불이 나면 사람이 프로덕션을 승격할 때까지
+  // 매일 밤 발행이 막힌다. 프로덕션 코드는 한 줄도 안 고치고 하네스에서 Math.random 만 고정한다.
+  const { doc, random } = openDiary({ deterministicRandom: true });
 
   const card = doc.getElementById("lsdIamCard");
   const button = doc.getElementById("lsdRegenerateIam");
   assert.ok(card, "#lsdIamCard 가 없다");
   assert.ok(button, "#lsdRegenerateIam 가 없다");
+  assert.ok(random, "결정론 Math.random 이 설치되지 않았다 — 아래 수열 단언이 전부 무의미해진다");
 
-  // 직전 인덱스 회피 로직 덕분에 연속 클릭은 항상 달라야 한다 — 랜덤이지만 결정론적으로 단언 가능.
+  // 클릭 1회 = 뽑기 1회다(실측). 2번째 클릭만 직전과 **같은** 인덱스를 뽑게 해서
+  // 직전 인덱스 회피 분기(pool.length > 1 && idx === prev)를 매 실행 반드시 밟는다.
+  // 무작위로는 5회 중 1회만 밟히던 경로라, 회귀를 15% 확률로만 잡았다.
+  const DRAWS = [
+    [0.1],      // idx 0
+    [0.1, 0.9], // idx 0 = 직전 → 회피 분기 → idx 4
+    [0.5],      // idx 2
+    [0.7],      // idx 3
+    [0.3],      // idx 1
+    [0.9],      // idx 4
+  ];
+
   const seen = [(card.textContent || "").trim()];
-  for (let i = 0; i < 6; i += 1) {
+  for (let i = 0; i < DRAWS.length; i += 1) {
+    random.feed(DRAWS[i]);
     button.click();
+
+    // 🔴 fail-closed. 남은 값이 있으면 준비한 회피 분기를 **안 밟은** 것이고, 폴백을 썼으면
+    // "클릭 1회 = 뽑기 1회" 가정이 깨진 것이다. 둘 다 아래 단언을 우연히 통과하게 만든다.
+    assert.equal(
+      random.remaining(),
+      0,
+      `${i + 1}번째 클릭이 준비한 난수를 ${random.remaining()}개 남겼다 — 직전 인덱스 회피 분기를 밟지 않았다`,
+    );
+    assert.equal(
+      random.fallbacks(),
+      0,
+      `${i + 1}번째 클릭이 준비한 것보다 난수를 더 썼다(폴백 ${random.fallbacks()}회) — 뽑기 횟수 가정이 깨졌다`,
+    );
+
     const now = (card.textContent || "").trim();
     assert.ok(now, `${i + 1}번째 클릭 후 카드가 비었다`);
     assert.notEqual(now, seen[seen.length - 1], `${i + 1}번째 클릭이 같은 문구를 다시 그렸다: ${JSON.stringify(now)}`);
     seen.push(now);
   }
 
-  // 한두 문장을 왕복하는 것도 "여러 확언"이 아니다.
-  assert.ok(new Set(seen).size >= 3, `7회 동안 고유 문구가 ${new Set(seen).size}종뿐이다: ${[...new Set(seen)].join(" / ")}`);
+  // 수열이 5개 인덱스를 전부 훑으므로 5종이 나와야 한다 — 한두 문장을 왕복하는 것은 "여러 확언"이 아니다.
+  assert.ok(new Set(seen).size >= 5, `7회 동안 고유 문구가 ${new Set(seen).size}종뿐이다: ${[...new Set(seen)].join(" / ")}`);
 });
 
-// 바로 위 테스트는 확률적이다 — 위험한 것은 첫 클릭 하나뿐이고 문구가 5종이라 회귀를
-// 15%(실측 100회 중 15회) 확률로만 잡는다. 결함의 실체는 "열 때 뽑은 문구와 그 직전 인덱스를
-// 저장하지 않는다" 이므로 저장소를 직접 본다.
+// 바로 위 테스트는 더 이상 확률적이지 않다(2026-09-03 결정론화). 다만 그 테스트는 화면에 그려진
+// 문구만 보므로, 결함의 실체인 "열 때 뽑은 문구와 그 직전 인덱스를 저장하지 않는다" 는
+// 저장소를 직접 봐야 갈린다.
 test("모달을 열 때 뽑은 명상 문구가 저장까지 간다", () => {
   const { window, doc } = openDiary();
 
