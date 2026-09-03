@@ -134,3 +134,66 @@ describe("본명수별 데일리 조언(MANSION_DAY_ADVICE) 개인화", () => {
     });
   });
 });
+
+describe("자리(役) 방향성 — 같은 관계라도 두 사람의 자리는 다르다", () => {
+  const PAIRS = [
+    ["안", "괴"],
+    ["영", "친"],
+    ["우", "쇠"],
+    ["성", "위"],
+    ["업", "태"],
+  ];
+
+  test("11개 자리 전부 meaning/experience/advice 가 저작돼 있다", () => {
+    const roles = ["명", ...PAIRS.flat()];
+    expect(Object.keys(core.SUKUYO_ROLE_PROFILES).sort()).toEqual(roles.slice().sort());
+    roles.forEach((role) => {
+      const profile = core.SUKUYO_ROLE_PROFILES[role];
+      ["han", "meaning", "experience", "advice"].forEach((field) => {
+        expect(typeof profile[field]).toBe("string");
+        expect(profile[field].length).toBeGreaterThan(0);
+      });
+    });
+  });
+
+  test("짝을 이루는 두 자리는 의미·체감·조언이 서로 다르다", () => {
+    PAIRS.forEach(([a, b]) => {
+      ["meaning", "experience", "advice"].forEach((field) => {
+        expect(core.SUKUYO_ROLE_PROFILES[a][field]).not.toBe(core.SUKUYO_ROLE_PROFILES[b][field]);
+      });
+    });
+  });
+
+  test("순행 거리와 그 반대 극에서 나·상대의 조언이 정확히 뒤바뀐다", () => {
+    [
+      [3, 6],
+      [1, 8],
+      [2, 7],
+      [4, 5],
+      [9, 18],
+    ].forEach(([forward, reverse]) => {
+      const a = aiCalc.buildSukuyoAiCompatibility({ index: 0 }, { index: forward });
+      const b = aiCalc.buildSukuyoAiCompatibility({ index: 0 }, { index: reverse });
+      expect(a.roleActionGuide.meAction).not.toBe(a.roleActionGuide.otherAction);
+      expect(a.roleActionGuide.meAction).toBe(b.roleActionGuide.otherAction);
+      expect(a.roleActionGuide.otherAction).toBe(b.roleActionGuide.meAction);
+    });
+  });
+
+  test("안괴에서 누가 안이고 누가 괴인지가 거리로 확정된다", () => {
+    const near = core.relationFromForwardDistance(3);
+    expect([near.aRole, near.bRole]).toEqual(["안", "괴"]);
+    const far = core.relationFromForwardDistance(6);
+    expect([far.aRole, far.bRole]).toEqual(["괴", "안"]);
+  });
+
+  test("방향 해설이 두 자리의 체감·조언을 각각 싣는다", () => {
+    const d = aiCalc.describeSukuyoDirectionalRelation(3, 24);
+    expect(d.aRole).toBe("안");
+    expect(d.bRole).toBe("괴");
+    expect(d.aRoleExperience.length).toBeGreaterThan(0);
+    expect(d.bRoleExperience.length).toBeGreaterThan(0);
+    expect(d.aRoleExperience).not.toBe(d.bRoleExperience);
+    expect(d.aRoleAdvice).not.toBe(d.bRoleAdvice);
+  });
+});

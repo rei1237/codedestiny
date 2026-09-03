@@ -1,4 +1,5 @@
 import {
+  SUKUYO_ROLE_PROFILES,
   normalizeIndex,
   relationFromForwardDistance,
 } from "./sukuyo-relation-core.js";
@@ -212,6 +213,19 @@ function buildRoleActionGuide(relationType, aRole, bRole, shortestDistance, forw
   let meAction = "핵심 감정을 먼저 문장으로 공유하세요.";
   let otherAction = "상대 감정을 요약 확인한 뒤 결론을 내리세요.";
   let resetLine = "갈등 직후 24시간 내 사실-감정-합의 순서로 재접속하세요.";
+
+  // 자리별 조언이 있으면 그것을 먼저 쓴다. 관계명 분기만 쓰던 시절에는 안괴 두 방향
+  // (A=안/B=괴, A=괴/B=안)이 자리 이름만 바뀌고 조언 문장은 똑같았다.
+  const aProfile = SUKUYO_ROLE_PROFILES[aRole];
+  const bProfile = SUKUYO_ROLE_PROFILES[bRole];
+  if (aProfile?.advice && bProfile?.advice) {
+    meAction = `A는 ${aRole}(${aProfile.han}) — ${aProfile.meaning}. ${aProfile.advice}`;
+    otherAction = `B는 ${bRole}(${bProfile.han}) — ${bProfile.meaning}. ${bProfile.advice}`;
+    if (relationType === "안괴") resetLine = "강한 파동 구간에서는 문제 해결보다 안정화 루틴을 우선하세요.";
+    if (Number(forwardDistance) % 2 === 0) resetLine += " 짝수 거리 조합이라 합의 후 반등 속도가 빠른 편입니다.";
+    if (Number(shortestDistance) <= 4) resetLine += " 근거리 조합에서는 회복 시간 합의를 반드시 선행하세요.";
+    return { meAction, otherAction, resetLine };
+  }
 
   if (relationType === "안괴") {
     meAction = `A(${aRole})는 결론 유예를 먼저 선언하고 경계선을 명문화하세요.`;
