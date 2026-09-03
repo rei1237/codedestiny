@@ -461,19 +461,74 @@ body:has(main.cd-yeoni-surface) .cd-mnav__handle:focus-visible {
  */
 @media (min-width: 769px) {
   :root {
-    /* 손잡이 줄이 바 바깥으로 나가므로 상단 패딩 6 + 링크 50 + 하단 여유 12 = 68 로 돌아온다. */
-    --cd-mnav-bar-h: 68px;
+    /* 도크 총높이 = 패널 60(패딩 6 + 링크 48 + 패딩 6) + 바닥에서 띄우는 18.
+       🔴 여기서 --cd-mnav-offset 을 다시 쓸 필요는 없다 — 같은 요소(:root)의 선언이라
+       offset 의 var(--cd-mnav-bar-h) 가 이 값을 읽는다. body 에서 바꾸는 접힘 규칙
+       (아래 body.cd-mnav-mounted.cd-mnav-collapsed)이 offset 을 직접 쓰는 것과 다른 점이다. */
+    --cd-mnav-bar-h: 78px;
     /* 포인터가 정확하고 상단 헤더라는 대체 경로가 있어 모바일의 44px 이 필요 없다. */
     --cd-mnav-handle-h: 22px;
   }
 
+  /* 🔴 데스크탑에서 전폭 도색을 하지 않는다 — 내용은 max-width 560px 인데 바는 left:0/right:0 라
+     1920px 에서 약 1,360px 이 빈 크롬이었다(2026-08-20 9f7648605 가 폭 게이팅을 지운 결과).
+     컨테이너는 투명한 위치잡기 레이어로 두고 도색은 안쪽 리스트가 맡는다.
+     🔴 컨테이너를 left:50% + translateX(-50%) 로 줄이지 않는 이유: body.cd-mobile-nav-hidden 과
+     접힘 규칙이 이미 transform 을 소유해서 숨김·복귀 때 도크가 옆으로 튄다. */
   .cd-mnav {
-    padding-top: 6px;
+    padding-top: 0;
+    padding-bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+    background: none;
+    border-top: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    /* 도크 좌우의 빈 폭이 아래 콘텐츠 클릭을 먹지 않게 한다. 표적은 리스트·손잡이에서 되살린다. */
+    pointer-events: none;
+  }
+
+  /* 상단 예화 가름선은 바가 아니라 도크 패널이 갖는다(패널 밖 전폭 선은 도크와 모순이다). */
+  .cd-mnav::before {
+    display: none;
+  }
+
+  .cd-mnav__list {
+    position: relative;
+    pointer-events: auto;
+    max-width: 620px;
+    padding: 6px;
+    gap: 6px;
+    border: 1px solid rgba(196, 181, 253, 0.24);
+    border-radius: 22px;
+    background: linear-gradient(180deg, rgba(24, 20, 52, 0.96), rgba(13, 10, 30, 0.98));
+    box-shadow: 0 18px 44px -18px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(228, 214, 255, 0.08);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+
+  /* 달빛 예화 가름선 — 모바일 바 상단의 것과 같은 레시피를 패널 상단으로 옮긴 것이다. */
+  .cd-mnav__list::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 12%;
+    right: 12%;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      var(--cd-mnav-hairline) 26%,
+      var(--cd-mnav-hairline) 74%,
+      transparent 100%
+    );
+    pointer-events: none;
   }
 
   /* 펼침: 바 위쪽 모서리에 올라탄 nub. 바 자체의 높이는 건드리지 않는다. */
   .cd-mnav__handle {
     position: absolute;
+    /* 컨테이너가 pointer-events:none 이라 여기서 되살린다. */
+    pointer-events: auto;
     left: 50%;
     top: calc(-1 * var(--cd-mnav-handle-h));
     display: flex;
@@ -520,6 +575,12 @@ body:has(main.cd-yeoni-surface) .cd-mnav__handle:focus-visible {
   }
 
   /* 연이 표면(/fortune/{period} 계열) — 표면·테두리·잉크를 한 세트로 맞춘다. */
+  body:has(main.cd-yeoni-surface) .cd-mnav__list {
+    border-color: rgba(244, 190, 209, 0.42);
+    background: linear-gradient(180deg, rgba(255, 249, 236, 0.98), rgba(255, 245, 230, 0.96));
+    box-shadow: 0 18px 44px -18px rgba(122, 52, 87, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  }
+
   body:has(main.cd-yeoni-surface) .cd-mnav__handle {
     border-color: rgba(244, 190, 209, 0.42);
     background: linear-gradient(180deg, rgba(255, 249, 236, 0.98), rgba(255, 245, 230, 0.96));
@@ -536,6 +597,12 @@ body:has(main.cd-yeoni-surface) .cd-mnav__handle:focus-visible {
   }
 
   @media (prefers-color-scheme: dark) {
+    body:has(main.cd-yeoni-surface) .cd-mnav__list {
+      border-color: rgba(244, 190, 209, 0.38);
+      background: linear-gradient(180deg, #3a0e28, #2c0a20);
+      box-shadow: 0 18px 44px -18px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 214, 232, 0.12);
+    }
+
     body:has(main.cd-yeoni-surface) .cd-mnav__handle {
       border-color: rgba(244, 190, 209, 0.38);
       background: linear-gradient(180deg, #3a0e28, #2c0a20);
