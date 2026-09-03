@@ -37,20 +37,31 @@
     return String(value || "").toLowerCase().replace(/\s+/g, " ").trim();
   }
 
-  /* 가격 문자열 → 가격대 버킷. scripts/verify-home-service-registry.mjs 의 readPrice() 와
-     같은 경계를 쓴다. 한쪽만 고치면 필터와 가드가 갈라진다. */
-  function bucketOf(price) {
-    var text = String(price || "").replace(/,/g, "").replace(/\s/g, "");
-    if (/무료/.test(text)) return "free";
-    if (text === "이용권") return "vvip";
-    var m = text.match(/(\d{3,7})원/);
-    if (!m) return "vvip";
-    var won = Number(m[1]);
+  var BUCKET_ORDER = ["free", "low", "mid", "high", "premium", "vvip"];
+
+  function bucketOfWon(won) {
     if (won < 2000) return "low";
     if (won < 4000) return "mid";
     if (won < 8000) return "high";
     if (won < 20000) return "premium";
     return "vvip";
+  }
+
+  /* 가격 문자열 → 가격대 버킷 배열. scripts/verify-home-service-registry.mjs 의 readPrice() 와
+     같은 경계를 쓴다. 한쪽만 고치면 필터와 가드가 갈라진다.
+     🔴 범위 표기('5,000원~20,000원')는 시작가 하나가 아니라 걸치는 버킷을 전부 낸다 —
+        단수로 파생하던 때 애니멀 토템(3,000원~5,000원)이 '5천원대' 칩에서 빠졌고,
+        운명의 찻집(5,000원~20,000원)이 '1만원대' 에서 빠졌다. */
+  function bucketsOf(price) {
+    var text = String(price || "").replace(/,/g, "").replace(/\s/g, "");
+    if (/무료/.test(text)) return ["free"];
+    if (text === "이용권") return ["vvip"];
+    var found = text.match(/\d{3,7}(?=원)/g);
+    if (!found) return ["vvip"];
+    var from = BUCKET_ORDER.indexOf(bucketOfWon(Number(found[0])));
+    var to = BUCKET_ORDER.indexOf(bucketOfWon(Number(found[found.length - 1])));
+    if (to < from) to = from;
+    return BUCKET_ORDER.slice(from, to + 1);
   }
 
   /* 진입 전 상세 시트(#tilePvwOverlay)용 유료 판정.
@@ -61,19 +72,20 @@
         (docs/context/payment-gating.md ⑦ · docs/payment-policy-flow.md).
         `human-design`(키는 있으나 "무료 시작") 은 반대로 무료 쪽에 남아야 한다. */
   function isPaidItem(featureKey, price) {
-    return !!featureKey && !!price && bucketOf(price) !== "free";
+    return !!featureKey && !!price && bucketsOf(price)[0] !== "free";
   }
 
   /* ── 레지스트리 정규화 ──────────────────────────────────────── */
   var CURATED = REGISTRY.map(function (item) {
     return {
+      id: item.id,
       name: item.name,
       desc: item.desc || "",
       href: item.href || "",
       action: item.action || "",
       collection: "",
       price: item.price || "",
-      bucket: bucketOf(item.price),
+      buckets: bucketsOf(item.price),
       featureKey: item.featureKey || "",
       paid: isPaidItem(item.featureKey, item.price),
       purposes: item.purposes || [],
@@ -94,12 +106,12 @@
         탐색기 **바로 위**에 붙어 있어서(index.html 11334 / 11451 / 11493), roles 를 가진 항목을
         여기 다시 깔면 같은 카드가 한 화면에 두 번 나오고 인터랙티브 요소만 늘어난다.
      그래서 roles 가 없고(= 상단 미노출) 무료로 시작할 수 있는 앞쪽 6개를 쓴다.
-     'free' 판정은 bucketOf() 하나에서만 파생한다 — 가격 문자열을 여기서 다시 해석하지 않는다.
+     'free' 판정은 bucketsOf() 하나에서만 파생한다 — 가격 문자열을 여기서 다시 해석하지 않는다.
 
      🔴 filterServices() 를 타지 않는다 — 그 안의 ensureCatalogue() 가 DOM 스윕(scrapeTiles)을
         돌려서, 지금은 idle 로 미뤄 둔 카탈로그 생성이 첫 렌더로 앞당겨진다. */
   var DEFAULT_PICKS = CURATED.filter(function (item) {
-    return !item.roles.length && item.bucket === "free";
+    return !item.roles.length && item.buckets[0] === "free";
   }).slice(0, 6);
 
   /* ── DOM 스크래핑 (태그 없음 · 검색 전용) ───────────────────── */
@@ -176,7 +188,7 @@
         action: action,
         collection: collection,
         price: price,
-        bucket: price ? bucketOf(price) : "",
+        buckets: price ? bucketsOf(price) : [],
         featureKey: featureKey,
         paid: isPaidItem(featureKey, price),
         purposes: [],
@@ -214,7 +226,9 @@
       if (needsTags && !item.tagged) return false;
       if (purposes.length && !purposes.some(function (p) { return item.purposes.indexOf(p) !== -1; })) return false;
       if (methods.length && !methods.some(function (m) { return item.methods.indexOf(m) !== -1; })) return false;
-      if (buckets.length && buckets.indexOf(item.bucket) === -1) return false;
+      /* 항목이 걸치는 버킷 중 하나라도 선택된 칩과 겹치면 통과한다 — 범위 가격이
+         시작가 버킷에만 갇히지 않게 하는 지점이다. */
+      if (buckets.length && !item.buckets.some(function (b) { return buckets.indexOf(b) !== -1; })) return false;
       if (query && item.hay.indexOf(query) === -1) return false;
       return true;
     });
@@ -240,7 +254,7 @@
     if (item.paid) {
       if (item.featureKey) node.setAttribute("data-feature-key", item.featureKey);
       node.setAttribute("data-pvw-paid", "1");
-    } else if (item.bucket === "free") {
+    } else if (item.buckets[0] === "free") {
       node.setAttribute("data-pvw-free", "1");
     }
     return node;
@@ -307,9 +321,15 @@
       var foot = document.createElement("span");
       foot.className = "fortune-gateway__rec-foot";
       var price = document.createElement("i");
+      price.className = "fortune-gateway__rec-price";
       price.textContent = item.price;
       var go = document.createElement("em");
-      go.textContent = "보러 가기 →";
+      go.className = "fortune-gateway__rec-go";
+      go.setAttribute("data-cd-trans", "");
+      go.setAttribute("data-key", "home.svcFinder.go");
+      go.setAttribute("data-cd-origin-text", "보러 가기 →");
+      go.classList.add("notranslate");
+      go.textContent = translate("home.svcFinder.go", "보러 가기 →");
       foot.appendChild(price);
       foot.appendChild(go);
       node.appendChild(foot);

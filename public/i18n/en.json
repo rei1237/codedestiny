@@ -1403,7 +1403,24 @@
       "luck-sync-diary": "A log of today's flow and a monthly planner",
       "music": "Music matched to your fortune, to settle the mind",
       "novel": "The Destiny Library — the story of Yeoni and Neo",
-      "points": "A pass that makes using many fortunes easy"
+      "points": "A pass that makes using many fortunes easy",
+      "tarot-love-relationship": "A six-card read on where your bond really stands",
+      "tarot-reunion": "A reading on whether to reach out again after the silence",
+      "tarot-mindscan": "A reading that measures the gap between words and true feelings",
+      "love-simulation": "LOVE CODE: compatibility played out as scenes, not charts",
+      "nakshatra-compat": "Compatibility layering India's 36-point Ashtakoota over Eastern Sukuyo",
+      "tarot-ijik": "Seven cards on whether to stay or move on",
+      "tarot-year-fortune": "A card for each of the twelve months and its turning point",
+      "tarot-celestial-harmony": "Expanded cosmic tarot laying cards across eleven planetary seats",
+      "nakshatra-muhurta": "Pick the best day for a wedding, opening or contract from the next 60",
+      "animal-destiny": "Meet your guardian animal through the twelve stages of your day pillar",
+      "tarot-crystal-soul": "A five-card reading that starts with the stone your hand stops on",
+      "royal-tea-oracle": "Read the next three months in the tea leaves left in your cup",
+      "geomancy-oracle": "Weigh the odds with a shield chart of sixteen geomantic figures",
+      "stonehenge-runes": "Read the path behind and the path ahead from the seats of the three Norns"
+    },
+    "svcFinder": {
+      "go": "View →"
     }
   },
   "terms": {
@@ -13366,6 +13383,286 @@
           "a": "It is charged per use. Reading it for a different person means paying again at that point, and it can also be opened with a pass or moonstone."
         }
       ]
+    },
+    "tarot_mindscan": {
+      "tagline": "A ten-card reading: five main positions with five hidden-feeling cards laid over them, mapping the gap in warmth left in the relationship and the words worth sending now.",
+      "premiumIntro": "Write your question and the five positions are set to it, reading what was said aloud apart from what stayed inside.",
+      "fallbackCta": "Read the gap",
+      "premiumChapters": {
+        "0": "The overall current of the gap between you",
+        "1": "Readings of the hidden-feeling support cards",
+        "2": "Example messages worth sending now",
+        "3": "A practical guide to what to do next"
+      },
+      "premiumAudience": {
+        "0": "People who want to check what the other person truly means",
+        "1": "People stuck on what to send next",
+        "2": "People who want the temperature gap put into words"
+      },
+      "answersQuestions": {
+        "0": "How far apart are their words and their feelings?",
+        "1": "Why has this relationship stalled?",
+        "2": "What words should I open with again?"
+      },
+      "feats": {
+        "0": "Five positions: spoken words · inner grain · the stall · the wish · reality",
+        "1": "Five hidden-feeling cards laid over them and read together",
+        "2": "Five main and five support cards drawn from the full 78-card deck",
+        "3": "Example messages worth sending now"
+      },
+      "analysisSteps": {
+        "0": {
+          "label": "Enter your question",
+          "detail": "You write down the relationship and the question you want looked at."
+        },
+        "1": {
+          "label": "Lay ten cards",
+          "detail": "Cards go into the five main positions, with the hidden-feeling cards laid over them."
+        },
+        "2": {
+          "label": "Read the gap",
+          "detail": "The difference between spoken words and inner grain is set out, closing with example messages and a guide to what to do."
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "Do I have to write a question?",
+          "a": "Yes. The five positions are read against your question, so it is required."
+        },
+        "1": {
+          "q": "What are the support cards?",
+          "a": "Five cards drawn over the main five, held apart to read the feelings that were never said."
+        }
+      },
+      "premiumOutcomes": {
+        "0": "The interpretation is written by AI and does not fix the future.",
+        "1": "Card interpretations are for reference.",
+        "2": "The existing payment policy applies."
+      }
+    },
+    "tarot_crystal_soul_reading": {
+      "tagline": "You wake one of twelve raw stones — the one your mind settles on — by rubbing it, then a five-position spread reads today's light apart from what it hides.",
+      "premiumIntro": "Change the stone and the grain of the reading changes with it. It begins wherever your hand stops today.",
+      "fallbackCta": "Choose a stone and begin",
+      "premiumChapters": {
+        "0": "The full reading of all five positions",
+        "1": "The side that is hidden from you right now",
+        "2": "The warning the stone sends",
+        "3": "The crystal's remedy and the door its light opens"
+      },
+      "premiumAudience": {
+        "0": "People who cannot pin their question down yet",
+        "1": "People who want today's energy read first",
+        "2": "People who want to know what to watch for in advance"
+      },
+      "answersQuestions": {
+        "0": "What grain does the energy running through me have?",
+        "1": "What side of this am I not seeing?",
+        "2": "What should I watch for so the way opens?"
+      },
+      "feats": {
+        "0": "Pick the one stone of twelve where your hand stops",
+        "1": "An opening sequence that wakes the stone by rubbing it",
+        "2": "Five positions: first light · hidden side · warning · remedy · the door ahead",
+        "3": "The grain of the chosen stone is carried into the reading"
+      },
+      "analysisSteps": {
+        "0": {
+          "label": "Choose a stone",
+          "detail": "You pick the one of twelve where your hand stops and rub it awake."
+        },
+        "1": {
+          "label": "Lay five cards",
+          "detail": "Cards go into five positions, from the first light to the door the light opens."
+        },
+        "2": {
+          "label": "Draw it together",
+          "detail": "The stone's grain and the card positions are tied into a warning and a remedy."
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "Can I choose a different stone?",
+          "a": "Start a new reading and you choose the stone again from the beginning."
+        },
+        "1": {
+          "q": "Do I have to write a question?",
+          "a": "It runs without one — the reading is built from the stone you chose and the cards laid out."
+        }
+      },
+      "premiumOutcomes": {
+        "0": "The interpretation is written by AI and does not fix the future.",
+        "1": "Card interpretations are for reference.",
+        "2": "The existing payment policy applies."
+      }
+    },
+    "tarot_ijik": {
+      "tagline": "A fixed seven-position spread reads the flow if you stay apart from the conditions that open the door out, then sets out when to move and what to check before deciding.",
+      "premiumIntro": "Changing jobs is hard to settle on feeling alone. Staying and leaving are laid out side by side at equal weight.",
+      "fallbackCta": "Open the career cards",
+      "premiumChapters": {
+        "0": "A reading of the move itself",
+        "1": "When to make the move",
+        "2": "A reading of staying where you are",
+        "3": "What to confirm before you decide"
+      },
+      "premiumAudience": {
+        "0": "People who have weighed a move for a long time",
+        "1": "People who want to know whether the timing is right",
+        "2": "People who want staying weighed too"
+      },
+      "answersQuestions": {
+        "0": "Is moving now the right call?",
+        "1": "When is the good window to move?",
+        "2": "What should I check before deciding?"
+      },
+      "feats": {
+        "0": "Positions that separate the flow of staying from the conditions that open the door out",
+        "1": "A position that names what you actually want to change",
+        "2": "The near flow after a move and the window that opens if you prepare",
+        "3": "A fixed seven-position spread ending in direction and timing"
+      },
+      "analysisSteps": {
+        "0": {
+          "label": "Frame the question",
+          "detail": "You write down where you stand and what is weighing on you."
+        },
+        "1": {
+          "label": "Lay seven cards",
+          "detail": "Cards go into seven positions, from the flow of staying to the final direction."
+        },
+        "2": {
+          "label": "Set out the result",
+          "detail": "It is split into the move, the timing, staying put, and what to confirm."
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "Do I draw the cards myself?",
+          "a": "Yes — you draw all seven in order across three screens."
+        },
+        "1": {
+          "q": "What if the reading fails to open?",
+          "a": "If the reading does not open, you are refunded automatically."
+        }
+      },
+      "premiumOutcomes": {
+        "0": "The interpretation is written by AI and does not fix the future.",
+        "1": "Card interpretations are for reference.",
+        "2": "The existing payment policy applies."
+      }
+    },
+    "nakshatra_muhurta": {
+      "tagline": "The next 60 days are scored one by one to give the best date for your purpose and the dates to avoid if you can move them, each marked with whether both systems agree.",
+      "premiumIntro": "A good day depends on what it is for. A wedding, a contract and a move are each scored on their own terms.",
+      "fallbackCta": "Find the good day",
+      "premiumChapters": {
+        "0": "The best date for your chosen purpose",
+        "1": "Dates to avoid if they can be moved",
+        "2": "The score table for all 60 days",
+        "3": "The reason each date was picked"
+      },
+      "premiumAudience": {
+        "0": "People setting the date for something that matters",
+        "1": "People who want both systems consulted before deciding",
+        "2": "People who want the bad dates filtered out first"
+      },
+      "answersQuestions": {
+        "0": "Which date is best for this?",
+        "1": "Which dates are better avoided?",
+        "2": "Why is that date a good one?"
+      },
+      "feats": {
+        "0": "Six purposes: wedding · opening · contract · moving · starting · recovery",
+        "1": "Every one of the next 60 days scored individually",
+        "2": "An agreement badge on days both systems favour",
+        "3": "Nakshatra · Sukuyo · Tara grades and reasons noted per date"
+      },
+      "analysisSteps": {
+        "0": {
+          "label": "Choose the purpose",
+          "detail": "You pick one of wedding, opening, contract, moving, starting or recovery."
+        },
+        "1": {
+          "label": "Score 60 days",
+          "detail": "Nakshatra and Sukuyo are overlaid day by day to produce a score and a grade."
+        },
+        "2": {
+          "label": "Set out the dates",
+          "detail": "The best dates and the ones to avoid are listed with the reasoning."
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "What if the two systems disagree?",
+          "a": "No agreement badge is given, and the table shows each system's grade and reasoning as they stand."
+        },
+        "1": {
+          "q": "How far ahead does it look?",
+          "a": "It calculates 60 days from the moment you run it."
+        }
+      },
+      "premiumOutcomes": {
+        "0": "The calculation follows the calendar system; the reading is for reference.",
+        "1": "Auspicious dates and compatibility do not stand in for your decision.",
+        "2": "The existing payment policy applies."
+      }
+    },
+    "nakshatra_compat": {
+      "tagline": "It names first where the two systems agree and where they part, then sets out the score by category, the relationship type, and a guide to how each of you can act.",
+      "premiumIntro": "It runs even without a birth time, and an invite link lets the other person enter their own details.",
+      "fallbackCta": "See the combined match",
+      "premiumChapters": {
+        "0": "The combined verdict and combined score",
+        "1": "Ashtakoota scores by category with dosha noted",
+        "2": "Three scores: affinity · stability · friction",
+        "3": "A guide to how each of you can act from where you stand"
+      },
+      "premiumAudience": {
+        "0": "People not convinced by one system alone",
+        "1": "People who want to know what to watch for, not just a score",
+        "2": "People who want the other person to enter their own details"
+      },
+      "answersQuestions": {
+        "0": "Do the two systems read this relationship the same way?",
+        "1": "Where do we collide most?",
+        "2": "What can I do from where I stand to make it better?"
+      },
+      "feats": {
+        "0": "India's 36-point Ashtakoota calculated category by category",
+        "1": "The relationship type judged by Eastern Sukuyo angles",
+        "2": "Where the two systems converge and diverge, set out first",
+        "3": "An invite link that collects the other person's details"
+      },
+      "analysisSteps": {
+        "0": {
+          "label": "Both people's details",
+          "detail": "Name, date of birth, birth time, gender and birth city go in — or arrive through an invite link."
+        },
+        "1": {
+          "label": "Run both systems",
+          "detail": "The 36-point Ashtakoota and the Sukuyo angles are each calculated."
+        },
+        "2": {
+          "label": "Bring them together",
+          "detail": "The points of agreement and divergence are set out, closing with a guide for each role."
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "What if I don't know the birth time?",
+          "a": "You can leave it unknown and carry on."
+        },
+        "1": {
+          "q": "How do I get the other person's details?",
+          "a": "Send the invite link and they can enter their own details."
+        }
+      },
+      "premiumOutcomes": {
+        "0": "The calculation follows the calendar system; the reading is for reference.",
+        "1": "Auspicious dates and compatibility do not stand in for your decision.",
+        "2": "The existing payment policy applies."
+      }
     }
   },
   "featureMarketingCategory": {
