@@ -1,6 +1,7 @@
 import "../styles/globals.css";
 import "../styles/theme-tokens.css";
 import "../styles/mobile-bottom-nav.css";
+import "../styles/yehwa-motifs-nav.css";
 import { ToastProvider } from "./components/Toast";
 import { PaymentProcessingProvider } from "./components/PaymentProcessingContext";
 import { Suspense } from "react";
