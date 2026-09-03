@@ -30,7 +30,7 @@
  * 🔴 UNCOVERED_BASELINE 은 **발견 목록이 아니라 부채 원장**이다.
  *   가드는 언제나 전수 발견하고 전수 신고한다. 원장은 "오늘 남아 있는 것"만 적어 두고,
  *   새 파일이 나타나거나 개수가 늘면 실패한다. 목록에 없는 파일은 0건이어야 한다.
- *   원장에 남은 30건은 전부 **결제 웹훅 정산 경로**(요청 핸들러 그래프)다. 크론이 그 경로를 타지만
+ *   원장에 남은 28건은 전부 **결제 웹훅 정산 경로**(요청 핸들러 그래프)다. 크론이 그 경로를 타지만
  *   그 안을 감싸는 것은 결제 요청 경로의 동작 변화 + payments.js 줄 수 상한(1줄 여유) 문제라
  *   이 작업(크론 자동 발행 복구)의 범위를 벗어난다. 별도 작업으로 0 으로 내린다.
  *
@@ -53,7 +53,6 @@ const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const UNCOVERED_BASELINE = Object.freeze({
   "worker/routes/payments.js": 22,
   "worker/lib/content-unlocks.js": 4,
-  "worker/lib/payment-reconcile-task.js": 2,
   "worker/lib/payment-refund.js": 2,
 });
 
