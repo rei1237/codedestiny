@@ -1474,7 +1474,8 @@
         "passUnknown": "이용권이 있으시면 아래 이용권 카드를 누르면 그 자리에서 확인됩니다.",
         "passSaveUnverified": "이용권 적용 결과를 저장하지 못했어요. 아래 이용권 카드로 다시 확인하거나 다른 결제 수단을 고를 수 있어요.",
         "passCheckFailed": "이용권 확인에 실패했어요. 아래 이용권 카드로 다시 확인하거나 다른 결제 수단을 고를 수 있어요.",
-        "passMiss": "보유하신 이용권으로는 이 콘텐츠가 무료로 열리지 않아 결제 방법을 고르는 창을 열었어요."
+        "passMiss": "보유하신 이용권으로는 이 콘텐츠가 무료로 열리지 않아 결제 방법을 고르는 창을 열었어요.",
+        "passMonthlyExhausted": "이번 달 이용권 한도를 모두 사용해 결제 방법을 고르는 창을 열었어요. 다음 달에 다시 열립니다."
       },
       "passBadge": "달빛 이용권",
       "passStoreTitle": "달빛 이용권 상점",
@@ -1542,7 +1543,9 @@
         "giftGroup": "상품권",
         "comingSoon": "준비 중",
         "back": "뒤로"
-      }
+      },
+      "passMonthlyExhausted": "이번 달 이용권 한도를 모두 사용했어요. 다음 달에 다시 열리고, 지금은 단건 결제나 월정석으로 열 수 있어요.",
+      "passMonthlyRemaining": "이번 달 남은 한도 {remaining} / {limit}"
     },
     "overlay": {
       "unlockPreparing": {

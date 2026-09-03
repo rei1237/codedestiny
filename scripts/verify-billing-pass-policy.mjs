@@ -812,7 +812,10 @@ assertContains(indexSource, "requireServerPassCheck: true", "static paid service
 assertNotContains(indexSource, "fastPassOnly: true", "static paid services must not rely on cache-only pass checks");
 assertContains(indexSource, "_cdShouldForceFreshPaidPassCheck(content, cached.result)", "paid precheck cache bypasses stale payment-required pass results");
 assertContains(indexSource, "_cdShouldForceFreshPaidPassCheck(content, result)", "paid precheck does not store stale pass payment-required results");
-assertContains(indexSource, "_subTier === 'family' ? 999999999", "main shell family policy pass limit");
+// 2026-09-03: 셸의 등급 한도 삼항표(family 999999999 / vvip 100 …)는 정본 pass-verdict 위임으로 바뀌었다.
+// 리터럴이 돌아오면 verify:pass-tier-policy 의 0건 단언이 잡는다.
+assertContains(indexSource, "_policyPassLimitApi.passLimitForTier(_subTier)", "main shell policy pass limit delegates to pass-verdict");
+assertNotContains(indexSource, "_subTier === 'family' ? 999999999", "main shell no longer carries a literal family pass limit ladder");
 assertContains(indexSource, "Code Destiny Family 30일", "main shell family payment modal copy");
 // 결제창 상단 요약은 '무엇을 얼마에 여는가'만 말한다. 예전 문구("월정석 이벤트 재화 기준 · N원")는
 // 내부 재화 단위를 기준처럼 노출해 오히려 혼란스러웠고 2026-08-11 개편에서 금액 표기로 바뀌었다.

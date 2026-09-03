@@ -239,6 +239,13 @@ for (const tier of TIERS) {
   }
 }
 
+// 사본 3-b — 셸에 남아 있던 낡은 등급 한도표(vvip 100 / premium 50 / standard 30) 0건.
+// 2026-09-03 까지 4곳이 살아 있었고 전부 pass-verdict.passLimitForTier 위임으로 바뀌었다.
+// 이 삼항 사다리가 하나라도 돌아오면 정본(200/100/50)과 다른 값이 결제창에 나간다.
+const staleShellLadder = shell.match(/===\s*'vvip'\s*\?\s*\d+\s*:\s*\([^)]*===\s*'premium'\s*\?\s*\d+\s*:/g) || [];
+check("셸 낡은 등급 한도 삼항표(vvip/premium/standard 리터럴) 0건", staleShellLadder.length === 0,
+  `발견=${staleShellLadder.length} — passLimitForTier 로 위임할 것`);
+
 // 사본 4 — 셸의 이용권 미니 배지가 쓰는 freeLimits
 const miniLimits = extractAll("index.html freeLimits(미니 배지)", shell, (tier) =>
   new RegExp(`var freeLimits\\s*=\\s*\\{[^}]*?\\b${tier}\\s*:\\s*(\\d+)`));

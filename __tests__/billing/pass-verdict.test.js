@@ -427,3 +427,159 @@ describe("신뢰할 수 없는 출처는 '미보유 확정'을 만들 수 없다
     expect(stored.state).toBe("none");
   });
 });
+
+describe("resolveVerdict — 월 이용 한도(monthlySpendRemainingCoin)", () => {
+  const activeSnapshot = (tier, extra = {}) => ({
+    userId: USER_ID,
+    state: "active",
+    tier,
+    expiresAt: new Date(Date.now() + 10 * DAY).toISOString(),
+    checkedAt: Date.now(),
+    purchaseVersion: "",
+    source: "test",
+    stale: false,
+    ...extra,
+  });
+
+  it("네 등급 모두 남은 한도 0 이면 10코인도 미커버 확정이고 사유는 monthly_pass_limit_exceeded 다", () => {
+    for (const tier of ["standard", "premium", "vvip", "family"]) {
+      const verdict = passVerdict.resolveVerdict(activeSnapshot(tier, { monthlySpendRemainingCoin: 0 }), 10);
+      expect(verdict.coversNow).toBe(false);
+      expect(verdict.cannotCover).toBe(true);
+      expect(verdict.reason).toBe(passVerdict.REASON_MONTHLY_LIMIT);
+      expect(verdict.reason).toBe("monthly_pass_limit_exceeded");
+    }
+  });
+
+  it("남은 한도가 이번 건과 정확히 같으면 커버 확정이다(경계 포함)", () => {
+    const verdict = passVerdict.resolveVerdict(activeSnapshot("premium", { monthlySpendRemainingCoin: 40 }), 40);
+    expect(verdict.coversNow).toBe(true);
+    expect(verdict.cannotCover).toBe(false);
+    expect(verdict.reason).toBe("");
+  });
+
+  it("월 한도 캐시가 오래됐어도(monthlyCheckedAt 30일 전) 남은 한도 부족이면 그대로 거부한다", () => {
+    const verdict = passVerdict.resolveVerdict(activeSnapshot("vvip", {
+      monthlySpendRemainingCoin: 5,
+      monthlyCheckedAt: Date.now() - 30 * DAY,
+    }), 10);
+    expect(verdict.cannotCover).toBe(true);
+    expect(verdict.reason).toBe("monthly_pass_limit_exceeded");
+  });
+
+  it("월 한도 캐시가 없으면(null/undefined) 검사를 건너뛰고 커버 확정이다", () => {
+    expect(passVerdict.resolveVerdict(activeSnapshot("standard", { monthlySpendRemainingCoin: null }), 30).coversNow).toBe(true);
+    expect(passVerdict.resolveVerdict(activeSnapshot("standard"), 30).coversNow).toBe(true);
+  });
+
+  it("🔴 월 한도 필드가 없는 상태 응답으로 만든 스냅샷은 '잔여 0'으로 읽히지 않는다(Number(null)===0 함정)", () => {
+    // /api/auth/me 모양 — monthlySpendRemaining 이 아예 없다. storeStatus → writeSnapshot → readSnapshot
+    // 전 구간에서 null 이 0 으로 바뀌면 활성 이용권 전부가 거부된다(2026-09-03 verify:entry-fanout 이 잡음).
+    const stored = passVerdict.storeStatus(USER_ID, {
+      tier: "premium", isActive: true, status: "active",
+      expiresAt: new Date(Date.now() + 20 * DAY).toISOString(),
+      passLimit: 100, freeLimit: 100,
+    }, "auth-me");
+    expect(stored.state).toBe("active");
+    expect(stored.monthlySpendRemainingCoin).toBeNull();
+    expect(passVerdict.resolveVerdict(stored, 30).coversNow).toBe(true);
+    const reread = passVerdict.readSnapshot(USER_ID);
+    expect(reread.monthlySpendRemainingCoin).toBeNull();
+    expect(passVerdict.resolveVerdict(reread, 30).coversNow).toBe(true);
+    // 명시적 null 도 같다.
+    const withNull = passVerdict.storeStatus(USER_ID, {
+      tier: "premium", isActive: true, status: "active", monthlySpendRemaining: null,
+      expiresAt: new Date(Date.now() + 20 * DAY).toISOString(),
+    }, "auth-me");
+    expect(passVerdict.resolveVerdict(withNull, 30).coversNow).toBe(true);
+  });
+
+  it("건당 상한 초과가 월 한도보다 먼저 판정된다", () => {
+    const verdict = passVerdict.resolveVerdict(activeSnapshot("standard", { monthlySpendRemainingCoin: 0 }), 51);
+    expect(verdict.cannotCover).toBe(true);
+    expect(verdict.reason).toBe(passVerdict.REASON_PASS_LIMIT);
+  });
+
+  it("coverageFromSnapshot 은 사유를 deniedReason 으로 노출한다", () => {
+    const coverage = passVerdict.coverageFromSnapshot(activeSnapshot("premium", { monthlySpendRemainingCoin: 0 }), 10, "test");
+    expect(coverage.canUseByPass).toBe(false);
+    expect(coverage.deniedReason).toBe("monthly_pass_limit_exceeded");
+  });
+});
+
+describe("storeMonthlyQuotaFromPayload — coin-gate 응답의 월 한도 반영", () => {
+  const active = (extra = {}) => ({
+    state: "active",
+    tier: "premium",
+    expiresAt: new Date(Date.now() + 10 * DAY).toISOString(),
+    checkedAt: Date.now() - HOUR,
+    stale: false,
+    ...extra,
+  });
+
+  it("402 최상위 스프레드의 monthlySpendRemaining 을 활성 스냅샷에 기록한다", () => {
+    seed(storage, active());
+    const stored = passVerdict.storeMonthlyQuotaFromPayload(USER_ID, {
+      ok: false,
+      decisionReason: "MONTHLY_PASS_LIMIT_EXCEEDED",
+      monthlySpendRemaining: 3,
+    });
+    expect(stored).not.toBeNull();
+    expect(stored.monthlySpendRemainingCoin).toBe(3);
+    expect(passVerdict.readSnapshot(USER_ID).monthlySpendRemainingCoin).toBe(3);
+  });
+
+  it("성공 200 의 data.paymentOptions.monthlySpendRemaining 도 읽는다", () => {
+    seed(storage, active());
+    const stored = passVerdict.storeMonthlyQuotaFromPayload(USER_ID, {
+      ok: true,
+      data: { granted: true, paymentOptions: { monthlySpendRemaining: 70 } },
+    });
+    expect(stored.monthlySpendRemainingCoin).toBe(70);
+  });
+
+  it("기존 캐시보다 큰 값은 되돌리지 못한다(단조 감소)", () => {
+    seed(storage, active({ monthlySpendRemainingCoin: 20 }));
+    const stored = passVerdict.storeMonthlyQuotaFromPayload(USER_ID, { monthlySpendRemaining: 80 });
+    expect(stored.monthlySpendRemainingCoin).toBe(20);
+    expect(passVerdict.storeMonthlyQuotaFromPayload(USER_ID, { monthlySpendRemaining: 7 }).monthlySpendRemainingCoin).toBe(7);
+  });
+
+  it("스냅샷이 없거나 none 이면 아무것도 날조하지 않는다", () => {
+    expect(passVerdict.storeMonthlyQuotaFromPayload(USER_ID, { monthlySpendRemaining: 0 })).toBeNull();
+    expect(storage.has(passVerdict.snapshotKey(USER_ID))).toBe(false);
+    seed(storage, { state: "none", tier: "free", expiresAt: null, checkedAt: Date.now(), stale: false });
+    expect(passVerdict.storeMonthlyQuotaFromPayload(USER_ID, { monthlySpendRemaining: 0 })).toBeNull();
+    expect(passVerdict.readSnapshot(USER_ID).state).toBe("none");
+  });
+
+  it("이용권 상태 신선도(checkedAt)는 건드리지 않고 monthlyCheckedAt 만 찍는다", () => {
+    const checkedAt = Date.now() - HOUR;
+    seed(storage, active({ checkedAt }));
+    const stored = passVerdict.storeMonthlyQuotaFromPayload(USER_ID, { monthlySpendRemaining: 1 });
+    expect(stored.checkedAt).toBe(checkedAt);
+    expect(stored.monthlyCheckedAt).toBeGreaterThan(checkedAt);
+  });
+
+  it("월 한도 필드가 없는 응답은 무시한다", () => {
+    seed(storage, active({ monthlySpendRemainingCoin: 20 }));
+    expect(passVerdict.storeMonthlyQuotaFromPayload(USER_ID, { ok: true, data: { granted: true } })).toBeNull();
+    expect(passVerdict.readSnapshot(USER_ID).monthlySpendRemainingCoin).toBe(20);
+  });
+});
+
+describe("isMonthlyLimitPayload", () => {
+  it("decisionReason 이 최상위·data·paymentOptions 어디에 있어도 잡는다", () => {
+    expect(passVerdict.isMonthlyLimitPayload({ decisionReason: "MONTHLY_PASS_LIMIT_EXCEEDED" })).toBe(true);
+    expect(passVerdict.isMonthlyLimitPayload({ data: { decisionReason: "monthly_pass_limit_exceeded" } })).toBe(true);
+    expect(passVerdict.isMonthlyLimitPayload({ data: { paymentOptions: { decisionReason: "MONTHLY_PASS_LIMIT_EXCEEDED" } } })).toBe(true);
+    expect(passVerdict.isMonthlyLimitPayload({ paymentOptions: { decisionReason: "MONTHLY_PASS_LIMIT_EXCEEDED" } })).toBe(true);
+  });
+
+  it("다른 사유·빈 값·비객체는 false 다", () => {
+    expect(passVerdict.isMonthlyLimitPayload({ decisionReason: "PASS_LIMIT_EXCEEDED" })).toBe(false);
+    expect(passVerdict.isMonthlyLimitPayload({ data: { paymentOptions: {} } })).toBe(false);
+    expect(passVerdict.isMonthlyLimitPayload(null)).toBe(false);
+    expect(passVerdict.isMonthlyLimitPayload("MONTHLY_PASS_LIMIT_EXCEEDED")).toBe(false);
+  });
+});

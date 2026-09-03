@@ -1838,7 +1838,8 @@
         "passUnknown": "利用券をお持ちなら、下の利用券カードを押すとその場で確認できます。",
         "passSaveUnverified": "利用券の適用結果を保存できませんでした。下の利用券カードで再確認するか、他の決済手段を選べます。",
         "passCheckFailed": "利用券の確認に失敗しました。下の利用券カードで再確認するか、他の決済手段を選べます。",
-        "passMiss": "お持ちの利用券ではこのコンテンツが無料になりません。決済方法をお選びください。"
+        "passMiss": "お持ちの利用券ではこのコンテンツが無料になりません。決済方法をお選びください。",
+        "passMonthlyExhausted": "今月のパス利用上限に達したため、お支払い方法を選ぶ画面を開きました。来月にリセットされます。"
       },
       "passBadge": "月光利用券",
       "passStoreTitle": "月光利用券ショップ",
@@ -1906,7 +1907,9 @@
         "giftGroup": "商品券",
         "comingSoon": "準備中",
         "back": "戻る"
-      }
+      },
+      "passMonthlyExhausted": "今月のパス利用上限に達しました。来月にリセットされます。今は単品購入または月霊石で開けます。",
+      "passMonthlyRemaining": "今月の残り上限 {remaining} / {limit}"
     },
     "overlay": {
       "unlockPreparing": {

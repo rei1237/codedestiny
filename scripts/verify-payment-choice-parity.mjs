@@ -329,6 +329,11 @@ const REQUIRED_ALL = [
   "payment.directModal.passHint.store",
   "payment.directModal.passHint.upgrade",
   "payment.directModal.passCheckRetry",
+  // 월 이용 한도(PR B, 2026-09-03). 이용권 카드의 "이번 달 남은 한도 {remaining} / {limit}" 와
+  // pass-store 핸들러가 402 MONTHLY_PASS_LIMIT_EXCEEDED 를 받았을 때 상점으로 보내지 않고
+  // 그 자리에서 띄우는 소진 문구. 세 렌더러가 같은 키로 같은 말을 해야 한다.
+  "payment.directModal.passMonthlyRemaining",
+  "payment.directModal.passMonthlyExhausted",
   // 단건 카드. 🔴 소비자에게 PG사(PortOne·KG이니시스)를 노출하지 않는 문구로 2026-08-11 개정됐다.
   "payment.directModal.directTitleLabel",
   "payment.directModal.directHint",

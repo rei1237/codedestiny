@@ -3087,11 +3087,13 @@
     var snapshot = _dpReadSubscriptionSnapshot({ allowStaleNone: true });
     if (!snapshot) return '';
     if (snapshot.stale === true) _dpRevalidateSubscriptionSnapshot();
-    // (2) 서버가 '이용권 없음'이라고 답한 기록(만료됐어도 판정에 쓰고 갱신은 백그라운드).
-    if (snapshot.state === 'none') return 'subscription_snapshot_none';
-    // (3) 산술적 한도 초과 — 신선도와 무관하게 이 가격은 이 등급으로 커버되지 않는다.
-    if (snapshot.state === 'active' && cost > _dpMembershipPassLimitForTier(snapshot.tier)) return 'snapshot_pass_limit_exceeded';
-    return '';
+    // (2)(3)(4) 서버가 '이용권 없음'이라고 답한 기록 / 건당 한도 초과 / 월 이용 한도 소진 — 판정과 사유
+    // 문자열은 pass-verdict 정본 하나가 낸다(subscription_snapshot_none · snapshot_pass_limit_exceeded ·
+    // monthly_pass_limit_exceeded). 모듈이 없으면 확정하지 않는다(서버 검사로 폴백).
+    var api = _dpPassVerdict();
+    if (!api) return '';
+    var verdict = api.resolveVerdict(snapshot, cost);
+    return verdict && verdict.cannotCover ? String(verdict.reason || 'subscription_snapshot_none') : '';
   }
 
   function _dpReadActiveMembershipCoverage(cost) {
@@ -4498,10 +4500,16 @@
       _dpPaymentFetchJson('/api/billing/coin-gate', { method: 'POST', body: JSON.stringify(_dpBuildPaidGatePayload(opts, title, coinPrice, bgRequestId, 'MEMBERSHIP_PASS')) })
         .then(function(res) {
           var payload = res && res.payload ? res.payload : res;
+          // 🔴 월 한도 되쓰기는 성공 조기 반환보다 **앞**이다 — 성공 200 이 소비 **후** 잔여를 싣고 오고,
+          // 402 는 잔여 0 을 싣는다. 활성 스냅샷에만 반영된다.
+          var bgVerdictApi = _dpPassVerdict();
+          try { if (bgVerdictApi) bgVerdictApi.storeMonthlyQuotaFromPayload(_dpSubSnapshotUserId(), payload); } catch (_) {}
           if (res && res.ok && _dpIsMembershipPassGrantedPayload(payload)) return; // 서버도 pass 확인 — 정합.
           var statusCode = Number((res && res.status) || (payload && payload.status) || 0);
           var code = String((payload && (payload.code || payload.errorCode)) || '').toUpperCase();
           if (statusCode === 402 || code === 'MEMBERSHIP_PASS_NOT_COVERED' || code === 'PAYMENT_REQUIRED') {
+            // 월 한도 소진: 스냅샷 잔여를 방금 0 으로 되썼으므로 전역 60초 잠금 없이 다음 판정이 스스로 거절한다.
+            if (bgVerdictApi && bgVerdictApi.isMonthlyLimitPayload(payload)) return;
             // 🔴 낙관 잠금은 전역 60초다. '이 가격이 이 등급 한도를 넘는다'는 미커버는 스냅샷이 이미 아는
             // 사실이라 자기수정할 것이 없는데, 여기서 잠그면 한도 이내 기능들의 낙관 통과까지 함께 죽는다.
             // 스냅샷과 서버 답이 실제로 어긋난 경우만 잠근다(셸 _cdRecordMembershipPassInBackground 와 동일 규칙).
@@ -11460,6 +11468,19 @@
     var passHint = hasActivePassTier
       ? _dpCheckoutText('payment.directModal.passHint.upgrade', '지금 등급으로는 이 콘텐츠가 열리지 않아요. 더 넓은 등급을 확인해 보세요.')
       : _dpCheckoutText('payment.directModal.passHint.store', '한 번 결제하고 30일 동안 여러 콘텐츠를 열 수 있어요. 이미 있다면 눌러서 바로 확인돼요.');
+    // 활성 스냅샷이 월 잔여를 알면 "이번 달 남은 한도"를 덧붙인다(coin-gate 응답이 되쓴 값). 모르면 붙이지 않는다.
+    try {
+      var passCardApi = _dpPassVerdict();
+      var passCardSnap = passCardApi && hasActivePassTier ? _dpReadSubscriptionSnapshot() : null;
+      var passCardRemaining = passCardSnap && passCardSnap.state === 'active' ? Number(passCardSnap.monthlySpendRemainingCoin) : NaN;
+      var passCardMonthlyLimit = passCardSnap ? passCardApi.monthlyLimitForTier(passCardSnap.tier) : 0;
+      if (Number.isFinite(passCardRemaining) && passCardMonthlyLimit > 0) {
+        passHint += ' · ' + _dpCheckoutText('payment.directModal.passMonthlyRemaining', '이번 달 남은 한도 {remaining} / {limit}', {
+          remaining: _dpCheckoutFormatKrw(Math.max(0, Math.floor(passCardRemaining)) * 100),
+          limit: _dpCheckoutFormatKrw(passCardMonthlyLimit * 100)
+        });
+      }
+    } catch (_passCardMonthlyError) {}
     // 🔴 소비자에게 PG사 이름을 보여주지 않는다(내부 결제 인프라). 앱만 'Google Play 결제'를 유지한다 —
     // 외부 PG를 안내하면 사실과 다르고 Play 정책에도 걸린다.
     var directUsesAppStore = _dpShouldUseAppStoreEntry();
@@ -11781,6 +11802,21 @@
               if (passRetryNode) {
                 passRetryNode.textContent = _dpCheckoutText('payment.directModal.passCheckRetry', '이용권 상태를 확인하지 못했습니다. 잠시 후 다시 눌러 주세요.');
                 passRetryNode.style.color = '#fca5a5';
+              }
+              return;
+            }
+            // 서버 판정의 월 잔여를 활성 스냅샷에 되쓴다 — 다음 진입은 스냅샷만으로 판정한다.
+            var passMonthlyApi = _dpPassVerdict();
+            try { if (passMonthlyApi) passMonthlyApi.storeMonthlyQuotaFromPayload(_dpSubSnapshotUserId(), passReady.payload); } catch (_) {}
+            // 월 한도 소진(decisionReason MONTHLY_PASS_LIMIT_EXCEEDED)은 이용권이 **있는** 상태다 — 상점으로
+            // 보내면 이미 가진 이용권을 또 사라는 화면이 된다. 모달을 연 채 단건·월정석을 고르게 한다.
+            if (passMonthlyApi && passMonthlyApi.isMonthlyLimitPayload(passReady.payload)) {
+              hit.removeAttribute('disabled');
+              hit.classList.remove('is-loading');
+              var passMonthlyNode = root.querySelector('[data-payment-status]');
+              if (passMonthlyNode) {
+                passMonthlyNode.textContent = _dpCheckoutText('payment.directModal.passMonthlyExhausted', '이번 달 이용권 한도를 모두 사용했어요. 다음 달에 다시 열리고, 지금은 단건 결제나 월정석으로 열 수 있어요.');
+                passMonthlyNode.style.color = '#fca5a5';
               }
               return;
             }

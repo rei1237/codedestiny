@@ -1838,7 +1838,8 @@
         "passUnknown": "Si vous avez un pass, touchez la carte de pass ci-dessous : nous le vérifions immédiatement.",
         "passSaveUnverified": "Nous n'avons pas pu enregistrer le résultat de l'application de votre pass. Vérifiez à nouveau avec la carte pass ci-dessous ou choisissez un autre moyen de paiement.",
         "passCheckFailed": "Nous n'avons pas pu vérifier votre pass. Réessayez avec la carte pass ci-dessous ou choisissez un autre moyen de paiement.",
-        "passMiss": "Votre pass n'ouvre pas ce contenu gratuitement, voici les options de paiement."
+        "passMiss": "Votre pass n'ouvre pas ce contenu gratuitement, voici les options de paiement.",
+        "passMonthlyExhausted": "You've used this month's pass allowance, so here are the payment options. It resets next month."
       },
       "passBadge": "Pass Clair de Lune",
       "passStoreTitle": "Boutique du Pass Moonlight",
@@ -1906,7 +1907,9 @@
         "giftGroup": "Gift certificate",
         "comingSoon": "Bientôt disponible",
         "back": "Retour"
-      }
+      },
+      "passMonthlyExhausted": "You've used this month's pass allowance. It resets next month; for now you can open this with a one-time payment or moonstones.",
+      "passMonthlyRemaining": "Remaining this month {remaining} / {limit}"
     },
     "overlay": {
       "unlockPreparing": {

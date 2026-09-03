@@ -13146,7 +13146,8 @@ html.neo-mode body .cd-why-us__proof-caption{color:rgba(228,214,255,.72)}
                         var statusActiveUntil = new Date(status.expiresAt);
                         if (!Number.isNaN(statusActiveUntil.getTime()) && statusActiveUntil.getTime() > Date.now()) statusActive = true;
                       }
-                      var policyPassLimit = statusTier === 'family' ? 999999999 : (statusTier === 'vvip' ? 100 : (statusTier === 'premium' ? 50 : (statusTier === 'standard' ? 30 : 0)));
+                      // 한도표 정본은 js/core/pass-verdict.js 하나다(사본을 두면 30/50/100 처럼 낡는다). 모듈이 없으면 0 → 서버 값이 이긴다.
+                      var policyPassLimit = (window.__cdPassVerdict && typeof window.__cdPassVerdict.passLimitForTier === 'function') ? window.__cdPassVerdict.passLimitForTier(statusTier) : 0;
                       user.profileSubscription = {
                         tier: statusTier,
                         passTier: status && (status.passTier || statusTier || ''),
@@ -21457,6 +21458,20 @@ return you.name.restore();</span>
     var passDisabledClass = ' is-store';
     var passCoverage = opts.membershipCoverage && typeof opts.membershipCoverage === 'object' ? opts.membershipCoverage : null;
     var passLimitLabel = _cdFormatMembershipPassLimitLabel(passCoverage);
+    // 활성 스냅샷이 월 잔여를 알고 있으면 "이번 달 남은 한도"를 덧붙인다(coin-gate 응답이 되쓴 값).
+    // 모르면(null) 아무것도 붙이지 않는다 — 추정치를 보여 주지 않는다.
+    try {
+      var _cdPassCardApi = _cdPassVerdict();
+      var _cdPassCardSnap = _cdPassCardApi ? _cdReadSubscriptionSnapshot() : null;
+      var _cdPassCardRemaining = _cdPassCardSnap && _cdPassCardSnap.state === 'active' ? Number(_cdPassCardSnap.monthlySpendRemainingCoin) : NaN;
+      var _cdPassCardMonthlyLimit = _cdPassCardSnap ? _cdPassCardApi.monthlyLimitForTier(_cdPassCardSnap.tier) : 0;
+      if (Number.isFinite(_cdPassCardRemaining) && _cdPassCardMonthlyLimit > 0) {
+        passLimitLabel += ' · ' + _cdPaymentI18n('payment.directModal.passMonthlyRemaining', '이번 달 남은 한도 {remaining} / {limit}', {
+          remaining: formatCoinValueWon(Math.max(0, Math.floor(_cdPassCardRemaining))),
+          limit: formatCoinValueWon(_cdPassCardMonthlyLimit)
+        });
+      }
+    } catch (_) {}
     // 무료/미보유 등급을 등급명으로 오표기하지 않는다(무료 이용권이라는 재화는 없음).
     var passTierName = String((passCoverage && (passCoverage.tier || passCoverage.passTier)) || '').trim();
     var hasActivePassTier = !!(passTierName && passTierName.toLowerCase() !== 'free');
@@ -21751,6 +21766,9 @@ return you.name.restore();</span>
         if (access && String(access.status || '').toLowerCase() === 'error') {
           return { status: 'pass_check_failed', message: String((access && access.message) || '') };
         }
+        // 서버가 미커버(payment_required)라고 답한 결과는 그대로 돌려준다 — 호출부가 raw.payload 의
+        // decisionReason 으로 '월 한도 소진'(상점 아님)과 '진짜 미커버'(상점)를 가른다.
+        if (access && String(access.status || '').toLowerCase() === 'payment_required') return access;
         return null;
       }
       function close(mode) {
@@ -21898,6 +21916,12 @@ return you.name.restore();</span>
               await _cdWaitForPaymentOverlayPaint();
             }
             var passReady = await refreshDirectEntitlementStatus();
+            // 서버 판정(200/402)의 월 잔여를 활성 스냅샷에 되쓴다 — 다음 진입은 서버 없이 스냅샷만으로 판정한다.
+            try {
+              var _cdPassReadyApi = _cdPassVerdict();
+              var _cdPassReadyRaw = passReady && (passReady.raw || (passReady.access && passReady.access.raw));
+              if (_cdPassReadyApi && _cdPassReadyRaw && _cdPassReadyRaw.payload) _cdPassReadyApi.storeMonthlyQuotaFromPayload(_cdResolveSubscriptionSnapshotUserId(), _cdPassReadyRaw.payload);
+            } catch (_) {}
             if (passReady && passReady.status === 'pass_applied_complete') {
               _cdTrackCheckoutEvent('pass_verified_free', { option: 'pass', featureKey: featureKey || opts.featureKey, coinPrice: coinPrice });
               close('pass_applied');
@@ -21929,6 +21953,16 @@ return you.name.restore();</span>
               return;
             }
             if (typeof _cdSetCoinGateOverlay === 'function') _cdSetCoinGateOverlay(false);
+            // 월 한도 소진(서버 decisionReason MONTHLY_PASS_LIMIT_EXCEEDED)은 이용권이 **있는** 상태다 —
+            // 상점으로 보내면 이미 가진 이용권을 또 사라는 화면이 된다. 모달을 연 채 단건·월정석을 고르게 한다.
+            var _cdPassMonthlyApi = _cdPassVerdict();
+            var _cdPassMonthlyPayload = passReady && passReady.raw ? passReady.raw.payload : null;
+            if (_cdPassMonthlyApi && _cdPassMonthlyApi.isMonthlyLimitPayload(_cdPassMonthlyPayload)) {
+              node.disabled = false;
+              node.classList.remove('is-loading');
+              status(_cdPaymentI18n('payment.directModal.passMonthlyExhausted', '이번 달 이용권 한도를 모두 사용했어요. 다음 달에 다시 열리고, 지금은 단건 결제나 월정석으로 열 수 있어요.'), true);
+              return;
+            }
             status(_cdPaymentI18n('payment.directModal.passMissGoStore', '보유하신 이용권으로는 열리지 않아 이용권 상점으로 이동합니다.'), true);
             window.setTimeout(openPassStoreAfterCheck, 450);
             return;
@@ -23783,6 +23817,9 @@ return you.name.restore();</span>
         var _cdPassOutcomeReason = String((passFirstAccess && passFirstAccess.reason) || '').trim().toLowerCase();
         if (_cdPassOutcomeStatus === 'payment_required' && _cdPassOutcomeReason === 'pass_snapshot_indeterminate') {
           _cdPassOutcomeNote = _cdPaymentI18n('payment.directModal.note.passUnknown', '이용권이 있으시면 아래 이용권 카드를 누르면 그 자리에서 확인됩니다.');
+        } else if (_cdPassOutcomeStatus === 'payment_required' && _cdPassOutcomeReason === 'monthly_pass_limit_exceeded') {
+          // 이용권은 있는데 이번 달 한도를 다 썼다 — '이용권으로는 안 열린다'가 아니라 '한도 소진'을 말한다.
+          _cdPassOutcomeNote = _cdPaymentI18n('payment.directModal.note.passMonthlyExhausted', '이번 달 이용권 한도를 모두 사용해 결제 방법을 고르는 창을 열었어요. 다음 달에 다시 열립니다.');
         } else if (_cdPassOutcomeStatus === 'payment_required') {
           _cdPassOutcomeNote = _cdPaymentI18n('payment.directModal.note.passMiss', '보유하신 이용권으로는 이 콘텐츠가 무료로 열리지 않아 결제 방법을 고르는 창을 열었어요.');
         }
@@ -26672,7 +26709,8 @@ return you.name.restore();</span>
         expiresAt: user.profileSubscription.expiresAt || null,
       };
       var _passLimit = Number(user.profileSubscription.passLimit || user.profileSubscription.freeLimit || user.profileSubscription.maxFreeCoinLimit || user.profileSubscription.maxCoveredCoin);
-      var _policyPassLimit = _subTier === 'family' ? 999999999 : (_subTier === 'vvip' ? 100 : (_subTier === 'premium' ? 50 : (_subTier === 'standard' ? 30 : 0)));
+      var _policyPassLimitApi = _cdPassVerdict();
+      var _policyPassLimit = _policyPassLimitApi ? _policyPassLimitApi.passLimitForTier(_subTier) : 0;
       if (_policyPassLimit > 0) {
         safe.profileSubscription.passLimit = _policyPassLimit;
         safe.profileSubscription.freeLimit = _policyPassLimit;
@@ -26916,7 +26954,8 @@ return you.name.restore();</span>
       sub.isSubscribed = isActive;
       sub.expiresAt = status.expiresAt || sub.expiresAt || null;
       if (status.passTier) sub.passTier = _cdNormalizePassTier(status.passTier);
-      var policyPassLimit = tier === 'family' ? 999999999 : (tier === 'vvip' ? 100 : (tier === 'premium' ? 50 : (tier === 'standard' ? 30 : 0)));
+      var policyPassLimitApi = _cdPassVerdict();
+      var policyPassLimit = policyPassLimitApi ? policyPassLimitApi.passLimitForTier(tier) : 0;
       if (policyPassLimit > 0) {
         sub.passLimit = policyPassLimit;
         sub.freeLimit = policyPassLimit;
@@ -27522,9 +27561,28 @@ return you.name.restore();</span>
         })
         .then(function(result) {
           var status = String((result && result.status) || '').trim().toLowerCase();
+          // 🔴 월 한도 되쓰기는 조기 반환보다 **앞**이다. 성공 200 이 소비 **후** 잔여를 싣고 오므로
+          // 여기가 가장 중요한 되쓰기 지점이고, 402 는 잔여 0 을 싣는다. 활성 스냅샷에만 반영된다.
+          var _cdRecordPayload = (result && ((result.raw && result.raw.payload) || result.rawPayload || result.payload)) || null;
+          var _cdRecordVerdictApi = _cdPassVerdict();
+          try {
+            if (_cdRecordVerdictApi && _cdRecordPayload) _cdRecordVerdictApi.storeMonthlyQuotaFromPayload(_cdResolveSubscriptionSnapshotUserId(), _cdRecordPayload);
+          } catch (_) {}
           if (status === 'pass_applied' || status === 'already_unlocked') return;
           // error(5xx/degraded)는 일시장애다 — 재시도하지 않는다(백그라운드 폭주 방지).
           if (status !== 'payment_required') return;
+          // 월 한도 소진 402: 이용권은 있으나 이번 달 잔여가 없다. 스냅샷은 방금 잔여 0 으로 되썼으므로
+          // 전역 60초 낙관 잠금은 필요 없다(다음 진입은 fast-path 가 스냅샷만으로 거절한다). 대신 이미
+          // 낙관으로 열어 둔 이 기능만 회수한다 — 서버는 열어 주지 않았고, 열린 채 두면 다음 화면이
+          // "확정 해금"으로 오인한다.
+          if (_cdRecordVerdictApi && _cdRecordVerdictApi.isMonthlyLimitPayload(_cdRecordPayload)) {
+            _cdRevokeOptimisticPassUnlock(item.featureKey, 'monthly-pass-limit');
+            try { _cdClearPaidPrecheckCache('monthly-pass-limit'); } catch (_) {}
+            try {
+              if (typeof toast === 'function') toast(_cdPaymentI18n('payment.directModal.passMonthlyExhausted', '이번 달 이용권 한도를 모두 사용했어요. 다음 달에 다시 열리고, 지금은 단건 결제나 월정석으로 열 수 있어요.'));
+            } catch (_) {}
+            return;
+          }
           // 🔴 낙관 잠금은 **전역 60초**다. '이 가격이 이 등급 한도를 넘는다'는 미커버는 스냅샷이 이미
           // 알고 있는 사실이라 자기수정할 것이 없는데, 여기서 잠그면 한도 이내 기능들의 낙관 통과까지
           // 같이 죽는다(작명 300코인을 한 번 눌렀다고 30코인짜리가 느려지던 회귀). 스냅샷과 서버 답이
@@ -27561,9 +27619,13 @@ return you.name.restore();</span>
         if (!source || typeof source !== 'object' || !isFresh(source)) return null;
         var tier = _cdNormalizeMembershipTier(source.tier || source.passTier || source.plan || source.planId || source.productId || source.subscriptionTier);
         if (tier === 'free') return null;
-        var defaultLimit = tier === 'family' ? 999999999 : (tier === 'vvip' ? 100 : (tier === 'premium' ? 50 : (tier === 'standard' ? 30 : 0)));
-        var rawLimit = Math.max(0, Math.floor(Number(source.passLimit || source.freeLimit || source.maxFreeCoinLimit || source.maxFreeCoins || source.maxCoinLimit || defaultLimit)));
-        var passLimit = defaultLimit > 0 ? defaultLimit : rawLimit;
+        // 한도표 정본은 js/core/pass-verdict.js 다. 모듈이 없으면 커버리지를 만들지 않고 null 을 돌려
+        // 서버 검사로 폴백한다(낙관 통과 쪽으로는 폴백하지 않는다). 낡은 사본(30/50/100)이 서버 값을
+        // 이기던 역전(passLimit = defaultLimit || rawLimit)도 함께 지운다 — 서버가 준 값이 이긴다.
+        var _cdFastLimitApi = _cdPassVerdict();
+        if (!_cdFastLimitApi) return null;
+        var defaultLimit = _cdFastLimitApi.passLimitForTier(tier);
+        var passLimit = Math.max(0, Math.floor(Number(source.passLimit || source.freeLimit || source.maxFreeCoinLimit || source.maxFreeCoins || source.maxCoinLimit || defaultLimit)));
         var canUseByPass = passLimit > 0 && requiredCoins <= passLimit;
         var passDiscount = source.passDiscount && typeof source.passDiscount === 'object' ? source.passDiscount : null;
         if (!(passLimit > 0)) return null;
@@ -27620,14 +27682,15 @@ return you.name.restore();</span>
       // 만들어 내므로(_cdReadSubscriptionSnapshot 이 stale-active 를 애초에 돌려주지 않는다) 안전하다.
       var _cdSnapCoverage = _cdCoverageFromSubscriptionSnapshot(coinCost, { allowStaleNone: true });
       if (_cdSnapCoverage && _cdSnapCoverage.canUseByPass === false) {
-        return { status: 'payment_required', reason: _cdSnapCoverage.source || 'subscription_snapshot_none', membershipCoverage: _cdSnapCoverage };
+        // deniedReason 이 월 한도 소진(monthly_pass_limit_exceeded)이면 결제창이 상점 대신 한도 소진 문구를 낸다.
+        return { status: 'payment_required', reason: _cdSnapCoverage.deniedReason || _cdSnapCoverage.source || 'subscription_snapshot_none', membershipCoverage: _cdSnapCoverage };
       }
       // 대칭: 스냅샷이 '커버됨'을 확답하면 즉시 통과시키고 서버 기록은 백그라운드로 돌린다.
       // 근거는 반드시 _cdCoverageFromSubscriptionSnapshot(서버 /api/subscription/status 가 채우고
       // degraded 응답은 저장 거부, active TTL 5분, 만료일·userId 검사 내장)만 쓴다 —
       // _cdBuildFastMembershipCoverage 는 아직 확정 안 된 pending 결제 키까지 받아들여 낙관 판정 근거로 부적합하다.
       if (_cdSnapCoverage && _cdSnapCoverage.canUseByPass === true && _cdSnapCoverage.hasActivePass === true && !_cdOptimisticPassDisabled()) {
-        _cdRecordMembershipPassInBackground(item, coinCost, requestId);
+        _cdRecordMembershipPassInBackground(Object.assign({}, item, { featureKey: featureKey || item.featureKey }), coinCost, requestId);
         return _cdBuildOptimisticPassAccess(Object.assign({}, item, { featureKey: featureKey || item.featureKey }), coinCost, _cdSnapCoverage, requestId);
       }
     }
@@ -28284,6 +28347,53 @@ return you.name.restore();</span>
     return true;
   }
   window._cdRecordOptimisticUnlockGrant = _cdRecordOptimisticUnlockGrant;
+
+  // _cdRecordOptimisticUnlockGrant 의 짝. 그 키의 mode:'optimistic' 항목만 지운다(프로필 무관) —
+  // mode 가 다른 확정 기록은 서버가 검증한 결제라 절대 건드리지 않는다.
+  function _cdForgetOptimisticUnlockGrant(featureKey) {
+    var key = String(featureKey || '').trim();
+    if (!key) return false;
+    var map = _cdReadVerifiedUnlockGrantMap();
+    var removed = false;
+    Object.keys(map).forEach(function(mapKey) {
+      var entry = map[mapKey];
+      if (!entry || entry.mode !== 'optimistic') return;
+      if (String(entry.featureKey || '') !== key && mapKey.indexOf(key + '::') !== 0) return;
+      delete map[mapKey];
+      removed = true;
+    });
+    if (removed) _cdWriteVerifiedUnlockGrantMap(map);
+    return removed;
+  }
+
+  // 낙관 이용권 해금 회수. 배경 서버 기록이 '월 한도 소진' 402 로 돌아왔을 때만 부른다 —
+  // 낙관 원장(mode:'optimistic') · access store 낙관 항목(키 단위) · unlockedFeatureMap 을
+  // 그 기능(별칭 포함)에 한해 되돌리고 타일을 다시 잠근다. 확정 해금·다른 기능은 건드리지 않는다.
+  function _cdRevokeOptimisticPassUnlock(featureKey, reason) {
+    var key = String(featureKey || '').trim();
+    if (!key) return false;
+    var aliases = [key];
+    try { aliases = resolveTileLockAliasKeys(key); } catch (_) { aliases = [key]; }
+    if (!aliases || !aliases.length) aliases = [key];
+    if (aliases.indexOf(key) < 0) aliases = aliases.concat([key]);
+    var store = window.CodeDestinyAccessStore;
+    var changed = false;
+    for (var i = 0; i < aliases.length; i += 1) {
+      var alias = aliases[i];
+      try { if (store && typeof store.forgetOptimisticUnlock === 'function') store.forgetOptimisticUnlock(alias); } catch (_) {}
+      if (unlockedFeatureMap[alias]) { delete unlockedFeatureMap[alias]; changed = true; }
+    }
+    try { _cdForgetOptimisticUnlockGrant(key); } catch (_) {}
+    if (changed) {
+      syncUnlockedFeatureMapGlobal();
+      try { saveTileLocks(); } catch (_) {}
+    }
+    try { applyTileLockVisuals(); } catch (_) {}
+    try { applySectionGates(); } catch (_) {}
+    try { refreshUnlockButtons(); } catch (_) {}
+    _cdUnlockDebugLog('optimistic-pass-unlock-revoked', { featureKey: key, reason: String(reason || ''), relocked: changed });
+    return changed;
+  }
 
   function _cdHasVerifiedUnlockGrant(featureKey, payload) {
     var key = String(featureKey || '').trim();
