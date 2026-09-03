@@ -28,15 +28,31 @@
  *    (커밋 9f7648605) 아래 블록이 항상 이겨 죽은 선언이 됐다 — 둘을 합쳤다.
  */
 :root {
-  /* 렌더된 바의 **바깥 높이**다 — 토큰이 아니라 실측값이다(상단 패딩 6 + 링크 50 + 하단 여유 12).
-     2026-09-03 실측 360x800·412x823/DPR 1.75: 68.1px. 🔴 예전 값 56px 는 바 자신의 패딩 14px 를
-     빼먹은 값이라, --cd-mnav-offset 을 쓰는 14곳(app-shell·destiny-compass·island-consult·
-     prompt-hub·destiny-bias·master-love-codex·neo-war-room)의 플로팅 UI 가 전부 그만큼 바에
-     걸쳐 있었다. .cd-mnav 의 패딩이나 .cd-mnav__link 의 높이를 바꾸면 여기도 다시 재서 고친다. */
-  --cd-mnav-bar-h: 68px;
-  /* 데스크탑에서 접었을 때 남는 손잡이 높이. 모바일에서는 쓰이지 않는다. */
-  --cd-mnav-handle-h: 22px;
+  /* 렌더된 바의 **바깥 높이**다 — 토큰이 아니라 실측값이다.
+     모바일(기본): 상단 패딩 2 + 손잡이 줄 16 + 링크 50 + 하단 여유 12 = 80.
+     데스크탑(아래 769px 블록): 상단 패딩 6 + 링크 50 + 하단 여유 12 = 68.
+     2026-09-03 실측 360x800·412x823/DPR 1.75 로 데스크탑 값 68.1px 를 얻었다.
+     🔴 예전 값 56px 는 바 자신의 패딩 14px 를 빼먹은 값이라, --cd-mnav-offset 을 쓰는
+     14곳(app-shell·destiny-compass·island-consult·prompt-hub·destiny-bias·
+     master-love-codex·neo-war-room)의 플로팅 UI 가 전부 그만큼 바에 걸쳐 있었다.
+     .cd-mnav 의 패딩이나 .cd-mnav__link 의 높이를 바꾸면 여기도 다시 재서 고친다.
+     🔴 기본값은 반드시 **큰 쪽(모바일)** 이어야 한다 — __tests__/ui/mobile-bottom-nav-geometry
+     .static.test.js 가 이 :root 블록 하나만 읽어 부품 합과 대조하기 때문이다. */
+  --cd-mnav-bar-h: 80px;
+  /* 접었을 때 남는 손잡이 높이. 모바일에서는 이 값이 곧 **유일한 탈출구의 터치 타겟**이라
+     44px 를 밑돌면 안 된다(탭바가 접히면 .cd-feature-nav 도 숨어 있어 다른 내비가 없다).
+     데스크탑은 포인터가 정확하고 상단 헤더라는 대체 경로가 있어 22px 로 둔다. */
+  --cd-mnav-handle-h: 44px;
   --cd-mnav-offset: calc(var(--cd-mnav-bar-h) + env(safe-area-inset-bottom, 0px));
+
+  /* 달빛 예화(月花) 장식 — 값 정본은 styles/theme-tokens.css 의 --cd-yehwa-*.
+     🔴 App Router 는 <html> 에 neo-mode/data-cd-theme 를 붙이지 않으므로(실측: app/ 전체 grep
+        히트 0) 이 토큰들은 항상 :root 기본값 = 연이 로즈골드로 풀린다. 표면별로 필요한 것은
+        **색이 아니라 알파**라서, 아래 스킨들이 --cd-mnav-hairline 만 자기 배경에 맞게 다시 준다.
+     알파 목표는 DESIGN.md 의 라인 대비 1.3~1.7:1 이다(알파값 자체가 아니라 **대비**가 기준). */
+  --cd-mnav-hairline: color-mix(in srgb, var(--cd-yehwa-line, #c9a46a) 8%, transparent);
+  --cd-mnav-moon-edge: color-mix(in srgb, var(--cd-yehwa-line, #c9a46a) 60%, transparent);
+  --cd-mnav-moon-glow: rgba(245, 200, 170, 0.42);
 }
 
 /**
@@ -61,7 +77,11 @@ body.cd-mnav-mounted .cd-feature-nav {
   bottom: 0;
   z-index: 960;
   display: block;
-  padding: 6px max(12px, env(safe-area-inset-right, 0px)) calc(12px + env(safe-area-inset-bottom, 0px))
+  /* 상단 2px — 모바일에서는 손잡이 줄(16px)이 바로 밑에 붙으므로 여기서 더 벌리지 않는다.
+     데스크탑은 손잡이가 바 바깥 nub 이라 아래 769px 블록이 6px 로 되돌린다.
+     🔴 `0` 이 아니라 `2px` 인 이유: 기하 정적 테스트가 이 shorthand 의 첫 값을 `[\d.]+px` 로
+        읽는다 — 단위 없는 0 은 못 읽고 fail-closed 로 실패한다. */
+  padding: 2px max(12px, env(safe-area-inset-right, 0px)) calc(12px + env(safe-area-inset-bottom, 0px))
     max(12px, env(safe-area-inset-left, 0px));
   background: linear-gradient(180deg, rgba(24, 20, 52, 0.96), rgba(13, 10, 30, 0.98));
   border-top: 1px solid rgba(196, 181, 253, 0.22);
@@ -73,6 +93,36 @@ body.cd-mnav-mounted .cd-feature-nav {
   opacity: 1;
   transition: transform 0.2s ease, opacity 0.2s ease;
   will-change: transform;
+}
+
+/**
+ * 달빛 예화 장식 ①: 바 윗변에 얹는 1px 헤어라인. 가운데가 짙고 양끝이 사라진다 —
+ * styles/yehwa-motifs.css 의 `.cd-yehwa-divider::before` 와 같은 구성이지만 마스크가 필요
+ * 없으므로(직선) SVG 없이 그라디언트만 쓴다. 생성기(scripts/design/gen-yehwa-motifs.mjs)를
+ * 건드리지 않는 이유가 이것이다.
+ *
+ * 🔴 `border-top` 을 대체하지 않고 **그 위에 얹는다**. 테두리는 바와 본문을 가르는 기능선이라
+ *    지우면 밝은 연이 표면에서 바의 경계가 사라진다. 장식은 그 선을 가운데에서 금빛으로
+ *    덥히기만 한다 — 대비 규칙에 걸리는 변경이 아니다.
+ */
+.cd-mnav::before {
+  content: "";
+  position: absolute;
+  /* 🔴 0 이 아니라 -1px — absolute 의 기준은 padding box 라 top:0 은 border-top **아래**에
+     그려져 평평한 보랏빛 테두리와 금빛 선이 2줄로 겹쳐 보인다(미드나잇 실측). -1px 로
+     테두리 행 위에 정확히 얹어 한 줄로 만든다. */
+  top: -1px;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--cd-mnav-hairline) 26%,
+    var(--cd-mnav-hairline) 74%,
+    transparent 100%
+  );
+  pointer-events: none;
 }
 
 .cd-mnav__list {
@@ -121,10 +171,78 @@ body.cd-mnav-mounted .cd-feature-nav {
   line-height: 24px;
 }
 
-/* 접기 손잡이는 데스크탑 전용이다 — 실제 모양은 파일 끝의 @media (min-width: 769px) 에 있다.
-   모바일에서 탭바는 유일한 내비라 접을 수 있으면 안 된다. */
+/**
+ * 접기 손잡이 — 기본형은 **모바일의 바 상단 안쪽 줄**이다(데스크탑 nub 은 769px 블록이 덮는다).
+ *
+ * 안쪽에 두는 이유: 정적 셸의 모바일 탭바가 `overflow:hidden !important` 인 둥근 플로팅 pill
+ * (index.html 의 모바일 스킨)이라 바깥으로 튀어나온 nub 은 잘린다. 두 표면의 손잡이 위치를
+ * 같게 유지하려면 안쪽 줄이어야 한다.
+ *
+ * 마크업은 그대로다 — app/components/MobileBottomNav.tsx 에서 손잡이가 이미 <ul> 앞의
+ * 형제라 position:static 으로 되돌리기만 하면 탭 위에 온다.
+ */
 .cd-mnav__handle {
-  display: none;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 16px;
+  /* 🔴 min-* 을 0 으로 되돌린다 — 함께 로드되는 styles/fortune-ui.css 의 button{min-height:48px}
+     계열이 손잡이를 48px 로 부풀려 탭을 밀어낸다(정적 셸에서 2026-09-02 실측). */
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: rgba(222, 215, 245, 0.88);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/**
+ * 달빛 예화 장식 ②: 손잡이는 달이다. styles/yehwa-motifs.css 의
+ * `.cd-yehwa-divider::after`(미니 달) 레시피를 그대로 인용한다 — 순수 CSS 라 마크업도
+ * 마스크도 늘지 않는다.
+ * 🔴 아이보리는 두 모드 다 **불투명**이다(DESIGN.md). 반투명이면 뒤가 비쳐 흐린 유리 원이 된다.
+ */
+.cd-mnav__handle::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  /* 🔴 가운데 정렬을 transform 으로 잡지 않는다 — styles/fortune-ui.css:1508 의
+     button:active{transform:scale(.97)!important} 가 부모에 걸리는 것과 별개로, 손잡이 계열은
+     margin 정렬로 통일해 둔다(아래 nub 의 사고 주석과 같은 이유). */
+  margin: -7px 0 0 -7px;
+  border: 1px solid var(--cd-mnav-moon-edge);
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 36%, #fffdf7, var(--cd-yehwa-ivory, #fdf6f0) 100%);
+  box-shadow: 0 0 10px var(--cd-mnav-moon-glow);
+  pointer-events: none;
+}
+
+.cd-mnav__handle:focus-visible {
+  outline: 2px solid #a78bfa;
+  outline-offset: 2px;
+}
+
+/* 셰브런 — 펼침은 ∨(눌러서 내린다), 접힘은 ∧(눌러서 올린다). 달 위에 얹히므로 잉크는
+   currentColor 가 아니라 아이보리에서 읽히는 고정 먹색이다(두 테마 공통). */
+.cd-mnav__chevron {
+  position: relative;
+  display: block;
+  width: 6px;
+  height: 6px;
+  margin-top: -2px;
+  border-right: 1.5px solid #4a3520;
+  border-bottom: 1.5px solid #4a3520;
+  transform: rotate(45deg);
+  transition: transform 0.2s ease;
 }
 
 .cd-mnav__label {
@@ -136,14 +254,17 @@ body.cd-mnav-mounted .cd-feature-nav {
 }
 
 /* 활성 탭 — accent 는 트와일라잇 바이올렛 하나로 끝낸다(One Accent Rule).
-   상태가 바뀌는 자리이므로 여기서만 글로우를 쓴다. */
+   상태가 바뀌는 자리이므로 여기서만 글로우를 쓴다.
+   달빛 예화 장식 ③(달무리): 마지막 그림자가 넓고 옅은 후광이다. 🔴 **색상은 손대지 않는다** —
+   기존 강조색(바이올렛)의 알파만 퍼뜨리므로 One Accent Rule·Hue-Stays Rule 에 걸리지 않는다. */
 .cd-mnav__link[aria-current="page"],
 .cd-mnav__link.is-active {
   transform: translateY(-2px);
   border-color: rgba(196, 181, 253, 0.52);
   background: rgba(196, 181, 253, 0.16);
   color: #f7f3ff;
-  box-shadow: 0 6px 18px -8px rgba(167, 139, 250, 0.5), inset 0 1px 0 rgba(228, 214, 255, 0.14);
+  box-shadow: 0 6px 18px -8px rgba(167, 139, 250, 0.5), inset 0 1px 0 rgba(228, 214, 255, 0.14),
+    0 0 22px -4px rgba(196, 181, 253, 0.38);
 }
 
 .cd-mnav__link:focus-visible {
@@ -169,6 +290,77 @@ body.cd-mnav-mounted {
   padding-bottom: calc(var(--cd-mnav-bar-h) + 12px + env(safe-area-inset-bottom, 0px));
 }
 
+/**
+ * 접힘 — 리스트를 감추고 바를 손잡이만 남은 투명 스트립으로 줄인다.
+ *
+ * 🔴 예전에는 이 블록 전체가 @media (min-width: 769px) 안에 있었다. 그때의 설계 의도는
+ *    "폭 판정은 미디어쿼리에만 두어, 접은 채 창을 좁히면 탭바가 저절로 돌아오게" 였다 —
+ *    모바일에서 유일한 내비를 스스로 지운 채 갇히는 것을 막는 안전장치였다.
+ *    사용자 요청으로 모바일·앱에서도 접히게 하면서 **그 안전장치는 사라졌다.**
+ *    대체 안전장치는 손잡이다: 접혀도 항상 보이고, 모바일 터치 타겟이 44px 이다
+ *    (--cd-mnav-handle-h). 여기서 크기를 줄이면 탈출구가 없어진다.
+ * 🔴 접기는 transform 이동이 아니라 "리스트를 감추고 바를 손잡이 높이로 줄이기"다. 이동시키면
+ *    손잡이까지 화면 밖으로 나가고 --cd-mnav-offset 을 따로 계산해야 한다.
+ */
+body.cd-mnav-mounted.cd-mnav-collapsed {
+  --cd-mnav-offset: calc(var(--cd-mnav-handle-h) + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(var(--cd-mnav-handle-h) + 8px + env(safe-area-inset-bottom, 0px));
+}
+
+/* 클래스를 셋 겹친 건 연이 표면 스코프(body:has(main.cd-yeoni-surface) .cd-mnav = 0,2,2)를
+   확실히 이기기 위해서다. 그쪽이 이기면 접힌 스트립에 크림 그라디언트가 그대로 남는다. */
+body.cd-mnav-mounted.cd-mnav-collapsed .cd-mnav {
+  padding-top: 0;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  background: none;
+  border-top: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  /* 투명해진 스트립이 그 아래 콘텐츠의 클릭을 먹지 않도록. 손잡이만 되살린다. */
+  pointer-events: none;
+}
+
+/* 그을 바가 없으므로 장식 헤어라인도 함께 사라진다. */
+body.cd-mnav-collapsed .cd-mnav::before {
+  display: none;
+}
+
+body.cd-mnav-collapsed .cd-mnav__list {
+  display: none;
+}
+
+/* 접힌 손잡이 = 달 pill. 모바일에서는 이것이 내비로 돌아가는 **유일한** 길이다. */
+body.cd-mnav-collapsed .cd-mnav__handle {
+  /* 🔴 static 이 아니라 relative — static 이면 버튼이 containing block 이 아니게 돼
+     달(::before)의 top:50% 가 **바** 높이의 절반으로 풀린다(셸 접힘에서 3px 아래로 내려갔다).
+     레이아웃은 static 과 같고 데스크탑의 absolute 만 되돌린다. */
+  position: relative;
+  top: auto;
+  /* 🔴 left 도 함께 풀어야 한다 — 데스크탑 기본 규칙의 `left: 50%` 는 absolute 일 때만
+     margin-left:-36px 과 짝이 되어 가운데를 잡는다. position 이 relative 로 바뀌면 그 50% 가
+     **상대 이동량**이 되어 손잡이가 뷰포트 절반만큼 오른쪽으로 밀려 화면 밖으로 24px 나갔다
+     (1350px 접힘에서 실측). 가로 중앙은 아래 margin:0 auto 하나로만 잡는다. */
+  left: auto;
+  width: 88px;
+  height: var(--cd-mnav-handle-h);
+  margin: 0 auto;
+  /* 테두리는 장식이 아니라 바의 경계선이 하던 일이다 — 그래서 예화 금색이 아니라
+     바 테두리와 같은 색을 쓴다. 예화 모티프는 안쪽의 달이 맡는다. */
+  border: 1px solid rgba(196, 181, 253, 0.22);
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(24, 20, 52, 0.96), rgba(13, 10, 30, 0.98));
+  box-shadow: 0 -6px 18px rgba(0, 0, 0, 0.34);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  pointer-events: auto;
+}
+
+body.cd-mnav-collapsed .cd-mnav__chevron {
+  margin-top: 2px;
+  transform: rotate(-135deg);
+}
+
 /*
  * 연이 표면을 직접 칠하는 화면의 탭바 — 현재는 /fortune/{period} 계열 둘뿐이다
  * (app/fortune/[period]/page.tsx · app/fortune/[period]/[sign]/SignFortuneView.tsx).
@@ -183,6 +375,11 @@ body.cd-mnav-mounted {
  *    (라이트) 나 플럼 바(다크) 가 붙었다.
  */
 body:has(main.cd-yeoni-surface) .cd-mnav {
+  /* 크림 표면 위에서는 같은 로즈골드가 훨씬 세게 읽힌다 — 색은 그대로 두고 알파만 올려
+     라인 대비를 1.3~1.7:1 창으로 되돌린다(DESIGN.md). 미드나잇 8% ↔ 크림 46% ↔ 플럼 14% (2026-09-03 픽셀 실측). */
+  --cd-mnav-hairline: color-mix(in srgb, var(--cd-yehwa-line, #c9a46a) 46%, transparent);
+  --cd-mnav-moon-edge: color-mix(in srgb, var(--cd-yehwa-line, #c9a46a) 78%, transparent);
+  --cd-mnav-moon-glow: rgba(179, 25, 85, 0.18);
   background: linear-gradient(180deg, rgba(255, 249, 236, 0.98), rgba(255, 241, 224, 0.96));
   border-top-color: rgba(244, 190, 209, 0.42);
   box-shadow: 0 -12px 28px rgba(179, 25, 85, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.86);
@@ -197,18 +394,37 @@ body:has(main.cd-yeoni-surface) .cd-mnav__link.is-active {
   border-color: rgba(244, 190, 209, 0.66);
   background: linear-gradient(150deg, rgba(255, 248, 220, 0.96), rgba(244, 190, 209, 0.72));
   color: #7a1038;
-  box-shadow: 0 8px 20px rgba(179, 25, 85, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.88);
+  /* 달무리 — 기존 로즈 강조색의 알파만 퍼뜨린다(색상 축 불변). */
+  box-shadow: 0 8px 20px rgba(179, 25, 85, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.88),
+    0 0 22px -4px rgba(244, 190, 209, 0.72);
 }
 
 body:has(main.cd-yeoni-surface) .cd-mnav__link:focus-visible {
   outline-color: #b31955;
 }
 
+/* 접힌 달 pill 은 표면을 따라간다 — 크림 화면에 미드나잇 pill 이 남으면 반쪽 오버라이드다.
+   🔴 아래 다크 블록의 짝과 특이도가 같으므로 **반드시 그보다 앞에** 있어야 한다.
+      뒤로 가면 다크 모드에서도 이 크림 pill 이 이긴다. */
+body:has(main.cd-yeoni-surface).cd-mnav-collapsed .cd-mnav__handle {
+  border-color: rgba(244, 190, 209, 0.42);
+  background: linear-gradient(180deg, rgba(255, 249, 236, 0.98), rgba(255, 245, 230, 0.96));
+  box-shadow: 0 -6px 18px rgba(179, 25, 85, 0.18);
+}
+
+body:has(main.cd-yeoni-surface) .cd-mnav__handle:focus-visible {
+  outline-color: #b31955;
+}
+
 /* 연이 다크(딥 플럼) — DESIGN.md "연이 Dark" 팔레트. 표면·텍스트·강조를 한 세트로 바꾼다. */
 @media (prefers-color-scheme: dark) {
   body:has(main.cd-yeoni-surface) .cd-mnav {
+    /* 딥 플럼은 미드나잇과 비슷한 명도라 알파도 그쪽에 맞춘다(크림의 55% 가 아니다). */
+    --cd-mnav-hairline: color-mix(in srgb, var(--cd-yehwa-line, #c9a46a) 14%, transparent);
+    --cd-mnav-moon-edge: color-mix(in srgb, var(--cd-yehwa-line, #c9a46a) 62%, transparent);
+    --cd-mnav-moon-glow: rgba(255, 214, 232, 0.28);
     background: linear-gradient(180deg, #3a0e28, #24081a);
-    border-top-color: rgba(244, 190, 209, 0.38);
+    border-top-color: rgba(244, 190, 209, 0.16);
     box-shadow: 0 -12px 28px rgba(174, 45, 104, 0.32), inset 0 1px 0 rgba(255, 214, 232, 0.14);
   }
 
@@ -221,25 +437,40 @@ body:has(main.cd-yeoni-surface) .cd-mnav__link:focus-visible {
     border-color: rgba(255, 196, 222, 0.5);
     background: linear-gradient(150deg, rgba(179, 25, 85, 0.62), rgba(174, 45, 104, 0.36));
     color: #fff1f7;
-    box-shadow: 0 8px 20px rgba(174, 45, 104, 0.42), inset 0 1px 0 rgba(255, 214, 232, 0.2);
+    box-shadow: 0 8px 20px rgba(174, 45, 104, 0.42), inset 0 1px 0 rgba(255, 214, 232, 0.2),
+      0 0 22px -4px rgba(255, 196, 222, 0.4);
   }
 
   body:has(main.cd-yeoni-surface) .cd-mnav__link:focus-visible {
     outline-color: #f4bed1;
   }
+
+  body:has(main.cd-yeoni-surface).cd-mnav-collapsed .cd-mnav__handle {
+    border-color: rgba(244, 190, 209, 0.38);
+    background: linear-gradient(180deg, #3a0e28, #2c0a20);
+    box-shadow: 0 -6px 18px rgba(174, 45, 104, 0.34);
+  }
 }
 
 /**
- * 데스크탑 접기 — 마우스 사용자는 상단 헤더로 같은 곳에 갈 수 있어 탭바가 하단 56px 을
- * 상시 점유할 이유가 없다. 그래서 데스크탑에서만 손잡이로 접었다 펼 수 있게 한다.
+ * 데스크탑 표현 — 손잡이가 바 **바깥**의 nub 이 된다(모바일은 바 안쪽 줄).
+ * 접기 동작 자체는 위쪽 무조건 블록이 담당하고, 여기서는 생김새와 높이 토큰만 덮는다.
  *
- * 🔴 폭 판정은 **오직 이 미디어쿼리**다. 상태 클래스(body.cd-mnav-collapsed)는 JS 가 붙이지만
- *    아무것도 감추지 않으므로, 접은 채 창을 좁히면 탭바가 저절로 온전히 돌아온다 —
- *    모바일에서 유일한 내비를 스스로 지운 채 갇히는 경우가 없다.
- * 🔴 접기는 transform 이동이 아니라 "리스트를 감추고 바를 손잡이 높이로 줄이기"다. 이동시키면
- *    손잡이까지 화면 밖으로 나가고 --cd-mnav-offset 을 따로 계산해야 한다.
+ * 🔴 예전에는 접기 **기능 전체**가 이 미디어쿼리 안에 있었다. 지금은 데스크탑 전용인 것이
+ *    "바깥 nub 형태"와 "더 낮은 바/손잡이 높이"뿐이다 — 접기 자체는 모든 폭에서 된다.
  */
 @media (min-width: 769px) {
+  :root {
+    /* 손잡이 줄이 바 바깥으로 나가므로 상단 패딩 6 + 링크 50 + 하단 여유 12 = 68 로 돌아온다. */
+    --cd-mnav-bar-h: 68px;
+    /* 포인터가 정확하고 상단 헤더라는 대체 경로가 있어 모바일의 44px 이 필요 없다. */
+    --cd-mnav-handle-h: 22px;
+  }
+
+  .cd-mnav {
+    padding-top: 6px;
+  }
+
   /* 펼침: 바 위쪽 모서리에 올라탄 nub. 바 자체의 높이는 건드리지 않는다. */
   .cd-mnav__handle {
     position: absolute;
@@ -274,57 +505,18 @@ body:has(main.cd-yeoni-surface) .cd-mnav__link:focus-visible {
     color: #f7f3ff;
   }
 
-  .cd-mnav__handle:focus-visible {
-    outline: 2px solid #a78bfa;
-    outline-offset: 2px;
-  }
-
-  /* 셰브런 — 펼침은 ∨(눌러서 내린다), 접힘은 ∧(눌러서 올린다). */
-  .cd-mnav__chevron {
-    display: block;
-    width: 8px;
-    height: 8px;
-    margin-top: -3px;
-    border-right: 2px solid currentColor;
-    border-bottom: 2px solid currentColor;
-    transform: rotate(45deg);
-    transition: transform 0.2s ease;
-  }
-
-  /* 접힘: 리스트를 감추고 바를 손잡이만 남은 투명 스트립으로 줄인다. */
-  body.cd-mnav-mounted.cd-mnav-collapsed {
-    --cd-mnav-offset: calc(var(--cd-mnav-handle-h) + env(safe-area-inset-bottom, 0px));
-    padding-bottom: calc(var(--cd-mnav-handle-h) + 8px + env(safe-area-inset-bottom, 0px));
-  }
-
-  /* 클래스를 셋 겹친 건 연이 표면 스코프(body:has(main.cd-yeoni-surface) .cd-mnav = 0,2,2)를
-     확실히 이기기 위해서다. 그쪽이 이기면 접힌 스트립에 크림 그라디언트가 그대로 남는다. */
-  body.cd-mnav-mounted.cd-mnav-collapsed .cd-mnav {
-    padding-top: 0;
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-    background: none;
-    border-top: 0;
-    box-shadow: none;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    /* 투명해진 스트립이 그 아래 콘텐츠의 클릭을 먹지 않도록. 손잡이만 되살린다. */
-    pointer-events: none;
-  }
-
-  body.cd-mnav-collapsed .cd-mnav__list {
-    display: none;
-  }
-
+  /* 접힘: 데스크탑은 nub 모양 그대로 바닥에 내려앉는다(모바일의 44px 달 pill 이 아니라).
+     위 무조건 블록의 `body.cd-mnav-collapsed .cd-mnav__handle`(0,2,1)과 특이도가 같고
+     소스가 뒤라 이긴다 — 여기서 되돌리는 것은 pill 이 덮어쓴 네 속성뿐이다. */
   body.cd-mnav-collapsed .cd-mnav__handle {
-    position: static;
-    top: auto;
-    margin: 0 auto;
-    pointer-events: auto;
+    width: 72px;
+    border-bottom: 0;
+    border-radius: 10px 10px 0 0;
+    box-shadow: none;
   }
 
   body.cd-mnav-collapsed .cd-mnav__chevron {
-    margin-top: 3px;
-    transform: rotate(-135deg);
+    margin-top: 2px;
   }
 
   /* 연이 표면(/fortune/{period} 계열) — 표면·테두리·잉크를 한 세트로 맞춘다. */

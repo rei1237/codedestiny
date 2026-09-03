@@ -5,7 +5,8 @@
  * 하단 탭바(#cdMobileBottomNav) 위에 떠야 하는 body 직속 fixed UI 가 실제로 그 위에 있는지
  * 실브라우저에서 잰다. 정적으로는 안 보이는 축이다 — 탭바가 화면 바닥에서 차지하는 높이는
  *   max(6px, safe-area-inset-bottom)   ← 자기 bottom (index.html 모바일 플로팅 필 규칙)
- * + 71px + safe-area-inset-bottom      ← 자기 높이 (styles/mobile-lite.css 의 padding-bottom)
+ * + 91px + safe-area-inset-bottom      ← 자기 높이 (styles/mobile-lite.css 의 padding-bottom)
+ *                                        2026-09-03 실측. 접기 손잡이 줄 20px 이 붙어 71 → 91.
  * 이라 safe-area 를 두 번 센다. 그래서 "64px + safe" 같은 손어림 상수는 safe-area 가 큰 기기에서
  * 반드시 모자라고, 그 UI 는 탭바(z-index:980) 뒤로 통째로 숨는다. 실측 2026-08-29 에
  * .cd-sticky-cta 가 safe=0 에서 13px, safe=47 에서 52px(자기 높이 전부) 가려져 있었다.
@@ -262,8 +263,11 @@ async function main() {
     for (const failure of failures) console.error(`  - ${failure}`);
     console.error(
       "\n고치는 법: 그 UI 의 bottom 을 탭바 발자국 위로 올린다 —\n" +
-        "  calc(max(6px, env(safe-area-inset-bottom, 0px)) + 79px + env(safe-area-inset-bottom, 0px))\n" +
-        "  (탭바 bottom + 높이 71px + 여유 8px. 두 항의 safe-area 는 탭바가 두 번 세는 것을 그대로 따른 것이다.)",
+        "  calc(max(6px, env(safe-area-inset-bottom, 0px)) + var(--cd-mobile-nav-h, calc(91px + env(safe-area-inset-bottom, 0px))) + 8px)\n" +
+        "  (탭바 bottom + 실측 높이 + 여유 8px. 🔴 높이를 상수로 박지 말 것 — 2026-09-03 에 손잡이 줄이\n" +
+        "   붙으면서 71px 이 91px 이 됐고 박아 둔 상수 세 곳이 한꺼번에 모자라졌다. --cd-mobile-nav-h 는\n" +
+        "   index.html 의 ResizeObserver 가 실측해 흘리는 값이라 접힘(50px)까지 따라온다. 그 변수는\n" +
+        "   탭바의 padding-bottom safe-area 를 이미 포함하고 자기 bottom 오프셋은 포함하지 않는다.)",
     );
     process.exit(1);
   }

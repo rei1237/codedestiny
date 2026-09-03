@@ -266,6 +266,21 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body className={notoSansKRVariable}>
+        {/* 하단 탭바 접힘 상태를 페인트 전에 반영한다 — 접어 둔 사용자에게 "펼친 바가 한 프레임
+            보였다 접히는" 깜빡임을 막는다. 데스크탑에서는 22px 짜리 nub 라 눈에 안 띄었지만
+            모바일에서도 접히게 되면서 바 80px 이 통째로 번쩍인다.
+
+            🔴 <head> 가 아니라 <body> 첫 자식이어야 한다 — head 에서는 document.body 가 아직 없다.
+            키·값 규격은 app/_lib/mobile-tabs.ts 의 MNAV_COLLAPSED_KEY / "1"·"0" 문자열이고
+            정적 셸의 인라인 접기 스크립트와 같은 것을 읽는다(두 표면의 접힘이 함께 움직인다).
+            여기서 붙인 클래스를 MobileBottomNav 의 첫 커밋이 도로 걷어내지 않도록,
+            그 컴포넌트의 collapsed 초깃값은 null(=미확정)이다.
+            ⚠️ 반드시 순수 ES5 문자열. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: "try{if(localStorage.getItem('cd.mnavCollapsed.v1')==='1'){document.body.classList.add('cd-mnav-collapsed');}}catch(e){}",
+          }}
+        />
         <PaymentProcessingProvider>
           <UnlockProvider>
             <Suspense>
