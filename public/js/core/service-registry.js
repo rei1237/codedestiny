@@ -14,7 +14,7 @@
  *    사라지고 scripts/split-dist-boot-tasks.mjs 의 허용목록이 죽는다(index.html 주석 참조).
  *
  * 🔴 파생값을 저장하지 않는다.
- *   - 가격대(bucket)는 `price` 문자열에서 런타임 파생한다(home-service-finder.js `bucketOf`).
+ *   - 가격대(bucket)는 `price` 문자열에서 런타임 파생한다(home-service-finder.js `bucketsOf`).
  *   - 이용권 커버 여부는 저장하지 않는다 — `cost` 대 PASS_LIMITS(30/50/100,
  *     worker/lib/profile-limits.js) 파생값이라 적어 두는 순간 드리프트한다.
  *
@@ -30,8 +30,11 @@
  *   name/desc  표시 문구
  *   href       라우트 (action 과 둘 중 하나는 필수)
  *   action     href 없이 홈 런타임 액션으로만 열리는 항목
- *   featureKey 결제 정본 키 (유료면 필수)
- *   price      표시 가격 문자열 — '무료' | '무료 시작' | '이용권' | 'N,NNN원' | 'N,NNN원~'
+ *   featureKey 결제 정본 키 (유료면 필수). 범위 가격이면 **시작가** 쪽 키다.
+ *   featureKeyTo 범위 가격의 **상한** 쪽 정본 키 (범위면 필수 — 없으면 가드가 실패한다)
+ *   price      표시 가격 문자열 — '무료' | '무료 시작' | '이용권' | 'N,NNN원' | 'N,NNN원~M,MMM원'
+ *              🔴 개방형 'N,NNN원~' 은 쓰지 않는다 — 상한을 모르면 버킷을 시작가 하나로만
+ *                 파생하게 되고, 그래서 '5천원대' 칩이 실제보다 적게 나왔다.
  *   purposes   고민 축 (meta.purposes)
  *   methods    운세 방식 축 (meta.methods)
  *   keys       추가 검색 키워드 (공백 구분)
@@ -51,7 +54,8 @@ window.__cdServiceRegistry = [
     desc: "인연의 흐름과 만남의 시기를 깊이 읽는 연애 리딩",
     href: "/master-love-codex/",
     featureKey: "master-love-codex",
-    price: "20,000원~",
+    featureKeyTo: "master-love-codex-compat",
+    price: "20,000원~30,000원",
     purposes: ["love", "compatibility"],
     methods: ["saju", "ai"],
     keys: "인연 연애 만남 시기 재회 짝사랑",
@@ -64,7 +68,8 @@ window.__cdServiceRegistry = [
     desc: "따뜻한 연이와 나누는 마음 상담",
     href: "/fortune-tea-house/",
     featureKey: "fortune-tea-house-tarot-consultation",
-    price: "5,000원~",
+    featureKeyTo: "fortune-tea-house-sukuyo-compatibility-consultation",
+    price: "5,000원~20,000원",
     purposes: ["love", "self", "life"],
     methods: ["tarot", "saju", "ai"],
     keys: "찻집 상담 연이 마음 고민",
@@ -104,6 +109,62 @@ window.__cdServiceRegistry = [
     methods: ["ai"],
     keys: "상담 채팅 대화 연이 네오 고민 무료상담",
     badge: "가입 후 1회 무료",
+  },
+
+  {
+    id: "tarot-love-relationship",
+    name: "우리는 무슨 사이?",
+    desc: "말과 행동 사이에 남은 관계의 온도를 읽는 6장",
+    action: "openTarotLoveModal",
+    featureKey: "tarot-love-relationship",
+    price: "5,000원",
+    purposes: ["love", "compatibility"],
+    methods: ["tarot"],
+    keys: "관계 타로 우리는 무슨 사이 썸 상대 마음",
+  },
+  {
+    id: "tarot-reunion",
+    name: "재회운 타로",
+    desc: "멈춘 연락 앞에서 다시 다가가도 되는지 짚는 리딩",
+    action: "openTarotReunionModal",
+    featureKey: "tarot-reunion-reading",
+    price: "5,000원",
+    purposes: ["love"],
+    methods: ["tarot"],
+    keys: "재회 이별 헤어짐 연락 타로",
+  },
+  {
+    id: "tarot-mindscan",
+    name: "말과 행동 사이 타로",
+    desc: "겉말과 속마음의 간격을 재는 관계 리딩",
+    href: "/tarot/mindscan/",
+    featureKey: "tarot-mindscan",
+    price: "5,000원",
+    purposes: ["love", "compatibility", "self"],
+    methods: ["tarot"],
+    keys: "마인드스캔 속마음 겉말 관계 간격 타로",
+  },
+  {
+    id: "love-simulation",
+    name: "LOVE CODE 연애 시뮬레이션",
+    desc: "궁합을 표가 아니라 장면으로 겪어 보는 LOVE CODE",
+    action: "openLoveSimulation",
+    featureKey: "loveSimulation",
+    price: "10,000원",
+    purposes: ["love", "compatibility"],
+    methods: ["saju", "ai"],
+    keys: "연애 시뮬레이션 러브코드 궁합 캐릭터 장면",
+  },
+  {
+    id: "nakshatra-compat",
+    name: "동서 통합 궁합",
+    desc: "인도 아쉬타쿠타 36점과 동양 숙요를 겹쳐 보는 궁합",
+    href: "/nakshatra/compat/",
+    featureKey: "nakshatra-compat",
+    price: "10,000원",
+    purposes: ["love", "compatibility"],
+    methods: ["vedic", "sukuyo"],
+    keys: "나크샤트라 궁합 아쉬타쿠타 36점 숙요 격각 통합",
   },
 
   /* ── 재물 · 직업 ─────────────────────────────────────────────── */
@@ -152,6 +213,18 @@ window.__cdServiceRegistry = [
     purposes: ["career", "money", "life"],
     methods: ["saju", "ai"],
     keys: "신년 새해 올해 세운",
+  },
+
+  {
+    id: "tarot-ijik",
+    name: "이직 운명의 카드",
+    desc: "남을지 옮길지, 일의 기준을 읽는 7장",
+    href: "/tarot-ijik.html",
+    featureKey: "tarot-ijik",
+    price: "5,000원",
+    purposes: ["career", "money"],
+    methods: ["tarot"],
+    keys: "이직 퇴사 전직 커리어 직장 타로",
   },
 
   /* ── 인생 · 나 자신 ──────────────────────────────────────────── */
@@ -212,6 +285,40 @@ window.__cdServiceRegistry = [
     keys: "초융합 교차검증 종합 심층 여섯 체계 2만자",
     badge: "최종 판정",
     roles: ["recommended"],
+  },
+
+  {
+    id: "tarot-year-fortune",
+    name: "십이지신 천운 타로",
+    desc: "열두 달의 흐름과 전환점을 한 장씩 짚는 리딩",
+    action: "openTarotYearFortuneModal",
+    featureKey: "tarot-year-fortune",
+    price: "10,000원",
+    purposes: ["life", "etc"],
+    methods: ["tarot"],
+    keys: "연간 타로 한 해 일년 열두달 신년",
+  },
+  {
+    id: "tarot-celestial-harmony",
+    name: "천체의 선율",
+    desc: "열한 행성 자리에 카드를 놓는 확장형 코즈믹 타로",
+    href: "/celestial-harmony.html",
+    featureKey: "tarot-celestial-harmony",
+    price: "10,000원",
+    purposes: ["life", "self"],
+    methods: ["tarot", "astrology"],
+    keys: "천체의 선율 행성 코즈믹 점성 타로",
+  },
+  {
+    id: "nakshatra-muhurta",
+    name: "택일 무후르타",
+    desc: "결혼·개업·계약에 좋은 날을 60일 치에서 고르기",
+    href: "/nakshatra/muhurta/",
+    featureKey: "nakshatra-muhurta",
+    price: "5,000원",
+    purposes: ["life", "etc"],
+    methods: ["vedic", "sukuyo"],
+    keys: "택일 무후르타 길일 날짜 결혼 개업 이사",
   },
 
   /* ── 운세 체계 허브 (무료 진입) ──────────────────────────────── */
@@ -415,6 +522,19 @@ window.__cdServiceRegistry = [
     keys: "유명인 연예인 셀럽 명식",
   },
 
+  {
+    id: "animal-destiny",
+    name: "십이운성 동물점",
+    desc: "일주 십이운성으로 만나는 나의 수호 동물",
+    href: "/saju/animal-destiny/",
+    action: "openAnimalDestinyRoute",
+    featureKey: "animal-destiny-unlock",
+    price: "10,000원",
+    purposes: ["self", "career", "love"],
+    methods: ["saju"],
+    keys: "십이운성 동물점 수호동물 성향 사주",
+  },
+
   /* ── 신탁·오라클·기타 유료 체험 ──────────────────────────────── */
   {
     id: "kemet-oracle",
@@ -499,7 +619,8 @@ window.__cdServiceRegistry = [
     desc: "수호 동물 카드 리딩",
     action: "openAnimalTotemModal",
     featureKey: "animal-totem-basic",
-    price: "3,000원~",
+    featureKeyTo: "animal-totem-deep",
+    price: "3,000원~5,000원",
     purposes: ["self", "etc"],
     methods: ["ai"],
     keys: "애니멀 토템 수호동물 동물카드",
@@ -513,6 +634,52 @@ window.__cdServiceRegistry = [
     purposes: ["love", "compatibility"],
     methods: ["ai"],
     keys: "MBTI 동물 궁합 16유형 연애",
+  },
+
+  {
+    id: "tarot-crystal-soul",
+    name: "원석 소울 타로",
+    desc: "손이 멈추는 원석에서 시작하는 5장 리딩",
+    href: "/tarot/crystal-soul/",
+    featureKey: "tarot-crystal-soul-reading",
+    price: "5,000원",
+    purposes: ["self", "life"],
+    methods: ["tarot"],
+    keys: "원석 크리스탈 소울 보석 타로",
+  },
+  {
+    id: "royal-tea-oracle",
+    name: "영국 홍차점",
+    desc: "잔에 남은 찻잎으로 읽는 가까운 석 달의 결",
+    action: "openRoyalTeaOracle",
+    featureKey: "royal-tea-oracle",
+    price: "5,000원",
+    purposes: ["life", "etc"],
+    methods: ["ai"],
+    keys: "홍차 찻잎 티리딩 영국 홍차점 오라클",
+  },
+  {
+    id: "geomancy-oracle",
+    name: "지오맨시 흙점",
+    desc: "16도형 방패 차트로 셈하는 조건의 유불리",
+    action: "openGeomancyOracle",
+    featureKey: "openGeomancyOracle",
+    price: "5,000원",
+    purposes: ["life", "etc"],
+    methods: ["ai"],
+    keys: "지오맨시 흙점 방패 차트 도형 오라클",
+  },
+  {
+    id: "stonehenge-runes",
+    name: "스톤헨지 룬",
+    desc: "노른 세 여신의 자리에서 읽는 지나온 길과 다가올 길",
+    action: "openRuneOracle",
+    featureKey: "stonehenge-runes-single",
+    featureKeyTo: "stonehenge-runes-yearly",
+    price: "3,000원~10,000원",
+    purposes: ["life", "self"],
+    methods: ["ai"],
+    keys: "룬 스톤헨지 노른 우르드 베르단디 스쿨드",
   },
 
   /* ── 그 밖의 진입점 ─────────────────────────────────────────── */

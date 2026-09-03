@@ -41,9 +41,9 @@ async function boot(extraTiles = []) {
     sliceById(shell, "fortuneGatewayDiscover"),
     sliceById(shell, "cdServiceIndex"),
     // 컬렉션 타일 한 장 — 레지스트리에 없는 항목이 검색으로만 잡히는지 보기 위해서다.
-    '<a class="tarot-tile" href="/tarot/love/" data-action="openTarotLoveModal">',
-    '<span class="tarot-tile__title">우리는 무슨 사이?</span>',
-    '<span class="tarot-tile__desc">말과 행동 사이의 온도</span>',
+    '<a class="tarot-tile" href="/tarot/healing/" data-action="openTarotHealingModal">',
+    '<span class="tarot-tile__title">따뜻한 태양 회복 타로</span>',
+    '<span class="tarot-tile__desc">지친 마음을 데우는 회복 리딩</span>',
     '<span class="tarot-tile__coin-badge">1회 5,000원</span>',
     "</a>",
     ...extraTiles,
@@ -151,13 +151,13 @@ test("검색은 레지스트리에 없는 컬렉션 타일도 찾아 준다", as
   const panel = doc.getElementById("fortuneGatewayRecs");
   const input = doc.getElementById("fortuneGatewaySearch");
 
-  input.value = "우리는 무슨 사이";
+  input.value = "따뜻한 태양 회복";
   input.dispatchEvent(new window.Event("input"));
   return new Promise((done) => {
     setTimeout(() => {
       const hits = names(panel);
       assert.ok(
-        hits.includes("우리는 무슨 사이?"),
+        hits.includes("따뜻한 태양 회복 타로"),
         `DOM 스크래핑 결과가 검색에서 빠졌다 — 커버리지 회귀: ${hits.join(", ")}`,
       );
       done();
@@ -174,8 +174,58 @@ test("필터가 켜지면 태그 없는 스크래핑 항목은 후보에서 빠�
 
   assert.ok(hits.includes("마스터 인연의 서"), "연애 결과에 대표 상담이 없다");
   assert.ok(
-    !hits.includes("우리는 무슨 사이?"),
+    !hits.includes("따뜻한 태양 회복 타로"),
     "태그가 없는 스크래핑 항목이 축 필터 결과에 섞였다 — 무엇으로 걸러졌는지 설명할 수 없다",
+  );
+});
+
+// 회귀 배경(2026-09-03 실측): 가격대를 시작가 하나에서만 파생해서, 3,000원~5,000원인 애니멀
+// 토템이 '5천원대' 칩에서 빠지고 5,000원~20,000원인 운명의 찻집이 '1만원대' 칩에서 빠졌다.
+// 범위 항목은 걸치는 버킷 **전부**에 나와야 한다.
+test("범위 가격 항목은 걸치는 가격대 칩에 모두 나온다", async () => {
+  const { doc } = await boot();
+  const panel = doc.getElementById("fortuneGatewayRecs");
+  const inChip = (bucket, name) => {
+    const chip = doc.querySelector(`#fortuneGatewayDiscover .fortune-gateway__fchip[data-price="${bucket}"]`);
+    assert.ok(chip, `가격 칩 [data-price="${bucket}"] 이 없다`);
+    chip.click();
+    const hit = names(panel).includes(name);
+    chip.click();
+    return hit;
+  };
+
+  // 애니멀 토템 3,000원~5,000원 → 3천원대 · 5천원대 둘 다
+  assert.ok(inChip("mid", "애니멀 토템"), "3,000원~5,000원 항목이 3천원대에서 빠졌다");
+  assert.ok(inChip("high", "애니멀 토템"), "3,000원~5,000원 항목이 5천원대에서 빠졌다 — 시작가 버킷에 갇혔다");
+
+  // 운명의 찻집 5,000원~20,000원 → 5천원대 · 1만원대 · 프리미엄
+  assert.ok(inChip("high", "운명의 찻집"), "5,000원~20,000원 항목이 5천원대에서 빠졌다");
+  assert.ok(inChip("premium", "운명의 찻집"), "5,000원~20,000원 항목이 1만원대에서 빠졌다 — 시작가 버킷에 갇혔다");
+  assert.ok(inChip("vvip", "운명의 찻집"), "5,000원~20,000원 항목이 프리미엄에서 빠졌다");
+
+  // 단일 가격은 자기 버킷에만 있어야 한다 — 범위 판정이 전 구간을 열어 버리면 여기서 걸린다.
+  assert.ok(inChip("vvip", "마스터 인연의 서"), "20,000원~30,000원 항목이 프리미엄에서 빠졌다");
+  assert.ok(!inChip("mid", "마스터 인연의 서"), "20,000원~30,000원 항목이 3천원대에 섞였다");
+});
+
+// 회귀 배경(2026-09-03 실측): 결과 카드의 가격·CTA 노드가 className 없이 생성돼
+// styles/fortune-gateway.css 의 .fortune-gateway__rec-price / __rec-go 가 한 번도 먹지 않았다.
+// 같은 이유로 CURATED 정규화가 item.id 를 빠뜨려 descKey 가 늘 'home.svcDesc.undefined' 였다.
+test("결과 카드는 가격·CTA 클래스와 항목 id 기반 번역 키를 싣는다", async () => {
+  const { doc } = await boot();
+  const panel = doc.getElementById("fortuneGatewayRecs");
+
+  doc.querySelector('#fortuneGatewayDiscover [data-purpose="compatibility"]').click();
+  const card = Array.from(panel.querySelectorAll(".fortune-gateway__rec")).find((c) =>
+    c.textContent.includes("마스터 인연의 서"),
+  );
+  assert.ok(card, "궁합 결과에 마스터 인연의 서가 없다");
+  assert.ok(card.querySelector(".fortune-gateway__rec-price"), "가격 노드에 클래스가 없다 — CSS 가 먹지 않는다");
+  assert.ok(card.querySelector(".fortune-gateway__rec-go"), "CTA 노드에 클래스가 없다 — CSS 가 먹지 않는다");
+  assert.equal(
+    card.querySelector(".fortune-gateway__rec-desc").getAttribute("data-key"),
+    "home.svcDesc.master-love-codex",
+    "설명 번역 키가 항목 id 로 만들어지지 않았다",
   );
 });
 

@@ -52,22 +52,31 @@ const resolveFeature = (raw) => {
 };
 
 /* ── 가격 문자열 해석 ───────────────────────────────────────────
- * 반환: { bucket, krw|null }  ·  해석 불가면 null (= 실패)
- * 버킷 경계는 홈 가격 필터 6단계와 같다. */
+ * 반환: { bucket, krw|null, krwTo|null }  ·  해석 불가면 null (= 실패)
+ * 버킷 경계는 홈 가격 필터 6단계와 같다(js/core/home-service-finder.js bucketsOf).
+ * 🔴 개방형 'N,NNN원~' 은 거부한다 — 상한을 모르면 필터가 버킷을 시작가 하나로만
+ *    파생하게 되고, 그래서 '5천원대' 칩에서 3,000~5,000원 항목이 빠졌다(2026-09-03). */
+function bucketOfWon(won) {
+  if (won < 2000) return "low";
+  if (won < 4000) return "mid";
+  if (won < 8000) return "high";
+  if (won < 20000) return "premium";
+  return "vvip";
+}
+
 function readPrice(raw) {
   const text = String(raw || "").trim();
   if (!text) return null;
-  if (/^무료(\s*시작)?$/.test(text)) return { bucket: "free", krw: null };
-  if (text === "이용권") return { bucket: "vvip", krw: null };
-  const m = text.replace(/,/g, "").match(/^(\d{3,7})원(~)?$/);
-  if (!m) return null;
-  const won = Number(m[1]);
-  let bucket = "vvip";
-  if (won < 2000) bucket = "low";
-  else if (won < 4000) bucket = "mid";
-  else if (won < 8000) bucket = "high";
-  else if (won < 20000) bucket = "premium";
-  return { bucket, krw: won };
+  if (/^무료(\s*시작)?$/.test(text)) return { bucket: "free", krw: null, krwTo: null };
+  if (text === "이용권") return { bucket: "vvip", krw: null, krwTo: null };
+  const flat = text.replace(/,/g, "");
+  const single = flat.match(/^(\d{3,7})원$/);
+  const range = flat.match(/^(\d{3,7})원~(\d{3,7})원$/);
+  if (!single && !range) return null;
+  const won = Number((single || range)[1]);
+  const wonTo = range ? Number(range[2]) : null;
+  if (wonTo !== null && wonTo <= won) return null;
+  return { bucket: bucketOfWon(won), krw: won, krwTo: wonTo };
 }
 
 /* ── 레지스트리 로드 (브라우저 전역 스크립트를 sandbox 에서 평가) ── */
@@ -121,7 +130,7 @@ for (const item of registry) {
 
   const price = readPrice(item.price);
   if (!price) {
-    fail(`${at}: price "${item.price}" 를 해석할 수 없다 — '무료' | '무료 시작' | '이용권' | 'N,NNN원' | 'N,NNN원~' 만 허용`);
+    fail(`${at}: price "${item.price}" 를 해석할 수 없다 — '무료' | '무료 시작' | '이용권' | 'N,NNN원' | 'N,NNN원~M,MMM원' 만 허용`);
     continue;
   }
 
@@ -144,6 +153,25 @@ for (const item of registry) {
   }
   if (price.krw !== feature.krw) {
     fail(`${at}: 표시 ${price.krw.toLocaleString()}원 / 결제 정본 ${feature.krw.toLocaleString()}원 (${feature.key}, cost=${feature.cost})`);
+  }
+
+  /* 범위 가격의 상한도 정본과 대조한다. featureKeyTo 가 없으면 상한이 검증되지 않은 채
+     화면에만 뜨므로 미분류 실패로 잡는다(원칙 10). */
+  if (price.krwTo === null) {
+    if (item.featureKeyTo) fail(`${at}: 범위 가격이 아닌데 featureKeyTo 가 있다 (${item.featureKeyTo})`);
+    continue;
+  }
+  if (!item.featureKeyTo) {
+    fail(`${at}: 범위 표기(${item.price})인데 featureKeyTo 가 없다 — 상한 ${price.krwTo.toLocaleString()}원을 대조할 수 없다`);
+    continue;
+  }
+  const featureTo = resolveFeature(item.featureKeyTo);
+  if (!featureTo) {
+    fail(`${at}: featureKeyTo "${item.featureKeyTo}" 가 결제 정본에 없다`);
+    continue;
+  }
+  if (price.krwTo !== featureTo.krw) {
+    fail(`${at}: 상한 표시 ${price.krwTo.toLocaleString()}원 / 결제 정본 ${featureTo.krw.toLocaleString()}원 (${featureTo.key}, cost=${featureTo.cost})`);
   }
 }
 
