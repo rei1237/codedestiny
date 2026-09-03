@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-03
-next: PR B(pr-b-pass-monthly-limit → base pr-d-pass-payment-hardening) CI 통과 → PR D(#1529) 로 머지 → PR D 를 main 으로 머지 → 스테이징 확인 → 프로덕션 승격(사용자 1회 위임) → 프로덕션에서 월 한도 소진 402 가 결제창 소진 문구로 이어지는지 실사용 확인
+next: PR #1533(pr-b-pass-monthly-limit → main, PR D #1529 는 이미 머지) CI 통과 → main 머지 → 스테이징 확인 → 프로덕션 승격(사용자 1회 위임) → 프로덕션에서 월 한도 소진 402 가 결제창 소진 문구로 이어지는지 실사용 확인
 ---
 
 # 이용권 월 한도 클라이언트 집행 (PR B)
@@ -30,8 +30,8 @@ next: PR B(pr-b-pass-monthly-limit → base pr-d-pass-payment-hardening) CI 통�
 
 ## 남은 작업
 
-- [ ] PR B 푸시·PR(base `pr-d-pass-payment-hardening`)·`gh pr checks <n> --watch --fail-fast`
-- [ ] PR B → PR D 머지, PR D(#1529) → main 머지, 스테이징 배포 확인, 프로덕션 승격(`gh workflow run "Release Cloudflare Pages and Worker" --ref main -f mode=production`)
+- [x] PR D(#1529) 가 먼저 main 에 머지돼 PR B 를 `origin/main` 위로 리베이스하고 #1533(base main) 으로 열었다
+- [ ] #1533 CI 통과(`gh pr checks 1533 --watch --fail-fast`) → main 머지 → 스테이징 배포 확인 → 프로덕션 승격(`gh workflow run "Release Cloudflare Pages and Worker" --ref main -f mode=production`)
 - [ ] 후속(별도 PR): React 낙관 잠금해제 회수 API, 셸 자동 재오픈 여부 결정
 
 ## 함정
