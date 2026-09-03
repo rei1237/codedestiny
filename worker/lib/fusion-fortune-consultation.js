@@ -101,6 +101,20 @@ export async function getFusionFortuneConsultation({ userId, id } = {}) {
   return FusionFortuneConsultation.findOne({ userId: text(userId, 120), id: text(id, 120) }).lean();
 }
 
+/**
+ * requestId(= 결제 증빙 키)로 단건 조회 — 본인 결과만. 없으면 null.
+ *
+ * 🔴 이것이 회수 앵커다. 저장은 배달보다 **먼저** 일어나므로(routes/fusion-fortune.js 의
+ *    onDelivery), result SSE 가 나가기 직전에 연결이 끊겨도 결과는 이미 남아 있다.
+ *    클라이언트는 실패 UI 를 띄우기 전에 이 키로 한 번 되찾아 본다.
+ *    userId+idempotencyKey 에는 unique 인덱스가 있다
+ *    (scripts/migrations/20260812-add-fusion-fortune-consultation-indexes.mjs).
+ */
+export async function getFusionFortuneConsultationByRequestId({ userId, requestId } = {}) {
+  if (!text(userId, 120) || !text(requestId, 180)) return null;
+  return FusionFortuneConsultation.findOne({ userId: text(userId, 120), idempotencyKey: text(requestId, 180) }).lean();
+}
+
 /** 최근 목록 — 본문(result)은 제외한다. 목록 응답에 2만자를 실을 이유가 없다. */
 export async function listFusionFortuneConsultations({ userId, limit = 10 } = {}) {
   if (!text(userId, 120)) return [];
