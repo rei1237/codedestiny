@@ -37,6 +37,12 @@ on:
       #    경로에 절대 도달하지 못한다. 그런데 트리거에 없어서 이 파일만 고치는 PR 은 결제 게이트가
       #    깨어나지 않았다 — billing-feature-registry 가 뒤늦게 추가된 자리와 같은 형태의 구멍이다.
       - "worker/lib/payment-reconcile-task.js"
+      # 🔴 위 정산 실행자를 **부르는 곳**이다(2026-09-03 추가). scheduled() 안의 크론 분기가
+      #    reconcilePendingPayments 와 runWebhookReconcileTask 를 잇고, verify:payment-reconcile 이
+      #    이 파일을 열어 crons 배선과 10분 분기를 단언한다(scripts/verify-payment-reconcile.mjs:20).
+      #    그런데 트리거에 없어서, 크론 배선만 고친 PR 은 결제 게이트가 깨어나지 않았다 —
+      #    payment-reconcile-task.js 가 뒤늦게 추가된 자리와 같은 형태의 구멍이다.
+      - "worker/index.js"
       - "worker/lib/content-unlocks.js"
       - "worker/lib/profile-limits.js"
       # 🔴 같은 구멍이 둘 더 있었다(2026-08-24 실측). verify:app-store-pricing 과 신규

@@ -16,7 +16,8 @@
  *   ⑦ 배포 스위치(SNS_DAILY_POST_ENABLED)가 두 wrangler 설정에 같은 값으로 있고, 그 값을
  *     isEnabled 가 해석할 수 있다 — 오타는 조용한 꺼짐이 된다.
  *   ⑧ 발행 실패가 DB 에 failed 로 **남는다**(잠금 삭제 금지) — 2026-08-29 크론이 흔적 없이 실패했다.
- *     같은 날 재시도는 failed 문서 재선점(findOneAndUpdate)으로만 연다.
+ *     같은 날 재시도는 재선점(findOneAndUpdate) 하나로만 열고, 그 조건은 buildReclaimFilter 가
+ *     만든 **실제 필터 객체**로 검사한다(소스 정규식이 아니다).
  *   ⑨ 관리자 수동 실행·상태 조회(/api/admin/sns-daily-post)가 배선돼 있고 크론과 같은 태스크를 부른다.
  *   ⑩ Threads 체인이 루트 1글 + 오행 짝 답글 5글이고 각 글이 상한 안이며 주입한 시각을 반영한다.
  *   ⑪ Threads 문안이 **평문**이다 — 태그·엔티티가 섞이면 글자 그대로 노출된다.
@@ -31,6 +32,8 @@
  *   ⑳ 일간 10개 축이 정본 판정과 일치하고, 10개가 **서로 다른 답**을 받는다(60갑자 전수).
  *   ㉑ AI 문안은 덧칠이다 — 스위치가 꺼지면 모델 호출 0회, 켜져도 실패하면 결정론 문안이 그대로 나간다.
  *   ㉒ 사실에 없는 십성이 섞인 문안은 그 항목만 버려지고, 프롬프트에는 확정된 사실이 박힌다.
+ *   ㉓ 발행 표식(responseRef.sendStartedAt)이 send() **앞에서** 굳고, 표식 실패는 발행을 건너뛴다.
+ *     같은 날 회수 창(10분 크론)은 UTC 22:10~22:59 로 닫혀 있다.
  *
  * 실행: npm run verify:sns-daily-post
  */
@@ -74,6 +77,8 @@ const { postThreadsChain, threadsTextWeight, THREADS_TEXT_LIMIT } = await import
 const {
   buildDailyPostText,
   runSnsDailyPostTask,
+  runSnsDailyPostRecovery,
+  buildReclaimFilter,
   getThreadsSkipReason,
   DAILY_HASHTAGS,
   THREADS_ROOT_HASHTAG,
@@ -284,23 +289,102 @@ function jsonResponse(body, status = 200) {
 
 /* ⑧ 실패는 지우지 않고 failed 로 남긴다. 예전 구현은 실패 시 잠금을 deleteOne 해서 idempotency_keys 에
       cron:sns-daily-post 문서가 0건이었고, 2026-08-29 22:00Z 크론이 왜 발행을 못 했는지 아무도 알 수 없었다.
-      재시도 경로는 failed 문서 재선점(findOneAndUpdate) 하나뿐이어야 한다 — 삭제가 돌아오면 흔적도 같이 사라진다. */
+      재시도 경로는 재선점(findOneAndUpdate) 하나뿐이어야 한다 — 삭제가 돌아오면 흔적도 같이 사라진다.
+
+      🔴 재선점 조건은 **소스 정규식이 아니라 buildReclaimFilter 가 만든 실제 필터 객체**로 검사한다.
+      예전 단언은 `[\s\S]*?` 가 파일 끝까지 흘러 다른 절의 status:"failed" 를 우연히 잡아
+      **잘못된 이유로 통과**했고, 필터를 함수로 빼는 순간 통째로 깨졌다.
+      🔴 분기를 여기에 손으로 적지 않는다(CLAUDE.md 원칙 10) — 필터에서 전수 발견하고 분기가 0개여도 실패한다. */
 {
   const taskSource = fs.readFileSync(path.join(ROOT, "worker/lib/sns-daily-post-task.js"), "utf8");
   assert.ok(!/IdempotencyKey\.deleteOne\(/.test(taskSource), "태스크가 잠금을 deleteOne 한다 — 실패 흔적이 사라진다(⑧)");
   assert.ok(/status: "failed"/.test(taskSource), "태스크가 실패를 status: \"failed\" 로 기록하지 않는다(⑧)");
-  assert.ok(
-    /IdempotencyKey\.findOneAndUpdate\([\s\S]*?status: "failed"/.test(taskSource),
-    "failed 문서를 재선점하는 findOneAndUpdate 가 없다 — 실패한 날은 재시도가 영영 막힌다(⑧)",
-  );
   assert.ok(/responseRef:\s*\{\s*error:/.test(taskSource), "실패 사유(responseRef.error)를 남기지 않는다(⑧)");
-  /* 🔴 부분 발행된 날(responseRef.ids 가 이미 차 있는 날)은 재선점하지 않는다.
-     Threads 체인은 언제나 1번 글부터 발행하므로 재시도가 곧 중복 발행이다 — 2026-09-02 에 실제로
-     같은 글이 계정에 두 번 올라갔다. 문안은 실행마다 새로 쓰므로 이어 붙이기로도 못 푼다. */
   assert.ok(
-    /findOneAndUpdate\([\s\S]{0,400}?status: "failed",[\s\S]{0,240}?responseRef\.ids[\s\S]{0,160}?\$size: 0/.test(taskSource),
-    "failed 재선점이 responseRef.ids 가 빈 문서로 한정되지 않는다 — 부분 발행된 날을 재시도해 같은 글이 두 번 나간다(⑧)",
+    /IdempotencyKey\.findOneAndUpdate\(\s*buildReclaimFilter\(/.test(taskSource),
+    "재선점이 buildReclaimFilter 를 거치지 않는다 — 아래 행위 단언이 실제 재선점과 무관해진다(⑧)",
   );
+
+  // 필터 트리를 통째로 훑어 해당 키를 가진 조건절을 전수 수집한다. 모양이 바뀌면 개수 단언이 먼저 터진다.
+  const collect = (node, key, found = []) => {
+    if (Array.isArray(node)) {
+      for (const item of node) collect(item, key, found);
+      return found;
+    }
+    if (!node || typeof node !== "object" || node instanceof Date) return found;
+    if (Object.prototype.hasOwnProperty.call(node, key)) found.push(node);
+    for (const value of Object.values(node)) collect(value, key, found);
+    return found;
+  };
+
+  const RECLAIM_NOW = Date.UTC(2026, 8, 3, 22, 30, 0);
+  const filter = buildReclaimFilter("2026-09-03", RECLAIM_NOW);
+  assert.equal(filter.endpoint, "cron:sns-daily-post", "재선점 필터가 SNS 잠금 엔드포인트를 안 겨눈다(⑧)");
+  assert.equal(filter.keyHash, "2026-09-03", "재선점 필터가 넘긴 keyHash 를 안 쓴다 — 남의 날 잠금을 회수한다(⑧)");
+
+  const statusBranches = collect(filter, "status");
+  assert.ok(
+    statusBranches.length > 0,
+    "재선점 필터에서 status 분기를 하나도 못 찾았다 — 필터 모양이 바뀌었으면 이 검사부터 고친다(⑧)",
+  );
+  assert.ok(
+    statusBranches.some((branch) => branch.status === "failed"),
+    "failed 문서를 재선점하는 분기가 없다 — 실패한 날은 재시도가 영영 막힌다(⑧)",
+  );
+
+  // 🔴 processing 을 회수하는 분기는 **표식 부재**로 한정돼야 한다. 표식이 있는 processing 은
+  // send() 가 이미 나갔을 수 있는 상태라, 회수하면 2026-09-02 처럼 같은 글이 두 번 올라간다.
+  const processingBranches = statusBranches.filter((branch) => {
+    const value = branch.status;
+    if (value === "processing") return true;
+    return Array.isArray(value?.$in) && value.$in.includes("processing");
+  });
+  assert.ok(
+    processingBranches.length > 0,
+    "굳은 processing 을 회수하는 분기가 없다 — 잠금만 잡고 죽은 날이 영원히 already_posted 로 건너뛰어진다(⑧)",
+  );
+  for (const branch of processingBranches) {
+    assert.deepEqual(
+      branch["responseRef.sendStartedAt"],
+      { $exists: false },
+      "processing 회수 분기가 sendStartedAt 부재로 한정되지 않는다 — 이미 나간 발행을 한 번 더 내보낸다(⑧)",
+    );
+    const staleBefore = branch.updatedAt?.$lt;
+    assert.ok(
+      staleBefore instanceof Date,
+      "processing 회수 분기에 updatedAt 하한이 없다 — 방금 잡은 잠금을 살아 있는 실행에게서 빼앗는다(⑧)",
+    );
+    const staleMs = RECLAIM_NOW - staleBefore.getTime();
+    assert.ok(
+      staleMs >= 10 * 60 * 1000,
+      `processing 회수 나이가 ${staleMs}ms 다 — 10분 크론 주기보다 짧으면 살아 있는 실행의 잠금을 회수한다(⑧)`,
+    );
+  }
+
+  // 🔴 부분 발행된 날(responseRef.ids 가 이미 차 있는 날)은 **어느 분기로도** 재선점하지 않는다.
+  // Threads 체인은 언제나 1번 글부터 발행하므로 재시도가 곧 중복 발행이다 — 2026-09-02 에 실제로
+  // 같은 글이 계정에 두 번 올라갔다. 문안은 실행마다 새로 쓰므로 이어 붙이기로도 못 푼다.
+  for (const branch of statusBranches) {
+    assert.equal(
+      collect(branch, "responseRef.ids").length,
+      0,
+      "ids 조건이 status 분기 **안**에 있다 — 조건이 안 붙은 분기가 부분 발행된 날을 재선점한다(⑧)",
+    );
+  }
+  const unconditional = [filter, ...(Array.isArray(filter.$and) ? filter.$and : [])]
+    .filter((clause) => collect(clause, "responseRef.ids").length > 0 && collect(clause, "status").length === 0);
+  assert.equal(
+    unconditional.length,
+    1,
+    `모든 분기에 걸리는 responseRef.ids 조건절이 ${unconditional.length}개다 — 1개여야 부분 발행된 날이 전 분기에서 빠진다(⑧)`,
+  );
+  for (const clause of collect(unconditional[0], "responseRef.ids")) {
+    const cond = clause["responseRef.ids"];
+    assert.ok(
+      cond?.$exists === false || cond?.$size === 0,
+      `responseRef.ids 조건이 ${JSON.stringify(cond)} 다 — 없음/빔 이외를 허용하면 부분 발행된 날이 통과한다(⑧)`,
+    );
+  }
 }
 
 /* ⑨ 관리자 수동 실행·상태 조회가 배선돼 있고, 크론과 **같은** runSnsDailyPostTask 를 부른다 —
@@ -960,4 +1044,71 @@ function jsonResponse(body, status = 200) {
   );
 }
 
-console.log("[verify-sns-daily-post] 통과 — 기본 꺼짐 · throw 없음 4종 · 토큰 URL 미로깅 2종 · 링크 실재 8건 · 시각 반영 · 크론 배선 · 배포 스위치 해석 가능 3종 · 실패 기록 유지 · 관리자 수동 실행 배선 · Threads 체인 6글(루트+오행 짝 5) · 평문 계약 · 일진 대조 365일 · 채널별 잠금 분리 · 실패 시 throw(실제 발행 0회) · 해시태그 생존(Threads 루트 1 · 텔레그램 4) · 단계 표식(load/connect_db/send · 태스크 6개 전수) · 일간 10개 축 대조 60갑자 전수 · AI 덧칠 계약(실호출 0회)");
+/* ㉓ 발행 표식과 같은 날 회수 창.
+      🔴 markSendStarted 가 send() **뒤**로 밀리면 buildReclaimFilter 분기 ②의 불변식
+      ("표식 없음 = 호출 0회")이 통째로 무너져, 회수가 곧 중복 발행이 된다. 위치 관계를 여기서 못 박는다.
+      회수 창은 UTC 22시대 + 분 ≥ 10 이다 — 창을 넓히면 KST 자정(15:00Z)을 넘긴 실행이 **다음 날**
+      dateKey 로 발행해 발행 시각 자체가 바뀐다(요청받은 적 없는 동작 변경).
+      env 를 {} 로 주므로 DB·네트워크는 0회다(스위치 꺼짐으로 즉시 반환). */
+{
+  const taskSource = fs.readFileSync(path.join(ROOT, "worker/lib/sns-daily-post-task.js"), "utf8");
+  const defIdx = taskSource.indexOf("async function markSendStarted");
+  const markIdx = taskSource.indexOf("await markSendStarted(");
+  const sendIdx = taskSource.indexOf("const result = await send();");
+  assert.ok(defIdx > 0, "markSendStarted 정의가 없다 — 굳은 processing 을 회수할 근거(표식)가 사라진다(㉓)");
+  assert.ok(markIdx > 0, "발행 직전 표식 호출(await markSendStarted()) 이 없다(㉓)");
+  assert.ok(sendIdx > 0, "발행 호출(const result = await send();)을 못 찾았다 — 이 절의 위치 단언이 무의미해진다(㉓)");
+  assert.ok(
+    markIdx < sendIdx,
+    "표식이 send() **뒤**에서 굳는다 — 나간 발행이 표식 없는 processing 으로 남아 회수가 중복 발행이 된다(㉓)",
+  );
+
+  const between = taskSource.slice(markIdx, sendIdx);
+  assert.ok(
+    /return \{ ok: false, stage: "mark"/.test(between),
+    "표식 실패가 발행을 막지 않는다 — 표식 없이 나간 글은 다음 회수가 한 번 더 내보낸다(㉓)",
+  );
+  assert.ok(
+    !/markSendStarted\([^)]*\)\s*\.catch\(/.test(taskSource),
+    "표식 쓰기 실패가 .catch 로 삼켜진다 — 실패해도 그대로 발행으로 내려간다(㉓)",
+  );
+
+  const markBody = taskSource.slice(defIdx).split(/\r?\n\}\r?\n/)[0];
+  assert.ok(
+    /withMongoRetry\(/.test(markBody),
+    "표식 쓰기가 withMongoRetry 밖에 있다 — activeMongoOps 에 안 잡혀 옆 태스크의 ping 실패에 함께 끊긴다(㉓)",
+  );
+  assert.ok(
+    /\{ retries: 0 \}/.test(markBody),
+    "표식 쓰기가 재시도된다 — 재시도는 표식만 늦추고 크론 예산을 먹을 뿐이다(㉓)",
+  );
+
+  // [UTC 시각, 창 밖인가]. 22:00 정각은 일일 크론과 겹치므로 창 밖이다.
+  const RECOVERY_CASES = [
+    ["2026-09-03T21:59:00Z", true],
+    ["2026-09-03T22:00:00Z", true],
+    ["2026-09-03T22:09:59Z", true],
+    ["2026-09-03T22:10:00Z", false],
+    ["2026-09-03T22:59:00Z", false],
+    ["2026-09-03T23:00:00Z", true],
+    ["2026-09-04T00:10:00Z", true],
+  ];
+  for (const [iso, outside] of RECOVERY_CASES) {
+    const result = await runSnsDailyPostRecovery({}, { now: Date.parse(iso) });
+    if (outside) {
+      assert.equal(
+        result.skipped,
+        "outside_recovery_window",
+        `${iso} 에 회수가 돈다 — 창 밖 실행은 KST 날짜가 넘어가 다음 날 문안을 그 시각에 발행한다(㉓)`,
+      );
+    } else {
+      assert.notEqual(
+        result.skipped,
+        "outside_recovery_window",
+        `${iso} 에 회수가 창 밖으로 판정된다 — 굳은 잠금을 회수할 실행이 그날 하나도 없어진다(㉓)`,
+      );
+    }
+  }
+}
+
+console.log("[verify-sns-daily-post] 통과 — 기본 꺼짐 · throw 없음 4종 · 토큰 URL 미로깅 2종 · 링크 실재 8건 · 시각 반영 · 크론 배선 · 배포 스위치 해석 가능 3종 · 실패 기록 유지 · 관리자 수동 실행 배선 · Threads 체인 6글(루트+오행 짝 5) · 평문 계약 · 일진 대조 365일 · 채널별 잠금 분리 · 실패 시 throw(실제 발행 0회) · 해시태그 생존(Threads 루트 1 · 텔레그램 4) · 단계 표식(load/connect_db/send · 태스크 6개 전수) · 일간 10개 축 대조 60갑자 전수 · AI 덧칠 계약(실호출 0회) · 재선점 필터 행위 검사(분기 전수) · 발행 표식 선행 · 회수 창 UTC 22:10~22:59");
