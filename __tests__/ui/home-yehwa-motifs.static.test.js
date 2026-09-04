@@ -138,7 +138,9 @@ test('sprigs, concern seals and peonies are child spans on their hosts', () => {
 
   assert.ok(html.includes('<div class="cd-feedback__copy"><span class="cd-yehwa-peony" aria-hidden="true"></span>'), '피드백 카드 가운데 열의 모란이 없다');
   assert.ok(html.includes('<div class="cd-footer-shell" data-marker="cd-footer-refine-v20260724"><span class="cd-yehwa-peony" aria-hidden="true"></span>'), '푸터 링크 허브의 모란이 없다');
-  assert.equal((html.match(/class="cd-yehwa-peony"/g) || []).length, 2, '모란은 피드백 카드 + 푸터 2개뿐이어야 한다');
+  // 앱 설치 카드(2026-09-04) — 피드백 카드와 같은 3열 카드라 같은 자리에 같은 모란을 쓴다.
+  assert.ok(html.includes('<div class="cd-app-install__copy"><span class="cd-yehwa-peony" aria-hidden="true"></span>'), '앱 설치 카드 가운데 열의 모란이 없다');
+  assert.equal((html.match(/class="cd-yehwa-peony"/g) || []).length, 3, '모란은 피드백 카드 + 앱 설치 카드 + 푸터 3개뿐이어야 한다');
 });
 
 test('PR-3 placements are generated, ordered by width, and repainted for neo', () => {
@@ -148,6 +150,7 @@ test('PR-3 placements are generated, ordered by width, and repainted for neo', (
     '.cd-ai-feats > .cd-yehwa-sprig',
     '.cd-concern__card[aria-expanded="true"] .cd-yehwa-seal--concern',
     '.cd-feedback__copy > .cd-yehwa-peony',
+    '.cd-app-install__copy > .cd-yehwa-peony',
     '.cd-footer-shell > .cd-yehwa-peony',
   ]) {
     assert.ok(css.includes(`${sel} {`), `${sel} 배치 규칙이 없다`);
