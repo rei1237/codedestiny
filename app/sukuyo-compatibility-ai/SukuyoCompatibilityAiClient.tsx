@@ -39,7 +39,7 @@ type SukuyoCompatCopy = {
   radarChartAria: string; summaryAria: string; scoreDetailAria: string; compareAria: string;
   headlineAria: string; axisAria: string; insightAria: string; welcomeQuoteAria: string;
   modalAria: string; modalCloseAria: string; detailDisclosureAria: string; chapterNavAria: string;
-  heroMetaAria: string; insightCardsAria: string; profileLoadAria: string; valueListAria: string;
+  heroMetaAria: string; profileLoadAria: string; valueListAria: string;
   recentBoxAria: string;
 };
 
@@ -50,7 +50,7 @@ const SUKUYO_COMPAT_EN: SukuyoCompatCopy = {
   insightAria: "Key insight", welcomeQuoteAria: "First-visit welcome message",
   modalAria: "Moonlight compatibility reply", modalCloseAria: "Close result",
   detailDisclosureAria: "Detailed reading", chapterNavAria: "Compatibility report table of contents — tap a chapter to jump",
-  heroMetaAria: "Consultation basis", insightCardsAria: "What the Sukuyo compatibility consultation covers",
+  heroMetaAria: "Consultation basis",
   profileLoadAria: "Load birth info from profile card", valueListAria: "What you get from this consultation",
   recentBoxAria: "View past compatibility readings",
 };
@@ -60,28 +60,28 @@ const SUKUYO_COMPAT_COPY: Partial<Record<LoadingLocale, SukuyoCompatCopy>> = {
     radarChartAria: "궁합 분석 차트", summaryAria: "궁합 요약", scoreDetailAria: "항목별 지표", compareAria: "두 사람 비교",
     headlineAria: "관계 한 줄 요약", axisAria: "관계 점수", insightAria: "핵심 인사이트", welcomeQuoteAria: "첫 방문 환영 문구",
     modalAria: "달빛 궁합 답장", modalCloseAria: "결과 닫기", detailDisclosureAria: "상세 해설",
-    chapterNavAria: "궁합 리포트 목차 — 장을 눌러 이동", heroMetaAria: "상담 기준", insightCardsAria: "숙요점 궁합 상담 구성",
+    chapterNavAria: "궁합 리포트 목차 — 장을 눌러 이동", heroMetaAria: "상담 기준",
     profileLoadAria: "프로필 카드에서 출생 정보 불러오기", valueListAria: "이 상담에서 받는 것", recentBoxAria: "지난 궁합 다시 보기",
   },
   ja: {
     radarChartAria: "相性分析チャート", summaryAria: "相性の概要", scoreDetailAria: "項目別指標", compareAria: "二人の比較",
     headlineAria: "関係性の一言まとめ", axisAria: "関係スコア", insightAria: "核心インサイト", welcomeQuoteAria: "初回訪問ウェルカムメッセージ",
     modalAria: "月あかり相性の返信", modalCloseAria: "結果を閉じる", detailDisclosureAria: "詳細解説",
-    chapterNavAria: "相性レポート目次 — 章をタップして移動", heroMetaAria: "相談の基準", insightCardsAria: "宿曜相性相談の構成",
+    chapterNavAria: "相性レポート目次 — 章をタップして移動", heroMetaAria: "相談の基準",
     profileLoadAria: "プロフィールカードから生年情報を読み込む", valueListAria: "この相談で得られるもの", recentBoxAria: "過去の相性をもう一度見る",
   },
   "zh-CN": {
     radarChartAria: "缘分分析图表", summaryAria: "缘分摘要", scoreDetailAria: "各项指标", compareAria: "两人比较",
     headlineAria: "关系一句话总结", axisAria: "关系分数", insightAria: "核心洞察", welcomeQuoteAria: "首次访问欢迎语",
     modalAria: "月光缘分回信", modalCloseAria: "关闭结果", detailDisclosureAria: "详细解读",
-    chapterNavAria: "缘分报告目录 — 点击章节跳转", heroMetaAria: "咨询依据", insightCardsAria: "宿曜缘分咨询构成",
+    chapterNavAria: "缘分报告目录 — 点击章节跳转", heroMetaAria: "咨询依据",
     profileLoadAria: "从档案卡加载出生信息", valueListAria: "本次咨询可获得的内容", recentBoxAria: "再次查看过往缘分",
   },
   "zh-TW": {
     radarChartAria: "緣分分析圖表", summaryAria: "緣分摘要", scoreDetailAria: "各項指標", compareAria: "兩人比較",
     headlineAria: "關係一句話總結", axisAria: "關係分數", insightAria: "核心洞察", welcomeQuoteAria: "首次造訪歡迎語",
     modalAria: "月光緣分回信", modalCloseAria: "關閉結果", detailDisclosureAria: "詳細解讀",
-    chapterNavAria: "緣分報告目錄 — 點擊章節跳轉", heroMetaAria: "諮詢依據", insightCardsAria: "宿曜緣分諮詢構成",
+    chapterNavAria: "緣分報告目錄 — 點擊章節跳轉", heroMetaAria: "諮詢依據",
     profileLoadAria: "從檔案卡載入出生資訊", valueListAria: "本次諮詢可獲得的內容", recentBoxAria: "再次查看過往緣分",
   },
   vi: {
@@ -90,7 +90,7 @@ const SUKUYO_COMPAT_COPY: Partial<Record<LoadingLocale, SukuyoCompatCopy>> = {
     insightAria: "Nhận định cốt lõi", welcomeQuoteAria: "Lời chào lần đầu ghé thăm", modalAria: "Phản hồi tương hợp ánh trăng",
     modalCloseAria: "Đóng kết quả", detailDisclosureAria: "Giải thích chi tiết",
     chapterNavAria: "Mục lục báo cáo tương hợp — nhấn vào chương để chuyển", heroMetaAria: "Cơ sở tư vấn",
-    insightCardsAria: "Nội dung tư vấn tương hợp Sukuyo", profileLoadAria: "Tải thông tin sinh từ thẻ hồ sơ",
+    profileLoadAria: "Tải thông tin sinh từ thẻ hồ sơ",
     valueListAria: "Những gì bạn nhận được từ buổi tư vấn này", recentBoxAria: "Xem lại các lần xem tương hợp trước đây",
   },
   hi: {
@@ -99,7 +99,7 @@ const SUKUYO_COMPAT_COPY: Partial<Record<LoadingLocale, SukuyoCompatCopy>> = {
     insightAria: "मुख्य अंतर्दृष्टि", welcomeQuoteAria: "पहली बार आने पर स्वागत संदेश", modalAria: "चांदनी अनुकूलता का उत्तर",
     modalCloseAria: "परिणाम बंद करें", detailDisclosureAria: "विस्तृत व्याख्या",
     chapterNavAria: "अनुकूलता रिपोर्ट सूची — अध्याय पर टैप करके जाएँ", heroMetaAria: "परामर्श आधार",
-    insightCardsAria: "सुक्यो अनुकूलता परामर्श संरचना", profileLoadAria: "प्रोफ़ाइल कार्ड से जन्म जानकारी लोड करें",
+    profileLoadAria: "प्रोफ़ाइल कार्ड से जन्म जानकारी लोड करें",
     valueListAria: "इस परामर्श से आपको क्या मिलता है", recentBoxAria: "पिछली अनुकूलता फिर से देखें",
   },
   es: {
@@ -109,7 +109,7 @@ const SUKUYO_COMPAT_COPY: Partial<Record<LoadingLocale, SukuyoCompatCopy>> = {
     welcomeQuoteAria: "Mensaje de bienvenida de primera visita", modalAria: "Respuesta de compatibilidad lunar",
     modalCloseAria: "Cerrar resultado", detailDisclosureAria: "Explicación detallada",
     chapterNavAria: "Índice del informe de compatibilidad — toca un capítulo para saltar", heroMetaAria: "Base de la consulta",
-    insightCardsAria: "Estructura de la consulta de compatibilidad Sukuyo", profileLoadAria: "Cargar datos de nacimiento desde la tarjeta de perfil",
+    profileLoadAria: "Cargar datos de nacimiento desde la tarjeta de perfil",
     valueListAria: "Lo que obtienes de esta consulta", recentBoxAria: "Ver compatibilidades anteriores de nuevo",
   },
   fr: {
@@ -119,7 +119,7 @@ const SUKUYO_COMPAT_COPY: Partial<Record<LoadingLocale, SukuyoCompatCopy>> = {
     welcomeQuoteAria: "Message de bienvenue pour la première visite", modalAria: "Réponse de compatibilité au clair de lune",
     modalCloseAria: "Fermer le résultat", detailDisclosureAria: "Explication détaillée",
     chapterNavAria: "Sommaire du rapport de compatibilité — appuyez sur un chapitre pour y accéder", heroMetaAria: "Base de la consultation",
-    insightCardsAria: "Structure de la consultation de compatibilité Sukuyo", profileLoadAria: "Charger les informations de naissance depuis la carte de profil",
+    profileLoadAria: "Charger les informations de naissance depuis la carte de profil",
     valueListAria: "Ce que vous obtenez de cette consultation", recentBoxAria: "Revoir les compatibilités précédentes",
   },
   de: {
@@ -129,7 +129,7 @@ const SUKUYO_COMPAT_COPY: Partial<Record<LoadingLocale, SukuyoCompatCopy>> = {
     welcomeQuoteAria: "Willkommensnachricht beim ersten Besuch", modalAria: "Mondlicht-Kompatibilitätsantwort",
     modalCloseAria: "Ergebnis schließen", detailDisclosureAria: "Ausführliche Erklärung",
     chapterNavAria: "Inhaltsverzeichnis des Kompatibilitätsberichts — auf ein Kapitel tippen, um zu springen", heroMetaAria: "Grundlage der Beratung",
-    insightCardsAria: "Aufbau der Sukuyo-Kompatibilitätsberatung", profileLoadAria: "Geburtsdaten aus der Profilkarte laden",
+    profileLoadAria: "Geburtsdaten aus der Profilkarte laden",
     valueListAria: "Was du aus dieser Beratung erhältst", recentBoxAria: "Frühere Kompatibilitäten erneut ansehen",
   },
   nl: {
@@ -139,7 +139,7 @@ const SUKUYO_COMPAT_COPY: Partial<Record<LoadingLocale, SukuyoCompatCopy>> = {
     welcomeQuoteAria: "Welkomstbericht bij eerste bezoek", modalAria: "Maanlicht-compatibiliteitsantwoord",
     modalCloseAria: "Resultaat sluiten", detailDisclosureAria: "Gedetailleerde uitleg",
     chapterNavAria: "Inhoudsopgave compatibiliteitsrapport — tik op een hoofdstuk om te springen", heroMetaAria: "Basis van het consult",
-    insightCardsAria: "Opbouw van het Sukuyo-compatibiliteitsconsult", profileLoadAria: "Geboortegegevens laden vanaf profielkaart",
+    profileLoadAria: "Geboortegegevens laden vanaf profielkaart",
     valueListAria: "Wat je uit dit consult haalt", recentBoxAria: "Eerdere compatibiliteiten opnieuw bekijken",
   },
   ms: {
@@ -148,7 +148,7 @@ const SUKUYO_COMPAT_COPY: Partial<Record<LoadingLocale, SukuyoCompatCopy>> = {
     insightAria: "Wawasan utama", welcomeQuoteAria: "Mesej alu-aluan lawatan pertama", modalAria: "Balasan keserasian cahaya bulan",
     modalCloseAria: "Tutup keputusan", detailDisclosureAria: "Penjelasan terperinci",
     chapterNavAria: "Kandungan laporan keserasian — ketik bab untuk melompat", heroMetaAria: "Asas rundingan",
-    insightCardsAria: "Struktur rundingan keserasian Sukuyo", profileLoadAria: "Muatkan maklumat kelahiran daripada kad profil",
+    profileLoadAria: "Muatkan maklumat kelahiran daripada kad profil",
     valueListAria: "Apa yang anda perolehi daripada rundingan ini", recentBoxAria: "Lihat semula keserasian lepas",
   },
 };
@@ -255,11 +255,6 @@ const CONSULTATION_VALUES = [
   { title: "감정의 흐름", text: "누가 표현하고 누가 기다리는지, 감정의 방향" },
   { title: "장기 궁합", text: "결혼·동거·사업·친구·직장 다섯 영역별 적합도" },
   { title: "인연의 목적", text: "이번 생에 왜 만났는지 — 카르마 해석" },
-];
-const CONSULTATION_CARDS = [
-  { icon: Orbit, title: "본명숙", text: "태어난 달의 자리로 보는 마음의 기본 결" },
-  { icon: CalendarDays, title: "관계 거리", text: "가까움과 멀어짐의 리듬을 읽는 숙요점 핵심" },
-  { icon: HeartHandshake, title: "궁합 해석", text: "끌림, 갈등, 오래가는 방식까지 전문가 상담으로 정리" },
 ];
 const LUNAR_SCENE_PETALS = [
   { x: 128, y: 360, rx: 30, ry: 10, rotate: -16, opacity: 0.66, driftX: 7, driftY: -5, delay: 0 },
@@ -1324,10 +1319,6 @@ function CompatResultModal({ result, onClose, onDownloadError, basis = null }: {
   );
 }
 
-function countFilledPersonFields(value: PersonForm) {
-  return [value.birthDate, value.gender, value.calendarType].filter(Boolean).length;
-}
-
 function FormProgressIndicator({ filled, total }: { filled: number; total: number }) {
   const percent = Math.round((filled / total) * 100);
   return (
@@ -1335,7 +1326,7 @@ function FormProgressIndicator({ filled, total }: { filled: number; total: numbe
       <div className={styles.progressTrack}>
         <div className={styles.progressFill} style={{ transform: `scaleX(${percent / 100})` }} />
       </div>
-      <span className={styles.progressLabel}>{filled}/{total}개 항목 입력됨</span>
+      <span className={styles.progressLabel}>{filled}/{total}명 생년월일 입력됨</span>
     </div>
   );
 }
@@ -1562,8 +1553,8 @@ export default function SukuyoCompatibilityAiClient() {
   const personAComplete = !getPersonValidationMessage("a", personA);
   const personBComplete = !getPersonValidationMessage("b", personB);
   const bothComplete = personAComplete && personBComplete;
-  const filledCount = countFilledPersonFields(personA) + countFilledPersonFields(personB);
-  const filledPercent = Math.round((filledCount / 6) * 100);
+  const filledCount = (personA.birthDate ? 1 : 0) + (personB.birthDate ? 1 : 0);
+  const filledPercent = Math.round((filledCount / 2) * 100);
 
   async function startConsultation(idempotencyKey: string, access: Record<string, unknown>, paymentWasRequired = false) {
     setPhase("start");
@@ -1724,94 +1715,111 @@ export default function SukuyoCompatibilityAiClient() {
   const renderPersonFields = (target: "a" | "b", value: PersonForm) => {
     const prefix = target === "a" ? "self" : "partner";
     const owner = target === "a" ? "내" : "상대의";
+    // 접힘 안으로 들어간 값이 조용히 사라진 것처럼 보이면 안 된다(프로필 카드 불러오기·?cp= 초대 링크가
+    // 채워 주는 경로가 있다). summary 에 현재 값을 요약해 둔다. 기본값뿐이면 아무것도 보이지 않는다.
+    const detailChips = [
+      value.name.trim(),
+      value.gender === "female" ? "여성" : value.gender === "male" ? "남성" : "",
+      !value.birthTimeUnknown && value.birthTime ? value.birthTime : "",
+      value.calendarType === "lunar" ? "음력" : "",
+    ].filter(Boolean);
     return (
-      <div className={styles.formGrid}>
-        <div className={styles.field}>
-          <label htmlFor={`${prefix}-name`}>이름 또는 닉네임</label>
-          <input
-            id={`${prefix}-name`}
-            value={value.name}
-            onChange={(event) => updatePerson(target, { name: event.target.value })}
-            maxLength={80}
-            disabled={busy}
-            placeholder={target === "a" ? "나를 부르는 이름" : "상대를 부르는 이름"}
-            autoComplete="name"
-          />
-          <span className={styles.fieldHint}>이름을 입력하면 상담 문장이 더 자연스러워져요.</span>
-        </div>
-        <div className={styles.field}>
-          <label htmlFor={`${prefix}-gender`}>성별</label>
-          <select id={`${prefix}-gender`} value={value.gender} onChange={(event) => updatePerson(target, { gender: event.target.value })} disabled={busy}>
-            <option value="">선택</option>
-            <option value="female">여성</option>
-            <option value="male">남성</option>
-            <option value="unknown">비공개</option>
-          </select>
-        </div>
-        <div className={styles.field}>
+      <>
+        <div className={`${styles.field} ${styles.primaryField}`}>
           <label htmlFor={`${prefix}-birth-date`}>생년월일</label>
           <input id={`${prefix}-birth-date`} {...birthDateTextInputProps(value.birthDate, (nextBirthDate) => updatePerson(target, { birthDate: nextBirthDate }))} disabled={busy} />
           {!value.birthDate && <span className={styles.fieldHint}>{owner} 생년월일을 입력해 주세요.</span>}
         </div>
-        <div className={styles.field}>
-          <label htmlFor={`${prefix}-birth-time`}>
-            출생시간 <span className={styles.labelOptional}>선택</span>
-          </label>
-          <div className={styles.segmented} role="group" aria-label={`${owner} 출생시간 인지 여부`}>
-            <button
-              type="button"
-              className={value.birthTimeUnknown ? styles.segment : styles.segmentActive}
-              onClick={() => updatePerson(target, { birthTimeUnknown: false })}
-              disabled={busy}
-              aria-pressed={!value.birthTimeUnknown}
-            >
-              시간 알아요
-            </button>
-            <button
-              type="button"
-              className={value.birthTimeUnknown ? styles.segmentActive : styles.segment}
-              onClick={() => updatePerson(target, { birthTimeUnknown: true, birthTime: "" })}
-              disabled={busy}
-              aria-pressed={value.birthTimeUnknown}
-            >
-              시간 몰라요
-            </button>
-          </div>
-          {!value.birthTimeUnknown && (
-            <input
-              id={`${prefix}-birth-time`}
-              type="time"
-              value={value.birthTime}
-              onChange={(event) => updatePerson(target, { birthTime: event.target.value })}
-              disabled={busy}
-              className={styles.timeInputStandalone}
-            />
-          )}
-          <span className={styles.fieldHint}>숙요점은 시간 없이도 봐요. 알면 조금 더 정밀해져요.</span>
-        </div>
-        <div className={styles.fieldWide}>
-          <span>달력 기준</span>
-          <div className={styles.segmented} role="group" aria-label={`${owner} 달력 기준`}>
-            {(["solar", "lunar"] as CalendarType[]).map((calendarType) => (
-              <button
-                key={calendarType}
-                type="button"
-                className={value.calendarType === calendarType ? styles.segmentActive : styles.segment}
-                onClick={() => updatePerson(target, { calendarType })}
+        <details className={styles.duoDetails}>
+          <summary className={styles.duoSummary}>
+            <span>조금 더 정확하게</span>
+            {detailChips.length > 0 && <em>{detailChips.join(" · ")}</em>}
+            <i aria-hidden="true">＋</i>
+          </summary>
+          <div className={styles.formGrid}>
+            <div className={styles.field}>
+              <label htmlFor={`${prefix}-name`}>이름 또는 닉네임</label>
+              <input
+                id={`${prefix}-name`}
+                value={value.name}
+                onChange={(event) => updatePerson(target, { name: event.target.value })}
+                maxLength={80}
                 disabled={busy}
-                aria-pressed={value.calendarType === calendarType}
-              >
-                {calendarType === "solar" ? "양력" : "음력"}
-              </button>
-            ))}
+                placeholder={target === "a" ? "나를 부르는 이름" : "상대를 부르는 이름"}
+                autoComplete="name"
+              />
+              <span className={styles.fieldHint}>이름을 입력하면 상담 문장이 더 자연스러워져요.</span>
+            </div>
+            <div className={styles.field}>
+              <label htmlFor={`${prefix}-gender`}>성별</label>
+              <select id={`${prefix}-gender`} value={value.gender} onChange={(event) => updatePerson(target, { gender: event.target.value })} disabled={busy}>
+                <option value="">선택</option>
+                <option value="female">여성</option>
+                <option value="male">남성</option>
+                <option value="unknown">비공개</option>
+              </select>
+            </div>
+            <div className={styles.field}>
+              <label htmlFor={`${prefix}-birth-time`}>
+                출생시간 <span className={styles.labelOptional}>선택</span>
+              </label>
+              <div className={styles.segmented} role="group" aria-label={`${owner} 출생시간 인지 여부`}>
+                <button
+                  type="button"
+                  className={value.birthTimeUnknown ? styles.segment : styles.segmentActive}
+                  onClick={() => updatePerson(target, { birthTimeUnknown: false })}
+                  disabled={busy}
+                  aria-pressed={!value.birthTimeUnknown}
+                >
+                  시간 알아요
+                </button>
+                <button
+                  type="button"
+                  className={value.birthTimeUnknown ? styles.segmentActive : styles.segment}
+                  onClick={() => updatePerson(target, { birthTimeUnknown: true, birthTime: "" })}
+                  disabled={busy}
+                  aria-pressed={value.birthTimeUnknown}
+                >
+                  시간 몰라요
+                </button>
+              </div>
+              {!value.birthTimeUnknown && (
+                <input
+                  id={`${prefix}-birth-time`}
+                  type="time"
+                  value={value.birthTime}
+                  onChange={(event) => updatePerson(target, { birthTime: event.target.value })}
+                  disabled={busy}
+                  className={styles.timeInputStandalone}
+                />
+              )}
+              <span className={styles.fieldHint}>숙요점은 시간 없이도 봐요. 알면 조금 더 정밀해져요.</span>
+            </div>
+            <div className={styles.fieldWide}>
+              <span>달력 기준</span>
+              <div className={styles.segmented} role="group" aria-label={`${owner} 달력 기준`}>
+                {(["solar", "lunar"] as CalendarType[]).map((calendarType) => (
+                  <button
+                    key={calendarType}
+                    type="button"
+                    className={value.calendarType === calendarType ? styles.segmentActive : styles.segment}
+                    onClick={() => updatePerson(target, { calendarType })}
+                    disabled={busy}
+                    aria-pressed={value.calendarType === calendarType}
+                  >
+                    {calendarType === "solar" ? "양력" : "음력"}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
+        </details>
+      </>
     );
   };
 
   return (
-    <main className={styles.screen} data-sukuyo-ai-consultation>
+    <main className={styles.screen} data-sukuyo-ai-consultation data-duo-linked={bothComplete ? "true" : undefined}>
       <div className={styles.threadLine} />
       <div className={styles.starField} aria-hidden="true" />
       <section className={`${styles.shell} mx-auto w-full`}>
@@ -1830,30 +1838,10 @@ export default function SukuyoCompatibilityAiClient() {
             animate={reduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
           >
-            <p className={styles.eyebrow}><Moon size={15} /> ☾ 27숙 달빛 궁합</p>
-            <h2>두 사람의 달빛 자리를 엽니다</h2>
-            <p>본명숙과 관계 거리를 바탕으로 끌림, 갈등, 오래 머무는 마음의 리듬을 차분히 풀어드립니다.</p>
-            <div className={styles.heroMeta} aria-label={copy.heroMetaAria}>
-              <span><Orbit size={14} /> 27숙 본명숙</span>
-              <span><CalendarDays size={14} /> 관계 거리</span>
-              <span><HeartHandshake size={14} /> 인연 리듬</span>
-              <span><Sparkles size={14} /> 전문가 상담문</span>
-            </div>
-            <div className={styles.insightCards} aria-label={copy.insightCardsAria}>
-              {CONSULTATION_CARDS.map(({ icon: Icon, title, text }, index) => (
-                <m.article
-                  key={title}
-                  className={styles.insightCard}
-                  initial={reduceMotion ? false : { opacity: 0, y: 14 }}
-                  animate={reduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
-                  transition={{ duration: 0.32, delay: 0.16 + index * 0.06, ease: [0.22, 1, 0.36, 1] }}
-                >
-                  <Icon size={18} aria-hidden="true" />
-                  <strong>{title}</strong>
-                  <span>{text}</span>
-                </m.article>
-              ))}
-            </div>
+            <p className={styles.eyebrow}>☾ 달이 머문 자리에서 읽는 두 사람의 인연</p>
+            {/* 🔴 h1 은 page.tsx 의 서버 본문이 소유한다 — 여기는 h2 로 유지. */}
+            <h2>우리의 인연은<br />어떤 달빛 아래에서<br />이어지고 있을까요?</h2>
+            <p>끌림의 이유부터 반복되는 갈등까지. 27숙이 만드는 두 사람의 관계 리듬을 상담처럼 천천히 읽어드립니다.</p>
           </m.div>
         </m.aside>
 
@@ -1862,11 +1850,10 @@ export default function SukuyoCompatibilityAiClient() {
             <>
               <div className={styles.panelHeader}>
                 <p><Sparkles size={15} /> Moonlight Compatibility</p>
-                <h2>나와 상대의 별자리를 채워주세요</h2>
-                <span>생년월일, 성별, 달력 기준만 있으면 시작할 수 있어요. 출생시간은 몰라도 괜찮아요.</span>
+                <h2>두 사람의 생년월일</h2>
+                <span>생년월일만 있으면 시작할 수 있어요. 성별과 달력 기준은 몰라도 괜찮아요.</span>
               </div>
-              <FormProgressIndicator filled={filledCount} total={6} />
-              <div className={styles.duoGrid}>
+              <div className={`${styles.duoGrid}${bothComplete ? ` ${styles.duoGridLinked}` : ""}`}>
                 <div className={`${styles.duoCard}${personAComplete ? ` ${styles.duoCardComplete}` : ""}`}>
                   <header className={styles.duoCardHead}>
                     <span aria-hidden="true">☾</span>
@@ -1897,6 +1884,25 @@ export default function SukuyoCompatibilityAiClient() {
                 </div>
               </div>
 
+              <div className={styles.actions}>
+                <PriceBadge featureKey="sukuyo-compatibility-ai" prefix="상담 이용 가격 " className={styles.priceBadgeInline} />
+                <button type="button" className={styles.primaryButton} onClick={handleSubmit} disabled={busy || !bothComplete}>
+                  {busy ? <Loader2 size={18} className={styles.spin} /> : <Sparkles size={18} />}
+                  두 사람의 인연 읽기
+                </button>
+              </div>
+              <p className={styles.ctaNote}>
+                <span>태어난 시간은 필요하지 않습니다.</span>
+                <span>궁합을 점수로 매기지 않습니다. 두 사람이 반복해서 만나게 되는 관계의 리듬을 읽습니다.</span>
+              </p>
+              <div className={styles.heroMeta} aria-label={copy.heroMetaAria}>
+                <span><Orbit size={14} /> 27숙 본명숙</span>
+                <span><CalendarDays size={14} /> 관계 거리</span>
+                <span><HeartHandshake size={14} /> 인연 리듬</span>
+                <span><Sparkles size={14} /> 전문가 상담문</span>
+              </div>
+              <FormProgressIndicator filled={filledCount} total={2} />
+
               <m.div
                 className={`${styles.resultTeaser}${bothComplete ? ` ${styles.resultTeaserReady}` : ""}`}
                 animate={reduceMotion ? undefined : { scale: bothComplete ? [1, 1.03, 1] : 1 }}
@@ -1905,7 +1911,7 @@ export default function SukuyoCompatibilityAiClient() {
                 <div className={styles.teaserTop} aria-hidden="true">
                   <div className={styles.teaserGauge}>
                     <span style={{ background: `conic-gradient(#ffe8b6 ${filledPercent * 3.6}deg, rgba(255,255,255,.08) 0deg)` }} />
-                    <em>{filledCount}/6 · {filledPercent}%</em>
+                    <em>{filledCount}/2 · {filledPercent}%</em>
                   </div>
                   <div className={styles.teaserLine}>
                     <i className={personAComplete ? styles.teaserDotReady : undefined} />
@@ -1925,21 +1931,13 @@ export default function SukuyoCompatibilityAiClient() {
                 </ul>
               </m.div>
 
-              <div className={styles.actions}>
-                <PriceBadge featureKey="sukuyo-compatibility-ai" prefix="상담 이용 가격 " className={styles.priceBadgeInline} />
-                <button type="button" className={styles.primaryButton} onClick={handleSubmit} disabled={busy || !bothComplete}>
-                  {busy ? <Loader2 size={18} className={styles.spin} /> : <Sparkles size={18} />}
-                  달빛 궁합 열기
-                </button>
-              </div>
-
               {/* 모바일 전용 하단 고정 CTA. 이 화면은 전역 하단 네비를 숨기므로(.fullscreenBody) 겹칠 상대가 없다.
                   가격은 반드시 PriceBadge(서버 조회)로만 — 숫자를 직접 렌더하지 않는다. */}
               <div className={styles.mobileCta}>
                 <PriceBadge featureKey="sukuyo-compatibility-ai" prefix="" className={styles.mobileCtaPrice} />
                 <button type="button" onClick={handleSubmit} disabled={busy || !bothComplete}>
                   {busy ? <Loader2 size={16} className={styles.spin} /> : <Sparkles size={16} />}
-                  달빛 궁합 열기
+                  두 사람의 인연 읽기
                 </button>
               </div>
 
