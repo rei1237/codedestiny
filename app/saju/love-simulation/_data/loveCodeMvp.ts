@@ -94,7 +94,7 @@ type LoveSceneDefinition = Omit<LoveScene, "title"> & {
   titleKey: string;
 };
 
-type LoveSceneTitleLocale = "ko" | "en" | "ja" | "zh-CN" | "zh-TW" | "vi" | "hi" | "es" | "fr" | "de" | "nl" | "ms";
+export type LoveSceneTitleLocale = "ko" | "en" | "ja" | "zh-CN" | "zh-TW" | "vi" | "hi" | "es" | "fr" | "de" | "nl" | "ms";
 
 export type ChoiceLog = {
   sceneId: string;
@@ -1266,7 +1266,7 @@ const LOVE_SCENE_TITLE_GENERIC: Record<LoveSceneTitleLocale, (scene: LoveSceneDe
 
 const missingLoveSceneTitleLog = new Set<string>();
 
-function normalizeLoveSceneTitleLocale(locale?: string | null): LoveSceneTitleLocale {
+export function normalizeLoveSceneTitleLocale(locale?: string | null): LoveSceneTitleLocale {
   const normalized = String(locale || "ko").trim().toLowerCase().replace("_", "-");
   if (normalized === "zh" || normalized === "zh-cn" || normalized === "zh-hans") return "zh-CN";
   if (normalized === "zh-tw" || normalized === "zh-hant" || normalized === "zh-hk" || normalized === "zh-mo") return "zh-TW";
