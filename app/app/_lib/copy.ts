@@ -80,6 +80,8 @@ export interface AppShellCopy {
   purchasingButton: string;
   buyButton: string;
   footerNote: string;
+  /** 월 최대 한도 소진 시 잔여 기간과 무관하게 이용권이 종료된다는 고지(2026-09-04 정책). */
+  passTerminationNote: string;
 }
 
 const APP_SHELL_COPY_EN: AppShellCopy = {
@@ -146,6 +148,7 @@ const APP_SHELL_COPY_EN: AppShellCopy = {
   purchasingButton: "Processing",
   buyButton: "Buy",
   footerNote: "The pass is valid for 30 days, within each tier's monthly usage limit. It does not auto-renew. Features beyond its coverage can be used via one-time payment or moonstones. Payments and refunds follow Google Play policy and e-commerce law.",
+  passTerminationNote: "If the monthly allowance is fully used, the pass ends regardless of the days left. Buying a new pass starts another 30 days from that day.",
 };
 
 const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
@@ -213,6 +216,7 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     purchasingButton: "결제 중",
     buyButton: "구매",
     footerNote: "이용권은 30일간 유효하며, 등급별 월 이용 한도 안에서 이용합니다. 자동 갱신되지 않습니다. 커버 범위를 넘는 기능은 단건 결제 또는 월정석으로 이용할 수 있습니다. 결제·환불은 Google Play 정책과 전자상거래법에 따릅니다.",
+    passTerminationNote: "월 최대 한도를 모두 사용하면 남은 기간과 관계없이 이용권이 종료됩니다. 새로 구매하면 그날부터 30일이 다시 시작됩니다.",
   },
   ja: {
     appHomeAriaLabel: "Code Destiny アプリホーム",
@@ -278,6 +282,7 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     purchasingButton: "決済中",
     buyButton: "購入",
     footerNote: "利用券は30日間有効で、等級別の月間利用上限の範囲内でご利用いただけます。自動更新はされません。適用範囲を超える機能は都度決済または月精石で利用できます。決済・返金はGoogle Playポリシーおよび電子商取引法に従います。",
+    passTerminationNote: "月の利用上限を使い切ると、残り日数に関係なくパスは終了します。新しく購入すると、その日から30日が改めて始まります。",
   },
   "zh-CN": {
     appHomeAriaLabel: "Code Destiny 应用主页",
@@ -343,6 +348,7 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     purchasingButton: "支付中",
     buyButton: "购买",
     footerNote: "使用权有效期30天,在各等级的每月使用额度内使用。不会自动续订。超出覆盖范围的功能可通过单次支付或月精石使用。支付·退款遵循Google Play政策及电子商务法。",
+    passTerminationNote: "用完每月额度后，无论还剩多少天，通行证都会结束。重新购买将从当天起重新开始 30 天。",
   },
   "zh-TW": {
     appHomeAriaLabel: "Code Destiny 應用程式首頁",
@@ -408,6 +414,7 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     purchasingButton: "付款中",
     buyButton: "購買",
     footerNote: "使用權有效期30天,在各等級的每月使用額度內使用。不會自動續訂。超出涵蓋範圍的功能可透過單次付款或月精石使用。付款·退款遵循Google Play政策及電子商務法。",
+    passTerminationNote: "用完每月額度後，無論還剩多少天，通行證都會結束。重新購買將從當天起重新開始 30 天。",
   },
   vi: {
     appHomeAriaLabel: "Trang chủ ứng dụng Code Destiny",
@@ -473,6 +480,7 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     purchasingButton: "Đang xử lý",
     buyButton: "Mua",
     footerNote: "Vé sử dụng có hiệu lực trong 30 ngày, trong hạn mức sử dụng hằng tháng của từng hạng. Không tự động gia hạn. Các tính năng vượt phạm vi bao phủ có thể dùng qua thanh toán một lần hoặc đá trăng. Thanh toán·hoàn tiền tuân theo chính sách Google Play và luật thương mại điện tử.",
+    passTerminationNote: "If the monthly allowance is fully used, the pass ends regardless of the days left. Buying a new pass starts another 30 days from that day.",
   },
   hi: {
     appHomeAriaLabel: "Code Destiny ऐप होम",
@@ -538,6 +546,7 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     purchasingButton: "भुगतान हो रहा है",
     buyButton: "खरीदें",
     footerNote: "पास 30 दिनों के लिए वैध है और हर स्तर की मासिक उपयोग सीमा के भीतर काम करता है। यह स्वतः नवीनीकृत नहीं होता। कवरेज से परे सुविधाओं का उपयोग एकमुश्त भुगतान या मूनस्टोन से किया जा सकता है। भुगतान·धनवापसी Google Play नीति और ई-कॉमर्स कानून का पालन करते हैं।",
+    passTerminationNote: "If the monthly allowance is fully used, the pass ends regardless of the days left. Buying a new pass starts another 30 days from that day.",
   },
   es: {
     appHomeAriaLabel: "Inicio de la app Code Destiny",
@@ -603,6 +612,7 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     purchasingButton: "Procesando",
     buyButton: "Comprar",
     footerNote: "El pase es válido por 30 días, dentro del límite de uso mensual de cada nivel. No se renueva automáticamente. Las funciones fuera de su cobertura se pueden usar mediante pago único o piedras lunares. Los pagos y reembolsos siguen la política de Google Play y la ley de comercio electrónico.",
+    passTerminationNote: "If the monthly allowance is fully used, the pass ends regardless of the days left. Buying a new pass starts another 30 days from that day.",
   },
   fr: {
     appHomeAriaLabel: "Accueil de l'app Code Destiny",
@@ -668,6 +678,7 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     purchasingButton: "Traitement",
     buyButton: "Acheter",
     footerNote: "Le pass est valable 30 jours, dans la limite d'utilisation mensuelle de chaque niveau. Il ne se renouvelle pas automatiquement. Les fonctionnalités hors de sa couverture peuvent être utilisées via un paiement unique ou des pierres de lune. Les paiements et remboursements suivent la politique de Google Play et le droit du commerce électronique.",
+    passTerminationNote: "If the monthly allowance is fully used, the pass ends regardless of the days left. Buying a new pass starts another 30 days from that day.",
   },
   de: {
     appHomeAriaLabel: "Code Destiny App-Startseite",
@@ -733,6 +744,7 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     purchasingButton: "Wird verarbeitet",
     buyButton: "Kaufen",
     footerNote: "Der Pass ist 30 Tage gültig, im Rahmen des monatlichen Nutzungslimits der jeweiligen Stufe. Er verlängert sich nicht automatisch. Funktionen außerhalb seiner Abdeckung können über Einmalzahlung oder Mondsteine genutzt werden. Zahlungen und Rückerstattungen folgen der Google-Play-Richtlinie und dem E-Commerce-Recht.",
+    passTerminationNote: "If the monthly allowance is fully used, the pass ends regardless of the days left. Buying a new pass starts another 30 days from that day.",
   },
   nl: {
     appHomeAriaLabel: "Code Destiny app-startpagina",
@@ -798,6 +810,7 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     purchasingButton: "Verwerken",
     buyButton: "Kopen",
     footerNote: "De pas is 30 dagen geldig, binnen de maandelijkse gebruikslimiet van elk niveau. Wordt niet automatisch verlengd. Functies buiten de dekking kunnen worden gebruikt via eenmalige betaling of maanstenen. Betalingen en terugbetalingen volgen het Google Play-beleid en de e-commercewetgeving.",
+    passTerminationNote: "If the monthly allowance is fully used, the pass ends regardless of the days left. Buying a new pass starts another 30 days from that day.",
   },
   ms: {
     appHomeAriaLabel: "Laman utama aplikasi Code Destiny",
@@ -863,6 +876,7 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     purchasingButton: "Memproses",
     buyButton: "Beli",
     footerNote: "Pas sah selama 30 hari, dalam had penggunaan bulanan bagi setiap peringkat. Ia tidak diperbaharui secara automatik. Ciri di luar liputannya boleh digunakan melalui pembayaran sekali atau batu bulan. Pembayaran·bayaran balik mematuhi dasar Google Play dan undang-undang e-dagang.",
+    passTerminationNote: "If the monthly allowance is fully used, the pass ends regardless of the days left. Buying a new pass starts another 30 days from that day.",
   },
 };
 

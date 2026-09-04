@@ -4548,6 +4548,8 @@
           // 402 는 잔여 0 을 싣는다. 활성 스냅샷에만 반영된다.
           var bgVerdictApi = _dpPassVerdict();
           try { if (bgVerdictApi) bgVerdictApi.storeMonthlyQuotaFromPayload(_dpSubSnapshotUserId(), payload); } catch (_) {}
+          // 🔴 종료 반영은 잔여 되쓰기 **뒤**다 — 미보유로 내린 뒤에는 잔여 되쓰기가 no-op 이 된다.
+          try { if (bgVerdictApi) bgVerdictApi.markPassEndedFromPayload(_dpSubSnapshotUserId(), payload); } catch (_) {}
           if (res && res.ok && _dpIsMembershipPassGrantedPayload(payload)) return; // 서버도 pass 확인 — 정합.
           var statusCode = Number((res && res.status) || (payload && payload.status) || 0);
           var code = String((payload && (payload.code || payload.errorCode)) || '').toUpperCase();
@@ -11519,7 +11521,7 @@
       var passCardRemaining = passCardSnap && passCardSnap.state === 'active' ? Number(passCardSnap.monthlySpendRemainingCoin) : NaN;
       var passCardMonthlyLimit = passCardSnap ? passCardApi.monthlyLimitForTier(passCardSnap.tier) : 0;
       if (Number.isFinite(passCardRemaining) && passCardMonthlyLimit > 0) {
-        passHint += ' · ' + _dpCheckoutText('payment.directModal.passMonthlyRemaining', '이번 달 남은 한도 {remaining} / {limit}', {
+        passHint += ' · ' + _dpCheckoutText('payment.directModal.passMonthlyRemaining', '이용권 남은 한도 {remaining} / {limit}', {
           remaining: _dpCheckoutFormatKrw(Math.max(0, Math.floor(passCardRemaining)) * 100),
           limit: _dpCheckoutFormatKrw(passCardMonthlyLimit * 100)
         });
@@ -11852,6 +11854,7 @@
             // 서버 판정의 월 잔여를 활성 스냅샷에 되쓴다 — 다음 진입은 스냅샷만으로 판정한다.
             var passMonthlyApi = _dpPassVerdict();
             try { if (passMonthlyApi) passMonthlyApi.storeMonthlyQuotaFromPayload(_dpSubSnapshotUserId(), passReady.payload); } catch (_) {}
+            try { if (passMonthlyApi) passMonthlyApi.markPassEndedFromPayload(_dpSubSnapshotUserId(), passReady.payload); } catch (_) {}
             // 월 한도 소진(decisionReason MONTHLY_PASS_LIMIT_EXCEEDED)은 이용권이 **있는** 상태다 — 상점으로
             // 보내면 이미 가진 이용권을 또 사라는 화면이 된다. 모달을 연 채 단건·월정석을 고르게 한다.
             if (passMonthlyApi && passMonthlyApi.isMonthlyLimitPayload(passReady.payload)) {
@@ -11859,7 +11862,7 @@
               hit.classList.remove('is-loading');
               var passMonthlyNode = root.querySelector('[data-payment-status]');
               if (passMonthlyNode) {
-                passMonthlyNode.textContent = _dpCheckoutText('payment.directModal.passMonthlyExhausted', '이번 달 이용권 한도를 모두 사용했어요. 다음 달에 다시 열리고, 지금은 단건 결제나 월정석으로 열 수 있어요.');
+                passMonthlyNode.textContent = _dpCheckoutText('payment.directModal.passMonthlyExhausted', '이용권 한도를 모두 사용해 이용권이 종료되었어요. 새로 구매하면 30일이 다시 시작되고, 지금은 단건 결제나 월정석으로 열 수 있어요.');
                 passMonthlyNode.style.color = '#fca5a5';
               }
               return;

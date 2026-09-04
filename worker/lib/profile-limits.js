@@ -150,6 +150,62 @@ export function resolveMonthlySpendQuota(profileSubscription, entitlement, coinC
   return { applies: true, cycleKey, limitCoin, usedCoin, remainingCoin, exceeded };
 }
 
+// ── 월 한도 소진 = 이용권 종료 ────────────────────────────────────────────
+// 사이클 키가 이용권 자신의 만료일이라, 30일 안에서 월 한도가 리셋되는 일은
+// 구조적으로 없다(resolvePremiumQuotaCycleKey). 즉 한도를 다 쓰면 남은 기간은
+// 금전적 가치가 0이다. 그래서 2026-09-04 정책은 "소진되면 그 자리에서 종료"다:
+// 잔여 기간은 소멸하고, 다시 사면 그날부터 30일이 새로 시작한다(사용자 확정).
+//
+// 소진 판정은 "잔여가 0"이 아니라 **"잔여로 열 수 있는 게 하나도 없다"**이다.
+// 잔여 2,000원처럼 어떤 상품도 못 여는 잔돈을 남겨 두면, 사용자에게는 이용권이
+// 살아 있는데 무엇을 눌러도 결제창이 뜨는 상태가 된다.
+//
+// 🔴 최저가는 worker/lib/paid-feature-registry.js 의 최저 cost 파생값이다.
+// 여기서 registry 를 import 하지 않는 이유: 이 파일은 클라이언트 판정기
+// (js/core/pass-verdict.js)가 숫자를 미러링하는 정본이고, 이 레포의 크로스파일
+// 숫자 합의 방식은 "미러 상수 + 가드 단언"이다. verify:pass-tier-policy 가
+// registry 를 전수로 읽어 이 값과 대조하므로, 더 싼 상품이 생기면 즉시 실패한다.
+export const MIN_PASS_COVERABLE_COIN = 30; // 3,000원
+
+/**
+ * 이 등급의 월 한도가 소진됐는가(= 잔여로 열 수 있는 유료 항목이 없는가).
+ * 판정과 소비 양쪽이 같은 답을 내야 하므로 여기 하나만 쓴다.
+ */
+export function isPassBudgetExhausted(tier, usedCoin) {
+  const normalizedTier = normalizePassTier(tier);
+  const budgetCoin = normalizedTier ? Math.max(0, Math.floor(Number(MONTHLY_PASS_LIMITS[normalizedTier] || 0))) : 0;
+  if (budgetCoin <= 0) return false; // 한도를 못 세는 상태는 종료시키지 않는다.
+  const used = Math.max(0, Math.floor(Number(usedCoin || 0)));
+  const perItemLimit = Math.max(0, Math.floor(Number(PASS_LIMITS[normalizedTier] || 0)));
+  // 건당 상한이 최저가보다 낮은 등급이 생기면 그 등급은 애초에 최저가 상품도 못 연다.
+  const threshold = Math.max(1, Math.min(MIN_PASS_COVERABLE_COIN, perItemLimit || MIN_PASS_COVERABLE_COIN));
+  return budgetCoin - used < threshold;
+}
+
+/**
+ * 조기 종료가 profileSubscription 에 적는 필드 집합($set 의 값 부분).
+ * 🔴 등급 강등 필드는 환불 회수(passes.js revokePassGrantForOrder)와 **같은 집합**이다 —
+ * 두 벌로 갈리면 한쪽만 고쳐 "만료됐는데 등급이 남은" 문서가 생긴다.
+ * 만료일을 now 로 당기는 것이 핵심이다: 활성 판정이 전부 expiresAt 을 보므로
+ * (아래 resolveHoneyPassEntitlement · canUseByPass · evaluatePassCoverage) 새 분기를
+ * 만들지 않고도 하위 판정 전부가 자동으로 뒤집힌다.
+ */
+export function buildPassTerminationFields({ now = new Date(), previousExpiresAt = null } = {}) {
+  const previous = previousExpiresAt ? new Date(previousExpiresAt) : null;
+  return {
+    expiresAt: now,
+    tier: "free",
+    passTier: "",
+    passLimit: 0,
+    maxCoveredCoin: 0,
+    freeLimit: 0,
+    passExhaustedAt: now,
+    // CS·환불 문의 때 "왜 30일 전에 끝났나"를 설명하는 유일한 증거다.
+    passExhaustedFromExpiresAt: previous && Number.isFinite(previous.getTime()) ? previous : null,
+    updatedAt: now,
+  };
+}
+
 export const PASS_TIER_UI = Object.freeze({
   [PASS_TIERS.STANDARD]: { tone: "standard", color: "warm_copper" },
   [PASS_TIERS.PREMIUM]: { tone: "premium", color: "cold_moonlight_silver" },

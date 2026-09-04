@@ -13,8 +13,8 @@
  */
 import { handlePaymentsContext } from "../../worker/payments/index.js";
 import { listProducts } from "../../worker/payments/catalog.js";
-import { evaluatePassCoverage } from "../../worker/payments/passes.js";
-import { MONTHLY_PASS_LIMITS, PASS_LIMITS } from "../../worker/lib/profile-limits.js";
+import { evaluatePassCoverage, terminatePassOnBudgetExhaustion } from "../../worker/payments/passes.js";
+import { MIN_PASS_COVERABLE_COIN, MONTHLY_PASS_LIMITS, PASS_LIMITS } from "../../worker/lib/profile-limits.js";
 import { makeFakePaymentDb } from "../fixtures/fake-payment-db.mjs";
 
 const USER = "64b000000000000000000001";
@@ -237,5 +237,98 @@ describe("라우트 — 왕복 예산·소비·봉투", () => {
     });
     expect(response.status).toBe(401);
     expect(db.ctx.ops).toBe(0);
+  });
+});
+
+describe("조기 종료 — 월 한도를 다 쓰면 30일이 남아도 이용권이 끝난다", () => {
+  // 한도 사이클 키가 이용권 자신의 만료일이라 기간 안에서 예산이 리셋되는 일이 없다.
+  // 그래서 다 쓴 이용권의 남은 기간은 가치가 0이었다 — 2026-09-04 부터 그 자리에서 끝낸다.
+  const COST = Number(CHEAP.priceCoins);
+
+  function seedNearlyExhausted(db, remainingCoin) {
+    const expiresAt = new Date(Date.now() + 10 * DAY_MS);
+    const user = seedUser(db, {
+      ...activePass("standard", { expiresAt }),
+      premiumUseCycleKey: expiresAt.toISOString(),
+      monthlySpendCoin: MONTHLY_PASS_LIMITS.standard - remainingCoin,
+    });
+    return { user, expiresAt };
+  }
+
+  const body = (requestId) => ({ featureKey: CHEAP.featureKey, paymentMode: "MEMBERSHIP_PASS", requestId });
+
+  test("🔴 마지막 한 건이 예산을 비우면 만료일을 그 자리에서 당긴다", async () => {
+    const db = makeFakePaymentDb();
+    const { user, expiresAt } = seedNearlyExhausted(db, COST);
+    const before = Date.now();
+    const { response, payload } = await postPassCheck(db, body("pass-end-1"));
+
+    // 그 요청 자체는 커버된다 — 마지막 한 건을 뺏으면 판매한 예산을 다 못 쓴다.
+    expect(response.status).toBe(200);
+    const sub = user.profileSubscription;
+    expect(sub.monthlySpendCoin).toBe(MONTHLY_PASS_LIMITS.standard);
+    // 종료는 만료일을 당기는 것 하나로 끝난다(새 '소진 플래그'를 만들지 않는다).
+    expect(new Date(sub.expiresAt).getTime()).toBeGreaterThanOrEqual(before);
+    expect(new Date(sub.expiresAt).getTime()).toBeLessThanOrEqual(Date.now());
+    expect(sub.tier).toBe("free");
+    expect(sub.passTier).toBe("");
+    // CS·환불 문의에서 "왜 30일 전에 끝났나"의 유일한 증거다.
+    expect(new Date(sub.passExhaustedFromExpiresAt).toISOString()).toBe(expiresAt.toISOString());
+    expect(sub.passExhaustedAt).toBeTruthy();
+    // 소진을 유발한 이 응답이 클라 스냅샷을 뒤집는 유일한 기회다.
+    expect(payload.data.membershipPass.passEnded).toBe(true);
+    expect(payload.data.membershipPass.passEndedAt).toBeTruthy();
+  });
+
+  test("🔴 잔여가 최저가 미만이면 남겨두지 않고 종료한다 — 그 잔여로는 아무것도 못 연다", async () => {
+    const db = makeFakePaymentDb();
+    const leftover = MIN_PASS_COVERABLE_COIN - 1;
+    const { user } = seedNearlyExhausted(db, COST + leftover);
+    const { response } = await postPassCheck(db, body("pass-end-2"));
+    expect(response.status).toBe(200);
+    expect(MONTHLY_PASS_LIMITS.standard - user.profileSubscription.monthlySpendCoin).toBe(leftover);
+    expect(new Date(user.profileSubscription.expiresAt).getTime()).toBeLessThanOrEqual(Date.now());
+  });
+
+  test("잔여가 최저가와 같으면 아직 끝내지 않는다", async () => {
+    const db = makeFakePaymentDb();
+    const { user, expiresAt } = seedNearlyExhausted(db, COST + MIN_PASS_COVERABLE_COIN);
+    const { response, payload } = await postPassCheck(db, body("pass-end-keep"));
+    expect(response.status).toBe(200);
+    expect(new Date(user.profileSubscription.expiresAt).toISOString()).toBe(expiresAt.toISOString());
+    expect(user.profileSubscription.tier).toBe("standard");
+    expect(payload.data.membershipPass.passEnded).toBeUndefined();
+  });
+
+  test("🔴 종료 뒤 다음 클릭은 이용권 없음으로 402 — 상점으로 보내는 것이 옳은 동작이 된다", async () => {
+    const db = makeFakePaymentDb();
+    seedNearlyExhausted(db, COST);
+    expect((await postPassCheck(db, body("pass-end-3a"))).response.status).toBe(200);
+
+    const { response, payload } = await postPassCheck(db, body("pass-end-3b"));
+    expect(response.status).toBe(402);
+    expect(payload.code).toBe("MEMBERSHIP_PASS_NOT_COVERED");
+    expect(payload.status).toBe("payment_required"); // 막다른 길 금지 — 결제창이 인계한다
+    // 소진(MONTHLY_PASS_LIMIT_EXCEEDED)이 아니라 '이용권 없음'이다. 셸의 isMonthlyLimitPayload
+    // 가 false 를 내야 이용권 상점으로 보낸다 — 이제 그게 맞는 안내다.
+    expect(payload.decisionReason).toBe("PAYMENT_REQUIRED");
+  });
+
+  test("종료 write 는 멱등하다 — 두 번째 시도가 만료일·증거를 덮지 않는다", async () => {
+    const db = makeFakePaymentDb();
+    const { user, expiresAt } = seedNearlyExhausted(db, COST);
+    await postPassCheck(db, body("pass-end-4"));
+    const endedAt = new Date(user.profileSubscription.expiresAt).toISOString();
+
+    // 병렬 요청 2건이 동시에 소진에 걸린 상황 — 조건부 CAS 라 두 번째는 no-op 이어야 한다.
+    const again = await terminatePassOnBudgetExhaustion(db, {
+      userId: USER,
+      cycleKey: expiresAt.toISOString(),
+      previousExpiresAt: new Date(Date.now() + DAY_MS),
+      now: new Date(),
+    });
+    expect(again).toBe(false);
+    expect(new Date(user.profileSubscription.expiresAt).toISOString()).toBe(endedAt);
+    expect(new Date(user.profileSubscription.passExhaustedFromExpiresAt).toISOString()).toBe(expiresAt.toISOString());
   });
 });

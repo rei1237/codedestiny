@@ -71,7 +71,8 @@ function passDescription(sku) {
   const scope = row.coverage === "이용권 대상 전체" ? "이용권 대상 유료 기능 전체를" : `${row.coverage} 유료 기능을`;
   const monthlyKRW = Number(MONTHLY_PASS_LIMITS_KRW[PASS_TIER_BY_SKU[sku]] || 0);
   const monthly = `월 최대 ${monthlyKRW.toLocaleString("ko-KR")}원 상당`;
-  return `30일간 ${scope} ${monthly}까지 이용합니다. ${row.profiles}. 자동 갱신되지 않습니다.`;
+  // 월 최대 금액을 다 쓰면 30일이 남아도 이용권이 끝난다 — 스토어 설명에 없으면 환불 분쟁의 근거가 된다.
+  return `30일간 ${scope} ${monthly}까지 이용합니다. ${row.profiles}. 월 최대 금액을 모두 사용하면 남은 기간과 관계없이 이용권이 종료됩니다. 자동 갱신되지 않습니다.`;
 }
 
 function buildProducts() {

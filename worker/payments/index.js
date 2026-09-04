@@ -54,6 +54,7 @@ import {
   resolvePassPlan,
   revokePassGrantForOrder,
 } from "./passes.js";
+import { isPassBudgetExhausted } from "../lib/profile-limits.js";
 import {
   isPassLikeProductType,
   resolveCanonicalEntitlement,
@@ -332,8 +333,12 @@ const PASS_FAILURE_CODES = Object.freeze({
   invalid_price: "MEMBERSHIP_PASS_NOT_COVERED",
 });
 
+/* 🔴 "다음 달에 다시 열린다"고 쓰지 말 것 — 사이클 키가 이용권 만료일이라 기간 안에서 리셋이
+   없고, 2026-09-04 정책은 한도를 다 쓰면 그 자리에서 이용권을 끝낸다(profile-limits.js
+   isPassBudgetExhausted). 이 문구가 나오는 남은 경우는 잔여가 최저가보다는 커서 아직 종료되지
+   않았지만 이번 건은 못 덮는 상태뿐이다. verify:pass-tier-policy 가 리셋 문구 0건을 단언한다. */
 const PASS_FAILURE_MESSAGES = Object.freeze({
-  monthly_pass_limit_exceeded: "이번 이용권 기간의 무료 한도를 모두 사용했습니다. 원화 단건 결제 또는 월정석으로 이용해 주세요.",
+  monthly_pass_limit_exceeded: "이번 이용권의 남은 한도로는 이 서비스를 열 수 없습니다. 원화 단건 결제 또는 월정석으로 이용해 주세요.",
   pass_access_conflict: "이용권 상태를 확인하지 못했습니다. 원화 단건 결제 또는 월정석으로 이용해 주세요.",
 });
 
@@ -344,6 +349,19 @@ function passFailureCode(reason) {
 function passFailureMessage(reason) {
   return PASS_FAILURE_MESSAGES[String(reason || "")]
     || "현재 이용권 한도 밖 서비스입니다. 원화 단건 결제로 이용해 주세요.";
+}
+
+/* 🔴 구 buildPassPaymentDecision(billing.js)의 decisionReason 어휘를 그대로 승계한다. V2 402 봉투에는
+   이 키가 없었고, 클라이언트 판정기 pass-verdict.isMonthlyLimitPayload 는 **이 필드만** 본다 —
+   그래서 이용권을 가진 사용자의 한도 초과 거절이 "이용권 없음"으로 오분류돼 이용권 상점으로 튕겼다.
+   값 어휘를 바꾸면 세 결제창 렌더러가 함께 어긋나므로 문자열을 그대로 유지할 것. */
+const PASS_DECISION_REASONS = Object.freeze({
+  monthly_pass_limit_exceeded: "MONTHLY_PASS_LIMIT_EXCEEDED",
+  price_exceeds_pass_limit: "PRICE_EXCEEDS_PASS_LIMIT",
+});
+
+function passDecisionReason(reason) {
+  return PASS_DECISION_REASONS[String(reason || "")] || "PAYMENT_REQUIRED";
 }
 
 /** 구 failure(402, …) 봉투 그대로 — 셸은 402 를 받으면 코드와 무관하게 결제창으로 인계한다. */
@@ -1201,6 +1219,7 @@ const ROUTES = {
         ctx.paymentStatus = "PASS_NOT_COVERED";
         return passGateFailure(passFailureCode(outcome.coverage.reason), passFailureMessage(outcome.coverage.reason), {
           featureKey: product.featureKey,
+          decisionReason: passDecisionReason(outcome.coverage.reason),
           membershipPass: presentMembershipPass(outcome.entitlement, outcome.coverage),
           ...(outcome.coverage.perItemLimit !== undefined ? { passLimit: outcome.coverage.perItemLimit } : {}),
           ...(outcome.coverage.budgetCoin !== undefined ? {
@@ -1232,8 +1251,13 @@ const ROUTES = {
           freeBySubscription: true,
         })
         : "";
+      /* 🔴 소진을 유발한 **이 요청**이 클라이언트에 종료를 알리는 유일한 기회다. 다음 요청은 이용권이
+         이미 없어 no_active_pass 로 떨어지는데, 그 전에 스냅샷이 "보유"라고 답하면 낙관 통과 →
+         402 → 결제창의 왕복이 한 번 더 돈다. 판정은 소비 후 누적액 하나로 파생한다(플래그 배선 없음).
+         멱등 재생·이미 해금 경로에서도 같은 답이 나온다 — 이용권이 끝난 것은 사실이기 때문이다. */
+      const passEnded = isPassBudgetExhausted(outcome.coverage.tier, outcome.user?.profileSubscription?.monthlySpendCoin);
       const envelope = legacyPassCheckEnvelope({
-        product, requestId, profileId, unlock, premiumAccessToken,
+        product, requestId, profileId, unlock, premiumAccessToken, passEnded,
         coverage: outcome.coverage,
         entitlement: outcome.entitlement,
         user: outcome.user,

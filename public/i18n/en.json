@@ -849,7 +849,8 @@
       "step2Label": "In-range readings open with no checkout",
       "step2Text": "Tarot, oracle, and saju readings inside your range open right away, with no payment window.",
       "step3Label": "Only deeper readings are paid per use",
-      "step3Text": "Readings beyond your range continue to a one-time KRW payment only when you need them."
+      "step3Text": "Readings beyond your range continue to a one-time KRW payment only when you need them.",
+      "terminationNote": "If the monthly allowance is fully used, the pass ends regardless of the days left. Buying a new pass starts another 30 days from that day."
     },
     "promptHub": {
       "aria": "Go to comprehensive fortune prompts",
@@ -1844,7 +1845,7 @@
         "passSaveUnverified": "We couldn't save the result of applying your pass. Check again with the pass card below, or choose another payment method.",
         "passCheckFailed": "We couldn't check your pass. Check again with the pass card below, or choose another payment method.",
         "passMiss": "Your pass does not open this content for free, so here are the payment options.",
-        "passMonthlyExhausted": "You've used this month's pass allowance, so here are the payment options. It resets next month."
+        "passMonthlyExhausted": "Your pass allowance is fully used, so the pass has ended. Here are the payment options."
       },
       "passBadge": "Moonlight Pass",
       "passStoreTitle": "Moonlight Pass Shop",
@@ -1913,8 +1914,8 @@
         "comingSoon": "Coming soon",
         "back": "Back"
       },
-      "passMonthlyExhausted": "You've used this month's pass allowance. It resets next month; for now you can open this with a one-time payment or moonstones.",
-      "passMonthlyRemaining": "Remaining this month {remaining} / {limit}",
+      "passMonthlyExhausted": "Your pass allowance is fully used, so the pass has ended. Buying a new pass starts another 30 days; for now you can open this with a one-time payment or moonstones.",
+      "passMonthlyRemaining": "Pass allowance left {remaining} / {limit}",
       "wait": {
         "card": "You'll return to this screen automatically once your card verification is complete.",
         "transfer": "You'll return to this screen automatically once your bank account verification is complete.",
@@ -2136,7 +2137,8 @@
       "provisionNotice": "Your Pass will be activated immediately upon payment completion and can be used right away. After activation, your right to withdraw the purchase may be restricted in accordance with relevant laws.",
       "monthlyButton": "Pay with {credits} monthly credits",
       "monthlyButtonBusy": "Activating your pass with monthly credits...",
-      "monthlyButtonShort": "{credits} needed · balance short"
+      "monthlyButtonShort": "{credits} needed · balance short",
+      "terminationNotice": "If the monthly allowance is fully used, the pass ends regardless of the days left. Buying a new pass starts another 30 days from that day."
     },
     "access": {
       "passAppliedContinue": "Opened with your pass."

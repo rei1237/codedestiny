@@ -454,7 +454,7 @@ const BILLING_FETCH_DEFAULT_TIMEOUT_MS = 20000;
 const BILLING_FETCH_CHECKOUT_TIMEOUT_MS = 40000;
 const BILLING_FETCH_CONFIRM_TIMEOUT_MS = 60000;
 const PAYMENT_CHOICE_IN_FLIGHT_TTL_MS = 45000;
-export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-e573b86e07d2";
+export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-b952ce41873d";
 // 🔴 이용권 스냅샷의 상수·읽기·쓰기·판정은 전부 js/core/pass-verdict.js 가 소유한다.
 // 셸(index.html)·독립 정적(js/destiny-profile.js)과 **같은 localStorage 키**를 공유하므로 값이 갈리면
 // 같은 사용자가 어느 런타임에서 클릭했느냐에 따라 판정이 달라지고, 한쪽이 만료로 보고 지운 캐시가
@@ -1121,7 +1121,7 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
     : Number.NaN;
   const passMonthlyLimit = passMonthlySnapshot ? passVerdict.monthlyLimitForTier(passMonthlySnapshot.tier) : 0;
   const passMonthlyHint = Number.isFinite(passMonthlyRemaining) && passMonthlyLimit > 0
-    ? checkoutEntry.text("payment.directModal.passMonthlyRemaining", "이번 달 남은 한도 {remaining} / {limit}", {
+    ? checkoutEntry.text("payment.directModal.passMonthlyRemaining", "이용권 남은 한도 {remaining} / {limit}", {
       remaining: formatCoinValueWon(Math.max(0, Math.floor(passMonthlyRemaining))),
       limit: formatCoinValueWon(passMonthlyLimit),
     })
@@ -1499,10 +1499,11 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
           // 서버 판정의 월 잔여를 활성 스냅샷에 되쓴다 — 다음 진입은 스냅샷만으로 판정한다.
           const passDeniedPayload = (passResult?.payload ?? (passResult?.raw as { payload?: unknown } | undefined)?.payload) ?? null;
           try { passVerdict.storeMonthlyQuotaFromPayload(resolveSubscriptionSnapshotUserId(), passDeniedPayload); } catch {}
+          try { passVerdict.markPassEndedFromPayload(resolveSubscriptionSnapshotUserId(), passDeniedPayload); } catch {}
           // 월 한도 소진(decisionReason MONTHLY_PASS_LIMIT_EXCEEDED)은 이용권이 **있는** 상태다 — 상점으로 보내면
           // 이미 가진 이용권을 또 사라는 화면이 된다. 모달을 연 채 단건·월정석을 고르게 한다.
           if (passVerdict.isMonthlyLimitPayload(passDeniedPayload)) {
-            setStatus(checkoutEntry.text("payment.directModal.passMonthlyExhausted", "이번 달 이용권 한도를 모두 사용했어요. 다음 달에 다시 열리고, 지금은 단건 결제나 월정석으로 열 수 있어요."), true);
+            setStatus(checkoutEntry.text("payment.directModal.passMonthlyExhausted", "이용권 한도를 모두 사용해 이용권이 종료되었어요. 새로 구매하면 30일이 다시 시작되고, 지금은 단건 결제나 월정석으로 열 수 있어요."), true);
             return;
           }
           setStatus("보유하신 이용권으로는 열리지 않아 이용권 상점으로 이동합니다.");
@@ -3827,6 +3828,8 @@ async function recordMembershipPassInBackground(input: BillingCoinGateInput, att
     // 🔴 월 한도 되쓰기는 성공 조기 반환보다 **앞**이다 — 성공 200 이 소비 **후** 잔여를 싣고 오고,
     // 402 는 잔여 0 을 싣는다. 활성 스냅샷에만 반영된다(buildSnapshotFromStatus 를 거치지 않는다).
     try { passVerdict.storeMonthlyQuotaFromPayload(resolveSubscriptionSnapshotUserId(), parsed.raw); } catch {}
+    // 🔴 종료 반영은 잔여 되쓰기 **뒤**다 — 미보유로 내린 뒤에는 잔여 되쓰기가 no-op 이 된다.
+    try { passVerdict.markPassEndedFromPayload(resolveSubscriptionSnapshotUserId(), parsed.raw); } catch {}
     if (parsed.ok && parsed.data) {
       invalidateBillingBalanceCache();
       normalizeBillingBalanceFields(parsed.data as BillingCoinGateData & Record<string, unknown>);

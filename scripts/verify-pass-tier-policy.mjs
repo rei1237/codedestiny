@@ -10,27 +10,35 @@
  *   ② 가격 경계에서의 커버 판정(실제 판정 함수를 import 해 돌린다 — 문자열 검사 아님)
  *   ③ 같은 숫자를 든 하드코딩 사본들이 서버 정본과 일치하는가
  *   ④ 사용자에게 보이는 문구가 "한도 없음"을 뜻하는 표현을 쓰지 않는가
+ *   ⑥ 월 한도 소진 임계값이 레지스트리 최저가에서 파생됐는가(2026-09-04 조기 종료 정책)
+ *   ⑦ 소진 경계와 종료 필드 — 만료일을 당기는 것만으로 활성 판정이 뒤집히는가
+ *   ⑧ 사전이 "다음 달에 리셋된다"는 거짓 문구를 서빙하지 않는가
  *
  * fail-closed 설계: 사본에서 4등급을 **전부** 뽑아내지 못하면 통과가 아니라 실패다.
  * 정규식이 리팩터링에 빗나가면 "검사 대상이 없어서 통과"가 되는 게 이 종류 가드의 전형적인
  * 사고인데, 그때 조용히 초록불이 되면 안 된다.
  */
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import {
+  buildPassTerminationFields,
   FAMILY_PASS_MAX_COVERED_COIN,
   HONEY_PASS_POLICY,
+  isPassBudgetExhausted,
   KRW_PER_COIN,
+  MIN_PASS_COVERABLE_COIN,
   MONTHLY_PASS_LIMITS,
   MONTHLY_PASS_LIMITS_KRW,
+  normalizeHoneyPassEntitlement,
   PASS_LIMITS,
   PASS_LIMITS_KRW,
   PREMIUM_QUOTA_INCLUDED_USES_BY_TIER,
 } from "../worker/lib/profile-limits.js";
 import { evaluatePassCoverage, describePassEligibility } from "../worker/payments/passes.js";
 import { listAppPassProducts } from "../worker/lib/app-store-pricing.js";
+import { listProducts } from "../worker/payments/catalog.js";
 import { PASS_MONTHLY_WON } from "../lib/payment/pass-pricing.js";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -349,6 +357,129 @@ for (const file of localeFiles) {
   }
 }
 
+
+/* ── ⑥ 월 한도 소진 임계값이 레지스트리 최저가에서 파생됐는가 ────────────
+   2026-09-04 부터 이용권은 30일 만료와 월 한도 소진 중 **먼저 오는 쪽**에서 끝난다.
+   소진 판정은 "잔여로 열 수 있는 유료 항목이 하나도 없을 때"이므로 임계는 레지스트리의
+   최저가여야 한다. 더 싼 상품이 생겼는데 상수가 그대로면 아직 열 수 있는 이용권을 끄고
+   (환불 분쟁), 최저가가 올랐는데 그대로면 아무것도 못 여는 이용권이 남는다(원래 문제).
+
+   fail-closed: 커버 대상을 하나도 못 뽑으면 통과가 아니라 실패다. */
+const coverablePrices = listProducts()
+  .filter((product) => product.passExcluded !== true && Number(product.priceCoins) > 0)
+  .map((product) => Number(product.priceCoins));
+check("이용권 커버 대상 상품을 레지스트리에서 뽑았다", coverablePrices.length >= 50, `실제=${coverablePrices.length}개`);
+if (coverablePrices.length) {
+  const registryMin = Math.min(...coverablePrices);
+  check(
+    `MIN_PASS_COVERABLE_COIN 이 레지스트리 최저가 ${registryMin}코인과 같다`,
+    MIN_PASS_COVERABLE_COIN === registryMin,
+    `상수=${MIN_PASS_COVERABLE_COIN} — 더 싼 상품이 생겼거나 최저가가 올랐다.`
+    + " worker/lib/profile-limits.js 의 상수를 실측에 맞추고, 문구의 '3,000원' 표기도 함께 본다",
+  );
+}
+
+/* ── ⑦ 소진 경계와 종료 필드 ─────────────────────────────────────────────
+   임계는 등급별 건당 상한과 최저가 중 작은 쪽이다(건당 상한이 최저가보다 낮은 등급이
+   생기면 그 등급은 잔여가 상한 미만일 때 이미 아무것도 못 연다). */
+for (const tier of TIERS) {
+  const budget = MONTHLY_PASS_LIMITS[tier];
+  const threshold = Math.max(1, Math.min(MIN_PASS_COVERABLE_COIN, PASS_LIMITS[tier] || MIN_PASS_COVERABLE_COIN));
+  check(`[${tier}] 안 쓴 이용권은 종료하지 않는다`, isPassBudgetExhausted(tier, 0) === false);
+  check(
+    `[${tier}] 잔여가 최저가와 같으면 아직 열 수 있다`,
+    isPassBudgetExhausted(tier, budget - threshold) === false,
+    `예산=${budget} 사용=${budget - threshold} 잔여=${threshold}코인`,
+  );
+  check(
+    `[${tier}] 잔여가 최저가 미만이면 종료한다`,
+    isPassBudgetExhausted(tier, budget - threshold + 1) === true,
+    `예산=${budget} 사용=${budget - threshold + 1} 잔여=${threshold - 1}코인`,
+  );
+  check(`[${tier}] 예산을 다 쓰면 종료한다`, isPassBudgetExhausted(tier, budget) === true);
+}
+
+/* 종료는 만료일을 당기는 것 하나로 끝난다 — 새 "소진 플래그"를 만들어 곳곳에서 검사하면
+   원칙 6(중첩 사전검사) 위반이자 드리프트 원인이다. 그 전제가 실제로 성립하는지,
+   즉 종료 필드만으로 활성 판정이 뒤집히는지를 판정 함수를 돌려 확인한다. */
+{
+  const now = new Date();
+  const before = new Date(now.getTime() + 10 * 86400000);
+  const activeSub = { tier: "vvip", passTier: "vvip", status: "active", expiresAt: before };
+  const active = normalizeHoneyPassEntitlement({ profileSubscription: activeSub });
+  check("종료 전 이용권은 활성이다", active.isActive === true, `실제=${JSON.stringify(active.isActive)}`);
+
+  const fields = buildPassTerminationFields({ now, previousExpiresAt: before });
+  check("종료 필드는 만료일을 now 로 당긴다", fields.expiresAt.getTime() === now.getTime(), `실제=${fields.expiresAt?.toISOString?.()}`);
+  check("종료 필드는 등급을 free 로 내린다", fields.tier === "free" && fields.passTier === "" && fields.passLimit === 0, JSON.stringify(fields));
+  check(
+    "종료 필드는 원래 만료일을 증거로 남긴다",
+    fields.passExhaustedFromExpiresAt instanceof Date && fields.passExhaustedFromExpiresAt.getTime() === before.getTime(),
+    "CS·환불 문의에서 '왜 일찍 끝났나'의 유일한 증거다",
+  );
+
+  const terminated = normalizeHoneyPassEntitlement({ profileSubscription: { ...activeSub, ...fields } });
+  check(
+    "종료 필드를 적용하면 활성 판정이 뒤집힌다",
+    terminated.isActive !== true,
+    `실제=${JSON.stringify(terminated.isActive)} — 만료일을 당겨도 활성이면 조기 종료가 통째로 무력화된다`,
+  );
+}
+
+/* ── ⑧ 사전이 "다음 달에 리셋된다"고 말하지 않는가 ───────────────────────
+   한도 사이클 키가 이용권 자신의 만료일이라(profile-limits.js resolvePremiumQuotaCycleKey)
+   기간 안에서 리셋되는 일이 **구조적으로 없다**. 2026-09-04 이전에는 12개 로케일이 모두
+   "다음 달에 다시 열립니다"를 서빙했고, 그 문구를 믿고 기다린 사용자는 만료일까지 아무것도
+   열지 못했다. 조기 종료 정책이 들어온 지금은 더 명확한 거짓이다.
+
+   대상은 사전 JSON 의 값뿐이다 — 주석까지 잡으면 금지 이유를 적은 주석이 스스로 가드를
+   깬다(④와 같은 이유). 코드 안의 한국어 폴백은 verify:payment-copy-dictionary ② 가
+   ko.json 값과의 동일성을 이미 강제하므로 여기서 다시 훑지 않는다.
+
+   fail-closed: 디렉터리에서 사전을 전수 발견하고, 훑은 문자열이 바닥 아래면 실패한다. */
+const RESET_COPY = [
+  { re: /다음\s*달에\s*다시\s*열/, why: "'다음 달에 다시 열림' — 이용권 기간 안에서 한도가 리셋되는 일은 없다" },
+  { re: /resets?\s+next\s+month/i, why: "'resets next month' — 같은 이유" },
+  { re: /이번\s*달\s*이용권\s*한도/, why: "'이번 달 이용권 한도' — 달이 아니라 이용권 한 벌의 총예산이다" },
+  { re: /이번\s*달\s*남은\s*한도/, why: "'이번 달 남은 한도' — 같은 이유" },
+  { re: /남은\s*이용권\s*기간\s*동안/, why: "'남은 이용권 기간 동안' — 한도를 다 쓰면 그 기간 자체가 사라진다" },
+];
+
+let scannedStrings = 0;
+const resetHits = [];
+function scanDictValue(node, file, keyPath) {
+  if (typeof node === "string") {
+    scannedStrings += 1;
+    for (const banned of RESET_COPY) {
+      if (banned.re.test(node)) resetHits.push(`${file} ${keyPath} — ${banned.why} / 문구="${node.slice(0, 90)}"`);
+    }
+    return;
+  }
+  if (!node || typeof node !== "object") return;
+  for (const [key, value] of Object.entries(node)) {
+    if (key.startsWith("_")) continue; // 저작 파일의 _comment 는 사용자에게 안 보인다
+    scanDictValue(value, file, keyPath ? `${keyPath}.${key}` : key);
+  }
+}
+function scanDictDir(dir) {
+  if (!existsSync(dir)) return; // 없는 디렉터리는 아래 바닥 검사가 실패로 잡는다(여기서 던지면 사유가 안 보인다).
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) scanDictDir(full);
+    else if (entry.name.endsWith(".json")) scanDictValue(JSON.parse(readFileSync(full, "utf8")), path.relative(ROOT, full), "");
+  }
+}
+for (const [rel, floor] of [[path.join("public", "i18n"), 200000], [path.join("i18n", "authored"), 70000]]) {
+  const before = scannedStrings;
+  scanDictDir(path.join(ROOT, rel));
+  check(
+    `${rel} 사전 문자열을 훑었다`,
+    scannedStrings - before >= floor,
+    `실제=${scannedStrings - before}개(바닥 ${floor}) — 사전 위치가 바뀌었는지 볼 것`,
+  );
+}
+for (const hit of resetHits) failures.push(`리셋 문구: ${hit}`);
+
 if (failures.length) {
   console.error(`\n[실패] 이용권 등급 정책 검증 ${failures.length}건`);
   for (const failure of failures) console.error(`  ✗ ${failure}`);
@@ -356,5 +487,6 @@ if (failures.length) {
 }
 console.log(
   "[통과] 이용권 등급 정책 검증 — 4등급 절대값 · 가격 경계 7종 × 4등급 · 월 한도 경계 ·"
-  + ` 중앙 설명자 정합 · 하드코딩 사본 5곳 · 문구 금지 표현 · 로케일 사전 ${localeFiles.length}개 × 4등급 카드 문구\n`,
+  + ` 중앙 설명자 정합 · 하드코딩 사본 5곳 · 문구 금지 표현 · 로케일 사전 ${localeFiles.length}개 × 4등급 카드 문구 ·`
+  + ` 소진 임계 ${MIN_PASS_COVERABLE_COIN}코인(레지스트리 최저가) · 소진 경계 4등급 × 4케이스 · 종료 필드 왕복 · 사전 2곳 ${scannedStrings}문자열 리셋 문구 0건\n`,
 );

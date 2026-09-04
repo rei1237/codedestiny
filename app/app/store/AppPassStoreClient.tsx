@@ -262,6 +262,8 @@ export default function AppPassStoreClient() {
 
       <p className="cd-app-body mt-2 px-1 text-[12px]">
         {copy.footerNote}
+        <br />
+        {copy.passTerminationNote}
       </p>
     </section>
   );
