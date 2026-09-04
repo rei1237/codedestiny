@@ -291,6 +291,7 @@
     "verify:saju-fun-content-gate": "node scripts/verify-saju-fun-content-gate.mjs",
     "verify:hour-pillar-parity": "node scripts/verify-hour-pillar-parity.mjs",
     "verify:saju-reason-grammar": "node scripts/verify-saju-reason-grammar.mjs",
+    "verify:prompt-hub-facts-wiring": "node scripts/verify-prompt-hub-facts-wiring.mjs",
     "verify:ziwei-sohan": "node scripts/verify-ziwei-sohan.mjs",
     "verify:ziwei-star-parity": "node scripts/verify-ziwei-star-parity.mjs",
     "verify:ziwei-borrowed-strength": "node scripts/verify-ziwei-borrowed-star-strength.mjs",

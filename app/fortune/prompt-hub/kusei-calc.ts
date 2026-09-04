@@ -491,12 +491,29 @@ export function calculateGetsumeisei(parts: DateParts, honmeiNumber: NineStarNum
   };
 }
 
+// 한글 받침 유무로 조사를 고른다 — 오행 이름(목·화·토·금·수)이 그대로 문장에 박히는데
+// "금가"·"목를" 처럼 어긋난 조사가 프롬프트 산출 데이터에 실려 나갔다(2026-09-04 수정).
+function hasFinalConsonant(value: string) {
+  const text = String(value || "");
+  if (!text) return false;
+  const code = text.charCodeAt(text.length - 1) - 0xac00;
+  return code >= 0 && code <= 11171 && code % 28 !== 0;
+}
+
+function subjectParticle(value: string) {
+  return `${value}${hasFinalConsonant(value) ? "이" : "가"}`;
+}
+
+function objectParticle(value: string) {
+  return `${value}${hasFinalConsonant(value) ? "을" : "를"}`;
+}
+
 export function getElementRelation(fromElement: KuseiElement, toElement: KuseiElement) {
   if (fromElement === toElement) return "같은 오행: 같은 기질이 공명하며 장점과 반복 패턴이 함께 커지는 흐름";
-  if (GENERATES[fromElement] === toElement) return `내가 생하는 오행: ${fromElement}가 ${toElement}를 생하므로 내가 에너지를 쓰며 움직이는 흐름`;
-  if (GENERATES[toElement] === fromElement) return `나를 생하는 오행: ${toElement}가 ${fromElement}를 생하므로 나를 돕는 기운`;
-  if (CONTROLS[fromElement] === toElement) return `내가 극하는 오행: ${fromElement}가 ${toElement}를 극하므로 내가 통제하려는 흐름`;
-  return `나를 극하는 오행: ${toElement}가 ${fromElement}를 극하므로 압박과 조정이 필요한 흐름`;
+  if (GENERATES[fromElement] === toElement) return `내가 생하는 오행: ${subjectParticle(fromElement)} ${objectParticle(toElement)} 생하므로 내가 에너지를 쓰며 움직이는 흐름`;
+  if (GENERATES[toElement] === fromElement) return `나를 생하는 오행: ${subjectParticle(toElement)} ${objectParticle(fromElement)} 생하므로 나를 돕는 기운`;
+  if (CONTROLS[fromElement] === toElement) return `내가 극하는 오행: ${subjectParticle(fromElement)} ${objectParticle(toElement)} 극하므로 내가 통제하려는 흐름`;
+  return `나를 극하는 오행: ${subjectParticle(toElement)} ${objectParticle(fromElement)} 극하므로 압박과 조정이 필요한 흐름`;
 }
 
 export function calculateCurrentKigakuFlow(currentDateTime?: string, timezone = "Asia/Seoul") {

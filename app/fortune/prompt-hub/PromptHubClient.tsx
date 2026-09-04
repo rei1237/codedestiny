@@ -1655,6 +1655,40 @@ async function buildComputedFactsFor(toolId: ToolId, draft: ToolDraft): Promise<
         partnerCalendarType: formatDraftValue(draft.partnerCalendarType),
         relationshipType: formatDraftValue(draft.relationshipType),
       });
+    case "dangsaju": {
+      const { buildDangsajuPromptFacts } = await import("./dangsaju-prompt-facts");
+      return buildDangsajuPromptFacts({
+        birthDate: birth.birthDate,
+        calendarType: birth.calendarType,
+        leapMonth: birth.leapMonth,
+        birthTime: birth.birthTime,
+        birthTimeUnknown: birth.birthTimeUnknown,
+        question: formatDraftValue(draft.question),
+        lifeArea: formatDraftValue(draft.lifeArea),
+      });
+    }
+    case "kusei": {
+      const { buildKuseiPromptFacts } = await import("./kusei-prompt-facts");
+      return buildKuseiPromptFacts({
+        birthDate: birth.birthDate,
+        calendarType: birth.calendarType,
+        leapMonth: birth.leapMonth,
+        birthTime: birth.birthTime,
+        birthTimeUnknown: birth.birthTimeUnknown,
+        birthTimezone: birth.birthTimezone,
+        baseDate: formatDraftValue(draft.baseDate),
+        focusTopic: formatDraftValue(draft.topic),
+        question: formatDraftValue(draft.directionQuestion) || formatDraftValue(draft.question),
+      });
+    }
+    case "meihua": {
+      const { buildMeihuaPromptFacts } = await import("./meihua-prompt-facts");
+      return buildMeihuaPromptFacts({
+        eventDateTime: formatDraftValue(draft.eventDateTime),
+        question: formatDraftValue(draft.question),
+        numberOrSign: formatDraftValue(draft.numberOrSign),
+      });
+    }
     default:
       return "";
   }

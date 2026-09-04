@@ -256,6 +256,14 @@ jobs:
       - name: Verify saju reason sentence grammar
         run: npm run verify:saju-reason-grammar
 
+      # 🔴 이것도 **fast 잡**이어야 한다. 프롬프트 허브의 계산 모듈을 만들고 buildComputedFactsFor 에
+      # case 를 안 붙이면 화면은 멀쩡한 채 프롬프트만 조용히 골격으로 떨어진다(dangsaju·kusei·meihua
+      # 세 모듈이 실제로 그 상태였다). 입력이 app/fortune/prompt-hub/** 뿐이라 티어가 fast/standard 로
+      # 갈리는데, critical 잡에 두면 정작 지켜야 할 '허브 도구 추가'에 깨어나지 않는다.
+      # 네트워크 없이 동기 빌더 6개만 실행하므로 수 초면 끝난다.
+      - name: Verify prompt hub computed facts wiring
+        run: npm run verify:prompt-hub-facts-wiring
+
       # 🔴 이것도 **fast 잡**이어야 한다. 입력이 js/saju-engine.js 하나라 티어가 fast/standard 로
       # 갈리는데, critical 잡에 두면 정작 지켜야 할 "명반 엔진 한 줄 수정"에 깨어나지 않는다.
       # 소한(小限)은 틀려도 화면이 조용하다 — 궁 이름과 나이가 그럴듯하게 계속 나오기 때문에
