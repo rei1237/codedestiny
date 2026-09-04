@@ -559,9 +559,10 @@
     },
     /**
      * Zero-Tap Sign-In(Restore Credentials) 뼈대 — 네이티브 CodeDestinyCredentialsPlugin 을 그대로 감싼다.
-     * requestJson/responseJson 은 WebAuthn 규격 문자열이고 발급·검증은 서버(후속 PR)가 한다.
-     * 🔴 이 PR 에는 호출부가 없다 — 로그인 성공 뒤 create, 첫 실행 restore, 로그아웃 clear 는
-     * 서버 challenge/assert 엔드포인트와 함께 붙인다. 설계: docs/app-audit/ZERO_TAP_SIGNIN_DESIGN.md
+     * requestJson/responseJson 은 WebAuthn 규격 문자열이고 발급·검증은 서버가 한다
+     * (/api/auth/restore-credential/{challenge,register,assert}).
+     * 호출부는 아래 §3-b 다 — 부팅 시 등록·복원, 로그아웃 시 해제.
+     * 설계: docs/app-audit/ZERO_TAP_SIGNIN_DESIGN.md
      */
     credentials: {
       async isAvailable() {
@@ -637,6 +638,26 @@
 
   window.CodeDestinyNative = Object.assign({}, window.CodeDestinyNative, nativeApi);
 
+  /**
+   * 앱 세션 저장. 딥링크 토큰 교환과 Zero-Tap 복원이 함께 쓴다 —
+   * /api/auth/oauth/complete 와 /api/auth/restore-credential/assert 가 같은 형태
+   * (accessToken/refreshToken/user)로 내려주므로, 저장도 한 곳이어야 두 경로가 어긋나지 않는다.
+   */
+  function storeAuthSession(payload, source) {
+    try {
+      localStorage.setItem("fortune_auth_token", String(payload.accessToken));
+      // 앱은 리프레시 쿠키를 못 받는다. 서버가 본문으로 내려준 이 토큰이 없으면
+      // 액세스 토큰(기본 30분) 만료 후 세션을 되살릴 수단이 사라진다.
+      if (payload.refreshToken) {
+        localStorage.setItem("fortune_auth_refresh_token", String(payload.refreshToken));
+      }
+      if (payload.user) localStorage.setItem("fortune_auth_user", JSON.stringify(payload.user));
+    } catch (e) { /* noop */ }
+    window.dispatchEvent(new CustomEvent("cd:auth-changed", {
+      detail: { source: source, event: "login", at: Date.now() },
+    }));
+  }
+
   // --- 2) 딥링크 → 토큰 교환 ----------------------------------------------
   async function completeMobileOAuth(appUrl) {
     var parsed;
@@ -676,18 +697,7 @@
       throw new Error(String((result.payload && result.payload.message) || "Mobile OAuth completion failed."));
     }
 
-    try {
-      localStorage.setItem("fortune_auth_token", String(result.payload.accessToken));
-      // 앱은 리프레시 쿠키를 못 받는다. 서버가 본문으로 내려준 이 토큰이 없으면
-      // 액세스 토큰(기본 30분) 만료 후 세션을 되살릴 수단이 사라진다.
-      if (result.payload.refreshToken) {
-        localStorage.setItem("fortune_auth_refresh_token", String(result.payload.refreshToken));
-      }
-      if (result.payload.user) localStorage.setItem("fortune_auth_user", JSON.stringify(result.payload.user));
-    } catch (e) { /* noop */ }
-    window.dispatchEvent(new CustomEvent("cd:auth-changed", {
-      detail: { source: "mobile-app-oauth", event: "login", at: Date.now() },
-    }));
+    storeAuthSession(result.payload, "mobile-app-oauth");
     trace("deepLink:exchangeOk", { nextPath: nextPath });
 
     // 여기서 이동하지 않으면 사용자는 로그인 화면 그대로 돌아온다 —
@@ -794,6 +804,121 @@
     } finally {
       recoveryRunning = false;
     }
+  }
+
+  // --- 3-b) Zero-Tap Sign-In(Restore Credentials) 등록·복원·해제 ------------
+  //
+  // 기기를 바꾸거나 앱을 재설치하면 WebView 의 localStorage 를 물려받지 못해 로그인이 풀린다.
+  // 서버 3라우트(challenge/register/assert)와 짝을 이루는 호출부다.
+  // 설계: docs/app-audit/ZERO_TAP_SIGNIN_DESIGN.md
+  //
+  // 🔴 등록을 "로그인 직후"가 아니라 **부팅**에 둔다(설계 문서 §4-A 와 다른 지점).
+  //    ① 로그인 직후는 60ms 뒤 location.replace 가 문서를 내려 요청이 중간에 죽는다.
+  //    ② 이미 로그인해 둔 기존 사용자는 다시 로그인할 일이 없어 영원히 등록되지 않는다.
+  // 🔴 부팅 1회에 등록·복원 중 **하나만** 한다 — 토큰이 있으면 등록, 하나도 없으면 복원.
+  // 🔴 플러그인이 없는 곳(웹·셸·GMS 없는 기기)에서는 isAvailable 이 available:false 를 즉시
+  //    돌려주고 끝난다. 네트워크 호출은 한 번도 나가지 않는다.
+  var RESTORE_REGISTERED_KEY = "cd:restore-credential-registered";
+  var restoreFlowRan = false;
+
+  function readLocal(key) {
+    try { return String(window.localStorage.getItem(key) || "").trim(); } catch (e) { return ""; }
+  }
+
+  async function restoreCredentialsAvailable() {
+    try {
+      var probe = await nativeApi.credentials.isAvailable();
+      return !!(probe && probe.available);
+    } catch (e) { return false; }
+  }
+
+  async function requestRestoreChallenge(purpose) {
+    var result = await postJson("/api/auth/restore-credential/challenge", { purpose: purpose }, { timeoutMs: 15000 });
+    if (!result.ok || !result.payload || !result.payload.requestJson) return "";
+    return String(result.payload.requestJson);
+  }
+
+  /** A) 등록 — 로그인 상태로 부팅했고 이 기기에 아직 만들어 두지 않았을 때 한 번. */
+  async function registerRestoreCredential() {
+    if (readLocal(RESTORE_REGISTERED_KEY)) return;
+    var requestJson = await requestRestoreChallenge("create");
+    if (!requestJson) return;
+    var created = await nativeApi.credentials.create({ requestJson: requestJson });
+    if (!created || created.ok !== true || !created.responseJson) {
+      trace("restoreCredential:createFailed", { code: String((created && created.code) || "UNKNOWN") });
+      return;
+    }
+    var registered = await postJson("/api/auth/restore-credential/register", {
+      responseJson: String(created.responseJson),
+      cloudBackup: created.cloudBackup === true,
+    }, { timeoutMs: 15000 });
+    if (!registered.ok) {
+      trace("restoreCredential:registerRejected", { status: registered.status });
+      return;
+    }
+    // 표식이 서면 다음 부팅부터 challenge 조차 요청하지 않는다. 표식이 지워진 뒤 다시 등록해도
+    // 서버가 credentialId 로 교체($pull 후 $push)하므로 중복 항목은 쌓이지 않는다.
+    try { window.localStorage.setItem(RESTORE_REGISTERED_KEY, "1"); } catch (e) { /* noop */ }
+    trace("restoreCredential:registered", null);
+  }
+
+  /** B) 복원 — 토큰이 하나도 없는 콜드 스타트에서만. 실패는 조용히 끝나고 평소 화면이 남는다. */
+  async function restoreSessionFromCredential() {
+    var requestJson = await requestRestoreChallenge("assert");
+    if (!requestJson) return false;
+    var restored = await nativeApi.credentials.restore({ requestJson: requestJson });
+    if (!restored || restored.ok !== true || !restored.responseJson) {
+      // 자격증명이 없는 기기(NoCredentialException)가 대부분이다 — 오류가 아니라 정상 경로다.
+      trace("restoreCredential:noCredential", { code: String((restored && restored.code) || "UNKNOWN") });
+      return false;
+    }
+    var session = await postJson("/api/auth/restore-credential/assert", {
+      responseJson: String(restored.responseJson),
+    }, { timeoutMs: 15000 });
+    if (!session.ok || !session.payload || !session.payload.accessToken) {
+      trace("restoreCredential:assertRejected", { status: session.status });
+      return false;
+    }
+    storeAuthSession(session.payload, "restore-credential");
+    // 이 기기에는 이미 유효한 자격증명이 있으므로 곧바로 재등록하지 않는다.
+    try { window.localStorage.setItem(RESTORE_REGISTERED_KEY, "1"); } catch (e) { /* noop */ }
+    trace("restoreCredential:restored", null);
+    return true;
+  }
+
+  async function runRestoreCredentialFlow() {
+    if (restoreFlowRan) return false;
+    restoreFlowRan = true;
+    try {
+      if (!(await restoreCredentialsAvailable())) return false;
+      if (readLocal("fortune_auth_token")) {
+        await registerRestoreCredential();
+        return false;
+      }
+      // 액세스 토큰만 비었을 뿐 리프레시로 되살아날 세션이면 복원을 걸지 않는다.
+      if (readLocal("fortune_auth_refresh_token") || readLocal("fortune_auth_user")) return false;
+      return await restoreSessionFromCredential();
+    } catch (e) {
+      trace("restoreCredential:failed", { message: String((e && e.message) || e) });
+      return false;
+    }
+  }
+
+  /**
+   * C) 해제 — 로그아웃하면 반드시 지운다. 안 지우면 다음 콜드 스타트에서 B 가 세션을 되살려
+   * **로그아웃이 무효가 된다.** (탈퇴는 서버가 restoreCredentials 를 비우므로 여기 몫이 아니다.)
+   */
+  function installLogoutCredentialClear() {
+    window.addEventListener("cd:auth-changed", function (event) {
+      var detail = (event && event.detail) || {};
+      if (detail.event !== "logout") return;
+      try { window.localStorage.removeItem(RESTORE_REGISTERED_KEY); } catch (e) { /* noop */ }
+      try {
+        var cleared = nativeApi.credentials.clear();
+        if (cleared && typeof cleared.catch === "function") cleared.catch(function () { /* noop */ });
+      } catch (e) { /* noop */ }
+      trace("restoreCredential:cleared", null);
+    });
   }
 
   // --- 4) 안드로이드 하드웨어 백버튼 ---------------------------------------
@@ -1190,9 +1315,14 @@
     installExternalLinkGuard();
     installDiagnosticsGesture();
     installProfileSheetProbe();
+    installLogoutCredentialClear();
     trace("boot", { path: window.location.pathname, hasBrowser: !!browserPlugin() });
     // 브릿지·플러그인이 준비될 여유를 두고 복구를 태운다.
-    window.setTimeout(function () { void runPurchaseRecovery(); }, 800);
+    // 🔴 Zero-Tap 복원이 **먼저**다 — 복원으로 세션이 살아나야 뒤따르는 구매 복구가 그 계정에
+    //    붙는다. 순서가 반대면 비로그인 상태로 /restore 가 나가 아무것도 되살리지 못한다.
+    window.setTimeout(function () {
+      void runRestoreCredentialFlow().then(function () { return runPurchaseRecovery(); });
+    }, 800);
     document.addEventListener("visibilitychange", function () {
       if (document.visibilityState !== "visible") return;
       void runPurchaseRecovery();
@@ -1220,5 +1350,6 @@
     installed: true,
     completeMobileOAuth: completeMobileOAuth,
     runPurchaseRecovery: runPurchaseRecovery,
+    runRestoreCredentialFlow: runRestoreCredentialFlow,
   };
 })();

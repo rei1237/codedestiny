@@ -53,6 +53,9 @@ const SCAN_FILES = [
   "js/core/index-inline-runtime.js",
   "js/saju-engine.js",
   "js/share.js",
+  // 🔴 빌드 도구가 아니라 앱에 실려 나가는 런타임이다(같은 이유로 custom-event-wiring 도 이 파일을
+  //    스캔한다). 여기에 cd:auth-changed 리스너가 생긴 것은 Zero-Tap 해제(로그아웃 시 clear)부터다.
+  "scripts/app-native-bridge.js",
 ];
 
 /** verify-auth-event-loop-guard.mjs 의 SOURCE_FILTER 와 같은 뜻이어야 한다. */
@@ -138,6 +141,12 @@ const REGISTRY = {
     expr: "function(){",
     verdict: "benign",
     why: "sessionStorage 추천 파라미터 정리 + 로컬 재프라임. fetch 없음.",
+  },
+  "scripts/app-native-bridge.js#0": {
+    expr: "function (event) {",
+    verdict: "benign",
+    why: "Zero-Tap 자격증명 해제. event === 'logout' 게이트가 먼저라 두 되울림에는 아예 진입하지 않는다. fetch 없음(네이티브 clear 1회).",
+    mustMatch: /"logout"/,
   },
 };
 
