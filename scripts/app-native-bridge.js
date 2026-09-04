@@ -68,12 +68,23 @@
     }
 
     // 호출 시점에 읽는다 — 셸의 rememberSuccessfulApiBase 가 부팅 뒤 이 값을 갈아치운다.
+    //
+    // 🔴 fail-closed. 그 rememberSuccessfulApiBase(index.html) 는 앱에서 isLocalApiHost('localhost')
+    //    가 참이라 후보 목록에 **앱 출처 자신**을 넣고, 성공하면 전역 3개와 localStorage 를 그 값으로
+    //    덮는다. 그때 여기서 "" 를 돌려주면 모든 /api/* 가 Authorization·리프레시 헤더 없이
+    //    죽은 출처로 나가고, 그 401 이 부팅 프로브의 강제 로그아웃으로 이어진다 —
+    //    "로그인했는데 앱이 로그아웃 상태" 의 두 번째 경로다.
+    //    그래서 한 번이라도 본 정상 베이스를 기억해 두고, 전역이 오염되면 그쪽으로 되돌아간다.
+    var lastGoodBase = "";
     function retargetBase() {
       try {
         var base = String(window.CODE_DESTINY_API_BASE_URL || "").replace(/\/+$/, "");
-        if (!base || base === window.location.origin) return "";
-        return base;
-      } catch (e) { return ""; }
+        if (base && base !== window.location.origin) {
+          lastGoodBase = base;
+          return base;
+        }
+        return lastGoodBase;
+      } catch (e) { return lastGoodBase; }
     }
 
     window.fetch = function (input, init) {

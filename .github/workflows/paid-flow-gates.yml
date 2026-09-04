@@ -184,6 +184,11 @@ on:
       - "scripts/app-native-bridge.js"
       - "apps/mobile/android/app/src/main/java/com/codedestiny/app/CodeDestinyNavigationPlugin.java"
       - "apps/mobile/android/app/src/main/AndroidManifest.xml"
+      # 🔴 npm Capacitor 플러그인의 유일한 신뢰 등록 지점(verify:capacitor-plugin-registration).
+      #    여기가 빠지면 App·Browser 등록을 지워도 게이트가 안 깨어나고, 그 결과는
+      #    '앱은 멀쩡한데 소셜 로그인만 전부 실패'다(vc44).
+      - "apps/mobile/android/app/src/main/java/com/codedestiny/app/MainActivity.java"
+      - "apps/mobile/package.json"
       # ── 운세 로직 ─────────────────────────────────────────
       - "worker/routes/fortune.js"
       - "worker/routes/*-ai.js"

@@ -65,6 +65,8 @@ const SUITE = [
   { run: "npm run verify:auth-session-stability", why: "형제 가드인데 배선이 빠져 있어서, 하네스가 깨진 채로 방치됐다(auth-client 가 새 모듈을 import 하자 import 매핑 표에 없어 스크립트가 그냥 던졌다)." },
   { run: "npm run verify:auth-hint-single-source", why: "로그인 힌트(hasClientAuthHint 류) 판정이 js/core/auth-hint.js 단일 정본에서 다시 사본으로 갈라지는 것을 막는다 — 힌트가 잘못 false 로 갈라지면 일부 소비처가 서버를 안 부르고 게스트 응답을 합성해, 로그인된 사용자가 로그아웃된 것처럼 보이는 장애가 난 적이 있다." },
   { run: "npm run verify:auth-p0p1", why: "🔴 handleMe 가 쿠키를 지우지 않는다는 단언은 jest 커버가 아예 없어서, 여기 없으면 '로그아웃 → 재로그인 → 즉시 튕김' 의 절반이 CI 검증 0 이 된다." },
+  { run: "npm run verify:capacitor-plugin-registration", why: "🔴 Capacitor 는 npm 플러그인(@capacitor/app·browser)을 assets/capacitor.plugins.json 으로 자동 등록하는데, 그 파일은 cap sync 가 만드는 .gitignore 대상이라 cap sync 를 건너뛴 빌드에서는 APK 에 아예 안 들어간다. BridgeActivity 는 그 실패를 Logger.error 로만 삼켜(fail-open) 앱은 멀쩡히 부팅하고 화면도 정상인데 커스텀탭(Browser)과 딥링크 복귀(App.appUrlOpen)만 조용히 죽는다 — 2026-09-04 vc44 가 정확히 그렇게 나가 소셜 로그인 3사가 전부 실패했다(클래스는 dex 에 있어서 gradle 로도 안 잡힌다). MainActivity 의 명시 등록만이 믿을 수 있는 지점이므로 그것이 빠지는 것을 막는다." },
+  { run: "npm run verify:capacitor-plugin-registration -- --self-test", why: "위 가드의 판정이 실제로 무는지. 이 가드가 막으려는 사고 자체가 '없는데 초록불'이었으므로, 판정을 합성 입력으로 직접 찔러 본다." },
   { run: "npm run verify:oauth-app-handoff", why: "🔴 앱 소셜 로그인의 딥링크 계약은 워커·브릿지·Java 플러그인·AndroidManifest 4곳에 흩어져 있는데, 어긋나도 웹은 멀쩡해서 CI 가 전부 초록이다. 실제로 2026-08-29 기기에서 커스텀탭이 열린 뒤 앱으로 못 돌아와 로딩 화면에 갇혔다. 스킴·호스트 일치와 워커가 실어 보내는 파라미터를 브릿지가 실제로 읽는지를 소스에서 전수 대조한다." },
   { run: "npm run verify:paid-feature-billing-policy", why: "유료 기능 과금 정책." },
   { run: "npm run verify:per-use-cleanup-selection", why: "잔존 해금 정리 스크립트가 **무엇을 지울지** 고르는 규칙. DB 없이 돈다. 영구 해금 키가 삭제 대상에 섞이면 돈 낸 사용자의 콘텐츠를 지우게 되므로, 그 선별을 레지스트리와 대조해 실행으로 확인한다." },

@@ -15,6 +15,9 @@ import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.webkit.WebSettingsCompat;
 import androidx.webkit.WebViewFeature;
 
+import com.capacitorjs.plugins.app.AppPlugin;
+import com.capacitorjs.plugins.browser.BrowserPlugin;
+
 import com.getcapacitor.Bridge;
 import com.getcapacitor.BridgeActivity;
 import com.getcapacitor.ProcessedRoute;
@@ -64,6 +67,16 @@ public class MainActivity extends BridgeActivity {
         // 동기로 붙으므로, WebView 가 그릴 준비를 마친 뒤 넘기면 그 틈이 사라진다.
         splashScreen.setKeepOnScreenCondition(() -> !webViewDrawn[0]);
         installSplashExitFade(splashScreen);
+        // 🔴 @capacitor/app · @capacitor/browser 는 여기서 명시 등록한다.
+        // Capacitor 의 자동 등록은 assets/capacitor.plugins.json 을 읽는데, 그 파일은
+        // cap sync 가 만드는 .gitignore 대상(apps/mobile/android/.gitignore)이라
+        // cap sync 를 건너뛴 빌드 경로에서는 APK 에 아예 들어가지 않는다.
+        // BridgeActivity.onCreate 는 그 실패를 Logger.error 로만 삼키므로(fail-open)
+        // 앱은 멀쩡하게 부팅하면서 App·Browser 플러그인만 조용히 사라진다 —
+        // 그러면 소셜 로그인의 커스텀탭(Browser)과 딥링크 복귀(App.appUrlOpen)가 둘 다 죽는다(vc44 실사고).
+        // registerPlugin 은 Map.put 이라 자동 등록과 중복돼도 덮어쓰기일 뿐 안전하다.
+        registerPlugin(AppPlugin.class);
+        registerPlugin(BrowserPlugin.class);
         registerPlugin(CodeDestinyBillingPlugin.class);
         // 자사 절대 URL 네비게이션이 외부 브라우저로 새는 것을 네이티브에서 최종 차단한다.
         registerPlugin(CodeDestinyNavigationPlugin.class);
