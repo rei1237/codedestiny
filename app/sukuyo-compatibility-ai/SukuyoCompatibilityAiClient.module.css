@@ -1,4 +1,13 @@
 .screen {
+  --sk-bg-deep: #080914;
+  --sk-bg-mid: #111124;
+  --sk-gold: #ffe8b6;
+  --sk-gold-soft: rgba(255, 232, 182, .62);
+  --sk-violet: #c8a8ff;
+  --sk-text: #fff7e8;
+  --sk-text-dim: rgba(255, 247, 232, .74);
+  --sk-text-faint: rgba(255, 247, 232, .66);
+  --sk-line: rgba(255, 232, 182, .22);
   position: relative;
   min-height: 100svh;
   padding: clamp(18px, 4vw, 44px) 20px;
@@ -131,7 +140,7 @@
 .visualPanel {
   position: relative;
   display: grid;
-  align-items: end;
+  align-items: start;
   min-height: clamp(390px, 43vw, 540px);
   background:
     radial-gradient(circle at 78% 17%, rgba(255, 232, 182, .2), transparent 23%),
@@ -273,76 +282,6 @@
   font-size: .82rem;
   font-weight: 700;
   cursor: default;
-}
-
-.insightCards {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-  margin-top: clamp(22px, 3vw, 32px);
-}
-
-.insightCard {
-  position: relative;
-  min-height: 132px;
-  display: grid;
-  align-content: start;
-  gap: 10px;
-  padding: 18px 16px;
-  border: 1px solid rgba(255, 232, 182, .14);
-  border-radius: 8px;
-  background:
-    radial-gradient(circle at 88% 10%, rgba(255, 232, 182, .12), transparent 28%),
-    radial-gradient(circle at 12% 92%, rgba(200, 168, 255, .1), transparent 32%),
-    linear-gradient(150deg, rgba(255, 255, 255, .075), rgba(255, 255, 255, .028));
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, .09),
-    0 16px 34px rgba(0, 0, 0, .16);
-  overflow: hidden;
-}
-
-.insightCard::before,
-.insightCard::after {
-  content: "";
-  position: absolute;
-  pointer-events: none;
-}
-
-.insightCard::before {
-  left: 14px;
-  right: 14px;
-  top: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255, 232, 182, .64), rgba(200, 168, 255, .26), transparent);
-}
-
-.insightCard::after {
-  right: -36px;
-  bottom: -38px;
-  width: 96px;
-  height: 96px;
-  border-radius: 50%;
-  background:
-    radial-gradient(circle, rgba(246, 183, 210, .18), rgba(200, 168, 255, .08) 42%, transparent 70%);
-  filter: blur(2px);
-}
-
-.insightCard svg {
-  color: #ffe8b6;
-  filter: drop-shadow(0 0 14px rgba(255, 232, 182, .18));
-}
-
-.insightCard strong {
-  color: #fff7e8;
-  font-size: 1rem;
-  line-height: 1.28;
-}
-
-.insightCard span {
-  color: rgba(255, 247, 232, .66);
-  font-size: .84rem;
-  line-height: 1.55;
-  word-break: keep-all;
 }
 
 .workPanel {
@@ -1672,7 +1611,7 @@
   }
 
   .visualPanel {
-    min-height: 420px;
+    min-height: 320px;
   }
 
   .visualCopy h2 {
@@ -1754,10 +1693,22 @@
     max-width: none;
   }
 
+  /* 🔴 balance 가 <br> 로 끊어 둔 3줄을 다시 5줄로 흘려보냈다(실측 h=183px).
+     폭에 맞는 크기로 낮추고 재배치를 끈다. */
   .visualCopy h2 {
     max-width: 9.2em;
-    font-size: clamp(2.04rem, 9vw, 2.34rem);
-    line-height: 1.12;
+    font-size: clamp(1.62rem, 7.2vw, 2rem);
+    line-height: 1.14;
+    text-wrap: initial;
+  }
+
+  /* 떠 있는 뒤로가기/홈 알약(12,12 124x44)이 아이브로우 앞글자를 가렸다 — 그 아래로 내린다. */
+  .visualCopy {
+    padding-top: 44px;
+  }
+
+  .visualPanel {
+    min-height: 0;
   }
 
   .visualCopy > p:not(.eyebrow) {
@@ -1800,34 +1751,6 @@
   .panelHeader h2,
   .resultHeader h2 {
     font-size: 1.24rem;
-  }
-
-  .insightCards {
-    grid-template-columns: repeat(3, minmax(150px, 1fr));
-    gap: 8px;
-    margin-top: 16px;
-    overflow-x: auto;
-    padding-bottom: 2px;
-    scrollbar-width: none;
-  }
-
-  .insightCards::-webkit-scrollbar {
-    display: none;
-  }
-
-  .insightCard {
-    min-height: 112px;
-    padding: 13px 12px 12px;
-    gap: 6px;
-  }
-
-  .insightCard strong {
-    font-size: .92rem;
-  }
-
-  .insightCard span {
-    font-size: .76rem;
-    line-height: 1.45;
   }
 
   .step,
@@ -1972,7 +1895,13 @@
   .field input,
   .field select,
   .questionBox textarea,
-  .chatComposer textarea {
+  .chatComposer textarea,
+  .duoSummary i,
+  .duoCardHead span,
+  .duoBridge span,
+  .duoBridge::before,
+  .duoBridge i,
+  .visualVeil {
     transition: none;
   }
 }
@@ -1981,7 +1910,7 @@
 
 .duoGrid {
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  grid-template-columns: 1fr;
   gap: 0.9rem;
   align-items: stretch;
 }
@@ -2011,16 +1940,39 @@
 
 .duoCardHead {
   display: flex;
-  align-items: baseline;
+  flex-wrap: wrap;
+  align-items: center;
   gap: 0.45rem;
   margin-bottom: 0.8rem;
 }
 
 .duoCardHead span { font-size: 1.05rem; color: #ffe8b6; }
-.duoCardHead strong { font-size: 0.95rem; color: #fff7e8; }
+
+/* 🔴 인라인 유틸리티(min-w-0 flex-1)가 이름을 0폭으로 접었다 — 여기서 되돌린다. */
+.duoCardHead strong {
+  flex: 0 1 auto;
+  min-width: max-content;
+  font-size: 0.95rem;
+  color: #fff7e8;
+  white-space: nowrap;
+}
+
+/* 보조 액션은 이름/상태칩과 같은 줄을 다투지 않고 아래 줄로 내려간다.
+   :has() 미지원 브라우저에서는 폭이 모자라 자연 줄바꿈으로 같은 결과가 된다. */
+.duoCardHead:has(button)::after {
+  content: "";
+  order: 2;
+  flex: 1 0 100%;
+  height: 0;
+}
+
+.duoCardHead button {
+  order: 3;
+}
 
 .duoCardHead em {
   margin-left: auto;
+  white-space: nowrap;
   font-style: normal;
   font-size: 0.68rem;
   padding: 2px 9px;
@@ -2041,6 +1993,7 @@
   justify-content: center;
   gap: 0.4rem;
   min-width: 34px;
+  min-height: 46px;
 }
 
 .duoBridge span {
@@ -2049,8 +2002,11 @@
   text-shadow: 0 0 12px rgba(255, 232, 182, 0.8);
 }
 
+.duoBridge::before,
 .duoBridge i {
-  flex: 1;
+  content: "";
+  flex: 1 1 auto;
+  min-height: 14px;
   width: 1px;
   background: linear-gradient(180deg, transparent, rgba(200, 168, 255, 0.45), transparent);
 }
@@ -2154,10 +2110,13 @@
   mask: radial-gradient(circle, transparent 55%, #000 56%);
 }
 
+/* 🔴 0.62rem(9.92px) 은 글자 획이 너무 가늘어 안티에일리어싱 상한이 낮고,
+   실측 대비가 3.30:1 에 그쳤다(2026-09-04, 요소 캡처). 크기와 알파를 함께 올린다. */
 .teaserGauge em {
   font-style: normal;
-  font-size: 0.62rem;
-  color: rgba(255, 247, 232, 0.6);
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: rgba(255, 247, 232, 0.92);
 }
 
 .teaserLine {
@@ -2691,9 +2650,195 @@
 }
 
 @media (max-width: 860px) {
-  .duoGrid { grid-template-columns: 1fr; }
-  .duoBridge { flex-direction: row; min-height: 30px; }
-  .duoBridge i { width: auto; height: 1px; flex: 1; }
   .formGrid { grid-template-columns: 1fr; }
   .summaryHeaderCard { grid-template-columns: 1fr; }
+}
+
+/* ── 데스크탑 2열 — 왼쪽 달빛 카피, 오른쪽 두 사람 입력 ──────────────────
+   선례: app/vedic-ai/VedicAiClient.module.css 의 .workspace(2열 minmax).
+   🔴 이 모듈의 다른 미디어 쿼리는 전부 max-width 라 여기만 min-width 다.
+   경계값을 981 로 잡아 기존 max-width: 980 과 겹치지 않게 한다.
+   SaaS 2단처럼 딱딱해지지 않도록 두 패널의 테두리를 지우고 셸 배경 위에 얹는다.
+   🔴 sticky 는 쓰지 않는다 — .shell 이 overflow: hidden 이라 sticky 가 죽는다. */
+@media (min-width: 981px) {
+  .shell {
+    grid-template-columns: minmax(0, 1fr) minmax(24rem, 30rem);
+    gap: clamp(20px, 2.6vw, 38px);
+    align-items: stretch;
+    /* SaaS 2단 프레임으로 읽히던 테두리를 낮춘다(브리핑 #11). */
+    border-color: rgba(255, 232, 182, .1);
+  }
+
+  .visualPanel {
+    min-height: 0;
+    border: 0;
+    background: transparent;
+    backdrop-filter: none;
+  }
+
+  /* 🔴 브리핑 #11 — 배경을 지워도 이 오버레이가 남아 왼쪽을 사각형 판으로 만든다. */
+  .visualPanel::after {
+    display: none;
+  }
+
+  .visualCopy {
+    padding: clamp(24px, 3vw, 40px) clamp(8px, 1.6vw, 20px) clamp(20px, 3vw, 36px) clamp(4px, 1vw, 12px);
+  }
+
+  /* 왼쪽 열이 좁아지므로 히어로 상한을 낮춘다 — 3줄 헤드라인이 잘리지 않아야 한다. */
+  .visualCopy h2 {
+    max-width: 14em;
+    font-size: clamp(2.4rem, 3.6vw, 3.5rem);
+  }
+
+  .workPanel {
+    align-self: stretch;
+    border: 0;
+    /* 🔴 흰색 알파 워시는 셸의 밝은 플럼 구간 위에서 표면을 띄워 CTA 보조문 대비를
+       3.96:1 까지 떨어뜨린다(실측 2026-09-04). 모바일과 같은 어두운 베이스를 유지한다. */
+    background:
+      radial-gradient(circle at 92% 6%, rgba(255, 232, 182, .09), transparent 30%),
+      linear-gradient(160deg, rgba(8, 9, 20, .52), rgba(8, 9, 20, .36));
+    box-shadow: 0 24px 70px rgba(0, 0, 0, .34);
+  }
+
+  .workPanelWithCta {
+    justify-content: center;
+  }
+}
+
+/* ── 첫 화면에서 실제로 눌러야 하는 칸 ──────────────────────────────────
+   사람당 5필드를 모두 펼치던 것을 생년월일 하나로 줄였다. 나머지는 아래 접힘 영역. */
+.primaryField input {
+  height: 56px;
+  font-size: 1.06rem;
+  letter-spacing: .02em;
+}
+
+.primaryField > label {
+  color: var(--sk-gold);
+  font-size: .9rem;
+}
+
+/* ── 조금 더 정확하게 (이름 · 성별 · 출생시간 · 달력) ────────────────────
+   🔴 hidden 이 아니라 <details> 여야 키보드 이동과 스크린리더 접근이 유지된다.
+   프로필 카드 불러오기·?cp= 초대 링크가 채운 값이 조용히 숨지 않도록 summary 에 요약 칩을 둔다. */
+.duoDetails {
+  margin-top: .55rem;
+  border-top: 1px solid rgba(255, 232, 182, .14);
+}
+
+.duoSummary {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  min-height: 44px;
+  padding: .35rem .1rem;
+  list-style: none;
+  cursor: pointer;
+  color: var(--sk-text-faint);
+  font-size: .84rem;
+}
+
+.duoSummary::-webkit-details-marker {
+  display: none;
+}
+
+.duoSummary em {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--sk-gold-soft);
+  font-style: normal;
+  font-size: .8rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.duoSummary i {
+  margin-left: auto;
+  flex: none;
+  color: var(--sk-gold);
+  font-style: normal;
+  font-size: .95rem;
+  line-height: 1;
+  transition: transform .22s ease;
+}
+
+.duoDetails[open] .duoSummary {
+  color: var(--sk-text);
+}
+
+.duoDetails[open] .duoSummary i {
+  transform: rotate(45deg);
+}
+
+.duoDetails .formGrid {
+  margin: .1rem 0 .35rem;
+}
+
+/* ── CTA 보조문 — 점수판이 아니라 상담이라는 것을 여기서 말한다 ──────── */
+.ctaNote {
+  display: grid;
+  gap: 4px;
+  margin: 0 2px;
+  color: var(--sk-text-faint);
+  font-size: .84rem;
+  line-height: 1.62;
+  word-break: keep-all;
+}
+
+.ctaNote span:first-child {
+  color: var(--sk-gold-soft);
+}
+
+/* ── 두 사람이 이어지는 순간 ────────────────────────────────────────────
+   상태는 이미 있는 personAComplete / personBComplete / bothComplete 를 그대로 쓴다.
+   transform · opacity · box-shadow 만 쓰고 DOM 도 JS 애니메이션 루프도 늘리지 않는다. */
+.duoCardHead span {
+  opacity: .5;
+  transition: opacity .32s ease, text-shadow .32s ease;
+}
+
+.duoCardComplete .duoCardHead span {
+  opacity: 1;
+  text-shadow: 0 0 14px rgba(255, 232, 182, .55);
+}
+
+.duoBridge span {
+  opacity: .42;
+  transform: scale(.88);
+  transition: opacity .36s ease, transform .36s ease;
+}
+
+.duoBridge::before,
+.duoBridge i {
+  opacity: .45;
+  transform: scaleY(.3);
+  transform-origin: center;
+  transition: opacity .44s ease, transform .44s ease;
+}
+
+.duoGridLinked .duoBridge span {
+  opacity: 1;
+  transform: scale(1.14);
+}
+
+.duoGridLinked .duoBridge::before,
+.duoGridLinked .duoBridge i {
+  opacity: 1;
+  transform: scaleY(1);
+}
+
+/* 양쪽이 채워지면 CTA 에 달빛 정도의 글로우만 더한다 — 네온이 되지 않게 alpha 를 낮게 둔다. */
+.duoGridLinked ~ .actions .primaryButton:not(:disabled) {
+  box-shadow: 0 16px 36px rgba(255, 232, 182, .2), 0 0 26px rgba(255, 232, 182, .18);
+}
+
+/* 밤의 정원이 아주 조금 다가온다. filter 대신 transform 만 쓴다(페인트 비용 0). */
+.visualVeil {
+  transition: transform .8s cubic-bezier(.22, 1, .36, 1);
+}
+
+.screen[data-duo-linked="true"] .visualVeil {
+  transform: scale(1.03);
 }

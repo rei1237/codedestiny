@@ -1,0 +1,317 @@
+/* 숙요 궁합 본문 섹션 — 히어로(SukuyoCompatibilityAiClient.module.css)의 달빛 팔레트를 이어받는다.
+   🔴 팔레트는 전역 --cd-* 를 덮지 않고 사설 --skn-* 를 이 루트에 무조건부로 선언한다
+      (정본: app/love-secret-ai/love-secret-theme.module.css 의 .onDark).
+   🔴 네 섹션의 처리를 일부러 다르게 둔다 — 전부 같은 둥근 카드로 반복하지 않는다.
+      스토리=카드 / 순간=좌측 달빛 라인 / 진행=선+노드 / FAQ=구분선 리스트. */
+.narrative {
+  --skn-bg: #0b0c18;
+  --skn-bg-soft: #12132a;
+  --skn-surface: #16172c;
+  --skn-line: rgba(255, 232, 182, .16);
+  --skn-line-soft: rgba(255, 255, 255, .09);
+  --skn-gold: #ffe8b6;
+  --skn-violet: #c8a8ff;
+  --skn-text: #fff7e8;
+  --skn-text-dim: #d6cfdf;
+  --skn-text-faint: #b0a7c0;
+
+  position: relative;
+  background:
+    radial-gradient(120% 60% at 50% 0%, rgba(200, 168, 255, .09), transparent 62%),
+    linear-gradient(180deg, var(--skn-bg-soft), var(--skn-bg) 38%, var(--skn-bg));
+  color: var(--skn-text-dim);
+}
+
+.inner {
+  width: 100%;
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: clamp(30px, 5vw, 56px) clamp(16px, 4vw, 24px) clamp(44px, 6vw, 72px);
+}
+
+.pageTitle {
+  margin: 0;
+  color: var(--skn-text);
+  font-family: var(--font-premium), var(--font-display), serif;
+  font-size: clamp(1.5rem, 4.4vw, 2rem);
+  font-weight: 600;
+  line-height: 1.42;
+  letter-spacing: -.01em;
+  word-break: keep-all;
+}
+
+.sectionTitle {
+  margin: 0 0 .85rem;
+  color: var(--skn-gold);
+  font-family: var(--font-premium), var(--font-display), serif;
+  font-size: clamp(1.18rem, 3.4vw, 1.42rem);
+  font-weight: 600;
+  line-height: 1.5;
+  word-break: keep-all;
+}
+
+/* 섹션 제목 위의 작은 달빛 — 장식이지만 섹션 경계를 카드 테두리 없이 만든다.
+   🔴 .82rem 짜리 홑글리프는 획이 가늘어 실측 대비가 3.8~4.4:1 에 그쳤고, 뒤따르는
+   문안이 없어 남은 문자처럼 읽혔다(시각 검수 2026-09-04). 크기를 올리고 달빛 선을
+   붙여 "설계된 섹션 표식" 으로 읽히게 한다. */
+.sectionTitle::before {
+  content: "☾";
+  display: block;
+  margin-bottom: .35rem;
+  color: var(--skn-violet);
+  font-size: .96rem;
+  line-height: 1;
+  opacity: 1;
+  background-image: linear-gradient(90deg, rgba(200, 168, 255, .42), transparent 72%);
+  background-repeat: no-repeat;
+  background-size: 4.6rem 1px;
+  background-position: 1.65rem center;
+}
+
+.lead,
+.storyProse p,
+.timelineProse p {
+  margin: 1rem 0 0;
+  font-size: .95rem;
+  line-height: 1.95;
+  color: var(--skn-text-dim);
+  word-break: keep-all;
+}
+
+/* ── 1. 두 사람의 관계를 이렇게 읽습니다 — 카드 ─────────────────────────── */
+.story {
+  padding-bottom: clamp(28px, 4vw, 40px);
+}
+
+.story .sectionTitle {
+  margin-top: clamp(30px, 4.5vw, 46px);
+}
+
+.storyCards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.storyCard {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  padding: 16px 14px;
+  border: 1px solid var(--skn-line-soft);
+  border-radius: 10px;
+  background: linear-gradient(155deg, rgba(255, 255, 255, .06), rgba(255, 255, 255, .02));
+}
+
+.storyGlyph {
+  color: var(--skn-gold);
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+.storyCard strong {
+  color: var(--skn-text);
+  font-size: .96rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.storyCardText {
+  color: var(--skn-text-faint);
+  font-size: .82rem;
+  line-height: 1.6;
+  word-break: keep-all;
+}
+
+/* ── 2. 이런 순간에 궁금해집니다 — 좌측 달빛 라인, 무테 블록 ─────────────── */
+.moments {
+  margin-top: clamp(34px, 5vw, 54px);
+}
+
+.momentsNote {
+  margin: -.35rem 0 1.1rem;
+  color: var(--skn-text-faint);
+  font-size: .86rem;
+  line-height: 1.7;
+}
+
+.momentList {
+  display: grid;
+  gap: clamp(16px, 2.6vw, 22px);
+  margin: 0;
+  padding: 0 0 0 clamp(14px, 3vw, 20px);
+  list-style: none;
+  border-left: 1px solid var(--skn-line);
+}
+
+.momentList li {
+  position: relative;
+  display: grid;
+  gap: 6px;
+}
+
+/* 달빛 점 하나로 항목을 구분한다 — 카드 테두리를 반복하지 않기 위해서다. */
+.momentList li::before {
+  content: "";
+  position: absolute;
+  left: calc(-1 * clamp(14px, 3vw, 20px) - 3px);
+  top: .55em;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--skn-gold);
+  box-shadow: 0 0 10px rgba(255, 232, 182, .5);
+}
+
+.momentList strong {
+  color: var(--skn-text);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.55;
+  word-break: keep-all;
+}
+
+.momentList span {
+  color: var(--skn-text-dim);
+  font-size: .9rem;
+  line-height: 1.8;
+  word-break: keep-all;
+}
+
+/* ── 3. 상담은 이렇게 진행됩니다 — 선 + 번호 노드 ───────────────────────── */
+.timeline {
+  margin-top: clamp(34px, 5vw, 54px);
+}
+
+.timelineList {
+  display: grid;
+  gap: clamp(14px, 2.4vw, 20px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: sukuyo-step;
+}
+
+.timelineList li {
+  position: relative;
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  align-items: start;
+  gap: 12px;
+  counter-increment: sukuyo-step;
+}
+
+.timelineList li::before {
+  content: counter(sukuyo-step);
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--skn-line);
+  border-radius: 50%;
+  background: var(--skn-surface);
+  color: var(--skn-gold);
+  font-size: .84rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+/* 노드끼리 잇는 세로 실선. 마지막 항목에는 그리지 않는다. */
+.timelineList li::after {
+  content: "";
+  position: absolute;
+  left: 15px;
+  top: 34px;
+  bottom: calc(-1 * clamp(14px, 2.4vw, 20px));
+  width: 1px;
+  background: linear-gradient(180deg, var(--skn-line), rgba(255, 232, 182, .04));
+}
+
+.timelineList li:last-child::after {
+  display: none;
+}
+
+.timelineText {
+  padding-top: .32rem;
+  color: var(--skn-text-dim);
+  font-size: .93rem;
+  line-height: 1.85;
+  word-break: keep-all;
+}
+
+/* ── 4. 자주 묻는 질문 — 구분선 리스트 아코디언 ─────────────────────────── */
+.faq {
+  margin-top: clamp(34px, 5vw, 54px);
+}
+
+.faqList {
+  border-top: 1px solid var(--skn-line-soft);
+}
+
+.faqItem {
+  border-bottom: 1px solid var(--skn-line-soft);
+}
+
+.faqSummary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: .7rem 0;
+  list-style: none;
+  cursor: pointer;
+}
+
+.faqSummary::-webkit-details-marker {
+  display: none;
+}
+
+.faqSummary h3 {
+  margin: 0;
+  flex: 1 1 auto;
+  color: var(--skn-text);
+  font-size: .95rem;
+  font-weight: 600;
+  line-height: 1.6;
+  word-break: keep-all;
+}
+
+.faqSummary i {
+  flex: none;
+  color: var(--skn-gold);
+  font-style: normal;
+  font-size: 1rem;
+  line-height: 1;
+  transition: transform .22s ease;
+}
+
+.faqItem[open] .faqSummary i {
+  transform: rotate(45deg);
+}
+
+.faqAnswer {
+  margin: 0 0 1.05rem;
+  padding-right: 28px;
+  color: var(--skn-text-dim);
+  font-size: .9rem;
+  line-height: 1.9;
+  word-break: keep-all;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .faqSummary i {
+    transition: none;
+  }
+}
+
+@media (max-width: 620px) {
+  /* 3열 카드는 360px 에서 한 장당 96px 밖에 안 남는다 — 가로 스크롤 대신 2열로 접는다.
+     마지막 한 장이 한 줄을 통째로 쓰게 두면 리듬이 깨지므로 span 2 로 넓힌다. */
+  .storyCards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .storyCard:last-child {
+    grid-column: span 2;
+  }
+}
