@@ -11,41 +11,10 @@
 
 import { useState, useEffect } from "react";
 import styles from "./LegalUi.module.css";
+import { getCurrentLoadingLocale } from "@/constants/loadingMessages";
 
 const STORAGE_KEY = "cd_disclaimer_dismissed";
 const DISMISS_TTL_MS = 7 * 24 * 60 * 60 * 1000;
-const LOCALE_CODES = ["ko", "en", "ja", "zh-CN", "zh-TW", "vi", "hi", "es", "fr", "de", "nl", "ms"];
-
-function normalizeDisclaimerLocale(value) {
-  const normalized = String(value || "").trim().replace("_", "-").toLowerCase();
-  if (normalized === "zh" || normalized === "zh-cn" || normalized === "zh-hans") return "zh-CN";
-  if (normalized === "zh-tw" || normalized === "zh-hant" || normalized === "zh-hk" || normalized === "zh-mo") return "zh-TW";
-  if (normalized === "vi-vn") return "vi";
-  return LOCALE_CODES.find((locale) => locale.toLowerCase() === normalized) || "ko";
-}
-
-function getCurrentDisclaimerLocale() {
-  if (typeof window === "undefined") return "ko";
-  try {
-    const runtimeLang = window.cdGetCurrentLanguage?.();
-    if (runtimeLang) return normalizeDisclaimerLocale(runtimeLang);
-  } catch {}
-  try {
-    const params = new URLSearchParams(window.location.search || "");
-    const fromQuery = params.get("lang");
-    if (fromQuery) return normalizeDisclaimerLocale(fromQuery);
-  } catch {}
-  try {
-    const fromStorage = window.localStorage.getItem("cd_lang");
-    if (fromStorage) return normalizeDisclaimerLocale(fromStorage);
-  } catch {}
-  try {
-    const match = document.cookie.match(/(?:^|;\s*)cd_locale=([^;]+)/);
-    if (match?.[1]) return normalizeDisclaimerLocale(decodeURIComponent(match[1]));
-  } catch {}
-  return "ko";
-}
-
 const DISCLAIMER_COPY = {
   ko: {
     aria: "면책 조항 안내",
@@ -139,7 +108,7 @@ export default function DisclaimerBanner({ dismissible = true, className = "" })
   const copy = DISCLAIMER_COPY[locale] || DISCLAIMER_COPY.ko;
 
   useEffect(() => {
-    setLocale(getCurrentDisclaimerLocale());
+    setLocale(getCurrentLoadingLocale());
     if (!dismissible) {
       setVisible(true);
       return;

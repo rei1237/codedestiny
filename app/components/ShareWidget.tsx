@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 import { getShareMetadata, trackShareEvent, type ShareMetadataV2 } from "../../lib/share.v2";
+import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 
 type ShareWidgetProps = {
   title: string;
@@ -12,38 +13,6 @@ type ShareWidgetProps = {
   contentType?: "website" | "article" | "collection" | "software" | "result";
   contentId?: string;
 };
-
-type LoadingLocale = "ko" | "en" | "ja" | "zh-CN" | "zh-TW" | "vi" | "hi" | "es" | "fr" | "de" | "nl" | "ms";
-
-function normalizeShareLocale(value?: string | null): LoadingLocale {
-  const normalized = String(value || "").trim().replace("_", "-").toLowerCase();
-  if (normalized === "zh" || normalized === "zh-cn" || normalized === "zh-hans") return "zh-CN";
-  if (normalized === "zh-tw" || normalized === "zh-hant" || normalized === "zh-hk" || normalized === "zh-mo") return "zh-TW";
-  if (normalized === "vi-vn") return "vi";
-  return (["ko", "en", "ja", "vi", "hi", "es", "fr", "de", "nl", "ms"] as LoadingLocale[]).find((locale) => locale.toLowerCase() === normalized) || "ko";
-}
-
-function getCurrentShareLocale(): LoadingLocale {
-  if (typeof window === "undefined") return "ko";
-  try {
-    const runtimeLang = (window as typeof window & { cdGetCurrentLanguage?: () => string }).cdGetCurrentLanguage?.();
-    if (runtimeLang) return normalizeShareLocale(runtimeLang);
-  } catch {}
-  try {
-    const params = new URLSearchParams(window.location.search || "");
-    const fromQuery = params.get("lang");
-    if (fromQuery) return normalizeShareLocale(fromQuery);
-  } catch {}
-  try {
-    const fromStorage = window.localStorage.getItem("cd_lang");
-    if (fromStorage) return normalizeShareLocale(fromStorage);
-  } catch {}
-  try {
-    const match = document.cookie.match(/(?:^|;\s*)cd_locale=([^;]+)/);
-    if (match?.[1]) return normalizeShareLocale(decodeURIComponent(match[1]));
-  } catch {}
-  return "ko";
-}
 
 const SHARE_WIDGET_COPY: Record<LoadingLocale, {
   sectionLabel: string;
@@ -96,7 +65,7 @@ export default function ShareWidget({
   const copy = SHARE_WIDGET_COPY[locale] || SHARE_WIDGET_COPY.ko;
 
   useEffect(() => {
-    setLocale(getCurrentShareLocale());
+    setLocale(getCurrentLoadingLocale());
   }, []);
 
   const share = useMemo(
