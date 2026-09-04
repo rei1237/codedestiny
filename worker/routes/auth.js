@@ -1,5 +1,5 @@
 import { connectDb, mongoose, requestPoolRecovery, resolveMongoDbName, withMongoRetry } from "../lib/db.js";
-import { MonthlyCreditLedger, PointHistory, RefreshTokenSession, User } from "../lib/models.js";
+import { IdempotencyKey, MonthlyCreditLedger, PointHistory, RESTORE_CREDENTIAL_CAP, RefreshTokenSession, User } from "../lib/models.js";
 import { MONTHLY_CREDIT_TTL_MS } from "../lib/monthly-credit-lots.js";
 import { getEnv } from "../lib/env.js";
 import { readThroughCredentialCache } from "../lib/credential-scoped-cache.js";
@@ -42,6 +42,14 @@ import {
   verifySocialSignupTicket,
 } from "../lib/social-signup-ticket.js";
 import { clearRateLimit, incrementRateLimit, readRateLimitState } from "../lib/rate-limit.js";
+import {
+  buildCreationOptionsJson,
+  buildRequestOptionsJson,
+  readResponseChallenge,
+  readResponseCredentialId,
+  verifyRestoreAssertion,
+  verifyRestoreRegistration,
+} from "../lib/webauthn-restore.js";
 import { Buffer } from "node:buffer";
 import { createHmac, createHash, randomBytes, timingSafeEqual } from "node:crypto";
 
@@ -1131,7 +1139,12 @@ function requiresSameOriginAuthGuard(method, path) {
     || path === "/oauth/complete-signup"
     || path === "/referral/kakao-share"
     || path === "/me/phone-number"
-    || path === "/me/payment-phone";
+    || path === "/me/payment-phone"
+    // 앱 전용 경로다. 앱 출처(https://localhost)+앱 런타임 헤더 조합만 이 가드를 면제받으므로
+    // 브라우저에서 온 호출은 여기서 403 으로 끊긴다 — 의도된 동작이다.
+    || path === "/restore-credential/challenge"
+    || path === "/restore-credential/register"
+    || path === "/restore-credential/assert";
 }
 
 // Capacitor 앱은 https://localhost 출처에서 이 API를 호출한다. 브라우저는 이걸 교차 사이트로
@@ -4175,6 +4188,9 @@ async function handleWithdraw(request, env) {
             naver: { id: "", connectedAt: null },
             kakao: { id: "", connectedAt: null },
           },
+          // 🔴 복원 키를 남기면 탈퇴한 계정이 새 기기에서 그대로 되살아난다(/restore-credential/assert
+          // 는 비인증 경로다). 로그아웃 때는 반대로 유지한다 — 다른 기기의 복원 키까지 죽으면 안 된다.
+          restoreCredentials: [],
         },
       },
       { maxTimeMS: 8000 },
@@ -5134,6 +5150,319 @@ async function handleOAuthCompleteSignup(request, env) {
   );
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Restore Credentials (Android Zero-Tap Sign-In) — 설계 docs/app-audit/ZERO_TAP_SIGNIN_DESIGN.md §4
+//
+// 🔴 커스텀탭 OAuth 를 대체하지 않는다. 이미 로그인한 세션을 새 기기로 **복원**하는 층이다.
+// 🔴 /restore-credential/assert 는 비인증으로 세션을 발급하는 유일한 경로다. 방어는 넷이고
+//    하나라도 빠지면 그대로 인증 우회다:
+//      ① 서버가 발급한 1회용 challenge(5분 TTL, 소비 시 삭제)  ② 저장된 공개키로 ES256 서명 검증
+//      ③ rpIdHash == sha256(rpId)                            ④ signCount 단조 증가 + IP 레이트리밋
+// 🔴 clientDataJSON.origin 은 안드로이드 네이티브에서 "android:apk-key-hash:…" 로 오는데 그 해시는
+//    Play 앱 서명 키 지문이라 이 레포에서 확인할 수 없다. 그래서 origin 은 신뢰 기준이 아니고 ③이 정본이다.
+// ─────────────────────────────────────────────────────────────────────────────
+
+const RESTORE_CREDENTIAL_CHALLENGE_TTL_MS = 5 * 60 * 1000;
+const RESTORE_CREDENTIAL_TIMEOUT_MS = 60 * 1000;
+const RESTORE_CREDENTIAL_RP_NAME = "Code Destiny";
+const RESTORE_CREDENTIAL_PURPOSES = ["create", "assert"];
+const RESTORE_CREDENTIAL_ASSERT_ENDPOINT = "auth_restore_credential_assert";
+const RESTORE_CREDENTIAL_ASSERT_MAX = 10;
+const RESTORE_CREDENTIAL_ASSERT_WINDOW_MS = 10 * 60 * 1000;
+
+// signAuthToken · normalizeAuthUserResponse · buildProfilePolicySnapshot 이 읽는 필드만 가져온다
+// (전체 문서를 가져오면 recentConsumeRequestIds 200개가 딸려온다).
+const RESTORE_CREDENTIAL_USER_PROJECTION = {
+  _id: 1,
+  name: 1,
+  email: 1,
+  phoneNumber: 1,
+  phone: 1,
+  birthDate: 1,
+  birthTime: 1,
+  gender: 1,
+  role: 1,
+  points: 1,
+  joinedAt: 1,
+  profileImage: 1,
+  image: 1,
+  profileSubscription: 1,
+  guardianConsent: 1,
+  legalConsents: 1,
+  status: 1,
+  restoreCredentials: 1,
+};
+
+function getRestoreCredentialRpId(env) {
+  const base = normalizeOriginOnly(getFrontendBaseUrl(env));
+  if (!base) return "code-destiny.com";
+  try {
+    return new URL(base).hostname || "code-destiny.com";
+  } catch (e) {
+    return "code-destiny.com";
+  }
+}
+
+function restoreChallengeEndpoint(purpose) {
+  return `auth_restore_credential_${purpose}`;
+}
+
+function hashRestoreChallenge(challenge) {
+  return createHash("sha256").update(String(challenge || "")).digest("hex");
+}
+
+async function issueRestoreChallenge(purpose, userId) {
+  const challenge = randomBytes(32).toString("base64url");
+  await IdempotencyKey.create({
+    userId: userId ? new mongoose.Types.ObjectId(String(userId)) : null,
+    endpoint: restoreChallengeEndpoint(purpose),
+    keyHash: hashRestoreChallenge(challenge),
+    status: "processing",
+    expiresAt: new Date(Date.now() + RESTORE_CREDENTIAL_CHALLENGE_TTL_MS),
+  });
+  return challenge;
+}
+
+// 1회용 — 찾는 즉시 지운다. 못 찾으면 만료됐거나 이미 쓴 것이고 그게 곧 재생 시도다.
+// TTL 인덱스는 최대 60초 늦게 도므로 만료 시각은 여기서 직접 본다.
+async function consumeRestoreChallenge(purpose, challenge, userId) {
+  if (!challenge) return false;
+  const doc = await IdempotencyKey.findOneAndDelete({
+    userId: userId ? new mongoose.Types.ObjectId(String(userId)) : null,
+    endpoint: restoreChallengeEndpoint(purpose),
+    keyHash: hashRestoreChallenge(challenge),
+  }).lean();
+  if (!doc) return false;
+  return new Date(doc.expiresAt).getTime() > Date.now();
+}
+
+function buildRestoreAssertRateLimitKey(request) {
+  const meta = getRequestMeta(request);
+  return `restore:${String(meta.ip || "unknown").trim() || "unknown"}`;
+}
+
+// 레이트리밋 저장소가 죽어도 복원을 막지는 않는다(로그인의 인메모리 폴백과 같은 판단).
+// 다만 실패 카운트는 아래 recordRestoreAssertFailure 가 남기므로 정상 시에는 그대로 조인다.
+async function guardRestoreAssertRateLimit(request, env) {
+  const key = buildRestoreAssertRateLimitKey(request);
+  try {
+    const state = await readRateLimitState({
+      subjectHash: key,
+      endpoint: RESTORE_CREDENTIAL_ASSERT_ENDPOINT,
+      max: RESTORE_CREDENTIAL_ASSERT_MAX,
+      env,
+    });
+    if (!state.limited) return null;
+    return json({
+      ok: false,
+      code: "rate_limited",
+      message: "Too many restore attempts. Please try again later.",
+      retryAfterSeconds: state.retryAfterSeconds,
+    }, { status: 429, headers: { "Retry-After": String(state.retryAfterSeconds) } });
+  } catch (error) {
+    console.warn("[auth/restore-credential] rate-limit store unavailable:", error?.message || error);
+    return null;
+  }
+}
+
+async function recordRestoreAssertFailure(request, env) {
+  await incrementRateLimit({
+    subjectHash: buildRestoreAssertRateLimitKey(request),
+    endpoint: RESTORE_CREDENTIAL_ASSERT_ENDPOINT,
+    windowMs: RESTORE_CREDENTIAL_ASSERT_WINDOW_MS,
+    env,
+  }).catch(() => {});
+}
+
+async function handleRestoreCredentialChallenge(request, env) {
+  const timeoutMs = getAuthOpTimeoutMs(env);
+  const body = await readJson(request);
+  const purpose = String(body?.purpose || "").trim();
+  if (!RESTORE_CREDENTIAL_PURPOSES.includes(purpose)) {
+    return json({ ok: false, code: "INVALID_PURPOSE", message: "Unsupported challenge purpose." }, { status: 400 });
+  }
+
+  const rpId = getRestoreCredentialRpId(env);
+
+  if (purpose === "create") {
+    const auth = await requireUserFromRequest(request, env, {
+      userProjection: { _id: 1, name: 1, email: 1 },
+    });
+    const userId = String(auth.userId || "");
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return json({ ok: false, code: "UNAUTHORIZED", message: "Authentication is required." }, { status: 401 });
+    }
+
+    await withAuthOpTimeout(connectDb(env), timeoutMs, "auth_restore_challenge_connect_db");
+    const challenge = await issueRestoreChallenge(purpose, userId);
+    const userDoc = auth.authUserDoc || {};
+
+    return json({
+      ok: true,
+      purpose,
+      requestJson: buildCreationOptionsJson({
+        rpId,
+        rpName: RESTORE_CREDENTIAL_RP_NAME,
+        userId,
+        userName: String(userDoc.email || userId),
+        userDisplayName: String(userDoc.name || userDoc.email || ""),
+        challenge,
+        timeoutMs: RESTORE_CREDENTIAL_TIMEOUT_MS,
+      }),
+    });
+  }
+
+  // assert 용 challenge 는 비인증 발급이라 여기에도 같은 레이트리밋을 건다 — 안 걸면
+  // 발급만 반복해 TTL 컬렉션을 부풀리는 값싼 공격이 남는다.
+  const limited = await guardRestoreAssertRateLimit(request, env);
+  if (limited) return limited;
+
+  await withAuthOpTimeout(connectDb(env), timeoutMs, "auth_restore_challenge_connect_db");
+  const challenge = await issueRestoreChallenge(purpose, null);
+
+  return json({
+    ok: true,
+    purpose,
+    requestJson: buildRequestOptionsJson({ rpId, challenge, timeoutMs: RESTORE_CREDENTIAL_TIMEOUT_MS }),
+  });
+}
+
+async function handleRestoreCredentialRegister(request, env) {
+  const timeoutMs = getAuthOpTimeoutMs(env);
+  const body = await readJson(request);
+  const responseJson = body?.responseJson;
+  if (!responseJson) {
+    return json({ ok: false, code: "RESPONSE_MISSING", message: "Credential response is missing." }, { status: 400 });
+  }
+
+  const auth = await requireUserFromRequest(request, env);
+  const userId = String(auth.userId || "");
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    return json({ ok: false, code: "UNAUTHORIZED", message: "Authentication is required." }, { status: 401 });
+  }
+
+  await withAuthOpTimeout(connectDb(env), timeoutMs, "auth_restore_register_connect_db");
+
+  const challenge = readResponseChallenge(responseJson);
+  if (!await consumeRestoreChallenge("create", challenge, userId)) {
+    return json({ ok: false, code: "CHALLENGE_NOT_FOUND", message: "Challenge is expired or already used." }, { status: 400 });
+  }
+
+  const verified = await verifyRestoreRegistration({
+    responseJson,
+    expectedChallenge: challenge,
+    expectedRpId: getRestoreCredentialRpId(env),
+  });
+  if (!verified.ok) {
+    return json({ ok: false, code: verified.code, message: "Credential registration failed." }, { status: 400 });
+  }
+
+  const objectId = new mongoose.Types.ObjectId(userId);
+  // 재설치하면 같은 credentialId 가 다시 올라온다 — 중복을 쌓지 말고 최신 것으로 교체한다.
+  await User.updateOne(
+    { _id: objectId },
+    { $pull: { restoreCredentials: { credentialId: verified.credentialId } } },
+  );
+  await User.updateOne(
+    { _id: objectId },
+    {
+      $push: {
+        restoreCredentials: {
+          $each: [{
+            credentialId: verified.credentialId,
+            publicKeyJwk: verified.publicKeyJwk,
+            algorithm: verified.algorithm,
+            signCount: verified.signCount,
+            cloudBackup: body?.cloudBackup === true,
+            createdAt: new Date(),
+            lastUsedAt: null,
+            deviceLabel: String(body?.deviceLabel || "").slice(0, 120),
+          }],
+          $slice: -RESTORE_CREDENTIAL_CAP,
+        },
+      },
+    },
+  );
+
+  return json({ ok: true, credentialId: verified.credentialId });
+}
+
+async function handleRestoreCredentialAssert(request, env) {
+  const timeoutMs = getAuthOpTimeoutMs(env);
+  const body = await readJson(request);
+  const responseJson = body?.responseJson;
+  if (!responseJson) {
+    return json({ ok: false, code: "RESPONSE_MISSING", message: "Credential response is missing." }, { status: 400 });
+  }
+
+  const limited = await guardRestoreAssertRateLimit(request, env);
+  if (limited) return limited;
+
+  await withAuthOpTimeout(connectDb(env), timeoutMs, "auth_restore_assert_connect_db");
+
+  // 🔴 실패 응답은 전부 같은 401/RESTORE_FAILED 다 — credentialId 존재 여부·서명 실패·카운터
+  // 역행을 구분해 주면 그대로 열거 오라클이 된다. 진단은 서버 로그에만 남긴다.
+  const rejectAssert = async (reason) => {
+    await recordRestoreAssertFailure(request, env);
+    console.warn(`[auth/restore-credential] assert rejected: ${reason}`);
+    return json({ ok: false, code: "RESTORE_FAILED", message: "Restore credential is not valid." }, { status: 401 });
+  };
+
+  const challenge = readResponseChallenge(responseJson);
+  if (!await consumeRestoreChallenge("assert", challenge, null)) return rejectAssert("challenge_not_found");
+
+  const credentialId = readResponseCredentialId(responseJson);
+  if (!credentialId) return rejectAssert("credential_id_missing");
+
+  const user = await User.collection.findOne(
+    { "restoreCredentials.credentialId": credentialId },
+    { projection: RESTORE_CREDENTIAL_USER_PROJECTION },
+  );
+  if (!user) return rejectAssert("credential_not_registered");
+  if (String(user.status || "active") === "withdrawn") return rejectAssert("user_withdrawn");
+
+  const stored = (user.restoreCredentials || []).find((entry) => String(entry?.credentialId || "") === credentialId);
+  if (!stored?.publicKeyJwk?.x) return rejectAssert("public_key_missing");
+
+  const verified = await verifyRestoreAssertion({
+    responseJson,
+    expectedChallenge: challenge,
+    expectedRpId: getRestoreCredentialRpId(env),
+    publicKeyJwk: {
+      kty: String(stored.publicKeyJwk.kty || "EC"),
+      crv: String(stored.publicKeyJwk.crv || "P-256"),
+      x: String(stored.publicKeyJwk.x || ""),
+      y: String(stored.publicKeyJwk.y || ""),
+    },
+  });
+  if (!verified.ok) return rejectAssert(verified.code);
+
+  // 복제 탐지. 둘 다 0 이면 인증기가 카운터를 안 쓰는 것이므로 검사 대상이 아니다(WebAuthn 규격).
+  const storedCount = Number(stored.signCount || 0);
+  if (verified.signCount > 0 && storedCount > 0 && verified.signCount <= storedCount) {
+    return rejectAssert("sign_count_regression");
+  }
+
+  await User.updateOne(
+    { _id: user._id, "restoreCredentials.credentialId": credentialId },
+    {
+      $set: {
+        "restoreCredentials.$.signCount": verified.signCount,
+        "restoreCredentials.$.lastUsedAt": new Date(),
+      },
+    },
+  ).catch(() => {});
+
+  await clearRateLimit({
+    subjectHash: buildRestoreAssertRateLimitKey(request),
+    endpoint: RESTORE_CREDENTIAL_ASSERT_ENDPOINT,
+    env,
+  }).catch(() => {});
+
+  // 🔴 세션 발급은 기존 정본 하나만 쓴다 — 새 발급 경로를 만들면 회전·재사용 탐지가 갈린다.
+  return createAuthSuccessResponse(request, env, user, 200, "/", { restored: true });
+}
+
 // ctx 는 로그아웃의 세션 폐기를 waitUntil 백그라운드로 넘기기 위해서만 쓴다(없으면 종전대로 동기 처리).
 export async function handleAuthRoutes(request, env, ctx) {
   let path = "";
@@ -5152,6 +5481,9 @@ export async function handleAuthRoutes(request, env, ctx) {
       || path === "/referral/kakao-share"
       || path === "/me/phone-number"
       || path === "/me/payment-phone"
+      // assert 는 액세스·리프레시 토큰을 발급하므로 JWT 시크릿 설정 오류를 여기서 먼저 잡는다.
+      || path === "/restore-credential/register"
+      || path === "/restore-credential/assert"
     ) {
       if (!isLocalDevAuthRoute(request, env, method, path)) {
         const configError = configMismatchResponse("auth-basic", env);
@@ -5198,6 +5530,9 @@ export async function handleAuthRoutes(request, env, ctx) {
     if (method === "POST" && path === "/oauth/complete") return await handleOAuthComplete(request, env);
     if (method === "POST" && path === "/oauth/complete-signup") return await handleOAuthCompleteSignup(request, env);
     if (method === "POST" && path === "/referral/kakao-share") return await handleKakaoReferralShare(request, env);
+    if (method === "POST" && path === "/restore-credential/challenge") return await handleRestoreCredentialChallenge(request, env);
+    if (method === "POST" && path === "/restore-credential/register") return await handleRestoreCredentialRegister(request, env);
+    if (method === "POST" && path === "/restore-credential/assert") return await handleRestoreCredentialAssert(request, env);
 
     const startMatch = path.match(/^\/oauth\/([^/]+)\/start$/);
     if (method === "GET" && startMatch) {

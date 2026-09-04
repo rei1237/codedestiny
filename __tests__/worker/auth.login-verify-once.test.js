@@ -60,6 +60,8 @@ jest.unstable_mockModule("../../worker/lib/password.js", () => ({
 }));
 
 jest.unstable_mockModule("../../worker/lib/models.js", () => ({
+  IdempotencyKey: {},
+  RESTORE_CREDENTIAL_CAP: 10,
   AbuseScore: {
     findOne: jest.fn(async () => null),
     findOneAndUpdate: jest.fn(async () => null),

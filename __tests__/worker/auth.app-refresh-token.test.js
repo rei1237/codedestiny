@@ -40,6 +40,8 @@ jest.unstable_mockModule("../../worker/lib/db.js", () => ({
 // auth.js 는 4개만 쓰지만 모듈 그래프의 다른 모듈들이 같은 파일에서 더 많은 이름을 가져간다.
 // ESM 목은 명명 export 가 정적으로 맞아야 하므로 전부 채워 둔다.
 jest.unstable_mockModule("../../worker/lib/models.js", () => ({
+  IdempotencyKey: {},
+  RESTORE_CREDENTIAL_CAP: 10,
   AbuseScore: {},
   CONTENT_ENTITLEMENT_SOURCES: {},
   CONTENT_ENTITLEMENT_STATUSES: {},
