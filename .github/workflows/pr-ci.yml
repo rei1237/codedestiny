@@ -248,6 +248,14 @@ jobs:
       - name: Verify hour pillar parity across saju engines
         run: npm run verify:hour-pillar-parity
 
+      # 🔴 이것도 **fast 잡**이어야 한다. 사주 엔진의 사유 문장은 템플릿 리터럴에 조사를 박아
+      # 만드는데, 앞 낱말(천간·십성·오행)의 받침에 따라 조용히 어긋난다. 화면과 LLM 프롬프트에
+      # 그대로 실리고 유명인 사주 서비스가 정규식으로 되받아 다듬기까지 해서, 조사가 틀어지면
+      # 다듬기가 빗나가 원문이 노출된다. 엔진만 고치면 티어가 standard 라 critical 잡에 두면
+      # 스킵된다. 표본 200건을 돌릴 뿐이라 네트워크 없이 수 초면 끝난다.
+      - name: Verify saju reason sentence grammar
+        run: npm run verify:saju-reason-grammar
+
       # 🔴 이것도 **fast 잡**이어야 한다. 입력이 js/saju-engine.js 하나라 티어가 fast/standard 로
       # 갈리는데, critical 잡에 두면 정작 지켜야 할 "명반 엔진 한 줄 수정"에 깨어나지 않는다.
       # 소한(小限)은 틀려도 화면이 조용하다 — 궁 이름과 나이가 그럴듯하게 계속 나오기 때문에

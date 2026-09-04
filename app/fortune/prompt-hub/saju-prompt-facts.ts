@@ -346,8 +346,8 @@ export function buildSajuPromptFacts(input: SajuFactsInput): string {
       lines.push(
         `- 용신: ${yongshinKo}${heesin.length ? ` · 희신 ${heesin.join(", ")}` : ""}${gisin.length ? ` · 기신 ${gisin.join(", ")}` : ""}`,
       );
-      // 🔴 judgment.reason 문자열은 쓰지 않는다 — 엔진이 오행을 중복해 넣고 조사도 어긋난 채 만든다
-      //    ("화, 화가 균형을 잡는다"). 같은 판단을 구조화된 필드에서 직접 조립한다.
+      // 🔴 judgment.reason 문자열은 쓰지 않는다 — 오행 중복·조사 오류는 엔진에서 고쳤지만(2026-09-04),
+      //    한 문장에 뭉쳐 있어 도구별로 잘라 쓸 수 없다. 같은 판단을 구조화된 필드에서 직접 조립한다.
       const judgment = asRecord(yongshin.judgment);
       const judgeParts = [
         text(judgment.dayMasterStrength) && `일간 ${text(judgment.dayMasterStrength)}`,

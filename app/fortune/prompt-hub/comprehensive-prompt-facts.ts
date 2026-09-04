@@ -55,6 +55,7 @@ export async function buildComprehensivePromptFacts(input: ComprehensiveFactsInp
       birthTime: input.birthTime,
       birthTimeUnknown: input.birthTimeUnknown,
       birthPlace: input.birthPlace,
+      birthTimezone: input.birthTimezone,
     };
 
     // 서버를 타는 두 체계는 함께 보낸다 — 순서대로 기다리면 왕복이 그대로 더해진다.
@@ -72,6 +73,16 @@ export async function buildComprehensivePromptFacts(input: ComprehensiveFactsInp
     if (vedicBlock) blocks.push(headerAndData(vedicBlock));
     if (selected.has("sukuyo")) {
       blocks.push(headerAndData(buildSukuyoPromptFacts({ birthDate: input.birthDate, calendarType: input.calendarType })));
+    }
+
+    // 사주·자미두수 엔진은 한국 표준시 벽시계만 받는다. 해외 표준시를 고른 사용자에게
+    // 그 한계를 숨기면 LLM 이 어긋난 시주를 확정값처럼 읽는다.
+    const birthTimezone = String(input.birthTimezone || "").trim() || "Asia/Seoul";
+    if (birthTimezone !== "Asia/Seoul" && (selected.has("saju") || selected.has("ziwei"))) {
+      blocks.push(
+        `- 시간대 주의: 사주·자미두수 명식은 한국 표준시(Asia/Seoul) 벽시계로 산출했는데 출생지 표준시는 ${birthTimezone} 입니다.`
+          + " 시주(시간 기둥)와 그에 딸린 해석은 어긋날 수 있으니 그 점을 밝히고, 시각에 민감한 판단은 단정하지 말아 주세요.",
+      );
     }
 
     const nonComputable = Object.keys(NON_COMPUTABLE_LABEL)

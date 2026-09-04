@@ -6,10 +6,13 @@
 // 🔴 좌표 없이 차트를 부르지 않는다 — worker/routes/astro.js 와 swiss-ephemeris.js 가 lat/lon 을
 //    조용히 서울(37.5665, 126.978)로 채운다. 남의 차트를 사용자 차트로 내보내는 것이 자리표시자보다 나쁘다.
 //    출생지 미입력 · 지오코딩 fallback · 호출 실패 · 시각 미상은 전부 태양궁만 남기는 폴백으로 간다.
-// 🔴 허브의 출생 시각 필드는 전 도구가 한국 표준시 기준이다(사주 산출기와 같은 전제).
-//    그래서 차트 시간대도 Asia/Seoul 로 고정하고 블록에 그 전제를 적는다.
+// 🔴 출생 시각은 벽시계 값이라 어느 표준시인지 함께 받아야 한다(허브의 "출생지 표준시" 선택지).
+//    못 받으면 Asia/Seoul 로 두되, 어느 시간대로 계산했는지 블록에 반드시 적는다(추정 금지 원칙).
 import { lunarToSolar } from "@/lib/korean-calendar";
 import { getZodiacFromBirthDate } from "@/lib/yeon/zodiac";
+// 베다 엔드포인트는 시간대를 숫자 오프셋으로만 받는다. IANA 이름을 출생 시점 기준 오프셋으로 바꾼다
+// (여름시간 경계를 2패스로 보정하는 워커 정본을 그대로 쓴다 — Intl 만 쓰므로 클라이언트에서도 돈다).
+import { wallClockToUtcMillis } from "@/worker/lib/iana-offset.js";
 
 export type AstroFactsInput = {
   birthDate: string;
@@ -18,6 +21,8 @@ export type AstroFactsInput = {
   birthTime?: string;
   birthTimeUnknown?: boolean;
   birthPlace?: string;
+  /** IANA 시간대 이름. 비면 Asia/Seoul. */
+  birthTimezone?: string;
 };
 
 export type AstroFactsOptions = {
@@ -26,7 +31,7 @@ export type AstroFactsOptions = {
 };
 
 const REQUEST_TIMEOUT_MS = 6000;
-const BIRTH_TIMEZONE = "Asia/Seoul";
+const DEFAULT_BIRTH_TIMEZONE = "Asia/Seoul";
 
 const SIGN_KO: Record<string, string> = {
   Aries: "양자리", Taurus: "황소자리", Gemini: "쌍둥이자리", Cancer: "게자리",
@@ -52,6 +57,10 @@ function text(value: unknown) {
 function label(table: Record<string, string>, value: unknown) {
   const raw = text(value);
   return table[raw] || raw;
+}
+
+function resolveBirthTimezone(input: AstroFactsInput) {
+  return text(input.birthTimezone) || DEFAULT_BIRTH_TIMEZONE;
 }
 
 function parseYmd(value: string | undefined) {
@@ -136,6 +145,7 @@ async function fetchChart(
   solar: { year: number; month: number; day: number },
   hm: { hour: number; minute: number },
   coords: Coordinates,
+  timezone: string,
 ) {
   const payload = await fetchJson("/api/astrology/basic", {
     method: "POST",
@@ -143,7 +153,7 @@ async function fetchChart(
     body: JSON.stringify({
       date: formatDate(solar),
       time: `${pad2(hm.hour)}:${pad2(hm.minute)}`,
-      timezone: BIRTH_TIMEZONE,
+      timezone,
       latitude: coords.lat,
       longitude: coords.lon,
     }),
@@ -152,11 +162,13 @@ async function fetchChart(
 }
 
 function commonBirthLines(input: AstroFactsInput, solar: { year: number; month: number; day: number }, hm: { hour: number; minute: number } | null) {
+  const timezone = resolveBirthTimezone(input);
   const lines: string[] = [];
   const lunarInput = isLunarCalendar(input.calendarType);
   lines.push(`- 입력 생년월일: ${input.birthDate} (${lunarInput ? `음력${input.leapMonth ? " 윤달" : ""}` : "양력"})`);
   if (lunarInput) lines.push(`- 양력 환산일: ${formatDate(solar)}`);
-  lines.push(`- 출생 시각: ${hm ? `${input.birthTime} (한국 표준시)` : "미상"}`);
+  const timezoneLabel = timezone === DEFAULT_BIRTH_TIMEZONE ? "한국 표준시" : timezone;
+  lines.push(`- 출생 시각: ${hm ? `${input.birthTime} (${timezoneLabel} 기준)` : "미상"}`);
   return lines;
 }
 
@@ -179,7 +191,7 @@ export async function buildAstrologyPromptFacts(input: AstroFactsInput, options:
     const lines: string[] = ["[점성술 차트 산출 데이터]", ...commonBirthLines(input, solar, hm)];
 
     const coords = hm ? await resolveCoordinates(text(input.birthPlace)) : null;
-    const chart = coords && hm ? await fetchChart(solar, hm, coords) : null;
+    const chart = coords && hm ? await fetchChart(solar, hm, coords, resolveBirthTimezone(input)) : null;
 
     if (!chart) {
       lines.push(
@@ -204,7 +216,7 @@ export async function buildAstrologyPromptFacts(input: AstroFactsInput, options:
     const aspects = (Array.isArray(chart.aspects) ? chart.aspects : []) as Record<string, unknown>[];
 
     lines.push(`- 출생지 좌표: ${coords!.name} (위도 ${coords!.lat.toFixed(4)}, 경도 ${coords!.lon.toFixed(4)})`);
-    lines.push(`- 계산 기준: Swiss Ephemeris(${text(engine.mode) || "unknown"}) · 시간대 ${BIRTH_TIMEZONE} · 하우스 커스프 ${engine.ephemerisLoaded === true ? "산출됨" : "미산출"}`);
+    lines.push(`- 계산 기준: Swiss Ephemeris(${text(engine.mode) || "unknown"}) · 시간대 ${resolveBirthTimezone(input)} · 하우스 커스프 ${engine.ephemerisLoaded === true ? "산출됨" : "미산출"}`);
 
     const ascendant = angles.ascendant;
     const midheaven = angles.midheaven;
@@ -264,6 +276,10 @@ export async function buildVedicPromptFacts(input: AstroFactsInput): Promise<str
 
     const hm = input.birthTimeUnknown ? null : parseHm(input.birthTime);
     const coords = await resolveCoordinates(text(input.birthPlace));
+    const { offsetHours } = wallClockToUtcMillis(
+      { year: solar.year, month: solar.month, day: solar.day, hour: hm?.hour ?? 12, minute: hm?.minute ?? 0 },
+      resolveBirthTimezone(input),
+    );
 
     const payload = await fetchJson("/api/nakshatra/resolve", {
       method: "POST",
@@ -274,7 +290,7 @@ export async function buildVedicPromptFacts(input: AstroFactsInput): Promise<str
         day: solar.day,
         hour: hm?.hour ?? 12,
         minute: hm?.minute ?? 0,
-        timezone: 9,
+        timezone: offsetHours,
         lat: coords?.lat ?? 37.5665,
         lon: coords?.lon ?? 126.978,
         timeUnknown: !hm,

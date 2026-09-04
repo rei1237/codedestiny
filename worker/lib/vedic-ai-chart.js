@@ -20,6 +20,7 @@ import {
   signIndex,
   signName,
 } from "./vedic-derived-calculations.js";
+import { guessTimezoneFromLongitude } from "./geo-timezone.js";
 
 const OWN_SIGNS = {
   Sun: ["Leo"],
@@ -252,14 +253,6 @@ async function resolvePlaceForCalculation(rawPlace = {}) {
   error.status = 422;
   error.details = { placeProvided: Boolean(placeSearchText(rawPlace)) };
   throw error;
-}
-
-function guessTimezoneFromLongitude(longitude) {
-  const numeric = Number(longitude);
-  if (!Number.isFinite(numeric)) return "";
-  const offset = Math.max(-12, Math.min(14, Math.round(numeric / 15)));
-  if (offset === 9) return "Asia/Seoul";
-  return `UTC${offset >= 0 ? "+" : ""}${offset}`;
 }
 
 function parseUtcOffset(timezone) {
