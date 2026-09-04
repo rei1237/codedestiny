@@ -198,11 +198,15 @@ export function calculateBodyUse(upperGua: GuaInfo, lowerGua: GuaInfo, changingL
 
 // 한글 받침 유무로 조사를 고른다 — 오행 이름(목·화·토·금·수)이 그대로 문장에 박히는데
 // "금가"·"목를" 처럼 어긋난 조사가 프롬프트 산출 데이터에 실려 나갔다(2026-09-04 수정).
-function hasFinalConsonant(value: string) {
+function finalConsonantIndex(value: string) {
   const text = String(value || "");
-  if (!text) return false;
+  if (!text) return 0;
   const code = text.charCodeAt(text.length - 1) - 0xac00;
-  return code >= 0 && code <= 11171 && code % 28 !== 0;
+  return code >= 0 && code <= 11171 ? code % 28 : 0;
+}
+
+function hasFinalConsonant(value: string) {
+  return finalConsonantIndex(value) !== 0;
 }
 
 function subjectParticle(value: string) {
@@ -211,6 +215,15 @@ function subjectParticle(value: string) {
 
 function objectParticle(value: string) {
   return `${value}${hasFinalConsonant(value) ? "을" : "를"}`;
+}
+
+// 괘 이름은 "수천수 水天需" 처럼 한글 독음 뒤에 한자가 붙어 있어, 마지막 글자로 받침을 판정하면
+// 언제나 "받침 없음"이 되어 "火天大有으로" 같은 문장이 프롬프트에 그대로 실린다(2026-09-04 수정).
+// 공백 앞 한글 독음으로 판정하고, 받침이 없거나 ㄹ(종성 8)이면 "로", 그 외에는 "으로"를 붙인다.
+function directionParticle(name: string) {
+  const reading = String(name || "").split(" ")[0];
+  const final = finalConsonantIndex(reading);
+  return `${name}${final === 0 || final === 8 ? "로" : "으로"}`;
 }
 
 export function calculateElementRelation(bodyElement: GuaElement, useElement: GuaElement, bodyLabel = "체", useLabel = "용") {
@@ -239,7 +252,7 @@ function composeResult(input: {
   const changedHexagramName = calculateChangedHexagram(upperGua, lowerGua, input.changingLine).name;
   const { bodyGua, useGua } = calculateBodyUse(upperGua, lowerGua, input.changingLine);
   const bodyUseRelation = calculateElementRelation(bodyGua.element, useGua.element);
-  const coreSummary = `${mainHexagramName}에서 ${changedHexagramName}으로 움직이며, ${bodyUseRelation}입니다.`;
+  const coreSummary = `${mainHexagramName}에서 ${directionParticle(changedHexagramName)} 움직이며, ${bodyUseRelation}입니다.`;
   return {
     mode: input.mode,
     modeLabel: input.modeLabel,

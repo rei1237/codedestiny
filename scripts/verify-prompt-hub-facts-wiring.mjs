@@ -155,6 +155,64 @@ for (const name of Object.keys(SAMPLES)) {
 }
 check(smokeRan > 0, "실행 스모크가 한 건도 돌지 않았다(fail-closed).");
 
+// ── 6. 매화역수 괘 이름 조사 전수 스윕 ──────────────────────────────────────────
+// 🔴 괘 이름은 "수천수 水天需" 처럼 한자로 끝나서, 마지막 글자로 받침을 판정하면 언제나 "받침
+//    없음"이 되어 "火天大有으로" 가 그대로 프롬프트에 실린다(2026-09-04 실제 발생). 위 5번의
+//    오행 조사 검사는 산출 블록 텍스트만 보는데 이 문장은 coreSummary 에 있어 잡히지 않는다 —
+//    계산기를 직접 돌려 64괘를 전수 확인한다(관측이 64괘에 못 미치면 통과가 아니라 실패다).
+const MEIHUA_CALC_PATH = `${HUB_DIR}/meihua-calc.ts`;
+const meihuaCalc = loadTsModule(MEIHUA_CALC_PATH);
+const hexagramNames = Object.values(meihuaCalc.HEXAGRAM_NAMES || {}).flatMap((row) => Object.values(row || {}));
+check(hexagramNames.length > 0, `${MEIHUA_CALC_PATH} 의 HEXAGRAM_NAMES 를 읽지 못했다(fail-closed).`);
+
+/** 한글 독음(공백 앞 토큰)의 받침으로 "으로/로"를 고른다 — 받침 없음·ㄹ(종성 8)이면 "로". */
+function expectedDirectionPhrase(name) {
+  const reading = String(name).split(" ")[0];
+  const code = reading.charCodeAt(reading.length - 1) - 0xac00;
+  const final = code >= 0 && code <= 11171 ? code % 28 : 0;
+  return `${name}${final === 0 || final === 8 ? "로" : "으로"}`;
+}
+
+const observedHexagrams = new Map();
+let unparsedSummaries = 0;
+for (let day = 1; day <= 31; day += 1) {
+  for (let hour24 = 0; hour24 <= 23; hour24 += 1) {
+    const result = meihuaCalc.calculateBasicMeihua({
+      modeLabel: "",
+      name: "",
+      gender: "",
+      birthDate: "",
+      birthTime: "",
+      calendarType: "",
+      question: "",
+      year: 2026,
+      month: 7,
+      day,
+      hour24,
+      minute: (day * 7 + hour24) % 60,
+      baseDateTime: `2026-07-${String(day).padStart(2, "0")} ${String(hour24).padStart(2, "0")}:00`,
+    });
+    const matched = /에서 (.+?) 움직이며/.exec(String(result?.coreSummary || ""));
+    if (!matched) {
+      unparsedSummaries += 1;
+      continue;
+    }
+    observedHexagrams.set(result.changedHexagramName, matched[1]);
+  }
+}
+check(unparsedSummaries === 0, `매화역수 coreSummary 문장 형태가 바뀌어 ${unparsedSummaries}건을 읽지 못했다 — 이 가드를 함께 고칠 것.`);
+check(
+  observedHexagrams.size === hexagramNames.length,
+  `매화역수 전수 스윕이 ${observedHexagrams.size}/${hexagramNames.length} 괘만 관측했다 — 입괘 규칙이 바뀌었으니 스윕 범위를 함께 고칠 것(fail-closed).`,
+);
+const badHexagramJosa = [...observedHexagrams]
+  .filter(([name, phrase]) => phrase !== expectedDirectionPhrase(name))
+  .map(([name, phrase]) => `${phrase} (기대: ${expectedDirectionPhrase(name)})`);
+check(
+  badHexagramJosa.length === 0,
+  `매화역수 괘 이름 뒤 조사가 어긋난다: ${badHexagramJosa.slice(0, 5).join(", ")}${badHexagramJosa.length > 5 ? ` 외 ${badHexagramJosa.length - 5}건` : ""} — 조사를 고정 문자열로 붙이지 말고 한글 독음 기준 받침 판정을 쓸 것.`,
+);
+
 if (failures.length) {
   console.error("❌ 프롬프트 허브 산출 데이터 배선 검증 실패");
   for (const message of failures) console.error(`  - ${message}`);
@@ -162,5 +220,5 @@ if (failures.length) {
 }
 
 console.log(
-  `✅ 프롬프트 허브 산출 데이터 배선 정상 — 도구 ${toolIds.length}개 / case ${caseIds.length}개 / 계산 모듈 ${calcModules.length}개 / 빌더 모듈 ${factsModules.length}개 (동기 스모크 ${smokeRan}건, 비동기 건너뜀 ${asyncSkipped}건)`,
+  `✅ 프롬프트 허브 산출 데이터 배선 정상 — 도구 ${toolIds.length}개 / case ${caseIds.length}개 / 계산 모듈 ${calcModules.length}개 / 빌더 모듈 ${factsModules.length}개 (동기 스모크 ${smokeRan}건, 비동기 건너뜀 ${asyncSkipped}건, 매화역수 괘 조사 ${observedHexagrams.size}괘 전수)`,
 );
