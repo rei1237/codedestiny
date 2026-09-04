@@ -2025,6 +2025,29 @@ function buildLuckTimingForGyeok(
   };
 }
 
+/** 마지막 글자에 받침이 있는지. 사유 문장의 조사(이/가·으로/로)를 고르는 데만 쓴다. */
+function hasFinalConsonant(value: string) {
+  const trimmed = String(value || "").trim();
+  if (!trimmed) return false;
+  const code = trimmed.charCodeAt(trimmed.length - 1) - 0xac00;
+  return code >= 0 && code <= 11171 && code % 28 !== 0;
+}
+
+/** "신" → "신이", "기" → "기가". */
+function subjectParticle(value: string) {
+  return `${value}${hasFinalConsonant(value) ? "이" : "가"}`;
+}
+
+/** "목" → "목을", "화" → "화를". */
+function objectParticle(value: string) {
+  return `${value}${hasFinalConsonant(value) ? "을" : "를"}`;
+}
+
+/** "정관" → "정관으로", "정재" → "정재로". */
+function instrumentParticle(value: string) {
+  return `${value}${hasFinalConsonant(value) ? "으로" : "로"}`;
+}
+
 function buildGyeokgukAnalysis(
   pillars: LocalSajuResult["pillars"],
   dayStem: StemKr,
@@ -2074,8 +2097,8 @@ function buildGyeokgukAnalysis(
       protruded: row.protruded,
       score,
       reason: row.protruded
-        ? `월지 ${pillars.month.branch}의 ${row.role} ${row.stem}가 천간에 투출하여 ${row.tenGod}이 격으로 성립할 힘을 얻음`
-        : `월지 ${pillars.month.branch}의 ${row.role} ${row.stem}가 ${row.tenGod}으로 월령의 중심 후보`,
+        ? `월지 ${pillars.month.branch}의 ${row.role} ${subjectParticle(row.stem as string)} 천간에 투출하여 ${subjectParticle(row.tenGod as string)} 격으로 성립할 힘을 얻음`
+        : `월지 ${pillars.month.branch}의 ${row.role} ${subjectParticle(row.stem as string)} ${instrumentParticle(row.tenGod as string)} 월령의 중심 후보`,
     });
   });
 
@@ -2141,7 +2164,7 @@ function buildGyeokgukAnalysis(
       name: "화기격",
       source: "천간합화",
       score: 3.6,
-      reason: `천간합이 ${successfulStemCombination.transformedElementKo || ""}로 합화되어 화기격 후보가 됨`,
+      reason: `천간합이 ${instrumentParticle(String(successfulStemCombination.transformedElementKo || ""))} 합화되어 화기격 후보가 됨`,
     });
   }
 
@@ -2269,7 +2292,7 @@ function getTonggwanBridge(effectivePower: Record<ElementKey, number>) {
       controlled,
       bridge,
       bridgeKo: ELEMENT_KO[bridge],
-      reason: `${ELEMENT_KO[controller]}이 ${ELEMENT_KO[controlled]}을 강하게 치므로 ${ELEMENT_KO[bridge]}가 중간에서 흐름을 이어 통관한다.`,
+      reason: `${subjectParticle(ELEMENT_KO[controller])} ${objectParticle(ELEMENT_KO[controlled])} 강하게 치므로 ${subjectParticle(ELEMENT_KO[bridge])} 중간에서 흐름을 이어 통관한다.`,
     }];
   });
   return rows.sort((a, b) => (effectivePower[b.controller] + effectivePower[b.controlled]) - (effectivePower[a.controller] + effectivePower[a.controlled]))[0] || null;
@@ -2307,11 +2330,11 @@ function buildYongshinAnalysis(
   const finalGyeok = String(gyeokgukAnalysis.finalGyeokguk || "");
   const isFollowingGyeok = finalGyeok.includes("종");
   const topElement = [...ELEMENTS].sort((a, b) => effectivePower[b] - effectivePower[a])[0];
-  const eokbuUseful = dayMasterStrength === "과약" || dayMasterStrength === "신약"
+  const eokbuUseful = uniqueElements(dayMasterStrength === "과약" || dayMasterStrength === "신약"
     ? [resourceElement, dayElement]
     : dayMasterStrength === "과왕" || dayMasterStrength === "신강"
       ? [outputElement, wealthElement, officerElement]
-      : suppressingUseful;
+      : suppressingUseful);
   const diseaseMedicine = (disease.medicineElements || []) as ElementKey[];
   const tonggwanUseful = tonggwan ? [tonggwan.bridge as ElementKey] : [];
   const followingUseful = isFollowingGyeok ? [topElement] : [];
@@ -2344,11 +2367,11 @@ function buildYongshinAnalysis(
   const inducedByDoChung = ((doChungAnalysis.candidates as Array<Record<string, unknown>> | undefined) || [])
     .filter((row) => row.inducedState === "용신" && BRANCH_MAIN_ELEMENT[row.inducedOppositeBranch as BranchKr] === coreYongshin);
   const reasonParts = [
-    climateUrgent && `조후가 급해 ${ELEMENT_KO[urgentElement]}가 먼저 필요하다`,
+    climateUrgent && `조후가 급해 ${subjectParticle(ELEMENT_KO[urgentElement])} 먼저 필요하다`,
     disease.name !== "특정 병약 과중 없음" && `${disease.name}의 병을 치료하는 약이 ${diseaseMedicine.map((element) => ELEMENT_KO[element]).join(", ")}이다`,
     tonggwan && `${tonggwan.conflict}에는 ${tonggwan.bridgeKo} 통관이 필요하다`,
-    isFollowingGyeok && `${finalGyeok}은 종하는 기운 ${ELEMENT_KO[topElement]}를 따라야 한다`,
-    `억부상 ${dayMasterStrength} 구조라 ${eokbuUseful.map((element) => ELEMENT_KO[element]).join(", ")}가 균형을 잡는다`,
+    isFollowingGyeok && `${finalGyeok}은 종하는 기운 ${objectParticle(ELEMENT_KO[topElement])} 따라야 한다`,
+    `억부상 ${dayMasterStrength} 구조라 ${subjectParticle(eokbuUseful.map((element) => ELEMENT_KO[element]).join(", "))} 균형을 잡는다`,
     `${gyeokgukAnalysis.finalGyeokguk || "격국"}을 살리는 상신·희신을 함께 보았다`,
   ].filter(Boolean);
 

@@ -302,6 +302,35 @@ const GENDER_FIELD_COPY: FieldConfig = {
   help: "사주 대운의 순행/역행과 자미두수 명반 배치를 산출하는 데 쓰입니다.",
 };
 
+// 출생 시각은 벽시계 값이라 어느 나라 표준시인지 정해야 차트가 맞는다. 차트를 실제로 산출하는
+// 세 도구(점성술·베다·종합)에만 붙인다 — 사주·자미두수 엔진은 한국 표준시 벽시계만 받는다.
+// 🔴 선택지 문자열이 곧 draft 값이다(렌더러가 옵션을 그대로 넣는다) — 표의 키와 한 글자라도
+//    어긋나면 조용히 기본값(한국)으로 떨어진다.
+const BIRTH_TIMEZONE_BY_LABEL: Record<string, string> = {
+  "한국 (UTC+9)": "Asia/Seoul",
+  "일본 (UTC+9)": "Asia/Tokyo",
+  "중국·홍콩·대만·싱가포르 (UTC+8)": "Asia/Shanghai",
+  "베트남·태국 (UTC+7)": "Asia/Bangkok",
+  "인도 (UTC+5:30)": "Asia/Kolkata",
+  "아랍에미리트 (UTC+4)": "Asia/Dubai",
+  "영국 (UTC+0)": "Europe/London",
+  "중부 유럽 (UTC+1)": "Europe/Berlin",
+  "미국 동부": "America/New_York",
+  "미국 중부": "America/Chicago",
+  "미국 서부": "America/Los_Angeles",
+  "캐나다 토론토": "America/Toronto",
+  "호주 동부": "Australia/Sydney",
+  "뉴질랜드": "Pacific/Auckland",
+};
+
+const BIRTH_TIMEZONE_FIELD_COPY: FieldConfig = {
+  id: "birthTimezone",
+  label: "출생지 표준시",
+  type: "select",
+  options: Object.keys(BIRTH_TIMEZONE_BY_LABEL),
+  help: "출생 시각을 어느 나라 표준시로 적었는지 고릅니다. 해외에서 태어났다면 바꿔 주세요.",
+};
+
 const TOOL_REGISTRY_COPY: ToolConfig[] = [
   {
     id: "comprehensive",
@@ -316,6 +345,7 @@ const TOOL_REGISTRY_COPY: ToolConfig[] = [
       { id: "systems", label: "활용할 운세 체계", type: "multiselect", required: true, options: ["사주/명리학", "자미두수", "타로", "점성술", "베다점", "수비학", "꿈/상징", "숙요점"] },
       { id: "period", label: "상담 기간", type: "select", options: ["오늘", "이번 주", "이번 달", "3개월", "올해"] },
       ...BIRTH_FIELDS_OPTIONAL_COPY,
+      BIRTH_TIMEZONE_FIELD_COPY,
       GENDER_FIELD_COPY,
     ],
     exampleValues: {
@@ -578,7 +608,7 @@ const TOOL_REGISTRY_COPY: ToolConfig[] = [
     detail: "출생 차트와 행성의 관계를 정리해, 우주적인 상징과 분석적인 해석이 함께 흐르는 프롬프트를 만듭니다.",
     icon: "♄",
     theme: { accent: "#4f8fd9", accentStrong: "#12294f", accentSoft: "#deecff", surface: "#eef4ff", text: "#101b33", motif: "출생 차트와 행성 궤도" },
-    fields: [...COMMON_FIELDS_COPY, ...BIRTH_FIELDS_COPY, { id: "analysisArea", label: "분석 영역", type: "select", options: ["성향", "관계", "커리어", "시기", "트랜짓"] }],
+    fields: [...COMMON_FIELDS_COPY, ...BIRTH_FIELDS_COPY, BIRTH_TIMEZONE_FIELD_COPY, { id: "analysisArea", label: "분석 영역", type: "select", options: ["성향", "관계", "커리어", "시기", "트랜짓"] }],
     exampleValues: {
       topic: "커리어 전환",
       question: "올해 직업 방향을 바꾸는 선택이 내 차트에서 어떻게 보일까요?",
@@ -606,7 +636,7 @@ const TOOL_REGISTRY_COPY: ToolConfig[] = [
     detail: "사프란빛 만다라처럼 출생 정보와 라그나, 나크샤트라 단서를 정리해 깊고 차분한 프롬프트를 만듭니다.",
     icon: "◈",
     theme: { accent: "#c77720", accentStrong: "#0f5753", accentSoft: "#ffe7bd", surface: "#fff4df", text: "#1f2418", motif: "절제된 만다라와 사각 차트" },
-    fields: [...COMMON_FIELDS_COPY, ...BIRTH_FIELDS_COPY, { id: "vedicTopic", label: "분석 주제", type: "select", options: ["라그나", "나크샤트라", "다샤", "관계", "커리어"] }, { id: "advancedSettings", label: "고급 설정", type: "textarea", rows: 3, advanced: true, placeholder: "알고 있는 라그나, 나크샤트라, 아야남샤 설정" }],
+    fields: [...COMMON_FIELDS_COPY, ...BIRTH_FIELDS_COPY, BIRTH_TIMEZONE_FIELD_COPY, { id: "vedicTopic", label: "분석 주제", type: "select", options: ["라그나", "나크샤트라", "다샤", "관계", "커리어"] }, { id: "advancedSettings", label: "고급 설정", type: "textarea", rows: 3, advanced: true, placeholder: "알고 있는 라그나, 나크샤트라, 아야남샤 설정" }],
     exampleValues: {
       topic: "다샤 흐름과 일",
       question: "지금의 일 방향이 장기적으로 이어질 힘이 있는지 알고 싶습니다.",
@@ -1050,6 +1080,22 @@ const PROMPT_HUB_COPY_EN: PromptHubCopy = {
     "생년월일": "Date of Birth",
     "출생 시각": "Birth Time",
     "출생 지역": "Birthplace",
+    "출생지 표준시": "Birthplace Time Zone",
+    "출생 시각을 어느 나라 표준시로 적었는지 고릅니다. 해외에서 태어났다면 바꿔 주세요.": "Choose the standard time your birth time was recorded in. Change it if you were born outside Korea.",
+    "한국 (UTC+9)": "Korea (UTC+9)",
+    "일본 (UTC+9)": "Japan (UTC+9)",
+    "중국·홍콩·대만·싱가포르 (UTC+8)": "China, Hong Kong, Taiwan, Singapore (UTC+8)",
+    "베트남·태국 (UTC+7)": "Vietnam, Thailand (UTC+7)",
+    "인도 (UTC+5:30)": "India (UTC+5:30)",
+    "아랍에미리트 (UTC+4)": "United Arab Emirates (UTC+4)",
+    "영국 (UTC+0)": "United Kingdom (UTC+0)",
+    "중부 유럽 (UTC+1)": "Central Europe (UTC+1)",
+    "미국 동부": "US Eastern",
+    "미국 중부": "US Central",
+    "미국 서부": "US Pacific",
+    "캐나다 토론토": "Toronto, Canada",
+    "호주 동부": "Australia Eastern",
+    "뉴질랜드": "New Zealand",
     "성별": "Gender",
     "윤달 여부": "Leap Month",
     "출생 시각 모름": "Birth Time Unknown",
@@ -1578,6 +1624,7 @@ async function buildComputedFactsFor(toolId: ToolId, draft: ToolDraft): Promise<
     birthTimeUnknown: draft.birthTimeUnknown === true,
     birthPlace: formatDraftValue(draft.birthPlace),
     gender: formatDraftValue(draft.gender),
+    birthTimezone: BIRTH_TIMEZONE_BY_LABEL[formatDraftValue(draft.birthTimezone)] || "Asia/Seoul",
   };
   switch (toolId) {
     case "comprehensive": {
@@ -1624,12 +1671,13 @@ function buildStructuredFortunePrompt(config: ToolConfig, values: ToolDraft, com
   const avoid = formatDraftValue(values.avoid);
   const tone = formatDraftValue(values.tone) || "차분하고 전문적인 상담";
   const depth = formatDraftValue(values.depth) || "균형 있게";
+  const selectedSystems = formatDraftValue(values.systems);
   const facts = String(computedFacts || "").trim();
 
   return [
     `당신은 ${config.role}입니다.`,
     "",
-    `선택된 운세 체계: ${config.label}`,
+    `선택된 운세 체계: ${selectedSystems || config.label}`,
     `해석 모티프: ${config.theme.motif}`,
     `상담 분위기: ${tone}`,
     `답변 깊이: ${depth}`,
