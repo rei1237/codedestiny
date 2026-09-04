@@ -12,6 +12,28 @@ const birthTimeRegex = /^(?:[01]\d|2[0-3]):[0-5]\d$/;
 //  이제 이 컬렉션에 쓰는 곳은 워커 하나뿐이라 이 상수가 유일한 정본이다.)
 export const RECENT_CONSUME_REQUEST_ID_CAP = 200;
 
+// 한 사용자가 여러 기기에서 로그인하면 기기마다 복원 키가 하나씩 생긴다. 상한이 없으면
+// 재설치를 반복할수록 배열이 계속 자라므로 가장 오래된 것부터 밀어낸다(라우트가 집행).
+export const RESTORE_CREDENTIAL_CAP = 10;
+
+const restoreCredentialSchema = new mongoose.Schema({
+  credentialId: { type: String, required: true, trim: true, maxlength: 512 },
+  // COSE 대신 JWK 로 저장한다 — 검증 때 crypto.subtle.importKey 가 그대로 받는 형태다.
+  publicKeyJwk: {
+    kty: { type: String, trim: true, maxlength: 16 },
+    crv: { type: String, trim: true, maxlength: 16 },
+    x: { type: String, trim: true, maxlength: 128 },
+    y: { type: String, trim: true, maxlength: 128 },
+  },
+  algorithm: { type: String, trim: true, maxlength: 16, default: "ES256" },
+  // 복제된 자격증명 탐지용. 인증기가 0 을 계속 보내면(카운터 미지원) 검사는 건너뛴다.
+  signCount: { type: Number, min: 0, default: 0 },
+  cloudBackup: { type: Boolean, default: false },
+  createdAt: { type: Date, default: Date.now },
+  lastUsedAt: { type: Date, default: null },
+  deviceLabel: { type: String, trim: true, maxlength: 120, default: "" },
+}, { _id: false });
+
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true, minlength: 2, maxlength: 40 },
   email: { type: String, required: true, unique: true, lowercase: true, trim: true, match: emailRegex },
@@ -205,7 +227,14 @@ const userSchema = new mongoose.Schema({
     completedAt: { type: Date },
     rewardMonthlyCredit: { type: Number, min: 0 },
   },
+  // Android Restore Credentials(Zero-Tap Sign-In) 공개키. 서버는 공개키만 보관하고 개인키는
+  // 기기의 Play services 자격증명 저장소에만 있다. 설계: docs/app-audit/ZERO_TAP_SIGNIN_DESIGN.md
+  // 🔴 추가만 하는 필드다 — 기존 문서에 이 배열이 없으면 undefined 이고 그대로 "등록 없음"이다.
+  restoreCredentials: { type: [restoreCredentialSchema], default: undefined },
 }, { timestamps: true });
+
+// assert 는 credentialId 하나로 사용자를 찾는다 — 이 인덱스가 없으면 전체 스캔이 된다.
+userSchema.index({ "restoreCredentials.credentialId": 1 });
 
 const profileCardBirthSchema = new mongoose.Schema({
   year: { type: Number, min: 1000, max: 9999 },

@@ -23,6 +23,8 @@ jest.unstable_mockModule("../../worker/lib/db.js", () => ({
 // ESM 명명 export 는 정적으로 해석되므로 Proxy 로 뭉뚱그릴 수 없다 — auth.js 가 import 하는 이름을
 // 그대로 나열한다(auth.signup-phone-backfill.test.js 와 같은 목록).
 jest.unstable_mockModule("../../worker/lib/models.js", () => ({
+  IdempotencyKey: {},
+  RESTORE_CREDENTIAL_CAP: 10,
   AbuseScore: {}, RefreshTokenSession: {}, User: {}, PointHistory: {}, MonthlyCreditLedger: {},
   ProfileCard: {}, Payment: {}, Insight: {}, ContentOverride: {}, DailyFortuneSubscription: {},
   DestinyBiasCard: {}, KarmaDestinyAiConsultation: {}, LifeBookAiConsultation: {}, LlmResponseCache: {},

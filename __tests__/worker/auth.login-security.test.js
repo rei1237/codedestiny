@@ -22,6 +22,8 @@ jest.unstable_mockModule("../../worker/lib/db.js", () => ({
 }));
 
 jest.unstable_mockModule("../../worker/lib/models.js", () => ({
+  IdempotencyKey: {},
+  RESTORE_CREDENTIAL_CAP: 10,
   AbuseScore: {},
   CONTENT_ENTITLEMENT_SOURCES: {},
   CONTENT_ENTITLEMENT_STATUSES: {},

@@ -48,6 +48,8 @@ beforeAll(async () => {
       resolveActivePassPolicy,
     })),
     jest.unstable_mockModule("../../worker/lib/models.js", () => ({
+      IdempotencyKey: {},
+      RESTORE_CREDENTIAL_CAP: 10,
       PointHistory: { distinct: pointHistoryDistinct },
     })),
     jest.unstable_mockModule("../../worker/lib/content-unlocks.js", () => ({
