@@ -188,6 +188,41 @@ test('PR-3 placements are generated, ordered by width, and repainted for neo', (
   }
 });
 
+// ── 홈 펼치기 알약 (2026-09-04) — 가지 띠가 구분선을 겸한다 ─────────────────────
+// 알약은 branch-h 마스크의 빈 가운데(76/640)에 앉는다. 띠가 알약 위로 올라오면 꽃가지가 글자를 지나고,
+// 호스트의 z-index:1 이 빠지면 띠가 .feature-card-grid::before(z-index:0) 뒤로 통째로 사라진다.
+
+test('the home expand pill sits in the gap of a branch band', () => {
+  const html = read('index.html');
+  assert.match(
+    html,
+    /<div class="cd-home-more">\s*<span class="cd-yehwa-vine" aria-hidden="true"><\/span>\s*<button type="button" class="cd-home-more__btn"/,
+    '펼치기 알약 앞에 가지 띠가 없다',
+  );
+  assert.equal((html.match(/class="cd-yehwa-vine"/g) || []).length, 1, '가지 띠는 펼치기 알약 1개뿐이어야 한다');
+  assert.ok(html.includes('html body .cd-home-more{position:relative;z-index:1;'), '펼치기 행의 스태킹 컨텍스트가 없다');
+
+  const css = read('styles/yehwa-motifs.css');
+  assert.ok(css.includes('.cd-yehwa-vine,'), '마스크 변수 호스트 목록에 가지 띠가 없다');
+  const vine = (css.match(/\.cd-yehwa-vine \{[^}]*\}/) || [])[0] || '';
+  assert.match(vine, /z-index:\s*-1/, '띠가 알약 위로 올라오면 꽃가지가 글자를 지난다');
+  assert.match(vine, /mask-image:\s*var\(--cd-yehwa-mask-branch-h\)/, '띠는 구분선과 같은 branch-h 마스크여야 한다');
+
+  // 🔴 마스크 SVG 는 viewBox(640x64)만 있고 preserveAspectRatio 기본값(meet)이라 그림이 늘어나지
+  // 않는다 — 그림 폭 = min(요소 폭, 높이 x 10). 높이를 낮추면 띠가 알약 양옆 토막으로 접힌다
+  // (46px 일 때 알약 경계 ±35px 만 칠해졌다. 2026-09-04 A/B 픽셀 실측).
+  const vineHeight = Number((vine.match(/height:\s*(\d+)px/) || [])[1]);
+  const vineWidth = Number((vine.match(/width:\s*min\((\d+)px/) || [])[1]);
+  assert.ok(vineHeight * 10 >= vineWidth, `띠 높이 ${vineHeight}px 는 그림 폭을 ${vineHeight * 10}px 로 접는다(요소 폭 ${vineWidth}px)`);
+  const vineMobile = (css.match(/@media \(max-width: 768px\)[\s\S]*?\n\}/) || [])[0] || '';
+  assert.match(
+    vineMobile,
+    /\.cd-yehwa-vine \{\s*width: calc\(100% \+ \d+px\)/,
+    '모바일에서는 알약이 행을 거의 다 덮는다 — 띠를 거터로 내보내지 않으면 좌우 13px 만 남는다',
+  );
+  assert.match(css, /html\.neo-mode body \.cd-yehwa-vine[^{]*\{[^}]*background:/, '네오 재도색 규칙이 없다');
+});
+
 test('the generator reproduces the committed stylesheet byte for byte', () => {
   execFileSync(process.execPath, [path.join(root, 'scripts/design/gen-yehwa-motifs.mjs'), '--check'], {
     cwd: root,
