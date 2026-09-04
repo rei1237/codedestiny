@@ -493,6 +493,9 @@ function extractHouseCusps(housesResult) {
     const lon = nd(rawCusps[i]);
     if (Number.isFinite(lon)) out.push(lon);
   }
+  // 🔴 swe_houses_ex 는 cusps[0] 을 비워 두고 1..12 에 실제 커스프를 담는다(13칸).
+  // 앞칸을 그대로 세면 1하우스가 0° 가 되고 나머지가 한 칸씩 밀려 12하우스가 통째로 사라진다.
+  if (out.length >= 13) return out.slice(1, 13);
   if (out.length >= 12) return out.slice(0, 12);
   return [];
 }
@@ -1100,6 +1103,7 @@ export async function getSwissTropicalLongitudes(env, julianDays, bodies, option
 }
 
 export const __swissEphemerisTestUtils = {
+  extractHouseCusps,
   sanitizeUrlLikeEnvValue,
   resolveEpheBaseUrl,
   resolveSwissWasmCandidates,

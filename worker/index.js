@@ -1766,6 +1766,12 @@ export default {
         }, { status: 410 }));
       }
 
+      // 무료 프롬프트 허브용 결정론 출생 차트(무인증) — 아래 410 은 PDF 상담 경로를 닫은 것이고
+      // 이 한 경로만 그보다 먼저 통과시킨다. 같은 Swiss 엔진을 쓰는 /api/nakshatra 와 노출 수준이 같다.
+      if (request.method === "POST" && url.pathname === "/api/astrology/basic") {
+        return withCorsHeaders(request, env, await handleAstrologyRoutes(request, env));
+      }
+
       if (url.pathname === "/api/astrology" || url.pathname.startsWith("/api/astrology/")) {
         return withCorsHeaders(request, env, jsonResponse(request, env, {
           ok: false,
