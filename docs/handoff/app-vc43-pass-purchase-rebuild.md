@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-04
-next: 사용자가 Desktop\CodeDestiny-Build\20260904-2025-1.0.43-43-4d2414fcd 의 AAB+mapping 을 Play 내부 테스트에 올리고 실기기에서 이용권 1건 구매 확인 → Zero-Tap 서버 PR #1562 머지 → 2차 PR(호출부)
+next: 사용자가 Desktop\CodeDestiny-Build\20260904-2025-1.0.43-43-4d2414fcd 의 AAB+mapping 을 Play 내부 테스트에 올리고 실기기에서 이용권 1건 구매 확인 → Zero-Tap 2차 PR #1564 머지 → vc44 재빌드 후 실기기에서 재설치 자동 로그인 확인
 ---
 
 # 앱 vc43 재빌드 — Google Play 이용권 구매 재개본
@@ -21,8 +21,9 @@ next: 사용자가 Desktop\CodeDestiny-Build\20260904-2025-1.0.43-43-4d2414fcd �
 ## 남은 작업
 
 - [ ] **사용자**: 위 폴더의 AAB(+mapping.txt) 를 Play 내부 테스트 트랙에 업로드 → 인앱 상품 `cd_pass_{standard,premium,vvip,family}_30d` 활성 확인 → 실기기에서 이용권 탭 가격 4종 표시·스탠다드 1건 테스트 구매·이용권 적용 확인. 권한 목록에 `USE_BIOMETRIC`·`USE_FINGERPRINT` 가 새로 보이는 것은 `androidx.biometric 1.1.0`(credentials 전이) 때문이며 normal 권한이라 신고 양식 없음.
-- [x] Zero-Tap **1차 PR #1562** (열림, CI 7/7 통과, 사용자 머지 대기): 서버 3라우트 `/api/auth/restore-credential/{challenge,register,assert}` + 검증 코어 `worker/lib/webauthn-restore.js` + `users.restoreCredentials`. **호출부 0** 이라 런타임 영향 없다. 판단이 들어간 지점(공개키를 COSE 아닌 JWK 로 저장 · WebCrypto ES256 · origin 대신 rpIdHash 결속 · challenge 저장소로 `IdempotencyKey` 재사용)은 PR 본문이 정본.
-- [ ] **2차 PR**: `scripts/app-native-bridge.js` 호출부 3곳 — 로그인 후 `create` · 첫 실행 `restore` · 로그아웃 `clear`(설계 문서 §4 A/B/C). 착수 전 첫 실측 항목: 디버그 빌드에서 `Capacitor.Plugins.CodeDestinyCredentials.isAvailable()/restore()` 실호출(릴리스 WebView 는 디버깅 불가라 vc43 에서 못 눌렀다; R8 이 `CredentialManager` 인터페이스를 REMOVED 로 표시했는데 구현 클래스로 디버추얼라이즈된 것으로 `추정`).
+- [x] Zero-Tap **1차 PR #1562** (머지됨 `fa6fcb409`): 서버 3라우트 `/api/auth/restore-credential/{challenge,register,assert}` + 검증 코어 `worker/lib/webauthn-restore.js` + `users.restoreCredentials`. **호출부 0** 이라 런타임 영향 없다. 판단이 들어간 지점(공개키를 COSE 아닌 JWK 로 저장 · WebCrypto ES256 · origin 대신 rpIdHash 결속 · challenge 저장소로 `IdempotencyKey` 재사용)은 PR 본문이 정본.
+- [x] Zero-Tap **2차 PR #1564** (열림, 사용자 머지 대기): `scripts/app-native-bridge.js` 호출부 A·B·C. **등록을 로그인 직후가 아니라 부팅에 뒀다**(설계 문서 §4-A 와 다른 지점 — 로그인 직후는 60ms 뒤 `location.replace` 가 요청을 죽이고, 기존 로그인 사용자는 영영 등록되지 않는다). 판단 지점은 PR 본문이 정본.
+- [ ] **실기기 확인**(머지 후 vc44 재빌드가 선행): 디버그 빌드에서 `Capacitor.Plugins.CodeDestinyCredentials.isAvailable()/restore()` 실호출(릴리스 WebView 는 디버깅 불가라 vc43 에서 못 눌렀다; R8 이 `CredentialManager` 인터페이스를 REMOVED 로 표시했는데 구현 클래스로 디버추얼라이즈된 것으로 `추정`).
 - [ ] 🔴 **`assetlinks.json` 이 없다** — 설계 문서 §7-2 는 "이미 서빙 중"이라고 적었지만 **사실이 아니다**(2026-09-04 실측: `git grep assetlinks` 는 문서 4건뿐, `https://code-destiny.com/.well-known/assetlinks.json` 은 404). 앱이 App Links 가 아니라 커스텀 스킴 `com.codedestiny.app://auth` 를 쓰기 때문이다. Restore Credentials 가 `delegate_permission/common.get_login_creds` 를 요구하면 **Play 앱 서명 키의 SHA-256** 으로 새로 만들어야 하고, 그 값은 Play Console 에서 **사용자만** 읽을 수 있다(업로드 키 지문으로는 안 된다).
 - [ ] 범위 밖 관찰(앱 UX, 별도 판단): 첫 실행 직후 "새 버전이 배포되었습니다" 토스트가 하단 도크의 이용권·마이 탭을 덮는다(로컬 dist 앱에도 배포 갱신 안내가 뜬다) · `/app/store/` 에서 도크 활성 탭이 홈으로 남는다(이용권 탭 href `/points/` ≠ 실제 경로).
 
