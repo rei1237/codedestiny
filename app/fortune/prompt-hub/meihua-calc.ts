@@ -196,12 +196,29 @@ export function calculateBodyUse(upperGua: GuaInfo, lowerGua: GuaInfo, changingL
   return { bodyGua: lowerGua, useGua: upperGua };
 }
 
+// 한글 받침 유무로 조사를 고른다 — 오행 이름(목·화·토·금·수)이 그대로 문장에 박히는데
+// "금가"·"목를" 처럼 어긋난 조사가 프롬프트 산출 데이터에 실려 나갔다(2026-09-04 수정).
+function hasFinalConsonant(value: string) {
+  const text = String(value || "");
+  if (!text) return false;
+  const code = text.charCodeAt(text.length - 1) - 0xac00;
+  return code >= 0 && code <= 11171 && code % 28 !== 0;
+}
+
+function subjectParticle(value: string) {
+  return `${value}${hasFinalConsonant(value) ? "이" : "가"}`;
+}
+
+function objectParticle(value: string) {
+  return `${value}${hasFinalConsonant(value) ? "을" : "를"}`;
+}
+
 export function calculateElementRelation(bodyElement: GuaElement, useElement: GuaElement, bodyLabel = "체", useLabel = "용") {
-  if (bodyElement === useElement) return `${bodyLabel}와 ${useLabel}이 같은 ${bodyElement} 기운이라 같은 성질이 반복되며 장단점이 모두 커지는 흐름`;
-  if (GENERATES[useElement] === bodyElement) return `${useLabel} ${useElement}가 ${bodyLabel} ${bodyElement}를 생하므로 외부 상황이 나를 돕는 흐름`;
-  if (GENERATES[bodyElement] === useElement) return `${bodyLabel} ${bodyElement}가 ${useLabel} ${useElement}를 생하므로 내가 힘을 써야 일이 움직이는 흐름`;
-  if (CONTROLS[bodyElement] === useElement) return `${bodyLabel} ${bodyElement}가 ${useLabel} ${useElement}를 극하므로 내가 상황을 통제하려는 흐름`;
-  if (CONTROLS[useElement] === bodyElement) return `${useLabel} ${useElement}가 ${bodyLabel} ${bodyElement}를 극하므로 외부 압박이나 장애가 강한 흐름`;
+  if (bodyElement === useElement) return `${bodyLabel}와 ${subjectParticle(useLabel)} 같은 ${bodyElement} 기운이라 같은 성질이 반복되며 장단점이 모두 커지는 흐름`;
+  if (GENERATES[useElement] === bodyElement) return `${useLabel} ${subjectParticle(useElement)} ${bodyLabel} ${objectParticle(bodyElement)} 생하므로 외부 상황이 나를 돕는 흐름`;
+  if (GENERATES[bodyElement] === useElement) return `${bodyLabel} ${subjectParticle(bodyElement)} ${useLabel} ${objectParticle(useElement)} 생하므로 내가 힘을 써야 일이 움직이는 흐름`;
+  if (CONTROLS[bodyElement] === useElement) return `${bodyLabel} ${subjectParticle(bodyElement)} ${useLabel} ${objectParticle(useElement)} 극하므로 내가 상황을 통제하려는 흐름`;
+  if (CONTROLS[useElement] === bodyElement) return `${useLabel} ${subjectParticle(useElement)} ${bodyLabel} ${objectParticle(bodyElement)} 극하므로 외부 압박이나 장애가 강한 흐름`;
   return `${bodyLabel} ${bodyElement}와 ${useLabel} ${useElement}의 관계는 추가 맥락을 함께 보아야 하는 흐름`;
 }
 
