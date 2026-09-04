@@ -161,3 +161,16 @@ Pages 와 Worker 가 서로 다른 코드를 가리키는 것이 이 저장소�
 - 🔴 **`node_modules` 가 딸려온다고 믿지 말 것** — `.claude/settings.json` 에 `symlinkDirectories: ["node_modules"]` 가 있는데도 실제로는 대개 안 생긴다(2026-08-23 실측: 워크트리 41개 중 **8개만** 보유). 원인은 미확인이다. 그런데도 `npm test`·`typecheck`·`lint`·`verify:*` 는 대개 도는데, 그건 Node·도구들이 상위 디렉터리를 타고 올라가 저장소 루트의 설치본을 주워 쓰기 때문이다.
 - 🔴 그래서 **`<rootDir>/node_modules` 같은 절대 경로를 코드에 박으면 그 한 줄만 빗나간다** — `require.resolve` 를 쓸 것. 상위 탐색이 안 통하는 유일한 자리라, 박은 그 도구만 죽고 나머지는 전부 초록불이라 늦게 발견된다. 두 번 났다: `jest.config`(21개 스위트 사망) · `next-build-with-pages-manifest.mjs` 의 next CLI 경로(lint·typecheck·jest 가 **전부 통과한 채로** 빌드에서만 `Cannot find module`).
 - 빌드를 돌려야 하면 링크부터 확인한다: `ls -ld node_modules`. 없으면 저장소 루트에서 돌리거나 정션을 건다 — `cmd /c mklink /J "<워크트리 경로>\node_modules" "<저장소 루트 경로>\node_modules"`. 🔴 지울 때는 **링크부터 끊는다**(`cmd /c rmdir "<워크트리 경로>\node_modules"`) — 안 그러면 공유 설치본을 지울 위험이 있다.
+
+## 로컬 `main` 자동 최신화 훅 (2026-09-05 추가)
+
+이 레포는 브랜치 → PR → **사용자 머지** 흐름이라 로컬 `main` 을 갱신하는 주체가 없다. 추가 시점 실측으로 루트 체크아웃의 `main` 이 `origin/main` 보다 10 커밋 뒤처져 있었다. 낡은 로컬 `main` 은 두 가지 사고로 온다 — **이미 머지된 수정을 미해결로 보는 진단 오진**, 그리고 **낡은 지점에서 브랜치를 따는 것**.
+
+- 정본: [.claude/hooks/sync-main-freshness.mjs](../../.claude/hooks/sync-main-freshness.mjs) · 실행 테스트 [.claude/hooks/sync-main-freshness.test.mjs](../../.claude/hooks/sync-main-freshness.test.mjs) (`npm run test:node` 가 글롭으로 잡는다).
+- **언제 도는가**: `SessionStart`(startup·resume·clear, fetch 쿨다운 30분) + `PreToolUse` 의 `EnterWorktree`(쿨다운 5분). 쿨다운 스탬프는 `<git-common-dir>/FETCH_HEAD` 의 mtime 이라 **새 파일을 만들지 않고 Claude Code 자신의 fetch 시계를 그대로 읽는다.**
+- **무엇을 하는가**: 쿨다운 밖이면 명시 refspec 으로 `origin/main` 만 당기고(8초 상한, 실패해도 진행), 안전할 때만 루트 체크아웃을 `--ff-only` 로 전진시킨다. `EnterWorktree` 경로는 **당기기만** 하고 빠진다 — 워크트리 base 는 `worktree.baseRef: "fresh"` 덕분에 이미 `origin/HEAD` 라서 전진시킬 게 없다. 이 훅이 거기서 하는 일은 그 `fresh` 갱신의 **24시간 쿨다운을 5분으로 좁히는 것**뿐이다(원칙 6 — 새 방어층을 얹지 않는다).
+- 🔴 **말은 거의 안 한다** — `main..origin/main` 의 변경 파일이 **200개 이상일 때만** 안내가 나가고, 그 미만이면 전진은 하되 **출력이 0바이트**다. 근거(2026-09-05 실측, `origin/main`): 하루 30~108 커밋이고 `origin/main~10..origin/main` 이 115 파일, `~3..` 이 53 파일이다. 즉 "커밋 N개" 류의 임계는 하루에도 몇 번 걸려 그냥 소음이 된다. 200파일은 대략 **오랜만에 돌아왔거나 전진이 오래 막혀 있던 경우**에만 걸린다.
+  - 재현: `git diff --shortstat origin/main~10 origin/main` · `git log --since=10.days --format=%cd --date=format:%Y-%m-%d origin/main | sort | uniq -c`
+- 🔴 **전진을 건너뛰는 조건 4가지** — 세션이 격리 워크트리 안이다 / 루트 HEAD 가 `main` 이 아니다 / 루트에 미커밋 변경이 있다(**미추적 파일 포함**) / 루트에 진행 중인 git 작업이 있다(`MERGE_HEAD`·`rebase-merge` 등 6종). 하나라도 걸리면 손대지 않는다. `stash` 는 어디에도 쓰지 않는다 — 프로젝트 루트는 여러 세션이 공유하므로 남의 미커밋 변경을 건드리면 그대로 사고다.
+- **이건 가드가 아니라 넛지다.** 모든 실패 경로가 fail-open(조용히 `exit 0`)이고 당기기 실패는 보고하지 않는다 — 오프라인일 때마다 세션 시작을 막으면 아무 일도 못 한다. 원칙 10(fail-closed)의 취지는 테스트에서 지킨다: 임시 bare 원격 + 클론을 만들어 **전진하는 경우 · 건너뛰어야 하는 경우 · 침묵해야 하는 경우(경계 199/200)** 를 실제로 돌린다.
+- **끄는 법**: `.claude/settings.json` 의 `hooks.SessionStart` 와 `hooks.PreToolUse` 의 `EnterWorktree` 블록에서 `sync-main-freshness.mjs` 항목을 지운다. 🔴 훅을 고치거나 지웠으면 **세션을 재시작해야 적용된다**(훅이 안 알려준다).
