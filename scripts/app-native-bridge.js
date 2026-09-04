@@ -457,6 +457,10 @@
     var p = plugins();
     return (p && p.CodeDestinyBilling) || null;
   }
+  function credentialsPlugin() {
+    var p = plugins();
+    return (p && p.CodeDestinyCredentials) || null;
+  }
   function appPlugin() {
     var p = plugins();
     return (p && p.App) || null;
@@ -552,6 +556,34 @@
       var plugin = billingPlugin();
       if (!plugin || !plugin.queryProducts) return unavailable("Native billing product query is not available yet.", { products: [] });
       return plugin.queryProducts(input);
+    },
+    /**
+     * Zero-Tap Sign-In(Restore Credentials) 뼈대 — 네이티브 CodeDestinyCredentialsPlugin 을 그대로 감싼다.
+     * requestJson/responseJson 은 WebAuthn 규격 문자열이고 발급·검증은 서버(후속 PR)가 한다.
+     * 🔴 이 PR 에는 호출부가 없다 — 로그인 성공 뒤 create, 첫 실행 restore, 로그아웃 clear 는
+     * 서버 challenge/assert 엔드포인트와 함께 붙인다. 설계: docs/app-audit/ZERO_TAP_SIGNIN_DESIGN.md
+     */
+    credentials: {
+      async isAvailable() {
+        var plugin = credentialsPlugin();
+        if (!plugin || !plugin.isAvailable) return { ok: true, available: false, code: "NATIVE_CREDENTIALS_UNAVAILABLE" };
+        return plugin.isAvailable();
+      },
+      async create(input) {
+        var plugin = credentialsPlugin();
+        if (!plugin || !plugin.create) return { ok: false, code: "NATIVE_CREDENTIALS_UNAVAILABLE" };
+        return plugin.create({ requestJson: String((input && input.requestJson) || "") });
+      },
+      async restore(input) {
+        var plugin = credentialsPlugin();
+        if (!plugin || !plugin.restore) return { ok: false, code: "NATIVE_CREDENTIALS_UNAVAILABLE" };
+        return plugin.restore({ requestJson: String((input && input.requestJson) || "") });
+      },
+      async clear() {
+        var plugin = credentialsPlugin();
+        if (!plugin || !plugin.clear) return { ok: false, code: "NATIVE_CREDENTIALS_UNAVAILABLE" };
+        return plugin.clear();
+      },
     },
     /**
      * 소셜 로그인. 반드시 커스텀탭으로 연다 —

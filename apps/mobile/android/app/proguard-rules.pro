@@ -51,3 +51,6 @@
 # 잠금화면 브리지. @PluginMethod 이름(getState/setState/setEnabled/scheduleAlarms/dismiss/
 # requestOverlayPermission)이 살아 있어야 /lock-screen-fortune 설정 UI 와 동의 모달이 붙는다.
 -keep class com.codedestiny.app.CodeDestinyLockScreenPlugin { *; }
+# Zero-Tap Sign-In 브리지. @PluginMethod 이름(isAvailable/create/restore/clear)이 살아 있어야
+# window.CodeDestinyNative.credentials 가 붙는다. androidx.credentials 자체는 리플렉션이 없어 keep 불필요.
+-keep class com.codedestiny.app.CodeDestinyCredentialsPlugin { *; }

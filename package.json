@@ -428,6 +428,7 @@
     "perf:home": "node scripts/with-utf8-console.mjs node scripts/measure-home-lighthouse.mjs",
     "measure:home-score": "node scripts/with-utf8-console.mjs node scripts/measure-home-score.mjs",
     "measure:touch-targets": "node scripts/with-utf8-console.mjs node scripts/measure-touch-targets.mjs",
+    "measure:app-memory": "node scripts/with-utf8-console.mjs node scripts/measure-app-memory.mjs",
     "measure:mobile-routes": "node scripts/with-utf8-console.mjs node scripts/measure-mobile-routes.mjs",
     "measure:locale-text-fit": "node scripts/with-utf8-console.mjs node scripts/measure-locale-text-fit.mjs",
     "measure:shell-css": "node scripts/with-utf8-console.mjs node scripts/measure-shell-css-externalization.mjs",
