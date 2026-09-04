@@ -14,6 +14,11 @@
   --skn-text: #fff7e8;
   --skn-text-dim: #d6cfdf;
   --skn-text-faint: #b0a7c0;
+  /* 예화 선화 잉크 — _art/YehwaArt.tsx 가 var(--sk-ink-*) 로 읽는다.
+     🔴 히어로의 .screen 스코프는 여기까지 내려오지 않으므로 이 루트에도 선언한다. */
+  --sk-ink-gold: #e8d5a3;
+  --sk-ink-violet: #c4b5fd;
+  --sk-ink-ivory: #f4e6c8;
 
   position: relative;
   background:
@@ -50,22 +55,14 @@
   word-break: keep-all;
 }
 
-/* 섹션 제목 위의 작은 달빛 — 장식이지만 섹션 경계를 카드 테두리 없이 만든다.
-   🔴 .82rem 짜리 홑글리프는 획이 가늘어 실측 대비가 3.8~4.4:1 에 그쳤고, 뒤따르는
-   문안이 없어 남은 문자처럼 읽혔다(시각 검수 2026-09-04). 크기를 올리고 달빛 선을
-   붙여 "설계된 섹션 표식" 으로 읽히게 한다. */
-.sectionTitle::before {
-  content: "☾";
+/* 섹션 제목 위의 가지 띠 — 카드 테두리 없이 섹션 경계를 만든다.
+   🔴 홑글리프(☾)는 폰트마다 획이 달라 실측 대비가 3.8~4.4:1 에 그쳤고 남은 문자처럼 읽혔다
+   (시각 검수 2026-09-04). 경로가 고정된 예화 가지 띠로 바꿔 "설계된 표식" 으로 읽히게 한다.
+   200px 렌더 ÷ viewBox 640 = 0.3125 배라 원 획 3.5 가 실제 1.09px 로 떨어진다. */
+.sectionMark {
   display: block;
-  margin-bottom: .35rem;
-  color: var(--skn-violet);
-  font-size: .96rem;
-  line-height: 1;
-  opacity: 1;
-  background-image: linear-gradient(90deg, rgba(200, 168, 255, .42), transparent 72%);
-  background-repeat: no-repeat;
-  background-size: 4.6rem 1px;
-  background-position: 1.65rem center;
+  margin-bottom: .3rem;
+  opacity: .9;
 }
 
 .lead,
@@ -103,10 +100,22 @@
   background: linear-gradient(155deg, rgba(255, 255, 255, .06), rgba(255, 255, 255, .02));
 }
 
-.storyGlyph {
-  color: var(--skn-gold);
-  font-size: 1.05rem;
-  line-height: 1;
+/* 세 카드가 같은 인장을 쓰고 잉크로만 갈린다 — 서로 다른 그림 셋보다 한 계열로 읽힌다. */
+.storySeal {
+  display: block;
+  opacity: .92;
+}
+
+.storySealGold {
+  --sk-ink-gold: #e8d5a3;
+}
+
+.storySealViolet {
+  --sk-ink-gold: var(--sk-ink-violet);
+}
+
+.storySealIvory {
+  --sk-ink-gold: var(--sk-ink-ivory);
 }
 
 .storyCard strong {

@@ -8,6 +8,10 @@
   --sk-text-dim: rgba(255, 247, 232, .74);
   --sk-text-faint: rgba(255, 247, 232, .66);
   --sk-line: rgba(255, 232, 182, .22);
+  /* 예화 선화 잉크 — _art/YehwaArt.tsx 가 var(--sk-ink-*) 로 읽는다. 색은 CSS 가 소유한다. */
+  --sk-ink-gold: #e8d5a3;
+  --sk-ink-violet: #c4b5fd;
+  --sk-ink-ivory: #f4e6c8;
   position: relative;
   min-height: 100svh;
   padding: clamp(18px, 4vw, 44px) 20px;
@@ -141,6 +145,10 @@
   position: relative;
   display: grid;
   align-items: start;
+  /* 🔴 카피 바로 아래에 씬을 붙인다. space-between 으로 두면 좌열이 오른쪽 입력 패널 높이
+     (실측 1560px)까지 늘어나 있어 달빛 정원이 통째로 폴드 아래(y≈1193)로 내려갔다
+     — 첫 화면 좌열 500px 이 빈 밤하늘이 됐다(시각 검수 2026-09-05). */
+  align-content: start;
   min-height: clamp(390px, 43vw, 540px);
   background:
     radial-gradient(circle at 78% 17%, rgba(255, 232, 182, .2), transparent 23%),
@@ -159,73 +167,88 @@
   pointer-events: none;
 }
 
+/* 🔴 씬은 절대배치가 아니라 카피 아래 칸에 흐른다(order: 1).
+   inset:0 로 패널을 덮게 두면 씬 상자의 종횡비가 패널을 따라가고,
+   preserveAspectRatio="slice" 가 그만큼 확대해 달을 화면 밖으로 잘라내고 획을 3배로 부풀렸다
+   (실측 2026-09-05: 좌열 636×1470 → 배율 2.83, 획 3px, 달 cx=702 가 크롭 밖). */
 .visualVeil {
-  position: absolute;
-  inset: 0;
+  position: relative;
+  order: 1;
   z-index: 1;
   pointer-events: none;
 }
 
-.lunarBotanicalScene {
-  position: absolute;
-  inset: -6% -4% -9% -2%;
-  width: 106%;
-  height: 116%;
+/* ── 달빛 예화 씬 ────────────────────────────────────────────────────────
+   경로·굵기는 _art/yehwaScene.generated.ts(생성물)가 소유한다. 여기는 배치·색·모션만 준다.
+   데스크탑판과 모바일 크롭판을 둘 다 심고 display 로 고른다 — 리사이즈 리스너를 두지 않는다.
+   🔴 상자 종횡비를 viewBox 와 같게 못 박는다 — 그래야 슬라이스 배율이 폭 하나로만 정해져
+      실제 획 = w × strokeScale × (렌더폭 / viewBox폭) 이 예측 가능해진다.
+   🔴 filter 는 달과 인연선에만 건다. 선화 전체에 걸면 모바일 페인트가 비싸진다(브리핑 #15). */
+.yehwaScene {
+  display: block;
+  width: 100%;
+  height: auto;
   overflow: visible;
-  opacity: .98;
 }
 
-.sceneMoonAura {
-  transform-origin: 684px 138px;
+/* 좌열 폭 ≈566px → 배율 0.63, 생성기의 strokeScale 1.6 과 곱해 실제 획 ≈1.0px. */
+.yehwaSceneWide {
+  aspect-ratio: 900 / 520;
+  /* 지평선이 좌열 경계(실측 x=777)에서 잔여 휘도 30 인 채로 뚝 끊겼다(시각 검수 2026-09-05).
+     마지막 12% 만 알파로 지워 그림이 밤 속으로 잠기게 한다 — 블러가 아니라 마스크라 페인트 비용은 없다. */
+  -webkit-mask-image: linear-gradient(90deg, #000 0 88%, transparent 100%);
+  mask-image: linear-gradient(90deg, #000 0 88%, transparent 100%);
+}
+
+.yehwaSceneNarrow {
+  display: none;
+  aspect-ratio: 476 / 186;
+}
+
+.sceneAura {
   filter: blur(2px);
 }
 
 .sceneMoon {
-  transform-origin: 684px 138px;
+  transform-origin: 702px 138px;
   filter:
-    drop-shadow(0 0 20px rgba(255, 232, 182, .48))
-    drop-shadow(0 0 76px rgba(200, 168, 255, .18));
+    drop-shadow(0 0 18px rgba(232, 213, 163, .42))
+    drop-shadow(0 0 64px rgba(196, 181, 253, .16));
+  animation: sukuyoMoonFloat 7.5s ease-in-out infinite;
 }
 
-.sceneOrbit,
-.sceneOrbitSoft {
-  fill: none;
-  stroke-linecap: round;
+.sceneLink {
+  filter: drop-shadow(0 0 6px rgba(232, 213, 163, .22));
 }
 
-.sceneOrbit {
-  stroke-width: 1.3;
-  opacity: .9;
-}
-
-.sceneOrbitSoft {
-  stroke-width: .9;
-  opacity: .58;
-}
-
-.sceneLotus {
-  filter: drop-shadow(0 18px 40px rgba(246, 183, 210, .16));
-}
-
-.scenePetalLayer {
-  filter: drop-shadow(0 8px 18px rgba(246, 183, 210, .18));
-}
-
-.scenePetal {
+.sceneSpark {
   transform-box: fill-box;
   transform-origin: center;
+  animation: sukuyoSparkPulse 4.2s ease-in-out infinite;
 }
 
-.sceneStars {
-  filter: drop-shadow(0 0 9px rgba(255, 247, 232, .48));
+@keyframes sukuyoMoonFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+@keyframes sukuyoSparkPulse {
+  0%, 100% { opacity: .6; transform: scale(.9); }
+  50% { opacity: 1; transform: scale(1.08); }
 }
 
 .visualCopy {
   position: relative;
   z-index: 2;
+  /* 🔴 카피는 씬 상단(잉크가 거의 없는 구간)에 머문다 — 세로 중앙 정렬하면 꽃 위로 내려앉는다. */
+  align-self: start;
   width: 100%;
   min-width: 0;
   padding: clamp(24px, 4vw, 48px);
+}
+
+.eyebrowMoon {
+  flex: none;
 }
 
 .eyebrow {
@@ -256,7 +279,8 @@
 .visualCopy > p:not(.eyebrow) {
   max-width: 610px;
   margin: 14px 0 0;
-  color: rgba(255, 247, 232, .78);
+  /* 🔴 뮤트 회색 계열은 선화 위에서 2:1 대까지 떨어진다 — 히어로 보조문은 웜 아이보리까지만 낮춘다. */
+  color: #f2e9dc;
   line-height: 1.75;
   word-break: keep-all;
 }
@@ -679,13 +703,17 @@
   color: rgba(255, 247, 232, .82);
 }
 
+/* 달빛 글로우 — 네온이 아니라 번짐이다. 색 대비는 어두운 먹빛 글자가 만들고(#14101f on #d8bf8e ≈ 9.6:1),
+   글로우는 alpha .35 이하로 두어 버튼 가장자리가 타지 않게 한다(브리핑 #9). */
 .primaryButton {
   min-width: 168px;
   padding: 0 20px;
-  border-color: rgba(255, 232, 182, .5);
-  background: linear-gradient(135deg, #ffe8b6 0%, #f7dfa3 42%, #c8a8ff 100%);
-  color: #171421;
-  box-shadow: 0 16px 36px rgba(255, 232, 182, .2);
+  border-color: rgba(232, 213, 163, .5);
+  background: linear-gradient(180deg, #e8d5a3 0%, #d8bf8e 100%);
+  color: #14101f;
+  box-shadow:
+    0 0 40px -5px rgba(216, 179, 108, .35),
+    0 0 80px -20px rgba(156, 135, 212, .25);
 }
 
 .priceBadgeInline {
@@ -1650,22 +1678,18 @@
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, .07);
   }
 
-  .lunarBotanicalScene {
-    inset: -2% -28% auto -14%;
-    width: 142%;
-    height: 340px;
-    opacity: .82;
+  /* 모바일은 달·인연선이 빠진 크롭 구도를 쓴다 — 달은 아이브로우 옆 배지로 되돌아간다.
+     🔴 예전처럼 bottom 고정 190px 로 깔면 헤드라인 2·3행과 서포팅 카피 위를 지나가
+     글자 자리의 국소 대비가 1.84:1 까지 떨어졌다(시각 검수 2026-09-05).
+     흐름 안(order: 1)의 띠로 두고 불투명도를 낮춰 카피와 다투지 않게 한다. */
+  .yehwaSceneWide {
+    display: none;
   }
 
-  .sceneMoonAura,
-  .sceneLotus,
-  .scenePetalLayer,
-  .sceneStars {
-    filter: none;
-  }
-
-  .sceneMoon {
-    filter: drop-shadow(0 0 18px rgba(255, 232, 182, .34));
+  .yehwaSceneNarrow {
+    display: block;
+    margin-top: 6px;
+    opacity: .74;
   }
 
   .workPanel {
@@ -1897,12 +1921,16 @@
   .questionBox textarea,
   .chatComposer textarea,
   .duoSummary i,
-  .duoCardHead span,
-  .duoBridge span,
-  .duoBridge::before,
-  .duoBridge i,
+  .duoSeal,
+  .duoBridgeArt,
   .visualVeil {
     transition: none;
+  }
+
+  /* 씬의 상시 모션은 최종 상태로 고정한다 — 달과 빛망울은 그 자리에 그대로 남는다. */
+  .sceneMoon,
+  .sceneSpark {
+    animation: none;
   }
 }
 
@@ -1920,7 +1948,7 @@
   border-radius: 18px;
   padding: 1rem 1.05rem 1.15rem;
   background: linear-gradient(165deg, rgba(255, 232, 182, 0.11), rgba(18, 12, 38, 0.68));
-  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.32s ease;
 }
 
 .duoCardPartner {
@@ -1928,13 +1956,17 @@
   background: linear-gradient(165deg, rgba(200, 168, 255, 0.13), rgba(18, 12, 38, 0.68));
 }
 
+/* 🔴 완료 신호를 테두리·인장에만 걸었더니 카드 표면이 사실상 그대로였다(실측 Δ≤1/255).
+   달빛이 카드 안으로 스며든 것처럼 바탕도 함께 밝힌다. */
 .duoCardComplete {
   border-color: rgba(255, 232, 182, 0.62);
+  background: linear-gradient(165deg, rgba(255, 232, 182, 0.2), rgba(26, 19, 48, 0.72));
   box-shadow: 0 0 24px rgba(255, 232, 182, 0.12);
 }
 
 .duoCardPartner.duoCardComplete {
   border-color: rgba(200, 168, 255, 0.62);
+  background: linear-gradient(165deg, rgba(200, 168, 255, 0.22), rgba(26, 19, 48, 0.72));
   box-shadow: 0 0 24px rgba(200, 168, 255, 0.14);
 }
 
@@ -1946,7 +1978,16 @@
   margin-bottom: 0.8rem;
 }
 
-.duoCardHead span { font-size: 1.05rem; color: #ffe8b6; }
+/* 예화 인장 — ☾/☆ 글리프를 대신한다. 폰트마다 다르게 그려지던 글리프와 달리 경로가 고정이다. */
+.duoSeal {
+  display: inline-flex;
+  flex: none;
+  line-height: 0;
+}
+
+.duoCardPartner .duoSeal {
+  --sk-ink-gold: var(--sk-ink-violet);
+}
 
 /* 🔴 인라인 유틸리티(min-w-0 flex-1)가 이름을 0폭으로 접었다 — 여기서 되돌린다. */
 .duoCardHead strong {
@@ -1993,22 +2034,16 @@
   justify-content: center;
   gap: 0.4rem;
   min-width: 34px;
-  min-height: 46px;
+  /* 🔴 다리가 두 카드에 실제로 닿아야 "이어졌다"로 읽힌다.
+     .duoGrid 의 gap(0.9rem) 두 칸을 음수 마진으로 되먹어, 74px 짜리 그림이
+     카드 테두리에서 테두리까지를 정확히 채운다(그림 74 − 14.4 × 2 = 45.2 가 행 높이). */
+  margin-block: -0.9rem;
 }
 
-.duoBridge span {
-  font-size: 1.2rem;
-  color: #ffe8b6;
-  text-shadow: 0 0 12px rgba(255, 232, 182, 0.8);
-}
-
-.duoBridge::before,
-.duoBridge i {
-  content: "";
-  flex: 1 1 auto;
-  min-height: 14px;
-  width: 1px;
-  background: linear-gradient(180deg, transparent, rgba(200, 168, 255, 0.45), transparent);
+/* 두 카드를 잇는 다리 — 금선 → 빛망울 → 보랏빛 선이 한 경로 묶음으로 그려진다. */
+.duoBridgeArt {
+  flex: none;
+  filter: drop-shadow(0 0 8px rgba(196, 181, 253, 0.28));
 }
 
 /* ── 결과 티저 (입력 완료 전 흐림) ──────────────────────── */
@@ -2794,44 +2829,39 @@
 /* ── 두 사람이 이어지는 순간 ────────────────────────────────────────────
    상태는 이미 있는 personAComplete / personBComplete / bothComplete 를 그대로 쓴다.
    transform · opacity · box-shadow 만 쓰고 DOM 도 JS 애니메이션 루프도 늘리지 않는다. */
-.duoCardHead span {
-  opacity: .5;
-  transition: opacity .32s ease, text-shadow .32s ease;
+.duoSeal {
+  opacity: .48;
+  transform: scale(.94);
+  transition: opacity .32s ease, transform .32s ease, filter .32s ease;
 }
 
-.duoCardComplete .duoCardHead span {
+.duoCardComplete .duoSeal {
   opacity: 1;
-  text-shadow: 0 0 14px rgba(255, 232, 182, .55);
+  transform: scale(1);
+  filter: drop-shadow(0 0 10px rgba(232, 213, 163, .5));
 }
 
-.duoBridge span {
-  opacity: .42;
-  transform: scale(.88);
-  transition: opacity .36s ease, transform .36s ease;
+.duoCardPartner.duoCardComplete .duoSeal {
+  filter: drop-shadow(0 0 10px rgba(196, 181, 253, .5));
 }
 
-.duoBridge::before,
-.duoBridge i {
-  opacity: .45;
-  transform: scaleY(.3);
+.duoBridgeArt {
+  opacity: .38;
+  transform: scaleY(.62);
   transform-origin: center;
   transition: opacity .44s ease, transform .44s ease;
 }
 
-.duoGridLinked .duoBridge span {
-  opacity: 1;
-  transform: scale(1.14);
-}
-
-.duoGridLinked .duoBridge::before,
-.duoGridLinked .duoBridge i {
+.duoGridLinked .duoBridgeArt {
   opacity: 1;
   transform: scaleY(1);
 }
 
 /* 양쪽이 채워지면 CTA 에 달빛 정도의 글로우만 더한다 — 네온이 되지 않게 alpha 를 낮게 둔다. */
 .duoGridLinked ~ .actions .primaryButton:not(:disabled) {
-  box-shadow: 0 16px 36px rgba(255, 232, 182, .2), 0 0 26px rgba(255, 232, 182, .18);
+  box-shadow:
+    0 0 46px -5px rgba(216, 179, 108, .4),
+    0 0 92px -20px rgba(156, 135, 212, .3);
 }
 
 /* 밤의 정원이 아주 조금 다가온다. filter 대신 transform 만 쓴다(페인트 비용 0). */

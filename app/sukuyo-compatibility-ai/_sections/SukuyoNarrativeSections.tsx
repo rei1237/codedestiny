@@ -10,30 +10,44 @@
 //
 // 문안은 기존 page.tsx 의 것을 한 글자도 지우지 않고 그대로 옮겼고,
 // 클라이언트 히어로에서 걷어낸 상담 카드 3장과 로딩 셸 문단 3개를 여기로 승격했다.
-// 장식은 전부 글리프(☾ ✦ ◇)다 — 인라인 SVG 를 새로 넣으면
-// __tests__/ui/svg-title-not-document-title.static.test.js 가 SVG 안의 title 요소를 막고 있고
-// 브리핑의 "무거운 배경/수십 개 floating DOM 금지" 와도 어긋난다.
+// 장식은 달빛 예화 모티프(인장 · 가지 띠)다 — 경로는 _art/yehwaScene.generated.ts 가 소유하고,
+// 색인 대상 HTML 이 무거워지지 않게 <symbol> 하나를 심고 <use> 로만 부른다.
+// 🔴 SVG 안에 title 요소를 만들지 않는다(__tests__/ui/svg-title-not-document-title.static.test.js).
+import { YehwaMotifSprite, YehwaMotifUse } from "../_art/YehwaArt";
+import { SUKUYO_SEAL, SUKUYO_VINE } from "../_art/yehwaScene.generated";
 import styles from "./SukuyoNarrativeSections.module.css";
+
+const SPRITE = [
+  { id: "skVine", motif: SUKUYO_VINE },
+  { id: "skSeal", motif: SUKUYO_SEAL },
+];
 
 type FaqItem = { question: string; answer: string };
 
 const STORY_CARDS = [
   {
-    glyph: "☾",
+    tone: "gold",
     title: "본명숙",
     text: "태어난 달의 자리로 보는 마음의 기본 결",
   },
   {
-    glyph: "◇",
+    tone: "violet",
     title: "관계 거리",
     text: "가까움과 멀어짐의 리듬을 읽는 숙요점 핵심",
   },
   {
-    glyph: "✦",
+    tone: "ivory",
     title: "궁합 해석",
     text: "끌림, 갈등, 오래가는 방식까지 전문가 상담으로 정리",
   },
 ];
+
+// 같은 인장을 잉크로만 구분한다 — 세 개의 다른 그림보다 한 계열로 읽힌다.
+const STORY_INK: Record<string, string> = {
+  gold: styles.storySealGold,
+  violet: styles.storySealViolet,
+  ivory: styles.storySealIvory,
+};
 
 // 제목은 브리핑이 요구한 감정형 질문, 본문은 기존 <li> 문장 그대로다.
 // 🔴 본문 문장을 쪼개지 않는다 — 40단위 미만으로 잘리면 prose-depth 에서 세어지지 않는다.
@@ -80,13 +94,13 @@ function SukuyoStorySection() {
         단정하기보다, 서로 다른 리듬을 이해하는 데 초점을 둡니다.
       </p>
 
+      <YehwaMotifUse id="skVine" className={styles.sectionMark} width={200} height={20} />
+
       <h2 className={styles.sectionTitle}>두 사람의 관계를 이렇게 읽습니다</h2>
       <div className={styles.storyCards}>
         {STORY_CARDS.map((card) => (
           <article key={card.title} className={styles.storyCard}>
-            <span className={styles.storyGlyph} aria-hidden="true">
-              {card.glyph}
-            </span>
+            <YehwaMotifUse id="skSeal" className={`${styles.storySeal} ${STORY_INK[card.tone]}`} width={30} height={30} />
             <strong>{card.title}</strong>
             <span className={styles.storyCardText}>{card.text}</span>
           </article>
@@ -115,6 +129,7 @@ function SukuyoStorySection() {
 function SukuyoMomentsSection() {
   return (
     <section className={styles.moments} aria-label="숙요점 궁합 상담이 도움이 되는 순간">
+      <YehwaMotifUse id="skVine" className={styles.sectionMark} width={200} height={20} />
       <h2 className={styles.sectionTitle}>이런 순간에 궁금해집니다</h2>
       <p className={styles.momentsNote}>이런 순간에 특히 도움이 됩니다</p>
       <ul className={styles.momentList}>
@@ -132,6 +147,7 @@ function SukuyoMomentsSection() {
 function SukuyoTimelineSection() {
   return (
     <section className={styles.timeline} aria-label="숙요점 궁합 상담 진행 방식">
+      <YehwaMotifUse id="skVine" className={styles.sectionMark} width={200} height={20} />
       <h2 className={styles.sectionTitle}>상담은 이렇게 진행됩니다</h2>
       <ol className={styles.timelineList}>
         {TIMELINE_STEPS.map((step) => (
@@ -159,6 +175,7 @@ function SukuyoTimelineSection() {
 function SukuyoFaqSection({ items }: { items: FaqItem[] }) {
   return (
     <section className={styles.faq} aria-label="숙요점 궁합 전문가 상담 자주 묻는 질문">
+      <YehwaMotifUse id="skVine" className={styles.sectionMark} width={200} height={20} />
       <h2 className={styles.sectionTitle}>자주 묻는 질문</h2>
       {/* 🔴 <details> 여야 답변 본문이 DOM 에 남아 색인·prose-depth 에 세어진다.
           닫혀 있어도 서버 HTML 에는 전문이 들어간다. */}
@@ -180,6 +197,7 @@ function SukuyoFaqSection({ items }: { items: FaqItem[] }) {
 export default function SukuyoNarrativeSections({ faqItems }: { faqItems: FaqItem[] }) {
   return (
     <div className={styles.narrative}>
+      <YehwaMotifSprite motifs={SPRITE} />
       <div className={styles.inner}>
         <SukuyoStorySection />
         <SukuyoMomentsSection />
