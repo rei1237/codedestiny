@@ -276,6 +276,6 @@ next: "슬라이스 3b `loveCharacterStories.ts`(26,723자)를 캐릭터 단위�
 
 - UI 카피 축은 거의 끝났다 — `"use client"` + 한국어 + **배선 전무**가 24개 파일 · 105문자열.
   남은 실제 결함은 `app/_lib/moonlight-store-snapshot.ts`(4) · animal-destiny 연출 컴포넌트 3종(~11) ·
-  `love-simulation/_components/DialogueBox.tsx`(2) 정도다.
+  `love-simulation/_components/DialogueBox.tsx`(2, **2026-09-05 미참조로 삭제**) 정도다.
 - 휴먼 디자인은 이번에 5로케일 260항목을 채웠다(PR #1130).
 - 🔴 측정기는 **배선 6가지**를 전부 인정해야 수치가 안 부푼다 — 목록은 locale-service 문서에 있다.

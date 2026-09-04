@@ -2,44 +2,12 @@
 
 import { AnimatePresence, m } from "framer-motion";
 import { useEffect, useState } from "react";
+import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 
 type ExitToastProps = {
   visible: boolean;
   message?: string;
 };
-
-const LOCALE_CODES = ["ko", "en", "ja", "zh-CN", "zh-TW", "vi", "hi", "es", "fr", "de", "nl", "ms"] as const;
-type LoadingLocale = (typeof LOCALE_CODES)[number];
-
-function normalizeExitToastLocale(value?: string | null): LoadingLocale {
-  const normalized = String(value || "").trim().replace("_", "-").toLowerCase();
-  if (normalized === "zh" || normalized === "zh-cn" || normalized === "zh-hans") return "zh-CN";
-  if (normalized === "zh-tw" || normalized === "zh-hant" || normalized === "zh-hk" || normalized === "zh-mo") return "zh-TW";
-  if (normalized === "vi-vn") return "vi";
-  return LOCALE_CODES.find((locale) => locale.toLowerCase() === normalized) || "ko";
-}
-
-function getCurrentExitToastLocale(): LoadingLocale {
-  if (typeof window === "undefined") return "ko";
-  try {
-    const runtimeLang = (window as typeof window & { cdGetCurrentLanguage?: () => string }).cdGetCurrentLanguage?.();
-    if (runtimeLang) return normalizeExitToastLocale(runtimeLang);
-  } catch {}
-  try {
-    const params = new URLSearchParams(window.location.search || "");
-    const fromQuery = params.get("lang");
-    if (fromQuery) return normalizeExitToastLocale(fromQuery);
-  } catch {}
-  try {
-    const fromStorage = window.localStorage.getItem("cd_lang");
-    if (fromStorage) return normalizeExitToastLocale(fromStorage);
-  } catch {}
-  try {
-    const match = document.cookie.match(/(?:^|;\s*)cd_locale=([^;]+)/);
-    if (match?.[1]) return normalizeExitToastLocale(decodeURIComponent(match[1]));
-  } catch {}
-  return "ko";
-}
 
 const EXIT_TOAST_MESSAGE: Record<LoadingLocale, string> = {
   ko: "한 번 더 누르면 종료됩니다",
@@ -64,7 +32,7 @@ export default function ExitToast({
 
   useEffect(() => {
     if (!visible) return;
-    setLocale(getCurrentExitToastLocale());
+    setLocale(getCurrentLoadingLocale());
   }, [visible]);
 
   const resolvedMessage = message || EXIT_TOAST_MESSAGE[locale] || EXIT_TOAST_MESSAGE.ko;

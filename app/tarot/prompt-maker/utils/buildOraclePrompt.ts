@@ -1,5 +1,5 @@
 import { TAROT_CARDS } from "../../../../lib/tarot/tarot-cards.mjs";
-import { CATEGORY_LABEL, DEFAULT_QUESTION_BY_CATEGORY, getLocalizedPromptMakerData } from "../data/tarotSpreadLibrary";
+import { CATEGORY_LABEL, DEFAULT_QUESTION_BY_CATEGORY, getLocalizedPromptMakerData, normalizePromptMakerLocale as normalizePromptBuilderLocale, type PromptMakerLocale as PromptBuilderLocale } from "../data/tarotSpreadLibrary";
 import type { DrawnTarotCard, TarotSpread } from "../types";
 
 type OraclePromptResult = {
@@ -16,8 +16,6 @@ type OraclePromptOptions = {
   questionCategory?: TarotSpread["category"];
   locale?: string | null;
 };
-
-type PromptBuilderLocale = "ko" | "en" | "ja" | "zh-CN" | "zh-TW" | "vi" | "hi" | "es" | "fr" | "de" | "nl" | "ms";
 
 type LocalizedPromptBuilderCopy = {
   tarotRole: string;
@@ -485,14 +483,6 @@ const LOCALIZED_PROMPT_BUILDER_COPY: Record<Exclude<PromptBuilderLocale, "ko">, 
     lenormandSummary: (spreadName) => `${spreadName} sedia sebagai prompt Lenormand.`,
   },
 };
-
-function normalizePromptBuilderLocale(locale: string | null | undefined): PromptBuilderLocale {
-  const value = String(locale || "ko");
-  if (value === "zh" || value === "zh-CN") return "zh-CN";
-  if (value === "zh-TW") return "zh-TW";
-  if (["ko", "en", "ja", "vi", "hi", "es", "fr", "de", "nl", "ms"].includes(value)) return value as PromptBuilderLocale;
-  return "en";
-}
 
 function ensureText(value: string) {
   return String(value || "").trim().replace(/\s+/g, " ");

@@ -180,7 +180,7 @@ export const DEFAULT_QUESTION_BY_CATEGORY: Record<TarotSpreadCategory, string> =
   special: "이 특별한 상황에서 가장 먼저 읽어야 할 핵심 신호는 무엇일까?",
 };
 
-type PromptMakerLocale = "ko" | "en" | "ja" | "zh-CN" | "zh-TW" | "vi" | "hi" | "es" | "fr" | "de" | "nl" | "ms";
+export type PromptMakerLocale = "ko" | "en" | "ja" | "zh-CN" | "zh-TW" | "vi" | "hi" | "es" | "fr" | "de" | "nl" | "ms";
 
 type LocalizedPromptMakerData = {
   categoryLabel: Record<TarotSpreadCategory, string>;
@@ -705,7 +705,7 @@ const DEFAULT_QUESTION_BY_CATEGORY_LOCALIZED: Record<Exclude<PromptMakerLocale, 
   },
 };
 
-function normalizePromptMakerLocale(locale: string | null | undefined): PromptMakerLocale {
+export function normalizePromptMakerLocale(locale: string | null | undefined): PromptMakerLocale {
   const value = String(locale || "ko");
   if (value === "zh" || value === "zh-CN") return "zh-CN";
   if (value === "zh-TW") return "zh-TW";

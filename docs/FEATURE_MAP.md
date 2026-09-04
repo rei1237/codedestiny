@@ -13,7 +13,7 @@
 ## 사주
 
 - 주요 라우트: `/saju`, `/saju/basic`, `/saju/basic/play`, `/manse`, `/daily-fortune`, `/saju/compatibility`, `/saju/five-elements`, `/saju/ten-gods`, `/saju/sibyl`
-- 주요 컴포넌트: `app/components/SajuBasicPage.tsx`, `components/fortune/SajuPillarTable.tsx`, `app/components/MainHeroFortuneForm.tsx`
+- 주요 컴포넌트: `app/components/SajuBasicPage.tsx`, `components/fortune/SajuPillarTable.tsx`
 - 주요 API: `/api/fortune/*`, `/api/saju-new-year/*`, `/api/new-year-ai/*`
 - 주요 lib: `worker/lib/saju-*.js`, `lib/fortune/analysis-basis.ts`, `AnalysisEngine.js`
 - 데이터: `User`, `ProfileCard`, `ContentEntitlement`, `PaidExecutionRecord`, AI consultation collections

@@ -13,41 +13,9 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 
 export type ToastType = "success" | "error" | "info";
-
-const LOCALE_CODES = ["ko", "en", "ja", "zh-CN", "zh-TW", "vi", "hi", "es", "fr", "de", "nl", "ms"] as const;
-type LoadingLocale = (typeof LOCALE_CODES)[number];
-
-function normalizeToastLocale(value?: string | null): LoadingLocale {
-  const normalized = String(value || "").trim().replace("_", "-").toLowerCase();
-  if (normalized === "zh" || normalized === "zh-cn" || normalized === "zh-hans") return "zh-CN";
-  if (normalized === "zh-tw" || normalized === "zh-hant" || normalized === "zh-hk" || normalized === "zh-mo") return "zh-TW";
-  if (normalized === "vi-vn") return "vi";
-  return LOCALE_CODES.find((locale) => locale.toLowerCase() === normalized) || "ko";
-}
-
-function getCurrentToastLocale(): LoadingLocale {
-  if (typeof window === "undefined") return "ko";
-  try {
-    const runtimeLang = (window as typeof window & { cdGetCurrentLanguage?: () => string }).cdGetCurrentLanguage?.();
-    if (runtimeLang) return normalizeToastLocale(runtimeLang);
-  } catch {}
-  try {
-    const params = new URLSearchParams(window.location.search || "");
-    const fromQuery = params.get("lang");
-    if (fromQuery) return normalizeToastLocale(fromQuery);
-  } catch {}
-  try {
-    const fromStorage = window.localStorage.getItem("cd_lang");
-    if (fromStorage) return normalizeToastLocale(fromStorage);
-  } catch {}
-  try {
-    const match = document.cookie.match(/(?:^|;\s*)cd_locale=([^;]+)/);
-    if (match?.[1]) return normalizeToastLocale(decodeURIComponent(match[1]));
-  } catch {}
-  return "ko";
-}
 
 interface ToastItem {
   id: number;
@@ -100,7 +68,7 @@ function SingleToast({
   onRemove: (id: number) => void;
 }) {
   const [visible, setVisible] = useState(false);
-  const closeLabel = TOAST_CLOSE_LABEL[getCurrentToastLocale()] || TOAST_CLOSE_LABEL.ko;
+  const closeLabel = TOAST_CLOSE_LABEL[getCurrentLoadingLocale()] || TOAST_CLOSE_LABEL.ko;
 
   useEffect(() => {
     const t1 = setTimeout(() => setVisible(true), 16);

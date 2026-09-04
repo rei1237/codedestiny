@@ -3,7 +3,7 @@
 import React, { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { m, AnimatePresence } from "framer-motion";
 import { ArrowLeft, ChevronRight, Heart, MessageCircle, RefreshCw, Sparkles, UserRound } from "lucide-react";
-import { INITIAL_STATS, LOVE_CHARACTERS, LOVE_CHARACTER_COPY_KO, getLocalizedLoveScenes, type CharacterId, type ChoiceLog, type LoveCharacter, type LoveChoice, type LoveScene, type LoveStats } from "../_data/loveCodeMvp";
+import { INITIAL_STATS, LOVE_CHARACTERS, LOVE_CHARACTER_COPY_KO, getLocalizedLoveScenes, normalizeLoveSceneTitleLocale as normalizeLoveSimulationLocale, type CharacterId, type ChoiceLog, type LoveCharacter, type LoveChoice, type LoveScene, type LoveSceneTitleLocale as LoveSimulationLocale, type LoveStats } from "../_data/loveCodeMvp";
 import { fetchSajuPillar } from "../_services/sajuApi";
 import { applyEffects, getRelationshipMetrics } from "../_utils/loveCodeScoring";
 import { buildSajuCoupleCompatibility, formatTemplate, matchLoveCharactersFromSaju, LOVE_MATCHING_COPY_KO, type LoveCharacterMatchResult, type LoveMatchingCopy, type SajuCoupleCompatibility } from "../_utils/loveCharacterMatching";
@@ -31,20 +31,9 @@ const LOVE_SIMULATION_FEATURE_AMOUNT_KRW = LOVE_SIMULATION_PRICING?.amountKRW ??
 
 type PartnerCalendarType = "solar" | "lunar" | "lunar_leap";
 type PartnerGender = "female" | "male";
-type LoveSimulationLocale = "ko" | "en" | "ja" | "zh-CN" | "zh-TW" | "vi" | "hi" | "es" | "fr" | "de" | "nl" | "ms";
 type LoveSimulationRuntimeWindow = Window & {
   cdGetCurrentLanguage?: () => string;
 };
-
-function normalizeLoveSimulationLocale(value?: string | null): LoveSimulationLocale {
-  const normalized = String(value || "ko").trim().toLowerCase().replace("_", "-");
-  if (normalized === "zh" || normalized === "zh-cn" || normalized === "zh-hans") return "zh-CN";
-  if (normalized === "zh-tw" || normalized === "zh-hant" || normalized === "zh-hk" || normalized === "zh-mo") return "zh-TW";
-  if (normalized === "ja-jp") return "ja";
-  if (normalized === "en-us" || normalized === "en-gb") return "en";
-  if (["ko", "en", "ja", "vi", "hi", "es", "fr", "de", "nl", "ms"].includes(normalized)) return normalized as LoveSimulationLocale;
-  return "ko";
-}
 
 function readLoveSimulationCookie(name: string) {
   const prefix = `${name}=`;

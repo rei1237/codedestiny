@@ -229,7 +229,7 @@ PR #1121(`feature/naming-locale-branch`). 커밋 5개.
 | `app/human-design/**` | ~18 | 🔴 **ko/en 이중 언어만** 있다(`locale === "ko" ? A : B` 삼항). ja·zh 가 아예 없어 카피 모듈 신설이 필요하다 — 이 슬라이스에서 가장 큰 실제 결함 |
 | `app/_lib/moonlight-store-snapshot.ts` | 4 | 상점 요약 오류 메시지 |
 | `app/saju/animal-destiny/components/*` | ~15 | Hero·연출 컴포넌트 3종. 이미 있는 `_lib/copy.ts` 에 키를 더하면 된다 |
-| `app/saju/love-simulation/_components/DialogueBox.tsx` | 2 | |
+| ~~`app/saju/love-simulation/_components/DialogueBox.tsx`~~ *(2026-09-05 미참조로 삭제)* | 2 | |
 
 🔴 **콘텐츠 번역은 별개 계보다.** `love-simulation/_data/loveCodeMvp.ts` 한 파일이 5,323줄이고,
 자미두수 해석 엔진 문장과 12궁·별 이름은 `advanced-ziwei-copy.ts` 헤더가 **로케일 무관으로 명시 제외**한다

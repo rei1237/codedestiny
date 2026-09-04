@@ -20,7 +20,7 @@
 | 콘텐츠 검색 인덱스 + 검색 API에 `band` 파라미터 추가 | **검색 API도, `/search` 라우트도, 검색 인덱스도 없다.** 현재 검색은 `index.html`의 `#cdServiceIndex` — 런타임에 DOM 타일(`.moon-preview-card`, `.tarot-tile` 등)을 긁어 `indexOf` 부분문자열로 매칭하는 클라이언트 검색이며, **정적 셸 7벌에 사본**이 있다. Phase 4는 "인덱스 필드 추가 / API 파라미터"가 아니라 **DOM 데이터 속성 기반 필터**로 재설계해야 한다 |
 | 대상 로케일 `ko, en, ja, zh-CN, zh-TW` 5개 | **2계층 12개.** 런타임 사전 12개(`ko,en,ja,zh-CN,zh-TW,vi,hi,es,fr,de,nl,ms` — `lib/i18n/locale-normalize.js:13`), SSR/SEO 라우팅 5개(`ko,ja,zh,zh-TW,en` — `lib/i18n/locales.ts`). 가격 문자열은 **12벌 전부**에 들어 있다 |
 | 갤럭시아 머니트리 잔존 코드 | **코드에 없음.** 저장소 전체에서 `AUDIT.md:20` 문서 언급 1건뿐 |
-| 결제 통화 KRW 고정 | 맞다. 단 `GlobalPricingCard.jsx`는 국가코드→통화 매핑(`BRL`/`MXN`/`KRW` 등)을 이미 갖고 랜딩에 렌더된다 — 표시 전용이지만 다통화 흔적이 남아 있다 |
+| 결제 통화 KRW 고정 | 맞다. ~~단 `GlobalPricingCard.jsx`는 국가코드→통화 매핑(`BRL`/`MXN`/`KRW` 등)을 이미 갖고 랜딩에 렌더된다~~ → **2026-09-05: 그 카드와 랜딩(`MainLandingPage.tsx`) 모두 삭제돼 렌더 경로가 없다** |
 | `sajuAdapter.ts` / `normalizeSaju.ts` / `calculateLocalResult` | 존재. 읽기 전용 규칙 그대로 유효 |
 | PortOne 상점아이디 · Inicis | 유효. 실결제 경로는 PortOne V2(`pg:'KG_INICIS'`) + 앱 Google Play Billing |
 
@@ -352,14 +352,14 @@ AI 상담의 표준 가격대. **`PREMIUM_QUOTA_MIN_COIN_COST = 300` 문턱과 �
 | └ `index.html:22598-22601` | 4 | `goldenPackages` 이용권 가격(표시 전용, 구매는 `/points?plan=`로 인계) |
 | └ `index.html:34098-34235` | ~30 | 기능 프리뷰 카탈로그 `cost:'🔒 해금 20,000원'` 형태 |
 | **i18n 런타임 사전 12벌** (`public/i18n/*.json`) | ko 50 · en 93 · zh-cn/zh-tw 각 91 · nl 90 · de/es 각 86 · hi 77 · ja/ms 각 76 · vi 74 · fr 8 | 번역 **문장 안에** 금액이 박혀 있음. `{{price}}` 플레이스홀더 없음 |
-| └ `public/i18n/*.json:1626, 1642` | 12벌 전부 | `"krwPrice": 9900` / `59000` — `GlobalPricingCard` 금액이 12개 언어에 복제 |
+| └ `public/i18n/*.json:1626, 1642` | 12벌 전부 | `"krwPrice": 9900` / `59000` — `GlobalPricingCard` 금액이 12개 언어에 복제. **2026-09-05: 소비 컴포넌트가 삭제돼 읽는 곳이 없는 잔재** |
 | `public/i18n/*/shellRuntime.json` (8개 로케일) | 다수 | 셸 런타임 문자열 |
 | `i18n/authored/shellRuntime-{10,13,16,18,19}.json` · `i18n/pending/*` | 25+ | 저작 소스에도 12개 언어 동시 하드코딩 |
 | `app/_lib/serviceSections.js` | ~18 | `fallbackDesc` — 사실상 서비스 카탈로그 |
 | `app/_lib/serviceFeatureRegistry.ts` | 7 | `priceLabel`, `highlights` |
 | `app/_lib/serviceMap.js` | 3 | `landingPoints` |
-| `app/components/MainLandingPage.tsx` | ~17 | 카드 badge + **한→영 하드코딩 번역 맵**(185-194) |
-| `app/components/GlobalPricingCard.jsx` | 3 | 랜딩에 실제 렌더 (표 D-2) |
+| ~~`app/components/MainLandingPage.tsx`~~ *(2026-09-05 삭제)* | ~17 | 카드 badge + **한→영 하드코딩 번역 맵**(185-194) |
+| ~~`app/components/GlobalPricingCard.jsx`~~ *(삭제됨)* | 3 | ~~랜딩에 실제 렌더~~ (표 D-2 — 무효) |
 | `app/saju-guardian/SajuGuardianClient.tsx` | 12 | `10,000원` + 자체 en 번역 맵 |
 | `app/points/{PointsClient,SubscriptionStatusCard}.tsx` | 10 | 등급 혜택 문구 |
 | 개별 기능 화면 (`island-consult`, `destiny-compass/*`, `fortune-chat`, `fusion-fortune`, `naming-ai`, `nakshatra/*`, `tarot/*`, `psychotest/*`, `fpti/*`, `maya/*`, `guardian-fortune` 등) | ~40 | 버튼 라벨·`fallbackLabel` |
@@ -457,9 +457,16 @@ CSS 주석 2건(`fusion-fortune.module.css:802`, `codex.module.css:470`).
 > (산출 JSON 의 메타 필드). `premium_pdf_vedic` 는 지금도 가격 레지스트리·별칭 표 어디에도 없어
 > **이 키로는 390코인이 매겨지지 않는다.** 390 가격대 자체도 2026-09-01 에 없어졌다(A-7 종결 노트).
 
-### D-2. 🔴 랜딩 가격 카드가 환산 규칙과 정면 충돌 — `GlobalPricingCard.jsx`
+### D-2. ~~🔴 랜딩 가격 카드가 환산 규칙과 정면 충돌 — `GlobalPricingCard.jsx`~~ → **해소(2026-09-05)**
 
-`app/components/GlobalPricingCard.jsx:44-69`
+> 🔴 **이 항목은 무효다.** `app/components/GlobalPricingCard.jsx` 는 이미 레포에 없고(`git ls-files` 0건),
+> 이 카드를 `dynamic()` 으로 부르던 `app/components/MainLandingPage.tsx` 도 **어디서도 참조되지 않아
+> 2026-09-05 미참조 스윕에서 삭제**됐다. 즉 아래 표의 금액은 **사용자에게 렌더된 적이 없다** —
+> "실제 렌더된다" 는 아래 판정 자체가 랜딩이 살아 있다는 전제 위에 있었다.
+> 12개 로케일 JSON 의 `krwPrice` 잔재(아래 §라인)만 남아 있으나 이를 읽는 컴포넌트가 없다.
+> 아래 원문은 대조용으로 남긴다.
+
+`app/components/GlobalPricingCard.jsx:44-69` *(삭제됨)*
 
 | 티어 | 표시 금액 | 코인 | `KRW_PER_COIN=100` 기준 정합 금액 | 배율 |
 |---|---:|---:|---:|---:|
@@ -467,7 +474,7 @@ CSS 주석 2건(`fusion-fortune.module.css:802`, `codex.module.css:470`).
 | Standard | ₩29,000 | 35 | ₩3,500 | **8.3배** |
 | Premium | ₩59,000 | 80 | ₩8,000 | **7.4배** |
 
-`app/components/MainLandingPage.tsx:401,645`에서 `dynamic()`으로 **실제 렌더된다**(`reports/unused-files-report.json:145`의 "미사용" 등재는 오류). 같은 값이 **12개 로케일 JSON `*.json:1626,1642`에도 복제**돼 있다.
+~~`app/components/MainLandingPage.tsx:401,645`에서 `dynamic()`으로 **실제 렌더된다**(`reports/unused-files-report.json:145`의 "미사용" 등재는 오류).~~ **정정(2026-09-05): 두 파일 모두 삭제됐다 — 미사용 등재 쪽이 맞았다.** 같은 값이 **12개 로케일 JSON `*.json:1626,1642`에도 복제**돼 있으나 이를 읽는 컴포넌트가 없다.
 금액 자체는 이용권 가격(9,900/59,000)과 비슷해 "코인팩"이 아니라 이용권 카드의 잔재로 보이나, 코인 수량이 함께 표시돼 있어 **사용자가 10코인을 9,900원에 사는 것으로 읽을 수 있다.**
 
 **위험도: 높음(표시 오류) / 결제 실행 경로는 아님** — `onSelectTier`가 결제를 직접 태우지 않는지 Phase 2에서 확인 필요.
