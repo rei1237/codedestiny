@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { spawnSync } from "node:child_process";
+import { existsSync } from "node:fs";
 import { riskOf, requiresDeepVerification, selfTest as riskSelfTest } from "./lib/change-risk.mjs";
 
 const root = process.cwd();
@@ -75,7 +76,10 @@ function main() {
   }
   if (skipBuild) console.log("[check:changed] --skip-build: the Cloudflare Pages build runs in CI.");
 
-  const source = files.filter((file) => /\.(?:[cm]?js|[cm]?ts|tsx|jsx)$/.test(file));
+  // 삭제된 파일을 eslint 에 넘기면 "No files matching the pattern" 으로 죽는다.
+  // 삭제만 있는 변경(미참조 파일 스윕)이 통째로 막히던 자리다 — 위험도 분류는 삭제분까지 보되,
+  // lint 대상은 실제로 존재하는 파일로만 좁힌다.
+  const source = files.filter((file) => /\.(?:[cm]?js|[cm]?ts|tsx|jsx)$/.test(file) && existsSync(file));
   if (source.length) run("changed-file lint", npm, ["exec", "--", "eslint", "--quiet", ...source]);
   // PR CI 실패 1위가 sitemap 드리프트다. 로컬 4초짜리를 느린 typecheck 앞에 둬서
   // 라우트를 건드린 커밋이 CI 왕복을 한 번 더 돌지 않게 한다.

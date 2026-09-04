@@ -55,10 +55,10 @@ next: "\"남은 일 두 가지\" 절 — 그리고 \"사람이 확인해야 할 
 - 🔴 게이트가 아니다. 실제 허용/차감은 서버 `evaluatePassCoverage` + `consumePassCoverage` 가 한다. 이 값을 보고 결제 흐름을 건너뛰는 코드를 만들지 말 것(CLAUDE.md 원칙 6 — 중첩 사전검사 금지).
 
 **붙이는 곳**:
-- `app/components/ServiceCard.tsx` — `Badge.tone` 에 값 추가(현재 `"free" | "coin" | "new" | "soft"`), 색상은 `badgeClass()`
-- `app/components/FeatureLandingPage.tsx` — CTA 하단
+- ~~`app/components/ServiceCard.tsx` — `Badge.tone` 에 값 추가(현재 `"free" | "coin" | "new" | "soft"`), 색상은 `badgeClass()`~~ 🔴 **2026-09-05 삭제됨**(`MainLandingPage.tsx` 전용이었고 그 랜딩이 미참조였다). 붙일 곳을 다시 고를 것.
+- `app/components/FeatureLandingPage.tsx` — CTA 하단 *(현존 — 실질적으로 여기가 유일한 부착 지점이다)*
 - 가격 자체는 기존 `app/components/PriceBadge.tsx` / `app/hooks/useServerPrice.ts` 재사용 — 새로 만들지 말 것
-- ⚠️ 홈 서비스 카드의 배지는 `app/components/MainLandingPage.tsx:299-385` 에 **리터럴 문자열**로 박혀 있다(`{ text: "3,000원", tone: "coin" }`). 레지스트리에서 오지 않으므로, 여기 배지를 붙이려면 그 데이터부터 featureKey 기반으로 바꿔야 한다 — 범위가 커지니 별도 판단이 필요하다.
+- ~~⚠️ 홈 서비스 카드의 배지는 `app/components/MainLandingPage.tsx:299-385` 에 **리터럴 문자열**로 박혀 있다~~ → **2026-09-05: 그 랜딩은 삭제됐다. 홈은 정적 셸(`index.html`)이 정본이므로 홈 배지는 셸 쪽 과제다.**
 
 **i18n**: 신규 문구 5~6개 × 12로케일. 🔴 자동 번역기 금지(Gemini 유료 실호출). 키 수를 먼저 줄이고 손으로 쓴다.
 
