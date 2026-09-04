@@ -490,7 +490,9 @@ export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
         // 커스텀탭 플러그인이 없다고 여기서 멈추면 앱에서 소셜 로그인이 통째로 막힌다.
         // 이 이동은 네이티브가 마지막에 받아 준다 — CodeDestinyNavigationPlugin.shouldOverrideLoad
         // 이 /api/auth/oauth/ 최상위 이동을 잡아 appRedirect 를 붙인 커스텀탭으로 대신 연다.
-        if (result?.code === "NATIVE_BROWSER_UNAVAILABLE") { window.location.assign(webStartUrl); return; }
+        // 커스텀탭을 못 열면 웹 시작 URL 로 넘긴다. 🔴 넘기기 전에 잠금을 푼다 —
+        // 네이티브 네비게이션 가드가 이 이동을 막으면 화면은 그대로인데 버튼만 영영 잠긴다.
+        if (result?.code === "NATIVE_BROWSER_UNAVAILABLE") { setSocialBusy(null); window.location.assign(webStartUrl); return; }
         setError(result.message || copy.unavailable); setSocialBusy(null);
       }).catch(() => { setError(copy.network); setSocialBusy(null); });
       return;

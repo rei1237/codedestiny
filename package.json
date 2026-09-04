@@ -116,6 +116,7 @@
     "verify:auth-hint-single-source": "node scripts/verify-auth-hint-single-source.mjs",
     "verify:auth-p0p1": "node scripts/verify-auth-p0p1-regression.mjs",
     "verify:oauth-app-handoff": "node scripts/verify-oauth-app-handoff.mjs",
+    "verify:capacitor-plugin-registration": "node scripts/verify-capacitor-plugin-registration.mjs",
     "migrate:withdraw": "node scripts/migrate-withdraw-indexes.mjs",
     "migrate:payments-read-indexes": "node scripts/migrate-payments-read-indexes.mjs",
     "migrate:auth-core-indexes": "node scripts/migrations/20260705-add-auth-core-indexes.mjs",
