@@ -583,3 +583,53 @@ describe("isMonthlyLimitPayload", () => {
     expect(passVerdict.isMonthlyLimitPayload("MONTHLY_PASS_LIMIT_EXCEEDED")).toBe(false);
   });
 });
+
+describe("markPassEndedFromPayload — 월 한도 소진으로 이용권이 끝났다는 서버 통보", () => {
+  // 소진을 유발한 그 응답이 클라 스냅샷을 뒤집는 유일한 기회다. 놓치면 스냅샷이 잠시
+  // '보유'로 남아 낙관 통과 → 서버 402 → "됐다가 안 됨"으로 보인다.
+  const active = (extra = {}) => ({
+    state: "active",
+    tier: "premium",
+    expiresAt: new Date(Date.now() + 10 * DAY).toISOString(),
+    checkedAt: Date.now() - HOUR,
+    stale: false,
+    ...extra,
+  });
+
+  it("data.membershipPass.passEnded 를 보면 보유 스냅샷을 미보유로 뒤집는다", () => {
+    seed(storage, active({ monthlySpendRemainingCoin: 12 }));
+    const endedAt = new Date().toISOString();
+    const stored = passVerdict.markPassEndedFromPayload(USER_ID, {
+      ok: true,
+      data: { membershipPass: { tier: "premium", passEnded: true, passEndedAt: endedAt } },
+    });
+    expect(stored).not.toBeNull();
+    expect(stored.state).toBe("none");
+    expect(stored.tier).toBe("free");
+    expect(stored.expiresAt).toBeNull();
+    expect(stored.monthlySpendRemainingCoin).toBe(0);
+    expect(passVerdict.readSnapshot(USER_ID).state).toBe("none");
+  });
+
+  it("최상위·data 어디에 실려도 잡는다", () => {
+    seed(storage, active());
+    expect(passVerdict.markPassEndedFromPayload(USER_ID, { passEnded: true }).state).toBe("none");
+    seed(storage, active());
+    expect(passVerdict.markPassEndedFromPayload(USER_ID, { data: { passEnded: true } }).state).toBe("none");
+  });
+
+  it("🔴 플래그가 없으면 보유 스냅샷을 건드리지 않는다", () => {
+    seed(storage, active());
+    expect(passVerdict.markPassEndedFromPayload(USER_ID, { ok: true, data: { granted: true } })).toBeNull();
+    expect(passVerdict.markPassEndedFromPayload(USER_ID, { data: { membershipPass: { passEnded: false } } })).toBeNull();
+    // 문자열 "true"·1 같은 헐거운 참값으로는 보유자를 뒤집지 않는다.
+    expect(passVerdict.markPassEndedFromPayload(USER_ID, { passEnded: "true" })).toBeNull();
+    expect(passVerdict.readSnapshot(USER_ID).state).toBe("active");
+  });
+
+  it("사용자 없음·비객체 페이로드는 아무것도 쓰지 않는다", () => {
+    expect(passVerdict.markPassEndedFromPayload("", { passEnded: true })).toBeNull();
+    expect(passVerdict.markPassEndedFromPayload(USER_ID, null)).toBeNull();
+    expect(storage.size()).toBe(0);
+  });
+});

@@ -125,6 +125,12 @@ const userSchema = new mongoose.Schema({
     premiumUseCycleKey: { type: String, default: "", trim: true, maxlength: 40 },
     premiumUseCount: { type: Number, default: 0, min: 0 },
     monthlySpendCoin: { type: Number, default: 0, min: 0 },
+    // 월 한도 소진으로 조기 종료된 시각과, 그때 남아 있던 원래 만료일(2026-09-04 정책).
+    // 종료 자체는 expiresAt 을 당기는 것으로 성립하므로 이 둘은 판정에 쓰지 않는다 —
+    // CS·환불 문의에서 "왜 30일 전에 끝났나"를 설명하는 증거 전용이다.
+    // 정본: lib/profile-limits.js buildPassTerminationFields.
+    passExhaustedAt: { type: Date, default: null },
+    passExhaustedFromExpiresAt: { type: Date, default: null },
     // 이 이용권을 켠 주문. 이용권 확정(PENDING→PAID)이 재생돼도 expiresAt 을 두 번 늘리지 않도록,
     // 신규 컨텍스트가 CAS 조건으로 함께 본다. 기존 코드는 읽지 않는다.
     lastPassOrderId: { type: String, default: "", trim: true, maxlength: 160 },

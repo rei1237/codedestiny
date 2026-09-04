@@ -22,6 +22,8 @@ import {
   KRW_PER_COIN,
   MONTHLY_PASS_LIMITS,
   PASS_LIMITS,
+  buildPassTerminationFields,
+  isPassBudgetExhausted,
   normalizePassTier,
   resolvePremiumQuotaCycleKey,
 } from "../lib/profile-limits.js";
@@ -471,6 +473,35 @@ export function describePassEligibility({ user, entitlement, product } = {}) {
 }
 
 /**
+ * 월 한도 소진 → 이용권 조기 종료(2026-09-04 정책). **쓰기 1회**, 소진된 건에서만 돈다.
+ *
+ * 만료일을 now 로 당기는 것이 종료의 전부다 — 활성 판정이 전부 expiresAt 을 보므로
+ * (profile-limits.js resolveHoneyPassEntitlement · canUseByPass · 위 evaluatePassCoverage)
+ * "소진 상태" 플래그를 새로 만들어 곳곳에서 검사할 필요가 없다(코딩 원칙 6).
+ *
+ * 🔴 필터가 CAS 다. 방금 소비한 그 이용권(premiumUseCycleKey 일치)이 아직 살아 있을 때만
+ * 손대므로, 병렬 소비 2건이 동시에 소진에 걸려도 두 번째는 no-op 이고, 그 사이 새 이용권을
+ * 샀다면 새 것을 끄지 않는다.
+ */
+export async function terminatePassOnBudgetExhaustion(db, { userId, cycleKey, previousExpiresAt = null, now = new Date() }) {
+  const uid = toObjectId(userId);
+  if (!uid || !cycleKey) return false;
+  const previous = previousExpiresAt ? new Date(previousExpiresAt) : null;
+  const fields = buildPassTerminationFields({
+    now,
+    previousExpiresAt: previous && !Number.isNaN(previous.getTime()) ? previous : null,
+  });
+  const $set = {};
+  for (const [key, value] of Object.entries(fields)) $set[`profileSubscription.${key}`] = value;
+  const result = await db.updateOne(User, {
+    _id: uid,
+    "profileSubscription.premiumUseCycleKey": cycleKey,
+    "profileSubscription.expiresAt": { $gt: now },
+  }, { $set });
+  return Number(result?.matchedCount ?? 0) > 0;
+}
+
+/**
  * 소비 CAS. **쓰기 1회**(경합 시 반대 분기로 1회 재시도).
  * 필터가 예산을 다시 검사하므로 동시 요청이 예산을 초과해 통과할 수 없고, 멱등 마커가 있으면
  * 같은 요청의 재시도가 예산을 두 번 깎지 않는다. null = 경합에서 졌다 → 호출부가 재판정한다.
@@ -538,9 +569,25 @@ export async function consumePassCoverage(db, { userId, coverage, marker, existi
 
   for (const attempt of attempts) {
     const updated = unwrapUser(await db.findOneAndUpdate(User, attempt.filter, attempt.update, { returnDocument: "after" }));
-    if (updated) return updated;
+    if (updated) return applyBudgetExhaustionTermination(db, { userId, coverage, updated, now });
   }
   return null;
+}
+
+/**
+ * 소비 직후 소진 판정 → 종료. **읽기 0회** — CAS 가 returnDocument:"after" 라 차감 후 누적액을
+ * 이미 들고 있다. 종료했으면 반환 문서에도 반영해, 같은 요청의 응답 봉투가 종료를 알고 나간다.
+ */
+async function applyBudgetExhaustionTermination(db, { userId, coverage, updated, now }) {
+  if (!coverage?.budgetApplies) return updated;
+  const sub = updated?.profileSubscription && typeof updated.profileSubscription === "object" ? updated.profileSubscription : null;
+  if (!sub) return updated;
+  if (!isPassBudgetExhausted(coverage.tier, sub.monthlySpendCoin)) return updated;
+  const terminated = await terminatePassOnBudgetExhaustion(db, {
+    userId, cycleKey: coverage.cycleKey, previousExpiresAt: sub.expiresAt, now,
+  });
+  if (!terminated) return updated;
+  return { ...updated, profileSubscription: { ...sub, ...buildPassTerminationFields({ now, previousExpiresAt: sub.expiresAt }) } };
 }
 
 /**

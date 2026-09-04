@@ -849,7 +849,8 @@
       "step2Label": "Bacaan dalam julat dibuka tanpa pembayaran",
       "step2Text": "Bacaan tarot, orakel dan saju dalam julat anda terbuka terus, tanpa tetingkap pembayaran.",
       "step3Label": "Hanya bacaan lebih mendalam dibayar setiap guna",
-      "step3Text": "Bacaan di luar julat anda diteruskan dengan pembayaran KRW sekali sahaja apabila diperlukan."
+      "step3Text": "Bacaan di luar julat anda diteruskan dengan pembayaran KRW sekali sahaja apabila diperlukan.",
+      "terminationNote": "If the monthly allowance is fully used, the pass ends regardless of the days left. Buying a new pass starts another 30 days from that day."
     },
     "promptHub": {
       "aria": "Pergi ke gesaan nasib yang komprehensif",
@@ -1844,7 +1845,7 @@
         "passSaveUnverified": "Kami tidak dapat menyimpan hasil penggunaan Pas anda. Semak semula dengan kad Pas di bawah, atau pilih kaedah pembayaran lain.",
         "passCheckFailed": "Kami tidak dapat menyemak Pas anda. Cuba semula dengan kad Pas di bawah, atau pilih kaedah pembayaran lain.",
         "passMiss": "Pas anda tidak membuka kandungan ini secara percuma, jadi ini pilihan pembayaran.",
-        "passMonthlyExhausted": "You've used this month's pass allowance, so here are the payment options. It resets next month."
+        "passMonthlyExhausted": "Your pass allowance is fully used, so the pass has ended. Here are the payment options."
       },
       "passBadge": "Pas Cahaya Bulan",
       "passStoreTitle": "Kedai Moonlight Pass",
@@ -1913,8 +1914,8 @@
         "comingSoon": "Akan datang",
         "back": "Kembali"
       },
-      "passMonthlyExhausted": "You've used this month's pass allowance. It resets next month; for now you can open this with a one-time payment or moonstones.",
-      "passMonthlyRemaining": "Remaining this month {remaining} / {limit}",
+      "passMonthlyExhausted": "Your pass allowance is fully used, so the pass has ended. Buying a new pass starts another 30 days; for now you can open this with a one-time payment or moonstones.",
+      "passMonthlyRemaining": "Pass allowance left {remaining} / {limit}",
       "wait": {
         "card": "You'll return to this screen automatically once your card verification is complete.",
         "transfer": "You'll return to this screen automatically once your bank account verification is complete.",
@@ -2136,7 +2137,8 @@
       "provisionNotice": "Pas akan diaktifkan serta-merta selepas pembayaran selesai dan boleh digunakan dengan segera. Selepas pengaktifan, hak anda untuk menarik balik pembelian mungkin dihadkan mengikut undang-undang yang berkaitan.",
       "monthlyButton": "Bayar dengan {credits} kredit bulanan",
       "monthlyButtonBusy": "Mengaktifkan pas dengan kredit bulanan...",
-      "monthlyButtonShort": "Perlu {credits} · baki tidak cukup"
+      "monthlyButtonShort": "Perlu {credits} · baki tidak cukup",
+      "terminationNotice": "If the monthly allowance is fully used, the pass ends regardless of the days left. Buying a new pass starts another 30 days from that day."
     },
     "access": {
       "passAppliedContinue": "Dibuka dengan pas anda."

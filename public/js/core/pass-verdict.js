@@ -507,6 +507,35 @@
     }));
   }
 
+  // coin-gate 성공 200 이 "이 건으로 월 한도를 다 써서 이용권이 종료됐다"고 알리면(서버 정본은
+  // worker/lib/profile-limits.js isPassBudgetExhausted → compat.js membershipPass.passEnded)
+  // 로컬 스냅샷을 즉시 미보유로 내린다. 안 내리면 다음 진입이 낙관 통과 → 402 → 결제창으로
+  // 한 왕복을 더 돈다.
+  //
+  // 🔴 storeStatus/buildSnapshotFromStatus 를 태우지 않는다 — 그 경로는 이용권 상태가 없는
+  // 응답으로 'none' 을 날조하지 못하게 막는 가드(isUntrustedNoneSource)를 품고 있고, 여기서는
+  // 서버가 "끝났다"고 명시한 것이라 그 가드를 통과시킬 이유가 없다. 전용 경로로 분리해 둔다.
+  function markPassEndedFromPayload(userId, payload) {
+    var uid = normalizeUserId(userId);
+    if (!uid || !payload || typeof payload !== "object") return null;
+    var data = payload.data && typeof payload.data === "object" ? payload.data : payload;
+    var pass = data.membershipPass && typeof data.membershipPass === "object" ? data.membershipPass : {};
+    var ended = pass.passEnded === true || data.passEnded === true || payload.passEnded === true;
+    if (!ended) return null;
+    return writeSnapshot(uid, {
+      state: "none",
+      tier: "free",
+      expiresAt: null,
+      checkedAt: Date.now(),
+      purchaseVersion: text(pass.passEndedAt || data.passEndedAt),
+      source: "pass_budget_exhausted",
+      completeness: "full",
+      authority: "server",
+      monthlySpendRemainingCoin: 0,
+      monthlyCheckedAt: Date.now(),
+    });
+  }
+
   // coin-gate 402 가 '월 한도 소진' 때문인지 판정한다. 서버 정본은 buildPassPaymentDecision 의
   // decisionReason 이고, 402 는 최상위 스프레드·paymentOptions·data 세 자리 중 하나에 실려 온다.
   // 세 결제창 렌더러가 이 한 함수로 "이용권은 있으니 상점으로 보내지 않는다"를 판정한다.
@@ -543,6 +572,7 @@
     resolveVerdict: resolveVerdict,
     coverageFromSnapshot: coverageFromSnapshot,
     storeMonthlyQuotaFromPayload: storeMonthlyQuotaFromPayload,
+    markPassEndedFromPayload: markPassEndedFromPayload,
     isMonthlyLimitPayload: isMonthlyLimitPayload,
   };
 });

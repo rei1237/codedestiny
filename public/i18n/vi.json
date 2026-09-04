@@ -849,7 +849,8 @@
       "step2Label": "Lượt đọc trong phạm vi mở ngay không cần thanh toán",
       "step2Text": "Các lượt đọc tarot, thần dụ và tứ trụ trong phạm vi của bạn mở ra ngay, không cần cửa sổ thanh toán.",
       "step3Label": "Chỉ lượt đọc sâu ngoài phạm vi mới trả từng lần",
-      "step3Text": "Lượt đọc sâu ngoài phạm vi chỉ tiếp tục bằng một lần thanh toán KRW khi bạn cần."
+      "step3Text": "Lượt đọc sâu ngoài phạm vi chỉ tiếp tục bằng một lần thanh toán KRW khi bạn cần.",
+      "terminationNote": "If the monthly allowance is fully used, the pass ends regardless of the days left. Buying a new pass starts another 30 days from that day."
     },
     "promptHub": {
       "aria": "Đến phần gợi ý bói toàn diện",
@@ -1844,7 +1845,7 @@
         "passSaveUnverified": "Chúng tôi không lưu được kết quả áp dụng Pass. Hãy kiểm tra lại bằng thẻ Pass bên dưới hoặc chọn phương thức thanh toán khác.",
         "passCheckFailed": "Chúng tôi không kiểm tra được Pass của bạn. Hãy thử lại bằng thẻ Pass bên dưới hoặc chọn phương thức thanh toán khác.",
         "passMiss": "Vé của bạn không mở nội dung này miễn phí, đây là các tuỳ chọn thanh toán.",
-        "passMonthlyExhausted": "You've used this month's pass allowance, so here are the payment options. It resets next month."
+        "passMonthlyExhausted": "Your pass allowance is fully used, so the pass has ended. Here are the payment options."
       },
       "passBadge": "Thẻ ánh trăng",
       "passStoreTitle": "Cửa hàng vé ánh trăng",
@@ -1913,8 +1914,8 @@
         "comingSoon": "Sắp ra mắt",
         "back": "Quay lại"
       },
-      "passMonthlyExhausted": "You've used this month's pass allowance. It resets next month; for now you can open this with a one-time payment or moonstones.",
-      "passMonthlyRemaining": "Remaining this month {remaining} / {limit}",
+      "passMonthlyExhausted": "Your pass allowance is fully used, so the pass has ended. Buying a new pass starts another 30 days; for now you can open this with a one-time payment or moonstones.",
+      "passMonthlyRemaining": "Pass allowance left {remaining} / {limit}",
       "wait": {
         "card": "You'll return to this screen automatically once your card verification is complete.",
         "transfer": "You'll return to this screen automatically once your bank account verification is complete.",
@@ -2136,7 +2137,8 @@
       "provisionNotice": "Thẻ Pass sẽ được kích hoạt ngay sau khi thanh toán hoàn tất và có thể sử dụng ngay lập tức. Sau khi kích hoạt, quyền hủy bỏ có thể bị hạn chế theo các quy định pháp luật liên quan.",
       "monthlyButton": "Thanh toán bằng {credits} nguyệt thạch",
       "monthlyButtonBusy": "Đang kích hoạt vé bằng nguyệt thạch...",
-      "monthlyButtonShort": "Cần {credits} · số dư không đủ"
+      "monthlyButtonShort": "Cần {credits} · số dư không đủ",
+      "terminationNotice": "If the monthly allowance is fully used, the pass ends regardless of the days left. Buying a new pass starts another 30 days from that day."
     },
     "access": {
       "passAppliedContinue": "Đã mở bằng thẻ của bạn."

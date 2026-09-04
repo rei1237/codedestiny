@@ -849,7 +849,8 @@
       "step2Label": "Readings binnen bereik openen zonder betaling",
       "step2Text": "Tarot-, orakel- en saju-readings binnen je bereik openen meteen, zonder betaalvenster.",
       "step3Label": "Alleen diepere readings betaal je per keer",
-      "step3Text": "Readings buiten je bereik gaan alleen bij behoefte door met een eenmalige KRW-betaling."
+      "step3Text": "Readings buiten je bereik gaan alleen bij behoefte door met een eenmalige KRW-betaling.",
+      "terminationNote": "If the monthly allowance is fully used, the pass ends regardless of the days left. Buying a new pass starts another 30 days from that day."
     },
     "promptHub": {
       "aria": "Ga naar uitgebreide fortuinprompts",
@@ -1844,7 +1845,7 @@
         "passSaveUnverified": "We konden het resultaat van het toepassen van je pas niet opslaan. Controleer het opnieuw met de paskaart hieronder of kies een andere betaalmethode.",
         "passCheckFailed": "We konden je pas niet controleren. Probeer het opnieuw met de paskaart hieronder of kies een andere betaalmethode.",
         "passMiss": "Je pas opent deze inhoud niet gratis; hier zijn de betaalopties.",
-        "passMonthlyExhausted": "You've used this month's pass allowance, so here are the payment options. It resets next month."
+        "passMonthlyExhausted": "Your pass allowance is fully used, so the pass has ended. Here are the payment options."
       },
       "passBadge": "Maanlichtpas",
       "passStoreTitle": "Moonlight Pass-winkel",
@@ -1913,8 +1914,8 @@
         "comingSoon": "Binnenkort beschikbaar",
         "back": "Terug"
       },
-      "passMonthlyExhausted": "You've used this month's pass allowance. It resets next month; for now you can open this with a one-time payment or moonstones.",
-      "passMonthlyRemaining": "Remaining this month {remaining} / {limit}",
+      "passMonthlyExhausted": "Your pass allowance is fully used, so the pass has ended. Buying a new pass starts another 30 days; for now you can open this with a one-time payment or moonstones.",
+      "passMonthlyRemaining": "Pass allowance left {remaining} / {limit}",
       "wait": {
         "card": "You'll return to this screen automatically once your card verification is complete.",
         "transfer": "You'll return to this screen automatically once your bank account verification is complete.",
@@ -2136,7 +2137,8 @@
       "provisionNotice": "De Pas wordt direct na betaling geactiveerd en is dan direct te gebruiken. Na activering kan het herroepingsrecht volgens de relevante wetgeving beperkt zijn.",
       "monthlyButton": "Betalen met {credits} maandtegoed",
       "monthlyButtonBusy": "Pas wordt geactiveerd met maandtegoed...",
-      "monthlyButtonShort": "{credits} nodig · saldo te laag"
+      "monthlyButtonShort": "{credits} nodig · saldo te laag",
+      "terminationNotice": "If the monthly allowance is fully used, the pass ends regardless of the days left. Buying a new pass starts another 30 days from that day."
     },
     "access": {
       "passAppliedContinue": "Geopend met je pas."

@@ -849,7 +849,8 @@
       "step2Label": "範圍內解讀免付款即刻開啟",
       "step2Text": "所選範圍內的塔羅、神諭、四柱解讀，無需付款頁面即可直接開啟。",
       "step3Label": "僅範圍外的深度解讀按次付款",
-      "step3Text": "範圍外的深度解讀，只在需要時以韓元付款一次。"
+      "step3Text": "範圍外的深度解讀，只在需要時以韓元付款一次。",
+      "terminationNote": "用完每月額度後，無論還剩多少天，通行證都會結束。重新購買將從當天起重新開始 30 天。"
     },
     "promptHub": {
       "aria": "進入綜合運勢提示",
@@ -1844,7 +1845,7 @@
         "passSaveUnverified": "未能儲存通行券的套用結果。可用下方的通行券卡片重新確認，或選擇其他付款方式。",
         "passCheckFailed": "通行券確認失敗。可用下方的通行券卡片重新確認，或選擇其他付款方式。",
         "passMiss": "你的通行證無法免費開啟此內容，請選擇付款方式。",
-        "passMonthlyExhausted": "本月通行證額度已用完，因此開啟了付款方式選擇視窗。下月將重置。"
+        "passMonthlyExhausted": "通行證額度已全部用完，通行證已結束。已為你開啟付款方式選擇視窗。"
       },
       "passBadge": "月光通行券",
       "passStoreTitle": "月光通行券商店",
@@ -1913,8 +1914,8 @@
         "comingSoon": "敬請期待",
         "back": "返回"
       },
-      "passMonthlyExhausted": "本月通行證額度已用完。下月將重置，現在可以透過單次付款或月精石解鎖。",
-      "passMonthlyRemaining": "本月剩餘額度 {remaining} / {limit}",
+      "passMonthlyExhausted": "通行證額度已全部用完，通行證已結束。重新購買將重新開始 30 天，現在可以透過單次付款或月精石解鎖。",
+      "passMonthlyRemaining": "通行證剩餘額度 {remaining} / {limit}",
       "wait": {
         "card": "完成信用卡認證後將自動返回此頁面。",
         "transfer": "完成付款帳戶認證後將自動返回此頁面。",
@@ -2136,7 +2137,8 @@
       "provisionNotice": "通行證於付款完成後立即啟用並可使用，啟用後根據相關法規可能限制撤銷訂單。",
       "monthlyButton": "使用月定石 {credits} 付款",
       "monthlyButtonBusy": "正在用月定石啟用通行證...",
-      "monthlyButtonShort": "需要月定石 {credits} · 餘額不足"
+      "monthlyButtonShort": "需要月定石 {credits} · 餘額不足",
+      "terminationNotice": "用完每月額度後，無論還剩多少天，通行證都會結束。重新購買將從當天起重新開始 30 天。"
     },
     "access": {
       "passAppliedContinue": "已使用通行券開啟。"

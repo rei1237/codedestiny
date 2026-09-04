@@ -113,6 +113,8 @@ type SubscriptionStatusCopy = {
   cancelAtPeriodEnd: string;
   expired: string;
   inactiveNote: string;
+  /** 월 최대 한도 소진 시 잔여 기간과 무관하게 이용권이 종료된다는 고지(2026-09-04 정책). */
+  terminationNote: string;
   tiers: Record<SubscriptionTier, TierCopy>;
 };
 
@@ -136,11 +138,12 @@ const SUBSCRIPTION_STATUS_COPY: Record<LoadingLocale, SubscriptionStatusCopy> = 
     refundLink: "환불 요청 안내 보기",
     familySinglePayment: "Family 이용권으로 모든 서비스가 무료 처리됩니다.",
     standardSinglePayment: "한도 초과 서비스와 PDF는 상품별 원화 단건 결제로 이용할 수 있습니다.",
-    lowBalance: "이용권 기간은 유지됩니다. 추가 유료 콘텐츠는 상품별 원화 단건 결제로 이용할 수 있습니다.",
+    lowBalance: "월 최대 한도가 얼마 남지 않았습니다. 한도를 모두 사용하면 남은 기간과 관계없이 이용권이 종료되고, 추가 유료 콘텐츠는 상품별 원화 단건 결제로 이용할 수 있습니다.",
     expiringSoon: (days) => ({ prefix: `이용권이 ${days}일 후`, suffix: "만료됩니다. 계속 이용하려면 30일 이용권을 다시 결제해 주세요." }),
     cancelAtPeriodEnd: "현재 혜택은 만료일까지 유지됩니다. 이 이용권은 반복 결제되지 않습니다.",
     expired: "이용권이 만료되었습니다. 30일 이용권을 다시 결제해 주세요.",
     inactiveNote: "단건 결제 가능 · 콘텐츠 가치는 원화 기준으로 표시됩니다",
+    terminationNote: "월 최대 한도를 모두 사용하면 남은 기간과 관계없이 이용권이 종료됩니다. 새로 구매하면 그날부터 30일이 다시 시작됩니다.",
     tiers: {
       free: {
         label: "무료 플랜",
@@ -193,11 +196,12 @@ const SUBSCRIPTION_STATUS_COPY: Record<LoadingLocale, SubscriptionStatusCopy> = 
     refundLink: "View refund request guide",
     familySinglePayment: "The Family pass covers every service at no additional charge.",
     standardSinglePayment: "Services above your limit and PDFs can be purchased separately in KRW.",
-    lowBalance: "Your pass period stays active. Additional paid content can be purchased separately in KRW.",
+    lowBalance: "Your monthly allowance is nearly used up. Once it is fully used the pass ends regardless of the days left, and additional paid content can be purchased separately in KRW.",
     expiringSoon: (days) => ({ prefix: `Your pass expires in ${days} days`, suffix: "Please purchase a new 30-day pass to keep using benefits." }),
     cancelAtPeriodEnd: "Current benefits remain until expiration. This pass does not renew automatically.",
     expired: "Your pass has expired. Please purchase a new 30-day pass.",
     inactiveNote: "Single payments available · Content value is shown in KRW",
+    terminationNote: "If the monthly allowance is fully used, the pass ends regardless of the days left. Buying a new pass starts another 30 days from that day.",
     tiers: {
       free: {
         label: "Free plan",
@@ -250,11 +254,12 @@ const SUBSCRIPTION_STATUS_COPY: Record<LoadingLocale, SubscriptionStatusCopy> = 
     refundLink: "返金リクエスト案内を見る",
     familySinglePayment: "Family利用券では、すべてのサービスが追加料金なしで処理されます。",
     standardSinglePayment: "上限を超えるサービスとPDFは、商品ごとにウォン単品決済で利用できます。",
-    lowBalance: "利用券の期間は維持されます。追加の有料コンテンツは商品ごとのウォン単品決済で利用できます。",
+    lowBalance: "月の利用上限が残りわずかです。使い切ると残り日数に関係なくパスは終了し、追加の有料コンテンツは商品ごとのウォン単品決済で利用できます。",
     expiringSoon: (days) => ({ prefix: `利用券は${days}日後に`, suffix: "満了します。続けて利用するには30日利用券を再購入してください。" }),
     cancelAtPeriodEnd: "現在の特典は満了日まで維持されます。この利用券は自動更新されません。",
     expired: "利用券は満了しました。30日利用券を再購入してください。",
     inactiveNote: "単品決済可 · コンテンツ価値はウォン基準で表示されます",
+    terminationNote: "月の利用上限を使い切ると、残り日数に関係なくパスは終了します。新しく購入すると、その日から30日が改めて始まります。",
     tiers: {
       free: {
         label: "無料プラン",
@@ -307,11 +312,12 @@ const SUBSCRIPTION_STATUS_COPY: Record<LoadingLocale, SubscriptionStatusCopy> = 
     refundLink: "查看退款申请说明",
     familySinglePayment: "Family通行证可免费使用所有服务。",
     standardSinglePayment: "超过额度的服务与PDF可按商品以韩元单独付款。",
-    lowBalance: "通行证有效期会继续保留。额外付费内容可按商品以韩元单独付款。",
+    lowBalance: "每月额度所剩不多。用完后无论还剩多少天，通行证都会结束，额外付费内容可按商品以韩元单独付款。",
     expiringSoon: (days) => ({ prefix: `通行证将在 ${days} 天后`, suffix: "到期。如需继续使用，请重新购买30天通行证。" }),
     cancelAtPeriodEnd: "当前权益会保留到到期日。此通行证不会自动续费。",
     expired: "通行证已到期。请重新购买30天通行证。",
     inactiveNote: "可单次付款 · 内容价值以韩元显示",
+    terminationNote: "用完每月额度后，无论还剩多少天，通行证都会结束。重新购买将从当天起重新开始 30 天。",
     tiers: {
       free: {
         label: "免费方案",
@@ -364,11 +370,12 @@ const SUBSCRIPTION_STATUS_COPY: Record<LoadingLocale, SubscriptionStatusCopy> = 
     refundLink: "查看退款申請說明",
     familySinglePayment: "Family通行證可免費使用所有服務。",
     standardSinglePayment: "超過額度的服務與PDF可依商品以韓元單獨付款。",
-    lowBalance: "通行證有效期會繼續保留。額外付費內容可依商品以韓元單獨付款。",
+    lowBalance: "每月額度所剩不多。用完後無論還剩多少天，通行證都會結束，額外付費內容可依商品以韓元單獨付款。",
     expiringSoon: (days) => ({ prefix: `通行證將在 ${days} 天後`, suffix: "到期。如需繼續使用，請重新購買30天通行證。" }),
     cancelAtPeriodEnd: "目前權益會保留到到期日。此通行證不會自動續費。",
     expired: "通行證已到期。請重新購買30天通行證。",
     inactiveNote: "可單次付款 · 內容價值以韓元顯示",
+    terminationNote: "用完每月額度後，無論還剩多少天，通行證都會結束。重新購買將從當天起重新開始 30 天。",
     tiers: {
       free: {
         label: "免費方案",
@@ -535,6 +542,9 @@ export default function SubscriptionStatusCard({ subscription }: Props) {
               </p>
               <p className="mt-1 text-[11.5px] text-slate-200">
                 {copy.basePolicy}
+              </p>
+              <p className="mt-1 text-[11.5px] text-[#f3dd9a]">
+                {copy.terminationNote}
               </p>
             </div>
 
