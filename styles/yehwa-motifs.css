@@ -391,6 +391,22 @@
   transform: translateY(-50%);
 }
 
+/* 앱 설치 카드(2026-09-04) — .cd-feedback 과 같은 3열 카드라 같은 자리·같은 처방을 쓴다.
+ * 카드는 기본 hidden 이고 beforeinstallprompt 가 와야 열린다(js/pwa-install-prompt.js). */
+.cd-app-install__copy {
+  position: relative;
+}
+
+.cd-app-install__copy > .cd-yehwa-peony {
+  top: 50%;
+  right: 0;
+  width: 140px;
+  height: 140px;
+  background: linear-gradient(160deg, #ead089 0%, var(--cd-yehwa-line) 100%);
+  opacity: .3;
+  transform: translateY(-50%);
+}
+
 .cd-footer-shell {
   position: relative;
 }
@@ -473,6 +489,10 @@ html.neo-mode body .cd-yehwa-peony {
 
 /* 피드백 카드의 밝은 금 그라디언트는 네오 잉크 위에서 .22 로는 CR 1.32 — .28 로. */
 html.neo-mode body .cd-feedback__copy > .cd-yehwa-peony {
+  opacity: .28;
+}
+
+html.neo-mode body .cd-app-install__copy > .cd-yehwa-peony {
   opacity: .28;
 }
 
