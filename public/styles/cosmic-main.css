@@ -2404,7 +2404,8 @@ html body .logo-area .moon-topbar__brand strong {
 }
 html body .logo-area .moon-topbar__brand em {
 	border-left-color: var(--mtb-line) !important;
-	color: var(--mtb-tag-ink) !important;
+	color: var(--mtb-gold) !important;
+	font-size: .85rem !important;
 	text-shadow: none !important;
 }
 
