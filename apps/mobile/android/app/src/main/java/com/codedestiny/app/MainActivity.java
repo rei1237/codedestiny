@@ -72,6 +72,8 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(CodeDestinyStatusBarPlugin.class);
         // 잠금화면(네이티브 오버레이) 브리지 — 웹 /lock-screen-fortune 설정·첫 실행 동의 모달이 사용.
         registerPlugin(CodeDestinyLockScreenPlugin.class);
+        // Zero-Tap Sign-In(Restore Credentials) 브리지 — 뼈대만. 서버 검증·호출부는 후속 PR.
+        registerPlugin(CodeDestinyCredentialsPlugin.class);
         // 라우트 해석기도 super.onCreate 이전에 등록해야 한다 —
         // BridgeActivity.onCreate 가 bridgeBuilder.create() 로 브리지를 만들어 버린다.
         installRouteProcessor();
@@ -263,5 +265,41 @@ public class MainActivity extends BridgeActivity {
         } catch (IOException e) {
             return false;
         }
+    }
+
+    /**
+     * 메모리 압박 대응(Google Play 메모리 품질 기준, 2027-02 집행).
+     *
+     * 화면이 가려진 뒤(UI_HIDDEN 이상)에만 WebView 의 RAM 리소스 캐시를 비운다 — 디스크 캐시는 남아
+     * 복귀 시 네트워크 재요청은 없다. 보이는 중(RUNNING_*)에 비우면 재디코딩·깜빡임만 생긴다.
+     * API 34 부터 살아 있는 레벨은 UI_HIDDEN(20)·BACKGROUND(40) 둘이고 나머지는 deprecated 라
+     * 숫자 비교 하나로 충분하다.
+     *
+     * 🔴 쓰지 않는 것: WebView.onPause()/pauseTimers() 는 배경 음악·잠금화면 FGS 의 타이머를 멎게 하고,
+     * setRendererPriorityPolicy(WAIVED) 는 렌더러가 죽으면 Capacitor 의 onRenderProcessGone 이 false 를
+     * 돌려 프로세스가 통째로 죽는다. freeMemory() 는 deprecated(시스템 압박 시 자동 해제).
+     *
+     * 웹에는 "cd:app-memory-trim" 창 이벤트({level})를 보낸다. 현재 리스너는 없다 — 셸이 메모리 캐시를
+     * 들고 있는 지점이 생기면 그때 붙인다.
+     */
+    @Override
+    public void onTrimMemory(int level) {
+        super.onTrimMemory(level);
+        try {
+            Bridge bridge = getBridge();
+            if (bridge == null) return;
+            if (level >= android.content.ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN && bridge.getWebView() != null) {
+                bridge.getWebView().clearCache(false);
+            }
+            bridge.triggerWindowJSEvent("cd:app-memory-trim", "{\"level\":" + level + "}");
+        } catch (Exception ignored) {
+            // 브리지·WebView 소멸 직후 등. 메모리 정리는 최선 노력이고 예외를 밖으로 내지 않는다.
+        }
+    }
+
+    @Override
+    public void onLowMemory() {
+        super.onLowMemory();
+        onTrimMemory(android.content.ComponentCallbacks2.TRIM_MEMORY_COMPLETE);
     }
 }

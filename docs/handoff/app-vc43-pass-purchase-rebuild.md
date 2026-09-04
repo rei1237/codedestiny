@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-09-03
-next: 사용자가 "앱 빌드 진행" 을 말하면 — PR #1505 머지 확인 → 메인 체크아웃 main 을 ff-pull → vc43/1.0.43 빌드
+updated: 2026-09-04
+next: Play 신품질기준 PR(브랜치 worktree-app-vc43-play-quality) 머지 → 메인 체크아웃 main 을 ff-pull → vc43/1.0.43 빌드 → 바탕화면 저장 + BUILD_INFO 에 커버리지·메모리 수치
 ---
 
 # 앱 vc43 재빌드 — Google Play 이용권 구매 재개본
@@ -14,15 +14,16 @@ next: 사용자가 "앱 빌드 진행" 을 말하면 — PR #1505 머지 확인 
 ## 지금 상태
 
 - 서버·클라이언트 재개(PR #1502)와 결제 fetch 25초 타임아웃(PR #1496)은 main 에 머지됐고 **프로덕션 승격 완료**(`/api/version` = c6e221c72, 2026-09-03 03:4x KST).
-- 앱 빌드 차단 결함: main 에서 `npm run build:mobile:app` 이 postbuild `verify-adsense-readiness` 로 실패(PR #1492 가 SEO 링크 허브를 `IS_APP_BUILD` 로 뺀 결과). 수정 PR #1505 — CI 통과, 머지 대기.
-- 마지막 앱 산출물은 vc42(`Desktop\CodeDestiny-Build\20260902-0025-1.0.42-42-676d602b8`) — 이용권 구매가 **막힌** 번들이다. 다음은 **vc43 / 1.0.43**.
+- 앱 빌드 차단 결함(postbuild `verify-adsense-readiness`)은 PR #1505 로 main 에 머지됐다. 모바일 웹 PortOne 재개(PR #1538)·앱 상점 문구(PR #1543)도 main.
+- 마지막 앱 산출물은 vc42(`Desktop\CodeDestiny-Build\20260902-0025-1.0.42-42-676d602b8`) — 이용권 구매가 **막힌** 번들이다. 다음은 **vc43 / 1.0.43**(사용자 결정 2026-09-04).
+- 2026-09-04: Google Play 신품질기준(메모리·R8·Zero-Tap) 대응 PR 을 브랜치 `worktree-app-vc43-play-quality` 로 올렸다 — `MainActivity.onTrimMemory`, `CodeDestinyCredentialsPlugin` 뼈대 + `androidx.credentials 1.6.0`, `measure:app-memory`, 보고서 [docs/app-audit/PLAY_QUALITY_AUDIT_2026-09-04.md](../app-audit/PLAY_QUALITY_AUDIT_2026-09-04.md) · [docs/app-audit/ZERO_TAP_SIGNIN_DESIGN.md](../app-audit/ZERO_TAP_SIGNIN_DESIGN.md). **이 PR 이 머지된 main 이 vc43 의 소스다.**
 
 ## 남은 작업
 
-- [ ] PR #1505 머지 (없으면 앱 빌드가 postbuild 에서 죽는다)
-- [ ] 사용자가 말한 "고칠 것" 목록 받기 — 빌드 전에 main 에 들어가야 할 PR 이 무엇인지
+- [ ] 신품질기준 PR 머지(사용자)
 - [ ] 메인 체크아웃(`D:\Development\code-destiny`)에서 `git pull --ff-only` → `npm run build:mobile:app` → `apps/mobile` 에서 `npx --no-install cap sync android` → `gradlew.bat -p apps\mobile\android -PCODE_DESTINY_ANDROID_VERSION_CODE=43 -PCODE_DESTINY_ANDROID_VERSION_NAME=1.0.43 bundleRelease assembleRelease --no-daemon`
-- [ ] 판정 기준: `aapt2 dump badging` versionCode 43 · 서명 SHA-256 `73c00468a54d…c501427` 일치 · dist 의 `/app/store/` 청크에 `billingNotReadyTitle` 문구가 있고 옛 "구매 중단" 문구가 없음 · 산출물을 `Desktop\CodeDestiny-Build\<yyyyMMdd-HHmm>-1.0.43-43-<sha>` 에 AAB·APK·mapping.txt·upload_certificate.pem·BUILD_INFO.txt 로 저장
+- [ ] 판정 기준: `aapt2 dump badging` versionCode 43 · 서명 SHA-256 `73c00468a54d…c501427` 일치 · dist 의 `/app/store/` 청크에 `billingNotReadyTitle` 문구가 있고 옛 "구매 중단" 문구가 없음 · `js/core/checkout-entry.js` 에 `cd_direct_payment_resume` · dex 에 `CodeDestinyCredentialsPlugin` · r8.json stats·mapping 리네임 비율·classes.dex 크기(명령은 PLAY_QUALITY_AUDIT §Task 2) · 에뮬레이터 `cdtest` 스모크 + `npm run measure:app-memory` 수치 · 산출물을 `Desktop\CodeDestiny-Build\<yyyyMMdd-HHmm>-1.0.43-43-<sha>` 에 AAB·APK·mapping.txt·upload_certificate.pem·BUILD_INFO.txt·PLAY_QUALITY_AUDIT 복사본으로 저장
+- [ ] 후속 PR(critical 티어, 사전 보고 7항목): Zero-Tap 서버 3 라우트 + 로그인 후 `create` · 첫 실행 `restore` · 로그아웃 `clear` 호출부 — 설계 문서 §4
 - [ ] 빌드 뒤 `git checkout -- .ignore rss.xml insights/rss.xml public/rss.xml public/insights/rss.xml apps/mobile/android/capacitor.settings.gradle apps/mobile/android/app/capacitor.build.gradle`
 - [ ] 사용자에게 Play Console 상품 `cd_pass_{standard,premium,vvip,family}_30d` 활성 여부 확인 요청 (여기서 못 본다 — 비활성이면 앱 상점 가격이 `—`)
 
@@ -49,5 +50,5 @@ npm run verify:app-store-billing-policy
 
 ## 모르는 것
 
-- 사용자가 말한 "고칠 것" 의 구체 목록 — 물어볼 것.
 - Play Console 이용권 SKU 4종의 활성 상태.
+- AVD `cdtest` 가 Google APIs 이미지인지(Zero-Tap 뼈대 테스트 전제) — `adb shell dumpsys package com.google.android.gms | grep versionCode`.
