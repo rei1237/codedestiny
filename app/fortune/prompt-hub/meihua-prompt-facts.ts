@@ -73,8 +73,8 @@ export function buildMeihuaPromptFacts(input: MeihuaFactsInput): string {
     lines.push(`- 동효: ${result.changingLine}효 → 변괘 ${result.changedHexagramName}`);
     lines.push(`- 체괘: ${guaLabel(result.bodyGua)} / 용괘: ${guaLabel(result.useGua)}`);
     lines.push(`- 체용 관계: ${result.bodyUseRelation}`);
-    // coreSummary 는 위 줄들의 재진술인데다 "${괘이름}으로" 처럼 한자로 끝나는 괘 이름에 조사를
-    // 고정해 붙여(水天需으로) 어긋나는 문장이 섞인다 — 이 블록에는 싣지 않는다.
+    // coreSummary 는 위 줄들(본괘·변괘·체용 관계)의 재진술이라 이 블록에는 싣지 않는다.
+    // (한자로 끝나는 괘 이름에 조사를 고정해 붙이던 문제는 meihua-calc.ts 에서 바로잡혔다.)
     if (input.numberOrSign) {
       lines.push(`- 숫자·계기(입력, 입괘에는 쓰지 않음): ${String(input.numberOrSign).trim()}`);
     }
