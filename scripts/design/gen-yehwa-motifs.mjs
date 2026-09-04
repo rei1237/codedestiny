@@ -21,6 +21,8 @@ const OUT = path.join(ROOT, 'styles', 'yehwa-motifs.css');
 // 하단 탭바 전용 산출물 — 위 파일(35KB)은 정적 셸 홈에서만 로드되고 App Router 는 읽지 않는다.
 // 탭바는 양쪽에 다 있으므로 탭바가 쓰는 마스크만 담은 작은 파일을 따로 낸다.
 const OUT_NAV = path.join(ROOT, 'styles', 'yehwa-motifs-nav.css');
+// 숙요 궁합 히어로 씬 — 유일하게 CSS 가 아닌 TS 모듈이다(이유는 아래 §숙요 궁합 히어로 씬).
+const OUT_SUKUYO = path.join(ROOT, 'app', 'sukuyo-compatibility-ai', '_art', 'yehwaScene.generated.ts');
 
 // ── 기하 원시 ────────────────────────────────────────────────────────────
 const r1 = (n) => (Math.round(n * 10) / 10).toString();
@@ -60,12 +62,12 @@ function petal(bx, by, deg, len, hw, scallop = false) {
 }
 
 /** 꽃잎 고리 — 중심에서 r0 떨어진 밑동에서 n 장을 rot 부터 등간격으로 */
-function ring(cx, cy, n, r0, len, hw, rot = 0) {
+function ring(cx, cy, n, r0, len, hw, rot = 0, scallop = false) {
   const out = [];
   for (let i = 0; i < n; i += 1) {
     const deg = rot + (360 / n) * i;
     const [bx, by] = polar(cx, cy, r0, deg);
-    out.push(petal(bx, by, deg, len, hw));
+    out.push(petal(bx, by, deg, len, hw, scallop));
   }
   return out.join('');
 }
@@ -1006,10 +1008,216 @@ body:has(main.cd-yeoni-surface) .cd-mnav__link {
 `;
 }
 
+// ── 숙요 궁합 히어로 씬 ──────────────────────────────────────────────────
+/**
+ * /sukuyo-compatibility-ai/ 히어로 배경. 🔴 이 산출물만 CSS 가 아니라 TS 경로 모듈이다.
+ * 이유 두 가지:
+ *   1) 획마다 불투명도가 다르고(.34~.74), 꽃이 잎을·잎이 가지를 가리는 오클루전 마스크를 세 장 쓴다.
+ *      CSS mask-image 는 단일 알파 한 장이라 둘 다 표현할 수 없다.
+ *   2) 마스크로 내면 app/layout.js 에 전 라우트용 CSS 를 한 장 더 태워야 한다(현재 nav 판 하나뿐).
+ * 🔴 좌표는 여기가 정본이다 — 컴포넌트에 손으로 박지 말 것.
+ * 목업 승인본: "숙요 궁합 달빛 예화 개편안"(2026-09-05). v1→v3 픽셀 실측으로 잡은 값이라
+ * 하나를 옮기면 그 표의 잉크율·대비가 같이 움직인다.
+ */
+
+/** 빛망울 — 끝이 뾰족한 별이 아니라 허리가 잘록한 4각 블룸(채움). sparkle() 은 선, 이건 면이다. */
+function spark(cx, cy, r) {
+  const w = r * 0.16;
+  return `M${pt(cx, cy - r)}Q${pt(cx + w, cy - w)} ${pt(cx + r, cy)}Q${pt(cx + w, cy + w)} ${pt(cx, cy + r)}Q${pt(cx - w, cy + w)} ${pt(cx - r, cy)}Q${pt(cx - w, cy - w)} ${pt(cx, cy - r)}Z`;
+}
+
+/** 모란 바깥 겹 9 장(물결 끝) — 히어로 좌하단의 주역이라 peony() 마스크판보다 크고 성기다. */
+const peonyOuter = (cx, cy, r, rot = 0) => ring(cx, cy, 9, r * 0.3, r * 0.72, r * 0.3, rot + 20, true);
+/** 모란 안쪽 겹 5 장 + 꽃술 — 바깥 겹과 알파를 벌려(.74 / .5) 중심→안→밖 3단 위계를 만든다. */
+const peonyInner = (cx, cy, r, rot = 0) => ring(cx, cy, 5, r * 0.09, r * 0.28, r * 0.17, rot) + circle(cx, cy, r * 0.08);
+
+// 앞 실루엣이 뒤 선을 끊는 폭. 획 폭 + 이 값으로 검게 그린 사본이 마스크가 된다.
+const SCENE_KNOCK = 4.6;
+const SCENE_MOON = { cx: 702, cy: 138, r: 58, auraR: 140 };
+const SCENE_HALOS = [{ r: 78, a: 0.3 }, { r: 100, a: 0.17 }, { r: 126, a: 0.09 }];
+
+const SCENE_BRANCHES = [
+  { d: branch([[-30, 512], [72, 470], [156, 436], [232, 386], [284, 318], [303, 272]], 0.52), w: 1.7, a: 0.6 },
+  { d: branch([[196, 410], [216, 372], [224, 330]]), w: 1.2, a: 0.42 },
+  { d: branch([[930, 306], [858, 330], [788, 356], [724, 378], [672, 372], [640, 384]]), w: 1.5, a: 0.52 },
+  { d: branch([[792, 362], [778, 404], [750, 436]]), w: 1.1, a: 0.36 },
+  // 봉오리(311,250)와 벚꽃(302,274) 사이 12px 공백을 잇는 줄기. 양 끝을 두 실루엣이 깎아내
+  // "꽃 뒤에서 나온다"로 읽힌다 — 없으면 봉오리가 떠 보인다(v3 시각 판정).
+  { d: branch([[313, 245], [309, 256], [302, 269]]), w: 1, a: 0.5 },
+];
+
+// 두 사람을 잇는 달빛. 진한 한 줄 + 흐린 한 줄이 어긋나게 지나가 '한 가닥 실'로 굳지 않는다.
+const SCENE_LINK = {
+  main: branch([[311, 250], [420, 288], [512, 306], [598, 348], [648, 380]]),
+  soft: branch([[311, 250], [376, 286], [456, 312], [544, 322], [608, 358], [646, 388]]),
+};
+
+const SCENE_LEAVES = [
+  { d: leaf(88, 462, 158, 36), w: 1, a: 0.42 },
+  { d: leaf(228, 458, -20, 30), w: 1, a: 0.4 },
+  { d: leaf(824, 336, 22, 32), w: 1, a: 0.4 },
+  { d: leaf(756, 408, 118, 28), w: 1, a: 0.36 },
+  { d: leaf(372, 474, -25, 30), w: 1, a: 0.46 },
+];
+
+const SCENE_FLOWERS = [
+  { d: peonyOuter(134, 432, 60, 8), w: 1.15, a: 0.74 },
+  { d: peonyInner(134, 432, 60, 8), w: 0.95, a: 0.5 },
+  { d: blossom(248, 342, 19, 14), w: 1, a: 0.62 },
+  { d: blossom(302, 274, 17, -22), w: 0.95, a: 0.54 },
+  { d: bud(311, 250, -74, 22), w: 1, a: 0.6 },
+  { d: bud(224, 328, -62, 17), w: 0.95, a: 0.5 },
+  { d: blossom(700, 374, 22, -6), w: 1.05, a: 0.66 },
+  { d: blossom(792, 348, 15, 30), w: 0.95, a: 0.5 },
+  { d: bud(640, 384, 186, 20), w: 1, a: 0.58 },
+  { d: bud(750, 436, 100, 16), w: 0.95, a: 0.42 },
+  { d: blossom(452, 456, 16, 10), w: 0.95, a: 0.34 },
+];
+
+const SCENE_DRIFTS = [
+  { d: drift(126, 172, -26, 17), w: 1.05, a: 0.55 },
+  { d: drift(214, 108, 16, 13), w: 1.05, a: 0.48 },
+  { d: drift(392, 148, -42, 14), w: 1.05, a: 0.52 },
+  { d: drift(470, 84, 24, 11), w: 1, a: 0.54 },
+  { d: drift(568, 214, -14, 12), w: 1, a: 0.56 },
+];
+
+const SCENE_SPARKS = [
+  { d: spark(512, 306, 11), a: 0.9, ink: 'violet' },
+  { d: spark(612, 74, 7), a: 0.5, ink: 'ivory' },
+  { d: spark(846, 214, 5), a: 0.36, ink: 'ivory' },
+];
+
+/* 🔴 모바일은 축소가 아니라 크롭이다. 900폭 씬을 360폭에 넣으면 배율 0.4 에서 1px 획이
+   0.4px 로 주저앉아 안티에일리어싱이 배경으로 펴 버린다(탭바 인장이 1.20:1 로 무너진 것과 같은 사고).
+   좌하단 모란만 잘라 쓰고(476폭 → 배율 ≈0.71) 획을 그 역수(1.4)만큼 굵혀 실제 획을 1px 근처로 되돌린다.
+   달은 이 크롭 밖이라 별도의 30px 코너 배지로 뗀다. */
+const SCENE_MOBILE = { viewBox: '16 336 476 186', strokeScale: 1.4, branches: [0, 1], leaves: [0, 1, 4], flowers: [0, 1, 10] };
+
+/** 카드 인장 — 외원 + 벚꽃 소화 + 꽃잎 6 장. 탭바 인장(seal())과 달리 속을 비우지 않는다. */
+const SUKUYO_SEAL_STROKES = [
+  { d: circle(80, 80, 62), w: 5, a: 0.4 },
+  { d: blossom(80, 80, 34, 12), w: 6.5, a: 0.92 },
+  { d: ring(80, 80, 6, 46, 14, 6, 30), w: 4.6, a: 0.5 },
+];
+
+/** 섹션 제목 위의 가지 띠 — branchH() 와 달리 미러 쌍이 아니라 한 줄로 흐른다. */
+const SUKUYO_VINE_STROKES = [
+  { d: branch([[8, 40], [110, 26], [220, 36], [320, 22], [420, 36], [530, 26], [632, 40]]), w: 3.5, a: 0.5 },
+  { d: blossom(320, 22, 15, 10), w: 3.2, a: 0.85 },
+  { d: blossom(180, 33, 10, -20), w: 3, a: 0.6 },
+  { d: blossom(462, 33, 10, 20), w: 3, a: 0.6 },
+  { d: leaf(108, 27, 200, 20), w: 3, a: 0.45 },
+  { d: leaf(532, 27, -20, 20), w: 3, a: 0.45 },
+];
+
+// ── 씬 모듈 템플릿 ───────────────────────────────────────────────────────
+function renderScene() {
+  const rows = (list) => (list.length ? `[\n${list.map((o) => `  ${JSON.stringify(o)},`).join('\n')}\n]` : '[]');
+  const pick = (list, idx) => idx.map((i) => list[i]);
+  const scene = (o) => [
+    '{',
+    `  viewBox: ${JSON.stringify(o.viewBox)},`,
+    `  strokeScale: ${o.strokeScale},`,
+    `  moon: ${o.moon ? JSON.stringify(o.moon) : 'null'},`,
+    `  halos: ${JSON.stringify(o.halos)},`,
+    `  link: ${o.link ? JSON.stringify(o.link) : 'null'},`,
+    `  branches: ${rows(o.branches).replace(/\n/g, '\n  ')},`,
+    `  leaves: ${rows(o.leaves).replace(/\n/g, '\n  ')},`,
+    `  flowers: ${rows(o.flowers).replace(/\n/g, '\n  ')},`,
+    `  drifts: ${rows(o.drifts).replace(/\n/g, '\n  ')},`,
+    `  sparks: ${rows(o.sparks).replace(/\n/g, '\n  ')},`,
+    '}',
+  ].join('\n');
+
+  return `/* generated by scripts/design/gen-yehwa-motifs.mjs — do not hand-edit (sukuyo-yehwa-scene v1, 2026-09-05)
+ * 숙요 궁합 히어로의 달빛 예화 씬과 이 페이지 전용 모티프(인장 · 가지 띠 · 다리) 경로.
+ * 🔴 좌표·굵기·불투명도는 생성기가 소유한다. 여기를 고치면 다음 생성 때 되돌아가고
+ *    node scripts/design/gen-yehwa-motifs.mjs --check 가 실패한다.
+ *
+ * 소비 측이 소유하는 것: 색(잉크 토큰) · 배치 · 애니메이션뿐이다.
+ * 획 굵기는 렌더 배율에 묶여 있다 — 실제 획 = w × strokeScale × (렌더폭 / viewBox폭).
+ * 그래서 모바일 판은 크롭(배율 ≈0.71) + strokeScale 1.4 로 실제 획을 1px 근처에 붙들어 둔다.
+ */
+
+export type YehwaInk = "gold" | "violet" | "ivory";
+export type YehwaStroke = { d: string; w: number; a: number; ink?: YehwaInk };
+export type YehwaFill = { d: string; a: number; ink: YehwaInk };
+export type YehwaScene = {
+  viewBox: string;
+  strokeScale: number;
+  moon: { cx: number; cy: number; r: number; auraR: number } | null;
+  halos: { r: number; a: number }[];
+  link: { main: string; soft: string } | null;
+  branches: YehwaStroke[];
+  leaves: YehwaStroke[];
+  flowers: YehwaStroke[];
+  drifts: YehwaStroke[];
+  sparks: YehwaFill[];
+};
+export type YehwaMotif = { viewBox: string; strokes: YehwaStroke[]; fills: YehwaFill[] };
+
+/** 오클루전 두께 가산분 — 앞선 실루엣을 이 폭으로 검게 그려 뒤 선을 끊는다. */
+export const YEHWA_KNOCK = ${SCENE_KNOCK};
+
+export const SUKUYO_SCENE_DESKTOP: YehwaScene = ${scene({
+    viewBox: '0 0 900 520',
+    strokeScale: 1.6,
+    moon: SCENE_MOON,
+    halos: SCENE_HALOS,
+    link: SCENE_LINK,
+    branches: SCENE_BRANCHES,
+    leaves: SCENE_LEAVES,
+    flowers: SCENE_FLOWERS,
+    drifts: SCENE_DRIFTS,
+    sparks: SCENE_SPARKS,
+  })};
+
+export const SUKUYO_SCENE_MOBILE: YehwaScene = ${scene({
+    viewBox: SCENE_MOBILE.viewBox,
+    strokeScale: SCENE_MOBILE.strokeScale,
+    moon: null,
+    halos: [],
+    link: null,
+    branches: pick(SCENE_BRANCHES, SCENE_MOBILE.branches),
+    leaves: pick(SCENE_LEAVES, SCENE_MOBILE.leaves),
+    flowers: pick(SCENE_FLOWERS, SCENE_MOBILE.flowers),
+    drifts: [],
+    sparks: [],
+  })};
+
+/** 모바일 히어로 우상단 달 — 씬 크롭 밖으로 밀려난 달을 30px 배지로 되돌린 것. */
+export const SUKUYO_MOON_BADGE = { viewBox: "0 0 32 32", cx: 16, cy: 16, r: 7, haloR: 11.5, haloA: 0.4 };
+
+export const SUKUYO_SEAL: YehwaMotif = {
+  viewBox: "0 0 160 160",
+  strokes: ${rows(SUKUYO_SEAL_STROKES)},
+  fills: [],
+};
+
+export const SUKUYO_VINE: YehwaMotif = {
+  viewBox: "0 0 640 64",
+  strokes: ${rows(SUKUYO_VINE_STROKES)},
+  fills: [],
+};
+
+/** 두 입력 카드 사이의 다리 — 위는 금선, 아래는 보랏빛 선, 가운데 빛망울. */
+export const SUKUYO_BRIDGE: YehwaMotif = {
+  viewBox: "0 0 30 74",
+  strokes: [
+    { d: "M15 0V29", w: 1, a: 0.45 },
+    { d: "M15 45V74", w: 1, a: 0.55, ink: "violet" },
+  ],
+  fills: [{ d: ${JSON.stringify(spark(15, 37, 7.2))}, a: 0.95, ink: "violet" }],
+};
+`;
+}
+
 // ── 실행 ────────────────────────────────────────────────────────────────
 const OUTPUTS = [
   { out: OUT, css: render() },
   { out: OUT_NAV, css: renderNav() },
+  { out: OUT_SUKUYO, css: renderScene() },
 ];
 
 if (process.argv.includes('--check')) {

@@ -27,6 +27,14 @@ import { PriceBadge } from "@/app/components/PriceBadge";
 import { readDevPreviewState } from "@/lib/dev-preview/core";
 import { buildSukuyoCompatibilityPreviewPayload } from "@/lib/dev-preview/fixtures/sukuyo-compatibility";
 import SukuyoWheel from "@/components/fortune/SukuyoWheel";
+import { YehwaMotifArt, YehwaSceneArt } from "./_art/YehwaArt";
+import {
+  SUKUYO_BRIDGE,
+  SUKUYO_MOON_BADGE,
+  SUKUYO_SCENE_DESKTOP,
+  SUKUYO_SCENE_MOBILE,
+  SUKUYO_SEAL,
+} from "./_art/yehwaScene.generated";
 import { pickWelcomeQuote } from "./_data/welcomeQuotes";
 import styles from "./SukuyoCompatibilityAiClient.module.css";
 import { getCurrentLoadingLocale, INTL_LOCALE_BY_LOADING_LOCALE, type LoadingLocale } from "@/constants/loadingMessages";
@@ -256,25 +264,6 @@ const CONSULTATION_VALUES = [
   { title: "장기 궁합", text: "결혼·동거·사업·친구·직장 다섯 영역별 적합도" },
   { title: "인연의 목적", text: "이번 생에 왜 만났는지 — 카르마 해석" },
 ];
-const LUNAR_SCENE_PETALS = [
-  { x: 128, y: 360, rx: 30, ry: 10, rotate: -16, opacity: 0.66, driftX: 7, driftY: -5, delay: 0 },
-  { x: 192, y: 330, rx: 24, ry: 8, rotate: 15, opacity: 0.46, driftX: -5, driftY: -7, delay: 0.35 },
-  { x: 296, y: 270, rx: 18, ry: 7, rotate: -34, opacity: 0.42, driftX: 4, driftY: -4, delay: 0.7 },
-  { x: 438, y: 224, rx: 22, ry: 8, rotate: 24, opacity: 0.52, driftX: -6, driftY: -5, delay: 1.05 },
-  { x: 560, y: 206, rx: 16, ry: 6, rotate: -20, opacity: 0.36, driftX: 4, driftY: -3, delay: 1.4 },
-  { x: 708, y: 250, rx: 19, ry: 7, rotate: 22, opacity: 0.5, driftX: -5, driftY: 4, delay: 1.75 },
-  { x: 782, y: 328, rx: 26, ry: 9, rotate: -12, opacity: 0.44, driftX: 6, driftY: -4, delay: 2.1 },
-];
-const LUNAR_SCENE_STARS = [
-  { x: 166, y: 92, r: 1.4, opacity: 0.48, delay: 0.2 },
-  { x: 236, y: 146, r: 1.8, opacity: 0.28, delay: 0.8 },
-  { x: 342, y: 88, r: 1.2, opacity: 0.42, delay: 1.3 },
-  { x: 474, y: 126, r: 1.6, opacity: 0.36, delay: 1.7 },
-  { x: 612, y: 72, r: 1.3, opacity: 0.5, delay: 0.5 },
-  { x: 792, y: 112, r: 1.7, opacity: 0.34, delay: 1.1 },
-  { x: 812, y: 412, r: 1.2, opacity: 0.36, delay: 1.9 },
-  { x: 88, y: 218, r: 1.5, opacity: 0.3, delay: 1.5 },
-];
 // 옛 상담(influence_factors·timing·treasure·crisis·moonLetter)도 다시 열리므로 그 키의 글자도 남겨 둔다.
 const SECTION_ICONS: Record<string, string> = {
   overview: "☯",
@@ -361,107 +350,54 @@ const EMPTY_PERSON: PersonForm = {
   calendarType: "solar",
 };
 
-function LunarBotanicalScene({ reduceMotion }: { reduceMotion: boolean }) {
+/* 달빛 예화 씬 — 경로는 _art/yehwaScene.generated.ts(생성물)가 소유하고
+   여기는 배치와 클래스만 준다. 데스크탑판·모바일판을 둘 다 심고 CSS display 로 고른다
+   (리사이즈 리스너·하이드레이션 점프 없이 모바일에서 크롭 구도를 쓰기 위해서다). */
+function SukuyoYehwaScene() {
   return (
-    <m.svg
-      className={styles.lunarBotanicalScene}
-      viewBox="0 0 900 520"
+    <>
+      <YehwaSceneArt
+        scene={SUKUYO_SCENE_DESKTOP}
+        idPrefix="skd"
+        classes={{
+          root: `${styles.yehwaScene} ${styles.yehwaSceneWide}`,
+          aura: styles.sceneAura,
+          moon: styles.sceneMoon,
+          link: styles.sceneLink,
+          spark: styles.sceneSpark,
+        }}
+      />
+      <YehwaSceneArt
+        scene={SUKUYO_SCENE_MOBILE}
+        idPrefix="skm"
+        classes={{ root: `${styles.yehwaScene} ${styles.yehwaSceneNarrow}` }}
+      />
+    </>
+  );
+}
+
+/** 히어로 아이브로우의 달 — 모바일 씬 크롭에서 밀려난 달을 글자 옆으로 되돌린 것. */
+function SukuyoMoonBadge() {
+  return (
+    <svg
+      className={styles.eyebrowMoon}
+      viewBox={SUKUYO_MOON_BADGE.viewBox}
+      width="15"
+      height="15"
       aria-hidden="true"
       focusable="false"
-      initial={reduceMotion ? false : { opacity: 0, y: 12 }}
-      animate={reduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
-      transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
     >
-      <defs>
-        <radialGradient id="sukuyoSceneMoonAura" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="#FFE8B6" stopOpacity="0.55" />
-          <stop offset="42%" stopColor="#F7DFA3" stopOpacity="0.16" />
-          <stop offset="100%" stopColor="#C8A8FF" stopOpacity="0" />
-        </radialGradient>
-        <radialGradient id="sukuyoSceneMoon" cx="34%" cy="28%" r="70%">
-          <stop offset="0%" stopColor="#FFFDF3" />
-          <stop offset="45%" stopColor="#FFE8B6" />
-          <stop offset="78%" stopColor="#D3BE91" />
-          <stop offset="100%" stopColor="#8F7E6D" />
-        </radialGradient>
-        <linearGradient id="sukuyoPetal" x1="0%" x2="100%" y1="0%" y2="100%">
-          <stop offset="0%" stopColor="#FFD6E7" stopOpacity="0.86" />
-          <stop offset="54%" stopColor="#F6B7D2" stopOpacity="0.46" />
-          <stop offset="100%" stopColor="#C8A8FF" stopOpacity="0.24" />
-        </linearGradient>
-        <linearGradient id="sukuyoOrbit" x1="0%" x2="100%" y1="0%" y2="0%">
-          <stop offset="0%" stopColor="#C8A8FF" stopOpacity="0" />
-          <stop offset="36%" stopColor="#C8A8FF" stopOpacity="0.32" />
-          <stop offset="68%" stopColor="#FFE8B6" stopOpacity="0.34" />
-          <stop offset="100%" stopColor="#FFE8B6" stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <m.circle
-        className={styles.sceneMoonAura}
-        cx="684"
-        cy="138"
-        r="150"
-        fill="url(#sukuyoSceneMoonAura)"
-        animate={reduceMotion ? undefined : { scale: [1, 1.035, 1], opacity: [0.76, 1, 0.82] }}
-        transition={{ duration: 6.8, repeat: Infinity, ease: "easeInOut" }}
+      <circle cx={SUKUYO_MOON_BADGE.cx} cy={SUKUYO_MOON_BADGE.cy} r={SUKUYO_MOON_BADGE.r} fill="var(--sk-ink-ivory)" />
+      <circle
+        cx={SUKUYO_MOON_BADGE.cx}
+        cy={SUKUYO_MOON_BADGE.cy}
+        r={SUKUYO_MOON_BADGE.haloR}
+        fill="none"
+        stroke="var(--sk-ink-ivory)"
+        strokeOpacity={SUKUYO_MOON_BADGE.haloA}
+        strokeWidth="1"
       />
-      <m.circle
-        className={styles.sceneMoon}
-        cx="684"
-        cy="138"
-        r="72"
-        fill="url(#sukuyoSceneMoon)"
-        animate={reduceMotion ? undefined : { y: [0, -4, 0] }}
-        transition={{ duration: 7.5, repeat: Infinity, ease: "easeInOut" }}
-      />
-      <path className={styles.sceneOrbit} d="M96 360C240 260 432 206 704 244C784 255 842 286 874 320" stroke="url(#sukuyoOrbit)" />
-      <path className={styles.sceneOrbitSoft} d="M156 402C280 318 420 276 592 300C706 316 786 366 836 424" stroke="url(#sukuyoOrbit)" />
-      <m.g
-        className={styles.sceneLotus}
-        animate={reduceMotion ? undefined : { y: [0, -5, 0], opacity: [0.78, 0.96, 0.82] }}
-        transition={{ duration: 8.5, repeat: Infinity, ease: "easeInOut" }}
-      >
-        <ellipse cx="180" cy="402" rx="78" ry="16" fill="#F6B7D2" opacity="0.16" />
-        <ellipse cx="156" cy="386" rx="58" ry="18" fill="url(#sukuyoPetal)" opacity="0.38" transform="rotate(-12 156 386)" />
-        <ellipse cx="204" cy="386" rx="58" ry="18" fill="url(#sukuyoPetal)" opacity="0.32" transform="rotate(12 204 386)" />
-        <ellipse cx="180" cy="370" rx="42" ry="26" fill="url(#sukuyoPetal)" opacity="0.42" />
-        <path d="M124 414C160 428 206 430 244 414" fill="none" stroke="#FFE8B6" strokeOpacity="0.22" strokeWidth="1.2" />
-      </m.g>
-      <g className={styles.scenePetalLayer}>
-        {LUNAR_SCENE_PETALS.map((petal) => (
-          <m.g
-            key={`${petal.x}-${petal.y}`}
-            animate={reduceMotion ? undefined : { x: [0, petal.driftX, 0], y: [0, petal.driftY, 0] }}
-            transition={{ duration: 7.8, repeat: Infinity, ease: "easeInOut", delay: petal.delay }}
-          >
-            <ellipse
-              className={styles.scenePetal}
-              cx={petal.x}
-              cy={petal.y}
-              rx={petal.rx}
-              ry={petal.ry}
-              fill="url(#sukuyoPetal)"
-              opacity={petal.opacity}
-              transform={`rotate(${petal.rotate} ${petal.x} ${petal.y})`}
-            />
-          </m.g>
-        ))}
-      </g>
-      <g className={styles.sceneStars}>
-        {LUNAR_SCENE_STARS.map((star) => (
-          <m.circle
-            key={`${star.x}-${star.y}`}
-            cx={star.x}
-            cy={star.y}
-            r={star.r}
-            fill="#FFF7E8"
-            opacity={star.opacity}
-            animate={reduceMotion ? undefined : { opacity: [star.opacity * 0.45, star.opacity, star.opacity * 0.55] }}
-            transition={{ duration: 4.2, repeat: Infinity, ease: "easeInOut", delay: star.delay }}
-          />
-        ))}
-      </g>
-    </m.svg>
+    </svg>
   );
 }
 
@@ -1830,7 +1766,7 @@ export default function SukuyoCompatibilityAiClient() {
           transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
         >
           <div className={styles.visualVeil} aria-hidden="true">
-            <LunarBotanicalScene reduceMotion={reduceMotion} />
+            <SukuyoYehwaScene />
           </div>
           <m.div
             className={styles.visualCopy}
@@ -1838,7 +1774,10 @@ export default function SukuyoCompatibilityAiClient() {
             animate={reduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
           >
-            <p className={styles.eyebrow}>☾ 달이 머문 자리에서 읽는 두 사람의 인연</p>
+            <p className={styles.eyebrow}>
+              <SukuyoMoonBadge />
+              달이 머문 자리에서 읽는 두 사람의 인연
+            </p>
             {/* 🔴 h1 은 page.tsx 의 서버 본문이 소유한다 — 여기는 h2 로 유지. */}
             <h2>우리의 인연은<br />어떤 달빛 아래에서<br />이어지고 있을까요?</h2>
             <p>끌림의 이유부터 반복되는 갈등까지. 27숙이 만드는 두 사람의 관계 리듬을 상담처럼 천천히 읽어드립니다.</p>
@@ -1856,7 +1795,9 @@ export default function SukuyoCompatibilityAiClient() {
               <div className={`${styles.duoGrid}${bothComplete ? ` ${styles.duoGridLinked}` : ""}`}>
                 <div className={`${styles.duoCard}${personAComplete ? ` ${styles.duoCardComplete}` : ""}`}>
                   <header className={styles.duoCardHead}>
-                    <span aria-hidden="true">☾</span>
+                    <span className={styles.duoSeal} aria-hidden="true">
+                      <YehwaMotifArt motif={SUKUYO_SEAL} width={22} height={22} />
+                    </span>
                     <strong className="min-w-0 flex-1">나의 별</strong>
                     <button
                       type="button"
@@ -1871,12 +1812,13 @@ export default function SukuyoCompatibilityAiClient() {
                   {renderPersonFields("a", personA)}
                 </div>
                 <div className={styles.duoBridge} aria-hidden="true">
-                  <span>✦</span>
-                  <i />
+                  <YehwaMotifArt motif={SUKUYO_BRIDGE} className={styles.duoBridgeArt} width={30} height={74} />
                 </div>
                 <div className={`${styles.duoCard} ${styles.duoCardPartner}${personBComplete ? ` ${styles.duoCardComplete}` : ""}`}>
                   <header className={styles.duoCardHead}>
-                    <span aria-hidden="true">☆</span>
+                    <span className={styles.duoSeal} aria-hidden="true">
+                      <YehwaMotifArt motif={SUKUYO_SEAL} width={22} height={22} />
+                    </span>
                     <strong>상대의 별</strong>
                     <em>{personBComplete ? "자리 완성" : "채우는 중"}</em>
                   </header>
