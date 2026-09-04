@@ -14,7 +14,8 @@
  *   node scripts/measure-app-memory.mjs --serial emulator-5554
  *   node scripts/measure-app-memory.mjs --json out.json # 표 + JSON 저장
  *
- * 전제: 앱이 설치돼 있고 adb 가 PATH 에 있다. 기기가 없으면 사용법을 찍고 exit 2 로 끝난다
+ * 전제: 앱이 설치돼 있고 adb 를 찾을 수 있다(ANDROID_HOME → ANDROID_SDK_ROOT → %LOCALAPPDATA%\Android\Sdk → PATH 순).
+ * adb 가 없으면 "adb 를 찾지 못했다", 기기가 없으면 사용법을 찍고 둘 다 exit 2 로 끝난다
  * (가드가 아니라 측정기라 fail-closed 대상이 아니다 — CI 배선 금지).
  *
  * 열 해석(dumpsys meminfo):
@@ -24,7 +25,9 @@
  *   Native Heap— WebView(chromium) 네이티브 힙. 리소스 캐시(clearCache) 효과가 여기서 보인다.
  */
 import { execFileSync } from "node:child_process";
-import { writeFileSync } from "node:fs";
+import { existsSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { pathToFileURL } from "node:url";
 
 const argv = process.argv.slice(2);
 function opt(name, fallback) {
@@ -36,11 +39,32 @@ const SETTLE_SEC = Number(opt("--settle", "30"));
 const SERIAL = opt("--serial", "");
 const JSON_OUT = opt("--json", "");
 
+/**
+ * adb 실행 파일. 2026-09-04 vc43 빌드기에서 adb 가 PATH 에 없어 ENOENT 가 allowFail 에 먹혀
+ * "연결된 기기가 없다" 로 오진했다 — SDK 루트를 먼저 보고, 없으면 PATH 의 adb 에 맡긴다.
+ */
+export function resolveAdb(env = process.env, exists = existsSync) {
+  const roots = [env.ANDROID_HOME, env.ANDROID_SDK_ROOT, env.LOCALAPPDATA ? join(env.LOCALAPPDATA, "Android", "Sdk") : ""].filter(Boolean);
+  for (const root of roots) {
+    for (const name of ["adb.exe", "adb"]) {
+      const p = join(root, "platform-tools", name);
+      if (exists(p)) return p;
+    }
+  }
+  return "adb";
+}
+const ADB = resolveAdb();
+
 function adb(args, { allowFail = false } = {}) {
   const full = SERIAL ? ["-s", SERIAL, ...args] : args;
   try {
-    return execFileSync("adb", full, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+    // dumpsys package com.google.android.gms 는 1 MB 기본 maxBuffer 를 넘어 조용히 실패한다.
+    return execFileSync(ADB, full, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], maxBuffer: 64 * 1024 * 1024 });
   } catch (e) {
+    if (e && e.code === "ENOENT") {
+      console.error(`[measure-app-memory] adb 를 찾지 못했다 (${ADB}). platform-tools 를 PATH 에 넣거나 ANDROID_HOME 을 설정할 것.`);
+      process.exit(2);
+    }
     if (allowFail) return "";
     throw e;
   }
@@ -50,12 +74,13 @@ function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
-function parseMeminfo(text) {
+export function parseMeminfo(text) {
   // "TOTAL PSS:   123456            TOTAL RSS:   234567      TOTAL SWAP PSS:  0"
   const totals = /TOTAL PSS:\s+(\d+)\s+TOTAL RSS:\s+(\d+)\s+TOTAL SWAP(?: PSS)?:\s+(\d+)/.exec(text);
   const row = (label) => {
     // 첫 숫자 열이 Pss Total(KB). 예: "  Native Heap    45678    45600 ..."
-    const m = new RegExp(`^\\s*${label}\\s+(\\d+)`, "m").exec(text);
+    // Graphics 는 표에 없고 App Summary 에만 "Graphics:  8980" 꼴(콜론)로 나온다 — 콜론을 허용한다.
+    const m = new RegExp(`^\\s*${label}:?\\s+(\\d+)`, "m").exec(text);
     return m ? Number(m[1]) : null;
   };
   return {
@@ -148,7 +173,10 @@ async function main() {
   }
 }
 
-main().catch((e) => {
-  console.error("[measure-app-memory] 실패:", e && e.message ? e.message : e);
-  process.exit(1);
-});
+// 직접 실행일 때만 측정한다 — 테스트가 parseMeminfo/resolveAdb 를 import 해도 adb 를 부르지 않는다.
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch((e) => {
+    console.error("[measure-app-memory] 실패:", e && e.message ? e.message : e);
+    process.exit(1);
+  });
+}
