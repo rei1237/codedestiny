@@ -164,6 +164,8 @@ CREATED  astrologyAiConsultations.id_1                       [unique,partial]
 | drop — `paid_execution_records.paymentId_1`(위 "새로 생긴 후보") | 1 | hint explain 으로 `paymentId_unique_nonempty` 가 등호 조회를 타는 것을 증명한 뒤 드롭 |
 | 실물 복합의 접두이거나 어느 쿼리도 안 쓰는 선언 | 84 | **코드에서 선언 삭제**(실물이 없으니 프로덕션 성능은 안 바뀐다 — 가드의 거짓 통과만 사라진다) |
 
+create 15 · drop 1 은 2026-09-06 프로덕션에 적용했다([db-audit-2026-08/05-execution-log.md](db-audit-2026-08/05-execution-log.md)).
+
 위 "만들지 않은 5건"(`schemaVersion`·`serviceType`·`degraded`·`featureKey` 2)도 이번에 선언을 지웠다.
 `GuardianFortuneDailyUsage` 모델은 읽는 코드가 없고 문서도 0건이라 모델째 지우고 컬렉션은
 `20260906-purge-test-reports-and-orphan-collections` 의 드롭 목록에 넣었다.
