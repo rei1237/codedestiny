@@ -23,11 +23,13 @@ function makeSessionStorage() {
 beforeEach(() => {
   globalThis.__cdPassVerdict = passVerdict;
   globalThis.sessionStorage = makeSessionStorage();
+  globalThis.localStorage = makeSessionStorage();
   globalThis.window = {};
 });
 
 afterEach(() => {
   delete globalThis.sessionStorage;
+  delete globalThis.localStorage;
   delete globalThis.window;
 });
 
@@ -179,14 +181,34 @@ describe("복귀 지점", () => {
     expect(checkoutEntry.consumeCheckoutReturn()).toEqual({ url: "/saju", label: "사주", featureKey: "" });
     expect(checkoutEntry.consumeCheckoutReturn()).toBeNull();
     expect(globalThis.sessionStorage.size()).toBe(0);
+    expect(globalThis.localStorage.size()).toBe(0);
+  });
+
+  // 카카오페이처럼 다른 앱을 다녀오는 수단은 새 탭으로 복귀해 sessionStorage 가 비어 있다.
+  // 복귀 지점이 localStorage 에 있어야 /points 에서 원래 화면으로 돌아갈 수 있다.
+  it("localStorage 에 저장한다(새 탭 복귀 생존)", () => {
+    checkoutEntry.rememberCheckoutReturn({ url: "/saju", label: "사주" });
+    expect(globalThis.localStorage.getItem(checkoutEntry.RETURN_KEY)).toBeTruthy();
+    expect(globalThis.sessionStorage.size()).toBe(0);
+  });
+
+  // 배포 시점에 구 코드가 sessionStorage 에 남긴 복귀 지점으로 결제 중인 사용자가 있다.
+  it("sessionStorage 에만 남은 구 복귀 지점도 읽고 지운다", () => {
+    globalThis.sessionStorage.setItem(
+      checkoutEntry.RETURN_KEY,
+      JSON.stringify({ url: "/tarot", label: "타로", featureKey: "", savedAt: Date.now() }),
+    );
+    expect(checkoutEntry.consumeCheckoutReturn()).toEqual({ url: "/tarot", label: "타로", featureKey: "" });
+    expect(globalThis.sessionStorage.size()).toBe(0);
+    expect(checkoutEntry.consumeCheckoutReturn()).toBeNull();
   });
 
   it("30분이 지난 복귀 지점은 버린다", () => {
     checkoutEntry.rememberCheckoutReturn({ url: "/saju" });
     const key = checkoutEntry.RETURN_KEY;
-    const stored = JSON.parse(globalThis.sessionStorage.getItem(key));
+    const stored = JSON.parse(globalThis.localStorage.getItem(key));
     stored.savedAt = Date.now() - (checkoutEntry.RETURN_TTL_MS + 1000);
-    globalThis.sessionStorage.setItem(key, JSON.stringify(stored));
+    globalThis.localStorage.setItem(key, JSON.stringify(stored));
     expect(checkoutEntry.consumeCheckoutReturn()).toBeNull();
   });
 
