@@ -81,7 +81,7 @@ const BIRTH = {
 /** 동기 빌더 이름 → 호출 인자. 새 동기 빌더가 생기면 여기 없다는 이유로 아래에서 실패한다. */
 const SAMPLES = {
   buildSajuPromptFacts: [BIRTH],
-  buildZiweiPromptFacts: [{ ...BIRTH, palace: "명궁" }, { scope: "full" }],
+  buildZiweiPromptFacts: [{ ...BIRTH, palace: "부처궁" }],
   buildSukuyoPromptFacts: [{ birthDate: BIRTH.birthDate, calendarType: BIRTH.calendarType }],
   buildDangsajuPromptFacts: [{ ...BIRTH, question: "올해 협업의 방향이 궁금합니다.", lifeArea: "관계" }],
   buildKuseiPromptFacts: [{ ...BIRTH, baseDate: "2026-07-01", focusTopic: "이사 방향", question: "동쪽 이동을 고민 중입니다." }],
@@ -211,6 +211,38 @@ const badHexagramJosa = [...observedHexagrams]
 check(
   badHexagramJosa.length === 0,
   `매화역수 괘 이름 뒤 조사가 어긋난다: ${badHexagramJosa.slice(0, 5).join(", ")}${badHexagramJosa.length > 5 ? ` 외 ${badHexagramJosa.length - 5}건` : ""} — 조사를 고정 문자열로 붙이지 말고 한글 독음 기준 받침 판정을 쓸 것.`,
+);
+
+// ── 7. 자미두수 12궁이 도구·종합 양쪽에 통째로 실리는지 ────────────────────────
+// 🔴 위 5번은 헤더 형식과 줄 수만 봐서, 종합 블록이 명궁 1행짜리 요약으로 되돌아가도 통과한다
+//    (실제로 그 상태였다). 기대 궁 수를 손으로 12 라 적지 않고 단독 빌더 출력에서 발견해
+//    종합 출력과 동치 비교한다 — 행 서식이 바뀌어 0이 세이면 통과가 아니라 실패다.
+// 🔴 이 경로는 점성술·베다를 고르지 않으므로 네트워크·과금 왕복이 없다.
+const PALACE_ROW_PATTERN = /^ {2}· /gm;
+const ziweiFacts = loadTsModule(`${HUB_DIR}/ziwei-prompt-facts.ts`);
+const ziweiBlock = String(ziweiFacts.buildZiweiPromptFacts(...SAMPLES.buildZiweiPromptFacts) || "");
+const ziweiPalaceRows = (ziweiBlock.match(PALACE_ROW_PATTERN) || []).length;
+check(
+  ziweiPalaceRows >= 12,
+  `buildZiweiPromptFacts 가 궁 행을 ${ziweiPalaceRows}개만 냈다 — 12궁 전체가 실리지 않는다(fail-closed).`,
+);
+
+const comprehensiveFacts = loadTsModule(`${HUB_DIR}/comprehensive-prompt-facts.ts`);
+const comprehensiveBlock = String(
+  (await comprehensiveFacts.buildComprehensivePromptFacts({ ...BIRTH, systems: ["자미두수"] })) || "",
+);
+check(
+  comprehensiveBlock.includes("[자미두수 명반 산출 데이터]"),
+  "종합 산출 데이터에 자미두수 블록이 없다 — 체계 라벨 매핑이나 빌더 배선이 끊겼다.",
+);
+const comprehensivePalaceRows = (comprehensiveBlock.match(PALACE_ROW_PATTERN) || []).length;
+check(
+  comprehensivePalaceRows === ziweiPalaceRows,
+  `종합 블록의 궁 행이 ${comprehensivePalaceRows}개로 단독 블록(${ziweiPalaceRows})과 다르다 — 요약으로 되돌아갔거나 headerAndData 가 블록을 잘랐다.`,
+);
+check(
+  !comprehensiveBlock.includes("해석만 해 주세요"),
+  "종합 블록에 개별 산출기의 마무리 문단이 남았다 — headerAndData 계약(빈 줄 하나로 갈림)이 깨졌다.",
 );
 
 if (failures.length) {
