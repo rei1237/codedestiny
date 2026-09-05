@@ -1156,14 +1156,24 @@ export function buildZiweiDeepPalaceText(reading: ZiweiDeepPalaceReading): strin
   return uniquifyRepeatedSentences(removeRepeatedZiweiDeepPhrases(sections.join("\n\n")));
 }
 
-function splitCategoryBodies(fullText: string): string[] {
-  const matches = String(fullText || "").split(/\n###\s+\d+\.\s+/g);
-  if (matches.length <= 1) return [];
-  const first = matches[0].includes("### 1.") ? matches : [matches[0], ...matches.slice(1)];
-  const normalized = first[0].includes("### 1.")
-    ? first
-    : [`### 1. ${first[1] || ""}`, ...first.slice(2).map((row, index) => `### ${index + 2}. ${row}`)];
-  return normalized.filter((row) => row.includes("###"));
+export type ZiweiDeepCategorySection = { title: string; body: string };
+
+/**
+ * `### N. 제목` 으로 나뉜 궁별 장문을 절 단위로 쪼갠다.
+ * 🔴 결과 화면 아코디언(AdvancedZiweiSectionV2)과 아래 validateZiweiDeepReading 이 이 함수 하나만 쓴다 —
+ *    화면이 정규식을 따로 들고 있으면 절 수가 어긋나도 아무도 못 잡는다.
+ * 개관·마스터플랜 장문에는 `### N.` 이 없어 빈 배열이 나온다(화면은 그때 통짜 산문으로 렌더한다).
+ */
+export function splitZiweiDeepCategories(fullText: string): ZiweiDeepCategorySection[] {
+  const blocks = String(fullText || "").split(/\n###\s+\d+\.\s+/g);
+  if (blocks.length <= 1) return [];
+  return blocks.slice(1).map((block) => {
+    const lineBreak = block.indexOf("\n");
+    return {
+      title: (lineBreak === -1 ? block : block.slice(0, lineBreak)).trim(),
+      body: (lineBreak === -1 ? "" : block.slice(lineBreak + 1)).trim(),
+    };
+  });
 }
 
 function countCoverageSignals(text: string): number {
@@ -1236,8 +1246,8 @@ export function validateZiweiDeepReading(reading: ZiweiDeepChapter): ValidationR
         issues.push(`${reading.palaceReading.palaceName} 본문 카테고리 블록 수 불일치`);
       }
 
-      const categoryBodies = splitCategoryBodies(reading.fullText);
-      if (categoryBodies.length && categoryBodies.length !== expectedCount) {
+      const categorySections = splitZiweiDeepCategories(reading.fullText);
+      if (categorySections.length && categorySections.length !== expectedCount) {
         issues.push(`${reading.palaceReading.palaceName} 카테고리 본문 분리 실패`);
       }
 
@@ -1250,8 +1260,8 @@ export function validateZiweiDeepReading(reading: ZiweiDeepChapter): ValidationR
         }
       });
 
-      categoryBodies.forEach((body, index) => {
-        const plainBody = body.replace(/^###\s+\d+\.\s+/g, "").trim();
+      categorySections.forEach((section, index) => {
+        const plainBody = `${section.title}\n\n${section.body}`.trim();
         if (plainBody.length < 450) {
           issues.push(`${reading.palaceReading?.palaceName}/카테고리 ${index + 1} 본문 길이 부족`);
         }
