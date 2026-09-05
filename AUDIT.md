@@ -76,9 +76,9 @@
 | W5 | P2 | 오버레이 lifecycle 가드가 미등록 모달(`#tarotModalOverlay` 등)을 감지 못해 **열린 모달의 스크롤락을 360ms 뒤 해제** | `js/mobile-interaction-patch.js:134-172` |
 | W6 | P2 | **자미두수 12궁 요약표가 모바일에서 압착** — `overflow-x-auto` 래퍼 안의 `min-w-full`은 가로 스크롤을 만들지 못해 6열이 360px에서 각 40~55px | `AdvancedZiweiSectionV2.tsx:2306-2307` |
 | W7 | P2 | **가로모드 사실상 미대응** — 루트 셸에 orientation 미디어쿼리 0건, 전체 로드 CSS 통틀어 1건 | `styles/fortune-ui.css:16148` |
-| W8 | P2 | 웹 단건 결제의 **모바일 리다이렉트 복귀(`portone_redirect`) 핸들러가 콘텐츠 경로에 없다** — 심는 곳 4개, 읽는 곳은 `/points` 하나뿐 | `PointsClient.tsx:3228` |
+| ~~W8~~ | ~~P2~~ | **해결(2026-09-06 실측)** — 셸은 `portone_redirect=1` 을 심기만 하고, 읽는 쪽은 셸이 defer 로 싣는 `js/destiny-profile.js` 의 `_dpResumeDirectPaymentAfterRedirect`(부팅 시 자동 실행)다. #1594 가 그 함수의 결함 4건(대기 mode·완료 문구·GRANT_PENDING·access 갱신)을 고쳤고, `verify:direct-confirm-pending-recovery` 가 셸 7벌의 defer 태그와 마커 짝(심는 쪽·읽는 쪽)을 진입점 가드로 고정한다. 실결제 복귀 1건은 미실측(`docs/handoff/kakaopay-golive-2026-08-31.md`) | `index.html:20680` · `js/destiny-profile.js:12432` |
 | W9 | P2 | 수비학 타로 `.title`이 900px 이하에서 42px로 **고정**되어 clamp의 모바일 값(34px)보다 오히려 커짐 | `numerology-tarot.module.css:1408` |
-| W10 | P2 | CI 유료 게이트가 `app/**`·`lib/**` 변경을 트리거하지 않음 — `useCoinGate.ts`/`billing-client.ts`(pass-first 실질 정본) 수정이 게이트를 안 깨움. `verify:billing-pass-policy` 등 3종은 어느 워크플로에서도 미실행 | `.github/workflows/paid-flow-gates.yml:6-40` |
+| ~~W10~~ | ~~P2~~ | **해결(2026-09-06 실측)** — `useCoinGate.ts`·`billing-client.ts`·`PointsClient.tsx`·`lib/payment/**` 등 `app/`·`lib/` 의 결제 파일이 트리거 `paths` 에 개별 등재됐고, `verify:billing-pass-policy`·`verify:paid-gate-ui`·`verify:payment-freeze`·`verify:pass-tier-policy`·`verify:payment-reconcile` 은 `scripts/run-paid-gate-suite.mjs` 가 실행한다(미배선 검증기는 `verify:guard-wiring` 이 실패시킨다). **잔여**: 트리거가 디렉터리가 아니라 파일 단위 열거라 `app/`·`lib/` 아래 **새** 결제 파일은 등재 전까지 게이트를 깨우지 않는다 — 워크플로 머리주석이 대가를 명시한 의도된 절충(2026-08-08)이다 | `.github/workflows/paid-flow-gates.yml` · `scripts/run-paid-gate-suite.mjs` |
 
 ### 3-D. 빌드/릴리즈
 

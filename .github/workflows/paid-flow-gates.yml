@@ -316,6 +316,10 @@ on:
       - "lib/fusion-paid-request-store.js"
       # 🔴 아래 와일드카드(*billing*·*paid*·*pass*·*payment*·*auth*)에 이 파일명이 걸리지 않는다.
       - "scripts/verify-per-use-never-unlocks.mjs"
+      # 🔴 같은 이유(2026-09-06). 리다이렉트 복귀의 진입점(셸의 destiny-profile defer 태그 · portone_redirect
+      #    마커의 심는 쪽/읽는 쪽 짝)을 이 가드가 7셸+dp 에서 단언하는데, 파일명이 아래 어느 와일드카드에도
+      #    안 걸려 가드만 고친 PR 은 게이트가 깨어나지 않았다.
+      - "scripts/verify-direct-confirm-pending-recovery.mjs"
       - "scripts/verify-krw-copy-canonical.mjs"
       - "scripts/verify-*billing*.mjs"
       - "scripts/verify-*paid*.mjs"
