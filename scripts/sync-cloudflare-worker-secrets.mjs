@@ -327,8 +327,21 @@ const SECRET_KEY_ALIASES = {
   PEXELS_API_KEY: ["PEXELS_APIKEY", "PEXES_APIKEY"],
 };
 
+/**
+ * 🔴 프로덕션 PortOne API 시크릿의 정본은 .env.local 의 PORTONE_V2_API_Secret 이다(2026-09-05 실연동 재발급).
+ * 키 자체보다 먼저 보는 이유: 프로덕션 env 파일에는 .env.cloudflare.local 의 낡은 PORTONE_API_Secret 이
+ * 남아 있고, Windows 의 process.env 는 대소문자를 구분하지 않아 PORTONE_API_SECRET 조회가 그 낡은 값을
+ * 먼저 맞힌다 — 별칭 순서로는 못 막는다(2026-09-05 프로덕션 워커 UNAUTHORIZED 사고, 이용권 미지급).
+ * 스테이징은 여기 넣지 않는다: .env.staging.local 의 PORTONE_API_SECRET(테스트 연동)이 그대로 정본이다.
+ */
+const PRODUCTION_PREFERRED_SOURCES = {
+  PORTONE_API_SECRET: ["PORTONE_V2_API_Secret"],
+  PORTONE_API_Secret: ["PORTONE_V2_API_Secret"],
+};
+
 function getSecretValue(key) {
-  const candidates = [key, ...(SECRET_KEY_ALIASES[key] || [])];
+  const preferred = syncTarget === "production" ? PRODUCTION_PREFERRED_SOURCES[key] || [] : [];
+  const candidates = [...preferred, key, ...(SECRET_KEY_ALIASES[key] || [])];
   for (const candidate of candidates) {
     const raw = process.env[candidate];
     if (!isUsableEnvValue(raw)) continue;
