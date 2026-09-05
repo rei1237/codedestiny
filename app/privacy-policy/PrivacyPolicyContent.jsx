@@ -72,6 +72,21 @@ export const PRIVACY_POLICY_SECTIONS = [
           에서 맞춤 광고를 관리할 수 있습니다.
         </p>
         <p>
+          Google은 제3자 광고 공급업체로서 광고 쿠키(DoubleClick 쿠키 포함)를 사용하며, 이 쿠키를 통해 Google과 그 파트너는 이용자가 이 사이트와 다른 웹사이트를 방문한 기록을 바탕으로 광고를 게재할 수 있습니다. 이용자는 위 Google 광고 설정에서 맞춤 광고를 해제할 수 있고, 다른 제3자 광고 공급업체의 맞춤 광고용 쿠키 사용은{" "}
+          <a href="https://www.aboutads.info/choices/" target="_blank" rel="noopener noreferrer">
+            www.aboutads.info
+          </a>
+          {" "}또는{" "}
+          <a href="https://optout.networkadvertising.org/" target="_blank" rel="noopener noreferrer">
+            NAI 옵트아웃 페이지
+          </a>
+          에서 거부할 수 있습니다. Google의 광고 쿠키 사용 방식은{" "}
+          <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener noreferrer">
+            Google 광고 및 쿠키 정책
+          </a>
+          에서 확인할 수 있습니다.
+        </p>
+        <p>
           Google이 파트너 사이트와 앱의 정보를 사용하는 방식은{" "}
           <a href="https://policies.google.com/technologies/partner-sites" target="_blank" rel="noopener noreferrer">
             Google 파트너 사이트/앱 데이터 사용 안내

@@ -227,7 +227,7 @@ export default async function InsightArticlePage({ params }) {
           </section>
         )}
 
-        <ContentIntegrityNote contentSource={article.contentSource} datePublished={article.publishedAt || article.updatedAt} dateModified={article.updatedAt || article.publishedAt} />
+        <ContentIntegrityNote contentSource={article.contentSource} author={article.author} datePublished={article.publishedAt || article.updatedAt} dateModified={article.updatedAt || article.publishedAt} />
 
         <FusionCrossSell fromPath={`/insights/${slug}`} tone="neo" />
 

@@ -1580,7 +1580,8 @@
       "calendar": "Fortune Calendar Guide",
       "health": "Myeongri Health Report",
       "music": "Fortune & Meditation Music"
-    }
+    },
+    "disclaimerNote": "Todo el contenido de Code Destiny, incluidos Saju, tarot y astrología, se ofrece solo con fines de entretenimiento y reflexión personal; no predice un futuro fijo ni se garantiza su exactitud. Para decisiones importantes de salud, legales, financieras o de salud mental, consulte siempre a un profesional cualificado."
   },
   "branches": {
     "자수": {

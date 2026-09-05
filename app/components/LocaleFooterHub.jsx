@@ -149,6 +149,14 @@ export default function LocaleFooterHub({ locale }) {
             </p>
             <p style={{ fontSize: '0.85rem', color: '#777', lineHeight: 1.6 }}>{translationNotice}</p>
           </section>
+
+          <section aria-label={copy.disclaimerAriaLabel}>
+            <h2 style={{ fontSize: '1.25rem', marginTop: '2rem', marginBottom: '1rem', fontWeight: 600 }}>{copy.disclaimerTitle}</h2>
+            <p style={{ marginBottom: '0.5rem', lineHeight: 1.6 }}>{copy.disclaimerBody}</p>
+            <p style={{ fontSize: '0.95rem', lineHeight: 1.6 }}>
+              <a href="/disclaimer/" className={styles.sfhLink}>{copy.disclaimerLinkLabel}</a>
+            </p>
+          </section>
         </section>
 
         {/* 카피를 prop 으로 내린다 — SocialFooter 가 직접 import 하면 클라이언트 번들로 샌다. */}
