@@ -20,6 +20,14 @@
  *       360×800 은 #1435 가 실증한 좁은 폭 진단 축 — 기하는 CSS px 기준이라 DPR 은 1.75 고정)
  *       --insets=0,47 (safe-area-inset-bottom. 47 은 갤럭시 M15 5G 웹뷰 실측)
  *       --settle=2500 (로드 후 하이드레이션 대기 ms) --out=DIR --label=이름 --allow-stale
+ *       --click=SEL[,SEL] (로드 후 순서대로 클릭 — 폼 제출이 있어야 뜨는 결과 화면용)
+ *       --expect=SEL (클릭 후 이 요소가 보일 때까지 대기. 🔴 안 뜨면 레그를 INVALID 로 떨군다
+ *       — 없으면 첫 화면을 재고 '발견 0건'으로 통과시키게 된다)
+ *
+ * 결과 화면 예 (dev 서버 + lib/dev-preview 픽스처 — 결제·LLM 실호출 없음):
+ *   npm run measure:mobile-routes -- --target=http://127.0.0.1:3050 \
+ *     --routes="/ziwei-ai/?preview=success&x=/" --click=".primaryBtn" \
+ *     --expect="[data-ziwei-complete-result]"
  */
 
 import fs from "node:fs";
@@ -99,6 +107,8 @@ function parseArgs(argv) {
     out: path.join(os.tmpdir(), "code-destiny-mobile-routes"),
     label: new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19),
     allowStale: false,
+    click: [],
+    expect: "",
   };
   for (const raw of argv) {
     const [key, value = ""] = raw.split(/=(.*)/s);
@@ -114,8 +124,14 @@ function parseArgs(argv) {
     else if (key === "--settle") args.settle = Number(value);
     else if (key === "--out") args.out = path.resolve(value);
     else if (key === "--label") args.label = value;
+    else if (key === "--click") args.click = value.split(",").map((s) => s.trim()).filter(Boolean);
+    else if (key === "--expect") args.expect = value.trim();
     else if (key === "--allow-stale") args.allowStale = true;
-    else throw new Error(`알 수 없는 인자: ${raw} (지원: --routes --target --viewports --insets --settle --out --label --allow-stale)`);
+    else
+      throw new Error(
+        `알 수 없는 인자: ${raw} (지원: --routes --target --viewports --insets --settle --out --label ` +
+          `--click --expect --allow-stale)`,
+      );
   }
   if (!args.routes.length) throw new Error("--routes=/route/ 가 필요합니다 (쉼표로 여러 개).");
   /* trailingSlash export 구조 — .html 파일이 아니면 후행 슬래시를 강제한다 */
@@ -247,11 +263,13 @@ async function probe(params) {
   const seenInput = new Set();
   const seenReading = new Set();
   const seenOverflow = new Set();
+  const seenClipped = new Set();
   const seenFixed = new Set();
   const smallTargets = [];
   const inputsUnder = [];
   const readingBlocks = [];
   const overflowOffenders = [];
+  const clippedOffenders = [];
   const fixedBottom = [];
   let scanned = 0;
   let inputsTotal = 0;
@@ -289,18 +307,53 @@ async function probe(params) {
     await settle();
     steps += 1;
 
-    if (document.documentElement.scrollWidth > window.innerWidth + 1) {
-      docOverflow = true;
-      for (const el of document.body.querySelectorAll("*")) {
-        if (seenOverflow.has(el)) continue;
-        const rect = el.getBoundingClientRect();
-        if (!visible(el, rect)) continue;
+    // 🔴 문서 폭 게이트는 이 레포에서 구조적으로 죽어 있다 — styles/globals.css:80-81,111-112 가
+    // html·body 에 overflow-x:clip 을 걸어 documentElement.scrollWidth 는 clientWidth 를 넘을 수
+    // 없다. 그래서 넘친 내용은 가로 스크롤바가 아니라 조용한 잘림으로 나타나고, 이 게이트 안에
+    // 갇혀 있던 요소 수집기는 한 번도 돈 적이 없다(docs/handoff/mobile-feature-sweep.md 의 OF 열이
+    // 55개 기능 전 배치에서 0 이었던 이유). 게이트 없이 요소 단위 두 축으로 잰다.
+    if (document.documentElement.scrollWidth > window.innerWidth + 1) docOverflow = true;
+
+    for (const el of document.body.querySelectorAll("*")) {
+      const rect = el.getBoundingClientRect();
+      if (!visible(el, rect)) continue;
+
+      // 축 A — 자기 박스가 뷰포트 밖으로 나간 것
+      if (!seenOverflow.has(el)) {
         const overRight = rect.right - window.innerWidth;
         const overLeft = -rect.left;
-        if (overRight <= 1 && overLeft <= 1) continue;
-        seenOverflow.add(el);
-        overflowOffenders.push({ label: describe(el), overPx: Number(Math.max(overRight, overLeft).toFixed(1)) });
+        if (overRight > 1 || overLeft > 1) {
+          seenOverflow.add(el);
+          overflowOffenders.push({ label: describe(el), overPx: Number(Math.max(overRight, overLeft).toFixed(1)) });
+        }
       }
+
+      // 축 B — 스스로 잘라 내는 상자 안에서 내용이 넘쳐 사라진 것.
+      // minmax(0,1fr) 은 트랙 폭만 고정할 뿐 줄바꿈 못 하는 내용(white-space:nowrap · keep-all 긴
+      // 어절 · 고정 px 폭)은 아이템 박스 밖으로 샌다. 아이템의 layout box 는 트랙 폭 그대로라
+      // 축 A 로는 절대 안 잡히고, 조상의 overflow:hidden|clip 에서 조용히 잘린다.
+      if (seenClipped.has(el)) continue;
+      const lost = el.scrollWidth - el.clientWidth;
+      if (lost <= 1) continue;
+      // 🔴 getComputedStyle 은 넘친 요소에만 — 전 요소에 걸면 스텝마다 스타일 재계산이 터진다.
+      const overflowX = getComputedStyle(el).overflowX;
+      // overflow-x:auto|scroll 은 의도된 가로 레일이므로 위반이 아니다.
+      if (overflowX !== "hidden" && overflowX !== "clip") continue;
+      seenClipped.add(el);
+      // 잘린 상자만으로는 원인을 못 짚는다 — 내용이 제 박스보다 넓은 자손을 같이 남긴다.
+      const culprits = [];
+      for (const child of el.querySelectorAll("*")) {
+        const spill = child.scrollWidth - child.clientWidth;
+        if (spill <= 1) continue;
+        const childRect = child.getBoundingClientRect();
+        if (!visible(child, childRect)) continue;
+        culprits.push({ label: describe(child), spillPx: Number(spill.toFixed(1)) });
+      }
+      clippedOffenders.push({
+        label: describe(el),
+        lostPx: Number(lost.toFixed(1)),
+        culprits: culprits.sort((a, b) => b.spillPx - a.spillPx).slice(0, 3),
+      });
     }
 
     const nodes = document.querySelectorAll(selectors.interactive);
@@ -367,6 +420,7 @@ async function probe(params) {
     visibleInteractive: seenTap.size,
     docOverflow,
     overflowOffenders: overflowOffenders.sort((a, b) => b.overPx - a.overPx).slice(0, 10),
+    clippedOffenders: clippedOffenders.sort((a, b) => b.lostPx - a.lostPx).slice(0, 10),
     smallTapTargets: smallTargets.length,
     smallTapWorst: smallTargets.sort((a, b) => Math.min(a.w, a.h) - Math.min(b.w, b.h)).slice(0, 15),
     inputsTotal,
@@ -382,7 +436,7 @@ async function probe(params) {
   };
 }
 
-async function measureLeg(browser, origin, route, viewport, inset, settleMs) {
+async function measureLeg(browser, origin, route, viewport, inset, settleMs, clickSelectors = [], expectSelector = "") {
   const context = await browser.newContext({
     viewport,
     hasTouch: true,
@@ -407,6 +461,26 @@ async function measureLeg(browser, origin, route, viewport, inset, settleMs) {
       return { valid: false, invalidReason: `HTTP ${response.status()}` };
     }
     await page.waitForTimeout(settleMs);
+
+    // 결과 화면은 폼 제출 뒤에 뜬다 — 여기까지 몰고 가지 않으면 첫 화면만 재게 된다
+    // (docs/handoff/mobile-feature-sweep.md 비고: 스캐너는 첫 화면만 본다).
+    for (const selector of clickSelectors) {
+      try {
+        await page.locator(selector).first().click({ timeout: 15000 });
+      } catch (error) {
+        return { valid: false, invalidReason: `--click 실패 (${selector}) — ${error.message}` };
+      }
+      await page.waitForTimeout(settleMs);
+    }
+    // 🔴 fail-closed — 기대한 화면이 안 떴는데 재면 그 '발견 0건'은 거짓이다.
+    if (expectSelector) {
+      try {
+        await page.locator(expectSelector).first().waitFor({ state: "visible", timeout: 30000 });
+      } catch (error) {
+        return { valid: false, invalidReason: `--expect 미출현 (${expectSelector}) — ${error.message}` };
+      }
+      await page.waitForTimeout(settleMs);
+    }
     const result = await page.evaluate(probe, {
       selectors: { interactive: INTERACTIVE_SELECTOR, input: INPUT_SELECTOR, reading: READING_SELECTOR, exit: EXIT_SELECTOR },
       minTap: MIN_TAP_PX,
@@ -475,7 +549,7 @@ async function main() {
       }
       for (const viewport of args.viewports) {
         for (const inset of args.insets) {
-          const leg = await measureLeg(browser, origin, route, viewport, inset, args.settle);
+          const leg = await measureLeg(browser, origin, route, viewport, inset, args.settle, args.click, args.expect);
           leg.viewport = `${viewport.width}x${viewport.height}`;
           leg.inset = inset;
           legs.push(leg);
@@ -488,12 +562,16 @@ async function main() {
           const sa = leg.fixedBottom.length ? `${Math.min(...leg.fixedBottom.map((f) => f.contentGap))}px` : "—";
           console.log(
             `· ${tag} scanned=${leg.visibleInteractive}/${leg.scanned} ` +
-              `OF=${leg.docOverflow ? leg.overflowOffenders.length + "건" : "0"} ` +
+              `OF-A=${leg.overflowOffenders.length} OF-B=${leg.clippedOffenders.length} ` +
               `TT<44=${leg.smallTapTargets} IN<16=${leg.inputsUnder16.length}/${leg.inputsTotal} ` +
               `SAgap=${sa} 열폭=${leg.readingCol ? `${leg.readingCol.min}px` : "—"} ` +
               `이탈=${leg.bottomNavVisible ? "탭바" : leg.exitFound.length ? "유" : "수동확인"}`,
           );
-          for (const off of leg.overflowOffenders) console.log(`    ↔ ${off.overPx}px 초과: ${off.label}`);
+          for (const off of leg.overflowOffenders) console.log(`    ↔ ${off.overPx}px 뷰포트 이탈: ${off.label}`);
+          for (const clip of leg.clippedOffenders) {
+            console.log(`    ✂ ${clip.lostPx}px 잘림: ${clip.label}`);
+            for (const c of clip.culprits) console.log(`        └ 내용 ${c.spillPx}px 초과: ${c.label}`);
+          }
           for (const v of leg.fixedBottomViolations)
             console.log(`    ⚠ safe-area 내용물 여유 ${v.contentGap}px (박스 ${v.gap}px + 하단패딩 ${v.paddingBottom}px): ${v.label}`);
         }

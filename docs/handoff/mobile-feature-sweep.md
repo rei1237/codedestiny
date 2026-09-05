@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-09-03
-next: "없음 — 시드 55종 + 대기 3행까지 전부 소진(09-03). 공용 푸터 75건은 WCAG 2.5.8 AA 통과라 코드 변경 없이 닫았고, 탭바·루트 셸 index.html 은 수정했다. 새 라우트가 생기면 같은 레시피로 이어간다"
+updated: 2026-09-05
+next: "OF 축이 09-05 에 처음 살아났다(아래 §OF 열 정정). 자미두수 결과 화면은 닫았고, 다음은 §다른 전문가 상담 감사 의 keep-all 단독 15파일을 기능당 1PR 로 — 신년운세·숙요궁합·카르마·낙샤트라 순. CI 게이트 2종의 같은 맹점은 별도 PR 이 필요하다"
 ---
 
 # 기능별 모바일 순회 원장
@@ -34,6 +34,114 @@ next: "없음 — 시드 55종 + 대기 3행까지 전부 소진(09-03). 공용 
 | 공용 하단 탭바(nav.cd-mnav) | App Router 전 라우트 | — | 09-03 | SA 내용물 여유 8→12px · 인접결함 `--cd-mnav-bar-h` 56→68px(실측 64.1→68.1) | #1504 | 완료 |
 
 배치 1~6 + 대기 3행 완료 — 시드 55종을 09-03 에 실측 대조해 소진을 확인했다(배치 6 이 남은 26종을 덮었다). 순회는 여기서 끝이고, 새 라우트가 생기면 아래 레시피로 이어간다. 배치 5 미측정 4종은 아래 비고.
+
+## 🔴 OF 열 정정 — "0" 은 깨끗하다는 증거가 아니었다 (09-05)
+
+위 표의 **OF 열이 55개 기능 전 배치에서 예외 없이 0** 인 것은 결함이 없어서가 아니라 **지표가 0 밖에 낼 수 없었기 때문**이다. 낡은 수치는 덮지 않고 정정만 붙인다(원칙 8).
+
+- `styles/globals.css:80-81,111-112` 이 `html`·`body` 에 `overflow-x:hidden` + `overflow-x:clip` 을 전역으로 건다 → `document.documentElement.scrollWidth` 는 **정의상 `clientWidth` 를 넘을 수 없다.**
+- 세 검사기가 전부 그 값 하나로 판정했다 — `measure-mobile-routes.mjs`·`verify-mobile-cdp-smoke.mjs`·`verify-mobile-detail-render.mjs`. `measure-*` 는 요소 단위 수집 블록을 갖고 있었지만 `if (docOverflow)` 안에 갇혀 한 번도 실행되지 않았다(원칙 10 의 fail-open 형태).
+- 그래서 넘친 내용은 가로 스크롤바 없이 **잘려서 사라진다**. 사용자 신고 "모바일 화면에 안 맞게 넓게 나와 짤린다"가 정확히 이 현상이다.
+
+09-05 에 `measure-mobile-routes.mjs` **만** 고쳤다 — 문서 게이트를 없애고 두 축을 상시 수집한다. 🔴 **CI 게이트 2종(`verify:mobile-cdp-smoke`·`verify:mobile-detail-render`)은 같은 맹점을 그대로 갖고 있다**(사용자가 범위를 그렇게 확정했다). 후속 PR 이 필요하다.
+
+| 축 | 판정 | 잡는 것 |
+|---|---|---|
+| OF-A | `rect.right > innerWidth+1` 또는 `rect.left < -1` | 자기 박스가 화면 밖으로 나간 요소 |
+| OF-B | `el.scrollWidth > el.clientWidth+1` **이고** computed `overflow-x` 가 `auto`/`scroll` 이 **아님** | 트랙 안에서 내용만 새어 잘리는 경우 |
+
+🔴 **두 축 다 무해한 상시 초과를 낸다 — 건수만 보고 결함으로 읽지 말 것.** 자미두수는 수정 후에도 OF-A=10·OF-B=2 인데 전부 의도된 장식이다(바로 아래).
+🔴 **텍스트 런의 넘침은 이 두 축으로도 안 잡힌다** — 크로미엄의 `scrollWidth` 가 인라인 텍스트 넘침을 신뢰성 있게 포함하지 않는다. 09-05 에는 `Range.getClientRects()` 로 텍스트 픽셀 범위를 따로 쟀고, 그 축에서만 42건이 보였다. 스캐너에는 아직 없다.
+
+## 자미두수 결과 화면 (`/ziwei-ai/`) — 09-05 수정
+
+원장의 유료 AI 18종 행(#1493)은 **입력 폼 첫 화면만** 쟀다(배치 정의: "`/…/result/` 류는 dist 에서 못 열어 스캔 제외"). 결과 화면 실측은 09-05 가 처음이다.
+
+### 결과 화면을 결제·LLM 없이 여는 하네스
+
+🔴 `?preview=success` dev-preview 는 `NODE_ENV==="production"` 에서 `null` 이라 **dist 에서는 안 된다.** 대신 `?cid=` 재열람 경로(`ZiweiAiClient.tsx:866-878`)를 쓴다 — 결제도 LLM 도 안 탄다.
+
+1. `npm run build:cf`
+2. 1회용 스텁 서버(약 90줄, 커밋 안 함): `dist/` 를 정적 서빙하면서 `/api/ziwei-ai/result` 만 `lib/dev-preview/fixtures/ziwei.ts` 의 `buildZiweiPreviewPayload("success")` 로 응답한다(픽스처가 TS 라 `esbuild.transform` 으로 타입만 벗겨 import). `id` 쿼리가 있으면 단건, 없으면 빈 목록 — 클라이언트가 두 요청을 다 보낸다. 나머지 `/api/*` 는 404 로 두면 클라이언트가 흡수한다. 🔴 **127.0.0.1 로 띄우는 것이 핵심** — `app/_lib/api-config.ts:92-99` 의 `LOCAL_HOSTS` 가 API 를 same-origin 으로 돌려 **프로덕션 트래픽이 0** 이 된다.
+3. 🔴 PowerShell 로 (Git Bash 는 선두 라우트를 재작성한다):
+   `npm run measure:mobile-routes -- --target=http://127.0.0.1:3070 --routes="/ziwei-ai/?cid=dev-preview-ziwei&x=/" --expect="[data-ziwei-complete-result]" --viewports=412x823,360x800`
+   - 끝의 `&x=/` 는 `parseArgs` 가 쿼리 끝에 `/` 를 붙여 망가뜨리는 것을 피하는 우회다(그 부분은 안 고쳤다).
+   - `--expect` 는 09-05 에 추가한 인자다. 셀렉터가 안 뜨면 INVALID 로 죽는다(fail-closed) — 결과가 안 붙은 채 "위반 0" 이 나오는 위양성을 막는다. `--click` 도 함께 추가했다.
+
+🔴 **이 하네스에는 함정이 하나 있다** — 대한 타임라인 캡션이 `34-43세세 · 관록궁 대한` 으로 `세` 가 겹쳐 보이는데 **프로덕션 결함이 아니다.** 실제 생산자 `worker/lib/ziwei-ai-chart.js:361` 은 `range: \`${startAge}-${startAge + 9}\`` 로 `세` 를 안 붙이고 컴포넌트(`ZiweiAiClient.tsx:400`)가 붙인다. 세를 두 번 넣은 쪽은 픽스처(`lib/dev-preview/fixtures/ziwei.ts:92-95` `range: "4-13세"`)다. 09-05 스크린샷 판정에서 실제로 한 번 오탐을 냈다 — 픽스처를 정본으로 읽지 말 것.
+
+### 전 / 후
+
+| 뷰포트 | 전 | 후 |
+|---|---|---|
+| 412×823 | OF-A=10 OF-B=2 TT<44=2 IN<16=0/7 열폭 354px | OF-A=10 OF-B=2 TT<44=**1** 열폭 354px |
+| 360×800 | OF-A=10 OF-B=2 TT<44=2 열폭 302px | OF-A=10 OF-B=2 TT<44=**1** 열폭 302px |
+| 1280×900 | (미측정) | OF-A=**0** OF-B=1 TT<44=1 열폭 654px — 데스크탑 회귀 없음 |
+
+**OF 건수가 안 줄어든 것이 정상이다** — 픽스처 문안이 짧아 애초에 안 넘쳤고, 남은 건수는 전부 의도된 장식이다.
+
+- OF-A 10건 = `div.heroConstellation` · `span.heroOrbit--outer/middle/inner` · 별 `<i>` 6개. 히어로 `overflow:hidden` 안에서 의도적으로 잘리는 궤도 장식.
+- OF-B 2건 = `section.ziweiHero` 86px + `main.ziweiAiShell` 597/604px. 후자는 `.ziweiAiShell::after`(`inset:-15% -10%` + `rotate(-7°)`)의 회전 바운딩박스다. 검산 — 412px: `494.375·cos7° + 9143.53·sin7° = 1604.8`, 중앙정렬이라 우측 초과 `(1604.8−412)/2 = 596.4 ≈ 597`. 360px 도 `603.6 ≈ 604`. 🔴 **수정 전 594/601 → 후 597/604 의 +3px 은 회귀가 아니라 히어로 여백 +30px 이 페이지를 높인 산술적 귀결이다** — 회전 장식은 페이지가 높아지면 옆으로 자란다.
+- TT<44 잔여 1건 = `input[type=checkbox]` 17×17. 감싸는 `label.check` 가 **131×44** 이고 라벨 클릭이 실제로 토글한다(checked false→true 실측). 위 비고에 적힌 스캐너 위양성 그대로다.
+
+### 실제 잘림은 스트레스 주입으로만 재현된다
+
+🔴 **픽스처 문안으로는 안 넘친다.** 줄바꿈 불가한 긴 런(AI 본문의 URL·연속 영숫자, 사용자 입력 이름)을 주입해야 재현되고, 사용자가 본 화면이 이쪽이다.
+
+| 360px | 문서폭 | 뷰포트 이탈 | 잘린 텍스트 런 |
+|---|---|---|---|
+| 스트레스 · 수정 전 | 477px | 155건 (최대 +140px) | 42건 (최악 `small` +125px) |
+| 스트레스 · 수정 후 | **314px** | **0** | **0** |
+
+412px 도 같다(477 / 153건 / 38건 → 366 / 0 / 0). 수정 후 수치는 **주입 CSS 없이 배포 빌드의 CSS 만으로** 나온 값이다.
+
+### 처방 (`ZiweiAiClient.tsx` 인라인 `<style>` 만, +10/−2줄)
+
+기여도를 A/B/C 로 분리 측정해 골랐다 — A 단독과 C 단독이 각각 0 을 만들고, B 단독은 4건이 남는다. A·C 만으로 충분하지만 B 는 아이템 자동 최소폭이라는 다른 원인을 막아 함께 넣었다.
+
+- **A** `.resultDocument,.resultCover,.chartDataPanel,.chartDataHeader,.dayunBanner,.chatList,.chatCard{grid-template-columns:minmax(0,1fr)}` — 7개 전부 `grid-template-columns` 선언이 없는 **암시적 1열**이라 트랙 바닥이 `auto` 였다. `minmax(0,1fr)` 은 바닥만 내리므로 **레이아웃 인상 변화 0**.
+- **B** 그리드 아이템 7종에 `min-width:0`.
+- **C** AI 본문·요약값 9종에 `overflow-wrap:anywhere`. 🔴 `word-break:keep-all` 단독은 긴 런을 못 끊고, `break-word` 는 min-content 를 안 줄여 **효과가 없다** — `anywhere` 여야 한다.
+- 부수 수정 둘: `.resultToolbar button` `min-height:42→44px`. 그리고 620px 쿼리의 `.heroCopy` 상단 패딩을 `24px → calc(env(safe-area-inset-top,0px) + 54px)` — 좌상단 고정 `nav.cd-feature-nav`(12,12 124×44)가 눈썹 텍스트(31,**35**)를 덮고 있었고, 수정 후 31,**65** 로 9px 여유가 생긴다. 🔴 **나브를 숨기는 것은 오답이다** — `/ziwei-ai` 는 `CHROMELESS_ROUTES`(`app/components/AppChrome.tsx`)라 하단 탭바가 없고 `body.cd-mnav-mounted` 도 안 붙어(`styles/mobile-bottom-nav.css:69`) 이 나브가 **유일한 탈출구**다. 자리를 비우는 쪽으로 고쳤다. 데스크탑은 원래 패딩 42px 이라 이미 안 겹쳤다.
+
+클래스명 충돌 확인: 이 14개 클래스는 `components/`·`src/` 전체에서 사용처 0(`git grep`) — 파급은 `/ziwei-ai/` 안에서 닫힌다.
+
+### 안 고친 것
+
+- `.scoreGrid` 는 620px 쿼리에 빠져 있어 360px 까지 2열로 남지만, 트랙이 이미 `repeat(2,minmax(0,1fr))` 라 **잘림의 원인이 아니다.** 열 수 변경은 인체공학이 아니라 디자인 변경이라 남겼다.
+- `.ziweiAiShell{overflow:hidden}` 도 그대로 뒀다 — 위 장식 잘림이 이 선언에 의존한다.
+
+## 다른 전문가 상담 감사 — 소스 기준, **렌더 미측정** (09-05)
+
+사용자 요청의 "다른 상담에도 이런 문제가 있는지"에 대한 답이다. 🔴 **아래는 정적 grep 집계이지 실측이 아니다** — 자미두수처럼 하네스를 붙여 재기 전에는 건수를 결함 수로 읽지 말 것. 실제로 유일한 "고정 최소폭" 적중(`app/vedic-ai/VedicAiClient.module.css:1693` `.dashaTrack{min-width:560px}`)은 바로 위 `.dashaTrackWrap{overflow-x:auto}`(:1690)가 감싼 **의도된 가로 레일**이라 위양성이었다.
+
+축 4개 — **암시적 트랙**(`grid-template-columns` 없는 grid) · **안 눌린 트랙**(`1fr`/`auto` 라 min-content 바닥이 열린 트랙) · **keep-all 단독**(`overflow-wrap` 짝이 없음) · **고정 최소폭**(`min-width ≥280px`).
+
+| 기능 | 합계 | 암시적 | 안눌린 | keep-all단독 | 고정최소폭 |
+|---|---|---|---|---|---|
+| 운명나침반 | 89 | 76 | 13 | 0 | 0 |
+| 숙요 궁합 | 73 | 28 | 11 | 34 | 0 |
+| 낙샤트라 | 51 | 5 | 15 | 31 | 0 |
+| 카르마 데스티니 | 41 | 23 | 5 | 13 | 0 |
+| 신년운세 | 34 | 16 | 10 | 8 | 0 |
+| 베다 점성 | 26 | 19 | 5 | 1 | 1 (위양성) |
+| 자미두수 (수정 전) | 21 | 13 | 5 | 3 | 0 |
+| 섬 상담 | 7 | 1 | 0 | 6 | 0 |
+| 공용 결과 컴포넌트 | 4 | 4 | 0 | 0 | 0 |
+| 인생책 | 2 | 1 | 1 | 0 | 0 |
+| 연애비밀 | 1 | 1 | 0 | 0 | 0 |
+| 서양 점성 · 작명 | 0 | — | — | — | — |
+
+**가장 먼저 볼 것은 keep-all 단독 중 AI 본문에 걸린 것** — 자미두수에서 실제로 잘린 것이 정확히 이 형태였다(`.chatCard p{word-break:keep-all}`). 해당 위치:
+
+- `app/island-consult/IslandConsultClient.tsx:952,955,965,990`
+- `app/karma-destiny-ai/KarmaDestinyAiClient.tsx:3599,3903` · `app/karma-destiny-ai/result/_components/ResultStyles.tsx:260,292,307,399`
+- `app/new-year-ai-consultation/NewYearAiClient.tsx:1268,1341,1449,2280,2485,2657`
+- `app/sukuyo-compatibility-ai/SukuyoCompatibilityAiClient.module.css:277,339,350,429,521,532`
+- `app/vedic-ai/VedicAiClient.module.css:735`
+- `app/nakshatra/dasha-map/dasha-timeline.module.css:10,53,70,112` · `app/nakshatra/muhurta/muhurta.module.css:44,93`
+
+기능별 결과 화면을 여는 수단은 제각각이다 — dev-preview 픽스처는 `lib/dev-preview/fixtures/` 8종뿐(astrology · karma-destiny · life-book · love-secret · new-year · sukuyo-compatibility · vedic · ziwei). `destiny-compass` · `island-consult` · `nakshatra/ai` · `naming-ai` 는 픽스처가 없어 **현재 측정 수단이 없다**(결함 없음이 아니라 미측정).
 
 ## 배치 (사용자 확정: 유료 대표부터)
 

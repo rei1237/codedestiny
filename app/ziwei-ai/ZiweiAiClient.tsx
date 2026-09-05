@@ -1466,7 +1466,7 @@ export default function ZiweiAiPage() {
         .resultToolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;border:1px solid rgba(245,217,145,.24);border-radius:8px;background:linear-gradient(145deg,rgba(245,217,145,.12),rgba(143,167,255,.10));padding:12px}
         .resultToolbar span{display:block;color:#cfc7f8;font-size:12px;font-weight:820}
         .resultToolbar strong{display:block;margin-top:3px;color:#fffaf0;font-family:var(--font-display);font-size:16px;line-height:1.35}
-        .resultToolbar button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:42px;border:1px solid rgba(245,217,145,.42);border-radius:8px;background:rgba(245,217,145,.14);color:#fff0b8;padding:0 13px;font-family:var(--font-display);font-size:13px;font-weight:900;cursor:pointer;white-space:nowrap;box-shadow:0 12px 24px rgba(0,0,0,.18)}
+        .resultToolbar button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:44px;border:1px solid rgba(245,217,145,.42);border-radius:8px;background:rgba(245,217,145,.14);color:#fff0b8;padding:0 13px;font-family:var(--font-display);font-size:13px;font-weight:900;cursor:pointer;white-space:nowrap;box-shadow:0 12px 24px rgba(0,0,0,.18)}
         .resultToolbar button:disabled{cursor:not-allowed;opacity:.62}
         .resultDocument{display:grid;gap:14px;background:#060712;color:#f8fafc}
         .resultCover{display:grid;gap:8px;border:1px solid rgba(245,217,145,.24);border-radius:8px;background:radial-gradient(ellipse at 74% 18%,rgba(245,217,145,.16),transparent 38%),linear-gradient(145deg,rgba(14,16,43,.96),rgba(7,9,25,.98));padding:24px}
@@ -1551,8 +1551,16 @@ export default function ZiweiAiPage() {
         .summaryGrid strong{letter-spacing:.01em}
         .spin{animation:ziweiSpin 1s linear infinite}
         @keyframes ziweiSpin{to{transform:rotate(360deg)}}
+        /* 결과 문서 가로 넘침 차단. 셸이 overflow:hidden 이라 넘친 내용은 스크롤바 없이 그냥 잘린다 —
+           ① 암시적 1열 그리드의 min-content 바닥을 0 으로 내려 컨테이너가 내용에 밀리지 않게 하고
+           ② 그리드 아이템의 자동 최소폭을 풀고
+           ③ AI 본문·사용자 입력의 줄바꿈 불가한 긴 런을 끊는다(word-break:keep-all 만으로는 안 끊긴다.
+              break-word 는 min-content 를 안 줄여 효과가 없어 anywhere 를 쓴다). */
+        .resultDocument,.resultCover,.chartDataPanel,.chartDataHeader,.dayunBanner,.chatList,.chatCard{grid-template-columns:minmax(0,1fr)}
+        .summaryGrid>div,.chartDataGrid>div,.scoreGrid>div,.palaceCard,.chatCard,.chatCardTitle,.resultToolbar>div{min-width:0}
+        .chatCard p,.chatCardTitle h3,.summaryGrid strong,.summaryGrid span,.chartDataGrid strong,.resultCover p,.resultCover h2,.palaceHead strong,.dayunBanner strong{overflow-wrap:anywhere}
         @media(max-width:980px){.workspace{grid-template-columns:1fr}.consultForm{position:static}.summaryGrid,.scoreGrid,.chartDataGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.palaceGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.resultPane{min-height:520px}.emptyState,.loadingState{min-height:430px}}
-        @media(max-width:620px){.ziweiAiShell{padding:10px}.ziweiHero{min-height:248px}.heroCopy{padding:24px 20px 44px}.heroConstellation{right:-86px;top:48%;width:252px;opacity:.45}.heroConstellation i{transform:translate(-50%,-50%) rotate(var(--angle)) translateY(-112px)}.heroConstellation b{width:58px;font-size:27px}.heroBackdropText{right:-10%;bottom:14%;font-size:76px}.fieldRow,.summaryGrid,.chartDataGrid{grid-template-columns:1fr}.palaceGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.palaceBoard{padding:10px}.resultToolbar{align-items:stretch;flex-direction:column}.resultToolbar button{width:100%}.resultCover{padding:18px}.resultCover h2{font-size:24px}.resultPane{min-height:420px;padding:12px}.emptyState,.loadingState{min-height:340px}.palaceSigil{width:138px}.palaceSigil span{transform:rotate(calc(var(--i,0)*30deg)) translateY(-58px)}}
+        @media(max-width:620px){.ziweiAiShell{padding:10px}.ziweiHero{min-height:248px}.heroCopy{padding:calc(env(safe-area-inset-top,0px) + 54px) 20px 44px}.heroConstellation{right:-86px;top:48%;width:252px;opacity:.45}.heroConstellation i{transform:translate(-50%,-50%) rotate(var(--angle)) translateY(-112px)}.heroConstellation b{width:58px;font-size:27px}.heroBackdropText{right:-10%;bottom:14%;font-size:76px}.fieldRow,.summaryGrid,.chartDataGrid{grid-template-columns:1fr}.palaceGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.palaceBoard{padding:10px}.resultToolbar{align-items:stretch;flex-direction:column}.resultToolbar button{width:100%}.resultCover{padding:18px}.resultCover h2{font-size:24px}.resultPane{min-height:420px;padding:12px}.emptyState,.loadingState{min-height:340px}.palaceSigil{width:138px}.palaceSigil span{transform:rotate(calc(var(--i,0)*30deg)) translateY(-58px)}}
       `}</style>
     </main>
   );
