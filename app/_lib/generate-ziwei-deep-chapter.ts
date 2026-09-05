@@ -6,13 +6,7 @@ import {
   ZiweiSectionId,
   ZiweiStarMeta,
 } from "./ziwei-types";
-import {
-  AUXILIARY_STAR_INTERPRETATIONS,
-  MALEFIC_STAR_INTERPRETATIONS,
-  SIHUA_INTERPRETATIONS,
-  STRENGTH_SPECIFIC_STAR_HINTS,
-  STAR_INTERPRETATIONS,
-} from "./ziwei-star-interpretations";
+import { SIHUA_INTERPRETATIONS } from "./ziwei-star-interpretations";
 import { MASTER_TEMPLATE, OVERVIEW_TEMPLATE, ZIWEI_PALACE_TEMPLATES } from "./ziwei-deep-templates";
 import { transformationTypeToLabel } from "./ziwei-advanced-normalization";
 import {
@@ -37,14 +31,6 @@ const ZIWEI_DEEP_CHAPTER_TEXT_TRANSLATIONS = {
 
 type StrengthSymbol = "◎" | "O" | "▲" | "△" | "X" | "";
 
-const SYMBOL_DESC: Record<Exclude<StrengthSymbol, "">, string> = {
-  "◎": "묘(廟) 급으로 별의 성능이 최상 발현되는 상태",
-  "O": "득(得) 급으로 안정성과 지속 실행력이 높은 상태",
-  "▲": "리(利) 구간으로 추진력과 실익이 균형 있게 작동하는 상태",
-  "△": "평(平) 구간으로 환경·운영 방식에 따라 결과 편차가 생기는 상태",
-  "X": "함/실(陷/失) 구간으로 리스크 통제와 방어 전략이 최우선인 상태",
-};
-
 // 기호만으로는 의미를 알기 어려우므로, 뱃지에 짧은 한글 설명을 함께 표기한다(강약 기호 옆 인라인 설명).
 const SYMBOL_SHORT_MEANING: Record<Exclude<StrengthSymbol, "">, string> = {
   "◎": "최상",
@@ -61,11 +47,6 @@ const SIHUA_BADGE: Record<string, string> = {
   화기: "집중 과제/집착 관리",
 };
 
-function sentenceList(items: string[], empty = "직접 사화가 없는 구간은 삼방사정과 대궁 흐름을 함께 해석합니다."): string {
-  if (!items.length) return empty;
-  return items.join(" ");
-}
-
 function palaceById(chart: ZiweiDeepChart, id?: string): ZiweiPalace | null {
   if (!id) return null;
   return chart.palaces.find((p) => p.id === id) || null;
@@ -81,67 +62,8 @@ function normalizeSymbol(symbol?: string): StrengthSymbol {
   return "";
 }
 
-function starRoleLabel(group: "main" | "assistant" | "malefic"): string {
-  if (group === "main") return "주성";
-  if (group === "assistant") return "보조성";
-  return "살성";
-}
-
-function buildGenericStrengthHint(star: ZiweiStarMeta, group: "main" | "assistant" | "malefic", symbol: Exclude<StrengthSymbol, "">): string {
-  const role = starRoleLabel(group);
-  const transform = star.transformation ? ` ${star.transformation} 결합 국면` : "";
-
-  if (symbol === "◎") {
-    return `${role} ${star.name}의 강세(◎)는 궁의 핵심 축을 선명하게 만들며${transform}에는 장기 성과로 누적될 가능성이 큽니다.`;
-  }
-  if (symbol === "O") {
-    return `${role} ${star.name}의 안정 구간(O)은 재현 가능한 성과를 만들기 좋고, 습관화하면 변동성을 크게 줄일 수 있습니다.`;
-  }
-  if (symbol === "▲") {
-    return `${role} ${star.name}의 이점 구간(▲)은 방향과 실행이 맞을 때 성과 가속이 붙으므로 우선순위 정렬이 중요합니다.`;
-  }
-  if (symbol === "△") {
-    return `${role} ${star.name}의 기복 구간(△)은 환경 의존성이 커지므로 루틴·체크리스트·협업 보조 장치로 품질을 표준화해야 합니다.`;
-  }
-  return `${role} ${star.name}의 충돌 구간(X)은 방치하면 손실이 커지므로 속도 제한, 손실 상한선, 의사결정 보류 규칙을 먼저 설계해야 합니다.`;
-}
-
-function buildStrengthDrivenAction(star: ZiweiStarMeta, group: "main" | "assistant" | "malefic"): string {
-  const symbol = symbolOf(star);
-  const role = starRoleLabel(group);
-
-  if (!symbol) {
-    return `${role} ${star.name}은(는) 강약 기호가 비어 있어 계산 데이터 재동기화가 필요합니다.`;
-  }
-  if (symbol === "◎") {
-    return `${role} ${star.name}(◎)은(는) 확장 카드입니다. 고난도 과제·핵심 의사결정·대표 역할에 우선 배치하세요.`;
-  }
-  if (symbol === "O") {
-    return `${role} ${star.name}(O)은(는) 안정 카드입니다. 반복 성과 구간에 고정해 장기 복리 구조를 만드세요.`;
-  }
-  if (symbol === "▲") {
-    return `${role} ${star.name}(▲)은(는) 가속 카드입니다. 핵심 과제와 맞물릴 때 실행 우선순위를 앞당기세요.`;
-  }
-  if (symbol === "△") {
-    return `${role} ${star.name}(△)은(는) 보완 카드입니다. 단독 질주보다 협업·템플릿·리허설 기반으로 운용하세요.`;
-  }
-  return `${role} ${star.name}(X)은(는) 통제 카드입니다. 감정 반응 대신 데이터 기반 단계 실행으로 리스크를 분해하세요.`;
-}
-
 function symbolOf(star: ZiweiStarMeta): StrengthSymbol {
   return normalizeSymbol(star.strengthSymbol || star.symbol);
-}
-
-function strengthOf(star: ZiweiStarMeta): string {
-  const text = String(star.strength || "").trim();
-  if (text) return text;
-  const symbol = symbolOf(star);
-  if (symbol === "◎") return "묘";
-  if (symbol === "O") return "득";
-  if (symbol === "▲") return "리";
-  if (symbol === "△") return "평";
-  if (symbol === "X") return "함";
-  return "강약 미확인";
 }
 
 function starBadge(star: ZiweiStarMeta): string {
@@ -154,141 +76,6 @@ function starBadge(star: ZiweiStarMeta): string {
 function groupBadge(stars: ZiweiStarMeta[]): string {
   if (!stars.length) return "없음";
   return stars.map((s) => starBadge(s)).join(", ");
-}
-
-function buildStarInterpretation(star: ZiweiStarMeta, group: "main" | "assistant" | "malefic"): string {
-  const symbol = symbolOf(star);
-  const strengthLabel = strengthOf(star);
-  const strengthDesc = symbol ? SYMBOL_DESC[symbol] : "원자료에 강약 기호가 없어 보수적으로 해석";
-
-  let base = "";
-  if (group === "main") {
-    const info = STAR_INTERPRETATIONS[star.name];
-    base = info
-      ? `${info.basic} ${info.strengths} ${info.cautions} ${info.remedy}`
-      : "핵심 축을 담당하는 별로서 궁의 주된 의사결정 기준을 형성합니다.";
-  } else if (group === "assistant") {
-    base = AUXILIARY_STAR_INTERPRETATIONS[star.name] || "보조성이 완충과 연결 능력을 제공합니다.";
-  } else {
-    base = MALEFIC_STAR_INTERPRETATIONS[star.name] || "살성은 리스크를 경고하며 통제 장치를 요구합니다.";
-  }
-
-  const specialRules: string[] = [];
-  const symbolHint = symbol ? STRENGTH_SPECIFIC_STAR_HINTS[star.name]?.[symbol] : "";
-  if (symbolHint) specialRules.push(symbolHint);
-  if (!symbolHint && symbol) {
-    specialRules.push(buildGenericStrengthHint(star, group, symbol));
-  }
-
-  if (star.name === "천동" && (symbol === "△" || symbol === "X")) {
-    specialRules.push("천동 약세 구간은 '편안함이 곧 불안함'으로 체감되기 쉬워, 안락함보다 성취감 중심 프로젝트에 몰입할 때 심리적 안정이 올라갑니다.");
-    specialRules.push("천동의 감수성은 소모형 감정 반응보다 사람의 마음을 읽고 정리하는 상담·기획·섬세한 조율 영역에서 가치가 극대화됩니다.");
-    specialRules.push("루틴 명상·시각화·수면 고정은 흔들리는 천동의 기운을 묶어주는 핵심 방어막입니다.");
-  }
-  if (star.name === "경양" && symbol === "◎") {
-    specialRules.push("경양 강세는 공격성이 아니라 문제 핵심을 찌르는 기술력·돌파력·결단력으로 승화될 가능성이 큽니다.");
-    specialRules.push("경양의 칼은 사람을 자르는 방향이 아니라 복잡한 문제를 정리하고 우선순위를 명확히 하는 결단력으로 쓸 때 가장 크게 길성화됩니다.");
-  }
-  if (star.name === "우필" && symbol === "◎") {
-    specialRules.push("우필 강세는 조력자·도구·협업 자원을 즉시 연결해 결과를 만드는 실무형 다재다능으로 작동합니다.");
-    specialRules.push("반복 소모를 줄이고 본인은 판단·조율·핵심 의사결정에 집중할 때 우필 시너지가 극대화됩니다.");
-  }
-  if (star.name === "거문" && star.transformation === "화록") {
-    specialRules.push("거문 화록은 말·글·상담·지식 플랫폼에서 수익화 동력이 커지고, 복잡한 정보를 가치로 번역하는 능력이 강화됩니다.");
-  }
-  if (star.name === "문창" && star.transformation === "화기") {
-    specialRules.push("문창 화기는 제도권 문서에서 답답함을 만들 수 있으나, 깊은 분석과 정리 작업에서는 높은 집중력으로 전환될 수 있습니다.");
-  }
-
-  return `${star.name}(${symbol || "강약 미확인"}) · ${strengthLabel}: ${base} ${strengthDesc}. ${specialRules.join(" ")}`.trim();
-}
-
-function buildPerStarCounselingLines(palace: ZiweiPalace): string {
-  const allStars: Array<{ star: ZiweiStarMeta; group: "main" | "assistant" | "malefic" }> = [
-    ...palace.mainStars.map((star) => ({ star, group: "main" as const })),
-    ...palace.auxiliaryStars.map((star) => ({ star, group: "assistant" as const })),
-    ...palace.maleficStars.map((star) => ({ star, group: "malefic" as const })),
-  ];
-
-  if (!allStars.length) {
-    return `${palace.name}은 무주성궁 성향이 강합니다. 이 경우 단일 별보다 대궁과 삼방사정의 관계 흐름을 중심으로 상담하는 것이 더 정확합니다.`;
-  }
-
-  return allStars.slice(0, 8).map(({ star, group }) => {
-    const role = group === "main" ? "주성" : group === "assistant" ? "보조성" : "살성";
-    const symbol = symbolOf(star) || "△";
-    const strength = strengthOf(star);
-    const tone = symbol === "◎"
-      ? "지금 이 별은 장점을 전면으로 쓰면 운이 빠르게 열리는 상태입니다."
-      : symbol === "O"
-        ? "안정적으로 힘이 살아 있으니 꾸준히 밀면 체감 성과가 따라옵니다."
-        : symbol === "▲"
-          ? "방향을 잘 잡으면 크게 도움되지만 우선순위가 흐려지면 힘이 분산됩니다."
-          : symbol === "△"
-            ? "환경과 선택에 따라 결과가 달라지므로 운영 방식이 중요합니다."
-            : "지금은 속도보다 리스크 관리가 먼저이며, 감정 과속을 줄여야 합니다.";
-    const transform = star.transformation ? ` ${star.transformation}가 겹쳐 작동 강도가 바뀝니다.` : "";
-    return `${role} ${star.name}(${strength}/${symbol}) 상담: ${tone}${transform}`;
-  }).join(" ");
-}
-
-function buildSynergyAndConflict(palace: ZiweiPalace): { synergy: string[]; conflicts: string[] } {
-  const all = [...palace.mainStars, ...palace.auxiliaryStars, ...palace.maleficStars];
-  const has = (name: string) => all.some((s) => s.name === name);
-  const hasTransform = (name: string, transform: "화록" | "화권" | "화과" | "화기") =>
-    all.some((s) => s.name === name && s.transformation === transform);
-
-  const synergy: string[] = [];
-  const conflicts: string[] = [];
-
-  if (has("천기") && has("태음")) {
-    synergy.push("천기+태음 조합은 논리와 감성의 결합으로 기획·분석·정리 능력이 함께 살아나는 구조를 만듭니다.");
-  }
-  if (has("거문") && hasTransform("거문", "화록")) {
-    synergy.push("거문 화록은 지식·상담·콘텐츠·플랫폼형 수익 모델을 키우는 핵심 축입니다.");
-  }
-  if (has("천량") && has("문창") && hasTransform("문창", "화기")) {
-    synergy.push("천량+문창 화기는 전통 지식과 문서 해석 역량을 결합해 고난도 문제 해결력으로 전환될 수 있습니다.");
-  }
-  if (has("천동") && has("경양")) {
-    synergy.push("천동의 감수성과 경양의 절단력이 함께하면 외유내강형 문제 해결 엔진이 작동합니다.");
-  }
-
-  const severeMalefic = palace.maleficStars.filter((s) => symbolOf(s) === "X");
-  if (severeMalefic.length > 0) {
-    conflicts.push(`${severeMalefic.map((s) => s.name).join(", ")}은(는) 강한 충돌 신호이므로 과속 결정과 정면충돌 커뮤니케이션을 줄여야 합니다.`);
-  }
-
-  const weakMain = palace.mainStars.filter((s) => symbolOf(s) === "△" || symbolOf(s) === "X");
-  if (weakMain.length > 0) {
-    conflicts.push(`주성 중 ${weakMain.map((s) => s.name).join(", ")}의 기복이 커서, 의욕 편차가 큰 날에는 핵심 결정을 보류하는 운영 규칙이 필요합니다.`);
-  }
-
-  if (!synergy.length) {
-    synergy.push("이 궁의 시너지는 단일 별보다 주성-보조성-사화를 동시에 묶어 실행할 때 강화됩니다.");
-  }
-  if (!conflicts.length) {
-    conflicts.push("뚜렷한 충돌성은 낮지만, 피로 누적 시 의사결정 품질 저하를 막기 위한 리듬 관리가 필요합니다.");
-  }
-
-  return { synergy, conflicts };
-}
-
-function buildTriadLink(chart: ZiweiDeepChart, palace: ZiweiPalace): string {
-  const opposite = palaceById(chart, palace.oppositePalaceId);
-  const triad = palace.triadPalaceIds
-    .map((id) => palaceById(chart, id))
-    .filter(Boolean) as ZiweiPalace[];
-
-  const triadText = triad
-    .map((p) => `${p.name}(${groupBadge(p.mainStars)})`)
-    .join(" · ");
-
-  return [
-    `대궁은 ${opposite?.name || "정보 없음"}이며, 현재 궁의 맹점을 교정하는 균형축입니다.`,
-    `삼방사정 연결궁은 ${triad.map((p) => p.name).join(", ")}이고, 실전에서는 ${triadText || "연결궁 정보 확인 필요"}로 작동합니다.`,
-    "해석 원칙은 단일 궁 단정이 아니라 현재 궁-대궁-삼방의 상호 압력과 지원을 함께 읽는 것입니다.",
-  ].join(" ");
 }
 
 function buildSihuaAnalysis(chart: ZiweiDeepChart): string {
@@ -315,103 +102,6 @@ function buildSihuaAnalysis(chart: ZiweiDeepChart): string {
       return `${row.key}: ${starName} · 작동궁 ${place} · ${SIHUA_BADGE[row.key] || "작동 흐름"}. ${keyHint} ${taskHint}`.trim();
     })
     .join("\n");
-}
-
-function buildPalaceLongBody(chart: ZiweiDeepChart, palace: ZiweiPalace): string {
-  const tpl = ZIWEI_PALACE_TEMPLATES[palace.id];
-  const main = groupBadge(palace.mainStars);
-  const assistant = groupBadge(palace.auxiliaryStars);
-  const malefic = groupBadge(palace.maleficStars);
-  const directTransformations = Array.isArray(palace.fourTransformations) ? palace.fourTransformations : [];
-  const transformations = directTransformations.length
-    ? directTransformations
-      .map((item) => {
-        const label = transformationTypeToLabel(item.type);
-        return `${label} ${item.starName}(${SIHUA_BADGE[label] || "작동"})`;
-      })
-      .join(", ")
-    : "직접 사화 없음";
-  const incomingTransformations = Array.isArray(palace.incomingFourTransformations) ? palace.incomingFourTransformations : [];
-  const incomingTransformationText = incomingTransformations.length
-    ? incomingTransformations
-      .map((item) => `${transformationTypeToLabel(item.type)} ${item.starName}`)
-      .join(", ")
-    : "삼방사정·대궁에서 확인된 직접 유입 없음";
-  const emptyMainNarrative = palace.isEmptyMainStarPalace
-    ? "이 궁은 주성이 직접 자리하지 않는 무주성궁입니다. 대궁과 삼방사정의 영향을 강하게 받는 구조로, 관계와 사건의 흐름이 주변 궁의 별 배치에 따라 섬세하게 달라집니다."
-    : "";
-  const noDirectTransformationNarrative = directTransformations.length === 0
-    ? "이 궁에는 생년사화가 직접 들어오지 않았습니다. 따라서 별의 기본 성향과 삼방사정에서 들어오는 흐름을 중심으로 해석합니다."
-    : "";
-
-  const starDetails = [
-    ...palace.mainStars.map((s) => buildStarInterpretation(s, "main")),
-    ...palace.auxiliaryStars.map((s) => buildStarInterpretation(s, "assistant")),
-    ...palace.maleficStars.map((s) => buildStarInterpretation(s, "malefic")),
-  ];
-
-  const { synergy, conflicts } = buildSynergyAndConflict(palace);
-
-  const strengthDrivenActions = Array.from(new Set([
-    ...palace.mainStars.map((s) => buildStrengthDrivenAction(s, "main")),
-    ...palace.auxiliaryStars.map((s) => buildStrengthDrivenAction(s, "assistant")),
-    ...palace.maleficStars.map((s) => buildStrengthDrivenAction(s, "malefic")),
-  ])).slice(0, 14);
-
-  const strengths = [
-    ...palace.mainStars.filter((s) => symbolOf(s) === "◎" || symbolOf(s) === "O" || symbolOf(s) === "▲").map((s) => `${s.name} ${symbolOf(s)} 강점이 실행 품질을 끌어올립니다.`),
-    ...palace.auxiliaryStars.filter((s) => symbolOf(s) === "◎" || symbolOf(s) === "O" || symbolOf(s) === "▲").map((s) => `보조성 ${s.name} ${symbolOf(s)}은(는) 협업·완충·도구 활용 효율을 끌어올립니다.`),
-    ...palace.maleficStars.filter((s) => symbolOf(s) === "◎" || symbolOf(s) === "O" || symbolOf(s) === "▲").map((s) => `살성 ${s.name} ${symbolOf(s)}은(는) 통제 시 고속 실행 도구로 전환될 수 있습니다.`),
-    "핵심 궁의 기준을 문장화하면 운의 변동성을 낮추고 재현 가능한 성과를 만들 수 있습니다.",
-  ];
-
-  const weaknesses = [
-    ...palace.mainStars.filter((s) => symbolOf(s) === "△" || symbolOf(s) === "X").map((s) => `${s.name} ${symbolOf(s)} 구간에서 감정·컨디션 편차가 커질 수 있습니다.`),
-    ...palace.auxiliaryStars.filter((s) => symbolOf(s) === "△" || symbolOf(s) === "X").map((s) => `보조성 ${s.name} ${symbolOf(s)}이 약하면 연결·지원 체계가 끊겨 성과가 흔들릴 수 있습니다.`),
-    ...palace.maleficStars.filter((s) => symbolOf(s) === "△" || symbolOf(s) === "X").map((s) => `살성 ${s.name} ${symbolOf(s)}이 약충돌 구간이면 과속·마찰 리스크가 빠르게 증폭될 수 있습니다.`),
-    "대궁 관점을 생략하면 단기 감정 반응이 전략을 덮어버릴 수 있습니다.",
-  ];
-
-  const cautions = [
-    sentenceList(tpl.cautionLens, "과속/과부하/관계 소모"),
-    "살성은 무조건 흉이 아니라 고속 실행 기운이므로, 일정 완충과 손실 상한선을 같이 설계해야 합니다.",
-    "화기가 있는 궁은 막힘으로 단정하지 말고 집중 과제의 방향을 먼저 정의해야 합니다.",
-  ];
-
-  const actions = [
-    ...tpl.remedies,
-    "삼방사정 3궁의 체크포인트를 주간 회고에 고정해 궁간 불균형을 조기 보정합니다.",
-    "감정이 고조된 날의 핵심 결정은 24시간 보류 후 사실-감정-행동 순서로 재검토합니다.",
-  ];
-
-  const hasGyeongyang = palace.maleficStars.some((s) => s.name === "경양");
-  if (hasGyeongyang) {
-    actions.push("경양의 기운은 인간관계 정면충돌보다 복잡한 문제를 정리하고 결단하는 방향으로 배출해 성과의 힘으로 전환합니다.");
-  }
-
-  if (palace.auxiliaryStars.some((s) => s.name === "우필" && (symbolOf(s) === "◎" || symbolOf(s) === "O" || symbolOf(s) === "▲"))) {
-    actions.push("우필 강점 구간에서는 반복 소모를 줄이고, 본인은 판단·조율·통합 역할에 집중합니다.");
-  }
-
-  const body = [
-    `${palace.name}은 ${tpl.meaning}을 아주 분명하게 드러내는 자리입니다. 이 궁은 단순한 성격 설명이 아니라, 지금 삶에서 무엇을 먼저 붙잡아야 하는지 알려주는 상담의 중심축입니다.`,
-    `배치된 주성은 ${main}이고, 보조성은 ${assistant}, 살성은 ${malefic}입니다. 사화는 ${transformations}으로 나타나며, 밖에서 들어오는 흐름은 ${incomingTransformationText}로 읽힙니다. ${emptyMainNarrative} ${noDirectTransformationNarrative}`,
-    `강약의 의미는 단순한 점수가 아니라 생활 속 체감 온도입니다. ◎은 별의 힘이 가장 찬란하게 살아나는 상태이고, O는 본성이 안정적으로 발휘되는 흐름입니다. ▲은 상황에 따라 힘이 달라지는 구간, △은 무난하지만 방향에 따라 달라지는 흐름, X는 기운이 눌리거나 왜곡되기 쉬운 상태입니다. 그래서 같은 별이라도 어디에 놓였는지에 따라 말투, 관계, 돈, 일의 결과가 전혀 다르게 나타납니다.`,
-    `이제 별 하나하나를 상담하듯 짚어보겠습니다. ${buildPerStarCounselingLines(palace)}`,
-    `별 하나하나를 보면 더 선명해집니다. ${starDetails.join(" ")}`,
-    `별들끼리의 조합은 따로 보면 약해 보이더라도 함께 읽으면 큰 맥락을 만듭니다. ${synergy.join(" ")} ${conflicts.join(" ")}`,
-    `삼방사정과 대궁을 함께 보면 현재 궁의 진짜 무게가 드러납니다. ${buildTriadLink(chart, palace)}`,
-    `${palace.name}은 실제 삶에서 ${tpl.insightPrompts.join(" / ")} 같은 질문으로 체감됩니다. 그래서 해석도 성격 묘사에서 끝나지 않고, 업무·관계·재정·회복 같은 현실 선택으로 내려와야 합니다.`,
-    `이 궁의 강점은 ${strengths.join(" ")}. 약한 지점은 ${weaknesses.join(" ")}입니다. 주의할 부분은 ${cautions.join(" ")}로 정리할 수 있습니다.`,
-    `실제로는 ${actions.join(" ")} 같은 방식으로 운을 관리하는 것이 좋습니다. ${strengthDrivenActions.join(" ")}`,
-    `${palace.name}의 최종 결론은 '${sentenceList(palace.keywords, "균형/관리/실행")}'입니다. 이 궁은 운이 좋고 나쁜지를 말하기보다, 무엇을 먼저 지키고 무엇을 나중에 확장해야 하는지 알려주는 자리입니다.`,
-  ].join("\n\n");
-
-  return ensureMinLength(body, 6200, "심층 노트", [
-    `${palace.name} 추가 노트: 대궁 관점에서 반대 전략을 쓰면 과신을 줄이고 정확도를 높일 수 있습니다.`,
-    `${palace.name} 추가 노트: 강점 별(◎/O/▲)은 확장에, 약점 별(△/X)은 리스크 관리에 우선 배치하세요.`,
-    `${palace.name} 추가 노트: 사화 작동 궁을 월간 루틴으로 추적하면 체감 성과가 빨라집니다.`,
-  ]);
 }
 
 function ensureMinLength(baseText: string, targetLength: number, heading: string, pool: string[]): string {

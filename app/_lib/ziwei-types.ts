@@ -228,11 +228,37 @@ export interface ZiweiTransformation {
   influence: string;
 }
 
+/** 카드 하단 근거칩 한 칸. 명반에서 계산된 값을 그대로 옮기기만 한다. */
+export interface ZiweiEvidenceChip {
+  label: string;
+  value: string;
+}
+
 export interface ZiweiPalaceCategoryReading {
   categoryTitle: string;
   categoryQuestion: string;
   usedSignals: string[];
   interpretation: string;
+  /** 카드 맨 위 2인칭 한 줄. */
+  headline?: string;
+  /** 한 줄 핵심을 여는 상황 도입부. */
+  scene?: string;
+  strengths?: string[];
+  cautions?: string[];
+  actions?: string[];
+  basisChips?: ZiweiEvidenceChip[];
+  /** "왜 이렇게 읽었나" — 더 읽기 영역에만 노출한다. */
+  evidenceNotes?: string[];
+  /**
+   * 🔴 해석 메타데이터 — 화면에 렌더링하지 않는다.
+   * 절 제목·질문·상담 렌즈는 문장을 만드는 내부 근거일 뿐 사용자에게 필요한 정보가 아니다.
+   */
+  meta?: {
+    categoryTitle: string;
+    categoryQuestion: string;
+    lens: string;
+  };
+  /** 기존 소비자 호환용(요약/실행 목록). 위 배열을 이어 붙인 값이다. */
   opportunity: string;
   caution: string;
   action: string;

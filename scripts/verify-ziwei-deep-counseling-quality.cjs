@@ -1,3 +1,20 @@
+// 심화 자미두수 궁 챕터(/ziwei/chart 의 "하나씩 펼쳐 읽기")가 교재체로 되돌아가지 않는지 잠그는 가드.
+//
+// 🔴 검사 축은 "길이"가 아니라 "카드 품질"이다(2026-09-06 교체). 예전에는 절 본문 450자 하한이 있었고,
+//    그 하한을 맞추려고 엔진이 filler 문장을 순환 주입해 같은 말이 반복되는 교재체가 나왔다. 길이 하한을
+//    지우고 아래 축으로 바꾼다 — 🔴 엔진의 런타임 임계와 이 파일의 임계는 함께 움직여야 한다. 한쪽만
+//    조이면 생성이 매번 검증 실패로 떨어져 조용히 재생성 경로를 타므로 화면에서는 티가 안 난다.
+//
+//  분량   절 본문 길이 하한 → 카드 4블록(✦/⚠/💡/왜 이렇게 읽었나) 존재 + 카드 앞면 700자 상한
+//  밀도   신호 4종 → 블록별 항목 수(강점·주의·활용 각 2, 근거칩 3, 근거 노트 2)
+//  어투   디버그 토큰 10종 → + BANNED_ZIWEI_TONE_PHRASES(엔진에서 import, 비면 실패)
+//  시점   신설 — 한 줄 핵심이 2인칭("당신")인지
+//  반복   fullText 9회 허용 → 카드 앞면은 같은 문장 2회부터 실패
+//  비문   신설 — 별·궁 이름 뒤 조사가 받침과 어긋나면 실패("자미이", "명궁는")
+//  내부   신설 — 해석 메타데이터(meta.lens)가 화면 노출 필드로 새면 실패
+//  배선   신설 — 화면이 palaceReading.categories 를 직접 렌더하는지 정적 확인(문자열 재분해로 되돌아가면 실패)
+//
+// 네트워크·LLM 호출 없음. 픽스처 명반 2개 × 12궁을 그대로 생성해 검사한다.
 const fs = require("fs");
 const path = require("path");
 const vm = require("vm");
@@ -67,31 +84,50 @@ function transpileAndLoadTsModule(filePath) {
   return moduleRecord.exports;
 }
 
-function countCoverageSignals(text) {
-  const checks = [
-    /(성향|기질|반응|욕구|자존감|사고방식)/,
-    /(관계|사람|상대|연애|동료|가족|신뢰)/,
-    /(현실|직업|돈|사랑|가족|생활|업무|수입|소비)/,
-    /(주의|조심|리스크|충돌|번아웃|갈등|흔들)/,
-    /(조언|실행|오늘부터|루틴|규칙|행동)/,
-  ];
-  return checks.reduce((acc, regex) => (regex.test(text) ? acc + 1 : acc), 0);
+function sentencesOf(text) {
+  return String(text || "")
+    .split(/(?<=[.!?])\s+|\n+/)
+    .map((row) => row.trim().replace(/\s+/g, " "))
+    .filter((row) => row.length >= 24);
 }
 
-function hasRepeatedSentence(text) {
-  const rows = String(text || "")
-    .split(/(?<=[.!?다요])\s+|\n+/)
-    .map((row) => row.trim())
-    .filter((row) => row.length >= 24);
+// 문서 전체에서 같은 문장이 limit 회 이상 나오면 반복으로 본다.
+function maxSentenceRepeat(text) {
   const counts = new Map();
-  for (const row of rows) {
-    const key = row.replace(/\s+/g, " ");
-    counts.set(key, (counts.get(key) || 0) + 1);
+  for (const row of sentencesOf(text)) counts.set(row, (counts.get(row) || 0) + 1);
+  let max = 0;
+  for (const [, count] of counts.entries()) if (count > max) max = count;
+  return max;
+}
+
+const JOSA_PAIRS = [
+  ["은", "는"],
+  ["이", "가"],
+  ["을", "를"],
+  ["과", "와"],
+];
+
+// 한글 마지막 음절의 받침 유무. 한글로 끝나지 않으면 null.
+function hasFinalConsonant(word) {
+  const code = String(word || "").charCodeAt(String(word).length - 1);
+  if (!(code >= 0xac00 && code <= 0xd7a3)) return null;
+  return (code - 0xac00) % 28 > 0;
+}
+
+// 별·궁 이름 뒤 조사가 받침과 어긋난 자리를 찾는다. 화면에 그대로 노출되는 문장이라 비문은 곧 품질 사고다.
+function findJosaErrors(text, vocabulary) {
+  const value = String(text || "");
+  const errors = [];
+  for (const word of vocabulary) {
+    const final = hasFinalConsonant(word);
+    if (final === null) continue;
+    for (const [withFinal, withoutFinal] of JOSA_PAIRS) {
+      const wrong = final ? withoutFinal : withFinal;
+      const regex = new RegExp(`${word}${wrong}(?=\\s|$|[.,!?)])`, "g");
+      if (regex.test(value)) errors.push(`${word}${wrong}`);
+    }
   }
-  for (const [, count] of counts.entries()) {
-    if (count >= 9) return true;
-  }
-  return false;
+  return [...new Set(errors)];
 }
 
 function splitSections(fullText) {
@@ -135,11 +171,34 @@ function assert(condition, message) {
 function run() {
   const chapterModule = transpileAndLoadTsModule(path.join(ROOT, "app", "_lib", "generate-ziwei-deep-chapter.ts"));
   const typeModule = transpileAndLoadTsModule(path.join(ROOT, "app", "_lib", "ziwei-types.ts"));
+  const readingModule = transpileAndLoadTsModule(path.join(ROOT, "app", "_lib", "ziwei-deep-reading.ts"));
 
   const generateZiweiDeepChapter = chapterModule.generateZiweiDeepChapter;
   const ZIWEI_PALACE_NAME = typeModule.ZIWEI_PALACE_NAME;
+  const validateZiweiDeepReading = readingModule.validateZiweiDeepReading;
+  const bannedTonePhrases = readingModule.BANNED_ZIWEI_TONE_PHRASES;
 
   assert(typeof generateZiweiDeepChapter === "function", "generateZiweiDeepChapter 로드 실패");
+  assert(typeof validateZiweiDeepReading === "function", "validateZiweiDeepReading 로드 실패");
+  // 🔴 fail-closed — 목록이 비면 어투 검사가 통째로 무력화되므로 통과가 아니라 실패다.
+  assert(Array.isArray(bannedTonePhrases) && bannedTonePhrases.length >= 10, `BANNED_ZIWEI_TONE_PHRASES 비정상: ${bannedTonePhrases && bannedTonePhrases.length}`);
+
+  // 정적 배선 — 화면이 계산된 절 구조를 직접 렌더하는지. 문자열 재분해로 되돌아가면 카드가 조용히 사라진다.
+  const componentSource = fs.readFileSync(path.join(ROOT, "app", "components", "AdvancedZiweiSectionV2.tsx"), "utf8");
+  assert(componentSource.length > 20000, "AdvancedZiweiSectionV2.tsx 가 비정상적으로 짧다(경로 변경?)");
+  assert(
+    componentSource.includes("activeChapter.palaceReading?.categories"),
+    "화면이 palaceReading.categories 를 직접 렌더하지 않는다 — 장문 재분해로 되돌아갔다.",
+  );
+  for (const slot of ["card.headline", "card.strengths", "card.cautions", "card.actions", "card.basisChips", "card.evidenceNotes"]) {
+    assert(componentSource.includes(slot), `화면 카드에 ${slot} 렌더가 없다.`);
+  }
+  assert(!componentSource.includes("card.meta"), "🔴 해석 메타데이터(meta)가 화면에 렌더되고 있다.");
+
+  // 정적 소스 — 검증 실패 재생성이 no-op 으로 돌아가지 않게 잠근다(예전 결함: reverse().reverse()).
+  const readingSource = fs.readFileSync(path.join(ROOT, "app", "_lib", "ziwei-deep-reading.ts"), "utf8");
+  assert(!/\.reverse\(\)\s*\.reverse\(\)/.test(readingSource), "🔴 이중 reverse 는 no-op 이라 재생성이 같은 텍스트를 만든다.");
+  assert(readingSource.includes("function withJosa("), "조사 보정기(withJosa)가 사라졌다 — 별 이름 뒤 비문이 되살아난다.");
 
   const palaceIds = Object.keys(ZIWEI_PALACE_NAME || {});
   assert(palaceIds.length === 12, `12궁 키 개수 비정상: ${palaceIds.length}`);
@@ -199,13 +258,59 @@ function run() {
 
       const sections = splitSections(chapter.fullText);
       const sectionProblems = [];
+      const REQUIRED_BLOCKS = ["**✦ ", "**⚠ ", "**💡 ", "**왜 이렇게 읽었나**"];
       sections.forEach((section, idx) => {
-        if (section.body.length < 450) sectionProblems.push(`section${idx + 1}:len<450`);
-        if (countCoverageSignals(section.body) < 4) sectionProblems.push(`section${idx + 1}:coverage<4`);
+        const missing = REQUIRED_BLOCKS.filter((block) => !section.body.includes(block));
+        if (missing.length) sectionProblems.push(`section${idx + 1}:block-missing`);
+        if (bannedTonePhrases.some((phrase) => section.body.includes(phrase))) sectionProblems.push(`section${idx + 1}:tone`);
+        if (section.title && section.body.split(section.title).length - 1 > 3) sectionProblems.push(`section${idx + 1}:title-repeat`);
       });
 
+      // 카드 앞면(화면에서 접히지 않고 먼저 읽히는 부분)만 따로 본다.
+      const categories = chapter.palaceReading?.categories || [];
+      const chartVocabulary = [
+        ...Object.values(ZIWEI_PALACE_NAME || {}),
+        ...(chart.palaces || []).flatMap((p) => (p.allStars || []).map((s) => s.name)),
+      ].filter((word) => typeof word === "string" && word.length >= 2);
+      const seenFrontSentences = new Map();
+      categories.forEach((category, idx) => {
+        const tag = `card${idx + 1}`;
+        const front = [
+          category.headline || "",
+          category.interpretation || "",
+          ...(category.strengths || []),
+          ...(category.cautions || []),
+          ...(category.actions || []),
+        ].filter(Boolean).join(" ").trim();
+
+        if (!String(category.headline || "").includes("당신")) sectionProblems.push(`${tag}:headline-not-2nd-person`);
+        if ((category.strengths || []).length < 2) sectionProblems.push(`${tag}:strengths<2`);
+        if ((category.cautions || []).length < 2) sectionProblems.push(`${tag}:cautions<2`);
+        if ((category.actions || []).length < 2) sectionProblems.push(`${tag}:actions<2`);
+        if ((category.basisChips || []).length < 3) sectionProblems.push(`${tag}:chips<3`);
+        if ((category.evidenceNotes || []).length < 2) sectionProblems.push(`${tag}:evidence<2`);
+        if (front.length < 180) sectionProblems.push(`${tag}:front<180`);
+        if (front.length > 700) sectionProblems.push(`${tag}:front>700`);
+        if (category.categoryQuestion && front.includes(category.categoryQuestion)) sectionProblems.push(`${tag}:question-leak`);
+        if (bannedTonePhrases.some((phrase) => front.includes(phrase))) sectionProblems.push(`${tag}:tone`);
+        if (category.meta?.lens && front.includes(category.meta.lens)) sectionProblems.push(`${tag}:meta-leak`);
+        const josaErrors = findJosaErrors(front, chartVocabulary);
+        if (josaErrors.length) sectionProblems.push(`${tag}:josa(${josaErrors.slice(0, 3).join("/")})`);
+        // 🔴 카드 앞면은 반복 무관용 — 절이 8개라 같은 문장이 두 번만 보여도 눈에 띈다.
+        for (const row of sentencesOf(front)) {
+          if (seenFrontSentences.has(row)) sectionProblems.push(`${tag}:front-repeat`);
+          seenFrontSentences.set(row, true);
+        }
+      });
+
+      const engineValidation = validateZiweiDeepReading(chapter);
+      if (!engineValidation.valid) {
+        sectionProblems.push(`engine-invalid(${engineValidation.issues.slice(0, 3).join(" / ")})`);
+      }
+
       const forbiddenFound = forbidden.filter((token) => String(chapter.fullText || "").includes(token));
-      const repeated = hasRepeatedSentence(chapter.fullText);
+      // 근거 노트까지 합친 문서 전체 기준. 절이 8개뿐이라 5회 이상은 회전이 고장 났다는 뜻이다.
+      const repeated = maxSentenceRepeat(chapter.fullText) >= 5;
       const isEmptyPalace = Boolean(chapter.palaceReading?.isEmptyPalace);
       if (isEmptyPalace) foundEmptyPalace = true;
 
@@ -229,6 +334,7 @@ function run() {
         sectionCount: sections.length,
         forbiddenFound,
         repeatedSentence: repeated,
+        maxSentenceRepeat: maxSentenceRepeat(chapter.fullText),
         sectionProblems,
         hasWrongIntro,
       };

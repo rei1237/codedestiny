@@ -2,7 +2,7 @@ import { generateZiweiDeepChapter } from "./generate-ziwei-deep-chapter";
 import { validateZiweiChapter } from "./validate-ziwei-chart";
 import { ZiweiDeepChart, ZiweiDeepChapter, ZiweiDeepRuntimeCache, ZiweiSectionId } from "./ziwei-types";
 
-const CACHE_KEY = "ziwei:deep:runtime:v2";
+const CACHE_KEY = "ziwei:deep:runtime:v3";
 const memoryCache = new Map<string, ZiweiDeepRuntimeCache>();
 
 function hasWindow(): boolean {
