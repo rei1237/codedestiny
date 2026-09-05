@@ -20,6 +20,7 @@ import {
   isValidCmsKey,
 } from "@/lib/cms/registry.mjs";
 import { AdminApiError, adminFetch, describeAdminError } from "../_lib/admin-api";
+import { ADMIN_CARD, ADMIN_INPUT_ICON, ADMIN_TOOLBAR, adminButton } from "../_components/ui";
 import { loadBaseEntries, type CmsBaseEntry } from "./_lib/base-values";
 import FieldEditor, { type CmsFieldDef } from "./_components/FieldEditor";
 import RevisionPanel, { type CmsRevision } from "./_components/RevisionPanel";
@@ -71,13 +72,11 @@ function statusBadgeClass(status: string): string {
   return "border-slate-800 bg-slate-900 text-slate-500";
 }
 
+// 톤·크기·포커스는 app/admin/_components/ui.ts 와 styles/admin-yehwa.css 한 곳에서 정한다.
+// 함수 이름을 그대로 두어 호출부는 건드리지 않는다.
+// 종전 danger 만 이 화면에서 테두리형이라 같은 뜻의 버튼이 화면마다 달라 보였다 — 채운 형으로 통일.
 function buttonClass(tone: "neutral" | "primary" | "success" | "warn" | "danger" = "neutral"): string {
-  const base = "inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors disabled:opacity-50";
-  if (tone === "primary") return `${base} bg-violet-600 text-white hover:bg-violet-500`;
-  if (tone === "success") return `${base} bg-emerald-700 text-white hover:bg-emerald-600`;
-  if (tone === "warn") return `${base} bg-amber-700 text-white hover:bg-amber-600`;
-  if (tone === "danger") return `${base} border border-rose-800 text-rose-200 hover:bg-rose-950`;
-  return `${base} border border-slate-700 bg-slate-900 text-slate-100 hover:border-slate-500`;
+  return adminButton(tone);
 }
 
 /** 저장 페이로드에서 화면 표시 전용 필드를 걷어낸다(라이트 노벨의 화자 표시 등). */
@@ -383,7 +382,7 @@ export default function AdminCmsPage() {
   const isPromptEditor = namespace?.editor === "prompt";
 
   return (
-    <main className="min-h-screen bg-[#0d0f18] text-slate-100">
+    <main className="min-h-screen">
       <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[240px_320px_1fr]">
         {/* 그룹 네비 — 레지스트리에서 자동 생성 */}
         <nav className="border-b border-slate-800 bg-[#0b0d15] lg:border-b-0 lg:border-r" aria-label="콘텐츠 그룹">
@@ -440,7 +439,7 @@ export default function AdminCmsPage() {
                 onChange={(event) => setKeyword(event.target.value)}
                 placeholder="이름·키·본문 검색"
                 aria-label="콘텐츠 검색"
-                className="w-full rounded-md border border-slate-700 bg-slate-950 py-1.5 pl-8 pr-3 text-sm outline-none focus:border-violet-500"
+                className={ADMIN_INPUT_ICON}
               />
             </div>
           </div>
@@ -482,7 +481,7 @@ export default function AdminCmsPage() {
 
         {/* 편집 영역 */}
         <section className="min-w-0">
-          <div className="sticky top-0 z-20 border-b border-slate-800 bg-[#0d0f18]/95 px-4 py-3 backdrop-blur">
+          <div className={ADMIN_TOOLBAR}>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="min-w-0">
                 <p className="truncate text-sm text-slate-200">
@@ -530,7 +529,7 @@ export default function AdminCmsPage() {
             </div>
           ) : (
             <div className="mx-auto max-w-4xl space-y-5 p-4 pb-24">
-              <p className="rounded-lg border border-slate-800 bg-[#12141f] px-3 py-2 text-xs leading-5 text-slate-400">
+              <p className={`${ADMIN_CARD} rounded-lg px-3 py-2 text-xs leading-5 text-slate-400`}>
                 {channel?.hint}
               </p>
 

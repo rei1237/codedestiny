@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+// 관리자 전용 토큰·공용 부품. app/app/layout.tsx 가 app-shell.css 를 싣는 것과 같은 자리다.
+import "../../styles/admin-yehwa.css";
 
 import AdminShell from "./_components/AdminShell";
 

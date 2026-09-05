@@ -7,6 +7,7 @@ import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loading
 import { getApiBaseUrl } from "../../_lib/api-config";
 import { adminFetch, describeAdminError, type AdminErrorView } from "../_lib/admin-api";
 import AdminErrorState from "../_components/AdminErrorState";
+import { adminButton } from "../_components/ui";
 
 type InsightStatus = "draft" | "scheduled" | "published" | "archived" | "private" | "trash";
 type FilterKey = "all" | InsightStatus;
@@ -1590,7 +1591,7 @@ export default function AdminInsightsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#0d0d1a] text-slate-100 px-4 py-6 md:px-8 md:py-8">
+    <main className="min-h-screen px-4 py-6 md:px-8 md:py-8">
       <div className="mx-auto max-w-7xl space-y-4">
         <header className="flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -1599,7 +1600,7 @@ export default function AdminInsightsPage() {
           </div>
           <button
             type="button"
-            className="rounded-lg bg-violet-600 hover:bg-violet-500 px-4 py-2 text-sm font-medium"
+            className={adminButton("primary")}
             onClick={() => router.push("/admin/insights/new")}
           >
             {copy.newPost}

@@ -26,6 +26,7 @@ import {
 
 import { normalizeAppPathname } from "@/app/app/_lib/app-route";
 import { getFlowerAdminToken, redirectToAdminLogin } from "../_lib/admin-api";
+import { adminButton } from "./ui";
 
 interface AdminNavItem {
   href: string;
@@ -87,38 +88,41 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
   if (bare) return <>{children}</>;
   if (!checked) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#0d0f18] text-sm text-slate-400">
+      <div className="cd-admin flex min-h-screen items-center justify-center text-sm text-[var(--cd-adm-ink-quiet)]">
         확인 중...
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0d0f18] text-slate-100">
+    <div className="cd-admin min-h-screen">
       {/* 모바일 상단바 */}
-      <header className="sticky top-0 z-30 flex items-center justify-between border-b border-slate-800 bg-[#0b0d15] px-4 py-3 lg:hidden">
+      <header className="sticky top-0 z-30 flex items-center justify-between border-b border-[var(--cd-adm-line)] bg-[var(--cd-adm-nav)] px-4 py-3 lg:hidden">
         <button
           type="button"
           onClick={() => setDrawerOpen((prev) => !prev)}
-          className="inline-flex items-center gap-2 rounded-lg border border-slate-700 px-2.5 py-1.5 text-sm text-slate-200"
+          className={adminButton("neutral", { size: "sm" })}
           aria-label={drawerOpen ? "메뉴 닫기" : "메뉴 열기"}
           aria-expanded={drawerOpen}
         >
           {drawerOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
           메뉴
         </button>
-        <span className="text-sm font-semibold text-slate-200">
+        <span className="text-sm font-semibold">
           {ADMIN_NAV.find((item) => isActive(pathname, item.href))?.label || "관리자"}
         </span>
       </header>
 
       <div className="lg:grid lg:grid-cols-[236px_1fr]">
+        {/* relative 는 cd-adm-nav::after(금빛 가장자리 실선)의 기준이다. CSS 쪽에서 position 을
+            정하면 lg:sticky 와 특이도가 같아 로드 순서에 따라 데스크톱 sticky 가 죽는다. */}
         <nav
-          className={`${drawerOpen ? "block" : "hidden"} border-b border-slate-800 bg-[#0b0d15] lg:sticky lg:top-0 lg:block lg:h-screen lg:border-b-0 lg:border-r`}
+          className={`${drawerOpen ? "block" : "hidden"} cd-adm-nav relative border-b lg:sticky lg:top-0 lg:block lg:h-screen lg:border-b-0 lg:border-r`}
           aria-label="관리자 메뉴"
         >
-          <div className="hidden items-center justify-between border-b border-slate-800 px-4 py-3 lg:flex">
-            <span className="text-sm font-semibold">Code Destiny 관리자</span>
+          <div className="hidden items-center gap-2.5 border-b border-[var(--cd-adm-line)] px-4 py-3 lg:flex">
+            <span className="cd-adm-brand-disc" aria-hidden="true" />
+            <span className="cd-adm-brand">Code Destiny 관리자</span>
           </div>
 
           <ul className="space-y-0.5 p-3">
@@ -130,11 +134,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
                     href={item.href}
                     aria-current={active ? "page" : undefined}
                     title={item.hint}
-                    className={`flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm transition-colors ${
-                      active
-                        ? "bg-violet-950 text-violet-100"
-                        : "text-slate-300 hover:bg-slate-900 hover:text-slate-100"
-                    }`}
+                    className="cd-adm-nav-item"
                   >
                     <item.Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
                     {item.label}
@@ -144,11 +144,11 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
             })}
           </ul>
 
-          <div className="border-t border-slate-800 p-3">
+          <div className="border-t border-[var(--cd-adm-line)] p-3">
             <button
               type="button"
               onClick={logout}
-              className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-sm text-slate-400 hover:bg-slate-900 hover:text-slate-100"
+              className="cd-adm-nav-item cd-adm-nav-item--quiet w-full"
               aria-label="로그아웃"
             >
               <LogOut className="h-4 w-4 shrink-0" aria-hidden="true" />

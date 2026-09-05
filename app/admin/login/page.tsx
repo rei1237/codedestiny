@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { getApiBaseUrl } from "../../_lib/api-config";
+import { adminButton } from "../_components/ui";
 
 const FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
 type AdminLoginCopy = {
@@ -213,7 +214,7 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0d0d1a] flex items-center justify-center px-4">
+    <div className="cd-admin min-h-screen flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="text-center mb-8">
@@ -249,7 +250,7 @@ export default function AdminLoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="mt-2 w-full bg-violet-600 hover:bg-violet-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-2.5 rounded-lg text-sm transition-colors"
+              className={`mt-2 w-full ${adminButton("primary", { size: "lg" })}`}
             >
               {loading ? copy.loading : copy.submit}
             </button>

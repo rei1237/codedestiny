@@ -4,6 +4,7 @@
 // 인증/fetch 는 기존 관리자 헬퍼(adminFetch)를 그대로 쓴다 — 토큰 로직을 다시 복제하지 않는다.
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { adminFetch, describeAdminError } from "../_lib/admin-api";
+import { ADMIN_INPUT, ADMIN_TOOLBAR, adminButton } from "../_components/ui";
 
 type AdminOrder = {
   id: string;
@@ -70,14 +71,14 @@ function statusBadgeClass(status: string) {
   return `rounded-lg border px-2 py-0.5 text-[11px] font-bold ${STATUS_TONE[status] || "border-slate-700 bg-slate-900 text-slate-300"}`;
 }
 
+// 톤·크기·포커스는 app/admin/_components/ui.ts 와 styles/admin-yehwa.css 한 곳에서 정한다.
+// 함수 이름을 그대로 두어 호출부는 건드리지 않는다.
+// 이 화면만 tone 이름이 ghost 였다 — 공용 이름 neutral 로 옮긴다. 표 행 끝에 놓이므로 sm.
 function buttonClass(tone: "primary" | "ghost" | "danger" = "ghost") {
-  const base = "inline-flex min-h-9 items-center justify-center rounded-lg px-3 text-xs font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-50";
-  if (tone === "primary") return `${base} bg-violet-600 text-white hover:bg-violet-500`;
-  if (tone === "danger") return `${base} bg-rose-700 text-white hover:bg-rose-600`;
-  return `${base} border border-slate-700 bg-slate-950 text-slate-200 hover:border-slate-500`;
+  return adminButton(tone === "ghost" ? "neutral" : tone, { size: "sm" });
 }
 
-const inputClass = "w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none focus:border-violet-500";
+const inputClass = ADMIN_INPUT;
 
 function formatWon(value: number) {
   return `${Number(value || 0).toLocaleString("ko-KR")}원`;
@@ -231,10 +232,10 @@ export default function AdminOrdersPage() {
   }, [order, canRefund, refundAmount, refundReason, loadDetail, loadList]);
 
   return (
-    <main className="min-h-screen bg-[#0d0f18] text-slate-100">
+    <main className="min-h-screen">
       <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[420px_1fr]">
         <aside className="border-b border-slate-800 bg-[#10121b] lg:border-b-0 lg:border-r">
-          <div className="sticky top-0 z-20 border-b border-slate-800 bg-[#10121b]/95 px-4 py-3 backdrop-blur">
+          <div className={ADMIN_TOOLBAR}>
             <h1 className="text-base font-black">주문 조회 · 환불</h1>
             <div className="mt-2 flex items-center gap-2">
               <button type="button" className={buttonClass("primary")} onClick={() => void runReconcile()} disabled={reconciling}>

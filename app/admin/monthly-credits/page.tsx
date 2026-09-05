@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { adminFetch, describeAdminError } from "../_lib/admin-api";
+import { adminButton } from "../_components/ui";
 
 const MAX_GRANT_AMOUNT = 999999;
 
@@ -117,7 +118,7 @@ export default function AdminMonthlyCreditsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#0d0f18] text-slate-100">
+    <main className="min-h-screen">
       <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
         <header className="flex flex-col gap-5 border-b border-slate-800 pb-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-2xl">
@@ -223,7 +224,7 @@ export default function AdminMonthlyCreditsPage() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-violet-600 px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-300 focus:ring-offset-2 focus:ring-offset-[#11131e] disabled:cursor-not-allowed disabled:opacity-50"
+                className={`w-full ${adminButton("primary", { size: "lg" })}`}
               >
                 {submitting ? "지급 처리 중…" : "월정석 지급하기"}
               </button>

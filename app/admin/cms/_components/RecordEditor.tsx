@@ -3,6 +3,8 @@
 import { useMemo, useState } from "react";
 import { RotateCcw, Search } from "lucide-react";
 
+import { ADMIN_CARD, ADMIN_INPUT, ADMIN_INPUT_ICON } from "../../_components/ui";
+
 type Row = Record<string, string>;
 type Table = Record<string, Row>;
 
@@ -65,7 +67,7 @@ export default function RecordEditor({ value, base, labels, fieldLabels, onChang
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-center gap-2 rounded-lg border border-slate-800 bg-[#12141f] px-3 py-2">
+      <div className={`${ADMIN_CARD} flex flex-wrap items-center gap-2 rounded-lg px-3 py-2`}>
         <div className="relative min-w-[200px] flex-1">
           <Search className="pointer-events-none absolute left-2.5 top-2 h-4 w-4 text-slate-500" aria-hidden="true" />
           <input
@@ -73,7 +75,7 @@ export default function RecordEditor({ value, base, labels, fieldLabels, onChang
             onChange={(event) => setKeyword(event.target.value)}
             placeholder="항목 이름이나 내용으로 찾기"
             aria-label="해설 검색"
-            className="w-full rounded-md border border-slate-700 bg-slate-950 py-1.5 pl-8 pr-3 text-sm text-slate-100 outline-none focus:border-violet-500"
+            className={ADMIN_INPUT_ICON}
           />
         </div>
         <label className="flex items-center gap-2 text-xs text-slate-300">
@@ -94,7 +96,7 @@ export default function RecordEditor({ value, base, labels, fieldLabels, onChang
 
       <div className="max-h-[62vh] space-y-2 overflow-y-auto pr-1">
         {visible.length === 0 ? (
-          <p className="rounded-lg border border-slate-800 bg-[#12141f] px-3 py-6 text-center text-sm text-slate-400">
+          <p className={`${ADMIN_CARD} rounded-lg px-3 py-6 text-center text-sm text-slate-400`}>
             조건에 맞는 항목이 없습니다.
           </p>
         ) : (
@@ -149,7 +151,7 @@ export default function RecordEditor({ value, base, labels, fieldLabels, onChang
                             value={text}
                             onChange={(event) => update(key, field, event.target.value)}
                             rows={Math.min(8, Math.max(2, Math.ceil(text.length / 52)))}
-                            className="w-full resize-y rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm leading-6 text-slate-100 outline-none focus:border-violet-500"
+                            className={ADMIN_INPUT}
                           />
                           {fieldDirty ? (
                             <p className="truncate text-[11px] text-slate-500" title={fallback}>기본값: {fallback}</p>
