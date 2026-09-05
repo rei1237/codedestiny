@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-05
-next: "카르마 데스티니 결과 화면을 09-05 에 닫았다(아래 §카르마 데스티니). 남은 것은 §다른 전문가 상담 감사 의 **낙샤트라(keep-all 단독 31)** 하나 — 기능당 1PR. 🔴 감사표가 짚은 위치는 `app/nakshatra/dasha-map/dasha-timeline.module.css:10,53,70,112` · `app/nakshatra/muhurta/muhurta.module.css:44,93` 6곳뿐이라 31 은 낙샤트라 트리 전체를 다시 세야 나온다. 결과 화면 픽스처도 없어(`nakshatra/ai` 미보유) 하네스를 새로 만들거나 측정 불가를 명기해야 한다. 숙요궁합(34)은 사용자가 '정상'으로 판정해 제외됐다. 🔴 스캐너 맹점 2종(전역 clip · 진입 애니메이션 opacity)은 그대로라 스캐너 수치로 전/후를 판정하지 말 것. CI 게이트 2종의 OF 맹점은 여전히 별도 PR 이 필요하다"
+next: "카르마 데스티니 결과 화면을 09-05 에 닫았다(#1586, 아래 §카르마 데스티니). 남은 것은 §다른 전문가 상담 감사 의 **낙샤트라(keep-all 단독 31)** 하나 — 기능당 1PR. 🔴 감사표가 짚은 위치는 `app/nakshatra/dasha-map/dasha-timeline.module.css:10,53,70,112` · `app/nakshatra/muhurta/muhurta.module.css:44,93` 6곳뿐이라 31 은 낙샤트라 트리 전체를 다시 세야 나온다. 결과 화면 픽스처도 없어(`nakshatra/ai` 미보유) 하네스를 새로 만들거나 측정 불가를 명기해야 한다. 숙요궁합(34)은 사용자가 '정상'으로 판정해 제외됐다. 🔴 스캐너 맹점 2종(전역 clip · 진입 애니메이션 opacity)은 그대로라 스캐너 수치로 전/후를 판정하지 말 것. CI 게이트 2종의 OF 맹점은 여전히 별도 PR 이 필요하다"
 ---
 
 # 기능별 모바일 순회 원장
@@ -154,7 +154,7 @@ next: "카르마 데스티니 결과 화면을 09-05 에 닫았다(아래 §카�
 - `TT<44=11` · `IN<16=6/6` 은 전후 동일하게 남았다. 이번 PR 의 축이 아니고(원장 다음 단계는 keep-all 단독), 위 맹점 2번 때문에 이 수치도 결과 본문을 못 본 값이라 **먼저 표본부터 고쳐야 의미가 있다.**
 - 시즌 CSS 의 `repeat(N, 1fr)` 다열 그리드(`.nyai-quarter-row`·`.nyai-month-grid`·`.nyai-year-chips`·`.nyai-letter-grid` 등)는 같은 min-content 바닥을 갖지만 **이번 측정에서 넘치지 않았고** 감사표의 "암시적" 집계에도 안 들어간다. 잠재 결함으로만 남긴다.
 
-## 카르마 데스티니 결과 화면 (`/karma-destiny-ai/result/`) — 09-05 수정
+## 카르마 데스티니 결과 화면 (`/karma-destiny-ai/result/`) — 09-05 수정 (#1586)
 
 하네스는 신년운세와 같은 형태다 — `?sessionId=` 재열람 경로(`KarmaDestinyAiResultClient.tsx:899`)에 `lib/dev-preview/fixtures/karma-destiny.ts` 를 `/api/karma-destiny-ai/result` 로 물린 1회용 스텁(127.0.0.1, `dist/` 정적 서빙). 나머지 `/api/*` 는 404 로 막아 프로덕션 트래픽 0. `--expect="[data-kdai-pdf-page]"`.
 
