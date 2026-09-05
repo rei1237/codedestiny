@@ -12,6 +12,7 @@ import { useCoinGate } from "../hooks/useCoinGate";
 import { PriceBadge } from "../components/PriceBadge";
 import { FUSION_ORB_BY_KEY, FUSION_ORBS, type FusionSystemKey } from "./fusionOrbs";
 import { FusionRecentList, type FusionRecentItem } from "./FusionRecentList";
+import { FusionResultRail } from "./FusionResultRail";
 import { FusionResultThread } from "./FusionResultThread";
 import {
   FusionOrb,
@@ -2658,7 +2659,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
     {(loading || result || failure) && <section
       ref={threadRef}
       aria-label={copy.threadAriaLabel}
-      className="relative z-[2] mx-auto mb-[26px] w-full max-w-[1080px] overflow-hidden rounded-[28px] border border-[rgba(200,177,235,0.27)] bg-[linear-gradient(145deg,rgba(24,19,48,0.94),rgba(13,11,29,0.97))] shadow-[0_24px_70px_rgba(0,0,0,0.3)]"
+      className="relative z-[2] mx-auto mb-[26px] w-full max-w-[1080px] overflow-clip rounded-[28px] border border-[rgba(200,177,235,0.27)] bg-[linear-gradient(145deg,rgba(24,19,48,0.94),rgba(13,11,29,0.97))] shadow-[0_24px_70px_rgba(0,0,0,0.3)]"
     >
       <span aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-56 bg-[radial-gradient(120%_100%_at_50%_0%,rgba(160,92,214,0.24),transparent_72%)]" />
 
@@ -2681,6 +2682,9 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
         </div>
       </header>
 
+      {/* 🔴 sticky 레일: 부모 section 이 overflow-hidden 이면 sticky 가 죽는다 — overflow-clip 을 쓴다.
+          레일은 PDF 캡처 대상(data-fusion-pdf-section) 바깥이고 lg 미만에서는 진행선만 남는다. */}
+      <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_224px] lg:gap-7 lg:pr-9">
       <ol className="relative m-0 grid list-none gap-5 px-3 py-7 sm:px-9 sm:py-9">
         {/* 대화의 척추. 좌표 = 목록 좌우 여백(12/36px) + 아바타 반지름(14/18px). */}
         <span aria-hidden className="pointer-events-none absolute bottom-12 left-[26px] top-12 w-px sm:left-[54px] bg-[linear-gradient(180deg,transparent,rgba(201,181,243,0.3),transparent)]" />
@@ -2738,7 +2742,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
           </div>
         </li>}
 
-        {result && <FusionResultThread result={result} openSection={openSection} onToggleSection={toggleSection} exporting={exporting} />}
+        {result && <FusionResultThread result={result} openSection={openSection} onToggleSection={toggleSection} exporting={exporting} stageTwoGenerating={loading} />}
 
         {result && stageTwoFailed && !loading && <li>
           <div role="status" className="rounded-[1.375rem] border border-[rgba(232,213,163,0.3)] bg-[rgba(232,213,163,0.08)] px-4 py-4 sm:px-6">
@@ -2764,6 +2768,8 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
           </div>
         </li>}
       </ol>
+      {result && <FusionResultRail result={result} generating={loading} onOpenSection={(key) => setOpenSection(key)} scopeRef={threadRef} />}
+      </div>
 
       {(loading || result) && <footer className="relative flex flex-wrap gap-3 border-t border-white/[0.07] px-4 py-5 sm:px-9">
         {loading
