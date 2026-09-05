@@ -497,7 +497,7 @@ const LOCALE_SHELL_SEO = {
     language: "Japanese",
     title: "無料占い | 四柱推命・タロット・相性・今日の運勢 — CODE DESTINY",
     description:
-      "命理歴10年の鑑定家 Park Byeong-ha が監修。生年月日を入力するだけで四柱推命、タロット、紫微斗数、宿曜占星術、相性占いまで無料。AIがあなたの毎日の運勢と恋愛の流れを丁寧に読み解きます。",
+      "命理歴10年の鑑定家 Park Byeong-ha が監修。生年月日だけで四柱推命、タロット、紫微斗数、宿曜占星術、相性占いまで無料。AIが毎日の運勢と恋愛の流れを読み解きます。",
     keywords:
       "四柱推命 無料, 占い 無料, タロット占い 無料, 今日の運勢, 相性占い, 紫微斗数, 宿曜占星術, 誕生日占い, 恋愛占い, 韓国 占い, 無料鑑定",
     appTitle: "CODE DESTINY ハニーピッグ占い",
@@ -541,7 +541,7 @@ const LOCALE_SHELL_SEO = {
     language: "English",
     title: "Free Fortune Telling | Saju, Tarot & Daily Horoscope — CODE DESTINY",
     description:
-      "Reviewed by Park Byeong-ha, a Korean myeongri practitioner with ten years of experience. Enter your birth date for free Korean Saju (Four Pillars), tarot, Zi Wei Dou Shu and Sukuyo compatibility readings, with warm in-depth AI interpretations.",
+      "Reviewed by Park Byeong-ha, a myeongri practitioner of 10 years. Free Korean Saju (Four Pillars), tarot, Zi Wei Dou Shu, Sukuyo and compatibility readings.",
     keywords:
       "free fortune telling, saju reading, four pillars of destiny, free tarot reading, daily horoscope, zi wei dou shu, compatibility test, korean astrology, birth chart",
     appTitle: "CODE DESTINY Honey Pig Fortune",
