@@ -229,6 +229,7 @@
     "verify:fusion-fortune-quality": "node scripts/verify-fusion-fortune-quality.mjs",
     "verify:fusion-fortune-reopen": "node scripts/verify-fusion-fortune-reopen.mjs",
     "verify:fusion-fortune-retry-payload": "node scripts/verify-fusion-fortune-retry-payload.mjs",
+    "verify:fusion-fortune-stage-flow": "node scripts/verify-fusion-fortune-stage-flow.mjs",
     "report:llm-tokens": "node scripts/report-llm-token-usage.mjs",
     "verify:deploy-base-guard": "node scripts/verify-deploy-base-guard.mjs",
     "verify:worker-single-deploy": "node scripts/verify-worker-single-deploy-guard.mjs",
