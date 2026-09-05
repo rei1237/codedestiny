@@ -1,25 +1,26 @@
 /**
  * 초융합 운세 프롬프트.
  *
- * 🔴 초융합은 단일 호출이 아니라 **4그룹 병렬 생성**이다(2026-08-08, 30,000원 인상분 반영).
- * 목표 분량 20,000자를 한 번에 뽑으려면 Gemini 출력 상한(16,384토큰)과 요청 시간 예산이
- * 먼저 바닥나 매번 잘리거나 Workers AI 폴백(목표의 60~77%만 쓰고 멈춤)으로 떨어진다.
- * 그룹당 3,400~6,600자면 한 호출이 시간 안에 완주하므로 실제 분량이 나온다.
+ * 🔴 초융합은 단일 호출이 아니라 **2단계 · 9그룹 생성**이다(2026-09-06, 분량 30,000~40,000자 목표).
+ *   · 1단계(6그룹 병렬): 체계별 섹션 하나씩. 사주 그룹이 제목·서문도 맡는다.
+ *   · 2단계(3그룹 병렬): 1단계 산출 요약(buildFusionStageOneDigest)을 읽고 통합 리딩·시기/행동·결론을 쓴다.
+ *   각 단계는 별도 HTTP 요청이라 120초 예산을 각자 쓴다. 단일 요청 안에서 늘리면 Gemini 출력
+ *   상한(16,384토큰)과 엣지 시간 한도(~100s)에 먼저 걸려 잘리거나 결정론 폴백으로 떨어진다(2026-08-08 실측).
  * 선행 사례: worker/routes/ziwei-ai.js 의 SECTION_GROUP_SPECS.
  */
 
 /** 분량 계약 정본. 검증(worker/lib/fusion-fortune.js)과 프롬프트가 같은 값을 본다. */
 export const FUSION_FORTUNE_LENGTH = Object.freeze({
   // 하한은 "30,000원어치"의 기준선, 상한은 폭주 방지용 완충이다.
-  // 🔴 상한을 목표(약 21,000자) 가까이 조이면, 그룹들이 조금씩 더 쓴 정상 결과가 반려돼
-  //    결정론 폴백(약 20,000자)이 유료 결과로 나간다. 완충은 넉넉해야 한다.
-  total: Object.freeze({ min: 20000, max: 30000 }),
-  section: 1600,
-  executiveSummary: 900,
-  integratedReading: 2600,
-  timingAndAction: 1600,
-  closingMessage: 600,
-  finalVerdictRationale: 700,
+  // 🔴 상한을 목표(약 36,000자) 가까이 조이면, 그룹들이 조금씩 더 쓴 정상 결과가 반려돼
+  //    결정론 폴백이 유료 결과로 나간다. 완충은 넉넉해야 한다.
+  total: Object.freeze({ min: 30000, max: 46000 }),
+  section: 3600,
+  executiveSummary: 1400,
+  integratedReading: 3600,
+  timingAndAction: 2600,
+  closingMessage: 800,
+  finalVerdictRationale: 1000,
 });
 
 function sectionSchema(minChars) {
@@ -96,6 +97,9 @@ const SECTION_WRITING_RULES = Object.freeze([
   "'힘을 실어 주는 요소'와 '주의가 필요한 요소'를 뭉뚱그리지 말고 나누어 각각 짚는다.",
   "판단은 단정이 아니라 경향으로 쓴다. 같은 문장을 다른 섹션에서 반복하지 않는다.",
   "keyPoints 3개는 본문 요약이 아니라 그 섹션에서 실제로 남길 판단·행동이어야 한다.",
+  "앞 단계에서 완성된 섹션 요약이 함께 주어지면 그 문장과 판단을 다시 쓰지 않는다. 같은 근거를 다뤄도 앞에서 다루지 않은 각도(시기·관계·일·마음)로 쓴다.",
+  "누구에게나 맞는 일반론으로 분량을 채우지 않는다. 문단마다 서버 확정값을 최소 하나 이름으로 인용하고, 그 값에서만 나오는 판단을 쓴다.",
+  "구체성의 순서를 지킨다: 실제 값 인용 → 그 값이 가리키는 시기나 상황 → 그때 해볼 행동. 세 요소가 모두 없는 문단은 늘리지 말고 뺀다.",
 ]);
 
 export const FUSION_SYSTEM_QUALITY_GATES = Object.freeze({
@@ -126,70 +130,156 @@ export const FUSION_SYSTEM_QUALITY_GATES = Object.freeze({
 });
 
 /**
- * 병렬 생성 단위. keys 합집합은 FUSION_FORTUNE_RESPONSE_SCHEMA 전체와 정확히 일치해야 한다
- * (아래 assert 로 강제). targetChars 합계는 total.min(20,000)보다 넉넉히 위여야 한다 —
+ * 생성 단위. keys 합집합은 FUSION_FORTUNE_RESPONSE_SCHEMA 전체와 정확히 일치해야 한다
+ * (아래 assert 로 강제). targetChars 합계(약 36,100자)는 total.min(30,000)보다 넉넉히 위여야 한다 —
  * 딱 맞추면 그룹이 목표의 90%만 써도 곧바로 미달로 떨어진다.
+ *
+ * stage 1 은 체계별 섹션(서버 컨텍스트만 본다), stage 2 는 1단계 산출 요약을 읽고 쓰는 통합·행동·결론이다.
+ * 총평·서문 성격의 executiveSummary·finalVerdict·closingMessage 는 반드시 마지막(stage 2)에 둔다.
  */
 export const FUSION_SECTION_GROUP_SPECS = Object.freeze([
   Object.freeze({
-    id: "foundation",
-    label: "결론 요약과 동양 명리",
-    stageLabel: "핵심 요약 · 사주 · 자미두수",
-    keys: Object.freeze(["executiveSummary", "sajuSection", "ziweiSection"]),
-    minChars: Object.freeze({ executiveSummary: 1200, sajuSection: 2200, ziweiSection: 2200 }),
-    targetChars: 5600,
-    systems: Object.freeze(["saju", "ziwei"]),
-    focus: "이번 상담의 결론 요약과, 사주·자미두수가 말하는 타고난 기질과 삶의 무대",
+    id: "saju",
+    stage: 1,
+    label: "상담의 서문과 사주",
+    stageLabel: "서문 · 사주",
+    keys: Object.freeze(["title", "openingMessage", "sajuSection"]),
+    minChars: Object.freeze({ openingMessage: 260, sajuSection: 3600 }),
+    targetChars: 4300,
+    systems: Object.freeze(["saju"]),
+    focus: "상담을 여는 제목·서문과, 사주가 말하는 타고난 기질과 선택의 뿌리",
   }),
   Object.freeze({
-    id: "traditions",
-    label: "인도·동아시아·서양 천문",
-    stageLabel: "베다점 · 숙요점 · 점성술",
-    keys: Object.freeze(["vedicSection", "sukuyoSection", "astrologySection"]),
-    minChars: Object.freeze({ vedicSection: 2200, sukuyoSection: 2200, astrologySection: 2200 }),
-    targetChars: 6600,
-    systems: Object.freeze(["vedic", "sukuyo", "astrology"]),
-    focus: "베다점의 무의식 리듬, 숙요점의 관계 거리, 서양 점성술의 표현과 선택 패턴",
+    id: "ziwei",
+    stage: 1,
+    label: "자미두수",
+    stageLabel: "자미두수",
+    keys: Object.freeze(["ziweiSection"]),
+    minChars: Object.freeze({ ziweiSection: 3600 }),
+    targetChars: 4200,
+    systems: Object.freeze(["ziwei"]),
+    focus: "자미두수의 궁위와 별이 말하는 삶의 무대, 역할, 책임을 느끼는 지점",
   }),
   Object.freeze({
-    id: "synthesis",
-    label: "타로와 통합 리딩",
-    stageLabel: "타로 · 교차 검증 통합",
-    keys: Object.freeze(["tarotSection", "integratedReading"]),
-    minChars: Object.freeze({ tarotSection: 2200, integratedReading: 3000 }),
-    targetChars: 5200,
+    id: "vedic",
+    stage: 1,
+    label: "베다점",
+    stageLabel: "베다점",
+    keys: Object.freeze(["vedicSection"]),
+    minChars: Object.freeze({ vedicSection: 3600 }),
+    targetChars: 4200,
+    systems: Object.freeze(["vedic"]),
+    focus: "베다점의 달·나크샤트라·다샤가 말하는 무의식의 리듬과 회복 방식",
+  }),
+  Object.freeze({
+    id: "sukuyo",
+    stage: 1,
+    label: "숙요점",
+    stageLabel: "숙요점",
+    keys: Object.freeze(["sukuyoSection"]),
+    minChars: Object.freeze({ sukuyoSection: 3600 }),
+    targetChars: 4200,
+    systems: Object.freeze(["sukuyo"]),
+    focus: "숙요점이 말하는 관계의 거리, 감정 반응, 대화 속도",
+  }),
+  Object.freeze({
+    id: "astrology",
+    stage: 1,
+    label: "서양 점성술",
+    stageLabel: "점성술",
+    keys: Object.freeze(["astrologySection"]),
+    minChars: Object.freeze({ astrologySection: 3600 }),
+    targetChars: 4200,
+    systems: Object.freeze(["astrology"]),
+    focus: "서양 점성술의 태양·달·행성이 말하는 표현과 선택 패턴",
+  }),
+  Object.freeze({
+    id: "tarot",
+    stage: 1,
+    label: "타로",
+    stageLabel: "타로",
+    keys: Object.freeze(["tarotSection"]),
+    minChars: Object.freeze({ tarotSection: 3600 }),
+    targetChars: 4200,
     systems: Object.freeze(["tarot"]),
-    focus: "서버가 뽑은 여섯 장의 카드와, 여섯 체계를 교차 검증해 하나로 엮는 통합 리딩",
+    focus: "서버가 뽑은 여섯 장의 카드가 현재 선택을 비추는 방식",
+  }),
+  Object.freeze({
+    id: "integration",
+    stage: 2,
+    label: "교차 검증 통합 리딩",
+    stageLabel: "교차 검증 통합",
+    keys: Object.freeze(["integratedReading"]),
+    minChars: Object.freeze({ integratedReading: 3600 }),
+    targetChars: 4200,
+    systems: Object.freeze([]),
+    focus: "앞 단계에서 완성된 여섯 체계 섹션을 교차 검증해 하나로 엮는 통합 리딩",
   }),
   Object.freeze({
     id: "action",
-    label: "시기·행동과 마무리",
+    stage: 2,
+    label: "시기와 행동",
     stageLabel: "12개월 시기 라인 · 행동",
-    keys: Object.freeze(["title", "openingMessage", "timingAndAction", "visualization", "finalVerdict", "closingMessage", "shareText"]),
-    minChars: Object.freeze({ timingAndAction: 2000, finalVerdict: 900, closingMessage: 800, openingMessage: 260 }),
-    targetChars: 4300,
+    keys: Object.freeze(["timingAndAction", "visualization"]),
+    minChars: Object.freeze({ timingAndAction: 2600 }),
+    targetChars: 3200,
     systems: Object.freeze([]),
-    focus: "앞으로 12개월의 시기 라인과 현실 행동, 시각화가 쓸 정규화 점수, 그리고 여섯 체계를 수렴시킨 최종 결론",
+    focus: "앞으로 12개월의 시기 라인과 현실 행동, 시각화가 쓸 정규화 점수",
+  }),
+  Object.freeze({
+    id: "verdict",
+    stage: 2,
+    label: "결론 요약과 최종 판정",
+    stageLabel: "핵심 요약 · 최종 결론",
+    keys: Object.freeze(["executiveSummary", "finalVerdict", "closingMessage", "shareText"]),
+    minChars: Object.freeze({ executiveSummary: 1400, finalVerdict: 1000, closingMessage: 800 }),
+    targetChars: 3400,
+    systems: Object.freeze([]),
+    focus: "여섯 체계를 수렴시킨 결론 요약, 최종 판정, 마무리 메시지",
   }),
 ]);
 
+export const FUSION_STAGE_COUNT = 2;
+
+/** stage(1|2)에 속한 그룹. 알 수 없는 stage 는 빈 배열 — 호출자가 fail-closed 로 다룬다. */
+export function fusionGroupsForStage(stage) {
+  return FUSION_SECTION_GROUP_SPECS.filter((group) => group.stage === Number(stage));
+}
+
+const STAGE_TWO_INTEGRATION_RULE = "여섯 체계(사주·자미두수·베다점·숙요점·점성술·타로)를 각각 이름으로 인용하며 서로를 대조한다. 한 체계라도 이름 없이 넘어가면 교차 검증이 아니다.";
+
 const GROUP_EXTRA_RULES = Object.freeze({
-  foundation: [
-    "executiveSummary 는 이번 상담 전체의 결론이다. 여섯 체계가 공통으로 가리키는 주제 한 가지를 먼저 못박고, 그것이 관계·일·마음에서 각각 어떻게 나타나는지까지 담는다.",
+  saju: [
+    "title 은 25자 이내, openingMessage 는 상담을 여는 두세 문장이다. 서문은 결론을 미리 말하지 않고 이번 질문을 어떤 기준으로 읽을지만 연다.",
+    "사주 섹션은 일간·오행·십성·현재 흐름을 각각 근거로 인용하되, 뒤 단계의 통합 리딩이 다시 쓸 여지를 남기지 말고 사주 안에서 끝까지 판단한다.",
   ],
-  traditions: [
-    "세 체계를 같은 말로 반복하지 않는다. 베다점은 리듬과 회복, 숙요점은 거리와 속도, 점성술은 표현과 책임으로 서로 다른 축을 맡는다.",
+  ziwei: [
+    "자미두수는 명궁·주제궁·주요 별을 역할과 책임, 관계에서 반복되는 선택 방식으로 번역한다. 다른 체계를 끌어와 비교하지 않는다(그것은 2단계의 일이다).",
   ],
-  synthesis: [
+  vedic: [
+    "베다점은 리듬과 회복을 맡는다. 라그나·다샤 같은 값이 컨텍스트에 없으면 그 자리를 추정으로 채우지 말고 없다고 밝힌다.",
+  ],
+  sukuyo: [
+    "숙요점은 거리와 속도를 맡는다. 상대의 마음을 단정하지 않고, 본명숙이 말하는 감정 반응과 대화 속도를 생활 장면으로 옮긴다.",
+  ],
+  astrology: [
+    "점성술은 표현과 책임을 맡는다. 태양·달·금성·화성·토성을 섞지 말고 각각이 현재 선택에서 어떻게 드러나는지 나눠 쓴다.",
+  ],
+  tarot: [],
+  integration: [
+    STAGE_TWO_INTEGRATION_RULE,
     "integratedReading 에는 **교차 검증 표**를 문단 안에 명시적으로 넣는다. (가) 두 체계 이상이 같은 신호를 가리키는 항목을 최소 2가지 — 어떤 체계들이 무엇을 함께 말하는지와 그래서 무엇을 우선할지. (나) 서로 엇갈리는 항목을 최소 1가지 — 어느 체계가 무엇을 다르게 말하는지와 어떤 상황에서 어느 쪽을 따를지. 엇갈림을 모순으로 숨기지 않는다.",
-    "통합 리딩은 앞 그룹의 문장을 요약해 붙이는 자리가 아니다. 체계 사이의 관계에서만 나오는 판단을 새로 쓴다.",
+    "통합 리딩은 앞 단계 섹션의 문장을 요약해 붙이는 자리가 아니다. 체계 사이의 관계에서만 나오는 판단을 새로 쓴다.",
   ],
   action: [
-    "timingAndAction.content 안에 **앞으로 12개월의 시기 라인**을 담는다. 이번 달부터 12개월을 순서대로 다루되, 사건을 예고하지 말고 각 달에 무엇을 준비·시험·정리하면 좋은지를 쓴다.",
+    "timingAndAction.content 안에 **앞으로 12개월의 시기 라인**을 담는다. 이번 달부터 12개월을 순서대로 다루되, 사건을 예고하지 말고 각 달에 무엇을 준비·시험·정리하면 좋은지를 쓴다. 각 달의 근거는 앞 단계 섹션 요약에서 실제로 언급된 값으로 댄다.",
     "visualization.monthlyTimeline 은 그 12개월 라인과 같은 순서·같은 내용을 숫자로 옮긴 것이다(정확히 12개, label 은 '8월'처럼 이번 달부터). intensity 는 좋고 나쁨이 아니라 '그 달에 힘을 쓸 만한 정도'다.",
     "visualization.systemScores 는 여섯 체계 각각이 이번 질문에 얼마나 뚜렷한 신호를 주는지(0-100)이며, 사람의 우열 점수가 아니다. 여섯 개를 모두 채우고 값이 전부 같지 않게 한다.",
     "visualization.crossChecks 의 systems 에는 체계 키(saju/ziwei/vedic/sukuyo/astrology/tarot)를 두 개 이상 넣는다.",
-    "title 은 25자 이내, openingMessage 는 상담을 여는 두세 문장, shareText 는 개인정보 없는 220자 이내 요약이다.",
+  ],
+  verdict: [
+    "executiveSummary 는 이번 상담 전체의 결론이다. 여섯 체계가 공통으로 가리키는 주제 한 가지를 먼저 못박고, 그것이 관계·일·마음에서 각각 어떻게 나타나는지까지 담는다. 앞 단계 섹션 요약을 순서대로 다시 적는 것은 요약이 아니다.",
+    "closingMessage 는 상담을 닫는 글이다. 새 근거를 꺼내지 말고, 사용자가 이 결과를 어떻게 다시 읽고 쓸지를 안내한다. shareText 는 개인정보 없는 220자 이내 요약이다.",
     "🔴 finalVerdict 는 이 상담의 마지막 답이다. 여섯 체계를 다시 나열해 요약하지 말고 **하나의 결론으로 수렴시킨다.** ①headline 은 사용자가 지금 무엇을 하면 되는지 한 문장으로 못박는다. ②systemVerdicts 는 여섯 체계 각각이 그 결론에 대해 어떤 입장인지 판정한다 — agree(같은 방향), conditional(조건이 맞으면 같은 방향), caution(다른 방향이거나 속도를 늦추라고 함) 중 하나와 그 이유를 함께 적는다. 여섯 개를 모두 채우고, 근거 없이 전부 agree 로 몰지 않는다. ③confidence 는 그 입장 분포에서 나오는 합의 정도다(전부 agree 면 높고 caution 이 섞이면 낮다). ④rationale 은 왜 이 결론이 남는지를 근거로 설명한다. ⑤doNow 는 지금 할 일 3가지, avoid 는 피할 일 2가지를 구체적인 동사로 쓴다.",
   ],
 });
@@ -317,16 +407,44 @@ function pickSchema(keys) {
   return keys.reduce((schema, key) => ({ ...schema, [key]: FUSION_FORTUNE_RESPONSE_SCHEMA[key] }), {});
 }
 
+const STAGE_ONE_DIGEST_KEYS = Object.freeze(["sajuSection", "ziweiSection", "vedicSection", "sukuyoSection", "astrologySection", "tarotSection"]);
+const STAGE_ONE_DIGEST_EXCERPT_CHARS = 700;
+
+/**
+ * 2단계 그룹이 읽는 1단계 산출 요약. 섹션별 제목(≤80자)·keyPoints 3개(각 ≤140자)·본문 앞 700자.
+ * 여섯 섹션 전체(약 25,000자)를 그대로 실으면 프롬프트가 그룹당 토큰 클램프를 먹고 비용이
+ * 두 배가 된다. 요약(≈6,000자)이면 관계를 쓰기에 충분하고 반복 유인은 오히려 줄어든다.
+ * 1단계 결과 그 자체가 아닌 것(문자열·배열)이 오면 빈 문자열 — 호출자는 요약 없이 진행한다.
+ */
+export function buildFusionStageOneDigest(priorResult = {}) {
+  if (!priorResult || typeof priorResult !== "object" || Array.isArray(priorResult)) return "";
+  const blocks = [];
+  const opening = safeText(priorResult.openingMessage, 300);
+  if (opening) blocks.push(`[openingMessage] ${opening}`);
+  for (const key of STAGE_ONE_DIGEST_KEYS) {
+    const sectionValue = priorResult[key];
+    if (!sectionValue || typeof sectionValue !== "object") continue;
+    const title = safeText(sectionValue.title, 80);
+    const excerpt = safeText(sectionValue.content, STAGE_ONE_DIGEST_EXCERPT_CHARS);
+    if (!title && !excerpt) continue;
+    const points = (Array.isArray(sectionValue.keyPoints) ? sectionValue.keyPoints : []).slice(0, 3).map((item) => safeText(item, 140)).filter(Boolean);
+    blocks.push([`[${key}] ${title}`, points.length ? `핵심: ${points.join(" / ")}` : "", excerpt ? `본문 앞부분: ${excerpt}` : ""].filter(Boolean).join("\n"));
+  }
+  return blocks.join("\n\n");
+}
+
 /**
  * 그룹 하나의 프롬프트. 자기가 맡은 키만 담긴 JSON 객체를 요구한다.
- * @param {{ context?: object, group: object, extraInstruction?: string }} args
+ * priorSections 는 2단계 그룹에만 의미가 있다 — 1단계 결과 객체를 넘기면 요약이 서버 컨텍스트 앞에 실린다.
+ * @param {{ context?: object, group: object, priorSections?: object, extraInstruction?: string }} args
  */
-export function buildFusionSectionGroupPrompt({ context = {}, group, extraInstruction = "" } = {}) {
+export function buildFusionSectionGroupPrompt({ context = {}, group, priorSections = null, extraInstruction = "" } = {}) {
   const safeContext = projectFusionFortuneContextForPrompt(context);
   const responseSchema = pickSchema(group.keys);
   const minCharLines = group.keys
     .filter((key) => group.minChars?.[key])
     .map((key) => `  · ${key}: 최소 ${Number(group.minChars[key]).toLocaleString("ko-KR")}자`);
+  const digest = group.stage === 2 ? buildFusionStageOneDigest(priorSections) : "";
   const systemPrompt = buildSharedSystemPrompt(
     safeContext,
     `이번 요청은 전체 상담 중 “${group.label}” 부분만 담당한다. 아래 키만 담긴 JSON 객체 하나만 반환하고, 다른 키는 절대 추가하지 않는다. Markdown과 코드펜스는 쓰지 않는다.`,
@@ -344,6 +462,7 @@ export function buildFusionSectionGroupPrompt({ context = {}, group, extraInstru
       : []),
     `분량 기준(이 그룹 합계 약 ${Number(group.targetChars).toLocaleString("ko-KR")}자):\n${minCharLines.join("\n")}`,
     "keyPoints, luckyActions, cautionPatterns는 각각 3개 이상 제공한다.",
+    ...(digest ? [`앞 단계에서 완성된 섹션 요약(이 문장들을 반복하지 말고, 이 판단들 사이의 관계에서만 나오는 것을 새로 쓴다):\n${digest}`] : []),
     `서버 계산 컨텍스트:\n${JSON.stringify(safeContext)}`,
     `응답 JSON 스키마(이 키만):\n${JSON.stringify(responseSchema)}`,
     ...(extraInstruction ? [extraInstruction] : []),
@@ -421,11 +540,11 @@ function labBirthPlace(value) {
 /**
  * 관리자 프롬프트 랩 조립기.
  * 🔴 프로덕션 buildFusionSectionGroupPrompt 만 부른다 — 랩 전용 문안을 여기서 쓰면 랩이 거짓말을 한다.
- * 초융합은 4그룹 병렬 생성이라 프롬프트가 하나가 아니다. 그룹을 variants 로 노출한다.
+ * 초융합은 2단계 9그룹 생성이라 프롬프트가 하나가 아니다. 그룹을 variants 로 노출한다(2단계 그룹은 1단계 요약 없이 골격만 보인다).
  */
 export async function buildAdminLabPrompt(body = {}, options = {}) {
   const group = FUSION_SECTION_GROUP_SPECS.find((item) => item.id === options.variant) || FUSION_SECTION_GROUP_SPECS[0];
-  const variants = FUSION_SECTION_GROUP_SPECS.map((item) => ({ key: item.id, label: `${item.label} (${item.stageLabel})` }));
+  const variants = FUSION_SECTION_GROUP_SPECS.map((item) => ({ key: item.id, label: `${item.stage}단계 · ${item.label} (${item.stageLabel})` }));
 
   let context = {};
   let partialReason = "";
@@ -456,7 +575,7 @@ export async function buildAdminLabPrompt(body = {}, options = {}) {
     variantKey: group.id,
     variants,
     notes: [
-      `초융합은 한 번에 뽑지 않고 ${FUSION_SECTION_GROUP_SPECS.length}개 그룹을 병렬로 생성한다. 지금 보는 것은 “${group.label}” 그룹의 프롬프트다.`,
+      `초융합은 한 번에 뽑지 않고 ${FUSION_STAGE_COUNT}단계 ${FUSION_SECTION_GROUP_SPECS.length}개 그룹으로 생성한다(1단계 ${fusionGroupsForStage(1).length}그룹 병렬 → 2단계 ${fusionGroupsForStage(2).length}그룹 병렬). 지금 보는 것은 ${group.stage}단계 “${group.label}” 그룹의 프롬프트다.`,
       `타로 카드는 매번 달라지면 비교가 안 되므로 랩에서만 시드를 "${ADMIN_LAB_TAROT_SEED}" 로 고정한다.`,
     ],
   };

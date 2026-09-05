@@ -59,7 +59,7 @@ function buildFusionGroupPayload(group, cards = []) {
       continue;
     }
     if (key === "timingAndAction") {
-      payload.timingAndAction = { title: "가까운 시기와 행동", content: fusionFiller("timingAndAction", 2100), luckyActions: ["기준 한 줄 적기", "경계 말하기", "지출 한 가지 줄이기"], cautionPatterns: ["답을 재촉하기", "속도를 남에게 맞추기", "한 번에 크게 바꾸기"] };
+      payload.timingAndAction = { title: "가까운 시기와 행동", content: fusionFiller("timingAndAction", 3000), luckyActions: ["기준 한 줄 적기", "경계 말하기", "지출 한 가지 줄이기"], cautionPatterns: ["답을 재촉하기", "속도를 남에게 맞추기", "한 번에 크게 바꾸기"] };
       continue;
     }
     if (key === "finalVerdict") {
@@ -71,7 +71,7 @@ function buildFusionGroupPayload(group, cards = []) {
           stance: index < 3 ? "agree" : index < 5 ? "conditional" : "caution",
           note: system + " 확정값이 이 결론에 대해 말하는 바를 한 줄로 적습니다.",
         })),
-        rationale: fusionFiller("finalVerdict", 900),
+        rationale: fusionFiller("finalVerdict", 1150),
         doNow: ["기준 한 줄 적기", "되돌릴 수 있는 크기로 시험하기", "반응을 기록으로 남기기"],
         avoid: ["답을 재촉하기", "한 번에 크게 바꾸기"],
       };
@@ -80,13 +80,20 @@ function buildFusionGroupPayload(group, cards = []) {
     if (key === "title") { payload.title = "여섯 체계가 만나는 자리"; continue; }
     if (key === "shareText") { payload.shareText = "여섯 운세 체계를 하나로 엮어 지금의 선택을 정리했어요."; continue; }
     if (key === "openingMessage") { payload.openingMessage = fusionFiller("openingMessage", 320); continue; }
-    if (key === "closingMessage") { payload.closingMessage = fusionFiller("closingMessage", 900); continue; }
-    if (key === "executiveSummary") { payload.executiveSummary = fusionFiller("executiveSummary", 1300); continue; }
-    const minChars = key === "integratedReading" ? 3200 : 2400;
+    if (key === "closingMessage") { payload.closingMessage = fusionFiller("closingMessage", 1000); continue; }
+    if (key === "executiveSummary") { payload.executiveSummary = fusionFiller("executiveSummary", 1700); continue; }
+    const minChars = 4000;
     const tarotNames = key === "tarotSection" ? ` 서버가 고른 카드는 ${cards.map((card) => card.name).join(", ")}입니다.` : "";
     payload[key] = { title: key, content: `${fusionFiller(key, minChars)}${tarotNames}`, keyPoints: ["남길 판단 하나", "확인할 사실 하나", "이번 주 행동 하나"] };
   }
   return payload;
+}
+
+/** 라우트가 하는 대로 1단계 → 2단계(1단계 결과를 priorResult 로)를 순서대로 돌린다. */
+async function runFusionStages(args) {
+  const first = await generateFusionFortuneWithRealLLM({ ...args, stage: 1 });
+  const second = await generateFusionFortuneWithRealLLM({ ...args, stage: 2, priorResult: first.result, priorGenerationSource: first.generationSource });
+  return { first, second };
 }
 
 function fusionAdapters(calls) {
@@ -234,14 +241,14 @@ describe("Fusion Fortune per-use billing and mock generation", () => {
     expect(calls).toEqual({ saju: 1, ziwei: 0, vedic: 0, sukuyo: 0, astrology: 0, tarot: 0 });
   });
 
-  it("runs the four section groups in parallel and retries each once before a context fallback", async () => {
+  it("runs six stage-one groups then three stage-two groups and retries each once before a context fallback", async () => {
     const calls = Object.fromEntries(["saju", "ziwei", "vedic", "sukuyo", "astrology", "tarot"].map((name) => [name, 0]));
     const built = await buildFusionFortuneContext({
       ...input,
       birthPlace: { city: "서울", country: "KR", latitude: 37.5665, longitude: 126.978, timezone: "Asia/Seoul" },
     }, { adapters: fusionAdapters(calls) });
     const providerCall = jest.fn(async () => ({ ok: true, provider: "gemini", model: "gemini-2.5-flash", text: "{invalid" }));
-    const generated = await generateFusionFortuneWithRealLLM({
+    const { first, second: generated } = await runFusionStages({
       input,
       context: built.context,
       requestId: "fusion-group-call-test",
@@ -249,15 +256,18 @@ describe("Fusion Fortune per-use billing and mock generation", () => {
       providerCall,
     });
 
-    // 그룹 4개 × (1차 + 미달 재생성 1회). 단일 호출로는 20,000자 계약을 채울 수 없다.
+    // 그룹 9개(1단계 6 + 2단계 3) × (1차 + 미달 재생성 1회). 단일 호출로는 30,000자 계약을 채울 수 없다.
     expect(providerCall).toHaveBeenCalledTimes(FUSION_SECTION_GROUP_SPECS.length * 2);
     expect(new Set(providerCall.mock.calls.map(([, , options]) => options.logContext.sectionGroup)))
       .toEqual(new Set(FUSION_SECTION_GROUP_SPECS.map((group) => group.id)));
-    expect(generated).toMatchObject({ deliverable: true, generationSource: "context_fallback", providerCalls: 8 });
+    // 1단계는 전체 계약을 평가하지 않고 partial 로 넘기며 2단계 키를 갖지 않는다.
+    expect(first).toMatchObject({ deliverable: true, generationSource: "context_fallback", providerCalls: 12, qualityTier: "partial", stage: 1 });
+    expect(first.result).not.toHaveProperty("executiveSummary");
+    expect(generated).toMatchObject({ deliverable: true, generationSource: "context_fallback", providerCalls: 6, stage: 2 });
     expect(validateFusionFortuneResult(generated.result, { birthTimeKnown: true, birthPlaceKnown: true, selectedTarotCards: built.context.tarotSpread.cards }).ok).toBe(true);
   });
 
-  it("keeps three good groups when one group fails and fills only that group from the fallback", async () => {
+  it("keeps eight good groups when one group fails and fills only that group from the fallback", async () => {
     const calls = Object.fromEntries(["saju", "ziwei", "vedic", "sukuyo", "astrology", "tarot"].map((name) => [name, 0]));
     const built = await buildFusionFortuneContext({
       ...input,
@@ -266,11 +276,11 @@ describe("Fusion Fortune per-use billing and mock generation", () => {
     const cards = built.context.tarotSpread.cards;
     const providerCall = jest.fn(async (_env, _prompt, options) => {
       const groupId = options.logContext.sectionGroup;
-      if (groupId === "traditions") return { ok: false, error: "timeout" };
+      if (groupId === "vedic") return { ok: false, error: "timeout" };
       const group = FUSION_SECTION_GROUP_SPECS.find((item) => item.id === groupId);
       return { ok: true, provider: "gemini", model: "gemini-2.5-flash", text: JSON.stringify(buildFusionGroupPayload(group, cards)) };
     });
-    const generated = await generateFusionFortuneWithRealLLM({
+    const { second: generated } = await runFusionStages({
       input,
       context: built.context,
       requestId: "fusion-partial-group-test",
@@ -296,11 +306,11 @@ describe("Fusion Fortune per-use billing and mock generation", () => {
     const providerCall = jest.fn(async (_env, _prompt, options) => {
       const group = FUSION_SECTION_GROUP_SPECS.find((item) => item.id === options.logContext.sectionGroup);
       const payload = buildFusionGroupPayload(group, cards);
-      // foundation 그룹이 남의 구역(tarotSection)까지 써서 돌려주는 상황.
-      if (group.id === "foundation") payload.tarotSection = { title: "남의 구역", content: "가로채기", keyPoints: ["1", "2", "3"] };
+      // saju 그룹이 남의 구역(tarotSection)까지 써서 돌려주는 상황.
+      if (group.id === "saju") payload.tarotSection = { title: "남의 구역", content: "가로채기", keyPoints: ["1", "2", "3"] };
       return { ok: true, provider: "gemini", model: "gemini-2.5-flash", text: JSON.stringify(payload) };
     });
-    const generated = await generateFusionFortuneWithRealLLM({
+    const { second: generated } = await runFusionStages({
       input,
       context: built.context,
       requestId: "fusion-stray-keys-test",
@@ -314,7 +324,7 @@ describe("Fusion Fortune per-use billing and mock generation", () => {
   });
 
   it("rejects a tarot hallucination at the group boundary, not only after merging", async () => {
-    const group = FUSION_SECTION_GROUP_SPECS.find((item) => item.id === "synthesis");
+    const group = FUSION_SECTION_GROUP_SPECS.find((item) => item.id === "tarot");
     const cards = [{ name: "별" }, { name: "태양" }];
     const payload = buildFusionGroupPayload(group, cards);
     payload.tarotSection.content += " 여기에 죽음 카드 이야기를 덧붙입니다.";
@@ -337,19 +347,47 @@ describe("Fusion Fortune per-use billing and mock generation", () => {
       ...candidate,
       birthPlace: { city: "서울", country: "KR", latitude: 37.5665, longitude: 126.978, timezone: "Asia/Seoul" },
     }, { adapters: fusionAdapters(Object.fromEntries(["saju", "ziwei", "sukuyo", "vedic", "astrology", "tarot"].map((name) => [name, 0]))), onStage: options.onStage });
-    const generated = await generateFusionFortuneRequest({
-      input,
-      userId: "user",
-      requestId: "stream-stage-order",
-      dateKey,
-      store,
-      resolvePaidAccess: paidAccess,
-      contextBuilder: contextBuilderWithStages,
-      generator: generateFusionFortuneWithMockLLM,
-      onStage: (event) => completed.push(event.stage),
-    });
-    expect(generated.ok).toBe(true);
+    const common = { input, userId: "user", requestId: "stream-stage-order", dateKey, store, resolvePaidAccess: paidAccess, contextBuilder: contextBuilderWithStages, generator: generateFusionFortuneWithMockLLM, onStage: (event) => completed.push(event.stage) };
+    const first = await generateFusionFortuneRequest({ ...common, stage: 1 });
+    expect(first).toMatchObject({ ok: true, stage: 1, stageStatus: "partial" });
+    // 1단계는 fusion 단계를 알리지 않는다 — 통합·판정은 아직 없다.
+    expect(completed).toEqual(["saju", "ziwei", "sukuyo", "vedic", "astrology", "tarot"]);
+    completed.length = 0;
+    const generated = await generateFusionFortuneRequest({ ...common, stage: 2, priorResult: first.result });
+    expect(generated).toMatchObject({ ok: true, stage: 2, stageStatus: "completed" });
     expect(completed).toEqual(["saju", "ziwei", "sukuyo", "vedic", "astrology", "tarot", "fusion"]);
+  });
+
+  it("keeps the stage-one reservation and books stage two under its own key", async () => {
+    const dateKey = getFusionFortuneDateKey(new Date("2026-08-04T05:00:00.000Z"));
+    const store = emptyStore();
+    const common = { input, userId: "user", requestId: "two-stage-keys", dateKey, store, resolvePaidAccess: paidAccess, contextBuilder, generator: generateFusionFortuneWithMockLLM };
+    const first = await generateFusionFortuneRequest({ ...common, stage: 1 });
+    expect(first.ok).toBe(true);
+    // 1단계 예약이 completed 로 잠긴 뒤에도 같은 requestId 의 2단계는 #s2 키로 들어간다(409 아님).
+    const second = await generateFusionFortuneRequest({ ...common, stage: 2, priorResult: first.result });
+    expect(second).toMatchObject({ ok: true, stage: 2, stageStatus: "completed" });
+    const keys = [...store.attempts.keys()].map(String);
+    expect(keys.some((key) => key.includes("two-stage-keys#s2"))).toBe(true);
+    expect([...store.attempts.values()].filter((item) => item.status === "completed")).toHaveLength(2);
+  });
+
+  it("sends stage two back to stage one when the stage-one result is missing", async () => {
+    const store = emptyStore();
+    for (const priorResult of [undefined, null, {}, { sajuSection: { content: "짧음" } }]) {
+      const result = await generateFusionFortuneRequest({ input, userId: "user", requestId: "stage-two-orphan", store, resolvePaidAccess: paidAccess, contextBuilder, generator: generateFusionFortuneWithMockLLM, stage: 2, priorResult });
+      expect(result).toMatchObject({ ok: false, status: 409, error: "FUSION_FORTUNE_STAGE_ONE_MISSING", retryable: true, stage: 1 });
+    }
+    expect(store.attempts.size).toBe(0);
+  });
+
+  it("rejects an unknown stage and a stage-one result without the six system sections", async () => {
+    const store = emptyStore();
+    const bad = await generateFusionFortuneRequest({ input, userId: "user", requestId: "stage-three", store, resolvePaidAccess: paidAccess, contextBuilder, generator: generateFusionFortuneWithMockLLM, stage: 3 });
+    expect(bad).toMatchObject({ ok: false, status: 400 });
+    const thin = await generateFusionFortuneRequest({ input, userId: "user", requestId: "stage-one-thin", store, resolvePaidAccess: paidAccess, contextBuilder, generator: async () => ({ title: "only title" }), stage: 1 });
+    expect(thin.ok).toBe(false);
+    expect([...store.attempts.values()].filter((item) => item.status === "completed")).toHaveLength(0);
   });
 
   it("releases a reserved ticket and daily slot when the streamed request is already cancelled", async () => {
@@ -473,7 +511,7 @@ describe("Fusion Fortune per-use billing and mock generation", () => {
       concern: "비공개 고민",
     } });
     for (const domain of ["사주", "자미두수", "베다점", "숙요점", "서양 점성술", "타로"]) expect(prompt.userPrompt).toContain(domain);
-    expect(prompt.systemPrompt).toContain("20,000자 이상");
+    expect(prompt.systemPrompt).toContain("30,000자 이상");
     expect(prompt.userPrompt).not.toContain(input.birthDate);
     expect(prompt.userPrompt).not.toContain(input.birthTime);
     expect(prompt.userPrompt).not.toContain("비공개 고민");
