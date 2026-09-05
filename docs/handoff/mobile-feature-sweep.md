@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-05
-next: "신년운세 결과 화면을 09-05 에 닫았다(#1585, 아래 §신년운세). 다음은 §다른 전문가 상담 감사 의 keep-all 단독을 기능당 1PR 로 — 숙요궁합(34) → 카르마(13) → 낙샤트라(31) 순. 🔴 스캐너 맹점이 하나 더 확인됐다(진입 애니메이션 opacity) — 세 기능 다 스캐너 수치만으로 전/후를 판정하지 말고 프로브를 함께 돌린다. CI 게이트 2종의 OF 맹점은 여전히 별도 PR 이 필요하다"
+next: "카르마 데스티니 결과 화면을 09-05 에 닫았다(아래 §카르마 데스티니). 남은 것은 §다른 전문가 상담 감사 의 **낙샤트라(keep-all 단독 31)** 하나 — 기능당 1PR. 🔴 감사표가 짚은 위치는 `app/nakshatra/dasha-map/dasha-timeline.module.css:10,53,70,112` · `app/nakshatra/muhurta/muhurta.module.css:44,93` 6곳뿐이라 31 은 낙샤트라 트리 전체를 다시 세야 나온다. 결과 화면 픽스처도 없어(`nakshatra/ai` 미보유) 하네스를 새로 만들거나 측정 불가를 명기해야 한다. 숙요궁합(34)은 사용자가 '정상'으로 판정해 제외됐다. 🔴 스캐너 맹점 2종(전역 clip · 진입 애니메이션 opacity)은 그대로라 스캐너 수치로 전/후를 판정하지 말 것. CI 게이트 2종의 OF 맹점은 여전히 별도 PR 이 필요하다"
 ---
 
 # 기능별 모바일 순회 원장
@@ -54,6 +54,8 @@ next: "신년운세 결과 화면을 09-05 에 닫았다(#1585, 아래 §신년�
 🔴 **맹점은 하나가 아니다 — 표본 자체가 비어 있을 수 있다(09-05, 신년운세에서 발견).** 스캐너 `visible()`(`scripts/measure-mobile-routes.mjs:234-241`)이 `checkVisibility({checkOpacity:true})` 를 쓰기 때문에, **스크롤 진입 애니메이션으로 `opacity:0` 에서 시작하는 본문은 통째로 안 세어진다.** 신년운세 결과 화면은 레이아웃된 517개 중 **311개가 `.nyai-reveal` 하위라 표본에서 빠졌다**(360×800 실측). 출력의 `scanned=27/55` 가 그 흔적이다. framer-motion `initial={{opacity:0}}` 을 쓰는 기능은 스캐너 OF 수치를 전/후 근거로 쓰지 말 것.
 
 🔴 **텍스트 런의 넘침은 이 두 축으로도 안 잡힌다** — 크로미엄의 `scrollWidth` 가 인라인 텍스트 넘침을 신뢰성 있게 포함하지 않는다. 09-05 에는 `Range.getClientRects()` 로 텍스트 픽셀 범위를 따로 쟀고, 그 축에서만 42건이 보였다. 스캐너에는 아직 없다.
+
+🔴 **거꾸로, 프로브가 세는 것이 전부 결함인 것도 아니다 — 표본에서 빼야 할 위양성 2부류가 있다(09-05, 카르마에서 확인).** ① 스크린리더 전용 노드(1px 상자 + `clip-path:inset(50%)` + `white-space:nowrap` — 표의 대체본에 흔하다), ② `overflow-x:auto|scroll` **조상** 안의 의도된 가로 레일(모바일 탭 레일 등). 🔴 위 OF-B 는 **자기 자신의** `overflow-x` 만 보므로 조상까지 거슬러 확인해야 한다. 안 빼면 손댈 것이 없는 화면에서도 이탈 23건·런 6건이 나온다.
 
 ## 자미두수 결과 화면 (`/ziwei-ai/`) — 09-05 수정
 
@@ -152,6 +154,52 @@ next: "신년운세 결과 화면을 09-05 에 닫았다(#1585, 아래 §신년�
 - `TT<44=11` · `IN<16=6/6` 은 전후 동일하게 남았다. 이번 PR 의 축이 아니고(원장 다음 단계는 keep-all 단독), 위 맹점 2번 때문에 이 수치도 결과 본문을 못 본 값이라 **먼저 표본부터 고쳐야 의미가 있다.**
 - 시즌 CSS 의 `repeat(N, 1fr)` 다열 그리드(`.nyai-quarter-row`·`.nyai-month-grid`·`.nyai-year-chips`·`.nyai-letter-grid` 등)는 같은 min-content 바닥을 갖지만 **이번 측정에서 넘치지 않았고** 감사표의 "암시적" 집계에도 안 들어간다. 잠재 결함으로만 남긴다.
 
+## 카르마 데스티니 결과 화면 (`/karma-destiny-ai/result/`) — 09-05 수정
+
+하네스는 신년운세와 같은 형태다 — `?sessionId=` 재열람 경로(`KarmaDestinyAiResultClient.tsx:899`)에 `lib/dev-preview/fixtures/karma-destiny.ts` 를 `/api/karma-destiny-ai/result` 로 물린 1회용 스텁(127.0.0.1, `dist/` 정적 서빙). 나머지 `/api/*` 는 404 로 막아 프로덕션 트래픽 0. `--expect="[data-kdai-pdf-page]"`.
+
+🔴 **챕터는 기본이 펼침이다** — `KarmaDestinyAiResultClient.tsx:952-954` 의 `useEffect` 가 전부 연다. 하네스가 `.kdai-chapter__head` 를 무조건 클릭하면 오히려 **닫혀서 본문이 언마운트되고 표본이 통째로 빈다**(실측: 12건 클릭 → `bodies=0`). 접힌 것(`[aria-expanded="false"]`)만 클릭해 멱등하게 만들어야 한다.
+
+### 전/후 실측 (프로브 · 스트레스 문안)
+
+스캐너는 여기서도 못 쓴다 — 위 §OF 열 정정 의 맹점 2번(진입 애니메이션 opacity)이 그대로 걸린다(`ResultStyles.tsx:577` `[data-kdo-reveal]{opacity:0}` → `:582` `.is-revealed{opacity:1}`). `Range.getClientRects()` 프로브로 쟀다.
+
+| 360×800 | 문서폭 | 뷰포트 이탈 | 잘린 텍스트 런 |
+|---|---|---|---|
+| 스트레스 · 수정 전 | 948px | 66건 (최악 `li` +237px) | 145건 (최악 `h1` +588px) |
+| 스트레스 · 수정 후 | **510px** | **2건 (푸터 장식)** | **0** |
+
+412×823 도 같다(948 / 66 / 144 → 562 / 2 / 0). 무스트레스는 전후 모두 이탈 2(장식)·런 0 — 자미두수·신년운세와 마찬가지로 **픽스처 문안으로는 안 넘친다. 결함은 잠복 상태였다**(긴 URL·연속 영숫자가 들어오면 터진다).
+
+최악 범인: `h1` +588 · `.kdai-chapter__head h2` +363 ×12 · `.kdo-synthesis > h2` +344 · `.kdo-evidence__row dt` +277 ×39 · `.kdo-letter .kdo-kicker` +243 · `.kdo-deck__toc li` +239 ×15 · `.kdai-core-box span` +228 ×36. 터진 트랙: `.kdo-today__more ul` 트랙 562px / 상자 290px · `.kdai-core-box` 548px / 298px ×12.
+
+🔴 위양성 2부류는 표본에서 빼야 한다(위 §OF 열 정정 에 일반화해 적었다) — 여기 해당 노드는 `table.kdo-radar__table.kdo-visually-hidden`(`ResultStyles.tsx:316-322`)과 `.kdo-tabs--mobile .kdo-tabs__list`(`overflow-x:auto` 가로 탭 레일)다. 안 빼면 **깨끗한 화면에서도 이탈 23·런 6** 이 나온다.
+
+### 처방 (`ResultStyles.tsx` +18줄 · `KarmaDestinyAiClient.tsx` +2줄)
+
+자미두수·신년운세의 A·B·C 를 그대로 옮겼다. 블록은 `<style>` 템플릿 리터럴 **맨 끝**(`prefers-reduced-motion` 블록 뒤)에 붙였다 — 같은 특이도에서 미디어쿼리를 이기려면 뒤여야 한다(신년운세 A′ 함정).
+
+- **A** 암시적 1열 그리드 7종에 `grid-template-columns:minmax(0,1fr)`. 🔴 `.kdo-synthesis__body` 는 뺐다 — 이미 `minmax(0,1fr) 330px` 이고 미디어쿼리 안에도 `minmax(0,1fr)` 을 따로 갖고 있다.
+- **B** 아이템 8종에 `min-width:0`. 라이브 그리드 조사에서 실제로 부모를 민 것은 5종이었고(감사표 "안눌린 5" 와 정확히 일치) 같은 컨테이너의 형제 3종을 함께 눌렀다.
+- **C** 결과 화면 텍스트 20종에 `overflow-wrap:anywhere`. 감사표의 `keep-all 단독 13` 의 정체는 `ResultStyles.tsx` 11곳 + `KarmaDestinyAiClient.tsx` 2곳으로 라이브 집계와 맞았다.
+- 상담 화면(`KarmaDestinyAiClient.tsx`)의 남은 2곳 — `.kdai-result-section p`(:3601) · `.kdai-chart-data dt`(:3905) — 에 짝을 붙여 13건을 소진했다. 🔴 **이 두 줄은 상담 화면이라 렌더 미검증이다**(픽스처 하네스가 결과 화면에만 있다). 다만 전자는 평범한 블록 산문이고 후자의 트랙은 `minmax(120px, .34fr)` 라 최소폭이 고정 120px — `overflow-wrap` 이 트랙 크기를 못 바꾼다(구조상 레이아웃 중립).
+
+🔴 **두 파일 다 CRLF 다** — Edit/sed 로 고치면 전체 줄 diff 가 된다. node 패치 스크립트 + 개행 개수 검산으로 고쳤다(신년운세와 같은 함정, 메모리 `patch-crlf-files-with-a-node-script`).
+
+### 비회귀 근거 — 같은 빌드 위 런타임 A/B
+
+재빌드 없이 **이번 규칙만 `!important` 로 되돌린 화면(A)** 과 현재(B)를 전체 페이지로 촬영해 픽셀 대조했다. 진입 애니메이션은 양쪽 다 강제 노출하고 챕터·더보기를 모두 펼친 뒤 찍었다.
+
+- 모바일 360: 양쪽 `360×35516` · **불일치 0 / 12,785,760px (0.000%)**
+- 데스크탑 1280×900: 양쪽 `1280×26427` · **불일치 0 / 33,826,560px (0.000%)**
+
+🔴 **계측기 유효성을 먼저 확인하고 읽을 것** — 같은 대조를 스트레스 문안으로 돌리면 `A 758×49265 ↔ B 360×60117` 로 크게 갈린다. 대조군 없는 픽셀 A/B 가 전부 "차이 0" 을 내는 함정을 이렇게 배제했다.
+
+### 안 고친 것
+
+- 잔여 이탈 2건은 공용 푸터의 절대배치 장식(`.sfhNebula`)이고 `overflow:hidden` 부모가 의도적으로 자른다 — 카르마 전용이 아니라 범위 밖이다.
+- TT/IN/SA 축은 이번 PR 에서 안 봤다(원장 현재 단계는 keep-all 단독).
+
 ## 다른 전문가 상담 감사 — 소스 기준, **렌더 미측정** (09-05)
 
 사용자 요청의 "다른 상담에도 이런 문제가 있는지"에 대한 답이다. 🔴 **아래는 정적 grep 집계이지 실측이 아니다** — 자미두수처럼 하네스를 붙여 재기 전에는 건수를 결함 수로 읽지 말 것. 실제로 유일한 "고정 최소폭" 적중(`app/vedic-ai/VedicAiClient.module.css:1693` `.dashaTrack{min-width:560px}`)은 바로 위 `.dashaTrackWrap{overflow-x:auto}`(:1690)가 감싼 **의도된 가로 레일**이라 위양성이었다.
@@ -161,9 +209,9 @@ next: "신년운세 결과 화면을 09-05 에 닫았다(#1585, 아래 §신년�
 | 기능 | 합계 | 암시적 | 안눌린 | keep-all단독 | 고정최소폭 |
 |---|---|---|---|---|---|
 | 운명나침반 | 89 | 76 | 13 | 0 | 0 |
-| 숙요 궁합 | 73 | 28 | 11 | 34 | 0 |
+| 숙요 궁합 (제외 — 사용자 판정 "정상") | 73 | 28 | 11 | 34 | 0 |
 | 낙샤트라 | 51 | 5 | 15 | 31 | 0 |
-| 카르마 데스티니 | 41 | 23 | 5 | 13 | 0 |
+| 카르마 데스티니 (수정 전) | 41 | 23 | 5 | 13 | 0 |
 | 신년운세 (수정 전) | 34 | 16 | 10 | 8 | 0 |
 | 베다 점성 | 26 | 19 | 5 | 1 | 1 (위양성) |
 | 자미두수 (수정 전) | 21 | 13 | 5 | 3 | 0 |
@@ -176,9 +224,9 @@ next: "신년운세 결과 화면을 09-05 에 닫았다(#1585, 아래 §신년�
 **가장 먼저 볼 것은 keep-all 단독 중 AI 본문에 걸린 것** — 자미두수에서 실제로 잘린 것이 정확히 이 형태였다(`.chatCard p{word-break:keep-all}`). 해당 위치:
 
 - `app/island-consult/IslandConsultClient.tsx:952,955,965,990`
-- `app/karma-destiny-ai/KarmaDestinyAiClient.tsx:3599,3903` · `app/karma-destiny-ai/result/_components/ResultStyles.tsx:260,292,307,399`
+- ~~`app/karma-destiny-ai/KarmaDestinyAiClient.tsx:3599,3903` · `app/karma-destiny-ai/result/_components/ResultStyles.tsx:260,292,307,399`~~ → 09-05 완료 (위 §카르마 데스티니)
 - ~~`app/new-year-ai-consultation/NewYearAiClient.tsx:1268,1341,1449,2280,2485,2657`~~ → 09-05 완료 (위 §신년운세)
-- `app/sukuyo-compatibility-ai/SukuyoCompatibilityAiClient.module.css:277,339,350,429,521,532`
+- ~~`app/sukuyo-compatibility-ai/SukuyoCompatibilityAiClient.module.css:277,339,350,429,521,532`~~ → 09-05 제외: 사용자가 화면을 확인해 "정상" 으로 판정했다(수정 불요). 🔴 다시 감사하지 말 것
 - `app/vedic-ai/VedicAiClient.module.css:735`
 - `app/nakshatra/dasha-map/dasha-timeline.module.css:10,53,70,112` · `app/nakshatra/muhurta/muhurta.module.css:44,93`
 

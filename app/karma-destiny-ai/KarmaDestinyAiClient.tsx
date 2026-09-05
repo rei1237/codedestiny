@@ -3602,6 +3602,7 @@ export default function KarmaDestinyAiPage() {
           white-space: pre-wrap;
           line-height: 1.8;
           word-break: keep-all;
+          overflow-wrap: anywhere;
         }
 
         .kdai-message--assistant {
@@ -3908,6 +3909,7 @@ export default function KarmaDestinyAiPage() {
           font-weight: 900;
           line-height: 1.55;
           word-break: keep-all;
+          overflow-wrap: anywhere;
         }
 
         .kdai-chart-data dd {
