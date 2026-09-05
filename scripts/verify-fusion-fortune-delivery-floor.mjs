@@ -236,10 +236,10 @@ function shortGroupPayload(group, groupCards = cards) {
   return payload;
 }
 
-/** 네 묶음이 전부 분량 미달로 돌아오는 실전 경로 — providerCall 주입이라 실호출은 없다. */
+/** 아홉 묶음이 전부 분량 미달로 돌아오는 실전 경로 — 라우트처럼 1단계 → 2단계를 순서대로 돌린다. providerCall 주입이라 실호출은 없다. */
 async function runShortGeneration(shape) {
   const events = [];
-  const outcome = await generateFusionFortuneWithRealLLM({
+  const common = {
     input: shape.input,
     context: shape.context,
     env: ENV,
@@ -250,13 +250,15 @@ async function runShortGeneration(shape) {
       const group = FUSION_SECTION_GROUP_SPECS.find((spec) => spec.id === options?.logContext?.sectionGroup);
       return { ok: true, provider: "gemini", model: "gemini-2.5-flash", text: JSON.stringify(shortGroupPayload(group, shape.cards)) };
     },
-  });
-  return { generated: outcome, stageEvents: events };
+  };
+  const first = await generateFusionFortuneWithRealLLM({ ...common, stage: 1 });
+  const outcome = await generateFusionFortuneWithRealLLM({ ...common, stage: 2, priorResult: first.result, priorGenerationSource: first.generationSource });
+  return { generated: outcome, stageOne: first, stageEvents: events };
 }
 
 const { generated, stageEvents } = await runShortGeneration(baseShape);
 
-check("네 묶음이 모두 분량 미달이어도 결과가 배달된다", generated.deliverable === true && Boolean(generated.result),
+check("아홉 묶음이 모두 분량 미달이어도 결과가 배달된다", generated.deliverable === true && Boolean(generated.result),
   `deliverable=${generated.deliverable}`);
 check("강등 배달은 모델 본문을 유지한다(폴백으로 갈아타지 않는다)", generated.generationSource !== "context_fallback",
   `generationSource=${generated.generationSource}`);
@@ -301,7 +303,7 @@ for (const axes of SHAPES) {
 
   // (2) 생성기 전 경로 — 네 묶음이 전부 미달이어도 이 조합에서 0이 나오면 안 된다.
   const { generated: shapeGenerated } = await runShortGeneration(shape);
-  check(`[${shape.label}] 네 묶음 미달에도 결과가 배달된다`,
+  check(`[${shape.label}] 아홉 묶음 미달에도 결과가 배달된다`,
     shapeGenerated.deliverable === true && Boolean(shapeGenerated.result),
     `deliverable=${shapeGenerated.deliverable} issues=${(shapeGenerated.qualityIssues || []).join(",")}`);
 
