@@ -1,7 +1,97 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, type CSSProperties } from "react";
 import { useT } from "../lib/i18n/useT";
+
+/*
+ * 🔴 이 파일은 인라인 스타일을 유지한다 — 자체 `<html>` 을 렌더하므로 `app/layout.js` 를 타지 않고,
+ *    그래서 `styles/globals.css` 가 도달하지 않는다(근거: `app/components/SystemNotice.tsx:15-18`).
+ *    `SystemNotice` 도 클래스도 쓸 수 없다.
+ *
+ *    아래 값은 전부 `.policy-doc` 계열(styles/globals.css:828-1180)에서 그대로 옮긴 리터럴이며,
+ *    새 색을 만들지 않는다. 정본이 바뀌면 여기도 같이 바꾼다. 같은 제약을 받는 `pages/404.tsx` 와
+ *    같은 상수 집합을 쓴다.
+ *
+ *    `--font-display` 는 도달하지 않으므로 제목은 시스템 폰트로 렌더된다. 굵기 400 은
+ *    `.policy-doc__title` 과 같은 값이다(정본 주석: 표시용 폰트에 w700 이 없어 위계를 크기로 만든다).
+ */
+const bodyStyle: CSSProperties = {
+  margin: 0,
+  minHeight: "100vh",
+  display: "grid",
+  placeItems: "center",
+  background: "#0a0818",
+  color: "#dbe4f3",
+  fontFamily: "sans-serif",
+};
+
+const docStyle: CSSProperties = {
+  width: "min(1080px, calc(100% - 32px))",
+  marginInline: "auto",
+  padding: "36px 0 72px",
+};
+
+const headStyle: CSSProperties = {
+  paddingBottom: 22,
+  borderBottom: "1px solid rgba(148,163,184,0.2)",
+};
+
+const titleStyle: CSSProperties = {
+  margin: 0,
+  fontWeight: 400,
+  fontSize: "clamp(2rem, 5vw, 2.75rem)",
+  lineHeight: 1.28,
+  letterSpacing: "-0.01em",
+  color: "#f8fafc",
+};
+
+const metaStyle: CSSProperties = {
+  margin: "12px 0 0",
+  fontSize: "0.875rem",
+  color: "#9fb0cc",
+};
+
+const ledeStyle: CSSProperties = {
+  margin: "14px 0 0",
+  maxWidth: "68ch",
+  lineHeight: 1.75,
+  color: "#c3cfe4",
+  wordBreak: "keep-all",
+};
+
+const actionsStyle: CSSProperties = {
+  display: "flex",
+  flexWrap: "wrap",
+  gap: 10,
+  marginTop: 28,
+};
+
+const btnStyle: CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  minHeight: 44,
+  borderRadius: 999,
+  padding: "10px 22px",
+  fontSize: "0.9375rem",
+  fontWeight: 700,
+  textDecoration: "none",
+};
+
+const primaryBtnStyle: CSSProperties = {
+  ...btnStyle,
+  border: "1px solid transparent",
+  background: "#c4b5fd",
+  color: "#0f0a24",
+  cursor: "pointer",
+};
+
+const ghostBtnStyle: CSSProperties = {
+  ...btnStyle,
+  border: "1px solid rgba(148,163,184,0.42)",
+  background: "transparent",
+  color: "#dbe4f3",
+};
 
 export default function GlobalError({
   error,
@@ -29,63 +119,27 @@ export default function GlobalError({
 
   return (
     <html lang="ko">
-      <body style={{ margin: 0, background: "#0a0d24", color: "#e8e6ff", fontFamily: "sans-serif" }}>
-        <section
-          style={{
-            minHeight: "100vh",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "2rem 1rem",
-            textAlign: "center",
-          }}
-        >
-          <div>
-            <p style={{ fontSize: "0.75rem", letterSpacing: "0.2em", fontWeight: 800, color: "#a5b4fc" }}>
-              CODE DESTINY
-            </p>
-            <h2 style={{ margin: "0.75rem 0", fontSize: "1.35rem", fontWeight: 900 }}>
-              {t("errorBoundary.title")}
-            </h2>
-            <p style={{ margin: "0 0 1.5rem", fontSize: "0.9rem", lineHeight: 1.7, color: "#c7c9ec" }}>
-              {t("errorBoundary.description")}
-            </p>
+      <body style={bodyStyle}>
+        <main style={docStyle}>
+          <header style={headStyle}>
+            <h1 style={titleStyle}>{t("errorBoundary.title")}</h1>
+            <p style={metaStyle}>CODE DESTINY</p>
+            <p style={ledeStyle}>{t("errorBoundary.description")}</p>
+          </header>
+          <div style={actionsStyle}>
             <button
               type="button"
               onClick={reset}
               aria-label={t("errorBoundary.retry")}
-              style={{
-                minHeight: 44,
-                padding: "0.5rem 1.25rem",
-                borderRadius: 8,
-                border: "none",
-                background: "#6366f1",
-                color: "#fff",
-                fontWeight: 700,
-                cursor: "pointer",
-                marginRight: "0.5rem",
-              }}
+              style={primaryBtnStyle}
             >
               {t("errorBoundary.retry")}
             </button>
-            <a
-              href="/"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                minHeight: 44,
-                padding: "0.5rem 1.25rem",
-                borderRadius: 8,
-                border: "1px solid rgba(165,180,252,0.4)",
-                color: "#e8e6ff",
-                fontWeight: 700,
-                textDecoration: "none",
-              }}
-            >
+            <a href="/" style={ghostBtnStyle}>
               {t("errorBoundary.goHome")}
             </a>
           </div>
-        </section>
+        </main>
       </body>
     </html>
   );
