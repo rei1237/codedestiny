@@ -3414,7 +3414,7 @@ async function handleWebhook(request, env, ctx) {
   // Transaction.Paid만 포트원 단건조회(최대 8s)+지급 검증으로 무거워 포트원 웹훅 타임아웃(=재전송 실패
   // 반복)을 유발한다. ctx가 있으면 서명검증·이벤트예약까지만 동기로 끝내고 즉시 2xx로 ack한 뒤, 무거운
   // 검증·지급은 waitUntil 백그라운드로 분리한다. 즉시-ack으로 포트원 재전송에 기대지 못하게 된 신뢰성은
-  // scheduled()의 재조정 태스크(runWebhookReconcileTask)가 대체한다(가상계좌 단독 건 지급 공백 방어).
+  // 10분 크론의 V2 웹훅 재생(worker/payments/index.js replayWebhookEvents)이 대체한다.
   // ctx가 없는 경로(단위 테스트 등)는 기존 인라인 처리로 폴백한다.
   if (eventType === PORTONE_WEBHOOK_EVENTS.PAID && ctx && typeof ctx.waitUntil === "function") {
     ctx.waitUntil(
@@ -3481,58 +3481,6 @@ export async function settleSinglePaymentForReconcile(env, { paymentId, userId }
   // 🔴 allowAutoRefund:false — 크론은 절대 돈을 돌려주지 않는다. 지급에 실패하면 주문에 사유만 남기고
   // 관리자 화면(/admin/orders)에서 사람이 판단하게 한다.
   return handleSinglePaymentComplete(request, env, { userId }, { allowAutoRefund: false });
-}
-
-export async function runWebhookReconcileTask(env, { limit = 20, maxAttempts = 10 } = {}) {
-  await connectDb(env);
-  const staleCutoff = new Date(Date.now() - WEBHOOK_STALE_PROCESSING_MS);
-  const candidates = await withMongoRetry(env, () => PaymentWebhookEvent.find({
-    provider: "portone",
-    eventType: PORTONE_WEBHOOK_EVENTS.PAID,
-    attempts: { $lt: maxAttempts },
-    $or: [
-      { status: "failed" },
-      { status: "processing", lastAttemptAt: { $lte: staleCutoff } },
-    ],
-  })
-    .sort({ lastAttemptAt: 1 })
-    .limit(limit)
-    .lean());
-
-  const summary = { scanned: candidates.length, processed: 0, failed: 0, skipped: 0 };
-  for (const candidate of candidates) {
-    // 원자적 재클레임: 늦게 도착한 waitUntil이나 동시 크론이 같은 이벤트를 두 번 잡지 않도록
-    // 조회 시점의 status/lastAttemptAt를 조건에 걸어 한 실행만 이기게 한다.
-    const claimed = await withMongoRetry(env, () => PaymentWebhookEvent.findOneAndUpdate(
-      { _id: candidate._id, status: candidate.status, lastAttemptAt: candidate.lastAttemptAt },
-      { $set: { status: "processing", lastAttemptAt: new Date() }, $inc: { attempts: 1 } },
-      { returnDocument: "after" },
-    ).lean(), { retries: 0 });
-    if (!claimed) { summary.skipped += 1; continue; }
-    if (!claimed.paymentId) {
-      await withMongoRetry(env, () => markPortOneWebhookEventFailed(claimed, new Error("Reconcile skipped: missing paymentId.")));
-      summary.failed += 1;
-      continue;
-    }
-    try {
-      // 포트원 단건조회로 재검증하므로 웹훅 본문(payload)은 불필요. 최소 합성 요청만 넘긴다.
-      const syntheticRequest = new Request("https://internal.reconcile/api/payments/webhook", { method: "POST" });
-      const response = await settleReservedWebhookEvent({
-        request: syntheticRequest,
-        env,
-        eventType: PORTONE_WEBHOOK_EVENTS.PAID,
-        paymentId: claimed.paymentId,
-        body: {},
-        event: claimed,
-      });
-      if (isSuccessfulWebhookResponse(response)) summary.processed += 1;
-      else summary.failed += 1;
-    } catch (_error) {
-      // settleReservedWebhookEvent가 이미 failed로 마킹했다.
-      summary.failed += 1;
-    }
-  }
-  return summary;
 }
 
 async function handleDigitalContentPrepare(request, env, auth, body) {

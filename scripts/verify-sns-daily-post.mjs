@@ -775,7 +775,9 @@ function jsonResponse(body, status = 200) {
   const tasksBlock = workerIndex.slice(tasksAt, workerIndex.indexOf("];", tasksAt));
 
   const taskEntries = tasksBlock.split("\n").filter((line) => line.includes("await import("));
-  assert.ok(taskEntries.length >= 6, `일일 태스크를 ${taskEntries.length}개만 찾았다 — 대상 0개로 통과하는 검사는 가드가 아니다(⑲)`);
+  // 하한 = 현재 일일 태스크 수. 2026-09-05 웹훅 재조정(webhook-reconcile)이 10분 크론의 V2 재생으로
+  // 옮겨가며 6 → 5. 태스크를 빼면 여기도 같이 내리고, 늘리면 올린다(0개 통과 방지가 목적이지 고정이 아니다).
+  assert.ok(taskEntries.length >= 5, `일일 태스크를 ${taskEntries.length}개만 찾았다 — 대상 0개로 통과하는 검사는 가드가 아니다(⑲)`);
   for (const line of taskEntries) {
     const name = (line.match(/\["([^"]+)"/) || [, line.trim().slice(0, 40)])[1];
     assert.ok(

@@ -36,7 +36,7 @@ import { listProducts, resolveProduct } from "./catalog.js";
 import { verifyPgPayment } from "./pg.js";
 import { dropEntitlementByIdentity, grantEntitlement, markUserFeatureUnlocked, revokeEntitlementForOrder } from "./entitlements.js";
 import { settleOrphanSpends, spendMoonstone } from "./moonstone.js";
-import { acceptWebhook, markEventFailed, markEventProcessed } from "./webhook.js";
+import { acceptWebhook, claimReplayableEvents, describeEventFailure, markEventFailed, markEventProcessed } from "./webhook.js";
 import { runPaymentReconcile } from "./reconcile.js";
 import { sendPendingReceiptEmails } from "./receipt-email.js";
 import { resolveLegacyProduct } from "./legacy-pricing.js";
@@ -1360,7 +1360,7 @@ const ROUTES = {
       } catch (error) {
         /* 실패를 기록하고 **그대로 올린다.** 200 을 주면 PortOne 이 재전송을 멈춰 그 결제가
            영영 미확정으로 남는다 — PortOne 의 재전송이 우리의 재시도 장치다. */
-        await withDb(env, ctx, (db) => markEventFailed(db, { eventId: accepted.eventId, reason: error?.message }));
+        await withDb(env, ctx, (db) => markEventFailed(db, { eventId: accepted.eventId, reason: describeEventFailure(error) }));
         throw error;
       }
       return json({ ok: true, confirmed: true });
@@ -1423,6 +1423,7 @@ export async function handlePaymentsContext(request, env, options = {}) {
   let status = 200;
   let errorCode = "";
   let stage = "";
+  let errorReason = "";
   try {
     const userId = matched.route.auth === "required"
       ? requireUser(await peekAccessTokenUserId(request, env)) // JWT 만 본다 — Mongo 읽기 0회
@@ -1454,6 +1455,9 @@ export async function handlePaymentsContext(request, env, options = {}) {
     status = contract.status;
     errorCode = contract.code;
     stage = contract.stage || "";
+    // PG_UNAVAILABLE 의 실제 사유(PortOne 응답·타임아웃)를 tail 에서 볼 수 있게 한다 — 사용자 문구만
+    // 남기면 시크릿 불일치(UNAUTHORIZED)와 진짜 지연이 같은 줄로 보인다(2026-09-05).
+    errorReason = String(contract.meta?.reason || "").slice(0, 160);
     return json({
       ok: false,
       code: contract.code,
@@ -1477,7 +1481,7 @@ export async function handlePaymentsContext(request, env, options = {}) {
       durationMs: Date.now() - ctx.startedAt,
       mongoOps: ctx.mongoOps,
       // durationMs 를 admission 대기 / 커넥션 수립 / 실제 쿼리로 가른다(withPaymentDb 가 채운다).
-      extra: ctx.dbTimings || undefined,
+      extra: { ...(ctx.dbTimings || {}), reason: errorReason },
     });
   }
 }
@@ -1523,7 +1527,44 @@ export async function settleOrderFromReconcile(env, { orderId, pgPayment = null 
 }
 
 /**
- * 🔴 크론 진입점 — V2 자가치유 3종(미지급 재지급 · 30분 PENDING 만료 · 죽은 환불락 해제).
+ * 🔴 실패·정체된 Transaction.Paid 웹훅의 재생 — 구 runWebhookReconcileTask(routes/payments.js, 일일 1회)를
+ * 대체한다(2026-09-05 삭제). 구 태스크는 이벤트를 레거시 단건 정산 경로로 보내 **이용권 주문에 404** 를
+ * 내고 lastError 를 덮어썼다(프로덕션 실측). 여기서는 "POST /webhook" 과 같은 confirmOrder + afterSettle 을
+ * 그대로 탄다 — 주체별 분기를 만들지 않는다. 환불은 없다. 10분 크론(runPaymentsV2Reconcile)이 부른다.
+ * 이벤트당 PG 조회 1회(8s 상한)라 limit 은 작게 둔다 — 밀린 이벤트는 다음 틱이 이어받는다.
+ * @returns {Promise<{ scanned: number, processed: number, failed: number, contended: number }>}
+ */
+export async function replayWebhookEvents(env, { limit = 10, maxAttempts = 10, withDb = withPaymentDb, deps = {} } = {}) {
+  const ctx = createPaymentContext({ requestId: `replay-${Date.now().toString(36)}`, route: "CRON payments-v2-webhook-replay" });
+  const { claimed, contended } = await withDb(env, ctx, (db) => claimReplayableEvents(db, { limit, maxAttempts }));
+  const summary = { scanned: claimed.length, processed: 0, failed: 0, contended };
+  for (const event of claimed) {
+    ctx.orderId = event.paymentId;
+    try {
+      if (!event.paymentId) throw paymentError("INVALID_REQUEST", "webhook event has no paymentId");
+      await confirmOrder(env, ctx, { orderId: event.paymentId }, {
+        withDb,
+        deps,
+        afterSettle: async (db, settled) => {
+          if (!settled.granted) await grantOrderEntitlement(db, settled.order);
+          await markEventProcessed(db, { eventId: event.eventId });
+        },
+      });
+      summary.processed += 1;
+    } catch (error) {
+      summary.failed += 1;
+      // 사유를 남긴다. 기록 자체가 실패하면 processing 으로 남아 2분 뒤 정체로 다시 잡힌다.
+      await withDb(env, ctx, (db) => markEventFailed(db, { eventId: event.eventId, reason: describeEventFailure(error) }))
+        .catch((markError) => console.error("[payments-v2-replay] markEventFailed failed:", String(markError?.message || markError)));
+    }
+  }
+  // 재생 대상이 있었던 틱만 남긴다 — 매 틱 0건 로그는 tail 을 덮는다.
+  if (summary.scanned > 0 || summary.contended > 0) console.warn("[CRON] payments-v2 webhook replay", summary);
+  return summary;
+}
+
+/**
+ * 🔴 크론 진입점 — V2 자가치유 4종(미지급 재지급 · 30분 PENDING 만료 · 죽은 환불락 해제 · 웹훅 재생).
  * V2 확정(confirmOrder)은 지급 실패를 200 GRANT_PENDING 으로 알리고 **여기에 마무리를 맡긴다** —
  * 이 배선이 없으면 그 계약은 약속만 있고 집행자가 없는 상태가 된다(컷오버 활성 직후의 실제 갭).
  * grant 를 여기서 조립해 넘기므로 reconcile.js 는 상품 해석·권한 규칙을 모른다.
@@ -1535,7 +1576,7 @@ export async function runPaymentsV2Reconcile(env) {
   let status = 200;
   let errorCode = "";
   try {
-    return await withPaymentDb(env, ctx, async (db) => {
+    const report = await withPaymentDb(env, ctx, async (db) => {
       const report = await runPaymentReconcile(db, {
         grant: (order) => grantOrderEntitlement(db, order).then((granted) => {
           if (!granted) throw paymentError("INTERNAL_ERROR", "entitlement grant failed", { orderId: String(order?.merchantUid || "") });
@@ -1567,6 +1608,15 @@ export async function runPaymentsV2Reconcile(env) {
       }
       return { ...report, moonstone, receipts };
     });
+    /* 웹훅 재생은 이벤트마다 PG 를 부르므로(슬롯 밖 fetch) 위 슬롯 바깥에서 따로 돈다.
+       실패해도 위 결과는 잃지 않는다(월정석·메일과 같은 규칙). */
+    let webhookReplay = null;
+    try {
+      webhookReplay = await replayWebhookEvents(env);
+    } catch (error) {
+      console.error("[payments-v2-reconcile] webhook replay failed:", String(error?.message || error));
+    }
+    return { ...report, webhookReplay };
   } catch (error) {
     const contract = classify(error);
     status = contract.status;
