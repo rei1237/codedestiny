@@ -20,6 +20,7 @@ import {
 } from "@/lib/admin/prompt-lab-registry.mjs";
 import { adminGeocodePresetLabels } from "@/lib/admin/geocode-presets.mjs";
 import { adminFetch, describeAdminError } from "../_lib/admin-api";
+import { ADMIN_CARD, ADMIN_CARD_HAIR, adminButton } from "../_components/ui";
 
 interface LabService {
   key: string;
@@ -196,7 +197,7 @@ export default function AdminPromptLabPage() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-[#0d0f18] text-slate-100">
+    <main className="min-h-screen">
       <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[380px_1fr]">
         {/* 입력 */}
         <aside className="border-b border-slate-800 bg-[#10121b] lg:border-b-0 lg:border-r">
@@ -461,7 +462,7 @@ export default function AdminPromptLabPage() {
               type="button"
               onClick={() => { void generate(); }}
               disabled={loading}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-violet-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-violet-500 disabled:opacity-50"
+              className={`w-full ${adminButton("primary", { size: "lg" })}`}
             >
               {loading ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Sparkles className="h-4 w-4" aria-hidden="true" />}
               {loading ? "만드는 중..." : "프롬프트 뽑기"}
@@ -474,7 +475,7 @@ export default function AdminPromptLabPage() {
         {/* 결과 */}
         <section className="min-w-0 p-4 lg:p-6">
           {!result ? (
-            <div className="rounded-xl border border-slate-800 bg-[#12141f] p-6 text-sm text-slate-400">
+            <div className={`${ADMIN_CARD} rounded-xl p-6 text-sm text-slate-400`}>
               <p>왼쪽에서 운세를 고르고 <strong className="text-slate-200">프롬프트 뽑기</strong>를 누르세요.</p>
               <p className="mt-3 max-w-2xl text-xs leading-5 text-slate-500">
                 등록된 운세 {SERVICES.length}종의 시스템 프롬프트와, 생년 정보로 조립되는 운세는 완성 프롬프트까지 그대로 보여 줍니다.
@@ -544,7 +545,7 @@ interface PromptBlockProps {
 
 function PromptBlock({ title, hint, text, copied, onCopy }: PromptBlockProps) {
   return (
-    <div className="rounded-xl border border-slate-800 bg-[#12141f]">
+    <div className={`${ADMIN_CARD} ${ADMIN_CARD_HAIR} rounded-xl`}>
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 px-4 py-2.5">
         <div className="min-w-0">
           <h3 className="text-sm font-semibold text-slate-100">{title}</h3>

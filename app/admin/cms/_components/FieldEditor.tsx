@@ -3,6 +3,8 @@
 import dynamic from "next/dynamic";
 import { Plus, Trash2 } from "lucide-react";
 
+import { ADMIN_CARD, ADMIN_INPUT } from "../../_components/ui";
+
 const RichTextEditor = dynamic(() => import("./RichTextEditor"), { ssr: false });
 
 export interface CmsFieldDef {
@@ -30,9 +32,9 @@ interface FieldEditorProps {
   onChange: (next: unknown) => void;
 }
 
-const INPUT_CLASS =
-  "w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none focus:border-violet-500";
-const TEXTAREA_CLASS = `${INPUT_CLASS} resize-y whitespace-pre-wrap leading-6`;
+// resize-y·leading-6 은 styles/admin-yehwa.css 의 textarea.cd-adm-input 이 맡는다.
+const INPUT_CLASS = ADMIN_INPUT;
+const TEXTAREA_CLASS = `${INPUT_CLASS} whitespace-pre-wrap`;
 
 function toLinesText(value: unknown, fallback: unknown): string {
   const source = Array.isArray(value) ? value : Array.isArray(fallback) ? fallback : [];
@@ -105,7 +107,7 @@ export default function FieldEditor({ def, value, baseValue, monospace, onChange
         <div className="space-y-2">
           {items.map((item, index) => (
             // eslint-disable-next-line react/no-array-index-key -- 순서 자체가 항목의 정체성이라 안정적인 다른 키가 없다
-            <div key={index} className="space-y-1.5 rounded-lg border border-slate-800 bg-[#12141f] p-3">
+            <div key={index} className={`${ADMIN_CARD} space-y-1.5 rounded-lg p-3`}>
               <div className="flex items-start gap-2">
                 <input
                   value={item.question}
@@ -134,7 +136,7 @@ export default function FieldEditor({ def, value, baseValue, monospace, onChange
             </div>
           ))}
           {items.length === 0 ? (
-            <p className="rounded-lg border border-slate-800 bg-[#12141f] px-3 py-6 text-center text-sm text-slate-400">
+            <p className={`${ADMIN_CARD} rounded-lg px-3 py-6 text-center text-sm text-slate-400`}>
               등록된 문항이 없습니다.
             </p>
           ) : null}

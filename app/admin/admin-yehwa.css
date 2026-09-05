@@ -1,0 +1,302 @@
+/*
+ * 관리자 패널 전용 토큰·공용 부품 — "달빛 예화" 팔레트.
+ * /admin 이하에서만 쓴다. app/admin/layout.tsx 가 import 하므로 사용자 화면에는 실리지 않는다.
+ *
+ * 🔴 dark: 페어를 만들지 않는다 — 관리자 패널은 시스템 테마와 무관하게 항상 어둡다.
+ *    (app/admin/_components/AdminErrorState.tsx 상단 회귀 주석과 같은 이유)
+ *
+ * 🔴 --cd-yehwa-* 를 직접 참조하지 않는다. 그 토큰은 연이/네오 두 모드가 서로 다시 정의하는
+ *    Two Covers 구조라, 항상 다크인 관리자에 물리면 연이 모드에서 로즈골드(#c9a46a)로 바뀐다.
+ *    금빛은 아래에 알파로 복제해 둔다. styles/app-shell.css 도 같은 이유로 --cd-app-gold 를 따로 둔다.
+ *
+ * 🔴 이 파일을 styles/ 로 옮기지 말 것 — sync:public 이 public/styles/ 로 미러하면서 정적 셸의
+ *    build-<hash> 캐시 키를 통째로 갱신한다(index.html·js/app.js 등 19개 파일). 관리자 CSS 는
+ *    Next 가 번들하므로 미러가 필요 없다. app/insights/insights-hub.css 와 같은 자리다.
+ *
+ * 금빛은 장식 전용이다 — 글자·아이콘 색으로 쓰지 말 것. 쓰이는 곳은 세 군데뿐이다:
+ * 브랜드 줄의 달 원반, 네비 오른쪽 가장자리 실선, 카드/툴바 상단 헤어라인.
+ */
+
+.cd-admin {
+  --cd-adm-bg: #0d0f18;
+  --cd-adm-nav: #0b0d15;
+  --cd-adm-surface: #12141f;
+  --cd-adm-field: #0b0d15;
+
+  --cd-adm-ink: #e2e8f0;
+  --cd-adm-ink-quiet: #94a3b8;
+
+  /* line 은 "조작 대상이 아닌" 경계(카드·표 구분선). 조작 대상(입력·보조 버튼 테두리)은
+     WCAG 1.4.11 이 3:1 을 요구하므로 line-strong 을 쓴다 — 종전 slate-700 은 필드 대비 1.87 이었다. */
+  --cd-adm-line: rgba(148, 163, 184, 0.18);
+  --cd-adm-line-strong: #64748b;
+
+  --cd-adm-accent: #a78bfa;
+  --cd-adm-accent-ink: #ede9fe;
+  --cd-adm-accent-chip: rgba(167, 139, 250, 0.14);
+
+  /* 🔴 흰 글자를 얹는 톤은 hover 에서 "짙어진다". 종전처럼 밝아지면(violet-500·emerald-600·amber-600)
+     대비가 4.5 아래로 떨어졌다 — 각각 4.23 / 3.77 / 3.19.
+     danger 만 예외로 밝아지는데(rose-700 → rose-600, 6.29 → 4.70) 그래도 AA 를 넘고,
+     "위험" 은 hover 에서 더 뜨거워지는 쪽이 읽히기 때문이다. */
+  --cd-adm-primary: #7c3aed;
+  --cd-adm-primary-hover: #6d28d9;
+  --cd-adm-success: #047857;
+  --cd-adm-success-hover: #065f46;
+  --cd-adm-warn: #b45309;
+  --cd-adm-warn-hover: #92400e;
+  --cd-adm-danger: #be123c;
+  --cd-adm-danger-hover: #e11d48;
+  /* 보상 지급 버튼만 밝은 앰버 + 어두운 글자다(9.39). 어두운 글자라 밝아질수록 대비가 오른다. */
+  --cd-adm-gift: #f59e0b;
+  --cd-adm-gift-hover: #fbbf24;
+  --cd-adm-on-gift: #020617;
+
+  --cd-adm-hair: rgba(232, 213, 163, 0.28);
+  --cd-adm-hair-strong: rgba(232, 213, 163, 0.6);
+
+  --cd-adm-radius: 6px;
+
+  background: var(--cd-adm-bg);
+  color: var(--cd-adm-ink);
+}
+
+/* ── 포커스 ────────────────────────────────────────────────────────────────
+   관리자 화면 11개 중 focus:ring 이 있는 건 월정석 지급 하나뿐이었고, 나머지는
+   outline-none 으로 브라우저 기본 링을 지운 뒤 테두리 색만 바꿔 키보드로 위치를 알 수 없었다.
+   모든 공용 부품이 같은 링을 쓴다. */
+.cd-adm-btn:focus-visible,
+.cd-adm-input:focus-visible,
+.cd-adm-nav-item:focus-visible {
+  outline: 2px solid var(--cd-adm-accent);
+  outline-offset: 2px;
+}
+
+/* ── 버튼 ───────────────────────────────────────────────────────────────── */
+.cd-adm-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 0 13px;
+  border: 1px solid transparent;
+  border-radius: var(--cd-adm-radius);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 140ms ease, border-color 140ms ease;
+}
+
+.cd-adm-btn:disabled,
+.cd-adm-btn[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.cd-adm-btn--primary { background: var(--cd-adm-primary); color: #fff; }
+.cd-adm-btn--success { background: var(--cd-adm-success); color: #fff; }
+.cd-adm-btn--warn { background: var(--cd-adm-warn); color: #fff; }
+.cd-adm-btn--danger { background: var(--cd-adm-danger); color: #fff; }
+.cd-adm-btn--gift { background: var(--cd-adm-gift); color: var(--cd-adm-on-gift); font-weight: 700; }
+
+.cd-adm-btn--ghost {
+  background: transparent;
+  border-color: var(--cd-adm-line-strong);
+  color: var(--cd-adm-ink);
+}
+
+/* 켜진 필터 칩. 채운 버튼이 아니라 "선택됨" 표시라 옅은 보랏빛 + 보라 테두리로 둔다.
+   카드 표면 위 합성 기준 대비: 글자 12.45, 테두리 6.83. */
+.cd-adm-btn--accent {
+  background: var(--cd-adm-accent-chip);
+  border-color: var(--cd-adm-accent);
+  color: var(--cd-adm-accent-ink);
+}
+
+.cd-adm-btn--primary:not(:disabled):hover { background: var(--cd-adm-primary-hover); }
+.cd-adm-btn--success:not(:disabled):hover { background: var(--cd-adm-success-hover); }
+.cd-adm-btn--warn:not(:disabled):hover { background: var(--cd-adm-warn-hover); }
+.cd-adm-btn--danger:not(:disabled):hover { background: var(--cd-adm-danger-hover); }
+.cd-adm-btn--gift:not(:disabled):hover { background: var(--cd-adm-gift-hover); }
+.cd-adm-btn--ghost:not(:disabled):hover { background: rgba(148, 163, 184, 0.1); }
+.cd-adm-btn--accent:not(:disabled):hover { background: rgba(167, 139, 250, 0.22); }
+
+/* 화면에 하나뿐인 주 행동(로그인·월정석 지급)용. 모바일 터치 타깃 44px 을 지킨다. */
+.cd-adm-btn--lg {
+  min-height: 44px;
+  padding: 0 16px;
+  font-weight: 700;
+}
+
+/* 표 행 끝처럼 좁은 자리용. 색 변형과 조합해 쓴다.
+   높이를 크게 줄이지 않는 이유: 주문·환불 표의 버튼이 min-h-9(36px)로 손가락 크기를 맞춰 두었다. */
+.cd-adm-btn--sm {
+  min-height: 34px;
+  padding: 0 11px;
+  font-size: 12.5px;
+  font-weight: 600;
+  gap: 6px;
+}
+
+/* ── 입력 ───────────────────────────────────────────────────────────────── */
+.cd-adm-input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--cd-adm-line-strong);
+  border-radius: var(--cd-adm-radius);
+  background: var(--cd-adm-field);
+  color: var(--cd-adm-ink);
+  font: inherit;
+  font-size: 14px;
+}
+
+.cd-adm-input::placeholder { color: var(--cd-adm-ink-quiet); }
+.cd-adm-input:focus-visible { border-color: var(--cd-adm-accent); }
+
+.cd-adm-input:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+/* 왼쪽 돋보기 아이콘(left-2.5 ~ left-3, 16px)을 피할 만큼만. Tailwind 의 pl-8 을 함께 쓰면
+   .cd-adm-input 의 padding 단축과 특이도가 같아 로드 순서에 좌우되므로 여기서 정한다. */
+.cd-adm-input--icon { padding-left: 34px; }
+
+/* select 의 기본 화살표가 어두운 필드에서 안 보이는 브라우저가 있어 색을 명시한다. */
+select.cd-adm-input { color-scheme: dark; }
+
+textarea.cd-adm-input {
+  resize: vertical;
+  line-height: 1.6;
+}
+
+/* ── 카드 ───────────────────────────────────────────────────────────────── */
+/* 🔴 padding·border-radius 를 여기서 정하지 않는다 — 단일 클래스(0,1,0)라 Tailwind 의
+   p-3·rounded-lg 와 특이도가 같아 로드 순서에 좌우된다. 카드마다 여백이 다른 것도 사실이다.
+   🔴 overflow:hidden 도 두지 않는다 — 안쪽 드롭다운·툴팁을 자른다. 헤어라인 그라디언트가
+   양 끝에서 투명해지므로 둥근 모서리를 넘어가도 보이지 않는다. */
+.cd-adm-card {
+  position: relative;
+  border: 1px solid var(--cd-adm-line);
+  background: var(--cd-adm-surface);
+}
+
+/* 달빛 헤어라인 — 카드 상단 1px. 왼쪽에서 밝게 시작해 오른쪽으로 사라진다.
+   🔴 화면의 주 패널에만 얹는다. 필터 바·반복되는 행·안내 문단에까지 붙이면 장식이 소음이 된다. */
+.cd-adm-card--hair::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--cd-adm-hair-strong) 22%,
+    var(--cd-adm-hair) 55%,
+    transparent
+  );
+}
+
+/* ── 스티키 툴바 ────────────────────────────────────────────────────────────
+   🔴 backdrop-filter 를 쓰지 않는다 — containing block 을 만들어 안쪽 position:fixed
+   (드롭다운·팝오버)를 가둔다. 불투명에 가까운 단색으로 같은 효과를 낸다. */
+.cd-adm-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--cd-adm-line);
+  background: rgba(13, 15, 24, 0.94);
+}
+
+.cd-adm-toolbar::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 -1px;
+  height: 1px;
+  background: linear-gradient(90deg, var(--cd-adm-hair-strong), var(--cd-adm-hair) 34%, transparent 70%);
+}
+
+/* ── 셸 네비 ───────────────────────────────────────────────────────────── */
+/* 🔴 여기서 position 을 정하지 않는다 — Tailwind 의 lg:sticky 와 특이도가 같아서
+   CSS 로드 순서에 따라 데스크톱 네비의 sticky 가 죽는다. 아래 ::after 가 기준으로 삼을
+   position 은 TSX 쪽 relative 유틸리티가 준다(app/admin/_components/AdminShell.tsx). */
+.cd-adm-nav {
+  background: var(--cd-adm-nav);
+  border-color: var(--cd-adm-line);
+}
+
+/* 네비 오른쪽 가장자리에서 아래로 사라지는 금빛 실선. 데스크톱에서만 — 모바일 서랍에서는
+   이 선이 화면 한가운데를 가른다. */
+@media (min-width: 1024px) {
+  .cd-adm-nav::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: -1px;
+    width: 1px;
+    height: 62%;
+    background: linear-gradient(180deg, var(--cd-adm-hair-strong), transparent);
+    pointer-events: none;
+  }
+}
+
+.cd-adm-brand-disc {
+  width: 15px;
+  height: 15px;
+  flex: none;
+  border-radius: 50%;
+  background: radial-gradient(circle at 36% 32%, #fffdf7, #dcc48e 100%);
+  box-shadow: 0 0 10px -2px rgba(232, 213, 163, 0.55);
+}
+
+/* 브랜드 줄만 명조다 — 조작 UI(버튼·라벨·상태 칩)는 Pretendard 를 유지한다(DESIGN.md:44).
+   raw 스택을 적지 않고 --font-serif 정본 토큰을 쓴다(styles/globals.css:27, R2 미러 폰트가 그 안에 있다). */
+.cd-adm-brand {
+  font-family: var(--font-serif, "Nanum Myeongjo", "Gowun Batang", serif);
+  font-size: 14px;
+  letter-spacing: 0.02em;
+}
+
+/* 링크와 <button>(로그아웃)이 같은 클래스를 쓴다 — 버튼의 기본 테두리·배경·서체를 지운다. */
+.cd-adm-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px 8px 11px;
+  border: 0;
+  border-left: 2px solid transparent;
+  border-radius: var(--cd-adm-radius);
+  background: none;
+  color: #cbd5e1;
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 140ms ease, color 140ms ease;
+}
+
+.cd-adm-nav-item:hover {
+  background: rgba(148, 163, 184, 0.1);
+  color: #f1f5f9;
+}
+
+.cd-adm-nav-item[aria-current="page"] {
+  background: var(--cd-adm-accent-chip);
+  border-left-color: var(--cd-adm-hair-strong);
+  color: var(--cd-adm-accent-ink);
+  font-weight: 500;
+}
+
+.cd-adm-nav-item--quiet { color: var(--cd-adm-ink-quiet); }
+
+@media (prefers-reduced-motion: reduce) {
+  .cd-adm-btn,
+  .cd-adm-nav-item {
+    transition: none;
+  }
+}
