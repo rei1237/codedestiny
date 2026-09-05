@@ -85,6 +85,22 @@ for (const file of SHELL_FILES) {
     fallbackGuardAt >= 0 && fallbackGuardAt < firstRemovalAt,
     `${file}: 중복 결제 폴백에서는 복귀 티켓을 지우면 안 된다(돈이 이미 나갔을 수 있다)`,
   );
+
+  // ④ 복귀 소비자의 **진입점**(2026-09-06). 셸은 리다이렉트 복귀 핸들러를 직접 갖지 않는다 — 마커
+  //    portone_redirect=1 을 현재 URL 에 심고, defer 로 싣는 js/destiny-profile.js 가 부팅 시
+  //    _dpResumeDirectPaymentAfterRedirect 로 읽어 확정한다(구현을 두 벌 두지 않는다). 그래서 이 태그가
+  //    지연 로더(__cdLoadScriptOnce · data-cd-noncritical-src)로 바뀌면 사용자 동작이 없는 복귀 화면에서는
+  //    로드 자체가 안 일어나 승인된 결제의 확정이 조용히 사라진다 — "핸들러·소비자는 남고 진입점만
+  //    사라진" 형태(verify-pass-recovery-path 의 두 사고와 같다). HTML 주석 안의 태그는 세지 않는다.
+  const markup = source.replace(/<!--[\s\S]*?-->/g, "");
+  assert.ok(
+    /<script\s+defer\s+src="\/js\/destiny-profile\.js\?v=[^"]+"/.test(markup),
+    `${file}: 셸이 js/destiny-profile.js 를 defer <script> 로 싣지 않는다 — 리다이렉트 복귀 확정(_dpResumeDirectPaymentAfterRedirect)의 진입점이 사라졌다. 지연 로더로 옮기지 말 것`,
+  );
+  assert.ok(
+    core.includes("redirectUrl.searchParams.set('portone_redirect', '1')"),
+    `${file}: _cdRunDirectKrwCheckout 이 redirectUrl 에 portone_redirect=1 을 심지 않는다 — dp 복귀 함수가 읽는 마커라 빠지면 복귀가 무시된다`,
+  );
 }
 
 // dp 폴백은 원래 올바른 순서(성공 후 회수)였다 — 그 계약이 유지되는지 함께 고정한다.
@@ -109,6 +125,11 @@ for (const file of ["js/destiny-profile.js", "public/js/destiny-profile.js"]) {
   // 데스크톱 confirm 과 달리 이 경로는 (1) 대기 mode 가 허용목록에 없어 안 뜨고 (2) "여는 중" 문구를
   // 띄우고 아무것도 안 열고 (3) access-state 갱신을 빼먹고 (4) GRANT_PENDING 을 완료로 표시했다.
   const resume = sliceFunction(source, "  async function _dpResumeDirectPaymentAfterRedirect() {", `${file} resume`);
+  // 셸이 심는 마커(portone_redirect=1)를 읽는 쪽. 심는 쪽은 위 ④ 가 잡는다 — 둘 중 하나만 바뀌면 복귀가 조용히 무시된다.
+  assert.ok(
+    resume.includes("query.get('portone_redirect') !== '1'"),
+    `${file}: 복귀 함수가 portone_redirect=1 마커를 읽지 않는다 — 셸(_cdRunDirectKrwCheckout)이 심는 키와 어긋난다`,
+  );
   assert.ok(
     !/_dpSetPaymentPending\(true,[^\n]*'confirm'\)/.test(resume),
     `${file}: 복귀 대기 mode 'confirm' 은 dp·셸·React 허용목록 어디에도 없어 조용히 안 뜬다 — 'unlock-saving' 을 쓸 것`,
@@ -143,4 +164,4 @@ for (const file of ["js/destiny-profile.js", "public/js/destiny-profile.js"]) {
   assert.ok(resume.includes("'cd:direct-payment-resumed'"), `${file}: 복귀 성공 이벤트 cd:direct-payment-resumed 가 사라졌다`);
 }
 
-console.log("verify-direct-confirm-pending-recovery: OK — 티켓 수명(2회수 지점·순서)과 PENDING_CONFIRMATION 분기, 7셸+dp 패리티, dp 리다이렉트 복귀 재개(unlock-saving·GRANT_PENDING·access 갱신·URL 정리) 통과");
+console.log("verify-direct-confirm-pending-recovery: OK — 티켓 수명(2회수 지점·순서)과 PENDING_CONFIRMATION 분기, 7셸+dp 패리티, dp 리다이렉트 복귀 재개(unlock-saving·GRANT_PENDING·access 갱신·URL 정리), 셸 진입점(destiny-profile defer 태그·portone_redirect 마커 짝) 통과");
