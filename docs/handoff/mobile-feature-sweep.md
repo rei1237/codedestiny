@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-06
-next: "09-06 에 **스캐너를 상시화했다**(#1599, 아래 §스캐너 상시화) — `scripts/measure-mobile-routes.mjs` 가 이제 OF-A/B/C 세 축을 상시 수집하고, 위양성 3종을 **억제 건수와 함께** 출력하며, `--reveal=SEL` 로 진입 애니메이션 하위를 표본에 넣고, `--self-test` 로 축이 실제로 무는 것을 서버 없이 스스로 증명한다. 🔴 **다음 기능 세션은 1회용 프로브를 새로 만들지 말고 이 스캐너를 쓴다** — 6세션이 같은 프로브를 반복해 만든 것이 이 작업의 이유였다. 🔴 **09-06 이후 수치는 이전 행과 직접 비교 불가**(축이 늘고 필터가 붙었다). 🔴 후속 후보 3개는 조사에서 **전제가 셋 다 틀린 것으로 드러났다**(아래 §후속 후보 3건 정정): ① `verify:mobile-cdp-smoke`·`verify:mobile-detail-render` 는 **CI 게이트가 아니다**(수동 실행 면제 등재), ② `styles/core-ui.css` 는 App Router 를 안 덮으므로 섬 상담을 못 덮은 범인이 아니다, ③ 낙샤트라 muhurta·vvip 8곳은 짝이 이미 붙어 있어 남은 것은 렌더 확인뿐이다. 그래서 다음 작업은 **사용자 확정이 필요하다**: (가) 두 가드에 OF-A/B/C 축을 이식 — 배선까지 할지는 지시가 필요하다(메모리 `ci-gates-scope`), (나) 새 스캐너로 미측정 표면 재기(낙샤트라 muhurta·vvip, 단계형 폼, 오버레이 — 전부 `ensurePaidAccess`·인터랙션 뒤라 하네스가 먼저 필요하다), (다) 전역 44px 바닥의 손으로 쓴 클래스 목록 정리."
+next: "09-06 에 스캐너로 낙샤트라 muhurta·vvip 를 **처음 실측했다**(아래 §낙샤트라 프리미엄 실측). 그 과정에서 🔴 **스캐너 자체의 순회 결함**을 찾아 같은 PR 에서 고쳤다(아래 §순회 결함) — `window.scrollTo(x,y)` 가 전역 `scroll-behavior:smooth` 를 타서 7,854px 문서에서 540px 까지만 훑고 있었다. 이제 즉시 이동 + 도달 검사 + fail-closed 다. 🔴 **09-06 이전에 이 스캐너·같은 형태의 1회용 프로브로 잰 원장 행의 OF·TT·열폭 수치는 전부 첫 화면 표본이다 — 재측정 전까지 미검증으로 읽는다**(재측정한 `/nakshatra/` 와 muhurta·vvip 만 예외). 다음 작업 후보: (가) 원장 상위 행 재측정 — 값이 싼 것부터(정적 셸 20종·콘텐츠 32종은 하네스 없이 바로 돈다), (나) 두 가드(`verify:mobile-cdp-smoke`·`verify:mobile-detail-render`)에 OF-A/B/C + 순회 fail-closed 이식 — 🔴 CI 배선은 사용자 지시가 필요하다(메모리 `ci-gates-scope`), (다) 전역 44px 바닥의 손으로 쓴 클래스 목록 정리(원칙 10 위반 형태 — 이번 `.back` 도 같은 구멍이었다)."
 ---
 
 # 기능별 모바일 순회 원장
@@ -92,7 +92,54 @@ next: "09-06 에 **스캐너를 상시화했다**(#1599, 아래 §스캐너 상�
 
 - **① 의 "CI 게이트 2종" 은 CI 게이트가 아니다.** `.github/workflows/` 전수 grep 에 `verify:mobile-cdp-smoke`·`verify:mobile-detail-render` 가 둘 다 없다 — `scripts/verify-guard-wiring.mjs:87,90` 이 **수동 실행 면제**로 등재해 두었다. PR CI 에 있는 것은 정적 짝 `verify:mobile-detail-nonintrusive` 하나뿐이다(`.github/workflows/pr-ci.yml:195`). **두 가드의 OF 맹점을 고쳐도 자동 회귀 차단은 안 생긴다** — 배선까지 하려면 사용자 지시가 필요하다(메모리 `ci-gates-scope`).
 - **② 의 `styles/core-ui.css` 는 섬 상담을 못 덮은 범인이 아니다.** `git grep "core-ui.css"` 로 소비자 전수 확인 — **`index.html` 과 그 public 미러 6개뿐**이고, 다른 루트 정적 셸 20종도 App Router 도 안 쓴다. 섬 상담의 `.ic-change`/`.ic-check` 는 App Router 소관 `styles/globals.css:128-133` 이 덮는데도 **컴포넌트 자체 CSS 의 명시 높이가 이겼다** — core-ui.css 를 고쳐도 그 부류는 재발한다.
-- **③ 의 낙샤트라 muhurta·vvip 8곳은 이미 짝이 붙어 있다** — `muhurta.module.css:50,95,111,124` · `vvip.module.css:38,46,54,75` 전부 `overflow-wrap:anywhere` 확인. 남은 것은 결함 수정이 아니라 **렌더 확인**뿐이고, 그건 `ensurePaidAccess` 탓에 아직 못 열었다(아래 낙샤트라 절).
+- **③ 의 낙샤트라 muhurta·vvip 8곳은 이미 짝이 붙어 있다** — `muhurta.module.css:50,95,111,124` · `vvip.module.css:38,46,54,75` 전부 `overflow-wrap:anywhere` 확인. 🔴 **09-06 에 렌더까지 확인해 종결했다 — 8곳 다 실제 콘텐츠에서 성립한다**(아래 §낙샤트라 프리미엄 실측).
+
+## 🔴 스캐너 순회 결함 — 문서의 7% 만 재고 있었다 (09-06 수정, #1601)
+
+muhurta 를 처음 재고 `textRunSeen=19` 가 60행 리포트치고 너무 적어 독립 프로브로 대조한 것이 발단이다. **같은 화면의 보이는 텍스트 소유 요소는 293개**였다.
+
+- 원인: 프로브 루프가 `window.scrollTo(0, y)` 를 쓰는데 **`scroll-behavior:smooth` 가 전역**이다 — App Router 는 `styles/globals.css:90`, 루트 정적 셸은 `styles/core-ui.css:25`, 둘 다 `@media (prefers-reduced-motion: no-preference)` 안이라 플레이라이트 기본 환경에서 **켜진다**. 그래서 scrollTo 는 애니메이션을 걸고, 두 rAF 짜리 `settle()` 은 그 첫 프레임만 본다.
+- 실측(2026-09-06, `/nakshatra/muhurta/` 412×823): 7,854px 문서에서 **7,407px 를 요청해 540px 도달**. 10스텝을 다 돌고도 문서의 7%. 8개 라우트 표본(`/` · `/about/` · `/saju/` · `/nakshatra/` · `/fusion-fortune/` · `/tarot/` 등)에서 **2,000px 요청 → 0~2px 도달**로 전역임을 확인했다.
+- 🔴 **축 A·B·C·TT·IN·열폭이 전부 뷰포트 게이트 안에 있다** — 순회가 안 돌면 "첫 화면만 잰 결과"가 **발견 0건**으로 보고된다. 이것이 OF 열 0 의 **두 번째** 원인이다(첫 번째는 09-05 의 `if (docOverflow)` 게이트).
+- 처방(`scripts/measure-mobile-routes.mjs`): ① `html,body{scroll-behavior:auto!important}` 주입 ② `window.scrollTo({top, behavior:"instant"})` ③ 도달 못 하면 최대 4회 재시도 ④ 그래도 못 가면 `scrollStalled` 기록 ⑤ `scrollReach` 가 `docHeight` 에 못 미치면 **레그를 INVALID 로 떨군다**(원칙 10). 레그 줄에 `순회=NNNNpx` 를 항상 찍는다.
+  - 🔴 **`reducedMotion:"reduce"` 컨텍스트 옵션으로 끄면 안 된다** — 위양성 필터 ③(마퀴)이 `animation-name !== none` 으로 구조 판정하므로 애니메이션을 통째로 끄면 그 필터가 죽는다. 스크롤 애니메이션만 눌러야 한다.
+- 가드가 무는 증거(변이): `--self-test` 픽스처에 프로덕션과 같은 `scroll-behavior:smooth` 를 걸고 축 C 위반 `#ofDeep` 을 **4,200px 아래** 숨겼다. 즉시 이동을 옛 `scrollTo(0,y)` 로 되돌리면 `reach=2351/5279` · `stalled={want:1219,got:389}` 로 **자체 검증이 3건 실패**하고 `#ofDeep` 이 OF-C 에서 사라진다.
+- 🔴 **원장의 09-06 이전 수치는 이 결함 위에서 나왔다 — 재측정 전까지 미검증이다.** 다만 **`/nakshatra/` 캘리브레이션 판정선은 재측정에서 그대로 유지됐다**(완전 순회 `순회=7576~7799px`, `scanned=53/53`, OF-B=0 · OF-C=0 · TT<44=0 · 열폭 326/274px, 남은 OF-A=2 는 회전 장식 `.mandalaBg` 와 그 svg 뿐). 표본이 커져도 결론이 안 바뀐 라우트가 있다는 뜻이지, 전 라우트가 안전하다는 뜻이 아니다.
+
+## 낙샤트라 프리미엄 (`/nakshatra/muhurta/` · `/nakshatra/vvip/`) — 09-06 실측·수정 (#1601)
+
+원장에 **렌더 미측정**으로 남아 있던 keep-all 8곳을 열어 쟀다. 결론: **8곳 다 실제 콘텐츠에서 성립한다**(OF-A/B/C 전 레그 0).
+
+### 두 화면을 결제·DB 없이 여는 법 — 해금 원장 시드가 안 통한다
+
+🔴 **섬 상담 레시피(해금 원장 시드)는 여기서 안 먹는다** — 두 화면은 **건별 과금**이라 원장 키가 없다. 대신 **로컬 이용권 스냅샷**을 심으면 `buildOptimisticPassGrant` 가 서버 왕복 없이 통과시킨다(결제 게이팅 절대 순서 1번 그대로).
+
+- 하네스(1회용, 커밋 안 함): `dist/` 를 서빙하면서 모든 HTML `<head>` 뒤에 시드 `<script>` 를 주입하는 로컬 서버. 심는 것은 `fortune_auth_token` · `fortune_auth_user` · `fortune_auth_cache_verified_v1` · `code-destiny.activeProfileCache.v1::<uid>` · sessionStorage `nakshatra:result:v1`.
+- 🔴 **`/api/*` 는 401·404 를 절대 돌려주면 안 된다** — `app/_lib/auth-store.ts` 의 `loadMeFromServer` 가 401/403 에서 `handleSessionInvalidated` 로 캐시를 지워 시드가 날아간다. 미구현 경로도 HTTP 200 + `{ok:false}` 로 답한다.
+- 🔴 **이용권 등급은 `family` 여야 한다** — vvip 코덱스가 300코인이라 `vvip` 등급의 건당 200코인 한도로는 못 연다.
+- 🔴 **본문은 목이 아니라 진짜 엔진 출력이다** — `worker/routes/nakshatra-premium.js` 의 계약을 그대로 재현해 스위스 천체력(sweph-wasm · Lahiri)을 **평범한 노드에서** 돌렸다. 픽스처 불필요, `SWISS_EPHEMERIS_FILES_BASE_URL` 을 하네스 자기 오리진의 `/js/vendor/sweph-wasm/ephe/` 로 주면 된다. 워커 소스가 확장자 없는 import 를 쓰므로 esbuild 번들이 필요하다. 실제 출력: muhurta `days=60 best=7 avoid=4 sections=3 9,808자` · vvip `chapters=5 12,211자`.
+
+### 실측 (09-06, 순회 결함 수정 후 · 412×823·360×800 × inset 0/47 = 8레그 전부 valid)
+
+| 라우트 | 문서 | OF-A/B/C | 표본(축 C) | TT<44 | IN<16 | 열폭 | SA |
+|---|---|---|---|---|---|---|---|
+| `/nakshatra/muhurta/` | 7,854~9,300px | 0 / 0 / 0 | 293 | 1 | 0/1 | 343 / 291px | — |
+| `/nakshatra/vvip/` | 14,448~16,251px | 0 / 0 / 0 | 174 | 1 | 0/0 | 380 / 328px | 12px (sticky `.vvip_actions`, 위반 아님) |
+
+`textRunSeen` 293 은 독립 프로브가 센 "보이는 텍스트 소유 요소 293개"와 **정확히 일치한다** — 순회가 문서 끝까지 갔다는 증거다. 억제(위양성 필터)는 두 화면 다 0건.
+
+### 처방 (`app/nakshatra/_premium/premium.module.css` `.back` 한 곳 · +6/−1)
+
+TT<44 1건은 두 화면 공통 `a.premium_back` **132.8×22.3px** — 원장 §함정의 **"전역 44px 바닥이 `<a>` 를 안 덮는다"**(`styles/globals.css:128-133`) 그 구멍이다. 문장 안 인라인이 아니라 단독 내비라 WCAG 2.5.8 Inline 예외에 안 걸린다. `display:inline-flex` + `align-items:center` + `min-height:44px`.
+
+🔴 **이 파일은 낙샤트라 프리미엄 4화면 공용이다** — 같은 빌드 위 런타임 A/B 로 소비자 전수 확인: `lord-report` · `dasha-map` · `muhurta` · `vvip` 모두 **132.8×22.3 → 132.8×44**, 문서 **+19~20px**(muhurta 7,854→7,874 = +0.25%, vvip 14,448→14,468 = +0.13%). 폭은 132.8px 이라 `min-width` 는 불필요하다. #1589 가 기록한 `lord-report`·`dasha-map` 의 TT 수치는 이 수정만큼 각각 1건 줄어든다.
+
+수정 후 **실빌드 재측정**(`check:quick` 이 dist 를 다시 만든 뒤 같은 8레그): 두 라우트 다 **TT<44 = 0**, OF-A/B/C 는 그대로 0, 문서는 muhurta 7,854→7,874px · vvip 14,448→14,468px 로 예측한 +20px 과 일치한다.
+
+### 안 고친 것
+
+- vvip 의 sticky `.vvip_actions` SA 여유 12px — 스캐너 위반 판정에 안 걸린다(`fixedBottomViolations` 0). 축 밖.
+- 두 화면의 `ensurePaidAccess` 진입 경로 자체 — 결제 게이팅 절대 순서를 그대로 따르고 있어 손대지 않았다.
 
 ## 자미두수 결과 화면 (`/ziwei-ai/`) — 09-05 수정
 

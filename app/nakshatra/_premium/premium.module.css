@@ -41,7 +41,12 @@
 }
 
 .back {
-  display: inline-block;
+  /* 🔴 전역 44px 바닥(styles/globals.css:128-133)은 <a> 를 안 덮는다 — 허브 복귀 링크는 문장 안
+     인라인이 아니라 단독 내비라 WCAG 2.5.8 Inline 예외에 안 걸린다. 132.8x22.3px 실측(2026-09-06,
+     /nakshatra/muhurta/ · /nakshatra/vvip/). 이 파일은 낙샤트라 프리미엄 4화면 공용이다. */
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   margin-bottom: 1.35rem;
   color: var(--gold-soft);
   font-size: 0.86rem;
