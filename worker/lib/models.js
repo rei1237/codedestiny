@@ -502,6 +502,10 @@ contentEntitlementSchema.index(
   { unique: true },
 );
 contentEntitlementSchema.index({ userId: 1, serviceKey: 1, status: 1, expiresAt: 1 });
+// 환불 회수 필터(worker/payments/entitlements.js revokeEntitlementForOrder `{orderId, status}`).
+// db.js 가 autoIndex:false 이므로 이 선언만으로는 생성되지 않는다 —
+// 생성은 scripts/migrations/20260906-add-entitlement-orderid-status-index.mjs (이름·키 동일 유지).
+contentEntitlementSchema.index({ orderId: 1, status: 1 }, { name: "orderId_1_status_1" });
 // 🔴 contentKey 가 키에 포함되어야 한다. sukyo_yearly_fortune_unlock 은 featureKey 가 상수이고
 // contentKey 만 연도별로 다르므로, contentKey 없이 unique 를 걸면 한 프로필이 두 개 연도를 보유할 수 없다.
 // db.js 가 autoIndex:false 이므로 이 선언만으로는 생성되지 않는다 —
