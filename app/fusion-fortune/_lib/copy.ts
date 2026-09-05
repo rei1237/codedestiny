@@ -73,6 +73,12 @@ export interface FusionSharedCopy {
   readLabel: string;
   jumpToVerdictButton: string;
   keySentenceLabel: string;
+  /** Phase 3 — 모바일 하단 도킹 차례 바·바텀시트(FusionResultDock). */
+  dockAriaLabel: string;
+  openTocButton: string;
+  closeSheetButton: string;
+  progressRead: (percent: number) => string;
+  remainingAbout: (minutes: number) => string;
 }
 
 const FUSION_SHARED_EN: FusionSharedCopy = {
@@ -151,6 +157,11 @@ const FUSION_SHARED_EN: FusionSharedCopy = {
   readLabel: "Read",
   jumpToVerdictButton: "Go to the final verdict",
   keySentenceLabel: "Key point",
+  dockAriaLabel: "Reading navigation",
+  openTocButton: "Contents",
+  closeSheetButton: "Close contents",
+  progressRead: (percent) => `${percent}% read`,
+  remainingAbout: (minutes) => `about ${minutes} min left`,
 };
 
 const FUSION_SHARED_COPY: Partial<Record<LoadingLocale, FusionSharedCopy>> = {
@@ -230,6 +241,11 @@ const FUSION_SHARED_COPY: Partial<Record<LoadingLocale, FusionSharedCopy>> = {
     readLabel: "읽음",
     jumpToVerdictButton: "최종 판정으로",
     keySentenceLabel: "핵심",
+    dockAriaLabel: "결과 내비게이션",
+    openTocButton: "차례",
+    closeSheetButton: "차례 닫기",
+    progressRead: (percent) => `${percent}% 읽음`,
+    remainingAbout: (minutes) => `남은 약 ${minutes}분`,
   },
   ja: {
     systemLabels: { saju: "四柱推命", ziwei: "紫微斗数", vedic: "ヴェーダ占星術", sukuyo: "宿曜", astrology: "占星術", tarot: "タロット" },
@@ -307,6 +323,11 @@ const FUSION_SHARED_COPY: Partial<Record<LoadingLocale, FusionSharedCopy>> = {
     readLabel: "既読",
     jumpToVerdictButton: "最終判定へ",
     keySentenceLabel: "要点",
+    dockAriaLabel: "結果ナビゲーション",
+    openTocButton: "目次",
+    closeSheetButton: "目次を閉じる",
+    progressRead: (percent) => `${percent}% 読了`,
+    remainingAbout: (minutes) => `残り約${minutes}分`,
   },
   "zh-CN": {
     systemLabels: { saju: "八字", ziwei: "紫微斗数", vedic: "吠陀占星", sukuyo: "宿曜", astrology: "占星术", tarot: "塔罗" },
@@ -384,6 +405,11 @@ const FUSION_SHARED_COPY: Partial<Record<LoadingLocale, FusionSharedCopy>> = {
     readLabel: "已读",
     jumpToVerdictButton: "前往最终判定",
     keySentenceLabel: "要点",
+    dockAriaLabel: "结果导航",
+    openTocButton: "目录",
+    closeSheetButton: "关闭目录",
+    progressRead: (percent) => `已读 ${percent}%`,
+    remainingAbout: (minutes) => `剩余约 ${minutes} 分钟`,
   },
   "zh-TW": {
     systemLabels: { saju: "八字", ziwei: "紫微斗數", vedic: "吠陀占星", sukuyo: "宿曜", astrology: "占星術", tarot: "塔羅" },
@@ -461,6 +487,11 @@ const FUSION_SHARED_COPY: Partial<Record<LoadingLocale, FusionSharedCopy>> = {
     readLabel: "已讀",
     jumpToVerdictButton: "前往最終判定",
     keySentenceLabel: "要點",
+    dockAriaLabel: "結果導覽",
+    openTocButton: "目錄",
+    closeSheetButton: "關閉目錄",
+    progressRead: (percent) => `已讀 ${percent}%`,
+    remainingAbout: (minutes) => `剩餘約 ${minutes} 分鐘`,
   },
   vi: {
     systemLabels: { saju: "Saju", ziwei: "Tử Vi", vedic: "Chiêm tinh Vệ Đà", sukuyo: "Sukuyo", astrology: "Chiêm tinh", tarot: "Tarot" },
@@ -538,6 +569,11 @@ const FUSION_SHARED_COPY: Partial<Record<LoadingLocale, FusionSharedCopy>> = {
     readLabel: "Read",
     jumpToVerdictButton: "Go to the final verdict",
     keySentenceLabel: "Key point",
+    dockAriaLabel: "Reading navigation",
+    openTocButton: "Contents",
+    closeSheetButton: "Close contents",
+    progressRead: (percent) => `${percent}% read`,
+    remainingAbout: (minutes) => `about ${minutes} min left`,
   },
   hi: {
     systemLabels: { saju: "साजू", ziwei: "ज़ीवेई", vedic: "वैदिक ज्योतिष", sukuyo: "सुक्यो", astrology: "ज्योतिष", tarot: "टैरो" },
@@ -615,6 +651,11 @@ const FUSION_SHARED_COPY: Partial<Record<LoadingLocale, FusionSharedCopy>> = {
     readLabel: "Read",
     jumpToVerdictButton: "Go to the final verdict",
     keySentenceLabel: "Key point",
+    dockAriaLabel: "Reading navigation",
+    openTocButton: "Contents",
+    closeSheetButton: "Close contents",
+    progressRead: (percent) => `${percent}% read`,
+    remainingAbout: (minutes) => `about ${minutes} min left`,
   },
   es: {
     systemLabels: { saju: "Saju", ziwei: "Ziwei", vedic: "Astrología Védica", sukuyo: "Sukuyo", astrology: "Astrología", tarot: "Tarot" },
@@ -692,6 +733,11 @@ const FUSION_SHARED_COPY: Partial<Record<LoadingLocale, FusionSharedCopy>> = {
     readLabel: "Read",
     jumpToVerdictButton: "Go to the final verdict",
     keySentenceLabel: "Key point",
+    dockAriaLabel: "Reading navigation",
+    openTocButton: "Contents",
+    closeSheetButton: "Close contents",
+    progressRead: (percent) => `${percent}% read`,
+    remainingAbout: (minutes) => `about ${minutes} min left`,
   },
   fr: {
     systemLabels: { saju: "Saju", ziwei: "Ziwei", vedic: "Astrologie Védique", sukuyo: "Sukuyo", astrology: "Astrologie", tarot: "Tarot" },
@@ -769,6 +815,11 @@ const FUSION_SHARED_COPY: Partial<Record<LoadingLocale, FusionSharedCopy>> = {
     readLabel: "Read",
     jumpToVerdictButton: "Go to the final verdict",
     keySentenceLabel: "Key point",
+    dockAriaLabel: "Reading navigation",
+    openTocButton: "Contents",
+    closeSheetButton: "Close contents",
+    progressRead: (percent) => `${percent}% read`,
+    remainingAbout: (minutes) => `about ${minutes} min left`,
   },
   de: {
     systemLabels: { saju: "Saju", ziwei: "Ziwei", vedic: "Vedische Astrologie", sukuyo: "Sukuyo", astrology: "Astrologie", tarot: "Tarot" },
@@ -846,6 +897,11 @@ const FUSION_SHARED_COPY: Partial<Record<LoadingLocale, FusionSharedCopy>> = {
     readLabel: "Read",
     jumpToVerdictButton: "Go to the final verdict",
     keySentenceLabel: "Key point",
+    dockAriaLabel: "Reading navigation",
+    openTocButton: "Contents",
+    closeSheetButton: "Close contents",
+    progressRead: (percent) => `${percent}% read`,
+    remainingAbout: (minutes) => `about ${minutes} min left`,
   },
   nl: {
     systemLabels: { saju: "Saju", ziwei: "Ziwei", vedic: "Vedische Astrologie", sukuyo: "Sukuyo", astrology: "Astrologie", tarot: "Tarot" },
@@ -923,6 +979,11 @@ const FUSION_SHARED_COPY: Partial<Record<LoadingLocale, FusionSharedCopy>> = {
     readLabel: "Read",
     jumpToVerdictButton: "Go to the final verdict",
     keySentenceLabel: "Key point",
+    dockAriaLabel: "Reading navigation",
+    openTocButton: "Contents",
+    closeSheetButton: "Close contents",
+    progressRead: (percent) => `${percent}% read`,
+    remainingAbout: (minutes) => `about ${minutes} min left`,
   },
   ms: {
     systemLabels: { saju: "Saju", ziwei: "Ziwei", vedic: "Astrologi Veda", sukuyo: "Sukuyo", astrology: "Astrologi", tarot: "Tarot" },
@@ -1000,6 +1061,11 @@ const FUSION_SHARED_COPY: Partial<Record<LoadingLocale, FusionSharedCopy>> = {
     readLabel: "Read",
     jumpToVerdictButton: "Go to the final verdict",
     keySentenceLabel: "Key point",
+    dockAriaLabel: "Reading navigation",
+    openTocButton: "Contents",
+    closeSheetButton: "Close contents",
+    progressRead: (percent) => `${percent}% read`,
+    remainingAbout: (minutes) => `about ${minutes} min left`,
   },
 };
 
