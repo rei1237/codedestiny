@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-05
-next: PR #1583 이 머지되면 main 에서 새 브랜치를 따고, 코드보다 먼저 PR3 모바일 IA 목업 아티팩트를 발행해 승인받는다
+next: PR #1587 이 머지되면 스테이징 `/ziwei/chart` 결과 화면을 375px 로 눈으로 확인하고, 이상 없으면 이 문서를 지운다
 ---
 
 # 심화 자미두수(`/ziwei/chart`) 고객 문구·모바일 UX 개편
@@ -13,34 +13,35 @@ next: PR #1583 이 머지되면 main 에서 새 브랜치를 따고, 코드보�
 
 ## 지금 상태
 
-- PR1(문장·라벨 고객화, 레이아웃 불변) = **PR #1579 머지됨**.
-- PR2(선택 궁 패널 → 챕터 산문 아코디언) = **PR #1583 열림, 사용자 머지 대기**. 로컬 게이트 전부 통과(문구 가드·리포트 흐름·상담 품질·모바일·대비·배선·로케일 키·typecheck·lint·sitemap·check:quick). CI 결과는 PR 에서 확인.
-- PR3 미착수. 계획 원문: `C:\Users\user\.claude\plans\snappy-stargazing-breeze.md` §PR3.
+- PR1(문장·라벨 고객화) **#1579 머지** · PR2(챕터 아코디언) **#1583 머지** · PR3(모바일 IA) **#1587 열림, 사용자 머지 대기**.
+- PR3 목업 승인본: https://claude.ai/code/artifact/6095584d-4581-4e0d-a8ea-e6cb9fc1be7f (원칙 16 절차 완료).
+- PR3 로컬 게이트 전부 통과(아래 §검증 목록 그대로).
+- 원칙 9 의 `check:critical`(#1569 삭제 + PR2 가 다른 PR 로 나뉜 건) **완료**.
 
 ## 남은 작업
 
-- [ ] **PR3** — 코드 전에 목업 아티팩트(375/960px, 상태 스펙, 색 토큰, 합성색 대비) → 승인 → 구현. 구현 시 `scripts/verify-ziwei-chart-customer-copy.mjs:16` 의 `TODO(PR3)` 격자 폰트 검사를 켜고 검사 수 단언에 넣는다.
-- [ ] PR2 가 머지된 뒤 마지막 `main` 에서 `npm run check:critical` 한 번(원칙 9 — 삭제 #1569 와 PR2 가 다른 PR 로 나뉘었다).
-- 판정: PR3 는 375px 가로 오버플로 0, 격자 글자 12px 이상.
+- [ ] #1587 머지 후 스테이징에서 `/ziwei/chart` **결과** 화면을 375px 로 확인. 판정: 가로 오버플로 0, 격자 글자 12px 이상. 🔴 **로컬에서 못 쟀다** — `measure:mobile-routes` 는 입력 화면까지만 닿고 결과 화면은 실제 명반 + 결제 게이트를 지나야 나온다.
 
-## PR2 가 남긴 것 (PR3 가 딛고 갈 지점)
+## PR3 가 만든 구조 (다음에 손댈 때 딛는 지점)
 
-- `app/_lib/ziwei-deep-reading.ts` `export splitZiweiDeepCategories(fullText): {title, body}[]` — 🔴 절 분리 정본. 화면이 `### N.` 정규식을 따로 들지 말 것.
-- `AdvancedZiweiSectionV2.tsx` 선택 궁 패널 = 리드 → 8절 아코디언(`openSections` 상태, 궁 바꾸면 `[0]` 리셋) → 용어 칩 → 지금/이번 주/이번 달. 개관·마스터플랜은 0절이라 통짜 산문으로 떨어진다.
-- 용어 칩은 `worker/lib/fortune-glossary.js` 의 `system: "ziwei"` 20항목 중 본문에 실제로 나온 것만. 모듈 상단 `ZIWEI_GLOSSARY_ENTRIES` 한 벌.
-- 결과 캐시 `RESULT_CACHE_KEY` 는 v9 유지(저장 형태 불변).
-- 삭제 예정이던 `ZiweiMasterPlan.tsx`·`ZiweiRemedyChecklist.tsx` 는 **#1569 에서 이미 제거됨** — `deletion-auditor` 3면 0건 확인. 할 일 없음.
+- 결과 루트 `<section>` = `fixed inset-0 overflow-y-auto`, sticky 네비는 그 **직계 자식**. 🔴 `<m.div>` 안에 넣지 말 것 — transform 조상이 생겨 sticky 가 죽는다. safe-area 상단 패딩은 루트가 아니라 네비가 든다(sticky 기준 사각형은 스크롤 컨테이너의 padding box).
+- 구역 앵커 정본은 모듈 상수 `ZIWEI_RESULT_NAV` — 배열 순서 = DOM 순서 = 칩 순서 = 스크롤 스파이 관찰 대상. 🔴 관찰 대상 5개는 서로 **중첩되면 안 된다**(최상단 교차 선택이 오작동).
+- 전체폭은 `-mx-4 px-4`(+sm/lg) 대칭 음수 마진. 🔴 `100vw`/`w-screen` 금지 — `overflow-y:auto` 가 `overflow-x` 를 `auto` 로 계산해 가로 스크롤이 생긴다.
+- 12궁 격자는 `aspect-square` 4×4(가로 스크롤 래퍼 제거). 칸에는 궁명·지지·주성만 남기고 보조성·대한·사화는 선택 궁 패널의 "이 궁에 앉은 별" 카드로 **이동**(삭제 아님).
+- 12궁 요약은 6열 표 → `<dl>` 카드 + 힘 미터. 표 전용이던 `tableColPalace`·`tableColDefinition` 만 삭제(3면 grep 0건), 나머지 4개 라벨은 카드에서 계속 쓴다.
+- 가드 검사 3(격자 폰트) **가동 중** — `scripts/verify-ziwei-chart-customer-copy.mjs`. 격자 블록만 잘라 12px 미만 클래스를 잡고 블록을 못 찾으면 fail-closed. 변이 2종(작은 폰트 주입·마커 제거)으로 무는 것 확인.
 
 ## 정본 예시
 
 - 문장 빌더 `app/components/ziwei/_lib/advanced-ziwei-reading.ts`, 라벨 `advanced-ziwei-copy.ts`(새 키는 EN 상수 + ko/ja/zh-CN/zh-TW 5블록 전부)
-- 아코디언 짝: `app/karma-destiny-ai/result/KarmaDestinyAiResultClient.tsx` `kdai-chapter`
+- 절 분리 정본 `app/_lib/ziwei-deep-reading.ts` `splitZiweiDeepCategories` — 화면이 `### N.` 정규식을 따로 들지 말 것.
 
 ## 함정
 
-- 가드 검사 1은 빌더 출력만 본다. 챕터 산문은 `ziwei-deep-reading.ts` `validateZiweiDeepReading` 이 검증하므로 가드에 다시 넣지 않는다.
+- 가드 검사 1은 빌더 출력만 본다. 챕터 산문은 `validateZiweiDeepReading` 담당이라 가드에 다시 넣지 않는다.
 - `__tests__/ui/paid-result-locale-copy.test.js` 는 jest 가 무시한다 → `node --test`.
-- `check:quick` 이 `rss.xml`·`public/rss.xml`·`insights/rss.xml`·`public/insights/rss.xml` 의 `lastBuildDate` 와 `.ignore` 줄끝을 건드린다 — 범위 밖이므로 커밋 전에 `git checkout --` 로 되돌린다.
+- `check:quick` 이 `rss.xml` 4벌의 `lastBuildDate` 와 `.ignore` 줄끝을 건드린다 — 범위 밖이므로 커밋 전에 `git checkout --` 로 되돌린다.
+- `app/**` 을 고쳤으면 `sitemap:generate` 산출물이 같은 커밋에 있어야 한다.
 - CRLF 패치·workers-og 로컬 빌드 실패는 메모리 `patch-crlf-files-with-a-node-script`·`local-build-worker-fails-workers-og-missing`.
 - `normalize-ziwei-input.ts:185-254` ko 경고 문장에 "계산/데이터" 가 남아 있다(범위 밖, 미수정).
 
@@ -61,6 +62,5 @@ npm run check:quick
 
 ## 모르는 것
 
-- PR3 결과 화면 계측: `measure:mobile-routes` 는 입력 화면만 잰다. 폼 입력 뒤 캡처 방법은 미검증.
-- PR2 아코디언·용어 칩의 실제 모바일 렌더는 **브라우저로 확인하지 않았다**(실측은 절 분리·데이터 개수까지). 용어 칩이 궁에 따라 최대 16개라 375px 에서 2~3줄이 될 것으로 추정 — PR3 목업에서 확정한다.
+- 375px 실렌더(위 §남은 작업).
 - 셸 타일 액션이 `paid-feature-registry.js` 의 `premium-ziwei` 별칭으로 남아 있는데 타일은 "명반 무료" 표기 — 정리 여부는 사용자 판단.
