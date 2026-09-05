@@ -18,6 +18,7 @@ import {
   getAdminPromptLabService,
   promptLabServiceNeeds,
 } from "@/lib/admin/prompt-lab-registry.mjs";
+import { adminGeocodePresetLabels } from "@/lib/admin/geocode-presets.mjs";
 import { adminFetch, describeAdminError } from "../_lib/admin-api";
 
 interface LabService {
@@ -26,6 +27,7 @@ interface LabService {
   group: string;
   inputs: string[];
   note?: string;
+  needsCoordinates?: boolean;
   variantLabel?: string;
   variantOptions?: Array<{ key: string; label: string }>;
 }
@@ -86,6 +88,9 @@ const DEFAULT_FORM = {
   petBirthDate: "",
   petGender: "M",
 };
+
+// 출생지 자동완성. 여기 없는 지명도 서버가 지도 검색으로 찾으므로 "지원 도시 목록"이 아니다.
+const BIRTH_PLACE_PRESETS = adminGeocodePresetLabels() as string[];
 
 type FormState = typeof DEFAULT_FORM;
 
@@ -321,8 +326,17 @@ export default function AdminPromptLabPage() {
                       value={form.birthPlace}
                       onChange={(event) => update("birthPlace", event.target.value)}
                       placeholder="서울"
+                      list="admin-birth-place-presets"
                       className={fieldClass()}
                     />
+                    <datalist id="admin-birth-place-presets">
+                      {BIRTH_PLACE_PRESETS.map((label) => <option key={label} value={label} />)}
+                    </datalist>
+                    {service?.needsCoordinates ? (
+                      <span className="mt-1 block text-[11px] leading-4 text-slate-500">
+                        도시 이름만 넣으면 서버가 위도·경도와 시간대를 찾아 계산에 씁니다.
+                      </span>
+                    ) : null}
                   </label>
                 </div>
                 <label className="inline-flex items-center gap-2 text-xs text-slate-400">
