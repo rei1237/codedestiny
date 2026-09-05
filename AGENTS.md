@@ -11,7 +11,7 @@
 
 ## 시작 순서
 
-1. **[CLAUDE.md](CLAUDE.md) 전문을 읽는다.** 절대 규칙 6개 · 코딩 원칙 14개(3번은 폐기) · 결제 게이팅 절대 순서 · 레포 함정 · 작업 격리가 거기 있다.
+1. **[CLAUDE.md](CLAUDE.md) 전문을 읽는다.** 절대 규칙 6개 · 코딩 원칙 15개(번호는 1~16, 3번은 결번) · 결제 게이팅 절대 순서 · 레포 함정 · 작업 격리가 거기 있다.
 2. CLAUDE.md 의 **작업별 필독 문서 라우팅 표**에서 이번 작업 축에 해당하는 [docs/context/](docs/context/) 문서를 읽는다. 🔴 "대충 알 것 같다"로 건너뛴 것이 이 레포 사고 이력의 대부분이다.
 3. 그래도 애매하면 [docs/CURRENT_DEV_BASELINE.md](docs/CURRENT_DEV_BASELINE.md)(현재 개발 초점) → [docs/CONTEXT_AUDIT.md](docs/CONTEXT_AUDIT.md)(충돌·예외 기록).
 4. 문서끼리 어긋나면 **조용히 합치지 말고** `docs/CONTEXT_AUDIT.md` 에 기록한 뒤 사용자에게 보고한다.
