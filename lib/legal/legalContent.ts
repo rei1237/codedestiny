@@ -405,6 +405,7 @@ export const PRIVACY_CONTENT: Record<NonKoLocale, LegalDocument> = {
       { id: "cookies-and-ads", heading: "4. Cookies, Advertising Identifiers, and Google AdSense Notice", paragraphs: [
         "Code Destiny may use cookies and similar technologies to keep you signed in, for security, usage statistics, and advertising. Our web service serves Google AdSense; third-party advertising partners, including Google AdSense, may store or read cookies in your browser as a result of serving ads, and may use information such as web beacons, IP addresses, and advertising identifiers.",
         "Google and its partners may serve personalized ads based on your prior visit history. You can manage personalized advertising through your browser settings, your device's ad settings, or Google Ads Settings (https://adssettings.google.com/).",
+        "Google, as a third-party vendor, uses advertising cookies (including the DoubleClick cookie), which enable Google and its partners to serve ads based on your visits to this site and other websites. You can opt out of personalized advertising in Google Ads Settings above, and you can opt out of other third-party vendors' use of cookies for personalized advertising at www.aboutads.info (https://www.aboutads.info/choices/) or the NAI opt-out page (https://optout.networkadvertising.org/). How Google uses advertising cookies is described in Google's advertising and cookie policy (https://policies.google.com/technologies/ads).",
         "You can review how Google uses information from partner sites and apps at Google's Partner Sites/Apps data use notice (https://policies.google.com/technologies/partner-sites).",
       ]},
       { id: "third-party", heading: "5. Third-Party Disclosure and Processing Delegation", paragraphs: [
@@ -452,6 +453,7 @@ export const PRIVACY_CONTENT: Record<NonKoLocale, LegalDocument> = {
       { id: "cookies-and-ads", heading: "4. Cookie、広告識別子、Google AdSenseに関する告知", paragraphs: [
         "Code Destinyは、ログイン維持、セキュリティ、利用統計、広告配信のためにCookieおよび類似技術を使用する場合があります。ウェブサービスにはGoogle AdSenseが掲載されており、Google AdSenseを含む第三者広告パートナーは、広告提供の結果として利用者のブラウザにCookieを保存または読み取る場合があり、ウェブビーコン、IPアドレス、広告識別子等の情報を使用する場合があります。",
         "Googleおよびそのパートナーは、利用者の過去の訪問履歴に基づきパーソナライズ広告を提供する場合があります。利用者は、ブラウザ設定、端末の広告設定、Google広告設定（https://adssettings.google.com/）でパーソナライズ広告を管理できます。",
+        "Googleは第三者の広告配信事業者として広告Cookie（DoubleClick Cookieを含む）を使用し、Googleおよびそのパートナーはこれにより、利用者による本サイトおよび他のウェブサイトへの訪問履歴に基づいて広告を配信する場合があります。利用者は上記のGoogle広告設定でパーソナライズ広告を無効にできるほか、他の第三者広告配信事業者によるパーソナライズ広告用Cookieの使用は、www.aboutads.info（https://www.aboutads.info/choices/）またはNAIオプトアウトページ（https://optout.networkadvertising.org/）で拒否できます。Googleの広告Cookieの使用方法は、Googleの広告およびCookieポリシー（https://policies.google.com/technologies/ads）をご確認ください。",
         "Googleがパートナーサイトおよびアプリの情報を使用する方法は、Googleパートナーサイト/アプリのデータ使用に関する説明（https://policies.google.com/technologies/partner-sites）でご確認いただけます。",
       ]},
       { id: "third-party", heading: "5. 第三者提供と処理委託", paragraphs: [
@@ -499,6 +501,7 @@ export const PRIVACY_CONTENT: Record<NonKoLocale, LegalDocument> = {
       { id: "cookies-and-ads", heading: "4. Cookie、广告识别符及 Google AdSense 告知", paragraphs: [
         "Code Destiny 可能出于保持登录状态、安全、使用统计、广告投放等目的使用 Cookie 及类似技术。本网站服务投放 Google AdSense 广告，包括 Google AdSense 在内的第三方广告合作伙伴可能因提供广告而在用户浏览器中存储或读取 Cookie，并可能使用网络信标、IP地址、广告识别符等信息。",
         "Google 及其合作伙伴可能根据用户过往访问记录提供个性化广告。用户可在浏览器设置、设备广告设置或 Google 广告设置（https://adssettings.google.com/）中管理个性化广告。",
+        "Google 作为第三方广告供应商使用广告 Cookie（包括 DoubleClick Cookie），Google 及其合作伙伴可据此根据用户对本网站及其他网站的访问记录投放广告。用户可在上述 Google 广告设置中关闭个性化广告，并可通过 www.aboutads.info（https://www.aboutads.info/choices/）或 NAI 退出页面（https://optout.networkadvertising.org/）拒绝其他第三方广告供应商将 Cookie 用于个性化广告。Google 使用广告 Cookie 的方式请参阅 Google 广告与 Cookie 政策（https://policies.google.com/technologies/ads）。",
         "关于 Google 如何使用合作伙伴网站及应用信息的方式，可参阅 Google 合作伙伴网站/应用数据使用说明（https://policies.google.com/technologies/partner-sites）。",
       ]},
       { id: "third-party", heading: "5. 第三方提供与处理委托", paragraphs: [
@@ -546,6 +549,7 @@ export const PRIVACY_CONTENT: Record<NonKoLocale, LegalDocument> = {
       { id: "cookies-and-ads", heading: "4. Cookie、廣告識別碼及 Google AdSense 告知", paragraphs: [
         "Code Destiny 可能基於維持登入狀態、安全、使用統計、廣告投放等目的使用 Cookie 及類似技術。本網站服務投放 Google AdSense 廣告，包括 Google AdSense 在內之第三方廣告合作夥伴可能因提供廣告而於使用者瀏覽器中儲存或讀取 Cookie，並可能使用網路信標、IP位址、廣告識別碼等資訊。",
         "Google 及其合作夥伴可能依使用者過往造訪紀錄提供個人化廣告。使用者可於瀏覽器設定、裝置廣告設定或 Google 廣告設定（https://adssettings.google.com/）中管理個人化廣告。",
+        "Google 作為第三方廣告供應商使用廣告 Cookie（包含 DoubleClick Cookie），Google 及其合作夥伴可據此依使用者造訪本網站及其他網站之紀錄投放廣告。使用者可於上述 Google 廣告設定中關閉個人化廣告，並可透過 www.aboutads.info（https://www.aboutads.info/choices/）或 NAI 退出頁面（https://optout.networkadvertising.org/）拒絕其他第三方廣告供應商將 Cookie 用於個人化廣告。Google 使用廣告 Cookie 之方式請參閱 Google 廣告與 Cookie 政策（https://policies.google.com/technologies/ads）。",
         "關於 Google 如何使用合作夥伴網站及應用程式資訊之方式，可參閱 Google 合作夥伴網站/應用程式資料使用說明（https://policies.google.com/technologies/partner-sites）。",
       ]},
       { id: "third-party", heading: "5. 第三方提供與處理委託", paragraphs: [

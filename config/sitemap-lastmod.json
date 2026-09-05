@@ -3,11 +3,11 @@
   "note": "사이트맵 lastmod 원장. scripts/lib/sitemap-lastmod.mjs 가 라우트별 소스 서명을 계산해 다시 쓴다. 손으로 고치지 말고 npm run sitemap:generate 로 갱신할 것.",
   "routes": {
     "/": {
-      "signature": "79e67f9c6b7698a9",
+      "signature": "00cf604541ee9db3",
       "lastmod": "2026-09-05"
     },
     "/about/": {
-      "signature": "d086bad5b0953f0d",
+      "signature": "9f4268b52706b259",
       "lastmod": "2026-09-05"
     },
     "/advertising-policy/": {
@@ -83,7 +83,7 @@
       "lastmod": "2026-09-05"
     },
     "/en/": {
-      "signature": "4955ed741c76a6f7",
+      "signature": "bac7eabe35e26000",
       "lastmod": "2026-09-05"
     },
     "/en/insights/": {
@@ -99,11 +99,11 @@
       "lastmod": "2026-09-05"
     },
     "/en/privacy-policy/": {
-      "signature": "7cb8357c270e2bfe",
+      "signature": "24eb7e769cc888b9",
       "lastmod": "2026-09-05"
     },
     "/en/refund-policy/": {
-      "signature": "62a562959ea9a75c",
+      "signature": "5d7b1b82cab93ef6",
       "lastmod": "2026-09-05"
     },
     "/en/sukuyo/": {
@@ -111,7 +111,7 @@
       "lastmod": "2026-09-05"
     },
     "/en/terms-of-service/": {
-      "signature": "390a6909a5ddc604",
+      "signature": "76965fa67bdcffe3",
       "lastmod": "2026-09-05"
     },
     "/en/today/": {
@@ -543,7 +543,7 @@
       "lastmod": "2026-09-05"
     },
     "/guides/complete-guide-to-saju/": {
-      "signature": "e6bc41894eba0eb1",
+      "signature": "111e89d8d01d4b2d",
       "lastmod": "2026-09-05"
     },
     "/health-report/guide/": {
@@ -603,7 +603,7 @@
       "lastmod": "2026-09-05"
     },
     "/ja/": {
-      "signature": "4955ed741c76a6f7",
+      "signature": "bac7eabe35e26000",
       "lastmod": "2026-09-05"
     },
     "/ja/insights/": {
@@ -619,11 +619,11 @@
       "lastmod": "2026-09-05"
     },
     "/ja/privacy-policy/": {
-      "signature": "7cb8357c270e2bfe",
+      "signature": "24eb7e769cc888b9",
       "lastmod": "2026-09-05"
     },
     "/ja/refund-policy/": {
-      "signature": "62a562959ea9a75c",
+      "signature": "5d7b1b82cab93ef6",
       "lastmod": "2026-09-05"
     },
     "/ja/sukuyo/": {
@@ -631,7 +631,7 @@
       "lastmod": "2026-09-05"
     },
     "/ja/terms-of-service/": {
-      "signature": "390a6909a5ddc604",
+      "signature": "76965fa67bdcffe3",
       "lastmod": "2026-09-05"
     },
     "/ja/today/": {
@@ -831,7 +831,7 @@
       "lastmod": "2026-09-05"
     },
     "/privacy/": {
-      "signature": "5f96dc2cb4b3cac3",
+      "signature": "1d324b44c826229a",
       "lastmod": "2026-09-05"
     },
     "/psychotest/": {
@@ -1167,7 +1167,7 @@
       "lastmod": "2026-09-04"
     },
     "/zh-tw/": {
-      "signature": "4955ed741c76a6f7",
+      "signature": "bac7eabe35e26000",
       "lastmod": "2026-09-05"
     },
     "/zh-tw/insights/": {
@@ -1183,11 +1183,11 @@
       "lastmod": "2026-09-05"
     },
     "/zh-tw/privacy-policy/": {
-      "signature": "7cb8357c270e2bfe",
+      "signature": "24eb7e769cc888b9",
       "lastmod": "2026-09-05"
     },
     "/zh-tw/refund-policy/": {
-      "signature": "62a562959ea9a75c",
+      "signature": "5d7b1b82cab93ef6",
       "lastmod": "2026-09-05"
     },
     "/zh-tw/sukuyo/": {
@@ -1195,7 +1195,7 @@
       "lastmod": "2026-09-05"
     },
     "/zh-tw/terms-of-service/": {
-      "signature": "390a6909a5ddc604",
+      "signature": "76965fa67bdcffe3",
       "lastmod": "2026-09-05"
     },
     "/zh-tw/today/": {
@@ -1207,7 +1207,7 @@
       "lastmod": "2026-09-05"
     },
     "/zh/": {
-      "signature": "4955ed741c76a6f7",
+      "signature": "bac7eabe35e26000",
       "lastmod": "2026-09-05"
     },
     "/zh/insights/": {
@@ -1223,11 +1223,11 @@
       "lastmod": "2026-09-05"
     },
     "/zh/privacy-policy/": {
-      "signature": "7cb8357c270e2bfe",
+      "signature": "24eb7e769cc888b9",
       "lastmod": "2026-09-05"
     },
     "/zh/refund-policy/": {
-      "signature": "62a562959ea9a75c",
+      "signature": "5d7b1b82cab93ef6",
       "lastmod": "2026-09-05"
     },
     "/zh/sukuyo/": {
@@ -1235,7 +1235,7 @@
       "lastmod": "2026-09-05"
     },
     "/zh/terms-of-service/": {
-      "signature": "390a6909a5ddc604",
+      "signature": "76965fa67bdcffe3",
       "lastmod": "2026-09-05"
     },
     "/zh/today/": {

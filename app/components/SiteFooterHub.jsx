@@ -232,6 +232,19 @@ export default function SiteFooterHub() {
               환불 처리는 결제 수단(카드)으로만 가능합니다.
             </p>
           </section>
+
+          <section aria-label="면책 고지">
+            <h2 style={{ fontSize: '1.25rem', marginTop: '2rem', marginBottom: '1rem', fontWeight: 600 }}>면책 고지</h2>
+            {/* 🔴 면책 고지 전문을 여기에 렌더하지 않는다 — 위 환불 안내와 같은 이유(near-duplicate).
+                정본은 /disclaimer 이며, 푸터는 크롤러가 서버 렌더 본문에서 읽을 두 문장과 링크만 둔다
+                (DisclaimerBanner 는 클라이언트 전용이라 정적 HTML 에 남지 않는다). */}
+            <p style={{ marginBottom: '0.5rem', lineHeight: 1.6 }}>
+              Code Destiny의 사주·타로·점성술 등 모든 운세 콘텐츠는 오락 및 자기 성찰 목적의 참고 정보이며, 확정된 미래를 예언하거나 결과의 정확성을 보장하지 않습니다. 의료·법률·투자·정신건강 등 중요한 결정은 반드시 해당 분야 전문가와 상담하시기 바랍니다.
+            </p>
+            <p style={{ fontSize: '0.95rem', lineHeight: 1.6 }}>
+              <a href="/disclaimer/" className={styles.sfhLink}>면책 고지 전문 보기</a>
+            </p>
+          </section>
         </section>
 
         {!IS_APP_BUILD && <SocialFooter copy={KO_SOCIAL_COPY} />}

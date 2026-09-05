@@ -165,6 +165,11 @@ export type SiteFooterHubCopy = {
   refundIntro: string;
   refundClosingPolicy: string;
   refundClosingMethod: string;
+  /** 푸터 면책 고지 — 전문은 /disclaimer 에 있고 여기는 두 문장과 링크 라벨만 둔다(near-duplicate 방지). */
+  disclaimerAriaLabel: string;
+  disclaimerTitle: string;
+  disclaimerBody: string;
+  disclaimerLinkLabel: string;
   /**
    * `SocialFooter` 는 한국어 푸터와 로케일 푸터가 **함께 쓰는** 컴포넌트라 카피를 여기서 받는다.
    * `socialLinkAriaTemplate` 의 `{channel}` 이 각 채널 라벨로 치환된다.
@@ -305,6 +310,10 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
     refundClosingPolicy:
       "본 안내는 이용약관 및 결제대행사 정책과 함께 적용되며, 강행규정과 충돌하는 경우 관계 법령을 우선합니다. 환불 접수는 문의하기 또는 고객지원 이메일을 통해 진행하시기 바랍니다.",
     refundClosingMethod: "환불 처리는 결제 수단(카드)으로만 가능합니다.",
+    disclaimerAriaLabel: "면책 고지",
+    disclaimerTitle: "면책 고지",
+    disclaimerBody: "Code Destiny의 사주·타로·점성술 등 모든 운세 콘텐츠는 오락 및 자기 성찰 목적의 참고 정보이며, 확정된 미래를 예언하거나 결과의 정확성을 보장하지 않습니다. 의료·법률·투자·정신건강 등 중요한 결정은 반드시 해당 분야 전문가와 상담하시기 바랍니다.",
+    disclaimerLinkLabel: "면책 고지 전문 보기",
     social: {
       sectionAriaLabel: "Code Destiny 공식 SNS 채널",
       kicker: "Official Channels",
@@ -435,6 +444,10 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
     refundClosingPolicy:
       "本案内は利用規約および決済代行会社のポリシーと併せて適用され、強行規定と抵触する場合は関係法令が優先します。返金のお申し込みは、お問い合わせまたはカスタマーサポートのメールからお願いします。",
     refundClosingMethod: "返金は、決済に使用された手段（カード）へのみ行われます。",
+    disclaimerAriaLabel: "免責事項",
+    disclaimerTitle: "免責事項",
+    disclaimerBody: "Code Destinyの四柱推命・タロット・占星術などすべての占いコンテンツは、娯楽および自己省察を目的とした参考情報であり、確定した未来を予言するものでも、結果の正確性を保証するものでもありません。医療・法律・投資・メンタルヘルスなど重要な決定は、必ず該当分野の専門家にご相談ください。",
+    disclaimerLinkLabel: "免責事項の全文を見る",
     social: {
       sectionAriaLabel: "Code Destiny 公式SNSチャンネル",
       kicker: "Official Channels",
@@ -564,6 +577,10 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
     refundClosingPolicy:
       "本说明与服务条款及支付服务商政策一并适用；如与强制性法规冲突，以相关法令为准。退款申请请通过联系我们或客服邮箱提出。",
     refundClosingMethod: "退款仅可退回至原支付方式（银行卡）。",
+    disclaimerAriaLabel: "免责声明",
+    disclaimerTitle: "免责声明",
+    disclaimerBody: "Code Destiny 的四柱、塔罗、占星等全部运势内容仅供娱乐与自我反思参考，不预言既定的未来，也不保证结果的准确性。涉及医疗、法律、投资、心理健康等重要决定，请务必咨询相关领域的专业人士。",
+    disclaimerLinkLabel: "查看完整免责声明",
     social: {
       sectionAriaLabel: "Code Destiny 官方社交渠道",
       kicker: "Official Channels",
@@ -693,6 +710,10 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
     refundClosingPolicy:
       "本說明與服務條款及金流服務商政策一併適用；如與強行規定衝突，以相關法令為準。退款申請請透過聯絡我們或客服信箱提出。",
     refundClosingMethod: "退款僅可退回至原支付方式（信用卡）。",
+    disclaimerAriaLabel: "免責聲明",
+    disclaimerTitle: "免責聲明",
+    disclaimerBody: "Code Destiny 的四柱、塔羅、占星等全部運勢內容僅供娛樂與自我反思參考，不預言既定的未來，也不保證結果的準確性。涉及醫療、法律、投資、心理健康等重要決定，請務必諮詢相關領域的專業人士。",
+    disclaimerLinkLabel: "查看完整免責聲明",
     social: {
       sectionAriaLabel: "Code Destiny 官方社群頻道",
       kicker: "Official Channels",
@@ -822,6 +843,10 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
     refundClosingPolicy:
       "This guide applies together with the Terms of Service and the payment provider's policies; where it conflicts with mandatory law, the applicable statutes prevail. Refund requests can be made through Contact or the customer support email.",
     refundClosingMethod: "Refunds can only be issued to the original payment method (card).",
+    disclaimerAriaLabel: "Disclaimer",
+    disclaimerTitle: "Disclaimer",
+    disclaimerBody: "All fortune content on Code Destiny, including Saju, tarot, and astrology, is provided for entertainment and self-reflection only; it does not predict a fixed future and its accuracy is not guaranteed. For important medical, legal, financial, or mental-health decisions, always consult a qualified professional.",
+    disclaimerLinkLabel: "Read the full disclaimer",
     social: {
       sectionAriaLabel: "Code Destiny official social channels",
       kicker: "Official Channels",

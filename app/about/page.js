@@ -93,8 +93,9 @@ export default function AboutPage() {
       </section>
 
       {/* insights 기사의 저자 링크(DEFAULT_ARTICLE_AUTHOR.profileUrl)가 이 페이지로 착지한다.
-          그 이름이 무엇을 가리키고 누가 책임지는지를 여기서 설명한다. */}
-      <section className="cd-card">
+          그 이름이 무엇을 가리키고 누가 책임지는지를 여기서 설명한다.
+          id="author" 는 ContentIntegrityNote 의 "저자 소개" 링크(/about#author)가 착지하는 앵커다. */}
+      <section className="cd-card" id="author">
         <h2>{aboutPageText("editorial.title")}</h2>
         <p>
           {aboutPageText("editorial.team")}

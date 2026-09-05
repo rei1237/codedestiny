@@ -1287,5 +1287,61 @@
     "de": "Die zwei Namen Ihres Sterns entdecken",
     "nl": "Ontdek de twee namen van je ster",
     "ms": "Ketahui dua nama bintang anda"
+  },
+  "shellRuntime.f4025": {
+    "ko": "글",
+    "en": "Written by",
+    "ja": "執筆",
+    "zh-CN": "撰文",
+    "zh-TW": "撰文",
+    "vi": "Bài viết",
+    "hi": "लेखक",
+    "es": "Texto",
+    "fr": "Texte",
+    "de": "Text",
+    "nl": "Tekst",
+    "ms": "Ditulis oleh"
+  },
+  "shellRuntime.f4026": {
+    "ko": "검수",
+    "en": "Reviewed by",
+    "ja": "監修",
+    "zh-CN": "审校",
+    "zh-TW": "審校",
+    "vi": "Kiểm duyệt",
+    "hi": "समीक्षक",
+    "es": "Revisión",
+    "fr": "Relecture",
+    "de": "Prüfung",
+    "nl": "Redactie",
+    "ms": "Disemak oleh"
+  },
+  "shellRuntime.f4027": {
+    "ko": "명리학자(명리 10년)",
+    "en": "Myeongri (Saju) scholar, 10 years of practice",
+    "ja": "命理学者（命理歴10年）",
+    "zh-CN": "命理学者（命理研习10年）",
+    "zh-TW": "命理學者（命理研習10年）",
+    "vi": "Học giả mệnh lý (10 năm nghiên cứu)",
+    "hi": "म्योंगरी (साजू) विद्वान, 10 वर्ष का अनुभव",
+    "es": "Estudioso de Myeongri (Saju), 10 años de práctica",
+    "fr": "Spécialiste du Myeongri (Saju), 10 ans de pratique",
+    "de": "Myeongri-(Saju-)Gelehrter, 10 Jahre Praxis",
+    "nl": "Myeongri-(Saju-)geleerde, 10 jaar praktijk",
+    "ms": "Sarjana Myeongri (Saju), 10 tahun pengalaman"
+  },
+  "shellRuntime.f4028": {
+    "ko": "저자 소개",
+    "en": "About the author",
+    "ja": "著者について",
+    "zh-CN": "关于作者",
+    "zh-TW": "關於作者",
+    "vi": "Về tác giả",
+    "hi": "लेखक के बारे में",
+    "es": "Sobre el autor",
+    "fr": "À propos de l'auteur",
+    "de": "Über den Autor",
+    "nl": "Over de auteur",
+    "ms": "Tentang penulis"
   }
 }

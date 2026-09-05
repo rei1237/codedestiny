@@ -1,5 +1,5 @@
 {
-  "_comment": "공용 푸터(SiteFooterHub·FooterLegal) — 전 React 페이지에 노출된다. 서비스 링크 라벨과 사업자 정보 '라벨'만 번역하고, 법인 상호·대표자명·주소·신고번호 같은 **법정 식별자 값**은 원문을 유지한다(등록된 그대로가 법적 형식이다).",
+  "_comment": "공용 푸터(SiteFooterHub) — 전 React 페이지에 노출된다. 서비스 링크 라벨과 사업자 정보 '라벨'만 번역하고, 법인 상호·대표자명·주소·신고번호 같은 **법정 식별자 값**은 원문을 유지한다(등록된 그대로가 법적 형식이다).",
 
   "shellRuntime.f0": {
     "ko": "서비스 링크 허브", "en": "Service Link Hub", "ja": "サービスリンクハブ", "zh-CN": "服务链接中心", "zh-TW": "服務連結中心",
@@ -371,5 +371,47 @@
     "ko": "랜딩 페이지 내부 링크 허브", "en": "Landing page internal link hub", "ja": "ランディングページ内部リンクハブ", "zh-CN": "落地页内部链接中心", "zh-TW": "著陸頁內部連結中心",
     "vi": "Trung tâm liên kết nội bộ trang đích", "hi": "लैंडिंग पेज आंतरिक लिंक हब", "es": "Centro de enlaces internos de la página de destino", "fr": "Hub de liens internes des pages d'atterrissage",
     "de": "Interner Linkhub der Landingpages", "nl": "Interne linkhub van landingspagina's", "ms": "Hab pautan dalaman halaman pendaratan"
+  },
+  "shellRuntime.f4022": {
+    "ko": "면책 고지",
+    "en": "Disclaimer",
+    "ja": "免責事項",
+    "zh-CN": "免责声明",
+    "zh-TW": "免責聲明",
+    "vi": "Tuyên bố miễn trừ trách nhiệm",
+    "hi": "अस्वीकरण",
+    "es": "Aviso legal",
+    "fr": "Avertissement",
+    "de": "Haftungsausschluss",
+    "nl": "Disclaimer",
+    "ms": "Penafian"
+  },
+  "shellRuntime.f4023": {
+    "ko": "Code Destiny의 사주·타로·점성술 등 모든 운세 콘텐츠는 오락 및 자기 성찰 목적의 참고 정보이며, 확정된 미래를 예언하거나 결과의 정확성을 보장하지 않습니다. 의료·법률·투자·정신건강 등 중요한 결정은 반드시 해당 분야 전문가와 상담하시기 바랍니다.",
+    "en": "All fortune content on Code Destiny, including Saju, tarot, and astrology, is provided for entertainment and self-reflection only; it does not predict a fixed future and its accuracy is not guaranteed. For important medical, legal, financial, or mental-health decisions, always consult a qualified professional.",
+    "ja": "Code Destinyの四柱推命・タロット・占星術などすべての占いコンテンツは、娯楽および自己省察を目的とした参考情報であり、確定した未来を予言するものでも、結果の正確性を保証するものでもありません。医療・法律・投資・メンタルヘルスなど重要な決定は、必ず該当分野の専門家にご相談ください。",
+    "zh-CN": "Code Destiny 的四柱、塔罗、占星等全部运势内容仅供娱乐与自我反思参考，不预言既定的未来，也不保证结果的准确性。涉及医疗、法律、投资、心理健康等重要决定，请务必咨询相关领域的专业人士。",
+    "zh-TW": "Code Destiny 的四柱、塔羅、占星等全部運勢內容僅供娛樂與自我反思參考，不預言既定的未來，也不保證結果的準確性。涉及醫療、法律、投資、心理健康等重要決定，請務必諮詢相關領域的專業人士。",
+    "vi": "Toàn bộ nội dung bói toán trên Code Destiny, gồm Tứ trụ, tarot và chiêm tinh, chỉ mang tính giải trí và tự chiêm nghiệm; không tiên đoán một tương lai cố định và không bảo đảm độ chính xác. Với các quyết định quan trọng về y tế, pháp lý, tài chính hay sức khỏe tinh thần, hãy luôn tham khảo chuyên gia có chuyên môn.",
+    "hi": "Code Destiny की साजू, टैरो और ज्योतिष सहित सभी भविष्यफल सामग्री केवल मनोरंजन और आत्म-चिंतन के लिए है; यह किसी निश्चित भविष्य की भविष्यवाणी नहीं करती और इसकी सटीकता की गारंटी नहीं है। चिकित्सा, कानूनी, वित्तीय या मानसिक स्वास्थ्य से जुड़े महत्वपूर्ण निर्णयों के लिए हमेशा योग्य विशेषज्ञ से परामर्श करें।",
+    "es": "Todo el contenido de Code Destiny, incluidos Saju, tarot y astrología, se ofrece solo con fines de entretenimiento y reflexión personal; no predice un futuro fijo ni se garantiza su exactitud. Para decisiones importantes de salud, legales, financieras o de salud mental, consulte siempre a un profesional cualificado.",
+    "fr": "Tout le contenu de Code Destiny, y compris le Saju, le tarot et l'astrologie, est fourni à titre de divertissement et de réflexion personnelle uniquement ; il ne prédit pas un avenir figé et son exactitude n'est pas garantie. Pour toute décision importante d'ordre médical, juridique, financier ou de santé mentale, consultez toujours un professionnel qualifié.",
+    "de": "Alle Inhalte von Code Destiny, einschließlich Saju, Tarot und Astrologie, dienen ausschließlich der Unterhaltung und Selbstreflexion; sie sagen keine feststehende Zukunft voraus, und ihre Richtigkeit wird nicht garantiert. Bei wichtigen medizinischen, rechtlichen, finanziellen oder psychischen Entscheidungen wenden Sie sich stets an qualifizierte Fachleute.",
+    "nl": "Alle content van Code Destiny, waaronder Saju, tarot en astrologie, is uitsluitend bedoeld voor entertainment en zelfreflectie; het voorspelt geen vaststaande toekomst en de juistheid wordt niet gegarandeerd. Raadpleeg voor belangrijke medische, juridische, financiële of mentale beslissingen altijd een gekwalificeerde professional.",
+    "ms": "Semua kandungan tilikan di Code Destiny, termasuk Saju, tarot dan astrologi, disediakan untuk hiburan dan renungan diri sahaja; ia tidak meramalkan masa depan yang pasti dan ketepatannya tidak dijamin. Untuk keputusan penting berkaitan perubatan, undang-undang, kewangan atau kesihatan mental, sentiasa rujuk profesional yang berkelayakan."
+  },
+  "shellRuntime.f4024": {
+    "ko": "면책 고지 전문 보기",
+    "en": "Read the full disclaimer",
+    "ja": "免責事項の全文を見る",
+    "zh-CN": "查看完整免责声明",
+    "zh-TW": "查看完整免責聲明",
+    "vi": "Xem toàn văn tuyên bố miễn trừ",
+    "hi": "पूरा अस्वीकरण पढ़ें",
+    "es": "Leer el aviso legal completo",
+    "fr": "Lire l'avertissement complet",
+    "de": "Vollständigen Haftungsausschluss lesen",
+    "nl": "Volledige disclaimer lezen",
+    "ms": "Baca penafian penuh"
   }
 }
