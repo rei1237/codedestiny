@@ -1211,6 +1211,12 @@ export async function withMongoRetry(env = {}, operation, options = {}) {
 
   // op-타임아웃 메시지는 아래 withTimeout 던짐과 catch의 판별이 공유한다(문자열 드리프트 방지).
   const operationTimeoutMessage = "MongoDB operation timed out in Worker.";
+  /* 🔴 슬로우 op 로그 임계(2026-09-06). 이 리포에는 "느린데 성공한" Mongo 작업을 남기는 곳이
+     없었다 — [db-op-timeout] 은 예산을 넘긴 실패만 찍고, timings 싱크는 넘긴 호출자(결제 레인)만
+     본다. 그래서 로그인·결제 확정의 p95 를 말할 근거가 리포 안에 하나도 없었다(Phase 1 진단 §4).
+     성공한 시도의 총 소요가 이 값 이상이면 한 줄만 남긴다. 0 이면 끈다. 라우트 식별은 워커
+     로그의 호출 컨텍스트(요청 URL)가 이미 붙이므로 여기서 라벨을 받지 않는다. */
+  const slowOpMS = clampInt(getEnv(env, "MONGO_SLOW_OP_MS", "500"), 500, 0, 30000);
 
   const poolResetCooldownMS = clampInt(getEnv(env, "MONGO_POOL_RESET_COOLDOWN_MS", "2000"), 2000, 0, 10000);
   const resetOnOperationTimeout = options.resetOnOperationTimeout != null
@@ -1331,6 +1337,24 @@ export async function withMongoRetry(env = {}, operation, options = {}) {
           timings.attempts = attempt + 1;
           timings.connectMs = connectFinishedAt ? connectFinishedAt - attemptStartedAt : 0;
           timings.opMs = connectFinishedAt ? Date.now() - connectFinishedAt : Date.now() - attemptStartedAt;
+        }
+        const totalMs = Date.now() - attemptStartedAt;
+        if (slowOpMS > 0 && totalMs >= slowOpMS) {
+          // [db-op-timeout] 과 같은 두 경계값(connectMs / opMs)을 쓴다 — 느린 성공의 원인이
+          // 연결 수립인지 쿼리인지를 실패 로그와 같은 눈금으로 가른다.
+          try {
+            console.log("[db-slow-op]", JSON.stringify({
+              lane: ownsSharedConnection ? "shared" : "payment",
+              attempt: attempt + 1,
+              totalMs,
+              connectMs: connectFinishedAt ? connectFinishedAt - attemptStartedAt : null,
+              opMs: connectFinishedAt ? Date.now() - connectFinishedAt : null,
+              inFlightOps: countActiveMongoOps(),
+              thresholdMs: slowOpMS,
+            }));
+          } catch (e) {
+            // 계측 실패가 성공 응답을 막아서는 안 된다.
+          }
         }
         return result;
       } catch (error) {
