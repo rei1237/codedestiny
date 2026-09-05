@@ -203,6 +203,34 @@ check(
   `정적 검사(${COMPONENT_PATH}): 12궁 격자에 12px 미만 글자 ${gridTinyFonts.join(", ")} — 375px 에서 한 칸이 약 73px 이라 판독이 불가능하다. text-xs(12px) 이상만 쓴다.`,
 );
 
+// ── 4. 모바일 겹침 검사 ─────────────────────────────────────────────────────────
+// 2026-09-05 스테이징 375px 실측으로 확정한 두 결함의 재발을 막는다. 둘 다 좁은 화면에서만 보인다.
+const NAV_START = "aria-label={copy.resultNavAriaLabel}";
+const NAV_END = "</nav>";
+const navBlock = sliceBlock(componentSource, NAV_START, NAV_END);
+check(
+  navBlock.length >= 400,
+  `정적 검사(${COMPONENT_PATH}): 구역 이동 바 블록을 못 찾았다(${navBlock.length}자) — 마커("${NAV_START}" … "${NAV_END}")가 사라졌으면 이 가드를 함께 고칠 것(fail-closed).`,
+);
+check(
+  /\bpl-36\b/.test(navBlock),
+  `정적 검사(${COMPONENT_PATH}): 구역 이동 바에 pl-36 이 없다 — AppChrome 의 .cd-feature-nav(좌상단 고정 뒤로·홈)가 칩 1·2번을 덮어 탭이 안 된다. 결과 화면에는 자체 닫기 버튼이 없어 그 나브를 숨길 수도 없다.`,
+);
+const overlayLine = componentSource.split("\n").find((line) => line.includes("fixed inset-0 z-50 h-[100dvh]")) || "";
+check(
+  /\bbg-\[#[0-9a-fA-F]{6}\]/.test(overlayLine),
+  `정적 검사(${COMPONENT_PATH}): 결과 오버레이 section 에 불투명 배경이 없다 — GalaxyBackdrop 은 absolute inset-0 이라 첫 화면만 덮고 스크롤되어 사라지므로, 그 아래부터 오버레이 뒤 페이지가 카드 사이 틈으로 비친다.`,
+);
+const gridShellLine = componentSource.split("\n").find((line) => line.includes("max-w-[38rem]")) || "";
+check(
+  gridShellLine.includes("sm:aspect-square") && !/(?:^|\s)aspect-square/.test(gridShellLine),
+  `정적 검사(${COMPONENT_PATH}): 12궁 격자가 좁은 화면에서도 aspect-square 다 — 정사각은 sm 부터여야 한다.`,
+);
+check(
+  gridBlock.includes('gridTemplateRows: "repeat(4, minmax(min-content, 1fr))"'),
+  `정적 검사(${COMPONENT_PATH}): 12궁 격자 행이 minmax(min-content, 1fr) 이 아니다 — 1fr 고정 행은 주성 2줄 궁(염정◎/천상◎)의 둘째 줄을 13.8px 잘라낸다(375px 실측 clientHeight 71 vs scrollHeight 77).`,
+);
+
 // ── 결과 ─────────────────────────────────────────────────────────────────────
 if (failures.length) {
   console.error(`${TAG} FAIL`);
@@ -213,4 +241,5 @@ if (failures.length) {
   console.log(`  - runtime strings: ${collected.length} (track analyses ${trackAnalysisCount}, palace readings ${palaceReadingCount}, forbidden phrases ${forbiddenAll.length})`);
   console.log(`  - static: component literals ${componentStrings.length}, copy blocks en/ko ${enBlock.split("\n").length}/${koBlock.split("\n").length} lines`);
   console.log(`  - grid fonts: block ${gridBlock.length} chars, sub-12px classes ${gridTinyFonts.length}`);
+  console.log(`  - mobile overlap: nav block ${navBlock.length} chars, pl-36 ok, grid rows min-content ok, overlay bg ok`);
 }
