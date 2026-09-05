@@ -3,7 +3,7 @@
  *
  * 지키는 사고 (2026-08-28 전수 실측): 사이트 이름이 다섯 갈래로 갈려 있었다.
  *   - 정적 셸 6개  `og:site_name = "CODE DESTINY"`
- *   - public/famous `og:site_name = "Code Destiny (꿀꿀 만세력)"`
+ *   - public/famous `og:site_name = "Code Destiny (꿀꿀 만세력)"` (구명 잔재 — 2026-09-06 홈 셸에서는 구명 표기를 뺐다)
  *   - public/fortune `og:site_name = "Code Destiny"`
  *   - app 라우트 400여 개 `og:site_name = "Code Destiny"` (siteSeo.siteName)
  *   - `WebSite` 스키마 `name = "꿀꿀 운세"` (siteSeo.brandName)
@@ -185,7 +185,7 @@ test("홈 셸(6개 미러 포함)은 application-name 을 브랜드명으로 선
 });
 
 test("app/ 라우트 title 접미사에 구명(꿀꿀 만세력)을 쓰지 않는다", () => {
-  // 브랜드 연혁 문장·alternateName·푸터 저작권의 "꿀꿀 만세력" 은 의도된 구명 표기라 title 만 본다.
+  // 홈 셸의 alternateName·연혁 문장에서는 2026-09-06 에 구명 표기를 뺐다. 이 테스트는 app/ title 접미사만 본다.
   const offenders = [];
   let scanned = 0;
 

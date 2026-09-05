@@ -12,6 +12,7 @@ import { useCoinGate } from "../hooks/useCoinGate";
 import { PriceBadge } from "../components/PriceBadge";
 import { FUSION_ORB_BY_KEY, FUSION_ORBS, type FusionSystemKey } from "./fusionOrbs";
 import { FusionRecentList, type FusionRecentItem } from "./FusionRecentList";
+import { FusionResultRail } from "./FusionResultRail";
 import { FusionResultThread } from "./FusionResultThread";
 import {
   FusionOrb,
@@ -137,7 +138,7 @@ function FieldSystems({ field, copy }: { field: keyof typeof FIELD_SYSTEMS; copy
   );
 }
 
-type OpenedConsultation = { id: string; result: Result; qualityTier?: string; qualityNotice?: string; inputSummary?: { topic?: string; nickname?: string } };
+type OpenedConsultation = { id: string; result: Result; qualityTier?: string; qualityNotice?: string; inputSummary?: { topic?: string; nickname?: string }; status?: string; stage?: number };
 
 async function parseJson<T>(response: Response, copy: FusionFortuneCopy): Promise<T> {
   if (!response.headers.get("content-type")?.includes("application/json")) throw new Error(copy.serverResponseInvalidMessage);
@@ -312,6 +313,9 @@ type FusionFortuneCopy = {
   composeDoneSuffix: string;
   composeRepairNote: string;
   composeNormalNote: string;
+  stageOnePartialNotice: string;
+  continueGenerationButton: string;
+  stageTwoFailedMessage: string;
   stalledNotice: string;
   waitingSuffix: string;
   qualityNoticeHeading: string;
@@ -379,7 +383,7 @@ const FUSION_FORTUNE_EN: FusionFortuneCopy = {
   heroFirstCome: "Six-system cross reading",
   heroPriceFallback: "₩30,000",
   heroPricePrefix: "per reading ",
-  heroWordCount: "20,000+ characters",
+  heroWordCount: "30,000+ characters",
   heroSaveNote: "Saved · Reopenable · PDF",
   chatLead: "Fusion AI tells you, right on this screen, as each of the six systems finishes.",
   heroFormCta: "Start my reading",
@@ -388,7 +392,7 @@ const FUSION_FORTUNE_EN: FusionFortuneCopy = {
   readingFlowFinalTitle: "One cross reading",
   readingFlowFinalDesc: "Signals that agree become the core pattern; signals that differ become situational options.",
   statusScopeLabel: "What this reading covers",
-  statusScopeValue: "Six systems · 20,000+ characters",
+  statusScopeValue: "Six systems · 30,000+ characters",
   statusScopeNote: "Reads Saju, Ziwei Doushu, Vedic astrology, Sukuyo, Western astrology, and Tarot separately, then cross-reads them at the end.",
   statusMethodLabel: "How it's billed",
   statusMethodValue: "Paid per reading",
@@ -442,7 +446,10 @@ const FUSION_FORTUNE_EN: FusionFortuneCopy = {
   composeRepairSuffix: " group repaired",
   composeDoneSuffix: " reading group complete",
   composeRepairNote: "We're only rewriting the groups that came up short. The groups already finished stay as they are.",
-  composeNormalNote: "This runs over 20,000 characters, so we write four groups at once. Whichever finishes first shows up first.",
+  composeNormalNote: "This runs over 30,000 characters, so we write it in two stages, several groups at once. Whichever finishes first shows up first.",
+  stageOnePartialNotice: "The six system readings are in. The integrated reading, timing, and final verdict are being written now.",
+  continueGenerationButton: "Continue the reading (no additional charge)",
+  stageTwoFailedMessage: "The six readings are saved. The integrated reading and final verdict did not finish. Continue with the same payment; there is no additional charge.",
   stalledNotice: "The connection has been quiet for a while. Your result is saved to your account the moment it's complete, so if the screen looks stuck, check your archive below.",
   waitingSuffix: " waiting their turn",
   qualityNoticeHeading: "Length notice",
@@ -511,7 +518,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     heroFirstCome: "여섯 체계 교차 판정",
     heroPriceFallback: "30,000원",
     heroPricePrefix: "1회 ",
-    heroWordCount: "20,000자 이상",
+    heroWordCount: "30,000자 이상",
     heroSaveNote: "저장 · 재열람 · PDF",
     chatLead: "Fusion AI가 여섯 체계의 완료 흐름을 이 화면에서 차례로 알려드려요.",
     heroFormCta: "지금 리딩 시작하기",
@@ -520,7 +527,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     readingFlowFinalTitle: "교차 판정 하나",
     readingFlowFinalDesc: "같은 신호는 핵심 패턴으로, 다른 신호는 상황별 선택지로.",
     statusScopeLabel: "이번 리딩이 읽는 범위",
-    statusScopeValue: "여섯 체계 · 20,000자 이상",
+    statusScopeValue: "여섯 체계 · 30,000자 이상",
     statusScopeNote: "사주·자미두수·베다점·숙요점·점성술·타로를 각각 읽고 마지막에 교차 판정합니다.",
     statusMethodLabel: "이용 방식",
     statusMethodValue: "회당 결제",
@@ -574,7 +581,10 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     composeRepairSuffix: " 묶음 보완 완료",
     composeDoneSuffix: " 리딩 묶음 완성",
     composeRepairNote: "분량이 모자란 묶음만 다시 쓰고 있어요. 앞서 완성된 묶음은 그대로 남아 있습니다.",
-    composeNormalNote: "2만 자가 넘는 분량이라 네 묶음을 동시에 씁니다. 먼저 끝난 묶음부터 표시돼요.",
+    composeNormalNote: "3만 자가 넘는 분량이라 두 단계로 나눠 여러 묶음을 동시에 씁니다. 먼저 끝난 묶음부터 표시돼요.",
+    stageOnePartialNotice: "여섯 체계의 해석이 먼저 도착했어요. 종합 해석·시기·최종 판정을 이어서 쓰고 있습니다.",
+    continueGenerationButton: "이어서 생성하기 (추가 결제 없음)",
+    stageTwoFailedMessage: "여섯 체계의 해석은 저장됐어요. 종합 해석과 최종 판정이 아직 완성되지 않았습니다. 같은 결제로 이어서 받을 수 있고, 추가 결제는 없습니다.",
     stalledNotice: "연결이 조용해진 지 좀 됐어요. 결과는 완성되는 즉시 계정에 저장되니, 화면이 멈춘 것 같으면 아래 보관함에서 다시 확인해 주세요.",
     waitingSuffix: " 차례를 기다리는 중",
     qualityNoticeHeading: "분량 안내",
@@ -642,7 +652,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     heroFirstCome: "六体系クロス判定",
     heroPriceFallback: "₩30,000",
     heroPricePrefix: "1回 ",
-    heroWordCount: "20,000字以上",
+    heroWordCount: "30,000字以上",
     heroSaveNote: "保存 · 再閲覧 · PDF",
     chatLead: "Fusion AIが六体系の完了状況をこの画面で順番にお知らせします。",
     heroFormCta: "今すぐ鑑定を始める",
@@ -651,7 +661,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     readingFlowFinalTitle: "ひとつのクロス判定",
     readingFlowFinalDesc: "一致する信号は核心パターンに、異なる信号は状況別の選択肢になります。",
     statusScopeLabel: "今回のリーディングが読み取る範囲",
-    statusScopeValue: "六体系 · 20,000字以上",
+    statusScopeValue: "六体系 · 30,000字以上",
     statusScopeNote: "四柱推命・紫微斗数・ヴェーダ占星術・宿曜・西洋占星術・タロットをそれぞれ読み解き、最後にクロス判定します。",
     statusMethodLabel: "利用方式",
     statusMethodValue: "都度決済",
@@ -705,7 +715,10 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     composeRepairSuffix: " グループ補完完了",
     composeDoneSuffix: " リーディンググループ完成",
     composeRepairNote: "分量が不足したグループのみ書き直しています。先に完成したグループはそのまま残ります。",
-    composeNormalNote: "2万字を超える分量のため、4グループを同時に書いています。先に終わったグループから表示されます。",
+    composeNormalNote: "3万字を超える分量のため、2段階に分けて複数グループを同時に書いています。先に終わったグループから表示されます。",
+    stageOnePartialNotice: "六体系の解釈が先に届きました。総合解釈・時期・最終判定を続けて書いています。",
+    continueGenerationButton: "続きを生成する（追加決済なし）",
+    stageTwoFailedMessage: "六体系の解釈は保存されています。総合解釈と最終判定がまだ完成していません。同じ決済のまま続きを受け取れ、追加決済はありません。",
     stalledNotice: "接続が静かになってから少し経ちました。結果は完成次第すぐにアカウントに保存されるので、画面が止まったように見えたら下のアーカイブでご確認ください。",
     waitingSuffix: " 順番を待っています",
     qualityNoticeHeading: "分量に関するお知らせ",
@@ -772,7 +785,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     heroFirstCome: "六体系交叉解读",
     heroPriceFallback: "₩30,000",
     heroPricePrefix: "每次 ",
-    heroWordCount: "20,000字以上",
+    heroWordCount: "30,000字以上",
     heroSaveNote: "保存 · 可重新查看 · PDF",
     chatLead: "Fusion AI会在这个页面上依次告知您六大体系的完成情况。",
     heroFormCta: "立即开始解读",
@@ -781,7 +794,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     readingFlowFinalTitle: "一份交叉判定",
     readingFlowFinalDesc: "相同信号成为核心模式，不同信号成为具体情境下的选项。",
     statusScopeLabel: "本次解读涵盖的范围",
-    statusScopeValue: "六体系 · 20,000字以上",
+    statusScopeValue: "六体系 · 30,000字以上",
     statusScopeNote: "分别解读命理、紫微斗数、吠陀占星术、宿曜、西方占星术、塔罗，最后进行交叉判定。",
     statusMethodLabel: "使用方式",
     statusMethodValue: "按次付费",
@@ -835,7 +848,10 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     composeRepairSuffix: " 个分组已补全",
     composeDoneSuffix: " 个解读分组完成",
     composeRepairNote: "仅重新撰写内容不足的分组。先前已完成的分组将保持不变。",
-    composeNormalNote: "由于篇幅超过两万字，我们同时撰写四个分组。哪个先完成就先显示哪个。",
+    composeNormalNote: "由于篇幅超过三万字，我们分两个阶段、同时撰写多个分组。哪个先完成就先显示哪个。",
+    stageOnePartialNotice: "六大体系的解读已先送达。综合解读、时机与最终判定正在撰写中。",
+    continueGenerationButton: "继续生成（无需再次付款）",
+    stageTwoFailedMessage: "六大体系的解读已保存。综合解读与最终判定尚未完成。可凭同一笔付款继续接收，无需再次付款。",
     stalledNotice: "连接已安静了一段时间。结果一旦完成便会立即保存至您的账户，如果页面看起来停滞了，请在下方的存档中查看。",
     waitingSuffix: " 正在等待轮到",
     qualityNoticeHeading: "篇幅说明",
@@ -902,7 +918,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     heroFirstCome: "六體系交叉解讀",
     heroPriceFallback: "₩30,000",
     heroPricePrefix: "每次 ",
-    heroWordCount: "20,000字以上",
+    heroWordCount: "30,000字以上",
     heroSaveNote: "儲存 · 可重新查看 · PDF",
     chatLead: "Fusion AI會在這個頁面上依序告知您六大體系的完成情況。",
     heroFormCta: "立即開始解讀",
@@ -911,7 +927,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     readingFlowFinalTitle: "一份交叉判定",
     readingFlowFinalDesc: "相同信號成為核心模式，不同信號成為具體情境下的選項。",
     statusScopeLabel: "本次解讀涵蓋的範圍",
-    statusScopeValue: "六體系 · 20,000字以上",
+    statusScopeValue: "六體系 · 30,000字以上",
     statusScopeNote: "分別解讀命理、紫微斗數、吠陀占星術、宿曜、西方占星術、塔羅，最後進行交叉判定。",
     statusMethodLabel: "使用方式",
     statusMethodValue: "按次付費",
@@ -965,7 +981,10 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     composeRepairSuffix: " 個分組已補全",
     composeDoneSuffix: " 個解讀分組完成",
     composeRepairNote: "僅重新撰寫內容不足的分組。先前已完成的分組將保持不變。",
-    composeNormalNote: "由於篇幅超過兩萬字，我們同時撰寫四個分組。哪個先完成就先顯示哪個。",
+    composeNormalNote: "由於篇幅超過三萬字，我們分兩個階段、同時撰寫多個分組。哪個先完成就先顯示哪個。",
+    stageOnePartialNotice: "六大體系的解讀已先送達。綜合解讀、時機與最終判定正在撰寫中。",
+    continueGenerationButton: "繼續生成（無需再次付款）",
+    stageTwoFailedMessage: "六大體系的解讀已保存。綜合解讀與最終判定尚未完成。可憑同一筆付款繼續接收，無需再次付款。",
     stalledNotice: "連線已安靜了一段時間。結果一旦完成便會立即儲存至您的帳戶，如果頁面看起來停滯了，請在下方的存檔中查看。",
     waitingSuffix: " 正在等待輪到",
     qualityNoticeHeading: "篇幅說明",
@@ -1032,7 +1051,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     heroFirstCome: "Đọc chéo sáu hệ thống",
     heroPriceFallback: "₩30,000",
     heroPricePrefix: "mỗi lần đọc ",
-    heroWordCount: "Hơn 20.000 ký tự",
+    heroWordCount: "Hơn 30.000 ký tự",
     heroSaveNote: "Đã lưu · Có thể mở lại · PDF",
     chatLead: "Fusion AI cho bạn biết ngay trên màn hình này khi mỗi hệ thống trong sáu hệ thống hoàn thành.",
     heroFormCta: "Bắt đầu luận giải ngay",
@@ -1041,7 +1060,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     readingFlowFinalTitle: "Một bài đọc chéo",
     readingFlowFinalDesc: "Các tín hiệu đồng nhất trở thành khuôn mẫu cốt lõi; các tín hiệu khác nhau trở thành lựa chọn theo tình huống.",
     statusScopeLabel: "Phạm vi bài đọc này bao quát",
-    statusScopeValue: "Sáu hệ thống · Hơn 20.000 ký tự",
+    statusScopeValue: "Sáu hệ thống · Hơn 30.000 ký tự",
     statusScopeNote: "Đọc riêng Tứ Trụ, Tử Vi Đẩu Số, chiêm tinh Vệ Đà, Sukuyo, chiêm tinh Phương Tây và Tarot, sau đó đọc chéo vào cuối.",
     statusMethodLabel: "Cách tính phí",
     statusMethodValue: "Trả phí theo mỗi lần đọc",
@@ -1095,7 +1114,10 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     composeRepairSuffix: " nhóm đã được sửa xong",
     composeDoneSuffix: " nhóm bài đọc hoàn tất",
     composeRepairNote: "Chúng tôi chỉ viết lại các nhóm chưa đủ độ dài. Các nhóm đã hoàn thành trước đó vẫn giữ nguyên.",
-    composeNormalNote: "Bài đọc này dài hơn 20.000 ký tự, vì vậy chúng tôi viết bốn nhóm cùng lúc. Nhóm nào xong trước sẽ hiển thị trước.",
+    composeNormalNote: "Bài đọc này dài hơn 30.000 ký tự, vì vậy chúng tôi viết theo hai giai đoạn, nhiều nhóm cùng lúc. Nhóm nào xong trước sẽ hiển thị trước.",
+    stageOnePartialNotice: "Sáu hệ thống đã cho kết quả trước. Phần tổng hợp, thời điểm và phán quyết cuối cùng đang được viết tiếp.",
+    continueGenerationButton: "Tiếp tục tạo (không tính phí thêm)",
+    stageTwoFailedMessage: "Sáu bài đọc đã được lưu. Phần tổng hợp và phán quyết cuối cùng chưa hoàn tất. Bạn có thể tiếp tục với cùng khoản thanh toán, không tính phí thêm.",
     stalledNotice: "Kết nối đã im lặng một lúc. Kết quả của bạn được lưu vào tài khoản ngay khi hoàn tất, vì vậy nếu màn hình có vẻ như bị treo, hãy kiểm tra kho lưu trữ bên dưới.",
     waitingSuffix: " đang chờ đến lượt",
     qualityNoticeHeading: "Thông báo về độ dài",
@@ -1162,7 +1184,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     heroFirstCome: "छह-प्रणाली क्रॉस रीडिंग",
     heroPriceFallback: "₩30,000",
     heroPricePrefix: "प्रति रीडिंग ",
-    heroWordCount: "20,000+ अक्षर",
+    heroWordCount: "30,000+ अक्षर",
     heroSaveNote: "सहेजा गया · फिर से खोला जा सकता है · PDF",
     chatLead: "फ्यूज़न AI आपको इसी स्क्रीन पर बताता है, जैसे-जैसे छह में से प्रत्येक प्रणाली पूरी होती है।",
     heroFormCta: "अभी रीडिंग शुरू करें",
@@ -1171,7 +1193,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     readingFlowFinalTitle: "एक क्रॉस रीडिंग",
     readingFlowFinalDesc: "जो संकेत सहमत होते हैं वे मुख्य पैटर्न बन जाते हैं; जो संकेत भिन्न होते हैं वे स्थितिजन्य विकल्प बन जाते हैं।",
     statusScopeLabel: "यह रीडिंग जो कवर करती है",
-    statusScopeValue: "छह प्रणालियां · 20,000+ अक्षर",
+    statusScopeValue: "छह प्रणालियां · 30,000+ अक्षर",
     statusScopeNote: "साजू, ज़िवेई दोशु, वैदिक ज्योतिष, सुक्यो, पाश्चात्य ज्योतिष और टैरो को अलग-अलग पढ़ता है, फिर अंत में उन्हें क्रॉस-रीड करता है।",
     statusMethodLabel: "इसका बिल कैसे बनता है",
     statusMethodValue: "प्रति रीडिंग भुगतान",
@@ -1225,7 +1247,10 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     composeRepairSuffix: " समूह की मरम्मत पूर्ण",
     composeDoneSuffix: " रीडिंग समूह पूर्ण",
     composeRepairNote: "हम केवल उन समूहों को फिर से लिख रहे हैं जो कम पड़ गए। पहले से पूर्ण हुए समूह वैसे ही बने रहते हैं।",
-    composeNormalNote: "यह 20,000 अक्षरों से अधिक है, इसलिए हम एक साथ चार समूह लिखते हैं। जो भी पहले पूरा होता है वह पहले दिखता है।",
+    composeNormalNote: "यह 30,000 अक्षरों से अधिक है, इसलिए हम इसे दो चरणों में, एक साथ कई समूह लिखते हैं। जो भी पहले पूरा होता है वह पहले दिखता है।",
+    stageOnePartialNotice: "छह प्रणालियों की व्याख्या पहले आ गई है। समग्र व्याख्या, समय और अंतिम निर्णय अभी लिखे जा रहे हैं।",
+    continueGenerationButton: "आगे जारी रखें (कोई अतिरिक्त शुल्क नहीं)",
+    stageTwoFailedMessage: "छह व्याख्याएँ सहेज ली गई हैं। समग्र व्याख्या और अंतिम निर्णय अभी पूरे नहीं हुए। उसी भुगतान से जारी रखें, कोई अतिरिक्त शुल्क नहीं।",
     stalledNotice: "कनेक्शन कुछ समय से शांत है। आपका परिणाम पूर्ण होते ही आपके खाते में सहेजा जाता है, इसलिए यदि स्क्रीन रुकी हुई लगे, तो कृपया नीचे संग्रह में जांचें।",
     waitingSuffix: " बारी की प्रतीक्षा में",
     qualityNoticeHeading: "लंबाई संबंधी सूचना",
@@ -1292,7 +1317,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     heroFirstCome: "Lectura cruzada de seis sistemas",
     heroPriceFallback: "₩30,000",
     heroPricePrefix: "por lectura ",
-    heroWordCount: "Más de 20,000 caracteres",
+    heroWordCount: "Más de 30,000 caracteres",
     heroSaveNote: "Guardado · Reabrible · PDF",
     chatLead: "Fusion AI te avisa, justo en esta pantalla, a medida que cada uno de los seis sistemas termina.",
     heroFormCta: "Comenzar mi lectura",
@@ -1301,7 +1326,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     readingFlowFinalTitle: "Una lectura cruzada",
     readingFlowFinalDesc: "Las señales que coinciden se convierten en el patrón central; las señales que difieren se convierten en opciones situacionales.",
     statusScopeLabel: "Lo que cubre esta lectura",
-    statusScopeValue: "Seis sistemas · Más de 20,000 caracteres",
+    statusScopeValue: "Seis sistemas · Más de 30,000 caracteres",
     statusScopeNote: "Lee Saju, Ziwei Doushu, astrología védica, Sukuyo, astrología occidental y Tarot por separado, y luego los lee de forma cruzada al final.",
     statusMethodLabel: "Cómo se factura",
     statusMethodValue: "Se paga por lectura",
@@ -1355,7 +1380,10 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     composeRepairSuffix: " grupo reparado",
     composeDoneSuffix: " grupo de lectura completo",
     composeRepairNote: "Solo estamos reescribiendo los grupos que quedaron cortos. Los grupos ya terminados permanecen como están.",
-    composeNormalNote: "Esto supera los 20,000 caracteres, así que escribimos cuatro grupos a la vez. El que termine primero se muestra primero.",
+    composeNormalNote: "Esto supera los 30,000 caracteres, así que lo escribimos en dos etapas, varios grupos a la vez. El que termine primero se muestra primero.",
+    stageOnePartialNotice: "Las lecturas de los seis sistemas ya llegaron. La lectura integrada, el momento y el veredicto final se están escribiendo ahora.",
+    continueGenerationButton: "Continuar la lectura (sin cargo adicional)",
+    stageTwoFailedMessage: "Las seis lecturas están guardadas. La lectura integrada y el veredicto final no se completaron. Continúa con el mismo pago, sin cargo adicional.",
     stalledNotice: "La conexión ha estado en silencio por un rato. Tu resultado se guarda en tu cuenta en el momento en que se completa, así que si la pantalla parece atascada, revisa tu archivo abajo.",
     waitingSuffix: " esperando su turno",
     qualityNoticeHeading: "Aviso de extensión",
@@ -1422,7 +1450,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     heroFirstCome: "Lecture croisée à six systèmes",
     heroPriceFallback: "₩30,000",
     heroPricePrefix: "par lecture ",
-    heroWordCount: "Plus de 20 000 caractères",
+    heroWordCount: "Plus de 30 000 caractères",
     heroSaveNote: "Enregistré · Réouvrable · PDF",
     chatLead: "Fusion AI vous informe, directement sur cet écran, à mesure que chacun des six systèmes se termine.",
     heroFormCta: "Commencer ma lecture",
@@ -1431,7 +1459,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     readingFlowFinalTitle: "Une lecture croisée",
     readingFlowFinalDesc: "Les signaux qui concordent deviennent le schéma central ; les signaux qui diffèrent deviennent des options situationnelles.",
     statusScopeLabel: "Ce que couvre cette lecture",
-    statusScopeValue: "Six systèmes · Plus de 20 000 caractères",
+    statusScopeValue: "Six systèmes · Plus de 30 000 caractères",
     statusScopeNote: "Lit séparément le Saju, le Ziwei Doushu, l'astrologie védique, le Sukuyo, l'astrologie occidentale et le Tarot, puis les lit de manière croisée à la fin.",
     statusMethodLabel: "Mode de facturation",
     statusMethodValue: "Facturé par lecture",
@@ -1485,7 +1513,10 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     composeRepairSuffix: " groupe réparé",
     composeDoneSuffix: " groupe de lecture terminé",
     composeRepairNote: "Nous ne réécrivons que les groupes qui étaient insuffisants. Les groupes déjà terminés restent tels quels.",
-    composeNormalNote: "Cela dépasse 20 000 caractères, nous écrivons donc quatre groupes à la fois. Celui qui termine en premier s'affiche en premier.",
+    composeNormalNote: "Cela dépasse 30 000 caractères, nous l'écrivons donc en deux étapes, plusieurs groupes à la fois. Celui qui termine en premier s'affiche en premier.",
+    stageOnePartialNotice: "Les lectures des six systèmes sont arrivées. La lecture intégrée, le calendrier et le verdict final sont en cours de rédaction.",
+    continueGenerationButton: "Poursuivre la lecture (sans frais supplémentaires)",
+    stageTwoFailedMessage: "Les six lectures sont enregistrées. La lecture intégrée et le verdict final ne sont pas terminés. Poursuivez avec le même paiement, sans frais supplémentaires.",
     stalledNotice: "La connexion est silencieuse depuis un moment. Votre résultat est enregistré dans votre compte dès qu'il est terminé, donc si l'écran semble bloqué, vérifiez vos archives ci-dessous.",
     waitingSuffix: " en attente de son tour",
     qualityNoticeHeading: "Avis sur la longueur",
@@ -1552,7 +1583,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     heroFirstCome: "Sechs-Systeme-Kreuzdeutung",
     heroPriceFallback: "₩30,000",
     heroPricePrefix: "pro Deutung ",
-    heroWordCount: "Über 20.000 Zeichen",
+    heroWordCount: "Über 30.000 Zeichen",
     heroSaveNote: "Gespeichert · Wieder öffenbar · PDF",
     chatLead: "Fusion AI informiert Sie direkt auf diesem Bildschirm, sobald jedes der sechs Systeme fertig ist.",
     heroFormCta: "Reading jetzt starten",
@@ -1561,7 +1592,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     readingFlowFinalTitle: "Eine Kreuzdeutung",
     readingFlowFinalDesc: "Übereinstimmende Signale werden zum Kernmuster; abweichende Signale werden zu situativen Optionen.",
     statusScopeLabel: "Was diese Deutung abdeckt",
-    statusScopeValue: "Sechs Systeme · Über 20.000 Zeichen",
+    statusScopeValue: "Sechs Systeme · Über 30.000 Zeichen",
     statusScopeNote: "Liest Saju, Ziwei Doushu, vedische Astrologie, Sukuyo, westliche Astrologie und Tarot separat und liest sie am Ende dann kreuzweise.",
     statusMethodLabel: "Abrechnungsart",
     statusMethodValue: "Pro Deutung bezahlt",
@@ -1615,7 +1646,10 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     composeRepairSuffix: " Gruppe repariert",
     composeDoneSuffix: " Lesegruppe fertig",
     composeRepairNote: "Wir schreiben nur die Gruppen neu, die zu kurz ausgefallen sind. Bereits fertige Gruppen bleiben unverändert.",
-    composeNormalNote: "Dies umfasst über 20.000 Zeichen, daher schreiben wir vier Gruppen gleichzeitig. Welche zuerst fertig ist, wird zuerst angezeigt.",
+    composeNormalNote: "Dies umfasst über 30.000 Zeichen, daher schreiben wir in zwei Stufen mehrere Gruppen gleichzeitig. Welche zuerst fertig ist, wird zuerst angezeigt.",
+    stageOnePartialNotice: "Die Deutungen der sechs Systeme sind da. Gesamtdeutung, Zeitpunkte und Endurteil werden jetzt geschrieben.",
+    continueGenerationButton: "Weiter erzeugen (ohne zusätzliche Kosten)",
+    stageTwoFailedMessage: "Die sechs Deutungen sind gespeichert. Gesamtdeutung und Endurteil wurden nicht fertig. Mit derselben Zahlung fortfahren, ohne zusätzliche Kosten.",
     stalledNotice: "Die Verbindung ist seit einer Weile still. Ihr Ergebnis wird sofort nach Fertigstellung in Ihrem Konto gespeichert. Wenn der Bildschirm also festzuhängen scheint, prüfen Sie unten Ihr Archiv.",
     waitingSuffix: " warten an der Reihe",
     qualityNoticeHeading: "Hinweis zur Länge",
@@ -1682,7 +1716,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     heroFirstCome: "Zes-systemen kruislezing",
     heroPriceFallback: "₩30,000",
     heroPricePrefix: "per lezing ",
-    heroWordCount: "Meer dan 20.000 tekens",
+    heroWordCount: "Meer dan 30.000 tekens",
     heroSaveNote: "Opgeslagen · Opnieuw te openen · PDF",
     chatLead: "Fusion AI laat het je precies op dit scherm weten zodra elk van de zes systemen klaar is.",
     heroFormCta: "Start mijn reading",
@@ -1691,7 +1725,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     readingFlowFinalTitle: "Eén kruislezing",
     readingFlowFinalDesc: "Signalen die overeenkomen worden het kernpatroon; signalen die verschillen worden situationele opties.",
     statusScopeLabel: "Wat deze lezing dekt",
-    statusScopeValue: "Zes systemen · Meer dan 20.000 tekens",
+    statusScopeValue: "Zes systemen · Meer dan 30.000 tekens",
     statusScopeNote: "Leest Saju, Ziwei Doushu, Vedische astrologie, Sukuyo, Westerse astrologie en Tarot afzonderlijk, en leest ze aan het einde kruiselings.",
     statusMethodLabel: "Hoe het wordt gefactureerd",
     statusMethodValue: "Per lezing betaald",
@@ -1745,7 +1779,10 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     composeRepairSuffix: " groep hersteld",
     composeDoneSuffix: " leesgroep voltooid",
     composeRepairNote: "We herschrijven alleen de groepen die tekortschoten. Reeds voltooide groepen blijven ongewijzigd.",
-    composeNormalNote: "Dit overschrijdt de 20.000 tekens, dus we schrijven vier groepen tegelijk. Welke het eerst klaar is, wordt het eerst getoond.",
+    composeNormalNote: "Dit overschrijdt de 30.000 tekens, dus we schrijven in twee fasen meerdere groepen tegelijk. Welke het eerst klaar is, wordt het eerst getoond.",
+    stageOnePartialNotice: "De duidingen van de zes systemen zijn binnen. De samenhangende duiding, timing en het eindoordeel worden nu geschreven.",
+    continueGenerationButton: "Verder genereren (zonder extra kosten)",
+    stageTwoFailedMessage: "De zes duidingen zijn opgeslagen. De samenhangende duiding en het eindoordeel zijn niet afgerond. Ga verder met dezelfde betaling, zonder extra kosten.",
     stalledNotice: "De verbinding is al een tijdje stil. Je resultaat wordt opgeslagen in je account zodra het klaar is, dus als het scherm vastzit, controleer dan je archief hieronder.",
     waitingSuffix: " wachten op hun beurt",
     qualityNoticeHeading: "Kennisgeving over lengte",
@@ -1812,7 +1849,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     heroFirstCome: "Bacaan silang enam sistem",
     heroPriceFallback: "₩30,000",
     heroPricePrefix: "setiap bacaan ",
-    heroWordCount: "Lebih 20,000 aksara",
+    heroWordCount: "Lebih 30,000 aksara",
     heroSaveNote: "Disimpan · Boleh dibuka semula · PDF",
     chatLead: "Fusion AI memberitahu anda, terus di skrin ini, apabila setiap satu daripada enam sistem selesai.",
     heroFormCta: "Mula bacaan sekarang",
@@ -1821,7 +1858,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     readingFlowFinalTitle: "Satu bacaan silang",
     readingFlowFinalDesc: "Isyarat yang sepadan menjadi corak teras; isyarat yang berbeza menjadi pilihan mengikut situasi.",
     statusScopeLabel: "Apa yang diliputi bacaan ini",
-    statusScopeValue: "Enam sistem · Lebih 20,000 aksara",
+    statusScopeValue: "Enam sistem · Lebih 30,000 aksara",
     statusScopeNote: "Membaca Saju, Ziwei Doushu, astrologi Veda, Sukuyo, astrologi Barat dan Tarot secara berasingan, kemudian membaca secara silang pada akhirnya.",
     statusMethodLabel: "Cara pengebilan",
     statusMethodValue: "Dibayar setiap bacaan",
@@ -1875,7 +1912,10 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     composeRepairSuffix: " kumpulan telah dibaiki",
     composeDoneSuffix: " kumpulan bacaan selesai",
     composeRepairNote: "Kami hanya menulis semula kumpulan yang tidak mencukupi. Kumpulan yang telah selesai kekal seperti sedia ada.",
-    composeNormalNote: "Ini melebihi 20,000 aksara, jadi kami menulis empat kumpulan serentak. Yang mana siap dahulu akan dipaparkan dahulu.",
+    composeNormalNote: "Ini melebihi 30,000 aksara, jadi kami menulisnya dalam dua peringkat, beberapa kumpulan serentak. Yang mana siap dahulu akan dipaparkan dahulu.",
+    stageOnePartialNotice: "Bacaan enam sistem telah tiba. Bacaan bersepadu, masa dan keputusan akhir sedang ditulis sekarang.",
+    continueGenerationButton: "Teruskan penjanaan (tanpa caj tambahan)",
+    stageTwoFailedMessage: "Enam bacaan telah disimpan. Bacaan bersepadu dan keputusan akhir belum selesai. Teruskan dengan bayaran yang sama, tanpa caj tambahan.",
     stalledNotice: "Sambungan telah senyap untuk seketika. Hasil anda disimpan ke akaun anda sebaik sahaja selesai, jadi jika skrin kelihatan tersekat, sila semak arkib anda di bawah.",
     waitingSuffix: " menunggu giliran",
     qualityNoticeHeading: "Notis panjang kandungan",
@@ -1962,6 +2002,11 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
   const [openSection, setOpenSection] = useState<string>("");
   /** 생성 실패는 폼이 아니라 대화 안에 남는다 — 어디까지 진행됐는지와 함께 봐야 재시도를 고른다. */
   const [failure, setFailure] = useState<{ message: string; retryable: boolean; reason?: string } | null>(null);
+  // 2단계 생성: 여섯 체계 섹션(1단계)은 받았는데 종합·판정(2단계)이 끝나지 않은 상태.
+  // 실패 카드가 아니라 "이어서 생성" 버튼을 띄운다 — 결제 증빙은 그대로 남는다.
+  const [stageTwoFailed, setStageTwoFailed] = useState(false);
+  const autoResumeRef = useRef(false);
+  const runGenerationRef = useRef<((requestId: string, requestBody: FusionRequestBody, startStage: 1 | 2, fortuneChatSessionId: string) => Promise<void>) | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const threadRef = useRef<HTMLElement>(null);
   const [guardianHandoff, setGuardianHandoff] = useState<{ topic: string; category: string } | null>(null);
@@ -2065,6 +2110,8 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
     setQualityNotice(consultation.qualityTier === "degraded" ? (consultation.qualityNotice || "") : "");
     setFailure(null);
     setOpenSection("");
+    // 1단계만 저장된 보관본(partial)은 완성본이 아니다 — 재열람 링크(?cid=)를 남기지 않는다.
+    if (consultation.status === "partial") return;
     setOpenedConsultationId(consultation.id);
     rememberConsultationUrl(consultation.id);
   }, []);
@@ -2076,7 +2123,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
    * 그래서 스트림이 끊겨도 완성된 결과가 계정에 이미 있을 수 있다. 이 조회를 건너뛰면 3만원짜리
    * 완성품을 실패 화면으로 덮게 된다. 실패는 조용히 삼킨다 — 회수는 부가 시도지 새 실패 원인이 아니다.
    */
-  const recoverPaidResult = useCallback(async (requestId: string) => {
+  const recoverPaidResult = useCallback(async (requestId: string): Promise<false | "partial" | "completed"> => {
     if (!requestId) return false;
     try {
       const response = await authFetch(`${apiBase}/api/fusion-fortune/result?requestId=${encodeURIComponent(requestId)}`, { credentials: "include" }, { retryOn401: true, apiBase });
@@ -2084,11 +2131,32 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
       const payload = await parseJson<{ ok?: boolean; consultation?: OpenedConsultation }>(response, copy);
       if (!payload.ok || !payload.consultation?.result) return false;
       applyOpenedConsultation(payload.consultation);
-      return true;
+      // 1단계만 저장된 보관본이면 화면에는 올리되 완성으로 치지 않는다 — 호출자가 2단계를 이어 간다.
+      return payload.consultation.status === "partial" ? "partial" : "completed";
     } catch {
       return false;
     }
   }, [apiBase, copy, applyOpenedConsultation]);
+
+  // 새로고침으로 돌아온 결제 요청은 서버에 남은 것부터 본다 — 완성본이면 열고 영수증을 소진,
+  // 1단계만 있으면 2단계를 자동으로 이어 간다. 없으면(404) 기존 "이어서 받기" 흐름 그대로다.
+  useEffect(() => {
+    if (!pendingPaidRequest || loading || autoResumeRef.current) return;
+    const stored = readFusionPaidRequest();
+    if (!stored?.body) return;
+    autoResumeRef.current = true;
+    const body = stored.body;
+    void (async () => {
+      const recovered = await recoverPaidResult(stored.requestId);
+      if (recovered === "completed") {
+        setNotice(copy.resultCompletedNotice);
+        void loadRecentList();
+        rememberPaidRequest("");
+      } else if (recovered === "partial") {
+        await runGenerationRef.current?.(stored.requestId, body, 2, "");
+      }
+    })();
+  }, [pendingPaidRequest, loading, recoverPaidResult, loadRecentList, rememberPaidRequest, copy.resultCompletedNotice]);
 
   /** 저장된 결과를 연다. 이미 결제한 본인 결과라 추가 결제가 없다. */
   const openConsultation = useCallback(async (id: string) => {
@@ -2189,6 +2257,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
       const stored = readFusionPaidRequest();
       if (stored) { requestId = stored.requestId; paidRequestBodyRef.current = stored.body; }
     }
+    const resumed = Boolean(requestId);
     if (!requestId) {
       requestId = `${PAID_FEATURE_KEY}:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
       const gate = await ensurePaidAccess({
@@ -2207,16 +2276,8 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
       rememberPaidRequest(requestId);
     }
 
-    requestAbortRef.current?.abort();
-    const controller = new AbortController();
-    requestAbortRef.current = controller;
-    capAbortedRef.current = false;
-    setStageStates(initialStageStates());
-    setComposeProgress(null);
-    setOpenedConsultationId("");
-    setLoading(true);
-    try {
-      const selectedPlace = birthPlaces.find((place) => place.label === form.birthPlaceKey);
+    const selectedPlace = birthPlaces.find((place) => place.label === form.birthPlaceKey);
+    {
       // 🔴 결제 한 건에 질문은 하나다. 앞선 시도의 저장본이 있으면 폼을 다시 읽지 않고 그대로
       //    보낸다 — 새로고침 뒤 폼이 초기값이면 birthPlaces 조회가 빗나가 birthPlace 가
       //    payload 에서 **조용히 빠지고**, 출생지 미상 입력으로 바뀐 채 재시도가 나간다
@@ -2232,44 +2293,58 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
         concern: form.concern,
         ...(selectedPlace ? { birthPlace: { city: selectedPlace.label, country: selectedPlace.country, latitude: selectedPlace.lat, longitude: selectedPlace.lon, timezone: selectedPlace.tz } } : {}),
       };
+      // 결제 뒤 되돌아온 요청이면 서버에 남은 것부터 본다 — 완성본이면 그대로 열고(추가 호출 없음),
+      // 1단계만 저장돼 있으면 2단계부터 이어 간다. 404 면 1단계부터.
+      let startStage: 1 | 2 = 1;
+      if (resumed) {
+        const recovered = await recoverPaidResult(requestId);
+        if (recovered === "completed") {
+          setNotice(copy.resultCompletedNotice);
+          void loadRecentList();
+          rememberPaidRequest("");
+          return;
+        }
+        if (recovered === "partial") startStage = 2;
+      }
+      await runGeneration(requestId, requestBody, startStage, fortuneChatSessionId);
+    }
+  };
+
+  /**
+   * 2단계 생성 오케스트레이션. 1단계(여섯 체계 섹션) → 화면에 먼저 올림 → 2단계(종합·시기·판정) → 완성본.
+   * 각 단계가 서버 예산(120초)을 따로 쓰므로 무음·상한 시계도 단계마다 새로 시작한다.
+   * 2단계 실패는 실패 카드가 아니라 "이어서 생성" 버튼이다 — 1단계는 서버에 저장돼 있고 결제 증빙도 남는다.
+   */
+  const runGeneration = async (requestId: string, requestBody: FusionRequestBody, startStage: 1 | 2, fortuneChatSessionId: string) => {
+    requestAbortRef.current?.abort();
+    const controller = new AbortController();
+    requestAbortRef.current = controller;
+    capAbortedRef.current = false;
+    setStageTwoFailed(false);
+    if (startStage === 1) setStageStates(initialStageStates());
+    setComposeProgress(null);
+    setOpenedConsultationId("");
+    setLoading(true);
+    let reachedStage: 1 | 2 = startStage;
+    try {
       // 🔴 스트림 POST **직전**에 저장한다. 요청이 나간 뒤에 저장하면 그 사이에 탭이 닫힌
       //    결제의 질문이 통째로 사라진다.
       rememberPaidRequest(requestId, requestBody);
-      const response = await authFetch(`${apiBase}/api/fusion-fortune/generate/stream`, {
-        method: "POST", credentials: "include", signal: controller.signal,
-        headers: { "Content-Type": "application/json", Accept: "text/event-stream", "Idempotency-Key": requestId },
-        body: JSON.stringify({ ...requestBody, requestId }),
-      }, { retryOn401: true, apiBase });
-      const payload = await consumeFusionStream(response, copy, (streamEvent, streamPayload) => {
-        // 심박(ping)을 포함한 **모든** 이벤트가 무음 감시를 되돌린다.
+      let payload: Record<string, unknown> = {};
+      for (let stage = startStage; stage <= 2; stage += 1) {
+        reachedStage = stage as 1 | 2;
+        if (stage === 2) { setComposeProgress(null); setStageStates((current) => ({ ...current, fusion: "active" })); }
         lastEventAtRef.current = Date.now();
-        if (streamEvent !== "stage" || typeof streamPayload.stage !== "string") return;
-        if (streamPayload.stage === "compose") {
-          setComposeProgress({
-            completed: Number(streamPayload.completedGroups) || 0,
-            total: Number(streamPayload.totalGroups) || 4,
-            label: String(streamPayload.groupLabel || ""),
-            phase: String(streamPayload.phase || "compose"),
-          });
-          setStageStates((current) => ({ ...current, fusion: "active" }));
-          return;
+        startedAtRef.current = Date.now();
+        payload = await runStage(stage as 1 | 2, requestId, requestBody, controller, fortuneChatSessionId);
+        const stageResult = payload.result as Result | undefined;
+        if (!stageResult) throw new Error(String(payload.message || copy.resultGenerationFailedMessage));
+        if (stage === 1 && payload.status === "partial") {
+          // 여섯 체계 섹션을 먼저 보여 준다. 종합·판정은 다음 단계가 채운다.
+          setResult(stageResult);
+          setNotice(copy.stageOnePartialNotice);
         }
-        const completed = streamPayload.stage as FusionStageKey;
-        if (!fusionStages.some((stage) => stage.key === completed)) return;
-        setStageStates(() => {
-          const completedIndex = fusionStages.findIndex((stage) => stage.key === completed);
-          return fusionStages.reduce((next, stage, index) => ({
-            ...next,
-            [stage.key]: index <= completedIndex ? "completed" : index === completedIndex + 1 ? "active" : "pending",
-          }), {} as Record<FusionStageKey, FusionStageState>);
-        });
-        if (fortuneChatSessionId) {
-          void authFetch(`${apiBase}/api/fortune-chat/sessions/${encodeURIComponent(fortuneChatSessionId)}`, {
-            method: "POST", credentials: "include", headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ append: true, mode: "fusion_deep_reading", paymentStatus: "completed", generationStatus: "running", messages: [{ id: `fusion-stage-${completed}`, speaker: "assistant", kind: "progress", text: fusionStages.find((stage) => stage.key === completed)?.message || copy.stageDefaultProgressMessage }] }),
-          }, { retryOn401: true, apiBase });
-        }
-      });
+      }
       const streamResult = payload.result as Result | undefined;
       const fusionStatus = payload.fusionStatus as Status | undefined;
       if (!streamResult || !fusionStatus) throw new Error(String(payload.message || copy.resultGenerationFailedMessage));
@@ -2298,12 +2373,18 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
       const aborted = (cause as Error)?.name === "AbortError";
       // 🔴 실패로 단정하기 전에 결제 키로 보관본을 한 번 조회한다 — 저장이 배달보다 먼저라
       //    스트림이 끊긴 요청의 완성품이 이미 계정에 있을 수 있다.
-      if (await recoverPaidResult(paidRequestIdRef.current || readFusionPaidRequest()?.requestId || "")) {
+      const recovered = await recoverPaidResult(paidRequestIdRef.current || readFusionPaidRequest()?.requestId || "");
+      const cancelled = aborted && !capAbortedRef.current;
+      if (recovered === "completed") {
         setNotice(copy.resultCompletedNotice);
         void loadRecentList();
         // 결과를 실제로 받았으므로 이 결제는 소진됐다.
         rememberPaidRequest("");
-      } else if (aborted && !capAbortedRef.current) setNotice(copy.analysisCancelledNotice);
+      } else if (recovered === "partial" || reachedStage === 2) {
+        // 1단계는 서버에 있다. 결제 증빙을 지우지 않고 2단계만 다시 요청할 수 있게 한다.
+        if (cancelled) setNotice(copy.analysisCancelledNotice);
+        setStageTwoFailed(true);
+      } else if (cancelled) setNotice(copy.analysisCancelledNotice);
       else setFailure({
         message: cause instanceof Error ? cause.message : copy.resultGenerationFailedMessage,
         // 결제 증빙이 남아 있으면(=paidRequestIdRef) 같은 id 재시도에 추가 결제가 없다.
@@ -2316,6 +2397,58 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
       if (requestAbortRef.current === controller) requestAbortRef.current = null;
       setLoading(false);
     }
+  };
+  useEffect(() => { runGenerationRef.current = runGeneration; });
+
+  /** 한 단계의 스트림 요청. 서버는 stage 1 이면 여섯 체계 섹션(partial), stage 2 면 종합·판정까지 합친 완성본을 준다. */
+  const runStage = async (stage: 1 | 2, requestId: string, requestBody: FusionRequestBody, controller: AbortController, fortuneChatSessionId: string) => {
+      const response = await authFetch(`${apiBase}/api/fusion-fortune/generate/stream`, {
+        method: "POST", credentials: "include", signal: controller.signal,
+        headers: { "Content-Type": "application/json", Accept: "text/event-stream", "Idempotency-Key": requestId },
+        body: JSON.stringify({ ...requestBody, requestId, stage }),
+      }, { retryOn401: true, apiBase });
+      return consumeFusionStream(response, copy, (streamEvent, streamPayload) => {
+        // 심박(ping)을 포함한 **모든** 이벤트가 무음 감시를 되돌린다.
+        lastEventAtRef.current = Date.now();
+        if (streamEvent !== "stage" || typeof streamPayload.stage !== "string") return;
+        if (streamPayload.stage === "compose") {
+          setComposeProgress({
+            completed: Number(streamPayload.completedGroups) || 0,
+            // 서버가 단계별 묶음 수를 보낸다(1단계 6 · 2단계 3). 없을 때만 그 기본값을 쓴다.
+            total: Number(streamPayload.totalGroups) || (stage === 2 ? 3 : 6),
+            label: String(streamPayload.groupLabel || ""),
+            phase: String(streamPayload.phase || "compose"),
+          });
+          setStageStates((current) => ({ ...current, fusion: "active" }));
+          return;
+        }
+        const completed = streamPayload.stage as FusionStageKey;
+        if (!fusionStages.some((stage) => stage.key === completed)) return;
+        setStageStates(() => {
+          const completedIndex = fusionStages.findIndex((stage) => stage.key === completed);
+          return fusionStages.reduce((next, stage, index) => ({
+            ...next,
+            [stage.key]: index <= completedIndex ? "completed" : index === completedIndex + 1 ? "active" : "pending",
+          }), {} as Record<FusionStageKey, FusionStageState>);
+        });
+        if (fortuneChatSessionId) {
+          void authFetch(`${apiBase}/api/fortune-chat/sessions/${encodeURIComponent(fortuneChatSessionId)}`, {
+            method: "POST", credentials: "include", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ append: true, mode: "fusion_deep_reading", paymentStatus: "completed", generationStatus: "running", messages: [{ id: `fusion-stage-${completed}`, speaker: "assistant", kind: "progress", text: fusionStages.find((stage) => stage.key === completed)?.message || copy.stageDefaultProgressMessage }] }),
+          }, { retryOn401: true, apiBase });
+        }
+      });
+  };
+
+
+  /** 2단계만 다시 요청한다(같은 결제·같은 입력). 증빙이 없으면 폼 제출로 돌아간다. */
+  const continueGeneration = async () => {
+    const stored = readFusionPaidRequest();
+    const requestId = paidRequestIdRef.current || stored?.requestId || "";
+    const requestBody = paidRequestBodyRef.current || stored?.body || null;
+    if (!requestId || !requestBody) { formRef.current?.requestSubmit(); return; }
+    setError(""); setNotice(""); setFailure(null);
+    await runGeneration(requestId, requestBody, 2, new URLSearchParams(window.location.search).get("fortuneChatSession") || "");
   };
 
   const cancelGeneration = () => requestAbortRef.current?.abort();
@@ -2526,7 +2659,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
     {(loading || result || failure) && <section
       ref={threadRef}
       aria-label={copy.threadAriaLabel}
-      className="relative z-[2] mx-auto mb-[26px] w-full max-w-[1080px] overflow-hidden rounded-[28px] border border-[rgba(200,177,235,0.27)] bg-[linear-gradient(145deg,rgba(24,19,48,0.94),rgba(13,11,29,0.97))] shadow-[0_24px_70px_rgba(0,0,0,0.3)]"
+      className="relative z-[2] mx-auto mb-[26px] w-full max-w-[1080px] overflow-clip rounded-[28px] border border-[rgba(200,177,235,0.27)] bg-[linear-gradient(145deg,rgba(24,19,48,0.94),rgba(13,11,29,0.97))] shadow-[0_24px_70px_rgba(0,0,0,0.3)]"
     >
       <span aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-56 bg-[radial-gradient(120%_100%_at_50%_0%,rgba(160,92,214,0.24),transparent_72%)]" />
 
@@ -2549,9 +2682,12 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
         </div>
       </header>
 
-      <ol className="relative m-0 grid list-none gap-5 px-3 py-7 sm:px-9 sm:py-9">
+      {/* 🔴 sticky 레일: 부모 section 이 overflow-hidden 이면 sticky 가 죽는다 — overflow-clip 을 쓴다.
+          레일은 PDF 캡처 대상(data-fusion-pdf-section) 바깥이고 lg 미만에서는 진행선만 남는다. */}
+      <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_224px] lg:gap-7 lg:pr-9">
+      <ol className="relative m-0 grid list-none gap-5 px-3 py-7 max-[430px]:px-2 sm:px-9 sm:py-9">
         {/* 대화의 척추. 좌표 = 목록 좌우 여백(12/36px) + 아바타 반지름(14/18px). */}
-        <span aria-hidden className="pointer-events-none absolute bottom-12 left-[26px] top-12 w-px sm:left-[54px] bg-[linear-gradient(180deg,transparent,rgba(201,181,243,0.3),transparent)]" />
+        <span aria-hidden className="pointer-events-none absolute bottom-12 left-[26px] top-12 w-px max-[430px]:left-5 sm:left-[54px] bg-[linear-gradient(180deg,transparent,rgba(201,181,243,0.3),transparent)]" />
 
         {/* 생성 중에는 끝난 체계와 지금 쓰는 체계만 말한다. 아직 없는 내용을 자리로 약속하지 않는다. */}
         {!result && fusionStages.map((stage, index) => {
@@ -2606,7 +2742,18 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
           </div>
         </li>}
 
-        {result && <FusionResultThread result={result} openSection={openSection} onToggleSection={toggleSection} exporting={exporting} />}
+        {result && <FusionResultThread result={result} openSection={openSection} onToggleSection={toggleSection} exporting={exporting} stageTwoGenerating={loading} />}
+
+        {result && stageTwoFailed && !loading && <li>
+          <div role="status" className="rounded-[1.375rem] border border-[rgba(232,213,163,0.3)] bg-[rgba(232,213,163,0.08)] px-4 py-4 sm:px-6">
+            <p className="m-0 max-w-[64ch] text-[0.9rem] leading-[1.8] text-[var(--fx-gold-2)]">{copy.stageTwoFailedMessage}</p>
+            <button
+              type="button"
+              onClick={() => void continueGeneration()}
+              className="mt-4 min-h-11 rounded-full border border-[rgba(232,213,163,0.42)] bg-[rgba(232,213,163,0.12)] px-5 text-[0.9rem] font-bold text-[var(--fx-gold)] transition-colors hover:bg-[rgba(232,213,163,0.2)] motion-reduce:transition-none"
+            >{copy.continueGenerationButton}</button>
+          </div>
+        </li>}
 
         {failure && <li className="animate-fade-in-up opacity-0 motion-reduce:animate-none motion-reduce:opacity-100">
           <div role="alert" className="relative overflow-hidden rounded-[1.375rem] border border-[rgba(244,190,209,0.34)] bg-[rgba(74,24,47,0.34)] px-5 py-5 sm:px-6">
@@ -2621,8 +2768,10 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
           </div>
         </li>}
       </ol>
+      {result && <FusionResultRail result={result} generating={loading} exporting={exporting} onOpenSection={(key) => setOpenSection(key)} scopeRef={threadRef} />}
+      </div>
 
-      {(loading || result) && <footer className="relative flex flex-wrap gap-3 border-t border-white/[0.07] px-4 py-5 sm:px-9">
+      {(loading || result) && <footer className="relative grid gap-3 border-t border-white/[0.07] px-4 pb-[calc(4.5rem+env(safe-area-inset-bottom))] pt-5 sm:flex sm:flex-wrap sm:px-9 lg:pb-5">
         {loading
           ? <button type="button" onClick={cancelGeneration} className="min-h-11 rounded-full border border-white/[0.18] px-5 text-[0.88rem] text-[var(--fx-ink-3)] transition-colors hover:border-[var(--fx-violet-soft)] hover:text-[var(--fx-ink-1)] motion-reduce:transition-none">{copy.cancelGenerationCta}</button>
           : <>
@@ -2630,11 +2779,13 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
               type="button"
               onClick={() => void downloadPdf()}
               disabled={exporting}
-              className="min-h-11 rounded-full border border-[rgba(232,213,163,0.42)] bg-[rgba(232,213,163,0.12)] px-5 text-[0.9rem] font-bold text-[var(--fx-gold)] transition-colors hover:bg-[rgba(232,213,163,0.2)] disabled:cursor-wait disabled:opacity-60 motion-reduce:transition-none"
+              className="min-h-12 w-full rounded-full border border-[rgba(232,213,163,0.42)] bg-[rgba(232,213,163,0.12)] px-5 text-[0.9rem] font-bold text-[var(--fx-gold)] transition-colors hover:bg-[rgba(232,213,163,0.2)] disabled:cursor-wait disabled:opacity-60 motion-reduce:transition-none sm:min-h-11 sm:w-auto"
             >{exporting ? copy.pdfMakingLabel : copy.pdfSaveCta}</button>
-            <button type="button" onClick={() => void share()} className="min-h-11 rounded-full border border-white/[0.16] px-5 text-[0.9rem] text-[var(--fx-ink-3)] transition-colors hover:border-[var(--fx-violet-soft)] hover:text-[var(--fx-ink-1)] motion-reduce:transition-none">{copy.shareCta}</button>
-            {openedConsultationId && <button type="button" onClick={() => void copyReopenLink()} className="min-h-11 rounded-full border border-white/[0.16] px-5 text-[0.9rem] text-[var(--fx-ink-3)] transition-colors hover:border-[var(--fx-violet-soft)] hover:text-[var(--fx-ink-1)] motion-reduce:transition-none">{copy.copyReopenLinkCta}</button>}
-            <Link href="/#guardian-fortune" className="inline-flex min-h-11 items-center rounded-full border border-white/[0.16] px-5 text-[0.9rem] text-[var(--fx-ink-3)] transition-colors hover:border-[var(--fx-violet-soft)] hover:text-[var(--fx-ink-1)] motion-reduce:transition-none">{copy.continueGuardianLink}</Link>
+            <div className="grid grid-cols-2 gap-3 sm:contents">
+              <button type="button" onClick={() => void share()} className={`min-h-11 rounded-full border border-white/[0.16] px-5 text-[0.9rem] text-[var(--fx-ink-3)] transition-colors hover:border-[var(--fx-violet-soft)] hover:text-[var(--fx-ink-1)] motion-reduce:transition-none ${openedConsultationId ? "" : "col-span-2"}`}>{copy.shareCta}</button>
+              {openedConsultationId && <button type="button" onClick={() => void copyReopenLink()} className="min-h-11 rounded-full border border-white/[0.16] px-5 text-[0.9rem] text-[var(--fx-ink-3)] transition-colors hover:border-[var(--fx-violet-soft)] hover:text-[var(--fx-ink-1)] motion-reduce:transition-none">{copy.copyReopenLinkCta}</button>}
+              <Link href="/#guardian-fortune" className="col-span-2 inline-flex min-h-11 items-center justify-center rounded-full border border-white/[0.16] px-5 text-[0.9rem] text-[var(--fx-ink-3)] transition-colors hover:border-[var(--fx-violet-soft)] hover:text-[var(--fx-ink-1)] motion-reduce:transition-none sm:justify-start">{copy.continueGuardianLink}</Link>
+            </div>
           </>}
       </footer>}
     </section>}

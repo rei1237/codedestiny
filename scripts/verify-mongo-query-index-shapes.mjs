@@ -296,7 +296,7 @@ export function judge(queries, { ledger, modelToCollection }, allowlist) {
 
 // ── 실행 ────────────────────────────────────────────────────────────────────
 
-function listSources(root) {
+export function listSources(root) {
   const files = [];
   const visit = (dir) => {
     for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {

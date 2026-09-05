@@ -113,6 +113,7 @@ async function persistFusionDelivery({ userId, input, delivery }) {
       generationSource: delivery?.generationSource,
       qualityTier: delivery?.qualityTier,
       qualityNotice: delivery?.qualityNotice,
+      stage: delivery?.stage,
     });
   } catch (error) {
     console.warn("[fusion-fortune-persist-failed]", {
@@ -120,6 +121,19 @@ async function persistFusionDelivery({ userId, input, delivery }) {
       message: String(error?.message || "").slice(0, 200),
     });
     return "";
+  }
+}
+
+/**
+ * 2단계 생성의 앞 결과. 같은 requestId 로 저장된 1단계 보관본(partial)을 읽는다.
+ * 조회 실패는 null 로 흡수한다 — 생성기가 STAGE_ONE_MISSING(409, retryable) 로 1단계부터 다시 하게 한다.
+ */
+async function loadFusionPriorConsultation({ userId, requestId }) {
+  try {
+    return await getFusionFortuneConsultationByRequestId({ userId, requestId });
+  } catch (error) {
+    console.warn("[fusion-fortune-prior-load-failed]", { requestId: String(requestId || "").slice(0, 120), message: String(error?.message || "").slice(0, 200) });
+    return null;
   }
 }
 
@@ -138,6 +152,9 @@ function respondFusionConsultation(consultation) {
       // 옛 보관본에는 이 필드가 없다 — 없으면 완전 등급으로 읽는다.
       qualityTier: consultation.qualityTier || "full",
       qualityNotice: consultation.qualityNotice || "",
+      // 2단계 생성 이전 보관본에는 둘 다 없다 — 완료본으로 읽는다.
+      status: consultation.status || "completed",
+      stage: Number(consultation.stage) || 2,
       createdAt: consultation.createdAt,
     },
   });
@@ -227,6 +244,10 @@ async function handleFusionFortuneStreamRoute(request, env, ctx) {
   request.signal?.addEventListener?.("abort", onClientAbort, { once: true });
   const edgeTimer = setTimeout(() => abortController.abort(), edgeDeadlineMs);
   const streamRequestId = String(body?.requestId || request.headers.get("idempotency-key") || request.headers.get("x-idempotency-key") || "").slice(0, 180);
+  // 2단계 생성. stage 2 는 같은 requestId 의 1단계 보관본(status partial 또는 completed)을
+  // 앞 결과로 넘긴다. 없으면 생성기가 STAGE_ONE_MISSING(409, retryable) 로 1단계부터 다시 하게 한다.
+  const streamStage = Number(body?.stage) === 2 ? 2 : 1;
+  const priorConsultation = streamStage === 2 ? await loadFusionPriorConsultation({ userId: String(auth.userId), requestId: streamRequestId }) : null;
   // 🔴 스트림의 **종료 주체**. 이 자리가 비어 있어서 2026-09-03 에 결제한 사용자의 화면이
   //    영원히 돌았다(원칙 6 확인: 추가가 아니라 없던 주체를 만드는 것 — 종료를 담당하던
   //    코드는 run 의 finally 뿐이었고, run 이 pending 이면 그 finally 는 영원히 안 돈다).
@@ -272,6 +293,9 @@ async function handleFusionFortuneStreamRoute(request, env, ctx) {
         env,
         ctx,
         abortSignal: abortController.signal,
+        stage: streamStage,
+        priorResult: priorConsultation?.result || null,
+        priorGenerationSource: priorConsultation?.generationSource || "",
         onStage: (stage) => writeFusionFortuneSse(writer, "stage", stage),
 
         // 저장을 배달보다 **먼저** 한다. 마지막 write 직전 연결이 끊겨도 결과는 남아
@@ -292,6 +316,7 @@ async function handleFusionFortuneStreamRoute(request, env, ctx) {
           pricing: result.pricing || undefined,
           retryable: result.retryable === true ? true : undefined,
           retryRequestId: result.retryRequestId || undefined,
+          stage: Number(result.stage) || streamStage,
           // 어느 관문에서 죽었는지. 계약 위반 코드만 나가고 본문·개인정보는 실리지 않는다.
           issues: Array.isArray(result.issues) && result.issues.length ? result.issues.slice(0, 8) : undefined,
         });
@@ -300,6 +325,9 @@ async function handleFusionFortuneStreamRoute(request, env, ctx) {
       await writeFusionFortuneSse(writer, "complete", {
         requestId: result.requestId,
         fusionStatus: result.fusionStatus,
+        // 1단계면 partial — 클라이언트가 같은 requestId 로 stage 2 를 이어서 요청한다.
+        stage: Number(result.stage) || streamStage,
+        status: result.stageStatus || "completed",
         // 클라이언트가 ?cid= 딥링크를 남기는 데 쓴다. 저장이 실패했으면 빈 문자열이다.
         consultationId,
         qualityTier: result.qualityTier || undefined,
@@ -345,25 +373,36 @@ export async function handleFusionFortuneRoutes(request, env, ctx = null) {
       const auth = await requireUserFromRequest(request, env, { allowDbFallback: true });
       const body = await readJson(request);
       await connectDb(env);
-      const result = await generateFusionFortuneRequest({
-        input: body,
-        userId: String(auth.userId),
-        requestId: body?.requestId || request.headers.get("idempotency-key") || request.headers.get("x-idempotency-key"),
-        dateKey: getFusionFortuneDateKey(),
-        store: createMongoFusionFortuneStore(),
-        resolvePaidAccess: buildFusionFortunePaidAccessResolver(env),
-        env,
-        ctx,
-      });
-      if (result?.ok) {
-        const consultationId = await persistFusionDelivery({
+      const requestId = body?.requestId || request.headers.get("idempotency-key") || request.headers.get("x-idempotency-key");
+      // 2단계 생성. stage 를 지정하면 그 단계만, 없으면 1→2 를 이어서 돈다(스트림과 같은 계약).
+      const requestedStage = Number(body?.stage);
+      const stages = requestedStage === 1 || requestedStage === 2 ? [requestedStage] : [1, 2];
+      let prior = stages[0] === 2 ? await loadFusionPriorConsultation({ userId: String(auth.userId), requestId }) : null;
+      let result = null;
+      let consultationId = "";
+      for (const stage of stages) {
+        result = await generateFusionFortuneRequest({
+          input: body,
+          userId: String(auth.userId),
+          requestId,
+          dateKey: getFusionFortuneDateKey(),
+          store: createMongoFusionFortuneStore(),
+          resolvePaidAccess: buildFusionFortunePaidAccessResolver(env),
+          env,
+          ctx,
+          stage,
+          priorResult: prior?.result || null,
+          priorGenerationSource: prior?.generationSource || "",
+        });
+        if (!result?.ok) return respond(result);
+        consultationId = await persistFusionDelivery({
           userId: String(auth.userId),
           input: body,
-          delivery: { requestId: result.requestId, result: result.result, generationSource: result.generationSource, qualityTier: result.qualityTier, qualityNotice: result.qualityNotice },
+          delivery: { requestId: result.requestId, result: result.result, generationSource: result.generationSource, qualityTier: result.qualityTier, qualityNotice: result.qualityNotice, stage: result.stage },
         });
-        return respond({ ...result, consultationId });
+        prior = { result: result.result, generationSource: result.generationSource };
       }
-      return respond(result);
+      return respond({ ...result, consultationId, status: result.stageStatus || "completed" });
     }
 
     if (method === "POST" && path === "/generate/stream") {

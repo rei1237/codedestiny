@@ -135,9 +135,33 @@ for (const file of ["js/destiny-profile.js", "public/js/destiny-profile.js"]) {
     `${file}: 복귀 대기 mode 'confirm' 은 dp·셸·React 허용목록 어디에도 없어 조용히 안 뜬다 — 'unlock-saving' 을 쓸 것`,
   );
   assert.ok(resume.includes("'unlock-saving'"), `${file}: 복귀 confirm 대기는 3렌더러 공통 허용 mode 'unlock-saving' 이어야 한다`);
+  /* 2026-09-06: "아무것도 안 열면서 '여는 중' 이라고 말한다" 를 **문구를 금지**하는 대신
+     **정말 열도록** 고쳤다. 그래서 계약이 뒤집혔다 — 완료 문구는 자동 재개에 성공한 분기
+     안에서만 쓸 수 있고, 실패·미배선 분기는 사라지는 오버레이가 아니라 지속 카드로 떨어진다. */
+  assert.ok(resume.includes("_dpRunPaidResume("), `${file}: 복귀 경로가 재개 서술자를 실행하지 않는다 — 결제해도 기능이 안 열린다`);
   assert.ok(
-    !resume.includes("_dpText('paymentCompleteOverlay')") && !resume.includes("_dpShowPaymentCompleteOverlay("),
-    `${file}: 복귀 경로는 아무것도 자동으로 열지 않는다 — "콘텐츠를 여는 중" 문구(paymentCompleteOverlay)를 쓰면 거짓 안내다`,
+    resume.includes("_dpSavePaidGrantReceipt("),
+    `${file}: 복귀 성공 뒤 결제 영수증을 남기지 않는다 — 회당 결제 키는 서버 보유 목록에 없어 재클릭이 또 결제다`,
+  );
+  const resumedBranch = sliceFunction(resume, "if (resumeOpened) {", `${file} resume opened`);
+  assert.ok(
+    resumedBranch.includes("_dpConsumePaidGrantReceipt("),
+    `${file}: 자동 재개에 성공했으면 영수증을 소비해야 한다 — 안 그러면 1회 결제로 자동 개방 + 다음 클릭 무료가 되어 두 번 열린다`,
+  );
+  assert.ok(
+    resumedBranch.includes("_dpShowPaymentCompleteOverlay("),
+    `${file}: 자동 재개 성공 분기에서만 완료 오버레이를 쓴다 — 그 호출이 사라졌다`,
+  );
+  const completeCalls = (resume.match(/_dpShowPaymentCompleteOverlay\(/g) || []).length;
+  const completeCallsInResumed = (resumedBranch.match(/_dpShowPaymentCompleteOverlay\(/g) || []).length;
+  assert.equal(
+    completeCalls,
+    completeCallsInResumed,
+    `${file}: 재개에 성공하지 않은 분기에서 "콘텐츠를 여는 중" 문구(paymentCompleteOverlay)를 쓰면 거짓 안내다 — _dpShowDirectResumeCard 로 떨어뜨릴 것`,
+  );
+  assert.ok(
+    resume.includes("_dpShowDirectResumeCard("),
+    `${file}: 재개 실패·미배선 분기의 지속 카드가 사라졌다 — 사라지는 오버레이로 되돌리면 "결제했는데 메인 화면"이 재발한다`,
   );
   assert.ok(
     !resume.includes("WaitText("),

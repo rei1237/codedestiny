@@ -1,27 +1,17 @@
+/*
+ * 스키마가 선언한 인덱스가 실 DB 에 전부 있는지 — **모든 등록 모델**을 본다(읽기 전용).
+ *
+ * db.js 는 autoIndex:false 라 선언은 자동 생성되지 않는다. 그래서 "선언했지만 실물이 없는" 드리프트가
+ * 조용히 쌓이고, 2026-09-06 에는 20개 손목록 밖 모델에서 7건이 발견됐다(원칙 10 — 손으로 쓴 대상
+ * 목록은 가드가 아니다). 이제 4개 모델 파일을 등록 부수효과로 읽고 mongoose.models 를 전수 순회한다.
+ * 실물 생성은 scripts/migrations/20260906-reconcile-index-drift.mjs --apply.
+ */
 import { config } from "dotenv";
 import { connectDb, mongoose } from "../worker/lib/db.js";
-import {
-  AbuseScore,
-  AstrologyAiConsultation,
-  ContentEntitlement,
-  IdempotencyKey,
-  KarmaDestinyAiConsultation,
-  LifeBookAiConsultation,
-  LlmResponseCache,
-  LoveSecretAiConsultation,
-  NeoOperationRoomConsultation,
-  NewYearAiConsultation,
-  PaidExecutionRecord,
-  Payment,
-  PaymentFailureLog,
-  PaymentWebhookEvent,
-  RefreshTokenSession,
-  ServiceExecutionTransaction,
-  SukuyoCompatibilityAiConsultation,
-  User,
-  VedicAiConsultation,
-  ZiweiAiConsultation,
-} from "../worker/lib/models.js";
+import "../worker/lib/models.js";
+import "../worker/lib/app-store-models.js";
+import "../worker/lib/feedback-models.js";
+import "../worker/lib/review-models.js";
 
 config({ path: ".env.local" });
 config({ path: ".env" });
@@ -45,28 +35,11 @@ if (!env.MONGO_URI && !env.MONGODB_URI) {
   process.exit(1);
 }
 
-const launchModels = [
-  User,
-  RefreshTokenSession,
-  IdempotencyKey,
-  AbuseScore,
-  Payment,
-  PaymentFailureLog,
-  PaymentWebhookEvent,
-  ContentEntitlement,
-  ServiceExecutionTransaction,
-  PaidExecutionRecord,
-  LlmResponseCache,
-  NewYearAiConsultation,
-  KarmaDestinyAiConsultation,
-  ZiweiAiConsultation,
-  LoveSecretAiConsultation,
-  LifeBookAiConsultation,
-  SukuyoCompatibilityAiConsultation,
-  VedicAiConsultation,
-  AstrologyAiConsultation,
-  NeoOperationRoomConsultation,
-];
+const launchModels = Object.values(mongoose.models);
+if (launchModels.length < 40) {
+  console.error(`[verify-mongo-launch-indexes] 등록 모델이 ${launchModels.length}개뿐 — 모델 파일 로드 실패 의심(fail-closed)`);
+  process.exit(1);
+}
 
 function stableJson(value) {
   if (Array.isArray(value)) return `[${value.map((item) => stableJson(item)).join(",")}]`;
@@ -95,7 +68,12 @@ await connectDb(env);
 const failures = [];
 try {
   for (const model of launchModels) {
-    const indexes = await model.collection.listIndexes().toArray();
+    // 컬렉션이 아직 없으면(한 번도 쓰이지 않은 모델) listIndexes 가 NamespaceNotFound(26) 를 던진다.
+    // 그 모델의 선언은 전부 "없음"이 맞다 — 숨기지 않고 실패 목록에 올린다.
+    const indexes = await model.collection.listIndexes().toArray().catch((error) => {
+      if (error?.code === 26 || /ns does not exist/i.test(String(error?.message))) return [];
+      throw error;
+    });
     const expectedIndexes = model.schema.indexes();
     for (const [spec, options = {}] of expectedIndexes) {
       if (hasIndex(indexes, spec, options)) continue;

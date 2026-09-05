@@ -14,7 +14,7 @@ const RESULT = "app/fusion-fortune/FusionResultThread.tsx";
 test("fusion fortune renders the premium flow and optimized hero asset", () => {
   const client = read(CLIENT);
   assert.match(client, /여섯 체계 교차 판정/);
-  assert.match(client, /여섯 체계 · 20,000자 이상/);
+  assert.match(client, /여섯 체계 · 30,000자 이상/);
   assert.match(client, /fusion-guardian-celestial-hero\.webp/);
   assert.match(client, /priority/);
   assert.ok(fs.existsSync(path.join(root, "public/images/fusion-fortune/fusion-guardian-celestial-hero.webp")));
@@ -156,9 +156,9 @@ test("fusion hero states the raised length contract", () => {
   const client = read(CLIENT);
   const prompt = read("worker/lib/fusion-fortune-prompt.js");
   // 30,000원으로 오른 만큼 분량 계약도 함께 올렸다. 화면 문구와 서버 계약이 어긋나면 안 된다.
-  assert.match(client, /20,000자 이상/);
-  assert.doesNotMatch(client, /10,000~15,000자/);
-  assert.match(prompt, /total: Object\.freeze\(\{ min: 20000/);
+  assert.match(client, /30,000자 이상/);
+  assert.doesNotMatch(client, /20,000자 이상|10,000~15,000자/);
+  assert.match(prompt, /total: Object\.freeze\(\{ min: 30000/);
 });
 
 test("fusion fortune production switches enable the approved live flow and keep mock off", () => {
@@ -358,7 +358,7 @@ test("progress never reports more groups than there are", () => {
   const lib = read("worker/lib/fusion-fortune.js");
 
   // 🔴 예전에는 1차 병렬과 재생성이 카운터 하나를 공유해 화면에 "6 / 4 묶음 완성"이 떴다.
-  assert.match(lib, /composeProgress = \{ phase: "compose", total: FUSION_SECTION_GROUP_SPECS\.length, done: 0 \}/);
+  assert.match(lib, /composeProgress = \{ phase: "compose", total: groups\.length, done: 0 \}/);
   assert.match(lib, /repairProgress = \{ phase: "repair", total: retryTargets\.length, done: 0 \}/);
   assert.match(lib, /completedGroups: progress\.done, totalGroups: progress\.total/);
   // 국면 이름이 SSE 로 나가야 화면이 "보완 중"을 구분해 그린다.
