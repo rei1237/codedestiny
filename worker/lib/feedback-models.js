@@ -97,14 +97,14 @@ const feedbackReplySchema = new mongoose.Schema({
 
 const feedbackSchema = new mongoose.Schema({
   // ── 작성자. 로그인 필수라 userId 는 항상 채워진다.
-  userId: { type: String, required: true, trim: true, maxlength: 120, index: true },
+  userId: { type: String, required: true, trim: true, maxlength: 120 },
   // authorName/authorEmail 은 스냅샷이다. User 문서가 바뀌거나 탈퇴해도 관리자 화면이
   // 깨지지 않도록 작성 시점 값을 박아둔다(Review.authorName 선례).
   authorName: { type: String, default: "", trim: true, maxlength: 60 },
   authorEmail: { type: String, default: "", trim: true, maxlength: 200, lowercase: true },
 
   // ── 본문
-  category: { type: String, enum: FEEDBACK_CATEGORY_LIST, default: FEEDBACK_CATEGORIES.BUG, index: true },
+  category: { type: String, enum: FEEDBACK_CATEGORY_LIST, default: FEEDBACK_CATEGORIES.BUG },
   title: { type: String, required: true, trim: true, maxlength: FEEDBACK_TITLE_MAX_LENGTH },
   content: { type: String, required: true, trim: true, maxlength: FEEDBACK_CONTENT_MAX_LENGTH },
   locale: { type: String, enum: ["ko", "ja", "zh", "en"], default: "ko" },
@@ -121,7 +121,7 @@ const feedbackSchema = new mongoose.Schema({
   attachments: { type: [feedbackFileSchema], default: [] },
 
   // ── 처리 상태
-  status: { type: String, enum: FEEDBACK_STATUS_LIST, default: FEEDBACK_STATUSES.NEW, index: true },
+  status: { type: String, enum: FEEDBACK_STATUS_LIST, default: FEEDBACK_STATUSES.NEW },
   priority: { type: String, enum: FEEDBACK_PRIORITY_LIST, default: FEEDBACK_PRIORITIES.NORMAL },
   priorityRank: { type: Number, default: FEEDBACK_PRIORITY_RANK.normal, min: 0, max: 2 },
   resolvedAt: { type: Date, default: null },
@@ -147,7 +147,7 @@ const feedbackSchema = new mongoose.Schema({
   },
 
   // ── 중복 탐지 + 자동 플래그
-  contentHash: { type: String, default: "", trim: true, maxlength: 64, index: true },
+  contentHash: { type: String, default: "", trim: true, maxlength: 64 },
   // screenReviewText 결과. 차단이 아니라 관리자 트리아지 신호로만 쓴다.
   autoFlagReasons: { type: [String], default: [] },
 
