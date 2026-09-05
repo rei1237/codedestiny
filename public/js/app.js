@@ -1,7 +1,7 @@
 // ⚠ 이 쿼리는 sync:public 의 캐시버스터 갱신 대상이 아니라 손으로 올려야 한다.
 // 올리지 않으면 core/init.js 를 고쳐도 이 URL 이 캐시 키라서 사용자에게 영영 안 닿는다
 // (실측: 배포 후에도 옛 init.js 가 서빙돼 contain-intrinsic-size 수정이 반영되지 않았다).
-import { initAppShell } from './core/init.js?v=build-4dfbeaa18bd3';
+import { initAppShell } from './core/init.js?v=build-cd2e0ad5aea2';
 
 const DESTINY_FLOWER_ACTIONS = [
   'openDestinyFlowerStudio',
@@ -31,7 +31,7 @@ function ensureDestinyFlowerBootstrapped() {
     return Promise.resolve();
   }
   if (!__destinyFlowerBootPromise) {
-    __destinyFlowerBootPromise = import('./core/bootstrapDestinyFlower.js?v=build-4dfbeaa18bd3')
+    __destinyFlowerBootPromise = import('./core/bootstrapDestinyFlower.js?v=build-cd2e0ad5aea2')
       .then(function (mod) {
         if (!mod || typeof mod.bootstrapDestinyFlower !== 'function') return;
         mod.bootstrapDestinyFlower(window);
