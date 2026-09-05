@@ -254,3 +254,62 @@ Glow 는 **상태 변화**의 언어다. 그런데 평상시 표면도 종이 �
 - **Don't** 강조색을 모드당 2개 이상 쓰지 않는다(One Accent Rule).
 - **Don't** accent 를 테두리·그림자·캡션·보조 배경에 기본값으로 깔지 않는다(Accent Budget Rule).
 - **Don't** 연이 화면에 Ice Blue(`#7dd3fc`)를 쓰지 않는다 — 이건 네오 전용 보조 글로우다. (실사고: `body:not(.neo-mode) .logo-area` 가 홈 래퍼 전체에 `rgba(125,211,252,.32)` 를 깔아 연이 홈이 라벤더로 읽혔다. 2026-08-23 제거.)
+
+## 7. Scale Tokens — 코드 실측 정본 (2026-09-05)
+
+위 프런트매터의 `rounded`/`spacing` 은 요약이고, **런타임 정본은 `styles/theme-tokens.css` 의 `:root`** 다. 값을 바꿀 때는 아래 줄에서 바꾼다 — 페이지 안에서 `24px` 같은 리터럴을 새로 쓰지 않는다.
+
+| 축 | 토큰 | 값 | 정의 위치 |
+|---|---|---|---|
+| 간격 | `--cd-sp-xs` / `sm` / `md` / `lg` / `xl` | 6 / 10 / 16 / 24 / 36px | `theme-tokens.css:350-354` |
+| 반경 | `--cd-r-sm` / `md` / `pill` | 8 / 16 / 999px | `theme-tokens.css:173-175` |
+| 반경 | `--cd-r-control` / `card` / `section` | 12 / 20 / 26px | `theme-tokens.css:345-347` |
+| 타이포 | `--cd-t-display` | `clamp(1.5rem, 3vw, 2.05rem)` | `theme-tokens.css:358` |
+| 타이포 | `--cd-t-section` | `clamp(1.24rem, 2.6vw, 1.7rem)` | `theme-tokens.css:359` |
+| 타이포 | `--cd-t-card` / `body` / `caption` | 1.1 / 0.9 / 0.76rem | `theme-tokens.css:360-362` |
+| 모션 | `--cd-dur-fast` / `base` / `emph` | 120 / 220 / 380ms | `theme-tokens.css:116-118` |
+| 모션 | 〃 (`prefers-reduced-motion`) | 전부 0.01ms | `theme-tokens.css:247-249` |
+| z축 | `--cd-z-space` … `--cd-z-ui` | 0 / 1 / 2 / 3 / 4 / 5 | `theme-tokens.css:299-304` |
+| 폭 | `--cd-w-prose` / `grid` / `wide` | 760 / 1280 / 1440px | `theme-tokens.css:35-37` |
+| 버튼 | `--cd-btn-h` / `--cd-btn-pad` | 48px / `12px 24px` | `theme-tokens.css:198-199` |
+| 버튼 | `--cd-btn-h-lg` / `--cd-btn-pad-lg` | 56px / `16px 38px` | `theme-tokens.css:200-201` |
+
+**데스크톱 폭은 위 3단이 전부다.** 코드 곳곳의 `var(--cd-w-wide, 960px)` 는 토큰이 없던 시절의 **폴백 피연산자**일 뿐이며 960px 은 정본 스케일이 아니다. 새 화면에 960px 을 고정폭으로 새로 박지 않는다.
+
+**커스텀 프로퍼티에는 CSS Modules 해시가 걸리지 않는다.** `*.module.css` 안에서 `--cd-*` 를 재선언하면 그 값이 전역으로 새 나가 페르소나 전환을 무력화한다. 모듈 안에서는 반드시 사설 네임스페이스(`--gd-*`, `--ls-*`, `--fx-*` 처럼)를 쓴다.
+
+## 8. Surface Families — 언제 어느 계열을 쓰는가
+
+App Router 에는 표면 계열이 셋 있고, 서로 대체재가 아니다. 새 페이지는 **백지에서 시작하지 말고 아래 셋 중 하나를 고른다.**
+
+| 계열 | 정의 위치 | 소비 파일 | 쓰는 곳 |
+|---|---|---|---|
+| `.cd-guide` (+ 사설 `--gd-*`) | `styles/globals.css:305-814` | 18 | **읽기형 장문 가이드.** 이 저장소에서 One Accent / Veil / Accent Budget 규칙이 코드로 구현된 유일한 표면이다 — 새 읽기 화면의 기준선 |
+| `.cd-main-shell` + `.cd-card` | `styles/globals.css:173-303` | 20 | **허브·카드 그리드.** 홈·`/about`·`/faq`·`/methodology`·`/guides` |
+| `.policy-doc` + `.policy-embed-*` | `styles/globals.css:816-1179` | 13 / 6 | **법적·정책·시스템 문서.** 제목·시행일·리드·목차·68ch 본문·관련문서 내비·버튼·폼이 모두 규격화돼 있다 |
+
+`.policy-doc` 어휘 요약 — 시스템 페이지도 이 어휘만으로 만든다:
+
+- 골격: `.policy-doc` → `.policy-doc__head` → `.policy-doc__layout`(목차 있음) 또는 `.policy-doc__single`(목차 없음)
+- 헤더: `.policy-doc__title` / `.policy-doc__meta`(부제·시행일·킥커) / `.policy-doc__lede`
+- 본문: `.policy-embed-body`(68ch) 안에 `.policy-embed-section` + `.policy-embed-heading`
+- 링크 줄: `.policy-doc__related` + `.policy-doc__toc-link`(pill)
+- 액션: `.policy-doc__actions` + `.policy-btn--primary` / `--ghost` / `--danger`
+- 강조색은 Twilight Violet `#c4b5fd` **하나뿐**이다(One Accent Rule). 정책 화면에 `#93c5fd` 같은 다른 파랑을 새로 들이지 않는다.
+
+**법적 문서 렌더러의 정본은 `app/components/LegalDocumentBody.tsx` 다** — 본문을 `lib/legal/legalContent.ts` 의 번역 가능한 데이터로 두고 `.policy-embed-*` 로 렌더한다. 현재 `app/[locale]/{privacy-policy,refund-policy,terms-of-service}/page.js` 3곳이 쓴다. 한국어 루트 페이지(`app/privacy-policy/PrivacyPolicyContent.jsx`, `app/terms-of-service/TermsContent.jsx`)는 아직 자체 JSX 본문을 쓰는 **2벌 상태**다. 새 법적 문서는 정본 쪽으로 만들고, 기존 한국어 본문의 이관은 법적 문구를 한 글자도 바꾸지 않는 별도 작업으로 다룬다.
+
+시스템 페이지(404·에러 바운더리)는 `app/components/SystemNotice.tsx` 를 쓴다 — `.policy-doc` 골격만 재사용하는 얇은 래퍼이고 문구는 전부 호출부가 넘긴다.
+
+## 9. Theme Axes — 실제로는 4갈래다
+
+"다크/라이트"라는 한마디로 부를 수 없다. 이 저장소에는 서로 연동되지 않는 테마 축이 **4개** 있다(2026-09-05 실측). 화면 하나를 고칠 때 **어느 축 위에 있는지 먼저 확인한다.**
+
+| 축 | 스위치 | 범위 | 상태 |
+|---|---|---|---|
+| **1. 페르소나(정본)** | `localStorage['fortuneThemeModeStateV1']` = `pig`\|`neo` → 셸은 `body.neo-mode`, Next 는 `html[data-cd-theme="neo"]` (`theme-tokens.css:54-56`) | 정적 셸 + `--cd-*` 를 참조하는 App Router 표면 | **이것이 정본이다** |
+| **2. App Router 본문** | 없음 — `styles/globals.css:93-118` 이 `background-color: #0a0818` 로 **다크 고정**, `--cd-bg` 미참조 | App Router 전 페이지 | 축1 의 연이(라이트)가 여기까지 오지 않는다 |
+| **3. 안드로이드 앱 셸** | `@media (prefers-color-scheme: light)` (`styles/app-shell.css:63`, `:195`), 독립 토큰 `--cd-app-*` 28종 | `app/app/_components/AppShell.tsx` 하나 | 축1 과 완전 분리 |
+| **4. Tailwind `dark:`** | `tailwind.config.js` 에 `darkMode` 키가 **없어** 기본값 `media`(OS 설정) | `dark:` 374건 / 30개 파일 | 축1~3 어느 쪽과도 연동 안 됨. `styles/mobile-bottom-nav.css:344-349` 가 이 불일치를 `body:has(...)` 로 우회 중 |
+
+**새 화면은 축1 위에 짓는다** — 색은 `--cd-*` 토큰으로 받고, `dark:` 유틸리티나 `prefers-color-scheme` 을 새로 들이지 않는다. 축2~4 는 현황 기록이지 따라야 할 본보기가 아니다.
