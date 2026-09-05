@@ -78,13 +78,13 @@ export function FusionResultThread({ result, openSection, onToggleSection, expor
               aria-expanded={expanded}
               aria-controls={`fusion-section-${key}`}
               onClick={() => onToggleSection(key)}
-              className={`flex min-h-11 w-full items-center justify-between gap-3 text-left ${styles.readingTitle} ${styles.readingSectionTitle} text-[var(--fx-ink-1)] transition-colors hover:text-[color:var(--tint-label)] motion-reduce:transition-none`}
+              className={`flex min-h-11 w-full flex-col items-start justify-center gap-1.5 text-left sm:flex-row sm:items-center sm:justify-between sm:gap-3 ${styles.readingTitle} ${styles.readingSectionTitle} text-[var(--fx-ink-1)] transition-colors hover:text-[color:var(--tint-label)] motion-reduce:transition-none`}
             >
               <span className="min-w-0">{result[key].title}</span>
               <b className="shrink-0 rounded-full border border-white/[0.16] px-3 py-1 text-[0.74rem] font-normal text-white/75">{expanded ? copy.collapseButton : copy.viewEvidenceButton}</b>
             </button>
           </h3>
-          {keySentence && <p className="m-0 mt-3.5 grid max-w-[72ch] grid-cols-[auto_minmax(0,1fr)] items-baseline gap-3.5 rounded-xl bg-black/25 px-4 py-3.5">
+          {keySentence && <p className="m-0 mt-3.5 grid max-w-[72ch] grid-cols-1 gap-2 rounded-xl bg-black/25 px-4 py-3.5 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-baseline sm:gap-3.5">
             <span className="text-[0.7rem] uppercase tracking-[0.2em] text-[color:var(--tint-label)]">{copy.keySentenceLabel}</span>
             <q className={`[quotes:none] ${styles.readingTitle} text-[1.05rem] leading-[1.8] text-[var(--fx-ink-1)] [text-wrap:pretty]`}>{keySentence}</q>
           </p>}
@@ -111,7 +111,7 @@ export function FusionResultThread({ result, openSection, onToggleSection, expor
               aria-expanded={expanded}
               aria-controls="fusion-section-timing"
               onClick={() => onToggleSection("timing")}
-              className={`flex min-h-11 w-full items-center justify-between gap-3 text-left ${styles.readingTitle} ${styles.readingSectionTitle} text-[var(--fx-ink-1)] transition-colors hover:text-[color:var(--tint-label)] motion-reduce:transition-none`}
+              className={`flex min-h-11 w-full flex-col items-start justify-center gap-1.5 text-left sm:flex-row sm:items-center sm:justify-between sm:gap-3 ${styles.readingTitle} ${styles.readingSectionTitle} text-[var(--fx-ink-1)] transition-colors hover:text-[color:var(--tint-label)] motion-reduce:transition-none`}
             >
               <span className="min-w-0">{result.timingAndAction.title}</span>
               <b className="shrink-0 rounded-full border border-white/[0.16] px-3 py-1 text-[0.74rem] font-normal text-white/75">{expanded ? copy.collapseButton : copy.viewActionButton}</b>

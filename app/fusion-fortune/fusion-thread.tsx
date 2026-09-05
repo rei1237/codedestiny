@@ -173,7 +173,7 @@ export function ThreadRow({ systemKey, dimmed, index = 0, dataState, exporting =
       data-state={dataState}
       {...(pdfSection ? { "data-fusion-pdf-section": "true" } : {})}
       {...(tocKey ? { id: `fusion-toc-${tocKey}`, "data-fusion-toc": tocKey } : {})}
-      className={`grid grid-cols-[1.75rem_minmax(0,1fr)] items-start gap-x-2.5 sm:grid-cols-[2.25rem_minmax(0,1fr)] sm:gap-x-3.5 ${exporting ? "" : "animate-fade-in-up opacity-0 motion-reduce:animate-none motion-reduce:opacity-100"} ${className}`}
+      className={`grid grid-cols-[1.75rem_minmax(0,1fr)] items-start gap-x-2.5 max-[430px]:grid-cols-[1.5rem_minmax(0,1fr)] max-[430px]:gap-x-2 sm:grid-cols-[2.25rem_minmax(0,1fr)] sm:gap-x-3.5 ${exporting ? "" : "animate-fade-in-up opacity-0 motion-reduce:animate-none motion-reduce:opacity-100"} ${className}`}
       style={exporting ? undefined : { animationDelay: `${Math.min(index, 14) * 60}ms` }}
     >
       <ThreadAvatar systemKey={systemKey} dimmed={dimmed} />
@@ -214,7 +214,7 @@ export function ThreadBubble({ systemKey, tone = "plain", deferRender = false, e
   return (
     <div
       style={tintVars(systemKey)}
-      className={`relative min-w-0 overflow-hidden rounded-[1.375rem] rounded-tl-md border px-4 py-4 sm:px-6 sm:py-5 ${
+      className={`relative min-w-0 overflow-hidden rounded-[1.375rem] rounded-tl-md border px-4 py-4 max-[430px]:px-3.5 max-[430px]:py-3.5 sm:px-6 sm:py-5 ${
         tone === "gold"
           ? "border-[rgba(232,213,163,0.28)] bg-[linear-gradient(150deg,rgba(232,213,163,0.11),rgba(255,255,255,0.03))]"
           : "border-white/[0.09] bg-white/[0.035]"

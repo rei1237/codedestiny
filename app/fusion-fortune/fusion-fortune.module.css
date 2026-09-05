@@ -1343,3 +1343,39 @@
     gap: 3px;
   }
 }
+
+/* ── Phase 3 · 모바일 결과 내비게이션 ────────────────────────────────────────
+   하단 도킹 차례 바(FusionResultDock)의 바텀시트. 표면은 새로 만들지 않고 이 페이지가 이미 쓰는
+   .coreDialog 의 #171025 을 그대로 쓴다. 스크롤 잠금·Esc·포커스 트랩은 <dialog> 기본 동작이다.
+   🔴 레이아웃 선언은 반드시 [open] 안에 둔다 — .tocSheet 에 display 를 걸면 저작자 스타일이
+      UA 의 dialog:not([open]){display:none} 를 이겨 닫힌 시트가 화면에 남는다. */
+.tocSheet {
+  width: 100%;
+  max-width: none;
+  max-height: 88svh;
+  margin: auto auto 0;
+  border: 0;
+  border-top: 1px solid rgba(232, 208, 145, 0.4);
+  border-radius: 22px 22px 0 0;
+  background: #171025;
+  padding: 10px 12px calc(12px + env(safe-area-inset-bottom, 0px));
+  color: #f7f1ff;
+  box-shadow: 0 -20px 60px rgba(0, 0, 0, 0.6);
+}
+.tocSheet[open] {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  gap: 12px;
+  overflow: hidden;
+}
+.tocSheet::backdrop {
+  background: rgba(4, 2, 12, 0.72);
+}
+/* 좁은 화면에서 읽는 열을 **여백에서만** 되찾는다(360px 기준 본문 폭 +22px). 글자 크기·줄 높이·
+   본문 최대 폭은 건드리지 않는다. 나머지 세 곳(스레드 좌우 여백·아바타 열·말풍선 안쪽 여백)은
+   호출부의 max-[430px]: 유틸리티에 있다. */
+@media (max-width: 430px) {
+  .page {
+    padding: 8px;
+  }
+}
