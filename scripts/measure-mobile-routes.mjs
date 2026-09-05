@@ -50,7 +50,7 @@ import { chromium } from "@playwright/test";
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 /** 🔴 축 구성이 바뀐 날짜 — 이 날 이전 원장 수치와 직접 비교하지 말 것(축이 늘고 필터가 붙었다) */
-const AXIS_VERSION = "2026-09-06 · OF-A/B/C + 위양성필터3 + --reveal";
+const AXIS_VERSION = "2026-09-06 · OF-A/B/C + 위양성필터3 + --reveal + 순회 fail-closed";
 /** 축 C 의 측정 예산(텍스트를 가진 요소 수). 넘으면 조용히 자르지 않고 runsTruncated 로 알린다 */
 const TEXT_RUN_BUDGET = 4000;
 
@@ -430,11 +430,35 @@ async function probe(params) {
     }
   };
 
+  // 🔴 스크롤은 반드시 즉시 이동이어야 한다 — styles/core-ui.css:23-27 이 prefers-reduced-motion 이
+  // 없는 환경(플레이라이트 기본)의 html 에 scroll-behavior:smooth 를 건다. 그러면 window.scrollTo(x,y)
+  // 가 애니메이션으로 돌고 두 rAF 짜리 settle 은 그 첫 프레임만 본다 — 7854px 문서에서 7407px 를
+  // 요청해도 실제 scrollY 는 540px 이었다(2026-09-06 실측, /nakshatra/muhurta/). 축 A·B·C 는 전부
+  // 뷰포트 안 요소만 세므로 순회가 끊기면 "첫 화면만 잰 결과"가 발견 0건으로 보고된다. 그래서
+  // 여기서는 ① CSS 를 눌러 끄고 ② behavior:"instant" 로 요청하고 ③ 도달한 scrollY 를 검사한다.
+  const scrollStyle = document.createElement("style");
+  scrollStyle.textContent = "html,body{scroll-behavior:auto !important}";
+  document.documentElement.appendChild(scrollStyle);
+  const maxScrollY = () => Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+  let scrollReach = window.innerHeight;
+  let scrollStalled = null;
+  const scrollToY = async (y) => {
+    for (let attempt = 0; attempt < 4; attempt += 1) {
+      window.scrollTo({ top: Math.min(y, maxScrollY()), left: 0, behavior: "instant" });
+      await settle();
+      if (Math.abs(window.scrollY - Math.min(y, maxScrollY())) <= 2) break;
+    }
+    const want = Math.min(y, maxScrollY());
+    if (!scrollStalled && Math.abs(window.scrollY - want) > 2) {
+      scrollStalled = { want: Math.round(want), got: Math.round(window.scrollY), asked: Math.round(y) };
+    }
+    scrollReach = Math.max(scrollReach, window.scrollY + window.innerHeight);
+  };
+
   const step = window.innerHeight;
   let steps = 0;
   for (let y = 0; y < document.documentElement.scrollHeight && steps < 80; y += step) {
-    window.scrollTo(0, y);
-    await settle();
+    await scrollToY(y);
     steps += 1;
 
     // 🔴 문서 폭 게이트는 이 레포에서 구조적으로 죽어 있다 — styles/globals.css:80-81,111-112 가
@@ -553,8 +577,7 @@ async function probe(params) {
 
     if (steps === 1 || y + step >= document.documentElement.scrollHeight) scanFixedBottom();
   }
-  window.scrollTo(0, 0);
-  await settle();
+  await scrollToY(0);
   scanFixedBottom();
 
   // 이탈 컨트롤 휴리스틱 — 첫 화면(스크롤 0) 기준
@@ -577,6 +600,8 @@ async function probe(params) {
     steps,
     scanned,
     docHeight: document.documentElement.scrollHeight,
+    scrollReach: Math.round(scrollReach),
+    scrollStalled,
     scrollWidth: document.documentElement.scrollWidth,
     viewportWidth,
     layoutViewportExpanded,
@@ -714,6 +739,19 @@ async function measureLeg(browser, origin, route, viewport, inset, settleMs, cli
     if (!result.scanned || !result.visibleInteractive) {
       return { valid: false, invalidReason: `보이는 조작 요소 0건(훑은 ${result.scanned}개) — 페이지가 안 떴거나 렌더 전`, ...result };
     }
+    // 🔴 순회 도달 fail-closed — 축 3종은 전부 뷰포트 안 요소만 센다. 스크롤이 문서 끝까지 못 가면
+    // 아래쪽을 한 번도 안 본 채 "발견 0건"이 되므로, 부분 순회는 통과가 아니라 무효다.
+    if (result.scrollStalled) {
+      const s = result.scrollStalled;
+      return { valid: false, invalidReason: `스크롤 정체 — ${s.want}px 요청에 ${s.got}px 도달. 순회가 끊겨 판정 무효`, ...result };
+    }
+    if (result.scrollReach + 2 < result.docHeight) {
+      return {
+        valid: false,
+        invalidReason: `문서 ${result.docHeight}px 중 ${result.scrollReach}px 까지만 훑음(스크롤 잠금·스텝 한도 의심) — 판정 무효`,
+        ...result,
+      };
+    }
     return { valid: true, ...result };
   } catch (error) {
     return { valid: false, invalidReason: `로드/계측 실패 — ${error.message}` };
@@ -744,6 +782,9 @@ const selfTestHtml = (clip) => `<!doctype html><html lang="ko"><head><meta chars
   #ofB { overflow-x: hidden; width: 100px; }
   #ofB span { white-space: nowrap; }
   #ofC { width: 280px; white-space: nowrap; }
+  /* 🔴 프로덕션 셸과 같은 조건 — styles/core-ui.css:23-27 이 html 에 거는 것 */
+  html { scroll-behavior: smooth; }
+  #ofDeep { width: 280px; white-space: nowrap; }
   .revealWrap { opacity: 0; }
   #ofReveal { position: absolute; left: 390px; top: 340px; width: 220px; height: 30px; background: #dfd; }
 </style></head><body>
@@ -757,7 +798,9 @@ const selfTestHtml = (clip) => `<!doctype html><html lang="ko"><head><meta chars
 <div id="ofB"><span>nnnnnnnnnnnnnnnnnnnnnnnn</span></div>
 <div id="ofC">wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww</div>
 <div class="revealWrap"><div id="ofReveal">진입 애니메이션 안의 이탈 상자</div></div>
-<div style="height:1200px"></div>
+<div style="height:4200px"></div>
+<div id="ofDeep">wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww</div>
+<div style="height:900px"></div>
 </body></html>`;
 
 async function runSelfTest(browser) {
@@ -805,6 +848,12 @@ async function runSelfTest(browser) {
       "#ofC 가 축 A·B 로도 잡혔다 — 픽스처가 축 C 의 존재 이유를 증명하지 못한다",
     );
     check(!has(r.overflowOffenders, "#ofReveal"), "--reveal 없이 opacity:0 하위가 표본에 들어왔다");
+    // 🔴 순회 변이 — 픽스처는 프로덕션과 같은 scroll-behavior:smooth 를 걸고 위반 하나를 4,200px
+    // 아래 숨긴다. 스크롤이 애니메이션으로 돌면(옛 window.scrollTo(0,y)) 여기서 반드시 실패한다.
+    console.log(`    순회     docHeight=${r.docHeight} reach=${r.scrollReach} steps=${r.steps} stalled=${JSON.stringify(r.scrollStalled)}`);
+    check(r.scrollStalled === null, `스크롤이 요청한 오프셋에 못 갔다: ${JSON.stringify(r.scrollStalled)}`);
+    check(r.scrollReach + 2 >= r.docHeight, `순회가 문서 ${r.docHeight}px 중 ${r.scrollReach}px 에서 끊겼다`);
+    check(has(r.textRunOffenders, "#ofDeep"), "문서 4,200px 아래의 축 C 위반을 못 잡았다 — 스크롤 순회가 첫 화면에서 끊긴다");
     for (const [axis, list] of [
       ["OF-A", r.overflowOffenders],
       ["OF-B", r.clippedOffenders],
@@ -928,7 +977,7 @@ async function main() {
           const sa = leg.fixedBottom.length ? `${Math.min(...leg.fixedBottom.map((f) => f.contentGap))}px` : "—";
           const sup = leg.suppressed;
           console.log(
-            `· ${tag} scanned=${leg.visibleInteractive}/${leg.scanned}` +
+            `· ${tag} scanned=${leg.visibleInteractive}/${leg.scanned} 순회=${leg.docHeight}px` +
               `${leg.reveal ? ` revealed=${leg.reveal.before}→${leg.reveal.after}` : ""} ` +
               `OF-A=${leg.overflowOffenders.length} OF-B=${leg.clippedOffenders.length} ` +
               `OF-C=${leg.textRunOffenders.length}${leg.runsTruncated ? "+" : ""} ` +
