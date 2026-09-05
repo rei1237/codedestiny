@@ -7,6 +7,9 @@
 //   (3) access-state 60초 스냅샷을 무효화하지 않아 방금 산 기능이 잠긴 채 보였고
 //   (4) URL 에 PG 파라미터가 남아 새로고침마다 confirm 이 재실행됐고
 //   (5) GRANT_PENDING(200+code) 을 "결제 완료"로 표시했다.
+// 2026-09-06 에 (2) 를 실제로 고쳤다: 재개 서술자가 있으면 그 기능을 다시 열고, 없거나 실패하면
+// 사라지는 완료 오버레이 대신 **지속 카드**(#cdDirectResumeCard)를 남긴다. 그래서 완료 표시가
+// 오버레이 mode 'payment-complete' 로 나오는 경우는 "정말 무언가를 연 경우" 하나뿐이다.
 // 정적 문자열 가드는 scripts/verify-direct-confirm-pending-recovery.mjs 가 맡고, 여기서는 실제로
 // 실행해 호출 횟수·저장소·URL·이벤트를 잰다.
 const test = require("node:test");
@@ -83,6 +86,8 @@ function boot(options) {
 
   window.eval(checkoutEntryJs);
   assert.ok(window.__cdCheckoutEntry, "checkout-entry 가 window.__cdCheckoutEntry 로 등록되지 않았다");
+  // 기능 스크립트는 dp 보다 먼저 로드될 수도, 나중일 수도 있다. 재개 핸들러 등록은 그 사이에 끼운다.
+  if (typeof opts.beforeProfile === "function") opts.beforeProfile(window, calls);
   window.eval(profileJs);
   assert.equal(window.__cdDirectPaymentResumeStarted, true, "dp 가 복귀 재개를 시작하지 않았다");
   return { window, calls };
@@ -98,7 +103,11 @@ async function waitFor(predicate, label) {
   assert.fail(`${label}: 1초 안에 조건이 참이 되지 않았다`);
 }
 
-test("성공 복귀: confirm 1회 → 티켓 회수 → access 갱신 1회 → URL 정리(해시 보존) → 완료 안내·카드 강조·이벤트", async () => {
+function resumeCard(window) {
+  return window.document.getElementById("cdDirectResumeCard");
+}
+
+test("성공 복귀(재개 서술자 없음): confirm 1회 → 티켓 회수 → access 갱신 1회 → URL 정리(해시 보존) → 지속 카드·카드 강조·이벤트", async () => {
   const { window, calls } = boot({
     url: "https://code-destiny.com/?portone_redirect=1&paymentId=ord_1&transactionType=PAYMENT&txId=tx_1&keep=1#tab",
     confirmResponse: () => jsonResponse({ ok: true, unlocked: true, featureKey: "neville-meditation" }),
@@ -119,14 +128,30 @@ test("성공 복귀: confirm 1회 → 티켓 회수 → access 갱신 1회 → U
     assert.match(search, /keep=1/, "무관한 쿼리는 보존한다");
     assert.equal(window.location.hash, "#tab", "해시를 보존한다");
 
-    // 대기는 'unlock-saving'(3렌더러 공통 허용), 완료는 'payment-complete'. 둘 다 수단 이름을 끼운다.
+    // 대기는 'unlock-saving'(3렌더러 공통 허용) 하나뿐이다. 🔴 아무것도 안 열었으므로 사라지는
+    // 완료 오버레이를 띄우면 안 된다 — 그것이 "결제했는데 메인 화면만 보인다"의 절반이었다.
     const modes = calls.overlay.filter((c) => c.open).map((c) => c.mode);
-    assert.deepEqual(modes, ["unlock-saving", "payment-complete"], JSON.stringify(calls.overlay));
+    assert.deepEqual(modes, ["unlock-saving"], JSON.stringify(calls.overlay));
     assert.match(calls.overlay[0].message, /카카오페이/, "대기 문구에 수단 이름");
     assert.doesNotMatch(calls.overlay[0].message, /자동으로 돌아옵니다/, "복귀 단계에 '돌아옵니다' 문구 금지");
-    const complete = calls.overlay.find((c) => c.mode === "payment-complete");
-    assert.match(complete.message, /카카오페이 결제가 확인되었습니다/);
-    assert.doesNotMatch(complete.message, /여는 중/, "아무것도 안 열면서 '여는 중' 을 말하면 거짓 안내");
+
+    // 대신 누르기 전까지 남는 카드가 뜬다.
+    const card = resumeCard(window);
+    assert.ok(card, "재개 서술자가 없으면 지속 카드가 남아야 한다");
+    const desc = card.querySelector(".cd-direct-resume-desc").textContent;
+    assert.match(desc, /카카오페이 결제가 확인되었습니다/);
+    assert.match(desc, /추가 결제 없이/, "재클릭이 무료라는 사실이 사용자가 할 수 있는 유일한 행동이다");
+    assert.doesNotMatch(desc, /여는 중/, "아무것도 안 열면서 '여는 중' 을 말하면 거짓 안내");
+    assert.equal(card.querySelector(".cd-direct-resume-open"), null, "딥링크가 없으면 열기 버튼도 없다");
+    assert.ok(card.querySelector(".cd-direct-resume-dismiss"), "닫기는 항상 있다");
+    assert.equal(calls.events[0].resumed, false, "자동으로 연 것이 아니다");
+
+    // 🔴 재과금 차단. 회당 결제 키는 서버 보유 목록에 안 남으므로, 못 연 채로 다시 누르면
+    // 영수증이 없는 한 또 결제된다.
+    assert.ok(
+      window.__cdCheckoutEntry.peekPaidGrantReceipt({ featureKey: "neville-meditation", contentKey: "", profileId: "" }),
+      "자동 재개가 없었으면 영수증은 남아 있어야 한다",
+    );
 
     assert.equal(calls.scroll, 1, "결제한 카드로 스크롤");
     assert.equal(calls.events[0].featureKey, "neville-meditation");
@@ -192,10 +217,49 @@ test("티켓 없는 새 탭 복귀: 쿼리 paymentId 만으로 confirm 하고 Ge
     assert.equal(calls.confirm.length, 1);
     assert.equal(calls.confirm[0].body.merchantUid, "ord_9");
     assert.equal(calls.refresh, 1);
-    const complete = calls.overlay.find((c) => c.mode === "payment-complete");
-    assert.match(complete.message, /^결제가 확인되었습니다/, "수단을 모르면 Generic 판");
+    const card = resumeCard(window);
+    assert.ok(card, "티켓이 없어도 완료 카드는 남는다");
+    assert.match(
+      card.querySelector(".cd-direct-resume-desc").textContent,
+      /^결제가 확인되었습니다/,
+      "수단을 모르면 Generic 판",
+    );
+    assert.equal(calls.overlay.some((c) => c.mode === "payment-complete"), false, "아무것도 안 열었다");
     assert.equal(calls.scroll, 0, "featureKey 를 모르니 카드 강조는 건너뛴다");
     assert.equal(calls.events[0].paymentMethod, "");
+  } finally {
+    window.close();
+  }
+});
+
+// 이번 변경의 본체. 결제 전에 남긴 서술자로 기능이 **스스로** 열리고, 그 대가로 영수증을 쓴다.
+test("재개 서술자 + 등록된 핸들러: 기능이 스스로 열리고 영수증을 소비하며 지속 카드는 뜨지 않는다", async () => {
+  const handled = [];
+  const { window, calls } = boot({
+    url: "https://code-destiny.com/?portone_redirect=1&paymentId=ord_1",
+    ticket: { resume: { kind: "sukuyo-compat", action: "openSukuyoModal", args: { y: "1990" } } },
+    confirmResponse: () => jsonResponse({ ok: true, unlocked: true, featureKey: "neville-meditation" }),
+    beforeProfile: (win) => {
+      win.__cdCheckoutEntry.registerPaidResumeHandler("sukuyo-compat", (descriptor) => {
+        handled.push(descriptor);
+        return true;
+      });
+    },
+  });
+  try {
+    await waitFor(() => calls.events.length === 1, "복귀 성공 이벤트");
+
+    assert.equal(handled.length, 1, "핸들러는 정확히 1회");
+    assert.equal(handled[0].args.y, "1990", "서술자의 args 가 그대로 전달된다");
+    assert.equal(calls.events[0].resumed, true);
+    assert.equal(resumeCard(window), null, "스스로 열었으면 '지금 열기' 카드는 필요 없다");
+    assert.ok(calls.overlay.some((c) => c.open && c.mode === "payment-complete"), "실제로 열 때만 완료 오버레이");
+    // 🔴 자동 개방이 곧 소비다. 안 쓰면 회당 결제 1회로 자동 개방 + 다음 클릭 무료가 되어 두 번 열린다.
+    assert.equal(
+      window.__cdCheckoutEntry.peekPaidGrantReceipt({ featureKey: "neville-meditation", contentKey: "", profileId: "" }),
+      null,
+      "재개에 성공했으면 영수증은 소비된다",
+    );
   } finally {
     window.close();
   }
