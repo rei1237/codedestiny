@@ -743,6 +743,10 @@ function verifyAdsenseScriptOwnership() {
     "AD_REMOVAL_FEATURE_KEYS",
     "COOKIE_AUTH_HINT_KEYS",
     "currentDocumentAllowsAdsense",
+    // 🔴 WebView 차단 — AdSense 는 앱에 넣을 수 없다(프로그램 정책, 위반 시 계정 정지).
+    //    이 조기 반환 한 줄이 지워지거나 약해져도 나머지 마커가 전부 남아 CI 가 통과하던
+    //    사각(2026-09-05 SEO 진단 F-06)이라, 호출 이름이 아니라 반환까지 포함한 줄을 단언한다.
+    "if (isMobileAppRuntime()) return false;",
     "currentViewerAllowsAdsense",
     "hasAdRemovalEntitlement",
     "CodeDestinyAccessStore",

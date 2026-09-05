@@ -545,6 +545,7 @@ function lookupArtifactPage(pages, routePath) {
  * Google 은 HTML link 태그 · HTTP 헤더 · 사이트맵을 **동등한** hreflang 전달 수단으로 본다
  * (Search Central, Localized versions). 홈 `/` 은 정적 셸 승격본이라 HTML 태그가 없지만
  * 사이트맵이 alternate 를 싣고 있으므로 역방향 링크가 성립한다.
+ * 반환값은 경로 → Map<목적지 경로, hreflang 코드 배열>. Set 처럼 has/size 로도 쓴다.
  */
 async function readSitemapAlternates() {
   const { response, text } = await fetchText(absoluteUrl("/sitemap.xml"));
@@ -556,10 +557,10 @@ async function readSitemapAlternates() {
     if (!loc) continue;
     const from = pathFromUrl(decodeHtml(loc[1]));
     if (!from) continue;
-    const targets = new Set();
-    for (const alt of body.matchAll(/hreflang="[^"]+"\s+href="([^"]+)"/gi)) {
-      const to = pathFromUrl(decodeHtml(alt[1]));
-      if (to) targets.add(to);
+    const targets = new Map();
+    for (const alt of body.matchAll(/hreflang="([^"]+)"\s+href="([^"]+)"/gi)) {
+      const to = pathFromUrl(decodeHtml(alt[2]));
+      if (to) targets.set(to, [...(targets.get(to) || []), alt[1]]);
     }
     map.set(from, targets);
   }
@@ -668,13 +669,53 @@ async function auditArtifacts(sitemapPathSet) {
   }
 
   // 4. hreflang 상호참조 — 목적지가 실재하고, 되돌아오는 alternate 를 갖고, x-default 는 1개.
+  //    2026-09-05 까지는 HTML 에 hreflang 이 없는 페이지를 `continue` 로 통째로 건너뛰었는데,
+  //    실측(같은 날 SEO 진단 F-09)으로 hreflang 을 HTML 태그로 가진 산출물은 1개뿐이고 나머지
+  //    그래프는 전부 사이트맵 xhtml:link 에 있었다 — 즉 이 검사가 사실상 아무것도 안 보고 있었다.
+  //    이제 HTML 태그와 사이트맵 alternate 를 합쳐 한 그래프로 보고, 어느 쪽에도 없는 페이지는
+  //    (가) 로케일 접두 아래 색인 대상이면 이슈(다른 언어판이 있다는 뜻인데 서로를 안 가리킨다),
+  //    (나) 접두 없는 한국어 단독 라우트(실측 401개)면 정상으로 둔다. 예외는 `/ja/` 접두 하나 —
+  //    特定商取引法 표기처럼 일본 전용이라 다른 로케일이 존재하지 않는 라우트다.
+  //    로케일 접두 집합은 손글 목록이 아니라 사이트맵 alternate 의 lang↔경로 첫 조각에서 뽑는다(원칙 10).
+  const localePrefixes = new Set();
+  for (const targets of sitemapAlternates.values()) {
+    for (const [targetPath, langs] of targets) {
+      const seg = targetPath.split("/")[1] || "";
+      for (const code of langs.map((lang) => lang.toLowerCase())) {
+        if (!seg || code === "x-default") continue;
+        if (code === seg || code.split("-")[0] === seg.split("-")[0]) localePrefixes.add(seg);
+      }
+    }
+  }
+  const declaredAlternates = (routePath, page) => {
+    const merged = new Map();
+    // 같은 (lang, 목적지) 를 HTML·사이트맵 양쪽이 선언하면 하나로 센다 — href 는 절대 URL 과 경로가
+    // 섞여 오므로 경로로 정규화한다(안 하면 x-default 가 2개로 잡히는 위양성이 난다 — 2026-09-05 실측).
+    for (const { lang, href } of page.hreflang) {
+      merged.set(`${lang.toLowerCase()}|${pathFromUrl(href)}`, { lang, href, from: "HTML" });
+    }
+    for (const [targetPath, langs] of sitemapAlternates.get(routePath) || new Map()) {
+      for (const lang of langs) {
+        const key = `${lang.toLowerCase()}|${targetPath}`;
+        if (!merged.has(key)) merged.set(key, { lang, href: targetPath, from: "사이트맵" });
+      }
+    }
+    return [...merged.values()];
+  };
   for (const [routePath, page] of pages) {
-    if (page.hreflang.length === 0) continue;
-    const xDefaults = page.hreflang.filter((link) => link.lang.toLowerCase() === "x-default");
+    const alternates = declaredAlternates(routePath, page);
+    if (alternates.length === 0) {
+      const prefix = routePath.split("/")[1] || "";
+      if (sitemapPathSet.has(routePath) && localePrefixes.has(prefix) && prefix !== "ja") {
+        issues.push(`artifact: ${routePath} 는 /${prefix}/ 로케일판인데 hreflang 이 HTML·사이트맵 어느 쪽에도 없다 (일본 전용 /ja/ 접두만 허용)`);
+      }
+      continue;
+    }
+    const xDefaults = alternates.filter((link) => link.lang.toLowerCase() === "x-default");
     if (xDefaults.length !== 1) {
       issues.push(`artifact: ${routePath} 의 x-default 가 ${xDefaults.length}개다 (1개여야 한다)`);
     }
-    for (const { lang, href } of page.hreflang) {
+    for (const { lang, href, from } of alternates) {
       const targetPath = pathFromUrl(href);
       if (!targetPath) {
         issues.push(`artifact: ${routePath} 의 hreflang(${lang}) href 를 URL 로 못 읽었다 (${href})`);
@@ -682,13 +723,13 @@ async function auditArtifacts(sitemapPathSet) {
       }
       const target = pages.get(targetPath);
       if (!target) {
-        issues.push(`artifact: ${routePath} 의 hreflang(${lang}) 목적지 ${targetPath} 가 out/ 에 없다`);
+        issues.push(`artifact: ${routePath} 의 ${from} hreflang(${lang}) 목적지 ${targetPath} 가 out/ 에 없다`);
         continue;
       }
       if (targetPath === routePath) continue;
       // 역방향은 HTML 태그 **또는** 사이트맵 alternate 중 하나만 있으면 성립한다.
       const reciprocal = target.hreflang.some((link) => pathFromUrl(link.href) === routePath)
-        || (sitemapAlternates.get(targetPath) || new Set()).has(routePath);
+        || (sitemapAlternates.get(targetPath) || new Map()).has(routePath);
       if (!reciprocal) {
         issues.push(`artifact: hreflang 역방향 누락 — ${routePath} → ${targetPath} 는 있는데 ${targetPath} 가 HTML·사이트맵 어느 쪽으로도 ${routePath} 를 안 가리킨다`);
       }

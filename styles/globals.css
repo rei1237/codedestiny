@@ -686,6 +686,11 @@
 		color: #f4eeff;
 		text-wrap: balance;
 	}
+	/* /insights 허브의 H1 — 같은 밴드 안에서 페이지 제목만 한 단계 크게. */
+	.cd-guide-index__title--hero {
+		font-size: 1.75rem;
+		line-height: 1.35;
+	}
 	.cd-guide-index__lede {
 		margin: 12px 0 0;
 		max-width: 68ch;
