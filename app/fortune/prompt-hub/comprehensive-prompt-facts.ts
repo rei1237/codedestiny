@@ -66,8 +66,10 @@ export async function buildComprehensivePromptFacts(input: ComprehensiveFactsInp
 
     const blocks: string[] = [];
     if (selected.has("saju")) blocks.push(headerAndData(buildSajuPromptFacts({ ...birth, gender: input.gender })));
+    // 자미두수는 12궁을 통째로 싣는다 — 명궁 한 줄만 주면 LLM 이 나머지 궁을 지어낸다.
+    // 블록이 14줄 남짓으로 길어지는 것은 의도된 값이다(종합 프롬프트 총량이 그만큼 는다).
     if (selected.has("ziwei")) {
-      blocks.push(headerAndData(buildZiweiPromptFacts({ ...birth, gender: input.gender }, { scope: "summary" })));
+      blocks.push(headerAndData(buildZiweiPromptFacts({ ...birth, gender: input.gender })));
     }
     if (astrologyBlock) blocks.push(headerAndData(astrologyBlock));
     if (vedicBlock) blocks.push(headerAndData(vedicBlock));
