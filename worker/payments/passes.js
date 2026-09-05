@@ -270,7 +270,8 @@ export async function revokePassGrantForOrder(db, { userId, orderId, durationMon
   const months = Math.max(0, Math.floor(Number(durationMonths || 0)));
   const uid = toObjectId(userId);
   if (!uid || months <= 0) return false;
-  const user = await db.findOne(User, { _id: uid });
+  // 이 함수가 읽는 필드는 profileSubscription 뿐이다(아래 본문 전수). 문서 전체를 끌어오지 않는다(M10 Phase 2 #3).
+  const user = await db.findOne(User, { _id: uid }, { projection: { profileSubscription: 1 } });
   const sub = user?.profileSubscription && typeof user.profileSubscription === "object" ? user.profileSubscription : null;
   if (!sub || String(sub.lastPassOrderId || "") !== String(orderId)) return false;
   const currentExpiresAt = sub.expiresAt ? new Date(sub.expiresAt) : null;
