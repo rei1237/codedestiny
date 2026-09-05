@@ -168,6 +168,16 @@
       } catch (e) { /* noop */ }
     }
 
+    // 웹 구현(_cdRunDirectKrwCheckout)은 결제 확정 뒤 access 스냅샷을 강제 갱신하는데, 이 가드가 그
+    // 함수를 통째로 대체하므로 같은 일을 여기서 한다. 안 하면 60초 스냅샷 동안 방금 산 콘텐츠가
+    // 잠긴 것처럼 보인다. 독립 정적 페이지에는 캐시 블록이 없어 조용히 no-op 이다.
+    try {
+      var accessCache = window.CodeDestinyUserAccessCache;
+      if (accessCache && typeof accessCache.refreshUserAccessAfterPayment === "function") {
+        Promise.resolve(accessCache.refreshUserAccessAfterPayment()).catch(function () {});
+      }
+    } catch (e) { /* noop */ }
+
     return verify.payload;
   }
 
@@ -212,7 +222,25 @@
   pinNativeCheckout("_dpRunDirectKrwCheckout");
 
   // --- 이용권/충전 스토어를 앱 전용 화면으로 ------------------------------
+  // 상점으로 떠나기 전에 복귀 지점을 남긴다 — 앱에서 상점으로 가는 모든 경로(셸·독립 정적·React
+  // 결제창의 [이용권으로 구매], 402 분기)가 __cdOpenChargeModal 로 이 함수에 모이므로 여기 한 곳이
+  // 관문이다. /app/store/ 는 구매 성공 뒤 이 티켓을 소비해 원래 콘텐츠로 돌려보낸다(웹 /points 와
+  // 같은 계약: js/core/checkout-entry.js rememberCheckoutReturn / consumeCheckoutReturn).
+  function rememberAppStoreReturn() {
+    try {
+      var entry = window.__cdCheckoutEntry;
+      if (!entry || typeof entry.rememberCheckoutReturn !== "function") return;
+      var pathname = String(window.location.pathname || "/");
+      // 앱 탭 화면(/app/**)에서 온 진입은 저장하지 않는다 — 상점→상점 루프와 탭 화면 복귀를 막는다.
+      if (pathname === "/app" || pathname.indexOf("/app/") === 0) return;
+      entry.rememberCheckoutReturn({
+        url: pathname + String(window.location.search || "") + String(window.location.hash || ""),
+        label: String(document.title || ""),
+      });
+    } catch (e) { /* 복귀 지점 저장 실패는 상점 진입을 막지 않는다 */ }
+  }
   function openAppStore() {
+    rememberAppStoreReturn();
     window.location.assign("/app/store/");
   }
   try {
