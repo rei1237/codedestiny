@@ -3,6 +3,8 @@
 import { useMemo, useState } from "react";
 import { RotateCcw, Search } from "lucide-react";
 
+import { ADMIN_CARD, ADMIN_INPUT, ADMIN_INPUT_ICON } from "../../_components/ui";
+
 export interface BeatsEditorProps {
   /** 인덱스 → 현재 편집 중인 텍스트 */
   value: Record<string, string>;
@@ -78,7 +80,7 @@ export default function BeatsEditor({ value, base, speakers, maxLength, forbidde
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-center gap-2 rounded-lg border border-slate-800 bg-[#12141f] px-3 py-2">
+      <div className={`${ADMIN_CARD} flex flex-wrap items-center gap-2 rounded-lg px-3 py-2`}>
         <div className="relative min-w-[200px] flex-1">
           <Search className="pointer-events-none absolute left-2.5 top-2 h-4 w-4 text-slate-500" aria-hidden="true" />
           <input
@@ -86,7 +88,7 @@ export default function BeatsEditor({ value, base, speakers, maxLength, forbidde
             onChange={(event) => setKeyword(event.target.value)}
             placeholder="대사 내용 또는 비트 번호로 찾기"
             aria-label="대사 검색"
-            className="w-full rounded-md border border-slate-700 bg-slate-950 py-1.5 pl-8 pr-3 text-sm text-slate-100 outline-none focus:border-violet-500"
+            className={ADMIN_INPUT_ICON}
           />
         </div>
         <label className="flex items-center gap-2 text-xs text-slate-300">
@@ -109,7 +111,7 @@ export default function BeatsEditor({ value, base, speakers, maxLength, forbidde
 
       <div className="max-h-[62vh] space-y-2 overflow-y-auto pr-1">
         {visible.length === 0 ? (
-          <p className="rounded-lg border border-slate-800 bg-[#12141f] px-3 py-6 text-center text-sm text-slate-400">
+          <p className={`${ADMIN_CARD} rounded-lg px-3 py-6 text-center text-sm text-slate-400`}>
             조건에 맞는 대사가 없습니다.
           </p>
         ) : (
@@ -153,7 +155,7 @@ export default function BeatsEditor({ value, base, speakers, maxLength, forbidde
                   onChange={(event) => update(index, event.target.value)}
                   rows={Math.min(6, Math.max(2, Math.ceil(text.length / 46)))}
                   aria-label={`${index}번 대사`}
-                  className="w-full resize-y rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm leading-6 text-slate-100 outline-none focus:border-violet-500"
+                  className={ADMIN_INPUT}
                 />
                 {problem ? <p className="mt-1 text-[11px] text-rose-300">{problem}</p> : null}
                 {dirty && !problem ? (

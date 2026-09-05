@@ -10,6 +10,7 @@ import {
   type AdminErrorView,
 } from "../_lib/admin-api";
 import AdminErrorState from "../_components/AdminErrorState";
+import { ADMIN_INPUT, ADMIN_TOOLBAR, adminButton, adminChip } from "../_components/ui";
 
 type FeedbackStatus = "new" | "in_progress" | "resolved" | "on_hold" | "rejected";
 type TabValue = FeedbackStatus | "all";
@@ -58,11 +59,10 @@ const STATUS_TABS: Array<{ value: TabValue; label: string }> = [
   { value: "all", label: "전체" },
 ];
 
+// 톤·크기·포커스는 app/admin/_components/ui.ts 와 styles/admin-yehwa.css 한 곳에서 정한다.
+// 함수 이름을 그대로 두어 호출부는 건드리지 않는다.
 function commandButtonClass(tone: "neutral" | "success" | "danger" | "gift" = "neutral"): string {
-  if (tone === "success") return "inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-600 disabled:opacity-50";
-  if (tone === "danger") return "inline-flex items-center gap-2 rounded-lg bg-rose-700 px-3 py-2 text-sm font-medium text-white hover:bg-rose-600 disabled:opacity-50";
-  if (tone === "gift") return "inline-flex items-center gap-2 rounded-lg bg-amber-500 px-4 py-2.5 text-sm font-bold text-slate-950 hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-50";
-  return "inline-flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 hover:border-slate-500 disabled:opacity-50";
+  return adminButton(tone);
 }
 
 function statusBadgeClass(status: string): string {
@@ -203,7 +203,7 @@ export default function AdminFeedbackPage() {
   }, [loadList, mutate, selected]);
 
   return (
-    <main className="min-h-screen bg-[#0d0f18] text-slate-100">
+    <main className="min-h-screen">
       <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[380px_1fr]">
         <aside className="border-b border-slate-800 bg-[#10121b] lg:border-b-0 lg:border-r">
           <div className="flex items-center justify-between border-b border-slate-800 px-4 py-3">
@@ -220,9 +220,7 @@ export default function AdminFeedbackPage() {
                   key={tab.value}
                   type="button"
                   onClick={() => { setActiveTab(tab.value); setSelectedId(""); }}
-                  className={activeTab === tab.value
-                    ? "rounded-lg border border-violet-500 bg-violet-950 px-2 py-2 text-xs text-violet-100"
-                    : "rounded-lg border border-slate-700 bg-slate-950 px-2 py-2 text-xs text-slate-300 hover:border-slate-500"}
+                  className={adminChip(activeTab === tab.value)}
                 >
                   {tab.label}{tab.value !== "all" ? ` ${counts[tab.value] || 0}` : ""}
                 </button>
@@ -282,7 +280,7 @@ export default function AdminFeedbackPage() {
         </aside>
 
         <section className="min-w-0">
-          <div className="sticky top-0 z-20 border-b border-slate-800 bg-[#0d0f18]/95 px-4 py-3 backdrop-blur">
+          <div className={ADMIN_TOOLBAR}>
             <p className="text-xs text-slate-400">
               {selected ? `${selected.ticketNo} · ${selected.categoryLabel}` : "왼쪽에서 제보를 선택하세요"}
             </p>
@@ -337,7 +335,7 @@ export default function AdminFeedbackPage() {
                   onChange={(event) => setDraftNote(event.target.value)}
                   rows={3}
                   maxLength={1000}
-                  className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-violet-500"
+                  className={`mt-1 ${ADMIN_INPUT}`}
                 />
                 <button type="button" onClick={() => { void saveNote(); }} disabled={busy} className={`${commandButtonClass()} mt-2`}>
                   메모 저장

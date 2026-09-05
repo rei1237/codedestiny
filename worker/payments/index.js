@@ -710,6 +710,8 @@ async function grantPassOrderEntitlement(db, order) {
     paymentMethod: String(order.paymentMethod || "card_general"),
     paidAt,
     expiresAt: computePassExpiry({ transition, paidAt }),
+    // 위에서 읽은 문서를 그대로 넘겨 활성화 함수의 재조회를 없앤다(왕복 6→5).
+    existing: userDoc,
   });
   await markEntitlementGranted(db, { orderId });
   return true;

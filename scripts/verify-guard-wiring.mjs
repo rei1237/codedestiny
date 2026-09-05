@@ -69,6 +69,7 @@ const UNWIRED_BY_DESIGN = [
   ["verify:drop-unused-secondary-indexes", "실 DB 인덱스 점검 — MONGO_URI 필요($indexStats 를 읽는다)"],
   ["verify:human-design-report-indexes", "실 DB 인덱스 점검 — MONGO_URI 필요"],
   ["verify:request-path-indexes", "실 DB 인덱스 점검 — MONGO_URI 필요"],
+  ["verify:entitlement-orderid-status-index", "실 DB 인덱스 점검 — MONGO_URI 필요(explain 읽기 전용)"],
   ["verify:point-history-feature-lookup-index", "실 DB 인덱스 점검 — MONGO_URI 필요"],
   ["verify:admin-audit-log-indexes", "실 DB 인덱스 점검 — MONGO_URI 필요"],
   ["verify:mongo-launch-indexes", "실 DB 인덱스 점검 — MONGO_URI 필요"],

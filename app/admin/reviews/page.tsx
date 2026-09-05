@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { getApiBaseUrl } from "../../_lib/api-config";
 import { adminFetch, describeAdminError, type AdminErrorView } from "../_lib/admin-api";
 import AdminErrorState from "../_components/AdminErrorState";
+import { ADMIN_INPUT, ADMIN_TOOLBAR, adminButton, adminChip } from "../_components/ui";
 
 type ReviewStatus = "pending" | "approved" | "rejected" | "hidden";
 type TabValue = ReviewStatus | "all" | "create";
@@ -95,12 +96,10 @@ const EMPTY_SEED: SeedForm = {
   status: "approved",
 };
 
+// 톤·크기·포커스는 app/admin/_components/ui.ts 와 styles/admin-yehwa.css 한 곳에서 정한다.
+// 함수 이름을 그대로 두어 호출부는 건드리지 않는다.
 function commandButtonClass(tone: "neutral" | "primary" | "success" | "warn" | "danger" = "neutral"): string {
-  if (tone === "primary") return "inline-flex items-center gap-2 rounded-lg bg-violet-600 px-3 py-2 text-sm font-medium text-white hover:bg-violet-500 disabled:opacity-50";
-  if (tone === "success") return "inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-600 disabled:opacity-50";
-  if (tone === "warn") return "inline-flex items-center gap-2 rounded-lg bg-amber-700 px-3 py-2 text-sm font-medium text-white hover:bg-amber-600 disabled:opacity-50";
-  if (tone === "danger") return "inline-flex items-center gap-2 rounded-lg bg-rose-700 px-3 py-2 text-sm font-medium text-white hover:bg-rose-600 disabled:opacity-50";
-  return "inline-flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 hover:border-slate-500 disabled:opacity-50";
+  return adminButton(tone);
 }
 
 interface RewardOutcome {
@@ -324,7 +323,7 @@ export default function AdminReviewsPage() {
   }, [loadProducts, mutate, seed]);
 
   return (
-    <main className="min-h-screen bg-[#0d0f18] text-slate-100">
+    <main className="min-h-screen">
       <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[380px_1fr]">
         <aside className="border-b border-slate-800 bg-[#10121b] lg:border-b-0 lg:border-r">
           <div className="flex items-center justify-between border-b border-slate-800 px-4 py-3">
@@ -343,9 +342,7 @@ export default function AdminReviewsPage() {
                   key={tab.value}
                   type="button"
                   onClick={() => { setActiveTab(tab.value); setSelectedId(""); setPage(1); }}
-                  className={activeTab === tab.value
-                    ? "rounded-lg border border-violet-500 bg-violet-950 px-2 py-2 text-xs text-violet-100"
-                    : "rounded-lg border border-slate-700 bg-slate-950 px-2 py-2 text-xs text-slate-300 hover:border-slate-500"}
+                  className={adminChip(activeTab === tab.value)}
                 >
                   {tab.label}
                 </button>
@@ -358,7 +355,7 @@ export default function AdminReviewsPage() {
                   value={productFilter}
                   onChange={(event) => { setProductFilter(event.target.value); setPage(1); }}
                   aria-label="상품 필터"
-                  className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-violet-500"
+                  className={ADMIN_INPUT}
                 >
                   <option value="">모든 상품</option>
                   {products.map((product) => (
@@ -447,7 +444,7 @@ export default function AdminReviewsPage() {
                     aria-label="이전 페이지"
                     disabled={page <= 1 || loading}
                     onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-                    className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 text-xs text-slate-300 hover:border-slate-500 disabled:cursor-not-allowed disabled:opacity-40"
+                    className={adminButton("neutral", { size: "sm" })}
                   >
                     이전
                   </button>
@@ -457,7 +454,7 @@ export default function AdminReviewsPage() {
                     aria-label="다음 페이지"
                     disabled={page >= pagination.totalPages || loading}
                     onClick={() => setPage((prev) => prev + 1)}
-                    className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 text-xs text-slate-300 hover:border-slate-500 disabled:cursor-not-allowed disabled:opacity-40"
+                    className={adminButton("neutral", { size: "sm" })}
                   >
                     다음
                   </button>
@@ -468,7 +465,7 @@ export default function AdminReviewsPage() {
         </aside>
 
         <section className="min-w-0">
-          <div className="sticky top-0 z-20 border-b border-slate-800 bg-[#0d0f18]/95 px-4 py-3 backdrop-blur">
+          <div className={ADMIN_TOOLBAR}>
             <p className="text-xs text-slate-400">
               {activeTab === "create"
                 ? "리뷰 생성 — 초기 운영용 시딩"
@@ -495,7 +492,7 @@ export default function AdminReviewsPage() {
                   id="seed-product"
                   value={seed.productId}
                   onChange={(event) => setSeed((prev) => ({ ...prev, productId: event.target.value }))}
-                  className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-violet-500"
+                  className={ADMIN_INPUT}
                 >
                   <option value="">상품을 선택하세요</option>
                   {products.map((product) => (
@@ -514,7 +511,7 @@ export default function AdminReviewsPage() {
                     value={seed.userId}
                     onChange={(event) => setSeed((prev) => ({ ...prev, userId: event.target.value }))}
                     placeholder="24자리 ObjectId"
-                    className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-violet-500"
+                    className={ADMIN_INPUT}
                   />
                 </div>
                 <div className="space-y-1">
@@ -524,7 +521,7 @@ export default function AdminReviewsPage() {
                     value={seed.authorName}
                     onChange={(event) => setSeed((prev) => ({ ...prev, authorName: event.target.value }))}
                     placeholder="행복한별"
-                    className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-violet-500"
+                    className={ADMIN_INPUT}
                   />
                 </div>
               </div>
@@ -536,7 +533,7 @@ export default function AdminReviewsPage() {
                   value={seed.authorImage}
                   onChange={(event) => setSeed((prev) => ({ ...prev, authorImage: event.target.value }))}
                   placeholder="https://..."
-                  className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-violet-500"
+                  className={ADMIN_INPUT}
                 />
               </div>
 
@@ -552,7 +549,7 @@ export default function AdminReviewsPage() {
                   value={seed.title}
                   onChange={(event) => setSeed((prev) => ({ ...prev, title: event.target.value }))}
                   maxLength={60}
-                  className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-violet-500"
+                  className={ADMIN_INPUT}
                 />
               </div>
 
@@ -564,7 +561,7 @@ export default function AdminReviewsPage() {
                   onChange={(event) => setSeed((prev) => ({ ...prev, body: event.target.value }))}
                   rows={6}
                   maxLength={1000}
-                  className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm leading-6 outline-none focus:border-violet-500"
+                  className={ADMIN_INPUT}
                 />
               </div>
 
@@ -576,7 +573,7 @@ export default function AdminReviewsPage() {
                     type="datetime-local"
                     value={seed.displayedAt}
                     onChange={(event) => setSeed((prev) => ({ ...prev, displayedAt: event.target.value }))}
-                    className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-violet-500"
+                    className={ADMIN_INPUT}
                   />
                 </div>
                 <div className="space-y-1">
@@ -585,7 +582,7 @@ export default function AdminReviewsPage() {
                     id="seed-status"
                     value={seed.status}
                     onChange={(event) => setSeed((prev) => ({ ...prev, status: event.target.value as SeedForm["status"] }))}
-                    className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-violet-500"
+                    className={ADMIN_INPUT}
                   >
                     <option value="approved">즉시 공개</option>
                     <option value="pending">검수 상태</option>
@@ -630,7 +627,7 @@ export default function AdminReviewsPage() {
                   id="edit-product"
                   value={draft.productId}
                   onChange={(event) => setDraft((prev) => (prev ? { ...prev, productId: event.target.value } : prev))}
-                  className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-violet-500"
+                  className={ADMIN_INPUT}
                 >
                   {products.map((product) => (
                     <option key={product.productId} value={product.productId}>{product.name}</option>
@@ -645,7 +642,7 @@ export default function AdminReviewsPage() {
                     id="edit-author"
                     value={draft.authorName}
                     onChange={(event) => setDraft((prev) => (prev ? { ...prev, authorName: event.target.value } : prev))}
-                    className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-violet-500"
+                    className={ADMIN_INPUT}
                   />
                 </div>
                 <div className="space-y-1">
@@ -655,7 +652,7 @@ export default function AdminReviewsPage() {
                     type="datetime-local"
                     value={toDateTimeLocalValue(draft.displayedAt)}
                     onChange={(event) => setDraft((prev) => (prev ? { ...prev, displayedAt: event.target.value ? new Date(event.target.value).toISOString() : "" } : prev))}
-                    className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-violet-500"
+                    className={ADMIN_INPUT}
                   />
                 </div>
               </div>
@@ -672,7 +669,7 @@ export default function AdminReviewsPage() {
                   value={draft.title}
                   onChange={(event) => setDraft((prev) => (prev ? { ...prev, title: event.target.value } : prev))}
                   maxLength={60}
-                  className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-violet-500"
+                  className={ADMIN_INPUT}
                 />
               </div>
 
@@ -684,7 +681,7 @@ export default function AdminReviewsPage() {
                   onChange={(event) => setDraft((prev) => (prev ? { ...prev, body: event.target.value } : prev))}
                   rows={8}
                   maxLength={1000}
-                  className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm leading-6 outline-none focus:border-violet-500"
+                  className={ADMIN_INPUT}
                 />
               </div>
 
@@ -696,7 +693,7 @@ export default function AdminReviewsPage() {
                   onChange={(event) => setDraft((prev) => (prev ? { ...prev, adminNote: event.target.value } : prev))}
                   rows={2}
                   maxLength={500}
-                  className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-violet-500"
+                  className={ADMIN_INPUT}
                 />
               </div>
 

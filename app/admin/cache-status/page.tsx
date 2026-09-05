@@ -247,7 +247,7 @@ export default function AdminCacheStatusPage() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-slate-950 px-4 py-8 text-slate-100">
+    <main className="min-h-screen px-4 py-8">
       <div className="mx-auto w-full max-w-6xl rounded-2xl border border-cyan-500/25 bg-slate-900/75 p-6 shadow-[0_24px_60px_rgba(0,0,0,0.35)]">
         <header className="mb-5 flex flex-col gap-3 border-b border-slate-700 pb-4 sm:flex-row sm:items-end sm:justify-between">
           <div>

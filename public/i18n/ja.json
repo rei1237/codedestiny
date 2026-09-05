@@ -37,7 +37,9 @@
       "linkPhysiognomy": "観相",
       "linkGuideHub": "運勢ガイド",
       "linkFortuneHub": "干支・星座占い",
-      "linkStories": "ヨニの運命ノベル"
+      "linkStories": "ヨニの運命ノベル",
+      "authorNote": "このサイトを作り、四柱推命・万年暦の解説文を最終監修しているのは、命理歴10年の鑑定家 Park Byeong-ha です。計算は命理と占星術の古典的な規則にゆだね、読み手に渡す文章は人が責任を持ちます。",
+      "authorLink": "作り手と監修基準を見る"
     },
     "reviews": {
       "kicker": "REAL REVIEWS",

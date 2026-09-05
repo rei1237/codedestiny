@@ -13,7 +13,7 @@
  */
 import { handlePaymentsContext } from "../../worker/payments/index.js";
 import { listProducts } from "../../worker/payments/catalog.js";
-import { activatePassSubscription, evaluatePassCoverage, terminatePassOnBudgetExhaustion } from "../../worker/payments/passes.js";
+import { activatePassSubscription, evaluatePassCoverage, revokePassGrantForOrder, terminatePassOnBudgetExhaustion } from "../../worker/payments/passes.js";
 import { MIN_PASS_COVERABLE_COIN, MONTHLY_PASS_LIMITS, PASS_LIMITS } from "../../worker/lib/profile-limits.js";
 import { makeFakePaymentDb } from "../fixtures/fake-payment-db.mjs";
 
@@ -395,5 +395,95 @@ describe("재구매 연장 — 기간과 함께 월 한도도 쌓인다", () => 
     const { user } = await activate(db, { expiresAt: new Date(now.getTime() + 30 * DAY_MS), orderId: "order-2", now });
     expect(user.profileSubscription.monthlyLimitCoin).toBe(BASE);
     expect(user.profileSubscription.monthlySpendCoin).toBe(0);
+  });
+});
+
+/* M10 Phase 2 #2 — 확정 경로(grantPassOrderEntitlement)가 재생·하위등급 판정에 쓴 users 문서를
+   활성화 함수에 넘기면 같은 문서를 두 번 읽지 않는다(왕복 6→5). 인자를 안 주는 다른 호출부는 종전대로 읽는다. */
+describe("activatePassSubscription existing 인자 — 넘기면 재조회 없음, 없으면 종전대로 조회", () => {
+  const PLAN = {
+    tier: "standard", planId: "pass_standard_1m", durationMonths: 1,
+    profileLimit: 3, maxCoveredCoin: PASS_LIMITS.standard, productType: "membership_pass",
+  };
+  const now = new Date();
+  const expiresAt = new Date(now.getTime() + 30 * DAY_MS);
+  const args = { userId: USER, plan: PLAN, orderId: "order-9", customerUid: "cu-1", paymentMethod: "card_general", paidAt: now, expiresAt, now };
+
+  test("인자 없음: users findOne 1회 + 갱신 1회 = 2왕복", async () => {
+    const db = makeFakePaymentDb();
+    seedUser(db, activePass("standard", { lastPassOrderId: "order-1" }));
+    const { user, replayed } = await activatePassSubscription(db, args);
+    expect(db.ctx.ops).toBe(2);
+    expect(replayed).toBe(false);
+    expect(user.profileSubscription.lastPassOrderId).toBe("order-9");
+  });
+
+  test("인자 있음: 갱신 1회 = 1왕복, 결과는 같다", async () => {
+    const db = makeFakePaymentDb();
+    const seeded = seedUser(db, activePass("standard", { lastPassOrderId: "order-1" }));
+    const { user, replayed } = await activatePassSubscription(db, { ...args, existing: seeded });
+    expect(db.ctx.ops).toBe(1);
+    expect(replayed).toBe(false);
+    expect(user.profileSubscription.lastPassOrderId).toBe("order-9");
+  });
+
+  test("인자 있음 + 이미 반영된 주문: 왕복 0회로 재생 판정", async () => {
+    const db = makeFakePaymentDb();
+    const seeded = seedUser(db, activePass("standard", { lastPassOrderId: "order-9" }));
+    const { replayed } = await activatePassSubscription(db, { ...args, existing: seeded });
+    expect(db.ctx.ops).toBe(0);
+    expect(replayed).toBe(true);
+  });
+
+  test("🔴 확정 경로 호출부는 자기 조회 결과를 existing 으로 넘긴다(정적)", async () => {
+    const { readFileSync } = await import("node:fs");
+    const source = readFileSync(new URL("../../worker/payments/index.js", import.meta.url), "utf8");
+    const call = source.slice(source.indexOf("async function grantPassOrderEntitlement"), source.indexOf("async function grantOrderEntitlement"));
+    // 줄 시작 기준 — 주석 처리된 `// existing:` 은 잡히지 않아야 한다.
+    expect(call).toMatch(/activatePassSubscription\(db, \{[\s\S]*\n\s*existing: userDoc,\n[\s\S]*\}\)/);
+  });
+});
+
+/* M10 Phase 2 #3 — 환불 되감기는 users 문서에서 profileSubscription 만 읽는다. 픽스처의 findOne 은
+   프로젝션을 무시하므로, 여기서는 프로젝션을 실제로 적용하는 스텁으로 "잘린 문서로도 되감긴다"를 확인한다. */
+describe("revokePassGrantForOrder — users 조회는 profileSubscription 프로젝션", () => {
+  function projectingDb(row) {
+    const calls = [];
+    return {
+      calls,
+      async findOne(_Model, filter, options) {
+        calls.push({ filter, options });
+        if (!row) return null;
+        const projection = options?.projection;
+        if (!projection) return row;
+        const picked = { _id: row._id };
+        for (const key of Object.keys(projection)) if (key in row) picked[key] = row[key];
+        return picked;
+      },
+      async updateOne(_Model, filter, update) {
+        calls.push({ filter, update });
+        return { matchedCount: 1, modifiedCount: 1 };
+      },
+    };
+  }
+
+  test("프로젝션을 넘기고, profileSubscription 만 받은 문서로 되감는다", async () => {
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + 40 * DAY_MS);
+    const db = projectingDb({
+      _id: USER, email: "x@example.com", points: 5, unlockedFeatures: ["a"],
+      profileSubscription: activePass("standard", { expiresAt, lastPassOrderId: "order-3", premiumUseCycleKey: expiresAt.toISOString(), monthlyLimitCoin: 200 }),
+    });
+    const result = await revokePassGrantForOrder(db, { userId: USER, orderId: "order-3", durationMonths: 1, now });
+    expect(result).toBe(true);
+    expect(db.calls[0].options).toEqual({ projection: { profileSubscription: 1 } });
+    const set = db.calls[1].update.$set;
+    expect(set["profileSubscription.expiresAt"].getTime()).toBeLessThan(expiresAt.getTime());
+  });
+
+  test("다른 주문이 마지막이면 프로젝션 문서로도 false", async () => {
+    const db = projectingDb({ _id: USER, profileSubscription: activePass("standard", { lastPassOrderId: "order-4" }) });
+    await expect(revokePassGrantForOrder(db, { userId: USER, orderId: "order-3", durationMonths: 1 })).resolves.toBe(false);
+    expect(db.calls).toHaveLength(1);
   });
 });

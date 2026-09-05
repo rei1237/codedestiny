@@ -3,6 +3,8 @@
 import { useMemo, useState } from "react";
 import { History, RotateCcw } from "lucide-react";
 
+import { ADMIN_CARD, adminButton } from "../../_components/ui";
+
 export interface CmsRevision {
   version: number;
   fields: Record<string, unknown>;
@@ -105,7 +107,7 @@ export default function RevisionPanel({ revisions, currentFields, busy, onRestor
 
   if (!revisions.length) {
     return (
-      <p className="rounded-lg border border-slate-800 bg-[#12141f] px-3 py-6 text-center text-sm text-slate-400">
+      <p className={`${ADMIN_CARD} rounded-lg px-3 py-6 text-center text-sm text-slate-400`}>
         아직 저장 이력이 없습니다.
       </p>
     );
@@ -113,7 +115,7 @@ export default function RevisionPanel({ revisions, currentFields, busy, onRestor
 
   return (
     <div className="space-y-3">
-      <div className="max-h-56 divide-y divide-slate-800 overflow-y-auto rounded-lg border border-slate-800 bg-[#12141f]">
+      <div className={`${ADMIN_CARD} max-h-56 divide-y divide-slate-800 overflow-y-auto rounded-lg`}>
         {revisions.map((revision) => (
           <button
             key={revision.version}
@@ -135,7 +137,7 @@ export default function RevisionPanel({ revisions, currentFields, busy, onRestor
       </div>
 
       {selected !== null && diff ? (
-        <div className="space-y-2 rounded-lg border border-slate-800 bg-[#12141f] p-3">
+        <div className={`${ADMIN_CARD} space-y-2 rounded-lg p-3`}>
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="text-xs text-slate-400">
               v{selected} 로 복원하면 <span className="text-slate-200">{changedCount}줄</span>이 바뀝니다.
@@ -146,7 +148,7 @@ export default function RevisionPanel({ revisions, currentFields, busy, onRestor
               type="button"
               onClick={() => onRestore(selected)}
               disabled={busy}
-              className="inline-flex items-center gap-1.5 rounded-md bg-amber-700 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-amber-600 disabled:opacity-50"
+              className={adminButton("warn", { size: "sm" })}
             >
               <RotateCcw className="h-3.5 w-3.5" />
               이 버전으로 복원

@@ -661,10 +661,18 @@ const TOOL_REGISTRY_COPY: ToolConfig[] = [
     label: "자미두수",
     shortLabel: "자미",
     description: "별과 명궁의 배치를 정밀하게 살핍니다.",
-    detail: "명궁 격자에 별을 놓듯 생년월일과 분석 궁을 정리해 권위 있고 섬세한 상담 프롬프트를 만듭니다.",
+    detail: "명궁 격자에 별을 놓듯 12궁 명반 전체를 산출해 싣고, 중점적으로 볼 궁을 고르면 그 궁에 초점을 맞춘 상담 프롬프트를 만듭니다.",
     icon: "紫",
     theme: { accent: "#9a5baf", accentStrong: "#5b1b6f", accentSoft: "#f0ddff", surface: "#fbf3ff", text: "#241029", motif: "명궁 격자와 별" },
-    fields: [...COMMON_FIELDS_COPY, ...BIRTH_FIELDS_COPY, GENDER_FIELD_COPY, { id: "palace", label: "분석 궁", type: "select", options: ["명궁", "재백궁", "관록궁", "부처궁", "복덕궁", "천이궁"] }],
+    fields: [...COMMON_FIELDS_COPY, ...BIRTH_FIELDS_COPY, GENDER_FIELD_COPY, {
+        id: "palace",
+        label: "중점적으로 볼 궁",
+        type: "select",
+        // 첫 옵션이 기본값이 된다(getDefaultDraft). 12궁은 어느 값이든 전부 실리고,
+        // 궁을 고르면 산출 블록에 초점 지시 한 줄만 더 붙는다.
+        options: ["12궁 전체", "명궁", "재백궁", "관록궁", "부처궁", "복덕궁", "천이궁"],
+        help: "기본은 12궁 전체입니다. 특정 궁을 고르면 12궁 전체를 근거로 두되 그 궁을 중심으로 풀어 줍니다.",
+      }],
     exampleValues: {
       topic: "직업 방향과 재능",
       question: "내가 오래 가져갈 수 있는 일의 결이 무엇인지 알고 싶습니다.",
@@ -677,10 +685,10 @@ const TOOL_REGISTRY_COPY: ToolConfig[] = [
     },
     generateLabel: "자미두수 상담 프롬프트 생성하기",
     resultLabel: "완성된 자미두수 상담 프롬프트",
-    emptyState: "출생 정보와 살피고 싶은 궁을 적으면 별과 명궁의 질서가 상담 문장으로 정리됩니다.",
-    role: "명궁과 별의 배치를 체계적으로 읽는 자미두수 해석가",
+    emptyState: "출생 정보를 적으면 12궁 명반 전체가 정리됩니다. 중점적으로 볼 궁을 고르면 그 궁을 중심으로 답하도록 안내합니다.",
+    role: "명반 12궁과 별의 배치를 두루 읽는 자미두수 해석가",
     principles: ["궁과 별의 역할을 분리해 설명합니다.", "권위적인 단정보다 구조적 가능성을 전합니다.", "질문자의 현실 조건을 함께 살핍니다."],
-    answerSections: ["중심 궁의 의미", "별의 배치가 비추는 기질", "질문과 연결된 흐름", "강점과 보완점", "현실적인 실행 방향"],
+    answerSections: ["명반 12궁 전체의 짜임", "별의 배치가 비추는 기질", "중점적으로 볼 궁과 질문의 연결", "강점과 보완점", "현실적인 실행 방향"],
     keywords: ["자미두수", "명궁", "별", "궁"],
     ready: "ready",
   },
@@ -1120,7 +1128,9 @@ const PROMPT_HUB_COPY_EN: PromptHubCopy = {
     "분석 영역": "Analysis Area",
     "분석 주제": "Analysis Topic",
     "고급 설정": "Advanced Settings",
-    "분석 궁": "Palace to Read",
+    "중점적으로 볼 궁": "Palace to Focus On",
+    "12궁 전체": "All 12 Palaces",
+    "기본은 12궁 전체입니다. 특정 궁을 고르면 12궁 전체를 근거로 두되 그 궁을 중심으로 풀어 줍니다.": "All twelve palaces are included by default. Pick one palace and the reading stays grounded in the full chart while centering on that palace.",
     "내 양력/음력": "My Solar/Lunar Calendar",
     "내 생년월일": "My Date of Birth",
     "내 출생 시각": "My Birth Time",
@@ -1237,7 +1247,7 @@ const PROMPT_HUB_COPY_EN: PromptHubCopy = {
     "카드 프레임 속 별과 달처럼 질문, 스프레드, 뽑은 카드를 정리해 직관적인 상담 프롬프트를 만듭니다.": "Organizes your question, spread, and drawn cards like stars and a moon inside a card frame, creating an intuitive reading prompt.",
     "출생 차트와 행성의 관계를 정리해, 우주적인 상징과 분석적인 해석이 함께 흐르는 프롬프트를 만듭니다.": "Organizes the relationship between your birth chart and the planets into a prompt where cosmic symbolism and analytical interpretation flow together.",
     "사프란빛 만다라처럼 출생 정보와 라그나, 나크샤트라 단서를 정리해 깊고 차분한 프롬프트를 만듭니다.": "Organizes your birth information along with lagna and nakshatra clues, like a saffron-hued mandala, into a deep and calm prompt.",
-    "명궁 격자에 별을 놓듯 생년월일과 분석 궁을 정리해 권위 있고 섬세한 상담 프롬프트를 만듭니다.": "Places your birth date and the palace you want analyzed like stars on a life-palace grid, creating an authoritative and delicate reading prompt.",
+    "명궁 격자에 별을 놓듯 12궁 명반 전체를 산출해 싣고, 중점적으로 볼 궁을 고르면 그 궁에 초점을 맞춘 상담 프롬프트를 만듭니다.": "Lays out your entire twelve-palace chart like stars on a life-palace grid, and centers the reading on one palace when you pick one.",
     "달의 위상과 숙의 배열을 바탕으로 나와 상대, 관계의 온도를 정리하는 프롬프트를 만듭니다.": "Organizes the temperature of you, your partner, and the relationship based on the moon's phase and the arrangement of lunar mansions.",
     "숫자 그리드와 기하학적 선처럼 생년월일, 이름, 관심 숫자를 정리해 현대적인 상담 프롬프트를 만듭니다.": "Organizes your birth date, name, and numbers of interest like a number grid and geometric lines, creating a modern reading prompt.",
     "흐릿한 물결 속 문을 열듯 꿈의 장면, 등장 인물, 감정과 반복 상징을 선명한 상담 프롬프트로 정리합니다.": "Organizes dream scenes, characters, emotions, and recurring symbols into a clear reading prompt, like opening a door within hazy waves.",
@@ -1411,7 +1421,7 @@ const PROMPT_HUB_COPY_EN: PromptHubCopy = {
     "질문과 스프레드, 뽑은 카드를 적으면 카드의 상징이 상담 문장으로 차분히 펼쳐집니다.": "Write your question, spread, and drawn cards, and the cards' symbols unfold calmly into a reading.",
     "출생 정보와 분석 영역을 적으면 행성과 별자리의 관계가 질문 위에 놓입니다.": "Enter your birth information and analysis area, and the relationship between planets and signs is placed over your question.",
     "출생 정보와 베다 점성의 분석 주제를 적으면 깊은 전통의 흐름이 정리됩니다.": "Enter your birth information and the Vedic astrology topic to analyze, and the flow of a deep tradition is organized.",
-    "출생 정보와 살피고 싶은 궁을 적으면 별과 명궁의 질서가 상담 문장으로 정리됩니다.": "Enter your birth information and the palace you want to examine, and the order of stars and the life palace organizes into a reading.",
+    "출생 정보를 적으면 12궁 명반 전체가 정리됩니다. 중점적으로 볼 궁을 고르면 그 궁을 중심으로 답하도록 안내합니다.": "Enter your birth information and the whole twelve-palace chart is laid out. Pick a palace to focus on and the reading centers on it.",
     "나와 상대의 생년월일, 관계 유형을 적으면 달의 숙이 관계의 결을 비춥니다.": "Enter your and your partner's birth dates and relationship type, and the lunar mansions light up the texture of your relationship.",
     "생년월일과 관심 숫자를 적으면 반복되는 패턴이 선명한 구조로 정리됩니다.": "Enter your birth date and the numbers you're curious about, and recurring patterns organize into a clear structure.",
     "꿈의 장면과 감정을 적으면 흐릿한 상징이 선명한 질문으로 다시 떠오릅니다.": "Write the scenes and emotions of your dream, and hazy symbols rise again as a clear question.",
@@ -1637,7 +1647,7 @@ async function buildComputedFactsFor(toolId: ToolId, draft: ToolDraft): Promise<
     }
     case "ziwei": {
       const { buildZiweiPromptFacts } = await import("./ziwei-prompt-facts");
-      return buildZiweiPromptFacts({ ...birth, palace: formatDraftValue(draft.palace) }, { scope: "full" });
+      return buildZiweiPromptFacts({ ...birth, palace: formatDraftValue(draft.palace) });
     }
     case "astrology": {
       const { buildAstrologyPromptFacts } = await import("./astro-prompt-facts");

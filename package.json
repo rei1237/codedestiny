@@ -396,6 +396,8 @@
     "verify:human-design-report-indexes": "node scripts/migrations/20260823-add-human-design-report-indexes.mjs --check",
     "migrate:request-path-indexes": "node scripts/migrations/20260830-add-request-path-indexes.mjs",
     "verify:request-path-indexes": "node scripts/migrations/20260830-add-request-path-indexes.mjs --check",
+    "migrate:entitlement-orderid-status-index": "node scripts/migrations/20260906-add-entitlement-orderid-status-index.mjs",
+    "verify:entitlement-orderid-status-index": "node scripts/migrations/20260906-add-entitlement-orderid-status-index.mjs --check",
     "verify:human-design-report": "node scripts/verify-human-design-report.mjs",
     "hd:snapshot": "node scripts/human-design-fixture-snapshot.mjs",
     "hd:snapshot:check": "node scripts/human-design-fixture-snapshot.mjs --check",

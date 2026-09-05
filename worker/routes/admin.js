@@ -37,7 +37,9 @@ import { buildVedicAIPrompt } from "../lib/vedic-ai-prompt.js";
 import { calculateZiweiAiChart, describeBrightness } from "../lib/ziwei-ai-chart.js";
 import { primePromptTemplateOverrides } from "../lib/cms-prompts.js";
 import { buildPromptLabResult, hasPromptLabLoader } from "../lib/admin-prompt-lab-loaders.js";
-import { getAdminPromptLabService, isBuiltInPromptLabService, promptLabServiceNeeds } from "../../lib/admin/prompt-lab-registry.mjs";
+import { getAdminPromptLabService, isBuiltInPromptLabService, promptLabServiceNeeds, promptLabServiceNeedsCoordinates } from "../../lib/admin/prompt-lab-registry.mjs";
+import { resolveAdminBirthCoordinates } from "../lib/admin-geocode.js";
+import { wallClockToUtcMillis } from "../lib/iana-offset.js";
 import { buildSajuProfile } from "../lib/destiny-bias-engine.js";
 import { buildSajuQuantumDaewunRows, buildSajuQuantumElementMap, normalizeElementKeys } from "../lib/saju-quantum-myeongri.js";
 import { buildCompatibilityFromIndices, buildSukuyoFromLunar } from "../lib/sukuyo-premium.js";
@@ -224,30 +226,6 @@ const ADMIN_ELEMENT_META = Object.freeze({
 const ADMIN_ELEMENT_KEYS = ["wood", "fire", "earth", "metal", "water"];
 const ADMIN_TAROT_CARDS = ["바보", "마법사", "여사제", "여황제", "황제", "교황", "연인", "전차", "힘", "은둔자", "운명의 수레바퀴", "정의", "매달린 사람", "죽음", "절제", "악마", "탑", "별", "달", "태양", "심판", "세계"];
 
-const ADMIN_GEOCODE_PRESETS = [
-  { keys: ["서울", "seoul"], label: "서울", latitude: 37.5665, longitude: 126.9780, timezone: "Asia/Seoul" },
-  { keys: ["부산", "busan"], label: "부산", latitude: 35.1796, longitude: 129.0756, timezone: "Asia/Seoul" },
-  { keys: ["대구", "daegu"], label: "대구", latitude: 35.8714, longitude: 128.6014, timezone: "Asia/Seoul" },
-  { keys: ["인천", "incheon"], label: "인천", latitude: 37.4563, longitude: 126.7052, timezone: "Asia/Seoul" },
-  { keys: ["광주", "gwangju"], label: "광주", latitude: 35.1595, longitude: 126.8526, timezone: "Asia/Seoul" },
-  { keys: ["대전", "daejeon"], label: "대전", latitude: 36.3504, longitude: 127.3845, timezone: "Asia/Seoul" },
-  { keys: ["울산", "ulsan"], label: "울산", latitude: 35.5384, longitude: 129.3114, timezone: "Asia/Seoul" },
-  { keys: ["세종", "sejong"], label: "세종", latitude: 36.4800, longitude: 127.2890, timezone: "Asia/Seoul" },
-  { keys: ["제주", "jeju"], label: "제주", latitude: 33.4996, longitude: 126.5312, timezone: "Asia/Seoul" },
-  { keys: ["도쿄", "tokyo"], label: "도쿄", latitude: 35.6762, longitude: 139.6503, timezone: "Asia/Tokyo" },
-  { keys: ["오사카", "osaka"], label: "오사카", latitude: 34.6937, longitude: 135.5023, timezone: "Asia/Tokyo" },
-  { keys: ["베이징", "beijing"], label: "베이징", latitude: 39.9042, longitude: 116.4074, timezone: "Asia/Shanghai" },
-  { keys: ["상하이", "shanghai"], label: "상하이", latitude: 31.2304, longitude: 121.4737, timezone: "Asia/Shanghai" },
-  { keys: ["타이베이", "taipei"], label: "타이베이", latitude: 25.0330, longitude: 121.5654, timezone: "Asia/Taipei" },
-  { keys: ["홍콩", "hong kong", "hongkong"], label: "홍콩", latitude: 22.3193, longitude: 114.1694, timezone: "Asia/Hong_Kong" },
-  { keys: ["싱가포르", "singapore"], label: "싱가포르", latitude: 1.3521, longitude: 103.8198, timezone: "Asia/Singapore" },
-  { keys: ["뉴욕", "new york", "nyc"], label: "뉴욕", latitude: 40.7128, longitude: -74.0060, timezone: "America/New_York" },
-  { keys: ["로스앤젤레스", "la", "los angeles"], label: "로스앤젤레스", latitude: 34.0522, longitude: -118.2437, timezone: "America/Los_Angeles" },
-  { keys: ["런던", "london"], label: "런던", latitude: 51.5072, longitude: -0.1276, timezone: "Europe/London" },
-  { keys: ["파리", "paris"], label: "파리", latitude: 48.8566, longitude: 2.3522, timezone: "Europe/Paris" },
-  { keys: ["시드니", "sydney"], label: "시드니", latitude: -33.8688, longitude: 151.2093, timezone: "Australia/Sydney" },
-];
-
 function positiveModulo(value, size) {
   const number = Number(value) || 0;
   return ((Math.trunc(number) % size) + size) % size;
@@ -275,7 +253,12 @@ function toAdminNumber(value, fallback = null) {
   return Number.isFinite(number) ? number : fallback;
 }
 
-function adminTimezoneOffsetHours(value) {
+/**
+ * 시간대 이름 → UTC 오프셋(시간). 아래 손 map 은 프리셋 도시가 쓰는 존을 즉답하려고 남겨 둔 것이고,
+ * 🔴 map 에 없는 IANA 존은 반드시 Intl 폴백으로 내려가야 한다 — 예전에는 조용히 9(서울)를 돌려줘서
+ * 해외 출생지가 "표시는 베를린, 계산은 서울" 이 됐다. 오프셋은 순간마다 다르므로 출생 벽시계를 받는다.
+ */
+function adminTimezoneOffsetHours(value, wallClock = null) {
   const text = normalizeAdminText(value, 64);
   if (!text) return 9;
   const direct = Number(text);
@@ -305,7 +288,24 @@ function adminTimezoneOffsetHours(value) {
     "america/los_angeles": -8,
     "australia/sydney": 10,
   };
-  return Object.prototype.hasOwnProperty.call(map, normalized) ? map[normalized] : 9;
+  if (Object.prototype.hasOwnProperty.call(map, normalized)) return map[normalized];
+
+  // 손 map 밖의 존. Intl 로 실제 오프셋을 구한다(서머타임 포함). 존 이름이 틀렸으면 RangeError 가 난다.
+  try {
+    const now = new Date();
+    const clock = wallClock || {
+      year: now.getUTCFullYear(),
+      month: now.getUTCMonth() + 1,
+      day: now.getUTCDate(),
+      hour: 12,
+      minute: 0,
+    };
+    const { offsetHours } = wallClockToUtcMillis(clock, text);
+    if (Number.isFinite(offsetHours)) return offsetHours;
+  } catch {
+    // 알 수 없는 시간대 — 아래 기본값으로 간다.
+  }
+  return 9;
 }
 
 function normalizeAdminTimeCorrectionPolicy(value) {
@@ -325,8 +325,10 @@ function normalizeAdminDayChangePolicy(value) {
   return "MIDNIGHT";
 }
 
+// 🔴 손목록을 여기에 다시 적지 말 것 — 정본은 lib/admin/prompt-lab-registry.mjs 의 needsCoordinates 다.
+//    서버 판정·좌표 자동 해석·가드가 전부 그 한 선언만 본다.
 function adminPromptNeedsCoordinates(service) {
-  return service === "saju" || service === "astrology" || service === "vedic";
+  return promptLabServiceNeedsCoordinates(service);
 }
 
 function adminPromptNeedsExactTime(service) {
@@ -507,7 +509,13 @@ export function buildAdminPromptProfile(body) {
   const name = normalizeAdminText(body?.name || "", 80) || "관리자 대상";
   const calendarType = normalizeAdminCalendarType(body?.calendarType || body?.calType || body?.birth?.calendarType || body?.birth?.calType);
   assertAdminCalendarBirthDate(birthDate, calendarType);
-  const timezoneOffsetHours = adminTimezoneOffsetHours(timezone);
+  const timezoneOffsetHours = adminTimezoneOffsetHours(timezone, {
+    year: birthDate.year,
+    month: birthDate.month,
+    day: birthDate.day,
+    hour: birthTime.hour,
+    minute: birthTime.minute,
+  });
   const timeCorrectionPolicy = normalizeAdminTimeCorrectionPolicy(body?.timeCorrectionPolicy || body?.hourPillarTimePolicy);
   const dayChangePolicy = normalizeAdminDayChangePolicy(body?.dayChangePolicy);
   const seed = adminHashText(
@@ -681,7 +689,7 @@ function assertAdminPromptProfileReady(service, profile, { domain, partnerProfil
     throw createHttpError(400, "선택한 기능은 정확한 생시가 필요합니다.", { code: "BIRTH_TIME_REQUIRED" });
   }
   if (adminPromptNeedsCoordinates(service) && (!Number.isFinite(profile.latitude) || !Number.isFinite(profile.longitude))) {
-    throw createHttpError(400, "선택한 기능은 출생지 위도와 경도가 필요합니다.", { code: "BIRTH_COORDINATES_REQUIRED" });
+    throw createHttpError(400, "출생지 좌표를 찾지 못했습니다. 출생지 칸에 도시 이름을 넣어 주세요(예: 서울·부산·도쿄·뉴욕).", { code: "BIRTH_COORDINATES_REQUIRED" });
   }
   // 숙요 궁합 템플릿은 상대 데이터가 없으면 빌더가 MISSING_COMPATIBILITY_RESULT 로 죽는다.
   // 서버에서 먼저 한국어로 안내한다.
@@ -690,18 +698,8 @@ function assertAdminPromptProfileReady(service, profile, { domain, partnerProfil
   }
 }
 
-function normalizeAdminGeocodeKey(value) {
-  return normalizeAdminText(value, 120).toLowerCase();
-}
-
-function findAdminGeocodePreset(query) {
-  const key = normalizeAdminGeocodeKey(query);
-  if (!key) return null;
-  return ADMIN_GEOCODE_PRESETS.find((preset) => (
-    preset.keys.some((item) => key === normalizeAdminGeocodeKey(item) || key.includes(normalizeAdminGeocodeKey(item)))
-  )) || null;
-}
-
+// 구 화면(app/admin/insights)이 폼에 좌표를 채울 때 쓰는 조회 엔드포인트.
+// 해석 자체는 프롬프트 생성 경로와 같은 함수를 쓴다 — 두 벌로 갈라지면 화면마다 다른 좌표가 나온다.
 async function handleAdminPromptLabGeocode(request, env) {
   await authorizeAdminRequest(request, env);
   const url = new URL(request.url);
@@ -710,48 +708,44 @@ async function handleAdminPromptLabGeocode(request, env) {
     throw createHttpError(400, "지역명을 입력해 주세요.", { code: "GEOCODE_QUERY_REQUIRED" });
   }
 
-  const preset = findAdminGeocodePreset(query);
-  if (preset) {
-    return json({
-      ok: true,
-      source: "admin-preset",
-      query,
-      label: preset.label,
-      latitude: preset.latitude,
-      longitude: preset.longitude,
-      timezone: preset.timezone,
-    });
-  }
-
-  const geocodeUrl = new URL("https://nominatim.openstreetmap.org/search");
-  geocodeUrl.searchParams.set("format", "jsonv2");
-  geocodeUrl.searchParams.set("limit", "1");
-  geocodeUrl.searchParams.set("accept-language", "ko,en");
-  geocodeUrl.searchParams.set("q", query);
-
-  const res = await fetch(geocodeUrl.toString(), {
-    headers: {
-      "User-Agent": "CodeDestinyAdminPromptLab/1.0",
-      "Accept": "application/json",
-    },
-  });
-  const rows = await res.json().catch(() => []);
-  const first = Array.isArray(rows) ? rows[0] : null;
-  const latitude = Number(first?.lat);
-  const longitude = Number(first?.lon);
-  if (!res.ok || !Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+  const resolved = await resolveAdminBirthCoordinates(query);
+  if (!resolved) {
     throw createHttpError(404, "지역 좌표를 찾지 못했습니다.", { code: "GEOCODE_NOT_FOUND" });
   }
 
-  return json({
-    ok: true,
-    source: "nominatim",
-    query,
-    label: normalizeAdminText(first?.display_name || query, 120),
-    latitude,
-    longitude,
-    timezone: "Asia/Seoul",
-  });
+  return json({ ok: true, query, ...resolved });
+}
+
+/**
+ * 출생지 텍스트를 좌표로 바꿔 바디에 합친다. 좌표 칸이 없는 화면에서도 사주·점성술·베딕 프롬프트를
+ * 뽑을 수 있게 하는 것이 목적이다.
+ *
+ * 🔴 buildAdminPromptProfile 을 부르기 **전에** 불러야 한다 — 그 함수는 timezoneOffsetHours 와 seed 를
+ *    좌표에서 파생시키므로, 프로필을 만든 뒤 latitude 를 덮으면 파생값이 어긋난 프로필이 남는다.
+ * 🔴 못 찾아도 던지지 않는다. 400 은 assertAdminPromptProfileReady 한 곳에서만 낸다.
+ */
+async function resolveAdminPromptLabBody(body, service) {
+  const hasCoordinates = Number.isFinite(toAdminNumber(body?.latitude, null))
+    && Number.isFinite(toAdminNumber(body?.longitude, null));
+  const birthPlace = normalizeAdminText(body?.birthPlace || body?.place || "", 120);
+  if (hasCoordinates || !birthPlace || !adminPromptNeedsCoordinates(service)) {
+    return { body, note: "" };
+  }
+
+  const resolved = await resolveAdminBirthCoordinates(birthPlace);
+  if (!resolved) return { body, note: "" };
+
+  const sourceLabel = resolved.source === "admin-preset" ? "내장 도시표" : "지도 검색";
+  return {
+    body: {
+      ...body,
+      latitude: resolved.latitude,
+      longitude: resolved.longitude,
+      // 사용자가 시간대를 직접 지정했으면 그것을 존중한다.
+      timezone: normalizeAdminText(body?.timezone || "", 64) || resolved.timezone,
+    },
+    note: `출생지 좌표: ${resolved.label} (${resolved.latitude}, ${resolved.longitude}) · ${resolved.timezone} · ${sourceLabel}`,
+  };
 }
 
 function buildAdminLocationObject(profile) {
@@ -1826,7 +1820,7 @@ function buildAdminLabBody(profile = {}, question = "") {
   };
 }
 
-function normalizeAdminPromptLabResult({ built, service, domain, profile, partnerProfile, question, adminContext, requestId }) {
+function normalizeAdminPromptLabResult({ built, service, domain, profile, partnerProfile, question, adminContext, requestId, extraNotes = [] }) {
   const prompt = String(built?.prompt || built?.generatedPrompt || "").trim();
   const systemPrompt = String(built?.systemPrompt || "").trim();
   const variants = Array.isArray(built?.variants) ? built.variants : [];
@@ -1856,7 +1850,9 @@ function normalizeAdminPromptLabResult({ built, service, domain, profile, partne
     partialReason: String(built?.partialReason || ""),
     variantKey: String(built?.variantKey || ""),
     variants,
-    notes: Array.isArray(built?.notes) ? built.notes : [],
+    // 서버가 스스로 채운 값(출생지 좌표 등)을 맨 앞에 둔다 — 내장 6종 빌더는 notes 를 돌려주지 않아
+    // 이 경로가 없으면 "무슨 좌표로 계산했는지" 를 화면이 영영 알 수 없다.
+    notes: [...extraNotes.filter(Boolean), ...(Array.isArray(built?.notes) ? built.notes : [])],
     // 내장 6종은 질문을 프롬프트 본문에 직접 박아 넣으므로 항상 반영된다.
     questionUsed: built?.questionUsed !== undefined
       ? Boolean(built.questionUsed)
@@ -1919,9 +1915,11 @@ async function handleAdminPromptLabGenerate(request, env) {
     throw createHttpError(400, "질문을 조금 더 구체적으로 입력해 주세요.", { code: "INVALID_PROMPT_QUESTION" });
   }
 
-  const profile = buildAdminPromptProfile(body);
+  // 출생지 이름만 받는 화면이 정상 경로다. 좌표는 서버가 채운다(좌표가 필요한 운세에 한해서만).
+  const { body: profileBody, note: geocodeNote } = await resolveAdminPromptLabBody(body, service);
+  const profile = buildAdminPromptProfile(profileBody);
   const domain = normalizeAdminPromptDomain(service, body.domain) || "";
-  const partnerProfile = service === "sukuyo" ? buildAdminPartnerProfile(body) : null;
+  const partnerProfile = service === "sukuyo" ? buildAdminPartnerProfile(profileBody) : null;
   // 생년 정보를 쓰지 않는 운세는 생시·좌표 검사를 걸 이유가 없다.
   if (promptLabServiceNeeds(service, "profile")) {
     assertAdminPromptProfileReady(service, profile, { domain, partnerProfile });
@@ -1957,6 +1955,7 @@ async function handleAdminPromptLabGenerate(request, env) {
     question,
     adminContext,
     requestId,
+    extraNotes: [geocodeNote],
   }));
 }
 
@@ -5149,6 +5148,12 @@ export async function handleAdminRoutes(request, env) {
    순수 함수 수준에서 검증할 수 있다. 다른 라우트의 __*TestUtils 와 같은 관례다. */
 // 🔴 검증 전용 표면. verify:lunar-conversion-core 가 음력 축을 실제로 돌린다.
 export const __adminSukuyoTestUtils = { resolveAdminSukuyoStar };
+
+export const __adminPromptLabTestUtils = {
+  resolveAdminPromptLabBody,
+  assertAdminPromptProfileReady,
+  adminTimezoneOffsetHours,
+};
 
 export const __adminContentTestUtils = {
   normalizeContentPayload,

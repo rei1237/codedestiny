@@ -34,6 +34,7 @@ import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loading
 import { getApiBaseUrl } from "../../_lib/api-config";
 import { adminFetch, describeAdminError, getFlowerAdminToken, type AdminErrorView } from "../_lib/admin-api";
 import AdminErrorState from "../_components/AdminErrorState";
+import { ADMIN_CARD, ADMIN_CARD_HAIR, ADMIN_INPUT, ADMIN_INPUT_ICON, ADMIN_TOOLBAR, adminButton } from "../_components/ui";
 import { uploadInsightImage } from "../insights/_lib/imageUpload";
 import { sanitizeInsightHtml } from "../insights/_lib/sanitizeContent";
 
@@ -675,11 +676,10 @@ function editorButtonClass(active = false): string {
     : "inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-700 bg-slate-900 text-slate-200 hover:border-slate-500";
 }
 
+// 톤·크기·포커스는 app/admin/_components/ui.ts 와 styles/admin-yehwa.css 한 곳에서 정한다.
+// 함수 이름을 그대로 두어 호출부는 건드리지 않는다.
 function commandButtonClass(tone: "neutral" | "primary" | "success" | "warn" = "neutral"): string {
-  if (tone === "primary") return "inline-flex items-center gap-2 rounded-lg bg-violet-600 px-3 py-2 text-sm font-medium text-white hover:bg-violet-500 disabled:opacity-50";
-  if (tone === "success") return "inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-600 disabled:opacity-50";
-  if (tone === "warn") return "inline-flex items-center gap-2 rounded-lg bg-amber-700 px-3 py-2 text-sm font-medium text-white hover:bg-amber-600 disabled:opacity-50";
-  return "inline-flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 hover:border-slate-500 disabled:opacity-50";
+  return adminButton(tone);
 }
 
 export default function AdminContentPage() {
@@ -1114,7 +1114,7 @@ export default function AdminContentPage() {
   ].filter(Boolean);
 
   return (
-    <main className="min-h-screen bg-[#0d0f18] text-slate-100">
+    <main className="min-h-screen">
       <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[360px_1fr]">
         <aside className="border-b border-slate-800 bg-[#10121b] lg:border-b-0 lg:border-r">
           <div className="flex items-center justify-between border-b border-slate-800 px-4 py-3">
@@ -1142,7 +1142,7 @@ export default function AdminContentPage() {
                 <input
                   value={searchInput}
                   onChange={(event) => setSearchInput(event.target.value)}
-                  className="w-full rounded-lg border border-slate-700 bg-slate-950 py-2 pl-9 pr-3 text-sm outline-none focus:border-violet-500"
+                  className={ADMIN_INPUT_ICON}
                   placeholder={copy.searchHint}
                 />
               </div>
@@ -1154,7 +1154,7 @@ export default function AdminContentPage() {
               <select
                 value={filterStatus}
                 onChange={(event) => setFilterStatus(event.target.value as FilterStatus)}
-                className="rounded-lg border border-slate-700 bg-slate-950 px-2 py-2 text-xs"
+                className={ADMIN_INPUT}
               >
                 {STATUS_OPTIONS.map((option) => (
                   <option key={option.value} value={option.value}>{copy.filters[option.value]}</option>
@@ -1163,7 +1163,7 @@ export default function AdminContentPage() {
               <select
                 value={typeFilter}
                 onChange={(event) => setTypeFilter(event.target.value as "all" | ContentType)}
-                className="rounded-lg border border-slate-700 bg-slate-950 px-2 py-2 text-xs"
+                className={ADMIN_INPUT}
               >
                 <option value="all">{copy.allTypes}</option>
                 {CONTENT_TYPES.map((option) => (
@@ -1173,7 +1173,7 @@ export default function AdminContentPage() {
               <select
                 value={sort}
                 onChange={(event) => setSort(event.target.value as SortKey)}
-                className="rounded-lg border border-slate-700 bg-slate-950 px-2 py-2 text-xs"
+                className={ADMIN_INPUT}
               >
                 {SORT_OPTIONS.map((option) => (
                   <option key={option.value} value={option.value}>{copy.sort[option.value]}</option>
@@ -1244,7 +1244,7 @@ export default function AdminContentPage() {
         </aside>
 
         <section className="min-w-0">
-          <div className="sticky top-0 z-20 border-b border-slate-800 bg-[#0d0f18]/95 px-4 py-3 backdrop-blur">
+          <div className={ADMIN_TOOLBAR}>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
@@ -1287,12 +1287,12 @@ export default function AdminContentPage() {
 
           <div className="grid gap-4 p-4 xl:grid-cols-[minmax(0,1fr)_360px]">
             <div className="min-w-0 space-y-4">
-              <section className="rounded-lg border border-slate-800 bg-[#12141f] p-4">
+              <section className={`${ADMIN_CARD} ${ADMIN_CARD_HAIR} rounded-lg p-4`}>
                 <div className="grid gap-3 md:grid-cols-2">
                   <select
                     value={form.type}
                     onChange={(event) => updateForm("type", event.target.value as ContentType)}
-                    className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
+                    className={ADMIN_INPUT}
                   >
                     {CONTENT_TYPES.map((option) => (
                       <option key={option.value} value={option.value}>{copy.types[option.value]}</option>
@@ -1302,7 +1302,7 @@ export default function AdminContentPage() {
                     type="datetime-local"
                     value={form.scheduledAt}
                     onChange={(event) => updateForm("scheduledAt", event.target.value)}
-                    className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
+                    className={ADMIN_INPUT}
                     aria-label={copy.scheduledAt}
                   />
                   <input
@@ -1314,7 +1314,7 @@ export default function AdminContentPage() {
                   <input
                     value={form.subtitle}
                     onChange={(event) => updateForm("subtitle", event.target.value)}
-                    className="md:col-span-2 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
+                    className={`md:col-span-2 ${ADMIN_INPUT}`}
                     placeholder={copy.subtitleHint}
                   />
                   <input
@@ -1323,31 +1323,31 @@ export default function AdminContentPage() {
                       setSlugEdited(true);
                       updateForm("slug", slugify(event.target.value));
                     }}
-                    className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
+                    className={ADMIN_INPUT}
                     placeholder="slug"
                   />
                   <input
                     value={form.category}
                     onChange={(event) => updateForm("category", event.target.value)}
-                    className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
+                    className={ADMIN_INPUT}
                     placeholder={copy.categoryHint}
                   />
                   <input
                     value={form.tagsText}
                     onChange={(event) => updateForm("tagsText", event.target.value)}
-                    className="md:col-span-2 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
+                    className={`md:col-span-2 ${ADMIN_INPUT}`}
                     placeholder={copy.tagsHint}
                   />
                   <textarea
                     value={form.summary}
                     onChange={(event) => updateForm("summary", event.target.value)}
-                    className="md:col-span-2 min-h-[84px] rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
+                    className={`md:col-span-2 min-h-[84px] ${ADMIN_INPUT}`}
                     placeholder={copy.summaryHint}
                   />
                 </div>
               </section>
 
-              <section className="rounded-lg border border-slate-800 bg-[#12141f]">
+              <section className={`${ADMIN_CARD} ${ADMIN_CARD_HAIR} rounded-lg`}>
                 <div className="flex flex-wrap items-center gap-2 border-b border-slate-800 p-3">
                   <button type="button" onClick={() => editor?.chain().focus().toggleBold().run()} className={editorButtonClass(editor?.isActive("bold"))} title="굵게">
                     <Bold className="h-4 w-4" />
@@ -1396,7 +1396,7 @@ export default function AdminContentPage() {
               </section>
 
               {previewOpen ? (
-                <section className="rounded-lg border border-slate-800 bg-[#12141f] p-5">
+                <section className={`${ADMIN_CARD} ${ADMIN_CARD_HAIR} rounded-lg p-5`}>
                   <article className="mx-auto max-w-3xl text-slate-100">
                     <p className="mb-2 text-sm text-slate-400">{form.category || "미분류"}</p>
                     <h2 className="text-3xl font-bold">{form.title || "제목 없음"}</h2>
@@ -1419,7 +1419,7 @@ export default function AdminContentPage() {
             </div>
 
             <aside className="space-y-4">
-              <section className="rounded-lg border border-slate-800 bg-[#12141f] p-4">
+              <section className={`${ADMIN_CARD} ${ADMIN_CARD_HAIR} rounded-lg p-4`}>
                 <div className="flex items-center justify-between gap-2">
                   <h2 className="text-sm font-semibold">대표 이미지</h2>
                   <button type="button" onClick={() => featuredInputRef.current?.click()} className={commandButtonClass()}>
@@ -1453,19 +1453,19 @@ export default function AdminContentPage() {
                   <input
                     value={form.featuredImageUrl}
                     onChange={(event) => updateForm("featuredImageUrl", event.target.value)}
-                    className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
+                    className={ADMIN_INPUT}
                     placeholder={copy.imageUrlHint}
                   />
                   <input
                     value={form.featuredImageAlt}
                     onChange={(event) => updateForm("featuredImageAlt", event.target.value)}
-                    className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
+                    className={ADMIN_INPUT}
                     placeholder={copy.imageAltHint}
                   />
                 </div>
               </section>
 
-              <section className="rounded-lg border border-slate-800 bg-[#12141f] p-4">
+              <section className={`${ADMIN_CARD} ${ADMIN_CARD_HAIR} rounded-lg p-4`}>
                 <button type="button" onClick={() => setSeoOpen((open) => !open)} className="flex w-full items-center justify-between text-left text-sm font-semibold">
                   SEO
                   <span className="text-xs text-slate-400">{seoWarnings.length ? `${seoWarnings.length}${copy.seoCheckCountSuffix}` : copy.seoOk}</span>
@@ -1479,13 +1479,13 @@ export default function AdminContentPage() {
                 ) : null}
                 {seoOpen ? (
                   <div className="mt-3 space-y-2">
-                    <input value={form.metaTitle} onChange={(event) => updateForm("metaTitle", event.target.value)} className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm" placeholder="metaTitle" />
-                    <textarea value={form.metaDescription} onChange={(event) => updateForm("metaDescription", event.target.value)} className="min-h-[72px] w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm" placeholder="metaDescription" />
-                    <input value={form.keywordsText} onChange={(event) => updateForm("keywordsText", event.target.value)} className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm" placeholder="keywords" />
-                    <input value={form.canonicalUrl} onChange={(event) => updateForm("canonicalUrl", event.target.value)} className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm" placeholder="canonicalUrl" />
-                    <input value={form.ogTitle} onChange={(event) => updateForm("ogTitle", event.target.value)} className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm" placeholder="ogTitle" />
-                    <textarea value={form.ogDescription} onChange={(event) => updateForm("ogDescription", event.target.value)} className="min-h-[72px] w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm" placeholder="ogDescription" />
-                    <input value={form.ogImage} onChange={(event) => updateForm("ogImage", event.target.value)} className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm" placeholder="ogImage" />
+                    <input value={form.metaTitle} onChange={(event) => updateForm("metaTitle", event.target.value)} className={ADMIN_INPUT} placeholder="metaTitle" />
+                    <textarea value={form.metaDescription} onChange={(event) => updateForm("metaDescription", event.target.value)} className={`min-h-[72px] ${ADMIN_INPUT}`} placeholder="metaDescription" />
+                    <input value={form.keywordsText} onChange={(event) => updateForm("keywordsText", event.target.value)} className={ADMIN_INPUT} placeholder="keywords" />
+                    <input value={form.canonicalUrl} onChange={(event) => updateForm("canonicalUrl", event.target.value)} className={ADMIN_INPUT} placeholder="canonicalUrl" />
+                    <input value={form.ogTitle} onChange={(event) => updateForm("ogTitle", event.target.value)} className={ADMIN_INPUT} placeholder="ogTitle" />
+                    <textarea value={form.ogDescription} onChange={(event) => updateForm("ogDescription", event.target.value)} className={`min-h-[72px] ${ADMIN_INPUT}`} placeholder="ogDescription" />
+                    <input value={form.ogImage} onChange={(event) => updateForm("ogImage", event.target.value)} className={ADMIN_INPUT} placeholder="ogImage" />
                     <label className="flex items-center gap-2 text-sm text-slate-300">
                       <input type="checkbox" checked={form.noIndex} onChange={(event) => updateForm("noIndex", event.target.checked)} />
                       noIndex
@@ -1498,7 +1498,7 @@ export default function AdminContentPage() {
                 ) : null}
               </section>
 
-              <section className="rounded-lg border border-slate-800 bg-[#12141f] p-4">
+              <section className={`${ADMIN_CARD} ${ADMIN_CARD_HAIR} rounded-lg p-4`}>
                 <h2 className="text-sm font-semibold">{copy.publicationSection}</h2>
                 <div className="mt-3 flex flex-wrap gap-2">
                   <button type="button" onClick={() => { if (form.id) void runPublicationCheck(form.id); }} disabled={!form.id} className={commandButtonClass()}>
@@ -1523,7 +1523,7 @@ export default function AdminContentPage() {
                 ) : null}
               </section>
 
-              <section className="rounded-lg border border-slate-800 bg-[#12141f] p-4">
+              <section className={`${ADMIN_CARD} ${ADMIN_CARD_HAIR} rounded-lg p-4`}>
                 <div className="flex items-center justify-between gap-2">
                   <h2 className="text-sm font-semibold">{copy.versionSection}</h2>
                   <button type="button" onClick={() => { void loadRevisions(form.id); }} disabled={!form.id} className={editorButtonClass()} title={copy.refresh}>
