@@ -108,6 +108,21 @@ const ACCEPTED = new Map([
     },
   ],
 
+  [
+    ".cd-direct-payment-option.is-loading::after|fixed-height",
+    {
+      why:
+        "카드가 처리 중임을 알리는 2px 진행 바 — content:\"\" 라 글자가 들어오지 않으므로 로케일이 " +
+        "바뀌어도 높이가 모자랄 일이 없다. 카드 하단에 절대배치된 장식이라 형제 텍스트의 줄 수와도 " +
+        "무관하다(2026-09-06 결제창 렌더 최적화). 높이를 늘리면 금선이 아니라 띠로 보인다.",
+      needs: {
+        file: "js/core/checkout-entry.js",
+        test: /\.cd-direct-payment-option\.is-loading::after\{content:""/,
+        note: "진행 바가 더 이상 content:\"\" 가 아니다 — 글자가 들어오면 2px 고정 높이가 잘린다",
+      },
+    },
+  ],
+
   // --- 탭바: nowrap 을 유지하고 문자열 길이로 푼 자리 ---
   [
     ".cd-mobile-bottom-nav__item|nowrap",
