@@ -133,6 +133,46 @@ test("the withMongoRetry path re-establishes a dead warm connection instead of c
   expect(mongooseMock.connect.mock.calls.length).toBeGreaterThan(connectsBefore);
 });
 
+test("a request that finds a neighbour already on the connection skips the ping entirely", async () => {
+  /* 2026-09-06 프로덕션 tail: 버스트(콜드 + 동시 3요청)의 2·3번째 요청은 connectMs 가 정확히 300
+     = ping 예산이었다. 이웃이 있으면 ping 결과가 흐름을 못 바꾸므로(성공→그대로, 실패→아래 테스트의
+     가드가 그대로) 그 ping 은 예산만 태운다. 그래서 보내지 않는다. */
+  const mongooseMock = buildMongooseMock({ pingBehavior: PING_OK });
+  const { connectDb, withMongoRetry, __dbTestUtils } = await loadDb(mongooseMock);
+  const opts = { ...env, MONGO_PING_TIMEOUT_MS: "300" };
+  await connectDb(opts);
+
+  let releaseNeighbour;
+  const neighbour = withMongoRetry(
+    opts,
+    () => new Promise((resolve) => { releaseNeighbour = resolve; }),
+    { retries: 0, attemptTimeoutMS: 4000, minAttemptTimeoutMS: 250, respectServerSelectionFloor: false },
+  );
+  try {
+    for (let i = 0; i < 50 && __dbTestUtils.countActiveMongoOps() < 1; i += 1) {
+      await new Promise((resolve) => setTimeout(resolve, 5));
+    }
+    expect(__dbTestUtils.countActiveMongoOps()).toBeGreaterThanOrEqual(1);
+    const pingsBefore = mongooseMock.connection.db.command.mock.calls.length;
+    const timings = {};
+
+    const connection = await connectDb(opts, { timings });
+
+    expect(connection).toBe(mongooseMock.connection);
+    expect(mongooseMock.connection.db.command.mock.calls.length).toBe(pingsBefore);
+    expect(timings.pingSkipped).toBe(true);
+    expect(timings.pingMs).toBeUndefined();
+  } finally {
+    releaseNeighbour?.({ ok: 1 });
+    await neighbour.catch(() => {});
+  }
+
+  // 이웃이 빠지면 단독 요청이고, 단독 요청은 종전대로 매번 검증한다(①).
+  const pingsAfterNeighbour = mongooseMock.connection.db.command.mock.calls.length;
+  await connectDb(opts);
+  expect(mongooseMock.connection.db.command.mock.calls.length).toBeGreaterThan(pingsAfterNeighbour);
+});
+
 test("revalidation failure must not disconnect while another operation is in flight", async () => {
   const mongooseMock = buildMongooseMock({ pingBehavior: PING_OK });
   const { connectDb, withMongoRetry, __dbTestUtils } = await loadDb(mongooseMock);
@@ -140,7 +180,23 @@ test("revalidation failure must not disconnect while another operation is in fli
   const neighbourEnv = { ...env, MONGO_PING_TIMEOUT_MS: "300" };
   await connectDb(neighbourEnv);
 
-  // 다른 요청이 같은 아이솔레이트에서 Mongo 작업 중인 상태를 만든다(커넥션은 아직 건강하다).
+  // 단독 요청의 ping 이 걸려 있는 **도중에** 다른 요청이 같은 아이솔레이트에서 Mongo 작업을
+  // 시작한다. 앞선 요청의 ping 은 이웃이 들어온 뒤에 실패하므로 catch 의 "남이 쓰고 있으면
+  // 끊지 않는다" 가드만이 방어선이다(이웃이 먼저 있었다면 위 테스트대로 ping 자체를 안 보낸다).
+  mongooseMock.connection.__setPing(PING_HANGS);
+  const disconnectsBefore = mongooseMock.disconnect.mock.calls.length;
+  const closesBefore = mongooseMock.connection.close.mock.calls.length;
+  const staleClient = mongooseMock.connection.getClient();
+  const pingsBefore = mongooseMock.connection.db.command.mock.calls.length;
+
+  const pinging = connectDb(neighbourEnv);
+  for (let i = 0; i < 50 && mongooseMock.connection.db.command.mock.calls.length === pingsBefore; i += 1) {
+    await new Promise((resolve) => setTimeout(resolve, 5));
+  }
+  expect(mongooseMock.connection.db.command.mock.calls.length).toBe(pingsBefore + 1);
+  // 이웃 자신은 건강한 ping 을 받아 op 에 들어간다(죽은 것은 앞선 요청이 잡고 있는 ping 뿐이다).
+  mongooseMock.connection.__setPing(PING_OK);
+
   let releaseNeighbour;
   const neighbour = withMongoRetry(
     neighbourEnv,
@@ -153,13 +209,7 @@ test("revalidation failure must not disconnect while another operation is in fli
     }
     expect(__dbTestUtils.countActiveMongoOps()).toBeGreaterThanOrEqual(1);
 
-    // 이웃이 작업 중인 동안 소켓이 죽는다.
-    mongooseMock.connection.__setPing(PING_HANGS);
-    const disconnectsBefore = mongooseMock.disconnect.mock.calls.length;
-    const closesBefore = mongooseMock.connection.close.mock.calls.length;
-    const staleClient = mongooseMock.connection.getClient();
-
-    await connectDb(neighbourEnv);
+    await pinging;
 
     // 🔴 남의 소켓을 끊지 않는다 — 2026-08-08 재연결 폭풍 사고의 가드.
     //    teardown 을 배경으로 내보낸 뒤에도 이 가드가 첫 번째 방어선이다: 여기까지 오지 않는 것이

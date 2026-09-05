@@ -149,9 +149,33 @@ CREATED  astrologyAiConsultations.id_1                       [unique,partial]
 `paymentId_unique_nonempty` 와 키가 같다. 빈/누락 값까지 덮는다는 차이만 있어 사실상 중복일
 가능성이 높으나, 이번 측정 이후에 생긴 상태라 **다음 관측 창에서 다시 재고 판단한다.**
 
+## 2026-09-06 재판정 — 선언과 실물의 드리프트
+
+`$indexStats` 는 새 관측 창이 없어 다시 재지 않았다(위 56개는 그대로 "조치 안 함"). 대신 축을 바꿨다:
+`autoIndex:false` 라 **스키마 선언은 아무것도 만들지 않는데**, 선언만 있고 실물이 없는 인덱스가
+100건이었다. 정적 COLLSCAN 가드의 원장을 선언이 아니라 **실물**로 바꿔 돌려 판정했다
+(`npm run verify:reconcile-index-drift`, 읽기 전용).
+
+| 판정 | 건수 | 처리 |
+|---|---:|---|
+| create — 실물이 없어 오늘 COLLSCAN 인 리터럴 쿼리를 고친다 | 5 | 마이그레이션 `20260906-reconcile-index-drift` |
+| create — `unique` 선언인데 실물이 없어 중복이 안 막힌다 | 9 | 동상 |
+| create — 동적 필터의 실제 조회(`fortuneChatSessions.anonymousSessionId`, 비회원 bootstrap) | 1 | 동상, `DYNAMIC_READERS` 에 근거 |
+| drop — `paid_execution_records.paymentId_1`(위 "새로 생긴 후보") | 1 | hint explain 으로 `paymentId_unique_nonempty` 가 등호 조회를 타는 것을 증명한 뒤 드롭 |
+| 실물 복합의 접두이거나 어느 쿼리도 안 쓰는 선언 | 84 | **코드에서 선언 삭제**(실물이 없으니 프로덕션 성능은 안 바뀐다 — 가드의 거짓 통과만 사라진다) |
+
+create 15 · drop 1 은 2026-09-06 프로덕션에 적용했다([db-audit-2026-08/05-execution-log.md](db-audit-2026-08/05-execution-log.md)).
+
+위 "만들지 않은 5건"(`schemaVersion`·`serviceType`·`degraded`·`featureKey` 2)도 이번에 선언을 지웠다.
+`GuardianFortuneDailyUsage` 모델은 읽는 코드가 없고 문서도 0건이라 모델째 지우고 컬렉션은
+`20260906-purge-test-reports-and-orphan-collections` 의 드롭 목록에 넣었다.
+
+🔴 `security_events` 는 3,302건이 쓰기만 되고 TTL 이 없다 — 보존 기간은 사용자 결정 사항이라 남겨 뒀다.
+
 ## 재현
 
 ```bash
+npm run verify:reconcile-index-drift            # 읽기 전용 — 선언 vs 실물 드리프트 판정(2026-09-06)
 npm run verify:drop-unused-secondary-indexes    # 읽기 전용 — 드롭 대상 현재 상태
 npm run verify:integrity-unique-indexes         # 읽기 전용 — 유니크 2건 + 중복 스캔
 npm run verify:mongo-launch-indexes             # 런치 모델 20개 선언 vs 실물

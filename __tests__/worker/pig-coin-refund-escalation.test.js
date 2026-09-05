@@ -127,7 +127,6 @@ jest.unstable_mockModule("../../worker/lib/models.js", () => ({
   GuardianFortuneGuestUsage: {},
   GuardianFortuneAccountUsage: {},
   GuardianFortuneAnonymousMerge: {},
-  GuardianFortuneDailyUsage: {},
   GuardianFortuneChatCreditBalance: {},
   GuardianFortuneChatCreditTransaction: {},
   GuardianFortuneGenerationAttempt: {},

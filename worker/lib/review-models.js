@@ -21,31 +21,31 @@ export const PUBLIC_REVIEW_STATUS = REVIEW_STATUSES.APPROVED;
 const reviewSchema = new mongoose.Schema({
   // 작성자 — userId는 String(ContentEntitlement/PaidExecutionRecord 계열과 통일).
   // 관리자가 임의 닉네임으로 시딩한 리뷰는 userId가 빈 문자열일 수 있다.
-  userId: { type: String, default: "", trim: true, maxlength: 120, index: true },
+  userId: { type: String, default: "", trim: true, maxlength: 120 },
   // authorName/authorImage는 스냅샷이다. User 문서가 바뀌거나 탈퇴해도 리뷰 카드가
   // 깨지지 않도록 작성 시점 값을 박아둔다(Insight.authorName 선례).
   authorName: { type: String, required: true, trim: true, maxlength: 40 },
   authorImage: { type: String, default: "", trim: true, maxlength: 500 },
 
   // 상품 — 리뷰는 그룹(productId) 단위로 모으고, 실제 결제된 세부 키는 따로 남긴다.
-  productId: { type: String, required: true, trim: true, maxlength: 80, index: true },
+  productId: { type: String, required: true, trim: true, maxlength: 80 },
   // productName도 스냅샷이다. paid-feature-registry의 reason은 변경 가능하고 일부는
   // 영문("Section daewun unlock")이라 표시명으로 쓸 수 없다.
   productName: { type: String, required: true, trim: true, maxlength: 120 },
-  featureKey: { type: String, default: "", trim: true, maxlength: 120, index: true },
-  orderId: { type: String, default: "", trim: true, maxlength: 160, index: true },
+  featureKey: { type: String, default: "", trim: true, maxlength: 120 },
+  orderId: { type: String, default: "", trim: true, maxlength: 160 },
 
   // 내용
-  rating: { type: Number, required: true, min: 1, max: 5, index: true },
+  rating: { type: Number, required: true, min: 1, max: 5 },
   title: { type: String, default: "", trim: true, maxlength: 60 },
   body: { type: String, required: true, trim: true, maxlength: 1000 },
-  locale: { type: String, enum: ["ko", "ja", "zh", "en"], default: "ko", index: true },
+  locale: { type: String, enum: ["ko", "ja", "zh", "en"], default: "ko" },
 
   // 상태
-  status: { type: String, enum: REVIEW_STATUS_LIST, default: REVIEW_STATUSES.PENDING, index: true },
+  status: { type: String, enum: REVIEW_STATUS_LIST, default: REVIEW_STATUSES.PENDING },
   // 구매 인증 배지는 "실제 구매 기록이 있다"는 사실 진술이다. 클라이언트 입력을 받지 않고
   // 서버가 review-eligibility로 재검증해 결정한다.
-  isVerifiedPurchase: { type: Boolean, default: false, index: true },
+  isVerifiedPurchase: { type: Boolean, default: false },
   // isVerifiedPurchase 는 "돈이 오갔다", usageSource 는 "그 기록의 성격"이다.
   // 🔴 둘을 한 불리언에 뭉개지 말 것 — isVerifiedPurchase:false 는 지금 운영진 시딩
   // (createdByAdmin:true, 이용 기록 없음)을 뜻하는데, 여기에 다른 뜻을 얹으면 화면에서
@@ -53,7 +53,7 @@ const reviewSchema = new mongoose.Schema({
   // "free"(무료 이용 기록으로 얻은 자격)는 아직 쓰이지 않는다 — 그 소스를 만드는 작업이
   // 뒤따르므로 enum 만 미리 열어 둔다. 값을 쓰는 코드가 없어 이 PR 의 동작은 변하지 않는다.
   usageSource: { type: String, enum: ["", "purchase", "free"], default: "" },
-  createdByAdmin: { type: Boolean, default: false, index: true },
+  createdByAdmin: { type: Boolean, default: false },
 
   // 검수 + 향후 AI 검수 확장 슬롯
   approvedAt: { type: Date, default: null },
@@ -77,7 +77,7 @@ const reviewSchema = new mongoose.Schema({
   },
 
   // 노출 시각. 관리자가 임의로 지정할 수 있어야 하므로 createdAt과 분리한다.
-  displayedAt: { type: Date, default: Date.now, index: true },
+  displayedAt: { type: Date, default: Date.now },
 }, { timestamps: true, collection: "reviews" });
 
 // 공개 목록(전체 / 상품별 / 평점순)

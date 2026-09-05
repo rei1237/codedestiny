@@ -12,6 +12,7 @@ import { useCoinGate } from "../hooks/useCoinGate";
 import { PriceBadge } from "../components/PriceBadge";
 import { FUSION_ORB_BY_KEY, FUSION_ORBS, type FusionSystemKey } from "./fusionOrbs";
 import { FusionRecentList, type FusionRecentItem } from "./FusionRecentList";
+import { FusionResultRail } from "./FusionResultRail";
 import { FusionResultThread } from "./FusionResultThread";
 import {
   FusionOrb,
@@ -2658,7 +2659,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
     {(loading || result || failure) && <section
       ref={threadRef}
       aria-label={copy.threadAriaLabel}
-      className="relative z-[2] mx-auto mb-[26px] w-full max-w-[1080px] overflow-hidden rounded-[28px] border border-[rgba(200,177,235,0.27)] bg-[linear-gradient(145deg,rgba(24,19,48,0.94),rgba(13,11,29,0.97))] shadow-[0_24px_70px_rgba(0,0,0,0.3)]"
+      className="relative z-[2] mx-auto mb-[26px] w-full max-w-[1080px] overflow-clip rounded-[28px] border border-[rgba(200,177,235,0.27)] bg-[linear-gradient(145deg,rgba(24,19,48,0.94),rgba(13,11,29,0.97))] shadow-[0_24px_70px_rgba(0,0,0,0.3)]"
     >
       <span aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-56 bg-[radial-gradient(120%_100%_at_50%_0%,rgba(160,92,214,0.24),transparent_72%)]" />
 
@@ -2681,9 +2682,12 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
         </div>
       </header>
 
-      <ol className="relative m-0 grid list-none gap-5 px-3 py-7 sm:px-9 sm:py-9">
+      {/* 🔴 sticky 레일: 부모 section 이 overflow-hidden 이면 sticky 가 죽는다 — overflow-clip 을 쓴다.
+          레일은 PDF 캡처 대상(data-fusion-pdf-section) 바깥이고 lg 미만에서는 진행선만 남는다. */}
+      <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_224px] lg:gap-7 lg:pr-9">
+      <ol className="relative m-0 grid list-none gap-5 px-3 py-7 max-[430px]:px-2 sm:px-9 sm:py-9">
         {/* 대화의 척추. 좌표 = 목록 좌우 여백(12/36px) + 아바타 반지름(14/18px). */}
-        <span aria-hidden className="pointer-events-none absolute bottom-12 left-[26px] top-12 w-px sm:left-[54px] bg-[linear-gradient(180deg,transparent,rgba(201,181,243,0.3),transparent)]" />
+        <span aria-hidden className="pointer-events-none absolute bottom-12 left-[26px] top-12 w-px max-[430px]:left-5 sm:left-[54px] bg-[linear-gradient(180deg,transparent,rgba(201,181,243,0.3),transparent)]" />
 
         {/* 생성 중에는 끝난 체계와 지금 쓰는 체계만 말한다. 아직 없는 내용을 자리로 약속하지 않는다. */}
         {!result && fusionStages.map((stage, index) => {
@@ -2738,7 +2742,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
           </div>
         </li>}
 
-        {result && <FusionResultThread result={result} openSection={openSection} onToggleSection={toggleSection} exporting={exporting} />}
+        {result && <FusionResultThread result={result} openSection={openSection} onToggleSection={toggleSection} exporting={exporting} stageTwoGenerating={loading} />}
 
         {result && stageTwoFailed && !loading && <li>
           <div role="status" className="rounded-[1.375rem] border border-[rgba(232,213,163,0.3)] bg-[rgba(232,213,163,0.08)] px-4 py-4 sm:px-6">
@@ -2764,8 +2768,10 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
           </div>
         </li>}
       </ol>
+      {result && <FusionResultRail result={result} generating={loading} exporting={exporting} onOpenSection={(key) => setOpenSection(key)} scopeRef={threadRef} />}
+      </div>
 
-      {(loading || result) && <footer className="relative flex flex-wrap gap-3 border-t border-white/[0.07] px-4 py-5 sm:px-9">
+      {(loading || result) && <footer className="relative grid gap-3 border-t border-white/[0.07] px-4 pb-[calc(4.5rem+env(safe-area-inset-bottom))] pt-5 sm:flex sm:flex-wrap sm:px-9 lg:pb-5">
         {loading
           ? <button type="button" onClick={cancelGeneration} className="min-h-11 rounded-full border border-white/[0.18] px-5 text-[0.88rem] text-[var(--fx-ink-3)] transition-colors hover:border-[var(--fx-violet-soft)] hover:text-[var(--fx-ink-1)] motion-reduce:transition-none">{copy.cancelGenerationCta}</button>
           : <>
@@ -2773,11 +2779,13 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
               type="button"
               onClick={() => void downloadPdf()}
               disabled={exporting}
-              className="min-h-11 rounded-full border border-[rgba(232,213,163,0.42)] bg-[rgba(232,213,163,0.12)] px-5 text-[0.9rem] font-bold text-[var(--fx-gold)] transition-colors hover:bg-[rgba(232,213,163,0.2)] disabled:cursor-wait disabled:opacity-60 motion-reduce:transition-none"
+              className="min-h-12 w-full rounded-full border border-[rgba(232,213,163,0.42)] bg-[rgba(232,213,163,0.12)] px-5 text-[0.9rem] font-bold text-[var(--fx-gold)] transition-colors hover:bg-[rgba(232,213,163,0.2)] disabled:cursor-wait disabled:opacity-60 motion-reduce:transition-none sm:min-h-11 sm:w-auto"
             >{exporting ? copy.pdfMakingLabel : copy.pdfSaveCta}</button>
-            <button type="button" onClick={() => void share()} className="min-h-11 rounded-full border border-white/[0.16] px-5 text-[0.9rem] text-[var(--fx-ink-3)] transition-colors hover:border-[var(--fx-violet-soft)] hover:text-[var(--fx-ink-1)] motion-reduce:transition-none">{copy.shareCta}</button>
-            {openedConsultationId && <button type="button" onClick={() => void copyReopenLink()} className="min-h-11 rounded-full border border-white/[0.16] px-5 text-[0.9rem] text-[var(--fx-ink-3)] transition-colors hover:border-[var(--fx-violet-soft)] hover:text-[var(--fx-ink-1)] motion-reduce:transition-none">{copy.copyReopenLinkCta}</button>}
-            <Link href="/#guardian-fortune" className="inline-flex min-h-11 items-center rounded-full border border-white/[0.16] px-5 text-[0.9rem] text-[var(--fx-ink-3)] transition-colors hover:border-[var(--fx-violet-soft)] hover:text-[var(--fx-ink-1)] motion-reduce:transition-none">{copy.continueGuardianLink}</Link>
+            <div className="grid grid-cols-2 gap-3 sm:contents">
+              <button type="button" onClick={() => void share()} className={`min-h-11 rounded-full border border-white/[0.16] px-5 text-[0.9rem] text-[var(--fx-ink-3)] transition-colors hover:border-[var(--fx-violet-soft)] hover:text-[var(--fx-ink-1)] motion-reduce:transition-none ${openedConsultationId ? "" : "col-span-2"}`}>{copy.shareCta}</button>
+              {openedConsultationId && <button type="button" onClick={() => void copyReopenLink()} className="min-h-11 rounded-full border border-white/[0.16] px-5 text-[0.9rem] text-[var(--fx-ink-3)] transition-colors hover:border-[var(--fx-violet-soft)] hover:text-[var(--fx-ink-1)] motion-reduce:transition-none">{copy.copyReopenLinkCta}</button>}
+              <Link href="/#guardian-fortune" className="col-span-2 inline-flex min-h-11 items-center justify-center rounded-full border border-white/[0.16] px-5 text-[0.9rem] text-[var(--fx-ink-3)] transition-colors hover:border-[var(--fx-violet-soft)] hover:text-[var(--fx-ink-1)] motion-reduce:transition-none sm:justify-start">{copy.continueGuardianLink}</Link>
+            </div>
           </>}
       </footer>}
     </section>}

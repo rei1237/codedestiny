@@ -79,9 +79,21 @@ export function withAlpha(hex: string, alpha: number) {
   return `rgba(${(value >> 16) & 255}, ${(value >> 8) & 255}, ${value & 255}, ${alpha})`;
 }
 
+/** tint 를 흰색과 40% 섞는다 — 글자용. 원색 tint 는 말풍선 합성색 위에서 자미두수 3.93:1·점성술 3.68:1 이라 글자에 못 쓴다(2026-09-06 실측). */
+export function lightenForLabel(hex: string) {
+  const raw = hex.replace("#", "");
+  const full = raw.length === 3 ? raw.split("").map((char) => `${char}${char}`).join("") : raw;
+  const value = Number.parseInt(full, 16);
+  const mix = (channel: number) => Math.round(channel + (255 - channel) * 0.4).toString(16).padStart(2, "0");
+  return `#${mix((value >> 16) & 255)}${mix((value >> 8) & 255)}${mix(value & 255)}`;
+}
+
 export function tintVars(systemKey?: FusionSystemKey | "fusion") {
-  const tint = (systemKey && systemKey !== "fusion" ? FUSION_ORB_BY_KEY[systemKey]?.tint : "") || "var(--fx-gold-2)";
-  return { "--tint": tint, "--tint-ring": withAlpha(tint, 0.42), "--tint-veil": withAlpha(tint, 0.14) } as CSSProperties;
+  const orbTint = systemKey && systemKey !== "fusion" ? FUSION_ORB_BY_KEY[systemKey]?.tint : "";
+  const tint = orbTint || "var(--fx-gold-2)";
+  // 금색(fusion)은 이미 밝아 그대로 글자에 쓴다. 점·헤어라인·글로우는 원색 --tint, 글자는 --tint-label.
+  const label = orbTint ? lightenForLabel(orbTint) : "var(--fx-gold-2)";
+  return { "--tint": tint, "--tint-label": label, "--tint-ring": withAlpha(tint, 0.42), "--tint-veil": withAlpha(tint, 0.14) } as CSSProperties;
 }
 
 /**
@@ -144,8 +156,10 @@ export function ThreadAvatar({ systemKey, dimmed = false }: { systemKey?: Fusion
  * 🔴 `exporting` 은 PDF 캡처용이다. html2canvas 클론에서는 진입 애니메이션이 돌지 않아
  * `opacity-0` 이 그대로 캡처되고, 그러면 PDF 가 백지로 나온다. 캡처 중에는 애니메이션을 뺀다.
  */
-export function ThreadRow({ systemKey, dimmed, index = 0, dataState, exporting = false, pdfSection = false, children, className = "" }: {
+export function ThreadRow({ systemKey, dimmed, index = 0, dataState, exporting = false, pdfSection = false, tocKey, children, className = "" }: {
   systemKey?: FusionSystemKey | "fusion";
+  /** 결과 차례(FusionResultRail)가 찾는 앵커. 값이 있으면 li 에 id 와 data-fusion-toc 를 단다. */
+  tocKey?: string;
   dimmed?: boolean;
   index?: number;
   dataState?: FusionStageState;
@@ -158,7 +172,8 @@ export function ThreadRow({ systemKey, dimmed, index = 0, dataState, exporting =
     <li
       data-state={dataState}
       {...(pdfSection ? { "data-fusion-pdf-section": "true" } : {})}
-      className={`grid grid-cols-[1.75rem_minmax(0,1fr)] items-start gap-x-2.5 sm:grid-cols-[2.25rem_minmax(0,1fr)] sm:gap-x-3.5 ${exporting ? "" : "animate-fade-in-up opacity-0 motion-reduce:animate-none motion-reduce:opacity-100"} ${className}`}
+      {...(tocKey ? { id: `fusion-toc-${tocKey}`, "data-fusion-toc": tocKey } : {})}
+      className={`grid grid-cols-[1.75rem_minmax(0,1fr)] items-start gap-x-2.5 max-[430px]:grid-cols-[1.5rem_minmax(0,1fr)] max-[430px]:gap-x-2 sm:grid-cols-[2.25rem_minmax(0,1fr)] sm:gap-x-3.5 ${exporting ? "" : "animate-fade-in-up opacity-0 motion-reduce:animate-none motion-reduce:opacity-100"} ${className}`}
       style={exporting ? undefined : { animationDelay: `${Math.min(index, 14) * 60}ms` }}
     >
       <ThreadAvatar systemKey={systemKey} dimmed={dimmed} />
@@ -199,7 +214,7 @@ export function ThreadBubble({ systemKey, tone = "plain", deferRender = false, e
   return (
     <div
       style={tintVars(systemKey)}
-      className={`relative min-w-0 overflow-hidden rounded-[1.375rem] rounded-tl-md border px-4 py-4 sm:px-6 sm:py-5 ${
+      className={`relative min-w-0 overflow-hidden rounded-[1.375rem] rounded-tl-md border px-4 py-4 max-[430px]:px-3.5 max-[430px]:py-3.5 sm:px-6 sm:py-5 ${
         tone === "gold"
           ? "border-[rgba(232,213,163,0.28)] bg-[linear-gradient(150deg,rgba(232,213,163,0.11),rgba(255,255,255,0.03))]"
           : "border-white/[0.09] bg-white/[0.035]"
@@ -211,12 +226,13 @@ export function ThreadBubble({ systemKey, tone = "plain", deferRender = false, e
   );
 }
 
-/** 화자 이름표. 대화의 "누가 말하는가"를 한 줄로 못 박는다. */
-export function ThreadSpeaker({ label, note }: { label: string; note?: ReactNode }) {
+/** 화자 이름표. 대화의 "누가 말하는가"를 한 줄로 못 박는다. `meta` 는 글자 수·읽는 시간 같은 부속 정보다. */
+export function ThreadSpeaker({ label, note, meta }: { label: string; note?: ReactNode; meta?: ReactNode }) {
   return (
-    <p className="m-0 mb-2 flex flex-wrap items-center gap-x-2.5 gap-y-1 font-display text-[0.82rem] tracking-wide text-[color:var(--tint)]">
+    <p className="m-0 mb-2 flex flex-wrap items-center gap-x-2.5 gap-y-1 font-display text-[0.82rem] tracking-wide text-[color:var(--tint-label)]">
       {label}
       {note}
+      {meta && <span className="font-sans text-[0.72rem] tracking-normal text-[var(--fx-ink-4)] tabular-nums before:mr-2 before:text-[var(--fx-line-strong)] before:content-['·']">{meta}</span>}
     </p>
   );
 }
