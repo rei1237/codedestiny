@@ -11,8 +11,8 @@
  * exit 1 은 측정 자체가 무효(INVALID)일 때만 낸다. verify:* 로 개명하지 말 것.
  * 정적으로 잡을 수 있는 축은 npm run verify:locale-text-fit 이 CI 에서 이미 막는다.
  *
- * 재는 것 — 기존 계측기(measure-mobile-routes.mjs:292)가 문서 단위 가로 오버플로만 보는 것과 달리
- * **요소 단위**로 본다.
+ * 재는 것 — 가로 오버플로를 **로케일 문자열 관점**에서 본다. 기하 축(뷰포트 이탈·하드 클립·글자 런)은
+ * measure-mobile-routes.mjs 가 OF-A/B/C 로 재므로 겹치지 않는다 — 여기서 보는 것은 아래 셋이다.
  *   clip    : 글자가 자기 칸을 넘겼는데 부모가 hidden/ellipsis/line-clamp 로 잘라내고 있다
  *   spill   : overflow-x:hidden 조상의 안쪽 상자 밖으로 자손이 나갔다(결제창 배지 파손의 모양)
  *   collide : 같은 행의 형제 상자가 겹쳤다
@@ -40,7 +40,7 @@ import { RUNTIME_LOCALES } from "../lib/i18n/locale-normalize.js";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
-/** 갤럭시 M15 5G 급 프로필 — measure-mobile-routes.mjs:34-38 에서 복사 */
+/** 갤럭시 M15 5G 급 프로필 — measure-mobile-routes.mjs:57-61 에서 복사 */
 const DEVICE_SCALE_FACTOR = 1.75;
 const MOBILE_UA =
   "Mozilla/5.0 (Linux; Android 16; SM-M156B) AppleWebKit/537.36 (KHTML, like Gecko) " +
@@ -104,7 +104,7 @@ function parseArgs(argv) {
     // ko 는 기준선이다 — 없으면 "원래 잘려 있던 것"과 "로케일 때문에 잘린 것"을 못 가른다.
     args.locales = ["ko", ...args.locales];
   }
-  /* trailingSlash export 구조 — measure-mobile-routes.mjs:120-125 와 같은 정규화 */
+  /* trailingSlash export 구조 — measure-mobile-routes.mjs:157-162 와 같은 정규화 */
   args.routes = args.routes.map((r) => {
     let route = r.startsWith("/") ? r : `/${r}`;
     if (!route.endsWith(".html") && !route.endsWith("/")) route += "/";
@@ -113,7 +113,7 @@ function parseArgs(argv) {
   return args;
 }
 
-/* dist 신선도 fail-closed — measure-mobile-routes.mjs:132-165 에서 복사 */
+/* dist 신선도 fail-closed — measure-mobile-routes.mjs:166-193 에서 복사 */
 function assertDistFresh() {
   const distIndex = path.join(repoRoot, "dist", "index.html");
   if (!fs.existsSync(distIndex)) {
@@ -161,7 +161,7 @@ const MIME = {
 };
 
 /**
- * 정적 서버 — measure-mobile-routes.mjs:177-201 에서 복사하되 **루트를 여러 개** 받는다.
+ * 정적 서버 — measure-mobile-routes.mjs:212-237 에서 복사하되 **루트를 여러 개** 받는다.
  * 🔴 원본은 dist/ 한 곳만 서빙하면 됐지만, 로케일 축은 /i18n/<loc>.json 이 있어야 한다.
  *    소스 모드에서 셸(index.html)은 리포 루트에 있고 사전은 public/i18n/ 에 있어서, 루트 한 곳만
  *    서빙하면 사전이 통째로 404 나고 모든 키가 같은 플레이스홀더로 렌더된다(실제로 그렇게 나왔다).
@@ -203,7 +203,7 @@ function serveStatic(rootDirs) {
   });
 }
 
-/** 라우트 실재 확인 — measure-mobile-routes.mjs:204-207 에서 복사(없는 라우트를 "발견 0건"으로 넘기지 않는다) */
+/** 라우트 실재 확인 — measure-mobile-routes.mjs:239-243 에서 복사(없는 라우트를 "발견 0건"으로 넘기지 않는다) */
 function routeFileExists(rootDirs, route) {
   const relative = route.endsWith(".html")
     ? route.replace(/^\/+/, "")
@@ -267,14 +267,14 @@ async function survivedPseudo(page) {
 
 /**
  * 브라우저 안 기하 계측 본체.
- * 스크롤 스윕은 measure-mobile-routes.mjs:287-291 에서 복사 — content-visibility:auto 자식은
+ * 스크롤 스윕은 measure-mobile-routes.mjs:433-438 에서 복사 — content-visibility:auto 자식은
  * 뷰포트에 들어와야 rect 가 실현되므로 한 화면씩 내려가며 그 순간 보이는 것을 누적한다.
  */
 async function probe(params) {
   const { tolerance } = params;
   const settle = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
 
-  /* visible/describe 는 measure-mobile-routes.mjs:218-235 에서 복사 */
+  /* visible/describe 는 measure-mobile-routes.mjs:264-281 에서 복사 */
   const visible = (el, rect) => {
     if (rect.width <= 0 || rect.height <= 0) return false;
     if (typeof el.checkVisibility === "function") {
