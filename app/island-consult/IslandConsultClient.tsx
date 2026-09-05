@@ -964,12 +964,12 @@ const CSS = `
 .ic-rpt-sec{margin-bottom:16px}
 .ic-rpt-sec h4{font-family:'CodeDestinyDisplay','Mulmaru',serif;font-size:1rem;color:#7a4fc0;margin:0 0 5px}
 .ic-rpt-sec p{font-size:.94rem;line-height:1.85;color:#332b5e;word-break:keep-all}
-.ic-change{margin-left:auto;font-size:.78rem;color:#6a4fb0;background:none;border:1px solid rgba(106,79,176,.35);border-radius:999px;padding:5px 12px;cursor:pointer;min-height:36px}
+.ic-change{margin-left:auto;font-size:.78rem;color:#6a4fb0;background:none;border:1px solid rgba(106,79,176,.35);border-radius:999px;padding:5px 12px;cursor:pointer;min-height:44px}
 .ic-field{display:block;margin-bottom:12px}
 .ic-field>span{display:block;font-size:.82rem;font-weight:700;color:#5c5488;margin-bottom:5px}
 .ic-field input,.ic-field textarea{width:100%;min-height:46px;padding:10px 12px;border-radius:12px;border:1px solid rgba(106,79,176,.28);background:#fff;color:#241f47;font:inherit;resize:vertical}
 .ic-field input:focus,.ic-field textarea:focus{outline:2px solid #b79cf0;outline-offset:1px}
-.ic-check{display:flex;align-items:center;gap:8px;font-size:.86rem;color:#5c5488;min-height:40px;margin-bottom:8px}
+.ic-check{display:flex;align-items:center;gap:8px;font-size:.86rem;color:#5c5488;min-height:44px;margin-bottom:8px}
 .ic-check input{width:18px;height:18px;accent-color:#8a5fd0}
 .ic-segrow{display:flex;gap:10px;margin-bottom:12px}
 .ic-seg{flex:1;display:flex;gap:6px}
@@ -988,7 +988,7 @@ const CSS = `
 .ic-result__meta{color:#6a4fb0;font-size:.86rem;margin-bottom:14px}
 .ic-sec{margin-bottom:18px}
 .ic-sec h3{font-family:'CodeDestinyDisplay','Mulmaru',serif;font-size:1.08rem;color:#7a4fc0;margin-bottom:6px}
-.ic-sec p{font-size:.96rem;line-height:1.85;color:#332b5e;margin-bottom:8px;word-break:keep-all}
+.ic-sec p{font-size:.96rem;line-height:1.85;color:#332b5e;margin-bottom:8px;word-break:keep-all;overflow-wrap:anywhere}
 .ic-result__foot{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px}
 .ic-back-btn{min-height:46px;padding:9px 18px;border-radius:999px;border:1px solid #b79cf0;background:rgba(138,95,208,.12);color:#6a4fb0;font-weight:800;cursor:pointer}
 .ic-foot{max-width:760px;margin:22px auto 0;text-align:center}
