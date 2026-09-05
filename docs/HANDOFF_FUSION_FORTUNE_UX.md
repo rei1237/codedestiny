@@ -146,7 +146,7 @@
 | ⑪ ACTION GUIDE | DO/AVOID/WATCH 3분류 |
 | ⑫ SHARE CARD | 대표 점수+핵심 문장 (og:image 유사 디자인) |
 
-> 🔴 **확인 필요**: `worker/lib/fusion-fortune.js` 의 `FUSION_SECTION_GROUP_SPECS` 가 위 필드를 모두 생성하는지. 부족하면 프롬프트 스펙 확장과 폴백(`buildValidatedFusionFallback`) 갱신이 함께 필요하다. LLM 응답 구조 변경은 `app/fusion-fortune/FusionFortuneClient.tsx` 의 렌더러와 쌍으로 수정해야 한다.
+> 🔴 **확인 필요**: `worker/lib/fusion-fortune-prompt.js` 의 `FUSION_SECTION_GROUP_SPECS`(2026-09-06 부터 2단계 9그룹, 인수인계 `docs/handoff/fusion-fortune-two-stage-2026-09-06.md`) 가 위 필드를 모두 생성하는지. 부족하면 프롬프트 스펙 확장과 폴백(`buildValidatedFusionFallback`) 갱신이 함께 필요하다. LLM 응답 구조 변경은 `app/fusion-fortune/FusionFortuneClient.tsx` 의 렌더러와 쌍으로 수정해야 한다.
 
 ---
 

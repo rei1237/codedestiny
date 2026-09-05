@@ -33,6 +33,7 @@ import {
   resolveUsageVerification,
 } from "../lib/review-eligibility.js";
 import { screenReviewText } from "../lib/review-moderation.js";
+import { maskDisplayName } from "../lib/mask-display-name.js";
 
 const DEFAULT_PAGE_SIZE = 20;
 const MAX_PAGE_SIZE = 50;
@@ -82,10 +83,16 @@ function buildSort(sortKey) {
 }
 
 // 공개 응답에는 createdByAdmin·adminNote·autoFlagReasons 등 내부 필드를 절대 싣지 않는다.
-function toPublicReview(doc) {
+//
+// 🔴 export 하는 이유는 __tests__/worker/review-author-masking.test.js 가 이 함수를 직접
+//    불러 "공개 응답에 원본 표시 이름이 실리지 않는다"를 단언하기 때문이다.
+export function toPublicReview(doc) {
   return {
     id: String(doc?._id || ""),
-    authorName: toText(doc?.authorName),
+    // 🔴 authorName 은 이메일 로컬파트에서 파생된 값이다(worker/lib/mask-display-name.js 주석).
+    //    원본은 DB 와 관리자 projection(worker/routes/admin.js 의 toAdminReviewItem)에만 남고
+    //    공개 응답에는 마스킹된 값만 나간다.
+    authorName: maskDisplayName(toText(doc?.authorName)),
     authorImage: toText(doc?.authorImage),
     productId: toText(doc?.productId),
     productName: toText(doc?.productName),
@@ -99,9 +106,13 @@ function toPublicReview(doc) {
   };
 }
 
-function toOwnReview(doc) {
+export function toOwnReview(doc) {
   return {
     ...toPublicReview(doc),
+    // 🔴 본인 화면(/api/reviews/mine)은 원본 이름으로 되돌린다 — 자기가 쓴 자기 데이터라
+    //    가릴 이유가 없고, 가리면 "내 후기" 목록에서 어느 것이 무엇인지 식별이 어려워진다.
+    //    이 한 줄이 spread 뒤에 와야 마스킹을 덮는다.
+    authorName: toText(doc?.authorName),
     status: toText(doc?.status),
     adminNote: toText(doc?.adminNote),
     createdAt: doc?.createdAt ? new Date(doc.createdAt).toISOString() : "",
@@ -154,7 +165,9 @@ async function handleList(request, env) {
   const { value, stale } = await readCmsThroughCache({
     // v2: toPublicReview 에 usageSource 가 생겼다. 키를 올리지 않으면 배포 직후 최대
     // stale 창(15분) 동안 그 필드가 빠진 옛 응답이 나간다.
-    key: `reviews:list:v2:${productId}:${sortKey}:${verifiedOnly ? "verified" : "all"}:${page}:${limit}`,
+    // 🔴 v3: authorName 을 마스킹했다. 여기를 안 올리면 배포 직후 stale 창 동안
+    //    **마스킹 안 된 원본 이름이 그대로 서빙된다** — 캐시가 개인정보 조치를 무효화한다.
+    key: `reviews:list:v3:${productId}:${sortKey}:${verifiedOnly ? "verified" : "all"}:${page}:${limit}`,
     ttlSeconds: PUBLIC_CACHE_TTL_SECONDS,
     staleTtlSeconds: PUBLIC_CACHE_STALE_TTL_SECONDS,
     load: async () => {

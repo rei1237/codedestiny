@@ -31,7 +31,7 @@ function newConsultationId() {
  *
  * @returns {{ ok: true, doc: object } | { ok: false, reason: string }}
  */
-export function buildFusionConsultationDoc({ requestId, userId, input = {}, result, generationSource = "", llmMeta = null, qualityTier = "", qualityNotice = "" } = {}) {
+export function buildFusionConsultationDoc({ requestId, userId, input = {}, result, generationSource = "", llmMeta = null, qualityTier = "", qualityNotice = "", stage = 2 } = {}) {
   if (!text(userId, 120)) return { ok: false, reason: "missing_user" };
   if (!text(requestId, 180)) return { ok: false, reason: "missing_request_id" };
   if (!result || typeof result !== "object" || Array.isArray(result)) return { ok: false, reason: "missing_result" };
@@ -68,7 +68,11 @@ export function buildFusionConsultationDoc({ requestId, userId, input = {}, resu
       // 다시 열었을 때 "왜 짧지?"에 답할 근거가 사라진다.
       qualityTier: text(qualityTier, 20) || "full",
       qualityNotice: text(qualityNotice, 300),
-      status: "completed",
+      // 2단계 생성: 1단계(여섯 체계 섹션)만 저장된 문서는 partial 이다. 목록에는 나오지 않고
+      // requestId 조회로만 되찾아 2단계를 이어 간다. 2단계 저장이 같은 문서를 completed 로 덮는다.
+      // 옛 보관본(stage 필드 없음)은 응답 기본값이 completed/2 로 읽는다.
+      status: Number(stage) === 1 ? "partial" : "completed",
+      stage: Number(stage) === 1 ? 1 : 2,
       llmMeta: llmMeta && typeof llmMeta === "object" ? llmMeta : null,
     },
   };

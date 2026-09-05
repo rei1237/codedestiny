@@ -7458,7 +7458,9 @@ function syIsPaidGateGranted(result) {
 var _sySukuyoPaidGateInFlight = Object.create(null);
 var SY_SUKUYO_PAID_GATE_TTL_MS = 45000;
 
-function syOpenPaidSukuyoFeature(feature, onGranted) {
+/* resume 은 모바일 리다이렉트 복귀에서 이 기능을 **스스로 다시 열기 위한** 직렬화 가능한 서술자다
+   ({kind, action, args}). 넘기지 않으면 종전과 같다 — 복귀 시 '지금 열기' 카드로 떨어진다. */
+function syOpenPaidSukuyoFeature(feature, onGranted, resume) {
   var config = feature && typeof feature === 'object' ? feature : {};
   var cost = Math.max(0, Math.floor(Number(config.cost || 0)));
   var featureKey = String(config.key || '').trim();
@@ -7484,6 +7486,7 @@ function syOpenPaidSukuyoFeature(feature, onGranted) {
     gateOptions.profileId = profileId;
     gateOptions.selectedProfileId = profileId;
   }
+  if (resume && typeof resume === 'object') gateOptions.resume = resume;
   window._cdOpenPaidServiceGate(gateOptions).then(function(result) {
     if (syIsPaidGateGranted(result) && typeof onGranted === 'function') onGranted(result);
   }).catch(function(error) {
@@ -7495,8 +7498,8 @@ function syOpenPaidSukuyoFeature(feature, onGranted) {
   return true;
 }
 
-function syRequirePaidSukuyoFeature(feature, onGranted) {
-  if (syOpenPaidSukuyoFeature(feature, onGranted)) return true;
+function syRequirePaidSukuyoFeature(feature, onGranted, resume) {
+  if (syOpenPaidSukuyoFeature(feature, onGranted, resume)) return true;
   var isAdminBypass = false;
   try {
     isAdminBypass = !!(window.__cdAdminBypass || (typeof window.__cdIsAdminLikeUser === 'function' && window.__cdIsAdminLikeUser()));
@@ -15859,10 +15862,104 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     });
   }
 
+  /* ── 결제 후 자동 재개(모바일 리다이렉트 복귀) ──────────────────────────────────
+     🔴 모바일 PortOne 은 상위 프레임을 리다이렉트하므로 결제 게이트의 await 가 페이지와 함께 죽고,
+     복귀 후에는 onGranted 가 영영 실행되지 않는다 — "결제했는데 메인 화면"의 정체다.
+     아래 서술자·핸들러가 그 구멍을 메운다. 서술자에는 직렬화 가능한 값만 담는다
+     (checkout-entry 의 sanitizePaidResumeDescriptor 가 나머지를 버린다). */
+  var SY_COMPAT_RESUME_KIND = 'sukuyo-compat';
+  var SY_COMPAT_FORM_WAIT_MS = 8000;
+  var SY_COMPAT_FORM_POLL_MS = 200;
+
+  function syCheckoutEntry() {
+    try { return window.__cdCheckoutEntry || null; } catch (_syEntryError) { return null; }
+  }
+
+  function syCompatFieldValue(id) {
+    var el = document.getElementById(id);
+    return el ? String(el.value == null ? '' : el.value) : '';
+  }
+
+  // select/input 을 채운 뒤 change 를 흘린다 — 붙어 있는 리스너에게 사람이 고른 것과 같아진다.
+  function sySetCompatFieldValue(id, value) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    var next = String(value == null ? '' : value);
+    if (!next) return;
+    el.value = next;
+    try { el.dispatchEvent(new Event('change', { bubbles: true })); } catch (_syFieldEventError) {}
+  }
+
+  function syBuildCompatResumeDescriptor(myIdx, myMansionName) {
+    if (typeof document === 'undefined') return null;
+    var y = syCompatFieldValue('sy3BirthY');
+    var m = syCompatFieldValue('sy3BirthM');
+    var d = syCompatFieldValue('sy3BirthD');
+    // 셋 중 하나라도 비면 복귀 후 재현할 값이 없다 — 서술자 없이 보내 '지금 열기' 카드에 맡긴다.
+    if (!y || !m || !d) return null;
+    return {
+      kind: SY_COMPAT_RESUME_KIND,
+      // 셸의 기존 딥링크(__cdStaticCanonicalPathActions 의 openSukuyoModal). 새 라우팅을 만들지 않는다.
+      action: 'openSukuyoModal',
+      args: {
+        myIdx: String(myIdx == null ? '' : myIdx),
+        myMansionName: String(myMansionName == null ? '' : myMansionName),
+        y: y,
+        m: m,
+        d: d,
+        time: syCompatFieldValue('sy3BirthTime') || '12:00',
+        cal: syCompatFieldValue('sy3CalType') || 'solar',
+        gender: syCompatFieldValue('sy3PartnerGender') || 'OTHER'
+      }
+    };
+  }
+
+  // 궁합 폼은 숙요 모달이 renderSukuyo() 를 그린 뒤에야 생긴다 — 상한을 두고 기다린다.
+  function syWaitForCompatForm(limitMs) {
+    return new Promise(function(resolve) {
+      var deadline = Date.now() + limitMs;
+      (function poll() {
+        if (document.getElementById('sy3BirthY')) { resolve(true); return; }
+        if (Date.now() >= deadline) { resolve(false); return; }
+        setTimeout(poll, SY_COMPAT_FORM_POLL_MS);
+      })();
+    });
+  }
+
+  /* 🔴 여기서 화면을 이동시키지 않는다 — 표면을 여는 책임은 checkout-entry 의 runPaidResume 하나다.
+     이 파일은 지연 로드라 runPaidResume 이 딥링크로 숙요 모달을 먼저 열어 이 스크립트를 불러온 뒤
+     핸들러를 부른다. 여기서 또 열면 이중 이동이 되어 재개가 통째로 날아간다. */
+  function syRunCompatResume(descriptor) {
+    var args = (descriptor && descriptor.args && typeof descriptor.args === 'object') ? descriptor.args : {};
+    if (!args.y || !args.m || !args.d) return false;
+    return syWaitForCompatForm(SY_COMPAT_FORM_WAIT_MS).then(function(ready) {
+      // 폼이 끝내 안 뜨면 false — 호출부(destiny-profile 의 복귀 처리)가 '지금 열기' 카드를 그린다.
+      if (!ready || typeof window._triggerSynergyCheckCore !== 'function') return false;
+      sySetCompatFieldValue('sy3BirthY', args.y);
+      sySetCompatFieldValue('sy3BirthM', args.m);
+      sySetCompatFieldValue('sy3BirthD', args.d);
+      sySetCompatFieldValue('sy3BirthTime', args.time || '12:00');
+      sySetCompatFieldValue('sy3CalType', args.cal || 'solar');
+      sySetCompatFieldValue('sy3PartnerGender', args.gender || 'OTHER');
+      // 🔴 게이트를 다시 타는 window.triggerSynergyCheck 가 아니라 코어를 직접 부른다(재결제 방지).
+      var myIdx = parseInt(args.myIdx, 10);
+      window._triggerSynergyCheckCore(isFinite(myIdx) ? myIdx : 0, String(args.myMansionName || ''));
+      return true;
+    });
+  }
+
+  (function syRegisterCompatResumeHandler() {
+    var entry = syCheckoutEntry();
+    if (!entry || typeof entry.registerPaidResumeHandler !== 'function') return;
+    try { entry.registerPaidResumeHandler(SY_COMPAT_RESUME_KIND, syRunCompatResume); } catch (_syResumeRegisterError) {}
+  })();
+
   window.triggerSynergyCheck = function(myIdx, myMansionName) {
+      // 결제 전에 폼 상태를 서술자로 굳혀 둔다 — 복귀 페이지는 이 값 없이는 재현할 수 없다.
+      var resume = syBuildCompatResumeDescriptor(myIdx, myMansionName);
       if (syRequirePaidSukuyoFeature(SY_PAID_FEATURES.compatibility, function() {
         window._triggerSynergyCheckCore(myIdx, myMansionName);
-      })) {
+      }, resume)) {
         return;
       }
   };

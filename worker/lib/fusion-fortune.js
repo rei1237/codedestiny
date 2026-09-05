@@ -4,6 +4,7 @@ import {
   buildFusionSectionGroupPrompt,
   FUSION_FORTUNE_LENGTH,
   FUSION_SECTION_GROUP_SPECS,
+  fusionGroupsForStage,
 } from "./fusion-fortune-prompt.js";
 import {
   FUSION_VISUAL_SYSTEMS,
@@ -31,6 +32,8 @@ export const FUSION_FORTUNE_ERROR_CODES = Object.freeze({
   // 결제 증빙 조회가 DB 장애로 판단 보류된 상태 — 402 가 아니라 503 으로 표면화한다.
   PAYMENT_CHECK_DEGRADED: "FUSION_FORTUNE_PAYMENT_CHECK_DEGRADED",
   REQUEST_IN_PROGRESS: "FUSION_FORTUNE_REQUEST_IN_PROGRESS",
+  // 2단계 요청인데 1단계 보관본(partial)이 없다 — 클라이언트는 1단계부터 다시 이어간다(추가 결제 없음).
+  STAGE_ONE_MISSING: "FUSION_FORTUNE_STAGE_ONE_MISSING",
   CONTEXT_FAILED: "FUSION_FORTUNE_CONTEXT_FAILED",
   GENERATION_FAILED: "FUSION_FORTUNE_GENERATION_FAILED",
   RESULT_INVALID: "FUSION_FORTUNE_RESULT_INVALID",
@@ -319,6 +322,18 @@ function composeExpertReading(intro, vocabulary, target = 1250, evidence = [], d
     `해석이 실제와 다르게 느껴진다면 그 차이 자체가 정보입니다. 어떤 부분이 맞고 어떤 부분이 어긋나는지 적어 두면, 다음 상담에서 훨씬 정확한 질문을 할 수 있습니다.`,
     `“${profile.focus}”와 관련해 이미 시도해 본 방법이 있다면 그 결과를 먼저 살펴보세요. 새로운 조언보다 지난 시도의 기록이 더 나은 판단 근거가 되는 경우가 많습니다.`,
     `마지막으로 “${profile.action}”은 한 번의 결심이 아니라 반복 가능한 습관으로 옮길 때 힘이 생깁니다. 이번 주에 두 번만 반복해도 다음 선택의 기준이 분명해집니다.`,
+    `“${profile.focus}”를 다시 읽을 때는 지난 한 달의 결정 세 가지를 떠올려 보세요. 각각의 결정에서 ${profile.strength}이 작동했는지, ${profile.shadow}이 끼어들었는지를 나누어 적으면 이 해석이 실제 생활과 어디서 맞물리는지 보입니다.`,
+    `${profile.relationship}에 대해 지금 할 수 있는 가장 작은 실험은 연락의 순서를 바꿔 보는 것입니다. 먼저 묻고, 답을 기다리고, 그 사이의 마음을 기록하면 관계의 속도가 어디서 어긋나는지 드러납니다.`,
+    `${profile.work}를 한 달 단위로 보면 초반의 의욕과 후반의 피로가 다른 결정을 만듭니다. 중요한 약속은 의욕이 높은 시기에 정하지 말고, 피로한 시기에도 지킬 수 있는 크기로 줄여서 정하는 편이 안전합니다.`,
+    `${profile.timing}에 관해서는 달력보다 몸의 신호가 먼저 알려 줍니다. 잠과 식사의 리듬이 흔들리는 주간에는 새 결정을 미루고, 리듬이 돌아온 뒤에 ${profile.action}을 다시 꺼내 보세요.`,
+    `${profile.shadow}이 반복되는 상황에는 대개 같은 사람이나 같은 장소가 있습니다. 그 조건을 바꿀 수 없다면 대응 순서만이라도 바꿔 보세요. 반응을 늦추는 것만으로도 결과가 달라지는 경우가 많습니다.`,
+    `${profile.strength}을 주변 사람이 알아보지 못한다면, 그것은 강점이 약해서가 아니라 드러나는 방식이 조용하기 때문입니다. 결과를 말하기보다 과정을 보여 주는 편이 이 강점을 설명하는 데 맞습니다.`,
+    `${profile.focus}와 관련해 올해 안에 확인하고 싶은 질문을 하나만 문장으로 적어 두세요. 질문이 분명해지면 어떤 정보가 필요하고 어떤 정보가 소음인지 나뉘고, 그때부터 해석이 실제 판단 도구가 됩니다.`,
+    `${profile.relationship}에서 갈등이 생기면 잘못을 가리기보다 각자가 원한 것이 무엇이었는지를 먼저 적어 보세요. 원한 것이 다른 경우와 방법이 다른 경우는 해결 방식이 전혀 다릅니다.`,
+    `${profile.work}에서 결과가 늦게 나오는 시기에는 기록이 유일한 근거가 됩니다. 무엇을 시도했고 무엇이 돌아왔는지를 한 줄씩 남겨 두면, 다음 선택에서 같은 실수를 반복하지 않게 됩니다.`,
+    `${profile.action}이 어렵게 느껴진다면 기준을 낮추는 대신 순서를 바꿔 보세요. 가장 쉬운 부분을 먼저 끝내 두면 나머지를 이어 갈 힘이 남고, 그 힘이 ${profile.focus}를 계속 관찰하게 합니다.`,
+    `${profile.timing}이 지나갔다고 느껴져도 준비가 안 된 채 맞은 시기는 시기가 아닙니다. 조건을 갖춘 뒤 다시 오는 비슷한 국면이 실제로 쓸 수 있는 시기이며, 그때 ${profile.strength}이 힘을 냅니다.`,
+    `${profile.shadow}을 완전히 없애려 하기보다 그것이 나타나는 신호를 먼저 알아차리는 연습이 현실적입니다. 신호를 알면 대응할 시간이 생기고, 시간이 생기면 ${profile.action}을 고를 수 있습니다.`,
   ];
   const evidenceText = evidence.length
     ? `서버 계산에서 확인된 핵심 근거는 ${evidence.slice(0, 3).map((item) => text(item, 180)).join(" ")} 이 근거는 결과를 고정하는 판정이 아니라, 실제 생활에서 반복되는 반응과 선택을 확인하는 출발점으로 사용합니다. `
@@ -332,7 +347,7 @@ function composeExpertReading(intro, vocabulary, target = 1250, evidence = [], d
   return value.trim();
 }
 
-function section(title, intro, vocabulary, length = 2250, evidence = [], domain = "integrated") {
+function section(title, intro, vocabulary, length = 4000, evidence = [], domain = "integrated") {
   return {
     title,
     content: composeExpertReading(intro, vocabulary, length, evidence, domain),
@@ -373,7 +388,7 @@ function buildFallbackFinalVerdict(context = {}) {
     rationale: composeExpertReading(
       "여섯 체계를 각각 판정한 뒤 남는 결론은 하나입니다.",
       "같은 방향을 가리키는 체계가 많을수록 그 조언은 상황이 바뀌어도 잘 흔들리지 않고, 조건부나 주의로 읽히는 체계가 섞일수록 한 번에 크게 움직이기보다 되돌릴 수 있는 크기로 시험하는 편이 안전합니다.",
-      820,
+      1150,
       [],
       "integrated",
     ),
@@ -399,18 +414,18 @@ export async function generateFusionFortuneWithMockLLM({ context = {}, now = new
   return {
     title: "여섯 개의 별자리에서 만난 당신의 흐름",
     openingMessage: `서로 다른 여섯 체계가 공통으로 비추는 것은, 지금의 당신이 방향을 고르는 과정에 있다는 점입니다. ${uncertainty}을 바탕으로 삶의 전반을 차분히 엮어 보겠습니다.`,
-    executiveSummary: composeExpertReading("이번 초융합 운세의 핵심은 힘을 한곳에 모으고 관계와 일의 리듬을 함께 정돈하는 데 있습니다.", "여섯 체계는 표현 방식은 달라도 선택을 서두를 때 생기는 소모와 기준을 세운 뒤 살아나는 집중력을 공통으로 비춥니다.", 900, [], "integrated"),
-    sajuSection: section("사주: 기질과 선택의 뿌리", "사주의 일간과 월지, 오행과 십성은 일을 시작하고 관계를 유지하는 기본 리듬을 보여줍니다.", "오행은 많고 적음을 좋고 나쁨으로 가르기보다, 추진력·정리력·표현력·현실 감각·회복력 중 무엇이 자연스럽고 무엇이 의식적인 연습을 필요로 하는지 살피는 언어입니다.", 2250, evidence.saju, "saju"),
-    ziweiSection: section("자미두수: 삶의 무대와 역할", "자미두수의 궁위와 주요 별은 사회적 역할, 재능의 배치, 관계에서 책임을 느끼는 지점을 비춥니다.", "명궁은 기본 태도, 관록궁은 일의 방식, 재백궁은 자원을 다루는 습관, 부처궁은 가까운 관계의 역할, 복덕궁은 혼자 있을 때의 회복 방식을 서로 연결해 읽습니다.", 2250, evidence.ziwei, "ziwei"),
-    vedicSection: section("베다점: 무의식의 리듬", "베다점의 달과 나크샤트라는 감정이 반응하는 속도와 오래 반복된 배움의 패턴을 살펴봅니다.", "라그나와 문사인, 나크샤트라와 다샤는 컨텍스트에 제공된 범위 안에서만 사용하며, 카르마는 벌이나 숙명이 아니라 되풀이해 배우게 되는 선택 습관으로 해석합니다.", 2250, evidence.vedic, "vedic"),
-    sukuyoSection: section("숙요점: 관계의 거리감", "숙요점은 사람 사이의 거리와 감정이 닿는 방식, 가까워질 때와 숨을 고를 때를 보여줍니다.", "본명숙과 관계 리듬은 누가 옳은지를 판정하기보다 친밀감이 편안해지는 속도, 갈등 뒤 회복하는 방식, 사회적 관계에서 에너지를 배분하는 습관을 살피는 데 사용합니다.", 2250, evidence.sukuyo, "sukuyo"),
-    astrologySection: section("점성술: 감정과 표현의 방향", "점성술은 태양과 달의 상징을 통해 원하는 삶과 실제 감정 반응이 만나는 지점을 해석합니다.", "태양은 의식적인 방향, 달은 정서적 안전, 금성과 화성은 관계의 취향과 행동, 토성은 책임과 성장의 시간을 뜻하며 상승궁은 생시가 확인된 범위에서만 다룹니다.", 2250, evidence.astrology, "astrology"),
-    tarotSection: section("타로: 지금의 선택을 비추는 카드", "서버에서 선택된 여섯 장의 타로 배치는 현재의 흐름을 한 단계씩 정리하도록 돕는 상징으로 사용됩니다.", `서버가 선택한 카드는 ${tarotNames.join(", ") || "정해진 여섯 장"}입니다. 카드는 예언을 고정하는 도구가 아니라 핵심 주제, 체계 사이의 다리, 관계 반응, 다음 행동을 비추는 질문이며 이 목록 밖의 카드는 덧붙이지 않습니다.`, 2250, evidence.tarot, "tarot"),
-    integratedReading: section("통합 해석: 하나의 상담으로 엮는 흐름", "여섯 체계가 함께 가리키는 핵심은 감정을 억누르거나 성급히 결론내리지 않고, 기준을 세워 현실의 행동으로 옮기는 과정입니다.", "공통 신호는 삶의 핵심 패턴으로, 서로 다른 신호는 상황별 선택지로 남깁니다. 사랑·일·돈·마음은 분리된 문제가 아니라 같은 선택 기준이 서로 다른 장면에서 나타난 결과로 연결해 읽습니다.", 3100, integratedEvidence, "integrated"),
-    timingAndAction: { title: "가까운 시기와 현실적인 행동", content: composeExpertReading("가까운 시기에는 큰 결단보다 현재 가진 자원과 관계를 정리하는 작은 선택이 다음 기회를 만듭니다.", "시기 조언은 특정 사건을 예고하기보다 지금 준비할 것, 지켜볼 신호, 멈춰야 할 습관을 구분하는 데 초점을 둡니다.", 2050, [], "action"), luckyActions: ["이번 주 가장 중요한 일 하나를 문장으로 정리하기", "관계에서 원하는 경계를 부드럽게 말하기", "지출과 일정에서 반복되는 부담 한 가지 줄이기"], cautionPatterns: ["불안한 마음으로 답을 재촉하는 패턴", "남의 속도에 맞추다 내 계획을 놓치는 패턴", "준비 없이 한 번에 크게 바꾸려는 패턴"] },
+    executiveSummary: composeExpertReading("이번 초융합 운세의 핵심은 힘을 한곳에 모으고 관계와 일의 리듬을 함께 정돈하는 데 있습니다.", "여섯 체계는 표현 방식은 달라도 선택을 서두를 때 생기는 소모와 기준을 세운 뒤 살아나는 집중력을 공통으로 비춥니다.", 1600, [], "integrated"),
+    sajuSection: section("사주: 기질과 선택의 뿌리", "사주의 일간과 월지, 오행과 십성은 일을 시작하고 관계를 유지하는 기본 리듬을 보여줍니다.", "오행은 많고 적음을 좋고 나쁨으로 가르기보다, 추진력·정리력·표현력·현실 감각·회복력 중 무엇이 자연스럽고 무엇이 의식적인 연습을 필요로 하는지 살피는 언어입니다.", 4000, evidence.saju, "saju"),
+    ziweiSection: section("자미두수: 삶의 무대와 역할", "자미두수의 궁위와 주요 별은 사회적 역할, 재능의 배치, 관계에서 책임을 느끼는 지점을 비춥니다.", "명궁은 기본 태도, 관록궁은 일의 방식, 재백궁은 자원을 다루는 습관, 부처궁은 가까운 관계의 역할, 복덕궁은 혼자 있을 때의 회복 방식을 서로 연결해 읽습니다.", 4000, evidence.ziwei, "ziwei"),
+    vedicSection: section("베다점: 무의식의 리듬", "베다점의 달과 나크샤트라는 감정이 반응하는 속도와 오래 반복된 배움의 패턴을 살펴봅니다.", "라그나와 문사인, 나크샤트라와 다샤는 컨텍스트에 제공된 범위 안에서만 사용하며, 카르마는 벌이나 숙명이 아니라 되풀이해 배우게 되는 선택 습관으로 해석합니다.", 4000, evidence.vedic, "vedic"),
+    sukuyoSection: section("숙요점: 관계의 거리감", "숙요점은 사람 사이의 거리와 감정이 닿는 방식, 가까워질 때와 숨을 고를 때를 보여줍니다.", "본명숙과 관계 리듬은 누가 옳은지를 판정하기보다 친밀감이 편안해지는 속도, 갈등 뒤 회복하는 방식, 사회적 관계에서 에너지를 배분하는 습관을 살피는 데 사용합니다.", 4000, evidence.sukuyo, "sukuyo"),
+    astrologySection: section("점성술: 감정과 표현의 방향", "점성술은 태양과 달의 상징을 통해 원하는 삶과 실제 감정 반응이 만나는 지점을 해석합니다.", "태양은 의식적인 방향, 달은 정서적 안전, 금성과 화성은 관계의 취향과 행동, 토성은 책임과 성장의 시간을 뜻하며 상승궁은 생시가 확인된 범위에서만 다룹니다.", 4000, evidence.astrology, "astrology"),
+    tarotSection: section("타로: 지금의 선택을 비추는 카드", "서버에서 선택된 여섯 장의 타로 배치는 현재의 흐름을 한 단계씩 정리하도록 돕는 상징으로 사용됩니다.", `서버가 선택한 카드는 ${tarotNames.join(", ") || "정해진 여섯 장"}입니다. 카드는 예언을 고정하는 도구가 아니라 핵심 주제, 체계 사이의 다리, 관계 반응, 다음 행동을 비추는 질문이며 이 목록 밖의 카드는 덧붙이지 않습니다.`, 4000, evidence.tarot, "tarot"),
+    integratedReading: section("통합 해석: 하나의 상담으로 엮는 흐름", "여섯 체계가 함께 가리키는 핵심은 감정을 억누르거나 성급히 결론내리지 않고, 기준을 세워 현실의 행동으로 옮기는 과정입니다.", "공통 신호는 삶의 핵심 패턴으로, 서로 다른 신호는 상황별 선택지로 남깁니다. 사랑·일·돈·마음은 분리된 문제가 아니라 같은 선택 기준이 서로 다른 장면에서 나타난 결과로 연결해 읽습니다.", 4000, integratedEvidence, "integrated"),
+    timingAndAction: { title: "가까운 시기와 현실적인 행동", content: composeExpertReading("가까운 시기에는 큰 결단보다 현재 가진 자원과 관계를 정리하는 작은 선택이 다음 기회를 만듭니다.", "시기 조언은 특정 사건을 예고하기보다 지금 준비할 것, 지켜볼 신호, 멈춰야 할 습관을 구분하는 데 초점을 둡니다.", 2900, [], "action"), luckyActions: ["이번 주 가장 중요한 일 하나를 문장으로 정리하기", "관계에서 원하는 경계를 부드럽게 말하기", "지출과 일정에서 반복되는 부담 한 가지 줄이기"], cautionPatterns: ["불안한 마음으로 답을 재촉하는 패턴", "남의 속도에 맞추다 내 계획을 놓치는 패턴", "준비 없이 한 번에 크게 바꾸려는 패턴"] },
     visualization: normalizeFusionVisualization(undefined, context, { now }),
     finalVerdict: buildFallbackFinalVerdict(context),
-    closingMessage: composeExpertReading("운세는 정답을 대신 정하는 말이 아니라, 더 나은 선택을 하도록 비추는 지도입니다.", "오늘의 작은 정리와 솔직한 경계가 다음 흐름을 바꾸는 현실적인 출발점이 됩니다.", 850, [], "closing"),
+    closingMessage: composeExpertReading("운세는 정답을 대신 정하는 말이 아니라, 더 나은 선택을 하도록 비추는 지도입니다.", "오늘의 작은 정리와 솔직한 경계가 다음 흐름을 바꾸는 현실적인 출발점이 됩니다.", 1000, [], "closing"),
     shareText: "여섯 개의 운세 체계를 하나의 상담으로 엮어, 지금의 나를 다시 읽어봤어요.",
   };
 }
@@ -761,14 +776,85 @@ function buildFusionDuplicateInstruction(group, duplicates) {
   ].join("\n");
 }
 
+// ── 근거 인용 게이트(evidence_thin) ───────────────────────────────────
+// 일반론 정규식 목록은 두지 않는다(2026-09-03 overclaim 정규식 사고 — 면책 문장을 잡아 배달이 막혔다).
+// 대신 측정 가능한 것만 본다: 컨텍스트의 짧은 확정값(일간·본명숙·별 이름·카드 이름) 중 하나도
+// 본문에 나오지 않는 그룹만 "근거 없음"으로 보고 보완 물결에 넣는다. 반려 사유가 아니다.
+const FUSION_EVIDENCE_VALUE_MAX_CHARS = 12;
+const FUSION_EVIDENCE_TOKEN_MAX_CHARS = 12;
+// 인용할 만한 토큰이 이보다 적으면 판정 자체를 하지 않는다 — 잴 수 없는 것을 미달로 읽지 않는다.
+const FUSION_EVIDENCE_MIN_CANDIDATES = 2;
+
+/** 컨텍스트에서 인용 가능한 짧은 확정값 토큰. 그룹이 체계를 지정하면 그 체계만, 아니면(2단계) 여섯 체계 전부. */
+export function collectFusionEvidenceTokens(context = {}, group = {}) {
+  const systems = Array.isArray(group.systems) && group.systems.length ? group.systems : FUSION_VISUAL_SYSTEMS.map((system) => system.key);
+  const tokens = new Set();
+  const push = (raw) => {
+    for (const piece of String(raw || "").split(/[·,/()[\]\s]+/)) {
+      const token = piece.trim();
+      if (token.length >= 2 && token.length <= FUSION_EVIDENCE_TOKEN_MAX_CHARS) tokens.add(token);
+    }
+  };
+  for (const system of systems) {
+    const source = context?.systems?.[system];
+    if (source && typeof source === "object") {
+      for (const value of Object.values(source)) {
+        if (typeof value === "string" && value.trim().length <= FUSION_EVIDENCE_VALUE_MAX_CHARS) push(value);
+      }
+    }
+    if (system === "tarot" && Array.isArray(context?.tarotSpread?.cards)) {
+      for (const card of context.tarotSpread.cards) push(card?.name);
+    }
+  }
+  return [...tokens];
+}
+
+/** 그룹 본문이 컨텍스트 확정값을 하나도 인용하지 않았는가. 후보가 모자라면 false(판정 불가). */
+export function isFusionGroupEvidenceThin(value = {}, group = {}, tokens = []) {
+  if (tokens.length < FUSION_EVIDENCE_MIN_CANDIDATES) return false;
+  const prose = fusionSectionProse(value).map(([, content]) => content).join(" ");
+  if (!prose) return false;
+  return !tokens.some((token) => prose.includes(token));
+}
+
+function buildFusionEvidenceInstruction(tokens) {
+  return `직전 시도는 서버 확정값을 하나도 인용하지 않았습니다. 이 묶음의 본문에는 다음 값 중 최소 두 개를 이름 그대로 인용하고, 그 값에서만 나오는 판단을 쓰십시오: ${tokens.slice(0, 8).join(", ")}`;
+}
+
+const FUSION_STAGE_ONE_SECTION_KEYS = SECTION_KEYS.filter((key) => key !== "integratedReading");
+
+/** 1단계 보관본이 2단계의 입력으로 쓸 만한가 — 체계별 섹션 여섯 개가 본문을 갖고 있어야 한다. */
+export function hasFusionStageOneResult(priorResult) {
+  if (!priorResult || typeof priorResult !== "object" || Array.isArray(priorResult)) return false;
+  return FUSION_STAGE_ONE_SECTION_KEYS.every((key) => text(priorResult[key]?.content, 200).length >= 200);
+}
+
+/** 2단계 예약 키. 1단계 예약(requestId)이 completed 로 잠겨 있으므로 별도 키를 쓴다(모델 maxlength 120 안). */
+export function fusionStageReservationId(requestId, stage) {
+  const safeId = safeRequestId(requestId);
+  return Number(stage) === 2 ? `${safeId.slice(0, 116)}#s2` : safeId;
+}
+
+/** 두 단계의 생성 출처를 하나로. 한쪽이라도 폴백이 섞였으면 partial, 둘 다 폴백이면 context_fallback. */
+function mergeFusionGenerationSource(prior, current) {
+  const before = text(prior, 40);
+  if (!before || before === "mock") return current;
+  if (before === current) return current;
+  if (before === "context_fallback" && current === "context_fallback") return "context_fallback";
+  return "gemini_partial";
+}
+
 /**
- * 초융합 생성 — 네 그룹을 병렬로 부르고 하나의 결과 JSON으로 병합한다.
+ * 초융합 생성 — 한 단계(stage)의 그룹을 병렬로 부르고 하나의 결과 JSON으로 병합한다.
  *
- * 왜 병렬인가: 목표 20,000자를 단일 호출로 뽑으려면 Gemini 출력 상한(16,384토큰)과 요청
- * 시간 예산이 먼저 바닥난다. 실제로는 매번 잘려 짧은 결과가 30,000원 결제로 배달됐다.
- * 그룹당 3,400~6,600자면 한 호출이 시간 안에 완주한다. 선행 사례: worker/routes/ziwei-ai.js.
+ * 왜 병렬·2단계인가: 목표 30,000~40,000자를 단일 호출로 뽑으려면 Gemini 출력 상한(16,384토큰)과
+ * 요청 시간 예산(120초, 엣지 ~100초)이 먼저 바닥난다. 한 요청 안에서 그룹만 늘려도 같은 벽이다.
+ * 1단계(체계별 6그룹)와 2단계(통합·행동·결론 3그룹)를 별도 요청으로 나눠 각자 예산을 쓰고,
+ * 2단계는 1단계 산출 요약(priorResult → buildFusionStageOneDigest)을 읽는다.
  *
  * 실패한 그룹은 그 그룹만 다시 부르고, 끝내 실패하면 그 키만 결정론 폴백으로 메운다.
+ * 1단계 배달은 tier "partial" — 전체 계약(총 분량·요약 깊이)은 2단계가 있어야 잴 수 있다.
+ * 안전 검사(위험 표현·개인정보·타로 환각)는 그룹 검증이 단계와 무관하게 막는다.
  */
 export async function generateFusionFortuneWithRealLLM({
   input = {},
@@ -780,12 +866,20 @@ export async function generateFusionFortuneWithRealLLM({
   now = new Date(),
   abortSignal,
   deadlineStartAt,
+  stage = 1,
+  priorResult = null,
+  priorGenerationSource = "",
 } = {}) {
   if (!isFusionFortuneRealLlmAllowed(env)) {
     const error = new Error("FUSION_REAL_LLM_NOT_ALLOWED");
     error.code = "FUSION_REAL_LLM_NOT_ALLOWED";
     throw error;
   }
+  const stageNumber = Number(stage) || 1;
+  const groups = fusionGroupsForStage(stageNumber);
+  if (!groups.length) throw Object.assign(new Error("FUSION_FORTUNE_INVALID_STAGE"), { code: FUSION_FORTUNE_ERROR_CODES.INVALID_INPUT });
+  const prior = stageNumber === 2 && priorResult && typeof priorResult === "object" ? priorResult : {};
+  const stageKeys = groups.flatMap((group) => group.keys);
   // 🔴 데드라인 시계는 요청 시작 시점(결제 증빙 직후)부터 돈다. 컨텍스트 빌드(6개 계산기)가
   //    LLM 그룹보다 먼저 같은 예산을 소모하므로, 여기서 새로 시작하면 컨텍스트 시간이 예산에
   //    안 잡혀 Cloudflare 엣지 한도(~100s)를 넘겨 요청이 도중에 죽는다.
@@ -799,7 +893,7 @@ export async function generateFusionFortuneWithRealLLM({
   let providerCalls = 0;
   // 🔴 진행 카운터는 **국면마다 새로** 센다. 예전에는 하나를 1차 병렬과 재생성이 공유해
   //    화면에 "6 / 4 묶음 완성"이 떴다 — 총량을 넘는 진행률은 사용자에게 고장으로 보인다.
-  const composeProgress = { phase: "compose", total: FUSION_SECTION_GROUP_SPECS.length, done: 0 };
+  const composeProgress = { phase: "compose", total: groups.length, done: 0 };
 
   const groupTimeoutMs = fusionGroupTimeoutMs(env);
   const runGroup = async (group, { attempts = FUSION_GROUP_ATTEMPTS, timeoutMs = groupTimeoutMs, extraInstruction = "", progress = composeProgress } = {}) => {
@@ -810,11 +904,11 @@ export async function generateFusionFortuneWithRealLLM({
     //    조여 요청이 끝까지 완주하게 한다.
     const remainingBeforeCall = remainingMs();
     if (remainingBeforeCall <= 0) {
-      console.warn("[fusion-fortune-group-skipped-deadline]", { requestId: text(requestId, 120), sectionGroup: group.id, remainingMs: remainingBeforeCall });
+      console.warn("[fusion-fortune-group-skipped-deadline]", { requestId: text(requestId, 120), stage: stageNumber, sectionGroup: group.id, remainingMs: remainingBeforeCall });
       return { ok: false, group, issue: "deadline_exhausted" };
     }
     const clampedTimeoutMs = Math.max(1000, Math.min(timeoutMs, remainingBeforeCall - FUSION_TAIL_RESERVE_MS));
-    const groupPrompt = buildFusionSectionGroupPrompt({ context, group, extraInstruction });
+    const groupPrompt = buildFusionSectionGroupPrompt({ context, group, priorSections: prior, extraInstruction });
     providerCalls += 1;
     let response;
     try {
@@ -829,16 +923,16 @@ export async function generateFusionFortuneWithRealLLM({
         taskType: "fortune",
 
         // 🔴 초융합은 Workers AI 폴백을 켜지 않는다. 폴백 모델은 목표의 60~77%에서 스스로
-        // 멈춰(2026-07-30 실측) 20,000자 계약을 구조적으로 채울 수 없다. 켜면 호출만 더
+        // 멈춰(2026-07-30 실측) 분량 계약을 구조적으로 채울 수 없다. 켜면 호출만 더
         // 태우고 결국 반려된다. 폴백을 켜게 되면 fallbackMinChars 를 함께 줘야 한다.
         fallbackToWorkersAI: false,
-        logContext: { requestId: text(requestId, 120), featureKey: "fusion_fortune", sectionGroup: group.id },
+        logContext: { requestId: text(requestId, 120), featureKey: "fusion_fortune", stage: stageNumber, sectionGroup: group.id },
       });
     } catch (error) {
       response = { ok: false, error: text(error?.code, 80) || "provider_exception" };
     }
     progress.done += 1;
-    await emitFusionFortuneStage(onStage, "compose", { group: group.id, groupLabel: group.stageLabel, phase: progress.phase, completedGroups: progress.done, totalGroups: progress.total });
+    await emitFusionFortuneStage(onStage, "compose", { stage: stageNumber, group: group.id, groupLabel: group.stageLabel, phase: progress.phase, completedGroups: progress.done, totalGroups: progress.total });
     if (!response?.ok) return { ok: false, group, issue: text(response?.error, 80) || "provider_failed" };
     const parsed = parseFusionFortuneLLMResponse(response.text);
     if (!parsed.ok) return { ok: false, group, issue: "parse_failed" };
@@ -852,24 +946,27 @@ export async function generateFusionFortuneWithRealLLM({
 
   const merged = {};
   const failedGroups = [];
-  const settled = await Promise.allSettled(FUSION_SECTION_GROUP_SPECS.map((group) => runGroup(group)));
+  const settled = await Promise.allSettled(groups.map((group) => runGroup(group)));
   settled.forEach((outcome, index) => {
-    const group = FUSION_SECTION_GROUP_SPECS[index];
+    const group = groups[index];
     if (outcome.status !== "fulfilled" || !outcome.value.ok) {
       failedGroups.push(group);
-      console.warn("[fusion-fortune-group-failed]", { requestId: text(requestId, 120), sectionGroup: group.id, issue: text(outcome.status === "fulfilled" ? outcome.value.issue : outcome.reason?.message, 120), detail: text(outcome.status === "fulfilled" ? outcome.value.detail : "", 80) });
+      console.warn("[fusion-fortune-group-failed]", { requestId: text(requestId, 120), stage: stageNumber, sectionGroup: group.id, issue: text(outcome.status === "fulfilled" ? outcome.value.issue : outcome.reason?.message, 80), detail: text(outcome.status === "fulfilled" ? outcome.value.detail : "", 120) });
       return;
     }
     Object.assign(merged, outcome.value.value);
   });
 
   // 실패했거나 목표를 크게 밑돈 그룹만 다시 부른다. 그룹 단위라 예산 안에 들어온다.
-  const shortGroups = FUSION_SECTION_GROUP_SPECS.filter((group) => !failedGroups.includes(group) && countFusionGroupChars(merged, group) < group.targetChars * FUSION_GROUP_RETRY_RATIO);
+  const shortGroups = groups.filter((group) => !failedGroups.includes(group) && countFusionGroupChars(merged, group) < group.targetChars * FUSION_GROUP_RETRY_RATIO);
   // 🔴 중복은 **모델이 쓴 본문끼리만** 본다. composed(결정론 폴백이 섞인 것)로 재면 폴백이 제
   //    렌즈 문장을 여러 섹션에 재사용하는 구조 때문에 모델 잘못이 아닌 중복이 잡힌다(실측 24건/40자).
-  const duplicates = collectFusionCrossSectionDuplicates(merged);
-  const duplicatedGroups = FUSION_SECTION_GROUP_SPECS.filter((group) => !failedGroups.includes(group) && !shortGroups.includes(group) && countFusionGroupDuplicates(duplicates, group) >= FUSION_GROUP_DUPLICATE_LIMIT);
-  const retryTargets = [...failedGroups, ...shortGroups, ...duplicatedGroups];
+  //    2단계는 1단계 본문(prior)까지 포함해 본다 — 2단계가 요약을 그대로 베끼는 것이 잡아야 할 중복이다.
+  const duplicates = collectFusionCrossSectionDuplicates({ ...prior, ...merged });
+  const duplicatedGroups = groups.filter((group) => !failedGroups.includes(group) && !shortGroups.includes(group) && countFusionGroupDuplicates(duplicates, group) >= FUSION_GROUP_DUPLICATE_LIMIT);
+  const evidenceTokens = new Map(groups.map((group) => [group.id, collectFusionEvidenceTokens(context, group)]));
+  const thinGroups = groups.filter((group) => !failedGroups.includes(group) && !shortGroups.includes(group) && !duplicatedGroups.includes(group) && isFusionGroupEvidenceThin(pickKeys(merged, group.keys), group, evidenceTokens.get(group.id)));
+  const retryTargets = [...failedGroups, ...shortGroups, ...duplicatedGroups, ...thinGroups];
   // 연결이 끊긴 뒤에 보완 호출을 또 태우지 않는다. 1차 호출은 provider 안에서 이미 진행 중이라
   // 여기서 못 끊지만, **두 번째 물결**은 막을 수 있다(비용의 절반이 여기다).
   if (retryTargets.length && !abortSignal?.aborted && remainingMs() > FUSION_GROUP_RETRY_MIN_BUDGET_MS) {
@@ -883,6 +980,7 @@ export async function generateFusionFortuneWithRealLLM({
       extraInstruction: [
         failedGroups.includes(group) || shortGroups.includes(group) ? buildFusionShortfallInstruction(group, countFusionGroupChars(merged, group)) : "",
         buildFusionDuplicateInstruction(group, duplicates),
+        thinGroups.includes(group) ? buildFusionEvidenceInstruction(evidenceTokens.get(group.id)) : "",
       ].filter(Boolean).join("\n\n"),
       progress: repairProgress,
     })));
@@ -892,59 +990,78 @@ export async function generateFusionFortuneWithRealLLM({
       const previousChars = countFusionGroupChars(merged, group);
       const nextChars = countFusionGroupChars(outcome.value.value, group);
       // 재생성이 더 길 때 교체한다 — 더 짧아진 결과로 기존 본문을 덮어쓰지 않는다.
-      // 다만 중복을 실제로 줄였다면 분량이 조금 준 것은 받는다. 안 그러면 중복만으로 부른
-      // 재생성이 "덜 베꼈지만 몇 자 짧다"는 이유로 전부 버려져 이 물결이 통째로 헛돈다.
-      const reducedDuplicates = countFusionGroupDuplicates(collectFusionCrossSectionDuplicates({ ...merged, ...outcome.value.value }), group) < countFusionGroupDuplicates(duplicates, group);
-      if (nextChars <= previousChars && !(reducedDuplicates && nextChars >= previousChars * FUSION_GROUP_RETRY_RATIO)) return;
+      // 다만 중복을 실제로 줄였거나 근거 인용이 생겼다면 분량이 조금 준 것은 받는다. 안 그러면
+      // 그 이유로 부른 재생성이 "몇 자 짧다"는 이유로 전부 버려져 이 물결이 통째로 헛돈다.
+      const reducedDuplicates = countFusionGroupDuplicates(collectFusionCrossSectionDuplicates({ ...prior, ...merged, ...outcome.value.value }), group) < countFusionGroupDuplicates(duplicates, group);
+      const gainedEvidence = thinGroups.includes(group) && !isFusionGroupEvidenceThin(outcome.value.value, group, evidenceTokens.get(group.id));
+      if (nextChars <= previousChars && !((reducedDuplicates || gainedEvidence) && nextChars >= previousChars * FUSION_GROUP_RETRY_RATIO)) return;
       Object.assign(merged, outcome.value.value);
       const stillFailedIndex = failedGroups.indexOf(group);
       if (stillFailedIndex >= 0) failedGroups.splice(stillFailedIndex, 1);
     });
   } else if (retryTargets.length) {
-    console.warn("[fusion-fortune-group-retry-skipped]", { requestId: text(requestId, 120), remainingMs: remainingMs(), aborted: abortSignal?.aborted === true, groups: retryTargets.map((group) => group.id) });
+    console.warn("[fusion-fortune-group-retry-skipped]", { requestId: text(requestId, 120), stage: stageNumber, remainingMs: remainingMs(), aborted: abortSignal?.aborted === true, groups: retryTargets.map((group) => group.id) });
   }
 
-  // 남은 실패 그룹은 결정론 폴백으로 메운다. 세 그룹이 멀쩡한데 한 그룹 때문에 전체를
-  // 폴백으로 돌리면 30,000원을 낸 사용자가 받는 글의 4분의 3이 이유 없이 사라진다.
+  // 남은 실패 그룹은 결정론 폴백으로 메운다 — **이 단계의 키만**. 다른 그룹이 멀쩡한데 한 그룹
+  // 때문에 전체를 폴백으로 돌리면 30,000원을 낸 사용자가 받는 글의 대부분이 이유 없이 사라진다.
   const fallbackBase = attachQuestionFocusedFusionReading(await generateFusionFortuneWithMockLLM({ context, now }), context);
-  const composed = { ...pickKeys(fallbackBase, Object.keys(fallbackBase)), ...merged };
-  composed.visualization = normalizeFusionVisualization(composed.visualization, context, { now });
-
-  // 🔴 품질 미달이어도 모델이 실제로 쓴 본문을 우선한다. 여기서 결정론 폴백으로 갈아타면
-  //    3만원짜리 결과가 통째로 템플릿 문장으로 바뀐다 — 안전 위반일 때만 갈아탄다.
-  const decision = resolveFusionFortuneDelivery(composed, validationOptions);
-  const usedFallbackGroups = FUSION_SECTION_GROUP_SPECS.filter((group) => failedGroups.includes(group)).map((group) => group.id);
+  const composed = { ...prior, ...pickKeys(fallbackBase, stageKeys), ...merged };
+  const usedFallbackGroups = groups.filter((group) => failedGroups.includes(group)).map((group) => group.id);
   const provider = [...providers][0] || "gemini";
   const resolvedModel = [...models][0] || model;
+  const stageSource = usedFallbackGroups.length === 0 ? "gemini" : usedFallbackGroups.length === groups.length ? "context_fallback" : "gemini_partial";
 
-  // 🔴 중복은 **배달 차단 사유로 승격하지 않는다**(바로 위 강등 배달 원칙). 재생성을 유도하고,
+  // 🔴 중복은 **배달 차단 사유로 승격하지 않는다**(강등 배달 원칙). 재생성을 유도하고,
   //    그래도 남으면 사유로 기록만 한다 — 등급(qualityTier)과 사용자 고지는 건드리지 않는다.
   //    `evaluateFusionFortuneResult` 에 넣지 않는 이유도 같다: 그 검사는 폴백이 섞인 composed 를
   //    보므로, 넣으면 폴백의 제 문장 재사용 때문에 모델 잘못이 아닌 강등이 생긴다.
-  const remainingDuplicates = collectFusionCrossSectionDuplicates(merged);
-  const duplicatedAfterRepair = FUSION_SECTION_GROUP_SPECS.filter((group) => countFusionGroupDuplicates(remainingDuplicates, group) >= FUSION_GROUP_DUPLICATE_LIMIT).map((group) => group.id);
+  const remainingDuplicates = collectFusionCrossSectionDuplicates({ ...prior, ...merged });
+  const duplicatedAfterRepair = groups.filter((group) => countFusionGroupDuplicates(remainingDuplicates, group) >= FUSION_GROUP_DUPLICATE_LIMIT).map((group) => group.id);
+
+  if (stageNumber === 1) {
+    // 1단계는 전체 계약을 재지 않는다 — 총 분량·요약·시기·판정은 2단계 키다. 안전 검사는 그룹
+    // 검증이 이미 끝냈고, 결정론 폴백은 그 자체로 안전하다. 등급은 "partial" 로 배달한다.
+    const qualityIssues = duplicatedAfterRepair.length ? ["cross_section_duplicate"] : [];
+    console.info("[fusion-fortune-llm-metric]", { requestId: text(requestId, 120), stage: 1, provider, model: resolvedModel, providerCalls, success: true, fallbackUsed: usedFallbackGroups.length > 0, fallbackGroups: usedFallbackGroups, length: countFusionFortuneVisibleText(composed), qualityTier: "partial", qualityIssues, duplicateGroups: duplicatedAfterRepair });
+    return { result: composed, deliverable: true, generationSource: stageSource, providerCalls, qualityTier: "partial", qualityIssues, qualityNotice: "", stage: 1 };
+  }
+
+  composed.visualization = normalizeFusionVisualization(composed.visualization, context, { now });
+  // 🔴 품질 미달이어도 모델이 실제로 쓴 본문을 우선한다. 여기서 결정론 폴백으로 갈아타면
+  //    3만원짜리 결과가 통째로 템플릿 문장으로 바뀐다 — 안전 위반일 때만 갈아탄다.
+  const decision = resolveFusionFortuneDelivery(composed, validationOptions);
+  const generationSource = mergeFusionGenerationSource(priorGenerationSource, stageSource);
 
   if (decision.deliverable) {
-    const generationSource = usedFallbackGroups.length === 0 ? "gemini" : usedFallbackGroups.length === FUSION_SECTION_GROUP_SPECS.length ? "context_fallback" : "gemini_partial";
     const qualityIssues = duplicatedAfterRepair.length ? [...decision.issues, "cross_section_duplicate"] : decision.issues;
-    console.info("[fusion-fortune-llm-metric]", { requestId: text(requestId, 120), provider, model: resolvedModel, providerCalls, success: true, fallbackUsed: usedFallbackGroups.length > 0, fallbackGroups: usedFallbackGroups, length: decision.length, qualityTier: decision.tier, qualityIssues, duplicateGroups: duplicatedAfterRepair });
-    return { result: decision.value, deliverable: true, generationSource, providerCalls, qualityTier: decision.tier, qualityIssues, qualityNotice: decision.qualityNotice };
+    console.info("[fusion-fortune-llm-metric]", { requestId: text(requestId, 120), stage: 2, provider, model: resolvedModel, providerCalls, success: true, fallbackUsed: usedFallbackGroups.length > 0, fallbackGroups: usedFallbackGroups, length: decision.length, qualityTier: decision.tier, qualityIssues, duplicateGroups: duplicatedAfterRepair });
+    return { result: decision.value, deliverable: true, generationSource, providerCalls, qualityTier: decision.tier, qualityIssues, qualityNotice: decision.qualityNotice, stage: 2 };
   }
 
   const fallback = await buildValidatedFusionFallback({ context, input, now });
-  console.info("[fusion-fortune-llm-metric]", { requestId: text(requestId, 120), provider, model: resolvedModel, providerCalls, success: fallback.deliverable === true, fallbackUsed: true, errorCode: text(decision.errorCode, 80) || "validation_failed", issues: decision.issues || [], fallbackIssues: fallback.issues || [] });
-  return { result: fallback.value, deliverable: fallback.deliverable === true, generationSource: "context_fallback", providerCalls, qualityTier: fallback.tier, qualityIssues: fallback.issues, qualityNotice: fallback.qualityNotice };
+  console.info("[fusion-fortune-llm-metric]", { requestId: text(requestId, 120), stage: 2, provider, model: resolvedModel, providerCalls, success: fallback.deliverable === true, fallbackUsed: true, errorCode: text(decision.errorCode, 80) || "validation_failed", issues: decision.issues || [], fallbackIssues: fallback.issues || [] });
+  return { result: fallback.value, deliverable: fallback.deliverable === true, generationSource: "context_fallback", providerCalls, qualityTier: fallback.tier, qualityIssues: fallback.issues, qualityNotice: fallback.qualityNotice, stage: 2 };
 }
 
 export async function generateFusionFortuneWithConfiguredLLM(args = {}) {
   if (isFusionFortuneRealLlmAllowed(args.env || {})) return generateFusionFortuneWithRealLLM(args);
   if (isFusionFortuneMockFlowEnabled(args.env || {})) {
-    const result = attachQuestionFocusedFusionReading(await generateFusionFortuneWithMockLLM(args), args.context);
+    const stageNumber = Number(args.stage) || 1;
+    const groups = fusionGroupsForStage(stageNumber);
+    if (!groups.length) throw Object.assign(new Error("FUSION_FORTUNE_INVALID_STAGE"), { code: FUSION_FORTUNE_ERROR_CODES.INVALID_INPUT });
+    const full = attachQuestionFocusedFusionReading(await generateFusionFortuneWithMockLLM(args), args.context);
+    const stageKeys = groups.flatMap((group) => group.keys);
+    // mock 도 단계 계약을 지킨다 — 1단계는 그 단계 키만, 2단계는 1단계 보관본 위에 나머지를 얹는다.
+    const prior = stageNumber === 2 && args.priorResult && typeof args.priorResult === "object" ? args.priorResult : {};
+    const result = { ...prior, ...pickKeys(full, stageKeys) };
     // mock 도 그룹 진행 이벤트를 흘려보내 로딩 화면이 같은 계약을 보게 한다.
-    for (const [index, group] of FUSION_SECTION_GROUP_SPECS.entries()) {
-      await emitFusionFortuneStage(args.onStage, "compose", { group: group.id, groupLabel: group.stageLabel, phase: "compose", completedGroups: index + 1, totalGroups: FUSION_SECTION_GROUP_SPECS.length });
+    for (const [index, group] of groups.entries()) {
+      await emitFusionFortuneStage(args.onStage, "compose", { stage: stageNumber, group: group.id, groupLabel: group.stageLabel, phase: "compose", completedGroups: index + 1, totalGroups: groups.length });
     }
-    return { result, deliverable: true, generationSource: "mock" };
+    return stageNumber === 1
+      ? { result, deliverable: true, generationSource: "mock", qualityTier: "partial", qualityIssues: [], qualityNotice: "", stage: 1 }
+      : { result, deliverable: true, generationSource: "mock", stage: 2 };
   }
   const error = new Error("FUSION_FORTUNE_GENERATION_DISABLED");
   error.code = FUSION_FORTUNE_ERROR_CODES.FEATURE_DISABLED;
@@ -1025,8 +1142,16 @@ export async function buildFusionFortuneStatus({ userId = "", enabled = true } =
   return { isLoggedIn: true, pricing, canGenerate: true, nextAction: "generate", message: "생년 정보를 입력하면 여섯 체계를 한 번에 읽어 드려요." };
 }
 
-export async function generateFusionFortuneRequest({ input = {}, userId = "", requestId, dateKey, store, resolvePaidAccess, now = new Date(), contextBuilder = buildFusionFortuneContext, generator = generateFusionFortuneWithConfiguredLLM, env = {}, onStage, abortSignal, onDelivery } = {}) {
+/**
+ * 생성 요청 진입점. stage 1(체계별 섹션) → stage 2(통합·행동·결론) 두 요청으로 나뉜다.
+ * 2단계는 호출자(라우트)가 같은 requestId 의 1단계 보관본을 priorResult 로 넘긴다 — 없으면
+ * STAGE_ONE_MISSING(409, retryable) 로 돌려보내 클라이언트가 1단계부터 다시 잇게 한다.
+ * 결제 증빙은 두 단계 모두 같은 requestId 로 조회만 한다(재과금·쓰기 없음).
+ */
+export async function generateFusionFortuneRequest({ input = {}, userId = "", requestId, dateKey, store, resolvePaidAccess, now = new Date(), contextBuilder = buildFusionFortuneContext, generator = generateFusionFortuneWithConfiguredLLM, env = {}, onStage, abortSignal, onDelivery, stage = 1, priorResult = null, priorGenerationSource = "" } = {}) {
   if (!text(userId)) return { ok: false, status: 401, error: FUSION_FORTUNE_ERROR_CODES.AUTH_REQUIRED, message: "로그인이 필요합니다." };
+  const stageNumber = Number(stage) || 1;
+  if (stageNumber !== 1 && stageNumber !== 2) return { ok: false, status: 400, error: FUSION_FORTUNE_ERROR_CODES.INVALID_INPUT, message: "입력 정보를 확인해 주세요." };
   let normalized; try { normalized = normalizeFusionFortuneInput(input); } catch { return { ok: false, status: 400, error: FUSION_FORTUNE_ERROR_CODES.INVALID_INPUT, message: "입력 정보를 확인해 주세요." }; }
   const safeId = safeRequestId(requestId);
 
@@ -1039,7 +1164,12 @@ export async function generateFusionFortuneRequest({ input = {}, userId = "", re
       : { ok: false, status: 402, error: FUSION_FORTUNE_ERROR_CODES.PAYMENT_REQUIRED, message: "초융합 운세는 1회 30,000원입니다.", pricing: { featureKey: FUSION_FORTUNE_PAID_FEATURE_KEY } };
   }
 
-  const reservation = await store.reserve(userId, dateKey || getFusionFortuneDateKey(now), safeId, now);
+  if (stageNumber === 2 && !hasFusionStageOneResult(priorResult)) {
+    return { ok: false, status: 409, error: FUSION_FORTUNE_ERROR_CODES.STAGE_ONE_MISSING, message: "앞 단계 결과를 찾지 못해 처음부터 다시 이어갑니다. 추가 결제는 없습니다.", retryable: true, retryRequestId: safeId, stage: 1 };
+  }
+
+  // 2단계는 별도 예약 키(#s2)를 쓴다 — 1단계 예약은 배달 후 completed 로 잠겨 같은 키로는 409 다.
+  const reservation = await store.reserve(userId, dateKey || getFusionFortuneDateKey(now), fusionStageReservationId(safeId, stageNumber), now);
   if (!reservation.ok) {
     return { ok: false, status: reservation.status, error: reservation.errorCode, message: "이미 처리 중인 요청입니다." };
   }
@@ -1055,23 +1185,31 @@ export async function generateFusionFortuneRequest({ input = {}, userId = "", re
     // 🔴 데드라인 시계를 요청 시작 시점(결제 증빙 직후)으로 고정해 넘긴다. 컨텍스트 빌드(6개
     //    계산기)가 LLM 그룹보다 먼저 같은 120초 예산을 소모하므로, 생성기가 시계를 새로 시작하면
     //    컨텍스트 시간이 예산에 안 잡혀 Cloudflare 엣지 한도(~100s)를 넘겨 요청이 도중에 죽는다.
-    const generated = await generator({ input: normalized, context: contextResult.context, env, requestId: safeId, userId, onStage, now, abortSignal, deadlineStartAt: startedAt });
+    const generated = await generator({ input: normalized, context: contextResult.context, env, requestId: safeId, userId, onStage, now, abortSignal, deadlineStartAt: startedAt, stage: stageNumber, priorResult, priorGenerationSource });
 
     generationSourceForLog = generated?.generationSource || "";
     const result = generated?.result && generated?.deliverable !== undefined ? generated.result : generated;
     if (generated?.deliverable === false || !result) throw Object.assign(new Error("generation"), { code: FUSION_FORTUNE_ERROR_CODES.GENERATION_FAILED, issues: generated?.qualityIssues });
     // 생성기가 이미 등급을 냈으면 그 판정을 쓴다 — 같은 결과를 두 번 재는 것은 비용일 뿐이고,
     // 두 호출이 서로 다른 답을 내면 배달 직전에 이유 없이 죽는다(중첩 사전검사).
-    const delivery = generated?.qualityTier
-      ? { deliverable: true, tier: generated.qualityTier, value: result, issues: generated.qualityIssues || [], qualityNotice: generated.qualityNotice }
-      : resolveFusionFortuneDelivery(result, fusionValidationOptions(contextResult.context, normalized));
+    // 1단계는 전체 계약을 재지 않는다(총 분량·요약·판정은 2단계 키). 생성기가 partial 로 표시한다.
+    // 1단계는 전체 계약(30,000자·통합·판정)을 평가할 수 없다. 대신 2단계가 입력으로 삼을 최소 구조
+    // (체계별 섹션 여섯 개)를 확인한다 — 여기서 통과 못 하면 티켓·자리를 소모하지 않고 실패로 돌려보낸다.
+    const delivery = stageNumber === 1
+      ? hasFusionStageOneResult(result)
+        ? { deliverable: true, tier: "partial", value: result, issues: generated?.qualityIssues || [], qualityNotice: "" }
+        : { deliverable: false, tier: "rejected", issues: ["stage_one_incomplete"] }
+      : generated?.qualityTier
+        ? { deliverable: true, tier: generated.qualityTier, value: result, issues: generated.qualityIssues || [], qualityNotice: generated.qualityNotice }
+        : resolveFusionFortuneDelivery(result, fusionValidationOptions(contextResult.context, normalized));
+    const stageStatus = stageNumber === 1 ? "partial" : "completed";
     if (!delivery.deliverable) throw Object.assign(new Error("result"), { code: FUSION_FORTUNE_ERROR_CODES.RESULT_INVALID, issues: delivery.issues });
     // 🔴 여기서부터는 abort 검사를 하지 않는다. 결제는 생성 **전에** 끝났으므로, 완성된 글을
     //    손에 쥔 채 취소로 던지면 30,000원을 받고 0을 주는 것이 된다. 취소는 아직 만들지 않은
     //    것을 안 만들게 하는 장치이지, 이미 만든 것을 버리는 장치가 아니다.
     //    (2026-09-03 사고: 배달 직전·직후 두 곳의 취소 검사가 완성품을 버리고 있었다.)
     if (typeof onDelivery === "function") {
-      await onDelivery({ requestId: safeId, result: delivery.value, generationSource: generated?.generationSource || "mock", qualityTier: delivery.tier, qualityNotice: delivery.qualityNotice });
+      await onDelivery({ requestId: safeId, result: delivery.value, generationSource: generated?.generationSource || "mock", qualityTier: delivery.tier, qualityNotice: delivery.qualityNotice, stage: stageNumber, status: stageStatus });
     }
     const commitResult = await store.commit(reservation, now);
     if (!commitResult) {
@@ -1081,7 +1219,7 @@ export async function generateFusionFortuneRequest({ input = {}, userId = "", re
       });
     }
     committed = true;
-    await emitFusionFortuneStage(onStage, "fusion");
+    if (stageNumber === 2) await emitFusionFortuneStage(onStage, "fusion");
     const status = await buildFusionFortuneStatus({ userId }).catch(() => ({
       isLoggedIn: true,
       pricing: { featureKey: FUSION_FORTUNE_PAID_FEATURE_KEY },
@@ -1089,7 +1227,7 @@ export async function generateFusionFortuneRequest({ input = {}, userId = "", re
       nextAction: "generate",
       message: "초융합 운세 결과가 완성되었어요.",
     }));
-    return { ok: true, status: 200, requestId: safeId, result: delivery.value, fusionStatus: status, generationSource: generated?.generationSource || "mock", providerCalls: count(generated?.providerCalls) || undefined, qualityTier: delivery.tier, qualityNotice: delivery.qualityNotice };
+    return { ok: true, status: 200, requestId: safeId, stage: stageNumber, stageStatus, result: delivery.value, fusionStatus: status, generationSource: generated?.generationSource || "mock", providerCalls: count(generated?.providerCalls) || undefined, qualityTier: delivery.tier, qualityNotice: delivery.qualityNotice };
   } catch (error) {
     if (!committed) await store.release(reservation, now).catch(() => {});
     const code = error?.code || FUSION_FORTUNE_ERROR_CODES.GENERATION_FAILED;
@@ -1098,6 +1236,7 @@ export async function generateFusionFortuneRequest({ input = {}, userId = "", re
     //    프로덕션에서 검증 실패인지 타임아웃인지 예외인지 가릴 방법이 없었다.
     console.warn("[fusion-fortune-failed]", {
       requestId: safeId,
+      generationStage: stageNumber,
       stage: text(error?.message, 40),
       errorCode: text(code, 80),
       issues: Array.isArray(error?.issues) ? error.issues.slice(0, 8) : [],
@@ -1114,6 +1253,7 @@ export async function generateFusionFortuneRequest({ input = {}, userId = "", re
       error: code,
       message: cancelled ? "분석을 중단했어요. 같은 요청으로 다시 시도해도 추가 결제는 없습니다." : "결과를 준비하지 못했어요. 같은 요청으로 다시 시도해도 추가 결제는 없습니다.",
       retryRequestId: safeId,
+      stage: stageNumber,
       retryable: true,
       issues: Array.isArray(error?.issues) ? error.issues.slice(0, 8) : undefined,
     };

@@ -82,6 +82,7 @@ type ReviewsCopy = {
   loadErrorMessage: string;
   emptyStateMessage: string;
   reviewListAriaLabel: string;
+  maskedNameNotice: string;
   viewAllButton: (total: string) => string;
   loadMoreButton: string;
   writerDialogAriaLabel: string;
@@ -140,6 +141,7 @@ const REVIEWS_COPY_EN: ReviewsCopy = {
   loadErrorMessage: "Couldn't load reviews. Please try again in a moment.",
   emptyStateMessage: "No reviews yet. Be the first to leave one.",
   reviewListAriaLabel: "Review list",
+  maskedNameNotice: "Reviewer names are partially hidden to protect privacy.",
   viewAllButton: (total) => `See all reviews (${total}) ›`,
   loadMoreButton: "Load more",
   writerDialogAriaLabel: "Write a review",
@@ -199,6 +201,7 @@ const REVIEWS_COPY: Partial<Record<LoadingLocale, ReviewsCopy>> = {
     loadErrorMessage: "리뷰를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
     emptyStateMessage: "아직 등록된 리뷰가 없습니다. 첫 번째 후기를 남겨 주세요.",
     reviewListAriaLabel: "리뷰 목록",
+    maskedNameNotice: "작성자 이름은 개인정보 보호를 위해 일부만 표시됩니다.",
     viewAllButton: (total) => `리뷰 전체보기 (${total}) ›`,
     loadMoreButton: "더 보기",
     writerDialogAriaLabel: "리뷰 작성",
@@ -257,6 +260,7 @@ const REVIEWS_COPY: Partial<Record<LoadingLocale, ReviewsCopy>> = {
     loadErrorMessage: "レビューを読み込めませんでした。しばらくしてから再度お試しください。",
     emptyStateMessage: "まだレビューがありません。最初のレビューを投稿してみてください。",
     reviewListAriaLabel: "レビュー一覧",
+    maskedNameNotice: "投稿者名はプライバシー保護のため一部のみ表示されます。",
     viewAllButton: (total) => `すべてのレビューを見る (${total}) ›`,
     loadMoreButton: "もっと見る",
     writerDialogAriaLabel: "レビューを書く",
@@ -314,6 +318,7 @@ const REVIEWS_COPY: Partial<Record<LoadingLocale, ReviewsCopy>> = {
     loadErrorMessage: "无法加载评价，请稍后重试。",
     emptyStateMessage: "还没有评价，快来写下第一条吧。",
     reviewListAriaLabel: "评价列表",
+    maskedNameNotice: "为保护隐私，评价者姓名仅部分显示。",
     viewAllButton: (total) => `查看全部评价 (${total}) ›`,
     loadMoreButton: "加载更多",
     writerDialogAriaLabel: "写评价",
@@ -371,6 +376,7 @@ const REVIEWS_COPY: Partial<Record<LoadingLocale, ReviewsCopy>> = {
     loadErrorMessage: "無法載入評價，請稍後再試。",
     emptyStateMessage: "尚無評價，快來寫下第一則吧。",
     reviewListAriaLabel: "評價列表",
+    maskedNameNotice: "為保護隱私，評價者姓名僅部分顯示。",
     viewAllButton: (total) => `查看全部評價 (${total}) ›`,
     loadMoreButton: "載入更多",
     writerDialogAriaLabel: "寫評價",
@@ -428,6 +434,7 @@ const REVIEWS_COPY: Partial<Record<LoadingLocale, ReviewsCopy>> = {
     loadErrorMessage: "Không thể tải đánh giá. Vui lòng thử lại sau.",
     emptyStateMessage: "Chưa có đánh giá nào. Hãy là người đầu tiên để lại đánh giá.",
     reviewListAriaLabel: "Danh sách đánh giá",
+    maskedNameNotice: "Tên người đánh giá được ẩn một phần để bảo vệ quyền riêng tư.",
     viewAllButton: (total) => `Xem tất cả đánh giá (${total}) ›`,
     loadMoreButton: "Xem thêm",
     writerDialogAriaLabel: "Viết đánh giá",
@@ -485,6 +492,7 @@ const REVIEWS_COPY: Partial<Record<LoadingLocale, ReviewsCopy>> = {
     loadErrorMessage: "रिव्यू लोड नहीं हो सके। कृपया कुछ देर बाद फिर कोशिश करें।",
     emptyStateMessage: "अभी तक कोई रिव्यू नहीं है। सबसे पहले रिव्यू लिखें।",
     reviewListAriaLabel: "रिव्यू सूची",
+    maskedNameNotice: "निजता की सुरक्षा के लिए समीक्षक का नाम आंशिक रूप से ही दिखाया जाता है।",
     viewAllButton: (total) => `सभी रिव्यू देखें (${total}) ›`,
     loadMoreButton: "और देखें",
     writerDialogAriaLabel: "रिव्यू लिखें",
@@ -542,6 +550,7 @@ const REVIEWS_COPY: Partial<Record<LoadingLocale, ReviewsCopy>> = {
     loadErrorMessage: "No se pudieron cargar las reseñas. Inténtalo de nuevo en un momento.",
     emptyStateMessage: "Aún no hay reseñas. Sé el primero en dejar una.",
     reviewListAriaLabel: "Lista de reseñas",
+    maskedNameNotice: "Los nombres de los reseñadores se muestran parcialmente para proteger su privacidad.",
     viewAllButton: (total) => `Ver todas las reseñas (${total}) ›`,
     loadMoreButton: "Ver más",
     writerDialogAriaLabel: "Escribir reseña",
@@ -599,6 +608,7 @@ const REVIEWS_COPY: Partial<Record<LoadingLocale, ReviewsCopy>> = {
     loadErrorMessage: "Impossible de charger les avis. Réessayez dans un instant.",
     emptyStateMessage: "Pas encore d'avis. Soyez le premier à en laisser un.",
     reviewListAriaLabel: "Liste des avis",
+    maskedNameNotice: "Les noms des auteurs d'avis sont partiellement masqués pour protéger leur vie privée.",
     viewAllButton: (total) => `Voir tous les avis (${total}) ›`,
     loadMoreButton: "Voir plus",
     writerDialogAriaLabel: "Écrire un avis",
@@ -656,6 +666,7 @@ const REVIEWS_COPY: Partial<Record<LoadingLocale, ReviewsCopy>> = {
     loadErrorMessage: "Bewertungen konnten nicht geladen werden. Bitte versuchen Sie es gleich noch einmal.",
     emptyStateMessage: "Noch keine Bewertungen. Seien Sie die/der Erste.",
     reviewListAriaLabel: "Bewertungsliste",
+    maskedNameNotice: "Die Namen der Bewertenden werden zum Schutz der Privatsphäre nur teilweise angezeigt.",
     viewAllButton: (total) => `Alle Bewertungen ansehen (${total}) ›`,
     loadMoreButton: "Mehr anzeigen",
     writerDialogAriaLabel: "Bewertung schreiben",
@@ -713,6 +724,7 @@ const REVIEWS_COPY: Partial<Record<LoadingLocale, ReviewsCopy>> = {
     loadErrorMessage: "Reviews konden niet worden geladen. Probeer het over een moment opnieuw.",
     emptyStateMessage: "Nog geen reviews. Wees de eerste die er een achterlaat.",
     reviewListAriaLabel: "Reviewlijst",
+    maskedNameNotice: "Namen van reviewers worden gedeeltelijk verborgen om de privacy te beschermen.",
     viewAllButton: (total) => `Alle reviews bekijken (${total}) ›`,
     loadMoreButton: "Meer laden",
     writerDialogAriaLabel: "Review schrijven",
@@ -770,6 +782,7 @@ const REVIEWS_COPY: Partial<Record<LoadingLocale, ReviewsCopy>> = {
     loadErrorMessage: "Tidak dapat memuatkan ulasan. Sila cuba lagi sebentar lagi.",
     emptyStateMessage: "Belum ada ulasan. Jadilah yang pertama meninggalkan ulasan.",
     reviewListAriaLabel: "Senarai ulasan",
+    maskedNameNotice: "Nama pengulas dipaparkan sebahagian sahaja untuk melindungi privasi.",
     viewAllButton: (total) => `Lihat semua ulasan (${total}) ›`,
     loadMoreButton: "Muatkan lagi",
     writerDialogAriaLabel: "Tulis ulasan",
@@ -1212,6 +1225,9 @@ export default function ReviewsClient() {
 
         {/* 모바일: 최근 3개만 노출 → 전체보기로 확장 / 데스크톱: 전체 그리드 */}
         <section className="mt-6" aria-label={copy.reviewListAriaLabel}>
+          {/* 작성자 이름은 서버(worker/routes/reviews.js 의 toPublicReview)에서 마스킹돼 내려온다.
+              여기서 가리는 것이 아니라, 원본이 애초에 클라이언트로 오지 않는다. */}
+          <p className="mb-3 text-xs text-[#8a6478] dark:text-[#c99cb2]">{copy.maskedNameNotice}</p>
           <div className="grid gap-4 sm:hidden">
             {visibleOnMobile.map((review) => (
               <ReviewCardView key={review.id} review={review} copy={copy} />
