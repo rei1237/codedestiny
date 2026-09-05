@@ -3,6 +3,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Check, Loader2 } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
+import { clearSubscriptionSnapshotForUser, saveSubscriptionSnapshotForUser } from "@/app/_lib/billing-client";
+import { checkoutEntryRuntime as checkoutEntry } from "@/app/_lib/legacy-core-runtime";
+import { refreshUserAccessAfterPayment } from "@/app/_lib/user-session-cache";
 import {
   consumeNativePurchase,
   getNativeBridge,
@@ -100,6 +103,48 @@ export default function AppPassStoreClient() {
     return () => window.clearTimeout(timer);
   }, [loadProducts]);
 
+  // 결제창의 [이용권으로 구매] 로 들어온 사용자를 구매 성공 뒤 원래 콘텐츠로 돌려보낸다.
+  // 티켓은 앱 결제 가드(scripts/app-payment-guard.js openAppStore)가 상점으로 떠나기 전에 쓴다.
+  // 짝: app/points/PointsClient.tsx scheduleCheckoutReturn — 도착한 화면의 진입 판정은 로컬 스냅샷만
+  // 보므로 떠나기 전에 서버 정본으로 스냅샷을 예열해야 방금 산 사용자에게 결제창이 다시 뜨지 않는다.
+  // 실패·지연(상한 2.5s)이면 스냅샷을 지워 미확정으로 두고, 최소 체류 1.2s 뒤 이동한다.
+  const scheduleCheckoutReturn = useCallback((title: string): boolean => {
+    if (typeof window === "undefined") return false;
+    let target: { url?: string } | null = null;
+    try {
+      target = checkoutEntry.consumeCheckoutReturn();
+    } catch {
+      return false; // 코어 미로드면 종전 동작(메시지만)으로 남는다
+    }
+    const returnUrl = String(target?.url || "");
+    if (!returnUrl) return false;
+    setMessage(copy.purchaseReturningMessage(title));
+    const departAt = Date.now() + 1200;
+    const warmFreshSnapshot = async (): Promise<boolean> => {
+      const response = await authFetch("/api/subscription/status", {
+        method: "GET",
+        headers: { "x-code-destiny-cache-refresh": "1" },
+      });
+      const payload = await response.json().catch(() => null) as { degraded?: boolean } | null;
+      if (!response.ok || !payload || payload.degraded === true) return false;
+      return saveSubscriptionSnapshotForUser(undefined, payload, "app-store-return") !== null;
+    };
+    void (async () => {
+      let warmed = false;
+      try {
+        warmed = await Promise.race([
+          warmFreshSnapshot(),
+          new Promise<boolean>((resolve) => { window.setTimeout(() => resolve(false), 2500); }),
+        ]);
+      } catch { warmed = false; }
+      if (!warmed) {
+        try { clearSubscriptionSnapshotForUser(); } catch { /* 스냅샷 정리 실패는 복귀를 막지 않는다 */ }
+      }
+      window.setTimeout(() => { window.location.assign(returnUrl); }, Math.max(0, departAt - Date.now()));
+    })();
+    return true;
+  }, [copy]);
+
   const buy = useCallback(async (plan: PassPlan) => {
     // 중복 탭 방지 — 결제창이 두 번 뜨면 두 번 청구된다.
     if (purchase.phase !== "idle") return;
@@ -168,16 +213,20 @@ export default function AppPassStoreClient() {
         await consumeNativePurchase(result.purchaseToken);
       }
 
-      setMessage(copy.purchaseAppliedMessage(plan.title));
       window.dispatchEvent(new CustomEvent("cd:unlocks-changed", {
         detail: { source: "app-pass-store", passTier: plan.passTier },
       }));
+      // 서버가 이용권을 반영했으니 access 스냅샷을 강제 갱신한다(웹 /points 확정 경로와 같은 순서).
+      refreshUserAccessAfterPayment().catch(() => { /* 갱신 실패는 구매 결과를 바꾸지 않는다 */ });
+      if (!scheduleCheckoutReturn(plan.title)) {
+        setMessage(copy.purchaseAppliedMessage(plan.title));
+      }
     } catch (error) {
       setMessage(error instanceof Error ? error.message : copy.purchaseErrorGeneric);
     } finally {
       setPurchase({ tier: "", phase: "idle" });
     }
-  }, [purchase.phase, copy]);
+  }, [purchase.phase, copy, scheduleCheckoutReturn]);
 
   return (
     <section className="grid gap-3 px-4 pb-6" aria-label={copy.storeAriaLabel}>

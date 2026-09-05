@@ -320,6 +320,8 @@ console.log("\n[4] 앱 런타임에서 /points 로 이동하지 않고 인앱 �
   await flush();
   check("인앱 상점(__cdOpenChargeModal)을 호출", () => assert.equal(chargeModalCalls, 1));
   check("/points URL 을 만들지도 않음(앱 번들에 없어 빈 화면이 된다)", () => assert.deepEqual(storeUrls, []));
+  // 복귀 티켓은 여기서 단언하지 않는다 — 앱에서는 가드(scripts/app-payment-guard.js openAppStore)가 쓰고,
+  // 이 부트에는 가드가 주입되지 않는다. 그 검사는 verify-app-no-portone.mjs 가 한다.
 }
 
 // ── ⑤ 계측이 결제 흐름을 막지 않고, 워커 보안 가드를 통과하는 형태로 나간다 ──

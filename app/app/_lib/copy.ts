@@ -70,6 +70,7 @@ export interface AppShellCopy {
   paymentIncompleteMessage: string;
   verifyFailedMessage: string;
   purchaseAppliedMessage: (title: string) => string;
+  purchaseReturningMessage: (title: string) => string;
   purchaseErrorGeneric: string;
   storeAriaLabel: string;
   billingNotReadyTitle: string;
@@ -138,6 +139,7 @@ const APP_SHELL_COPY_EN: AppShellCopy = {
   paymentIncompleteMessage: "The payment wasn't completed.",
   verifyFailedMessage: "Couldn't verify the payment. It will be recovered automatically from the home screen shortly.",
   purchaseAppliedMessage: (title) => `The ${title} pass has been applied.`,
+  purchaseReturningMessage: (title) => `The ${title} pass has been applied. Taking you back to where you were.`,
   purchaseErrorGeneric: "A problem occurred while processing the payment.",
   storeAriaLabel: "Purchase a Pass",
   billingNotReadyTitle: "Couldn't set up in-app payment.",
@@ -206,6 +208,7 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     paymentIncompleteMessage: "결제가 완료되지 않았습니다.",
     verifyFailedMessage: "결제 확인에 실패했습니다. 잠시 후 홈에서 자동으로 복구됩니다.",
     purchaseAppliedMessage: (title) => `${title} 이용권이 적용되었습니다.`,
+    purchaseReturningMessage: (title) => `${title} 이용권이 적용되었어요. 보시던 화면으로 돌아갑니다.`,
     purchaseErrorGeneric: "결제 처리 중 문제가 생겼습니다.",
     storeAriaLabel: "이용권 구매",
     billingNotReadyTitle: "앱 결제를 준비하지 못했습니다",
@@ -272,6 +275,7 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     paymentIncompleteMessage: "決済が完了しませんでした。",
     verifyFailedMessage: "決済確認に失敗しました。しばらくするとホームで自動的に復旧します。",
     purchaseAppliedMessage: (title) => `${title}利用券が適用されました。`,
+    purchaseReturningMessage: (title) => `${title}利用券が適用されました。元の画面に戻ります。`,
     purchaseErrorGeneric: "決済処理中に問題が発生しました。",
     storeAriaLabel: "利用券購入",
     billingNotReadyTitle: "アプリ決済を準備できませんでした",
@@ -338,6 +342,7 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     paymentIncompleteMessage: "支付未完成。",
     verifyFailedMessage: "支付确认失败。稍后将在主页自动恢复。",
     purchaseAppliedMessage: (title) => `${title}使用权已生效。`,
+    purchaseReturningMessage: (title) => `${title}使用权已生效。正在返回原来的页面。`,
     purchaseErrorGeneric: "支付处理过程中出现问题。",
     storeAriaLabel: "购买使用权",
     billingNotReadyTitle: "无法准备应用内支付",
@@ -404,6 +409,7 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     paymentIncompleteMessage: "付款未完成。",
     verifyFailedMessage: "付款確認失敗。稍後將在首頁自動恢復。",
     purchaseAppliedMessage: (title) => `${title}使用權已生效。`,
+    purchaseReturningMessage: (title) => `${title}使用權已生效。正在返回原本的頁面。`,
     purchaseErrorGeneric: "付款處理過程中發生問題。",
     storeAriaLabel: "購買使用權",
     billingNotReadyTitle: "無法準備應用程式內付款",
@@ -470,6 +476,7 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     paymentIncompleteMessage: "Thanh toán chưa hoàn tất.",
     verifyFailedMessage: "Xác minh thanh toán thất bại. Nội dung sẽ được khôi phục tự động tại trang chủ sau một lúc.",
     purchaseAppliedMessage: (title) => `Vé sử dụng ${title} đã được áp dụng.`,
+    purchaseReturningMessage: (title) => `Vé sử dụng ${title} đã được áp dụng. Đang đưa bạn về màn hình trước.`,
     purchaseErrorGeneric: "Đã xảy ra sự cố trong quá trình xử lý thanh toán.",
     storeAriaLabel: "Mua vé sử dụng",
     billingNotReadyTitle: "Không thể chuẩn bị thanh toán trong ứng dụng",
@@ -536,6 +543,7 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     paymentIncompleteMessage: "भुगतान पूरा नहीं हुआ।",
     verifyFailedMessage: "भुगतान सत्यापन विफल रहा। यह जल्द ही होम स्क्रीन पर स्वतः बहाल हो जाएगा।",
     purchaseAppliedMessage: (title) => `${title} पास लागू कर दिया गया है।`,
+    purchaseReturningMessage: (title) => `${title} पास लागू कर दिया गया है। आपको पिछली स्क्रीन पर वापस ले जा रहे हैं।`,
     purchaseErrorGeneric: "भुगतान संसाधित करते समय समस्या हुई।",
     storeAriaLabel: "पास खरीदें",
     billingNotReadyTitle: "ऐप भुगतान तैयार नहीं हो सका",
@@ -602,6 +610,7 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     paymentIncompleteMessage: "El pago no se completó.",
     verifyFailedMessage: "No se pudo verificar el pago. Se recuperará automáticamente desde la pantalla de inicio en breve.",
     purchaseAppliedMessage: (title) => `El pase ${title} se ha aplicado.`,
+    purchaseReturningMessage: (title) => `El pase ${title} se ha aplicado. Volviendo a la pantalla anterior.`,
     purchaseErrorGeneric: "Ocurrió un problema al procesar el pago.",
     storeAriaLabel: "Comprar un pase",
     billingNotReadyTitle: "No se pudo preparar el pago en la app",
@@ -668,6 +677,7 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     paymentIncompleteMessage: "Le paiement n'a pas été complété.",
     verifyFailedMessage: "Impossible de vérifier le paiement. Il sera récupéré automatiquement depuis l'écran d'accueil sous peu.",
     purchaseAppliedMessage: (title) => `Le pass ${title} a été appliqué.`,
+    purchaseReturningMessage: (title) => `Le pass ${title} a été appliqué. Retour à l'écran précédent.`,
     purchaseErrorGeneric: "Un problème est survenu lors du traitement du paiement.",
     storeAriaLabel: "Acheter un pass",
     billingNotReadyTitle: "Impossible de préparer le paiement dans l'app",
@@ -734,6 +744,7 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     paymentIncompleteMessage: "Die Zahlung wurde nicht abgeschlossen.",
     verifyFailedMessage: "Die Zahlung konnte nicht verifiziert werden. Sie wird in Kürze automatisch auf dem Startbildschirm wiederhergestellt.",
     purchaseAppliedMessage: (title) => `Der ${title}-Pass wurde angewendet.`,
+    purchaseReturningMessage: (title) => `Der ${title}-Pass wurde angewendet. Du kehrst zum vorherigen Bildschirm zurück.`,
     purchaseErrorGeneric: "Bei der Zahlungsverarbeitung ist ein Problem aufgetreten.",
     storeAriaLabel: "Pass kaufen",
     billingNotReadyTitle: "In-App-Zahlung konnte nicht vorbereitet werden",
@@ -800,6 +811,7 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     paymentIncompleteMessage: "De betaling is niet voltooid.",
     verifyFailedMessage: "Kon de betaling niet verifiëren. Deze wordt binnenkort automatisch hersteld vanaf het startscherm.",
     purchaseAppliedMessage: (title) => `De ${title}-pas is toegepast.`,
+    purchaseReturningMessage: (title) => `De ${title}-pas is toegepast. Je gaat terug naar het vorige scherm.`,
     purchaseErrorGeneric: "Er is een probleem opgetreden bij het verwerken van de betaling.",
     storeAriaLabel: "Pas kopen",
     billingNotReadyTitle: "In-app betaling kon niet worden voorbereid",
@@ -866,6 +878,7 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     paymentIncompleteMessage: "Pembayaran tidak selesai.",
     verifyFailedMessage: "Pengesahan pembayaran gagal. Ia akan dipulihkan secara automatik di skrin utama tidak lama lagi.",
     purchaseAppliedMessage: (title) => `Pas ${title} telah digunakan.`,
+    purchaseReturningMessage: (title) => `Pas ${title} telah digunakan. Membawa anda kembali ke skrin sebelumnya.`,
     purchaseErrorGeneric: "Masalah berlaku semasa memproses pembayaran.",
     storeAriaLabel: "Beli pas",
     billingNotReadyTitle: "Pembayaran dalam aplikasi tidak dapat disediakan",

@@ -10,7 +10,7 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { JSDOM } from "jsdom";
+import { JSDOM, VirtualConsole } from "jsdom";
 // 죽은 자산 판정 규칙은 빌드가 정본이다 — 여기서 다시 구현하면 두 규칙이 갈라진다.
 import { buildReferencedNameIndex } from "./build-mobile-app.mjs";
 
@@ -90,6 +90,35 @@ check(
   window.__cdOpenChargeModal === window.__cdAppPaymentGuard.openAppStore,
 );
 
+// 상점으로 떠나기 전에 복귀 티켓을 남기는가 — /app/store/ 가 구매 성공 뒤 이 티켓으로 원래 콘텐츠로
+// 돌려보낸다(app/app/store/AppPassStoreClient.tsx scheduleCheckoutReturn). 앱에서 상점으로 가는 모든
+// 경로가 openAppStore 한 곳으로 모이므로 여기가 유일한 저장 지점이다. jsdom 은 location.assign 을
+// 구현하지 않아 콘솔에 오류만 찍으므로 조용한 가상 콘솔로 띄운다.
+function bootGuardAt(url) {
+  const quiet = new JSDOM("<!doctype html><html><head><title>타로</title></head><body></body></html>", {
+    url,
+    runScripts: "outside-only",
+    virtualConsole: new VirtualConsole(),
+  });
+  const tickets = [];
+  quiet.window.__cdCheckoutEntry = { rememberCheckoutReturn: (ticket) => { tickets.push(ticket); return true; } };
+  quiet.window.eval(guardSource);
+  quiet.window.__cdAppPaymentGuard.openAppStore();
+  return tickets;
+}
+const contentTickets = bootGuardAt("https://code-destiny.com/tarot/love/?spread=3#result");
+check(
+  "상점 진입 시 복귀 티켓을 1회 저장함(경로·쿼리·해시 보존)",
+  contentTickets.length === 1 && contentTickets[0].url === "/tarot/love/?spread=3#result",
+  `tickets=${JSON.stringify(contentTickets)}`,
+);
+const appTabTickets = bootGuardAt("https://code-destiny.com/app/");
+check(
+  "앱 탭 화면(/app/**)에서는 복귀 티켓을 저장하지 않음(상점→상점 루프 방지)",
+  appTabTickets.length === 0,
+  `tickets=${JSON.stringify(appTabTickets)}`,
+);
+
 // /points 링크 클릭이 차단되는가
 let navigatedTo = "";
 window.__cdAppPaymentGuard.openAppStore = () => { navigatedTo = "/app/store/"; };
@@ -166,6 +195,31 @@ check(
 await hungRun();
 check("타임아웃 뒤 single-flight 가 풀려 재시도가 intent 를 다시 보냄", hungIntentCalls === 2, `intent 호출 ${hungIntentCalls}회`);
 delete alertDom.window.__cdAppStoreFetchTimeoutMs;
+
+// 결제 확정 뒤 access 스냅샷을 갱신하는가 — 가드가 통째로 대체한 웹 _cdRunDirectKrwCheckout 안의
+// refreshUserAccessAfterPayment 호출을 이어받아야 한다. 빠지면 60초 스냅샷 동안 방금 산 콘텐츠가
+// 잠긴 것처럼 보인다.
+let accessRefreshCalls = 0;
+alertDom.window.CodeDestinyUserAccessCache = {
+  refreshUserAccessAfterPayment: async () => { accessRefreshCalls += 1; return {}; },
+};
+alertDom.window.fetch = async (url) => {
+  if (String(url).includes("/google/intent")) {
+    return { ok: true, json: async () => ({ ok: true, data: { product: { productId: "cd_test", productType: "inapp" }, obfuscatedAccountId: "u1" } }) };
+  }
+  if (String(url).includes("/google/verify")) {
+    return { ok: true, json: async () => ({ ok: true, data: { appPurchase: { shouldConsume: true } } }) };
+  }
+  return { ok: false, json: async () => ({ ok: false }) };
+};
+const successPayload = await alertDom.window.__cdAppPaymentGuard
+  .runPlayBillingCheckout({ featureKey: "x", coinPrice: 30 })
+  .catch((error) => error);
+check(
+  "Play 결제 확정 뒤 access 스냅샷 갱신을 1회 호출함",
+  accessRefreshCalls === 1 && successPayload?.ok === true,
+  `calls=${accessRefreshCalls} payload=${JSON.stringify(successPayload)}`,
+);
 
 // --- 2) 가드가 PortOne을 호출하지 않는가 (소스 검사) ---------------------
 console.log("\n[2] 가드 자체가 외부 결제를 호출하지 않는가");
