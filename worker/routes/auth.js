@@ -4249,20 +4249,6 @@ async function handleWithdraw(request, env) {
   }
 
   try {
-    await User.db.collection("fortuneviewlogs").updateMany(
-      { userId: objectId },
-      {
-        $unset: { userId: "" },
-        $set: { _anonymized: true, anonymizedAt: now, userEmailHash: emailHash },
-      },
-      { maxTimeMS: 8000 },
-    );
-  } catch (error) {
-    partialFailure = true;
-    console.error("[auth/withdraw] fortune view log anonymize failed:", error);
-  }
-
-  try {
     await User.db.collection("deleted_account_logs").insertOne({
       userId,
       emailHash,
