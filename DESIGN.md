@@ -24,14 +24,26 @@ colors:
 typography:
   display:
     fontFamily: "'CodeDestinyDisplay', var(--font-body)"
+    fontSize: "clamp(1.5rem, 3vw, 2.05rem)"
     fontWeight: 700
     letterSpacing: "-0.01em"
+    note: "fontSize 는 --cd-t-display(styles/theme-tokens.css:361). 아래 section/card/caption 과 함께 §7 의 타입 스케일 5단을 이룬다 — 새 화면은 리터럴 대신 이 토큰을 참조한다."
+  section:
+    fontSize: "clamp(1.24rem, 2.6vw, 1.7rem)"
+    note: "--cd-t-section(styles/theme-tokens.css:362). 섹션 제목 h2 단."
+  card:
+    fontSize: "1.1rem"
+    note: "--cd-t-card(styles/theme-tokens.css:363). 카드 제목 h3 단."
   body:
     fontFamily: "'CodeDestinyBody', 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Segoe UI', system-ui, sans-serif"
     fontSize: "16px"
     fontWeight: 400
     lineHeight: 1.75
     letterSpacing: "-0.01em"
+    note: "16px 는 문서 기준값(styles/globals.css:104 의 body). 카드·가이드 표면 안의 본문 단은 이것과 다른 --cd-t-body: 0.9rem(styles/theme-tokens.css:364)이다 — 두 값은 층이 달라 어느 한쪽이 드리프트가 아니다."
+  caption:
+    fontSize: "0.76rem"
+    note: "--cd-t-caption(styles/theme-tokens.css:365). 보조 설명·메타 줄."
   premium:
     fontFamily: "'CodeDestinySerifKR', var(--font-display)"
     lineHeight: 1.75
@@ -255,24 +267,24 @@ Glow 는 **상태 변화**의 언어다. 그런데 평상시 표면도 종이 �
 - **Don't** accent 를 테두리·그림자·캡션·보조 배경에 기본값으로 깔지 않는다(Accent Budget Rule).
 - **Don't** 연이 화면에 Ice Blue(`#7dd3fc`)를 쓰지 않는다 — 이건 네오 전용 보조 글로우다. (실사고: `body:not(.neo-mode) .logo-area` 가 홈 래퍼 전체에 `rgba(125,211,252,.32)` 를 깔아 연이 홈이 라벤더로 읽혔다. 2026-08-23 제거.)
 
-## 7. Scale Tokens — 코드 실측 정본 (2026-09-05)
+## 7. Scale Tokens — 코드 실측 정본 (2026-09-06 재실측)
 
 위 프런트매터의 `rounded`/`spacing` 은 요약이고, **런타임 정본은 `styles/theme-tokens.css` 의 `:root`** 다. 값을 바꿀 때는 아래 줄에서 바꾼다 — 페이지 안에서 `24px` 같은 리터럴을 새로 쓰지 않는다.
 
 | 축 | 토큰 | 값 | 정의 위치 |
 |---|---|---|---|
-| 간격 | `--cd-sp-xs` / `sm` / `md` / `lg` / `xl` | 6 / 10 / 16 / 24 / 36px | `theme-tokens.css:350-354` |
-| 반경 | `--cd-r-sm` / `md` / `pill` | 8 / 16 / 999px | `theme-tokens.css:173-175` |
-| 반경 | `--cd-r-control` / `card` / `section` | 12 / 20 / 26px | `theme-tokens.css:345-347` |
-| 타이포 | `--cd-t-display` | `clamp(1.5rem, 3vw, 2.05rem)` | `theme-tokens.css:358` |
-| 타이포 | `--cd-t-section` | `clamp(1.24rem, 2.6vw, 1.7rem)` | `theme-tokens.css:359` |
-| 타이포 | `--cd-t-card` / `body` / `caption` | 1.1 / 0.9 / 0.76rem | `theme-tokens.css:360-362` |
+| 간격 | `--cd-sp-xs` / `sm` / `md` / `lg` / `xl` | 6 / 10 / 16 / 24 / 36px | `theme-tokens.css:353-357` |
+| 반경 | `--cd-r-sm` / `md` / `pill` | 8 / 16 / 999px | `theme-tokens.css:176-178` |
+| 반경 | `--cd-r-control` / `card` / `section` | 12 / 20 / 26px | `theme-tokens.css:348-350` |
+| 타이포 | `--cd-t-display` | `clamp(1.5rem, 3vw, 2.05rem)` | `theme-tokens.css:361` |
+| 타이포 | `--cd-t-section` | `clamp(1.24rem, 2.6vw, 1.7rem)` | `theme-tokens.css:362` |
+| 타이포 | `--cd-t-card` / `body` / `caption` | 1.1 / 0.9 / 0.76rem | `theme-tokens.css:363-365` |
 | 모션 | `--cd-dur-fast` / `base` / `emph` | 120 / 220 / 380ms | `theme-tokens.css:116-118` |
-| 모션 | 〃 (`prefers-reduced-motion`) | 전부 0.01ms | `theme-tokens.css:247-249` |
-| z축 | `--cd-z-space` … `--cd-z-ui` | 0 / 1 / 2 / 3 / 4 / 5 | `theme-tokens.css:299-304` |
+| 모션 | 〃 (`prefers-reduced-motion`) | 전부 0.01ms | `theme-tokens.css:250-252` |
+| z축 | `--cd-z-space` … `--cd-z-ui` | 0 / 1 / 2 / 3 / 4 / 5 | `theme-tokens.css:302-307` |
 | 폭 | `--cd-w-prose` / `grid` / `wide` | 760 / 1280 / 1440px | `theme-tokens.css:35-37` |
-| 버튼 | `--cd-btn-h` / `--cd-btn-pad` | 48px / `12px 24px` | `theme-tokens.css:198-199` |
-| 버튼 | `--cd-btn-h-lg` / `--cd-btn-pad-lg` | 56px / `16px 38px` | `theme-tokens.css:200-201` |
+| 버튼 | `--cd-btn-h` / `--cd-btn-pad` | 48px / `12px 24px` | `theme-tokens.css:201-202` |
+| 버튼 | `--cd-btn-h-lg` / `--cd-btn-pad-lg` | 56px / `16px 38px` | `theme-tokens.css:203-204` |
 
 **데스크톱 폭은 위 3단이 전부다.** 코드 곳곳의 `var(--cd-w-wide, 960px)` 는 토큰이 없던 시절의 **폴백 피연산자**일 뿐이며 960px 은 정본 스케일이 아니다. 새 화면에 960px 을 고정폭으로 새로 박지 않는다.
 
@@ -284,9 +296,9 @@ App Router 에는 표면 계열이 셋 있고, 서로 대체재가 아니다. �
 
 | 계열 | 정의 위치 | 소비 파일 | 쓰는 곳 |
 |---|---|---|---|
-| `.cd-guide` (+ 사설 `--gd-*`) | `styles/globals.css:305-814` | 18 | **읽기형 장문 가이드.** 이 저장소에서 One Accent / Veil / Accent Budget 규칙이 코드로 구현된 유일한 표면이다 — 새 읽기 화면의 기준선 |
+| `.cd-guide` (+ 사설 `--gd-*`) | `styles/globals.css:305-819` | 18 | **읽기형 장문 가이드.** 이 저장소에서 One Accent / Veil / Accent Budget 규칙이 코드로 구현된 유일한 표면이다 — 새 읽기 화면의 기준선 |
 | `.cd-main-shell` + `.cd-card` | `styles/globals.css:173-303` | 20 | **허브·카드 그리드.** 홈·`/about`·`/faq`·`/methodology`·`/guides` |
-| `.policy-doc` + `.policy-embed-*` | `styles/globals.css:816-1179` | 13 / 6 | **법적·정책·시스템 문서.** 제목·시행일·리드·목차·68ch 본문·관련문서 내비·버튼·폼이 모두 규격화돼 있다 |
+| `.policy-doc` + `.policy-embed-*` | `styles/globals.css:821-1185` | 13 / 6 | **법적·정책·시스템 문서.** 제목·시행일·리드·목차·68ch 본문·관련문서 내비·버튼·폼이 모두 규격화돼 있다 |
 
 `.policy-doc` 어휘 요약 — 시스템 페이지도 이 어휘만으로 만든다:
 
