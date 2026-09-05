@@ -39,7 +39,7 @@ npm run lint && npm run typecheck && npm run check:quick   # lint 경고 1건은
 ## 함정
 
 - 워크트리엔 node_modules 정션을 손으로 건다(PowerShell `New-Item -ItemType Junction`; `cmd /c mklink` 는 가드가 막는다). `git add .` 금지.
-- `build:cf`·`check:quick` 가 `index.html`·`js/**`·`public/**`·rss·사이트맵의 캐시버스트 해시를 다시 쓴다 — 커밋 전에 `git checkout --` 로 되돌리고 깨끗한 소스에서 `npm run sitemap:generate` 를 다시 돌린다.
+- `styles/*.css`·`js/**` 를 고치면 정적 셸 캐시버스트 키가 바뀌어 미러 19개(`index.html`·`js/**`·`public/**`)가 함께 바뀐다 — 이건 되돌리는 게 아니라 `npm run sync:public` 결과를 **커밋**한다(CI `verify:public-mirror-fresh` 가 요구, 이번 PR 에서 1회 실패 후 추가). 반면 `build:cf`·`check:quick` 가 건드린 rss·사이트맵·원장은 되돌리고 깨끗한 소스에서 `npm run sitemap:generate` 를 다시 돌린다. 로컬 `verify:public-mirror-fresh` 의 `.ignore` 1건은 윈도우 개행 헛실패다.
 - 원장은 UTC `today` 와 KST 휘발성 날짜를 섞어 쓴다. 자정(KST) 을 넘기면 운세 100개 라우트 lastmod 가 하루 앞선다.
 - 새 `verify:*` npm 스크립트 추가는 CI 게이트 추가 = 사용자 승인 사항. 판정은 `verify-adsense-readiness` 안에 넣는다.
 
