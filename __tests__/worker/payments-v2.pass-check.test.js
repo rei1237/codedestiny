@@ -13,7 +13,7 @@
  */
 import { handlePaymentsContext } from "../../worker/payments/index.js";
 import { listProducts } from "../../worker/payments/catalog.js";
-import { evaluatePassCoverage, terminatePassOnBudgetExhaustion } from "../../worker/payments/passes.js";
+import { activatePassSubscription, evaluatePassCoverage, terminatePassOnBudgetExhaustion } from "../../worker/payments/passes.js";
 import { MIN_PASS_COVERABLE_COIN, MONTHLY_PASS_LIMITS, PASS_LIMITS } from "../../worker/lib/profile-limits.js";
 import { makeFakePaymentDb } from "../fixtures/fake-payment-db.mjs";
 
@@ -330,5 +330,70 @@ describe("조기 종료 — 월 한도를 다 쓰면 30일이 남아도 이용�
     expect(again).toBe(false);
     expect(new Date(user.profileSubscription.expiresAt).toISOString()).toBe(endedAt);
     expect(new Date(user.profileSubscription.passExhaustedFromExpiresAt).toISOString()).toBe(expiresAt.toISOString());
+  });
+});
+
+/* 예전에는 연장이 기간만 늘리고 한도는 늘리지 않았다. 사이클 키가 곧 만료일이라, 만료일이
+   밀리면 누적 사용액이 0 으로 읽혀 "한도가 30일치로 리셋"되는 모양이었다 — 두 번째 30일치
+   요금을 내고도 커버 총량은 한 달치 그대로였다. */
+describe("재구매 연장 — 기간과 함께 월 한도도 쌓인다", () => {
+  const TIER = "standard";
+  const BASE = MONTHLY_PASS_LIMITS[TIER];
+  const PLAN = {
+    tier: TIER, planId: "pass_standard_1m", durationMonths: 1,
+    profileLimit: 3, maxCoveredCoin: PASS_LIMITS[TIER], productType: "membership_pass",
+  };
+
+  function activate(db, { expiresAt, orderId, now }) {
+    return activatePassSubscription(db, {
+      userId: USER, plan: PLAN, orderId, customerUid: "cu-1",
+      paymentMethod: "card_general", paidAt: now, expiresAt, now,
+    });
+  }
+
+  test("🔴 같은 등급 연장: 한도는 이전 한도 + 30일치, 이미 쓴 금액은 그대로 남는다", async () => {
+    const db = makeFakePaymentDb();
+    const now = new Date();
+    const priorExpiresAt = new Date(now.getTime() + 10 * DAY_MS);
+    seedUser(db, {
+      ...activePass(TIER),
+      expiresAt: priorExpiresAt,
+      premiumUseCycleKey: priorExpiresAt.toISOString(),
+      monthlySpendCoin: BASE - 20,
+      lastPassOrderId: "order-1",
+    });
+    // 30일치 한도만으로는 못 여는 금액이어야 이 테스트가 무언가를 검증한다.
+    expect(BASE - 20 + PASS_LIMITS[TIER]).toBeGreaterThan(BASE);
+
+    const nextExpiresAt = new Date(priorExpiresAt.getTime() + 30 * DAY_MS);
+    const { user } = await activate(db, { expiresAt: nextExpiresAt, orderId: "order-2", now });
+    const sub = user.profileSubscription;
+    expect(sub.monthlyLimitCoin).toBe(BASE * 2);
+    expect(sub.monthlySpendCoin).toBe(BASE - 20);
+    expect(sub.premiumUseCycleKey).toBe(nextExpiresAt.toISOString());
+
+    // 판정도 같은 답을 내야 한다 — 저장만 되고 커버가 옛 한도를 보면 아무것도 안 바뀐 것이다.
+    const coverage = evaluatePassCoverage({
+      user,
+      entitlement: { tier: TIER, passTier: TIER, isActive: true, expiresAt: nextExpiresAt },
+      coinCost: PASS_LIMITS[TIER],
+    });
+    expect(coverage.covered).toBe(true);
+    expect(coverage.budgetCoin).toBe(BASE * 2);
+  });
+
+  test("만료 뒤 재구매는 쌓지 않는다 — 새 이용권은 30일치 한도로 시작한다", async () => {
+    const db = makeFakePaymentDb();
+    const now = new Date();
+    const lapsed = new Date(now.getTime() - DAY_MS);
+    seedUser(db, {
+      tier: TIER, passTier: TIER, expiresAt: lapsed,
+      premiumUseCycleKey: lapsed.toISOString(), monthlySpendCoin: 250,
+      monthlyLimitCoin: BASE * 2, lastPassOrderId: "order-1",
+    });
+
+    const { user } = await activate(db, { expiresAt: new Date(now.getTime() + 30 * DAY_MS), orderId: "order-2", now });
+    expect(user.profileSubscription.monthlyLimitCoin).toBe(BASE);
+    expect(user.profileSubscription.monthlySpendCoin).toBe(0);
   });
 });

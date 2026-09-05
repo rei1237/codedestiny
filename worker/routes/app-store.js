@@ -14,7 +14,15 @@ import {
   resolveAppPassCoverageKRW,
   resolveAppPassProduct,
 } from "../lib/app-store-pricing.js";
-import { PASS_LIMITS } from "../lib/profile-limits.js";
+// 🔴 기간 스택·등급 전이·한도 스택은 웹 카드 결제(worker/payments/index.js)와 **같은 구현**을
+// 쓴다. 두 벌을 두면 결제 경로에 따라 재구매 정책이 갈린다(원칙 6).
+import {
+  PASS_LIMITS,
+  buildPassCycleFields,
+  computePassExpiry,
+  evaluatePassTierTransition,
+  normalizePassTier,
+} from "../lib/profile-limits.js";
 import { AppPurchaseIntent, APP_PURCHASE_INTENT_TTL_MS } from "../lib/app-store-models.js";
 
 const GOOGLE_ANDROID_PUBLISHER_SCOPE = "https://www.googleapis.com/auth/androidpublisher";
@@ -673,7 +681,7 @@ async function persistGooglePurchase({ auth, env, pricing, product, body, google
       error.status = 409;
       throw error;
     }
-    const user = await applyEntitlementUpdate({ userId, product, googlePurchase, now });
+    const user = await applyEntitlementUpdate({ userId, product, googlePurchase, now, passOrderId: impUid });
     return { payment: existing, user, requestId, idempotent: true };
   }
 
@@ -727,7 +735,7 @@ async function persistGooglePurchase({ auth, env, pricing, product, body, google
     },
   });
 
-  const user = await applyEntitlementUpdate({ userId, product, googlePurchase, now });
+  const user = await applyEntitlementUpdate({ userId, product, googlePurchase, now, passOrderId: impUid });
 
   return { payment: payment.toObject ? payment.toObject() : payment, user, requestId, idempotent: false };
 }
@@ -741,7 +749,7 @@ const USER_ENTITLEMENT_PROJECTION = { points: 1, unlockedFeatures: 1, profileSub
  * 굳어 두 번째 구매가 아예 불가능해진다(웹 coin-gate도 PER_USE는 권한을 남기지 않고
  * accessGrant만 발급한다). 앱에서의 재구매는 클라이언트 consume()이 열어준다.
  */
-function buildEntitlementUpdate({ product, googlePurchase, now }) {
+function buildEntitlementUpdate({ product, googlePurchase, now, priorSubscription = {}, passOrderId = "" }) {
   if (isPerUseProduct(product)) return null;
 
   const update = {
@@ -753,11 +761,23 @@ function buildEntitlementUpdate({ product, googlePurchase, now }) {
 
   // 이용권은 30일·자동갱신 없음이라 Play `inapp`으로 판다. `subs`가 아니므로
   // productType이 아니라 passTier로 판정해야 한다.
-  const passTier = cleanText(product.passTier || product.subscriptionTier);
+  const passTier = normalizePassTier(cleanText(product.passTier || product.subscriptionTier));
   if (product.kind === "pass" && passTier) {
+    // 🔴 재실행 가드. verify 는 같은 purchaseToken 으로 여러 번 들어온다(재전송·복원). 예전에는
+    // 만료를 now+30일로 **덮어썼기** 때문에 재실행이 무해했지만, 아래에서 기간·한도를 쌓게 된
+    // 뒤로는 재실행 한 번이 30일을 공짜로 얹는다. 웹 카드 결제와 같은 필드로 막는다
+    // (worker/payments/passes.js activatePassSubscription lastPassOrderId).
+    if (passOrderId && String(priorSubscription?.lastPassOrderId || "") === String(passOrderId)) {
+      return update;
+    }
+    // 같은 등급을 활성 중에 다시 사면 기간이 이어붙고 한도도 함께 쌓인다 — 웹 카드 결제와
+    // 정확히 같은 규칙이다(profile-limits.js computePassExpiry · buildPassCycleFields).
+    // 예전에는 만료를 now+30일로 덮어써 남은 기간이 사라졌다(2026-09-05 정정).
+    const transition = evaluatePassTierTransition(priorSubscription, passTier, now);
     const expiresAt = googlePurchase?.expiryTimeMillis
       ? new Date(Number(googlePurchase.expiryTimeMillis))
-      : new Date(now.getTime() + APP_PASS_DURATION_DAYS * 24 * 60 * 60 * 1000);
+      : computePassExpiry({ transition, paidAt: now, now, durationDays: APP_PASS_DURATION_DAYS });
+    const cycle = buildPassCycleFields({ priorSubscription, tier: passTier, expiresAt, now });
     update.$set = {
       "profileSubscription.tier": passTier,
       "profileSubscription.source": "card",
@@ -769,13 +789,24 @@ function buildEntitlementUpdate({ product, googlePurchase, now }) {
       "profileSubscription.paymentMethod": "GOOGLE_PLAY",
       "profileSubscription.lastBillingAt": now,
       "profileSubscription.lastBillingStatus": "success",
+      "profileSubscription.premiumUseCycleKey": cycle.premiumUseCycleKey,
+      "profileSubscription.premiumUseCount": cycle.premiumUseCount,
+      "profileSubscription.monthlySpendCoin": cycle.monthlySpendCoin,
+      "profileSubscription.monthlyLimitCoin": cycle.monthlyLimitCoin,
     };
+    if (passOrderId) update.$set["profileSubscription.lastPassOrderId"] = String(passOrderId);
   }
   return update;
 }
 
-async function applyEntitlementUpdate({ userId, product, googlePurchase, now }) {
-  const update = buildEntitlementUpdate({ product, googlePurchase, now });
+async function applyEntitlementUpdate({ userId, product, googlePurchase, now, passOrderId = "" }) {
+  // 이용권만 직전 사이클을 먼저 읽는다 — 기간·한도를 쌓으려면 이전 만료일과 누적 사용액이
+  // 필요하다. 회당/해금 상품은 왕복 수가 종전대로 1회다.
+  const isPass = product?.kind === "pass" && Boolean(cleanText(product.passTier || product.subscriptionTier));
+  const prior = isPass
+    ? (await User.findById(userId, { profileSubscription: 1 }).lean())?.profileSubscription || {}
+    : {};
+  const update = buildEntitlementUpdate({ product, googlePurchase, now, priorSubscription: prior, passOrderId });
   if (!update) {
     return User.findById(userId, USER_ENTITLEMENT_PROJECTION).lean();
   }

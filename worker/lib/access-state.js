@@ -4,7 +4,7 @@ import {
   isProfileScopedContentUnlockFeatureKey,
 } from "./content-unlocks.js";
 import { isPerUsePaidFeatureKey, isUnlockPaidFeatureKey } from "./paid-feature-registry.js";
-import { KRW_PER_COIN, MONTHLY_PASS_LIMITS, PASS_LIMITS, normalizePassTier } from "./profile-limits.js";
+import { KRW_PER_COIN, PASS_LIMITS, normalizePassTier, resolveMonthlyPassLimitCoin } from "./profile-limits.js";
 import {
   ACCESS_STATE_STALE_TTL_MS,
   ACCESS_STATE_TTL_MS,
@@ -53,12 +53,13 @@ function normalizeStringArray(value) {
 function buildPassUsage(profileSubscription = {}, rawTier = "") {
   const tier = normalizePassTier(rawTier);
   if (!tier) return null;
-  const limitCoin = Math.max(0, Math.floor(Number(MONTHLY_PASS_LIMITS[tier] || 0)));
-  if (!(limitCoin > 0)) return null;
   const cycleKey = String(profileSubscription?.expiresAt
     ? new Date(profileSubscription.expiresAt).toISOString()
     : "");
   if (!cycleKey || cycleKey === "Invalid Date") return null;
+  // 같은 등급을 활성 중에 다시 사면 한도가 쌓인다 — 등급 기본값이 아니라 저장된 한도가 정본이다.
+  const limitCoin = resolveMonthlyPassLimitCoin(profileSubscription, tier, cycleKey);
+  if (!(limitCoin > 0)) return null;
   const usedCoin = String(profileSubscription?.premiumUseCycleKey || "") === cycleKey
     ? Math.max(0, Math.floor(Number(profileSubscription?.monthlySpendCoin || 0)))
     : 0;

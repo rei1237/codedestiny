@@ -15,6 +15,7 @@ import {
   PointHistory,
   User,
 } from "./models.js";
+import { buildPassRewindCycleFields } from "./profile-limits.js";
 import { cancelPortOnePayment } from "./portone.js";
 import { revokePaymentContentAccess } from "./content-unlocks.js";
 import { ensureLotsForBalance } from "./monthly-credit-lots.js";
@@ -118,12 +119,20 @@ async function revokeMembershipPassGrant(payment) {
   const now = new Date();
   const downgraded = rewound <= now;
 
-  const set = { "profileSubscription.expiresAt": rewound };
+  // 되감은 만료일을 사이클 키로 다시 적는다 — 안 적으면 키가 어긋나 누적 사용액이 0 으로 읽혀,
+  // 연장분 환불이 이미 쓴 한도까지 되돌려준다(passes.js revokePassGrantForOrder 와 같은 규칙).
+  const rewindCycle = buildPassRewindCycleFields({ subscription: sub, rewoundExpiresAt: rewound });
+  const set = {
+    "profileSubscription.expiresAt": rewound,
+    "profileSubscription.premiumUseCycleKey": rewindCycle.premiumUseCycleKey,
+    "profileSubscription.monthlyLimitCoin": rewindCycle.monthlyLimitCoin,
+  };
   if (downgraded) {
     set["profileSubscription.tier"] = "free";
     set["profileSubscription.passTier"] = "";
     set["profileSubscription.passLimit"] = 0;
     set["profileSubscription.maxCoveredCoin"] = 0;
+    set["profileSubscription.monthlyLimitCoin"] = 0;
   }
   await User.updateOne({ _id: userId }, { $set: set });
 
