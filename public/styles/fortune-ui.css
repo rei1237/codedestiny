@@ -11885,12 +11885,12 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
       .dp-fsel-btn--ziwei:hover  { background:rgba(232,121,249,0.1); border-color:rgba(232,121,249,0.5); }
       .dp-fsel-btn--astro  { border-color:rgba(167,209,255,0.3); }
       .dp-fsel-btn--astro:hover  { background:rgba(167,209,255,0.1); border-color:rgba(167,209,255,0.5); }
-      .dp-fsel-btn--olympus { border-color:rgba(201,168,76,0.3); }
-      .dp-fsel-btn--olympus:hover { background:rgba(201,168,76,0.12); border-color:rgba(201,168,76,0.55); }
+      .dp-fsel-btn--juyuk { border-color:rgba(184,134,11,0.32); }
+      .dp-fsel-btn--juyuk:hover { background:rgba(184,134,11,0.12); border-color:rgba(184,134,11,0.55); }
       .dp-fsel-btn--tarot  { border-color:rgba(139,92,246,0.35); }
       .dp-fsel-btn--tarot:hover  { background:rgba(139,92,246,0.12); border-color:rgba(139,92,246,0.55); }
-      .dp-fsel-btn--flower { border-color:rgba(244,114,182,0.32); }
-      .dp-fsel-btn--flower:hover { background:rgba(244,114,182,0.11); border-color:rgba(244,114,182,0.55); }
+      .dp-fsel-btn--kemet { border-color:rgba(212,175,55,0.32); }
+      .dp-fsel-btn--kemet:hover { background:rgba(212,175,55,0.12); border-color:rgba(212,175,55,0.55); }
       .dp-fsel-btn--vedic  { border-color:rgba(99,176,255,0.3); }
       .dp-fsel-btn--vedic:hover  { background:rgba(99,176,255,0.1); border-color:rgba(99,176,255,0.5); }
       .dp-fsel-btn--locked { opacity:0.75; border-color:rgba(255,255,255,0.15) !important; background:rgba(0,0,0,0.18) !important; }
