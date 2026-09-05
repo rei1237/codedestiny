@@ -42,12 +42,13 @@ export function FusionResultThread({ result, openSection, onToggleSection, expor
       </ThreadBubble>
     </ThreadRow>
 
-    <ThreadRow systemKey="fusion" index={1} exporting={exporting} pdfSection>
+    {/* 2단계 생성의 1단계 결과에는 요약·종합·시기·총평이 아직 없다 — 있는 것만 그린다. */}
+    {result.executiveSummary && <ThreadRow systemKey="fusion" index={1} exporting={exporting} pdfSection>
       <ThreadBubble systemKey="fusion" tone="gold" exporting={exporting}>
         <ThreadSpeaker label={copy.firstParagraphSpeaker} />
         <p className={`m-0 max-w-[72ch] whitespace-pre-wrap ${styles.reading} text-[var(--fx-ink-1)] [text-wrap:pretty]`}>{result.executiveSummary}</p>
       </ThreadBubble>
-    </ThreadRow>
+    </ThreadRow>}
 
     {result.visualization && <ThreadRow systemKey="fusion" index={2} exporting={exporting} pdfSection>
       <ThreadBubble systemKey="fusion" exporting={exporting}>
@@ -57,7 +58,7 @@ export function FusionResultThread({ result, openSection, onToggleSection, expor
       </ThreadBubble>
     </ThreadRow>}
 
-    {SECTION_KEYS.map((key, index) => {
+    {SECTION_KEYS.filter((key) => result[key]?.content).map((key, index) => {
       const expanded = isOpen(key, index === 0);
       const systemKey = SECTION_SYSTEM_KEYS[index];
       return <ThreadRow key={key} systemKey={systemKey} index={index + 3} exporting={exporting} pdfSection>
@@ -78,7 +79,7 @@ export function FusionResultThread({ result, openSection, onToggleSection, expor
           {expanded && <div id={`fusion-section-${key}`} className="mt-3 border-t border-white/[0.07] pt-4">
             <p className={`m-0 max-w-[72ch] whitespace-pre-wrap ${styles.reading} text-[var(--fx-ink-2)] [text-wrap:pretty]`}>{result[key].content}</p>
             <ul className="mt-4 grid max-w-[72ch] list-none gap-2.5 p-0">
-              {result[key].keyPoints.map((point) => <li key={point} className={`grid grid-cols-[0.375rem_minmax(0,1fr)] items-start gap-3 ${styles.readingBullet} text-[var(--fx-ink-3)]`}>
+              {(result[key].keyPoints || []).map((point) => <li key={point} className={`grid grid-cols-[0.375rem_minmax(0,1fr)] items-start gap-3 ${styles.readingBullet} text-[var(--fx-ink-3)]`}>
                 <i aria-hidden className="mt-[0.62em] size-1.5 rounded-full bg-[color:var(--tint)]" /><span>{point}</span>
               </li>)}
             </ul>
@@ -87,7 +88,7 @@ export function FusionResultThread({ result, openSection, onToggleSection, expor
       </ThreadRow>;
     })}
 
-    {(() => {
+    {result.timingAndAction?.content && (() => {
       const expanded = isOpen("timing");
       return <ThreadRow systemKey="fusion" index={10} exporting={exporting} pdfSection>
         <ThreadBubble systemKey="fusion" deferRender exporting={exporting}>
@@ -106,7 +107,7 @@ export function FusionResultThread({ result, openSection, onToggleSection, expor
           </h3>
           {expanded && <div id="fusion-section-timing" className="mt-3 border-t border-white/[0.07] pt-4">
             <p className={`m-0 max-w-[72ch] whitespace-pre-wrap ${styles.reading} text-[var(--fx-ink-2)] [text-wrap:pretty]`}>{result.timingAndAction.content}</p>
-            {([[copy.thingsToDoHeading, result.timingAndAction.luckyActions], [copy.patternsToWatchHeading, result.timingAndAction.cautionPatterns]] as const).map(([heading, items]) => (
+            {([[copy.thingsToDoHeading, result.timingAndAction.luckyActions || []], [copy.patternsToWatchHeading, result.timingAndAction.cautionPatterns || []]] as const).map(([heading, items]) => (
               <div key={heading} className="mt-5">
                 <h4 className="m-0 font-display text-[0.92rem] text-[var(--fx-gold)]">{heading}</h4>
                 <ul className="mt-2.5 grid max-w-[72ch] list-none gap-2.5 p-0">
@@ -164,11 +165,11 @@ export function FusionResultThread({ result, openSection, onToggleSection, expor
       </section>
     </li>}
 
-    <ThreadRow systemKey="fusion" index={12} exporting={exporting} pdfSection>
+    {result.closingMessage && <ThreadRow systemKey="fusion" index={12} exporting={exporting} pdfSection>
       <ThreadBubble systemKey="fusion" exporting={exporting}>
         <ThreadSpeaker label="Fusion Core" />
         <p id="fusion-closing-message" className={`m-0 max-w-[72ch] whitespace-pre-wrap ${styles.reading} text-[var(--fx-ink-2)] [text-wrap:pretty]`}>{result.closingMessage}</p>
       </ThreadBubble>
-    </ThreadRow>
+    </ThreadRow>}
   </>;
 }
