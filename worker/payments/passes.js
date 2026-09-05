@@ -207,9 +207,13 @@ export async function createPayablePassOrder(db, input) {
  */
 export async function activatePassSubscription(db, {
   userId, plan, orderId, customerUid, paymentMethod, paidAt, expiresAt, now = new Date(),
+  // 호출부가 같은 요청 안에서 이미 읽은 users 문서. 넘기면 여기서 다시 읽지 않는다(이용권 확정 왕복
+  // 6→5, M10 Phase 2 #2). 두 읽기가 원래도 순차·비트랜잭션이라 동시성 창은 줄어들 뿐 넓어지지 않는다.
+  // 🔴 프로젝션으로 잘린 문서를 넘기지 말 것 — 재생 가드·사이클 계산이 profileSubscription 전체를 본다.
+  existing = undefined,
 }) {
   const uid = toObjectId(userId);
-  const existing = await db.findOne(User, { _id: uid });
+  if (existing === undefined) existing = await db.findOne(User, { _id: uid });
   const prior = existing?.profileSubscription && typeof existing.profileSubscription === "object"
     ? existing.profileSubscription
     : {};
@@ -266,7 +270,8 @@ export async function revokePassGrantForOrder(db, { userId, orderId, durationMon
   const months = Math.max(0, Math.floor(Number(durationMonths || 0)));
   const uid = toObjectId(userId);
   if (!uid || months <= 0) return false;
-  const user = await db.findOne(User, { _id: uid });
+  // 이 함수가 읽는 필드는 profileSubscription 뿐이다(아래 본문 전수). 문서 전체를 끌어오지 않는다(M10 Phase 2 #3).
+  const user = await db.findOne(User, { _id: uid }, { projection: { profileSubscription: 1 } });
   const sub = user?.profileSubscription && typeof user.profileSubscription === "object" ? user.profileSubscription : null;
   if (!sub || String(sub.lastPassOrderId || "") !== String(orderId)) return false;
   const currentExpiresAt = sub.expiresAt ? new Date(sub.expiresAt) : null;
