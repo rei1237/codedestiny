@@ -230,6 +230,7 @@
     "verify:fusion-fortune-reopen": "node scripts/verify-fusion-fortune-reopen.mjs",
     "verify:fusion-fortune-retry-payload": "node scripts/verify-fusion-fortune-retry-payload.mjs",
     "report:llm-tokens": "node scripts/report-llm-token-usage.mjs",
+    "report:worker-tail-latency": "node scripts/report-worker-tail-latency.mjs",
     "verify:deploy-base-guard": "node scripts/verify-deploy-base-guard.mjs",
     "verify:worker-single-deploy": "node scripts/verify-worker-single-deploy-guard.mjs",
     "verify:worker-config-parity": "node scripts/verify-worker-config-parity.mjs",
