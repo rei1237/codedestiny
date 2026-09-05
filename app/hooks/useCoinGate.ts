@@ -17,6 +17,8 @@ import {
 import { usePayment } from "./usePayment";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { resolvePaidFeatureBillingType } from "@/lib/payment/feature-billing-type";
+// 결제 영수증 저장소 정본은 셸·독립 정적과 같은 모듈 하나다(사본을 만들면 한쪽만 낡는다).
+import checkoutEntry from "@/js/core/checkout-entry.js";
 
 type CoinGateContext = {
   transactionId: string;
@@ -387,6 +389,66 @@ export function useCoinGate() {
             refunded: false,
           };
         }
+      }
+
+      /* 🔴 리다이렉트 복귀로 이미 결제가 끝난 기능이면 결제창을 열지 않는다(정적 셸 _cdOpenPaidServiceGate ·
+         독립 정적 게이트 코어와 같은 조건·같은 저장소). 중첩 사전검사가 아니다(원칙 6 확인) — React 는 그 두
+         게이트에 internalMainGate:true 로 진입해(billing-client 의 runPaidServiceRuntimePayment) 거기 있는
+         같은 단축을 **타지 않는다**. 즉 이 줄이 React 경로의 유일한 구제 지점이다.
+         회당 결제(per-use)는 서버 보유 목록에 남지 않으므로(worker/lib/access-state.js) 이 영수증이 없으면
+         "결제하고 못 본" 사용자가 재클릭에서 또 결제된다.
+         🔴 로컬 저장소 판정이라 서버 왕복이 0이다 — 여기에 서버 이용권 재검사를 넣지 말 것(게이팅 절대 순서 3).
+         영수증은 1회만 소비된다 — 회당 결제가 영구 무료가 되면 안 된다. */
+      const receiptFeatureKey = toText(input.featureKey || input.subFeatureKey || input.categoryKey);
+      const paidGrantReceipt = (receiptFeatureKey && input.forceDeduct !== false)
+        ? checkoutEntry.consumePaidGrantReceipt({ featureKey: receiptFeatureKey })
+        : null;
+      if (paidGrantReceipt) {
+        requiredCoins = toNumber(input.coinPrice ?? input.cost, requiredCoins);
+        const receiptTransactionId = toText(paidGrantReceipt.merchantUid || paidGrantReceipt.requestId);
+        if (typeof input.onPaid === "function") {
+          setPaymentMessage(coinGateText("generatingResult"));
+          markPaidAttemptGenerationStarted("paid_grant_receipt");
+          try {
+            await input.onPaid({
+              transactionId: receiptTransactionId,
+              chargedCoins: 0,
+              requiredCoins,
+              amountKRW: toNumber(input.amountKRW, 0),
+              balanceAfter: 0,
+              featureKey: receiptFeatureKey,
+              accessSource: "payment",
+              accessType: "redirect_receipt",
+              paymentMode: "DIRECT_KRW",
+              subscriptionTier: "",
+              monthlyCreditsSpent: 0,
+              monthlyBalanceAfter: null,
+            });
+            markPaidAttemptGenerationCompleted();
+          } catch (error) {
+            markPaidAttemptFailed("feature_execution_failed");
+            return {
+              ok: false,
+              code: "FEATURE_EXECUTION_FAILED",
+              message: error instanceof Error ? error.message : coinGateText("featureExecutionFailed"),
+              requiredCoins,
+              chargedCoins: 0,
+              balanceAfter: 0,
+              transactionId: receiptTransactionId,
+              refunded: false,
+            };
+          }
+        }
+        return {
+          ok: true,
+          code: "OK",
+          message: coinGateText("paymentComplete"),
+          requiredCoins,
+          chargedCoins: 0,
+          balanceAfter: 0,
+          transactionId: receiptTransactionId,
+          refunded: false,
+        };
       }
 
       // 해금(영구 잠금 해제) 기능만 "기존 잠금 해제 내역 확인" 문구를 쓴다 — 이 확인은 이용권 선검사가

@@ -546,12 +546,16 @@ const SHELL_AXIS_REPORT = { consumers: 0, unreachable: 0, rows: 0, controlGroups
     // 🔴 아래 셋은 렌더러·핸들러 안이라 하네스에서 **실행이 안 닿는다**. 값으로는 못 재고
     //    발견으로만 지킨다 — 여기서 빠지면 미분류로 실패한다.
     ["js/saju-engine-tarot-sukuyo-quantum.js#renderSukuyo", { unreachable: "Lunar Nexus 렌더러 안 — window._ziweiBirth + DOM 의존" }],
-    ["js/saju-engine-tarot-sukuyo-quantum.js#syOpenAiChat", { unreachable: "숙요 3 폼 submit 핸들러 안" }],
+    ["js/saju-engine-tarot-sukuyo-quantum.js#_triggerSynergyCheckCore", { unreachable: "숙요 3 궁합 계산 코어 안 — 폼 DOM 의존" }],
     ["js/saju-engine.js#_resetDashboardBeforeCalc", { unreachable: "히어로 카드 innerHTML 조립 안 — 문서 전체 + birthCountry select 필요" }],
   ]);
 
   const CALL_RE = /solarToLunarFromParts\s*\(/g;
-  const FN_DECL_RE = /function\s+([A-Za-z0-9_$]+)\s*\(/g;
+  /* 🔴 선언(`function f(`)뿐 아니라 **대입된 함수 표현식**(`window.f = function(`)도 이름으로 친다.
+     선언만 보면 표현식 안의 호출이 그 앞의 무관한 선언에 붙어, 사이에 함수를 하나 끼우는 것만으로
+     키가 바뀐다(실측 2026-09-06: `_triggerSynergyCheckCore` 안의 호출이 `syOpenAiChat` 으로
+     분류돼 있었고, 앞에 함수를 넣자 또 다른 이름으로 옮겨 갔다). 이름이 참값이어야 분류가 산다. */
+  const FN_DECL_RE = /(?:function\s+([A-Za-z0-9_$]+)\s*\(|([A-Za-z0-9_$.]+)\s*=\s*(?:async\s+)?function\s*\()/g;
   const discovered = new Map();
   for (const file of walk(path.join(root, "js"), [])) {
     if (path.extname(file) !== ".js") continue;
@@ -560,7 +564,8 @@ const SHELL_AXIS_REPORT = { consumers: 0, unreachable: 0, rows: 0, controlGroups
     const relative = path.relative(root, file).split(path.sep).join("/");
     for (const match of source.matchAll(CALL_RE)) {
       let nearest = "(top-level)";
-      for (const decl of source.slice(0, match.index).matchAll(FN_DECL_RE)) nearest = decl[1];
+      // 대입 형태는 `window.foo`·`obj.foo` 로 잡히므로 마지막 조각만 이름으로 쓴다.
+      for (const decl of source.slice(0, match.index).matchAll(FN_DECL_RE)) nearest = String(decl[1] || decl[2] || "").split(".").pop();
       const key = `${relative}#${nearest}`;
       discovered.set(key, (discovered.get(key) || 0) + 1);
     }

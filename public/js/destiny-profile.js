@@ -86,6 +86,13 @@
       directResumePending: '결제는 승인되었고 열람 권한 반영을 기다리고 있어요.\n잠시 후 이 화면을 새로고침하면 다시 확인합니다.',
       directResumeComplete: '{method} 결제가 확인되었습니다.\n콘텐츠를 다시 누르면 추가 결제 없이 바로 열립니다.',
       directResumeCompleteGeneric: '결제가 확인되었습니다.\n콘텐츠를 다시 누르면 추가 결제 없이 바로 열립니다.',
+      // 자동 재개가 없거나 실패했을 때 남는 지속 카드. 사용자가 누를 때까지 사라지지 않는다 —
+      // 4초 안내는 복귀 직후 화면을 보고 있지 않은 사용자에게는 없는 것과 같았다.
+      directResumeCardTitle: '결제가 완료되었습니다',
+      directResumeCardDesc: '추가 결제 없이 바로 열 수 있어요.',
+      directResumeCardOpen: '「{feature}」 지금 열기',
+      directResumeCardOpenGeneric: '지금 열기',
+      directResumeCardDismiss: '닫기',
       directResumeFailed: '{method} 결제가 완료되지 않았습니다. 다시 시도해 주세요.',
       directResumeFailedGeneric: '결제가 완료되지 않았습니다. 다시 시도해 주세요.',
       directResumeError: '결제 확인 중 오류가 발생했습니다.\n잠시 후 이 화면을 새로고침하면 다시 확인합니다.',
@@ -124,6 +131,11 @@
       directResumePending: 'Your payment was approved and access is being applied.\nRefresh this page in a moment to check again.',
       directResumeComplete: 'Your {method} payment is confirmed.\nTap the content again to open it with no extra charge.',
       directResumeCompleteGeneric: 'Your payment is confirmed.\nTap the content again to open it with no extra charge.',
+      directResumeCardTitle: 'Payment complete',
+      directResumeCardDesc: 'You can open it right away at no extra charge.',
+      directResumeCardOpen: 'Open “{feature}” now',
+      directResumeCardOpenGeneric: 'Open now',
+      directResumeCardDismiss: 'Close',
       directResumeFailed: 'Your {method} payment was not completed. Please try again.',
       directResumeFailedGeneric: 'Your payment was not completed. Please try again.',
       directResumeError: 'Something went wrong while confirming your payment.\nRefresh this page in a moment to check again.',
@@ -162,6 +174,11 @@
       directResumePending: '決済は承認され、閲覧権限の反映を待っています。\nしばらくしてこの画面を再読み込みすると再確認します。',
       directResumeComplete: '{method}の決済が確認されました。\nコンテンツをもう一度押すと追加決済なしで開きます。',
       directResumeCompleteGeneric: '決済が確認されました。\nコンテンツをもう一度押すと追加決済なしで開きます。',
+      directResumeCardTitle: '決済が完了しました',
+      directResumeCardDesc: '追加決済なしですぐに開けます。',
+      directResumeCardOpen: '「{feature}」を今すぐ開く',
+      directResumeCardOpenGeneric: '今すぐ開く',
+      directResumeCardDismiss: '閉じる',
       directResumeFailed: '{method}の決済が完了しませんでした。もう一度お試しください。',
       directResumeFailedGeneric: '決済が完了しませんでした。もう一度お試しください。',
       directResumeError: '決済確認中にエラーが発生しました。\nしばらくしてこの画面を再読み込みすると再確認します。',
@@ -200,6 +217,11 @@
       directResumePending: '支付已获批准，正在等待访问权限生效。\n请稍后刷新此页面再次确认。',
       directResumeComplete: '{method}支付已确认。\n再次点击内容即可直接打开，无需额外付费。',
       directResumeCompleteGeneric: '支付已确认。\n再次点击内容即可直接打开，无需额外付费。',
+      directResumeCardTitle: '支付已完成',
+      directResumeCardDesc: '无需额外付费，可以立即打开。',
+      directResumeCardOpen: '立即打开「{feature}」',
+      directResumeCardOpenGeneric: '立即打开',
+      directResumeCardDismiss: '关闭',
       directResumeFailed: '{method}支付未完成。请重试。',
       directResumeFailedGeneric: '支付未完成。请重试。',
       directResumeError: '确认支付时发生错误。\n请稍后刷新此页面再次确认。',
@@ -238,6 +260,11 @@
       directResumePending: '付款已獲核准，正在等待閱覽權限生效。\n請稍後重新整理此頁面再次確認。',
       directResumeComplete: '{method}付款已確認。\n再次點擊內容即可直接開啟，無需額外付費。',
       directResumeCompleteGeneric: '付款已確認。\n再次點擊內容即可直接開啟，無需額外付費。',
+      directResumeCardTitle: '付款已完成',
+      directResumeCardDesc: '無需額外付費，可以立即開啟。',
+      directResumeCardOpen: '立即開啟「{feature}」',
+      directResumeCardOpenGeneric: '立即開啟',
+      directResumeCardDismiss: '關閉',
       directResumeFailed: '{method}付款未完成。請重試。',
       directResumeFailedGeneric: '付款未完成。請重試。',
       directResumeError: '確認付款時發生錯誤。\n請稍後重新整理此頁面再次確認。',
@@ -2937,6 +2964,62 @@
     if (!api || typeof api.resolveDirectPayFields !== 'function') return fallback;
     try { return api.resolveDirectPayFields(configPayMethod) || fallback; } catch (_payMethodError) { return fallback; }
   }
+  // 서버 결제 config 의 채널키 유무를 수단 표에 곱한다(정본 setDirectPayMethodAvailability).
+  // 🔴 모르면 막지 않는다 — config 가 아직/영영 안 오면 종전대로 전부 열려 있다.
+  function _dpApplyDirectPayMethodAvailability(config) {
+    var api = _dpCheckoutEntry();
+    if (!api || typeof api.setDirectPayMethodAvailability !== 'function') return [];
+    try { return api.setDirectPayMethodAvailability(config) || []; } catch (_availabilityError) { return []; }
+  }
+  // 고른 수단 코드(선택을 소비하지 않고 들여다보기만 한다). 미선택·모듈 없음이면 ''.
+  function _dpPeekSelectedDirectPayMethod() {
+    var api = _dpCheckoutEntry();
+    if (!api || typeof api.peekSelectedDirectPayMethod !== 'function') return '';
+    try { return api.peekSelectedDirectPayMethod() || ''; } catch (_peekError) { return ''; }
+  }
+  // 그 수단만 못 쓰는 것이 실제 호출에서 드러났을 때의 낙인. 고른 수단이면 선택도 함께 풀린다.
+  function _dpMarkDirectPayMethodUnavailable(id) {
+    var api = _dpCheckoutEntry();
+    if (!api || typeof api.markDirectPayMethodUnavailable !== 'function') return false;
+    try { return api.markDirectPayMethodUnavailable(id) === true; } catch (_markError) { return false; }
+  }
+  // 결제창을 연 직후의 가용성 워밍업(셸 _cdWarmDirectPayMethodTiles 와 같은 계약). 모달 오픈을 막지
+  // 않고, 신호가 도착하면 그 타일만 기존 '준비 중' 규격으로 내린다. 왕복은 페이지당 1회(코어가 캐시).
+  function _dpWarmDirectPayMethodTiles(root) {
+    var api = _dpCheckoutEntry();
+    if (!api || typeof api.ensureDirectPayMethodAvailability !== 'function') return;
+    try {
+      api.ensureDirectPayMethodAvailability(function() {
+        return _dpPaymentFetchJson('/api/payments/config', { method: 'GET' }).then(function(configRes) {
+          if (!configRes || !configRes.ok) throw new Error('payment config unavailable');
+          return _dpExtractBillingData(configRes.payload);
+        });
+      }).then(function(closed) {
+        if (!closed || !closed.length || typeof api.markDirectPayMethodTilesUnavailable !== 'function') return;
+        try { api.markDirectPayMethodTilesUnavailable(root, closed); } catch (_tileError) { /* noop */ }
+      }, function() { /* 모르면 막지 않는다 */ });
+    } catch (_warmError) { /* noop */ }
+  }
+  // ── 결제 영수증·재개 서술자 위임 ──────────────────────────────────────────────
+  // 🔴 저장소 정본도 checkout-entry 하나다. 모듈이 없으면 조용히 no-op 이다 — 영수증이 없으면
+  // 사용자는 종전대로 서버 unlock 매칭에 의존한다(회당 결제는 재결제 위험이 남는다는 뜻이라
+  // 이 경로가 죽지 않도록 dp 는 항상 checkout-entry 를 함께 로드한다).
+  function _dpSavePaidGrantReceipt(receipt) {
+    var api = _dpCheckoutEntry();
+    if (!api || typeof api.savePaidGrantReceipt !== 'function') return false;
+    try { return api.savePaidGrantReceipt(receipt) === true; } catch (_receiptSaveError) { return false; }
+  }
+  function _dpConsumePaidGrantReceipt(query) {
+    var api = _dpCheckoutEntry();
+    if (!api || typeof api.consumePaidGrantReceipt !== 'function') return null;
+    try { return api.consumePaidGrantReceipt(query); } catch (_receiptTakeError) { return null; }
+  }
+  function _dpRunPaidResume(descriptor) {
+    var api = _dpCheckoutEntry();
+    if (!api || typeof api.runPaidResume !== 'function') return Promise.resolve(false);
+    try { return Promise.resolve(api.runPaidResume(descriptor)).catch(function () { return false; }); }
+    catch (_resumeRunError) { return Promise.resolve(false); }
+  }
   // 앱에서는 /points 가 번들에 없다 — 판정이 애매하면 앱 경로(충전 모달)로 폴백한다.
   function _dpShouldUseAppStoreEntry() {
     var api = _dpCheckoutEntry();
@@ -4197,6 +4280,144 @@
     return _dpText(key + 'Generic');
   }
 
+  /* ── 결제 완료 지속 카드 ──────────────────────────────────────────────────────
+     🔴 사라지는 안내로 대체하지 말 것. 복귀 직후 사용자는 PG 앱에서 브라우저로 막 돌아온
+     참이라 화면을 보고 있지 않은 경우가 많고, 4초 오버레이는 그 사용자에게 없는 것과 같았다
+     ("결제했는데 메인 화면만 보인다"의 절반이 이것이다). 누르기 전까지 남는다.
+     오버레이(_dpSetStandalonePaymentOverlay)를 재사용하지 않는 이유: 그쪽은 aria-modal 전면
+     차단이라 닫기 수단 없이 남기면 화면이 잠긴다. 여기는 하단 고정 카드다. */
+  function _dpEnsureDirectResumeCardStyle() {
+    if (typeof document === 'undefined') return;
+    if (document.getElementById('cdDirectResumeCardStyle')) return;
+    var style = document.createElement('style');
+    style.id = 'cdDirectResumeCardStyle';
+    style.textContent = [
+      '#cdDirectResumeCard {',
+      '  position: fixed;',
+      '  left: 50%;',
+      '  transform: translateX(-50%);',
+      '  bottom: calc(16px + env(safe-area-inset-bottom, 0px));',
+      '  z-index: 2147483001;',
+      '  width: min(420px, calc(100vw - 24px));',
+      '  border-radius: 18px;',
+      '  border: 1px solid rgba(212, 168, 67, 0.42);',
+      '  background: linear-gradient(135deg, rgba(26, 20, 48, 0.97), rgba(12, 9, 24, 0.98));',
+      '  box-shadow: 0 18px 44px rgba(4, 3, 12, 0.55);',
+      '  padding: 16px 16px 14px;',
+      '  color: rgba(242, 228, 192, 0.98);',
+      '}',
+      '#cdDirectResumeCard .cd-direct-resume-title {',
+      '  margin: 0;',
+      '  font-size: 16px;',
+      '  font-weight: 800;',
+      '}',
+      '#cdDirectResumeCard .cd-direct-resume-desc {',
+      '  margin: 6px 0 0;',
+      '  font-size: 13px;',
+      '  color: rgba(200, 168, 120, 0.95);',
+      '}',
+      '#cdDirectResumeCard .cd-direct-resume-actions {',
+      '  display: flex;',
+      '  gap: 8px;',
+      '  margin-top: 13px;',
+      '}',
+      '#cdDirectResumeCard button {',
+      '  font: inherit;',
+      '  border-radius: 12px;',
+      '  padding: 11px 12px;',
+      '  cursor: pointer;',
+      '  font-weight: 700;',
+      '}',
+      '#cdDirectResumeCard .cd-direct-resume-open {',
+      '  flex: 1 1 auto;',
+      '  border: 1px solid rgba(232, 200, 112, 0.9);',
+      '  background: linear-gradient(135deg, rgba(232, 200, 112, 0.96), rgba(198, 156, 62, 0.96));',
+      '  color: #1a1430;',
+      '}',
+      '#cdDirectResumeCard .cd-direct-resume-dismiss {',
+      '  flex: 0 0 auto;',
+      '  border: 1px solid rgba(212, 168, 67, 0.36);',
+      '  background: transparent;',
+      '  color: rgba(200, 168, 120, 0.95);',
+      '}',
+      '#cdDirectResumeCard button:focus-visible {',
+      '  outline: 2px solid rgba(232, 200, 112, 0.96);',
+      '  outline-offset: 2px;',
+      '}'
+    ].join('\n');
+    document.head.appendChild(style);
+  }
+
+  function _dpDismissDirectResumeCard() {
+    if (typeof document === 'undefined') return;
+    var existing = document.getElementById('cdDirectResumeCard');
+    if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
+  }
+
+  /* 기능 모달 딥링크. 🔴 새 라우팅을 만들지 않는다 — 셸이 이미 [data-action] 과 ?action= 둘 다
+     해석한다(js/core/index-inline-runtime.js __cdGetRouteActionParam·__cdFindRouteActionElement).
+     이 문서에 버튼이 있으면 새로고침 없이 그것을 누르고, 없으면 같은 경로에 ?action= 을 붙여 보낸다. */
+  function _dpOpenRouteAction(action) {
+    var name = String(action || '').trim();
+    if (!name) return;
+    try {
+      var node = document.querySelector('[data-action="' + name.replace(/"/g, '\\"') + '"]');
+      if (node && typeof node.click === 'function') { node.click(); return; }
+    } catch (_actionNodeError) {}
+    try {
+      var url = new URL(window.location.href);
+      url.searchParams.set('action', name);
+      window.location.assign(url.toString());
+    } catch (_actionNavError) {}
+  }
+
+  // featureLabel 이 있으면 '「{기능명}」 지금 열기', 없으면 '지금 열기'. onOpen 이 없으면 열기 버튼을
+  // 그리지 않는다(영수증만으로 재클릭이 무료가 되는 경우 — 안내와 닫기만 남는다).
+  function _dpShowDirectResumeCard(featureLabel, onOpen, descText) {
+    if (typeof document === 'undefined' || !document.body) return;
+    _dpDismissDirectResumeCard();
+    _dpEnsureDirectResumeCardStyle();
+    var card = document.createElement('div');
+    card.id = 'cdDirectResumeCard';
+    card.setAttribute('role', 'status');
+    card.setAttribute('aria-live', 'polite');
+    var title = document.createElement('p');
+    title.className = 'cd-direct-resume-title';
+    title.textContent = _dpText('directResumeCardTitle');
+    var desc = document.createElement('p');
+    desc.className = 'cd-direct-resume-desc';
+    desc.textContent = String(descText || '').trim() || _dpText('directResumeCardDesc');
+    desc.style.whiteSpace = 'pre-line';
+    var actions = document.createElement('div');
+    actions.className = 'cd-direct-resume-actions';
+    var openBtn = null;
+    if (typeof onOpen === 'function') {
+      openBtn = document.createElement('button');
+      openBtn.type = 'button';
+      openBtn.className = 'cd-direct-resume-open';
+      // 🔴 textContent 로만 넣는다 — 기능명은 주문 reason 에서 오므로 innerHTML 로 넣지 않는다.
+      openBtn.textContent = featureLabel
+        ? _dpInterpolateText(_dpText('directResumeCardOpen'), { feature: featureLabel })
+        : _dpText('directResumeCardOpenGeneric');
+      openBtn.addEventListener('click', function () {
+        _dpDismissDirectResumeCard();
+        try { onOpen(); } catch (_openError) {}
+      });
+      actions.appendChild(openBtn);
+    }
+    var dismissBtn = document.createElement('button');
+    dismissBtn.type = 'button';
+    dismissBtn.className = 'cd-direct-resume-dismiss';
+    dismissBtn.textContent = _dpText('directResumeCardDismiss');
+    dismissBtn.addEventListener('click', _dpDismissDirectResumeCard);
+    actions.appendChild(dismissBtn);
+    card.appendChild(title);
+    card.appendChild(desc);
+    card.appendChild(actions);
+    document.body.appendChild(card);
+    try { (openBtn || dismissBtn).focus({ preventScroll: true }); } catch (_focusError) {}
+  }
+
   async function _dpResumeDirectPaymentAfterRedirect() {
     if (typeof window === 'undefined') return;
     var query;
@@ -4317,17 +4538,44 @@
           Promise.resolve(_dpResumeAccessCache.refreshUserAccessAfterPayment()).catch(function () {});
         }
       } catch (_dpResumeAccessRefreshError) {}
-      // ③ URL 정리(새로고침 재실행 방지) ④ 정직한 완료 안내 — 여기서는 아무것도 자동으로 열지 않으므로
-      //    paymentCompleteOverlay("콘텐츠를 여는 중")를 쓰지 않는다. 재클릭은 서버 unlock 매칭으로 추가 결제 없이 열린다.
-      _dpStripDirectResumeQuery();
-      _dpShowDirectResumeNotice(_dpDirectResumeText('directResumeComplete', resumeMethodLabel), 'payment-complete', 4000);
-      // ⑤ 결제한 카드로 시선을 옮긴다. 카드가 없는 표면(독립 정적 페이지 등)이면 조용히 건너뛴다.
+      var resumeConfirmBody = (ticket && ticket.confirmBody && typeof ticket.confirmBody === 'object') ? ticket.confirmBody : {};
       var resumeFeatureKey = String(
-        (ticket && ticket.confirmBody && ticket.confirmBody.featureKey)
+        resumeConfirmBody.featureKey
         || resumePayload.featureKey
         || (resumePayload.accessGrant && resumePayload.accessGrant.featureKey)
         || '',
       ).trim();
+      var resumeRequestId = String(resumeConfirmBody.requestId || '').trim();
+      /* ③ 🔴 결제 영수증. 이것이 없으면 **회당 결제 기능은 재클릭이 또 결제다** —
+         worker/lib/access-state.js 가 회당 키를 보유 목록에서 제외하므로 서버 unlock 매칭은
+         영구 해금 기능에만 있다(숙요점 기본 궁합이 정확히 회당 결제다). 아래 자동 재개가
+         실패하더라도 이 한 줄이 재과금을 막는다. 1회 소비·24h TTL 은 checkout-entry 가 강제한다. */
+      if (resumeFeatureKey) {
+        _dpSavePaidGrantReceipt({
+          featureKey: resumeFeatureKey,
+          contentKey: resumeConfirmBody.contentKey || resumeConfirmBody.contentId || '',
+          profileId: resumeConfirmBody.profileId || resumeConfirmBody.selectedProfileId || '',
+          requestId: resumeRequestId,
+          merchantUid: paymentId,
+        });
+      }
+      /* ④ 인페이지 성공 경로(deliverGateGrant)와 같은 스냅샷 반영. 빠져 있던 것은 로직이 아니라
+         호출이었다 — 새 갱신 함수를 만들지 않는다. 중복 반영은 payment-service 가 operationId|
+         requestId 로 막는다(reducePaymentSuccess 의 appliedSuccessEvents). */
+      try {
+        _dpEmitPaymentSuccess(paymentId, confirmRes.payload, {
+          productId: resumeConfirmBody.productId,
+          profileId: resumeConfirmBody.profileId,
+          selectedProfileId: resumeConfirmBody.selectedProfileId,
+        }, resumeFeatureKey, resumeRequestId);
+      } catch (_dpResumeEmitError) {}
+      try {
+        if (typeof window.__cdClearPaidPrecheckCache === 'function') window.__cdClearPaidPrecheckCache('direct-payment-resume');
+      } catch (_dpResumePrecheckError) {}
+      // ⑤ URL 정리(새로고침 재실행 방지). 자동 재개보다 먼저 한다 — 재개가 화면을 갈아엎는 사이
+      //    사용자가 새로고침하면 같은 주문을 또 확정하려 든다.
+      _dpStripDirectResumeQuery();
+      // ⑥ 결제한 카드로 시선을 옮긴다. 카드가 없는 표면(독립 정적 페이지 등)이면 조용히 건너뛴다.
       var resumeTile = null;
       if (resumeFeatureKey && typeof CSS !== 'undefined' && CSS && typeof CSS.escape === 'function') {
         try { resumeTile = document.querySelector('[data-feature-key="' + CSS.escape(resumeFeatureKey) + '"]'); } catch (_) {}
@@ -4336,7 +4584,34 @@
         try { resumeTile.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (_) {}
         try { if (typeof resumeTile.focus === 'function') resumeTile.focus({ preventScroll: true }); } catch (_) {}
       }
-      // ⑥ 후속 훅(자동 재오픈 등)이 붙을 자리. 현재 구독자는 없다.
+      /* ⑦ 🔴 여기가 "결제했는데 메인 화면만 보인다"의 수리 지점이다. 결제 전에 남긴 재개 서술자로
+         기능을 직접 다시 연다. 서술자가 없거나(배선 안 된 기능) 핸들러가 실패하면(모달 DOM 이
+         이 표면에 없음) 지속 카드로 떨어뜨린다 — 사라지는 안내로 되돌리지 말 것. */
+      var resumeDescriptor = (ticket && ticket.resume && typeof ticket.resume === 'object') ? ticket.resume : null;
+      var resumeOpened = resumeDescriptor ? await _dpRunPaidResume(resumeDescriptor) : false;
+      if (resumeOpened) {
+        /* 🔴 자동 재개가 성공했으면 영수증을 여기서 쓴다. 안 그러면 회당 결제 한 번에 "자동 개방 +
+           다음 클릭 무료"로 두 번 열린다(③이 남겨 둔 것은 재개가 실패했을 때의 구제용이다). */
+        if (resumeFeatureKey) {
+          _dpConsumePaidGrantReceipt({
+            featureKey: resumeFeatureKey,
+            contentKey: resumeConfirmBody.contentKey || resumeConfirmBody.contentId || '',
+            profileId: resumeConfirmBody.profileId || resumeConfirmBody.selectedProfileId || '',
+          });
+        }
+        // 실제로 콘텐츠가 열리는 중이므로 여기서만 '여는 중' 문구를 쓴다.
+        _dpShowPaymentCompleteOverlay(_dpText('paymentCompleteOverlay'));
+      } else {
+        var resumeFeatureLabel = String(resumeConfirmBody.reason || resumeConfirmBody.title || '').trim();
+        var resumeAction = String((resumeDescriptor && resumeDescriptor.action) || '').trim();
+        _dpShowDirectResumeCard(
+          resumeFeatureLabel,
+          resumeAction ? function () { _dpOpenRouteAction(resumeAction); } : null,
+          // 열기 버튼이 없으면 "다시 누르면 무료"가 사용자가 할 수 있는 유일한 행동이다.
+          resumeAction ? '' : _dpDirectResumeText('directResumeComplete', resumeMethodLabel),
+        );
+      }
+      // ⑧ 후속 훅이 붙을 자리(계측·외부 위젯). 재개 자체는 위에서 끝났다.
       try {
         window.dispatchEvent(new CustomEvent('cd:direct-payment-resumed', {
           detail: {
@@ -4344,6 +4619,7 @@
             paymentId: paymentId,
             paymentMethod: resumeMethod,
             alreadyUnlocked: resumePayload.alreadyUnlocked === true,
+            resumed: resumeOpened === true,
             tile: resumeTile,
           },
         }));
@@ -4745,6 +5021,30 @@
         // \uACB0\uC81C\uCC3D(\uB2E8\uAC74+\uC6D4\uC815\uC11D)\uC774 \uBC18\uB4DC\uC2DC \uC5F4\uB9AC\uB3C4\uB85D \uD55C\uB2E4.
         if (typeof _dpCanonicalPaymentChoice === 'function') window._cdChooseServicePaymentMode = _dpCanonicalPaymentChoice;
       }
+      /* 🔴 리다이렉트 복귀로 이미 결제가 끝난 기능이면 결제창을 열지 않는다(셸 _cdOpenPaidServiceGate
+         와 같은 자리·같은 조건). 회당 결제는 서버 보유 목록에 남지 않으므로(worker/lib/access-state.js)
+         이 영수증이 없으면 "결제하고 못 본" 사용자가 재클릭에서 **또 결제된다**.
+         🔴 로컬 스냅샷 판정이라 서버 왕복이 0이다 — 여기에 서버 이용권 재검사를 넣지 말 것
+         (게이팅 절대 순서 3, verify 가드 4곳이 막는다). 영수증은 1회만 소비된다. */
+      var _dpReceiptFeatureKey = _dpResolvePaidGateFeatureKey(opts, title);
+      if (coinPrice > 0 && _dpReceiptFeatureKey && opts.internalMainGate !== true) {
+        var _dpGrantReceipt = _dpConsumePaidGrantReceipt({
+          featureKey: _dpReceiptFeatureKey,
+          contentKey: opts.contentKey || opts.contentId,
+          profileId: opts.profileId || opts.selectedProfileId,
+        });
+        if (_dpGrantReceipt) {
+          return _dpBuildPaidGateGrantedResult({
+            status: 'direct_paid',
+            payload: {
+              transactionId: _dpGrantReceipt.merchantUid || requestId,
+              requestId: _dpGrantReceipt.requestId || requestId,
+              featureKey: _dpReceiptFeatureKey,
+              __cdPaidGrantReceipt: true,
+            },
+          }, requestId, opts.onGranted);
+        }
+      }
       // 확정 미커버(미로그인 / 서버가 쓴 none 스냅샷 / 산술적 한도 초과)면 서버 pass-check 왕복을 건너뛰고
       // 곧바로 결제창을 연다. 셸(index.html allowSnapshotFastPath)과 같은 근거만 쓰며, 지연을 근거로 쓰지 않는다.
       // requireServerPassCheck 로 서버 재검증을 명시 요청한 호출부는 이 지름길을 타지 않는다.
@@ -4774,32 +5074,55 @@
       }
       // 결제창이 열리는 동안(사용자가 단건/월정석을 읽는 시간) SDK를 내려받아 임계경로에서 뺀다.
       _dpPreloadPortOneV2Sdk();
-      var choice = await window._cdChooseServicePaymentMode(Object.assign({}, opts, { title: title, coinPrice: coinPrice, cost: coinPrice, requestId: requestId, internalMainGate: true, skipPassProbe: true }));
-      if (!choice || choice === 'cancel') {
-        if (typeof opts.onCancel === 'function') opts.onCancel();
-        return { status: 'cancelled' };
-      }
-      if (choice === 'pass') choice = 'pass_applied';
-      if (choice === 'pass_applied') {
-        var passCacheKey = _dpPaidPassCacheKey(Object.assign({}, opts, { title: title, coinPrice: coinPrice, cost: coinPrice, requestId: requestId }), title, coinPrice);
-        var passResult = _dpTakePaidPassGateResult(passCacheKey);
-        if ((!passResult || (passResult.status !== 'pass_applied' && passResult.status !== 'already_unlocked')) && typeof window.__cdApplyMembershipPassBeforePayment === 'function') {
-          passResult = await window.__cdApplyMembershipPassBeforePayment(Object.assign({}, opts, {
-            title: title,
-            coinPrice: coinPrice,
-            cost: coinPrice,
-            requestId: requestId
-          }));
+      /* 🔴 채널키가 없는 수단(스테이징 카카오페이 등)을 골랐을 때 막다른 오류로 끝내지 않고 결제수단
+         선택으로 되돌린다 — 셸의 _cdShouldReofferPaymentChoice 재제안 루프와 같은 목적·같은 code 다.
+         되돌아온 결제창에서 그 타일은 이미 낙인(markDirectPayMethodUnavailable)이 찍혀 '준비 중'으로
+         비활성이다. 상한 1회 — 두 번째도 같은 오류면 그대로 알린다(무한 왕복 금지). */
+      var choice = '';
+      var payload = null;
+      for (var payMethodAttempt = 0; ; payMethodAttempt += 1) {
+        choice = await window._cdChooseServicePaymentMode(Object.assign({}, opts, { title: title, coinPrice: coinPrice, cost: coinPrice, requestId: requestId, internalMainGate: true, skipPassProbe: true }));
+        if (!choice || choice === 'cancel') {
+          if (typeof opts.onCancel === 'function') opts.onCancel();
+          return { status: 'cancelled' };
         }
-        if (passResult && (passResult.status === 'pass_applied' || passResult.status === 'already_unlocked')) {
-          return _dpBuildPaidGateGrantedResult(passResult, requestId, opts.onGranted);
+        if (choice === 'pass') choice = 'pass_applied';
+        if (choice === 'pass_applied') {
+          var passCacheKey = _dpPaidPassCacheKey(Object.assign({}, opts, { title: title, coinPrice: coinPrice, cost: coinPrice, requestId: requestId }), title, coinPrice);
+          var passResult = _dpTakePaidPassGateResult(passCacheKey);
+          if ((!passResult || (passResult.status !== 'pass_applied' && passResult.status !== 'already_unlocked')) && typeof window.__cdApplyMembershipPassBeforePayment === 'function') {
+            passResult = await window.__cdApplyMembershipPassBeforePayment(Object.assign({}, opts, {
+              title: title,
+              coinPrice: coinPrice,
+              cost: coinPrice,
+              requestId: requestId
+            }));
+          }
+          if (passResult && (passResult.status === 'pass_applied' || passResult.status === 'already_unlocked')) {
+            return _dpBuildPaidGateGrantedResult(passResult, requestId, opts.onGranted);
+          }
+          return { status: 'payment_required', reason: 'membership_pass_not_covered', payload: passResult && passResult.payload ? passResult.payload : null };
         }
-        return { status: 'payment_required', reason: 'membership_pass_not_covered', payload: passResult && passResult.payload ? passResult.payload : null };
+        if (choice === 'monthly') _dpSetPaymentPending(true, '월정석 잔량으로 콘텐츠 이용 권한을 확인하고 있습니다.', 'monthly');
+        // [regression-guard] Moonlight settles server-side immediately so a wait overlay is correct there;
+        // single payment shows NO wait UI until the PG window is open.
+        if (choice === 'monthly') {
+          payload = await _dpRunMonthlyCreditFromMainGate(Object.assign({}, opts, { title: title, coinPrice: coinPrice, cost: coinPrice, requestId: requestId }));
+          break;
+        }
+        var _dpReofferPayMethod = false;
+        try {
+          payload = await window._cdRunDirectKrwCheckout(Object.assign({}, opts, { title: title, coinPrice: coinPrice, cost: coinPrice, requestId: requestId, forceDirectPayment: true, internalMainGate: true, __cdDirectPaymentChoiceConfirmed: true }));
+        } catch (_dpDirectError) {
+          if (String((_dpDirectError && _dpDirectError.code) || '') !== 'PAY_METHOD_UNAVAILABLE' || payMethodAttempt >= 1) throw _dpDirectError;
+          // 준비 오버레이를 내리고 결제창을 다시 연다. 단건 단일비행 슬롯은 거절된 시도에 합류하지
+          // 않으므로(_dpJoinPaidServiceSingleFlight 의 rejected 검사) 셸처럼 손으로 비울 필요가 없다.
+          // 멱등키(requestId)는 그대로 두어 같은 주문을 다시 쓴다 — 결제수단은 주문이 아니라 PG 호출에서 정해진다.
+          _dpSetPaymentPending(false);
+          _dpReofferPayMethod = true;
+        }
+        if (!_dpReofferPayMethod) break;
       }
-      if (choice === 'monthly') _dpSetPaymentPending(true, '월정석 잔량으로 콘텐츠 이용 권한을 확인하고 있습니다.', 'monthly');
-      // [regression-guard] Moonlight settles server-side immediately so a wait overlay is correct there;
-      // single payment shows NO wait UI until the PG window is open.
-      var payload = choice === 'monthly' ? await _dpRunMonthlyCreditFromMainGate(Object.assign({}, opts, { title: title, coinPrice: coinPrice, cost: coinPrice, requestId: requestId })) : await window._cdRunDirectKrwCheckout(Object.assign({}, opts, { title: title, coinPrice: coinPrice, cost: coinPrice, requestId: requestId, forceDirectPayment: true, internalMainGate: true, __cdDirectPaymentChoiceConfirmed: true }));
       // 월정석 완료 프레임 표시(단건은 _cdRunDirectKrwCheckout 내부에서 이미 표시). 완료 오버레이 표시 중 onGranted(생성)는 병렬 진행.
       if (choice === 'monthly') _dpShowPaymentCompleteOverlay(_dpText('monthlyAppliedOverlay'));
       var txId = _dpPaidPassPayloadTransactionId(payload, requestId);
@@ -5007,6 +5330,10 @@
       if (!config.storeId || !config.channelKey) {
         throw new Error('\uD3EC\uD2B8\uC6D0 V2 \uACB0\uC81C \uC124\uC815\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.');
       }
+      // \uD83D\uDD34 \uC11C\uBC84\uAC00 \uC900 \uCC44\uB110\uD0A4 \uC720\uBB34\uB97C \uC218\uB2E8 \uD45C\uC5D0 \uBC18\uC601\uD55C\uB2E4(\uC178 _cdResolveDirectCheckoutConfig \uC640 \uAC19\uC740 \uC790\uB9AC).
+      // \uC774 \uD55C \uC904\uC774 \uC5C6\uC73C\uBA74 kakaopayConfigured \uB97C \uC544\uBB34\uB3C4 \uC18C\uBE44\uD558\uC9C0 \uC54A\uC544, \uCC44\uB110\uD0A4\uAC00 \uC5C6\uB294 \uD658\uACBD\uC5D0\uC11C\uB3C4 \uD0C0\uC77C\uC774
+      // \uC815\uC0C1\uC73C\uB85C \uBCF4\uC774\uACE0 \uC8FC\uBB38\uC744 \uB9CC\uB4E0 \uB4A4\uC5D0\uC57C \uB9C9\uB2E4\uB978 \uC624\uB958\uB85C \uC8FD\uC5C8\uB2E4(2026-09-06 \uC2A4\uD14C\uC774\uC9D5 \uC2E0\uACE0).
+      _dpApplyDirectPayMethodAvailability(config);
       _dpMarkPgStep('config');
 
       // [regression-guard] redirectUrl is built from the current page URL. PR #104 changed this to
@@ -5029,11 +5356,17 @@
         ? String(config[directPayFields.channelKeyName] || '').trim()
         : config.channelKey;
       if (!channelKey) {
-        // 🔴 전용 채널키만 빈 경우는 결제 배관이 아니라 "그 수단만" 못 쓰는 상태다 — 다른 수단으로
-        // 돌아가면 결제를 끝낼 수 있다는 걸 문구가 말해 줘야 사용자가 이탈하지 않는다.
-        throw new Error(directPayFields.channelKeyName
-          ? '선택한 결제수단은 현재 이용할 수 없습니다. 다른 결제수단으로 다시 시도해 주세요.'
-          : '선택한 결제수단의 포트원 채널 설정이 없습니다.');
+        // 🔴 전용 채널키만 빈 경우는 결제 배관이 아니라 "그 수단만" 못 쓰는 상태다 — 막다른 오류로
+        // 끝내지 말고 그 수단을 비가용으로 낙인찍고 결제수단 선택으로 되돌린다(게이트가 code 를 보고
+        // 재제안한다). 위 _dpApplyDirectPayMethodAvailability 가 이미 걸렀어야 하는 자리라 여기는
+        // 안전망이다 — config 가 그 키를 아예 싣지 않는 구 워커 응답에서만 도달한다.
+        if (directPayFields.channelKeyName) {
+          _dpMarkDirectPayMethodUnavailable(_dpPeekSelectedDirectPayMethod());
+          var _dpUnavailableMethodError = new Error('선택한 결제수단은 현재 이용할 수 없습니다. 다른 결제수단으로 다시 시도해 주세요.');
+          _dpUnavailableMethodError.code = 'PAY_METHOD_UNAVAILABLE';
+          throw _dpUnavailableMethodError;
+        }
+        throw new Error('선택한 결제수단의 포트원 채널 설정이 없습니다.');
       }
       var requestData = {
         storeId: config.storeId,
@@ -5094,7 +5427,15 @@
       // (\uD55C \uD504\uB808\uC784\uC774\uB77C\uB3C4 \uB07C\uC6B0\uBA74 user-gesture \uC18C\uBA78\uC5D0 \uB354 \uAC00\uAE4C\uC6CC\uC9C4\uB2E4. verify:paid-gate-ui \uAC00 \uC774 \uC21C\uC11C\uB97C \uACE0\uC815\uD55C\uB2E4).
       // PG가 상위 프레임을 리다이렉트하면 아래 await 는 페이지와 함께 죽는다. 그 경우에도 결제를 확정할
       // 수 있도록 복귀 티켓을 미리 남긴다(_dpResumeDirectPaymentAfterRedirect 가 소비).
-      _dpWriteDirectResumeTicket({ at: Date.now(), merchantUid: merchantUid, confirmBody: _dpDirectConfirmBody });
+      _dpWriteDirectResumeTicket({
+        at: Date.now(),
+        merchantUid: merchantUid,
+        // 🔴 셸 티켓과 같은 필드를 싣는다. 여기만 빠져 있어서 App Router·독립 정적 경로는 복귀 문구가
+        //    Generic 으로 떨어지고(수단 이름 없음) 결제 전 화면 상태를 통째로 잃었다.
+        paymentMethod: _dpDirectConfirmBody.paymentMethod,
+        confirmBody: _dpDirectConfirmBody,
+        resume: opts.resume || null,
+      });
       _dpMarkPgStep('customer');
       // 🔴 한 줄 문자열로 남긴다 — 객체로 남기면 콘솔에서 'Object' 로 접혀 펼쳐 보지 않으면 못 읽는다
       // (셸의 [direct-checkout] 계측과 동일 포맷 — React·독립 정적 신고를 같은 방식으로 진단하기 위함).
@@ -12094,6 +12435,8 @@
       // 이전 결제 시도가 남긴 결제수단 선택은 여기서 비운다(셸과 같은 계약 + checkout-entry TTL 이중 방어).
       _dpClearSelectedDirectPayMethod();
       document.body.appendChild(root);
+      // 전용 채널키가 없는 수단을 **주문을 만들기 전에** 타일에서 내린다(셸과 같은 자리·같은 계약).
+      _dpWarmDirectPayMethodTiles(root);
       choiceLockToken = _dpAcquireChoiceLock(root);
       // 퍼널 시작점. 여기부터 checkout_option_click / checkout_dismissed 까지가 한 세션이다.
       _dpTrackCheckoutEvent('checkout_opened', {

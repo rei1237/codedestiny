@@ -454,7 +454,7 @@ const BILLING_FETCH_DEFAULT_TIMEOUT_MS = 20000;
 const BILLING_FETCH_CHECKOUT_TIMEOUT_MS = 40000;
 const BILLING_FETCH_CONFIRM_TIMEOUT_MS = 60000;
 const PAYMENT_CHOICE_IN_FLIGHT_TTL_MS = 45000;
-export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-3657303b54e1";
+export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-a4e9918fd64c";
 // 🔴 이용권 스냅샷의 상수·읽기·쓰기·판정은 전부 js/core/pass-verdict.js 가 소유한다.
 // 셸(index.html)·독립 정적(js/destiny-profile.js)과 **같은 localStorage 키**를 공유하므로 값이 갈리면
 // 같은 사용자가 어느 런타임에서 클릭했느냐에 따라 판정이 달라지고, 한쪽이 만료로 보고 지운 캐시가
@@ -1545,6 +1545,23 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
     checkoutEntry.sweepOrphanChoiceModals(modal);
     emitPaymentLoadingState(false);
     document.body.appendChild(modal);
+    // 전용 채널키가 없는 수단(스테이징 카카오페이 등)을 **주문을 만들기 전에** 타일에서 내린다.
+    // 셸·독립 정적과 같은 계약이고, config 왕복은 페이지당 1회를 세 렌더러가 나눠 쓴다(원칙 6).
+    // 모달 오픈은 막지 않는다 — 신호가 늦으면 그때 그 타일만 '준비 중'으로 바뀐다.
+    void checkoutEntry
+      .ensureDirectPayMethodAvailability(async () => {
+        const configResponse = await authFetchBilling("/api/payments/config", { method: "GET" });
+        const parsedConfig = await parseBillingResponse<Record<string, unknown>>(configResponse);
+        if (!parsedConfig.ok) throw new Error(parsedConfig.error?.message || "payment config unavailable");
+        return parsedConfig.raw;
+      })
+      .then((closed) => {
+        if (!closed || !closed.length) return;
+        checkoutEntry.markDirectPayMethodTilesUnavailable(modal, closed);
+      })
+      .catch(() => {
+        /* 모르면 막지 않는다 — 종전대로 전부 활성이다. */
+      });
     sharedChoiceLockToken = checkoutEntry.acquirePaymentChoiceLock("react");
     if (sharedChoiceLockToken) checkoutEntry.attachPaymentChoiceNode(sharedChoiceLockToken, modal);
     // 퍼널 시작점. 여기부터 checkout_option_click / checkout_dismissed 까지가 한 세션이다.

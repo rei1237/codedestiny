@@ -55,12 +55,47 @@ export type CheckoutReturnPoint = {
   featureKey: string;
 };
 
+/**
+ * 결제 전 화면 상태를 담은 재개 쪽지. 복귀한 문서는 새 문서라 콜백을 저장할 수 없어,
+ * **직렬화 가능한 값만** 남기고 실제 동작은 registerPaidResumeHandler 로 등록된 핸들러가 한다.
+ */
+export type PaidResumeDescriptor = {
+  /** 핸들러 식별자(예: "sukuyo-compat"). */
+  kind: string;
+  /** 셸 딥링크 `?action=` 값. 지속 카드의 '지금 열기' 버튼이 쓴다. */
+  action: string;
+  /** 원시값만 통과한다(문자열·유한수·불리언·null). */
+  args: Record<string, string | number | boolean | null>;
+};
+
 /** PG 리다이렉트 복귀 티켓. 확정에 필요한 최소 입력은 merchantUid 하나다. */
 export type DirectPaymentResumeTicket = {
   at: number;
   merchantUid: string;
   paymentMethod: string;
   confirmBody: Record<string, unknown> | null;
+  /** 확정 후 무엇을 다시 열지. 없으면 완료 안내까지만 한다. */
+  resume?: PaidResumeDescriptor | null;
+};
+
+/**
+ * "이 기능은 방금 돈을 냈다"는 로컬 증거. 리다이렉트 복귀 후 재개에 실패해도 재과금을 막는다.
+ * 🔴 이용권 판정이 아니다 — 게이트 진입에서 서버 왕복 없이 1회 통과시키는 용도로만 쓴다.
+ */
+export type PaidGrantReceipt = {
+  featureKey: string;
+  contentKey: string;
+  profileId: string;
+  requestId: string;
+  merchantUid: string;
+  at: number;
+};
+
+/** 영수증 매칭 키. 3개가 모두 같아야 히트다. */
+export type PaidGrantReceiptQuery = {
+  featureKey: string;
+  contentKey?: string;
+  profileId?: string;
 };
 
 export type CheckoutFunnelEventName =
@@ -218,8 +253,34 @@ declare const checkoutEntry: {
   /** 2단계 결제수단의 표시 순서. 활성 여부와 무관하게 전부 그린다(준비 중 포함). */
   DIRECT_PAY_METHOD_ORDER: DirectPayMethodId[];
   DEFAULT_DIRECT_PAY_METHOD: DirectPayMethodId;
-  /** PG 계약이 끝나 실제로 결제할 수 있는 수단인가. 정본은 DIRECT_PAY_METHODS 표 하나다. */
+  /**
+   * PG 계약이 끝나 실제로 결제할 수 있는 수단인가. 정적 정책(DIRECT_PAY_METHODS 표)과
+   * 런타임 가용성(setDirectPayMethodAvailability)을 곱한 값이다.
+   */
   isDirectPayMethodEnabled(id: unknown): boolean;
+  /**
+   * 서버 결제 config 를 받아, 전용 채널키를 요구하는 수단 중 **서버가 비었다고 말한** 것을
+   * 런타임 비가용으로 기록한다. 결제창을 여는 렌더러가 config 를 얻는 지점에서 부른다.
+   * 🔴 모르면 막지 않는다 — config 가 없거나 해당 필드를 안 실어 보냈으면 종전 동작 그대로다.
+   * @returns 이번 호출로 닫힌 카드 id 목록.
+   */
+  setDirectPayMethodAvailability(config: Record<string, unknown> | null | undefined): DirectPayMethodId[];
+  /** 조립부가 채널키 결손으로 실제로 막혔을 때의 안전망. 그 수단을 비가용으로 낙인한다. */
+  markDirectPayMethodUnavailable(id: unknown): boolean;
+  /**
+   * 결제창을 여는 렌더러가 부르는 1회성 워밍업. config 왕복은 페이지당 한 번이고 세 렌더러가
+   * 그 하나를 나눠 쓴다. 모달 오픈을 막지 않는다 — 결과가 오면 호출부가 타일만 내린다.
+   * @param loadConfig 렌더러의 인증 fetch 로 결제 config 를 받아 오는 함수.
+   * @returns 닫힌 카드 id 목록.
+   */
+  ensureDirectPayMethodAvailability(
+    loadConfig: () => Promise<Record<string, unknown> | null | undefined>,
+  ): Promise<DirectPayMethodId[]>;
+  /**
+   * 이미 그려진 2단계 패널의 타일을 기존 '준비 중' 규격으로 내린다(패널을 다시 그리지 않는다).
+   * @returns 실제로 내린 타일 수.
+   */
+  markDirectPayMethodTilesUnavailable(root: unknown, ids: readonly string[] | null | undefined): number;
   /**
    * 표의 표시용 메타(복사본). 결제창 CSS 를 쓰지 않아 buildDirectPayMethodStepHtml 을 못 쓰는
    * 렌더러(/points 이용권 결제수단 그리드)가 표를 정본으로 삼게 한다. 모르는 id 면 null.
@@ -285,6 +346,37 @@ declare const checkoutEntry: {
   /** TTL 이 지난 티켓은 없는 것으로 본다(회수는 확정·실패가 결정한다). */
   readDirectPaymentResumeTicket(): DirectPaymentResumeTicket | null;
   clearDirectPaymentResumeTicket(): void;
+  /**
+   * 유료 개방 영수증. 리다이렉트로 돌아와 재개에 실패한 사용자가 기능을 다시 눌러도 **재과금되지
+   * 않게** 한다 — 회당 결제 키는 서버 보유 목록에 남지 않아 서버에 물어봐도 "없음"이다.
+   * 🔴 로컬 스냅샷이므로 서버 왕복 없이 쓰고, **소비는 1회**다(영구 무료가 되면 안 된다).
+   */
+  GRANT_RECEIPT_KEY: string;
+  GRANT_RECEIPT_TTL_MS: number;
+  savePaidGrantReceipt(receipt: Partial<PaidGrantReceipt> & { featureKey: string }): boolean;
+  /** 있는지만 본다(소비하지 않음). 안내 문구용. */
+  peekPaidGrantReceipt(query: PaidGrantReceiptQuery): PaidGrantReceipt | null;
+  /** 있으면 돌려주고 지운다. 게이트 진입에서 한 번 무료 통과시키는 지점. */
+  consumePaidGrantReceipt(query: PaidGrantReceiptQuery): PaidGrantReceipt | null;
+  /**
+   * 재개 핸들러 등록. 기능 파일이 자기 스크립트 로드 시점에 부른다.
+   * 같은 kind 를 다시 등록하면 마지막 것이 이긴다.
+   */
+  registerPaidResumeHandler(
+    kind: string,
+    handler: (descriptor: PaidResumeDescriptor) => unknown,
+  ): boolean;
+  /**
+   * 서술자에 맞는 핸들러를 실행한다.
+   *
+   * 핸들러가 아직 등록돼 있지 않으면 **바로 포기하지 않는다** — 기능 스크립트가 지연 로드라
+   * 복귀 직후에는 대개 없다. 서술자의 `action` 딥링크로 그 표면을 열어 스크립트를 불러오고
+   * 등록될 때까지 최대 8초 기다린다(표면을 여는 책임은 여기 하나다 — 핸들러가 또 열면 이중 이동).
+   *
+   * 핸들러가 끝내 안 오거나 실패하면 **던지지 않고 false** 를 돌려주므로 호출부는 그때
+   * '지금 열기' 카드를 그린다.
+   */
+  runPaidResume(descriptor: PaidResumeDescriptor | null | undefined): Promise<boolean>;
 };
 
 export default checkoutEntry;
