@@ -1,0 +1,31 @@
+{
+  "_comment": "홈 하단 운세 가이드(.cd-home-guide)의 제작자·검수 책임 문단. 사실 정본은 lib/structured-data.ts 의 SITE_AUTHOR(박병하 · 명리학자 · 10년)이고, 같은 사람이 /about 의 '만드는 사람과 책임' 절에 적힌 인물이다. 🔴 비-ko 값에 한글을 쓰면 verify-i18n-runtime-readiness 가 실패하므로 이름은 로마자 'Park Byeong-ha' 로 통일했다 — 가타카나·한자 표기는 본인 표기를 확인하지 않은 추정이라 쓰지 않는다.",
+  "home.homeGuide.authorNote": {
+    "ko": "이 사이트를 만들고 사주·만세력 해설 문안을 최종 검수하는 사람은 10년 경력의 명리학자 박병하입니다. 계산은 명리학과 점성술의 고전 규칙이 맡고, 사람에게 건네는 문장은 사람이 책임집니다.",
+    "en": "This site is built by Park Byeong-ha, a myeongri (Korean Four Pillars) practitioner with ten years of experience, who also gives the Saju and Manseryeok commentary its final review. The calculations follow the classical rules of myeongri and astrology, and every sentence handed to a reader is a person's responsibility.",
+    "ja": "このサイトを作り、四柱推命・万年暦の解説文を最終監修しているのは、命理歴10年の鑑定家 Park Byeong-ha です。計算は命理と占星術の古典的な規則にゆだね、読み手に渡す文章は人が責任を持ちます。",
+    "zh-CN": "本站由拥有十年经验的命理师 Park Byeong-ha 打造，八字与万年历的解说文稿亦经其最终审定。推算依循命理与占星的古典规则，而交到读者手中的每一句话由人负责。",
+    "zh-TW": "本站由擁有十年經驗的命理師 Park Byeong-ha 打造，八字與萬年曆的解說文稿亦經其最終審定。推算依循命理與占星的古典規則，而交到讀者手中的每一句話由人負責。",
+    "vi": "Trang này do Park Byeong-ha, nhà nghiên cứu mệnh lý (Tứ Trụ) với mười năm kinh nghiệm, xây dựng và duyệt lần cuối các bài luận giải Tứ Trụ, lịch vạn niên. Phần tính toán tuân theo quy tắc cổ điển của mệnh lý và chiêm tinh, còn từng câu chữ trao đến người đọc thuộc trách nhiệm của con người.",
+    "hi": "इस साइट को दस वर्ष के अनुभव वाले म्योंगरी (कोरियाई चतुर्स्तंभ) विशेषज्ञ Park Byeong-ha ने बनाया है, और साजू तथा मानसेरयोक की व्याख्याओं की अंतिम समीक्षा भी उन्हीं की है। गणना म्योंगरी और ज्योतिष के शास्त्रीय नियमों पर चलती है, और पाठक तक पहुँचने वाला हर वाक्य मनुष्य की ज़िम्मेदारी है।",
+    "es": "Este sitio lo construye Park Byeong-ha, especialista en myeongri (los Cuatro Pilares coreanos) con diez años de experiencia, y de esa misma mano sale la revisión final de los textos de Saju y Manseryeok. Los cálculos siguen las reglas clásicas del myeongri y la astrología, y cada frase que llega al lector es responsabilidad de una persona.",
+    "fr": "Ce site est conçu par Park Byeong-ha, praticien de myeongri (les Quatre Piliers coréens) fort de dix ans d'expérience, qui relit également en dernier ressort les textes de Saju et de Manseryeok. Les calculs suivent les règles classiques du myeongri et de l'astrologie, et chaque phrase remise au lecteur relève de la responsabilité d'une personne.",
+    "de": "Diese Seite stammt von Park Byeong-ha, einer Fachkraft für Myeongri (die koreanischen Vier Säulen) mit zehn Jahren Erfahrung, von der auch die abschließende Prüfung der Saju- und Manseryeok-Texte kommt. Die Berechnungen folgen den klassischen Regeln von Myeongri und Astrologie, und jeder Satz, der die Lesenden erreicht, liegt in menschlicher Verantwortung.",
+    "nl": "Deze site is gemaakt door Park Byeong-ha, myeongri-beoefenaar (de Koreaanse Vier Pijlers) met tien jaar ervaring, van wie ook de eindcontrole op de Saju- en Manseryeok-teksten komt. De berekeningen volgen de klassieke regels van myeongri en astrologie, en elke zin die de lezer bereikt is de verantwoordelijkheid van een mens.",
+    "ms": "Laman ini dibina oleh Park Byeong-ha, pengamal myeongri (Empat Tiang Korea) dengan pengalaman sepuluh tahun, dan semakan akhir teks Saju serta Manseryeok juga datang daripada tangan yang sama. Pengiraan mengikut peraturan klasik myeongri dan astrologi, manakala setiap ayat yang sampai kepada pembaca ialah tanggungjawab manusia."
+  },
+  "home.homeGuide.authorLink": {
+    "ko": "만드는 사람과 검수 기준 보기",
+    "en": "Who makes this and how we review it",
+    "ja": "作り手と監修基準を見る",
+    "zh-CN": "了解制作者与审定标准",
+    "zh-TW": "了解製作者與審定標準",
+    "vi": "Xem người thực hiện và tiêu chí duyệt",
+    "hi": "निर्माता और समीक्षा मानदंड देखें",
+    "es": "Ver quién lo hace y los criterios de revisión",
+    "fr": "Voir qui le réalise et les critères de relecture",
+    "de": "Wer dahintersteht und wie geprüft wird",
+    "nl": "Bekijk wie dit maakt en hoe we controleren",
+    "ms": "Lihat pembina dan kriteria semakan"
+  }
+}

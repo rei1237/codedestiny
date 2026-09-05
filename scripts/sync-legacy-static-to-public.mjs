@@ -497,7 +497,7 @@ const LOCALE_SHELL_SEO = {
     language: "Japanese",
     title: "無料占い | 四柱推命・タロット・相性・今日の運勢 — CODE DESTINY",
     description:
-      "生年月日を入力するだけで四柱推命、タロット、紫微斗数、宿曜占星術、相性占いまで無料。AIがあなたの毎日の運勢と恋愛の流れを丁寧に読み解きます。",
+      "命理歴10年の鑑定家 Park Byeong-ha が監修。生年月日を入力するだけで四柱推命、タロット、紫微斗数、宿曜占星術、相性占いまで無料。AIがあなたの毎日の運勢と恋愛の流れを丁寧に読み解きます。",
     keywords:
       "四柱推命 無料, 占い 無料, タロット占い 無料, 今日の運勢, 相性占い, 紫微斗数, 宿曜占星術, 誕生日占い, 恋愛占い, 韓国 占い, 無料鑑定",
     appTitle: "CODE DESTINY ハニーピッグ占い",
@@ -511,7 +511,7 @@ const LOCALE_SHELL_SEO = {
     language: "Chinese",
     title: "免费算命 | 八字·塔罗·紫微斗数·今日运势 — CODE DESTINY",
     description:
-      "输入出生日期即可免费查看八字命理、塔罗牌、紫微斗数、宿曜占星与合婚配对。AI 为你细致解读每日运势与感情走向。",
+      "由拥有十年经验的命理师 Park Byeong-ha 审定。输入出生日期即可免费查看八字命理、塔罗牌、紫微斗数、宿曜占星与合婚配对。AI 为你细致解读每日运势与感情走向。",
     keywords:
       "免费算命, 八字算命, 生辰八字, 塔罗牌占卜, 今日运势, 合婚配对, 紫微斗数, 宿曜占星, 星座运势, 姻缘测算",
     appTitle: "CODE DESTINY 蜜豚运势",
@@ -527,7 +527,7 @@ const LOCALE_SHELL_SEO = {
     language: "Chinese",
     title: "免費算命 | 八字·塔羅·紫微斗數·今日運勢 — CODE DESTINY",
     description:
-      "輸入出生日期即可免費查看八字命理、塔羅牌、紫微斗數、宿曜占星與合婚配對。AI 為你細緻解讀每日運勢與感情走向。",
+      "由擁有十年經驗的命理師 Park Byeong-ha 審定。輸入出生日期即可免費查看八字命理、塔羅牌、紫微斗數、宿曜占星與合婚配對。AI 為你細緻解讀每日運勢與感情走向。",
     keywords:
       "免費算命, 八字算命, 生辰八字, 塔羅牌占卜, 今日運勢, 合婚配對, 紫微斗數, 宿曜占星, 星座運勢, 姻緣測算",
     appTitle: "CODE DESTINY 蜜豚運勢",
@@ -541,7 +541,7 @@ const LOCALE_SHELL_SEO = {
     language: "English",
     title: "Free Fortune Telling | Saju, Tarot & Daily Horoscope — CODE DESTINY",
     description:
-      "Enter your birth date for free Korean Saju (Four Pillars), tarot, Zi Wei Dou Shu and Sukuyo compatibility readings, with warm in-depth AI interpretations.",
+      "Reviewed by Park Byeong-ha, a Korean myeongri practitioner with ten years of experience. Enter your birth date for free Korean Saju (Four Pillars), tarot, Zi Wei Dou Shu and Sukuyo compatibility readings, with warm in-depth AI interpretations.",
     keywords:
       "free fortune telling, saju reading, four pillars of destiny, free tarot reading, daily horoscope, zi wei dou shu, compatibility test, korean astrology, birth chart",
     appTitle: "CODE DESTINY Honey Pig Fortune",
