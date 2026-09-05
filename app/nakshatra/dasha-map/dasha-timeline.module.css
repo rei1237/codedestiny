@@ -14,6 +14,7 @@
   font-size: 0.78rem;
   line-height: 1.8;
   word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .period {
@@ -46,15 +47,18 @@
   font-variant-numeric: tabular-nums;
 }
 .lord {
+  min-width: 0;
   color: var(--gold-soft);
   font-size: 0.92rem;
   font-weight: 800;
+  overflow-wrap: anywhere;
 }
 .periodCurrent .lord { color: var(--gold); }
 .phase {
   color: var(--t-300);
   font-size: 0.82rem;
   word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 .nowBadge {
   margin-left: auto;
@@ -74,6 +78,7 @@
   font-size: 0.85rem;
   line-height: 1.9;
   word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 .lineLabel { color: var(--east-soft); font-weight: 700; }
 .lineCaution .lineLabel { color: var(--rose-soft); }
@@ -86,6 +91,7 @@
   color: var(--t-300);
   font-size: 0.8rem;
   line-height: 1.8;
+  overflow-wrap: anywhere;
 }
 .easternLabel { color: var(--east-soft); font-weight: 700; }
 
@@ -110,7 +116,7 @@
 .subCurrent .subDate { color: var(--gold-soft); }
 .subLord { flex: none; font-weight: 700; color: var(--t-200); }
 .subCurrent .subLord { color: var(--gold); }
-.subTone { color: var(--t-300); word-break: keep-all; }
+.subTone { color: var(--t-300); word-break: keep-all; overflow-wrap: anywhere; }
 .subCurrent .subTone { color: var(--gold-soft); }
 
 @media (max-width: 560px) {
