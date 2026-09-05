@@ -665,6 +665,24 @@ export default function ResultStyles() {
           [data-kdo-reveal] { opacity: 1; transform: none; }
           .kdo-parallax { animation: none !important; }
         }
+
+        /* 결과 화면 가로 넘침 차단. 전역 overflow-x:clip 이라 넘친 내용은 가로 스크롤바 없이 그냥 잘린다 —
+           ① 암시적 1열 그리드의 min-content 바닥을 0 으로 내리고
+           ② 자동 최소폭에 밀리는 아이템을 풀고
+           ③ 줄바꿈 불가한 긴 런을 끊는다(keep-all 단독은 못 끊고 break-word 는 min-content 를 안 줄인다). */
+        .kdai-core-box, .kdo-today__more ul, .kdo-energy__list, .kdo-map__list,
+        .kdo-action__list, .kdo-evidence dl, .kdo-evidence__wrap { grid-template-columns: minmax(0, 1fr); }
+
+        .kdai-core-box__head, .kdai-core-box span, .kdo-today__more li,
+        .kdo-core__keywords, .kdo-core__keywords em, .kdai-chapter__head h2,
+        .kdo-evidence__row dt, .kdo-action__list li span { min-width: 0; }
+
+        .kdai-report-hero h1, .kdai-report-hero p, .kdai-chapter__head h2, .kdo-synthesis > h2,
+        .kdo-deck__toc li, .kdo-map__source, .kdo-letter .kdo-kicker,
+        .kdo-core__line, .kdo-core__keywords em, .kdo-energy__list p, .kdo-radar__caption,
+        .kdo-quote, .kdo-summary-line, .kdai-core-box span, .kdo-evidence__row dt,
+        .kdo-action__list li, .kdo-today__line, .kdo-today__more li,
+        .kdai-disclaimer, .kdo-loader p { overflow-wrap: anywhere; }
       `}</style>
     </>
   );
