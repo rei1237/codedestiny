@@ -8,11 +8,11 @@ import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loading
 export interface SikojenPovailuCopy {
   pigCounselDefaultTitle: string;
   spriteDefaultAlt: string;
-  appHomeAria: string;
-  appCloseButton: string;
+  topNavAriaLabel: string;
+  backButtonLabel: string;
+  backButtonAriaLabel: string;
+  homeButtonLabel: string;
 
-  welcomeCloseAria: string;
-  welcomeCloseLabel: string;
   welcomeSpriteAlt: string;
   welcomeGreeting: string;
   welcomeSubtitle: string;
@@ -47,11 +47,10 @@ export interface SikojenPovailuCopy {
 const SIKOJEN_POVAILU_COPY_EN: SikojenPovailuCopy = {
   pigCounselDefaultTitle: "Yeon-i’s Counsel Note",
   spriteDefaultAlt: "flower pig tin oracle image",
-  appHomeAria: "Return home",
-  appCloseButton: "✕ Home",
-
-  welcomeCloseAria: "Return to main",
-  welcomeCloseLabel: "Close",
+  topNavAriaLabel: "Tin oracle navigation",
+  backButtonLabel: "Back",
+  backButtonAriaLabel: "Go back",
+  homeButtonLabel: "Home",
   welcomeSpriteAlt: "Yeon-i sprite",
   welcomeGreeting: "Welcome 🌸",
   welcomeSubtitle:
@@ -61,7 +60,7 @@ const SIKOJEN_POVAILU_COPY_EN: SikojenPovailuCopy = {
   welcomeIntroBullet2: "Molten tin is cast into cold water, reading fate from the shape it hardens into",
   welcomeIntroBullet3: "20 shapes + shadow interpretation reveal both the surface meaning and the hidden message",
   welcomeIntroBullet4: "The Yeon-i sprite character appears differently in each phase, deepening the immersion",
-  welcomeIntroBullet5: "Press start to enter full-screen immersive mode for the ritual",
+  welcomeIntroBullet5: "Press start and the ritual begins right away — you can leave any time from the buttons at the top",
   welcomeCtaButton: "See my tin oracle",
 
   castingAvatarAlt: "Yeon-i casting phase",
@@ -88,11 +87,10 @@ const SIKOJEN_POVAILU_COPY: Partial<Record<LoadingLocale, SikojenPovailuCopy>> =
   ko: {
     pigCounselDefaultTitle: "연이의 상담 메모",
     spriteDefaultAlt: "꽃돼지 주석점 이미지",
-    appHomeAria: "홈으로 돌아가기",
-    appCloseButton: "✕ 홈으로",
-
-    welcomeCloseAria: "메인으로 돌아가기",
-    welcomeCloseLabel: "닫기",
+    topNavAriaLabel: "주석점 화면 이동",
+    backButtonLabel: "뒤로",
+    backButtonAriaLabel: "이전 페이지로 이동",
+    homeButtonLabel: "홈",
     welcomeSpriteAlt: "연이 스프라이트",
     welcomeGreeting: "어서 오세요 🌸",
     welcomeSubtitle:
@@ -102,7 +100,7 @@ const SIKOJEN_POVAILU_COPY: Partial<Record<LoadingLocale, SikojenPovailuCopy>> =
     welcomeIntroBullet2: "녹인 주석을 차가운 물에 던져 굳은 형태로 운명을 읽어요",
     welcomeIntroBullet3: "20가지 형태 + 그림자 해석으로 표면 의미와 숨은 메시지를 함께 읽어요",
     welcomeIntroBullet4: "연이 스프라이트 캐릭터가 페이즈마다 다른 모습으로 나타나 몰입감을 높여줘요",
-    welcomeIntroBullet5: "시작 버튼을 누르면 전체화면 몰입 모드로 의식을 진행할 수 있어요",
+    welcomeIntroBullet5: "시작 버튼을 누르면 바로 의식이 시작돼요. 언제든 위쪽 버튼으로 나갈 수 있어요",
     welcomeCtaButton: "내 주석점 보기",
 
     castingAvatarAlt: "연이 주조 단계",
@@ -127,11 +125,10 @@ const SIKOJEN_POVAILU_COPY: Partial<Record<LoadingLocale, SikojenPovailuCopy>> =
   ja: {
     pigCounselDefaultTitle: "ヨンの相談メモ",
     spriteDefaultAlt: "花豚の錫占い画像",
-    appHomeAria: "ホームへ戻る",
-    appCloseButton: "✕ ホームへ",
-
-    welcomeCloseAria: "メインへ戻る",
-    welcomeCloseLabel: "閉じる",
+    topNavAriaLabel: "錫占い画面の移動",
+    backButtonLabel: "戻る",
+    backButtonAriaLabel: "前のページに戻る",
+    homeButtonLabel: "ホーム",
     welcomeSpriteAlt: "ヨンのスプライト",
     welcomeGreeting: "ようこそ 🌸",
     welcomeSubtitle:
@@ -141,7 +138,7 @@ const SIKOJEN_POVAILU_COPY: Partial<Record<LoadingLocale, SikojenPovailuCopy>> =
     welcomeIntroBullet2: "溶かした錫を冷たい水に投げ入れ、固まった形で運命を読みます",
     welcomeIntroBullet3: "20種類の形+影の解釈で、表の意味と隠されたメッセージを一緒に読みます",
     welcomeIntroBullet4: "ヨンのスプライトキャラクターがフェーズごとに異なる姿で現れ、没入感を高めます",
-    welcomeIntroBullet5: "スタートボタンを押すと全画面没入モードで儀式を進められます",
+    welcomeIntroBullet5: "スタートボタンを押すとすぐに儀式が始まります。上のボタンでいつでも戻れます",
     welcomeCtaButton: "私の錫占いを見る",
 
     castingAvatarAlt: "ヨンの鋳造段階",
@@ -166,11 +163,10 @@ const SIKOJEN_POVAILU_COPY: Partial<Record<LoadingLocale, SikojenPovailuCopy>> =
   "zh-CN": {
     pigCounselDefaultTitle: "Yeoni 的咨询笔记",
     spriteDefaultAlt: "花猪锡占图片",
-    appHomeAria: "返回首页",
-    appCloseButton: "✕ 返回首页",
-
-    welcomeCloseAria: "返回主页",
-    welcomeCloseLabel: "关闭",
+    topNavAriaLabel: "锡占页面导航",
+    backButtonLabel: "返回",
+    backButtonAriaLabel: "返回上一页",
+    homeButtonLabel: "首页",
     welcomeSpriteAlt: "Yeoni 精灵",
     welcomeGreeting: "欢迎光临 🌸",
     welcomeSubtitle:
@@ -180,7 +176,7 @@ const SIKOJEN_POVAILU_COPY: Partial<Record<LoadingLocale, SikojenPovailuCopy>> =
     welcomeIntroBullet2: "将熔化的锡投入冷水,通过凝固的形态解读命运",
     welcomeIntroBullet3: "20 种形态 + 阴影解读,同时读出表面含义与隐藏讯息",
     welcomeIntroBullet4: "Yeoni 精灵角色在每个阶段以不同姿态出现,增添沉浸感",
-    welcomeIntroBullet5: "按下开始按钮即可进入全屏沉浸模式进行仪式",
+    welcomeIntroBullet5: "按下开始按钮即可立即开始仪式，随时可用顶部按钮离开",
     welcomeCtaButton: "查看我的锡占结果",
 
     castingAvatarAlt: "Yeoni 铸造阶段",
@@ -205,11 +201,10 @@ const SIKOJEN_POVAILU_COPY: Partial<Record<LoadingLocale, SikojenPovailuCopy>> =
   "zh-TW": {
     pigCounselDefaultTitle: "Yeoni 的諮詢筆記",
     spriteDefaultAlt: "花豬錫占圖片",
-    appHomeAria: "返回首頁",
-    appCloseButton: "✕ 返回首頁",
-
-    welcomeCloseAria: "返回主頁",
-    welcomeCloseLabel: "關閉",
+    topNavAriaLabel: "錫占頁面導航",
+    backButtonLabel: "返回",
+    backButtonAriaLabel: "返回上一頁",
+    homeButtonLabel: "首頁",
     welcomeSpriteAlt: "Yeoni 精靈",
     welcomeGreeting: "歡迎光臨 🌸",
     welcomeSubtitle:
@@ -219,7 +214,7 @@ const SIKOJEN_POVAILU_COPY: Partial<Record<LoadingLocale, SikojenPovailuCopy>> =
     welcomeIntroBullet2: "將熔化的錫投入冷水,透過凝固的形態解讀命運",
     welcomeIntroBullet3: "20 種形態 + 陰影解讀,同時讀出表面含義與隱藏訊息",
     welcomeIntroBullet4: "Yeoni 精靈角色在每個階段以不同姿態出現,增添沉浸感",
-    welcomeIntroBullet5: "按下開始按鈕即可進入全螢幕沉浸模式進行儀式",
+    welcomeIntroBullet5: "按下開始按鈕即可立即開始儀式，隨時可用頂部按鈕離開",
     welcomeCtaButton: "查看我的錫占結果",
 
     castingAvatarAlt: "Yeoni 鑄造階段",

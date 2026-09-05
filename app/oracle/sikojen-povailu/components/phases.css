@@ -1,6 +1,7 @@
 /* Sikojen Povailu - Phase별 스타일 */
 
-:root {
+/* 이 기능 전용 토큰 — :root 에 두면 전역으로 샌다. 포털 루트에만 건다. */
+.sikojen-app {
   --sikojen-cream: #FFF8E7;
   --sikojen-beige: #F5E6D3;
   --sikojen-ice: #A8D8EA;
@@ -602,36 +603,6 @@
 @keyframes bounce {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-10px); }
-}
-
-.casting-loading {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.3);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 20px;
-  z-index: 100;
-}
-
-.loading-spinner {
-  width: 50px;
-  height: 50px;
-  border: 4px solid rgba(244, 194, 194, 0.3);
-  border-top: 4px solid var(--sikojen-pink);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-.casting-loading p {
-  color: white;
-  font-size: 1.2rem;
 }
 
 /* ========== PHASE 4: REVEAL ========== */

@@ -1,260 +1,68 @@
-# 🎨 `styles/` — 글로벌 CSS 스타일
+# `styles/` — 전역 CSS
 
-> 이 폴더는 모든 페이지에서 사용되는 **CSS 스타일**을 포함합니다.
-
----
-
-## 📂 **주요 파일**
-
-| 파일 | 용도 | 크기 |
-|------|------|------|
-| **core-ui.css** | ⭐ 핵심 UI (버튼, 카드, 레이아웃) | 주요 |
-| **main-glass.css** | 글래스모피즘 디자인 효과 | 중간 |
-| **mobile-totem-flower-fix.css** | 모바일 최적화 & 톤 수정 | 작음 |
-| **entertain-system.css** | 엔터테인먼트 기능 스타일 | 중간 |
-| **fortune.css** | 운세 페이지 스타일 | 중간 |
-| **... (20+ 파일)** | 기능별 맞춤 스타일 | 다양 |
+> 이 폴더는 **정본**이다. `public/styles/` 는 `npm run sync:public` 이 만드는 배포 사본이므로 직접 고치지 않는다.
+> 디자인 규격의 정본은 [DESIGN.md](../DESIGN.md), 사고 사례·판정 기준은 [docs/context/design-and-ui.md](../docs/context/design-and-ui.md).
 
 ---
 
-## 🎯 **핵심 스타일**
+## 누가 무엇을 로드하는가
 
-### **1. core-ui.css** (가장 중요)
-```css
-/* 토글 힌트 텍스트 */
-.fc-toggle-hint__text {
-  font-weight: 700;
-  letter-spacing: 0.03em;
-}
+**이 구분이 이 문서의 존재 이유다.** 여기 있는 CSS 는 두 세계가 나눠 쓰는데, 어느 쪽이 로드하는지 모르고 고치면 반영이 안 되거나 반대쪽까지 바뀐다.
 
-/* 컬렉션 카드 */
-.feat-collection {
-  /* 기본 스타일 */
-}
+### 1. App Router — `app/layout.js` 가 import 하는 4개
 
-/* 버튼 & 입력 */
-.btn-main, .btn-secondary {
-  /* 버튼 스타일 */
-}
+```
+globals.css            리셋 · @font-face · .cd-* 컴포넌트 · .cd-guide(--gd-*)
+theme-tokens.css       페르소나 토큰 정본 (--cd-*)
+mobile-bottom-nav.css
+yehwa-motifs-nav.css
 ```
 
-### **2. main-glass.css** (글래스모피즘)
-```css
-/* 글래스 효과 */
-.glass-panel {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
+여기 없는 파일은 **App Router 페이지에서 쓸 수 없다.** 기능 전용 스타일은 그 기능 폴더의 `*.module.css` 에 둔다.
 
-/* 토글 힌트 */
-.fc-toggle-hint {
-  background: linear-gradient(120deg, rgba(255,255,255,0.08), ...);
-  backdrop-filter: blur(6px);
-}
-```
+`app/app/**`(안드로이드 앱 셸)만 예외로 `app/app/layout.tsx` 가 `app-shell.css` 를 추가로 import 한다.
 
-### **3. mobile-totem-flower-fix.css** (모바일 최적화)
-```css
-/* 모바일 텍스트 가독성 */
-#inputPage .fc-toggle-hint__text {
-  font-size: clamp(0.92rem, 2.35vw, 1.04rem) !important;
-  font-weight: 800 !important;
-  color: rgba(246, 241, 255, 0.98) !important;
-  text-shadow: 0 0 8px rgba(196, 171, 255, 0.45);
-}
+### 2. 정적 셸 — `index.html` 이 `<link>` 하는 22개
 
-/* 반응형 레이아웃 */
-@media (max-width: 768px) {
-  /* 모바일 스타일 */
-}
-```
+`animal-totem-mystic` · `core-ui` · `cosmic-main` · `destiny-flower-cosmic` · `fonts-serif` · `fortune-gateway` · `fortune-ui-home` · `fortune-ui` · `life-book` · `love-secret` · `mobile-bottom-nav` · `mobile-lite` · `mobile-totem-flower-fix` · `sibyl-system` · `tarot-healing-dawn` · `tarot-love-mystic` · `tarot-reunion-lighthouse` · `tarot-self-esteem-quest` · `tarot-year-fortune` · `theme-tokens` · `yehwa-motifs-nav` · `yehwa-motifs`
+
+🔴 **로드 순서가 곧 우선순위다.** 셸은 오버라이드가 여러 파일에 흩어져 있어 "첫 매치"를 고치면 아무 일도 일어나지 않는다. 고치기 전에 `<link>` 순서와 선택자 특이도로 **어느 블록이 실제로 이기는지** 먼저 확정한다.
+
+### 3. 생성물 — 손으로 고치지 않는다
+
+| 파일 | 재생성 명령 |
+|---|---|
+| `fonts-serif.css` | `node scripts/build-serif-font-assets.mjs` (+ `npm run verify:r2-fonts`) |
+| `yehwa-motifs.css` | `node scripts/design/gen-yehwa-motifs.mjs` (`--check` 로 드리프트 감지) |
 
 ---
 
-## 🎨 **색상 & 테마**
+## 색 · 폰트
 
-### **다크 모드 (기본)**
-```css
-/* 배경 */
---bg-dark: #040510;
---bg-darker: #020617;
+**`theme-tokens.css` 가 색의 정본이다.** 하드코딩 hex 를 새로 심지 말고 `--cd-*` 를 쓴다.
 
-/* 텍스트 */
---text-light: #f8fafc;
---text-muted: rgba(219, 234, 254, 0.8);
+- 두 페르소나로 갈린다 — **연이**(핑크 계열, `:root`)와 **네오**(퍼플 계열, `.neo-mode` / `[data-cd-theme="neo"]`). 가르는 축은 명도가 아니라 **hue** 다.
+- 🔴 **페르소나 분기(`.neo-mode`)는 정적 셸 전용이다.** App Router 신규 기능에 테마 분기를 새로 도입하지 않는다.
+- 기능 전용 색은 전역 `--cd-*` 를 서브트리에서 덮지 말고 **사설 접두사**로 스코프한다(`--ls-*`, `--fx-*`, `--gd-*`). 정본 예시: `app/love-secret-ai/love-secret-theme.module.css`.
 
-/* 악센트 */
---accent-gold: #c9a84c;
---accent-purple: #c4abfd;
---accent-blue: #5dd9ff;
-```
-
-### **라이트 모드** (지원 예정)
-```css
-/* 다크 모드와 반대 */
---bg-light: #ffffff;
---text-dark: #111827;
-```
+폰트 스택은 `globals.css` 상단에 있다(`--font-body` / `-display` / `-premium` / `-playful` / `-decorative` / `-serif`). 🔴 스택 맨 앞의 `CodeDestinyHan` 은 한자 두부 방지용 OS 로컬 폰트라 **순서를 바꾸지 않는다.**
 
 ---
 
-## 🔄 **파일 동기화**
+## 대비 (WCAG 2.1 AA)
 
-```
-styles/                  ←→  public/styles/
-(개발 버전)                (배포 버전)
-```
-
-**규칙**:
-- `styles/` 폴더의 파일 수정
-- 빌드 시 자동으로 `public/styles/`로 복사
-- 필요 시 수동 복사 또는 동기화 스크립트 실행
+- 본문 **4.5:1**, 큰 텍스트(18.66px+bold / 24px+)·UI 경계·아이콘·포커스 링 **3:1**. muted 텍스트도 예외가 아니다.
+- 🔴 **반투명 위의 글자는 합성색 기준으로 잰다.** 토큰끼리는 멀쩡한데 배경과 알파 합성하면 떨어지는 사고가 실제로 있었다.
+- 배경을 직접 칠했으면 **글자색도 세트로 바꾼다.** 배경만 덮는 반쪽 오버라이드는 `npm run verify:hero-contrast` 가 막는다.
 
 ---
 
-## 📐 **주요 클래스**
+## 고치고 나서
 
-### **컬렉션 카드**
-```html
-<div class="feat-collection">
-  <button class="feat-collection__header fc-toggle-btn">
-    <h3 class="feat-collection__title">동물 & 관상</h3>
-    <div class="fc-toggle-hint">
-      <span class="fc-toggle-hint__arrow">▾</span>
-      <span class="fc-toggle-hint__text">눌러서 열기</span>
-    </div>
-  </button>
-</div>
-```
-
-### **버튼**
-```html
-<!-- 메인 버튼 -->
-<button class="btn-main">사주 분석</button>
-
-<!-- 보조 버튼 -->
-<button class="btn-secondary">더 알아보기</button>
-
-<!-- 유료 버튼 -->
-<button class="btn-coin">유료 시작</button>
-```
-
-### **타일 (카드)**
-```html
-<div class="tarot-tile tarot-tile--love">
-  <div class="tarot-tile__img-wrap">
-    <img class="tarot-tile__img" src="...">
-  </div>
-  <span class="tarot-tile__badge">무료</span>
-</div>
-```
-
----
-
-## 🎯 **수정 가이드**
-
-### **텍스트 색상 변경**
-```css
-/* core-ui.css */
-.fc-toggle-hint__text {
-  color: rgba(255, 255, 255, 0.9); /* ← 변경 */
-}
-```
-
-### **버튼 스타일 수정**
-```css
-/* core-ui.css */
-.btn-main {
-  background: linear-gradient(90deg, #c9a84c, #e5c05b);
-  padding: 14px 24px; /* ← 변경 */
-  border-radius: 12px; /* ← 변경 */
-}
-```
-
-### **모바일 반응형**
-```css
-/* mobile-totem-flower-fix.css */
-#inputPage .fc-toggle-hint__text {
-  font-size: clamp(0.92rem, 2.35vw, 1.04rem) !important; /* 반응형 */
-}
-```
-
----
-
-## ⚙️ **CSS 빌드 순서**
-
-```
-1. core-ui.css          (기본)
-2. main-glass.css       (오버라이드)
-3. mobile-totem-flower-fix.css (최종 모바일 최적화)
-4. ... (기능별 스타일)
-```
-
-> **중요**: 로드 순서가 중요 (나중에 로드된 CSS가 우선)
-
----
-
-## 🚀 **수정 & 배포**
-
-### **즉시 반영 필요한 경우**
 ```bash
-# 1. styles/ 폴더의 CSS 수정
-vi styles/core-ui.css
-
-# 2. public/styles/ 동일하게 수정
-vi public/styles/core-ui.css
-
-# 3. 캐시 무효화 (index.html의 버전 쿼리 업데이트)
-<link rel="stylesheet" href="/styles/core-ui.css?v=20260419-fix1">
-
-# 4. 배포
-npm run build
-git push
+npm run sync:public          # styles/ → public/styles/ 사본 갱신 (산출물도 함께 커밋)
+npm run verify:style-sync    # 두 폴더 바이트 동기화 확인
+npm run verify:hero-contrast
 ```
 
-### **다음 배포 사이클**
-```bash
-# CSS 수정만 하면 자동 반영
-vi styles/core-ui.css
-npm run build
-git push
-```
-
----
-
-## 📌 **주의사항**
-
-### **⚠️ 파일 동기화**
-```
-styles/core-ui.css ≠ public/styles/core-ui.css
-→ 배포 후 반영 안 될 수 있음
-→ 양쪽 모두 수정 권장
-```
-
-### **⚠️ 캐시 문제**
-```
-브라우저 캐시로 인해 CSS가 업데이트 안 보일 수 있음
-→ Ctrl+Shift+Delete (캐시 지우기)
-→ 또는 버전 쿼리 변경
-```
-
-### **⚠️ !important 주의**
-```css
-/* 남용하면 추후 오버라이드 어려움 */
-color: red !important; ← 피하기
-
-/* 우선순위 조정으로 해결 */
-#inputPage .class { color: red; }
-```
-
----
-
-## 🎯 **빠른 참고**
-
-- **모바일 테스트**: DevTools → Device Toolbar (Ctrl+Shift+M)
-- **반응형 값**: `clamp(min, preferred, max)` 사용
-- **색상 팔레트**: 프로젝트 기본 색상은 주황·보라·청색
-- **효과**: 글래스모피즘 (blur + transparency)
-
-📖 **더 자세히**: [QUICK_START.md](../QUICK_START.md)
+`globals.css` 만 예외다 — 루트는 `@tailwind` 지시자가 있는 Next.js 소스이고 `public/styles/globals.css` 는 별도로 관리되는 순수 CSS라, `verify:style-sync` 가 동기화 대상에서 뺀다.

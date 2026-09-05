@@ -15,11 +15,7 @@ interface SikojenpovailuContextType {
   isRitualing: boolean;
   isCasting: boolean;
   shadowShapeVisible: boolean;
-  
-  // 통계
-  visitCount: number;
-  lastVisit: string | null;
-  
+
   // 액션들
   selectCategory: (category: '금전운' | '연애운' | '행운') => void;
   generateShape: () => void;
@@ -33,14 +29,13 @@ interface SikojenpovailuContextType {
 const SikojenpovailuContext = createContext<SikojenpovailuContextType | undefined>(undefined);
 
 export function SikojenpovailuProvider({ children }: { children: ReactNode }) {
-  const [currentPhase, setCurrentPhase] = useState<SikojenpovailuContextType['currentPhase']>('ritual-prep');
+  // 첫 진입은 웰컴(TERVETULOA) — 무엇을 하는 점인지 먼저 보여준다.
+  const [currentPhase, setCurrentPhase] = useState<SikojenpovailuContextType['currentPhase']>('welcome');
   const [selectedCategory, setSelectedCategory] = useState<'금전운' | '연애운' | '행운' | null>(null);
   const [selectedShape, setSelectedShape] = useState<Shape | null>(null);
   const [isRitualing, setIsRitualing] = useState(false);
   const [isCasting, setIsCasting] = useState(false);
   const [shadowShapeVisible, setShadowShapeVisible] = useState(false);
-  const [visitCount, setVisitCount] = useState(0);
-  const [lastVisit, setLastVisit] = useState<string | null>(null);
 
   const selectCategory = (category: '금전운' | '연애운' | '행운') => {
     setSelectedCategory(category);
@@ -65,6 +60,8 @@ export function SikojenpovailuProvider({ children }: { children: ReactNode }) {
   };
 
   const resetGame = () => {
+    // 의도적으로 'welcome' 이 아니라 주머니 선택으로 되돌린다 —
+    // "다시 하기"가 매번 인트로부터 다시 시작하면 반복 이용이 번거롭다.
     setCurrentPhase('ritual-prep');
     setSelectedCategory(null);
     setSelectedShape(null);
@@ -80,8 +77,6 @@ export function SikojenpovailuProvider({ children }: { children: ReactNode }) {
     isRitualing,
     isCasting,
     shadowShapeVisible,
-    visitCount,
-    lastVisit,
     selectCategory,
     generateShape,
     setPhase: setCurrentPhase,

@@ -2,15 +2,14 @@
 
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { useRouter } from 'next/navigation';
 import { SikojenpovailuProvider, useSikojenpovailuContext } from './SikojenpovailuContext';
+import { SikojenTopNav } from './components/SikojenTopNav';
 import { PhaseWelcoming } from './components/PhaseWelcoming';
 import { PhaseRitualPrep } from './components/PhaseRitualPrep';
 import { PhaseCasting } from './components/PhaseCasting';
 import { PhaseReveal } from './components/PhaseReveal';
 import { PhaseSharing } from './components/PhaseSharing';
 import { ShadowReading } from './components/ShadowReading';
-import { useSikojenPovailuCopy } from './_lib/copy';
 import './components/phases.css';
 
 /**
@@ -50,13 +49,7 @@ function PhaseRouter() {
  * + Shadow - 숨겨진 그림자 의미 (선택)
  */
 export default function SikojenpovailuApp() {
-  const copy = useSikojenPovailuCopy();
-  const router = useRouter();
-  const appRef = React.useRef<HTMLDivElement | null>(null);
-  const [mounted, setMounted] = React.useState(false);
-
   React.useEffect(() => {
-    setMounted(true);
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
 
@@ -65,21 +58,15 @@ export default function SikojenpovailuApp() {
     };
   }, []);
 
-  const handleClose = React.useCallback(() => {
-    if (typeof window !== 'undefined' && window.history.length > 1) {
-      router.back();
-      return;
-    }
-    router.replace('/index.html');
-  }, [router]);
-
-  if (!mounted || typeof document === 'undefined') {
+  // ssr:false 로 로드되므로 첫 렌더부터 document 가 있다. mounted 게이트를 두면
+  // 로딩 셸이 사라진 뒤 빈 프레임이 한 번 더 생긴다.
+  if (typeof document === 'undefined') {
     return null;
   }
 
   return createPortal(
     <SikojenpovailuProvider>
-      <div ref={appRef} className="sikojen-app" style={{
+      <div className="sikojen-app" style={{
         position: 'fixed',
         inset: 0,
         zIndex: 2147483000,
@@ -93,30 +80,7 @@ export default function SikojenpovailuApp() {
         overscrollBehaviorY: 'contain',
         touchAction: 'pan-y',
       }}>
-        <button
-          type="button"
-          onClick={handleClose}
-          aria-label={copy.appHomeAria}
-          style={{
-            position: 'fixed',
-            top: 'max(12px, env(safe-area-inset-top, 0px) + 8px)',
-            right: 'max(12px, env(safe-area-inset-right, 0px) + 8px)',
-            zIndex: 2147483001,
-            border: '1px solid rgba(255, 255, 255, 0.35)',
-            borderRadius: '999px',
-            background: 'rgba(10, 8, 24, 0.72)',
-            color: '#fff',
-            fontSize: '0.92rem',
-            fontWeight: 800,
-            padding: '10px 14px',
-            cursor: 'pointer',
-            backdropFilter: 'blur(6px)',
-            WebkitBackdropFilter: 'blur(6px)',
-            boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
-          }}
-        >
-          {copy.appCloseButton}
-        </button>
+        <SikojenTopNav />
         <PhaseRouter />
       </div>
     </SikojenpovailuProvider>,
