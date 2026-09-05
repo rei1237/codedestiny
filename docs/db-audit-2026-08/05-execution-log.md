@@ -101,6 +101,10 @@ node scripts/migrate-encrypt-user-phone.mjs --apply             # 나머지
 
 복구 자료(개인정보 포함, 검증 후 파기): `D:\Development\code-destiny-backups\mongodb\20260906-phase3b\` — 전량 백업 + `migrations/` 아래 변경 전 이미지 2개.
 
+### 2026-09-06 08:10 KST 워커 `MONGO_URI` 시크릿 갱신 (장애 복구)
+
+프로덕션·스테이징 워커 모두 `[db-connect-error] Authentication failed` 로 DB 라우트 전부 503/500 (wrangler tail 실측, 2패밀리 × 3회 재시도 = 요청당 10~12초). 루트 `.env.local` 의 URI(07:09 갱신본)만 `ping` 통과, `.env.cloudflare.local`(08-28) 은 인증 실패 — Atlas 비밀번호가 회전됐는데 워커 시크릿이 옛 값이었다. 사용자 허락 후 `npm run secrets:cf:worker -- --target=production --only-key=MONGO_URI` · `--target=staging --only-key=MONGO_URI` 각 1회. 직후 `/api/insights`·`/api/reviews/summary`·`/api/reviews` 양쪽 전부 200. 장애 시작 시각은 미확인(tail 이 붙어 있지 않았다).
+
 ## 후속 확인 과제
 
 - **며칠 뒤 `npm run verify:truncate-consume-ids`** — 다시 200을 넘으면 아직 찾지 못한 상한 없는 쓰기 경로가 실재한다는 뜻이다. 현재 판단은 "2026-07-16 이전 `$addToSet` 잔재"이고, 이 재확인이 유일한 확실한 검증 수단이다.
