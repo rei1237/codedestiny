@@ -232,6 +232,33 @@ test("티켓 없는 새 탭 복귀: 쿼리 paymentId 만으로 confirm 하고 Ge
   }
 });
 
+// 나가는 절반. 위 재개가 성립하려면 결제 **전에** 서술자가 게이트까지 도달해 티켓에 실려야 한다.
+// 타로 3종은 옵션 백 없는 축약형 window._cdCoinGatePerUse(cost, reason, cb, onCancel) 를 쓰므로,
+// 이 래퍼가 resume 을 빠뜨리면 핸들러를 아무리 잘 등록해도 복귀 시 되살릴 것이 없다(홈으로 떨어진다).
+test("_cdCoinGatePerUse 는 resume 서술자를 결제 게이트까지 그대로 넘긴다", async () => {
+  const captured = [];
+  const descriptor = { kind: "tarot-love-final", action: "openTarotLoveModal", args: { cards: "[]" } };
+  const { window } = boot({
+    url: "https://code-destiny.com/",
+    ticket: null,
+    beforeProfile: (win) => {
+      win._cdOpenPaidServiceGate = function (options) {
+        captured.push(options);
+        return Promise.resolve({ status: "cancelled" });
+      };
+    },
+  });
+  try {
+    window._cdCoinGatePerUse(50, "우리는 무슨 사이? 타로 리딩", () => {}, undefined, { resume: descriptor });
+    await waitFor(() => captured.length === 1, "결제 게이트 호출");
+
+    assert.deepEqual(captured[0].resume, descriptor, "resume 이 게이트 옵션에서 사라졌다");
+    assert.equal(captured[0].featureKey, "tarot-love-relationship", "reason 으로 featureKey 가 해석된다");
+  } finally {
+    window.close();
+  }
+});
+
 // 이번 변경의 본체. 결제 전에 남긴 서술자로 기능이 **스스로** 열리고, 그 대가로 영수증을 쓴다.
 test("재개 서술자 + 등록된 핸들러: 기능이 스스로 열리고 영수증을 소비하며 지속 카드는 뜨지 않는다", async () => {
   const handled = [];

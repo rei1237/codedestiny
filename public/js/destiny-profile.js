@@ -5745,6 +5745,9 @@
         allowedPaymentModes: optionBag.allowedPaymentModes,
         disablePassFirst: optionBag.disablePassFirst,
         disablePassChoice: optionBag.disablePassChoice,
+        // 🔴 모바일 PortOne 리다이렉트는 이 프레임을 통째로 날린다 — 결제 전 화면 상태를 담은 재개
+        //    서술자를 게이트까지 넘겨야 복귀 문서가 기능을 다시 열 수 있다(없으면 홈으로 떨어진다).
+        resume: optionBag.resume,
         onGranted: function(transactionId, payload) {
           deliverGateGrant(transactionId, payload);
         },
@@ -12562,6 +12565,9 @@
         allowedPaymentModes: optionBag.allowedPaymentModes,
         disablePassFirst: optionBag.disablePassFirst,
         disablePassChoice: optionBag.disablePassChoice,
+        // 🔴 모바일 PortOne 리다이렉트는 이 프레임을 통째로 날린다 — 결제 전 화면 상태를 담은 재개
+        //    서술자를 게이트까지 넘겨야 복귀 문서가 기능을 다시 열 수 있다(없으면 홈으로 떨어진다).
+        resume: optionBag.resume,
         onGranted: function(transactionId, payload) {
           deliverGateGrant(transactionId, payload);
         },
