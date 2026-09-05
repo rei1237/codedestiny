@@ -9,6 +9,10 @@
  *    Two Covers 구조라, 항상 다크인 관리자에 물리면 연이 모드에서 로즈골드(#c9a46a)로 바뀐다.
  *    금빛은 아래에 알파로 복제해 둔다. styles/app-shell.css 도 같은 이유로 --cd-app-gold 를 따로 둔다.
  *
+ * 🔴 이 파일을 styles/ 로 옮기지 말 것 — sync:public 이 public/styles/ 로 미러하면서 정적 셸의
+ *    build-<hash> 캐시 키를 통째로 갱신한다(index.html·js/app.js 등 19개 파일). 관리자 CSS 는
+ *    Next 가 번들하므로 미러가 필요 없다. app/insights/insights-hub.css 와 같은 자리다.
+ *
  * 금빛은 장식 전용이다 — 글자·아이콘 색으로 쓰지 말 것. 쓰이는 곳은 세 군데뿐이다:
  * 브랜드 줄의 달 원반, 네비 오른쪽 가장자리 실선, 카드/툴바 상단 헤어라인.
  */

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
-// 관리자 전용 토큰·공용 부품. app/app/layout.tsx 가 app-shell.css 를 싣는 것과 같은 자리다.
-import "../../styles/admin-yehwa.css";
+// 관리자 전용 토큰·공용 부품. app/insights/layout.js 가 insights-hub.css 를 싣는 것과 같은 자리다.
+// 🔴 styles/ 에 두지 않는다 — sync:public 이 public/styles/ 로 미러하면서 정적 셸의
+//    build-<hash> 캐시 키를 통째로 갱신한다(실측 19개 파일). Next 가 번들하므로 미러는 불필요하다.
+import "./admin-yehwa.css";
 
 import AdminShell from "./_components/AdminShell";
 
