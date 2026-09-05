@@ -164,8 +164,11 @@ html[data-cd-theme="neo"] {
 
 /*
  * 프리미엄 표면 보강 토큰 (2026-07, additive)
- * 위 카드 토큰 세트가 정의만 되고 소비처가 없어 사문화돼 있었다. 여기 추가하는 값들은
- * styles/cd-premium-components.css 가 실제로 소비한다 — 쓰지 않을 토큰은 만들지 않는다.
+ * 위 카드 토큰 세트가 정의만 되고 소비처가 없어 사문화돼 있었다. 여기 값들의 실소비처는
+ * index.html(포커스 링·글로우·반경)과 app/destiny-compass/_components/*.module.css
+ * (hairline·skeleton·focus-ring)다 — 쓰지 않을 토큰은 만들지 않는다.
+ * 🔴 2026-09-05: 소비처로 적혀 있던 styles/cd-premium-components.css 는 index.html 의
+ * <link> 22개에도, app/layout.js 에도 없는 사문서라 삭제했다. 되살리지 말 것.
  * Glow-Not-Shadow(DESIGN.md §4)를 지키려고 elev-0 도 회색이 아니라 로즈/바이올렛 틴트다.
  */
 :root {

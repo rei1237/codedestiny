@@ -61,6 +61,9 @@ const CHROMELESS_ROUTES = [
   "/premium-unlock",
   "/olympus",
   "/oracle/rune",
+  // 핀란드 주석점 — 화면 전체를 덮는 파스텔 오버레이라 프리렌더된 헤더·링크 허브 푸터·탭바가
+  // 청크 로드 전까지 그대로 노출됐다(다른 랜딩페이지가 번쩍이는 것처럼 보임). 자체 상단바를 쓴다.
+  "/oracle/sikojen-povailu",
   "/destiny-compass",
   "/journey",
   "/island-consult",
@@ -105,6 +108,8 @@ const FEATURE_NAV_SELF_MANAGED_ROUTES = [
   "/reviews",
   // 자체 상단 컨트롤을 갖는다 — 공용 플로팅 나브가 겹치면 차트 위를 덮는다.
   "/human-design",
+  // 밝은 파스텔 배경 + 자체 상단바(뒤로·홈). 공용 나브는 어두운 페이지 전용이라 묻힌다.
+  "/oracle/sikojen-povailu",
   // 🔴 CHROMELESS_ROUTES 에만 넣으면 showFeatureNav 의 `hideChrome ||` 가지가 켜져
   //    관리자 화면 좌상단에 공용 back/home 나브가 새로 뜬다. 두 배열에 함께 있어야 한다.
   "/admin",
