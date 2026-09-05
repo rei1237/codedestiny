@@ -825,6 +825,12 @@ export async function connectDb(env = {}, options = {}) {
           // 지금은 3000 이며(코드·wrangler [vars] 동일), 되올리려면 양쪽을 함께 올려야 한다.
           retryWrites: true,
           retryReads: true,
+          /* 🔴 쓰기 보장을 코드에 못박는다(2026-09-06 Phase 1 진단 P1). 그 전까지 write concern 은
+             어디에도 없어서 실효값이 MONGO_URI 의 `w=` 에 종속됐다 — URI 에 `w=1` 이 섞이면 primary
+             교체 순간 확정된 결제·발급된 세션이 롤백될 수 있고, 코드만 봐서는 그걸 알 수 없었다.
+             M10 은 3노드 PSS 라 majority 는 2노드 ack 이고 커넥션 수에는 영향이 없다.
+             wtimeoutMS 는 소켓 타임아웃(7000)·op 예산(8000) 안쪽이어야 우리가 먼저 자른다. */
+          writeConcern: mongoWriteConcern(env),
           // Atlas Query Profiler / Real-Time Panel 에서 부하 주체를 구분하기 위한 라벨.
           // 이게 없으면 공유 커넥션과 결제 레인이 같은 익명 클라이언트로 뭉쳐 보인다.
           appName: String(getEnv(env, "MONGO_APP_NAME", "code-destiny-worker") || "code-destiny-worker").slice(0, 128),
@@ -1015,6 +1021,12 @@ export async function connectPaymentDb(env = {}) {
     // M10 리플리카셋에서 primary 교체 시 결제 op 를 드라이버가 살려 준다 — connectDb 주석 참고.
     retryWrites: true,
     retryReads: true,
+    // 공유 커넥션과 같은 이유(connectDb 주석) — 결제 확정·권한 부여가 URI 의 w= 에 종속되지 않게.
+    writeConcern: mongoWriteConcern(env),
+    /* 결제 레인의 읽기는 majority 로 본다. 이 레인이 읽는 것은 주문 상태(CAS 판정)·이용권·잔량이라
+       "primary 가 방금 받았지만 아직 다수에 복제되지 않은" 값을 근거로 확정하면 안 된다. 공유
+       커넥션에는 걸지 않는다 — 인증·목록 읽기는 primary local 로 충분하고 비용이 더 크다. */
+    readConcern: { level: "majority" },
     // Atlas Profiler 에서 결제 부하를 공유 트래픽과 분리해 보기 위한 라벨.
     appName: String(getEnv(env, "MONGO_PAYMENT_APP_NAME", "code-destiny-payments") || "code-destiny-payments").slice(0, 128),
     bufferCommands: false,
@@ -1124,6 +1136,22 @@ export function mongoTransactionOptions(env = {}) {
   // 채워 두므로 getEnv 가 거기서 읽는다. 호출부(라우트 깊숙한 클로저)에 env 가 없는 곳이 있다.
   return {
     timeoutMS: clampTimeoutMs(getEnv(env, "MONGO_TXN_TIMEOUT_MS", "8000"), 8000, 2000, 15000),
+    // 🔴 트랜잭션은 세션 기본값을 따르므로 커넥션 옵션의 writeConcern 이 자동으로 붙지 않는다.
+    // 여기 명시하지 않으면 잔량 차감·환불 되감기가 URI 의 w= 로 되돌아간다(connectDb 주석).
+    readConcern: { level: "majority" },
+    writeConcern: mongoWriteConcern(env),
+  };
+}
+
+/**
+ * 결제·세션 쓰기의 write concern. 커넥션 옵션(connectDb·connectPaymentDb)과 트랜잭션 옵션이
+ * 같은 값을 쓰도록 한 곳에 둔다. wtimeoutMS 를 넘기면 드라이버가 WriteConcernError 를 던지고
+ * retryWrites 가 한 번 살린다 — 상한은 op 예산(8000) 안쪽.
+ */
+export function mongoWriteConcern(env = {}) {
+  return {
+    w: "majority",
+    wtimeoutMS: clampTimeoutMs(getEnv(env, "MONGO_WRITE_CONCERN_WTIMEOUT_MS", "5000"), 5000, 1000, 8000),
   };
 }
 

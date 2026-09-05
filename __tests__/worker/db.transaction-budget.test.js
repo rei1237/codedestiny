@@ -98,6 +98,41 @@ test("트랜잭션 상한이 op 예산(12초) 안쪽이다", async () => {
   expect(stretched.timeoutMS).toBeLessThanOrEqual(15000);
 });
 
+test("트랜잭션·커넥션의 쓰기 보장이 majority 로 코드에 고정돼 있다", async () => {
+  // 2026-09-06 Phase 1 진단 P1: 그 전까지 write concern 이 코드 어디에도 없어 실효값이 MONGO_URI 의
+  // `w=` 에 종속됐다. 트랜잭션은 커넥션 옵션을 물려받지 않으므로 세 곳(공유 연결·결제 레인·트랜잭션)을
+  // 각각 지킨다. `w` 는 노브가 아니다 — env 로 완화되면 안 된다.
+  const { mongoTransactionOptions, mongoWriteConcern } = await import("../../worker/lib/db.js");
+  const OP_ATTEMPT_TIMEOUT_MS = 12000;
+
+  const options = mongoTransactionOptions();
+  expect(options.readConcern).toEqual({ level: "majority" });
+  expect(options.writeConcern.w).toBe("majority");
+  expect(options.writeConcern.wtimeoutMS).toBeGreaterThanOrEqual(1000);
+  expect(options.writeConcern.wtimeoutMS).toBeLessThan(OP_ATTEMPT_TIMEOUT_MS);
+  // wtimeout 이 트랜잭션 상한보다 길면 커밋 ack 대기 중에 트랜잭션이 먼저 끊긴다.
+  expect(options.writeConcern.wtimeoutMS).toBeLessThanOrEqual(options.timeoutMS);
+
+  // 노브로 늘려도 op 예산 밖으로 못 나간다.
+  const stretched = mongoWriteConcern({ MONGO_WRITE_CONCERN_WTIMEOUT_MS: "600000" });
+  expect(stretched.w).toBe("majority");
+  expect(stretched.wtimeoutMS).toBeLessThan(OP_ATTEMPT_TIMEOUT_MS);
+
+  // 커넥션 리터럴 두 곳(connectDb 의 mongoose.connect · connectPaymentDb 의 createConnection)이
+  // 같은 헬퍼를 쓴다. 정확히 2곳 — 하나가 빠지면 그 레인만 URI 로 되돌아간다.
+  const dbSource = readFileSync(path.join(WORKER_DIR, "lib/db.js"), "utf8");
+  const wiring = dbSource.match(/^\s*writeConcern:\s*mongoWriteConcern\(env\),/gm) ?? [];
+  expect(wiring).toHaveLength(3); // 공유 연결 + 결제 레인 + mongoTransactionOptions
+  // 결제 레인만 readConcern majority 다. 함수 본문 범위로 잘라 본다 — 파일 전체 매칭은
+  // mongoTransactionOptions 의 readConcern 에 걸려 레인에서 빠져도 초록불이 된다.
+  const laneStart = dbSource.indexOf("export async function connectPaymentDb");
+  expect(laneStart).toBeGreaterThan(-1);
+  const laneEnd = dbSource.indexOf("\nexport ", laneStart + 1);
+  const laneSource = dbSource.slice(laneStart, laneEnd === -1 ? undefined : laneEnd);
+  expect(laneSource).toMatch(/readConcern:\s*\{\s*level:\s*"majority"\s*\}/);
+  expect(laneSource).toMatch(/writeConcern:\s*mongoWriteConcern\(env\)/);
+});
+
 test("payment-service 의 자체 기본값이 db.js 의 값과 어긋나지 않는다", async () => {
   // payment-service.js 는 의존성 주입식이라 db.js 를 import 하지 않는다. 그래서 상수가 두 벌
   // 존재하고, 드리프트하면 한쪽만 120초로 돌아간 것을 아무도 모른다.

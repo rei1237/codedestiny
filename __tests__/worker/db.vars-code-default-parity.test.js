@@ -30,6 +30,7 @@ const PAIRED_KNOBS = [
   "MONGO_POOL_FORCE_RESET_AFTER",
   "MONGO_WORKER_RETRY_DELAY_MS",
   "MONGO_SLOW_OP_MS",
+  "MONGO_WRITE_CONCERN_WTIMEOUT_MS",
   // 아래 넷은 CLAUDE.md 가 "한 세트"로 못박은 커넥션 타임아웃. 파생 하한
   // (attemptTimeoutFloor = serverSelectionTimeoutMS + 3500)이 여기에 걸려 있다.
   "MONGO_SERVER_SELECTION_TIMEOUT_MS",

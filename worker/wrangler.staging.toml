@@ -262,6 +262,7 @@ MONGO_OP_ATTEMPT_TIMEOUT_MS = "8000"
 # 트랜잭션 CSOT. 드라이버 기본은 120000(mongodb/lib/sessions.js MAX_TIMEOUT)이라, 이게 없으면
 # "사용자에겐 실패라고 답했는데 트랜잭션은 뒤에서 커밋"이 가능해진다. op 예산과 같은 값으로 맞춰 둔다.
 MONGO_TXN_TIMEOUT_MS = "8000"
+MONGO_WRITE_CONCERN_WTIMEOUT_MS = "5000"
 # op 재시도. 선거 내성은 retryWrites/retryReads 와 이 재시도가 나눠 맡는다.
 MONGO_OP_RETRIES = "1"
 MONGO_OP_RETRY_DELAY_MS = "120"
