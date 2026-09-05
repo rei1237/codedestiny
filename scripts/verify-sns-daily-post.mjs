@@ -1083,6 +1083,18 @@ function jsonResponse(body, status = 200) {
     "표식 쓰기가 재시도된다 — 재시도는 표식만 늦추고 크론 예산을 먹을 뿐이다(㉓)",
   );
 
+  /* 🔴 2026-09-05: 이 표식 쓰기가 집계 파이프라인(배열)인데 `updatePipeline: true` 가 빠져 있었다.
+     Mongoose 9 는 배열 업데이트를 쿼리 계층에서 거부한다(DB 왕복조차 없다) — 표식이 매번 실패했고,
+     바로 위 규약대로 발행을 포기해 사흘간(09-03~09-05) 텔레그램·스레드 발행이 0건이었다.
+     전수 가드는 verify:mongoose-update-pipeline 이지만, SNS 계약은 여기서도 자족적으로 지킨다. */
+  if (/\[\s*\{\s*\$set/.test(markBody)) {
+    assert.ok(
+      /updatePipeline:\s*true/.test(markBody),
+      "markSendStarted 가 배열(집계 파이프라인) 업데이트를 `updatePipeline: true` 없이 넘긴다 — Mongoose 9 가 " +
+        "DB 왕복 없이 던져 표식이 실패하고, 위 규약대로 발행이 통째로 멈춘다(㉓)",
+    );
+  }
+
   // [UTC 시각, 창 밖인가]. 22:00 정각은 일일 크론과 겹치므로 창 밖이다.
   const RECOVERY_CASES = [
     ["2026-09-03T21:59:00Z", true],

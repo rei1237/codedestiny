@@ -206,6 +206,11 @@ export function buildReclaimFilter(keyHash, now) {
  * 기본값이 `null` 이라(models.js) create 로 갓 만든 문서와 2026-09-03 에 굳은 좀비 문서에서
  * "Cannot create field 'sendStartedAt' in element {responseRef: null}" 로 서버가 거절한다.
  * 파이프라인 업데이트로 null 을 흡수하면서 기존 실패 흔적(error·stage)은 그대로 보존한다.
+ *
+ * 🔴 그래서 세 번째 인자 `{ updatePipeline: true }` 가 **빠지면 안 된다** — Mongoose 9 는 배열 업데이트를
+ * 쿼리 계층에서 거부한다(DB 왕복조차 없이 즉시 던진다). 위 규약대로 표식이 실패하면 발행을 포기하므로
+ * 그 한 줄이 없는 동안 **텔레그램·스레드 양 채널이 매일 stage=mark 로 죽었다**(2026-09-03~09-05, 발행 0건).
+ * 같은 요구사항의 선례는 lib/rate-limit.js — 전수 가드는 verify:mongoose-update-pipeline.
  */
 async function markSendStarted(env, keyHash, now) {
   await withMongoRetry(
@@ -220,6 +225,7 @@ async function markSendStarted(env, keyHash, now) {
           },
         },
       ],
+      { updatePipeline: true },
     ),
     { retries: 0 },
   );
