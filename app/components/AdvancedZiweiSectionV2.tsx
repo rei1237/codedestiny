@@ -406,6 +406,8 @@ export default function AdvancedZiweiSectionV2({
   const [chapters, setChapters] = useState<Partial<Record<ZiweiSectionId, ZiweiDeepChapter>>>({});
   const [activeSection, setActiveSection] = useState<ZiweiSectionId>("overview");
   const [openSections, setOpenSections] = useState<number[]>([0]);
+  // 절마다 접혀 있는 "왜 이렇게 읽었나" 영역. 결론이 앞, 자미두수 근거가 뒤다.
+  const [openEvidence, setOpenEvidence] = useState<number[]>([]);
   const [activeTrackId, setActiveTrackId] = useState<ZiweiConsultationTrackId>("life");
   const [isFullscreen, setIsFullscreen] = useState(false);
 
@@ -452,10 +454,15 @@ export default function AdvancedZiweiSectionV2({
   // 궁을 바꾸면 첫 절만 열린 상태로 되돌린다(앞 궁에서 펼친 절 번호가 따라오지 않게).
   useEffect(() => {
     setOpenSections([0]);
+    setOpenEvidence([]);
   }, [activeSection]);
 
   const toggleChapterSection = useCallback((index: number) => {
     setOpenSections((previous) => (previous.includes(index) ? previous.filter((row) => row !== index) : [...previous, index]));
+  }, []);
+
+  const toggleCardEvidence = useCallback((index: number) => {
+    setOpenEvidence((previous) => (previous.includes(index) ? previous.filter((row) => row !== index) : [...previous, index]));
   }, []);
 
   const palaceCounseling = useMemo<ZiweiPalaceCounselingItem[]>(() => (chart ? buildPalaceCounseling(chart) : []), [chart]);
@@ -1024,7 +1031,9 @@ export default function AdvancedZiweiSectionV2({
       if (marker <= 0 || marker > 14) return { label: "", value: line };
       return { label: line.slice(0, marker), value: line.slice(marker + 2) };
     });
-  // 개관·마스터플랜 장문에는 "### N." 이 없어 빈 배열이 온다 - 그때는 통짜 산문으로 렌더한다.
+  // 궁 챕터는 계산된 절 구조를 그대로 카드로 쓴다(문자열을 다시 자르지 않는다).
+  const categoryCards = activeChapter.palaceReading?.categories || [];
+  // 개관·마스터플랜은 palaceReading 이 없고 장문에 "### N." 도 없어 빈 배열이 온다 - 그때는 통짜 산문으로 렌더한다.
   const chapterSections = splitZiweiDeepCategories(activeChapter.fullText || "");
   const chapterText = `${activeChapter.title} ${(activeChapter.summary || []).join(" ")} ${activeChapter.fullText || ""}`;
   const chapterGlossary = ZIWEI_GLOSSARY_ENTRIES.filter((entry) => chapterText.includes(entry.term));
@@ -1371,11 +1380,104 @@ export default function AdvancedZiweiSectionV2({
               ))}
             </div>
 
-            {/* (2) 장문을 절 단위 아코디언으로. 절 분리는 splitZiweiDeepCategories 한 곳만 쓴다. */}
+            {/* (2) 절 단위 카드. 결론(핵심 한 줄 → 실제 모습 → 강점/주의/활용)이 앞이고 명반 근거는 뒤에 접어 둔다.
+                궁 챕터는 palaceReading.categories 를 그대로 쓰고, palaceReading 이 없는 개관·마스터플랜만
+                splitZiweiDeepCategories 산문 경로로 떨어진다(절 분리 정규식은 여전히 그 함수 한 곳뿐이다). */}
             <div className="mt-5">
               <p className="text-[11px] font-semibold tracking-[0.28em] text-cyan-100/85">{copy.chapterSectionsHeading}</p>
               <div className="mt-3 grid gap-2">
-                {chapterSections.length ? (
+                {categoryCards.length ? (
+                  categoryCards.map((card, index) => {
+                    const open = openSections.includes(index);
+                    const evidenceOpen = openEvidence.includes(index);
+                    return (
+                      <div key={`${activeSection}-card-${index}`} className="overflow-hidden rounded-2xl border border-white/10 bg-black/20">
+                        <button
+                          type="button"
+                          onClick={() => toggleChapterSection(index)}
+                          aria-expanded={open}
+                          className="flex min-h-[48px] w-full items-center justify-between gap-3 px-4 py-3 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-200/70"
+                        >
+                          <span className="text-sm font-black leading-6 text-white">{card.categoryTitle}</span>
+                          <span aria-hidden="true" className="shrink-0 text-base font-black text-cyan-100/85">{open ? "−" : "+"}</span>
+                        </button>
+                        {open ? (
+                          <div className="border-t border-white/10 px-4 pb-4 pt-3">
+                            {card.headline ? <p className="font-premium text-[15px] font-black leading-7 text-amber-50">{card.headline}</p> : null}
+                            <p className="font-premium mt-2 text-sm leading-7 text-slate-200">{card.interpretation}</p>
+
+                            <div className="mt-3 grid gap-2 md:grid-cols-2">
+                              {card.strengths?.length ? (
+                                <section className="rounded-2xl border border-emerald-300/18 bg-emerald-200/8 p-4">
+                                  <p className="text-xs font-semibold text-emerald-100">✦ {copy.detailCard.workingWellTitle}</p>
+                                  <ul className="font-premium mt-3 space-y-2 text-sm leading-7 text-slate-100">
+                                    {card.strengths.map((line) => (
+                                      <li key={line}>• {line}</li>
+                                    ))}
+                                  </ul>
+                                </section>
+                              ) : null}
+                              {card.cautions?.length ? (
+                                <section className="rounded-2xl border border-rose-300/18 bg-rose-200/8 p-4">
+                                  <p className="text-xs font-semibold text-rose-100">⚠ {copy.detailCard.overworkingTitle}</p>
+                                  <ul className="font-premium mt-3 space-y-2 text-sm leading-7 text-slate-100">
+                                    {card.cautions.map((line) => (
+                                      <li key={line}>• {line}</li>
+                                    ))}
+                                  </ul>
+                                </section>
+                              ) : null}
+                            </div>
+
+                            {card.actions?.length ? (
+                              <section className="mt-2 rounded-2xl border border-sky-300/18 bg-sky-200/8 p-4">
+                                <p className="text-xs font-semibold text-sky-100">💡 {copy.detailCard.practicalUseTitle}</p>
+                                <ul className="font-premium mt-3 space-y-2 text-sm leading-7 text-slate-100">
+                                  {card.actions.map((line) => (
+                                    <li key={line}>• {line}</li>
+                                  ))}
+                                </ul>
+                              </section>
+                            ) : null}
+
+                            {card.basisChips?.length ? (
+                              <div className="mt-3 flex flex-wrap gap-1.5">
+                                {card.basisChips.map((chip) => (
+                                  <span key={`${chip.label}-${chip.value}`} className="rounded-full border border-white/12 bg-white/6 px-3 py-1 text-xs text-slate-200">
+                                    <span className="font-semibold text-cyan-100">{chip.label}</span> {chip.value}
+                                  </span>
+                                ))}
+                              </div>
+                            ) : null}
+
+                            {card.evidenceNotes?.length ? (
+                              <div className="mt-3 overflow-hidden rounded-2xl border border-white/10 bg-black/30">
+                                <button
+                                  type="button"
+                                  onClick={() => toggleCardEvidence(index)}
+                                  aria-expanded={evidenceOpen}
+                                  className="flex min-h-[48px] w-full items-center justify-between gap-3 px-4 py-2 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-200/70"
+                                >
+                                  <span className="text-xs font-semibold text-cyan-50">{copy.evidenceToggleLabel}</span>
+                                  <span aria-hidden="true" className="shrink-0 text-sm font-black text-cyan-100/85">{evidenceOpen ? "−" : "+"}</span>
+                                </button>
+                                {evidenceOpen ? (
+                                  <div className="border-t border-white/10 px-4 pb-4 pt-3">
+                                    <ul className="font-premium space-y-2 text-sm leading-7 text-slate-300">
+                                      {card.evidenceNotes.map((line) => (
+                                        <li key={line}>• {line}</li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                ) : null}
+                              </div>
+                            ) : null}
+                          </div>
+                        ) : null}
+                      </div>
+                    );
+                  })
+                ) : chapterSections.length ? (
                   chapterSections.map((section, index) => {
                     const open = openSections.includes(index);
                     return (
@@ -1384,7 +1486,7 @@ export default function AdvancedZiweiSectionV2({
                           type="button"
                           onClick={() => toggleChapterSection(index)}
                           aria-expanded={open}
-                          className="flex min-h-[48px] w-full items-center justify-between gap-3 px-4 py-3 text-left"
+                          className="flex min-h-[48px] w-full items-center justify-between gap-3 px-4 py-3 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-200/70"
                         >
                           <span className="text-sm font-black leading-6 text-white">{section.title}</span>
                           <span aria-hidden="true" className="shrink-0 text-base font-black text-cyan-100/85">{open ? "−" : "+"}</span>
