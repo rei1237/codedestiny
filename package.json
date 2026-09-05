@@ -269,6 +269,7 @@
     "verify:mongo-reset-callers": "node scripts/verify-mongo-reset-callers.mjs",
     "verify:cron-mongo-op-coverage": "node scripts/verify-cron-mongo-op-coverage.mjs",
     "verify:mongo-query-index-shapes": "node scripts/verify-mongo-query-index-shapes.mjs",
+    "verify:mongoose-update-pipeline": "node scripts/verify-mongoose-update-pipeline.mjs",
     "verify:admin-route-error-context": "node scripts/verify-admin-route-error-context.mjs",
     "verify:entry-fanout": "node scripts/verify-entry-fanout.mjs",
     "verify:payment-freeze": "node scripts/verify-payment-freeze.mjs",

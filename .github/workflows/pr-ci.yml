@@ -802,6 +802,8 @@ jobs:
           npm run verify:mongo-reset-callers
           npm run verify:cron-mongo-op-coverage
           npm run verify:cron-mongo-op-coverage -- --self-test
+          npm run verify:mongoose-update-pipeline
+          npm run verify:mongoose-update-pipeline -- --self-test
           npm run verify:admin-route-error-context
           npm run verify:pass-snapshot
           npm run verify:phone-encryption
