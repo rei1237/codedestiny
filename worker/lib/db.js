@@ -555,6 +555,22 @@ function isTruthyLike(value) {
   return normalized === "1" || normalized === "true" || normalized === "on" || normalized === "yes";
 }
 
+/**
+ * 신규 연결 재시도의 대기 시간. 선형 `base × (attempt+1)` 에 ±30% 지터를 섞는다.
+ * 배포 직후·Atlas primary 교체 직후에는 수십 개 아이솔레이트가 같은 순간에 같은 오류를 받고
+ * 같은 박자로 재접속한다 — M10 은 노드당 신규 커넥션 15/s 가 상한이라 그 박자가 곧 두 번째
+ * 실패다(2026-09-06 Phase 1 진단 P2). 지터는 그 박자를 흩는 것이 전부이며 평균 대기는 그대로다.
+ * 🔴 op 재시도(withMongoRetry)에는 쓰지 않는다 — 그쪽은 커넥션 수립이 아니라 이미 열린 소켓 위의
+ * 재실행이라 폭풍이 없고, 예산(attemptTimeoutMs)이 대기까지 포함해 계산돼 있다.
+ */
+function backoffDelayMs(baseMs, attempt, random = Math.random) {
+  const base = Number(baseMs);
+  if (!Number.isFinite(base) || base <= 0) return 0;
+  const linear = base * (Math.max(0, Number(attempt) || 0) + 1);
+  const jitter = (random() * 2 - 1) * 0.3; // [-0.3, +0.3)
+  return Math.round(linear * (1 + jitter));
+}
+
 function sleep(ms) {
   const wait = Number(ms);
   if (!Number.isFinite(wait) || wait <= 0) return Promise.resolve();
@@ -898,8 +914,7 @@ export async function connectDb(env = {}, options = {}) {
         const isLastAttemptForFamily = attempt >= retryCount;
         const hasMoreFamilyCandidates = familyIndex < familyCandidates.length - 1;
         if (!isLastAttemptForFamily || hasMoreFamilyCandidates) {
-          const delayMs = retryBaseDelayMS * (attempt + 1);
-          await sleep(delayMs);
+          await sleep(backoffDelayMs(retryBaseDelayMS, attempt));
           continue;
         }
         break;
@@ -936,8 +951,7 @@ export async function connectDb(env = {}, options = {}) {
       const isLastAttemptForFamily = attempt >= retryCount;
       const hasMoreFamilyCandidates = familyIndex < familyCandidates.length - 1;
       if (!isLastAttemptForFamily || hasMoreFamilyCandidates) {
-        const delayMs = retryBaseDelayMS * (attempt + 1);
-        await sleep(delayMs);
+        await sleep(backoffDelayMs(retryBaseDelayMS, attempt));
         continue;
       }
     }
@@ -1076,7 +1090,7 @@ export async function connectPaymentDb(env = {}) {
           lastError = error;
           console.error(`[db-connect-error] payment lane failed (family=${candidate} attempt=${attempt + 1}): ${String(error?.message || error).slice(0, 200)}`);
           // 마지막 시도가 아니면 짧은 지터 후 재시도한다. connectDb 와 같은 근거·같은 노브.
-          if (attempt < laneRetryCount) await sleep(clampInt(getEnv(env, "MONGO_WORKER_RETRY_DELAY_MS", "220"), 220, 0, 2000) * (attempt + 1));
+          if (attempt < laneRetryCount) await sleep(backoffDelayMs(clampInt(getEnv(env, "MONGO_WORKER_RETRY_DELAY_MS", "220"), 220, 0, 2000), attempt));
         }
       }
     }
@@ -1511,6 +1525,7 @@ export { mongoose };
 // 리셋 폭풍의 핵심 상태라 회귀 테스트가 반드시 확인해야 한다.
 export const __dbTestUtils = {
   countActiveMongoOps,
+  backoffDelayMs,
   getConsecutiveConnectionFailuresForTest: () => consecutiveConnectionFailures,
   // 나이 기반 만료를 시간 경과 없이 재현한다(테스트에서 15초를 실제로 기다릴 수는 없다).
   expireActiveOpsForTest: () => {
