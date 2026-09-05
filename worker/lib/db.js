@@ -675,6 +675,17 @@ export async function connectDb(env = {}, options = {}) {
     if (lastHealthyAt && Date.now() - lastHealthyAt < pingMinIntervalMS) {
       return mongoose.connection;
     }
+    /* 🔴 이웃 op 이 살아 있으면 ping 을 **보내지 않는다**(2026-09-06). 프로덕션 tail 의
+       [db-op-timeout] 페이로드에서 버스트(콜드 + 동시 3요청)의 2·3번째 요청은 connectMs 가 정확히
+       300 = 아래 ping 예산이었다. 그 ping 은 결과와 무관하게 흐름을 못 바꾼다 — 성공하면 커넥션을
+       돌려주고, 실패해도 아래 catch 의 "남이 쓰고 있으면 끊지 않는다" 가드가 같은 커넥션을 돌려준다.
+       즉 이웃이 있는 동안의 ping 은 예산만 태우는 호출이라 없앤다. 죽은 소켓의 검증·교체는 종전대로
+       이웃이 없는 요청이 맡고(단독 요청은 매번 검증), catch 의 가드는 ping 도중 이웃이 들어오는
+       경우를 위해 그대로 둔다. */
+    if (countActiveMongoOps() > activeOpsOwned) {
+      if (timings) timings.pingSkipped = true;
+      return mongoose.connection;
+    }
     /* 3500 → 1000 → 300. 이 타이머는 "느린 서버를 기다리는 예산"이 아니라 **죽은 커넥션을 얼마나 빨리
        포기하는가**이다. 살아 있는 소켓의 ping 은 왕복 한 번이고, 죽은 쪽은 1.3초를 넘겨서야 돌아왔다.
        늦게 포기할수록 그만큼이 그대로 결제창 앞 지연이다.
