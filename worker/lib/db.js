@@ -439,9 +439,9 @@ let staleClientCloseTask = null;
  * 🔴 이 순서가 2026-08-08 재연결 폭주에 대한 경계를 **좁힌다**. 종전 `mongoose.disconnect()` 는
  * mongoose 가 아직 그 클라이언트를 가리키는 채로 `closeCheckedOutConnections()` 를 불렀다 —
  * 그래서 그 사이 컬렉션을 잡은 op 은 함께 끊겼다. 지금은 **끊기 전에 먼저 떼므로**, 떼어 낸 뒤
- * 들어온 요청은 옛 클라이언트에 닿을 길이 없다. 호출부의
- * `countActiveMongoOps() > activeOpsOwned` 가드(= 남이 쓰고 있으면 아예 여기까지 오지 않는다)는
- * 그대로 남는다 — 두 장치는 서로를 대체하지 않는다.
+ * 들어온 요청은 옛 클라이언트에 닿을 길이 없다. 호출부의 이웃 가드는 웜 분기의 **ping 건너뛰기**
+ * (`countActiveMongoOps() > activeOpsOwned` 면 ping 도 detach 도 없다)로 옮겨 갔다 — 두 장치는
+ * 서로를 대체하지 않는다. ping 도중 들어온 이웃까지는 막지 않는다(connectDb catch 주석, 2026-09-06).
  *
  * 🔴 옛 클라이언트를 그냥 버리면 안 된다 — `serverMonitoringMode:"poll"` 모니터가 노드마다
  * heartbeat 를 계속 던져(heartbeatFrequencyMS 주석 참조) 트래픽 없는 시간대의 Atlas Opcounters 를
@@ -680,8 +680,9 @@ export async function connectDb(env = {}, options = {}) {
        300 = 아래 ping 예산이었다. 그 ping 은 결과와 무관하게 흐름을 못 바꾼다 — 성공하면 커넥션을
        돌려주고, 실패해도 아래 catch 의 "남이 쓰고 있으면 끊지 않는다" 가드가 같은 커넥션을 돌려준다.
        즉 이웃이 있는 동안의 ping 은 예산만 태우는 호출이라 없앤다. 죽은 소켓의 검증·교체는 종전대로
-       이웃이 없는 요청이 맡고(단독 요청은 매번 검증), catch 의 가드는 ping 도중 이웃이 들어오는
-       경우를 위해 그대로 둔다. */
+       이웃이 없는 요청이 맡는다(단독 요청은 매번 검증). 🔴 이 분기가 곧 "남의 소켓을 끊지 않는다"
+       가드다 — 크론 태스크(cron-shared-connection-teardown.test.js)처럼 **먼저** 돌고 있는 op 은
+       여기서 걸러져 ping 도 detach 도 겪지 않는다. ping 도중에 들어온 이웃은 아래 catch 주석 참조. */
     if (countActiveMongoOps() > activeOpsOwned) {
       if (timings) timings.pingSkipped = true;
       return mongoose.connection;
@@ -736,16 +737,22 @@ export async function connectDb(env = {}, options = {}) {
          돌려줬고, 그 뒤 쿼리가 죽은 소켓 위에서 7.8초(위 표 1·6·7행)를 태웠다.
          "느린 성공"은 사용자에게 실패와 구분되지 않는다.
 
-         🔴 다만 **동시 요청이 있으면 끊지 않는다** — 여기의 전역 disconnect 가 같은 아이솔레이트의
-         살아 있는 요청까지 함께 죽여 재연결 폭풍을 일으킨 실사고가 있다(2026-08-08). 그때의 처방은
-         "절대 끊지 않는다"였는데, 그건 필요조건을 과하게 잡은 것이었다 — 실제로 위험한 것은
-         **남의 작업을 끊는 것**이지 내 커넥션을 새로 세우는 것이 아니다. 그래서 조건을
-         requestPoolRecovery 와 같은 가드(활성 op 이 나뿐인가)로 좁힌다. 남이 쓰고 있으면 종전대로
-         커넥션을 그대로 돌려주고 lastHealthyAt 만 무효화한다(그쪽은 느려도 동작한다). */
-      if (mongoose.connection.readyState === 1 && countActiveMongoOps() > activeOpsOwned) {
-        lastHealthyAt = 0;
-        return mongoose.connection;
-      }
+         🔴 **이웃 op 이 있어도 뗀다**(2026-09-06, 스테이징 재현 후). 여기에는 "남이 쓰고 있으면 끊지
+         않고 그대로 돌려준다" 가드(countActiveMongoOps() > activeOpsOwned)가 있었다 — 2026-08-08 의
+         전역 disconnect 가 살아 있는 동시 요청까지 죽인 사고의 처방이었다. 그런데 위 분기가 이웃이
+         있으면 ping 자체를 건너뛰게 된 뒤로 이 catch 에 이웃이 보이는 경우는 "내 ping 이 도는 300ms
+         사이에 이웃이 들어왔다"뿐이고, 그 이웃은 방금 죽었다고 판정된 바로 그 커넥션을 ping 없이
+         받아 간다. 그 상태에서 죽은 커넥션을 돌려주면 셋이 함께 8000ms 예산을 태운다 — 스테이징
+         버스트(동시 3건 × 5회) 15요청 중 [db-op-timeout] 4건, /api/reviews wall p95 11.7s 가 그것이다.
+         (반대로 이웃이 **먼저** 있던 경우 — 크론 태스크가 도는 중에 요청이 들어오는 2026-09-03 의
+         형태 — 는 위 분기가 ping 을 보내지 않으므로 여기까지 오지 않는다.)
+
+         떼는 것은 2026-08-08 의 전역 disconnect 와 다르다: detachDeadWarmConnection() 은 mongoose 를
+         먼저 분리하고 옛 클라이언트를 배경에서 닫는다. 그 위의 이웃 op 은 세션 종료/미연결 에러로
+         빨리 실패하고(isTransientMongoError 가 그 둘을 transient 로 분류한다) withMongoRetry 의
+         다음 시도가 새 커넥션을 탄다. 🔴 ping 이 거짓 실패(살아 있는데 예산 300 초과)면 살아 있던
+         이웃을 한 번 재시도시키는 비용을 낸다 — 스테이징 웜 ping rtt 실측 186~261ms 라 예산과
+         40ms 차이다. 예산 인하는 하지 말고, 프로덕션 [db-ping] rtt 를 잰 뒤에만 올릴 것. */
       /* 🔴 이 teardown 은 **임계 경로 위에 있었다** — 여기가 끝나야 새 커넥션 수립이 시작됐다.
          2026-08-31 계측(`[db-connect] warmResetMs`)이 그 값을 찍었다: 프로덕션 ≈232ms ·
          스테이징 1313~1390ms. 산술도 닫혔다 — 스테이징 선행 구간 1623 ≈ ping 300 + reset 1316.
@@ -1195,6 +1202,13 @@ export function isTransientMongoError(error) {
     // 메시지가 "Timed out while checking out a connection..." 이라 아래 정규식(connection .*timed out)에도
     // 걸리지 않는다(어순이 반대다) — 이름으로만 잡힌다.
     || name === "MongoWaitQueueTimeoutError"
+    // 🔴 connectDb 의 웜 detach 와 한 세트다(2026-09-06). ping 실패로 옛 MongoClient 가 배경에서
+    // 닫히면 그 위에 남아 있던 이웃 op 은 이 둘로 실패한다 — 2026-09-03 크론 사고 로그의 두 메시지
+    // "Cannot use a session that has ended" · "Client must be connected before running operations".
+    // 새 커넥션에서 재시도하면 회복되므로 transient 다. 이름을 빼면 이웃은 8초 hang 대신 즉시 500 을
+    // 받는다(느린 성공→즉시 실패로 바뀔 뿐 나아지지 않는다).
+    || name === "MongoExpiredSessionError"
+    || name === "MongoNotConnectedError"
   ) {
     return true;
   }
