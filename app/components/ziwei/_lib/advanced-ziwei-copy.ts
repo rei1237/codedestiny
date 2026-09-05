@@ -166,6 +166,28 @@ export interface AdvancedZiweiCopy {
   borrowedStarFallback: string;
   overallSummaryLoadingLine1: string;
   overallSummaryLoadingLine2: string;
+  // 2026-09-05 고객 문구 개편: 영문 대문자 아이브로우·통계 타일 설명·널 상태 라벨. 새 키는 5개 블록 모두에 넣는다.
+  heroEyebrow: string;
+  inputEyebrow: string;
+  readingEyebrow: string;
+  palaceMapEyebrow: string;
+  statMingLabel: string;
+  statMingHint: string;
+  statShenLabel: string;
+  statShenHint: string;
+  statJuLabel: string;
+  statJuHint: string;
+  statYearFlowHint: string;
+  emptyPalaceCellLabel: string;
+  noMainStarShort: string;
+  noSihuaShort: string;
+  noAuxStarCell: string;
+  oppositeNoStarShort: string;
+  noConnectedPalaceShort: string;
+  oppositePalaceBoxLabel: string;
+  triadBoxLabel: string;
+  noMainStarNote: string;
+  rankTemplate: (rank: number) => string;
 }
 
 const ADVANCED_ZIWEI_COPY_EN: AdvancedZiweiCopy = {
@@ -187,16 +209,16 @@ const ADVANCED_ZIWEI_COPY_EN: AdvancedZiweiCopy = {
     relationships: "Centers on the Friends and Siblings palaces to read how trust forms, collaboration, rivalry, and boundary-setting.",
     family: "Reads the roles, emotional distance, and responsibility patterns within the family through the Parents, Siblings, and Children palaces.",
     health: "Centers on the Health and Fortune palaces to look at stress responses, burnout signals, and recovery routines.",
-    timing: "Contrasts your natal chart with the provided cycle data to separate what deserves focus now from what calls for a conservative approach.",
+    timing: "Reads your natal chart alongside the 10-year and yearly flows to separate what to push now from what to take slowly.",
   },
   chapterTitles: {
-    conclusion: "The Most Important Conclusion Right Now",
+    conclusion: "What matters most right now",
     whyChart: "Why the Chart Shows This",
     realLife: "How It Shows Up in Real Life",
     repeatedPattern: "Repeating Patterns and Their Causes",
     currentTiming: "The Flow of the Current Period",
-    actionAdvice: "Action Advice for You",
-    closing: "Closing the Consultation",
+    actionAdvice: "What you can start today",
+    closing: "Closing thoughts",
   },
   palaceLinkTitles: [
     "Life Palace ↔ Career Palace",
@@ -262,7 +284,7 @@ const ADVANCED_ZIWEI_COPY_EN: AdvancedZiweiCopy = {
   ],
 
   computingEyebrow: "The Moment the Gate of Destiny Opens",
-  computingTrackLabelPrefix: "Consultation track: ",
+  computingTrackLabelPrefix: "Theme in view: ",
 
   resultTitleTemplate: (name) => `${name}'s Advanced Zi Wei Consultation Report`,
   resultTitleDefaultName: "Your",
@@ -272,11 +294,11 @@ const ADVANCED_ZIWEI_COPY_EN: AdvancedZiweiCopy = {
   starStrengthSectionLabel: "Star Strength",
   sihuaTextureLabel: "Texture of the Four Transformations",
 
-  selectedTrackPrefix: "Selected consultation track · ",
+  selectedTrackPrefix: "Theme in view · ",
   primaryPalaceLabel: "Priority Palaces",
   evidenceToggleLabel: "View chart evidence",
-  precisionNoteLabel: "Precision Notes",
-  counselingTrackSectionLabel: "Consultation Track",
+  precisionNoteLabel: "About the details you entered",
+  counselingTrackSectionLabel: "Which theme would you like to explore?",
   corePalaceLabelPrefix: "Core palaces: ",
 
   gridSectionEyebrow: "12-Palace Chart",
@@ -287,32 +309,32 @@ const ADVANCED_ZIWEI_COPY_EN: AdvancedZiweiCopy = {
 
   rereadButtonLabel: "Reread the current palace",
   palaceReadingSuffixLabel: "star reading",
-  emotionalTextureLabel: "Emotional Texture",
+  emotionalTextureLabel: "Brightness and texture of the stars",
   starPowerBalanceHint: "Strong stars shape direction, and weak stars signal fatigue. Real-world advice only comes alive when you catch both.",
   mainStarsCardLabel: "Key Stars",
 
-  overallSummaryHeading: "1. Overall Chart Summary",
-  strongTop3Heading: "2. Top 3 Strongest Palaces",
-  weakTop3Heading: "3. Top 3 Palaces Needing Attention",
-  detailHeading: "4. Detailed Consultation Reading Per Palace",
-  palaceLinkHeading: "5. Cross-Palace Connection Reading",
-  sihuaHeading: "6. Four Transformations Reading",
-  borrowedStarHeading: "7. Borrowed-Star Correction Reading",
-  actionGuideHeadingPrefix: "8. ",
+  overallSummaryHeading: "Your whole chart in one paragraph",
+  strongTop3Heading: "Three palaces with the most strength",
+  weakTop3Heading: "Three palaces that need care first",
+  detailHeading: "How each palace shows up in your life",
+  palaceLinkHeading: "Where palaces connect",
+  sihuaHeading: "The flow the four transformations create",
+  borrowedStarHeading: "Palaces read through borrowed stars",
+  actionGuideHeadingPrefix: "Starting today · ",
   summaryTableHeading: "12-Palace Summary Table",
 
   tableColPalace: "Palace",
   tableColDefinition: "Meaning",
   tableColMainStar: "Main Star",
   tableColAuxStar: "Auxiliary Star",
-  tableColForce: "Palace Strength",
-  tableColPriority: "Consultation Priority",
+  tableColForce: "Palace strength",
+  tableColPriority: "Weight in this theme",
 
   keywordLabelPrefix: "Key keywords: ",
 
   detailCard: {
-    evidenceSummaryTitle: "Chart Evidence Summary",
-    customerReadingTitle: "Reading for You",
+    evidenceSummaryTitle: "Stars in this palace",
+    customerReadingTitle: "How it shows up for you",
     workingWellTitle: "When It Works Well",
     overworkingTitle: "When It Overworks",
     realLifeSceneTitle: "How It Shows Up in Real Life",
@@ -329,8 +351,8 @@ const ADVANCED_ZIWEI_COPY_EN: AdvancedZiweiCopy = {
   },
 
   selfCheckLabel: "Self-Check Questions",
-  flowSectionLabelPrefix: "Flow of the Consultation · ",
-  stepLabel: "STEP",
+  flowSectionLabelPrefix: "Reading order · ",
+  stepLabel: "Flow",
 
   currentTimingHeading: "Current Period Analysis",
   opportunityHeading: "Flows Good to Use as Opportunity",
@@ -340,9 +362,30 @@ const ADVANCED_ZIWEI_COPY_EN: AdvancedZiweiCopy = {
   closingHeading: "Closing the Consultation",
   closingBodyTemplate: (trackTitle) => `The flow of ${trackTitle} does not lock you into a single personality. Use the palaces that shine brightly in your chart as a source of choice, and tend to the palaces that need adjusting as a standard for daily life — that's when things move more comfortably.`,
 
-  borrowedStarFallback: "Borrowed-star correction doesn't stand out as a major issue in this chart. Still, for important choices, checking the alignment of environment, relationships, and timing first can reduce wasted luck.",
-  overallSummaryLoadingLine1: "Loading your chart data.",
+  borrowedStarFallback: "No palace in this chart needs to borrow stars. Each palace speaks through its own stars, so you can follow each palace reading as it is.",
+  overallSummaryLoadingLine1: "Preparing your chart.",
   overallSummaryLoadingLine2: "The overall flow summary will appear shortly.",
+  heroEyebrow: "Advanced Zi Wei Reading",
+  inputEyebrow: "Birth details for your chart",
+  readingEyebrow: "Your chart at a glance",
+  palaceMapEyebrow: "Palace in focus",
+  statMingLabel: "Life Palace (Ming)",
+  statMingHint: "The central palace that holds your temperament and life direction.",
+  statShenLabel: "Body Palace (Shen)",
+  statShenHint: "Where life's weight settles from midlife onward.",
+  statJuLabel: "Five-Element Bureau",
+  statJuHint: "Sets the pace and base tone of the whole chart.",
+  statYearFlowHint: "The year's stem and branch used to read this year's flow.",
+  emptyPalaceCellLabel: "Empty",
+  noMainStarShort: "No main star; read through the star borrowed from the opposite palace",
+  noSihuaShort: "No direct transformation; this palace flows quietly",
+  noAuxStarCell: "No supporting stars",
+  oppositeNoStarShort: "The opposite palace is also empty, so the triad stars are read instead",
+  noConnectedPalaceShort: "No linked palace identified",
+  oppositePalaceBoxLabel: "Opposite palace",
+  triadBoxLabel: "Linked palaces (triad)",
+  noMainStarNote: "No main star sits here, so the opposite palace and its triad are read together.",
+  rankTemplate: (rank) => `#${rank}`,
 };
 
 const ADVANCED_ZIWEI_COPY: Partial<Record<LoadingLocale, AdvancedZiweiCopy>> = {
@@ -365,16 +408,16 @@ const ADVANCED_ZIWEI_COPY: Partial<Record<LoadingLocale, AdvancedZiweiCopy>> = {
       relationships: "교우궁과 형제궁을 중심으로 신뢰 형성, 협업, 경쟁, 경계 설정을 읽습니다.",
       family: "부모궁, 형제궁, 자녀궁으로 가족 안의 역할과 정서적 거리, 책임 패턴을 읽습니다.",
       health: "질액궁과 복덕궁을 중심으로 스트레스 반응, 소진 신호, 회복 루틴을 봅니다.",
-      timing: "원국과 제공된 운한 데이터를 대조해 지금 집중할 일과 보수적으로 접근할 일을 구분합니다.",
+      timing: "타고난 명반과 대한·유년의 흐름을 함께 보며, 지금 밀어붙일 일과 천천히 갈 일을 나눕니다.",
     },
     chapterTitles: {
-      conclusion: "지금 가장 중요한 상담 결론",
+      conclusion: "지금 가장 중요한 결론",
       whyChart: "명반이 보여주는 이유",
       realLife: "현실에서 나타나는 모습",
       repeatedPattern: "반복되는 패턴과 원인",
       currentTiming: "현재 시기의 흐름",
-      actionAdvice: "고객을 위한 실행 조언",
-      closing: "상담 마무리",
+      actionAdvice: "오늘부터 할 수 있는 것",
+      closing: "마무리하며",
     },
     palaceLinkTitles: ["명궁 ↔ 관록궁", "명궁 ↔ 부부궁", "재백궁 ↔ 관록궁", "부부궁 ↔ 복덕궁", "전택궁 ↔ 재백궁", "노복궁 ↔ 관록궁"],
     sihuaLabels: { hualu: "화록", huaquan: "화권", huake: "화과", huaji: "화기" },
@@ -433,7 +476,7 @@ const ADVANCED_ZIWEI_COPY: Partial<Record<LoadingLocale, AdvancedZiweiCopy>> = {
     ],
 
     computingEyebrow: "운명의 문이 열리는 순간",
-    computingTrackLabelPrefix: "상담 트랙: ",
+    computingTrackLabelPrefix: "지금 보는 주제: ",
 
     resultTitleTemplate: (name) => `${name}님의 심화 자미두수 상담 리포트`,
     resultTitleDefaultName: "당신",
@@ -443,11 +486,11 @@ const ADVANCED_ZIWEI_COPY: Partial<Record<LoadingLocale, AdvancedZiweiCopy>> = {
     starStrengthSectionLabel: "별의 세기",
     sihuaTextureLabel: "사화의 결",
 
-    selectedTrackPrefix: "선택한 상담 트랙 · ",
+    selectedTrackPrefix: "지금 보는 주제 · ",
     primaryPalaceLabel: "우선 해석 궁",
     evidenceToggleLabel: "명반 근거 보기",
-    precisionNoteLabel: "정밀도 참고",
-    counselingTrackSectionLabel: "상담 트랙",
+    precisionNoteLabel: "입력 정보에 대한 안내",
+    counselingTrackSectionLabel: "어떤 주제로 볼까요",
     corePalaceLabelPrefix: "핵심 궁: ",
 
     gridSectionEyebrow: "12궁 명반",
@@ -458,32 +501,32 @@ const ADVANCED_ZIWEI_COPY: Partial<Record<LoadingLocale, AdvancedZiweiCopy>> = {
 
     rereadButtonLabel: "현재 궁 다시 읽기",
     palaceReadingSuffixLabel: "성요 판독",
-    emotionalTextureLabel: "감정의 결",
+    emotionalTextureLabel: "별의 밝기와 결",
     starPowerBalanceHint: "강한 별은 방향을 만들고, 약한 별은 피로를 알립니다. 둘 다 놓치지 않아야 현실 조언이 살아납니다.",
     mainStarsCardLabel: "주요 별",
 
-    overallSummaryHeading: "1. 전체 명반 종합 요약",
-    strongTop3Heading: "2. 강한 궁 TOP 3",
-    weakTop3Heading: "3. 관리가 필요한 궁 TOP 3",
-    detailHeading: "4. 각 궁별 상세 상담 해석",
-    palaceLinkHeading: "5. 궁간 연결 해석",
-    sihuaHeading: "6. 사화 해석",
-    borrowedStarHeading: "7. 차성 보정 해석",
-    actionGuideHeadingPrefix: "8. ",
+    overallSummaryHeading: "명반 전체를 한 문단으로",
+    strongTop3Heading: "힘이 가장 잘 실린 궁 셋",
+    weakTop3Heading: "돌봄이 먼저인 궁 셋",
+    detailHeading: "궁마다 당신에게 나타나는 모습",
+    palaceLinkHeading: "궁과 궁이 이어지는 자리",
+    sihuaHeading: "사화가 만드는 흐름",
+    borrowedStarHeading: "별을 빌려 읽는 궁",
+    actionGuideHeadingPrefix: "오늘부터 · ",
     summaryTableHeading: "12궁 요약 표",
 
     tableColPalace: "궁",
     tableColDefinition: "정의",
     tableColMainStar: "주성",
     tableColAuxStar: "보조성",
-    tableColForce: "궁세",
-    tableColPriority: "상담 우선순위",
+    tableColForce: "궁의 힘",
+    tableColPriority: "이 주제에서의 비중",
 
     keywordLabelPrefix: "핵심 키워드: ",
 
     detailCard: {
-      evidenceSummaryTitle: "명반 근거 요약",
-      customerReadingTitle: "고객용 해석",
+      evidenceSummaryTitle: "이 궁에 앉은 별",
+      customerReadingTitle: "당신에게 이렇게 나타납니다",
       workingWellTitle: "잘 발휘될 때",
       overworkingTitle: "과도하게 작동할 때",
       realLifeSceneTitle: "현실에서 나타나는 장면",
@@ -500,8 +543,8 @@ const ADVANCED_ZIWEI_COPY: Partial<Record<LoadingLocale, AdvancedZiweiCopy>> = {
     },
 
     selfCheckLabel: "자기 점검 질문",
-    flowSectionLabelPrefix: "상담의 흐름 · ",
-    stepLabel: "STEP",
+    flowSectionLabelPrefix: "읽는 순서 · ",
+    stepLabel: "흐름",
 
     currentTimingHeading: "현재 시기 분석",
     opportunityHeading: "기회로 쓰기 좋은 흐름",
@@ -511,9 +554,30 @@ const ADVANCED_ZIWEI_COPY: Partial<Record<LoadingLocale, AdvancedZiweiCopy>> = {
     closingHeading: "상담 마무리",
     closingBodyTemplate: (trackTitle) => `${trackTitle}의 흐름은 당신을 하나의 성격으로 고정하지 않습니다. 명반에서 강하게 열린 궁은 선택의 힘으로 쓰고, 조율이 필요한 궁은 생활 기준으로 돌볼 때 더 편안하게 움직입니다.`,
 
-    borrowedStarFallback: "이번 명반에서는 차성 보정이 핵심 이슈로 크게 드러나지 않습니다. 다만 중요한 선택에서는 환경·관계·타이밍의 정렬을 먼저 확인하면 운의 낭비를 줄일 수 있습니다.",
-    overallSummaryLoadingLine1: "명반 데이터를 불러오는 중입니다.",
+    borrowedStarFallback: "이번 명반에는 별을 빌려 읽어야 하는 궁이 없습니다. 각 궁이 제 별로 말하고 있으니, 궁마다의 해석을 그대로 따라가면 됩니다.",
+    overallSummaryLoadingLine1: "명반을 정리하는 중입니다.",
     overallSummaryLoadingLine2: "잠시 후 전체 흐름 요약이 표시됩니다.",
+    heroEyebrow: "심화 자미두수 상담",
+    inputEyebrow: "명반을 만들 출생 정보",
+    readingEyebrow: "당신의 명반 한눈에",
+    palaceMapEyebrow: "지금 보고 있는 궁",
+    statMingLabel: "명궁",
+    statMingHint: "타고난 성향과 삶의 방향이 자리한 중심 궁입니다.",
+    statShenLabel: "신궁",
+    statShenHint: "중년 이후 삶의 무게가 실리는 자리입니다.",
+    statJuLabel: "오행국",
+    statJuHint: "명반 전체의 속도와 기본 색을 정하는 기준입니다.",
+    statYearFlowHint: "올해 흐름을 읽는 기준이 되는 해의 간지입니다.",
+    emptyPalaceCellLabel: "빈 궁",
+    noMainStarShort: "중심 별 없이 맞은편 별을 빌려 읽는 궁",
+    noSihuaShort: "직접 걸린 사화 없이 차분히 흐르는 궁",
+    noAuxStarCell: "곁에 앉은 별 없음",
+    oppositeNoStarShort: "맞은편도 빈 궁이라 삼방사정의 별로 읽습니다",
+    noConnectedPalaceShort: "연결된 궁이 따로 잡히지 않음",
+    oppositePalaceBoxLabel: "맞은편 궁(대궁)",
+    triadBoxLabel: "함께 얽히는 궁(삼방사정)",
+    noMainStarNote: "중심이 되는 주성이 앉지 않은 궁이라, 맞은편 궁과 삼방사정의 별을 함께 읽습니다.",
+    rankTemplate: (rank) => `${rank}위`,
   },
   ja: {
     trackTitles: {
@@ -534,16 +598,16 @@ const ADVANCED_ZIWEI_COPY: Partial<Record<LoadingLocale, AdvancedZiweiCopy>> = {
       relationships: "交友宮と兄弟宮を中心に、信頼形成、協力、競争、境界設定を読みます。",
       family: "父母宮・兄弟宮・子女宮から、家族内での役割、心理的距離、責任のパターンを読みます。",
       health: "疾厄宮と福徳宮を中心に、ストレス反応、消耗のサイン、回復ルーティンを見ます。",
-      timing: "命盤と提供された運限データを照らし合わせ、今集中すべきことと慎重に扱うべきことを見分けます。",
+      timing: "生まれ持った命盤と大限・流年の流れを合わせて見て、今押し進めることと、ゆっくり進めることを分けます。",
     },
     chapterTitles: {
-      conclusion: "今いちばん重要な相談の結論",
+      conclusion: "いま最も大切な結論",
       whyChart: "命盤が示す理由",
       realLife: "現実に現れる姿",
       repeatedPattern: "繰り返されるパターンと原因",
       currentTiming: "現在の時期の流れ",
-      actionAdvice: "お客様のための実行アドバイス",
-      closing: "相談のまとめ",
+      actionAdvice: "今日から始められること",
+      closing: "締めくくりに",
     },
     palaceLinkTitles: ["命宮 ↔ 官禄宮", "命宮 ↔ 夫妻宮", "財帛宮 ↔ 官禄宮", "夫妻宮 ↔ 福徳宮", "田宅宮 ↔ 財帛宮", "奴僕宮 ↔ 官禄宮"],
     sihuaLabels: { hualu: "化禄", huaquan: "化権", huake: "化科", huaji: "化忌" },
@@ -602,7 +666,7 @@ const ADVANCED_ZIWEI_COPY: Partial<Record<LoadingLocale, AdvancedZiweiCopy>> = {
     ],
 
     computingEyebrow: "運命の扉が開く瞬間",
-    computingTrackLabelPrefix: "相談トラック：",
+    computingTrackLabelPrefix: "いま見ているテーマ: ",
 
     resultTitleTemplate: (name) => `${name}様の深化紫微斗数相談レポート`,
     resultTitleDefaultName: "あなた",
@@ -612,11 +676,11 @@ const ADVANCED_ZIWEI_COPY: Partial<Record<LoadingLocale, AdvancedZiweiCopy>> = {
     starStrengthSectionLabel: "星の強さ",
     sihuaTextureLabel: "四化の結び",
 
-    selectedTrackPrefix: "選択した相談トラック・",
+    selectedTrackPrefix: "いま見ているテーマ · ",
     primaryPalaceLabel: "優先解釈宮",
     evidenceToggleLabel: "命盤根拠を見る",
-    precisionNoteLabel: "精度についての注記",
-    counselingTrackSectionLabel: "相談トラック",
+    precisionNoteLabel: "入力内容についてのご案内",
+    counselingTrackSectionLabel: "どのテーマで見ますか",
     corePalaceLabelPrefix: "核心宮：",
 
     gridSectionEyebrow: "12宮命盤",
@@ -627,32 +691,32 @@ const ADVANCED_ZIWEI_COPY: Partial<Record<LoadingLocale, AdvancedZiweiCopy>> = {
 
     rereadButtonLabel: "現在の宮を読み直す",
     palaceReadingSuffixLabel: "星耀判読",
-    emotionalTextureLabel: "感情の結び",
+    emotionalTextureLabel: "星の明るさと質感",
     starPowerBalanceHint: "強い星は方向を作り、弱い星は疲労を知らせます。両方を見逃さないことで現実的なアドバイスが生きてきます。",
     mainStarsCardLabel: "主要な星",
 
-    overallSummaryHeading: "1. 命盤全体の総合まとめ",
-    strongTop3Heading: "2. 強い宮TOP3",
-    weakTop3Heading: "3. ケアが必要な宮TOP3",
-    detailHeading: "4. 各宮の詳細な相談解釈",
-    palaceLinkHeading: "5. 宮同士の連結解釈",
-    sihuaHeading: "6. 四化の解釈",
-    borrowedStarHeading: "7. 借星補正の解釈",
-    actionGuideHeadingPrefix: "8. ",
+    overallSummaryHeading: "命盤全体をひと段落で",
+    strongTop3Heading: "力が最もよく乗っている宮 3つ",
+    weakTop3Heading: "まずケアしたい宮 3つ",
+    detailHeading: "宮ごとにあなたに現れる姿",
+    palaceLinkHeading: "宮と宮がつながる場所",
+    sihuaHeading: "四化がつくる流れ",
+    borrowedStarHeading: "星を借りて読む宮",
+    actionGuideHeadingPrefix: "今日から · ",
     summaryTableHeading: "12宮まとめ表",
 
     tableColPalace: "宮",
     tableColDefinition: "定義",
     tableColMainStar: "主星",
     tableColAuxStar: "補助星",
-    tableColForce: "宮勢",
-    tableColPriority: "相談優先順位",
+    tableColForce: "宮の力",
+    tableColPriority: "このテーマでの比重",
 
     keywordLabelPrefix: "核心キーワード：",
 
     detailCard: {
-      evidenceSummaryTitle: "命盤根拠まとめ",
-      customerReadingTitle: "あなたのための解釈",
+      evidenceSummaryTitle: "この宮に座る星",
+      customerReadingTitle: "あなたにはこう現れます",
       workingWellTitle: "うまく機能するとき",
       overworkingTitle: "過度に働くとき",
       realLifeSceneTitle: "現実に現れる場面",
@@ -669,8 +733,8 @@ const ADVANCED_ZIWEI_COPY: Partial<Record<LoadingLocale, AdvancedZiweiCopy>> = {
     },
 
     selfCheckLabel: "自己点検の質問",
-    flowSectionLabelPrefix: "相談の流れ・",
-    stepLabel: "STEP",
+    flowSectionLabelPrefix: "読む順序 · ",
+    stepLabel: "流れ",
 
     currentTimingHeading: "現在の時期分析",
     opportunityHeading: "チャンスとして使いやすい流れ",
@@ -680,9 +744,30 @@ const ADVANCED_ZIWEI_COPY: Partial<Record<LoadingLocale, AdvancedZiweiCopy>> = {
     closingHeading: "相談のまとめ",
     closingBodyTemplate: (trackTitle) => `${trackTitle}の流れは、あなたを一つの性格に固定するものではありません。命盤で強く開いている宮は選択の力として使い、調整が必要な宮は生活の基準として整えるとき、より心地よく動けます。`,
 
-    borrowedStarFallback: "今回の命盤では、借星補正が大きな課題として目立ってはいません。ただし重要な選択の際は、環境・関係・タイミングの整合を先に確認すると運の無駄遣いを減らせます。",
-    overallSummaryLoadingLine1: "命盤データを読み込んでいます。",
+    borrowedStarFallback: "この命盤には星を借りて読む必要のある宮はありません。各宮が自分の星で語っているので、宮ごとの解釈をそのまま辿ってください。",
+    overallSummaryLoadingLine1: "命盤を整えています。",
     overallSummaryLoadingLine2: "まもなく全体の流れのまとめが表示されます。",
+    heroEyebrow: "深層紫微斗数リーディング",
+    inputEyebrow: "命盤を作る出生情報",
+    readingEyebrow: "あなたの命盤をひと目で",
+    palaceMapEyebrow: "いま見ている宮",
+    statMingLabel: "命宮",
+    statMingHint: "生まれ持った気質と人生の方向が宿る中心の宮です。",
+    statShenLabel: "身宮",
+    statShenHint: "中年以降に人生の重心が置かれる位置です。",
+    statJuLabel: "五行局",
+    statJuHint: "命盤全体の速度と基調を決める基準です。",
+    statYearFlowHint: "今年の流れを読む基準となる年の干支です。",
+    emptyPalaceCellLabel: "空宮",
+    noMainStarShort: "主星がなく、対宮の星を借りて読む宮",
+    noSihuaShort: "直接の四化がなく穏やかに流れる宮",
+    noAuxStarCell: "補佐星なし",
+    oppositeNoStarShort: "対宮も空宮のため三方四正の星で読みます",
+    noConnectedPalaceShort: "連動する宮が特定されていません",
+    oppositePalaceBoxLabel: "対宮",
+    triadBoxLabel: "三方四正",
+    noMainStarNote: "主星が座していない宮なので、対宮と三方四正の星を合わせて読みます。",
+    rankTemplate: (rank) => `${rank}位`,
   },
   "zh-CN": {
     trackTitles: {
@@ -703,16 +788,16 @@ const ADVANCED_ZIWEI_COPY: Partial<Record<LoadingLocale, AdvancedZiweiCopy>> = {
       relationships: "以交友宫与兄弟宫为中心，解读信任的形成、协作、竞争与界限设定。",
       family: "通过父母宫、兄弟宫、子女宫解读家庭中的角色、情感距离与责任模式。",
       health: "以疾厄宫、福德宫为中心，解读压力反应、耗竭信号与恢复routine。",
-      timing: "对照本命盘与提供的运限数据，区分现在应重点关注与应保守应对的事项。",
+      timing: "把先天命盘与大限、流年的走势放在一起看，分清现在该推进的事和该放慢的事。",
     },
     chapterTitles: {
-      conclusion: "现在最重要的咨询结论",
+      conclusion: "此刻最重要的结论",
       whyChart: "命盘揭示的原因",
       realLife: "现实中呈现的样子",
       repeatedPattern: "反复出现的模式与原因",
       currentTiming: "当前时期的流转",
-      actionAdvice: "给你的行动建议",
-      closing: "咨询总结",
+      actionAdvice: "今天就能开始做的事",
+      closing: "结语",
     },
     palaceLinkTitles: ["命宫 ↔ 官禄宫", "命宫 ↔ 夫妻宫", "财帛宫 ↔ 官禄宫", "夫妻宫 ↔ 福德宫", "田宅宫 ↔ 财帛宫", "奴仆宫 ↔ 官禄宫"],
     sihuaLabels: { hualu: "化禄", huaquan: "化权", huake: "化科", huaji: "化忌" },
@@ -771,7 +856,7 @@ const ADVANCED_ZIWEI_COPY: Partial<Record<LoadingLocale, AdvancedZiweiCopy>> = {
     ],
 
     computingEyebrow: "命运之门开启的瞬间",
-    computingTrackLabelPrefix: "咨询方向：",
+    computingTrackLabelPrefix: "正在查看的主题: ",
 
     resultTitleTemplate: (name) => `${name}的深化紫微斗数咨询报告`,
     resultTitleDefaultName: "您",
@@ -781,11 +866,11 @@ const ADVANCED_ZIWEI_COPY: Partial<Record<LoadingLocale, AdvancedZiweiCopy>> = {
     starStrengthSectionLabel: "星曜强度",
     sihuaTextureLabel: "四化之结",
 
-    selectedTrackPrefix: "已选咨询方向 · ",
+    selectedTrackPrefix: "正在查看的主题 · ",
     primaryPalaceLabel: "优先解读宫位",
     evidenceToggleLabel: "查看命盘依据",
-    precisionNoteLabel: "精度说明",
-    counselingTrackSectionLabel: "咨询方向",
+    precisionNoteLabel: "关于你输入的信息",
+    counselingTrackSectionLabel: "想从哪个主题看起",
     corePalaceLabelPrefix: "核心宫位：",
 
     gridSectionEyebrow: "12宫命盘",
@@ -796,32 +881,32 @@ const ADVANCED_ZIWEI_COPY: Partial<Record<LoadingLocale, AdvancedZiweiCopy>> = {
 
     rereadButtonLabel: "重新解读当前宫位",
     palaceReadingSuffixLabel: "星曜判读",
-    emotionalTextureLabel: "情绪之结",
+    emotionalTextureLabel: "星曜的亮度与质感",
     starPowerBalanceHint: "强星塑造方向，弱星提示疲惫。两者都不忽视，现实建议才会真正生效。",
     mainStarsCardLabel: "主要星曜",
 
-    overallSummaryHeading: "1. 全盘综合摘要",
-    strongTop3Heading: "2. 最强宫位 TOP 3",
-    weakTop3Heading: "3. 需要留意的宫位 TOP 3",
-    detailHeading: "4. 各宫详细咨询解读",
-    palaceLinkHeading: "5. 宫位间连结解读",
-    sihuaHeading: "6. 四化解读",
-    borrowedStarHeading: "7. 借星补正解读",
-    actionGuideHeadingPrefix: "8. ",
+    overallSummaryHeading: "一段话看懂整张命盘",
+    strongTop3Heading: "力量最足的三个宫位",
+    weakTop3Heading: "最需要先照顾的三个宫位",
+    detailHeading: "每个宫位在你身上的样子",
+    palaceLinkHeading: "宫位之间的连接",
+    sihuaHeading: "四化带来的走势",
+    borrowedStarHeading: "借星来读的宫位",
+    actionGuideHeadingPrefix: "从今天开始 · ",
     summaryTableHeading: "12宫摘要表",
 
     tableColPalace: "宫位",
     tableColDefinition: "定义",
     tableColMainStar: "主星",
     tableColAuxStar: "辅星",
-    tableColForce: "宫势",
-    tableColPriority: "咨询优先级",
+    tableColForce: "宫位力量",
+    tableColPriority: "在此主题中的分量",
 
     keywordLabelPrefix: "核心关键词：",
 
     detailCard: {
-      evidenceSummaryTitle: "命盘依据摘要",
-      customerReadingTitle: "为你解读",
+      evidenceSummaryTitle: "坐在此宫的星曜",
+      customerReadingTitle: "在你身上会这样呈现",
       workingWellTitle: "运作良好时",
       overworkingTitle: "过度运作时",
       realLifeSceneTitle: "现实中呈现的场景",
@@ -838,8 +923,8 @@ const ADVANCED_ZIWEI_COPY: Partial<Record<LoadingLocale, AdvancedZiweiCopy>> = {
     },
 
     selfCheckLabel: "自我检视问题",
-    flowSectionLabelPrefix: "咨询流程 · ",
-    stepLabel: "STEP",
+    flowSectionLabelPrefix: "阅读顺序 · ",
+    stepLabel: "环节",
 
     currentTimingHeading: "当前时期分析",
     opportunityHeading: "适合把握的机会流转",
@@ -849,9 +934,30 @@ const ADVANCED_ZIWEI_COPY: Partial<Record<LoadingLocale, AdvancedZiweiCopy>> = {
     closingHeading: "咨询总结",
     closingBodyTemplate: (trackTitle) => `${trackTitle}的流转并不会将你固定为单一性格。把命盘中强势开启的宫位当作选择的力量善加利用，把需要调整的宫位当作生活准则来照顾，运势会走得更顺畅。`,
 
-    borrowedStarFallback: "此次命盘中，借星补正并未成为突出的核心议题。不过在重要抉择时，先确认环境、关系与时机的对齐，可以减少运势的浪费。",
-    overallSummaryLoadingLine1: "正在加载命盘数据。",
+    borrowedStarFallback: "这张命盘中没有需要借星来读的宫位。每个宫位都由自己的星曜发声，按各宫的解读顺着看即可。",
+    overallSummaryLoadingLine1: "正在整理你的命盘。",
     overallSummaryLoadingLine2: "稍后将显示整体流转摘要。",
+    heroEyebrow: "深度紫微斗数解读",
+    inputEyebrow: "排盘所需的出生信息",
+    readingEyebrow: "一眼看懂你的命盘",
+    palaceMapEyebrow: "正在查看的宫位",
+    statMingLabel: "命宫",
+    statMingHint: "承载你天生性格与人生方向的核心宫位。",
+    statShenLabel: "身宫",
+    statShenHint: "中年之后人生重心落脚的位置。",
+    statJuLabel: "五行局",
+    statJuHint: "决定整张命盘节奏与底色的基准。",
+    statYearFlowHint: "用来解读今年运势的年干支。",
+    emptyPalaceCellLabel: "空宫",
+    noMainStarShort: "无主星，借对宫之星来读",
+    noSihuaShort: "没有直接四化，平稳流动的宫位",
+    noAuxStarCell: "无辅星",
+    oppositeNoStarShort: "对宫亦为空宫，改由三方四正之星来读",
+    noConnectedPalaceShort: "未识别到相连宫位",
+    oppositePalaceBoxLabel: "对宫",
+    triadBoxLabel: "三方四正",
+    noMainStarNote: "此宫没有主星坐守，因此与对宫及三方四正的星一起解读。",
+    rankTemplate: (rank) => `第${rank}位`,
   },
   "zh-TW": {
     trackTitles: {
@@ -872,16 +978,16 @@ const ADVANCED_ZIWEI_COPY: Partial<Record<LoadingLocale, AdvancedZiweiCopy>> = {
       relationships: "以交友宮與兄弟宮為中心，解讀信任的形成、協作、競爭與界線設定。",
       family: "透過父母宮、兄弟宮、子女宮解讀家庭中的角色、情感距離與責任模式。",
       health: "以疾厄宮、福德宮為中心，解讀壓力反應、耗竭訊號與恢復routine。",
-      timing: "對照本命盤與提供的運限資料，區分現在應重點關注與應保守應對的事項。",
+      timing: "把先天命盤與大限、流年的走勢放在一起看，分清現在該推進的事和該放慢的事。",
     },
     chapterTitles: {
-      conclusion: "現在最重要的諮詢結論",
+      conclusion: "此刻最重要的結論",
       whyChart: "命盤揭示的原因",
       realLife: "現實中呈現的樣子",
       repeatedPattern: "反覆出現的模式與原因",
       currentTiming: "當前時期的流轉",
-      actionAdvice: "給你的行動建議",
-      closing: "諮詢總結",
+      actionAdvice: "今天就能開始做的事",
+      closing: "結語",
     },
     palaceLinkTitles: ["命宮 ↔ 官祿宮", "命宮 ↔ 夫妻宮", "財帛宮 ↔ 官祿宮", "夫妻宮 ↔ 福德宮", "田宅宮 ↔ 財帛宮", "奴僕宮 ↔ 官祿宮"],
     sihuaLabels: { hualu: "化祿", huaquan: "化權", huake: "化科", huaji: "化忌" },
@@ -940,7 +1046,7 @@ const ADVANCED_ZIWEI_COPY: Partial<Record<LoadingLocale, AdvancedZiweiCopy>> = {
     ],
 
     computingEyebrow: "命運之門開啟的瞬間",
-    computingTrackLabelPrefix: "諮詢方向：",
+    computingTrackLabelPrefix: "正在查看的主題: ",
 
     resultTitleTemplate: (name) => `${name}的深化紫微斗數諮詢報告`,
     resultTitleDefaultName: "您",
@@ -950,11 +1056,11 @@ const ADVANCED_ZIWEI_COPY: Partial<Record<LoadingLocale, AdvancedZiweiCopy>> = {
     starStrengthSectionLabel: "星曜強度",
     sihuaTextureLabel: "四化之結",
 
-    selectedTrackPrefix: "已選諮詢方向 · ",
+    selectedTrackPrefix: "正在查看的主題 · ",
     primaryPalaceLabel: "優先解讀宮位",
     evidenceToggleLabel: "查看命盤依據",
-    precisionNoteLabel: "精度說明",
-    counselingTrackSectionLabel: "諮詢方向",
+    precisionNoteLabel: "關於你輸入的資訊",
+    counselingTrackSectionLabel: "想從哪個主題看起",
     corePalaceLabelPrefix: "核心宮位：",
 
     gridSectionEyebrow: "12宮命盤",
@@ -965,32 +1071,32 @@ const ADVANCED_ZIWEI_COPY: Partial<Record<LoadingLocale, AdvancedZiweiCopy>> = {
 
     rereadButtonLabel: "重新解讀目前宮位",
     palaceReadingSuffixLabel: "星曜判讀",
-    emotionalTextureLabel: "情緒之結",
+    emotionalTextureLabel: "星曜的亮度與質感",
     starPowerBalanceHint: "強星塑造方向，弱星提示疲憊。兩者都不忽視，現實建議才會真正生效。",
     mainStarsCardLabel: "主要星曜",
 
-    overallSummaryHeading: "1. 全盤綜合摘要",
-    strongTop3Heading: "2. 最強宮位 TOP 3",
-    weakTop3Heading: "3. 需要留意的宮位 TOP 3",
-    detailHeading: "4. 各宮詳細諮詢解讀",
-    palaceLinkHeading: "5. 宮位間連結解讀",
-    sihuaHeading: "6. 四化解讀",
-    borrowedStarHeading: "7. 借星補正解讀",
-    actionGuideHeadingPrefix: "8. ",
+    overallSummaryHeading: "一段話看懂整張命盤",
+    strongTop3Heading: "力量最足的三個宮位",
+    weakTop3Heading: "最需要先照顧的三個宮位",
+    detailHeading: "每個宮位在你身上的樣子",
+    palaceLinkHeading: "宮位之間的連結",
+    sihuaHeading: "四化帶來的走勢",
+    borrowedStarHeading: "借星來讀的宮位",
+    actionGuideHeadingPrefix: "從今天開始 · ",
     summaryTableHeading: "12宮摘要表",
 
     tableColPalace: "宮位",
     tableColDefinition: "定義",
     tableColMainStar: "主星",
     tableColAuxStar: "輔星",
-    tableColForce: "宮勢",
-    tableColPriority: "諮詢優先級",
+    tableColForce: "宮位力量",
+    tableColPriority: "在此主題中的分量",
 
     keywordLabelPrefix: "核心關鍵字：",
 
     detailCard: {
-      evidenceSummaryTitle: "命盤依據摘要",
-      customerReadingTitle: "為你解讀",
+      evidenceSummaryTitle: "坐在此宮的星曜",
+      customerReadingTitle: "在你身上會這樣呈現",
       workingWellTitle: "運作良好時",
       overworkingTitle: "過度運作時",
       realLifeSceneTitle: "現實中呈現的場景",
@@ -1007,8 +1113,8 @@ const ADVANCED_ZIWEI_COPY: Partial<Record<LoadingLocale, AdvancedZiweiCopy>> = {
     },
 
     selfCheckLabel: "自我檢視問題",
-    flowSectionLabelPrefix: "諮詢流程 · ",
-    stepLabel: "STEP",
+    flowSectionLabelPrefix: "閱讀順序 · ",
+    stepLabel: "環節",
 
     currentTimingHeading: "當前時期分析",
     opportunityHeading: "適合把握的機會流轉",
@@ -1018,9 +1124,30 @@ const ADVANCED_ZIWEI_COPY: Partial<Record<LoadingLocale, AdvancedZiweiCopy>> = {
     closingHeading: "諮詢總結",
     closingBodyTemplate: (trackTitle) => `${trackTitle}的流轉並不會將你固定為單一性格。把命盤中強勢開啟的宮位當作選擇的力量善加利用，把需要調整的宮位當作生活準則來照顧，運勢會走得更順暢。`,
 
-    borrowedStarFallback: "此次命盤中，借星補正並未成為突出的核心議題。不過在重要抉擇時，先確認環境、關係與時機的對齊，可以減少運勢的浪費。",
-    overallSummaryLoadingLine1: "正在載入命盤資料。",
+    borrowedStarFallback: "這張命盤中沒有需要借星來讀的宮位。每個宮位都由自己的星曜發聲，按各宮的解讀順著看即可。",
+    overallSummaryLoadingLine1: "正在整理你的命盤。",
     overallSummaryLoadingLine2: "稍後將顯示整體流轉摘要。",
+    heroEyebrow: "深度紫微斗數解讀",
+    inputEyebrow: "排盤所需的出生資訊",
+    readingEyebrow: "一眼看懂你的命盤",
+    palaceMapEyebrow: "正在查看的宮位",
+    statMingLabel: "命宮",
+    statMingHint: "承載你天生性格與人生方向的核心宮位。",
+    statShenLabel: "身宮",
+    statShenHint: "中年之後人生重心落腳的位置。",
+    statJuLabel: "五行局",
+    statJuHint: "決定整張命盤節奏與底色的基準。",
+    statYearFlowHint: "用來解讀今年運勢的年干支。",
+    emptyPalaceCellLabel: "空宮",
+    noMainStarShort: "無主星，借對宮之星來讀",
+    noSihuaShort: "沒有直接四化，平穩流動的宮位",
+    noAuxStarCell: "無輔星",
+    oppositeNoStarShort: "對宮亦為空宮，改由三方四正之星來讀",
+    noConnectedPalaceShort: "未識別到相連宮位",
+    oppositePalaceBoxLabel: "對宮",
+    triadBoxLabel: "三方四正",
+    noMainStarNote: "此宮沒有主星坐守，因此與對宮及三方四正的星一起解讀。",
+    rankTemplate: (rank) => `第${rank}位`,
   },
   en: ADVANCED_ZIWEI_COPY_EN,
 };
