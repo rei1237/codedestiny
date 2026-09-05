@@ -36,6 +36,11 @@ const NUMEROLOGY_TAROT_PAGE_TEXT_TRANSLATIONS = {
     "sample.title": "예시 리딩",
     "sample.body": "생명수 6과 오늘수 2가 함께 떠오르면 관계와 책임의 균형이 먼저 보입니다. 여기에 컵 계열 카드가 강하면 마음을 숨기기보다 부드럽게 확인하는 말이 어울리고, 검 계열 카드가 강하면 즉답보다 사실 확인과 거리 조절이 먼저 필요하다고 읽을 수 있습니다.",
     "related.aria": "수비학 타로 관련 링크",
+    "method.title": "생명수·오늘수·질문수는 이렇게 계산합니다",
+    "method.life": "생명수는 생년월일의 숫자를 모두 더한 뒤 한 자리가 될 때까지 다시 더한 값입니다. 다만 11·22·33은 마스터 넘버로 보고 줄이지 않고 그대로 둡니다. 예를 들어 1990년 6월 15일이면 1+9+9+0+6+1+5=31, 3+1=4로 생명수 4가 됩니다.",
+    "method.day": "오늘수는 태어난 달과 날에 오늘의 달과 날을 더해 한 자리(또는 마스터 넘버)로 줄인 값이라 날마다 바뀝니다. 같은 사람이라도 어제와 오늘의 오늘수가 다르므로, 리딩은 그날의 질문에 맞춰 다시 읽는 것이 자연스럽습니다.",
+    "method.question": "질문수는 질문의 주제(연애·재회·직업·금전·건강·이사 등)에 대응하는 숫자입니다. 문장을 글자 단위로 계산하지 않고 주제를 분류해 정하므로, 같은 주제라면 표현이 달라도 같은 질문수가 나옵니다.",
+    "method.note": "세 숫자는 카드를 고르는 가중치로 쓰입니다. 메이저 아르카나 22장에는 각각 공명하는 숫자가 붙어 있어, 생명수·오늘수·질문수와 맞닿은 카드가 조금 더 자주 뽑히도록 섞습니다. 그래서 결과는 무작위이면서도 입력한 숫자의 결을 따라갑니다.",
   },
   en: {
     "metadata.title": "Numerology Tarot | Code Destiny",
@@ -71,6 +76,11 @@ const NUMEROLOGY_TAROT_PAGE_TEXT_TRANSLATIONS = {
     "sample.title": "Sample Reading",
     "sample.body": "When life number 6 and today's number 2 appear together, the balance between relationship and responsibility comes forward. If Cups are strong, gentle confirmation fits better than hiding your heart. If Swords are strong, fact-checking and distance control may need to come before an immediate answer.",
     "related.aria": "Numerology tarot related links",
+    "method.title": "How the life, day, and question numbers are calculated",
+    "method.life": "The life number adds every digit of your birth date and keeps adding until a single digit remains. 11, 22, and 33 are treated as master numbers and left unreduced. For example, June 15, 1990 gives 1+9+9+0+6+1+5=31, then 3+1=4, so the life number is 4.",
+    "method.day": "The day number adds your birth month and day to today's month and day, reduced to a single digit (or a master number), so it changes every day. Even for the same person, yesterday's and today's day numbers differ, which is why a reading fits the question of that day.",
+    "method.question": "The question number corresponds to the theme of your question (love, reunion, career, money, health, moving, and so on). It classifies the theme rather than counting letters, so the same theme yields the same number even when the wording differs.",
+    "method.note": "The three numbers act as weights when the cards are chosen. Each of the 22 Major Arcana carries resonant numbers, and cards touching your life, day, and question numbers are shuffled to appear a little more often. The result stays random while following the grain of the numbers you entered.",
   },
   ja: {
     "metadata.title": "数秘タロット | Code Destiny",
@@ -106,6 +116,11 @@ const NUMEROLOGY_TAROT_PAGE_TEXT_TRANSLATIONS = {
     "sample.title": "例のリーディング",
     "sample.body": "ライフナンバー6と今日の数2が同時に出ると、関係と責任の均衡が先に見えます。カップが強ければ心を隠すより柔らかく確認する言葉が合い、ソードが強ければ即答より事実確認と距離の調整が先に必要だと読めます。",
     "related.aria": "数秘タロット関連リンク",
+    "method.title": "ライフナンバー・今日の数・質問の数の計算方法",
+    "method.life": "ライフナンバーは生年月日の数字をすべて足し、一桁になるまで足し続けた値です。ただし11・22・33はマスターナンバーとして減らさずそのまま残します。例えば1990年6月15日なら1+9+9+0+6+1+5=31、3+1=4でライフナンバーは4です。",
+    "method.day": "今日の数は生まれた月と日に今日の月と日を足し、一桁（またはマスターナンバー）に減らした値なので、日ごとに変わります。同じ人でも昨日と今日の数は異なるため、リーディングはその日の問いに合わせて読み直すのが自然です。",
+    "method.question": "質問の数は質問のテーマ（恋愛・復縁・仕事・金銭・健康・引っ越しなど）に対応する数字です。文章を文字単位で計算せずテーマを分類して決めるため、同じテーマなら表現が違っても同じ数になります。",
+    "method.note": "三つの数はカードを選ぶ重みとして使われます。大アルカナ22枚にはそれぞれ共鳴する数字があり、ライフナンバー・今日の数・質問の数に触れるカードが少し多く出るように混ぜます。そのため結果は無作為でありながら、入力した数字の質に沿います。",
   },
   zh: {
     "metadata.title": "数字塔罗 | Code Destiny",
@@ -141,6 +156,11 @@ const NUMEROLOGY_TAROT_PAGE_TEXT_TRANSLATIONS = {
     "sample.title": "示例解读",
     "sample.body": "当生命数6与今日数2同时出现时，关系与责任的平衡会先浮现。若圣杯牌较强，比起隐藏心意，温柔确认更合适；若宝剑牌较强，可能需要先核对事实并调整距离，而不是立刻作答。",
     "related.aria": "数字塔罗相关链接",
+    "method.title": "生命数、今日数与问题数是这样计算的",
+    "method.life": "生命数把出生日期的所有数字相加，再反复相加直到只剩一位。不过11、22、33被视为主数，不再缩减。例如1990年6月15日，1+9+9+0+6+1+5=31，3+1=4，生命数就是4。",
+    "method.day": "今日数把出生的月与日加上今天的月与日，缩减到一位（或主数），因此每天都会变化。同一个人昨天和今天的今日数并不相同，所以解读应贴合当天的问题重新阅读。",
+    "method.question": "问题数对应问题的主题（恋爱、复合、事业、金钱、健康、搬迁等）。它按主题分类而不是逐字计算，因此同一主题即使措辞不同，也会得到相同的问题数。",
+    "method.note": "这三个数字被用作挑选牌面的权重。22张大阿卡纳各自带有共鸣的数字，与你的生命数、今日数、问题数相触的牌会被略微更常抽出。结果因此既保持随机，又顺着你输入数字的纹理。",
   },
 } as const;
 
@@ -183,6 +203,13 @@ const readingFlow = [
   numerologyTarotPageText("flow.2"),
   numerologyTarotPageText("flow.3"),
   numerologyTarotPageText("flow.4"),
+];
+
+const methodItems = [
+  numerologyTarotPageText("method.life"),
+  numerologyTarotPageText("method.day"),
+  numerologyTarotPageText("method.question"),
+  numerologyTarotPageText("method.note"),
 ];
 
 const faqItems = [
@@ -248,6 +275,15 @@ export default function NumerologyTarotPage() {
               </p>
             </article>
           </div>
+
+          <article className="rounded-2xl border border-[#d8b66a]/25 bg-white/[0.04] p-6">
+            <h3 className="font-serif text-2xl font-bold text-[#fff4cf]">{numerologyTarotPageText("method.title")}</h3>
+            <ul className="mt-4 grid gap-3 text-sm leading-7 text-[#d8d0bd]">
+              {methodItems.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </article>
 
           <div className="grid gap-4 md:grid-cols-3">
             {faqItems.map((item) => (

@@ -398,7 +398,9 @@ export const noindexPathPrefixes = [
   "/pdf",
   "/premium",
   "/premium-reports",
-  "/saju-fpti",
+  // 🔴 /saju-fpti 는 여기 없다. 2026-08-28 에 색인으로 되돌리면서(generate-sitemap.mjs 의
+  //    coreRoutes 주석) 사이트맵·_headers·page metadata 는 index 가 됐는데 이 목록만 남아
+  //    ShareWidget 이 사라져 있었다(2026-09-05 SEO 진단 F-07). 다시 넣지 말 것.
   "/saju-picture",
   "/oracle/juyuk",
   "/oracle/hwatu",

@@ -184,6 +184,26 @@ export default async function InsightsPage() {
 
   return (
     <>
+      {/*
+        인터랙티브 허브는 클라이언트 전용(ssr:false)이라 페이지의 H1 과 요약은 서버에서 렌더한다.
+        2026-09-05 까지는 이 섹션이 클라이언트 그리드 **아래** `sr-only` 였다 — JS 없이 보면 허브
+        제목이 없고, JS 가 있으면 다른 화면이 뜨는 은닉 텍스트 구조였다(SEO 진단 F-03).
+        첫 화면에 보이게 맨 위로 올린다. 서버 정적 마크업이라 레이아웃 이동은 없다(/insights 는
+        CLS 0.275 이력이 있어 클라이언트에서만 나타나는 블록을 위에 두지 않는다).
+        🔴 H1 은 이 하나뿐이어야 한다 — InsightsCosmicClient 의 제목은 h2 다.
+      */}
+      <section className="mx-auto w-full max-w-6xl px-4 pt-8 pb-4 md:px-6 md:pt-10">
+        <div className="cd-guide-index">
+          <h1 className="cd-guide-index__title cd-guide-index__title--hero">
+            운세 인사이트 허브 — 사주·자미두수·숙요점·타로 가이드
+          </h1>
+          <p className="cd-guide-index__lede">
+            사주팔자의 오행과 십성, 자미두수 12궁 명반, 숙요점 27숙, 타로 카드 해석, 서양·베다
+            점성술까지 — 처음 접하는 사람도 흐름을 읽을 수 있도록 정리한 운세 지식 아카이브입니다.
+            주제별 허브에서 원하는 분야의 글을 모아 볼 수 있습니다.
+          </p>
+        </div>
+      </section>
       <InsightsCosmicRouteClient
         initialItems={initialItems}
         initialAllItems={initialAllItems}
@@ -193,15 +213,6 @@ export default async function InsightsPage() {
         initialTotalCount={initialAllItems.length}
         initialFamousSajuItems={initialFamousSajuItems.slice(0, 6)}
       />
-      {/* 인터랙티브 허브는 클라이언트 전용(ssr:false)이라 검색엔진용 정적 목차를 함께 렌더링한다. */}
-      <section className="sr-only" aria-label="운세 인사이트 아카이브 목차">
-        <h1>운세 인사이트 허브 — 사주·자미두수·숙요점·타로 가이드</h1>
-        <p>
-          사주팔자의 오행과 십성, 자미두수 12궁 명반, 숙요점 27숙, 타로 카드 해석, 서양·베다
-          점성술까지 — 처음 접하는 사람도 흐름을 읽을 수 있도록 정리한 운세 지식 아카이브입니다.
-          주제별 허브에서 원하는 분야의 글을 모아 볼 수 있습니다.
-        </p>
-      </section>
       {/*
         기능 가이드 12종은 사이트에서 가장 품질이 높은 자산인데(상호 공통 문장 0개)
         2026-07 실측에서 10개가 내부 링크로 도달 불가능했다. 눈에 보이는 섹션으로
