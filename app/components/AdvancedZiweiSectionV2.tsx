@@ -18,6 +18,8 @@ import {
 import { normalizeZiweiInput } from "../_lib/normalize-ziwei-input";
 import { getZiweiDeepChapter, primeZiweiDeepRuntime } from "../_lib/ziwei-deep-runtime";
 import { validateZiweiChart } from "../_lib/validate-ziwei-chart";
+// 🔴 챕터 장문의 절 분리는 이 함수 하나만 쓴다 - 화면이 정규식을 따로 들면 절 수가 어긋나도 아무도 못 잡는다.
+import { splitZiweiDeepCategories } from "../_lib/ziwei-deep-reading";
 import {
   isDestinyProfileStorageKey,
   readCurrentDestinyProfile,
@@ -34,6 +36,10 @@ import {
 } from "../_lib/ziwei-types";
 import { transformationTypeToLabel } from "../_lib/ziwei-advanced-normalization";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
+// 전문가 상담 8종이 공유하는 산문 렌더러와 용어 툴팁. 자미 전용 사본을 만들지 말 것.
+import AiResultProse from "@/components/fortune/AiResultProse";
+import GlossaryTerm from "@/components/fortune/GlossaryTerm";
+import { listGlossaryTerms, lookupTerm } from "@/worker/lib/fortune-glossary.js";
 import { getAdvancedZiweiCopy, type AdvancedZiweiCopy } from "./ziwei/_lib/advanced-ziwei-copy";
 // 해석 문장·트랙·궁/별 정의는 순수 모듈로 분리했다(가드 verify:ziwei-chart-customer-copy 가 출력 문장을 검사한다).
 import {
@@ -44,10 +50,8 @@ import {
   buildPalaceLinks,
   buildSihuaInsights,
   buildTrackAnalysis,
-  describeBrightnessMix,
   PALACE_DEFINITION_MAP,
   palaceForceLabel,
-  palaceNameById,
   trackPriorityLabel,
   ZIWEI_TRACK_KEYS,
   type ZiweiConsultationTrackId,
@@ -55,6 +59,17 @@ import {
   type ZiweiTrackPalaceReading,
   type ZiweiTrackPriority,
 } from "./ziwei/_lib/advanced-ziwei-reading";
+
+type ZiweiGlossaryEntry = { term: string; oneLiner: string; detail?: string };
+
+/** 워커 용어집에서 자미두수 항목만 추린다(사주·점성 용어가 자미 화면에 섞이지 않게). */
+const ZIWEI_GLOSSARY_ENTRIES: ZiweiGlossaryEntry[] = [];
+for (const term of listGlossaryTerms()) {
+  const entry = lookupTerm(term);
+  if (entry && entry.system === "ziwei") {
+    ZIWEI_GLOSSARY_ENTRIES.push({ term: entry.term, oneLiner: entry.oneLiner, detail: entry.detail });
+  }
+}
 
 type Step = "form" | "computing" | "result";
 
@@ -381,6 +396,7 @@ export default function AdvancedZiweiSectionV2({
   const [chart, setChart] = useState<ZiweiDeepChart | null>(null);
   const [chapters, setChapters] = useState<Partial<Record<ZiweiSectionId, ZiweiDeepChapter>>>({});
   const [activeSection, setActiveSection] = useState<ZiweiSectionId>("overview");
+  const [openSections, setOpenSections] = useState<number[]>([0]);
   const [activeTrackId, setActiveTrackId] = useState<ZiweiConsultationTrackId>("life");
   const [isFullscreen, setIsFullscreen] = useState(false);
 
@@ -423,6 +439,15 @@ export default function AdvancedZiweiSectionV2({
     if (activeSection === "overview" || activeSection === "master") return null;
     return chart.palaces.find((p) => p.id === activeSection) || null;
   }, [activeSection, chart]);
+
+  // 궁을 바꾸면 첫 절만 열린 상태로 되돌린다(앞 궁에서 펼친 절 번호가 따라오지 않게).
+  useEffect(() => {
+    setOpenSections([0]);
+  }, [activeSection]);
+
+  const toggleChapterSection = useCallback((index: number) => {
+    setOpenSections((previous) => (previous.includes(index) ? previous.filter((row) => row !== index) : [...previous, index]));
+  }, []);
 
   const palaceCounseling = useMemo<ZiweiPalaceCounselingItem[]>(() => (chart ? buildPalaceCounseling(chart) : []), [chart]);
 
@@ -960,10 +985,30 @@ export default function AdvancedZiweiSectionV2({
 
   const orbitActivePalaceId: ZiweiPalaceId | undefined =
     activeSection === "overview" || activeSection === "master" ? undefined : activeSection;
-  const chapterHighlights = [
-    ...(activeChapter.highlights || []),
-    ...(activeChapter.summary || []),
+  // "라벨: 값" 형태의 요약 줄은 라벨을 소제목으로 올려 문장만 남긴다.
+  const chapterLead = (activeChapter.summary || [])
+    .map((line) => String(line || "").trim())
+    .filter(Boolean)
+    .map((line) => {
+      const marker = line.indexOf(": ");
+      if (marker <= 0 || marker > 14) return { label: "", value: line };
+      return { label: line.slice(0, marker), value: line.slice(marker + 2) };
+    });
+  // 개관·마스터플랜 장문에는 "### N." 이 없어 빈 배열이 온다 - 그때는 통짜 산문으로 렌더한다.
+  const chapterSections = splitZiweiDeepCategories(activeChapter.fullText || "");
+  const chapterText = `${activeChapter.title} ${(activeChapter.summary || []).join(" ")} ${activeChapter.fullText || ""}`;
+  const chapterGlossary = ZIWEI_GLOSSARY_ENTRIES.filter((entry) => chapterText.includes(entry.term));
+  const doNowItems = [
+    ...new Set(
+      [...(activeChapter.remedies || []), ...(activeChapter.actionItems || [])]
+        .map((item) => String(item || "").trim())
+        .filter(Boolean),
+    ),
   ].slice(0, 6);
+  const routineBlocks = [
+    { heading: copy.thisWeekHeading, items: activeChapter.routine7Days || [] },
+    { heading: copy.thisMonthHeading, items: activeChapter.routine30Days || [] },
+  ].filter((block) => block.items.length);
 
   return (
     <section className="font-body fixed inset-0 z-50 h-[100dvh] overflow-y-auto overscroll-none px-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-[calc(1rem+env(safe-area-inset-top))] text-slate-100 sm:px-6 lg:px-8">
@@ -1286,77 +1331,99 @@ export default function AdvancedZiweiSectionV2({
                           ? "형제궁은 혈연을 넘어 친구, 동료, 라이벌, 협업 파트너와 어떤 거리로 연결되는지 보여주는 수평 관계의 별자리입니다."
                           : `${activePalace.name}은 ${PALACE_DEFINITION_MAP[activePalace.id].definition}입니다.`}
                     </p>
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      {["원국", "주성", "보조성", "살성", "사화", "대궁", "삼방사정", "차성", "대한", "유년", "실전 처방"].map((scope) => (
-                        <span key={`scope-${activePalace.id}-${scope}`} className="rounded-full border border-white/12 bg-white/8 px-3 py-1 text-[11px] font-semibold text-slate-100">
-                          {scope}
-                        </span>
-                      ))}
-                    </div>
-                    <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                      <div className="rounded-2xl border border-cyan-200/18 bg-cyan-200/8 px-3 py-3">
-                        <p className="text-[11px] font-semibold text-cyan-100">{copy.detailCard.mainStarLabel}</p>
-                        <p className="mt-1 text-sm leading-6 text-white">{activePalace.mainStars.map((star) => `${star.name}${star.strengthSymbol || star.symbol || ""}`).join(" · ") || copy.noMainStarShort}</p>
-                      </div>
-                      <div className="rounded-2xl border border-amber-200/18 bg-amber-200/8 px-3 py-3">
-                        <p className="text-[11px] font-semibold text-amber-100">{copy.detailCard.sihuaLabel}</p>
-                        <p className="mt-1 text-sm leading-6 text-white">{activePalace.fourTransformations.map((item) => `${transformationTypeToLabel(item.type)} ${item.starName}`).join(" · ") || copy.noSihuaShort}</p>
-                      </div>
-                      <div className="rounded-2xl border border-fuchsia-200/18 bg-fuchsia-200/8 px-3 py-3">
-                        <p className="text-[11px] font-semibold text-fuchsia-100">{copy.oppositePalaceBoxLabel}</p>
-                        <p className="mt-1 text-sm leading-6 text-white">{activePalace.oppositePalace?.name || palaceNameById(activePalace.oppositePalaceId)} · {activePalace.oppositePalace?.mainStars.map((star) => star.name).join(" · ") || copy.oppositeNoStarShort}</p>
-                      </div>
-                      <div className="rounded-2xl border border-sky-200/18 bg-sky-200/8 px-3 py-3">
-                        <p className="text-[11px] font-semibold text-sky-100">{copy.triadBoxLabel}</p>
-                        <p className="mt-1 text-sm leading-6 text-white">{activePalace.sanFangSiZheng?.palaceNames?.join(" · ") || activePalace.triadPalaceIds.map((id) => palaceNameById(id)).join(" · ")}</p>
-                      </div>
-                    </div>
                   </div>
                 </div>
               </div>
             ) : null}
 
-            <div className="mt-5 grid gap-3 sm:grid-cols-2">
-              {chapterHighlights.map((item, index) => (
-                <div key={`${item}-${index}`} className={`rounded-2xl border px-4 py-3 text-sm leading-7 ${index === 0 ? "border-amber-200/25 bg-amber-200/10 text-amber-50" : "border-white/10 bg-black/20 text-slate-200"}`}>
-                  {item}
+            {/* (1) 리드 - 챕터 요약. "라벨: 값" 형태는 라벨을 소제목으로 올린다. */}
+            <div className="mt-5 grid gap-3">
+              {chapterLead.map((item, index) => (
+                <div key={`lead-${index}`} className={`rounded-2xl border px-4 py-3 ${index === 0 ? "border-amber-200/24 bg-amber-200/8" : "border-white/10 bg-black/20"}`}>
+                  {item.label ? (
+                    <>
+                      <p className="text-[11px] font-semibold text-cyan-100/85">{item.label}</p>
+                      <p className="mt-1 text-sm leading-7 text-slate-200">{item.value}</p>
+                    </>
+                  ) : (
+                    <AiResultProse value={item.value} className="text-sm leading-7 text-amber-50" />
+                  )}
                 </div>
               ))}
             </div>
 
-            {activePalace ? (
-              <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                  <p className="text-xs font-semibold text-slate-300">{copy.mainStarsCardLabel}</p>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {activePalace.mainStars.length ? activePalace.mainStars.map((star) => (
-                      <StarToneBadge key={`main-${star.name}`} symbol={String(star.strengthSymbol || star.symbol || "").trim() || "△"} copy={copy} />
-                    )) : <p className="text-sm text-slate-400">{copy.noMainStarNote}</p>}
+            {/* (2) 장문을 절 단위 아코디언으로. 절 분리는 splitZiweiDeepCategories 한 곳만 쓴다. */}
+            <div className="mt-5">
+              <p className="text-[11px] font-semibold tracking-[0.28em] text-cyan-100/85">{copy.chapterSectionsHeading}</p>
+              <div className="mt-3 grid gap-2">
+                {chapterSections.length ? (
+                  chapterSections.map((section, index) => {
+                    const open = openSections.includes(index);
+                    return (
+                      <div key={`${activeSection}-part-${index}`} className="overflow-hidden rounded-2xl border border-white/10 bg-black/20">
+                        <button
+                          type="button"
+                          onClick={() => toggleChapterSection(index)}
+                          aria-expanded={open}
+                          className="flex min-h-[48px] w-full items-center justify-between gap-3 px-4 py-3 text-left"
+                        >
+                          <span className="text-sm font-black leading-6 text-white">{section.title}</span>
+                          <span aria-hidden="true" className="shrink-0 text-base font-black text-cyan-100/85">{open ? "−" : "+"}</span>
+                        </button>
+                        {open ? (
+                          <div className="border-t border-white/10 px-4 pb-4">
+                            <AiResultProse value={section.body} />
+                          </div>
+                        ) : null}
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="rounded-2xl border border-white/10 bg-black/20 px-4 pb-4">
+                    <AiResultProse value={activeChapter.fullText} />
                   </div>
-                </div>
-                <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                  <p className="text-xs font-semibold text-slate-300">{copy.emotionalTextureLabel}</p>
-                  <div className="mt-3 text-sm leading-7 text-slate-200">
-                    <p>{describeBrightnessMix(activePalace.allStars)}</p>
-                    <p className="mt-2 text-slate-300">
-                      {copy.starPowerBalanceHint}
-                    </p>
-                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* (3) 용어 풀이 - 공용 GlossaryTerm + 워커 용어집(재구현 금지). */}
+            {chapterGlossary.length ? (
+              <div className="mt-5 rounded-2xl border border-white/10 bg-black/20 p-4">
+                <p className="text-xs font-semibold text-slate-300">{copy.glossaryHeading}</p>
+                <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm text-slate-100">
+                  {chapterGlossary.map((entry) => (
+                    <GlossaryTerm key={entry.term} hint={entry.oneLiner} detail={entry.detail}>
+                      {entry.term}
+                    </GlossaryTerm>
+                  ))}
                 </div>
               </div>
             ) : null}
 
-            <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-              {[
-                { label: copy.strengthKeywordLabel, value: activeChapter.strengths.slice(0, 2).join(" · ") || "흐름을 다시 고르게 세울 힘" },
-                { label: copy.cautionKeywordLabel, value: activeChapter.cautions.slice(0, 2).join(" · ") || "과속할 때 균형을 잃는 지점" },
-                { label: copy.routineKeywordLabel, value: activeChapter.routine7Days.slice(0, 2).join(" · ") || "매일 10분씩 같은 질문을 적기" },
-              ].map((item) => (
-                <div key={item.label} className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                  <p className="text-xs font-semibold text-slate-300">{item.label}</p>
-                  <p className="mt-2 text-sm leading-7 text-slate-100">{item.value}</p>
+            {/* (4) 읽고 나서 할 것 - 처방/실천 + 7일·30일 루틴. */}
+            <div className="mt-5 grid gap-3 lg:grid-cols-2">
+              {doNowItems.length ? (
+                <div className="rounded-2xl border border-emerald-200/20 bg-emerald-200/8 p-4">
+                  <p className="text-xs font-semibold text-emerald-100">{copy.doNowHeading}</p>
+                  <ul className="mt-3 space-y-2 text-sm leading-7 text-slate-100">
+                    {doNowItems.map((item) => (
+                      <li key={`do-${item}`}>{item}</li>
+                    ))}
+                  </ul>
                 </div>
-              ))}
+              ) : null}
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+                {routineBlocks.map((block) => (
+                  <div key={block.heading} className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                    <p className="text-xs font-semibold text-slate-300">{block.heading}</p>
+                    <ul className="mt-3 space-y-2 text-sm leading-7 text-slate-200">
+                      {block.items.map((item) => (
+                        <li key={`${block.heading}-${item}`}>{item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
             </div>
           </StagePanel>
         </div>

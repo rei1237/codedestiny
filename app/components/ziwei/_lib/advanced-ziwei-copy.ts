@@ -46,9 +46,6 @@ export interface AdvancedZiweiCopy {
   calendarLabels: { solar: string; lunar: string };
   namePlaceholder: string;
   birthPlacePlaceholder: string;
-  strengthKeywordLabel: string;
-  cautionKeywordLabel: string;
-  routineKeywordLabel: string;
   actionPlanTitles: { start: string; reduce: string; maintain: string };
   strengthDescriptions: { miao: string; deuk: string; li: string; ping: string; ham: string };
 
@@ -110,9 +107,11 @@ export interface AdvancedZiweiCopy {
 
   rereadButtonLabel: string;
   palaceReadingSuffixLabel: string;
-  emotionalTextureLabel: string;
-  starPowerBalanceHint: string;
-  mainStarsCardLabel: string;
+  chapterSectionsHeading: string;
+  glossaryHeading: string;
+  doNowHeading: string;
+  thisWeekHeading: string;
+  thisMonthHeading: string;
 
   overallSummaryHeading: string;
   strongTop3Heading: string;
@@ -182,11 +181,7 @@ export interface AdvancedZiweiCopy {
   noMainStarShort: string;
   noSihuaShort: string;
   noAuxStarCell: string;
-  oppositeNoStarShort: string;
   noConnectedPalaceShort: string;
-  oppositePalaceBoxLabel: string;
-  triadBoxLabel: string;
-  noMainStarNote: string;
   rankTemplate: (rank: number) => string;
 }
 
@@ -233,9 +228,6 @@ const ADVANCED_ZIWEI_COPY_EN: AdvancedZiweiCopy = {
   calendarLabels: { solar: "Solar", lunar: "Lunar" },
   namePlaceholder: "e.g. Alex Kim",
   birthPlacePlaceholder: "e.g. Seoul, South Korea",
-  strengthKeywordLabel: "Core Strengths",
-  cautionKeywordLabel: "Caution Signals",
-  routineKeywordLabel: "7-Day Routine",
   actionPlanTitles: { start: "Actions to Try Now", reduce: "Actions to Reduce or Moderate", maintain: "Standards to Maintain" },
   strengthDescriptions: {
     miao: "The star's power flourishes at its most brilliant",
@@ -309,9 +301,11 @@ const ADVANCED_ZIWEI_COPY_EN: AdvancedZiweiCopy = {
 
   rereadButtonLabel: "Reread the current palace",
   palaceReadingSuffixLabel: "star reading",
-  emotionalTextureLabel: "Brightness and texture of the stars",
-  starPowerBalanceHint: "Strong stars shape direction, and weak stars signal fatigue. Real-world advice only comes alive when you catch both.",
-  mainStarsCardLabel: "Key Stars",
+  chapterSectionsHeading: "Read it one part at a time",
+  glossaryHeading: "Words used here",
+  doNowHeading: "What you can do now",
+  thisWeekHeading: "This week",
+  thisMonthHeading: "This month",
 
   overallSummaryHeading: "Your whole chart in one paragraph",
   strongTop3Heading: "Three palaces with the most strength",
@@ -380,11 +374,7 @@ const ADVANCED_ZIWEI_COPY_EN: AdvancedZiweiCopy = {
   noMainStarShort: "No main star; read through the star borrowed from the opposite palace",
   noSihuaShort: "No direct transformation; this palace flows quietly",
   noAuxStarCell: "No supporting stars",
-  oppositeNoStarShort: "The opposite palace is also empty, so the triad stars are read instead",
   noConnectedPalaceShort: "No linked palace identified",
-  oppositePalaceBoxLabel: "Opposite palace",
-  triadBoxLabel: "Linked palaces (triad)",
-  noMainStarNote: "No main star sits here, so the opposite palace and its triad are read together.",
   rankTemplate: (rank) => `#${rank}`,
 };
 
@@ -425,9 +415,6 @@ const ADVANCED_ZIWEI_COPY: Partial<Record<LoadingLocale, AdvancedZiweiCopy>> = {
     calendarLabels: { solar: "양력", lunar: "음력" },
     namePlaceholder: "예: 홍길동",
     birthPlacePlaceholder: "예: 대한민국 서울",
-    strengthKeywordLabel: "핵심 강점",
-    cautionKeywordLabel: "주의 신호",
-    routineKeywordLabel: "7일 루틴",
     actionPlanTitles: { start: "지금 시도할 행동", reduce: "줄이거나 조절할 행동", maintain: "유지할 기준" },
     strengthDescriptions: {
       miao: "별의 힘이 가장 찬란하게 살아나는 상태",
@@ -501,9 +488,11 @@ const ADVANCED_ZIWEI_COPY: Partial<Record<LoadingLocale, AdvancedZiweiCopy>> = {
 
     rereadButtonLabel: "현재 궁 다시 읽기",
     palaceReadingSuffixLabel: "성요 판독",
-    emotionalTextureLabel: "별의 밝기와 결",
-    starPowerBalanceHint: "강한 별은 방향을 만들고, 약한 별은 피로를 알립니다. 둘 다 놓치지 않아야 현실 조언이 살아납니다.",
-    mainStarsCardLabel: "주요 별",
+    chapterSectionsHeading: "하나씩 펼쳐 읽기",
+    glossaryHeading: "이 글에 나온 말",
+    doNowHeading: "지금 할 수 있는 것",
+    thisWeekHeading: "이번 주",
+    thisMonthHeading: "이번 달",
 
     overallSummaryHeading: "명반 전체를 한 문단으로",
     strongTop3Heading: "힘이 가장 잘 실린 궁 셋",
@@ -572,11 +561,7 @@ const ADVANCED_ZIWEI_COPY: Partial<Record<LoadingLocale, AdvancedZiweiCopy>> = {
     noMainStarShort: "중심 별 없이 맞은편 별을 빌려 읽는 궁",
     noSihuaShort: "직접 걸린 사화 없이 차분히 흐르는 궁",
     noAuxStarCell: "곁에 앉은 별 없음",
-    oppositeNoStarShort: "맞은편도 빈 궁이라 삼방사정의 별로 읽습니다",
     noConnectedPalaceShort: "연결된 궁이 따로 잡히지 않음",
-    oppositePalaceBoxLabel: "맞은편 궁(대궁)",
-    triadBoxLabel: "함께 얽히는 궁(삼방사정)",
-    noMainStarNote: "중심이 되는 주성이 앉지 않은 궁이라, 맞은편 궁과 삼방사정의 별을 함께 읽습니다.",
     rankTemplate: (rank) => `${rank}위`,
   },
   ja: {
@@ -615,9 +600,6 @@ const ADVANCED_ZIWEI_COPY: Partial<Record<LoadingLocale, AdvancedZiweiCopy>> = {
     calendarLabels: { solar: "太陽暦", lunar: "太陰暦" },
     namePlaceholder: "例：山田太郎",
     birthPlacePlaceholder: "例：韓国 ソウル",
-    strengthKeywordLabel: "核心的な強み",
-    cautionKeywordLabel: "注意信号",
-    routineKeywordLabel: "7日間ルーティン",
     actionPlanTitles: { start: "今試すべき行動", reduce: "減らす・調整する行動", maintain: "維持すべき基準" },
     strengthDescriptions: {
       miao: "星の力が最も輝かしく生きる状態",
@@ -691,9 +673,11 @@ const ADVANCED_ZIWEI_COPY: Partial<Record<LoadingLocale, AdvancedZiweiCopy>> = {
 
     rereadButtonLabel: "現在の宮を読み直す",
     palaceReadingSuffixLabel: "星耀判読",
-    emotionalTextureLabel: "星の明るさと質感",
-    starPowerBalanceHint: "強い星は方向を作り、弱い星は疲労を知らせます。両方を見逃さないことで現実的なアドバイスが生きてきます。",
-    mainStarsCardLabel: "主要な星",
+    chapterSectionsHeading: "ひとつずつ開いて読む",
+    glossaryHeading: "ここで使った言葉",
+    doNowHeading: "いまできること",
+    thisWeekHeading: "今週",
+    thisMonthHeading: "今月",
 
     overallSummaryHeading: "命盤全体をひと段落で",
     strongTop3Heading: "力が最もよく乗っている宮 3つ",
@@ -762,11 +746,7 @@ const ADVANCED_ZIWEI_COPY: Partial<Record<LoadingLocale, AdvancedZiweiCopy>> = {
     noMainStarShort: "主星がなく、対宮の星を借りて読む宮",
     noSihuaShort: "直接の四化がなく穏やかに流れる宮",
     noAuxStarCell: "補佐星なし",
-    oppositeNoStarShort: "対宮も空宮のため三方四正の星で読みます",
     noConnectedPalaceShort: "連動する宮が特定されていません",
-    oppositePalaceBoxLabel: "対宮",
-    triadBoxLabel: "三方四正",
-    noMainStarNote: "主星が座していない宮なので、対宮と三方四正の星を合わせて読みます。",
     rankTemplate: (rank) => `${rank}位`,
   },
   "zh-CN": {
@@ -805,9 +785,6 @@ const ADVANCED_ZIWEI_COPY: Partial<Record<LoadingLocale, AdvancedZiweiCopy>> = {
     calendarLabels: { solar: "阳历", lunar: "阴历" },
     namePlaceholder: "例：李小龙",
     birthPlacePlaceholder: "例：韩国首尔",
-    strengthKeywordLabel: "核心优势",
-    cautionKeywordLabel: "注意信号",
-    routineKeywordLabel: "7日routine",
     actionPlanTitles: { start: "现在可以尝试的行动", reduce: "需要减少或调节的行动", maintain: "需要维持的准则" },
     strengthDescriptions: {
       miao: "星曜之力最灿烂发挥的状态",
@@ -881,9 +858,11 @@ const ADVANCED_ZIWEI_COPY: Partial<Record<LoadingLocale, AdvancedZiweiCopy>> = {
 
     rereadButtonLabel: "重新解读当前宫位",
     palaceReadingSuffixLabel: "星曜判读",
-    emotionalTextureLabel: "星曜的亮度与质感",
-    starPowerBalanceHint: "强星塑造方向，弱星提示疲惫。两者都不忽视，现实建议才会真正生效。",
-    mainStarsCardLabel: "主要星曜",
+    chapterSectionsHeading: "逐节展开阅读",
+    glossaryHeading: "本文出现的词",
+    doNowHeading: "现在可以做的事",
+    thisWeekHeading: "本周",
+    thisMonthHeading: "本月",
 
     overallSummaryHeading: "一段话看懂整张命盘",
     strongTop3Heading: "力量最足的三个宫位",
@@ -952,11 +931,7 @@ const ADVANCED_ZIWEI_COPY: Partial<Record<LoadingLocale, AdvancedZiweiCopy>> = {
     noMainStarShort: "无主星，借对宫之星来读",
     noSihuaShort: "没有直接四化，平稳流动的宫位",
     noAuxStarCell: "无辅星",
-    oppositeNoStarShort: "对宫亦为空宫，改由三方四正之星来读",
     noConnectedPalaceShort: "未识别到相连宫位",
-    oppositePalaceBoxLabel: "对宫",
-    triadBoxLabel: "三方四正",
-    noMainStarNote: "此宫没有主星坐守，因此与对宫及三方四正的星一起解读。",
     rankTemplate: (rank) => `第${rank}位`,
   },
   "zh-TW": {
@@ -995,9 +970,6 @@ const ADVANCED_ZIWEI_COPY: Partial<Record<LoadingLocale, AdvancedZiweiCopy>> = {
     calendarLabels: { solar: "陽曆", lunar: "陰曆" },
     namePlaceholder: "例：李小龍",
     birthPlacePlaceholder: "例：韓國首爾",
-    strengthKeywordLabel: "核心優勢",
-    cautionKeywordLabel: "注意訊號",
-    routineKeywordLabel: "7日routine",
     actionPlanTitles: { start: "現在可以嘗試的行動", reduce: "需要減少或調節的行動", maintain: "需要維持的準則" },
     strengthDescriptions: {
       miao: "星曜之力最燦爛發揮的狀態",
@@ -1071,9 +1043,11 @@ const ADVANCED_ZIWEI_COPY: Partial<Record<LoadingLocale, AdvancedZiweiCopy>> = {
 
     rereadButtonLabel: "重新解讀目前宮位",
     palaceReadingSuffixLabel: "星曜判讀",
-    emotionalTextureLabel: "星曜的亮度與質感",
-    starPowerBalanceHint: "強星塑造方向，弱星提示疲憊。兩者都不忽視，現實建議才會真正生效。",
-    mainStarsCardLabel: "主要星曜",
+    chapterSectionsHeading: "逐節展開閱讀",
+    glossaryHeading: "本文出現的詞",
+    doNowHeading: "現在可以做的事",
+    thisWeekHeading: "本週",
+    thisMonthHeading: "本月",
 
     overallSummaryHeading: "一段話看懂整張命盤",
     strongTop3Heading: "力量最足的三個宮位",
@@ -1142,11 +1116,7 @@ const ADVANCED_ZIWEI_COPY: Partial<Record<LoadingLocale, AdvancedZiweiCopy>> = {
     noMainStarShort: "無主星，借對宮之星來讀",
     noSihuaShort: "沒有直接四化，平穩流動的宮位",
     noAuxStarCell: "無輔星",
-    oppositeNoStarShort: "對宮亦為空宮，改由三方四正之星來讀",
     noConnectedPalaceShort: "未識別到相連宮位",
-    oppositePalaceBoxLabel: "對宮",
-    triadBoxLabel: "三方四正",
-    noMainStarNote: "此宮沒有主星坐守，因此與對宮及三方四正的星一起解讀。",
     rankTemplate: (rank) => `第${rank}位`,
   },
   en: ADVANCED_ZIWEI_COPY_EN,
