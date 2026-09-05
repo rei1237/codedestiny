@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-06
-next: Phase 2 — 홈 IA 8섹션 목업 아티팩트(960px 1컷 + 상태 스펙 + 색 토큰 + 합성색 대비)를 발행하고 사용자 승인을 받는다. 코드는 승인 뒤에만.
+next: Phase 2 PR-A(히어로 CTA 1개·S6 이용권 4등급·구명 제거) 머지 확인 → PR-B(폼을 히어로 안으로·#cdConcernPick/컬렉션 2차 패널 이관·푸터 world 링크·모달 감사) 착수. 목업 승인은 끝났으니 다시 묻지 말 것.
 ---
 
 # 홈 IA 재설계 + 캐릭터·세계관 페이지(`/world/`) 신설
@@ -13,7 +13,8 @@ next: Phase 2 — 홈 IA 8섹션 목업 아티팩트(960px 1컷 + 상태 스펙 
 ## 지금 상태
 
 - Phase 1 진단 완료(코드 변경 0). 리포트 원문은 세션 플랜 파일 `C:\Users\user\.claude\plans\code-destiny-elegant-quokka.md` (레포 밖). 핵심만 아래에.
-- Phase 2 미착수. 이 문서 PR 외 열린 PR 없음.
+- Phase 2 목업 승인됨(아티팩트 https://claude.ai/code/artifact/5b1a51bc-2726-49de-972a-bd2cd02ee634 — 90일권은 목업 오류였고 4등급 전부 30일로 정정). PR-A 구현 완료·PR 대기(브랜치 `worktree-home-ia-phase2`).
+- PR-A 가 한 것: 네오 테마 버튼 🌙→🦁, 히어로 `Celestial Fortune Collection` 줄 삭제, 히어로 CTA 1개(`✦ 운명 카드 만들기` → `#destinyCardForm`, 12로케일 `home.hero2.primaryCta` 갱신), `.membership-recap-cta` 를 `#cdHomeSecondaryPanel` 밖 `#cdSignatureConsult` 직후로 옮기고 `home.passMini.*` 키 재사용 4등급 카드 추가(`/points/?source=main-membership&plan=<tier>`), 홈 셸·fortune 허브 셸·sitemap 주석의 `꿀꿀 만세력` 표기 제거(ko.json `home.homeGuide.lead/sajuBody` 동반).
 
 ## 사용자 결정 (2026-09-06, 다시 묻지 말 것)
 
@@ -41,12 +42,17 @@ next: Phase 2 — 홈 IA 8섹션 목업 아티팩트(960px 1컷 + 상태 스펙 
 
 ## 남은 작업
 
-- [ ] Phase 2 목업(원칙 16) → 승인 → 변경 표 → 구현. 판정: 사용자 "진행".
+- [x] Phase 2 목업 → 승인 → PR-A 구현.
+- [ ] Phase 2 PR-B: `#destinyCardForm` 을 히어로 안으로(`cd-hero-firstpaint-lock` 잠금 블록 재작성 + CLS 실측 필요) · `#cdConcernPick`(1,547줄)·컬렉션 62타일을 2차 패널/전용 라우트로(adsense 가시 텍스트·`master-love-codex-flow` 가드 실측) · `#cdTodayPick` 처리 · 모달 11개 감사.
+- [ ] 구명 잔재 후속(PR-A 범위 밖, 손대지 않음): `public/i18n/ko/shellRuntime.json` f9·f70·f2951, `lib/seo/siteSeo.ts`·`siteConfig.ts`·`entity-registry.mjs`, `app/components/SeoJsonLd.jsx`, `manifest.json`, `llms.txt`, `js/fortune-engine.js`·`js/share.js`, `i18n/authored/shellCopy-02.json`, `lib/i18n/siteFooterHubCopy.ts`, `public/famous` og:site_name 주석. 사전 고아 키 `home.hero.brandLine`·`shell.moonHeroCopy.moonHeroActions.k107dp07`.
+- [ ] 에이전트가 짚은 결함(고치지 말고 보고만): `index.html` 미니 배지 `labels`/`freeLimits` 와 `worker/routes/payments.js` `SUBSCRIPTION_BASE_PLANS` 는 등급명 6번째 사본인데 `verify:pass-tier-policy` 사본 스윕 밖; `syncMembershipStatus` 의 "다음 갱신 전까지" 문구는 자동갱신 없는 상품과 모순; 새 4등급 `<a>` 는 `routeToMembership` 의 로그인 프롬프트를 거치지 않음(선례 recap CTA 와 같음, 원하면 `data-membership-cta="plan"` 한 줄).
 - [ ] Phase 3 `/world/` 목업 → 승인 → 구현(i18n 12 로케일, 산문 복사 0).
 - [ ] Phase 4·5 는 프롬프트 원문대로.
 
 ## 함정
 
+- `scripts/build-fortune-hub-shell.mjs` 를 고치면 `node scripts/build-fortune-hub-shell.mjs` 로 `fortune/index.html` 을 재생성한 뒤 `sync:public` 을 **다시** 돌려야 `public/fortune/index.html` 이 따라온다(첫 sync 는 옛 셸을 복사한다 — 2026-09-06 실측).
+- `verify:adsense-readiness` 는 `dist/index.html` 이 필요해 로컬 워크트리에서 못 돈다(CI 가 본다). `check:quick` 의 `build:worker` 는 로컬에서 `workers-og` 미해결로 헛실패한다(메모리 정본).
 - 셸 편집은 `sync:public` 미러 동커밋, `verify:hero-contrast`·`verify:mobile-detail-nonintrusive`·`i18n:check`·브랜드 가드 동반. 나머지는 CLAUDE.md 라우팅 표.
 
 ## 검증

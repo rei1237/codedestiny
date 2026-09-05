@@ -174,7 +174,7 @@ const staticCanonicalRouteEntries = STATIC_CANONICAL_ROUTES.map((route) => ({
 
 const coreRoutes = [
   { path: "/", changefreq: "daily", priority: 1.0 },
-  // 브랜드 별칭("꿀꿀 운세"·"꿀꿀 만세력") 의 대표 URL 은 홈 "/" 다. 이 페이지는 그 관계를
+  // 브랜드 별칭("꿀꿀 운세") 의 대표 URL 은 홈 "/" 다. 이 페이지는 그 관계를
   // 설명하는 보조 안내라 홈보다 우선순위를 낮춰 브랜드 쿼리에서 자기잠식하지 않게 한다.
   { path: "/kkul-kkul-unse", changefreq: "weekly", priority: 0.85 },
   { path: "/saju", changefreq: "daily", priority: 0.98 },
