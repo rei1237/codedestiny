@@ -104,6 +104,43 @@ for (const file of ["js/destiny-profile.js", "public/js/destiny-profile.js"]) {
     source.includes("if (!dpDuplicateConfirm) {"),
     `${file}: dp 의 티켓 회수·실패 throw 는 중복 결제 폴백에서 제외돼야 한다`,
   );
+
+  // ── 리다이렉트 복귀 재개(모바일·카카오페이 새 탭) — 2026-09-05 재설계 계약 ─────────────────
+  // 데스크톱 confirm 과 달리 이 경로는 (1) 대기 mode 가 허용목록에 없어 안 뜨고 (2) "여는 중" 문구를
+  // 띄우고 아무것도 안 열고 (3) access-state 갱신을 빼먹고 (4) GRANT_PENDING 을 완료로 표시했다.
+  const resume = sliceFunction(source, "  async function _dpResumeDirectPaymentAfterRedirect() {", `${file} resume`);
+  assert.ok(
+    !/_dpSetPaymentPending\(true,[^\n]*'confirm'\)/.test(resume),
+    `${file}: 복귀 대기 mode 'confirm' 은 dp·셸·React 허용목록 어디에도 없어 조용히 안 뜬다 — 'unlock-saving' 을 쓸 것`,
+  );
+  assert.ok(resume.includes("'unlock-saving'"), `${file}: 복귀 confirm 대기는 3렌더러 공통 허용 mode 'unlock-saving' 이어야 한다`);
+  assert.ok(
+    !resume.includes("_dpText('paymentCompleteOverlay')") && !resume.includes("_dpShowPaymentCompleteOverlay("),
+    `${file}: 복귀 경로는 아무것도 자동으로 열지 않는다 — "콘텐츠를 여는 중" 문구(paymentCompleteOverlay)를 쓰면 거짓 안내다`,
+  );
+  assert.ok(
+    !resume.includes("WaitText("),
+    `${file}: 복귀 단계에서 directPayMethodWaitText("…자동으로 돌아옵니다")는 이미 돌아온 사용자에게 거짓이다`,
+  );
+  assert.ok(resume.includes("'GRANT_PENDING'"), `${file}: 복귀 confirm 은 GRANT_PENDING(200+code) 을 완료로 표시하면 안 된다 — PENDING 분기 필요`);
+  const resumePendingBranch = sliceFunction(resume, "if (resumePending) {", `${file} resume PENDING`);
+  assert.ok(
+    !resumePendingBranch.includes("_dpClearDirectResumeTicket()") && !resumePendingBranch.includes("_dpStripDirectResumeQuery()")
+      && !resumePendingBranch.includes("refreshUserAccessAfterPayment"),
+    `${file}: PENDING 분기는 티켓·URL 을 남겨 새로고침이 멱등 재시도가 되게 하고 access 갱신도 하지 않는다`,
+  );
+  const successClearAt = resume.lastIndexOf("_dpClearDirectResumeTicket()");
+  const accessRefreshAt = resume.indexOf("refreshUserAccessAfterPayment");
+  assert.ok(
+    accessRefreshAt > successClearAt && successClearAt >= 0,
+    `${file}: 복귀 성공 뒤 access-state 60초 스냅샷 무효화(refreshUserAccessAfterPayment)가 티켓 회수 뒤에 있어야 한다 — 없으면 방금 산 기능이 최대 60초 잠긴 채 보인다`,
+  );
+  assert.ok(resume.includes("_dpStripDirectResumeQuery()"), `${file}: 복귀 성공·실패 뒤 PG 파라미터를 URL 에서 걷어내야 새로고침 재실행이 없다`);
+  assert.ok(
+    source.includes("window.history.replaceState("),
+    `${file}: _dpStripDirectResumeQuery 는 history.replaceState 로 URL 을 정리해야 한다(이동·새로고침 금지)`,
+  );
+  assert.ok(resume.includes("'cd:direct-payment-resumed'"), `${file}: 복귀 성공 이벤트 cd:direct-payment-resumed 가 사라졌다`);
 }
 
-console.log("verify-direct-confirm-pending-recovery: OK — 티켓 수명(2회수 지점·순서)과 PENDING_CONFIRMATION 분기, 7셸+dp 패리티 통과");
+console.log("verify-direct-confirm-pending-recovery: OK — 티켓 수명(2회수 지점·순서)과 PENDING_CONFIRMATION 분기, 7셸+dp 패리티, dp 리다이렉트 복귀 재개(unlock-saving·GRANT_PENDING·access 갱신·URL 정리) 통과");
