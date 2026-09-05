@@ -302,6 +302,13 @@ jobs:
       - name: Verify ziwei deep chapter counseling quality
         run: npm run verify:ziwei-deep-counseling-quality
 
+      # 심화 자미두수 결과 화면(/ziwei/chart)의 문장·라벨이 고객 대상인지 본다 — 위 챕터 가드와 같은 이유로
+      # **fast 잡**이다: 화면 빌더(app/components/ziwei/_lib/advanced-ziwei-reading.ts)와 카피만 고친 PR 은
+      # 티어가 올라가지 않는다. 샘플 명반 2개 × 트랙 8개의 출력 문장에서 운영자 라벨(고객용·STEP·확인 제한 등)과
+      # 영문 대문자 아이브로우를 잡는다. 네트워크 없이 1초 안팎.
+      - name: Verify ziwei chart customer copy
+        run: npm run verify:ziwei-chart-customer-copy
+
       # 🔴 이것도 **fast 잡**이어야 한다. 궁간·대한사화·자화·소한은 worker/lib/ziwei-ai-chart.js 와
       # worker/routes/ziwei-ai.js 에 걸쳐 있는데, 앞의 것만 고치는 PR 은 티어가 critical 로 안 올라간다
       # (scripts/resolve-ci-tier.mjs 는 worker/routes/ziwei-ai.js 만 critical 로 못 박는다).

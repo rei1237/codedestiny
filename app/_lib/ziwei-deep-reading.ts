@@ -137,7 +137,7 @@ type PalaceCounselingLens = {
   opening: string;
 };
 
-const FORBIDDEN_ZIWEI_PHRASES = [
+export const FORBIDDEN_ZIWEI_PHRASES = [
   "핵심 구조 보강",
   "자동 보강",
   "보강 문구",
