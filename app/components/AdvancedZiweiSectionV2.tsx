@@ -274,6 +274,15 @@ const ZIWEI_SIHUA_PILL: Record<string, string> = {
   화기: "border-rose-300/45 bg-rose-300/14 text-rose-100",
 };
 
+/* 결과 화면 구역 이동 바. 이 배열 순서가 곧 DOM 순서이자 칩 순서이며, 스크롤 스파이가 그대로 관찰한다. */
+const ZIWEI_RESULT_NAV = [
+  { key: "chart", id: "ziwei-result-chart" },
+  { key: "palace", id: "ziwei-result-palace" },
+  { key: "track", id: "ziwei-result-track" },
+  { key: "deep", id: "ziwei-result-deep" },
+  { key: "today", id: "ziwei-result-today" },
+] as const;
+
 const COUNSELING_TRACK_ICON_MAP: Record<ZiweiConsultationTrackId, string> = {
   life: "總",
   career: "官",
@@ -755,6 +764,27 @@ export default function AdvancedZiweiSectionV2({
     handleCompute,
   ]);
 
+  // 구역 이동 바의 활성 칩 — 상단 바(약 72px) 아래로 들어온 구역 중 가장 위를 활성으로 둔다.
+  const [activeNavId, setActiveNavId] = useState<string>(ZIWEI_RESULT_NAV[0].id);
+  useEffect(() => {
+    if (step !== "result") return;
+    const nodes = ZIWEI_RESULT_NAV.map((item) => document.getElementById(item.id)).filter(
+      (node): node is HTMLElement => !!node,
+    );
+    if (!nodes.length) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+        if (visible.length) setActiveNavId(visible[0].target.id);
+      },
+      { rootMargin: "-88px 0px -62% 0px" },
+    );
+    nodes.forEach((node) => observer.observe(node));
+    return () => observer.disconnect();
+  }, [step]);
+
   if (showIntro) {
     return (
       <section className="font-premium relative overflow-hidden rounded-[2rem] border border-white/10 bg-[#020510] p-6 text-slate-100 md:p-8">
@@ -1010,11 +1040,38 @@ export default function AdvancedZiweiSectionV2({
     { heading: copy.thisMonthHeading, items: activeChapter.routine30Days || [] },
   ].filter((block) => block.items.length);
 
+  const activePalaceSihua = activePalace
+    ? Array.from(new Set((activePalace.fourTransformations || []).map((t) => transformationTypeToLabel(t.type)).filter(Boolean)))
+    : [];
+
   return (
-    <section className="font-body fixed inset-0 z-50 h-[100dvh] overflow-y-auto overscroll-none px-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-[calc(1rem+env(safe-area-inset-top))] text-slate-100 sm:px-6 lg:px-8">
+    <section className="font-body fixed inset-0 z-50 h-[100dvh] overflow-y-auto overscroll-none px-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))] text-slate-100 motion-safe:scroll-smooth sm:px-6 lg:px-8">
       <GalaxyBackdrop />
+      {/* 구역 이동 바 — m.div 안에 두면 진입 애니메이션의 transform 이 sticky 의 컨테이닝 블록이 되어
+          바가 따라오지 않는다. 스크롤 컨테이너 직계로 두고 루트 좌우 패딩만 음수 마진으로 되돌린다. */}
+      <nav
+        aria-label={copy.resultNavAriaLabel}
+        className="sticky top-0 z-30 -mx-4 border-b border-white/10 bg-[#050816]/92 px-4 pb-2 pt-[calc(0.5rem+env(safe-area-inset-top))] backdrop-blur-xl sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8"
+      >
+        <ul className="mx-auto flex w-full max-w-7xl snap-x snap-proximity gap-1.5 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {ZIWEI_RESULT_NAV.map((item) => {
+            const current = item.id === activeNavId;
+            return (
+              <li key={item.id}>
+                <a
+                  href={`#${item.id}`}
+                  aria-current={current ? "true" : undefined}
+                  className={`flex min-h-[48px] snap-start items-center whitespace-nowrap rounded-full border px-4 text-[13px] font-semibold transition ${current ? "border-cyan-200/60 bg-cyan-200/16 font-bold text-cyan-50 shadow-[0_0_22px_rgba(56,189,248,0.22)]" : "border-white/12 bg-white/6 text-slate-200 hover:border-cyan-200/30 hover:bg-white/10 hover:text-white"}`}
+                >
+                  {copy.resultNavLabels[item.key]}
+                </a>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
       <m.div
-        className="relative z-10 mx-auto flex w-full max-w-7xl flex-col gap-4"
+        className="relative z-10 mx-auto mt-3 flex w-full max-w-7xl flex-col gap-4"
         initial={{ opacity: 0, y: 18 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.55, ease: "easeOut" }}
@@ -1102,51 +1159,6 @@ export default function AdvancedZiweiSectionV2({
           </div>
         </StagePanel>
 
-        {trackAnalysis ? (
-          <StagePanel className="p-4 sm:p-5 lg:p-6">
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div className="max-w-3xl">
-                <p className="text-xs font-semibold text-cyan-100/80">{copy.selectedTrackPrefix}{trackAnalysis.selectedTrack.title}</p>
-                <h2 className="font-display mt-2 text-2xl font-black leading-tight text-white md:text-3xl">
-                  {trackAnalysis.executiveSummary.headline}
-                </h2>
-                <p className="font-premium mt-3 text-sm leading-7 text-slate-200/90 md:text-base">
-                  {trackAnalysis.executiveSummary.summary}
-                </p>
-              </div>
-              <div className="rounded-2xl border border-white/10 bg-black/24 px-4 py-3 text-xs leading-6 text-slate-200">
-                <p className="font-semibold text-amber-100">{copy.primaryPalaceLabel}</p>
-                <p className="mt-1">{trackAnalysis.selectedTrack.primaryPalaces.map((id) => trackPalaceReadingById[id]?.palaceName || id).join(" · ")}</p>
-              </div>
-            </div>
-
-            <div className="mt-5 grid gap-3 lg:grid-cols-3">
-              {trackAnalysis.executiveSummary.keyPatterns.map((pattern) => (
-                <article key={pattern.title} className="rounded-2xl border border-white/10 bg-black/24 p-4">
-                  <p className="text-sm font-black text-white">{pattern.title}</p>
-                  <p className="mt-2 text-sm leading-7 text-slate-200">{pattern.interpretation}</p>
-                  <details className="mt-3 rounded-xl border border-cyan-200/15 bg-cyan-200/8 px-3 py-2 text-xs leading-6 text-cyan-50">
-                    <summary className="cursor-pointer font-semibold">{copy.evidenceToggleLabel}</summary>
-                    <ul className="mt-2 space-y-1">
-                      {pattern.evidence.map((line) => (
-                        <li key={line}>{line}</li>
-                      ))}
-                    </ul>
-                  </details>
-                </article>
-              ))}
-            </div>
-
-            {trackAnalysis.dataWarnings.length ? (
-              <div className="mt-4 rounded-2xl border border-amber-200/20 bg-amber-200/8 px-4 py-3 text-xs leading-6 text-amber-50">
-                {trackAnalysis.dataWarnings.map((warning) => (
-                  <p key={warning}>{warning}</p>
-                ))}
-              </div>
-            ) : null}
-          </StagePanel>
-        ) : null}
-
         {chart.warnings.length ? (
           <StagePanel className="p-4 sm:p-5">
             <p className="text-xs font-semibold tracking-[0.24em] text-amber-100/80">{copy.precisionNoteLabel}</p>
@@ -1158,33 +1170,8 @@ export default function AdvancedZiweiSectionV2({
           </StagePanel>
         ) : null}
 
-        <StagePanel className="p-4 sm:p-5">
-          <div className="space-y-3">
-            <p className="text-xs font-semibold text-cyan-100/80">{copy.counselingTrackSectionLabel}</p>
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-              {counselingTracks.map((track) => {
-                const active = track.key === activeTrackId;
-                const icon = COUNSELING_TRACK_ICON_MAP[track.key];
-                return (
-                  <button
-                    key={track.key}
-                    type="button"
-                    onClick={() => selectCounselingTrack(track.key)}
-                    className={`rounded-2xl border p-4 text-left transition ${active ? "border-cyan-200/60 bg-gradient-to-br from-cyan-200/16 to-sky-200/10 shadow-[0_0_32px_rgba(56,189,248,0.22)]" : "border-white/10 bg-black/20 hover:border-cyan-200/25 hover:bg-black/30"}`}
-                  >
-                    <p className="text-sm font-semibold text-white">{icon} {track.title}</p>
-                    <p className="mt-2 text-xs leading-6 text-slate-300">{track.purpose}</p>
-                    <p className="mt-2 text-[11px] leading-5 text-cyan-100/80">
-                      {copy.corePalaceLabelPrefix}{track.primaryPalaces.map((id) => PALACE_DEFINITION_MAP[id].name).join(" · ")}
-                    </p>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </StagePanel>
-
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_1.1fr]">
+          <section id="ziwei-result-chart" className="scroll-mt-[calc(4.5rem+env(safe-area-inset-top))]">
           <StagePanel className="p-4 sm:p-5">
             <div className="flex items-center justify-between gap-3">
               <div>
@@ -1193,93 +1180,81 @@ export default function AdvancedZiweiSectionV2({
               </div>
               <p className="text-xs text-slate-300">{copy.selectedPalaceLabelPrefix}{sectionTitle(activeSection)}</p>
             </div>
-            {/* 12궁 전통 4×4 명반 — 기본 명반(saju-engine.js zw-* 격자)과 동일한 지지 배치/팔레트 레퍼런스 */}
-            <div className="mt-5 overflow-x-auto pb-1">
+            {/* 12궁 전통 4×4 명반 — 기본 명반(saju-engine.js zw-* 격자)과 동일한 지지 배치/팔레트 레퍼런스.
+                🔴 375px 에서 한 칸이 약 73px 이라 칸 안 글자는 12px 미만으로 내리지 않는다
+                (scripts/verify-ziwei-chart-customer-copy.mjs 검사 3이 잠근다). */}
+            <div
+              className="relative mx-auto mt-5 aspect-square w-full max-w-[38rem] gap-1.5"
+              style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gridTemplateRows: "repeat(4, minmax(0, 1fr))" }}
+            >
+              {chart.palaces.map((palace) => {
+                const area = ZIWEI_BRANCH_GRID_AREA[palace.earthlyBranch];
+                if (!area) return null;
+                const active = palace.id === orbitActivePalaceId;
+                const isMeng = palace.id === "ming";
+                const isShen = !!chart.shenGong && palace.earthlyBranch === chart.shenGong && !isMeng;
+                const hasHuaji = Array.from(
+                  new Set((palace.fourTransformations || []).map((t) => transformationTypeToLabel(t.type)).filter(Boolean)),
+                ).includes("화기");
+                const mains = palace.mainStars || [];
+                const roleClass = active
+                  ? "border-amber-200/70 bg-gradient-to-br from-indigo-500/25 to-violet-600/20 shadow-[0_0_26px_rgba(196,181,253,0.32)]"
+                  : isMeng
+                    ? "border-amber-300/55 bg-black/30 shadow-[0_0_20px_rgba(232,213,163,0.18)]"
+                    : isShen
+                      ? "border-sky-300/45 bg-black/30 shadow-[0_0_18px_rgba(125,211,252,0.16)]"
+                      : hasHuaji
+                        ? "border-rose-300/45 bg-black/30"
+                        : "border-violet-300/20 bg-black/25 hover:border-violet-200/45 hover:bg-black/35";
+                return (
+                  <button
+                    key={palace.id}
+                    type="button"
+                    onClick={() => loadSection(palace.id)}
+                    style={{ gridArea: area }}
+                    aria-pressed={active}
+                    aria-label={`${palace.name} ${palace.earthlyBranch}`}
+                    className={`group flex min-h-0 flex-col gap-0.5 overflow-hidden rounded-xl border p-2 text-left transition duration-200 ${roleClass}`}
+                  >
+                    <div className="flex items-baseline justify-between gap-1">
+                      <span className="text-[13px] font-black leading-tight text-white">{palace.name}</span>
+                      <span className="shrink-0 text-xs font-black text-white/60">{palace.earthlyBranch}</span>
+                    </div>
+                    <div className="flex min-h-0 flex-col gap-0.5">
+                      {mains.length ? (
+                        mains.map((star, i) => (
+                          <span key={`${star.name}-${i}`} className="flex items-baseline gap-0.5 text-xs font-bold leading-tight text-amber-50">
+                            {star.name}
+                            {star.strengthSymbol ? (
+                              <span className={`text-xs font-black ${ZIWEI_STRENGTH_TONE[star.strengthSymbol] || "text-slate-200"}`}>{star.strengthSymbol}</span>
+                            ) : null}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-xs italic text-slate-300">{copy.emptyPalaceCellLabel}</span>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
               <div
-                className="relative mx-auto aspect-square w-full min-w-[19rem] max-w-[38rem] gap-1.5"
-                style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gridTemplateRows: "repeat(4, minmax(0, 1fr))" }}
+                style={{ gridArea: "2 / 2 / 4 / 4" }}
+                className="relative flex flex-col items-center justify-center overflow-hidden rounded-2xl border border-amber-200/35 bg-[radial-gradient(circle_at_50%_28%,rgba(232,213,163,0.2),transparent_58%),radial-gradient(circle_at_30%_80%,rgba(167,139,250,0.2),transparent_56%),linear-gradient(160deg,rgba(40,28,84,0.85),rgba(15,13,42,0.92))] p-3 text-center shadow-[inset_0_0_28px_rgba(232,213,163,0.18)]"
               >
-                {chart.palaces.map((palace) => {
-                  const area = ZIWEI_BRANCH_GRID_AREA[palace.earthlyBranch];
-                  if (!area) return null;
-                  const active = palace.id === orbitActivePalaceId;
-                  const isMeng = palace.id === "ming";
-                  const isShen = !!chart.shenGong && palace.earthlyBranch === chart.shenGong && !isMeng;
-                  const sihuaLabels = Array.from(
-                    new Set((palace.fourTransformations || []).map((t) => transformationTypeToLabel(t.type)).filter(Boolean)),
-                  );
-                  const hasHuaji = sihuaLabels.includes("화기");
-                  const mains = palace.mainStars || [];
-                  const subs = (palace.subStars || []).slice(0, 3);
-                  const roleClass = active
-                    ? "border-amber-200/70 bg-gradient-to-br from-indigo-500/25 to-violet-600/20 shadow-[0_0_26px_rgba(196,181,253,0.32)]"
-                    : isMeng
-                      ? "border-amber-300/55 bg-black/30 shadow-[0_0_20px_rgba(232,213,163,0.18)]"
-                      : isShen
-                        ? "border-sky-300/45 bg-black/30 shadow-[0_0_18px_rgba(125,211,252,0.16)]"
-                        : hasHuaji
-                          ? "border-rose-300/45 bg-black/30"
-                          : "border-violet-300/20 bg-black/25 hover:border-violet-200/45 hover:bg-black/35";
-                  return (
-                    <button
-                      key={palace.id}
-                      type="button"
-                      onClick={() => loadSection(palace.id)}
-                      style={{ gridArea: area }}
-                      aria-label={`${palace.name} ${palace.earthlyBranch}`}
-                      className={`group relative flex min-h-0 flex-col overflow-hidden rounded-xl border p-2 text-left transition duration-200 ${roleClass}`}
-                    >
-                      <div className="flex items-start justify-between gap-1">
-                        <span className="text-[11px] font-black leading-tight text-white sm:text-xs">{palace.name}</span>
-                        {palace.dahan ? <span className="shrink-0 text-[9px] font-semibold text-amber-200/85">{palace.dahan}</span> : null}
-                      </div>
-                      {sihuaLabels.length ? (
-                        <div className="mt-1 flex flex-wrap gap-1">
-                          {sihuaLabels.map((label) => (
-                            <span key={label} className={`rounded-full border px-1.5 py-px text-[8px] font-bold ${ZIWEI_SIHUA_PILL[label] || "border-white/15 bg-white/10 text-white"}`}>
-                              {label}
-                            </span>
-                          ))}
-                        </div>
-                      ) : null}
-                      <div className="mt-1 flex min-h-0 flex-col gap-0.5">
-                        {mains.length ? (
-                          mains.map((star, i) => (
-                            <span key={`${star.name}-${i}`} className="flex items-baseline gap-0.5 text-[11px] font-bold leading-tight text-amber-50">
-                              {star.name}
-                              {star.strengthSymbol ? (
-                                <span className={`text-[10px] font-black ${ZIWEI_STRENGTH_TONE[star.strengthSymbol] || "text-slate-200"}`}>{star.strengthSymbol}</span>
-                              ) : null}
-                            </span>
-                          ))
-                        ) : (
-                          <span className="text-[10px] italic text-white/50">{copy.emptyPalaceCellLabel}</span>
-                        )}
-                        {subs.length ? (
-                          <span className="text-[9px] leading-snug text-violet-100/85">{subs.map((s) => s.name).join(" ")}</span>
-                        ) : null}
-                      </div>
-                      <span className="pointer-events-none absolute bottom-1 right-1.5 text-[11px] font-black text-white/45">{palace.earthlyBranch}</span>
-                    </button>
-                  );
-                })}
-                <div
-                  style={{ gridArea: "2 / 2 / 4 / 4" }}
-                  className="relative flex flex-col items-center justify-center overflow-hidden rounded-2xl border border-amber-200/35 bg-[radial-gradient(circle_at_50%_28%,rgba(232,213,163,0.2),transparent_58%),radial-gradient(circle_at_30%_80%,rgba(167,139,250,0.2),transparent_56%),linear-gradient(160deg,rgba(40,28,84,0.85),rgba(15,13,42,0.92))] p-3 text-center shadow-[inset_0_0_28px_rgba(232,213,163,0.18)]"
-                >
-                  <p className="text-[10px] font-black tracking-[0.16em] text-amber-100/90">紫微星圖</p>
-                  <p className="mt-1 text-sm font-black text-amber-100 sm:text-base">{copy.centerPanelSubtitle}</p>
-                  <div className="mt-2 flex flex-wrap justify-center gap-1">
-                    <span className="rounded-full border border-amber-300/45 bg-amber-300/12 px-2 py-0.5 text-[9px] font-bold text-amber-100">{copy.statMingLabel} {chart.mingGong}</span>
-                    <span className="rounded-full border border-sky-300/45 bg-sky-300/12 px-2 py-0.5 text-[9px] font-bold text-sky-100">{copy.statShenLabel} {chart.shenGong}</span>
-                    <span className="rounded-full border border-violet-300/45 bg-violet-300/12 px-2 py-0.5 text-[9px] font-bold text-violet-100">{copy.statJuLabel} {chart.juInfo}</span>
-                  </div>
-                  <p className="mt-2 hidden text-[9px] leading-snug text-indigo-100/80 sm:block">{copy.centerPanelDesc}</p>
+                <p className="text-xs font-black tracking-[0.16em] text-amber-100/90">紫微星圖</p>
+                <p className="mt-1 text-sm font-black text-amber-100 sm:text-base">{copy.centerPanelSubtitle}</p>
+                <div className="mt-2 flex flex-wrap justify-center gap-1">
+                  <span className="rounded-full border border-amber-300/45 bg-amber-300/12 px-2 py-0.5 text-xs font-bold text-amber-100">{copy.statMingLabel} {chart.mingGong}</span>
+                  <span className="rounded-full border border-sky-300/45 bg-sky-300/12 px-2 py-0.5 text-xs font-bold text-sky-100">{copy.statShenLabel} {chart.shenGong}</span>
+                  <span className="rounded-full border border-violet-300/45 bg-violet-300/12 px-2 py-0.5 text-xs font-bold text-violet-100">{copy.statJuLabel} {chart.juInfo}</span>
                 </div>
               </div>
             </div>
+            <p className="mt-3 text-xs leading-6 text-slate-300">{copy.centerPanelDesc}</p>
           </StagePanel>
+          </section>
 
+          <section id="ziwei-result-palace" className="scroll-mt-[calc(4.5rem+env(safe-area-inset-top))]">
           <StagePanel className="p-4 sm:p-5">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
@@ -1297,7 +1272,7 @@ export default function AdvancedZiweiSectionV2({
             </div>
 
             {activePalace ? (
-              <div className="mt-5 overflow-hidden rounded-[1.5rem] border border-cyan-200/20 bg-[linear-gradient(135deg,rgba(8,18,38,0.96),rgba(18,11,39,0.92)_52%,rgba(7,20,31,0.96))] p-4 shadow-[0_18px_54px_rgba(8,47,73,0.28)]">
+              <div className="relative mt-5 overflow-hidden rounded-[1.5rem] border border-cyan-200/20 bg-[linear-gradient(135deg,rgba(8,18,38,0.96),rgba(18,11,39,0.92)_52%,rgba(7,20,31,0.96))] p-4 shadow-[0_18px_54px_rgba(8,47,73,0.28)]">
                 <div className="pointer-events-none absolute inset-x-8 h-px bg-gradient-to-r from-transparent via-cyan-100/45 to-transparent" />
                 <div className="grid gap-4 lg:grid-cols-[0.86fr_1.14fr] lg:items-center">
                   <div className="relative aspect-square min-h-[13rem] overflow-hidden rounded-[1.25rem] border border-white/10 bg-black/24">
@@ -1331,6 +1306,39 @@ export default function AdvancedZiweiSectionV2({
                           ? "형제궁은 혈연을 넘어 친구, 동료, 라이벌, 협업 파트너와 어떤 거리로 연결되는지 보여주는 수평 관계의 별자리입니다."
                           : `${activePalace.name}은 ${PALACE_DEFINITION_MAP[activePalace.id].definition}입니다.`}
                     </p>
+                    <div className="mt-4 rounded-2xl border border-white/10 bg-black/24 p-4">
+                      <p className="text-xs font-semibold tracking-[0.24em] text-cyan-100/85">{copy.detailCard.evidenceSummaryTitle}</p>
+                      <dl className="mt-3 grid gap-2 text-xs leading-6 text-slate-200 sm:grid-cols-2">
+                        <div>
+                          <dt className="font-semibold text-white">{copy.detailCard.mainStarLabel}</dt>
+                          <dd>{activePalace.mainStars.map((s) => `${s.name}${s.strengthSymbol || ""}`).join(" · ") || copy.noMainStarShort}</dd>
+                        </div>
+                        <div>
+                          <dt className="font-semibold text-white">{copy.detailCard.auxLabel}</dt>
+                          <dd>{(activePalace.subStars || []).map((s) => s.name).join(" · ") || copy.noAuxStarCell}</dd>
+                        </div>
+                        <div>
+                          <dt className="font-semibold text-white">{copy.detailCard.sihuaLabel}</dt>
+                          <dd className="mt-1 flex flex-wrap gap-1">
+                            {activePalaceSihua.length ? (
+                              activePalaceSihua.map((label) => (
+                                <span key={label} className={`rounded-full border px-2 py-0.5 text-xs font-bold ${ZIWEI_SIHUA_PILL[label] || "border-white/15 bg-white/10 text-white"}`}>
+                                  {label}
+                                </span>
+                              ))
+                            ) : (
+                              <span>{copy.noSihuaShort}</span>
+                            )}
+                          </dd>
+                        </div>
+                        {activePalace.dahan ? (
+                          <div>
+                            <dt className="font-semibold text-white">{copy.palaceDahanLabel}</dt>
+                            <dd>{activePalace.dahan}</dd>
+                          </div>
+                        ) : null}
+                      </dl>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1426,51 +1434,82 @@ export default function AdvancedZiweiSectionV2({
               </div>
             </div>
           </StagePanel>
+          </section>
         </div>
 
+        <section id="ziwei-result-track" className="flex scroll-mt-[calc(4.5rem+env(safe-area-inset-top))] flex-col gap-4">
         <StagePanel className="p-4 sm:p-5">
-          <p className="text-xs font-semibold tracking-[0.28em] text-cyan-100/80">{copy.summaryTableHeading}</p>
-          <div className="mt-4 overflow-x-auto rounded-2xl border border-white/10 bg-black/20">
-            <table className="min-w-full text-left text-xs sm:text-sm">
-              <thead className="bg-white/6 text-slate-200">
-                <tr>
-                  <th className="px-3 py-3 font-semibold">{copy.tableColPalace}</th>
-                  <th className="px-3 py-3 font-semibold">{copy.tableColDefinition}</th>
-                  <th className="px-3 py-3 font-semibold">{copy.tableColMainStar}</th>
-                  <th className="px-3 py-3 font-semibold">{copy.tableColAuxStar}</th>
-                  <th className="px-3 py-3 font-semibold">{copy.tableColForce}</th>
-                  <th className="px-3 py-3 font-semibold">{copy.tableColPriority}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {palaceCounseling.map((item) => {
-                  const reading = trackPalaceReadingById[item.palace.id];
-                  return (
-                    <tr key={`table-${item.palace.id}`} className="border-t border-white/8 text-slate-100/90">
-                      <td className="px-3 py-3 font-semibold">{item.palace.name}</td>
-                      <td className="px-3 py-3 text-slate-300">{item.definition}</td>
-                      <td className="px-3 py-3">{item.palace.mainStars.map((s) => s.name).join(" · ") || copy.noMainStarShort}</td>
-                      <td className="px-3 py-3">{item.palace.auxiliaryStars.map((s) => s.name).slice(0, 3).join(" · ") || copy.noAuxStarCell}</td>
-                      <td className="px-3 py-3">
-                        <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${palaceForceToneClass(item.energy)}`}>
-                          {palaceForceLabel(item.energy)}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3">
-                        {reading ? (
-                          <span className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${trackPriorityToneClass(reading.priority)}`}>
-                            {trackPriorityLabel(reading.priority)}
-                          </span>
-                        ) : trackPriorityLabel("supporting")}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+          <p className="text-xs font-semibold text-cyan-100/80">{copy.counselingTrackSectionLabel}</p>
+          <div className="-mx-1 mt-3 flex snap-x snap-proximity gap-1.5 overflow-x-auto px-1 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] md:flex-wrap md:overflow-visible [&::-webkit-scrollbar]:hidden">
+            {counselingTracks.map((track) => {
+              const active = track.key === activeTrackId;
+              const icon = COUNSELING_TRACK_ICON_MAP[track.key];
+              return (
+                <button
+                  key={track.key}
+                  type="button"
+                  onClick={() => selectCounselingTrack(track.key)}
+                  aria-pressed={active}
+                  className={`flex min-h-[48px] shrink-0 snap-start items-center whitespace-nowrap rounded-full border px-4 text-[13px] font-semibold transition ${active ? "border-cyan-200/60 bg-cyan-200/16 font-bold text-cyan-50 shadow-[0_0_22px_rgba(56,189,248,0.22)]" : "border-white/10 bg-black/20 text-slate-200 hover:border-cyan-200/25 hover:bg-black/30 hover:text-white"}`}
+                >
+                  {icon} {track.title}
+                </button>
+              );
+            })}
           </div>
+          <p className="mt-3 rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm leading-7 text-slate-200">{activeTrack.purpose}</p>
+          <p className="mt-2 text-xs leading-6 text-cyan-100/80">
+            {copy.corePalaceLabelPrefix}{activeTrack.primaryPalaces.map((id) => PALACE_DEFINITION_MAP[id].name).join(" · ")}
+          </p>
         </StagePanel>
 
+        {trackAnalysis ? (
+          <StagePanel className="p-4 sm:p-5 lg:p-6">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="max-w-3xl">
+                <p className="text-xs font-semibold text-cyan-100/80">{copy.selectedTrackPrefix}{trackAnalysis.selectedTrack.title}</p>
+                <h2 className="font-display mt-2 text-2xl font-black leading-tight text-white md:text-3xl">
+                  {trackAnalysis.executiveSummary.headline}
+                </h2>
+                <p className="font-premium mt-3 text-sm leading-7 text-slate-200/90 md:text-base">
+                  {trackAnalysis.executiveSummary.summary}
+                </p>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-black/24 px-4 py-3 text-xs leading-6 text-slate-200">
+                <p className="font-semibold text-amber-100">{copy.primaryPalaceLabel}</p>
+                <p className="mt-1">{trackAnalysis.selectedTrack.primaryPalaces.map((id) => trackPalaceReadingById[id]?.palaceName || id).join(" · ")}</p>
+              </div>
+            </div>
+
+            <div className="mt-5 grid gap-3 lg:grid-cols-3">
+              {trackAnalysis.executiveSummary.keyPatterns.map((pattern) => (
+                <article key={pattern.title} className="rounded-2xl border border-white/10 bg-black/24 p-4">
+                  <p className="text-sm font-black text-white">{pattern.title}</p>
+                  <p className="mt-2 text-sm leading-7 text-slate-200">{pattern.interpretation}</p>
+                  <details className="mt-3 rounded-xl border border-cyan-200/15 bg-cyan-200/8 px-3 py-2 text-xs leading-6 text-cyan-50">
+                    <summary className="cursor-pointer font-semibold">{copy.evidenceToggleLabel}</summary>
+                    <ul className="mt-2 space-y-1">
+                      {pattern.evidence.map((line) => (
+                        <li key={line}>{line}</li>
+                      ))}
+                    </ul>
+                  </details>
+                </article>
+              ))}
+            </div>
+
+            {trackAnalysis.dataWarnings.length ? (
+              <div className="mt-4 rounded-2xl border border-amber-200/20 bg-amber-200/8 px-4 py-3 text-xs leading-6 text-amber-50">
+                {trackAnalysis.dataWarnings.map((warning) => (
+                  <p key={warning}>{warning}</p>
+                ))}
+              </div>
+            ) : null}
+          </StagePanel>
+        ) : null}
+        </section>
+
+        <section id="ziwei-result-deep" className="flex scroll-mt-[calc(4.5rem+env(safe-area-inset-top))] flex-col gap-4">
         <StagePanel className="p-4 sm:p-5">
           <p className="text-xs font-semibold tracking-[0.28em] text-cyan-100/80">{copy.overallSummaryHeading}</p>
           <div className="mt-4 grid gap-3">
@@ -1668,6 +1707,45 @@ export default function AdvancedZiweiSectionV2({
           </StagePanel>
         </div>
 
+        <StagePanel className="p-4 sm:p-5">
+          <p className="text-xs font-semibold tracking-[0.28em] text-cyan-100/80">{copy.summaryTableHeading}</p>
+          <dl className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+            {palaceCounseling.map((item) => {
+              const reading = trackPalaceReadingById[item.palace.id];
+              const forceRatio = Math.max(6, Math.min(100, Math.round(item.energy)));
+              return (
+                <div key={`summary-${item.palace.id}`} className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                  <dt className="text-sm font-black text-white">{item.palace.name}</dt>
+                  <dd className="mt-2 flex items-baseline justify-between gap-3 text-xs">
+                    <span className="font-semibold text-white">{copy.tableColForce}</span>
+                    <span className={`shrink-0 rounded-full px-2.5 py-1 font-semibold ${palaceForceToneClass(item.energy)}`}>
+                      {palaceForceLabel(item.energy)}
+                    </span>
+                  </dd>
+                  <div aria-hidden="true" className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/12">
+                    <span className="block h-full rounded-full bg-gradient-to-r from-amber-300/85 to-cyan-200/85" style={{ width: `${forceRatio}%` }} />
+                  </div>
+                  <dd className="mt-3 text-xs leading-6 text-slate-300">{item.definition}</dd>
+                  <dd className="mt-2 text-xs leading-6 text-slate-200">
+                    <span className="font-semibold text-white">{copy.tableColMainStar}</span> {item.palace.mainStars.map((s) => s.name).join(" · ") || copy.noMainStarShort}
+                  </dd>
+                  <dd className="mt-1 text-xs leading-6 text-slate-200">
+                    <span className="font-semibold text-white">{copy.tableColAuxStar}</span> {item.palace.auxiliaryStars.map((s) => s.name).slice(0, 3).join(" · ") || copy.noAuxStarCell}
+                  </dd>
+                  <dd className="mt-3 flex items-baseline gap-2 text-xs">
+                    <span className="font-semibold text-white">{copy.tableColPriority}</span>
+                    <span className={`rounded-full border px-2.5 py-1 font-semibold ${trackPriorityToneClass(reading?.priority || "supporting")}`}>
+                      {trackPriorityLabel(reading?.priority || "supporting")}
+                    </span>
+                  </dd>
+                </div>
+              );
+            })}
+          </dl>
+        </StagePanel>
+        </section>
+
+        <section id="ziwei-result-today" className="flex scroll-mt-[calc(4.5rem+env(safe-area-inset-top))] flex-col gap-4">
         {trackAnalysis ? (
           <StagePanel className="p-4 sm:p-5">
             <p className="text-xs font-semibold tracking-[0.28em] text-cyan-100/80">{copy.actionGuideHeadingPrefix}{activeTrack.title}</p>
@@ -1791,7 +1869,7 @@ export default function AdvancedZiweiSectionV2({
         <div className="relative z-10 mt-6">
           <ZiweiDeepPdfPanel birth={deepPdfBirth} disabled={!chart} />
         </div>
-
+        </section>
       </m.div>
     </section>
   );
