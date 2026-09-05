@@ -94,7 +94,7 @@ next: "09-06 에 스캐너로 낙샤트라 muhurta·vvip 를 **처음 실측했�
 - **② 의 `styles/core-ui.css` 는 섬 상담을 못 덮은 범인이 아니다.** `git grep "core-ui.css"` 로 소비자 전수 확인 — **`index.html` 과 그 public 미러 6개뿐**이고, 다른 루트 정적 셸 20종도 App Router 도 안 쓴다. 섬 상담의 `.ic-change`/`.ic-check` 는 App Router 소관 `styles/globals.css:128-133` 이 덮는데도 **컴포넌트 자체 CSS 의 명시 높이가 이겼다** — core-ui.css 를 고쳐도 그 부류는 재발한다.
 - **③ 의 낙샤트라 muhurta·vvip 8곳은 이미 짝이 붙어 있다** — `muhurta.module.css:50,95,111,124` · `vvip.module.css:38,46,54,75` 전부 `overflow-wrap:anywhere` 확인. 🔴 **09-06 에 렌더까지 확인해 종결했다 — 8곳 다 실제 콘텐츠에서 성립한다**(아래 §낙샤트라 프리미엄 실측).
 
-## 🔴 스캐너 순회 결함 — 문서의 7% 만 재고 있었다 (09-06 수정)
+## 🔴 스캐너 순회 결함 — 문서의 7% 만 재고 있었다 (09-06 수정, #1601)
 
 muhurta 를 처음 재고 `textRunSeen=19` 가 60행 리포트치고 너무 적어 독립 프로브로 대조한 것이 발단이다. **같은 화면의 보이는 텍스트 소유 요소는 293개**였다.
 
@@ -106,7 +106,7 @@ muhurta 를 처음 재고 `textRunSeen=19` 가 60행 리포트치고 너무 적�
 - 가드가 무는 증거(변이): `--self-test` 픽스처에 프로덕션과 같은 `scroll-behavior:smooth` 를 걸고 축 C 위반 `#ofDeep` 을 **4,200px 아래** 숨겼다. 즉시 이동을 옛 `scrollTo(0,y)` 로 되돌리면 `reach=2351/5279` · `stalled={want:1219,got:389}` 로 **자체 검증이 3건 실패**하고 `#ofDeep` 이 OF-C 에서 사라진다.
 - 🔴 **원장의 09-06 이전 수치는 이 결함 위에서 나왔다 — 재측정 전까지 미검증이다.** 다만 **`/nakshatra/` 캘리브레이션 판정선은 재측정에서 그대로 유지됐다**(완전 순회 `순회=7576~7799px`, `scanned=53/53`, OF-B=0 · OF-C=0 · TT<44=0 · 열폭 326/274px, 남은 OF-A=2 는 회전 장식 `.mandalaBg` 와 그 svg 뿐). 표본이 커져도 결론이 안 바뀐 라우트가 있다는 뜻이지, 전 라우트가 안전하다는 뜻이 아니다.
 
-## 낙샤트라 프리미엄 (`/nakshatra/muhurta/` · `/nakshatra/vvip/`) — 09-06 실측·수정
+## 낙샤트라 프리미엄 (`/nakshatra/muhurta/` · `/nakshatra/vvip/`) — 09-06 실측·수정 (#1601)
 
 원장에 **렌더 미측정**으로 남아 있던 keep-all 8곳을 열어 쟀다. 결론: **8곳 다 실제 콘텐츠에서 성립한다**(OF-A/B/C 전 레그 0).
 
