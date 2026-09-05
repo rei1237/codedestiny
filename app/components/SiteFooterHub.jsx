@@ -44,7 +44,7 @@ const POLICY_LINKS = [
   { href: "/about/", text: "서비스 소개 / About" },
   { href: "/disclaimer/", text: "면책 고지 / Disclaimer" },
   { href: "/advertising-policy/", text: "광고 운영정책 / Advertising Policy" },
-  { href: "/terms/#refund-policy", text: "교환/환불 정책" },
+  { href: "/refund-policy/", text: "교환/환불 정책" },
   { href: "/faq/", text: "FAQ" },
   { href: "/methodology/", text: "콘텐츠 방법론" },
   { href: "/insights/", text: "인사이트 아카이브" },

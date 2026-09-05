@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { SystemNotice } from "../components/SystemNotice";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 
 const PALM_READING_ERROR_TEXT_TRANSLATIONS = {
@@ -67,29 +68,20 @@ export default function PalmReadingError({
   }, []);
 
   return (
-    <section className="mx-auto flex min-h-[70vh] w-full max-w-3xl items-center justify-center px-4 py-10">
-      <div className="w-full rounded-2xl border border-[#c8a84b]/45 bg-[#0d0808]/92 p-6 text-center shadow-[0_20px_60px_rgba(0,0,0,0.55)] md:p-8">
-        <p className="text-xs font-black tracking-[0.2em] text-[#d4b45c]">PALM DESTINY</p>
-        <h2 className="mt-3 text-xl font-black text-[#f5d987] md:text-2xl">{copy.title}</h2>
-        <p className="mt-3 text-sm leading-7 text-[#ead7b6]/88 md:text-base">
-          {copy.description}
-        </p>
-        <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-center">
-          <button
-            type="button"
-            onClick={reset}
-            className="min-h-[44px] rounded-lg border border-[#d4af37]/70 bg-[linear-gradient(140deg,#8b0000_0%,#6b1a0a_35%,#5a1200_65%,#7a1800_100%)] px-4 py-2 text-sm font-bold text-[#fff8e0]"
-          >
+    <SystemNotice
+      title={copy.title}
+      eyebrow="PALM DESTINY"
+      description={copy.description}
+      actions={
+        <>
+          <button type="button" onClick={reset} className="policy-btn policy-btn--primary">
             {copy.retry}
           </button>
-          <a
-            href="/"
-            className="inline-flex min-h-[44px] items-center justify-center rounded-lg border border-[#c8a84b]/45 bg-[#0b0606] px-4 py-2 text-sm font-bold text-[#f3dca0]"
-          >
+          <a href="/" className="policy-btn policy-btn--ghost">
             {copy.home}
           </a>
-        </div>
-      </div>
-    </section>
+        </>
+      }
+    />
   );
 }
