@@ -8641,8 +8641,37 @@
     if (type === 'astro')  return '✦ ' + safeName + ' · 점성술 코즈믹 차트를 준비합니다';
     if (type === 'vedic')  return '✦ ' + safeName + ' · 베다 점성술로 이동합니다';
     if (type === 'flower') return '✦ ' + safeName + ' · 운명의 꽃 탭으로 이동합니다';
-    if (type === 'tarot')  return '✦ ' + safeName + ' · 타로 컬렉션으로 이동합니다';
+    if (type === 'tarot')  return '✦ ' + safeName + ' · 명리학 타로를 펼칩니다';
+    if (type === 'juyuk')  return '✦ ' + safeName + ' · 주역 거북점을 준비합니다';
+    if (type === 'kemet')  return '✦ ' + safeName + ' · 이집트 신탁을 준비합니다';
     return '✦ ' + safeName + ' · 운세 분석을 시작합니다';
+  }
+
+  /* 셸에 지연 로드되는 모달 오프너를 공용 경로로 연다(진입 과금 없음 — 각 모듈이 결과 시점에 자체 과금한다).
+     🔴 모바일에서는 지연마운트가 오버레이를 DOM 에서 통째로 떼어내고(index.html 의
+        mobile-home-lazy-mount), 오프너들은 오버레이가 없으면 조용히 return 한다.
+        그래서 호출 전에 반드시 되붙인다 — 선례는 js/saju-engine.js 의 tsModal 마운트. */
+  function _dpOpenShellAction(action, overlayId, failLabel) {
+    function _fail() {
+      _toast('⚠️ ' + failLabel + ' 모듈을 불러오지 못했습니다. 잠시 후 다시 시도하세요.', 'warn');
+    }
+    try {
+      var lazy = window.__cdMobileHomeLazyMount;
+      if (lazy && typeof lazy.mount === 'function') lazy.mount(overlayId);
+    } catch (_) {}
+    if (typeof window[action] === 'function') { window[action](); return; }
+
+    var loaders = window.__cdLazyActionLoaders;
+    if (!loaders || typeof loaders[action] !== 'function') { _fail(); return; }
+    try { loaders[action](); } catch (_) { _fail(); return; }
+
+    var tries = 0;
+    (function _waitForOpener() {
+      if (typeof window[action] === 'function') { window[action](); return; }
+      tries += 1;
+      if (tries >= 24) { _fail(); return; }
+      setTimeout(_waitForOpener, 40);
+    })();
   }
 
   function _runSajuWhenReady(maxAttempts, delayMs) {
@@ -10183,10 +10212,10 @@
         + '<button class="dp-fsel-btn dp-fsel-btn--sukuyo" onclick="window._dpOpenFortuneType(\'sukuyo\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">💫</span><span class="dp-fsel-btn-label">숙요점</span></button>'
         + '<button class="dp-fsel-btn dp-fsel-btn--ziwei" onclick="window._dpOpenFortuneType(\'ziwei\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">🌌</span><span class="dp-fsel-btn-label">자미두수</span></button>'
         + '<button class="dp-fsel-btn dp-fsel-btn--astro" onclick="window._dpOpenFortuneType(\'astro\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">✨</span><span class="dp-fsel-btn-label">점성술</span></button>'
-        + (function(){ var lk=_dpIsFeatureLocked('olympus-fc'); return '<button class="dp-fsel-btn dp-fsel-btn--olympus' + (lk?' dp-fsel-btn--locked':'') + '" onclick="window._dpOpenFortuneType(\'olympus\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">' + (lk?'🔒':'⚡') + '</span><span class="dp-fsel-btn-label">올림푸스 신탁' + (lk?'<span class="dp-fsel-btn-cost"> 🔒 10,000원</span>':'') + '</span></button>'; })()
+        + '<button class="dp-fsel-btn dp-fsel-btn--juyuk" onclick="window._dpOpenFortuneType(\'juyuk\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">☯️</span><span class="dp-fsel-btn-label">주역 거북점</span></button>'
         + '<button class="dp-fsel-btn dp-fsel-btn--vedic" onclick="window._dpOpenFortuneType(\'vedic\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">🪐</span><span class="dp-fsel-btn-label">베다점</span></button>'
         + '<button class="dp-fsel-btn dp-fsel-btn--tarot"  onclick="window._dpOpenFortuneType(\'tarot\')"  style="touch-action:manipulation"><span class="dp-fsel-btn-icon">🃏</span><span class="dp-fsel-btn-label">타로</span></button>'
-        + (function(){ var lk=_dpIsFeatureLocked('flower-fc'); return '<button class="dp-fsel-btn dp-fsel-btn--flower' + (lk?' dp-fsel-btn--locked':'') + '" onclick="window._dpOpenFortuneType(\'flower\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">' + (lk?'🔒':'🌸') + '</span><span class="dp-fsel-btn-label">운명의 꽃' + (lk?'<span class="dp-fsel-btn-cost"> 10,000원</span>':'') + '</span></button>'; })()
+        + '<button class="dp-fsel-btn dp-fsel-btn--kemet" onclick="window._dpOpenFortuneType(\'kemet\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">𓂀</span><span class="dp-fsel-btn-label">이집트 신탁</span></button>'
       + '</div>'
       + '</div>';
     document.body.appendChild(ov);
@@ -10386,12 +10415,22 @@
       } else if (type === 'tarot') {
         var pTarot = DPStorage.current();
         if (pTarot) _toast(_fortuneStartMessage(pTarot.name, 'tarot'), 'success');
-        var tarotEl = document.getElementById('tarotCollection');
-        if (tarotEl && typeof tarotEl.scrollIntoView === 'function') {
-          tarotEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        /* 🔴 예전에는 #tarotCollection 으로 스크롤만 했는데 그 컬렉션은 data-collection-open="false"
+              (접힘)이라 화면에 아무 변화가 없었다 — 홈의 다른 타로 진입점처럼 모달을 직접 연다. */
+        if (typeof window.openTarotModal === 'function') {
+          _dpOpenShellAction('openTarotModal', 'tarotModalOverlay', '타로');
         } else {
+          /* 이 파일은 독립 정적 페이지에도 실린다 — 거기엔 셸 오프너가 없으므로 홈으로 돌려보낸다 */
           window.location.href = (window.location.pathname === '/' ? '#' : '/#') + 'tarotCollection';
         }
+      } else if (type === 'juyuk') {
+        var pJuyuk = DPStorage.current();
+        if (pJuyuk) _toast(_fortuneStartMessage(pJuyuk.name, 'juyuk'), 'success');
+        _dpOpenShellAction('openJuyukModal', 'juyukModalOverlay', '주역 거북점');
+      } else if (type === 'kemet') {
+        var pKemet = DPStorage.current();
+        if (pKemet) _toast(_fortuneStartMessage(pKemet.name, 'kemet'), 'success');
+        _dpOpenShellAction('openKemetModal', 'kemetOracleOverlay', '이집트 신탁');
       } else if (type === 'flower') {
         var pFlower = DPStorage.current();
         if (pFlower) _toast(_fortuneStartMessage(pFlower.name, 'flower'), 'success');
@@ -10977,10 +11016,10 @@
       else if (btn.classList.contains('dp-fsel-btn--sukuyo')) type = 'sukuyo';
       else if (btn.classList.contains('dp-fsel-btn--ziwei')) type = 'ziwei';
       else if (btn.classList.contains('dp-fsel-btn--astro')) type = 'astro';
-      else if (btn.classList.contains('dp-fsel-btn--olympus')) type = 'olympus';
+      else if (btn.classList.contains('dp-fsel-btn--juyuk')) type = 'juyuk';
       else if (btn.classList.contains('dp-fsel-btn--vedic')) type = 'vedic';
       else if (btn.classList.contains('dp-fsel-btn--tarot')) type = 'tarot';
-      else if (btn.classList.contains('dp-fsel-btn--flower')) type = 'flower';
+      else if (btn.classList.contains('dp-fsel-btn--kemet')) type = 'kemet';
       if (type && typeof window._dpOpenFortuneType === 'function') {
         window._dpOpenFortuneType(type);
       }
