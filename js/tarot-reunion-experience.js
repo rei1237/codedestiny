@@ -452,7 +452,7 @@
     window.location.href = "/points";
   }
 
-  function consumeCoinDirect(cost, reason, featureKey) {
+  function consumeCoinDirect(cost, reason, featureKey, resume) {
     if (isReunionAdminLikeUser()) return Promise.resolve(true);
     var requestId = "tarot-reunion:" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 9);
     if (typeof window._cdOpenPaidServiceGate === "function") {
@@ -465,6 +465,7 @@
         amountKRW: Math.max(0, Number(cost || 0)) * 100,
         featureKey: featureKey,
         requestId: requestId,
+        resume: resume || undefined,
       })).then(function(result) {
         rememberReunionCharge(result && result.transactionId, result && (result.payload || result));
         return !!(result && (result.status === "granted" || result.ok === true || result.payload));
@@ -539,7 +540,8 @@
     });
   }
 
-  function requireReunionAccess() {
+  // resume: 결제 전 화면 상태를 담은 재개 서술자(모바일 리다이렉트 복귀용). 없으면 종전과 같다.
+  function requireReunionAccess(resume) {
     if (isReunionAdminLikeUser()) {
       state.hasAccess = true;
       state.paymentInFlight = false;
@@ -561,12 +563,13 @@
           REUNION_COIN_COST,
           REUNION_REASON,
           function (transactionId, payload) { rememberReunionCharge(transactionId, payload); done(true); },
-          function () { done(false); }
+          function () { done(false); },
+          resume ? { resume: resume } : undefined
         );
         return;
       }
 
-      consumeCoinDirect(REUNION_COIN_COST, REUNION_REASON, REUNION_FEATURE_KEY)
+      consumeCoinDirect(REUNION_COIN_COST, REUNION_REASON, REUNION_FEATURE_KEY, resume)
         .then(function (ok) { done(ok); })
         .catch(function () { done(false); });
     });
@@ -1158,9 +1161,83 @@
     }
   }
 
+  /* ── 결제 후 자동 재개(모바일 리다이렉트 복귀) ──────────────────────────────────
+     🔴 모바일 PortOne 은 상위 프레임을 리다이렉트하므로 requireReunionAccess 의 await 가 페이지와
+     함께 죽고, 복귀 후에는 _runTarotReunionFinalReading 이 영영 실행되지 않는다. 뽑은 5장은
+     state.cards 안에만 있어 새 문서에서 재현할 수 없으므로 결제 직전에 서술자로 굳혀 둔다.
+     🔴 args 에는 원시값만 살아남으므로(checkout-entry 의 sanitizePaidResumeDescriptor) 카드 배열은
+     JSON 문자열 한 칸에 담는다. 정본 예시: js/saju-engine-tarot-sukuyo-quantum.js 의
+     syBuildCompatResumeDescriptor ~ syRunCompatResume. */
+  var REUNION_RESUME_KIND = "tarot-reunion-final";
+  var REUNION_RESUME_WAIT_MS = 8000;
+  var REUNION_RESUME_POLL_MS = 200;
+
+  function reunionCheckoutEntry() {
+    try { return window.__cdCheckoutEntry || null; } catch (e) { return null; }
+  }
+
+  function buildReunionResumeDescriptor() {
+    if (typeof document === "undefined") return null;
+    if (!state.cards || state.cards.length !== 5) return null;
+    var packed = "";
+    // 직렬화가 실패하면 서술자 없이 보낸다 — 복귀 처리가 '지금 열기' 카드로 떨어뜨린다.
+    try { packed = JSON.stringify(state.cards); } catch (e) { return null; }
+    if (!packed) return null;
+    return {
+      kind: REUNION_RESUME_KIND,
+      // 셸의 기존 딥링크(index-inline-runtime 의 __cdLazyActionLoaders). 새 라우팅을 만들지 않는다.
+      action: "openTarotReunionModal",
+      args: { cards: packed },
+    };
+  }
+
+  // 오버레이는 runPaidResume 의 딥링크가 연다(이 스크립트는 지연 로드라 그때 함께 불려온다).
+  function waitForReunionOverlay(limitMs) {
+    return new Promise(function (resolve) {
+      var deadline = Date.now() + limitMs;
+      (function poll() {
+        var overlay = byId("tarotReunionOverlay");
+        if (overlay && overlay.classList.contains("is-open")) { resolve(true); return; }
+        if (Date.now() >= deadline) { resolve(false); return; }
+        setTimeout(poll, REUNION_RESUME_POLL_MS);
+      })();
+    });
+  }
+
+  /* 🔴 여기서 모달을 다시 열지 않는다 — 표면을 여는 책임은 checkout-entry 의 runPaidResume 하나다.
+     여기서 또 열면 이중 이동이 되어 재개가 통째로 날아간다. */
+  function runReunionResume(descriptor) {
+    var args = (descriptor && descriptor.args && typeof descriptor.args === "object") ? descriptor.args : {};
+    var restored = null;
+    try { restored = JSON.parse(String(args.cards || "")); } catch (e) { restored = null; }
+    if (!restored || !restored.length) return false;
+    return waitForReunionOverlay(REUNION_RESUME_WAIT_MS).then(function (ready) {
+      // 모달이 끝내 안 열리면 false — 복귀 처리(destiny-profile)가 '지금 열기' 카드를 그린다.
+      if (!ready) return false;
+      // openTarotReunionModal 이 resetTarotReunionFlow 로 intro 를 켜 둔 상태다. 결과 스테이지와
+      // 함께 켜지지 않도록 여기서 내린다(정상 흐름에서는 startTarotReunionReading 이 하는 일).
+      var intro = byId("tarotReunionIntroStage");
+      if (intro) intro.classList.remove("is-active");
+      state.cards = restored;
+      state.revealedCount = restored.length;
+      // 🔴 결제는 이미 끝났다 — 게이트를 다시 타는 showTarotReunionFinalReading 이 아니라 코어를
+      //    직접 부른다(재결제 방지).
+      state.hasAccess = true;
+      _runTarotReunionFinalReading();
+      return true;
+    });
+  }
+
+  (function registerReunionResumeHandler() {
+    var entry = reunionCheckoutEntry();
+    if (!entry || typeof entry.registerPaidResumeHandler !== "function") return;
+    try { entry.registerPaidResumeHandler(REUNION_RESUME_KIND, runReunionResume); } catch (e) {}
+  })();
+
   function showTarotReunionFinalReading() {
     if (state.revealedCount < 5 || !state.cards.length) return;
-    requireReunionAccess().then(function (ok) {
+    // 결제 전에 뽑은 카드를 서술자로 굳혀 둔다 — 복귀 페이지는 이 값 없이는 재현할 수 없다.
+    requireReunionAccess(buildReunionResumeDescriptor()).then(function (ok) {
       if (!ok) return;
       _runTarotReunionFinalReading();
     });
