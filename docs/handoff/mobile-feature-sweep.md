@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-05
-next: "OF 축이 09-05 에 처음 살아났다(아래 §OF 열 정정). 자미두수 결과 화면은 닫았고, 다음은 §다른 전문가 상담 감사 의 keep-all 단독 15파일을 기능당 1PR 로 — 신년운세·숙요궁합·카르마·낙샤트라 순. CI 게이트 2종의 같은 맹점은 별도 PR 이 필요하다"
+next: "신년운세 결과 화면을 09-05 에 닫았다(#1585, 아래 §신년운세). 다음은 §다른 전문가 상담 감사 의 keep-all 단독을 기능당 1PR 로 — 숙요궁합(34) → 카르마(13) → 낙샤트라(31) 순. 🔴 스캐너 맹점이 하나 더 확인됐다(진입 애니메이션 opacity) — 세 기능 다 스캐너 수치만으로 전/후를 판정하지 말고 프로브를 함께 돌린다. CI 게이트 2종의 OF 맹점은 여전히 별도 PR 이 필요하다"
 ---
 
 # 기능별 모바일 순회 원장
@@ -51,6 +51,8 @@ next: "OF 축이 09-05 에 처음 살아났다(아래 §OF 열 정정). 자미�
 | OF-B | `el.scrollWidth > el.clientWidth+1` **이고** computed `overflow-x` 가 `auto`/`scroll` 이 **아님** | 트랙 안에서 내용만 새어 잘리는 경우 |
 
 🔴 **두 축 다 무해한 상시 초과를 낸다 — 건수만 보고 결함으로 읽지 말 것.** 자미두수는 수정 후에도 OF-A=10·OF-B=2 인데 전부 의도된 장식이다(바로 아래).
+🔴 **맹점은 하나가 아니다 — 표본 자체가 비어 있을 수 있다(09-05, 신년운세에서 발견).** 스캐너 `visible()`(`scripts/measure-mobile-routes.mjs:234-241`)이 `checkVisibility({checkOpacity:true})` 를 쓰기 때문에, **스크롤 진입 애니메이션으로 `opacity:0` 에서 시작하는 본문은 통째로 안 세어진다.** 신년운세 결과 화면은 레이아웃된 517개 중 **311개가 `.nyai-reveal` 하위라 표본에서 빠졌다**(360×800 실측). 출력의 `scanned=27/55` 가 그 흔적이다. framer-motion `initial={{opacity:0}}` 을 쓰는 기능은 스캐너 OF 수치를 전/후 근거로 쓰지 말 것.
+
 🔴 **텍스트 런의 넘침은 이 두 축으로도 안 잡힌다** — 크로미엄의 `scrollWidth` 가 인라인 텍스트 넘침을 신뢰성 있게 포함하지 않는다. 09-05 에는 `Range.getClientRects()` 로 텍스트 픽셀 범위를 따로 쟀고, 그 축에서만 42건이 보였다. 스캐너에는 아직 없다.
 
 ## 자미두수 결과 화면 (`/ziwei-ai/`) — 09-05 수정
@@ -111,6 +113,45 @@ next: "OF 축이 09-05 에 처음 살아났다(아래 §OF 열 정정). 자미�
 - `.scoreGrid` 는 620px 쿼리에 빠져 있어 360px 까지 2열로 남지만, 트랙이 이미 `repeat(2,minmax(0,1fr))` 라 **잘림의 원인이 아니다.** 열 수 변경은 인체공학이 아니라 디자인 변경이라 남겼다.
 - `.ziweiAiShell{overflow:hidden}` 도 그대로 뒀다 — 위 장식 잘림이 이 선언에 의존한다.
 
+## 신년운세 결과 화면 (`/new-year-ai-consultation/`) — 09-05 수정 (#1585)
+
+하네스는 자미두수와 같은 형태다 — `?sid=` 재열람 경로(`NewYearAiClient.tsx:1616-1655`)에 `lib/dev-preview/fixtures/new-year.ts` 를 `/api/new-year-ai/result` 로 물린 1회용 스텁(127.0.0.1). `sessionId` 가 있으면 단건, 없으면 빈 목록을 준다. `--expect="[data-pdf-section]"`.
+
+### 🔴 이 화면은 스캐너로 전/후를 못 잰다
+
+`measure:mobile-routes` 는 수정 전후가 **똑같이 `OF-A=1 OF-B=1`** 이다. 두 건 다 의도된 장식이고, 진짜 잘림은 위 §OF 열 정정 의 맹점 2번(진입 애니메이션 opacity) 때문에 표본에 아예 없었다. 그래서 `Range.getClientRects()` 기반 1회용 프로브로 쟀다(자미두수 세션과 같은 축).
+
+| 360px | 문서폭 | 뷰포트 이탈 | 잘린 텍스트 런 |
+|---|---|---|---|
+| 스트레스 · 수정 전 | 745px | 11건 (최악 `span.nyai-eyebrow` +384px) | 7건 (최악 `blockquote.nyai-qa-question` +385px) |
+| 스트레스 · 수정 후 | **360px** | **1건 (장식)** | **0** |
+
+412px 도 같다(745 / 11 / 7 → 412 / 1 / 0). 무스트레스는 전후 모두 이탈 1건(장식)·런 0 이다 — 자미두수와 마찬가지로 **픽스처 문안으로는 안 넘친다.**
+
+잔여 2건은 전부 의도된 장식이다 — `div.nyai-orbit`(절대배치 회전 장식, 좌측 음수)과 `.nyai-intro::after{right:-46px}`(코너 원형 장식). 후자가 OF-B 46px `"상담 대상자 요약상담 연도"` 의 정체이고 `.nyai-intro{overflow:hidden}` 이 의도적으로 자른다. 🔴 **데스크탑 1280×900 에서도 같은 46px 이 나온다** — 모바일 결함이 아니라는 증거다(그 뷰포트 OF-A=0, 회귀 없음).
+
+### 처방 (`NewYearAiClient.tsx` 만, +51/−2줄)
+
+자미두수의 A·B·C 를 그대로 옮겼다.
+
+- **A** 암시적 1열 그리드 **14종**에 `grid-template-columns:minmax(0,1fr)`. 감사표의 "암시적 16" 중 `.nyai-empty`(`place-content:center`)·`.nyai-pillar`(`place-items:center`)는 뺐다 — 트랙을 늘리면 중앙 정렬의 의미가 바뀐다.
+- **A′** 860px 쿼리의 `.nyai-intro,.nyai-workspace` 와 `.nyai-grid` 는 선언을 직접 `1fr → minmax(0,1fr)` 로 고쳤다. 🔴 미디어쿼리 안이라 **뒤에 블록을 붙이는 방식으로는 안 이긴다**(같은 특이도에서 나중 규칙이 이기는데, 미디어쿼리 쪽이 더 뒤에 있다).
+- **B** 아이템 7종에 `min-width:0`. 실측으로 실제 밀린 것은 `.nyai-messages`·`.nyai-result-bundle` 2종(각 +414 / +418px)이고 나머지 5종은 같은 컨테이너의 형제라 함께 눌렀다. 감사표의 "안눌린 10" 은 정적 집계라 실측치와 다르다.
+- **C** `word-break:keep-all` **8곳 전부**에 `overflow-wrap:anywhere` 를 짝지었다(감사표 8건과 일치). 여기에 측정으로 잡힌 범인 `.nyai-eyebrow`·`.nyai-qa-question`·`.nyai-qa-answer`(+` p`)·`.nyai-saju-birth`·`.nyai-message p`·`.nyai-report-heading strong` 을 더했다.
+
+🔴 **이 파일은 CRLF 다** — Edit/sed 로 고치면 3줄 수정이 3244줄 diff 가 된다. node 패치 스크립트 + 개행 개수 검산으로 고쳤다(메모리 `patch-crlf-files-with-a-node-script`).
+
+### 비회귀 근거 — 같은 빌드 위 런타임 A/B
+
+재빌드 없이 **이번 규칙만 `!important` 로 되돌린 화면(A)** 과 현재(B)를 360 폭 전체 페이지로 촬영해 픽셀 대조했다 — `360×10221`, **불일치 0 / 3,679,560px (0.000%)**. 진입 애니메이션은 양쪽 다 강제 노출해 결과 본문까지 비교 대상에 넣었다.
+
+🔴 **계측기 유효성을 먼저 확인하고 읽을 것** — 같은 대조를 스트레스 문안으로 돌리면 높이가 `10566 ↔ 11213` 으로 갈린다. 대조군 없는 픽셀 A/B 가 전부 "차이 0" 을 내는 함정(메모리 `paused-animations-still-beat-inline-styles`)을 이렇게 배제했다.
+
+### 안 고친 것
+
+- `TT<44=11` · `IN<16=6/6` 은 전후 동일하게 남았다. 이번 PR 의 축이 아니고(원장 다음 단계는 keep-all 단독), 위 맹점 2번 때문에 이 수치도 결과 본문을 못 본 값이라 **먼저 표본부터 고쳐야 의미가 있다.**
+- 시즌 CSS 의 `repeat(N, 1fr)` 다열 그리드(`.nyai-quarter-row`·`.nyai-month-grid`·`.nyai-year-chips`·`.nyai-letter-grid` 등)는 같은 min-content 바닥을 갖지만 **이번 측정에서 넘치지 않았고** 감사표의 "암시적" 집계에도 안 들어간다. 잠재 결함으로만 남긴다.
+
 ## 다른 전문가 상담 감사 — 소스 기준, **렌더 미측정** (09-05)
 
 사용자 요청의 "다른 상담에도 이런 문제가 있는지"에 대한 답이다. 🔴 **아래는 정적 grep 집계이지 실측이 아니다** — 자미두수처럼 하네스를 붙여 재기 전에는 건수를 결함 수로 읽지 말 것. 실제로 유일한 "고정 최소폭" 적중(`app/vedic-ai/VedicAiClient.module.css:1693` `.dashaTrack{min-width:560px}`)은 바로 위 `.dashaTrackWrap{overflow-x:auto}`(:1690)가 감싼 **의도된 가로 레일**이라 위양성이었다.
@@ -123,7 +164,7 @@ next: "OF 축이 09-05 에 처음 살아났다(아래 §OF 열 정정). 자미�
 | 숙요 궁합 | 73 | 28 | 11 | 34 | 0 |
 | 낙샤트라 | 51 | 5 | 15 | 31 | 0 |
 | 카르마 데스티니 | 41 | 23 | 5 | 13 | 0 |
-| 신년운세 | 34 | 16 | 10 | 8 | 0 |
+| 신년운세 (수정 전) | 34 | 16 | 10 | 8 | 0 |
 | 베다 점성 | 26 | 19 | 5 | 1 | 1 (위양성) |
 | 자미두수 (수정 전) | 21 | 13 | 5 | 3 | 0 |
 | 섬 상담 | 7 | 1 | 0 | 6 | 0 |
@@ -136,7 +177,7 @@ next: "OF 축이 09-05 에 처음 살아났다(아래 §OF 열 정정). 자미�
 
 - `app/island-consult/IslandConsultClient.tsx:952,955,965,990`
 - `app/karma-destiny-ai/KarmaDestinyAiClient.tsx:3599,3903` · `app/karma-destiny-ai/result/_components/ResultStyles.tsx:260,292,307,399`
-- `app/new-year-ai-consultation/NewYearAiClient.tsx:1268,1341,1449,2280,2485,2657`
+- ~~`app/new-year-ai-consultation/NewYearAiClient.tsx:1268,1341,1449,2280,2485,2657`~~ → 09-05 완료 (위 §신년운세)
 - `app/sukuyo-compatibility-ai/SukuyoCompatibilityAiClient.module.css:277,339,350,429,521,532`
 - `app/vedic-ai/VedicAiClient.module.css:735`
 - `app/nakshatra/dasha-map/dasha-timeline.module.css:10,53,70,112` · `app/nakshatra/muhurta/muhurta.module.css:44,93`
