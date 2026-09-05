@@ -51,12 +51,12 @@ function paragraph(seed, repeat) {
 const SECTION_KEYS = ["sajuSection", "ziweiSection", "vedicSection", "sukuyoSection", "astrologySection", "tarotSection", "integratedReading"];
 
 function buildResult() {
-  // 분량은 FUSION_FORTUNE_LENGTH 하한(섹션 1,600 / 통합 2,600 / 요약 900 / 시기 1,600)을 넘긴다.
+  // 분량은 FUSION_FORTUNE_LENGTH 하한(섹션 3,600 / 통합 3,600 / 요약 1,400 / 시기 2,600 / 맺음 800)을 넘긴다.
   const sections = SECTION_KEYS.reduce((acc, key) => ({
     ...acc,
     [key]: {
       title: `${key} 해석`,
-      content: paragraph(`${key} 본문.`, key === "integratedReading" ? 34 : 22),
+      content: paragraph(`${key} 본문.`, key === "integratedReading" ? 40 : 38),
       keyPoints: ["첫 번째 신호", "두 번째 신호", "세 번째 신호"],
     },
   }), {});
@@ -64,14 +64,14 @@ function buildResult() {
     ...sections,
     title: "여섯 체계가 함께 읽은 흐름",
     openingMessage: paragraph("여는 말.", 6),
-    executiveSummary: paragraph("한 문단 요약.", 14),
+    executiveSummary: paragraph("한 문단 요약.", 16),
     timingAndAction: {
       title: "언제, 무엇을",
-      content: paragraph("시기와 행동.", 22),
+      content: paragraph("시기와 행동.", 28),
       luckyActions: ["기준을 문장으로 적어 두기", "대화 전에 질문 세 개 준비하기", "주 1회 회고 남기기"],
       cautionPatterns: ["급하게 결론 내리기", "같은 이야기를 반복하기", "확인 없이 미루기"],
     },
-    closingMessage: paragraph("맺음말.", 5),
+    closingMessage: paragraph("맺음말.", 9),
     shareText: "여섯 체계가 함께 읽은 흐름 요약",
     // 서버가 항상 채워 보내는 두 블록 — 저장·재열람에서도 그대로 살아남아야 한다.
     visualization: normalizeFusionVisualization(null, {}, { now: new Date("2026-08-12T00:00:00Z") }),
@@ -109,6 +109,7 @@ if (built.ok) {
   check("보관본 id 가 생성된다", typeof doc.id === "string" && doc.id.length > 0);
   check("목록용 제목이 비정규화된다", doc.title === "여섯 체계가 함께 읽은 흐름");
   check("완료 상태로 저장된다", doc.status === "completed");
+  check("stage 없이 부르면 완료본(2)이다", doc.stage === 2);
 
   // ② 프라이버시 경계 — 저장 문서 어디에도 원문이 남지 않아야 한다.
   const serialized = JSON.stringify(doc);
@@ -130,6 +131,16 @@ if (built.ok) {
   check("저장본 round-trip 후에도 결과 구조가 유효하다", structuralIssues.length === 0, JSON.stringify(validated.issues || []));
   check("저장본이 화면이 읽는 섹션을 모두 갖는다", SECTION_KEYS.every((key) => typeof roundTripped[key]?.content === "string" && roundTripped[key].content.length > 0));
 }
+
+// ── 2단계 생성: 1단계 보관본은 partial, 2단계가 같은 문서를 completed 로 덮는다 ──
+const stageOne = buildFusionConsultationDoc({ requestId: "fusion-fortune-consultation:1755000000000-stage", userId: "u-1", input: INPUT, result: buildResult(), stage: 1 });
+check("1단계 보관본은 partial 상태다", stageOne.ok && stageOne.doc.status === "partial" && stageOne.doc.stage === 1, stageOne.reason);
+const stageTwo = buildFusionConsultationDoc({ requestId: "fusion-fortune-consultation:1755000000000-stage", userId: "u-1", input: INPUT, result: buildResult(), stage: 2 });
+check("2단계 보관본은 completed 상태다", stageTwo.ok && stageTwo.doc.status === "completed" && stageTwo.doc.stage === 2, stageTwo.reason);
+check("두 단계는 같은 멱등 키를 쓴다(결제 1회 = 문서 1개)", stageOne.ok && stageTwo.ok && stageOne.doc.idempotencyKey === stageTwo.doc.idempotencyKey);
+// 옛 보관본(status/stage 없음)을 응답 기본값으로 읽으면 완료본이다 — routes/fusion-fortune.js respondFusionConsultation 과 같은 식.
+const legacy = { id: "c-legacy", result: buildResult() };
+check("옛 보관본은 completed/2 로 읽힌다", (legacy.status || "completed") === "completed" && (Number(legacy.stage) || 2) === 2);
 
 // ── 생시 미상 입력은 그대로 기록된다 ─────────────────────────
 const unknownTime = buildFusionConsultationDoc({

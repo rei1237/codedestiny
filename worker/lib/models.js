@@ -1824,7 +1824,10 @@ const fusionFortuneConsultationSchema = new mongoose.Schema({
   // 보관본에 남아 있어야 한다(옛 보관본에는 없으므로 기본값은 완전 등급으로 읽는다).
   qualityTier: { type: String, default: "full", trim: true, maxlength: 20 },
   qualityNotice: { type: String, default: "", trim: true, maxlength: 300 },
-  status: { type: String, enum: ["generating", "completed", "generation_failed"], default: "completed", index: true },
+  status: { type: String, enum: ["generating", "partial", "completed", "generation_failed"], default: "completed", index: true },
+  // 2단계 생성의 진행 단계. 1 = 여섯 체계 섹션만(partial), 2 = 종합·시기·총평까지(completed).
+  // 옛 보관본에는 없으므로 기본값은 완료본(2)이다.
+  stage: { type: Number, default: 2 },
   featureKey: { type: String, default: "fusion-fortune-consultation", trim: true, maxlength: 80 },
   accessType: { type: String, default: "paid", trim: true, maxlength: 40 },
   llmMeta: { type: mongoose.Schema.Types.Mixed, default: null },
