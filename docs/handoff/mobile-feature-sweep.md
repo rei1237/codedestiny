@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-09-05
-next: "베다 점성을 09-05 에 닫았다(#1592, 아래 §베다 점성 — 정상 문안 360px 이탈 155→0). 🔴 **거기서 얻은 교훈이 다음 작업의 전제다: 'keep-all 단독' 건수는 화면 결함의 대리 지표가 아니다** — 베다의 진짜 발원지는 감사표가 센 keep-all 1곳이 아니라 `.chatList` 의 안 눌린 암시적 1열 트랙이었고, 스트레스 없이 정상 문안에서도 잘리고 있었다. 다음 기능도 '건수 짝맞춤'이 아니라 **화면을 열어 재는 작업**으로 잡을 것. §다른 전문가 상담 감사 의 잔여는 **섬 상담 6곳(`app/island-consult/IslandConsultClient.tsx:952,955,965,990`)** 하나뿐이고, 픽스처가 없어(`lib/dev-preview/fixtures/` 8종에 없음) **첫 일은 화면 여는 법 찾기**다 — 낙샤트라식 해금 원장 시드(`cd_verified_unlock_grants_v1`)가 통하는지부터 보고, 안 되면 '측정 불가'를 명기하고 짝만 붙인다. 숙요궁합(34)은 사용자가 '정상'으로 판정해 제외됐다. 🔴 스캐너 맹점 2종(전역 clip · 진입 애니메이션 opacity)은 그대로라 스캐너 수치로 전/후를 판정하지 말 것. CI 게이트 2종(`verify:mobile-cdp-smoke`·`verify:mobile-detail-render`)의 OF 맹점은 여전히 별도 PR 이 필요하다"
+updated: 2026-09-06
+next: "섬 상담을 09-06 에 닫았다(#1596, 아래 §섬 상담) — 이로써 **§다른 전문가 상담 감사 의 keep-all 목록은 소진됐다**. 🔴 **베다의 교훈이 두 번째로 확인됐다: 감사표가 센 6곳 중 실제 결함은 `.ic-sec p` 1곳뿐**이었고, 리포트 본문은 공용 `components/fortune/ai-result-prose.module.css` 가 짝을 이미 주고 있었다 — **선언 유무가 아니라 계산된 `overflow-wrap` 으로 판정할 것.** 그리고 화면을 열어 재니 원장이 안 세던 축에서 결함이 나왔다(탭 타깃 3건) — **다음 기능도 OF 만 보지 말고 TT/IN 을 같은 하네스에서 함께 잴 것.** 남은 후속 후보는 셋이고 사용자 확정이 필요하다: ① CI 게이트 2종(`verify:mobile-cdp-smoke`·`verify:mobile-detail-render`)의 OF 맹점 — 전역 clip 탓에 문서폭만 보는 구조라 이번 같은 회귀를 못 잡는다(가장 값이 크다), ② 전역 44px 바닥을 손으로 쓴 클래스 목록에서 벗어나게 하기(`styles/core-ui.css` — 원칙 10 위반 형태, 이번에도 새 기능을 못 덮었다), ③ 낙샤트라 muhurta·vvip 8곳 렌더 미측정. 🔴 스캐너 맹점 2종(전역 clip · 진입 애니메이션 opacity)은 그대로라 스캐너 수치로 전/후를 판정하지 말 것"
 ---
 
 # 기능별 모바일 순회 원장
@@ -296,6 +296,44 @@ next: "베다 점성을 09-05 에 닫았다(#1592, 아래 §베다 점성 — �
 - 감사표의 "고정최소폭 1" 은 위양성 그대로다 — `.dashaTrack{min-width:560px}` 은 `overflow-x:auto` 레일 안이라 의도된 것이고 이번 수정은 레일을 안 건드린다.
 - `/vedic-ai/` 입력 화면과 TT/IN/SA 축은 이번 PR 범위 밖이다.
 
+## 섬 상담 (`/island-consult/`) — 09-06 수정 (#1596)
+
+### 결과 화면을 결제·LLM 없이 여는 법 — 해금 원장 시드가 통한다 ("측정 불가" 아님)
+
+픽스처가 없어도 **두 표면 다 열린다.**
+
+- **₩5,000 심층 리포트**: 낙샤트라식 시드가 그대로 통한다. `localStorage.cd_verified_unlock_grants_v1` 에 `{"ziwei-island-deep-report::":{featureKey:…,mode:"confirmed"}}` 를 심으면 `IslandConsultClient.tsx:411` 이 `hasLedgerUnlock` 으로 잠금을 풀고 서버 이용권 재검사 없이 본문을 가져온다. 🔴 **본문은 합성이 아니라 실제 프로덕션 산출물이다** — `worker/routes/ziwei-island-report.js:51 buildReportFromBirth` 가 순수 계산(LLM·DB 없음)이라 같은 순서로 오프라인에서 만들어 스텁이 응답했다(13페이지 · 41섹션 · 20,250자 · 최장 무공백 토큰 24자).
+- **₩20,000 궁 상담**: 시드로는 안 열린다 — `prepare`/`generate` 가 서버 게이트이고 `?id=` 재열람 경로도 없다. 로컬 API 스텁으로만 열리고, 본문이 LLM 산출물이라 프롬프트 규격(`worker/lib/island/consult/palace-prompts.js:85` 600~1200자 산문)에 맞춘 **합성 문안으로 쟀다 — 정상 문안 미검증**.
+- 생년 폼은 `codeDestiny:guestProfile` 시드로 자동 채워진다. 🔴 **그러면 폼이 '확인 모드'로 접혀 체크박스·입력이 표본에서 사라진다**(아래 비고 343번 그대로다). `정보 변경` 을 눌러 편집 폼을 연 뒤 다시 쟀다.
+- 스텁 경로에서는 결제 게이트 시트(`div.fixed.inset-0`)가 결과 위에 남는다 — 하네스 산물이다. 스트레스 실행에서 이 시트가 380px 로 보이는 것도 본문 넘침이 ICB 를 넓힌 **결과**지 원인이 아니다(넘침을 고치면 같이 사라진다).
+
+### 실측 — 감사표가 센 keep-all 6곳 중 결함은 1곳뿐이었다
+
+베다의 교훈이 그대로 재확인됐다. 🔴 **판정은 선언 유무가 아니라 계산값으로 한다.**
+
+- `.ic-rpt-sec p`(리포트 본문)는 공용 `components/fortune/ai-result-prose.module.css:16-19` 가 keep-all 에 `overflow-wrap:break-word` 짝을 **이미** 준다 — 계산값 실측 `break-word`. 긴 토큰 41문단이 있는데도 이탈 0.
+- `.ic-sec p`(상담 본문)만 컴포넌트 인라인 CSS 라 짝이 없다 — 계산값 `normal`. 여기서만 샜다.
+- 나머지 4곳(`.ic-sub`·`.ic-lead__desc`·`.ic-report__lead`·`.ic-report__list li`)은 정적 한국어 문안(+12궁 고정 이름·엔진 biome 라벨)이라 스트레스에서도 안 샜다 — **짝을 안 붙였다**(원칙 8·2).
+
+| 표면 | 문안 | 뷰포트 | 전 (이탈 / 런 / TT<44) | 후 |
+|---|---|---|---|---|
+| 상담 결과 | 스트레스 | 360×800 | 문서폭 380 · **2 / 4** / 0 | 360 · 0 / 0 / 0 |
+| 상담 결과 | 스트레스 | 412×823 | 0 / 0 / 0 | 0 / 0 / 0 |
+| 상담 결과 | 정상(합성) | 360·412 | 0 / 0 / 0 | 0 / 0 / 0 |
+| 리포트+폼 | 실제·스트레스 | 360·412 | 0 / 0 / **1** (`.ic-change` 80×36) | 0 / 0 / **0** |
+| 편집 폼(음력) | 실제 | 360·412 | 0 / 0 / **2** (`.ic-check` 라벨 286×40) | 0 / 0 / **0** |
+
+읽는 열폭은 360px 에서 286~290px(참고선 274 수용) · IN<16 은 전후 0(`.ic-field input,textarea{font:inherit}` = 16px · `min-height:46px`).
+
+### 처방 (`IslandConsultClient.tsx` 인라인 CSS · 3선언 · +3/−3)
+
+- **C** `.ic-sec p` 에 `overflow-wrap:anywhere`.
+- **TT** `.ic-change` 36→44px · `.ic-check` 40→44px. 🔴 **전역 44px 바닥이 또 못 덮은 경우다** — `styles/core-ui.css:2129-2149,1706-1723` 는 **손으로 쓴 클래스 목록**이라(원칙 10 이 금지하는 형태) 새 기능의 클래스는 영원히 안 덮인다. `docs/app-audit/DIAGNOSIS_REPORT.md:225` 에 P2 로 이미 적혀 있던 건이고, 같은 파일의 `.ic-change--done`·`.ic-seg button`·`.ic-back` 은 처음부터 44px 이었다(저자가 바닥을 알고 있었다는 뜻).
+
+### 비회귀 근거
+
+정상 문안 상담 결과 카드가 되돌림 `!important` 대조와 **픽셀 바이트 동일** — 360×800 `933bb1615ce0`(397,988B) · 1280×900 `16c9b484dfc7`(486,159B). 문서 높이는 리포트 화면 +8px · 편집 폼 +4px 로 탭 타깃 상향분만 늘었다.
+
 ## 다른 전문가 상담 감사 — 소스 기준, **렌더 미측정** (09-05)
 
 사용자 요청의 "다른 상담에도 이런 문제가 있는지"에 대한 답이다. 🔴 **아래는 정적 grep 집계이지 실측이 아니다** — 자미두수처럼 하네스를 붙여 재기 전에는 건수를 결함 수로 읽지 말 것. 실제로 유일한 "고정 최소폭" 적중(`app/vedic-ai/VedicAiClient.module.css:1693` `.dashaTrack{min-width:560px}`)은 바로 위 `.dashaTrackWrap{overflow-x:auto}`(:1690)가 감싼 **의도된 가로 레일**이라 위양성이었다.
@@ -311,7 +349,7 @@ next: "베다 점성을 09-05 에 닫았다(#1592, 아래 §베다 점성 — �
 | 신년운세 (수정 전) | 34 | 16 | 10 | 8 | 0 |
 | 베다 점성 | 26 | 19 | 5 | 1 | 1 (위양성) |
 | 자미두수 (수정 전) | 21 | 13 | 5 | 3 | 0 |
-| 섬 상담 | 7 | 1 | 0 | 6 | 0 |
+| 섬 상담 (수정 전) | 7 | 1 | 0 | 6 → **실측 결함 1** | 0 |
 | 공용 결과 컴포넌트 | 4 | 4 | 0 | 0 | 0 |
 | 인생책 | 2 | 1 | 1 | 0 | 0 |
 | 연애비밀 | 1 | 1 | 0 | 0 | 0 |
@@ -319,14 +357,14 @@ next: "베다 점성을 09-05 에 닫았다(#1592, 아래 §베다 점성 — �
 
 **가장 먼저 볼 것은 keep-all 단독 중 AI 본문에 걸린 것** — 자미두수에서 실제로 잘린 것이 정확히 이 형태였다(`.chatCard p{word-break:keep-all}`). 해당 위치:
 
-- `app/island-consult/IslandConsultClient.tsx:952,955,965,990`
+- ~~`app/island-consult/IslandConsultClient.tsx` keep-all 6곳~~ → 09-06 완료 (#1596, 위 §섬 상담). 🔴 **6곳 중 실제 결함은 `.ic-sec p` 1곳뿐이었다** — 리포트 본문은 공용 프로즈 CSS 가 짝을 이미 주고 있었고 나머지 4곳은 정적 문안이다. 베다에 이어 **두 번째로 확인된 같은 교훈**이다
 - ~~`app/karma-destiny-ai/KarmaDestinyAiClient.tsx:3599,3903` · `app/karma-destiny-ai/result/_components/ResultStyles.tsx:260,292,307,399`~~ → 09-05 완료 (위 §카르마 데스티니)
 - ~~`app/new-year-ai-consultation/NewYearAiClient.tsx:1268,1341,1449,2280,2485,2657`~~ → 09-05 완료 (위 §신년운세)
 - ~~`app/sukuyo-compatibility-ai/SukuyoCompatibilityAiClient.module.css:277,339,350,429,521,532`~~ → 09-05 제외: 사용자가 화면을 확인해 "정상" 으로 판정했다(수정 불요). 🔴 다시 감사하지 말 것
 - ~~`app/vedic-ai/VedicAiClient.module.css:735`~~ → 09-05 완료 (#1592, 위 §베다 점성). 🔴 이 1곳은 **결함의 주범이 아니었다** — 같은 화면의 진짜 발원지는 `.chatList` 의 안 눌린 암시적 1열 트랙이었고 정상 문안에서도 잘리고 있었다. **keep-all 건수는 화면 결함의 대리 지표가 아니다.**
 - ~~`app/nakshatra/dasha-map/dasha-timeline.module.css:10,53,70,112` · `app/nakshatra/muhurta/muhurta.module.css:44,93`~~ → 09-05 완료, 트리 전체 31곳으로 확장해 처리 (위 §낙샤트라). muhurta·vvip 8곳은 짝만 붙이고 **렌더 미측정**
 
-기능별 결과 화면을 여는 수단은 제각각이다 — dev-preview 픽스처는 `lib/dev-preview/fixtures/` 8종뿐(astrology · karma-destiny · life-book · love-secret · new-year · sukuyo-compatibility · vedic · ziwei). `destiny-compass` · `island-consult` · `nakshatra/ai` · `naming-ai` 는 픽스처가 없어 **현재 측정 수단이 없다**(결함 없음이 아니라 미측정).
+기능별 결과 화면을 여는 수단은 제각각이다 — dev-preview 픽스처는 `lib/dev-preview/fixtures/` 8종뿐(astrology · karma-destiny · life-book · love-secret · new-year · sukuyo-compatibility · vedic · ziwei). `destiny-compass` · `nakshatra/ai` · `naming-ai` 는 픽스처가 없어 **현재 측정 수단이 없다**(결함 없음이 아니라 미측정). 🔴 **`island-consult` 는 09-06 에 뚫었다 — 픽스처 없이도 열린다**: 해금 원장 시드 + 워커 순수계산 모듈로 만든 실제 산출물 + 로컬 API 스텁(위 §섬 상담). 같은 형태가 통하는지 나머지 3종에도 먼저 시도할 것.
 
 ## 배치 (사용자 확정: 유료 대표부터)
 
