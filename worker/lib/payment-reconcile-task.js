@@ -1,6 +1,6 @@
 // pending 주문 재조정: 우리 DB 가 pending/processing 인 채 멈춘 주문을 PortOne 실제 상태와 대조한다.
 //
-// 왜 필요한가: 기존 재조정 크론(runWebhookReconcileTask)은 PaymentWebhookEvent 만 본다. 웹훅이 아예
+// 왜 필요한가: 웹훅 재생(worker/payments/index.js replayWebhookEvents)은 PaymentWebhookEvent 만 본다. 웹훅이 아예
 // 도착하지 않은 주문은 어떤 장치도 손대지 않아 영원히 pending 으로 남는다. 2026-07 PortOne 401 장애에서
 // 카드 승인이 끝난 주문이 그대로 방치됐고, 사람이 DB 를 직접 열어야 알 수 있었다.
 //
@@ -134,7 +134,7 @@ export async function reconcilePendingPayments(env, options = {}) {
     }
     processed += 1;
 
-    // 동시 실행/연속 실행이 같은 주문을 중복 처리하지 않도록 클레임한다(runWebhookReconcileTask 와 같은 관용구).
+    // 동시 실행/연속 실행이 같은 주문을 중복 처리하지 않도록 클레임한다(webhook.js claimReplayableEvents 와 같은 관용구).
     // 🔴 클레임 '실패'(Mongo 오류)와 '경합'(다른 실행이 이미 잡음)을 구분한다. 예전에는 둘 다 조용히
     // skipped 로 셌는데, Atlas idle 연결 회수로 콜드 isolate 의 첫 쓰기가 자주 타임아웃 나는 이 환경에서는
     // 크론이 거의 아무것도 못 하는데도 요약이 정상처럼 보였다. 재시도는 다음 크론 틱이 한다 —

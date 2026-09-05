@@ -216,6 +216,51 @@ export async function markEventFailed(db, { eventId, reason, now = new Date() })
 }
 
 /**
+ * lastError 에 남길 한 줄. 🔴 error.message 만 남기면 PG_UNAVAILABLE 의 사용자 문구("결제사 응답이
+ * 지연되고 있습니다…")만 남고 PortOne 이 실제로 뭐라 했는지(meta.reason — 예: UNAUTHORIZED)가
+ * 사라진다. 2026-09-05 프로덕션에서 시크릿 불일치가 이 문구 뒤에 숨어 하루를 잃었다.
+ */
+export function describeEventFailure(error) {
+  const code = String(error?.code || error?.name || "").trim();
+  const message = String(error?.message || error || "").trim();
+  const reason = String(error?.meta?.reason || "").trim();
+  return [code && code !== message ? `${code}: ${message}` : message, reason ? `(${reason})` : ""].filter(Boolean).join(" ");
+}
+
+/**
+ * 재생 대상 — 실패했거나(failed) 처리 중 죽은(processing 이 WEBHOOK_STALE_PROCESSING_MS 넘게 정체)
+ * Transaction.Paid 이벤트를 고르고 **원자적으로 재점유**한다. 조회 시점의 status·lastAttemptAt 를
+ * CAS 조건으로 걸어 동시 크론·늦게 온 PortOne 재전송이 같은 이벤트를 두 번 잡지 않는다.
+ * attempts 상한을 넘긴 이벤트는 두지 않는다 — 열 번 실패한 결제는 사람이 봐야 한다(/admin/orders).
+ * @returns {Promise<{ claimed: object[], contended: number }>}
+ */
+export async function claimReplayableEvents(db, { now = new Date(), limit = 10, maxAttempts = 10 } = {}) {
+  const staleBefore = new Date(now.getTime() - WEBHOOK_STALE_PROCESSING_MS);
+  const candidates = await db.find(PaymentWebhookEvent, {
+    provider: "portone",
+    eventType: "Transaction.Paid",
+    attempts: { $lt: maxAttempts },
+    $or: [
+      { status: "failed" },
+      { status: "processing", lastAttemptAt: { $lt: staleBefore } },
+    ],
+  }, { sort: { lastAttemptAt: 1 }, limit });
+
+  const claimed = [];
+  let contended = 0;
+  for (const candidate of candidates) {
+    const result = await db.updateOne(
+      PaymentWebhookEvent,
+      { provider: "portone", eventId: candidate.eventId, status: candidate.status, lastAttemptAt: candidate.lastAttemptAt },
+      { $set: { status: "processing", lastAttemptAt: now, updatedAt: now }, $inc: { attempts: 1 } },
+    );
+    if (Number(result?.modifiedCount || 0) === 1) claimed.push(candidate);
+    else contended += 1;
+  }
+  return { claimed, contended };
+}
+
+/**
  * 서명을 검증하고 이벤트를 점유한다. 실제 확정은 호출부가 confirmOrder 로 이어 간다 —
  * 이 파일은 확정 로직을 갖지 않는다(주체별 분기가 생기는 자리를 아예 만들지 않는다).
  */

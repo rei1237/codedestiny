@@ -1890,7 +1890,8 @@ export default {
     // 있어서, 하나라도 던지면 scheduled 가 통째로 거절되고 failures 배열은 만들어지지도 않았다.
     // 알림을 붙인 뒤에도 그 경로만은 "크론 이벤트가 아예 안 왔다"와 구별할 수 없었다 — 지금
     // 쫓고 있는 증상과 정확히 같은 모습이라, 진단을 시작하기도 전에 눈을 가린다.
-    // 웹훅 즉시-ack 전환으로 백그라운드 실패/유실된 Transaction.Paid 지급을 재조정한다.
+    // 실패·정체된 Transaction.Paid 웹훅의 재생은 여기(일일)가 아니라 위 10분 분기의
+    // runPaymentsV2Reconcile → replayWebhookEvents 가 맡는다(2026-09-05, 구 webhook-reconcile 삭제).
     // SNS 일일 자동 발행은 크론을 새로 만들지 않으려고 이 일일 세트에 얹혀 간다
     // (worker/wrangler.toml 의 crons 는 수정 금지 대상). 기본값은 꺼짐이라
     // SNS_DAILY_POST_ENABLED 를 켜기 전에는 그 태스크가 바로 반환한다.
@@ -1909,7 +1910,6 @@ export default {
       ["subscription-billing", async () => (await import("./lib/subscription-billing-task.js").catch(loadFailed)).runCardSubscriptionBillingTask(env)],
       ["service-execution-timeout", async () => (await import("./lib/service-execution-task.js").catch(loadFailed)).runServiceExecutionTimeoutTask(env)],
       ["monthly-credit-expiry", async () => (await import("./lib/monthly-credit-expiry-task.js").catch(loadFailed)).runMonthlyCreditExpiryTask(env)],
-      ["webhook-reconcile", async () => (await import("./routes/payments.js").catch(loadFailed)).runWebhookReconcileTask(env)],
       ["sns-daily-post", async () => (await import("./lib/sns-daily-post-task.js").catch(loadFailed)).runSnsDailyPostTask(env)],
     ];
     // 🔴 던진 태스크는 로그 한 줄로 끝나지 않는다 — 콘솔만 남기던 시절에 일일 운세 메일이

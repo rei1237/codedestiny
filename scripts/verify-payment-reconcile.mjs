@@ -89,6 +89,24 @@ assert.ok(scheduledBody.includes("runPaymentsV2Reconcile"), "V2 재조정(runPay
   assert.ok(regrantBody.includes('status: "paid"'), "V2 regrant 는 status:\"paid\" 정확 일치여야 한다(레거시 주문 이중 처리 금지)");
   assert.ok(!regrantBody.includes("PAID_RAW_STATUSES"), "V2 regrant 가 레거시 상태(success/fulfilled)로 넓어지면 안 된다");
 }
+// 웹훅 재생(2026-09-05) — 실패·정체된 Transaction.Paid 이벤트의 재생은 V2 replayWebhookEvents 가
+// 10분 크론 안에서 맡는다. 구 runWebhookReconcileTask(일일 1회)는 이벤트를 레거시 단건 정산으로 보내
+// 이용권 주문에 404 를 내고 lastError 를 덮어썼으므로 되살리면 안 된다.
+{
+  const v2Index = read("worker/payments/index.js");
+  const replayAt = v2Index.indexOf("export async function replayWebhookEvents");
+  const reconcileAt = v2Index.indexOf("export async function runPaymentsV2Reconcile");
+  assert.ok(replayAt > 0 && reconcileAt > replayAt, "worker/payments/index.js 에 replayWebhookEvents 가 있어야 한다");
+  const replayBody = v2Index.slice(replayAt, reconcileAt);
+  assert.ok(replayBody.includes("claimReplayableEvents(") && replayBody.includes("confirmOrder("), "웹훅 재생은 claimReplayableEvents → confirmOrder 를 타야 한다(주체별 확정 분기 금지)");
+  for (const banned of ["cancelPortOnePayment", "refundPaymentAsOperator", "autoRefund"]) {
+    assert.ok(!replayBody.includes(banned), `웹훅 재생에 ${banned} 가 있으면 안 된다 — 크론이 사람 승인 없이 환불하게 된다`);
+  }
+  const reconcileBody = v2Index.slice(reconcileAt, v2Index.indexOf("export const __paymentsContextTestUtils"));
+  assert.ok(reconcileBody.includes("replayWebhookEvents(env)"), "runPaymentsV2Reconcile 이 replayWebhookEvents 를 불러야 한다(10분 주기 재생)");
+  assert.ok(!workerIndex.includes("runWebhookReconcileTask"), "구 runWebhookReconcileTask 를 크론에 되살리면 안 된다(이용권 주문 404·lastError 덮어쓰기)");
+  assert.ok(!payments.includes("export async function runWebhookReconcileTask"), "routes/payments.js 의 구 runWebhookReconcileTask 는 삭제된 상태여야 한다");
+}
 
 // ── 3. 재조정 태스크는 절대 환불하지 않는다 ──────────────────────────────
 for (const banned of ["cancelPortOnePayment", "refundPaymentAsOperator", "autoRefund"]) {
