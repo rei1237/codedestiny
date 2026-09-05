@@ -918,6 +918,16 @@ async function consumeTierPassIfAvailable(env, authUserId, pricing, requestId, b
                 coinCost,
               ],
             },
+            // 재구매로 쌓인 한도(profile-limits.js resolveMonthlyPassLimitCoin)는 사이클 키와 한 쌍이다.
+            // 키를 이번 사이클로 끌어오는 분기에서는 함께 0(=등급 기본값)으로 되돌린다 — 안 그러면
+            // 이전 사이클의 한도가 키만 맞춰진 채 되살아난다.
+            "profileSubscription.monthlyLimitCoin": {
+              $cond: [
+                { $eq: [{ $ifNull: ["$profileSubscription.premiumUseCycleKey", ""] }, monthlyQuota.cycleKey] },
+                { $ifNull: ["$profileSubscription.monthlyLimitCoin", 0] },
+                0,
+              ],
+            },
           } : {}),
           // 프리미엄 상담 포함 횟수(family 10회 · vvip 3회) 차감. 이미 도는 파이프라인 안에서
           // 함께 증가시키므로 쓰기가 늘지 않고, 통과와 차감이 한 번의 원자적 write 로 묶인다.
@@ -971,7 +981,11 @@ async function consumeTierPassIfAvailable(env, authUserId, pricing, requestId, b
      🔴 정책 정본은 profile-limits.js 하나이고, V2(passes.js applyBudgetExhaustionTermination)와
      이곳은 그 정본을 각자의 드라이버로 쓰기만 한다 — 판정을 복제하지 말 것. */
   let passEnded = false;
-  if (monthlyQuota.applies && isPassBudgetExhausted(usage.tier, updatedUser?.profileSubscription?.monthlySpendCoin)) {
+  if (monthlyQuota.applies && isPassBudgetExhausted(
+    usage.tier,
+    updatedUser?.profileSubscription?.monthlySpendCoin,
+    monthlyQuota.limitCoin,
+  )) {
     const terminationSet = {};
     const fields = buildPassTerminationFields({
       now,

@@ -147,6 +147,10 @@ const userSchema = new mongoose.Schema({
     premiumUseCycleKey: { type: String, default: "", trim: true, maxlength: 40 },
     premiumUseCount: { type: Number, default: 0, min: 0 },
     monthlySpendCoin: { type: Number, default: 0, min: 0 },
+    // 이번 사이클에 적용할 월 누적 한도(coin). 같은 등급 재구매는 기간과 함께 한도도 쌓으므로
+    // (2026-09-05), 등급 상수 MONTHLY_PASS_LIMITS 만으로는 이번 사이클의 한도를 알 수 없다.
+    // 0/미기록 = 등급 기본 한도. 정본: lib/profile-limits.js resolveMonthlyPassLimitCoin.
+    monthlyLimitCoin: { type: Number, default: 0, min: 0 },
     // 월 한도 소진으로 조기 종료된 시각과, 그때 남아 있던 원래 만료일(2026-09-04 정책).
     // 종료 자체는 expiresAt 을 당기는 것으로 성립하므로 이 둘은 판정에 쓰지 않는다 —
     // CS·환불 문의에서 "왜 30일 전에 끝났나"를 설명하는 증거 전용이다.

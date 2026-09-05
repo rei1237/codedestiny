@@ -44,17 +44,15 @@ import {
   activatePassSubscription,
   buildPassConsumeMarker,
   buildPassCustomerUid,
-  computePassExpiry,
   consumePassCoverage,
   createPayablePassOrder,
   evaluatePassCoverage,
-  evaluatePassTierTransition,
   presentPassSubscription,
   recordPassUsageEvidence,
   resolvePassPlan,
   revokePassGrantForOrder,
 } from "./passes.js";
-import { isPassBudgetExhausted } from "../lib/profile-limits.js";
+import { computePassExpiry, evaluatePassTierTransition, isPassBudgetExhausted } from "../lib/profile-limits.js";
 import {
   isPassLikeProductType,
   resolveCanonicalEntitlement,
@@ -1255,7 +1253,11 @@ const ROUTES = {
          이미 없어 no_active_pass 로 떨어지는데, 그 전에 스냅샷이 "보유"라고 답하면 낙관 통과 →
          402 → 결제창의 왕복이 한 번 더 돈다. 판정은 소비 후 누적액 하나로 파생한다(플래그 배선 없음).
          멱등 재생·이미 해금 경로에서도 같은 답이 나온다 — 이용권이 끝난 것은 사실이기 때문이다. */
-      const passEnded = isPassBudgetExhausted(outcome.coverage.tier, outcome.user?.profileSubscription?.monthlySpendCoin);
+      const passEnded = isPassBudgetExhausted(
+        outcome.coverage.tier,
+        outcome.user?.profileSubscription?.monthlySpendCoin,
+        outcome.coverage.budgetCoin,
+      );
       const envelope = legacyPassCheckEnvelope({
         product, requestId, profileId, unlock, premiumAccessToken, passEnded,
         coverage: outcome.coverage,

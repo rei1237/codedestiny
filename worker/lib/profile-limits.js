@@ -127,6 +127,133 @@ export const MONTHLY_PASS_LIMITS_KRW = Object.freeze({
 });
 
 /**
+ * 이번 사이클에 실제로 적용할 월 누적 한도(coin).
+ *
+ * 같은 등급을 다시 사면 기간이 스택되므로(worker/lib/profile-limits.js computePassExpiry)
+ * 한도도 함께 쌓여야 한다 — 그러지 않으면 두 번째 결제는 기간만 사고 한도는 30일치
+ * 그대로였다(2026-09-05 정정). 쌓인 한도는 profileSubscription.monthlyLimitCoin 에
+ * 적히고, **사이클 키(=만료일)가 일치할 때만** 유효하다. 키가 어긋난 문서(이전 사이클,
+ * 환불 되감기, 조기 종료)는 등급 기본 한도로 돌아간다.
+ *
+ * 🔴 저장값이 등급 기본 한도보다 작으면 무시한다 — 낡거나 손상된 문서가 한도를 **깎는**
+ * 방향으로는 절대 작동하지 않게 한다(보유자를 막는 실패는 되돌리기 어렵다).
+ */
+export function resolveMonthlyPassLimitCoin(profileSubscription, tierInput, cycleKey) {
+  const tier = normalizePassTier(tierInput);
+  const baseCoin = tier ? Math.max(0, Math.floor(Number(MONTHLY_PASS_LIMITS[tier] || 0))) : 0;
+  if (!(baseCoin > 0)) return 0;
+  const storedKey = String(profileSubscription?.premiumUseCycleKey || "");
+  if (!cycleKey || storedKey !== cycleKey) return baseCoin;
+  const stored = Math.floor(Number(profileSubscription?.monthlyLimitCoin || 0));
+  return Number.isFinite(stored) && stored > baseCoin ? stored : baseCoin;
+}
+
+const PASS_DAY_MS = 86_400_000;
+
+/* 등급 사다리. 활성 이용권보다 낮은 등급만 막고, 같은 등급은 연장, 높은 등급은 업그레이드다. */
+export const PASS_TIER_RANK = Object.freeze({ free: 0, standard: 1, premium: 2, vvip: 3, family: 4 });
+
+/**
+ * 구 evaluateSubscriptionTierTransition 승계: 활성 이용권 보유 중 하위 등급 구매만 막는다.
+ *
+ * 🔴 기간 정책은 한도 정책(아래 buildPassCycleFields)과 한 쌍이라 같은 파일에 둔다 —
+ * 웹 카드 결제(worker/payments/passes.js)와 앱 Play Billing(worker/routes/app-store.js)이
+ * 둘 다 이 두 함수를 그대로 쓴다. DB 를 안 타는 순수 계산이라 여기(leaf)에 있어야
+ * 앱 라우트가 결제 커넥션 모듈까지 끌어오지 않는다.
+ */
+export function evaluatePassTierTransition(currentSubscription, requestedTier, now = new Date()) {
+  const sub = currentSubscription && typeof currentSubscription === "object" ? currentSubscription : {};
+  const activeTier = normalizePassTier(sub.tier) || "free";
+  const expiresAt = sub.expiresAt ? new Date(sub.expiresAt) : null;
+  const hasActive = activeTier !== "free" && expiresAt instanceof Date && !Number.isNaN(expiresAt.getTime()) && expiresAt.getTime() > now.getTime();
+  if (!hasActive) return { code: "NEW", activeTier: "free" };
+  const activeRank = PASS_TIER_RANK[activeTier] ?? 0;
+  const requestedRank = PASS_TIER_RANK[requestedTier] ?? 0;
+  if (requestedRank < activeRank) return { code: "DOWNGRADE_BLOCKED", activeTier };
+  if (requestedRank === activeRank) return { code: "EXTENSION_ALLOWED", activeTier, activeExpiresAt: expiresAt };
+  return { code: "UPGRADE_ALLOWED", activeTier };
+}
+
+/**
+ * 만료 계산(구 calculateSubscriptionActivationExpiresAt 승계):
+ * 업그레이드는 결제 시점부터 새로 시작(남은 기간 소멸 — 구 정책 그대로),
+ * 같은 등급 연장은 기존 만료에 이어 붙인다(스택).
+ */
+export function computePassExpiry({ transition, paidAt, now = new Date(), durationDays = 30 }) {
+  const reference = new Date(Math.max(now.getTime(), paidAt instanceof Date ? paidAt.getTime() : now.getTime()));
+  let anchor = reference;
+  if (transition?.code === "EXTENSION_ALLOWED" && transition.activeExpiresAt instanceof Date
+    && transition.activeExpiresAt.getTime() > now.getTime()) {
+    anchor = transition.activeExpiresAt;
+  }
+  return new Date(anchor.getTime() + durationDays * PASS_DAY_MS);
+}
+
+/**
+ * 이용권 활성화가 profileSubscription 에 적을 사이클 3필드(키·누적 사용액·한도).
+ *
+ * 같은 등급을 **활성 상태에서** 다시 사면 기간이 이어붙으므로(EXTENSION) 한도도
+ * `이전 한도 + 30일치`로 올리고 사용액은 그대로 둔다 — 사용자가 낸 돈만큼 정확히 커버된다.
+ * 신규·업그레이드는 기간과 마찬가지로 이전 사이클을 버리고 0 부터 시작한다.
+ *
+ * 🔴 웹 카드 결제(worker/payments/passes.js activatePassSubscription)와 앱 Play Billing
+ * (worker/routes/app-store.js buildEntitlementUpdate)이 이 함수 하나를 공유한다 —
+ * 두 벌로 갈리면 결제 경로에 따라 한도가 달라진다.
+ * 🔴 예전에는 이 3필드를 **아무도 쓰지 않았고**, 만료일이 바뀌면 사이클 키가 어긋나
+ * 사용액이 0 으로 읽히는 것에 기대어 암묵적으로 리셋됐다. 저장 한도가 생긴 뒤로는
+ * 그 암묵 리셋이 통하지 않으므로(키가 어긋나면 한도도 기본값으로 떨어진다) 활성화가
+ * 키를 **명시적으로** 적어야 한다.
+ */
+export function buildPassCycleFields({ priorSubscription, tier: tierInput, expiresAt, now = new Date() } = {}) {
+  const tier = normalizePassTier(tierInput);
+  const baseCoin = tier ? Math.max(0, Math.floor(Number(MONTHLY_PASS_LIMITS[tier] || 0))) : 0;
+  const nextExpiresAt = expiresAt ? new Date(expiresAt) : null;
+  const cycleKey = nextExpiresAt && Number.isFinite(nextExpiresAt.getTime()) ? nextExpiresAt.toISOString() : "";
+  if (!cycleKey || !(baseCoin > 0)) {
+    return { premiumUseCycleKey: cycleKey, premiumUseCount: 0, monthlySpendCoin: 0, monthlyLimitCoin: 0 };
+  }
+  const prior = priorSubscription && typeof priorSubscription === "object" ? priorSubscription : {};
+  const priorExpiresAt = prior.expiresAt ? new Date(prior.expiresAt) : null;
+  const priorActive = Boolean(priorExpiresAt)
+    && Number.isFinite(priorExpiresAt.getTime())
+    && priorExpiresAt.getTime() > new Date(now).getTime();
+  const isExtension = priorActive && normalizePassTier(prior.passTier || prior.tier) === tier;
+  if (!isExtension) {
+    return { premiumUseCycleKey: cycleKey, premiumUseCount: 0, monthlySpendCoin: 0, monthlyLimitCoin: baseCoin };
+  }
+  const priorCycleKey = priorExpiresAt.toISOString();
+  const sameCycle = String(prior.premiumUseCycleKey || "") === priorCycleKey;
+  return {
+    premiumUseCycleKey: cycleKey,
+    premiumUseCount: sameCycle ? Math.max(0, Math.floor(Number(prior.premiumUseCount || 0))) : 0,
+    monthlySpendCoin: sameCycle ? Math.max(0, Math.floor(Number(prior.monthlySpendCoin || 0))) : 0,
+    monthlyLimitCoin: resolveMonthlyPassLimitCoin(prior, tier, priorCycleKey) + baseCoin,
+  };
+}
+
+/**
+ * 환불 회수(되감기)가 사이클에 적어야 할 2필드.
+ *
+ * 만료일을 되감으면 사이클 키가 어긋나 **누적 사용액이 0 으로 읽힌다** — 연장분을 환불했는데
+ * 이미 쓴 한도까지 돌려주는 셈이다. 되감은 만료일을 키로 다시 적어 사용액을 살려 두고,
+ * 쌓였던 한도에서 이번 30일치를 빼 연장 전 한도로 되돌린다.
+ * 저장 한도가 없던 문서(연장 이력 없음)면 0 을 돌려주고, 읽기 쪽이 등급 기본값으로 되돌린다.
+ */
+export function buildPassRewindCycleFields({ subscription, rewoundExpiresAt, tier: tierInput } = {}) {
+  const sub = subscription && typeof subscription === "object" ? subscription : {};
+  const tier = normalizePassTier(tierInput || sub.passTier || sub.tier);
+  const baseCoin = tier ? Math.max(0, Math.floor(Number(MONTHLY_PASS_LIMITS[tier] || 0))) : 0;
+  const rewound = rewoundExpiresAt ? new Date(rewoundExpiresAt) : null;
+  const current = sub.expiresAt ? new Date(sub.expiresAt) : null;
+  const currentKey = current && Number.isFinite(current.getTime()) ? current.toISOString() : "";
+  const stackedCoin = resolveMonthlyPassLimitCoin(sub, tier, currentKey);
+  return {
+    premiumUseCycleKey: rewound && Number.isFinite(rewound.getTime()) ? rewound.toISOString() : "",
+    monthlyLimitCoin: Math.max(0, stackedCoin - baseCoin),
+  };
+}
+
+/**
  * 이 요청이 월 누적 한도 안에 드는지, 남은 한도가 얼마인지.
  * 사이클 키는 resolvePremiumQuota 와 공유(premiumUseCycleKey) — 리셋 트리거가
  * 같기 때문에 별도 필드를 두지 않는다. cycleKey 를 못 구하면(만료일 없음)
@@ -136,7 +263,7 @@ export function resolveMonthlySpendQuota(profileSubscription, entitlement, coinC
   const price = Math.max(0, Math.floor(Number(coinCost || 0)));
   const tier = normalizePassTier(entitlement?.passTier || entitlement?.tier);
   const cycleKey = resolvePremiumQuotaCycleKey(entitlement);
-  const limitCoin = tier ? Number(MONTHLY_PASS_LIMITS[tier] || 0) : 0;
+  const limitCoin = resolveMonthlyPassLimitCoin(profileSubscription, tier, cycleKey);
   const applies = Boolean(tier) && limitCoin > 0 && Boolean(cycleKey);
   if (!applies) {
     return { applies: false, cycleKey, limitCoin, usedCoin: 0, remainingCoin: limitCoin, exceeded: false };
@@ -171,9 +298,13 @@ export const MIN_PASS_COVERABLE_COIN = 30; // 3,000원
  * 이 등급의 월 한도가 소진됐는가(= 잔여로 열 수 있는 유료 항목이 없는가).
  * 판정과 소비 양쪽이 같은 답을 내야 하므로 여기 하나만 쓴다.
  */
-export function isPassBudgetExhausted(tier, usedCoin) {
+export function isPassBudgetExhausted(tier, usedCoin, limitCoin) {
   const normalizedTier = normalizePassTier(tier);
-  const budgetCoin = normalizedTier ? Math.max(0, Math.floor(Number(MONTHLY_PASS_LIMITS[normalizedTier] || 0))) : 0;
+  const baseCoin = normalizedTier ? Math.max(0, Math.floor(Number(MONTHLY_PASS_LIMITS[normalizedTier] || 0))) : 0;
+  // 재구매로 쌓인 한도(resolveMonthlyPassLimitCoin)를 넘겨받으면 그것이 이번 사이클의 예산이다.
+  // 넘기지 않거나 기본 한도보다 작으면 등급 기본값을 쓴다 — 종료를 **앞당기는** 방향으로는 안 움직인다.
+  const overrideCoin = Math.floor(Number(limitCoin));
+  const budgetCoin = Number.isFinite(overrideCoin) && overrideCoin > baseCoin ? overrideCoin : baseCoin;
   if (budgetCoin <= 0) return false; // 한도를 못 세는 상태는 종료시키지 않는다.
   const used = Math.max(0, Math.floor(Number(usedCoin || 0)));
   const perItemLimit = Math.max(0, Math.floor(Number(PASS_LIMITS[normalizedTier] || 0)));
@@ -199,6 +330,9 @@ export function buildPassTerminationFields({ now = new Date(), previousExpiresAt
     passLimit: 0,
     maxCoveredCoin: 0,
     freeLimit: 0,
+    // 쌓인 한도도 함께 내린다. 만료일이 바뀌어 사이클 키가 어긋나면 어차피 무시되지만,
+    // 끝난 이용권 문서에 살아 있는 한도 숫자를 남기지 않는다.
+    monthlyLimitCoin: 0,
     passExhaustedAt: now,
     // CS·환불 문의 때 "왜 30일 전에 끝났나"를 설명하는 유일한 증거다.
     passExhaustedFromExpiresAt: previous && Number.isFinite(previous.getTime()) ? previous : null,
