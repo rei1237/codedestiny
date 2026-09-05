@@ -337,6 +337,7 @@
     "verify:ziwei-personality-context": "node scripts/verify-ziwei-personality-context.mjs",
     "verify:ziwei-consult-categories": "node scripts/verify-ziwei-consult-categories.mjs",
     "verify:ziwei-worker-chart-facts": "node scripts/verify-ziwei-worker-chart-facts.mjs",
+    "verify:ziwei-derived-facts": "node scripts/verify-ziwei-derived-facts.mjs",
     "verify:ai-consultation-flows": "npm run verify:astrology-ai-flow && npm run verify:ziwei-ai-consultation-flow && npm run verify:ziwei-deep-report-flow && npm run verify:ziwei-personality-context && npm run verify:karma-destiny-ai-flow && npm run verify:vedic-ai-flow && npm run verify:life-book-ai-flow && npm run verify:new-year-ai-flow && npm run verify:love-secret-ai-flow && npm run verify:saju-ai-consultation-recovery && npm run verify:saju-ai-section-plan && npm run verify:neo && npm run verify:neo-output-safety",
     "verify:island-star-copy": "node scripts/verify-island-star-copy.mjs",
     "verify:ziwei-island": "node scripts/verify-ziwei-island-blueprint.mjs",
