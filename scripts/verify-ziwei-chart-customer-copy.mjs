@@ -13,8 +13,8 @@
 //  2. 정적 검사 — AdvancedZiweiSectionV2.tsx 소스(주석 제거) 와 advanced-ziwei-copy.ts 의 EN·ko 블록에서
 //     영문 대문자 아이브로우, 내부 라벨, 번호 아이브로우("1. ") 를 본다. 🔴 FORBIDDEN 목록의 "계산/데이터"는
 //     여기 적용하지 않는다 — 입력 오류 안내(normalize-ziwei-input.ts)와 공용 카피 basisTitle 이 정당하게 쓴다.
-//  3. TODO(PR3): 12궁 격자의 8~11px 글자(text-[8px]~text-[11px]) 금지. 모바일 IA 개편 PR 에서 켠다.
-//     지금은 현재 값이 걸리므로 검사 수에 넣지 않는다.
+//  3. 격자 폰트 검사 — 12궁 격자 블록에서 12px 미만 글자(text-[8px]~text-[11px]) 금지. 375px 에서 한 칸이
+//     약 73px 이라 그 아래로 내리면 곧바로 판독 불가가 된다(2026-09-05 모바일 IA 개편에서 12px 이상으로 올렸다).
 //
 // 네트워크·LLM 호출 없음. TS 를 즉석 변환해 실행할 뿐이라 1초 안팎이다.
 import fs from "node:fs";
@@ -188,6 +188,21 @@ for (const [name, block] of [["ko", koBlock], ["en", enBlock]]) {
   if (numbered) failures.push(`정적 검사(${COPY_PATH} ${name}): 번호 아이브로우 "${numbered[0]}"`);
 }
 
+// ── 3. 격자 폰트 검사 ───────────────────────────────────────────────────────────
+// 격자 블록만 본다 — 히어로 아이브로우 같은 화면 다른 곳의 11px 은 이 사고와 무관하다.
+const GRID_START = 'gridTemplateColumns: "repeat(4, minmax(0, 1fr))"';
+const GRID_END = "copy.centerPanelDesc";
+const gridBlock = sliceBlock(componentSource, GRID_START, GRID_END);
+check(
+  gridBlock.length >= 1500,
+  `정적 검사(${COMPONENT_PATH}): 12궁 격자 블록을 못 찾았거나 너무 짧다(${gridBlock.length}자) — 마커("${GRID_START}" … "${GRID_END}")가 사라졌으면 이 가드를 함께 고칠 것(fail-closed).`,
+);
+const gridTinyFonts = [...new Set([...gridBlock.matchAll(/text-\[(?:[0-9]|1[01])px\]/g)].map((m) => m[0]))];
+check(
+  !gridTinyFonts.length,
+  `정적 검사(${COMPONENT_PATH}): 12궁 격자에 12px 미만 글자 ${gridTinyFonts.join(", ")} — 375px 에서 한 칸이 약 73px 이라 판독이 불가능하다. text-xs(12px) 이상만 쓴다.`,
+);
+
 // ── 결과 ─────────────────────────────────────────────────────────────────────
 if (failures.length) {
   console.error(`${TAG} FAIL`);
@@ -197,5 +212,5 @@ if (failures.length) {
   console.log(`${TAG} PASS`);
   console.log(`  - runtime strings: ${collected.length} (track analyses ${trackAnalysisCount}, palace readings ${palaceReadingCount}, forbidden phrases ${forbiddenAll.length})`);
   console.log(`  - static: component literals ${componentStrings.length}, copy blocks en/ko ${enBlock.split("\n").length}/${koBlock.split("\n").length} lines`);
-  console.log("  - grid font check: TODO(PR3), not counted");
+  console.log(`  - grid fonts: block ${gridBlock.length} chars, sub-12px classes ${gridTinyFonts.length}`);
 }

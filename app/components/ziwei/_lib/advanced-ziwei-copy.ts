@@ -97,6 +97,9 @@ export interface AdvancedZiweiCopy {
   evidenceToggleLabel: string;
   precisionNoteLabel: string;
   counselingTrackSectionLabel: string;
+  resultNavAriaLabel: string;
+  resultNavLabels: { chart: string; palace: string; track: string; deep: string; today: string };
+  palaceDahanLabel: string;
   corePalaceLabelPrefix: string;
 
   gridSectionEyebrow: string;
@@ -123,8 +126,6 @@ export interface AdvancedZiweiCopy {
   actionGuideHeadingPrefix: string;
   summaryTableHeading: string;
 
-  tableColPalace: string;
-  tableColDefinition: string;
   tableColMainStar: string;
   tableColAuxStar: string;
   tableColForce: string;
@@ -291,6 +292,9 @@ const ADVANCED_ZIWEI_COPY_EN: AdvancedZiweiCopy = {
   evidenceToggleLabel: "View chart evidence",
   precisionNoteLabel: "About the details you entered",
   counselingTrackSectionLabel: "Which theme would you like to explore?",
+  resultNavAriaLabel: "Jump to a part of the reading",
+  resultNavLabels: { chart: "Chart", palace: "This palace", track: "Themes", deep: "Deep read", today: "From today" },
+  palaceDahanLabel: "Major limit",
   corePalaceLabelPrefix: "Core palaces: ",
 
   gridSectionEyebrow: "12-Palace Chart",
@@ -317,8 +321,6 @@ const ADVANCED_ZIWEI_COPY_EN: AdvancedZiweiCopy = {
   actionGuideHeadingPrefix: "Starting today · ",
   summaryTableHeading: "12-Palace Summary Table",
 
-  tableColPalace: "Palace",
-  tableColDefinition: "Meaning",
   tableColMainStar: "Main Star",
   tableColAuxStar: "Auxiliary Star",
   tableColForce: "Palace strength",
@@ -478,6 +480,9 @@ const ADVANCED_ZIWEI_COPY: Partial<Record<LoadingLocale, AdvancedZiweiCopy>> = {
     evidenceToggleLabel: "명반 근거 보기",
     precisionNoteLabel: "입력 정보에 대한 안내",
     counselingTrackSectionLabel: "어떤 주제로 볼까요",
+    resultNavAriaLabel: "읽고 싶은 부분으로 이동",
+    resultNavLabels: { chart: "명반", palace: "궁 읽기", track: "주제", deep: "심화", today: "오늘부터" },
+    palaceDahanLabel: "대한",
     corePalaceLabelPrefix: "핵심 궁: ",
 
     gridSectionEyebrow: "12궁 명반",
@@ -504,8 +509,6 @@ const ADVANCED_ZIWEI_COPY: Partial<Record<LoadingLocale, AdvancedZiweiCopy>> = {
     actionGuideHeadingPrefix: "오늘부터 · ",
     summaryTableHeading: "12궁 요약 표",
 
-    tableColPalace: "궁",
-    tableColDefinition: "정의",
     tableColMainStar: "주성",
     tableColAuxStar: "보조성",
     tableColForce: "궁의 힘",
@@ -663,6 +666,9 @@ const ADVANCED_ZIWEI_COPY: Partial<Record<LoadingLocale, AdvancedZiweiCopy>> = {
     evidenceToggleLabel: "命盤根拠を見る",
     precisionNoteLabel: "入力内容についてのご案内",
     counselingTrackSectionLabel: "どのテーマで見ますか",
+    resultNavAriaLabel: "読みたい部分へ移動",
+    resultNavLabels: { chart: "命盤", palace: "宮を読む", track: "テーマ", deep: "深く読む", today: "今日から" },
+    palaceDahanLabel: "大限",
     corePalaceLabelPrefix: "核心宮：",
 
     gridSectionEyebrow: "12宮命盤",
@@ -689,8 +695,6 @@ const ADVANCED_ZIWEI_COPY: Partial<Record<LoadingLocale, AdvancedZiweiCopy>> = {
     actionGuideHeadingPrefix: "今日から · ",
     summaryTableHeading: "12宮まとめ表",
 
-    tableColPalace: "宮",
-    tableColDefinition: "定義",
     tableColMainStar: "主星",
     tableColAuxStar: "補助星",
     tableColForce: "宮の力",
@@ -848,6 +852,9 @@ const ADVANCED_ZIWEI_COPY: Partial<Record<LoadingLocale, AdvancedZiweiCopy>> = {
     evidenceToggleLabel: "查看命盘依据",
     precisionNoteLabel: "关于你输入的信息",
     counselingTrackSectionLabel: "想从哪个主题看起",
+    resultNavAriaLabel: "跳到想读的部分",
+    resultNavLabels: { chart: "命盘", palace: "读这个宫", track: "主题", deep: "深读", today: "从今天起" },
+    palaceDahanLabel: "大限",
     corePalaceLabelPrefix: "核心宫位：",
 
     gridSectionEyebrow: "12宫命盘",
@@ -874,8 +881,6 @@ const ADVANCED_ZIWEI_COPY: Partial<Record<LoadingLocale, AdvancedZiweiCopy>> = {
     actionGuideHeadingPrefix: "从今天开始 · ",
     summaryTableHeading: "12宫摘要表",
 
-    tableColPalace: "宫位",
-    tableColDefinition: "定义",
     tableColMainStar: "主星",
     tableColAuxStar: "辅星",
     tableColForce: "宫位力量",
@@ -1033,6 +1038,9 @@ const ADVANCED_ZIWEI_COPY: Partial<Record<LoadingLocale, AdvancedZiweiCopy>> = {
     evidenceToggleLabel: "查看命盤依據",
     precisionNoteLabel: "關於你輸入的資訊",
     counselingTrackSectionLabel: "想從哪個主題看起",
+    resultNavAriaLabel: "跳到想讀的部分",
+    resultNavLabels: { chart: "命盤", palace: "讀這個宮", track: "主題", deep: "深讀", today: "從今天起" },
+    palaceDahanLabel: "大限",
     corePalaceLabelPrefix: "核心宮位：",
 
     gridSectionEyebrow: "12宮命盤",
@@ -1059,8 +1067,6 @@ const ADVANCED_ZIWEI_COPY: Partial<Record<LoadingLocale, AdvancedZiweiCopy>> = {
     actionGuideHeadingPrefix: "從今天開始 · ",
     summaryTableHeading: "12宮摘要表",
 
-    tableColPalace: "宮位",
-    tableColDefinition: "定義",
     tableColMainStar: "主星",
     tableColAuxStar: "輔星",
     tableColForce: "宮位力量",
