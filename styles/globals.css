@@ -815,8 +815,9 @@
 
 /*
  * 법적 문서 표면 — /privacy, /terms, /contact, /account/delete 공용.
- * App Router 셸은 body { background: #020617 } 다크 고정이고 --cd-bg를 참조하지 않으므로
- * 여기서 --cd-* 토큰을 쓰면 연이 모드에서 어두운 글자가 어두운 배경에 얹혀 깨진다.
+ * 시스템 안내(404·에러)도 app/components/SystemNotice.tsx 를 통해 같은 어휘를 쓴다.
+ * App Router 셸은 body { background-color: #0a0818 } 다크 고정이고(위 :101) --cd-bg를
+ * 참조하지 않으므로 여기서 --cd-* 토큰을 쓰면 연이 모드에서 어두운 글자가 어두운 배경에 얹혀 깨진다.
  * 강조색은 다크 셸에 맞춰 Twilight Violet(#c4b5fd) 하나만 쓴다(One Accent Rule).
  *
  * .policy-embed-* 는 회원가입 동의 화면(app/signup/SignupClient.tsx)의 임베드와 공유한다.
