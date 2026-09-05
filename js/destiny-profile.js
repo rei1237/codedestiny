@@ -79,6 +79,16 @@
       passAppliedOverlay: '이용권이 적용되었습니다.\n이번 콘텐츠는 보유한 이용권으로 무료 이용됩니다.\n추가 결제 없이 바로 열어드릴게요.',
       monthlyAppliedOverlay: '월정석 사용이 완료되었습니다.\n보유한 월정석으로 이번 콘텐츠를 이용합니다.\n바로 열어드릴게요.',
       paymentCompleteOverlay: '결제가 완료되었습니다.\n콘텐츠를 여는 중입니다.\n잠시만 기다려 주세요.',
+      // 단건 결제 리다이렉트 복귀(모바일·카카오페이 새 탭) 전용. {method} 는 결제수단 이름.
+      // 🔴 복귀 단계는 아무것도 자동으로 열지 않으므로 paymentCompleteOverlay("여는 중")를 쓰지 않는다.
+      directResumeConfirming: '{method} 결제 결과를 확인하고 열람 권한을 저장하고 있어요.\n중복 결제를 시도하지 말아 주세요.',
+      directResumeConfirmingGeneric: '결제 결과를 확인하고 열람 권한을 저장하고 있어요.\n중복 결제를 시도하지 말아 주세요.',
+      directResumePending: '결제는 승인되었고 열람 권한 반영을 기다리고 있어요.\n잠시 후 이 화면을 새로고침하면 다시 확인합니다.',
+      directResumeComplete: '{method} 결제가 확인되었습니다.\n콘텐츠를 다시 누르면 추가 결제 없이 바로 열립니다.',
+      directResumeCompleteGeneric: '결제가 확인되었습니다.\n콘텐츠를 다시 누르면 추가 결제 없이 바로 열립니다.',
+      directResumeFailed: '{method} 결제가 완료되지 않았습니다. 다시 시도해 주세요.',
+      directResumeFailedGeneric: '결제가 완료되지 않았습니다. 다시 시도해 주세요.',
+      directResumeError: '결제 확인 중 오류가 발생했습니다.\n잠시 후 이 화면을 새로고침하면 다시 확인합니다.',
       subscriptionIncluded: '이용권으로 추가 결제 없이 이용합니다.',
       serviceTermDisclaimer: '결제 완료 후 즉시 서비스가 제공됩니다. 구매한 서비스는 결제가 확인되는 순간부터 이용이 시작됩니다.',
       openProfileList: '프로필 목록 열기',
@@ -109,6 +119,14 @@
       passAppliedOverlay: 'Your pass has been applied.\nThis content is free with your current pass.\nIt will open without any extra payment.',
       monthlyAppliedOverlay: 'Your Moonlight Stones have been used.\nThis content is unlocked with your Moonlight Stones.\nOpening it now.',
       paymentCompleteOverlay: 'Payment complete.\nOpening your content now.\nPlease wait a moment.',
+      directResumeConfirming: 'Confirming your {method} payment and saving your access.\nPlease do not pay again.',
+      directResumeConfirmingGeneric: 'Confirming your payment and saving your access.\nPlease do not pay again.',
+      directResumePending: 'Your payment was approved and access is being applied.\nRefresh this page in a moment to check again.',
+      directResumeComplete: 'Your {method} payment is confirmed.\nTap the content again to open it with no extra charge.',
+      directResumeCompleteGeneric: 'Your payment is confirmed.\nTap the content again to open it with no extra charge.',
+      directResumeFailed: 'Your {method} payment was not completed. Please try again.',
+      directResumeFailedGeneric: 'Your payment was not completed. Please try again.',
+      directResumeError: 'Something went wrong while confirming your payment.\nRefresh this page in a moment to check again.',
       subscriptionIncluded: 'Using your pass with no additional payment.',
       serviceTermDisclaimer: 'The service is provided immediately upon payment completion. Your purchased service begins the moment payment is confirmed.',
       openProfileList: 'Open profile list',
@@ -139,6 +157,14 @@
       passAppliedOverlay: '利用券が適用されました。\nこのコンテンツはお持ちの利用券で無料で利用できます。\n追加決済なしですぐに開きます。',
       monthlyAppliedOverlay: '月精石の使用が完了しました。\nこのコンテンツはお持ちの月精石で利用します。\nすぐに開きます。',
       paymentCompleteOverlay: '決済が完了しました。\nコンテンツを開いています。\n少々お待ちください。',
+      directResumeConfirming: '{method}の決済結果を確認し、閲覧権限を保存しています。\n二重決済はしないでください。',
+      directResumeConfirmingGeneric: '決済結果を確認し、閲覧権限を保存しています。\n二重決済はしないでください。',
+      directResumePending: '決済は承認され、閲覧権限の反映を待っています。\nしばらくしてこの画面を再読み込みすると再確認します。',
+      directResumeComplete: '{method}の決済が確認されました。\nコンテンツをもう一度押すと追加決済なしで開きます。',
+      directResumeCompleteGeneric: '決済が確認されました。\nコンテンツをもう一度押すと追加決済なしで開きます。',
+      directResumeFailed: '{method}の決済が完了しませんでした。もう一度お試しください。',
+      directResumeFailedGeneric: '決済が完了しませんでした。もう一度お試しください。',
+      directResumeError: '決済確認中にエラーが発生しました。\nしばらくしてこの画面を再読み込みすると再確認します。',
       subscriptionIncluded: '利用券で追加決済なしに利用します。',
       serviceTermDisclaimer: '決済完了後、サービスが即座に提供されます。購入したサービスは、決済が確認された時点から利用が開始されます。',
       openProfileList: 'プロフィール一覧を開く',
@@ -169,6 +195,14 @@
       passAppliedOverlay: '已应用使用券。\n本内容可使用当前持有的使用券免费查看。\n无需额外付款，将立即开启。',
       monthlyAppliedOverlay: '月精石使用完成。\n本内容将使用您持有的月精石。\n即将为您开启。',
       paymentCompleteOverlay: '支付完成。\n正在为您开启内容。\n请稍候。',
+      directResumeConfirming: '正在确认{method}支付结果并保存访问权限。\n请勿重复支付。',
+      directResumeConfirmingGeneric: '正在确认支付结果并保存访问权限。\n请勿重复支付。',
+      directResumePending: '支付已获批准，正在等待访问权限生效。\n请稍后刷新此页面再次确认。',
+      directResumeComplete: '{method}支付已确认。\n再次点击内容即可直接打开，无需额外付费。',
+      directResumeCompleteGeneric: '支付已确认。\n再次点击内容即可直接打开，无需额外付费。',
+      directResumeFailed: '{method}支付未完成。请重试。',
+      directResumeFailedGeneric: '支付未完成。请重试。',
+      directResumeError: '确认支付时发生错误。\n请稍后刷新此页面再次确认。',
       subscriptionIncluded: '使用券已生效，无需额外付款。',
       serviceTermDisclaimer: '付款完成后，服务将立即提供。购买的服务在付款确认的那一刻开始使用。',
       openProfileList: '打开个人资料列表',
@@ -199,6 +233,14 @@
       passAppliedOverlay: '已套用使用券。\n本內容可使用目前持有的使用券免費查看。\n無需額外付款，將立即開啟。',
       monthlyAppliedOverlay: '月精石使用完成。\n本內容將使用您持有的月精石。\n即將為您開啟。',
       paymentCompleteOverlay: '付款完成。\n正在為您開啟內容。\n請稍候。',
+      directResumeConfirming: '正在確認{method}付款結果並儲存閱覽權限。\n請勿重複付款。',
+      directResumeConfirmingGeneric: '正在確認付款結果並儲存閱覽權限。\n請勿重複付款。',
+      directResumePending: '付款已獲核准，正在等待閱覽權限生效。\n請稍後重新整理此頁面再次確認。',
+      directResumeComplete: '{method}付款已確認。\n再次點擊內容即可直接開啟，無需額外付費。',
+      directResumeCompleteGeneric: '付款已確認。\n再次點擊內容即可直接開啟，無需額外付費。',
+      directResumeFailed: '{method}付款未完成。請重試。',
+      directResumeFailedGeneric: '付款未完成。請重試。',
+      directResumeError: '確認付款時發生錯誤。\n請稍後重新整理此頁面再次確認。',
       subscriptionIncluded: '使用券已生效，無需額外付款。',
       serviceTermDisclaimer: '付款完成後，服務將立即提供。購買的服務在付款確認的那一刻開始使用。',
       openProfileList: '開啟個人資料列表',
@@ -2695,7 +2737,11 @@
       case 'pass-applied':
         return { title: '이용권 적용 완료', desc: '보유한 이용권으로 이번 콘텐츠가 열렸습니다.', done: true, fallback: '추가 결제 없이 바로 이어집니다.' };
       case 'payment-complete':
-        return { title: '결제 완료', desc: '결제가 확인되어 콘텐츠를 여는 중입니다.', done: true, fallback: '곧 콘텐츠가 열립니다.' };
+        // desc 는 "여는 중"을 말하지 않는다 — 리다이렉트 복귀 경로는 아무것도 자동으로 열지 않는다.
+        return { title: '결제 완료', desc: '결제가 확인되었습니다.', done: true, fallback: '곧 콘텐츠가 열립니다.' };
+      // 셸 paymentOverlayCopySet['unlock-saving'] 의 거울. 리다이렉트 복귀 confirm 대기가 이 mode 를 쓴다.
+      case 'unlock-saving':
+        return { title: '열람 권한 저장 중', desc: '결제 결과를 확인해 열람 권한으로 저장하고 있어요.', done: false, fallback: '저장이 끝나면 바로 이용할 수 있습니다.' };
       case 'monthly':
         return { title: '월정석 사용 중', desc: '보유한 월정석으로 이용 권한을 확인하고 있어요.', done: false, fallback: '월정석 잔량을 확인하고 있습니다.' };
       // 🔴 mode 'subscription' 은 월정석이 아니라 이용권 결제 승인·활성화 구간이다. 한 case 로
@@ -2867,6 +2913,13 @@
     var api = _dpCheckoutEntry();
     if (!api || typeof api.selectedDirectPayMethodLabel !== 'function') return '';
     try { return api.selectedDirectPayMethodLabel() || ''; } catch (_payLabelError) { return ''; }
+  }
+  // 주문에 남은 수단 코드("kakaopay"·"card_general"·"KAKAOPAY")의 표시 이름. 리다이렉트 복귀처럼
+  // 선택 슬롯(TTL 120s)이 이미 만료된 시점에 티켓의 paymentMethod 로 문구를 만들 때 쓴다. 모르면 ''.
+  function _dpDirectPayMethodLabelFor(method) {
+    var api = _dpCheckoutEntry();
+    if (!api || typeof api.directPayMethodLabel !== 'function' || typeof api.normalizeDirectPayMethodId !== 'function') return '';
+    try { return api.directPayMethodLabel(api.normalizeDirectPayMethodId(method)) || ''; } catch (_payLabelForError) { return ''; }
   }
   // 고른 결제수단에서 지금 해야 할 일 한 줄. 대기 오버레이 본문이 끼워 넣는다. 모르면 ''.
   function _dpSelectedDirectPayMethodWaitText() {
@@ -4107,6 +4160,43 @@
     try { return /\/points\/?$/.test(String(window.location.pathname || '')); } catch (_) { return false; }
   }
 
+  // 복귀 URL 에서 PG 결과 파라미터만 걷어낸다 — 남겨 두면 새로고침마다 confirm 이 재실행되고(성공)
+  // 같은 실패 알림이 다시 뜬다(실패). 나머지 쿼리·해시는 보존한다. PENDING·오류 갈래는 부르지 않는다
+  // (거기서는 새로고침이 곧 멱등 재시도라 파라미터가 살아 있어야 한다).
+  var _DP_DIRECT_RESUME_QUERY_KEYS = [
+    'portone_redirect', 'paymentId', 'payment_id', 'imp_uid', 'imp_success', 'merchant_uid',
+    'code', 'message', 'error_code', 'error_msg', 'transactionType', 'txId',
+  ];
+  function _dpStripDirectResumeQuery() {
+    try {
+      var url = new URL(window.location.href);
+      var touched = false;
+      _DP_DIRECT_RESUME_QUERY_KEYS.forEach(function (key) {
+        if (url.searchParams.has(key)) { url.searchParams.delete(key); touched = true; }
+      });
+      if (!touched || !window.history || typeof window.history.replaceState !== 'function') return;
+      window.history.replaceState(window.history.state, '', url.pathname + (url.search || '') + (url.hash || ''));
+    } catch (_stripError) {}
+  }
+
+  // 복귀 결과 안내를 mode 별 스킨으로 holdMs 동안 띄운다. _dpSetPaymentPending 을 거치므로 셸
+  // (_cdSetCoinGateOverlay)·독립 페이지(_dpSetStandalonePaymentOverlay) 어느 쪽이든 같은 경로다.
+  var _dpDirectResumeNoticeTimer = 0;
+  function _dpShowDirectResumeNotice(message, mode, holdMs) {
+    _dpSetPaymentPending(true, message, mode);
+    try { if (_dpDirectResumeNoticeTimer) clearTimeout(_dpDirectResumeNoticeTimer); } catch (_) {}
+    _dpDirectResumeNoticeTimer = window.setTimeout(function () {
+      _dpDirectResumeNoticeTimer = 0;
+      _dpSetPaymentPending(false);
+    }, holdMs);
+  }
+
+  // 수단 이름이 있으면 '{method} …' 판, 없으면(티켓 없는 새 탭 복귀 등) 'Generic' 판을 고른다.
+  function _dpDirectResumeText(key, methodLabel) {
+    if (methodLabel) return _dpInterpolateText(_dpText(key), { method: methodLabel });
+    return _dpText(key + 'Generic');
+  }
+
   async function _dpResumeDirectPaymentAfterRedirect() {
     if (typeof window === 'undefined') return;
     var query;
@@ -4130,6 +4220,12 @@
     var paymentId = String(queryPaymentId || (ticket && ticket.merchantUid) || '').trim();
     var failed = String(query.get('code') || '').trim() !== ''
       || String(query.get('imp_success') || '').toLowerCase() === 'false';
+    // 수단은 **티켓**에서 읽는다 — 선택 슬롯(setSelectedDirectPayMethod, TTL 120s)은 카카오톡을 다녀오는
+    // 사이 만료되기 쉽다. 티켓이 없으면(새 탭 복귀) ''이라 Generic 문구로 떨어진다.
+    var resumeMethod = String(
+      (ticket && (ticket.paymentMethod || (ticket.confirmBody && ticket.confirmBody.paymentMethod))) || '',
+    ).trim();
+    var resumeMethodLabel = _dpDirectPayMethodLabelFor(resumeMethod);
 
     if (!paymentId || failed) {
       // 승인이 나지 않은 복귀다 — 티켓을 회수한다.
@@ -4163,16 +4259,23 @@
           }).catch(function () {});
         }
       } catch (_) {}
+      // PG 결과 파라미터를 걷어낸다 — 안 하면 새로고침마다 같은 실패 알림이 다시 뜬다.
+      _dpStripDirectResumeQuery();
       // 코드가 있으면 함께 보여 준다 — 고객 문의에서 이 한 줄이 원인 특정의 유일한 근거가 된다.
+      // 🔴 오버레이 'payment-failed' 로 바꾸지 않는다 — 셸 meta 가 "청구됐다면 자동 환불"이라 PG 거절엔 맞지 않는다.
       window.alert(
-        (failMessage || '결제가 완료되지 않았습니다. 다시 시도해 주세요.')
+        (failMessage || _dpDirectResumeText('directResumeFailed', resumeMethodLabel))
         + (failCode ? '\n(' + failCode + ')' : ''),
       );
       return;
     }
 
     try {
-      _dpSetPaymentPending(true, '결제 승인과 콘텐츠 이용 권한을 확인하고 있습니다.', 'confirm');
+      /* 🔴 mode 는 'unlock-saving' 이어야 한다. 예전 'confirm' 은 3렌더러 허용목록(dp
+         DP_WAIT_UI_ALLOWED_MODE_RE · 셸 CD_WAIT_UI_ALLOWED_MODE_RE · React REACT_WAIT_UI_ALLOWED_MODE_RE)
+         어디에도 없어 **조용히 안 떴다** — 복귀 뒤 confirm 1~3초가 빈 화면이었다.
+         문구는 이미 돌아온 사용자에게 하는 말이라 수단별 대기 문구("…자동으로 돌아옵니다")를 쓰지 않는다. */
+      _dpSetPaymentPending(true, _dpDirectResumeText('directResumeConfirming', resumeMethodLabel), 'unlock-saving');
       // 🔴 티켓은 confirm 성공 뒤에 지운다. 먼저 지우면 5xx 한 번에 승인된 결제의 복구 수단이 사라진다.
       // 티켓은 30분 TTL(_DP_DIRECT_RESUME_TTL_MS)로 스스로 만료되므로 남겨 둬도 되살아나지 않는다.
       /* 🔴 티켓이 없어도(새 탭 복귀) 확정은 성립한다 — 단건 confirm 의 필수 입력은 주문번호 하나이고
@@ -4183,18 +4286,73 @@
         paymentId: paymentId,
       }));
       var confirmRes = await _dpPaymentFetchJson('/api/billing/confirm', { method: 'POST', body: dpResumeBody }, { retryOn401: true, refreshOn401: true });
+      var resumePayload = (confirmRes && confirmRes.payload && typeof confirmRes.payload === 'object') ? confirmRes.payload : {};
+      /* 🔴 PENDING 은 실패가 아니다(셸 index.html 의 confirm 판정 순서와 같다). 서버는 지급 지연을
+         200 + code:'GRANT_PENDING' + recoveryRequired:true 로 준다(worker/payments/compat.js) —
+         이걸 "결제 완료"로 표시하면 열람 권한이 없는데 완료 안내가 뜨고, 실패로 닫으면 사용자가
+         다시 결제한다. 티켓·URL 을 그대로 두어 새로고침이 멱등 재시도가 되게 하고, access-state
+         갱신도 하지 않는다(아직 열람 권한이 없어 무효화할 것이 없다). */
+      var resumeCode = String(resumePayload.code || (resumePayload.error && resumePayload.error.code) || '').toUpperCase();
+      var resumePending = resumeCode === 'GRANT_PENDING' || resumeCode === 'PENDING_CONFIRMATION'
+        || resumePayload.recoveryRequired === true || Number(confirmRes.status) === 202;
+      if (resumePending) {
+        var resumePendingMessage = resumePayload.message ? String(resumePayload.message) : _dpText('directResumePending');
+        _dpShowDirectResumeNotice(resumePendingMessage, 'unlock-saving', 4000);
+        return;
+      }
       _dpSetPaymentPending(false);
       if (!confirmRes.ok) {
-        window.alert(_dpReadBillingMessage(confirmRes.payload, '결제 검증에 실패했습니다. 고객센터로 문의해 주세요.'));
+        window.alert(_dpReadBillingMessage(resumePayload, '결제 검증에 실패했습니다. 고객센터로 문의해 주세요.'));
         return;
       }
       // 서버 confirm 은 멱등이다(existingUnlock 감지 → alreadyUnlocked). 중복 확정 위험은 없다.
+      // ① 확정됐으니 티켓 회수.
       _dpClearDirectResumeTicket();
-      _dpShowPaymentCompleteOverlay(_dpText('paymentCompleteOverlay'));
+      // ② 🔴 데스크톱 confirm 경로와 같은 자리·같은 조건 — 서버가 확정을 검증한 뒤에만
+      //    /api/me/access-state 의 60초 스냅샷을 강제 무효화한다. 안 하면 방금 산 기능이 최대 60초간
+      //    잠긴 채로 보인다(리다이렉트 복귀는 이 호출이 빠져 있었다). 결과는 기다리지 않는다.
+      try {
+        var _dpResumeAccessCache = window.CodeDestinyUserAccessCache;
+        if (_dpResumeAccessCache && typeof _dpResumeAccessCache.refreshUserAccessAfterPayment === 'function') {
+          Promise.resolve(_dpResumeAccessCache.refreshUserAccessAfterPayment()).catch(function () {});
+        }
+      } catch (_dpResumeAccessRefreshError) {}
+      // ③ URL 정리(새로고침 재실행 방지) ④ 정직한 완료 안내 — 여기서는 아무것도 자동으로 열지 않으므로
+      //    paymentCompleteOverlay("콘텐츠를 여는 중")를 쓰지 않는다. 재클릭은 서버 unlock 매칭으로 추가 결제 없이 열린다.
+      _dpStripDirectResumeQuery();
+      _dpShowDirectResumeNotice(_dpDirectResumeText('directResumeComplete', resumeMethodLabel), 'payment-complete', 4000);
+      // ⑤ 결제한 카드로 시선을 옮긴다. 카드가 없는 표면(독립 정적 페이지 등)이면 조용히 건너뛴다.
+      var resumeFeatureKey = String(
+        (ticket && ticket.confirmBody && ticket.confirmBody.featureKey)
+        || resumePayload.featureKey
+        || (resumePayload.accessGrant && resumePayload.accessGrant.featureKey)
+        || '',
+      ).trim();
+      var resumeTile = null;
+      if (resumeFeatureKey && typeof CSS !== 'undefined' && CSS && typeof CSS.escape === 'function') {
+        try { resumeTile = document.querySelector('[data-feature-key="' + CSS.escape(resumeFeatureKey) + '"]'); } catch (_) {}
+      }
+      if (resumeTile) {
+        try { resumeTile.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (_) {}
+        try { if (typeof resumeTile.focus === 'function') resumeTile.focus({ preventScroll: true }); } catch (_) {}
+      }
+      // ⑥ 후속 훅(자동 재오픈 등)이 붙을 자리. 현재 구독자는 없다.
+      try {
+        window.dispatchEvent(new CustomEvent('cd:direct-payment-resumed', {
+          detail: {
+            featureKey: resumeFeatureKey,
+            paymentId: paymentId,
+            paymentMethod: resumeMethod,
+            alreadyUnlocked: resumePayload.alreadyUnlocked === true,
+            tile: resumeTile,
+          },
+        }));
+      } catch (_) {}
     } catch (error) {
+      // 5xx·네트워크 — 티켓·URL 을 그대로 둔다. 새로고침이 곧 재시도다.
       _dpSetPaymentPending(false);
       console.error('[direct-payment-resume]', error);
-      window.alert('결제 확인 중 오류가 발생했습니다. 잠시 후 주문 내역을 확인해 주세요.');
+      window.alert(_dpText('directResumeError'));
     }
   }
 

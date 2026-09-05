@@ -300,7 +300,8 @@ console.log("\n[3] 이용권 카드 클릭 → 미커버면 /points 로 인계�
   });
   check("cdco 가 붙지 않는다 — 상점 화면 자체로 인계해 다른 플랜·기간을 볼 수 있어야 한다", () => assert.doesNotMatch(storeUrls[0], /[?&]cdco=/));
   check("복귀 지점 저장(결제 후 원래 화면으로 돌아간다)", () => {
-    const raw = window.sessionStorage.getItem("cd_checkout_return_v1");
+    // 복귀 지점은 localStorage 정본(카카오페이 새 탭 복귀 생존) + sessionStorage 폴백이다.
+    const raw = window.localStorage.getItem("cd_checkout_return_v1") || window.sessionStorage.getItem("cd_checkout_return_v1");
     assert.ok(raw, "cd_checkout_return_v1 없음");
     assert.match(JSON.parse(raw).url, /celestial-harmony\.html\?spread=3/);
   });

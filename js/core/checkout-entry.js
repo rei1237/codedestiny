@@ -1145,9 +1145,14 @@
     }
   }
 
-  /** 이용권을 사러 떠나기 직전에 남기는 복귀 지점. 이동 전에 호출한다. */
+  /** 이용권을 사러 떠나기 직전에 남기는 복귀 지점. 이동 전에 호출한다.
+   *
+   *  🔴 저장은 **localStorage** 다(위 단건 재개 티켓과 같은 이유). 이용권 결제도 카카오페이처럼
+   *  다른 앱으로 이탈했다 돌아오는 수단은 **새 탭으로 복귀**하는 일이 흔해, sessionStorage 에만 두면
+   *  /points 에 돌아와도 복귀 지점이 사라져 원래 화면으로 못 돌아간다(pending 주문은 localStorage 라
+   *  살아 있어 결제는 확정되는데 사용자는 /points 에 머무는 상태가 정확히 이것이다). */
   function rememberCheckoutReturn(options) {
-    var store = sessionStore();
+    var store = localStore() || sessionStore();
     if (!store) return false;
     var opts = options || {};
     var url = text(opts.url);
@@ -1170,14 +1175,17 @@
    * 왕복하는 루프가 생기지 않는다.
    */
   function consumeCheckoutReturn() {
-    var store = sessionStore();
-    if (!store) return null;
+    // localStorage → sessionStorage 순으로 읽고 **둘 다 지운다** — 배포 시점에 구 코드가 sessionStorage 에
+    // 남긴 복귀 지점으로 결제 중인 사용자가 있고, 한쪽만 지우면 그 티켓이 다음 결제 때 되살아난다.
+    var stores = [localStore(), sessionStore()];
     var raw = null;
-    try {
-      raw = store.getItem(RETURN_KEY);
-      store.removeItem(RETURN_KEY);
-    } catch (_readError) {
-      return null;
+    for (var i = 0; i < stores.length; i += 1) {
+      if (!stores[i]) continue;
+      try {
+        var candidate = stores[i].getItem(RETURN_KEY);
+        stores[i].removeItem(RETURN_KEY);
+        if (raw == null && candidate) raw = candidate;
+      } catch (_readError) { /* 한 저장소가 막혀도 다른 쪽은 읽는다 */ }
     }
     if (!raw) return null;
     try {
