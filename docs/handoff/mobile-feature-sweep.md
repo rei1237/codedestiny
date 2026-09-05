@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-05
-next: "낙샤트라를 09-05 에 닫았다(#1589, 아래 §낙샤트라 — keep-all 31/31 짝맞춤, 문서폭 900→620px). §다른 전문가 상담 감사 의 'AI 본문 keep-all 단독' 잔여는 **섬 상담 6곳(`app/island-consult/IslandConsultClient.tsx:952,955,965,990`)** 과 **베다 1곳(`app/vedic-ai/VedicAiClient.module.css:735`)** — 기능당 1PR. 🔴 섬 상담은 픽스처가 없어(`lib/dev-preview/fixtures/` 8종에 없음) 낙샤트라식으로 화면 여는 법부터 찾거나 '측정 불가'를 명기해야 하고, 베다는 픽스처가 있다 — **베다부터가 싸다**. 숙요궁합(34)은 사용자가 '정상'으로 판정해 제외됐다. 🔴 스캐너 맹점 2종(전역 clip · 진입 애니메이션 opacity)은 그대로라 스캐너 수치로 전/후를 판정하지 말 것. CI 게이트 2종(`verify:mobile-cdp-smoke`·`verify:mobile-detail-render`)의 OF 맹점은 여전히 별도 PR 이 필요하다"
+next: "베다 점성을 09-05 에 닫았다(아래 §베다 점성 — 정상 문안 360px 이탈 155→0). 🔴 **거기서 얻은 교훈이 다음 작업의 전제다: 'keep-all 단독' 건수는 화면 결함의 대리 지표가 아니다** — 베다의 진짜 발원지는 감사표가 센 keep-all 1곳이 아니라 `.chatList` 의 안 눌린 암시적 1열 트랙이었고, 스트레스 없이 정상 문안에서도 잘리고 있었다. 다음 기능도 '건수 짝맞춤'이 아니라 **화면을 열어 재는 작업**으로 잡을 것. §다른 전문가 상담 감사 의 잔여는 **섬 상담 6곳(`app/island-consult/IslandConsultClient.tsx:952,955,965,990`)** 하나뿐이고, 픽스처가 없어(`lib/dev-preview/fixtures/` 8종에 없음) **첫 일은 화면 여는 법 찾기**다 — 낙샤트라식 해금 원장 시드(`cd_verified_unlock_grants_v1`)가 통하는지부터 보고, 안 되면 '측정 불가'를 명기하고 짝만 붙인다. 숙요궁합(34)은 사용자가 '정상'으로 판정해 제외됐다. 🔴 스캐너 맹점 2종(전역 clip · 진입 애니메이션 opacity)은 그대로라 스캐너 수치로 전/후를 판정하지 말 것. CI 게이트 2종(`verify:mobile-cdp-smoke`·`verify:mobile-detail-render`)의 OF 맹점은 여전히 별도 PR 이 필요하다"
 ---
 
 # 기능별 모바일 순회 원장
@@ -247,6 +247,55 @@ next: "낙샤트라를 09-05 에 닫았다(#1589, 아래 §낙샤트라 — keep
 - 정상 문안: 6/6 조합 **바이트 동일**(예: dasha-map 360 양쪽 `adcffd39d8a0` / 1,125,410B).
 - 계측기 유효성: 같은 대조를 스트레스 문안으로 돌리면 프리미엄 2화면이 4/4 조합에서 **갈린다**(dasha-map 360: `a4ae28c1962f` 5.7MB ↔ `ec4ed5adfe5b` 2.7MB). 허브는 스텁 콘텐츠가 안 닿아 양쪽 다 동일한 것이 정상이다.
 
+## 베다 점성 (`/vedic-ai/result/`) — 09-05 수정
+
+### 결과 화면을 결제·LLM 없이 여는 하네스
+
+픽스처가 있다(`lib/dev-preview/fixtures/vedic.ts`). 🔴 **`?preview=success` 는 dist 에서 안 먹는다** — `readDevPreviewState()` 가 `NODE_ENV==="production"` 이면 null 을 준다. 그래서 **`?id=` 재열람 경로**로 열었다: `dist/` 를 127.0.0.1 로 정적 서빙하면서 `/api/vedic-ai/result` 만 `buildVedicPreviewPayload("success")` 로 응답하고 나머지 `/api/*` 는 404 로 둔다(1회용 스크립트, 커밋 안 함). 🔴 **127.0.0.1 이어야 한다** — `app/_lib/api-config.ts` 의 LOCAL_HOSTS 가 API 를 같은 출처로 돌려 프로덕션 트래픽이 0 이 된다.
+
+프로브 계측기는 낙샤트라와 같다 — `html,body{overflow-x:visible}` 로 전역 clip 을 걷고 `.revealItem` 진입 애니메이션(`opacity:0`)을 정지시킨 뒤 `Range.getClientRects()` 로 텍스트 런까지 본다.
+
+### 전/후 실측 (같은 빌드 위, 이번 커밋 선언만 되돌려 대조)
+
+| 문안 | 뷰포트 | 전 (이탈 / 런) | 후 |
+|---|---|---|---|
+| 정상 픽스처 | 360×800 | **155 / 43** | 0 / 0 |
+| 정상 픽스처 | 412×823 | 147 / 32 | 0 / 0 |
+| 스트레스 | 360×800 | 173 / 50 | 0 / 0 |
+| 스트레스 | 412×823 | 165 / 39 | 0 / 0 |
+
+🔴 **이 화면은 스트레스 없이도 잘리고 있었다** — 자미두수·신년·카르마·낙샤트라와 다른 점이다. 정상 픽스처 360px 에서 이미 이탈 155건이고 발원지는 하나다: `div.structuredResult` 가 **폭 607px 로 렌더되는데 부모 `div.chatList` 의 client 는 299px**(+278px). 스크롤바는 안 생긴다 — `main.shell{overflow:hidden}` 과 전역 `overflow-x:clip` 이 잘라서 **본문이 그냥 사라진다.**
+
+계보: `.chatList` 가 `grid-template-columns` 없는 암시적 1열 grid 라 트랙 바닥이 `auto`(=아이템 max-content)다. 안쪽의 **의도된 가로 레일**(`.planetTable{min-width:34rem}` in `.planetTableWrap{overflow-x:auto}` · `.dashaTrack{min-width:560px}` in `.dashaTrackWrap`)이 그 max-content 를 밀어 올려 트랙을 통째로 부풀렸다. 레일 선언 자체는 정상이고 **트랙 바닥이 열려 있던 것이 결함**이다.
+
+🔴 **그 결과 레일이 레일 구실을 못 하고 있었다 — 이번 수정으로 같이 살아났다.** 360px 에서 `overflow-x:auto` 래퍼의 실측(정상 문안, `scrollLeft=9999` 를 밀어 본 값):
+
+| 래퍼 | 전 | 후 |
+|---|---|---|
+| `.planetTableWrap` (그라하 표) | client 544 / scrollWidth 544 / **실제 스크롤 0px** | client 236 / scrollWidth 544 / **308px** |
+| `.dashaTrackWrap` (다샤 타임라인) | client 570 / scrollWidth 570 / **실제 스크롤 0px** | client 262 / scrollWidth 560 / **298px** |
+
+전에는 래퍼 자신이 뷰포트(360px)보다 넓게 늘어나 `scrollWidth == clientWidth` 가 됐고, 그래서 **스크롤이 0px 이라 5번째 열 `나크샤트라` 에 도달할 방법이 없었다**(바깥 `overflow:hidden` 이 잘랐다). 후에는 래퍼가 카드 안에 눌려 정상적으로 굴러간다.
+
+### 처방 (`VedicAiClient.module.css` 한 파일 · +10/−0)
+
+- **A** 실제로 부풀던 암시적 1열 grid 3곳에 `grid-template-columns: minmax(0, 1fr)` — `.chatList` · `.structuredResult` · `.basicChartData`.
+- **C** 측정에서 실제로 넘친 텍스트 4곳에 `overflow-wrap: anywhere` — `.sectionCard p, .userMsg p`(원장이 세던 keep-all 단독 1곳) · `.sectionTitleKo` · `.structuredSection p`.
+- 🔴 **B(`min-width:0`)는 재고 나서 뺐다.** 후보 18개 셀렉터에 B 만 주입해도 이탈 155→152 로 사실상 무변화였고 A+B+C 와 A+C 가 같은 0 이었다. 자미두수·신년·카르마의 A/B/C 틀을 여기서는 **측정 근거가 없어 따르지 않았다**(원칙 2·8). 조합 실측(정상 360 이탈): A만 0 · B만 152 · C만 155 · B+C 152 · **A+C 0**.
+
+### 비회귀 근거 — 같은 빌드 위 런타임 A/B
+
+이번 커밋의 선언만 `!important` 로 되돌린 쪽과 현재를 전체 페이지로 찍어 원본 버퍼를 비교했다.
+
+- **데스크톱 1280×900 은 정상·스트레스 둘 다 바이트 동일**(`cf160dda2a9d` 2,103,147B · `b392e5ca1f2f` 2,716,535B) — 넓은 화면에서는 트랙 바닥이 애초에 안 눌렸으므로 레이아웃 인상이 안 바뀐다.
+- 모바일 360 은 양쪽 다 갈린다(정상 `749110cab152`→`9d22b21f5a26`, 스트레스 `7d6d17989f54`→`ad6c42a6cc0a`). **의도한 변화다** — 잘려서 안 보이던 본문이 화면 안으로 들어온 것이다.
+- 화면 판정(`visual-checker`, 크롭만 읽음): 우측 7px 열의 잉크 밴드가 **전 50개(정상)·79개(스트레스) → 후 0개**. 전에는 다샤 캡션이 한 줄로 뻗다 잘리고 북인도식 라시 차트가 12하우스 중 1개만 보였는데, 후에는 캡션이 2줄로 접히고 12하우스가 카드 안에 다 들어온다. 높이 증가(정상 5192→5384, 스트레스 6234→7809)는 **삭제가 아니라 재줄바꿈**이다.
+
+### 안 고친 것
+
+- 감사표의 "고정최소폭 1" 은 위양성 그대로다 — `.dashaTrack{min-width:560px}` 은 `overflow-x:auto` 레일 안이라 의도된 것이고 이번 수정은 레일을 안 건드린다.
+- `/vedic-ai/` 입력 화면과 TT/IN/SA 축은 이번 PR 범위 밖이다.
+
 ## 다른 전문가 상담 감사 — 소스 기준, **렌더 미측정** (09-05)
 
 사용자 요청의 "다른 상담에도 이런 문제가 있는지"에 대한 답이다. 🔴 **아래는 정적 grep 집계이지 실측이 아니다** — 자미두수처럼 하네스를 붙여 재기 전에는 건수를 결함 수로 읽지 말 것. 실제로 유일한 "고정 최소폭" 적중(`app/vedic-ai/VedicAiClient.module.css:1693` `.dashaTrack{min-width:560px}`)은 바로 위 `.dashaTrackWrap{overflow-x:auto}`(:1690)가 감싼 **의도된 가로 레일**이라 위양성이었다.
@@ -274,7 +323,7 @@ next: "낙샤트라를 09-05 에 닫았다(#1589, 아래 §낙샤트라 — keep
 - ~~`app/karma-destiny-ai/KarmaDestinyAiClient.tsx:3599,3903` · `app/karma-destiny-ai/result/_components/ResultStyles.tsx:260,292,307,399`~~ → 09-05 완료 (위 §카르마 데스티니)
 - ~~`app/new-year-ai-consultation/NewYearAiClient.tsx:1268,1341,1449,2280,2485,2657`~~ → 09-05 완료 (위 §신년운세)
 - ~~`app/sukuyo-compatibility-ai/SukuyoCompatibilityAiClient.module.css:277,339,350,429,521,532`~~ → 09-05 제외: 사용자가 화면을 확인해 "정상" 으로 판정했다(수정 불요). 🔴 다시 감사하지 말 것
-- `app/vedic-ai/VedicAiClient.module.css:735`
+- ~~`app/vedic-ai/VedicAiClient.module.css:735`~~ → 09-05 완료 (위 §베다 점성). 🔴 이 1곳은 **결함의 주범이 아니었다** — 같은 화면의 진짜 발원지는 `.chatList` 의 안 눌린 암시적 1열 트랙이었고 정상 문안에서도 잘리고 있었다. **keep-all 건수는 화면 결함의 대리 지표가 아니다.**
 - ~~`app/nakshatra/dasha-map/dasha-timeline.module.css:10,53,70,112` · `app/nakshatra/muhurta/muhurta.module.css:44,93`~~ → 09-05 완료, 트리 전체 31곳으로 확장해 처리 (위 §낙샤트라). muhurta·vvip 8곳은 짝만 붙이고 **렌더 미측정**
 
 기능별 결과 화면을 여는 수단은 제각각이다 — dev-preview 픽스처는 `lib/dev-preview/fixtures/` 8종뿐(astrology · karma-destiny · life-book · love-secret · new-year · sukuyo-compatibility · vedic · ziwei). `destiny-compass` · `island-consult` · `nakshatra/ai` · `naming-ai` 는 픽스처가 없어 **현재 측정 수단이 없다**(결함 없음이 아니라 미측정).

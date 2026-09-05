@@ -723,8 +723,12 @@
   line-height: 1.55;
 }
 
+/* 암시적 1열 트랙의 바닥은 auto(=아이템 max-content)라, 안쪽 가로 레일(.planetTable 34rem·
+   .dashaTrack 560px)이 트랙을 통째로 부풀려 360px 화면에서 본문이 607px까지 밀렸다.
+   바닥만 0으로 내린다 — 열 수·간격은 그대로라 레이아웃 인상은 바뀌지 않는다. */
 .chatList {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--vd-gap-lg);
 }
 
@@ -740,7 +744,9 @@
   color: rgba(var(--vd-text-rgb), 0.9);
   line-height: 1.78;
   white-space: pre-wrap;
+  /* keep-all 은 어절만 지킬 뿐 URL·연속 영숫자 같은 긴 런을 못 끊는다 — 짝이 없으면 그대로 넘친다. */
   word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .sectionCard p + p {
@@ -756,6 +762,7 @@
 
 .structuredResult {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--vd-gap-xl);
 }
 
@@ -1057,6 +1064,7 @@
 
 .basicChartData {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.9rem;
   padding: 1rem;
   border: 1px solid rgba(var(--vd-moon-rgb), 0.18);
@@ -1284,6 +1292,7 @@
   font-size: 1.2rem;
   font-weight: 700;
   letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
 }
 
 /* 반투명 사프란은 이 크기에서 2.9:1까지 떨어졌다 — 밝은 변형을 불투명하게 쓴다. */
@@ -1306,6 +1315,7 @@
   line-height: 1.9;
   white-space: pre-wrap;
   text-wrap: pretty;
+  overflow-wrap: anywhere;
 }
 
 .structuredSection strong {
