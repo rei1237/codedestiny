@@ -1045,13 +1045,21 @@ export default function AdvancedZiweiSectionV2({
     : [];
 
   return (
-    <section className="font-body fixed inset-0 z-50 h-[100dvh] overflow-y-auto overscroll-none px-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))] text-slate-100 motion-safe:scroll-smooth sm:px-6 lg:px-8">
+    <section className="font-body fixed inset-0 z-50 h-[100dvh] overflow-y-auto overscroll-none px-4 bg-[#02030a] pb-[calc(1.25rem+env(safe-area-inset-bottom))] text-slate-100 motion-safe:scroll-smooth sm:px-6 lg:px-8">
+      {/* 🔴 위 bg-[#02030a] 는 장식이 아니라 차폐다 — GalaxyBackdrop 은 absolute inset-0 이라 스크롤 컨테이너의
+          첫 화면(812px)만 덮고 내용과 함께 스크롤되어 사라진다. 배경이 없으면 그 아래부터 오버레이 뒤 페이지의
+          "이어서 볼 만한 운세" 내비가 카드 사이 틈으로 비친다(2026-09-05 스테이징 375px 실측: 스크롤 위치가
+          다른 두 구역의 y 56~79 밴드가 픽셀 동일). 색은 배경 그라디언트의 끝값과 같다. 검사 4가 잠근다. */}
       <GalaxyBackdrop />
       {/* 구역 이동 바 — m.div 안에 두면 진입 애니메이션의 transform 이 sticky 의 컨테이닝 블록이 되어
-          바가 따라오지 않는다. 스크롤 컨테이너 직계로 두고 루트 좌우 패딩만 음수 마진으로 되돌린다. */}
+          바가 따라오지 않는다. 스크롤 컨테이너 직계로 두고 루트 좌우 패딩만 음수 마진으로 되돌린다.
+          🔴 pl-36 은 AppChrome 의 .cd-feature-nav(좌상단 고정 뒤로·홈, z 2147481200) 자리다 — 이 결과 화면에는
+          자체 닫기 버튼이 없어 그 나브가 유일한 탈출구라 숨길 수 없고, 자리를 비워 두지 않으면 칩 1·2번이
+          덮여 탭이 안 된다(2026-09-05 스테이징 375px 실측: elementFromPoint 가 뒤로/홈 버튼을 돌려줬다).
+          verify:ziwei-chart-customer-copy 검사 4가 잠근다. */}
       <nav
         aria-label={copy.resultNavAriaLabel}
-        className="sticky top-0 z-30 -mx-4 border-b border-white/10 bg-[#050816]/92 px-4 pb-2 pt-[calc(0.5rem+env(safe-area-inset-top))] backdrop-blur-xl sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8"
+        className="sticky top-0 z-30 -mx-4 border-b border-white/10 bg-[#050816]/92 pb-2 pl-36 pr-4 pt-[calc(0.5rem+env(safe-area-inset-top))] backdrop-blur-xl sm:-mx-6 sm:pr-6 lg:-mx-8 lg:pr-8"
       >
         <ul className="mx-auto flex w-full max-w-7xl snap-x snap-proximity gap-1.5 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {ZIWEI_RESULT_NAV.map((item) => {
@@ -1182,10 +1190,13 @@ export default function AdvancedZiweiSectionV2({
             </div>
             {/* 12궁 전통 4×4 명반 — 기본 명반(saju-engine.js zw-* 격자)과 동일한 지지 배치/팔레트 레퍼런스.
                 🔴 375px 에서 한 칸이 약 73px 이라 칸 안 글자는 12px 미만으로 내리지 않는다
-                (scripts/verify-ziwei-chart-customer-copy.mjs 검사 3이 잠근다). */}
+                (scripts/verify-ziwei-chart-customer-copy.mjs 검사 3이 잠근다).
+                🔴 행은 minmax(min-content, 1fr) 이고 정사각은 sm 부터다 — 좁은 화면에서 1fr 고정 행은
+                주성 2줄 궁(염정◎/천상◎ · 자미◎/천부◎)의 둘째 줄을 13.8px 잘라낸다(같은 날 실측:
+                clientHeight 71 vs scrollHeight 77). 검사 4가 잠근다. */}
             <div
-              className="relative mx-auto mt-5 aspect-square w-full max-w-[38rem] gap-1.5"
-              style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gridTemplateRows: "repeat(4, minmax(0, 1fr))" }}
+              className="relative mx-auto mt-5 w-full max-w-[38rem] gap-1.5 sm:aspect-square"
+              style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gridTemplateRows: "repeat(4, minmax(min-content, 1fr))" }}
             >
               {chart.palaces.map((palace) => {
                 const area = ZIWEI_BRANCH_GRID_AREA[palace.earthlyBranch];
