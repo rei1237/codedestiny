@@ -239,9 +239,15 @@ MONGO_OP_ATTEMPT_TIMEOUT_MS = "8000"
 # 트랜잭션 CSOT. 드라이버 기본은 120000(mongodb/lib/sessions.js MAX_TIMEOUT)이라, 이게 없으면
 # "사용자에겐 실패라고 답했는데 트랜잭션은 뒤에서 커밋"이 가능해진다. op 예산과 같은 값으로 맞춰 둔다.
 MONGO_TXN_TIMEOUT_MS = "8000"
+# 결제·세션 쓰기의 w:majority ack 대기 상한. 소켓(7000)·op 예산(8000) 안쪽이어야 우리가 먼저 자른다.
+# w 자체(majority)는 노브가 아니다 — 결제 정합성이라 env 로 완화하지 않는다.
+MONGO_WRITE_CONCERN_WTIMEOUT_MS = "5000"
 # op 재시도. 선거 내성은 retryWrites/retryReads 와 이 재시도가 나눠 맡는다.
 MONGO_OP_RETRIES = "1"
 MONGO_OP_RETRY_DELAY_MS = "120"
+# 성공한 Mongo 시도가 이 소요(ms)를 넘기면 `[db-slow-op]` 한 줄을 남긴다. 0 = 끔. 실패만 찍던
+# [db-op-timeout] 의 공백(느린 성공)을 메우는 관측 노브라 동작에는 영향이 없다.
+MONGO_SLOW_OP_MS = "500"
 # admission 슬롯 대기 상한. 예산 검산: 2500 + waitQueue 4000 + 쿼리 < 시도 상한.
 MONGO_OP_ADMISSION_TIMEOUT_MS = "2500"
 # 풀 리셋 억제. 연속 커넥션 실패가 이 횟수에 닿아야 리셋하고, 리셋 사이엔 쿨다운을 둔다.

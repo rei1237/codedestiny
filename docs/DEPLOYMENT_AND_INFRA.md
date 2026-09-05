@@ -186,11 +186,10 @@ R2 S3 access key, secret key, account token, account id는 문서에 값 기록 
 
 ## MongoDB Atlas 구조
 
-- Worker connection: `worker/lib/db.js`
-- Shared app connection: `lib/mongodb.ts`
-- App Mongoose connection: `app/_lib/dbConnect.js`
-- Main Worker models: `worker/lib/models.js`
-- Legacy models: `server/models/**`, `app/_lib/models/**`
+- Worker connection: `worker/lib/db.js` (공유 커넥션 `connectDb` + 결제 전용 레인 `connectPaymentDb`, 재시도·admission·트랜잭션 옵션·write concern 전부 이 파일)
+- Payment lane wrapper: `worker/payments/db.js` (레인 실패 시 공유 커넥션 폴백)
+- Script-only Mongoose connection: `app/_lib/dbConnect.js` — Next 런타임은 쓰지 않는다. `scripts/seed-*.mjs`·`scripts/verify-*-payment-flow.mjs` 4개만 부른다(2026-09-06 `git grep dbConnect -- app scripts`)
+- Worker models(인덱스 원장): `worker/lib/models.js`, `worker/lib/app-store-models.js`
 - Index/migration scripts: `scripts/migrations/**`, `npm run verify:mongo-launch-indexes`, feature-specific `migrate:*`
 
 운영 DB 쓰기, migration, seed는 사용자 승인 없이 실행하지 않는다.
