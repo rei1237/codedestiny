@@ -87,7 +87,7 @@
 .title {
   font-family: var(--font-display); font-weight: 400;
   font-size: clamp(35px, 6.6vw, 64px); line-height: 1.1; letter-spacing: -0.005em;
-  margin: 24px 0 0; color: var(--t-100); word-break: keep-all;
+  margin: 24px 0 0; color: var(--t-100); word-break: keep-all; overflow-wrap: anywhere;
 }
 .accent {
   background: linear-gradient(102deg, var(--east-soft) 0%, var(--gold-soft) 52%, var(--rose-soft) 100%);
@@ -95,7 +95,7 @@
 }
 .lead {
   margin-top: 22px; max-width: 44ch;
-  font-size: clamp(15px, 1.6vw, 17px); line-height: 1.9; color: var(--t-300); word-break: keep-all;
+  font-size: clamp(15px, 1.6vw, 17px); line-height: 1.9; color: var(--t-300); word-break: keep-all; overflow-wrap: anywhere;
 }
 
 /* ── 융합 엠블럼 ── */
@@ -299,7 +299,7 @@
 .perspUnion .pSym { color: var(--rose-soft); }
 .persp h3 { position: relative; margin: 18px 0 6px; font-size: 18px; color: var(--t-100); }
 .persp .sub { position: relative; font-size: 11.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--t-400); }
-.persp p { position: relative; margin-top: 13px; font-size: 14px; line-height: 1.8; color: var(--t-300); word-break: keep-all; }
+.persp p { position: relative; margin-top: 13px; font-size: 14px; line-height: 1.8; color: var(--t-300); word-break: keep-all; overflow-wrap: anywhere; }
 
 /* ── 진행 스텝 ── */
 .steps { display: grid; gap: 14px; grid-template-columns: 1fr; }
@@ -310,7 +310,7 @@
   font-family: var(--font-premium); color: #1a0f16; font-weight: 700;
   background: linear-gradient(135deg, var(--east-soft), var(--gold-soft));
 }
-.step p { margin-top: 14px; font-size: 14px; line-height: 1.75; color: var(--t-300); word-break: keep-all; }
+.step p { margin-top: 14px; font-size: 14px; line-height: 1.75; color: var(--t-300); word-break: keep-all; overflow-wrap: anywhere; }
 
 /* ── FAQ ── */
 .faq { max-width: 780px; margin: 0 auto; border: 1px solid var(--hair); border-radius: 18px; overflow: hidden; background: var(--glass); }
@@ -323,7 +323,7 @@
 .faq summary::-webkit-details-marker { display: none; }
 .faq summary::after { content: "+"; color: var(--gold); font-size: 20px; transition: 0.2s; }
 .faq details[open] summary::after { transform: rotate(45deg); }
-.faq p { padding: 0 22px 20px; font-size: 14px; line-height: 1.85; color: var(--t-300); word-break: keep-all; }
+.faq p { padding: 0 22px 20px; font-size: 14px; line-height: 1.85; color: var(--t-300); word-break: keep-all; overflow-wrap: anywhere; }
 
 /* ── 관련 리딩 내부 링크(SEO·탐색성) ── */
 .relatedGrid { display: grid; gap: 12px; grid-template-columns: 1fr; }

@@ -48,6 +48,7 @@
   font-size: 0.78rem;
   line-height: 1.75;
   word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 .dateRow { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; }
 .dateInput {
@@ -91,7 +92,7 @@
 }
 .metaEast { color: var(--east-soft); }
 .metaIndia { color: var(--gold-soft); }
-.pickReason { margin: 0; color: var(--t-200); font-size: 0.85rem; line-height: 1.9; word-break: keep-all; }
+.pickReason { margin: 0; color: var(--t-200); font-size: 0.85rem; line-height: 1.9; word-break: keep-all; overflow-wrap: anywhere; }
 .bothGood { border-color: rgba(229, 199, 137, 0.42); background: rgba(229, 199, 137, 0.05); }
 .bothBad { border-color: rgba(224, 81, 127, 0.3); background: rgba(224, 81, 127, 0.04); }
 .agree {
@@ -107,7 +108,7 @@
 
 /* ── 전체 목록 ── */
 .allTitle { margin: 1.6rem 0 0.3rem; color: var(--t-100); font-size: 1rem; font-weight: 800; }
-.allNote { margin: 0 0 0.9rem; color: var(--t-400); font-size: 0.78rem; line-height: 1.8; word-break: keep-all; }
+.allNote { margin: 0 0 0.9rem; color: var(--t-400); font-size: 0.78rem; line-height: 1.8; word-break: keep-all; overflow-wrap: anywhere; }
 .rows { margin: 0; padding: 0; list-style: none; }
 .row {
   display: flex;
@@ -120,7 +121,7 @@
 }
 .rowDate { flex: none; min-width: 7.2rem; color: var(--t-300); font-variant-numeric: tabular-nums; }
 .rowMark { flex: none; width: 1.1rem; text-align: center; }
-.rowBody { color: var(--t-400); word-break: keep-all; }
+.rowBody { color: var(--t-400); word-break: keep-all; overflow-wrap: anywhere; }
 .rowScore { margin-left: auto; color: var(--t-400); font-variant-numeric: tabular-nums; }
 .gradeBest { color: var(--gold); }
 .gradeGood { color: var(--gold-soft); }

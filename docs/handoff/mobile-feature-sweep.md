@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-05
-next: "카르마 데스티니 결과 화면을 09-05 에 닫았다(#1586, 아래 §카르마 데스티니). 남은 것은 §다른 전문가 상담 감사 의 **낙샤트라(keep-all 단독 31)** 하나 — 기능당 1PR. 🔴 감사표가 짚은 위치는 `app/nakshatra/dasha-map/dasha-timeline.module.css:10,53,70,112` · `app/nakshatra/muhurta/muhurta.module.css:44,93` 6곳뿐이라 31 은 낙샤트라 트리 전체를 다시 세야 나온다. 결과 화면 픽스처도 없어(`nakshatra/ai` 미보유) 하네스를 새로 만들거나 측정 불가를 명기해야 한다. 숙요궁합(34)은 사용자가 '정상'으로 판정해 제외됐다. 🔴 스캐너 맹점 2종(전역 clip · 진입 애니메이션 opacity)은 그대로라 스캐너 수치로 전/후를 판정하지 말 것. CI 게이트 2종의 OF 맹점은 여전히 별도 PR 이 필요하다"
+next: "낙샤트라를 09-05 에 닫았다(#PR, 아래 §낙샤트라 — keep-all 31/31 짝맞춤, 문서폭 900→620px). §다른 전문가 상담 감사 의 'AI 본문 keep-all 단독' 잔여는 **섬 상담 6곳(`app/island-consult/IslandConsultClient.tsx:952,955,965,990`)** 과 **베다 1곳(`app/vedic-ai/VedicAiClient.module.css:735`)** — 기능당 1PR. 🔴 섬 상담은 픽스처가 없어(`lib/dev-preview/fixtures/` 8종에 없음) 낙샤트라식으로 화면 여는 법부터 찾거나 '측정 불가'를 명기해야 하고, 베다는 픽스처가 있다 — **베다부터가 싸다**. 숙요궁합(34)은 사용자가 '정상'으로 판정해 제외됐다. 🔴 스캐너 맹점 2종(전역 clip · 진입 애니메이션 opacity)은 그대로라 스캐너 수치로 전/후를 판정하지 말 것. CI 게이트 2종(`verify:mobile-cdp-smoke`·`verify:mobile-detail-render`)의 OF 맹점은 여전히 별도 PR 이 필요하다"
 ---
 
 # 기능별 모바일 순회 원장
@@ -55,7 +55,9 @@ next: "카르마 데스티니 결과 화면을 09-05 에 닫았다(#1586, 아래
 
 🔴 **텍스트 런의 넘침은 이 두 축으로도 안 잡힌다** — 크로미엄의 `scrollWidth` 가 인라인 텍스트 넘침을 신뢰성 있게 포함하지 않는다. 09-05 에는 `Range.getClientRects()` 로 텍스트 픽셀 범위를 따로 쟀고, 그 축에서만 42건이 보였다. 스캐너에는 아직 없다.
 
-🔴 **거꾸로, 프로브가 세는 것이 전부 결함인 것도 아니다 — 표본에서 빼야 할 위양성 2부류가 있다(09-05, 카르마에서 확인).** ① 스크린리더 전용 노드(1px 상자 + `clip-path:inset(50%)` + `white-space:nowrap` — 표의 대체본에 흔하다), ② `overflow-x:auto|scroll` **조상** 안의 의도된 가로 레일(모바일 탭 레일 등). 🔴 위 OF-B 는 **자기 자신의** `overflow-x` 만 보므로 조상까지 거슬러 확인해야 한다. 안 빼면 손댈 것이 없는 화면에서도 이탈 23건·런 6건이 나온다.
+🔴 **거꾸로, 프로브가 세는 것이 전부 결함인 것도 아니다 — 표본에서 빼야 할 위양성 3부류가 있다(09-05, 카르마·낙샤트라에서 확인).** ① 스크린리더 전용 노드(1px 상자 + `clip-path:inset(50%)` + `white-space:nowrap` — 표의 대체본에 흔하다), ② `overflow-x:auto|scroll` **조상** 안의 의도된 가로 레일(모바일 탭 레일 등), ③ **마퀴 트랙 — `white-space:nowrap` + `width:max-content` 를 `overflow:hidden` 부모가 자르는 무한 레일**(`app/nakshatra/nakshatra.module.css:160-166` `.marquee > .mqRow`). 🔴 위 OF-B 는 **자기 자신의** `overflow-x` 만 보므로 조상까지 거슬러 확인해야 한다. 안 빼면 손댈 것이 없는 화면에서도 이탈 23건·런 6건이 나온다.
+
+🔴 **③ 은 선언값으로 못 거른다** — `getComputedStyle(el).width` 는 `max-content` 가 아니라 **사용값(px)** 을 돌려준다. 구조로 판정해야 한다: *조상이 `nowrap` 이고, 그 부모의 `overflow-x` 가 `visible` 이 아니며, 조상 폭이 부모 `clientWidth` 를 넘는다.* 이 필터가 없으면 `/nakshatra/` 는 **문서폭 5057px · 이탈 150건 · 런 99건**(360×800 실측)으로 나오는데, 걸러내면 **문서폭 360px · 이탈 0 · 런 0** 이다. 같은 화면의 같은 순간이고 차이는 필터뿐이다.
 
 ## 자미두수 결과 화면 (`/ziwei-ai/`) — 09-05 수정
 
@@ -200,6 +202,51 @@ next: "카르마 데스티니 결과 화면을 09-05 에 닫았다(#1586, 아래
 - 잔여 이탈 2건은 공용 푸터의 절대배치 장식(`.sfhNebula`)이고 `overflow:hidden` 부모가 의도적으로 자른다 — 카르마 전용이 아니라 범위 밖이다.
 - TT/IN/SA 축은 이번 PR 에서 안 봤다(원장 현재 단계는 keep-all 단독).
 
+## 낙샤트라 (`/nakshatra/` · `/nakshatra/lord-report/` · `/nakshatra/dasha-map/`) — 09-05 수정 (#PR)
+
+### 화면을 여는 법 — 픽스처가 없어 원장 시드로 열었다
+
+낙샤트라는 dev-preview 픽스처가 없다. 대신 **해금 원장(localStorage)** 을 시드해 열었다 — `usePremiumReport`(`app/nakshatra/_premium/use-premium-report.ts`)가 `hasLedgerUnlock(featureKey)` 만 보고 본문을 자동 요청하기 때문이다. `app/_lib/optimistic-unlock-ledger.ts` 의 `cd_verified_unlock_grants_v1` 에 `nakshatra-lord-report::` · `nakshatra-dasha-map::` 을 `mode:"confirmed"` 로 넣고, 생년은 `sessionStorage["nakshatra:result:v1"]`(`NakshatraFormClient.tsx:17`)로 준다. 🔴 **결제 경로는 안 탄다** — `unlock()` 은 버튼 클릭에서만 불린다.
+
+🔴 **5개 화면 중 3개는 이 방법으로도 못 연다.** `/nakshatra/muhurta/` · `/nakshatra/vvip/` · `/nakshatra/compat/` 는 본문 fetch 전에 `ensurePaidAccess`(useCoinGate)를 부른다. 그래서 `muhurta.module.css` 4곳 + `vvip.module.css` 4곳 = **keep-all 8건은 짝만 붙이고 렌더 미측정**이다(결함 없음이 아니다).
+
+### 감사표의 "31" 재검 — 트리 전수, 정확히 일치
+
+`git grep` 으로 `app/nakshatra` 전체를 셌다: `word-break: keep-all` **31** · `overflow-wrap` **0**. 즉 31건 전부 안 눌린 상태였고 감사표와 맞았다. 감사표가 짚은 6곳은 그중 일부일 뿐이다.
+
+| 파일 | keep-all | 렌더 측정 |
+|---|---|---|
+| `_premium/premium.module.css` | 14 | 가능 (두 화면 공용) |
+| `nakshatra.module.css` | 5 | 가능 |
+| `dasha-map/dasha-timeline.module.css` | 4 | 가능 |
+| `muhurta/muhurta.module.css` | 4 | **불가** (ensurePaidAccess) |
+| `vvip/vvip.module.css` | 4 | **불가** (ensurePaidAccess) |
+
+### 전/후 실측 (프로브 · 360×800, 412×823 도 같은 방향)
+
+| 라우트 | 스트레스 · 전 | 스트레스 · 후 | 정상 문안 (전=후) |
+|---|---|---|---|
+| `/nakshatra/` | 360px / 0 / 0 | 360px / 0 / 0 | 360px / 0 / 0 |
+| `/nakshatra/lord-report/` | 900px / 24 / 37 | **620px / 24 / 24** | 360px / 0 / 0 |
+| `/nakshatra/dasha-map/` | 900px / 69 / 111 | **620px / 60 / 60** | 360px / 0 / 0 |
+
+(문서폭 / 뷰포트 이탈 / 잘린 텍스트 런. 최악 이탈 +540px → **+260px**.)
+
+🔴 **잔여 이탈은 결함이 아니라 스트레스 산물이다 — 근거를 남긴다.** 남은 것은 전부 `flex:none` 라벨 두 곳(`premium.module.css:298 .practiceLabel` ×12, `dasha-timeline.module.css:111 .subLord` ×36)이고, 뒤따르는 맨 `span` 12건은 그 라벨이 민 결과다(문서폭 620px = 라벨 max-content 폭). **프로덕션 값이 구조적으로 짧다** — 라벨은 `worker/lib/nakshatra-lord-report.js:444` 가 `실천 ${index+1}` 로 **기계 생성**하고, 로드명은 9그라하 고정표(`worker/lib/nakshatra-dasha-map.js:139` `ko(lord)` → 케투·라후 등 ≤3자)에서 나온다. dasha-map 은 애초에 bullets 자체가 없다. `flex:none` 을 풀면 정상 문안에서 짧은 라벨까지 줄바꿈될 수 있어 **일어날 수 없는 경우를 위해 흔한 경우를 망가뜨리는 교환**이라 안 건드렸다.
+
+### 처방 (CSS 5개 파일 · +34/−13)
+
+- **C** `word-break:keep-all` **31곳 전부**에 `overflow-wrap:anywhere` 를 짝지었다(31/31). 이것이 원장이 세던 축이다.
+- **B** 측정에서 실제로 이탈한 `dasha-timeline.module.css .lord` 에 `min-width:0`, 런으로 새던 `.eastern` 에 `overflow-wrap:anywhere`. 이 둘은 keep-all 이 없어 C 에 안 잡혔지만 범위 안 결함이라 같은 커밋에서 고쳤다(원칙 3 폐기·14).
+- **A 는 안 넣었다** — 허브의 암시적 1열 그리드(`.heroGrid`·`.trio`·`.steps`·`.relatedGrid`)와 `.grid3`/`.grid2` 는 360·412 양쪽에서 **이탈 0** 으로 측정됐다. 자미두수·카르마와 달리 여기선 근거가 없어 넣지 않았다(원칙 8).
+
+### 비회귀 근거 — 같은 빌드 위 런타임 A/B
+
+이번 커밋의 선언만 `!important` 로 되돌린 화면과 현재를 전체 페이지로 찍어 **원본 버퍼**를 비교했다(3라우트 × 모바일 360 / 데스크톱 1280×900).
+
+- 정상 문안: 6/6 조합 **바이트 동일**(예: dasha-map 360 양쪽 `adcffd39d8a0` / 1,125,410B).
+- 계측기 유효성: 같은 대조를 스트레스 문안으로 돌리면 프리미엄 2화면이 4/4 조합에서 **갈린다**(dasha-map 360: `a4ae28c1962f` 5.7MB ↔ `ec4ed5adfe5b` 2.7MB). 허브는 스텁 콘텐츠가 안 닿아 양쪽 다 동일한 것이 정상이다.
+
 ## 다른 전문가 상담 감사 — 소스 기준, **렌더 미측정** (09-05)
 
 사용자 요청의 "다른 상담에도 이런 문제가 있는지"에 대한 답이다. 🔴 **아래는 정적 grep 집계이지 실측이 아니다** — 자미두수처럼 하네스를 붙여 재기 전에는 건수를 결함 수로 읽지 말 것. 실제로 유일한 "고정 최소폭" 적중(`app/vedic-ai/VedicAiClient.module.css:1693` `.dashaTrack{min-width:560px}`)은 바로 위 `.dashaTrackWrap{overflow-x:auto}`(:1690)가 감싼 **의도된 가로 레일**이라 위양성이었다.
@@ -210,7 +257,7 @@ next: "카르마 데스티니 결과 화면을 09-05 에 닫았다(#1586, 아래
 |---|---|---|---|---|---|
 | 운명나침반 | 89 | 76 | 13 | 0 | 0 |
 | 숙요 궁합 (제외 — 사용자 판정 "정상") | 73 | 28 | 11 | 34 | 0 |
-| 낙샤트라 | 51 | 5 | 15 | 31 | 0 |
+| 낙샤트라 (수정 전) | 51 | 5 | 15 | 31 | 0 |
 | 카르마 데스티니 (수정 전) | 41 | 23 | 5 | 13 | 0 |
 | 신년운세 (수정 전) | 34 | 16 | 10 | 8 | 0 |
 | 베다 점성 | 26 | 19 | 5 | 1 | 1 (위양성) |
@@ -228,7 +275,7 @@ next: "카르마 데스티니 결과 화면을 09-05 에 닫았다(#1586, 아래
 - ~~`app/new-year-ai-consultation/NewYearAiClient.tsx:1268,1341,1449,2280,2485,2657`~~ → 09-05 완료 (위 §신년운세)
 - ~~`app/sukuyo-compatibility-ai/SukuyoCompatibilityAiClient.module.css:277,339,350,429,521,532`~~ → 09-05 제외: 사용자가 화면을 확인해 "정상" 으로 판정했다(수정 불요). 🔴 다시 감사하지 말 것
 - `app/vedic-ai/VedicAiClient.module.css:735`
-- `app/nakshatra/dasha-map/dasha-timeline.module.css:10,53,70,112` · `app/nakshatra/muhurta/muhurta.module.css:44,93`
+- ~~`app/nakshatra/dasha-map/dasha-timeline.module.css:10,53,70,112` · `app/nakshatra/muhurta/muhurta.module.css:44,93`~~ → 09-05 완료, 트리 전체 31곳으로 확장해 처리 (위 §낙샤트라). muhurta·vvip 8곳은 짝만 붙이고 **렌더 미측정**
 
 기능별 결과 화면을 여는 수단은 제각각이다 — dev-preview 픽스처는 `lib/dev-preview/fixtures/` 8종뿐(astrology · karma-destiny · life-book · love-secret · new-year · sukuyo-compatibility · vedic · ziwei). `destiny-compass` · `island-consult` · `nakshatra/ai` · `naming-ai` 는 픽스처가 없어 **현재 측정 수단이 없다**(결함 없음이 아니라 미측정).
 

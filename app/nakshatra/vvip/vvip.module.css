@@ -36,6 +36,7 @@
   font-weight: 800;
   line-height: 1.45;
   word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 .chapterKey {
   margin: 0.35rem 0 0;
@@ -43,6 +44,7 @@
   font-size: 0.84rem;
   line-height: 1.75;
   word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 .para {
   margin: 0 0 0.9rem;
@@ -50,6 +52,7 @@
   font-size: 0.9rem;
   line-height: 2;
   word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 /* ── 27수 지형표 ── */
@@ -69,7 +72,7 @@
 }
 .tname { flex: none; min-width: 4.6rem; color: var(--t-100); font-weight: 700; }
 .trole { flex: none; min-width: 4.2rem; color: var(--east-soft); font-weight: 700; }
-.tgist { color: var(--t-400); word-break: keep-all; }
+.tgist { color: var(--t-400); word-break: keep-all; overflow-wrap: anywhere; }
 .tmine { flex: none; padding: 0.06rem 0.42rem; border-radius: 999px; background: rgba(229, 199, 137, 0.2); color: var(--gold); font-size: 0.68rem; font-weight: 800; }
 
 /* ── 저장 액션 ── */
