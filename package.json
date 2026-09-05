@@ -19,7 +19,6 @@
     "dev": "node scripts/dev-with-local-auth.mjs",
     "dev:next": "node --require=./scripts/next-manifest-read-guard.cjs ./node_modules/next/dist/bin/next dev",
     "dev:local-auth-api": "node scripts/local-dev-auth-api.mjs",
-    "guard:privacy": "node scripts/guard-blocked-keywords.mjs",
     "seo:check": "node scripts/check-seo-health.mjs",
     "seo:audit": "node scripts/seo-audit.mjs",
     "verify:seo-entity-registry": "node scripts/verify-seo-entity-registry.mjs",
