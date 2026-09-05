@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-05
-next: "낙샤트라를 09-05 에 닫았다(#PR, 아래 §낙샤트라 — keep-all 31/31 짝맞춤, 문서폭 900→620px). §다른 전문가 상담 감사 의 'AI 본문 keep-all 단독' 잔여는 **섬 상담 6곳(`app/island-consult/IslandConsultClient.tsx:952,955,965,990`)** 과 **베다 1곳(`app/vedic-ai/VedicAiClient.module.css:735`)** — 기능당 1PR. 🔴 섬 상담은 픽스처가 없어(`lib/dev-preview/fixtures/` 8종에 없음) 낙샤트라식으로 화면 여는 법부터 찾거나 '측정 불가'를 명기해야 하고, 베다는 픽스처가 있다 — **베다부터가 싸다**. 숙요궁합(34)은 사용자가 '정상'으로 판정해 제외됐다. 🔴 스캐너 맹점 2종(전역 clip · 진입 애니메이션 opacity)은 그대로라 스캐너 수치로 전/후를 판정하지 말 것. CI 게이트 2종(`verify:mobile-cdp-smoke`·`verify:mobile-detail-render`)의 OF 맹점은 여전히 별도 PR 이 필요하다"
+next: "낙샤트라를 09-05 에 닫았다(#1589, 아래 §낙샤트라 — keep-all 31/31 짝맞춤, 문서폭 900→620px). §다른 전문가 상담 감사 의 'AI 본문 keep-all 단독' 잔여는 **섬 상담 6곳(`app/island-consult/IslandConsultClient.tsx:952,955,965,990`)** 과 **베다 1곳(`app/vedic-ai/VedicAiClient.module.css:735`)** — 기능당 1PR. 🔴 섬 상담은 픽스처가 없어(`lib/dev-preview/fixtures/` 8종에 없음) 낙샤트라식으로 화면 여는 법부터 찾거나 '측정 불가'를 명기해야 하고, 베다는 픽스처가 있다 — **베다부터가 싸다**. 숙요궁합(34)은 사용자가 '정상'으로 판정해 제외됐다. 🔴 스캐너 맹점 2종(전역 clip · 진입 애니메이션 opacity)은 그대로라 스캐너 수치로 전/후를 판정하지 말 것. CI 게이트 2종(`verify:mobile-cdp-smoke`·`verify:mobile-detail-render`)의 OF 맹점은 여전히 별도 PR 이 필요하다"
 ---
 
 # 기능별 모바일 순회 원장
@@ -202,7 +202,7 @@ next: "낙샤트라를 09-05 에 닫았다(#PR, 아래 §낙샤트라 — keep-a
 - 잔여 이탈 2건은 공용 푸터의 절대배치 장식(`.sfhNebula`)이고 `overflow:hidden` 부모가 의도적으로 자른다 — 카르마 전용이 아니라 범위 밖이다.
 - TT/IN/SA 축은 이번 PR 에서 안 봤다(원장 현재 단계는 keep-all 단독).
 
-## 낙샤트라 (`/nakshatra/` · `/nakshatra/lord-report/` · `/nakshatra/dasha-map/`) — 09-05 수정 (#PR)
+## 낙샤트라 (`/nakshatra/` · `/nakshatra/lord-report/` · `/nakshatra/dasha-map/`) — 09-05 수정 (#1589)
 
 ### 화면을 여는 법 — 픽스처가 없어 원장 시드로 열었다
 
