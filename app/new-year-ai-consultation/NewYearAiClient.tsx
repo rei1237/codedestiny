@@ -1273,6 +1273,7 @@ const NYAI_SEASON_CSS = `
   line-height: 1.72;
   color: var(--nyai-text);
   word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .nyai-month-hint {
@@ -1346,6 +1347,7 @@ const NYAI_SEASON_CSS = `
   line-height: 1.62;
   color: var(--nyai-text-dim);
   word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .nyai-month-letter {
@@ -1453,6 +1455,7 @@ const NYAI_SEASON_CSS = `
   font-size: 13.5px;
   line-height: 1.8;
   word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .nyai-recent-list {
@@ -2285,6 +2288,7 @@ export default function NewYearAiConsultationPage() {
           font-family: var(--nyai-serif);
           font-weight: 700;
           word-break: keep-all;
+          overflow-wrap: anywhere;
         }
 
         .nyai-panel {
@@ -2488,6 +2492,7 @@ export default function NewYearAiConsultationPage() {
           margin: 0;
           max-width: 66ch;
           word-break: keep-all;
+          overflow-wrap: anywhere;
         }
 
         .nyai-report-body p + p {
@@ -2663,6 +2668,7 @@ export default function NewYearAiConsultationPage() {
           font-size: 16px;
           line-height: 1.78;
           word-break: keep-all;
+          overflow-wrap: anywhere;
         }
 
         .nyai-hero-badges {
@@ -3119,6 +3125,7 @@ export default function NewYearAiConsultationPage() {
           font-size: 13px;
           line-height: 1.75;
           word-break: keep-all;
+          overflow-wrap: anywhere;
         }
 
         .nyai-message span {
@@ -3174,6 +3181,7 @@ export default function NewYearAiConsultationPage() {
           max-width: 66ch;
           line-height: 1.82;
           word-break: keep-all;
+          overflow-wrap: anywhere;
           white-space: pre-line;
         }
 
@@ -3189,6 +3197,47 @@ export default function NewYearAiConsultationPage() {
           to { transform: rotate(360deg); }
         }
 
+
+        /* 결과 화면 가로 넘침 차단. 전역 overflow-x:clip 이라 넘친 내용은 가로 스크롤바 없이 그냥 잘린다 —
+           ① 암시적 1열 그리드의 min-content 바닥을 0 으로 내리고
+           ② 자동 최소폭에 밀리는 아이템을 풀고
+           ③ 줄바꿈 불가한 긴 런을 끊는다(keep-all 단독은 못 끊고 break-word 는 min-content 를 안 줄인다). */
+        .nyai-month-letter,
+        .nyai-question-answer,
+        .nyai-progress,
+        .nyai-progress-steps,
+        .nyai-domain-report,
+        .nyai-report-heading,
+        .nyai-consult-card,
+        .nyai-consult-rows,
+        .nyai-focus-panel,
+        .nyai-question-head,
+        .nyai-result-bundle,
+        .nyai-saju-reading,
+        .nyai-section-list,
+        .nyai-form label {
+          grid-template-columns: minmax(0, 1fr);
+        }
+
+        .nyai-messages,
+        .nyai-result-bundle,
+        .nyai-intro-copy,
+        .nyai-consult-card,
+        .nyai-result-section,
+        .nyai-question-answer,
+        .nyai-message {
+          min-width: 0;
+        }
+
+        .nyai-eyebrow,
+        .nyai-qa-question,
+        .nyai-qa-answer,
+        .nyai-qa-answer p,
+        .nyai-saju-birth,
+        .nyai-message p,
+        .nyai-report-heading strong {
+          overflow-wrap: anywhere;
+        }
         @media (max-width: 860px) {
           .nyai-page {
             padding: 12px;
@@ -3196,7 +3245,7 @@ export default function NewYearAiConsultationPage() {
 
           .nyai-intro,
           .nyai-workspace {
-            grid-template-columns: 1fr;
+            grid-template-columns: minmax(0, 1fr);
           }
 
           .nyai-consult-card {
@@ -3204,7 +3253,7 @@ export default function NewYearAiConsultationPage() {
           }
 
           .nyai-grid {
-            grid-template-columns: 1fr;
+            grid-template-columns: minmax(0, 1fr);
           }
 
           .nyai-chat {
