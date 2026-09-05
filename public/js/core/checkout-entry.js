@@ -48,8 +48,8 @@
       '.cd-direct-payment-modal{position:fixed;inset:0;z-index:2147483004;display:none;align-items:center;justify-content:center;padding:max(16px,env(safe-area-inset-top,0px)) 16px max(16px,env(safe-area-inset-bottom,0px));background:rgba(10,7,20,.86);backdrop-filter:blur(14px);overflow:auto}',
       '.cd-direct-payment-modal.is-open{display:flex}',
       '.cd-direct-payment-dialog{width:min(520px,100%);max-height:calc(100dvh - 32px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));border:1px solid rgba(232,200,138,.28);border-radius:20px;background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,0) 30%),linear-gradient(160deg,#241D40,#1A1530 52%,#100C1E);color:#EDE8F5;box-shadow:0 26px 78px rgba(0,0,0,.55),inset 0 1px 0 rgba(253,242,217,.1);padding:0 20px 20px;position:relative;z-index:1;overflow:auto;overflow-x:hidden;scrollbar-width:thin;isolation:isolate}',
-      '.cd-direct-payment-hairline{display:block;position:relative;height:2px;margin:0 -20px 18px;background:linear-gradient(90deg,transparent,rgba(232,200,138,.85) 50%,transparent)}',
-      '.cd-direct-payment-hairline::after{content:"";position:absolute;top:50%;left:0;width:6px;height:6px;margin-top:-3px;border-radius:50%;pointer-events:none;background:radial-gradient(circle,#f4bed1 0%,rgba(244,190,209,.55) 55%,rgba(244,190,209,0) 80%);box-shadow:0 0 8px 2px rgba(244,190,209,.4);opacity:.6;animation:cdMoonlitPetalDrift 7s ease-in-out infinite}',
+      '.cd-direct-payment-hairline{display:block;position:relative;container-type:inline-size;height:2px;margin:0 -20px 18px;background:linear-gradient(90deg,transparent,rgba(232,200,138,.85) 50%,transparent)}',
+      '.cd-direct-payment-hairline::after{content:"";position:absolute;top:50%;left:2%;width:6px;height:6px;margin-top:-3px;border-radius:50%;pointer-events:none;background:radial-gradient(circle,#f4bed1 0%,rgba(244,190,209,.55) 55%,rgba(244,190,209,0) 80%);box-shadow:0 0 8px 2px rgba(244,190,209,.4);opacity:.6;will-change:transform,opacity;animation:cdMoonlitPetalDrift 7s ease-in-out infinite}',
       '.cd-direct-payment-guide{display:flex;align-items:center;gap:14px;margin:0 0 16px}',
       '.cd-direct-payment-guide__pig{flex:0 0 auto;width:88px;height:auto;border-radius:22px;filter:drop-shadow(0 0 16px rgba(244,190,209,.38))}',
       '.cd-direct-payment-guide__copy{min-width:0}',
@@ -68,7 +68,7 @@
       '.cd-direct-payment-method-back{display:inline-flex;align-items:center;margin:0 0 10px;padding:6px 13px;border:1px solid rgba(232,200,138,.2);border-radius:999px;background:transparent;color:rgba(237,232,245,.82);font-size:12.5px;font-weight:700;line-height:1.35;cursor:pointer;transition:border-color 170ms ease,color 170ms ease}',
       '.cd-direct-payment-method-back:hover{border-color:rgba(232,200,138,.4);color:#EDE8F5}',
       '.cd-direct-payment-method-back:focus-visible{outline:2px solid #E8C88A;outline-offset:2px}',
-      '.cd-direct-payment-option{width:100%;margin:0;padding:14px;border:1px solid rgba(232,200,138,.16);border-radius:14px;background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,0) 55%),#251F45;box-shadow:inset 0 1px 0 rgba(237,232,245,.06);color:inherit;text-align:left;cursor:pointer;position:relative;overflow:hidden;transition:border-color 170ms ease,filter 170ms ease,transform 170ms ease,box-shadow 170ms ease}',
+      '.cd-direct-payment-option{width:100%;margin:0;padding:14px;border:1px solid rgba(232,200,138,.16);border-radius:14px;background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,0) 55%),#251F45;box-shadow:inset 0 1px 0 rgba(237,232,245,.06);color:inherit;text-align:left;cursor:pointer;position:relative;overflow:hidden;transition:border-color 170ms ease,filter 170ms ease,transform 170ms ease}',
       '.cd-direct-payment-option::before{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 30%,rgba(237,232,245,.10) 46%,rgba(232,200,138,.20) 50%,rgba(237,232,245,.10) 54%,transparent 70%);transform:translateX(-120%);transition:transform 520ms ease;pointer-events:none}',
       '.cd-direct-payment-option:hover::before{transform:translateX(120%)}',
       '.cd-direct-payment-option:hover{border-color:rgba(232,200,138,.44);filter:brightness(1.04)}',
@@ -108,6 +108,7 @@
       '.cd-direct-payment-option.is-disabled{cursor:not-allowed;filter:saturate(.4) brightness(.86);border-color:rgba(232,200,138,.1)}',
       '.cd-direct-payment-option.is-disabled:hover{filter:saturate(.4) brightness(.86);border-color:rgba(232,200,138,.1);transform:none}',
       '.cd-direct-payment-option.is-loading{pointer-events:none;filter:saturate(.7)}',
+      '.cd-direct-payment-option.is-loading::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;pointer-events:none;background:linear-gradient(90deg,transparent,rgba(232,200,138,.9),transparent);will-change:transform;animation:cdCheckoutOptionProgress 1100ms ease-in-out infinite}',
       // 상품권 묶음 카드. 🔴 컨테이너에 .cd-direct-payment-option 을 **붙이지 않는다** — 그 클래스의
       // `.cd-direct-payment-option span{display:block}` 가 (0,1,1) 이라 칩 라벨 클래스 (0,1,0) 을 이겨
       // 칩이 세로로 쌓인다. 카드 외형은 아래에서 직접 그린다(값은 --secondary 와 동일).
@@ -140,14 +141,15 @@
       '.cd-direct-payment-cancel{border:1px solid rgba(232,200,138,.2);border-radius:999px;background:transparent;color:rgba(237,232,245,.82);padding:9px 18px;cursor:pointer;font-size:13px;font-weight:700;transition:border-color 170ms ease,color 170ms ease}',
       '.cd-direct-payment-cancel:hover{border-color:rgba(232,200,138,.4);color:#EDE8F5}',
       '.cd-direct-payment-cancel:focus-visible{outline:2px solid #E8C88A;outline-offset:2px}',
-      '.cd-direct-payment-modal.is-open::before,.cd-direct-payment-modal.is-open::after{content:"";position:absolute;width:5px;height:5px;border-radius:50%;pointer-events:none;background:radial-gradient(circle,#E8C88A 0%,rgba(232,200,138,.5) 55%,rgba(232,200,138,0) 78%);box-shadow:0 0 10px 2px rgba(232,200,138,.45);opacity:.5}',
+      '.cd-direct-payment-modal.is-open::before,.cd-direct-payment-modal.is-open::after{content:"";position:absolute;width:5px;height:5px;border-radius:50%;pointer-events:none;background:radial-gradient(circle,#E8C88A 0%,rgba(232,200,138,.5) 55%,rgba(232,200,138,0) 78%);box-shadow:0 0 10px 2px rgba(232,200,138,.45);opacity:.5;will-change:transform,opacity}',
       '.cd-direct-payment-modal.is-open::before{left:20%;top:24%;animation:cdMoonlitFireflyA 9s ease-in-out infinite}',
       '.cd-direct-payment-modal.is-open::after{right:18%;bottom:22%;animation:cdMoonlitFireflyB 12s ease-in-out infinite 1.6s}',
       '@keyframes cdMoonlitFireflyA{0%,100%{transform:translate3d(0,0,0);opacity:.32}25%{opacity:.68}50%{transform:translate3d(16px,-20px,0);opacity:.48}75%{opacity:.6}}',
       '@keyframes cdMoonlitFireflyB{0%,100%{transform:translate3d(0,0,0);opacity:.28}30%{opacity:.58}55%{transform:translate3d(-18px,16px,0);opacity:.42}80%{opacity:.55}}',
-      '@keyframes cdMoonlitPetalDrift{0%{left:2%;opacity:0}10%{opacity:.6}50%{left:94%;opacity:.75}90%{opacity:.5}100%{left:2%;opacity:0}}',
+      '@keyframes cdCheckoutOptionProgress{from{transform:translateX(-100%)}to{transform:translateX(100%)}}',
+      '@keyframes cdMoonlitPetalDrift{0%{transform:translateX(0);opacity:0}10%{opacity:.6}50%{transform:translateX(92cqw);opacity:.75}90%{opacity:.5}100%{transform:translateX(0);opacity:0}}',
       '@media(max-width:760px){.cd-direct-payment-dialog{padding:0 14px 14px}.cd-direct-payment-hairline{margin:0 -14px 14px}.cd-direct-payment-guide{gap:11px;margin-bottom:13px}.cd-direct-payment-guide__pig{width:64px}.cd-direct-payment-title{font-size:18px}.cd-direct-payment-sub{font-size:12.5px}.cd-direct-payment-note{padding:11px 12px;margin-bottom:11px}.cd-direct-payment-note strong{font-size:14px}.cd-direct-payment-choice-grid,.cd-direct-payment-method-grid{gap:8px}.cd-direct-payment-option{padding:12px}.cd-direct-payment-option--recommended{padding:14px}.cd-direct-payment-option--recommended strong{font-size:15.5px}.cd-direct-payment-option--recommended strong .cd-direct-payment-amount{font-size:17px}.cd-direct-payment-go{margin-top:10px;padding:9px 12px;font-size:13px}.cd-direct-payment-option--secondary{padding:10px 12px}.cd-direct-payment-option--secondary strong{font-size:13px}.cd-direct-payment-legal{font-size:10.5px}}',
-      '@media(prefers-reduced-motion:reduce){.cd-direct-payment-option,.cd-direct-payment-option::before,.cd-direct-payment-cancel{transition:none}.cd-direct-payment-option:active{transform:none}.cd-direct-payment-modal.is-open::before,.cd-direct-payment-modal.is-open::after,.cd-direct-payment-hairline::after{animation:none!important}}'
+      '@media(prefers-reduced-motion:reduce){.cd-direct-payment-option,.cd-direct-payment-option::before,.cd-direct-payment-cancel{transition:none}.cd-direct-payment-option:active{transform:none}.cd-direct-payment-modal.is-open::before,.cd-direct-payment-modal.is-open::after,.cd-direct-payment-hairline::after{animation:none!important}.cd-direct-payment-option.is-loading::after{animation:none!important;transform:none;opacity:.75}}'
   ];
   var RETURN_KEY = "cd_checkout_return_v1";
   // 이용권을 사고 돌아오기까지의 현실적 상한. 이 시간을 넘긴 복귀 지점은 사용자가 이미 다른 일을
