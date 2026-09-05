@@ -317,6 +317,14 @@ jobs:
       - name: Verify ziwei worker chart facts (궁간·대한사화·자화·소한)
         run: npm run verify:ziwei-worker-chart-facts
 
+      # 🔴 이것도 **fast 잡**이다 — lib/ziwei-derived-facts.js 는 티어를 올리지 않는 경로라
+      # critical 잡에 두면 정작 그 파일만 고친 PR 에서 잠든다.
+      # 파생 모듈(대한 12궁 재배치·사화 비성·오호둔 궁간)이 워커 엔진이 이미 확정한 값과
+      # 어긋나지 않는지 명반 5개로 전수 대조한다. 사본이 정본과 갈리면 프롬프트에 "엔진이
+      # 계산한 값"이라는 얼굴로 다른 값이 실린다. LLM 호출 없이 1초 안팎.
+      - name: Verify ziwei derived facts (대한 12궁·사화 비성·오호둔)
+        run: npm run verify:ziwei-derived-facts
+
       # 🔴 이것도 **fast 잡**이어야 한다. 입력이 js/saju-engine.js · app/_lib/ziwei-engine.ts ·
       # worker/lib/ziwei-ai-chart.js 셋에 걸쳐 있는데, 앞의 둘만 고치는 PR 은 티어가 critical 로
       # 올라가지 않는다(scripts/resolve-ci-tier.mjs 는 worker/routes/ziwei-ai.js 만 critical 로 못 박는다).
