@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-06
-next: "섬 상담을 09-06 에 닫았다(#1596, 아래 §섬 상담) — 이로써 **§다른 전문가 상담 감사 의 keep-all 목록은 소진됐다**. 🔴 **베다의 교훈이 두 번째로 확인됐다: 감사표가 센 6곳 중 실제 결함은 `.ic-sec p` 1곳뿐**이었고, 리포트 본문은 공용 `components/fortune/ai-result-prose.module.css` 가 짝을 이미 주고 있었다 — **선언 유무가 아니라 계산된 `overflow-wrap` 으로 판정할 것.** 그리고 화면을 열어 재니 원장이 안 세던 축에서 결함이 나왔다(탭 타깃 3건) — **다음 기능도 OF 만 보지 말고 TT/IN 을 같은 하네스에서 함께 잴 것.** 남은 후속 후보는 셋이고 사용자 확정이 필요하다: ① CI 게이트 2종(`verify:mobile-cdp-smoke`·`verify:mobile-detail-render`)의 OF 맹점 — 전역 clip 탓에 문서폭만 보는 구조라 이번 같은 회귀를 못 잡는다(가장 값이 크다), ② 전역 44px 바닥을 손으로 쓴 클래스 목록에서 벗어나게 하기(`styles/core-ui.css` — 원칙 10 위반 형태, 이번에도 새 기능을 못 덮었다), ③ 낙샤트라 muhurta·vvip 8곳 렌더 미측정. 🔴 스캐너 맹점 2종(전역 clip · 진입 애니메이션 opacity)은 그대로라 스캐너 수치로 전/후를 판정하지 말 것"
+next: "09-06 에 **스캐너를 상시화했다**(#1599, 아래 §스캐너 상시화) — `scripts/measure-mobile-routes.mjs` 가 이제 OF-A/B/C 세 축을 상시 수집하고, 위양성 3종을 **억제 건수와 함께** 출력하며, `--reveal=SEL` 로 진입 애니메이션 하위를 표본에 넣고, `--self-test` 로 축이 실제로 무는 것을 서버 없이 스스로 증명한다. 🔴 **다음 기능 세션은 1회용 프로브를 새로 만들지 말고 이 스캐너를 쓴다** — 6세션이 같은 프로브를 반복해 만든 것이 이 작업의 이유였다. 🔴 **09-06 이후 수치는 이전 행과 직접 비교 불가**(축이 늘고 필터가 붙었다). 🔴 후속 후보 3개는 조사에서 **전제가 셋 다 틀린 것으로 드러났다**(아래 §후속 후보 3건 정정): ① `verify:mobile-cdp-smoke`·`verify:mobile-detail-render` 는 **CI 게이트가 아니다**(수동 실행 면제 등재), ② `styles/core-ui.css` 는 App Router 를 안 덮으므로 섬 상담을 못 덮은 범인이 아니다, ③ 낙샤트라 muhurta·vvip 8곳은 짝이 이미 붙어 있어 남은 것은 렌더 확인뿐이다. 그래서 다음 작업은 **사용자 확정이 필요하다**: (가) 두 가드에 OF-A/B/C 축을 이식 — 배선까지 할지는 지시가 필요하다(메모리 `ci-gates-scope`), (나) 새 스캐너로 미측정 표면 재기(낙샤트라 muhurta·vvip, 단계형 폼, 오버레이 — 전부 `ensurePaidAccess`·인터랙션 뒤라 하네스가 먼저 필요하다), (다) 전역 44px 바닥의 손으로 쓴 클래스 목록 정리."
 ---
 
 # 기능별 모바일 순회 원장
@@ -43,21 +43,56 @@ next: "섬 상담을 09-06 에 닫았다(#1596, 아래 §섬 상담) — 이로�
 - 세 검사기가 전부 그 값 하나로 판정했다 — `measure-mobile-routes.mjs`·`verify-mobile-cdp-smoke.mjs`·`verify-mobile-detail-render.mjs`. `measure-*` 는 요소 단위 수집 블록을 갖고 있었지만 `if (docOverflow)` 안에 갇혀 한 번도 실행되지 않았다(원칙 10 의 fail-open 형태).
 - 그래서 넘친 내용은 가로 스크롤바 없이 **잘려서 사라진다**. 사용자 신고 "모바일 화면에 안 맞게 넓게 나와 짤린다"가 정확히 이 현상이다.
 
-09-05 에 `measure-mobile-routes.mjs` **만** 고쳤다 — 문서 게이트를 없애고 두 축을 상시 수집한다. 🔴 **CI 게이트 2종(`verify:mobile-cdp-smoke`·`verify:mobile-detail-render`)은 같은 맹점을 그대로 갖고 있다**(사용자가 범위를 그렇게 확정했다). 후속 PR 이 필요하다.
+09-05 에 `measure-mobile-routes.mjs` **만** 고쳤다 — 문서 게이트를 없애고 두 축을 상시 수집한다. 🔴 **09-06 에 남은 맹점 셋(진입 애니메이션 opacity · 텍스트 런 축 부재 · 위양성 필터 부재)까지 같은 파일에 넣어 상시화했다** — 아래 §스캐너 상시화. 아래 축 표는 09-06 판이다. 🔴 **CI 게이트 2종은 애초에 CI 게이트가 아니었다** — 아래 §후속 후보 3건 정정.
 
 | 축 | 판정 | 잡는 것 |
 |---|---|---|
-| OF-A | `rect.right > innerWidth+1` 또는 `rect.left < -1` | 자기 박스가 화면 밖으로 나간 요소 |
-| OF-B | `el.scrollWidth > el.clientWidth+1` **이고** computed `overflow-x` 가 `auto`/`scroll` 이 **아님** | 트랙 안에서 내용만 새어 잘리는 경우 |
+| OF-A | `rect.right > 뷰포트폭+1` 또는 `rect.left < -1` | 자기 박스가 화면 밖으로 나간 요소 |
+| OF-B | `el.scrollWidth > el.clientWidth+1` **이고** computed `overflow-x` 가 `hidden`/`clip` | 트랙 안에서 내용만 새어 잘리는 경우 |
+| OF-C (09-06 신설) | `Range.selectNodeContents(텍스트노드).getClientRects()` 의 우변이 뷰포트폭+1 초과 | **인라인 글자만** 넘친 것 — A·B 가 구조적으로 못 본다 |
 
-🔴 **두 축 다 무해한 상시 초과를 낸다 — 건수만 보고 결함으로 읽지 말 것.** 자미두수는 수정 후에도 OF-A=10·OF-B=2 인데 전부 의도된 장식이다(바로 아래).
-🔴 **맹점은 하나가 아니다 — 표본 자체가 비어 있을 수 있다(09-05, 신년운세에서 발견).** 스캐너 `visible()`(`scripts/measure-mobile-routes.mjs:234-241`)이 `checkVisibility({checkOpacity:true})` 를 쓰기 때문에, **스크롤 진입 애니메이션으로 `opacity:0` 에서 시작하는 본문은 통째로 안 세어진다.** 신년운세 결과 화면은 레이아웃된 517개 중 **311개가 `.nyai-reveal` 하위라 표본에서 빠졌다**(360×800 실측). 출력의 `scanned=27/55` 가 그 흔적이다. framer-motion `initial={{opacity:0}}` 을 쓰는 기능은 스캐너 OF 수치를 전/후 근거로 쓰지 말 것.
+🔴 **뷰포트폭은 `innerWidth` 가 아니라 `Math.min(innerWidth, visualViewport.width)` 다** — 이유는 아래 §스캐너 상시화 의 레이아웃 뷰포트 확장 항목.
+🔴 **세 축 다 무해한 상시 초과를 낸다 — 건수만 보고 결함으로 읽지 말 것.** 자미두수는 수정 후에도 OF-A=10·OF-B=2 인데 전부 의도된 장식이다(바로 아래).
+🔴 **맹점은 하나가 아니었다 — 표본 자체가 비어 있을 수 있다(09-05 신년운세에서 발견 → 09-06 에 `--reveal` 로 해결).** 스캐너 `visible()`(`scripts/measure-mobile-routes.mjs:264-271`)이 `checkVisibility({checkOpacity:true})` 를 쓰기 때문에, **스크롤 진입 애니메이션으로 `opacity:0` 에서 시작하는 본문은 통째로 안 세어진다** — OF 뿐 아니라 **TT·IN 도 같은 `visible()` 을 쓰므로 함께 먹는다.** 신년운세 결과 화면은 레이아웃된 517개 중 **311개가 `.nyai-reveal` 하위라 표본에서 빠졌다**(360×800 실측). 출력의 `scanned=27/55` 가 그 흔적이다. 🔴 **`--reveal` 을 안 주면 맹점은 그대로다** — framer-motion `initial={{opacity:0}}` 을 쓰는 기능은 반드시 `--reveal=<래퍼 셀렉터>` 를 붙여 재고 `revealed=` 출력으로 표본이 실제로 늘었는지 확인한다.
 
-🔴 **텍스트 런의 넘침은 이 두 축으로도 안 잡힌다** — 크로미엄의 `scrollWidth` 가 인라인 텍스트 넘침을 신뢰성 있게 포함하지 않는다. 09-05 에는 `Range.getClientRects()` 로 텍스트 픽셀 범위를 따로 쟀고, 그 축에서만 42건이 보였다. 스캐너에는 아직 없다.
+🔴 **텍스트 런의 넘침은 A·B 두 축으로 안 잡힌다** — 크로미엄의 `scrollWidth` 가 인라인 텍스트 넘침을 신뢰성 있게 포함하지 않는다. 09-05 에는 `Range.getClientRects()` 로 따로 쟀고 그 축에서만 42건이 보였다. **09-06 에 OF-C 로 스캐너에 넣었다.**
 
-🔴 **거꾸로, 프로브가 세는 것이 전부 결함인 것도 아니다 — 표본에서 빼야 할 위양성 3부류가 있다(09-05, 카르마·낙샤트라에서 확인).** ① 스크린리더 전용 노드(1px 상자 + `clip-path:inset(50%)` + `white-space:nowrap` — 표의 대체본에 흔하다), ② `overflow-x:auto|scroll` **조상** 안의 의도된 가로 레일(모바일 탭 레일 등), ③ **마퀴 트랙 — `white-space:nowrap` + `width:max-content` 를 `overflow:hidden` 부모가 자르는 무한 레일**(`app/nakshatra/nakshatra.module.css:160-166` `.marquee > .mqRow`). 🔴 위 OF-B 는 **자기 자신의** `overflow-x` 만 보므로 조상까지 거슬러 확인해야 한다. 안 빼면 손댈 것이 없는 화면에서도 이탈 23건·런 6건이 나온다.
+🔴 **거꾸로, 프로브가 세는 것이 전부 결함인 것도 아니다 — 표본에서 빼야 할 위양성 3부류가 있다(09-05 카르마·낙샤트라에서 확인 → 09-06 에 스캐너 내장).** ① 스크린리더 전용 노드(1px 상자 + `clip-path:inset(50%)` + `white-space:nowrap` — 표의 대체본에 흔하다), ② `overflow-x:auto|scroll` **조상** 안의 의도된 가로 레일(모바일 탭 레일 등), ③ **마퀴 트랙 — `white-space:nowrap` + `width:max-content` 를 `overflow:hidden` 부모가 자르는 무한 레일**(`app/nakshatra/nakshatra.module.css:160-166` `.marquee > .mqRow`). 🔴 OF-B 는 원래 **자기 자신의** `overflow-x` 만 봤다 — 09-06 필터 ②가 조상까지 거슬러 본다. 안 빼면 손댈 것이 없는 화면에서도 이탈 23건·런 6건이 나온다.
 
-🔴 **③ 은 선언값으로 못 거른다** — `getComputedStyle(el).width` 는 `max-content` 가 아니라 **사용값(px)** 을 돌려준다. 구조로 판정해야 한다: *조상이 `nowrap` 이고, 그 부모의 `overflow-x` 가 `visible` 이 아니며, 조상 폭이 부모 `clientWidth` 를 넘는다.* 이 필터가 없으면 `/nakshatra/` 는 **문서폭 5057px · 이탈 150건 · 런 99건**(360×800 실측)으로 나오는데, 걸러내면 **문서폭 360px · 이탈 0 · 런 0** 이다. 같은 화면의 같은 순간이고 차이는 필터뿐이다.
+🔴 **③ 은 선언값으로 못 거른다** — `getComputedStyle(el).width` 는 `max-content` 가 아니라 **사용값(px)** 을 돌려준다. 구조로 판정해야 한다(구현된 판정식은 아래 §스캐너 상시화). 이 필터가 없으면 `/nakshatra/` 는 **문서폭 5057px · 이탈 150건 · 런 99건**(360×800, 09-05 1회용 프로브 실측)으로 나오는데, 걸러내면 **문서폭 360px · 이탈 0 · 런 0** 이다. 같은 화면의 같은 순간이고 차이는 필터뿐이다. 🔴 **마퀴는 방향이 둘이다** — OF-A/OF-C 는 **조상** 쪽에서(`.mqRow` 와 그 span), OF-B 는 **자손** 쪽에서(자르는 `.marquee` 컨테이너) 걸러야 한다.
+
+## 🔴 스캐너 상시화 — 1회용 프로브를 없앴다 (09-06, #1599)
+
+6개 세션(자미두수·신년운세·카르마·낙샤트라·베다·섬 상담)이 매번 `Range.getClientRects()` 프로브를 새로 만들어 쓰고 버렸다(전부 "커밋 안 함"). 그 축들을 `scripts/measure-mobile-routes.mjs` 본체에 넣었다. **다음 기능 세션은 프로브를 다시 만들지 말고 이 스캐너를 쓴다.** `package.json` 은 안 건드렸다 — 전부 플래그라 새 `verify:*` 도 CI 배선도 생기지 않았다.
+
+- **`--reveal=SEL[,SEL]`** — `opacity:0` 으로 시작하는 진입 애니메이션 래퍼를 `!important` 로 켜서 하위를 표본에 넣는다. 🔴 **명시 셀렉터만 받는다**(전역으로 켜면 닫힌 모달·오버레이가 표본에 들어와 위양성이 된다). 🔴 **0매칭이면 INVALID** — 오탈자로 "발견 0건"이 나오는 것이 이 축의 가장 위험한 실패다. 레그 줄에 `revealed=전→후` 로 표본이 실제로 늘었다는 증거를 찍는다. 알려진 셀렉터: `.nyai-reveal` · `[data-kdo-reveal]` · `.revealItem`.
+- **OF-C 축** — 위 표. 텍스트를 직접 가진 요소만 보고, 스텝 간 중복 측정을 `WeakSet` 으로 막으며, 예산(`TEXT_RUN_BUDGET` 4000)을 넘기면 조용히 자르지 않고 `runsTruncated` 로 알린다.
+- **위양성 필터 3종** — ① sr-only(`clip-path:inset(50%)` 류 · 레거시 `clip:rect()` · `position:absolute` + 상자 ≤1px) ② `overflow-x:auto|scroll` **조상** 안의 의도된 가로 레일 ③ 마퀴 트랙(구조 판정: `white-space:nowrap|pre` + `animation-name !== none` + 부모가 body/html 이 아님 + 부모 `overflow-x !== visible` + 자기 폭 > 부모 `clientWidth`). 🔴 **필터는 본질적으로 fail-open 이다**(원칙 10) — 그래서 레그마다 `⊘ 억제(위양성 필터) sr-only=N 레일=N 마퀴=N` 을 찍고 JSON 에 `suppressed` 와 `suppressedSamples`(최대 30)를 남긴다. **이 둘을 빼면 필터는 결함을 삼키는 장치가 된다.**
+- **`--self-test`** — 서버·dist 없이 합성 픽스처로 축이 실제로 무는지 스스로 증명한다(4패스: 기본 · `--reveal` · 레이아웃 뷰포트 확장 · 0매칭 INVALID). 09-05 사고의 원형이 "수집 블록이 `if (docOverflow)` 안에 갇혀 한 번도 실행된 적이 없었다"였다 — 같은 일이 새 축에 다시 나지 않게 붙였다. 단언에 **`#ofC` 가 A 로도 B 로도 안 잡힌다**를 고정해 두어 세 축이 서로를 대신하지 못하는 것을 증명한다.
+
+🔴 **레이아웃 뷰포트 확장 — `window.innerWidth` 로 재면 축이 통째로 0 을 낸다(09-06 실측).** Playwright `isMobile:true` + `<meta viewport width=device-width,initial-scale=1>` 조합에서 크로미엄이 **레이아웃 뷰포트를 콘텐츠 폭까지 늘린다** — 412 로 띄운 픽스처에서 `innerWidth=754`, `visualViewport.width=412` 였다. 넘침이 자기 기준선에 흡수돼 OF-A·OF-C 가 0 을 낸다(자체검증이 처음 3/3 으로 떨어진 원인이 이것이었다). 그래서 기준은 **`Math.min(innerWidth, visualViewport.width)`** 다(`scripts/measure-mobile-routes.mjs:262`). 확장이 일어나면 결과에 `layoutViewportExpanded:true` 로 남는다. **다른 프로브를 새로 쓸 일이 생기면 이 함정을 먼저 확인한다.**
+
+🔴 **09-06 이후 수치를 이전 행과 직접 비교하지 말 것** — 축이 하나 늘고 필터 셋이 붙었다. 출력 머리에 `축=` 한 줄(`AXIS_VERSION`)을 찍으므로 로그로 판별할 수 있다.
+
+### 캘리브레이션 — `/nakshatra/` 360×800, 같은 빌드 위 전/후
+
+| | OF-A | OF-B | OF-C | 억제 | 상위 이탈 항목 |
+|---|---|---|---|---|---|
+| 전 (HEAD, 필터 없음) | 10 | 1 | 축 없음 | — | **10건 전부** 마퀴 span ~4300–4500px + `✂ 4717px 잘림: div.nakshatra_marquee__*` |
+| 후 (09-06, inset=0) | **5** | **0** | **0** | 마퀴 156 | 회전 장식 `.mandalaBg` 와 그 하위 svg/g/rect/path |
+| 후 (09-06, inset=47) | **2** | **0** | **0** | 마퀴 152 | 같은 `.mandalaBg` · svg |
+
+🔴 **필터의 값은 건수를 줄인 것이 아니라 목록을 읽을 수 있게 만든 것이다** — 전 실행은 상위 10건 표시 한도를 마퀴 노이즈가 **전부** 먹어서, 그 화면에 다른 무엇이 있든 보이지 않았다. 필터 후에야 남은 5건이 전부 `.mandalaBg`(`position:fixed` · `z-index:-1` · `pointer-events:none` · 알파 0.05 · `animation: spin 160s`) 한 그루임을 확인할 수 있었다 — **결함이 아니라 의도된 장식이다**(자미두수의 OF-A=10 과 같은 부류).
+🔴 **회전 장식의 이탈 px 과 마퀴 억제 건수는 실행마다 다르다** — 같은 `.mandalaBg` 를 26.3 / 35.4 / 13.5px 로, 마퀴 억제를 154 / 156 / 152 로 봤다. 애니메이션 위상 차이라 **정확한 px 을 전/후 비교선으로 쓰지 말 것.** 판정선은 "OF-B·OF-C 가 0 이고 남은 OF-A 가 장식 한 그루뿐" 이다.
+비회귀 근거: `scanned=53/53` · `TT<44=0` · `IN<16=0/6` · `SAgap=—` · `열폭=274px` · `이탈=유` 가 전/후 동일하다(`--reveal` 을 안 준 실행에서 기본 동작이 안 바뀌었다는 증거).
+
+## 🔴 후속 후보 3건 정정 — 전제가 셋 다 틀렸다 (09-06 실측, #1599)
+
+이전 `next:` 가 남긴 후속 후보 ①②③ 의 전제를 조사에서 실측한 결과다. 낡은 판단을 덮지 않고 정정만 붙인다(원칙 8).
+
+- **① 의 "CI 게이트 2종" 은 CI 게이트가 아니다.** `.github/workflows/` 전수 grep 에 `verify:mobile-cdp-smoke`·`verify:mobile-detail-render` 가 둘 다 없다 — `scripts/verify-guard-wiring.mjs:87,90` 이 **수동 실행 면제**로 등재해 두었다. PR CI 에 있는 것은 정적 짝 `verify:mobile-detail-nonintrusive` 하나뿐이다(`.github/workflows/pr-ci.yml:195`). **두 가드의 OF 맹점을 고쳐도 자동 회귀 차단은 안 생긴다** — 배선까지 하려면 사용자 지시가 필요하다(메모리 `ci-gates-scope`).
+- **② 의 `styles/core-ui.css` 는 섬 상담을 못 덮은 범인이 아니다.** `git grep "core-ui.css"` 로 소비자 전수 확인 — **`index.html` 과 그 public 미러 6개뿐**이고, 다른 루트 정적 셸 20종도 App Router 도 안 쓴다. 섬 상담의 `.ic-change`/`.ic-check` 는 App Router 소관 `styles/globals.css:128-133` 이 덮는데도 **컴포넌트 자체 CSS 의 명시 높이가 이겼다** — core-ui.css 를 고쳐도 그 부류는 재발한다.
+- **③ 의 낙샤트라 muhurta·vvip 8곳은 이미 짝이 붙어 있다** — `muhurta.module.css:50,95,111,124` · `vvip.module.css:38,46,54,75` 전부 `overflow-wrap:anywhere` 확인. 남은 것은 결함 수정이 아니라 **렌더 확인**뿐이고, 그건 `ensurePaidAccess` 탓에 아직 못 열었다(아래 낙샤트라 절).
 
 ## 자미두수 결과 화면 (`/ziwei-ai/`) — 09-05 수정
 
@@ -379,7 +414,7 @@ next: "섬 상담을 09-06 에 닫았다(#1596, 아래 §섬 상담) — 이로�
 - 로컬 dist 서버엔 API 가 없다 → usage/가격 fetch 실패·부분 렌더는 정상. 빈 화면은 scanned=0 INVALID 가 잡는다.
 - 이탈=수동 인 몰입형은 수정 세션에서 손으로 확인. 09-02(#1452)부터 스캐너가 공용 크롬리스 나브(.cd-feature-nav)를 이탈로 인식한다 — 작전실의 '수동'도 같은 감지 구멍이었고 재스캔에서 '유' 로 확정됐다(#1462). 남은 '수동'은 초융합 하나뿐. 🔴 반대 방향 오탐도 있다 — `/today/` 이탈=0 은 크롬리스 설계에 `hardNavigateToShellHome()` 을 부르는 `<button>` 이 있는데 이탈 셀렉터가 `a[href]` 만 봐서 나온 값이다.
 - 🔴 **스캐너는 첫 화면만 본다** — 인터랙션 뒤에 나오는 폼은 IN/TT 가 0 으로 보인다. 작전실 좌표 입력 폼(방식·주제 선택 두 단계 뒤)은 실제로 input/select 7개가 전부 15.2px 였는데 원장에는 IN 0 으로 적혀 있었다(#1462 에서 손으로 진입해 발견). 단계형 기능은 수정 세션에서 반드시 손으로 진입해 다시 잰다. 진입 레시피는 메모리 `driving-neo-war-room-in-a-browser`.
-- 탭 타깃은 요소가 아니라 **감싸는 라벨**로 판정한다 — 작전실 `.checkField input` 은 18x18px 이지만 `<label>` 이 300x44 라 실효 44px 을 만족해 손대지 않았다. #1452(낙샤트라)는 라벨이 없어 수정 대상이었다. 🔴 **스캐너는 이 규칙을 모른다** — `scripts/measure-mobile-routes.mjs:312` 는 요소 자기 rect 만 잰다. 배치 2 의 `input.h-4.w-4` 4건은 라벨을 44px 로 올려 실효 해결했지만 스캐너 수치에는 라우트당 +1 로 남는다.
+- 탭 타깃은 요소가 아니라 **감싸는 라벨**로 판정한다 — 작전실 `.checkField input` 은 18x18px 이지만 `<label>` 이 300x44 라 실효 44px 을 만족해 손대지 않았다. #1452(낙샤트라)는 라벨이 없어 수정 대상이었다. 🔴 **스캐너는 이 규칙을 모른다** — `scripts/measure-mobile-routes.mjs:528` 는 요소 자기 rect 만 잰다. 배치 2 의 `input.h-4.w-4` 4건은 라벨을 44px 로 올려 실효 해결했지만 스캐너 수치에는 라우트당 +1 로 남는다.
 - 🔴 **전역 44px 바닥이 `<a>` 를 안 덮는다** — `styles/globals.css:128-133` 의 규칙은 `button, [role=button], input[type=button|submit|reset], label[for]` 만 겨눈다. 러브코덱스 나브에서 나란히 놓인 `<button>` '돌아가기'(71x44)와 `<Link>` '홈으로'(57.8x**21**)가 눈에는 같은데 실측이 갈렸다(#1465). 링크형 컨트롤이 있는 라우트는 이 구멍을 먼저 의심한다. 처방은 `min-h-11`(같은 페이지 연관 링크가 이미 쓰는 값). 배치 2 의 수정 6곳도 전부 이 구멍이었다(헤더 로고·브레드크럼 2종·기간 칩·별자리 카드·FAQ `summary`). 한 글자 링크는 `min-w-11 justify-center` 까지 필요하다 — 높이만 올리면 12x44 로 여전히 위반이다.
 - 🔴 **Tailwind `min-h-*` 유틸은 그 전역 바닥을 이긴다 — `<button>` 도 44px 이 아닐 수 있다.** `@tailwind base/components/utilities` 는 CSS 캐스케이드 레이어가 아니라 순서 치환이라, `.min-h-9`(0,1,0)가 `button`(0,0,1)을 이긴다. 09-02 주입 실측(같은 스타일시트·360px): `button.min-h-9` 36px · `button.min-h-10` 40px · 유틸 없는 `button` 44px. 배치 3 수정 12곳 중 6곳이 이 구멍이었고 전부 `<button>` 이었다. 전수는 `git grep "min-h-\(0\|px\|1\|1\.5\|2\|2\.5\|3\|3\.5\|4\|5\|6\|7\|8\|9\|10\)\b"` 로 뽑는다(`min-h-11` 이상만 안전).
 - 체크박스 44px 처방은 #1452 와 #1465 가 같은 코드다 — `appearance:none` 44x44 히트박스 + 16px `::before` 글리프 + 가로 `-14px` 마진 + 줄 `margin-top` 축소(글리프 중심 고정). 다음 기능도 이 블록을 그대로 옮겨 쓰면 된다: `src/features/master-love-codex/styles/codex.module.css` 의 `.checkLine`.
@@ -402,7 +437,7 @@ next: "섬 상담을 09-06 에 닫았다(#1596, 아래 §섬 상담) — 이로�
 - 🔴 **루트 셸은 `public/` 과 세 가지 관계를 가진다 — 하나만 고치면 배포에 안 나간다.** ① `sync:public` staticTargets 17종은 자동 미러 ② `ifa-oracle-about.html` 은 미러 대상이 아니고 루트 사본과 **바이트 동일**해야 한다(파일 머리 주석) ③ `ifa_oracle_v2_full.html` 의 실제 배포본은 **다른 파일인 `public/ifa-oracle.html`** 로, head 4줄만 다르고 나머지는 같다. 배치 5 에서 ②③은 손으로 같이 고쳤다. 루트 셸을 고치기 전에 `git grep -n "<파일 이름>" scripts/sync-public.mjs` 와 `diff -u <루트 파일 경로> <public 후보 경로>` 를 먼저 돌린다.
 - 배치 5 미측정 4종 — `blood-type-app`·`geomancy-oracle-v4` 는 첫 화면 컨트롤이 스캐너의 INTERACTIVE_SELECTOR 밖이라 scanned=0 INVALID, `neville-meditation` 은 인증 우회를 심어도 보임 요소 0, `prompt-hub-3004` 는 소스 루트에 `_next` 청크가 없어 못 뜬다(정본은 App Router `/fortune/prompt-hub` 라 배치 6 대상). 넷 다 결함이 아니라 **측정 불가**로 남긴다.
 - 🔴 **위 52번의 `min-h-*` 전수 grep 이 임의값과 고정높이를 놓친다** — `min-h-[36px]`·`min-h-[40px]`·`min-h-[24px]` 와 `h-10 w-10` 류가 그 패턴 밖이다. 배치 6 실제 위반의 대부분이 여기서 나왔고(리뷰 필터칩·정렬 select·작성모달 닫기·손금 결과 버튼·수호신 리포트 탭), **배치 2 범위였던 `SignFortuneView.tsx` 기간 칩 2건도 이 구멍으로 살아남아 있었다**(같은 PR 에서 인접 결함으로 함께 고쳤다). 다음부터는 `git grep -n "min-h-\[" ` 와 `git grep -nE "\bh-(8|9|10)\b"` 를 함께 돌린다.
-- 🔴 **스캐너 호출은 PowerShell 로 한다** — Git Bash 로 `--routes=/about/,…` 을 넘기면 MSYS 가 선두 라우트를 `/C:/Program Files/Git/…` 로 재작성해 MISSING 이 된다. 그리고 `--help` 는 없어서 exit 1 을 낸다 — 인자는 `--routes --target --viewports --insets --settle --out --label --allow-stale` 뿐이다. 없는 라우트를 하나만 섞어도 전체 exit 이 1 이 되므로(`/fortune/daily/…` 는 없는 경로다 — SignFortuneView 표본은 `/fortune/today/aries/`) 목록을 dist 로 먼저 대조한다.
+- 🔴 **스캐너 호출은 PowerShell 로 한다** — Git Bash 로 `--routes=/about/,…` 을 넘기면 MSYS 가 선두 라우트를 `/C:/Program Files/Git/…` 로 재작성해 MISSING 이 된다. 그리고 `--help` 는 없어서 exit 1 을 낸다 — 인자는 `--routes --target --viewports --insets --settle --out --label --allow-stale --reveal --self-test` 뿐이다(09-06 에 뒤 둘이 늘었다 — `--self-test` 는 서버·dist 없이 도는 유일한 모드다). 없는 라우트를 하나만 섞어도 전체 exit 이 1 이 되므로(`/fortune/daily/…` 는 없는 경로다 — SignFortuneView 표본은 `/fortune/today/aries/`) 목록을 dist 로 먼저 대조한다.
 - 시드에 있으나 스캔 대상이 아닌 것 넷 — `/animal/totem/`·`/oracle/kemet/` 은 dist 에 페이지가 없어 404 다(위 index.html /services/ 7종과 같은 부류). `/oracle/hwatu/`·`/oracle/juyuk/` 은 App Router 가 아니라 **루트 정적 셸 승격본**이라(`scripts/static-canonical-route-map.mjs` 의 `source: "static-shell"`) 거기서 나온 위반(`input#subDailyHome` 13x13 · `cd-footer-legal__link` 15.1px · `cd-footer-langpick__btn` 32px · `a.cd-mobile-header__brand` 34x34)은 전부 위 표의 index.html 행 소관이다.
 - 🔴 **배치 6 의 처방 3개는 공용 CSS 라 배치 밖으로 번진다** — `.cd-chip`(app 소비자 20파일) 36.8→44px, `.policy-doc__toc-link` `display:block`→`flex`+44px(≥1024px 은 `min-height:0` 으로 기존 높이 유지), `.policy-input` 15→16px(가입 동의 임베드 `policy-embed-*` 와 공유). 표본 `/astrology/guide/` 재계측에서 고유 TT<44=0·IN<16=0 으로 회귀 없음(09-03).
 - 정책 문서 본문의 인라인 링크는 `destiny-poker` 선례대로 WCAG 2.5.8 Inline 예외로 두었다 — `/contact/` 4 · `/privacy/` 3 · `/advertising-policy/` 3 · `/editorial-policy/` 2 · `/disclaimer/` 1 · `/fortune/prompt-hub/` 의 `<li>` 업셀 7. `/palm-reading/` 의 4건은 보이지 않는 `1x1 input.sr-only` 파일 입력이고 방아쇠는 44px 이상 버튼이다.

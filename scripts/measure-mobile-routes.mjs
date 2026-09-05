@@ -23,6 +23,16 @@
  *       --click=SEL[,SEL] (로드 후 순서대로 클릭 — 폼 제출이 있어야 뜨는 결과 화면용)
  *       --expect=SEL (클릭 후 이 요소가 보일 때까지 대기. 🔴 안 뜨면 레그를 INVALID 로 떨군다
  *       — 없으면 첫 화면을 재고 '발견 0건'으로 통과시키게 된다)
+ *       --reveal=SEL[,SEL] (진입 애니메이션 래퍼. opacity 를 강제로 켜 하위를 표본에 넣는다 —
+ *       스캐너의 visible() 이 checkVisibility({checkOpacity:true}) 라 opacity:0 으로 시작하는
+ *       reveal 래퍼의 하위 전체가 OF·TT·IN 표본에서 통째로 빠진다. 🔴 0매칭이면 INVALID)
+ *       --self-test (합성 픽스처로 축이 실제로 무는지 스스로 증명 — 서버·dist 불필요)
+ *
+ * 가로 오버플로는 세 축으로 잰다 — A: 자기 상자가 뷰포트를 벗어남 / B: 스스로 잘라 내는 상자 안에서
+ * 내용이 사라짐 / C: 상자는 멀쩡한데 인라인 글자만 새어 나감(크로미엄의 scrollWidth 는 인라인 텍스트
+ * 넘침을 신뢰성 있게 포함하지 않아 A·B 가 구조적으로 못 본다 — Range.getClientRects 로 잰다).
+ * 세 축 모두에 위양성 필터 3종(sr-only · 가로 레일 조상 · 마퀴 트랙)을 걸고, 🔴 억제한 건수와
+ * 표본을 반드시 함께 출력한다(필터는 fail-open 이라 이 출력이 유일한 감사 수단이다 — 원칙 10).
  *
  * 결과 화면 예 (dev 서버 + lib/dev-preview 픽스처 — 결제·LLM 실호출 없음):
  *   npm run measure:mobile-routes -- --target=http://127.0.0.1:3050 \
@@ -38,6 +48,11 @@ import { fileURLToPath } from "node:url";
 import { chromium } from "@playwright/test";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+
+/** 🔴 축 구성이 바뀐 날짜 — 이 날 이전 원장 수치와 직접 비교하지 말 것(축이 늘고 필터가 붙었다) */
+const AXIS_VERSION = "2026-09-06 · OF-A/B/C + 위양성필터3 + --reveal";
+/** 축 C 의 측정 예산(텍스트를 가진 요소 수). 넘으면 조용히 자르지 않고 runsTruncated 로 알린다 */
+const TEXT_RUN_BUDGET = 4000;
 
 /** 갤럭시 M15 5G 급 프로필 — verify-app-bottom-clearance.mjs:180-188 에서 복사 */
 const DEVICE_SCALE_FACTOR = 1.75;
@@ -109,6 +124,8 @@ function parseArgs(argv) {
     allowStale: false,
     click: [],
     expect: "",
+    reveal: "",
+    selfTest: false,
   };
   for (const raw of argv) {
     const [key, value = ""] = raw.split(/=(.*)/s);
@@ -126,13 +143,16 @@ function parseArgs(argv) {
     else if (key === "--label") args.label = value;
     else if (key === "--click") args.click = value.split(",").map((s) => s.trim()).filter(Boolean);
     else if (key === "--expect") args.expect = value.trim();
+    else if (key === "--reveal") args.reveal = value.trim();
+    else if (key === "--self-test") args.selfTest = true;
     else if (key === "--allow-stale") args.allowStale = true;
     else
       throw new Error(
         `알 수 없는 인자: ${raw} (지원: --routes --target --viewports --insets --settle --out --label ` +
-          `--click --expect --allow-stale)`,
+          `--click --expect --reveal --self-test --allow-stale)`,
       );
   }
+  if (args.selfTest) return args;
   if (!args.routes.length) throw new Error("--routes=/route/ 가 필요합니다 (쉼표로 여러 개).");
   /* trailingSlash export 구조 — .html 파일이 아니면 후행 슬래시를 강제한다 */
   args.routes = args.routes.map((r) => {
@@ -229,8 +249,18 @@ function routeFileExists(rootDir, route) {
  * 223-241 패턴.
  */
 async function probe(params) {
-  const { selectors, minTap, minInputFont, minGap, backdropRatio, inset } = params;
+  const { selectors, minTap, minInputFont, minGap, backdropRatio, inset, textRunBudget } = params;
   const settle = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+  /* 🔴 가로 기준은 layout viewport(innerWidth)가 아니라 **시각 뷰포트**다 — 크로미엄 모바일
+     에뮬레이션은 <meta viewport width=device-width> 화면에서 내용이 넘치면 layout viewport 를
+     내용 폭까지 늘린다(실측 2026-09-06: 412px 기기에서 innerWidth=754 / visualViewport.width=412).
+     그 상태에서 innerWidth 로 재면 넘침이 기준 자체에 흡수돼 축 A·C 가 통째로 0 을 찍는다 —
+     문서폭 게이트가 구조적으로 죽어 있던 것과 같은 종류의 사고다. html·body 에 overflow-x:clip 이
+     걸린 화면(App Router 전부)에서는 두 값이 같아 기존 수치가 달라지지 않는다. */
+  const vv = window.visualViewport;
+  const viewportWidth = vv && vv.width > 0 ? Math.min(window.innerWidth, vv.width) : window.innerWidth;
+  const layoutViewportExpanded = window.innerWidth - viewportWidth > 1;
   const visible = (el, rect) => {
     if (rect.width <= 0 || rect.height <= 0) return false;
     if (typeof el.checkVisibility === "function") {
@@ -250,6 +280,102 @@ async function probe(params) {
     return `${tag}${id}${cls}${text ? ` "${text}"` : ""}`;
   };
 
+  /* ── 위양성 필터 3종 ──────────────────────────────────────────────────────────
+     필터 없이 /nakshatra/ 를 재면 이탈 150건이 나오는데 전부 마퀴 띠와 레일이었다.
+     🔴 필터는 본질적으로 fail-open 이다(원칙 10) — 그래서 억제 건수를 세고 표본을 JSON 에
+     남긴다. 억제 출력을 빼고 필터만 넣지 말 것. 🔴 필터는 위반 후보에만 돌린다(전 요소에
+     getComputedStyle 을 걸면 스텝마다 스타일 재계산이 터진다). */
+  const styleCache = new Map();
+  const styleOf = (el) => {
+    let value = styleCache.get(el);
+    if (!value) {
+      value = getComputedStyle(el);
+      styleCache.set(el, value);
+    }
+    return value;
+  };
+
+  /** ① sr-only — 스크린리더 전용 노드는 상자를 1px 로 접고 내용을 잘라 낸다(설계상 정상) */
+  const isSrOnly = (el, rect) => {
+    const s = styleOf(el);
+    if (/inset\(\s*50%/.test(s.clipPath || "")) return true;
+    if (s.clip && s.clip !== "auto" && /^rect\(/.test(s.clip)) return true;
+    return s.position === "absolute" && (rect.width <= 1 || rect.height <= 1);
+  };
+
+  /** ② 가로 레일 — 조상이 auto|scroll 이면 밖으로 나간 것은 스크롤로 닿는다(의도된 레일).
+      🔴 축 B 는 **자기 자신의** overflow-x 만 봤다 — 레일 안의 넓은 자식이 전부 위반으로 찍히던
+      구멍이 여기다(docs/handoff/mobile-feature-sweep.md §OF 열 정정). */
+  const railAncestor = (el) => {
+    for (let p = el.parentElement; p && p !== document.documentElement; p = p.parentElement) {
+      const ox = styleOf(p).overflowX;
+      if (ox === "auto" || ox === "scroll") return true;
+    }
+    return false;
+  };
+
+  /** ③ 마퀴 트랙 — nowrap + 부모보다 넓은 상자 + 부모가 잘라 냄 + 애니메이션(app/nakshatra
+      /nakshatra.module.css:160-170 의 .marquee > .mqRow 가 원형).
+      🔴 선언값으로는 못 거른다 — getComputedStyle(...).width 는 max-content 가 아니라 사용값 px 을 준다.
+      🔴 animation-name 을 요구해 규칙을 좁게 유지한다 — prefers-reduced-motion 으로 애니메이션이 꺼진
+      채 재면 마퀴가 위반으로 찍히지만, 그 방향(노이즈)이 침묵보다 안전하다.
+      🔴 부모가 body/html 이면 제외한다 — 이 레포는 html·body 에 overflow-x:clip 을 걸어서
+      (styles/globals.css:80-81,111-112) 본문 직계의 nowrap 결함이 통째로 마퀴로 오인된다. */
+  const isMarqueeTrack = (el) => {
+    const p = el.parentElement;
+    if (!p || p === document.body || p === document.documentElement) return false;
+    const s = styleOf(el);
+    if (s.whiteSpace !== "nowrap" && s.whiteSpace !== "pre") return false;
+    if (!s.animationName || s.animationName === "none") return false;
+    if (styleOf(p).overflowX === "visible") return false;
+    if (!p.clientWidth) return false;
+    return el.getBoundingClientRect().width > p.clientWidth + 1;
+  };
+
+  const suppressed = { srOnly: 0, rail: 0, marquee: 0 };
+  const suppressedSamples = [];
+  /** 위반 후보를 억제할 사유 — 없으면 null. 억제해도 반드시 센다. */
+  const suppressReason = (el, rect) => {
+    if (isSrOnly(el, rect)) return "srOnly";
+    if (railAncestor(el)) return "rail";
+    for (let a = el; a && a !== document.body; a = a.parentElement) {
+      if (isMarqueeTrack(a)) return "marquee";
+    }
+    return null;
+  };
+  /** 축 B 전용 — 잘라 내는 상자 자신은 마퀴가 아니고 **안의 트랙**이 마퀴다(조상 방향으로는 안 잡힌다) */
+  const clipsMarqueeTrack = (el) => {
+    for (const child of el.querySelectorAll("*")) if (isMarqueeTrack(child)) return true;
+    return false;
+  };
+  const suppress = (reason, axis, el) => {
+    suppressed[reason] += 1;
+    if (suppressedSamples.length < 30) suppressedSamples.push({ axis, reason, label: describe(el) });
+  };
+
+  /** 자기 자식 요소가 아니라 자기 텍스트를 담고 있는가 — measure-locale-text-fit.mjs 의 ownsText 와 같은 판정 */
+  const ownsText = (el) => {
+    for (const node of el.childNodes) {
+      if (node.nodeType === 3 && node.nodeValue && node.nodeValue.trim().length >= 2) return true;
+    }
+    return false;
+  };
+  /** 축 C — 인라인 텍스트 런이 뷰포트를 넘어간 최대 px. 판정 기준은 축 A 와 같다(뷰포트 우변·좌변). */
+  const textRunOverflow = (el) => {
+    let worst = 0;
+    for (const node of el.childNodes) {
+      if (node.nodeType !== 3 || !node.nodeValue || node.nodeValue.trim().length < 2) continue;
+      const range = document.createRange();
+      range.selectNodeContents(node);
+      for (const r of range.getClientRects()) {
+        if (r.width <= 0 || r.height <= 0) continue;
+        const over = Math.max(r.right - viewportWidth, -r.left);
+        if (over > worst) worst = over;
+      }
+    }
+    return worst;
+  };
+
   const out = { visibilityState: document.visibilityState, innerWidth: window.innerWidth, innerHeight: window.innerHeight };
 
   // 🔴 safe-area 에뮬레이션이 실제로 먹었는지 — 안 먹었으면 측정 자체가 무효다.
@@ -264,16 +390,20 @@ async function probe(params) {
   const seenReading = new Set();
   const seenOverflow = new Set();
   const seenClipped = new Set();
+  const seenTextRun = new Set();
   const seenFixed = new Set();
   const smallTargets = [];
   const inputsUnder = [];
   const readingBlocks = [];
   const overflowOffenders = [];
   const clippedOffenders = [];
+  const textRunOffenders = [];
   const fixedBottom = [];
   let scanned = 0;
   let inputsTotal = 0;
   let docOverflow = false;
+  let runBudget = textRunBudget;
+  let runsTruncated = false;
 
   const scanFixedBottom = () => {
     for (const el of document.querySelectorAll("body *")) {
@@ -320,11 +450,37 @@ async function probe(params) {
 
       // 축 A — 자기 박스가 뷰포트 밖으로 나간 것
       if (!seenOverflow.has(el)) {
-        const overRight = rect.right - window.innerWidth;
+        const overRight = rect.right - viewportWidth;
         const overLeft = -rect.left;
         if (overRight > 1 || overLeft > 1) {
           seenOverflow.add(el);
-          overflowOffenders.push({ label: describe(el), overPx: Number(Math.max(overRight, overLeft).toFixed(1)) });
+          const reason = suppressReason(el, rect);
+          if (reason) suppress(reason, "OF-A", el);
+          else overflowOffenders.push({ label: describe(el), overPx: Number(Math.max(overRight, overLeft).toFixed(1)) });
+        }
+      }
+
+      // 축 C — 상자는 제자리인데 인라인 글자만 새어 나간 것. 크로미엄의 scrollWidth 는 인라인 텍스트
+      // 넘침을 신뢰성 있게 포함하지 않아 축 A·B 둘 다 이 결함을 구조적으로 못 본다(6개 기능 세션이
+      // 매번 1회용 Range 프로브를 새로 만들어 이 축에서만 결함을 봤다). 축 A 로 이미 잡힌 요소는
+      // 같은 결함이므로 다시 세지 않는다.
+      if (
+        !seenTextRun.has(el) &&
+        !seenOverflow.has(el) &&
+        rect.bottom > 0 &&
+        rect.top < window.innerHeight &&
+        ownsText(el)
+      ) {
+        if (runBudget <= 0) runsTruncated = true;
+        else {
+          seenTextRun.add(el);
+          runBudget -= 1;
+          const over = textRunOverflow(el);
+          if (over > 1) {
+            const reason = suppressReason(el, rect);
+            if (reason) suppress(reason, "OF-C", el);
+            else textRunOffenders.push({ label: describe(el), overPx: Number(over.toFixed(1)) });
+          }
         }
       }
 
@@ -340,6 +496,11 @@ async function probe(params) {
       // overflow-x:auto|scroll 은 의도된 가로 레일이므로 위반이 아니다.
       if (overflowX !== "hidden" && overflowX !== "clip") continue;
       seenClipped.add(el);
+      const clipReason = suppressReason(el, rect) || (clipsMarqueeTrack(el) ? "marquee" : null);
+      if (clipReason) {
+        suppress(clipReason, "OF-B", el);
+        continue;
+      }
       // 잘린 상자만으로는 원인을 못 짚는다 — 내용이 제 박스보다 넓은 자손을 같이 남긴다.
       const culprits = [];
       for (const child of el.querySelectorAll("*")) {
@@ -417,10 +578,17 @@ async function probe(params) {
     scanned,
     docHeight: document.documentElement.scrollHeight,
     scrollWidth: document.documentElement.scrollWidth,
+    viewportWidth,
+    layoutViewportExpanded,
     visibleInteractive: seenTap.size,
     docOverflow,
     overflowOffenders: overflowOffenders.sort((a, b) => b.overPx - a.overPx).slice(0, 10),
     clippedOffenders: clippedOffenders.sort((a, b) => b.lostPx - a.lostPx).slice(0, 10),
+    textRunOffenders: textRunOffenders.sort((a, b) => b.overPx - a.overPx).slice(0, 10),
+    textRunSeen: seenTextRun.size,
+    runsTruncated,
+    suppressed,
+    suppressedSamples,
     smallTapTargets: smallTargets.length,
     smallTapWorst: smallTargets.sort((a, b) => Math.min(a.w, a.h) - Math.min(b.w, b.h)).slice(0, 15),
     inputsTotal,
@@ -436,7 +604,58 @@ async function probe(params) {
   };
 }
 
-async function measureLeg(browser, origin, route, viewport, inset, settleMs, clickSelectors = [], expectSelector = "") {
+/** --reveal 주입 전후의 표본 크기 — probe 의 visible() 과 같은 판정을 써야 수치가 비교된다 */
+function countVisibleElements() {
+  let count = 0;
+  for (const el of document.body.querySelectorAll("*")) {
+    const rect = el.getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0) continue;
+    if (typeof el.checkVisibility === "function") {
+      if (!el.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true })) continue;
+    } else {
+      const cs = getComputedStyle(el);
+      if (cs.display === "none" || cs.visibility === "hidden" || Number(cs.opacity) < 0.05) continue;
+    }
+    count += 1;
+  }
+  return count;
+}
+
+/** 🔴 셀렉터 목록은 항목마다 펼쳐야 한다 — "a,b" 에 " *" 를 그냥 붙이면 마지막 항목에만 걸린다 */
+function revealRule(selector) {
+  const parts = selector.split(",").map((s) => s.trim()).filter(Boolean);
+  const scope = parts.flatMap((p) => [p, `${p} *`]).join(",");
+  // transform 까지 끄는 이유 — reveal 은 대개 opacity + translate 쌍이라, 정지시키지 않으면
+  // 중간 위치의 기하를 재게 된다. 애니메이션만 멈추는 것으로는 인라인 스타일을 못 이긴다.
+  return `${scope}{opacity:1!important;visibility:visible!important;animation:none!important;transition:none!important;transform:none!important;}`;
+}
+
+/** 화면을 다 몰고 간 뒤의 계측 한 번 — measureLeg 와 --self-test 가 같은 경로를 쓰게 묶었다 */
+async function runProbe(page, inset, revealSelector) {
+  let reveal = null;
+  if (revealSelector) {
+    const matched = await page.evaluate((sel) => document.querySelectorAll(sel).length, revealSelector);
+    // 🔴 fail-closed — 오탈자로 0매칭이면 표본이 그대로인 채 '발견 0건'이 나온다(--expect 와 같은 취급).
+    if (!matched) return { invalidReason: `--reveal 셀렉터 0매칭 (${revealSelector}) — 표본이 안 늘었다` };
+    const before = await page.evaluate(countVisibleElements);
+    await page.addStyleTag({ content: revealRule(revealSelector) });
+    await page.waitForTimeout(300);
+    const after = await page.evaluate(countVisibleElements);
+    reveal = { selector: revealSelector, matched, before, after };
+  }
+  const result = await page.evaluate(probe, {
+    selectors: { interactive: INTERACTIVE_SELECTOR, input: INPUT_SELECTOR, reading: READING_SELECTOR, exit: EXIT_SELECTOR },
+    minTap: MIN_TAP_PX,
+    minInputFont: MIN_INPUT_FONT_PX,
+    minGap: MIN_GAP,
+    backdropRatio: BACKDROP_HEIGHT_RATIO,
+    inset,
+    textRunBudget: TEXT_RUN_BUDGET,
+  });
+  return { reveal, result };
+}
+
+async function measureLeg(browser, origin, route, viewport, inset, settleMs, clickSelectors = [], expectSelector = "", revealSelector = "") {
   const context = await browser.newContext({
     viewport,
     hasTouch: true,
@@ -481,14 +700,9 @@ async function measureLeg(browser, origin, route, viewport, inset, settleMs, cli
       }
       await page.waitForTimeout(settleMs);
     }
-    const result = await page.evaluate(probe, {
-      selectors: { interactive: INTERACTIVE_SELECTOR, input: INPUT_SELECTOR, reading: READING_SELECTOR, exit: EXIT_SELECTOR },
-      minTap: MIN_TAP_PX,
-      minInputFont: MIN_INPUT_FONT_PX,
-      minGap: MIN_GAP,
-      backdropRatio: BACKDROP_HEIGHT_RATIO,
-      inset,
-    });
+    const probed = await runProbe(page, inset, revealSelector);
+    if (probed.invalidReason) return { valid: false, invalidReason: probed.invalidReason };
+    const result = { ...probed.result, reveal: probed.reveal };
 
     // 🔴 fail-closed 3종 — 앱 백그라운드/에뮬레이션 불발/빈 화면을 "발견 0건"으로 통과시키지 않는다.
     if (result.visibilityState !== "visible") {
@@ -508,8 +722,158 @@ async function measureLeg(browser, origin, route, viewport, inset, settleMs, cli
   }
 }
 
+/* ── 자체 검증 픽스처 ────────────────────────────────────────────────────────────
+   🔴 이 레포에서 오버플로 게이트가 55개 기능 전 배치에서 0 을 찍은 원인은 "요소 수집기가
+   if (docOverflow) 안에 갇혀 한 번도 실행된 적이 없었다" 였다. 축이 도는 것과 축이 무는 것은
+   다르다 — 진짜 위반 4개와 위양성 3개를 심어 두고 축마다 무는 것을 매번 증명한다.
+   fp* = 물면 안 되는 것(위양성), #of* = 반드시 물어야 하는 것. */
+const selfTestHtml = (clip) => `<!doctype html><html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>self-test</title><style>
+  ${clip ? "html, body { overflow-x: clip; }" : "/* clip 없음 — layout viewport 가 내용 폭까지 늘어난다 */"}
+  body { margin: 0; font: 16px/1.4 sans-serif; }
+  h1 { font-size: 18px; margin: 8px; }
+  .fpSrOnly { position: absolute; width: 1px; height: 1px; overflow: hidden;
+              clip: rect(0,0,0,0); clip-path: inset(50%); white-space: nowrap; }
+  .fpRail { overflow-x: auto; width: 300px; }
+  .fpRailWide { width: 900px; height: 24px; background: #eee; }
+  .fpMarquee { overflow: hidden; width: 300px; }
+  .fpMarqueeTrack { display: flex; gap: 20px; white-space: nowrap; width: max-content;
+                    animation: slide 40s linear infinite; }
+  @keyframes slide { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  #ofA { position: absolute; left: 380px; top: 260px; width: 220px; height: 30px; background: #fdd; }
+  #ofB { overflow-x: hidden; width: 100px; }
+  #ofB span { white-space: nowrap; }
+  #ofC { width: 280px; white-space: nowrap; }
+  .revealWrap { opacity: 0; }
+  #ofReveal { position: absolute; left: 390px; top: 340px; width: 220px; height: 30px; background: #dfd; }
+</style></head><body>
+<h1>measure:mobile-routes 자체 검증</h1>
+<button type="button">버튼</button>
+<span class="fpSrOnly">스크린리더 전용 안내 문구가 아주 길게 이어지는 노드입니다</span>
+<div class="fpRail"><div class="fpRailWide">가로 레일</div></div>
+<div class="fpMarquee"><div class="fpMarqueeTrack"><span>마퀴 항목 하나</span><span>마퀴 항목 둘</span
+  ><span>마퀴 항목 셋</span><span>마퀴 항목 넷</span><span>마퀴 항목 다섯</span><span>마퀴 항목 여섯</span></div></div>
+<div id="ofA">뷰포트 밖 상자</div>
+<div id="ofB"><span>nnnnnnnnnnnnnnnnnnnnnnnn</span></div>
+<div id="ofC">wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww</div>
+<div class="revealWrap"><div id="ofReveal">진입 애니메이션 안의 이탈 상자</div></div>
+<div style="height:1200px"></div>
+</body></html>`;
+
+async function runSelfTest(browser) {
+  const context = await browser.newContext({
+    viewport: { width: 412, height: 823 },
+    hasTouch: true,
+    isMobile: true,
+    deviceScaleFactor: DEVICE_SCALE_FACTOR,
+    userAgent: MOBILE_UA,
+  });
+  const failures = [];
+  const check = (ok, message) => {
+    if (!ok) failures.push(message);
+  };
+  const labels = (list) => (list.length ? list.map((x) => x.label).join(" | ") : "—");
+  const has = (list, needle) => list.some((x) => x.label.includes(needle));
+
+  const load = async (clip = true) => {
+    const page = await context.newPage();
+    await page.setContent(selfTestHtml(clip), { waitUntil: "load" });
+    await page.waitForTimeout(300);
+    return page;
+  };
+
+  try {
+    const base = await runProbe(await load(), 0, "");
+    if (base.invalidReason) throw new Error(`기본 계측 실패 — ${base.invalidReason}`);
+    const r = base.result;
+    console.log(
+      `  기본     OF-A=${r.overflowOffenders.length} OF-B=${r.clippedOffenders.length} OF-C=${r.textRunOffenders.length}` +
+        ` 억제=sr-only:${r.suppressed.srOnly} 레일:${r.suppressed.rail} 마퀴:${r.suppressed.marquee}`,
+    );
+    console.log(`    OF-A ${labels(r.overflowOffenders)}`);
+    console.log(`    OF-B ${labels(r.clippedOffenders)}`);
+    console.log(`    OF-C ${labels(r.textRunOffenders)}`);
+    console.log(`    억제 ${r.suppressedSamples.map((s) => `${s.axis}/${s.reason} ${s.label}`).join(" | ") || "—"}`);
+
+    check(r.visibilityState === "visible", "픽스처가 visible 이 아니다 — 계측 자체가 무효");
+    check(has(r.overflowOffenders, "#ofA"), "축 A 가 #ofA(뷰포트 이탈 상자)를 못 잡았다");
+    check(has(r.clippedOffenders, "#ofB"), "축 B 가 #ofB(자기 상자 안에서 잘린 내용)를 못 잡았다");
+    check(has(r.textRunOffenders, "#ofC"), "축 C 가 #ofC(상자 밖으로 샌 인라인 글자)를 못 잡았다");
+    // 🔴 축 C 가 새 축이라는 증명 — 같은 결함을 축 A·B 가 잡는다면 축을 추가할 이유가 없다.
+    check(
+      !has(r.overflowOffenders, "#ofC") && !has(r.clippedOffenders, "#ofC"),
+      "#ofC 가 축 A·B 로도 잡혔다 — 픽스처가 축 C 의 존재 이유를 증명하지 못한다",
+    );
+    check(!has(r.overflowOffenders, "#ofReveal"), "--reveal 없이 opacity:0 하위가 표본에 들어왔다");
+    for (const [axis, list] of [
+      ["OF-A", r.overflowOffenders],
+      ["OF-B", r.clippedOffenders],
+      ["OF-C", r.textRunOffenders],
+    ]) {
+      check(!list.some((x) => x.label.includes("fp")), `${axis} 에 위양성 픽스처가 보고됐다: ${labels(list)}`);
+    }
+    check(r.suppressed.srOnly >= 1, "sr-only 억제 0건 — 필터 ①이 안 돈다");
+    check(r.suppressed.rail >= 1, "가로 레일 억제 0건 — 필터 ②가 안 돈다");
+    check(r.suppressed.marquee >= 1, "마퀴 트랙 억제 0건 — 필터 ③이 안 돈다");
+
+    // 변이 — 같은 화면에 --reveal 만 붙이면 표본이 늘고 숨어 있던 위반이 드러나야 한다
+    const revealed = await runProbe(await load(), 0, ".revealWrap");
+    if (revealed.invalidReason) throw new Error(`--reveal 계측 실패 — ${revealed.invalidReason}`);
+    const rv = revealed.result;
+    console.log(
+      `  --reveal OF-A=${rv.overflowOffenders.length} 표본 ${revealed.reveal.before}→${revealed.reveal.after}` +
+        ` (매칭 ${revealed.reveal.matched}개)`,
+    );
+    console.log(`    OF-A ${labels(rv.overflowOffenders)}`);
+    check(has(rv.overflowOffenders, "#ofReveal"), "--reveal 을 붙였는데도 opacity:0 하위 위반이 안 드러났다");
+    check(revealed.reveal.after > revealed.reveal.before, "--reveal 주입 후 표본이 안 늘었다");
+
+    // 🔴 layout viewport 확장 — html·body 에 overflow-x:clip 이 없는 셸(루트 정적 셸 24개 중 일부)에서는
+    // 크로미엄이 layout viewport 를 내용 폭까지 늘려 innerWidth 가 넘침을 흡수한다. innerWidth 를
+    // 기준으로 재던 옛 축 A 는 이 화면에서 통째로 0 을 찍었다(2026-09-06 실측). 기준을 시각 뷰포트로
+    // 바꾼 것이 실제로 무는지 같은 픽스처의 clip 없는 판으로 증명한다.
+    const wide = await runProbe(await load(false), 0, "");
+    if (wide.invalidReason) throw new Error(`clip 없는 판 계측 실패 — ${wide.invalidReason}`);
+    const w = wide.result;
+    console.log(
+      `  확장     innerWidth=${w.innerWidth} 기준폭=${w.viewportWidth} 확장=${w.layoutViewportExpanded}` +
+        ` OF-A=${w.overflowOffenders.length} OF-C=${w.textRunOffenders.length}`,
+    );
+    check(w.layoutViewportExpanded === true, "clip 없는 픽스처에서 layout viewport 가 안 늘었다 — 이 경우를 못 재고 있다");
+    check(has(w.overflowOffenders, "#ofA"), "layout viewport 확장 화면에서 축 A 가 #ofA 를 놓쳤다(기준폭이 넘침을 흡수)");
+
+    // fail-closed — 오탈자 셀렉터는 조용히 통과하면 안 된다
+    const missed = await runProbe(await load(), 0, ".no-such-reveal-wrapper");
+    check(!!missed.invalidReason, "--reveal 0매칭이 INVALID 로 안 떨어졌다(오탈자가 '발견 0건'이 된다)");
+    console.log(`  0매칭    ${missed.invalidReason || "(INVALID 안 남)"}`);
+  } finally {
+    await context.close();
+  }
+
+  if (failures.length) {
+    for (const message of failures) console.error(`✗ ${message}`);
+    console.error(`[measure:mobile-routes] 자체 검증 실패 ${failures.length}건 — 축이 물지 않는다.`);
+    return false;
+  }
+  console.log("[measure:mobile-routes] 자체 검증 통과 — 축 3종·필터 3종·--reveal 변이 모두 확인.");
+  return true;
+}
+
 async function main() {
   const args = parseArgs(process.argv.slice(2));
+
+  if (args.selfTest) {
+    console.log(`[measure:mobile-routes] 자체 검증 (축 ${AXIS_VERSION})`);
+    const browser = await chromium.launch();
+    let ok = false;
+    try {
+      ok = await runSelfTest(browser);
+    } finally {
+      await browser.close();
+    }
+    if (!ok) process.exit(1);
+    return;
+  }
 
   let origin = null;
   let server = null;
@@ -533,6 +897,8 @@ async function main() {
   console.log(
     `  viewports=${args.viewports.map((v) => `${v.width}x${v.height}`).join(",")} (DPR ${DEVICE_SCALE_FACTOR}) insets=${args.insets.join(",")} settle=${args.settle}ms`,
   );
+  // 🔴 축 버전 — 축이 늘고 위양성 필터가 붙었으므로 이 날 이전 원장 수치와 직접 비교하지 말 것.
+  console.log(`  축=${AXIS_VERSION}${args.reveal ? ` reveal=${args.reveal}` : ""}`);
 
   const browser = await chromium.launch();
   const runs = [];
@@ -549,7 +915,7 @@ async function main() {
       }
       for (const viewport of args.viewports) {
         for (const inset of args.insets) {
-          const leg = await measureLeg(browser, origin, route, viewport, inset, args.settle, args.click, args.expect);
+          const leg = await measureLeg(browser, origin, route, viewport, inset, args.settle, args.click, args.expect, args.reveal);
           leg.viewport = `${viewport.width}x${viewport.height}`;
           leg.inset = inset;
           legs.push(leg);
@@ -560,14 +926,23 @@ async function main() {
             continue;
           }
           const sa = leg.fixedBottom.length ? `${Math.min(...leg.fixedBottom.map((f) => f.contentGap))}px` : "—";
+          const sup = leg.suppressed;
           console.log(
-            `· ${tag} scanned=${leg.visibleInteractive}/${leg.scanned} ` +
+            `· ${tag} scanned=${leg.visibleInteractive}/${leg.scanned}` +
+              `${leg.reveal ? ` revealed=${leg.reveal.before}→${leg.reveal.after}` : ""} ` +
               `OF-A=${leg.overflowOffenders.length} OF-B=${leg.clippedOffenders.length} ` +
+              `OF-C=${leg.textRunOffenders.length}${leg.runsTruncated ? "+" : ""} ` +
               `TT<44=${leg.smallTapTargets} IN<16=${leg.inputsUnder16.length}/${leg.inputsTotal} ` +
               `SAgap=${sa} 열폭=${leg.readingCol ? `${leg.readingCol.min}px` : "—"} ` +
               `이탈=${leg.bottomNavVisible ? "탭바" : leg.exitFound.length ? "유" : "수동확인"}`,
           );
+          // 🔴 억제 건수는 항상 찍는다 — 필터는 fail-open 이라 이 줄과 JSON 의 suppressedSamples 가
+          // 유일한 감사 수단이다. 수치가 크면 진짜 결함을 삼켰는지 표본으로 확인할 것.
+          if (sup.srOnly || sup.rail || sup.marquee)
+            console.log(`    ⊘ 억제(위양성 필터) sr-only=${sup.srOnly} 레일=${sup.rail} 마퀴=${sup.marquee}`);
+          if (leg.runsTruncated) console.log(`    ⚠ 축 C 측정 예산(${TEXT_RUN_BUDGET}) 초과 — 글자 이탈 수치가 하한이다.`);
           for (const off of leg.overflowOffenders) console.log(`    ↔ ${off.overPx}px 뷰포트 이탈: ${off.label}`);
+          for (const run of leg.textRunOffenders) console.log(`    ✎ 글자 ${run.overPx}px 이탈(상자는 제자리): ${run.label}`);
           for (const clip of leg.clippedOffenders) {
             console.log(`    ✂ ${clip.lostPx}px 잘림: ${clip.label}`);
             for (const c of clip.culprits) console.log(`        └ 내용 ${c.spillPx}px 초과: ${c.label}`);
