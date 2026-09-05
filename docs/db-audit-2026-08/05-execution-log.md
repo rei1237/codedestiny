@@ -87,6 +87,20 @@ node scripts/migrate-encrypt-user-phone.mjs --apply             # 나머지
 
 현재 프로덕션 `role:"admin"` 계정은 **0명**이며, 관리자 감사 로그(PR #486)는 배포돼 있으나 행위자가 공유 세션(`flower-admin:<jti>`)으로만 기록된다.
 
+## 2026-09-06 추가 실행 — M10 Phase 3-b (PR #1623 스크립트)
+
+프로덕션 `code_destiny`. 전부 `--apply --expect N` 옵트인, 실행 직전 `--check` 재실측이 같은 값이었다.
+
+| 순서 | 스크립트 | 결과 |
+|:--:|---|---|
+| 0 | `npm run backup:mongo -- --out <레포 밖>` | 전량 백업 — 74 컬렉션 / 27,057건 |
+| 1 | `migrate:reconcile-index-drift --apply --expect 16` | create **15**(unique 9 · 동적 조회 1 · COLLSCAN 5) · drop **1**(`paid_execution_records.paymentId_1`) |
+| 2 | `migrate:purge-test-reports --email <오너> --apply --expect 61` | 오너 계정 상담·리포트 문서 **48**(11 컬렉션) · 고아 컬렉션 드롭 **13**(문서 41) |
+
+실행 후: `verify:reconcile-index-drift` · `verify:purge-test-reports` 둘 다 `RESULT OK`, `verify:mongo-launch-indexes` OK(53 모델 미생성 0), 문서 잔여 0 · 남은 고아 컬렉션 0.
+
+복구 자료(개인정보 포함, 검증 후 파기): `D:\Development\code-destiny-backups\mongodb\20260906-phase3b\` — 전량 백업 + `migrations/` 아래 변경 전 이미지 2개.
+
 ## 후속 확인 과제
 
 - **며칠 뒤 `npm run verify:truncate-consume-ids`** — 다시 200을 넘으면 아직 찾지 못한 상한 없는 쓰기 경로가 실재한다는 뜻이다. 현재 판단은 "2026-07-16 이전 `$addToSet` 잔재"이고, 이 재확인이 유일한 확실한 검증 수단이다.
