@@ -175,6 +175,13 @@ export default function SeoLandingTemplate({ page }) {
   const disclaimer =
     page.disclaimer ||
     copy.disclaimer;
+  /* 해설 산문과 가시 링크 묶음 — 엔진 허브가 "링크 모음"으로 읽히지 않게 체계 자체를 설명하는
+     본문(F-01). 두 필드 모두 선택이라 넘기지 않은 랜딩의 출력은 그대로다. 신규 URL 은 만들지
+     않는다 — 관측 동결(2026-09-20 GSC 재측정 전 색인 수 증설 금지)과 양립하는 유일한 증보 경로다. */
+  const sections = Array.isArray(page?.sections) ? page.sections.filter((item) => item?.heading) : [];
+  const linkGroups = Array.isArray(page?.linkGroups)
+    ? page.linkGroups.filter((item) => item?.heading && Array.isArray(item.links) && item.links.length > 0)
+    : [];
 
   const breadcrumb = [
     { name: copy.breadcrumbHome, path: "/" },
@@ -317,6 +324,55 @@ export default function SeoLandingTemplate({ page }) {
             </ul>
           </section>
         </div>
+
+        {sections.map((section, sectionIndex) => (
+          <section
+            key={section.heading}
+            aria-labelledby={`seoLandingSection${sectionIndex}`}
+            className="mt-[clamp(3rem,7vw,5rem)]"
+          >
+            <SectionHead id={`seoLandingSection${sectionIndex}`} title={section.heading} label={section.label} />
+            {(Array.isArray(section.paragraphs) ? section.paragraphs : []).map((paragraph) => (
+              <p
+                key={paragraph}
+                className="mt-6 max-w-[68ch] break-keep text-[0.98rem] leading-[1.9] text-[rgba(244,238,255,0.86)] [text-wrap:pretty]"
+              >
+                {paragraph}
+              </p>
+            ))}
+          </section>
+        ))}
+
+        {linkGroups.map((group, groupIndex) => (
+          <section
+            key={group.heading}
+            aria-labelledby={`seoLandingLinkGroup${groupIndex}`}
+            className="mt-[clamp(3rem,7vw,5rem)]"
+          >
+            <SectionHead id={`seoLandingLinkGroup${groupIndex}`} title={group.heading} label={group.label} />
+            {group.lede ? (
+              <p className="mt-5 max-w-[68ch] break-keep text-[0.95rem] leading-[1.85] text-[rgba(244,238,255,0.86)]">
+                {group.lede}
+              </p>
+            ) : null}
+            <ul className="mt-4 grid gap-x-8 sm:grid-cols-2 md:grid-cols-3">
+              {group.links.map((link) => (
+                <li key={link.href} className="border-b border-[rgba(244,238,255,0.09)]">
+                  <Link
+                    href={link.href}
+                    className={`group flex min-h-11 items-center justify-between gap-3 py-2.5 text-[0.92rem] text-[#f4eeff] transition-colors duration-200 hover:text-[#e8d5a3] ${FOCUS_RING}`}
+                  >
+                    <span className="min-w-0 break-keep">{link.label}</span>
+                    <ArrowRight
+                      className="h-3.5 w-3.5 shrink-0 text-[rgba(232,213,163,0.62)] transition-transform duration-200 ease-out motion-safe:group-hover:translate-x-1"
+                      aria-hidden="true"
+                    />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
 
         <section aria-labelledby="seoLandingDisclaimer" className="mt-[clamp(2.5rem,5vw,3.5rem)]">
           <h2
