@@ -88,17 +88,6 @@ window.__cdServiceRegistry = [
     keys: "연애 재회 짝사랑 이별 관계",
   },
   {
-    id: "compatibility",
-    name: "궁합 보기",
-    desc: "두 사람의 운명을 겹쳐 보는 궁합",
-    href: "/compatibility/",
-    price: "무료",
-    purposes: ["love", "compatibility"],
-    methods: ["saju"],
-    keys: "궁합 커플 인연 상성",
-    badge: "무료",
-  },
-  {
     id: "fortune-chat",
     name: "대화형 운명 상담",
     desc: "연이·네오와 나누는 운명 대화",
