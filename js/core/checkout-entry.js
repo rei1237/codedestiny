@@ -637,6 +637,168 @@
   };
   var DEFAULT_DIRECT_PAY_METHOD = "CARD";
 
+  // ── 결제수단 런타임 가용성 ──────────────────────────────────────────────────────────
+  //
+  // 위 표는 **정적 정책**이다 — "이 수단을 우리가 열기로 했는가". 그런데 카카오페이처럼 자기 채널키를
+  // 쓰는 수단은 그 키가 그 환경에 실제로 있어야 결제가 된다. 서버는 이미 /api/payments/config 로
+  // 그 사실을 공개하는데(kakaopayChannelKey · kakaopayConfigured) **소비하는 곳이 하나도 없어서**,
+  // 키가 없는 환경에서도 타일이 멀쩡히 보이고 사용자가 누르면 checkout POST 로 **주문을 만든 뒤**에야
+  // 조립부가 던졌다 — 화면에는 막다른 오류가 뜨고 서버에는 PENDING 주문이 남았다(2026-09-06 신고).
+  //
+  // 그래서 표에 곱할 런타임 신호를 여기 하나 둔다. 판정은 `정적 enabled AND 런타임 가용` 이고,
+  // 비가용은 새 UI 가 아니라 기존 '준비 중' 규격을 그대로 탄다.
+  //
+  // 🔴 **모르면 막지 않는다.** config 가 아직 안 왔거나 그 필드를 안 실어 보냈으면 종전대로 활성이다.
+  // 여기서 fail-closed 로 가면 config 왕복이 느린 환경에서 멀쩡한 카드 결제까지 '준비 중'이 된다 —
+  // 이 층이 막는 것은 "서버가 그 키가 비었다고 **말한** 경우" 하나뿐이다.
+  //
+  // 🔴 상태는 모듈 클로저가 아니라 window 에 둔다(아래 SELECTED_PAY_METHOD_KEY 와 같은 이유). 이 파일은
+  // classic script 와 webpack import 두 경로로 로드돼 인스턴스가 둘이라, 클로저에 두면 React 결제창이
+  // 주입한 신호를 셸의 조립부가 못 본다.
+  var METHOD_AVAILABILITY_KEY = "__cdDirectPayMethodAvailability";
+
+  function methodAvailabilityMap() {
+    var win = runtimeWindow();
+    if (!win) return null;
+    var map = win[METHOD_AVAILABILITY_KEY];
+    return map && typeof map === "object" ? map : null;
+  }
+
+  /** 표의 정적 정책과 런타임 신호를 곱한 최종 판정. 표를 읽는 모든 곳이 이걸 거친다. */
+  function directPayMethodOpen(id, entry) {
+    if (!entry || entry.enabled !== true) return false;
+    var map = methodAvailabilityMap();
+    if (!map) return true;
+    return map[id] !== false;
+  }
+
+  /**
+   * 서버 결제 config 를 받아, 표가 전용 채널키를 요구하는 수단 중 **서버가 비었다고 말한** 것을
+   * 런타임 비가용으로 기록한다. 결제창을 여는 세 렌더러가 config 를 손에 넣는 지점에서 부른다.
+   *
+   * 🔴 수단 목록을 손으로 적지 않는다 — 표에서 channelKeyName 이 있는 항목을 전수로 발견한다.
+   * 새 전용 채널 수단이 늘어도 이 함수는 그대로다.
+   *
+   * @returns {string[]} 이번 호출로 **닫힌** 카드 id 목록(호출부가 "고른 수단이 방금 막혔다"를 안다).
+   */
+  function setDirectPayMethodAvailability(config) {
+    var win = runtimeWindow();
+    if (!win) return [];
+    var source = config && typeof config === "object" ? config : null;
+    if (!source) return [];
+    var map = methodAvailabilityMap() || {};
+    var closed = [];
+    for (var i = 0; i < DIRECT_PAY_METHOD_ORDER.length; i += 1) {
+      var id = DIRECT_PAY_METHOD_ORDER[i];
+      var entry = DIRECT_PAY_METHODS[id];
+      // 공용 이니시스 채널을 쓰는 수단은 판정 대상이 아니다 — 여기서 CARD 를 건드리면 결제가 통째로 죽는다.
+      if (!entry || !entry.channelKeyName) continue;
+      // 서버가 말하지 않은 필드는 건드리지 않는다(구 워커 응답과의 호환).
+      if (!(entry.channelKeyName in source)) continue;
+      var available = !!text(source[entry.channelKeyName]);
+      var was = directPayMethodOpen(id, entry);
+      map[id] = available;
+      if (was && !available) closed.push(id);
+    }
+    win[METHOD_AVAILABILITY_KEY] = map;
+    // 방금 닫힌 수단이 지금 고른 값이면 선택을 비운다 — 안 그러면 resolveDirectPayFields 가 계속
+    // 그 수단을 돌려줘 조립부가 다시 채널키 결손으로 던진다.
+    if (closed.length) {
+      var picked = peekSelectedDirectPayMethod();
+      if (picked && closed.indexOf(picked) >= 0) clearSelectedDirectPayMethod();
+    }
+    return closed;
+  }
+
+  /**
+   * 조립부가 채널키 결손으로 실제로 막혔을 때의 안전망. config 주입이 어떤 이유로 빗나가도
+   * 두 번째 사용자부터는 그 타일이 '준비 중'으로 보인다.
+   */
+  function markDirectPayMethodUnavailable(id) {
+    var win = runtimeWindow();
+    var key = text(id).toUpperCase();
+    if (!win || !DIRECT_PAY_METHODS[key]) return false;
+    var map = methodAvailabilityMap() || {};
+    map[key] = false;
+    win[METHOD_AVAILABILITY_KEY] = map;
+    if (peekSelectedDirectPayMethod() === key) clearSelectedDirectPayMethod();
+    return true;
+  }
+
+  var METHOD_AVAILABILITY_PENDING_KEY = "__cdDirectPayMethodAvailabilityPending";
+
+  /**
+   * 결제창을 여는 렌더러가 부르는 1회성 워밍업. config 왕복은 **페이지당 한 번**이고 세 렌더러가 그
+   * 하나를 나눠 쓴다(원칙 6 — 렌더러마다 사전검사를 새로 붙이지 않는다). 모달 오픈을 막지 않는다:
+   * 결과가 도착하면 호출부가 이미 그려진 타일만 내린다.
+   *
+   * 🔴 실패는 캐시하지 않는다 — 로그인 전 401 한 번이 그 페이지 내내 신호를 죽이면 안 된다.
+   *
+   * @param {() => Promise<any>} loadConfig 렌더러의 인증 fetch 로 결제 config 를 받아 오는 함수.
+   * @returns {Promise<string[]>} 닫힌 카드 id 목록.
+   */
+  function ensureDirectPayMethodAvailability(loadConfig) {
+    var win = runtimeWindow();
+    if (!win || typeof loadConfig !== "function") return Promise.resolve([]);
+    var pending = win[METHOD_AVAILABILITY_PENDING_KEY];
+    if (pending && typeof pending.then === "function") return pending;
+    pending = Promise.resolve()
+      .then(loadConfig)
+      .then(function (config) {
+        return setDirectPayMethodAvailability(config);
+      })
+      .catch(function () {
+        try {
+          win[METHOD_AVAILABILITY_PENDING_KEY] = null;
+        } catch (_availabilityResetError) {
+          /* noop */
+        }
+        return [];
+      });
+    win[METHOD_AVAILABILITY_PENDING_KEY] = pending;
+    return pending;
+  }
+
+  /**
+   * 이미 그려진 2단계 패널의 타일을 '준비 중'으로 내린다. 세 렌더러 모두 모달을 먼저 띄우고 config 는
+   * 뒤늦게 받으므로, 패널을 다시 그리지 않고 이 함수로 같은 규격을 입힌다 — 마크업 규칙을
+   * buildDirectPayMethodStepHtml 과 같은 파일에 두어 렌더러마다 갈라지지 않게 한다.
+   *
+   * @param {Element|Document|null} root 타일을 찾을 범위(보통 결제창 모달 노드).
+   * @param {string[]} ids 내릴 카드 id 목록(setDirectPayMethodAvailability 의 반환값).
+   * @returns {number} 실제로 내린 타일 수.
+   */
+  function markDirectPayMethodTilesUnavailable(root, ids) {
+    var scope = root && typeof root.querySelector === "function" ? root : null;
+    if (!scope || !ids || !ids.length) return 0;
+    var comingSoon = directPayMethodComingSoonText();
+    var applied = 0;
+    for (var i = 0; i < ids.length; i += 1) {
+      var id = text(ids[i]).toUpperCase();
+      if (!id) continue;
+      var tile = null;
+      try {
+        tile = scope.querySelector('[data-pay-method="' + id + '"]');
+      } catch (_tileSelectorError) {
+        tile = null;
+      }
+      if (!tile || (tile.classList && tile.classList.contains("is-disabled"))) continue;
+      if (tile.classList) tile.classList.add("is-disabled");
+      tile.setAttribute("aria-disabled", "true");
+      tile.setAttribute("aria-label", directPayMethodLabel(id) + " (" + comingSoon + ")");
+      // 배지에는 글리프 <span> 이 들어 있어 textContent 를 덮으면 아이콘이 사라진다 — 뒤에 붙인다.
+      var badge = tile.querySelector(".cd-direct-payment-badge");
+      if (badge && typeof badge.insertAdjacentText === "function" && badge.textContent.indexOf(comingSoon) < 0) {
+        badge.insertAdjacentText("beforeend", comingSoon);
+      }
+      // 상품권 칩에는 설명 줄이 없다(마크업 규격).
+      var desc = tile.querySelector(".cd-direct-payment-desc");
+      if (desc) desc.textContent = comingSoon;
+      applied += 1;
+    }
+    return applied;
+  }
+
   /**
    * 결제수단 라벨.
    *
@@ -713,8 +875,8 @@
   }
 
   function isDirectPayMethodEnabled(id) {
-    var entry = DIRECT_PAY_METHODS[text(id).toUpperCase()];
-    return !!(entry && entry.enabled === true);
+    var key = text(id).toUpperCase();
+    return directPayMethodOpen(key, DIRECT_PAY_METHODS[key]);
   }
 
   /**
@@ -727,12 +889,15 @@
    * (그러면 상품권의 giftCertificateType 이 빠져 창이 안 뜬다). 복사본만, 표시에 필요한 값만 돌려준다.
    */
   function directPayMethodMeta(id) {
-    var entry = DIRECT_PAY_METHODS[text(id).toUpperCase()];
+    var key = text(id).toUpperCase();
+    var entry = DIRECT_PAY_METHODS[key];
     if (!entry) return null;
     return {
       glyph: entry.glyph || "",
       isGiftCertificate: !!entry.giftCertificateType,
-      enabled: entry.enabled === true,
+      // 🔴 정적 enabled 가 아니라 런타임 판정이다 — 이 값을 그대로 쓰는 /points 그리드가
+      // isDirectPayMethodEnabled 와 다른 답을 그리면 안 된다.
+      enabled: directPayMethodOpen(key, entry),
     };
   }
 
@@ -751,7 +916,7 @@
     var comingSoon = directPayMethodComingSoonText();
     var activeHint = checkoutText("payment.directModal.directHint", "지금 보고 있는 콘텐츠 하나만 바로 열려요.");
     function renderMethodCard(id, entry) {
-      var enabled = entry.enabled === true;
+      var enabled = directPayMethodOpen(id, entry);
       var label = directPayMethodLabel(id);
       return (
         '<button type="button" class="cd-direct-payment-option cd-direct-payment-option--secondary'
@@ -771,7 +936,7 @@
 
     // 상품권 칩. 카드와 같은 data-pay-method 를 들고 있어 선택 경로는 완전히 동일하다.
     function renderGiftChip(id, entry) {
-      var enabled = entry.enabled === true;
+      var enabled = directPayMethodOpen(id, entry);
       var label = directPayMethodLabel(id);
       return (
         '<button type="button" class="cd-direct-payment-giftchip'
@@ -804,7 +969,7 @@
       giftGroupRendered = true;
       var groupLabel = directPayGiftGroupLabel();
       var anyEnabled = giftIds.some(function (giftId) {
-        return DIRECT_PAY_METHODS[giftId].enabled === true;
+        return directPayMethodOpen(giftId, DIRECT_PAY_METHODS[giftId]);
       });
       return (
         '<div class="cd-direct-payment-giftgroup" role="group" aria-label="' + escape(groupLabel) + '">'
@@ -1112,6 +1277,8 @@
         merchantUid: text(ticket.merchantUid),
         paymentMethod: text(ticket.paymentMethod || (ticket.confirmBody && ticket.confirmBody.paymentMethod)),
         confirmBody: ticket.confirmBody || null,
+        // 복귀한 문서가 "무엇을 다시 열어야 하는지" — 없으면 종전대로 완료 안내까지만 한다.
+        resume: sanitizePaidResumeDescriptor(ticket.resume),
       }));
       return true;
     } catch (_writeError) {
@@ -1143,6 +1310,223 @@
       if (!stores[i]) continue;
       try { stores[i].removeItem(DIRECT_RESUME_KEY); } catch (_clearError) { /* 지우기 실패는 삼킨다 */ }
     }
+  }
+
+  /* ── 재개 서술자 ─────────────────────────────────────────────────────────
+     결제 전 화면 상태를 **직렬화 가능한 값**으로만 적어 둔 쪽지다. 복귀한 문서는 새 문서라
+     클로저·DOM·모듈 인스턴스가 전부 사라져 있으므로, 콜백을 저장할 수는 없고 "어떤 종류의 재개를,
+     어떤 딥링크에서, 어떤 인자로" 만 남긴다. 실제 동작은 그 기능 파일이 registerPaidResumeHandler
+     로 등록한 핸들러가 한다.
+
+     🔴 함수·DOM 노드는 담지 않는다 — JSON.stringify 가 조용히 버리거나 통째로 던져서 티켓 자체가
+     저장되지 않는다(그러면 결제 확정도 못 한다). args 는 원시값만 통과시킨다. */
+  function sanitizePaidResumeDescriptor(input) {
+    if (!input || typeof input !== "object") return null;
+    var kind = text(input.kind);
+    if (!kind) return null;
+    var args = {};
+    var source = input.args && typeof input.args === "object" ? input.args : {};
+    var keys = Object.keys(source);
+    for (var i = 0; i < keys.length; i += 1) {
+      var value = source[keys[i]];
+      var type = typeof value;
+      if (value === null || type === "string" || type === "boolean") args[keys[i]] = value;
+      else if (type === "number" && isFinite(value)) args[keys[i]] = value;
+    }
+    return { kind: kind, action: text(input.action), args: args };
+  }
+
+  /* ── 재개 핸들러 레지스트리 ────────────────────────────────────────────────
+     🔴 상태는 window 에 둔다(가용성 맵과 같은 이유 — 인스턴스가 둘이다). 기능 파일은 자기 스크립트가
+     로드될 때 등록하고, 복귀 처리는 destiny-profile 이 한다. 이 둘이 다른 모듈 인스턴스를 봐도
+     같은 레지스트리에 닿아야 한다. */
+  var RESUME_HANDLER_KEY = "__cdPaidResumeHandlers";
+
+  /** @returns {boolean} 등록 성공 여부. 같은 kind 를 다시 등록하면 마지막 것이 이긴다(스크립트 재주입). */
+  function registerPaidResumeHandler(kind, handler) {
+    var win = runtimeWindow();
+    var key = text(kind);
+    if (!win || !key || typeof handler !== "function") return false;
+    var registry = win[RESUME_HANDLER_KEY];
+    if (!registry || typeof registry !== "object") registry = {};
+    registry[key] = handler;
+    win[RESUME_HANDLER_KEY] = registry;
+    return true;
+  }
+
+  /**
+   * 서술자에 맞는 핸들러를 실행한다.
+   *
+   * 🔴 **핸들러가 없거나 실패하면 false 를 돌려준다** — 호출부는 그때 "지금 열기" 카드를 그려
+   * 사용자가 직접 열게 한다. 여기서 던지면 결제 확정 뒤 처리가 통째로 멈춰 영수증도 안 남는다.
+   *
+   * @returns {Promise<boolean>} 재개가 실제로 일어났는지.
+   */
+  var RESUME_HANDLER_WAIT_MS = 8000;
+  var RESUME_HANDLER_POLL_MS = 200;
+
+  function readPaidResumeHandler(kind) {
+    var win = runtimeWindow();
+    var registry = win ? win[RESUME_HANDLER_KEY] : null;
+    var handler = registry && typeof registry === "object" ? registry[kind] : null;
+    return typeof handler === "function" ? handler : null;
+  }
+
+  /* 서술자의 딥링크로 그 기능의 표면을 연다. 🔴 앵커 타일(`<a href>`)을 그냥 click 하면 기본 이동이
+     살아나 페이지가 통째로 바뀌고 재개가 사라진다 — 셸의 액션 디스패처가 있으면 그쪽을 먼저 쓴다. */
+  function openPaidResumeSurface(action) {
+    var win = runtimeWindow();
+    var name = text(action);
+    if (!win || !name || typeof document === "undefined") return false;
+    var node = null;
+    try { node = document.querySelector('[data-action="' + name.replace(/"/g, '\\"') + '"]'); } catch (_resumeNodeError) { node = null; }
+    if (!node) return false;
+    try {
+      if (typeof win.__cdInvokeAction === "function") { win.__cdInvokeAction(name, node, null); return true; }
+    } catch (_resumeInvokeError) { /* 아래 click 폴백 */ }
+    try {
+      if (typeof node.click === "function") { node.click(); return true; }
+    } catch (_resumeClickError) { /* noop */ }
+    return false;
+  }
+
+  function waitForPaidResumeHandler(kind, limitMs) {
+    return new Promise(function (resolve) {
+      var win = runtimeWindow();
+      var deadline = Date.now() + limitMs;
+      // 🔴 win.setTimeout 을 변수에 떼어내 호출하면 브라우저가 Illegal invocation 을 던진다 — win 을 통해 부른다.
+      var canSchedule = !!(win && typeof win.setTimeout === "function");
+      (function poll() {
+        var handler = readPaidResumeHandler(kind);
+        if (handler) { resolve(handler); return; }
+        if (!canSchedule || Date.now() >= deadline) { resolve(null); return; }
+        win.setTimeout(poll, RESUME_HANDLER_POLL_MS);
+      })();
+    });
+  }
+
+  function invokePaidResumeHandler(handler, resume) {
+    var result;
+    try {
+      result = handler(resume);
+    } catch (_handlerError) {
+      return Promise.resolve(false);
+    }
+    return Promise.resolve(result).then(
+      function (value) { return value !== false; },
+      function () { return false; }
+    );
+  }
+
+  function runPaidResume(descriptor) {
+    var win = runtimeWindow();
+    var resume = sanitizePaidResumeDescriptor(descriptor);
+    if (!win || !resume) return Promise.resolve(false);
+    var handler = readPaidResumeHandler(resume.kind);
+    if (handler) return invokePaidResumeHandler(handler, resume);
+    /* 🔴 핸들러가 없다 ≠ 이 기능이 재개를 지원하지 않는다. 기능 스크립트가 지연 로드라 아직 안 온
+       것뿐이다(숙요 엔진은 숙요 모달을 열 때 로드된다 — index-inline-runtime 의 엔진 체인).
+       그래서 딥링크로 그 표면을 열어 스크립트를 불러오고, 등록될 때까지 상한을 두고 기다린다.
+       열 곳이 없거나 기다려도 안 오면 false — 호출부가 '지금 열기' 카드를 그린다. */
+    openPaidResumeSurface(resume.action);
+    return waitForPaidResumeHandler(resume.kind, RESUME_HANDLER_WAIT_MS).then(function (lateHandler) {
+      if (!lateHandler) return false;
+      return invokePaidResumeHandler(lateHandler, resume);
+    });
+  }
+
+  /* ── 유료 개방 영수증 ──────────────────────────────────────────────────────
+     "이 기능은 방금 돈을 냈다"는 로컬 증거다. 리다이렉트로 돌아온 사용자가 재개에 실패해 기능을 다시
+     누를 때 **또 결제되는 것**을 막는다 — 회당 결제 키(compat-sukuyo-compatibility 등)는 서버 보유
+     목록에 남지 않으므로(worker/lib/access-state.js 가 회당 키를 걸러낸다) 서버에 물어봐도 "없음"이다.
+
+     🔴 이것은 **로컬 스냅샷**이지 이용권 판정이 아니다. 게이트 진입에서 서버 왕복 없이 통과시키는
+     용도로만 쓴다(게이팅 절대 순서 1). 여기에 서버 조회를 붙이지 말 것.
+     🔴 **소비는 1회**다. 회당 결제가 영구 무료가 되면 안 된다. */
+  var GRANT_RECEIPT_KEY = "cd_paid_grant_receipt";
+  var GRANT_RECEIPT_TTL_MS = 24 * 60 * 60 * 1000;
+  var GRANT_RECEIPT_MAX = 20;
+
+  function readGrantReceipts() {
+    var stores = [localStore(), sessionStore()];
+    for (var i = 0; i < stores.length; i += 1) {
+      if (!stores[i]) continue;
+      var raw = "";
+      try { raw = String(stores[i].getItem(GRANT_RECEIPT_KEY) || ""); } catch (_readError) { continue; }
+      if (!raw) continue;
+      var parsed = null;
+      try { parsed = JSON.parse(raw); } catch (_parseError) { continue; }
+      if (!Array.isArray(parsed)) continue;
+      var now = Date.now();
+      var live = parsed.filter(function (item) {
+        return item && typeof item === "object" && now - (Number(item.at) || 0) <= GRANT_RECEIPT_TTL_MS;
+      });
+      if (live.length) return { store: stores[i], list: live };
+    }
+    return { store: localStore() || sessionStore(), list: [] };
+  }
+
+  function writeGrantReceipts(store, list) {
+    if (!store) return false;
+    try {
+      if (!list.length) store.removeItem(GRANT_RECEIPT_KEY);
+      else store.setItem(GRANT_RECEIPT_KEY, JSON.stringify(list.slice(-GRANT_RECEIPT_MAX)));
+      return true;
+    } catch (_writeError) {
+      return false;
+    }
+  }
+
+  /** 매칭은 featureKey|contentKey|profileId 3중 일치다 — 느슨하면 결제 안 한 기능이 열린다. */
+  function grantReceiptMatches(item, query) {
+    return text(item.featureKey) === text(query.featureKey)
+      && text(item.contentKey) === text(query.contentKey)
+      && text(item.profileId) === text(query.profileId);
+  }
+
+  /** 확정된 결제 하나를 영수증으로 남긴다. 같은 3중 키의 옛 영수증은 대체한다. */
+  function savePaidGrantReceipt(receipt) {
+    var input = receipt || {};
+    if (!text(input.featureKey)) return false;
+    var record = {
+      featureKey: text(input.featureKey),
+      contentKey: text(input.contentKey),
+      profileId: text(input.profileId),
+      requestId: text(input.requestId),
+      merchantUid: text(input.merchantUid),
+      at: Number(input.at) || Date.now(),
+    };
+    var current = readGrantReceipts();
+    var next = current.list.filter(function (item) { return !grantReceiptMatches(item, record); });
+    next.push(record);
+    return writeGrantReceipts(current.store, next);
+  }
+
+  /** 있는지만 본다(소비하지 않는다). 안내 문구를 그릴 때 쓴다. */
+  function peekPaidGrantReceipt(query) {
+    var input = query || {};
+    if (!text(input.featureKey)) return null;
+    var list = readGrantReceipts().list;
+    for (var i = list.length - 1; i >= 0; i -= 1) {
+      if (grantReceiptMatches(list[i], input)) return list[i];
+    }
+    return null;
+  }
+
+  /** 있으면 돌려주고 **지운다**. 게이트 진입에서 딱 한 번 무료 통과시키는 지점이다. */
+  function consumePaidGrantReceipt(query) {
+    var input = query || {};
+    if (!text(input.featureKey)) return null;
+    var current = readGrantReceipts();
+    var hit = null;
+    var next = [];
+    for (var i = 0; i < current.list.length; i += 1) {
+      if (!hit && grantReceiptMatches(current.list[i], input)) { hit = current.list[i]; continue; }
+      next.push(current.list[i]);
+    }
+    if (!hit) return null;
+    writeGrantReceipts(current.store, next);
+    return hit;
   }
 
   /** 이용권을 사러 떠나기 직전에 남기는 복귀 지점. 이동 전에 호출한다.
@@ -1293,6 +1677,10 @@
     DIRECT_PAY_METHOD_ORDER: DIRECT_PAY_METHOD_ORDER,
     DEFAULT_DIRECT_PAY_METHOD: DEFAULT_DIRECT_PAY_METHOD,
     isDirectPayMethodEnabled: isDirectPayMethodEnabled,
+    setDirectPayMethodAvailability: setDirectPayMethodAvailability,
+    markDirectPayMethodUnavailable: markDirectPayMethodUnavailable,
+    ensureDirectPayMethodAvailability: ensureDirectPayMethodAvailability,
+    markDirectPayMethodTilesUnavailable: markDirectPayMethodTilesUnavailable,
     directPayMethodMeta: directPayMethodMeta,
     directPayMethodLabel: directPayMethodLabel,
     directPayGiftGroupLabel: directPayGiftGroupLabel,
@@ -1307,6 +1695,13 @@
     saveDirectPaymentResumeTicket: saveDirectPaymentResumeTicket,
     readDirectPaymentResumeTicket: readDirectPaymentResumeTicket,
     clearDirectPaymentResumeTicket: clearDirectPaymentResumeTicket,
+    GRANT_RECEIPT_KEY: GRANT_RECEIPT_KEY,
+    GRANT_RECEIPT_TTL_MS: GRANT_RECEIPT_TTL_MS,
+    savePaidGrantReceipt: savePaidGrantReceipt,
+    peekPaidGrantReceipt: peekPaidGrantReceipt,
+    consumePaidGrantReceipt: consumePaidGrantReceipt,
+    registerPaidResumeHandler: registerPaidResumeHandler,
+    runPaidResume: runPaidResume,
     buildDirectPayMethodStepHtml: buildDirectPayMethodStepHtml,
     setSelectedDirectPayMethod: setSelectedDirectPayMethod,
     clearSelectedDirectPayMethod: clearSelectedDirectPayMethod,
