@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-06
-next: PR-B(브랜치 worktree-home-ia-pr-b) 머지 확인 → Phase 3 `/world/` 목업(URL 확정 제안 포함) → 승인 뒤 구현하면서 푸터 `footer.story.world` 링크를 그 라우트로 바꾼다. 목업 승인은 끝났으니 다시 묻지 말 것.
+next: PR #1628(PR-B) 은 충돌 해소·CI 통과 완료 — 사용자 머지만 남았다. 머지 뒤 Phase 3 `/world/` 목업(URL 확정 제안 포함) → Phase 3 `/world/` 목업(URL 확정 제안 포함) → 승인 뒤 구현하면서 푸터 `footer.story.world` 링크를 그 라우트로 바꾼다. 목업 승인은 끝났으니 다시 묻지 말 것.
 ---
 
 # 홈 IA 재설계 + 캐릭터·세계관 페이지(`/world/`) 신설
@@ -14,6 +14,7 @@ next: PR-B(브랜치 worktree-home-ia-pr-b) 머지 확인 → Phase 3 `/world/` 
 
 - Phase 1 진단 완료(코드 변경 0). 리포트 원문은 세션 플랜 파일 `C:\Users\user\.claude\plans\code-destiny-elegant-quokka.md` (레포 밖). 핵심만 아래에.
 - Phase 2 목업 승인됨(아티팩트 https://claude.ai/code/artifact/5b1a51bc-2726-49de-972a-bd2cd02ee634 — 90일권은 목업 오류였고 4등급 전부 30일로 정정). PR-A 구현 완료·PR 대기(브랜치 `worktree-home-ia-phase2`).
+- PR #1628(PR-B) 충돌 해소 완료(2026-09-06): origin/main 을 브랜치에 병합한 뒤 `sync:public` 으로 캐시버스트 해시를 재생성했다. 충돌은 전부 `?v=build-<hash>` 참조였고 내용 차이 0건 — 로컬 cachebust merge driver 가 해소하지만 **GitHub 은 그 드라이버를 못 돌려 충돌로 판정**하므로, 정적 셸을 건드리는 PR 은 앞으로도 main 을 브랜치에 병합해 올려야 한다. 현재 mergeable=MERGEABLE / CLEAN, PR CI 전부 통과.
 - PR-B 구현 완료(2026-09-06): `#dpDestinyPanel`(스타일+프로필 카드+토글+폼)을 `.moon-hero` 안으로 노드째 이동, 861px 이상 2열(카피 | 패널, 위쪽 정렬) — 규칙은 `cd-hero-form-in-hero-v20260906`(hoist 사본·renaissance 두 곳 동일). 폼 상시 열림은 실측으로 기각(폼 1,968px → 히어로 2,827px). `#cdConcernPick`(스타일+섹션+스크립트)은 `#cdHomeExpandToggle` 뒤 `data-cd-home-secondary` 로, 1차 동선은 `#cdSignatureConsult` 머리글의 `.cd-sig__concern-link`(`home.concernPick.title` 재사용, 신규 키 0). 컬렉션 8그룹은 이미 접기 축이라 이동 없음. CLS 실측(dist·CDP·3회): 모바일 ≤0.0022 / 데스크톱 최악 0.052, 09-04 dist 기준선 0.0011 / 0.056 과 동급.
 - PR-A 가 한 것: 네오 테마 버튼 🌙→🦁, 히어로 `Celestial Fortune Collection` 줄 삭제, 히어로 CTA 1개(`✦ 운명 카드 만들기` → `#destinyCardForm`, 12로케일 `home.hero2.primaryCta` 갱신), `.membership-recap-cta` 를 `#cdHomeSecondaryPanel` 밖 `#cdSignatureConsult` 직후로 옮기고 `home.passMini.*` 키 재사용 4등급 카드 추가(`/points/?source=main-membership&plan=<tier>`), 홈 셸·fortune 허브 셸·sitemap 주석의 `꿀꿀 만세력` 표기 제거(ko.json `home.homeGuide.lead/sajuBody` 동반).
 
