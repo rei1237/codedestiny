@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-05
-next: "베다 점성을 09-05 에 닫았다(아래 §베다 점성 — 정상 문안 360px 이탈 155→0). 🔴 **거기서 얻은 교훈이 다음 작업의 전제다: 'keep-all 단독' 건수는 화면 결함의 대리 지표가 아니다** — 베다의 진짜 발원지는 감사표가 센 keep-all 1곳이 아니라 `.chatList` 의 안 눌린 암시적 1열 트랙이었고, 스트레스 없이 정상 문안에서도 잘리고 있었다. 다음 기능도 '건수 짝맞춤'이 아니라 **화면을 열어 재는 작업**으로 잡을 것. §다른 전문가 상담 감사 의 잔여는 **섬 상담 6곳(`app/island-consult/IslandConsultClient.tsx:952,955,965,990`)** 하나뿐이고, 픽스처가 없어(`lib/dev-preview/fixtures/` 8종에 없음) **첫 일은 화면 여는 법 찾기**다 — 낙샤트라식 해금 원장 시드(`cd_verified_unlock_grants_v1`)가 통하는지부터 보고, 안 되면 '측정 불가'를 명기하고 짝만 붙인다. 숙요궁합(34)은 사용자가 '정상'으로 판정해 제외됐다. 🔴 스캐너 맹점 2종(전역 clip · 진입 애니메이션 opacity)은 그대로라 스캐너 수치로 전/후를 판정하지 말 것. CI 게이트 2종(`verify:mobile-cdp-smoke`·`verify:mobile-detail-render`)의 OF 맹점은 여전히 별도 PR 이 필요하다"
+next: "베다 점성을 09-05 에 닫았다(#1592, 아래 §베다 점성 — 정상 문안 360px 이탈 155→0). 🔴 **거기서 얻은 교훈이 다음 작업의 전제다: 'keep-all 단독' 건수는 화면 결함의 대리 지표가 아니다** — 베다의 진짜 발원지는 감사표가 센 keep-all 1곳이 아니라 `.chatList` 의 안 눌린 암시적 1열 트랙이었고, 스트레스 없이 정상 문안에서도 잘리고 있었다. 다음 기능도 '건수 짝맞춤'이 아니라 **화면을 열어 재는 작업**으로 잡을 것. §다른 전문가 상담 감사 의 잔여는 **섬 상담 6곳(`app/island-consult/IslandConsultClient.tsx:952,955,965,990`)** 하나뿐이고, 픽스처가 없어(`lib/dev-preview/fixtures/` 8종에 없음) **첫 일은 화면 여는 법 찾기**다 — 낙샤트라식 해금 원장 시드(`cd_verified_unlock_grants_v1`)가 통하는지부터 보고, 안 되면 '측정 불가'를 명기하고 짝만 붙인다. 숙요궁합(34)은 사용자가 '정상'으로 판정해 제외됐다. 🔴 스캐너 맹점 2종(전역 clip · 진입 애니메이션 opacity)은 그대로라 스캐너 수치로 전/후를 판정하지 말 것. CI 게이트 2종(`verify:mobile-cdp-smoke`·`verify:mobile-detail-render`)의 OF 맹점은 여전히 별도 PR 이 필요하다"
 ---
 
 # 기능별 모바일 순회 원장
@@ -247,7 +247,7 @@ next: "베다 점성을 09-05 에 닫았다(아래 §베다 점성 — 정상 �
 - 정상 문안: 6/6 조합 **바이트 동일**(예: dasha-map 360 양쪽 `adcffd39d8a0` / 1,125,410B).
 - 계측기 유효성: 같은 대조를 스트레스 문안으로 돌리면 프리미엄 2화면이 4/4 조합에서 **갈린다**(dasha-map 360: `a4ae28c1962f` 5.7MB ↔ `ec4ed5adfe5b` 2.7MB). 허브는 스텁 콘텐츠가 안 닿아 양쪽 다 동일한 것이 정상이다.
 
-## 베다 점성 (`/vedic-ai/result/`) — 09-05 수정
+## 베다 점성 (`/vedic-ai/result/`) — 09-05 수정 (#1592)
 
 ### 결과 화면을 결제·LLM 없이 여는 하네스
 
@@ -323,7 +323,7 @@ next: "베다 점성을 09-05 에 닫았다(아래 §베다 점성 — 정상 �
 - ~~`app/karma-destiny-ai/KarmaDestinyAiClient.tsx:3599,3903` · `app/karma-destiny-ai/result/_components/ResultStyles.tsx:260,292,307,399`~~ → 09-05 완료 (위 §카르마 데스티니)
 - ~~`app/new-year-ai-consultation/NewYearAiClient.tsx:1268,1341,1449,2280,2485,2657`~~ → 09-05 완료 (위 §신년운세)
 - ~~`app/sukuyo-compatibility-ai/SukuyoCompatibilityAiClient.module.css:277,339,350,429,521,532`~~ → 09-05 제외: 사용자가 화면을 확인해 "정상" 으로 판정했다(수정 불요). 🔴 다시 감사하지 말 것
-- ~~`app/vedic-ai/VedicAiClient.module.css:735`~~ → 09-05 완료 (위 §베다 점성). 🔴 이 1곳은 **결함의 주범이 아니었다** — 같은 화면의 진짜 발원지는 `.chatList` 의 안 눌린 암시적 1열 트랙이었고 정상 문안에서도 잘리고 있었다. **keep-all 건수는 화면 결함의 대리 지표가 아니다.**
+- ~~`app/vedic-ai/VedicAiClient.module.css:735`~~ → 09-05 완료 (#1592, 위 §베다 점성). 🔴 이 1곳은 **결함의 주범이 아니었다** — 같은 화면의 진짜 발원지는 `.chatList` 의 안 눌린 암시적 1열 트랙이었고 정상 문안에서도 잘리고 있었다. **keep-all 건수는 화면 결함의 대리 지표가 아니다.**
 - ~~`app/nakshatra/dasha-map/dasha-timeline.module.css:10,53,70,112` · `app/nakshatra/muhurta/muhurta.module.css:44,93`~~ → 09-05 완료, 트리 전체 31곳으로 확장해 처리 (위 §낙샤트라). muhurta·vvip 8곳은 짝만 붙이고 **렌더 미측정**
 
 기능별 결과 화면을 여는 수단은 제각각이다 — dev-preview 픽스처는 `lib/dev-preview/fixtures/` 8종뿐(astrology · karma-destiny · life-book · love-secret · new-year · sukuyo-compatibility · vedic · ziwei). `destiny-compass` · `island-consult` · `nakshatra/ai` · `naming-ai` 는 픽스처가 없어 **현재 측정 수단이 없다**(결함 없음이 아니라 미측정).
