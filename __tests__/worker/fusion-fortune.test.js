@@ -558,7 +558,8 @@ describe("Fusion Fortune per-use billing and mock generation", () => {
       // 최소치보다 위의 목표가 함께 있어야 한다 — 없으면 모델은 최소치 아래에서 멈춘다.
       expect(Math.max(...numbers)).toBeGreaterThan(minChars);
       expect(node.description).toContain("반려");
-      // 🔴 FORBIDDEN(무조건·반드시)을 프롬프트에 넣지 않는다 — 모델이 되받아 쓰면 unsafe_phrase 로 자기 응답이 반려된다.
+      // 🔴 단정 부사(무조건·반드시)를 프롬프트에 넣지 않는다 — 모델이 어투를 되받아 본문에 쓰고
+      //    거기서 단정 술어와 만나면 unsafe_phrase 로 자기 응답이 반려된다.
       expect(node.description).not.toMatch(/무조건|반드시/);
     }
   });
@@ -590,16 +591,22 @@ describe("Fusion Fortune per-use billing and mock generation", () => {
     expect(validateFusionFortuneResult(repeated)).toMatchObject({ ok: false, issues: ["repeated_sentence"] });
   });
 
-  it("🔴 keeps hedged wording out of unsafe_phrase — 2026-09-06 실호출에서 `무조건적으로 수용하기보다` 가 반려됐다", async () => {
+  it("🔴 단독 부사는 단정 술어와 공기할 때만 unsafe_phrase — 2026-09-06 실호출 오탐 3건이 근거", async () => {
     const result = await generateFusionFortuneWithMockLLM({ context: { birthTimeKnown: true } });
     const withClosing = (sentence) => validateFusionFortuneResult({ ...result, closingMessage: `${result.closingMessage} ${sentence}` });
+    // 실호출에서 실제로 반려됐던 세 문장 — 전부 부사만 있고 단정 술어가 없다(3·4·6차).
     expect(withClosing("조언을 무조건적으로 수용하기보다 자신의 리듬에 맞춰 조정해 보세요.").ok).toBe(true);
-    expect(withClosing("반드시 그런 것은 아니니 여유를 두세요.").ok).toBe(true);
-    // 🔴 `무조건적`은 성향 서술이라 완화어가 뒤따르지 않아도 단정문이 아니다 — 4차 실호출에서 astrology 가 이걸로 폴백됐다.
     expect(withClosing("당신은 무조건적인 사랑을 추구하는 경향을 보입니다.").ok).toBe(true);
-    // 면책은 같은 문장 안에서만 — 뒤 문장의 부정어가 앞 문장의 단정을 덮으면 안 된다.
-    expect(withClosing("이 시기에는 무조건 성과가 납니다.")).toMatchObject({ ok: false, issues: ["unsafe_phrase"] });
-    expect(withClosing("무조건 오릅니다. 걱정은 없습니다.")).toMatchObject({ ok: false, issues: ["unsafe_phrase"] });
+    expect(withClosing("타인의 요구에 무조건 응하거나, 자신의 감정을 억압하는 습관입니다.").ok).toBe(true);
+    expect(withClosing("반드시 그런 것은 아니니 여유를 두세요.").ok).toBe(true);
+    // 🔴 의도한 탐지력 하락 — 단정 술어가 없는 절대 단언은 이제 통과한다. 표지 목록을 깎는 대신 치른 대가다.
+    expect(withClosing("이 시기에는 무조건 성과가 납니다.").ok).toBe(true);
+    // 같은 문장 안에서 단정 술어와 만나면 잡는다. 면책도 같은 문장 안에서만 — 뒤 문장의 부정어가 앞 문장을 덮지 못한다.
+    expect(withClosing("이 시기에는 무조건 성과가 난다고 단정합니다.")).toMatchObject({ ok: false, issues: ["unsafe_phrase"] });
+    expect(withClosing("반드시 오른다고 보장합니다. 걱정은 없습니다.")).toMatchObject({ ok: false, issues: ["unsafe_phrase"] });
+    expect(withClosing("무조건 오른다고 단정할 수는 없습니다.").ok).toBe(true);
+    // 여러 낱말 항목은 부사와 무관하게 그대로 부분 일치로 잡힌다 — 이 축에 남은 이빨이다.
+    expect(withClosing("상대는 반드시 돌아온다.")).toMatchObject({ ok: false, issues: ["unsafe_phrase"] });
   });
 
   it("selects a six-position tarot spread on the server and never accepts client card names", () => {
