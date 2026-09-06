@@ -559,7 +559,7 @@ export function parseFusionFortuneLLMResponse(rawResponse) {
   return { ok: false, errorCode: "FUSION_LLM_PARSE_FAILED" };
 }
 
-function fusionValidationOptions(context = {}, input = {}) {
+export function fusionValidationOptions(context = {}, input = {}) {
   return {
     birthTimeKnown: context.birthTimeKnown === true,
     birthPlaceKnown: context.birthPlaceKnown === true,
@@ -704,7 +704,7 @@ export function validateFusionFortuneGroup(value = {}, group, { birthTimeKnown =
 }
 
 /** 기본 그룹 호출 — 잘림 반응형 재시도와 폴백 JSON 정화를 공용 헬퍼에 맡긴다. */
-function callFusionGroupProvider(env, userPrompt, options = {}) {
+export function callFusionGroupProvider(env, userPrompt, options = {}) {
   const { attempts, maxOutputTokens, ...rest } = options;
   return callGeminiJsonWithRetry(env, userPrompt, {
     ...rest,
