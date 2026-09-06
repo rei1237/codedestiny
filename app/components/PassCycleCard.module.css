@@ -1,0 +1,69 @@
+.card {
+  padding: 20px;
+  border: 1px solid var(--pass-accent-border, rgba(42, 47, 110, 0.88));
+  border-radius: 20px;
+  background: linear-gradient(145deg, color-mix(in srgb, var(--pass-accent, #f4c86a) 14%, #0e1030), #0e1030);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.label {
+  margin: 0;
+  color: #f4c86a;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.tier {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 4px 12px;
+  color: var(--pass-accent, #f4c86a);
+  background: color-mix(in srgb, var(--pass-accent, #f4c86a) 16%, transparent);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.amounts {
+  margin: 14px 0 0;
+  color: #c8ceff;
+  font-variant-numeric: tabular-nums;
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.track {
+  margin-top: 10px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(42, 47, 110, 0.88);
+  overflow: hidden;
+}
+
+.fill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--pass-accent, #f4c86a);
+}
+
+.remaining {
+  margin: 10px 0 0;
+  color: #7b82c4;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.standard { --pass-accent: #f5df9d; --pass-accent-border: rgba(233, 209, 138, 0.55); }
+.premium { --pass-accent: #cab8ff; --pass-accent-border: rgba(202, 184, 255, 0.55); }
+.vvip,
+.family { --pass-accent: #8cb8ff; --pass-accent-border: rgba(140, 184, 255, 0.55); }
