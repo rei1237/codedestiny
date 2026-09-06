@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-06
-next: PR #1628(PR-B) 은 충돌 해소·CI 통과 완료 — 사용자 머지만 남았다. 머지 뒤 Phase 3 `/world/` 목업(URL 확정 제안 포함) → Phase 3 `/world/` 목업(URL 확정 제안 포함) → 승인 뒤 구현하면서 푸터 `footer.story.world` 링크를 그 라우트로 바꾼다. 목업 승인은 끝났으니 다시 묻지 말 것.
+next: Phase 3 `/world/` 구현 완료 — PR #1637 CI 전부 통과, **사용자 머지만 남았다**. 머지 뒤 Phase 4(시각 디테일) → Phase 5(검증) 순서. 목업 승인은 끝났으니 다시 묻지 말 것.
 ---
 
 # 홈 IA 재설계 + 캐릭터·세계관 페이지(`/world/`) 신설
@@ -46,10 +46,10 @@ next: PR #1628(PR-B) 은 충돌 해소·CI 통과 완료 — 사용자 머지만
 
 - [x] Phase 2 목업 → 승인 → PR-A 구현.
 - [x] Phase 2 PR-B(폼→히어로·고민 선택→접기 축·모달 감사). 잠금 블록은 재작성 불필요했다(새 규칙을 canon/fold 밖 renaissance 에 둬 가드 무변경 통과).
-- [ ] PR-B 에서 보류·발견(고치지 말고 판단만): 푸터 `footer.story.world` 는 라우트가 없어 그대로(404 방지) — Phase 3 에서 처리 · `#cdTodayPick` 은 사용자 PR-B 목록에 없어 손대지 않음 · 히어로 베일 그라디언트 하단 구간(62%→100% 크림)이 패널이 들어오며 길어져 카드가 "배경 밖"처럼 보임(모바일 실측, visual-checker) · 데스크톱 1280 캡처에 하단 탭바 `#cdMobileBottomNav` 가 보임(PR-B 전부터인지 미검증) · 쿠키 배너가 첫 화면 CTA 를 가림(기존).
+- [ ] PR-B 에서 보류·발견(고치지 말고 판단만): (해소됨: 푸터 `footer.story.world` 는 PR #1637 에서 `/world/` 로) · `#cdTodayPick` 은 사용자 PR-B 목록에 없어 손대지 않음 · 히어로 베일 그라디언트 하단 구간(62%→100% 크림)이 패널이 들어오며 길어져 카드가 "배경 밖"처럼 보임(모바일 실측, visual-checker) · 데스크톱 1280 캡처에 하단 탭바 `#cdMobileBottomNav` 가 보임(PR-B 전부터인지 미검증) · 쿠키 배너가 첫 화면 CTA 를 가림(기존).
 - [ ] 구명 잔재 후속(PR-A 범위 밖, 손대지 않음): `public/i18n/ko/shellRuntime.json` f9·f70·f2951, `lib/seo/siteSeo.ts`·`siteConfig.ts`·`entity-registry.mjs`, `app/components/SeoJsonLd.jsx`, `manifest.json`, `llms.txt`, `js/fortune-engine.js`·`js/share.js`, `i18n/authored/shellCopy-02.json`, `lib/i18n/siteFooterHubCopy.ts`, `public/famous` og:site_name 주석. 사전 고아 키 `home.hero.brandLine`·`shell.moonHeroCopy.moonHeroActions.k107dp07`.
 - [ ] 에이전트가 짚은 결함(고치지 말고 보고만): `index.html` 미니 배지 `labels`/`freeLimits` 와 `worker/routes/payments.js` `SUBSCRIPTION_BASE_PLANS` 는 등급명 6번째 사본인데 `verify:pass-tier-policy` 사본 스윕 밖; `syncMembershipStatus` 의 "다음 갱신 전까지" 문구는 자동갱신 없는 상품과 모순; 새 4등급 `<a>` 는 `routeToMembership` 의 로그인 프롬프트를 거치지 않음(선례 recap CTA 와 같음, 원하면 `data-membership-cta="plan"` 한 줄).
-- [ ] Phase 3 `/world/` 목업 → 승인 → 구현(i18n 12 로케일, 산문 복사 0).
+- [x] Phase 3 `/world/` 목업(https://claude.ai/code/artifact/4ea6c6ac-6895-4715-a158-fb7e0229a3c5) → 승인 → 구현 완료. **PR #1637**, CI 전부 통과·머지 대기. 로케일 분기는 두지 않았다(ko 단일) — 짝 구현 `/methodology`·`/about` 과 같고 고유명사 비중이 커 기계 번역이 크게 깨지는 유형이라, 12로케일 번역은 별도 과제로 남겼다(사용자 승인). 푸터 `footer.story.world` 는 `/world/` 로 바꿨다. 제품 표기는 **라이트 노벨**(게임·플레이 금지, 2026-09-06 사용자 지시).
 - [ ] Phase 4·5 는 프롬프트 원문대로.
 
 ## 함정
@@ -68,4 +68,4 @@ npm run i18n:check && npm run check:quick
 ## 모르는 것
 
 - 월정석 영문 표기 — Phase 2 목업에 제안을 싣고 사용자 확정.
-- 신규 페이지 URL `/world/` vs `/characters/` — Phase 3 진입 시 라우팅 짝을 보고 확정 제안.
+- 신규 페이지 URL 확정: `/world/`. 라우트·리다이렉트 전수 grep 0건이라 충돌 없음(2026-09-06 실측).
