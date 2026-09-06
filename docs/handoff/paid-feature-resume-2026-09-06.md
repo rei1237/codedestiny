@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-06
-next: 아래 "분류 결과" 표의 **(a) 미배선 5건**을 배선한다 — 연애 타로(`js/tarot-love-experience.js`) 배선을 그대로 따라 한다.
+next: **(a) 남은 2건은 배선 불가** — 아래 "계약 공백(Phase B)" 을 먼저 해결한다. `runPaidResume` 이 핸들러에 결제 증빙(`gateResult`)을 안 넘겨서 AI 상담 2건이 막혀 있다.
 ---
 
 # 유료 기능 결제 후 자동 개방 (리다이렉트 복귀)
@@ -13,7 +13,7 @@ next: 아래 "분류 결과" 표의 **(a) 미배선 5건**을 배선한다 — �
 
 ## 지금 상태
 
-- 공통 뼈대 + 카카오페이 타일 정합성 완료. 배선된 기능은 **숙요 기본 궁합 · 연애 타로 · 재회 타로 3건**.
+- 공통 뼈대 + 카카오페이 타일 정합성 완료. 배선된 기능은 **6건** — 숙요 기본 궁합 · 연애 타로 · 재회 타로 · **명리 타로 3카드 · 숙요 정밀 궁합 확장 · 숙요 인연 레이더**(뒤 3건 2026-09-06 추가).
 - 🔴 **배관은 끝났다** — `window._cdCoinGatePerUse` 정의 2곳(`js/destiny-profile.js:5673`·`:12488`)이 `resume` 을 게이트로 넘긴다. 이전에는 안 넘겨서, 옵션 백 없는 축약형을 쓰는 기능(타로 3종)은 서술자를 만들어도 티켓에 안 실렸다. 회귀 가드는 `__tests__/ui/direct-payment-resume.behavior.test.js` 의 "_cdCoinGatePerUse 는 resume 서술자를…" 테스트.
 - 원인: 모바일 PortOne 은 상위 프레임을 리다이렉트하므로 결제 게이트의 `await` 가 페이지와 함께 죽는다 → `onGranted` 가 **어떤 기능에서도** 실행되지 않는다. 복귀 처리(`_dpResumeDirectPaymentAfterRedirect`)는 완료 오버레이만 띄우고 기능을 다시 열지 않았다.
 - 🔴 회당 결제(per-use) 키는 `worker/lib/access-state.js` 가 보유 목록에서 걸러내므로, 재클릭하면 **또 결제된다**. 그래서 로컬 영수증이 필요했다.
@@ -43,7 +43,7 @@ git grep -l "runBillingCoinGate(\|runPaidAccessGate(" -- app | grep -v billing-c
 
 | 계열 | 개수 | 지금 상태 |
 |---|---|---|
-| 정적·레거시 게이트 호출부 | 12곳 / 8파일 (기능 단위 17건) | **3곳 배선.** 아래 분류 결과 참조 |
+| 정적·레거시 게이트 호출부 | 12곳 / 8파일 (기능 단위 17건) | **6곳 배선.** 아래 분류 결과 참조 |
 | React `useCoinGate.ensurePaidAccess` | 17파일 | **영수증 단축으로 재과금은 막힘.** 자동 재개는 없음 |
 | React 직접 호출(`runBillingCoinGate`·`runPaidAccessGate`) | 18파일 | 🔴 **영수증도 안 탄다** — 아래 참조 |
 
@@ -55,22 +55,33 @@ git grep -l "runBillingCoinGate(\|runPaidAccessGate(" -- app | grep -v billing-c
 
 ### 분류 결과 (2026-09-06 실측 — 근거는 `worker/lib/paid-feature-registry.js` 의 과금 유형)
 
-**(a) 서술자 필수 — 7건 중 3건 배선, 5건 남음**
+🔴 **2026-09-06 정정** — 초판 표가 숙요/명리 항목의 파일을 `js/destiny-profile.js` 로 잘못 적었다(그 파일은 12,786줄이라 `:14587`·`:16991` 자체가 없다). 전부 **`js/saju-engine-tarot-sukuyo-quantum.js`** 다. 아래 줄번호는 배선 후 기준.
+
+**(a) 서술자 필수 — 8건 중 6건 배선, 2건 남음**
 
 | 기능 | 호출부 | 상태 |
 |---|---|---|
-| 숙요 기본 궁합 | `js/saju-engine-tarot-sukuyo-quantum.js:15865` | ✅ 정본 |
+| 숙요 기본 궁합 | `sukuyo-quantum.js:16223` | ✅ `sukuyo-compat` (정본) |
 | 연애 타로 | `js/tarot-love-experience.js:638` | ✅ `tarot-love-final` |
 | 재회 타로 | `js/tarot-reunion-experience.js:459` | ✅ `tarot-reunion-final` |
-| 명리 타로 3카드 | `js/destiny-profile.js:896` | ⬜ |
-| 숙요 인연 레이더 | `js/destiny-profile.js:12531` | ⬜ |
-| 숙요 정밀 궁합 확장 | `js/destiny-profile.js:16991` | ⬜ |
-| 숙요 AI 프롬프트 | `js/destiny-profile.js:15364` | ⬜ |
-| 사주·점성술·자미두수 AI 상담 | `js/saju-engine.js:5825` | ⬜ |
+| 명리 타로 3카드 | `sukuyo-quantum.js:896` | ✅ `myeongri-tarot-three-card` |
+| 숙요 정밀 궁합 확장 | `sukuyo-quantum.js:17258` | ✅ `sukuyo-compat-precision` |
+| 숙요 인연 레이더 | `sukuyo-quantum.js:12677` | ✅ `sukuyo-bond-report` |
+| 숙요 AI 프롬프트 | `sukuyo-quantum.js:15509` | 🔴 계약 공백 (아래) |
+| 사주·점성술·자미두수 AI 상담 | `js/saju-engine.js:5825` | 🔴 계약 공백 (아래) |
+
+등록된 핸들러 전수: `git grep -n "registerPaidResumeHandler(" -- js | grep -v '^public/'` → 6건.
 
 **(b) 딥링크만 — 1건**: 신년 타로 `js/tarot-year-fortune-experience.js:432`.
 
-**(c) 서버 영구 unlock — 손댈 것 없음 6건**: 극T `destiny-profile.js:4619` · 본성 심화 `:9735` · 인연 도감 `:12918` · 1년운 `:14587` · 테토에겐 `js/entertain-engine.js:2866` · 시빌 `js/sibyl-system.js:3759`. (전부 `EXTRA_UNLOCK_PAID_FEATURE_KEY_LIST` 또는 `UNLOCK_PRODUCT_BY_FEATURE_KEY` 에 있다.)
+**(c) 서버 영구 unlock — 손댈 것 없음 6건**: 극T `sukuyo-quantum.js:4747` · 본성 심화 `:9863` · 인연 도감 `:13063` · 1년운 `:14732` · 테토에겐 `js/entertain-engine.js:2866` · 시빌 `js/sibyl-system.js:3759`. (전부 `EXTRA_UNLOCK_PAID_FEATURE_KEY_LIST` 또는 `UNLOCK_PRODUCT_BY_FEATURE_KEY` 에 있다.)
+
+### 계약 공백 (Phase B) — 남은 2건이 막힌 이유
+
+`runPaidResume(descriptor)` 는 **정제된 서술자만** 핸들러에 넘긴다. confirm/grant 응답(`gateResult`)은 전달 경로가 없다. AI 상담 2건은 `onGranted(gateResult)` 를 서버에 결제 증빙으로 그대로 실어 보내므로, 서술자만으로는 핸들러가 만들 수 없다 → **재개하면 402 가 난다.** 배선은 계약을 넓힌 뒤에 한다.
+
+- 안: `runPaidResume` 이 영수증(`peekPaidGrantReceipt`)에서 `requestId`·`merchantUid` 를 꺼내 `invokePaidResumeHandler(kind, descriptor, grant)` 2번째 인자로 넘긴다. 🔴 기능 파일에서 영수증을 직접 읽어 증빙을 조립하지 말 것 — 게이트의 영수증→grant 로직이 둘로 갈린다(원칙 6).
+- 같은 공백의 **부분 사례**: 인연 레이더는 재개 시 `gateResult = null` 로 연다. 클라이언트 리포트는 정상 개방되지만 서버 아카이브 쓰기(`worker/routes/sukuyo.js` `/past-life-reading`)가 402 로 실패할 수 있고, 그 실패는 이미 삼켜지는 경로다. **결과: 리포트는 열리나 아카이브 행이 없어 나중에 다시 열면 재과금될 수 있다.** Phase B 에서 같이 닫는다.
 
 ### 배선 레시피 (연애 타로를 그대로 베낀다)
 
@@ -78,6 +89,8 @@ git grep -l "runBillingCoinGate(\|runPaidAccessGate(" -- app | grep -v billing-c
 2. `wait…Overlay(8000ms/200ms 폴링)` → 표면이 열릴 때까지 기다린 뒤 상태 복원.
 3. `registerPaidResumeHandler(<KIND>, run…Resume)` 를 **모듈 최상위 IIFE** 로 등록(스크립트 eval 은 동기라 모달 오픈보다 먼저 끝난다).
 4. 게이트 호출부는 결제 **전에** 서술자를 만들어 넘긴다. 🔴 핸들러는 게이트를 다시 타는 공개 함수가 아니라 **게이트 없는 코어**를 부른다(재결제 방지).
+
+**코어가 렌더 클로저 안에 있을 때**(2026-09-06 신규 2건) — 렌더할 때마다 `window.<코어>` 에 최신 함수를 대입하고, 재개 핸들러는 **다시 그리기 전에 그 전역을 `null` 로 지운 뒤** 새 것이 뜰 때까지 폴링한다(지난 렌더의 죽은 클로저를 부르는 사고 방지). 현재 전역 2개: `_syRevealCompatPrecisionCore`(정밀 궁합) · `_syRunSukuyoBondReportCore`(인연 레이더). 인연 레이더는 제출 흐름을 `runBondReport(event, {skipGate:true})` 로 합쳐 계산·렌더 경로가 갈라지지 않게 했다.
 
 "됐다"의 판정: 모바일 에뮬레이션에서 결제 → 복귀 시 그 기능이 **스스로** 열리고, 곧바로 다시 눌러도 결제창이 안 뜨며(영수증 소비), 그 다음 클릭에는 정상적으로 뜬다.
 
@@ -110,8 +123,9 @@ node --test __tests__/ui/direct-payment-resume.behavior.test.js
 npm run lint && npm run typecheck && npm run check:quick
 ```
 
-- 🔴 배선 뒤 `npm run sync:public` 은 필수고, 그러면 `verify:payment-choice-parity` 가 독립 정적 페이지 `?v=` 핀(25곳)을 새 값으로 바꾸라고 요구한다. 그 25곳에는 `app/_lib/billing-client.ts` 가 있고 **그 파일은 결제 동결 대상**이라 `node scripts/verify-payment-freeze.mjs --update` 까지 같은 커밋에 담아야 한다.
-- 🔴 격리 워크트리에는 `node_modules` 가 없어 `check:quick` 의 마지막 `build:worker` 가 `workers-og` 미해결로 실패한다. 워커 파일을 안 건드렸으면 환경 문제다(CI 에서 통과).
+- 🔴 배선 뒤 `npm run sync:public` 은 필수다. **다만 초판이 적은 "`?v=` 핀 25곳 + payment-freeze `--update` 가 따라온다"는 매번은 아니다** — 2026-09-06 3건 배선에서는 `sync:public` 만으로 `verify:payment-choice-parity` 가 PASS 했다(핀 회전은 `index.html`·루트 js 6개와 그 `public/` 미러에서 자동 처리됨). 실패했을 때만 그 절차를 탄다.
+- `build:worker` 는 `check:critical` 에 있고 `check:quick`(= `node scripts/check-changed.mjs`)에는 없다. 워크트리에 `node_modules` 가 없어도 `check:quick` 은 exit 0 이었다(2026-09-06 실측).
+- 빌드가 `rss.xml`·`insights/rss.xml`(+ `public/` 미러)의 `lastBuildDate` 만 건드린다 — **커밋에 담지 말고 `git checkout --` 로 되돌린다.**
 
 ## 모르는 것
 
