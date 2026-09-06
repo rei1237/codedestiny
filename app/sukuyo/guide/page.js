@@ -2,6 +2,8 @@ import Link from "next/link";
 import GuideCta from "../../components/GuideCta";
 import { GUIDE_CTA_TARGETS } from "../../components/guide-cta-targets";
 import { generatePageMetadata } from "../../../lib/generate-page-metadata";
+import ContentIntegrityNote from "../../components/ContentIntegrityNote";
+import { buildArticleJsonLd, buildBreadcrumbJsonLd, buildFaqPageJsonLd } from "../../../lib/structured-data";
 
 const SUKUYO_GUIDE_TEXT_TRANSLATIONS = {
   ko: {
@@ -64,15 +66,52 @@ const faqItems = [
   },
 ];
 
+// 발행일은 이 파일의 첫 커밋일(git log --diff-filter=A), 수정일은 검수 노트·Article 을 붙인 날.
+// 짝 구현: app/guides/[slug]/page.js 의 @graph(BreadcrumbList·Article·FAQPage) + ContentIntegrityNote.
+const GUIDE_ARTICLE = {
+  path: "/sukuyo/guide",
+  title: "숙요 27숙과 궁합 구조",
+  description:
+    "숙요점의 27숙 구조, 본명숙과 상대 숙의 관계, 궁합에서 보는 거리와 긴장, 무료·유료 해석 범위를 안내합니다.",
+  datePublished: "2026-06-21",
+  dateModified: "2026-09-06",
+};
+
+const guideJsonLd = JSON.stringify({
+  "@context": "https://schema.org",
+  "@graph": [
+    buildBreadcrumbJsonLd([
+      { name: "홈", path: "/" },
+      { name: "숙요점 서비스", path: "/sukuyo" },
+      { name: GUIDE_ARTICLE.title, path: GUIDE_ARTICLE.path },
+    ]),
+    buildArticleJsonLd({
+      ...GUIDE_ARTICLE,
+      category: "숙요점 서비스",
+      keywords: ["숙요점 가이드", "27숙", "숙요 궁합", "본명숙", "Code Destiny"],
+    }),
+    // 화면의 FAQ 카드와 같은 배열을 넘긴다 — 스키마와 본문이 다른 문답이면 리치결과 정책 위반.
+    buildFaqPageJsonLd(faqItems),
+  ],
+});
+
 export default function SukuyoGuidePage() {
   return (
     <main className="cd-main-shell cd-guide">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: guideJsonLd }} />
       <header className="cd-main-header">
         <h1 className="cd-main-title">숙요 27숙과 궁합 구조</h1>
         <p className="cd-main-intro">
           숙요점은 달의 별자리 흐름을 27개의 숙으로 나누어 사람의 기질과 관계의 거리를 읽는 동양 점술 체계입니다. Code Destiny의 숙요 해석은 관계를 겁주거나 단정하지 않고, 서로 다른 리듬을 이해하는 상담 언어로 풀어냅니다.
         </p>
       </header>
+
+      <ContentIntegrityNote
+        contentSource="authored"
+        datePublished={GUIDE_ARTICLE.datePublished}
+        dateModified={GUIDE_ARTICLE.dateModified}
+        tone="dark"
+      />
 
       <section className="cd-card-grid">
         <article className="cd-card">

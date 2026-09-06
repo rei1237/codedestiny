@@ -2,6 +2,8 @@ import Link from "next/link";
 import GuideCta from "../../components/GuideCta";
 import { GUIDE_CTA_TARGETS } from "../../components/guide-cta-targets";
 import { generatePageMetadata } from "../../../lib/generate-page-metadata";
+import ContentIntegrityNote from "../../components/ContentIntegrityNote";
+import { buildArticleJsonLd, buildBreadcrumbJsonLd, buildFaqPageJsonLd } from "../../../lib/structured-data";
 
 const SAJU_GUIDE_TEXT_TRANSLATIONS = {
   ko: {
@@ -64,15 +66,52 @@ const faqItems = [
   },
 ];
 
+// 발행일은 이 파일의 첫 커밋일(git log --diff-filter=A), 수정일은 검수 노트·Article 을 붙인 날.
+// 짝 구현: app/guides/[slug]/page.js 의 @graph(BreadcrumbList·Article·FAQPage) + ContentIntegrityNote.
+const GUIDE_ARTICLE = {
+  path: "/saju/guide",
+  title: "사주 명리학 기본 가이드",
+  description:
+    "사주 명리학이 무엇을 살피는지, 생년월일과 출생시간이 왜 필요한지, 오행·십성·대운을 어떻게 읽는지 차분히 안내합니다.",
+  datePublished: "2026-06-21",
+  dateModified: "2026-09-06",
+};
+
+const guideJsonLd = JSON.stringify({
+  "@context": "https://schema.org",
+  "@graph": [
+    buildBreadcrumbJsonLd([
+      { name: "홈", path: "/" },
+      { name: "사주 서비스", path: "/saju" },
+      { name: GUIDE_ARTICLE.title, path: GUIDE_ARTICLE.path },
+    ]),
+    buildArticleJsonLd({
+      ...GUIDE_ARTICLE,
+      category: "사주 서비스",
+      keywords: ["사주 가이드", "명리학 기본", "오행", "십성", "대운", "Code Destiny"],
+    }),
+    // 화면의 FAQ 카드와 같은 배열을 넘긴다 — 스키마와 본문이 다른 문답이면 리치결과 정책 위반.
+    buildFaqPageJsonLd(faqItems),
+  ],
+});
+
 export default function SajuGuidePage() {
   return (
     <main className="cd-main-shell cd-guide">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: guideJsonLd }} />
       <header className="cd-main-header">
         <h1 className="cd-main-title">사주 명리학 기본 가이드</h1>
         <p className="cd-main-intro">
           사주는 태어난 순간의 하늘과 땅의 기운을 네 기둥으로 세워, 사람이 어떤 리듬 속에서 생각하고 관계 맺고 선택하는지 살피는 동양 명리의 언어입니다. Code Destiny에서는 이 흐름을 겁주거나 단정하기보다, 자기 이해와 현실적인 판단을 돕는 참고 자료로 풀이합니다.
         </p>
       </header>
+
+      <ContentIntegrityNote
+        contentSource="authored"
+        datePublished={GUIDE_ARTICLE.datePublished}
+        dateModified={GUIDE_ARTICLE.dateModified}
+        tone="dark"
+      />
 
       <section className="cd-card-grid">
         <article className="cd-card">
