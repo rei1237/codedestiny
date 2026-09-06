@@ -105,7 +105,20 @@ node scripts/migrate-encrypt-user-phone.mjs --apply             # 나머지
 
 프로덕션·스테이징 워커 모두 `[db-connect-error] Authentication failed` 로 DB 라우트 전부 503/500 (wrangler tail 실측, 2패밀리 × 3회 재시도 = 요청당 10~12초). 루트 `.env.local` 의 URI(07:09 갱신본)만 `ping` 통과, `.env.cloudflare.local`(08-28) 은 인증 실패 — Atlas 비밀번호가 회전됐는데 워커 시크릿이 옛 값이었다. 사용자 허락 후 `npm run secrets:cf:worker -- --target=production --only-key=MONGO_URI` · `--target=staging --only-key=MONGO_URI` 각 1회. 직후 `/api/insights`·`/api/reviews/summary`·`/api/reviews` 양쪽 전부 200. 장애 시작 시각은 미확인(tail 이 붙어 있지 않았다).
 
+### 2026-09-06 `security_events` 90일 TTL 인덱스 생성 (PR #1666 스크립트)
+
+프로덕션 `code_destiny`. 실행 직전 `verify:security-events-ttl` = `MISSING security_events createdAt_ttl_90d · docs=3302 olderThanTtl=0` — **만료 대상 문서가 0건**이라 생성 즉시 지워지는 문서는 없음을 확인한 뒤 사용자 허락으로 `npm run migrate:security-events-ttl` 1회 실행.
+
+| 순서 | 명령 | 결과 |
+|:--:|---|---|
+| 1 | `migrate:security-events-ttl` | `CREATED security_events createdAt_ttl_90d (expireAfterSeconds=7776000)` · 드리프트 인덱스 없어 drop 0 |
+| 2 | `verify:security-events-ttl` | `OK ... (expireAfterSeconds=7776000)` · `docs=3302 olderThanTtl=0` (exit 0) |
+| 3 | `verify:reconcile-index-drift` | `RESULT OK` — `unused` 0(실물이 생겨 TTL 선언이 더는 거짓 선언으로 안 찍힌다) |
+
+문서 수는 전후 모두 3,302 로 변화 없다. 가장 오래된 문서가 2026-07-04 라 **첫 만료는 2026-10-02 무렵**부터 순차로 일어난다. 이 컬렉션은 쓰기 전용(유일한 사용처 `worker/lib/security/index.js` 의 `SecurityEvent.create()`, 읽는 코드 0건)이라 데이터 삭제가 기능에 영향을 주지 않는다.
+
 ## 후속 확인 과제
 
 - **며칠 뒤 `npm run verify:truncate-consume-ids`** — 다시 200을 넘으면 아직 찾지 못한 상한 없는 쓰기 경로가 실재한다는 뜻이다. 현재 판단은 "2026-07-16 이전 `$addToSet` 잔재"이고, 이 재확인이 유일한 확실한 검증 수단이다.
+- **2026-10-02 이후 `verify:security-events-ttl`** — `olderThanTtl` 이 계속 0이고 `docs` 가 줄기 시작하면 TTL 모니터가 실제로 도는 것이다. 첫 만료가 지나도 `docs` 가 3,302 이상에서 늘기만 하면 인덱스가 있어도 만료가 안 되는 상태이므로 그때 다시 본다.
 - **`scripts/migrate-withdraw-indexes.mjs`** — PR #484 에서 컬렉션명을 런타임과 맞추고 미존재 컬렉션 가드를 넣었지만 **아직 실행하지 않았다**. 실행하면 법적 보존용 TTL(`deleted_account_logs` 5년, `payments._anonymizedAt` 5년)이 생긴다. 현재 `deleted_account_logs` 인덱스는 `_id` 하나뿐이다.
