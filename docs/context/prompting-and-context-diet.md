@@ -76,14 +76,40 @@ RED 축(결제·인증·배포·삭제·공유 모듈)은 템플릿을 쓰지 �
 
 다른 프로젝트(`.cursorrules`·`.clinerules` 등)에 그대로 복사할 프로젝트 비의존 버전: [execution-contract-portable.md](execution-contract-portable.md)
 
-## 5. 효과 측정 (미실시 — 다음 세션에서 채운다)
+## 5. 효과 측정 (2026-09-06 실시)
 
-측정 방법: GREEN 요청 3건(문구 1 · CSS 1 · 단일 컴포넌트 1)을 `/fix` 로 던지고 아래를 센다.
+측정 방법: `/fix` 템플릿 요청 **5건**을 한 세션에서 순서대로 던지고, 요청 시작부터 첫 `Edit` 까지의 툴 호출 수를 툴 로그로 셌다(Edit 포함). 픽스처 편집은 측정 뒤 `git checkout --` 으로 전부 되돌렸다 — 이 절의 표 말고 리포에 남은 변경은 없다.
 
-| 지표 | 기준선 (2026-09-06) | 목표 | 실측 |
+| 지표 | 기준선 (2026-09-06) | 목표 | 실측 (2026-09-06) |
 |---|---|---|---|
-| 첫 Edit 까지 툴 왕복 | 13.3회 | 3회 이하 | 미측정 |
-| 확인 질문 발생 | — | 0건 | 미측정 |
-| RED 축 방어 유지 | — | 종전과 동일 | 미측정 |
+| 첫 Edit 까지 툴 왕복 | 13.3회 | 3회 이하 | **2.3회** (GREEN 완주 3건: 2·3·2) |
+| 확인 질문 발생 | — | 0건 | **0건** (5건 전부) |
+| RED 축 방어 유지 | — | 종전과 동일 | **유지** — `[등급] GREEN` 선언 5건 중 **2건을 RED 로 승격** |
 
-🔴 실측값이 나오기 전까지 이 표의 "목표"를 성과로 인용하지 않는다(원칙 8).
+픽스처별 결과:
+
+| # | 축 | 대상 | 결과 |
+|---|---|---|---|
+| 1 | 문구 | `components/fortune/AnalysisBasisLoading.tsx` | **RED 승격** — 문구가 파일에 없고 `_lib/fortune-shared-copy`(공유 모듈)에 있었다. Read 1회로 판정, 편집 0 |
+| 1b | 문구 | `components/fortune/animal-twelve/AnimalCompatibilityPanel.tsx` | GREEN, **왕복 2회**(Read→Edit) |
+| 2 | CSS | `styles/mobile-bottom-nav.css` `.cd-mnav__label` | GREEN, **왕복 3회** — 라벨에 `font-size` 가 없어 상속값(`.cd-mnav__link` 11px)을 확인하는 Read 가 한 번 더 들었다 |
+| 3 | 단일 컴포넌트 | `components/fortune/GlossaryTerm.tsx` | **RED 승격** — 밑줄 스타일이 지목한 파일이 아니라 3개 컴포넌트 공용 `analysis-basis.module.css` 에 있었다 |
+| 3b | 단일 컴포넌트 | `components/fortune/animal-twelve/AnimalCard.tsx` | GREEN, **왕복 2회**(Grep→Edit) |
+
+읽어야 할 것 셋:
+
+- 🔴 **GREEN 성립 조건은 "요청한 파일 안에 그 문구·스타일이 실제로 있는가" 다.** 승격 2건의 원인이 같다 — 이 레포는 문구를 로케일 카피 모듈로, 스타일을 CSS 모듈로 빼 두는 곳이 많아 **`[대상]` 에 컴포넌트를 적어도 편집 지점이 공용 파일이면 GREEN 이 아니다.** 요청 전에 그 파일에서 문자열/속성을 한 번 확인하면 승격을 피할 수 있고, 못 피하면 승격되는 것이 정상 동작이다(§4 작성 규칙 3).
+- 🟢 **왕복 수 목표는 달성됐다(13.3 → 2.3).** 다만 셋 다 `@경로` 를 준 요청이었다 — §1 표의 🥇 경로에서만 나온 값이므로 "탐색 필요" 요청에는 인용하지 않는다.
+- 🔴 **자기측정이라 "확인 질문 0건"은 편향된 값이다**(요청자와 실행자가 같은 세션). 왕복 수와 등급 판정은 툴 로그에서 센 관측값이다.
+
+### 부수 실측 — GREEN 단일 파일 수정도 커밋은 단일 파일이 아니다
+
+픽스처 3건을 켠 상태에서 `npm run lint && npm run typecheck && npm run check:quick -- --skip-build` 를 돌리면 **`verify:sitemap-drift` 에서 BLOCKED** 된다. lint·typecheck 는 통과했다.
+
+원인은 lastmod 원장이 라우트 **임포트 그래프에 있는 파일의 내용 서명**을 쓰기 때문이다(`scripts/lib/sitemap-lastmod.mjs` 의 `normalizeForSignature` — 개행만 정규화한 원문). 실측으로 갈렸다:
+
+- `AnimalCompatibilityPanel.tsx` 단독 편집 → **FAIL**(`app/saju/animal-destiny/components/AnimalResultScreen.tsx:9` 가 임포트한다)
+- `AnimalCard.tsx` 단독 편집 → OK (그 화면이 임포트하지 않는다. **다른 라우트에서도 안 쓰는지는 미검증**)
+- `styles/mobile-bottom-nav.css` 단독 편집 → OK
+
+즉 **라우트에서 임포트되는 컴포넌트는 한 줄만 고쳐도** `npm run sitemap:generate` 산출물 3개(`sitemap.xml` · `public/sitemap.xml` · `config/sitemap-lastmod.json`)를 같은 커밋에 담아야 한다 — GREEN 판정(단일 파일)은 그대로지만 **커밋은 4파일이 된다.** 이건 등급 판정을 뒤집지 않는다(생성물이지 손으로 고치는 파일이 아니다).
