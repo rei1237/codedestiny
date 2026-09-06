@@ -474,7 +474,9 @@ check("영구 해금 마크업에 회당 결제 키가 없다 (전수)", () => {
 check("이집트 신탁이 featureKey 를 명시해 결제 게이트를 부른다", () => {
   for (const file of ["js/oracle-kcg.js", "public/js/oracle-kcg.js"]) {
     const source = read(file);
-    const body = sliceFunctionBody(source, "function consumeKemetPerUseCoin()");
+    // 2026-09-06: 결제 후 재개 서술자에 질문을 실으려고 인자를 받게 됐다. 시그니처만 바뀌었고
+    // 아래 단언(featureKey 명시)의 뜻은 그대로다.
+    const body = sliceFunctionBody(source, "function consumeKemetPerUseCoin(question)");
     assert.match(
       body,
       /featureKey:\s*'openKemetModal'/,

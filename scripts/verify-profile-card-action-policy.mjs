@@ -110,7 +110,9 @@ const cases = [
       ["profileRoute", "action: PROFILE_CARD_MUTATION_ACTIONS.UPDATE"],
       ["profileRoute", "actionType: \"profile_card_update\""],
       ["billingRoute", "profile_card_update"],
-      ["destinyProfile", "method: isUpdate ? 'PATCH' : 'POST'"],
+      // 2026-09-06: 생성·수정·삭제·결제 후 재개 4경로가 _dpSendProfileMutation 하나를 쓰게
+      // 합치면서 메서드 삼항이 삭제 분기를 품었다. 단언의 뜻은 그대로다 — 수정은 PATCH 다.
+      ["destinyProfile", "method: isDelete ? 'DELETE' : (isUpdate ? 'PATCH' : 'POST')"],
       ["destinyProfile", "window.dpEditProfile"],
     ],
   },

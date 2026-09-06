@@ -883,6 +883,7 @@
           serviceKey: "animal-totem",
           action: "drawAnimalTotemSpread",
           requestId: requestId,
+          resume: buildTotemDrawResumeDescriptor(),
         }
       );
 
@@ -2055,6 +2056,25 @@
     setMode(mode);
   }
 
+  /* 🔴 게이트가 없는 뽑기 코어다. 결제 후 재개 핸들러도 이쪽을 부른다 —
+     게이트를 다시 타는 drawAnimalTotemSpread 를 부르면 이미 낸 결제가 또 일어난다. */
+  function _totemRenderPaidSpread() {
+    state.spread = global.AnimalTotemContentEngine.getRandomSpread(state.mode);
+    state.consultation = global.AnimalTotemContentEngine.composeConsultation(state.spread, { focus: state.question });
+
+    /* 🔴 결제 성공 직후 곧바로 쏜다. 사용자가 카드를 뒤집는 10~20초가 로딩 시간이 된다.
+       await 하지 않는다 — 여기서 기다리면 별도 로딩 화면이 생기고 리추얼의 결이 끊긴다. */
+    requestYeoniNarrative();
+
+    renderDrawStageChrome();
+    renderDeck();
+    applyAmbientClass();
+    activateStage(refs.drawStage);
+    setDrawStatus("", false);
+    setFlowBusy(false);
+    focusWithoutJump(refs.cardRail && refs.cardRail.children && refs.cardRail.children[0]);
+  }
+
   function drawAnimalTotemSpread() {
     ensureRefs();
     if (state.isFlowBusy) return;
@@ -2068,26 +2088,70 @@
         setFlowBusy(false);
         return;
       }
-      state.spread = global.AnimalTotemContentEngine.getRandomSpread(state.mode);
-      state.consultation = global.AnimalTotemContentEngine.composeConsultation(state.spread, { focus: state.question });
-
-      /* 🔴 결제 성공 직후 곧바로 쏜다. 사용자가 카드를 뒤집는 10~20초가 로딩 시간이 된다.
-         await 하지 않는다 — 여기서 기다리면 별도 로딩 화면이 생기고 리추얼의 결이 끊긴다. */
-      requestYeoniNarrative();
-
-      renderDrawStageChrome();
-      renderDeck();
-      applyAmbientClass();
-      activateStage(refs.drawStage);
-      setDrawStatus("", false);
-      setFlowBusy(false);
-      focusWithoutJump(refs.cardRail && refs.cardRail.children && refs.cardRail.children[0]);
+      _totemRenderPaidSpread();
     }).catch(function(error) {
       console.error("[animal-totem][draw]", error);
       setFlowBusy(false);
       alert(animalTotemText("errors.drawFailed"));
     });
   }
+
+  /* ── 결제 후 자동 재개 2단계: 뽑기 ────────────────────────────────────────
+     진입(모달 열기)은 셸의 'animal-totem-entry' 가 이미 맡는다(js/core/index-inline-runtime.js).
+     여기는 그 다음 관문이다 — 모달 안에서 [뽑기]를 눌러 결제한 뒤 모바일 PortOne 이 상위 프레임을
+     리다이렉트하면 위 then 이 페이지와 함께 죽어, 복귀 문서는 돈만 내고 카드가 한 장도 없다.
+     🔴 표면을 여는 책임은 runPaidResume 하나다 — action 은 게이트 없는 딥링크
+     openAnimalTotemModal(셸의 지연 로더 → 이 파일의 openAnimalTotemModal) 이고, 핸들러는 모달을
+     다시 열지 않는다. 🔴 그 딥링크가 resetAnimalTotemFlow 로 질문과 모드를 되돌리므로
+     둘 다 args 에 실어 나른다. */
+  var TOTEM_DRAW_RESUME_KIND = "animal-totem-draw";
+  var TOTEM_DRAW_RESUME_WAIT_MS = 8000;
+  var TOTEM_DRAW_RESUME_POLL_MS = 200;
+
+  function buildTotemDrawResumeDescriptor() {
+    return {
+      kind: TOTEM_DRAW_RESUME_KIND,
+      action: "openAnimalTotemModal",
+      args: {
+        mode: String(state.mode || "three"),
+        question: String(state.question || ""),
+      },
+    };
+  }
+
+  function waitForTotemDrawResumeTarget(limitMs) {
+    return new Promise(function(resolve) {
+      var deadline = Date.now() + (Number(limitMs) || TOTEM_DRAW_RESUME_WAIT_MS);
+      (function poll() {
+        if (global.AnimalTotemContentEngine && byId("animalTotemOverlay") && byId("animalTotemDrawStage")) {
+          resolve(true);
+          return;
+        }
+        if (Date.now() >= deadline) { resolve(false); return; }
+        setTimeout(poll, TOTEM_DRAW_RESUME_POLL_MS);
+      })();
+    });
+  }
+
+  function runTotemDrawResume(descriptor) {
+    var args = (descriptor && descriptor.args && typeof descriptor.args === "object") ? descriptor.args : {};
+    return waitForTotemDrawResumeTarget(TOTEM_DRAW_RESUME_WAIT_MS).then(function(ready) {
+      if (!ready) return false;
+      ensureRefs();
+      setMode(args.mode);
+      state.question = String(args.question || "").slice(0, QUESTION_MAX);
+      setFlowBusy(true);
+      _totemRenderPaidSpread();
+      return true;
+    });
+  }
+
+  (function registerTotemDrawResumeHandler() {
+    var entry = null;
+    try { entry = global.__cdCheckoutEntry || null; } catch (_) { entry = null; }
+    if (!entry || typeof entry.registerPaidResumeHandler !== "function") return;
+    try { entry.registerPaidResumeHandler(TOTEM_DRAW_RESUME_KIND, runTotemDrawResume); } catch (_) {}
+  })();
 
   function revealAnimalTotemCard(btn, idxRaw) {
     ensureRefs();

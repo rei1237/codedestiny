@@ -822,9 +822,10 @@ function closeKemetModal() {
   resetKemetOracle();
 }
 
-function consumeKemetPerUseCoin() {
+function consumeKemetPerUseCoin(question) {
   var COST = 30;
   var REASON = getKemetOracleCopy().readingReason;
+  var qStr = String(question || '').trim();
 
     return new Promise(function(resolve) {
     if (typeof window._cdCoinGatePerUse !== 'function') {
@@ -847,7 +848,8 @@ function consumeKemetPerUseCoin() {
           featureKey: 'openKemetModal',
           serviceKey: 'kemet-oracle',
           action: 'openKemetModal',
-          requestId: 'kemet-oracle:' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9)
+          requestId: 'kemet-oracle:' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9),
+          resume: buildKemetResumeDescriptor(qStr)
         }
       );
     } catch (_err) {
@@ -855,6 +857,24 @@ function consumeKemetPerUseCoin() {
       resolve(false);
     }
   });
+}
+
+/* 🔴 게이트가 없는 카드 단계 코어다. 결제 후 재개 핸들러도 이쪽을 부른다 —
+   게이트를 다시 타는 startKemetOracle 을 부르면 이미 낸 결제가 또 일어난다. */
+function _kemetEnterCardStage(qStr) {
+  const searchBox = document.getElementById('kemetSearchBox');
+  const loader = document.getElementById('kemetLoader');
+  const cardStage = document.getElementById('kemetCardStage');
+
+  if(searchBox) searchBox.style.display = 'none';
+  if(loader) loader.style.display = 'none';
+  if(cardStage) {
+    cardStage.style.display = 'block';
+    // 질문을 카드 단계에 저장
+    cardStage.dataset.question = qStr;
+  }
+  // 초기 원형 배치
+  kcgInitCircle();
 }
 
 function startKemetOracle() {
@@ -867,23 +887,62 @@ function startKemetOracle() {
     return;
   }
 
-  const searchBox = document.getElementById('kemetSearchBox');
-  const loader = document.getElementById('kemetLoader');
-  const cardStage = document.getElementById('kemetCardStage');
-
-  consumeKemetPerUseCoin().then(function(ok) {
+  consumeKemetPerUseCoin(qStr).then(function(ok) {
     if (!ok) return;
-    if(searchBox) searchBox.style.display = 'none';
-    if(loader) loader.style.display = 'none';
-    if(cardStage) {
-      cardStage.style.display = 'block';
-      // 질문을 카드 단계에 저장
-      cardStage.dataset.question = qStr;
-    }
-    // 초기 원형 배치
-    kcgInitCircle();
+    _kemetEnterCardStage(qStr);
   });
 }
+
+/* ── 결제 후 자동 재개(모바일 리다이렉트 복귀) ────────────────────────────
+   모바일 PortOne 은 상위 프레임을 리다이렉트하므로 위 consumeKemetPerUseCoin 의 콜백이 페이지와
+   함께 죽는다 — 복귀 문서는 돈만 냈고 카드 단계로 넘어간 적이 없다. 질문 문자열을 서술자에 실어
+   두고, 복귀 문서에서 runPaidResume 이 딥링크(openKemetModal)로 모달을 연 뒤 아래 핸들러를 부른다.
+   🔴 표면을 여는 책임은 runPaidResume 하나다 — 핸들러에서 모달을 다시 열지 않는다. */
+var KEMET_RESUME_KIND = 'kemet-oracle';
+var KEMET_RESUME_WAIT_MS = 8000;
+var KEMET_RESUME_POLL_MS = 200;
+
+function buildKemetResumeDescriptor(question) {
+  return {
+    kind: KEMET_RESUME_KIND,
+    action: 'openKemetModal',
+    args: { question: String(question || '') }
+  };
+}
+
+function _kemetWaitForResumeTarget(limitMs) {
+  return new Promise(function(resolve) {
+    var deadline = Date.now() + (Number(limitMs) || KEMET_RESUME_WAIT_MS);
+    (function poll() {
+      if (document.getElementById('kemetCardStage') && document.getElementById('kemetSearchBox')) {
+        resolve(true);
+        return;
+      }
+      if (Date.now() >= deadline) { resolve(false); return; }
+      setTimeout(poll, KEMET_RESUME_POLL_MS);
+    })();
+  });
+}
+
+function _kemetRunResume(descriptor) {
+  var args = (descriptor && descriptor.args && typeof descriptor.args === 'object') ? descriptor.args : {};
+  var qStr = String(args.question || '').trim();
+  if (qStr.length < 2) return false;
+  return _kemetWaitForResumeTarget(KEMET_RESUME_WAIT_MS).then(function(ready) {
+    if (!ready) return false;
+    var inputEl = document.getElementById('kemetWorry');
+    if (inputEl) inputEl.value = qStr;
+    _kemetEnterCardStage(qStr);
+    return true;
+  });
+}
+
+(function registerKemetResumeHandler() {
+  var entry = null;
+  try { entry = window.__cdCheckoutEntry || null; } catch (_) { entry = null; }
+  if (!entry || typeof entry.registerPaidResumeHandler !== 'function') return;
+  try { entry.registerPaidResumeHandler(KEMET_RESUME_KIND, _kemetRunResume); } catch (_) {}
+})();
 
 function showKemetSpread(userInput, selectedIndices) {
   var cardStage = document.getElementById('kemetCardStage');
