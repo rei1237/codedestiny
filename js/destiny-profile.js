@@ -3014,10 +3014,11 @@
     if (!api || typeof api.consumePaidGrantReceipt !== 'function') return null;
     try { return api.consumePaidGrantReceipt(query); } catch (_receiptTakeError) { return null; }
   }
-  function _dpRunPaidResume(descriptor) {
+  // proof 는 결제 증빙의 **재료**다(확정 응답 + 식별자). 증빙 조립은 checkout-entry 하나가 한다.
+  function _dpRunPaidResume(descriptor, proof) {
     var api = _dpCheckoutEntry();
     if (!api || typeof api.runPaidResume !== 'function') return Promise.resolve(false);
-    try { return Promise.resolve(api.runPaidResume(descriptor)).catch(function () { return false; }); }
+    try { return Promise.resolve(api.runPaidResume(descriptor, proof)).catch(function () { return false; }); }
     catch (_resumeRunError) { return Promise.resolve(false); }
   }
   // 앱에서는 /points 가 번들에 없다 — 판정이 애매하면 앱 경로(충전 모달)로 폴백한다.
@@ -4588,7 +4589,19 @@
          기능을 직접 다시 연다. 서술자가 없거나(배선 안 된 기능) 핸들러가 실패하면(모달 DOM 이
          이 표면에 없음) 지속 카드로 떨어뜨린다 — 사라지는 안내로 되돌리지 말 것. */
       var resumeDescriptor = (ticket && ticket.resume && typeof ticket.resume === 'object') ? ticket.resume : null;
-      var resumeOpened = resumeDescriptor ? await _dpRunPaidResume(resumeDescriptor) : false;
+      /* 🔴 확정 응답을 증빙 재료로 함께 넘긴다. 핸들러 중에는 열기만 하는 것이 아니라 **그 증빙을 다시
+         서버에 실어 보내는** 것이 있다(AI 상담 프롬프트·인연 레이더 아카이브 쓰기). 안 넘기면 그쪽은
+         화면만 열리고 서버 기록이 없어, 다음에 같은 것을 또 결제하게 된다. */
+      var resumeOpened = resumeDescriptor
+        ? await _dpRunPaidResume(resumeDescriptor, {
+          featureKey: resumeFeatureKey,
+          contentKey: resumeConfirmBody.contentKey || resumeConfirmBody.contentId || '',
+          profileId: resumeConfirmBody.profileId || resumeConfirmBody.selectedProfileId || '',
+          requestId: resumeRequestId,
+          merchantUid: paymentId,
+          payload: confirmRes.payload,
+        })
+        : false;
       if (resumeOpened) {
         /* 🔴 자동 재개가 성공했으면 영수증을 여기서 쓴다. 안 그러면 회당 결제 한 번에 "자동 개방 +
            다음 클릭 무료"로 두 번 열린다(③이 남겨 둔 것은 재개가 실패했을 때의 구제용이다). */
@@ -5804,7 +5817,11 @@
           selectedProfileId: optionBag.selectedProfileId,
           // 셸 메인 게이트와 같은 근거(_cdCoverageFromSubscriptionSnapshot)로 즉시 판정한다. 이 진입점만
           // 빠져 있어 이용권 유무가 이미 확정된 사용자도 서버 왕복을 기다렸다.
-          allowSnapshotFastPath: true
+          allowSnapshotFastPath: true,
+          // 🔴 스냅샷이 확답하지 못해도 서버에 묻지 않는다(게이팅 절대 순서 1). 이게 없으면 coverage 조회 →
+          // /api/billing/coin-gate 로 결제창 앞 왕복 2회가 붙는다. 셸 정본 진입점은 전부 이 플래그를 갖고
+          // 있고 이 두 곳만 빠져 있었다. 이용권 확인은 결제창의 [이용권으로 구매] 카드가 그 자리에서 한다.
+          snapshotVerdictOnly: true
         }).then(function(access) {
           if (access && (access.status === 'already_unlocked' || access.status === 'pass_applied')) {
             var passPayload = access.payload || access.rawPayload || {};
@@ -12595,7 +12612,7 @@
     }
 
     if (typeof window._cdResolvePaidContentAccess === 'function' && optionBag.disablePassFirst !== true && optionBag.disablePassChoice !== true) {
-      return window._cdResolvePaidContentAccess({ title: reason, reason: reason, coinPrice: cost, cost: cost, featureKey: normalizedFeatureKey, requestId: requestId, categoryKey: optionBag.categoryKey, subFeatureKey: optionBag.subFeatureKey, contentKey: optionBag.contentKey, productId: optionBag.productId, reportType: optionBag.reportType, serviceKey: optionBag.serviceKey, reportId: optionBag.reportId, sessionId: optionBag.sessionId, reportSessionId: optionBag.reportSessionId || optionBag.sessionId, purchaseId: optionBag.purchaseId, actionType: optionBag.actionType, profileAction: optionBag.profileAction, action: optionBag.action, profileId: optionBag.profileId, selectedProfileId: optionBag.selectedProfileId, allowSnapshotFastPath: true }).then(function(access) {
+      return window._cdResolvePaidContentAccess({ title: reason, reason: reason, coinPrice: cost, cost: cost, featureKey: normalizedFeatureKey, requestId: requestId, categoryKey: optionBag.categoryKey, subFeatureKey: optionBag.subFeatureKey, contentKey: optionBag.contentKey, productId: optionBag.productId, reportType: optionBag.reportType, serviceKey: optionBag.serviceKey, reportId: optionBag.reportId, sessionId: optionBag.sessionId, reportSessionId: optionBag.reportSessionId || optionBag.sessionId, purchaseId: optionBag.purchaseId, actionType: optionBag.actionType, profileAction: optionBag.profileAction, action: optionBag.action, profileId: optionBag.profileId, selectedProfileId: optionBag.selectedProfileId, allowSnapshotFastPath: true, snapshotVerdictOnly: true }).then(function(access) {
         if (access && (access.status === 'already_unlocked' || access.status === 'pass_applied')) {
           var passPayload = access.payload || access.rawPayload || {};
           var passTransactionId = String(passPayload.transactionId || passPayload.paymentId || passPayload.purchaseId || passPayload.requestId || access.requestId || requestId);

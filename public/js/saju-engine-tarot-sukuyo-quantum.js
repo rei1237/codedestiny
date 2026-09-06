@@ -12669,8 +12669,10 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
             reveal(true);
           };
           if (opts.skipGate === true) {
-            // 🔴 결제가 이미 끝난 복귀 경로다 — 여기서 게이트를 다시 타면 같은 리딩에 두 번 과금된다.
-            await unlockBondReport(null);
+            /* 🔴 결제가 이미 끝난 복귀 경로다 — 여기서 게이트를 다시 타면 같은 리딩에 두 번 과금된다.
+               opts.grant 는 리다이렉트 복귀가 넘긴 결제 증빙이다(없으면 종전대로 null → 서버 아카이브
+               쓰기만 402 로 실패하고 리포트는 열린다). */
+            await unlockBondReport(opts.grant || null);
             return;
           }
           // 결제 전에 폼 상태를 서술자로 굳힌다 — 복귀 페이지에는 이 입력이 남아 있지 않다.
@@ -12688,8 +12690,9 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       return run();
     };
     form.addEventListener('submit', runBondReport);
-    /* 재개 핸들러가 폼을 다시 채운 뒤 부르는 '게이트 없는 열기 코어'. 바인딩할 때마다 새로 건다. */
-    window._syRunSukuyoBondReportCore = function() { return runBondReport(null, { skipGate: true }); };
+    /* 재개 핸들러가 폼을 다시 채운 뒤 부르는 '게이트 없는 열기 코어'. 바인딩할 때마다 새로 건다.
+       grant 는 리다이렉트 복귀가 들고 온 결제 증빙이며 그대로 서버 아카이브 쓰기에 실린다. */
+    window._syRunSukuyoBondReportCore = function(grant) { return runBondReport(null, { skipGate: true, grant: grant || null }); };
   }
 
   var SukuyoEncyclopediaEngine = (function() {
@@ -16196,7 +16199,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     });
   }
 
-  function syRunBondResume(descriptor) {
+  function syRunBondResume(descriptor, grant) {
     var args = (descriptor && descriptor.args && typeof descriptor.args === 'object') ? descriptor.args : {};
     if (!args.partnerDate) return false;
     return syWaitForBondReportCore(SY_COMPAT_FORM_WAIT_MS).then(function(ready) {
@@ -16205,8 +16208,10 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       for (var i = 0; i < SY_BOND_RESUME_FIELDS.length; i += 1) {
         sySetBondFieldValue(form, SY_BOND_RESUME_FIELDS[i][1], args[SY_BOND_RESUME_FIELDS[i][0]]);
       }
-      // 🔴 게이트를 다시 타는 submit 이 아니라 게이트 없는 코어를 부른다(재결제 방지).
-      window._syRunSukuyoBondReportCore();
+      /* 🔴 게이트를 다시 타는 submit 이 아니라 게이트 없는 코어를 부른다(재결제 방지).
+         🔴 증빙을 함께 넘긴다 — 리포트는 클라이언트가 그리지만 **아카이브 쓰기는 서버**라, 증빙 없이
+         부르면 그 쓰기가 402 로 조용히 실패하고(그 실패는 삼켜진다) 나중에 다시 열 때 또 결제된다. */
+      window._syRunSukuyoBondReportCore(grant || null);
       return true;
     });
   }

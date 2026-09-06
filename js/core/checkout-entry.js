@@ -1407,10 +1407,10 @@
     });
   }
 
-  function invokePaidResumeHandler(handler, resume) {
+  function invokePaidResumeHandler(handler, resume, grant) {
     var result;
     try {
-      result = handler(resume);
+      result = handler(resume, grant);
     } catch (_handlerError) {
       return Promise.resolve(false);
     }
@@ -1420,12 +1420,57 @@
     );
   }
 
-  function runPaidResume(descriptor) {
+  /* ── 재개 시점의 결제 증빙 ──────────────────────────────────────────────────
+     인페이지 경로의 핸들러는 onGranted(gateResult) 로 **서버 응답 그대로**를 받아, 그것을 결제 증빙으로
+     다시 서버에 싣는다(AI 상담 프롬프트·인연 레이더 아카이브 쓰기가 그 유형이다). 리다이렉트 복귀는 그
+     응답이 죽은 문서에서 왔으므로, 증빙을 넘기지 않으면 핸들러가 빈손으로 요청해 **402 가 난다** —
+     화면은 열렸는데 서버 기록이 없어 다음에 또 결제되는 상태가 정확히 이것이다.
+
+     🔴 영수증→증빙 변환은 여기 하나다. 기능 파일이 영수증을 직접 읽어 조립하면 같은 로직이 둘로 갈린다
+     (원칙 6). 🔴 peek 이라 **소비하지 않는다** — 소비 시점은 재개 성공 판정 뒤(호출부)로 그대로 둔다.
+     requestId 가 비면 merchantUid 로 대신한다: 서버가 결제 문서를 찾을 때 requestId|idempotencyKey|
+     merchantUid|impUid 를 함께 보므로(worker/lib/nakshatra-paid-access.js findPaidPayment) 둘 중
+     하나만 있어도 증빙이 성립한다. */
+  function buildPaidResumeGrant(proof) {
+    var input = proof && typeof proof === "object" ? proof : null;
+    if (!input) return null;
+    var featureKey = text(input.featureKey);
+    var contentKey = text(input.contentKey);
+    var profileId = text(input.profileId);
+    var requestId = text(input.requestId);
+    var merchantUid = text(input.merchantUid);
+    if (featureKey && (!requestId || !merchantUid)) {
+      var receipt = peekPaidGrantReceipt({ featureKey: featureKey, contentKey: contentKey, profileId: profileId });
+      if (receipt) {
+        if (!requestId) requestId = text(receipt.requestId);
+        if (!merchantUid) merchantUid = text(receipt.merchantUid);
+      }
+    }
+    if (!requestId) requestId = merchantUid;
+    if (!requestId && !featureKey) return null;
+    return {
+      ok: true,
+      source: "redirect-resume",
+      featureKey: featureKey,
+      contentKey: contentKey,
+      profileId: profileId,
+      requestId: requestId,
+      merchantUid: merchantUid,
+      /* 서버 확정 응답 그대로. 인페이지 gateResult 와 **같은 자리**에 accessGrant·consume 이 들어 있어
+         기능 파일의 기존 증빙 조립기(syPastLifeGateEvidence 등)가 고칠 것 없이 그대로 읽는다. */
+      payload: input.payload && typeof input.payload === "object" ? input.payload : null,
+    };
+  }
+
+  function runPaidResume(descriptor, proof) {
     var win = runtimeWindow();
     var resume = sanitizePaidResumeDescriptor(descriptor);
     if (!win || !resume) return Promise.resolve(false);
+    /* 🔴 증빙은 핸들러를 **기다리기 전에** 한 번만 만든다 — 아래 8초 폴링 사이에 같은 기능을 다시 눌러
+       영수증이 소비되면, 늦게 등록된 핸들러가 빈손으로 열린다. */
+    var grant = buildPaidResumeGrant(proof);
     var handler = readPaidResumeHandler(resume.kind);
-    if (handler) return invokePaidResumeHandler(handler, resume);
+    if (handler) return invokePaidResumeHandler(handler, resume, grant);
     /* 🔴 핸들러가 없다 ≠ 이 기능이 재개를 지원하지 않는다. 기능 스크립트가 지연 로드라 아직 안 온
        것뿐이다(숙요 엔진은 숙요 모달을 열 때 로드된다 — index-inline-runtime 의 엔진 체인).
        그래서 딥링크로 그 표면을 열어 스크립트를 불러오고, 등록될 때까지 상한을 두고 기다린다.
@@ -1433,7 +1478,7 @@
     openPaidResumeSurface(resume.action);
     return waitForPaidResumeHandler(resume.kind, RESUME_HANDLER_WAIT_MS).then(function (lateHandler) {
       if (!lateHandler) return false;
-      return invokePaidResumeHandler(lateHandler, resume);
+      return invokePaidResumeHandler(lateHandler, resume, grant);
     });
   }
 

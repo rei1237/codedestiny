@@ -18,7 +18,7 @@ import { usePayment } from "./usePayment";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { resolvePaidFeatureBillingType } from "@/lib/payment/feature-billing-type";
 // 결제 영수증 저장소 정본은 셸·독립 정적과 같은 모듈 하나다(사본을 만들면 한쪽만 낡는다).
-import checkoutEntry from "@/js/core/checkout-entry.js";
+import checkoutEntry, { type PaidResumeDescriptor } from "@/js/core/checkout-entry.js";
 
 type CoinGateContext = {
   transactionId: string;
@@ -49,6 +49,16 @@ type EnsurePaidAccessInput = {
   coinPrice?: number;
   cost?: number;
   amountKRW?: number;
+  /**
+   * 결제 후 이 기능을 **스스로 다시 열기** 위한 재개 서술자. 모바일 PG 는 상위 프레임을 리다이렉트해
+   * 이 문서(와 onPaid 클로저)가 통째로 죽으므로, 넘기지 않으면 결제만 끝나고 화면은 닫힌 채 돌아온다.
+   *
+   * 쓰는 법: 결제 **전에** 만들어 넘기고(`{kind, action, args}`), 같은 `kind` 로
+   * `checkoutEntry.registerPaidResumeHandler(kind, fn)` 를 컴포넌트 최상위에서 등록한다.
+   * 핸들러는 `(descriptor, grant)` 를 받으며 grant 는 서버에 다시 실을 결제 증빙이다.
+   * 🔴 args 에는 원시값만 살아남는다 — 배열·객체는 JSON.stringify 로 접어 넣는다.
+   */
+  resume?: PaidResumeDescriptor | null;
   onPaid?: (context: CoinGateContext) => Promise<void> | void;
 };
 
@@ -470,6 +480,8 @@ export function useCoinGate() {
         coinPrice: input.coinPrice,
         cost: input.cost,
         amountKRW: input.amountKRW,
+        // 결제 티켓까지 그대로 흐른다(billing-client → 런타임 게이트 → dp 복귀 티켓 → runPaidResume).
+        resume: input.resume,
       });
 
       if (!chargeResult.ok || !chargeResult.data) {
