@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-06
-next: 🔴 **6차 실호출 완료(2026-09-06 08:55Z, 승인 1회 소진) — 판정 ②는 닫혔고 ④가 새 사유로 열렸다.** `qualityTier: full`(5차의 `degraded/length` 소멸 → ⓧ 상한 60,000 이 실측으로 증명됨) · `fallbackGroups: ['verdict']` 라 `generationSource=gemini_partial`(④ 실패). 원인은 **verdict 묶음 `closing_depth` 2연속**(`closingMessage` 732·662 / 임계 800, `finalVerdict` 는 두 물결 모두 **0자**). ⓓ `repeated_sentence` 오반려 0. 🔴 `unsafe_phrase` **3번째 오탐**(`타인의 요구에 무조건 응하거나`) — 핸드오프가 예고한 전환 트리거가 발동했다. 다음 세션 첫 문장: **"6차에서 드러난 verdict `closing_depth`(빈 `finalVerdict`)와 `unsafe_phrase` 3번째 오탐 중 어느 쪽부터 손댈지 정해 주면 그 한 축만 고친다."**
+next: 🔴 **6차 실호출 완료(2026-09-06 08:55Z, 승인 1회 소진) → 판정 ② 닫힘(ⓧ 증명) · ④ 실패 원인 수정 완료(미검증).** ④ 의 유일한 원인은 verdict 묶음 `closing_depth`(`closingMessage` 732·662 / 임계 800)였고, 그 뿌리는 **분량을 검증하면서 스키마 서술자가 없던 유일한 필드**였다. 서술자 부착 + 임계 800→600 + `minChars` 상수화 + 전수 가드로 고쳤다(§모르는 것). 🔴 **효과는 7차 실호출로만 잰다.** 남은 열린 축은 `unsafe_phrase` **3번째 오탐**(`타인의 요구에 무조건 응하거나`) 하나다. 다음 세션 첫 문장: **"7차 실호출을 1회 승인해 주면 `closingMessage` 수정이 먹혔는지(`fallbackGroups` 0)를 대표 1건으로 확인한다 — 아니면 `unsafe_phrase` 오탐을 공기 판정으로 바꾸는 쪽부터 한다."**
 ---
 
 # 초융합 운세 개선 — 2단계 생성(Phase 1) 이후
@@ -48,7 +48,8 @@ next: 🔴 **6차 실호출 완료(2026-09-06 08:55Z, 승인 1회 소진) — �
     - ✅ **ⓓ 오반려 0** — `repeated_sentence` 탈락 0회. 정상 응답을 새 사유가 잡아먹지 않았다(**1건 표본**).
     - ✅ **astrology `parse_failed` 미재발** — 4·5차의 반복 루프가 이번엔 안 나왔다(astrology w1 이 7,274자로 한 번에 ok). 🔴 **고쳤다는 증거가 아니다** — 손댄 것이 없으므로 표본 변동으로 본다.
     - ✅ `section_depth` 탈락 0. saju 4,960 · tarot 4,766 · astrology 7,274 · ziwei 4,945 · vedic 5,153 · sukuyo 5,400 · integration 5,189 · timingAndAction 5,722/2,600.
-    - 🔴 **④ 실패(새 사유) — verdict 묶음이 `closing_depth` 로 2연속 탈락해 폴백됐다.** w1 `closingMessage` 732/800 · w2 662/800 이고, **두 물결 모두 `finalVerdict` 가 0자**다. 5차에서 "빈 필드가 검증을 통과하는 구멍(범위 밖)"으로 적어 둔 바로 그 축이 이번엔 **다른 필드(`closingMessage`)의 근소한 미달로 드러났다** — `finalVerdict 0자` 자체는 이번에도 아무도 안 잡았다.
+    - 🔴 **④ 실패(새 사유) — verdict 묶음이 `closing_depth` 로 2연속 탈락해 폴백됐다.** w1 `closingMessage` 732/800 · w2 662/800. **이것 하나가 유일한 원인이다.**
+    - ✅ **정정 — "빈 필드 구멍"은 없었다(계측 버그였다).** 5·6차 덤프의 `finalVerdict 0자` · `visualization 0자` 는 `scripts/lib/fusion-live-dump.mjs` 의 `contentChars` 가 `.content` 만 보던 탓이다. 6차 w2 원문을 직접 파싱한 실측: `finalVerdict.rationale` **1,480자**(임계 1,000 통과) · `headline` 44자 · `systemVerdicts` 6개. 🔴 **5차 기록의 "빈 필드가 검증을 통과하는 구멍" 후속 과제는 철회한다.**
     - 🔴 **`unsafe_phrase` 3번째 오탐 — tarot w1**(`타인의 요구에 무조건 응하거나, 자신의 감정을 억압하는 습관입니다`). "미뤄야 할 것"을 설명하는 문장이라 완화어가 **앞**에 오고 뒤에는 없어 `FORBIDDEN_HEDGE_AHEAD` 창으로 못 걸러진다. 보완 물결 w2 가 4,766자로 통과해 폴백은 안 났지만 **호출 1회 + 15.5초**를 태웠다.
     - ⚠️ 1단계 소요는 tail 로 잘려 **미기록**. 개별 호출 최대 21.2초 · 2물결이라 판정 ③(≤120초)은 **충족 추정**(2단계 40.1초는 실측 충족).
   - 원문 덤프: `_tmp_fusion-live/<타임스탬프>/`(`.gitignore` 의 `_tmp_*`, 커밋 안 됨). 호출 1회당 `.txt`(응답 원문) + `.json`(판정·키별 글자수/임계·`fields`·`droppedKeys`) + `summary.md` 표. 🔴 **워크트리를 지우면 같이 사라진다** — 실호출 재승인 없이 다시 못 만든다.
@@ -90,6 +91,11 @@ node --test __tests__/ui/fusion-fortune.static.test.js
 - ~~astrology 반복 루프~~ **대응 확정(ⓓ, 현행 유지 병행)** — ⓐ(프롬프트 문구, PR #1685)는 5차에서 실패로 판정됐지만 `section_depth` 탈락을 늘리지도 않아 **그대로 둔다**. ⓑ(`maxOutputTokens` 상향)·ⓒ(잘린 JSON 복구)는 **기각** — 잘림만 막고 반복은 못 막아 반복 원문이 유료로 배달될 위험이 오히려 커진다. 5차에서 관측된 형태(잘림 → `parse_failed` → 보완 물결이 다시 씀, 폴백 0, 대가 호출 1회+35.8초)는 손대지 않았다.
 - 🔴 **ⓓ 를 넣을 때 드러난 정정** — 옛 기록의 "이미 있는 `hasRepeatedLongSentence` 를 묶음 단위로도 부르면 된다"는 **틀렸다**. 그 함수는 섹션마다 `Set` 으로 중복을 지운 뒤 **서로 다른 3개 섹션**을 요구해 한 섹션 안 반복은 값이 1이다. 그래서 `findFusionRepeatedSentenceField`(`worker/lib/fusion-fortune.js`, 60자·3회, 임계는 기존 `FUSION_DUPLICATE_MIN_SENTENCE` 와 전체 검증에서 그대로 가져옴)를 새로 만들어 `validateFusionFortuneGroup` 이 `repeated_sentence` 로 반려하게 했다. 🔴 이 변경이 막는 것은 **아직 관측되지 않은 쪽** — 반복하면서도 JSON 이 닫혀 모든 검사를 통과해 유료로 배달되는 응답이다. 🔴 짝으로 `buildFusionRepeatInstruction` 을 넣었다: 반복으로 반려된 묶음이 `failedGroups` 에 들어가 보완 물결에서 "목표에 크게 못 미칩니다 — 더 길게" 라는 **반대 지시**를 받던 것을 막는다.
 - 🔴 `unsafe_phrase` 는 **부분 일치 표지 목록이라 구조적으로 오탐이 재발한다** — 2026-09-06 하루에 `무조건적으로 ~기보다`(#1675) · `무조건적인 사랑`(이 세션) 두 번 나왔다. 세 번째가 나오면 표지를 하나씩 깎지 말고 **`무조건`·`반드시`·`100%` 를 표지에서 빼고 단정 술어와의 공기(共起)로만 판정하는 쪽**을 검토한다. 🔴 **6차에서 세 번째가 나왔다**(`타인의 요구에 무조건 응하거나` — 회피 대상을 설명하는 문장) — **트리거 발동, 다음 세션의 후보 축이다.** 방향: 이 셋을 `FORBIDDEN`/`FORBIDDEN_HEDGEABLE`(`worker/lib/fusion-fortune.js:47`·`:74`)에서 빼고 기존 `OVERCLAIM_ASSERTION`(확실·분명·단정·결정·보장) 공기 판정에만 맡긴다. 🔴 대가는 **탐지력 하락**이므로 `__tests__` 의 고정 문구를 함께 갱신해야 하고, 승인 없이 하지 않는다.
-- 🔴 **verdict 묶음 `closing_depth` — 6차의 ④ 실패 원인이자 유일한 열린 축.** 두 물결 모두 `closingMessage` 가 800자에 **68~138자 모자라** 탈락했고, 같은 응답의 `finalVerdict` 는 **0자인데 아무 사유도 안 붙었다**. 두 갈래다: ① 임계 근소 미달 → verdict 묶음에도 `lengthDirective()` 식 목표치(최소×1.2)를 `closingMessage` 에 붙인다(#1660 이 본문 섹션에서 먹혔던 수단) ② 빈 필드 구멍 → `finalVerdict`/`visualization` 이 0자여도 통과하는 검증을 막는다. 🔴 **②를 먼저 막으면 6차 응답은 더 크게 탈락한다** — 순서는 ①→② 이고, 어느 쪽도 실호출 재승인 없이는 효과를 못 잰다.
+- ~~verdict 묶음 `closing_depth`~~ **대응 완료(이 세션, 사용자 지시 "기준을 너무 빡빡하게 두지 마")** — 원인은 하나였다: `closingMessage` 가 **분량을 검증하면서 스키마 서술자가 없는 유일한 필드**였다(`"string"` 한 줄). 모델이 목표를 못 받아 임계 바로 아래에서 멈췄다. 셋을 함께 고쳤다.
+  - ① `closingMessage` 에 `lengthDirective()` 를 붙였다(목표 720자를 모델에 알린다).
+  - ② `FUSION_FORTUNE_LENGTH.closingMessage` **800 → 600** — 맺음말은 새 근거를 꺼내지 않는 마무리 글이라 본문 섹션과 같은 잣대를 댈 자리가 아니고, 68~138자 모자란 정상 응답을 통째로 버려 결정론 폴백을 유료 배달하는 대가가 더 크다. 6차 실측 662·732 둘 다 통과한다.
+  - ③ 그룹 명세의 `minChars` 리터럴을 계약 상수 참조로 바꿨다 — 이 값은 프롬프트의 "최소 N자" 줄로 흘러가므로 검증 상수와 벌어지면 모델이 검증과 다른 기준을 받는다.
+  - 🔴 짝으로 `verify:fusion-fortune-quality` 에 **전수 가드**를 넣었다: 최소치를 재는 키를 스키마에서 세워 **서술자가 없으면 실패**시키고, 그룹 `minChars` 가 계약과 다르면 실패시킨다. 변이 2종(서술자 제거 · minChars 드리프트)으로 무는 것을 확인했다.
+  - 🔴 **효과는 미검증** — 실호출 재승인 없이는 못 잰다. 7차의 확인 지점은 `closingMessage` 가 720자 부근으로 오는지와 `fallbackGroups` 0 이다.
 - 대표 1건 외 나머지 4조합(생시·장소 결측, 음력·도쿄)의 실호출 거동은 **미검증**.
 - Phase 2 레일·Phase 3 도크 모두 브라우저에서 눈으로 확인하지 않았다(정적 검증·타입·린트만). 스테이징 배포 후 ① 데스크톱 `lg` 이상에서 sticky·차례 이동, ② 360/390/430px 에서 도크가 패널에 갇히지 않는지·시트 열림/스크림 탭 닫힘·좌상단 `.cd-feature-nav` 와 겹치지 않는지 본다.

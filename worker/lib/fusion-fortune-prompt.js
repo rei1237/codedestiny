@@ -23,7 +23,11 @@ export const FUSION_FORTUNE_LENGTH = Object.freeze({
   executiveSummary: 1400,
   integratedReading: 3600,
   timingAndAction: 2600,
-  closingMessage: 800,
+  // 🔴 800 → 600 (2026-09-06). 실호출 6차에서 verdict 묶음이 이 값 하나 때문에 두 물결 연속
+  //    탈락해(closingMessage 732·662자) **결정론 폴백이 유료 결과로 나갔다**. 맺음말은 새 근거를
+  //    꺼내지 않는 마무리 글이라 본문 섹션과 같은 잣대를 댈 자리가 아니고, 68~138자 모자란 정상
+  //    응답을 통째로 버리는 대가가 얻는 것보다 크다. 목표치는 서술자가 min×1.2(720자)로 따로 준다.
+  closingMessage: 600,
   finalVerdictRationale: 1000,
 });
 
@@ -112,7 +116,9 @@ export const FUSION_FORTUNE_RESPONSE_SCHEMA = Object.freeze({
   },
   visualization: FUSION_VISUALIZATION_SCHEMA,
   finalVerdict: FUSION_FINAL_VERDICT_SCHEMA,
-  closingMessage: "string",
+  // 🔴 분량을 검증하는 필드는 전부 서술자를 달아야 한다 — 6차까지 이 키만 맨 `"string"` 이라
+  //    모델이 목표를 못 받았고, 그래서 임계 근처(732·662자)에서 멈춰 묶음이 폴백됐다.
+  closingMessage: lengthDirective(FUSION_FORTUNE_LENGTH.closingMessage, "상담을 닫는 글이므로 새 근거를 꺼내지 말고, 지금까지의 결론을 사용자의 다음 행동으로 옮기는 데 분량을 쓴다."),
   shareText: "string (개인정보가 없는 220자 이내 요약)",
 });
 
@@ -185,7 +191,7 @@ export const FUSION_SECTION_GROUP_SPECS = Object.freeze([
     label: "상담의 서문과 사주",
     stageLabel: "서문 · 사주",
     keys: Object.freeze(["title", "openingMessage", "sajuSection"]),
-    minChars: Object.freeze({ openingMessage: 260, sajuSection: 3600 }),
+    minChars: Object.freeze({ openingMessage: 260, sajuSection: FUSION_FORTUNE_LENGTH.section }),
     targetChars: 4300,
     systems: Object.freeze(["saju"]),
     focus: "상담을 여는 제목·서문과, 사주가 말하는 타고난 기질과 선택의 뿌리",
@@ -196,7 +202,7 @@ export const FUSION_SECTION_GROUP_SPECS = Object.freeze([
     label: "자미두수",
     stageLabel: "자미두수",
     keys: Object.freeze(["ziweiSection"]),
-    minChars: Object.freeze({ ziweiSection: 3600 }),
+    minChars: Object.freeze({ ziweiSection: FUSION_FORTUNE_LENGTH.section }),
     targetChars: 4200,
     systems: Object.freeze(["ziwei"]),
     focus: "자미두수의 궁위와 별이 말하는 삶의 무대, 역할, 책임을 느끼는 지점",
@@ -207,7 +213,7 @@ export const FUSION_SECTION_GROUP_SPECS = Object.freeze([
     label: "베다점",
     stageLabel: "베다점",
     keys: Object.freeze(["vedicSection"]),
-    minChars: Object.freeze({ vedicSection: 3600 }),
+    minChars: Object.freeze({ vedicSection: FUSION_FORTUNE_LENGTH.section }),
     targetChars: 4200,
     systems: Object.freeze(["vedic"]),
     focus: "베다점의 달·나크샤트라·다샤가 말하는 무의식의 리듬과 회복 방식",
@@ -218,7 +224,7 @@ export const FUSION_SECTION_GROUP_SPECS = Object.freeze([
     label: "숙요점",
     stageLabel: "숙요점",
     keys: Object.freeze(["sukuyoSection"]),
-    minChars: Object.freeze({ sukuyoSection: 3600 }),
+    minChars: Object.freeze({ sukuyoSection: FUSION_FORTUNE_LENGTH.section }),
     targetChars: 4200,
     systems: Object.freeze(["sukuyo"]),
     focus: "숙요점이 말하는 관계의 거리, 감정 반응, 대화 속도",
@@ -229,7 +235,7 @@ export const FUSION_SECTION_GROUP_SPECS = Object.freeze([
     label: "서양 점성술",
     stageLabel: "점성술",
     keys: Object.freeze(["astrologySection"]),
-    minChars: Object.freeze({ astrologySection: 3600 }),
+    minChars: Object.freeze({ astrologySection: FUSION_FORTUNE_LENGTH.section }),
     targetChars: 4200,
     systems: Object.freeze(["astrology"]),
     focus: "서양 점성술의 태양·달·행성이 말하는 표현과 선택 패턴",
@@ -240,7 +246,7 @@ export const FUSION_SECTION_GROUP_SPECS = Object.freeze([
     label: "타로",
     stageLabel: "타로",
     keys: Object.freeze(["tarotSection"]),
-    minChars: Object.freeze({ tarotSection: 3600 }),
+    minChars: Object.freeze({ tarotSection: FUSION_FORTUNE_LENGTH.section }),
     targetChars: 4200,
     systems: Object.freeze(["tarot"]),
     focus: "서버가 뽑은 여섯 장의 카드가 현재 선택을 비추는 방식",
@@ -251,7 +257,7 @@ export const FUSION_SECTION_GROUP_SPECS = Object.freeze([
     label: "교차 검증 통합 리딩",
     stageLabel: "교차 검증 통합",
     keys: Object.freeze(["integratedReading"]),
-    minChars: Object.freeze({ integratedReading: 3600 }),
+    minChars: Object.freeze({ integratedReading: FUSION_FORTUNE_LENGTH.integratedReading }),
     targetChars: 4200,
     systems: Object.freeze([]),
     focus: "앞 단계에서 완성된 여섯 체계 섹션을 교차 검증해 하나로 엮는 통합 리딩",
@@ -262,7 +268,7 @@ export const FUSION_SECTION_GROUP_SPECS = Object.freeze([
     label: "시기와 행동",
     stageLabel: "12개월 시기 라인 · 행동",
     keys: Object.freeze(["timingAndAction", "visualization"]),
-    minChars: Object.freeze({ timingAndAction: 2600 }),
+    minChars: Object.freeze({ timingAndAction: FUSION_FORTUNE_LENGTH.timingAndAction }),
     targetChars: 3200,
     systems: Object.freeze([]),
     focus: "앞으로 12개월의 시기 라인과 현실 행동, 시각화가 쓸 정규화 점수",
@@ -273,7 +279,14 @@ export const FUSION_SECTION_GROUP_SPECS = Object.freeze([
     label: "결론 요약과 최종 판정",
     stageLabel: "핵심 요약 · 최종 결론",
     keys: Object.freeze(["executiveSummary", "finalVerdict", "closingMessage", "shareText"]),
-    minChars: Object.freeze({ executiveSummary: 1400, finalVerdict: 1000, closingMessage: 800 }),
+    // 🔴 리터럴로 적지 않는다 — 이 값은 프롬프트의 "최소 N자" 줄로 흘러가는데(buildFusionSectionGroupPrompt),
+    //    검증은 FUSION_FORTUNE_LENGTH 를 본다. 따로 적어 두면 한쪽만 고쳤을 때 모델이 검증과 다른
+    //    기준을 받는다.
+    minChars: Object.freeze({
+      executiveSummary: FUSION_FORTUNE_LENGTH.executiveSummary,
+      finalVerdict: FUSION_FORTUNE_LENGTH.finalVerdictRationale,
+      closingMessage: FUSION_FORTUNE_LENGTH.closingMessage,
+    }),
     targetChars: 3400,
     systems: Object.freeze([]),
     focus: "여섯 체계를 수렴시킨 결론 요약, 최종 판정, 마무리 메시지",
