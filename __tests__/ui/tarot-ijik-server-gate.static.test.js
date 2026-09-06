@@ -107,8 +107,11 @@ test('페이지는 결제 뒤에 서버 리딩을 요청한다', () => {
 test('서버 실패 시 로컬 폴백으로 새지 않는다', () => {
   const page = stripComments(read(PAGE_REL));
   // 🔴 예전에는 catch 에서 createLocalJobChangeReading 을 다시 불렀다. 그게 곧 무료 우회다.
-  const at = page.indexOf('async function getReading(');
-  assert.ok(at > 0, 'getReading 을 못 찾았다');
+  // 🔴 폴백 금지가 걸린 곳은 서버 응답을 다루는 **코어**다 — 2026-09-06 결제 후 자동 재개
+  //    배선으로 `getReading`(게이트) / `getReadingCore`(게이트 없는 본문)로 갈렸고, 재개
+  //    핸들러도 코어를 부른다. 게이트 쪽을 보면 본문이 안 잡힌다.
+  const at = page.indexOf('async function getReadingCore(');
+  assert.ok(at > 0, 'getReadingCore 를 못 찾았다');
   const body = page.slice(at, page.indexOf('\n}\n', at));
   assert.ok(!/createLocal|JOB_CHANGE_READING_BY_POSITION/.test(body), 'getReading 이 로컬 생성으로 폴백한다');
   assert.ok(/추가 결제 없이/.test(body), '실패 안내가 재결제 불필요를 알리지 않는다');

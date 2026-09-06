@@ -2192,7 +2192,7 @@ function syncRoyalTeaBilling(payload) {
   }
 }
 
-async function runRoyalTeaGate() {
+async function runRoyalTeaGate(resume) {
   var COST = 50;
   var requestId = 'royal-tea:' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
   if (typeof window._cdCoinGatePerUse === 'function') {
@@ -2207,7 +2207,10 @@ async function runRoyalTeaGate() {
         featureKey: 'royal-tea-oracle',
         serviceKey: 'royal-tea-oracle',
         action: 'openRoyalTeaOracle',
-        requestId: requestId
+        requestId: requestId,
+        // 🔴 모바일 PortOne 은 상위 프레임을 리다이렉트하므로 아래 await 가 페이지와 함께 죽는다.
+        //    결제 전 상태(고른 질문 영역)를 담은 재개 서술자를 게이트까지 넘겨야 복귀 문서가 다시 연다.
+        resume: resume || null
       });
       if (gateResult && typeof gateResult.then === 'function') gateResult = await gateResult;
       if (!granted && gateResult && typeof gateResult === 'object') {
@@ -2237,12 +2240,21 @@ async function startReading() {
   if (btn.disabled) return;
   btn.disabled = true;
 
-  const granted = await runRoyalTeaGate();
+  const granted = await runRoyalTeaGate(buildRoyalTeaResumeDescriptor(selectedIntent));
   if (!granted) {
     btn.disabled = false;
     setStatus('결제가 완료되지 않아 점을 시작하지 못했습니다. 시계를 다시 눌러 주세요.');
     return;
   }
+
+  startReadingCore();
+}
+
+/* 🔴 결제 게이트가 없는 코어다. 재개 핸들러는 이쪽을 부른다 — 게이트를 다시 타는 startReading 을
+   부르면 이미 낸 결제가 또 일어난다(배선 레시피 4번). */
+function startReadingCore() {
+  const btn = document.getElementById('oracle-btn');
+  if (btn) btn.disabled = true;
 
   currentCupMap = buildCupMap(selectedIntent);
   // 캔버스는 잔벽(Ⅱ)의 형상 하나로 모프한다 — 나머지 두 형상은 감정서와 잔 지도가 맡는다.
@@ -2263,7 +2275,41 @@ async function startReading() {
 
   frameCount = 0;
   phase = 'swirl';
+  return true;
 }
+
+/* ── 결제 후 자동 재개(모바일 리다이렉트 복귀) ────────────────────────────
+   결제 전 상태는 고른 질문 영역 하나뿐이고 잔 지도는 전부 클라이언트 계산이라, 영역만 되살리면
+   결제 없이 그대로 이어진다(서버 증빙이 필요 없는 유형). */
+const ROYAL_TEA_RESUME_KIND = 'royal-tea-reading';
+
+function buildRoyalTeaResumeDescriptor(intent) {
+  const picked = String(intent || '');
+  if (!INTENTS.some((i) => i.id === picked)) return null;
+  // args 에는 원시값만 살아남는다(checkout-entry 의 sanitizePaidResumeDescriptor).
+  // 🔴 action 은 비운다 — 이 파일은 셸에 상주해 복귀 시점에 핸들러가 이미 등록돼 있고,
+  //    딥링크로 또 열면 이중 이동으로 재개가 날아간다.
+  return { kind: ROYAL_TEA_RESUME_KIND, action: '', args: { intent: picked } };
+}
+
+function runRoyalTeaResume(descriptor) {
+  const args = (descriptor && descriptor.args && typeof descriptor.args === 'object') ? descriptor.args : {};
+  const picked = String(args.intent || '');
+  // 🔴 유효성 판정을 전역 대입보다 앞에 둔다 — 모르는 영역으로 덮으면 감정서 문안이 어긋난 채 나간다.
+  // false 를 돌려주면 복귀 처리가 '지금 열기' 카드로 떨어뜨린다(영수증이 남아 재클릭은 무료다).
+  if (!INTENTS.some((i) => i.id === picked)) return false;
+  if (phase === 'swirl' || phase === 'morph') return false;
+  selectedIntent = picked;
+  try { renderIntentChips(); } catch (_e) {}
+  return startReadingCore();
+}
+
+(function registerRoyalTeaResumeHandler() {
+  let entry = null;
+  try { entry = window.__cdCheckoutEntry || null; } catch (_e) { entry = null; }
+  if (!entry || typeof entry.registerPaidResumeHandler !== 'function') return;
+  try { entry.registerPaidResumeHandler(ROYAL_TEA_RESUME_KIND, runRoyalTeaResume); } catch (_e) {}
+})();
 
 function escapeHtml(value) {
   return String(value == null ? '' : value)
