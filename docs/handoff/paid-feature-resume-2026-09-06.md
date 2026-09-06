@@ -131,7 +131,7 @@ PR #1667 로 추가된 3건 — 코스믹 명상 `cosmic-soul-meditation.html` `
 | kind | 부르는 코어 | args | 증빙 재조립 |
 |---|---|---|---|
 | `ifa-oracle-cast` | `castCore` | `category` | 불필요(클라 계산) |
-| `geomancy-oracle-cast` | `geomancyEnterActivation` | `question` | 불필요 |
+| `geomancy-oracle-cast` | `geomancyEnterActivation` | `question` | `_captureGeomancyEvidence` |
 | `royal-tea-reading` | `startReadingCore` | 없음 | 불필요 |
 | `tarot-ijik-reading` | `getReadingCore` | `requestId`·`cardsJson`(7장) | 게이트 requestId 재사용 |
 | `yoga-guru-course` | `invokeGuruCore` | `mood`·`duration` | `_captureYogaEvidence` |
@@ -144,11 +144,12 @@ PR #1667 로 추가된 3건 — 코스믹 명상 `cosmic-soul-meditation.html` `
 
 이 10건에서 새로 확인한 것:
 
-- 🔴 **서버 산출물형은 증빙을 그 파일의 기존 조립기로 다시 만든다** — 요가·천체·베딕 AI·프라슈나·펫사주 5건은 생성 POST 에 결제 증빙이 없으면 402 다. 새 조립기를 만들지 말고 `grant.payload` 를 인페이지 경로가 쓰던 **같은 조립기**에 먹인다(원칙 6). `grant` 는 인페이지 `onGranted(gateResult)` 와 같은 자리다.
+- 🔴 **"클라 계산이라 증빙 불필요"는 `fetch` 전수 확인 뒤에만 쓴다** — 지오맨시는 점괘 계산만 클라이언트고 **해석은 서버가 만든다**(`fetchOracle` → `/api/oracle/geomancy`, `geomancy-oracle-v4.html:1380`). 그 POST 본문에 `geomancyPayEvidence` 가 `Object.assign` 으로 합쳐져 나가고 라우트가 `transactionId`·`purchaseId`·`requestId`·`sessionId`·`reportId` 를 읽는다(`worker/routes/oracle.js:240-256`). 처음에 "증빙 불필요"로 분류했다가 되돌렸다. 증빙 없는 진짜 클라형은 `fetch` 자체가 0곳인 `ifa_oracle_v2_full.html`·`royal-tea-oracle.html` 이다.
+- 🔴 **서버 산출물형은 증빙을 그 파일의 기존 조립기로 다시 만든다** — 요가·천체·베딕 AI·프라슈나·펫사주·지오맨시 6건은 생성 POST 에 결제 증빙이 없으면 402 다. 새 조립기를 만들지 말고 `grant.payload` 를 인페이지 경로가 쓰던 **같은 조립기**에 먹인다(원칙 6). `grant` 는 인페이지 `onGranted(gateResult)` 와 같은 자리다.
 - 🔴 **서술자는 게이트 안에서 만들어야 requestId 가 맞는 경우가 있다** — `tarot-ijik` 은 `ijikCoinGate` 가 자기 requestId 를 만들고 그걸 서버가 증빙 매칭에 쓴다. 호출부에서 미리 만들면 다른 값이 실린다. 반대로 `vedic-ai-prompt` 는 requestId 가 입력 해시라 **복귀 후 재계산하면 값이 달라질 수 있어** 서술자에 실어 코어로 넘긴다.
 - **DOM 이 아직 없을 수 있다** — 베딕 궁합의 `c-*` 폼은 `showDetail('compat')` 이 그려야 생기고, 차트(`G.chart`)는 `initVedicPage` 가 프로필로 재계산할 때까지 없다. 그래서 핸들러가 8초/200ms 로 차트를 기다린 뒤 상세를 열고 폼을 채운다. 펫사주는 청사진이 없으면 **무료** `requestBlueprint` 를 먼저 다시 받는다.
 - **연출 진행 중이면 반려한다** — `royal-tea-reading` 은 `phase` 가 `swirl`·`morph` 면 `false` 를 돌려 '지금 열기' 카드로 떨어뜨린다(영수증이 남아 재클릭은 무료다).
-- 🔴 **`public/ifa-oracle.html` 은 `sync:public` 이 안 만든다** — `ifa_oracle_v2_full.html` 의 배포 쌍둥이인데 미러 대상이 아니라 **본문을 손으로 맞춰야 한다**(head 만 다르다). 이번에도 손으로 동기화했다.
+- 🔴 **`public/ifa-oracle.html` · `public/static/geomancy-oracle-v4.html` 은 `sync:public` 이 안 만든다** — `scripts/sync-legacy-static-to-public.mjs` 의 `staticTargets`(:58-) 에 둘 다 없다. 배포되는 자체 정본이므로 **본문을 손으로 맞춰야 한다.** 이번에 둘 다 손으로 맞췄다(전자는 head 만, 후자는 루트 전체 복사).
 
 **React 36건** — 위 "계약 공백" 과 같은 이유로 배관부터 필요하다. 영수증만으로 여는 지름길을 붙이려면 `app/_lib/billing-client.ts:1724-1770` `hasVerifiedBillingAccess(data, expectedFeatureKey)` 를 만족시켜야 한다(featureKey 일치 + `accessGrant.*` 또는 `consume.*` 식별자).
 
@@ -182,11 +183,11 @@ React 배관도 같은 PR 에서 열렸다: `EnsurePaidAccessInput`/`BillingCoin
 
 ## 이번 범위 밖 인접 결함 (고치지 않았다 — 원칙 14)
 
-**루트 정적 10건 배선에서 새로 나온 3건 (2026-09-06)**
+**루트 정적 10건 배선에서 나왔던 3건 (2026-09-06) — 사용자 지시로 전부 처리했다. 기록만 남긴다.**
 
-- 🔴 **`public/ifa-oracle.html` 에 결제 런타임 3종이 없다** — 배포 쌍둥이인데 head 에 `pass-verdict.js`·`checkout-entry.js`·`payment-service.js` 태그가 빠져 있다(루트 `ifa_oracle_v2_full.html` 에는 있다). PR #151 때 루트만 받고 쌍둥이는 안 받은 divergence 로, `destiny-profile.js` 는 이 셋을 **스스로 로드하지 않는다**(전수 grep: `js/destiny-profile.js` 에 로더 없음 — 주석만 "함께 로드한다"고 적혀 있다). 그래서 이 쌍둥이에서는 재개 핸들러 등록이 안 되고 결제창도 dp 폴백 렌더러로 떨어진다. **본문 배선은 넣어 뒀으니 태그 3줄만 채우면 살아난다.**
-- ⚠️ **`public/static/geomancy-oracle-v4.html` 은 낡은 두 번째 사본이다** — `/static/geomancy-oracle-v4` 로 실제 서빙된다(`_headers:152-159`). 결제 런타임 3종은 물론 루트에 있는 **결제 증빙 블록(`_captureGeomancyEvidence`)조차 없다.** 미러가 아니라 자체 정본이라 `sync:public` 이 안 건드리고, 지금까지 캐시 핀만 손으로 돌려 왔다. 재개 배선도 못 받았다.
-- **`geomancy-oracle-v4.html` 의 `geomancyPayEvidence` 는 죽은 쓰기다** — `_captureGeomancyEvidence` 가 대입하지만 파일 어디서도 읽지 않는다(전수 grep: 루트 파일 + `public/` 미러). 지오맨시는 산출물이 클라 계산이라 지금은 무해하지만, 서버 생성으로 바뀌면 증빙이 안 실린다.
+- ✅ **`public/ifa-oracle.html` 에 결제 런타임 3종을 넣었다** — 배포 쌍둥이인데 head 에 `pass-verdict.js`·`checkout-entry.js`·`payment-service.js` 태그가 빠져 있었다(루트 `ifa_oracle_v2_full.html` 에는 있다). PR #151 때 루트만 받은 divergence 로, `destiny-profile.js` 는 이 셋을 **스스로 로드하지 않는다**(전수 grep: `js/destiny-profile.js` 의 동적 로드는 PortOne SDK·`olympus-oracle.js`·`access-store.js` 셋뿐 — 주석만 "함께 로드한다"고 적혀 있다). 그래서 이 쌍둥이에서는 재개 핸들러 등록이 안 되고 결제창도 dp 폴백 렌더러로 떨어졌다.
+- ✅ **`public/static/geomancy-oracle-v4.html` 을 루트 정본으로 갱신했다** — `/static/geomancy-oracle-v4` 로 실제 서빙된다(`_headers:152-159`). 결제 런타임 3종도 증빙 블록도 재개 배선도 없는 낡은 사본이었고, 루트와의 차이 64줄이 **전부 노후분**이라(레거시 COIN 폴백 주석 블록 등 — 의도적 분기 0) 루트 내용을 BOM 만 떼고 그대로 덮었다. 🔴 `scripts/externalize-dist-inline-scripts.mjs:117-122` 의 "34KB 주석 블록 안의 `</script>` 때문에 원래 깨진 셸" 예외는 **이 파일 얘기였고, 이제 그 블록이 없다** — 그 주석은 다음에 손댈 때 정리 대상이다.
+- ❌ **철회: `geomancyPayEvidence` 가 죽은 쓰기라는 단언은 틀렸다** — `geomancy-oracle-v4.html:1380` 의 `fetchOracle` 이 `Object.assign(..., geomancyPayEvidence || {})` 로 `/api/oracle/geomancy` 본문에 싣는다. 처음 grep 범위가 좁아 나온 오판이고(원칙 8 위반), 그 오판 때문에 재개 핸들러를 증빙 없이 배선해 **복귀 사용자가 402 를 맞을 뻔했다.** 지금은 `runGeomancyResume(descriptor, grant)` 가 `_captureGeomancyEvidence` 로 다시 채운다(`requestId` 가 확정 응답에 없으면 grant 값으로 폴백).
 
 **2026-09-06 재감사에서 새로 나온 3건**
 

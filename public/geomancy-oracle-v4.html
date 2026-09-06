@@ -962,8 +962,10 @@ function geomancyEnterActivation(text){
 }
 
 /* ── 결제 후 자동 재개(모바일 리다이렉트 복귀) ────────────────────────────
-   결제 전 상태는 입력한 질문 하나뿐이고 점괘는 전부 클라이언트 계산이라, 질문만 되살리면
-   결제 없이 그대로 이어진다(서버 증빙이 필요 없는 유형). */
+   결제 전 상태는 입력한 질문 하나뿐이라 질문만 되살리면 이어진다. 다만 해석은 서버가 만들고
+   (`/api/oracle/geomancy`), 그 요청 본문에 `geomancyPayEvidence` 가 실려 나간다(fetchOracle).
+   🔴 그 전역은 인페이지 게이트의 onGranted 에서만 채워지므로, 복귀 문서에서는 비어 있다 —
+      재개 핸들러가 같은 조립기로 다시 채우지 않으면 결제한 사용자가 402 를 맞는다(원칙 6). */
 const GEOMANCY_RESUME_KIND = 'geomancy-oracle-cast';
 
 function buildGeomancyResumeDescriptor(text){
@@ -975,12 +977,19 @@ function buildGeomancyResumeDescriptor(text){
   return { kind: GEOMANCY_RESUME_KIND, action: '', args: { question: asked } };
 }
 
-function runGeomancyResume(descriptor){
+function runGeomancyResume(descriptor, grant){
   const args = (descriptor && descriptor.args && typeof descriptor.args === 'object') ? descriptor.args : {};
   const asked = String(args.question || '').trim();
   // 🔴 유효성 판정을 전역 대입보다 앞에 둔다 — 빈 질문으로 덮으면 질문 표시가 빈 채로 점괘만 돈다.
   // false 를 돌려주면 복귀 처리가 '지금 열기' 카드로 떨어뜨린다(영수증이 남아 재클릭은 무료다).
   if (!asked) return false;
+  if (!grant || typeof grant !== 'object') return false;
+  // 인페이지 경로와 **같은 조립기**를 쓴다(원칙 6) — 서버가 읽는 키가 갈라지지 않는다.
+  // 🔴 requestId 는 서버 판정 키인데(worker/routes/oracle.js) 확정 응답에는 없을 수 있다 —
+  //    비어 있을 때만 재개 grant 의 값으로 채운다(있으면 서버 응답이 이긴다).
+  var resumePayload = Object.assign({}, grant.payload || {});
+  if (!String(resumePayload.requestId || '').trim() && grant.requestId) resumePayload.requestId = grant.requestId;
+  _captureGeomancyEvidence(grant.merchantUid || grant.requestId, resumePayload);
   try {
     const input = document.getElementById('q-input');
     if (input) input.value = asked;
