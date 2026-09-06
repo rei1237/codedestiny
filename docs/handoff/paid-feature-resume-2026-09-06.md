@@ -152,6 +152,7 @@ npm run lint && npm run typecheck && npm run check:quick
 ```
 
 - 🔴 배선 뒤 `npm run sync:public` 은 필수다. **핀 회전이 따라오는지는 무엇을 고쳤느냐로 갈린다** — 기능 파일만 고친 배선 3건에서는 `sync:public` 만으로 PASS 했지만, PR #1656 처럼 `js/core/checkout-entry.js`·`js/destiny-profile.js` 를 고치면 **두 축이 동시에 낡는다**: core 핀(`checkout-entry.js`+`pass-verdict.js` 유도)과 dp 핀(`destiny-profile.js` 유도). `verify:payment-choice-parity` 는 **한 번에 한 축만 알려주므로** 고치고 다시 돌리기를 반복한다. 🔴 `public/ifa-oracle.html` · `public/static/geomancy-oracle-v4.html` 은 미러가 아니라 자체 정본이라 `git grep -l "<낡은 핀>"` 전건 치환이 필요하다.
+- 🔴 **순서는 핀 sed → `sync:public` 이다**(2026-09-06 CI 한 바퀴를 태웠다). 핀 치환이 `index.html`·루트 js 를 건드리므로 **셸 빌드 핀이 다시 낡는다** — 치환 뒤 `sync:public` 을 안 돌리면 로컬 `verify:payment-choice-parity` 는 PASS 인데 CI 의 `Static guards` → `verify:public-mirror-fresh` 가 19개 파일로 떨어진다. 커밋 전 `npm run verify:public-mirror-fresh` 로 확인한다.
 - `build:worker` 는 `check:critical` 에 있다. 🔴 `check:quick` 도 워크트리에서 `Could not resolve "workers-og"` 로 **BLOCKED 된다**(2026-09-06 실측 — 초판 "exit 0" 서술은 틀렸다). 원인은 리포 루트 `node_modules` 에 `workers-og` 가 설치돼 있지 않은 것이고 코드와 무관하다. 그 앞 게이트(whitespace·changed-file lint·sitemap drift·typecheck·mock core smoke·env-parity)는 출력으로 통과 여부를 확인할 수 있다.
 - 🔴 `app/**` 를 건드리면 `config/sitemap-lastmod.json` 이 무효화된다 — `npm run sitemap:generate` 결과를 같은 커밋에. 캐시 핀 치환이 `app/layout.js` 에 걸리므로 **핀을 돌린 뒤 한 번 더** 돌린다.
 - 빌드가 `rss.xml`·`insights/rss.xml`(+ `public/` 미러)의 `lastBuildDate` 만 건드린다 — **커밋에 담지 말고 `git checkout --` 로 되돌린다.**
