@@ -47,4 +47,14 @@ describe("레거시 결제 별칭이 V2 컷오버를 우회하지 않는다", ()
     expect(routerCode).toMatch(/url\.pathname\.startsWith\("\/api\/payments\/"\)/);
     expect(routerCode).toMatch(/url\.pathname\.startsWith\("\/api\/billing\/"\)/);
   });
+
+  // /api/payments/confirm 은 2026-09-06 에 V2 로 넘어갔다. 훅이 구 핸들러 폴스루보다 **뒤**로 밀리면
+  // 조건은 그대로인데 트래픽만 조용히 구 handleConfirm 으로 돌아간다 — 그래서 순서까지 고정한다.
+  test("/api/payments/confirm 은 구 핸들러 폴스루보다 먼저 V2 로 간다", () => {
+    const hookAt = routerCode.indexOf(String.raw`url.pathname === "/api/payments/confirm"`);
+    const fallthroughAt = routerCode.indexOf("await handlePaymentRoutes(request, env, ctx)");
+    expect(hookAt).toBeGreaterThan(-1);
+    expect(fallthroughAt).toBeGreaterThan(-1);
+    expect(hookAt).toBeLessThan(fallthroughAt);
+  });
 });

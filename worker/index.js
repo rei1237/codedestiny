@@ -1360,6 +1360,15 @@ export default {
           const { handlePaymentsContext } = await import("./payments/index.js");
           return withCorsHeaders(request, env, await handlePaymentsContext(request, env, { prefix: "/api/payments" }));
         }
+        // 단건 확정 컷오버(2026-09-06) — 구 /api/payments/confirm 을 V2 confirmOrder 로 넘긴다. 경로가
+        // 이미 V2 라우터의 "POST /confirm" 이라 재작성 없이 그대로 통과시킨다(구 /api/billing/confirm 도
+        // 같은 어댑터로 재작성돼 들어오므로 두 URL 이 한 핸들러를 공유한다). 구 핸들러는 지우지 않았다 —
+        // 이 블록을 걷어내면 worker/routes/payments.js 의 handleConfirm 이 그 자리에서 다시 답한다.
+        if (request.method === "POST"
+          && url.pathname === "/api/payments/confirm") {
+          const { handlePaymentsContext } = await import("./payments/index.js");
+          return withCorsHeaders(request, env, await handlePaymentsContext(request, env, { prefix: "/api/payments" }));
+        }
         return withCorsHeaders(request, env, await handlePaymentRoutes(request, env, ctx));
       }
 
@@ -1375,8 +1384,8 @@ export default {
             legacyEnvelope: "billing-checkout",
           }));
         }
-        // 확정 — 구 /api/billing/confirm 을 V2 confirmOrder 로. 구 /api/payments/confirm
-        // (PointsClient 상점 경로)은 응답 계약이 달라 아직 구 핸들러에 남는다(별도 라우트 이름으로 후속).
+        // 확정 — 구 /api/billing/confirm 을 V2 confirmOrder 로. 위 /api/payments 블록의 /confirm 도
+        // 2026-09-06 에 같은 어댑터로 넘어갔다(두 URL 이 한 핸들러를 공유한다).
         if (request.method === "POST"
           && url.pathname === "/api/billing/confirm") {
           const rewrittenConfirm = rewriteRequestPath(request, "/api/payments/confirm");
