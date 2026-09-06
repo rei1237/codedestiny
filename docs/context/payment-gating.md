@@ -43,6 +43,32 @@
 
 🔴 **`PERSISTENT_UNLOCK_KEY_SET`은 영구 해금의 기록 주체가 아니다** — 위치도 `content-unlocks.js`가 아니라 `worker/routes/fortune.js`다. 해금을 실제로 기록하는 곳은 `User.unlockedFeatures`이고, coin-gate(`billing.js`)와 카드 단건결제(`payments.js` `recordUserPaidFeature`)가 `isUnlockPaidFeatureKey` 기준으로 함께 쓴다. 저 상수는 `/api/fortune/*` 응답의 `unlockedFeatures`/`unlockMap` 필터와 PointHistory 복구 경로 전용이라, **신규 잠금 기능을 추가할 때 여기 등록하지 않아도 결제·재열람은 정상 동작한다**(같은 계약의 `ziwei-island-deep-report`·`nakshatra-lord-report`·`nakshatra-dasha-map`이 모두 미등록 상태로 동작 중). 등록이 필요한 경우는 그 키를 `/api/fortune/*` 응답으로 내보내야 할 때뿐이다.
 
+## 스테이징 1,000원 테스트 모드 (2026-09-06)
+
+실결제 테스트가 불가능해 **PG 결제창 → 승인 → 서버 검증 → 웹훅 → 지급**의 실제 왕복이 한 번도 실행되지 않았다. 스테이징에서만 **청구가**를 1,000원(KG이니시스 최소 승인금액)으로 낮춰 그 왕복을 끝까지 돌려 보는 장치다. **상품 가격 정본(`paid-feature-registry.js` · `PASS_MONTHLY_WON`)은 그대로다** — 낮아지는 것은 주문 문서에 실리는 금액 하나뿐이다.
+
+**켜지는 조건은 서버 env 두 개의 AND 하나뿐이다.**
+
+```
+청구가 = (APP_ENV === "staging" && PAYMENT_TEST_AMOUNT_KRW >= 1000)
+       ? min(PAYMENT_TEST_AMOUNT_KRW, 정가)
+       : 정가
+```
+
+- 🔴 **요청 본문·헤더·쿼리를 보지 않는다** — 클라이언트가 `staging=true` 류 값을 보내 프로덕션에서 소액 결제를 만들 수 없다. 이 성질을 깨는 수정(바디에서 플래그를 읽는 것)은 금지다.
+- 🔴 두 조건 중 하나라도 없으면 **정가**다(fail-safe). 프로덕션 워커에는 `APP_ENV` 자체가 없고, 프로덕션 `worker/wrangler.toml` 로 `PAYMENT_TEST_AMOUNT_KRW` 가 새어 들어가는 것은 `verify:worker-config-parity` 의 `STAGING_ONLY_KEYS` 가 막는다(가드가 실제로 무는 것을 변이로 확인함).
+- 판정 정본은 `worker/lib/portone.js` 의 `resolveTestChargeAmountKRW` · `resolveChargeAmountKRW` 두 함수뿐이고, 금액 계산은 순수 모듈 `worker/lib/billing-policy.js` 의 `applyTestChargeAmount` 가 한다. 🔴 `billing-policy.js` 에서 env 를 읽지 말 것 — `lib/payment/server-feature-pricing.ts` 가 이 모듈을 클라이언트 번들에 넣는다.
+
+**적용되는 곳(PG 로 실제 돈이 나가는 경로만):** `POST /orders` · `POST /prepare`(셸·PointsClient 컷오버 어댑터) · `POST /subscription/prepare`. 셋 다 **상품/플랜 객체 단계**에서 덮어쓴다 — 주문 문서에 직접 쓰면 `hasPriceDrift`/`hasPassDrift` 가 재가격 신호로 읽어 다음 요청에서 정가로 되돌린다.
+
+**적용되지 않는 곳(의도적):** 월정석·코인 게이트(KRW 청구가 아니라 원장이다) · `grantOrderEntitlement` 의 상품 조회(지급은 언제나 정가 상품 정보를 본다) · `enforcePassPurchasePolicy`(패밀리 등급의 상위상품 차단 같은 구매 정책은 상품 가치 기준이어야 한다) · Google Play 인앱결제(SKU 가격은 콘솔이 정하고 PortOne 을 타지 않는다).
+
+**검증·웹훅·지급 코드는 한 줄도 고치지 않았다.** `verifyPgPayment` 는 클라이언트 값이 아니라 **주문 문서의 금액**과 대고, 지급은 `featureKey`/`subscriptionTier` 만 읽는다 — 1,000원을 내도 혜택·기간·권한이 정가 구매와 동일하다.
+
+**프론트엔드는 무변경이다.** 화면 표시가는 정가로 남고(응답의 `pricing` 은 정가 상품에서 조립된다) PG 창에서만 1,000원이 청구된다. 스테이징에서 "결제창 10,000원 / PG창 1,000원"은 **의도된 차이**다.
+
+계약 고정: `__tests__/worker/payments-v2.staging-test-amount.test.js`.
+
 ## 결제 안전 규칙 (2026-08-28 `AGENTS.md` 에서 이관)
 
 - 결제 작업 전 [docs/PAYMENT_AND_ACCESS.md](../PAYMENT_AND_ACCESS.md) 와 결제 정책 3부작([overview](../payment-policy-overview.md) · [content-access](../payment-policy-content-access.md) · [flow](../payment-policy-flow.md))을 먼저 읽는다.
