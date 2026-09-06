@@ -104,6 +104,10 @@ on:
       #    /api/me/access-state 응답을 같은 store 로 흘려보내는 한 쌍이다.
       - "app/_lib/user-session-cache.ts"
       - "lib/payment/**"
+      # 🔴 로케일 목록의 정본. verify:pass-eligibility-copy 가 RUNTIME_LOCALES 를 여기서 읽어
+      #    이용권 배지 문구 테이블의 키 집합과 대조한다 — 로케일을 여기에만 추가한 PR 에서
+      #    게이트가 안 깨어나면 "문구가 없는 로케일"이 조용히 영어로 새는 것을 못 잡는다.
+      - "lib/i18n/locale-normalize.js"
       # 🔴 환불·청약철회 고지의 **정본**과 그 전제인 시장 정책 레지스트리.
       #    verify:payment-legal-copy 가 이 둘을 열어 읽는다 — 정본의 기한(7일)을 뽑아 사전 12벌과
       #    대조하고, "구독 해지권 없음" 전제가 뒤집히지 않았는지 확인한다. 여기가 빠져 있으면

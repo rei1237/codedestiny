@@ -204,6 +204,7 @@
     "verify:admin-feedback-bug-reward": "node scripts/verify-admin-feedback-bug-reward.mjs",
     "verify:billing-pass-policy": "node scripts/verify-billing-pass-policy.mjs",
     "verify:pass-tier-policy": "node scripts/verify-pass-tier-policy.mjs",
+    "verify:pass-eligibility-copy": "node scripts/verify-pass-eligibility-copy.mjs",
     "verify:business-identity": "node scripts/verify-business-identity.mjs",
     "verify:checkout-auth-recovery": "node scripts/verify-checkout-auth-recovery.mjs",
     "verify:direct-confirm-pending-recovery": "node scripts/verify-direct-confirm-pending-recovery.mjs",

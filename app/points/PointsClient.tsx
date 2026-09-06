@@ -804,6 +804,10 @@ type PointsPageCopy = {
   monthlyBonusPendingTitle: string;
   monthlyBonusEmptyTitle: string;
   passOrderHistoryPendingTitle: string;
+  passCycleAria: string;
+  passCycleTitle: string;
+  passCycleSummary: (spent: string, cap: string) => string;
+  passCycleRemaining: (remaining: string) => string;
 };
 
 const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
@@ -921,6 +925,10 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
     activePassFooter: "결제 즉시 이용권 혜택이 활성화되며 30일 동안 유효합니다.",
     activePassAutoRenewWarning: "만료 후에는 원화 단건 결제로 30일 혜택을 다시 열 수 있습니다.",
     coffeeBadge: "커피 2잔 값으로 30일",
+    passCycleAria: "이번 이용권 기간의 월 이용 한도",
+    passCycleTitle: "이번 이용권 기간 한도",
+    passCycleSummary: (spent, cap) => `${spent} / ${cap} 사용`,
+    passCycleRemaining: (remaining) => `${remaining} 남음`,
   },
   en: {
     defaultUserName: "User",
@@ -1036,6 +1044,10 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
     activePassFooter: "Pass benefits activate immediately after payment and remain valid for 30 days.",
     activePassAutoRenewWarning: "After expiration, you can open another 30-day pass with monthly credits or KRW.",
     coffeeBadge: "30 days for about two coffees",
+    passCycleAria: "Monthly usage limit for this pass period",
+    passCycleTitle: "Current pass period limit",
+    passCycleSummary: (spent, cap) => `${spent} of ${cap} used`,
+    passCycleRemaining: (remaining) => `${remaining} left`,
   },
   ja: null as unknown as PointsPageCopy,
   "zh-CN": null as unknown as PointsPageCopy,
@@ -4968,11 +4980,11 @@ export default function PointsPage() {
             remainingWon={passCycleRemainingWon}
             percent={passCyclePercent}
             copy={{
-              ariaLabel: "이번 이용권 기간의 이용 한도",
-              title: "이번 이용권 기간 한도",
-              tierLabel: getPassTierLabel(passUsage.tier) || passUsage.tier,
-              summary: (spent, cap) => `${spent} / ${cap} 사용`,
-              remaining: (remaining) => `${remaining} 남음`,
+              ariaLabel: copy.passCycleAria,
+              title: copy.passCycleTitle,
+              tierLabel: getPassTierLabel(passUsage.tier, lang) || passUsage.tier,
+              summary: copy.passCycleSummary,
+              remaining: copy.passCycleRemaining,
             }}
             formatWon={(value) => formatWon(value, copy, formatLocale)}
           />
