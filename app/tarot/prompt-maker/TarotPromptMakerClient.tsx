@@ -6,6 +6,7 @@ import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loading
 import { showToast } from "../../components/Toast";
 import { getSubscriptionTierLabel, showSubscriptionIncludedNotice } from "../../components/subscriptionNotice";
 import { useCoinGate } from "../../hooks/useCoinGate";
+import { packPaidResumeArg, unpackPaidResumeArg, usePaidResume } from "../../hooks/usePaidResume";
 import { fetchPaymentEligibility } from "@/app/_lib/billing-client";
 import { lookupServerCoinPrice } from "@/app/_lib/serviceCoinPrice";
 import { resolveOracleConsultationTier } from "@/lib/tarot/oracle-consultation-pricing.mjs";
@@ -23,6 +24,20 @@ import type { buildOraclePrompt as buildOraclePromptFn } from "./utils/buildOrac
 
 type Stage = "question" | "draw" | "prompt";
 type OracleDeckMode = "tarot" | "lenormand";
+
+/* 결제 후 재개 때만 채워지는 입력 묶음. 복귀 직후에는 setState 가 아직 클로저에 반영되지 않아
+   프롬프트 생성·상담 호출이 화면 상태를 읽으면 기본 스프레드로 빗나간다. */
+type OracleResumeInputs = {
+  spread: TarotSpread;
+  question: string;
+  cards: DrawnTarotCard[];
+  category: TarotSpreadCategory;
+};
+
+/* 🔴 재개 kind 는 결제 featureKey 와 같을 필요가 없다(레지스트리 키일 뿐이다). 이 페이지의
+   featureKey 는 스프레드 카드 수 티어에서 파생되는데, 결제 복귀 직후에는 기본 스프레드로
+   마운트되므로 티어 키로 등록하면 결제 때와 다른 kind 가 되어 재개가 실패한다. 고정값을 쓴다. */
+const ORACLE_RESUME_KIND = "tarot-prompt-maker-oracle";
 
 type TarotCardSource = {
   code?: string;
@@ -2653,6 +2668,39 @@ export default function TarotPromptMakerPage() {
     [question, isLenormandMode, selectedQuestionCategory, defaultQuestionByCategory, lenormandDefaultQuestion],
   );
 
+  /* 모바일 PortOne 은 상단 프레임을 리다이렉트해 ensurePaidAccess 의 onPaid 가 페이지와 함께 죽는다.
+     복귀 후 이 핸들러가 결제 증빙을 받아 결제 게이트를 다시 타지 않고 프롬프트를 만들고 상담을 부른다. */
+  const buildResume = usePaidResume(ORACLE_RESUME_KIND, async (args) => {
+    const requestId = typeof args.requestId === "string" ? args.requestId : "";
+    const spreadId = typeof args.spreadId === "string" ? args.spreadId : "";
+    const restoredCards = unpackPaidResumeArg<DrawnTarotCard[]>(args.cards);
+    if (!requestId || !spreadId || !Array.isArray(restoredCards) || !restoredCards.length) return false;
+    const spread = findLocalizedSpreadById(spreadId, locale);
+    if (restoredCards.length !== spread.cardCount) return false;
+    const inputs: OracleResumeInputs = {
+      spread,
+      question: typeof args.question === "string" && args.question ? args.question : effectiveQuestion,
+      cards: restoredCards,
+      category: (typeof args.category === "string" ? args.category : spread.category) as TarotSpreadCategory,
+    };
+    setOracleMode("tarot");
+    setSelectedSpreadId(spreadId);
+    setDrawnCards(restoredCards);
+    setUsedDeckSlots([]);
+    setManualCategory(inputs.category);
+    if (typeof args.question === "string" && args.question) setQuestion(args.question);
+    try {
+      setPromptResult(await buildPromptForCurrentState(inputs));
+    } catch {
+      return false;
+    }
+    setStage("prompt");
+    setFeedback("");
+    // 인페이지 경로와 같다 — 프롬프트를 먼저 띄우고 AI 상담은 뒤에서 이어 붙인다.
+    void requestOracleConsultation(requestId, inputs);
+    return true;
+  });
+
   const flowLines = useMemo(() => buildFlowLines(drawnCards, locale), [drawnCards, locale]);
   const progressText = `${drawnCards.length} / ${selectedSpread.cardCount}`;
 
@@ -2816,8 +2864,12 @@ export default function TarotPromptMakerPage() {
     setConsultationRetryable(false);
   }
 
-  async function buildPromptForCurrentState() {
+  /* inputs 는 결제 후 재개 전용이다 — 복귀 직후에는 setDrawnCards/setSelectedSpreadId 가 아직 이
+     클로저에 반영되지 않아, 되살린 스프레드·카드·질문을 인자로 직접 받아야 한다. 없으면 화면
+     상태를 그대로 쓴다(인페이지 경로). 재개는 오라클 결제 경로 전용이라 레노먼드 분기가 없다. */
+  async function buildPromptForCurrentState(inputs?: OracleResumeInputs) {
     const { buildLenormandPrompt, buildOraclePrompt } = await import("./utils/buildOraclePrompt");
+    if (inputs) return buildOraclePrompt(inputs.spread, inputs.question, inputs.cards, { questionCategory: inputs.category, locale });
     if (isLenormandMode) return buildLenormandPrompt(selectedSpread, effectiveQuestion, drawnCards, locale);
     return buildOraclePrompt(selectedSpread, effectiveQuestion, drawnCards, { questionCategory: selectedQuestionCategory, locale });
   }
@@ -2825,8 +2877,12 @@ export default function TarotPromptMakerPage() {
   // 서버가 실제 Gemini 상담을 생성한다 — 결제는 이미 끝난 뒤라 여기서 실패해도 과금은 그대로다.
   // 실패 시에는 이미 화면에 있는 프롬프트(promptResult)를 안전망으로 그대로 남겨 둔다.
   // 레노먼드 모드는 서버 카드 카탈로그가 아직 없어 스코프 밖(항상 프롬프트 전용으로 남는다).
-  async function requestOracleConsultation(requestId: string) {
-    if (isLenormandMode) return;
+  async function requestOracleConsultation(requestId: string, inputs?: OracleResumeInputs) {
+    if (!inputs && isLenormandMode) return false;
+    const spreadTitle = inputs ? inputs.spread.title : selectedSpread.title;
+    const category = inputs ? inputs.category : selectedQuestionCategory;
+    const consultQuestion = inputs ? inputs.question : effectiveQuestion;
+    const consultCards = inputs ? inputs.cards : drawnCards;
     setConsultationLoading(true);
     setConsultation(null);
     setConsultationSource(null);
@@ -2839,12 +2895,12 @@ export default function TarotPromptMakerPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           requestId,
-          spreadTitle: selectedSpread.title,
-          category: selectedQuestionCategory,
-          question: effectiveQuestion,
+          spreadTitle,
+          category,
+          question: consultQuestion,
           tone: "consult",
           locale,
-          cards: drawnCards.map((card) => ({
+          cards: consultCards.map((card) => ({
             cardId: card.cardCode,
             orientation: card.orientation,
             positionLabel: card.positionLabel,
@@ -2857,17 +2913,19 @@ export default function TarotPromptMakerPage() {
         setConsultation(data.consultation as OracleConsultation);
         setConsultationSource("llm");
         setConsultationRetryable(false);
-      } else {
-        setConsultationSource(resolveConsultationFailure(res.status, String(data?.code || "")));
-        // 서버가 판정을 안 보냈으면(구버전 워커 등) 재시도를 허용한다 — 막는 쪽이 더 나쁘다.
-        setConsultationRetryable(data?.retryable !== false);
-        setShowPromptDetail(true);
+        return true;
       }
+      setConsultationSource(resolveConsultationFailure(res.status, String(data?.code || "")));
+      // 서버가 판정을 안 보냈으면(구버전 워커 등) 재시도를 허용한다 — 막는 쪽이 더 나쁘다.
+      setConsultationRetryable(data?.retryable !== false);
+      setShowPromptDetail(true);
+      return false;
     } catch {
       // fetch 자체가 던진 경우. 응답이 없으므로 status 0 으로 네트워크 실패로 접는다.
       setConsultationSource("failed_network");
       setConsultationRetryable(true);
       setShowPromptDetail(true);
+      return false;
     } finally {
       setConsultationLoading(false);
     }
@@ -3004,6 +3062,13 @@ export default function TarotPromptMakerPage() {
         cost: oracleTierCost,
         reason: feedbackCopy.subscriptionReason,
         requestId,
+        resume: buildResume({
+          requestId,
+          spreadId: selectedSpread.id,
+          question: effectiveQuestion,
+          category: selectedQuestionCategory,
+          cards: packPaidResumeArg(drawnCards),
+        }),
         onPaid: ({ chargedCoins, balanceAfter, accessSource, subscriptionTier, monthlyCreditsSpent, monthlyBalanceAfter }) => {
           pendingGenerate = generate().then(() => {
             // 결제는 이미 끝났으니 프롬프트 화면을 곧바로 보여주고, AI 상담은 뒤에서 이어서 불러온다.

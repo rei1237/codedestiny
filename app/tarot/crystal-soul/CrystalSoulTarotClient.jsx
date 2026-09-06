@@ -8,6 +8,7 @@ import CrystalGem, { GEM_META, getGemColor } from "@/src/components/crystal/Crys
 import { useRubInteraction } from "@/src/components/crystal/useRubInteraction";
 import { lookupServerCoinPrice } from "@/app/_lib/serviceFeatureRegistry";
 import { useCoinGate } from "../../hooks/useCoinGate";
+import { usePaidResume } from "../../hooks/usePaidResume";
 
 const CRYSTAL_COST = 50;
 const CRYSTAL_COST_KRW = CRYSTAL_COST * 100; // 코인은 폐지된 내부 계산 단위, 사용자 표시는 항상 원화(KRW_PER_COIN=100)
@@ -984,7 +985,10 @@ export default function CrystalSoulTarotClient() {
 
   // 🔴 결제 requestId 를 서버로 넘긴다. 2026-08-24 에 /api/tarot/crystal-soul 에 결제 게이트를
   //    달았고, 이 값이 증빙 조회의 열쇠다 — 빠지면 결제한 사용자가 402 를 맞는다.
-  const requestReading = useCallback(async (paidRequestId) => {
+  // gemOverride 는 결제 후 재개 전용이다 — 복귀 직후에는 setSelectedGem 이 아직 이 클로저에
+  // 반영되지 않아, 되살린 보석을 인자로 직접 받아야 결제한 보석으로 리딩이 나온다.
+  const requestReading = useCallback(async (paidRequestId, gemOverride) => {
+    const gemId = GEM_META[gemOverride] ? gemOverride : selectedGem;
     setLoading(true);
     setError("");
     try {
@@ -994,7 +998,7 @@ export default function CrystalSoulTarotClient() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           crystalSoulVersion: "gem-v3",
-          gem: { id: selectedGem, name: GEM_META[selectedGem].name },
+          gem: { id: gemId, name: GEM_META[gemId].name },
           positions: POSITION_LABELS,
           requestId: String(paidRequestId || ""),
         }),
@@ -1006,12 +1010,26 @@ export default function CrystalSoulTarotClient() {
       setReading(normalized);
       setOpenedCards([]);
       setStage("reader");
+      return true;
     } catch {
       setError(copy.openFailed);
+      return false;
     } finally {
       setLoading(false);
     }
   }, [copy.openFailed, selectedGem]);
+
+  /* 결제 후 자동 재개 — 모바일 PortOne 복귀는 보석 선택 화면(stage "select")부터 다시 시작한다.
+     결제한 보석과 requestId 를 서술자에서 되살려 그대로 리딩을 받는다. 🔴 게이트를 다시 타지 않는다. */
+  const buildResume = usePaidResume("tarot-crystal-soul-reading", async (args) => {
+    const requestId = String(args.requestId || "");
+    const gemId = GEM_META[String(args.gem || "")] ? String(args.gem) : "";
+    if (!requestId || !gemId) return false;
+    setSelectedGem(gemId);
+    setOpenedCards([]);
+    setStage("rub");
+    return requestReading(requestId, gemId);
+  });
 
   const startPaidReading = useCallback(async () => {
     if (loading || paying || isPaying) return;
@@ -1035,6 +1053,7 @@ export default function CrystalSoulTarotClient() {
         cost: lookupServerCoinPrice("tarot-crystal-soul-reading"),
         reason: copy.paymentReason,
         requestId: paidRequestId,
+        resume: buildResume({ gem: selectedGem, requestId: paidRequestId }),
         onPaid: () => requestReading(paidRequestId),
       });
 
@@ -1053,7 +1072,7 @@ export default function CrystalSoulTarotClient() {
     } finally {
       setPaying(false);
     }
-  }, [copy.loginRequired, copy.paymentFailed, copy.paymentReason, copy.readingError, ensurePaidAccess, isPaying, loading, paying, requestReading]);
+  }, [buildResume, copy.loginRequired, copy.paymentFailed, copy.paymentReason, copy.readingError, ensurePaidAccess, isPaying, loading, paying, requestReading, selectedGem]);
 
   const openCard = useCallback((index) => {
     setOpenedCards((current) => current.includes(index) ? current : [...current, index]);

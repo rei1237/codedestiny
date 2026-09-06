@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { RefreshCw, Save, Share2 } from "lucide-react";
 import { useCoinGate } from "../../hooks/useCoinGate";
+import { usePaidResume, packPaidResumeArg, unpackPaidResumeArg } from "../../hooks/usePaidResume";
 import { useAiProfileSeed } from "../../hooks/useAiProfileSeed";
 import { useServerPrice } from "@/app/hooks/useServerPrice";
 import { lookupServerCoinPrice } from "@/app/_lib/serviceCoinPrice";
@@ -375,6 +376,17 @@ type FreeProfile = {
   highlights: FreeProfileCard[];
   cards: FreeProfileCard[];
   moonNote: string;
+};
+
+/** 리딩 요청이 쓰는 입력 묶음. 결제 후 재개는 화면 상태 대신 이 묶음을 되살려 넘긴다. */
+type ReadingInputs = {
+  name: string;
+  birthDate: string;
+  topic: TopicKey;
+  question: string;
+  cards: DrawnCard[];
+  numerology: NumerologyContext | null;
+  questionKeywords: ReturnType<typeof extractQuestionKeywords>;
 };
 
 type ReadingPaymentContext = {
@@ -1188,13 +1200,17 @@ export default function NumerologyTarotClient() {
     setError("");
   }
 
-  async function requestReading(activeEntitlement: ReadingEntitlement, activeReadingId: string) {
+  /* inputs 는 결제 후 재개 전용이다 — 복귀 직후에는 setName/setCards 가 아직 이 클로저에 반영되지
+     않아, 되살린 입력과 파생값(numerology·questionKeywords)을 인자로 직접 받아야 한다. 없으면
+     화면 상태를 그대로 쓴다(인페이지 경로). */
+  async function requestReading(activeEntitlement: ReadingEntitlement, activeReadingId: string, inputs?: ReadingInputs) {
+    const src: ReadingInputs = inputs || { name, birthDate, topic, question, cards, numerology, questionKeywords };
     const requestId = activeEntitlement?.requestId || buildReadingRequestId(activeReadingId);
     const payloadHash = activeEntitlement?.payloadHash || buildReadingPayloadHash({
-      name,
-      birthDate,
-      topic,
-      question,
+      name: src.name,
+      birthDate: src.birthDate,
+      topic: src.topic,
+      question: src.question,
     });
     const paymentContext = {
       ...(activeEntitlement?.paymentContext || {}),
@@ -1220,14 +1236,14 @@ export default function NumerologyTarotClient() {
         paymentContext,
         _paymentContext: paymentContext,
         entitlement: activeEntitlement,
-        name: toText(name),
-        birthDate,
-        topic,
-        topicLabel: numerology?.topicLabel,
-        question: toText(question),
-        questionKeywords,
-        numerology,
-        cards,
+        name: toText(src.name),
+        birthDate: src.birthDate,
+        topic: src.topic,
+        topicLabel: src.numerology?.topicLabel,
+        question: toText(src.question),
+        questionKeywords: src.questionKeywords,
+        numerology: src.numerology,
+        cards: src.cards,
       }),
     });
 
@@ -1246,38 +1262,89 @@ export default function NumerologyTarotClient() {
     // (예전에는 여기서 clearStoredReadingSession 을 불러, 새로고침하면 재결제를 요구했다.)
     persistJson(`${READING_RESULT_STORAGE_PREFIX}${activeReadingId}`, {
       entitlement: activeEntitlement,
-      name,
-      birthDate,
-      topic,
-      question,
-      cards,
+      name: src.name,
+      birthDate: src.birthDate,
+      topic: src.topic,
+      question: src.question,
+      cards: src.cards,
       reading: nextReading,
     } satisfies ReadingSnapshot);
     setFlowState("reading_complete");
     return nextReading;
   }
 
-  async function runReading(activeEntitlement?: ReadingEntitlement | null, activeReadingId?: string) {
+  async function runReading(activeEntitlement?: ReadingEntitlement | null, activeReadingId?: string, inputs?: ReadingInputs) {
     const useEntitlement = activeEntitlement || entitlement;
     const useReadingId = activeReadingId || readingId;
     if (!useEntitlement?.paid || !useReadingId) {
       setError("결제 내역을 확인할 수 없습니다. 결과 보기 버튼으로 다시 진행해 주세요.");
       setFlowState("cards_selected");
-      return;
+      return false;
     }
     setLoading(true);
     setError("");
     setFlowState("reading_generating");
     try {
-      await requestReading(useEntitlement, useReadingId);
+      await requestReading(useEntitlement, useReadingId, inputs);
+      return true;
     } catch (requestError) {
       setFlowState("reading_failed");
       setError(requestError instanceof Error ? requestError.message : "상담 결과를 생성하지 못했습니다.");
       setErrorCode((requestError as { code?: string })?.code || "");
+      return false;
     } finally {
       setLoading(false);
     }
   }
+
+  /* 결제 후 자동 재개 — 모바일 PortOne 복귀는 빈 입력 폼이다. 이 화면의 스냅샷 복원 효과는 결제가
+     끝난 뒤에 저장되는 entitlement 를 전제로 하므로 복귀 시점엔 아무것도 없다. 서술자에 실어 둔 입력·
+     뽑은 카드·readingId·requestId 로 권한과 화면을 되살리고 리딩을 받는다. 🔴 게이트를 다시 타지 않는다. */
+  const buildResume = usePaidResume(NUMEROLOGY_READING_FEATURE_KEY, async (args, grant) => {
+    const restoredCards = unpackPaidResumeArg<DrawnCard[]>(args.cards);
+    const activeReadingId = toText(args.readingId);
+    const requestId = toText(args.requestId) || toText(grant?.requestId) || toText(grant?.merchantUid);
+    const restoredBirthDate = toText(args.birthDate);
+    if (!activeReadingId || !requestId || !restoredBirthDate) return false;
+    if (!Array.isArray(restoredCards) || restoredCards.length < SPREAD_CARD_COUNT) return false;
+
+    const restoredTopic = (TOPIC_LABELS[toText(args.topic) as TopicKey] ? toText(args.topic) : "love") as TopicKey;
+    const restoredName = toText(args.name);
+    const restoredQuestion = toText(args.question);
+    const now = /^\d{4}-\d{2}-\d{2}$/.test(analysisDate) ? new Date(`${analysisDate}T12:00:00`) : new Date();
+    const restoredNumerology = buildNumerologyContext({ birthDate: restoredBirthDate, topic: restoredTopic, now }) as NumerologyContext;
+
+    setName(restoredName);
+    setBirthDate(restoredBirthDate);
+    setTopic(restoredTopic);
+    setQuestion(restoredQuestion);
+    setCards(restoredCards);
+    setPickedSlots(restoredCards.map((_, idx) => idx));
+    setReadingId(activeReadingId);
+
+    const paymentContext: ReadingPaymentContext = {
+      featureKey: NUMEROLOGY_READING_FEATURE_KEY,
+      requestId,
+      payloadHash: toText(args.payloadHash),
+      transactionId: toText(grant?.merchantUid) || requestId,
+      accessSource: "payment",
+      accessType: "redirect_resume",
+      paymentMode: "DIRECT_KRW",
+    };
+    const paidEntitlement = buildReadingEntitlement(activeReadingId, paymentContext);
+    setEntitlement(paidEntitlement);
+    persistJson(READING_ENTITLEMENT_STORAGE_KEY, paidEntitlement);
+
+    return runReading(paidEntitlement, activeReadingId, {
+      name: restoredName,
+      birthDate: restoredBirthDate,
+      topic: restoredTopic,
+      question: restoredQuestion,
+      cards: restoredCards,
+      numerology: restoredNumerology,
+      questionKeywords: extractQuestionKeywords(restoredQuestion),
+    });
+  });
 
   /**
    * 🔒 이 함수가 이 화면의 유일한 결제 지점이다.
@@ -1326,6 +1393,16 @@ export default function NumerologyTarotClient() {
         reason: "수비학 타로 심층 상담",
         requestId,
         payloadHash,
+        resume: buildResume({
+          readingId: nextReadingId,
+          requestId,
+          payloadHash,
+          name,
+          birthDate,
+          topic,
+          question,
+          cards: packPaidResumeArg(cards),
+        }),
         onPaid: (context) => {
           paymentContextEvidence = {
             accessSource: context.accessSource,
