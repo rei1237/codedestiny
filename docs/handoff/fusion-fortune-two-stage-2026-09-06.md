@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-06
-next: Phase 3 PR(브랜치 `worktree-fusion-phase3-mobile`) 머지 여부를 `gh pr list --state all --search "fusion"` 로 확인한다. 머지됐으면 남은 것은 Phase 4 실검증 하나뿐이고, 그것은 `--live` 1회이므로 **사용자 승인을 먼저 받는다**(절대 규칙 1).
+next: Phase 4 실검증을 1회 돌렸고 결과는 **FAIL** 이다(아래 "남은 작업"). 다음은 코드가 아니라 **결정** — 1단계 6묶음 중 5묶음이 검증에 걸리는 것을 프롬프트 쪽에서 풀지 검증 임계 쪽에서 풀지 사용자와 정한 뒤, 고치고 재측정한다. 재측정도 `--live` 이므로 **그때 다시 승인을 받는다**(절대 규칙 1).
 ---
 
 # 초융합 운세 개선 — 2단계 생성(Phase 1) 이후
@@ -16,13 +16,17 @@ next: Phase 3 PR(브랜치 `worktree-fusion-phase3-mobile`) 머지 여부를 `gh
 - Phase 1 머지 완료(PR #1616, `c103aefed`).
 - Phase 2 머지 완료(PR #1621, `5a4bbb1cd`) — 승인된 목업 https://claude.ai/code/artifact/34037354-3cbc-4fe2-8ec1-011cc2e7b8a4 (추천안: 우측 224px sticky 차례 레일 · 핵심 문장 = `keyPoints[0]` 재사용 · 섹션 한 번에 전부 펼침). 새 파일 `app/fusion-fortune/FusionResultRail.tsx`(차례·통계·진행선) · `app/fusion-fortune/_lib/reading.ts`(글자 수·읽는 시간, 서버 `countFusionFortuneVisibleText` 와 같은 방식). 레일은 `lg` 미만에서 숨고 진행선만 남는다. 2단계 대기 말풍선은 `stageTwoGenerating={loading}` 으로 켠다.
 - Phase 3 구현 완료 — 브랜치 `worktree-fusion-phase3-mobile`, 승인된 목업 https://claude.ai/code/artifact/984802dc-3e8c-454e-a66f-d382e0dd6aaa (추천안: 하단 도킹 차례 바 + `<dialog>` 바텀시트 · 좁은 화면 여백만 조정 · 첫 섹션 자동 펼침 유지). 새 파일 `app/fusion-fortune/_lib/toc.ts`(차례 상태 단일 소유자 `useFusionToc`) · `app/fusion-fortune/FusionResultDock.tsx`(도크+시트, `lg:hidden`). 레일은 훅을 쓰도록만 바뀌었고 데스크톱 화면은 그대로다.
-- 실제 Gemini 호출 0회. 모든 수치는 mock 실측.
+- Phase 3 머지 완료(PR #1627, `4b3560fe5`).
+- 실제 Gemini 실호출 **1회 완료**(2026-09-06, 11회 호출). 그 외 모든 수치는 mock 실측이다.
 
 ## 남은 작업
 
 - [x] **Phase 2 UI/UX 고급화** — 위 "지금 상태". 로케일 12개 중 ko·en·ja·zh-CN·zh-TW 만 저작, vi·hi·es·fr·de·nl·ms 는 영어 복사(배치 번역 후속).
 - [x] **Phase 3 모바일 최적화** — 도크·시트·섹션 헤더 줄바꿈·푸터 2열·좁은 화면 여백 4종(≤430px). 로케일 5키는 ko·en·ja·zh 저작, 나머지 7개는 영어 복사.
-- [ ] **Phase 4 실검증** — 사용자 승인 하 `--live` **1회**, 5건 샘플(생시 유무 × 출생지 유무 조합 포함)로 총 글자·그룹당 소요·물타기 여부 확인. 판정 기준: 5건 모두 ≥30,000자·`degraded` 0건·단계당 120초 안.
+- [ ] 🔴 **Phase 4 실검증 — 1회 돌렸고 FAIL**(2026-09-06). 하네스 `scripts/verify-fusion-fortune-live.mjs`(npm `verify:fusion-fortune-live`, 플래그 없으면 호출 0으로 계획만 출력). 재현: `node --env-file=<리포 루트>/.env.local scripts/verify-fusion-fortune-live.mjs --live`. 사용자 지시로 조합 전수(45회) 대신 **대표 1건**(`생시O 장소O`)만 돌렸다 — 조합 커버리지는 mock `verify:fusion-fortune-delivery-floor` 가 맡는다.
+  - 실측: 1단계 6묶음 · 32.9초 · provider 호출 11회(첫 물결 6 + 보완 5) · 누적 26,939자 · `generationSource=gemini_partial`.
+  - 첫 물결에서 **6묶음 중 5묶음 탈락** — saju `section_depth`(본문 <3,600자) · ziwei `missing_key_points` · sukuyo `parse_failed` · astrology `unsafe_phrase` · tarot `missing_key_points`. 보완 물결에서도 5묶음 전부 실패해 결정론 폴백으로 대체됐다. 모델 본문이 살아남은 것은 vedic 1개(5,820자)뿐.
+  - 판정 기준 ③(단계당 ≤120초)만 충족. ① 총 ≥30,000자 · ② `degraded` 0 은 물타기를 감지한 시점에 중단해 **미검증**(2단계 미실행).
 - [ ] **후속(범위 밖 보고)**: ① 프롬프트 캐싱 미배선 — `createGeminiContextCache`(`worker/lib/gemini.js`)가 있으나 초융합 경로에 안 붙어 있다. 붙이려면 서버 컨텍스트를 프롬프트 앞으로 재배치해야 한다(절감 ₩30–50/건 추정). ② `visibleTextLength` 가 JSON 직렬화 길이라 이름과 의미가 어긋난다(`worker/lib/fusion-fortune-consultation.js`). 표시에 쓰이는 곳이 있는지 3면 grep 후 결정. ③ 관리자 프롬프트 랩이 그룹 수를 하드코딩하는지 **미검증**(`worker/routes/admin*.js` 에서 `FUSION_SECTION_GROUP_SPECS` 참조 0건, 범위 `worker/routes`·`worker/lib`).
 
 ## 정본 예시
@@ -42,6 +46,8 @@ next: Phase 3 PR(브랜치 `worktree-fusion-phase3-mobile`) 머지 여부를 `gh
 - `check:quick` 이 `.ignore`·`rss.xml` 4개를 건드린다 — 커밋 전에 `git checkout --` 로 되돌린다.
 - 도크는 결과 패널 안에 있지만 `position:fixed` 다 — 조상에 `transform`·`filter`·`contain` 이 생기면 그 순간 패널 안에 갇힌다(`overflow-clip` 만으로는 안 갇힌다).
 - `<dialog>` 에 `display` 를 걸 때는 반드시 `[open]` 안에 둔다 — 저작자 스타일이 UA 의 `dialog:not([open]){display:none}` 을 이겨 닫힌 시트가 화면에 남는다(`.tocSheet` 주석).
+- 🔴 **실호출 실패가 화면상 정상으로 위장된다** — 묶음이 검증에 걸려도 결정론 폴백이 목표 분량을 채워 배달하므로 글자 수만 보면 통과처럼 보인다. 진짜 신호는 `[fusion-fortune-llm-metric]` 의 `fallbackGroups` 와 `generationSource`. `context_fallback`(호출 자체가 안 됨 — 키·모델 설정)과 `gemini_partial`(호출은 됐고 묶음이 탈락)은 다음 행동이 다르다.
+- 실호출은 반드시 `node --env-file=...` 으로 돌린다 — 셸에서 키를 뽑아 넘기면 `.env.local` 값의 따옴표가 그대로 값에 남아 전 묶음이 조용히 `context_fallback` 된다(2026-09-06 실사고).
 - 워크트리에 `node_modules` 없음 — jest 는 `NODE_OPTIONS=--experimental-vm-modules npx --no-install jest --runInBand --testEnvironment node`, UI 는 `node --test`.
 
 ## 검증
@@ -53,5 +59,6 @@ node --test __tests__/ui/fusion-fortune.static.test.js
 
 ## 모르는 것
 
-- 실제 Gemini 가 그룹당 4,200자 목표를 얼마나 채우는지(mock 은 36,687자). Phase 4 의 `--live` 1회로만 알 수 있다 — 사용자에게 승인을 받는다.
+- **왜** 5묶음이 탈락하는지 — 모델이 지시를 안 지키는 것인지, 검증 임계(`FUSION_FORTUNE_LENGTH.section` 3,600자 · `keyPoints` 3개)가 실제 출력 대비 과한 것인지 **미검증**. 하네스가 탈락한 묶음의 원문을 저장하지 않아 눈으로 못 봤다 — 재측정 전에 그 덤프부터 붙이는 게 싸다.
+- 대표 1건 외 나머지 4조합(생시·장소 결측, 음력·도쿄)의 실호출 거동은 **미검증**.
 - Phase 2 레일·Phase 3 도크 모두 브라우저에서 눈으로 확인하지 않았다(정적 검증·타입·린트만). 스테이징 배포 후 ① 데스크톱 `lg` 이상에서 sticky·차례 이동, ② 360/390/430px 에서 도크가 패널에 갇히지 않는지·시트 열림/스크림 탭 닫힘·좌상단 `.cd-feature-nav` 와 겹치지 않는지 본다.

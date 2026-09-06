@@ -116,6 +116,15 @@ APP_ENV = "staging"
 # staging-api. 직접 호출 경로를 위해 명시한다. worker/index.js 가 CSV 로 읽어 허용목록에 병합한다.
 CORS_ORIGIN = "https://staging.code-destiny.com"
 
+# 🔴 스테이징 전용 결제 테스트 청구금액(KRW). **프로덕션 wrangler.toml 에는 절대 넣지 않는다** —
+# scripts/verify-worker-config-parity.mjs 의 STAGING_ONLY_KEYS 가 그 부재를 CI 에서 집행한다.
+#
+# 이 값이 있고 APP_ENV 가 "staging" 일 때만 worker/lib/portone.js 의 resolveTestChargeAmountKRW 가
+# 0 이 아닌 값을 돌려주고, 그때 단건 KRW 결제와 이용권 결제의 **주문 발급 금액**이 이 값이 된다.
+# 상품 정가(paid-feature-registry.js · PASS_MONTHLY_WON)와 지급되는 혜택·기간·권한은 그대로다.
+# 1,000 미만은 무시된다 — KG이니시스가 그 아래를 승인하지 않는다.
+PAYMENT_TEST_AMOUNT_KRW = "1000"
+
 # 🔴 결제 전용 소켓 레인 — **스테이징 전용 재실측**이다(2026-08-20).
 #
 # worker/payments/db.js 의 isSocketLaneEnabled 머리주석이 예약해 둔 실험이다: 레인은 M0 시절
