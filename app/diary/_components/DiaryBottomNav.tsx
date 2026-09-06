@@ -49,7 +49,7 @@ interface DiaryNavTab {
 /** ＋ 는 라우트가 아니라 퀵캡처 시트 액션이다(PR-E). */
 export const DIARY_NAV_TABS: readonly DiaryNavTab[] = [
   { key: "home", href: "/diary/", icon: "☀", label: copy.home, ready: true },
-  { key: "calendar", href: "/diary/calendar/", icon: "▦", label: copy.calendar, ready: false },
+  { key: "calendar", href: "/diary/calendar/", icon: "▦", label: copy.calendar, ready: true },
   { key: "records", href: "/diary/records/", icon: "✎", label: copy.records, ready: false },
   { key: "more", href: "/diary/more/", icon: "⋯", label: copy.more, ready: false },
 ];

@@ -157,3 +157,32 @@ export function tenStarOfDay(chart: DiaryNatalChart | null, ymd: string): string
   const gz = dayGanji(ymd);
   return gz ? calcTenStar(chart.pillars.d.g, gz.g) : null;
 }
+
+/**
+ * 십성 10종 → 5계열. 계열 이름을 영문 키로 두는 것은 취향이 아니라 **경계**다 —
+ * `app/diary/**` 는 사용자에게 보이는 표면이고 거기에는 명리 용어가 한 글자도 없어야 한다
+ * (`__tests__/ui/diary-copy-policy.test.js` 가 그 디렉터리를 전수로 문다). 그래서 한글
+ * 십성 이름은 이 어댑터 안에서 끝나고, 위층은 계열 키만 받는다.
+ *
+ * 계열 구분 자체는 `worker/lib/saju-day-fortune.js:29` 의 `TEN_GOD_GROUP` 과 같은 묶음이다.
+ */
+export type DiaryDayGroup = "peer" | "express" | "wealth" | "order" | "support";
+
+const TEN_STAR_GROUP: Record<string, DiaryDayGroup> = {
+  비견: "peer",
+  겁재: "peer",
+  식신: "express",
+  상관: "express",
+  편재: "wealth",
+  정재: "wealth",
+  편관: "order",
+  정관: "order",
+  편인: "support",
+  정인: "support",
+};
+
+/** 그날의 계열. 원국이 없거나 십성이 안 나오면 `null` 이고, 그때 문안은 등급만으로 고른다. */
+export function dayGroupOf(chart: DiaryNatalChart | null, ymd: string): DiaryDayGroup | null {
+  const tenStar = tenStarOfDay(chart, ymd);
+  return tenStar ? TEN_STAR_GROUP[tenStar] || null : null;
+}
