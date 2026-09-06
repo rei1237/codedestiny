@@ -381,6 +381,7 @@
   background: transparent;
   color: var(--dy-text);
   font-size: var(--cd-t-caption);
+  text-decoration: none;
   cursor: pointer;
   transition: background var(--cd-dur-fast) ease;
 }
@@ -545,6 +546,278 @@
   display: block;
   height: 100%;
   background: var(--dy-accent);
+}
+
+/* ── 달력 ───────────────────────────────────────────────────────────── */
+
+.calHead {
+  display: flex;
+  align-items: center;
+  gap: var(--cd-sp-xs);
+}
+
+.calMonth {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  text-align: center;
+  font-family: var(--font-display, inherit);
+  font-size: var(--cd-t-card);
+  font-weight: 600;
+  color: var(--dy-text);
+}
+
+.calMeta {
+  margin: 0;
+  text-align: center;
+  font-size: var(--cd-t-caption);
+  color: var(--dy-muted);
+}
+
+.dowRow {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  font-size: var(--cd-t-caption);
+  color: var(--dy-muted);
+  text-align: center;
+}
+
+/* 일요일만 색을 달리 준다. 정보는 요일 글자 자체가 지고 있으므로 색은 보조다. */
+.dowSun {
+  color: var(--dy-gold);
+}
+
+.monthGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+}
+
+/* 🔴 칸 안은 3단이다 — 숫자(정보) · 점(등급) · 글리프(기록). 등급을 점의 **명도**로,
+   기록을 **글리프**로 나눈 이유는 색 하나에 두 정보를 겹치면 색각 이상에서 둘 다 사라지기
+   때문이다(목업 승인본: 「색만으로 등급을 구분하지 않는다」). */
+.cell {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  justify-items: center;
+  gap: 2px;
+  aspect-ratio: 1 / 1.14;
+  padding: 5px 2px 4px;
+  border: 1px solid transparent;
+  border-radius: var(--cd-r-control);
+  background: var(--dy-surface);
+  cursor: pointer;
+  transition: border-color var(--cd-dur-fast) ease, background var(--cd-dur-fast) ease;
+}
+
+.cell:hover {
+  border-color: var(--dy-line-ui);
+}
+
+.cell:focus-visible {
+  outline: 2px solid var(--dy-focus);
+  outline-offset: 1px;
+}
+
+.cellNum {
+  font-size: var(--cd-t-caption);
+  font-variant-numeric: tabular-nums;
+  color: var(--dy-text);
+}
+
+.cellDot {
+  align-self: center;
+  width: 7px;
+  height: 7px;
+  border-radius: var(--cd-r-pill);
+  background: var(--dy-grain, transparent);
+}
+
+.cellMarks {
+  display: flex;
+  gap: 2px;
+  min-height: 9px;
+  font-size: 9px;
+  line-height: 1;
+  color: var(--dy-muted);
+}
+
+.markStar {
+  color: var(--dy-gold);
+  font-style: normal;
+}
+
+/* 이웃 달 칸은 자리만 채운다 — 누를 수 없으므로 버튼이 아니라 span 이다. */
+.cellOut {
+  background: transparent;
+  cursor: default;
+}
+
+.cellOut .cellNum {
+  color: var(--dy-disabled);
+}
+
+.cellSunday .cellNum {
+  color: var(--dy-gold);
+}
+
+.cellToday {
+  border-color: var(--dy-accent);
+}
+
+.cellSelected {
+  border-color: var(--dy-accent);
+  background: var(--dy-accent-soft);
+}
+
+.legend {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cd-sp-xs);
+  padding-top: var(--cd-sp-sm);
+  border-top: 1px solid var(--dy-line);
+}
+
+.legendRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--cd-sp-xs) var(--cd-sp-sm);
+  margin: 0;
+  font-size: var(--cd-t-caption);
+  color: var(--dy-muted);
+}
+
+.legendKey {
+  color: var(--dy-muted);
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--dy-muted);
+}
+
+.legendDot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--cd-r-pill);
+  background: var(--dy-grain, var(--dy-accent));
+}
+
+/* ── Day View 시트 ──────────────────────────────────────────────────── */
+
+/* 🔴 모달이 아니다 — 스크림도 바디 스크롤 락도 없다(락 정본은 app/_lib/body-scroll-lock.ts,
+   읽기 전용 peek 시트에 그것을 끌어오면 잠금 계층이 이중이 된다). 하단바 위에 앉히므로
+   탭 이동이 막히지도 않는다. */
+.sheet {
+  position: fixed;
+  right: 0;
+  bottom: var(--dy-nav-offset);
+  left: 0;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  gap: var(--cd-sp-sm);
+  max-height: calc(100dvh - var(--dy-nav-offset) - var(--cd-sp-lg) * 3);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--cd-sp-sm) var(--cd-sp-md) var(--cd-sp-lg);
+  border-top: 1px solid var(--dy-line-ui);
+  border-radius: var(--cd-r-card) var(--cd-r-card) 0 0;
+  background: var(--dy-surface-2);
+  box-shadow: 0 -18px 46px -18px rgba(0, 0, 0, 0.85);
+}
+
+.sheetHandle {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 4px;
+  margin: 2px auto var(--cd-sp-xs);
+  border-radius: var(--cd-r-pill);
+  background: var(--dy-line-ui);
+}
+
+.sheetHead {
+  display: flex;
+  align-items: center;
+  gap: var(--cd-sp-sm);
+}
+
+.sheetTitle {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  font-family: var(--font-display, inherit);
+  font-size: var(--cd-t-card);
+  font-weight: 600;
+  color: var(--dy-text);
+}
+
+.sheetSummary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cd-sp-xs);
+  margin: 0;
+}
+
+.sumRow {
+  display: flex;
+  align-items: center;
+  gap: var(--cd-sp-sm);
+}
+
+.sumKey {
+  flex: 0 0 auto;
+  width: 3em;
+  color: var(--dy-muted);
+  font-size: var(--cd-t-caption);
+}
+
+.sumValue {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  align-items: center;
+  gap: var(--cd-sp-xs);
+  margin: 0;
+  font-size: var(--cd-t-body);
+  color: var(--dy-text);
+}
+
+.dvTabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--dy-line);
+}
+
+.dvTab {
+  padding: 7px 10px 8px;
+  margin-bottom: -1px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--dy-muted);
+  font-family: inherit;
+  font-size: var(--cd-t-caption);
+  cursor: pointer;
+}
+
+.dvTab[aria-selected="true"] {
+  color: var(--dy-accent);
+  border-bottom-color: var(--dy-accent);
+}
+
+.dvTab[aria-disabled="true"] {
+  color: var(--dy-disabled);
+  cursor: default;
+}
+
+.dvTab:focus-visible {
+  outline: 2px solid var(--dy-focus);
+  outline-offset: -2px;
 }
 
 /* ── 빈 상태 ────────────────────────────────────────────────────────── */
