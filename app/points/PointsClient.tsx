@@ -1061,9 +1061,9 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
   ms: null as unknown as PointsPageCopy,
 };
 
-POINTS_PAGE_COPY.ja = { ...POINTS_PAGE_COPY.en, defaultUserName: "ユーザー", defaultMemberName: "会員", duration30: "30日", passAlt: "月明かり利用券", closeLabel: "閉じる" };
-POINTS_PAGE_COPY["zh-CN"] = { ...POINTS_PAGE_COPY.en, defaultUserName: "用户", defaultMemberName: "会员", duration30: "30天", passAlt: "月光通行证", closeLabel: "关闭" };
-POINTS_PAGE_COPY["zh-TW"] = { ...POINTS_PAGE_COPY["zh-CN"], defaultUserName: "使用者", defaultMemberName: "會員", passAlt: "月光通行證", closeLabel: "關閉" };
+POINTS_PAGE_COPY.ja = { ...POINTS_PAGE_COPY.en, defaultUserName: "ユーザー", defaultMemberName: "会員", duration30: "30日", passAlt: "月明かり利用券", closeLabel: "閉じる", passCycleAria: "今回の利用券期間の月間利用上限", passCycleTitle: "今回の利用券期間の上限", passCycleSummary: (spent, cap) => `${spent} / ${cap} 利用`, passCycleRemaining: (remaining) => `残り ${remaining}` };
+POINTS_PAGE_COPY["zh-CN"] = { ...POINTS_PAGE_COPY.en, defaultUserName: "用户", defaultMemberName: "会员", duration30: "30天", passAlt: "月光通行证", closeLabel: "关闭", passCycleAria: "本次通行证周期的每月使用额度", passCycleTitle: "本次通行证周期额度", passCycleSummary: (spent, cap) => `已使用 ${spent} / ${cap}`, passCycleRemaining: (remaining) => `剩余 ${remaining}` };
+POINTS_PAGE_COPY["zh-TW"] = { ...POINTS_PAGE_COPY["zh-CN"], defaultUserName: "使用者", defaultMemberName: "會員", passAlt: "月光通行證", closeLabel: "關閉", passCycleAria: "本次通行證週期的每月使用額度", passCycleTitle: "本次通行證週期額度", passCycleSummary: (spent, cap) => `已使用 ${spent} / ${cap}`, passCycleRemaining: (remaining) => `剩餘 ${remaining}` };
 
 for (const locale of ["vi", "hi", "es", "fr", "de", "nl", "ms"] as LoadingLocale[]) {
   POINTS_PAGE_COPY[locale] = POINTS_PAGE_COPY.en;
