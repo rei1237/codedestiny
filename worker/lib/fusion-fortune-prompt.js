@@ -23,10 +23,38 @@ export const FUSION_FORTUNE_LENGTH = Object.freeze({
   finalVerdictRationale: 1000,
 });
 
+/**
+ * 분량을 요구하는 필드의 서술자. 프롬프트 본문(사람이 읽는 스키마)과 Gemini `description`
+ * **양쪽**이 이 한 문자열을 본다(toGeminiSchema 가 그대로 넘긴다).
+ *
+ * 왜 이렇게 길게 쓰는가 — 2026-09-06 실호출 3차(구조화 출력 배선 후): 형태 문제는 사라졌지만
+ * 본문이 임계의 79~82% 로 들어왔다(saju 2,860 · tarot 2,967 / 3,600자). 제약 디코딩이 본문을
+ * 줄인다는 예측이 실측으로 확인된 것이다. 최소치만 적으면 모델은 그 최소치를 "대략적인 목표"로
+ * 읽고 그 아래에서 멈춘다 — 그래서 ① 최소치보다 20% 위의 **목표**를 따로 주고, ② 미달의
+ * 결과(반려)를 알리고, ③ 요약하지 말라고 못박는다.
+ *
+ * 🔴 `무조건`·`반드시` 를 쓰지 않는다 — FORBIDDEN(worker/lib/fusion-fortune.js)에 있어
+ *    모델이 그대로 되받아 쓰면 `unsafe_phrase` 로 자기 응답이 반려된다.
+ * 🔴 서술자는 `string` 으로 시작해야 한다 — toGeminiSchema 가 첫 토큰으로 타입을 정한다.
+ */
+function lengthDirective(minChars, note = "") {
+  const min = minChars.toLocaleString("en-US");
+  const target = Math.round((minChars * 1.2) / 100) * 100;
+  const body = [
+    `한국어 ${min}자 이상, 목표 ${target.toLocaleString("en-US")}자.`,
+    `${min}자 미만이면 이 응답은 통째로 반려되어 사용자에게 전달되지 않는다.`,
+    "요약하거나 압축하지 말고 근거 → 구체적 장면 → 적용 방법 순으로 문단을 끝까지 전개해 목표 분량을 채운다.",
+    note,
+  ]
+    .filter(Boolean)
+    .join(" ");
+  return `string (${body})`;
+}
+
 function sectionSchema(minChars) {
   return {
     title: "string",
-    content: `string (${minChars.toLocaleString("en-US")}자 이상)`,
+    content: lengthDirective(minChars),
     keyPoints: ["string", "string", "string"],
   };
 }
@@ -48,7 +76,7 @@ export const FUSION_FINAL_VERDICT_SCHEMA = Object.freeze({
   headline: "string (최종 결론 한 문장, 60자 이내)",
   confidence: "number (0-100, 여섯 체계가 이 결론에 합의한 정도)",
   systemVerdicts: [{ key: "saju|ziwei|vedic|sukuyo|astrology|tarot", stance: "agree|conditional|caution", note: "string (그 체계가 이 결론에 대해 말하는 바, 80자 이내)" }],
-  rationale: `string (${FUSION_FORTUNE_LENGTH.finalVerdictRationale}자 이상, 왜 이 결론이 남는지)`,
+  rationale: lengthDirective(FUSION_FORTUNE_LENGTH.finalVerdictRationale, "여섯 체계가 만나 왜 이 결론 하나가 남는지를 중심으로 쓴다."),
   doNow: ["string", "string", "string"],
   avoid: ["string", "string"],
 });
@@ -56,7 +84,7 @@ export const FUSION_FINAL_VERDICT_SCHEMA = Object.freeze({
 export const FUSION_FORTUNE_RESPONSE_SCHEMA = Object.freeze({
   title: "string",
   openingMessage: "string",
-  executiveSummary: `string (${FUSION_FORTUNE_LENGTH.executiveSummary}자 이상)`,
+  executiveSummary: lengthDirective(FUSION_FORTUNE_LENGTH.executiveSummary),
   sajuSection: sectionSchema(FUSION_FORTUNE_LENGTH.section),
   ziweiSection: sectionSchema(FUSION_FORTUNE_LENGTH.section),
   vedicSection: sectionSchema(FUSION_FORTUNE_LENGTH.section),
@@ -66,7 +94,7 @@ export const FUSION_FORTUNE_RESPONSE_SCHEMA = Object.freeze({
   integratedReading: sectionSchema(FUSION_FORTUNE_LENGTH.integratedReading),
   timingAndAction: {
     title: "string",
-    content: `string (${FUSION_FORTUNE_LENGTH.timingAndAction.toLocaleString("en-US")}자 이상)`,
+    content: lengthDirective(FUSION_FORTUNE_LENGTH.timingAndAction),
     luckyActions: ["string", "string", "string"],
     cautionPatterns: ["string", "string", "string"],
   },
