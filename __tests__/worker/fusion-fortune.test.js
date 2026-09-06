@@ -595,6 +595,8 @@ describe("Fusion Fortune per-use billing and mock generation", () => {
     const withClosing = (sentence) => validateFusionFortuneResult({ ...result, closingMessage: `${result.closingMessage} ${sentence}` });
     expect(withClosing("조언을 무조건적으로 수용하기보다 자신의 리듬에 맞춰 조정해 보세요.").ok).toBe(true);
     expect(withClosing("반드시 그런 것은 아니니 여유를 두세요.").ok).toBe(true);
+    // 🔴 `무조건적`은 성향 서술이라 완화어가 뒤따르지 않아도 단정문이 아니다 — 4차 실호출에서 astrology 가 이걸로 폴백됐다.
+    expect(withClosing("당신은 무조건적인 사랑을 추구하는 경향을 보입니다.").ok).toBe(true);
     // 면책은 같은 문장 안에서만 — 뒤 문장의 부정어가 앞 문장의 단정을 덮으면 안 된다.
     expect(withClosing("이 시기에는 무조건 성과가 납니다.")).toMatchObject({ ok: false, issues: ["unsafe_phrase"] });
     expect(withClosing("무조건 오릅니다. 걱정은 없습니다.")).toMatchObject({ ok: false, issues: ["unsafe_phrase"] });

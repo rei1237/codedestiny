@@ -66,10 +66,13 @@ const BIRTH_PLACE_OVERCLAIM_PATTERN = new RegExp(`(라그나|상승궁|하우스
 //    뜻이 정반대인 완화 문장인데 묶음 전체가 폴백으로 강등됐다. 나머지 항목은 그 자체로 단정문이라 그대로 둔다.
 //    창은 OVERCLAIM_GAP 으로 문장 안에 가둔다(필드 경계·개행을 넘어가면 남의 문장으로 면책된다).
 const FORBIDDEN_HEDGE_AHEAD = `(?!${OVERCLAIM_GAP}{0,14}(않|없|말고|못|어렵|삼가|유보|배제|아니|기보다))`;
+//    🔴 `무조건적`(무조건적인 사랑/무조건적 수용)은 성향을 서술하는 형용사라 단정문이 아니다 —
+//    2026-09-06 4차 실호출에서 `무조건적인 사랑을 추구하는 경향` 이 반려돼 astrology 묶음이 폴백됐다.
+//    완화 창(FORBIDDEN_HEDGE_AHEAD)은 뒤따르는 부정어에만 반응하므로 이 형태를 못 걸러낸다.
 // 패턴을 손으로 적는다 — FORBIDDEN 항목을 정규식으로 이스케이프해 조립하면 `100%` 같은 항목이
 // 조용히 형태를 바꿀 수 있다. 여기 없는 항목은 예전 그대로 부분 일치로 잡힌다(fail-closed).
 const FORBIDDEN_HEDGEABLE = new Map([
-  ["무조건", new RegExp(`무조건${FORBIDDEN_HEDGE_AHEAD}`)],
+  ["무조건", new RegExp(`무조건(?!적)${FORBIDDEN_HEDGE_AHEAD}`)],
   ["반드시", new RegExp(`반드시${FORBIDDEN_HEDGE_AHEAD}`)],
   ["100%", new RegExp(`100%${FORBIDDEN_HEDGE_AHEAD}`)],
 ]);
