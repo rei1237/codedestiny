@@ -201,6 +201,43 @@ const validationOptions = {
   console.log(`[spec] ${FUSION_SECTION_GROUP_SPECS.length}그룹 · 목표 합계 ${target.toLocaleString("ko-KR")}자 (계약 ${FUSION_FORTUNE_LENGTH.total.min.toLocaleString("ko-KR")}~${FUSION_FORTUNE_LENGTH.total.max.toLocaleString("ko-KR")}자)`);
 }
 
+// ── 1-b. 분량을 검증하는 필드는 모두 목표 분량 서술자를 받는가 ───────────────
+// 🔴 2026-09-06 실호출 6차 사고: closingMessage 만 스키마가 맨 `"string"` 이어서 모델이 목표를
+//    못 받았고, 임계 바로 아래(732·662자 / 800)에서 멈춰 verdict 묶음이 통째로 결정론 폴백으로
+//    유료 배달됐다. 손으로 목록을 적으면 다음에 추가되는 필드가 또 빠지므로, **검증기가 최소치를
+//    재는 키를 여기서 전수로 세우고 서술자가 없으면 실패시킨다**(미분류가 통과하지 못한다).
+{
+  // key → [계약 상수, 스키마에서 그 최소치를 지는 하위 필드]. 정본은 worker/lib/fusion-fortune.js
+  // 의 validateFusionFortuneGroup 이 실제로 재는 자리다.
+  const VALIDATED = new Map([
+    ["executiveSummary", [FUSION_FORTUNE_LENGTH.executiveSummary, null]],
+    ["integratedReading", [FUSION_FORTUNE_LENGTH.integratedReading, "content"]],
+    ["timingAndAction", [FUSION_FORTUNE_LENGTH.timingAndAction, "content"]],
+    ["closingMessage", [FUSION_FORTUNE_LENGTH.closingMessage, null]],
+    ["finalVerdict", [FUSION_FORTUNE_LENGTH.finalVerdictRationale, "rationale"]],
+  ]);
+  for (const key of Object.keys(FUSION_FORTUNE_RESPONSE_SCHEMA)) {
+    if (key.endsWith("Section")) VALIDATED.set(key, [FUSION_FORTUNE_LENGTH.section, "content"]);
+  }
+
+  for (const [key, [minChars, field]] of VALIDATED) {
+    const node = FUSION_FORTUNE_RESPONSE_SCHEMA[key];
+    const directive = field ? node?.[field] : node;
+    const ok = typeof directive === "string" && directive.startsWith("string (") && directive.includes(`${minChars.toLocaleString("en-US")}자 이상, 목표`);
+    check(`${key} 스키마에 목표 분량 서술자`, ok, String(directive).slice(0, 60));
+  }
+
+  // 그룹 명세의 minChars 는 프롬프트의 "최소 N자" 줄로 흘러간다 — 검증 상수와 벌어지면
+  // 모델이 검증과 다른 기준을 받는다. 리터럴로 다시 적는 것을 여기서 막는다.
+  for (const group of FUSION_SECTION_GROUP_SPECS) {
+    for (const [key, value] of Object.entries(group.minChars || {})) {
+      const contract = VALIDATED.get(key)?.[0];
+      if (contract === undefined) continue;
+      check(`${group.id}.minChars.${key} = 계약`, value === contract, `${value} vs ${contract}`);
+    }
+  }
+}
+
 // ── 2. 그룹 프롬프트가 자기 키만 싣고 개인정보를 흘리지 않는가 ──────────────
 {
   for (const group of FUSION_SECTION_GROUP_SPECS) {
