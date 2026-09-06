@@ -2,6 +2,8 @@ import Link from "next/link";
 import GuideCta from "../../components/GuideCta";
 import { GUIDE_CTA_TARGETS } from "../../components/guide-cta-targets";
 import { generatePageMetadata } from "../../../lib/generate-page-metadata";
+import ContentIntegrityNote from "../../components/ContentIntegrityNote";
+import { buildArticleJsonLd, buildBreadcrumbJsonLd, buildFaqPageJsonLd } from "../../../lib/structured-data";
 
 const HEALTH_REPORT_GUIDE_TEXT_TRANSLATIONS = {
   ko: {
@@ -113,15 +115,52 @@ const faqItems = [
   },
 ];
 
+// 발행일은 이 파일의 첫 커밋일(git log --diff-filter=A), 수정일은 검수 노트·Article 을 붙인 날.
+// 짝 구현: app/guides/[slug]/page.js 의 @graph(BreadcrumbList·Article·FAQPage) + ContentIntegrityNote.
+const GUIDE_ARTICLE = {
+  path: "/health-report/guide",
+  title: healthReportGuideText("heading"),
+  description:
+    "명리 헬스 리포트가 생활 리듬을 어떻게 참고하는지와 입력값, 해석 흐름, 의료 고지, 샘플 리딩을 안내합니다.",
+  datePublished: "2026-06-21",
+  dateModified: "2026-09-06",
+};
+
+const guideJsonLd = JSON.stringify({
+  "@context": "https://schema.org",
+  "@graph": [
+    buildBreadcrumbJsonLd([
+      { name: "홈", path: "/" },
+      { name: "오행 가이드", path: "/saju/five-elements" },
+      { name: GUIDE_ARTICLE.title, path: GUIDE_ARTICLE.path },
+    ]),
+    buildArticleJsonLd({
+      ...GUIDE_ARTICLE,
+      category: "오행 가이드",
+      keywords: ["명리 헬스 리포트", "오행 건강", "생활 리듬", "건강 운세", "의료 고지", "Code Destiny"],
+    }),
+    // 화면의 FAQ 카드와 같은 배열을 넘긴다 — 스키마와 본문이 다른 문답이면 리치결과 정책 위반.
+    buildFaqPageJsonLd(faqItems),
+  ],
+});
+
 export default function HealthReportGuidePage() {
   return (
     <main className="cd-main-shell cd-guide">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: guideJsonLd }} />
       <header className="cd-main-header">
         <h1 className="cd-main-title">{healthReportGuideText("heading")}</h1>
         <p className="cd-main-intro">
           명리 헬스 리포트는 사주의 오행과 계절 흐름을 바탕으로 생활 리듬을 돌아보는 참고 자료입니다. Code Destiny는 건강을 두려움으로 몰아가지 않고, 수면과 휴식, 식사와 움직임처럼 현실에서 확인할 수 있는 습관을 차분히 살피도록 안내합니다.
         </p>
       </header>
+
+      <ContentIntegrityNote
+        contentSource="authored"
+        datePublished={GUIDE_ARTICLE.datePublished}
+        dateModified={GUIDE_ARTICLE.dateModified}
+        tone="dark"
+      />
 
       <section className="cd-card-grid">
         <article className="cd-card">

@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { getCurrentLoadingLocale, normalizeLoadingLocale } from "@/constants/loadingMessages";
 import GuideCta from "@/app/components/GuideCta";
 import { GUIDE_CTA_TARGETS } from "@/app/components/guide-cta-targets";
+import { TAROT_GUIDE_FAQ_KO } from "./tarot-guide-faq";
 
 const GUIDE_COPY = {
   ko: {
@@ -39,11 +40,8 @@ const GUIDE_COPY = {
     cautionTitle: "해석 시 주의할 점",
     caution:
       "타로는 엔터테인먼트와 자기 성찰을 위한 참고 자료입니다. 건강, 법률, 투자, 결혼, 이혼, 소송, 진로처럼 삶에 큰 영향을 주는 결정은 카드 결과만으로 정하지 말고, 현실의 정보와 자격 있는 전문가의 조언을 함께 확인해야 합니다.",
-    faqItems: [
-      ["같은 질문을 여러 번 해도 되나요?", "짧은 시간 안에 같은 질문을 반복하면 카드보다 불안이 더 크게 들릴 수 있습니다. 상황이 바뀌었거나 새로운 정보가 생겼을 때 다시 보는 편이 리딩을 차분하게 받아들이는 데 좋습니다."],
-      ["나쁜 카드가 나오면 나쁜 일이 생기나요?", "타로의 어두운 카드는 확정된 불운보다 멈춤, 점검, 관계의 긴장, 감정의 과열을 비추는 경우가 많습니다. 경고가 떠오를수록 현실적인 보호 행동을 함께 살피면 됩니다."],
-      ["타로가 결정을 대신해 줄 수 있나요?", "타로는 선택의 분위기와 마음의 방향을 비추는 해석 도구입니다. 법률, 의료, 투자, 결혼, 이혼, 소송, 진로처럼 큰 결정은 타로만으로 정하지 않아야 합니다."],
-    ],
+    // 한국어 FAQ 정본은 tarot-guide-faq.js — page.js 의 FAQPage JSON-LD 와 같은 배열이어야 한다.
+    faqItems: TAROT_GUIDE_FAQ_KO.map(({ question, answer }) => [question, answer]),
     navLabel: "타로 가이드 관련 링크",
     navLinks: [
       ["/tarot", "타로 서비스"],
@@ -567,7 +565,9 @@ function resolveLocaleFromPath(pathname) {
   return firstSegment ? normalizeLoadingLocale(firstSegment) : "ko";
 }
 
-export default function TarotGuideContent() {
+// integrityNote — 서버(page.js)가 만든 <ContentIntegrityNote/> 엘리먼트. 한국어 지면에만 그린다
+// (다른 로케일에 한국어 고지가 새지 않도록 — 위 CTA 와 같은 판정 기준).
+export default function TarotGuideContent({ integrityNote = null }) {
   const pathname = usePathname();
   const [locale, setLocale] = useState(() => resolveLocaleFromPath(pathname));
 
@@ -597,6 +597,8 @@ export default function TarotGuideContent() {
         <h1 className="cd-main-title">{copy.title}</h1>
         <p className="cd-main-intro">{copy.intro}</p>
       </header>
+
+      {isKoreanCopy ? integrityNote : null}
 
       <section className="cd-card-grid">
         {copy.cards.map(([title, body]) => (

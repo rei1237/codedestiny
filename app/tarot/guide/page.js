@@ -1,5 +1,8 @@
 import TarotGuideRouteClient from "./TarotGuideRouteClient";
 import { generatePageMetadata } from "../../../lib/generate-page-metadata";
+import ContentIntegrityNote from "../../components/ContentIntegrityNote";
+import { buildArticleJsonLd, buildBreadcrumbJsonLd, buildFaqPageJsonLd } from "../../../lib/structured-data";
+import { TAROT_GUIDE_FAQ_KO } from "./tarot-guide-faq";
 
 const TAROT_GUIDE_METADATA_COPY = {
   ko: {
@@ -38,6 +41,49 @@ export function generateMetadata() {
   });
 }
 
+// 발행일은 이 파일의 첫 커밋일(git log --diff-filter=A), 수정일은 검수 노트·Article 을 붙인 날.
+// 짝 구현: app/guides/[slug]/page.js 의 @graph(BreadcrumbList·Article·FAQPage) + ContentIntegrityNote.
+// 본문은 클라이언트 컴포넌트(TarotGuideContent)가 그리므로 검수 노트는 여기서 만들어 엘리먼트로 넘긴다.
+const GUIDE_ARTICLE = {
+  path: "/tarot/guide",
+  title: "타로 카드 리딩 입문",
+  description: TAROT_GUIDE_METADATA_COPY.ko.description,
+  datePublished: "2026-06-21",
+  dateModified: "2026-09-06",
+};
+
+const guideJsonLd = JSON.stringify({
+  "@context": "https://schema.org",
+  "@graph": [
+    buildBreadcrumbJsonLd([
+      { name: "홈", path: "/" },
+      { name: "타로 서비스", path: "/tarot" },
+      { name: GUIDE_ARTICLE.title, path: GUIDE_ARTICLE.path },
+    ]),
+    buildArticleJsonLd({
+      ...GUIDE_ARTICLE,
+      category: "타로 서비스",
+      keywords: TAROT_GUIDE_METADATA_COPY.ko.keywords,
+    }),
+    // 화면의 FAQ 카드(TarotGuideContent ko)와 같은 정본 배열 — 스키마와 본문이 다른 문답이면 리치결과 정책 위반.
+    buildFaqPageJsonLd(TAROT_GUIDE_FAQ_KO),
+  ],
+});
+
 export default function TarotGuidePage() {
-  return <TarotGuideRouteClient />;
+  return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: guideJsonLd }} />
+      <TarotGuideRouteClient
+        integrityNote={
+          <ContentIntegrityNote
+            contentSource="authored"
+            datePublished={GUIDE_ARTICLE.datePublished}
+            dateModified={GUIDE_ARTICLE.dateModified}
+            tone="dark"
+          />
+        }
+      />
+    </>
+  );
 }

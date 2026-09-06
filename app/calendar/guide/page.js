@@ -2,6 +2,8 @@ import Link from "next/link";
 import GuideCta from "../../components/GuideCta";
 import { GUIDE_CTA_TARGETS } from "../../components/guide-cta-targets";
 import { generatePageMetadata } from "../../../lib/generate-page-metadata";
+import ContentIntegrityNote from "../../components/ContentIntegrityNote";
+import { buildArticleJsonLd, buildBreadcrumbJsonLd, buildFaqPageJsonLd } from "../../../lib/structured-data";
 
 const CALENDAR_GUIDE_TEXT_TRANSLATIONS = {
   ko: {
@@ -113,15 +115,52 @@ const faqItems = [
   },
 ];
 
+// 발행일은 이 파일의 첫 커밋일(git log --diff-filter=A), 수정일은 검수 노트·Article 을 붙인 날.
+// 짝 구현: app/guides/[slug]/page.js 의 @graph(BreadcrumbList·Article·FAQPage) + ContentIntegrityNote.
+const GUIDE_ARTICLE = {
+  path: "/calendar/guide",
+  title: calendarGuideText("heading"),
+  description:
+    "운세 달력과 일진 달력을 어떤 기준으로 읽는지, 입력값, 확인 항목, 샘플 해석, 주의사항을 안내합니다.",
+  datePublished: "2026-06-21",
+  dateModified: "2026-09-06",
+};
+
+const guideJsonLd = JSON.stringify({
+  "@context": "https://schema.org",
+  "@graph": [
+    buildBreadcrumbJsonLd([
+      { name: "홈", path: "/" },
+      { name: "오늘의 운세", path: "/today" },
+      { name: GUIDE_ARTICLE.title, path: GUIDE_ARTICLE.path },
+    ]),
+    buildArticleJsonLd({
+      ...GUIDE_ARTICLE,
+      category: "오늘의 운세",
+      keywords: ["운세 달력", "일진 달력", "오늘의 운세", "사주 달력", "Code Destiny"],
+    }),
+    // 화면의 FAQ 카드와 같은 배열을 넘긴다 — 스키마와 본문이 다른 문답이면 리치결과 정책 위반.
+    buildFaqPageJsonLd(faqItems),
+  ],
+});
+
 export default function CalendarGuidePage() {
   return (
     <main className="cd-main-shell cd-guide">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: guideJsonLd }} />
       <header className="cd-main-header">
         <h1 className="cd-main-title">{calendarGuideText("heading")}</h1>
         <p className="cd-main-intro">
           운세 달력은 날짜마다 달라지는 기운의 온도와 리듬을 살피는 도구입니다. Code Destiny는 하루의 흐름을 좋고 나쁜 날로 단정하기보다, 일정과 대화, 휴식과 결정을 더 신중하게 조율할 수 있는 참고선으로 안내합니다.
         </p>
       </header>
+
+      <ContentIntegrityNote
+        contentSource="authored"
+        datePublished={GUIDE_ARTICLE.datePublished}
+        dateModified={GUIDE_ARTICLE.dateModified}
+        tone="dark"
+      />
 
       <section className="cd-card-grid">
         <article className="cd-card">
