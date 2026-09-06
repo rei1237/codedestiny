@@ -303,6 +303,111 @@
 }
 
 /*
+ * 캐릭터·세계관(/world) 전용 — Classic Card System 위에 얹는 배치 규칙만 둔다.
+ * 색은 한 줄도 새로 정의하지 않는다(.cd-card/.cd-chip/.cd-main-* 의 값을 그대로 상속).
+ * 이 페이지에만 필요한 것: 인물 3열 그리드, 장소 정의 목록의 2열 정렬, CTA 하나.
+ */
+@layer components {
+	.cd-world-h2 {
+		margin: 26px 0 10px;
+		font-size: 1.02rem;
+		font-weight: 600;
+		color: #f4f8ff;
+	}
+	.cd-world-characters {
+		grid-template-columns: 1fr;
+	}
+	.cd-world-character {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+	}
+	.cd-world-character > p {
+		margin: 0;
+	}
+	.cd-world-symbol {
+		font-size: 1.5rem;
+		line-height: 1;
+	}
+	.cd-world-role {
+		margin: 0;
+		font-size: 0.72rem;
+		font-weight: 700;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: #9ec5ff;
+	}
+	.cd-world-name {
+		margin: 0;
+		font-size: 1.12rem;
+		line-height: 1.4;
+		color: #f4f8ff;
+	}
+	.cd-world-places {
+		margin: 0;
+		display: grid;
+		gap: 14px;
+	}
+	.cd-world-place {
+		display: grid;
+		grid-template-columns: 8.5rem 1fr;
+		gap: 4px 14px;
+		align-items: baseline;
+	}
+	.cd-world-place dt {
+		color: #f4f8ff;
+		font-weight: 600;
+	}
+	.cd-world-place dd {
+		margin: 0;
+		color: #c7d5f3;
+	}
+	.cd-world-chips {
+		margin-top: 12px;
+	}
+	.cd-world-cta-wrap {
+		margin: 22px 0 0;
+	}
+	.cd-world-cta {
+		display: inline-flex;
+		align-items: center;
+		min-height: 46px;
+		border-radius: 999px;
+		padding: 8px 22px;
+		background: linear-gradient(135deg, #e4bd71, #c99a45);
+		color: #1b1405;
+		font-weight: 700;
+		text-decoration: none;
+		transition: filter 0.2s ease, transform 0.1s ease;
+	}
+	.cd-world-cta:hover {
+		filter: brightness(1.06);
+	}
+	.cd-world-cta:active {
+		transform: translateY(1px);
+	}
+	.cd-world-note {
+		margin: 22px 0 0;
+		font-size: 0.88rem;
+	}
+	@media (min-width: 720px) {
+		.cd-world-characters {
+			grid-template-columns: repeat(3, 1fr);
+		}
+	}
+	@media (max-width: 560px) {
+		.cd-world-place {
+			grid-template-columns: 1fr;
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.cd-world-cta {
+			transition: none;
+		}
+	}
+}
+
+/*
  * 기능 가이드 표면 — /saju/guide 등 12종 + /insights·토픽 허브의 가이드 목록.
  *
  * 위 "Classic Card System"(.cd-main-shell/.cd-card)은 /about·/faq·/methodology·

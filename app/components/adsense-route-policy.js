@@ -91,6 +91,7 @@ const CONTENT_EXACT_PATHS = new Set([
   // — 같은 134명을 나열하는 근중복 허브였고, 상세 134개는 원래 insights 쪽에만 있었다.
   // `public/_redirects` 가 `/famous-saju/**` 를 전량 301 로 회수하므로 여기 되살리지 말 것.
   "/methodology",
+  "/world",
   // "/reviews" 는 2026-08-30 제외 — 승인 리뷰 0건이라 광고를 붙일 본문 실체가 없다.
   // scripts/generate-sitemap.mjs 의 coreRoutes, app/reviews/page.tsx 의 metadata.robots 와 한 세트다.
   "/astrology/guide",
