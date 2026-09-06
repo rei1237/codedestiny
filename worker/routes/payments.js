@@ -2483,12 +2483,12 @@ async function settlePaymentByImpUid({
     return { ok: false, status: 403, message: "Only your own payment can be processed." };
   }
 
-  const expectedAmount = Number.isInteger(Number(requestedAmount))
-    ? Number(requestedAmount)
-    : Number(paymentRecord?.paymentAmount || 0);
-  // 신뢰할 수 있는 기대금액(클라 검증 금액 or 준비된 주문 금액)이 있었는지 — ensurePaymentRecord가
-  // PortOne 금액으로 폴백(2611)하기 '이전' 시점의 값으로 판정한다. 이 값이 없으면 이후 금액 대조가
-  // PortOne↔PortOne 순환이 되어 실질 검증이 사라진다(fail-closed 가드에서 사용).
+  // 🔴 준비된 주문 금액이 먼저고 클라 requestedAmount 는 그것이 없을 때의 폴백이다 — 반대로 두면 레코드가
+  // 없을 때 ensurePaymentRecord 가 클라 금액으로 주문을 만들어, 아래 server_amount_mismatch 대조가
+  // 서버↔PortOne 이 아니라 클라↔PortOne 순환이 된다. 둘 다 없을 때의 PortOne↔PortOne 순환은 2792 가 막는다.
+  const expectedAmount = Number(paymentRecord?.paymentAmount || 0) > 0
+    ? Number(paymentRecord.paymentAmount)
+    : (Number.isInteger(Number(requestedAmount)) ? Number(requestedAmount) : 0);
   const hasVerifiableExpectedAmount = expectedAmount > 0;
   const expectedChargedPoints = Number.isInteger(Number(requestedChargePoints))
     ? Number(requestedChargePoints)
@@ -4713,9 +4713,9 @@ export async function handlePaymentRoutes(request, env, ctx) {
     if (method === "POST" && path === "/single/start") return await handleSinglePaymentStart(request, env, auth);
     if (method === "POST" && path === "/single/complete") return await handleSinglePaymentComplete(request, env, auth);
     if (method === "POST" && path === "/single/cancel") return await handleSinglePaymentCancel(request, env, auth);
-    /* /prepare · /subscription/prepare · /subscription/confirm 은 worker/index.js 가 V2
-       (worker/payments/index.js)로 가로채므로 여기까지 오지 않는다 — 구 핸들러는 2026-09-06 에
-       지웠다. 되살리려면 그 가로채기를 먼저 되돌려야 한다(그 경우 여기서 404 가 난다). */
+    /* /prepare · /subscription/prepare · /subscription/confirm · /confirm 은 worker/index.js 가 V2
+       (worker/payments/index.js)로 가로채므로 여기까지 오지 않는다 — 앞 셋의 구 핸들러는 2026-09-06 에
+       지웠고, 아래 handleConfirm 은 가로채기를 되돌리면 그대로 답하도록 남겨 둔 롤백 수단이다. */
     if (method === "POST" && path === "/confirm") return await handleConfirm(request, env, auth);
     if (method === "POST" && path === "/cancel") return await handleCancel(request, env, auth);
     if (method === "POST" && path === "/report-failure") return await handleReportFailure(request, env, auth);

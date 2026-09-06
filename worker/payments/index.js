@@ -1013,7 +1013,10 @@ const ROUTES = {
     async handle({ request, env, ctx, userId, body, withDb }) {
       // 이용권형 바디는 이용권 경로로 위임 — 구 billing.js handleConfirm 의 isSubscription 분기 승계.
       if (isPassLikeBody(body)) return handlePassConfirm({ request, env, ctx, userId, body, withDb });
-      const orderId = String(body.merchantUid || body.orderId || body.paymentId || "").trim();
+      // 🔴 impUid 는 구 /api/payments/confirm 계약의 마지막 폴백이다(그쪽은 impUid 하나로도 확정을
+      // 받아줬다) — V2 주문은 결제창 요청에 주문번호를 그대로 실어 paymentId == merchantUid 라 값이 같다.
+      // 체인 맨 뒤라 merchantUid 를 보내는 기존 호출부의 판정은 바뀌지 않는다.
+      const orderId = String(body.merchantUid || body.orderId || body.paymentId || body.impUid || "").trim();
       if (!orderId) throw paymentError("INVALID_REQUEST", "merchantUid 가 필요합니다.");
       ctx.orderId = orderId;
       const result = await confirmOrder(env, ctx, { orderId, actorUserId: userId }, { withDb });
