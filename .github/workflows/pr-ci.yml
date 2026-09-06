@@ -123,10 +123,19 @@ jobs:
       # fetch-depth: 0 은 아래 `lint:changed` 가 base...head 를 계산하기 위해 필요하다.
       # 얕은 체크아웃에서는 base 커밋이 없어 diff 가 통째로 비고, 그러면 이 게이트가
       # 조용히 아무 파일도 검사하지 않는 상태가 된다.
+      #
+      # 블롭은 지연 로딩한다(classify 잡과 같은 이유, PR #1650). 이 잡이 히스토리 쪽
+      # 파일 "내용" 을 여는 곳은 없다 — `lint:changed` 는 scripts/lint-changed-files.mjs:38
+      # 의 `git diff --name-only base...head` 로 이름만 뽑고, eslint·typecheck 는 체크아웃된
+      # 워킹트리(HEAD)만 본다. 트리 오브젝트는 blob:none 에서도 전부 받으므로 diff 는 그대로 돈다.
+      # 🔴 히스토리 블롭을 실제로 읽는 스크립트는 measure-shell-css-externalization.mjs 와
+      #    query-retired-pass-tier-aliases.mjs 뿐이고 (`git show <sha>:<file>`), 둘 다 어떤
+      #    워크플로에도 배선돼 있지 않다(2026-09-06 `.github/workflows/*.yml` + package.json 전수 확인).
       - name: Checkout PR head
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          filter: blob:none
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -782,11 +791,16 @@ jobs:
         if: needs.classify.outputs.runs_critical != 'true'
         run: echo "::notice::tier=${{ needs.classify.outputs.tier }} — 결제·인증·Worker·DB·배포설정 경로가 걸리지 않아 전체 테스트와 배포 가드를 건너뜁니다."
 
+      # 블롭 지연 로딩 (PR #1650 과 같은 근거). 이 잡의 검사는 전부 워킹트리 대상이다 —
+      # `npm test` 와 배포 게이트들은 체크아웃된 HEAD 만 읽고, git 을 부르는 것들도
+      # `cat-file -e <sha>^{commit}`(커밋 존재 확인, blob:none 에서도 있음)까지다.
+      # fetch-depth: 0 은 그 커밋 확인과 deploy-safe 의 base 대조 때문에 그대로 둔다.
       - name: Checkout PR head
         if: needs.classify.outputs.runs_critical == 'true'
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          filter: blob:none
 
       - name: Setup Node.js
         if: needs.classify.outputs.runs_critical == 'true'
