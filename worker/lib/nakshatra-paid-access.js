@@ -24,11 +24,14 @@ import { connectDb, isTransientMongoError, withMongoRetry } from "./db.js";
 import { isAuthDbInfraError } from "./auth.js";
 import { User, Payment, PointHistory } from "./models.js";
 import { findMoonstoneSpendEvidence } from "./moonstone-spend-proof.js";
-import { normalizeHoneyPassEntitlement, canUseByPass, resolveMonthlySpendQuota, resolvePremiumQuota } from "./profile-limits.js";
+import { normalizeHoneyPassEntitlement, canUseByPass, resolvePremiumQuota } from "./profile-limits.js";
 // 🔴 family 공정이용 상한의 cycleKey 는 entitlement 의 expiresAt 에서 나온다. coin-gate 가 쓰는 것과
 // **같은 생산자**를 써야 두 곳의 cycleKey 가 일치하고, 저장된 카운터를 실제로 읽을 수 있다
 // (다른 생산자를 쓰면 storedKey 불일치로 used 가 항상 0 이 되어 검사가 조용히 무력해진다).
 import { resolveCanonicalEntitlement } from "./entitlement-policy.js";
+// 🔴 이용권 통과는 **차감을 동반해야** 한도가 존재한다. 판정·소비 정본은 worker/payments/passes.js
+// 이며 이 어댑터가 그 정본을 부른다(worker/lib/pass-consumption.js 머리주석).
+import { consumePassForFeature, passDenialCode } from "./pass-consumption.js";
 
 const ID_MAX = 180;
 
@@ -132,11 +135,14 @@ export async function verifyPerUsePayment(env, { userId, featureKey, coinPrice =
       return { proven: true, source: "monthly", reason: "" };
     }
 
-    // 4) 이용권 커버 — 차감 기록이 없는 **정상** 경로다(무료 통과라 Payment 도 PointHistory 도 안 남는다).
-    //    결제창을 띄우는 게 아니라 "이미 커버된 사용자인가"만 읽으므로 게이팅 이중 적용이 아니다.
+    // 4) 이용권 커버 — 단건결제·코인·월정석 증빙이 없을 때의 **정상** 경로다.
+    //    🔴 여기는 조회 전용이 아니다(2026-09-06). 이용권으로 통과시키면 그 자리에서
+    //    monthlySpendCoin 을 차감한다 — 아래 분기 주석 참고.
     // 5) admin
     const user = await withMongoRetry(env, () => User.findById(uid)
-      .select("role profileSubscription subscription membership membershipPass pass entitlement licensePass passTier expiresAt isActive")
+      // recentConsumeRequestIds 는 이용권 차감의 멱등 마커 배열이다 — 빼면 재시도가 예산을
+      // 두 번 깎는다(worker/payments/passes.js consumePassCoverage).
+      .select("role profileSubscription subscription membership membershipPass pass entitlement licensePass passTier expiresAt isActive recentConsumeRequestIds")
       .lean());
     if (!user) return { proven: false, source: "", reason: "USER_NOT_FOUND" };
     if (String(user.role || "").toLowerCase() === "admin") {
@@ -147,13 +153,14 @@ export async function verifyPerUsePayment(env, { userId, featureKey, coinPrice =
     // (family 10회 · vvip 3회)과 월 누적 한도가 coin-gate 의 소비 단계에만 존재했고, 게이트를
     // 거치지 않고 이 라우트를 직접 호출하면 상한을 넘겨도 통과했다.
     //
-    // 정상 사용자는 여기 오지 않는다: 이용권 사용은 recordPassAccessIfNeeded 가 PointHistory
-    // 증빙을 남기므로 위 2)의 findDeduction 에서 이미 proven 으로 끝난다. 즉 이 검사가 막는 것은
-    // "증빙이 없는데 이용권이라서 통과하던" 우회 호출뿐이다.
+    // 🔴 "정상 사용자는 coin-gate 가 남긴 PointHistory 증빙 덕에 여기 오지 않는다"는 예전 전제는
+    // 사실이 아니었다 — worker/routes/master-love-codex.js 처럼 coin-gate 를 아예 거치지 않는
+    // 자체 게이트가 있어서, 증빙 없이 이 분기로 들어오는 것이 오히려 흔한 경로였다.
+    // 그래서 이 분기는 검사만 하고 넘기면 안 되고 **차감까지 해야** 한도가 성립한다.
     //
     // 판정을 못 내리면(만료일 없음 → cycleKey 없음, 해당 등급 아님) applies=false 로 열어 둔다 —
-    // resolvePremiumQuota/resolveMonthlySpendQuota 의 문서화된 정책이며, 셀 수 없는 상태에서
-    // 막지 않는다.
+    // resolvePremiumQuota 의 문서화된 정책이며, 셀 수 없는 상태에서 막지 않는다
+    // (evaluatePassCoverage 의 budgetApplies 도 같은 정책이다).
     const canonicalEntitlement = resolveCanonicalEntitlement(user || {});
     const familyQuota = resolvePremiumQuota(
       user?.profileSubscription || {},
@@ -168,13 +175,26 @@ export async function verifyPerUsePayment(env, { userId, featureKey, coinPrice =
       if (familyQuota.applies && familyQuota.exhausted) {
         return { proven: false, source: "", reason: "PREMIUM_QUOTA_EXHAUSTED" };
       }
-      const monthlyQuota = resolveMonthlySpendQuota(
-        user?.profileSubscription || {},
-        canonicalEntitlement,
-        Number(coinPrice) || 0,
-      );
-      if (monthlyQuota.applies && monthlyQuota.exceeded) {
-        return { proven: false, source: "", reason: "MONTHLY_PASS_LIMIT_EXCEEDED" };
+      // 🔴 예전에는 여기서 resolveMonthlySpendQuota 로 초과 여부를 **읽기만** 했다. 이 경로는
+      //    monthlySpendCoin 을 증가시키는 곳이 아니었으므로 그 값이 영원히 0 에 머물렀고,
+      //    "참이 될 수 없는 검사" 였다 — 이용권만 있으면 한도와 무관하게 계속 통과했다.
+      //    이제 정본(evaluatePassCoverage + consumePassCoverage)으로 판정하고 **실제로 차감**한다.
+      //    차감이 쌓이면 소진 종료도 정본이 자동으로 수행한다(새 소진 플래그를 만들지 않는다).
+      const cost = Math.max(0, Math.floor(Number(coinPrice) || 0));
+      // 가격이 없는(무료) 건은 차감할 것이 없다 — 예전 동작을 그대로 둔다.
+      // 여기서 cost>0 조건을 빼면 evaluatePassCoverage 가 invalid_price 로 무료 건을 막는다.
+      if (cost > 0) {
+        const consumed = await consumePassForFeature({
+          user,
+          entitlement: canonicalEntitlement,
+          userId: uid,
+          featureKey: key,
+          requestId: rid,
+          coinCost: cost,
+        });
+        // 🔴 코드가 빈 문자열이면 막지 않는다(passDenialCode 주석) — 예전 통과 판정을 존중한다.
+        const denial = consumed.covered ? "" : passDenialCode(consumed.reason);
+        if (denial) return { proven: false, source: "", reason: denial };
       }
       return { proven: true, source: "pass", reason: "" };
     }

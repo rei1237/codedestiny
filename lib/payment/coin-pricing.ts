@@ -8,13 +8,20 @@ export function coinsToKrw(coins: number | null | undefined): number {
   return Math.round(value) * KRW_PER_COIN;
 }
 
-export function formatKrwFromCoins(coins: number | null | undefined, locale = "ko"): string {
-  const amount = coinsToKrw(coins);
+// 이미 원화로 계산돼 내려온 금액(예: access-state 의 passUsage.remainingKRW)의 표시 정본.
+// 🔴 코인을 거치지 않는다 — 서버가 준 원화를 100 으로 나눴다 다시 곱하면 반올림이 한 번 더 낀다.
+export function formatKrwAmount(amount: number | null | undefined, locale = "ko"): string {
+  const value = Number(amount);
+  const safe = Number.isFinite(value) && value > 0 ? Math.round(value) : 0;
   // ko는 기존 표기(…원) 유지, 그 외 로케일은 통화 코드 표기(KRW …)로 노출
   if (String(locale).toLowerCase().startsWith("ko")) {
-    return `${amount.toLocaleString("ko-KR")}원`;
+    return `${safe.toLocaleString("ko-KR")}원`;
   }
-  return `KRW ${amount.toLocaleString("en-US")}`;
+  return `KRW ${safe.toLocaleString("en-US")}`;
+}
+
+export function formatKrwFromCoins(coins: number | null | undefined, locale = "ko"): string {
+  return formatKrwAmount(coinsToKrw(coins), locale);
 }
 
 // 월정석 1개 = 10원. 서버의 MEMBERSHIP_CREDIT_PER_COIN(=10)으로 나눈 값이며
