@@ -28,6 +28,7 @@ import { resolveAppPassCoverageKRW } from "@/worker/lib/app-store-pricing.js";
 // 🔴 이용권 스냅샷·판정 정본. 정적 셸(index.html)과 독립 정적(js/destiny-profile.js)도 같은 파일을
 // classic script 로 읽는다 — 여기에 사본을 만들면 세 런타임의 판정이 갈린다.
 import passVerdict from "@/js/core/pass-verdict.js";
+import { KRW_PER_COIN } from "@/lib/payment/coin-pricing";
 import appContext from "@/js/core/app-context.js";
 import checkoutEntry, { type PaidResumeDescriptor } from "@/js/core/checkout-entry.js";
 import bundledPaymentService from "@/js/core/payment-service.js";
@@ -750,6 +751,36 @@ export function readSubscriptionSnapshotForUser(
     authUser.profileSubscription,
     "verified-auth-cache",
   ) as SubscriptionSnapshot | null;
+}
+
+/**
+ * access-state 의 `entitlementSnapshot.passUsage.remainingKRW`(서버가 limit - used 로 파생 계산)를
+ * 이용권 스냅샷의 월 잔여로 시드한다.
+ *
+ * 왜 필요한가: pass-verdict 의 낙관 통과는 `monthlySpendRemainingCoin` 이 null 이면 월 한도 검사를
+ * **건너뛴다**(왕복 절감). 지금까지 그 값을 채우는 곳이 coin-gate 응답뿐이라 첫 진입은 항상 무검사였고,
+ * 서버가 402 로 되돌려 보낼 때까지 화면상 무제한으로 보였다. 여기서 시드하면 첫 진입부터 한도가 보인다.
+ *
+ * 🔴 서버 판정을 대체하지 않는다 — 최종 판정은 언제나 서버의 차감(consumePassCoverage)이다.
+ * 🔴 storeStatus/buildSnapshotFromStatus 를 태우지 않는다(활성 스냅샷에만 반영·단조 감소).
+ * 🔴 remainingKRW 는 원화다 — 스냅샷 단위는 코인이라 100 으로 나눠 넣는다(1코인=100원).
+ */
+export function seedMonthlyQuotaFromAccessState(accessData: unknown): SubscriptionSnapshot | null {
+  if (typeof window === "undefined") return null;
+  const snapshot = asRecord(asRecord(accessData)?.entitlementSnapshot);
+  const usage = asRecord(snapshot?.passUsage);
+  if (!usage) return null;
+  const remainingKRW = Number(usage.remainingKRW);
+  if (!Number.isFinite(remainingKRW) || remainingKRW < 0) return null;
+  const remainingCoin = Math.max(0, Math.floor(remainingKRW / KRW_PER_COIN));
+  try {
+    return passVerdict.storeMonthlyQuotaFromPayload(
+      resolveSubscriptionSnapshotUserId(),
+      { monthlySpendRemaining: remainingCoin },
+    ) as SubscriptionSnapshot | null;
+  } catch {
+    return null;
+  }
 }
 
 export function saveSubscriptionSnapshotForUser(userId: string | undefined, value: unknown, source = "client"): SubscriptionSnapshot | null {

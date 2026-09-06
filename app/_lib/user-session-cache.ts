@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useSyncExternalStore } from "react";
-import { fetchBillingBalance } from "@/app/_lib/billing-client";
+import { fetchBillingBalance, seedMonthlyQuotaFromAccessState } from "@/app/_lib/billing-client";
 import { authFetch } from "@/app/_lib/auth-client";
 
 type CacheKind = "session" | "profile" | "entitlement" | "paymentAccess" | "accessState";
@@ -444,6 +444,9 @@ async function ensureUserAccessLoadedUncached(options: { force?: boolean; includ
   const accessSupported = Boolean(accessResponse) && accessStatus !== 404 && accessStatus !== 405;
   if (accessData && accessResponse?.ok && typeof accessData.userId === "string") {
     applyAccessStateToGlobalStore(accessData);
+    // 서버가 계산해 준 이용권 월 잔여를 판정 스냅샷에 시드한다 — 없으면 pass-verdict 가
+    // 월 한도 검사를 통째로 건너뛰어 첫 진입이 무제한으로 보인다(새 왕복은 없다).
+    seedMonthlyQuotaFromAccessState(accessData);
     setSnapshot({
       accessState: accessData as unknown as AccessStateData,
       profileStatus: "ready",

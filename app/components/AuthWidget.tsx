@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { logout, refreshAuth, useAuthStore } from "../_lib/auth-store";
+import { ensureUserAccessLoaded, useUserAccess } from "../_lib/user-session-cache";
+import { formatKrwAmount } from "@/lib/payment/coin-pricing";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 
 type AuthUser = {
@@ -33,6 +35,22 @@ const AUTH_STORAGE_KEYS = new Set([
 ]);
 const AUTH_WIDGET_SYNC_EVENTS = new Set(["login", "logout", "subscription"]);
 
+/**
+ * 이용권 월 한도의 **잔여**. 서버가 access-state 에서 limit - used 로 파생 계산해 내려주는 값만
+ * 읽는다(worker/lib/access-state.js buildPassUsage) — 화면에서 다시 계산하지 않는다.
+ * 🔴 null 은 '잔여 0' 이 아니라 '셀 수 없음'(만료일 없음 등)이다. 이때는 등급명만 보여준다.
+ * 🔴 코인 단위를 그대로 렌더하지 않는다 — 표시 단위는 항상 KRW 다.
+ */
+function readPassRemainingKRW(accessState: unknown): number | null {
+  if (!accessState || typeof accessState !== "object") return null;
+  const snapshot = (accessState as { entitlementSnapshot?: unknown }).entitlementSnapshot;
+  if (!snapshot || typeof snapshot !== "object") return null;
+  const usage = (snapshot as { passUsage?: unknown }).passUsage;
+  if (!usage || typeof usage !== "object") return null;
+  const remaining = Number((usage as { remainingKRW?: unknown }).remainingKRW);
+  return Number.isFinite(remaining) && remaining >= 0 ? remaining : null;
+}
+
 function shouldSyncAuthFromPayload(payload: unknown) {
   if (!payload || typeof payload !== "object") return true;
   const event = String((payload as { event?: unknown }).event || "");
@@ -46,30 +64,46 @@ const AUTH_WIDGET_COPY: Record<LoadingLocale, {
   nameLabel: (name: string) => string;
   admin: string;
   subscriptionTitle: string;
+  passRemaining: (amount: string) => string;
   logout: string;
   login: string;
   signup: string;
 }> = {
-  ko: { userFallback: "사용자", initialFallback: "사", profileAlt: (name) => `${name} 프로필`, nameLabel: (name) => `${name}님`, admin: "관리자", subscriptionTitle: "현재 구독 티어", logout: "로그아웃", login: "로그인", signup: "회원가입" },
-  en: { userFallback: "User", initialFallback: "U", profileAlt: (name) => `${name}'s profile`, nameLabel: (name) => name, admin: "Admin", subscriptionTitle: "Current subscription tier", logout: "Log out", login: "Log in", signup: "Sign up" },
-  ja: { userFallback: "ユーザー", initialFallback: "ユ", profileAlt: (name) => `${name}のプロフィール`, nameLabel: (name) => `${name}様`, admin: "管理者", subscriptionTitle: "現在のサブスクリプション", logout: "ログアウト", login: "ログイン", signup: "新規登録" },
-  "zh-CN": { userFallback: "用户", initialFallback: "用", profileAlt: (name) => `${name}的个人资料`, nameLabel: (name) => name, admin: "管理员", subscriptionTitle: "当前订阅等级", logout: "退出登录", login: "登录", signup: "注册" },
-  "zh-TW": { userFallback: "使用者", initialFallback: "使", profileAlt: (name) => `${name}的個人資料`, nameLabel: (name) => name, admin: "管理員", subscriptionTitle: "目前訂閱等級", logout: "登出", login: "登入", signup: "註冊" },
-  vi: { userFallback: "Người dùng", initialFallback: "N", profileAlt: (name) => `Hồ sơ của ${name}`, nameLabel: (name) => name, admin: "Quản trị", subscriptionTitle: "Gói đăng ký hiện tại", logout: "Đăng xuất", login: "Đăng nhập", signup: "Đăng ký" },
-  hi: { userFallback: "उपयोगकर्ता", initialFallback: "उ", profileAlt: (name) => `${name} की प्रोफ़ाइल`, nameLabel: (name) => name, admin: "एडमिन", subscriptionTitle: "वर्तमान सदस्यता स्तर", logout: "लॉग आउट", login: "लॉग इन", signup: "साइन अप" },
-  es: { userFallback: "Usuario", initialFallback: "U", profileAlt: (name) => `Perfil de ${name}`, nameLabel: (name) => name, admin: "Admin", subscriptionTitle: "Nivel de suscripción actual", logout: "Cerrar sesión", login: "Iniciar sesión", signup: "Registrarse" },
-  fr: { userFallback: "Utilisateur", initialFallback: "U", profileAlt: (name) => `Profil de ${name}`, nameLabel: (name) => name, admin: "Admin", subscriptionTitle: "Niveau d'abonnement actuel", logout: "Déconnexion", login: "Connexion", signup: "Inscription" },
-  de: { userFallback: "Nutzer", initialFallback: "N", profileAlt: (name) => `Profil von ${name}`, nameLabel: (name) => name, admin: "Admin", subscriptionTitle: "Aktuelle Abo-Stufe", logout: "Abmelden", login: "Anmelden", signup: "Registrieren" },
-  nl: { userFallback: "Gebruiker", initialFallback: "G", profileAlt: (name) => `Profiel van ${name}`, nameLabel: (name) => name, admin: "Admin", subscriptionTitle: "Huidig abonnementsniveau", logout: "Uitloggen", login: "Inloggen", signup: "Registreren" },
-  ms: { userFallback: "Pengguna", initialFallback: "P", profileAlt: (name) => `Profil ${name}`, nameLabel: (name) => name, admin: "Admin", subscriptionTitle: "Tahap langganan semasa", logout: "Log keluar", login: "Log masuk", signup: "Daftar" },
+  ko: { userFallback: "사용자", initialFallback: "사", profileAlt: (name) => `${name} 프로필`, nameLabel: (name) => `${name}님`, admin: "관리자", subscriptionTitle: "현재 구독 티어", passRemaining: (amount) => `${amount} 남음`, logout: "로그아웃", login: "로그인", signup: "회원가입" },
+  en: { userFallback: "User", initialFallback: "U", profileAlt: (name) => `${name}'s profile`, nameLabel: (name) => name, admin: "Admin", subscriptionTitle: "Current subscription tier", passRemaining: (amount) => `${amount} left`, logout: "Log out", login: "Log in", signup: "Sign up" },
+  ja: { userFallback: "ユーザー", initialFallback: "ユ", profileAlt: (name) => `${name}のプロフィール`, nameLabel: (name) => `${name}様`, admin: "管理者", subscriptionTitle: "現在のサブスクリプション", passRemaining: (amount) => `残り${amount}`, logout: "ログアウト", login: "ログイン", signup: "新規登録" },
+  "zh-CN": { userFallback: "用户", initialFallback: "用", profileAlt: (name) => `${name}的个人资料`, nameLabel: (name) => name, admin: "管理员", subscriptionTitle: "当前订阅等级", passRemaining: (amount) => `剩余${amount}`, logout: "退出登录", login: "登录", signup: "注册" },
+  "zh-TW": { userFallback: "使用者", initialFallback: "使", profileAlt: (name) => `${name}的個人資料`, nameLabel: (name) => name, admin: "管理員", subscriptionTitle: "目前訂閱等級", passRemaining: (amount) => `剩餘${amount}`, logout: "登出", login: "登入", signup: "註冊" },
+  vi: { userFallback: "Người dùng", initialFallback: "N", profileAlt: (name) => `Hồ sơ của ${name}`, nameLabel: (name) => name, admin: "Quản trị", subscriptionTitle: "Gói đăng ký hiện tại", passRemaining: (amount) => `${amount} left`, logout: "Đăng xuất", login: "Đăng nhập", signup: "Đăng ký" },
+  hi: { userFallback: "उपयोगकर्ता", initialFallback: "उ", profileAlt: (name) => `${name} की प्रोफ़ाइल`, nameLabel: (name) => name, admin: "एडमिन", subscriptionTitle: "वर्तमान सदस्यता स्तर", passRemaining: (amount) => `${amount} left`, logout: "लॉग आउट", login: "लॉग इन", signup: "साइन अप" },
+  es: { userFallback: "Usuario", initialFallback: "U", profileAlt: (name) => `Perfil de ${name}`, nameLabel: (name) => name, admin: "Admin", subscriptionTitle: "Nivel de suscripción actual", passRemaining: (amount) => `${amount} left`, logout: "Cerrar sesión", login: "Iniciar sesión", signup: "Registrarse" },
+  fr: { userFallback: "Utilisateur", initialFallback: "U", profileAlt: (name) => `Profil de ${name}`, nameLabel: (name) => name, admin: "Admin", subscriptionTitle: "Niveau d'abonnement actuel", passRemaining: (amount) => `${amount} left`, logout: "Déconnexion", login: "Connexion", signup: "Inscription" },
+  de: { userFallback: "Nutzer", initialFallback: "N", profileAlt: (name) => `Profil von ${name}`, nameLabel: (name) => name, admin: "Admin", subscriptionTitle: "Aktuelle Abo-Stufe", passRemaining: (amount) => `${amount} left`, logout: "Abmelden", login: "Anmelden", signup: "Registrieren" },
+  nl: { userFallback: "Gebruiker", initialFallback: "G", profileAlt: (name) => `Profiel van ${name}`, nameLabel: (name) => name, admin: "Admin", subscriptionTitle: "Huidig abonnementsniveau", passRemaining: (amount) => `${amount} left`, logout: "Uitloggen", login: "Inloggen", signup: "Registreren" },
+  ms: { userFallback: "Pengguna", initialFallback: "P", profileAlt: (name) => `Profil ${name}`, nameLabel: (name) => name, admin: "Admin", subscriptionTitle: "Tahap langganan semasa", passRemaining: (amount) => `${amount} left`, logout: "Log keluar", login: "Log masuk", signup: "Daftar" },
 };
 
 export default function AuthWidget() {
   const auth = useAuthStore();
+  const userAccess = useUserAccess();
   const [mounted, setMounted] = useState(false);
   const [locale, setLocale] = useState<LoadingLocale>("ko");
   const user = (auth.user as AuthUser | null) || null;
   const copy = AUTH_WIDGET_COPY[locale] || AUTH_WIDGET_COPY.ko;
+
+  // 잔여 한도는 캐시나 클라이언트 로컬 상태가 아니라 서버 계산값이어야 한다 — 헤더가 직접
+  // access-state 를 확보한다(이미 받아 둔 응답이 있으면 그대로 재사용된다).
+  useEffect(() => {
+    if (!auth.isAuthenticated) return;
+    ensureUserAccessLoaded({
+      force: false,
+      includeProfile: false,
+      includeBilling: false,
+      reason: "auth-widget-pass-remaining",
+    }).catch(() => {
+      // 잔여 표시는 부가 정보다 — 실패해도 등급 배지는 그대로 나간다.
+    });
+  }, [auth.isAuthenticated]);
 
   useEffect(() => {
     setLocale(getCurrentLoadingLocale());
@@ -184,6 +218,11 @@ export default function AuthWidget() {
         : subscriptionTier === "standard"
           ? "STANDARD"
           : "FREE";
+    // 등급이 free 이거나 서버가 잔여를 못 세는 상태면 등급명만 — '0원 남음' 으로 쓰지 않는다.
+    const passRemainingKRW = subscriptionTier === "free" ? null : readPassRemainingKRW(userAccess.accessState);
+    const passRemainingLabel = passRemainingKRW === null
+      ? ""
+      : copy.passRemaining(formatKrwAmount(passRemainingKRW, locale));
     const subscriptionCls = subscriptionTier === "family"
       ? "border-emerald-300/50 bg-emerald-500/15 text-emerald-100"
       : subscriptionTier === "vvip"
@@ -226,9 +265,12 @@ export default function AuthWidget() {
         <Link
           href="/points"
           className={`rounded-lg border px-2.5 py-1 text-xs font-semibold transition ${subscriptionCls}`}
-          title={copy.subscriptionTitle}
+          title={passRemainingLabel ? `${copy.subscriptionTitle} · ${passRemainingLabel}` : copy.subscriptionTitle}
         >
           {subscriptionLabel}
+          {passRemainingLabel ? (
+            <span className="ml-1 font-normal opacity-80">· {passRemainingLabel}</span>
+          ) : null}
         </Link>
         <button
           type="button"

@@ -28,11 +28,14 @@ import { MasterLoveCodexSession, Payment, PointHistory, User } from "../lib/mode
 import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
-import { canUseByPass, normalizeHoneyPassEntitlement, resolveMonthlySpendQuota, resolvePremiumQuota } from "../lib/profile-limits.js";
+import { canUseByPass, normalizeHoneyPassEntitlement, resolvePremiumQuota } from "../lib/profile-limits.js";
 // 🔴 상담 포함횟수/월 누적 한도의 cycleKey 는 entitlement 의 expiresAt 에서 나온다. coin-gate(billing.js)가
 // 쓰는 것과 같은 생산자를 써야 두 곳의 cycleKey 가 일치하고, 저장된 카운터를 실제로 읽을 수 있다
 // (다른 생산자를 쓰면 storedKey 불일치로 used 가 항상 0 이 되어 검사가 조용히 무력해진다).
 import { resolveCanonicalEntitlement } from "../lib/entitlement-policy.js";
+// 🔴 이 라우트는 coin-gate 를 거치지 않는 자체 게이트라, 이용권 통과를 내주면서 누적 사용량을
+// 아무도 차감하지 않았다(한도가 존재하지 않았다). 판정·소비 정본은 worker/payments/passes.js.
+import { consumePassForFeature, passDenialCode } from "../lib/pass-consumption.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
@@ -457,7 +460,9 @@ function tokenMatchesMode(payload, modeKey) {
 async function loadBillingUser(userId) {
   if (!objectIdLike(userId)) return null;
   return User.findById(userId)
-    .select("role points profileSubscription subscription membership pass entitlement")
+    // recentConsumeRequestIds 는 이용권 차감의 멱등 마커 배열이다 — 빼면 같은 idempotencyKey
+    // 재시도가 예산을 두 번 깎는다(worker/payments/passes.js consumePassCoverage).
+    .select("role points profileSubscription subscription membership pass entitlement recentConsumeRequestIds")
     .lean();
 }
 
@@ -807,10 +812,23 @@ async function handleEnsureAccess(request, env) {
     // 건당 상한(10,000원)이 상담 포함횟수 기준가(300코인=30,000원)보다 낮다. cycleKey를 못 구해도
     // (만료일 없음) 열어 둬야 하므로 applies가 아니라 eligible을 쓴다(profile-limits.js 참고).
     if (canUseByPass(normalizeHoneyPassEntitlement(user || {}), pricing.coinPrice) || premiumQuota.eligible) {
-      const monthlyQuota = resolveMonthlySpendQuota(user?.profileSubscription || {}, canonicalEntitlement, pricing.coinPrice);
-      if (!(premiumQuota.applies && premiumQuota.exhausted) && !(monthlyQuota.applies && monthlyQuota.exceeded)) {
-        return grant("pass");
-      }
+      // 🔴 예전에는 resolveMonthlySpendQuota 로 초과 여부를 읽기만 하고 grant("pass") 했다.
+      //    이 경로는 monthlySpendCoin 을 증가시키는 곳이 아니므로 그 값이 영원히 0 이었고,
+      //    한도에 도달하는 것 자체가 불가능했다. 이제 정본으로 판정하고 **실제로 차감**한다.
+      //    차감 성공 후에만 통과시킨다 — 차감 실패는 결제 인계다.
+      const consumed = !(premiumQuota.applies && premiumQuota.exhausted)
+        ? await consumePassForFeature({
+          user,
+          entitlement: canonicalEntitlement,
+          userId: auth.userId,
+          featureKey: resolveMode(normalized.mode).featureKey,
+          requestId: idempotencyKey,
+          coinCost: pricing.coinPrice,
+        })
+        : null;
+      // 🔴 한도 위반만 결제로 인계한다. 정본이 이용권을 못 보는 상태(passDenialCode "")는
+      //    셀 예산이 없다는 뜻이라 예전 통과 판정을 그대로 존중한다.
+      if (consumed && (consumed.covered || !passDenialCode(consumed.reason))) return grant("pass");
     }
   }
 
@@ -860,8 +878,19 @@ async function resolveStartAccess(request, env, auth, body, normalized, idempote
     // 건당 상한(10,000원)이 상담 포함횟수 기준가(300코인=30,000원)보다 낮다. cycleKey를 못 구해도
     // (만료일 없음) 열어 둬야 하므로 applies가 아니라 eligible을 쓴다(profile-limits.js 참고).
     if (canUseByPass(normalizeHoneyPassEntitlement(user || {}), startCoinCost) || premiumQuota.eligible) {
-      const monthlyQuota = resolveMonthlySpendQuota(user?.profileSubscription || {}, canonicalEntitlement, startCoinCost);
-      if (!(premiumQuota.applies && premiumQuota.exhausted) && !(monthlyQuota.applies && monthlyQuota.exceeded)) {
+      // 위 resolveBillingDecision 과 같은 2단계다. 🔴 마커가 (featureKey, idempotencyKey) 로
+      // 같으므로, /decision 에서 이미 차감된 건이 /start 에서 다시 깎이지 않는다.
+      const consumed = !(premiumQuota.applies && premiumQuota.exhausted)
+        ? await consumePassForFeature({
+          user,
+          entitlement: canonicalEntitlement,
+          userId: auth.userId,
+          featureKey: resolveMode(normalized.mode).featureKey,
+          requestId: idempotencyKey,
+          coinCost: startCoinCost,
+        })
+        : null;
+      if (consumed && (consumed.covered || !passDenialCode(consumed.reason))) {
         return { ok: true, accessType: "pass", paymentId: "", billingRequestId: idempotencyKey };
       }
     }

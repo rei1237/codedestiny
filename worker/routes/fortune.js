@@ -101,6 +101,10 @@ import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { canUseByPass, isActiveStatus, isInactiveStatus, normalizeHoneyPassEntitlement, resolveMonthlySpendQuota, resolvePremiumQuota } from "../lib/profile-limits.js";
 import { resolveCanonicalEntitlement } from "../lib/entitlement-policy.js";
+// 🔴 이용권 무료 통과는 **차감을 동반해야** 한도가 존재한다. 이 파일의 두 통과 지점
+// (AI 프롬프트 이용권 증빙 · SUBSCRIPTION_INCLUDED)은 coin-gate 를 거치지 않아 지금까지
+// monthlySpendCoin 을 한 번도 올리지 않았다. 판정·소비 정본은 worker/payments/passes.js.
+import { consumePassForFeature, passDenialCode } from "../lib/pass-consumption.js";
 import { calculateKrwAmountFromCoins, calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { autoRefundSinglePaymentDeliveryFailure } from "../lib/payment-refund.js";
 import { EDGE_RESPONSE_DEADLINE_MS, clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
@@ -1793,13 +1797,20 @@ async function findAIPromptDirectPaymentEvidence({ auth, featureKey, body, reque
     .lean();
 }
 
-async function findAIPromptPaidAccessEvidence({ auth, featureKey, body, requestId, cost, env }) {
+/**
+ * @param {boolean} [input.consume] 이용권 커버를 인정하면서 **월 누적 예산을 실제로 차감**할지.
+ *   🔴 기본 false — 이 함수는 선검사(handleSajuAIPrompt·handleZiweiAIPrompt)에서도 불리는데,
+ *   그 두 곳은 곧바로 소비 라우트로 위임하므로 여기서 차감하면 요청 하나가 두 번 깎일 수 있다
+ *   (선검사의 requestId 가 비어 있으면 멱등 마커가 만들어지지 않아 방어가 안 된다).
+ *   차감은 실제 통과를 내주는 handlePigCoinConsume 한 곳에서만 한다.
+ */
+async function findAIPromptPaidAccessEvidence({ auth, featureKey, body, requestId, cost, env, consume = false }) {
   if (env) await connectDb(env);
   if (isAIPromptPassAccessPayload(body)) {
     const userId = String(auth?.userId || "").trim();
     if (!userId) return null;
     const passUser = await User.findById(userId)
-      .select("points profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt")
+      .select("points profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt recentConsumeRequestIds")
       .lean();
     const passEntitlement = normalizeHoneyPassEntitlement(passUser || {});
     // 🔴 이 경로는 코인게이트를 거치지 않는 자체 증빙 제출이라, canUseByPass(건당 상한)만 보면
@@ -1813,6 +1824,21 @@ async function findAIPromptPaidAccessEvidence({ auth, featureKey, body, requestI
     // 건당 상한(10,000원)이 상담 포함횟수 기준가(300코인=30,000원)보다 낮다. cycleKey를 못 구해도
     // (만료일 없음) 열어 둬야 하므로 applies가 아니라 eligible을 쓴다(profile-limits.js 참고).
     if ((canUseByPass(passEntitlement, cost) || premiumQuota.eligible) && !(premiumQuota.applies && premiumQuota.exhausted) && !(monthlyQuota.applies && monthlyQuota.exceeded)) {
+      if (consume) {
+        // 🔴 위 monthlyQuota 검사는 **읽기**뿐이라, 아무도 쓰지 않던 monthlySpendCoin 은 영원히 0
+        //    이었고 한도에 도달하는 것 자체가 불가능했다. 정본으로 판정하고 실제로 차감한다.
+        //    코드가 빈 문자열이면 막지 않는다(pass-consumption.passDenialCode 주석).
+        const consumed = await consumePassForFeature({
+          user: passUser || {},
+          entitlement: canonicalEntitlement,
+          userId,
+          featureKey,
+          requestId,
+          coinCost: cost,
+        });
+        const denial = consumed.covered ? "" : passDenialCode(consumed.reason);
+        if (denial) return { source: "pass_denied", reason: denial, record: null };
+      }
       return {
         source: "pass_payload",
         record: {
@@ -2472,6 +2498,8 @@ const BALANCE_ROUTE_USER_PROJECTION = {
 const AI_PROMPT_CONSUME_USER_PROJECTION = {
   profileSubscription: 1,
   unlockedFeatures: 1,
+  // 🔴 이용권 차감의 멱등 마커 배열. 빼면 같은 요청의 재시도가 예산을 두 번 깎는다.
+  recentConsumeRequestIds: 1,
 };
 
 // 인증 조회에 BALANCE_ROUTE_USER_PROJECTION 을 주면 이 문서가 그때 함께 읽혀 온다 —
@@ -2715,9 +2743,10 @@ async function handlePigCoinConsume(request, auth, options = {}) {
       _id: auth.authUserDoc._id,
       profileSubscription: auth.authUserDoc.profileSubscription,
       unlockedFeatures: auth.authUserDoc.unlockedFeatures,
+      recentConsumeRequestIds: auth.authUserDoc.recentConsumeRequestIds,
     }
     : await User.findById(auth.userId)
-      .select("profileSubscription unlockedFeatures")
+      .select("profileSubscription unlockedFeatures recentConsumeRequestIds")
       .lean();
   if (!subscriptionUser) {
     return json({ message: "User not found.", code: "USER_NOT_FOUND" }, { status: 404 });
@@ -2729,8 +2758,9 @@ async function handlePigCoinConsume(request, auth, options = {}) {
       body,
       requestId,
       cost,
+      consume: true,
     });
-    if (verifiedAccess) {
+    if (verifiedAccess && verifiedAccess.source !== "pass_denied") {
       return json(buildAIPromptVerifiedConsumePayload({
         auth,
         featureKey,
@@ -2743,11 +2773,16 @@ async function handlePigCoinConsume(request, auth, options = {}) {
       }));
     }
 
+    // 이용권 한도 초과는 "결제 확인 실패"와 다른 상태다 — 코드를 구분하지 않으면 클라이언트가
+    // 한도 초과 사용자를 이용권 상점으로 튕긴다(pass-verdict.isMonthlyLimitPayload).
+    const passDenied = verifiedAccess?.source === "pass_denied";
     const krwEquivalent = cost * 100;
     return json({
       ok: false,
-      message: "결제 확인 후 프롬프트를 생성할 수 있습니다.",
-      code: "PAYMENT_REQUIRED",
+      message: passDenied
+        ? "이용권 사용 한도를 모두 사용했어요. 단건 결제 또는 이용권 재구매 후 이용할 수 있습니다."
+        : "결제 확인 후 프롬프트를 생성할 수 있습니다.",
+      code: passDenied ? verifiedAccess.reason : "PAYMENT_REQUIRED",
       featureKey,
       reason,
       pricing: {
@@ -2763,6 +2798,35 @@ async function handlePigCoinConsume(request, auth, options = {}) {
   const activeTierForPass = resolveEffectiveActiveTier(subscriptionUser);
   const activePolicyForPass = getPlanPolicy(activeTierForPass);
   if (activeTierForPass && cost <= activePolicyForPass.freeLimit) {
+    // 🔴 resolveEffectiveActiveTier 는 등급과 만료일만 본다(:2431) — 월 누적 한도를 보지 않고,
+    //    이 분기는 지금까지 차감도 하지 않았다. 즉 이용권 보유자에게 건당 상한 이하의 건이
+    //    무제한으로 열렸다. 정본으로 판정하고 실제로 차감한다.
+    const passConsumed = await consumePassForFeature({
+      user: subscriptionUser,
+      entitlement: resolveCanonicalEntitlement(subscriptionUser),
+      userId: String(auth.userId || ""),
+      featureKey,
+      requestId,
+      coinCost: cost,
+    });
+    const passDenial = passConsumed.covered ? "" : passDenialCode(passConsumed.reason);
+    if (passDenial) {
+      return json({
+        ok: false,
+        message: "이용권 사용 한도를 모두 사용했어요. 단건 결제 또는 이용권 재구매 후 이용할 수 있습니다.",
+        code: passDenial,
+        featureKey,
+        reason,
+        pricing: {
+          featureKey,
+          reason,
+          coinPrice: cost,
+          membershipCreditCost: 0,
+          krwEquivalent: cost * 100,
+          displayUnit: "content_value",
+        },
+      }, { status: 402 });
+    }
     const unlockedFeatures = normalizePersistentUnlockKeys(subscriptionUser.unlockedFeatures);
     const premiumAccessToken = await createPremiumAccessToken(env, {
       userId: String(auth.userId || ""),

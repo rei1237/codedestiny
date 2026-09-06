@@ -22,6 +22,7 @@ const paymentFindOne = jest.fn();
 const pointHistoryFindOne = jest.fn();
 const monthlyLedgerFind = jest.fn();
 const userFindById = jest.fn();
+const consumePassForFeatureMock = jest.fn();
 
 let verifyPerUsePayment;
 let transientError;
@@ -59,6 +60,7 @@ function resetModels() {
   pointHistoryFindOne.mockReset().mockReturnValue(query(null));
   monthlyLedgerFind.mockReset().mockImplementation(ledgerQuery(null));
   userFindById.mockReset().mockReturnValue(query({ _id: USER_ID, role: "user" }));
+  consumePassForFeatureMock.mockReset().mockResolvedValue({ covered: true, reason: "", replayed: false, coverage: {} });
 }
 
 beforeAll(async () => {
@@ -72,6 +74,19 @@ beforeAll(async () => {
     })),
     jest.unstable_mockModule("../../worker/lib/auth.js", () => ({
       isAuthDbInfraError: () => false,
+    })),
+    /* 이용권 통과는 이제 그 자리에서 월 누적 예산을 차감한다(worker/lib/pass-consumption.js).
+       이 파일의 주제는 "증빙 5경로와 판단 보류" 이지 예산 회계가 아니므로 차감은 목으로 세우고,
+       한도·차감·멱등 계약은 __tests__/worker/pass-budget-hard-gate.test.js 가 따로 고정한다. */
+    jest.unstable_mockModule("../../worker/lib/pass-consumption.js", () => ({
+      consumePassForFeature: (...args) => consumePassForFeatureMock(...args),
+      // 거절 코드 매핑은 목이 아니라 정본과 같아야 한다 — 여기서 바꾸면 이 파일이
+      // "한도 초과인데 통과"를 못 잡는다.
+      passDenialCode: (reason) => (reason === "monthly_pass_limit_exceeded"
+        ? "MONTHLY_PASS_LIMIT_EXCEEDED"
+        : reason === "price_exceeds_pass_limit"
+          ? "PRICE_EXCEEDS_PASS_LIMIT"
+          : reason === "pass_access_conflict" ? "PAYMENT_REQUIRED" : ""),
     })),
     jest.unstable_mockModule("../../worker/lib/models.js", () => ({
       Payment: { findOne: paymentFindOne },
