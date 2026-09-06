@@ -5,11 +5,17 @@ import { crosswalkFromSukuyo } from "@/constants/nakshatra-crosswalk";
 import { getFusionBySukuyo } from "@/constants/nakshatra-fusion";
 import { SUKUYO_MANSIONS } from "@/worker/lib/sukuyo-premium.js";
 import { GRAHA_KO } from "@/worker/lib/vedic-derived-calculations.js";
-import { buildBreadcrumbJsonLd } from "@/lib/structured-data";
+import { buildArticleJsonLd, buildBreadcrumbJsonLd } from "@/lib/structured-data";
+import ContentIntegrityNote from "@/app/components/ContentIntegrityNote";
 import { SEO_DESCRIPTION_WIDTH_LIMIT, seoDisplayWidth, truncateToDisplayWidth } from "@/lib/seo";
 import { siteSeo } from "@/lib/seo/siteSeo";
 
 export const dynamicParams = false;
+
+// 27개 공통 — 발행일은 이 파일의 첫 커밋일(git log --diff-filter=A), 수정일은 검수 노트·Article 을 붙인 날.
+// 짝 구현: app/guides/[slug]/page.js 의 @graph + ContentIntegrityNote. 본문은 건드리지 않았다.
+const CODEX_DATE_PUBLISHED = "2026-07-17";
+const CODEX_DATE_MODIFIED = "2026-09-06";
 
 // 결정성 앵커(대표 별이 물리적으로 정렬되는 5쌍) — 천문 사실. 숙요 한자 → 공통 기준별.
 const ANCHOR_STARS: Record<string, string> = {
@@ -57,14 +63,20 @@ function toLastCompleteSentence(text: string): string | null {
   return taken >= 2 ? out.trim() : null;
 }
 
-export function generateMetadata({ params }: { params: { index: string } }) {
-  const r = resolve(params.index);
-  if (!r) return {};
+// 제목·설명은 <head> 메타와 Article JSON-LD 가 같은 값을 써야 하므로 한 곳에서 만든다.
+function codexSeoText(r: NonNullable<ReturnType<typeof resolve>>) {
   const title = `${r.suk.nameKo}수(${r.suk.nameHan}) · ${r.attrs.nameKo} | 나크샤트라 결정판 27수 도감`;
   // 이 페이지는 buildSeoMetadata 를 거치지 않고 metadata 를 직접 조립한다 — 폭 절단도 여기서 한다.
   // 예전에는 convergence 를 90**자**로 잘랐는데, 접두부까지 더하면 폭이 207~242 로 나갔다(2026-08-27 실측).
   const summary = `동양 ${r.suk.nameKo}수(${r.suk.nameHan})와 인도 나크샤트라 ${r.attrs.nameKo}(${r.attrs.nameEn})의 통합 해설. ${r.fusion?.convergence || ""}`;
   const description = toLastCompleteSentence(summary) || truncateToDisplayWidth(summary);
+  return { title, description };
+}
+
+export function generateMetadata({ params }: { params: { index: string } }) {
+  const r = resolve(params.index);
+  if (!r) return {};
+  const { title, description } = codexSeoText(r);
   const path = `/nakshatra/codex/${r.idx}`;
   return {
     metadataBase: new URL(siteSeo.siteUrl),
@@ -113,11 +125,28 @@ export default function NakshatraCodexPage({ params }: { params: { index: string
   // 화면 빵부스러기(아래 nav: 나크샤트라 결정판 → 27수 도감)와 같은 계층을 구조화 데이터로도
   // 내보낸다. 이 페이지에는 그동안 사이트 공용 Organization·WebSite 말고는 아무 구조화
   // 데이터가 없었다(2026-08-24 dist/ 실측).
-  const breadcrumbJsonLd = buildBreadcrumbJsonLd([
-    { name: "홈", path: "/" },
-    { name: "나크샤트라 결정판", path: "/nakshatra/" },
-    { name: `${suk.nameKo}수 · ${attrs.nameKo}`, path: `/nakshatra/codex/${idx}/` },
-  ]);
+  // Article 은 generateMetadata 와 같은 제목·설명을 쓴다(화면·메타·스키마가 한 페이지를 가리키게).
+  // 저자·발행일이 없는 27개 도감 페이지가 AdSense "가치 낮은 콘텐츠" 판정 축이었다(2026-09-06).
+  const meta = codexSeoText(r);
+  const codexJsonLd = JSON.stringify({
+    "@context": "https://schema.org",
+    "@graph": [
+      buildBreadcrumbJsonLd([
+        { name: "홈", path: "/" },
+        { name: "나크샤트라 결정판", path: "/nakshatra/" },
+        { name: `${suk.nameKo}수 · ${attrs.nameKo}`, path: `/nakshatra/codex/${idx}/` },
+      ]),
+      buildArticleJsonLd({
+        title: meta.title || `${suk.nameKo}수 · ${attrs.nameKo}`,
+        description: meta.description || "",
+        path: `/nakshatra/codex/${idx}`,
+        category: "나크샤트라",
+        keywords: [`${suk.nameKo}수`, attrs.nameKo, attrs.nameEn, "나크샤트라", "숙요 27수", "Code Destiny"],
+        datePublished: CODEX_DATE_PUBLISHED,
+        dateModified: CODEX_DATE_MODIFIED,
+      }),
+    ],
+  });
 
   return (
     <main className="relative isolate min-h-[100dvh] overflow-hidden bg-[#070812] px-4 py-8 text-slate-100 md:py-12">
@@ -127,7 +156,7 @@ export default function NakshatraCodexPage({ params }: { params: { index: string
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: codexJsonLd }}
       />
       <div className="mx-auto w-full max-w-3xl">
         <nav className="mb-5 flex flex-wrap gap-2 text-sm text-slate-300">
@@ -148,6 +177,13 @@ export default function NakshatraCodexPage({ params }: { params: { index: string
             <p className="mt-2 break-keep text-base font-medium text-slate-200">“{fusion.fusionTitle.split("—")[0].trim()}”</p>
           )}
         </header>
+
+        <ContentIntegrityNote
+          contentSource="authored"
+          datePublished={CODEX_DATE_PUBLISHED}
+          dateModified={CODEX_DATE_MODIFIED}
+          tone="dark"
+        />
 
         <p className="mt-6 break-keep text-sm leading-7 text-slate-200">
           {`숙요 27수의 ${idx + 1}번째 자리 ${suk.nameKo}수(${suk.nameHan})는, 인도 27 나크샤트라 ${attrs.nameKo}(${attrs.nameEn})와 결정성(대표 별) 기준으로 이어집니다. 두 전통은 같은 황도 27분할에서 갈라져 나왔기에, 한 별을 동양의 방위·사신·칠요와 인도의 지배성·주신·샥티라는 두 언어로 겹쳐 읽을 수 있습니다.`}
