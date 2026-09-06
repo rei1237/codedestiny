@@ -1362,8 +1362,9 @@ export default {
         }
         // 단건 확정 컷오버(2026-09-06) — 구 /api/payments/confirm 을 V2 confirmOrder 로 넘긴다. 경로가
         // 이미 V2 라우터의 "POST /confirm" 이라 재작성 없이 그대로 통과시킨다(구 /api/billing/confirm 도
-        // 같은 어댑터로 재작성돼 들어오므로 두 URL 이 한 핸들러를 공유한다). 구 핸들러는 지우지 않았다 —
-        // 이 블록을 걷어내면 worker/routes/payments.js 의 handleConfirm 이 그 자리에서 다시 답한다.
+        // 같은 어댑터로 재작성돼 들어오므로 두 URL 이 한 핸들러를 공유한다).
+        // 🔴 구 handleConfirm 은 2026-09-06 에 지웠다 — 이 블록을 걷어내도 되받을 핸들러가 없고
+        // POST /api/payments/confirm 은 404 가 된다. 되돌리려면 그 삭제 커밋을 함께 revert 한다.
         if (request.method === "POST"
           && url.pathname === "/api/payments/confirm") {
           const { handlePaymentsContext } = await import("./payments/index.js");
