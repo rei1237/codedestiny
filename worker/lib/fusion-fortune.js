@@ -915,6 +915,10 @@ export async function generateFusionFortuneWithRealLLM({
       response = await providerCall(env, groupPrompt.userPrompt, {
         systemPrompt: groupPrompt.systemPrompt,
         responseMimeType: "application/json",
+        // 🔴 구조화 출력을 켜는 유일한 지점이다 — 다른 호출부는 이 옵션을 세우지 않으므로
+        //    공용 경로(gemini.js·llm-client.ts)는 초융합 밖에서 바디가 이전과 같다.
+        //    되돌릴 때도 이 한 줄만 지운다.
+        responseSchema: groupPrompt.geminiSchema,
         attempts,
         maxOutputTokens: fusionGroupTokens(group, env),
         temperature: 0.62,

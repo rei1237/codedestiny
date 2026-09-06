@@ -71,6 +71,9 @@ export async function buildCacheKey(request: LLMRequest, keyExtra = ""): Promise
     maxTokens: Number(request.maxTokens) || 0,
     temperature: Number.isFinite(Number(request.temperature)) ? Number(request.temperature) : null,
     responseMimeType: String(request.responseMimeType || ""),
+    // 구조화 출력은 응답 형태를 바꾸므로 키에 들어가야 한다 — 안 넣으면 스키마만 다른
+    // 두 요청이 같은 캐시를 공유해 이 함수의 선언("실제로 전달하는 필드만")이 깨진다.
+    responseSchema: request.responseSchema ? JSON.stringify(request.responseSchema) : "",
     model: String(request.model || ""),
     geminiParts: await summarizeGeminiParts(request.geminiParts),
     keyExtra: String(keyExtra || ""),

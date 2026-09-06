@@ -17,8 +17,11 @@ import {
 } from "../../worker/lib/fusion-fortune.js";
 import {
   buildFusionFortunePrompt,
+  buildFusionSectionGroupPrompt,
   FUSION_FORTUNE_LENGTH,
+  FUSION_FORTUNE_RESPONSE_SCHEMA,
   FUSION_SECTION_GROUP_SPECS,
+  toGeminiSchema,
 } from "../../worker/lib/fusion-fortune-prompt.js";
 import { FEATURE_KEY_PRICE_TABLE, isPerUsePaidFeatureKey } from "../../worker/lib/paid-feature-registry.js";
 
@@ -515,6 +518,39 @@ describe("Fusion Fortune per-use billing and mock generation", () => {
     expect(prompt.userPrompt).not.toContain(input.birthDate);
     expect(prompt.userPrompt).not.toContain(input.birthTime);
     expect(prompt.userPrompt).not.toContain("비공개 고민");
+  });
+
+  it("🔴 converts the whole pseudo-schema into the Gemini schema subset — an unknown keyword is a 400 and fusion has no fallback", () => {
+    // Gemini generationConfig.responseSchema 가 받는 키만. 초융합은 fallbackToWorkersAI:false 라
+    // 400 하나면 아홉 묶음이 전부 결정론적 폴백으로 떨어진다.
+    const allowed = ["type", "description", "properties", "required", "propertyOrdering", "items", "minItems"];
+    const walk = (node) => {
+      expect(Object.keys(node).filter((key) => !allowed.includes(key))).toEqual([]);
+      expect(["OBJECT", "ARRAY", "STRING", "NUMBER"]).toContain(node.type);
+      if (node.type === "OBJECT") {
+        // required 가 properties 를 벗어나면 그것도 400 이다.
+        expect(node.required.filter((key) => !node.properties[key])).toEqual([]);
+        expect(node.required.length).toBeGreaterThan(0);
+        Object.values(node.properties).forEach(walk);
+      }
+      if (node.type === "ARRAY") walk(node.items);
+    };
+    const schema = toGeminiSchema(FUSION_FORTUNE_RESPONSE_SCHEMA);
+    walk(schema);
+    expect(schema.required).toEqual(Object.keys(FUSION_FORTUNE_RESPONSE_SCHEMA));
+    // 분량 지시는 스키마 키워드로 표현할 수 없어 description 으로만 살아남는다.
+    expect(schema.properties.sajuSection.properties.content.description).toContain("자 이상");
+  });
+
+  it("🔴 transmits a schema that requires keyPoints — the 2026-09-06 live run omitted it in five of eight rejected groups", () => {
+    const group = FUSION_SECTION_GROUP_SPECS.find((spec) => spec.keys.includes("sukuyoSection"));
+    const prompt = buildFusionSectionGroupPrompt({ context: { birthTimeKnown: true }, group });
+    expect(prompt.geminiSchema.required).toEqual(group.keys);
+    // 프롬프트 본문용 스키마는 형태를 유지한다 — verify:fusion-fortune-quality 가 키 순서를 단언한다.
+    expect(Object.keys(prompt.responseSchema)).toEqual(group.keys);
+    const section = prompt.geminiSchema.properties.sukuyoSection;
+    expect(section.required).toEqual(["title", "content", "keyPoints"]);
+    expect(section.properties.keyPoints).toMatchObject({ type: "ARRAY", minItems: 3 });
   });
 
   it("rejects shallow sections even when the total shape exists", async () => {
