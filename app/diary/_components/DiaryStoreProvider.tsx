@@ -63,6 +63,13 @@ interface DiaryWriterValue {
   updateEntry: (ymd: string, mutate: DiaryEntryMutate) => boolean;
   /** 확장 기록(일정·할 일) 쓰기. 반환 규칙은 `updateEntry` 와 같다. */
   updateExtDay: (ymd: string, mutate: DiaryExtDayMutate) => boolean;
+  /**
+   * 저장소를 통째로 다시 읽는다. 🔴 **쓰기 진입점 두 개를 거치지 않은 변경**(백업 불러오기·
+   * 기록 전체 삭제)이 날짜 수백 개를 한 번에 바꾸므로, 그때만 부른다.
+   * 🔴 새로고침으로 때우지 않는 이유는 하이드레이션 경로가 둘이 되기 때문이다 — 다시 읽는
+   * 코드는 최초 하이드레이션과 **같은 한 줄**이어야 한다(원칙 6).
+   */
+  refresh: () => void;
 }
 
 const INITIAL_STATE: DiaryTodayState = {
@@ -75,6 +82,7 @@ const DiaryTodayContext = createContext<DiaryTodayState>(INITIAL_STATE);
 const DiaryWriterContext = createContext<DiaryWriterValue>({
   updateEntry: () => false,
   updateExtDay: () => false,
+  refresh: () => {},
 });
 
 export function useDiaryToday(): DiaryTodayState {
@@ -96,9 +104,15 @@ export default function DiaryStoreProvider({ children }: { children: ReactNode }
   const [state, setState] = useState<DiaryTodayState>(INITIAL_STATE);
   const [saveFailed, setSaveFailed] = useState(false);
 
-  useEffect(() => {
+  /* 🔴 하이드레이션과 재읽기가 같은 한 줄을 부른다 — 갈리면 백업을 불러온 뒤의 화면과
+     새로고침한 화면이 서로 다른 것을 그리게 된다. */
+  const refresh = useCallback(() => {
     setState({ ...readDiaryTodaySnapshot(kstTodayYmd()), ext: readDiaryExtDays(), hydrated: true });
   }, []);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
 
   const updateEntry = useCallback((ymd: string, mutate: DiaryEntryMutate) => {
     if (typeof window === "undefined" || !ymd) return false;
@@ -147,8 +161,8 @@ export default function DiaryStoreProvider({ children }: { children: ReactNode }
   }, []);
 
   const writer = useMemo<DiaryWriterValue>(
-    () => ({ updateEntry, updateExtDay }),
-    [updateEntry, updateExtDay],
+    () => ({ updateEntry, updateExtDay, refresh }),
+    [updateEntry, updateExtDay, refresh],
   );
 
   return (
