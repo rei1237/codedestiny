@@ -33,7 +33,7 @@ const DIARY_RETRO_TEXT = {
 
 const copy = DIARY_RETRO_TEXT.ko;
 
-/** 셸의 `nightLog` 입력과 같은 상한이다(`js/luck-sync-diary.js` 야간 회고 500자). */
+/** 셸의 글 입력 칸과 같은 상한이다(`js/luck-sync-diary.js:3872` 의 `maxlength="500"`). */
 const DIARY_RETRO_MAX = 500;
 
 const RATES = [1, 2, 3, 4, 5];
