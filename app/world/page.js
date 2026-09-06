@@ -2,6 +2,8 @@ import Link from "next/link";
 import { buildSeoMetadata } from "../../lib/seo";
 import { buildBreadcrumbJsonLd, buildWebPageJsonLd } from "../../lib/structured-data";
 import { publicSeoPages } from "../../lib/seo/siteSeo";
+import { getEditorNote } from "../_content/editor-notes";
+import EditorNote from "../components/EditorNote";
 
 /**
  * 캐릭터·세계관 안내. 푸터의 "캐릭터·세계관" 링크가 라이트 노벨 플레이어
@@ -30,16 +32,16 @@ const CHARACTERS = [
     name: "연이",
     portrait: "/images/fortune-chat/persona/yeoni-greet.webp",
     body:
-      "평범한 대학생이었다가 타로의 문을 지나며 꽃돼지의 모습이 된 주인공입니다. 타고난 글자는 을목(乙木), 나무 중에서도 덩굴입니다. 혼자서는 한 뼘도 서지 못하지만 붙잡을 것만 있으면 담벼락도 넘는 성질이라, 연이의 힘은 늘 누군가와 이어질 때 커집니다. 되찾은 기둥의 기운을 빌려 쓰는 그릇이기도 해서, 이야기가 진행될수록 쓸 수 있는 결이 하나씩 늘어납니다. 상담 화면의 연이는 이 인물이 그대로 건너온 것으로, 마음의 결을 먼저 살핀 뒤 오늘 해볼 수 있는 한 가지를 권하는 편지체로 말합니다.",
+      "평범한 대학생이었다가 타로의 문을 지나며 꽃돼지의 모습이 된 주인공입니다. 타고난 글자는 을목(乙木) — 나무 중에서도 덩굴이라, 혼자서는 한 뼘도 서지 못하지만 붙잡을 것만 있으면 담벼락도 넘습니다. 되찾은 기둥의 기운을 빌려 쓰는 그릇이기도 해서, 이야기가 진행될수록 쓸 수 있는 결이 하나씩 늘어납니다. 상담 화면의 연이는 마음의 결을 먼저 살핀 뒤, 오늘 해볼 수 있는 한 가지를 권하는 편지체로 말합니다.",
   },
   {
     id: "neo",
     symbol: "🦁",
-    role: "동행 · 金",
+    role: "동행 · 가디언 · 金",
     name: "네오",
     portrait: "/images/fortune-chat/persona/neo-world-greet.webp",
     body:
-      "사주의 강을 지키는 가디언이자 연이의 동행입니다. 운명 세계에서는 금빛 사자, 현실에서는 흰 고양이의 모습으로 잠깐 나타납니다. 타고난 기운은 금(金)이라 베고 끊고 가르는 쪽입니다. 금은 본디 나무를 베는 기운이어서 연이 곁에 서는 것 자체가 위험을 안는 일인데, 네오는 그 칼을 연이를 위협하는 것에만 씁니다. 상담 화면의 네오는 결론을 첫 문장에 먼저 놓고, 그렇게 본 근거를 대고, 다음에 확인할 순서를 정리해 줍니다.",
+      "사주의 강을 지키는 가디언이자 연이의 동행입니다. 운명 세계에서는 금빛 사자, 현실에서는 흰 고양이의 모습으로 잠깐 나타납니다. 타고난 기운은 금(金)이라 베고 끊고 가르는 쪽인데, 금은 본디 나무를 베는 기운이어서 연이 곁에 서는 것 자체가 위험을 안는 일입니다. 그럼에도 네오는 그 칼을 연이를 위협하는 것에만 씁니다. 상담 화면의 네오는 결론을 첫 문장에 놓고, 근거를 대고, 다음에 확인할 순서를 정리해 줍니다.",
   },
   {
     id: "seohanbi",
@@ -48,19 +50,19 @@ const CHARACTERS = [
     name: "서한비",
     portrait: "https://assets.code-destiny.com/CodeDestinyNovel/%EB%B0%95%EC%A7%80%EC%9D%80%20%EA%B8%B0%EB%B3%B8.webp",
     body:
-      "이야기의 반대편에 선 인물입니다. 이름 그대로 찬 비의 기운을 쓰며, 세상의 시간과 인연을 제 것으로 긁어모으면서 그 일을 질서와 자비라고 부릅니다. 제 손으로 만든 그림자 자아 무성을 앞세워 움직이기 때문에, 연이가 마주하는 위협은 대개 그 그림자의 얼굴을 하고 있습니다. 자세한 내막은 라이트 노벨 본편에서 밝혀지므로 여기서는 이름과 기운까지만 적어 둡니다.",
+      "이야기의 반대편에 선 인물입니다. 이름 그대로 찬 비의 기운을 쓰며, 세상의 시간과 인연을 제 것으로 긁어모으면서 그 일을 질서와 자비라고 부릅니다. 그림자 자아 무성을 앞세워 움직이기 때문에, 연이가 마주하는 위협은 대개 그 그림자의 얼굴을 하고 있습니다. 자세한 내막은 라이트 노벨 본편에서 밝혀집니다.",
   },
 ];
 
 const PLACES = [
   ["타로의 문", "현실과 운명 세계를 잇는 입구. 연이는 이 문을 지나며 모습이 바뀌었습니다."],
-  ["사주의 강", "간지의 글자들이 떠다니는 큰 강. 필요한 만큼 스스로 길을 만듭니다. 네오가 지키는 곳입니다."],
+  ["사주의 강", "간지의 글자들이 떠다니는 큰 강. 필요한 만큼 스스로 길을 만들며, 네오가 지킵니다."],
   ["비겁의 섬", "강 위에 흩어진 네 곳 중 첫 번째. 나와 같은 편, 그리고 나를 닮은 경쟁자를 마주하는 자리입니다."],
   ["식상의 섬", "표현하고 내보내는 기운의 섬. 무대와 소리가 있는 곳입니다."],
   ["재성의 섬", "가지려는 마음과 값을 매기는 일이 시험대에 오르는 섬입니다."],
-  ["인성의 도서관", "기억이 책으로 꽂혀 있는 곳. 연이는 여기서 남의 이야기를 듣는 대신 기억을 직접 열람합니다."],
+  ["인성의 도서관", "기억이 책으로 꽂혀 있는 곳. 연이는 여기서 기억을 직접 열람합니다."],
   ["별들의 궁", "열두 궁에 별을 배치해 사람의 자리를 읽는 곳. 자미두수 화면이 여기서 왔습니다."],
-  ["붉은 실", "사람과 사람 사이에 이어진 실. 궁합과 인연 해석의 바탕이 되는 상징입니다."],
+  ["붉은 실", "사람과 사람 사이에 이어진 실. 궁합과 인연 해석의 바탕입니다."],
 ];
 
 const RELATED_LINKS = [
@@ -92,9 +94,9 @@ export default function WorldPage() {
           <h1 className="cd-main-title">캐릭터와 세계관</h1>
           <p className="cd-main-intro">
             꿀꿀 운세의 사주·타로·자미두수 화면 뒤에는 하나의 이야기가 깔려 있습니다.
-            현대의 대학생 연이가 이상한 앱을 열었다가 운명 세계로 떨어지고, 그곳에서 흩어진 제 사주 여덟 글자를 되찾는 이야기입니다.
-            상담 화면에서 만나는 연이와 네오, 찻집과 달빛 음악은 전부 이 세계에서 나왔습니다.
-            여기서는 그 인물과 장소를 한자리에 모아 소개합니다.
+            대학생 연이가 이상한 앱을 열었다가 운명 세계로 떨어지고,
+            흩어진 제 사주 여덟 글자를 되찾아 가는 여정입니다.
+            상담 화면의 연이와 네오, 찻집과 달빛 음악은 전부 이 세계에서 왔습니다.
           </p>
           <p className="cd-world-hero-trail">타로의 문 <span aria-hidden="true">→</span> 사주의 강 <span aria-hidden="true">→</span> 별들의 궁</p>
         </div>
@@ -113,22 +115,23 @@ export default function WorldPage() {
         <p className="cd-world-prologue-label">THE WORLD BEHIND THE READING</p>
         <h2 id="cd-world-prologue-title">한 장의 운명 카드에서 시작된 세계</h2>
         <p>
-          연이는 이상한 앱이 열어 준 타로의 문을 지나 운명 세계에 도착했습니다. 그곳에서 자신의 사주 여덟 글자를 되찾는 여정은
-          사주의 강과 네 개의 섬, 기억이 잠든 도서관, 별들의 궁으로 이어집니다. 꽃돼지는 다른 캐릭터가 아니라 그 여정에서 드러난
-          연이의 모습입니다.
+          연이는 타로의 문을 지나 운명 세계에 도착했습니다.
+          사주 여덟 글자를 되찾는 여정은 사주의 강과 네 개의 섬, 기억이 잠든 도서관, 별들의 궁으로 이어집니다.
+          꽃돼지는 다른 캐릭터가 아니라 그 여정에서 드러난 연이의 다른 모습입니다.
         </p>
         <p>
-          이 세계관은 운세 결과를 대신 해석하지 않습니다. 계산 엔진이 만든 값을 연이와 네오가 서로 다른 목소리로 전하고,
-          사용자는 그 문장을 자신의 오늘에 비춰 봅니다.
+          이 세계관은 운세 결과를 대신 해석하지 않습니다.
+          계산 엔진이 만든 값을 연이와 네오가 서로 다른 목소리로 전하고, 사용자는 그 문장을 자기 오늘에 비춰 봅니다.
         </p>
       </section>
+
+      <EditorNote note={getEditorNote("/world")} className="my-6" />
 
       <section className="cd-world-section" aria-labelledby="cd-world-characters">
         <h2 id="cd-world-characters" className="cd-world-h2">인물</h2>
         <div className="cd-card-grid cd-world-characters">
           {CHARACTERS.map((character) => (
             <article key={character.id} id={character.id} className={`cd-card cd-world-character cd-world-character--${character.id}`}>
-              <span className="cd-world-symbol" aria-hidden="true">{character.symbol}</span>
               {character.portrait ? (
                 <figure className={`cd-world-character-portrait cd-world-character-portrait--${character.id}`}>
                   <img
@@ -140,8 +143,13 @@ export default function WorldPage() {
                   <figcaption>{character.id === "yeoni" ? "연이의 다른 모습" : character.id === "neo" ? "사주의 강을 지키는 네오" : "찬 비의 기운을 쓰는 서한비"}</figcaption>
                 </figure>
               ) : null}
-              <p className="cd-world-role">{character.role}</p>
-              <h3 className="cd-world-name">{character.name}</h3>
+              <div className="cd-world-character-header">
+                <span className="cd-world-symbol" aria-hidden="true">{character.symbol}</span>
+                <div>
+                  <h3 className="cd-world-name">{character.name}</h3>
+                  <p className="cd-world-role">{character.role}</p>
+                </div>
+              </div>
               <p>{character.body}</p>
             </article>
           ))}
@@ -163,12 +171,12 @@ export default function WorldPage() {
       </section>
 
       <section className="cd-world-section" aria-labelledby="cd-world-usage">
-        <h2 id="cd-world-usage" className="cd-world-h2">이 세계가 서비스에서 쓰이는 곳</h2>
+        <h2 id="cd-world-usage" className="cd-world-h2">세계관이 닿는 곳</h2>
         <div className="cd-card">
           <p>
             화면의 🌸 · 🦁 버튼이 상담자를 바꿉니다.
-            같은 계산 결과라도 연이는 마음부터, 네오는 결론부터 이야기하므로 읽는 순서가 달라집니다.
-            계산 자체는 두 상담자가 완전히 같은 엔진을 씁니다 — 명식과 별자리, 스물일곱 별자리 값은 사람이 아니라 계산기가 냅니다.
+            같은 계산 결과라도 연이는 마음부터, 네오는 결론부터 이야기하므로 읽는 느낌이 달라집니다.
+            계산 자체는 두 상담자가 완전히 같은 엔진을 씁니다 — 명식과 별자리 값은 사람이 아니라 계산기가 냅니다.
           </p>
           <nav className="cd-chip-wrap cd-world-chips" aria-label="이야기 관련 링크">
             {RELATED_LINKS.map((link) => (
