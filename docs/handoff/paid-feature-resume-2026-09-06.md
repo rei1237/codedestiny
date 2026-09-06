@@ -23,7 +23,7 @@ next: **루트 독립 정적 HTML 10건.** Phase C ①②(명상 2종·토템 �
 1. **영수증** — `checkoutEntry.savePaidGrantReceipt / peek / consume`. `featureKey|contentKey|profileId` 3중 일치, **1회 소비**, 24h TTL. 게이트 진입에서 서버 왕복 0으로 무료 통과시킨다(게이팅 절대 순서 1 — 여기에 서버 조회를 붙이지 말 것).
 2. **재개 서술자** — 게이트 옵션에 `resume: {kind, action, args}`. 직렬화 가능한 값만 살아남는다.
 3. **핸들러** — 기능 파일이 `checkoutEntry.registerPaidResumeHandler(kind, fn)` 로 등록. `false` 를 돌려주면 '지금 열기' 지속 카드로 떨어진다.
-4. **표면을 여는 책임은 `runPaidResume` 하나** — 기능 스크립트는 지연 로드라 복귀 시점엔 핸들러가 없다. `runPaidResume` 이 `action` 딥링크로 표면을 열어 스크립트를 부르고 등록될 때까지 8초 기다린다. 🔴 핸들러 안에서 또 열면 이중 이동으로 재개가 날아간다.
+4. **표면을 여는 책임은 `runPaidResume` 하나** — 기능 스크립트는 지연 로드라 복귀 시점엔 핸들러가 없다. `runPaidResume`(`js/core/checkout-entry.js:1465`)은 **`readPaidResumeHandler(kind)` 를 먼저 보고 이미 등록돼 있으면 그대로 부른다**(`:1472-1473`) — `openPaidResumeSurface(action)` + 8초 폴링은 **핸들러가 없을 때만** 돈다(`:1478`). 그래서 셸에 상주하는 파일은 `action` 이 빈 문자열이어야 하고(안 그러면 이중 오픈), 지연 로드 파일은 진짜 딥링크가 있어야 한다. 🔴 핸들러 안에서 또 열면 이중 이동으로 재개가 날아간다.
 
 ## 정본 예시
 
