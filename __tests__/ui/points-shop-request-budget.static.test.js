@@ -127,8 +127,20 @@ test("subscription checkout keeps the shared payment wait UI visible across each
   assert.doesNotMatch(subscribeBlock, /showPrepareOverlay/);
   assert.match(subscribeBlock, /withSubscriptionMethod\(orderMethod, "30일 이용권 결제 정보를 준비하고 있어요\.\\n중복 결제를 시도하지 말아 주세요\.", \{ wait: true \}\),\s*"checkout",/);
   assert.match(subscribeBlock, /결제 승인 내역을 안전하게 확인하고 있어요/);
-  assert.match(pointsSource, /계정에 반영하고 있어요/);
-  assert.match(pointsSource, /최신 월정석 잔량을 확인했어요/);
+  assert.match(pointsSource, /이 적용되었습니다\.\\n이제 이용할 수 있어요/);
+});
+
+test("subscription applied stage announces the pass only, without moonstone wording", () => {
+  // 🔴 이용권을 산 사용자에게 "월정석 잔량" 을 알리던 것이 실제 버그였다(2026-09-06).
+  //    문구 표현이 바뀌어도 이 블록에 그 재화 이름이 다시 들어오지 않게 고정한다.
+  const appliedBlock = between(pointsSource, "const syncSubscriptionAppliedStage = useCallback", "/* ── 초기 인증 토큰 확인");
+
+  assert.notEqual(appliedBlock, "");
+  assert.doesNotMatch(appliedBlock, /월정석/);
+  assert.match(appliedBlock, /showPassAppliedStage\(`\$\{passLabel\}이 적용되었습니다\./);
+  // 승인이 끝난 뒤의 잔량 재조회를 완료 안내가 기다리지 않는다(중간 대기 프레임 제거).
+  assert.doesNotMatch(appliedBlock, /await Promise\.allSettled/);
+  assert.match(appliedBlock, /void fetchMyPointState\(\{ force: true \}\)/);
 });
 
 test("uncertain subscription confirmation stays locked and exposes a status check action", () => {
