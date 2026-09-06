@@ -13,7 +13,7 @@ next: 스테이징에서 confirm 왕복(단건·이용권)을 사용자가 확�
 ## 지금 상태
 
 - 1단계(죽은 구 핸들러 1,154줄 삭제) PR #1658 · 2단계(기대금액 우선순위 역전 + `/api/payments/confirm` 컷오버) PR #1672 — **둘 다 머지 완료**.
-- 3단계(구 `handleConfirm` 및 연쇄 데드코드 1,058줄 삭제 + 가드 3건 재조준) — **코드 완료, PR 머지 대기**.
+- 3단계(구 `handleConfirm` 및 연쇄 데드코드 1,058줄 삭제 + 가드 3건 재조준) — PR #1679 (`payments/drop-legacy-handleconfirm`) **머지 대기**.
 - `worker/routes/payments.js` 4,754줄 → 3,696줄.
 
 ## 남은 작업
