@@ -1,0 +1,70 @@
+name: Next cache warm
+
+# PR CI 의 build 잡이 쓰는 webpack 영속 캐시를 main 쪽에 미리 채워 둔다.
+#
+# 🔴 이 잡이 없으면 PR 쪽 캐시는 거의 쓸모가 없다. GitHub Actions 캐시는 **브랜치 스코프**라
+#    PR 런이 읽을 수 있는 것은 자기 브랜치가 저장한 항목과 **기본 브랜치(main)** 의 항목뿐이다.
+#    main 에서 저장하는 곳이 없으면 모든 PR 의 첫 런이 콜드고, PR 대부분은 빌드 런이 한 번뿐이라
+#    끝까지 콜드로 남는다. 캐시 키·경로는 .github/workflows/pr-ci.yml 의 build 잡과 같은 모양이며,
+#    PR 은 restore-keys 접두사로 여기 저장분을 집는다 — 🔴 한쪽 키를 바꾸면 다른 쪽도 바꾼다.
+#
+# 🔴 이것은 머지 게이트가 아니고 아무것도 배포하지 않는다. 산출물(dist/·out/)은 버리고 캐시만
+#    남긴다. 빌드가 깨졌는지는 PR CI 의 build 잡과 릴리스 워크플로가 본다. 브랜치 룰셋
+#    main-protection 의 필수 체크는 pull_request 이벤트로만 보고되므로 여기가 빨개도 머지는 막히지 않는다.
+#
+# 🔴 릴리스 빌드에는 NEXT_WEBPACK_FS_CACHE 를 넣지 않는다 — 산출 바이트가 걸린 빌드는
+#    2026-06-29 이후의 동작(config.cache = false) 그대로 캐시 없이 돈다(next.config.mjs).
+on:
+  push:
+    branches: [main]
+    # 문서·마크다운만 바뀐 머지는 webpack 그래프에 들어가지 않는다(app/ 에 .md 임포트 0건,
+    # 2026-09-06 전수 grep). 그런 커밋에 캐시를 다시 만들 이유가 없고, 기존 항목은
+    # restore-keys 접두사로 계속 집히므로 건너뛰어도 PR 쪽이 콜드가 되지 않는다.
+    paths-ignore:
+      - "docs/**"
+      - "**/*.md"
+  workflow_dispatch:
+
+# 연속 머지 때 앞선 실행을 취소해도 안전하다 — 뒤 커밋이 앞 커밋을 포함하므로 새 실행이
+# 더 나은 캐시를 만든다. 이 잡은 아무것도 내보내지 않아 "하지 않은 배포" 가 남지 않는다.
+concurrency:
+  group: next-cache-warm
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  warm:
+    name: Warm webpack cache
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # 직전 main 캐시를 복원해 증분으로 갱신한다(정확히 일치하는 키는 sha 때문에 늘 빗나가고,
+      # restore-keys 로 직전 것을 집은 뒤 post 스텝이 새 sha 키로 저장한다).
+      - name: Restore webpack build cache
+        uses: actions/cache@v4
+        with:
+          path: build-cache/next-webpack
+          key: next-webpack-${{ runner.os }}-${{ hashFiles('package-lock.json', 'next.config.mjs') }}-${{ github.sha }}
+          restore-keys: |
+            next-webpack-${{ runner.os }}-${{ hashFiles('package-lock.json', 'next.config.mjs') }}-
+            next-webpack-${{ runner.os }}-
+
+      # 🔴 캐시 디렉터리가 .next 밖인 이유: build:cf 첫 스텝 clean:build 가 .next 를 통째로 지운다.
+      - name: Build Cloudflare Pages output
+        env:
+          NEXT_WEBPACK_FS_CACHE: "1"
+        run: npm run build:cf

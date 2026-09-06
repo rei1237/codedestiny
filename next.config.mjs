@@ -191,7 +191,7 @@ function createNextConfig(phase) {
       if (!dev) {
         // 기본값은 2026-06-29 부터의 동작 그대로 — 프로덕션 빌드는 webpack 영속 캐시를 끈다
         // (그 줄이 들어온 커밋 94acc1538 에 사유가 없어, 산출 바이트가 걸린 릴리스 빌드는 건드리지 않는다).
-        // NEXT_WEBPACK_FS_CACHE=1 인 곳(현재 PR CI build 잡 하나)에서만 켜서 next 컴파일 시간을 잰다.
+        // NEXT_WEBPACK_FS_CACHE=1 인 곳(PR CI build 잡 · main 캐시 워머 둘)에서만 켠다.
         // 🔴 캐시 디렉터리를 .next 밖에 두는 이유: build:cf 의 첫 스텝 clean:build 가
         //    .next/cache 와 .next 를 통째로 지운다(scripts/clean-cloudflare-build.mjs).
         //    .next/cache 로 복원하면 빌드가 시작하자마자 삭제돼 캐시가 영영 비워진다.
