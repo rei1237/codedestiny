@@ -875,7 +875,7 @@ function _myeongriTarotRestoreFullscreen() {
   if (req) req.call(overlay).catch(function() {});
 }
 
-function requireMyeongriTarotThreeCardPayment(onGranted) {
+function requireMyeongriTarotThreeCardPayment(onGranted, resume) {
   if (myeongriTarotThreeCardPaymentPending) return true;
   if (typeof window._cdOpenPaidServiceGate !== 'function') {
     window.alert('결제 문이 아직 열리지 않았습니다. 잠시 뒤 다시 눌러 주세요.');
@@ -904,7 +904,8 @@ function requireMyeongriTarotThreeCardPayment(onGranted) {
       cost: MYEONGRI_TAROT_THREE_CARD_COST,
       amountKrw: MYEONGRI_TAROT_THREE_CARD_AMOUNT_KRW,
       paymentAmount: MYEONGRI_TAROT_THREE_CARD_AMOUNT_KRW,
-      requestId: MYEONGRI_TAROT_THREE_CARD_FEATURE_KEY + ':' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9)
+      requestId: MYEONGRI_TAROT_THREE_CARD_FEATURE_KEY + ':' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9),
+      resume: resume || undefined
     });
   }).then(function(result) {
     _myeongriTarotRestoreFullscreen();
@@ -2736,9 +2737,11 @@ function showTarotFinalInterpretation() {
     return;
   }
   if (tarotThreeCardState.revealedIndex !== 2) return;
+  // 🔴 서술자는 결제 '전에' 만든다 — 모바일 PortOne 은 상위 프레임을 리다이렉트해 이 상태를 통째로 지운다.
+  var resume = buildMyeongriTarotResumeDescriptor();
   requireMyeongriTarotThreeCardPayment(function() {
     _runShowTarotFinalInterpretation();
-  });
+  }, resume);
 }
 
 function _runShowTarotFinalInterpretation() {
@@ -2798,6 +2801,131 @@ function _runShowTarotFinalInterpretation() {
     }, 350);
   }, 80);
 }
+
+/* ── 명리 타로 3장: 결제 후 자동 재개 ──────────────────────────────────────────
+   모바일 PortOne 은 상위 프레임을 리다이렉트하므로 게이트의 await 가 페이지와 함께 죽고
+   onGranted 가 영영 실행되지 않는다. 결제 직전에 뽑아 둔 세 장을 서술자에 담아 두었다가,
+   복귀 후 그 상태를 되살려 게이트 없는 코어(_runShowTarotFinalInterpretation)를 부른다.
+   정본 배선: js/tarot-love-experience.js 의 'tarot-love-final'. */
+var MYEONGRI_TAROT_RESUME_KIND = 'myeongri-tarot-three-card';
+var MYEONGRI_TAROT_RESUME_WAIT_MS = 8000;
+var MYEONGRI_TAROT_RESUME_POLL_MS = 200;
+
+function myeongriTarotCheckoutEntry() {
+  try { return window.__cdCheckoutEntry || null; } catch (e) { return null; }
+}
+
+function buildMyeongriTarotResumeDescriptor() {
+  if (typeof document === 'undefined') return null;
+  if (!curTarotCat) return null;
+  var cards = tarotThreeCardState && tarotThreeCardState.cards;
+  if (!cards || cards.length !== 3) return null;
+  var packed = '';
+  try {
+    /* 🔴 sanitizePaidResumeDescriptor 는 args 에서 원시값만 남긴다 — 카드 배열은 문자열 하나로 접는다.
+       카드 객체 전체가 아니라 TAROT_DATA 의 id 만 담고, 복귀 때 그 id 로 다시 찾는다. */
+    packed = JSON.stringify(cards.map(function(data) {
+      return {
+        id: (data && data.card && data.card.id) || '',
+        rev: !!(data && data.isReversed),
+        pos: (data && data.position) || ''
+      };
+    }));
+  } catch (e) { return null; }
+  if (!packed) return null;
+  return {
+    kind: MYEONGRI_TAROT_RESUME_KIND,
+    action: 'openTarotModal',
+    args: { cat: String(curTarotCat), cards: packed }
+  };
+}
+
+function unpackMyeongriTarotResumeCards(packed) {
+  var rows = null;
+  try { rows = JSON.parse(String(packed || '')); } catch (e) { rows = null; }
+  if (!Array.isArray(rows) || rows.length !== 3) return null;
+  var deck = Array.isArray(TAROT_DATA) ? TAROT_DATA : [];
+  var restored = [];
+  for (var i = 0; i < rows.length; i++) {
+    var row = rows[i] && typeof rows[i] === 'object' ? rows[i] : {};
+    var card = null;
+    for (var j = 0; j < deck.length; j++) {
+      if (deck[j] && deck[j].id === row.id) { card = deck[j]; break; }
+    }
+    if (!card) return null;
+    restored.push({ card: card, isReversed: !!row.rev, imgUrl: '', position: String(row.pos || '') });
+  }
+  return restored;
+}
+
+function waitForMyeongriTarotModal(limitMs) {
+  return new Promise(function(resolve) {
+    var deadline = Date.now() + limitMs;
+    (function poll() {
+      if (isTarotModalActive()) { resolve(true); return; }
+      if (Date.now() >= deadline) { resolve(false); return; }
+      setTimeout(poll, MYEONGRI_TAROT_RESUME_POLL_MS);
+    })();
+  });
+}
+
+/* 결제 직전에 보고 있던 스프레드를 그대로 되살린다 — startThreeCardFlow 의 슬롯 채우기를
+   '뽑기 없이' 복원된 카드로 수행한다(다시 뽑으면 결제한 카드와 결과가 달라진다). */
+function paintMyeongriTarotResumedSpread(cardsData) {
+  var labels = getTarotSpreadLabels(curTarotCat);
+  for (var i = 0; i < 3; i++) {
+    var lbl = document.getElementById('tarotSlotLabel' + i);
+    if (lbl) lbl.textContent = labels[i] || TAROT_SPREAD_LABELS.default[i];
+  }
+  document.querySelectorAll('#tarotCats .oracle-cat-btn-m').forEach(function(btn) {
+    btn.classList.toggle('active', btn.getAttribute('data-action-args') === curTarotCat);
+  });
+  var slots = document.querySelectorAll('#tarotSpreadCards .tarot-slot');
+  cardsData.forEach(function(data, idx) {
+    var slot = slots[idx];
+    if (!slot) return;
+    var cardEl = slot.querySelector('.tarot-spread-card');
+    var front = slot.querySelector('.oracle-front-m');
+    var frontImg = slot.querySelector('.tarot-face-img');
+    if (cardEl) {
+      syncTarotSpreadCardFace(cardEl);
+      cardEl.classList.remove('is-revealing');
+      cardEl.classList.add('flipped');
+    }
+    if (front) {
+      front.style.transform = 'rotateY(180deg)' + (data.isReversed ? ' rotate(180deg)' : '');
+      front.setAttribute('aria-label', data.card.name_kr + ' (' + data.card.name + ')');
+      applyTarotImageToFace(front, frontImg, data.card.short, data.card.name_kr + ' (' + data.card.name + ')');
+    }
+  });
+  var finalBtn = document.getElementById('tarotFinalBtn');
+  if (finalBtn) finalBtn.disabled = false;
+}
+
+function runMyeongriTarotResume(descriptor) {
+  var args = (descriptor && descriptor.args && typeof descriptor.args === 'object') ? descriptor.args : {};
+  var cat = String(args.cat || '');
+  var restored = unpackMyeongriTarotResumeCards(args.cards);
+  if (!cat || !restored) return false;
+  // 🔴 표면을 여는 책임은 runPaidResume 하나다 — 여기서 또 열면 이중 이동으로 재개가 날아간다.
+  return waitForMyeongriTarotModal(MYEONGRI_TAROT_RESUME_WAIT_MS).then(function(ready) {
+    if (!ready) return false;
+    // setTarotMode 가 tarotThreeCardState 를 비우고 curTarotCat 이 있으면 새로 뽑으므로, 씬 전환을
+    // 먼저 끝낸 뒤에 카테고리와 카드를 얹는다.
+    setTarotMode('three');
+    curTarotCat = cat;
+    tarotThreeCardState = { cards: restored, revealedIndex: 2 };
+    paintMyeongriTarotResumedSpread(restored);
+    _runShowTarotFinalInterpretation();
+    return true;
+  });
+}
+
+(function registerMyeongriTarotResumeHandler() {
+  var entry = myeongriTarotCheckoutEntry();
+  if (!entry || typeof entry.registerPaidResumeHandler !== 'function') return;
+  try { entry.registerPaidResumeHandler(MYEONGRI_TAROT_RESUME_KIND, runMyeongriTarotResume); } catch (e) {}
+})();
 
 function startTarotReading() {
   if(!curTarotCat) {
@@ -12430,8 +12558,11 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     }
     form.addEventListener('input', function() { setPill(false); });
     form.addEventListener('change', function() { setPill(false); });
-    form.addEventListener('submit', function(event) {
-      event.preventDefault();
+    /* 제출 흐름 본체. 결제 후 재개(모바일 리다이렉트 복귀)도 이 흐름을 그대로 타고,
+       opts.skipGate 로 결제창만 건너뛴다 — 계산·렌더 경로가 갈라지지 않게 한다. */
+    var runBondReport = function(event, options) {
+      if (event && typeof event.preventDefault === 'function') event.preventDefault();
+      var opts = options && typeof options === 'object' ? options : {};
       var run = async function() {
         if (submitBtn) submitBtn.disabled = true;
         if (status) status.textContent = '두 사람의 달빛 궤도를 맞추고 있습니다...';
@@ -12528,7 +12659,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
             return;
           }
           reveal(false);
-          syRequirePaidSukuyoFeature(SY_PAID_FEATURES.pastLifeReading, async function(gateResult) {
+          var unlockBondReport = async function(gateResult) {
             try {
               if (status) status.textContent = '인연 레이더 리포트를 저장하고 있습니다...';
               await syRequestSukuyoPastLifeReading(inputPayload, gateResult);
@@ -12536,15 +12667,29 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
               if (status) status.textContent = (serverError && serverError.message) ? String(serverError.message) : '서버 저장은 잠시 지연되고 있습니다. 리포트는 이 자리에서 열립니다.';
             }
             reveal(true);
-          });
+          };
+          if (opts.skipGate === true) {
+            // 🔴 결제가 이미 끝난 복귀 경로다 — 여기서 게이트를 다시 타면 같은 리딩에 두 번 과금된다.
+            await unlockBondReport(null);
+            return;
+          }
+          // 결제 전에 폼 상태를 서술자로 굳힌다 — 복귀 페이지에는 이 입력이 남아 있지 않다.
+          syRequirePaidSukuyoFeature(
+            SY_PAID_FEATURES.pastLifeReading,
+            unlockBondReport,
+            syBuildBondResumeDescriptor(form)
+          );
         } catch (error) {
           if (status) status.textContent = error && error.message ? String(error.message) : '인연 레이더를 열지 못했습니다. 입력값을 다시 확인해 주세요.';
         } finally {
           if (submitBtn) submitBtn.disabled = false;
         }
       };
-      run();
-    });
+      return run();
+    };
+    form.addEventListener('submit', runBondReport);
+    /* 재개 핸들러가 폼을 다시 채운 뒤 부르는 '게이트 없는 열기 코어'. 바인딩할 때마다 새로 건다. */
+    window._syRunSukuyoBondReportCore = function() { return runBondReport(null, { skipGate: true }); };
   }
 
   var SukuyoEncyclopediaEngine = (function() {
@@ -15954,6 +16099,124 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     try { entry.registerPaidResumeHandler(SY_COMPAT_RESUME_KIND, syRunCompatResume); } catch (_syResumeRegisterError) {}
   })();
 
+  /* ── 정밀 궁합 확장(premium-sukuyo-compat-extra)의 재개 ─────────────────────────
+     이 확장은 기본 궁합 보고서 '안'의 잠금 카드다. 복귀 페이지에는 보고서 자체가 없으므로
+     같은 폼 값으로 보고서를 먼저 다시 그린 뒤(게이트 없는 _triggerSynergyCheckCore) 확장을 연다. */
+  var SY_COMPAT_PRECISION_RESUME_KIND = 'sukuyo-compat-precision';
+
+  function syBuildCompatPrecisionResumeDescriptor(myIdx, myMansionName) {
+    var base = syBuildCompatResumeDescriptor(myIdx, myMansionName);
+    if (!base) return null;
+    base.kind = SY_COMPAT_PRECISION_RESUME_KIND;
+    return base;
+  }
+
+  // 보고서가 다시 그려지면 그 렌더의 클로저가 _syRevealCompatPrecisionCore 를 새로 걸어 준다.
+  function syWaitForCompatPrecisionCore(limitMs) {
+    return new Promise(function(resolve) {
+      var deadline = Date.now() + limitMs;
+      (function poll() {
+        if (typeof window._syRevealCompatPrecisionCore === 'function') { resolve(true); return; }
+        if (Date.now() >= deadline) { resolve(false); return; }
+        setTimeout(poll, SY_COMPAT_FORM_POLL_MS);
+      })();
+    });
+  }
+
+  function syRunCompatPrecisionResume(descriptor) {
+    var args = (descriptor && descriptor.args && typeof descriptor.args === 'object') ? descriptor.args : {};
+    if (!args.y || !args.m || !args.d) return false;
+    /* 🔴 지난 렌더의 열기 코어가 남아 있으면 새 보고서를 기다리지 않고 옛 클로저를 열어 버린다 —
+       보고서를 다시 그리기 '전에' 지운다. */
+    try { window._syRevealCompatPrecisionCore = null; } catch (_syPrecisionResetError) {}
+    return Promise.resolve(
+      syRunCompatResume({ kind: SY_COMPAT_RESUME_KIND, action: descriptor && descriptor.action, args: args })
+    ).then(function(rendered) {
+      if (rendered !== true) return false;
+      return syWaitForCompatPrecisionCore(SY_COMPAT_FORM_WAIT_MS).then(function(ready) {
+        if (!ready) return false;
+        try { window._syRevealCompatPrecisionCore(); } catch (_syPrecisionRevealError) { return false; }
+        return true;
+      });
+    });
+  }
+
+  (function syRegisterCompatPrecisionResumeHandler() {
+    var entry = syCheckoutEntry();
+    if (!entry || typeof entry.registerPaidResumeHandler !== 'function') return;
+    try { entry.registerPaidResumeHandler(SY_COMPAT_PRECISION_RESUME_KIND, syRunCompatPrecisionResume); } catch (_syPrecisionRegisterError) {}
+  })();
+
+  /* ── 인연 레이더(sukuyo-past-life-reading)의 재개 ────────────────────────────
+     리포트는 클라이언트가 그리지만 입력은 전부 폼에 있다 — 복귀 후 폼을 그대로 되채운 뒤
+     게이트 없는 코어(window._syRunSukuyoBondReportCore)를 부른다. */
+  var SY_BOND_RESUME_KIND = 'sukuyo-bond-report';
+  var SY_BOND_RESUME_FIELDS = [
+    ['userDate', '[data-sy-bond-user-date]'],
+    ['userCalendar', '[data-sy-bond-user-calendar]'],
+    ['userName', '[data-sy-bond-user-name]'],
+    ['userGender', '[data-sy-bond-user-gender]'],
+    ['partnerName', '[data-sy-bond-partner-name]'],
+    ['partnerDate', '[data-sy-bond-partner-date]'],
+    ['partnerCalendar', '[data-sy-bond-partner-calendar]'],
+    ['partnerTime', '[data-sy-bond-partner-time]'],
+    ['partnerGender', '[data-sy-bond-partner-gender]'],
+    ['purpose', '[data-sy-bond-purpose]']
+  ];
+
+  function syBuildBondResumeDescriptor(form) {
+    if (typeof document === 'undefined' || !form) return null;
+    var args = {};
+    for (var i = 0; i < SY_BOND_RESUME_FIELDS.length; i += 1) {
+      args[SY_BOND_RESUME_FIELDS[i][0]] = syRadarReadField(form, SY_BOND_RESUME_FIELDS[i][1]);
+    }
+    // 상대 생년월일이 없으면 복귀 후 재현할 것이 없다 — 서술자 없이 보내 '지금 열기' 카드에 맡긴다.
+    if (!args.partnerDate) return null;
+    return { kind: SY_BOND_RESUME_KIND, action: 'openSukuyoModal', args: args };
+  }
+
+  function sySetBondFieldValue(form, selector, value) {
+    var el = form ? form.querySelector(selector) : null;
+    if (!el) return;
+    var next = String(value == null ? '' : value);
+    if (!next) return;
+    el.value = next;
+    try { el.dispatchEvent(new Event('change', { bubbles: true })); } catch (_syBondFieldEventError) {}
+  }
+
+  // 폼과 코어는 숙요 모달이 렌더된 뒤 syBindSukuyoBondReport 가 함께 걸어 준다.
+  function syWaitForBondReportCore(limitMs) {
+    return new Promise(function(resolve) {
+      var deadline = Date.now() + limitMs;
+      (function poll() {
+        if (document.querySelector('[data-sy-bond-form]') && typeof window._syRunSukuyoBondReportCore === 'function') { resolve(true); return; }
+        if (Date.now() >= deadline) { resolve(false); return; }
+        setTimeout(poll, SY_COMPAT_FORM_POLL_MS);
+      })();
+    });
+  }
+
+  function syRunBondResume(descriptor) {
+    var args = (descriptor && descriptor.args && typeof descriptor.args === 'object') ? descriptor.args : {};
+    if (!args.partnerDate) return false;
+    return syWaitForBondReportCore(SY_COMPAT_FORM_WAIT_MS).then(function(ready) {
+      if (!ready) return false;
+      var form = document.querySelector('[data-sy-bond-form]');
+      for (var i = 0; i < SY_BOND_RESUME_FIELDS.length; i += 1) {
+        sySetBondFieldValue(form, SY_BOND_RESUME_FIELDS[i][1], args[SY_BOND_RESUME_FIELDS[i][0]]);
+      }
+      // 🔴 게이트를 다시 타는 submit 이 아니라 게이트 없는 코어를 부른다(재결제 방지).
+      window._syRunSukuyoBondReportCore();
+      return true;
+    });
+  }
+
+  (function syRegisterBondResumeHandler() {
+    var entry = syCheckoutEntry();
+    if (!entry || typeof entry.registerPaidResumeHandler !== 'function') return;
+    try { entry.registerPaidResumeHandler(SY_BOND_RESUME_KIND, syRunBondResume); } catch (_syBondRegisterError) {}
+  })();
+
   window.triggerSynergyCheck = function(myIdx, myMansionName) {
       // 결제 전에 폼 상태를 서술자로 굳혀 둔다 — 복귀 페이지는 이 값 없이는 재현할 수 없다.
       var resume = syBuildCompatResumeDescriptor(myIdx, myMansionName);
@@ -16985,10 +17248,18 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
               if (precisionBtn) precisionBtn.style.display = 'none';
               if (precisionStatus) precisionStatus.textContent = '정밀 궁합 확장이 열렸습니다.';
             };
+            /* 결제 후 재개가 부를 '게이트 없는 열기 코어'. 확장 내용은 이 렌더의 클로저(precisionExtensionSections)
+               안에만 있어서 보고서를 다시 그릴 때마다 새 함수로 갱신된다. */
+            window._syRevealCompatPrecisionCore = revealPrecision;
             if (precisionBtn) {
               precisionBtn.addEventListener('click', function() {
                 if (precisionContent && precisionContent.style.display === 'block') return;
-                syRequirePaidSukuyoFeature(SY_PAID_FEATURES.compatibilityPrecision, revealPrecision);
+                // 결제 전에 궁합 폼 상태를 서술자로 굳힌다 — 복귀 페이지는 기본 보고서부터 다시 그려야 한다.
+                syRequirePaidSukuyoFeature(
+                  SY_PAID_FEATURES.compatibilityPrecision,
+                  revealPrecision,
+                  syBuildCompatPrecisionResumeDescriptor(myIdx, myMansionName)
+                );
               });
             }
           }
