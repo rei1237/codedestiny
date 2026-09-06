@@ -25,6 +25,7 @@ import {
   releasePaidFeatureGate,
   runBillingCoinGate,
 } from "@/app/_lib/billing-client";
+import { packPaidResumeArg, unpackPaidResumeArg, usePaidResume } from "@/app/hooks/usePaidResume";
 import { readAiProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { useRouter } from "next/navigation";
@@ -1206,6 +1207,10 @@ type PrepareResult =
 
 const FEATURE_KEY = "life-book-ai-consultation";
 const ROUTE = "/life-book-ai";
+/* 🔴 재개 kind 는 결제 featureKey 와 같을 필요가 없다(레지스트리 키일 뿐이다). 이 화면의 featureKey 는
+   모드(인생책/총운)에서 갈리는데 결제 복귀 직후에는 기본 모드로 마운트되므로, 모드별 키로 등록하면
+   결제 때와 다른 kind 가 되어 재개가 실패한다. 고정값을 쓴다. */
+const RESUME_KIND = "life-book-ai";
 // 클라가 /generate 를 반복 호출해 웨이브를 진행시킨다(master-love-codex runBatches 패턴).
 // 총운 15섹션 ÷ 웨이브당 4 = 4웨이브 + 재시도 여유. 서버 MAX_GENERATION_WAVES(8)보다 넉넉히.
 const MAX_GENERATE_WAVES = 12;
@@ -1518,6 +1523,38 @@ export default function LifeBookAiClient() {
     goToResult(idempotencyKey);
   }, [goToResult]);
 
+  // 모바일 PortOne 리다이렉트로 submit 의 await 가 죽은 뒤, 복귀한 새 문서에서 생성을 이어받는다.
+  // 🔴 게이트를 다시 타지 않고 게이트 없는 코어(runGeneration)를 원래 requestId 로 부른다.
+  const buildResume = usePaidResume(RESUME_KIND, async (args, grant) => {
+    const requestId = typeof args.requestId === "string" ? args.requestId : "";
+    const payload = unpackPaidResumeArg<ReturnType<typeof buildConsultationPayload>>(args.payload);
+    if (!requestId || !payload) return false;
+    const mode: LifeBookMode = payload.consultationType === "lifeFortune" ? "lifeFortune" : "lifeBook";
+    const access = { billingGate: asRecord(grant?.payload) };
+    startLockRef.current = true;
+    idempotencyKeyRef.current = requestId;
+    formTouchedRef.current = true;
+    setForm((prev) => ({ ...prev, mode }));
+    retryRef.current = { payload, requestId, access, mode };
+    setError("");
+    setNotice("");
+    setRefunded(false);
+    setStartedAt(Date.now());
+    setWaveProgress(null);
+    try {
+      await runGeneration(payload, requestId, access);
+      return true;
+    } catch (err) {
+      const message = friendlyErrorMessage(err instanceof Error ? err.message : SERVER_ERROR_MESSAGE, SERVER_ERROR_MESSAGE);
+      setRefunded((err as { refunded?: boolean })?.refunded === true);
+      setError(message);
+      setStatus("error");
+      return false;
+    } finally {
+      startLockRef.current = false;
+    }
+  });
+
   const submit = useCallback(async (event?: FormEvent<HTMLFormElement>) => {
     event?.preventDefault();
     if (startLockRef.current || isBusy) return;
@@ -1608,7 +1645,10 @@ export default function LifeBookAiClient() {
           },
         };
         const gatePayloadSource = "paymentPayload" in denied ? denied.paymentPayload : (passGateDegraded ? degradedFallbackPayload : undefined);
-        const billingInput = buildBillingGateInput(asRecord(gatePayloadSource), requestId, mode, copy);
+        const billingInput = {
+          ...buildBillingGateInput(asRecord(gatePayloadSource), requestId, mode, copy),
+          resume: buildResume({ requestId, payload: packPaidResumeArg(payload) }),
+        };
         const gate = await runBillingCoinGate(billingInput);
         if (!gate.ok || !gate.data) {
           const code = String(gate.error?.code || "").toUpperCase();
@@ -1650,7 +1690,7 @@ export default function LifeBookAiClient() {
     } finally {
       startLockRef.current = false;
     }
-  }, [form, runGeneration, isBusy, copy]);
+  }, [form, runGeneration, isBusy, copy, buildResume]);
 
   // 확정 실패 후 사용자가 직접 누르는 재시도. 이미 환불이 끝난 세션은 새 키(=새 결제)로 다시 연다.
   const handleRetry = useCallback(async () => {

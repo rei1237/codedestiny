@@ -12,6 +12,7 @@ import {
   runBillingCoinGate,
   primePaymentEligibility,
 } from "@/app/_lib/billing-client";
+import { packPaidResumeArg, unpackPaidResumeArg, usePaidResume } from "@/app/hooks/usePaidResume";
 import { readAiProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { PriceBadge } from "@/app/components/PriceBadge";
@@ -2399,8 +2400,30 @@ export default function KarmaDestinyAiPage() {
     throw new Error(result.message || copy.serverErrorMessage);
   }, [copy]);
 
-  const runCommonBillingGate = async (paymentPayload: BillingGatePayload, idempotencyKey: string) => {
-    const billingInput = buildBillingGateInput(paymentPayload, idempotencyKey, copy);
+  /* 모바일 PortOne 은 상단 프레임을 리다이렉트해 runBillingCoinGate 의 await 가 페이지와 함께
+     죽는다. 그러면 /start 가 영영 안 불려 결제한 사용자가 빈 폼으로 돌아온다. grant.payload 는
+     서버 확정 응답 그대로라 인페이지 gate.data(=billingGate) 자리에 그대로 들어간다. */
+  const buildResume = usePaidResume(FEATURE_KEY, async (args, grant) => {
+    const idempotencyKey = typeof args.idempotencyKey === "string" ? args.idempotencyKey : "";
+    const payload = unpackPaidResumeArg<ReturnType<typeof buildConsultationPayload>>(args.payload);
+    if (!idempotencyKey || !payload) return false;
+    startLockRef.current = true;
+    setError("");
+    setNotice("");
+    try {
+      await startConsultation(payload, idempotencyKey, { billingGate: asRecord(grant?.payload) });
+      return true;
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : copy.serverErrorMessage);
+      setStatus("error");
+      return false;
+    } finally {
+      startLockRef.current = false;
+    }
+  });
+
+  const runCommonBillingGate = async (paymentPayload: BillingGatePayload, idempotencyKey: string, resume: ReturnType<typeof buildResume>) => {
+    const billingInput = { ...buildBillingGateInput(paymentPayload, idempotencyKey, copy), resume };
     const gate = await runBillingCoinGate(billingInput);
 
     if (!gate.ok || !gate.data) {
@@ -2474,7 +2497,7 @@ export default function KarmaDestinyAiPage() {
         setNotice(("message" in denied && denied.message) || copy.paymentRequiredMessage);
         setStatus("payment");
         const gatePayload = ("paymentPayload" in denied ? denied.paymentPayload : {}) as BillingGatePayload;
-        const billingEvidence = await runCommonBillingGate(gatePayload, idempotencyKey);
+        const billingEvidence = await runCommonBillingGate(gatePayload, idempotencyKey, buildResume({ idempotencyKey, payload: packPaidResumeArg(payload) }));
         await startConsultation(payload, idempotencyKey, billingEvidence);
         return;
       }

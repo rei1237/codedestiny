@@ -11,6 +11,7 @@ import {
   runBillingCoinGate,
   primePaymentEligibility,
 } from "@/app/_lib/billing-client";
+import { packPaidResumeArg, unpackPaidResumeArg, usePaidResume } from "@/app/hooks/usePaidResume";
 import { readAiProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
 import { authFetch } from "@/app/_lib/auth-client";
 import { isRetriableResultPollFailure } from "@/app/_lib/consultationResultPolling";
@@ -1755,6 +1756,28 @@ export default function NewYearAiConsultationPage() {
     throw new Error(result.message || SERVER_ERROR_MESSAGE);
   }, [applyResult]);
 
+  // 모바일 PortOne 리다이렉트로 handleSubmit 의 await 가 죽은 뒤, 복귀한 새 문서에서 상담을 이어받는다.
+  // 🔴 게이트를 다시 타지 않고 게이트 없는 코어(startConsultation)를 원래 idempotencyKey 로 부른다.
+  const buildResume = usePaidResume(FEATURE_KEY, async (args, grant) => {
+    const idempotencyKey = typeof args.idempotencyKey === "string" ? args.idempotencyKey : "";
+    const payload = unpackPaidResumeArg<ReturnType<typeof buildConsultationPayload>>(args.payload);
+    if (!idempotencyKey || !payload) return false;
+    startLockRef.current = true;
+    idempotencyKeyRef.current = idempotencyKey;
+    setError("");
+    setNotice("");
+    try {
+      await startConsultation(payload, idempotencyKey, { billingGate: asRecord(grant?.payload) });
+      return true;
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : SERVER_ERROR_MESSAGE);
+      setStatus("error");
+      return false;
+    } finally {
+      startLockRef.current = false;
+    }
+  });
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (startLockRef.current || isBusy) return;
@@ -1822,7 +1845,10 @@ export default function NewYearAiConsultationPage() {
         setNotice(PAYMENT_REQUIRED_MESSAGE);
         setStatus("payment");
         const paymentPayload = "paymentPayload" in denied ? denied.paymentPayload : {};
-        const billingInput = buildBillingGateInput(asRecord(paymentPayload), idempotencyKey);
+        const billingInput = {
+          ...buildBillingGateInput(asRecord(paymentPayload), idempotencyKey),
+          resume: buildResume({ idempotencyKey, payload: packPaidResumeArg(payload) }),
+        };
         const gate = await runBillingCoinGate(billingInput);
         if (!gate.ok || !gate.data) {
           const code = String(gate.error?.code || "").toUpperCase();

@@ -19,6 +19,7 @@ import {
   runBillingCoinGate,
   primePaymentEligibility,
 } from "@/app/_lib/billing-client";
+import { packPaidResumeArg, unpackPaidResumeArg, usePaidResume } from "@/app/hooks/usePaidResume";
 import { readAiProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { PriceBadge } from "@/app/components/PriceBadge";
@@ -3045,17 +3046,25 @@ export default function VedicAiClient() {
     }
   }
 
-  async function startConsultation(requestId: string, access: Record<string, unknown>, paymentWasRequired = false) {
+  // 🔴 formOverride: 결제 복귀 재개는 새 문서라 위 form 상태가 기본값으로 되살아나 있다. 재개 경로는
+  //    결제 직전에 굳혀 둔 입력을 그대로 넘겨야 다른 사주로 생성되지 않는다(setForm 직후의 클로저도 옛 값이다).
+  async function startConsultation(
+    requestId: string,
+    access: Record<string, unknown>,
+    paymentWasRequired = false,
+    formOverride?: FormState,
+  ) {
+    const source = formOverride || form;
     setPhase("start");
     // 다음 화면(생성 로딩)이 마운트되는 시점 — 게이트 오버레이 hold를 해제한다.
     releasePaidFeatureGate(requestId);
     // 근거 계산은 이용권 확인·결제를 통과한 뒤에만 시작한다 — 확인 단계에서 라그나·나크샤트라가
     // 먼저 노출되면 "확인도 전에 결과를 만든다"로 읽히고, 결제 전 계산값이 새어 나간다.
     // 순수 계산이라 기다리지 않고 병렬로 받는다(실패하면 null이라 생성 흐름을 막지 않는다).
-    void fetchAnalysisBasis("/api/vedic-ai/basis", buildPayload(form, requestId)).then(setBasis);
+    void fetchAnalysisBasis("/api/vedic-ai/basis", buildPayload(source, requestId)).then(setBasis);
     const { status, data } = await postJson<StartResult>(
       "/api/vedic-ai/start",
-      { ...buildPayload(form, requestId), ...access, idempotencyKey: requestId },
+      { ...buildPayload(source, requestId), ...access, idempotencyKey: requestId },
       requestId,
     );
     if (data.ok && data.consultation) {
@@ -3085,6 +3094,32 @@ export default function VedicAiClient() {
     if (status === 402 && paymentWasRequired) throw new Error("PAYMENT_VERIFY_FAILED");
     throw new Error(toText(data.reason) || (status === 401 ? "LOGIN_REQUIRED" : status >= 500 ? "SERVER_ERROR" : "PREPARE_FAILED"));
   }
+
+  // 모바일 PortOne 리다이렉트로 handleSubmit 의 await 가 죽은 뒤, 복귀한 새 문서에서 생성을 이어받는다.
+  // 🔴 게이트를 다시 타지 않고 게이트 없는 코어(startConsultation)를 원래 requestId 로 부른다.
+  const buildResume = usePaidResume(FEATURE_KEY, async (args, grant) => {
+    const requestId = typeof args.requestId === "string" ? args.requestId : "";
+    const restoredForm = unpackPaidResumeArg<FormState>(args.form);
+    if (!requestId || !restoredForm || !restoredForm.birthDate) return false;
+    submitBusyRef.current = true;
+    requestIdRef.current = requestId;
+    setForm(restoredForm);
+    setError("");
+    setNotice("");
+    try {
+      const access = extractPayment(grant?.payload, requestId);
+      pendingAccessRef.current = { requestId, access, paymentWasRequired: true };
+      await startConsultation(requestId, access, true, restoredForm);
+      return true;
+    } catch (caught) {
+      const code = caught instanceof Error ? caught.message : "SERVER_ERROR";
+      setError(copy.errorText[code] || copy.errorText.SERVER_ERROR);
+      setPhase("idle");
+      return false;
+    } finally {
+      submitBusyRef.current = false;
+    }
+  });
 
   async function handleSubmit() {
     if (busy || submitBusyRef.current) return;
@@ -3166,7 +3201,10 @@ export default function VedicAiClient() {
       setNotice(copy.errorText.PAYMENT_REQUIRED);
       setPhase("payment");
       const paymentPayload = asRecord(data.paymentPayload);
-      const gate = await runBillingCoinGate(buildBillingGateInput(paymentPayload, requestId, copy));
+      const gate = await runBillingCoinGate({
+        ...buildBillingGateInput(paymentPayload, requestId, copy),
+        resume: buildResume({ requestId, form: packPaidResumeArg(form) }),
+      });
       if (!isPaymentGranted(gate)) {
         const code = String(gate.error?.code || "").toUpperCase();
         if (code === "PAYMENT_CANCELLED") throw new Error("PAYMENT_CANCELLED");

@@ -12,6 +12,12 @@ import {
   failPaidFeatureGateCheck,
   runBillingCoinGate,
 } from "@/app/_lib/billing-client";
+import {
+  packPaidResumeArg,
+  unpackPaidResumeArg,
+  usePaidResume,
+  type PaidResumeDescriptor,
+} from "@/app/hooks/usePaidResume";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { readAiProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
 import { DeliverableSpec } from "@/app/components/DeliverableSpec";
@@ -1405,16 +1411,9 @@ function buildBillingGateInput(paymentPayload: PaymentPayload, requestId: string
   };
 }
 
-async function openPaidGate(paymentPayload: PaymentPayload, requestId: string, copy: PremiumSalesCopy) {
-  const runtimeGate = asRecord(paymentPayload.runtimeGate);
-  const gate = await runBillingCoinGate(buildBillingGateInput(paymentPayload, requestId, copy));
-  if (!gate.ok || !gate.data) {
-    const code = toText(gate.error?.code).toUpperCase();
-    if (code === "AUTH_REQUIRED" || code === "LOGIN_REQUIRED") throw new Error(copy.loginRequiredMessage);
-    if (code === "PAYMENT_CANCELLED" || code === "CANCELLED") throw new Error(copy.paymentCancelledMessage);
-    throw new Error(copy.paymentVerifyFailedMessage);
-  }
-  const record = asRecord(gate.data);
+// 결제 증빙 → 생성 웨이브에 실을 접근 근거. 인페이지 결제(openPaidGate)와 결제 후 자동 재개가
+// 같은 모양을 보내야 서버 판정이 갈리지 않으므로 한 곳에서 만든다.
+function buildAccessEvidence(record: Record<string, unknown>, requestId: string, inputHash: string, copy: PremiumSalesCopy) {
   return {
     billingGate: record,
     consume: asRecord(record.consume),
@@ -1423,10 +1422,22 @@ async function openPaidGate(paymentPayload: PaymentPayload, requestId: string, c
     pricing: asRecord(record.pricing),
     requestId,
     idempotencyKey: requestId,
-    inputHash: toText(runtimeGate.inputHash ?? paymentPayload.inputHash),
+    inputHash,
     consultationType: CONSULTATION_TYPE,
     orderName: copy.featureTitle,
   };
+}
+
+async function openPaidGate(paymentPayload: PaymentPayload, requestId: string, copy: PremiumSalesCopy, resume?: PaidResumeDescriptor) {
+  const runtimeGate = asRecord(paymentPayload.runtimeGate);
+  const gate = await runBillingCoinGate({ ...buildBillingGateInput(paymentPayload, requestId, copy), resume });
+  if (!gate.ok || !gate.data) {
+    const code = toText(gate.error?.code).toUpperCase();
+    if (code === "AUTH_REQUIRED" || code === "LOGIN_REQUIRED") throw new Error(copy.loginRequiredMessage);
+    if (code === "PAYMENT_CANCELLED" || code === "CANCELLED") throw new Error(copy.paymentCancelledMessage);
+    throw new Error(copy.paymentVerifyFailedMessage);
+  }
+  return buildAccessEvidence(asRecord(gate.data), requestId, toText(runtimeGate.inputHash ?? paymentPayload.inputHash), copy);
 }
 
 function getAssistantContent(result: ConsultationResult | null) {
@@ -1662,6 +1673,32 @@ export default function PremiumSalesContent() {
     pollResult(requestId);
   }
 
+  // 모바일 PortOne 리다이렉트로 handleGenerateClick 의 await 가 죽은 뒤, 복귀한 새 문서에서 생성을 이어받는다.
+  // 🔴 게이트를 다시 타지 않고 게이트 없는 코어(startGeneration)를 원래 requestId 로 부른다.
+  const buildResume = usePaidResume(FEATURE_KEY, async (args, grant) => {
+    const requestId = typeof args.requestId === "string" ? args.requestId : "";
+    const payload = unpackPaidResumeArg<Record<string, unknown>>(args.payload);
+    if (!requestId || !payload) return false;
+    startLockRef.current = true;
+    setAttemptId(requestId);
+    setResult(null);
+    setError("");
+    setNotice("");
+    setProgressTick(0);
+    localStorage.setItem(STORAGE_KEY, requestId);
+    try {
+      const evidence = buildAccessEvidence(asRecord(grant?.payload), requestId, toText(args.inputHash), copy);
+      await startGeneration(payload, requestId, evidence);
+      return true;
+    } catch (caught) {
+      setError(friendlyErrorMessage(caught, copy.openFailedMessage));
+      setStatus("error");
+      return false;
+    } finally {
+      startLockRef.current = false;
+    }
+  });
+
   async function handleGenerateClick(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (startLockRef.current || isBusy) return;
@@ -1707,7 +1744,11 @@ export default function PremiumSalesContent() {
         accessEvidence = { accessToken: access.accessToken };
       } else if (access.reason === "PAYMENT_REQUIRED" && access.paymentPayload) {
         setStatus("payment");
-        accessEvidence = await openPaidGate(access.paymentPayload, requestId, copy);
+        accessEvidence = await openPaidGate(access.paymentPayload, requestId, copy, buildResume({
+          requestId,
+          payload: packPaidResumeArg(payload),
+          inputHash: toText(asRecord(access.paymentPayload.runtimeGate).inputHash ?? access.paymentPayload.inputHash),
+        }));
         completePaidFeatureGateCheck({
           featureKey: FEATURE_KEY,
           requestId,

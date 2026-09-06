@@ -24,6 +24,7 @@ import {
   runBillingCoinGate,
   primePaymentEligibility,
 } from "@/app/_lib/billing-client";
+import { packPaidResumeArg, unpackPaidResumeArg, usePaidResume } from "@/app/hooks/usePaidResume";
 import { getCurrentLoadingLocale, INTL_LOCALE_BY_LOADING_LOCALE, type LoadingLocale } from "@/constants/loadingMessages";
 
 type ZiweiAiCopy = {
@@ -981,6 +982,28 @@ export default function ZiweiAiPage() {
     throw new Error(mapError(data, status));
   }
 
+  // 모바일 PortOne 리다이렉트로 handleSubmit 의 await 가 죽은 뒤, 복귀한 새 문서에서 생성을 이어받는다.
+  // 🔴 게이트를 다시 타지 않고 게이트 없는 코어(generateConsultation)를 원래 idempotencyKey 로 부른다.
+  const buildResume = usePaidResume(FEATURE_KEY, async (args, grant) => {
+    const idempotencyKey = typeof args.idempotencyKey === "string" ? args.idempotencyKey : "";
+    const payload = unpackPaidResumeArg<ReturnType<typeof buildConsultationPayload>>(args.payload);
+    if (!idempotencyKey || !payload) return false;
+    busyRef.current = true;
+    idempotencyRef.current = idempotencyKey;
+    setError("");
+    try {
+      await generateConsultation(idempotencyKey, payload, extractPayment(grant?.payload, idempotencyKey));
+      return true;
+    } catch (caught) {
+      setError(caught instanceof TypeError ? ERROR_TEXT.NETWORK_ERROR : caught instanceof Error ? caught.message : ERROR_TEXT.SERVER_ERROR);
+      setNotice("");
+      setPhase("idle");
+      return false;
+    } finally {
+      busyRef.current = false;
+    }
+  });
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (busyRef.current) return;
@@ -1059,7 +1082,10 @@ export default function ZiweiAiPage() {
 
       setPhase("payment");
       setNotice("결제창을 확인해 주세요");
-      const gate = await runBillingCoinGate(buildBillingGateInput(asRecord((data as { paymentPayload?: unknown }).paymentPayload), idempotencyKey));
+      const gate = await runBillingCoinGate({
+        ...buildBillingGateInput(asRecord((data as { paymentPayload?: unknown }).paymentPayload), idempotencyKey),
+        resume: buildResume({ idempotencyKey, payload: packPaidResumeArg(payload) }),
+      });
 
       if (!isPaymentGranted(gate)) {
         const code = String(gate.error?.code || "").toUpperCase();

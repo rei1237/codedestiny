@@ -27,6 +27,8 @@ import checkoutEntry, {
   type PaidResumeGrant,
 } from "@/js/core/checkout-entry.js";
 
+export type { PaidResumeDescriptor, PaidResumeGrant };
+
 /** 서술자에 실을 수 있는 값. checkout-entry 가 나머지는 조용히 버린다. */
 export type PaidResumeArgs = Record<string, string | number | boolean | null>;
 
