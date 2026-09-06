@@ -51,18 +51,18 @@ const PASS_ELIGIBILITY_COPY: Record<string, {
   exhausted: string;
   included: (tier: string) => string;
 }> = {
-  ko: { notCovered: "이용권 미포함 · 단건 구매", exhausted: "이용권 적용 대상 · 이번 이용권 기간 한도 소진", included: (tier) => `${tier} 이상 이용권 포함` },
-  en: { notCovered: "Not covered by pass · Single purchase", exhausted: "Pass-eligible · Pass period limit exhausted", included: (tier) => `${tier} pass or higher included` },
-  ja: { notCovered: "利用권対象外 · 単品購入", exhausted: "利用권対象 · 利用권期間の上限に達しました", included: (tier) => `${tier}以上の利用권に含まれます` },
-  "zh-cn": { notCovered: "不包含在利用券内 · 单次购买", exhausted: "适用利用券 · 本利用券期间额度已用尽", included: (tier) => `包含在${tier}及以上利用券内` },
-  "zh-tw": { notCovered: "不包含在利用券內 · 單次購買", exhausted: "適用利用券 · 本利用券期間額度已用盡", included: (tier) => `包含在${tier}及以上利用券內` },
-  vi: { notCovered: "Không bao gồm trong vé · Mua lẻ", exhausted: "Được áp dụng · Đã hết hạn mức trong kỳ vé", included: (tier) => `Bao gồm từ vé ${tier} trở lên` },
-  hi: { notCovered: "पास में शामिल नहीं · एकल खरीद", exhausted: "पास के लिए योग्य · पास अवधि की सीमा समाप्त", included: (tier) => `${tier} पास या उससे ऊपर में शामिल` },
-  es: { notCovered: "No incluido en el pase · Compra individual", exhausted: "Incluido en el pase · Límite del periodo agotado", included: (tier) => `Incluido desde el pase ${tier}` },
-  fr: { notCovered: "Non inclus dans le pass · Achat à l’unité", exhausted: "Éligible au pass · Limite de la période épuisée", included: (tier) => `Inclus avec le pass ${tier} ou supérieur` },
-  de: { notCovered: "Nicht im Pass enthalten · Einzelkauf", exhausted: "Pass-berechtigt · Limit des Passzeitraums erreicht", included: (tier) => `Im ${tier}-Pass oder höher enthalten` },
-  nl: { notCovered: "Niet inbegrepen in pas · Losse aankoop", exhausted: "Geschikt voor pas · Limiet van de pasperiode bereikt", included: (tier) => `Inbegrepen vanaf de ${tier}-pas` },
-  ms: { notCovered: "Tidak termasuk dalam pas · Pembelian tunggal", exhausted: "Layak untuk pas · Had tempoh pas telah habis", included: (tier) => `Termasuk dalam pas ${tier} atau lebih tinggi` },
+  ko: { notCovered: "이용권 미포함 · 단건 구매", exhausted: "이용권 적용 대상 · 이번 이용권 기간 한도 소진 · 다음 이용권 기간 또는 단건 구매", included: (tier) => `${tier} 이상 이용권 포함` },
+  en: { notCovered: "Not covered by pass · Single purchase", exhausted: "Pass-eligible · Pass period limit exhausted · Next pass period or single purchase", included: (tier) => `${tier} pass or higher included` },
+  ja: { notCovered: "利用券対象外 · 単品購入", exhausted: "利用券対象 · 利用券期間の上限に達しました · 次の利用券期間または単品購入", included: (tier) => `${tier}以上の利用券に含まれます` },
+  "zh-cn": { notCovered: "不包含在利用券内 · 单次购买", exhausted: "适用利用券 · 本利用券期间额度已用尽 · 下个利用券期间或单次购买", included: (tier) => `包含在${tier}及以上利用券内` },
+  "zh-tw": { notCovered: "不包含在利用券內 · 單次購買", exhausted: "適用利用券 · 本利用券期間額度已用盡 · 下個利用券期間或單次購買", included: (tier) => `包含在${tier}及以上利用券內` },
+  vi: { notCovered: "Không bao gồm trong vé · Mua lẻ", exhausted: "Được áp dụng vé · Đã hết hạn mức trong kỳ vé · Kỳ vé tiếp theo hoặc mua lẻ", included: (tier) => `Bao gồm từ vé ${tier} trở lên` },
+  hi: { notCovered: "पास में शामिल नहीं · एकल खरीद", exhausted: "पास के लिए योग्य · पास अवधि की सीमा समाप्त · अगली पास अवधि या एकल खरीद", included: (tier) => `${tier} पास या उससे ऊपर में शामिल` },
+  es: { notCovered: "No incluido en el pase · Compra individual", exhausted: "Apto para el pase · Límite del periodo agotado · Próximo periodo o compra individual", included: (tier) => `Incluido desde el pase ${tier}` },
+  fr: { notCovered: "Non inclus dans le pass · Achat à l’unité", exhausted: "Éligible au pass · Limite de la période épuisée · Prochaine période ou achat à l’unité", included: (tier) => `Inclus avec le pass ${tier} ou supérieur` },
+  de: { notCovered: "Nicht im Pass enthalten · Einzelkauf", exhausted: "Pass-berechtigt · Limit des Passzeitraums erreicht · Nächster Passzeitraum oder Einzelkauf", included: (tier) => `Im ${tier}-Pass oder höher enthalten` },
+  nl: { notCovered: "Niet inbegrepen in pas · Losse aankoop", exhausted: "Geschikt voor pas · Limiet van de pasperiode bereikt · Volgende pasperiode of losse aankoop", included: (tier) => `Inbegrepen vanaf de ${tier}-pas` },
+  ms: { notCovered: "Tidak termasuk dalam pas · Pembelian tunggal", exhausted: "Layak untuk pas · Had tempoh pas telah habis · Tempoh pas seterusnya atau pembelian tunggal", included: (tier) => `Termasuk dalam pas ${tier} atau lebih tinggi` },
 };
 
 function getEligibilityCopy(locale?: string) {

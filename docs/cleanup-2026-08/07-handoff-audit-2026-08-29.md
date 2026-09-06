@@ -66,7 +66,7 @@
 | `tarot-oracle-pricing-tiers.md` | 13 | 0 | 0 | PR #1171 종결이나 **Play Console 등록이 사람 손 미완** + 8절 부채 3건 | 🔴 보존 |
 | `service-exposure-audit-2026-08-24.md` | 12 | 0 | 0 | 결론 절이 "②는 고쳤다. **①은 남아 있다(§4)**" | 🔴 보존 |
 | `seo-content-expansion-roadmap.md` | 12 | 0 | 1 | 표제부터 "**P4 일부만 구현, 나머지는 계획**" | 🔴 보존 |
-| `pass-tier-service-card-badges.md` | 9 | 0 | 0 | A·B 둘 다 미구현 — 아래 §2-2 의 코드 확인 | 🔴 보존 |
+| `pass-tier-service-card-badges.md` | 9 | 0 | 0 | ~~A·B 둘 다 미구현~~ → **2026-09-06 A·B 종결**(§2-2). 남은 것은 사람 판단 3건 | 🔴 보존 |
 | `payment-503-and-renderer-unification.md` | 9 | 0 | 0 | 트랙 A 프로덕션 승격 절차 + 트랙 B 의 D-2·D-3·D-4 미착수 | 🔴 보존 |
 | `fortune-weekly-monthly-reindex-2026-08-28.md` | 7 | 0 | 0 | "새로 남은 것은 §3 하나뿐이다" — 그 하나가 살아 있음 | 🔴 보존 |
 | `human-design-fixture-expected-values.md` | 6 | 0 | 0 | 값 추가 절차서 + **미해결 정책 판단 1건**(모호 시각). 회고 아님 | 🔴 보존 |
@@ -98,6 +98,13 @@ git grep -n "PassCycleCard" -- app src lib           # PointHistoryClient.tsx �
 🔴 **문서의 "완료" 선언만 읽고 판정하지 말 것.** 이 문서는 앞의 PR ①②를 "끝난 것"으로 적어
 두었고, 첫 14줄만 보면 종결로 읽힌다. 대상 심볼을 코드에서 찾아야 A·B 가 남아 있는 것이 보인다.
 
+**2026-09-06 결과** — 위 3줄이 지목한 A·B 를 PR #1644 가 구현했고(머지·스테이징 반영),
+뒤이은 결함 수정 PR 로 마무리했다. 지금 같은 명령을 돌리면 셋 다 히트한다.
+다만 **이 절차의 교훈은 반대 방향으로도 성립한다**: PR #1644 는 심볼을 다 만들었지만
+일본어 문구에 한글이 섞이고 `/points` 카드가 한국어로 고정된 채 CI 를 통과했다 —
+`git grep` 은 "심볼이 있다"까지만 말한다. 그 축을 보는 가드가 없었던 것이 원인이라
+`npm run verify:pass-eligibility-copy` 를 신설해 `Paid Flow Gates` 에 배선했다.
+
 ---
 
 ## 3. 왜 "미독"이 삭제 근거가 못 되는가
@@ -122,7 +129,7 @@ git grep -n "PassCycleCard" -- app src lib           # PointHistoryClient.tsx �
 |---|---|
 | `content-translation-2026-08-25.md` | 슬라이스 3b·4 가 머지되고 `workers-ai-translation` 의 진행 기록이 종료 |
 | `workers-ai-translation-2026-08-25.md` | 배치 운영이 끝나 스크립트가 제거될 때. **운영 중에는 불가** |
-| `pass-tier-service-card-badges.md` | `lib/payment/pass-eligibility.ts` 가 생기고 `PassCycleCard` 가 공용 컴포넌트로 분리될 때 |
+| `pass-tier-service-card-badges.md` | ~~`lib/payment/pass-eligibility.ts` 가 생기고 `PassCycleCard` 가 공용 컴포넌트로 분리될 때~~ → **2026-09-06 충족**. 다만 "사람이 확인해야 할 것" 3건(Play Console SKU 가격·AI 원가·VVIP 공지)이 남아 아직 삭제하지 않는다 |
 | `payment-503-and-renderer-unification.md` | 트랙 B 의 D-2·D-3·D-4 가 닫힐 때. 트랙 A 는 승격 절차라 별도 |
 | `tarot-oracle-pricing-tiers.md` | Play Console 에 `cd_content_tier_14` 등록이 끝나고 8절 부채 3건이 닫힐 때 |
 | `service-exposure-audit-2026-08-24.md` | §4 의 얇은 본문 `noindex` 항목이 닫힐 때 |

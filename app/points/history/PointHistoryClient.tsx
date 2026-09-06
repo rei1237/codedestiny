@@ -14,6 +14,7 @@ import { remoteQueryKeyToString, remoteQueryKeys } from "../../_lib/remote-query
 import OrderDetailModal from "./OrderDetailModal";
 import { adaptOrderToViewModel, type OrderDetailViewModel, type PaymentOrderRecord } from "./order-view-model";
 import PassCycleCard from "../../components/PassCycleCard";
+import { getPassTierLabel } from "@/lib/payment/pass-eligibility";
 import styles from "./PointHistoryClient.module.css";
 
 /* ══════════════════════════════════════════════════════════════════
@@ -163,7 +164,6 @@ type PointHistoryCopy = {
   guideItems: string[];
   passCycleAria: string;
   passCycleTitle: string;
-  passCycleTierLabel: Record<"standard" | "premium" | "vvip" | "family", string>;
   passCycleSummary: (spent: string, cap: string) => string;
   passCycleRemaining: (remaining: string) => string;
 };
@@ -251,12 +251,6 @@ const POINT_HISTORY_COPY: Record<LoadingLocale, PointHistoryCopy> = {
     ],
     passCycleAria: "이번 이용권 기간의 월 이용 한도",
     passCycleTitle: "이번 이용권 기간 한도",
-    passCycleTierLabel: {
-      standard: "스탠다드 꿀",
-      premium: "프리미엄 꿀",
-      vvip: "VVIP 꿀단지",
-      family: "Code Destiny Family",
-    },
     passCycleSummary: (spent, cap) => `${spent} / ${cap} 사용`,
     passCycleRemaining: (remaining) => `${remaining} 남음`,
   },
@@ -342,12 +336,6 @@ const POINT_HISTORY_COPY: Record<LoadingLocale, PointHistoryCopy> = {
     ],
     passCycleAria: "Monthly usage limit for this pass period",
     passCycleTitle: "Current pass period limit",
-    passCycleTierLabel: {
-      standard: "Standard Honey",
-      premium: "Premium Honey",
-      vvip: "VVIP Honey Jar",
-      family: "Code Destiny Family",
-    },
     passCycleSummary: (spent, cap) => `${spent} of ${cap} used`,
     passCycleRemaining: (remaining) => `${remaining} left`,
   },
@@ -943,7 +931,7 @@ export default function PointHistoryPage() {
             copy={{
               ariaLabel: copy.passCycleAria,
               title: copy.passCycleTitle,
-              tierLabel: copy.passCycleTierLabel[displayedPassCycleTier as "standard" | "premium" | "vvip" | "family"] || displayedPassCycleTier,
+              tierLabel: getPassTierLabel(displayedPassCycleTier, lang) || displayedPassCycleTier,
               summary: copy.passCycleSummary,
               remaining: copy.passCycleRemaining,
             }}
