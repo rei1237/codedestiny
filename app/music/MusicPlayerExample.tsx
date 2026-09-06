@@ -24,6 +24,7 @@ import {
   VolumeX,
 } from "lucide-react";
 import { loadPaidServiceRuntimeGate, runBillingCoinGate } from "@/app/_lib/billing-client";
+import { usePaidResume } from "@/app/hooks/usePaidResume";
 import { runAccessCheckWithTransientRetry } from "@/app/_lib/consultationResultPolling";
 import { buildAssetsPublicUrl, buildMusicPublicUrl } from "@/lib/r2-public-url";
 import { MUSIC_TRACK_UNLOCK_COIN_COST, MUSIC_TRACK_UNLOCK_PRICE_KRW } from "@/lib/music-access-policy";
@@ -1398,6 +1399,21 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
     player.selectTrack(firstTrack.id, { play: true });
   }, [player.selectTrack, player.tracks]);
 
+  // 모바일 PortOne 리다이렉트로 handlePurchaseCurrentTrack 의 await 가 죽은 뒤, 복귀한 새 문서에서
+  // 해금 반영을 이어받는다. 🔴 kind 는 곡마다 갈리는 featureKey 가 아니라 고정값이고 곡은 args 로 넘긴다
+  //    — 복귀 문서는 첫 곡으로 마운트되므로 현재 곡에서 키를 다시 만들면 다른 곡이 열린다.
+  const buildResume = usePaidResume("music-track", async (args) => {
+    const trackId = typeof args.trackId === "string" ? args.trackId : "";
+    const track = trackId ? allTracks.find((candidate) => candidate.id === trackId) : undefined;
+    if (!track) return false;
+    markTrackFullAccess(track);
+    await refreshMusicAccess([track]);
+    // 방금 산 곡을 띄워 준다(자동재생은 하지 않는다 — 복귀 직후 재생은 브라우저가 막고 소리가 갑자기 난다).
+    player.selectTrack(track.id, { play: false });
+    setMusicAccessMessage("");
+    return true;
+  });
+
   const handlePurchaseCurrentTrack = useCallback(async () => {
     const track = player.currentTrack;
     if (!track?.purchaseFeatureKey || canDownloadTrack(track, accessByTrackId)) return;
@@ -1435,6 +1451,7 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
           : {}),
         requestId: purchaseRequestId,
         idempotencyKey: purchaseRequestId,
+        resume: buildResume({ trackId: track.id }),
       });
 
       if (result.ok) {

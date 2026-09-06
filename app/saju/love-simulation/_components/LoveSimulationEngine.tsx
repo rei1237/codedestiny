@@ -18,6 +18,7 @@ import type { AnimalDestinyInput } from "../../animal-destiny/lib/types";
 import { formatBirthDateDigits, normalizeBirthDateFromDigits } from "@/lib/birthDateInput";
 import { readCurrentDestinyProfile } from "@/app/_lib/profile-card-storage";
 import { holdPaidFeatureGateOpen, openPaidFeatureGate, releasePaidFeatureGate, runPaidAccessGate, updatePaidFeatureGate } from "@/app/_lib/billing-client";
+import { packPaidResumeArg, unpackPaidResumeArg, usePaidResume } from "@/app/hooks/usePaidResume";
 import { resolveServerFeaturePricing } from "@/lib/payment/server-feature-pricing";
 
 const LoveCharacterStorySection = lazy(() => import("./LoveCharacterStorySection"));
@@ -1525,6 +1526,42 @@ export const LoveSimulationEngine: React.FC = () => {
   // 게이트를 걸지 않는다 — 사용자가 상대를 고르기도 전에 결제가 돌기 때문이다.
   // 🔴 가격은 게이트에 반드시 함께 넘긴다. "클라이언트 cost 를 넘기면 서버 이용권 프로브를 건너뛴다"는
   //    옛 주석은 틀렸다 — cost 는 스냅샷 판정을 켜는 입력이고, 빼면 결제창이 0원으로 뜬다.
+  // 모바일 PortOne 리다이렉트로 startWithCharacter 의 await 가 죽은 뒤, 복귀한 새 문서에서 시뮬레이션을
+  // 이어받는다. 🔴 게이트를 다시 타지 않고 게이트 없는 코어(startSimulationScene)를 결제 직전 상태로 부른다.
+  const buildResume = usePaidResume(LOVE_SIMULATION_FEATURE_KEY, (args) => {
+    const characterId = typeof args.characterId === "string" ? args.characterId : "";
+    const matched = LOVE_CHARACTERS.find((item) => item.id === characterId);
+    if (!matched) return false;
+    const mode = args.mode === "sajuMatch" ? "sajuMatch" : "preset";
+    const compatibility = unpackPaidResumeArg<SajuCoupleCompatibility>(args.compatibility);
+    const partner = unpackPaidResumeArg<{
+      name: string;
+      birthDate: string;
+      calType: PartnerCalendarType;
+      hour: string;
+      minute: string;
+      country: string;
+      gender: PartnerGender;
+      hasTime: boolean;
+    }>(args.partner);
+    // 사주 매칭으로 시작한 판은 상대 입력이 있어야 궁합 프로필이 맞다 — 없으면 빈 상대로 계산되므로 포기한다.
+    if (mode === "sajuMatch" && !partner?.birthDate) return false;
+    if (partner) {
+      setPartnerName(partner.name);
+      setPartnerBirthDate(partner.birthDate);
+      setPartnerCalType(partner.calType);
+      setPartnerHour(partner.hour);
+      setPartnerMinute(partner.minute);
+      setPartnerCountry(partner.country);
+      setPartnerGender(partner.gender);
+      setPartnerHasTime(partner.hasTime);
+    }
+    if (compatibility) setCoupleCompatibility(compatibility);
+    setMatchError("");
+    startSimulationScene(matched.id, mode, compatibility);
+    return true;
+  });
+
   const startWithCharacter = async (id: CharacterId, mode: "preset" | "sajuMatch" = "preset") => {
     if (isStartingSimulation) return;
     const requestId = `love-simulation:${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
@@ -1546,6 +1583,21 @@ export const LoveSimulationEngine: React.FC = () => {
         cost: LOVE_SIMULATION_FEATURE_COST,
         coinPrice: LOVE_SIMULATION_FEATURE_COST,
         amountKRW: LOVE_SIMULATION_FEATURE_AMOUNT_KRW,
+        resume: buildResume({
+          characterId: id,
+          mode,
+          partner: packPaidResumeArg({
+            name: partnerName,
+            birthDate: partnerBirthDate,
+            calType: partnerCalType,
+            hour: partnerHour,
+            minute: partnerMinute,
+            country: partnerCountry,
+            gender: partnerGender,
+            hasTime: partnerHasTime,
+          }),
+          compatibility: mode === "sajuMatch" ? packPaidResumeArg(coupleCompatibility) : "",
+        }),
       });
 
       if (!gate.ok) {
@@ -1569,8 +1621,14 @@ export const LoveSimulationEngine: React.FC = () => {
     }
   };
 
-  const startSimulationScene = (id: CharacterId, mode: "preset" | "sajuMatch") => {
-    const nextCoupleCompatibility = mode === "sajuMatch" ? coupleCompatibility : null;
+  // 🔴 compatibilityOverride: 결제 복귀 재개는 새 문서라 coupleCompatibility 가 아직 null 이다
+  //    (같은 핸들러 안에서 setState 한 값은 다음 렌더 전까지 이 클로저에 안 보인다).
+  const startSimulationScene = (
+    id: CharacterId,
+    mode: "preset" | "sajuMatch",
+    compatibilityOverride?: SajuCoupleCompatibility | null,
+  ) => {
+    const nextCoupleCompatibility = mode === "sajuMatch" ? (compatibilityOverride ?? coupleCompatibility) : null;
     setSelectedId(id);
     setEntryMode(mode);
     setSceneIndex(0);

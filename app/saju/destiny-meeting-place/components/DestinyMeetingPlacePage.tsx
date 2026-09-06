@@ -6,7 +6,8 @@ import { Toaster, toast } from "sonner";
 import { holdPaidFeatureGateOpen, openPaidFeatureGate, releasePaidFeatureGate, runPaidAccessGate, updatePaidFeatureGate } from "@/app/_lib/billing-client";
 import { resolveServerFeaturePricing } from "@/lib/payment/server-feature-pricing";
 import { getAuthState } from "@/app/_lib/auth-store";
-import type { AnimalDestinyInput } from "@/app/saju/animal-destiny/lib/types";
+import type { AnimalDestinyInput, AnimalTwelveResolvedResult } from "@/app/saju/animal-destiny/lib/types";
+import { packPaidResumeArg, unpackPaidResumeArg, usePaidResume } from "@/app/hooks/usePaidResume";
 import { formatBirthDateDigits, normalizeBirthDateFromDigits } from "@/lib/birthDateInput";
 import DestinyMeetingPlaceLoading from "@/components/fortune/destiny-meeting-place/DestinyMeetingPlaceLoading";
 import DestinyMeetingPlaceResult from "@/components/fortune/destiny-meeting-place/DestinyMeetingPlaceResult";
@@ -111,6 +112,57 @@ export default function DestinyMeetingPlacePage() {
     setInput((prev) => ({ ...prev, ...patch }));
   }, []);
 
+  // 게이트 없는 결과 반영부 — 인페이지 결제 직후와 결제 복귀 재개가 같은 본문을 쓴다.
+  const applyMeetingPlaceResult = useCallback((resolved: AnimalTwelveResolvedResult) => {
+    const sajuResult = resolved.sajuResult;
+    if (!sajuResult) return false;
+    const root = sajuResult as Record<string, unknown>;
+    setResult(generateDestinyMeetingPlaceResult(sajuResult));
+    setMeta({
+      dayMaster: getDayMasterLabel(root, copy),
+      representativeStage: String(resolved.representativeStage?.labelKo || copy.infoPendingLabel),
+      source: resolved.source,
+      warning: String(resolved.warning || ""),
+      timeUnknown: Boolean(root.timeUnknown),
+    });
+    return true;
+  }, [copy]);
+
+  // 모바일 PortOne 리다이렉트로 handleAnalyze 의 await 가 죽은 뒤, 복귀한 새 문서에서 리포트를 이어받는다.
+  // 🔴 게이트를 다시 타지 않는다 — 결제는 이미 끝났고 생성은 클라이언트 계산이라 증빙 재전송이 필요 없다.
+  const buildResume = usePaidResume(FEATURE_KEY, async (args, grant) => {
+    const restored = unpackPaidResumeArg<AnimalDestinyInput>(args.input);
+    if (!restored?.birthDate) return false;
+    const payload = (grant?.payload || {}) as Record<string, unknown>;
+    const consume = (payload.consume || {}) as Record<string, unknown>;
+    const pricing = (payload.pricing || {}) as Record<string, unknown>;
+    const charged = Number(consume.chargedCoins ?? consume.cost ?? pricing.coinPrice ?? pricing.cost ?? FEATURE_COST);
+    setChargedCoins(Number.isFinite(charged) && charged > 0 ? charged : FEATURE_COST);
+    setInput(restored);
+    setError("");
+    setResult(null);
+    setMeta(null);
+    setIsLoading(true);
+    try {
+      const { resolveAnimalTwelveResult } = await import("@/app/saju/animal-destiny/lib/sajuAdapter");
+      const resolved = await resolveAnimalTwelveResult(restored);
+      if (!applyMeetingPlaceResult(resolved)) {
+        const message = resolved.error || copy.sajuCalcFailed;
+        setError(message);
+        toast.error(message);
+        return false;
+      }
+      toast.success(copy.toastReportReady);
+      return true;
+    } catch (e) {
+      setError(copy.sajuCalcFailed);
+      toast.error(copy.sajuCalcFailed);
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  });
+
   const handleAnalyze = useCallback(async () => {
     if (isLoading || isCharging) return;
     if (!input.birthDate) {
@@ -159,6 +211,7 @@ export default function DestinyMeetingPlacePage() {
         cost: FEATURE_COST,
         coinPrice: FEATURE_COST,
         amountKRW: FEATURE_AMOUNT_KRW,
+        resume: buildResume({ input: packPaidResumeArg(input) }),
       });
 
       if (!gate.ok) {
@@ -185,17 +238,7 @@ export default function DestinyMeetingPlacePage() {
       releasePaidFeatureGate(requestId);
       await new Promise((resolve) => setTimeout(resolve, 900));
 
-      const next = generateDestinyMeetingPlaceResult(resolved.sajuResult);
-      const root = resolved.sajuResult as Record<string, unknown>;
-
-      setResult(next);
-      setMeta({
-        dayMaster: getDayMasterLabel(root, copy),
-        representativeStage: String(resolved.representativeStage?.labelKo || copy.infoPendingLabel),
-        source: resolved.source,
-        warning: String(resolved.warning || ""),
-        timeUnknown: Boolean(root.timeUnknown),
-      });
+      applyMeetingPlaceResult(resolved);
 
       toast.success(copy.toastReportReady);
     } finally {
@@ -204,7 +247,7 @@ export default function DestinyMeetingPlacePage() {
       setIsCharging(false);
       setIsLoading(false);
     }
-  }, [copy, input, isCharging, isLoading]);
+  }, [applyMeetingPlaceResult, buildResume, copy, input, isCharging, isLoading]);
 
   const handleReset = useCallback(() => {
     setInput(INITIAL_INPUT);
