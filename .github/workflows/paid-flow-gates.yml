@@ -315,6 +315,15 @@ on:
       # 열어 Offer 의 featureKey 와 대조하므로 트리거에도 있어야 한다(CLAUDE.md 원칙 10).
       - "src/features/master-love-codex/constants.ts"
       - "scripts/run-paid-gate-suite.mjs"
+      # 🔴 이 게이트의 **판정기 자신**이다(2026-09-06). scope 잡이 resolve-paid-gate-scope.mjs 를
+      #    실행하고, 그것이 change-risk.mjs 의 requiresDeepVerification 을 불러 run 여부를 정한다.
+      #    그런데 둘 다 트리거에 없어서, "게이트를 깨울지 정하는 코드" 를 고치는 PR 에서는 정작
+      #    게이트가 깨어나지 않았다 — 판정을 느슨하게 바꿔도 그 PR 에서 아무도 확인하지 못하는
+      #    자가 스킵 구멍이다(CLAUDE.md 원칙 10 — 가드가 보는 파일은 그 가드를 부르는 워크플로
+      #    트리거 paths 에도 있어야 한다). resolve-paid-gate-scope.mjs 는 이 YAML 의 paths 를 직접
+      #    파싱하므로, 이 두 줄이 트리거 성립과 scope 판정을 동시에 성립시킨다.
+      - "scripts/resolve-paid-gate-scope.mjs"
+      - "scripts/lib/change-risk.mjs"
       - "scripts/verify-fusion-fortune-quality.mjs"
       - "scripts/verify-fusion-fortune-delivery-floor.mjs"
       - "scripts/verify-fusion-fortune-retry-payload.mjs"
