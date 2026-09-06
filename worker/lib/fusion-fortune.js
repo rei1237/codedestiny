@@ -679,7 +679,8 @@ function countFusionGroupChars(source, group) {
 /**
  * 그룹 단위 검증. 병합 전에 여기서 걸러야 한 그룹의 잘못 때문에 나머지 세 그룹의 정상
  * 결과까지 버려지지 않는다(전체 검증만 두면 그때는 통째로 폴백이 나간다).
- * 문장 반복(hasRepeatedLongSentence)과 총 분량은 그룹을 가로지르므로 전체 검증이 맡는다.
+ * 총 분량과 섹션 **사이** 문장 반복(hasRepeatedLongSentence)은 그룹을 가로지르므로 전체 검증이 맡고,
+ * 한 필드 **안**의 반복은 그룹 안에서 끝나므로 여기가 맡는다(findFusionRepeatedSentenceField).
  */
 export function validateFusionFortuneGroup(value = {}, group, { birthTimeKnown = true, birthPlaceKnown = true, sensitiveValues = [], selectedTarotCards = [] } = {}) {
   const missing = group.keys.filter((key) => key !== "visualization" && !text(value[key], 200) && !text(value[key]?.content, 200));
@@ -702,6 +703,9 @@ export function validateFusionFortuneGroup(value = {}, group, { birthTimeKnown =
     if (!verdict.ok) return { ok: false, issue: "final_verdict", detail: verdict.reason };
     if (text(value.finalVerdict?.rationale, 50000).length < FUSION_FORTUNE_LENGTH.finalVerdictRationale) return { ok: false, issue: "final_verdict_depth" };
   }
+
+  const repeatedField = findFusionRepeatedSentenceField(value);
+  if (repeatedField) return { ok: false, issue: "repeated_sentence", detail: repeatedField };
 
   const source = JSON.stringify(value || {});
   if (hasForbiddenPhrase(source)) return { ok: false, issue: "unsafe_phrase" };
@@ -742,6 +746,19 @@ function buildFusionShortfallInstruction(group, currentChars) {
 }
 
 /**
+ * 🔴 반복으로 반려된 그룹에는 분량 지시를 주지 않는다. 그 그룹은 짧아서 반려된 것이 아니라
+ *    같은 문장을 되풀이해 반려된 것이라, "목표에 크게 못 미칩니다 — 더 길게" 는 정확히 반대
+ *    방향의 지시다(바로 아래 물결의 중복 그룹에서 이미 한 번 겪은 함정과 같은 축이다).
+ */
+function buildFusionRepeatInstruction() {
+  return [
+    "직전 시도는 같은 문장을 여러 번 되풀이해 반려됐습니다.",
+    "처음부터 다시 쓰되, 분량을 반복으로 채우지 마세요.",
+    "새로 댈 근거가 없으면 거기서 끝내고 JSON 을 닫으세요 — 반복해서 늘린 글보다 조금 짧은 글이 낫습니다.",
+  ].join("\n");
+}
+
+/**
  * 교차 섹션 중복 — **서로 다른 섹션**에 같은 문장이 그대로 다시 나온 것.
  *
  * 🔴 `hasRepeatedLongSentence` 와 다른 축이다. 그쪽은 70자 이상이 **세 섹션 이상**에 나올 때만
@@ -766,6 +783,33 @@ function fusionSectionProse(source = {}) {
     ["finalVerdict", source.finalVerdict?.rationale],
     ["closingMessage", source.closingMessage],
   ].filter(([, value]) => typeof value === "string" && value.length > 0);
+}
+
+/**
+ * 한 필드 **안**에서 같은 문장이 되풀이된 것. 기존 두 검사 어느 쪽도 이 축을 못 본다 —
+ * `collectFusionCrossSectionDuplicates` 는 서로 다른 섹션에 걸친 것만 세고,
+ * `hasRepeatedLongSentence` 는 섹션마다 Set 으로 중복을 지운 뒤 3개 섹션 이상을 요구한다.
+ * 한 섹션 안에서 같은 문장을 쉰 번 되풀이해도 둘 다 값이 1이다.
+ *
+ * 🔴 2026-09-06 실호출 4·5차: astrology 묶음이 같은 문장 블록을 되풀이해 16,000~18,000자를
+ *    채우다 maxOutputTokens 에서 잘려 `parse_failed` 로 반려됐다. 잘리지 **않고** JSON 이 닫히기만
+ *    하면 그 반복은 지금까지의 모든 검사를 통과해 유료로 배달된다 — 여기서 막는 것이 그 경로다.
+ *    걸린 묶음은 다른 반려 사유와 똑같이 보완 물결로 넘어간다.
+ * 🔴 임계는 새로 만들지 않는다 — 길이는 교차 중복과 같은 60자, 횟수는 전체 검증과 같은 3회다.
+ */
+const FUSION_WITHIN_FIELD_REPEAT_LIMIT = 3;
+
+export function findFusionRepeatedSentenceField(source = {}) {
+  for (const [key, prose] of fusionSectionProse(source)) {
+    const counts = new Map();
+    for (const sentence of prose.split(/(?<=[.!?。！？])\s+/).map((item) => item.replace(/\s+/g, " ").trim())) {
+      if (sentence.length < FUSION_DUPLICATE_MIN_SENTENCE) continue;
+      const seen = (counts.get(sentence) || 0) + 1;
+      if (seen >= FUSION_WITHIN_FIELD_REPEAT_LIMIT) return key;
+      counts.set(sentence, seen);
+    }
+  }
+  return "";
 }
 
 export function collectFusionCrossSectionDuplicates(source = {}) {
@@ -969,11 +1013,14 @@ export async function generateFusionFortuneWithRealLLM({
 
   const merged = {};
   const failedGroups = [];
+  // 반복으로 반려된 그룹만 따로 기억한다 — 보완 물결의 지시가 갈린다(buildFusionRepeatInstruction).
+  const repeatedGroups = [];
   const settled = await Promise.allSettled(groups.map((group) => runGroup(group)));
   settled.forEach((outcome, index) => {
     const group = groups[index];
     if (outcome.status !== "fulfilled" || !outcome.value.ok) {
       failedGroups.push(group);
+      if (outcome.status === "fulfilled" && outcome.value.issue === "repeated_sentence") repeatedGroups.push(group);
       console.warn("[fusion-fortune-group-failed]", { requestId: text(requestId, 120), stage: stageNumber, sectionGroup: group.id, issue: text(outcome.status === "fulfilled" ? outcome.value.issue : outcome.reason?.message, 80), detail: text(outcome.status === "fulfilled" ? outcome.value.detail : "", 120) });
       return;
     }
@@ -1001,7 +1048,8 @@ export async function generateFusionFortuneWithRealLLM({
       // 🔴 분량 지시는 실제로 짧은 그룹에만 준다. 중복만으로 불려 온 그룹에 붙이면 "목표에 크게
       //    못 미칩니다" 가 사실이 아닌 채로 나가 모델이 엉뚱한 곳을 늘린다.
       extraInstruction: [
-        failedGroups.includes(group) || shortGroups.includes(group) ? buildFusionShortfallInstruction(group, countFusionGroupChars(merged, group)) : "",
+        repeatedGroups.includes(group) ? buildFusionRepeatInstruction() : "",
+        !repeatedGroups.includes(group) && (failedGroups.includes(group) || shortGroups.includes(group)) ? buildFusionShortfallInstruction(group, countFusionGroupChars(merged, group)) : "",
         buildFusionDuplicateInstruction(group, duplicates),
         thinGroups.includes(group) ? buildFusionEvidenceInstruction(evidenceTokens.get(group.id)) : "",
       ].filter(Boolean).join("\n\n"),

@@ -21,9 +21,9 @@
 - `/fusion-fortune`와 `POST /api/fusion-fortune/generate`, `POST /api/fusion-fortune/generate/stream`은 `ENABLE_FUSION_FORTUNE_UI`, `ENABLE_FUSION_FORTUNE_API`, `ENABLE_FUSION_FORTUNE_MOCK_FLOW`을 분리해 제어한다. stream은 기존 생성 코어의 실제 완료 후 단계 이벤트만 전송하며, 결과·상담권 차감·일일 한도·멱등성·실패 release 규칙을 변경하지 않는다.
 - 테스트와 기본 개발 환경은 mock만 사용한다. 운영 제공자 연결은 `ENABLE_FUSION_FORTUNE_REAL_LLM=true`, `ALLOW_FUSION_FORTUNE_REAL_LLM=true`, 서버 전용 API key, `NODE_ENV !== test`가 모두 충족될 때만 허용한다.
 - 결과는 서버 컨텍스트와 서버 선택 타로 spread만 근거로 삼고 raw prompt·raw response·birthDate·birthTime·고민 원문·결제/이용권 정보는 결과 또는 공유 텍스트에 포함하지 않는다.
-- validator가 가시 텍스트 30,000~46,000자(`FUSION_FORTUNE_LENGTH.total` 정본, 2026-09-06 2단계 생성으로 상향), 7개 결과 섹션(여섯 체계 + 통합 리딩), 안전 표현, 개인정보 노출을 모두 확인한 성공 결과만 이용권과 하루 한도를 commit한다.
+- validator가 가시 텍스트 30,000~60,000자(`FUSION_FORTUNE_LENGTH.total` 정본, 2026-09-06 2단계 생성으로 상향. 상한은 같은 날 실호출 5차가 51,203자로 들어와 옛 46,000 을 넘기면서 "넘쳤다는 이유로" degraded 강등이 나자 60,000 으로 재상향했다 — 상한은 목표가 아니라 폭주 완충이다), 7개 결과 섹션(여섯 체계 + 통합 리딩), 안전 표현, 개인정보 노출을 모두 확인한 성공 결과만 이용권과 하루 한도를 commit한다.
 - `worker/lib/fusion-fortune-prompt.js`는 여섯 체계의 전문가 계약, 교차 검증 규칙, 생시·출생지 미확인 단정 금지, 섹션별 최소 깊이와 JSON schema를 서버에서 고정한다. 생성은 단일 호출이 아니라 `FUSION_SECTION_GROUP_SPECS`의 9개 섹션 그룹을 **두 요청(stage 1·2)** 으로 나눠 병렬 호출한다 — 1단계는 체계별 6그룹(`status: partial` 로 저장), 2단계는 1단계 요약(`buildFusionStageOneDigest`)을 받아 통합·행동·판정 3그룹을 쓰고 같은 문서를 `completed` 로 덮는다(30,000자를 한 요청으로 뽑으면 출력 상한과 120초 시간 예산이 먼저 바닥난다). 각 단계에서 실패했거나 목표 분량의 80%에 못 미치거나 근거 인용이 빈약한(`evidence_thin`) 그룹만 예산이 남아 있을 때 1회 재생성한다. 2단계는 별도 예약 키(`#s2`)를 쓰고 결제 증빙은 같은 requestId 로 재확인만 하므로 재과금이 없다(가드: `verify:fusion-fortune-stage-flow`). 그래도 남은 그룹은 실제 여섯 계산값을 사용하는 결정론 fallback으로 메우고 동일 validator로 검증한다.
-- validator는 동일 긴 문장의 섹션 간 반복, 서버가 선택하지 않은 타로 카드, 개인정보·raw 데이터·공포/확정 표현을 거부한다. 문장을 반복해 분량만 채우는 결과는 유료 결과로 제공하지 않는다.
+- validator는 동일 긴 문장의 섹션 간 반복(조립 후 전체 검증)과 **한 필드 안 반복**(그룹 검증 `findFusionRepeatedSentenceField` — 60자 이상 문장이 한 필드에서 3회 이상이면 그 묶음을 반려해 보완 물결로 보낸다), 서버가 선택하지 않은 타로 카드, 개인정보·raw 데이터·공포/확정 표현을 거부한다. 문장을 반복해 분량만 채우는 결과는 유료 결과로 제공하지 않는다.
 - 오늘의 귀인은 `fusion` 없이 사용자가 고른 카테고리의 어댑터 하나만 실행한다. 프롬프트에는 해당 계산 결과와 해당 체계 전문가 지침만 전달하고, validator가 다른 다섯 체계의 용어·계산 근거·카드를 거부한다.
 
 - 공통 클라이언트: `lib/llm-client.ts`

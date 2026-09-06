@@ -190,6 +190,10 @@ const validationOptions = {
   const target = FUSION_SECTION_GROUP_SPECS.reduce((sum, group) => sum + group.targetChars, 0);
   check("목표 합계가 계약 하한보다 크다", target > FUSION_FORTUNE_LENGTH.total.min, `target=${target} min=${FUSION_FORTUNE_LENGTH.total.min}`);
   check("계약 하한이 30,000자", FUSION_FORTUNE_LENGTH.total.min >= 30000, String(FUSION_FORTUNE_LENGTH.total.min));
+  // 🔴 상한은 폭주 완충이지 목표가 아니다. 2026-09-06 실호출 5차가 51,203자로 들어와 옛 상한
+  //    46,000 을 넘겨 "넘쳤다는 이유로" degraded 강등이 났다(유료 품질 저하 고지까지 붙었다).
+  //    그 실측 위에 완충이 남아 있는지를 여기서 고정한다.
+  check("계약 상한이 5차 실측(51,203자) 위", FUSION_FORTUNE_LENGTH.total.max > 51203, String(FUSION_FORTUNE_LENGTH.total.max));
   check("2단계 구성", FUSION_STAGE_COUNT === 2 && STAGE_ONE_GROUPS.length === 6 && STAGE_TWO_GROUPS.length === 3, `stage1=${STAGE_ONE_GROUPS.length} stage2=${STAGE_TWO_GROUPS.length}`);
   check("모든 그룹이 단계를 가진다", FUSION_SECTION_GROUP_SPECS.every((group) => group.stage === 1 || group.stage === 2));
   check("1단계는 체계별 섹션만", STAGE_ONE_GROUPS.every((group) => group.systems.length === 1));
@@ -481,6 +485,29 @@ const validationOptions = {
   check("2단계 키는 폴백으로 채움", String(second.result?.executiveSummary || "").length >= FUSION_FORTUNE_LENGTH.executiveSummary && (second.result?.visualization?.monthlyTimeline || []).length === FUSION_TIMELINE_MONTHS);
   check("2단계 전멸 결과도 계약을 통과", validateFusionFortuneResult(second.result || {}, validationOptions).ok);
   console.log("[stage] #s2 예약 키 · 1단계 결과 조건 · 2단계 전멸 시 폴백 배달 확인");
+}
+
+// ── 13. 한 필드 안 문장 반복이 그룹 경계에서 걸리는가 ───────────────────────
+// 🔴 이 축은 다른 두 검사가 못 본다 — 교차 섹션 중복은 서로 다른 섹션에 걸친 것만 세고,
+//    전체 검증(hasRepeatedLongSentence)은 섹션마다 중복을 지운 뒤 3개 섹션 이상을 요구한다.
+//    2026-09-06 실호출 4·5차의 astrology 동어반복 루프가 실제로 이 틈으로 지나갔다.
+{
+  const group = groupById("saju");
+  const loop = "같은 문장을 되풀이해 분량을 채운 응답이 그대로 유료로 배달되지 않도록 이 문장을 여기서 여러 번 반복합니다.";
+  check("반복 표본이 최소 길이(60자) 위", loop.length >= 60, String(loop.length));
+
+  const repeat = (times) => {
+    const payload = groupPayload(group);
+    payload.sajuSection = { ...payload.sajuSection, content: `${payload.sajuSection.content} ${Array.from({ length: times }, () => loop).join(" ")}` };
+    return validateFusionFortuneGroup(payload, group, validationOptions);
+  };
+
+  check("한 필드 안 3회 반복은 그룹 반려", repeat(3).issue === "repeated_sentence", JSON.stringify(repeat(3)).slice(0, 160));
+  check("반려 사유가 필드를 지목", repeat(3).detail === "sajuSection", String(repeat(3).detail));
+  // 무는 가드임을 변이로 확인한다 — 반복만 없애면 같은 본문이 통과해야 한다.
+  check("2회까지는 통과", repeat(2).ok === true, JSON.stringify(repeat(2)).slice(0, 160));
+  check("반복 없는 정상 본문은 통과", validateFusionFortuneGroup(groupPayload(group), group, validationOptions).ok === true);
+  console.log("[repeat] 한 필드 안 60자 이상 문장 3회 반복 → repeated_sentence 로 보완 물결행");
 }
 
 if (failures.length) {
