@@ -28,7 +28,9 @@ import { isAuthUserCacheVerified, persistSanitizedAuthUser, readSanitizedAuthUse
 import { resolveMonthlyStoneBalance, resolveMonthlyStoneExpiresAt, formatMonthlyStoneExpiry } from "../_lib/monthly-stone";
 import { describePaymentPhoneFailure, promptPaymentPhoneNumber } from "../_lib/payment-phone-prompt";
 import { runAccessCheckWithTransientRetry } from "../_lib/consultationResultPolling";
-import { refreshUserAccessAfterPayment } from "../_lib/user-session-cache";
+import { refreshUserAccessAfterPayment, useUserAccess } from "../_lib/user-session-cache";
+import PassCycleCard from "../components/PassCycleCard";
+import { getPassTierLabel } from "@/lib/payment/pass-eligibility";
 
 type PaymentLoadingVariant = NonNullable<PaymentLoadingProps["variant"]>;
 
@@ -3015,6 +3017,7 @@ function MoonlightPaymentNotice() {
 export default function PointsPage() {
   const router = useRouter();
   const authState = useAuthStore();
+  const userAccess = useUserAccess();
   const authStoreUserId = authState.user?.id || "";
 
   /** 모바일 리디렉션 복귀를 한 번만 처리하기 위한 플래그 */
@@ -4786,6 +4789,19 @@ export default function PointsPage() {
     });
   };
 
+  const passUsage = userAccess.accessState?.entitlementSnapshot?.passUsage as {
+    tier?: string | null;
+    limitKRW?: number | null;
+    usedKRW?: number | null;
+    remainingKRW?: number | null;
+  } | undefined;
+  const passCycleCapWon = Number(passUsage?.limitKRW || 0);
+  const passCycleSpentWon = Number(passUsage?.usedKRW || 0);
+  const passCycleRemainingWon = Number(passUsage?.remainingKRW ?? Math.max(0, passCycleCapWon - passCycleSpentWon));
+  const passCyclePercent = passCycleCapWon > 0
+    ? Math.min(100, Math.round((passCycleSpentWon / passCycleCapWon) * 100))
+    : 0;
+
   /* ── 메인 렌더 ─────────────────────────────────────────────────── */
   return (
     <main
@@ -4944,6 +4960,23 @@ export default function PointsPage() {
           onCancelSubscription={handleSubscriptionCancel}
           copy={copy}
         />
+        {passUsage?.tier && passCycleCapWon > 0 && (
+          <PassCycleCard
+            tier={passUsage.tier}
+            capWon={passCycleCapWon}
+            spentWon={passCycleSpentWon}
+            remainingWon={passCycleRemainingWon}
+            percent={passCyclePercent}
+            copy={{
+              ariaLabel: "이번 이용권 기간의 이용 한도",
+              title: "이번 이용권 기간 한도",
+              tierLabel: getPassTierLabel(passUsage.tier) || passUsage.tier,
+              summary: (spent, cap) => `${spent} / ${cap} 사용`,
+              remaining: (remaining) => `${remaining} 남음`,
+            }}
+            formatWon={(value) => formatWon(value, copy, formatLocale)}
+          />
+        )}
         <MoonlightMonthlyCreditCard
           balance={monthlyStoneBalance}
           expiresAt={monthlyStoneExpiresAt}

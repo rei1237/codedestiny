@@ -5,7 +5,9 @@ import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { stripLocalePrefix } from "../_lib/localePath";
 import { resolveFeatureAccessModel, useServerPrice } from "@/app/hooks/useServerPrice";
 import { useMobileFortuneRenderTrace } from "@/app/_lib/mobile-fortune-trace";
+import { useUserAccess } from "@/app/_lib/user-session-cache";
 import { useTPick } from "@/lib/i18n/useT";
+import { describePassEligibility, type PassUsageSnapshot } from "@/lib/payment/pass-eligibility";
 
 const ShareWidget = lazy(() => import("./ShareWidget"));
 
@@ -640,12 +642,17 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
   const paidPrice = useServerPrice({
     featureKey: paidMeta?.featureKey,
   });
+  const access = useUserAccess();
   // 회당 결제와 영구 해금은 같은 값을 내도 성격이 다르다. 레지스트리의 accessModel 을 그대로 따른다.
   const isUnlockFeature = resolveFeatureAccessModel(paidMeta?.featureKey) === "unlock";
   // 가격을 못 푼 상태의 문구. PriceBadge 와 **같은 키**를 쓴다 — 사본을 만들면 두 화면이 갈라진다.
   const pick = useTPick();
   // paidPrice.loading 은 언제나 false 다 — useServerPrice 는 빌드타임 레지스트리를 동기로 읽는다.
   const pricePendingLabel = pick("preview.priceUnknown", "가격 확인 필요") || "";
+  const passUsage = access.accessState?.entitlementSnapshot?.passUsage as PassUsageSnapshot | undefined;
+  const passEligibility = isPaidFeature && paidPrice.amountKRW > 0
+    ? describePassEligibility(paidPrice.amountKRW, passUsage, locale)
+    : null;
 
   const category = basePath.split("/")[1] ?? "tarot";
   const baseTheme = THEMES[category] ?? THEMES.tarot;
@@ -1064,6 +1071,19 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
                 )
               : copy.freeCta}</span>
           </a>
+          {passEligibility && (
+            <div
+              role="status"
+              style={{
+                padding:"10px 14px", border:`1px solid ${t.border}`,
+                borderRadius:"12px", background:"rgba(255,255,255,0.06)",
+                color: passEligibility.monthlyExhausted ? "#fed7aa" : t.accent,
+                fontSize:"0.78rem", lineHeight:1.5, textAlign:"center",
+              }}
+            >
+              {passEligibility.label}
+            </div>
+          )}
           <a href="/insights/" className="flp-btn-s" style={{
             display:"flex", alignItems:"center", justifyContent:"center",
             padding:"13px 24px", background:t.btnSec,

@@ -227,67 +227,6 @@
   font-size: 0.68rem;
 }
 
-/* 이용권 월 누적 한도 카드. 등급별 강조색은 이용권 상점(app/points/PointsClient.tsx
-   planThemeMap)의 amber/rose/purple 값을 그대로 재사용해 상점과 같은 등급 아이덴티티를 준다. */
-.passCycleCard {
-  padding: 20px;
-  border: 1px solid var(--pass-accent-border, var(--moon-line));
-  border-radius: 20px;
-  background: linear-gradient(145deg, color-mix(in srgb, var(--pass-accent, var(--moon-gold)) 14%, var(--moon-bg-raised)), var(--moon-bg-raised));
-}
-
-.passCycleHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.passCycleTier {
-  display: inline-flex;
-  align-items: center;
-  border-radius: 999px;
-  padding: 4px 12px;
-  color: var(--pass-accent, var(--moon-gold));
-  background: color-mix(in srgb, var(--pass-accent, var(--moon-gold)) 16%, transparent);
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-}
-
-.passCycleAmounts {
-  margin: 14px 0 0;
-  color: var(--moon-ink);
-  font-variant-numeric: tabular-nums;
-  font-size: 1.1rem;
-  font-weight: 800;
-}
-
-.passCycleTrack {
-  margin-top: 10px;
-  height: 8px;
-  border-radius: 999px;
-  background: var(--moon-line-strong);
-  overflow: hidden;
-}
-
-.passCycleFill {
-  height: 100%;
-  border-radius: inherit;
-  background: var(--pass-accent, var(--moon-gold));
-}
-
-.passCycleRemaining {
-  margin: 10px 0 0;
-  color: var(--moon-ink-muted);
-  font-size: 0.8rem;
-  font-weight: 700;
-}
-
-.passCycleAmber { --pass-accent: #f5df9d; --pass-accent-border: rgba(233, 209, 138, 0.55); }
-.passCycleRose { --pass-accent: #cab8ff; --pass-accent-border: rgba(202, 184, 255, 0.55); }
-.passCyclePurple { --pass-accent: #8cb8ff; --pass-accent-border: rgba(140, 184, 255, 0.55); }
-
 .sectionHeader {
   display: flex;
   align-items: flex-start;
