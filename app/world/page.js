@@ -109,19 +109,20 @@ export default function WorldPage() {
         </figure>
       </header>
 
-      <section className="cd-world-prologue" aria-labelledby="cd-world-prologue-title">
+      <aside data-cd-editor-note="" className="cd-world-prologue" aria-labelledby="cd-world-prologue-title">
         <p className="cd-world-prologue-label">THE WORLD BEHIND THE READING</p>
-        <h2 id="cd-world-prologue-title">한 장의 운명 카드에서 시작된 세계</h2>
+        <h2 id="cd-world-prologue-title">세계관 안내</h2>
         <p>
-          연이는 이상한 앱이 열어 준 타로의 문을 지나 운명 세계에 도착했습니다. 그곳에서 자신의 사주 여덟 글자를 되찾는 여정은
-          사주의 강과 네 개의 섬, 기억이 잠든 도서관, 별들의 궁으로 이어집니다. 꽃돼지는 다른 캐릭터가 아니라 그 여정에서 드러난
-          연이의 모습입니다.
+          여기 적힌 인물과 장소는 라이트 노벨 본편에서 그대로 가져온 것이고, 새로 지어낸 설정은 없습니다. 상담 화면의 연이·네오가
+          왜 그런 말투로 이야기하는지 궁금할 때 읽으시면 됩니다. 연이는 이상한 앱이 열어 준 타로의 문을 지나 운명 세계에 도착했고,
+          꽃돼지는 다른 캐릭터가 아니라 그 여정에서 드러난 연이의 모습입니다.
         </p>
         <p>
-          이 세계관은 운세 결과를 대신 해석하지 않습니다. 계산 엔진이 만든 값을 연이와 네오가 서로 다른 목소리로 전하고,
-          사용자는 그 문장을 자신의 오늘에 비춰 봅니다.
+          본편을 안 읽어도 됩니다. 이 페이지만 읽어도 상담 화면을 쓰는 데는 지장이 없으며, 결말과 이어지는 내용은 일부러 적지
+          않았습니다. 이야기는 해석의 근거가 아닙니다. 명식·별자리 값은 계산 엔진이 내고, 세계관은 그 결과를 전하는 화자와 화면의
+          결을 정할 뿐입니다. 인물 이름과 장소 표기는 노벨 대본이 정본이므로 본편이 바뀌면 이 페이지도 함께 고칩니다.
         </p>
-      </section>
+      </aside>
 
       <section className="cd-world-section" aria-labelledby="cd-world-characters">
         <h2 id="cd-world-characters" className="cd-world-h2">인물</h2>
