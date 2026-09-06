@@ -20,7 +20,9 @@ import { classifyDiaryDays, dayGroupOf, type DiaryDayFortune } from "@/lib/diary
 import styles from "../_styles/diary.module.css";
 
 /**
- * 달 달력. 🔴 **읽기 전용이다** — 칸을 눌러 Day View 를 여는 것 말고는 아무것도 쓰지 않는다.
+ * 달 달력. 🔴 **달력 자체는 쓰지 않는다** — 칸을 눌러 Day View 를 여는 것이 전부이고, 그날에
+ * 쓰는 것은 Day View 의 기록·계획·회고 탭이다(PR-E). 저장 결과는 provider 의 `store` 가
+ * 새 참조로 바뀌면서 이 화면의 표시(✎·✓·★)에 그대로 반영된다.
  *
  * 🔴 날짜 세그먼트 라우트를 만들지 않는다 — 프로덕션은 `next.config.mjs` 의 `output:"export"`
  * 라 `/diary/calendar/[ymd]` 는 빌드 시각에 존재하는 날짜만 나온다. 선택 날짜는 `?d=YYYY-MM-DD`

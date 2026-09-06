@@ -1,10 +1,11 @@
 "use client";
 
+import DiaryRoutineList from "./DiaryRoutineList";
 import { useDiaryToday } from "./DiaryStoreProvider";
 import styles from "../_styles/diary.module.css";
 
 /**
- * 홈 ③ 오늘의 계획. 🔴 읽기 전용이다.
+ * 홈 ③ 오늘의 계획. 루틴 칸만 쓸 수 있다(PR-E) — 누르면 완료가 들어가고 빠진다.
  *
  * 지금 실제 데이터가 있는 칸은 **루틴**뿐이다 — 셸이 저장하는 것은 `challengeCatalog`(그날의
  * 실천 목록)와 `challenges`(완료한 id)뿐이고, 일정·할 일은 저장 스키마가 아직 없다(PR-F).
@@ -37,7 +38,7 @@ const DIARY_PLAN_CARD_TEXT = {
 const copy = DIARY_PLAN_CARD_TEXT.ko;
 
 export default function DiaryPlanCard() {
-  const { hydrated, entry } = useDiaryToday();
+  const { hydrated, ymd, entry } = useDiaryToday();
   const catalog = (entry?.challengeCatalog || []).filter((item) => item?.text);
   const doneIds = entry?.challenges || [];
 
@@ -66,26 +67,7 @@ export default function DiaryPlanCard() {
           </div>
           <div className={styles.planBox}>
             <p className={styles.fieldLabel}>{copy.routine}</p>
-            {catalog.length ? (
-              <ul className={styles.routineList}>
-                {catalog.map((item, index) => {
-                  const done = item.id ? doneIds.includes(item.id) : false;
-                  return (
-                    <li
-                      key={item.id || `${index}`}
-                      className={done ? styles.routineDone : styles.routineItem}
-                    >
-                      <span className={styles.routineMark} aria-hidden="true">
-                        {done ? "✓" : "○"}
-                      </span>
-                      <span>{item.text}</span>
-                    </li>
-                  );
-                })}
-              </ul>
-            ) : (
-              <p className={styles.emptySmall}>{copy.routineEmpty}</p>
-            )}
+            <DiaryRoutineList ymd={ymd} entry={entry} emptyText={copy.routineEmpty} />
           </div>
         </div>
       )}

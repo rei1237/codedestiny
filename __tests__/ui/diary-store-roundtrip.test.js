@@ -13,6 +13,7 @@
  *  - 빈 엔트리 골격이 필드 하나까지 전건 일치한다(필드 수가 40 미만이면 공회전으로 보고 실패)
  *  - 셸→앱·앱→셸 양방향에서 상대가 쓴 값이 한 필드도 사라지지 않는다
  *  - 서로 모르는 필드(상대가 나중에 추가할 것)도 살아남는다
+ *  - 앱의 쓰기 함수(`updateDiaryEntry`)가 낡은 스냅샷을 들고 저장해도 남의 값을 덮지 않는다
  *  - `app/diary/**` 에서 저장소를 만지는 파일은 전수 발견되어 계약 모듈을 거치지 않으면 실패한다
  */
 const test = require("node:test");
@@ -221,6 +222,61 @@ test("수동 시나리오 그대로 — 앱 저장 → 셸 확인 → 셸 저장
   assert.equal(final.nightLog, "셸이 쓴 야간 로그", "`/diary` 가 셸의 기록을 못 봤다");
   assert.deepEqual(final.challenges, ["c2"]);
   assert.equal(Object.keys(s2).length, 1, "왕복 중에 날짜 키가 하나 더 생겼다");
+});
+
+/* ─── 앱 쓰기 경로 (`updateDiaryEntry`) ──────────────────────────────
+ * PR-E 부터 저장소에 쓰는 곳이 둘이다(셸 모달 · `/diary`). 앱의 유일한 쓰기 함수가
+ * **저장 직전에 다시 읽어** 한 날짜만 병합하는지가 기록 유실의 갈림길이라 따로 증명한다. */
+
+test("앱이 화면에 들고 있던 낡은 스냅샷으로 저장해도 셸이 그사이 쓴 값이 살아남는다", () => {
+  const storage = makeStorage();
+  const shell = buildShellSandbox(storage);
+
+  // ① 화면이 저장소를 한 번 읽어 스냅샷을 들고 있다.
+  const stale = store.readDiaryStore(storage);
+  store.getDiaryEntry(stale, YMD).moodEmoji = "😊";
+  store.writeDiaryStore(storage, stale);
+
+  // ② 그사이 셸 모달이 같은 날에 다른 필드를 저장한다(앱 스냅샷은 이것을 모른다).
+  const shellDiary = shell.loadDiary();
+  shellDiary[YMD].nightLog = "모달이 그사이 쓴 회고";
+  assert.equal(shell.saveDiary(shellDiary), true);
+
+  // ③ 앱이 낡은 스냅샷을 손에 쥔 채 한 줄을 저장한다.
+  const saved = store.updateDiaryEntry(storage, YMD, (entry) => {
+    entry.practiceNote = "앱이 나중에 쓴 한 줄";
+  });
+  assert.ok(saved, "`updateDiaryEntry` 가 저장에 실패했다");
+
+  const after = store.readDiaryStore(storage)[YMD];
+  assert.equal(after.nightLog, "모달이 그사이 쓴 회고", "앱 저장이 모달이 쓴 값을 덮어썼다");
+  assert.equal(after.moodEmoji, "😊", "앱 저장이 앞서 쓴 제 값을 잃었다");
+  assert.equal(after.practiceNote, "앱이 나중에 쓴 한 줄");
+  assert.deepEqual(saved[YMD], after, "돌려준 저장소가 실제로 저장된 것과 다르다");
+});
+
+test("`updateDiaryEntry` 는 고른 날짜 하나만 바꾼다", () => {
+  const other = "2026-03-15";
+  const storage = makeStorage();
+  const seed = store.readDiaryStore(storage);
+  store.getDiaryEntry(seed, other).memoNote = "다른 날 메모";
+  store.writeDiaryStore(storage, seed);
+
+  store.updateDiaryEntry(storage, YMD, (entry) => {
+    entry.memoNote = "고른 날 메모";
+  });
+
+  const after = store.readDiaryStore(storage);
+  assert.equal(after[other].memoNote, "다른 날 메모", "다른 날짜의 기록이 바뀌었다");
+  assert.equal(after[YMD].memoNote, "고른 날 메모");
+  assert.deepEqual(Object.keys(after).sort(), [YMD, other]);
+});
+
+test("저장소가 가득 차면 `updateDiaryEntry` 가 null 을 돌려준다", () => {
+  const saved = store.updateDiaryEntry(makeFullStorage(), YMD, (entry) => {
+    entry.memoNote = "저장되지 않는다";
+  });
+  assert.equal(saved, null, "저장 실패를 성공처럼 돌려주면 화면이 안 쓴 것을 썼다고 보여 준다");
 });
 
 test("저장소가 가득 차면 양쪽 다 조용히 false 를 돌려준다", () => {

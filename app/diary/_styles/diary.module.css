@@ -220,8 +220,21 @@
   line-height: 1;
 }
 
-.navCapture[aria-disabled="true"] .navCaptureDot {
-  background: var(--dy-disabled);
+/* 저장 실패 알림. 저장 공간이 찼을 때만 뜨므로 자리를 미리 비워 두지 않고 시트보다 위에 띄운다. */
+.saveNotice {
+  position: fixed;
+  right: var(--cd-sp-md);
+  bottom: calc(var(--dy-nav-offset) + var(--cd-sp-sm));
+  left: var(--cd-sp-md);
+  z-index: 5;
+  margin: 0;
+  padding: var(--cd-sp-sm) var(--cd-sp-md);
+  border: 1px solid var(--dy-line-ui);
+  border-radius: var(--cd-r-card);
+  background: var(--dy-surface-2);
+  color: var(--dy-text);
+  font-size: var(--cd-t-caption);
+  line-height: 1.6;
 }
 
 /* ── 홈 카드군 ──────────────────────────────────────────────────────── */
@@ -438,11 +451,25 @@
   justify-content: center;
   width: var(--cd-btn-h);
   height: var(--cd-btn-h);
+  padding: 0;
   border: 1px solid var(--dy-line);
   border-radius: var(--cd-r-control);
   background: transparent;
+  color: var(--dy-text);
+  font-family: inherit;
   font-size: var(--cd-t-body);
   opacity: 0.55;
+  cursor: pointer;
+  transition: opacity var(--cd-dur-fast) ease, border-color var(--cd-dur-fast) ease;
+}
+
+.emoji:hover {
+  opacity: 1;
+}
+
+.emoji:focus-visible {
+  outline: 2px solid var(--dy-focus);
+  outline-offset: 2px;
 }
 
 .emojiOn {
@@ -452,7 +479,7 @@
   opacity: 1;
 }
 
-/* ── 입력 (PR-E 까지 비활성) ────────────────────────────────────────── */
+/* ── 입력 ───────────────────────────────────────────────────────────── */
 
 .input {
   width: 100%;
@@ -464,6 +491,21 @@
   color: var(--dy-text);
   font-family: inherit;
   font-size: var(--cd-t-body);
+}
+
+.input:focus-visible {
+  outline: 2px solid var(--dy-focus);
+  outline-offset: 1px;
+  border-color: var(--dy-accent);
+}
+
+/* 회고 한 줄. `composes` 로 입력 규격을 그대로 물려받아 두 칸이 따로 놀지 않게 한다. */
+.textarea {
+  composes: input;
+  min-height: 96px;
+  padding: var(--cd-sp-xs) var(--cd-sp-sm);
+  line-height: 1.7;
+  resize: vertical;
 }
 
 .input:disabled {
@@ -505,12 +547,31 @@
   list-style: none;
 }
 
+/* 항목 자체가 완료 토글 버튼이다 — 체크박스를 옆에 따로 두면 누를 곳이 두 군데가 된다. */
 .routineItem {
   display: flex;
   gap: var(--cd-sp-xs);
+  width: 100%;
+  min-height: var(--cd-btn-h);
+  align-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-family: inherit;
   font-size: var(--cd-t-body);
   line-height: 1.6;
+  text-align: left;
   color: var(--dy-text);
+  cursor: pointer;
+}
+
+.routineItem:disabled {
+  cursor: default;
+}
+
+.routineItem:focus-visible {
+  outline: 2px solid var(--dy-focus);
+  outline-offset: 2px;
 }
 
 .routineDone {
@@ -810,14 +871,15 @@
   border-bottom-color: var(--dy-accent);
 }
 
-.dvTab[aria-disabled="true"] {
-  color: var(--dy-disabled);
-  cursor: default;
-}
-
 .dvTab:focus-visible {
   outline: 2px solid var(--dy-focus);
   outline-offset: -2px;
+}
+
+.dvPanel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cd-sp-sm);
 }
 
 /* ── 빈 상태 ────────────────────────────────────────────────────────── */
