@@ -27,7 +27,7 @@ import { CREDENTIAL_CACHE_PREFIXES, purgeCredentialCache } from "../lib/credenti
 //    안 실렸으면 조용히 no-op 이라 fail-open 이고, verify:access-state-cache-order 가 거부한다.
 import { invalidateAccessStateCacheForUser } from "../lib/access-state-cache.js";
 import { User } from "../lib/models.js";
-import { getPortOnePublicConfig } from "../lib/portone.js";
+import { getPortOnePublicConfig, resolveChargeAmountKRW } from "../lib/portone.js";
 import { decryptPhoneNumber } from "../lib/pii-crypto.js";
 import { classify, contractFor, paymentError, responseHeadersFor } from "./errors.js";
 import { createPaymentContext, toObjectId, withPaymentDb } from "./db.js";
@@ -258,7 +258,23 @@ const PASS_POLICY_MESSAGES = Object.freeze({
   FAMILY_CANNOT_PURCHASE_HIGHER_TIER_PRODUCTS: "패밀리 이용권은 기능 이용 권한이며, 더 높은 가격의 이용권 구매 수단으로 사용할 수 없습니다.",
 });
 
-function resolvePassRequest(body = {}) {
+/**
+ * 이 환경에서 실제로 청구할 금액을 상품에 입힌다. **프로덕션에서는 언제나 인자를 그대로 돌려준다**
+ * (resolveChargeAmountKRW 가 정가를 그대로 반환하므로 새 객체조차 만들지 않는다).
+ *
+ * 🔴 주문 문서에 직접 쓰지 않고 **상품 객체 단계에서** 덮어쓰는 이유: orders.js hasPriceDrift ·
+ *    passes.js hasPassDrift 가 "주문 금액 ≠ 상품 금액"을 재가격 신호로 읽는다. 주문에만 넣으면
+ *    prepare 를 다시 부를 때마다 정가로 되돌려진다.
+ *
+ * 정가(paid-feature-registry.js · PASS_MONTHLY_WON)와 상품의 나머지 필드(featureKey · priceCoins ·
+ * pricing)는 건드리지 않는다 — 지급 판정과 화면 표시가는 정가 기준으로 남아야 한다.
+ */
+function withChargeAmount(env, product) {
+  const chargeKRW = resolveChargeAmountKRW(env, product.priceKRW);
+  return chargeKRW === Number(product.priceKRW) ? product : { ...product, priceKRW: chargeKRW };
+}
+
+function resolvePassRequest(env, body = {}) {
   const durationMonths = Number(body?.durationMonths || 1);
   const durationDays = Number(body?.durationDays ?? 30);
   if (durationMonths !== 1 || durationDays !== 30) {
@@ -273,7 +289,11 @@ function resolvePassRequest(body = {}) {
   }
   const amount = body?.amount === undefined || body?.amount === null ? null : Number(body.amount);
   const currency = String(body?.currency || "KRW").trim().toUpperCase();
-  if ((amount !== null && amount !== plan.wonPrice) || !["KRW", "CURRENCY_KRW"].includes(currency)) {
+  /* 🔴 청구가도 정답으로 받는다. /points 의 confirm 은 amount 로 **주문에 기록된 금액**을 되보내는데
+     (PointsClient.tsx confirmPayload), 스테이징 테스트 모드에서는 그 값이 정가가 아니라 청구가다.
+     프로덕션에서는 chargeKRW === plan.wonPrice 라 판정이 종전과 완전히 같다. */
+  const chargeKRW = resolveChargeAmountKRW(env, plan.wonPrice);
+  if ((amount !== null && amount !== plan.wonPrice && amount !== chargeKRW) || !["KRW", "CURRENCY_KRW"].includes(currency)) {
     throw paymentError("SUBSCRIPTION_PRICE_MISMATCH", "이용권 가격 정보가 일치하지 않습니다.");
   }
   const paymentMethod = String(body?.paymentMethod || "card_general").trim().toLowerCase();
@@ -281,7 +301,7 @@ function resolvePassRequest(body = {}) {
     // 문구는 구 핸들러 고정 계약(payments.subscription-purchase.test.js:501)과 동일하게 유지한다.
     throw paymentError("SUBSCRIPTION_MONTHLY_CREDIT_UNSUPPORTED", "이용권은 단건 결제로만 구매할 수 있습니다. 월정석으로는 이용권을 구매할 수 없습니다.");
   }
-  return { plan, paymentMethod };
+  return { plan, paymentMethod, chargeKRW };
 }
 
 async function enforcePassPurchasePolicy(env, request, { userId, plan, paymentMethod, body, userDoc, route }) {
@@ -395,7 +415,7 @@ function presentMembershipPass(entitlement, coverage = {}) {
 }
 
 async function handlePassPrepare({ request, env, ctx, userId, body, withDb }) {
-  const { plan, paymentMethod } = resolvePassRequest(body);
+  const { plan, paymentMethod, chargeKRW } = resolvePassRequest(env, body);
   ctx.productId = plan.planId;
 
   const headerKey = String(request.headers.get("Idempotency-Key") || request.headers.get("X-Idempotency-Key") || "").trim();
@@ -412,7 +432,11 @@ async function handlePassPrepare({ request, env, ctx, userId, body, withDb }) {
     /* 🔴 재사용할 수 없는 주문(다른 플랜·이미 결제됨·취소됨)은 409 가 아니라 **새 세대 주문**으로 답한다
        (passes.js createPayablePassOrder). /points 는 409 를 새 키로 재시도하지 않고 토스트만 띄워,
        그 키가 바뀔 때까지 이용권을 살 수 없는 막다른 길이었다. 카드 상품과 같은 계약이다. */
-    const created = await createPayablePassOrder(db, { userId, plan, idempotencyKey, paymentMethod });
+    /* 🔴 enforcePassPurchasePolicy 에는 위에서 **정가 plan** 을 넘겼다 — 패밀리 등급의 상위상품
+       구매 차단처럼 구매 정책은 상품 가치 기준이어야 하고, 청구가로 판정하면 스테이징에서만
+       정책이 달라진다. 주문에 실리는 금액만 청구가로 바꾼다. */
+    const chargePlan = chargeKRW === Number(plan.wonPrice) ? plan : { ...plan, wonPrice: chargeKRW };
+    const created = await createPayablePassOrder(db, { userId, plan: chargePlan, idempotencyKey, paymentMethod });
     return { order: created, user: userDoc };
   });
   ctx.orderId = String(order.merchantUid || "");
@@ -431,7 +455,7 @@ async function handlePassPrepare({ request, env, ctx, userId, body, withDb }) {
       tier: plan.tier,
       planId: plan.planId,
       durationMonths: plan.durationMonths,
-      paymentAmount: Number(order.paymentAmount || plan.wonPrice),
+      paymentAmount: Number(order.paymentAmount || chargeKRW),
       productName: plan.name,
       productType: plan.productType,
       profileLimit: plan.profileLimit,
@@ -455,7 +479,7 @@ async function handlePassConfirm({ request, env, ctx, userId, body, withDb }) {
      오류는 주문 조회 한 왕복도 쓰지 않고 400 이어야 한다(구 계약, payments-v2.subscription.test.js
      의 `db.ctx.ops === 0`). 등급이 없을 때만 주문에서 복원할 수 있어 그 경우에만 아래로 미룬다. */
   if (tierFromBody) {
-    ({ plan, paymentMethod } = resolvePassRequest(body));
+    ({ plan, paymentMethod } = resolvePassRequest(env, body));
     ctx.productId = plan.planId;
   }
 
@@ -473,7 +497,7 @@ async function handlePassConfirm({ request, env, ctx, userId, body, withDb }) {
        통과했고 등급도 서버가 기록한 사실이라, 클라 값이 없을 때 그것을 쓰는 것이 더 정확하다.
        body 에 등급이 실려 오면 종전대로 대조한다 — 위조 방어(SUBSCRIPTION_PLAN_MISMATCH)는 그대로다. */
     if (!plan) {
-      const resolved = resolvePassRequest({
+      const resolved = resolvePassRequest(env, {
         ...body,
         tier: String(order.subscriptionTier || ""),
         paymentMethod: String(body.paymentMethod || "").trim()
@@ -521,7 +545,8 @@ async function handlePassConfirm({ request, env, ctx, userId, body, withDb }) {
   ctx.paymentStatus = "PAID";
 
   const subscription = presentPassSubscription(user?.profileSubscription, plan, { customerUid, paymentMethod });
-  const payment = { merchantUid: orderId, impUid, paymentAmount: plan.wonPrice, paymentType: "membership_pass", status: "paid" };
+  // 응답 에코는 **실제 청구된 주문 금액**이다(정가가 아니다) — 영수증·내역 표시가 승인액과 어긋나지 않게 한다.
+  const payment = { merchantUid: orderId, impUid, paymentAmount: Number(begun?.order?.paymentAmount || plan.wonPrice), paymentType: "membership_pass", status: "paid" };
   // 🔴 이용권 활성화는 GET /api/auth/me 응답의 pass/membership/subscription 필드를 바꾼다. 그 응답은
   // 30초 자격증명 단위 엣지 캐시(worker/lib/credential-scoped-cache.js)를 타므로, 여기서 지우지
   // 않으면 결제 직후 다른 탭·새로고침이 최대 30초간 옛 이용권 상태를 본다.
@@ -840,9 +865,9 @@ const ROUTES = {
   "POST /orders": {
     auth: "required",
     async handle({ env, ctx, userId, body, withDb }) {
-      const product = resolveProduct({
+      const product = withChargeAmount(env, resolveProduct({
         productId: body.productId, featureKey: body.featureKey, reason: body.reason,
-      });
+      }));
       ctx.productId = product.productId;
       const order = await withDb(env, ctx, (db) => createOrder(db, {
         userId,
@@ -879,16 +904,25 @@ const ROUTES = {
       // 🔴 가격 해석은 구 정본(billing-feature-registry) 체인을 그대로 탄다(legacy-pricing.js).
       // 첫 배선은 catalog(resolveProduct)를 썼는데, mode/reportMode/categoryKey 변형 가격을 잃어
       // 해당 기능의 단건 결제가 400(금액 불일치)으로 막히는 라이브 결함이었다(2026-08-12 수정).
-      const product = resolveLegacyProduct(body);
-      ctx.productId = product.productId;
+      const listedProduct = resolveLegacyProduct(body);
+      ctx.productId = listedProduct.productId;
 
+      /* 🔴 트립와이어는 **정가** 기준이다. 클라이언트가 낡은 가격으로 결제창을 여는 것을 막는 장치라
+         상품 가치와 대야 하고, 청구가와 대면 스테이징에서만 검사가 헐거워진다.
+         재개 경로가 주문에 기록된 청구가를 되보내는 경우가 있어 그 값도 정답으로 받는다 —
+         프로덕션에서는 두 값이 같아 판정이 종전과 완전히 같다. */
+      const chargeKRW = resolveChargeAmountKRW(env, listedProduct.priceKRW);
       const clientAmount = Number(body.paymentAmount ?? body.amount);
-      if (Number.isFinite(clientAmount) && clientAmount > 0 && Math.floor(clientAmount) !== Number(product.priceKRW)) {
+      if (Number.isFinite(clientAmount) && clientAmount > 0
+        && Math.floor(clientAmount) !== Number(listedProduct.priceKRW)
+        && Math.floor(clientAmount) !== chargeKRW) {
         throw paymentError("CLIENT_AMOUNT_MISMATCH", "결제 금액이 현재 가격과 다릅니다. 화면을 새로고침한 뒤 다시 시도해 주세요.", {
-          expectedAmount: Number(product.priceKRW),
+          expectedAmount: Number(listedProduct.priceKRW),
           clientAmount,
         });
       }
+      // 주문에 실리는 금액만 청구가다. pricing(화면 표시가)은 아래 응답 조립에서 정가 상품을 그대로 쓴다.
+      const product = withChargeAmount(env, listedProduct);
 
       const headerKey = String(request.headers.get("Idempotency-Key") || request.headers.get("X-Idempotency-Key") || "").trim();
       let idempotencyKey = String(body.idempotencyKey || "").trim()
@@ -935,7 +969,7 @@ const ROUTES = {
       const legacyOrder = toLegacyPrepareOrder(order, {
         config: getPortOnePublicConfig(env),
         customer,
-        pricing: product.pricing || { ...product },
+        pricing: listedProduct.pricing || { ...listedProduct },
         body,
       });
       const envelope = legacyPrepareEnvelope(legacyOrder, { idempotent });

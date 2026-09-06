@@ -446,7 +446,7 @@ node scripts/run-paid-gate-suite.mjs --base <merge-base sha>
 ## 8. 관련 문서
 
 - 모바일 INP 라운드 전체 이력·좌표·함정: `docs/handoff/inp-round3-2026-08-16.md` (5라운드까지, **끝남**)
-- 그 앞: `docs/handoff/inp-round2-2026-08-16.md` · `docs/handoff/mobile-home-perf.md`
+- 그 앞의 1·2라운드 문서는 2026-09-06 에 위 문서로 흡수·삭제됐다(정본 근거는 그 문서 §1). 나란한 문서: `docs/handoff/mobile-home-perf.md`
 - 미해결로 남은 것(성능 아님): 같은 문서 §6-4('최근 이용' 기록 미동작 — **기능 버그**) ·
   §6-5(`showOverview()` 2회 호출) · §4-4 말미(사주 코어 순차 체인 11개)
 - 🔴 모바일 쪽 최대 미해결 수치: **부팅 이후 레이아웃 시프트 0.357**(목표 ≤0.1)이고

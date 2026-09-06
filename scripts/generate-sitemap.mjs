@@ -283,6 +283,9 @@ const coreRoutes = [
   // 슬러그는 생성물(lib/stories/vn/episodes.generated.json)에서 읽어 하드코딩 드리프트를 막는다.
   { path: "/stories", changefreq: "monthly", priority: 0.86 },
   ...STORY_EPISODE_SLUGS.map((slug) => ({ path: `/stories/${slug}`, changefreq: "yearly", priority: 0.7 })),
+  // 캐릭터·세계관 안내(app/world). 노벨 본편이 아니라 그 인물·장소를 설명하는 보조 문서라
+  // /stories 보다 우선순위를 낮춘다.
+  { path: "/world", changefreq: "monthly", priority: 0.7 },
   { path: "/insights/saju", changefreq: "weekly", priority: 0.84 },
   { path: "/insights/ziwei", changefreq: "weekly", priority: 0.88 },
   { path: "/insights/sukuyo", changefreq: "weekly", priority: 0.88 },

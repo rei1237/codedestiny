@@ -22,6 +22,7 @@ const SITE_SEO_TEXT_TRANSLATIONS = {
     "siteSeo.021": "연애 리포트 PDF 안내 | 관계 흐름 심층 분석",
     "siteSeo.023": "운세 인사이트 가이드 | 사주·타로·궁합·점성술",
     "siteSeo.024": "운세 인사이트 아카이브 | 사주·타로·자미두수 가이드",
+    "siteSeo.025": "연이와 네오 — 꿀꿀 운세 캐릭터·세계관 소개",
   },
 } as const;
 
@@ -352,6 +353,17 @@ export const publicSeoPages: Record<string, PublicSeoPage> = {
     keywords: ["운세 가이드", "사주 입문", "타로 리딩", "궁합", "점성술"],
     changeFrequency: "weekly",
     priority: 0.88,
+    structuredData: ["WebPage", "BreadcrumbList"],
+  },
+  world: {
+    path: "/world",
+    title: siteSeoText("siteSeo.025"),
+    description:
+      "꿀꿀 운세의 상담자 연이와 네오는 누구인지, 사주의 강·인성의 도서관 같은 장소가 어디서 왔는지 한자리에 모아 소개합니다.",
+    h1: "캐릭터와 세계관",
+    keywords: ["연이", "네오", "꿀꿀 운세 캐릭터", "사주의 강", "운명 세계관"],
+    changeFrequency: "monthly",
+    priority: 0.7,
     structuredData: ["WebPage", "BreadcrumbList"],
   },
   insights: {

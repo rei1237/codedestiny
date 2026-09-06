@@ -1,4 +1,5 @@
 import { getEnv } from "./env.js";
+import { applyTestChargeAmount } from "./billing-policy.js";
 
 const DEFAULT_PORTONE_BASE_URL = "https://api.portone.io";
 const PORTONE_REQUIRED_ENV_KEYS = Object.freeze([
@@ -42,6 +43,33 @@ function getExactEnvWithAlias(env, primaryKey, aliases = []) {
 function logMissingPortOneEnv(missingKeys) {
   if (!Array.isArray(missingKeys) || missingKeys.length === 0) return;
   console.error(`[portone-config] Missing required payment env: ${missingKeys.join(", ")}`);
+}
+
+/** KG이니시스 최소 승인금액. verify-billing-pass-policy.mjs 도 같은 하한을 단언한다. */
+const MIN_PG_CHARGE_KRW = 1000;
+
+/**
+ * 이 배포 환경에서 쓸 테스트 청구가(원). 켜지지 않았으면 0 이다.
+ *
+ * 🔴 판정 재료는 **서버 env 두 개뿐**이다 — 요청 본문·헤더·쿼리를 보지 않으므로 클라이언트가
+ *    `staging=true` 류 값을 보내 프로덕션에서 소액 결제를 만들 수 없다. 두 조건 중 하나라도
+ *    없으면 0(=정가)이고, 프로덕션 워커에는 APP_ENV 자체가 없다(worker/wrangler.staging.toml
+ *    에만 있고, 프로덕션 toml 로 새는 것은 verify:worker-config-parity 가 막는다).
+ *
+ * 하한(1,000원) 미만은 무시한다 — PG 가 승인하지 않는 금액이라 결제창까지 가지 못한다.
+ */
+export function resolveTestChargeAmountKRW(env) {
+  if (String(getEnv(env, "APP_ENV", "")).trim().toLowerCase() !== "staging") return 0;
+  const amount = Math.floor(Number(getEnv(env, "PAYMENT_TEST_AMOUNT_KRW", "")) || 0);
+  return amount >= MIN_PG_CHARGE_KRW ? amount : 0;
+}
+
+/**
+ * 정가를 받아 **이 환경에서 실제로 청구할 금액**을 돌려준다. 프로덕션에서는 언제나 정가 그대로다.
+ * 정책 계산 자체는 billing-policy.js(순수 모듈)에 있고 여기서는 환경만 읽는다.
+ */
+export function resolveChargeAmountKRW(env, listPriceKRW) {
+  return applyTestChargeAmount(listPriceKRW, resolveTestChargeAmountKRW(env));
 }
 
 export function getPortOneConfig(env) {
