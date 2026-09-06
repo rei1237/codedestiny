@@ -143,8 +143,13 @@ git grep -n "PassCycleCard" -- app src lib           # PointHistoryClient.tsx �
   단, 키워드 스캔은 못 쓴다 — 54개 전수 스캔 결과 **종결을 선언한 19건이 전부 미종결 표지도 함께 갖는다.**
   문서 하나당 대상 심볼을 코드에서 확인하는 수작업이 필요하다(§2-2 절차).
 - **통합 축**: 계보가 이어지는 묶음을 하나로 접는다.
-  예: `locale-sweep-2026-08-24` 계열 4건, `inp-round2`·`inp-round3`·`mobile-inp-and-stability` 3건.
+  예: `locale-sweep-2026-08-24` 계열 4~5건, `inp-round2`·`inp-round3`·`mobile-inp-and-stability` 3건.
   🔴 통합은 삭제가 아니므로 이 대장이 아니라 별도 PR 로 다룬다.
+  - ✅ **`inp` 계보 3건 완료(2026-09-06)** — `inp-round3-2026-08-16.md` 로 흡수하고 앞 2건을 지웠다.
+    🔴 파일명을 안 바꾼 이유: `js/core/index-inline-runtime.js:2138` 주석이 그 경로를 가리킨다(미러 포함 2곳).
+  - ⬜ `locale-sweep` 계보는 미착수 — `nonko-surface-sweep-2026-08-24` + `locale-sweep-2026-08-24`(·part2·part3)
+    + `locale-sweep-2026-08-25-part4` ≈ 47KB. part4 머리말이 방법론·마커·정정 절차를 앞 3건에 **분담**시켜
+    놓았으므로, 접을 때 그 분담 서술을 통합본 안의 절 참조로 바꿔야 링크가 끊기지 않는다.
 
 ### 5-1. 🔴 `docs:stale` 의 삭제 제안을 그대로 실행하지 말 것
 
