@@ -5782,6 +5782,287 @@ function _cdAIPromptIsPassPayload(payload, access) {
     || accessMethod === 'PASS';
 }
 
+/* ── 결제 후 자동 재개 공통 배관 (js/saju-engine.js) ─────────────────────────────
+   모바일 PortOne 은 상위 프레임을 리다이렉트하므로 게이트의 await 가 페이지와 함께 죽고 onGranted 가
+   영영 실행되지 않는다 — "결제했는데 메인 화면"의 정체다. 이 파일은 어떤 HTML 도 정적 로드하지 않는
+   지연 스크립트라, 복귀 후 표면은 셸의 기존 딥링크(서술자의 action)가 먼저 열어 이 스크립트를 불러온다.
+   🔴 핸들러 안에서 화면을 다시 열지 않는다 — 표면을 여는 책임은 checkout-entry 의 runPaidResume 하나다.
+   🔴 재개는 반드시 게이트 없는 코어를 부른다(게이트를 다시 타면 재결제가 난다).
+   계약 정본: js/core/checkout-entry.js, 배선 선례: js/saju-engine-tarot-sukuyo-quantum.js 의 syRunCompatResume. */
+var _SE_RESUME_WAIT_MS = 8000;
+var _SE_RESUME_POLL_MS = 200;
+
+function _seCheckoutEntry() {
+  try { return window.__cdCheckoutEntry || null; } catch (_seEntryError) { return null; }
+}
+
+function _seRegisterResumeHandler(kind, handler) {
+  var entry = _seCheckoutEntry();
+  if (!entry || typeof entry.registerPaidResumeHandler !== 'function') return;
+  try { entry.registerPaidResumeHandler(kind, handler); } catch (_seRegisterError) {}
+}
+
+function _seFieldValue(id) {
+  var el = typeof document !== 'undefined' ? document.getElementById(id) : null;
+  return el ? String(el.value == null ? '' : el.value) : '';
+}
+
+// input/select 를 채운 뒤 change 를 흘린다 — 붙어 있는 리스너에게 사람이 고른 것과 같아진다.
+function _seSetFieldValue(id, value) {
+  var el = typeof document !== 'undefined' ? document.getElementById(id) : null;
+  if (!el) return;
+  var next = String(value == null ? '' : value);
+  if (!next) return;
+  el.value = next;
+  try { el.dispatchEvent(new Event('change', { bubbles: true })); } catch (_seFieldEventError) {}
+}
+
+// 딥링크가 표면을 연 직후에도 대상은 아직 안 그려져 있다 — 상한을 두고 기다린다.
+function _seWaitForResumeTarget(isReady, limitMs) {
+  return new Promise(function(resolve) {
+    var deadline = Date.now() + (Number(limitMs) || _SE_RESUME_WAIT_MS);
+    (function poll() {
+      var ready = false;
+      try { ready = !!isReady(); } catch (_seReadyError) { ready = false; }
+      if (ready) { resolve(true); return; }
+      if (Date.now() >= deadline) { resolve(false); return; }
+      setTimeout(poll, _SE_RESUME_POLL_MS);
+    })();
+  });
+}
+
+/* 복귀 때 넘어온 결제 증빙(grant)을 _cdAIPromptGate 가 돌려주던 모양으로 되돌린다.
+   AI 상담 3종의 생성 POST 는 이 증거를 실어야 402 를 안 맞는다 — 서버가 requestId·merchantUid 로
+   결제 문서를 찾는다(worker/lib/nakshatra-paid-access.js findPaidPayment). */
+function _seResumeEvidence(grant) {
+  if (!grant || typeof grant !== 'object') return null;
+  var payload = (grant.payload && typeof grant.payload === 'object') ? grant.payload : {};
+  var requestId = String(grant.requestId || grant.merchantUid || '').trim();
+  if (!requestId && !Object.keys(payload).length) return null;
+  return _cdAIPromptGateEvidence({
+    ok: true,
+    status: 200,
+    payload: payload,
+    data: _cdAIPromptPayloadData(payload),
+    requestId: requestId
+  });
+}
+
+// 라디오 그룹은 id 가 없다 — name 으로 찾아 값이 맞는 것을 체크하고 change 를 흘린다.
+function _seSetRadioValue(name, value) {
+  if (typeof document === 'undefined') return;
+  var next = String(value == null ? '' : value);
+  if (!next) return;
+  var nodes = document.getElementsByName(name);
+  for (var i = 0; i < nodes.length; i += 1) {
+    if (String(nodes[i].value) === next) {
+      nodes[i].checked = true;
+      try { nodes[i].dispatchEvent(new Event('change', { bubbles: true })); } catch (_seRadioEventError) {}
+      return;
+    }
+  }
+}
+
+function _seRadioValue(name, fallback) {
+  if (typeof document === 'undefined') return fallback;
+  var nodes = document.getElementsByName(name);
+  for (var i = 0; i < nodes.length; i += 1) {
+    if (nodes[i].checked) return String(nodes[i].value || fallback);
+  }
+  return fallback;
+}
+
+/* ── 코인 퍼유즈 게이트 4종의 재개 ─────────────────────────────────────────────
+   결제 직전 폼 값을 서술자에 담아 두었다가, 복귀 후 딥링크가 표면을 다시 그리면 그 값을 되꽂고
+   🔴 게이트 없는 코어를 부른다(게이트를 다시 타면 재결제가 난다). 필수 값이 비면 서술자를 만들지
+   않고 null 을 돌려주며, 그때는 호출부(destiny-profile 복귀 처리)가 '지금 열기' 카드를 그린다. */
+var _SE_ASTRO_CELEB_RESUME_KIND = 'saju-engine-astro-celeb-synastry';
+var _SE_ASTRO_DIRECT_RESUME_KIND = 'saju-engine-astro-direct-synastry';
+var _SE_ZIWEI_COMPAT_RESUME_KIND = 'saju-engine-ziwei-compat';
+var _SE_SAJU_COMPAT_RESUME_KIND = 'saju-engine-saju-compat';
+
+function _seBuildAstroCelebResumeDescriptor(name, birth, hour) {
+  if (!name || !birth) return null;
+  return {
+    kind: _SE_ASTRO_CELEB_RESUME_KIND,
+    // 셸의 기존 딥링크. 새 라우팅을 만들지 않는다(index.html 의 data-action="openAstroModal").
+    action: 'openAstroModal',
+    args: { name: String(name), birth: String(birth), hour: String(hour == null ? 12 : hour) }
+  };
+}
+
+function _seRunAstroCelebResume(descriptor) {
+  var args = (descriptor && descriptor.args && typeof descriptor.args === 'object') ? descriptor.args : {};
+  if (!args.name || !args.birth) return false;
+  return _seWaitForResumeTarget(function() {
+    return typeof window._astroPickCelebCore === 'function' && !!document.getElementById('astroSyResult');
+  }, _SE_RESUME_WAIT_MS).then(function(ready) {
+    if (!ready) return false;
+    var hour = parseInt(args.hour, 10);
+    window._astroPickCelebCore(String(args.name), String(args.birth), isFinite(hour) ? hour : 12);
+    return true;
+  });
+}
+
+function _seBuildAstroDirectResumeDescriptor() {
+  if (typeof document === 'undefined') return null;
+  var date = _cdReadBirthDateInput('asDirect_date');
+  if (!date) return null;
+  return {
+    kind: _SE_ASTRO_DIRECT_RESUME_KIND,
+    action: 'openAstroModal',
+    args: {
+      name: _seFieldValue('asDirect_name'),
+      date: _seFieldValue('asDirect_date'),
+      time: _seFieldValue('asDirect_time') || '12:00',
+      gender: _seFieldValue('asDirect_gender') || 'OTHER',
+      city: _seFieldValue('asDirect_city')
+    }
+  };
+}
+
+function _seRunAstroDirectResume(descriptor) {
+  var args = (descriptor && descriptor.args && typeof descriptor.args === 'object') ? descriptor.args : {};
+  if (!args.date) return false;
+  return _seWaitForResumeTarget(function() {
+    return typeof window._astroDirectSynastryCore === 'function' && !!document.getElementById('asDirect_date');
+  }, _SE_RESUME_WAIT_MS).then(function(ready) {
+    if (!ready) return false;
+    _seSetFieldValue('asDirect_name', args.name);
+    _seSetFieldValue('asDirect_date', args.date);
+    _seSetFieldValue('asDirect_time', args.time || '12:00');
+    _seSetFieldValue('asDirect_gender', args.gender || 'OTHER');
+    // 도시 select 의 옵션이 아직 없으면 값이 안 붙고 코어가 기본 좌표(서울)로 계산한다 — 결과는 나온다.
+    _seSetFieldValue('asDirect_city', args.city);
+    window._astroDirectSynastryCore();
+    return true;
+  });
+}
+
+function _seBuildZiweiCompatResumeDescriptor() {
+  if (typeof document === 'undefined') return null;
+  var date = _seFieldValue('zwCompatBirthDate');
+  var time = _seFieldValue('zwCompatBirthTime');
+  if (!date || !time) return null;
+  return {
+    kind: _SE_ZIWEI_COMPAT_RESUME_KIND,
+    action: 'openZiweiModal',
+    args: {
+      date: date,
+      time: time,
+      gender: _seFieldValue('zwCompatGender') || 'OTHER',
+      city: _seFieldValue('zwCompatBirthCity')
+    }
+  };
+}
+
+function _seRunZiweiCompatResume(descriptor) {
+  var args = (descriptor && descriptor.args && typeof descriptor.args === 'object') ? descriptor.args : {};
+  if (!args.date || !args.time) return false;
+  return _seWaitForResumeTarget(function() {
+    return typeof window._runZwCompatibilityCore === 'function' && !!document.getElementById('zwCompatBirthDate');
+  }, _SE_RESUME_WAIT_MS).then(function(ready) {
+    if (!ready) return false;
+    _seSetFieldValue('zwCompatBirthDate', args.date);
+    _seSetFieldValue('zwCompatBirthTime', args.time);
+    _seSetFieldValue('zwCompatGender', args.gender || 'OTHER');
+    _seSetFieldValue('zwCompatBirthCity', args.city);
+    window._runZwCompatibilityCore();
+    return true;
+  });
+}
+
+function _seBuildSajuCompatResumeDescriptor(name, bd, type) {
+  if (!bd) return null;
+  return {
+    kind: _SE_SAJU_COMPAT_RESUME_KIND,
+    // 사주 궁합 폼은 사주 결과 화면 안에 있다 — 셸의 사주 진입 딥링크가 계산까지 다시 돌려 준다.
+    action: 'cdSajuTabEntry',
+    args: {
+      name: String(name || ''),
+      bd: String(bd),
+      type: String(type || 'love'),
+      cal: _seRadioValue('compatCalType', 'solar'),
+      hour: _seFieldValue('compatBirthHour'),
+      minute: _seFieldValue('compatBirthMinute')
+    }
+  };
+}
+
+function _seRunSajuCompatResume(descriptor) {
+  var args = (descriptor && descriptor.args && typeof descriptor.args === 'object') ? descriptor.args : {};
+  if (!args.bd) return false;
+  return _seWaitForResumeTarget(function() {
+    // 폼만으로는 부족하다 — runCompatCore 는 내 사주 계산 결과(G_PILLARS 등)를 전제로 돈다.
+    return !!document.getElementById('compatBirthDate') && typeof G_PILLARS !== 'undefined' && !!G_PILLARS;
+  }, _SE_RESUME_WAIT_MS).then(function(ready) {
+    if (!ready) return false;
+    _seSetFieldValue('compatName', args.name);
+    _seSetFieldValue('compatBirthDate', args.bd);
+    _seSetFieldValue('compatType', args.type || 'love');
+    _seSetRadioValue('compatCalType', args.cal || 'solar');
+    _seSetFieldValue('compatBirthHour', args.hour);
+    _seSetFieldValue('compatBirthMinute', args.minute);
+    // 🔴 게이트를 다시 타는 runCompat 이 아니라 코어를 직접 부른다(재결제 방지).
+    runCompatCore(document.getElementById('compatRunBtn'), String(args.name || '상대방'), String(args.bd), String(args.type || 'love'));
+    return true;
+  });
+}
+
+/* ── AI 상담 3종의 재개 ────────────────────────────────────────────────────────
+   이 셋은 결제만 되살리면 끝나는 게 아니라 생성 POST 에 결제 증빙을 실어야 한다 — 서버가 증빙을 못
+   찾으면 화면은 열렸는데 402 가 나고, 사용자는 다음에 또 결제한다. 각 화면이 이미 갖고 있는
+   '재결제 없는 재시도' 자리(lastPaidEvidence · astroEvidenceStore · paidEvidence)로 수렴시킨다. */
+var _SE_SAJU_AI_RESUME_KIND = 'saju-engine-saju-ai-prompt';
+var _SE_ASTRO_AI_RESUME_KIND = 'saju-engine-astro-ai-prompt';
+var _SE_ZIWEI_AI_RESUME_KIND = 'saju-engine-ziwei-ai-prompt';
+
+function _seRunSajuAiPromptResume(descriptor, grant) {
+  var args = (descriptor && descriptor.args && typeof descriptor.args === 'object') ? descriptor.args : {};
+  var evidence = _seResumeEvidence(grant);
+  if (!args.question || !evidence) return false;
+  return _seWaitForResumeTarget(function() {
+    return typeof window._sajuAiPromptResumeCore === 'function';
+  }, _SE_RESUME_WAIT_MS).then(function(ready) {
+    if (!ready) return false;
+    return window._sajuAiPromptResumeCore(String(args.question), String(args.domain || ''), evidence) !== false;
+  });
+}
+
+function _seRunAstroAiPromptResume(descriptor, grant) {
+  var args = (descriptor && descriptor.args && typeof descriptor.args === 'object') ? descriptor.args : {};
+  var evidence = _seResumeEvidence(grant);
+  if (!args.question || !evidence) return false;
+  return _seWaitForResumeTarget(function() {
+    return typeof window._astroAiPromptResumeCore === 'function';
+  }, _SE_RESUME_WAIT_MS).then(function(ready) {
+    if (!ready) return false;
+    return window._astroAiPromptResumeCore(String(args.question), evidence) !== false;
+  });
+}
+
+function _seRunZiweiAiPromptResume(descriptor, grant) {
+  var args = (descriptor && descriptor.args && typeof descriptor.args === 'object') ? descriptor.args : {};
+  var evidence = _seResumeEvidence(grant);
+  if (!args.question || !evidence) return false;
+  return _seWaitForResumeTarget(function() {
+    return typeof window._zwAiPromptResumeCore === 'function';
+  }, _SE_RESUME_WAIT_MS).then(function(ready) {
+    if (!ready) return false;
+    return window._zwAiPromptResumeCore(String(args.question), evidence) !== false;
+  });
+}
+
+(function _seRegisterResumeHandlers() {
+  _seRegisterResumeHandler(_SE_ASTRO_CELEB_RESUME_KIND, _seRunAstroCelebResume);
+  _seRegisterResumeHandler(_SE_ASTRO_DIRECT_RESUME_KIND, _seRunAstroDirectResume);
+  _seRegisterResumeHandler(_SE_ZIWEI_COMPAT_RESUME_KIND, _seRunZiweiCompatResume);
+  _seRegisterResumeHandler(_SE_SAJU_COMPAT_RESUME_KIND, _seRunSajuCompatResume);
+  _seRegisterResumeHandler(_SE_SAJU_AI_RESUME_KIND, _seRunSajuAiPromptResume);
+  _seRegisterResumeHandler(_SE_ASTRO_AI_RESUME_KIND, _seRunAstroAiPromptResume);
+  _seRegisterResumeHandler(_SE_ZIWEI_AI_RESUME_KIND, _seRunZiweiAiPromptResume);
+})();
+
 function _cdAIPromptGate(input) {
   var opts = input && typeof input === 'object' ? input : {};
   var featureKey = String(opts.featureKey || '').trim();
@@ -5839,7 +6120,12 @@ function _cdAIPromptGate(input) {
       disablePassFirst: opts.disablePassFirst === true,
       disablePassChoice: opts.disablePassChoice === true,
       forceDirectPayment: opts.forceDirectPayment === true,
-      requestId: requestId
+      requestId: requestId,
+      /* 🔴 모바일 리다이렉트 결제는 여기서 프레임이 죽어 아래 then 이 영영 안 돈다.
+         복귀 후 재개는 이 두 값으로만 성립한다 — action 이 표면을 열고 resume 이 무엇을 이어할지 말한다.
+         재개 계약 정본: js/core/checkout-entry.js 의 runPaidResume. */
+      action: String(opts.action || '').trim() || undefined,
+      resume: opts.resume || undefined
     })).then(function(openResult) {
       if (openResult && openResult.status === 'granted') {
         return normalize({ ok: true, status: 200, payload: openResult.payload || {} });
@@ -7232,7 +7518,14 @@ function _requestSajuQuestionPrompt(question, privacyOptions, domain, options) {
     amountKrw: 20000,
     paymentAmount: 20000,
     requestId: 'saju-ai-prompt:' + requestNonce,
-    categoryKey: 'saju'
+    categoryKey: 'saju',
+    action: 'cdSajuTabEntry',
+    resume: {
+      kind: _SE_SAJU_AI_RESUME_KIND,
+      action: 'cdSajuTabEntry',
+      // 서술자 args 는 원시값만 남는다 — 개인정보 옵션은 복귀 화면의 기본값을 그대로 쓴다.
+      args: { question: String(question || ''), domain: String(domain || '') }
+    }
   }).then(function(gateResult) {
     if (!gateResult.ok) return _cdAIPromptFailureResult(gateResult);
     savedEvidence = _cdAIPromptGateEvidence(gateResult);
@@ -7970,6 +8263,27 @@ function _bindSajuQuestionPromptCard(rootEl) {
   updateCount();
   setProgress(-1, false);
   _sajuPromptSetStatus(statusEl, '질문을 남기면 결제, 월정석 크레딧, 멤버십 이용권 확인 뒤 사주 AI 상담 결과가 열립니다.', 'info');
+  /* 결제 후 자동 재개 진입점 — 카드가 다시 바인딩될 때마다 최신 클로저로 덮어쓴다.
+     🔴 여기서 화면을 열지 않는다(표면은 runPaidResume 이 이미 열었다). 🔴 새 경로를 만들지 않고
+     아래 '이어보기' 복원과 같은 lastPaidEvidence 자리로 수렴시켜 handleGenerate 의 reusePaidEvidence
+     분기를 그대로 타게 한다 — 리다이렉트로 프레임이 죽으면 onPaidEvidence 가 못 돌아 대기 작업이
+     애초에 저장되지 않으므로, 그 복원만으로는 이 구멍이 안 메워진다(원칙 6). */
+  window._sajuAiPromptResumeCore = function(question, domain, evidence) {
+    if (!evidence) return false;
+    var q = String(question || '');
+    if (!q) return false;
+    inputEl.value = q;
+    if (domain) {
+      var domainEl = rootEl.querySelector('[data-saju-ai-domain][value="' + String(domain).replace(/"/g, '\\"') + '"]');
+      if (domainEl) domainEl.checked = true;
+    }
+    updateCount();
+    lastPaidEvidence = evidence;
+    lastPaidEvidenceKey = requestKey(q, _sajuPromptReadDomain(rootEl));
+    handleGenerate();
+    return true;
+  };
+
   var currentProfileId = _sajuPromptResolveProfileId();
   var restoredJob = _sajuPromptReadPendingJob(currentProfileId);
   if (restoredJob && (restoredJob.requestId || restoredJob.jobId || restoredJob.executionId)) {
@@ -13661,7 +13975,13 @@ function renderAstroInsightLegacyNeon() {
         reason: '점성술 AI 질문 프롬프트 생성',
         cost: ASTROLOGY_AI_PROMPT_COST,
         requestId: requestId,
-        categoryKey: 'astrology'
+        categoryKey: 'astrology',
+        action: 'openAstroModal',
+        resume: {
+          kind: _SE_ASTRO_AI_RESUME_KIND,
+          action: 'openAstroModal',
+          args: { question: String((body && body.question) || '') }
+        }
       }).then(function(gateResult) {
         if (!gateResult.ok) return _cdAIPromptFailureResult(gateResult);
         return postWithEvidence(_cdAIPromptGateEvidence(gateResult));
@@ -13703,6 +14023,29 @@ function renderAstroInsightLegacyNeon() {
         var len = String(inputEl.value || '').trim().length;
         countEl.textContent = len + ' / ' + ASTROLOGY_AI_PROMPT_MAX_LENGTH;
       }
+
+      /* 결제 후 자동 재개 진입점 — 섹션이 다시 마운트될 때마다 최신 클로저로 덮어쓴다.
+         🔴 여기서 화면을 열지 않는다(표면은 runPaidResume 이 이미 열었다). 🔴 병렬 생성 경로를 만들지
+         않고, 결제 증거를 기존 재시도 저장소에 꽂은 뒤 평소의 클릭 경로를 그대로 태운다 — 클릭 핸들러가
+         astroReuse 를 집어 게이트를 건너뛴다(원칙 6). */
+      window._astroAiPromptResumeCore = function(question, evidence) {
+        if (!evidence || inFlight) return false;
+        var resumeQuestion = String(question || '').trim();
+        if (!resumeQuestion) return false;
+        inputEl.value = resumeQuestion;
+        updateCount();
+        var resumeContext = _astroBuildPromptContext();
+        var resumeRequestId = _cdAIPromptBuildRequestId('astrology-ai-prompt', [
+          _sajuPromptResolveProfileId(),
+          resumeQuestion,
+          resumeContext.astrologyResult,
+          resumeContext.compatibilityResult,
+          astroRequestEpoch
+        ]);
+        astroEvidenceStore.set(resumeRequestId, evidence);
+        generateBtn.click();
+        return true;
+      };
 
       generateBtn.addEventListener('click', function() {
         if (inFlight) return;
@@ -14245,6 +14588,10 @@ function renderAstroInsightLegacyNeon() {
         if (typeof window._cdCoinGatePerUse === 'function') {
           window._cdCoinGatePerUse(50, '점성술 셜럭 시나스트리 궁합', function() {
             window._astroPickCelebCore(name, birth, hour);
+          }, {
+            // 모바일 리다이렉트 복귀용. 서술자를 게이트 열기 '전에' 만든다(복귀 후에는 이 값이 없다).
+            action: 'openAstroModal',
+            resume: _seBuildAstroCelebResumeDescriptor(name, birth, hour) || undefined
           });
           return;
         }
@@ -14506,6 +14853,9 @@ function renderAstroInsightLegacyNeon() {
         if (typeof window._cdCoinGatePerUse === 'function') {
           window._cdCoinGatePerUse(50, '점성술 직접 입력 시나스트리 궁합', function() {
             window._astroDirectSynastryCore();
+          }, {
+            action: 'openAstroModal',
+            resume: _seBuildAstroDirectResumeDescriptor() || undefined
           });
           return;
         }
@@ -21097,8 +21447,11 @@ function renderZiwei(p, natal, targetId) {
 
     function handleGenerate(options) {
       if (isLoading) return;
-      var opts = options && options.paymentPayload ? options : {};
+      var opts = options && (options.paymentPayload || options.paidEvidence) ? options : {};
       var paidPayload = opts.paymentPayload && typeof opts.paymentPayload === 'object' ? opts.paymentPayload : null;
+      /* 리다이렉트 복귀 재개가 넘기는 조립 완료 증거. paymentPayload 경로와 달리 여기에는 결제 당시의
+         requestId 가 들어 있어야 한다 — 복귀 후 다시 계산한 zwRequestId 로는 서버가 결제 문서를 못 찾는다. */
+      var paidEvidence = opts.paidEvidence && typeof opts.paidEvidence === 'object' ? opts.paidEvidence : null;
       var question = String(questionEl.value || '').trim();
       if (!question || question.length < _ZW_AI_PROMPT_MIN_LENGTH) {
         setStatus('질문은 최소 ' + _ZW_AI_PROMPT_MIN_LENGTH + '자 이상 입력해 주세요.', 'error');
@@ -21162,7 +21515,9 @@ function renderZiwei(p, natal, targetId) {
       // 게이트(결제)는 1회만. 게이트 통과 후 생성 POST만 일시 503/네트워크 시 동일 requestId로 자동 재시도.
       var promptRequest = zwReuse
         ? postWithEvidence(zwReuse)
-        : (paidPayload
+        : (paidEvidence
+          ? postWithEvidence(paidEvidence)
+          : paidPayload
           ? postWithEvidence(_cdAIPromptGateEvidence({
             ok: true,
             status: 200,
@@ -21175,7 +21530,9 @@ function renderZiwei(p, natal, targetId) {
             reason: _ZW_AI_PROMPT_REASON,
             cost: _ZW_AI_PROMPT_COST,
             requestId: zwRequestId,
-            categoryKey: 'ziwei'
+            categoryKey: 'ziwei',
+            action: 'openZiweiModal',
+            resume: { kind: _SE_ZIWEI_AI_RESUME_KIND, action: 'openZiweiModal', args: { question: question } }
           }).then(function(gateResult) {
             if (!gateResult.ok) return _cdAIPromptFailureResult(gateResult);
             return postWithEvidence(_cdAIPromptGateEvidence(gateResult));
@@ -21266,6 +21623,16 @@ function renderZiwei(p, natal, targetId) {
         setStatus('', 'info');
       }
     });
+
+    /* 결제 후 자동 재개 진입점 — 패널이 다시 그려질 때마다 최신 클로저로 덮어쓴다.
+       🔴 여기서 화면을 열지 않는다. 표면은 runPaidResume 이 딥링크로 이미 열어 둔 상태다. */
+    window._zwAiPromptResumeCore = function(question, evidence) {
+      if (!evidence) return false;
+      questionEl.value = String(question || '');
+      updateCount();
+      handleGenerate({ paidEvidence: evidence });
+      return true;
+    };
 
     generateBtn.addEventListener('click', handleGenerate);
     regenerateBtn.addEventListener('click', handleGenerate);
@@ -21950,7 +22317,10 @@ function renderZiwei(p, natal, targetId) {
 
     window._runZwCompatibility = function() {
       if (typeof window._cdCoinGatePerUse === 'function') {
-        window._cdCoinGatePerUse(ZW_COMPAT_COST, '자미두수 궁합 분석', function() { window._runZwCompatibilityCore(); });
+        window._cdCoinGatePerUse(ZW_COMPAT_COST, '자미두수 궁합 분석', function() { window._runZwCompatibilityCore(); }, {
+          action: 'openZiweiModal',
+          resume: _seBuildZiweiCompatResumeDescriptor() || undefined
+        });
         return;
       }
       // ⚠️ 미로그인 상태: _cdCoinGatePerUse 미정의
@@ -27725,6 +28095,9 @@ async function runCompat(){
         compatRunBtn.disabled = false;
         compatRunBtn.style.opacity = '';
       }
+    }, {
+      action: 'cdSajuTabEntry',
+      resume: _seBuildSajuCompatResumeDescriptor(name, bd, type) || undefined
     });
     return;
   }

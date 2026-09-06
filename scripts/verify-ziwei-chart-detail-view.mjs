@@ -199,12 +199,25 @@ ok(
   "궁합 결제는 공유 회당 게이트 하나만 탄다",
   engineSrc.includes("window._cdCoinGatePerUse(ZW_COMPAT_COST, '자미두수 궁합 분석'"),
 );
-// 계산 본체를 부르는 곳이 한 군데뿐이어야 한다. 두 번째 호출부가 생기면 그게 곧
-// "게이트를 안 거치고 궁합을 여는 길"이다(정의부는 `= function` 이라 여기 안 잡힌다).
+// 계산 본체를 부르는 곳은 둘뿐이어야 한다 — 게이트 콜백과, 결제 후 자동 재개 핸들러.
+// 세 번째 호출부가 생기면 그게 곧 "게이트를 안 거치고 궁합을 여는 길"이다(정의부는 `= function` 이라 여기 안 잡힌다).
+// 🔴 재개 핸들러는 우회로가 아니다 — runPaidResume 이 결제 영수증을 소비한 뒤에만 부르고,
+//    거기서 게이트를 다시 태우면 재결제가 난다. 그래서 게이트가 아니라 코어를 부르는 것이 계약이다.
 check(
-  "궁합 계산 본체를 부르는 곳은 게이트 콜백 하나뿐이다",
+  "궁합 계산 본체를 부르는 곳은 게이트 콜백과 재개 핸들러 둘뿐이다",
   engineSrc.split("_runZwCompatibilityCore()").length - 1,
-  1,
+  2,
+);
+const zwResumeFnAt = engineSrc.indexOf("function _seRunZiweiCompatResume(");
+const zwResumeFn = zwResumeFnAt < 0 ? "" : engineSrc.slice(zwResumeFnAt, engineSrc.indexOf("\nfunction ", zwResumeFnAt + 1));
+ok(
+  "두 번째 호출부는 결제 후 재개 핸들러 안에 있다",
+  zwResumeFn.includes("_runZwCompatibilityCore()"),
+  zwResumeFnAt < 0 ? "_seRunZiweiCompatResume 자체가 없다 — 결제 후 자동 재개가 사라졌다" : "",
+);
+ok(
+  "재개 핸들러가 kind 로 등록돼 있다",
+  engineSrc.includes("'saju-engine-ziwei-compat'") && engineSrc.includes("_seRunZiweiCompatResume"),
 );
 ok(
   "가격 상수는 한 곳에서만 정의된다",
