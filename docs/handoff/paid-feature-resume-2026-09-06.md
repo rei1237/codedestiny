@@ -181,6 +181,9 @@ React 에서 새로 확인한 것:
 - 🔴 **완성된 유료 산출물을 서술자에 싣지 않는다** — 서술자는 결제 **전에** 브라우저 저장소로 들어간다. 마야는 프롬프트 원문 대신 입력만 싣는다.
 - 🔴 **멱등키는 서술자에 실어야 한다** — 복귀 문서에서 새로 뽑으면 서버가 다른 상담으로 보고 값을 두 번 친다(neo).
 - **생성 실패 시 `false` 를 돌려 영수증을 남긴다** — 복귀 문서에는 폼 입력이 없어 사용자가 스스로 재시도할 수단이 '지금 열기' 카드밖에 없다. 같은 멱등키로 다시 나가므로 이중 차감이 아니다(neo).
+- 🔴 **정적 테스트가 게이트 호출을 리터럴로 물고 있다 — 인자를 추가하면 깨진다.** `__tests__/ui/fortune-chat.static.test.js` 가 `/openPaymentGate\(requestId\)/` 를 요구해서, 서술자를 두 번째 인자로 붙인 순간 CI 의 **Static guards · Critical checks 두 잡이 같은 1건으로** 죽었다(2026-09-06 PR #1710 실측). 지키려던 불변식은 "게이트와 생성 요청이 같은 requestId 를 쓴다" 라 그대로 살아 있으므로 `/openPaymentGate\(requestId[,)]/` 로만 넓혔다 — 다른 식별자를 넘기면 여전히 실패한다. 🔴 **로컬 게이트로는 안 잡힌다**(`lint`·`typecheck`·`check:quick` 어디에도 `__tests__/ui/*.static.test.js` 가 없다). 배선한 파일 이름으로 `git grep -l <파일명> -- __tests__` 를 한 번 돌려 정적 단언을 먼저 확인할 것.
+- 🔴 **게이트 인자를 스프레드로 감싸면 가격 커버리지 가드가 신원을 잃는다.** `runBillingCoinGate(buildBillingGateInput(...))` 를 `runBillingCoinGate({ ...buildBillingGateInput(...), resume })` 로 바꾼 **9곳 전부**에서 `verify:paid-gate-price-coverage` 가 "가격을 풀 수 없습니다 (신원: {})" 로 죽었다(2026-09-06 PR #1710 실측). 런타임은 멀쩡하다 — 파서가 스프레드를 "무엇이 들었는지 알 수 없다"며 통째로 버렸을 뿐이고, 그래서 **fail-closed 로 옳게 실패한 것**이다. `scripts/verify-paid-gate-price-coverage.mjs` 의 `readGateArg` 가 **정적으로 풀리는 스프레드만** 기존 R2/R3 환원기로 따라 들어가도록 고쳤다. 🔴 못 푸는 스프레드(`...payload`)는 예전처럼 근거가 아니고, 빌더가 여러 갈래로 return 하면 **전 갈래가 같은 값을 줄 때만** 인정하며, 스프레드 뒤에 오는 속성이 그 키를 덮는다(`{ ...builder(), cost: 0 }` 은 근거 아님) — 그래서 키 단위로 들고 다닌다. 변이 2건으로 무는 것을 확인했다: 스프레드 뒤 가격 0 덮어쓰기 · 스프레드를 못 푸는 식으로 교체.
+- 🔴 **이 가드도 로컬 커밋 전 게이트에 없다** — `paid-flow-gates.yml` 에서만 돈다. 게이트 호출부 모양을 바꿨으면 `node scripts/verify-paid-gate-price-coverage.mjs` 를 손으로 한 번 돌린다.
 - 영수증만으로 여는 지름길을 붙이려면 `app/_lib/billing-client.ts:1724-1770` `hasVerifiedBillingAccess(data, expectedFeatureKey)` 를 만족시켜야 한다(featureKey 일치 + `accessGrant.*` 또는 `consume.*` 식별자). 이번 배선은 이 지름길을 **안 썼다** — 전부 서술자 + 핸들러 축이다.
 
 ### 계약 공백 (Phase B) — ✅ 닫혔다 (PR #1656)
