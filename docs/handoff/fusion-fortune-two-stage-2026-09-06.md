@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-06
-next: Phase 4 실검증을 1회 돌렸고 결과는 **FAIL** 이다(아래 "남은 작업"). 다음은 코드가 아니라 **결정** — 1단계 6묶음 중 5묶음이 검증에 걸리는 것을 프롬프트 쪽에서 풀지 검증 임계 쪽에서 풀지 사용자와 정한 뒤, 고치고 재측정한다. 재측정도 `--live` 이므로 **그때 다시 승인을 받는다**(절대 규칙 1).
+next: Phase 4 를 **원문 덤프와 함께 재측정**했고 탈락 원인이 확정됐다(아래 "남은 작업"). 다음은 코드가 아니라 **결정** — 탈락 8건 중 6건이 분량이 아니라 **JSON 형태**(keyPoints 누락 5 · 생줄바꿈 파싱 실패 1)이므로 임계를 낮춰도 안 풀린다. 구조화 출력(Gemini `responseSchema`)을 배선할지 사용자와 정한 뒤 고치고 재측정한다. 재측정도 `--live` 이므로 **그때 다시 승인을 받는다**(절대 규칙 1).
 ---
 
 # 초융합 운세 개선 — 2단계 생성(Phase 1) 이후
@@ -23,10 +23,16 @@ next: Phase 4 실검증을 1회 돌렸고 결과는 **FAIL** 이다(아래 "남�
 
 - [x] **Phase 2 UI/UX 고급화** — 위 "지금 상태". 로케일 12개 중 ko·en·ja·zh-CN·zh-TW 만 저작, vi·hi·es·fr·de·nl·ms 는 영어 복사(배치 번역 후속).
 - [x] **Phase 3 모바일 최적화** — 도크·시트·섹션 헤더 줄바꿈·푸터 2열·좁은 화면 여백 4종(≤430px). 로케일 5키는 ko·en·ja·zh 저작, 나머지 7개는 영어 복사.
-- [ ] 🔴 **Phase 4 실검증 — 1회 돌렸고 FAIL**(2026-09-06). 하네스 `scripts/verify-fusion-fortune-live.mjs`(npm `verify:fusion-fortune-live`, 플래그 없으면 호출 0으로 계획만 출력). 재현: `node --env-file=<리포 루트>/.env.local scripts/verify-fusion-fortune-live.mjs --live`. 사용자 지시로 조합 전수(45회) 대신 **대표 1건**(`생시O 장소O`)만 돌렸다 — 조합 커버리지는 mock `verify:fusion-fortune-delivery-floor` 가 맡는다.
-  - 실측: 1단계 6묶음 · 32.9초 · provider 호출 11회(첫 물결 6 + 보완 5) · 누적 26,939자 · `generationSource=gemini_partial`.
-  - 첫 물결에서 **6묶음 중 5묶음 탈락** — saju `section_depth`(본문 <3,600자) · ziwei `missing_key_points` · sukuyo `parse_failed` · astrology `unsafe_phrase` · tarot `missing_key_points`. 보완 물결에서도 5묶음 전부 실패해 결정론 폴백으로 대체됐다. 모델 본문이 살아남은 것은 vedic 1개(5,820자)뿐.
+- [ ] 🔴 **Phase 4 실검증 — 2회 돌렸고 모두 FAIL. 원인은 확정됐다**(2026-09-06). 하네스 `scripts/verify-fusion-fortune-live.mjs`(npm `verify:fusion-fortune-live`, 플래그 없으면 호출 0으로 계획만 출력). 재현: `node --env-file=<리포 루트>/.env.local scripts/verify-fusion-fortune-live.mjs --live --dump`. 사용자 지시로 조합 전수(45회) 대신 **대표 1건**(`생시O 장소O`)만 돌렸다 — 조합 커버리지는 mock `verify:fusion-fortune-delivery-floor` 가 맡는다.
+  - 2차 실측(`--dump`): 1단계 6묶음 · 35.4초 · 호출 11회(첫 물결 6 + 보완 5) · 누적 27,093자 · `generationSource=gemini_partial` · `fallbackGroups: saju·ziwei·tarot`.
+  - 🔴 **탈락 8건 중 6건은 분량이 아니라 JSON 형태다** — 임계를 낮춰도 안 풀린다:
+    - `missing_key_points` **5건**(vedic·sukuyo·tarot 첫 물결, ziwei·tarot 보완) — 섹션 객체가 `{title, content}` 뿐이고 **`keyPoints` 키 자체가 없다**. 본문은 오히려 임계 초과(3,763~5,469자). 다른 이름으로 쓴 게 아니라 그냥 빠뜨린다(덤프 `keys[].fields` 로 확인).
+    - `parse_failed` **1건**(ziwei 첫 물결) — 잘림이 아니다(꼬리 `]}}` 정상, outputTokens 2,399~3,241 / cap 8,460). 문자열 안에 **이스케이프 안 된 생줄바꿈 1개**(position 4269). 같은 응답의 나머지 14개는 `\n` 으로 제대로 이스케이프했다.
+    - 진짜 분량 미달은 `section_depth` **2묶음뿐** — saju 3,189자·tarot 3,258자(임계 3,600자의 86~91%). 🔴 saju 는 **보완 물결이 오히려 더 짧아졌다**(3,189 → 3,108) — 분량 지시 재프롬프트가 안 듣는다.
+    - 성공 3건(astrology 첫 물결, vedic·sukuyo 보완)은 전부 `{title, content, keyPoints[3]}` 형태를 지켰다.
+  - **사실 확인**: Gemini 구조화 출력이 **배선돼 있지 않다** — `worker/lib/fusion-fortune-prompt.js:467` 이 스키마를 *프롬프트 본문에 문자열로* 붙일 뿐이고, `worker/lib/gemini.js:126` 의 generationConfig 는 `responseMimeType` 만 보낸다(`responseSchema` 없음). 검색 범위: `git grep -l responseSchema` 전 레포 + `worker/lib/gemini.js` generationConfig 전체.
   - 판정 기준 ③(단계당 ≤120초)만 충족. ① 총 ≥30,000자 · ② `degraded` 0 은 물타기를 감지한 시점에 중단해 **미검증**(2단계 미실행).
+  - 원문 덤프: `_tmp_fusion-live/<타임스탬프>/`(`.gitignore` 의 `_tmp_*`, 커밋 안 됨). 호출 1회당 `.txt`(응답 원문) + `.json`(판정·키별 글자수/임계·`fields`·`droppedKeys`) + `summary.md` 표. 🔴 **워크트리를 지우면 같이 사라진다** — 실호출 재승인 없이 다시 못 만든다.
 - [ ] **후속(범위 밖 보고)**: ① 프롬프트 캐싱 미배선 — `createGeminiContextCache`(`worker/lib/gemini.js`)가 있으나 초융합 경로에 안 붙어 있다. 붙이려면 서버 컨텍스트를 프롬프트 앞으로 재배치해야 한다(절감 ₩30–50/건 추정). ② `visibleTextLength` 가 JSON 직렬화 길이라 이름과 의미가 어긋난다(`worker/lib/fusion-fortune-consultation.js`). 표시에 쓰이는 곳이 있는지 3면 grep 후 결정. ③ 관리자 프롬프트 랩이 그룹 수를 하드코딩하는지 **미검증**(`worker/routes/admin*.js` 에서 `FUSION_SECTION_GROUP_SPECS` 참조 0건, 범위 `worker/routes`·`worker/lib`).
 
 ## 정본 예시
@@ -59,6 +65,7 @@ node --test __tests__/ui/fusion-fortune.static.test.js
 
 ## 모르는 것
 
-- **왜** 5묶음이 탈락하는지 — 모델이 지시를 안 지키는 것인지, 검증 임계(`FUSION_FORTUNE_LENGTH.section` 3,600자 · `keyPoints` 3개)가 실제 출력 대비 과한 것인지 **미검증**. 하네스가 탈락한 묶음의 원문을 저장하지 않아 눈으로 못 봤다 — 재측정 전에 그 덤프부터 붙이는 게 싸다.
+- `responseSchema` 를 `worker/lib/gemini.js` generationConfig 에 붙였을 때 **다른 기능이 받는 영향** — 그 파일은 전 기능 공용이므로 초융합만 켜는 옵션이어야 한다(원칙 7 회귀 축). **미검증**.
+- 형태가 고쳐진 뒤 saju·tarot 의 분량 미달(86~91%)이 남는지 — 남는다면 그때가 임계 조정을 논할 자리다. **미검증**.
 - 대표 1건 외 나머지 4조합(생시·장소 결측, 음력·도쿄)의 실호출 거동은 **미검증**.
 - Phase 2 레일·Phase 3 도크 모두 브라우저에서 눈으로 확인하지 않았다(정적 검증·타입·린트만). 스테이징 배포 후 ① 데스크톱 `lg` 이상에서 sticky·차례 이동, ② 360/390/430px 에서 도크가 패널에 갇히지 않는지·시트 열림/스크림 탭 닫힘·좌상단 `.cd-feature-nav` 와 겹치지 않는지 본다.
