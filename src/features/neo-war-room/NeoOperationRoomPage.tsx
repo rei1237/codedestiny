@@ -15,6 +15,7 @@ import {
   runBillingCoinGate,
 } from "@/app/_lib/billing-client";
 import { useServerPrice } from "@/app/hooks/useServerPrice";
+import { packPaidResumeArg, unpackPaidResumeArg, usePaidResume } from "@/app/hooks/usePaidResume";
 import LlmParagraphs from "@/components/fortune/LlmParagraphs";
 import NeoFactPunch from "./components/NeoFactPunch";
 import NeoSpriteActor from "./components/NeoSpriteActor";
@@ -2223,6 +2224,36 @@ export default function NeoOperationRoomPage() {
     throw new Error("GENERATION_PENDING");
   }
 
+  /**
+   * 결제 후 자동 재개 — 모바일 PortOne 은 상위 프레임을 리다이렉트하므로 handleSubmit 의 await 가
+   * 문서와 함께 죽는다. 그러면 /start 가 영영 안 불려 결제한 사용자가 빈 입력 폼으로 돌아온다.
+   * grant.payload 는 서버 확정 응답 그대로라 인페이지 gate 와 같은 자리에 consume·accessGrant 가 있다.
+   * 🔴 멱등키를 서술자에 실어야 한다 — 복귀 문서에서 새로 뽑으면 서버가 다른 상담으로 보고 두 번 값을 친다.
+   * 🔴 생성이 실패하면 false 를 돌려 영수증을 남긴다 — 복귀 문서에는 폼 입력이 없어 사용자가 스스로
+   *    재시도할 수단이 '지금 열기' 카드밖에 없다(같은 멱등키로 다시 나가므로 이중 차감이 아니다).
+   */
+  const buildResume = usePaidResume(FEATURE_KEY, async (args, grant) => {
+    const idempotencyKey = toText(args.idempotencyKey);
+    const payload = unpackPaidResumeArg<NeoWarRoomAccessPayload>(args.payload);
+    if (!idempotencyKey || !payload) return false;
+    const inputFingerprint = toText(args.inputFingerprint);
+    idempotencyKeyRef.current = idempotencyKey;
+    idempotencyFingerprintRef.current = inputFingerprint;
+    setPendingAccess({ endpoint: NEO_WAR_ROOM_ACCESS_ENDPOINT, idempotencyKey, inputFingerprint, payload });
+    setErrorMessage("");
+    try {
+      await startBriefing(idempotencyKey, payload, extractPaymentContext({ data: grant?.payload }, idempotencyKey));
+      return true;
+    } catch (caught) {
+      const code = caught instanceof Error ? caught.message : "SERVER_ERROR";
+      setFlowPhase("failed");
+      setOperationReady(false);
+      setStatusMessage("");
+      setErrorMessage(getNeoErrorCopy(code, dialogueLocale) || getNeoErrorCopy("SERVER_ERROR", dialogueLocale));
+      return false;
+    }
+  });
+
   async function startBriefing(idempotencyKey: string, payload: NeoWarRoomAccessPayload, access: Record<string, unknown>) {
     setFlowPhase("generating");
     setStatusMessage(paidGateCopy.startingMapMessage);
@@ -2420,6 +2451,11 @@ export default function NeoOperationRoomPage() {
         productId: toText(runtimeGate.productId || paymentPayload.productId || "neo-operation-room"),
         productType: toText(runtimeGate.productType || paymentPayload.productType || "neo-operation-room"),
         serviceType: toText(runtimeGate.serviceType || paymentPayload.serviceType || FEATURE_KEY),
+        resume: buildResume({
+          idempotencyKey,
+          inputFingerprint,
+          payload: packPaidResumeArg(payload),
+        }),
       });
       if (!gate.ok || !gate.data) {
         const code = toText(gate.error?.code || (gate.status === 401 ? "LOGIN_REQUIRED" : "PAYMENT_VERIFY_FAILED")).toUpperCase();

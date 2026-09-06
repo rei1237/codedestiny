@@ -4,7 +4,8 @@ import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Copy, LockKeyhole, RefreshCw, WandSparkles } from "lucide-react";
 import { openPaidFeatureGate, runBillingCoinGate } from "@/app/_lib/billing-client";
-import type { MayaCalendarResult } from "@/src/lib/maya-calendar";
+import { usePaidResume } from "@/app/hooks/usePaidResume";
+import { calculateMayaCalendar, type MayaCalendarResult } from "@/src/lib/maya-calendar";
 import { generateMayaReadingPrompt, MAYA_PROMPT_TOPICS } from "@/src/lib/maya-prompt-generator";
 import { useMayaCopy } from "./_lib/copy";
 
@@ -50,25 +51,59 @@ export default function MayaPromptGeneratorCard({ result }: Props) {
     return () => window.cancelAnimationFrame(frame);
   }, [prompt]);
 
-  function buildPrompt() {
+  type PromptFields = { name: string; birthDate: string; topic: string; question: string };
+
+  function buildPromptFrom(source: MayaCalendarResult, fields: PromptFields) {
     return generateMayaReadingPrompt({
-      name,
-      birthDate,
-      targetDate: result.gregorian.labelKo.replace(` ${result.gregorian.weekdayKo}`, ""),
-      weekdayKo: result.gregorian.weekdayKo,
-      topic,
-      question,
-      longCount: result.longCount.label,
-      tzolkinNumber: result.tzolkin.number,
-      tzolkinSign: result.tzolkin.sign,
-      tzolkinKo: result.tzolkin.ko,
-      tzolkinKeywords: result.tzolkin.keywords,
-      haabDay: result.haab.day,
-      haabMonth: result.haab.month,
-      haabKo: result.haab.ko,
-      haabKeywords: result.haab.keywords,
+      name: fields.name,
+      birthDate: fields.birthDate,
+      targetDate: source.gregorian.labelKo.replace(` ${source.gregorian.weekdayKo}`, ""),
+      weekdayKo: source.gregorian.weekdayKo,
+      topic: fields.topic,
+      question: fields.question,
+      longCount: source.longCount.label,
+      tzolkinNumber: source.tzolkin.number,
+      tzolkinSign: source.tzolkin.sign,
+      tzolkinKo: source.tzolkin.ko,
+      tzolkinKeywords: source.tzolkin.keywords,
+      haabDay: source.haab.day,
+      haabMonth: source.haab.month,
+      haabKo: source.haab.ko,
+      haabKeywords: source.haab.keywords,
     });
   }
+
+  function buildPrompt() {
+    return buildPromptFrom(result, { name, birthDate, topic, question });
+  }
+
+  /**
+   * 결제 후 자동 재개 — 모바일 PortOne 은 상위 프레임을 리다이렉트하므로 handleGenerate 의 await 가
+   * 문서와 함께 죽는다. 프롬프트는 순수 클라이언트 조립이라 입력만 되살리면 그대로 다시 만들어진다.
+   * 🔴 완성된 프롬프트를 서술자에 싣지 않는다 — 결제가 끝나기 전에 유료 산출물이 브라우저 저장소에 남는다.
+   * 🔴 대상 날짜는 부모(MayaCalendarView)의 선택 상태라 복귀한 새 문서에서 '오늘'로 되돌아간다 —
+   *    그래서 선택 날짜를 함께 실어 여기서 다시 계산한다(안 그러면 결제하고 남의 날짜 프롬프트를 받는다).
+   */
+  const buildResume = usePaidResume(FEATURE_KEY, (args) => {
+    const year = Number(args.year);
+    const month = Number(args.month);
+    const day = Number(args.day);
+    if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) return false;
+    const fields: PromptFields = {
+      name: typeof args.name === "string" ? args.name : "",
+      birthDate: typeof args.birthDate === "string" ? args.birthDate : "",
+      topic: typeof args.topic === "string" ? args.topic : MAYA_PROMPT_TOPICS[0],
+      question: typeof args.question === "string" ? args.question : "",
+    };
+    setName(fields.name);
+    setBirthDate(fields.birthDate);
+    setTopic(fields.topic);
+    setQuestion(fields.question);
+    setUnlocked(true);
+    setPrompt(buildPromptFrom(calculateMayaCalendar(year, month, day), fields));
+    setMessage(copy.successGenerated);
+    return true;
+  });
 
   async function handleGenerate() {
     if (loading) return;
@@ -97,6 +132,15 @@ export default function MayaPromptGeneratorCard({ result }: Props) {
           priceKRW: FEATURE_PRICE_KRW,
           amountKRW: FEATURE_PRICE_KRW,
           membershipCreditCost: FEATURE_COST * 10,
+          resume: buildResume({
+            name,
+            birthDate,
+            topic,
+            question,
+            year: result.gregorian.year,
+            month: result.gregorian.month,
+            day: result.gregorian.day,
+          }),
         });
 
         if (!gate.ok) {
