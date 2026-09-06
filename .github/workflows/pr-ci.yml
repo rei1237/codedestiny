@@ -732,10 +732,27 @@ jobs:
         if: needs.classify.outputs.runs_build == 'true' && github.event.pull_request.draft != true
         run: npm ci
 
+      # next 컴파일이 build:cf 166s 중 90.9s 였다(2026-09-06 실측, job 101448056153). 그 대부분이
+      # webpack 영속 캐시가 꺼져 있어 매번 전량 재컴파일하는 몫이라 보고, **PR CI 에서만** 켜서 잰다
+      # (next.config.mjs 의 NEXT_WEBPACK_FS_CACHE — 릴리스 빌드는 종전대로 캐시 없이 돈다).
+      # 🔴 경로가 .next/cache 가 아닌 이유: build:cf 첫 스텝 clean:build 가 .next 를 통째로 지운다.
+      # 캐시는 브랜치 스코프라 첫 런은 콜드다 — 같은 PR 의 두 번째 런부터 복원된다.
+      - name: Restore webpack build cache
+        if: needs.classify.outputs.runs_build == 'true' && github.event.pull_request.draft != true
+        uses: actions/cache@v4
+        with:
+          path: build-cache/next-webpack
+          key: next-webpack-${{ runner.os }}-${{ hashFiles('package-lock.json', 'next.config.mjs') }}-${{ github.sha }}
+          restore-keys: |
+            next-webpack-${{ runner.os }}-${{ hashFiles('package-lock.json', 'next.config.mjs') }}-
+            next-webpack-${{ runner.os }}-
+
       # build:cf 의 postbuild 가 out/ 을 읽어 AdSense 콘텐츠 게이트를 돌린다. 빌드가 끝나야만
       # 도는 검사라 여기서 함께 잡는다 — 배포 직전에 처음 알게 되면 릴리스가 통째로 막힌다.
       - name: Build Cloudflare Pages output
         if: needs.classify.outputs.runs_build == 'true' && github.event.pull_request.draft != true
+        env:
+          NEXT_WEBPACK_FS_CACHE: "1"
         run: npm run build:cf
 
       # 색인 대상 라우트의 H1 이 정확히 1개인지 본다. 사이트맵에서 라우트를 전수 발견하므로
