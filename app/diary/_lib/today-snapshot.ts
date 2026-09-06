@@ -17,6 +17,7 @@ import {
   type DiaryDayFortune,
   type DiaryNatalChart,
 } from "@/lib/diary/fortune-adapter";
+import { readTodoProgress, type DiaryExtDay } from "./ext-snapshot";
 import { lunarToSolar } from "@/lib/korean-calendar";
 import {
   readCurrentDestinyProfile,
@@ -141,10 +142,21 @@ export function readStoredEntry(store: DiaryLegacyStore, ymd: string): DiaryLega
   return entry && typeof entry === "object" ? entry : null;
 }
 
-/** 그날의 실천 진행도. 분모는 셸 `:2118` 과 같은 순서로 고른다. */
-export function readAchievement(entry: DiaryLegacyEntry | null): { done: number; total: number } {
+/**
+ * 그날의 성취 — **완료축(할 일) + 연속축(루틴)** 을 합산한다. 루틴 분모는 셸 `:2118` 과 같은
+ * 순서로 고른다(`challengeTotalToday` 우선).
+ *
+ * 🔴 합산 규칙이 여기 하나여야 한다 — 홈 계획 카드의 머리 숫자와 기록 카드의 성취 바가
+ * 같은 하루를 다른 숫자로 보여 주면, 사용자는 둘 중 무엇이 오늘인지 알 수 없다.
+ * 🔴 일정은 세지 않는다 — 시간이 정해진 것은 완료·미완료로 나뉘는 축이 아니다.
+ */
+export function readAchievement(
+  entry: DiaryLegacyEntry | null,
+  extDay: DiaryExtDay | null = null,
+): { done: number; total: number } {
   const catalog = Array.isArray(entry?.challengeCatalog) ? entry.challengeCatalog : [];
-  const done = Array.isArray(entry?.challenges) ? entry.challenges.length : 0;
-  const total = Number(entry?.challengeTotalToday) || catalog.length;
-  return { done, total };
+  const routineDone = Array.isArray(entry?.challenges) ? entry.challenges.length : 0;
+  const routineTotal = Number(entry?.challengeTotalToday) || catalog.length;
+  const todo = readTodoProgress(extDay);
+  return { done: routineDone + todo.done, total: routineTotal + todo.total };
 }

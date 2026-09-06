@@ -5,6 +5,8 @@ import { useEffect, useRef, useState } from "react";
 import DiaryEntryFields from "./DiaryEntryFields";
 import DiaryRetroPanel from "./DiaryRetroPanel";
 import DiaryRoutineList from "./DiaryRoutineList";
+import DiaryScheduleList from "./DiaryScheduleList";
+import DiaryTodoList from "./DiaryTodoList";
 import { buildDiaryDayDetail } from "../_lib/day-copy";
 import { formatKoreanDate } from "../_lib/kst-date";
 import { readDayMarks } from "../_lib/month-marks";
@@ -30,7 +32,6 @@ const DIARY_DAY_VIEW_TEXT = {
     label: "하루 자세히 보기",
     close: "닫기",
     tabs: { summary: "요약", record: "기록", plan: "계획", review: "회고" },
-    pending: "준비 중입니다",
     schedule: "일정",
     todo: "할 일",
     routine: "루틴",
@@ -53,7 +54,6 @@ const DIARY_DAY_VIEW_TEXT = {
     label: "Day details",
     close: "Close",
     tabs: { summary: "Summary", record: "Entry", plan: "Plan", review: "Review" },
-    pending: "Coming soon",
     schedule: "Schedule",
     todo: "To do",
     routine: "Routine",
@@ -221,14 +221,16 @@ export default function DiaryDayView({ ymd, fortune, group, entry, onClose }: Di
 
         {tab === "record" ? <DiaryEntryFields ymd={ymd} entry={entry} /> : null}
 
+        {/* 🔴 칸 순서는 홈 「오늘의 계획」과 같다(일정 → 할 일 → 루틴) — 같은 세 칸을 두 화면이
+            다른 순서로 보여 주면, 사용자는 같은 것인지 다른 것인지부터 확인해야 한다. */}
         {tab === "plan" ? (
           <>
+            <p className={styles.fieldLabel}>{copy.schedule}</p>
+            <DiaryScheduleList ymd={ymd} />
+            <p className={styles.fieldLabel}>{copy.todo}</p>
+            <DiaryTodoList ymd={ymd} />
             <p className={styles.fieldLabel}>{copy.routine}</p>
             <DiaryRoutineList ymd={ymd} entry={entry} emptyText={copy.routineEmpty} />
-            <p className={styles.fieldLabel}>{copy.schedule}</p>
-            <p className={styles.emptySmall}>{copy.pending}</p>
-            <p className={styles.fieldLabel}>{copy.todo}</p>
-            <p className={styles.emptySmall}>{copy.pending}</p>
           </>
         ) : null}
 
