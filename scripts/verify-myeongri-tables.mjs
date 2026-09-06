@@ -338,6 +338,15 @@ let compareHiddenStemTable = null;
       allowExtraResidual: true,
       divergent: ["丑", "辰", "未", "戌"],
     }],
+    // `/diary`(App Router)가 쓰는 축자 사본이다. 셸의 IIFE 를 밖에서 부를 수 없어 계산 함수를
+    // 통째로 옮겼고, 이 표는 그 안에서 층 가중치를 자리로 정하므로 **바로 위 항목과 같은 방향·
+    // 같은 예외**여야 한다. 동치는 `__tests__/ui/diary-fortune-parity.test.js` 가 원본을 실제로
+    // 실행해 전건 비교한다 — 여기서 방향이 갈리면 그 테스트가 먼저 터진다.
+    ["lib/saju/natal-power.js::CD_JANGGAN", {
+      order: "residual-first",
+      allowExtraResidual: true,
+      divergent: ["丑", "辰", "未", "戌"],
+    }],
     // 🔴 이 표만 층 가중치가 **자리로** 정해져 있다(0.6/0.25/0.15). 그래서 巳 를 정본 순서로
     // 고치는 것이 곧 庚 0.15→0.25 · 戊 0.25→0.15 이고, 신강약·통근·격국이 함께 움직였다
     // (실측 2026-08-28, 표본 1,032건: 巳 포함 304건 중 신강약 6건 1.97% · 격국 11건 3.62%).
