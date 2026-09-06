@@ -668,14 +668,27 @@ function pickKeys(source, keys) {
   }, {});
 }
 
+/**
+ * 한 키가 담은 산문. 키마다 본문이 앉는 자리가 달라서 이 함수 하나가 그 정본이다.
+ *
+ * 🔴 `finalVerdict` 는 본문을 `content` 가 아니라 `rationale` 에 쓴다. 그 예외를 빠뜨리면
+ *    verdict 묶음이 0자로 세어져, **검증을 통과한 묶음이 "미달"로 다시 불린다** —
+ *    2026-09-06 7차 실호출에서 verdict w1 이 2,667자로 세어져(실제 4,147자) 보완 물결이 돌았고
+ *    Gemini 호출 1회 + 18.5초를 태웠다. 세는 자리와 쓰는 자리를 따로 적어 두면 또 어긋난다.
+ *
+ * visualization·keyPoints 같은 구조 데이터는 산문이 아니므로 빈 문자열이다.
+ */
+function fusionKeyProse(source, key) {
+  if (key === "finalVerdict") return typeof source?.finalVerdict?.rationale === "string" ? source.finalVerdict.rationale : "";
+  const value = source?.[key];
+  if (typeof value === "string") return value;
+  if (value && typeof value === "object" && typeof value.content === "string") return value.content;
+  return "";
+}
+
 /** 그룹이 실제로 쓴 본문 분량. visualization 같은 구조 데이터는 세지 않는다. */
 function countFusionGroupChars(source, group) {
-  return group.keys.reduce((sum, key) => {
-    const value = source?.[key];
-    if (typeof value === "string") return sum + value.length;
-    if (value && typeof value === "object" && typeof value.content === "string") return sum + value.content.length;
-    return sum;
-  }, 0);
+  return group.keys.reduce((sum, key) => sum + fusionKeyProse(source, key).length, 0);
 }
 
 /**
@@ -777,14 +790,11 @@ const FUSION_DUPLICATE_DIGEST_MAX = 4;
 const FUSION_DUPLICATE_DIGEST_CHARS = 160;
 
 /** 중복을 볼 산문 필드와 그 필드가 속한 그룹 키. 구조 데이터(visualization·keyPoints)는 보지 않는다. */
+const FUSION_PROSE_KEYS = Object.freeze(["executiveSummary", ...SECTION_KEYS, "timingAndAction", "finalVerdict", "closingMessage"]);
 function fusionSectionProse(source = {}) {
-  return [
-    ["executiveSummary", source.executiveSummary],
-    ...SECTION_KEYS.map((key) => [key, source[key]?.content]),
-    ["timingAndAction", source.timingAndAction?.content],
-    ["finalVerdict", source.finalVerdict?.rationale],
-    ["closingMessage", source.closingMessage],
-  ].filter(([, value]) => typeof value === "string" && value.length > 0);
+  // 🔴 어느 자리가 본문인지는 fusionKeyProse 가 정한다 — 분량 계수(countFusionGroupChars)와 같은
+  //    표를 봐야 한 쪽만 고쳐져 어긋나지 않는다.
+  return FUSION_PROSE_KEYS.map((key) => [key, fusionKeyProse(source, key)]).filter(([, value]) => value.length > 0);
 }
 
 /**

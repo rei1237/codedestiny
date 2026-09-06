@@ -105,9 +105,14 @@ const KEY_NAME = pickGeminiKeys().find((name) => String(process.env[name] || "")
 const KEY_VALUE = String(process.env[KEY_NAME] || "").trim().replace(/^["']|["']$/g, "");
 
 const won = (value) => Number(value).toLocaleString("ko-KR");
-/** 그룹이 실제로 쓴 본문 분량. worker/lib/fusion-fortune.js 의 countFusionGroupChars 와 같은 셈이다. */
+/**
+ * 그룹이 실제로 쓴 본문 분량. worker/lib/fusion-fortune.js 의 countFusionGroupChars 와 같은 셈이다.
+ * 🔴 finalVerdict 의 본문은 `content` 가 아니라 `rationale` 이다 — 여기서 빠뜨리면 실호출 보고서가
+ *    verdict 묶음을 실제보다 1,000자 넘게 짧게 적어, 워커가 왜 보완 물결을 돌렸는지 오독하게 된다.
+ */
 function groupChars(result, group) {
   return group.keys.reduce((sum, key) => {
+    if (key === "finalVerdict") return sum + (typeof result?.finalVerdict?.rationale === "string" ? result.finalVerdict.rationale.length : 0);
     const value = result?.[key];
     if (typeof value === "string") return sum + value.length;
     if (value && typeof value === "object" && typeof value.content === "string") return sum + value.content.length;
