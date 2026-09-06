@@ -4018,7 +4018,7 @@
     },
     "moonHeroCopy": {
       "moonHeroActions": {
-        "kerryje": "초융합이 무엇인가요?",
+        "kerryje": "✦ 초융합 운세 보기",
         "k107dp07": "초융합 리딩 자세히 보기 →"
       }
     },
@@ -4160,7 +4160,7 @@
     },
     "fortuneGatewayEntry": {
       "fortuneGatewayEntryShell": {
-        "klg50va": "대화와 분석은 각 화면 안에서만 진행되고, 이 화면에서는 어떤 정보도 보내지 않아요."
+        "klg50va": "대화는 서버에 저장되지 않습니다."
       }
     },
     "moonStoryEntry": {
