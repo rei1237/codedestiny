@@ -10,6 +10,9 @@ const path = require("node:path");
 const root = path.resolve(__dirname, "../..");
 const pointsSource = fs.readFileSync(path.join(root, "app/points/PointsClient.tsx"), "utf8");
 const paymentsSource = fs.readFileSync(path.join(root, "worker/routes/payments.js"), "utf8");
+// 🔴 이용권 구매 문구의 정본은 2026-09-06 에 V2 로 옮겼다 — /api/payments/subscription/* 는
+//    worker/index.js 가 V2(worker/payments/index.js)로 가로채고, 구 라우트의 같은 핸들러는 그때 지웠다.
+const paymentsV2Source = fs.readFileSync(path.join(root, "worker/payments/index.js"), "utf8");
 const snapshotSource = fs.readFileSync(path.join(root, "app/_lib/moonlight-store-snapshot.ts"), "utf8");
 const serviceReadSource = fs.readFileSync(path.join(root, "app/_lib/service-read-client.ts"), "utf8");
 const shellSource = fs.readFileSync(path.join(root, "index.html"), "utf8");
@@ -82,8 +85,9 @@ test("pass purchase copy never advertises a monthly-credit purchase path", () =>
 
   assert.doesNotMatch(pointsSource, misleadingCopy);
   assert.doesNotMatch(paymentsSource, misleadingCopy);
+  assert.doesNotMatch(paymentsV2Source, misleadingCopy);
   assert.match(pointsSource, /이용권은 원화 단건 결제로만 구매할 수 있습니다\./);
-  assert.match(paymentsSource, /이용권은 원화 단건 결제로만 구매할 수 있습니다\./);
+  assert.match(paymentsV2Source, /이용권은 원화 단건 결제로만 구매할 수 있습니다\./);
 });
 
 test("points shop keeps the direct purchase action available when the shop summary fails", () => {

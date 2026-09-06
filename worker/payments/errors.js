@@ -56,7 +56,6 @@ export const PAYMENT_ERROR_TABLE = Object.freeze({
 
   // 403 — 신원은 맞는데 이 자원에 대한 권한이 없다.
   ORDER_FORBIDDEN: { status: 403 },
-  MINOR_PAYMENT_BLOCKED: { status: 403 },
   PASS_NOT_APPLICABLE: { status: 403 },
   // 구매 정책 거부(entitlement-policy.validatePurchasePolicy). 구체 사유는 meta.reason 에 싣는다.
   PURCHASE_POLICY_DENIED: { status: 403 },
