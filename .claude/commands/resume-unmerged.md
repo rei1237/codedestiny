@@ -52,7 +52,7 @@ grep -l "^status: active" docs/handoff/*.md | xargs grep -H "^next:"
 - 리베이스 충돌이 셸·로더 JS 에서 무더기로 나면 대부분 캐시버스트 해시다 → `npm run resolve:cachebust`
 - 🔴 GitHub 의 `mergeable=CONFLICTING` 은 착시일 수 있다. GitHub 은 `merge=cachebust` 드라이버를 돌리지 않는다. 조치는 **로컬 리베이스 + force-push** 다
 - 고친 기능의 `verify:*` 를 먼저 돌린다. 전체 목록의 정본은 `npm run verify:guard-wiring` 출력이다
-- CI 는 폴링하지 않는다 — `gh pr checks <번호> --watch --fail-fast` 한 콜
+- CI 는 폴링도 블로킹도 하지 않는다 — `gh pr checks <번호> --watch --fail-fast` 를 `run_in_background: true` 로 한 콜
 
 ## 6. 끝내기
 
