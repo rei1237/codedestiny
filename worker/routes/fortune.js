@@ -3568,14 +3568,10 @@ async function handleVedicPrashnaGenerate(request, auth, env) {
     }
     chargedCoins = Math.max(0, Number(consumePayload?.chargedCoins || consumePayload?.consume?.chargedCoins || 0));
     ({ isPointSpend, isCardSpend } = readSajuAIPromptPointRefundContext(consumePayload, body));
-    const accessMethod = readPrashnaAccessMethod(consumePayload || body);
-    if (accessMethod !== "single") {
-      return buildVedicPrashnaError(
-        "PAYMENT_REQUIRED",
-        "프라슈나 프롬프트는 1회 5,000원 단건 결제 후 생성할 수 있습니다.",
-        402,
-      );
-    }
+    // 다른 5개 AI 프롬프트 라우트(사주·점성술·베다AI·자미두수·숙요)와 동일하게 handlePigCoinConsume 의
+    // 2xx 여부만을 결제 완료 판정으로 쓴다. 이전에는 여기서 accessMethod!=="single" 과
+    // chargedCoins<PRICE 를 추가로 요구해, 이용권/월정석으로 정당하게 통과한 사용자를 402 로 되돌렸다
+    // (그 두 결제수단은 chargedCoins=0 이 정상이다 — buildAIPromptVerifiedConsumePayload 참고).
     sourceTransactionId = readPrashnaTransactionId({
       ...consumePayload,
       consume: consumePayload,
@@ -3583,13 +3579,6 @@ async function handleVedicPrashnaGenerate(request, auth, env) {
       payment: body?.payment,
       _paymentContext: body?._paymentContext,
     }, requestId);
-    if (chargedCoins < VEDIC_PRASHNA_PROMPT_PRICE) {
-      return buildVedicPrashnaError(
-        "PAYMENT_REQUIRED",
-        "결제가 완료되지 않았습니다. 이용 금액은 청구되지 않았으며 프라슈나 차트도 생성되지 않았습니다.",
-        402,
-      );
-    }
   } else {
     chargedCoins = VEDIC_PRASHNA_PROMPT_PRICE;
     sourceTransactionId = String(existing.paymentId || existing.idempotencyKey || requestId || "").trim();
