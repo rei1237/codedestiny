@@ -20,11 +20,17 @@
  *
  * 그래서 고정하는 것 두 가지:
  *   ① 웜 커넥션은 매 요청 ping 으로 검증한다(건너뛰기 창은 0).
- *   ② 검증에 **실패한** 커넥션을 그대로 돌려주지 않는다 — 리셋하고 새로 세운다.
- *      단 동시 요청이 있으면 끊지 않는다(2026-08-08 재연결 폭풍 사고의 가드는 유지).
+ *   ② 검증에 **실패한** 커넥션을 그대로 돌려주지 않는다 — 떼어 내고 새로 세운다. 이웃 op 이
+ *      ping 도중에 들어와 있어도 마찬가지다(2026-09-06).
+ *   ③ 이웃이 **먼저** 있으면 ping 을 보내지 않는다 — 이것이 2026-08-08 재연결 폭풍 사고의 가드가
+ *      옮겨 간 자리다. 먼저 돌던 op(크론 태스크 포함)은 ping 도 detach 도 겪지 않는다.
  *
- * ②의 "단" 절이 이 테스트의 핵심이다. 그 가드를 잃으면 한 요청의 ping 실패가 같은 아이솔레이트의
- * 살아 있는 요청들을 함께 죽인다(bufferCommands:false).
+ * ②에 "단 동시 요청이 있으면 끊지 않는다" 절이 있었다. ③이 생긴 뒤 그 절이 잡는 경우는 "내 ping 이
+ * 도는 300ms 사이에 이웃이 들어왔다"뿐인데, 그 이웃은 ③ 으로 ping 없이 **같은 죽은 커넥션**을 받아
+ * 가므로, 죽은 커넥션을 돌려주면 셋이 함께 8000ms 예산을 태웠다(스테이징 버스트 실측 — 동시 3건 ×
+ * 5회에서 [db-op-timeout] 4건, /api/reviews wall p95 11.7s). 그래서 절을 없앴다. 떼어 낸 클라이언트
+ * 위의 이웃 op 은 세션 종료/미연결 에러로 빨리 실패하고 withMongoRetry 가 새 커넥션에서 재시도한다
+ * — 그 분류는 이 파일 마지막 테스트가 고정한다.
  */
 
 import { jest } from "@jest/globals";
@@ -135,8 +141,8 @@ test("the withMongoRetry path re-establishes a dead warm connection instead of c
 
 test("a request that finds a neighbour already on the connection skips the ping entirely", async () => {
   /* 2026-09-06 프로덕션 tail: 버스트(콜드 + 동시 3요청)의 2·3번째 요청은 connectMs 가 정확히 300
-     = ping 예산이었다. 이웃이 있으면 ping 결과가 흐름을 못 바꾸므로(성공→그대로, 실패→아래 테스트의
-     가드가 그대로) 그 ping 은 예산만 태운다. 그래서 보내지 않는다. */
+     = ping 예산이었다. 이웃이 먼저 있는 요청의 ping 은 예산만 태우고 남의 소켓을 끊을 위험만 만든다.
+     그래서 보내지 않는다 — 이 분기가 곧 "먼저 돌던 op 을 끊지 않는다" 가드다(③). */
   const mongooseMock = buildMongooseMock({ pingBehavior: PING_OK });
   const { connectDb, withMongoRetry, __dbTestUtils } = await loadDb(mongooseMock);
   const opts = { ...env, MONGO_PING_TIMEOUT_MS: "300" };
@@ -173,53 +179,72 @@ test("a request that finds a neighbour already on the connection skips the ping 
   expect(mongooseMock.connection.db.command.mock.calls.length).toBeGreaterThan(pingsAfterNeighbour);
 });
 
-test("revalidation failure must not disconnect while another operation is in flight", async () => {
+test("revalidation failure detaches the dead connection even if a neighbour arrived mid-ping", async () => {
   const mongooseMock = buildMongooseMock({ pingBehavior: PING_OK });
   const { connectDb, withMongoRetry, __dbTestUtils } = await loadDb(mongooseMock);
 
   const neighbourEnv = { ...env, MONGO_PING_TIMEOUT_MS: "300" };
   await connectDb(neighbourEnv);
 
-  // 단독 요청의 ping 이 걸려 있는 **도중에** 다른 요청이 같은 아이솔레이트에서 Mongo 작업을
-  // 시작한다. 앞선 요청의 ping 은 이웃이 들어온 뒤에 실패하므로 catch 의 "남이 쓰고 있으면
-  // 끊지 않는다" 가드만이 방어선이다(이웃이 먼저 있었다면 위 테스트대로 ping 자체를 안 보낸다).
+  /* 2026-09-06 스테이징 버스트의 순서다. 단독 요청의 ping 이 걸려 있는 **도중에** 다른 요청이 같은
+     아이솔레이트에 들어온다. 이웃은 위 테스트대로 ping 을 건너뛰고 같은 커넥션을 받아 간다. 앞선
+     요청의 ping 은 그 뒤에 실패한다 — 구 동작은 여기서 "이웃이 있으니 끊지 않는다"며 죽은 커넥션을
+     돌려줬고, 그러면 두 요청이 함께 8000ms 예산을 태웠다(3회차 summary 의 connectMs=300 에
+     [db-connect] 줄이 없던 것이 그 증거). */
   mongooseMock.connection.__setPing(PING_HANGS);
-  const disconnectsBefore = mongooseMock.disconnect.mock.calls.length;
   const closesBefore = mongooseMock.connection.close.mock.calls.length;
+  const connectsBefore = mongooseMock.connect.mock.calls.length;
   const staleClient = mongooseMock.connection.getClient();
   const pingsBefore = mongooseMock.connection.db.command.mock.calls.length;
 
-  const pinging = connectDb(neighbourEnv);
+  // 프로덕션 경로 그대로 withMongoRetry 로 부른다 — 슬롯을 먼저 잡으므로 뒤에 오는 이웃이 이 op 을
+  // 본다(connectDb 를 직접 부르면 회계에 안 올라 이웃도 ping 을 보내 버린다).
+  const retryOpts = { retries: 0, attemptTimeoutMS: 4000, minAttemptTimeoutMS: 250, respectServerSelectionFloor: false };
+  const pinging = withMongoRetry(neighbourEnv, async () => ({ ok: 1 }), retryOpts);
   for (let i = 0; i < 50 && mongooseMock.connection.db.command.mock.calls.length === pingsBefore; i += 1) {
     await new Promise((resolve) => setTimeout(resolve, 5));
   }
   expect(mongooseMock.connection.db.command.mock.calls.length).toBe(pingsBefore + 1);
-  // 이웃 자신은 건강한 ping 을 받아 op 에 들어간다(죽은 것은 앞선 요청이 잡고 있는 ping 뿐이다).
-  mongooseMock.connection.__setPing(PING_OK);
 
   let releaseNeighbour;
   const neighbour = withMongoRetry(
     neighbourEnv,
     () => new Promise((resolve) => { releaseNeighbour = resolve; }),
-    { retries: 0, attemptTimeoutMS: 4000, minAttemptTimeoutMS: 250, respectServerSelectionFloor: false },
+    retryOpts,
   );
   try {
-    for (let i = 0; i < 50 && __dbTestUtils.countActiveMongoOps() < 1; i += 1) {
+    for (let i = 0; i < 50 && __dbTestUtils.countActiveMongoOps() < 2; i += 1) {
       await new Promise((resolve) => setTimeout(resolve, 5));
     }
-    expect(__dbTestUtils.countActiveMongoOps()).toBeGreaterThanOrEqual(1);
+    expect(__dbTestUtils.countActiveMongoOps()).toBe(2);
+    // 이웃은 ping 없이 들어갔다(죽은 커넥션 위에 서 있다).
+    expect(mongooseMock.connection.db.command.mock.calls.length).toBe(pingsBefore + 1);
 
     await pinging;
 
-    // 🔴 남의 소켓을 끊지 않는다 — 2026-08-08 재연결 폭풍 사고의 가드.
-    //    teardown 을 배경으로 내보낸 뒤에도 이 가드가 첫 번째 방어선이다: 여기까지 오지 않는 것이
-    //    맞고, 그래서 클라이언트 close 도 일어나지 않아야 한다(배경이라도 소켓은 실제로 끊긴다).
-    expect(mongooseMock.disconnect.mock.calls.length).toBe(disconnectsBefore);
-    expect(mongooseMock.connection.close.mock.calls.length).toBe(closesBefore);
-    expect(staleClient.close).not.toHaveBeenCalled();
+    // 🔴 이웃이 있어도 뗀다 — 전역 disconnect 가 아니라 mongoose 분리 + 옛 클라이언트 배경 close 다.
+    expect(mongooseMock.disconnect).not.toHaveBeenCalled();
+    expect(mongooseMock.connection.close.mock.calls.length).toBe(closesBefore + 1);
+    expect(mongooseMock.connection.close).toHaveBeenLastCalledWith({ skipCloseClient: true });
+    expect(mongooseMock.connect.mock.calls.length).toBe(connectsBefore + 1);
     expect(mongooseMock.connection.readyState).toBe(1);
+    expect(mongooseMock.connection.getClient()).not.toBe(staleClient);
+    await Promise.resolve();
+    expect(staleClient.close).toHaveBeenCalledTimes(1);
   } finally {
     releaseNeighbour?.({ ok: 1 });
     await neighbour.catch(() => {});
   }
+});
+
+test("errors an op sees when its client was detached underneath it are transient (retried on a fresh connection)", async () => {
+  /* 위 테스트의 이웃이 실제 드라이버에서 받는 에러다 — 2026-09-03 크론 사고 로그의 두 메시지.
+     transient 가 아니면 withMongoRetry 가 재시도하지 않아 이웃은 8초 hang 대신 즉시 500 을 받는다. */
+  const { isTransientMongoError } = await loadDb(buildMongooseMock({ pingBehavior: PING_OK }));
+  const expired = Object.assign(new Error("Cannot use a session that has ended"), { name: "MongoExpiredSessionError" });
+  const notConnected = Object.assign(new Error("Client must be connected before running operations"), { name: "MongoNotConnectedError" });
+  expect(isTransientMongoError(expired)).toBe(true);
+  expect(isTransientMongoError(notConnected)).toBe(true);
+  // 일반 쿼리 에러는 여전히 하드 에러다(재연결 폭풍 방지).
+  expect(isTransientMongoError(Object.assign(new Error("E11000 duplicate key"), { name: "MongoServerError" }))).toBe(false);
 });
