@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { authFetch, clearClientAuthState } from "../../_lib/auth-client";
+import { useUserAccess } from "../../_lib/user-session-cache";
 import { getApiBaseUrl } from "../../_lib/api-config";
 import { normalizeMonthlyStoneBalance, resolveMonthlyStoneBalance } from "../../_lib/monthly-stone";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
@@ -12,6 +13,7 @@ import { readServiceJson } from "../../_lib/service-read-client";
 import { remoteQueryKeyToString, remoteQueryKeys } from "../../_lib/remote-query-keys";
 import OrderDetailModal from "./OrderDetailModal";
 import { adaptOrderToViewModel, type OrderDetailViewModel, type PaymentOrderRecord } from "./order-view-model";
+import PassCycleCard from "../../components/PassCycleCard";
 import styles from "./PointHistoryClient.module.css";
 
 /* ══════════════════════════════════════════════════════════════════
@@ -248,7 +250,7 @@ const POINT_HISTORY_COPY: Record<LoadingLocale, PointHistoryCopy> = {
       "민원담당자: 박병하 (050-6664-7398) · admin@code-destiny.com",
     ],
     passCycleAria: "이번 이용권 기간의 월 이용 한도",
-    passCycleTitle: "월 이용 한도",
+    passCycleTitle: "이번 이용권 기간 한도",
     passCycleTierLabel: {
       standard: "스탠다드 꿀",
       premium: "프리미엄 꿀",
@@ -339,7 +341,7 @@ const POINT_HISTORY_COPY: Record<LoadingLocale, PointHistoryCopy> = {
       "Support contact: Byeongha Park (050-6664-7398) · admin@code-destiny.com",
     ],
     passCycleAria: "Monthly usage limit for this pass period",
-    passCycleTitle: "Monthly usage limit",
+    passCycleTitle: "Current pass period limit",
     passCycleTierLabel: {
       standard: "Standard Honey",
       premium: "Premium Honey",
@@ -567,55 +569,6 @@ function CoinIcon({ size = "md", className = "" }: { size?: "sm" | "md" | "lg"; 
 }
 
 /* ══════════════════════════════════════════════════════════════════
-   서브 컴포넌트: PassCycleCard — 이용권 월 이용 한도 잔여
-══════════════════════════════════════════════════════════════════ */
-
-// 등급별 강조색은 이용권 상점(app/points/PointsClient.tsx planThemeMap)의
-// amber/rose/purple 배정을 그대로 따른다(vvip·family 공유).
-const PASS_CYCLE_THEME_BY_TIER: Record<string, string> = {
-  standard: styles.passCycleAmber,
-  premium: styles.passCycleRose,
-  vvip: styles.passCyclePurple,
-  family: styles.passCyclePurple,
-};
-
-function PassCycleCard({
-  tier,
-  capWon,
-  spentWon,
-  remainingWon,
-  percent,
-  copy,
-  formatLocale,
-}: {
-  tier: string;
-  capWon: number;
-  spentWon: number;
-  remainingWon: number;
-  percent: number;
-  copy: PointHistoryCopy;
-  formatLocale: string;
-}) {
-  const theme = PASS_CYCLE_THEME_BY_TIER[tier] || styles.passCycleAmber;
-  const tierLabel = copy.passCycleTierLabel[tier as "standard" | "premium" | "vvip" | "family"] || tier;
-  return (
-    <section aria-label={copy.passCycleAria} className={`${styles.passCycleCard} ${theme}`}>
-      <div className={styles.passCycleHeader}>
-        <p className={styles.sectionLabel}>{copy.passCycleTitle}</p>
-        <span className={styles.passCycleTier}>{tierLabel}</span>
-      </div>
-      <p className={styles.passCycleAmounts}>
-        {copy.passCycleSummary(formatWon(spentWon, copy, formatLocale), formatWon(capWon, copy, formatLocale))}
-      </p>
-      <div className={styles.passCycleTrack}>
-        <div className={styles.passCycleFill} style={{ width: `${percent}%` }} />
-      </div>
-      <p className={styles.passCycleRemaining}>{copy.passCycleRemaining(formatWon(remainingWon, copy, formatLocale))}</p>
-    </section>
-  );
-}
-
-/* ══════════════════════════════════════════════════════════════════
    메인 페이지
 ══════════════════════════════════════════════════════════════════ */
 
@@ -623,6 +576,7 @@ type TabId = "all" | "grant" | "spend";
 
 export default function PointHistoryPage() {
   const router = useRouter();
+  const userAccess = useUserAccess();
   const [lang, setLang] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
   const copy = POINT_HISTORY_COPY[lang] || POINT_HISTORY_COPY.ko;
   const formatLocale = FORMAT_LOCALE_BY_LANG[lang] || FORMAT_LOCALE_BY_LANG.ko;
@@ -883,13 +837,24 @@ export default function PointHistoryPage() {
     [histories],
   );
 
-  /* 이용권 월 이용 한도 잔여/진행률. 셋 다 값이 있을 때만(이용권 보유 + 서버가 캡을 내려줄 때만) 카드를 그린다. */
-  const passCycleRemainingWon = useMemo(() => (
-    passCycleCapWon === null || passCycleSpentWon === null ? null : Math.max(0, passCycleCapWon - passCycleSpentWon)
-  ), [passCycleCapWon, passCycleSpentWon]);
+  const snapshotPassUsage = userAccess.accessState?.entitlementSnapshot?.passUsage as {
+    tier?: string | null;
+    limitKRW?: number | null;
+    usedKRW?: number | null;
+    remainingKRW?: number | null;
+  } | undefined;
+  const displayedPassCycleTier = snapshotPassUsage?.tier || passCycleTier;
+  const displayedPassCycleCapWon = snapshotPassUsage?.limitKRW ?? passCycleCapWon;
+  const displayedPassCycleSpentWon = snapshotPassUsage?.usedKRW ?? passCycleSpentWon;
+  const displayedPassCycleRemainingWon = snapshotPassUsage?.remainingKRW
+    ?? (displayedPassCycleCapWon === null || displayedPassCycleSpentWon === null
+      ? null
+      : Math.max(0, displayedPassCycleCapWon - displayedPassCycleSpentWon));
+
+  /* 이용권 월 이용 한도 잔여/진행률. 스냅샷이 있으면 /points와 같은 원천을 사용한다. */
   const passCyclePercent = useMemo(() => (
-    !passCycleCapWon ? 0 : Math.min(100, Math.round(((passCycleSpentWon ?? 0) / passCycleCapWon) * 100))
-  ), [passCycleCapWon, passCycleSpentWon]);
+    !displayedPassCycleCapWon ? 0 : Math.min(100, Math.round(((displayedPassCycleSpentWon ?? 0) / displayedPassCycleCapWon) * 100))
+  ), [displayedPassCycleCapWon, displayedPassCycleSpentWon]);
 
   /* ── 부팅 중 ─────────────────────────────────────────────────── */
   if (isBooting) {
@@ -968,15 +933,21 @@ export default function PointHistoryPage() {
         </section>
 
         {/* 이용권 월 이용 한도 — 이용권 보유 + 서버가 캡을 내려줄 때만 표시 */}
-        {passCycleTier && passCycleCapWon !== null && passCycleSpentWon !== null && passCycleRemainingWon !== null && (
+        {displayedPassCycleTier && displayedPassCycleCapWon !== null && displayedPassCycleSpentWon !== null && displayedPassCycleRemainingWon !== null && (
           <PassCycleCard
-            tier={passCycleTier}
-            capWon={passCycleCapWon}
-            spentWon={passCycleSpentWon}
-            remainingWon={passCycleRemainingWon}
+            tier={displayedPassCycleTier}
+            capWon={displayedPassCycleCapWon}
+            spentWon={displayedPassCycleSpentWon}
+            remainingWon={displayedPassCycleRemainingWon}
             percent={passCyclePercent}
-            copy={copy}
-            formatLocale={formatLocale}
+            copy={{
+              ariaLabel: copy.passCycleAria,
+              title: copy.passCycleTitle,
+              tierLabel: copy.passCycleTierLabel[displayedPassCycleTier as "standard" | "premium" | "vvip" | "family"] || displayedPassCycleTier,
+              summary: copy.passCycleSummary,
+              remaining: copy.passCycleRemaining,
+            }}
+            formatWon={(value) => formatWon(value, copy, formatLocale)}
           />
         )}
 

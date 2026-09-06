@@ -257,7 +257,7 @@
   },
 
   "shell.fortuneGatewayEntry.fortuneGatewayEntryShell.klg50va": {
-    "ko": "대화와 분석은 각 화면 안에서만 진행되고, 이 화면에서는 어떤 정보도 보내지 않아요.",
+    "ko": "대화는 서버에 저장되지 않습니다.",
     "en": "Conversation and analysis happen only inside each screen; nothing is sent from this one.",
     "ja": "対話と分析は各画面の中だけで行われ、この画面からは何の情報も送信しません。",
     "zh-CN": "对话与分析只在各自的页面内进行，本页面不会发送任何信息。",
