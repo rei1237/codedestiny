@@ -54,6 +54,9 @@ const SHELL_PARTS = [
   "function saveDiary(",
   "function getTodayKey(",
   "function getTodayEntry(",
+  // 명상 점수 식. 두 표면이 같은 `meditationPoints` 필드에 쓰므로 식이 갈리면 화면을 옮길 때마다
+  // 점수가 오르내린다 — 아래 동치 테스트가 셸의 이 함수를 그대로 실행해 비교한다.
+  "function calcMeditationPoints(",
 ];
 
 /**
@@ -75,6 +78,7 @@ function buildShellSandbox(localStorage) {
        getTodayKey: getTodayKey,
        getTodayEntry: getTodayEntry,
        ensureEntryShape: ensureEntryShape,
+       calcMeditationPoints: calcMeditationPoints,
      };`,
   );
   const shell = factory(localStorage, (message) => toasts.push(message));
@@ -436,6 +440,88 @@ test("확장 쓰기도 실패를 성공처럼 돌려주지 않는다", () => {
   // 깨진 샤드는 v2 와 같이 조용히 빈 객체로 떨어진다.
   const broken = makeStorage({ [ext.diaryExtMonthKey(YMD)]: "{not json" });
   assert.deepEqual(ext.readAllExtDays(broken), {});
+});
+
+/* ─── 더보기(명상·마음 훈련) 공유 필드 ────────────────────────── */
+
+test("더보기가 쓰는 v2 필드를 셸이 그대로 읽고 기본값으로 덧칠하지 않는다", () => {
+  const storage = makeStorage();
+  const shell = buildShellSandbox(storage);
+
+  // `app/diary/_lib/entry-writes.ts` 의 더보기 뮤테이터가 쓰는 필드 전부.
+  const written = store.updateDiaryEntry(storage, YMD, (entry) => {
+    entry.meditationMinutes = 12;
+    entry.meditationPoints = 40;
+    entry.meditationLogs = [
+      { type: "meditation", ts: 1, trackId: "meditation-3" },
+      { type: "iam", ts: 2, ok: true },
+    ];
+    entry.satsKeyword = "귀인 상봉";
+    entry.satsScene = "앱에서 적은 장면";
+    entry.satsSceneLastIndex = 2;
+    entry.satsCompleted = true;
+    entry.revisionOriginal = "있었던 일";
+    entry.revisionImagined = "다시 쓴 장면";
+    entry.revisionDoneCount = 2;
+    entry.iAmAffirmation = "앱에서 담은 문장";
+    entry.iAmCompleted = true;
+    entry.iAmLastIndex = 4;
+  });
+  assert.ok(written, "더보기 필드 저장이 실패했다");
+
+  const shellDiary = shell.loadDiary();
+  const before = JSON.parse(JSON.stringify(shellDiary[YMD]));
+  shell.ensureEntryShape(shellDiary[YMD]);
+  assert.deepEqual(
+    shellDiary[YMD],
+    before,
+    "셸이 더보기 필드에 기본값을 덧칠했다 — 앱이 쓴 필드 이름이 셸과 갈렸다",
+  );
+  assert.equal(shellDiary[YMD].satsScene, "앱에서 적은 장면");
+  assert.equal(shellDiary[YMD].revisionDoneCount, 2);
+  assert.equal(shellDiary[YMD].meditationLogs.length, 2);
+  assert.equal(shellDiary[YMD].meditationLogs[0].trackId, "meditation-3");
+});
+
+/**
+ * 명상 점수 식 동치. 🔴 앱 쪽 식은 TypeScript 라 그대로 require 할 수 없으므로 **소스를 잘라
+ * 실행**한다(셸을 자르는 것과 같은 방식이다) — 숫자를 옮겨 적어 비교하면 두 벌 다 틀려도 통과한다.
+ */
+function buildAppMeditationPoints() {
+  const source = read("app/diary/_lib/entry-writes.ts");
+  const sliced = sliceOnce(source, "function meditationPoints(", "entry-writes");
+  const js = sliced.replace(/:\s*DiaryLegacyEntry/g, "").replace(/\)\s*:\s*number/g, ")");
+  // eslint-disable-next-line no-new-func
+  return new Function(`${js};\nreturn meditationPoints;`)();
+}
+
+test("명상 점수 식이 셸과 전건 동치다", () => {
+  const shell = buildShellSandbox(makeStorage());
+  const appPoints = buildAppMeditationPoints();
+
+  const cases = [];
+  for (const revisionDoneCount of [0, 1, 3]) {
+    for (const satsCompleted of [false, true]) {
+      for (const iAmCompleted of [false, true]) {
+        for (const meditationMinutes of [0, 7, 15, 40]) {
+          cases.push({ revisionDoneCount, satsCompleted, iAmCompleted, meditationMinutes });
+        }
+      }
+    }
+  }
+  // 상한(100)에 실제로 부딪히는 조합까지 넣는다 — 안 그러면 clamp 가 갈려도 통과한다.
+  cases.push({ revisionDoneCount: 20, satsCompleted: true, iAmCompleted: true, meditationMinutes: 90 });
+  cases.push({});
+
+  for (const entry of cases) {
+    assert.equal(
+      appPoints(entry),
+      shell.calcMeditationPoints(entry),
+      `점수 식이 갈렸다: ${JSON.stringify(entry)}`,
+    );
+  }
+  // 공회전 방지 — 0만 나오는 식으로 통과하면 안 된다.
+  assert.ok(cases.some((entry) => appPoints(entry) > 0), "모든 조합이 0점이다 — 식 슬라이스가 헛돌았다");
 });
 
 /* ─── 계약 우회 방지 (fail-closed) ──────────────────────────────

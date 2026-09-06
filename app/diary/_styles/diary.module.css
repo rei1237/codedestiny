@@ -77,6 +77,13 @@
   --dy-nav-h: 64px;
   --dy-nav-offset: calc(var(--dy-nav-h) + env(safe-area-inset-bottom, 0px));
 
+  /* 하단에 고정된 것 **전체**가 가리는 높이 = 하단바 + (재생 중이면) 미니 플레이어.
+     🔴 본문 여백·시트 바닥·저장 알림은 전부 이 토큰 하나를 본다 — 화면마다 미니 플레이어
+     높이를 따로 더하면 어긋나는 곳이 반드시 생긴다(원칙 6).
+     🔴 `--dy-mini-h` 는 재생 중에만 값이 있다(`DiaryAudioProvider` 가 문서 루트에 켜고 끈다).
+     하단바 자체 높이는 여기에 딸려 오면 안 되므로 `--dy-nav-offset` 과 나눠 둔다. */
+  --dy-bottom-offset: calc(var(--dy-nav-offset) + var(--dy-mini-h, 0px));
+
   min-height: 100dvh;
   background: var(--dy-bg);
   color: var(--dy-text);
@@ -137,9 +144,9 @@ html[data-cd-theme="neo"] .shell {
   flex-direction: column;
   gap: var(--cd-sp-md);
   padding: var(--cd-sp-md);
-  /* 하단바 자리 자체 공급. `verify:app-bottom-clearance` 는 /diary 를 보지 않으므로
+  /* 하단 고정물 자리 자체 공급. `verify:app-bottom-clearance` 는 /diary 를 보지 않으므로
      이 값은 __tests__/ui/diary-route-chrome.test.js 가 지킨다. */
-  padding-bottom: calc(var(--dy-nav-offset) + var(--cd-sp-lg));
+  padding-bottom: calc(var(--dy-bottom-offset) + var(--cd-sp-lg));
 }
 
 /* ── 상단바 ─────────────────────────────────────────────────────────── */
@@ -290,7 +297,7 @@ html[data-cd-theme="neo"] .shell {
 .saveNotice {
   position: fixed;
   right: var(--cd-sp-md);
-  bottom: calc(var(--dy-nav-offset) + var(--cd-sp-sm));
+  bottom: calc(var(--dy-bottom-offset) + var(--cd-sp-sm));
   left: var(--cd-sp-md);
   z-index: 5;
   margin: 0;
@@ -907,13 +914,13 @@ html[data-cd-theme="neo"] .shell {
 .sheet {
   position: fixed;
   right: 0;
-  bottom: var(--dy-nav-offset);
+  bottom: var(--dy-bottom-offset);
   left: 0;
   z-index: 4;
   display: flex;
   flex-direction: column;
   gap: var(--cd-sp-sm);
-  max-height: calc(100dvh - var(--dy-nav-offset) - var(--cd-sp-lg) * 3);
+  max-height: calc(100dvh - var(--dy-bottom-offset) - var(--cd-sp-lg) * 3);
   overflow-y: auto;
   overscroll-behavior: contain;
   padding: var(--cd-sp-sm) var(--cd-sp-md) var(--cd-sp-lg);
@@ -1801,4 +1808,137 @@ html[data-cd-theme="neo"] .shell {
 .dataNotice {
   composes: emptySmall;
   color: var(--dy-text);
+}
+
+/* ── 미니 플레이어 ──────────────────────────────────────────────────────
+   🔴 하단바 **위에** 앉는다 — 하단바를 덮으면 재생 중에는 탭 이동이 막힌다.
+   높이는 `--dy-mini-h` 하나로 정해진다(프로바이더가 켜는 값). 여기서 다른 높이를 쓰면
+   본문이 비워 둔 자리와 실제로 가리는 높이가 어긋난다. */
+.miniPlayer {
+  position: fixed;
+  right: 0;
+  /* 하단바 자체 높이만큼만 올린다 — `--dy-bottom-offset` 은 이 바 높이를 이미 포함한다. */
+  bottom: var(--dy-nav-offset);
+  left: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: var(--cd-sp-sm);
+  height: var(--dy-mini-h, 52px);
+  padding: 0 var(--cd-sp-md);
+  background: var(--dy-surface-2);
+  border-top: 1px solid var(--dy-line);
+}
+
+.miniTitle {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--dy-text);
+  font-size: var(--cd-t-caption);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── 명상 트랙 목록 ─────────────────────────────────────────────────── */
+
+.trackList {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* 더보기 목록과 같은 방식으로 선 하나만 둔다 — 스물세 줄에 카드를 씌우면 시트가 벽이 된다. */
+.trackItem + .trackItem {
+  border-top: 1px solid var(--dy-line);
+}
+
+.trackRow {
+  display: flex;
+  align-items: center;
+  gap: var(--cd-sp-sm);
+  width: 100%;
+  min-height: var(--cd-btn-h);
+  padding: var(--cd-sp-xs) 0;
+  border: 0;
+  background: transparent;
+  color: var(--dy-text);
+  font-family: inherit;
+  font-size: var(--cd-t-body);
+  text-align: left;
+  cursor: pointer;
+}
+
+.trackRow:hover {
+  color: var(--dy-accent);
+}
+
+.trackRow:focus-visible {
+  outline: 2px solid var(--dy-focus);
+  outline-offset: 2px;
+}
+
+/* 지금 걸린 곡. 🔴 색만으로 구분하지 않는다 — 왼쪽 표시가 ▶/❚❚ 로 함께 바뀌고
+   재생 중에는 「재생 중」 글자가 붙는다. */
+.trackRowOn {
+  composes: trackRow;
+  color: var(--dy-accent);
+  font-weight: 600;
+}
+
+.trackIcon {
+  flex: 0 0 auto;
+  width: 1.5em;
+  text-align: center;
+  font-size: var(--cd-t-caption);
+}
+
+.trackTitle {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trackNow {
+  flex: 0 0 auto;
+  color: var(--dy-muted);
+  font-size: var(--cd-t-caption);
+  font-weight: 400;
+}
+
+/* ── 오늘의 작은 행동 ───────────────────────────────────────────────── */
+
+.actionCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--cd-sp-xs);
+  padding: var(--cd-sp-lg) var(--cd-sp-md);
+  border: 1px solid var(--dy-line-ui);
+  border-radius: var(--cd-r-card);
+  background: var(--dy-surface);
+  text-align: center;
+}
+
+.actionEmoji {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.actionName {
+  font-family: var(--font-display, inherit);
+  font-size: var(--cd-t-card);
+  font-weight: 600;
+  color: var(--dy-text);
+}
+
+.actionTip {
+  color: var(--dy-muted);
+  font-size: var(--cd-t-caption);
+  line-height: 1.7;
 }
