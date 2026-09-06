@@ -23,6 +23,7 @@ export type ServerPriceInput = {
 
 export type ServerPriceState = {
   label: string;
+  amountKRW: number;
   loading: boolean;
   source: "registry" | "fallback";
 };
@@ -196,12 +197,12 @@ export function useServerPrice(input: ServerPriceInput): ServerPriceState {
   const fallback = hasQuery ? "" : resolveFallbackLabel(input);
 
   const [state, setState] = useState<ServerPriceState>(() => cached
-    ? { label: formatResolvedPrice(cached, getCurrentLoadingLocale()), loading: false, source: "registry" }
-    : { label: fallback, loading: false, source: "fallback" });
+    ? { label: formatResolvedPrice(cached, getCurrentLoadingLocale()), amountKRW: cached.amountKRW, loading: false, source: "registry" }
+    : { label: fallback, amountKRW: 0, loading: false, source: "fallback" });
 
   useEffect(() => {
     if (!hasQuery) {
-      setState({ label: fallback, loading: false, source: "fallback" });
+      setState({ label: fallback, amountKRW: 0, loading: false, source: "fallback" });
       return;
     }
     const resolved = resolveCachedRegistryPrice(input);
@@ -217,7 +218,7 @@ export function useServerPrice(input: ServerPriceInput): ServerPriceState {
         /* 런타임이 아직 없으면 원화 라벨만 보여 준다 */
       }
     }
-    setState({ label: display, loading: false, source: "registry" });
+    setState({ label: display, amountKRW: resolved?.amountKRW || 0, loading: false, source: "registry" });
     // 레지스트리 키·로케일·개산가 문구가 이 표시 조회의 완전한 의존이다.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key, fallback, locale, approxTemplate]);
