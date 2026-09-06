@@ -85,7 +85,8 @@ let touchedFiles = 0;
 for (const file of collectHtml(DIST)) {
   const original = readFileSync(file, "utf8");
   // 🔴 루프 밖에서 한 번만 만든다 — <script> 태그마다 toLowerCase() 를 부르면 dist 113MB 를
-  //    태그 수만큼 다시 복사한다(2026-09-06 실측: 이 단계가 postbuild 에서 18.2s 였다).
+  //    태그 수만큼 다시 복사한다(2026-09-06 실측: 이 단계 22.3s -> 1.8s. 그때 18.2s 로 적힌 것은
+  //    바로 뒤 split-dist-boot-tasks 였다 — 스크립트가 끝에만 출력해 구간이 한 칸 밀려 보인다).
   const lowerOriginal = original.toLowerCase();
   htmlBefore += Buffer.byteLength(original);
 

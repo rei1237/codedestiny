@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-06
-next: 사전 문구 스코프 수정이 PR #1676 으로 나갔다(사용자 머지 대기). 남은 것 중 급한 것은 `build:cf` 257s.
+next: postbuild 병목 2건을 PR #1680 으로 잡았다(머지됨, `build:cf` 194s→166s). 남은 최대 덩어리는 next 컴파일 90.9s — `config.cache = false` 를 켤지 사용자 판단이 필요하다.
 ---
 
 # PR CI 최적화 (2026-09-06)
@@ -22,7 +22,9 @@ next: 사전 문구 스코프 수정이 PR #1676 으로 나갔다(사용자 머�
 
 이번 범위 밖으로 **보고만** 한 후속 과제 4건. 우선순위 순:
 
-- [ ] **`build:cf` 257s** — standard/critical 티어의 유일한 wall-clock 병목. `.next/cache` 복원은 이미 기각됐다(아래 함정).
+- [x] **`build:cf` postbuild 병목** — **PR #1680 (머지됨).** postbuild 58.4s → 29.6s, `build:cf` 194s → 166s, build 잡 250s → 234s. externalize 22.3s→1.8s(태그마다 dist 113MB 를 toLowerCase 로 복사 + 미러 수십 벌의 같은 블록을 매번 esbuild 파싱), adsense-readiness 11.8s→3.8s(baseDir 당 패스 22개가 같은 index.html 을 재독).
+- [ ] **next 컴파일 90.9s** — 이제 `build:cf` 166s 의 최대 단일 덩어리다. `next.config.mjs:190-192` 의 `config.cache = false` 때문에 webpack 영속 캐시가 꺼져 있어 `.next/cache` 복원이 무의미하다. 🔴 **그 줄의 근거가 어디에도 없다** — 2026-06-29 대량 커밋 `94acc1538` 에서 유입됐고 커밋 메시지·문서·테스트 어디에도 사유가 없다(`git grep config.cache` 전수: 소스 1곳, 문서는 이 파일뿐). 켜면 프로덕션 배포 빌드의 산출 바이트에도 영향이 가므로 **사용자 판단 사항**. 켤 경우 `.next/cache` 를 `actions/cache` 로 데워야 효과가 나고, PR 런이 캐시를 읽으려면 base 브랜치(main) 쪽에서 저장하는 잡이 필요하다.
+- [ ] **postbuild 다음 병목 `split-dist-boot-tasks` 17.6s** — PR #1680 이 앞뒤를 줄인 뒤 postbuild 29.6s 의 절반 이상이 여기다. 아직 안 봤다.
 - [x] **`paid-flow-gates.yml` 의 `paths:` 누락 2건** — **PR #1665 (머지 대기).** 두 줄을 추가했고, YAML 만 교체해 같은 두 커밋으로 판정기를 돌린 before/after 가 `run=false → run=true` 로 갈렸다. 전수 확인: 이 워크플로가 실행하는 스크립트는 `run:` 기준 2개뿐이고 `change-risk.mjs` 는 import 0건이라 폐포가 닫힌다 — 3번째 누락 없음.
 - [ ] **(신규) 이 구멍을 기계로 막는 가드가 없다** — `verify:guard-wiring` 은 "검증기가 워크플로에서 도달 가능한가"만 본다. **"워크플로가 실행하는 스크립트와 그 import 폐포가 그 워크플로 자신의 `paths:` 에 있는가"** 축은 아무도 안 본다. 그래서 이 손목록은 지금까지 15번 넘게 같은 형태로 새어 왔다(YAML 주석에 사고 기록이 그만큼 있다). 🔴 가드 추가는 사용자 승인 사항이라(CLAUDE.md CI gate scope, `scripts/verify-guard-wiring.mjs:51`) 임의로 넣지 않았다 — **먼저 물을 것.**
 - [x] **문구만 고친 PR 이 `Paid Flow Gates` 를 깨우던 구멍** — **PR #1676 (머지 대기).** `public/i18n/**` 는 트리거에 있는데 판정 기준이 "캐시키가 아닌 줄이 하나라도 있으면 돈다" 뿐이었다(셸에만 "결제 구간" 판정이 있었다). 사전을 읽는 가드를 값 스캐너/키 단언 둘로 나눠, 값은 가드 상수에서 조립한 탐지기로 보고 키·문구는 `scripts`·`__tests__` 에서 찾는다. PR #1671 이 `run=true → run=false`, 결제 커밋 4건은 `run=true` 유지.
@@ -34,7 +36,20 @@ next: 사전 문구 스코프 수정이 PR #1676 으로 나갔다(사용자 머�
 - 티어 판정 정본: `scripts/lib/change-risk.mjs` (CI·로컬·배포 3곳이 같은 모듈을 쓴다)
 - PR CI 잡 6개: `.github/workflows/pr-ci.yml` — `classify` → `fast`·`guards`·`build`·`critical` (+`landing-order`)
 
+## `build:cf` 166s 분해 (2026-09-06, job 101448056153)
+
+| 구간 | 초 |
+|---|---|
+| prebuild + next 앞 검증기 13개 (rss:generate 7.2 포함) | 14.6 |
+| **next 컴파일** | **90.9** |
+| page data 수집 + 정적 720쪽 생성 + finalize | 30.6 |
+| **postbuild** | **29.6** (split-dist-boot-tasks 17.6 · adsense-readiness 3.8 · externalize 1.8 · minify 등 나머지) |
+
+재현: `gh api repos/rei1237/codedestiny/actions/jobs/<job id>/logs` 로 받아 줄머리 타임스탬프 차이를 본다.
+
 ## 함정
+
+- 🔴 **postbuild 스크립트는 대부분 끝날 때만 출력한다** — 그래서 "`[X]` 다음의 긴 공백"은 X 가 아니라 **그 다음 단계**의 소요다. 처음에 이걸 반대로 읽어 externalize(22.3s)를 adsense-readiness 로, split-dist-boot-tasks(18.2s)를 externalize 로 적었다(PR #1680 커밋 메시지에 그 잘못된 귀속이 남아 있다). 구간은 **출력 시각 사이**로 잰다.
 
 - 🔴 **PR CI 에 잡을 추가하면 룰셋 필수 체크도 같이 갱신해야 한다.** 보고를 못 받는 필수 체크는 머지를 영영 막는다. 이 레포는 classic branch protection 이 **없고** ruleset `main-protection`(id 20666260) 하나가 전부다 — `gh api repos/rei1237/codedestiny/rulesets/20666260`.
 - 🔴 그 뒤 **이미 열려 있던 PR 은 `gh pr update-branch` 가 필요하다.** `pull_request` 워크플로는 merge ref 에서 읽히므로 기존 런 re-run 으로는 새 잡이 안 돈다.
