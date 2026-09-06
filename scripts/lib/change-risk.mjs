@@ -17,7 +17,8 @@
  * deploy-safe.mjs 쪽을 정본으로 그대로 가져왔다.
  */
 
-const highPatterns = [
+/** 경로 **구조** 자체가 위험한 곳. 파일명과 무관하게 항상 high 다. */
+const highStructurePatterns = [
   // 🔴 2026-08-27 — 테스트 파일 자체가 미분류라 medium 으로 떨어지고 있었다. medium 은
   //    resolve-ci-tier 에서 standard 가 되고 standard 는 npm test 를 건너뛴다. 결과:
   //    **테스트만 고친 PR 은 그 테스트가 CI 에서 한 번도 안 돈 채 머지된다.**
@@ -25,10 +26,43 @@ const highPatterns = [
   //    Critical checks 가 "tier=standard … 전체 테스트를 건너뜁니다" 를 찍고 통과했다.
   //    아래 두 사고(#940·#924)와 같은 계열이다: 목록에 없어서 조용히 안 돈다.
   /^__tests__\//i,
-  /^worker\//i, /(^|\/)(payment|billing|auth|login|signup|access|unlock|entitlement|mongo|database|migration|migrate|kv|d1|r2|durable)/i,
+  /^worker\//i,
   /(^|\/)wrangler\.(toml|jsonc?)$/i, /(^|\/)\.env/i, /^\.github\/workflows\//i,
   /(^|\/)package-lock\.json$/i, /(^|\/)scripts\/deploy/i,
 ];
+
+/**
+ * 경로 **세그먼트가 이 단어로 시작하면** high. 위 구조 패턴이 못 덮는 결제·인증 UI
+ * (app/components/PaymentProcessingOverlay.tsx 같은 것)를 잡는 축이다.
+ *
+ * 🔴 오른쪽 경계 `(?![a-z])` 가 반드시 있어야 한다. 없던 동안 `authored`·`accessibility`·
+ *    `kvstore` 가 auth·access·kv 로 걸려서, 문구만 고친 PR 이 critical 로 올라갔다
+ *    (PR #1645 로그: `i18n/authored/shell-02.json — runtime/payment/auth/infra boundary`.
+ *    i18n/authored/** 126개 전부가 그랬다).
+ *
+ * 🔴 그렇다고 `/i` 를 쓰면 안 된다. `/i` 는 lookahead 안의 `[a-z]` 에도 적용돼 대문자 뒤따름까지
+ *    막으므로, `AuthWidget`·`PaymentProcessingOverlay`·`UnlockProvider` 처럼 camelCase 로
+ *    이어지는 **결제·인증 파일 7개가 조용히 high 에서 빠진다**(2026-09-06 전 tracked 파일 실측).
+ *    이들은 deepVerificationRules 에도 없어서 그대로 구멍이 된다. 그래서 대소문자 3형을
+ *    직접 만들어 나열하고 `/i` 는 붙이지 않는다.
+ */
+const HIGH_KEYWORDS = [
+  "payment", "billing", "auth", "login", "signup", "access", "unlock",
+  "entitlement", "mongo", "database", "migration", "migrate", "kv", "d1", "r2", "durable",
+];
+const caseForms = (word) => [word, word[0].toUpperCase() + word.slice(1), word.toUpperCase()];
+const highKeywordPattern = new RegExp(`(^|/)(${HIGH_KEYWORDS.flatMap(caseForms).join("|")})(?![a-z])`);
+
+/**
+ * 문서는 런타임이 아니다 — 키워드 축에서만 제외한다(구조 패턴은 그대로 적용된다).
+ * `docs/handoff/mongo-m10-phase2-*.md` 나 `docs/context/payment-gating.md` 를 고쳤다는 이유로
+ * 전체 회귀를 돌릴 근거가 없다(최근 머지 30건 중 5건이 이 오탐으로 critical 이었다).
+ * 문서를 입력으로 읽는 가드는 티어와 무관하게 돈다 — verify:handoff-contract 는 pr-ci fast 잡
+ * (if 조건이 없다), verify-nakshatra-premium 의 CLAUDE.md·docs/context 단언은 paid-flow-gates
+ * 의 paths 트리거다.
+ */
+const inertDocPattern = /(^|\/)(docs?|reports?)\/|\.mdx?$/i;
+
 const mediumPatterns = [
   /(^|\/)(app|components|src|lib|js)\//i, /(^|\/)(route|cache|profile|session)/i,
   /(^|\/)(package\.json|next\.config\.|tsconfig\.)/i,
@@ -36,6 +70,9 @@ const mediumPatterns = [
 const lowPatterns = [
   /(^|\/)(docs?|reports?)\//i, /(^|\/)(styles?|css)\//i,
   /\.(css|scss|sass|less|svg|png|jpg|jpeg|webp|gif|ico|avif)$/i,
+  // 루트의 `.md`(PAYMENT_POLICY.md 등)도 문서다. 이 줄이 없으면 위 inertDocPattern 으로
+  // high 를 면한 뒤 미분류 기본값 medium 으로 떨어져 build 잡을 돌린다.
+  /\.mdx?$/i,
   /(^|\/)(index\.html|public\/i18n\/|sitemap|robots|ads\.txt)/i,
 ];
 
@@ -108,7 +145,10 @@ const deepVerificationRules = [
 
 export function classifyFile(file) {
   const value = String(file || "").replace(/\\/g, "/");
-  if (highPatterns.some((p) => p.test(value))) return { level: "high", reason: "runtime/payment/auth/infra boundary" };
+  if (highStructurePatterns.some((p) => p.test(value))) return { level: "high", reason: "runtime/test/infra boundary" };
+  if (!inertDocPattern.test(value) && highKeywordPattern.test(value)) {
+    return { level: "high", reason: "payment/auth/db keyword at a path segment start" };
+  }
   if (mediumPatterns.some((p) => p.test(value))) return { level: "medium", reason: "shared UI/state/API/routing code" };
   if (lowPatterns.some((p) => p.test(value))) return { level: "low", reason: "static/content/presentation change" };
   return { level: "medium", reason: "unclassified source/config change" };
@@ -152,6 +192,32 @@ export function selfTest() {
     // 테스트를 고쳤으면 테스트가 돌아야 한다. 이 두 줄이 없으면 규칙이 조용히 사라진다.
     ["__tests__/worker/per-use-proof-roundtrip.test.js", "high"],
     ["__tests__/ui/fusion-fortune.static.test.js", "high"],
+
+    // ── 🔴 키워드 경계. 이 블록이 사라지면 2026-09-06 이전 상태로 조용히 되돌아간다.
+    // 왼쪽: 단어가 이어지므로 결제·인증이 아니다(오탐이었다).
+    ["i18n/authored/shell-02.json", "medium"],           // authored ≠ auth (PR #1645)
+    ["styles/accessibility.css", "low"],                 // accessibility ≠ access
+    ["components/AccessibleModal.tsx", "medium"],        // Accessible ≠ Access
+    ["scripts/kvstore.mjs", "medium"],                   // kvstore ≠ kv
+    // 오른쪽: camelCase 로 이어져도 단어는 끝났다 — 내려가면 결제·인증이 무방비가 된다.
+    // 이 넷은 deepVerificationRules 에 없어서 level 이 유일한 방어선이다.
+    ["app/components/PaymentProcessingOverlay.tsx", "high"],
+    ["app/components/AuthWidget.tsx", "high"],
+    ["app/providers/UnlockProvider.tsx", "high"],
+    ["app/feedback/_components/LoginGate.tsx", "high"],
+    // 구조 패턴은 키워드 경계와 무관하게 그대로다.
+    ["worker/lib/monthly-credit-store.js", "high"],
+    // 🔴 `migrations` 는 `migration` 뒤에 s 가 붙어 키워드 축에서 빠진다. 그래도 CI·배포는
+    //    critical 이다 — deepVerificationRules 의 ^scripts/migrations/ 가 잡는다(아래 deepCases).
+    //    두 축이 독립이라 이렇게 나뉘고, check-changed.mjs 도 그 축을 함께 본다.
+    ["scripts/migrations/20260805-add-fortune-chat-indexes.mjs", "medium"],
+
+    // ── 문서는 파일명에 결제·DB 단어가 들어도 런타임이 아니다.
+    ["docs/handoff/mongo-m10-phase2-2026-09-06.md", "low"],
+    ["docs/context/payment-gating.md", "low"],
+    ["PAYMENT_POLICY.md", "low"],
+    // 다만 구조 패턴 안의 문서는 여전히 high 다 — 문서 예외는 키워드 축에만 걸린다.
+    ["worker/README.md", "high"],
   ];
   for (const [file, expected] of levelCases) {
     const actual = classifyFile(file).level;
