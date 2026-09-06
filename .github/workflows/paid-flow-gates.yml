@@ -342,6 +342,18 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# PR 에 새 커밋이 오면 앞 런을 취소한다. 지금까지 이 워크플로에만 concurrency 가 없어서,
+# PR CI 는 정상 취소되는데 이 게이트만 낡은 커밋을 끝까지 검사했다(2026-09-06 실측:
+# 브랜치 fix/chat-storage-copy 에서 01:54:34 시작한 런 34005098508 이, 01:55:11 새 커밋으로
+# PR CI 런 34005098554 가 취소된 뒤에도 01:58:43 까지 완주. 런 중앙값 226s).
+#
+# 🔴 push:main 은 github.sha 로 그룹이 갈려 서로 취소하지 않는다 — 머지된 커밋은 하나도
+#    빠짐없이 한 번씩 봐야 한다(아래 336~340행 PR #678 사고). 여기서 github.ref 를 쓰면
+#    연속 머지 때 앞 커밋의 검사가 통째로 사라진다.
+concurrency:
+  group: paid-flow-gates-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
