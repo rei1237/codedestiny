@@ -29,10 +29,11 @@ export default function DiaryShell({ children }: { children: ReactNode }) {
   return (
     <div className={styles.shell}>
       <DiaryTopBar subtitle={today || undefined} />
+      {/* 🔴 하단바도 provider 안이다 — ＋ 퀵캡처가 오늘 스냅샷과 저장 함수를 쓴다(PR-E). */}
       <DiaryStoreProvider>
         <main className={styles.main}>{children}</main>
+        <DiaryBottomNav />
       </DiaryStoreProvider>
-      <DiaryBottomNav />
     </div>
   );
 }

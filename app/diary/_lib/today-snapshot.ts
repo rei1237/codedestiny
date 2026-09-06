@@ -41,6 +41,10 @@ export interface DiaryLegacyEntry {
   practiceNote?: string;
   nightLog?: string;
   memoNote?: string;
+  /** 회고 한 줄. 셸은 `ensureEntryShape:615` 로 자리만 만들고 화면에 쓰지 않는다. */
+  reviewNote?: string;
+  /** 회고 만족도 0~5. `reviewNote` 와 같은 자리다. */
+  reviewRate?: number;
 }
 
 /** 날짜 키 → 엔트리. 셸 모달과 공유하는 v2 평면 맵 그대로다. */

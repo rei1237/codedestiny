@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 
+import DiaryQuickCapture from "./DiaryQuickCapture";
 import styles from "../_styles/diary.module.css";
 
 /**
@@ -46,7 +48,7 @@ interface DiaryNavTab {
   ready: boolean;
 }
 
-/** ＋ 는 라우트가 아니라 퀵캡처 시트 액션이다(PR-E). */
+/** ＋ 는 라우트가 아니라 퀵캡처 시트 액션이다 — 오늘 하루에 바로 쓴다(PR-E). */
 export const DIARY_NAV_TABS: readonly DiaryNavTab[] = [
   { key: "home", href: "/diary/", icon: "☀", label: copy.home, ready: true },
   { key: "calendar", href: "/diary/calendar/", icon: "▦", label: copy.calendar, ready: true },
@@ -59,6 +61,7 @@ const stripSlash = (value: string) => (value.length > 1 ? value.replace(/\/+$/, 
 export default function DiaryBottomNav() {
   const pathname = usePathname() || "/diary";
   const current = stripSlash(pathname);
+  const [capture, setCapture] = useState(false);
 
   const renderTab = (tab: DiaryNavTab) => {
     const isCurrent = stripSlash(tab.href) === current;
@@ -92,19 +95,26 @@ export default function DiaryBottomNav() {
     );
   };
 
+  // 🔴 시트는 `<nav>` 밖에 둔다 — 하단바가 `z-index:3` 으로 쌓임 맥락을 만들어서, 안에 넣으면
+  // 시트가 아무리 높은 `z-index` 를 가져도 하단바 층에 갇혀 Day View 시트 밑으로 들어간다.
   return (
-    <nav className={styles.bottomNav} aria-label={copy.home}>
-      {DIARY_NAV_TABS.slice(0, 2).map(renderTab)}
-      <span
-        className={`${styles.navItem} ${styles.navCapture}`}
-        aria-disabled="true"
-        title={`${copy.capture} — ${copy.pending}`}
-      >
-        <span className={styles.navCaptureDot} aria-hidden="true">
-          ＋
-        </span>
-      </span>
-      {DIARY_NAV_TABS.slice(2).map(renderTab)}
-    </nav>
+    <>
+      <nav className={styles.bottomNav} aria-label={copy.home}>
+        {DIARY_NAV_TABS.slice(0, 2).map(renderTab)}
+        <button
+          type="button"
+          className={`${styles.navItem} ${styles.navCapture}`}
+          onClick={() => setCapture((open) => !open)}
+          aria-expanded={capture}
+          aria-label={copy.capture}
+        >
+          <span className={styles.navCaptureDot} aria-hidden="true">
+            ＋
+          </span>
+        </button>
+        {DIARY_NAV_TABS.slice(2).map(renderTab)}
+      </nav>
+      {capture ? <DiaryQuickCapture onClose={() => setCapture(false)} /> : null}
+    </>
   );
 }
