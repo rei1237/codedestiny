@@ -41,10 +41,20 @@ function pickKeys(source, keys) {
   }, {});
 }
 
+/**
+ * 그 키에서 **검증기가 재는 것과 같은 것**을 잰다.
+ * 🔴 `content` 만 보던 옛 판이 2026-09-06 실호출 6차를 오진했다 — `finalVerdict`(검증 대상은
+ *    `rationale`)와 `visualization` 이 `0자` 로 찍혀, 실제로는 1,480자를 쓴 정상 응답이
+ *    "빈 필드가 검증을 통과하는 구멍"으로 기록됐다. 덤프는 판정의 근거로 읽히므로 0 을
+ *    "못 쟀다"가 아니라 "비어 있다"로 오해하게 두면 안 된다.
+ */
 function contentChars(value) {
   if (typeof value === "string") return value.length;
-  if (value && typeof value === "object" && typeof value.content === "string") return value.content.length;
-  return 0;
+  if (!value || typeof value !== "object") return 0;
+  if (typeof value.content === "string") return value.content.length;
+  if (typeof value.rationale === "string") return value.rationale.length;
+  // 남은 객체(visualization 등)는 검증 임계가 없다 — 담긴 문자열 총량으로 규모만 보여 준다.
+  return JSON.stringify(value).length;
 }
 
 function analyzeKeys(group, picked) {

@@ -1206,11 +1206,11 @@ function renderResult(){
 var _petPaidGateInFlight = Object.create(null);
 var PET_PAID_GATE_TTL_MS = 60000;
 
-function runPaidGate(spec){
+function runPaidGate(spec, buildResume){
   var inFlightKey = String(spec && spec.key || "pet-paid");
   var active = _petPaidGateInFlight[inFlightKey];
   if (active && (Date.now() - active.startedAt) < PET_PAID_GATE_TTL_MS) return active.promise;
-  var promise = runPaidGateOnce(spec);
+  var promise = runPaidGateOnce(spec, buildResume);
   _petPaidGateInFlight[inFlightKey] = { promise: promise, startedAt: Date.now() };
   var clear = function(){
     if (_petPaidGateInFlight[inFlightKey] && _petPaidGateInFlight[inFlightKey].promise === promise) {
@@ -1221,8 +1221,12 @@ function runPaidGate(spec){
   return promise;
 }
 
-function runPaidGateOnce(spec){
+function runPaidGateOnce(spec, buildResume){
   var requestId = "pet-" + spec.key + "-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8);
+  // 🔴 모바일 PortOne 은 상위 프레임을 리다이렉트하므로 아래 게이트 프로미스가 문서와 함께 죽는다.
+  // 서술자는 **게이트가 만든 이 requestId** 를 실어야 한다 — 복귀 문서가 다시 만들면 서버가 읽는
+  // requestId 가 갈라져 같은 결제로 이어 붙지 못한다.
+  var resumeDescriptor = (typeof buildResume === "function") ? buildResume(requestId) : null;
   var gatePayload = {
     categoryKey: "premium-consultation",
     featureKey: spec.key,
@@ -1234,7 +1238,8 @@ function runPaidGateOnce(spec){
     cost: spec.coin,
     amountKRW: spec.krw,
     requestId: requestId,
-    idempotencyKey: requestId
+    idempotencyKey: requestId,
+    resume: resumeDescriptor || null
   };
 
   // 🔴 여기서 이용권 선검사를 하지 않는다 (게이팅 절대 순서 1 · 금지 패턴 ②).
@@ -1316,12 +1321,20 @@ function openReport(){
   if (!state.blueprint) { go("species"); return; }
   if (state.report) { renderReport(); go("report"); return; }
   showLoading("이용권 확인 중", "이용권이 있으면 결제 없이 바로 열립니다.");
-  runPaidGate(PRICE.report).then(function(gate){
-    showLoading("리포트를 쓰는 중", "우리 아이에게 맞는 환경과 놀이를 찾고 있어요.");
-    return apiFetch("/api/pet-saju-ai/report", {
-      method: "POST",
-      body: JSON.stringify(paidRequestBody(gate, { pet: state.profile }))
-    });
+  runPaidGate(PRICE.report, function(requestId){
+    return buildPetReportResumeDescriptor(requestId, state.profile);
+  }).then(function(gate){
+    return runPetReportCore(gate, state.profile);
+  }).catch(function(error){ handlePaidFailure(error, openReport); });
+}
+
+/* 🔴 게이트를 타지 않는 코어다 — 재개는 반드시 여기로 들어온다. 게이트를 타는 openReport 로
+   되돌리면 이미 낸 결제가 또 일어난다(배선 레시피 4번). */
+function runPetReportCore(gate, profile){
+  showLoading("리포트를 쓰는 중", "우리 아이에게 맞는 환경과 놀이를 찾고 있어요.");
+  return apiFetch("/api/pet-saju-ai/report", {
+    method: "POST",
+    body: JSON.stringify(paidRequestBody(gate, { pet: profile }))
   }).then(function(res){
     if (!res.ok || !res.payload.report) throw new Error((res.payload && res.payload.message) || "리포트 생성에 실패했습니다.");
     state.report = res.payload.report;
@@ -1329,7 +1342,8 @@ function openReport(){
     hideOverlay();
     renderReport();
     go("report");
-  }).catch(function(error){ handlePaidFailure(error, openReport); });
+    return true;
+  });
 }
 
 function renderReport(){
@@ -1453,20 +1467,123 @@ function openCompat(){
   var petB = state.pets[state.compatPick[1]];
   if (!petA || !petB) return;
   showLoading("이용권 확인 중", "이용권이 있으면 결제 없이 바로 열립니다.");
-  runPaidGate(PRICE.compat).then(function(gate){
-    showLoading("두 아이의 기운을 겹쳐 보는 중", "상생·상극과 서로를 채우는 정도를 계산하고 있어요.");
-    return apiFetch("/api/pet-saju-ai/compat", {
-      method: "POST",
-      body: JSON.stringify(paidRequestBody(gate, { petA: petA, petB: petB }))
-    });
+  runPaidGate(PRICE.compat, function(requestId){
+    return buildPetCompatResumeDescriptor(requestId, petA, petB);
+  }).then(function(gate){
+    return runPetCompatCore(gate, petA, petB);
+  }).catch(function(error){ handlePaidFailure(error, openCompat); });
+}
+
+/* 게이트를 타지 않는 코어(위 리포트 코어와 같은 이유). */
+function runPetCompatCore(gate, petA, petB){
+  showLoading("두 아이의 기운을 겹쳐 보는 중", "상생·상극과 서로를 채우는 정도를 계산하고 있어요.");
+  return apiFetch("/api/pet-saju-ai/compat", {
+    method: "POST",
+    body: JSON.stringify(paidRequestBody(gate, { petA: petA, petB: petB }))
   }).then(function(res){
     if (!res.ok || !res.payload.compat) throw new Error((res.payload && res.payload.message) || "궁합 계산에 실패했습니다.");
     state.compat = { compat: res.payload.compat, reading: res.payload.reading, pets: [petA, petB] };
     hideOverlay();
     renderCompatResult();
     go("compat");
-  }).catch(function(error){ handlePaidFailure(error, openCompat); });
+    return true;
+  });
 }
+
+/* ── 결제 후 자동 재개(모바일 리다이렉트 복귀) ────────────────────────────────
+   두 유료 산출물 모두 **서버 호출**이라, 화면 복원만으로는 부족하고 결제 증빙을 다시 실어야 한다.
+   반려동물 프로필은 state 에만 있고 새로고침이면 사라지므로 서술자에 JSON 으로 싣는다
+   (sanitizePaidResumeDescriptor 가 원시값만 남기기 때문에 객체는 문자열로 접어 넣는다). */
+var PET_REPORT_RESUME_KIND = "pet-saju-report";
+var PET_COMPAT_RESUME_KIND = "pet-saju-compat";
+
+function petResumePetText(pet){
+  if (!pet || typeof pet !== "object") return "";
+  try { return JSON.stringify(pet); } catch (_error) { return ""; }
+}
+function petResumeParsePet(text){
+  if (typeof text !== "string" || !text) return null;
+  var parsed = null;
+  try { parsed = JSON.parse(text); } catch (_error) { return null; }
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return null;
+  return parsed;
+}
+
+function buildPetReportResumeDescriptor(requestId, profile){
+  var id = String(requestId || "").trim();
+  var pet = petResumePetText(profile);
+  if (!id || !pet) return null;
+  // 🔴 action 은 비운다 — 이 문서에 핸들러가 이미 등록돼 있고, 딥링크로 또 열면 이중 이동으로 재개가 날아간다.
+  return { kind: PET_REPORT_RESUME_KIND, action: "", args: { requestId: id, pet: pet } };
+}
+function buildPetCompatResumeDescriptor(requestId, petA, petB){
+  var id = String(requestId || "").trim();
+  var a = petResumePetText(petA);
+  var b = petResumePetText(petB);
+  if (!id || !a || !b) return null;
+  return { kind: PET_COMPAT_RESUME_KIND, action: "", args: { requestId: id, petA: a, petB: b } };
+}
+
+/* 인페이지에서 runPaidGateOnce 가 돌려주던 것과 **같은 모양**({requestId, evidence})을 만든다 —
+   paidRequestBody 가 읽는 자리가 같아야 서버가 보는 결제 증빙이 갈라지지 않는다(원칙 6). */
+function buildPetResumeGate(grant, requestId){
+  if (!grant || typeof grant !== "object") return null;
+  var payload = (grant.payload && typeof grant.payload === "object") ? grant.payload : {};
+  var evidence = (payload.data && typeof payload.data === "object") ? payload.data : payload;
+  if (!evidence || typeof evidence !== "object") return null;
+  var merged = Object.assign({}, evidence);
+  if (!merged.transactionId) merged.transactionId = String(grant.merchantUid || grant.requestId || "");
+  return { requestId: requestId, evidence: merged };
+}
+
+function runPetReportResume(descriptor, grant){
+  var args = (descriptor && descriptor.args && typeof descriptor.args === "object") ? descriptor.args : {};
+  var requestId = String(args.requestId || "").trim();
+  var profile = petResumeParsePet(args.pet);
+  // 🔴 유효성 판정을 전역 대입보다 앞에 둔다. false 를 돌려주면 복귀 처리가 '지금 열기' 카드로
+  // 떨어뜨린다(영수증은 그대로 남아 재클릭이 무료다).
+  if (!requestId || !profile) return false;
+  var gate = buildPetResumeGate(grant, requestId);
+  if (!gate) return false;
+
+  state.profile = profile;
+  var ready = state.blueprint
+    ? Promise.resolve(state.blueprint)
+    // 설계도는 무료 계산이다 — 새로고침으로 사라졌으면 유료 리포트 전에 여기서 다시 받는다.
+    : requestBlueprint(profile).then(function(blueprint){
+      state.blueprint = blueprint;
+      state.report = null;
+      savePet(profile);
+      setAccent(blueprint.balance.usefulElement);
+      renderResult();
+      return blueprint;
+    });
+  return ready
+    .then(function(){ return runPetReportCore(gate, profile); })
+    .then(function(ok){ return ok !== false; })
+    .catch(function(error){ handlePaidFailure(error, openReport); return false; });
+}
+
+function runPetCompatResume(descriptor, grant){
+  var args = (descriptor && descriptor.args && typeof descriptor.args === "object") ? descriptor.args : {};
+  var requestId = String(args.requestId || "").trim();
+  var petA = petResumeParsePet(args.petA);
+  var petB = petResumeParsePet(args.petB);
+  if (!requestId || !petA || !petB) return false;
+  var gate = buildPetResumeGate(grant, requestId);
+  if (!gate) return false;
+  return runPetCompatCore(gate, petA, petB)
+    .then(function(ok){ return ok !== false; })
+    .catch(function(error){ handlePaidFailure(error, openCompat); return false; });
+}
+
+(function registerPetResumeHandlers(){
+  var entry = null;
+  try { entry = window.__cdCheckoutEntry || null; } catch (_error) { entry = null; }
+  if (!entry || typeof entry.registerPaidResumeHandler !== "function") return;
+  try { entry.registerPaidResumeHandler(PET_REPORT_RESUME_KIND, runPetReportResume); } catch (_error) {}
+  try { entry.registerPaidResumeHandler(PET_COMPAT_RESUME_KIND, runPetCompatResume); } catch (_error) {}
+})();
 
 function renderCompatResult(){
   var host = $("stepCompat");
