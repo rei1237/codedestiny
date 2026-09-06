@@ -4,6 +4,6 @@ import dynamic from "next/dynamic";
 
 const TarotGuideContent = dynamic(() => import("./TarotGuideContent"));
 
-export default function TarotGuideRouteClient() {
-  return <TarotGuideContent />;
+export default function TarotGuideRouteClient({ integrityNote = null }) {
+  return <TarotGuideContent integrityNote={integrityNote} />;
 }
