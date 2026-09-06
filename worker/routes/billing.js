@@ -55,7 +55,6 @@ import {
   normalizePassTier,
   PASS_LIMITS,
   HONEY_PASS_POLICY,
-  resolveActivePassPolicy,
   resolveMonthlySpendQuota,
   resolvePremiumQuota,
 } from "../lib/profile-limits.js";
@@ -647,67 +646,6 @@ function resolveActivePassPolicyWithProfileFallback(user = {}) {
   // Compatibility name retained for callers; canonical entitlement policy is
   // authoritative and legacy fields cannot elevate it.
   return resolveCanonicalEntitlement(user || {});
-  const entitlement = resolveActivePassPolicy(user || {});
-  if (entitlement?.isActive === true) return entitlement;
-
-  const sub = user?.profileSubscription && typeof user.profileSubscription === "object"
-    ? user.profileSubscription
-    : {};
-  const tier = normalizePassTier(
-    sub?.passTier
-      || sub?.tier
-      || sub?.plan
-      || sub?.planId
-      || sub?.productId
-      || user?.passTier
-      || user?.subscriptionTier
-      || user?.membershipTier,
-  );
-  const policy = resolvePassPolicyForTier(tier);
-  if (!policy) return entitlement;
-
-  const status = String(
-    sub?.status
-      || sub?.subscriptionStatus
-      || sub?.membershipStatus
-      || sub?.lastBillingStatus
-      || user?.status
-      || user?.subscriptionStatus
-      || user?.membershipStatus
-      || "",
-  ).trim().toLowerCase();
-  const inactive = ["expired", "canceled", "cancelled", "inactive", "failed", "paused", "refunded"].includes(status);
-  const activeStatus = ["active", "paid", "current", "subscribed", "success", "valid", "ok", "complete", "completed", "confirmed", "approved"].includes(status);
-  const expiresAt = sub?.expiresAt || user?.expiresAt || null;
-  const expiresMs = expiresAt ? new Date(expiresAt).getTime() : NaN;
-  const dateActive = expiresAt ? (Number.isFinite(expiresMs) && expiresMs > Date.now()) : false;
-  // 이용권은 30일짜리다 — 만료일이 없는 문서는 "무기한 유효"가 아니라 "활성 근거 없음"으로 본다.
-  // (과거엔 만료일이 없으면 dateActive=true로 통과시켜, tier만 적힌 문서가 영구 무료 이용권이 됐다.
-  //  정본 profile-limits.js의 normalizeHoneyPassEntitlement는 만료일이 없으면 명시적 활성을 요구하는데
-  //  이 폴백만 느슨해서 같은 입력에 반대 답을 냈다.)
-  // passLimit 폴백에서 policy.maxCoinLimit을 뺀 이유: tier가 풀리면 그 값이 항상 ≥30이라
-  // explicitPass가 무조건 true가 돼 activeStatus 검사가 죽은 코드였다.
-  const passLimit = Number(sub?.maxCoveredCoin || sub?.passLimit || sub?.freeLimit || 0);
-  const explicitPass = tier === "family" ? (dateActive || activeStatus) : (passLimit > 0 || activeStatus);
-  if (inactive || !dateActive || !explicitPass) return entitlement;
-
-  const maxCoveredCoin = tier === "family"
-    ? Number(PASS_LIMITS.family || passLimit || policy.maxCoinLimit || 0)
-    : Number(passLimit || policy.maxCoinLimit || 0);
-  return {
-    ...(entitlement || {}),
-    tier,
-    passTier: tier,
-    passLabel: tier,
-    label: tier,
-    isActive: true,
-    maxCoveredCoin,
-    maxProfiles: tier === "family" ? 0 : Number(entitlement?.maxProfiles || sub?.profileLimit || 1),
-    profileLimit: tier === "family" ? 0 : Number(entitlement?.profileLimit || sub?.profileLimit || 1),
-    source: entitlement?.source || "profile_subscription_fallback",
-    startedAt: sub?.startedAt ? new Date(sub.startedAt).toISOString() : null,
-    expiresAt: Number.isFinite(expiresMs) ? new Date(expiresMs).toISOString() : null,
-  };
 }
 
 async function consumeTierPassIfAvailable(env, authUserId, pricing, requestId, body = {}, options = {}) {
