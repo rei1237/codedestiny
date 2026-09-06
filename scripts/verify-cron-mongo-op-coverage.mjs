@@ -51,7 +51,7 @@ const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 
 /** 🔴 부채 원장 — 2026-09-03 실측. **올리지 말 것.** 줄었으면 그만큼 낮춘다(가드가 숫자를 알려준다). */
 const UNCOVERED_BASELINE = Object.freeze({
-  "worker/routes/payments.js": 22,
+  "worker/routes/payments.js": 15,
   "worker/lib/content-unlocks.js": 4,
   "worker/lib/payment-refund.js": 2,
 });

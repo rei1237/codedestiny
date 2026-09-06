@@ -7,6 +7,9 @@ import { sliceFunction, stripComments } from "./lib/js-source-slice.mjs";
 
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const paymentsRouteSource = readFileSync(resolve(root, "worker/routes/payments.js"), "utf8");
+// 이용권(구독) 주문 발급의 정본은 V2 다 — worker/index.js 가 /api/payments/subscription/prepare 를
+// 여기로 가로챈다. 구 라우트의 같은 경로는 2026-09-06 에 삭제했다.
+const paymentsV2Source = readFileSync(resolve(root, "worker/payments/index.js"), "utf8");
 const portoneSource = readFileSync(resolve(root, "worker/lib/portone.js"), "utf8");
 const modelsSource = readFileSync(resolve(root, "worker/lib/models.js"), "utf8");
 const indexSource = readFileSync(resolve(root, "index.html"), "utf8");
@@ -549,7 +552,8 @@ function runInstantPgWindowTests() {
 
   // 이용권(구독) 주문 응답도 저장된 번호를 실어 보낸다 → 결제 직전 번호 조회 왕복 자체가 사라진다.
   // await 인 이유는 저장된 번호가 암호화 봉투일 수 있어 복호화가 필요하기 때문이다(worker/lib/pii-crypto.js).
-  assertContains(paymentsRouteSource, "const orderCustomer = await buildSinglePaymentCustomer(currentUser, auth.userId, env);", "membership-pass order must carry the saved customer phone");
+  assertContains(paymentsV2Source, "const customer = await buildLegacyPrepareCustomer(env, user, userId);", "membership-pass order must carry the saved customer phone");
+  assertContains(paymentsV2Source, "      customer,", "membership-pass order response must expose the customer envelope");
   assertContains(destinyProfileSource, "orderCustomer.phoneNumber,", "dp must read the server-supplied order.customer phone");
 
   // ②-b 🔴 "이미 저장된 번호가 있으면 결제 때 다시 묻지 않는다"를 성질로 고정한다.
