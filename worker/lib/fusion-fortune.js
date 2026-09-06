@@ -559,7 +559,7 @@ export function parseFusionFortuneLLMResponse(rawResponse) {
   return { ok: false, errorCode: "FUSION_LLM_PARSE_FAILED" };
 }
 
-function fusionValidationOptions(context = {}, input = {}) {
+export function fusionValidationOptions(context = {}, input = {}) {
   return {
     birthTimeKnown: context.birthTimeKnown === true,
     birthPlaceKnown: context.birthPlaceKnown === true,
@@ -704,7 +704,7 @@ export function validateFusionFortuneGroup(value = {}, group, { birthTimeKnown =
 }
 
 /** 기본 그룹 호출 — 잘림 반응형 재시도와 폴백 JSON 정화를 공용 헬퍼에 맡긴다. */
-function callFusionGroupProvider(env, userPrompt, options = {}) {
+export function callFusionGroupProvider(env, userPrompt, options = {}) {
   const { attempts, maxOutputTokens, ...rest } = options;
   return callGeminiJsonWithRetry(env, userPrompt, {
     ...rest,
@@ -915,6 +915,10 @@ export async function generateFusionFortuneWithRealLLM({
       response = await providerCall(env, groupPrompt.userPrompt, {
         systemPrompt: groupPrompt.systemPrompt,
         responseMimeType: "application/json",
+        // 🔴 구조화 출력을 켜는 유일한 지점이다 — 다른 호출부는 이 옵션을 세우지 않으므로
+        //    공용 경로(gemini.js·llm-client.ts)는 초융합 밖에서 바디가 이전과 같다.
+        //    되돌릴 때도 이 한 줄만 지운다.
+        responseSchema: groupPrompt.geminiSchema,
         attempts,
         maxOutputTokens: fusionGroupTokens(group, env),
         temperature: 0.62,

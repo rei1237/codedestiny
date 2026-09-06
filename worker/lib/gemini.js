@@ -124,6 +124,9 @@ export async function callGeminiText(env, prompt, options = {}) {
       model: clean(options.model),
       timeoutMs: Number(options.timeoutMs || 0) || undefined,
       responseMimeType: clean(options.responseMimeType) || undefined,
+      // Gemini 구조화 출력(generationConfig.responseSchema). 🔴 이 화이트리스트는 명시한 키만
+      // 넘기므로, 여기에 없으면 호출부가 아무리 넘겨도 바디에 안 실린다(조용히 사라진다).
+      responseSchema: options.responseSchema && typeof options.responseSchema === "object" ? options.responseSchema : undefined,
       thinkingBudget: Number.isFinite(Number(options.thinkingBudget)) ? Number(options.thinkingBudget) : undefined,
       apiEndpoint: clean(options.apiEndpoint || options.endpoint),
       // 비전(멀티모달) 입력. 지정되면 callLLM이 텍스트 파트 대신 이 배열을 그대로 contents로 쓴다.

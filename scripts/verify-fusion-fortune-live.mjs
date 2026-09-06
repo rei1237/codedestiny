@@ -40,17 +40,26 @@
  */
 import {
   buildFusionFortuneContext,
+  callFusionGroupProvider,
   countFusionFortuneVisibleText,
   generateFusionFortuneWithRealLLM,
   FUSION_GENERATION_DEADLINE_MS,
 } from "../worker/lib/fusion-fortune.js";
 import { FUSION_FORTUNE_LENGTH, FUSION_SECTION_GROUP_SPECS } from "../worker/lib/fusion-fortune-prompt.js";
 import { pickGeminiKeys, pickGeminiModels } from "../worker/lib/gemini.js";
+import { createFusionLiveDump } from "./lib/fusion-live-dump.mjs";
 
 const args = process.argv.slice(2);
 const live = args.includes("--live");
 const origin = (args.find((arg) => arg.startsWith("--origin=")) || "--origin=https://code-destiny.com/").slice(9);
 const sampleCount = Math.min(5, Math.max(1, Number((args.find((arg) => arg.startsWith("--samples=")) || "--samples=1").slice(10)) || 1));
+/**
+ * 🔴 탈락 묶음의 **원문**을 남긴다. 실호출은 1회 한정 승인이라, 태운 호출의 응답을 안 남기면
+ *    "왜 걸렸는지"(모델이 안 지킨 것인지 임계가 과한 것인지)를 재승인 없이는 다시 못 본다.
+ *    덤프는 판정을 바꾸지 않는다 — provider 응답을 그대로 통과시키고 곁에 기록만 한다.
+ */
+const dumpArg = args.find((arg) => arg === "--dump" || arg.startsWith("--dump="));
+const dump = dumpArg ? createFusionLiveDump({ dir: dumpArg.startsWith("--dump=") ? dumpArg.slice(7) : "" }) : null;
 
 const SEOUL = { city: "서울", country: "KR", latitude: 37.5665, longitude: 126.978, timezone: "Asia/Seoul" };
 const TOKYO = { city: "도쿄", country: "JP", latitude: 35.6762, longitude: 139.6503, timezone: "Asia/Tokyo" };
@@ -114,6 +123,7 @@ function printPlan() {
   console.log(`  최소 실호출 ${calls}회 (미달·중복 그룹의 보완 물결이 붙으면 최대 ${calls * 2}회) — 전체 조합은 --samples=5`);
   console.log(`  모델: ${process.env.FUSION_FORTUNE_LLM_MODEL || pickGeminiModels()[0]} · 키: ${KEY_NAME || "🔴 없음 (GEMINIF_API_KEY 등)"}`);
   console.log(`  천체력 원본: ${origin}`);
+  console.log(`  탈락 묶음 원문 덤프: ${dump ? dump.dir : "꺼짐 (--dump 로 켠다)"}`);
   console.log(`  판정: ${SAMPLES.length}건 모두 ≥${won(FUSION_FORTUNE_LENGTH.total.min)}자 · degraded 0 · 단계당 ≤${FUSION_GENERATION_DEADLINE_MS / 1000}초 · generationSource=gemini`);
   console.log("  실행하려면 --live 를 붙인다 — 🔴 사용자 승인이 먼저다(절대 규칙 1).");
 }
@@ -157,7 +167,9 @@ for (const [index, sample] of SAMPLES.entries()) {
     env: ENV,
     requestId: `fusion-live-${index + 1}`,
     onStage: (event) => { events.push({ ...event, at: Date.now() }); },
+    ...(dump ? { providerCall: dump.wrap(callFusionGroupProvider) } : {}),
   };
+  dump?.beginSample({ index: index + 1, label: sample.label, context, input: sample.input });
 
   console.log(`\n[${index + 1}/${SAMPLES.length}] ${sample.label}`);
   const stageResults = [];
@@ -211,6 +223,15 @@ for (const [index, sample] of SAMPLES.entries()) {
 console.log("\n[fusion-live] 요약");
 for (const row of rows) console.log(`  ${row.label} — ${won(row.chars)}자 · ${row.tier} · ${row.seconds}초`);
 console.log(`  측정일 ${new Date().toISOString().slice(0, 10)} · 재현: node scripts/verify-fusion-fortune-live.mjs --live`);
+
+if (dump) {
+  const dumped = await dump.finish({ command: `node --env-file=.env.local scripts/verify-fusion-fortune-live.mjs --live --dump` });
+  console.log(`\n[fusion-live] 덤프 ${dumped.records.length}회 → ${dumped.dir}`);
+  for (const record of dumped.failed || []) {
+    const worst = record.keys.filter((key) => key.minChars !== null).sort((a, b) => (a.shortfall ?? 0) - (b.shortfall ?? 0))[0];
+    console.log(`  탈락 ${record.group} ${record.waveLabel} — ${record.verdict?.detail ? `${record.verdict.issue}(${record.verdict.detail})` : record.verdict?.issue}${worst ? ` · ${worst.key} ${worst.chars}/${worst.minChars}자 kp${worst.keyPoints ?? "-"}` : ""} → ${record.name}.txt`);
+  }
+}
 
 if (failures.length) {
   console.error("\n[fusion-live] FAIL");

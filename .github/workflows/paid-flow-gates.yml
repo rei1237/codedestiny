@@ -213,6 +213,11 @@ on:
       - "worker/lib/cms-prompts.js"
       - "worker/lib/llm-cache-store.js"
       - "lib/llm-client.ts"
+      # 🔴 verify:saju-ai-consultation-recovery 와 verify:ziwei-deep-report-flow 가 이 파일을
+      #    열어 캐시 키 계약을 단언하는데 트리거에는 없었다(CLAUDE.md 원칙 10). buildCacheKey 는
+      #    "프로바이더에 실제로 전달하는 필드만" 해시한다고 선언하므로, 전송 필드가 늘 때 여기도
+      #    같이 바뀌어야 하고 그 PR 에서 가드가 깨어나야 한다.
+      - "lib/llm-cache.ts"
       # 🔴 verify:vedic-ai-flow 가 이 파일들을 열어 client contract(문구·aria-label·API 경로)를
       #    단언하는데 트리거에는 없었다(2026-08-21, PR #924 i18n 로케일화가 aria-label 을
       #    literal 문자열에서 copy.pdfButtonAriaLabel 참조로 바꾸면서 이 가드를 깨뜨렸는데, PR CI 는
