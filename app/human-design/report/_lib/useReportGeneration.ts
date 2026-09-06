@@ -20,6 +20,7 @@ import type { Locale as ViewerLocale } from "@/app/human-design/_copy";
 
 import { authFetch } from "@/app/_lib/auth-client";
 import { useCoinGate } from "@/app/hooks/useCoinGate";
+import { packPaidResumeArg, unpackPaidResumeArg, usePaidResume } from "@/app/hooks/usePaidResume";
 import { postPaidBody } from "@/app/nakshatra/nakshatra-fetch";
 
 import { say } from "./copy";
@@ -140,6 +141,8 @@ export function useReportGeneration({ inputHash, locale, birth, uiLocale }: Opti
 
   const reportIdRef = useRef("");
   const runningRef = useRef(false);
+  /** 최초 진입 조회의 약속. 결제 후 재개가 이걸 기다린 뒤에 생성을 시작한다. */
+  const bootRef = useRef<Promise<void> | null>(null);
   const startedAtRef = useRef(0);
 
   const fail = useCallback((message: string) => {
@@ -317,10 +320,61 @@ export function useReportGeneration({ inputHash, locale, birth, uiLocale }: Opti
     const fromUrl = params.get("reportId") || "";
     const stored = fromUrl || "";
     reportIdRef.current = stored;
-    void guarded(() => load(stored));
+    // 결제 후 재개가 이 최초 조회를 기다릴 수 있도록 약속을 남긴다 — guarded 는 단일비행이라
+    // 조회가 도는 중에 재개가 들어오면 조용히 건너뛰어(=false) 재개가 실패로 보인다.
+    bootRef.current = guarded(() => load(stored));
     // inputHash 가 정해진 뒤 한 번만 돈다. 이후 전이는 purchase/resume 이 만든다.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inputHash]);
+
+  /** 결제가 끝난 뒤의 생성 개시. 🔴 결제 게이트를 다시 부르지 않는다 — 결제 후 재개도 여기로 들어온다. */
+  const startPaidReport = useCallback(async (requestId: string, birthInput: Record<string, unknown>): Promise<boolean> => {
+    const { data } = await postPaidBody("/api/human-design-report/start", { birth: birthInput, locale, requestId });
+    if (!data?.ok) {
+      fail(typeof data?.message === "string" && data.message ? data.message : say("serverError", uiLocale));
+      return false;
+    }
+
+    const reportId = String(data.reportId || "");
+    // 🔴 무엇보다 먼저 적는다. 이 줄 뒤로는 무슨 일이 생겨도 재방문으로 복구된다.
+    if (reportId) {
+      writeStorage(REPORT_ID_STORAGE_KEY, reportId);
+      reportIdRef.current = reportId;
+      const url = new URL(window.location.href);
+      url.searchParams.set("reportId", reportId);
+      window.history.replaceState(null, "", url.toString());
+    }
+    if (Array.isArray(data.plan)) setPlanEntries(data.plan as ReportPlanEntry[]);
+
+    if (data.reused === true) {
+      applyDoc(data as unknown as ReportDocument);
+      // 🔴 재열람이 곧 완성본은 아니다. /start 는 앞 세션이 중간에 끊긴 generating 문서도
+      //    reused 로 돌려준다. 그때 reading 으로 보내면 빈 리포트를 그리고 사용자는
+      //    결제하고도 아무것도 못 본다 — 남은 웨이브를 이어서 돌려야 한다.
+      if (data.status === "generating") {
+        await runWaves(reportId);
+        return true;
+      }
+      setPhase("reading");
+      return true;
+    }
+    await runWaves(reportId);
+    return true;
+  }, [applyDoc, fail, locale, runWaves, uiLocale]);
+
+  /* 모바일 PortOne 은 상단 프레임을 리다이렉트해 ensurePaidAccess 의 await 가 페이지와 함께 죽는다.
+     그러면 /start 가 영영 안 불려 결제한 사용자가 잠금 화면으로 되돌아온다. requestId 는
+     stableRequestId 가 저장소에 남겨 둔 그 값이라 서버가 같은 결제 증빙을 찾는다. */
+  const buildResume = usePaidResume(FEATURE_KEY, async (args) => {
+    const requestId = typeof args.requestId === "string" ? args.requestId : "";
+    const birthInput = unpackPaidResumeArg<Record<string, unknown>>(args.birth);
+    if (!requestId || !birthInput) return false;
+    // 최초 조회가 끝난 뒤에 들어간다(단일비행 충돌 방지).
+    try { await bootRef.current; } catch { /* 조회 실패는 아래 생성이 다시 판정한다 */ }
+    let started = false;
+    await guarded(async () => { started = await startPaidReport(requestId, birthInput); });
+    return started;
+  });
 
   const purchase = useCallback(() => {
     if (!birth || !inputHash) return;
@@ -332,6 +386,7 @@ export function useReportGeneration({ inputHash, locale, birth, uiLocale }: Opti
         amountKRW: AMOUNT_KRW,
         reason: say("lockedHeading", uiLocale),
         requestId,
+        resume: buildResume({ requestId, birth: packPaidResumeArg(birth) }),
       });
       if (!gate.ok) {
         if (gate.code === "PAYMENT_CANCELLED") return;
@@ -343,38 +398,9 @@ export function useReportGeneration({ inputHash, locale, birth, uiLocale }: Opti
         return;
       }
 
-      const { data } = await postPaidBody("/api/human-design-report/start", { birth, locale, requestId });
-      if (!data?.ok) {
-        fail(typeof data?.message === "string" && data.message ? data.message : say("serverError", uiLocale));
-        return;
-      }
-
-      const reportId = String(data.reportId || "");
-      // 🔴 무엇보다 먼저 적는다. 이 줄 뒤로는 무슨 일이 생겨도 재방문으로 복구된다.
-      if (reportId) {
-        writeStorage(REPORT_ID_STORAGE_KEY, reportId);
-        reportIdRef.current = reportId;
-        const url = new URL(window.location.href);
-        url.searchParams.set("reportId", reportId);
-        window.history.replaceState(null, "", url.toString());
-      }
-      if (Array.isArray(data.plan)) setPlanEntries(data.plan as ReportPlanEntry[]);
-
-      if (data.reused === true) {
-        applyDoc(data as unknown as ReportDocument);
-        // 🔴 재열람이 곧 완성본은 아니다. /start 는 앞 세션이 중간에 끊긴 generating 문서도
-        //    reused 로 돌려준다. 그때 reading 으로 보내면 빈 리포트를 그리고 사용자는
-        //    결제하고도 아무것도 못 본다 — 남은 웨이브를 이어서 돌려야 한다.
-        if (data.status === "generating") {
-          await runWaves(reportId);
-          return;
-        }
-        setPhase("reading");
-        return;
-      }
-      await runWaves(reportId);
+      await startPaidReport(requestId, birth);
     });
-  }, [applyDoc, birth, ensurePaidAccess, fail, guarded, inputHash, locale, runWaves, uiLocale]);
+  }, [birth, buildResume, ensurePaidAccess, fail, guarded, inputHash, locale, startPaidReport, uiLocale]);
 
   const resume = useCallback(() => {
     const reportId = reportIdRef.current || readStorage(REPORT_ID_STORAGE_KEY);

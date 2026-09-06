@@ -11,6 +11,7 @@ import { authFetch } from "../_lib/auth-client";
 import { getApiBaseUrl } from "../_lib/api-config";
 import { useAiProfileSeed } from "../hooks/useAiProfileSeed";
 import { useCoinGate } from "../hooks/useCoinGate";
+import { packPaidResumeArg, unpackPaidResumeArg, usePaidResume } from "../hooks/usePaidResume";
 import { PriceBadge } from "../components/PriceBadge";
 import { FUSION_ORB_BY_KEY, FUSION_ORBS, type FusionSystemKey } from "./fusionOrbs";
 import { FusionRecentList, type FusionRecentItem } from "./FusionRecentList";
@@ -2047,19 +2048,11 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
     setPendingPaidRequest(Boolean(value));
   }, []);
 
-  // 새로고침으로 돌아온 사용자의 결제 증빙을 되살린다 — 이게 없으면 다음 제출이 재결제다.
-  useEffect(() => {
-    const stored = readFusionPaidRequest();
-    if (!stored) return;
-    paidRequestIdRef.current = stored.requestId;
-    paidRequestBodyRef.current = stored.body;
-    setPendingPaidRequest(true);
-    const body: FusionRequestBody | null = stored.body;
-    if (!body) return;
-    // 🔴 폼도 되살린다. 재시도가 보내는 것은 저장본이지만, 화면이 다른 질문을 보여 주면
-    //    사용자는 자기가 무엇을 물었는지 확인할 방법이 없다. birthPlaceKey 는 저장본의
-    //    birthPlace.city 가 곧 목록의 label 이라(제출 때 그렇게 넣는다) 그대로 복원된다 —
-    //    출생지 목록 스크립트가 아직 안 왔어도 값 자체는 유지된다.
+  // 🔴 폼을 저장본으로 되살린다. 재시도가 보내는 것은 저장본이지만, 화면이 다른 질문을 보여 주면
+  //    사용자는 자기가 무엇을 물었는지 확인할 방법이 없다. birthPlaceKey 는 저장본의
+  //    birthPlace.city 가 곧 목록의 label 이라(제출 때 그렇게 넣는다) 그대로 복원된다 —
+  //    출생지 목록 스크립트가 아직 안 왔어도 값 자체는 유지된다.
+  const restoreFormFromBody = useCallback((body: FusionRequestBody) => {
     setForm((previous) => ({
       ...previous,
       birthDate: body.birthDate || previous.birthDate,
@@ -2073,6 +2066,33 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
       birthPlaceKey: body.birthPlace?.city || previous.birthPlaceKey,
     }));
   }, []);
+
+  // 새로고침으로 돌아온 사용자의 결제 증빙을 되살린다 — 이게 없으면 다음 제출이 재결제다.
+  useEffect(() => {
+    const stored = readFusionPaidRequest();
+    if (!stored) return;
+    paidRequestIdRef.current = stored.requestId;
+    paidRequestBodyRef.current = stored.body;
+    setPendingPaidRequest(true);
+    if (stored.body) restoreFormFromBody(stored.body);
+  }, [restoreFormFromBody]);
+
+  /* 모바일 PortOne 은 상단 프레임을 리다이렉트해 ensurePaidAccess 의 await 가 페이지와 함께 죽는다.
+     그러면 아래 rememberPaidRequest 가 실행되지 않아 저장소에도 아무것도 남지 않고, 복귀한 사용자는
+     빈 폼 앞에서 3만원을 낸 사실만 남는다. 재개 서술자가 그 id 와 입력을 대신 싣고 돌아온다. */
+  const buildResume = usePaidResume(PAID_FEATURE_KEY, async (args) => {
+    const requestId = typeof args.requestId === "string" ? args.requestId : "";
+    const body = unpackPaidResumeArg<FusionRequestBody>(args.body);
+    if (!requestId || !body || !body.birthDate) return false;
+    const run = runGenerationRef.current;
+    if (!run) return false;
+    // 위 자동 복구 이펙트가 같은 요청을 한 번 더 태우지 않도록 먼저 잠근다.
+    autoResumeRef.current = true;
+    rememberPaidRequest(requestId, body);
+    restoreFormFromBody(body);
+    await run(requestId, body, 1, "");
+    return true;
+  });
 
   // 스트림 무음 감시. 서버가 15초마다 심박을 보내므로 45초 침묵은 연결이 끊겼다는 뜻이다.
   // 🔴 이 화면에는 타임아웃이 하나도 없어서, 스트림이 조용히 죽으면 사용자는 영원히 기다렸다.
@@ -2275,6 +2295,19 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
       if (stored) { requestId = stored.requestId; paidRequestBodyRef.current = stored.body; }
     }
     const resumed = Boolean(requestId);
+    const selectedPlace = birthPlaces.find((place) => place.label === form.birthPlaceKey);
+    // 결제 전에 한 번 만들어 둔다 — 재개 서술자가 이 입력을 그대로 싣고 리다이렉트를 건너간다.
+    const formRequestBody: FusionRequestBody = {
+      birthDate: form.birthDate,
+      birthTime: form.birthTimeUnknown ? "" : form.birthTime,
+      birthTimeUnknown: form.birthTimeUnknown,
+      calendarType: form.calendarType,
+      gender: form.gender,
+      nickname: form.nickname,
+      topic: form.topic,
+      concern: form.concern,
+      ...(selectedPlace ? { birthPlace: { city: selectedPlace.label, country: selectedPlace.country, latitude: selectedPlace.lat, longitude: selectedPlace.lon, timezone: selectedPlace.tz } } : {}),
+    };
     if (!requestId) {
       requestId = `${PAID_FEATURE_KEY}:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
       const gate = await ensurePaidAccess({
@@ -2283,6 +2316,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
         amountKRW: PAID_AMOUNT_KRW,
         reason: copy.paymentReason,
         requestId,
+        resume: buildResume({ requestId, body: packPaidResumeArg(formRequestBody) }),
       });
       if (!gate.ok) {
         if (gate.code === "AUTH_REQUIRED") { window.location.assign("/auth/login"); return; }
@@ -2293,23 +2327,12 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
       rememberPaidRequest(requestId);
     }
 
-    const selectedPlace = birthPlaces.find((place) => place.label === form.birthPlaceKey);
     {
       // 🔴 결제 한 건에 질문은 하나다. 앞선 시도의 저장본이 있으면 폼을 다시 읽지 않고 그대로
       //    보낸다 — 새로고침 뒤 폼이 초기값이면 birthPlaces 조회가 빗나가 birthPlace 가
       //    payload 에서 **조용히 빠지고**, 출생지 미상 입력으로 바뀐 채 재시도가 나간다
       //    (2026-09-03 사용자 보고: 재시도가 birth_place_overclaim 으로 실패).
-      const requestBody: FusionRequestBody = paidRequestBodyRef.current || {
-        birthDate: form.birthDate,
-        birthTime: form.birthTimeUnknown ? "" : form.birthTime,
-        birthTimeUnknown: form.birthTimeUnknown,
-        calendarType: form.calendarType,
-        gender: form.gender,
-        nickname: form.nickname,
-        topic: form.topic,
-        concern: form.concern,
-        ...(selectedPlace ? { birthPlace: { city: selectedPlace.label, country: selectedPlace.country, latitude: selectedPlace.lat, longitude: selectedPlace.lon, timezone: selectedPlace.tz } } : {}),
-      };
+      const requestBody: FusionRequestBody = paidRequestBodyRef.current || formRequestBody;
       // 결제 뒤 되돌아온 요청이면 서버에 남은 것부터 본다 — 완성본이면 그대로 열고(추가 호출 없음),
       // 1단계만 저장돼 있으면 2단계부터 이어 간다. 404 면 1단계부터.
       let startStage: 1 | 2 = 1;
