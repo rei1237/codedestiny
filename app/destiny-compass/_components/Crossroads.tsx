@@ -5,6 +5,7 @@
  */
 import { useCallback, useMemo, useState } from "react";
 import { useCoinGate } from "@/app/hooks/useCoinGate";
+import type { PaidResumeArgs, PaidResumeDescriptor } from "@/app/hooks/usePaidResume";
 import { Starfield } from "./Starfield";
 import { PigFace } from "./PigFace";
 import { computeCrossroad } from "../_engine/crossroad";
@@ -15,13 +16,25 @@ import { detectLocale } from "@/lib/i18n/dictionary";
 import styles from "./map.module.css";
 import type { DirectionField, SystemKey } from "../_engine/types";
 
-export function Crossroads({ field, onBack }: { field: DirectionField; onBack: () => void }) {
+export function Crossroads({
+  field,
+  onBack,
+  buildResume,
+  resumed = null,
+}: {
+  field: DirectionField;
+  onBack: () => void;
+  /** 결제 복귀 재개 서술자 생성기. 핸들러 등록은 항상 떠 있는 CompassApp 이 한다. */
+  buildResume?: (args?: PaidResumeArgs) => PaidResumeDescriptor;
+  /** 결제 복귀로 열렸으면 결제 직전에 입력했던 두 선택지를 되살려 바로 비교를 보여준다. */
+  resumed?: { a: string; b: string } | null;
+}) {
   const copy = useDestinyCompassCopy();
   const priceLabel = formatKrwFromCoins(100, detectLocale());
   const { ensurePaidAccess, isPaying } = useCoinGate();
-  const [a, setA] = useState("");
-  const [b, setB] = useState("");
-  const [compared, setCompared] = useState(false);
+  const [a, setA] = useState(resumed?.a || "");
+  const [b, setB] = useState(resumed?.b || "");
+  const [compared, setCompared] = useState(Boolean(resumed?.a && resumed?.b));
   const [error, setError] = useState<string | null>(null);
 
   const result = useMemo(
@@ -40,6 +53,9 @@ export function Crossroads({ field, onBack }: { field: DirectionField; onBack: (
       amountKRW: 10000,
       reason: copy.crossroadsGateReason,
       requestId: makeGateRequestId("destiny-compass-crossroads"),
+      // 🔴 비교 대상 두 줄을 서술자에 실어야 한다 — 복귀 문서의 입력칸은 비어 있어
+      //    여기서 다시 읽으면 결제만 되고 아무것도 비교되지 않는다.
+      resume: buildResume?.({ a, b }),
     });
     if (!r.ok) {
       if (redirectToLoginOnAuthRequired(r.code)) {
@@ -52,7 +68,7 @@ export function Crossroads({ field, onBack }: { field: DirectionField; onBack: (
       return;
     }
     setCompared(true);
-  }, [a, b, isPaying, ensurePaidAccess, copy]);
+  }, [a, b, isPaying, ensurePaidAccess, copy, buildResume]);
 
   return (
     <div className={`${styles.resultStage} ${styles.nightStage}`}>

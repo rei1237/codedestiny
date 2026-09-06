@@ -9,8 +9,9 @@
  * 결제는 공용 게이트(useCoinGate.ensurePaidAccess)만 쓴다.
  * 이용권 선검사 → 미커버 시 결제창(단건/월정석 동등) → PortOne 순서는 그 훅이 책임진다.
  */
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useCoinGate } from "@/app/hooks/useCoinGate";
+import type { PaidResumeArgs, PaidResumeDescriptor, PaidResumeGrant } from "@/app/hooks/usePaidResume";
 import { AI_LOCALE_HEADER, toAiLocale } from "@/lib/i18n/ai-locale";
 import { detectLocale } from "@/lib/i18n/dictionary";
 import type { CompassInput, DirectionField } from "../_engine/types";
@@ -125,13 +126,35 @@ function mergeSections(
   return next;
 }
 
-export function useCompassReport(input: CompassInput | null, field: DirectionField | null, question: string) {
+/**
+ * 결제 복귀 재개 배선. 서술자 생성기와 복귀 증빙을 CompassApp 이 내려 준다 —
+ * 이 훅은 결과 단계에서만 마운트돼서 리다이렉트 복귀 시점에는 아직 없기 때문이다.
+ */
+export interface CompassReportResumeWiring {
+  buildResume?: (args?: PaidResumeArgs) => PaidResumeDescriptor;
+  grant?: PaidResumeGrant | null;
+}
+
+/** 인페이지 게이트의 transactionId 와 같은 자리에서 뽑는다(useCoinGate: consume.transactionId || consume._id). */
+function resumeTransactionId(grant: PaidResumeGrant): string {
+  const payload = (grant.payload || {}) as Record<string, unknown>;
+  const consume = (payload.consume || {}) as Record<string, unknown>;
+  return String(consume.transactionId || consume._id || grant.merchantUid || grant.requestId || "");
+}
+
+export function useCompassReport(
+  input: CompassInput | null,
+  field: DirectionField | null,
+  question: string,
+  resumeWiring?: CompassReportResumeWiring,
+) {
   const copy = useDestinyCompassCopy();
   const { ensurePaidAccess, isPaying } = useCoinGate();
   const [state, setState] = useState<ReportState>(INITIAL);
   const inFlight = useRef(false);
   const continuationRef = useRef<string>("");
   const payloadRef = useRef<{ field: unknown; evidencePack: unknown; idempotencyKey: string } | null>(null);
+  const resumedRef = useRef(false);
 
   /** 세션 캐시 복원 — 같은 탭에서 결과 화면을 오가도 다시 결제하지 않는다. */
   const restore = useCallback(() => {
@@ -167,33 +190,14 @@ export function useCompassReport(input: CompassInput | null, field: DirectionFie
     }
   }, [field, question]);
 
-  const unlock = useCallback(async () => {
-    if (!input || !field || inFlight.current || isPaying) return;
-    inFlight.current = true;
-    setState((prev) => ({ ...prev, phase: "paying", error: null }));
-
+  /**
+   * 게이트 없는 생성부 — 인페이지 결제 직후와 결제 복귀 재개가 같은 본문을 쓴다.
+   * 🔴 여기서 다시 ensurePaidAccess 를 부르지 않는다(결제는 이미 끝났다).
+   * 호출부가 inFlight 락을 잡고 들어온다.
+   */
+  const generate = useCallback(async (transactionId: string) => {
+    if (!input || !field) return;
     try {
-      const gate = await ensurePaidAccess({
-        featureKey: FEATURE_KEY,
-        coinPrice: COIN_PRICE,
-        amountKRW: AMOUNT_KRW,
-        reason: copy.deepReportGateReason,
-        requestId: makeGateRequestId(FEATURE_KEY),
-      });
-
-      if (!gate.ok) {
-        if (redirectToLoginOnAuthRequired(gate.code)) {
-          setState((prev) => ({ ...prev, phase: "locked", error: copy.loginRedirectMessage }));
-          return;
-        }
-        setState((prev) => ({
-          ...prev,
-          phase: "locked",
-          error: gate.code === "PAYMENT_CANCELLED" ? null : gate.message || copy.paymentIncompleteMessage,
-        }));
-        return;
-      }
-
       const idempotencyKey = makeGateRequestId(FEATURE_KEY);
       const payload = {
         idempotencyKey,
@@ -210,8 +214,8 @@ export function useCompassReport(input: CompassInput | null, field: DirectionFie
           timeline: field.timeline,
         },
         evidencePack: collectDeepEvidence(input, field),
-        transactionId: gate.transactionId,
-        purchaseId: gate.transactionId,
+        transactionId,
+        purchaseId: transactionId,
         requestId: idempotencyKey,
       };
       payloadRef.current = { field: payload.field, evidencePack: payload.evidencePack, idempotencyKey };
@@ -249,10 +253,56 @@ export function useCompassReport(input: CompassInput | null, field: DirectionFie
       await runWaveB(waveA);
     } catch {
       setState((prev) => ({ ...prev, phase: "failed", error: copy.connectionLostMessage }));
+    }
+  }, [input, field, question, runWaveB, copy]);
+
+  const unlock = useCallback(async () => {
+    if (!input || !field || inFlight.current || isPaying) return;
+    inFlight.current = true;
+    setState((prev) => ({ ...prev, phase: "paying", error: null }));
+
+    try {
+      const gate = await ensurePaidAccess({
+        featureKey: FEATURE_KEY,
+        coinPrice: COIN_PRICE,
+        amountKRW: AMOUNT_KRW,
+        reason: copy.deepReportGateReason,
+        requestId: makeGateRequestId(FEATURE_KEY),
+        resume: resumeWiring?.buildResume?.(),
+      });
+
+      if (!gate.ok) {
+        if (redirectToLoginOnAuthRequired(gate.code)) {
+          setState((prev) => ({ ...prev, phase: "locked", error: copy.loginRedirectMessage }));
+          return;
+        }
+        setState((prev) => ({
+          ...prev,
+          phase: "locked",
+          error: gate.code === "PAYMENT_CANCELLED" ? null : gate.message || copy.paymentIncompleteMessage,
+        }));
+        return;
+      }
+
+      await generate(gate.transactionId);
     } finally {
       inFlight.current = false;
     }
-  }, [input, field, question, isPaying, ensurePaidAccess, runWaveB, copy]);
+  }, [input, field, isPaying, ensurePaidAccess, generate, copy, resumeWiring]);
+
+  /**
+   * 결제 복귀 재개 — CompassApp 이 세션을 되살리고 증빙을 내려 주면 게이트를 건너뛰고 생성만 돈다.
+   * 🔴 한 번만 돈다(resumedRef) — 리렌더마다 다시 돌면 같은 결제로 리포트를 여러 번 만든다.
+   */
+  const resumeGrant = resumeWiring?.grant || null;
+  useEffect(() => {
+    if (!resumeGrant || !input || !field || resumedRef.current || inFlight.current) return;
+    resumedRef.current = true;
+    inFlight.current = true;
+    void generate(resumeTransactionId(resumeGrant)).finally(() => {
+      inFlight.current = false;
+    });
+  }, [resumeGrant, input, field, generate]);
 
   const retryWaveB = useCallback(() => {
     if (inFlight.current) return;

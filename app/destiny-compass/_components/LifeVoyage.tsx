@@ -5,6 +5,7 @@
  */
 import { useCallback, useState } from "react";
 import { useCoinGate } from "@/app/hooks/useCoinGate";
+import type { PaidResumeArgs, PaidResumeDescriptor } from "@/app/hooks/usePaidResume";
 import { Starfield } from "./Starfield";
 import { PigFace } from "./PigFace";
 import { redirectToLoginOnAuthRequired, makeGateRequestId } from "./paidGate";
@@ -19,11 +20,23 @@ const PERIOD_KEYS: TimelineKey[] = ["d30", "d90", "y1", "y3"];
 /** 날씨 이모지 — 로케일 무관(장식 아이콘). */
 const WEATHER_ICON: Record<Weather, string> = { clear: "☀️", breeze: "⛵", fog: "🌫️", storm: "🌊" };
 
-export function LifeVoyage({ field, onBack }: { field: DirectionField; onBack: () => void }) {
+export function LifeVoyage({
+  field,
+  onBack,
+  buildResume,
+  autoRevealed = false,
+}: {
+  field: DirectionField;
+  onBack: () => void;
+  /** 결제 복귀 재개 서술자 생성기. 핸들러 등록은 항상 떠 있는 CompassApp 이 한다. */
+  buildResume?: (args?: PaidResumeArgs) => PaidResumeDescriptor;
+  /** 결제 복귀로 이 화면이 열렸으면 처음부터 공개 상태다(결제는 이미 끝났다). */
+  autoRevealed?: boolean;
+}) {
   const copy = useDestinyCompassCopy();
   const priceLabel = formatKrwFromCoins(100, detectLocale());
   const { ensurePaidAccess, isPaying } = useCoinGate();
-  const [revealed, setRevealed] = useState(false);
+  const [revealed, setRevealed] = useState(autoRevealed);
   const [error, setError] = useState<string | null>(null);
 
   // 결제 게이트: 이용권 선검사 → 미커버 시 결제창(단건/월정석 동등) → 통과 후에만 항로 노출.
@@ -36,6 +49,7 @@ export function LifeVoyage({ field, onBack }: { field: DirectionField; onBack: (
       amountKRW: 10000,
       reason: copy.lifeVoyageGateReason,
       requestId: makeGateRequestId("destiny-compass-life-voyage"),
+      resume: buildResume?.(),
     });
     if (!r.ok) {
       if (redirectToLoginOnAuthRequired(r.code)) {
@@ -48,7 +62,7 @@ export function LifeVoyage({ field, onBack }: { field: DirectionField; onBack: (
       return;
     }
     setRevealed(true);
-  }, [isPaying, ensurePaidAccess, copy]);
+  }, [isPaying, ensurePaidAccess, copy, buildResume]);
 
   return (
     <div className={`${styles.resultStage} ${styles.nightStage}`}>
