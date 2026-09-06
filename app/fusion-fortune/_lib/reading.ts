@@ -1,7 +1,9 @@
 /**
  * 결과 글자 수·읽는 시간. 서버의 `countFusionFortuneVisibleText`(worker/lib/fusion-fortune.js)와
  * 같은 방식(조각을 공백으로 잇고 `.length`)으로 세어 "30,000자" 하한과 화면 숫자가 어긋나지 않게 한다.
- * 서버가 보관본에 남기는 `visibleTextLength` 는 JSON 직렬화 길이라 표시에 못 쓴다.
+ * 🔴 서버 보관본의 `visibleTextLength` 를 대신 쓰지 않는다 — 2026-09-06 이전에 저장된 문서는
+ * 그 값이 JSON 직렬화 길이(키·따옴표 포함, +7%)라 화면 숫자가 문서마다 어긋난다. 화면은
+ * 언제나 손에 든 결과에서 직접 센다.
  */
 
 import { SECTION_KEYS, type Result, type Section } from "../fusion-thread";

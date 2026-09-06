@@ -2,6 +2,8 @@ import { FusionFortuneGenerationAttempt } from "./models.js";
 import { mongoose } from "./db.js";
 import {
   buildFusionSectionGroupPrompt,
+  buildFusionSectionPromptPrefix,
+  buildFusionSectionSystemPrompt,
   FUSION_FORTUNE_LENGTH,
   FUSION_SECTION_GROUP_SPECS,
   fusionGroupsForStage,
@@ -15,7 +17,7 @@ import {
 import { buildGuardianFortuneContext } from "./guardian-fortune-context.js";
 import { buildIntegratedInsight } from "./guardian-fortune-insight.js";
 import { buildFortuneQuestionFocus } from "./fortune-question-focus.js";
-import { pickGeminiKeys } from "./gemini.js";
+import { createGeminiContextCache, deleteGeminiContextCache, pickGeminiKeys } from "./gemini.js";
 import { callGeminiJsonWithRetry } from "./structured-consultation.js";
 import { TAROT_CARDS } from "../../lib/tarot/tarot-cards.mjs";
 
@@ -966,6 +968,9 @@ export async function generateFusionFortuneWithRealLLM({
   const providers = new Set();
   const models = new Set();
   let providerCalls = 0;
+  // Gemini 명시적 컨텍스트 캐시 핸들. 1차 병렬 직전에 만들고 보완 물결까지 쓴 뒤 지운다.
+  // null 이면(캐시 꺼짐·접두사 짧음·생성 실패) 예전과 똑같이 전체 프롬프트가 나간다.
+  let contextCache = null;
   // 🔴 진행 카운터는 **국면마다 새로** 센다. 예전에는 하나를 1차 병렬과 재생성이 공유해
   //    화면에 "6 / 4 묶음 완성"이 떴다 — 총량을 넘는 진행률은 사용자에게 고장으로 보인다.
   const composeProgress = { phase: "compose", total: groups.length, done: 0 };
@@ -1005,6 +1010,9 @@ export async function generateFusionFortuneWithRealLLM({
         // 멈춰(2026-07-30 실측) 분량 계약을 구조적으로 채울 수 없다. 켜면 호출만 더
         // 태우고 결국 반려된다. 폴백을 켜게 되면 fallbackMinChars 를 함께 줘야 한다.
         fallbackToWorkersAI: false,
+        // 🔴 묶음마다 같은 접두사(공통 규칙 + 1단계 요약 + 서버 컨텍스트)를 정가로 다시 보내지
+        //    않는다. 접두사 제거는 llm-client 가 전송 직전에만 하므로 userPrompt 는 전체로 둔다.
+        geminiCachedContent: contextCache || undefined,
         logContext: { requestId: text(requestId, 120), featureKey: "fusion_fortune", stage: stageNumber, sectionGroup: group.id },
       });
     } catch (error) {
@@ -1027,63 +1035,80 @@ export async function generateFusionFortuneWithRealLLM({
   const failedGroups = [];
   // 반복으로 반려된 그룹만 따로 기억한다 — 보완 물결의 지시가 갈린다(buildFusionRepeatInstruction).
   const repeatedGroups = [];
-  const settled = await Promise.allSettled(groups.map((group) => runGroup(group)));
-  settled.forEach((outcome, index) => {
-    const group = groups[index];
-    if (outcome.status !== "fulfilled" || !outcome.value.ok) {
-      failedGroups.push(group);
-      if (outcome.status === "fulfilled" && outcome.value.issue === "repeated_sentence") repeatedGroups.push(group);
-      console.warn("[fusion-fortune-group-failed]", { requestId: text(requestId, 120), stage: stageNumber, sectionGroup: group.id, issue: text(outcome.status === "fulfilled" ? outcome.value.issue : outcome.reason?.message, 80), detail: text(outcome.status === "fulfilled" ? outcome.value.detail : "", 120) });
-      return;
-    }
-    Object.assign(merged, outcome.value.value);
-  });
-
-  // 실패했거나 목표를 크게 밑돈 그룹만 다시 부른다. 그룹 단위라 예산 안에 들어온다.
-  const shortGroups = groups.filter((group) => !failedGroups.includes(group) && countFusionGroupChars(merged, group) < group.targetChars * FUSION_GROUP_RETRY_RATIO);
-  // 🔴 중복은 **모델이 쓴 본문끼리만** 본다. composed(결정론 폴백이 섞인 것)로 재면 폴백이 제
-  //    렌즈 문장을 여러 섹션에 재사용하는 구조 때문에 모델 잘못이 아닌 중복이 잡힌다(실측 24건/40자).
-  //    2단계는 1단계 본문(prior)까지 포함해 본다 — 2단계가 요약을 그대로 베끼는 것이 잡아야 할 중복이다.
-  const duplicates = collectFusionCrossSectionDuplicates({ ...prior, ...merged });
-  const duplicatedGroups = groups.filter((group) => !failedGroups.includes(group) && !shortGroups.includes(group) && countFusionGroupDuplicates(duplicates, group) >= FUSION_GROUP_DUPLICATE_LIMIT);
-  const evidenceTokens = new Map(groups.map((group) => [group.id, collectFusionEvidenceTokens(context, group)]));
-  const thinGroups = groups.filter((group) => !failedGroups.includes(group) && !shortGroups.includes(group) && !duplicatedGroups.includes(group) && isFusionGroupEvidenceThin(pickKeys(merged, group.keys), group, evidenceTokens.get(group.id)));
-  const retryTargets = [...failedGroups, ...shortGroups, ...duplicatedGroups, ...thinGroups];
-  // 연결이 끊긴 뒤에 보완 호출을 또 태우지 않는다. 1차 호출은 provider 안에서 이미 진행 중이라
-  // 여기서 못 끊지만, **두 번째 물결**은 막을 수 있다(비용의 절반이 여기다).
-  if (retryTargets.length && !abortSignal?.aborted && remainingMs() > FUSION_GROUP_RETRY_MIN_BUDGET_MS) {
-    const retryTimeoutMs = Math.min(groupTimeoutMs, remainingMs() - FUSION_TAIL_RESERVE_MS);
-    const repairProgress = { phase: "repair", total: retryTargets.length, done: 0 };
-    const retried = await Promise.allSettled(retryTargets.map((group) => runGroup(group, {
-      attempts: 1,
-      timeoutMs: retryTimeoutMs,
-      // 🔴 분량 지시는 실제로 짧은 그룹에만 준다. 중복만으로 불려 온 그룹에 붙이면 "목표에 크게
-      //    못 미칩니다" 가 사실이 아닌 채로 나가 모델이 엉뚱한 곳을 늘린다.
-      extraInstruction: [
-        repeatedGroups.includes(group) ? buildFusionRepeatInstruction() : "",
-        !repeatedGroups.includes(group) && (failedGroups.includes(group) || shortGroups.includes(group)) ? buildFusionShortfallInstruction(group, countFusionGroupChars(merged, group)) : "",
-        buildFusionDuplicateInstruction(group, duplicates),
-        thinGroups.includes(group) ? buildFusionEvidenceInstruction(evidenceTokens.get(group.id)) : "",
-      ].filter(Boolean).join("\n\n"),
-      progress: repairProgress,
-    })));
-    retried.forEach((outcome, index) => {
-      if (outcome.status !== "fulfilled" || !outcome.value.ok) return;
-      const group = retryTargets[index];
-      const previousChars = countFusionGroupChars(merged, group);
-      const nextChars = countFusionGroupChars(outcome.value.value, group);
-      // 재생성이 더 길 때 교체한다 — 더 짧아진 결과로 기존 본문을 덮어쓰지 않는다.
-      // 다만 중복을 실제로 줄였거나 근거 인용이 생겼다면 분량이 조금 준 것은 받는다. 안 그러면
-      // 그 이유로 부른 재생성이 "몇 자 짧다"는 이유로 전부 버려져 이 물결이 통째로 헛돈다.
-      const reducedDuplicates = countFusionGroupDuplicates(collectFusionCrossSectionDuplicates({ ...prior, ...merged, ...outcome.value.value }), group) < countFusionGroupDuplicates(duplicates, group);
-      const gainedEvidence = thinGroups.includes(group) && !isFusionGroupEvidenceThin(outcome.value.value, group, evidenceTokens.get(group.id));
-      if (nextChars <= previousChars && !((reducedDuplicates || gainedEvidence) && nextChars >= previousChars * FUSION_GROUP_RETRY_RATIO)) return;
-      Object.assign(merged, outcome.value.value);
-      const stillFailedIndex = failedGroups.indexOf(group);
-      if (stillFailedIndex >= 0) failedGroups.splice(stillFailedIndex, 1);
+  // 🔴 예산을 확인한 **뒤에** 만든다 — 어차피 호출을 못 할 상황이면 왕복(최대 10초)만 태운다.
+  //    접두사가 4,000자 미만이거나 캐시가 꺼져 있거나 생성이 실패하면 null 이고, 그때는
+  //    지금까지와 완전히 같은 바디가 나간다(createGeminiContextCache 는 던지지 않는다).
+  if (remainingMs() > FUSION_TAIL_RESERVE_MS) {
+    contextCache = await createGeminiContextCache(env, {
+      prefix: buildFusionSectionPromptPrefix({ context, stage: stageNumber, priorSections: prior }),
+      systemPrompt: buildFusionSectionSystemPrompt(context),
+      model,
     });
-  } else if (retryTargets.length) {
-    console.warn("[fusion-fortune-group-retry-skipped]", { requestId: text(requestId, 120), stage: stageNumber, remainingMs: remainingMs(), aborted: abortSignal?.aborted === true, groups: retryTargets.map((group) => group.id) });
+  }
+
+  try {
+    const settled = await Promise.allSettled(groups.map((group) => runGroup(group)));
+    settled.forEach((outcome, index) => {
+      const group = groups[index];
+      if (outcome.status !== "fulfilled" || !outcome.value.ok) {
+        failedGroups.push(group);
+        if (outcome.status === "fulfilled" && outcome.value.issue === "repeated_sentence") repeatedGroups.push(group);
+        console.warn("[fusion-fortune-group-failed]", { requestId: text(requestId, 120), stage: stageNumber, sectionGroup: group.id, issue: text(outcome.status === "fulfilled" ? outcome.value.issue : outcome.reason?.message, 80), detail: text(outcome.status === "fulfilled" ? outcome.value.detail : "", 120) });
+        return;
+      }
+      Object.assign(merged, outcome.value.value);
+    });
+
+    // 실패했거나 목표를 크게 밑돈 그룹만 다시 부른다. 그룹 단위라 예산 안에 들어온다.
+    const shortGroups = groups.filter((group) => !failedGroups.includes(group) && countFusionGroupChars(merged, group) < group.targetChars * FUSION_GROUP_RETRY_RATIO);
+    // 🔴 중복은 **모델이 쓴 본문끼리만** 본다. composed(결정론 폴백이 섞인 것)로 재면 폴백이 제
+    //    렌즈 문장을 여러 섹션에 재사용하는 구조 때문에 모델 잘못이 아닌 중복이 잡힌다(실측 24건/40자).
+    //    2단계는 1단계 본문(prior)까지 포함해 본다 — 2단계가 요약을 그대로 베끼는 것이 잡아야 할 중복이다.
+    const duplicates = collectFusionCrossSectionDuplicates({ ...prior, ...merged });
+    const duplicatedGroups = groups.filter((group) => !failedGroups.includes(group) && !shortGroups.includes(group) && countFusionGroupDuplicates(duplicates, group) >= FUSION_GROUP_DUPLICATE_LIMIT);
+    const evidenceTokens = new Map(groups.map((group) => [group.id, collectFusionEvidenceTokens(context, group)]));
+    const thinGroups = groups.filter((group) => !failedGroups.includes(group) && !shortGroups.includes(group) && !duplicatedGroups.includes(group) && isFusionGroupEvidenceThin(pickKeys(merged, group.keys), group, evidenceTokens.get(group.id)));
+    const retryTargets = [...failedGroups, ...shortGroups, ...duplicatedGroups, ...thinGroups];
+    // 연결이 끊긴 뒤에 보완 호출을 또 태우지 않는다. 1차 호출은 provider 안에서 이미 진행 중이라
+    // 여기서 못 끊지만, **두 번째 물결**은 막을 수 있다(비용의 절반이 여기다).
+    if (retryTargets.length && !abortSignal?.aborted && remainingMs() > FUSION_GROUP_RETRY_MIN_BUDGET_MS) {
+      const retryTimeoutMs = Math.min(groupTimeoutMs, remainingMs() - FUSION_TAIL_RESERVE_MS);
+      const repairProgress = { phase: "repair", total: retryTargets.length, done: 0 };
+      const retried = await Promise.allSettled(retryTargets.map((group) => runGroup(group, {
+        attempts: 1,
+        timeoutMs: retryTimeoutMs,
+        // 🔴 분량 지시는 실제로 짧은 그룹에만 준다. 중복만으로 불려 온 그룹에 붙이면 "목표에 크게
+        //    못 미칩니다" 가 사실이 아닌 채로 나가 모델이 엉뚱한 곳을 늘린다.
+        extraInstruction: [
+          repeatedGroups.includes(group) ? buildFusionRepeatInstruction() : "",
+          !repeatedGroups.includes(group) && (failedGroups.includes(group) || shortGroups.includes(group)) ? buildFusionShortfallInstruction(group, countFusionGroupChars(merged, group)) : "",
+          buildFusionDuplicateInstruction(group, duplicates),
+          thinGroups.includes(group) ? buildFusionEvidenceInstruction(evidenceTokens.get(group.id)) : "",
+        ].filter(Boolean).join("\n\n"),
+        progress: repairProgress,
+      })));
+      retried.forEach((outcome, index) => {
+        if (outcome.status !== "fulfilled" || !outcome.value.ok) return;
+        const group = retryTargets[index];
+        const previousChars = countFusionGroupChars(merged, group);
+        const nextChars = countFusionGroupChars(outcome.value.value, group);
+        // 재생성이 더 길 때 교체한다 — 더 짧아진 결과로 기존 본문을 덮어쓰지 않는다.
+        // 다만 중복을 실제로 줄였거나 근거 인용이 생겼다면 분량이 조금 준 것은 받는다. 안 그러면
+        // 그 이유로 부른 재생성이 "몇 자 짧다"는 이유로 전부 버려져 이 물결이 통째로 헛돈다.
+        const reducedDuplicates = countFusionGroupDuplicates(collectFusionCrossSectionDuplicates({ ...prior, ...merged, ...outcome.value.value }), group) < countFusionGroupDuplicates(duplicates, group);
+        const gainedEvidence = thinGroups.includes(group) && !isFusionGroupEvidenceThin(outcome.value.value, group, evidenceTokens.get(group.id));
+        if (nextChars <= previousChars && !((reducedDuplicates || gainedEvidence) && nextChars >= previousChars * FUSION_GROUP_RETRY_RATIO)) return;
+        Object.assign(merged, outcome.value.value);
+        const stillFailedIndex = failedGroups.indexOf(group);
+        if (stillFailedIndex >= 0) failedGroups.splice(stillFailedIndex, 1);
+      });
+    } else if (retryTargets.length) {
+      console.warn("[fusion-fortune-group-retry-skipped]", { requestId: text(requestId, 120), stage: stageNumber, remainingMs: remainingMs(), aborted: abortSignal?.aborted === true, groups: retryTargets.map((group) => group.id) });
+    }
+  } finally {
+    // 다 쓴 캐시는 바로 지운다 — 저장은 시간당 과금이고 TTL(300초)은 안전망일 뿐이다.
+    await deleteGeminiContextCache(env, contextCache);
+    contextCache = null;
   }
 
   // 남은 실패 그룹은 결정론 폴백으로 메운다 — **이 단계의 키만**. 다른 그룹이 멀쩡한데 한 그룹

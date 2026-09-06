@@ -528,6 +528,46 @@ export function buildFusionStageOneDigest(priorResult = {}) {
 }
 
 /**
+ * 🔴 그룹 이름을 여기에 넣지 않는다. 이 문장이 그룹마다 달라지면 systemPrompt 도 달라지고,
+ *    그러면 컨텍스트 캐시가 통째로 무효가 된다(llm-client 의 canUseGeminiContextCache 는
+ *    systemPrompt 가 캐시에 구운 값과 한 글자라도 다르면 조용히 정가로 보낸다).
+ *    담당 범위는 userPrompt 의 "이 요청의 범위" 줄이 말한다.
+ */
+const FUSION_SECTION_GROUP_LENGTH_LINE = "이번 요청은 전체 상담 중 한 부분만 담당한다. 사용자 메시지가 지정한 키만 담긴 JSON 객체 하나만 반환하고, 다른 키는 절대 추가하지 않는다. Markdown과 코드펜스는 쓰지 않는다.";
+
+/**
+ * 그룹 프롬프트의 시스템 지시. **그룹과 무관하게 같은 값**이라 컨텍스트 캐시에 그대로 굽는다.
+ * 🔴 캐시를 만들 때와 각 호출이 보낼 때가 같은 함수를 봐야 한다 — 한쪽만 고치면 캐시가
+ *    조용히 안 걸리고(결과는 정상이라 눈에 안 띈다) 절감만 사라진다.
+ */
+export function buildFusionSectionSystemPrompt(context = {}) {
+  return buildSharedSystemPrompt(projectFusionFortuneContextForPrompt(context), FUSION_SECTION_GROUP_LENGTH_LINE);
+}
+
+/** 접두사 본체. safeContext 를 두 번 만들지 않으려고 내부용을 따로 둔다. */
+function composeFusionSectionPromptPrefix(safeContext, digest) {
+  return [
+    ...buildSharedUserPromptLines(safeContext),
+    "keyPoints, luckyActions, cautionPatterns는 각각 3개 이상 제공한다.",
+    ...(digest ? [`앞 단계에서 완성된 섹션 요약(이 문장들을 반복하지 말고, 이 판단들 사이의 관계에서만 나오는 것을 새로 쓴다):\n${digest}`] : []),
+    `서버 계산 컨텍스트:\n${JSON.stringify(safeContext)}`,
+  ].join("\n\n");
+}
+
+/**
+ * 한 단계의 모든 그룹이 **글자 그대로 공유하는** userPrompt 앞부분. 컨텍스트 캐시의 접두사다.
+ *
+ * 🔴 `buildFusionSectionGroupPrompt` 의 userPrompt 는 이 문자열로 시작해야 한다 —
+ *    llm-client 는 `prompt.startsWith(prefix)` 가 아니면 캐시를 무시한다. 그래서 두 함수가
+ *    같은 `composeFusionSectionPromptPrefix` 를 부르고, 그룹 블록은 뒤에만 붙인다.
+ *    (접두사가 4,000자 미만이면 createGeminiContextCache 가 null 을 돌려주고 예전처럼 정가로 나간다.)
+ */
+export function buildFusionSectionPromptPrefix({ context = {}, stage = 1, priorSections = null } = {}) {
+  const safeContext = projectFusionFortuneContextForPrompt(context);
+  return composeFusionSectionPromptPrefix(safeContext, Number(stage) === 2 ? buildFusionStageOneDigest(priorSections) : "");
+}
+
+/**
  * 그룹 하나의 프롬프트. 자기가 맡은 키만 담긴 JSON 객체를 요구한다.
  * priorSections 는 2단계 그룹에만 의미가 있다 — 1단계 결과 객체를 넘기면 요약이 서버 컨텍스트 앞에 실린다.
  * @param {{ context?: object, group: object, priorSections?: object, extraInstruction?: string }} args
@@ -539,14 +579,15 @@ export function buildFusionSectionGroupPrompt({ context = {}, group, priorSectio
     .filter((key) => group.minChars?.[key])
     .map((key) => `  · ${key}: 최소 ${Number(group.minChars[key]).toLocaleString("ko-KR")}자`);
   const digest = group.stage === 2 ? buildFusionStageOneDigest(priorSections) : "";
-  const systemPrompt = buildSharedSystemPrompt(
-    safeContext,
-    `이번 요청은 전체 상담 중 “${group.label}” 부분만 담당한다. 아래 키만 담긴 JSON 객체 하나만 반환하고, 다른 키는 절대 추가하지 않는다. Markdown과 코드펜스는 쓰지 않는다.`,
-  );
+  const systemPrompt = buildSharedSystemPrompt(safeContext, FUSION_SECTION_GROUP_LENGTH_LINE);
+  const promptPrefix = composeFusionSectionPromptPrefix(safeContext, digest);
 
+  // 🔴 공유 블록이 **앞**, 그룹 전용 블록이 **뒤**다. 순서를 섞으면 접두사가 접두사가 아니게 되어
+  //    캐시가 안 걸린다. 모델이 읽는 내용은 그대로이므로 품질 계약(verify:fusion-fortune-quality)은
+  //    포함 여부만 본다.
   const userPrompt = [
+    promptPrefix,
     `이 요청의 범위: ${group.focus}`,
-    ...buildSharedUserPromptLines(safeContext),
     ...(group.systems.length
       ? [`이 그룹이 사용하는 체계와 읽기 규칙:\n${group.systems.map((name) => `· ${name}: ${FUSION_SYSTEM_QUALITY_GATES[name]?.readingRule || ""}`).join("\n")}`]
       : []),
@@ -555,16 +596,13 @@ export function buildFusionSectionGroupPrompt({ context = {}, group, priorSectio
       ? ["타로 기준: tarotSpread.cards의 카드 이름과 포지션 여섯 개를 모두 tarotSection에서 정확히 언급하고, 목록 밖의 카드는 절대 추가하지 않는다."]
       : []),
     `분량 기준(이 그룹 합계 약 ${Number(group.targetChars).toLocaleString("ko-KR")}자):\n${minCharLines.join("\n")}`,
-    "keyPoints, luckyActions, cautionPatterns는 각각 3개 이상 제공한다.",
-    ...(digest ? [`앞 단계에서 완성된 섹션 요약(이 문장들을 반복하지 말고, 이 판단들 사이의 관계에서만 나오는 것을 새로 쓴다):\n${digest}`] : []),
-    `서버 계산 컨텍스트:\n${JSON.stringify(safeContext)}`,
     `응답 JSON 스키마(이 키만):\n${JSON.stringify(responseSchema)}`,
     ...(extraInstruction ? [extraInstruction] : []),
   ].join("\n\n");
 
   // 🔴 `responseSchema` 는 프롬프트 본문용(사람이 읽는 형태)이고 `geminiSchema` 는 전송용이다.
   //    전자의 키 순서를 verify:fusion-fortune-quality 가 문자열로 단언하므로 형태를 바꾸지 않는다.
-  return { systemPrompt, userPrompt, responseSchema, geminiSchema: toGeminiSchema(responseSchema) };
+  return { systemPrompt, userPrompt, promptPrefix, responseSchema, geminiSchema: toGeminiSchema(responseSchema) };
 }
 
 /**

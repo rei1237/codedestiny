@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-06
-next: 🔴 **레일 결함 3건 수정 완료 — PR #1709 사용자 머지 대기.** 승인받아 셋 다 고치고 dev-preview 로 재측정했다(Gemini 0회·결제 0건): ① `.page` `overflow: hidden`→`clip` 으로 sticky 회복(스크롤 4,918px 뒤 top 24px, 가로 오버플로 0) ② 🔴 **진행선은 ①의 결과가 아니었다** — 레일 밖 `absolute` 요소여서 레일 안으로 옮겼다 ③ 대기 행 `opacity-55`→`85` 로 4.87:1(레일)·5.51:1(도크). 다음 세션 첫 문장: **"#1709 가 머지됐는지 확인하고, 됐으면 남은 축(대표 1건 외 4조합 실호출 미검증 · 후속 과제 ①②③)에서 하나를 골라 착수한다."** 육안 판정에서 통과했던 3건(모바일 도크가 진짜 `fixed` · 1단계 대기 표시 13항목 · 도크 상단 진행선)은 그대로다.
+next: 🔴 **5조합 실호출 검증(4/5 통과) · 후속 ①② 구현 완료 — PR #1712 사용자 머지 대기.** 8차 실측(2026-09-06 12:02Z, `--samples=5`, 승인 1회 소진): `생시O 장소O` 53,342 · `생시O 장소X` 51,068 · `생시X 장소O` 49,948 · `생시X 장소X` 47,341 자 **전부 `full` · 폴백 0 · `generationSource=gemini`**, 그러나 `음력·도쿄·일과 돈` 하나만 **143,230자 `degraded`(`length`)** — integration w1 이 본문 뒤에 **공백 약 9만 자**를 붙인 폭주다(후속 ④, 이 PR 에서 **안 고쳤다**). 같은 PR 에 후속 ①(컨텍스트 캐시 배선)·②(`visibleTextLength` 의미 정정)를 담았다. 다음 세션 첫 문장: **"#1712 가 머지됐는지 확인하고, 됐으면 후속 ④(공백 폭주로 분량 상한 초과)를 착수한다."** 이전 축(레일 결함 3건)은 **머지 완료**(#1709 = `origin/main` `9e3e891d9`) — 수치는 아래 §남은 작업·§육안 판정에 그대로 있다.
 ---
 
 # 초융합 운세 개선 — 2단계 생성(Phase 1) 이후
@@ -17,7 +17,7 @@ next: 🔴 **레일 결함 3건 수정 완료 — PR #1709 사용자 머지 대�
 - Phase 2 머지 완료(PR #1621, `5a4bbb1cd`) — 승인된 목업 https://claude.ai/code/artifact/34037354-3cbc-4fe2-8ec1-011cc2e7b8a4 (추천안: 우측 224px sticky 차례 레일 · 핵심 문장 = `keyPoints[0]` 재사용 · 섹션 한 번에 전부 펼침). 새 파일 `app/fusion-fortune/FusionResultRail.tsx`(차례·통계·진행선) · `app/fusion-fortune/_lib/reading.ts`(글자 수·읽는 시간, 서버 `countFusionFortuneVisibleText` 와 같은 방식). 레일은 `lg` 미만에서 숨고 진행선만 남는다. 2단계 대기 말풍선은 `stageTwoGenerating={loading}` 으로 켠다.
 - Phase 3 구현 완료 — 브랜치 `worktree-fusion-phase3-mobile`, 승인된 목업 https://claude.ai/code/artifact/984802dc-3e8c-454e-a66f-d382e0dd6aaa (추천안: 하단 도킹 차례 바 + `<dialog>` 바텀시트 · 좁은 화면 여백만 조정 · 첫 섹션 자동 펼침 유지). 새 파일 `app/fusion-fortune/_lib/toc.ts`(차례 상태 단일 소유자 `useFusionToc`) · `app/fusion-fortune/FusionResultDock.tsx`(도크+시트, `lg:hidden`). 레일은 훅을 쓰도록만 바뀌었고 데스크톱 화면은 그대로다.
 - Phase 3 머지 완료(PR #1627, `4b3560fe5`).
-- 실제 Gemini 실호출 **5회차까지 완료**(전부 2026-09-06, 매번 1회 한정 승인). 그 외 모든 수치는 mock 실측이다.
+- 실제 Gemini 실호출 **8회차까지 완료**(전부 2026-09-06, 매번 1회 한정 승인. 8차만 한 승인으로 5조합을 이어서 돌렸다). 그 외 모든 수치는 mock 실측이다.
 
 ## 남은 작업
 
@@ -25,7 +25,7 @@ next: 🔴 **레일 결함 3건 수정 완료 — PR #1709 사용자 머지 대�
 - [x] **Phase 3 모바일 최적화** — 도크·시트·섹션 헤더 줄바꿈·푸터 2열·좁은 화면 여백 4종(≤430px). 로케일 5키는 ko·en·ja·zh 저작, 나머지 7개는 영어 복사.
 - [x] **레일·도크 육안 확인** — dev-preview 픽스처(PR #1704)로 로컬 렌더 후 판정. 통과 3 · **결함 3(미수정, 승인 대기)**. 상세는 §육안 판정.
 - [x] **레일 결함 3건 수정 완료**(2026-09-06, 사용자 승인, dev-preview 로 재측정 — Gemini 0회·결제 0건). ① `.page` `overflow: hidden` → `clip`: 스크롤 4,918px 뒤 `aside` top **24px 고정**(옛 −4563), 조상 체인 `main` 이 `clip/clip`, 360/390/430 가로 오버플로 **0**. ② 🔴 **①의 결과가 아니었다 — 진단이 틀렸다.** 진행선은 레일 안이 아니라 결과 `section.relative` 기준 `absolute inset-x-0 top-0` 이라 ①을 고쳐도 스크롤하면 화면 밖이었다(실측 top −229). **레일 `aside` 첫 자식으로 옮겼다** — 스크롤 깊이와 무관하게 top 24px, 채움 25% 가 "읽은 위치 25%" 라벨과 일치. 좁은 화면 진행선은 도크가 그대로 든다(390 실측: 도크 채움 78/372, 레일 숨김). ③ 대기 행 `opacity-55` → `85`: 레일 **4.87:1** · 도크 시트 **5.51:1**(픽셀 실측, AA 4.5 통과). 레일·도크 두 파일 모두 같은 대기 행이라 함께 고쳤다.
-- [x] 🔴 **Phase 4 실검증 — 7회 돌렸고 7차에서 ①②③④ 전부 충족**(2026-09-06). 5차의 ②(`degraded/length`)는 6차에 ⓧ 로 닫혔고, 6차에 열린 ④(verdict `closing_depth`)는 7차에 닫혔다. 🔴 **대표 1건 표본이다** — 나머지 4조합은 여전히 미검증이고, mock `verify:fusion-fortune-delivery-floor` 가 조합 커버리지를 맡는다. 하네스 `scripts/verify-fusion-fortune-live.mjs`(npm `verify:fusion-fortune-live`, 플래그 없으면 호출 0으로 계획만 출력). 재현: `node --env-file=<리포 루트>/.env.local scripts/verify-fusion-fortune-live.mjs --live --dump`. 사용자 지시로 조합 전수(45회) 대신 **대표 1건**(`생시O 장소O`)만 돌렸다 — 조합 커버리지는 mock `verify:fusion-fortune-delivery-floor` 가 맡는다.
+- [x] 🔴 **Phase 4 실검증 — 7회 돌렸고 7차에서 ①②③④ 전부 충족**(2026-09-06). 5차의 ②(`degraded/length`)는 6차에 ⓧ 로 닫혔고, 6차에 열린 ④(verdict `closing_depth`)는 7차에 닫혔다. 🔴 **7차까지는 대표 1건 표본이었다** — 나머지 4조합은 **8차(`--samples=5`)에서 전수로 돌렸고 4/5 통과**다(아래 §8차 실측). mock `verify:fusion-fortune-delivery-floor` 가 조합 커버리지를 맡는다. 하네스 `scripts/verify-fusion-fortune-live.mjs`(npm `verify:fusion-fortune-live`, 플래그 없으면 호출 0으로 계획만 출력). 재현: `node --env-file=<리포 루트>/.env.local scripts/verify-fusion-fortune-live.mjs --live --dump`. 사용자 지시로 조합 전수(45회) 대신 **대표 1건**(`생시O 장소O`)만 돌렸다 — 조합 커버리지는 mock `verify:fusion-fortune-delivery-floor` 가 맡는다.
   - 2차 실측(구조화 출력 **전**, `--dump`): 호출 11회 · 35.4초 · 27,093자 · `gemini_partial` · fallback saju·ziwei·tarot · 탈락 8건(`missing_key_points` 5 · `parse_failed` 1 · `section_depth` 2). 🔴 **탈락 6건이 분량이 아니라 JSON 형태였다** — 섹션 객체가 `{title, content}` 뿐이고 `keyPoints` 키를 통째로 빠뜨렸다.
   - 3차 실측(구조화 출력 **후**, 2026-09-06 04:36Z, 대표 1건): 호출 8회 · 28.5초 · 27,017자 · `gemini_partial` · fallback saju·tarot · 탈락 4건. **Gemini 가 스키마를 그대로 수용했다(400 없음)** — 되돌릴 이유가 사라졌다.
     - ✅ `missing_key_points` 5→0, `parse_failed` 1→0. 8회 전부 `[title|content|keyPoints]` + kp3, `droppedKeys` 없음.
@@ -61,8 +61,31 @@ next: 🔴 **레일 결함 3건 수정 완료 — PR #1709 사용자 머지 대�
     - ✅ `section_depth` 최종 탈락 0. saju 4,027 · ziwei 6,874 · vedic 5,593 · sukuyo 6,967(w2) · astrology 4,058(w2) · tarot 4,263 · integration 6,159 · timingAndAction 6,053/2,600.
     - 🔴 **astrology w1 이 새 형태로 탈락 — 반복 루프가 아니라 조기 종료다.** 응답 780자 전체·본문 523/3,600자를 3.6초 만에 닫고 끝냈다(JSON 은 정상, `keyPoints` 3개). 4·5차의 `parse_failed` 반복 루프와 **정반대 형태**다. 보완 물결이 4,058자로 회복해 폴백은 0. sukuyo w1 도 3,378/3,600 으로 근소 미달 후 w2 6,967자. 🔴 **astrology 는 4·5차 반복 루프 · 6차 정상 · 7차 조기 종료로 매번 다르다 — 표본 변동으로 보고 손대지 않는다.**
     - 🔴 **새 후속 과제(확인됨) — `countFusionGroupChars` 가 `finalVerdict` 를 0자로 센다.** verdict w1 은 그룹 검증을 **통과했는데도**(`ok`) 보완 물결이 돌았다. 이유는 `worker/lib/fusion-fortune.js:672` 가 문자열이거나 `.content` 를 가진 값만 세는데 `finalVerdict` 는 본문이 `rationale` 에 있어 통째로 빠지기 때문이다. w1 합계 1,739+0+818+110 = **2,667 < 3,400×0.8 = 2,720** 으로 `shortGroups` 에 들어갔다. w2 는 2,982+0+967+134 = **4,083** 이고 하네스가 출력한 값과 정확히 일치해 **산술로 확인됐다**. 대가는 매 요청 호출 1회 + 18.5초다. ✅ **수정 완료(PR #1706)** — 아래 정정과 함께 본다. 🔴 **정정 — "모든 그룹의 재시도 문턱이 올라간다"는 틀렸다.** 9개 그룹의 `keys` 를 전수로 보면 본문이 `.content` 밖에 있는 키는 `finalVerdict` **하나뿐**이라(나머지는 문자열이거나 `.content` 객체, `visualization` 은 구조 데이터라 의도적으로 0자) 효과가 verdict 묶음 하나로 닫힌다. 그래서 `FUSION_GROUP_RETRY_RATIO`(0.8)·`targetChars`(3,400)는 건드리지 않았다 — 계수가 명세와 맞으면 3,400 은 minChars 합(1,400+1,000+600=3,000)과 정합한 값이다.
+  - 🆕 **8차 실측 — 남은 4조합까지 5조합 전수**(2026-09-06 12:02Z, 브랜치 `worktree-fusion-cache-and-naming`, `--live --dump --samples=5`, 승인 1회로 5건). 덤프 `_tmp_fusion-live/2026-09-06T12-02-17-790Z/`(호출 54회). 하네스는 **`FAIL`** 로 끝났다 — 5건 중 1건이 강등됐다.
+    - ✅ **4조합 통과**: `생시O 장소O` 53,342자(40.4+46.2초) · `생시O 장소X` 51,068자(21.2+38.9초) · `생시X 장소O` 49,948자(57.9+24.6초) · `생시X 장소X` 47,341자(21.7+32.8초). 넷 다 `qualityTier: full` · **`fallbackGroups: []`** · `generationSource=gemini` · 단계당 ≤120초. 🔴 **생시·장소 결측이 분량을 깎지 않는다는 것이 실측으로 확인됐다** — 결측 조합이 오히려 하한에 더 가깝지만(47,341) 하한 30,000 대비 여유가 크다.
+    - 🔴 **`음력·도쿄·일과 돈` 1건 실패 — 143,230자 `degraded`(`length`).** 폴백 0·`generationSource` 정상인데 **상한 60,000 을 2.4배 넘겼다.** 원인은 덤프 `51-s2-integration-w1.txt`(100,611바이트): `integratedReading` 이 정상 산문을 쓴 뒤 **연속 공백 약 9만 자**를 붙이고 JSON 을 닫았다. 파싱·키·`keyPoints` 는 전부 정상이라 그룹 검증을 통과했고, `countFusionFortuneVisibleText` 가 그 공백을 그대로 세어 총량이 튀었다. **폭주 형태이지 설정·폴백 문제가 아니다** → 후속 ④.
+    - ⚠️ 탈락 기록 5건(전체 54회 중): `section_depth` 3(saju 3,320·3,173 · sukuyo 1,130) · `parse_failed` 1(tarot) · **`unsafe_phrase` 1**(integration 보완 물결, 5,719자). 🔴 공기 판정 전환(#1702) 뒤 첫 `unsafe_phrase` 다 — 다만 최종 `fallbackGroups` 는 5조합 전부 0이라 **배달에는 영향이 없었다**(원문 미확인, 오탐 여부 **미판정**).
+    - ✅ **PR #1706(verdict 글자 수) 실호출 재검증 — 효과 확인.** 덤프 `10-s2-verdict-w1.json` 의 `finalVerdict` 가 **1,902자로 세어진다**(옛 계수는 0자였다). `verdict.ok: true` 이고 묶음 합계가 5,000자대라 **분량 미달로 인한 보완 물결은 5조합 전부 0**이다. 🔴 다만 5조합 중 2건(`생시O 장소O`·`생시O 장소X`)에서 verdict 보완 물결이 돌긴 했다 — w1 이 `ok` 이고 합계가 임계(3,400×0.8=2,720)를 크게 넘겼으므로 **분량 축이 아니고**, 두 조합 모두 `cross_section_duplicate` 가 붙은 것으로 보아 중복 축으로 **추정**한다(미확정).
   - 원문 덤프: `_tmp_fusion-live/<타임스탬프>/`(`.gitignore` 의 `_tmp_*`, 커밋 안 됨). 호출 1회당 `.txt`(응답 원문) + `.json`(판정·키별 글자수/임계·`fields`·`droppedKeys`) + `summary.md` 표. 🔴 **워크트리를 지우면 같이 사라진다** — 실호출 재승인 없이 다시 못 만든다.
-- [ ] **후속(범위 밖 보고)**: ① 프롬프트 캐싱 미배선 — `createGeminiContextCache`(`worker/lib/gemini.js`)가 있으나 초융합 경로에 안 붙어 있다. 붙이려면 서버 컨텍스트를 프롬프트 앞으로 재배치해야 한다(절감 ₩30–50/건 추정). ② `visibleTextLength` 가 JSON 직렬화 길이라 이름과 의미가 어긋난다(`worker/lib/fusion-fortune-consultation.js`). 표시에 쓰이는 곳이 있는지 3면 grep 후 결정. ③ 관리자 프롬프트 랩이 그룹 수를 하드코딩하는지 **미검증**(`worker/routes/admin*.js` 에서 `FUSION_SECTION_GROUP_SPECS` 참조 0건, 범위 `worker/routes`·`worker/lib`). ~~④ `countFusionGroupChars` 가 `finalVerdict` 를 0자로 센다~~ **해결(PR #1706)** — 어느 자리가 산문인지 정하는 `fusionKeyProse()` 하나를 세우고 분량 계수와 중복 판정(`fusionSectionProse`)이 **같은 표**를 보게 했다. 임계는 안 건드렸다(위 7차 기록의 정정 참조). 회귀 테스트 1건(`__tests__/worker/fusion-fortune.test.js`, mock): rationale 만 긴 verdict 묶음이 `shortGroups` 로 안 빠지는지 — 변이(`finalVerdict` 분기를 상수로 치환)로 무는 것을 확인했다. 🔴 실호출 재검증은 **안 했다** — 다음 실호출 승인이 나면 verdict 묶음 호출이 1회로 줄었는지 확인한다.
+- [ ] **후속(범위 밖 보고)**: ~~① 프롬프트 캐싱 미배선~~ **완료(이 PR)** · ~~② `visibleTextLength` 이름·의미 불일치~~ **완료(이 PR)** — 상세는 아래 §후속 ①② 처리. 🆕 **④ integration 묶음이 본문 뒤에 공백 약 9만 자를 붙여 분량 상한을 넘긴다**(8차 실측 `음력·도쿄·일과 돈`, 143,230자 `degraded/length`). 파싱·키·`keyPoints` 가 전부 정상이라 그룹 검증을 통과하고, 총량 판정에서만 걸려 **유료 사용자에게 품질 저하 고지가 나간다**. 손댈 자리 후보: `validateFusionFortuneGroup` 에 연속 공백 상한을 추가하거나, `countFusionFortuneVisibleText` 전에 공백을 접는다 — 🔴 후자는 **저장 본문 자체가 바뀌는 축**이라 승인 없이 하지 않는다. ③ 관리자 프롬프트 랩이 그룹 수를 하드코딩하는지 **미검증**(`worker/routes/admin*.js` 에서 `FUSION_SECTION_GROUP_SPECS` 참조 0건, 범위 `worker/routes`·`worker/lib`). ~~④ `countFusionGroupChars` 가 `finalVerdict` 를 0자로 센다~~ **해결(PR #1706)** — 어느 자리가 산문인지 정하는 `fusionKeyProse()` 하나를 세우고 분량 계수와 중복 판정(`fusionSectionProse`)이 **같은 표**를 보게 했다. 임계는 안 건드렸다(위 7차 기록의 정정 참조). 회귀 테스트 1건(`__tests__/worker/fusion-fortune.test.js`, mock): rationale 만 긴 verdict 묶음이 `shortGroups` 로 안 빠지는지 — 변이(`finalVerdict` 분기를 상수로 치환)로 무는 것을 확인했다. 🔴 실호출 재검증은 **안 했다** — 다음 실호출 승인이 나면 verdict 묶음 호출이 1회로 줄었는지 확인한다.
+
+## 후속 ①② 처리 (2026-09-06, 이 PR)
+
+**① Gemini 명시적 컨텍스트 캐시를 초융합 경로에 배선했다.** 짝으로 삼은 기존 구현은 `worker/routes/fortune.js:505-571`(`runSajuAISectionWaves`) — 같은 모양으로 **단계 시작 직전에 만들고 `finally` 에서 지운다**.
+
+- 배선 전에 **막고 있던 것 둘**을 먼저 걷어냈다. 이게 이 작업의 본체다:
+  - **systemPrompt 가 그룹마다 달랐다** — 분량 안내 문장에 `group.label` 이 박혀 있었다. `canUseGeminiContextCache`(`lib/llm-client.ts:639-649`)는 systemPrompt 가 캐시에 구운 값과 **한 글자라도 다르면 조용히 정가로** 보낸다. 그룹 이름을 빼 9묶음이 같은 문자열을 쓰게 했다(482자, 8차 덤프의 `systemChars` 와 일치).
+  - **공유 블록이 프롬프트 중간·끝에 흩어져 있었다** — 캐시는 접두사 일치(`startsWith`)라 공유 블록이 **맨 앞**이어야 한다. `buildFusionSectionGroupPrompt` 가 공유 접두사를 먼저 내보내고 그 문자열을 `promptPrefix` 로 함께 반환하게 했다.
+- 실측(mock, `_tmp_measure-prefix.mjs`): **1단계 접두사 4,573자 × 6묶음** · **2단계 접두사 9,672자 × 3묶음** + systemPrompt 482자 × 9. 캐시가 걸리면 이 (접두사+시스템) 약 **60,800자**가 정가 대신 캐시 단가로 청구된다.
+- 🔴 **절감 추정치를 문서의 ₩30–50/건에서 낮춰 잡는다.** 캐시 단가가 입력의 25% 라고 보면 아낄 수 있는 것은 약 45,600자 상당이고, 이를 토큰·요금으로 환산하면 **대략 ₩10–20/건**이다. 🔴 **문자 수까지가 실측이고 원화는 추정이다**(이 세션에서 요금표를 다시 확인하지 않았다).
+- **실패는 전부 무해하게 떨어진다** — 접두사가 `GEMINI_CONTEXT_CACHE_MIN_PREFIX_CHARS`(4,000) 미만이거나 캐시가 꺼져 있거나 생성이 실패하면 `createGeminiContextCache` 가 `null` 을 돌려주고(던지지 않는다) 예전과 **바이트가 같은 바디**가 나간다. 🔴 그래서 **깨져도 화면상 정상이다** — 그 조용한 실패를 잡는 것이 아래 가드다.
+- 가드는 새 스크립트를 만들지 않고 `scripts/verify-fusion-fortune-quality.mjs` 에 넣었다(새 `verify:*` 는 package.json·워크플로 `paths` 배선까지 필요하다 — 원칙 10). 단계별로 ⓐ 접두사가 모든 그룹 userPrompt 의 실제 접두사인가 ⓑ systemPrompt 가 9묶음 동일하고 `buildFusionSectionSystemPrompt` 와 같은가 ⓒ 접두사가 4,000자 이상인가, 그리고 `runTwoStages` 로 ⓓ 단계당 POST 1·DELETE 1 · 9묶음 전부 캐시 핸들 수령 ⓔ **생성 실패를 흉내내면** 전 묶음이 `geminiCachedContent: undefined` 로 떨어지고 2단계가 그대로 `gemini` 로 배달되는가. 🔴 **네트워크는 `globalThis.fetch` 스텁으로 막았다** — 안 막으면 이 verify 가 실제 Google 로 나간다.
+- 🔴 **무는 것을 변이로 확인했다**: 블록 순서를 뒤집자(`이 요청의 범위` 를 접두사 앞으로) 2건이 9묶음을 이름으로 지목하며 실패했다. **핸들 전달 검사(ⓓ)는 이 변이를 못 잡았다** — 잡은 것은 ⓐ 하나다.
+
+**② `visibleTextLength` 가 이름대로 화면 글자 수를 담는다**(`worker/lib/fusion-fortune-consultation.js`). 옛 값은 `serialized.length`(JSON 직렬화 길이)라 키·따옴표·이스케이프까지 세어 **실측 +7%**(36,690자 결과가 39,325로 기록)였고, 그래서 클라이언트가 이 값을 못 쓰고 따로 셌다. 이제 서버·클라이언트가 같은 `countFusionFortuneVisibleText` 를 본다.
+
+- 🔴 **문서 크기 상한(`FUSION_CONSULTATION_MAX_RESULT_CHARS`)은 일부러 `serialized.length` 로 남겼다** — 16MB 문서 한계를 막는 것은 직렬화 크기이지 화면 글자 수가 아니다.
+- 🔴 **클라이언트는 여전히 서버 값을 쓰면 안 된다** — 2026-09-06 이전에 저장된 문서에는 옛(+7%) 값이 그대로 들어 있다. 이유를 `app/fusion-fortune/_lib/reading.ts` 머리주석에 적어 뒀다.
 
 ## 정본 예시
 
@@ -83,6 +106,8 @@ next: 🔴 **레일 결함 3건 수정 완료 — PR #1709 사용자 머지 대�
 - 도크는 결과 패널 안에 있지만 `position:fixed` 다 — 조상에 `transform`·`filter`·`contain` 이 생기면 그 순간 패널 안에 갇힌다(`overflow-clip` 만으로는 안 갇힌다).
 - `<dialog>` 에 `display` 를 걸 때는 반드시 `[open]` 안에 둔다 — 저작자 스타일이 UA 의 `dialog:not([open]){display:none}` 을 이겨 닫힌 시트가 화면에 남는다(`.tocSheet` 주석).
 - 🔴 **실호출 실패가 화면상 정상으로 위장된다** — 묶음이 검증에 걸려도 결정론 폴백이 목표 분량을 채워 배달하므로 글자 수만 보면 통과처럼 보인다. 진짜 신호는 `[fusion-fortune-llm-metric]` 의 `fallbackGroups` 와 `generationSource`. `context_fallback`(호출 자체가 안 됨 — 키·모델 설정)과 `gemini_partial`(호출은 됐고 묶음이 탈락)은 다음 행동이 다르다.
+- 🔴 **하네스 `--samples=N`(조합 전수)의 중단 규칙은 사유별로 다르다**(2026-09-06 수정, `scripts/verify-fusion-fortune-live.mjs`): `context_fallback` 은 키·모델 설정 문제라 표본과 무관 → **즉시 전부 중단**. `gemini_partial` 은 **1건 표본일 때만** 중단하고 다조합 모드에서는 계속 간다 — 안 그러면 첫 조합의 묶음 하나가 나머지 4조합을 통째로 못 돌게 하고 **승인받은 실호출 예산이 날아간다**.
+- 🔴 **`verify:fusion-fortune-quality` 는 이제 `globalThis.fetch` 를 스텁한다** — 컨텍스트 캐시 배선을 검사하느라 `createGeminiContextCache` 를 실제로 부르기 때문이다. 이 파일에서 새 네트워크 경로를 늘릴 때 스텁이 `cachedContents` 외 호출을 던지게 돼 있으니, 던지면 **가드가 아니라 스텁을 먼저 본다**.
 - 실호출은 반드시 `node --env-file=...` 으로 돌린다 — 셸에서 키를 뽑아 넘기면 `.env.local` 값의 따옴표가 그대로 값에 남아 전 묶음이 조용히 `context_fallback` 된다(2026-09-06 실사고).
 - 워크트리에 `node_modules` 없음 — jest 는 `NODE_OPTIONS=--experimental-vm-modules npx --no-install jest --runInBand --testEnvironment node`, UI 는 `node --test`.
 
@@ -127,5 +152,6 @@ node --test __tests__/ui/fusion-fortune.static.test.js
   - ③ 그룹 명세의 `minChars` 리터럴을 계약 상수 참조로 바꿨다 — 이 값은 프롬프트의 "최소 N자" 줄로 흘러가므로 검증 상수와 벌어지면 모델이 검증과 다른 기준을 받는다.
   - 🔴 짝으로 `verify:fusion-fortune-quality` 에 **전수 가드**를 넣었다: 최소치를 재는 키를 스키마에서 세워 **서술자가 없으면 실패**시키고, 그룹 `minChars` 가 계약과 다르면 실패시킨다. 변이 2종(서술자 제거 · minChars 드리프트)으로 무는 것을 확인했다.
   - ✅ **효과 확인 완료 — 7차 실호출**(2026-09-06 09:40Z): `closingMessage` w1 **818자** · w2 967자 · `closing_depth` 탈락 0 · `fallbackGroups: []`. 🔴 **정정 — 임계 600 완화는 이번 실행에서 결과를 바꾸지 않았다**(818 은 옛 800 도 통과한다). 효과를 낸 것은 ① 서술자다. ②는 여유일 뿐 원인 제거가 아니었으므로, 되돌릴 이유가 생기면 ①을 남기고 ②만 되돌리는 것이 가능하다.
-- 대표 1건 외 나머지 4조합(생시·장소 결측, 음력·도쿄)의 실호출 거동은 **미검증**.
+- ~~대표 1건 외 나머지 4조합(생시·장소 결측, 음력·도쿄)의 실호출 거동~~ **8차에서 5조합 전수 검증(4/5 통과)** — 생시·장소 결측 3조합은 전부 `full`·폴백 0, `음력·도쿄·일과 돈` 만 공백 폭주로 `degraded`(후속 ④). 수치는 위 §8차 실측.
+- 🔴 **공백 폭주가 이 조합 고유인지 표본 변동인지 모른다** — `음력·도쿄` 조합은 이번이 첫 실호출이고 **1건 표본**이다. astrology 가 회차마다 다른 형태로 흔들렸던 전례(4·5차 반복 루프 · 6차 정상 · 7차 조기 종료)를 보면 조합 특성으로 단정할 근거가 없다.
 - ~~Phase 2 레일·Phase 3 도크를 브라우저에서 눈으로 확인하지 않았다~~ **확인 완료(2026-09-06) — 아래 §육안 판정.** 스테이징을 기다리지 않고 로컬 dev-preview 픽스처로 봤다(실호출·결제 0).
