@@ -147,9 +147,11 @@ git grep -n "PassCycleCard" -- app src lib           # PointHistoryClient.tsx �
   🔴 통합은 삭제가 아니므로 이 대장이 아니라 별도 PR 로 다룬다.
   - ✅ **`inp` 계보 3건 완료(2026-09-06)** — `inp-round3-2026-08-16.md` 로 흡수하고 앞 2건을 지웠다.
     🔴 파일명을 안 바꾼 이유: `js/core/index-inline-runtime.js:2138` 주석이 그 경로를 가리킨다(미러 포함 2곳).
-  - ⬜ `locale-sweep` 계보는 미착수 — `nonko-surface-sweep-2026-08-24` + `locale-sweep-2026-08-24`(·part2·part3)
-    + `locale-sweep-2026-08-25-part4` ≈ 47KB. part4 머리말이 방법론·마커·정정 절차를 앞 3건에 **분담**시켜
-    놓았으므로, 접을 때 그 분담 서술을 통합본 안의 절 참조로 바꿔야 링크가 끊기지 않는다.
+  - ✅ **`locale-sweep` 계보 5건 완료(2026-09-06)** — `locale-sweep-2026-08-24.md` 로 흡수하고 앞 4건
+    (`nonko-surface-sweep-2026-08-24`·`-part2`·`-part3`·`locale-sweep-2026-08-25-part4`)을 지웠다. 76KB → 1건.
+    단계순으로 나뉘어 방법론·마커·정정 절차가 5건에 **분담**돼 있던 것을 기능순으로 다시 묶었다.
+    🔴 파일명을 안 바꾼 이유: `i18n/authored/shellCopy-0{6,7,8}.json` 의 `_comment` 3곳이 그 경로를
+    **데이터 파일에서** 가리킨다("…locale-sweep-2026-08-24.md 2번"). 그래서 통합본도 §3-2 를 "2번"으로 유지했다.
 
 ### 5-1. 🔴 `docs:stale` 의 삭제 제안을 그대로 실행하지 말 것
 
