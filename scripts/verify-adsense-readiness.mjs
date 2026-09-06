@@ -189,6 +189,9 @@ const privateNoindexRoutes = [
 const xRobotsNoindexHeaderPatterns = [
   "/animal/physio",
   "/animal/physio/*",
+  // 개인 다이어리 — `_headers` 의 `/diary*` 한 줄이 두 패턴을 모두 덮는다.
+  "/diary",
+  "/diary/*",
   "/maya",
   "/maya/*",
   "/oracle/royal-tea",

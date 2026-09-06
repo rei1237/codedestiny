@@ -80,6 +80,8 @@ const excludedExactSitemapPaths = new Set([
 // noindex 경로를 사이트맵에 넣으면 GSC/네이버에서 "제출된 URL에 noindex" 오류가 난다.
 const noindexPathPrefixes = [
   "/animal/physio",
+  // 개인 다이어리 — 검색 대상이 아니다(로그인 없이도 열리지만 내용은 전부 사용자 기기 안에 있다).
+  "/diary",
   "/maya",
   "/oracle/royal-tea",
   "/oracle/sikojen-povailu",

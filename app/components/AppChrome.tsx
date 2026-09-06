@@ -28,6 +28,9 @@ const loadFramerFeatures = () => import("@/lib/framer-features").then((mod) => m
 const CHROMELESS_ROUTES = [
   "/app",
   "/points/history",
+  // 운기 다이어리는 자체 하단바(app/diary/_components/DiaryBottomNav.tsx)를 갖는다.
+  // 🔴 FEATURE_NAV_SELF_MANAGED_ROUTES 에도 함께 있어야 한다(아래 /admin 주석 참고).
+  "/diary",
   "/nakshatra",
   "/saju/love-simulation",
   "/saju/destiny-bias",
@@ -113,6 +116,8 @@ const FEATURE_NAV_SELF_MANAGED_ROUTES = [
   // 🔴 CHROMELESS_ROUTES 에만 넣으면 showFeatureNav 의 `hideChrome ||` 가지가 켜져
   //    관리자 화면 좌상단에 공용 back/home 나브가 새로 뜬다. 두 배열에 함께 있어야 한다.
   "/admin",
+  // 자체 상단바(뒤로·홈·검색) + 자체 하단바. 위 /admin 주석과 같은 이유로 두 배열에 함께 둔다.
+  "/diary",
 ];
 
 const LOCALE_CODES = ["ko", "en", "ja", "zh-CN", "zh-TW", "vi", "hi", "es", "fr", "de", "nl", "ms"] as const;

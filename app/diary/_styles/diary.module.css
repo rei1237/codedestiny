@@ -1,0 +1,238 @@
+/*
+ * 운기 다이어리 전용 스타일. CSS Modules 인 이유는 `styles/` 전역 파일이
+ * `scripts/sync-legacy-static-to-public.mjs` 의 미러 대상이라 CSS 를 만지는 모든 PR 이
+ * `sync:public` + `verify:public-mirror-fresh` 부담을 지기 때문이다. module.css 는 미러 대상이 아니다.
+ *
+ * 🔴 `app/` 아래에는 `data-cd-theme` 스탬프가 한 건도 없다(실측). 테마 의존 `--cd-*` 는
+ * 연이(로즈) 기본값으로 해석되므로 여기서 네오 값을 `--dy-*` 로 1회 별칭해 쓴다.
+ * 테마 불변 토큰(`--cd-sp-*` `--cd-r-*` `--cd-t-*` `--cd-dur-*`)만 직접 참조한다.
+ *
+ * 🔴 `--cd-mnav-offset` 을 참조하지 않는다 — `styles/mobile-bottom-nav.css` 는 전역 import 라
+ * 값은 여전히 해석되지만 `/diary` 에는 그 바가 렌더되지 않는다(AppChrome 배열 2개 등록).
+ * 참조하면 80px 유령 띠가 생긴다. 하단 여백은 `--dy-nav-offset` 으로 자체 공급한다.
+ */
+
+.shell {
+  /* 🔴 transform / filter / backdrop-filter / contain 금지 —
+     시트를 포털 없이 position:fixed 로 덮으려면 조상에 containing block 이 없어야 한다. */
+
+  /* 바탕 */
+  --dy-bg: #0a0818;
+  --dy-surface: rgba(19, 16, 42, 0.96);
+  --dy-surface-2: #100d24;
+
+  /* 글자 */
+  --dy-text: #f4eeff;
+  --dy-muted: rgba(200, 170, 255, 0.7);
+
+  /* 강조 */
+  --dy-accent: #c4b5fd;
+  --dy-accent-hover: #b3a2fc;
+  --dy-accent-ink: #13102a;
+  --dy-accent-soft: rgba(167, 139, 250, 0.24);
+  --dy-gold: #e8d5a3;
+
+  /* 선 — `--dy-line` 은 장식용 구분선, `--dy-line-ui` 는 테두리가 유일한 어포던스인 컨트롤용.
+     합성 표면(--dy-surface over --dy-bg) 기준 3.39:1 로 WCAG 1.4.11 을 넘긴다. */
+  --dy-line: rgba(196, 181, 253, 0.16);
+  --dy-line-ui: rgba(196, 181, 253, 0.5);
+
+  /* 포커스 — 🔴 outline 만 쓴다. 링이 강조 버튼 위에 얹히면 1.27:1 이라 보이지 않으므로
+     outline-offset 으로 표면 위(12.77:1)에 앉힌다. */
+  --dy-focus: #e8d5a3;
+  --dy-disabled: #7d7799;
+
+  /* 기일 5등급 — 「센 · 순한 · 고른 · 더딘 · 잠긴 결」. 정본 팔레트 밖의 새 색을 만들지 않는다:
+     t5 는 --cd-gold, t4 는 --cd-primary 의 정확한 값이고 t3~t1 은 같은 보라의 단계다. */
+  --dy-t5: #e8d5a3;
+  --dy-t4: #c4b5fd;
+  --dy-t3: #9a90d4;
+  --dy-t2: #837eba;
+  --dy-t1: #6b6795;
+  --dy-t3-ink: #bdb3e8;
+  --dy-t2-ink: #a9a3cf;
+  --dy-t1-ink: #9a95c0;
+
+  /* 하단바가 차지하는 총 높이. safe-area 는 여기 한 번만 들어간다. */
+  --dy-nav-h: 64px;
+  --dy-nav-offset: calc(var(--dy-nav-h) + env(safe-area-inset-bottom, 0px));
+
+  min-height: 100dvh;
+  background: var(--dy-bg);
+  color: var(--dy-text);
+  font-family: var(--font-body, inherit);
+}
+
+/* 🔴 body 를 스크롤러로 쓴다 — `app/_lib/body-scroll-lock.ts` 의 lockBodyScroll() 이
+   document.body.style.overflow 를 건드리므로, 내부 div 스크롤러를 두면 정본 락이 무효가 되고
+   새 락을 만들게 된다(원칙 6 중첩 사전검사 위반). 여기서는 overflow 를 선언하지 않는다. */
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cd-sp-md);
+  padding: var(--cd-sp-md);
+  /* 하단바 자리 자체 공급. `verify:app-bottom-clearance` 는 /diary 를 보지 않으므로
+     이 값은 __tests__/ui/diary-route-chrome.test.js 가 지킨다. */
+  padding-bottom: calc(var(--dy-nav-offset) + var(--cd-sp-lg));
+}
+
+/* ── 상단바 ─────────────────────────────────────────────────────────── */
+
+.topBar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: var(--cd-sp-sm);
+  padding: var(--cd-sp-sm) var(--cd-sp-md);
+  background: var(--dy-surface);
+  border-bottom: 1px solid var(--dy-line);
+}
+
+.topBarTitle {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  font-family: var(--font-display, inherit);
+  font-size: var(--cd-t-card);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.topBarSub {
+  display: block;
+  font-size: var(--cd-t-caption);
+  font-weight: 400;
+  color: var(--dy-muted);
+}
+
+.iconButton {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--cd-btn-h);
+  height: var(--cd-btn-h);
+  padding: 0;
+  border: 1px solid var(--dy-line-ui);
+  border-radius: var(--cd-r-control);
+  background: transparent;
+  color: var(--dy-text);
+  font-size: var(--cd-t-body);
+  cursor: pointer;
+  transition: background var(--cd-dur-fast) ease, transform var(--cd-dur-fast) ease;
+}
+
+.iconButton:hover {
+  background: var(--dy-accent-soft);
+}
+
+.iconButton:active {
+  transform: scale(var(--cd-press-scale));
+}
+
+.iconButton:focus-visible {
+  outline: 2px solid var(--dy-focus);
+  outline-offset: 2px;
+}
+
+.iconButton[disabled],
+.iconButton[aria-disabled="true"] {
+  color: var(--dy-disabled);
+  border-color: var(--dy-line);
+  cursor: default;
+}
+
+/* ── 하단바 ─────────────────────────────────────────────────────────── */
+
+.bottomNav {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 3;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  align-items: stretch;
+  height: var(--dy-nav-offset);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  background: var(--dy-surface);
+  border-top: 1px solid var(--dy-line);
+}
+
+.navItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  border: 0;
+  background: transparent;
+  color: var(--dy-muted);
+  font-size: var(--cd-t-caption);
+  text-decoration: none;
+  cursor: pointer;
+  transition: color var(--cd-dur-fast) ease;
+}
+
+.navItem:hover {
+  color: var(--dy-text);
+}
+
+.navItem:focus-visible {
+  outline: 2px solid var(--dy-focus);
+  outline-offset: -2px;
+}
+
+.navItem[aria-current="page"] {
+  color: var(--dy-accent);
+}
+
+.navItem[aria-disabled="true"] {
+  color: var(--dy-disabled);
+  cursor: default;
+}
+
+.navIcon {
+  font-size: var(--cd-t-card);
+  line-height: 1;
+}
+
+/* ＋ 중앙 돌출 슬롯. FAB 을 새로 만들지 않는 이유는 레포에 FAB 선례가 0건이고
+   중앙 슬롯이면 하단 고정 요소가 하나로 유지돼 클리어런스 계산이 자명하기 때문이다. */
+.navCapture {
+  color: var(--dy-accent-ink);
+}
+
+.navCaptureDot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--cd-r-pill);
+  background: var(--dy-accent);
+  color: var(--dy-accent-ink);
+  font-size: var(--cd-t-card);
+  line-height: 1;
+}
+
+.navCapture[aria-disabled="true"] .navCaptureDot {
+  background: var(--dy-disabled);
+}
+
+/* ── 자리표시 본문 (PR-C 에서 홈 카드군으로 교체) ────────────────────── */
+
+.placeholder {
+  margin: 0;
+  padding: var(--cd-sp-lg);
+  border: 1px solid var(--dy-line);
+  border-radius: var(--cd-r-card);
+  background: var(--dy-surface-2);
+  color: var(--dy-muted);
+  font-size: var(--cd-t-body);
+  line-height: 1.7;
+}
