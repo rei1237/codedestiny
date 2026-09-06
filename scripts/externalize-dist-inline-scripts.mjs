@@ -73,6 +73,9 @@ function isPlainInline(attrs) {
 mkdirSync(OUT_DIR, { recursive: true });
 
 const written = new Map(); // hash -> filename
+// 내용 해시 -> esbuild 파싱 성공 여부. 같은 블록이 미러 수십 벌에 그대로 복제돼 있어
+// 캐시하지 않으면 같은 바이트를 그 벌수만큼 다시 파싱한다.
+const parsed = new Map();
 const unparsed = [];
 let htmlBefore = 0;
 let htmlAfter = 0;
@@ -81,6 +84,9 @@ let touchedFiles = 0;
 
 for (const file of collectHtml(DIST)) {
   const original = readFileSync(file, "utf8");
+  // 🔴 루프 밖에서 한 번만 만든다 — <script> 태그마다 toLowerCase() 를 부르면 dist 113MB 를
+  //    태그 수만큼 다시 복사한다(2026-09-06 실측: 이 단계가 postbuild 에서 18.2s 였다).
+  const lowerOriginal = original.toLowerCase();
   htmlBefore += Buffer.byteLength(original);
 
   let out = "";
@@ -92,7 +98,7 @@ for (const file of collectHtml(DIST)) {
   while ((m = OPEN_RE.exec(original)) !== null) {
     const attrs = m[1] || "";
     const bodyStart = m.index + m[0].length;
-    const close = original.toLowerCase().indexOf("</script>", bodyStart);
+    const close = lowerOriginal.indexOf("</script>", bodyStart);
     if (close === -1) break;
     const body = original.slice(bodyStart, close);
 
@@ -113,15 +119,24 @@ for (const file of collectHtml(DIST)) {
     // 똑같이 깨진 채 실행한다 — 이 단계가 만든 문제가 아니라 원래 그런 파일이다).
     // 이런 블록을 밖으로 빼면 "원래도 깨져 있었다" 를 이 변경 탓으로 오인하기 쉬우므로
     // 손대지 않고 인라인으로 남겨 동작을 오늘과 바이트 단위로 같게 유지한다.
-    try {
-      transformSync(body, {});
-    } catch {
+    const hash = createHash("sha256").update(body).digest("hex").slice(0, 16);
+    let parses = parsed.get(hash);
+    if (parses === undefined) {
+      try {
+        transformSync(body, {});
+        parses = true;
+      } catch {
+        parses = false;
+      }
+      parsed.set(hash, parses);
+    }
+
+    if (!parses) {
       unparsed.push(relative(DIST, file).replace(/\\/g, "/"));
       OPEN_RE.lastIndex = close + "</script>".length;
       continue;
     }
 
-    const hash = createHash("sha256").update(body).digest("hex").slice(0, 16);
     let name = written.get(hash);
     if (!name) {
       name = `s-${hash}.js`;
