@@ -1071,9 +1071,10 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
                 )
               : copy.freeCta}</span>
           </a>
+          {/* 정적 문구다 — live region(role="status")을 붙이면 배지가 늦게 도착할 때
+              스크린리더가 읽던 문맥을 끊고 이 줄을 읽는다. */}
           {passEligibility && (
             <div
-              role="status"
               style={{
                 padding:"10px 14px", border:`1px solid ${t.border}`,
                 borderRadius:"12px", background:"rgba(255,255,255,0.06)",
