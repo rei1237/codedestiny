@@ -1,6 +1,8 @@
 "use client";
 
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
+import { readDevPreviewState } from "@/lib/dev-preview/core";
+import { buildFusionPreviewResult } from "@/lib/dev-preview/fixtures/fusion-fortune";
 import { clearFusionPaidRequest, readFusionPaidRequest, writeFusionPaidRequest } from "@/lib/fusion-paid-request-store";
 import Image from "next/image";
 import Link from "next/link";
@@ -2243,6 +2245,21 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
 
   const submit = async (event: FormEvent) => {
     event.preventDefault(); setError(""); setNotice(""); setFailure(null); setQualityNotice(""); setOpenedSummary(null);
+    // 🔴 dev-preview 단락은 로그인 확인·결제 게이트보다 **앞**이다 — 차례 레일·모바일 도크는
+    //    결과가 있어야 그려지고, 결과를 얻으려면 Gemini 실호출과 3만원짜리 결제를 타야 한다.
+    //    레이아웃을 눈으로 보려고 그 값을 치를 수는 없다. 프로덕션에서는 readDevPreviewState() 가
+    //    항상 null 이라 이 분기가 죽는다(lib/dev-preview/core.ts:14). 짝: app/ziwei-ai/ZiweiAiClient.tsx
+    const previewState = readDevPreviewState();
+    if (previewState) {
+      const preview = buildFusionPreviewResult(previewState);
+      if (!preview.ok) { setFailure({ message: copy.resultGenerationFailedMessage, retryable: true, reason: preview.reason }); return; }
+      setResult(preview.result as Result);
+      setStageStates(() => fusionStages.reduce((next, stage) => ({ ...next, [stage.key]: "completed" }), {} as Record<FusionStageKey, FusionStageState>));
+      // 1단계만 도착한 상태는 생성 중일 때만 성립한다 — 2단계 대기 말풍선과 레일의 진행 표시가
+      // 이 값에 걸려 있다. 무음 감시(45초)가 붙으므로 이 상태의 캡처는 오래 세워 두지 않는다.
+      setLoading(preview.stageTwoPending);
+      return;
+    }
     // useSearchParams 를 쓰면 정적 내보내기에서 이 페이지 전체가 CSR 로 떨어져
     // (BAILOUT_TO_CLIENT_SIDE_RENDERING) 히어로 H1 을 포함한 서버 렌더 HTML 이 통째로 사라진다.
     // 이 값은 제출 시점에만 필요하므로 그때 URL 에서 직접 읽는다.
