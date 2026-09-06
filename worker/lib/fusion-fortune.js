@@ -44,7 +44,9 @@ export const FUSION_FORTUNE_ERROR_CODES = Object.freeze({
   STREAM_TIMEOUT: "FUSION_FORTUNE_STREAM_TIMEOUT",
 });
 
-const FORBIDDEN = ["무조건", "반드시", "100%", "확실히 된다", "확실히 망한다", "큰일 난다", "결제해야 해결된다", "유료로 봐야만 답이 나온다", "투자하면 오른다", "반드시 매수해라", "병이 있다", "고소하면 이긴다", "상대는 반드시 돌아온다"];
+// 🔴 여러 낱말로 된 항목만 남긴다 — 단독 부사(무조건·반드시·100%)는 아래 공기(共起) 판정으로 옮겼다.
+//    여기 남은 항목은 그 자체로 단정문이라 예전 그대로 부분 일치로 잡힌다(fail-closed).
+const FORBIDDEN = ["확실히 된다", "확실히 망한다", "큰일 난다", "결제해야 해결된다", "유료로 봐야만 답이 나온다", "투자하면 오른다", "반드시 매수해라", "병이 있다", "고소하면 이긴다", "상대는 반드시 돌아온다"];
 const SECTION_KEYS = ["sajuSection", "ziweiSection", "vedicSection", "sukuyoSection", "astrologySection", "tarotSection", "integratedReading"];
 const REQUIRED_KEYS = ["title", "openingMessage", "executiveSummary", "timingAndAction", "closingMessage"];
 // 그룹 검증과 전체 검증이 같은 기준을 보도록 정규식을 한곳에 둔다.
@@ -61,22 +63,22 @@ const OVERCLAIM_NEGATION = `(?!${OVERCLAIM_GAP}{0,14}(않|없|말고|못|어렵|
 const OVERCLAIM_ASSERTION = `${OVERCLAIM_GAP}{0,24}(확실|분명|단정|결정|보장)${OVERCLAIM_NEGATION}`;
 const BIRTH_TIME_OVERCLAIM_PATTERN = new RegExp(`(상승궁|라그나|정밀 명반|하우스)${OVERCLAIM_ASSERTION}`);
 const BIRTH_PLACE_OVERCLAIM_PATTERN = new RegExp(`(라그나|상승궁|하우스|나크샤트라)${OVERCLAIM_ASSERTION}`);
-// 🔴 단독 부사형 금지어(무조건·반드시·100%)는 **부정·완화가 뒤따르지 않을 때만** 과장이다.
-//    2026-09-06 실호출에서 타로 보완 묶음의 `무조건적으로 수용하기보다` 가 `무조건` 부분 일치로 반려됐다 —
-//    뜻이 정반대인 완화 문장인데 묶음 전체가 폴백으로 강등됐다. 나머지 항목은 그 자체로 단정문이라 그대로 둔다.
-//    창은 OVERCLAIM_GAP 으로 문장 안에 가둔다(필드 경계·개행을 넘어가면 남의 문장으로 면책된다).
-const FORBIDDEN_HEDGE_AHEAD = `(?!${OVERCLAIM_GAP}{0,14}(않|없|말고|못|어렵|삼가|유보|배제|아니|기보다))`;
-//    🔴 `무조건적`(무조건적인 사랑/무조건적 수용)은 성향을 서술하는 형용사라 단정문이 아니다 —
-//    2026-09-06 4차 실호출에서 `무조건적인 사랑을 추구하는 경향` 이 반려돼 astrology 묶음이 폴백됐다.
-//    완화 창(FORBIDDEN_HEDGE_AHEAD)은 뒤따르는 부정어에만 반응하므로 이 형태를 못 걸러낸다.
-// 패턴을 손으로 적는다 — FORBIDDEN 항목을 정규식으로 이스케이프해 조립하면 `100%` 같은 항목이
-// 조용히 형태를 바꿀 수 있다. 여기 없는 항목은 예전 그대로 부분 일치로 잡힌다(fail-closed).
-const FORBIDDEN_HEDGEABLE = new Map([
-  ["무조건", new RegExp(`무조건(?!적)${FORBIDDEN_HEDGE_AHEAD}`)],
-  ["반드시", new RegExp(`반드시${FORBIDDEN_HEDGE_AHEAD}`)],
-  ["100%", new RegExp(`100%${FORBIDDEN_HEDGE_AHEAD}`)],
-]);
-const FORBIDDEN_MATCHERS = FORBIDDEN.map((phrase) => FORBIDDEN_HEDGEABLE.get(phrase) || phrase);
+// 🔴 단독 부사(무조건·반드시·100%)는 **표지 목록에서 뺐다** — 같은 문장 안에 단정 술어가 함께 올 때만 과장이다.
+//    2026-09-06 하루에 실호출 오탐이 셋 나왔고 셋 다 같은 형태였다(부사 자체는 죄가 없고 문장이 단정문이 아니다):
+//     · 3차 tarot `무조건적으로 수용하기보다`  · 4차 astrology `무조건적인 사랑을 추구하는 경향`
+//     · 6차 tarot `타인의 요구에 무조건 응하거나, 자신의 감정을 억압하는 습관입니다`(피해야 할 것을 설명하는 문장)
+//    앞의 둘은 "뒤따르는 완화어" 예외를 깎아 막았는데, 세 번째는 완화가 **앞**에 와서 또 뚫렸다.
+//    부분 일치 표지 목록은 이 축에서 구조적으로 오탐이 재발한다 — 그래서 이미 있던 OVERCLAIM_ASSERTION
+//    (확실·분명·단정·결정·보장, 문장 안·부정 뒤따르면 면책)과의 공기(共起)로만 판정한다.
+//    🔴 대가는 탐지력 하락이다 — `무조건 성과가 납니다` 처럼 단정 술어가 없는 절대 단언은 이제 통과한다.
+//    해로움이 큰 형태(매수 권유·재회 단언·결제 유도·질병 단정)는 위 FORBIDDEN 의 여러 낱말 항목이 그대로 잡는다.
+// 패턴을 손으로 적는다 — 배열을 정규식으로 이스케이프해 조립하면 `100%` 같은 항목이 조용히 형태를 바꾼다.
+const FORBIDDEN_ADVERB_PATTERNS = [
+  new RegExp(`무조건${OVERCLAIM_ASSERTION}`),
+  new RegExp(`반드시${OVERCLAIM_ASSERTION}`),
+  new RegExp(`100%${OVERCLAIM_ASSERTION}`),
+];
+const FORBIDDEN_MATCHERS = [...FORBIDDEN, ...FORBIDDEN_ADVERB_PATTERNS];
 function hasForbiddenPhrase(source) {
   return FORBIDDEN_MATCHERS.some((matcher) => (typeof matcher === "string" ? source.includes(matcher) : matcher.test(source)));
 }

@@ -48,8 +48,9 @@ export const FUSION_FORTUNE_LENGTH = Object.freeze({
  *    그래서 "채우지 못하면 끝낸다"를 미달보다 나은 선택지로 명시한다. ①~③ 을 약하게 만드는
  *    문장이 아니라, 채울 근거가 떨어졌을 때의 출구다.
  *
- * 🔴 `무조건`·`반드시` 를 쓰지 않는다 — FORBIDDEN(worker/lib/fusion-fortune.js)에 있어
- *    모델이 그대로 되받아 쓰면 `unsafe_phrase` 로 자기 응답이 반려된다.
+ * 🔴 `무조건`·`반드시` 를 쓰지 않는다 — 이제 이 둘만으로는 반려되지 않지만(공기 판정으로 옮겼다,
+ *    worker/lib/fusion-fortune.js), 지시문의 어투를 모델이 본문에 되받아 쓰면 단정 술어와 만나
+ *    `unsafe_phrase` 로 자기 응답이 반려될 수 있다. 지시는 단정 부사 없이 쓴다.
  * 🔴 서술자는 `string` 으로 시작해야 한다 — toGeminiSchema 가 첫 토큰으로 타입을 정한다.
  */
 function lengthDirective(minChars, note = "") {
