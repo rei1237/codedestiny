@@ -83,20 +83,20 @@ function runWithTokens(total) {
 // ─────────────────────────────────────────── 구간 경계 (전수)
 
 test("임계 미만은 출력이 0바이트다 — 훅 자신이 토큰을 쓰면 안 된다", () => {
-  for (const tokens of [0, 1_000, 50_000, 149_999]) {
+  for (const tokens of [0, 1_000, 50_000, 99_999]) {
     const { status, stdout } = runWithTokens(tokens);
     assert.equal(status, 0, `${tokens}: exit 0 이어야 한다`);
     assert.equal(stdout.length, 0, `${tokens}: stdout 이 0바이트여야 하는데 ${stdout.length}바이트`);
   }
 });
 
-test("150k 경계 — 150,000 부터 주의 문구가 뜬다", () => {
-  assert.equal(runWithTokens(149_999).stdout.length, 0);
+test("100k 경계 — 100,000 부터 주의 문구가 뜬다", () => {
+  assert.equal(runWithTokens(99_999).stdout.length, 0);
 
-  const ctx = contextOf(runWithTokens(150_000).stdout);
-  assert.ok(ctx, "150,000 에서는 문구가 있어야 한다");
+  const ctx = contextOf(runWithTokens(100_000).stdout);
+  assert.ok(ctx, "100,000 에서는 문구가 있어야 한다");
   assert.match(ctx, /\/clear/);
-  assert.match(ctx, /150k/);
+  assert.match(ctx, /100k/);
 });
 
 test("200k 경계 — 인수인계 착수 지시로 승격된다", () => {
@@ -126,7 +126,7 @@ test("모든 구간이 분류된다 — 미분류가 없다", () => {
     ["handoff", 0],
     ["hard", 0],
   ]);
-  for (const tokens of [50_000, 149_999, 150_000, 175_000, 199_999, 200_000, 250_000, 299_999, 300_000, 999_999]) {
+  for (const tokens of [50_000, 99_999, 100_000, 150_000, 199_999, 200_000, 250_000, 299_999, 300_000, 999_999]) {
     const ctx = contextOf(runWithTokens(tokens).stdout);
     let bucket;
     if (ctx === null) bucket = "silent";
@@ -143,9 +143,9 @@ test("모든 구간이 분류된다 — 미분류가 없다", () => {
 });
 
 test("NOTICE 문구는 200자 미만이다 — 훅 자신이 토큰을 쓰면 최적화가 역전된다", () => {
-  // 150k 는 대부분의 세션에서 뜬다. 0바이트 축만으로는 이 축이 안 지켜진다.
-  const ctx = contextOf(runWithTokens(150_000).stdout);
-  assert.ok(ctx, "150,000 에서는 문구가 있어야 한다");
+  // 100k 는 대부분의 세션에서 뜬다. 0바이트 축만으로는 이 축이 안 지켜진다.
+  const ctx = contextOf(runWithTokens(100_000).stdout);
+  assert.ok(ctx, "100,000 에서는 문구가 있어야 한다");
   assert.ok(
     ctx.length < 200,
     `NOTICE 문구가 ${ctx.length}자다 — 자주 뜨는 구간이므로 200자 미만이어야 한다`

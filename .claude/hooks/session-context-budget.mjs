@@ -35,7 +35,17 @@
 import fs from "node:fs";
 
 /** 구간 경계(토큰). 근거는 위 2026-08-29 실측 — 소비의 69.7% 를 먹는 300k 벽을 정면으로 막는다. */
-const NOTICE = 150_000;
+/**
+ * 🔴 NOTICE 만 150k → 100k (2026-09-06 지연 실측). 위 08-29 근거는 **토큰 비용** 축이고
+ * 이건 **응답 지연** 축이라 서로 대체하지 않는다 — 둘 다 남긴다.
+ * 트랜스크립트 12세션의 assistant 턴 간 시간을 요청 컨텍스트 구간별로 가른 결과:
+ *   40~80k  4,318ms (n=189) · 80~120k 5,646ms (n=784) · 120~160k **8,517ms** (n=702)
+ * 즉 120k 를 넘기면 **턴 지연이 2배**가 되는데 옛 임계 150k 는 그 뒤에 울렸다. 100k 는
+ * 지연이 꺾이기 시작하는 지점 바로 앞이다. HANDOFF·HARD 는 08-29 근거 그대로 둔다.
+ * 재현: ~/.claude/projects 아래 code-destiny 세션 jsonl 에서 assistant 턴 간 timestamp
+ * 차이를 그 턴 usage 의 input+cache_read+cache_creation 구간별로 평균낸다.
+ */
+const NOTICE = 100_000;
 const HANDOFF = 200_000;
 const HARD = 300_000;
 

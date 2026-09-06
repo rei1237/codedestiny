@@ -105,8 +105,11 @@
   🔴 **`--skip-build` 를 빼지 말 것.** 그 플래그가 없으면 `check:quick` 이 `build:cf` 를 로컬에서 돌리는데, **이 레포에서 그 빌드는 로컬 exit 1 이고**(`workers-og` 미해석) 27~174초를 태운 뒤 게이트를 실패시킨다. 2026-09-06 실측: 플래그 없이 콜드 102~174초/실패·웜 27~34초/실패, 플래그 붙이면 **8~9초/통과**. 건너뛴 빌드는 CI 가 잡는다 — `pr-ci.yml` 의 `build` 잡이 non-draft PR 에서 `build:cf`·`build:worker` 를 돌리고(`.github/workflows/pr-ci.yml:690`·`:751`), draft 는 `ready_for_review` 전환 때 자동으로 다시 돈다. **로컬을 건너뛰는 근거는 이 CI 배선 하나뿐이므로, 저 잡을 지우거나 조건을 좁히면 이 줄도 함께 되돌린다.**
   - `check:quick` 은 **sitemap 드리프트**를 여전히 잡는다(PR CI 실패 1위였다) — 빠지는 것은 Pages 빌드뿐이다.
 - `verify:*` 전체 목록·배선 상태의 정본은 `npm run verify:guard-wiring` 출력이다 — **개수를 문서에 적지 않는다.** 결제 최소: `verify:billing-pass-policy` · `verify:portone-single-payment` · `verify:paid-gate-ui` · `verify:payment-choice-parity` · `verify:checkout-pass-card`. UI: `verify:hero-contrast` + `verify:mobile-detail-nonintrusive`.
-- 🔴 **CI 대기는 폴링하지 않는다** — `gh pr checks <PR 번호> --watch --fail-fast` 한 콜로 끝낸다.
-- 🔴 **의존 없는 확인은 한 응답에 묶는다** — 왕복 자체가 비용이다. 순서가 필요 없는 `git status`·`grep`·`cat` 은 함께 보내고, 짧은 확인은 다음 명령에 합친다. 파일 일부만 필요하면 `sed -n` 대신 Read 의 `offset`/`limit` 을 쓴다.
+- 🔴 **CI 대기는 폴링도 블로킹도 하지 않는다** — `gh pr checks <PR 번호> --watch --fail-fast` 를 **`run_in_background: true` 로** 돌리고, 완료 알림이 올 때까지 다른 일을 한다. 결과 확인은 그대로 유지되고 **잃는 것이 없다.** 2026-09-06 실측: 이 명령이 12세션에서 15콜 · **평균 213초** · 합계 3,202초로 **셸 시간의 43%** 였다 — 폴링을 없앤 대신 세션을 3.5분씩 통째로 세우고 있었다. 🔴 전경으로 돌려야 할 유일한 경우는 **바로 다음 행동이 그 결과에만 달려 있고 그동안 할 수 있는 일이 없을 때**다.
+- 🔴 **의존 없는 확인은 한 응답에 묶는다** — 왕복 자체가 비용이다. 순서가 필요 없는 확인은 함께 보내고, 짧은 확인은 다음 명령에 합친다. 2026-09-06 실측 왕복 단가: **Grep 툴 239ms · Read 툴 409ms** vs **`git grep` 17,545ms · `grep -n` 4,568ms · `sed -n` 1,989ms**(사소한 셸 명령도 왕복 고정비 1.2초).
+  - **일반 검색은 Grep 툴**을 쓴다. `git grep`(73배 느리다)은 **원칙 9 의 삭제·리네임 3면 검사 전용**이다 — 거기서는 `.ignore` 가 가리는 `sync:public` 미러를 봐야 하므로 정당하고, 그 용도로는 계속 강제된다.
+  - **파일 일부는 Read 의 `offset`/`limit`** 을 쓴다. `sed -n` 은 쓰지 않는다(같은 12세션에서 83콜이 그대로 나갔다).
+  - **`git diff` 는 먼저 `--name-only`·`--numstat`·`--stat`** 으로 본다. 전문이 필요하면 경로를 지정한다 — 전체 diff 는 실측 평균 **63.8초**다(커밋된 생성물 미러 때문으로 **추정**, 미검증).
 - 취약점·보안 위험·재현 가능한 버그를 발견하면 즉시 보고하고, 분리 디버깅이 가능하도록 위험도와 짧은 제안을 남긴다.
 
 ## 레포 함정 (모르면 사고 나는 것)
