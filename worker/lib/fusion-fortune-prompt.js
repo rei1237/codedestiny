@@ -407,6 +407,45 @@ function pickSchema(keys) {
   return keys.reduce((schema, key) => ({ ...schema, [key]: FUSION_FORTUNE_RESPONSE_SCHEMA[key] }), {});
 }
 
+/**
+ * 의사 스키마(사람이 읽는 형태)를 Gemini `responseSchema`(OpenAPI 부분집합)로 옮긴다.
+ *
+ * 왜 필요한가 — 2026-09-06 실측(1단계 11호출 덤프): 탈락 8건 중 5건이 `missing_key_points`
+ * 였고 응답의 필드가 `["title","content"]`, 즉 모델이 `keyPoints` 를 **통째로 빠뜨렸다**.
+ * 본문은 오히려 임계를 넘긴 것도 있었다(sukuyo 5,469 / 3,600자). 프롬프트에 실은 스키마는
+ * 부탁일 뿐이라 강제가 안 된다 — `required` 가 이 5건을 직접 겨냥한다.
+ *
+ * 🔴 상수를 그대로 보내면 안 된다. `content: "string (3,600자 이상)"` 은 OpenAPI 가 아니라
+ *    400 이고, 초융합은 `fallbackToWorkersAI:false` 라 400 하나에 아홉 묶음이 전부
+ *    결정론적 폴백으로 떨어진다.
+ * 🔴 손으로 쓴 키 목록을 두지 않는다 — 상수에서 전수 유도하므로 키가 늘면 따라온다.
+ *
+ * 분량("3,600자 이상")은 Gemini 스키마로 표현할 수 없어 `description` 으로 넘기고,
+ * 프롬프트 본문의 스키마 줄도 그대로 남긴다.
+ */
+export function toGeminiSchema(node) {
+  if (Array.isArray(node)) {
+    const schema = { type: "ARRAY", items: toGeminiSchema(node[0]) };
+    // 원소가 둘 이상이면 그 개수가 곧 최소 개수다(`keyPoints: [s,s,s]` = 3개). 하나짜리는
+    // 형태 견본이라 개수를 강제하지 않는다. 🔴 Gemini 가 minItems 를 거부하면 이 줄만 지운다.
+    if (node.length > 1) schema.minItems = node.length;
+    return schema;
+  }
+  if (node && typeof node === "object") {
+    const keys = Object.keys(node);
+    return {
+      type: "OBJECT",
+      properties: keys.reduce((props, key) => ({ ...props, [key]: toGeminiSchema(node[key]) }), {}),
+      required: keys,
+      propertyOrdering: keys,
+    };
+  }
+  const descriptor = String(node ?? "");
+  const type = descriptor.startsWith("number") ? "NUMBER" : "STRING";
+  // "string" 처럼 형만 있는 것은 설명이 없다. 나머지(분량·예시·허용값)는 그대로 넘긴다.
+  return descriptor && descriptor !== "string" ? { type, description: descriptor } : { type };
+}
+
 const STAGE_ONE_DIGEST_KEYS = Object.freeze(["sajuSection", "ziweiSection", "vedicSection", "sukuyoSection", "astrologySection", "tarotSection"]);
 const STAGE_ONE_DIGEST_EXCERPT_CHARS = 700;
 
@@ -468,7 +507,9 @@ export function buildFusionSectionGroupPrompt({ context = {}, group, priorSectio
     ...(extraInstruction ? [extraInstruction] : []),
   ].join("\n\n");
 
-  return { systemPrompt, userPrompt, responseSchema };
+  // 🔴 `responseSchema` 는 프롬프트 본문용(사람이 읽는 형태)이고 `geminiSchema` 는 전송용이다.
+  //    전자의 키 순서를 verify:fusion-fortune-quality 가 문자열로 단언하므로 형태를 바꾸지 않는다.
+  return { systemPrompt, userPrompt, responseSchema, geminiSchema: toGeminiSchema(responseSchema) };
 }
 
 /**

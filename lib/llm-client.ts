@@ -19,6 +19,12 @@ export interface LLMRequest {
   timeoutMs?: number;
   fallbackToWorkersAI?: boolean;
   responseMimeType?: string;
+  /**
+   * Gemini 구조화 출력(generationConfig.responseSchema). OpenAPI 부분집합이며,
+   * responseMimeType: "application/json" 과 함께 줘야 한다.
+   * 🔴 Workers AI 폴백은 이 필드를 읽지 않는다(buildWorkersAiInput) — 조용히 버려진다.
+   */
+  responseSchema?: Record<string, unknown>;
   thinkingBudget?: number;
   geminiParts?: Array<{
     text?: string;
@@ -672,6 +678,7 @@ async function callGeminiPrimary(
       maxOutputTokens: normalized.maxTokens,
       temperature: normalized.temperature,
       ...(normalized.responseMimeType ? { responseMimeType: normalized.responseMimeType } : {}),
+      ...(normalized.responseSchema ? { responseSchema: normalized.responseSchema } : {}),
       // gemini-2.5는 thinking이 기본 ON이라 thinking 토큰이 maxOutputTokens를 잠식해
       // 긴 JSON/프로즈가 잘리거나 빈 응답이 된다. 공통 경로 기본값을 OFF(0)로 둔다.
       // 호출부에서 thinkingBudget:-1(dynamic) 또는 양수로 옵트인 가능.
