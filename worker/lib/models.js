@@ -615,6 +615,12 @@ const securityEventSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 }, { collection: "security_events" });
 
+// 90일 TTL. 이 컬렉션은 쓰기 전용이고(유일한 사용처는 worker/lib/security/index.js 의 create)
+// ipHash·userId·userAgent 를 담으므로 보안 조사에 필요한 기간만 두고 스스로 사라지게 한다.
+// 🔴 db.js 는 autoIndex:false — 이 선언만으로는 아무것도 만들어지지 않는다.
+// 실물은 scripts/migrations/20260906-add-security-events-ttl-index.mjs 가 만든다.
+securityEventSchema.index({ createdAt: 1 }, { expireAfterSeconds: 90 * 24 * 60 * 60 });
+
 
 /**
  * 관리자 행위 감사 로그.
