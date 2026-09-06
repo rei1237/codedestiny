@@ -1467,7 +1467,7 @@ function _isAdminMeditationSession(){
 
 // 다른 회당 결제(관상·영국홍차 등)와 동일하게 공유 게이트를 그대로 호출한다.
 // 이용권 선검사 → 결제창(단건 KRW + 월정석)·완료 UI는 모두 공유 게이트가 렌더한다.
-async function _consumeMeditationCoin(cost,reason){
+async function _consumeMeditationCoin(cost,reason,resume){
   if(_isAdminMeditationSession())return true;
 
   if(typeof window._cdCoinGatePerUse!=='function'){
@@ -1504,7 +1504,10 @@ async function _consumeMeditationCoin(cost,reason){
           featureKey:'cosmic-soul-meditation',
           serviceKey:'cosmic-soul-meditation',
           action:'openCosmicSoulMeditation',
-          requestId:requestId
+          requestId:requestId,
+          // 🔴 모바일 PortOne 은 상위 프레임을 리다이렉트하므로 아래 await 가 페이지와 함께 죽는다.
+          //    결제 전 상태(고른 코스)를 담은 재개 서술자를 게이트까지 넘겨야 복귀 문서가 다시 연다.
+          resume:resume||null
         }
       );
       if(result&&typeof result.then==='function'){
@@ -1565,14 +1568,9 @@ function _tick(){
 }
 
 /* ─── Start session ─── */
-async function _startSession(mode){
-  if(_sessionBootInFlight)return;
-  _sessionBootInFlight=true;
-  try{
-    var cost=mode==='60'?200:100;
-    var paid=await _consumeMeditationCoin(cost,'openCosmicSoulMeditation '+mode+'분 코스');
-    if(!paid)return;
-
+/* 🔴 결제 게이트가 없는 코어다. 재개 핸들러는 이쪽을 부른다 — 게이트를 다시 타는 _startSession 을
+   부르면 이미 낸 결제가 또 일어난다(배선 레시피 4번). */
+function _startSessionCore(mode){
     _mode=mode;
     _phases=mode==='60'?PHASES_60:PHASES_30;
     _totalSecs=parseInt(mode,10)*60;
@@ -1589,6 +1587,17 @@ async function _startSession(mode){
     _running=true;
     if(_interval)clearInterval(_interval);
     _interval=setInterval(_tick,1000);
+}
+
+async function _startSession(mode){
+  if(_sessionBootInFlight)return;
+  _sessionBootInFlight=true;
+  try{
+    var cost=mode==='60'?200:100;
+    // 결제 전에 고른 코스를 서술자로 굳혀 둔다 — 복귀 문서는 이 값 없이는 어느 코스였는지 모른다.
+    var paid=await _consumeMeditationCoin(cost,'openCosmicSoulMeditation '+mode+'분 코스',_buildCosmicResumeDescriptor(mode));
+    if(!paid)return;
+    _startSessionCore(mode);
   }catch(err){
     console.error('[cosmic meditation] start session failed',err);
     window.alert('명상 세션을 시작하는 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
@@ -1596,6 +1605,36 @@ async function _startSession(mode){
     _sessionBootInFlight=false;
   }
 }
+
+/* ── 결제 후 자동 재개(모바일 리다이렉트 복귀) ───────────────────────────────
+   이 페이지는 독립 정적 문서이고 PG 복귀 지점이 자기 자신이라(destiny-profile 의 redirectUrl 은
+   현재 URL 로 만든다) 이 인라인 스크립트가 복귀 문서에도 항상 함께 로드된다. 그래서 표면을 여는
+   딥링크(action)는 비우고 핸들러만 둔다 — 이 페이지에는 [data-action] 노드가 없다.
+   정본 예시: js/tarot-love-experience.js 의 LOVE_RESUME_KIND ~ runLoveResume. */
+var COSMIC_RESUME_KIND='cosmic-soul-meditation-session';
+
+function _buildCosmicResumeDescriptor(mode){
+  var picked=String(mode||'');
+  if(picked!=='30'&&picked!=='60')return null;
+  // args 에는 원시값만 살아남는다(checkout-entry 의 sanitizePaidResumeDescriptor).
+  return {kind:COSMIC_RESUME_KIND,action:'',args:{mode:picked}};
+}
+
+function _runCosmicResume(descriptor){
+  var args=(descriptor&&descriptor.args&&typeof descriptor.args==='object')?descriptor.args:{};
+  var picked=String(args.mode||'');
+  // false 를 돌려주면 복귀 처리가 '지금 열기' 카드로 떨어뜨린다(영수증은 그대로 남아 재클릭이 무료다).
+  if(picked!=='30'&&picked!=='60')return false;
+  _startSessionCore(picked);
+  return true;
+}
+
+(function _registerCosmicResumeHandler(){
+  var entry=null;
+  try{entry=window.__cdCheckoutEntry||null;}catch(_){entry=null;}
+  if(!entry||typeof entry.registerPaidResumeHandler!=='function')return;
+  try{entry.registerPaidResumeHandler(COSMIC_RESUME_KIND,_runCosmicResume);}catch(_){ }
+})();
 
 /* ─── Screen transitions ─── */
 function _showScreen(which){

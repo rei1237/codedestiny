@@ -1870,23 +1870,23 @@ function __cdEnsureSukuyoAIConsultationReady() {
 }
 
 var __cdLazyActionLoaders = {
-  openKemetModal: function() { return __cdLoadScriptOnce('/js/oracle-kcg.js?v=build-8f7c984d5dce'); },
-  openDreamModal: function() { return __cdLoadScriptOnce('/js/dream-ledger.js?v=build-8f7c984d5dce'); },
-  openPsychoDreamModal: function() { return __cdLoadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js?v=build-8f7c984d5dce'); },
+  openKemetModal: function() { return __cdLoadScriptOnce('/js/oracle-kcg.js?v=build-d2dab0fd32ae'); },
+  openDreamModal: function() { return __cdLoadScriptOnce('/js/dream-ledger.js?v=build-d2dab0fd32ae'); },
+  openPsychoDreamModal: function() { return __cdLoadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js?v=build-d2dab0fd32ae'); },
   openOlympusOracleModal: function() { return __cdLoadScriptOnce('/js/olympus-oracle.js'); },
   openHwatuModal: function() { return __cdLoadScriptOnce('/HwatuFortune.js?v=h9ee7eacf3957'); },
-  openJuyukModal: function() { return __cdLoadScriptOnce('/js/iching-engine.js?v=build-8f7c984d5dce').then(function() { return __cdLoadScriptOnce('/js/iching-modal.js?v=build-8f7c984d5dce'); }); },
+  openJuyukModal: function() { return __cdLoadScriptOnce('/js/iching-engine.js?v=build-d2dab0fd32ae').then(function() { return __cdLoadScriptOnce('/js/iching-modal.js?v=build-d2dab0fd32ae'); }); },
   openRuneOracle: function() { window.location.assign('/oracle/rune/'); return Promise.resolve(true); },
-  openAnimalTotemModal: function() { return __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-8f7c984d5dce').then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-8f7c984d5dce'); }); },
+  openAnimalTotemModal: function() { return __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-d2dab0fd32ae').then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-d2dab0fd32ae'); }); },
   openDestinyEggPage: function() { return Promise.resolve(window.location.assign('/tadagochi.html')); },
-  openTarotLoveModal: function() { return __cdLoadScriptOnce('/js/tarot-love-experience.js?v=build-8f7c984d5dce'); },
-  openTarotReunionModal: function() { return __cdLoadScriptOnce('/js/tarot-reunion-experience.js?v=build-8f7c984d5dce'); },
+  openTarotLoveModal: function() { return __cdLoadScriptOnce('/js/tarot-love-experience.js?v=build-d2dab0fd32ae'); },
+  openTarotReunionModal: function() { return __cdLoadScriptOnce('/js/tarot-reunion-experience.js?v=build-d2dab0fd32ae'); },
   openTarotHealingModal: function() { return Promise.resolve(window.location.assign('/tarot/healing/')); },
   openTarotHealingPage: function() { return Promise.resolve(window.location.assign('/tarot/healing/')); },
-  openTarotSelfEsteemModal: function() { return __cdLoadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-8f7c984d5dce'); },
-  openTarotYearFortuneModal: function() { return __cdLoadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-8f7c984d5dce'); },
+  openTarotSelfEsteemModal: function() { return __cdLoadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-d2dab0fd32ae'); },
+  openTarotYearFortuneModal: function() { return __cdLoadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-d2dab0fd32ae'); },
   openSibylModal: function() {
-    return __cdLoadScriptOnce('/js/sibyl-system.js?v=build-8f7c984d5dce').then(function() {
+    return __cdLoadScriptOnce('/js/sibyl-system.js?v=build-d2dab0fd32ae').then(function() {
       if (typeof window.openSibylModal === 'function') window.openSibylModal();
     });
   },
@@ -1939,9 +1939,9 @@ var __cdLazyActionLoaders = {
   // 탭/45초 타임아웃/백그라운드 전환 중 하나가 있어야 로드)로만 실려서, 결과 화면
   // 도달 후 첫 공유 탭이 아직 로드 전이면 조용히 아무 반응 없이 죽었다(setGender와
   // 같은 계열의 버그 — 위 주석 참고).
-  shareKakao: function() { return __cdLoadScriptOnce('/js/share.js?v=build-8f7c984d5dce'); },
-  shareInstagram: function() { return __cdLoadScriptOnce('/js/share.js?v=build-8f7c984d5dce'); },
-  shareSajuResultImage: function() { return __cdLoadScriptOnce('/js/share.js?v=build-8f7c984d5dce'); }
+  shareKakao: function() { return __cdLoadScriptOnce('/js/share.js?v=build-d2dab0fd32ae'); },
+  shareInstagram: function() { return __cdLoadScriptOnce('/js/share.js?v=build-d2dab0fd32ae'); },
+  shareSajuResultImage: function() { return __cdLoadScriptOnce('/js/share.js?v=build-d2dab0fd32ae'); }
 };
 window.__cdLazyActionLoaders = __cdLazyActionLoaders;
 var __cdLazyActionState = {};
@@ -2187,18 +2187,18 @@ function __cdEnsureSajuCoreLoaded() {
     /* 🔴 맨 앞이어야 한다. 아래 kasi-calendar-service·saju-engine 이 window.KoreanCalendar 를
      * 음양력 변환의 유일한 근거로 쓰고, 없으면 던진다(조용히 lunar-javascript 로 떨어지면
      * 중국 표준시 기준 음력이 섞여 자미두수 명반이 하루 밀린다). 로컬 파일이라 CDN 보다 안전하다. */
-    '/js/core/korean-calendar.js?v=build-8f7c984d5dce',
-    '/js/core/kasi-calendar-service.js?v=build-8f7c984d5dce',
-    '/js/compat-llm-prompts.js?v=build-8f7c984d5dce',
-    '/js/saju-engine.js?v=build-8f7c984d5dce',
-      '/js/core/saju/extremeTResult.js?v=build-8f7c984d5dce',
-      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-8f7c984d5dce',
-    '/js/core/saju/modalProfileState.js?v=build-8f7c984d5dce',
-    '/js/core/saju/reportDashboard.js?v=build-8f7c984d5dce',
-    '/js/saju-engine-continuation.js?v=build-8f7c984d5dce',
-    '/js/entertain-engine.js?v=build-8f7c984d5dce',
+    '/js/core/korean-calendar.js?v=build-d2dab0fd32ae',
+    '/js/core/kasi-calendar-service.js?v=build-d2dab0fd32ae',
+    '/js/compat-llm-prompts.js?v=build-d2dab0fd32ae',
+    '/js/saju-engine.js?v=build-d2dab0fd32ae',
+      '/js/core/saju/extremeTResult.js?v=build-d2dab0fd32ae',
+      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-d2dab0fd32ae',
+    '/js/core/saju/modalProfileState.js?v=build-d2dab0fd32ae',
+    '/js/core/saju/reportDashboard.js?v=build-d2dab0fd32ae',
+    '/js/saju-engine-continuation.js?v=build-d2dab0fd32ae',
+    '/js/entertain-engine.js?v=build-d2dab0fd32ae',
     /* 체인은 순차 reduce라 앞에 끼우면 이 파일의 실패가 뒤쪽 전체를 죽인다 — 신규 카드 스크립트는 맨 뒤에 둔다. */
-    '/js/core/saju/dopamineResult.js?v=build-8f7c984d5dce'
+    '/js/core/saju/dopamineResult.js?v=build-d2dab0fd32ae'
   ];
 
   /* 다운로드만 병렬로 앞당긴다 — 아래 reduce 의 순차 실행은 그대로다(__cdPreloadScripts 주석 참고). */
@@ -2221,7 +2221,7 @@ function __cdEnsureDestinyProfileLoaded() {
   if (window.DestinyProfileManager) return Promise.resolve(true);
   if (__cdDestinyProfileLoadPromise) return __cdDestinyProfileLoadPromise;
 
-  __cdDestinyProfileLoadPromise = __cdLoadScriptOnce('/js/destiny-profile.js?v=build-8f7c984d5dce')
+  __cdDestinyProfileLoadPromise = __cdLoadScriptOnce('/js/destiny-profile.js?v=build-d2dab0fd32ae')
     .then(function() { return true; })
     .catch(function(err) {
       __cdDestinyProfileLoadPromise = null;
@@ -2241,7 +2241,7 @@ function __cdEnsureSwissEphLoaded() {
   if (__cdSwissEphLoadPromise) return __cdSwissEphLoadPromise;
 
   __cdSwissEphLoadPromise = new Promise(function(resolve, reject) {
-    var src = '/js/swisseph-loader.js?v=build-8f7c984d5dce';
+    var src = '/js/swisseph-loader.js?v=build-d2dab0fd32ae';
     var norm = __cdNormalizeScriptSrc(src);
     if (!norm) {
       reject(new Error('missing swisseph src'));
@@ -2506,7 +2506,7 @@ __cdInstallSajuActionStub('setGender');
 __cdInstallSajuActionStub('openAnimalDestinyRoute');
 __cdInstallSajuActionStub('openDestinyMeetingPlaceRoute');
 window.openFortunePlanner = function() {
-  return __cdLoadScriptOnce('/js/luck-sync-diary.js?v=build-8f7c984d5dce').then(function() {
+  return __cdLoadScriptOnce('/js/luck-sync-diary.js?v=build-d2dab0fd32ae').then(function() {
     if (window.LuckSyncDiary && typeof window.LuckSyncDiary.open === 'function') return window.LuckSyncDiary.open();
     throw new Error('fortune planner is unavailable');
   }).catch(function(err) {
@@ -3292,6 +3292,43 @@ function __cdBindAnimalTotemTileDirect() {
     });
   }
 
+  /* 🔴 게이트가 없는 열기 코어다. 결제 후 재개 핸들러도 이쪽을 부른다 — 게이트를 다시 타는
+     openTotemModal 을 부르면 이미 낸 결제가 또 일어난다(배선 레시피 4번). */
+  function _doOpenTotem() {
+    var raf = window.requestAnimationFrame || function(cb) { return setTimeout(cb, 0); };
+    if (typeof window.openAnimalTotemModal === 'function') {
+      raf(function() {
+        try { window.openAnimalTotemModal(); } catch (e) { console.error('[totem] open error:', e); }
+      });
+      return;
+    }
+    raf(function() {
+      loadScriptOnce('js/services/animal-totem-content-engine.js?v=build-d2dab0fd32ae')
+        .then(function() { return loadScriptOnce('js/animal-totem-experience.js?v=build-d2dab0fd32ae'); })
+        .then(function() {
+          try {
+            if (typeof window.openAnimalTotemModal === 'function') window.openAnimalTotemModal();
+          } catch (e) { console.error('[totem] open error:', e); }
+        })
+        .catch(function(err) { console.error('[totem] load failed:', err); });
+    });
+  }
+
+  /* ── 결제 후 자동 재개(모바일 리다이렉트 복귀) ────────────────────────────
+     모바일 PortOne 은 상위 프레임을 리다이렉트하므로 아래 _cdCoinGatePerUse 의 콜백이 페이지와
+     함께 죽는다 — 복귀 문서는 영수증으로 재과금만 막을 뿐 토템 모달을 열지 않았다. 이 파일은 셸에
+     항상 로드되므로 딥링크(action)는 비우고 핸들러만 둔다. 🔴 여기서 action 을 채우면 runPaidResume
+     이 타일을 다시 눌러 게이트가 한 번 더 돌고, 뒤늦게 등록된 핸들러가 또 열어 이중 오픈이 된다. */
+  var TOTEM_RESUME_KIND = 'animal-totem-entry';
+  (function registerTotemResumeHandler() {
+    var entry = null;
+    try { entry = window.__cdCheckoutEntry || null; } catch (_) { entry = null; }
+    if (!entry || typeof entry.registerPaidResumeHandler !== 'function') return;
+    try {
+      entry.registerPaidResumeHandler(TOTEM_RESUME_KIND, function() { _doOpenTotem(); return true; });
+    } catch (_) {}
+  })();
+
   function openTotemModal(event) {
     // 🔴 판정은 여기 한 곳에서 한다. 이 타일에는 진입 스택이 네 벌(document click/touchend +
     // 노드 직접 바인딩 click/touchend) 있고, 각자 TAP_THRESH(10px)만 들고 있어 시작점으로
@@ -3308,7 +3345,11 @@ function __cdBindAnimalTotemTileDirect() {
       if (_coinCost > 0 && _tile && !_tile.getAttribute('data-pvw-bypass')) {
         if (typeof window._cdOpenTilePreview === 'function' && window._cdOpenTilePreview(_tile)) return;
         if (typeof window._cdCoinGatePerUse === 'function') {
-          window._cdCoinGatePerUse(_coinCost, '애니멀 토템 리딩', function() { _doOpenTotem(); });
+          window._cdCoinGatePerUse(_coinCost, '애니멀 토템 리딩', function() { _doOpenTotem(); }, null, {
+            // 🔴 이 진입점은 optionBag 자체가 없어 재개 서술자를 실을 자리가 없었다 — 결제하고 복귀하면
+            //    홈만 보였다. featureKey 는 그대로 reason 에서 유도한다(과금 대상을 바꾸지 않는다).
+            resume: { kind: TOTEM_RESUME_KIND, action: '', args: {} },
+          });
           return;
         }
         // ⚠️ 미로그인 상태: _cdCoinGatePerUse 미정의
@@ -3325,25 +3366,6 @@ function __cdBindAnimalTotemTileDirect() {
       // ── 유료 게이트 통과 ──
       _doOpenTotem();
     } catch (err) { console.error('[totem] openTotemModal error:', err); }
-    function _doOpenTotem() {
-      var raf = window.requestAnimationFrame || function(cb) { return setTimeout(cb, 0); };
-      if (typeof window.openAnimalTotemModal === 'function') {
-        raf(function() {
-          try { window.openAnimalTotemModal(); } catch (e) { console.error('[totem] open error:', e); }
-        });
-        return;
-      }
-      raf(function() {
-        loadScriptOnce('js/services/animal-totem-content-engine.js?v=build-8f7c984d5dce')
-          .then(function() { return loadScriptOnce('js/animal-totem-experience.js?v=build-8f7c984d5dce'); })
-          .then(function() {
-            try {
-              if (typeof window.openAnimalTotemModal === 'function') window.openAnimalTotemModal();
-            } catch (e) { console.error('[totem] open error:', e); }
-          })
-          .catch(function(err) { console.error('[totem] load failed:', err); });
-      });
-    }
   }
 
   function isTotemTile(el) {
@@ -6508,7 +6530,7 @@ function _dfReloadSourceData(source, options) {
   // 꽃 아트(window.CDFlowerArt)만 브라우저에 올린다. 매칭 엔진은 워커에 있다.
   if (!window.CDFlowerArt) {
     loader = loader.then(function() {
-      return import('/js/core/bootstrapDestinyFlower.js?v=build-8f7c984d5dce').then(function(mod) {
+      return import('/js/core/bootstrapDestinyFlower.js?v=build-d2dab0fd32ae').then(function(mod) {
         if (mod && typeof mod.bootstrapDestinyFlower === 'function') {
           mod.bootstrapDestinyFlower(window);
         }
@@ -8053,10 +8075,10 @@ function __cdEnsureSukuyoZiweiCoreLoaded() {
     /* 🔴 맨 앞이어야 한다. 아래 kasi-calendar-service·saju-engine 이 window.KoreanCalendar 를
      * 음양력 변환의 유일한 근거로 쓰고, 없으면 던진다(조용히 lunar-javascript 로 떨어지면
      * 중국 표준시 기준 음력이 섞여 자미두수 명반이 하루 밀린다). 로컬 파일이라 CDN 보다 안전하다. */
-    '/js/core/korean-calendar.js?v=build-8f7c984d5dce',
-    '/js/compat-llm-prompts.js?v=build-8f7c984d5dce',
-      '/js/saju-engine.js?v=build-8f7c984d5dce',
-      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-8f7c984d5dce'
+    '/js/core/korean-calendar.js?v=build-d2dab0fd32ae',
+    '/js/compat-llm-prompts.js?v=build-d2dab0fd32ae',
+      '/js/saju-engine.js?v=build-d2dab0fd32ae',
+      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-d2dab0fd32ae'
   ];
 
   /* 🔴 예전에는 이 체인 앞에 lunar-javascript CDN 대기가 있었고, 그것이 reject 되면 생년월일
@@ -8077,7 +8099,7 @@ function __cdEnsureBirthModalDepsLoaded() {
     typeof _renderZiweiSection !== 'function' ||
     typeof _renderAstroSection !== 'function'
   ) {
-    tasks.push(__cdLoadScriptOnce('/js/core/saju/modalProfileState.js?v=build-8f7c984d5dce'));
+    tasks.push(__cdLoadScriptOnce('/js/core/saju/modalProfileState.js?v=build-d2dab0fd32ae'));
   }
   tasks.push(__cdEnsureSukuyoZiweiCoreLoaded());
   if (!tasks.length) return Promise.resolve(true);
@@ -8850,8 +8872,8 @@ function openAnimalTotemModal() {
     typeof window.drawAnimalTotemSpread === 'function';
 
   if (!hasFullTotemFlow && typeof __cdLoadScriptOnce === 'function') {
-    __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-8f7c984d5dce')
-      .then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-8f7c984d5dce'); })
+    __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-d2dab0fd32ae')
+      .then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-d2dab0fd32ae'); })
       .then(function() {
         var upgradedOpen = window.openAnimalTotemModal;
         if (typeof upgradedOpen === 'function' && upgradedOpen !== currentOpenFn) {
