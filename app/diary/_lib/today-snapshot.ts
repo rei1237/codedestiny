@@ -1,0 +1,123 @@
+/**
+ * 홈 카드군이 읽는 하루치 스냅샷. 🔴 **읽기 전용이다** — 저장은 PR-E 에서 붙는다.
+ *
+ * 🔴 저장소 접근은 반드시 `lib/diary/diary-store.js` 계약을 거친다. 제 손으로 키를 열면
+ * `__tests__/ui/diary-store-roundtrip.test.js` 의 왕복 증명 밖으로 나가고, 그때 갈리는 것은
+ * 셸 모달과 공유하는 사용자의 기록이다.
+ * 🔴 운기는 `lib/diary/fortune-adapter.ts` 하나만 부른다(동치 3축이 어댑터에만 있다).
+ * 🔴 원국 차트는 **하루에 한 번**만 만든다 — 셸이 `_lsdCtx.luckyEl` 을 기준일 일진으로 한 번
+ * 계산해 그대로 쓰기 때문이고, 날짜마다 다시 부르면 판정이 갈린다.
+ */
+
+import { getDiaryEntry, readDiaryStore } from "@/lib/diary/diary-store";
+import {
+  buildDiaryNatalChart,
+  classifyDiaryDay,
+  type DiaryBirthInput,
+  type DiaryDayFortune,
+  type DiaryNatalChart,
+} from "@/lib/diary/fortune-adapter";
+import { lunarToSolar } from "@/lib/korean-calendar";
+import {
+  readCurrentDestinyProfile,
+  resolveDestinyProfileBirthParts,
+  type DestinyProfileCard,
+} from "@/app/_lib/profile-card-storage";
+
+/**
+ * 홈이 읽는 기존(v2) 엔트리 필드만 추린 것이다. 🔴 저장 계약의 정본은 `diary-store.js` 이고
+ * 이 타입은 그 값을 읽기 위한 시야일 뿐이다 — 여기 없는 필드도 저장소에는 그대로 남는다.
+ */
+export interface DiaryLegacyEntry {
+  date?: string;
+  /** 그날 완료한 실천 항목의 id 목록. 셸 `:2617` 이 id 를 넣고 뺀다. */
+  challenges?: string[];
+  /** 그날의 실천 목록. 셸 `:2554` 가 `{id, text}` 로 채운다. */
+  challengeCatalog?: { id?: string; text?: string }[];
+  challengeTotalToday?: number;
+  moodEmoji?: string;
+  iAmAffirmation?: string;
+  iAmCompleted?: boolean;
+  practiceNote?: string;
+  nightLog?: string;
+  memoNote?: string;
+}
+
+export interface DiaryTodaySnapshot {
+  ymd: string;
+  entry: DiaryLegacyEntry | null;
+  chart: DiaryNatalChart | null;
+  fortune: DiaryDayFortune | null;
+}
+
+export const EMPTY_DIARY_TODAY_SNAPSHOT: DiaryTodaySnapshot = {
+  ymd: "",
+  entry: null,
+  chart: null,
+  fortune: null,
+};
+
+/**
+ * 활성 프로필 → 어댑터가 받는 양력 생년월일시.
+ * 셸 `_activeProfilePillars:465` 와 같은 순서다 — 시가 없으면 12시, 음력이면 양력으로 옮기고
+ * 옮기지 못하면 `null`(그 자리에서 원국을 만들지 않는다).
+ */
+function resolveDiaryBirthInput(profile: DestinyProfileCard | null): DiaryBirthInput | null {
+  const parts = resolveDestinyProfileBirthParts(profile);
+  if (!parts) return null;
+
+  const birth = profile?.birth || {};
+  const calType = String(birth.calType || profile?.calType || profile?.calendarType || "solar").toLowerCase();
+  let { year, month, day } = parts;
+  if (calType.includes("lunar")) {
+    const converted = lunarToSolar(year, month, day, calType.includes("leap"));
+    if (!converted) return null;
+    year = converted.year;
+    month = converted.month;
+    day = converted.day;
+  }
+
+  const hour = Number(birth.hour ?? profile?.birthHour);
+  const minute = Number(birth.minute ?? profile?.birthMinute);
+  return {
+    year,
+    month,
+    day,
+    hour: Number.isFinite(hour) ? hour : null,
+    minute: Number.isFinite(minute) ? minute : null,
+  };
+}
+
+/** 오늘 하루치를 한 번에 읽는다. 브라우저에서만 부른다(정적 export 는 빌드 때 프리렌더된다). */
+export function readDiaryTodaySnapshot(ymd: string): DiaryTodaySnapshot {
+  if (typeof window === "undefined") return { ...EMPTY_DIARY_TODAY_SNAPSHOT, ymd };
+
+  let entry: DiaryLegacyEntry | null = null;
+  try {
+    /* 🔴 읽기만 한다 — `getDiaryEntry` 가 메모리 사본에 빈 엔트리를 꽂아도 저장하지 않는다. */
+    entry = getDiaryEntry(readDiaryStore(window.localStorage), ymd) as DiaryLegacyEntry;
+  } catch {
+    entry = null;
+  }
+
+  let chart: DiaryNatalChart | null = null;
+  let fortune: DiaryDayFortune | null = null;
+  try {
+    const birth = resolveDiaryBirthInput(readCurrentDestinyProfile());
+    chart = birth ? buildDiaryNatalChart(birth, ymd) : null;
+    fortune = classifyDiaryDay(chart, ymd);
+  } catch {
+    chart = null;
+    fortune = null;
+  }
+
+  return { ymd, entry, chart, fortune };
+}
+
+/** 그날의 실천 진행도. 분모는 셸 `:2118` 과 같은 순서로 고른다. */
+export function readAchievement(entry: DiaryLegacyEntry | null): { done: number; total: number } {
+  const catalog = Array.isArray(entry?.challengeCatalog) ? entry.challengeCatalog : [];
+  const done = Array.isArray(entry?.challenges) ? entry.challenges.length : 0;
+  const total = Number(entry?.challengeTotalToday) || catalog.length;
+  return { done, total };
+}

@@ -224,15 +224,339 @@
   background: var(--dy-disabled);
 }
 
-/* ── 자리표시 본문 (PR-C 에서 홈 카드군으로 교체) ────────────────────── */
+/* ── 홈 카드군 ──────────────────────────────────────────────────────── */
 
-.placeholder {
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cd-sp-sm);
   margin: 0;
-  padding: var(--cd-sp-lg);
+  padding: var(--cd-sp-md);
   border: 1px solid var(--dy-line);
   border-radius: var(--cd-r-card);
   background: var(--dy-surface-2);
+}
+
+/* 첫 카드만 강조선을 준다 — 홈에서 가장 먼저 읽어야 하는 것이 오늘의 결이다. */
+.cardLead {
+  border-color: var(--dy-line-ui);
+}
+
+.cardHead {
+  display: flex;
+  align-items: baseline;
+  gap: var(--cd-sp-sm);
+}
+
+.cardTitle {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  font-family: var(--font-display, inherit);
+  font-size: var(--cd-t-card);
+  font-weight: 600;
+  color: var(--dy-text);
+}
+
+.cardMeta {
+  flex: 0 0 auto;
+  font-size: var(--cd-t-caption);
+  color: var(--dy-muted);
+}
+
+.cardMetaDone {
+  composes: cardMeta;
+  color: var(--dy-accent);
+}
+
+/* ── 오늘의 결 배지 ─────────────────────────────────────────────────── */
+
+.grain {
+  display: flex;
+  align-items: center;
+  gap: var(--cd-sp-xs);
+  margin: 0;
+  font-size: var(--cd-t-body);
+}
+
+.grainDot {
+  flex: 0 0 auto;
+  width: 10px;
+  height: 10px;
+  border-radius: var(--cd-r-pill);
+  background: var(--dy-grain, var(--dy-accent));
+}
+
+.grainName {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-weight: 600;
+  color: var(--dy-grain-ink, var(--dy-text));
+}
+
+.grainScore {
+  flex: 0 0 auto;
+  font-size: var(--cd-t-caption);
+  color: var(--dy-muted);
+}
+
+/* 5등급. 🔴 점(장식)과 글자(정보)의 색을 나눠 준다 — t3~t1 원색은 표면 위에서 3:1 대에 걸려
+   글자에 쓰면 본문 대비가 모자란다. `--dy-t*-ink` 가 그 자리를 대신한다. */
+.t5 {
+  --dy-grain: var(--dy-t5);
+  --dy-grain-ink: var(--dy-t5);
+}
+
+.t4 {
+  --dy-grain: var(--dy-t4);
+  --dy-grain-ink: var(--dy-t4);
+}
+
+.t3 {
+  --dy-grain: var(--dy-t3);
+  --dy-grain-ink: var(--dy-t3-ink);
+}
+
+.t2 {
+  --dy-grain: var(--dy-t2);
+  --dy-grain-ink: var(--dy-t2-ink);
+}
+
+.t1 {
+  --dy-grain: var(--dy-t1);
+  --dy-grain-ink: var(--dy-t1-ink);
+}
+
+/* ── 흐름 3줄 ───────────────────────────────────────────────────────── */
+
+.flowList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cd-sp-xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.flowList li {
+  display: flex;
+  gap: var(--cd-sp-sm);
+  font-size: var(--cd-t-body);
+  line-height: 1.7;
+}
+
+.flowKey {
+  flex: 0 0 auto;
+  width: 3em;
+  color: var(--dy-muted);
+  font-size: var(--cd-t-caption);
+  line-height: 1.9;
+}
+
+.flowValue {
+  flex: 1 1 auto;
+  min-width: 0;
+  color: var(--dy-text);
+}
+
+.flowCare {
+  color: var(--dy-gold);
+}
+
+/* ── 칩 ─────────────────────────────────────────────────────────────── */
+
+.chipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cd-sp-xs);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--cd-btn-h);
+  padding: 0 var(--cd-sp-md);
+  border: 1px solid var(--dy-line-ui);
+  border-radius: var(--cd-r-pill);
+  background: transparent;
+  color: var(--dy-text);
+  font-size: var(--cd-t-caption);
+  cursor: pointer;
+  transition: background var(--cd-dur-fast) ease;
+}
+
+.chip:hover {
+  background: var(--dy-accent-soft);
+}
+
+.chip:focus-visible {
+  outline: 2px solid var(--dy-focus);
+  outline-offset: 2px;
+}
+
+.chip[disabled] {
+  color: var(--dy-disabled);
+  border-color: var(--dy-line);
+  cursor: default;
+}
+
+.chip[disabled]:hover {
+  background: transparent;
+}
+
+/* ── 오늘의 나 ──────────────────────────────────────────────────────── */
+
+.iam {
+  margin: 0;
+  font-size: var(--cd-t-body);
+  line-height: 1.7;
+  color: var(--dy-text);
+}
+
+.fieldLabel {
+  display: flex;
+  align-items: baseline;
+  gap: var(--cd-sp-xs);
+  margin: 0;
+  color: var(--dy-muted);
+  font-size: var(--cd-t-caption);
+}
+
+.emojiRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cd-sp-xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.emoji {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--cd-btn-h);
+  height: var(--cd-btn-h);
+  border: 1px solid var(--dy-line);
+  border-radius: var(--cd-r-control);
+  background: transparent;
+  font-size: var(--cd-t-body);
+  opacity: 0.55;
+}
+
+.emojiOn {
+  composes: emoji;
+  border-color: var(--dy-accent);
+  background: var(--dy-accent-soft);
+  opacity: 1;
+}
+
+/* ── 입력 (PR-E 까지 비활성) ────────────────────────────────────────── */
+
+.input {
+  width: 100%;
+  min-height: var(--cd-btn-h);
+  padding: 0 var(--cd-sp-sm);
+  border: 1px solid var(--dy-line-ui);
+  border-radius: var(--cd-r-control);
+  background: var(--dy-surface);
+  color: var(--dy-text);
+  font-family: inherit;
+  font-size: var(--cd-t-body);
+}
+
+.input:disabled {
+  border-color: var(--dy-line);
+  color: var(--dy-text);
+  -webkit-text-fill-color: var(--dy-text);
+  opacity: 1;
+}
+
+.input:disabled::placeholder {
+  color: var(--dy-disabled);
+  -webkit-text-fill-color: var(--dy-disabled);
+}
+
+/* ── 오늘의 계획 ────────────────────────────────────────────────────── */
+
+.planGrid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cd-sp-sm);
+}
+
+.planBox {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cd-sp-xs);
+  padding: var(--cd-sp-sm);
+  border: 1px solid var(--dy-line);
+  border-radius: var(--cd-r-control);
+  background: var(--dy-surface);
+}
+
+.routineList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cd-sp-xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.routineItem {
+  display: flex;
+  gap: var(--cd-sp-xs);
+  font-size: var(--cd-t-body);
+  line-height: 1.6;
+  color: var(--dy-text);
+}
+
+.routineDone {
+  composes: routineItem;
+  color: var(--dy-muted);
+  text-decoration: line-through;
+}
+
+.routineMark {
+  flex: 0 0 auto;
+  width: 1.2em;
+  color: var(--dy-accent);
+}
+
+/* ── 오늘의 성취 ────────────────────────────────────────────────────── */
+
+.achieveCount {
+  margin-left: auto;
+  color: var(--dy-text);
+}
+
+.achieveTrack {
+  overflow: hidden;
+  height: 8px;
+  border-radius: var(--cd-r-pill);
+  background: var(--dy-surface);
+  border: 1px solid var(--dy-line);
+}
+
+/* 🔴 width 에 transition 을 걸지 않는다 — 레이아웃 속성 애니메이션이고, 이 값은 하이드레이션
+   때 한 번 정해지는 읽기 전용 값이라 움직일 이유도 없다. */
+.achieveFill {
+  display: block;
+  height: 100%;
+  background: var(--dy-accent);
+}
+
+/* ── 빈 상태 ────────────────────────────────────────────────────────── */
+
+.empty {
+  margin: 0;
   color: var(--dy-muted);
   font-size: var(--cd-t-body);
   line-height: 1.7;
+}
+
+.emptySmall {
+  composes: empty;
+  font-size: var(--cd-t-caption);
 }
