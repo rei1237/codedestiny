@@ -308,8 +308,133 @@
  * 이 페이지에만 필요한 것: 인물 3열 그리드, 장소 정의 목록의 2열 정렬, CTA 하나.
  */
 @layer components {
+	.cd-world-hero {
+		display: grid;
+		grid-template-columns: minmax(0, 1.05fr) minmax(280px, 0.95fr);
+		gap: clamp(22px, 4vw, 52px);
+		align-items: center;
+		margin-bottom: 30px;
+		padding: 26px;
+		border: 1px solid rgba(196, 181, 253, 0.24);
+		border-radius: 24px;
+		background:
+			radial-gradient(80% 120% at 0% 0%, rgba(167, 139, 250, 0.16), transparent 68%),
+			linear-gradient(145deg, rgba(19, 16, 42, 0.98), rgba(10, 8, 24, 0.94));
+		box-shadow: 0 18px 42px rgba(3, 2, 14, 0.42), inset 0 1px 0 rgba(244, 238, 255, 0.08);
+	}
+	.cd-world-hero-copy {
+		min-width: 0;
+	}
+	.cd-world-hero-trail {
+		margin: 20px 0 0;
+		color: #e8d5a3;
+		font-size: 0.82rem;
+		font-weight: 700;
+		letter-spacing: 0.04em;
+	}
+	.cd-world-hero-trail span {
+		margin: 0 7px;
+		color: #c4b5fd;
+	}
+	.cd-world-hero-art {
+		position: relative;
+		margin: 0;
+		overflow: hidden;
+		border: 1px solid rgba(232, 213, 163, 0.3);
+		border-radius: 16px;
+		background: #0a0818;
+		box-shadow: 0 0 30px rgba(147, 51, 234, 0.18);
+	}
+	.cd-world-hero-art::after {
+		content: "";
+		position: absolute;
+		inset: 0;
+		background: linear-gradient(180deg, transparent 52%, rgba(10, 8, 24, 0.72));
+		pointer-events: none;
+	}
+	.cd-world-hero-art img {
+		display: block;
+		width: 100%;
+		height: auto;
+		aspect-ratio: 16 / 9;
+		object-fit: contain;
+		padding: 12px 0 22px;
+	}
+	.cd-world-hero-art figcaption {
+		position: absolute;
+		z-index: 1;
+		inset: auto 14px 12px;
+		color: #f4eeff;
+		font-size: 0.78rem;
+		font-weight: 600;
+	}
+	.cd-world-prologue {
+		position: relative;
+		margin: 0 0 34px;
+		padding: 24px clamp(20px, 4vw, 42px);
+		border-block: 1px solid rgba(232, 213, 163, 0.24);
+		background: linear-gradient(90deg, rgba(232, 213, 163, 0.06), transparent 48%, rgba(196, 181, 253, 0.06));
+	}
+	.cd-world-prologue-label {
+		margin: 0 0 10px;
+		color: #e8d5a3;
+		font-family: var(--font-serif);
+		font-size: 0.72rem;
+		letter-spacing: 0.12em;
+	}
+	.cd-world-prologue h2 {
+		margin: 0;
+		color: #f4eeff;
+		font-family: var(--font-serif);
+		font-size: clamp(1.25rem, 2.6vw, 1.7rem);
+		font-weight: 500;
+		line-height: 1.45;
+		text-wrap: balance;
+	}
+	.cd-world-prologue p:not(.cd-world-prologue-label) {
+		max-width: 72ch;
+		margin: 12px 0 0;
+		color: #d8d0e9;
+		line-height: 1.85;
+		word-break: keep-all;
+	}
+	.cd-world-character-portrait {
+		position: relative;
+		width: 100%;
+		height: 190px;
+		overflow: hidden;
+		margin: 2px 0 4px;
+		border: 1px solid rgba(196, 181, 253, 0.24);
+		border-radius: 14px;
+		background: radial-gradient(circle at 50% 36%, rgba(167, 139, 250, 0.16), transparent 62%), #0a0818;
+	}
+	.cd-world-character-portrait img {
+		display: block;
+		width: 100%;
+		height: 100%;
+		object-fit: contain;
+	}
+	.cd-world-character-portrait::after {
+		content: "";
+		position: absolute;
+		inset: 45% 0 0;
+		background: linear-gradient(180deg, transparent, rgba(10, 8, 24, 0.76));
+		pointer-events: none;
+	}
+	.cd-world-character-portrait figcaption {
+		position: absolute;
+		z-index: 1;
+		inset: auto 12px 10px;
+		color: #f4eeff;
+		font-size: 0.76rem;
+		font-weight: 700;
+		text-align: center;
+	}
+	.cd-world-section + .cd-world-section {
+		margin-top: 34px;
+	}
 	.cd-world-h2 {
-		margin: 26px 0 10px;
+		margin: 0 0 10px;
 		font-size: 1.02rem;
 		font-weight: 600;
 		color: #f4f8ff;
@@ -395,7 +520,22 @@
 			grid-template-columns: repeat(3, 1fr);
 		}
 	}
+	@media (max-width: 720px) {
+		.cd-world-hero {
+			grid-template-columns: 1fr;
+			padding: 20px;
+		}
+	}
 	@media (max-width: 560px) {
+		.cd-world-hero {
+			gap: 18px;
+			margin-bottom: 24px;
+			padding: 16px;
+			border-radius: 20px;
+		}
+		.cd-world-hero-trail {
+			font-size: 0.76rem;
+		}
 		.cd-world-place {
 			grid-template-columns: 1fr;
 		}
