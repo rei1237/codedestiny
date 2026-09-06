@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-06
-next: **루트 독립 정적 HTML 10건.** Phase C ①②(명상 2종·토템 진입, PR #1667)·③(`js/saju-engine.js` 7건, PR #1674)·④(**기타 정적 5건, PR #1687 — 사용자 머지 대기**)까지 끝났다. 다음은 루트 독립 정적 HTML 10건 → React 36건. 🔴 루트 HTML 은 명상 2종(`neville-meditation.html` 의 `startCourseCore`)을 그대로 베낀다 — 페이지가 자기 자신으로 복귀하므로 `action` 은 빈 문자열이고, 결제 게이트를 안 타는 코어를 잘라내 핸들러가 그것만 부른다.
+next: **React 36건.** Phase C ①②(명상 2종·토템 진입, PR #1667)·③(`js/saju-engine.js` 7건, PR #1674)·④(기타 정적 5건, PR #1687)·⑤(**루트 독립 정적 HTML 10건 — PR 아래, 사용자 머지 대기**)까지 끝나 정적 축은 전건 배선됐다. 남은 것은 React 36건 하나뿐이고, 거기는 배선 전에 **호출부별 (a)/(b)/(c) 분류**부터 해야 한다(아래 "모르는 것"). 🔴 React 는 정적 레시피를 그대로 못 베낀다 — `runBillingCoinGate` 가 서버 응답을 `hasVerifiedBillingAccess` 로 검사해서 영수증 단축이 안 들어간다(아래 "함정" 첫 줄).
 ---
 
 # 유료 기능 결제 후 자동 개방 (리다이렉트 복귀)
@@ -13,7 +13,8 @@ next: **루트 독립 정적 HTML 10건.** Phase C ①②(명상 2종·토템 �
 
 ## 지금 상태
 
-- 공통 뼈대 + 카카오페이 타일 정합성 완료. 배선된 기능은 **21건** — 숙요 기본 궁합 · 연애 타로 · 재회 타로 · 명리 타로 3카드 · 숙요 정밀 궁합 확장 · 숙요 인연 레이더 · 코스믹 명상 · 네빌 명상 · 애니멀 토템 진입(PR #1667) · **`js/saju-engine.js` 7건**(PR #1674 — 셜럭 시나스트리 · 직접입력 시나스트리 · 자미두수 궁합 · 사주 궁합 · AI 상담 3종) · **기타 정적 5건**(PR #1687 — 신년 타로 · 프로필 카드 추가/삭제 · 애니멀 토템 뽑기 · 케메트 · 주역).
+- 공통 뼈대 + 카카오페이 타일 정합성 완료. 배선된 기능은 **31건**(등록된 `kind` 는 32개 — 펫사주가 2개다) — 숙요 기본 궁합 · 연애 타로 · 재회 타로 · 명리 타로 3카드 · 숙요 정밀 궁합 확장 · 숙요 인연 레이더 · 코스믹 명상 · 네빌 명상 · 애니멀 토템 진입(PR #1667) · **`js/saju-engine.js` 7건**(PR #1674 — 셜럭 시나스트리 · 직접입력 시나스트리 · 자미두수 궁합 · 사주 궁합 · AI 상담 3종) · **기타 정적 5건**(PR #1687 — 신년 타로 · 프로필 카드 추가/삭제 · 애니멀 토템 뽑기 · 케메트 · 주역) · **루트 독립 정적 HTML 10건**(아래 표).
+- 🔴 **정적 축은 이걸로 전건이다.** 남은 미배선은 React 36건뿐이다.
 - 🔴 **배관은 끝났다** — `window._cdCoinGatePerUse` 정의 2곳(`js/destiny-profile.js:5673`·`:12488`)이 `resume` 을 게이트로 넘긴다. 이전에는 안 넘겨서, 옵션 백 없는 축약형을 쓰는 기능(타로 3종)은 서술자를 만들어도 티켓에 안 실렸다. 회귀 가드는 `__tests__/ui/direct-payment-resume.behavior.test.js` 의 "_cdCoinGatePerUse 는 resume 서술자를…" 테스트.
 - 원인: 모바일 PortOne 은 상위 프레임을 리다이렉트하므로 결제 게이트의 `await` 가 페이지와 함께 죽는다 → `onGranted` 가 **어떤 기능에서도** 실행되지 않는다. 복귀 처리(`_dpResumeDirectPaymentAfterRedirect`)는 완료 오버레이만 띄우고 기능을 다시 열지 않았다.
 - 🔴 회당 결제(per-use) 키는 `worker/lib/access-state.js` 가 보유 목록에서 걸러내므로, 재클릭하면 **또 결제된다**. 그래서 로컬 영수증이 필요했다.
@@ -125,7 +126,29 @@ PR #1667 로 추가된 3건 — 코스믹 명상 `cosmic-soul-meditation.html` `
 - **프로필은 요청 조립을 한 곳으로 모았다** — `_dpSendProfileMutation(mutationAction, profileId, requestId, profileData, paymentContext)` 를 생성·수정·삭제·재개 4경로가 공유한다(원칙 6). 재개는 `_dpBuildProfileResumePaymentContext(grant, …)` 로 결제 증빙을 얹어 **같은 요청**을 재발행한다. 🔴 삭제는 공용 코인 게이트가 아니라 `_cdRunDirectKrwCheckout` 직행이라 서술자를 그 **opts** 에 실어야 `_dpWriteDirectResumeTicket` 이 티켓에 담는다. 월정석 분기는 리다이렉트가 없어 재개가 필요 없다.
 - 🔴 **핸들러 등록 타이밍** — `js/destiny-profile.js` 는 `checkout-entry.js` 보다 먼저 실행될 수 있어 `_dpRegisterPaidResumeHandler` 가 8초 상한으로 재시도한다(`runPaidResume` 의 폴링 상한과 같은 값).
 
-**루트 독립 정적 HTML 10건** — `celestial-harmony.html:2193` · `geomancy-oracle-v4.html:941` · `ifa_oracle_v2_full.html:515` · `royal-tea-oracle.html:2233` · `tarot-ijik.html:2139` · `yoga-guru.html:1484` · `vedic-astrology.html:3532`·`:4075`·`:7102` · `pet-saju.html`(아래 위반 항목). 🔴 배선 형태는 명상 2종을 그대로 베낀다 — 결제 게이트를 안 타는 **코어 함수**를 분리하고 핸들러는 코어만 부른다(`neville-meditation.html` 의 `startCourseCore`).
+**루트 독립 정적 HTML 10건 — ✅ 배선 완료.** 전부 셸 상주라 `action` 은 빈 문자열이고, 등록은 최상위 인라인 IIFE 다.
+
+| kind | 부르는 코어 | args | 증빙 재조립 |
+|---|---|---|---|
+| `ifa-oracle-cast` | `castCore` | `category` | 불필요(클라 계산) |
+| `geomancy-oracle-cast` | `geomancyEnterActivation` | `question` | 불필요 |
+| `royal-tea-reading` | `startReadingCore` | 없음 | 불필요 |
+| `tarot-ijik-reading` | `getReadingCore` | `requestId`·`cardsJson`(7장) | 게이트 requestId 재사용 |
+| `yoga-guru-course` | `invokeGuruCore` | `mood`·`duration` | `_captureYogaEvidence` |
+| `celestial-harmony-reading` | `runReadingFlowCore` | `reportId`·`requestId` | `extractCoinGateResult` |
+| `pet-saju-report` | `runPetReportCore` | `petJson` | `buildPetResumeGate` |
+| `pet-saju-compat` | `runPetCompatCore` | `petAJson`·`petBJson` | `buildPetResumeGate` |
+| `vedic-ai-prompt` | `vedicAiGeneratePromptCore` | `requestId`·`question` | `vedicAiGateEvidence` |
+| `vedic-prashna-prompt` | `vedicPrashnaConfirmGenerateCore` | `requestId`·`snapshotJson`·`orderJson` | `vedicPrashnaGateEvidence` |
+| `vedic-compat-calc` | `doCompatCalcCore` | 폼 10필드 | 불필요 |
+
+이 10건에서 새로 확인한 것:
+
+- 🔴 **서버 산출물형은 증빙을 그 파일의 기존 조립기로 다시 만든다** — 요가·천체·베딕 AI·프라슈나·펫사주 5건은 생성 POST 에 결제 증빙이 없으면 402 다. 새 조립기를 만들지 말고 `grant.payload` 를 인페이지 경로가 쓰던 **같은 조립기**에 먹인다(원칙 6). `grant` 는 인페이지 `onGranted(gateResult)` 와 같은 자리다.
+- 🔴 **서술자는 게이트 안에서 만들어야 requestId 가 맞는 경우가 있다** — `tarot-ijik` 은 `ijikCoinGate` 가 자기 requestId 를 만들고 그걸 서버가 증빙 매칭에 쓴다. 호출부에서 미리 만들면 다른 값이 실린다. 반대로 `vedic-ai-prompt` 는 requestId 가 입력 해시라 **복귀 후 재계산하면 값이 달라질 수 있어** 서술자에 실어 코어로 넘긴다.
+- **DOM 이 아직 없을 수 있다** — 베딕 궁합의 `c-*` 폼은 `showDetail('compat')` 이 그려야 생기고, 차트(`G.chart`)는 `initVedicPage` 가 프로필로 재계산할 때까지 없다. 그래서 핸들러가 8초/200ms 로 차트를 기다린 뒤 상세를 열고 폼을 채운다. 펫사주는 청사진이 없으면 **무료** `requestBlueprint` 를 먼저 다시 받는다.
+- **연출 진행 중이면 반려한다** — `royal-tea-reading` 은 `phase` 가 `swirl`·`morph` 면 `false` 를 돌려 '지금 열기' 카드로 떨어뜨린다(영수증이 남아 재클릭은 무료다).
+- 🔴 **`public/ifa-oracle.html` 은 `sync:public` 이 안 만든다** — `ifa_oracle_v2_full.html` 의 배포 쌍둥이인데 미러 대상이 아니라 **본문을 손으로 맞춰야 한다**(head 만 다르다). 이번에도 손으로 동기화했다.
 
 **React 36건** — 위 "계약 공백" 과 같은 이유로 배관부터 필요하다. 영수증만으로 여는 지름길을 붙이려면 `app/_lib/billing-client.ts:1724-1770` `hasVerifiedBillingAccess(data, expectedFeatureKey)` 를 만족시켜야 한다(featureKey 일치 + `accessGrant.*` 또는 `consume.*` 식별자).
 
@@ -158,6 +181,12 @@ React 배관도 같은 PR 에서 열렸다: `EnsurePaidAccessInput`/`BillingCoin
 - 🔴 **코어를 잘라낼 때 유효성 판정을 전역 상태 대입보다 앞에 둔다.** 재개 핸들러는 신뢰할 수 없는 `args` 를 들고 들어오므로, `course = COURSES[mins]` 처럼 먼저 대입하고 나중에 검사하면 알 수 없는 키가 **진행 중이던 세션의 상태를 지운다**(네빌 명상에서 실제로 잡았다).
 
 ## 이번 범위 밖 인접 결함 (고치지 않았다 — 원칙 14)
+
+**루트 정적 10건 배선에서 새로 나온 3건 (2026-09-06)**
+
+- 🔴 **`public/ifa-oracle.html` 에 결제 런타임 3종이 없다** — 배포 쌍둥이인데 head 에 `pass-verdict.js`·`checkout-entry.js`·`payment-service.js` 태그가 빠져 있다(루트 `ifa_oracle_v2_full.html` 에는 있다). PR #151 때 루트만 받고 쌍둥이는 안 받은 divergence 로, `destiny-profile.js` 는 이 셋을 **스스로 로드하지 않는다**(전수 grep: `js/destiny-profile.js` 에 로더 없음 — 주석만 "함께 로드한다"고 적혀 있다). 그래서 이 쌍둥이에서는 재개 핸들러 등록이 안 되고 결제창도 dp 폴백 렌더러로 떨어진다. **본문 배선은 넣어 뒀으니 태그 3줄만 채우면 살아난다.**
+- ⚠️ **`public/static/geomancy-oracle-v4.html` 은 낡은 두 번째 사본이다** — `/static/geomancy-oracle-v4` 로 실제 서빙된다(`_headers:152-159`). 결제 런타임 3종은 물론 루트에 있는 **결제 증빙 블록(`_captureGeomancyEvidence`)조차 없다.** 미러가 아니라 자체 정본이라 `sync:public` 이 안 건드리고, 지금까지 캐시 핀만 손으로 돌려 왔다. 재개 배선도 못 받았다.
+- **`geomancy-oracle-v4.html` 의 `geomancyPayEvidence` 는 죽은 쓰기다** — `_captureGeomancyEvidence` 가 대입하지만 파일 어디서도 읽지 않는다(전수 grep: 루트 파일 + `public/` 미러). 지오맨시는 산출물이 클라 계산이라 지금은 무해하지만, 서버 생성으로 바뀌면 증빙이 안 실린다.
 
 **2026-09-06 재감사에서 새로 나온 3건**
 
