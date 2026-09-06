@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-06
-next: **기타 정적 5건.** Phase C ①②(명상 2종·토템 진입, PR #1667)·③(`js/saju-engine.js` 7건, PR #1674)은 끝났다. 다음 순서는 기타 정적 5건 → 루트 독립 정적 HTML 10건 → React 36건. 🔴 기타 정적 5건 중 **애니멀 토템 뽑기**가 유일하게 새 형태다(진입 재개 → 뽑기 재개의 2단계) — 나머지 4건은 saju-engine 7건과 같은 형태라 그 파일의 `_seWaitForResumeTarget`·`_seResumeEvidence` 배관을 그대로 베낀다.
+next: **루트 독립 정적 HTML 10건.** Phase C ①②(명상 2종·토템 진입, PR #1667)·③(`js/saju-engine.js` 7건, PR #1674)·④(**기타 정적 5건, PR #1687 — 사용자 머지 대기**)까지 끝났다. 다음은 루트 독립 정적 HTML 10건 → React 36건. 🔴 루트 HTML 은 명상 2종(`neville-meditation.html` 의 `startCourseCore`)을 그대로 베낀다 — 페이지가 자기 자신으로 복귀하므로 `action` 은 빈 문자열이고, 결제 게이트를 안 타는 코어를 잘라내 핸들러가 그것만 부른다.
 ---
 
 # 유료 기능 결제 후 자동 개방 (리다이렉트 복귀)
@@ -13,7 +13,7 @@ next: **기타 정적 5건.** Phase C ①②(명상 2종·토템 진입, PR #166
 
 ## 지금 상태
 
-- 공통 뼈대 + 카카오페이 타일 정합성 완료. 배선된 기능은 **16건** — 숙요 기본 궁합 · 연애 타로 · 재회 타로 · 명리 타로 3카드 · 숙요 정밀 궁합 확장 · 숙요 인연 레이더 · 코스믹 명상 · 네빌 명상 · 애니멀 토템 진입(PR #1667) · **`js/saju-engine.js` 7건**(PR #1674 — 셜럭 시나스트리 · 직접입력 시나스트리 · 자미두수 궁합 · 사주 궁합 · AI 상담 3종).
+- 공통 뼈대 + 카카오페이 타일 정합성 완료. 배선된 기능은 **21건** — 숙요 기본 궁합 · 연애 타로 · 재회 타로 · 명리 타로 3카드 · 숙요 정밀 궁합 확장 · 숙요 인연 레이더 · 코스믹 명상 · 네빌 명상 · 애니멀 토템 진입(PR #1667) · **`js/saju-engine.js` 7건**(PR #1674 — 셜럭 시나스트리 · 직접입력 시나스트리 · 자미두수 궁합 · 사주 궁합 · AI 상담 3종) · **기타 정적 5건**(PR #1687 — 신년 타로 · 프로필 카드 추가/삭제 · 애니멀 토템 뽑기 · 케메트 · 주역).
 - 🔴 **배관은 끝났다** — `window._cdCoinGatePerUse` 정의 2곳(`js/destiny-profile.js:5673`·`:12488`)이 `resume` 을 게이트로 넘긴다. 이전에는 안 넘겨서, 옵션 백 없는 축약형을 쓰는 기능(타로 3종)은 서술자를 만들어도 티켓에 안 실렸다. 회귀 가드는 `__tests__/ui/direct-payment-resume.behavior.test.js` 의 "_cdCoinGatePerUse 는 resume 서술자를…" 테스트.
 - 원인: 모바일 PortOne 은 상위 프레임을 리다이렉트하므로 결제 게이트의 `await` 가 페이지와 함께 죽는다 → `onGranted` 가 **어떤 기능에서도** 실행되지 않는다. 복귀 처리(`_dpResumeDirectPaymentAfterRedirect`)는 완료 오버레이만 띄우고 기능을 다시 열지 않았다.
 - 🔴 회당 결제(per-use) 키는 `worker/lib/access-state.js` 가 보유 목록에서 걸러내므로, 재클릭하면 **또 결제된다**. 그래서 로컬 영수증이 필요했다.
@@ -44,9 +44,9 @@ git grep -n "registerPaidResumeHandler(" -- js | grep -v '^public/'   # 배선 �
 
 | 계열 | 개수 | 지금 상태 |
 |---|---|---|
-| 정적·레거시 (`index.html`·`js/**`) | 23건 | **14건 배선**(saju-engine 7건 포함), 9건 미배선 |
+| 정적·레거시 (`index.html`·`js/**`) | 23건 | **19건 배선**(saju-engine 7건 + 기타 정적 5건 포함), 4건 미배선 |
 
-🔴 미배선 9건 중 아래 "미배선 잔여"가 이름을 대는 것은 **기타 정적 5건 + 숙요 AI 프롬프트 1건 = 6건**이다. **나머지 3건은 초판부터 이름이 없다(미분류·미검증)** — 위 수집 명령을 다시 돌려 배선 완료분을 뺀 차집합으로 확정할 것. 🔴 `git grep -c` 는 **줄 수**라 기능 수가 아니다(saju-engine 7건은 IIFE 한 줄에서 등록된다).
+🔴 미배선 4건 중 이름이 있는 것은 **숙요 AI 프롬프트 1건**뿐이다. **나머지 3건은 초판부터 이름이 없다(미분류·미검증)** — 위 수집 명령을 다시 돌려 배선 완료분을 뺀 차집합으로 확정할 것. 🔴 `git grep -c` 는 **줄 수**라 기능 수가 아니다(saju-engine 7건은 IIFE 한 줄에서 등록된다).
 | 루트 독립 정적 HTML | 12건 / 11파일 | **2건 배선**(명상 2종), 10건 미배선 |
 | React `useCoinGate.ensurePaidAccess` | 17파일 | 영수증 단축으로 **재과금만** 막힘. 자동 재개 없음 |
 | React 직접 호출(`runBillingCoinGate`·`runPaidAccessGate`) | 19곳 | 🔴 **영수증도 안 탄다** |
@@ -107,7 +107,23 @@ PR #1667 로 추가된 3건 — 코스믹 명상 `cosmic-soul-meditation.html` `
 🔴 **`action` 은 반드시 게이트를 안 타는 딥링크여야 한다** — `runCompat`·`calculate` 를 넣으면 `__cdInvokeAction` 이 게이트를 다시 태워 **재결제**가 난다. 위 3개 action 은 전부 `index.html` 에 `data-action` 노드로 존재하면서 saju-engine.js 를 끌어온다(이 파일은 어떤 HTML 도 정적 로드하지 않는 지연 스크립트라 `action` 을 비울 수 없다 — 명상 2종과 다른 점).
 🔴 **AI 상담 3종은 화면만 열어선 안 된다** — 생성 POST 에 결제 당시 `requestId` 가 실린 증빙이 없으면 서버가 402 를 준다. 그래서 세 화면 각각의 **기존 "재결제 없는 재시도" 슬롯**(사주 `lastPaidEvidence` · 점성술 `astroEvidenceStore` · 자미두수 `handleGenerate` 의 `paidEvidence` 분기)에 밀어 넣고 기존 핸들러를 그대로 재사용했다 — 원칙 6(병렬 경로 금지).
 
-**기타 정적 5건** — 신년 타로 `tarot-year-fortune-experience.js:432` · 프로필 카드 추가/삭제 `js/destiny-profile.js:7437`(폼 상태를 되살릴 action 없음) · 애니멀 토템 뽑기 `js/animal-totem-experience.js:869`(⚠️ `action:"drawAnimalTotemSpread"` 를 넘기지만 그 노드는 **모달이 열린 뒤에만** 존재 → 2단계 핸들러 필요. 진입은 배선됐으니 이제 진입 재개 → 뽑기 재개의 2단계를 어떻게 잇는지가 남았다) · 케메트 `js/oracle-kcg.js:841` · 주역 `js/iching-engine.js:382`.
+**기타 정적 5건 — ✅ 배선 완료 (PR #1687).**
+
+| kind | action | 부르는 코어 | args |
+|---|---|---|---|
+| `tarot-year-fortune` | `openTarotYearFortuneModal` | `_runTarotYearFortuneReading` | `year`·`requestId` |
+| `profile-card-manage` | `''` (셸 상주) | `_dpSendProfileMutation` | `action`·`profileId`·`requestId`·`profileJson` |
+| `animal-totem-draw` | `openAnimalTotemModal` | `_totemRenderPaidSpread` | `mode`·`question` |
+| `kemet-oracle` | `openKemetModal` | `_kemetEnterCardStage` | `question` |
+| `iching-turtle` | `openJuyukModal` | `_doCrack` | `question` |
+
+이 5건에서 새로 확인한 것:
+
+- 🔴 **`runPaidResume` 은 핸들러가 이미 등록돼 있으면 표면을 열지 않는다** — `readPaidResumeHandler(kind)` 를 **먼저** 보고, 있으면 그대로 부른다. `openPaidResumeSurface` + 8초 폴링은 핸들러가 **없을 때만** 돈다. 그래서 지연 로드 기능은 `action` 에 진짜 딥링크가 필요하고(표면이 열려야 스크립트가 로드되고 핸들러가 등록된다), 셸 상주 파일은 `action` 이 빈 문자열이어야 한다.
+- **`action` 딥링크가 게이트를 타는지 판정하는 법** — `__cdInvokeAction` → `__cdRequireTileLockGate(actionEl)` 는 노드에 `data-tile-lock-key` **와** `data-tile-lock-cost > 0` 이 **둘 다** 있을 때만 문다. `openTarotYearFortuneModal`·`openKemetModal`·`openJuyukModal` 타일은 `data-coin-cost`·`data-feature-key` 만 갖고 있어 안전하다(회당 코인 게이트는 클릭 경로의 델리게이션 `_cdRunPerUseCoinGate` 쪽에만 있다).
+- **애니멀 토템 2단계** — 진입 재개 `animal-totem-entry`(`js/core/index-inline-runtime.js:3317`)는 `action:''` 을 그대로 둔다(`openTotemModal` 은 타일 클릭 핸들러라 재과금한다). 뽑기 재개만 `action:"openAnimalTotemModal"` 을 쓴다 — 셸의 `window.openAnimalTotemModal`(`js/core/index-inline-runtime.js:8868`)이 **게이트 없는 지연 로더 + 오픈**임을 확인했다.
+- **프로필은 요청 조립을 한 곳으로 모았다** — `_dpSendProfileMutation(mutationAction, profileId, requestId, profileData, paymentContext)` 를 생성·수정·삭제·재개 4경로가 공유한다(원칙 6). 재개는 `_dpBuildProfileResumePaymentContext(grant, …)` 로 결제 증빙을 얹어 **같은 요청**을 재발행한다. 🔴 삭제는 공용 코인 게이트가 아니라 `_cdRunDirectKrwCheckout` 직행이라 서술자를 그 **opts** 에 실어야 `_dpWriteDirectResumeTicket` 이 티켓에 담는다. 월정석 분기는 리다이렉트가 없어 재개가 필요 없다.
+- 🔴 **핸들러 등록 타이밍** — `js/destiny-profile.js` 는 `checkout-entry.js` 보다 먼저 실행될 수 있어 `_dpRegisterPaidResumeHandler` 가 8초 상한으로 재시도한다(`runPaidResume` 의 폴링 상한과 같은 값).
 
 **루트 독립 정적 HTML 10건** — `celestial-harmony.html:2193` · `geomancy-oracle-v4.html:941` · `ifa_oracle_v2_full.html:515` · `royal-tea-oracle.html:2233` · `tarot-ijik.html:2139` · `yoga-guru.html:1484` · `vedic-astrology.html:3532`·`:4075`·`:7102` · `pet-saju.html`(아래 위반 항목). 🔴 배선 형태는 명상 2종을 그대로 베낀다 — 결제 게이트를 안 타는 **코어 함수**를 분리하고 핸들러는 코어만 부른다(`neville-meditation.html` 의 `startCourseCore`).
 
@@ -137,6 +153,8 @@ React 배관도 같은 PR 에서 열렸다: `EnsurePaidAccessInput`/`BillingCoin
 - 🔴 **React 직접 호출 19곳에는 영수증 단축을 넣지 못했다.** `runBillingCoinGate` 는 결제 뒤 서버 응답을 `hasVerifiedBillingAccess` 로 검사하므로, 영수증만으로 통과시키려면 서버 모양의 `BillingCoinGateData` 를 위조해야 한다(호출부마다 `consume`·`pricing` 에서 읽는 필드가 다르다). 각 호출부에서 개별 판단이 필요하다.
 - `useCoinGate` 의 영수증 검사는 **중첩 사전검사가 아니다**(원칙 6 확인 완료) — React 는 `internalMainGate: true` 로 dp 게이트에 들어가 거기 있는 같은 단축을 **타지 않는다**.
 - 독립 정적 페이지의 `?v=` 핀은 `sync:public` 이 안 돌린다. `verify:payment-choice-parity` 가 낡은 핀을 잡아 새 값을 알려준다.
+- 🔴 **핀 전건 치환은 확장자로 거르지 말 것**(2026-09-06 실측 — CI 전에 두 바퀴 헛돌았다). `grep -rl --include=*.html --include=*.js` 로 찾으면 `dp` 축 핀 보유자 중 **`app/_lib/billing-client.ts`(`PAID_SERVICE_RUNTIME_SRC`)와 그 값을 문자열로 단언하는 `scripts/verify-paid-gate-ui-regression.mjs`** 를 통째로 놓친다. 파서는 `git ls-files` 전수라 확장자를 안 가린다 — **확장자 필터 없이** 검색한다. 실제 보유자 4종: 루트 독립 정적 HTML · `app/_lib/billing-client.ts` · `scripts/verify-paid-gate-ui-regression.mjs` · 미러가 아닌 자체 정본 2개(`public/ifa-oracle.html`·`public/static/geomancy-oracle-v4.html`).
+- 🔴 **`app/_lib/billing-client.ts` 는 결제 동결 `wholeFiles` 다** — 핀 한 글자만 돌려도 `verify:payment-freeze` 가 문다. `node scripts/verify-payment-freeze.mjs --update` 결과를 **같은 커밋에** 담는다(핀 회전은 결제 정책 변경이 아니므로 `worker/payments/` 대응은 불필요).
 - 🔴 **코어를 잘라낼 때 유효성 판정을 전역 상태 대입보다 앞에 둔다.** 재개 핸들러는 신뢰할 수 없는 `args` 를 들고 들어오므로, `course = COURSES[mins]` 처럼 먼저 대입하고 나중에 검사하면 알 수 없는 키가 **진행 중이던 세션의 상태를 지운다**(네빌 명상에서 실제로 잡았다).
 
 ## 이번 범위 밖 인접 결함 (고치지 않았다 — 원칙 14)
@@ -146,7 +164,7 @@ React 배관도 같은 PR 에서 열렸다: `EnsurePaidAccessInput`/`BillingCoin
 - ✅ **게이팅 절대 순서 1 위반 — PR #1656 에서 제거.** `pet-saju.html` 의 진입 전 `_cdResolvePaidContentAccess` 선검사를 지우고 `_cdOpenPaidServiceGate` 에 위임했다. 🔴 그 페이지는 `_cdResolvePaidContentAccess` 를 정의하는 `index.html` 을 로드하지 않아 **실행되지 않던 죽은 코드**였다(스크립트 4개만 로드: pass-verdict·checkout-entry·payment-service·destiny-profile) — 형태 위반이라 지웠다. 같은 PR 에서 `js/destiny-profile.js` 진입점 2곳(`:5804`·`:12611`)에 빠져 있던 `snapshotVerdictOnly:true` 도 채웠다.
 - 🔴 **판정 전 인증 선워밍 이중 (미해결 · 결제 동결 파일)** — `app/hooks/useCoinGate.ts:370-373` 과 `app/_lib/billing-client.ts:4011-4014` 가 각각 `Promise.race([refreshAuth({force:true,silent:true}), 4000ms])` 를 스냅샷 판정 전에 await 한다. `definitelySignedOut` 이 false 인 상태(`unknown`/`refreshing`/`temporarilyOffline`)에서는 **둘 다** 걸려 판정까지 최대 8초, 두 번째 `force:true` 가 `/me → /refresh → /me` 를 다시 태울 수 있다. 단일비행이 대개 합쳐 주지만 보장은 아니다. 두 파일 모두 payment-freeze `wholeFiles` 이고 주석에 양방향 회귀 이력이 남아 있어 **사용자 판단 후** 손댄다.
 - ⚠️ **결제창 이용권 카드 제거 (의심)** — `app/music/MusicPlayerExample.tsx:1428-1434` 가 `isDownloadOnlyPurchase` 일 때 `disablePassChoice:true`·`allowedPaymentModes:["direct","monthly"]` 를 넘긴다. `docs/payment-policy-flow.md:55` 는 **`passExcluded` 등재 기능에 한해** 이 형태를 허용하는데, `music_track` 다운로드 전용 구매의 서버 등재 여부는 **미확인**이다.
-- 🔴 **CI 트리거 구멍 (원칙 10)** — `.github/workflows/paid-flow-gates.yml` 의 `paths` 에 `js/saju-engine-tarot-sukuyo-quantum.js`·`js/tarot-*-experience.js`·`js/entertain-engine.js`·`js/sibyl-system.js`·`js/animal-totem-experience.js`·`js/iching-engine.js` 가 없다. 실제로는 `sync:public` 이 `index.html` 핀을 회전시켜 게이트가 깨어나지만(그건 우연이다), 이 파일들만 바뀌는 PR 은 결제 게이트를 안 깨운다. `scripts/lib/change-risk.mjs` 에서도 `level=medium`·`deepRequired=false` 로 떨어진다.
+- 🔴 **CI 트리거 구멍 (원칙 10)** — `.github/workflows/paid-flow-gates.yml` 의 `paths` 에 `js/saju-engine-tarot-sukuyo-quantum.js`·`js/tarot-*-experience.js`(신년 타로 포함)·`js/entertain-engine.js`·`js/sibyl-system.js`·`js/animal-totem-experience.js`·`js/iching-engine.js` 가 없다. **2026-09-06 재확인**: `js/destiny-profile.js`(`:135`)·`js/oracle-kcg.js`(`:145`)는 미러와 함께 등재돼 있고, 위 목록은 여전히 없다. 지금 이 파일들을 읽는 가드가 없어(동결 매니페스트에도 미등재) 무는 구멍은 아니지만, 가드를 하나라도 붙이는 순간 사각지대가 된다. 실제로는 `sync:public` 이 `index.html` 핀을 회전시켜 게이트가 깨어나지만(그건 우연이다), 이 파일들만 바뀌는 PR 은 결제 게이트를 안 깨운다. `scripts/lib/change-risk.mjs` 에서도 `level=medium`·`deepRequired=false` 로 떨어진다.
 
 **초판에 있던 6건**
 
@@ -174,7 +192,7 @@ npm run lint && npm run typecheck && npm run check:quick
 - 🔴 배선 뒤 `npm run sync:public` 은 필수다. **핀 회전이 따라오는지는 무엇을 고쳤느냐로 갈린다** — 기능 파일만 고친 배선 3건에서는 `sync:public` 만으로 PASS 했지만, PR #1656 처럼 `js/core/checkout-entry.js`·`js/destiny-profile.js` 를 고치면 **두 축이 동시에 낡는다**: core 핀(`checkout-entry.js`+`pass-verdict.js` 유도)과 dp 핀(`destiny-profile.js` 유도). `verify:payment-choice-parity` 는 **한 번에 한 축만 알려주므로** 고치고 다시 돌리기를 반복한다. 🔴 `public/ifa-oracle.html` · `public/static/geomancy-oracle-v4.html` 은 미러가 아니라 자체 정본이라 `git grep -l "<낡은 핀>"` 전건 치환이 필요하다.
 - 🔴 **워크트리에서는 `npm run setup:git` 을 먼저 돌린다**(2026-09-06 실측 — PR #1674 가 이것 때문에 `CONFLICTING` 이었다). `.gitattributes` 의 `index.html merge=cachebust` 는 **선언일 뿐**이고 드라이버 등록은 `.git/config` 에 있는데, **새 워크트리에는 그 설정이 안 따라온다.** 등록 전에는 `origin/main` 리베이스가 핀 90줄에서 통째로 충돌하고, 등록 후에는 같은 리베이스가 **충돌 0으로 통과**했다. 확인: `npm run verify:cachebust-merge`.
 - 🔴 **순서는 핀 sed → `sync:public` 이다**(2026-09-06 CI 한 바퀴를 태웠다). 핀 치환이 `index.html`·루트 js 를 건드리므로 **셸 빌드 핀이 다시 낡는다** — 치환 뒤 `sync:public` 을 안 돌리면 로컬 `verify:payment-choice-parity` 는 PASS 인데 CI 의 `Static guards` → `verify:public-mirror-fresh` 가 19개 파일로 떨어진다. 커밋 전 `npm run verify:public-mirror-fresh` 로 확인한다.
-- `build:worker` 는 `check:critical` 에 있다. 🔴 `check:quick -- --skip-build` 의 워크트리 결과는 **날마다 갈렸다**(2026-09-06 같은 날 두 실측): `origin/main` 리베이스 **전** 브랜치에서는 `Could not resolve "workers-og"` 로 BLOCKED, 리베이스 **후**에는 같은 워크트리에서 `EXIT=0` 이었다. 원인 **미검증**(루트 `node_modules` 의 `workers-og` 설치 상태 차이로 **추정**). 코드와 무관하므로, BLOCKED 가 나오면 그 앞 게이트(whitespace·changed-file lint·sitemap drift·typecheck·mock core smoke·env-parity) 출력으로 판정하고 빌드는 CI 에 맡긴다.
+- `build:worker` 는 `check:critical` 에 있다. 🔴 `check:quick -- --skip-build` 의 워크트리 결과는 **날마다 갈렸다**(2026-09-06 같은 날 두 실측): `origin/main` 리베이스 **전** 브랜치에서는 `Could not resolve "workers-og"` 로 BLOCKED, 리베이스 **후**에는 같은 워크트리에서 `EXIT=0` 이었다. 🔴 **원인 확정(2026-09-06 3회차 실측)**: `package.json:542` 에 `"workers-og": "^0.0.27"` 이 선언돼 있는데 **루트 `node_modules/workers-og` 가 아예 없다**(`ls -d ../../../node_modules/workers-og` → No such file). 워크트리에 `node_modules` 가 없어 상위로 올라가는데 거기에도 없으니 esbuild 가 못 푼다. 코드와 무관하므로, BLOCKED 가 나오면 그 앞 게이트(whitespace·changed-file lint·sitemap drift·typecheck·mock core smoke·env-parity) 출력으로 판정하고 빌드는 CI 에 맡긴다.
 - 🔴 `app/**` 를 건드리면 `config/sitemap-lastmod.json` 이 무효화된다 — `npm run sitemap:generate` 결과를 같은 커밋에. 캐시 핀 치환이 `app/layout.js` 에 걸리므로 **핀을 돌린 뒤 한 번 더** 돌린다.
 - 빌드가 `rss.xml`·`insights/rss.xml`(+ `public/` 미러)의 `lastBuildDate` 만 건드린다 — **커밋에 담지 말고 `git checkout --` 로 되돌린다.**
 
