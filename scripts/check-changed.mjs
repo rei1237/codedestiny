@@ -86,7 +86,12 @@ function main() {
   run("sitemap drift", npm, ["run", "verify:sitemap-drift"]);
   run("typecheck", npm, ["run", "typecheck"]);
   if (risk !== "low") run("mock core smoke", npm, ["run", "smoke:core"]);
-  if (risk === "high") run("critical mock gates", npm, ["run", "check:critical"]);
+  // 🔴 deep.required 를 함께 본다. 여기만 level 단독으로 보던 동안, level 은 medium 인데
+  //    전체 회귀가 필요한 경로(scripts/migrations/** · app/hooks/useCoinGate.ts ·
+  //    app/_lib/billing-client.ts …)가 로컬에서만 check:critical 을 건너뛰었다.
+  //    CI(resolve-ci-tier.mjs)와 배포(deploy-safe.mjs)는 처음부터 두 축을 함께 보고 있었다 —
+  //    같은 모듈을 쓰면서 세 소비자의 판정이 갈리던 자리다.
+  if (risk === "high" || deep.required) run("critical mock gates", npm, ["run", "check:critical"]);
   if (!skipBuild) run("Cloudflare Pages build", npm, ["run", "build:cf"]);
 }
 
