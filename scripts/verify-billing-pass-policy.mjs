@@ -30,6 +30,9 @@ import {
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const billingSource = readFileSync(resolve(root, "worker/routes/billing.js"), "utf8");
 const paymentsSource = readFileSync(resolve(root, "worker/routes/payments.js"), "utf8");
+// 단건 카드 확정의 정본은 2026-09-06 부터 V2 다 — 구 payments.js handleConfirm 은 그날 지웠다.
+// 그래서 "카드로 산 것을 카드로 표기한다" 단언은 이 파일을 봐야 한다.
+const paymentsV2CompatSource = readFileSync(resolve(root, "worker/payments/compat.js"), "utf8");
 const fortuneSource = readFileSync(resolve(root, "worker/routes/fortune.js"), "utf8");
 const indexSource = readFileSync(resolve(root, "index.html"), "utf8");
 // 결제 선택창 CSS 규칙(PAYMENT_CHOICE_CSS_RULES)과 카드 마크업 조립(buildPaymentChoiceCardsHtml) 정본
@@ -602,7 +605,10 @@ assertContains(
 assertContains(billingSource, "const shouldLoadMembershipPass = shouldVerifyMembershipPass(paymentCommand.method);", "payment method is resolved before pass lookup");
 assertContains(paymentsSource, "fetchPortOnePayment", "PortOne verification remains");
 assertContains(paymentsSource, "PortOne V2 KG Inicis", "KG Inicis public config remains");
-assertContains(paymentsSource, 'accessMethod: "CARD"', "card access method remains");
+// 🔴 구 handleConfirm 의 `accessMethod: "CARD"` 를 대신하는 단건 표식이다(2026-09-06 재조준).
+// V2 는 accessMethod 를 이용권/월정석에만 싣고 단건은 accessType 으로 구분하며, 셸 판정기
+// (index.html 의 accessType === 'single_purchase' 분기)가 실제로 읽는 것도 이쪽이다.
+assertContains(paymentsV2CompatSource, 'accessType: "single_purchase"', "single card purchase access type remains");
 assertContains(paymentsSource, "SUBSCRIPTION_MONTHLY_CREDIT_UNSUPPORTED", "subscription pass monthly credit purchase is explicitly rejected");
 assertNotContains(paymentsSource, "handleSubscriptionMonthlyCreditConfirm", "subscription pass monthly credit confirm path removed");
 assertNotContains(pointsSource, "handleSubscribeWithMonthlyCredit", "subscription pass monthly credit UI handler removed");

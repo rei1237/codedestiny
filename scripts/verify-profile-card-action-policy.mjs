@@ -11,6 +11,9 @@ const files = {
   profileRoute: "worker/routes/profile.js",
   billingRoute: "worker/routes/billing.js",
   paymentsRoute: "worker/routes/payments.js",
+  // 단건 확정은 2026-09-06 에 V2 로 컷오버했고 구 handleConfirm 은 같은 날 지웠다.
+  // 결제 증빙에 프로필 카드 스코프를 싣는 정본이 여기로 옮겨졌다.
+  paymentsV2Compat: "worker/payments/compat.js",
   billingClient: "app/_lib/billing-client.ts",
   profileStorage: "app/_lib/profile-card-storage.ts",
   yeonSeed: "lib/yeon/profileSeed.ts",
@@ -239,8 +242,9 @@ const cases = [
       ["billingClient", "profileCardId: input.profileCardId || input.profileId"],
       ["destinyProfile", "if (opts.actionType) checkoutPayload.actionType = opts.actionType"],
       ["destinyProfile", "checkoutPayload.profileCardId = opts.profileCardId || opts.profileId"],
-      ["paymentsRoute", "createDigitalContentAccessEvidence"],
-      ["paymentsRoute", "fetchPortOnePayment(env, impUid)"],
+      ["paymentsV2Compat", 'accessType: "single_purchase"'],
+      ["paymentsV2Compat", "profileCardId: String(body.profileCardId"],
+      ["paymentsRoute", "fetchPortOnePayment(env, paymentId)"],
     ],
   },
   {
