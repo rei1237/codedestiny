@@ -3,6 +3,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 
 import DiaryBottomNav from "./DiaryBottomNav";
+import DiaryStoreProvider from "./DiaryStoreProvider";
 import DiaryTopBar from "./DiaryTopBar";
 import { formatKoreanDate, kstTodayYmd } from "../_lib/kst-date";
 import styles from "../_styles/diary.module.css";
@@ -19,7 +20,7 @@ import styles from "../_styles/diary.module.css";
 export default function DiaryShell({ children }: { children: ReactNode }) {
   // 🔴 날짜는 이펙트에서 채운다 — `output:"export"` 는 빌드 시각에 프리렌더하므로 렌더 중에
   // 오늘을 계산하면 배포일과 열람일이 다를 때 하이드레이션 불일치가 난다.
-  // 실제 "오늘" 상태 관리는 PR-B 의 스토어가 맡는다.
+  // 저장소·운기 스냅샷은 같은 이유로 `DiaryStoreProvider` 가 이펙트에서 한 번만 읽는다.
   const [today, setToday] = useState("");
   useEffect(() => {
     setToday(formatKoreanDate(kstTodayYmd()));
@@ -28,7 +29,9 @@ export default function DiaryShell({ children }: { children: ReactNode }) {
   return (
     <div className={styles.shell}>
       <DiaryTopBar subtitle={today || undefined} />
-      <main className={styles.main}>{children}</main>
+      <DiaryStoreProvider>
+        <main className={styles.main}>{children}</main>
+      </DiaryStoreProvider>
       <DiaryBottomNav />
     </div>
   );
