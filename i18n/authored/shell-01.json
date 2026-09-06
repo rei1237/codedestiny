@@ -287,18 +287,18 @@
   },
 
   "shell.cdSigCardBody.cdSigCardMeta.k1hiiadz": {
-    "ko": "20장 · 4.6만자",
-    "en": "20 chapters · 46k characters",
-    "ja": "全20章・4.6万字",
-    "zh-CN": "20章 · 4.6万字",
-    "zh-TW": "20章 · 4.6萬字",
-    "vi": "20 chương · 46.000 ký tự",
-    "hi": "20 अध्याय · 46 हज़ार अक्षर",
-    "es": "20 capítulos · 46 mil caracteres",
-    "fr": "20 chapitres · 46 000 caractères",
-    "de": "20 Kapitel · 46.000 Zeichen",
-    "nl": "20 hoofdstukken · 46k tekens",
-    "ms": "20 bab · 46k aksara"
+    "ko": "20장",
+    "en": "20 chapters",
+    "ja": "全20章",
+    "zh-CN": "20章",
+    "zh-TW": "20章",
+    "vi": "20 chương",
+    "hi": "20 अध्याय",
+    "es": "20 capítulos",
+    "fr": "20 chapitres",
+    "de": "20 Kapitel",
+    "nl": "20 hoofdstukken",
+    "ms": "20 bab"
   },
 
   "shell.cdSigCardBody.cdSigCardMeta.k1l2ndq7": {
@@ -376,21 +376,6 @@
     "ms": "Dari ₩5,000"
   },
 
-  "shell.cdSigCardBody.cdSigCardMeta.n32006000": {
-    "ko": "6,000~10,000자",
-    "en": "6,000–10,000 characters",
-    "ja": "6,000〜10,000字",
-    "zh-CN": "6,000~10,000字",
-    "zh-TW": "6,000~10,000字",
-    "vi": "6.000–10.000 ký tự",
-    "hi": "6,000–10,000 अक्षर",
-    "es": "6.000–10.000 caracteres",
-    "fr": "6 000–10 000 caractères",
-    "de": "6.000–10.000 Zeichen",
-    "nl": "6.000–10.000 tekens",
-    "ms": "6,000–10,000 aksara"
-  },
-
   "shell.cdSigCardBody.cdSigCardMeta.k1l2ndq72": {
     "ko": "이용권 사용 가능",
     "en": "Pass accepted",
@@ -452,18 +437,18 @@
   },
 
   "shell.cdSigCardBody.cdSigCardMeta.n2114": {
-    "ko": "21편 · 1.4만자",
-    "en": "21 pieces · 14k characters",
-    "ja": "全21編・1.4万字",
-    "zh-CN": "21篇 · 1.4万字",
-    "zh-TW": "21篇 · 1.4萬字",
-    "vi": "21 bài · 14.000 ký tự",
-    "hi": "21 लेख · 14 हज़ार अक्षर",
-    "es": "21 piezas · 14 mil caracteres",
-    "fr": "21 textes · 14 000 caractères",
-    "de": "21 Beiträge · 14.000 Zeichen",
-    "nl": "21 stukken · 14k tekens",
-    "ms": "21 karya · 14k aksara"
+    "ko": "21편",
+    "en": "21 pieces",
+    "ja": "全21編",
+    "zh-CN": "21篇",
+    "zh-TW": "21篇",
+    "vi": "21 bài",
+    "hi": "21 लेख",
+    "es": "21 piezas",
+    "fr": "21 textes",
+    "de": "21 Beiträge",
+    "nl": "21 stukken",
+    "ms": "21 karya"
   },
 
   "shell.cdSigCardBody.cdSigCardMeta.k1l2ndq73": {
@@ -527,18 +512,18 @@
   },
 
   "shell.cdSigCardBody.cdSigCardMeta.n1415000": {
-    "ko": "14장 · 20,000자",
-    "en": "14 chapters · 20,000 characters",
-    "ja": "全14章・20,000字",
-    "zh-CN": "14章 · 20,000字",
-    "zh-TW": "14章 · 20,000字",
-    "vi": "14 chương · 20.000 ký tự",
-    "hi": "14 अध्याय · 20,000 अक्षर",
-    "es": "14 capítulos · 20.000 caracteres",
-    "fr": "14 chapitres · 20 000 caractères",
-    "de": "14 Kapitel · 20.000 Zeichen",
-    "nl": "14 hoofdstukken · 20.000 tekens",
-    "ms": "14 bab · 20,000 aksara"
+    "ko": "14장",
+    "en": "14 chapters",
+    "ja": "全14章",
+    "zh-CN": "14章",
+    "zh-TW": "14章",
+    "vi": "14 chương",
+    "hi": "14 अध्याय",
+    "es": "14 capítulos",
+    "fr": "14 chapitres",
+    "de": "14 Kapitel",
+    "nl": "14 hoofdstukken",
+    "ms": "14 bab"
   },
 
   "shell.cdSigCardBody.cdSigCardMeta.k1l2ndq74": {
