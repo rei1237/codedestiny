@@ -1,6 +1,7 @@
 "use client";
 
 import DiaryMoodPicker from "./DiaryMoodPicker";
+import DiaryTagField from "./DiaryTagField";
 import { useDiaryWriter } from "./DiaryStoreProvider";
 import { writeMemo, writeOneLine } from "../_lib/entry-writes";
 import { useDiaryDraft } from "../_lib/use-diary-draft";
@@ -13,6 +14,9 @@ import styles from "../_styles/diary.module.css";
  *
  * 🔴 저장 버튼이 없다 — 입력이 멈추면 저장한다(`../_lib/use-diary-draft.ts`). 셸 모달은
  * 저장 버튼 방식이지만, 여기서 버튼을 만들면 안 누르고 나간 글이 사라진다.
+ *
+ * 🔴 태그는 **기본으로 켜지 않는다**(`showTags`) — 퀵캡처는 한 줄을 빨리 던지는 자리라
+ * 분류를 요구하면 그 빠름이 사라진다. 켜는 곳은 Day View 「기록」 탭 하나다(승인본 확정 사항).
  */
 
 const DIARY_ENTRY_FIELDS_TEXT = {
@@ -38,10 +42,12 @@ export default function DiaryEntryFields({
   ymd,
   entry,
   autoFocus = false,
+  showTags = false,
 }: {
   ymd: string;
   entry: DiaryLegacyEntry | null;
   autoFocus?: boolean;
+  showTags?: boolean;
 }) {
   const { updateEntry } = useDiaryWriter();
   const oneLine = useDiaryDraft(entry?.practiceNote || entry?.nightLog || "", (next) => {
@@ -79,6 +85,8 @@ export default function DiaryEntryFields({
         placeholder={copy.memoPlaceholder}
         aria-label={copy.memo}
       />
+
+      {showTags ? <DiaryTagField ymd={ymd} /> : null}
     </>
   );
 }

@@ -33,8 +33,16 @@ export interface DiaryTodoItem {
 export interface DiaryExtDay {
   schedules?: DiaryScheduleItem[];
   todos?: DiaryTodoItem[];
+  /** 그날의 태그. 문자열 배열이다 — 태그에 id 나 색을 두지 않는다(이름이 곧 동일성이다). */
+  tags?: string[];
   updatedAt?: string;
 }
+
+/** 태그 하나의 최대 길이. 필터 칩이 한 줄에 앉는 폭이 상한의 근거다. */
+export const DIARY_TAG_TEXT_MAX = 12;
+
+/** 하루에 달 수 있는 태그 수. 넘으면 더 받지 않는다(태그가 본문을 밀어내지 않게). */
+export const DIARY_TAG_MAX_PER_DAY = 8;
 
 /** 날짜 키 → 확장 기록. 월 샤드를 편 결과다(샤드 경계는 저장에서만 의미가 있다). */
 export type DiaryExtStore = Record<string, DiaryExtDay>;
@@ -79,6 +87,15 @@ export function readSchedules(day: DiaryExtDay | null): DiaryScheduleItem[] {
 /** 화면에 그릴 할 일 목록. 완료한 것을 아래로 내리지 않는다 — 줄이 움직이면 잘못 누른다. */
 export function readTodos(day: DiaryExtDay | null): DiaryTodoItem[] {
   return (day?.todos || []).filter((item) => item?.text);
+}
+
+/**
+ * 화면에 그릴 태그 목록. 🔴 정렬하지 않는다 — 사용자가 단 순서가 그 하루의 순서다.
+ * 빈 값·문자열이 아닌 값은 걸러 낸다(저장소는 손으로도 고쳐질 수 있다).
+ */
+export function readTags(day: DiaryExtDay | null): string[] {
+  const items = Array.isArray(day?.tags) ? day.tags : [];
+  return items.filter((tag): tag is string => typeof tag === "string" && tag.length > 0);
 }
 
 /** 할 일 진행도. 성취 바가 루틴 진행도와 합산해 쓴다(`./today-snapshot` 의 `readAchievement`). */

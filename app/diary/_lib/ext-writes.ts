@@ -10,6 +10,7 @@
 
 import { createExtItemId, DIARY_EXT_TEXT_MAX } from "@/lib/diary/diary-ext-store";
 import type { DiaryExtDayMutate } from "../_components/DiaryStoreProvider";
+import { DIARY_TAG_MAX_PER_DAY, DIARY_TAG_TEXT_MAX } from "./ext-snapshot";
 
 /** 입력을 저장 형태로 다듬는다. 빈 글자는 항목을 만들지 않는다(빈 줄이 목록에 쌓이지 않게). */
 export function normalizePlanText(text: string): string {
@@ -68,5 +69,33 @@ export function removeTodo(id: string): DiaryExtDayMutate {
   return (day) => {
     const items = Array.isArray(day.todos) ? day.todos : [];
     day.todos = items.filter((item) => item.id !== id);
+  };
+}
+
+/**
+ * 태그를 저장 형태로 다듬는다. 🔴 정규화가 여기 하나여야 한다 — 입력과 필터가 다른 규칙을 쓰면
+ * 「산책」과 「산책 」이 다른 태그가 되어 필터에 걸리지 않는 날이 생긴다.
+ * 앞뒤 공백만 없앤다(가운데 공백은 살린다 — 「아침 산책」은 한 태그다).
+ */
+export function normalizeTag(text: string): string {
+  return text.trim().replace(/\s+/g, " ").slice(0, DIARY_TAG_TEXT_MAX);
+}
+
+/** 태그 추가. 같은 태그를 두 번 담지 않고, 하루 상한을 넘기면 아무것도 하지 않는다. */
+export function addTag(text: string): DiaryExtDayMutate {
+  return (day) => {
+    const tag = normalizeTag(text);
+    if (!tag) return;
+    const items = Array.isArray(day.tags) ? day.tags : [];
+    if (items.includes(tag) || items.length >= DIARY_TAG_MAX_PER_DAY) return;
+    day.tags = [...items, tag];
+  };
+}
+
+/** 태그 삭제. 이름이 곧 동일성이라 이름으로 지운다. */
+export function removeTag(text: string): DiaryExtDayMutate {
+  return (day) => {
+    const items = Array.isArray(day.tags) ? day.tags : [];
+    day.tags = items.filter((tag) => tag !== text);
   };
 }

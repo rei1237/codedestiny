@@ -1,6 +1,6 @@
 "use client";
 
-import { readExtDay } from "../_lib/ext-snapshot";
+import { readExtDay, readTags } from "../_lib/ext-snapshot";
 import { readAchievement } from "../_lib/today-snapshot";
 import { useDiaryToday, useDiaryWriter } from "./DiaryStoreProvider";
 import { writeOneLine } from "../_lib/entry-writes";
@@ -14,7 +14,10 @@ import styles from "../_styles/diary.module.css";
  * 그 쌍은 `../_lib/entry-writes.ts` 의 `writeOneLine` 하나가 들고 있다.
  *
  * 성취 바의 분모는 `readAchievement` 가 셸과 같은 순서로 고른다(`challengeTotalToday` 우선).
- * 태그는 저장 스키마가 아직 없어 PR-G 에서 붙는다 — 여기에 빈 태그 줄을 먼저 만들지 않는다.
+ *
+ * 🔴 태그는 **읽기 전용 표시**다(PR-G) — 다는 자리는 Day View 「기록」 탭 하나이고
+ * (`DiaryTagField`), 홈에도 입력을 두면 같은 것을 고치는 자리가 둘이 된다.
+ * 오늘 태그가 없으면 줄 자체를 그리지 않는다(빈 태그 줄을 먼저 만들지 않는다).
  */
 
 const DIARY_RECORD_CARD_TEXT = {
@@ -23,6 +26,7 @@ const DIARY_RECORD_CARD_TEXT = {
     loading: "오늘의 기록을 불러오는 중입니다.",
     notePlaceholder: "오늘 한 줄",
     noteEmpty: "오늘 적은 기록이 아직 없습니다.",
+    tags: "오늘의 태그",
     achievement: "오늘의 성취",
   },
   en: {
@@ -30,6 +34,7 @@ const DIARY_RECORD_CARD_TEXT = {
     loading: "Loading today's entry.",
     notePlaceholder: "One line for today",
     noteEmpty: "Nothing written for today yet.",
+    tags: "Today's tags",
     achievement: "Today's progress",
   },
 } as const;
@@ -42,7 +47,9 @@ export default function DiaryRecordCard() {
   const note = useDiaryDraft(entry?.practiceNote || entry?.nightLog || "", (next) => {
     updateEntry(ymd, writeOneLine(next));
   });
-  const { done, total } = readAchievement(entry, readExtDay(ext, ymd));
+  const extDay = readExtDay(ext, ymd);
+  const tags = readTags(extDay);
+  const { done, total } = readAchievement(entry, extDay);
   const percent = total > 0 ? Math.round((Math.min(done, total) / total) * 100) : 0;
 
   return (
@@ -65,6 +72,16 @@ export default function DiaryRecordCard() {
             aria-label={copy.notePlaceholder}
           />
           {!note.value.trim() ? <p className={styles.emptySmall}>{copy.noteEmpty}</p> : null}
+
+          {tags.length > 0 ? (
+            <p className={styles.recTags} aria-label={copy.tags}>
+              {tags.map((tag) => (
+                <span key={tag} className={styles.recTag}>
+                  {tag}
+                </span>
+              ))}
+            </p>
+          ) : null}
 
           <p className={styles.fieldLabel}>
             {copy.achievement}

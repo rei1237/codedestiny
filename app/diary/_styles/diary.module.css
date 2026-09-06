@@ -3,9 +3,15 @@
  * `scripts/sync-legacy-static-to-public.mjs` 의 미러 대상이라 CSS 를 만지는 모든 PR 이
  * `sync:public` + `verify:public-mirror-fresh` 부담을 지기 때문이다. module.css 는 미러 대상이 아니다.
  *
- * 🔴 `app/` 아래에는 `data-cd-theme` 스탬프가 한 건도 없다(실측). 테마 의존 `--cd-*` 는
- * 연이(로즈) 기본값으로 해석되므로 여기서 네오 값을 `--dy-*` 로 1회 별칭해 쓴다.
+ * 🔴 색은 **`--dy-*` 한 벌**로만 쓴다 — 테마 의존 `--cd-*` 를 화면 규칙에서 직접 읽지 않는다.
+ * 테마 전환은 아래 토큰 블록 두 개에서만 일어나고, 개별 규칙은 어느 벌인지 모른 채 토큰만 읽는다.
  * 테마 불변 토큰(`--cd-sp-*` `--cd-r-*` `--cd-t-*` `--cd-dur-*`)만 직접 참조한다.
+ *
+ * 🔴 **두 벌을 함께 고친다**(theme-tokens.css 의 Two Covers Rule 과 같은 규칙) — 기본값은
+ * 연이(라이트)이고, 네오(다크)는 `html[data-cd-theme="neo"]` 등에서 **같은 토큰 목록을 전부**
+ * 다시 정의한다. 한쪽에만 토큰을 더하면 다른 벌에서 그 색이 통째로 사라진다.
+ * 테마 스탬프는 `app/layout.js` 의 프리페인트 스크립트가 찍는다(저장키 `fortuneThemeModeStateV1`).
+ * 🔴 `/diary` 안에 테마 토글을 만들지 않는다 — 스위치는 셸·헤더의 기존 것 하나뿐이다.
  *
  * 🔴 `--cd-mnav-offset` 을 참조하지 않는다 — `styles/mobile-bottom-nav.css` 는 전역 import 라
  * 값은 여전히 해석되지만 `/diary` 에는 그 바가 렌더되지 않는다(AppChrome 배열 2개 등록).
@@ -16,42 +22,56 @@
   /* 🔴 transform / filter / backdrop-filter / contain 금지 —
      시트를 포털 없이 position:fixed 로 덮으려면 조상에 containing block 이 없어야 한다. */
 
-  /* 바탕 */
-  --dy-bg: #0a0818;
-  --dy-surface: rgba(19, 16, 42, 0.96);
-  --dy-surface-2: #100d24;
+  /* ── 연이(라이트) — 기본 한 벌. 값은 styles/theme-tokens.css 의 연이 팔레트 그대로다.
+     대비는 전부 **합성색 기준**이다(표면 rgba(255,255,255,.96) over #fffaf7 → #fffefe). ── */
 
-  /* 글자 */
-  --dy-text: #f4eeff;
-  --dy-muted: rgba(200, 170, 255, 0.7);
+  /* 바탕 */
+  --dy-bg: #fffaf7;
+  --dy-surface: rgba(255, 255, 255, 0.96);
+  --dy-surface-2: #faf5f2;
+  /* 카드 hover 바탕. 다크에서 리터럴이던 것을 토큰으로 올렸다(두 벌 모두 필요하다). */
+  --dy-surface-hover: #ffffff;
+
+  /* 글자 — 🔴 뉴트럴은 회색이 아니라 --cd-text(딥 플럼)의 저알파다(DESIGN.md The Hue-Stays Rule). */
+  --dy-text: #3c1830;
+  --dy-muted: #70445c;
 
   /* 강조 */
-  --dy-accent: #c4b5fd;
-  --dy-accent-hover: #b3a2fc;
-  --dy-accent-ink: #13102a;
-  --dy-accent-soft: rgba(167, 139, 250, 0.24);
-  --dy-gold: #e8d5a3;
+  --dy-accent: #b31955;
+  --dy-accent-hover: #9b1449;
+  --dy-accent-ink: #ffffff;
+  --dy-accent-soft: rgba(179, 25, 85, 0.1);
+  /* 🔴 라이브 금색 #ead089 은 크림 위에서 1.6:1 이라 **글자로 못 쓴다**(레포가 금계열 글자를
+     금지한다). 라이트에서만 청동으로 내린다 — 5.9:1. */
+  --dy-gold: #8a5a1f;
+  /* 검색어 하이라이트 바탕. 다크에서 글자였던 금색을 라이트에선 바탕으로 쓴다(위 글자 10.2:1). */
+  --dy-mark: #ead089;
+  /* 태그 칩의 ✕ 자리. */
+  --dy-chip-x: rgba(60, 24, 48, 0.12);
 
   /* 선 — `--dy-line` 은 장식용 구분선, `--dy-line-ui` 는 테두리가 유일한 어포던스인 컨트롤용.
-     합성 표면(--dy-surface over --dy-bg) 기준 3.39:1 로 WCAG 1.4.11 을 넘긴다. */
-  --dy-line: rgba(196, 181, 253, 0.16);
-  --dy-line-ui: rgba(196, 181, 253, 0.5);
+     합성 표면 기준 3.67:1 로 WCAG 1.4.11 을 넘긴다. */
+  --dy-line: rgba(60, 24, 48, 0.1);
+  --dy-line-ui: rgba(60, 24, 48, 0.55);
 
-  /* 포커스 — 🔴 outline 만 쓴다. 링이 강조 버튼 위에 얹히면 1.27:1 이라 보이지 않으므로
-     outline-offset 으로 표면 위(12.77:1)에 앉힌다. */
-  --dy-focus: #e8d5a3;
-  --dy-disabled: #7d7799;
+  /* 포커스 — 🔴 outline 만 쓴다. outline-offset 으로 표면 위(15.4:1)에 앉힌다. */
+  --dy-focus: #3c1830;
+  --dy-disabled: #86677a;
 
-  /* 기일 5등급 — 「센 · 순한 · 고른 · 더딘 · 잠긴 결」. 정본 팔레트 밖의 새 색을 만들지 않는다:
-     t5 는 --cd-gold, t4 는 --cd-primary 의 정확한 값이고 t3~t1 은 같은 보라의 단계다. */
-  --dy-t5: #e8d5a3;
-  --dy-t4: #c4b5fd;
-  --dy-t3: #9a90d4;
-  --dy-t2: #837eba;
-  --dy-t1: #6b6795;
-  --dy-t3-ink: #bdb3e8;
-  --dy-t2-ink: #a9a3cf;
-  --dy-t1-ink: #9a95c0;
+  /* 기일 5등급 — 「센 · 순한 · 고른 · 더딘 · 잠긴 결」.
+     🔴 다크는 **명도**로 세기를 표현하지만 크림 바탕에서는 그럴 수 없다 — 라이트는 **채도**로
+     같은 순서를 만든다(진할수록 센 결). 최저 4.1:1(t1). */
+  --dy-t5: #b31955;
+  --dy-t4: #b5477a;
+  --dy-t3: #9c6183;
+  --dy-t2: #8a6f89;
+  --dy-t1: #7c7c8f;
+  --dy-t3-ink: #8a5273;
+  --dy-t2-ink: #74567a;
+  --dy-t1-ink: #5f5f73;
+
+  /* 시트 그림자. 다크는 검정, 라이트는 플럼 저알파 — 크림 위의 검정 그림자는 때가 탄 것처럼 보인다. */
+  --dy-sheet-shadow: 0 -18px 46px -18px rgba(60, 24, 48, 0.28);
 
   /* 하단바가 차지하는 총 높이. safe-area 는 여기 한 번만 들어간다. */
   --dy-nav-h: 64px;
@@ -61,6 +81,52 @@
   background: var(--dy-bg);
   color: var(--dy-text);
   font-family: var(--font-body, inherit);
+}
+
+/* ── 네오(다크) — 같은 토큰 목록을 전부 다시 정의한다.
+   선택자가 셋인 이유는 `styles/theme-tokens.css:97` 과 같다: 정적 셸의 최초 인라인 스크립트는
+   body 생성 전이라 documentElement 에만 neo-mode 를 붙이고, Next 앱은 layout.js 가
+   `html[data-cd-theme="neo"]` 를 찍는다. 🔴 CSS Modules 라 클래스는 해시되므로
+   neo-mode 는 `:global()` 로 감싸야 한다 — 감싸지 않으면 이 블록이 영영 매치되지 않는다. ── */
+:global(html.neo-mode) .shell,
+:global(body.neo-mode) .shell,
+html[data-cd-theme="neo"] .shell {
+  --dy-bg: #0a0818;
+  --dy-surface: rgba(19, 16, 42, 0.96);
+  --dy-surface-2: #100d24;
+  --dy-surface-hover: #141130;
+
+  --dy-text: #f4eeff;
+  --dy-muted: rgba(200, 170, 255, 0.7);
+
+  --dy-accent: #c4b5fd;
+  --dy-accent-hover: #b3a2fc;
+  --dy-accent-ink: #13102a;
+  --dy-accent-soft: rgba(167, 139, 250, 0.24);
+  --dy-gold: #e8d5a3;
+  --dy-mark: rgba(232, 213, 163, 0.28);
+  --dy-chip-x: rgba(10, 8, 24, 0.5);
+
+  /* 합성 표면(--dy-surface over --dy-bg) 기준 3.39:1 로 WCAG 1.4.11 을 넘긴다. */
+  --dy-line: rgba(196, 181, 253, 0.16);
+  --dy-line-ui: rgba(196, 181, 253, 0.5);
+
+  /* 링이 강조 버튼 위에 얹히면 1.27:1 이라 보이지 않으므로 offset 으로 표면 위(12.77:1)에 앉힌다. */
+  --dy-focus: #e8d5a3;
+  --dy-disabled: #7d7799;
+
+  /* 정본 팔레트 밖의 새 색을 만들지 않는다: t5 는 --cd-gold, t4 는 --cd-primary 의 정확한 값이고
+     t3~t1 은 같은 보라의 단계다. */
+  --dy-t5: #e8d5a3;
+  --dy-t4: #c4b5fd;
+  --dy-t3: #9a90d4;
+  --dy-t2: #837eba;
+  --dy-t1: #6b6795;
+  --dy-t3-ink: #bdb3e8;
+  --dy-t2-ink: #a9a3cf;
+  --dy-t1-ink: #9a95c0;
+
+  --dy-sheet-shadow: 0 -18px 46px -18px rgba(0, 0, 0, 0.85);
 }
 
 /* 🔴 body 를 스크롤러로 쓴다 — `app/_lib/body-scroll-lock.ts` 의 lockBodyScroll() 이
@@ -854,7 +920,7 @@
   border-top: 1px solid var(--dy-line-ui);
   border-radius: var(--cd-r-card) var(--cd-r-card) 0 0;
   background: var(--dy-surface-2);
-  box-shadow: 0 -18px 46px -18px rgba(0, 0, 0, 0.85);
+  box-shadow: var(--dy-sheet-shadow);
 }
 
 .sheetHandle {
@@ -959,4 +1025,338 @@
 .emptySmall {
   composes: empty;
   font-size: var(--cd-t-caption);
+}
+
+/* ── 태그 ───────────────────────────────────────────────────────────────
+   🔴 칩은 두 벌 모두에서 **테두리를 가진다** — 라이트의 `--dy-accent-soft` 채움은 표면 대비
+   1.17:1 이라 채움만으로는 칩의 경계가 보이지 않는다. 테마별 예외 규칙을 만들지 않고
+   양쪽에 같은 선을 두는 쪽을 골랐다(이 파일의 규칙: 개별 규칙은 어느 벌인지 모른다). */
+
+.tagChip {
+  composes: chip;
+  min-height: 30px;
+  padding: 0 var(--cd-sp-sm);
+  border-color: var(--dy-line);
+  color: var(--dy-accent);
+  background: var(--dy-accent-soft);
+}
+
+/* 선택된 태그 필터. 색만으로 구분하지 않도록 `aria-pressed` 를 함께 쓴다(뷰가 붙인다). */
+.tagChipOn {
+  composes: tagChip;
+  border-color: var(--dy-accent);
+  background: var(--dy-accent);
+  color: var(--dy-accent-ink);
+}
+
+.tagChipOn:hover {
+  background: var(--dy-accent-hover);
+}
+
+/* ── 기록 목록 ──────────────────────────────────────────────────────── */
+
+/* 태그 필터 줄. 가로로만 흐르게 두어 본문이 옆으로 밀리지 않게 한다. */
+.recFilters {
+  display: flex;
+  gap: var(--cd-sp-xs);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  padding-bottom: 2px;
+  scrollbar-width: none;
+}
+
+.recFilters::-webkit-scrollbar {
+  display: none;
+}
+
+/* 달 구분선. 목록이 길어질 때 지금 어느 달을 보고 있는지가 유일한 좌표다. */
+.recMonth {
+  display: flex;
+  align-items: center;
+  gap: var(--cd-sp-sm);
+  margin: var(--cd-sp-xs) 0 0;
+  color: var(--dy-muted);
+  font-size: var(--cd-t-caption);
+}
+
+.recMonth::after {
+  content: "";
+  flex: 1 1 auto;
+  height: 1px;
+  background: var(--dy-line);
+}
+
+/* 카드 전체가 링크다 — 하루로 가는 길이 하나여야 어디를 눌러야 할지 고민이 없다. */
+.recCard {
+  composes: card;
+  gap: var(--cd-sp-xs);
+  color: inherit;
+  text-decoration: none;
+  transition: background var(--cd-dur-fast) ease, border-color var(--cd-dur-fast) ease;
+}
+
+.recCard:hover {
+  background: var(--dy-surface-hover);
+  border-color: var(--dy-line-ui);
+}
+
+.recCard:focus-visible {
+  outline: 2px solid var(--dy-focus);
+  outline-offset: 2px;
+}
+
+.recHead {
+  display: flex;
+  align-items: baseline;
+  gap: var(--cd-sp-xs);
+}
+
+.recDate {
+  flex: 0 0 auto;
+  font-family: var(--font-display, inherit);
+  font-size: var(--cd-t-card);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--dy-text);
+}
+
+.recDow {
+  flex: 0 0 auto;
+  color: var(--dy-muted);
+  font-size: var(--cd-t-caption);
+}
+
+/* 결 이름은 글자색을 `--dy-grain-ink` 로 받는다(t3~t1 원색은 글자 대비가 모자란다). */
+.recTone {
+  display: flex;
+  align-items: center;
+  gap: var(--cd-sp-xs);
+  margin-left: auto;
+  color: var(--dy-grain-ink, var(--dy-muted));
+  font-size: var(--cd-t-caption);
+}
+
+.recToneDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--dy-grain, var(--dy-accent));
+}
+
+.recMood {
+  flex: 0 0 auto;
+  font-size: var(--cd-t-body);
+}
+
+/* 🔴 본문은 **한 줄만** 2줄로 자른다(확정 사항) — 여러 칸을 다 접으면 카드마다 높이가 널뛰고
+   목록의 훑는 속도가 무너진다. */
+.recLine {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  margin: 0;
+  color: var(--dy-text);
+  font-size: var(--cd-t-body);
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.recTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+/* 목록·홈의 태그는 **읽기 전용 표시**다 — 여기서 태그를 지우거나 더하지 않는다. */
+.recTag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px var(--cd-sp-xs);
+  border: 1px solid var(--dy-line);
+  border-radius: var(--cd-r-pill);
+  background: var(--dy-accent-soft);
+  color: var(--dy-accent);
+  font-size: var(--cd-t-caption);
+}
+
+.recFoot {
+  display: flex;
+  align-items: center;
+  gap: var(--cd-sp-sm);
+}
+
+/* 성취 바의 작은 판. `.achieveTrack` 과 같은 계약(읽기 전용)이라 transition 을 걸지 않는다. */
+.recBar {
+  overflow: hidden;
+  flex: 1 1 auto;
+  height: 4px;
+  border-radius: var(--cd-r-pill);
+  background: var(--dy-line);
+}
+
+.recBarFill {
+  display: block;
+  height: 100%;
+  background: var(--dy-accent);
+}
+
+.recCount {
+  flex: 0 0 auto;
+  color: var(--dy-muted);
+  font-size: var(--cd-t-caption);
+  font-variant-numeric: tabular-nums;
+}
+
+.recMore {
+  composes: chip;
+  justify-content: center;
+  width: 100%;
+}
+
+.recEmpty {
+  composes: empty;
+}
+
+/* ── 검색 오버레이 ──────────────────────────────────────────────────────
+   🔴 전체화면이라 하단바를 덮는다 — z-index 는 시트(4)보다 위여야 한다.
+   🔴 스크롤 락은 `app/_lib/body-scroll-lock.ts` **하나**를 부른다. 여기서 body.overflow 를
+   직접 만지면 잠금 계층이 이중이 된다(원칙 6). */
+.searchOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  background: var(--dy-bg);
+}
+
+.searchBar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--cd-sp-sm);
+  padding: var(--cd-sp-sm) var(--cd-sp-md);
+  background: var(--dy-surface);
+  border-bottom: 1px solid var(--dy-line);
+}
+
+.searchInput {
+  composes: input;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.searchBody {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--cd-sp-sm);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--cd-sp-md);
+  padding-bottom: calc(var(--cd-sp-lg) + env(safe-area-inset-bottom, 0px));
+}
+
+.searchScope {
+  composes: recFilters;
+}
+
+.searchCount {
+  margin: 0;
+  color: var(--dy-muted);
+  font-size: var(--cd-t-caption);
+}
+
+.hit {
+  composes: recCard;
+}
+
+.hitHead {
+  composes: recHead;
+}
+
+/* 검색 결과의 날짜는 목록 카드보다 작다 — 여기서는 날짜가 아니라 맞은 문장이 주인공이다. */
+.hitDate {
+  flex: 0 0 auto;
+  color: var(--dy-text);
+  font-size: var(--cd-t-body);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.hitField {
+  flex: 0 0 auto;
+  margin-left: auto;
+  color: var(--dy-muted);
+  font-size: var(--cd-t-caption);
+}
+
+.hitSnippet {
+  composes: recLine;
+  -webkit-line-clamp: 3;
+}
+
+/* 🔴 `mark` 의 브라우저 기본색은 노랑이라 두 벌 모두에서 어긋난다 — 색을 직접 준다. */
+.hitSnippet mark {
+  background: var(--dy-mark);
+  color: var(--dy-text);
+  border-radius: 2px;
+}
+
+/* ── 태그 입력(Day View 「기록」 탭 전용) ────────────────────────────────
+   🔴 홈 카드와 퀵캡처에는 붙이지 않는다 — 태그를 다는 자리가 하나여야 한다(확정 사항). */
+
+.tagField {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cd-sp-xs);
+}
+
+.tagFieldChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cd-sp-xs);
+}
+
+/* 🔴 입력 칩은 `<span>` 이다 — 안에 삭제 `<button>` 이 들어가므로 칩 자신이 버튼이면
+   버튼 중첩이 된다(무효 HTML). 그래서 칩 모양만 물려받고 커서는 되돌린다. */
+.tagFieldChip {
+  composes: tagChip;
+  cursor: default;
+}
+
+/* 칩 안의 ✕. 칩과 같은 줄에 앉으므로 터치 영역만 확보하고 테두리는 두지 않는다. */
+.tagChipDel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  margin-left: 4px;
+  margin-right: -4px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--dy-chip-x);
+  color: inherit;
+  font-family: inherit;
+  font-size: var(--cd-t-caption);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.tagChipDel:focus-visible {
+  outline: 2px solid var(--dy-focus);
+  outline-offset: 2px;
+}
+
+.tagAdd {
+  composes: planAdd;
+}
+
+.tagInput {
+  composes: input;
+  flex: 1 1 8em;
+  min-width: 0;
 }

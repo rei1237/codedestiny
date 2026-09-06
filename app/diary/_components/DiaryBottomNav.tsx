@@ -52,7 +52,7 @@ interface DiaryNavTab {
 export const DIARY_NAV_TABS: readonly DiaryNavTab[] = [
   { key: "home", href: "/diary/", icon: "☀", label: copy.home, ready: true },
   { key: "calendar", href: "/diary/calendar/", icon: "▦", label: copy.calendar, ready: true },
-  { key: "records", href: "/diary/records/", icon: "✎", label: copy.records, ready: false },
+  { key: "records", href: "/diary/records/", icon: "✎", label: copy.records, ready: true },
   { key: "more", href: "/diary/more/", icon: "⋯", label: copy.more, ready: false },
 ];
 
