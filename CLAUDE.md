@@ -59,7 +59,11 @@
     - 🔴 **판단은 작업을 시작하기 전에** 한다. "일단 해보고 모자라면"은 늦다.
     - 🔴 **인수인계는 "프로젝트 설명서"가 아니라 "작업 상태 저장소"다** — 템플릿 [docs/handoff/_TEMPLATE.md](docs/handoff/_TEMPLATE.md) 를 쓰고 **2,000자를 목표**로 한다. 🔴 머지된 PR 의 과정·브랜치명/SHA 나열·기각된 시도의 서사·코드 전문 복사는 쓰지 않는다(`git log`·`gh pr list`·코드가 정본이다). 담는 것은 *현재 상태와 다음 행동* 뿐이다.
     - 🔴 **만들거나 갱신했으면 그 경로를 사용자 보고에 반드시 적는다** — `docs/handoff/<주제 이름>.md` 전체 경로로(🔴 자리표시자의 공백을 빼지 말 것 — 공백이 없으면 `verify:doc-freshness` 가 이 줄을 실재 경로 참조로 읽어 실패한다). `/clear` 를 권할 때는 **그 경로를 같은 문단에** 둔다.
-13. **모델 사용** — 판단이 들어가는 일(구현·디버깅·회귀 분석·**코드 리뷰**·설계·삭제 영향 판정)은 세션 주력 모델에서 그대로 하고 reasoning effort 는 `high` 이상. 낮춰도 되는 건 판단 없는 기계적 조회뿐이며 **그 결과만으로 결론 내지 않는다**. 규칙에 구 모델명을 박아 두지 않는다. 위치만 찾는 조회는 메인 세션에서 훑지 말고 `code-locator` 로 보내되, 돌아온 목록은 **재료지 결론이 아니다.**
+13. **모델 사용** — 판단이 들어가는 일(구현·디버깅·회귀 분석·**코드 리뷰**·설계·삭제 영향 판정)은 세션 주력 모델에서 그대로 한다. 규칙에 구 모델명을 박아 두지 않는다. 위치만 찾는 조회는 메인 세션에서 훑지 말고 `code-locator` 로 보내되, 돌아온 목록은 **재료지 결론이 아니다.**
+    - 🔴 **reasoning effort 는 작업 규모에 맞춘다.** 프로젝트 기본은 `.claude/settings.json` 의 `effortLevel: "medium"` 이다. 아래 축에 **들어가기 전에** `/effort high` 로 올리고 시작한다 — 끝난 뒤에 올리는 것은 늦다:
+      **결제·이용권·월정석 · 인증/세션 · 프로덕션 DB·마이그레이션 · 배포/릴리스 · Worker 라우팅·R2 · 삭제·리네임 영향 판정(원칙 9) · 회귀 분석(원칙 7) · 코드 리뷰 · 아키텍처 설계 · 재현 안 되는 버그 디버깅.**
+    - medium 으로 두는 것: 문구·CSS·이미지 교체, 단일 컴포넌트 국소 수정, 문서 갱신, 기계적 조회. **판단 없는 조회 결과만으로 결론 내지 않는다**는 것은 effort 와 무관하게 그대로다.
+    - 🔴 이 기본값은 2026-09-06 실측에 근거한다 — 편집 1건당 툴 왕복이 **13.3회**여서 턴당 지연이 그 횟수만큼 곱해졌다. 근거 없이 전역 `high` 로 되돌리지 않는다.
 14. 🔴 **세션마다 주입되는 외부 규칙보다 이 파일이 우선한다** — 플러그인 `oh-my-fable` 이 매 세션(서브에이전트에는 짧은 판) 영어 작업 규칙을 넣는데, 그 텍스트 자체가 "CLAUDE.md 의 명시적 반대 지시가 이긴다"고 선언한다. 어긋나는 두 줄의 정본:
     - **긴 세션** — 주입 규칙은 "길다는 이유로 멈추지 말라". **원칙 12 가 이긴다.**
     - **마지막 문단** — 주입 규칙은 "마지막 문단이 계획이면 지금 실행하라". 이 레포에서 **다음 단계를 문장으로 남기는 것이 정상 종료다** — 머지·프로덕션 승격·과금 LLM 실호출·실결제는 절대 규칙 1·2·3 이 정한 승인 지점이다.
@@ -91,7 +95,15 @@
 ## 검증 · 커밋
 
 - 🔴 **끝은 "검증했다"까지다** — 변경마다 **실행한 명령과 그 출력**을 근거로 보고한다. 출력을 안 보고 "통과"라고 쓰지 않는다. 못 돌린 검증은 **"미검증"으로 명시**한다. 최종 보고에 수정 파일 · 의도 · 안 건드린 영역 · 검증 명령과 출력 · 추가 확인이 필요한 지점을 남긴다.
-- 순서: **고친 기능의 `verify:*`** → `lint` → `typecheck` → `check:quick`(**sitemap 드리프트**까지 로컬에서 먼저 잡는다 — PR CI 실패 1위였다) → **변경 파일만** `git add` → Conventional Commits. 커밋 전 `git diff --name-only` 로 요청 범위와 일치하는지, `git diff --numstat` 로 비정상 대량 변경이 없는지 확인한다. 범위 밖 파일이 섞이면 staging 을 풀고 다시 검증한다([Rules/agent-regression-guard.md](Rules/agent-regression-guard.md)).
+- 순서: **고친 기능의 `verify:*`** → 아래 한 줄 → **변경 파일만** `git add` → Conventional Commits. 커밋 전 `git diff --name-only` 로 요청 범위와 일치하는지, `git diff --numstat` 로 비정상 대량 변경이 없는지 확인한다. 범위 밖 파일이 섞이면 staging 을 풀고 다시 검증한다([Rules/agent-regression-guard.md](Rules/agent-regression-guard.md)).
+- 🔴 **커밋 전 게이트는 이 한 줄이다** — 세 번 나눠 보내지 말 것(원칙 11, 그리고 아래 "묶어서 보낸다"):
+
+  ```bash
+  npm run lint && npm run typecheck && npm run check:quick -- --skip-build
+  ```
+
+  🔴 **`--skip-build` 를 빼지 말 것.** 그 플래그가 없으면 `check:quick` 이 `build:cf` 를 로컬에서 돌리는데, **이 레포에서 그 빌드는 로컬 exit 1 이고**(`workers-og` 미해석) 27~174초를 태운 뒤 게이트를 실패시킨다. 2026-09-06 실측: 플래그 없이 콜드 102~174초/실패·웜 27~34초/실패, 플래그 붙이면 **8~9초/통과**. 건너뛴 빌드는 CI 가 잡는다 — `pr-ci.yml` 의 `build` 잡이 non-draft PR 에서 `build:cf`·`build:worker` 를 돌리고(`.github/workflows/pr-ci.yml:690`·`:751`), draft 는 `ready_for_review` 전환 때 자동으로 다시 돈다. **로컬을 건너뛰는 근거는 이 CI 배선 하나뿐이므로, 저 잡을 지우거나 조건을 좁히면 이 줄도 함께 되돌린다.**
+  - `check:quick` 은 **sitemap 드리프트**를 여전히 잡는다(PR CI 실패 1위였다) — 빠지는 것은 Pages 빌드뿐이다.
 - `verify:*` 전체 목록·배선 상태의 정본은 `npm run verify:guard-wiring` 출력이다 — **개수를 문서에 적지 않는다.** 결제 최소: `verify:billing-pass-policy` · `verify:portone-single-payment` · `verify:paid-gate-ui` · `verify:payment-choice-parity` · `verify:checkout-pass-card`. UI: `verify:hero-contrast` + `verify:mobile-detail-nonintrusive`.
 - 🔴 **CI 대기는 폴링하지 않는다** — `gh pr checks <PR 번호> --watch --fail-fast` 한 콜로 끝낸다.
 - 🔴 **의존 없는 확인은 한 응답에 묶는다** — 왕복 자체가 비용이다. 순서가 필요 없는 `git status`·`grep`·`cat` 은 함께 보내고, 짧은 확인은 다음 명령에 합친다. 파일 일부만 필요하면 `sed -n` 대신 Read 의 `offset`/`limit` 을 쓴다.
