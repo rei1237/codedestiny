@@ -6420,13 +6420,12 @@
     },
     "cdSigCardBody": {
       "cdSigCardMeta": {
-        "k1hiiadz": "20 Kapitel · 46.000 Zeichen",
+        "k1hiiadz": "20 Kapitel",
         "k1l2ndq7": "Pass einlösbar",
-        "n32006000": "6.000–10.000 Zeichen",
         "k1l2ndq72": "Pass einlösbar",
-        "n2114": "21 Beiträge · 14.000 Zeichen",
+        "n2114": "21 Beiträge",
         "k1l2ndq73": "Pass einlösbar",
-        "n1415000": "14 Kapitel · 20.000 Zeichen",
+        "n1415000": "14 Kapitel",
         "k1l2ndq74": "Pass einlösbar"
       },
       "cdSigCardCta": {
@@ -6481,7 +6480,7 @@
         "k18ykrep": "1× kostenlos nach Anmeldung",
         "n115000": "1× kostenlos nach Registrierung · danach 5.000 ₩ je Deutung",
         "n130000": "30.000 ₩ je Deutung",
-        "k1lo4ibg": "Über 20.000 Zeichen · abschließender Abgleich"
+        "k1lo4ibg": "abschließender Abgleich"
       },
       "fortuneGatewayDoorGo": {
         "kkmvgqi": "Start a reading",

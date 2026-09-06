@@ -242,18 +242,18 @@
   },
 
   "shell.fortuneGatewayDoor.fortuneGatewayDoorMeta.k1lo4ibg": {
-    "ko": "2만 자 이상 · 최종 교차 판정",
-    "en": "20,000+ characters · final cross-check",
-    "ja": "2万字以上・最終クロス判定",
-    "zh-CN": "2万字以上 · 最终交叉判定",
-    "zh-TW": "2萬字以上 · 最終交叉判定",
-    "vi": "Hơn 20.000 ký tự · đối chiếu chung cuộc",
-    "hi": "20,000+ अक्षर · अंतिम क्रॉस-जाँच",
-    "es": "Más de 20.000 caracteres · verificación cruzada final",
-    "fr": "Plus de 20 000 caractères · recoupement final",
-    "de": "Über 20.000 Zeichen · abschließender Abgleich",
-    "nl": "20.000+ tekens · finale kruiscontrole",
-    "ms": "Lebih 20,000 aksara · semakan silang akhir"
+    "ko": "최종 교차 판정",
+    "en": "final cross-check",
+    "ja": "最終クロス判定",
+    "zh-CN": "最终交叉判定",
+    "zh-TW": "最終交叉判定",
+    "vi": "đối chiếu chung cuộc",
+    "hi": "अंतिम क्रॉस-जाँच",
+    "es": "verificación cruzada final",
+    "fr": "recoupement final",
+    "de": "abschließender Abgleich",
+    "nl": "finale kruiscontrole",
+    "ms": "semakan silang akhir"
   },
 
   "shell.fortuneGatewayEntry.fortuneGatewayEntryShell.klg50va": {

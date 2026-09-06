@@ -6420,13 +6420,12 @@
     },
     "cdSigCardBody": {
       "cdSigCardMeta": {
-        "k1hiiadz": "20 chapitres · 46 000 caractères",
+        "k1hiiadz": "20 chapitres",
         "k1l2ndq7": "Pass accepté",
-        "n32006000": "6 000–10 000 caractères",
         "k1l2ndq72": "Pass accepté",
-        "n2114": "21 textes · 14 000 caractères",
+        "n2114": "21 textes",
         "k1l2ndq73": "Pass accepté",
-        "n1415000": "14 chapitres · 20 000 caractères",
+        "n1415000": "14 chapitres",
         "k1l2ndq74": "Pass accepté"
       },
       "cdSigCardCta": {
@@ -6481,7 +6480,7 @@
         "k18ykrep": "1 gratuite après connexion",
         "n115000": "1 gratuite après inscription · 5 000 ₩ ensuite par lecture",
         "n130000": "30 000 ₩ par lecture",
-        "k1lo4ibg": "Plus de 20 000 caractères · recoupement final"
+        "k1lo4ibg": "recoupement final"
       },
       "fortuneGatewayDoorGo": {
         "kkmvgqi": "Start a reading",
