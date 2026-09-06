@@ -436,6 +436,12 @@
   font-size: var(--cd-t-caption);
 }
 
+/* 칸 소제목(「시간이 정해진 것」). 라벨 오른쪽 끝에 붙여 라벨 자체를 가리지 않게 한다. */
+.fieldHint {
+  margin-left: auto;
+  color: var(--dy-muted);
+}
+
 .emojiRow {
   display: flex;
   flex-wrap: wrap;
@@ -584,6 +590,65 @@
   flex: 0 0 auto;
   width: 1.2em;
   color: var(--dy-accent);
+}
+
+/* 일정·할 일 목록. 루틴과 줄 간격을 같게 두어 한 카드 안에서 세 칸이 따로 놀지 않게 한다. */
+.planList {
+  composes: routineList;
+}
+
+.planRow {
+  display: flex;
+  align-items: center;
+  gap: var(--cd-sp-xs);
+}
+
+/* 시간은 자리를 고정한다 — 숫자 폭이 흔들리면 아래위 줄의 내용 시작점이 어긋난다. */
+.planTime {
+  flex: 0 0 auto;
+  min-width: 3.6em;
+  color: var(--dy-text);
+  font-size: var(--cd-t-caption);
+  font-variant-numeric: tabular-nums;
+}
+
+.planTimeNone {
+  composes: planTime;
+  color: var(--dy-muted);
+}
+
+.planText {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: var(--cd-t-body);
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+/* 삭제는 아이콘 버튼 규격을 그대로 물려받는다(터치 영역·포커스 링이 화면마다 갈리지 않게). */
+.planRemove {
+  composes: iconButton;
+  border-color: transparent;
+  color: var(--dy-muted);
+  font-size: var(--cd-t-caption);
+}
+
+.planAdd {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--cd-sp-xs);
+}
+
+.planTimeInput {
+  composes: input;
+  flex: 0 0 auto;
+  width: 7.5em;
+}
+
+.planAddButton {
+  composes: chip;
+  flex: 0 0 auto;
 }
 
 /* ── 오늘의 성취 ────────────────────────────────────────────────────── */

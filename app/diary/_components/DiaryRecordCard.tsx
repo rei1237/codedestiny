@@ -1,5 +1,6 @@
 "use client";
 
+import { readExtDay } from "../_lib/ext-snapshot";
 import { readAchievement } from "../_lib/today-snapshot";
 import { useDiaryToday, useDiaryWriter } from "./DiaryStoreProvider";
 import { writeOneLine } from "../_lib/entry-writes";
@@ -36,12 +37,12 @@ const DIARY_RECORD_CARD_TEXT = {
 const copy = DIARY_RECORD_CARD_TEXT.ko;
 
 export default function DiaryRecordCard() {
-  const { hydrated, ymd, entry } = useDiaryToday();
+  const { hydrated, ymd, entry, ext } = useDiaryToday();
   const { updateEntry } = useDiaryWriter();
   const note = useDiaryDraft(entry?.practiceNote || entry?.nightLog || "", (next) => {
     updateEntry(ymd, writeOneLine(next));
   });
-  const { done, total } = readAchievement(entry);
+  const { done, total } = readAchievement(entry, readExtDay(ext, ymd));
   const percent = total > 0 ? Math.round((Math.min(done, total) / total) * 100) : 0;
 
   return (

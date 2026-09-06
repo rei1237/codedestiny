@@ -17,8 +17,14 @@ import {
   type DiaryLegacyStore,
   type DiaryTodaySnapshot,
 } from "../_lib/today-snapshot";
+import {
+  readDiaryExtDays,
+  type DiaryExtDay,
+  type DiaryExtStore,
+} from "../_lib/ext-snapshot";
 import { kstTodayYmd } from "../_lib/kst-date";
 import { updateDiaryEntry } from "@/lib/diary/diary-store";
+import { updateExtDay as updateExtDayInStore } from "@/lib/diary/diary-ext-store";
 import styles from "../_styles/diary.module.css";
 
 /**
@@ -38,20 +44,38 @@ import styles from "../_styles/diary.module.css";
 
 interface DiaryTodayState extends DiaryTodaySnapshot {
   hydrated: boolean;
+  /**
+   * `/diary` 전용 확장 기록(일정·할 일). 저장 키가 v2 와 갈려 있어 셸 모달은 이것을 보지 않는다.
+   * 🔴 v2 스냅샷과 같은 이유로 전체를 들고 있는다 — 달력이 날짜마다 저장소를 다시 열면
+   * 리더가 둘이 된다(원칙 6).
+   */
+  ext: DiaryExtStore;
 }
 
 /** 엔트리를 제자리에서 고치는 함수. 🔴 아는 필드만 건드린다(통째 교체 금지). */
 export type DiaryEntryMutate = (entry: DiaryLegacyEntry) => void;
 
+/** 확장 하루치를 제자리에서 고치는 함수. 같은 이유로 아는 필드만 건드린다. */
+export type DiaryExtDayMutate = (day: DiaryExtDay) => void;
+
 interface DiaryWriterValue {
   /** 성공하면 true. 날짜가 비었거나 저장소가 가득 차면 false 다. */
   updateEntry: (ymd: string, mutate: DiaryEntryMutate) => boolean;
+  /** 확장 기록(일정·할 일) 쓰기. 반환 규칙은 `updateEntry` 와 같다. */
+  updateExtDay: (ymd: string, mutate: DiaryExtDayMutate) => boolean;
 }
 
-const INITIAL_STATE: DiaryTodayState = { ...EMPTY_DIARY_TODAY_SNAPSHOT, hydrated: false };
+const INITIAL_STATE: DiaryTodayState = {
+  ...EMPTY_DIARY_TODAY_SNAPSHOT,
+  hydrated: false,
+  ext: {},
+};
 
 const DiaryTodayContext = createContext<DiaryTodayState>(INITIAL_STATE);
-const DiaryWriterContext = createContext<DiaryWriterValue>({ updateEntry: () => false });
+const DiaryWriterContext = createContext<DiaryWriterValue>({
+  updateEntry: () => false,
+  updateExtDay: () => false,
+});
 
 export function useDiaryToday(): DiaryTodayState {
   return useContext(DiaryTodayContext);
@@ -73,7 +97,7 @@ export default function DiaryStoreProvider({ children }: { children: ReactNode }
   const [saveFailed, setSaveFailed] = useState(false);
 
   useEffect(() => {
-    setState({ ...readDiaryTodaySnapshot(kstTodayYmd()), hydrated: true });
+    setState({ ...readDiaryTodaySnapshot(kstTodayYmd()), ext: readDiaryExtDays(), hydrated: true });
   }, []);
 
   const updateEntry = useCallback((ymd: string, mutate: DiaryEntryMutate) => {
@@ -100,7 +124,32 @@ export default function DiaryStoreProvider({ children }: { children: ReactNode }
     return true;
   }, []);
 
-  const writer = useMemo<DiaryWriterValue>(() => ({ updateEntry }), [updateEntry]);
+  /* 확장 기록도 쓰기 진입점은 하나다. 🔴 저장 뒤 화면 상태는 **저장의 결과**로 갈아 끼운다 —
+     `updateExtDay` 가 그 달 샤드를 다시 읽어 병합하므로, 화면이 들고 있던 사본은 입력이 아니다. */
+  const updateExtDay = useCallback((ymd: string, mutate: DiaryExtDayMutate) => {
+    if (typeof window === "undefined" || !ymd) return false;
+
+    let next: DiaryExtStore | null = null;
+    try {
+      next = updateExtDayInStore(window.localStorage, ymd, mutate) as DiaryExtStore | null;
+    } catch {
+      next = null;
+    }
+    if (!next) {
+      setSaveFailed(true);
+      return false;
+    }
+
+    const saved = next;
+    setSaveFailed(false);
+    setState((current) => ({ ...current, ext: saved }));
+    return true;
+  }, []);
+
+  const writer = useMemo<DiaryWriterValue>(
+    () => ({ updateEntry, updateExtDay }),
+    [updateEntry, updateExtDay],
+  );
 
   return (
     <DiaryTodayContext.Provider value={state}>

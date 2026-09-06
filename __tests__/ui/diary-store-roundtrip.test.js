@@ -14,6 +14,7 @@
  *  - 셸→앱·앱→셸 양방향에서 상대가 쓴 값이 한 필드도 사라지지 않는다
  *  - 서로 모르는 필드(상대가 나중에 추가할 것)도 살아남는다
  *  - 앱의 쓰기 함수(`updateDiaryEntry`)가 낡은 스냅샷을 들고 저장해도 남의 값을 덮지 않는다
+ *  - 확장 키(`cd.diary.ext.v1.day.*`) 쓰기가 셸의 v2 키를 한 번도 건드리지 않는다
  *  - `app/diary/**` 에서 저장소를 만지는 파일은 전수 발견되어 계약 모듈을 거치지 않으면 실패한다
  */
 const test = require("node:test");
@@ -23,6 +24,7 @@ const path = require("node:path");
 
 const { sliceFunction, stripComments } = require("../../scripts/lib/js-source-slice.mjs");
 const store = require("../../lib/diary/diary-store.js");
+const ext = require("../../lib/diary/diary-ext-store.js");
 
 const root = path.resolve(__dirname, "../..");
 const read = (file) => fs.readFileSync(path.join(root, file), "utf8").replace(/\r\n/g, "\n");
@@ -80,13 +82,18 @@ function buildShellSandbox(localStorage) {
   return shell;
 }
 
-/** 브라우저 `localStorage` 의 최소 흉내 — 값은 문자열로만 보관한다. */
+/**
+ * 브라우저 `localStorage` 의 최소 흉내 — 값은 문자열로만 보관한다.
+ * 🔴 `length`/`key(i)` 도 흉내낸다 — 확장 계약이 월 샤드를 그 둘로 훑어 찾기 때문이다.
+ */
 function makeStorage(initial) {
   const map = new Map(initial ? Object.entries(initial) : []);
   return {
     getItem: (key) => (map.has(key) ? map.get(key) : null),
     setItem: (key, value) => { map.set(key, String(value)); },
     removeItem: (key) => { map.delete(key); },
+    get length() { return map.size; },
+    key: (index) => [...map.keys()][index] ?? null,
     raw: map,
   };
 }
@@ -97,6 +104,8 @@ function makeFullStorage() {
     getItem: () => null,
     setItem: () => { throw new Error("QuotaExceededError"); },
     removeItem: () => {},
+    length: 0,
+    key: () => null,
   };
 }
 
@@ -292,6 +301,94 @@ test("저장소가 가득 차면 양쪽 다 조용히 false 를 돌려준다", (
   assert.deepEqual(buildShellSandbox(broken).loadDiary(), {});
 });
 
+/* ─── 확장 키 (`cd.diary.ext.v1.day.*`) ──────────────────────────────
+ * PR-F 가 여는 `/diary` 전용 저장 자리다. 셸 모달은 이 키를 모르므로, **v2 를 한 번도 건드리지
+ * 않는다**가 이 축의 안전 조건이다 — 확장 필드가 v2 로 새면 셸이 모르는 값을 안고 다닌다. */
+
+test("확장 기록을 써도 셸의 v2 키는 한 글자도 바뀌지 않는다", () => {
+  const storage = makeStorage();
+  const shell = buildShellSandbox(storage);
+
+  const diary = shell.loadDiary();
+  shell.getTodayEntry(diary).nightLog = "셸이 쓴 회고";
+  assert.equal(shell.saveDiary(diary), true);
+  const v2Before = storage.getItem(store.DIARY_STORAGE_KEY);
+
+  const days = ext.updateExtDay(storage, YMD, (day) => {
+    day.schedules.push({ id: "s1", at: "14:00", text: "치과 예약" });
+    day.todos.push({ id: "t1", text: "장보기", done: false });
+  });
+
+  assert.ok(days, "`updateExtDay` 가 저장에 실패했다");
+  assert.equal(
+    storage.getItem(store.DIARY_STORAGE_KEY),
+    v2Before,
+    "확장 쓰기가 v2 키를 건드렸다 — 셸 모달이 모르는 필드를 안고 다니게 된다",
+  );
+  assert.equal(days[YMD].schedules[0].text, "치과 예약");
+  assert.equal(days[YMD].todos[0].text, "장보기");
+  assert.match(days[YMD].updatedAt, /^\d{4}-\d{2}-\d{2}T/);
+  assert.deepEqual(shell.loadDiary(), diary, "셸이 읽는 기록이 확장 쓰기로 달라졌다");
+});
+
+test("확장 쓰기는 그 달 샤드 하나만 바꾼다", () => {
+  const storage = makeStorage();
+  const otherMonth = "2026-04-02";
+
+  ext.updateExtDay(storage, otherMonth, (day) => { day.todos.push({ id: "t0", text: "다음 달 할 일" }); });
+  const otherKey = ext.diaryExtMonthKey(otherMonth);
+  const otherBefore = storage.getItem(otherKey);
+
+  const days = ext.updateExtDay(storage, YMD, (day) => { day.todos.push({ id: "t1", text: "이 달 할 일" }); });
+
+  assert.equal(storage.getItem(otherKey), otherBefore, "다른 달 샤드가 함께 다시 쓰였다");
+  assert.deepEqual(Object.keys(days).sort(), [YMD, otherMonth]);
+  assert.equal(days[otherMonth].todos[0].text, "다음 달 할 일", "샤드를 편 맵에서 다른 달이 사라졌다");
+});
+
+test("확장 기록에서 모르는 필드도 살아남는다", () => {
+  const storage = makeStorage();
+  const monthKey = ext.diaryExtMonthKey(YMD);
+  storage.setItem(monthKey, JSON.stringify({ [YMD]: { futureField: "미래값", todos: [{ id: "t1", text: "먼저 있던 것" }] } }));
+
+  const days = ext.updateExtDay(storage, YMD, (day) => {
+    day.schedules.push({ id: "s1", at: "09:00", text: "회의" });
+  });
+
+  assert.equal(days[YMD].futureField, "미래값", "뒤 PR 이 더할 필드를 이번 쓰기가 떨어뜨렸다");
+  assert.equal(days[YMD].todos[0].text, "먼저 있던 것", "다른 칸의 항목이 사라졌다");
+  assert.equal(days[YMD].schedules[0].text, "회의");
+});
+
+test("낡은 확장 스냅샷을 들고 저장해도 그사이 다른 탭이 쓴 값이 살아남는다", () => {
+  const storage = makeStorage();
+
+  // ① 화면이 확장 스냅샷을 한 번 읽어 들고 있다.
+  const stale = ext.readAllExtDays(storage);
+  assert.deepEqual(stale, {});
+
+  // ② 그사이 다른 탭이 같은 날에 일정을 저장한다.
+  ext.updateExtDay(storage, YMD, (day) => { day.schedules.push({ id: "s1", at: "10:00", text: "다른 탭이 쓴 일정" }); });
+
+  // ③ 낡은 스냅샷을 쥔 화면이 할 일을 저장한다.
+  const days = ext.updateExtDay(storage, YMD, (day) => { day.todos.push({ id: "t1", text: "나중에 쓴 할 일" }); });
+
+  assert.equal(days[YMD].schedules[0].text, "다른 탭이 쓴 일정", "나중 저장이 그사이 쓴 일정을 덮었다");
+  assert.equal(days[YMD].todos[0].text, "나중에 쓴 할 일");
+});
+
+test("확장 쓰기도 실패를 성공처럼 돌려주지 않는다", () => {
+  const full = ext.updateExtDay(makeFullStorage(), YMD, (day) => { day.todos.push({ id: "t1", text: "저장되지 않는다" }); });
+  assert.equal(full, null, "저장 실패를 성공처럼 돌려주면 화면이 안 쓴 것을 썼다고 보여 준다");
+
+  const badDate = ext.updateExtDay(makeStorage(), "2026-3-14", () => {});
+  assert.equal(badDate, null, "날짜 형식이 아닌 키로 샤드를 만들면 어느 달에도 안 잡힌다");
+
+  // 깨진 샤드는 v2 와 같이 조용히 빈 객체로 떨어진다.
+  const broken = makeStorage({ [ext.diaryExtMonthKey(YMD)]: "{not json" });
+  assert.deepEqual(ext.readAllExtDays(broken), {});
+});
+
 /* ─── 계약 우회 방지 (fail-closed) ──────────────────────────────
  * 위 왕복은 `lib/diary/diary-store.js` 를 증명한다. `/diary` 가 그 모듈을 안 쓰고
  * 제 손으로 localStorage 를 만지면 이 증명이 통째로 무의미해지므로, 저장소를 만지는
@@ -304,12 +401,17 @@ test("`app/diary/**` 에서 저장소를 만지는 파일은 전부 계약 모�
   assert.ok(files.length > 0, "app/diary 에서 소스 파일을 하나도 못 찾았다 — 경로가 바뀌었다");
 
   const offenders = [];
+  const keyCopiers = [];
   for (const rel of files) {
     const source = stripComments(fs.readFileSync(path.join(dir, rel), "utf8"));
+    // 🔴 확장 키 앞자리를 화면 코드에 복사하면, 계약 모듈을 거치더라도 키 조립이 두 곳이 된다.
+    if (source.includes(ext.DIARY_EXT_DAY_KEY_PREFIX)) {
+      keyCopiers.push(`app/diary/${rel.replace(/\\/g, "/")}`);
+    }
     const touchesStorage = /\b(localStorage|sessionStorage)\b/.test(source);
     const hardcodesKey = source.includes(store.DIARY_STORAGE_KEY);
     if (!touchesStorage && !hardcodesKey) continue;
-    if (!/from\s+["'][^"']*lib\/diary\/diary-store(\.js)?["']/.test(source)) {
+    if (!/from\s+["'][^"']*lib\/diary\/diary-(ext-)?store(\.js)?["']/.test(source)) {
       offenders.push(`app/diary/${rel.replace(/\\/g, "/")}`);
     }
   }
@@ -317,6 +419,11 @@ test("`app/diary/**` 에서 저장소를 만지는 파일은 전부 계약 모�
   assert.deepEqual(
     offenders,
     [],
-    "저장소를 직접 만지는데 `lib/diary/diary-store.js` 를 안 쓴다 — 왕복 증명 밖으로 나갔다",
+    "저장소를 직접 만지는데 `lib/diary/diary-store.js`·`diary-ext-store.js` 를 안 쓴다 — 왕복 증명 밖으로 나갔다",
+  );
+  assert.deepEqual(
+    keyCopiers,
+    [],
+    "확장 저장 키를 화면 코드에 복사했다 — 키 조립은 `lib/diary/diary-ext-store.js` 한 곳이다",
   );
 });
