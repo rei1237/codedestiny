@@ -340,6 +340,7 @@ on:
       #    안 걸려 가드만 고친 PR 은 게이트가 깨어나지 않았다.
       - "scripts/verify-direct-confirm-pending-recovery.mjs"
       - "scripts/verify-krw-copy-canonical.mjs"
+      - "scripts/verify-i18n-price-drift.mjs"
       - "scripts/verify-*billing*.mjs"
       - "scripts/verify-*paid*.mjs"
       - "scripts/verify-*pass*.mjs"

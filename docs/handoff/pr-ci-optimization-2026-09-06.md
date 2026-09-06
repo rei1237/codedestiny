@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-06
-next: 후속 과제 #2 는 PR #1665 로 나갔다(사용자 머지 대기). 남은 셋 중 급한 것은 `build:cf` 257s.
+next: 사전 문구 스코프 수정이 PR #1676 으로 나갔다(사용자 머지 대기). 남은 것 중 급한 것은 `build:cf` 257s.
 ---
 
 # PR CI 최적화 (2026-09-06)
@@ -25,6 +25,7 @@ next: 후속 과제 #2 는 PR #1665 로 나갔다(사용자 머지 대기). 남�
 - [ ] **`build:cf` 257s** — standard/critical 티어의 유일한 wall-clock 병목. `.next/cache` 복원은 이미 기각됐다(아래 함정).
 - [x] **`paid-flow-gates.yml` 의 `paths:` 누락 2건** — **PR #1665 (머지 대기).** 두 줄을 추가했고, YAML 만 교체해 같은 두 커밋으로 판정기를 돌린 before/after 가 `run=false → run=true` 로 갈렸다. 전수 확인: 이 워크플로가 실행하는 스크립트는 `run:` 기준 2개뿐이고 `change-risk.mjs` 는 import 0건이라 폐포가 닫힌다 — 3번째 누락 없음.
 - [ ] **(신규) 이 구멍을 기계로 막는 가드가 없다** — `verify:guard-wiring` 은 "검증기가 워크플로에서 도달 가능한가"만 본다. **"워크플로가 실행하는 스크립트와 그 import 폐포가 그 워크플로 자신의 `paths:` 에 있는가"** 축은 아무도 안 본다. 그래서 이 손목록은 지금까지 15번 넘게 같은 형태로 새어 왔다(YAML 주석에 사고 기록이 그만큼 있다). 🔴 가드 추가는 사용자 승인 사항이라(CLAUDE.md CI gate scope, `scripts/verify-guard-wiring.mjs:51`) 임의로 넣지 않았다 — **먼저 물을 것.**
+- [x] **문구만 고친 PR 이 `Paid Flow Gates` 를 깨우던 구멍** — **PR #1676 (머지 대기).** `public/i18n/**` 는 트리거에 있는데 판정 기준이 "캐시키가 아닌 줄이 하나라도 있으면 돈다" 뿐이었다(셸에만 "결제 구간" 판정이 있었다). 사전을 읽는 가드를 값 스캐너/키 단언 둘로 나눠, 값은 가드 상수에서 조립한 탐지기로 보고 키·문구는 `scripts`·`__tests__` 에서 찾는다. PR #1671 이 `run=true → run=false`, 결제 커밋 4건은 `run=true` 유지.
 - [ ] **`cloudflare-pages-deploy.yml` 의 `schedule: */20`** — 하루 72회, 중앙값 50s no-op. 줄일지 유지할지 사용자 판단 필요.
 - [ ] **`check:critical` 과 `deploy:critical` 이 문자열까지 완전 중복** — 하나로 합칠지.
 
@@ -40,7 +41,8 @@ next: 후속 과제 #2 는 PR #1665 로 나갔다(사용자 머지 대기). 남�
 - `.next/cache` 를 `actions/cache` 로 복원해도 `build:cf` 는 안 줄어든다 — `next.config.mjs:190-192` 가 프로덕션 빌드에서 `config.cache = false` 다.
 - `paid-flow-gates.yml` 의 `push: main` 트리거는 중복처럼 보이지만 의도된 것이다(그 파일 336-340행에 PR #678 사고 기록).
 - 🔴 `paths:` 에 줄을 더할 때는 **들여쓰기 6칸을 지킬 것.** `resolve-paid-gate-scope.mjs` 의 `readTriggerGlobs()` 가 `/^\s{6}- "(.+)"\s*$/` 로 그 목록을 직접 파싱하고, 안 맞는 줄을 만나면 블록 끝으로 보고 **그 아래를 통째로 버린다.**
-- 🔴 이 YAML 은 **CRLF** 다. Edit/sed 로 고치면 줄바꿈이 섞이므로 node 로 패치한다.
+- 🔴 이 YAML 은 **CRLF** 다. Edit/sed 로 고치면 줄바꿈이 섞이므로 node 로 패치한다(`scripts/resolve-paid-gate-scope.mjs`·`scripts/run-paid-gate-suite.mjs` 도 CRLF, `package.json` 은 LF).
+- 🔴 판정기의 사전 필터에서 **참조 검색 범위를 레포 전체로 넓히지 말 것.** 셸의 `data-i18n` 이 사실상 모든 키를 이름으로 들고 있어 문구 PR 이 `index.html` 에 걸린다. 문구 리터럴도 **따옴표로 감싸서** 찾는다 — 맨 문자열이면 `"14장"` 이 남의 문장에 우연히 포함돼 걸린다(둘 다 2026-09-06 실측).
 
 ## 검증
 
@@ -48,6 +50,8 @@ next: 후속 과제 #2 는 PR #1665 로 나갔다(사용자 머지 대기). 남�
 node scripts/lib/change-risk.mjs --self-test    # 47 cases
 npm run verify:ci-tier                          # 22 cases
 npm run verify:guard-wiring                     # 워크플로 YAML → 러너 → npm 이름
+npm run verify:paid-gate-scope                  # 사전 판정 26 cases
+node scripts/resolve-paid-gate-scope.mjs --base <sha>^ --head <sha>   # 실커밋 대조
 gh pr checks <PR 번호> --watch --fail-fast
 ```
 
