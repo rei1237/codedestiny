@@ -1,5 +1,5 @@
 /**
- * 기록 목록·검색이 읽는 파생값. 🔴 저장소를 열지 않는다 — `DiaryStoreProvider` 가 한 번
+ * 기록 목록·검색·통계가 읽는 파생값. 🔴 저장소를 열지 않는다 — `DiaryStoreProvider` 가 한 번
  * 하이드레이션한 스냅샷(`store`·`ext`)을 인자로 받는다(원칙 6, 두 번째 리더 금지).
  *
  * 🔴 두 저장 자리를 여기서 **합쳐 읽기만** 한다. v2(셸 공유)와 확장 키는 자리가 그대로 갈려
@@ -29,6 +29,11 @@ export interface DiaryRecordRow {
   todos: string[];
   done: number;
   total: number;
+  /**
+   * 회고 만족도 0~5. 매기지 않은 날은 `null` 이다(`writeRetroRate` 가 같은 값을 다시 누르면
+   * 0 으로 지운다 — 통계가 그 0 을 「만족도 0점」으로 세면 평균이 안 매긴 날에 끌려간다).
+   */
+  rate: number | null;
 }
 
 /**
@@ -58,26 +63,42 @@ export function buildDiaryRecordRows(
     const schedules = readSchedules(day).map((item) => String(item.text || ""));
     const todos = readTodos(day).map((item) => String(item.text || ""));
     const { done, total } = readAchievement(entry, day);
+    const rawRate = Number(entry?.reviewRate);
+    const rate = Number.isFinite(rawRate) && rawRate >= 1 && rawRate <= 5 ? rawRate : null;
 
     if (!line && !memo && !mood && !tags.length && !schedules.length && !todos.length && !total) {
       continue;
     }
-    rows.push({ ymd, line, memo, mood, tags, schedules, todos, done, total });
+    rows.push({ ymd, line, memo, mood, tags, schedules, todos, done, total, rate });
   }
 
   /* 최신순. 날짜 키가 `YYYY-MM-DD` 라 문자열 비교가 곧 날짜 비교다(Date 를 만들지 않는다). */
   return rows.sort((a, b) => (a.ymd < b.ymd ? 1 : a.ymd > b.ymd ? -1 : 0));
 }
 
-/** 필터 줄에 세울 태그. 많이 쓴 것부터, 같으면 가나다순이다. */
-export function collectDiaryTags(rows: DiaryRecordRow[]): string[] {
+/** 태그와 그 태그를 단 날 수. 많이 쓴 것부터, 같으면 가나다순이다. */
+export interface DiaryTagCount {
+  tag: string;
+  count: number;
+}
+
+/**
+ * 태그를 센다. 🔴 세는 자리는 여기 하나다 — 통계의 태그 순위와 목록의 필터 줄이 각자 세면
+ * 같은 태그가 두 화면에서 다른 순서로 앉는다(아래 `collectDiaryTags` 도 이것을 쓴다).
+ */
+export function collectDiaryTagCounts(rows: DiaryRecordRow[]): DiaryTagCount[] {
   const counts = new Map<string, number>();
   for (const row of rows) {
     for (const tag of row.tags) counts.set(tag, (counts.get(tag) || 0) + 1);
   }
   return [...counts.entries()]
     .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "ko"))
-    .map(([tag]) => tag);
+    .map(([tag, count]) => ({ tag, count }));
+}
+
+/** 필터 줄에 세울 태그. 순서는 `collectDiaryTagCounts` 와 같다. */
+export function collectDiaryTags(rows: DiaryRecordRow[]): string[] {
+  return collectDiaryTagCounts(rows).map((item) => item.tag);
 }
 
 /** 검색 범위. 🔴 한 번에 하나만 고른다 — 여러 축을 켜면 결과가 어디서 왔는지 읽히지 않는다. */

@@ -55,6 +55,19 @@ export function daysInMonth(year: number, month: number): number {
   return new Date(Date.UTC(year, month, 0)).getUTCDate();
 }
 
+/**
+ * 날짜 이동(일 단위). 통계의 기간 구간·주 시작일이 이것 하나로 만들어진다.
+ * 🔴 `daysInMonth` 와 같은 이유로 `Date.UTC` 로만 센다 — 로컬 TZ 를 타면 하루가 어긋난다.
+ * 🔴 날짜 키가 아니면 그대로 돌려준다 — 호출자가 `while (cursor <= end)` 로 도는 자리가 있어
+ *    호출 전에 `parseYmd` 로 거르고, 여기서도 잘못된 값을 새 날짜로 바꾸지 않는다.
+ */
+export function shiftYmd(ymd: string, deltaDays: number): string {
+  const parts = parseYmd(ymd);
+  if (!parts) return ymd;
+  const moved = new Date(Date.UTC(parts.year, parts.month - 1, parts.day + deltaDays));
+  return toYmd(moved.getUTCFullYear(), moved.getUTCMonth() + 1, moved.getUTCDate());
+}
+
 /** 달 이동. 12월을 넘으면 해가 함께 넘어간다. */
 export function shiftMonth({ year, month }: DiaryYearMonth, delta: number): DiaryYearMonth {
   const zeroBased = year * 12 + (month - 1) + delta;

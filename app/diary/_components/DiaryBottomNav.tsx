@@ -58,13 +58,20 @@ export const DIARY_NAV_TABS: readonly DiaryNavTab[] = [
 
 const stripSlash = (value: string) => (value.length > 1 ? value.replace(/\/+$/, "") : value);
 
+/**
+ * 탭이 없는 짝 화면. 🔴 통계는 기록의 세그먼트로만 오가므로(`DiaryRecordsTabs`) 그 화면에서도
+ * 「기록」이 활성이어야 한다 — 아니면 하단바가 아무 데도 안 켜진 채로 보인다.
+ */
+const TAB_ALIAS: Record<string, readonly string[]> = { records: ["/diary/stats"] };
+
 export default function DiaryBottomNav() {
   const pathname = usePathname() || "/diary";
   const current = stripSlash(pathname);
   const [capture, setCapture] = useState(false);
 
   const renderTab = (tab: DiaryNavTab) => {
-    const isCurrent = stripSlash(tab.href) === current;
+    const isCurrent =
+      stripSlash(tab.href) === current || (TAB_ALIAS[tab.key] || []).includes(current);
     if (!tab.ready) {
       return (
         <span
