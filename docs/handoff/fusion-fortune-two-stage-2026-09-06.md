@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-06
-next: 🔴 **레일·도크 육안 확인을 마쳤다 — 통과 3 · 결함 3.** Gemini 실호출 0회·결제 0건으로 봤다(초융합에 `lib/dev-preview` 픽스처를 붙여 로컬에서 `?preview=success|truncated` 렌더 → Playwright 캡처 → `visual-checker` 판정). ✅ 모바일 도크가 진짜 `fixed`(360/390/430 에서 스크롤 수천 px 뒤 y 드리프트 ≤6px) · ✅ 1단계 대기 표시(13항목, 완성본과 같은 수) · ✅ 도크 상단 진행선. 🔴 **결함 3건은 손대지 않았다 — 승인 대기**(§육안 판정): ① 데스크톱 레일이 스크롤하면 사라진다(원인 확정: `app/fusion-fortune/fusion-fortune.module.css:53` 의 `.page { overflow: hidden }`) ② 데스크톱 진행선 없음(①의 결과) ③ 대기 항목 대비 3.01:1(AA 4.5 미달). 열린 PR 2건(사용자 머지): **#1704** dev-preview 픽스처(CI 전부 green) · **#1706** `countFusionGroupChars` 오계수 수정(후속 과제 ④ 해소). 다음 세션 첫 문장: **"#1704·#1706 머지 여부를 확인하고, 레일 결함 3건 수정 승인이 났으면 `overflow: hidden` → `clip` 부터 고친다 — 안 났으면 승인부터 받는다."**
+next: 🔴 **레일 결함 3건 수정 완료 — PR 사용자 머지 대기.** 승인받아 셋 다 고치고 dev-preview 로 재측정했다(Gemini 0회·결제 0건): ① `.page` `overflow: hidden`→`clip` 으로 sticky 회복(스크롤 4,918px 뒤 top 24px, 가로 오버플로 0) ② 🔴 **진행선은 ①의 결과가 아니었다** — 레일 밖 `absolute` 요소여서 레일 안으로 옮겼다 ③ 대기 행 `opacity-55`→`85` 로 4.87:1(레일)·5.51:1(도크). 다음 세션 첫 문장: **"레일 수정 PR 이 머지됐는지 확인하고, 됐으면 남은 축(대표 1건 외 4조합 실호출 미검증 · 후속 과제 ①②③)에서 하나를 골라 착수한다."** 육안 판정에서 통과했던 3건(모바일 도크가 진짜 `fixed` · 1단계 대기 표시 13항목 · 도크 상단 진행선)은 그대로다.
 ---
 
 # 초융합 운세 개선 — 2단계 생성(Phase 1) 이후
@@ -24,7 +24,7 @@ next: 🔴 **레일·도크 육안 확인을 마쳤다 — 통과 3 · 결함 3.
 - [x] **Phase 2 UI/UX 고급화** — 위 "지금 상태". 로케일 12개 중 ko·en·ja·zh-CN·zh-TW 만 저작, vi·hi·es·fr·de·nl·ms 는 영어 복사(배치 번역 후속).
 - [x] **Phase 3 모바일 최적화** — 도크·시트·섹션 헤더 줄바꿈·푸터 2열·좁은 화면 여백 4종(≤430px). 로케일 5키는 ko·en·ja·zh 저작, 나머지 7개는 영어 복사.
 - [x] **레일·도크 육안 확인** — dev-preview 픽스처(PR #1704)로 로컬 렌더 후 판정. 통과 3 · **결함 3(미수정, 승인 대기)**. 상세는 §육안 판정.
-- [ ] 🔴 **레일 결함 3건 수정 — 승인 없이 손대지 않았다.** ① `.page { overflow: hidden }` → `clip`(`fusion-fortune.module.css:53`) ② 데스크톱 진행선(①의 결과) ③ 대기 항목 대비 3.01:1 → AA 4.5:1. 🔴 고친 뒤 눈으로 다시 보려면 dev-preview 픽스처가 필요하므로 **#1704 머지 뒤에 하거나 그 브랜치 위에 쌓는다.**
+- [x] **레일 결함 3건 수정 완료**(2026-09-06, 사용자 승인, dev-preview 로 재측정 — Gemini 0회·결제 0건). ① `.page` `overflow: hidden` → `clip`: 스크롤 4,918px 뒤 `aside` top **24px 고정**(옛 −4563), 조상 체인 `main` 이 `clip/clip`, 360/390/430 가로 오버플로 **0**. ② 🔴 **①의 결과가 아니었다 — 진단이 틀렸다.** 진행선은 레일 안이 아니라 결과 `section.relative` 기준 `absolute inset-x-0 top-0` 이라 ①을 고쳐도 스크롤하면 화면 밖이었다(실측 top −229). **레일 `aside` 첫 자식으로 옮겼다** — 스크롤 깊이와 무관하게 top 24px, 채움 25% 가 "읽은 위치 25%" 라벨과 일치. 좁은 화면 진행선은 도크가 그대로 든다(390 실측: 도크 채움 78/372, 레일 숨김). ③ 대기 행 `opacity-55` → `85`: 레일 **4.87:1** · 도크 시트 **5.51:1**(픽셀 실측, AA 4.5 통과). 레일·도크 두 파일 모두 같은 대기 행이라 함께 고쳤다.
 - [x] 🔴 **Phase 4 실검증 — 7회 돌렸고 7차에서 ①②③④ 전부 충족**(2026-09-06). 5차의 ②(`degraded/length`)는 6차에 ⓧ 로 닫혔고, 6차에 열린 ④(verdict `closing_depth`)는 7차에 닫혔다. 🔴 **대표 1건 표본이다** — 나머지 4조합은 여전히 미검증이고, mock `verify:fusion-fortune-delivery-floor` 가 조합 커버리지를 맡는다. 하네스 `scripts/verify-fusion-fortune-live.mjs`(npm `verify:fusion-fortune-live`, 플래그 없으면 호출 0으로 계획만 출력). 재현: `node --env-file=<리포 루트>/.env.local scripts/verify-fusion-fortune-live.mjs --live --dump`. 사용자 지시로 조합 전수(45회) 대신 **대표 1건**(`생시O 장소O`)만 돌렸다 — 조합 커버리지는 mock `verify:fusion-fortune-delivery-floor` 가 맡는다.
   - 2차 실측(구조화 출력 **전**, `--dump`): 호출 11회 · 35.4초 · 27,093자 · `gemini_partial` · fallback saju·ziwei·tarot · 탈락 8건(`missing_key_points` 5 · `parse_failed` 1 · `section_depth` 2). 🔴 **탈락 6건이 분량이 아니라 JSON 형태였다** — 섹션 객체가 `{title, content}` 뿐이고 `keyPoints` 키를 통째로 빠뜨렸다.
   - 3차 실측(구조화 출력 **후**, 2026-09-06 04:36Z, 대표 1건): 호출 8회 · 28.5초 · 27,017자 · `gemini_partial` · fallback saju·tarot · 탈락 4건. **Gemini 가 스키마를 그대로 수용했다(400 없음)** — 되돌릴 이유가 사라졌다.
@@ -76,7 +76,7 @@ next: 🔴 **레일·도크 육안 확인을 마쳤다 — 통과 3 · 결함 3.
 - `retryable: true,` 바로 뒤에 `issues:` 가 와야 한다(UI 정적 테스트가 그 짝을 고정). 서버 실패 반환 순서를 바꾸지 말 것.
 - `rememberPaidRequest(requestId, requestBody)` 가 소스에서 첫 `/api/fusion-fortune/generate/stream` 보다 **앞에** 있어야 한다(`verify:fusion-fortune-retry-payload`).
 - 분량 문구를 바꾸면 12 로케일 + `__tests__/ui/fusion-fortune.static.test.js` + `docs/LLM_AND_AI_POLICY.md` 를 같이 바꾼다.
-- 🔴 **레일 sticky 를 죽이는 `overflow` 는 한 곳이 아니라 조상 전체다** — 결과 패널 section 은 `overflow-clip` 으로 고쳐 뒀지만, 그 위의 `<main>`(`fusion-fortune.module.css:53` 의 `.page`)이 아직 `overflow: hidden` 이라 **레일이 지금도 스크롤하면 사라진다**(2026-09-06 브라우저 실측, 아래 §육안 판정 ①). 이 축을 손댈 때는 한 요소만 보지 말고 `aside` 의 조상 체인을 브라우저에서 전수로 읽는다 — `getComputedStyle(node).overflowX/Y` 를 부모로 올라가며 찍으면 어느 층이 범인인지 바로 나온다. 레일·2단계 대기 말풍선은 `data-fusion-pdf-section` 밖에 둔다(PDF 캡처 제외).
+- 🔴 **레일 sticky 를 죽이는 `overflow` 는 한 곳이 아니라 조상 전체다** — section 과 `<main>`(`.page`) **둘 다** `clip` 이라야 산다(2026-09-06 수정 완료). 이 축을 손댈 때는 한 요소만 보지 말고 `aside` 의 조상 체인을 브라우저에서 전수로 읽는다 — `getComputedStyle(node).overflowX/Y` 를 부모로 올라가며 찍으면 어느 층이 범인인지 바로 나온다. 레일·2단계 대기 말풍선은 `data-fusion-pdf-section` 밖에 둔다(PDF 캡처 제외).
 - 🔴 **결과 화면을 눈으로 보려면 `?preview=` 를 쓴다 — 실호출·결제 0** — `lib/dev-preview/fixtures/fusion-fortune.ts`(PR #1704). `?preview=success`(2단계 완성본) · `truncated`(1단계만 도착 = 대기 표시) · `failed`. `readDevPreviewState()` 가 `NODE_ENV === "production"` 이면 항상 `null` 이라 실사용 경로는 그대로다. 🔴 `next dev` 는 `--turbopack` 으로 띄운다 — webpack 은 `js/core/app-context.js` 의 `import.meta` 에서 죽는다(선행 결함, 이 축과 무관).
 - 차례 앵커는 `data-fusion-toc` + `id="fusion-toc-<key>"`(`ThreadRow` 의 `tocKey`). 진행률은 스크롤 높이가 아니라 항목 인덱스다(`content-visibility:auto` 때문).
 - `check:quick` 이 `.ignore`·`rss.xml` 4개를 건드린다 — 커밋 전에 `git checkout --` 로 되돌린다.
@@ -97,11 +97,11 @@ next: 🔴 **레일·도크 육안 확인을 마쳤다 — 통과 3 · 결함 3.
 - ✅ **1단계 대기 표시**(`?preview=truncated`): 13항목 = 도착 10 + `2단계 · 생성 중` 헤더 + 대기 3(스피너·`대기` 배지). 완성본 시트의 13과 같은 수라 항목이 누락되지 않는다.
 - ✅ **도크 상단 테두리가 실제 진행선이다** — 채움 66.9% 가 표시된 "남은 약 26분"(전체 78분)과 일치한다.
 
-**결함 3 — 🔴 손대지 않았다, 승인 대기**
+**결함 3 — 전부 수정·재측정 완료**(위 "남은 작업" 에 수치)
 
-- 🔴 **① 데스크톱 레일이 스크롤하면 사라진다.** `aside` 의 `rect.top` 이 2208 → **−4563** 으로 화면 밖까지 따라 올라간다(sticky 가 안 먹는다). **원인 확정**(추정 아님): 조상 체인을 브라우저에서 읽으니 div `visible` · section `clip`(고쳐진 층) · **`main` `hidden/hidden`** · body `clip`. 그 `main` 이 `app/fusion-fortune/fusion-fortune.module.css:53` 의 `.page { overflow: hidden }` 이다. 고칠 때 `clip` 으로 바꾸면 되지만 **가로 잘림 거동이 달라지므로**(`clip` 은 스크롤 컨테이너를 안 만든다) 좁은 화면 가로 오버플로를 함께 본다.
-- 🔴 **② 데스크톱 진행선이 안 보인다** — ①의 결과다(레일이 진행선을 함께 들고 있다). ①을 고치면 같이 확인한다.
-- 🔴 **③ 대기 항목 대비 3.01:1** — AA 4.5:1 미달. 활성·완료 항목은 문제 없고 `todo` 상태만이다.
+- ✅ **① 데스크톱 레일이 스크롤하면 사라졌다** — 조상 `main`(`.page { overflow: hidden }`)이 스크롤 컨테이너를 만들어 sticky 를 죽였다. `clip` 으로 고쳤고 가로 오버플로 회귀 없음.
+- ✅ **② 데스크톱 진행선** — 🔴 ①의 결과라던 판정이 **틀렸다**. 진행선은 레일 밖의 `absolute` 요소였고, 레일 안으로 옮겨야 했다.
+- ✅ **③ 대기 항목 대비 3.01:1** — 원인은 `opacity-55`(색이 아니라 합성 투명도)였다. `opacity-85` 로 4.87:1(레일)·5.51:1(도크 시트).
 
 **범위 밖 관찰 1건**(고치지 않음): 도크의 섹션 라벨 줄이 중간 캡처 3장 모두에서 비어 보인다 — 스크롤 중 활성 키가 비는 순간인지 라벨 자체가 안 그려지는지 미확인.
 

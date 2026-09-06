@@ -29,11 +29,14 @@ export function FusionResultRail({ result, generating, exporting, onOpenSection,
   const toc = useFusionToc(result, scopeRef, onOpenSection);
 
   return <>
-    <span aria-hidden className="pointer-events-none absolute inset-x-0 top-0 z-[1] h-0.5 bg-white/[0.06]">
-      <em className="block h-full origin-left bg-[linear-gradient(90deg,var(--fx-violet),var(--fx-gold-2))] transition-transform duration-500 ease-out motion-reduce:transition-none" style={{ transform: `scaleX(${toc.progress})` }} />
-    </span>
     <FusionResultDock toc={toc} generating={generating} exporting={exporting} hasVerdict={Boolean(result.finalVerdict)} />
     <aside aria-label={copy.railAriaLabel} className="sticky top-6 mt-9 hidden self-start gap-4 text-[0.84rem] lg:grid">
+      {/* 읽기 진행선. 🔴 레일 **안**이다 — 예전에는 결과 section 기준 absolute 라 섹션 맨 위에
+          박혀 있었고, 읽기 시작하면 화면 밖으로 밀려나 데스크톱에서는 사실상 안 보였다
+          (2026-09-06 실측: 스크롤 4,755px 에서 top −229). 좁은 화면 진행선은 도크가 든다. */}
+      <span aria-hidden className="pointer-events-none block h-0.5 overflow-hidden rounded-full bg-white/[0.06]">
+        <em className="block h-full origin-left bg-[linear-gradient(90deg,var(--fx-violet),var(--fx-gold-2))] transition-transform duration-500 ease-out motion-reduce:transition-none" style={{ transform: `scaleX(${toc.progress})` }} />
+      </span>
       <div className="rounded-2xl border border-white/[0.09] bg-white/[0.055] px-4 pb-3.5 pt-4">
         <p className="m-0 mb-2.5 text-[0.7rem] uppercase tracking-[0.2em] text-[var(--fx-ink-4)]">{copy.statsHeading}</p>
         <dl className="m-0 grid gap-1.5 tabular-nums text-[var(--fx-ink-3)]">
@@ -65,7 +68,7 @@ export function FusionResultRail({ result, generating, exporting, onOpenSection,
           })}
           {toc.pending.length > 0 && <>
             <li className="px-2 pb-1 pt-2.5 text-[0.68rem] uppercase tracking-[0.18em] text-[var(--fx-ink-4)]">{generating ? copy.stageTwoGeneratingLabel : copy.stageTwoGroupLabel}</li>
-            {toc.pending.map((item) => <li key={item.key} className="grid grid-cols-[0.5rem_minmax(0,1fr)_auto] items-center gap-2.5 px-2 py-2 leading-[1.35] text-[var(--fx-ink-4)] opacity-55">
+            {toc.pending.map((item) => <li key={item.key} className="grid grid-cols-[0.5rem_minmax(0,1fr)_auto] items-center gap-2.5 px-2 py-2 leading-[1.35] text-[var(--fx-ink-4)] opacity-85">
               <i aria-hidden className="size-2 rounded-full border border-dashed border-[var(--fx-ink-4)]" />
               <span className="truncate">{item.label}</span>
               <small className="text-[0.7rem]">{copy.pendingLabel}</small>

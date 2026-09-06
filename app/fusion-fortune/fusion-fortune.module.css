@@ -50,7 +50,12 @@
   color: var(--fx-ink-1);
   padding: clamp(14px, 3vw, 42px);
   font-family: var(--font-body, system-ui);
-  overflow: hidden;
+  /* 🔴 `hidden` 이 아니라 `clip` 이다 — hidden 은 이 <main> 을 스크롤 컨테이너로 만들고,
+     그러면 결과 차례 레일(FusionResultRail 의 aside)의 sticky 가 뷰포트가 아니라 이 박스를
+     기준으로 붙어 **스크롤하면 화면 밖으로 따라 올라간다**(2026-09-06 브라우저 실측:
+     rect.top 2208 → −4563). clip 은 잘라내되 스크롤 컨테이너를 만들지 않아 sticky 가 산다.
+     결과 패널 section 은 같은 이유로 이미 overflow-clip 이다 — 조상 체인 전체가 이 규칙을 지켜야 한다. */
+  overflow: clip;
 }
 
 

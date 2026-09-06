@@ -116,7 +116,7 @@ export function FusionResultDock({ toc, generating, exporting, hasVerdict }: {
         })}
         {toc.pending.length > 0 && <>
           <li className="px-2.5 pb-1 pt-2.5 text-[0.68rem] uppercase tracking-[0.18em] text-[var(--fx-ink-4)]">{generating ? copy.stageTwoGeneratingLabel : copy.stageTwoGroupLabel}</li>
-          {toc.pending.map((item) => <li key={item.key} className="grid min-h-11 grid-cols-[0.5rem_minmax(0,1fr)_auto] items-center gap-2.5 px-2.5 text-[0.88rem] leading-[1.35] text-[var(--fx-ink-4)] opacity-55">
+          {toc.pending.map((item) => <li key={item.key} className="grid min-h-11 grid-cols-[0.5rem_minmax(0,1fr)_auto] items-center gap-2.5 px-2.5 text-[0.88rem] leading-[1.35] text-[var(--fx-ink-4)] opacity-85">
             <i aria-hidden className="size-2 rounded-full border border-dashed border-[var(--fx-ink-4)]" />
             <span className="truncate">{item.label}</span>
             <small className="text-[0.72rem]">{copy.pendingLabel}</small>
