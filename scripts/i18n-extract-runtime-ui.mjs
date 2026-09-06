@@ -32,7 +32,7 @@ const probeOnly = process.argv.includes("--probe");
 /**
  * 🔴 해석 결과 콘텐츠 엔진 — UI 가 아니라 운세 본문이라 여기서 뽑지 않는다.
  *
- * 측정하니 이 7개 파일이 런타임 UI 추출의 79%(약 80,000자)를 차지했다. 전부
+ * 측정하니 이 파일들이 런타임 UI 추출의 79%(약 80,000자)를 차지했다. 전부
  * 사주/타로/자미 **해석문**이고, 사용자가 범위를 정할 때 명시적으로 2차로 미룬
  * 영역이다. 섞여 들어오면 "UI 문구 4,042개" 처럼 규모가 부풀어 우선순위를 흐린다.
  * 이 엔진들의 UI 라벨(버튼·로딩·에러)은 이미 코어 사전의 sajuEngine.* /
@@ -45,7 +45,6 @@ const INTERPRETATION_ENGINES = new Set([
   "worker/lib/destiny-flower-engine.js",
   "js/entertain-engine.js",
   "js/oracle-kcg.js",
-  "js/tarot-data.js",
 ]);
 
 const UI_PROPERTY_RE = /(label|title|text|desc|description|message|placeholder|hint|cta|caption|heading|subtitle|note|tooltip|aria)$/i;

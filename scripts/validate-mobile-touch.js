@@ -80,7 +80,6 @@ try {
 
   const criticalResources = [
     { name: 'Canonical Redirect', pattern: /canonical-redirect/, required: true },
-    { name: 'PWA Theme Init', pattern: /pwa-theme-init/, required: true },
     { name: 'Swisseph Loader', pattern: /swisseph-loader/, required: true },
     { name: 'KASI Calendar', pattern: /kasi.*calendar\.js/, required: true }
     // 🔴 'Lunar Library'(/lunar-javascript/) 항목을 지웠다. index.html 에 그 문자열이 없어진
@@ -89,6 +88,9 @@ try {
     // 달력은 /js/core/korean-calendar.js 에서 나온다.
     // 🔴 같은 이유로 2026-08-28 에 'Chinese Astrology' 항목도 지웠다 — js/data/chinese-astrology.js 는
     // 로드 지점이 0건이라 js/·public/ 양쪽에서 삭제됐다.
+    // 🔴 2026-09-06 에 'PWA Theme Init'(/pwa-theme-init/) 항목도 같은 이유로 지웠다 —
+    // js/inline/pwa-theme-init.js 는 index.html 에 로드 지점이 0건이라 이미 실패하던 기대였고,
+    // js/·public/ 양쪽에서 삭제됐다. theme-color 는 셸의 <meta> 와 인라인 스크립트가 직접 세운다.
   ];
 
   let criticalOk = true;

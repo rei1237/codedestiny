@@ -51,7 +51,6 @@
 /public/cosmic-soul-meditation.html
 /public/css/entertain-system.css
 /public/css/fortune.css
-/public/css/sibyl-premium.css
 /public/destiny-island.html
 /public/destiny-poker.html
 /public/emoi_omikuji_v2.html
@@ -110,7 +109,6 @@
 /public/js/entertain-engine.js
 /public/js/fate-scroll-reveal.js
 /public/js/fate-scroll-top.js
-/public/js/fortune-engine.js
 /public/js/fortune-gateway.js
 /public/js/fsn-navbar.js
 /public/js/iching-engine.js
@@ -121,8 +119,6 @@
 /public/js/inline/gesture-arbiter.js
 /public/js/inline/global-error-guard.js
 /public/js/inline/legacy-action-launcher.js
-/public/js/inline/mobile-safe-render-init.js
-/public/js/inline/pwa-theme-init.js
 /public/js/inline/saju-core-bootstrap.js
 /public/js/io-image-lazy-loader.js
 /public/js/kill-switch.js
@@ -150,9 +146,7 @@
 /public/js/share-reward.js
 /public/js/share.js
 /public/js/sibyl-system.js
-/public/js/splash.js
 /public/js/swisseph-loader.js
-/public/js/tarot-data.js
 /public/js/tarot-love-experience.js
 /public/js/tarot-reunion-experience.js
 /public/js/tarot-self-esteem-experience.js
@@ -164,7 +158,6 @@
 /public/js/vendor/sweph-wasm/index.js
 /public/js/vendor/sweph-wasm/wasm/swisseph.js
 /public/js/vendor/sweph-wasm/wasm/swisseph.wasm
-/public/js/web-vitals-console.js
 /public/llms.txt
 /public/manifest-neo.json
 /public/manifest.en.json

@@ -918,9 +918,9 @@ function setBgm(on){
    ============================================================ */
 var $=function(id){return document.getElementById(id);};
 var reduceMotion=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-/* 저사양 기기 등급. 판정식은 레포 정본 js/inline/mobile-safe-render-init.js 의 isLikelyLowGpu()
-   와 같다 — 이 페이지는 외부 JS 를 하나도 로드하지 않으므로 import 대신 인라인으로 둔다
-   (정적 셸 index.html 도 같은 방식으로 인라인 판정한다).
+/* 저사양 기기 등급. 판정식은 정적 셸 index.html 의 인라인 isLikelyLowGpu() 와 같다
+   — 이 페이지는 외부 JS 를 하나도 로드하지 않으므로 import 대신 인라인으로 둔다
+   (2026-09-06: 같은 식을 담고 있던 js/inline/mobile-safe-render-init.js 는 로드 지점 0건이라 삭제했다).
    🔴 reduceMotion 은 건드리지 않는다(a11y 의미). fxLow 가 그 상위집합이라 기존 동작은 전부 보존된다.
    🔴 신규 전역은 fxLow 하나, 신규 클래스는 fx-low 하나. applyPhase() 는 ph-* 만 지우므로 충돌 없다.
    🔴 navigator.deviceMemory 는 iOS Safari 에 없다 — 이 식만으로는 저사양 아이폰을 놓칠 수 있다.
