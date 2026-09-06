@@ -590,6 +590,16 @@ describe("Fusion Fortune per-use billing and mock generation", () => {
     expect(validateFusionFortuneResult(repeated)).toMatchObject({ ok: false, issues: ["repeated_sentence"] });
   });
 
+  it("🔴 keeps hedged wording out of unsafe_phrase — 2026-09-06 실호출에서 `무조건적으로 수용하기보다` 가 반려됐다", async () => {
+    const result = await generateFusionFortuneWithMockLLM({ context: { birthTimeKnown: true } });
+    const withClosing = (sentence) => validateFusionFortuneResult({ ...result, closingMessage: `${result.closingMessage} ${sentence}` });
+    expect(withClosing("조언을 무조건적으로 수용하기보다 자신의 리듬에 맞춰 조정해 보세요.").ok).toBe(true);
+    expect(withClosing("반드시 그런 것은 아니니 여유를 두세요.").ok).toBe(true);
+    // 면책은 같은 문장 안에서만 — 뒤 문장의 부정어가 앞 문장의 단정을 덮으면 안 된다.
+    expect(withClosing("이 시기에는 무조건 성과가 납니다.")).toMatchObject({ ok: false, issues: ["unsafe_phrase"] });
+    expect(withClosing("무조건 오릅니다. 걱정은 없습니다.")).toMatchObject({ ok: false, issues: ["unsafe_phrase"] });
+  });
+
   it("selects a six-position tarot spread on the server and never accepts client card names", () => {
     const spread = selectFusionFortuneTarotSpread(input);
     expect(spread).toMatchObject({ spreadType: "fusion_six_system_bridge" });
