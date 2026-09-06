@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { useDiaryToday } from "./DiaryStoreProvider";
 import { diaryFlowCopy } from "../_lib/flow-copy";
@@ -56,10 +56,32 @@ const copy = DIARY_RECORDS_TEXT.ko;
 /** 한 번에 더 보여 주는 날 수. 목록은 스크롤이 유일한 이동 수단이라 한 걸음을 크게 둔다. */
 const PAGE_SIZE = 30;
 
+/** 통계의 태그 순위가 `?tag=` 로 넘긴다. 검색어와 달리 태그는 사용자가 고른 분류라 URL 에 둔다. */
+function readRequestedTag(): string | null {
+  if (typeof window === "undefined") return null;
+  const raw = new URLSearchParams(window.location.search).get("tag");
+  return raw ? raw.trim() || null : null;
+}
+
+/** 🔴 달력과 같은 이유로 `replaceState` 만 쓴다 — 칩을 누를 때마다 히스토리가 쌓이면 뒤로가기가 갇힌다. */
+function syncRequestedTag(tag: string | null): void {
+  if (typeof window === "undefined") return;
+  const url = new URL(window.location.href);
+  if (tag) url.searchParams.set("tag", tag);
+  else url.searchParams.delete("tag");
+  window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+}
+
 export default function DiaryRecordsView() {
   const { hydrated, store, ext, chart } = useDiaryToday();
   const [tag, setTag] = useState<string | null>(null);
   const [limit, setLimit] = useState(PAGE_SIZE);
+
+  // 🔴 쿼리도 이펙트에서 읽는다 — 렌더 중에 보면 프리렌더 결과와 어긋난다(달력과 같은 규약).
+  useEffect(() => {
+    if (!hydrated) return;
+    setTag(readRequestedTag());
+  }, [hydrated]);
 
   const rows = useMemo(() => buildDiaryRecordRows(store, ext), [store, ext]);
   const tags = useMemo(() => collectDiaryTags(rows), [rows]);
@@ -83,6 +105,7 @@ export default function DiaryRecordsView() {
   const pickTag = (next: string | null) => {
     setTag(next);
     setLimit(PAGE_SIZE);
+    syncRequestedTag(next);
   };
 
   if (!hydrated) {
