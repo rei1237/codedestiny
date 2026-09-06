@@ -211,13 +211,16 @@ export default function RootLayout({ children }) {
             셸↔React 페이지를 오갈 때마다 다크↔라이트 번쩍임을 만든다(앱에서 테마 토글도 제거했다).
             그래서 앱 분기를 없애고 웹과 동일하게 '저장값이 neo 일 때만 네오'로 통일한다.
 
-            🔴 이 속성의 실제 도달 범위는 거의 없다 — 오해 방지를 위해 적어 둔다. 속성이 붙으면
-            styles/theme-tokens.css 의 --cd-* 페르소나 토큰이 뒤집히지만, App Router 에서 그
-            토큰을 읽는 파일이 5개뿐이고 그중 홈 모듈은 셸 승격 탓에 렌더되지 않는다. 실측
-            2026-08-24(스테이징, pig↔neo 픽셀 대조): /about·/privacy-policy·/saju·
-            /health-report/guide·/destiny-compass 모두 **차이 0**. 즉 App Router 는 네오 단일
-            세계이고 그건 사고가 아니라 정합된 상태다(docs/context/design-and-ui.md).
-            그래도 지우지 말 것 — 셸과 키를 공유하므로 토큰을 쓰는 화면이 생기면 그때 살아난다. */}
+            🔴 이 속성은 이제 실제로 화면을 바꾼다 — 지우면 /diary 가 통째로 라이트에 갇힌다.
+            `app/diary/_styles/diary.module.css` 의 --dy-* 두 벌이 이 속성(html[data-cd-theme="neo"])
+            으로 갈리므로, 이 한 줄이 다이어리의 유일한 네오 진입점이다(PR-G, 2026-09-06).
+
+            그 밖의 App Router 라우트에서는 여전히 도달 범위가 거의 없다 — 오해 방지를 위해 남긴다.
+            속성이 붙으면 styles/theme-tokens.css 의 --cd-* 페르소나 토큰이 뒤집히지만, 그 토큰을
+            읽는 파일이 5개뿐이고 그중 홈 모듈은 셸 승격 탓에 렌더되지 않는다. 실측 2026-08-24
+            (스테이징, pig↔neo 픽셀 대조): /about·/privacy-policy·/saju·/health-report/guide·
+            /destiny-compass 모두 **차이 0**. 🔴 "App Router 는 네오 단일 세계"라고 적혀 있던
+            문장은 /diary 가 두 벌을 갖게 되면서 더 이상 참이 아니다(docs/context/design-and-ui.md). */}
         <script
           dangerouslySetInnerHTML={{
             __html: "try{if(localStorage.getItem('fortuneThemeModeStateV1')==='neo'){document.documentElement.dataset.cdTheme='neo';}}catch(e){}",

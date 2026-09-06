@@ -377,6 +377,55 @@ test("낡은 확장 스냅샷을 들고 저장해도 그사이 다른 탭이 쓴
   assert.equal(days[YMD].todos[0].text, "나중에 쓴 할 일");
 });
 
+test("태그도 같은 확장 샤드로 왕복하고 v2 를 건드리지 않는다", () => {
+  const storage = makeStorage();
+  const shell = buildShellSandbox(storage);
+
+  const diary = shell.loadDiary();
+  shell.getTodayEntry(diary).nightLog = "셸이 쓴 회고";
+  assert.equal(shell.saveDiary(diary), true);
+  const v2Before = storage.getItem(store.DIARY_STORAGE_KEY);
+
+  // PR-G 의 태그는 `day.tags` 문자열 배열이다 — 새 키를 만들지 않는다.
+  const days = ext.updateExtDay(storage, YMD, (day) => {
+    day.tags = ["운동", "회고"];
+  });
+
+  assert.ok(days, "`updateExtDay` 가 태그 저장에 실패했다");
+  assert.deepEqual(days[YMD].tags, ["운동", "회고"]);
+  assert.equal(
+    storage.getItem(store.DIARY_STORAGE_KEY),
+    v2Before,
+    "태그 쓰기가 v2 키를 건드렸다 — 셸 모달이 모르는 필드를 안고 다니게 된다",
+  );
+  assert.deepEqual(ext.readAllExtDays(storage)[YMD].tags, ["운동", "회고"], "태그가 다시 읽히지 않는다");
+});
+
+test("태그 쓰기가 같은 날의 일정·할 일을 지우지 않는다", () => {
+  const storage = makeStorage();
+
+  ext.updateExtDay(storage, YMD, (day) => {
+    day.schedules.push({ id: "s1", at: "10:00", text: "회의" });
+    day.todos.push({ id: "t1", text: "장보기", done: false });
+    day.tags = ["일"];
+  });
+
+  // 태그만 고치는 쓰기(`addTag`/`removeTag` 가 하는 것과 같은 모양).
+  const days = ext.updateExtDay(storage, YMD, (day) => {
+    day.tags = [...(day.tags || []), "집"];
+  });
+
+  assert.deepEqual(days[YMD].tags, ["일", "집"]);
+  assert.equal(days[YMD].schedules[0].text, "회의", "태그 쓰기가 일정을 지웠다");
+  assert.equal(days[YMD].todos[0].text, "장보기", "태그 쓰기가 할 일을 지웠다");
+
+  const removed = ext.updateExtDay(storage, YMD, (day) => {
+    day.tags = (day.tags || []).filter((tag) => tag !== "일");
+  });
+  assert.deepEqual(removed[YMD].tags, ["집"]);
+  assert.equal(removed[YMD].schedules.length, 1, "태그를 지우면서 일정이 함께 사라졌다");
+});
+
 test("확장 쓰기도 실패를 성공처럼 돌려주지 않는다", () => {
   const full = ext.updateExtDay(makeFullStorage(), YMD, (day) => { day.todos.push({ id: "t1", text: "저장되지 않는다" }); });
   assert.equal(full, null, "저장 실패를 성공처럼 돌려주면 화면이 안 쓴 것을 썼다고 보여 준다");

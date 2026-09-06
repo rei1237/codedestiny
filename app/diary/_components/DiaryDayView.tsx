@@ -219,7 +219,9 @@ export default function DiaryDayView({ ymd, fortune, group, entry, onClose }: Di
           )
         ) : null}
 
-        {tab === "record" ? <DiaryEntryFields ymd={ymd} entry={entry} /> : null}
+        {/* 🔴 태그를 켜는 자리는 여기 하나다 — 퀵캡처(`DiaryQuickCapture`)는 같은 컴포넌트를
+            쓰지만 `showTags` 를 켜지 않는다(승인본 확정 사항, PR-G). */}
+        {tab === "record" ? <DiaryEntryFields ymd={ymd} entry={entry} showTags /> : null}
 
         {/* 🔴 칸 순서는 홈 「오늘의 계획」과 같다(일정 → 할 일 → 루틴) — 같은 세 칸을 두 화면이
             다른 순서로 보여 주면, 사용자는 같은 것인지 다른 것인지부터 확인해야 한다. */}
