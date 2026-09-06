@@ -542,6 +542,27 @@ describe("Fusion Fortune per-use billing and mock generation", () => {
     expect(schema.properties.sajuSection.properties.content.description).toContain("자 이상");
   });
 
+  it("🔴 states a target above the minimum in the length description — the 2026-09-06 live run landed at 79~82% of the threshold", () => {
+    // 최소치만 적으면 모델이 그것을 목표로 읽고 그 아래에서 멈춘다(saju 2,860 · tarot 2,967 / 3,600자).
+    const schema = toGeminiSchema(FUSION_FORTUNE_RESPONSE_SCHEMA);
+    const lengthFields = [
+      [schema.properties.sajuSection.properties.content, FUSION_FORTUNE_LENGTH.section],
+      [schema.properties.integratedReading.properties.content, FUSION_FORTUNE_LENGTH.integratedReading],
+      [schema.properties.timingAndAction.properties.content, FUSION_FORTUNE_LENGTH.timingAndAction],
+      [schema.properties.executiveSummary, FUSION_FORTUNE_LENGTH.executiveSummary],
+      [schema.properties.finalVerdict.properties.rationale, FUSION_FORTUNE_LENGTH.finalVerdictRationale],
+    ];
+    for (const [node, minChars] of lengthFields) {
+      const numbers = [...node.description.matchAll(/([\d,]+)자/g)].map((match) => Number(match[1].replace(/,/g, "")));
+      expect(numbers).toContain(minChars);
+      // 최소치보다 위의 목표가 함께 있어야 한다 — 없으면 모델은 최소치 아래에서 멈춘다.
+      expect(Math.max(...numbers)).toBeGreaterThan(minChars);
+      expect(node.description).toContain("반려");
+      // 🔴 FORBIDDEN(무조건·반드시)을 프롬프트에 넣지 않는다 — 모델이 되받아 쓰면 unsafe_phrase 로 자기 응답이 반려된다.
+      expect(node.description).not.toMatch(/무조건|반드시/);
+    }
+  });
+
   it("🔴 transmits a schema that requires keyPoints — the 2026-09-06 live run omitted it in five of eight rejected groups", () => {
     const group = FUSION_SECTION_GROUP_SPECS.find((spec) => spec.keys.includes("sukuyoSection"));
     const prompt = buildFusionSectionGroupPrompt({ context: { birthTimeKnown: true }, group });
