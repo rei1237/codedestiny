@@ -456,11 +456,30 @@ function wait(ms) {
   Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
 }
 
+// 같은 산출물을 baseDir 하나당 패스 22개가 되풀이해 읽고 같은 본문을 다시 뽑는다
+// (2026-09-06 실측: 이 검증기가 postbuild 에서 22.3s). 읽기·본문 추출·파일 수집은 전부 순수
+// 조회라 한 baseDir 을 도는 동안 캐시해도 판정이 같고, baseDir 이 바뀔 때 비워 메모리를 묶는다.
+// 🔴 이 스크립트는 아무것도 쓰지 않는다 — 쓰기 단계가 생기면 이 캐시부터 다시 볼 것.
+const fileTextCache = new Map();
+const visibleTextCache = new Map();
+const indexHtmlListCache = new Map();
+
+function resetOutputCaches() {
+  fileTextCache.clear();
+  visibleTextCache.clear();
+  indexHtmlListCache.clear();
+}
+
 function readFileUtf8WithRetry(absolutePath) {
+  const cached = fileTextCache.get(absolutePath);
+  if (cached !== undefined) return cached;
+
   let lastError = null;
   for (let attempt = 0; attempt < 80; attempt += 1) {
     try {
-      return readFileSync(absolutePath, "utf8");
+      const content = readFileSync(absolutePath, "utf8");
+      fileTextCache.set(absolutePath, content);
+      return content;
     } catch (error) {
       lastError = error;
       if (!retryableReadErrorCodes.has(error?.code)) throw error;
@@ -498,6 +517,14 @@ function collectIndexHtmlFiles(directory, files = []) {
     }
   }
 
+  return files;
+}
+
+function listIndexHtmlFiles(directory) {
+  const cached = indexHtmlListCache.get(directory);
+  if (cached) return cached;
+  const files = collectIndexHtmlFiles(directory);
+  indexHtmlListCache.set(directory, files);
   return files;
 }
 
@@ -603,12 +630,15 @@ function removeElementBlocks(html, tagName) {
 }
 
 function getVisibleText(html) {
+  const cached = visibleTextCache.get(html);
+  if (cached !== undefined) return cached;
+
   const htmlWithoutBlocks = ["script", "style", "svg"].reduce(
     (content, tagName) => removeElementBlocks(content, tagName),
     html,
   );
 
-  return htmlWithoutBlocks
+  const visibleText = htmlWithoutBlocks
     .replace(/<[^>]+>/g, " ")
     .replace(/&nbsp;/gi, " ")
     .replace(/&amp;/gi, "&")
@@ -616,6 +646,9 @@ function getVisibleText(html) {
     .replace(/&gt;/gi, ">")
     .replace(/\s+/g, " ")
     .trim();
+
+  visibleTextCache.set(html, visibleText);
+  return visibleText;
 }
 
 function createAdsenseContentFingerprint(visibleText) {
@@ -961,7 +994,7 @@ function verifyFeatureGuideContentRoutes(baseDir) {
 }
 
 function verifyGeneratedAdsenseEligibleRoutes(baseDir) {
-  const htmlFiles = collectIndexHtmlFiles(resolve(rootDir, baseDir));
+  const htmlFiles = listIndexHtmlFiles(resolve(rootDir, baseDir));
   const seenFingerprints = new Map();
 
   for (const absolutePath of htmlFiles) {
@@ -1013,7 +1046,7 @@ function verifyBlockedRouteSamplesNoAdsense(baseDir) {
 }
 
 function verifyGeneratedPaidFeatureRoutesNoAdsense(baseDir) {
-  const htmlFiles = collectIndexHtmlFiles(resolve(rootDir, baseDir));
+  const htmlFiles = listIndexHtmlFiles(resolve(rootDir, baseDir));
   let paidRouteCount = 0;
 
   for (const absolutePath of htmlFiles) {
@@ -1042,7 +1075,7 @@ function verifyGeneratedPaidFeatureRoutesNoAdsense(baseDir) {
 // 🔴 색인된 상세 수가 검수된 원고 수와 정확히 같아야 한다 — 한쪽만 바뀌면(원고는 있는데 페이지가
 //    noindex, 페이지는 index 인데 원고 없음) 그 자리에서 실패한다.
 function verifyFamousSajuAliasRoutesNoindex(baseDir) {
-  const htmlFiles = collectIndexHtmlFiles(resolve(rootDir, baseDir));
+  const htmlFiles = listIndexHtmlFiles(resolve(rootDir, baseDir));
   const sitemapPath = `${baseDir}/sitemap.xml`;
   const sitemapPaths = new Set(getSitemapPaths(readRequired(sitemapPath)));
   const indexedSlugs = new Set(getIndexedCelebritySlugs());
@@ -1226,7 +1259,7 @@ function verifyXRobotsNoindexHeaders(headersPath) {
 }
 
 function verifyGeneratedAdsenseBlockedRoutes(baseDir) {
-  const htmlFiles = collectIndexHtmlFiles(resolve(rootDir, baseDir));
+  const htmlFiles = listIndexHtmlFiles(resolve(rootDir, baseDir));
 
   for (const absolutePath of htmlFiles) {
     const route = routeFromHtmlPath(baseDir, absolutePath);
@@ -1245,7 +1278,7 @@ function verifyGeneratedAdsenseBlockedRoutes(baseDir) {
 }
 
 function verifyNoGeneratedStaticAdUnits(baseDir) {
-  const htmlFiles = collectIndexHtmlFiles(resolve(rootDir, baseDir));
+  const htmlFiles = listIndexHtmlFiles(resolve(rootDir, baseDir));
 
   for (const absolutePath of htmlFiles) {
     const htmlPath = relative(rootDir, absolutePath).replace(/\\/g, "/");
@@ -1403,7 +1436,7 @@ function verifyAdsenseEligibleRouteSitemapAlignment(baseDir) {
   const sitemapPath = `${baseDir}/sitemap.xml`;
   const sitemapText = readRequired(sitemapPath);
   const sitemapPaths = new Set(getSitemapPaths(sitemapText));
-  const htmlFiles = collectIndexHtmlFiles(resolve(rootDir, baseDir));
+  const htmlFiles = listIndexHtmlFiles(resolve(rootDir, baseDir));
   let eligibleRouteCount = 0;
 
   for (const absolutePath of htmlFiles) {
@@ -1476,7 +1509,7 @@ const homeCanonicalAllowedRoutes = new Map([
  *    가드를 **통과시키는 쪽으로** 작동했다(/flower/* 4개가 실제로 그렇게 새 나갔다).
  */
 function verifyNoInheritedHomeCanonical(baseDir) {
-  const htmlFiles = collectIndexHtmlFiles(resolve(rootDir, baseDir));
+  const htmlFiles = listIndexHtmlFiles(resolve(rootDir, baseDir));
   for (const absolutePath of htmlFiles) {
     const pathname = routeFromHtmlPath(baseDir, absolutePath);
     if ((homeCanonicalAllowedRoutes.get(pathname) || []).includes(baseDir)) continue;
@@ -1532,7 +1565,7 @@ function readRootLayoutDefaults() {
 
 function verifyNoInheritedRootMetadata(baseDir) {
   const defaults = readRootLayoutDefaults();
-  const htmlFiles = collectIndexHtmlFiles(resolve(rootDir, baseDir));
+  const htmlFiles = listIndexHtmlFiles(resolve(rootDir, baseDir));
   let checked = 0;
   for (const absolutePath of htmlFiles) {
     const pathname = routeFromHtmlPath(baseDir, absolutePath);
@@ -1864,7 +1897,7 @@ function verifyIndexableRouteCoverage(baseDir) {
   const sitemapPath = `${baseDir}/sitemap.xml`;
   const sitemapText = readRequired(sitemapPath);
   const sitemapPaths = new Set(getSitemapPaths(sitemapText));
-  const htmlFiles = collectIndexHtmlFiles(resolve(rootDir, baseDir));
+  const htmlFiles = listIndexHtmlFiles(resolve(rootDir, baseDir));
 
   for (const absolutePath of htmlFiles) {
     const pathname = routeFromHtmlPath(baseDir, absolutePath);
@@ -1899,6 +1932,7 @@ trace("fortune runtime policy language");
 verifyFortuneRuntimePolicyLanguage();
 
 for (const baseDir of ["out", "dist"]) {
+  resetOutputCaches();
   trace(`${baseDir}: no generated static AdSense units`);
   verifyNoGeneratedStaticAdUnits(baseDir);
   trace(`${baseDir}: indexable public routes`);
