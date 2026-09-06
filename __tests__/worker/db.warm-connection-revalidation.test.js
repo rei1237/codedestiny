@@ -24,6 +24,8 @@
  *      ping 도중에 들어와 있어도 마찬가지다(2026-09-06).
  *   ③ 이웃이 **먼저** 있으면 ping 을 보내지 않는다 — 이것이 2026-08-08 재연결 폭풍 사고의 가드가
  *      옮겨 간 자리다. 먼저 돌던 op(크론 태스크 포함)은 ping 도 detach 도 겪지 않는다.
+ *   ④ ②의 예외는 **커넥션 나이** 하나다 — 이웃이 있고 그 커넥션을 방금(FRESH_CONNECTION_MAX_AGE_MS
+ *      이내) 세웠으면 ping 실패를 거짓 실패로 보고 그대로 돌려준다.
  *
  * ②에 "단 동시 요청이 있으면 끊지 않는다" 절이 있었다. ③이 생긴 뒤 그 절이 잡는 경우는 "내 ping 이
  * 도는 300ms 사이에 이웃이 들어왔다"뿐인데, 그 이웃은 ③ 으로 ping 없이 **같은 죽은 커넥션**을 받아
@@ -31,6 +33,13 @@
  * 5회에서 [db-op-timeout] 4건, /api/reviews wall p95 11.7s). 그래서 절을 없앴다. 떼어 낸 클라이언트
  * 위의 이웃 op 은 세션 종료/미연결 에러로 빨리 실패하고 withMongoRetry 가 새 커넥션에서 재시도한다
  * — 그 분류는 이 파일 마지막 테스트가 고정한다.
+ *
+ * 그런데 그 절을 통째로 없앴더니 반대편이 열렸다(2026-09-06 재버스트 실측, #1633 배포): 콜드 요청이
+ * 방금 세운 커넥션에 withMongoRetry 가 다시 ping 을 던지는데, 이웃이 그 소켓을 쓰는 중이면 ping 은
+ * 새 소켓을 열어야 해(socketReadyMs≈940) 예산 300 을 넘긴다 — 살아 있는 커넥션의 **거짓 실패**다.
+ * 그 위의 이웃은 재시도 없는 라우트(/api/insights)에서 곧장 500 이 됐다(3·4·5회차). 두 상황을
+ * 가르는 것이 ④의 나이다: D 의 죽은 커넥션은 분 단위 전에 세운 것이고, 거짓 실패는 같은 요청 안에서
+ * 방금 세운 것이다. 아래 두 테스트가 그 양쪽을 고정한다.
  */
 
 import { jest } from "@jest/globals";
@@ -179,12 +188,16 @@ test("a request that finds a neighbour already on the connection skips the ping 
   expect(mongooseMock.connection.db.command.mock.calls.length).toBeGreaterThan(pingsAfterNeighbour);
 });
 
-test("revalidation failure detaches the dead connection even if a neighbour arrived mid-ping", async () => {
+test("revalidation failure detaches an old warm connection even if a neighbour arrived mid-ping", async () => {
   const mongooseMock = buildMongooseMock({ pingBehavior: PING_OK });
   const { connectDb, withMongoRetry, __dbTestUtils } = await loadDb(mongooseMock);
 
   const neighbourEnv = { ...env, MONGO_PING_TIMEOUT_MS: "300" };
   await connectDb(neighbourEnv);
+  // D 의 커넥션이다 — 앞선 요청이 분 단위 전에 세워 두고 그 뒤에 죽었다(④의 나이 가드 밖).
+  // 🔴 상수를 경유하지 않고 실측 나이를 그대로 넣는다 — 그래야 나이 창을 분 단위로 늘리는 회귀를
+  //    이 테스트가 잡는다(창을 상수에서 읽으면 창이 커질 때 테스트도 따라 커져 아무것도 못 지킨다).
+  __dbTestUtils.ageConnectionForTest(5 * 60 * 1000);
 
   /* 2026-09-06 스테이징 버스트의 순서다. 단독 요청의 ping 이 걸려 있는 **도중에** 다른 요청이 같은
      아이솔레이트에 들어온다. 이웃은 위 테스트대로 ping 을 건너뛰고 같은 커넥션을 받아 간다. 앞선
@@ -231,6 +244,52 @@ test("revalidation failure detaches the dead connection even if a neighbour arri
     expect(mongooseMock.connection.getClient()).not.toBe(staleClient);
     await Promise.resolve();
     expect(staleClient.close).toHaveBeenCalledTimes(1);
+  } finally {
+    releaseNeighbour?.({ ok: 1 });
+    await neighbour.catch(() => {});
+  }
+});
+
+test("a ping failure on a just-established connection with a neighbour is treated as a false failure, not a detach", async () => {
+  /* #1633 재버스트가 드러낸 반대편이다(④). 위 테스트와 순서는 같고 **커넥션 나이만 다르다** —
+     여기서는 방금 세운 커넥션이라, 이웃이 소켓을 쓰는 중이라 예산을 넘긴 ping 을 소켓의 죽음으로
+     읽지 않는다. 떼면 그 이웃이 MongoExpiredSessionError 를 받고, 재시도가 없는 라우트는 500 이다. */
+  const mongooseMock = buildMongooseMock({ pingBehavior: PING_OK });
+  const { connectDb, withMongoRetry, __dbTestUtils } = await loadDb(mongooseMock);
+
+  const neighbourEnv = { ...env, MONGO_PING_TIMEOUT_MS: "300" };
+  await connectDb(neighbourEnv);
+
+  mongooseMock.connection.__setPing(PING_HANGS);
+  const closesBefore = mongooseMock.connection.close.mock.calls.length;
+  const connectsBefore = mongooseMock.connect.mock.calls.length;
+  const liveClient = mongooseMock.connection.getClient();
+  const pingsBefore = mongooseMock.connection.db.command.mock.calls.length;
+
+  const retryOpts = { retries: 0, attemptTimeoutMS: 4000, minAttemptTimeoutMS: 250, respectServerSelectionFloor: false };
+  const pinging = withMongoRetry(neighbourEnv, async () => ({ ok: 1 }), retryOpts);
+  for (let i = 0; i < 50 && mongooseMock.connection.db.command.mock.calls.length === pingsBefore; i += 1) {
+    await new Promise((resolve) => setTimeout(resolve, 5));
+  }
+
+  let releaseNeighbour;
+  const neighbour = withMongoRetry(
+    neighbourEnv,
+    () => new Promise((resolve) => { releaseNeighbour = resolve; }),
+    retryOpts,
+  );
+  try {
+    for (let i = 0; i < 50 && __dbTestUtils.countActiveMongoOps() < 2; i += 1) {
+      await new Promise((resolve) => setTimeout(resolve, 5));
+    }
+    expect(__dbTestUtils.countActiveMongoOps()).toBe(2);
+
+    await pinging;
+
+    // 이웃이 서 있는 소켓은 그대로다 — 떼지도, 새로 세우지도 않았다.
+    expect(mongooseMock.connection.close.mock.calls.length).toBe(closesBefore);
+    expect(mongooseMock.connect.mock.calls.length).toBe(connectsBefore);
+    expect(mongooseMock.connection.getClient()).toBe(liveClient);
   } finally {
     releaseNeighbour?.({ ok: 1 });
     await neighbour.catch(() => {});

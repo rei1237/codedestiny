@@ -6,6 +6,15 @@ let connectPromise = null;
 // 마지막으로 연결 건강을 확인한 시각(ping 성공 또는 신규 연결 성공).
 // 웜 커넥션 재사용 시 매 요청 ping 왕복을 피하기 위해 유휴 임계 이내면 ping을 생략한다.
 let lastHealthyAt = 0;
+// 지금 쓰는 커넥션을 **세운** 시각(연결 성공 시에만 갱신 — ping 성공으로는 갱신되지 않는다).
+// lastHealthyAt 과 다른 값이어야 한다: 웜 커넥션은 ping 이 성공할 때마다 lastHealthyAt 이 갱신되므로
+// 그 값으로는 "방금 세운 커넥션"과 "오래 살아 있다가 방금 확인된 커넥션"을 구분할 수 없다.
+// 쓰임은 아래 connectDb 웜 분기 catch 의 나이 가드 하나뿐이다.
+let connectionEstablishedAt = 0;
+// 이 나이보다 어린 커넥션 위에서 난 ping 실패는 **거짓 실패**로 본다(근거는 connectDb catch 주석).
+// 3000 은 스테이징 실측 socketReadyMs≈940 · 콜드 핸드셰이크 ≈2440ms 를 덮는 값이다 —
+// 그 시간 안에 세워진 커넥션이라면 ping 예산 300ms 초과는 소켓이 죽어서가 아니라 아직 못 열려서다.
+const FRESH_CONNECTION_MAX_AGE_MS = 3000;
 // 마지막으로 전역 풀 disconnect(resetMongooseConnection)를 실행한 시각. op-타임아웃 버스트가
 // 동시에 여러 번 disconnect해 아이솔레이트 공유 풀을 반복 절단(재연결 폭풍)하는 것을 쿨다운으로 막는다.
 let lastPoolResetAt = 0;
@@ -441,7 +450,8 @@ let staleClientCloseTask = null;
  * 그래서 그 사이 컬렉션을 잡은 op 은 함께 끊겼다. 지금은 **끊기 전에 먼저 떼므로**, 떼어 낸 뒤
  * 들어온 요청은 옛 클라이언트에 닿을 길이 없다. 호출부의 이웃 가드는 웜 분기의 **ping 건너뛰기**
  * (`countActiveMongoOps() > activeOpsOwned` 면 ping 도 detach 도 없다)로 옮겨 갔다 — 두 장치는
- * 서로를 대체하지 않는다. ping 도중 들어온 이웃까지는 막지 않는다(connectDb catch 주석, 2026-09-06).
+ * 서로를 대체하지 않는다. ping 도중 들어온 이웃은 커넥션이 **방금 세운 것일 때만** 이 함수를 막는다
+ * (거짓 ping 실패 — connectDb catch 의 나이 가드, 2026-09-06).
  *
  * 🔴 옛 클라이언트를 그냥 버리면 안 된다 — `serverMonitoringMode:"poll"` 모니터가 노드마다
  * heartbeat 를 계속 던져(heartbeatFrequencyMS 주석 참조) 트래픽 없는 시간대의 Atlas Opcounters 를
@@ -752,7 +762,34 @@ export async function connectDb(env = {}, options = {}) {
          빨리 실패하고(isTransientMongoError 가 그 둘을 transient 로 분류한다) withMongoRetry 의
          다음 시도가 새 커넥션을 탄다. 🔴 ping 이 거짓 실패(살아 있는데 예산 300 초과)면 살아 있던
          이웃을 한 번 재시도시키는 비용을 낸다 — 스테이징 웜 ping rtt 실측 186~261ms 라 예산과
-         40ms 차이다. 예산 인하는 하지 말고, 프로덕션 [db-ping] rtt 를 잰 뒤에만 올릴 것. */
+         40ms 차이다. 예산 인하는 하지 말고, 프로덕션 [db-ping] rtt 를 잰 뒤에만 올릴 것.
+
+         🔴 **단, 커넥션이 방금 세워진 것이면 돌려준다**(2026-09-06, ① 머지 후 스테이징 재버스트
+         #1633=caf66a7 실측). 위 "거짓 실패의 비용은 재시도 한 번"이 틀렸다. 콜드 회차의 실제 순서는:
+         라우트가 connectDb 로 커넥션을 세운다 → 같은 요청의 withMongoRetry 가 connectDb 를 **다시**
+         부른다 → 그 사이 들어온 이웃 2 op 이 그 소켓을 쓰는 중이라 ping 은 풀에서 새 소켓을 열어야
+         하고(socketReadyMs≈940) 예산 300 에 못 든다 → 거짓 실패. 여기서 떼면 그 위의 이웃이
+         MongoExpiredSessionError 를 받는데, withMongoRetry 를 안 쓰는 라우트(insights)는 재시도가
+         없어 그대로 500 이다 — 재버스트 3·4·5회차 /api/insights 500 이 그것이다.
+
+         그래서 이웃이 있을 때만 **커넥션 나이**로 가른다. 두 상황은 나이 하나로 갈린다:
+           · D 의 죽은 웜 커넥션 — 이전 요청이 분 단위 전에 세운 것(FRESH 초과) → 종전대로 뗀다.
+           · 거짓 실패 — 같은 요청 안에서 방금 세운 것(FRESH 이내) → 돌려준다.
+         이웃이 없으면 나이와 무관하게 뗀다 — 끊어서 다칠 남이 없고, 단독 요청의 검증은 ①의 근거
+         (2026-08-16 무검증 재사용 7.8초)가 그대로 살아 있어야 한다.
+         🔴 어린 커넥션이 **정말로** 죽었다면 이 요청은 못 살리지만, withMongoRetry 의 다음 시도가
+         (attemptTimeoutMS 8000 뒤라 그때는 FRESH 를 넘겨) 떼어 낸다. 즉 지연될 뿐 막히지 않는다. */
+      if (countActiveMongoOps() > activeOpsOwned) {
+        const connectionAgeMs = connectionEstablishedAt ? Date.now() - connectionEstablishedAt : Number.POSITIVE_INFINITY;
+        if (connectionAgeMs < FRESH_CONNECTION_MAX_AGE_MS) {
+          if (timings) {
+            timings.pingFalseFailure = true;
+            timings.connectionAgeMs = connectionAgeMs;
+          }
+          console.warn(`[db-ping] fresh connection kept despite ping timeout (treated as false failure). ageMs=${connectionAgeMs} rttMs=${warmPingMs} budgetMs=${pingTimeoutMS} neighbours=${countActiveMongoOps() - activeOpsOwned}`);
+          return mongoose.connection;
+        }
+      }
       /* 🔴 이 teardown 은 **임계 경로 위에 있었다** — 여기가 끝나야 새 커넥션 수립이 시작됐다.
          2026-08-31 계측(`[db-connect] warmResetMs`)이 그 값을 찍었다: 프로덕션 ≈232ms ·
          스테이징 1313~1390ms. 산술도 닫혔다 — 스테이징 선행 구간 1623 ≈ ping 300 + reset 1316.
@@ -944,6 +981,9 @@ export async function connectDb(env = {}, options = {}) {
 
       if (mongoose.connection.readyState === 1) {
         lastHealthyAt = Date.now();
+        // 🔴 여기서만 갱신한다 — ping 성공(위 웜 분기)으로는 갱신하지 않는다. 이 값이 재는 것은
+        // '마지막 건강 확인'이 아니라 '이 소켓이 몇 살인가'이고, 위 catch 의 나이 가드가 그걸 쓴다.
+        connectionEstablishedAt = Date.now();
         if (timings && connectStartedAt) {
           timings.handshakeMs = Date.now() - connectStartedAt;
           if (connectPhases) {
@@ -1562,6 +1602,10 @@ export const __dbTestUtils = {
   // 배경 teardown 은 아무도 await 하지 않으므로(그게 이 변경의 요점이다) 테스트가 완료를
   // 확인할 창구가 따로 필요하다. 프로덕션 경로는 이 값을 읽지 않는다.
   awaitStaleClientCloseForTest: () => Promise.resolve(staleClientCloseTask),
+  // 지금 커넥션을 agoMs 전에 세운 것으로 둔다(웜 분기 나이 가드를 시간 경과 없이 재현).
+  ageConnectionForTest: (agoMs = FRESH_CONNECTION_MAX_AGE_MS + 1000) => {
+    connectionEstablishedAt = Date.now() - agoMs;
+  },
   // agoMs 만큼 과거에 리셋이 있었던 것으로 둔다(쿨다운·자기유발 창을 시간 경과 없이 재현).
   markPoolResetForTest: (agoMs = 0) => {
     lastPoolResetAt = Date.now() - agoMs;
