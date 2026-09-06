@@ -1652,3 +1652,153 @@ html[data-cd-theme="neo"] .shell {
   flex: 1 1 8em;
   min-width: 0;
 }
+
+/* ── 더보기 허브 ────────────────────────────────────────────────────────
+   🔴 새 `--dy-*` 토큰을 만들지 않았다 — 색은 전부 기존 토큰이다. 토큰을 더하면 라이트·네오
+   두 블록을 함께 고쳐야 하고, 한쪽을 빠뜨리면 그 테마에서만 글자가 사라진다. */
+
+.moreList {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* 줄 사이는 선 하나로 나눈다 — 줄마다 카드를 두면 여섯 줄이 전부 같은 무게로 튀어 오른다. */
+.moreItem + .moreItem {
+  border-top: 1px solid var(--dy-line);
+}
+
+.moreRow {
+  display: flex;
+  align-items: center;
+  gap: var(--cd-sp-sm);
+  width: 100%;
+  min-height: var(--cd-btn-h);
+  padding: var(--cd-sp-sm) 0;
+  border: 0;
+  background: transparent;
+  color: var(--dy-text);
+  font-family: inherit;
+  font-size: var(--cd-t-body);
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.moreRow:hover {
+  color: var(--dy-accent);
+}
+
+.moreRow:focus-visible {
+  outline: 2px solid var(--dy-focus);
+  outline-offset: 2px;
+}
+
+/* 아직 화면이 없는 줄. 🔴 지우지 않고 남긴다 — 무엇이 올 자리인지 보이는 편이 낫다. */
+.moreRow[aria-disabled="true"] {
+  color: var(--dy-disabled);
+  cursor: default;
+}
+
+.moreRow[aria-disabled="true"]:hover {
+  color: var(--dy-disabled);
+}
+
+.moreIcon {
+  flex: 0 0 auto;
+  width: 1.5em;
+  text-align: center;
+  font-size: var(--cd-t-card);
+}
+
+.moreLabel {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.moreDesc {
+  color: var(--dy-muted);
+  font-size: var(--cd-t-caption);
+}
+
+.moreBadge {
+  flex: 0 0 auto;
+  padding: 2px var(--cd-sp-xs);
+  border: 1px solid var(--dy-line);
+  border-radius: var(--cd-r-pill);
+  color: var(--dy-muted);
+  font-size: var(--cd-t-caption);
+}
+
+/* ── 기록 백업 ──────────────────────────────────────────────────────── */
+
+.dataActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cd-sp-xs);
+}
+
+/* 파일 고르기는 `<label>` 이 감춘 `<input type="file">` 을 연다 — 칩과 같은 모양으로 앉힌다. */
+.dataFile {
+  composes: chip;
+}
+
+.dataFileInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* 불러오기 미리보기 3칸. 🔴 0이어도 칸을 숨기지 않는다 — 무엇을 안 세는지 보이게. */
+.previewTiles {
+  composes: statTiles;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+/* 되돌릴 수 없는 자리. 바탕을 깔아 이 블록 안이 다른 성격임을 먼저 보이게 한다. */
+.dangerBox {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cd-sp-sm);
+  padding: var(--cd-sp-md);
+  border: 1px solid var(--dy-accent);
+  border-radius: var(--cd-r-card);
+  background: var(--dy-accent-soft);
+}
+
+.dangerButton {
+  composes: chip;
+  border-color: var(--dy-accent);
+  background: var(--dy-accent);
+  color: var(--dy-accent-ink);
+}
+
+.dangerButton:hover {
+  background: var(--dy-accent-hover);
+}
+
+.dangerButton[disabled] {
+  border-color: var(--dy-line);
+  background: transparent;
+  color: var(--dy-disabled);
+}
+
+.dangerButton[disabled]:hover {
+  background: transparent;
+}
+
+/* 결과 한 줄(내보냈다 / 합쳤다 / 읽지 못했다). `role="status"` 로 읽히므로 자리를 비워 두지 않는다. */
+.dataNotice {
+  composes: emptySmall;
+  color: var(--dy-text);
+}
