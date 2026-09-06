@@ -3529,7 +3529,7 @@ function vedicAiGateEvidence(gateResult,requestId){
   };
 }
 
-async function vedicAiPaidGate(requestId){
+async function vedicAiPaidGate(requestId, resume){
   if(typeof window._cdOpenPaidServiceGate!=='function'){
     return {ok:false,status:402,code:'PAYMENT_REQUIRED',message:'결제 선택창을 열 수 없습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.'};
   }
@@ -3548,7 +3548,10 @@ async function vedicAiPaidGate(requestId){
     paymentAmount:VEDIC_AI_PROMPT_AMOUNT_KRW,
     membershipCreditCost:VEDIC_AI_PROMPT_COST*10,
     forcePassFirst:true,
-    requestId:requestId
+    requestId:requestId,
+    // 🔴 모바일 PortOne 은 상위 프레임을 리다이렉트하므로 위 await 가 페이지와 함께 죽는다.
+    //    결제 전 상태(질문 원문)를 담은 재개 서술자를 게이트까지 넘겨야 복귀 문서가 생성을 이어간다.
+    resume:resume||null
   });
   if(result&&result.status==='granted'){
     return Object.assign({ok:true,status:200},vedicAiGateEvidence(result,requestId));
@@ -3738,6 +3741,12 @@ function vedicAiUseExample(text){
 }
 
 async function vedicAiGeneratePrompt(){
+  return vedicAiGeneratePromptCore(null, '');
+}
+
+/* 🔴 resumeGate 가 있으면 게이트를 다시 타지 않는다 — 리다이렉트 복귀 재개 전용 진입이고,
+   게이트를 타는 vedicAiGeneratePrompt 로 되돌리면 이미 낸 결제가 또 일어난다(배선 레시피 4번). */
+async function vedicAiGeneratePromptCore(resumeGate, resumeRequestId){
   const state=vedicAiEnsureState();
   const qEl=document.getElementById('vedicAiQuestion');
   if(qEl) state.question=String(qEl.value||'').slice(0,1000);
@@ -3747,13 +3756,13 @@ async function vedicAiGeneratePrompt(){
     state.statusError=true;
     state.statusMessage='이전 요청을 처리 중입니다. 잠시 후 다시 시도해 주세요.';
     vedicAiRefreshUi();
-    return;
+    return false;
   }
   if(question.length<5||question.length>1000){
     state.statusError=true;
     state.statusMessage='질문은 5자 이상 1000자 이하로 입력해 주세요.';
     vedicAiRefreshUi();
-    return;
+    return false;
   }
 
   const snapshot=buildCurrentVedicDataSnapshot(G.chart,G.report);
@@ -3761,7 +3770,7 @@ async function vedicAiGeneratePrompt(){
     state.statusError=true;
     state.statusMessage='기본 베다 결과가 없어 상담 질문을 정리할 수 없습니다.';
     vedicAiRefreshUi();
-    return;
+    return false;
   }
 
   state.inFlight=true;
@@ -3775,10 +3784,12 @@ async function vedicAiGeneratePrompt(){
     try{ token=localStorage.getItem('fortune_auth_token')||''; }catch(_){ }
     const headers={ 'Content-Type':'application/json' };
     if(token) headers.Authorization='Bearer '+token;
-    const requestId=vedicAiCreateRequestId(G.chart,question,G.vedicCompatibilityResult||null,state.requestEpoch);
+    // 재개 경로는 결제 때 쓴 requestId 를 그대로 이어받는다 — 여기서 다시 만들면 서버가 보는
+    // 멱등 키가 갈라져 같은 결제에 이어 붙지 못한다.
+    const requestId=String(resumeRequestId||'').trim()||vedicAiCreateRequestId(G.chart,question,G.vedicCompatibilityResult||null,state.requestEpoch);
     // 이미 결제가 확인된 재시도면 게이트를 다시 열지 않는다(재결제 차단).
     const reuse=(state.paidRequestId===requestId&&state.paidEvidence)?state.paidEvidence:null;
-    const gate=reuse||await vedicAiPaidGate(requestId);
+    const gate=reuse||resumeGate||await vedicAiPaidGate(requestId,buildVedicAiResumeDescriptor(requestId,question));
 
     if(!reuse&&(!gate||gate.ok!==true)){
       const code=String(gate&&gate.code||'PAYMENT_REQUIRED').trim();
@@ -3792,7 +3803,7 @@ async function vedicAiGeneratePrompt(){
         }
       }
       vedicAiRefreshUi();
-      return;
+      return false;
     }
 
     headers['idempotency-key']=gate.requestId||requestId;
@@ -3846,7 +3857,7 @@ async function vedicAiGeneratePrompt(){
         window.location.href='/login?next='+encodeURIComponent(location.pathname+location.search);
       }
       vedicAiRefreshUi();
-      return;
+      return false;
     }
 
     state.resultText=String(data&&data.resultText||'').trim();
@@ -3864,16 +3875,69 @@ async function vedicAiGeneratePrompt(){
     state.statusMessage='AI 상담 완성: '+(Number(state.lastChargedCoins||0)*100).toLocaleString('ko-KR')+'원 결제 확인'+(Number.isFinite(state.balanceAfter)?(' · 잔여 원화 가치 '+(Number(state.balanceAfter)*100).toLocaleString('ko-KR')+'원'):'');
     if(Number.isFinite(state.balanceAfter)) vedicAiSyncBalance(state.balanceAfter);
     vedicAiRefreshUi();
+    return true;
   }catch(e){
     console.error('[vedic ai prompt]', e);
     state.statusError=true;
     state.statusMessage='네트워크 또는 서버 오류로 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.';
     vedicAiRefreshUi();
+    return false;
   }finally{
     state.inFlight=false;
     _vedicSetPaymentPending(false);
     vedicAiRefreshUi();
   }
+}
+
+/* ── 결제 후 자동 재개(모바일 리다이렉트 복귀) — AI 상담 프롬프트 ───────────────
+   유료 산출물이 **서버 호출**이라 화면 복원만으로는 부족하다. 질문 원문은 서술자로 나르고,
+   결제 증빙은 인페이지와 **같은 조립기**(vedicAiGateEvidence)로 grant 에서 다시 만든다(원칙 6). */
+var VEDIC_AI_RESUME_KIND='vedic-ai-prompt';
+
+function buildVedicAiResumeDescriptor(requestId, question){
+  var id=String(requestId||'').trim();
+  var text=String(question||'').trim();
+  if(!id||text.length<5||text.length>1000) return null;
+  // args 에는 원시값만 살아남는다(checkout-entry 의 sanitizePaidResumeDescriptor).
+  // 🔴 action 은 비운다 — 이 문서에 핸들러가 이미 등록돼 있고, 딥링크로 또 열면 이중 이동으로 재개가 날아간다.
+  return { kind:VEDIC_AI_RESUME_KIND, action:'', args:{ requestId:id, question:text } };
+}
+
+/* 차트는 initVedicPage 가 저장 프로필로 다시 만든다(Swiss 브리지까지 최대 4.5초).
+   준비되기 전에 생성을 걸면 스냅샷이 없어 그냥 실패하므로, 등록 재시도와 같은 8초 상한으로 기다린다. */
+function vedicResumeWaitForChart(){
+  if(G&&G.chart) return Promise.resolve(true);
+  return new Promise(function(resolve){
+    var deadline=Date.now()+8000;
+    (function attempt(){
+      if(G&&G.chart) { resolve(true); return; }
+      if(Date.now()>=deadline) { resolve(false); return; }
+      setTimeout(attempt,200);
+    })();
+  });
+}
+
+function runVedicAiResume(descriptor, grant){
+  var args=(descriptor&&descriptor.args&&typeof descriptor.args==='object')?descriptor.args:{};
+  var requestId=String(args.requestId||'').trim();
+  var question=String(args.question||'').trim();
+  // 🔴 유효성 판정을 전역 대입보다 앞에 둔다. false 를 돌려주면 복귀 처리가 '지금 열기' 카드로
+  // 떨어뜨린다(영수증은 그대로 남아 재클릭이 무료다).
+  if(!requestId||question.length<5||question.length>1000) return false;
+  if(!grant||typeof grant!=='object') return false;
+  var payload=(grant.payload&&typeof grant.payload==='object')?grant.payload:{};
+  var gate=Object.assign({ok:true,status:200},vedicAiGateEvidence(payload,requestId));
+
+  return vedicResumeWaitForChart().then(function(ready){
+    if(!ready) return false;
+    // 🔴 차트 재계산(vedicAiResetForChart)이 끝난 뒤에 질문을 넣는다 — 먼저 넣으면 상태가 통째로 갈린다.
+    var state=vedicAiEnsureState();
+    state.question=question;
+    var qEl=document.getElementById('vedicAiQuestion');
+    if(qEl) qEl.value=question;
+    vedicAiRefreshUi();
+    return vedicAiGeneratePromptCore(gate,requestId);
+  }).then(function(ok){ return ok!==false; }).catch(function(){ return false; });
 }
 
 async function vedicAiCopyPrompt(){
@@ -4072,7 +4136,7 @@ function vedicPrashnaGateEvidence(gateResult,requestId){
   return evidence;
 }
 
-async function vedicPrashnaPaidGate(snapshot){
+async function vedicPrashnaPaidGate(snapshot,order){
   var requestId=vedicPrashnaCreateRequestId(snapshot&&snapshot.orderId);
   if(typeof window._cdOpenPaidServiceGate!=='function'){
     return {ok:false,status:402,code:'PAYMENT_REQUIRED',message:'결제 선택창을 열 수 없습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.'};
@@ -4092,7 +4156,10 @@ async function vedicPrashnaPaidGate(snapshot){
     paymentAmount:VEDIC_PRASHNA_AMOUNT_KRW,
     membershipCreditCost:0,
     forcePassFirst:false,
-    requestId:requestId
+    requestId:requestId,
+    // 🔴 모바일 PortOne 은 상위 프레임을 리다이렉트하므로 위 await 가 페이지와 함께 죽는다.
+    //    주문 스냅샷은 메모리에만 있으므로 서술자에 실어야 복귀 문서가 같은 주문으로 생성을 이어간다.
+    resume:buildVedicPrashnaResumeDescriptor(requestId,snapshot,order)
   });
   if(result&&result.status==='granted'){
     return Object.assign({ok:true,status:200},vedicPrashnaGateEvidence(result,requestId));
@@ -4166,14 +4233,20 @@ function vedicPrashnaSetConfirmCheck(value){
 }
 
 async function vedicPrashnaConfirmGenerate(){
+  return vedicPrashnaConfirmGenerateCore(null);
+}
+
+/* 🔴 resumeGate 가 있으면 게이트를 다시 타지 않는다 — 리다이렉트 복귀 재개 전용 진입이고,
+   게이트를 타는 vedicPrashnaConfirmGenerate 로 되돌리면 이미 낸 결제가 또 일어난다(배선 레시피 4번). */
+async function vedicPrashnaConfirmGenerateCore(resumeGate){
   var state=vedicPrashnaEnsureState();
   if(!state.snapshot||!state.order){
     vedicPrashnaSetStatus('주문 스냅샷이 필요합니다. 다시 생성해 주세요.',true);
-    return;
+    return false;
   }
   if(!state.confirmed){
     vedicPrashnaSetStatus('질문, 시각, 위치와 결제 금액을 확인해 주세요.',true);
-    return;
+    return false;
   }
   state.confirmOpen=false;
   state.inFlight=true;
@@ -4195,13 +4268,13 @@ async function vedicPrashnaConfirmGenerate(){
     vedicPrashnaRefreshUi();
   },900);
   try{
-    var gate=await vedicPrashnaPaidGate(state.snapshot);
+    var gate=resumeGate||await vedicPrashnaPaidGate(state.snapshot,state.order);
     if(!gate||gate.ok!==true){
       state.statusError=true;
       state.statusMessage=String(gate&&gate.message||'결제가 완료되지 않았습니다. 이용 금액은 청구되지 않았으며 프라슈나 차트도 생성되지 않았습니다.');
       vedicPrashnaTrack('prashna_payment_failed',{orderId:state.order.orderId});
       vedicPrashnaRefreshUi();
-      return;
+      return false;
     }
     state.loadingStep=2;
     state.statusMessage=VEDIC_PRASHNA_STEPS[2];
@@ -4229,7 +4302,7 @@ async function vedicPrashnaConfirmGenerate(){
       state.statusMessage=String(data&&data.message||'결제는 확인되었지만 결과 생성에 실패했습니다. 결제 취소 또는 무료 재생성 절차를 진행합니다.');
       vedicPrashnaTrack('prashna_generation_failed',{orderId:state.order.orderId,code:String(data&&data.code||'')});
       vedicPrashnaRefreshUi();
-      return;
+      return false;
     }
     state.result=data.result||null;
     state.prompt=String(data.promptText||(data.result&&data.result.promptText)||'').trim();
@@ -4241,17 +4314,69 @@ async function vedicPrashnaConfirmGenerate(){
     vedicPrashnaTrack('prashna_chart_generated',{orderId:state.order&&state.order.orderId});
     try{localStorage.setItem('VEDIC_PRASHNA_LAST_RESULT',JSON.stringify({order:state.order,snapshot:state.snapshot,prompt:state.prompt,chart:state.chart,result:state.result,savedAt:new Date().toISOString()}));}catch(_){}
     vedicPrashnaRefreshUi();
+    return true;
   }catch(e){
     console.error('[vedic prashna generate]',e);
     state.statusError=true;
     state.statusMessage='결제 상태를 확인하고 있습니다. 창을 닫지 말고 잠시 기다려 주세요.';
     vedicPrashnaRefreshUi();
+    return false;
   }finally{
     clearInterval(timer);
     state.inFlight=false;
     _vedicSetPaymentPending(false);
     vedicPrashnaRefreshUi();
   }
+}
+
+/* ── 결제 후 자동 재개(모바일 리다이렉트 복귀) — 프라슈나 ────────────────────
+   주문 스냅샷·주문서는 서버가 만든 객체인데 메모리에만 있어 복귀 문서에는 남지 않는다.
+   원시값만 살아남으므로(sanitizePaidResumeDescriptor) JSON 문자열 한 칸으로 접어 나른다. */
+var VEDIC_PRASHNA_RESUME_KIND='vedic-prashna-prompt';
+
+function vedicResumeStringifyObject(value){
+  if(!value||typeof value!=='object') return '';
+  try{ return JSON.stringify(value); }catch(_){ return ''; }
+}
+function vedicResumeParseObject(text){
+  if(typeof text!=='string'||!text) return null;
+  var parsed=null;
+  try{ parsed=JSON.parse(text); }catch(_){ return null; }
+  if(!parsed||typeof parsed!=='object'||Array.isArray(parsed)) return null;
+  return parsed;
+}
+
+function buildVedicPrashnaResumeDescriptor(requestId,snapshot,order){
+  var id=String(requestId||'').trim();
+  var snap=vedicResumeStringifyObject(snapshot);
+  var ord=vedicResumeStringifyObject(order);
+  if(!id||!snap||!ord) return null;
+  // 🔴 action 은 비운다 — 이 문서에 핸들러가 이미 등록돼 있고, 딥링크로 또 열면 이중 이동으로 재개가 날아간다.
+  return { kind:VEDIC_PRASHNA_RESUME_KIND, action:'', args:{ requestId:id, snapshot:snap, order:ord } };
+}
+
+function runVedicPrashnaResume(descriptor, grant){
+  var args=(descriptor&&descriptor.args&&typeof descriptor.args==='object')?descriptor.args:{};
+  var requestId=String(args.requestId||'').trim();
+  var snapshot=vedicResumeParseObject(args.snapshot);
+  var order=vedicResumeParseObject(args.order);
+  // 🔴 유효성 판정을 전역 대입보다 앞에 둔다. false 를 돌려주면 복귀 처리가 '지금 열기' 카드로
+  // 떨어뜨린다(영수증은 그대로 남아 재클릭이 무료다).
+  if(!requestId||!snapshot||!order||!order.orderId) return false;
+  if(!grant||typeof grant!=='object') return false;
+  var payload=(grant.payload&&typeof grant.payload==='object')?grant.payload:{};
+  // 인페이지 경로와 **같은 조립기**를 쓴다(원칙 6) — 서버가 읽는 결제 증빙 키가 갈라지지 않는다.
+  var gate=Object.assign({ok:true,status:200},vedicPrashnaGateEvidence(payload,requestId));
+
+  var state=vedicPrashnaEnsureState();
+  state.snapshot=snapshot;
+  state.order=order;
+  // 결제 전에 사용자가 이미 확인한 주문이다 — 그 확인을 복귀 문서로 그대로 옮긴다.
+  state.confirmed=true;
+  state.confirmOpen=false;
+  return Promise.resolve(vedicPrashnaConfirmGenerateCore(gate))
+    .then(function(ok){ return ok!==false; })
+    .catch(function(){ return false; });
 }
 
 function vedicPrashnaToggleChart(){
@@ -7069,7 +7194,7 @@ function _vedicSetPaymentPending(show, message){
   overlay.style.display = show ? 'flex' : 'none';
 }
 
-async function _vedicCompatCoinGate(cost, reason){
+async function _vedicCompatCoinGate(cost, reason, resume){
   cost=VEDIC_COMPAT_COST;
   reason=String(reason||'베다점 궁합 계산');
 
@@ -7106,7 +7231,10 @@ async function _vedicCompatCoinGate(cost, reason){
         featureKey:'vedic-compatibility-per-use',
         serviceKey:'vedic-compatibility',
         action:'calculateVedicCompatibility',
-        requestId:requestId
+        requestId:requestId,
+        // 🔴 모바일 PortOne 은 상위 프레임을 리다이렉트하므로 아래 await 가 페이지와 함께 죽는다.
+        //    상대방 입력값은 상세 화면 DOM 에만 있으므로 서술자에 실어야 복귀 문서가 계산을 이어간다.
+        resume:resume||null
       });
       if(gateResult&&typeof gateResult.then==='function')gateResult=await gateResult;
       if(!granted&&gateResult&&typeof gateResult==='object'){
@@ -7139,10 +7267,15 @@ async function doCompatCalc(){
   }catch(err){
     console.warn('[vedic compat] Swiss bridge timeout; continue with fallback engine', err);
   }
-  var ok = await _vedicCompatCoinGate(VEDIC_COMPAT_COST, '베다점 궁합 계산');
-  if (!ok) return;
-  G.vedicCompatibilityResult=null;
-  const f2={
+  var f2Now=readVedicCompatForm();
+  var ok = await _vedicCompatCoinGate(VEDIC_COMPAT_COST, '베다점 궁합 계산', buildVedicCompatResumeDescriptor(f2Now));
+  if (!ok) return false;
+  return doCompatCalcCore(f2Now);
+}
+
+// 상대방 입력값 읽기 — 결제 전 서술자와 결제 후 계산이 **같은 조립기**를 쓴다(원칙 6).
+function readVedicCompatForm(){
+  return {
     name:document.getElementById('c-name').value||'이름없음',
     gender:document.getElementById('c-gender').value,
     year:parseInt(document.getElementById('c-year').value)||1992,
@@ -7154,6 +7287,12 @@ async function doCompatCalc(){
     lon:parseFloat(document.getElementById('c-lon').value)||126.978,
     timezone:parseInt(document.getElementById('c-tz').value)||9
   };
+}
+
+/* 🔴 게이트를 타지 않는 코어다 — 재개는 반드시 여기로 들어온다.
+   게이트를 타는 doCompatCalc 로 되돌리면 이미 낸 결제가 또 일어난다(배선 레시피 4번). */
+function doCompatCalcCore(f2){
+  G.vedicCompatibilityResult=null;
   try{
     const chart2=buildChart(f2);
     const report2=analyze(chart2);
@@ -7282,10 +7421,63 @@ async function doCompatCalc(){
         }
       }
     }catch(e3){ console.warn('[vedic CompatLlm]',e3); }
+    return true;
   }catch(e){
     document.getElementById('compat-result').innerHTML=`<div class="error-box">계산 오류: ${e.message}</div>`;
+    return false;
   }
 }
+
+/* ── 결제 후 자동 재개(모바일 리다이렉트 복귀) — 궁합 ────────────────────────
+   산출물이 전부 클라이언트 계산이라 서버 증빙은 필요 없다. 사라지는 것은 상대방 입력값과
+   상세 화면 자체이므로, 입력값을 서술자로 나르고 화면을 다시 연 뒤 코어를 부른다. */
+var VEDIC_COMPAT_RESUME_KIND='vedic-compat-calc';
+
+function buildVedicCompatResumeDescriptor(form){
+  var text=vedicResumeStringifyObject(form);
+  if(!text) return null;
+  // 🔴 action 은 비운다 — 이 문서에 핸들러가 이미 등록돼 있고, 딥링크로 또 열면 이중 이동으로 재개가 날아간다.
+  return { kind:VEDIC_COMPAT_RESUME_KIND, action:'', args:{ form:text } };
+}
+
+function fillVedicCompatForm(form){
+  var map={ 'c-name':'name','c-gender':'gender','c-year':'year','c-month':'month','c-day':'day','c-hour':'hour','c-min':'minute','c-lat':'lat','c-lon':'lon','c-tz':'timezone' };
+  Object.keys(map).forEach(function(id){
+    var node=document.getElementById(id);
+    if(!node) return;
+    var value=form[map[id]];
+    if(value===undefined||value===null) return;
+    node.value=String(value);
+  });
+}
+
+function runVedicCompatResume(descriptor){
+  var args=(descriptor&&descriptor.args&&typeof descriptor.args==='object')?descriptor.args:{};
+  var form=vedicResumeParseObject(args.form);
+  // 🔴 유효성 판정을 전역 대입보다 앞에 둔다. false 를 돌려주면 복귀 처리가 '지금 열기' 카드로
+  // 떨어뜨린다(영수증은 그대로 남아 재클릭이 무료다).
+  if(!form||!Number.isFinite(Number(form.year))) return false;
+
+  return vedicResumeWaitForChart().then(function(ready){
+    if(!ready) return false;
+    // 궁합 입력 폼은 상세 화면 안에만 있다 — 복귀 문서에서는 그 화면부터 다시 열어야 DOM 이 생긴다.
+    try{ showDetail('compat'); }catch(_){ return false; }
+    if(!document.getElementById('c-name')) return false;
+    fillVedicCompatForm(form);
+    return _vedicEnsureSwissReady(4500).catch(function(){}).then(function(){
+      return doCompatCalcCore(readVedicCompatForm());
+    });
+  }).then(function(ok){ return ok!==false; }).catch(function(){ return false; });
+}
+
+(function registerVedicResumeHandlers(){
+  var entry=null;
+  try{ entry=window.__cdCheckoutEntry||null; }catch(_){ entry=null; }
+  if(!entry||typeof entry.registerPaidResumeHandler!=='function') return;
+  try{ entry.registerPaidResumeHandler(VEDIC_AI_RESUME_KIND,runVedicAiResume); }catch(_){}
+  try{ entry.registerPaidResumeHandler(VEDIC_PRASHNA_RESUME_KIND,runVedicPrashnaResume); }catch(_){}
+  try{ entry.registerPaidResumeHandler(VEDIC_COMPAT_RESUME_KIND,runVedicCompatResume); }catch(_){}
+})();
 
 // ─── DETAIL: YOGA ────────────────────────────────────────
 function renderYoga(y){

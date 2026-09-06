@@ -444,7 +444,7 @@ function setIfaPaymentPending(show,message){
 
 function setPhase(text){el("phase").textContent=text;}
 
-function ensureIfaCoinGate(){
+function ensureIfaCoinGate(resume){
   return new Promise((resolve)=>{
     if (IFA_COIN_COST <= 0) { resolve(true); return; }
     if (typeof window._cdCoinGatePerUse === "function") {
@@ -455,7 +455,10 @@ function ensureIfaCoinGate(){
           featureKey: 'ifa-oracle',
           serviceKey: 'ifa-oracle',
           action: 'openIfaOracle',
-          requestId: 'ifa:' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9)
+          requestId: 'ifa:' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9),
+          // 🔴 모바일 PortOne 은 상위 프레임을 리다이렉트하므로 아래 await 가 페이지와 함께 죽는다.
+          //    결제 전 상태(고른 주제)를 담은 재개 서술자를 게이트까지 넘겨야 복귀 문서가 다시 연다.
+          resume: resume || null
         });
       }catch(_e){ resolve(false); }
       return;
@@ -512,13 +515,22 @@ async function cast(){
   busy=true;                       // 게이트 확인 전에 재진입 잠금(더블탭 무력화)
   const castBtn=el("castBtn");
   castBtn.disabled=true;            // 즉시 비활성화
-  const gateOk=await ensureIfaCoinGate();
+  const gateOk=await ensureIfaCoinGate(buildIfaResumeDescriptor(selectedCategory));
   if(!gateOk){
     busy=false;                     // 게이트 미통과 시 잠금·버튼 원복
     castBtn.disabled=false;
     setPhase("의식이 보류되었습니다 • 결제 권한 확인 후 다시 시도해 주세요");
     return;
   }
+  await castCore();
+}
+
+/* 🔴 결제 게이트가 없는 코어다. 재개 핸들러는 이쪽을 부른다 — 게이트를 다시 타는 cast 를
+   부르면 이미 낸 결제가 또 일어난다(배선 레시피 4번). */
+async function castCore(){
+  busy=true;
+  const castBtn=el("castBtn");
+  castBtn.disabled=true;
   startAmbience();
   el("opon").classList.add("spin");
   el("reveal").style.display="none";
@@ -567,7 +579,44 @@ async function cast(){
   castBtn.disabled=false;
   el("miniBtns").style.display="flex";
   busy=false;
+  return true;
 }
+
+/* ── 결제 후 자동 재개(모바일 리다이렉트 복귀) ────────────────────────────
+   결제 전 상태는 고른 주제 하나뿐이고 신탁 자체는 전부 클라이언트 계산이라, 주제만 되살리면
+   결제 없이 그대로 이어진다(서버 증빙이 필요 없는 유형). */
+const IFA_RESUME_KIND='ifa-oracle-cast';
+
+function buildIfaResumeDescriptor(category){
+  const picked=String(category||"");
+  if(!CATEGORY_META[picked])return null;
+  // args 에는 원시값만 살아남는다(checkout-entry 의 sanitizePaidResumeDescriptor).
+  // 🔴 action 은 비운다 — 이 파일은 셸에 상주해 복귀 시점에 핸들러가 이미 등록돼 있고,
+  //    딥링크로 또 열면 이중 이동으로 재개가 날아간다.
+  return { kind: IFA_RESUME_KIND, action:"", args:{ category: picked } };
+}
+
+function runIfaResume(descriptor){
+  const args=(descriptor&&descriptor.args&&typeof descriptor.args==="object")?descriptor.args:{};
+  const picked=String(args.category||"");
+  // 🔴 유효성 판정을 전역 대입보다 앞에 둔다 — 모르는 주제를 넣으면 CATEGORY_META 참조가 전부 죽는다.
+  // false 를 돌려주면 복귀 처리가 '지금 열기' 카드로 떨어뜨린다(영수증이 남아 재클릭은 무료다).
+  if(!CATEGORY_META[picked])return false;
+  selectedCategory=picked;
+  try{
+    document.querySelectorAll(".cat-btn").forEach((b)=>{
+      b.classList.toggle("active", b.dataset.cat===picked);
+    });
+  }catch(_e){}
+  return castCore().then(()=>true).catch(()=>false);
+}
+
+(function registerIfaResumeHandler(){
+  let entry=null;
+  try{ entry=window.__cdCheckoutEntry||null; }catch(_e){ entry=null; }
+  if(!entry||typeof entry.registerPaidResumeHandler!=="function")return;
+  try{ entry.registerPaidResumeHandler(IFA_RESUME_KIND, runIfaResume); }catch(_e){}
+})();
 
 function resetAll(){
   busy=false;

@@ -1947,7 +1947,11 @@ button,input,select,textarea{font-family:var(--font-body)!important}
             idempotencyKey:body.idempotencyKey,
             serviceKey:'celestial-harmony',
             action:'generateCelestialHarmony',
-            requestId:body.requestId
+            requestId:body.requestId,
+            // 🔴 모바일 PortOne 은 상위 프레임을 리다이렉트하므로 아래 await 가 페이지와 함께 죽는다.
+            //    카드 배열은 persistSession 이 살려 두지만 결제 증빙은 죽은 문서에 있으므로,
+            //    복귀 문서가 같은 리포트로 생성을 이어가도록 식별자를 서술자에 싣는다.
+            resume: buildCelestialResumeDescriptor(body.reportId, body.requestId)
           }
         );
         if(gateResult&&typeof gateResult.then==='function') gateResult=await gateResult;
@@ -2167,7 +2171,14 @@ button,input,select,textarea{font-family:var(--font-body)!important}
     }
 
     async function runReadingFlow(){
-      if(!spread.length || $read.disabled || paymentInFlight) return;
+      return await runReadingFlowCore(null);
+    }
+
+    /* 🔴 resumeGate 가 있으면 게이트를 다시 타지 않는다 — 리다이렉트 복귀 재개 전용 진입이고,
+       게이트를 타는 경로로 되돌리면 이미 낸 결제가 또 일어난다(배선 레시피 4번). */
+    async function runReadingFlowCore(resumeGate){
+      if(!spread.length || paymentInFlight) return false;
+      if(!resumeGate && $read.disabled) return false;
       paymentInFlight = true;
       updateReadButtonState();
       if(!currentSessionId && currentReportId) currentSessionId='celestial-harmony:'+currentReportId;
@@ -2189,8 +2200,8 @@ button,input,select,textarea{font-family:var(--font-body)!important}
         if(!currentRequestId) currentRequestId = 'celestial:'+currentReportId;
         if(!currentSessionId) currentSessionId = 'celestial-harmony:'+currentReportId;
 
-        if(!hasAccess){
-          var gate = await callCoinGate(currentReportId);
+        if(!hasAccess || resumeGate){
+          var gate = resumeGate || await callCoinGate(currentReportId);
           currentTransactionId = gate.transactionId || currentTransactionId;
           if(gate.purchaseId && !currentTransactionId) currentTransactionId = gate.purchaseId;
           currentReportId = gate.reportId || currentReportId;
@@ -2255,6 +2266,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
         });
         setLoading(false,'');
         setTimeout(function(){$goldSec.scrollIntoView({behavior:'smooth'});},100);
+        return true;
       }catch(err){
         console.error('[CelestialHarmony][Generate] error', err && err.payload ? { status:err.status, error:err.message, payload:err.payload } : err);
         var status = Number(err && err.status || 0);
@@ -2264,13 +2276,13 @@ button,input,select,textarea{font-family:var(--font-body)!important}
           // 사용자가 결제창을 닫은 경우 — 실패가 아니라 취소이므로 중립 안내 후 종료.
           setLoading(false,'');
           updatePremiumStatus('premium ready','결제를 취소했습니다. 준비되면 다시 리딩을 열 수 있습니다.','payment',['draw']);
-          return;
+          return false;
         }
         if(code==='PAYMENT_GATE_UNAVAILABLE'){
           // 결제 실패가 아니라 공유 결제 게이트 스크립트 미로드다 — '결제 확인 실패'로 오인시키지 않는다.
           setLoading(false,'');
           updatePremiumStatus('premium issue','결제 모듈을 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.','payment',['draw']);
-          return;
+          return false;
         }
         if(status===401 || code==='UNAUTHORIZED'){
           updatePremiumStatus('premium issue','결제 확인 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.','payment',['draw']);
@@ -2304,7 +2316,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
                 goldenCard:goldenCard
               });
               setLoading(false,'');
-              return;
+              return true;
             }
           } catch (_) { }
         }
@@ -2332,7 +2344,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
                 goldenCard:goldenCard
               });
               setLoading(false,'');
-              return;
+              return true;
             }
           } catch (fallbackError) {
             // 마지막 안전망이 조용히 죽으면 "결제했는데 결과가 없다"로 끝난다 — 원인을 남긴다.
@@ -2346,6 +2358,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
         } else if(recoverablePaymentSession){
           updatePremiumStatus('premium recover','결제 권한은 유지되어 있습니다. 다시 생성 버튼을 눌러 이어갈 수 있습니다.','generate',['draw','payment']);
         }
+        return false;
       }finally{
         paymentInFlight = false;
         // 어떤 경로로 끝나든 오버레이·스크롤 락은 반드시 해제한다(잠금 상태로 남으면 페이지가 죽는다).
@@ -2353,6 +2366,66 @@ button,input,select,textarea{font-family:var(--font-body)!important}
         updateReadButtonState();
       }
     }
+
+    /* ── 결제 후 자동 재개(모바일 리다이렉트 복귀) ────────────────────────────
+       카드 배열·리포트 식별자는 persistSession 이 localStorage 에 남겨 복귀 문서가 그대로 복구한다.
+       사라지는 것은 결제 증빙뿐이라, 서술자에는 식별자만 싣고 증빙은 grant 에서 다시 만든다. */
+    var CELESTIAL_RESUME_KIND = 'celestial-harmony-reading';
+
+    function buildCelestialResumeDescriptor(reportId, requestId){
+      var report = clean(reportId);
+      var request = clean(requestId);
+      if(!report || !request) return null;
+      // args 에는 원시값만 살아남는다(checkout-entry 의 sanitizePaidResumeDescriptor).
+      // 🔴 action 은 비운다 — 이 파일은 셸에 상주해 복귀 시점에 핸들러가 이미 등록돼 있고,
+      //    딥링크로 또 열면 이중 이동으로 재개가 날아간다.
+      return { kind: CELESTIAL_RESUME_KIND, action: '', args: { reportId: report, requestId: request } };
+    }
+
+    /* 인페이지 경로에서 callCoinGate 가 돌려주던 것과 **같은 모양**을 만든다 — 아래 흐름이 읽는 자리가
+       같아야 callGenerate 로 넘어가는 결제 증빙이 갈라지지 않는다(원칙 6). */
+    function buildCelestialResumeGate(grant, reportId, requestId){
+      if(!grant || typeof grant!=='object') return null;
+      var payload = (grant.payload && typeof grant.payload==='object') ? grant.payload : {};
+      var normalized = extractCoinGateResult(payload, { requestId: requestId, reportId: reportId });
+      var transactionId = clean(normalized.transactionId) || clean(grant.merchantUid) || clean(grant.requestId) || requestId;
+      if(!transactionId) return null;
+      return {
+        transactionId: transactionId,
+        purchaseId: clean(normalized.purchaseId),
+        reportId: clean(normalized.reportId || reportId),
+        accessGrant: normalized.accessGrant,
+        consume: normalized.consume,
+        premiumAccessToken: normalized.premiumAccessToken,
+        requestId: clean(normalized.requestId || requestId),
+        accessType: hasPassGrantMarker(payload) ? 'membership_pass' : '',
+      };
+    }
+
+    function runCelestialResume(descriptor, grant){
+      var args = (descriptor && descriptor.args && typeof descriptor.args==='object') ? descriptor.args : {};
+      var reportId = clean(args.reportId);
+      var requestId = clean(args.requestId);
+      // 🔴 유효성 판정을 전역 대입보다 앞에 둔다 — 식별자나 카드가 없으면 생성 요청이 빈손으로 나간다.
+      // false 를 돌려주면 복귀 처리가 '지금 열기' 카드로 떨어뜨린다(영수증이 남아 재클릭은 무료다).
+      if(!reportId || !requestId) return false;
+      if(!Array.isArray(spread) || spread.length!==11) return false;
+      var gate = buildCelestialResumeGate(grant, reportId, requestId);
+      if(!gate) return false;
+
+      currentReportId = reportId;
+      currentRequestId = requestId;
+      currentSessionId = 'celestial-harmony:'+reportId;
+      if(gate.premiumAccessToken) persistPremiumToken(gate.premiumAccessToken);
+      return runReadingFlowCore(gate).then(function(ok){ return ok !== false; }).catch(function(){ return false; });
+    }
+
+    (function registerCelestialResumeHandler(){
+      var entry = null;
+      try { entry = window.__cdCheckoutEntry || null; } catch(_e){ entry = null; }
+      if(!entry || typeof entry.registerPaidResumeHandler !== 'function') return;
+      try { entry.registerPaidResumeHandler(CELESTIAL_RESUME_KIND, runCelestialResume); } catch(_e){}
+    })();
 
     $draw.addEventListener('click',function(){
       if(paymentInFlight) return;

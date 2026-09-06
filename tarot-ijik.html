@@ -1846,7 +1846,7 @@ function _isAdminIjikSession() {
   }
 }
 
-async function ijikCoinGate(cost, reason) {
+async function ijikCoinGate(cost, reason, resumeCards) {
   if (_isAdminIjikSession()) return true;
 
   if (typeof window._cdCoinGatePerUse !== 'function') {
@@ -1888,7 +1888,11 @@ async function ijikCoinGate(cost, reason) {
         featureKey: 'tarot-ijik',
         serviceKey: 'tarot-ijik',
         action: 'getReading',
-        requestId: requestId
+        requestId: requestId,
+        // 🔴 모바일 PortOne 은 상위 프레임을 리다이렉트하므로 아래 await 가 페이지와 함께 죽는다.
+        //    복귀 문서는 카드를 새로 뽑으므로(resetSpread) 뽑아 둔 7장과 requestId 를 서술자에 실어야
+        //    같은 결제로 같은 스프레드의 해석을 받는다.
+        resume: buildIjikResumeDescriptor(resumeCards, requestId)
       });
       if (gateResult && typeof gateResult.then === 'function') {
         gateResult.then(function (result) {
@@ -2140,12 +2144,20 @@ async function getReading() {
   const btn = document.getElementById('readBtn');
   btn.disabled = true;
 
-  const gateOk = await ijikCoinGate(IJIK_COIN_COST, '커리어 전환 타로 리딩');
+  const gateOk = await ijikCoinGate(IJIK_COIN_COST, '커리어 전환 타로 리딩', drawnCards);
   if (!gateOk) {
     btn.disabled = false;
     return;
   }
 
+  await getReadingCore();
+}
+
+/* 🔴 결제 게이트가 없는 코어다. 재개 핸들러는 이쪽을 부른다 — 게이트를 다시 타는 getReading 을
+   부르면 이미 낸 결제가 또 일어난다(배선 레시피 4번). */
+async function getReadingCore() {
+  const btn = document.getElementById('readBtn');
+  btn.disabled = true;
   btn.innerHTML = '<div>7장의 메시지를 정리하는 중...</div>';
 
   const section = document.getElementById('readingSection');
@@ -2180,8 +2192,60 @@ async function getReading() {
     textEl.textContent = '해석을 불러오지 못했습니다. 결제는 이미 완료되었으니 추가 결제 없이 [해석 보기]를 다시 눌러 주세요.';
     btn.innerHTML = '<div>✦ 해석 다시 보기</div>';
     btn.disabled = false;
+    return false;
   }
+  return true;
 }
+
+/* ── 결제 후 자동 재개(모바일 리다이렉트 복귀) ────────────────────────────
+   복귀 문서는 resetSpread 로 7장을 새로 뽑으므로, 결제 전에 사용자가 보고 결정한 스프레드가
+   사라진다. 카드와 requestId 를 서술자에 실어 같은 결제·같은 스프레드로 해석을 받는다.
+   🔴 서버(ijik-reading)는 requestId 로 결제 문서를 찾으므로 그 값이 반드시 같아야 한다. */
+const IJIK_RESUME_KIND = 'tarot-ijik-reading';
+
+function buildIjikResumeDescriptor(cards, requestId) {
+  const list = Array.isArray(cards) ? cards : [];
+  if (list.length !== 7) return null;
+  let cardsJson = '';
+  // args 에는 원시값만 살아남는다(checkout-entry 의 sanitizePaidResumeDescriptor) — 카드는 JSON 문자열로 싣는다.
+  try {
+    cardsJson = JSON.stringify(list.map((card) => ({
+      cardId: (card && card.cardId) || '',
+      name: (card && card.name) || '',
+      nameKr: (card && (card.nameKr || card.name)) || '',
+      orientation: (card && card.orientation) || 'upright',
+    })));
+  } catch (_) { return null; }
+  // 🔴 action 은 비운다 — 이 파일은 셸에 상주해 복귀 시점에 핸들러가 이미 등록돼 있고,
+  //    딥링크로 또 열면 이중 이동으로 재개가 날아간다.
+  return { kind: IJIK_RESUME_KIND, action: '', args: { cardsJson: cardsJson, requestId: String(requestId || '') } };
+}
+
+function runIjikResume(descriptor) {
+  const args = (descriptor && descriptor.args && typeof descriptor.args === 'object') ? descriptor.args : {};
+  const requestId = String(args.requestId || '').trim();
+  let cards = null;
+  try { cards = JSON.parse(String(args.cardsJson || '')); } catch (_) { cards = null; }
+  // 🔴 유효성 판정을 전역 대입보다 앞에 둔다 — 반쪽짜리 스프레드로 덮으면 화면의 카드와 해석이 어긋난다.
+  // false 를 돌려주면 복귀 처리가 '지금 열기' 카드로 떨어뜨린다(영수증이 남아 재클릭은 무료다).
+  if (!requestId) return false;
+  if (!Array.isArray(cards) || cards.length !== 7) return false;
+
+  drawnCards = cards;
+  isDeckReady = true;
+  _ijikLastRequestId = requestId;
+  for (let i = 1; i <= 7; i += 1) {
+    try { flipCard(i); } catch (_) {}
+  }
+  return getReadingCore().then((ok) => ok !== false).catch(() => false);
+}
+
+(function registerIjikResumeHandler() {
+  let entry = null;
+  try { entry = window.__cdCheckoutEntry || null; } catch (_) { entry = null; }
+  if (!entry || typeof entry.registerPaidResumeHandler !== 'function') return;
+  try { entry.registerPaidResumeHandler(IJIK_RESUME_KIND, runIjikResume); } catch (_) {}
+})();
 
 // ─── INIT ───
 generateStars();

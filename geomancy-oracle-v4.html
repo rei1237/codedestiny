@@ -854,7 +854,7 @@ function setGeomancyPaymentPending(show, message) {
   overlay.style.display = show ? 'flex' : 'none';
 }
 
-function consumeGeomancyPerUseCoin() {
+function consumeGeomancyPerUseCoin(resume) {
   return new Promise((resolve) => {
     if (GEOMANCY_COIN_COST <= 0) { resolve(true); return; }
     if (typeof window.__cdIsAdminLikeUser === 'function' && window.__cdIsAdminLikeUser()) {
@@ -889,7 +889,10 @@ function consumeGeomancyPerUseCoin() {
             featureKey: GEOMANCY_FEATURE_KEY,
             serviceKey: 'geomancy',
             action: 'openGeomancyOracle',
-            requestId: requestId
+            requestId: requestId,
+            // 🔴 모바일 PortOne 은 상위 프레임을 리다이렉트하므로 위 await 가 페이지와 함께 죽는다.
+            //    결제 전 상태(입력한 질문)를 담은 재개 서술자를 게이트까지 넘겨야 복귀 문서가 다시 연다.
+            resume: resume || null
           }
         );
         if (gateResult && typeof gateResult.then === 'function') {
@@ -938,7 +941,7 @@ async function submitQ(){
     qBtn.style.opacity = '0.72';
     qBtn.innerHTML = '<span>✦</span><span>결제를 확인하고 있습니다…</span><span>✦</span>';
   }
-  const paid = await consumeGeomancyPerUseCoin();
+  const paid = await consumeGeomancyPerUseCoin(buildGeomancyResumeDescriptor(v));
   geomancyPayingInFlight = false;
   if (qBtn) {
     qBtn.removeAttribute('disabled');
@@ -946,10 +949,51 @@ async function submitQ(){
     qBtn.innerHTML = prevText;
   }
   if (!paid) return;
-  question=v;
+  geomancyEnterActivation(v);
+}
+
+/* 🔴 결제 게이트가 없는 코어다. 재개 핸들러는 이쪽을 부른다 — 게이트를 다시 타는 submitQ 를
+   부르면 이미 낸 결제가 또 일어난다(배선 레시피 4번). */
+function geomancyEnterActivation(text){
+  question=text;
   document.getElementById('q-screen').classList.remove('show');
   doActivation();
+  return true;
 }
+
+/* ── 결제 후 자동 재개(모바일 리다이렉트 복귀) ────────────────────────────
+   결제 전 상태는 입력한 질문 하나뿐이고 점괘는 전부 클라이언트 계산이라, 질문만 되살리면
+   결제 없이 그대로 이어진다(서버 증빙이 필요 없는 유형). */
+const GEOMANCY_RESUME_KIND = 'geomancy-oracle-cast';
+
+function buildGeomancyResumeDescriptor(text){
+  const asked = String(text || '').trim();
+  if (!asked) return null;
+  // args 에는 원시값만 살아남는다(checkout-entry 의 sanitizePaidResumeDescriptor).
+  // 🔴 action 은 비운다 — 이 파일은 셸에 상주해 복귀 시점에 핸들러가 이미 등록돼 있고,
+  //    딥링크로 또 열면 이중 이동으로 재개가 날아간다.
+  return { kind: GEOMANCY_RESUME_KIND, action: '', args: { question: asked } };
+}
+
+function runGeomancyResume(descriptor){
+  const args = (descriptor && descriptor.args && typeof descriptor.args === 'object') ? descriptor.args : {};
+  const asked = String(args.question || '').trim();
+  // 🔴 유효성 판정을 전역 대입보다 앞에 둔다 — 빈 질문으로 덮으면 질문 표시가 빈 채로 점괘만 돈다.
+  // false 를 돌려주면 복귀 처리가 '지금 열기' 카드로 떨어뜨린다(영수증이 남아 재클릭은 무료다).
+  if (!asked) return false;
+  try {
+    const input = document.getElementById('q-input');
+    if (input) input.value = asked;
+  } catch (_e) {}
+  return geomancyEnterActivation(asked);
+}
+
+(function registerGeomancyResumeHandler(){
+  let entry = null;
+  try { entry = window.__cdCheckoutEntry || null; } catch (_e) { entry = null; }
+  if (!entry || typeof entry.registerPaidResumeHandler !== 'function') return;
+  try { entry.registerPaidResumeHandler(GEOMANCY_RESUME_KIND, runGeomancyResume); } catch (_e) {}
+})();
 document.getElementById('q-input').addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.ctrlKey||e.metaKey))submitQ();});
 
 async function doActivation(){
