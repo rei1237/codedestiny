@@ -61,6 +61,22 @@ const OVERCLAIM_NEGATION = `(?!${OVERCLAIM_GAP}{0,14}(않|없|말고|못|어렵|
 const OVERCLAIM_ASSERTION = `${OVERCLAIM_GAP}{0,24}(확실|분명|단정|결정|보장)${OVERCLAIM_NEGATION}`;
 const BIRTH_TIME_OVERCLAIM_PATTERN = new RegExp(`(상승궁|라그나|정밀 명반|하우스)${OVERCLAIM_ASSERTION}`);
 const BIRTH_PLACE_OVERCLAIM_PATTERN = new RegExp(`(라그나|상승궁|하우스|나크샤트라)${OVERCLAIM_ASSERTION}`);
+// 🔴 단독 부사형 금지어(무조건·반드시·100%)는 **부정·완화가 뒤따르지 않을 때만** 과장이다.
+//    2026-09-06 실호출에서 타로 보완 묶음의 `무조건적으로 수용하기보다` 가 `무조건` 부분 일치로 반려됐다 —
+//    뜻이 정반대인 완화 문장인데 묶음 전체가 폴백으로 강등됐다. 나머지 항목은 그 자체로 단정문이라 그대로 둔다.
+//    창은 OVERCLAIM_GAP 으로 문장 안에 가둔다(필드 경계·개행을 넘어가면 남의 문장으로 면책된다).
+const FORBIDDEN_HEDGE_AHEAD = `(?!${OVERCLAIM_GAP}{0,14}(않|없|말고|못|어렵|삼가|유보|배제|아니|기보다))`;
+// 패턴을 손으로 적는다 — FORBIDDEN 항목을 정규식으로 이스케이프해 조립하면 `100%` 같은 항목이
+// 조용히 형태를 바꿀 수 있다. 여기 없는 항목은 예전 그대로 부분 일치로 잡힌다(fail-closed).
+const FORBIDDEN_HEDGEABLE = new Map([
+  ["무조건", new RegExp(`무조건${FORBIDDEN_HEDGE_AHEAD}`)],
+  ["반드시", new RegExp(`반드시${FORBIDDEN_HEDGE_AHEAD}`)],
+  ["100%", new RegExp(`100%${FORBIDDEN_HEDGE_AHEAD}`)],
+]);
+const FORBIDDEN_MATCHERS = FORBIDDEN.map((phrase) => FORBIDDEN_HEDGEABLE.get(phrase) || phrase);
+function hasForbiddenPhrase(source) {
+  return FORBIDDEN_MATCHERS.some((matcher) => (typeof matcher === "string" ? source.includes(matcher) : matcher.test(source)));
+}
 
 function text(value, max = 1200) { return String(value || "").trim().slice(0, max); }
 function count(value) { return Math.max(0, Number(value || 0)); }
@@ -486,7 +502,7 @@ export function evaluateFusionFortuneResult(result = {}, { birthTimeKnown = true
   if (text(result.finalVerdict?.rationale, 50000).length < FUSION_FORTUNE_LENGTH.finalVerdictRationale) issues.push("final_verdict_depth");
   if (!Array.isArray(result.timingAndAction?.luckyActions) || result.timingAndAction.luckyActions.length < 3 || !Array.isArray(result.timingAndAction?.cautionPatterns) || result.timingAndAction.cautionPatterns.length < 3) issues.push("missing_actions");
   if (hasRepeatedLongSentence(result)) issues.push("repeated_sentence");
-  if (FORBIDDEN.some((phrase) => source.includes(phrase))) issues.push("unsafe_phrase");
+  if (hasForbiddenPhrase(source)) issues.push("unsafe_phrase");
   if (INTERNAL_DATA_PATTERN.test(source)) issues.push("internal_data_exposed");
   const exposedSensitiveValue = sensitiveValues.map((value) => text(value, 100)).find((value) => value.length >= 4 && source.includes(value));
   if (exposedSensitiveValue) issues.push("private_input_exposed");
@@ -685,7 +701,7 @@ export function validateFusionFortuneGroup(value = {}, group, { birthTimeKnown =
   }
 
   const source = JSON.stringify(value || {});
-  if (FORBIDDEN.some((phrase) => source.includes(phrase))) return { ok: false, issue: "unsafe_phrase" };
+  if (hasForbiddenPhrase(source)) return { ok: false, issue: "unsafe_phrase" };
   if (INTERNAL_DATA_PATTERN.test(source)) return { ok: false, issue: "internal_data_exposed" };
   if (sensitiveValues.map((item) => text(item, 100)).some((item) => item.length >= 4 && source.includes(item))) return { ok: false, issue: "private_input_exposed" };
   if (!birthTimeKnown && BIRTH_TIME_OVERCLAIM_PATTERN.test(source)) return { ok: false, issue: "birth_time_overclaim" };
