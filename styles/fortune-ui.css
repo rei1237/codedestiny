@@ -4350,7 +4350,7 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
 .lc-ritual-cta em{font-style:normal;font-size:.68rem;line-height:1.55;color:#8f7a3c}
 .lc-ritual-cta-btn{width:100%;min-height:46px;border:0;border-radius:12px;padding:10px 14px;background:linear-gradient(135deg,#facc15,#f59e0b);color:#241400;font-weight:900;cursor:pointer;box-shadow:0 10px 28px rgba(245,158,11,.28);transition:transform .2s,filter .2s}
 .lc-ritual-cta-btn:hover{transform:translateY(-1px);filter:brightness(1.05)}
-.lc-ritual-cta-btn .tarot-tile__title{display:block;font-size:.9rem;line-height:1.2}
+.lc-ritual-cta-btn .tarot-tile__title{display:block;font-size:.9rem;line-height:1.2;color:#241400}
 .lc-ritual-cta-btn small{display:block;margin-top:2px;font-size:.72rem;color:rgba(36,20,0,.72)}
 .lc-ritual-report-area[hidden]{display:none!important}
 .lr-wrap{margin-top:16px;border:1px solid rgba(200,220,255,.18);border-radius:14px;background:linear-gradient(145deg,#10152a,#171124,#101725);padding:16px;color:#e8dcff;box-shadow:0 18px 45px rgba(0,0,0,.28)}
