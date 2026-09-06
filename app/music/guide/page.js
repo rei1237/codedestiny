@@ -2,6 +2,8 @@ import Link from "next/link";
 import GuideCta from "../../components/GuideCta";
 import { GUIDE_CTA_TARGETS } from "../../components/guide-cta-targets";
 import { generatePageMetadata } from "../../../lib/generate-page-metadata";
+import ContentIntegrityNote from "../../components/ContentIntegrityNote";
+import { buildArticleJsonLd, buildBreadcrumbJsonLd, buildFaqPageJsonLd } from "../../../lib/structured-data";
 
 const MUSIC_GUIDE_PAGE_TEXT_TRANSLATIONS = {
   ko: {
@@ -92,15 +94,52 @@ const faqItems = [
   },
 ];
 
+// 발행일은 이 파일의 첫 커밋일(git log --diff-filter=A), 수정일은 검수 노트·Article 을 붙인 날.
+// 짝 구현: app/guides/[slug]/page.js 의 @graph(BreadcrumbList·Article·FAQPage) + ContentIntegrityNote.
+const GUIDE_ARTICLE = {
+  path: "/music/guide",
+  title: "운세·명상 음악 콘텐츠 소개",
+  description:
+    "Code Destiny 음악 콘텐츠의 감상 방식, 사용 상황, 무료 범위, 샘플 감상 흐름, 주의사항을 안내합니다.",
+  datePublished: "2026-06-21",
+  dateModified: "2026-09-06",
+};
+
+const guideJsonLd = JSON.stringify({
+  "@context": "https://schema.org",
+  "@graph": [
+    buildBreadcrumbJsonLd([
+      { name: "홈", path: "/" },
+      { name: "음악 플레이어", path: "/music" },
+      { name: GUIDE_ARTICLE.title, path: GUIDE_ARTICLE.path },
+    ]),
+    buildArticleJsonLd({
+      ...GUIDE_ARTICLE,
+      category: "음악 플레이어",
+      keywords: ["명상 음악", "운세 음악", "달빛 플레이리스트", "Code Destiny 음악", "DEST1NOVA"],
+    }),
+    // 화면의 FAQ 카드와 같은 배열을 넘긴다 — 스키마와 본문이 다른 문답이면 리치결과 정책 위반.
+    buildFaqPageJsonLd(faqItems),
+  ],
+});
+
 export default function MusicGuidePage() {
   return (
     <main className="cd-main-shell cd-guide">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: guideJsonLd }} />
       <header className="cd-main-header">
         <h1 className="cd-main-title">운세·명상 음악 콘텐츠 소개</h1>
         <p className="cd-main-intro">
           Code Destiny의 음악 콘텐츠는 운세를 보기 전 마음의 속도를 낮추고, 리딩이 끝난 뒤 감정을 부드럽게 정리하기 위한 감상형 콘텐츠입니다. 달빛 플레이리스트와 캐릭터 앨범은 예언이나 치료가 아니라, 하루를 차분히 바라보는 분위기를 열어 줍니다.
         </p>
       </header>
+
+      <ContentIntegrityNote
+        contentSource="authored"
+        datePublished={GUIDE_ARTICLE.datePublished}
+        dateModified={GUIDE_ARTICLE.dateModified}
+        tone="dark"
+      />
 
       <section className="cd-card-grid">
         <article className="cd-card">

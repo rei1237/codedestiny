@@ -272,7 +272,7 @@ const MIND_SCAN_TAROT_COPY: Partial<Record<LoadingLocale, MindScanTarotCopy>> = 
     genericErrorFallback: "오류가 발생했습니다. 다시 시도해주세요.",
 
     introBadgeMindScan: "Mind Scan",
-    introTitleLine1: "말과 행동 사이의 온도",
+    introTitleLine1: "상대 마음 타로, 말과 행동 사이의 온도",
     introTitleLine2: "관계 간격 리딩",
     introDesc: "직관을 따라 10장의 카드를 선택하세요.\n말과 침묵 사이에 놓인 감정의 거리와 다가갈 수 있는 속도를 읽습니다.",
     flowSteps: ["메인 5장", "→", "보조 5장", "→", "자리 공개", "→", "심층 리딩"],

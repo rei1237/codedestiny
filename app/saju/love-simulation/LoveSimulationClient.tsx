@@ -6,7 +6,7 @@ import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loading
 
 const LOVE_SIMULATION_LOADING_EN = "Preparing your Love Code...";
 const LOVE_SIMULATION_LOADING_COPY: Partial<Record<LoadingLocale, string>> = {
-  ko: "러브 코드를 준비 중입니다...",
+  ko: "러브 코드를 불러오는 중입니다...",
   ja: "ラブコードを準備しています...",
   "zh-CN": "正在准备恋爱代码...",
   "zh-TW": "正在準備戀愛代碼...",

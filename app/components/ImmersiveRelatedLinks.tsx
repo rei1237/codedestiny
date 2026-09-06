@@ -1,4 +1,5 @@
 import Link from "next/link";
+import ContentIntegrityNote from "./ContentIntegrityNote";
 import { getSeoRouteProfile, getTopicClusterLinks } from "../../lib/seo/entity-registry.mjs";
 
 /**
@@ -25,6 +26,36 @@ import { getSeoRouteProfile, getTopicClusterLinks } from "../../lib/seo/entity-r
  */
 
 const RELATED_LINK_LIMIT = 4;
+
+/**
+ * 몰입형 라우트의 발행일(page.tsx 첫 커밋일, `git log --diff-filter=A --format=%as -- <page>`)과
+ * 검수 노트를 붙인 날. 검수 노트(ContentIntegrityNote)는 저자·발행/수정일·정책 링크 4개를 서버 렌더하는데,
+ * 이 19개 라우트는 공유 크롬을 렌더하지 않아 그 신호가 0 이었다(AdSense "가치 낮은 콘텐츠" 반려 축, 2026-09-06).
+ *
+ * 🔴 fromPath 가 이 표에 없으면 빌드가 선다 — 날짜 없는 노트("발행 불명")를 조용히 내보내지 않기 위해서다
+ *    (CURATED_RELATED_PATHS 의 오타 판정과 같은 fail-closed).
+ */
+const ROUTE_DATES: Record<string, { datePublished: string; dateModified: string }> = {
+  "/life-book-ai": { datePublished: "2026-06-27", dateModified: "2026-09-06" },
+  "/love-secret-ai": { datePublished: "2026-06-27", dateModified: "2026-09-06" },
+  "/master-love-codex": { datePublished: "2026-07-29", dateModified: "2026-09-06" },
+  "/naming-ai": { datePublished: "2026-07-11", dateModified: "2026-09-06" },
+  "/neo-operation-room": { datePublished: "2026-06-30", dateModified: "2026-09-06" },
+  "/new-year-ai-consultation": { datePublished: "2026-06-27", dateModified: "2026-09-06" },
+  "/oracle/rune": { datePublished: "2026-05-01", dateModified: "2026-09-06" },
+  "/reviews": { datePublished: "2026-07-29", dateModified: "2026-09-06" },
+  "/saju-fpti": { datePublished: "2026-05-19", dateModified: "2026-09-06" },
+  "/saju-guardian": { datePublished: "2026-06-17", dateModified: "2026-09-06" },
+  "/saju/destiny-bias": { datePublished: "2026-05-12", dateModified: "2026-09-06" },
+  "/saju/destiny-meeting-place": { datePublished: "2026-05-19", dateModified: "2026-09-06" },
+  "/saju/love-simulation": { datePublished: "2026-04-04", dateModified: "2026-09-06" },
+  "/sukuyo-compatibility-ai": { datePublished: "2026-06-27", dateModified: "2026-09-06" },
+  "/tarot/prompt-maker": { datePublished: "2026-05-31", dateModified: "2026-09-06" },
+  "/vedic-ai": { datePublished: "2026-06-27", dateModified: "2026-09-06" },
+  "/yeon-star-hug": { datePublished: "2026-05-18", dateModified: "2026-09-06" },
+  "/ziwei-ai": { datePublished: "2026-06-27", dateModified: "2026-09-06" },
+  "/ziwei/chart": { datePublished: "2026-04-02", dateModified: "2026-09-06" },
+};
 const FUSION_PATH = "/fusion-fortune";
 
 /**
@@ -96,10 +127,14 @@ export default function ImmersiveRelatedLinks({
   if (links.length === 0) {
     throw new Error(`ImmersiveRelatedLinks: ${fromPath} 의 관련 링크가 0개다 — CURATED_RELATED_PATHS 에 항목을 넣을 것`);
   }
+  const dates = ROUTE_DATES[fromPath];
+  if (!dates) {
+    throw new Error(`ImmersiveRelatedLinks: ${fromPath} 의 발행일이 ROUTE_DATES 에 없다 — page.tsx 첫 커밋일을 넣을 것`);
+  }
 
   return (
-    <nav aria-label="관련 운세" className={skin.section}>
-      <div className={skin.panel}>
+    <div className={skin.section}>
+      <nav aria-label="관련 운세" className={skin.panel}>
         <h2 className={skin.heading}>이어서 볼 만한 운세</h2>
         {/* 🔴 클릭 계측을 새로 만들지 않는다 — js/core/analytics.js:143 의 앵커 위임이 이 표식을 보고
             cross_sell_click{from_service,to_service} 로 집계한다. 서버 컴포넌트라 onClick 을 달 수도 없다.
@@ -113,7 +148,15 @@ export default function ImmersiveRelatedLinks({
             </li>
           ))}
         </ul>
-      </div>
-    </nav>
+      </nav>
+      {/* 검수 노트는 관련 링크와 같은 폭·같은 톤으로 그 아래에 둔다(app/guides/[slug]/page.js 의 본문 하단 배치와 같은 판단).
+          이 컴포넌트가 몰입형 19개 라우트의 유일한 서버 렌더 하단 블록이라, 여기가 저자·날짜·정책 링크의 유일한 자리다. */}
+      <ContentIntegrityNote
+        contentSource="authored"
+        datePublished={dates.datePublished}
+        dateModified={dates.dateModified}
+        tone={tone}
+      />
+    </div>
   );
 }
