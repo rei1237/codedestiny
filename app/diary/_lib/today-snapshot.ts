@@ -43,9 +43,18 @@ export interface DiaryLegacyEntry {
   memoNote?: string;
 }
 
+/** 날짜 키 → 엔트리. 셸 모달과 공유하는 v2 평면 맵 그대로다. */
+export type DiaryLegacyStore = Record<string, DiaryLegacyEntry>;
+
 export interface DiaryTodaySnapshot {
   ymd: string;
   entry: DiaryLegacyEntry | null;
+  /**
+   * 저장소 전체(읽기 전용). 🔴 달력·Day View 가 다른 날짜를 볼 때 저장소를 다시 열지 않으려고
+   * 하이드레이션 한 번의 결과를 그대로 들고 있는다 — 두 번째 리더를 만들면 그것이 곧
+   * 계약 우회 지점이 된다(원칙 6).
+   */
+  store: DiaryLegacyStore;
   chart: DiaryNatalChart | null;
   fortune: DiaryDayFortune | null;
 }
@@ -53,6 +62,7 @@ export interface DiaryTodaySnapshot {
 export const EMPTY_DIARY_TODAY_SNAPSHOT: DiaryTodaySnapshot = {
   ymd: "",
   entry: null,
+  store: {},
   chart: null,
   fortune: null,
 };
@@ -92,11 +102,14 @@ function resolveDiaryBirthInput(profile: DestinyProfileCard | null): DiaryBirthI
 export function readDiaryTodaySnapshot(ymd: string): DiaryTodaySnapshot {
   if (typeof window === "undefined") return { ...EMPTY_DIARY_TODAY_SNAPSHOT, ymd };
 
+  let store: DiaryLegacyStore = {};
   let entry: DiaryLegacyEntry | null = null;
   try {
     /* 🔴 읽기만 한다 — `getDiaryEntry` 가 메모리 사본에 빈 엔트리를 꽂아도 저장하지 않는다. */
-    entry = getDiaryEntry(readDiaryStore(window.localStorage), ymd) as DiaryLegacyEntry;
+    store = readDiaryStore(window.localStorage) as DiaryLegacyStore;
+    entry = getDiaryEntry(store, ymd) as DiaryLegacyEntry;
   } catch {
+    store = {};
     entry = null;
   }
 
@@ -111,7 +124,17 @@ export function readDiaryTodaySnapshot(ymd: string): DiaryTodaySnapshot {
     fortune = null;
   }
 
-  return { ymd, entry, chart, fortune };
+  return { ymd, entry, store, chart, fortune };
+}
+
+/**
+ * 저장소에서 하루치를 **있는 그대로** 꺼낸다. 기록이 없으면 `null` 이다.
+ * 🔴 `getDiaryEntry` 를 쓰지 않는 이유는 그쪽이 없는 날에 빈 엔트리를 꽂기 때문이다 —
+ * 달력이 스쳐 간 날마다 빈 껍데기가 생기면 "기록이 있는 날" 판정이 통째로 무너진다.
+ */
+export function readStoredEntry(store: DiaryLegacyStore, ymd: string): DiaryLegacyEntry | null {
+  const entry = store?.[ymd];
+  return entry && typeof entry === "object" ? entry : null;
 }
 
 /** 그날의 실천 진행도. 분모는 셸 `:2118` 과 같은 순서로 고른다. */

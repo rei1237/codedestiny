@@ -1451,7 +1451,7 @@ function _captureYogaEvidence(transactionId, payload) {
   } catch (_e) { yogaPayEvidence = {}; }
 }
 
-async function _consumeMeditationCoin(cost, reason) {
+async function _consumeMeditationCoin(cost, reason, resume) {
   if (_isAdminMeditationSession()) return true;
 
   if (typeof window._cdCoinGatePerUse !== 'function') {
@@ -1491,7 +1491,10 @@ async function _consumeMeditationCoin(cost, reason) {
         featureKey: 'yoga-guru-per-use',
         serviceKey: 'yoga-guru',
         action: 'openYogaGuru',
-        requestId: requestId
+        requestId: requestId,
+        // 🔴 모바일 PortOne 은 상위 프레임을 리다이렉트하므로 아래 await 가 페이지와 함께 죽는다.
+        //    결제 전 상태(적어 둔 상태·고른 길이)를 담은 재개 서술자를 게이트까지 넘겨야 복귀 문서가 다시 연다.
+        resume: resume || null
       });
       if (gateResult && typeof gateResult.then === 'function') {
         gateResult.then(function (result) {
@@ -2068,9 +2071,18 @@ async function invokeGuru() {
   }
 
   const sessionCost = Number(selectedDuration) >= 60 ? 50 : 30;
-  const paid = await _consumeMeditationCoin(sessionCost, 'openYogaGuru ' + selectedDuration + '분 코스');
+  const paid = await _consumeMeditationCoin(sessionCost, 'openYogaGuru ' + selectedDuration + '분 코스',
+    buildYogaResumeDescriptor(mood, selectedDuration));
   if (!paid) return;
 
+  await invokeGuruCore(mood, selectedDuration);
+}
+
+/* 🔴 결제 게이트가 없는 코어다. 재개 핸들러는 이쪽을 부른다 — 게이트를 다시 타는 invokeGuru 를
+   부르면 이미 낸 결제가 또 일어난다(배선 레시피 4번). */
+async function invokeGuruCore(mood, duration) {
+  const invokeBtn = document.getElementById('invokeBtn');
+  const sessionCost = Number(duration) >= 60 ? 50 : 30;
   document.getElementById('errorBox').classList.remove('active');
   document.getElementById('inputSection').style.display = 'none';
   document.getElementById('loadingState').classList.add('active');
@@ -2084,7 +2096,7 @@ async function invokeGuru() {
   }, 2500);
 
   const systemPrompt = buildSystemPrompt();
-  const userPrompt = buildUserPrompt(mood, selectedDuration);
+  const userPrompt = buildUserPrompt(mood, duration);
 
   try {
     const data = await invokeYogaGuruApi(systemPrompt, userPrompt);
@@ -2092,9 +2104,9 @@ async function invokeGuru() {
 
     clearInterval(msgInterval);
     renderCourse(courseData);
-
+    return true;
   } catch (err) {
-    var refunded = await _refundMeditationCoinForApiFailure(sessionCost, _cdYogaLastTx, selectedDuration + 'm');
+    var refunded = await _refundMeditationCoinForApiFailure(sessionCost, _cdYogaLastTx, duration + 'm');
     if (refunded) {
       _cdYogaLastTx = '';
       window.alert('요가 코스 생성 실패로 결제 처리분이 자동 환불 확인 대상입니다.');
@@ -2106,10 +2118,57 @@ async function invokeGuru() {
     document.getElementById('errorDetail').textContent = (err && err.name === 'AbortError')
       ? '요가 코스 엔진 응답이 지연되어 시간 초과되었습니다. 잠시 후 다시 시도해주세요.'
       : (err && err.message ? err.message : '알 수 없는 오류가 발생했습니다.');
+    return false;
   } finally {
     if (invokeBtn) invokeBtn.disabled = false;
   }
 }
+
+/* ── 결제 후 자동 재개(모바일 리다이렉트 복귀) ────────────────────────────
+   코스는 서버(/api/yoga-guru)가 만들고, 그 요청에는 결제 증빙(yogaPayEvidence)이 실린다.
+   복귀 문서는 증빙이 빈 채로 시작하므로 재개 시 grant 로 같은 자리를 다시 채워야 402 가 안 난다. */
+const YOGA_RESUME_KIND = 'yoga-guru-course';
+
+function buildYogaResumeDescriptor(mood, duration) {
+  const asked = String(mood || '').trim();
+  const picked = Number(duration);
+  if (!asked || !Number.isFinite(picked) || picked <= 0) return null;
+  // args 에는 원시값만 살아남는다(checkout-entry 의 sanitizePaidResumeDescriptor).
+  // 🔴 action 은 비운다 — 이 파일은 셸에 상주해 복귀 시점에 핸들러가 이미 등록돼 있고,
+  //    딥링크로 또 열면 이중 이동으로 재개가 날아간다.
+  return { kind: YOGA_RESUME_KIND, action: '', args: { mood: asked, duration: picked } };
+}
+
+function runYogaResume(descriptor, grant) {
+  const args = (descriptor && descriptor.args && typeof descriptor.args === 'object') ? descriptor.args : {};
+  const asked = String(args.mood || '').trim();
+  const picked = Number(args.duration);
+  // 🔴 유효성 판정을 전역 대입보다 앞에 둔다 — 길이가 없으면 프롬프트가 반쪽으로 나간다.
+  // false 를 돌려주면 복귀 처리가 '지금 열기' 카드로 떨어뜨린다(영수증이 남아 재클릭은 무료다).
+  if (!asked || !Number.isFinite(picked) || picked <= 0) return false;
+  if (!grant) return false;
+
+  // 인페이지 경로와 **같은 조립기**를 쓴다(원칙 6) — 서버가 읽는 키가 갈라지지 않는다.
+  _captureYogaEvidence(grant.merchantUid || grant.requestId, grant.payload || {});
+  if (grant.requestId && !yogaPayEvidence.requestId) yogaPayEvidence.requestId = String(grant.requestId);
+
+  selectedDuration = picked;
+  try {
+    const input = document.getElementById('moodInput');
+    if (input) input.value = asked;
+    document.querySelectorAll('.duration-btn').forEach((b) => {
+      b.classList.toggle('selected', Number(b.dataset.duration) === picked);
+    });
+  } catch (_e) {}
+  return invokeGuruCore(asked, picked).then((ok) => ok !== false).catch(() => false);
+}
+
+(function registerYogaResumeHandler() {
+  let entry = null;
+  try { entry = window.__cdCheckoutEntry || null; } catch (_e) { entry = null; }
+  if (!entry || typeof entry.registerPaidResumeHandler !== 'function') return;
+  try { entry.registerPaidResumeHandler(YOGA_RESUME_KIND, runYogaResume); } catch (_e) {}
+})();
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));

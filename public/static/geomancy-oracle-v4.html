@@ -4,8 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
-<script src="/js/destiny-profile.js?v=build-17be4ba51d2d"></script>
 <title>Geomancy Oracle — Codex Alchemicus</title>
+<script src="/js/core/pass-verdict.js?v=build-f4653141d41d"></script>
+<script src="/js/core/checkout-entry.js?v=build-f4653141d41d"></script>
+<script src="/js/core/payment-service.js?v=build-payment-service-v1"></script>
+<script src="/js/destiny-profile.js?v=build-17be4ba51d2d"></script>
 <style>
 /* ═══════════════════════════════════════════════
    ROOT & RESET
@@ -452,7 +455,6 @@ button,input,select,textarea{font-family:var(--font-body)!important}
 </style>
 </head>
 <body>
-
 <canvas id="bg-canvas"></canvas>
 <div id="bg-noise"></div>
 <div id="flash"></div>
@@ -803,80 +805,116 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 
 const GEOMANCY_COIN_COST = 50;
 const GEOMANCY_FEATURE_KEY = 'openGeomancyOracle';
+
+// 결제 증빙: 서버 게이트(requirePremiumReportAccess)가 최근 차감을 매칭하도록 생성 API에 forward한다.
+var geomancyPayEvidence = {};
+function _captureGeomancyEvidence(transactionId, payload) {
+  try {
+    var src = payload && typeof payload === 'object' ? payload : {};
+    var grant = src.accessGrant && typeof src.accessGrant === 'object' ? src.accessGrant : {};
+    var consume = src.consume && typeof src.consume === 'object' ? src.consume : {};
+    var tx = String(transactionId || src.transactionId || consume.transactionId || grant.transactionId || grant.purchaseId || grant.evidenceId || '').trim();
+    geomancyPayEvidence = {
+      transactionId: tx,
+      purchaseId: String(grant.purchaseId || src.purchaseId || tx || '').trim(),
+      requestId: String(src.requestId || grant.requestId || consume.requestId || '').trim(),
+      sessionId: String(src.sessionId || grant.sessionId || src.reportSessionId || '').trim(),
+      reportId: String(src.reportId || grant.reportId || '').trim(),
+    };
+  } catch (_e) { geomancyPayEvidence = {}; }
+}
 let geomancyPayingInFlight = false;
 
-function consumeGeomancyPerUseCoin() {
+function setGeomancyPaymentPending(show, message) {
+  var text = String(message || '').trim() || '지오맨시 흙점 결제를 확인하는 중입니다...';
+  try {
+    if (typeof window._cdSetCoinGateOverlay === 'function') {
+      window._cdSetCoinGateOverlay(!!show, text);
+      return;
+    }
+  } catch (_e) {}
+
+  var overlay = document.getElementById('geomancyPaymentOverlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'geomancyPaymentOverlay';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:2147483000;display:none;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 50%, rgba(11,20,16,.7), rgba(2,8,6,.9));backdrop-filter:blur(6px);padding:16px;';
+    overlay.innerHTML = '<div style="width:min(420px,100%);border-radius:16px;border:1px solid rgba(110,231,183,.32);background:linear-gradient(135deg, rgba(10,18,14,.95), rgba(14,28,22,.94));box-shadow:0 18px 46px rgba(0,0,0,.45);padding:18px;text-align:center;color:#d1fae5;"><div style="width:40px;height:40px;margin:0 auto 10px;border-radius:999px;border:3px solid rgba(110,231,183,.26);border-top-color:rgba(110,231,183,.95);animation:geomancyPaySpin .9s linear infinite"></div><p style="margin:0 0 6px;font-size:17px;font-weight:800;">지오맨시 결제 보호막 가동</p><p id="geomancyPaymentOverlayMsg" style="margin:0;font-size:13px;color:rgba(167,243,208,.95);">지오맨시 흙점 결제를 확인하는 중입니다...</p></div>';
+    document.body.appendChild(overlay);
+    if (!document.getElementById('geomancyPaymentOverlayStyle')) {
+      var st = document.createElement('style');
+      st.id = 'geomancyPaymentOverlayStyle';
+      st.textContent = '@keyframes geomancyPaySpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}';
+      document.head.appendChild(st);
+    }
+  }
+
+  var msg = document.getElementById('geomancyPaymentOverlayMsg');
+  if (msg) msg.textContent = text;
+  overlay.style.display = show ? 'flex' : 'none';
+}
+
+function consumeGeomancyPerUseCoin(resume) {
   return new Promise((resolve) => {
     if (GEOMANCY_COIN_COST <= 0) { resolve(true); return; }
     if (typeof window.__cdIsAdminLikeUser === 'function' && window.__cdIsAdminLikeUser()) {
       resolve(true);
       return;
     }
+    var requestId = 'geomancy:' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
     if (typeof window._cdCoinGatePerUse === 'function') {
       try {
-        window._cdCoinGatePerUse(
+        var granted = false;
+        var gateResult = window._cdCoinGatePerUse(
           GEOMANCY_COIN_COST,
           '지오맨시 흙점 리딩',
-          function() { resolve(true); },
-          function() { resolve(false); }
+          function(_transactionId, payload) {
+            granted = true;
+            _captureGeomancyEvidence(_transactionId, payload);
+            var source = payload && typeof payload === 'object' ? payload : {};
+            var data = source.data && typeof source.data === 'object' ? source.data : {};
+            var nextBalance = Number(source.balance ?? data.balance ?? (source.user && source.user.points) ?? (data.user && data.user.points));
+            if (Number.isFinite(nextBalance) && nextBalance >= 0) {
+              try {
+                var user = JSON.parse(localStorage.getItem('fortune_auth_user') || '{}');
+                user.points = nextBalance;
+                localStorage.setItem('fortune_auth_user', JSON.stringify(user));
+              } catch (_e) {}
+              if (typeof window.__cdSetGoldenBalance === 'function') window.__cdSetGoldenBalance(nextBalance);
+            }
+            resolve(true);
+          },
+          function() { resolve(false); },
+          {
+            featureKey: GEOMANCY_FEATURE_KEY,
+            serviceKey: 'geomancy',
+            action: 'openGeomancyOracle',
+            requestId: requestId,
+            // 🔴 모바일 PortOne 은 상위 프레임을 리다이렉트하므로 위 await 가 페이지와 함께 죽는다.
+            //    결제 전 상태(입력한 질문)를 담은 재개 서술자를 게이트까지 넘겨야 복귀 문서가 다시 연다.
+            resume: resume || null
+          }
         );
+        if (gateResult && typeof gateResult.then === 'function') {
+          gateResult.then(function(result) {
+            if (granted) return;
+            if (!result || typeof result !== 'object') { resolve(false); return; }
+            var payload = result.payload && typeof result.payload === 'object' ? result.payload : result;
+            var status = String(result.status || payload.status || '').toLowerCase();
+            resolve(status === 'granted' || status === 'paid' || status === 'success' || Boolean(payload.accessGrant) || Boolean(payload.premiumAccessToken) || Boolean(payload.consume));
+          }).catch(function() { resolve(false); });
+        } else if (gateResult && typeof gateResult === 'object') {
+          var immediatePayload = gateResult.payload && typeof gateResult.payload === 'object' ? gateResult.payload : gateResult;
+          var immediateStatus = String(gateResult.status || immediatePayload.status || '').toLowerCase();
+          resolve(immediateStatus === 'granted' || immediateStatus === 'paid' || immediateStatus === 'success' || Boolean(immediatePayload.accessGrant) || Boolean(immediatePayload.premiumAccessToken) || Boolean(immediatePayload.consume));
+        }
         return;
       } catch (_gateErr) {}
     }
 
+    // 공유 결제 게이트(destiny-profile.js) 미로드: 정책 우회 차감(직접 coin-gate/forceDeduct/COIN) 대신 안내.
     window.alert('결제 모듈을 불러오지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.');
     resolve(false);
-    return;
-    /* Disabled legacy fallback: this page must use the common paid bridge. */
-    var token = '';
-    try { token = String(localStorage.getItem('fortune_auth_token') || ''); } catch (_e) {}
-    if (!token) {
-      if (window.confirm('로그인이 필요합니다. 로그인 페이지로 이동할까요?')) {
-        window.location.href = '/login?next=' + encodeURIComponent(window.location.pathname + (window.location.search || ''));
-      }
-      resolve(false);
-      return;
-    }
-
-    legacyFallbackRequest({
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + token,
-      },
-      body: JSON.stringify({
-        cost: GEOMANCY_COIN_COST,
-        reason: '지오맨시 흙점 리딩',
-        featureKey: GEOMANCY_FEATURE_KEY,
-      }),
-    }).then(function(resp) {
-      return resp.json().catch(function() { return {}; }).then(function(payload) {
-        if (resp.ok) {
-          if (payload && payload.user && typeof payload.user.points === 'number') {
-            try {
-              var user = JSON.parse(localStorage.getItem('fortune_auth_user') || '{}');
-              user.points = payload.user.points;
-              localStorage.setItem('fortune_auth_user', JSON.stringify(user));
-            } catch (_e2) {}
-            if (typeof window.__cdSetGoldenBalance === 'function') {
-              window.__cdSetGoldenBalance(payload.user.points);
-            }
-          }
-          resolve(true);
-          return;
-        }
-        if (resp.status === 402) {
-          window.alert('결제 권한이 부족합니다. 결제 후 다시 시도해 주세요.');
-        } else {
-          window.alert((payload && payload.message) || '원화 결제 확인에 실패했습니다. 잠시 후 다시 시도해 주세요.');
-        }
-        resolve(false);
-      });
-    }).catch(function() {
-      window.alert('원화 결제 확인 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
-      resolve(false);
-    });
-    */
   });
 }
 
@@ -903,7 +941,7 @@ async function submitQ(){
     qBtn.style.opacity = '0.72';
     qBtn.innerHTML = '<span>✦</span><span>결제를 확인하고 있습니다…</span><span>✦</span>';
   }
-  const paid = await consumeGeomancyPerUseCoin();
+  const paid = await consumeGeomancyPerUseCoin(buildGeomancyResumeDescriptor(v));
   geomancyPayingInFlight = false;
   if (qBtn) {
     qBtn.removeAttribute('disabled');
@@ -911,10 +949,60 @@ async function submitQ(){
     qBtn.innerHTML = prevText;
   }
   if (!paid) return;
-  question=v;
+  geomancyEnterActivation(v);
+}
+
+/* 🔴 결제 게이트가 없는 코어다. 재개 핸들러는 이쪽을 부른다 — 게이트를 다시 타는 submitQ 를
+   부르면 이미 낸 결제가 또 일어난다(배선 레시피 4번). */
+function geomancyEnterActivation(text){
+  question=text;
   document.getElementById('q-screen').classList.remove('show');
   doActivation();
+  return true;
 }
+
+/* ── 결제 후 자동 재개(모바일 리다이렉트 복귀) ────────────────────────────
+   결제 전 상태는 입력한 질문 하나뿐이라 질문만 되살리면 이어진다. 다만 해석은 서버가 만들고
+   (`/api/oracle/geomancy`), 그 요청 본문에 `geomancyPayEvidence` 가 실려 나간다(fetchOracle).
+   🔴 그 전역은 인페이지 게이트의 onGranted 에서만 채워지므로, 복귀 문서에서는 비어 있다 —
+      재개 핸들러가 같은 조립기로 다시 채우지 않으면 결제한 사용자가 402 를 맞는다(원칙 6). */
+const GEOMANCY_RESUME_KIND = 'geomancy-oracle-cast';
+
+function buildGeomancyResumeDescriptor(text){
+  const asked = String(text || '').trim();
+  if (!asked) return null;
+  // args 에는 원시값만 살아남는다(checkout-entry 의 sanitizePaidResumeDescriptor).
+  // 🔴 action 은 비운다 — 이 파일은 셸에 상주해 복귀 시점에 핸들러가 이미 등록돼 있고,
+  //    딥링크로 또 열면 이중 이동으로 재개가 날아간다.
+  return { kind: GEOMANCY_RESUME_KIND, action: '', args: { question: asked } };
+}
+
+function runGeomancyResume(descriptor, grant){
+  const args = (descriptor && descriptor.args && typeof descriptor.args === 'object') ? descriptor.args : {};
+  const asked = String(args.question || '').trim();
+  // 🔴 유효성 판정을 전역 대입보다 앞에 둔다 — 빈 질문으로 덮으면 질문 표시가 빈 채로 점괘만 돈다.
+  // false 를 돌려주면 복귀 처리가 '지금 열기' 카드로 떨어뜨린다(영수증이 남아 재클릭은 무료다).
+  if (!asked) return false;
+  if (!grant || typeof grant !== 'object') return false;
+  // 인페이지 경로와 **같은 조립기**를 쓴다(원칙 6) — 서버가 읽는 키가 갈라지지 않는다.
+  // 🔴 requestId 는 서버 판정 키인데(worker/routes/oracle.js) 확정 응답에는 없을 수 있다 —
+  //    비어 있을 때만 재개 grant 의 값으로 채운다(있으면 서버 응답이 이긴다).
+  var resumePayload = Object.assign({}, grant.payload || {});
+  if (!String(resumePayload.requestId || '').trim() && grant.requestId) resumePayload.requestId = grant.requestId;
+  _captureGeomancyEvidence(grant.merchantUid || grant.requestId, resumePayload);
+  try {
+    const input = document.getElementById('q-input');
+    if (input) input.value = asked;
+  } catch (_e) {}
+  return geomancyEnterActivation(asked);
+}
+
+(function registerGeomancyResumeHandler(){
+  let entry = null;
+  try { entry = window.__cdCheckoutEntry || null; } catch (_e) { entry = null; }
+  if (!entry || typeof entry.registerPaidResumeHandler !== 'function') return;
+  try { entry.registerPaidResumeHandler(GEOMANCY_RESUME_KIND, runGeomancyResume); } catch (_e) {}
+})();
 document.getElementById('q-input').addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.ctrlKey||e.metaKey))submitQ();});
 
 async function doActivation(){
@@ -1283,10 +1371,14 @@ function buildLocalCombinedOracle(causeData,flowData,judgeData,t){
 async function fetchOracle(q,cards,t){
   if(!cards||!cards.judge)return null;
   try{
+    var _authToken='';try{_authToken=localStorage.getItem('fortune_auth_token')||'';}catch(_e){}
+    const _headers={'Content-Type':'application/json'};
+    if(_authToken)_headers['Authorization']='Bearer '+_authToken;
     const r=await fetch('/api/oracle/geomancy',{
       method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
+      credentials:'include',
+      headers:_headers,
+      body:JSON.stringify(Object.assign({
         question:q,
         theme:t,
         cards:{
@@ -1294,14 +1386,14 @@ async function fetchOracle(q,cards,t){
           flow:toOracleCardPayload(cards.flow,t,'흐름'),
           judge:toOracleCardPayload(cards.judge,t,'신탁'),
         },
-      })
+      }, geomancyPayEvidence || {}))
     });
     if(!r.ok)return null;
     const data=await r.json();
     const txt=formatOraclePayload(data);
     if(!txt)return null;
     return {text:txt,advice:data?.advice||data?.actionTip||null};
-  }catch (e){return null;}
+  }catch (e) {return null;}
 }
 
 function formatOraclePayload(data){
@@ -1351,6 +1443,126 @@ document.addEventListener('mousemove',e=>{const el=document.getElementById('tip'
 
 /* INIT */
 window.addEventListener('DOMContentLoaded',()=>initRows());
+</script>
+<script>
+(function(){
+  var GT_ID = 'cdStandaloneGtHost';
+  var MAP = {
+    ko:'ko', en:'en', ja:'ja', 'zh-CN':'zh-CN', zh:'zh-CN',
+    hi:'hi', es:'es', fr:'fr', de:'de', nl:'nl', ms:'ms'
+  };
+  function normalizeLang(v){
+    var l = String(v || 'ko').trim();
+    if (!l) return 'ko';
+    var low = l.toLowerCase();
+    if (low === 'zh' || low === 'zh-cn') return 'zh-CN';
+    if (low === 'jp') return 'ja';
+    return MAP[low] ? low : 'ko';
+  }
+  function resolveLang(){
+    try {
+      var q = new URLSearchParams(window.location.search || '');
+      var fromQuery = q.get('lang');
+      if (fromQuery) return normalizeLang(fromQuery);
+    } catch (_) {}
+    try {
+      var saved = localStorage.getItem('cd_lang');
+      if (saved) return normalizeLang(saved);
+    } catch (_) {}
+    return 'ko';
+  }
+  function writeGoogTransCookie(target){
+    var value = '/ko/' + target;
+    var host = (window.location.hostname || '').replace(/^www\./, '');
+    document.cookie = 'googtrans=' + value + '; path=/; SameSite=Lax';
+    if (host) {
+      document.cookie = 'googtrans=' + value + '; domain=' + host + '; path=/; SameSite=Lax';
+      document.cookie = 'googtrans=' + value + '; domain=.' + host + '; path=/; SameSite=Lax';
+    }
+  }
+  function clearGoogTransCookie(){
+    var host = (window.location.hostname || '').replace(/^www\./, '');
+    document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax';
+    if (host) {
+      document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=' + host + '; path=/; SameSite=Lax';
+      document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=.' + host + '; path=/; SameSite=Lax';
+    }
+  }
+  function ensureHost(){
+    var host = document.getElementById(GT_ID);
+    if (host) return host;
+    host = document.createElement('div');
+    host.id = GT_ID;
+    host.style.position = 'fixed';
+    host.style.left = '-9999px';
+    host.style.top = '-9999px';
+    host.style.width = '1px';
+    host.style.height = '1px';
+    host.style.overflow = 'hidden';
+    document.body.appendChild(host);
+    return host;
+  }
+  function hideGoogleBanner(){
+    if (document.getElementById('cdStandaloneGtHideStyle')) return;
+    var st = document.createElement('style');
+    st.id = 'cdStandaloneGtHideStyle';
+    st.textContent = '.goog-te-banner-frame,.goog-te-balloon-frame,#goog-gt-tt,.goog-tooltip{display:none !important;visibility:hidden !important;height:0 !important;}.goog-text-highlight{background-color:transparent !important;box-shadow:none !important;}.skiptranslate iframe{display:none !important;}body{top:0 !important;position:static !important;}html{margin-top:0 !important;}';
+    document.head.appendChild(st);
+  }
+  function applyGoogleLang(target){
+    function setCombo(){
+      var combo = document.querySelector('#' + GT_ID + ' .goog-te-combo') || document.querySelector('.goog-te-combo');
+      if (!combo) return false;
+      combo.value = target;
+      try { combo.dispatchEvent(new Event('change', { bubbles: true })); } catch (_) {}
+      return true;
+    }
+    window.__cdStandaloneGtInit = function(){
+      try {
+        if (window.google && window.google.translate && window.google.translate.TranslateElement) {
+          ensureHost();
+          new window.google.translate.TranslateElement({
+            pageLanguage: 'ko',
+            includedLanguages: 'en,ja,zh-CN,hi,es,fr,de,nl,ms',
+            autoDisplay: false,
+            layout: window.google.translate.TranslateElement.InlineLayout.SIMPLE
+          }, GT_ID);
+        }
+      } catch (_) {}
+      var tries = 0;
+      (function poll(){
+        if (setCombo() || tries > 40) return;
+        tries++;
+        setTimeout(poll, 120);
+      })();
+    };
+    if (window.google && window.google.translate && window.google.translate.TranslateElement) {
+      window.__cdStandaloneGtInit();
+      return;
+    }
+    if (!document.querySelector('script[data-cd-standalone-gt="1"]')) {
+      var script = document.createElement('script');
+      script.async = true;
+      script.defer = true;
+      script.setAttribute('data-cd-standalone-gt', '1');
+      script.src = 'https://translate.google.com/translate_a/element.js?cb=__cdStandaloneGtInit';
+      document.head.appendChild(script);
+    }
+  }
+
+  var lang = resolveLang();
+  try { localStorage.setItem('cd_lang', lang); } catch (_) {}
+  document.documentElement.setAttribute('lang', lang);
+  hideGoogleBanner();
+
+  if (lang === 'ko') {
+    clearGoogTransCookie();
+    return;
+  }
+  var target = MAP[lang] || 'en';
+  writeGoogTransCookie(target);
+  applyGoogleLang(target);
+})();
 </script>
 </body>
 </html>

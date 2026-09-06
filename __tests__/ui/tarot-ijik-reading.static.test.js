@@ -106,7 +106,9 @@ test('정적 페이지는 판정 표시 자리와 결제 게이트를 유지한�
   assert.match(page, /id="jobChangeCheckpoints"/);
 
   // 🔴 결제가 먼저, 서버 리딩 요청이 나중이어야 한다.
-  const gateIndex = page.indexOf("await ijikCoinGate(IJIK_COIN_COST, '커리어 전환 타로 리딩')");
+  // 🔴 인자 목록까지 리터럴로 박지 않는다 — 2026-09-06 에 재개 서술자용 3번째 인자(drawnCards)가
+  //    붙으면서 이 마커가 통째로 빗나갔다. 보려는 것은 "결제가 먼저"라는 순서다.
+  const gateIndex = page.indexOf("await ijikCoinGate(IJIK_COIN_COST, '커리어 전환 타로 리딩'");
   const fetchIndex = page.indexOf('await fetchIjikReading(drawnCards, _ijikLastRequestId)');
   assert.ok(gateIndex >= 0, '결제 게이트 호출을 못 찾았다');
   assert.ok(fetchIndex > gateIndex, '리딩 요청이 결제보다 먼저다');
