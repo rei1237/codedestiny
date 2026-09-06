@@ -402,6 +402,9 @@ export const noindexPathPrefixes = [
   "/result",
   "/results",
   "/report/progress",
+  // 개인 다이어리. 이 목록은 isNoindexPath → isPrivateRoute 로 이어져 ShareWidget 도 지운다 —
+  // 개인 기록 화면에 공유 위젯이 뜨지 않는 것이 의도한 결과다.
+  "/diary",
   "/animal/physio",
   "/maya",
   "/oracle/royal-tea",
