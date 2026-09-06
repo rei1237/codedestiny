@@ -213,8 +213,10 @@ describe("무과금 재시도와 그 상한", () => {
     expect(first.response.status).toBe(200);
     expect(second.response.status).toBe(200);
     expect(verifyPerUsePaymentMock).toHaveBeenCalledTimes(2);
-    // verifyPerUsePayment 는 조회 전용이라 차감이 일어나지 않는다(worker/lib/nakshatra-paid-access.js).
-    // 그 계약이 깨지면 이 재시도 버튼이 곧 이중 결제가 된다.
+    // verifyPerUsePayment 는 이용권 무료 통과 시 예산을 차감한다(#1673) — 여기서는 목이라 차감이 없다.
+    // 재시도가 예산을 두 번 깎지 않는 근거는 (featureKey, requestId) 멱등 마커이며
+    // 그 고정은 __tests__/worker/pass-budget-hard-gate.test.js 가 맡는다.
+    // 이 테스트가 지키는 것은 그 위층 계약이다 — 같은 requestId 재시도가 402 로 막히지 않는다.
     expect(generateOracleConsultationMock).toHaveBeenCalledTimes(2);
   });
 

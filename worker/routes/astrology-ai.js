@@ -14,7 +14,6 @@ import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
-import { canUseByPass, normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { cmsPromptModelConfig, cmsPromptText } from "../lib/cms-prompts.js";
 import { tokensRequiredForChars } from "../lib/llm-budget.js";

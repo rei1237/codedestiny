@@ -13,7 +13,6 @@ import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
-import { canUseByPass, normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { SYNC_LLM_TIMEOUT_CEILING_MS } from "../lib/sync-llm-timeout.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
