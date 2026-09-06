@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-06
-next: Phase 4 를 **원문 덤프와 함께 재측정**했고 탈락 원인이 확정됐다(아래 "남은 작업"). 다음은 코드가 아니라 **결정** — 탈락 8건 중 6건이 분량이 아니라 **JSON 형태**(keyPoints 누락 5 · 생줄바꿈 파싱 실패 1)이므로 임계를 낮춰도 안 풀린다. 구조화 출력(Gemini `responseSchema`)을 배선할지 사용자와 정한 뒤 고치고 재측정한다. 재측정도 `--live` 이므로 **그때 다시 승인을 받는다**(절대 규칙 1).
+next: 구조화 출력(Gemini `responseSchema`)을 배선했다 — 커밋 `b313f9766`, 브랜치 `worktree-fusion-phase4-live`(PR 미개설). 전송 실측으로 `generationConfig` 에 실리는 것과 옵션 없는 대조군 바디가 이전과 같은 것까지 확인했다. **다음은 재측정** — `npm run verify:fusion-fortune-live -- --live --dump` 이며 `--live` 라 **사용자 승인을 새로 받아야 한다**(절대 규칙 1). 볼 것 둘: (1) `missing_key_points` 5건이 사라졌는가 (2) 🔴 제약 디코딩이 본문을 줄여 `section_depth`(saju 3,189 · tarot 3,258 / 3,600자)가 **악화되지 않았는가**. 400 이 나면 되돌리는 지점은 `worker/lib/fusion-fortune.js` 의 `responseSchema` 한 줄이다.
 ---
 
 # 초융합 운세 개선 — 2단계 생성(Phase 1) 이후
