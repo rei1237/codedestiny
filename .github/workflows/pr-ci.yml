@@ -44,7 +44,17 @@ jobs:
       - name: Checkout PR head
         uses: actions/checkout@v4
         with:
+          # fetch-depth: 0 은 유지한다 — 아래 tier 판정이 `git diff --name-only base...head` 로
+          # merge-base 를 쓰므로 히스토리를 자르면 판정이 통째로 틀어진다.
+          #
+          # 대신 blob 만 지연 로딩한다. 이 잡은 파일 "이름" 만 보고 내용은 한 번도 열지 않으므로
+          # 블롭이 실제로 페치될 일이 없다. 커밋·트리는 전부 받으므로 base...head 는 그대로 돈다.
+          # 근거(2026-09-06 실측, run 34007055500): 이 잡 35s 중 33s 가 체크아웃이고,
+          # 같은 레포 build 잡의 얕은 체크아웃은 7s 다(pack 350.11 MiB, 오브젝트 114,654개,
+          # 대부분 블롭 — index.html 단독 2.94MB). classify 는 나머지 3개 잡을 막는 직렬 선행이라
+          # 여기서 줄인 시간이 그대로 PR 전체 wall-clock 에서 빠진다.
           fetch-depth: 0
+          filter: blob:none
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
