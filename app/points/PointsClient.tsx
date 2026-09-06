@@ -3556,16 +3556,15 @@ export default function PointsPage() {
   const syncSubscriptionAppliedStage = useCallback(async (tier?: unknown) => {
     const label = getSubscriptionTierLabel(tier || subscription.tier);
     const passLabel = label === "이용권" ? "이용권" : `${label} 이용권`;
-    setProcessingStage(`${passLabel}을 계정에 반영하고 있어요.\n잠시만 기다려 주세요.`, "pass-applied");
+    // 🔴 서버 confirm 이 끝난 뒤라 이용권 적용은 이미 확정이다. 남은 일은 잔량 표시 갱신뿐이므로
+    //    완료 안내를 그 왕복 뒤로 미루지 않는다 — 승인이 끝난 뒤 다시 기다리게 만들던 중간
+    //    "반영 중" 대기 프레임을 여기서 없앴다(순수 인위적 지연이었다).
+    // 🔴 이 단계가 알리는 것은 이용권 적용 하나다. 이벤트 지급 재화의 잔량 문구를 여기 섞지 않는다
+    //    — 정적 테스트가 이 블록에 그 재화 이름이 다시 들어오는 것을 막는다.
     clearMoonlightStoreSnapshot(authStoreUserId, apiBase);
-    const [refreshResult] = await Promise.allSettled([
-      fetchMyPointState({ force: true }),
-    ]);
-    const finalMessage = refreshResult.status === "rejected"
-      ? "결제와 이용권 반영은 완료됐어요.\n최신 월정석 잔량은 잠시 후 다시 확인해 주세요."
-      : "최신 월정석 잔량을 확인했어요.\n이제 이용할 수 있어요.";
-    await showPassAppliedStage(finalMessage, tier);
-  }, [apiBase, authStoreUserId, fetchMyPointState, setProcessingStage, showPassAppliedStage, subscription.tier]);
+    void fetchMyPointState({ force: true }).catch(() => {});
+    await showPassAppliedStage(`${passLabel}이 적용되었습니다.\n이제 이용할 수 있어요.`, tier);
+  }, [apiBase, authStoreUserId, fetchMyPointState, showPassAppliedStage, subscription.tier]);
 
   /* ── 초기 인증 토큰 확인 ───────────────────────────────────────── */
   useEffect(() => {
