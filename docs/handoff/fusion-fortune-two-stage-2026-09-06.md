@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-06
-next: 🔴 **Phase 4 판정 4개가 7차 실호출에서 처음으로 전부 충족됐다**(2026-09-06 09:40Z, 승인 1회 소진, 대표 1건): 52,378자 · `full` · `fallbackGroups: []` · 41.2+42.1초. 열려 있던 두 축이 같이 닫혔다 — ④ `closing_depth`(서술자 효과 실측: `closingMessage` **818·967자**) · `unsafe_phrase` 3번째 오탐(공기 판정 전환 후 탈락 0). **#1701(`closingMessage` 서술자)은 머지됐다 — squash `c4b673e97`. 남은 것은 사람 손이다: PR #1702(`unsafe_phrase` 공기 판정 + 이 실측 기록) 머지 → 스테이징에서 Phase 2 레일·Phase 3 도크를 눈으로 확인.** 🔴 새 후속 과제 1건(확인됨, 범위 밖): `countFusionGroupChars` 가 `finalVerdict` 를 0자로 세어 정상 verdict 묶음에 불필요한 보완 물결을 돌린다(§후속). 다음 세션 첫 문장: **"PR #1702 가 머지됐는지 보고, 됐으면 스테이징에서 레일·도크 육안 확인부터 한다 — 안 됐으면 `countFusionGroupChars` 오계수를 고칠지 먼저 묻는다."**
+next: 🔴 **레일·도크 육안 확인을 마쳤다 — 통과 3 · 결함 3.** Gemini 실호출 0회·결제 0건으로 봤다(초융합에 `lib/dev-preview` 픽스처를 붙여 로컬에서 `?preview=success|truncated` 렌더 → Playwright 캡처 → `visual-checker` 판정). ✅ 모바일 도크가 진짜 `fixed`(360/390/430 에서 스크롤 수천 px 뒤 y 드리프트 ≤6px) · ✅ 1단계 대기 표시(13항목, 완성본과 같은 수) · ✅ 도크 상단 진행선. 🔴 **결함 3건은 손대지 않았다 — 승인 대기**(§육안 판정): ① 데스크톱 레일이 스크롤하면 사라진다(원인 확정: `app/fusion-fortune/fusion-fortune.module.css:53` 의 `.page { overflow: hidden }`) ② 데스크톱 진행선 없음(①의 결과) ③ 대기 항목 대비 3.01:1(AA 4.5 미달). 열린 PR 2건(사용자 머지): **#1704** dev-preview 픽스처(CI 전부 green) · **#1706** `countFusionGroupChars` 오계수 수정(후속 과제 ④ 해소). 다음 세션 첫 문장: **"#1704·#1706 머지 여부를 확인하고, 레일 결함 3건 수정 승인이 났으면 `overflow: hidden` → `clip` 부터 고친다 — 안 났으면 승인부터 받는다."**
 ---
 
 # 초융합 운세 개선 — 2단계 생성(Phase 1) 이후
@@ -23,6 +23,8 @@ next: 🔴 **Phase 4 판정 4개가 7차 실호출에서 처음으로 전부 충
 
 - [x] **Phase 2 UI/UX 고급화** — 위 "지금 상태". 로케일 12개 중 ko·en·ja·zh-CN·zh-TW 만 저작, vi·hi·es·fr·de·nl·ms 는 영어 복사(배치 번역 후속).
 - [x] **Phase 3 모바일 최적화** — 도크·시트·섹션 헤더 줄바꿈·푸터 2열·좁은 화면 여백 4종(≤430px). 로케일 5키는 ko·en·ja·zh 저작, 나머지 7개는 영어 복사.
+- [x] **레일·도크 육안 확인** — dev-preview 픽스처(PR #1704)로 로컬 렌더 후 판정. 통과 3 · **결함 3(미수정, 승인 대기)**. 상세는 §육안 판정.
+- [ ] 🔴 **레일 결함 3건 수정 — 승인 없이 손대지 않았다.** ① `.page { overflow: hidden }` → `clip`(`fusion-fortune.module.css:53`) ② 데스크톱 진행선(①의 결과) ③ 대기 항목 대비 3.01:1 → AA 4.5:1. 🔴 고친 뒤 눈으로 다시 보려면 dev-preview 픽스처가 필요하므로 **#1704 머지 뒤에 하거나 그 브랜치 위에 쌓는다.**
 - [x] 🔴 **Phase 4 실검증 — 7회 돌렸고 7차에서 ①②③④ 전부 충족**(2026-09-06). 5차의 ②(`degraded/length`)는 6차에 ⓧ 로 닫혔고, 6차에 열린 ④(verdict `closing_depth`)는 7차에 닫혔다. 🔴 **대표 1건 표본이다** — 나머지 4조합은 여전히 미검증이고, mock `verify:fusion-fortune-delivery-floor` 가 조합 커버리지를 맡는다. 하네스 `scripts/verify-fusion-fortune-live.mjs`(npm `verify:fusion-fortune-live`, 플래그 없으면 호출 0으로 계획만 출력). 재현: `node --env-file=<리포 루트>/.env.local scripts/verify-fusion-fortune-live.mjs --live --dump`. 사용자 지시로 조합 전수(45회) 대신 **대표 1건**(`생시O 장소O`)만 돌렸다 — 조합 커버리지는 mock `verify:fusion-fortune-delivery-floor` 가 맡는다.
   - 2차 실측(구조화 출력 **전**, `--dump`): 호출 11회 · 35.4초 · 27,093자 · `gemini_partial` · fallback saju·ziwei·tarot · 탈락 8건(`missing_key_points` 5 · `parse_failed` 1 · `section_depth` 2). 🔴 **탈락 6건이 분량이 아니라 JSON 형태였다** — 섹션 객체가 `{title, content}` 뿐이고 `keyPoints` 키를 통째로 빠뜨렸다.
   - 3차 실측(구조화 출력 **후**, 2026-09-06 04:36Z, 대표 1건): 호출 8회 · 28.5초 · 27,017자 · `gemini_partial` · fallback saju·tarot · 탈락 4건. **Gemini 가 스키마를 그대로 수용했다(400 없음)** — 되돌릴 이유가 사라졌다.
@@ -58,9 +60,9 @@ next: 🔴 **Phase 4 판정 4개가 7차 실호출에서 처음으로 전부 충
     - ✅ **`unsafe_phrase` 탈락 0** — 공기 판정 전환(이 세션) 뒤 오반려 없음(**1건 표본**, 같은 표현이 응답에 다시 나왔는지는 미확인).
     - ✅ `section_depth` 최종 탈락 0. saju 4,027 · ziwei 6,874 · vedic 5,593 · sukuyo 6,967(w2) · astrology 4,058(w2) · tarot 4,263 · integration 6,159 · timingAndAction 6,053/2,600.
     - 🔴 **astrology w1 이 새 형태로 탈락 — 반복 루프가 아니라 조기 종료다.** 응답 780자 전체·본문 523/3,600자를 3.6초 만에 닫고 끝냈다(JSON 은 정상, `keyPoints` 3개). 4·5차의 `parse_failed` 반복 루프와 **정반대 형태**다. 보완 물결이 4,058자로 회복해 폴백은 0. sukuyo w1 도 3,378/3,600 으로 근소 미달 후 w2 6,967자. 🔴 **astrology 는 4·5차 반복 루프 · 6차 정상 · 7차 조기 종료로 매번 다르다 — 표본 변동으로 보고 손대지 않는다.**
-    - 🔴 **새 후속 과제(확인됨) — `countFusionGroupChars` 가 `finalVerdict` 를 0자로 센다.** verdict w1 은 그룹 검증을 **통과했는데도**(`ok`) 보완 물결이 돌았다. 이유는 `worker/lib/fusion-fortune.js:672` 가 문자열이거나 `.content` 를 가진 값만 세는데 `finalVerdict` 는 본문이 `rationale` 에 있어 통째로 빠지기 때문이다. w1 합계 1,739+0+818+110 = **2,667 < 3,400×0.8 = 2,720** 으로 `shortGroups` 에 들어갔다. w2 는 2,982+0+967+134 = **4,083** 이고 하네스가 출력한 값과 정확히 일치해 **산술로 확인됐다**. 대가는 매 요청 호출 1회 + 18.5초다. 🔴 고치려면 `countFusionGroupChars` 가 `rationale` 같은 비-`content` 본문을 세게 해야 하는데, 그러면 **모든 그룹의 재시도 문턱이 실질적으로 올라가므로**(지금까지 0으로 세던 것이 더해진다) 문턱 값과 함께 재검토해야 한다 — 범위 밖, 승인 없이 손대지 않았다.
+    - 🔴 **새 후속 과제(확인됨) — `countFusionGroupChars` 가 `finalVerdict` 를 0자로 센다.** verdict w1 은 그룹 검증을 **통과했는데도**(`ok`) 보완 물결이 돌았다. 이유는 `worker/lib/fusion-fortune.js:672` 가 문자열이거나 `.content` 를 가진 값만 세는데 `finalVerdict` 는 본문이 `rationale` 에 있어 통째로 빠지기 때문이다. w1 합계 1,739+0+818+110 = **2,667 < 3,400×0.8 = 2,720** 으로 `shortGroups` 에 들어갔다. w2 는 2,982+0+967+134 = **4,083** 이고 하네스가 출력한 값과 정확히 일치해 **산술로 확인됐다**. 대가는 매 요청 호출 1회 + 18.5초다. ✅ **수정 완료(PR #1706)** — 아래 정정과 함께 본다. 🔴 **정정 — "모든 그룹의 재시도 문턱이 올라간다"는 틀렸다.** 9개 그룹의 `keys` 를 전수로 보면 본문이 `.content` 밖에 있는 키는 `finalVerdict` **하나뿐**이라(나머지는 문자열이거나 `.content` 객체, `visualization` 은 구조 데이터라 의도적으로 0자) 효과가 verdict 묶음 하나로 닫힌다. 그래서 `FUSION_GROUP_RETRY_RATIO`(0.8)·`targetChars`(3,400)는 건드리지 않았다 — 계수가 명세와 맞으면 3,400 은 minChars 합(1,400+1,000+600=3,000)과 정합한 값이다.
   - 원문 덤프: `_tmp_fusion-live/<타임스탬프>/`(`.gitignore` 의 `_tmp_*`, 커밋 안 됨). 호출 1회당 `.txt`(응답 원문) + `.json`(판정·키별 글자수/임계·`fields`·`droppedKeys`) + `summary.md` 표. 🔴 **워크트리를 지우면 같이 사라진다** — 실호출 재승인 없이 다시 못 만든다.
-- [ ] **후속(범위 밖 보고)**: ① 프롬프트 캐싱 미배선 — `createGeminiContextCache`(`worker/lib/gemini.js`)가 있으나 초융합 경로에 안 붙어 있다. 붙이려면 서버 컨텍스트를 프롬프트 앞으로 재배치해야 한다(절감 ₩30–50/건 추정). ② `visibleTextLength` 가 JSON 직렬화 길이라 이름과 의미가 어긋난다(`worker/lib/fusion-fortune-consultation.js`). 표시에 쓰이는 곳이 있는지 3면 grep 후 결정. ③ 관리자 프롬프트 랩이 그룹 수를 하드코딩하는지 **미검증**(`worker/routes/admin*.js` 에서 `FUSION_SECTION_GROUP_SPECS` 참조 0건, 범위 `worker/routes`·`worker/lib`). ④ 🆕 **`countFusionGroupChars` 가 `finalVerdict` 를 0자로 센다**(`worker/lib/fusion-fortune.js:672`) — 7차 실호출에서 **확인됨**. 정상 verdict 묶음이 재시도 문턱(`targetChars`×0.8)에 걸려 매번 보완 물결 1회(+18.5초)를 태운다. 고치면 모든 그룹의 실질 문턱이 올라가므로 `FUSION_GROUP_RETRY_RATIO`·`targetChars` 와 함께 봐야 한다.
+- [ ] **후속(범위 밖 보고)**: ① 프롬프트 캐싱 미배선 — `createGeminiContextCache`(`worker/lib/gemini.js`)가 있으나 초융합 경로에 안 붙어 있다. 붙이려면 서버 컨텍스트를 프롬프트 앞으로 재배치해야 한다(절감 ₩30–50/건 추정). ② `visibleTextLength` 가 JSON 직렬화 길이라 이름과 의미가 어긋난다(`worker/lib/fusion-fortune-consultation.js`). 표시에 쓰이는 곳이 있는지 3면 grep 후 결정. ③ 관리자 프롬프트 랩이 그룹 수를 하드코딩하는지 **미검증**(`worker/routes/admin*.js` 에서 `FUSION_SECTION_GROUP_SPECS` 참조 0건, 범위 `worker/routes`·`worker/lib`). ~~④ `countFusionGroupChars` 가 `finalVerdict` 를 0자로 센다~~ **해결(PR #1706)** — 어느 자리가 산문인지 정하는 `fusionKeyProse()` 하나를 세우고 분량 계수와 중복 판정(`fusionSectionProse`)이 **같은 표**를 보게 했다. 임계는 안 건드렸다(위 7차 기록의 정정 참조). 회귀 테스트 1건(`__tests__/worker/fusion-fortune.test.js`, mock): rationale 만 긴 verdict 묶음이 `shortGroups` 로 안 빠지는지 — 변이(`finalVerdict` 분기를 상수로 치환)로 무는 것을 확인했다. 🔴 실호출 재검증은 **안 했다** — 다음 실호출 승인이 나면 verdict 묶음 호출이 1회로 줄었는지 확인한다.
 
 ## 정본 예시
 
@@ -74,7 +76,8 @@ next: 🔴 **Phase 4 판정 4개가 7차 실호출에서 처음으로 전부 충
 - `retryable: true,` 바로 뒤에 `issues:` 가 와야 한다(UI 정적 테스트가 그 짝을 고정). 서버 실패 반환 순서를 바꾸지 말 것.
 - `rememberPaidRequest(requestId, requestBody)` 가 소스에서 첫 `/api/fusion-fortune/generate/stream` 보다 **앞에** 있어야 한다(`verify:fusion-fortune-retry-payload`).
 - 분량 문구를 바꾸면 12 로케일 + `__tests__/ui/fusion-fortune.static.test.js` + `docs/LLM_AND_AI_POLICY.md` 를 같이 바꾼다.
-- 결과 패널 section 은 `overflow-clip` 이어야 한다 — `overflow-hidden` 으로 되돌리면 레일 sticky 가 죽는다. 레일·2단계 대기 말풍선은 `data-fusion-pdf-section` 밖에 둔다(PDF 캡처 제외).
+- 🔴 **레일 sticky 를 죽이는 `overflow` 는 한 곳이 아니라 조상 전체다** — 결과 패널 section 은 `overflow-clip` 으로 고쳐 뒀지만, 그 위의 `<main>`(`fusion-fortune.module.css:53` 의 `.page`)이 아직 `overflow: hidden` 이라 **레일이 지금도 스크롤하면 사라진다**(2026-09-06 브라우저 실측, 아래 §육안 판정 ①). 이 축을 손댈 때는 한 요소만 보지 말고 `aside` 의 조상 체인을 브라우저에서 전수로 읽는다 — `getComputedStyle(node).overflowX/Y` 를 부모로 올라가며 찍으면 어느 층이 범인인지 바로 나온다. 레일·2단계 대기 말풍선은 `data-fusion-pdf-section` 밖에 둔다(PDF 캡처 제외).
+- 🔴 **결과 화면을 눈으로 보려면 `?preview=` 를 쓴다 — 실호출·결제 0** — `lib/dev-preview/fixtures/fusion-fortune.ts`(PR #1704). `?preview=success`(2단계 완성본) · `truncated`(1단계만 도착 = 대기 표시) · `failed`. `readDevPreviewState()` 가 `NODE_ENV === "production"` 이면 항상 `null` 이라 실사용 경로는 그대로다. 🔴 `next dev` 는 `--turbopack` 으로 띄운다 — webpack 은 `js/core/app-context.js` 의 `import.meta` 에서 죽는다(선행 결함, 이 축과 무관).
 - 차례 앵커는 `data-fusion-toc` + `id="fusion-toc-<key>"`(`ThreadRow` 의 `tocKey`). 진행률은 스크롤 높이가 아니라 항목 인덱스다(`content-visibility:auto` 때문).
 - `check:quick` 이 `.ignore`·`rss.xml` 4개를 건드린다 — 커밋 전에 `git checkout --` 로 되돌린다.
 - 도크는 결과 패널 안에 있지만 `position:fixed` 다 — 조상에 `transform`·`filter`·`contain` 이 생기면 그 순간 패널 안에 갇힌다(`overflow-clip` 만으로는 안 갇힌다).
@@ -82,6 +85,25 @@ next: 🔴 **Phase 4 판정 4개가 7차 실호출에서 처음으로 전부 충
 - 🔴 **실호출 실패가 화면상 정상으로 위장된다** — 묶음이 검증에 걸려도 결정론 폴백이 목표 분량을 채워 배달하므로 글자 수만 보면 통과처럼 보인다. 진짜 신호는 `[fusion-fortune-llm-metric]` 의 `fallbackGroups` 와 `generationSource`. `context_fallback`(호출 자체가 안 됨 — 키·모델 설정)과 `gemini_partial`(호출은 됐고 묶음이 탈락)은 다음 행동이 다르다.
 - 실호출은 반드시 `node --env-file=...` 으로 돌린다 — 셸에서 키를 뽑아 넘기면 `.env.local` 값의 따옴표가 그대로 값에 남아 전 묶음이 조용히 `context_fallback` 된다(2026-09-06 실사고).
 - 워크트리에 `node_modules` 없음 — jest 는 `NODE_OPTIONS=--experimental-vm-modules npx --no-install jest --runInBand --testEnvironment node`, UI 는 `node --test`.
+
+## 육안 판정 (2026-09-06, 로컬 dev-preview · Gemini 0회 · 결제 0건)
+
+수단: `?preview=success|truncated` → Playwright chromium 캡처(데스크톱 1440×1200 · 360/390/430×900) → `visual-checker` 판정.
+🔴 캡처 이미지는 메인 세션에서 Read 하지 않는다(전체페이지 1장 ≈ 29,000토큰). 🔴 `content-visibility:auto` 때문에 뷰포트를 섹션이 통째로 들어갈 높이로 키워 찍는다 — 안 그러면 백지로 찍힌다.
+
+**통과 3**
+
+- ✅ **모바일 도크가 진짜 `position:fixed` 다**(이 축의 핵심 질문). 360/390/430 전부에서 수천 px 스크롤 뒤 `차례` 버튼 bbox 의 x 가 동일하고 y 드리프트 ≤6px — 결과 패널에 갇히지 않았다.
+- ✅ **1단계 대기 표시**(`?preview=truncated`): 13항목 = 도착 10 + `2단계 · 생성 중` 헤더 + 대기 3(스피너·`대기` 배지). 완성본 시트의 13과 같은 수라 항목이 누락되지 않는다.
+- ✅ **도크 상단 테두리가 실제 진행선이다** — 채움 66.9% 가 표시된 "남은 약 26분"(전체 78분)과 일치한다.
+
+**결함 3 — 🔴 손대지 않았다, 승인 대기**
+
+- 🔴 **① 데스크톱 레일이 스크롤하면 사라진다.** `aside` 의 `rect.top` 이 2208 → **−4563** 으로 화면 밖까지 따라 올라간다(sticky 가 안 먹는다). **원인 확정**(추정 아님): 조상 체인을 브라우저에서 읽으니 div `visible` · section `clip`(고쳐진 층) · **`main` `hidden/hidden`** · body `clip`. 그 `main` 이 `app/fusion-fortune/fusion-fortune.module.css:53` 의 `.page { overflow: hidden }` 이다. 고칠 때 `clip` 으로 바꾸면 되지만 **가로 잘림 거동이 달라지므로**(`clip` 은 스크롤 컨테이너를 안 만든다) 좁은 화면 가로 오버플로를 함께 본다.
+- 🔴 **② 데스크톱 진행선이 안 보인다** — ①의 결과다(레일이 진행선을 함께 들고 있다). ①을 고치면 같이 확인한다.
+- 🔴 **③ 대기 항목 대비 3.01:1** — AA 4.5:1 미달. 활성·완료 항목은 문제 없고 `todo` 상태만이다.
+
+**범위 밖 관찰 1건**(고치지 않음): 도크의 섹션 라벨 줄이 중간 캡처 3장 모두에서 비어 보인다 — 스크롤 중 활성 키가 비는 순간인지 라벨 자체가 안 그려지는지 미확인.
 
 ## 검증
 
@@ -106,4 +128,4 @@ node --test __tests__/ui/fusion-fortune.static.test.js
   - 🔴 짝으로 `verify:fusion-fortune-quality` 에 **전수 가드**를 넣었다: 최소치를 재는 키를 스키마에서 세워 **서술자가 없으면 실패**시키고, 그룹 `minChars` 가 계약과 다르면 실패시킨다. 변이 2종(서술자 제거 · minChars 드리프트)으로 무는 것을 확인했다.
   - ✅ **효과 확인 완료 — 7차 실호출**(2026-09-06 09:40Z): `closingMessage` w1 **818자** · w2 967자 · `closing_depth` 탈락 0 · `fallbackGroups: []`. 🔴 **정정 — 임계 600 완화는 이번 실행에서 결과를 바꾸지 않았다**(818 은 옛 800 도 통과한다). 효과를 낸 것은 ① 서술자다. ②는 여유일 뿐 원인 제거가 아니었으므로, 되돌릴 이유가 생기면 ①을 남기고 ②만 되돌리는 것이 가능하다.
 - 대표 1건 외 나머지 4조합(생시·장소 결측, 음력·도쿄)의 실호출 거동은 **미검증**.
-- Phase 2 레일·Phase 3 도크 모두 브라우저에서 눈으로 확인하지 않았다(정적 검증·타입·린트만). 스테이징 배포 후 ① 데스크톱 `lg` 이상에서 sticky·차례 이동, ② 360/390/430px 에서 도크가 패널에 갇히지 않는지·시트 열림/스크림 탭 닫힘·좌상단 `.cd-feature-nav` 와 겹치지 않는지 본다.
+- ~~Phase 2 레일·Phase 3 도크를 브라우저에서 눈으로 확인하지 않았다~~ **확인 완료(2026-09-06) — 아래 §육안 판정.** 스테이징을 기다리지 않고 로컬 dev-preview 픽스처로 봤다(실호출·결제 0).
