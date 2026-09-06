@@ -68,6 +68,35 @@ export type PaidResumeDescriptor = {
   args: Record<string, string | number | boolean | null>;
 };
 
+/**
+ * 재개 핸들러에게 넘기는 결제 증빙. 인페이지 경로의 `onGranted(gateResult)` 자리를 대신한다 —
+ * 서버에 결제 증빙을 다시 실어 보내는 기능(AI 상담 프롬프트·인연 레이더 아카이브)은 이것이 없으면 402 다.
+ *
+ * 🔴 조립은 checkout-entry 하나다. 기능 파일에서 영수증을 직접 읽어 만들지 말 것.
+ */
+export type PaidResumeGrant = {
+  ok: true;
+  source: "redirect-resume";
+  featureKey: string;
+  contentKey: string;
+  profileId: string;
+  /** 서버가 결제 문서를 찾는 열쇠. 비면 merchantUid 가 대신 들어온다. */
+  requestId: string;
+  merchantUid: string;
+  /** 서버 확정 응답 그대로(accessGrant·consume 이 인페이지 gateResult 와 같은 자리에 있다). */
+  payload: Record<string, unknown> | null;
+};
+
+/** runPaidResume 에 넘기는 증빙 재료. 빠진 식별자는 유료 개방 영수증에서 채워진다. */
+export type PaidResumeProof = {
+  featureKey?: string;
+  contentKey?: string;
+  profileId?: string;
+  requestId?: string;
+  merchantUid?: string;
+  payload?: Record<string, unknown> | null;
+};
+
 /** PG 리다이렉트 복귀 티켓. 확정에 필요한 최소 입력은 merchantUid 하나다. */
 export type DirectPaymentResumeTicket = {
   at: number;
@@ -364,7 +393,7 @@ declare const checkoutEntry: {
    */
   registerPaidResumeHandler(
     kind: string,
-    handler: (descriptor: PaidResumeDescriptor) => unknown,
+    handler: (descriptor: PaidResumeDescriptor, grant: PaidResumeGrant | null) => unknown,
   ): boolean;
   /**
    * 서술자에 맞는 핸들러를 실행한다.
@@ -375,8 +404,14 @@ declare const checkoutEntry: {
    *
    * 핸들러가 끝내 안 오거나 실패하면 **던지지 않고 false** 를 돌려주므로 호출부는 그때
    * '지금 열기' 카드를 그린다.
+   *
+   * `proof` 를 주면 결제 증빙(PaidResumeGrant)을 조립해 핸들러의 2번째 인자로 넘긴다 — 빠진
+   * 식별자는 유료 개방 영수증에서 채우고, **소비하지는 않는다**(소비 시점은 재개 성공 뒤 호출부다).
    */
-  runPaidResume(descriptor: PaidResumeDescriptor | null | undefined): Promise<boolean>;
+  runPaidResume(
+    descriptor: PaidResumeDescriptor | null | undefined,
+    proof?: PaidResumeProof | null,
+  ): Promise<boolean>;
 };
 
 export default checkoutEntry;

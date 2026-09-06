@@ -291,3 +291,43 @@ test("재개 서술자 + 등록된 핸들러: 기능이 스스로 열리고 영�
     window.close();
   }
 });
+
+/* 계약 확장(2026-09-06). 재개 핸들러 중에는 화면을 열기만 하는 것이 아니라 **결제 증빙을 서버에 다시
+   싣는** 것이 있다(AI 상담 프롬프트·인연 레이더 아카이브 쓰기). 증빙이 안 넘어오면 그쪽은 화면만 열리고
+   서버 기록이 없어 다음에 또 결제된다 — 그래서 증빙 전달을 실행으로 고정한다. */
+test("재개 핸들러는 서술자와 함께 결제 증빙(requestId·merchantUid·확정 응답)을 받는다", async () => {
+  const received = [];
+  const { window, calls } = boot({
+    url: "https://code-destiny.com/?portone_redirect=1&paymentId=ord_1",
+    ticket: {
+      confirmBody: { featureKey: "sukuyo-past-life-reading", paymentMethod: "kakaopay", merchantUid: "ord_1", requestId: "req_9" },
+      resume: { kind: "sukuyo-bond-report", action: "openSukuyoModal", args: { partnerDate: "1992-03-04" } },
+    },
+    confirmResponse: () => jsonResponse({
+      ok: true,
+      unlocked: true,
+      featureKey: "sukuyo-past-life-reading",
+      accessGrant: { featureKey: "sukuyo-past-life-reading", requestId: "req_9" },
+    }),
+    beforeProfile: (win) => {
+      win.__cdCheckoutEntry.registerPaidResumeHandler("sukuyo-bond-report", (descriptor, grant) => {
+        received.push({ descriptor, grant });
+        return true;
+      });
+    },
+  });
+  try {
+    await waitFor(() => calls.events.length === 1, "복귀 성공 이벤트");
+
+    assert.equal(received.length, 1, "핸들러는 정확히 1회");
+    const { grant } = received[0];
+    assert.ok(grant, "증빙이 두 번째 인자로 넘어오지 않았다");
+    assert.equal(grant.requestId, "req_9", "서버가 결제 문서를 찾는 열쇠가 그대로 실려야 한다");
+    assert.equal(grant.merchantUid, "ord_1");
+    assert.equal(grant.featureKey, "sukuyo-past-life-reading");
+    // 인페이지 gateResult 와 같은 자리 — 기능 파일의 기존 증빙 조립기가 고칠 것 없이 읽는다.
+    assert.equal(grant.payload.accessGrant.requestId, "req_9", "확정 응답이 payload 로 그대로 넘어와야 한다");
+  } finally {
+    window.close();
+  }
+});

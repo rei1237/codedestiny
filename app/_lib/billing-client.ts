@@ -29,7 +29,7 @@ import { resolveAppPassCoverageKRW } from "@/worker/lib/app-store-pricing.js";
 // classic script 로 읽는다 — 여기에 사본을 만들면 세 런타임의 판정이 갈린다.
 import passVerdict from "@/js/core/pass-verdict.js";
 import appContext from "@/js/core/app-context.js";
-import checkoutEntry from "@/js/core/checkout-entry.js";
+import checkoutEntry, { type PaidResumeDescriptor } from "@/js/core/checkout-entry.js";
 import bundledPaymentService from "@/js/core/payment-service.js";
 
 // 🔴 payment-service.js 는 classic script(window.CodeDestinyPaymentService)와 webpack import 두 경로로
@@ -442,6 +442,13 @@ export type BillingCoinGateInput = {
   profileAction?: string;
   action?: string;
   profileCardId?: string;
+  /**
+   * 결제 전 화면 상태를 담은 재개 서술자. 모바일 PG 는 상위 프레임을 리다이렉트해 이 문서가 죽으므로,
+   * 복귀한 문서가 기능을 **스스로** 다시 열려면 이것이 결제 티켓에 실려 있어야 한다.
+   * 배관은 runPaidServiceRuntimePayment → 런타임 게이트 → dp 티켓 → checkoutEntry.runPaidResume 이다.
+   * 🔴 직렬화 가능한 원시값만 살아남는다(js/core/checkout-entry.js 의 sanitizePaidResumeDescriptor).
+   */
+  resume?: PaidResumeDescriptor | null;
 };
 
 type PaymentEligibilityPhase = "pass" | "full";
@@ -454,7 +461,7 @@ const BILLING_FETCH_DEFAULT_TIMEOUT_MS = 20000;
 const BILLING_FETCH_CHECKOUT_TIMEOUT_MS = 40000;
 const BILLING_FETCH_CONFIRM_TIMEOUT_MS = 60000;
 const PAYMENT_CHOICE_IN_FLIGHT_TTL_MS = 45000;
-export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-bdd4ecd37d9f";
+export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-1aa9687c6065";
 // 🔴 이용권 스냅샷의 상수·읽기·쓰기·판정은 전부 js/core/pass-verdict.js 가 소유한다.
 // 셸(index.html)·독립 정적(js/destiny-profile.js)과 **같은 localStorage 키**를 공유하므로 값이 갈리면
 // 같은 사용자가 어느 런타임에서 클릭했느냐에 따라 판정이 달라지고, 한쪽이 만료로 보고 지운 캐시가
@@ -2428,6 +2435,10 @@ async function runPaidServiceRuntimePayment(input: BillingCoinGateInput, context
       equalPriorityMethods: runtimePaymentOptions.equalPriorityMethods,
       recommendedMethods: runtimePaymentOptions.recommendedMethods,
       allowedPaymentModes: input.allowedPaymentModes,
+      /* 🔴 결제 전 화면 상태. 여기서 넘기지 않으면 티켓에 안 실리고, 모바일 PG 리다이렉트로 돌아온
+         사용자는 결제만 끝난 채 기능이 닫혀 있다 — React 경로 전체가 이 한 줄이 없어 막혀 있었다.
+         레거시 런타임(js/destiny-profile.js)이 opts.resume 을 그대로 복귀 티켓에 싣는다. */
+      resume: input.resume || undefined,
       // 🔴 이중 이용권 프로브 방지. 스냅샷 즉시판정 경로에서는 eligibility 가 null 이라 passAlreadyChecked 가
       // false 였고, 그러면 레거시 런타임이 __cdApplyMembershipPassBeforePayment 로 **같은 검사를 또** 돌렸다
       // (6초 예산 + 재시도 2회). 지금까지는 런타임의 _dpResolveCertainPassMiss 가 같은 localStorage 스냅샷을
