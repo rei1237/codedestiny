@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { showToast } from "./Toast";
 import { showSubscriptionIncludedNotice } from "./subscriptionNotice";
 import { useCoinGate } from "../hooks/useCoinGate";
+import { usePaidResume, packPaidResumeArg, unpackPaidResumeArg } from "../hooks/usePaidResume";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 import { lookupServerCoinPrice } from "@/app/_lib/serviceCoinPrice";
 import { formatKrwFromMonthlyCredits } from "@/lib/payment/coin-pricing";
@@ -14,6 +15,16 @@ import { getMindScanTarotCopy, type MindScanTarotCopy } from "./_lib/mind-scan-t
 // ── TYPES ──────────────────────────────────────────────────────────────────────
 type Stage = "intro" | "picking" | "spread" | "result";
 type PickRound = "main" | "sub";
+
+/** /api/tarot/mindscan 이 받는 카드 짝. 재개 서술자에도 이대로 실린다. */
+interface ReadingPair {
+  slot: number;
+  positionId: string;
+  positionLabel: string;
+  positionMeaning: string;
+  mainCardId: number;
+  subCardId: number;
+}
 
 type TarotPosId = "top" | "left" | "center" | "right" | "bottom";
 interface TarotPos {
@@ -1538,6 +1549,56 @@ export default function MindScanTarot() {
     }
   }, [pickRound, mainPicks, subPicks]);
 
+  // 게이트 없는 리딩 코어. 결제 게이트 뒤에서도, 리다이렉트 복귀 재개에서도 같은 요청을 쓴다.
+  const performReading = useCallback(async (pairs: ReadingPair[], askedQuestion: string, requestId: string) => {
+    const res = await fetch("/api/tarot/mindscan", {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ pairs, question: askedQuestion, requestId }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && data && Array.isArray(data.sections)) {
+      setReading(data as ReadingResult);
+      setStage("result");
+      return;
+    }
+    throw new Error(String(data?.message || data?.error || copy.requestFailedTemplate(res.status)));
+  }, [copy]);
+
+  /* 결제 후 자동 재개 — 모바일 PortOne 복귀는 뽑은 카드도 질문도 없는 초기 화면이다. 서술자에 실어 둔
+     스프레드를 되살리고 처음 결제한 requestId 그대로 리딩을 받는다(새로 만들면 서버가 증빙을 못 찾아
+     402 다). 🔴 게이트를 다시 타지 않는다 — 실패하면 false 로 지속 카드에 넘겨 영수증을 남긴다. */
+  const buildResume = usePaidResume("tarot-mindscan", async (args) => {
+    const pairs = unpackPaidResumeArg<ReadingPair[]>(args.pairs);
+    const askedQuestion = String(args.question || "");
+    const requestId = String(args.requestId || "");
+    if (!Array.isArray(pairs) || pairs.length === 0 || !requestId) return false;
+    const nextDrawn: Record<string, number> = {};
+    const nextDrawnSub: Record<string, number> = {};
+    pairs.forEach((pair) => {
+      nextDrawn[pair.positionId] = pair.mainCardId;
+      nextDrawnSub[pair.positionId] = pair.subCardId;
+    });
+    drawnRef.current = nextDrawn;
+    drawnSubRef.current = nextDrawnSub;
+    setDrawn(nextDrawn);
+    setDrawnSub(nextDrawnSub);
+    setQuestion(askedQuestion);
+    paidRequestIdRef.current = requestId;
+    setReadingLoading(true);
+    setReadingError("");
+    try {
+      await performReading(pairs, askedQuestion, requestId);
+      return true;
+    } catch (e) {
+      setReadingError(friendlyErrorMessage(e, copy.genericErrorFallback));
+      return false;
+    } finally {
+      setReadingLoading(false);
+    }
+  });
+
   const handleGenerateReading = useCallback(async () => {
     if (readingLoading || reading) return;
     const trimmedQuestion = question.trim();
@@ -1579,21 +1640,7 @@ export default function MindScanTarot() {
         paidRequestIdRef.current = `tarot-mindscan:req:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
       }
 
-      const executeReading = async () => {
-        const res = await fetch("/api/tarot/mindscan", {
-          method: "POST",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ pairs, question: trimmedQuestion, requestId: paidRequestIdRef.current }),
-        });
-        const data = await res.json().catch(() => ({}));
-        if (res.ok && data && Array.isArray(data.sections)) {
-          setReading(data as ReadingResult);
-          setStage("result");
-          return;
-        }
-        throw new Error(String(data?.message || data?.error || copy.requestFailedTemplate(res.status)));
-      };
+      const executeReading = () => performReading(pairs, trimmedQuestion, paidRequestIdRef.current);
 
       if (isFlowerAdminMode) {
         await executeReading();
@@ -1612,6 +1659,11 @@ export default function MindScanTarot() {
         cost: lookupServerCoinPrice("tarot-mindscan"),
         reason: copy.paymentReasonFull,
         requestId: paidRequestIdRef.current,
+        resume: buildResume({
+          pairs: packPaidResumeArg(pairs),
+          question: trimmedQuestion,
+          requestId: paidRequestIdRef.current,
+        }),
         // 이용권/결제 확인 단계에서는 과금 안내만 처리한다 — LLM 생성은 게이트가 닫힌 뒤 진행.
         onPaid: ({ chargedCoins, accessSource, monthlyCreditsSpent, monthlyBalanceAfter, balanceAfter }) => {
           // 🔴 판정은 accessSource 로만 한다. chargedCoins 는 이용권·월정석·재열람 모두 0 이라
@@ -1667,7 +1719,7 @@ export default function MindScanTarot() {
     } finally {
       setReadingLoading(false);
     }
-  }, [copy, ensurePaidAccess, question, readingLoading, reading]);
+  }, [buildResume, copy, ensurePaidAccess, performReading, question, readingLoading, reading]);
 
   const restart = useCallback(() => {
     setStage("intro"); setPickRound("main");

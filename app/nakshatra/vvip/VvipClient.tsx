@@ -10,6 +10,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { postPaidBody } from "../nakshatra-fetch";
 import { useCoinGate } from "@/app/hooks/useCoinGate";
+import { usePaidResume, packPaidResumeArg, unpackPaidResumeArg } from "@/app/hooks/usePaidResume";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import styles from "../_premium/premium.module.css";
 import local from "./vvip.module.css";
@@ -184,6 +185,18 @@ export default function VvipClient() {
     await fetchCodex(paidRef.current);
   }, [fetchCodex, loading]);
 
+  /* 결제 후 자동 재개 — 모바일 PortOne 은 상위 프레임을 리다이렉트해 run 의 await 를 죽인다.
+     생년은 sessionStorage 에서 되살아나지만 결제에 쓴 requestId 는 그렇지 않다(서버가 이 값으로
+     결제 기록을 찾는다) — 둘 다 서술자에 싣는다. 🔴 게이트 없는 코어(fetchCodex)를 부른다. */
+  const buildResume = usePaidResume(FEATURE_KEY, (args, grant) => {
+    const restored = unpackPaidResumeArg<NakshatraBirthInput>(args.birth);
+    const requestId = String(args.requestId || grant?.requestId || grant?.merchantUid || "");
+    if (!restored || !requestId) return false;
+    paidRef.current = { birth: restored, requestId };
+    void fetchCodex(paidRef.current);
+    return true;
+  });
+
   const run = useCallback(async () => {
     if (!birth || isPaying || loading) return;
     setError("");
@@ -196,6 +209,7 @@ export default function VvipClient() {
       amountKRW: AMOUNT_KRW,
       reason: copy.vvipReason,
       requestId,
+      resume: buildResume({ birth: packPaidResumeArg(birth), requestId }),
     });
     if (!gate.ok) {
       if (gate.code === "AUTH_REQUIRED" || gate.code === "LOGIN_REQUIRED") { setError(copy.loginRequiredMessage); return; }
@@ -206,7 +220,7 @@ export default function VvipClient() {
     // 🔴 결제가 끝났다(₩30,000). 여기서부터는 실패해도 재결제를 요구하지 않는다.
     paidRef.current = { birth, requestId };
     await fetchCodex({ birth, requestId });
-  }, [birth, ensurePaidAccess, fetchCodex, isPaying, loading, copy]);
+  }, [birth, buildResume, ensurePaidAccess, fetchCodex, isPaying, loading, copy]);
 
   const savePdf = useCallback(async () => {
     if (!report || savingPdf) return;

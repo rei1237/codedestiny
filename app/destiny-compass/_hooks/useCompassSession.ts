@@ -41,6 +41,47 @@ async function sha256Hex(raw: string): Promise<string> {
   return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
+/**
+ * 결제 리다이렉트 복귀는 새 문서라 birth·situation·input·field 가 전부 사라진다.
+ * 잎 화면(갈림길·미래 시뮬·항로)과 심층 리포트는 그 넷이 없으면 아예 렌더되지 않으므로
+ * 계산이 성공한 시점에 이 탭에만 남겨 두고 재개 때 되살린다.
+ */
+const SESSION_SNAPSHOT_KEY = "cd-compass:session.v1";
+
+type CompassSnapshot = {
+  birth: AnimalDestinyInput;
+  situation: string;
+  input: CompassInput;
+  field: DirectionField;
+};
+
+function writeSnapshot(snapshot: CompassSnapshot): void {
+  try {
+    sessionStorage.setItem(SESSION_SNAPSHOT_KEY, JSON.stringify(snapshot));
+  } catch {
+    /* storage 불가 시 무시 — 재개만 포기한다 */
+  }
+}
+
+function readSnapshot(): CompassSnapshot | null {
+  try {
+    const raw = sessionStorage.getItem(SESSION_SNAPSHOT_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as CompassSnapshot;
+    return parsed?.birth && parsed?.input && parsed?.field ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function clearSnapshot(): void {
+  try {
+    sessionStorage.removeItem(SESSION_SNAPSHOT_KEY);
+  } catch {
+    /* storage 불가 시 무시 */
+  }
+}
+
 function readCache(key: string): DirectionField | null {
   try {
     const raw = sessionStorage.getItem(key);
@@ -100,6 +141,7 @@ export function useCompassSession(initialStep: CompassStep = "birth") {
         if (!cached) writeCache(cacheKey, result);
         setInput(nextInput);
         setField(result);
+        writeSnapshot({ birth, situation: concern, input: nextInput, field: result });
         setStep("reveal"); // 길 발견(맵에 빛나는 경로) → 사용자가 결과로 진입
       } catch {
         clearPhaseTimers();
@@ -113,8 +155,25 @@ export function useCompassSession(initialStep: CompassStep = "birth") {
     [birth, clearPhaseTimers, copy],
   );
 
+  /**
+   * 결제 복귀 재개용 — 스냅샷이 있으면 세션을 되살린다.
+   * `false` 면 호출부가 재개를 포기하고 '지금 열기' 카드로 떨어진다.
+   */
+  const restoreSnapshot = useCallback(() => {
+    const snapshot = readSnapshot();
+    if (!snapshot) return false;
+    setBirth(snapshot.birth);
+    setSituation(snapshot.situation || "");
+    setInput(snapshot.input);
+    setField(snapshot.field);
+    setError(null);
+    setStagePhase("night");
+    return true;
+  }, []);
+
   const reset = useCallback(() => {
     clearPhaseTimers();
+    clearSnapshot();
     setField(null);
     setInput(null);
     setSituation("");
@@ -124,7 +183,7 @@ export function useCompassSession(initialStep: CompassStep = "birth") {
   }, [clearPhaseTimers]);
 
   return useMemo(
-    () => ({ step, setStep, birth, setBirth, situation, field, input, stagePhase, loading, error, submitConcern, reset }),
-    [step, birth, situation, field, input, stagePhase, loading, error, submitConcern, reset],
+    () => ({ step, setStep, birth, setBirth, situation, field, input, stagePhase, loading, error, submitConcern, reset, restoreSnapshot }),
+    [step, birth, situation, field, input, stagePhase, loading, error, submitConcern, reset, restoreSnapshot],
   );
 }

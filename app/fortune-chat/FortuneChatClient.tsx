@@ -7,6 +7,8 @@ import { PriceBadge } from "@/app/components/PriceBadge";
 import { PersonaAvatar } from "./PersonaAvatar";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { useCoinGate } from "@/app/hooks/useCoinGate";
+import { usePaidResume } from "@/app/hooks/usePaidResume";
+import type { PaidResumeDescriptor } from "@/js/core/checkout-entry.js";
 import styles from "./fortune-chat.module.css";
 import { getApiBaseUrl } from "../_lib/api-config";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
@@ -356,13 +358,14 @@ export default function FortuneChatClient() {
   }, [usage]);
 
   /** 결제 게이트. 이용권 보유자는 여기서 결제 없이 통과한다. */
-  const openPaymentGate = useCallback(async (requestId: string) => {
+  const openPaymentGate = useCallback(async (requestId: string, resume?: PaidResumeDescriptor) => {
     const gate = await ensurePaidAccess({
       featureKey: PAID_FEATURE_KEY,
       coinPrice: PAID_COIN_PRICE,
       amountKRW: PAID_AMOUNT_KRW,
       reason: "대화형 운명 상담 1회",
       requestId,
+      resume,
     });
     if (gate.ok) return { ok: true as const };
     if (gate.code === "AUTH_REQUIRED") {
@@ -374,7 +377,13 @@ export default function FortuneChatClient() {
     return { ok: false as const, message: gate.message || "결제를 완료하지 못했어요. 잠시 후 다시 시도해 주세요." };
   }, [ensurePaidAccess]);
 
-  const requestReading = useCallback(async (requestId: string, concern: string) => {
+  /** 상담 1건의 입력 묶음. 재개 경로는 결제 직전 값을 서술자에서 되살려 그대로 넣는다. */
+  type ReadingContext = {
+    birthDate: string; birthTime: string; calendarType: string; gender: string;
+    category: string; topic: string; mode: string;
+  };
+
+  const requestReading = useCallback(async (requestId: string, concern: string, ctx?: ReadingContext) => {
     // 최근 6턴만 보낸다. 서버가 개수·길이·민감정보를 다시 조이므로 여기서는 형태만 맞춘다.
     const recentTurns = messagesRef.current
       .slice(-6)
@@ -393,13 +402,13 @@ export default function FortuneChatClient() {
         headers: { "Content-Type": "application/json", "Idempotency-Key": requestId },
         body: JSON.stringify({
           requestId,
-          birthDate: birth.birthDate,
-          ...(birth.birthTime ? { birthTime: birth.birthTime } : {}),
-          calendarType: birth.calendarType,
-          gender: birth.gender,
-          category: activeCategory,
-          topic: topicKey,
-          mode: character === "neo" ? "neo" : "yeoni",
+          birthDate: ctx ? ctx.birthDate : birth.birthDate,
+          ...((ctx ? ctx.birthTime : birth.birthTime) ? { birthTime: ctx ? ctx.birthTime : birth.birthTime } : {}),
+          calendarType: ctx ? ctx.calendarType : birth.calendarType,
+          gender: ctx ? ctx.gender : birth.gender,
+          category: ctx ? ctx.category : activeCategory,
+          topic: ctx ? ctx.topic : topicKey,
+          mode: (ctx ? ctx.mode : character) === "neo" ? "neo" : "yeoni",
           ...(concern ? { concern } : {}),
           ...(recentTurns.length ? { recentTurns } : {}),
         }),
@@ -410,6 +419,73 @@ export default function FortuneChatClient() {
       window.clearTimeout(timer);
     }
   }, [apiBase, birth, activeCategory, topicKey, character]);
+
+  /* 응답을 화면에 푸는 부분만 떼어낸다 — 결제 후 자동 재개(리다이렉트 복귀)가 게이트를 다시 타지
+     않고 이 코어만 부를 수 있어야 한다. 판정·문구는 손대지 않고 위치만 옮겼다. */
+  const presentAttempt = useCallback((attempt: Awaited<ReturnType<typeof requestReading>>) => {
+    // 재시도 신호는 공용 DB 핸들러에서 error 안에 중첩돼 오기도 한다 — 그때 이 분기를
+    // 놓치면 아래에서 영문 원문이 그대로 화면에 박힌다.
+    const retryable = attempt.payload?.retryable === true || attempt.payload?.error?.retryable === true;
+    if (attempt.status >= 500 || retryable) {
+      setError(friendlyError(attempt.payload?.message, "지금 상담을 준비하지 못했어요. 잠시 후 다시 시도해 주세요. 횟수나 결제는 차감되지 않았어요."));
+      return false;
+    }
+    if (!attempt.ok || !attempt.payload?.ok) throw new Error(friendlyError(attempt.payload?.message));
+
+    const result = attempt.payload.result || {};
+    // 서버는 고민(topic)별 상품을 premiumCta 로 이미 지목해서 내려보낸다
+    // (worker/lib/guardian-fortune-runtime-contract.js 의 GUARDIAN_FORTUNE_CTA_BY_TOPIC).
+    // 지금까지 화면은 그걸 버리고 초융합 하나만 권해, 연애 고민에도 같은 문구가 나갔다.
+    // 🔴 targetPath 를 새로 만들지 않는다 — allowlist 밖 값은 서버가 이미 걸러낸다.
+    const premiumCta = isPlainObject(result.premiumCta) ? result.premiumCta : null;
+    const premiumHref = isInternalPath(premiumCta?.targetPath) ? premiumCta.targetPath : "";
+    const premiumLabel = premiumHref ? String(premiumCta.label || "").trim() : "";
+    const premiumReason = premiumHref ? String(premiumCta.reason || "").trim() : "";
+    const evidence = Array.isArray(result.evidenceLines) ? result.evidenceLines : [];
+    append([
+      { id: id(), speaker: "assistant", kind: "reading", text: result.openingLine || "지금의 흐름을 차분히 읽고 있어요.", detail: [result.innerState, result.coreReading, result.topicAdvice].filter(Boolean).join("\n\n") || "결과를 정리하고 있어요." },
+      ...(result.cautionPattern ? [{ id: id(), speaker: "assistant" as const, kind: "reading" as const, text: "조심해서 볼 반복 패턴", detail: result.cautionPattern }] : []),
+      { id: id(), speaker: "assistant", kind: "reading", text: "지금 해볼 한 가지", detail: [result.luckyAction, evidence.length ? `읽은 근거\n${evidence.map((line: string) => `· ${line}`).join("\n")}` : ""].filter(Boolean).join("\n\n") || "작은 선택 하나부터 가볍게 시작해 보세요." },
+      { id: id(), speaker: "assistant", kind: "cta", ctaHref: premiumHref, text: premiumLabel || "이 고민을 더 넓은 흐름까지 이어 볼까요?", detail: premiumReason || "초융합 심층 리딩은 사주·자미두수·베다점·숙요점·점성술·타로의 공통 신호와 차이를 한 번에 연결해, 반복되는 패턴과 다음 시기의 선택 기준을 정리합니다." },
+    ]);
+    setFollowUps(Array.isArray(result.followUpQuestions) ? result.followUpQuestions.slice(0, 3) : []);
+    setQuestion("");
+    // 생성 응답이 갱신된 usage 를 이미 싣고 온다. 여기서 bootstrap 을 다시 부르면 턴마다
+    // 왕복이 한 번 더 늘고(현재 프로덕션에서 Mongo 조회 1건 ≈ 5초), 그 요청이 12초 op
+    // 상한에 걸리면 상담은 성공했는데 화면만 실패로 보인다.
+    if (attempt.payload.usage) setUsage(attempt.payload.usage);
+    return true;
+  }, [append]);
+
+  /* 결제 후 자동 재개 — 결제창이 상위 프레임을 리다이렉트하면 send 의 await 가 죽어 상담이
+     시작조차 안 된다(결제만 되고 답이 없는 상태). 질문·명식·모드는 결제 직전 값을 서술자에 싣고,
+     🔴 게이트를 다시 타는 send 가 아니라 코어(requestReading → presentAttempt)를 부른다. */
+  const buildResume = usePaidResume(PAID_FEATURE_KEY, async (args, grant) => {
+    const requestId = String(args.requestId || grant?.requestId || grant?.merchantUid || "");
+    const birthDate = String(args.birthDate || "");
+    if (!requestId || !birthDate) return false;
+    setBusy(true);
+    setError("");
+    setNotice("");
+    try {
+      const attempt = await requestReading(requestId, String(args.concern || ""), {
+        birthDate,
+        birthTime: String(args.birthTime || ""),
+        calendarType: String(args.calendarType || "solar"),
+        gender: String(args.gender || "unknown"),
+        category: String(args.category || "saju"),
+        topic: String(args.topic || "decision"),
+        mode: String(args.mode || "yeoni"),
+      });
+      return presentAttempt(attempt);
+    } catch (reason) {
+      const timedOut = (reason as Error)?.name === "AbortError";
+      setError(timedOut ? "응답이 오래 걸려 상담을 멈췄어요. 같은 질문으로 다시 시도해 주세요." : friendlyError(reason, "상담을 다시 시도해 주세요."));
+      return false;
+    } finally {
+      setBusy(false);
+    }
+  });
 
   const send = async () => {
     if (busy || isPaying) return;
@@ -430,9 +506,21 @@ export default function FortuneChatClient() {
     try {
       let requestId = makeRequestId();
 
+      // 결제 직전 화면 상태를 굳혀 둔다 — 복귀 문서에는 질문도, 이 requestId 도 없다.
+      const resumeArgs = {
+        concern,
+        birthDate: birth.birthDate,
+        birthTime: birth.birthTime,
+        calendarType: birth.calendarType,
+        gender: birth.gender,
+        category: activeCategory,
+        topic: topicKey,
+        mode: character === "neo" ? "neo" : "yeoni",
+      };
+
       // 무료가 남지 않은 게 이미 확실하면 서버를 한 번 헛돌리지 않고 바로 결제창을 연다.
       if (needsPayment) {
-        const gate = await openPaymentGate(requestId);
+        const gate = await openPaymentGate(requestId, buildResume({ ...resumeArgs, requestId }));
         if (!gate.ok) { if (gate.message) setError(gate.message); return; }
       }
 
@@ -442,43 +530,12 @@ export default function FortuneChatClient() {
       // (앞선 requestId 는 결제 증빙이 없어 재사용할 수 없다).
       if (attempt.status === 402) {
         requestId = makeRequestId();
-        const gate = await openPaymentGate(requestId);
+        const gate = await openPaymentGate(requestId, buildResume({ ...resumeArgs, requestId }));
         if (!gate.ok) { if (gate.message) setError(gate.message); return; }
         attempt = await requestReading(requestId, concern);
       }
 
-      // 재시도 신호는 공용 DB 핸들러에서 error 안에 중첩돼 오기도 한다 — 그때 이 분기를
-      // 놓치면 아래에서 영문 원문이 그대로 화면에 박힌다.
-      const retryable = attempt.payload?.retryable === true || attempt.payload?.error?.retryable === true;
-      if (attempt.status >= 500 || retryable) {
-        setError(friendlyError(attempt.payload?.message, "지금 상담을 준비하지 못했어요. 잠시 후 다시 시도해 주세요. 횟수나 결제는 차감되지 않았어요."));
-        return;
-      }
-      if (!attempt.ok || !attempt.payload?.ok) throw new Error(friendlyError(attempt.payload?.message));
-
-      const result = attempt.payload.result || {};
-      // 서버는 고민(topic)별 상품을 premiumCta 로 이미 지목해서 내려보낸다
-      // (worker/lib/guardian-fortune-runtime-contract.js 의 GUARDIAN_FORTUNE_CTA_BY_TOPIC).
-      // 지금까지 화면은 그걸 버리고 초융합 하나만 권해, 연애 고민에도 같은 문구가 나갔다.
-      // 🔴 targetPath 를 새로 만들지 않는다 — allowlist 밖 값은 서버가 이미 걸러낸다.
-      const premiumCta = isPlainObject(result.premiumCta) ? result.premiumCta : null;
-      const premiumHref = isInternalPath(premiumCta?.targetPath) ? premiumCta.targetPath : "";
-      const premiumLabel = premiumHref ? String(premiumCta.label || "").trim() : "";
-      const premiumReason = premiumHref ? String(premiumCta.reason || "").trim() : "";
-      const evidence = Array.isArray(result.evidenceLines) ? result.evidenceLines : [];
-      append([
-        { id: id(), speaker: "assistant", kind: "reading", text: result.openingLine || "지금의 흐름을 차분히 읽고 있어요.", detail: [result.innerState, result.coreReading, result.topicAdvice].filter(Boolean).join("\n\n") || "결과를 정리하고 있어요." },
-        ...(result.cautionPattern ? [{ id: id(), speaker: "assistant" as const, kind: "reading" as const, text: "조심해서 볼 반복 패턴", detail: result.cautionPattern }] : []),
-        { id: id(), speaker: "assistant", kind: "reading", text: "지금 해볼 한 가지", detail: [result.luckyAction, evidence.length ? `읽은 근거\n${evidence.map((line: string) => `· ${line}`).join("\n")}` : ""].filter(Boolean).join("\n\n") || "작은 선택 하나부터 가볍게 시작해 보세요." },
-        { id: id(), speaker: "assistant", kind: "cta", ctaHref: premiumHref, text: premiumLabel || "이 고민을 더 넓은 흐름까지 이어 볼까요?", detail: premiumReason || "초융합 심층 리딩은 사주·자미두수·베다점·숙요점·점성술·타로의 공통 신호와 차이를 한 번에 연결해, 반복되는 패턴과 다음 시기의 선택 기준을 정리합니다." },
-      ]);
-      setFollowUps(Array.isArray(result.followUpQuestions) ? result.followUpQuestions.slice(0, 3) : []);
-      delivered = true;
-      setQuestion("");
-      // 생성 응답이 갱신된 usage 를 이미 싣고 온다. 여기서 bootstrap 을 다시 부르면 턴마다
-      // 왕복이 한 번 더 늘고(현재 프로덕션에서 Mongo 조회 1건 ≈ 5초), 그 요청이 12초 op
-      // 상한에 걸리면 상담은 성공했는데 화면만 실패로 보인다.
-      if (attempt.payload.usage) setUsage(attempt.payload.usage);
+      delivered = presentAttempt(attempt);
     } catch (reason) {
       const timedOut = (reason as Error)?.name === "AbortError";
       setError(timedOut ? "응답이 오래 걸려 상담을 멈췄어요. 같은 질문으로 다시 시도해 주세요." : friendlyError(reason, "상담을 다시 시도해 주세요."));

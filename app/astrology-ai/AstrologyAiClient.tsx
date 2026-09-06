@@ -20,6 +20,7 @@ import {
   runBillingCoinGate,
   primePaymentEligibility,
 } from "@/app/_lib/billing-client";
+import { packPaidResumeArg, unpackPaidResumeArg, usePaidResume } from "@/app/hooks/usePaidResume";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 
 type AccessType = "pass" | "paid" | "subscription" | "admin";
@@ -1678,7 +1679,9 @@ export default function AstrologyAiClient() {
     setResultOpenMessage(copy.resultBlockedPopup);
   }
 
-  async function startConsultation(idempotencyKey: string, access: Record<string, unknown>) {
+  /* payloadOverride 는 결제 후 재개 전용이다 — 리다이렉트로 돌아오면 form 이 초기값이라
+     buildPayload() 가 빈 입력을 보낸다. 그때 결제 직전에 실어 보낸 입력을 그대로 쓴다. */
+  async function startConsultation(idempotencyKey: string, access: Record<string, unknown>, payloadOverride?: Record<string, unknown>) {
     setPhase("reading");
     // 다음 화면(생성 로딩)이 마운트되는 시점 — 게이트 오버레이 hold를 해제한다.
     releasePaidFeatureGate(idempotencyKey);
@@ -1688,11 +1691,12 @@ export default function AstrologyAiClient() {
     type StartResponse = Consultation | { ok?: boolean; reason?: string; message?: string; sessionId?: string; status?: string };
     let response: Response;
     let data: StartResponse;
+    const startBody = { ...(payloadOverride || buildPayload()), ...access };
     try {
-      ({ response, data } = await postJson<StartResponse>(API_ENDPOINTS.start, { ...buildPayload(), ...access }, idempotencyKey));
+      ({ response, data } = await postJson<StartResponse>(API_ENDPOINTS.start, startBody, idempotencyKey));
     } catch {
       // 네트워크 순단 시 같은 idempotencyKey로 1회 재시도 — 서버가 이미 생성 중이면 202로 수렴한다.
-      ({ response, data } = await postJson<StartResponse>(API_ENDPOINTS.start, { ...buildPayload(), ...access }, idempotencyKey));
+      ({ response, data } = await postJson<StartResponse>(API_ENDPOINTS.start, startBody, idempotencyKey));
     }
     let next: Consultation;
     if (response.status === 202) {
@@ -1724,6 +1728,31 @@ export default function AstrologyAiClient() {
     console.info("[AstrologyAI] generation success", { sessionId: next.sessionId });
     openResultPage(url);
   }
+
+  /* 모바일 PortOne 은 상단 프레임을 리다이렉트해 runBillingCoinGate 의 await 가 페이지와 함께
+     죽는다. 그러면 /start 가 영영 안 불려 결제한 사용자가 빈 폼으로 돌아온다. grant.payload 는
+     서버 확정 응답 그대로라 normalizeGatePayload 가 인페이지 gate 와 같은 자리에서 읽는다. */
+  const buildResume = usePaidResume(FEATURE_KEY, async (args, grant) => {
+    const idempotencyKey = typeof args.idempotencyKey === "string" ? args.idempotencyKey : "";
+    const payload = unpackPaidResumeArg<Record<string, unknown>>(args.payload);
+    if (!idempotencyKey || !payload) return false;
+    lockRef.current = true;
+    idempotencyKeyRef.current = idempotencyKey;
+    setError("");
+    setNotice("");
+    try {
+      await startConsultation(idempotencyKey, extractPaymentContext(grant?.payload, idempotencyKey), payload);
+      return true;
+    } catch (caught) {
+      const code = caught instanceof Error ? caught.message : "SERVER_ERROR";
+      console.error("[AstrologyAI] resume generation failed", { requestId: idempotencyKey, code });
+      setError(copy.errorText[code] || copy.errorText.SERVER_ERROR);
+      setPhase("idle");
+      return false;
+    } finally {
+      lockRef.current = false;
+    }
+  });
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -1806,6 +1835,7 @@ export default function AstrologyAiClient() {
         cost: Number(runtimeGate.cost || FEATURE_COST),
         coinPrice: Number(runtimeGate.coinPrice || FEATURE_COST),
         amountKRW: Number(runtimeGate.amountKRW || FEATURE_AMOUNT_KRW),
+        resume: buildResume({ idempotencyKey, payload: packPaidResumeArg(buildPayload()) }),
       });
       if (!gate.ok || !gate.data) {
         const code = toText(gate.error?.code || (gate.status === 401 ? "LOGIN_REQUIRED" : "PAYMENT_VERIFY_FAILED")).toUpperCase();

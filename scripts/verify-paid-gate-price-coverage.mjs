@@ -151,34 +151,77 @@ const PRICE_KEYS = ["cost", "coinPrice", "amountKRW", "amountKrw", "priceKRW", "
 /**
  * 객체 리터럴에서 신원(4키)과 "확실한 인라인 가격" 여부를 뽑는다.
  * 🔴 인라인 가격은 엄격하게 본다 — 숫자 0 이거나 `X || undefined` 형태면 런타임에 값이 사라지므로
- *    가격 근거로 인정하지 않는다. 스프레드(...payload)도 인정하지 않는다(무엇이 들었는지 알 수 없다).
+ *    가격 근거로 인정하지 않는다.
+ * 🔴 스프레드는 **정적으로 풀리는 것만** 받는다 — `{ ...buildBillingGateInput(...), resume }` 처럼
+ *    같은 파일의 빌더로 환원되면 그 빌더가 담은 신원·가격을 읽는다. `...payload` 처럼 못 푸는 것은
+ *    예전과 같이 근거로 치지 않는다(무엇이 들었는지 알 수 없다). 빌더가 여러 갈래로 return 하면
+ *    **전 갈래가 같은 값을 줄 때만** 인정한다 — 한 갈래라도 가격이 빠지면 실패로 남긴다.
+ * 키 단위로 들고 다니는 이유는 스프레드 뒤에 오는 속성이 그 키를 덮기 때문이다
+ * (`{ ...builder(), cost: 0 }` 은 가격 근거가 아니다).
  */
-function readGateArg(objectLiteral, consts) {
+function readGateArgParts(objectLiteral, consts, funcs, depth = 0) {
   const identity = {};
-  let hasInlinePrice = false;
+  const present = new Set();
+  const price = new Set();
+  const putIdentity = (key, folded) => {
+    present.add(key);
+    if (folded) identity[key] = folded;
+    else delete identity[key];
+  };
+  const putPrice = (key, isEvidence) => {
+    present.add(key);
+    if (isEvidence) price.add(key);
+    else price.delete(key);
+  };
+
   for (const prop of objectLiteral.properties) {
+    if (ts.isSpreadAssignment(prop)) {
+      if (depth >= 2) continue;
+      const resolved = resolveArgObjects(prop.expression, consts, funcs);
+      // 하나라도 못 풀면 이 스프레드는 통째로 미상이다 — 예전처럼 아무 근거도 주지 않는다.
+      if (!resolved.length || resolved.some((node) => !node)) continue;
+      const parts = resolved.map((node) => readGateArgParts(node, consts, funcs, depth + 1));
+      for (const key of IDENTITY_KEYS) {
+        if (!parts.some((part) => part.present.has(key))) continue;
+        const values = parts.map((part) => part.identity[key]);
+        putIdentity(key, values.every((value) => value && value === values[0]) ? values[0] : "");
+      }
+      for (const key of PRICE_KEYS) {
+        if (!parts.some((part) => part.present.has(key))) continue;
+        putPrice(key, parts.every((part) => part.price.has(key)));
+      }
+      continue;
+    }
     if (!ts.isPropertyAssignment(prop) && !ts.isShorthandPropertyAssignment(prop)) continue;
     const name = prop.name && (ts.isIdentifier(prop.name) || ts.isStringLiteral(prop.name)) ? prop.name.text : "";
     if (!name) continue;
-    if (IDENTITY_KEYS.includes(name) && ts.isPropertyAssignment(prop)) {
-      const folded = constFoldString(prop.initializer, consts);
-      if (folded) identity[name] = folded;
+    if (IDENTITY_KEYS.includes(name)) {
+      putIdentity(name, ts.isPropertyAssignment(prop) ? constFoldString(prop.initializer, consts) : "");
       continue;
     }
-    if (PRICE_KEYS.includes(name) && ts.isPropertyAssignment(prop)) {
+    if (PRICE_KEYS.includes(name)) {
+      if (!ts.isPropertyAssignment(prop)) {
+        putPrice(name, false);
+        continue;
+      }
       const value = prop.initializer;
       if (ts.isNumericLiteral(value)) {
-        if (Number(value.text) > 0) hasInlinePrice = true;
+        putPrice(name, Number(value.text) > 0);
         continue;
       }
       // `X || undefined` / `X ?? undefined` 는 런타임에 undefined 로 접힐 수 있다 → 근거 아님.
       const collapsesToUndefined = ts.isBinaryExpression(value)
         && (value.operatorToken.kind === ts.SyntaxKind.BarBarToken || value.operatorToken.kind === ts.SyntaxKind.QuestionQuestionToken)
         && ts.isIdentifier(value.right) && value.right.text === "undefined";
-      if (!collapsesToUndefined) hasInlinePrice = true;
+      putPrice(name, !collapsesToUndefined);
     }
   }
-  return { identity, hasInlinePrice };
+  return { identity, present, price };
+}
+
+function readGateArg(objectLiteral, consts, funcs) {
+  const { identity, price } = readGateArgParts(objectLiteral, consts, funcs);
+  return { identity, hasInlinePrice: price.size > 0 };
 }
 
 function lineOf(sourceFile, node) {
@@ -209,7 +252,7 @@ for (const scanRoot of SCAN_ROOTS) {
               file: rel,
               line: lineOf(sourceFile, node),
               callee,
-              ...(objectLiteral ? readGateArg(objectLiteral, consts) : { identity: {}, hasInlinePrice: false, unparsed: true }),
+              ...(objectLiteral ? readGateArg(objectLiteral, consts, funcs) : { identity: {}, hasInlinePrice: false, unparsed: true }),
             });
           }
         }

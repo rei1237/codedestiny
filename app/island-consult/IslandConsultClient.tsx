@@ -16,6 +16,7 @@ import {
   primePaymentEligibility,
 } from "@/app/_lib/billing-client";
 import { useCoinGate } from "@/app/hooks/useCoinGate";
+import { usePaidResume, packPaidResumeArg, unpackPaidResumeArg } from "@/app/hooks/usePaidResume";
 import { useContentUnlock } from "@/app/_lib/use-content-unlock";
 import { hasLedgerUnlock } from "@/app/_lib/optimistic-unlock-ledger";
 import PagedResultViewer, { usePagedViewerMode, type ResultViewerPage } from "@/components/fortune/PagedResultViewer";
@@ -504,10 +505,46 @@ export default function IslandConsultClient() {
     reportRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [phase, palace]);
 
+  /* 결제 후 자동 재개(리포트) — 모바일 PortOne 리다이렉트가 unlockReport 의 await 를 죽인 뒤의
+     복귀 경로다. 영구 해금이라 원장에도 남지만, 복귀 직후의 해금 조회가 결제 확정보다 먼저 끝나면
+     "미해금"으로 굳고, 폼(생년)도 시드가 늦게 오면 비어 있어 자동 조회 이펙트가 안 돈다 —
+     결제 직전 값을 서술자로 굳혀 되돌린다. 본문 로드는 그 이펙트가 이어받는다. */
+  const buildReportResume = usePaidResume(REPORT_FEATURE_KEY, (args) => {
+    const birthDate = String(args.birthDate || "");
+    if (!birthDate) return false;
+    formTouchedRef.current = true;
+    setForm((f) => ({
+      ...f,
+      birthDate,
+      birthTime: String(args.birthTime || ""),
+      birthTimeUnknown: args.birthTimeUnknown === true,
+      gender: (String(args.gender || "") || f.gender) as Gender,
+      calendarType: args.calendarType === "lunar" ? "lunar" : "solar",
+      isLeapMonth: args.isLeapMonth === true,
+    }));
+    const restoredPalace = PALACES.find((p) => p.name === String(args.palaceKey || ""));
+    if (restoredPalace) { setPalace(restoredPalace); setPhase("form"); }
+    markOptimisticallyUnlocked(REPORT_FEATURE_KEY);
+    setLedgerUnlocked(true);
+    reportFetchedRef.current = false;
+    wantsReportViewRef.current = true;
+    void refetchUnlocks({ force: true });
+    return true;
+  });
+
   async function unlockReport() {
     if (isPaying || reportLoading) return;
     setReportError("");
     const r = await ensurePaidAccess({
+      resume: buildReportResume({
+        birthDate: form.birthDate,
+        birthTime: form.birthTimeUnknown ? "" : form.birthTime,
+        birthTimeUnknown: form.birthTimeUnknown,
+        gender: form.gender,
+        calendarType: form.calendarType,
+        isLeapMonth: form.calendarType === "lunar" ? form.isLeapMonth : false,
+        palaceKey: palace ? palace.name : "",
+      }),
       featureKey: REPORT_FEATURE_KEY,
       coinPrice: REPORT_COIN_PRICE,
       cost: REPORT_COIN_PRICE,
@@ -617,6 +654,34 @@ export default function IslandConsultClient() {
     throw new Error(mapError(data, status));
   }
 
+  /* 결제 후 자동 재개(심층 상담) — 결제창 뒤의 generate 가 리다이렉트로 죽는 자리다.
+     🔴 여기는 서버에 결제 증빙을 다시 실어야 하는 유형이다(없으면 402) — 인페이지 경로의
+     extractPayment(gate) 자리에 재개 증빙(grant.payload)을 그대로 끼운다.
+     🔴 게이트를 다시 타는 startConsult 가 아니라 코어(generate)를 부른다. */
+  const buildConsultResume = usePaidResume(FEATURE_KEY, async (args, grant) => {
+    const payload = unpackPaidResumeArg<Record<string, unknown>>(args.payload);
+    const idempotencyKey = String(args.idempotencyKey || grant?.requestId || grant?.merchantUid || "");
+    if (!payload || !idempotencyKey || busyRef.current) return false;
+    const restoredPalace = PALACES.find((p) => p.name === String(args.palaceKey || ""));
+    if (restoredPalace) { setPalace(restoredPalace); setPhase("form"); }
+    busyRef.current = true;
+    try {
+      await generate(
+        idempotencyKey,
+        payload,
+        extractPayment({ payload: grant?.payload || null, transactionId: grant?.merchantUid || "" }, idempotencyKey),
+      );
+      return true;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : ERROR_TEXT.SERVER_ERROR);
+      setNotice("");
+      setPhase("form");
+      return false;
+    } finally {
+      busyRef.current = false;
+    }
+  });
+
   async function startConsult(e: FormEvent) {
     e.preventDefault();
     if (busyRef.current || !palace) return;
@@ -659,7 +724,15 @@ export default function IslandConsultClient() {
       if (!degraded && data.reason !== "PAYMENT_REQUIRED") throw new Error(mapError(data, status));
       setPhase("payment");
       setNotice("결제창을 확인해 주세요");
-      const gate = await runBillingCoinGate(buildBillingGateInput(asRecord((data as { paymentPayload?: unknown }).paymentPayload), idempotencyKey));
+      const gate = await runBillingCoinGate({
+        ...buildBillingGateInput(asRecord((data as { paymentPayload?: unknown }).paymentPayload), idempotencyKey),
+        // 결제 직전 화면 상태를 굳힌다 — 리다이렉트 복귀 문서에는 payload 도 idempotencyKey 도 없다.
+        resume: buildConsultResume({
+          payload: packPaidResumeArg(payload),
+          idempotencyKey,
+          palaceKey: palace.name,
+        }),
+      });
       if (!isPaymentGranted(gate)) {
         const code = String((gate as { error?: { code?: string } }).error?.code || "").toUpperCase();
         if (code === "AUTH_REQUIRED" || code === "LOGIN_REQUIRED") throw new Error(ERROR_TEXT.LOGIN_REQUIRED);

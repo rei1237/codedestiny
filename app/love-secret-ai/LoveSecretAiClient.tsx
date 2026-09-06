@@ -31,6 +31,7 @@ import {
   runBillingCoinGate,
   primePaymentEligibility,
 } from "@/app/_lib/billing-client";
+import { packPaidResumeArg, unpackPaidResumeArg, usePaidResume, type PaidResumeDescriptor } from "@/app/hooks/usePaidResume";
 import { readAiProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { PriceBadge } from "@/app/components/PriceBadge";
@@ -1838,9 +1839,10 @@ function extractPayment(result: unknown, fallbackRequestId: string) {
   };
 }
 
-async function runLoveSecretPaymentGate(paymentPayload: BillingPaymentPayload, idempotencyKey: string, copy: LoveSecretClientCopy) {
+async function runLoveSecretPaymentGate(paymentPayload: BillingPaymentPayload, idempotencyKey: string, copy: LoveSecretClientCopy, resume?: PaidResumeDescriptor) {
   const runtimeGate = asRecord(paymentPayload.runtimeGate);
   const gateResult = await runBillingCoinGate({
+    resume,
     categoryKey: toText(runtimeGate.categoryKey) || "premium-consultation",
     subFeatureKey: SERVICE_TYPE,
     featureKey: SERVICE_TYPE,
@@ -2071,6 +2073,31 @@ export default function LoveSecretAiPage() {
     throw new Error(result.message || copy.errorMessages.serverError);
   }
 
+  // 모바일 PortOne 리다이렉트로 handleSubmit 의 await 가 죽은 뒤, 복귀한 새 문서에서 생성을 이어받는다.
+  // 🔴 게이트를 다시 타지 않고 게이트 없는 코어(startConsultation)를 원래 idempotencyKey 로 부른다.
+  const buildResume = usePaidResume(SERVICE_TYPE, async (args, grant) => {
+    const idempotencyKey = typeof args.idempotencyKey === "string" ? args.idempotencyKey : "";
+    const payload = unpackPaidResumeArg<ReturnType<typeof buildPayload>>(args.payload);
+    if (!idempotencyKey || !payload) return false;
+    startLockRef.current = true;
+    idempotencyKeyRef.current = idempotencyKey;
+    setError("");
+    setNotice("");
+    setProgressIndex(0);
+    try {
+      await startConsultation(payload, idempotencyKey, extractPayment(grant?.payload, idempotencyKey));
+      return true;
+    } catch (caught) {
+      const message = caught instanceof TypeError ? copy.errorMessages.networkError : caught instanceof Error ? caught.message : copy.errorMessages.serverError;
+      markPaidAttemptFailed(message || "love_secret_ai_generate_failed");
+      setError(message || copy.errorMessages.serverError);
+      setPhase("error");
+      return false;
+    } finally {
+      startLockRef.current = false;
+    }
+  });
+
   async function handleSubmit(event?: FormEvent<HTMLFormElement>) {
     event?.preventDefault();
     if (startLockRef.current || busy) return;
@@ -2144,7 +2171,10 @@ export default function LoveSecretAiPage() {
         setNotice(copy.errorMessages.paymentRequired);
         setPhase("payment");
         const gatePayload = (isPaymentRequiredResult(access) ? access.paymentPayload : {}) as BillingPaymentPayload;
-        const payment = await runLoveSecretPaymentGate(gatePayload, idempotencyKey, copy);
+        const payment = await runLoveSecretPaymentGate(gatePayload, idempotencyKey, copy, buildResume({
+          idempotencyKey,
+          payload: packPaidResumeArg(payload),
+        }));
         await startConsultation(buildPayload(form, idempotencyKey), idempotencyKey, payment);
         return;
       }

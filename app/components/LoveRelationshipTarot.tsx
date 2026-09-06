@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { showToast } from "./Toast";
 import { showSubscriptionIncludedNotice } from "./subscriptionNotice";
 import { useCoinGate } from "../hooks/useCoinGate";
+import { usePaidResume, packPaidResumeArg, unpackPaidResumeArg } from "../hooks/usePaidResume";
 import { lookupServerCoinPrice } from "@/app/_lib/serviceCoinPrice";
 import { hardNavigateToShellHome } from "@/lib/navigation/shellHome";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
@@ -16,6 +17,12 @@ type DrawnCard = {
   position?: string;
   orientation?: string;
 };
+
+type PayloadCard = Pick<DrawnCard, "cardId" | "position" | "orientation">;
+
+function toPayloadCards(cards: DrawnCard[]): PayloadCard[] {
+  return cards.map((c) => ({ cardId: c.cardId, position: c.position, orientation: c.orientation }));
+}
 
 const SPREAD_TYPE = "relationship_six_card";
 const CATEGORY = "love";
@@ -399,6 +406,59 @@ export default function LoveRelationshipTarot() {
     };
   }, []);
 
+  // 게이트 없는 리딩 코어. 결제 게이트 뒤에서도, 리다이렉트 복귀 재개에서도 같은 요청을 쓴다.
+  async function performReading(payloadCards: PayloadCard[], readingLocale: LoadingLocale) {
+    // 서버는 42s 데드라인에 로컬 폴백으로라도 확정 응답을 준다. 연결이 끊겨 무한 대기(정적 스피너)로
+    // 멈추지 않도록 55s(서버 42s + 여유)에 중단한다 — 중단돼도 paidAccessGrantedRef가 남아 재시도는 무과금.
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), 55000);
+    let res: Response;
+    try {
+      res = await fetch("/api/tarot/love-reading", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          cards: payloadCards,
+          locale: readingLocale,
+        }),
+        signal: controller.signal,
+      });
+    } catch (err: any) {
+      if (err?.name === "AbortError") throw new Error(copy.readingError);
+      throw err;
+    } finally {
+      window.clearTimeout(timeoutId);
+    }
+    const data = await res.json();
+    if (!res.ok || data?.ok === false) {
+      throw new Error(data?.message || copy.readingError);
+    }
+    setReadingRaw(data?.reading ?? data);
+  }
+
+  /* 결제 후 자동 재개 — 모바일 PortOne 복귀는 카드가 한 장도 뽑히지 않은 초기 화면이다. 서술자에 실어 둔
+     뽑은 카드를 먼저 되살려야 결과와 카드가 맞물린다. 🔴 게이트를 다시 타지 않는다 — 실패하면 false 로
+     지속 카드에 넘겨 영수증을 남긴다(다시 눌러도 무과금). */
+  const buildResume = usePaidResume("tarot-love-relationship", async (args) => {
+    const restored = unpackPaidResumeArg<DrawnCard[]>(args.cards);
+    if (!Array.isArray(restored) || restored.length !== CARD_COUNT) return false;
+    const readingLocale = (String(args.locale || "") || locale) as LoadingLocale;
+    setCards(restored);
+    setRevealedCount(CARD_COUNT);
+    setLoading(true);
+    setError("");
+    try {
+      await performReading(toPayloadCards(restored), readingLocale);
+      return true;
+    } catch (e: any) {
+      setError(e?.message || copy.readingError);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  });
+
   async function startDraw() {
     setLoading(true);
     setError("");
@@ -451,41 +511,9 @@ export default function LoveRelationshipTarot() {
 
       const isFlowerAdminMode = isAdminLikeUser();
 
-      const payloadCards = cards.map((c) => ({
-        cardId: c.cardId,
-        position: c.position,
-        orientation: c.orientation,
-      }));
+      const payloadCards = toPayloadCards(cards);
 
-      const executeReading = async () => {
-        // 서버는 42s 데드라인에 로컬 폴백으로라도 확정 응답을 준다. 연결이 끊겨 무한 대기(정적 스피너)로
-        // 멈추지 않도록 55s(서버 42s + 여유)에 중단한다 — 중단돼도 paidAccessGrantedRef가 남아 재시도는 무과금.
-        const controller = new AbortController();
-        const timeoutId = window.setTimeout(() => controller.abort(), 55000);
-        let res: Response;
-        try {
-          res = await fetch("/api/tarot/love-reading", {
-            method: "POST",
-            credentials: "include",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              cards: payloadCards,
-              locale,
-            }),
-            signal: controller.signal,
-          });
-        } catch (err: any) {
-          if (err?.name === "AbortError") throw new Error(copy.readingError);
-          throw err;
-        } finally {
-          window.clearTimeout(timeoutId);
-        }
-        const data = await res.json();
-        if (!res.ok || data?.ok === false) {
-          throw new Error(data?.message || copy.readingError);
-        }
-        setReadingRaw(data?.reading ?? data);
-      };
+      const executeReading = () => performReading(payloadCards, locale);
 
       if (isFlowerAdminMode) {
         await executeReading();
@@ -504,6 +532,7 @@ export default function LoveRelationshipTarot() {
         cost: lookupServerCoinPrice("tarot-love-relationship"),
         reason: copy.paymentReason,
         requestId: `tarot-love-relationship:req:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+        resume: buildResume({ cards: packPaidResumeArg(cards), locale }),
         // 이용권/결제 확인 단계에서는 과금 안내만 처리한다 — LLM 생성은 게이트가 닫힌 뒤 진행.
         onPaid: ({ chargedCoins, accessSource, monthlyCreditsSpent, monthlyBalanceAfter, balanceAfter }) => {
           // 🔴 판정은 accessSource 로만 한다. chargedCoins 는 이용권·월정석·재열람 모두 0 이라

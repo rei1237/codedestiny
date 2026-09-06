@@ -11,6 +11,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { postPaidBody } from "../nakshatra-fetch";
 import { useCoinGate } from "@/app/hooks/useCoinGate";
+import { usePaidResume, packPaidResumeArg, unpackPaidResumeArg } from "@/app/hooks/usePaidResume";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import styles from "../_premium/premium.module.css";
 import local from "./muhurta.module.css";
@@ -175,6 +176,23 @@ export default function MuhurtaClient() {
     await fetchReport(paidRef.current);
   }, [fetchReport, loading]);
 
+  /* 결제 후 자동 재개 — 모바일 PortOne 리다이렉트로 run 의 await 가 죽은 뒤의 복귀 경로.
+     목적·시작일은 화면 state 이고 requestId 는 결제 증빙 열쇠라 새 문서에서 재현할 수 없다 —
+     결제 직전에 서술자로 굳혀 둔다. 🔴 게이트 없는 코어(fetchReport)를 부른다. */
+  const buildResume = usePaidResume(FEATURE_KEY, (args, grant) => {
+    const restored = unpackPaidResumeArg<NakshatraBirthInput>(args.birth);
+    const requestId = String(args.requestId || grant?.requestId || grant?.merchantUid || "");
+    if (!restored || !requestId) return false;
+    paidRef.current = {
+      birth: restored,
+      purpose: String(args.purpose || "marriage"),
+      startDate: String(args.startDate || todayKst()),
+      requestId,
+    };
+    void fetchReport(paidRef.current);
+    return true;
+  });
+
   const run = useCallback(async () => {
     if (!birth || isPaying || loading) return;
     setError("");
@@ -189,6 +207,7 @@ export default function MuhurtaClient() {
       amountKRW: AMOUNT_KRW,
       reason: copy.muhurtaReason,
       requestId,
+      resume: buildResume({ birth: packPaidResumeArg(birth), purpose, startDate, requestId }),
     });
     if (!gate.ok) {
       if (gate.code === "AUTH_REQUIRED" || gate.code === "LOGIN_REQUIRED") { setError(copy.loginRequiredMessage); return; }
@@ -200,7 +219,7 @@ export default function MuhurtaClient() {
     //    일시 장애는 자동 재시도하고, 그래도 안 되면 '다시 시도' 버튼으로 같은 결제를 재사용한다.
     paidRef.current = { birth, purpose, startDate, requestId };
     await fetchReport({ birth, purpose, startDate, requestId });
-  }, [birth, copy, ensurePaidAccess, fetchReport, isPaying, loading, purpose, startDate]);
+  }, [birth, buildResume, copy, ensurePaidAccess, fetchReport, isPaying, loading, purpose, startDate]);
 
   const meta = report ? copy.muhurtaMetaSummary(report.meta.dayCount, report.meta.bothGoodCount) : undefined;
 

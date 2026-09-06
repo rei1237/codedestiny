@@ -29,6 +29,7 @@ import {
   runBillingCoinGate,
   primePaymentEligibility,
 } from "@/app/_lib/billing-client";
+import { packPaidResumeArg, unpackPaidResumeArg, usePaidResume } from "@/app/hooks/usePaidResume";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { getZiweiDeepPdfCopy } from "./_lib/ziwei-deep-pdf-copy";
 
@@ -229,7 +230,10 @@ export default function ZiweiDeepPdfPanel({ birth, disabled = false }: Props) {
     return () => clearInterval(timer);
   }
 
-  async function generate(idempotencyKey: string, extra: Record<string, unknown>) {
+  // 🔴 payloadOverride: 결제 복귀 재개는 새 문서라 위 payload 의 재료(birth prop·focusArea·question)가
+  //    전부 초기값으로 돌아와 있다. 재개 경로는 결제 직전에 굳혀 둔 입력을 그대로 보낸다.
+  async function generate(idempotencyKey: string, extra: Record<string, unknown>, payloadOverride?: Record<string, unknown>) {
+    const body = payloadOverride || payload;
     setPhase("generating");
     setGenProgress({ done: 0, total: TOTAL_CHAPTERS });
     const stop = cycleSteps();
@@ -244,7 +248,7 @@ export default function ZiweiDeepPdfPanel({ birth, disabled = false }: Props) {
       for (let guard = 0; guard < MAX_BATCHES; guard += 1) {
         const { status, data } = await postJson<ApiResult>(
           "/api/ziwei-deep-report/generate",
-          { ...payload, ...accessExtra, idempotencyKey, startIndex },
+          { ...body, ...accessExtra, idempotencyKey, startIndex },
           idempotencyKey,
         );
         if (!data.ok) throw new Error(mapError(data, status));
@@ -331,6 +335,28 @@ export default function ZiweiDeepPdfPanel({ birth, disabled = false }: Props) {
     return "";
   }
 
+  // 모바일 PortOne 리다이렉트로 handleGenerate 의 await 가 죽은 뒤, 복귀한 새 문서에서 생성을 이어받는다.
+  // 🔴 게이트를 다시 타지 않고 게이트 없는 코어(generate)를 원래 idempotencyKey 로 부른다.
+  const buildResume = usePaidResume(FEATURE_KEY, async (args, grant) => {
+    const idempotencyKey = typeof args.idempotencyKey === "string" ? args.idempotencyKey : "";
+    const restoredPayload = unpackPaidResumeArg<Record<string, unknown>>(args.payload);
+    if (!idempotencyKey || !restoredPayload) return false;
+    busyRef.current = true;
+    idempotencyRef.current = idempotencyKey;
+    setError("");
+    setReport(null);
+    if (typeof restoredPayload.focusArea === "string") setFocusArea(restoredPayload.focusArea as FocusArea);
+    if (typeof restoredPayload.question === "string") setQuestion(restoredPayload.question);
+    try {
+      await generate(idempotencyKey, extractPayment(grant?.payload, idempotencyKey), restoredPayload);
+      return true;
+    } catch (caught) {
+      setError(caught instanceof TypeError ? copy.errorText.NETWORK_ERROR : caught instanceof Error ? caught.message : copy.errorText.SERVER_ERROR);
+      setPhase("idle");
+      return false;
+    } finally { busyRef.current = false; }
+  });
+
   async function handleGenerate() {
     if (busyRef.current || disabled) return;
     const validationMessage = validate();
@@ -358,7 +384,10 @@ export default function ZiweiDeepPdfPanel({ birth, disabled = false }: Props) {
       if (data.reason !== "PAYMENT_REQUIRED") throw new Error(mapError(data, status));
 
       setPhase("payment");
-      const gate = await runBillingCoinGate(buildBillingGateInput(asRecord(data.paymentPayload), idempotencyKey, copy.reasonText));
+      const gate = await runBillingCoinGate({
+        ...buildBillingGateInput(asRecord(data.paymentPayload), idempotencyKey, copy.reasonText),
+        resume: buildResume({ idempotencyKey, payload: packPaidResumeArg(payload) }),
+      });
       if (!isPaymentGranted(gate)) {
         const code = String((gate as { error?: { code?: string } })?.error?.code || "").toUpperCase();
         if (code === "AUTH_REQUIRED" || code === "LOGIN_REQUIRED") throw new Error(copy.errorText.LOGIN_REQUIRED);

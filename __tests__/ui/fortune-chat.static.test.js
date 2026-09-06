@@ -116,7 +116,8 @@ test("Yeoni chat charges through the shared coin gate with a matching request id
   assert.match(client, /featureKey: PAID_FEATURE_KEY/);
   assert.match(client, /PAID_FEATURE_KEY = "fortune-chat-consultation"/);
   // 결제 게이트와 생성 요청이 같은 requestId 를 써야 서버가 증빙을 찾는다.
-  assert.match(client, /openPaymentGate\(requestId\)/);
+  // 뒤에 결제 후 재개 서술자가 붙어도 첫 인자는 그 requestId 여야 한다.
+  assert.match(client, /openPaymentGate\(requestId[,)]/);
   assert.match(client, /requestReading\(requestId, concern\)/);
   // 폐지된 전용 재화로 되돌아가지 않는다.
   assert.doesNotMatch(client, /대화권/);

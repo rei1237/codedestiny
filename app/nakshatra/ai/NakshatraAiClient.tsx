@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { authFetch } from "@/app/_lib/auth-client";
 import { runBillingCoinGate, formatPaymentWon } from "@/app/_lib/billing-client";
+import { packPaidResumeArg, unpackPaidResumeArg, usePaidResume } from "@/app/hooks/usePaidResume";
 import { isRetriableResultPollFailure } from "@/app/_lib/consultationResultPolling";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { useServerPrice } from "@/app/hooks/useServerPrice";
@@ -286,6 +287,20 @@ export default function NakshatraAiClient() {
     fail(toText(data.message) || copy.aiErrorGeneric);
   }, [finish, fail, pollResult, driveGeneration, applyProgress, copy]);
 
+  /* 모바일 PortOne 은 상단 프레임을 리다이렉트해 runBillingCoinGate 의 await 가 페이지와 함께
+     죽는다. 그러면 /start 가 영영 안 불려 결제한 사용자가 인트로로 돌아온다. grant.payload 는
+     서버 확정 응답 그대로라 인페이지 gate.data 와 같은 자리에 accessGrant·consume 이 들어 있다. */
+  const buildResume = usePaidResume(FEATURE_KEY, async (args, grant) => {
+    const idempotencyKey = typeof args.idempotencyKey === "string" ? args.idempotencyKey : "";
+    const payload = unpackPaidResumeArg<Record<string, unknown>>(args.payload);
+    if (!idempotencyKey || !payload) return false;
+    busyRef.current = true;
+    setErrorMsg("");
+    setAskedQuestion(toText(payload.question));
+    await startConsult(payload, extractPaymentContext({ data: grant?.payload }, idempotencyKey));
+    return true;
+  });
+
   const beginConsultation = useCallback(async () => {
     if (!birth || busyRef.current) return;
     busyRef.current = true;
@@ -319,6 +334,7 @@ export default function NakshatraAiClient() {
         reason: copy.aiFeatureTitle,
         requestId: idempotencyKey,
         idempotencyKey,
+        resume: buildResume({ idempotencyKey, payload: packPaidResumeArg(payload) }),
         cost: COIN_PRICE,
         coinPrice: COIN_PRICE,
         amountKRW: PRICE_KRW,

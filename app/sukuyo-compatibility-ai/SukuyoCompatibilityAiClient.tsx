@@ -21,6 +21,7 @@ import {
   runBillingCoinGate,
   primePaymentEligibility,
 } from "@/app/_lib/billing-client";
+import { packPaidResumeArg, unpackPaidResumeArg, usePaidResume } from "@/app/hooks/usePaidResume";
 import { readAiProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { PriceBadge } from "@/app/components/PriceBadge";
@@ -1492,13 +1493,21 @@ export default function SukuyoCompatibilityAiClient() {
   const filledCount = (personA.birthDate ? 1 : 0) + (personB.birthDate ? 1 : 0);
   const filledPercent = Math.round((filledCount / 2) * 100);
 
-  async function startConsultation(idempotencyKey: string, access: Record<string, unknown>, paymentWasRequired = false) {
+  // 🔴 payloadOverride: 결제 복귀 재개는 새 문서라 위 useMemo payload 가 기본 폼으로 되살아나 있다.
+  //    재개 경로는 결제 직전에 굳혀 둔 입력을 그대로 넘겨야 다른 사람의 궁합이 생성되지 않는다.
+  async function startConsultation(
+    idempotencyKey: string,
+    access: Record<string, unknown>,
+    paymentWasRequired = false,
+    payloadOverride?: Record<string, unknown>,
+  ) {
     setPhase("start");
+    const body = payloadOverride || payload;
     let started: { status: number; data: StartResult };
     try {
       started = await postJson<StartResult>(
         "/api/sukuyo-compatibility-ai/generate",
-        { ...payload, ...access, idempotencyKey },
+        { ...body, ...access, idempotencyKey },
         idempotencyKey,
       );
     } catch {
@@ -1508,7 +1517,7 @@ export default function SukuyoCompatibilityAiClient() {
       // 아래에서 폴링으로 수렴한다. 같은 access 객체를 재사용하므로 추가 과금은 없다.
       started = await postJson<StartResult>(
         "/api/sukuyo-compatibility-ai/generate",
-        { ...payload, ...access, idempotencyKey },
+        { ...body, ...access, idempotencyKey },
         idempotencyKey,
       );
     }
@@ -1540,6 +1549,30 @@ export default function SukuyoCompatibilityAiClient() {
     if (data.reason === "INVALID_INPUT") throw new Error("INVALID_INPUT");
     throw new Error(toText(data.reason) || (status === 401 ? "LOGIN_REQUIRED" : "SERVER_ERROR"));
   }
+
+  // 모바일 PortOne 리다이렉트로 runSubmit 의 await 가 죽은 뒤, 복귀한 새 문서에서 생성을 이어받는다.
+  // 🔴 게이트를 다시 타지 않고 게이트 없는 코어(startConsultation)를 원래 idempotencyKey 로 부른다.
+  const buildResume = usePaidResume(FEATURE_KEY, async (args, grant) => {
+    const idempotencyKey = typeof args.idempotencyKey === "string" ? args.idempotencyKey : "";
+    const restored = unpackPaidResumeArg<Record<string, unknown>>(args.payload);
+    if (!idempotencyKey || !restored) return false;
+    submitLockRef.current = true;
+    submitKeyRef.current = idempotencyKey;
+    setError("");
+    setNotice("");
+    try {
+      const payment = extractPayment(grant?.payload, idempotencyKey);
+      await startConsultation(idempotencyKey, { ...payment, billingGate: asRecord(grant?.payload) }, true, restored);
+      return true;
+    } catch (caught) {
+      const code = caught instanceof TypeError ? "NETWORK_ERROR" : caught instanceof Error ? caught.message : "SERVER_ERROR";
+      setError(ERROR_TEXT[code] || ERROR_TEXT.SERVER_ERROR);
+      setPhase("idle");
+      return false;
+    } finally {
+      submitLockRef.current = false;
+    }
+  });
 
   async function handleSubmit() {
     if (submitLockRef.current || busy) return;
@@ -1619,7 +1652,10 @@ export default function SukuyoCompatibilityAiClient() {
       setNotice(ERROR_TEXT.PAYMENT_REQUIRED);
       setPhase("payment");
       const paymentPayload = asRecord("paymentPayload" in denied ? denied.paymentPayload : {});
-      const runtimeResult = await runBillingCoinGate(buildBillingGateInput(paymentPayload, idempotencyKey));
+      const runtimeResult = await runBillingCoinGate({
+        ...buildBillingGateInput(paymentPayload, idempotencyKey),
+        resume: buildResume({ idempotencyKey, payload: packPaidResumeArg(payload) }),
+      });
       if (!isPaymentGranted(runtimeResult)) {
         const runtimeCode = String(runtimeResult.error?.code || "").toUpperCase();
         if (runtimeCode === "PAYMENT_CANCELLED") throw new Error("PAYMENT_CANCELLED");

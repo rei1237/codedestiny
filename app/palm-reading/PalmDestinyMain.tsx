@@ -19,6 +19,7 @@ import { buildPalmInterpretationReport } from "@/lib/palm/interpretation-engine"
 import { holdPaidFeatureGateOpen, openPaidFeatureGate, releasePaidFeatureGate, runBillingCoinGate, updatePaidFeatureGate } from "@/app/_lib/billing-client";
 import { resolveServerFeaturePricing } from "@/lib/payment/server-feature-pricing";
 import { usePalmDestinyCopy, type PalmDestinyCopy } from "./_lib/copy";
+import { usePaidResume } from "@/app/hooks/usePaidResume";
 
 type HandSide = "left" | "right";
 type DominantHand = PalmDominantHand;
@@ -237,6 +238,36 @@ const PALM_BILLING_PRICING = resolveServerFeaturePricing({
   categoryKey: PALM_BILLING_CATEGORY_KEY,
   subFeatureKey: PALM_BILLING_SUB_FEATURE_KEY,
 });
+
+// 결제 복귀는 새 문서라 분석 응답이 메모리에서 사라진다 — 결제창을 열기 직전에 이 탭에만 남겨 두고
+// 재개할 때 되읽는다(한 번 읽으면 지운다). 🔴 사진은 blob URL 이라 복원할 수 없어 재개 화면에는
+// 판독 본문만 뜨고 손금 오버레이 배경은 빈다 — "결제했는데 아무것도 없음"보다 낫다는 판단이다.
+const PALM_RESUME_STASH_KEY = "cd.palmReading.resumePayload.v1";
+
+function stashPalmResumePayload(requestId: string, payloadRoot: Record<string, unknown>) {
+  if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.setItem(PALM_RESUME_STASH_KEY, JSON.stringify({ requestId, payloadRoot }));
+  } catch (e) {
+    // 용량 초과면 재개만 포기한다(인페이지 결제 경로는 그대로 동작한다).
+  }
+}
+
+function readPalmResumePayload(requestId: string): Record<string, unknown> | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.sessionStorage.getItem(PALM_RESUME_STASH_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { requestId?: string; payloadRoot?: Record<string, unknown> };
+    const payloadRoot = parsed?.payloadRoot;
+    if (!payloadRoot || typeof payloadRoot !== "object") return null;
+    if (requestId && parsed.requestId !== requestId) return null;
+    window.sessionStorage.removeItem(PALM_RESUME_STASH_KEY);
+    return payloadRoot;
+  } catch (e) {
+    return null;
+  }
+}
 
 function buildDominantHandOptions(copy: PalmDestinyCopy): Array<{ value: DominantHand; label: string }> {
   return [
@@ -1991,6 +2022,136 @@ export default function PalmDestinyMain() {
     }
   };
 
+  // 서버 분석 응답(payloadRoot) → 화면이 그릴 값. 결제 전 판정에서 한 번, 결제 복귀 재개에서 한 번 쓴다.
+  const preparePalmResult = (payloadRoot: Record<string, unknown>) => {
+    const canonicalSource =
+      payloadRoot?.canonical && typeof payloadRoot.canonical === "object"
+        ? (payloadRoot.canonical as Record<string, unknown>)
+        : payloadRoot;
+
+    const profileSource = (canonicalSource?.profile as Record<string, unknown> | undefined) || undefined;
+    const handContextSource = (canonicalSource?.handContext as Record<string, unknown> | undefined) || undefined;
+    const uploadedHandsFromPayload: Array<"left" | "right"> = Array.isArray(handContextSource?.uploadedHands)
+      ? handContextSource.uploadedHands.filter((item): item is "left" | "right" => item === "left" || item === "right")
+      : [];
+
+    const dominantHandFromPayload = toDominantHand(profileSource?.dominantHand);
+    const analysisPurposeFromPayload = toAnalysisPurpose(profileSource?.analysisPurpose);
+    const leftHandRoleFromPayload = toHandRole(handContextSource?.leftHandRole);
+    const rightHandRoleFromPayload = toHandRole(handContextSource?.rightHandRole);
+    const dominantForCanonical: DominantHand | null = dominantHandFromPayload ?? (dominantHand || null);
+    const purposeForCanonical: AnalysisPurpose = analysisPurposeFromPayload || activeAnalysisPurpose;
+
+    const imageQualityFromPayload =
+      (canonicalSource?.imageQuality as ReturnType<typeof createDefaultCanonicalPalmReading>["imageQuality"] | undefined) ||
+      undefined;
+    const leftHandReadingFromPayload =
+      (canonicalSource?.leftHandReading as ReturnType<typeof createDefaultCanonicalPalmReading>["leftHandReading"]) ||
+      null;
+    const rightHandReadingFromPayload =
+      (canonicalSource?.rightHandReading as ReturnType<typeof createDefaultCanonicalPalmReading>["rightHandReading"]) ||
+      null;
+    const comparisonFromPayload =
+      (canonicalSource?.bothHandsComparison as
+        | ReturnType<typeof createDefaultCanonicalPalmReading>["bothHandsComparison"]
+        | undefined) || undefined;
+    const purposeAnalysisFromPayload =
+      (canonicalSource?.purposeAnalysis as ReturnType<typeof createDefaultCanonicalPalmReading>["purposeAnalysis"]) ||
+      undefined;
+    const specialPatternsFromPayload =
+      (canonicalSource?.specialPatterns as ReturnType<typeof createDefaultCanonicalPalmReading>["specialPatterns"]) ||
+      undefined;
+
+    const canonical = createDefaultCanonicalPalmReading({
+      dominantHand: dominantForCanonical,
+      analysisPurpose: purposeForCanonical,
+      uploadedHands: uploadedHandsFromPayload,
+      leftHandRole: leftHandRoleFromPayload ?? handRoles.leftHandRole,
+      rightHandRole: rightHandRoleFromPayload ?? handRoles.rightHandRole,
+      imageQuality: imageQualityFromPayload,
+      leftHandReading: leftHandReadingFromPayload,
+      rightHandReading: rightHandReadingFromPayload,
+      comparison: comparisonFromPayload,
+      specialPatterns: specialPatternsFromPayload,
+      purposeAnalysis: purposeAnalysisFromPayload,
+    });
+
+    const modeFromPayload =
+      payloadRoot?.mode === "full" || payloadRoot?.mode === "partial" || payloadRoot?.mode === "fallback"
+        ? (payloadRoot.mode as "full" | "partial" | "fallback")
+        : canonical.validation.analysisMode === "detailed"
+        ? "full"
+        : "partial";
+    const qualityScore = Number(payloadRoot?.qualityScore ?? NaN);
+
+    return {
+      payloadRoot,
+      canonical,
+      interpretation: buildInterpretationWithFallback(canonical, payloadRoot?.interpretation, payloadRoot?.resultSections, copy),
+      overlayPaths: extractOverlayPaths(payloadRoot?.overlayPaths ?? payloadRoot),
+      overlayPathsBySide: extractOverlayPathsBySide(payloadRoot),
+      mode: modeFromPayload,
+      qualityScore: Number.isFinite(qualityScore) ? qualityScore : 0,
+      missingData: Array.isArray(payloadRoot?.missingData) ? payloadRoot.missingData.map((item) => String(item)) : [],
+      warnings: Array.isArray(payloadRoot?.warnings) ? payloadRoot.warnings.map((item) => String(item)) : [],
+      report:
+        payloadRoot?.report && typeof payloadRoot.report === "object"
+          ? (payloadRoot.report as Record<string, unknown>)
+          : null,
+    };
+  };
+
+  // 게이트 없는 결과 반영부 — 인페이지 결제 직후와 결제 복귀 재개가 같은 본문을 쓴다.
+  const applyPalmResult = (prepared: ReturnType<typeof preparePalmResult>) => {
+    setAnalysisResult({
+      mode: prepared.mode,
+      qualityScore: prepared.qualityScore,
+      missingData: prepared.missingData,
+      warnings: prepared.warnings,
+      report: prepared.report,
+      canonical: prepared.canonical,
+      interpretation: prepared.interpretation,
+      consultText: extractConsultText(prepared.payloadRoot),
+      overlayPaths: prepared.overlayPaths,
+      overlayPathsBySide: prepared.overlayPathsBySide,
+      raw: prepared.payloadRoot,
+    });
+
+    const firstKey = prepared.interpretation?.cards?.[0]?.key;
+    if (firstKey && firstKey in CARD_KEY_TO_LABEL) {
+      setActiveCardKey(firstKey as PalmCardKey);
+    } else {
+      setActiveCardKey("lifeLine");
+    }
+
+    if (rightHand.previewUrl && (dominantHand === "right" || !leftHand.previewUrl)) {
+      setOverlaySide("right");
+    } else if (leftHand.previewUrl) {
+      setOverlaySide("left");
+    }
+
+    setSubmitMessage(
+      prepared.mode === "full"
+        ? copy.resultModeFullQualityMessage
+        : prepared.mode === "partial"
+        ? copy.resultModePartialQualityMessage
+        : copy.resultModeFallbackQualityMessage,
+    );
+  };
+
+  // 모바일 PortOne 리다이렉트로 handleStartAnalysis 의 await 가 죽은 뒤, 복귀한 새 문서에서 판독을 이어받는다.
+  // 🔴 게이트를 다시 타지 않는다 — 분석은 결제 전에 이미 끝났고, 여기서 /api/palm/analyze 를 다시 부르면
+  //    사진이 없어 실패하거나(복귀 문서엔 File 이 없다) 같은 판독에 두 번 값을 치른다.
+  const buildResume = usePaidResume(PALM_BILLING_CATEGORY_KEY, (args) => {
+    const requestId = typeof args.requestId === "string" ? args.requestId : "";
+    const payloadRoot = readPalmResumePayload(requestId);
+    if (!payloadRoot) return false;
+    const prepared = preparePalmResult(payloadRoot);
+    if (!shouldShowPalmResult(prepared.canonical)) return false;
+    applyPalmResult(prepared);
+    return true;
+  });
+
   const handleStartAnalysis = async () => {
     if (!canStartAnalysis || submitLockedRef.current) return;
 
@@ -2175,81 +2336,9 @@ export default function PalmDestinyMain() {
         return;
       }
 
-      const canonicalSource =
-        payloadRoot?.canonical && typeof payloadRoot.canonical === "object"
-          ? (payloadRoot.canonical as Record<string, unknown>)
-          : payloadRoot;
+      const prepared = preparePalmResult(payloadRoot);
 
-      const profileSource = (canonicalSource?.profile as Record<string, unknown> | undefined) || undefined;
-      const handContextSource = (canonicalSource?.handContext as Record<string, unknown> | undefined) || undefined;
-      const uploadedHandsFromPayload: Array<"left" | "right"> = Array.isArray(handContextSource?.uploadedHands)
-        ? handContextSource.uploadedHands.filter((item): item is "left" | "right" => item === "left" || item === "right")
-        : [];
-
-      const dominantHandFromPayload = toDominantHand(profileSource?.dominantHand);
-      const analysisPurposeFromPayload = toAnalysisPurpose(profileSource?.analysisPurpose);
-      const leftHandRoleFromPayload = toHandRole(handContextSource?.leftHandRole);
-      const rightHandRoleFromPayload = toHandRole(handContextSource?.rightHandRole);
-      const dominantForCanonical: DominantHand | null = dominantHandFromPayload ?? (dominantHand || null);
-      const purposeForCanonical: AnalysisPurpose = analysisPurposeFromPayload || activeAnalysisPurpose;
-
-      const imageQualityFromPayload =
-        (canonicalSource?.imageQuality as ReturnType<typeof createDefaultCanonicalPalmReading>["imageQuality"] | undefined) ||
-        undefined;
-      const leftHandReadingFromPayload =
-        (canonicalSource?.leftHandReading as ReturnType<typeof createDefaultCanonicalPalmReading>["leftHandReading"]) ||
-        null;
-      const rightHandReadingFromPayload =
-        (canonicalSource?.rightHandReading as ReturnType<typeof createDefaultCanonicalPalmReading>["rightHandReading"]) ||
-        null;
-      const comparisonFromPayload =
-        (canonicalSource?.bothHandsComparison as
-          | ReturnType<typeof createDefaultCanonicalPalmReading>["bothHandsComparison"]
-          | undefined) || undefined;
-      const purposeAnalysisFromPayload =
-        (canonicalSource?.purposeAnalysis as ReturnType<typeof createDefaultCanonicalPalmReading>["purposeAnalysis"]) ||
-        undefined;
-      const specialPatternsFromPayload =
-        (canonicalSource?.specialPatterns as ReturnType<typeof createDefaultCanonicalPalmReading>["specialPatterns"]) ||
-        undefined;
-
-      const canonical = createDefaultCanonicalPalmReading({
-        dominantHand: dominantForCanonical,
-        analysisPurpose: purposeForCanonical,
-        uploadedHands: uploadedHandsFromPayload,
-        leftHandRole: leftHandRoleFromPayload ?? handRoles.leftHandRole,
-        rightHandRole: rightHandRoleFromPayload ?? handRoles.rightHandRole,
-        imageQuality: imageQualityFromPayload,
-        leftHandReading: leftHandReadingFromPayload,
-        rightHandReading: rightHandReadingFromPayload,
-        comparison: comparisonFromPayload,
-        specialPatterns: specialPatternsFromPayload,
-        purposeAnalysis: purposeAnalysisFromPayload,
-      });
-
-      const interpretation = buildInterpretationWithFallback(canonical, payloadRoot?.interpretation, payloadRoot?.resultSections, copy);
-      const overlayPaths = extractOverlayPaths(payloadRoot?.overlayPaths ?? payloadRoot);
-      const overlayPathsBySide = extractOverlayPathsBySide(payloadRoot);
-      const modeFromPayload =
-        payloadRoot?.mode === "full" || payloadRoot?.mode === "partial" || payloadRoot?.mode === "fallback"
-          ? (payloadRoot.mode as "full" | "partial" | "fallback")
-          : canonical.validation.analysisMode === "detailed"
-          ? "full"
-          : "partial";
-      const qualityScore = Number(payloadRoot?.qualityScore ?? NaN);
-      const safeQualityScore = Number.isFinite(qualityScore) ? qualityScore : 0;
-      const missingData = Array.isArray(payloadRoot?.missingData)
-        ? payloadRoot.missingData.map((item) => String(item))
-        : [];
-      const warnings = Array.isArray(payloadRoot?.warnings)
-        ? payloadRoot.warnings.map((item) => String(item))
-        : [];
-      const reportPayload =
-        payloadRoot?.report && typeof payloadRoot.report === "object"
-          ? (payloadRoot.report as Record<string, unknown>)
-          : null;
-
-      if (!shouldShowPalmResult(canonical)) {
+      if (!shouldShowPalmResult(prepared.canonical)) {
         setAnalysisResult(null);
         updatePaidFeatureGate({
           categoryKey: "palm-reading",
@@ -2263,7 +2352,10 @@ export default function PalmDestinyMain() {
       }
 
       setSubmitMessage(copy.resultConfirmedCheckingPaymentMessage);
+      // 모바일 PortOne 리다이렉트는 이 문서를 통째로 날린다 — 결제창을 열기 직전에 판독 응답을 이 탭에 남긴다.
+      stashPalmResumePayload(billingRequestId, payloadRoot);
       const coinGateResult = await runBillingCoinGate({
+        resume: buildResume({ requestId: billingRequestId }),
         categoryKey: PALM_BILLING_CATEGORY_KEY,
         subFeatureKey: initialSubFeatureKey,
         requestId: billingRequestId,
@@ -2296,40 +2388,7 @@ export default function PalmDestinyMain() {
         // ignore client-side storage failures
       }
 
-      setAnalysisResult({
-        mode: modeFromPayload,
-        qualityScore: safeQualityScore,
-        missingData,
-        warnings,
-        report: reportPayload,
-        canonical,
-        interpretation,
-        consultText: extractConsultText(payloadRoot),
-        overlayPaths,
-        overlayPathsBySide,
-        raw: payloadRoot,
-      });
-
-      const firstKey = interpretation?.cards?.[0]?.key;
-      if (firstKey && firstKey in CARD_KEY_TO_LABEL) {
-        setActiveCardKey(firstKey as PalmCardKey);
-      } else {
-        setActiveCardKey("lifeLine");
-      }
-
-      if (rightHand.previewUrl && (dominantHand === "right" || !leftHand.previewUrl)) {
-        setOverlaySide("right");
-      } else if (leftHand.previewUrl) {
-        setOverlaySide("left");
-      }
-
-      const qualityMessage =
-        modeFromPayload === "full"
-          ? copy.resultModeFullQualityMessage
-          : modeFromPayload === "partial"
-          ? copy.resultModePartialQualityMessage
-          : copy.resultModeFallbackQualityMessage;
-      setSubmitMessage(qualityMessage);
+      applyPalmResult(prepared);
     } catch (error) {
       if (requestIdRef.current !== requestId) {
         return;

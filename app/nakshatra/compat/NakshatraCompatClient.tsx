@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useCoinGate } from "../../hooks/useCoinGate";
+import { usePaidResume, packPaidResumeArg, unpackPaidResumeArg } from "../../hooks/usePaidResume";
 import { postPaidBody } from "../nakshatra-fetch";
 import { useNakshatraCopy, type CompatCityKey } from "../_lib/copy";
 import CompatResultView, { type CompatResult } from "./CompatResultView";
@@ -83,6 +84,20 @@ export default function NakshatraCompatClient() {
     } catch { /* ignore */ }
   }, []);
 
+  /* 결제 후 자동 재개 — 모바일 PortOne 은 상위 프레임을 리다이렉트하므로 submitOnce 의 await 가
+     페이지와 함께 죽는다. 두 사람의 입력은 state 안에만 있어 복귀한 문서에서 재현할 수 없으니 결제
+     직전에 서술자로 굳혀 둔다. 🔴 재개는 게이트를 다시 타는 submit 이 아니라 fetchCompat(코어)을
+     부른다 — 다시 타면 결제창이 또 뜬다. */
+  const buildResume = usePaidResume(FEATURE_KEY, (args) => {
+    const pa = unpackPaidResumeArg<Record<string, unknown>>(args.a);
+    const pb = unpackPaidResumeArg<Record<string, unknown>>(args.b);
+    const requestId = String(args.requestId || "");
+    if (!pa || !pb || !requestId) return false;
+    paidRef.current = { a: pa, b: pb, requestId };
+    void fetchCompat(paidRef.current);
+    return true;
+  });
+
   async function submit() {
     // 🔴 disabled={loading || isPaying} 는 리렌더 이후에야 먹는다. 그 한 프레임 사이의 두 번째 클릭이
     //    새 requestId 로 게이트를 한 번 더 열 수 있어, 동기 ref 로 먼저 막는다(집안 표준: busyRef).
@@ -100,7 +115,10 @@ export default function NakshatraCompatClient() {
     if (!valid(a) || !valid(b)) { setError(copy.compatBothInvalidError); return; }
     // 결제에 쓴 requestId 를 그대로 들고 간다 — 서버가 이 값으로 차감·결제 기록을 되찾는다.
     const requestId = `${FEATURE_KEY}:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-    const gate = await ensurePaidAccess({ featureKey: FEATURE_KEY, cost: 100, amountKRW: 10000, reason: copy.compatReason, requestId });
+    const gate = await ensurePaidAccess({
+      featureKey: FEATURE_KEY, cost: 100, amountKRW: 10000, reason: copy.compatReason, requestId,
+      resume: buildResume({ a: packPaidResumeArg(payload(a)), b: packPaidResumeArg(payload(b)), requestId }),
+    });
     if (!gate || !gate.ok) { setError((gate && gate.message) || copy.compatGateFailedError); return; }
     // 🔴 결제가 끝났다. 여기서부터는 실패해도 재결제를 요구하지 않는다 —
     //    일시 장애는 자동 재시도하고, 그래도 안 되면 '다시 받기'로 같은 결제를 재사용한다.

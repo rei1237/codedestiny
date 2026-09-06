@@ -12,6 +12,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { postPaidBody } from "../nakshatra-fetch";
 import { useCoinGate } from "@/app/hooks/useCoinGate";
+import { usePaidResume } from "@/app/hooks/usePaidResume";
 import { useContentUnlock } from "@/app/_lib/use-content-unlock";
 import { hasLedgerUnlock } from "@/app/_lib/optimistic-unlock-ledger";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
@@ -176,10 +177,23 @@ export function usePremiumReport<T>(product: PremiumProduct): UsePremiumReportRe
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isUnlocked, birth, report]);
 
+  /* 결제 후 자동 재개 — 영구 해금이라 서버 원장에도 남지만, 복귀 직후의 해금 조회가 결제 확정보다
+     먼저 끝나면 "미해금"으로 굳어 사용자가 새로고침해야 했다. 낙관적 해금만 켜 주면 위의 자동
+     본문 로드 효과가 생년이 준비되는 대로 이어받는다(load 를 여기서 직접 부르면 birth 가 아직
+     비어 있는 프레임에서 조용히 빠진다). 🔴 게이트(unlock)를 다시 타지 않는다. */
+  const buildResume = usePaidResume(product.featureKey, () => {
+    markOptimisticallyUnlocked(product.featureKey);
+    setLedgerUnlocked(true);
+    fetchedRef.current = false;
+    void refetchUnlocks({ force: true });
+    return true;
+  });
+
   const unlock = useCallback(async () => {
     if (isPaying || loading) return;
     setError("");
     const result = await ensurePaidAccess({
+      resume: buildResume(),
       featureKey: product.featureKey,
       coinPrice: product.coinPrice,
       cost: product.coinPrice,
@@ -198,7 +212,7 @@ export function usePremiumReport<T>(product: PremiumProduct): UsePremiumReportRe
     fetchedRef.current = false;
     await load();
     void refetchUnlocks({ force: true });
-  }, [ensurePaidAccess, isPaying, load, loading, markOptimisticallyUnlocked, product, refetchUnlocks, ERROR_TEXT]);
+  }, [buildResume, ensurePaidAccess, isPaying, load, loading, markOptimisticallyUnlocked, product, refetchUnlocks, ERROR_TEXT]);
 
   const reload = useCallback(async () => {
     fetchedRef.current = false;

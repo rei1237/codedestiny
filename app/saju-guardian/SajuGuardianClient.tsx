@@ -7,6 +7,7 @@ import { showToast } from "@/app/components/Toast";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import type { AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
 import { runBillingCoinGate } from "@/app/_lib/billing-client";
+import { usePaidResume, type PaidResumeDescriptor } from "@/app/hooks/usePaidResume";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import {
   GANJI_ANIMAL_MAP,
@@ -722,12 +723,13 @@ function payloadGrantsGuardianAccess(payload: unknown) {
   }
 }
 
-async function verifyGuardianUnlockAccess() {
+async function verifyGuardianUnlockAccess(resume?: PaidResumeDescriptor) {
   if (hasGuardianUnlockAccess()) return true;
   if (typeof window === "undefined") return false;
   const requestAccessCheck = async (reason: string): Promise<GuardianPayload | null> => {
     try {
       const result = await runBillingCoinGate({
+        resume,
         categoryKey: "main-tile",
         subFeatureKey: SAJU_GUARDIAN_FEATURE_KEY,
         featureKey: SAJU_GUARDIAN_FEATURE_KEY,
@@ -1997,9 +1999,24 @@ export default function SajuGuardianPage() {
     };
   }, []);
 
+  // 모바일 PortOne 리다이렉트로 해금 확인의 await 가 죽은 뒤, 복귀한 새 문서에서 해금 반영을 이어받는다.
+  // 🔴 여기서 verifyGuardianUnlockAccess 를 다시 부르지 않는다 — 그 함수가 곧 게이트라 결제창이 또 뜬다.
+  //    결제가 끝난 시점이므로 로컬 스냅샷만 찍고 잠금 화면을 연다.
+  const buildResume = usePaidResume(SAJU_GUARDIAN_FEATURE_KEY, () => {
+    rememberGuardianUnlockAccess();
+    const handoffData = readGuardianHandoffData();
+    if (handoffData) {
+      setApiData(handoffData);
+      setPhase("result");
+      return true;
+    }
+    setPhase("intro");
+    return true;
+  });
+
   useEffect(() => {
     let alive = true;
-    verifyGuardianUnlockAccess().then((allowed) => {
+    verifyGuardianUnlockAccess(buildResume({})).then((allowed) => {
       if (!alive) return;
       if (allowed) {
         const handoffData = readGuardianHandoffData();
@@ -2107,10 +2124,10 @@ export default function SajuGuardianPage() {
   const handleReset = useCallback(() => {
     setApiData(null);
     setErrorMsg("");
-    verifyGuardianUnlockAccess().then((allowed) => {
+    verifyGuardianUnlockAccess(buildResume({})).then((allowed) => {
       setPhase(allowed ? "intro" : "locked");
     });
-  }, []);
+  }, [buildResume]);
 
   if (phase === "checking") {
     return (

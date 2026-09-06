@@ -11,6 +11,7 @@ import {
   runBillingCoinGate,
 } from "@/app/_lib/billing-client";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
+import { packPaidResumeArg, unpackPaidResumeArg, usePaidResume } from "@/app/hooks/usePaidResume";
 import { PriceBadge } from "@/app/components/PriceBadge";
 import { toDisplayText } from "@/lib/llm-text";
 import {
@@ -2256,6 +2257,30 @@ export default function NamingAiClient() {
     }
   }
 
+  // 모바일 PortOne 리다이렉트로 handleSubmit 의 await 가 죽은 뒤, 복귀한 새 문서에서 생성을 이어받는다.
+  // 🔴 게이트를 다시 타지 않고 게이트 없는 코어(runVerifyAndGenerate)를 결제 직전에 굳힌 입력·inputHash 로
+  //    부른다 — 복귀 문서의 form 은 기본값이라 여기서 다시 toRawInput(form) 을 하면 다른 이름이 생성된다.
+  const buildResume = usePaidResume(FEATURE_KEY, async (args, grant) => {
+    const inputHash = typeof args.inputHash === "string" ? args.inputHash : "";
+    const input = unpackPaidResumeArg<Record<string, unknown>>(args.input);
+    if (!inputHash || !input) return false;
+    setBusy(true);
+    setError("");
+    try {
+      const access = extractNamingAccess(grant?.payload);
+      retryRef.current = { input, inputHash, access };
+      await runVerifyAndGenerate({ input, inputHash, access });
+      return true;
+    } catch (caught) {
+      const code = caught instanceof Error ? caught.message : "SERVER_ERROR";
+      setError(errorMessage(code, copy));
+      setPhase("error");
+      return false;
+    } finally {
+      setBusy(false);
+    }
+  });
+
   async function handleSubmit() {
     if (busy) return;
     if (missing.length) {
@@ -2310,6 +2335,7 @@ export default function NamingAiClient() {
         reportId: inputHash,
         contentKey: inputHash,
         sessionId: String(checkoutPayload?.sessionId || requestId),
+        resume: buildResume({ inputHash, input: packPaidResumeArg(input) }),
       });
 
       if (!isPaymentGranted(gate)) {

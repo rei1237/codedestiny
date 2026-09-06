@@ -21,7 +21,7 @@ import { ReportSection, type SectionState } from "./ReportSection";
 import { getReportSection, type ReportSectionId, type ServerSectionKey } from "./reportSections";
 import { DIRECTION_TO_REGION, regionByKey } from "./mapRegions";
 import { useFxTier } from "../_hooks/useFxTier";
-import { useCompassReport } from "../_hooks/useCompassReport";
+import { useCompassReport, type CompassReportResumeWiring } from "../_hooks/useCompassReport";
 import styles from "./map.module.css";
 import type { CompassInput, DirectionField, SystemKey } from "../_engine/types";
 import { useDestinyCompassCopy } from "../_lib/copy";
@@ -48,6 +48,8 @@ interface CompassReportProps {
   onCrossroad: () => void;
   onFutureSim: () => void;
   onVoyage: () => void;
+  /** 결제 복귀 재개 배선 — 서술자 생성기와 복귀 증빙은 CompassApp 이 소유한다. */
+  resumeWiring?: CompassReportResumeWiring;
 }
 
 /** 나침반이 실제로 참여하는 체계의 순서(어댑터가 없는 서양 점성술은 없다). */
@@ -68,7 +70,7 @@ function trendOf(score: number): keyof typeof TREND_ICON {
 }
 
 export function CompassReport({
-  input, field, situation, onNext, onRestart, onCrossroad, onFutureSim, onVoyage,
+  input, field, situation, onNext, onRestart, onCrossroad, onFutureSim, onVoyage, resumeWiring,
 }: CompassReportProps) {
   const copy = useDestinyCompassCopy();
   const SYSTEM_LABEL: Record<SystemKey, string> = copy.systemLabel;
@@ -77,7 +79,7 @@ export function CompassReport({
   const short = useCallback((k: keyof typeof copy.directionShortLabel) => copy.directionShortLabel[k], [copy]);
   const fxTier = useFxTier();
   const question = situation || "";
-  const report = useCompassReport(input, field, question);
+  const report = useCompassReport(input, field, question, resumeWiring);
   const causeTitleRef = useRef<HTMLHeadingElement>(null);
   const shellRef = useRef<HTMLDivElement>(null);
   const unlockedRef = useRef(false);
