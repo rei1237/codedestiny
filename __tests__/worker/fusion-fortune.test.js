@@ -5,6 +5,7 @@ import {
   FUSION_RESERVATION_FRESHNESS_MS,
   buildFusionFortuneContext,
   buildFusionFortuneStatus,
+  collectFusionEvidenceTokens,
   createMemoryFusionFortuneStore,
   generateFusionFortuneRequest,
   generateFusionFortuneWithMockLLM,
@@ -297,6 +298,44 @@ describe("Fusion Fortune per-use billing and mock generation", () => {
     expect(generated.result.tarotSection.content).toContain("tarotSection");
     expect(generated.result.vedicSection.content).not.toContain("vedicSection");
     expect(validateFusionFortuneResult(generated.result, { birthTimeKnown: true, birthPlaceKnown: true, selectedTarotCards: cards }).ok).toBe(true);
+  });
+
+  it("🔴 counts finalVerdict.rationale so a verdict group that already met the contract is not re-called", async () => {
+    const calls = Object.fromEntries(["saju", "ziwei", "vedic", "sukuyo", "astrology", "tarot"].map((name) => [name, 0]));
+    const built = await buildFusionFortuneContext({
+      ...input,
+      birthPlace: { city: "서울", country: "KR", latitude: 37.5665, longitude: 126.978, timezone: "Asia/Seoul" },
+    }, { adapters: fusionAdapters(calls) });
+    const cards = built.context.tarotSpread.cards;
+    const verdictGroup = FUSION_SECTION_GROUP_SPECS.find((group) => group.id === "verdict");
+    // 근거 인용 게이트는 이 축과 별개라 미리 만족시킨다 — 안 그러면 verdict 가 evidence_thin 으로
+    // 끌려가 분량 계수가 무엇을 했는지 이 테스트가 못 본다.
+    const evidence = collectFusionEvidenceTokens(built.context, verdictGroup).slice(0, 2);
+    // 계약 최소치를 겨우 넘긴 verdict 묶음. 본문이 rationale 에 있어서, 그것을 안 세면 계수가
+    // targetChars×0.8 밑으로 떨어져 "미달"로 다시 불린다(2026-09-06 7차 실호출에서 실제로 그랬다).
+    const leanVerdict = () => {
+      const payload = buildFusionGroupPayload(verdictGroup, cards);
+      payload.executiveSummary = fusionFiller("executiveSummary", FUSION_FORTUNE_LENGTH.executiveSummary);
+      payload.closingMessage = fusionFiller("closingMessage", FUSION_FORTUNE_LENGTH.closingMessage);
+      payload.finalVerdict.rationale = `${fusionFiller("finalVerdict", FUSION_FORTUNE_LENGTH.finalVerdictRationale)} 서버 확정값 ${evidence.join(", ")}에서 이 결론이 나옵니다.`;
+      return payload;
+    };
+    const providerCall = jest.fn(async (_env, _prompt, options) => {
+      const groupId = options.logContext.sectionGroup;
+      const group = FUSION_SECTION_GROUP_SPECS.find((item) => item.id === groupId);
+      return { ok: true, provider: "gemini", model: "gemini-2.5-flash", text: JSON.stringify(groupId === "verdict" ? leanVerdict() : buildFusionGroupPayload(group, cards)) };
+    });
+    const { second: generated } = await runFusionStages({
+      input,
+      context: built.context,
+      requestId: "fusion-verdict-charcount-test",
+      env: { NODE_ENV: "staging", ENABLE_FUSION_FORTUNE_REAL_LLM: "true", ALLOW_FUSION_FORTUNE_REAL_LLM: "true", GEMINI_API_KEY: "test-only-key" },
+      providerCall,
+    });
+
+    // rationale 을 세지 않으면 여기가 2회가 된다 — 검증을 통과한 묶음에 Gemini 호출 1회를 더 태운 값이다.
+    expect(providerCall.mock.calls.filter(([, , options]) => options.logContext.sectionGroup === "verdict")).toHaveLength(1);
+    expect(generated).toMatchObject({ deliverable: true, generationSource: "gemini" });
   });
 
   it("ignores keys a group does not own so it cannot clobber another group's section", async () => {
