@@ -104,7 +104,8 @@ emit('stub-react.js', `
 export function useCallback(fn) { return fn; }
 export function useSyncExternalStore(_sub, getSnapshot) { return getSnapshot(); }
 `);
-emit('stub-billing-client.js', `export async function fetchBillingBalance() { return null; }\n`);
+// 잔여 한도 시드는 표시용 부가 경로다 — 세션 안정성 재현에는 no-op 로 충분하다.
+emit('stub-billing-client.js', `export async function fetchBillingBalance() { return null; }\nexport function seedMonthlyQuotaFromAccessState() { return null; }\n`);
 
 // 아래 셋은 import 표면이 좁아 스텁이 아니라 진짜를 그대로 쓴다 — 재현의 신뢰도를 위해서다.
 emit('http-client.js', transpile('app/_lib/http-client.ts', {}));
