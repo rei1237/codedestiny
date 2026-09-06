@@ -369,7 +369,8 @@
 
   function _tcEl(id) { return document.getElementById(id); }
 
-  function _tcConsumePerUseCoin() {
+  function _tcConsumePerUseCoin(question) {
+    var qStr = String(question || '').trim();
     return new Promise(function(resolve) {
       if (_TC_COIN_COST <= 0) { resolve(true); return; }
       if (typeof window.__cdIsAdminLikeUser === 'function' && window.__cdIsAdminLikeUser()) {
@@ -386,7 +387,9 @@
             function() { resolve(false); },
             {
               featureKey: _TC_FEATURE_KEY,
-              requestId: 'juyuk:' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9)
+              action: 'openJuyukModal',
+              requestId: 'juyuk:' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9),
+              resume: _tcBuildResumeDescriptor(qStr)
             }
           );
         } catch (_err) {
@@ -450,7 +453,8 @@
         _TC_STATE = 'VERIFYING';
         if (bar) bar.style.width = '100%';
         if (msg) msg.textContent = _tcText('paymentChecking');
-        _tcConsumePerUseCoin().then(function(ok) {
+        var _qInput = _tcEl('ichingQuestion');
+        _tcConsumePerUseCoin(_qInput ? _qInput.value : '').then(function(ok) {
           if (!ok) {
             _TC_STATE = 'IDLE';
             _resetShell();
@@ -478,6 +482,57 @@
       _resetShell();
     }
   };
+
+  /* ── 결제 후 자동 재개(모바일 리다이렉트 복귀) ────────────────────────────
+     모바일 PortOne 은 상위 프레임을 리다이렉트하므로 위 _tcConsumePerUseCoin 의 then 이 페이지와
+     함께 죽는다 — 복귀 문서는 돈만 냈고 등껍질이 갈라진 적이 없다. 질문을 서술자에 실어 두고,
+     복귀 문서에서 runPaidResume 이 딥링크(openJuyukModal)로 모달을 연 뒤 아래 핸들러를 부른다.
+     🔴 표면을 여는 책임은 runPaidResume 하나다 — 핸들러에서 모달을 다시 열지 않는다.
+     🔴 openJuyukModal 이 tcReset 으로 질문 입력을 비우므로 args.question 으로 되돌린다
+     (_doReveal 이 #ichingQuestion 을 그대로 읽어 괘 해석 문장을 만든다). */
+  var _TC_RESUME_KIND = 'iching-turtle';
+  var _TC_RESUME_WAIT_MS = 8000;
+  var _TC_RESUME_POLL_MS = 200;
+
+  function _tcBuildResumeDescriptor(question) {
+    return {
+      kind: _TC_RESUME_KIND,
+      action: 'openJuyukModal',
+      args: { question: String(question || '') }
+    };
+  }
+
+  function _tcWaitForResumeTarget(limitMs) {
+    return new Promise(function(resolve) {
+      var deadline = Date.now() + (Number(limitMs) || _TC_RESUME_WAIT_MS);
+      (function poll() {
+        if (_tcEl('tcShellBtn') && _tcEl('tcCrackCanvas')) { resolve(true); return; }
+        if (Date.now() >= deadline) { resolve(false); return; }
+        setTimeout(poll, _TC_RESUME_POLL_MS);
+      })();
+    });
+  }
+
+  function _tcRunResume(descriptor) {
+    var args = (descriptor && descriptor.args && typeof descriptor.args === 'object') ? descriptor.args : {};
+    return _tcWaitForResumeTarget(_TC_RESUME_WAIT_MS).then(function(ready) {
+      if (!ready) return false;
+      var qInput = _tcEl('ichingQuestion');
+      if (qInput) qInput.value = String(args.question || '');
+      clearInterval(_pressInterval);
+      _heatPct = 100;
+      _TC_STATE = 'CRACKING';
+      _doCrack();
+      return true;
+    });
+  }
+
+  (function _tcRegisterResumeHandler() {
+    var entry = null;
+    try { entry = window.__cdCheckoutEntry || null; } catch (_) { entry = null; }
+    if (!entry || typeof entry.registerPaidResumeHandler !== 'function') return;
+    try { entry.registerPaidResumeHandler(_TC_RESUME_KIND, _tcRunResume); } catch (_) {}
+  })();
 
   function _resetShell() {
     var btn = _tcEl('tcShellBtn');

@@ -486,7 +486,13 @@
           YEAR_COIN_COST,
           YEAR_REASON,
           function () { done(true); },
-          function () { done(false); }
+          function () { done(false); },
+          {
+            featureKey: YEAR_FEATURE_KEY,
+            action: "openTarotYearFortuneModal",
+            requestId: state.requestId,
+            resume: buildYearResumeDescriptor(),
+          }
         );
         return;
       }
@@ -1803,6 +1809,64 @@ function renderTarotYearResult() {
       }
     }, 800);
   }
+
+  /* ── 결제 후 자동 재개(모바일 리다이렉트 복귀) ────────────────────────────
+     모바일 PortOne 은 상위 프레임을 리다이렉트하므로 requireYearAccess 의 done() 콜백이 페이지와
+     함께 죽는다 — 복귀 문서는 돈만 냈고 12장 뽑기를 시작한 적이 없다. 서술자를 결제 전에 만들어
+     두고, 복귀 문서에서 runPaidResume 이 딥링크로 이 모달을 연 뒤 아래 핸들러를 부른다.
+     🔴 표면을 여는 책임은 runPaidResume 하나다 — 핸들러에서 모달을 다시 열지 않는다.
+     🔴 requestId 는 결제에 쓴 그 값이어야 한다(seed 이자 서버 증빙의 열쇠다). openTarotYearFortuneModal
+     이 resetTarotYearFortuneFlow 로 sessionStorage 를 지우므로 args 로 실어 나른다. */
+  var YEAR_RESUME_KIND = "tarot-year-fortune";
+  var YEAR_RESUME_WAIT_MS = 8000;
+  var YEAR_RESUME_POLL_MS = 200;
+
+  function buildYearResumeDescriptor() {
+    return {
+      kind: YEAR_RESUME_KIND,
+      action: "openTarotYearFortuneModal",
+      args: {
+        year: String(state.year || new Date().getFullYear()),
+        requestId: String(state.requestId || ""),
+      },
+    };
+  }
+
+  function waitForYearResumeTarget(limitMs) {
+    return new Promise(function (resolve) {
+      var deadline = Date.now() + (Number(limitMs) || YEAR_RESUME_WAIT_MS);
+      (function poll() {
+        if (byId("tarotYearFortuneIntroStage") && byId("tarotYearFortuneDrawStage") && byId("tarotYearFortuneResultStage")) {
+          resolve(true);
+          return;
+        }
+        if (Date.now() >= deadline) { resolve(false); return; }
+        setTimeout(poll, YEAR_RESUME_POLL_MS);
+      })();
+    });
+  }
+
+  function runTarotYearFortuneResume(descriptor) {
+    var args = (descriptor && descriptor.args && typeof descriptor.args === "object") ? descriptor.args : {};
+    var requestId = String(args.requestId || "").trim();
+    if (!requestId) return false;
+    return waitForYearResumeTarget(YEAR_RESUME_WAIT_MS).then(function (ready) {
+      if (!ready) return false;
+      state.year = Number(args.year) || new Date().getFullYear();
+      state.requestId = requestId;
+      state.paymentInFlight = false;
+      state.hasAccess = true;
+      _runTarotYearFortuneReading();
+      return true;
+    });
+  }
+
+  (function registerYearResumeHandler() {
+    var entry = null;
+    try { entry = window.__cdCheckoutEntry || null; } catch (_) { entry = null; }
+    if (!entry || typeof entry.registerPaidResumeHandler !== "function") return;
+    try { entry.registerPaidResumeHandler(YEAR_RESUME_KIND, runTarotYearFortuneResume); } catch (_) {}
+  })();
 
   window.openTarotYearFortuneModal = openTarotYearFortuneModal;
   window.closeTarotYearFortuneModal = closeTarotYearFortuneModal;

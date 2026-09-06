@@ -3021,6 +3021,20 @@
     try { return Promise.resolve(api.runPaidResume(descriptor, proof)).catch(function () { return false; }); }
     catch (_resumeRunError) { return Promise.resolve(false); }
   }
+  /* 🔴 핸들러 등록은 checkout-entry 가 붙은 뒤에만 된다. 이 파일이 먼저 실행될 수 있으므로 상한을 두고
+     다시 시도한다 — runPaidResume 자체도 핸들러를 8초까지 기다리므로 같은 상한을 쓴다. */
+  function _dpRegisterPaidResumeHandler(kind, handler) {
+    var deadline = Date.now() + 8000;
+    (function attempt() {
+      var api = _dpCheckoutEntry();
+      if (api && typeof api.registerPaidResumeHandler === 'function') {
+        try { api.registerPaidResumeHandler(kind, handler); } catch (_registerResumeError) {}
+        return;
+      }
+      if (Date.now() >= deadline) return;
+      setTimeout(attempt, 200);
+    })();
+  }
   // 앱에서는 /points 가 번들에 없다 — 판정이 애매하면 앱 경로(충전 모달)로 폴백한다.
   function _dpShouldUseAppStoreEntry() {
     var api = _dpCheckoutEntry();
@@ -7426,6 +7440,9 @@
       internalMainGate: true,
       __cdPaymentGateAuthorized: true,
       __cdDirectPaymentChoiceConfirmed: true,
+      /* 🔴 삭제는 공용 코인 게이트를 타지 않고 단건결제로 직행한다 — 재개 서술자를 여기 실어야
+         _dpWriteDirectResumeTicket 이 티켓에 담고, 모바일 복귀 문서가 삭제를 이어서 끝낸다. */
+      resume: _dpBuildProfileManageResumeDescriptor('delete', profileId, requestId, null),
       checkoutPayload: Object.assign({}, base, {
         paymentType: 'digital_content',
         paymentMode: 'DIRECT_KRW',
@@ -7441,7 +7458,130 @@
     return _dpNormalizeProfileDeletePaymentContext(directPayload, profileId, requestId, 'DIRECT_KRW');
   }
 
-  function _dpRunProfileManageGate(action, profileId, requestId) {
+  /* 프로필 카드 추가·수정·삭제의 서버 요청 정본이다. 결제 직후 경로(dpSaveProfile·삭제 흐름)와
+     리다이렉트 복귀 재개 핸들러가 **같은 요청**을 쓰도록 여기 한 곳에 둔다(원칙 6 — 같은 요청 조립을
+     둘로 가르지 않는다). paymentContext 는 게이트가 준 결제 증빙이 그대로 실린다. */
+  function _dpSendProfileMutation(mutationAction, profileId, requestId, profileData, paymentContext) {
+    var isDelete = mutationAction === 'delete';
+    var isUpdate = mutationAction === 'update';
+    var url = (isDelete || isUpdate) ? '/api/profile/' + encodeURIComponent(profileId) : '/api/profile';
+    var body = Object.assign({
+      requestId: requestId,
+      featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
+      actionType: isDelete ? 'delete' : (isUpdate ? 'profile_card_update' : 'create'),
+      profileAction: mutationAction,
+      action: mutationAction,
+      profileId: profileId,
+      selectedProfileId: profileId
+    }, isDelete ? {} : { profile: profileData }, paymentContext || {});
+    return _dpFetchJsonWithFallback(url, {
+      method: isDelete ? 'DELETE' : (isUpdate ? 'PATCH' : 'POST'),
+      credentials: 'include',
+      cache: 'no-store',
+      headers: _dpBuildAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify(body)
+    }, {
+      retryOn401: true,
+      retryTransient: true,
+      maxTransientRetries: 2,
+      timeoutMs: _DP_FETCH_TIMEOUT_MS
+    });
+  }
+
+  /* ── 결제 후 자동 재개(모바일 리다이렉트 복귀) ────────────────────────────
+     프로필 카드는 서버 변경(POST/PATCH/DELETE)이 결제 뒤에 따라오는 유형이라, 리다이렉트로
+     콜백이 죽으면 **돈만 나가고 카드는 그대로**다. 그래서 다른 기능처럼 화면만 다시 여는 것으로는
+     부족하고, 결제 증빙을 실어 그 변경 요청을 다시 보내야 한다.
+     🔴 서술자에는 원시값만 살아남는다(sanitizePaidResumeDescriptor) — 프로필 객체는 JSON 문자열로 싣는다.
+     🔴 action 은 비운다. 이 파일은 셸에 항상 로드되고 복귀 처리기도 여기 있어 열 표면이 따로 없다. */
+  var _DP_PROFILE_MANAGE_RESUME_KIND = 'profile-card-manage';
+
+  function _dpBuildProfileManageResumeDescriptor(mutationAction, profileId, requestId, profileData) {
+    var profileJson = '';
+    if (mutationAction !== 'delete') {
+      try { profileJson = JSON.stringify(profileData || {}); } catch (_profileJsonError) { profileJson = ''; }
+    }
+    return {
+      kind: _DP_PROFILE_MANAGE_RESUME_KIND,
+      action: '',
+      args: {
+        action: mutationAction,
+        profileId: String(profileId || ''),
+        requestId: String(requestId || ''),
+        profileJson: profileJson
+      }
+    };
+  }
+
+  /* 인페이지 경로에서 _dpRunProfileManageGate 가 만들던 결제 증빙과 **같은 자리**를 채운다 —
+     서버(worker/routes/profile.js)가 읽는 키가 같아야 402 가 다시 나지 않는다. */
+  function _dpBuildProfileResumePaymentContext(grant, mutationAction, profileId, requestId) {
+    var granted = (grant && typeof grant === 'object') ? grant : null;
+    if (!granted) return null;
+    var payload = (granted.payload && typeof granted.payload === 'object') ? granted.payload : {};
+    var paymentId = String(granted.merchantUid || granted.requestId || requestId || '').trim();
+    if (!paymentId) return null;
+    var serviceKey = mutationAction === 'delete'
+      ? 'profile_card_delete'
+      : (mutationAction === 'update' ? 'profile_card_update' : 'profile_card_create');
+    return {
+      requestId: String(granted.requestId || requestId || ''),
+      transactionId: paymentId,
+      paymentId: paymentId,
+      purchaseId: paymentId,
+      paymentSettled: true,
+      payment: payload,
+      accessGrant: (payload.accessGrant && typeof payload.accessGrant === 'object') ? payload.accessGrant : {},
+      consume: (payload.consume && typeof payload.consume === 'object') ? payload.consume : {},
+      featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
+      profileId: profileId || '',
+      actionType: serviceKey,
+      profileAction: mutationAction
+    };
+  }
+
+  function _dpRunProfileManageResume(descriptor, grant) {
+    var args = (descriptor && descriptor.args && typeof descriptor.args === 'object') ? descriptor.args : {};
+    /* 🔴 유효성 판정을 전역 상태 대입보다 **앞에** 둔다 — 되살릴 수 없는 서술자로 목록을 흔들지 않는다. */
+    var rawAction = String(args.action || '').trim();
+    var mutationAction = rawAction === 'delete' ? 'delete' : (rawAction === 'update' ? 'update' : 'create');
+    var profileId = String(args.profileId || '').trim();
+    var requestId = String(args.requestId || '').trim();
+    if (!requestId) return false;
+    if (mutationAction !== 'create' && !profileId) return false;
+    var profileData = null;
+    if (mutationAction !== 'delete') {
+      try { profileData = JSON.parse(String(args.profileJson || '')); } catch (_profileParseError) { profileData = null; }
+      if (!profileData || typeof profileData !== 'object') return false;
+    }
+    var paymentContext = _dpBuildProfileResumePaymentContext(grant, mutationAction, profileId, requestId);
+    if (!paymentContext) return false;
+
+    return _dpSendProfileMutation(mutationAction, profileId, requestId, profileData, paymentContext)
+      .then(function(result) {
+        var ok = !!(result && result.ok && !(result.data && result.data.ok === false));
+        if (!ok) return false;
+        var payload = (result.data && typeof result.data === 'object') ? result.data : {};
+        if (payload.profilePolicySnapshot) _dpApplyProfilePolicySnapshot(payload.profilePolicySnapshot, 'profile_resume');
+        if (mutationAction === 'delete') _dpClearPendingCurrentProfile(profileId);
+        /* 낙관적 갱신을 재구성하지 않는다 — 복귀 문서는 결제 전 화면 상태를 잃었으므로
+           서버 정본을 다시 받아 그리는 쪽이 어긋날 여지가 없다. */
+        _dpLoadFromServer(function(loaded) {
+          if (!loaded) return;
+          var current = DPStorage.current();
+          renderMasterCard(current);
+          renderProfileList();
+          broadcastProfileChange(current || null);
+          _dpUpdateSaveBtn();
+        });
+        return true;
+      })
+      .catch(function(_profileResumeError) { return false; });
+  }
+
+  _dpRegisterPaidResumeHandler(_DP_PROFILE_MANAGE_RESUME_KIND, _dpRunProfileManageResume);
+
+  function _dpRunProfileManageGate(action, profileId, requestId, profileData) {
     return new Promise(function(resolve, reject) {
       if (typeof window._cdCoinGatePerUse !== 'function') {
         reject(new Error('결제 모듈을 불러오지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.'));
@@ -7498,7 +7638,8 @@
         // (무료 카드는 여기 오지 않는다 — profile.js가 402를 준 뒤에만 이 게이트가 열린다.)
         allowedPaymentModes: ['direct', 'monthly'],
         disablePassFirst: true,
-        disablePassChoice: true
+        disablePassChoice: true,
+        resume: _dpBuildProfileManageResumeDescriptor(normalizedAction, profileId, requestId, profileData)
       });
     });
   }
@@ -9693,33 +9834,13 @@
       }
       createScope = _dpGetProfileScope();
       function postProfile(paymentContext) {
-        return _dpFetchJsonWithFallback(isUpdate ? '/api/profile/' + encodeURIComponent(createProfileId) : '/api/profile', {
-          method: isUpdate ? 'PATCH' : 'POST',
-          credentials: 'include',
-          cache: 'no-store',
-          headers: _dpBuildAuthHeaders({ 'Content-Type': 'application/json' }),
-          body: JSON.stringify(Object.assign({
-            profile: data,
-            requestId: createRequestId,
-            featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
-            actionType: isUpdate ? 'profile_card_update' : 'create',
-            profileAction: mutationAction,
-            action: mutationAction,
-            profileId: createProfileId,
-            selectedProfileId: createProfileId
-          }, paymentContext || {}))
-        }, {
-          retryOn401: true,
-          retryTransient: true,
-          maxTransientRetries: 2,
-          timeoutMs: _DP_FETCH_TIMEOUT_MS,
-        });
+        return _dpSendProfileMutation(mutationAction, createProfileId, createRequestId, data, paymentContext);
       }
       return postProfile().then(function(result) {
         var payload = result && result.data ? result.data : null;
         var code = String((payload && payload.code) || '').trim().toUpperCase();
         if (result && result.status === 402 && code === 'PAYMENT_REQUIRED') {
-          return _dpRunProfileManageGate(mutationAction, createProfileId, createRequestId).then(function(paymentContext) {
+          return _dpRunProfileManageGate(mutationAction, createProfileId, createRequestId, data).then(function(paymentContext) {
             if (!paymentContext) {
               restoreCardAfterSaveAttempt();
               return null;
@@ -10301,26 +10422,7 @@
 
     function requestDelete(paymentContext) {
       _dpSetPaymentPending(true, '\uACB0\uC81C \uD655\uC778 \uD6C4 \uD504\uB85C\uD544 \uCE74\uB4DC\uB97C \uC0AD\uC81C\uD558\uB294 \uC911\uC785\uB2C8\uB2E4...', 'confirm');
-      return _dpFetchJsonWithFallback('/api/profile/' + encodeURIComponent(profileId), {
-        method: 'DELETE',
-        credentials: 'include',
-        cache: 'no-store',
-        headers: _dpBuildAuthHeaders({ 'Content-Type': 'application/json' }),
-        body: JSON.stringify(Object.assign({
-          requestId: requestId,
-          featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
-          actionType: 'delete',
-          profileAction: 'delete',
-          action: 'delete',
-          profileId: profileId,
-          selectedProfileId: profileId
-        }, paymentContext || {}))
-      }, {
-        retryOn401: true,
-        retryTransient: true,
-        maxTransientRetries: 2,
-        timeoutMs: _DP_FETCH_TIMEOUT_MS
-      });
+      return _dpSendProfileMutation('delete', profileId, requestId, null, paymentContext);
     }
 
     // 삭제창은 로컬 카드만으로 먼저 열어 체감 지연을 없앤다. 인증과 결제 검증은
