@@ -2153,8 +2153,11 @@ async function getReading() {
   await getReadingCore();
 }
 
-/* 🔴 결제 게이트가 없는 코어다. 재개 핸들러는 이쪽을 부른다 — 게이트를 다시 타는 getReading 을
-   부르면 이미 낸 결제가 또 일어난다(배선 레시피 4번). */
+// 🔴 결제 게이트가 없는 코어다. 재개 핸들러는 이쪽을 부른다 — 게이트를 다시 타는 getReading 을
+//    부르면 이미 낸 결제가 또 일어난다(배선 레시피 4번).
+// 🔴 이 파일에서는 블록 주석(슬래시-별 … 별-슬래시)을 쓰지 말고 줄 주석만 쓴다 — 위쪽 주석의
+//    `js/**` 가 정적 가드의 주석 제거기에게 열린 블록으로 보여서, 뒤에 닫는 짝이 하나라도
+//    생기면 그 사이 코드가 통째로 지워진 채 검사된다(2026-09-06 에 실제로 CI 를 깼다).
 async function getReadingCore() {
   const btn = document.getElementById('readBtn');
   btn.disabled = true;
@@ -2197,10 +2200,10 @@ async function getReadingCore() {
   return true;
 }
 
-/* ── 결제 후 자동 재개(모바일 리다이렉트 복귀) ────────────────────────────
-   복귀 문서는 resetSpread 로 7장을 새로 뽑으므로, 결제 전에 사용자가 보고 결정한 스프레드가
-   사라진다. 카드와 requestId 를 서술자에 실어 같은 결제·같은 스프레드로 해석을 받는다.
-   🔴 서버(ijik-reading)는 requestId 로 결제 문서를 찾으므로 그 값이 반드시 같아야 한다. */
+// ── 결제 후 자동 재개(모바일 리다이렉트 복귀) ────────────────────────────
+//    복귀 문서는 resetSpread 로 7장을 새로 뽑으므로, 결제 전에 사용자가 보고 결정한 스프레드가
+//    사라진다. 카드와 requestId 를 서술자에 실어 같은 결제·같은 스프레드로 해석을 받는다.
+//    🔴 서버(ijik-reading)는 requestId 로 결제 문서를 찾으므로 그 값이 반드시 같아야 한다.
 const IJIK_RESUME_KIND = 'tarot-ijik-reading';
 
 function buildIjikResumeDescriptor(cards, requestId) {
