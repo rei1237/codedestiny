@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-06
-next: **Phase B — 계약을 넓힌다.** ① `runPaidResume` 이 핸들러에 결제 증빙(`gateResult`)을 넘기게 한다(AI 상담 7건 + 인연 레이더 아카이브 공백이 여기 걸려 있다). ② React 경로(`app/hooks/useCoinGate.ts`·`app/_lib/billing-client.ts`)에 resume 배관을 만든다 — 지금 **0 매치**라 36건이 통째로 막혀 있다. 🔴 둘 다 결제 동결 대상 파일이라 `verify-payment-freeze.mjs --update` 를 같은 커밋에 담는다.
+next: **Phase C — 넓힌 계약 위에 기능을 배선한다.** Phase B(증빙 전달 + React 배관)는 PR #1656 으로 끝났다. 다음 순서는 난도 낮은 것부터: ① 루트 독립 정적 HTML 2건(`cosmic-soul-meditation.html:1573` 인자 `mode` 1개 · `neville-meditation.html:1559` 인자 `mins` 1개) ② 애니멀 토템 진입 `js/core/index-inline-runtime.js:3311`(optionBag 추가만) ③ AI 상담 계열 — 증빙은 이제 핸들러 2번째 인자로 들어오므로 `js/saju-engine.js` 의 위치 인자 시그니처만 고치면 된다.
 ---
 
 # 유료 기능 결제 후 자동 개방 (리다이렉트 복귀)
@@ -49,7 +49,7 @@ git grep -n "registerPaidResumeHandler(" -- js | grep -v '^public/'   # 배선 �
 | React `useCoinGate.ensurePaidAccess` | 17파일 | 영수증 단축으로 **재과금만** 막힘. 자동 재개 없음 |
 | React 직접 호출(`runBillingCoinGate`·`runPaidAccessGate`) | 19곳 | 🔴 **영수증도 안 탄다** |
 
-🔴 **React 경로에는 resume 배관 자체가 없다** — `git grep -n "resume" -- app/_lib/billing-client.ts app/hooks/useCoinGate.ts` → **0 매치**(2026-09-06 실측). 36건 전부 fail-closed 로 (a) 취급한다.
+✅ **React resume 배관은 PR #1656 에서 생겼다.** 남은 것은 호출부 36곳이 서술자를 만들어 넘기는 일(Phase C). 분류 미실시라 fail-closed 로 전부 (a) 취급한다.
 
 판정 기준:
 
@@ -94,12 +94,13 @@ git grep -n "registerPaidResumeHandler(" -- js | grep -v '^public/'   # 배선 �
 
 **React 36건** — 위 "계약 공백" 과 같은 이유로 배관부터 필요하다. 영수증만으로 여는 지름길을 붙이려면 `app/_lib/billing-client.ts:1724-1770` `hasVerifiedBillingAccess(data, expectedFeatureKey)` 를 만족시켜야 한다(featureKey 일치 + `accessGrant.*` 또는 `consume.*` 식별자).
 
-### 계약 공백 (Phase B) — AI 상담 계열이 막힌 이유
+### 계약 공백 (Phase B) — ✅ 닫혔다 (PR #1656)
 
-`runPaidResume(descriptor)` 는 **정제된 서술자만** 핸들러에 넘긴다. confirm/grant 응답(`gateResult`)은 전달 경로가 없다. AI 상담 계열(숙요 1건 + `js/saju-engine.js` 3건)은 `onGranted(gateResult)` 를 서버에 결제 증빙으로 그대로 실어 보내므로, 서술자만으로는 핸들러가 만들 수 없다 → **재개하면 402 가 난다.** 배선은 계약을 넓힌 뒤에 한다.
+`runPaidResume(descriptor, proof)` 가 확정 응답에서 `{requestId, merchantUid, featureKey, payload}` 를 조립해 **핸들러 2번째 인자**로 넘긴다. 인페이지 `onGranted(gateResult)` 와 같은 자리라 기능 파일의 기존 증빙 조립기가 고칠 것 없이 읽는다. 🔴 기능 파일에서 영수증을 직접 읽어 증빙을 조립하지 말 것 — 게이트의 영수증→grant 로직이 둘로 갈린다(원칙 6). 회귀 가드는 `__tests__/ui/direct-payment-resume.behavior.test.js` 의 "재개 핸들러는 서술자와 함께 결제 증빙…" 테스트.
 
-- 안: `runPaidResume` 이 영수증(`peekPaidGrantReceipt`)에서 `requestId`·`merchantUid` 를 꺼내 `invokePaidResumeHandler(kind, descriptor, grant)` 2번째 인자로 넘긴다. 🔴 기능 파일에서 영수증을 직접 읽어 증빙을 조립하지 말 것 — 게이트의 영수증→grant 로직이 둘로 갈린다(원칙 6).
-- 같은 공백의 **부분 사례**: 인연 레이더는 재개 시 `gateResult = null` 로 연다. 클라이언트 리포트는 정상 개방되지만 서버 아카이브 쓰기(`worker/routes/sukuyo.js` `/past-life-reading`)가 402 로 실패할 수 있고, 그 실패는 이미 삼켜지는 경로다. **결과: 리포트는 열리나 아카이브 행이 없어 나중에 다시 열면 재과금될 수 있다.** Phase B 에서 같이 닫는다.
+인연 레이더 아카이브 공백(재개 시 `gateResult = null` 로 열려 서버 아카이브 쓰기가 402)도 같이 닫았다 — `syRunBondResume(descriptor, grant)` → `window._syRunSukuyoBondReportCore(grant || null)`.
+
+React 배관도 같은 PR 에서 열렸다: `EnsurePaidAccessInput`/`BillingCoinGateInput` 의 `resume` → `runPaidAccessGate` → `runBillingCoinGate` → 런타임 게이트 → dp 복귀 티켓. **호출부 36곳은 아직 서술자를 안 만든다** — 배관만 있고 배선은 Phase C 다.
 
 ### 배선 레시피 (연애 타로를 그대로 베낀다)
 
@@ -122,7 +123,8 @@ git grep -n "registerPaidResumeHandler(" -- js | grep -v '^public/'   # 배선 �
 
 **2026-09-06 재감사에서 새로 나온 3건**
 
-- 🔴 **게이팅 절대 순서 1 위반 (확정)** — `pet-saju.html:1240-1244` 가 게이트 진입 **전에** `window._cdResolvePaidContentAccess(gatePayload)` 를 `snapshotVerdictOnly` 없이 부른다(서버 왕복 이용권 선검사). 정본 게이트 `index.html:24284` 는 `snapshotVerdictOnly:true` 로 들어가므로 **중첩 사전검사**(원칙 6)이기도 하다. 되돌리는 법: 이 4줄을 지우고 `_cdOpenPaidServiceGate` 에 그대로 위임.
+- ✅ **게이팅 절대 순서 1 위반 — PR #1656 에서 제거.** `pet-saju.html` 의 진입 전 `_cdResolvePaidContentAccess` 선검사를 지우고 `_cdOpenPaidServiceGate` 에 위임했다. 🔴 그 페이지는 `_cdResolvePaidContentAccess` 를 정의하는 `index.html` 을 로드하지 않아 **실행되지 않던 죽은 코드**였다(스크립트 4개만 로드: pass-verdict·checkout-entry·payment-service·destiny-profile) — 형태 위반이라 지웠다. 같은 PR 에서 `js/destiny-profile.js` 진입점 2곳(`:5804`·`:12611`)에 빠져 있던 `snapshotVerdictOnly:true` 도 채웠다.
+- 🔴 **판정 전 인증 선워밍 이중 (미해결 · 결제 동결 파일)** — `app/hooks/useCoinGate.ts:370-373` 과 `app/_lib/billing-client.ts:4011-4014` 가 각각 `Promise.race([refreshAuth({force:true,silent:true}), 4000ms])` 를 스냅샷 판정 전에 await 한다. `definitelySignedOut` 이 false 인 상태(`unknown`/`refreshing`/`temporarilyOffline`)에서는 **둘 다** 걸려 판정까지 최대 8초, 두 번째 `force:true` 가 `/me → /refresh → /me` 를 다시 태울 수 있다. 단일비행이 대개 합쳐 주지만 보장은 아니다. 두 파일 모두 payment-freeze `wholeFiles` 이고 주석에 양방향 회귀 이력이 남아 있어 **사용자 판단 후** 손댄다.
 - ⚠️ **결제창 이용권 카드 제거 (의심)** — `app/music/MusicPlayerExample.tsx:1428-1434` 가 `isDownloadOnlyPurchase` 일 때 `disablePassChoice:true`·`allowedPaymentModes:["direct","monthly"]` 를 넘긴다. `docs/payment-policy-flow.md:55` 는 **`passExcluded` 등재 기능에 한해** 이 형태를 허용하는데, `music_track` 다운로드 전용 구매의 서버 등재 여부는 **미확인**이다.
 - 🔴 **CI 트리거 구멍 (원칙 10)** — `.github/workflows/paid-flow-gates.yml` 의 `paths` 에 `js/saju-engine-tarot-sukuyo-quantum.js`·`js/tarot-*-experience.js`·`js/entertain-engine.js`·`js/sibyl-system.js`·`js/animal-totem-experience.js`·`js/iching-engine.js` 가 없다. 실제로는 `sync:public` 이 `index.html` 핀을 회전시켜 게이트가 깨어나지만(그건 우연이다), 이 파일들만 바뀌는 PR 은 결제 게이트를 안 깨운다. `scripts/lib/change-risk.mjs` 에서도 `level=medium`·`deepRequired=false` 로 떨어진다.
 
@@ -149,8 +151,9 @@ node --test __tests__/ui/direct-payment-resume.behavior.test.js
 npm run lint && npm run typecheck && npm run check:quick
 ```
 
-- 🔴 배선 뒤 `npm run sync:public` 은 필수다. **다만 초판이 적은 "`?v=` 핀 25곳 + payment-freeze `--update` 가 따라온다"는 매번은 아니다** — 2026-09-06 3건 배선에서는 `sync:public` 만으로 `verify:payment-choice-parity` 가 PASS 했다(핀 회전은 `index.html`·루트 js 6개와 그 `public/` 미러에서 자동 처리됨). 실패했을 때만 그 절차를 탄다.
-- `build:worker` 는 `check:critical` 에 있고 `check:quick`(= `node scripts/check-changed.mjs`)에는 없다. 워크트리에 `node_modules` 가 없어도 `check:quick` 은 exit 0 이었다(2026-09-06 실측).
+- 🔴 배선 뒤 `npm run sync:public` 은 필수다. **핀 회전이 따라오는지는 무엇을 고쳤느냐로 갈린다** — 기능 파일만 고친 배선 3건에서는 `sync:public` 만으로 PASS 했지만, PR #1656 처럼 `js/core/checkout-entry.js`·`js/destiny-profile.js` 를 고치면 **두 축이 동시에 낡는다**: core 핀(`checkout-entry.js`+`pass-verdict.js` 유도)과 dp 핀(`destiny-profile.js` 유도). `verify:payment-choice-parity` 는 **한 번에 한 축만 알려주므로** 고치고 다시 돌리기를 반복한다. 🔴 `public/ifa-oracle.html` · `public/static/geomancy-oracle-v4.html` 은 미러가 아니라 자체 정본이라 `git grep -l "<낡은 핀>"` 전건 치환이 필요하다.
+- `build:worker` 는 `check:critical` 에 있다. 🔴 `check:quick` 도 워크트리에서 `Could not resolve "workers-og"` 로 **BLOCKED 된다**(2026-09-06 실측 — 초판 "exit 0" 서술은 틀렸다). 원인은 리포 루트 `node_modules` 에 `workers-og` 가 설치돼 있지 않은 것이고 코드와 무관하다. 그 앞 게이트(whitespace·changed-file lint·sitemap drift·typecheck·mock core smoke·env-parity)는 출력으로 통과 여부를 확인할 수 있다.
+- 🔴 `app/**` 를 건드리면 `config/sitemap-lastmod.json` 이 무효화된다 — `npm run sitemap:generate` 결과를 같은 커밋에. 캐시 핀 치환이 `app/layout.js` 에 걸리므로 **핀을 돌린 뒤 한 번 더** 돌린다.
 - 빌드가 `rss.xml`·`insights/rss.xml`(+ `public/` 미러)의 `lastBuildDate` 만 건드린다 — **커밋에 담지 말고 `git checkout --` 로 되돌린다.**
 
 ## 모르는 것
