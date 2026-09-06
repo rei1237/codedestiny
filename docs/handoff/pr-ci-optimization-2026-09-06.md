@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-06
-next: postbuild 병목 2건을 PR #1680 으로 잡았다(머지됨, `build:cf` 194s→166s). 남은 최대 덩어리는 next 컴파일 90.9s — `config.cache = false` 를 켤지 사용자 판단이 필요하다.
+next: webpack 영속 캐시를 PR CI 에만 켰고(#1688 머지됨) main 쪽 캐시 워머 워크플로를 올렸다. 워머가 한 번 돈 뒤 PR 빌드의 next 컴파일 시간을 실측해 효과를 확인할 차례다.
 ---
 
 # PR CI 최적화 (2026-09-06)
@@ -23,7 +23,7 @@ next: postbuild 병목 2건을 PR #1680 으로 잡았다(머지됨, `build:cf` 1
 이번 범위 밖으로 **보고만** 한 후속 과제 4건. 우선순위 순:
 
 - [x] **`build:cf` postbuild 병목** — **PR #1680 (머지됨).** postbuild 58.4s → 29.6s, `build:cf` 194s → 166s, build 잡 250s → 234s. externalize 22.3s→1.8s(태그마다 dist 113MB 를 toLowerCase 로 복사 + 미러 수십 벌의 같은 블록을 매번 esbuild 파싱), adsense-readiness 11.8s→3.8s(baseDir 당 패스 22개가 같은 index.html 을 재독).
-- [ ] **next 컴파일 90.9s** — 이제 `build:cf` 166s 의 최대 단일 덩어리다. `next.config.mjs:190-192` 의 `config.cache = false` 때문에 webpack 영속 캐시가 꺼져 있어 `.next/cache` 복원이 무의미하다. 🔴 **그 줄의 근거가 어디에도 없다** — 2026-06-29 대량 커밋 `94acc1538` 에서 유입됐고 커밋 메시지·문서·테스트 어디에도 사유가 없다(`git grep config.cache` 전수: 소스 1곳, 문서는 이 파일뿐). 켜면 프로덕션 배포 빌드의 산출 바이트에도 영향이 가므로 **사용자 판단 사항**. 켤 경우 `.next/cache` 를 `actions/cache` 로 데워야 효과가 나고, PR 런이 캐시를 읽으려면 base 브랜치(main) 쪽에서 저장하는 잡이 필요하다.
+- [ ] **next 컴파일 90.9s** — `build:cf` 166s 의 최대 단일 덩어리. **PR #1688 (머지됨)** 이 `NEXT_WEBPACK_FS_CACHE=1` 인 곳에서만 webpack 영속 캐시를 켜고(릴리스 빌드는 종전대로 `config.cache = false`), PR CI build 잡에 `actions/cache` 를 달았다. 캐시 경로는 `build-cache/next-webpack` — `.next/cache` 는 `clean:build` 가 지운다. 그 뒤 **main 쪽 워머 `.github/workflows/next-cache-warm.yml` 추가**(이 브랜치): Actions 캐시가 브랜치 스코프라 main 에서 저장하지 않으면 PR 첫 런이 늘 콜드였다. 🔴 **남은 것은 실측이다** — 워머가 한 번 돈 뒤의 PR 빌드에서 next 컴파일이 실제로 얼마나 줄었는지 아직 안 쟀다.
 - [ ] **postbuild 다음 병목 `split-dist-boot-tasks` 17.6s** — PR #1680 이 앞뒤를 줄인 뒤 postbuild 29.6s 의 절반 이상이 여기다. 아직 안 봤다.
 - [x] **`paid-flow-gates.yml` 의 `paths:` 누락 2건** — **PR #1665 (머지 대기).** 두 줄을 추가했고, YAML 만 교체해 같은 두 커밋으로 판정기를 돌린 before/after 가 `run=false → run=true` 로 갈렸다. 전수 확인: 이 워크플로가 실행하는 스크립트는 `run:` 기준 2개뿐이고 `change-risk.mjs` 는 import 0건이라 폐포가 닫힌다 — 3번째 누락 없음.
 - [ ] **(신규) 이 구멍을 기계로 막는 가드가 없다** — `verify:guard-wiring` 은 "검증기가 워크플로에서 도달 가능한가"만 본다. **"워크플로가 실행하는 스크립트와 그 import 폐포가 그 워크플로 자신의 `paths:` 에 있는가"** 축은 아무도 안 본다. 그래서 이 손목록은 지금까지 15번 넘게 같은 형태로 새어 왔다(YAML 주석에 사고 기록이 그만큼 있다). 🔴 가드 추가는 사용자 승인 사항이라(CLAUDE.md CI gate scope, `scripts/verify-guard-wiring.mjs:51`) 임의로 넣지 않았다 — **먼저 물을 것.**
@@ -53,7 +53,9 @@ next: postbuild 병목 2건을 PR #1680 으로 잡았다(머지됨, `build:cf` 1
 
 - 🔴 **PR CI 에 잡을 추가하면 룰셋 필수 체크도 같이 갱신해야 한다.** 보고를 못 받는 필수 체크는 머지를 영영 막는다. 이 레포는 classic branch protection 이 **없고** ruleset `main-protection`(id 20666260) 하나가 전부다 — `gh api repos/rei1237/codedestiny/rulesets/20666260`.
 - 🔴 그 뒤 **이미 열려 있던 PR 은 `gh pr update-branch` 가 필요하다.** `pull_request` 워크플로는 merge ref 에서 읽히므로 기존 런 re-run 으로는 새 잡이 안 돈다.
-- `.next/cache` 를 `actions/cache` 로 복원해도 `build:cf` 는 안 줄어든다 — `next.config.mjs:190-192` 가 프로덕션 빌드에서 `config.cache = false` 다.
+- 🔴 **`.next/cache` 로 복원하면 캐시가 영영 빈다** — `build:cf` 의 첫 스텝 `clean:build` 가 `.next` 를 통째로 지운다. 그래서 캐시 경로는 `build-cache/next-webpack` 이다.
+- 🔴 **Actions 캐시는 브랜치 스코프다** — PR 런은 자기 브랜치와 기본 브랜치(main)가 저장한 항목만 읽는다. 그래서 `next-cache-warm.yml`(main push)이 필요하고, **PR 쪽과 워머의 캐시 키·경로는 같은 모양이어야 한다**(PR 은 `restore-keys` 접두사로 워머 저장분을 집는다). 한쪽만 바꾸면 조용히 늘 콜드가 된다.
+- 워머는 `push: main` 이라 **룰셋 필수 체크와 무관하다** — 필수 체크는 `pull_request` 이벤트로만 보고되므로 잡을 추가해도 룰셋을 건드릴 필요가 없다(PR CI 에 잡을 더할 때와 다르다).
 - `paid-flow-gates.yml` 의 `push: main` 트리거는 중복처럼 보이지만 의도된 것이다(그 파일 336-340행에 PR #678 사고 기록).
 - 🔴 `paths:` 에 줄을 더할 때는 **들여쓰기 6칸을 지킬 것.** `resolve-paid-gate-scope.mjs` 의 `readTriggerGlobs()` 가 `/^\s{6}- "(.+)"\s*$/` 로 그 목록을 직접 파싱하고, 안 맞는 줄을 만나면 블록 끝으로 보고 **그 아래를 통째로 버린다.**
 - 🔴 이 YAML 은 **CRLF** 다. Edit/sed 로 고치면 줄바꿈이 섞이므로 node 로 패치한다(`scripts/resolve-paid-gate-scope.mjs`·`scripts/run-paid-gate-suite.mjs` 도 CRLF, `package.json` 은 LF).
