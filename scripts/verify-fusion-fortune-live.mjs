@@ -203,14 +203,21 @@ for (const [index, sample] of SAMPLES.entries()) {
     if (elapsedMs > FUSION_GENERATION_DEADLINE_MS) failures.push(`[${sample.label}] ${stage}단계 ${(elapsedMs / 1000).toFixed(1)}초 — 예산 ${FUSION_GENERATION_DEADLINE_MS / 1000}초 초과`);
     if (outcome.generationSource !== "gemini") {
       failures.push(`[${sample.label}] ${stage}단계 물타기 — generationSource=${outcome.generationSource}`);
-      // 🔴 폴백이 섞인 시점에서 이 스크립트가 답하려던 질문("모델이 목표 분량을 채우는가")은
-      //    이미 답할 수 없다. 나머지 샘플까지 돌리면 실패한 호출만 더 태운다.
       // 🔴 두 원인을 섞지 말 것 — context_fallback 은 "호출 자체가 안 됐다"(키·모델 설정),
       //    gemini_partial 은 "호출은 됐는데 묶음이 검증에 걸렸다"(프롬프트 준수)로 다음 행동이 다르다.
-      aborted = outcome.generationSource === "context_fallback"
-        ? "실호출이 한 묶음도 성사되지 않았습니다 — 키·모델 설정을 먼저 확인하세요(폴백이 결과를 채워 화면상 분량은 정상으로 보입니다)."
-        : "실호출은 됐지만 일부 묶음이 검증에 걸려 결정론 폴백으로 대체됐습니다 — 위 [fusion-fortune-llm-metric] 의 fallbackGroups 와 [fusion-fortune-group-failed] 의 issue 를 보세요.";
-      break;
+      if (outcome.generationSource === "context_fallback") {
+        // 키·모델 설정은 샘플이 달라도 같으므로, 남은 샘플은 실패할 호출만 더 태운다.
+        aborted = "실호출이 한 묶음도 성사되지 않았습니다 — 키·모델 설정을 먼저 확인하세요(폴백이 결과를 채워 화면상 분량은 정상으로 보입니다).";
+        break;
+      }
+      // 🔴 대표 1건만 돌 때는 여기서 멈춘다 — 답하려던 질문("모델이 목표 분량을 채우는가")이
+      //    이미 답할 수 없어졌으므로 나머지 호출은 낭비다.
+      // 🔴 조합 커버리지 모드(--samples>1)에서는 멈추지 않는다. 묶음 폴백은 조합마다 갈리는
+      //    결과 그 자체라, 첫 조합에서 끊으면 확인하려던 나머지 조합이 통째로 안 돌아간다.
+      if (SAMPLES.length === 1) {
+        aborted = "실호출은 됐지만 일부 묶음이 검증에 걸려 결정론 폴백으로 대체됐습니다 — 위 [fusion-fortune-llm-metric] 의 fallbackGroups 와 [fusion-fortune-group-failed] 의 issue 를 보세요.";
+        break;
+      }
     }
   }
   if (aborted) break;

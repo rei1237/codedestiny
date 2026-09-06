@@ -10,6 +10,7 @@
 //    목록에서 구분할 최소 정보(주제·닉네임·생시 아는지 여부)와 결과 본문만 남긴다.
 
 import { FusionFortuneConsultation } from "./models.js";
+import { countFusionFortuneVisibleText } from "./fusion-fortune.js";
 
 // mongoose Mixed 필드는 상한이 없어 16MB 문서 한계까지 들어간다. 인생의 책이 본문에
 // 200,000자 상한을 둔 것과 같은 이유로, 비정상적으로 커진 결과는 저장하지 않는다.
@@ -62,7 +63,13 @@ export function buildFusionConsultationDoc({ requestId, userId, input = {}, resu
         birthPlaceKnown: Boolean(input.birthPlace && typeof input.birthPlace === "object"),
       },
       result,
-      visibleTextLength: serialized.length,
+      // 🔴 이름 그대로 **화면에 보이는 글자 수**다. 옛 값은 JSON 직렬화 길이(serialized.length)라
+      //    키·따옴표·이스케이프까지 세어 실제보다 컸고(2026-09-06 실측: 36,690자 결과가 39,325자,
+      //    +7%), 그래서 클라이언트가 이 값을 못 쓰고 따로 셌다(app/fusion-fortune/_lib/reading.ts).
+      //    서버·클라이언트가 같은 셈법(countFusionFortuneVisibleText)을 보게 맞춘다.
+      // 🔴 문서 크기 상한은 별개 축이라 그대로 serialized.length 로 판정한다(위 result_too_large) —
+      //    16MB 문서 한계를 막는 것은 직렬화 크기이지 화면 글자 수가 아니다.
+      visibleTextLength: countFusionFortuneVisibleText(result),
       generationSource: text(generationSource, 40),
       // 강등 배달이면 그 사실이 재열람·PDF 에도 따라가야 한다. 화면에서만 알리면
       // 다시 열었을 때 "왜 짧지?"에 답할 근거가 사라진다.

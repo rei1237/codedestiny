@@ -29,6 +29,8 @@ import {
 } from "../worker/lib/fusion-fortune.js";
 import {
   buildFusionSectionGroupPrompt,
+  buildFusionSectionPromptPrefix,
+  buildFusionSectionSystemPrompt,
   buildFusionStageOneDigest,
   FUSION_FORTUNE_LENGTH,
   FUSION_FORTUNE_RESPONSE_SCHEMA,
@@ -86,6 +88,22 @@ const ENV = {
   ENABLE_FUSION_FORTUNE_REAL_LLM: "true",
   ALLOW_FUSION_FORTUNE_REAL_LLM: "true",
   GEMINI_API_KEY: "verify-only-not-a-real-key",
+};
+
+// 🔴 이 스크립트는 네트워크를 쓰지 않는다. 그룹 호출은 providerCall 주입으로 막혀 있지만
+//    컨텍스트 캐시 생성·삭제만은 llm-client 안에서 fetch 를 직접 타므로, 여기서 통째로
+//    스텁으로 갈아끼운다. 안 하면 위 가짜 키로 구글에 요청이 나가고 오프라인 CI 가 흔들린다.
+const CACHE_NAME = "cachedContents/verify-fusion";
+const fetchCalls = [];
+let cacheCreateOk = true;
+globalThis.fetch = async (url, init = {}) => {
+  const href = String(url);
+  const method = String(init.method || "GET").toUpperCase();
+  fetchCalls.push({ href, method });
+  if (!href.includes("cachedContents")) throw new Error(`예상 못 한 네트워크 호출: ${href}`);
+  if (method === "DELETE") return new Response("{}", { status: 200, headers: { "Content-Type": "application/json" } });
+  if (!cacheCreateOk) return new Response(JSON.stringify({ error: { message: "stubbed failure" } }), { status: 500, headers: { "Content-Type": "application/json" } });
+  return new Response(JSON.stringify({ name: CACHE_NAME }), { status: 200, headers: { "Content-Type": "application/json" } });
 };
 
 const built = await buildFusionFortuneContext(BASE_INPUT, { adapters: ADAPTERS });
@@ -265,6 +283,57 @@ const validationOptions = {
   check("1단계 프롬프트는 요약을 싣지 않는다", !stageOnePrompt.userPrompt.includes("앞 단계에서 완성된 섹션 요약("));
   check("물타기 금지 규칙이 들어 있다", integration.userPrompt.includes("일반론") || integration.systemPrompt.includes("일반론"));
   console.log("[prompt] 그룹별 키 분리 · 교차 검증 표 · 12개월 라인 · 2단계 요약 주입 확인");
+}
+
+// ── 2b. 컨텍스트 캐시가 실제로 걸리는 모양인가 ───────────────────────────────
+// 🔴 캐시는 안 걸려도 결과가 정상이라 실패가 조용하다 — 비용만 예전으로 돌아간다.
+//    그래서 걸리는 데 필요한 두 조건을 계약으로 못박는다:
+//    ① 공유 접두사가 모든 그룹 userPrompt 의 **글자 그대로의 접두사**일 것(startsWith)
+//    ② systemPrompt 가 그룹마다 같고 캐시에 굽는 값과 일치할 것
+{
+  const stageOneResult = await generateFusionFortuneWithMockLLM({ context });
+  for (const stage of [1, 2]) {
+    const groups = fusionGroupsForStage(stage);
+    const prior = stage === 2 ? stageOneResult : null;
+    const prefix = buildFusionSectionPromptPrefix({ context, stage, priorSections: prior });
+    const prompts = groups.map((group) => buildFusionSectionGroupPrompt({ context, group, priorSections: prior }));
+    const notPrefixed = groups.filter((_group, index) => !prompts[index].userPrompt.startsWith(prefix)).map((group) => group.id);
+    check(`${stage}단계 접두사가 모든 그룹 프롬프트의 실제 접두사`, notPrefixed.length === 0, notPrefixed.join(","));
+    check(`${stage}단계 systemPrompt 는 그룹마다 같다`, new Set(prompts.map((item) => item.systemPrompt)).size === 1);
+    check(`${stage}단계 systemPrompt 가 캐시에 굽는 값과 같다`, prompts.every((item) => item.systemPrompt === buildFusionSectionSystemPrompt(context)));
+    check(`${stage}단계 접두사가 캐시 하한(4,000자) 이상`, prefix.length >= 4000, `${prefix.length}자`);
+    console.log(`[cache] ${stage}단계 접두사 ${prefix.length.toLocaleString("ko-KR")}자 · 그룹 ${groups.length}개가 공유`);
+  }
+
+  // 배선 — 생성 경로가 캐시를 만들고, 모든 그룹 호출에 핸들을 넘기고, 끝나면 지우는가.
+  fetchCalls.length = 0;
+  const handles = [];
+  await runTwoStages({
+    requestId: "verify-fusion-cache",
+    providerCall: async (_env, _prompt, options) => {
+      handles.push(options.geminiCachedContent?.name || "");
+      return { ok: true, provider: "gemini", model: "gemini-2.5-flash", text: JSON.stringify(groupPayload(groupById(options.logContext.sectionGroup))) };
+    },
+  });
+  check("캐시를 단계마다 한 번씩 만든다", fetchCalls.filter((call) => call.method === "POST").length === 2, fetchCalls.map((call) => call.method).join(","));
+  check("다 쓴 캐시를 지운다", fetchCalls.filter((call) => call.method === "DELETE").length === 2, fetchCalls.map((call) => call.method).join(","));
+  check("모든 그룹 호출이 캐시 핸들을 받는다", handles.length === FUSION_SECTION_GROUP_SPECS.length && handles.every((name) => name === CACHE_NAME), `${handles.length}회 · ${new Set(handles).size}종`);
+
+  // 캐시 생성이 실패해도 생성은 그대로 굴러가야 한다 — 캐시는 순수 부가기능이다.
+  cacheCreateOk = false;
+  fetchCalls.length = 0;
+  const withoutCache = [];
+  const { second: degradedStage } = await runTwoStages({
+    requestId: "verify-fusion-cache-fail",
+    providerCall: async (_env, _prompt, options) => {
+      withoutCache.push(options.geminiCachedContent);
+      return { ok: true, provider: "gemini", model: "gemini-2.5-flash", text: JSON.stringify(groupPayload(groupById(options.logContext.sectionGroup))) };
+    },
+  });
+  cacheCreateOk = true;
+  check("캐시 생성 실패면 핸들 없이 전체 프롬프트로 간다", withoutCache.length > 0 && withoutCache.every((value) => value === undefined), `핸들 ${withoutCache.filter(Boolean).length}건`);
+  check("캐시 생성 실패해도 2단계가 배달된다", degradedStage.deliverable === true && degradedStage.generationSource === "gemini", String(degradedStage.generationSource));
+  check("만들지 못한 캐시는 지우러 가지 않는다", fetchCalls.every((call) => call.method === "POST"), fetchCalls.map((call) => call.method).join(","));
 }
 
 // ── 3. 결정론 폴백이 새 계약을 채우는가 ─────────────────────────────────────
