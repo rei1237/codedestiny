@@ -74,6 +74,11 @@ on:
       #    access-state.js 는 이미 있는데 짝인 이것만 빠진 구멍이다(2026-08-25).
       #    verify:per-use-never-unlocks 가 이 파일을 열어 판정을 단언한다(원칙 10).
       - "worker/lib/paid-feature-access.js"
+      # 🔴 지연차감(deferUsage) 등록 증빙 조회의 정본. 여기가 증빙을 놓치면 register 가 402 를 내고
+      #    **결제를 끝낸 사용자가 서비스를 못 받는다**(운명 찻집 단건결제 실사고). 짝인
+      #    moonstone-spend-proof.js 와 함께 둔다 — 둘 다 "정말 냈는가"를 판정한다.
+      - "worker/lib/deferred-billing-proof.js"
+      - "worker/lib/moonstone-spend-proof.js"
       - "worker/lib/profile-card-mutation-policy.js"
       - "worker/routes/access.js"
       # 🔴 또 같은 형태의 구멍이었다(2026-08-31). worker/lib/access-state.js 는 위에 있는데, 그
