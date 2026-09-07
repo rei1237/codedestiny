@@ -2765,6 +2765,41 @@
     } catch (_) {}
   }
 
+  /* ── 결제 후 자동 재개(모바일 리다이렉트 복귀) ───────────────────────────────
+     🔴 모바일 PortOne 은 상위 프레임을 리다이렉트하므로 게이트의 await 가 페이지와 함께 죽고
+     onGranted 가 실행되지 않는다 — 결제하고 돌아오면 홈 화면이던 증상의 정체다.
+     상세 리포트는 전부 클라이언트 계산이라 해금 표식만 남으면 열리므로 서술자에 담을 입력이 없다.
+     여는 코어(reveal)가 렌더 클로저 안에 있어 바인딩할 때마다 전역에 최신 것을 걸어 둔다.
+     🔴 핸들러 안에서 화면을 또 열지 않는다 — 표면은 checkout-entry 의 runPaidResume 이 딥링크로 연다.
+     계약 정본: js/core/checkout-entry.js */
+  var TETOGEN_DEEP_REPORT_RESUME_KIND = 'tetogen-deep-report';
+  var TETOGEN_RESUME_WAIT_MS = 8000;
+  var TETOGEN_RESUME_POLL_MS = 200;
+
+  function runTetogenDeepReportResume() {
+    return new Promise(function (resolve) {
+      var deadline = Date.now() + TETOGEN_RESUME_WAIT_MS;
+      (function poll() {
+        // 🔴 전역을 미리 지우지 않는다 — 이 코어는 스스로 다시 그리지 않아 지우면 다시 걸릴 일이 없다.
+        if (typeof w._cdRevealTetogenDeepReportCore === 'function') {
+          try { w._cdRevealTetogenDeepReportCore(null); } catch (_) { resolve(false); return; }
+          resolve(true);
+          return;
+        }
+        // 상한까지 못 찾으면 false — 복귀 처리가 '지금 열기' 카드를 그린다(영수증이 남아 재클릭은 무료다).
+        if (Date.now() >= deadline) { resolve(false); return; }
+        setTimeout(poll, TETOGEN_RESUME_POLL_MS);
+      })();
+    });
+  }
+
+  (function registerTetogenDeepReportResumeHandler() {
+    var entry = null;
+    try { entry = w.__cdCheckoutEntry || null; } catch (_) { entry = null; }
+    if (!entry || typeof entry.registerPaidResumeHandler !== 'function') return;
+    try { entry.registerPaidResumeHandler(TETOGEN_DEEP_REPORT_RESUME_KIND, runTetogenDeepReportResume); } catch (_) {}
+  })();
+
   function buildTetogenDeepReportBody(vibe, p, power, hapData) {
     var data = normalizeTetogenVibe(vibe);
     var profile = resolveTetoEgenProfile(data);
@@ -2839,6 +2874,10 @@
       }
     }
 
+    // 결제 후 복귀는 이 클로저를 잃으므로, 바인딩할 때마다 최신 것을 전역에 걸어 둔다.
+    // 🔴 아래 early return 앞에 둔다 — 뒤에 두면 이미 해금된 렌더에서 코어가 안 걸린다.
+    w._cdRevealTetogenDeepReportCore = reveal;
+
     if (isTetogenDeepReportUnlocked()) {
       reveal(null);
       return;
@@ -2873,6 +2912,8 @@
         coinPrice: TETOGEN_DEEP_REPORT_COST,
         cost: TETOGEN_DEEP_REPORT_COST,
         amountKrw: TETOGEN_DEEP_REPORT_KRW,
+        action: 'cdSajuTabEntry',
+        resume: { kind: TETOGEN_DEEP_REPORT_RESUME_KIND, action: 'cdSajuTabEntry', args: {} },
         onGranted: function (_txId, payload) {
           settle(payload || null);
         },

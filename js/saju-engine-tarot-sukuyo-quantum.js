@@ -4734,6 +4734,9 @@ function renderTTest(p, natal, johu, pw) {
   }
 
   function bindExtremeTRelationshipUnlock(area, renderArgs) {
+    // 결제 후 리다이렉트 복귀는 이 클로저를 잃으므로, 렌더할 때마다 최신 것을 전역에 걸어 둔다.
+    // 🔴 버튼 유무와 무관하게 먼저 건다 — 아래 early return 뒤에 두면 재개가 코어를 못 찾는다.
+    window._syRenderTTestCore = function() { renderTTest.apply(null, renderArgs); };
     var buttons = area.querySelectorAll('[data-extreme-t-lock-button]');
     if (!buttons.length) return;
     for (var i = 0; i < buttons.length; i += 1) {
@@ -4747,7 +4750,7 @@ function renderTTest(p, natal, johu, pw) {
         syRequirePaidSukuyoFeature(feature, function() {
           syMarkPaidSukuyoFeatureUnlocked(feature.key);
           renderTTest.apply(null, renderArgs);
-        });
+        }, syBuildUnlockResumeDescriptor(SY_EXTREME_T_RESUME_KIND, 'cdSajuTabEntry'));
       });
     }
   }
@@ -7745,6 +7748,72 @@ function syMarkPaidSukuyoFeatureUnlocked(featureKey) {
   if (key === SY_PAID_FEATURES.monthlyFortune.key) root._syMonthlySukuyoFortuneUnlocked = true;
 }
 
+/* ── 잠금 해제형 3종의 결제 후 자동 재개(모바일 리다이렉트 복귀) ─────────────────────
+   🔴 모바일 PortOne 은 상위 프레임을 리다이렉트하므로 게이트의 await 가 페이지와 함께 죽고
+   onGranted 가 영영 실행되지 않는다 — "결제했는데 홈 화면"의 정체다.
+   이 셋(극T 관계 회로·본성 심화·인연 도감)은 산출물이 전부 클라이언트 계산이고 해금 표식만 남기면
+   열리는 형태라 서술자에 담을 입력이 거의 없다. 대신 여는 코어가 렌더 클로저 안에 있어
+   렌더할 때마다 window 에 최신 것을 걸어 두고, 재개는 그것이 걸릴 때까지 기다렸다 부른다.
+   🔴 핸들러 안에서 화면을 또 열지 않는다 — 표면을 여는 책임은 checkout-entry 의 runPaidResume 하나다.
+   🔴 해금 표식은 onGranted 안에서만 남던 것이라, 재개 경로에서는 핸들러가 대신 남겨야
+   그 렌더가 잠금 화면으로 되돌아가지 않는다.
+   계약 정본: js/core/checkout-entry.js · 배선 선례: 아래 syRunCompatResume, js/saju-engine.js 의 _seRunAstroCelebResume */
+var SY_UNLOCK_RESUME_WAIT_MS = 8000;
+var SY_UNLOCK_RESUME_POLL_MS = 200;
+var SY_EXTREME_T_RESUME_KIND = 'sukuyo-extreme-t';
+var SY_NATURE_DEEP_DIVE_RESUME_KIND = 'sukuyo-nature-deep-dive';
+var SY_ENCYCLOPEDIA_RESUME_KIND = 'sukuyo-encyclopedia';
+
+function syRegisterUnlockResumeHandler(kind, handler) {
+  var entry = null;
+  try { entry = window.__cdCheckoutEntry || null; } catch (_syUnlockEntryError) { entry = null; }
+  if (!entry || typeof entry.registerPaidResumeHandler !== 'function') return;
+  try { entry.registerPaidResumeHandler(kind, handler); } catch (_syUnlockRegisterError) {}
+}
+
+function syBuildUnlockResumeDescriptor(kind, action, args) {
+  return { kind: kind, action: action, args: args && typeof args === 'object' ? args : {} };
+}
+
+// 딥링크가 표면을 연 직후에도 코어는 아직 안 걸려 있다 — 상한을 두고 기다린다.
+function syWaitForUnlockResumeCore(globalName) {
+  return new Promise(function(resolve) {
+    var deadline = Date.now() + SY_UNLOCK_RESUME_WAIT_MS;
+    (function poll() {
+      var ready = false;
+      try { ready = typeof window[globalName] === 'function'; } catch (_syUnlockReadyError) { ready = false; }
+      if (ready) { resolve(true); return; }
+      if (Date.now() >= deadline) { resolve(false); return; }
+      setTimeout(poll, SY_UNLOCK_RESUME_POLL_MS);
+    })();
+  });
+}
+
+/* 🔴 여기서 전역 코어를 null 로 지우지 않는다 — 이 셋은 보고서를 새로 그리지 않고 딥링크가 연 그 렌더의
+   코어를 그대로 부르므로, 지우면 다시 걸릴 일이 없어 상한까지 기다리다 실패한다(지우는 쪽은 스스로
+   다시 그리는 정밀 궁합 재개다 — syRunCompatPrecisionResume). */
+function syRunUnlockResume(globalName, featureKey) {
+  return syWaitForUnlockResumeCore(globalName).then(function(ready) {
+    // 코어가 끝내 안 걸리면 false — 복귀 처리가 '지금 열기' 카드를 그린다(영수증이 남아 재클릭은 무료다).
+    if (!ready) return false;
+    try { syMarkPaidSukuyoFeatureUnlocked(featureKey); } catch (_syUnlockMarkError) {}
+    try { window[globalName](); } catch (_syUnlockRunError) { return false; }
+    return true;
+  });
+}
+
+(function syRegisterUnlockResumeHandlers() {
+  syRegisterUnlockResumeHandler(SY_EXTREME_T_RESUME_KIND, function() {
+    return syRunUnlockResume('_syRenderTTestCore', SY_PAID_FEATURES.extremeTRelationshipCircuit.key);
+  });
+  syRegisterUnlockResumeHandler(SY_NATURE_DEEP_DIVE_RESUME_KIND, function() {
+    return syRunUnlockResume('_syRevealNatureDeepDiveCore', SY_PAID_FEATURES.natureDeepDive.key);
+  });
+  syRegisterUnlockResumeHandler(SY_ENCYCLOPEDIA_RESUME_KIND, function() {
+    return syRunUnlockResume('_syRevealEncyclopediaCore', SY_PAID_FEATURES.relationshipEncyclopedia.key);
+  });
+})();
+
 function syPaidPriceLabel(feature) {
   var cost = Math.max(0, Math.floor(Number(feature && feature.cost ? feature.cost : 0)));
   return (cost * 100).toLocaleString('ko-KR') + '원';
@@ -9855,6 +9924,20 @@ function syBindSukuyoNatureDeepDiveInteractions(host) {
 }
 
 function syBindSukuyoNatureDeepDiveUnlock(sData, reading, dailyFlow, lunarObj) {
+  function revealNatureDeepDive() {
+    var host = document.getElementById('syNatureDeepDiveHost');
+    if (!host) return;
+    host.innerHTML = syBuildSukuyoNatureDeepDiveHtml(sData, reading, dailyFlow, lunarObj);
+    syBindSukuyoNatureDeepDiveInteractions(host);
+    try {
+      if (window._syLastCompat && window._syLastCompat.relationType && typeof syHighlightRelationMiniMap === 'function') {
+        syHighlightRelationMiniMap(window._syLastCompat.relationType);
+      }
+    } catch (_) {}
+  }
+  // 결제 후 리다이렉트 복귀는 이 클로저를 잃으므로, 렌더할 때마다 최신 것을 전역에 걸어 둔다.
+  // 🔴 아래 early return 앞에 둔다 — 뒤에 두면 재바인딩이 없는 렌더에서 재개가 코어를 못 찾는다.
+  window._syRevealNatureDeepDiveCore = revealNatureDeepDive;
   var button = document.querySelector('[data-sy-nature-deep-dive-unlock]');
   if (!button || button.__syNatureDeepDiveBound) return;
   button.__syNatureDeepDiveBound = true;
@@ -9862,16 +9945,8 @@ function syBindSukuyoNatureDeepDiveUnlock(sData, reading, dailyFlow, lunarObj) {
     if (!sData || !reading) return;
     syRequirePaidSukuyoFeature(SY_PAID_FEATURES.natureDeepDive, function() {
       syMarkPaidSukuyoFeatureUnlocked(SY_PAID_FEATURES.natureDeepDive.key);
-      var host = document.getElementById('syNatureDeepDiveHost');
-      if (!host) return;
-      host.innerHTML = syBuildSukuyoNatureDeepDiveHtml(sData, reading, dailyFlow, lunarObj);
-      syBindSukuyoNatureDeepDiveInteractions(host);
-      try {
-        if (window._syLastCompat && window._syLastCompat.relationType && typeof syHighlightRelationMiniMap === 'function') {
-          syHighlightRelationMiniMap(window._syLastCompat.relationType);
-        }
-      } catch (_) {}
-    });
+      revealNatureDeepDive();
+    }, syBuildUnlockResumeDescriptor(SY_NATURE_DEEP_DIVE_RESUME_KIND, 'openSukuyoModal'));
   });
 }
 
@@ -13018,8 +13093,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
 
   function syBindSukuyoEncyclopedia(myIdx, myMansionName) {
     var button = document.querySelector('[data-sy-dogam-open]');
-    if (!button || button.__syDogamBound) return;
-    button.__syDogamBound = true;
+    if (!button) return;
     var status = document.querySelector('[data-sy-dogam-status]');
     var resultHost = document.querySelector('[data-sy-dogam-result]');
     var statusPill = document.querySelector('[data-sy-dogam-status-pill]');
@@ -13052,6 +13126,11 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         statusPill.classList.add('is-unlocked');
       }
     }
+    // 결제 후 리다이렉트 복귀는 이 클로저를 잃으므로, 렌더할 때마다 최신 것을 전역에 걸어 둔다.
+    // 🔴 아래 중복 바인딩 가드 앞에 둔다 — 뒤에 두면 같은 버튼 노드가 살아남은 렌더에서 코어가 낡는다.
+    window._syRevealEncyclopediaCore = function() { renderResult(true); };
+    if (button.__syDogamBound) return;
+    button.__syDogamBound = true;
     button.addEventListener('click', function() {
       try {
         renderResult(false);
@@ -13066,7 +13145,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       syRequirePaidSukuyoFeature(SY_PAID_FEATURES.relationshipEncyclopedia, function() {
         syMarkPaidSukuyoFeatureUnlocked(SY_PAID_FEATURES.relationshipEncyclopedia.key);
         renderResult(true);
-      });
+      }, syBuildUnlockResumeDescriptor(SY_ENCYCLOPEDIA_RESUME_KIND, 'openSukuyoModal'));
     });
   }
 
