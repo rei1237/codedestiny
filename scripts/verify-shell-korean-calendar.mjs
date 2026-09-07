@@ -858,18 +858,16 @@ function extractFunctionSource(source, name) {
     },
   ]);
 
-  // 🔴 참조가 하나도 없어도 되는 파일. 지금 하나뿐이고, 사유는 "셸에서 더는 로드되지
-  // 않는다"이지 "안 봐도 된다"가 아니다 — ⑬ 의 `new Date(` 스캔은 이 파일을 그대로 본다.
+  // 🔴 참조가 하나도 없어도 되는 파일. 사유는 "셸에서 더는 로드되지 않는다"이지 "안 봐도
+  // 된다"가 아니다 — ⑬ 의 `new Date(` 스캔은 그런 파일도 그대로 본다.
   // 여기 등재는 **캐시버스터 요구**만 면제한다(로드되지 않는 파일에는 캐시 키가 없다).
   // 🔴 양방향이다: 등재했는데 참조가 되살아나면 stale 로 실패한다(면제가 조용히 남는 것을 막는다).
-  const UNREFERENCED_ALLOWED = Object.freeze([
-    {
-      file: "js/luck-sync-diary.js",
-      why: "2026-09-07 PR-J 컷오버로 셸 다이어리 모달의 진입점이 /diary 앱으로 옮겨져 이 스크립트를 "
-        + "로드하는 자리가 사라졌다. 파일 자체는 확정 2(셸 기존 기능을 지우지 않는다)에 따라 남긴다. "
-        + "🔴 다시 로드하게 되면 `?v=build-…` 를 붙이고 이 항목을 지워라.",
-    },
-  ]);
+  // 2026-09-07: js/luck-sync-diary.js 를 지웠다 — PR-J 컷오버로 사라졌던 로드 자리가
+  // 사주 결과 화면의 "운기 다이어리 (이전 버전)" 카드로 되살아났고(지연로더는
+  // js/core/index-inline-runtime.js 의 __cdLazyActionLoaders.openLegacyLuckSyncDiary),
+  // 그 참조에는 `?v=build-…` 가 붙어 있어 이 가드가 요구하는 조건을 그대로 만족한다.
+  // 지금은 비어 있고, 그것이 정상이다.
+  const UNREFERENCED_ALLOWED = Object.freeze([]);
 
   const refRows = [];
   for (const target of refTargets) {

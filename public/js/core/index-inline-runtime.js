@@ -1934,6 +1934,13 @@ var __cdLazyActionLoaders = {
   // 레지스트리 조회) 서로를 대체하지 못하므로 형제들과 똑같이 양쪽에 둔다.
   setGender: function() { return __cdEnsureSajuCoreLoaded(); },
   runCompat: function() { return __cdEnsureSajuCoreLoaded(); },
+  // 사주 결과 화면의 "운기 다이어리 (이전 버전)" 카드(js/core/saju/reportDashboard.js).
+  // 셸 모달은 마크업까지 js/luck-sync-diary.js 안에서 만들어지므로 스크립트만 실으면 열린다.
+  // 🔴 이 로더가 그 파일의 유일한 적재 경로다 — index.html 에 <script> 태그가 없다(실측:
+  //    git grep 'luck-sync-diary.js' 에 index.html 0건). 그래서 모달 쪽은 자기 델리게이션으로
+  //    열지 않고 window.openLegacyLuckSyncDiary 만 내놓고, 로드 후 재호출은 아래
+  //    __cdInvokeAction 이 맡는다(둘 다 열면 두 번째 클릭부터 모달을 두 번 만든다).
+  openLegacyLuckSyncDiary: function() { return __cdLoadScriptOnce('/js/luck-sync-diary.js?v=build-38086273d7d3'); },
   // 사주 결과 공유 버튼 3종. shareKakao/shareInstagram/shareSajuResultImage 는
   // js/share.js 안에 정의되는데 그 파일이 noncritical-defer-loader(첫 feature-intent
   // 탭/45초 타임아웃/백그라운드 전환 중 하나가 있어야 로드)로만 실려서, 결과 화면
