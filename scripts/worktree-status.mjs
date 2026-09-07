@@ -57,7 +57,13 @@ async function touchedFiles(root, untracked) {
   const working = (await Promise.all(requests)).flatMap(value => value.split('\0').filter(Boolean));
   const base = await git(root, ['rev-parse', '--verify', '--quiet', 'origin/main'], true);
   const committed = base ? await git(root, ['diff', '--no-ext-diff', '--no-textconv', '--name-only', '-z', 'origin/main...HEAD', '--'], true) : null;
-  return { files: [...new Set([...working, ...(committed || '').split('\0').filter(Boolean)])].sort(), uncertainty: committed === null ? 'origin/main range unavailable; committed changes unknown' : null };
+  const committedFiles = (committed || '').split('\0').filter(Boolean);
+  return {
+    files: [...new Set([...working, ...committedFiles])].sort(),
+    workingFiles: [...new Set(working)].sort(),
+    committedFiles: [...new Set(committedFiles)].sort(),
+    uncertainty: committed === null ? 'origin/main range unavailable; committed changes unknown' : null,
+  };
 }
 export async function inspectWorktree(cwd, { untracked = true } = {}) {
   const root = (await git(cwd, ['rev-parse', '--show-toplevel'])).trim();
@@ -84,12 +90,18 @@ export async function inspectWorktree(cwd, { untracked = true } = {}) {
     const files = overlappingFiles(current.files, item.files);
     return { path: item.path, branch: item.branch, overlapCount: files.length, files: files.slice(0, 20) };
   }).filter(item => item.overlapCount > 0);
+  // 순차 머지 입장에서는 이미 커밋된 다른 PR의 겹침을 여기서 막지 않는다.
+  // 후보는 최신 main 재반영과 PR CI가 판정하고, 아직 작업 중인 변경만 충돌로 본다.
+  const activeOverlaps = entries.filter(item => normalized(item.path) !== normalized(root)).map(item => {
+    const files = overlappingFiles(current.files, item.workingFiles || []);
+    return { path: item.path, branch: item.branch, overlapCount: files.length, files: files.slice(0, 20) };
+  }).filter(item => item.overlapCount > 0);
   return {
     root, sha: sha.trim(), branch: branch?.trim() || '(detached)',
     isolation: { isolated: normalized(gitDir.trim()) !== normalized(commonDir.trim()), gitDir: gitDir.trim(), commonDir: commonDir.trim() },
     dependencies, cachebustMergeDriverConfigured: Boolean(driver?.trim()), changedFileCount: current.files.length,
     includesUntracked: untracked, includesCommitted: true, committedBase: 'origin/main', otherWorktreesInspected: entries.length - 1,
-    overlaps, collisions, worktrees: entries,
+    overlaps, activeOverlaps, collisions, worktrees: entries,
     unavailableWorktrees: entries.filter(item => item.error), uncertainWorktrees: entries.filter(item => item.uncertainty).map(({ path, uncertainty }) => ({ path, uncertainty })),
     note: 'Includes uncommitted paths and origin/main...HEAD changes across all worktrees. Read-only snapshot; overlap requires coordination, not automatic merging.',
   };
@@ -111,6 +123,7 @@ async function main() {
       console.log(`  ${item.branch || item.path}: ${shown.join(', ')}${item.overlapCount > shown.length ? ` (+${item.overlapCount - shown.length})` : ''}`);
       remaining -= shown.length;
     }
+    console.log(`[active overlap] ${report.activeOverlaps.length} worktrees with uncommitted conflicting paths`);
     console.log(`[global collisions] ${report.collisions.length} paths across all worktrees`);
     for (const item of report.collisions.slice(0, 20)) console.log(`  ${item.file}: ${item.owners.slice(0, 3).map(owner => owner.branch || owner.path).join(', ') + (item.owners.length > 3 ? ` (+${item.owners.length - 3})` : '')}`);
     if (report.uncertainWorktrees.length) console.log(`[uncertain] ${report.uncertainWorktrees.length} worktrees have unknown committed/working changes`);
