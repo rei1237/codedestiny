@@ -232,3 +232,8 @@ test('the generator reproduces the committed stylesheet byte for byte', () => {
     stdio: 'pipe',
   });
 });
+
+test('generated TypeScript keeps LF on Windows checkouts', () => {
+  const result = execFileSync('git', ['check-attr', 'eol', '--', 'app/sukuyo-compatibility-ai/_art/yehwaScene.generated.ts'], { cwd: root, encoding: 'utf8' });
+  assert.match(result, /: eol: lf\s*$/);
+});

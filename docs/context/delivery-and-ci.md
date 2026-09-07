@@ -9,7 +9,7 @@
 - 🔴 **`config/payment-freeze.json`에 등록된 파일·함수를 건드렸다면 커밋 전 반드시 확인**: `worker/payments/` 재작성 기간 동안 "동결"된 구 결제 코드(예: `app/_lib/billing-client.ts`, `app/hooks/useCoinGate.ts`, `lib/payment/portone.ts`, `index.html`의 `_cdChooseServicePaymentMode`/`_cdRunDirectKrwCheckout`/`_cdOpenPaidServiceGate`, `js/destiny-profile.js`의 `_dpRenderStandalonePaymentChoice` 등)은 내용이 바뀌면 `npm run verify:payment-freeze`가 CI(`paid-flow-gates`)에서 실패한다. 순수 CSS/문구 변경이라도 예외 없다. 의도한 변경이면 `node scripts/verify-payment-freeze.mjs --update`로 매니페스트를 갱신해 **같은 커밋에** 담을 것 — env 우회나 체크 무력화 금지(트립와이어 자체를 없애면 재작성 중 조용한 분기를 다시 못 잡는다). `worker/payments/`에 대응 구현이 있다면 그쪽도 같은 변경이 필요한지 먼저 확인한다.
 - 🔴 **배포 흐름 (2026-08-20 개정 — 스테이징 컷오버, 커밋 `80d3660c1`)**: `main` 직접 작업·직접 배포는 **폐기**됐다. 다만 "머지가 곧 라이브"는 더 이상 맞지 않는다 — **머지는 스테이징까지만 자동으로 간다.**
   ```
-  feature 브랜치 → 커밋 → push → PR → PR CI 자동 검증 → 사용자가 Merge
+  feature 브랜치 → 커밋 → push → PR → PR CI 자동 검증 → 검사 통과 후 에이전트가 안전하게 Merge
     → main push → "Release Cloudflare Pages and Worker" 가 그 SHA 로 **스테이징**에 자동 배포
     → 프로덕션은 사람이 GitHub Actions 에서 workflow_dispatch(mode=production) 를 수동 실행해야 승격된다
   ```
@@ -174,3 +174,9 @@ Pages 와 Worker 가 서로 다른 코드를 가리키는 것이 이 저장소�
 - 🔴 **전진을 건너뛰는 조건 4가지** — 세션이 격리 워크트리 안이다 / 루트 HEAD 가 `main` 이 아니다 / 루트에 미커밋 변경이 있다(**미추적 파일 포함**) / 루트에 진행 중인 git 작업이 있다(`MERGE_HEAD`·`rebase-merge` 등 6종). 하나라도 걸리면 손대지 않는다. `stash` 는 어디에도 쓰지 않는다 — 프로젝트 루트는 여러 세션이 공유하므로 남의 미커밋 변경을 건드리면 그대로 사고다.
 - **이건 가드가 아니라 넛지다.** 모든 실패 경로가 fail-open(조용히 `exit 0`)이고 당기기 실패는 보고하지 않는다 — 오프라인일 때마다 세션 시작을 막으면 아무 일도 못 한다. 원칙 10(fail-closed)의 취지는 테스트에서 지킨다: 임시 bare 원격 + 클론을 만들어 **전진하는 경우 · 건너뛰어야 하는 경우 · 침묵해야 하는 경우(경계 199/200)** 를 실제로 돌린다.
 - **끄는 법**: `.claude/settings.json` 의 `hooks.SessionStart` 와 `hooks.PreToolUse` 의 `EnterWorktree` 블록에서 `sync-main-freshness.mjs` 항목을 지운다. 🔴 훅을 고치거나 지웠으면 **세션을 재시작해야 적용된다**(훅이 안 알려준다).
+
+## 개발환경 최적화 전환 (2026-09-08)
+공통 변경 검사 계획을 로컬에서 사용하며, CI는 10개 PR 동안 기존 검사와 새 계획을 비교하는 shadow 모드다. required check와 기존 실행 조건은 유지한다. 실제 범위 축소는 관측에서 누락이 없음을 확인한 별도 변경으로 한다. 시작 명령은 check:fast이며 위험 변경은 자동 승격한다. 기존 check:quick --skip-build 호환과 CI Pages 빌드 근거를 보존한다. 전체 incremental typecheck는 실행당 한 번이다. 동시 편집 때문에 모든 수정은 워크트리에서 수행한다. 노력 수준은 위험도에 맞추며 과거 전역 high 지시는 적용하지 않는다.
+
+## 2026-09-08 사용자 전달 방식 변경
+PR 생성 후 필수 검사와 최신 base 충돌을 확인하고 에이전트가 안전하게 머지한다. 스테이징에서 Pages·Worker 배포 SHA 및 읽기 전용 핵심 응답을 확인한다. 과거 사용자 수동 머지·머지 후 배포 미확인 조항보다 이 지시가 우선한다. 프로덕션 승격은 여전히 사용자의 명시적인 1회 승인 때만 진행한다. branch protection을 우회하지 않으며 실패·필수 승인 대기는 보고한다.

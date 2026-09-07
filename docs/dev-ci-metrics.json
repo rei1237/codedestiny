@@ -1,0 +1,603 @@
+{
+  "source": "connected GitHub app",
+  "limitation": "Final HEAD runs only; retry/failure rate and queue time unavailable. Sample timings derived from log timestamps.",
+  "pullRequests": [
+    {
+      "pr": 1752,
+      "sha": "d7c9d13fdf90d2e0e3e3d6f0a8d89df75f00ad34",
+      "runs": [
+        {
+          "id": 34141098058,
+          "name": "AI Locale Gate",
+          "conclusion": "success"
+        },
+        {
+          "id": 34141098048,
+          "name": "PR CI",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "pr": 1750,
+      "sha": "6eb44da4742b3c0aa6ce4d76056d621a817c74b8",
+      "runs": [
+        {
+          "id": 34139410159,
+          "name": "Paid Flow Gates",
+          "conclusion": "success"
+        },
+        {
+          "id": 34139410195,
+          "name": "PR CI",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "pr": 1749,
+      "sha": "03093160926b82997acabd5a51d381d131ec48e4",
+      "runs": [
+        {
+          "id": 34114783988,
+          "name": "AI Locale Gate",
+          "conclusion": "success"
+        },
+        {
+          "id": 34114784002,
+          "name": "PR CI",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "pr": 1748,
+      "sha": "23c116e8cc0897cb2f370f55060a2619b35f997e",
+      "runs": [
+        {
+          "id": 34113242878,
+          "name": "PR CI",
+          "conclusion": "success"
+        },
+        {
+          "id": 34113242884,
+          "name": "Paid Flow Gates",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "pr": 1747,
+      "sha": "746d7a6782da0d69a04292064016822cf7e38a1e",
+      "runs": [
+        {
+          "id": 34113076211,
+          "name": "PR CI",
+          "conclusion": "success"
+        },
+        {
+          "id": 34113076322,
+          "name": "Paid Flow Gates",
+          "conclusion": "success"
+        },
+        {
+          "id": 34113076220,
+          "name": "Business Identity Gate",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "pr": 1746,
+      "sha": "98a14ac3e61e8c7ea840fcdb02afb229c35e0213",
+      "runs": [
+        {
+          "id": 34111290686,
+          "name": "Paid Flow Gates",
+          "conclusion": "success"
+        },
+        {
+          "id": 34111290519,
+          "name": "PR CI",
+          "conclusion": "success"
+        },
+        {
+          "id": 34111290590,
+          "name": "Business Identity Gate",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "pr": 1745,
+      "sha": "4e57862110319f7c9b46eca3fe5a59ad662203ce",
+      "runs": [
+        {
+          "id": 34109371056,
+          "name": "Business Identity Gate",
+          "conclusion": "success"
+        },
+        {
+          "id": 34109371061,
+          "name": "Paid Flow Gates",
+          "conclusion": "success"
+        },
+        {
+          "id": 34109371080,
+          "name": "PR CI",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "pr": 1744,
+      "sha": "66d32164b741e8f494b05ca783186eaad2fa69a8",
+      "runs": [
+        {
+          "id": 34106479252,
+          "name": "PR CI",
+          "conclusion": "success"
+        },
+        {
+          "id": 34106478865,
+          "name": "Paid Flow Gates",
+          "conclusion": "success"
+        },
+        {
+          "id": 34106478871,
+          "name": "Business Identity Gate",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "pr": 1743,
+      "sha": "50214d2bdf8b619dab1598a892cd0e97b498868a",
+      "runs": [
+        {
+          "id": 34104631550,
+          "name": "PR CI",
+          "conclusion": "success"
+        },
+        {
+          "id": 34104631486,
+          "name": "Paid Flow Gates",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "pr": 1742,
+      "sha": "24c775c51d25d7f027f1293df7665bedeb91ce62",
+      "runs": [
+        {
+          "id": 34104795756,
+          "name": "AI Locale Gate",
+          "conclusion": "success"
+        },
+        {
+          "id": 34104795777,
+          "name": "PR CI",
+          "conclusion": "success"
+        },
+        {
+          "id": 34104795769,
+          "name": "Paid Flow Gates",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "pr": 1740,
+      "sha": "760279b20b44555aee26a16ab6c4af0f5a2922f2",
+      "runs": [
+        {
+          "id": 34104212107,
+          "name": "Business Identity Gate",
+          "conclusion": "success"
+        },
+        {
+          "id": 34104212106,
+          "name": "PR CI",
+          "conclusion": "success"
+        },
+        {
+          "id": 34104212104,
+          "name": "Paid Flow Gates",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "pr": 1741,
+      "sha": "55141802b2e9f2f7784fa9fa4932167b4a9f5730",
+      "runs": [
+        {
+          "id": 34102902692,
+          "name": "AI Locale Gate",
+          "conclusion": "success"
+        },
+        {
+          "id": 34102902712,
+          "name": "PR CI",
+          "conclusion": "success"
+        },
+        {
+          "id": 34102902719,
+          "name": "Paid Flow Gates",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "pr": 1738,
+      "sha": "961fdd52495dd86fb9421d8f16de6fd8be4bb143",
+      "runs": [
+        {
+          "id": 34102877545,
+          "name": "Paid Flow Gates",
+          "conclusion": "success"
+        },
+        {
+          "id": 34102877572,
+          "name": "PR CI",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "pr": 1739,
+      "sha": "394921e4721fec2f19177ccb03cfaa87fbaac2e6",
+      "runs": [
+        {
+          "id": 34102160900,
+          "name": "Business Identity Gate",
+          "conclusion": "success"
+        },
+        {
+          "id": 34102160788,
+          "name": "Paid Flow Gates",
+          "conclusion": "success"
+        },
+        {
+          "id": 34102160962,
+          "name": "PR CI",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "pr": 1737,
+      "sha": "19e308d4597876763cfb2ed9a070af539199d962",
+      "runs": [
+        {
+          "id": 34101356019,
+          "name": "Business Identity Gate",
+          "conclusion": "success"
+        },
+        {
+          "id": 34101355996,
+          "name": "PR CI",
+          "conclusion": "success"
+        },
+        {
+          "id": 34101356068,
+          "name": "Paid Flow Gates",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "pr": 1736,
+      "sha": "d1d7135957443f81ed002cbf4274c22beb76ea4e",
+      "runs": [
+        {
+          "id": 34100954860,
+          "name": "AI Locale Gate",
+          "conclusion": "success"
+        },
+        {
+          "id": 34100954814,
+          "name": "PR CI",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "pr": 1734,
+      "sha": "161318ed977c97b7c0214f216f0a068c35f943e8",
+      "runs": [
+        {
+          "id": 34099764381,
+          "name": "Business Identity Gate",
+          "conclusion": "success"
+        },
+        {
+          "id": 34099764283,
+          "name": "Paid Flow Gates",
+          "conclusion": "success"
+        },
+        {
+          "id": 34099764415,
+          "name": "PR CI",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "pr": 1735,
+      "sha": "01b3496f6e6cd44eda79715aa21e565180cbdc2c",
+      "runs": [
+        {
+          "id": 34099064125,
+          "name": "PR CI",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "pr": 1733,
+      "sha": "379162c9cc3fb8442c29f99e6ecea50d20230803",
+      "runs": [
+        {
+          "id": 34097984617,
+          "name": "PR CI",
+          "conclusion": "success"
+        },
+        {
+          "id": 34097984636,
+          "name": "Paid Flow Gates",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "pr": 1730,
+      "sha": "7f0c5197a7099b63bb6b575b4c83bdec8da5c6dd",
+      "runs": [
+        {
+          "id": 34098464004,
+          "name": "PR CI",
+          "conclusion": "success"
+        },
+        {
+          "id": 34098463940,
+          "name": "Paid Flow Gates",
+          "conclusion": "success"
+        },
+        {
+          "id": 34098464034,
+          "name": "Business Identity Gate",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "pr": 1732,
+      "sha": "529b28b3d951b2a48aaf5bec3f50b5ab7268ccfa",
+      "runs": [
+        {
+          "id": 34097730085,
+          "name": "Paid Flow Gates",
+          "conclusion": "success"
+        },
+        {
+          "id": 34097730093,
+          "name": "PR CI",
+          "conclusion": "success"
+        },
+        {
+          "id": 34097730102,
+          "name": "Business Identity Gate",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "pr": 1731,
+      "sha": "58106e96f68bf10e34592e40a9ad67081250bfb4",
+      "runs": [
+        {
+          "id": 34096798715,
+          "name": "Business Identity Gate",
+          "conclusion": "success"
+        },
+        {
+          "id": 34096798751,
+          "name": "AI Locale Gate",
+          "conclusion": "success"
+        },
+        {
+          "id": 34096798629,
+          "name": "PR CI",
+          "conclusion": "success"
+        },
+        {
+          "id": 34096798709,
+          "name": "Paid Flow Gates",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "pr": 1728,
+      "sha": "dbb36787856795d163ca2c7486000392b3ebc1b0",
+      "runs": [
+        {
+          "id": 34095419726,
+          "name": "PR CI",
+          "conclusion": "success"
+        },
+        {
+          "id": 34095419647,
+          "name": "Paid Flow Gates",
+          "conclusion": "success"
+        },
+        {
+          "id": 34095419725,
+          "name": "AI Locale Gate",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "pr": 1729,
+      "sha": "43b43a95a178490e1f246bcc1de798e6e405f2a4",
+      "runs": [
+        {
+          "id": 34095160210,
+          "name": "Business Identity Gate",
+          "conclusion": "success"
+        },
+        {
+          "id": 34095160200,
+          "name": "Paid Flow Gates",
+          "conclusion": "success"
+        },
+        {
+          "id": 34095160162,
+          "name": "PR CI",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "pr": 1727,
+      "sha": "ccd4affaa60ad0901e3eb5a34929466689f2600f",
+      "runs": [
+        {
+          "id": 34093301540,
+          "name": "PR CI",
+          "conclusion": "success"
+        },
+        {
+          "id": 34093301496,
+          "name": "Paid Flow Gates",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "pr": 1726,
+      "sha": "ac448ea83442ab84cce88a0b4ae8f9734fcf2f4f",
+      "runs": [
+        {
+          "id": 34092847883,
+          "name": "PR CI",
+          "conclusion": "success"
+        },
+        {
+          "id": 34092847866,
+          "name": "Paid Flow Gates",
+          "conclusion": "success"
+        },
+        {
+          "id": 34092847862,
+          "name": "Business Identity Gate",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "pr": 1724,
+      "sha": "07a99e7be9b6c71e5ae2866a5a731420243d05f1",
+      "runs": [
+        {
+          "id": 34090947938,
+          "name": "PR CI",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "pr": 1725,
+      "sha": "5bde03b3192a75c09760cbe8b5cdb08566d4cabf",
+      "runs": [
+        {
+          "id": 34090915504,
+          "name": "PR CI",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "pr": 1723,
+      "sha": "f3d82c246a59404e1118de1ed1b35d8aecc72aa7",
+      "runs": [
+        {
+          "id": 34090544923,
+          "name": "PR CI",
+          "conclusion": "success"
+        },
+        {
+          "id": 34090544668,
+          "name": "Paid Flow Gates",
+          "conclusion": "success"
+        },
+        {
+          "id": 34090544655,
+          "name": "Business Identity Gate",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "pr": 1722,
+      "sha": "fd7f3899ab24a3bb0989d7a818ef53e57fefd0f2",
+      "runs": [
+        {
+          "id": 34087951360,
+          "name": "AI Locale Gate",
+          "conclusion": "success"
+        },
+        {
+          "id": 34087951354,
+          "name": "PR CI",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ],
+  "jobTimings": [
+    {
+      "pr": 1750,
+      "id": 101797849666,
+      "name": "Build Pages and Worker",
+      "seconds": 200.144,
+      "npmCacheHit": true,
+      "webpackRestoreHit": true
+    },
+    {
+      "pr": 1750,
+      "id": 101797849641,
+      "name": "Static guards",
+      "seconds": 145.302,
+      "npmCacheHit": true,
+      "webpackRestoreHit": false
+    },
+    {
+      "pr": 1750,
+      "id": 101797849725,
+      "name": "Typecheck and lint",
+      "seconds": 84.615,
+      "npmCacheHit": true,
+      "webpackRestoreHit": false
+    },
+    {
+      "pr": 1750,
+      "id": 101797849729,
+      "name": "Critical checks",
+      "seconds": 237.906,
+      "npmCacheHit": true,
+      "webpackRestoreHit": false
+    },
+    {
+      "pr": 1750,
+      "id": 101797949497,
+      "name": "paid-flow-gates",
+      "seconds": 170.542,
+      "npmCacheHit": true,
+      "webpackRestoreHit": false
+    }
+  ]
+}
