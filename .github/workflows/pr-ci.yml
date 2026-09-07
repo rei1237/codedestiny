@@ -120,7 +120,7 @@ jobs:
             echo "::notice::PR 컨텍스트가 없어 착지 순서를 검사하지 않습니다."
             exit 0
           fi
-          children=$(gh api "repos/${GITHUB_REPOSITORY}/pulls?state=open&base=${PR_HEAD_REF}&per_page=100" \
+          children=$(gh --repo "$GITHUB_REPOSITORY" pr list --state open --base "$PR_HEAD_REF" --json number,title \
             --jq '.[] | "  - #\(.number) \(.title)"')
           if [ -z "$children" ]; then
             echo "이 브랜치(${PR_HEAD_REF})를 base 로 하는 열린 PR 이 없습니다. 지금 머지해도 좌초하지 않습니다."
@@ -222,6 +222,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # `verify:quantum-card-cascade`는 실제 브라우저에서 초기 렌더·새로고침·SPA 이동과
+      # 모바일 레이아웃을 확인한다. ubuntu-latest 러너에는 Playwright 패키지만 있고
+      # 브라우저 바이너리는 기본 제공되지 않으므로, 가드 실행 전에 Chromium을 설치한다.
+      - name: Install Playwright Chromium for browser guards
+        run: npx playwright install --with-deps chromium
+
       # 🔴 `test:node` 는 `__tests__/ui/*.test.js` 정적 가드다. jest 는 이것을 돌리지 않고,
       # PR CI 에서는 critical 티어(`npm test`)에서만 돌았다. 그런데 deploy-safe 는 risk=medium
       # 부터 돌린다 — 즉 app/·components/·js/ 만 고친 standard 티어 PR 은 **머지된 뒤에야**
@@ -231,7 +237,9 @@ jobs:
       # fast 잡에 두는 이유: 이 가드들의 입력은 index.html·js/·styles/ 라 티어가 fast 로
       # 잡히는 변경에서도 깨어나야 한다. 실측 13.7초 / 296 tests (2026-08-23).
       - name: Run the static UI guards the release runs
-        run: npm run test:node
+        run: |
+          npm run test:node
+          npm run verify:quantum-card-cascade
 
       # 🔴 이것은 **fast 잡**이어야 한다. 사이트맵을 어긋나게 만드는 것은 라우트 추가만이
       # 아니라 글 한 편, 공용 컴포넌트 한 줄이다(lastmod 서명이 소스 파일에서 나온다).

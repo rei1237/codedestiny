@@ -274,6 +274,67 @@ console.log("\n[2] 이용권 카드 클릭 → 커버되면 결제 없이 'pass'
   check("충전 모달도 열지 않음", () => assert.equal(chargeModalCalls, 0));
 }
 
+console.log("\n[2-b] FAMILY 이용권 서버 봉투도 무료로 통과하는가");
+{
+  const { window, storeUrls } = bootRuntime();
+  const calls = [];
+  let chargeModalCalls = 0;
+  window.__cdOpenChargeModal = () => { chargeModalCalls += 1; };
+  window.document.cookie = "fortune_auth_role=user";
+  window.fetch = async (url, init) => {
+    const pathname = new URL(String(url), window.location.origin).pathname;
+    let body = {};
+    try { body = JSON.parse(String(init?.body || "{}")); } catch (_) { body = {}; }
+    calls.push({ pathname, paymentMode: body.paymentMode });
+    if (pathname === "/api/auth/me") {
+      return new Response(JSON.stringify({ ok: true, user: { id: "u-family" } }), { status: 200, headers: { "Content-Type": "application/json" } });
+    }
+    if (pathname === "/api/billing/coin-gate") {
+      return new Response(JSON.stringify({
+        ok: true,
+        data: {
+          freeBySubscription: true,
+          accessType: "family",
+          accessMethod: "FAMILY",
+          transactionType: "family_pass",
+          paymentMode: "MEMBERSHIP_PASS",
+          consume: {
+            accessType: "family",
+            accessMethod: "FAMILY",
+            transactionType: "family_pass",
+            paymentMode: "MEMBERSHIP_PASS",
+          },
+          accessGrant: {
+            accessType: "family",
+            accessMethod: "FAMILY",
+            paymentMode: "MEMBERSHIP_PASS",
+            evidenceId: "membership:family:verify-family-pass",
+          },
+        },
+      }), { status: 200, headers: { "Content-Type": "application/json" } });
+    }
+    return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { "Content-Type": "application/json" } });
+  };
+
+  const choicePromise = openChoice(window, {
+    title: "초융합 운세 상담",
+    featureKey: "fusion-fortune-consultation",
+    coinPrice: 300,
+    amountKrw: 30000,
+  });
+  findCard(window, "pass-store").dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+  const choice = await choicePromise;
+  await flush();
+  check("FAMILY 봉투가 'pass' 로 resolve", () => assert.equal(choice, "pass"));
+  check("최종 MEMBERSHIP_PASS POST 를 보냄", () => {
+    const passCalls = calls.filter((call) => call.pathname === "/api/billing/coin-gate");
+    assert.equal(passCalls.length, 1);
+    assert.equal(passCalls[0].paymentMode, "MEMBERSHIP_PASS");
+  });
+  check("FAMILY 보유자를 /points 로 보내지 않음", () => assert.deepEqual(storeUrls, []));
+  check("FAMILY 보유자에게 충전 모달을 열지 않음", () => assert.equal(chargeModalCalls, 0));
+}
+
 // ── ③ 미커버면 plan 프리셋으로 상점 화면에 인계하고 복귀 지점을 남긴다(cdco=1 자동 오픈은 2026-09-03 제거) ──
 console.log("\n[3] 이용권 카드 클릭 → 미커버면 /points 로 인계하는가");
 {

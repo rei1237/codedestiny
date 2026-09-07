@@ -48,6 +48,7 @@
 /public/_headers
 /public/ads.txt
 /public/blood-type-app.html
+/public/celestial-harmony.html
 /public/cosmic-soul-meditation.html
 /public/css/entertain-system.css
 /public/css/fortune.css
@@ -61,6 +62,7 @@
 /public/fuctionassets/comprehensive-fortune-prompt.webp
 /public/fuctionassets/자는 연이.png
 /public/fuctionassets/자는 연이.webp
+/public/geomancy-oracle-v4.html
 /public/ifa-oracle-about.html
 /public/index.html
 /public/insights/rss.xml
@@ -166,8 +168,10 @@
 /public/manifest.zh-tw.json
 /public/manifest.zh.json
 /public/myungwun_final.html
+/public/neville-meditation.html
 /public/pet-saju.html
 /public/robots.txt
+/public/royal-tea-oracle.html
 /public/rss.xml
 /public/secret-house_real.html
 /public/service-worker.js
@@ -198,6 +202,7 @@
 /public/tadagochi.html
 /public/tarot-ijik.html
 /public/vedic-astrology.html
+/public/yoga-guru.html
 /public/zh-tw/index.html
 /public/zh/index.html
 # <<< sync:public 생성 미러 <<<

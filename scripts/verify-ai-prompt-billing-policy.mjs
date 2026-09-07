@@ -13,6 +13,7 @@ const billingSource = readFileSync(resolve(root, "worker/routes/billing.js"), "u
 const moonstoneProofSource = readFileSync(resolve(root, "worker/lib/moonstone-spend-proof.js"), "utf8");
 const coinGateSource = readFileSync(resolve(root, "app/hooks/useCoinGate.ts"), "utf8");
 const indexSource = readFileSync(resolve(root, "index.html"), "utf8");
+const destinyProfileSource = readFileSync(resolve(root, "js/destiny-profile.js"), "utf8");
 const sajuEngineSource = readFileSync(resolve(root, "js/saju-engine.js"), "utf8");
 const sajuPromptLibSource = readFileSync(resolve(root, "worker/lib/saju-ai-prompt.js"), "utf8");
 const sukuyoEngineSource = readFileSync(resolve(root, "js/saju-engine-tarot-sukuyo-quantum.js"), "utf8");
@@ -39,6 +40,21 @@ const allPromptRouteSource = [
   ziweiPromptRouteSource,
   sukuyoPromptRouteSource,
 ].join("\n");
+const destinyPassGrantedSource = extractSourceBlock(
+  destinyProfileSource,
+  "function _dpIsMembershipPassGrantedPayload(payload) {",
+  "function _dpPaidPassPayloadTransactionId(payload, fallbackId) {",
+);
+const aiPromptPassPayloadSource = extractSourceBlock(
+  sajuEngineSource,
+  "function _cdAIPromptIsPassPayload(payload, access) {",
+  "/* ── 결제 후 자동 재개 공통 배관",
+);
+const sajuPromptCardSource = extractSourceBlock(
+  sajuEngineSource,
+  "function _buildSajuQuestionPromptHtml() {",
+  "function _mountSajuQuestionPromptCard() {",
+);
 
 const promptFeatures = [
   "saju_ai_prompt_generator",
@@ -176,6 +192,18 @@ assert.match(sajuPromptLibSource, /hiddenStemExposures/, "saju prompt library mu
 assert.match(sajuPromptLibSource, /earthStorageOpenings/, "saju prompt library must retain earth storage opening updates");
 assert.match(sajuEngineSource, /engineContext:\s*_sajuPromptBuildEngineContext\(\)/, "saju prompt payload must retain the current hidden-stem engine context");
 assert.match(sajuEngineSource, /freeBySubscription:\s*evidence\.freeBySubscription/, "saju prompt generation must forward pass evidence");
+assert.match(destinyPassGrantedSource, /value === 'family'/, "standalone paid gate must treat FAMILY pass payloads as membership-pass grants");
+assert.match(destinyPassGrantedSource, /value === 'family_pass'/, "standalone paid gate must treat family_pass payloads as membership-pass grants");
+assert.match(destinyPassGrantedSource, /value === 'license_pass'/, "standalone paid gate must treat license_pass payloads as membership-pass grants");
+assert.match(destinyPassGrantedSource, /value === 'subscription_pass'/, "standalone paid gate must treat subscription_pass payloads as membership-pass grants");
+assert.match(destinyPassGrantedSource, /value === 'pass_applied'/, "standalone paid gate must preserve pass_applied results");
+assert.match(aiPromptPassPayloadSource, /accessType === 'family'/, "AI prompt gate evidence must classify FAMILY accessType as pass evidence");
+assert.match(aiPromptPassPayloadSource, /accessType === 'family_pass'/, "AI prompt gate evidence must classify family_pass as pass evidence");
+assert.match(aiPromptPassPayloadSource, /accessMethod === 'FAMILY'/, "AI prompt gate evidence must classify FAMILY accessMethod as pass evidence");
+assert.match(sajuEngineSource, /freeBySubscription:\s*passAccess \|\|/, "AI prompt gate evidence must mark FAMILY/pass payloads as freeBySubscription before generation POST");
+assert.match(sajuPromptCardSource, /var sajuAiAmountKrw = 20000;/, "saju AI consultation card must derive its displayed price from the existing 20,000 KRW amount");
+assert.match(sajuPromptCardSource, /1회 ' \+ sajuAiPriceLabel/, "saju AI consultation card must show the one-time KRW price");
+assert.match(sajuPromptCardSource, /sajuAiPriceLabel \+ '으로 사주 AI 상담 받기<\/button>'/, "saju AI consultation CTA must show the KRW price");
 assert.match(fortuneSource, /accessDecision\.requestId/, "AI prompt token collection must include accessDecision request evidence");
 assert.match(fortuneSource, /accessDecision\.accessGranted === true/, "AI prompt pass payload must honor granted accessDecision evidence");
 assert.match(fortuneSource, /function readAIPromptRequestId/, "AI prompt routes must share request-id resolution");
