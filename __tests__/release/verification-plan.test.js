@@ -99,7 +99,7 @@ test('all expands CI guards and deduplicates static tests and critical checks', 
     { uses: 'actions/checkout@v4' }, { run: 'npm ci' },
     { run: 'npm run test:node\nnpm run verify:sitemap-drift\nnode scripts/i18n-check.mjs' },
     { run: 'npm run verify:public-mirror-fresh' },
-  ] } } };
+  ] }, critical: { steps: [{ run: 'npm test' }] } } };
   const plan = expandCiGuards(createVerificationPlan(input(['styles/site.css']), { scripts, profile: 'all' }), workflow, scripts);
   assert.equal(plan.steps.filter((step) => step.name === 'test:node').length, 1);
   assert.equal(plan.steps.filter((step) => step.name === 'verify:sitemap-drift').length, 1);
@@ -160,4 +160,33 @@ test('generic app deletion and rename escalate after reading real git statuses',
     git('-c', 'user.email=test@invalid', '-c', 'user.name=test', 'commit', '-m', 'remove');
     assert.equal(createVerificationPlan(collectChanges({ root: dir, base: 'HEAD^', working: false }), { scripts }).tier, 'critical');
   } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
+test('all includes critical static checks, preserves flags, and excludes CI setup', async () => {
+  const { createVerificationPlan, expandCiGuards } = await load();
+  const workflow = { jobs: {
+    guards: { steps: [{ run: 'npm run test:node' }] },
+    critical: { steps: [
+      { name: 'Setup Node', uses: 'actions/setup-node@v4' },
+      { name: 'Install', if: "needs.classify.outputs.runs_critical == 'true'", run: 'npm ci' },
+      { name: 'Notice', if: "needs.classify.outputs.runs_critical != 'true'", run: 'echo skipped' },
+      { name: 'Tests', if: "needs.classify.outputs.runs_critical == 'true'", run: 'npm test' },
+      { name: 'Static deployment contracts', if: "needs.classify.outputs.runs_critical == 'true'", env: { GITHUB_TOKEN: '${{ github.token }}' }, run: '# fixture-only checks\nnpm run verify:deploy-safe\nnpm run verify:deployed-sha -- --self-test\nnode scripts/apply-staging-noindex.mjs --self-test' },
+    ] },
+  } };
+  const initial = createVerificationPlan(input(['styles/site.css']), { scripts, profile: 'all' });
+  const plan = expandCiGuards(initial, workflow, scripts);
+  assert.equal(plan.steps.filter((step) => step.name === 'test:node').length, 1);
+  assert.equal(plan.steps.filter((step) => step.name === 'test:jest').length, 1);
+  assert.ok(plan.steps.some((step) => step.name === 'verify:deployed-sha' && step.args[0] === '--self-test'));
+  assert.ok(plan.steps.some((step) => step.file === 'scripts/apply-staging-noindex.mjs' && step.args[0] === '--self-test'));
+  assert.equal(plan.ciExcludedSteps.length, 3);
+  for (const run of ['npm run verify:deployed-sha', 'node scripts/apply-staging-noindex.mjs', 'npm run deploy:production']) {
+    const unsafe = structuredClone(workflow);
+    unsafe.jobs.critical.steps = [{ run }];
+    assert.throws(() => expandCiGuards(initial, unsafe, scripts), /requires|Unsupported/);
+  }
+  const missing = structuredClone(workflow);
+  delete missing.jobs.critical;
+  assert.throws(() => expandCiGuards(initial, missing, scripts), /Missing CI critical/);
 });

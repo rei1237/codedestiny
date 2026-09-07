@@ -69,28 +69,63 @@ export function criticalSteps(scripts) {
 
 // Reuse the workflow as the static-guard registry. Reject new shell/conditional
 // syntax until the local executor explicitly supports its semantics.
-export function ciGuardSteps(workflow, scripts) {
+function selectCiGuardSteps(workflow, scripts) {
   const job = workflow?.jobs?.guards;
   if (!job?.steps?.length || job.if || job.env) throw new Error("Missing or conditional CI guards job");
   const result = [];
-  for (const step of job.steps) {
-    if (!step.run) continue;
-    if (step.run.trim() === "npm ci") continue;
-    if (step.if || step.env || step.shell || step["working-directory"] || step["continue-on-error"]) throw new Error(`Unsupported CI guard execution settings: ${step.name}`);
-    for (const line of step.run.trim().split(/\r?\n/).map((line) => line.trim()).filter(Boolean)) {
+  const excluded = [];
+  const criticalCondition = "needs.classify.outputs.runs_critical == 'true'";
+  for (const [jobName, current] of [["guards", job], ["critical", workflow.jobs.critical]]) {
+    if (!current) continue;
+    if (current.if || current.env || !current.steps?.length) throw new Error(`Unsupported CI ${jobName} job`);
+    for (const step of current.steps) {
+      if (!step.run) {
+        excluded.push({ job: jobName, name: step.name || step.uses, reason: "CI setup/cache/action; not a local check" });
+        continue;
+      }
+      if (step.run.trim() === "npm ci" || (jobName === "critical" && step.if === "needs.classify.outputs.runs_critical != 'true'" && /^echo /.test(step.run.trim()))) {
+        excluded.push({ job: jobName, name: step.name, reason: "Dependency installation or non-critical notice; not executed locally" });
+        continue;
+      }
+      const supportedCondition = jobName === "critical" ? !step.if || step.if === criticalCondition : !step.if;
+      const tokenOnly = jobName === "critical" && Object.keys(step.env || {}).every((key) => key === "GITHUB_TOKEN");
+      if (!supportedCondition || (step.env && !tokenOnly) || step.shell || step["working-directory"] || step["continue-on-error"]) throw new Error(`Unsupported CI guard execution settings: ${step.name}`);
+      // Token-only workflow metadata is intentionally not inherited locally.
+      for (const line of step.run.trim().split(/\r?\n/).map((line) => line.trim()).filter((line) => line && !line.startsWith("#"))) {
+        if (jobName === "critical" && line === "npm test") {
+          result.push({ kind: "npm", name: "test:jest", args: [] }, { kind: "npm", name: "test:node", args: [] });
+          continue;
+        }
       const npm = /^npm run ([\w:-]+)(?: -- ([\w -]+))?$/.exec(line);
       const node = /^node (scripts\/[\w./-]+\.m?js)(?: ([\w -]+))?$/.exec(line);
-      if (npm && scripts[npm[1]]) result.push({ kind: "npm", name: npm[1], args: npm[2]?.split(/\s+/) || [] });
-      else if (node && !node[1].includes("..")) result.push({ kind: "node", file: node[1], args: node[2]?.split(/\s+/) || [] });
+      if (npm && scripts[npm[1]]) {
+        if (jobName === "critical") {
+          const invocation = `${scripts[npm[1]]} ${npm[2] || ""}`;
+          if (!npm[1].startsWith("verify:") || !/^node scripts\/(?:verify-[\w-]+|deploy-safe|ensure-ads-txt|env-parity)\.mjs(?: [\w -]+)?$/.test(invocation.trim()) || /--(?:live|production|repair)\b/.test(invocation)) throw new Error(`Unsupported local critical command: ${line}`);
+          if (/scripts\/(?:deploy-safe|verify-deployed-sha|verify-pages-worker-parity)\.mjs\b/.test(invocation) && !/--self-test\b/.test(invocation)) throw new Error(`Network/deployment command requires --self-test: ${line}`);
+          if (/scripts\/ensure-ads-txt\.mjs\b/.test(invocation) && !/--check\b/.test(invocation)) throw new Error(`Generated asset command requires --check: ${line}`);
+        }
+        result.push({ kind: "npm", name: npm[1], args: npm[2]?.split(/\s+/) || [] });
+      }
+      else if (node && !node[1].includes("..")) {
+        if (jobName === "critical" && node[2] !== "--self-test") throw new Error(`Direct critical command requires --self-test: ${line}`);
+        result.push({ kind: "node", file: node[1], args: node[2]?.split(/\s+/) || [] });
+      }
       else throw new Error(`Unsupported CI guard command: ${line}`);
+      }
     }
   }
   if (!result.length) throw new Error("CI guards selected no checks");
-  return result;
+  return { steps: result, excluded };
+}
+
+export function ciGuardSteps(workflow, scripts) {
+  return selectCiGuardSteps(workflow, scripts).steps;
 }
 
 export function expandCiGuards(plan, workflow, scripts) {
-  const guards = ciGuardSteps(workflow, scripts);
+  if (!workflow?.jobs?.critical?.steps?.length) throw new Error("Missing CI critical checks job");
+  const { steps: guards, excluded } = selectCiGuardSteps(workflow, scripts);
   // The existing mirror gate requires a committed worktree. Fail before the
   // expensive suites instead of discovering that precondition minutes later.
   const orderedGuards = [
@@ -100,6 +135,7 @@ export function expandCiGuards(plan, workflow, scripts) {
   const seen = new Set();
   return {
     ...plan,
+    ciExcludedSteps: excluded,
     steps: plan.steps.flatMap((step) => step.kind === "ci-static-guards" ? orderedGuards : [step]).filter((step) => {
       const key = JSON.stringify(step);
       if (seen.has(key)) return false;
