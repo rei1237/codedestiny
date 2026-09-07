@@ -334,6 +334,19 @@ describe("Fusion Fortune per-use billing and mock generation", () => {
     expect(validateFusionFortuneGroup(payload, group, { selectedTarotCards: cards })).toMatchObject({ ok: false, issue: "invented_tarot_card" });
   });
 
+  // 실호출 4·5차의 astrology 사고: 한 필드 안에서 같은 문장을 50번 되풀이해 분량을 채웠다.
+  // 교차 섹션 중복 검사도, 전체 검증의 hasRepeatedLongSentence 도 이걸 못 본다.
+  it("rejects a group that pads length by repeating one sentence inside a single field", () => {
+    const group = FUSION_SECTION_GROUP_SPECS.find((item) => item.id === "astrology");
+    const looped = "이 에너지는 당신의 삶을 더욱 풍요롭게 만들어 줄 것입니다.";
+    const payload = buildFusionGroupPayload(group);
+    expect(validateFusionFortuneGroup(payload, group)).toMatchObject({ ok: true });
+    payload.astrologySection.content += ` ${looped} ${looped}`;
+    expect(validateFusionFortuneGroup(payload, group)).toMatchObject({ ok: true });
+    payload.astrologySection.content += ` ${looped}`;
+    expect(validateFusionFortuneGroup(payload, group)).toMatchObject({ ok: false, issue: "repeated_sentence", detail: "astrologySection" });
+  });
+
   it("consumes exactly one ticket and one daily slot only after a valid result", async () => {
     const dateKey = getFusionFortuneDateKey(new Date("2026-08-04T05:00:00.000Z"));
     const store = emptyStore();

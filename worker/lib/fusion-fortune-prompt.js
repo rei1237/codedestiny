@@ -14,7 +14,12 @@ export const FUSION_FORTUNE_LENGTH = Object.freeze({
   // 하한은 "30,000원어치"의 기준선, 상한은 폭주 방지용 완충이다.
   // 🔴 상한을 목표(약 36,000자) 가까이 조이면, 그룹들이 조금씩 더 쓴 정상 결과가 반려돼
   //    결정론 폴백이 유료 결과로 나간다. 완충은 넉넉해야 한다.
-  total: Object.freeze({ min: 30000, max: 46000 }),
+  // 🔴 46,000 → 56,000 (2026-09-06 5차 실호출). 목표 분량 서술자(#1660) 뒤 실측이 51,203자로
+  //    옛 완충을 넘겼고, 하한 미달과 같은 `length` 사유에 묶여 있어 **넘쳤다는 이유로** degraded
+  //    강등 + 품질 저하 고지가 유료 사용자에게 나갔다. 모자란 것과 달리 넘치는 것은 사용자 손해가
+  //    아니므로 완충을 실측 위로 올린다 — 폭주(반복 루프)는 분량 상한이 아니라 그룹 검증의
+  //    `repeated_sentence`(worker/lib/fusion-fortune.js)가 막는다.
+  total: Object.freeze({ min: 30000, max: 56000 }),
   section: 3600,
   executiveSummary: 1400,
   integratedReading: 3600,

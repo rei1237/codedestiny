@@ -677,9 +677,44 @@ function countFusionGroupChars(source, group) {
 }
 
 /**
+ * 한 필드 **안**의 동어반복을 잡는다. 되풀이된 문장을 돌려주고, 없으면 빈 문자열이다.
+ *
+ * 🔴 `hasRepeatedLongSentence` 로는 이걸 못 잡는다 — 그쪽은 섹션마다 Set 으로 중복을 지운 뒤
+ *    **세 섹션 이상**에 걸쳐 나온 문장만 세므로, 한 섹션 안에서 같은 문장을 50번 되풀이해도 1로
+ *    읽는다. 실제로 그 구멍으로 나갔다(2026-09-06 실호출 4·5차 astrology: 같은 문장 블록으로
+ *    16,000자를 채우다 maxOutputTokens 에서 잘려 `parse_failed`). 잘리면 폴백이라도 되지만,
+ *    잘리지 않고 JSON 이 닫히면 **반복 원문이 그대로 유료 배달된다** — 그 구멍을 여기서 막는다.
+ *
+ * 🔴 30자·3회는 실측값이다(2026-09-06 5차 덤프 11건 + 결정론 폴백). 정상 응답과 폴백은 어느
+ *    잣대에서도 한 필드 안 최다 **1회**였고 반복에 빠진 응답만 **50회**라, 바닥과 사고 사이가
+ *    통째로 비어 있다. 🔴 교차 섹션 중복의 잣대(60자)를 그대로 쓰면 **하나도 안 걸린다** —
+ *    되풀이된 문장이 30~37자였다.
+ */
+const FUSION_GROUP_REPEAT_MIN_SENTENCE = 30;
+const FUSION_GROUP_REPEAT_LIMIT = 3;
+
+function fusionGroupRepeatedKey(value, group) {
+  return group.keys.find((key) => {
+    const field = value?.[key];
+    const prose = typeof field === "string" ? field
+      : typeof field?.content === "string" ? field.content
+        : typeof field?.rationale === "string" ? field.rationale : "";
+    const seen = new Map();
+    return prose.split(/(?<=[.!?。！？])\s+/).some((sentence) => {
+      const normalized = sentence.replace(/\s+/g, " ").trim();
+      if (normalized.length < FUSION_GROUP_REPEAT_MIN_SENTENCE) return false;
+      const occurrences = (seen.get(normalized) || 0) + 1;
+      seen.set(normalized, occurrences);
+      return occurrences >= FUSION_GROUP_REPEAT_LIMIT;
+    });
+  }) || "";
+}
+
+/**
  * 그룹 단위 검증. 병합 전에 여기서 걸러야 한 그룹의 잘못 때문에 나머지 세 그룹의 정상
  * 결과까지 버려지지 않는다(전체 검증만 두면 그때는 통째로 폴백이 나간다).
- * 문장 반복(hasRepeatedLongSentence)과 총 분량은 그룹을 가로지르므로 전체 검증이 맡는다.
+ * 총 분량과 **교차 섹션** 반복은 그룹을 가로지르므로 전체 검증이 맡고, 한 필드 **안**의
+ * 동어반복은 여기서 문다(`fusionGroupRepeatedKey`).
  */
 export function validateFusionFortuneGroup(value = {}, group, { birthTimeKnown = true, birthPlaceKnown = true, sensitiveValues = [], selectedTarotCards = [] } = {}) {
   const missing = group.keys.filter((key) => key !== "visualization" && !text(value[key], 200) && !text(value[key]?.content, 200));
@@ -702,6 +737,9 @@ export function validateFusionFortuneGroup(value = {}, group, { birthTimeKnown =
     if (!verdict.ok) return { ok: false, issue: "final_verdict", detail: verdict.reason };
     if (text(value.finalVerdict?.rationale, 50000).length < FUSION_FORTUNE_LENGTH.finalVerdictRationale) return { ok: false, issue: "final_verdict_depth" };
   }
+
+  const repeatedKey = fusionGroupRepeatedKey(value, group);
+  if (repeatedKey) return { ok: false, issue: "repeated_sentence", detail: repeatedKey };
 
   const source = JSON.stringify(value || {});
   if (hasForbiddenPhrase(source)) return { ok: false, issue: "unsafe_phrase" };
@@ -731,6 +769,21 @@ export function callFusionGroupProvider(env, userPrompt, options = {}) {
     baseTokens: maxOutputTokens,
     capTokens: Math.round(maxOutputTokens * 1.3),
   });
+}
+
+/**
+ * 반복으로 반려된 그룹에만 주는 지시.
+ *
+ * 🔴 이 그룹에는 분량 지시(`buildFusionShortfallInstruction`)를 함께 주지 않는다 — 반려된 그룹은
+ *    merged 에 아무것도 없어 "0자로 썼습니다"가 나가는데, 되풀이의 원인이 바로 그 분량 압박이다.
+ *    키별 최소·목표는 스키마 서술자(lengthDirective)가 매 호출에 이미 싣는다.
+ */
+function buildFusionRepeatInstruction() {
+  return [
+    "직전 시도는 같은 문장을 되풀이해 분량을 채우다 반려됐습니다.",
+    "낱말이나 어미만 바꿔 같은 뜻을 다시 쓰는 것도 반복입니다. 문단을 더 쓸 때는 아직 인용하지 않은 서버 확정값을 새로 끌어와 근거를 더하세요.",
+    "새로 댈 근거가 남지 않으면 되풀이하지 말고 그 필드를 거기서 끝내세요.",
+  ].join("\n");
 }
 
 function buildFusionShortfallInstruction(group, currentChars) {
@@ -771,7 +824,7 @@ function fusionSectionProse(source = {}) {
 export function collectFusionCrossSectionDuplicates(source = {}) {
   const seen = new Map();
   for (const [key, prose] of fusionSectionProse(source)) {
-    // 섹션 **안**의 반복은 여기서 세지 않는다 — 그건 전체 검증(hasRepeatedLongSentence)의 몫이다.
+    // 섹션 **안**의 반복은 여기서 세지 않는다 — 그건 그룹 검증(fusionGroupRepeatedKey)의 몫이다.
     const unique = new Set(prose.split(/(?<=[.!?。！？])\s+/).map((sentence) => sentence.replace(/\s+/g, " ").trim()).filter((sentence) => sentence.length >= FUSION_DUPLICATE_MIN_SENTENCE));
     for (const sentence of unique) {
       if (!seen.has(sentence)) seen.set(sentence, []);
@@ -969,11 +1022,14 @@ export async function generateFusionFortuneWithRealLLM({
 
   const merged = {};
   const failedGroups = [];
+  /** 반려 사유별로 보완 지시가 갈린다 — 지금 갈라지는 것은 `repeated_sentence` 하나다. */
+  const failedIssues = new Map();
   const settled = await Promise.allSettled(groups.map((group) => runGroup(group)));
   settled.forEach((outcome, index) => {
     const group = groups[index];
     if (outcome.status !== "fulfilled" || !outcome.value.ok) {
       failedGroups.push(group);
+      failedIssues.set(group, text(outcome.status === "fulfilled" ? outcome.value.issue : "", 80));
       console.warn("[fusion-fortune-group-failed]", { requestId: text(requestId, 120), stage: stageNumber, sectionGroup: group.id, issue: text(outcome.status === "fulfilled" ? outcome.value.issue : outcome.reason?.message, 80), detail: text(outcome.status === "fulfilled" ? outcome.value.detail : "", 120) });
       return;
     }
@@ -1001,7 +1057,8 @@ export async function generateFusionFortuneWithRealLLM({
       // 🔴 분량 지시는 실제로 짧은 그룹에만 준다. 중복만으로 불려 온 그룹에 붙이면 "목표에 크게
       //    못 미칩니다" 가 사실이 아닌 채로 나가 모델이 엉뚱한 곳을 늘린다.
       extraInstruction: [
-        failedGroups.includes(group) || shortGroups.includes(group) ? buildFusionShortfallInstruction(group, countFusionGroupChars(merged, group)) : "",
+        failedIssues.get(group) === "repeated_sentence" ? buildFusionRepeatInstruction()
+          : failedGroups.includes(group) || shortGroups.includes(group) ? buildFusionShortfallInstruction(group, countFusionGroupChars(merged, group)) : "",
         buildFusionDuplicateInstruction(group, duplicates),
         thinGroups.includes(group) ? buildFusionEvidenceInstruction(evidenceTokens.get(group.id)) : "",
       ].filter(Boolean).join("\n\n"),
