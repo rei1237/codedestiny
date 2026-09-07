@@ -4943,9 +4943,13 @@ export default function PointsPage() {
                   <p className="text-xs font-extrabold tracking-[0.22em] text-[#ded4ff] uppercase">
                     연이의 달빛 이용권 상점
                   </p>
-                  <h1 className="mt-0.5 text-[22px] font-black text-white sm:text-3xl leading-tight">
+                  {/* 🔴 h1 이 아니라 h2 다(2026-09-07). 이 블록은 `{false &&}` 로 죽어 있지만
+                      verify:hydrated-h1-integrity 는 파일을 정적으로 읽으므로, 여기 h1 이 남아 있으면
+                      "서버 h1(MoonShopFrame 히어로) + ssr:false 클라이언트 h1" 으로 잡힌다.
+                      /points 의 h1 정본은 app/points/MoonShopFrame.tsx 의 MoonlightShopHero 하나다. */}
+                  <h2 className="mt-0.5 text-[22px] font-black text-white sm:text-3xl leading-tight">
                     연이의 달빛 이용권 상점
-                  </h1>
+                  </h2>
                   <p className="mt-2 text-[15px] leading-relaxed text-slate-100">
                     달빛 이용권 상품과 원화 결제 조건을 한 화면에서 확인하세요.
                   </p>
