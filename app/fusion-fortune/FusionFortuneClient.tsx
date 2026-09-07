@@ -2016,6 +2016,9 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
   const runGenerationRef = useRef<((requestId: string, requestBody: FusionRequestBody, startStage: 1 | 2, fortuneChatSessionId: string) => Promise<void>) | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const threadRef = useRef<HTMLElement>(null);
+  const heroRef = useRef<HTMLElement>(null);
+  /** 상시 주문 바 — 히어로와 폼이 **둘 다** 화면 밖일 때만 뜬다(둘 중 하나가 보이면 CTA 가 겹친다). */
+  const [orderBarVisible, setOrderBarVisible] = useState(false);
   const [guardianHandoff, setGuardianHandoff] = useState<{ topic: string; category: string } | null>(null);
   const [form, setForm] = useState({ birthDate: "", birthTime: "", birthTimeUnknown: false, birthPlaceKey: "", calendarType: "solar", gender: "unspecified", nickname: "", topic: "삶의 전반적인 흐름", concern: "" });
   /** 보관본 — 재열람 목록과 지금 화면에 열린 보관본 id. */
@@ -2583,6 +2586,30 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
   // 사용자는 일반적인 이름의 버튼을 누른 뒤에야 결제창에서 금액을 처음 본다. 재개·로그인·
   // 진행 중 상태는 결제가 아니므로 붙이지 않는다(재개는 추가 결제가 없다).
   const showSubmitPrice = !loading && !isPaying && status.nextAction !== "login" && !pendingPaidRequest;
+  /**
+   * 상시 주문 바의 가시성.
+   *
+   * 왜 있는가: 이 페이지는 히어로 -> 상담 흐름 -> 가치 -> 폼으로 길다. 예전에는 결제로 가는
+   * 진입점이 히어로 CTA 와 폼 맨 아래 두 곳뿐이라, 스크롤의 대부분(가치 섹션 전체)에서
+   * 화면에 살아 있는 행동이 하나도 없었다. 히어로와 폼이 **둘 다** 화면 밖일 때만 띄운다 —
+   * 둘 중 하나라도 보이면 그 자리에 이미 CTA 가 있어 같은 행동이 두 번 겹친다.
+   */
+  useEffect(() => {
+    const hero = heroRef.current;
+    const formNode = formRef.current;
+    if (!hero || !formNode || typeof IntersectionObserver === "undefined") return;
+    const seen = { hero: true, form: false };
+    const observer = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.target === hero) seen.hero = entry.isIntersecting;
+        if (entry.target === formNode) seen.form = entry.isIntersecting;
+      }
+      setOrderBarVisible(!seen.hero && !seen.form);
+    });
+    observer.observe(hero);
+    observer.observe(formNode);
+    return () => observer.disconnect();
+  }, []);
   const toggleSection = (key: string) => setOpenSection((current) => current === key ? "" : key);
   const completedStageCount = useMemo(
     () => fusionStages.filter((stage) => stage.key !== "fusion" && stageStates[stage.key] === "completed").length,
@@ -2608,7 +2635,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
       <button type="button" onClick={leaveExperience}>{copy.navBack}</button>
       <Link href="/#fortuneGatewayEntry">{copy.navHome}</Link>
     </nav>
-    <section className={styles.hero}>
+    <section ref={heroRef} className={styles.hero}>
       <Image className={styles.heroImage} src="/images/fusion-fortune/fusion-guardian-celestial-hero.webp" alt="" fill priority sizes="(max-width: 720px) 100vw, 1080px" />
       <div className={styles.heroVeil} />
       <div className={styles.heroCopy}>
@@ -2638,11 +2665,16 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
             <strong>{orb.label}</strong>
           </li>
         ))}
-        <li className={styles.readingFlowFinal}>
-          <strong>{copy.readingFlowFinalTitle}</strong>
-          <span>{copy.readingFlowFinalDesc}</span>
-        </li>
       </ol>
+      {/* 여섯 갈래가 하나로 좁아지는 깔때기. 이 상품이 파는 것이 정확히 이 수렴이라, 목록으로
+          나열하는 대신 형태로 보여 준다. 순수 장식이므로 접근성 트리에서 뺀다. */}
+      <div aria-hidden className={styles.readingFlowMerge}>
+        {FUSION_ORBS.map((orb) => <i key={orb.key} style={{ "--tint": orb.tint } as React.CSSProperties} />)}
+      </div>
+      <div className={styles.readingFlowFinal}>
+        <strong>{copy.readingFlowFinalTitle}</strong>
+        <span>{copy.readingFlowFinalDesc}</span>
+      </div>
     </section>
 
     <FusionRecentList items={recentList} activeId={openedConsultationId} busyId={reopeningId} onOpen={(id) => void openConsultation(id)} />
@@ -2691,6 +2723,16 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
           <p className={styles.error} role="alert">{error}</p>
           {statusUnavailable && <button type="button" className={styles.profileReload} onClick={() => { setError(""); void refresh(); }}>{copy.statusRetryCta}</button>}
         </div>}
+        {/* 결제를 누르는 자리에서 "무엇을 받는가" 를 한 번 더 못박는다. 히어로 CTA 가 가치
+            섹션을 통째로 건너뛰어 이 폼으로 점프하기 때문에, 이 카드가 없으면 상당수가
+            금액만 보고 버튼을 누른다. 문구는 이 화면이 이미 쓰는 키를 그대로 재사용한다 —
+            11개 로케일에 새 키를 늘리지 않기 위해서다. */}
+        <ul className={`${styles.wide} ${styles.orderSummary}`}>
+          <li>{copy.statusScopeValue}</li>
+          <li>{copy.readingFlowFinalTitle} — {copy.readingFlowFinalDesc}</li>
+          <li>{copy.heroSaveNote}</li>
+          <li>{copy.statusMethodNote}</li>
+        </ul>
         <button disabled={loading || isPaying || status.nextAction === "disabled"} type="submit">
           <span>{buttonLabel}</span>
           {showSubmitPrice && <PriceBadge featureKey={PAID_FEATURE_KEY} fallbackLabel={copy.heroPriceFallback} prefix={copy.heroPricePrefix} className={styles.submitPrice} />}
@@ -2833,6 +2875,11 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
           </>}
       </footer>}
     </section>}
+    {/* 생성 중이거나 결과가 떠 있으면 띄우지 않는다 — 그때 화면 아래는 결과 도킹 바의 자리다. */}
+    {!loading && !result && !failure && <div className={styles.orderBar} data-visible={orderBarVisible ? "true" : "false"}>
+      <PriceBadge featureKey={PAID_FEATURE_KEY} fallbackLabel={copy.heroPriceFallback} prefix={copy.heroPricePrefix} className={styles.orderBarPrice} />
+      <a className={styles.orderBarCta} href="#fusion-form">{copy.heroFormCta}</a>
+    </div>}
     <dialog ref={coreDialogRef} className={styles.coreDialog} aria-labelledby="fusion-core-dialog-title">
       <form method="dialog"><button className={styles.dialogClose} aria-label={copy.dialogCloseAria}>{copy.dialogCloseLabel}</button></form>
       <p className={styles.kicker}>{copy.dialogKicker}</p><h2 id="fusion-core-dialog-title">{copy.dialogHeading}</h2>

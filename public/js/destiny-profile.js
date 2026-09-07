@@ -5966,6 +5966,10 @@
               featureKey: normalizedFeatureKey || undefined,
               requestId: requestId,
               forceDirectPayment: true,
+              // 🔴 모바일 PortOne 리다이렉트는 이 프레임을 통째로 날린다 — 본선(_cdOpenPaidServiceGate)
+              //    과 같은 재개 서술자를 여기서도 실어야 복귀 문서가 기능을 다시 연다. 이 폴백만
+              //    빠져 있어서 결제 모듈만 있고 게이트가 없는 문서에서는 복귀가 홈으로 떨어졌다.
+              resume: optionBag.resume,
               internalMainGate: true,
               __cdPaymentGateAuthorized: true,
               __cdDirectPaymentChoiceConfirmed: true,
@@ -12877,6 +12881,9 @@
         featureKey: normalizedFeatureKey,
         requestId: requestId,
         forceDirectPayment: true,
+        // 🔴 위 폴백과 같은 이유로 재개 서술자를 싣는다 — 같은 optionBag 을 쓰는 길이 둘이라
+        //    한쪽만 실으면 어느 문서에서 결제했느냐에 따라 복귀가 갈린다.
+        resume: optionBag.resume,
         internalMainGate: true,
         __cdPaymentGateAuthorized: true,
         __cdDirectPaymentChoiceConfirmed: true,
