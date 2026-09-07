@@ -3758,6 +3758,17 @@
       "birthLabel": "Tarikh dan masa lahir rakan kongsi",
       "runCta": "Analisis keserasian"
     },
+    "relFlow": {
+      "title": "Pratonton aliran hubungan",
+      "freeBadge": "Percuma",
+      "empty": "Masukkan nama dan tarikh lahir pasangan untuk melihat aliran hubungan.",
+      "ziweiLabel": "Zi Wei Dou Shu Lite",
+      "astroLabel": "Astrologi Lite",
+      "strengthsTitle": "Yang mengalir lancar",
+      "cautionsTitle": "Yang perlu diselaraskan",
+      "tipsTitle": "Langkah kecil",
+      "diaryLink": "Cari hari baik dalam «Lihat bersama» diari →"
+    },
     "funCards": {
       "celebTitle": "Selebriti manakah kembar jiwa saya?",
       "fourCutTitle": "Saju empat potong: penapis takdir",

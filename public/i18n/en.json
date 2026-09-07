@@ -3758,6 +3758,17 @@
       "birthLabel": "Partner birth date and time",
       "runCta": "Analyze compatibility"
     },
+    "relFlow": {
+      "title": "Relationship flow preview",
+      "freeBadge": "Free",
+      "empty": "Enter your partner's name and birth date to see the relationship flow.",
+      "ziweiLabel": "Zi Wei Dou Shu Lite",
+      "astroLabel": "Astrology Lite",
+      "strengthsTitle": "Easy flow",
+      "cautionsTitle": "Worth adjusting",
+      "tipsTitle": "Small actions",
+      "diaryLink": "Find good days in the diary's Together view →"
+    },
     "funCards": {
       "celebTitle": "Which celebrity is my soul twin?",
       "fourCutTitle": "Saju four-cut: destiny filter",

@@ -2505,13 +2505,16 @@ __cdInstallSajuActionStub('runCompat');
 __cdInstallSajuActionStub('setGender');
 __cdInstallSajuActionStub('openAnimalDestinyRoute');
 __cdInstallSajuActionStub('openDestinyMeetingPlaceRoute');
+// 2026-09-07 컷오버(PR-J): 다이어리 진입점을 셸 모달에서 /diary 앱으로 돌린다.
+// 호출자 5곳(진입 카드·서비스 레지스트리·리포트 대시보드·백스택 서브액션·아래 레거시 쿼리)이
+// 전부 이 액션 이름을 경유하므로 바뀌는 것은 이 본문 하나다. 롤백은 PR revert.
+// 🔴 js/luck-sync-diary.js 는 지우지 않았다 — 진입점만 옮겼고 파일은 그대로 남는다.
 window.openFortunePlanner = function() {
-  return __cdLoadScriptOnce('/js/luck-sync-diary.js?v=build-51d460b55d2a').then(function() {
-    if (window.LuckSyncDiary && typeof window.LuckSyncDiary.open === 'function') return window.LuckSyncDiary.open();
-    throw new Error('fortune planner is unavailable');
-  }).catch(function(err) {
-    console.error('[index-inline-runtime] fortune planner open failed:', err);
-  });
+  try {
+    location.assign('/diary/');
+  } catch (err) {
+    console.error('[index-inline-runtime] diary open failed:', err);
+  }
 };
 window.openLuckSyncDiary = window.openFortunePlanner;
 (function openFortunePlannerFromLegacyRoute() {

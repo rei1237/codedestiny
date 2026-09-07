@@ -3758,6 +3758,17 @@
       "birthLabel": "Ngày và giờ sinh của đối tác",
       "runCta": "Phân tích tính tương thích"
     },
+    "relFlow": {
+      "title": "Xem trước dòng chảy mối quan hệ",
+      "freeBadge": "Miễn phí",
+      "empty": "Nhập tên và ngày sinh của đối phương để xem dòng chảy mối quan hệ.",
+      "ziweiLabel": "Zi Wei Dou Shu Lite",
+      "astroLabel": "Chiêm tinh Lite",
+      "strengthsTitle": "Điều thuận lợi",
+      "cautionsTitle": "Điều cần điều chỉnh",
+      "tipsTitle": "Hành động nhỏ",
+      "diaryLink": "Xem ngày tốt ở mục «Cùng xem» trong nhật ký →"
+    },
     "funCards": {
       "celebTitle": "Người nổi tiếng nào là người song sinh tâm hồn của tôi?",
       "fourCutTitle": "Saju tứ sắc: bộ lọc định mệnh",

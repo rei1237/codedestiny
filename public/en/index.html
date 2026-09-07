@@ -19977,6 +19977,34 @@ return you.name.restore();</span>
               <select class="inp" id="compatBirthMinute"></select>
             </div>
           </div>
+          <!-- 관계 흐름 미리보기 — 2026-09-07 셸 다이어리 모달(js/luck-sync-diary.js #lsdCompatResult)에서 이설(PR-J).
+               🔴 이 블록은 5,000원 게이트 **밖**이다. 셸에서 무료였던 것을 유료 뒤로 옮기지 않는다.
+                  게이트는 아래 #compatRunBtn → runCompat() 의 _cdCoinGatePerUse(50, …) 한 지점뿐이고,
+                  이 블록은 이용권·코인 판정을 전혀 하지 않는다(카드 주문 직전 재검사 금지 — CLAUDE.md 결제 게이팅 3).
+               채우는 쪽은 js/saju-engine.js 의 renderRelFlowLite() 이고, 입력은 위 궁합 폼을 그대로 재사용한다. -->
+          <div id="relFlowLite" class="relflow" style="display:none">
+            <div class="relflow__head">
+              <h4 class="relflow__title" data-cd-trans data-key="result.relFlow.title">관계 흐름 미리보기</h4>
+              <span class="relflow__free" data-cd-trans data-key="result.relFlow.freeBadge">무료</span>
+            </div>
+            <div class="relflow__empty" id="relFlowLiteEmpty" data-cd-trans data-key="result.relFlow.empty">상대 이름과 생년월일을 입력하면 관계 흐름을 정리합니다.</div>
+            <div class="relflow__body" id="relFlowLiteBody" style="display:none">
+              <div class="relflow__scores" id="relFlowLiteScores">
+                <div class="relflow__score" id="relFlowLiteZiwei" style="display:none"><span class="lab" data-cd-trans data-key="result.relFlow.ziweiLabel">자미두수 Lite</span><span class="val"></span></div>
+                <div class="relflow__score" id="relFlowLiteAstro" style="display:none"><span class="lab" data-cd-trans data-key="result.relFlow.astroLabel">점성 Lite</span><span class="val"></span></div>
+              </div>
+              <p class="relflow__vibe" id="relFlowLiteVibe"></p>
+              <div class="relflow__cols">
+                <div class="relflow__col"><h5 data-cd-trans data-key="result.relFlow.strengthsTitle">부드러운 흐름</h5><ul id="relFlowLiteStrengths"></ul></div>
+                <div class="relflow__col"><h5 data-cd-trans data-key="result.relFlow.cautionsTitle">조율할 점</h5><ul id="relFlowLiteCautions"></ul></div>
+                <div class="relflow__col"><h5 data-cd-trans data-key="result.relFlow.tipsTitle">작은 실천</h5><ul id="relFlowLiteTips"></ul></div>
+              </div>
+              <div class="relflow__foot">
+                <span id="relFlowLiteBasis"></span>
+                <a href="/diary/more/" data-cd-trans data-key="result.relFlow.diaryLink">좋은 날은 다이어리 함께 보기에서 →</a>
+              </div>
+            </div>
+          </div>
           <button id="compatRunBtn" class="btn-sub btn-sub-mt4" data-action="runCompat" data-cd-trans data-key="result.compat.runCta">💗 궁합 분석하기</button>
           <div id="compatResult" class="compat-result-wrap"></div>
           <div id="compatLlmHost" class="compat-llm-root"></div>

@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 // (app/saju/lifebook/page.js 와 같은 처리를 따른다).
 export const metadata = {
   title: "운세 플래너 | Code Destiny",
-  description: "운세 플래너는 홈 화면 안에서 열립니다. 이 주소는 예전 북마크를 위한 연결 경로입니다.",
+  description: "운세 플래너는 운기 다이어리로 이어집니다. 이 주소는 예전 북마크를 위한 연결 경로입니다.",
   // 🔴 canonical 을 다시 넣지 말 것 (2026-08-27 제거).
   //    이 라우트는 noindex 다. noindex 와 '다른 URL 을 가리키는 canonical' 을 함께 두는 것은
   //    Google 이 권하지 않는 조합이고(Search Central, Consolidate duplicate URLs),
@@ -22,5 +22,5 @@ export const metadata = {
 };
 
 export default function FortunePlannerPage() {
-  redirect("/?fortunePlanner=1");
+  redirect("/diary/");
 }

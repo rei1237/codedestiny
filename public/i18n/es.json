@@ -3758,6 +3758,17 @@
       "birthLabel": "Fecha y hora de nacimiento de la pareja",
       "runCta": "Analizar compatibilidad"
     },
+    "relFlow": {
+      "title": "Vista previa del flujo de la relación",
+      "freeBadge": "Gratis",
+      "empty": "Introduce el nombre y la fecha de nacimiento de la otra persona para ver el flujo de la relación.",
+      "ziweiLabel": "Zi Wei Dou Shu Lite",
+      "astroLabel": "Astrología Lite",
+      "strengthsTitle": "Lo que fluye",
+      "cautionsTitle": "Lo que hay que ajustar",
+      "tipsTitle": "Pequeñas acciones",
+      "diaryLink": "Encuentra los buenos días en «Ver juntos» del diario →"
+    },
     "funCards": {
       "celebTitle": "¿Qué celebridad es mi alma gemela?",
       "fourCutTitle": "Saju cuatro cortes: filtro de destino",

@@ -151,6 +151,14 @@ function _safeBootstrapSajuFlow() {
     console.error('[saju-bootstrap] populateCelebList 실패:', eCeleb);
   }
 
+  try {
+    if (typeof _cdInitRelFlowLite === 'function') {
+      _cdInitRelFlowLite();
+    }
+  } catch (eRelFlow) {
+    console.error('[saju-bootstrap] _cdInitRelFlowLite 실패:', eRelFlow);
+  }
+
   _ensureFormFieldsReady();
   _unlockCoreBirthInputsAfterBootstrapError();
 

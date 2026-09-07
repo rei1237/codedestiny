@@ -3758,6 +3758,17 @@
       "birthLabel": "對方出生日期與時間",
       "runCta": "分析合盤"
     },
+    "relFlow": {
+      "title": "關係流勢預覽",
+      "freeBadge": "免費",
+      "empty": "輸入對方姓名與出生日期後，將為你梳理關係流勢。",
+      "ziweiLabel": "紫微斗數 Lite",
+      "astroLabel": "占星 Lite",
+      "strengthsTitle": "順暢之處",
+      "cautionsTitle": "需要磨合",
+      "tipsTitle": "小小實踐",
+      "diaryLink": "好日子請見日記的「一起看」→"
+    },
     "funCards": {
       "celebTitle": "哪位名人是我的靈魂雙胞胎？",
       "fourCutTitle": "Saju 四切：命運過濾器",
