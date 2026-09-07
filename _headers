@@ -348,6 +348,12 @@
   CDN-Cache-Control: public, max-age=604800
   Cloudflare-CDN-Cache-Control: public, max-age=604800
 
+# 배포 산출물에서 내용 해시로 생성한 셸 CSS. 위의 /css/*.css보다 뒤에 두어야 immutable이 이긴다.
+/css/shell/*.css
+  Cache-Control: public, max-age=31536000, immutable
+  CDN-Cache-Control: public, max-age=31536000, immutable
+  Cloudflare-CDN-Cache-Control: public, max-age=31536000, immutable
+
 # Fixed-name assets: short edge cache
 /icons/*
   Cache-Control: public, max-age=604800, stale-while-revalidate=2592000
