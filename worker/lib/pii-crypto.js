@@ -1,5 +1,5 @@
 /**
- * 개인정보 필드 암호화 (AES-256-GCM) — 현재 대상은 User.phoneNumber 하나뿐이다.
+ * 개인정보 필드 암호화 (AES-256-GCM) — User.phoneNumber와 주문의 paid resume 입력.
  *
  * 저장 포맷: `v1:<iv_b64>:<ciphertext_b64>` — 레코드마다 12바이트 랜덤 IV.
  * 키는 Cloudflare Secret `PII_ENC_KEY`(base64 32바이트). 소스 하드코딩·`NEXT_PUBLIC_` 금지.
@@ -7,7 +7,8 @@
  * 🔴 해시가 아니라 가역 암호화인 이유: PortOne/이니시스 결제창이 구매자 휴대폰 번호 **평문**을
  * 요구한다(worker/routes/payments.js buildSinglePaymentCustomer → customer.phoneNumber).
  *
- * 🔴 decrypt 는 프리픽스가 없으면 평문으로 간주해 그대로 통과시킨다(하위호환 읽기).
+ * 🔴 전화번호 decrypt 는 프리픽스가 없으면 평문으로 간주한다(하위호환 읽기).
+ * resume 입력에는 별도 봉투와 주문 바인딩을 쓰며 평문 폴백은 허용하지 않는다.
  * 이게 없으면 마이그레이션 전 기존 회원의 단건 결제가 전부 막힌다.
  *
  * 🔴 같은 번호끼리 비교하는 수단은 일부러 두지 않는다 — IV 가 레코드마다 랜덤이라 봉투로는
@@ -69,6 +70,30 @@ async function getEncryptionKey(env) {
 
 export function isEncryptedPiiValue(value) {
   return String(value || "").startsWith(ENVELOPE_PREFIX);
+}
+
+/** 결제 복구 입력용 봉투. 계정/요청 binding이 다르면 복호화할 수 없다. 평문 폴백 금지. */
+export async function encryptResumePayload(value, binding, env) {
+  const key = await getEncryptionKey(env);
+  const iv = crypto.getRandomValues(new Uint8Array(IV_BYTE_LENGTH));
+  const encrypted = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv, additionalData: new TextEncoder().encode(`paid-resume:${binding}`) },
+    key,
+    new TextEncoder().encode(JSON.stringify(value)),
+  );
+  return `resume-v1:${bytesToBase64(iv)}:${bytesToBase64(encrypted)}`;
+}
+
+export async function decryptResumePayload(value, binding, env) {
+  const [version, iv, encrypted] = String(value || "").split(":");
+  if (version !== "resume-v1" || !iv || !encrypted) throw new Error("resume_payload_invalid");
+  const key = await getEncryptionKey(env);
+  const plain = await crypto.subtle.decrypt(
+    { name: "AES-GCM", iv: base64ToBytes(iv), additionalData: new TextEncoder().encode(`paid-resume:${binding}`) },
+    key,
+    base64ToBytes(encrypted),
+  );
+  return JSON.parse(new TextDecoder().decode(plain));
 }
 
 /**

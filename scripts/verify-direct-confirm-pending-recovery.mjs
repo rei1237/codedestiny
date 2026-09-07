@@ -174,11 +174,12 @@ for (const file of ["js/destiny-profile.js", "public/js/destiny-profile.js"]) {
       && !resumePendingBranch.includes("refreshUserAccessAfterPayment"),
     `${file}: PENDING 분기는 티켓·URL 을 남겨 새로고침이 멱등 재시도가 되게 하고 access 갱신도 하지 않는다`,
   );
-  const successClearAt = resume.lastIndexOf("_dpClearDirectResumeTicket()");
   const accessRefreshAt = resume.indexOf("refreshUserAccessAfterPayment");
+  const confirmAt = resume.indexOf("var confirmRes = await _dpPaymentFetchJson(");
   assert.ok(
-    accessRefreshAt > successClearAt && successClearAt >= 0,
-    `${file}: 복귀 성공 뒤 access-state 60초 스냅샷 무효화(refreshUserAccessAfterPayment)가 티켓 회수 뒤에 있어야 한다 — 없으면 방금 산 기능이 최대 60초 잠긴 채 보인다`,
+    accessRefreshAt > confirmAt && confirmAt >= 0
+      && !resumePendingBranch.includes("refreshUserAccessAfterPayment"),
+    `${file}: 승인 확인 뒤 access-state 60초 스냅샷을 무효화해야 한다. 자동 재개 실패에도 방금 산 기능이 잠기지 않아야 하며, GRANT_PENDING 중에는 갱신하면 안 된다`,
   );
   assert.ok(resume.includes("_dpStripDirectResumeQuery()"), `${file}: 복귀 성공·실패 뒤 PG 파라미터를 URL 에서 걷어내야 새로고침 재실행이 없다`);
   assert.ok(

@@ -6031,7 +6031,7 @@ function _seRunSajuAiPromptResume(descriptor, grant) {
     return typeof window._sajuAiPromptResumeCore === 'function';
   }, _SE_RESUME_WAIT_MS).then(function(ready) {
     if (!ready) return false;
-    return window._sajuAiPromptResumeCore(String(args.question), String(args.domain || ''), evidence) !== false;
+    return Promise.resolve(window._sajuAiPromptResumeCore(String(args.question), String(args.domain || ''), evidence)).then(function(completed) { return completed === true; });
   });
 }
 
@@ -6043,7 +6043,7 @@ function _seRunAstroAiPromptResume(descriptor, grant) {
     return typeof window._astroAiPromptResumeCore === 'function';
   }, _SE_RESUME_WAIT_MS).then(function(ready) {
     if (!ready) return false;
-    return window._astroAiPromptResumeCore(String(args.question), evidence) !== false;
+    return Promise.resolve(window._astroAiPromptResumeCore(String(args.question), evidence)).then(function(completed) { return completed === true; });
   });
 }
 
@@ -6055,7 +6055,7 @@ function _seRunZiweiAiPromptResume(descriptor, grant) {
     return typeof window._zwAiPromptResumeCore === 'function';
   }, _SE_RESUME_WAIT_MS).then(function(ready) {
     if (!ready) return false;
-    return window._zwAiPromptResumeCore(String(args.question), evidence) !== false;
+    return Promise.resolve(window._zwAiPromptResumeCore(String(args.question), evidence)).then(function(completed) { return completed === true; });
   });
 }
 
@@ -7719,6 +7719,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
   var accessConfirmed = false;
   var activePendingJob = null;
   var currentResultPayload = null;
+  var paidResumeDone = null;
 
   function requestKey(question, domain) {
     return String(question || '').trim() + '::' + String(domain || '').trim();
@@ -7834,6 +7835,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
   }
   function setLoading(next) {
     isLoading = !!next;
+    if (!isLoading && paidResumeDone) { paidResumeDone(false); paidResumeDone = null; }
     inputEl.disabled = isLoading;
     generateBtn.disabled = isLoading;
     regenerateBtn.disabled = isLoading;
@@ -7927,6 +7929,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
     var resultText = String(payload && payload.resultText || '').trim();
     if (!resultText) return false;
     renderResult(payload);
+    if (paidResumeDone) { paidResumeDone(true); paidResumeDone = null; }
     regenerateBtn.style.display = 'inline-flex';
     regenerateBtn.textContent = '다시 상담 받기';
     setProgress(100, '결과 준비 완료', true);
@@ -8128,9 +8131,9 @@ function _bindSajuQuestionPromptCard(rootEl) {
       if (code === 'PAYMENT_REQUIRED' || code === 'INSUFFICIENT_COINS' || result.status === 402) {
         // 게이트를 통과해 결제가 끝난 뒤의 402 는 '미결제'가 아니라 서버가 방금 받은 결제를 못 찾은 것이다.
         // 여기서 증거를 버리면 다음 클릭이 결제창을 새로 열어 같은 상담에 두 번 결제한다(아래 5xx 분기와 같은 사고).
-        // 다만 보관된 증거로 재시도했는데 또 402 면 그 증거가 실제로 유효하지 않은 것이므로 놓아준다 —
-        // 그래야 사용자가 결제창을 다시 열 길이 남는다.
-        if (result._sajuPaidEvidence && !reusePaidEvidence) {
+        // 반복 402도 환불의 증거가 아니다. 같은 요청의 권한을 서버에서 재확인하며,
+        // 환불 확인 없이 재결제 경로로 바꾸지 않는다.
+        if (result._sajuPaidEvidence && payload.refundOk !== true) {
           rememberPendingJob(Object.assign({}, activePendingJob || {}, {
             requestId: payload.requestId || (activePendingJob && activePendingJob.requestId),
             profileId: (activePendingJob && activePendingJob.profileId) || _sajuPromptResolveProfileId(),
@@ -8278,9 +8281,9 @@ function _bindSajuQuestionPromptCard(rootEl) {
      분기를 그대로 타게 한다 — 리다이렉트로 프레임이 죽으면 onPaidEvidence 가 못 돌아 대기 작업이
      애초에 저장되지 않으므로, 그 복원만으로는 이 구멍이 안 메워진다(원칙 6). */
   window._sajuAiPromptResumeCore = function(question, domain, evidence) {
-    if (!evidence) return false;
+    if (!evidence || isLoading) return false;
     var q = String(question || '');
-    if (!q) return false;
+    if (q.trim().length < 5) return false;
     inputEl.value = q;
     if (domain) {
       var domainEl = rootEl.querySelector('[data-saju-ai-domain][value="' + String(domain).replace(/"/g, '\\"') + '"]');
@@ -8289,8 +8292,11 @@ function _bindSajuQuestionPromptCard(rootEl) {
     updateCount();
     lastPaidEvidence = evidence;
     lastPaidEvidenceKey = requestKey(q, _sajuPromptReadDomain(rootEl));
-    handleGenerate();
-    return true;
+    return new Promise(function(resolve) {
+      paidResumeDone = resolve;
+      handleGenerate();
+      if (!isLoading && paidResumeDone) { paidResumeDone(false); paidResumeDone = null; }
+    });
   };
 
   var currentProfileId = _sajuPromptResolveProfileId();
@@ -14265,6 +14271,7 @@ function renderAstroInsightLegacyNeon() {
       if (!inputEl || !countEl || !generateBtn || !copyBtn || !statusEl || !outputWrap || !outputEl || !typeEl) return;
 
       var inFlight = false;
+      var paidResumeDone = null;
       var astroEvidenceStore = _cdAIPromptEvidenceStore();
       // 생성 성공 시에만 올린다. 실패 재시도는 같은 requestId(재결제 없음), 성공 후 재요청은 새 결제.
       var astroRequestEpoch = 0;
@@ -14273,6 +14280,7 @@ function renderAstroInsightLegacyNeon() {
 
       function setLoading(nextLoading) {
         inFlight = !!nextLoading;
+        if (!inFlight && paidResumeDone) { paidResumeDone(false); paidResumeDone = null; }
         generateBtn.disabled = inFlight;
         inputEl.disabled = inFlight;
         generateBtn.style.opacity = inFlight ? '0.72' : '1';
@@ -14305,8 +14313,11 @@ function renderAstroInsightLegacyNeon() {
           astroRequestEpoch
         ]);
         astroEvidenceStore.set(resumeRequestId, evidence);
-        generateBtn.click();
-        return true;
+        return new Promise(function(resolve) {
+          paidResumeDone = resolve;
+          generateBtn.click();
+          if (!inFlight && paidResumeDone) { paidResumeDone(false); paidResumeDone = null; }
+        });
       };
 
       generateBtn.addEventListener('click', function() {
@@ -14370,6 +14381,7 @@ function renderAstroInsightLegacyNeon() {
             astroEvidenceStore.clear();
             astroRetryFree = false;
             astroRequestEpoch += 1;
+            if (resultText && paidResumeDone) { paidResumeDone(true); paidResumeDone = null; }
 
             _astroSetPromptStatus(
               statusEl,
@@ -21705,7 +21717,7 @@ function renderZiwei(p, natal, targetId) {
             return postWithEvidence(_cdAIPromptGateEvidence(gateResult));
           }));
 
-      promptRequest.then(function(result) {
+      return promptRequest.then(function(result) {
         var payload = result.payload || {};
         var resultText = String(payload.resultText || '').trim();
         var bonusPrompt = String(payload.generatedPrompt || payload.prompt || '').trim();
@@ -21736,7 +21748,7 @@ function renderZiwei(p, natal, targetId) {
               : 'AI 상담이 완성되었습니다.',
             'success'
           );
-          return;
+          return Boolean(resultText);
         }
 
         var code = String(payload.code || '').trim();
@@ -21797,8 +21809,7 @@ function renderZiwei(p, natal, targetId) {
       if (!evidence) return false;
       questionEl.value = String(question || '');
       updateCount();
-      handleGenerate({ paidEvidence: evidence });
-      return true;
+      return handleGenerate({ paidEvidence: evidence });
     };
 
     generateBtn.addEventListener('click', handleGenerate);

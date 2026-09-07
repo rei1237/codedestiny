@@ -133,15 +133,16 @@ export default function MuhurtaClient() {
       const { data, status, transient } = await postPaidBody(ENDPOINT, {
         ...paid.birth, purpose: paid.purpose, startDate: paid.startDate, requestId: paid.requestId,
       });
-      if (data.ok && data.report) { setReport(data.report as MuhurtaReport); setCanRetry(false); return; }
-      if (status === 401) { setError(copy.loginRequiredMessage); setCanRetry(true); return; }
+      if (data.ok && data.report) { setReport(data.report as MuhurtaReport); setCanRetry(false); return true; }
+      if (status === 401) { setError(copy.loginRequiredMessage); setCanRetry(true); return false; }
       if (transient) {
         setError(copy.connectionUnstableRetryMessage);
         setCanRetry(true);
-        return;
+        return false;
       }
       setError(String(data.message || copy.muhurtaFailedMessage));
       setCanRetry(true);
+      return false;
     } finally {
       setLoading(false);
     }
@@ -165,8 +166,8 @@ export default function MuhurtaClient() {
       startDate: String(args.startDate || todayKst()),
       requestId,
     };
-    void fetchReport(paidRef.current);
-    return true;
+    setBirth(restored);
+    return fetchReport(paidRef.current);
   });
 
   const run = useCallback(async () => {
