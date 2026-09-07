@@ -1418,7 +1418,9 @@
       "stonehenge-runes": "Baca jalan yang dilalui dan mendatang dari takhta tiga Norn"
     },
     "svcFinder": {
-      "go": "Lihat →"
+      "go": "Lihat →",
+      "profileHeading": "Takdir saya",
+      "recommendations": "Terokai bacaan yang sesuai dengan minat anda"
     },
     "appInstall": {
       "title": "Keep Code Destiny on your home screen",

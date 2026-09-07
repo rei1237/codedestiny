@@ -1,3 +1,4 @@
+import PublicReadingGuide from "../components/PublicReadingGuide";
 import InsightsCosmicRouteClient from "./InsightsCosmicRouteClient";
 import { FEATURE_GUIDES } from "./feature-guides";
 import { INSIGHT_SEED_ARTICLES } from "./seed-articles";
@@ -292,6 +293,7 @@ export default async function InsightsPage() {
           </nav>
         </div>
       </section>
+      <PublicReadingGuide locale="ko" topic="insights" />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webPage) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
     </>

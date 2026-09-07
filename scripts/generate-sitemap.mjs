@@ -1,3 +1,6 @@
+import { INTRO_TOPICS, introductionRoutes } from "../lib/i18n/feature-introductions.mjs";
+import { TRUST_KEYS, trustRoutes } from "../lib/i18n/public-trust-copy.mjs";
+import { splitLocaleSitemaps } from "./lib/locale-sitemaps.mjs";
 import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { register } from "node:module";
 import { resolve } from "node:path";
@@ -325,6 +328,8 @@ const localeHreflangAliases = {
 };
 
 const i18nRouteGroups = [
+  ...INTRO_TOPICS.map(topic => ({ paths: Object.fromEntries(Object.entries(introductionRoutes(topic)).filter(([lang]) => lang !== "x-default")), changefreq: "monthly", priority: 0.8 })),
+  ...TRUST_KEYS.map(key => ({ paths: Object.fromEntries(Object.entries(trustRoutes(key)).filter(([lang]) => lang !== "x-default")), changefreq: "monthly", priority: 0.7 })),
   {
     paths: { ko: "/", ja: "/ja", zh: "/zh", "zh-TW": "/zh-tw", en: "/en" },
     changefreq: "daily",
@@ -798,6 +803,10 @@ async function main() {
 
   writeFileSync(sitemapRootPath, xml, "utf8");
   writeFileSync(sitemapPublicPath, xml, "utf8");
+  for (const [name, content] of Object.entries(splitLocaleSitemaps(xml))) {
+    writeFileSync(resolve(rootDir, name), content, "utf8");
+    writeFileSync(resolve(rootDir, "public", name), content, "utf8");
+  }
 
   const { kept, updated, seeded } = lastmodLedger.summary();
   console.log(`[sitemap] Generated ${sorted.length} URLs -> sitemap.xml, public/sitemap.xml`);
@@ -867,6 +876,10 @@ function assertNoDrift(xml, ledgerSerialized, urlCount, volatilePaths = new Set(
       normalize: normalizeLedger,
     },
   ];
+
+  for (const [name, content] of Object.entries(splitLocaleSitemaps(xml))) {
+    for (const prefix of ["", "public/"]) targets.push({ label: `${prefix}${name}`, path: resolve(rootDir, `${prefix}${name}`), expected: content, normalize: normalizeXml });
+  }
 
   const problems = [];
   for (const target of targets) {

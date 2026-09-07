@@ -1,17 +1,24 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-05T00:00:00.000Z",
+  "generatedAt": "2026-09-08T04:04:46.9524455+09:00",
   "title": "Design System: Code Destiny",
   "extensions": {
     "colorMeta": {
-      "yeon-accent": { "role": "primary", "displayName": "Rose Crimson", "canonical": "#b31955" },
-      "yeon-gold": { "role": "secondary", "displayName": "Champagne Gold — Yeon", "canonical": "#ead089" },
-      "neo-accent": { "role": "primary", "displayName": "Twilight Violet", "canonical": "#c4b5fd" },
-      "neo-gold": { "role": "secondary", "displayName": "Champagne Gold — Neo", "canonical": "#e8d5a3" },
-      "yeon-bg": { "role": "neutral", "displayName": "Yeon Cream", "canonical": "#fffaf7" },
-      "yeon-text": { "role": "neutral", "displayName": "Yeon Ink", "canonical": "#3c1830" },
-      "neo-bg": { "role": "neutral", "displayName": "Neo Midnight Ink", "canonical": "#0a0818" },
-      "neo-text": { "role": "neutral", "displayName": "Neo Pearl Violet", "canonical": "#f4eeff" }
+      "yeon-accent": { "role": "primary", "displayName": "Rose Crimson", "canonical": "#b31955", "tonalRamp": ["#330b21", "#551033", "#781342", "#9b174e", "#b31955", "#cf4176", "#e984a8", "#fff0f5"] },
+      "yeon-accent-soft": { "role": "primary", "displayName": "Rose Petal", "canonical": "#f4bed1", "tonalRamp": ["#49172c", "#722840", "#99465e", "#bc6f83", "#d994a9", "#eab4c5", "#f4bed1", "#fff3f7"] },
+      "yeon-gold": { "role": "secondary", "displayName": "Champagne Gold — Yeon", "canonical": "#ead089", "tonalRamp": ["#3a2a0d", "#60491b", "#896b2f", "#b4934d", "#d2b66b", "#ead089", "#f5e5b6", "#fff9e7"] },
+      "yeon-gold-soft": { "role": "secondary", "displayName": "Moonlit Cream", "canonical": "#fff8dc", "tonalRamp": ["#473f21", "#71643a", "#998755", "#bdae75", "#d9cda0", "#eee3bf", "#fff8dc", "#fffdf4"] },
+      "neo-accent": { "role": "primary", "displayName": "Twilight Violet", "canonical": "#c4b5fd", "tonalRamp": ["#19133f", "#2f2769", "#4d4295", "#7163bd", "#9789e4", "#c4b5fd", "#e0d9ff", "#f7f4ff"] },
+      "neo-accent-soft": { "role": "primary", "displayName": "Violet Veil", "canonical": "#a78bfa", "tonalRamp": ["#16103b", "#2e2467", "#493b91", "#6859bb", "#8877df", "#a78bfa", "#d0c7ff", "#f3f1ff"] },
+      "neo-gold": { "role": "secondary", "displayName": "Champagne Gold — Neo", "canonical": "#e8d5a3", "tonalRamp": ["#3c3015", "#635025", "#8c743d", "#b69a5d", "#d5bd82", "#e8d5a3", "#f4e8c8", "#fffaf0"] },
+      "yeon-bg": { "role": "neutral", "displayName": "Yeon Cream", "canonical": "#fffaf7", "tonalRamp": ["#341426", "#57243e", "#7b3c59", "#a85d7d", "#cc89a0", "#ebbac8", "#f8dfe6", "#fffaf7"] },
+      "yeon-bg-deep": { "role": "neutral", "displayName": "Blush Paper", "canonical": "#fff3f8", "tonalRamp": ["#371426", "#5d2741", "#843e5d", "#ad6281", "#d18ba5", "#eab4c8", "#f7dce7", "#fff3f8"] },
+      "yeon-text": { "role": "neutral", "displayName": "Yeon Ink", "canonical": "#3c1830", "tonalRamp": ["#160512", "#3c1830", "#63304d", "#8d536f", "#b57a93", "#d7a9bb", "#efd8e1", "#fff7fa"] },
+      "yeon-text-muted": { "role": "neutral", "displayName": "Rose Ink Soft", "canonical": "#70445c", "tonalRamp": ["#23101d", "#422537", "#70445c", "#94657b", "#b9899b", "#d7b3be", "#efdade", "#fff8f9"] },
+      "neo-bg": { "role": "neutral", "displayName": "Neo Midnight Ink", "canonical": "#0a0818", "tonalRamp": ["#05040b", "#0a0818", "#17132d", "#2a2345", "#443a65", "#6a5b8c", "#a89abc", "#f4eeff"] },
+      "neo-bg-deep": { "role": "neutral", "displayName": "Deep Violet Night", "canonical": "#13102a", "tonalRamp": ["#06050d", "#13102a", "#211b43", "#382f61", "#574b80", "#7c6da2", "#b5abd0", "#f7f4ff"] },
+      "neo-text": { "role": "neutral", "displayName": "Neo Pearl Violet", "canonical": "#f4eeff", "tonalRamp": ["#201a35", "#413858", "#65597e", "#8d80a5", "#b3a8c7", "#d7d0e4", "#f4eeff", "#fffaff"] },
+      "neo-text-muted": { "role": "neutral", "displayName": "Lavender Trace", "canonical": "#c8aaff", "tonalRamp": ["#201537", "#443064", "#694c8e", "#9170b7", "#b496df", "#c8aaff", "#e5d9ff", "#faf7ff"] }
     },
     "typographyMeta": {
       "display": { "displayName": "Display", "purpose": "페이지/섹션 헤딩 전용." },
@@ -24,7 +31,10 @@
       { "name": "neo-ambient", "value": "0 14px 26px rgba(0,0,0,.34), inset 0 1px 0 rgba(228,214,255,.12)", "purpose": "네오 카드/표면의 그림자." },
       { "name": "violet-neon", "value": "0 0 0 1px rgba(167,139,250,.18), 0 0 24px rgba(147,51,234,.35)", "purpose": "네오 인터랙티브 요소의 기본 글로우." },
       { "name": "violet-neon-focus", "value": "0 0 0 2px rgba(167,139,250,.55), 0 0 28px rgba(147,51,234,.45)", "purpose": "포커스 상태 글로우." },
-      { "name": "moon-glow", "value": "0 0 40px -5px rgba(216,179,108,.35), 0 0 80px -20px rgba(156,135,212,.25)", "purpose": "네오 시그니처 글로우, 신비 요소(달/별자리)에 사용." }
+      { "name": "moon-glow", "value": "0 0 40px -5px rgba(216,179,108,.35), 0 0 80px -20px rgba(156,135,212,.25)", "purpose": "네오 시그니처 글로우, 신비 요소(달/별자리)에 사용." },
+      { "name": "shade-1", "value": "var(--cd-shade-1)", "purpose": "평상시 카드·패널의 가장 얕은 깊이. 중립 플럼/미드나잇 계열만 사용." },
+      { "name": "shade-2", "value": "var(--cd-shade-2)", "purpose": "호버 상태의 얕은 깊이." },
+      { "name": "shade-3", "value": "var(--cd-shade-3)", "purpose": "Primary CTA·선택 상태에만 쓰는 강조 깊이." }
     ],
     "motion": [
       { "name": "--cd-dur-fast", "value": "120ms", "purpose": "호버·포커스처럼 즉답이어야 하는 상태 변화 (styles/theme-tokens.css:116)." },
@@ -61,6 +71,20 @@
       "css": ".ds-btn-primary-neo { background: linear-gradient(145deg, rgba(56,47,118,.98), rgba(31,24,74,.92), rgba(246,211,132,.9)); color: #090718; padding: 12px 28px; border-radius: 999px; border: none; font-weight: 700; box-shadow: 0 0 0 1px rgba(167,139,250,.18), 0 0 24px rgba(147,51,234,.35); transition: box-shadow 0.2s; } .ds-btn-primary-neo:hover, .ds-btn-primary-neo:focus-visible { box-shadow: 0 0 0 2px rgba(167,139,250,.55), 0 0 28px rgba(147,51,234,.45); }"
     },
     {
+      "name": "Solid Primary",
+      "kind": "button",
+      "description": "본문 안에서 다음 행동 하나를 가리키는 단색 버튼. 브랜드 관문용 골드 CTA와 같은 섹션에서 함께 쓰지 않는다.",
+      "html": "<button class=\"ds-btn-solid\">결과 계속 보기</button>",
+      "css": ".ds-btn-solid { min-height: 48px; padding: 12px 24px; border: 0; border-radius: 12px; background: #c4b5fd; color: #13102a; font-weight: 700; cursor: pointer; transition: background 120ms ease, box-shadow 120ms ease, transform 120ms ease; } .ds-btn-solid:hover { background: #b3a2fc; box-shadow: 0 2px 6px rgba(0,0,0,.34), 0 12px 26px -12px rgba(0,0,0,.55); } .ds-btn-solid:active { transform: translateY(1px); } .ds-btn-solid:focus-visible { outline: 3px solid #c4b5fd; outline-offset: 3px; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "description": "조용한 보조 행동. 표면 채움과 본문색으로 식별하고, 강조색은 포커스에만 쓴다.",
+      "html": "<button class=\"ds-btn-secondary\">나중에 보기</button>",
+      "css": ".ds-btn-secondary { min-height: 48px; padding: 12px 24px; border: 1px solid rgba(196,181,253,.3); border-radius: 12px; background: #100d24; color: #f4eeff; font-weight: 700; cursor: pointer; transition: box-shadow 120ms ease, transform 120ms ease; } .ds-btn-secondary:hover { box-shadow: 0 2px 6px rgba(0,0,0,.34), 0 12px 26px -12px rgba(0,0,0,.55); } .ds-btn-secondary:active { transform: translateY(1px); } .ds-btn-secondary:focus-visible { outline: 3px solid #c4b5fd; outline-offset: 3px; }"
+    },
+    {
       "name": "Toggle Pill",
       "kind": "chip",
       "refersTo": "toggle-pill",
@@ -74,6 +98,13 @@
       "description": "AI 상담 결과를 담는 표면 — 연이/네오 공용 구조, 색만 페르소나별로 교체.",
       "html": "<div class=\"ds-card\"><p>결과 본문…</p></div>",
       "css": ".ds-card { background: rgba(255,255,255,.96); color: #3c1830; border: 1px solid rgba(216,63,120,.16); border-radius: 16px; padding: 24px; box-shadow: 0 12px 24px rgba(150,72,104,.12), inset 0 1px 0 rgba(255,255,255,.9); }"
+    },
+    {
+      "name": "AI Result Prose",
+      "kind": "custom",
+      "description": "장문 상담 결과 전용 프로즈. 읽기 폭과 행간을 고정해 해석문이 답답하게 뭉치지 않게 한다.",
+      "html": "<article class=\"ds-result-prose\"><p>지금 필요한 건 감정 소모가 아니라 작전 변경이다.</p><p>오늘은 하나를 정확히 끝내라.</p></article>",
+      "css": ".ds-result-prose { max-width: 66ch; color: #f4eeff; font-family: Georgia, serif; font-size: 16px; line-height: 1.75; letter-spacing: -.01em; } .ds-result-prose p { margin: 0; } .ds-result-prose p + p { margin-top: 1.15em; }"
     }
   ],
   "narrative": {
@@ -95,10 +126,15 @@
       { "name": "The Desktop Contrast Baseline", "body": "데스크탑 뷰포트 기준 WCAG 2.1 AA를 적용한다 — 본문 4.5:1, 큰 텍스트(18.66px+ bold / 24px+) 3:1, UI 경계·아이콘·포커스 링 3:1. muted 보조 텍스트도 4.5:1을 지킨다. 글로우·별·파티클 등 정보를 담지 않는 장식은 제외. 미달 시 텍스트 색만 바꾸지 말고 표면과 텍스트를 한 세트로 조정한다.", "section": "colors" },
       { "name": "The Scale Token Rule", "body": "간격·반경·타이포·모션·z축·폭·버튼 7종의 정본은 styles/theme-tokens.css 다. 새 화면은 수치를 리터럴로 박지 말고 --cd-* 를 참조한다. 폭은 --cd-w-prose 760 / --cd-w-grid 1280 / --cd-w-wide 1440 셋뿐이고, 960px 은 var(--cd-w-wide, 960px) 의 폴백 피연산자로만 존재하므로 새로 하드코딩하지 않는다. z축은 --cd-z-space 0 부터 --cd-z-ui 5 까지 6단이며 999 같은 임의값은 금지다. CSS Modules 는 클래스명만 해시하고 커스텀 프로퍼티는 해시하지 않으므로 *.module.css 안에서 --cd-* 를 재선언하면 전역을 조용히 덮는다 — 사설 네임스페이스(--gd-* / --ls-* / --fx-*)를 쓴다.", "section": "components" },
       { "name": "The Three Surfaces Rule", "body": "표면 계열은 셋뿐이다 — .cd-guide(읽기형 가이드, styles/globals.css:305-819) · .cd-main-shell + .cd-card(허브·카드, :173-303) · .policy-doc(법적·시스템 문서, :821-1185). 새 화면은 이 중 하나를 고르고 네 번째 계열을 만들지 않는다. 시스템 안내(404·에러 바운더리)는 app/components/SystemNotice.tsx 를 통해 .policy-doc 어휘를 그대로 쓴다.", "section": "components" },
-      { "name": "The Persona Axis Rule", "body": "테마 축은 코드상 4갈래지만 정본은 축1(페르소나 토글 pig|neo, styles/theme-tokens.css:54-56)뿐이다. 새 화면은 축1 위에 짓는다. 축2(App Router 본문 #0a0818 다크 고정) · 축3(--cd-app-* 안드로이드 셸 전용 28토큰) · 축4(Tailwind dark: 374건 / 30파일, darkMode 키가 없어 OS 설정에 물린다)는 현황 기록이지 따라 지을 대상이 아니다.", "section": "colors" }
+      { "name": "The Persona Axis Rule", "body": "테마 축은 코드상 4갈래지만 정본은 축1(페르소나 토글 pig|neo, styles/theme-tokens.css:54-56)뿐이다. 새 화면은 축1 위에 짓는다. 축2(App Router 본문 #0a0818 다크 고정) · 축3(--cd-app-* 안드로이드 셸 전용 28토큰) · 축4(Tailwind dark: 374건 / 30파일, darkMode 키가 없어 OS 설정에 물린다)는 현황 기록이지 따라 지을 대상이 아니다.", "section": "colors" },
+      { "name": "The Accent Budget Rule", "body": "한 섹션에서 accent는 선택 상태·Primary CTA·지표 하나까지만 쓴다. 테두리·그림자·캡션·보조 배경은 accent가 아니라 --cd-line과 --cd-shade-*를 쓴다.", "section": "colors" },
+      { "name": "The Shade Vocabulary", "body": "평상시 표면은 shade, 상태 변화는 glow로 나눈다. shade-1은 카드·패널, shade-2는 hover, shade-3은 Primary CTA·선택 상태에만 쓴다.", "section": "elevation" },
+      { "name": "The Moonflower Motif Rule", "body": "달빛 예화 라인아트는 정보가 아닌 장식이다. 텍스트 뒤에 두고, 모바일 히어로처럼 카피가 빽빽한 곳에서는 가지 장식을 끄고 불투명 달만 남긴다.", "section": "components" }
     ],
     "dos": [
       "Do 연이/네오 전환 시 bg·surface·text·accent·gold를 한 세트로 같이 바꾼다",
+      "Do 한 섹션의 accent 예산을 선택 상태·Primary CTA·지표 하나로 제한한다",
+      "Do 평상시 깊이는 shade로, 상태 변화에서만 glow로 표현한다",
       "Do 상태 변화(hover/focus)에서만 글로우를 올린다",
       "Do 인터랙티브 소형 요소는 pill(999px)로 통일한다",
       "Do 본문 텍스트는 명암비 4.5:1 이상을 유지한다"
@@ -108,7 +144,9 @@
       "Don't 클리셰 타로 사이트의 상투적 보라 그라디언트 배경을 쓰지 않는다",
       "Don't 배경만 다크로 바꾸고 텍스트 색은 그대로 두는 반쪽 오버라이드를 하지 않는다",
       "Don't 회색 드롭섀도를 기본 그림자로 쓰지 않는다",
-      "Don't 강조색을 모드당 2개 이상 쓰지 않는다"
+      "Don't 강조색을 모드당 2개 이상 쓰지 않는다",
+      "Don't accent를 테두리·그림자·캡션·보조 배경에 기본값으로 깔지 않는다",
+      "Don't 달빛 예화 장식을 텍스트 위로 지나가게 하지 않는다"
     ]
   }
 }

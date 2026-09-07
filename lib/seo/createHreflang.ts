@@ -1,17 +1,18 @@
-import { SEO_SITE_CONFIG } from "./siteConfig";
+import { toCanonicalUrl } from "./siteSeo";
 import { LOCALE_CONFIG, SEO_INDEXABLE_LOCALES, Locale } from "../i18n/locales";
 
 function toAbsolute(path: string): string {
-  return new URL(path, SEO_SITE_CONFIG.siteUrl).toString();
+  return toCanonicalUrl(path);
 }
 
-export function createHreflangFromRoutes(routeByLocale: Record<Locale, string>) {
+export function createHreflangFromRoutes(routeByLocale: Partial<Record<Locale, string>> & { ko: string }) {
   const languages: Record<string, string> = {};
 
   for (const locale of SEO_INDEXABLE_LOCALES) {
     const hrefLang = LOCALE_CONFIG[locale].hrefLang;
     const aliases = LOCALE_CONFIG[locale].hrefLangAliases || [];
     const route = routeByLocale[locale];
+    if (!route) continue;
     languages[hrefLang] = toAbsolute(route);
     for (const alias of aliases) {
       languages[alias] = toAbsolute(route);

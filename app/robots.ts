@@ -15,6 +15,10 @@ const privateDisallowRules = [
   "/api/",
   "/api-hello-test/",
   "/admin/",
+  "/account/",
+  "/staging/",
+  "/preview/",
+  "/*-debug/",
   "/auth/",
   "/debug/",
   "/test/",
@@ -86,7 +90,7 @@ export default function robots(): MetadataRoute.Robots {
     ],
     // sitemap-insights.xml 은 생성되지 않는다(빌드 파이프라인에 해당 산출물이 없음).
     // 선언만 남겨두면 Search Console 사이트맵 가져오기가 404 로 실패한다.
-    sitemap: [`${SEO_V2_SITE.siteUrl}/sitemap.xml`],
+    sitemap: ["sitemap.xml", "sitemap-ko.xml", "sitemap-ja.xml", "sitemap-en.xml", "sitemap-zh.xml", "sitemap-zh-tw.xml"].map((name) => `${SEO_V2_SITE.siteUrl}/${name}`),
     host: SEO_V2_SITE.siteUrl,
   };
 }

@@ -68,6 +68,17 @@ export default function TokushohoPage() {
                 </p>
               ))}
             </section>
+            <section className="policy-embed-section" aria-labelledby="tokushoho-reading-guide">
+              <h2 id="tokushoho-reading-guide" className="policy-embed-heading">
+                表示内容の確認方法
+              </h2>
+              <p>
+                ご利用になる機能ごとの価格や提供内容は、申込み前に表示される各機能の案内と注文画面で確認してください。このページは、販売事業者、支払方法、提供時期などの基本事項をまとめたものです。個別の注文について確認が必要な場合に備えて、注文番号、決済日、利用した機能が分かる記録を保管しておくと、該当する取引を照合しやすくなります。
+              </p>
+              <p>
+                デジタルコンテンツの提供状況や取消し・返金に関する確認は、公開済みの利用規約と返金ポリシーをあわせて参照してください。これらのリンクは既存の条件を確認するための入口であり、本ページだけで新たな返金資格、回答期限、または特定の対応を約束するものではありません。表示内容と実際の注文記録に相違がある場合は、重複して購入せず、記録を添えてお問い合わせください。
+              </p>
+            </section>
           </div>
 
           <nav className="policy-doc__related" aria-label="関連文書">

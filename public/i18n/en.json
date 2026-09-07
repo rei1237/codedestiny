@@ -3,9 +3,9 @@
   "_version": "1.0.0",
   "brand": {
     "name": "Code Destiny",
-    "tagline": "Eastern wisdom, read by modern experts",
-    "subtitle": "Ancient divination traditions, softly decoded for your next step",
-    "trustBadge": "Trusted by 100,000+ seekers across 80+ countries"
+    "tagline": "Eastern traditions as a starting point for reflection",
+    "subtitle": "Explore your questions through traditional calculations and AI interpretation",
+    "trustBadge": "Distinct perspectives from Saju, Zi Wei Dou Shu and Sukuyo"
   },
   "home": {
     "homeGuide": {
@@ -1418,7 +1418,9 @@
       "stonehenge-runes": "Read the path behind and the path ahead from the seats of the three Norns"
     },
     "svcFinder": {
-      "go": "View →"
+      "go": "View →",
+      "profileHeading": "My Destiny",
+      "recommendations": "Explore readings that match your interests"
     },
     "appInstall": {
       "title": "Keep Code Destiny on your home screen",
@@ -1583,32 +1585,32 @@
     }
   },
   "trust": {
-    "headline": "Why 100,000+ People Trust Code Destiny",
+    "headline": "Before you explore a CODE DESTINY reading",
     "badges": [
       {
         "icon": "🌍",
-        "label": "Global Community",
-        "value": "100,000+ users in 80+ countries"
+        "label": "Different traditions",
+        "value": "Read each within its own framework"
       },
       {
         "icon": "🔒",
-        "label": "SSL Secure",
-        "value": "256-bit encrypted · Safe payments"
+        "label": "Personal information",
+        "value": "See the privacy policy"
       },
       {
         "icon": "⭐",
-        "label": "Satisfaction",
-        "value": "4.9/5 average rating"
+        "label": "Interpretive limits",
+        "value": "No guaranteed accuracy or outcome"
       },
       {
         "icon": "🌐",
-        "label": "Languages",
-        "value": "10 languages · Always available"
+        "label": "Display language",
+        "value": "Choose a language to read in"
       },
       {
         "icon": "💳",
-        "label": "Secure Checkout",
-        "value": "Stripe-verified · All major cards"
+        "label": "Access conditions",
+        "value": "Check the feature screen and terms"
       }
     ]
   },

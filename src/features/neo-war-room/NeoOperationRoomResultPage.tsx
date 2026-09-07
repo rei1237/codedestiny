@@ -743,6 +743,8 @@ export default function NeoOperationRoomResultPage() {
     : null;
   const isGenerating = loading || session?.status === "generating";
   const isFailed = Boolean(error) || session?.status === "generation_failed";
+  const heroOperationTitle = refined?.operationTitle || briefing?.operationTitle || resultCopy.heroTitle;
+  const heroStatus = refined ? resultCopy.actionBarRefinedDone : resultCopy.actionBarInitialDone;
   const canUnlockNeoBenefits = !neoBenefitsUnlocked && !isLocalPreview && badgeAward.count >= NEO_LETTER_BADGE_COST;
   const neoLetterText = useMemo(
     () => neoBenefitsUnlocked && session ? buildNeoSincereLetter(session, methodLabel(selectedMethod, dialogueLocale), dialogueLocale) : "",
@@ -781,8 +783,8 @@ export default function NeoOperationRoomResultPage() {
       <div className={styles.bg} aria-hidden="true" />
       <section className={styles.hero} aria-labelledby="neo-result-title">
         <div className={styles.heroCopy}>
-          <span>Operation Order</span>
-          <h1 id="neo-result-title">{resultCopy.heroTitle}</h1>
+          {!isGenerating ? <em className={styles.heroStatus}>{heroStatus}</em> : null}
+          <h1 id="neo-result-title">{heroOperationTitle}</h1>
           <p>{isGenerating ? resultCopy.heroSubtitleGenerating : resultCopy.heroSubtitleReady}</p>
         </div>
         <div className={styles.heroVisual} aria-hidden="true">
@@ -795,8 +797,6 @@ export default function NeoOperationRoomResultPage() {
             className={styles.neoPortrait}
             imageClassName={styles.neoPortraitImage}
           />
-          <NeoWarRoomAssetImage asset={neoWarRoomAssets.decor.asset1} alt="" sizes="110px" resizeWidth={240} className={styles.decorOne} imageClassName={styles.decorImage} />
-          <NeoWarRoomAssetImage asset={neoWarRoomAssets.decor.asset2} alt="" sizes="110px" resizeWidth={240} className={styles.decorTwo} imageClassName={styles.decorImage} />
         </div>
       </section>
 
@@ -909,7 +909,6 @@ export default function NeoOperationRoomResultPage() {
                 locale={dialogueLocale}
               />
             ) : null}
-            <CtaDeck attemptId={isLocalPreview ? "" : session.sessionId || attemptId} onOpenReality={() => setShowRealityForm(true)} hasRefined={Boolean(refined)} locale={dialogueLocale} />
             <BadgeVaultPanel badgeAward={badgeAward} benefitsUnlocked={neoBenefitsUnlocked} locale={dialogueLocale} />
             <section className={styles.actionBar} aria-label={resultCopy.actionBarAria}>
               <div className={styles.actionCopy}>
@@ -956,6 +955,7 @@ export default function NeoOperationRoomResultPage() {
                 locale={dialogueLocale}
               />
             )}
+            <CtaDeck attemptId={isLocalPreview ? "" : session.sessionId || attemptId} onOpenReality={() => setShowRealityForm(true)} hasRefined={Boolean(refined)} locale={dialogueLocale} />
           </section>
         </div>
       ) : null}
@@ -1032,7 +1032,6 @@ function NeoLetterLockCard({
   return (
     <article className={styles.neoLetterLockCard}>
       <header className={styles.documentHeader}>
-        <span>{resultCopy.letterSpan}</span>
         <h2>{benefitsUnlocked ? resultCopy.letterUnlockedTitle : resultCopy.letterLockedTitle}</h2>
       </header>
       <p>{getNeoResultLetterLockBody(progress, NEO_LETTER_BADGE_COST, locale)}</p>
@@ -1052,7 +1051,6 @@ function NeoSincereLetter({ letter, locale }: { letter: string; locale: LoadingL
   return (
     <article className={styles.neoLetterCard} data-neo-pdf-page>
       <header className={styles.documentHeader}>
-        <span>{resultCopy.letterSpan}</span>
         <h2>{resultCopy.letterOpenedTitle}</h2>
       </header>
       <div className={styles.neoLetterBody}>
@@ -1077,10 +1075,14 @@ function ResultSummaryCover({
   const briefing = session.initialBriefing || null;
   const refined = session.refinedOrder || null;
   const issuedAt = formatDateKey(session.updatedAt || session.createdAt);
+  const formCopy = getNeoFormCopy(locale);
+  const highlightedResult = toDisplayText(refined?.verdict?.statement || briefing?.frontlineSummary);
+  const highlightedLabel = refined?.verdict?.status
+    ? getNeoResultVerdictWithStatus(toDisplayText(refined.verdict.status), locale)
+    : formCopy["briefing.frontlineLabel"];
   return (
     <article className={`${styles.documentCard} ${styles.summaryCover}`} data-neo-pdf-page>
       <header className={styles.documentHeader}>
-        <span>Neo Operation Order</span>
         <h2>{refined?.operationTitle || briefing?.operationTitle || resultCopy.heroTitle}</h2>
       </header>
       <div className={styles.summaryGrid}>
@@ -1097,6 +1099,12 @@ function ResultSummaryCover({
           <strong>{issuedAt}</strong>
         </section>
       </div>
+      {highlightedResult ? (
+        <section className={styles.summaryHighlight} aria-label={highlightedLabel}>
+          <span>{highlightedLabel}</span>
+          <p>{highlightedResult}</p>
+        </section>
+      ) : null}
       {session.question ? <p className={styles.summaryQuestion}>{session.question}</p> : null}
       <div className={styles.summarySeal}>
         <LionBadgeStamp badgeIndex={badgeIndex} className={styles.stampImageFrame} />
@@ -1404,7 +1412,6 @@ function InitialBriefingDocument({
   return (
     <article className={styles.documentCard} data-neo-pdf-page>
       <header className={styles.documentHeader}>
-        <span>{formCopy["briefing.eyebrow"]}</span>
         <h2>{toDisplayText(briefing.operationTitle) || formCopy["briefing.fallbackTitle"]}</h2>
       </header>
       {/* 전체 보기·PDF 펼침에서는 모든 장이 이미 보이므로 목차는 감춘다. */}
@@ -1450,7 +1457,6 @@ function RealityCheckForm({
   return (
     <article className={styles.documentCard}>
       <header className={styles.documentHeader}>
-        <span>{formCopy["realityPanel.eyebrow"]}</span>
         <h2>{resultCopy.realityFormTitle}</h2>
       </header>
       <div className={styles.choiceGrid}>
@@ -1594,7 +1600,6 @@ function RefinedOrderDocument({
   return (
     <article className={styles.documentCard} data-version="v2" data-neo-pdf-page>
       <header className={styles.documentHeader}>
-        <span>{formCopy["refinedOrder.eyebrow"]}</span>
         <h2>{toDisplayText(refined.operationTitle) || formCopy["refinedOrder.fallbackTitle"]}</h2>
       </header>
       {!viewAll && !expandForExport ? (

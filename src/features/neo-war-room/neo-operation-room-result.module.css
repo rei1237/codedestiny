@@ -10,6 +10,16 @@
   font-family: var(--font-body);
 }
 
+.shell::selection {
+  color: #090718;
+  background: #c4b5fd;
+}
+
+.shell :focus-visible {
+  outline: 3px solid #c4b5fd;
+  outline-offset: 3px;
+}
+
 .bg {
   position: fixed;
   inset: 0;
@@ -36,6 +46,13 @@
   grid-template-columns: minmax(0, 1fr) 340px;
   gap: 28px;
   align-items: center;
+  border: 1px solid rgba(214, 188, 118, 0.28);
+  border-radius: var(--cd-r-section, 26px);
+  padding: clamp(20px, 4vw, 38px);
+  background:
+    radial-gradient(circle at 84% 22%, rgba(167, 139, 250, 0.18), transparent 32%),
+    linear-gradient(135deg, rgba(10, 8, 24, 0.92), rgba(19, 16, 42, 0.82));
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .heroCopy {
@@ -44,7 +61,6 @@
 }
 
 .heroCopy span,
-.documentHeader span,
 .sidePanel span {
   color: #d6bc76;
   font-size: 0.78rem;
@@ -53,13 +69,29 @@
   text-transform: uppercase;
 }
 
+.heroStatus {
+  justify-self: start;
+  border: 1px solid rgba(196, 181, 253, 0.48);
+  border-radius: 999px;
+  padding: 6px 10px;
+  color: #eee8ff;
+  background: rgba(167, 139, 250, 0.13);
+  font-size: 0.78rem;
+  font-style: normal;
+  font-weight: 850;
+  line-height: 1.2;
+}
+
 .heroCopy h1 {
   margin: 0;
+  max-width: 12ch;
   color: #fff7de;
   font-family: var(--font-display);
-  font-size: clamp(3rem, 8vw, 6.4rem);
+  font-size: var(--cd-t-display, clamp(1.5rem, 3vw, 2.05rem));
   font-weight: 950;
-  line-height: 0.95;
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+  word-break: keep-all;
 }
 
 .heroCopy p {
@@ -90,25 +122,6 @@
 .decorImage,
 .methodCoverImage {
   object-fit: contain;
-}
-
-.decorOne,
-.decorTwo {
-  position: absolute !important;
-  width: 110px;
-  height: 110px;
-  background: transparent !important;
-  opacity: 0.82;
-}
-
-.decorOne {
-  left: 0;
-  bottom: 18%;
-}
-
-.decorTwo {
-  right: 0;
-  top: 16%;
 }
 
 .localPreviewBar {
@@ -231,7 +244,7 @@
   display: grid;
   gap: 16px;
   border: 1px solid rgba(214, 188, 118, 0.28);
-  border-radius: 8px;
+  border-radius: 14px;
   padding: 16px;
   background: rgba(5, 10, 22, 0.84);
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.34);
@@ -342,7 +355,7 @@
   display: grid;
   gap: 16px;
   border: 1px solid rgba(214, 188, 118, 0.34);
-  border-radius: 8px;
+  border-radius: 14px;
   padding: clamp(18px, 3vw, 30px);
   background:
     linear-gradient(135deg, rgba(7, 12, 24, 0.94), rgba(11, 20, 39, 0.9)),
@@ -362,23 +375,25 @@
 .summaryCover {
   overflow: hidden;
   background:
-    radial-gradient(circle at 82% 18%, rgba(245, 212, 135, 0.18), transparent 34%),
-    linear-gradient(135deg, rgba(7, 12, 24, 0.98), rgba(35, 18, 27, 0.9));
+    radial-gradient(circle at 82% 18%, rgba(245, 212, 135, 0.2), transparent 34%),
+    radial-gradient(circle at 12% 90%, rgba(167, 139, 250, 0.16), transparent 38%),
+    linear-gradient(135deg, rgba(7, 12, 24, 0.98), rgba(24, 18, 48, 0.92));
 }
 
 .summaryGrid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .summaryGrid section {
   display: grid;
   gap: 6px;
-  border: 1px solid rgba(245, 212, 135, 0.2);
-  border-radius: 8px;
-  padding: 13px;
-  background: rgba(255, 255, 255, 0.055);
+  flex: 1 1 132px;
+  border: 1px solid rgba(245, 212, 135, 0.26);
+  border-radius: 999px;
+  padding: 9px 12px;
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .summaryGrid span {
@@ -390,16 +405,43 @@
 
 .summaryGrid strong {
   color: #fff7de;
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-weight: 950;
-  line-height: 1.32;
+  line-height: 1.25;
+  word-break: keep-all;
+}
+
+.summaryHighlight {
+  display: grid;
+  gap: 9px;
+  border: 1px solid rgba(196, 181, 253, 0.42);
+  border-radius: 12px;
+  padding: clamp(16px, 2.5vw, 22px);
+  background: rgba(24, 18, 48, 0.72);
+  box-shadow: inset 0 1px 0 rgba(228, 214, 255, 0.1);
+}
+
+.summaryHighlight span {
+  color: #d9ceff;
+  font-size: 0.78rem;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+}
+
+.summaryHighlight p {
+  margin: 0;
+  max-width: 52ch;
+  color: #fffaf0;
+  font-size: var(--cd-t-card, 1.1rem);
+  font-weight: 820;
+  line-height: 1.62;
   word-break: keep-all;
 }
 
 .summaryQuestion {
   margin: 0;
-  border-left: 3px solid rgba(245, 212, 135, 0.72);
-  padding-left: 14px;
+  border-top: 1px solid rgba(245, 212, 135, 0.42);
+  padding-top: 14px;
   color: rgba(255, 248, 229, 0.92);
   font-size: 1.02rem;
   font-weight: 560;
@@ -449,7 +491,7 @@
      공용 프로즈 토큰의 --cd-prose-paragraph-gap(1.15em ≈ 18.4px)에 맞춘다. */
   gap: 18px;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
+  border-radius: 12px;
   padding: 14px;
   background: rgba(255, 255, 255, 0.055);
 }
@@ -671,7 +713,7 @@
   align-items: center;
   justify-content: center;
   border: 1px solid rgba(245, 212, 135, 0.58);
-  border-radius: 8px;
+  border-radius: var(--cd-r-control, 12px);
   padding: 10px 16px;
   color: #fff7de;
   background: linear-gradient(135deg, rgba(143, 31, 43, 0.78), rgba(214, 188, 118, 0.28));
@@ -680,6 +722,40 @@
   font-weight: 950;
   text-decoration: none;
   cursor: pointer;
+  transition: transform var(--cd-dur-fast, 120ms) ease, border-color var(--cd-dur-fast, 120ms) ease, background var(--cd-dur-fast, 120ms) ease, box-shadow var(--cd-dur-fast, 120ms) ease;
+}
+
+.primaryCta:hover:not(:disabled),
+.actionButtons a:hover,
+.actionButtons button:hover:not(:disabled),
+.neoLetterLockActions button:hover:not(:disabled),
+.ctaDeck a:hover,
+.ctaDeck button:hover {
+  border-color: rgba(255, 240, 184, 0.88);
+  background: linear-gradient(135deg, rgba(143, 31, 43, 0.9), rgba(214, 188, 118, 0.4));
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.24);
+  transform: translateY(-1px);
+}
+
+.primaryCta:active:not(:disabled),
+.actionButtons a:active,
+.actionButtons button:active:not(:disabled),
+.neoLetterLockActions button:active:not(:disabled),
+.ctaDeck a:active,
+.ctaDeck button:active {
+  transform: translateY(0);
+}
+
+.primaryCta:focus-visible,
+.actionButtons a:focus-visible,
+.actionButtons button:focus-visible,
+.neoLetterLockActions button:focus-visible,
+.ctaDeck a:focus-visible,
+.ctaDeck button:focus-visible,
+.deckToc button:focus-visible,
+.choiceGrid button:focus-visible {
+  outline: 3px solid #c4b5fd;
+  outline-offset: 3px;
 }
 
 .actionButtons svg,
@@ -755,6 +831,17 @@
   background: linear-gradient(135deg, rgba(143, 31, 43, 0.34), rgba(214, 188, 118, 0.16));
 }
 
+.deckToc button:hover,
+.choiceGrid button:hover {
+  border-color: rgba(196, 181, 253, 0.58);
+  background: rgba(167, 139, 250, 0.12);
+}
+
+.deckToc button:active,
+.choiceGrid button:active {
+  transform: translateY(1px);
+}
+
 .documentCard textarea {
   min-height: 150px;
   resize: vertical;
@@ -769,6 +856,11 @@
   font-size: 1rem;
   line-height: 1.6;
   outline: none;
+}
+
+.documentCard textarea:focus-visible {
+  border-color: rgba(196, 181, 253, 0.86);
+  box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.22);
 }
 
 .errorText {
@@ -930,8 +1022,8 @@
 .neoLetterBody {
   display: grid;
   gap: 13px;
-  border-left: 3px solid rgba(245, 212, 135, 0.72);
-  padding-left: 16px;
+  border-top: 1px solid rgba(245, 212, 135, 0.42);
+  padding-top: 16px;
 }
 
 .neoLetterBody p {
@@ -948,6 +1040,8 @@
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+  border-top: 1px solid rgba(214, 188, 118, 0.28);
+  padding-top: 18px;
 }
 
 .stateCard {
@@ -1004,6 +1098,15 @@
   .stateNeo {
     animation: none;
   }
+
+  .primaryCta,
+  .actionButtons a,
+  .actionButtons button,
+  .neoLetterLockActions button,
+  .ctaDeck a,
+  .ctaDeck button {
+    transition: none;
+  }
 }
 
 @media (max-width: 980px) {
@@ -1025,6 +1128,11 @@
   .sidePanel {
     position: relative;
     top: auto;
+    order: 2;
+  }
+
+  .documentStack {
+    order: 1;
   }
 
 }
@@ -1032,6 +1140,43 @@
 @media (max-width: 680px) {
   .shell {
     padding: 16px 16px max(16px, env(safe-area-inset-bottom, 0px));
+  }
+
+  .hero {
+    grid-template-columns: minmax(0, 1fr) 108px;
+    gap: 12px;
+    padding: 18px;
+    border-radius: 14px;
+  }
+
+  .heroCopy {
+    gap: 8px;
+  }
+
+  .heroCopy span {
+    font-size: 0.68rem;
+    letter-spacing: 0.13em;
+  }
+
+  .heroStatus {
+    padding: 5px 8px;
+    font-size: 0.7rem;
+  }
+
+  .heroCopy h1 {
+    max-width: none;
+    font-size: var(--cd-t-display, clamp(1.5rem, 3vw, 2.05rem));
+    line-height: 1.12;
+  }
+
+  .heroCopy p {
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  .heroVisual {
+    order: initial;
+    min-height: 116px;
   }
 
   /* 본문에 모바일 규칙이 아예 없어 320~390px 폭에서도 0.97rem(15.52px)로 읽혔다 — 카드 패딩을 빼면
@@ -1059,9 +1204,56 @@
   .gridList,
   .choiceGrid,
   .badgeBlock,
-  .summaryGrid,
   .summarySeal {
     grid-template-columns: 1fr;
+  }
+
+  .layout {
+    margin-top: 18px;
+  }
+
+  .sidePanel {
+    display: grid;
+    grid-template-columns: 82px minmax(0, 1fr);
+    gap: 12px;
+    align-items: center;
+    padding: 12px;
+  }
+
+  .methodCover {
+    width: 82px;
+  }
+
+  .sidePanel strong {
+    margin-top: 3px;
+    font-size: 1.15rem;
+  }
+
+  .sidePanel p {
+    margin-top: 4px;
+    font-size: 0.84rem;
+    line-height: 1.45;
+  }
+
+  .summaryGrid section {
+    flex-basis: 100%;
+    grid-template-columns: 86px minmax(0, 1fr);
+    align-items: center;
+    gap: 8px;
+    padding: 9px 12px;
+  }
+
+  .summaryGrid span {
+    font-size: 0.68rem;
+  }
+
+  .summaryHighlight {
+    padding: 16px;
+  }
+
+  .summaryHighlight p {
+    font-size: 1.08rem;
+    line-height: 1.58;
   }
 
   .neoAside {
@@ -1119,7 +1311,7 @@
   }
 
   .neoLetterBody {
-    padding-left: 12px;
+    padding-top: 12px;
   }
 
   .neoLetterBody p {
