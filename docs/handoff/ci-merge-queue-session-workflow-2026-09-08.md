@@ -12,6 +12,7 @@ next: "PR CI를 확인한 뒤 사용자 승인으로 main ruleset을 CI required
 - 작은 문구·CSS 변경은 빠르게 처리하고, DB·결제·인증·주요 데이터 흐름만 스테이징 도달까지 감시한다.
 - 긴 Claude Code/Codex 세션은 표준 handoff 문서로 이어받는다.
 - 브랜치: `codex/ci-merge-queue-handoff`
+- PR: `#1759` (`https://github.com/rei1237/codedestiny/pull/1759`)
 
 ## 현재 상태
 
