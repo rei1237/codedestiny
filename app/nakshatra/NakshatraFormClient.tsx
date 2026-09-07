@@ -13,8 +13,9 @@ import {
   cardChipLabel,
 } from "./nakshatra-birth";
 import { useNakshatraCopy } from "./_lib/copy";
+import { NAKSHATRA_RESULT_STORAGE_KEY } from "./_lib/nakshatra-context";
 
-export const NAKSHATRA_RESULT_STORAGE_KEY = "nakshatra:result:v1";
+export { NAKSHATRA_RESULT_STORAGE_KEY } from "./_lib/nakshatra-context";
 
 const nowYear = new Date().getFullYear();
 

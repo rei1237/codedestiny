@@ -191,6 +191,41 @@ export function requiresDeepVerification(files) {
   return { required: matches.length > 0, matches };
 }
 
+// 스테이징 도달 감시는 전체 CI 위험도보다 좁다. 배포 설정·테스트 도구 변경은 PR 의
+// critical 검증 대상이지만, 매시간 스테이징 도달까지 추적할 이유는 없다. 반대로 Worker
+// 라우트는 결제·인증이 아니어도 주요 데이터 흐름이므로 감시한다.
+const stagingWatchExcludedPatterns = [
+  /^\.github\/workflows\//i,
+  /(^|\/)wrangler\.(toml|jsonc?)$/i,
+  /(^|\/)\.env/i,
+  /^config\/env\.contract\.json$/i,
+  /^scripts\/(deploy|release|rollback)/i,
+  /^scripts\/lib\/(worker-deploy-base-guard|change-risk|verification-plan|mock-test-config)\.mjs$/i,
+  /^scripts\/(check-changed|run-mock-tests|dev-with-(local|live)-auth|mock-dev-api)\.mjs$/i,
+  /^scripts\/lib\/mock-(network-guard\.cjs|dev-settings\.mjs)$/i,
+  /^scripts\/fixtures\/mock-dev-responses\.mjs$/i,
+  /(^|\/)package-lock\.json$/i,
+];
+
+export function stagingWatchReason(file) {
+  const value = String(file || "").replace(/\\/g, "/");
+  if (/^worker\/routes\//i.test(value)) return "주요 Worker 데이터 흐름";
+  if (stagingWatchExcludedPatterns.some((pattern) => pattern.test(value))) return "";
+  const deepReason = deepVerificationReason(value);
+  if (deepReason) return deepReason;
+  if (!inertDocPattern.test(value) && highKeywordPattern.test(value)) return "결제·인증·권한·데이터 경계";
+  return "";
+}
+
+export function requiresStagingWatch(files) {
+  const matches = [];
+  for (const file of files) {
+    const reason = stagingWatchReason(file);
+    if (reason) matches.push({ file, reason });
+  }
+  return { required: matches.length > 0, matches };
+}
+
 export function selfTest() {
   const levelCases = [
     // deploy-safe.mjs 와 check-changed.mjs 가 각각 고정해 두었던 케이스를 모두 옮겼다.
@@ -284,7 +319,25 @@ export function selfTest() {
   const combined = requiresDeepVerification(["docs/a.md", "worker/routes/payments.js"]);
   if (!combined.required || combined.matches.length !== 1) throw new Error("requiresDeepVerification must report only the matching file");
 
-  console.log(`[change-risk] self-test passed (${levelCases.length + deepCases.length} cases)`);
+  const stagingCases = [
+    ["styles/site.css", false],
+    ["app/messages/page.tsx", false],
+    ["styles/accessibility.css", false],
+    [".github/workflows/pr-ci.yml", false],
+    ["package-lock.json", false],
+    ["app/components/AuthWidget.tsx", true],
+    ["worker/routes/fortune-tea-house.js", true],
+    ["worker/routes/payments.js", true],
+    ["worker/lib/models.js", true],
+    ["scripts/migrations/20260908-example.mjs", true],
+    ["app/hooks/usePaidResume.ts", true],
+  ];
+  for (const [file, expected] of stagingCases) {
+    const actual = Boolean(stagingWatchReason(file));
+    if (actual !== expected) throw new Error(`stagingWatch(${file}) = ${actual}, expected ${expected}`);
+  }
+
+  console.log(`[change-risk] self-test passed (${levelCases.length + deepCases.length + stagingCases.length} cases)`);
 }
 
 if (process.argv[1] && process.argv[1].replace(/\\/g, "/").endsWith("scripts/lib/change-risk.mjs")) {

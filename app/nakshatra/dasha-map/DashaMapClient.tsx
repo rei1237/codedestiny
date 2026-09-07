@@ -6,6 +6,7 @@ import timeline from "./dasha-timeline.module.css";
 import { usePremiumReport } from "../_premium/use-premium-report";
 import { CrossSell, GenderPrompt, NatalBar, NeedBirth, SectionCards, UnlockGate, type ReportSection } from "../_premium/PremiumParts";
 import { useNakshatraCopy } from "../_lib/copy";
+import NakshatraProfilePicker from "../_components/NakshatraProfilePicker";
 
 interface Antardasha {
   lord: string;
@@ -130,7 +131,7 @@ export default function DashaMapClient() {
     reason: copy.dashaReason,
     endpoint: "/api/nakshatra-premium/dasha-map",
   } as const;
-  const { report, birth, natal, confirmedLocked, unlocked, checking, loading, paying, error, unlock, setGender } =
+  const { report, birth, natal, profilePicker, confirmedLocked, unlocked, checking, loading, paying, error, unlock, setGender } =
     usePremiumReport<DashaMap>(product);
 
   const meta = report ? copy.dashaMetaSummary(report.meta.periodCount, report.meta.antardashaCount) : undefined;
@@ -149,6 +150,7 @@ export default function DashaMapClient() {
           <p className={styles.lede}>{copy.dashaLede}</p>
         </header>
 
+        <NakshatraProfilePicker context={profilePicker} copy={copy} disabled={paying || loading} />
         <NatalBar natal={natalLabel} meta={meta} />
 
         {!birth && <NeedBirth />}

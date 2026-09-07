@@ -47,8 +47,37 @@ permissions:
   actions: read # 릴리스 런 결론 조회
 
 jobs:
+  scope:
+    name: Resolve staging watch scope
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      run: ${{ steps.scope.outputs.run }}
+    env:
+      CD_STAGING_ORIGIN: ${{ vars.CD_STAGING_ORIGIN || 'https://staging.code-destiny.com' }}
+    steps:
+      # 파일명만 비교하므로 블롭은 받지 않는다. schedule/manual 은 현재 스테이징 SHA 이후의
+      # 변경을 보고, push 는 방금 main 에 들어온 변경만 본다.
+      - name: Check out history without blobs
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          filter: blob:none
+
+      - name: Decide whether staging delivery needs monitoring
+        id: scope
+        env:
+          STAGING_WATCH_BASE: ${{ github.event_name == 'push' && github.event.before || '' }}
+          STAGING_WATCH_HEAD: ${{ github.event_name == 'push' && github.sha || 'HEAD' }}
+        run: |
+          node scripts/lib/change-risk.mjs --self-test
+          node scripts/dev/resolve-staging-watch.mjs --origin="${CD_STAGING_ORIGIN}"
+
   watch:
     name: Check that merged work reached staging
+    needs: scope
+    # 판정 실패는 감시 실행으로 닫는다. 명시적인 false 만 Quick Pass 로 건너뛴다.
+    if: needs.scope.outputs.run != 'false'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:

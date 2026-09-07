@@ -11,6 +11,7 @@
   var CARD_ID = 'cdAppInstall';
   var deferredInstallPrompt = null;
   var boundCta = null;
+  var promptInFlight = false;
 
   function isNativeApp() {
     /* 🔴 판별 정본은 js/core/app-context.js 하나다(docs/app-audit/APP_UIUX_SPEC.md §2). */
@@ -39,14 +40,6 @@
     }
   }
 
-  function isMobileViewport() {
-    try {
-      return !!(window.matchMedia && window.matchMedia('(max-width:720px)').matches);
-    } catch (_) {
-      return false;
-    }
-  }
-
   function getCard() {
     return document.getElementById(CARD_ID);
   }
@@ -58,15 +51,25 @@
 
   function onCtaClick() {
     var promptEvent = deferredInstallPrompt;
-    deferredInstallPrompt = null;
-    hideCard();
-    if (!promptEvent) return;
+    if (promptInFlight || !promptEvent || typeof promptEvent.prompt !== 'function') return;
+    promptInFlight = true;
     try {
       promptEvent.prompt();
     } catch (_) {
+      promptInFlight = false;
       return;
     }
-    Promise.resolve(promptEvent.userChoice).catch(function () {});
+    deferredInstallPrompt = null;
+    Promise.resolve(promptEvent.userChoice).then(function () {
+      promptInFlight = false;
+      /* BeforeInstallPromptEvent 는 prompt() 1회성이다. 취소된 이벤트를 재사용하지 않고,
+         브라우저가 새 이벤트를 보낼 때까지 카드를 숨겨서 죽은 재시도 버튼을 만들지 않는다. */
+      hideCard();
+    }).catch(function () {
+      promptInFlight = false;
+      /* prompt() 자체가 성공했지만 결과를 읽지 못한 경우에도 이벤트는 재사용하지 않는다. */
+      hideCard();
+    });
   }
 
   function showCard() {
@@ -85,8 +88,10 @@
 
   window.addEventListener('beforeinstallprompt', function (event) {
     if (isNativeApp() || isStandalone()) return;
+    if (!event || typeof event.prompt !== 'function') return;
     event.preventDefault();
     deferredInstallPrompt = event;
+    promptInFlight = false;
     showCard();
   });
 
@@ -95,9 +100,4 @@
     hideCard();
   });
 
-  /* 모바일 웹 환경(네이티브 앱 제외)에서는 beforeinstallprompt 가 오지 않는 브라우저(예: iOS Safari)
-     에서도 카드를 보여준다 — beforeinstallprompt 로 열렸으면 그대로 두고 중복 바인딩만 피한다. */
-  if (!isNativeApp() && !isStandalone() && isMobileViewport()) {
-    showCard();
-  }
 })();

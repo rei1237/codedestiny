@@ -306,6 +306,28 @@ export function resolveFeatureAccessPolicy({
   };
 }
 
+/* prepare 토큰은 policy 의 accessType(membership_pass/family)을 그대로 심는데, generate 는
+   `pass` 만 허용해서 이용권 확인 직후 생성이 402 로 죽었다. 상담 토큰·차감 분기는 이 정규화만 쓴다. */
+const CONSULT_PASS_ACCESS_TYPES = new Set([
+  "membership_pass", "license_pass", "subscription_pass", "pass", "family", "family_pass",
+]);
+const CONSULT_SUBSCRIPTION_ACCESS_TYPES = new Set([
+  "membership_credit", "monthly_credit", "moonlight_stone", "monthly", "subscription",
+]);
+const CONSULT_TOKEN_ACCESS_TYPES = new Set(["admin", "paid", "pass", "subscription"]);
+
+export function normalizeConsultAccessType(value) {
+  const accessType = String(value || "").trim().toLowerCase();
+  if (CONSULT_SUBSCRIPTION_ACCESS_TYPES.has(accessType)) return "subscription";
+  if (CONSULT_PASS_ACCESS_TYPES.has(accessType)) return "pass";
+  if (accessType === "admin" || accessType === "paid") return accessType;
+  return "";
+}
+
+export function isAllowedConsultTokenAccessType(value) {
+  return CONSULT_TOKEN_ACCESS_TYPES.has(normalizeConsultAccessType(value));
+}
+
 export function resolveServerProductType({
   body = {},
   pricing = {},

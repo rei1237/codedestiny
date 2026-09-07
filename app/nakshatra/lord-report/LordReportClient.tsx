@@ -5,6 +5,7 @@ import styles from "../_premium/premium.module.css";
 import { usePremiumReport } from "../_premium/use-premium-report";
 import { CrossSell, NatalBar, NeedBirth, SectionCards, UnlockGate, type ReportSection } from "../_premium/PremiumParts";
 import { useNakshatraCopy } from "../_lib/copy";
+import NakshatraProfilePicker from "../_components/NakshatraProfilePicker";
 
 interface LordReport {
   meta: {
@@ -32,7 +33,7 @@ export default function LordReportClient() {
     reason: copy.lordReason,
     endpoint: "/api/nakshatra-premium/lord-report",
   } as const;
-  const { report, birth, natal, confirmedLocked, unlocked, checking, loading, paying, error, unlock } =
+  const { report, birth, natal, profilePicker, confirmedLocked, unlocked, checking, loading, paying, error, unlock } =
     usePremiumReport<LordReport>(product);
 
   const meta = report ? copy.lordMetaSummary(report.sections.length, report.charCount) : undefined;
@@ -51,6 +52,7 @@ export default function LordReportClient() {
           <p className={styles.lede}>{copy.lordLede}</p>
         </header>
 
+        <NakshatraProfilePicker context={profilePicker} copy={copy} disabled={paying || loading} />
         <NatalBar natal={natalLabel} meta={meta} />
 
         {!birth && <NeedBirth />}

@@ -9757,36 +9757,78 @@ function computeSolarTermsForYear(year){
 
 // 24절기 카드 전용 스타일 주입 (번들 CSS 로드 여부와 무관하게 적용 보장 — 스킬트리 카드와 동일 패턴)
 function _ensureTerms24Style(){
-  if(document.getElementById('cd-terms24-style-v20260711'))return;
+  if(document.getElementById('cd-terms24-style-v20260908'))return;
   var style=document.createElement('style');
-  style.id='cd-terms24-style-v20260711';
+  style.id='cd-terms24-style-v20260908';
   style.textContent=[
-    '#terms24Card .terms24-intro{font-size:.86rem;line-height:1.72;color:#70445c;opacity:.92;margin:-2px 0 16px}',
+    '#terms24Card .terms24-intro{font-size:.86rem;line-height:1.72;color:#70445c;opacity:.94;margin:-2px 0 16px;word-break:keep-all;overflow-wrap:break-word}',
     '#terms24Card .terms24-intro b{color:#b31955;font-weight:800;opacity:1}',
-    '#terms24Card #terms24Grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}',
-    '#terms24Card .t24-season{position:relative;border-radius:18px;padding:13px 12px 14px;overflow:hidden;background:linear-gradient(160deg,#fffdfb,#fff5f0);border:1px solid var(--sea-line,rgba(179,25,85,.14));box-shadow:0 6px 18px rgba(179,25,85,.06),inset 0 1px 0 rgba(255,255,255,.72)}',
-    '#terms24Card .t24-season::before{content:"";position:absolute;top:0;left:0;width:100%;height:3px;background:linear-gradient(90deg,var(--sea,#b31955),transparent);opacity:.9}',
-    '#terms24Card .t24-season-head{display:inline-flex;align-items:center;gap:6px;margin-bottom:12px;padding:5px 12px;border-radius:999px;background:var(--sea-soft,rgba(179,25,85,.08));border:1px solid var(--sea-line,rgba(179,25,85,.14));font-weight:800;font-size:.9rem;color:var(--sea,#b31955);letter-spacing:-.01em}',
-    '#terms24Card .t24-season-head .t24-el{font-family:"Noto Serif KR",serif;font-size:.74rem;font-weight:700;opacity:.72;margin-left:2px;padding-left:7px;border-left:1px solid var(--sea-line,rgba(179,25,85,.2))}',
+    '#terms24Card #terms24Grid{display:flex;flex-direction:column;gap:14px}',
+    '#terms24Card .t24-rhythm{border-radius:18px;padding:16px;background:linear-gradient(160deg,#fffdfb,#fff7fa);border:1px solid rgba(179,25,85,.14);box-shadow:0 10px 24px rgba(150,72,104,.09),inset 0 1px 0 rgba(255,255,255,.82)}',
+    '#terms24Card .t24-rhythm-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}',
+    '#terms24Card .t24-kicker{font-size:.74rem;font-weight:800;color:#8b3c60;margin:0 0 5px;line-height:1.35}',
+    '#terms24Card .t24-headline{margin:0;color:#3c1830;font-size:1.05rem;line-height:1.45;font-weight:900;letter-spacing:0}',
+    '#terms24Card .t24-summary{margin:8px 0 0;color:#5f2c48;font-size:.88rem;line-height:1.7;word-break:keep-all;overflow-wrap:break-word}',
+    '#terms24Card .t24-pill{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;min-height:34px;padding:6px 11px;border-radius:999px;background:rgba(179,25,85,.08);border:1px solid rgba(179,25,85,.17);color:#7f244b;font-size:.76rem;font-weight:900;white-space:nowrap}',
+    '#terms24Card .t24-meter{margin:12px 0 13px;padding:11px 12px;border-radius:14px;background:rgba(255,255,255,.62);border:1px solid rgba(179,25,85,.1)}',
+    '#terms24Card .t24-meter-line{position:relative;height:8px;border-radius:999px;background:rgba(112,68,92,.16);overflow:hidden}',
+    '#terms24Card .t24-meter-fill{position:absolute;left:0;top:0;bottom:0;border-radius:inherit;background:#b31955;width:var(--t24-phase,50%)}',
+    '#terms24Card .t24-meter-meta{display:flex;justify-content:space-between;gap:8px;margin-top:8px;color:#70445c;font-size:.73rem;line-height:1.45}',
+    '#terms24Card .t24-basis{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0 0}',
+    '#terms24Card .t24-basis span{display:inline-flex;align-items:center;min-height:30px;padding:5px 9px;border-radius:999px;background:#fff;border:1px solid rgba(179,25,85,.11);color:#63334e;font-size:.72rem;font-weight:800}',
+    '#terms24Card .t24-caution{margin:11px 0 0;padding:10px 11px;border-radius:12px;background:#fff8dc;border:1px solid rgba(201,154,58,.22);color:#68431b;font-size:.78rem;line-height:1.6;word-break:keep-all}',
+    '#terms24Card .t24-domain-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}',
+    '#terms24Card .t24-domain{border-radius:14px;padding:12px;background:rgba(255,255,255,.74);border:1px solid rgba(179,25,85,.11);box-shadow:inset 0 1px 0 rgba(255,255,255,.74)}',
+    '#terms24Card .t24-domain h4{margin:0 0 6px;color:#3c1830;font-size:.87rem;line-height:1.35;font-weight:900;letter-spacing:0}',
+    '#terms24Card .t24-domain p{margin:0;color:#5f2c48;font-size:.78rem;line-height:1.62;word-break:keep-all;overflow-wrap:break-word}',
+    '#terms24Card .t24-domain .t24-action{display:block;margin-top:7px;color:#8b3c60;font-weight:900}',
+    '#terms24Card .t24-table{border-radius:16px;border:1px solid rgba(179,25,85,.12);background:rgba(255,255,255,.52);overflow:hidden}',
+    '#terms24Card .t24-table summary{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:44px;padding:12px 14px;cursor:pointer;color:#3c1830;font-size:.85rem;font-weight:900;list-style:none}',
+    '#terms24Card .t24-table summary::-webkit-details-marker{display:none}',
+    '#terms24Card .t24-table summary::after{content:"⌄";font-size:1rem;color:#8b3c60;transition:transform .18s ease}',
+    '#terms24Card .t24-table[open] summary::after{transform:rotate(180deg)}',
+    '#terms24Card .t24-seasons{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:0 12px 12px}',
+    '#terms24Card .t24-season{position:relative;border-radius:14px;padding:12px;background:rgba(255,255,255,.7);border:1px solid var(--sea-line,rgba(179,25,85,.14))}',
+    '#terms24Card .t24-season-head{display:inline-flex;align-items:center;gap:6px;margin-bottom:10px;padding:5px 10px;border-radius:999px;background:var(--sea-soft,rgba(179,25,85,.08));border:1px solid var(--sea-line,rgba(179,25,85,.14));font-weight:900;font-size:.82rem;color:var(--sea,#b31955);letter-spacing:0}',
+    '#terms24Card .t24-season-head .t24-el{font-family:"Noto Serif KR",serif;font-size:.72rem;font-weight:700;opacity:.74;margin-left:2px;padding-left:7px;border-left:1px solid var(--sea-line,rgba(179,25,85,.2))}',
     '#terms24Card .t24-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}',
-    '#terms24Card .t24-item{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:58px;padding:9px 4px;border-radius:13px;background:rgba(255,255,255,.72);border:1px solid rgba(179,25,85,.1);transition:transform .16s ease,box-shadow .16s ease}',
-    '#terms24Card .t24-item:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(179,25,85,.1)}',
-    '#terms24Card .t24-name{display:flex;align-items:baseline;gap:3px;font-size:.82rem;font-weight:800;color:#3c1830;line-height:1.1}',
-    '#terms24Card .t24-name i{font-style:normal;font-family:"Noto Serif KR",serif;font-size:.6rem;font-weight:500;opacity:.5}',
-    '#terms24Card .t24-date{font-size:.68rem;color:#70445c;opacity:.72;font-variant-numeric:tabular-nums}',
-    '#terms24Card .t24-item.is-current{background:linear-gradient(160deg,#fff,var(--sea-soft,rgba(179,25,85,.1)));border-color:var(--sea,#b31955);box-shadow:0 0 0 1.5px var(--sea,#b31955),0 8px 20px rgba(0,0,0,.1)}',
+    '#terms24Card .t24-item{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:58px;padding:8px 4px;border-radius:12px;background:rgba(255,255,255,.72);border:1px solid rgba(179,25,85,.1);transition:transform .16s ease,box-shadow .16s ease}',
+    '#terms24Card .t24-item:hover{transform:translateY(-1px);box-shadow:0 8px 18px rgba(150,72,104,.1)}',
+    '#terms24Card .t24-name{display:flex;align-items:baseline;gap:3px;font-size:.8rem;font-weight:900;color:#3c1830;line-height:1.1}',
+    '#terms24Card .t24-name i{font-style:normal;font-family:"Noto Serif KR",serif;font-size:.58rem;font-weight:500;opacity:.55}',
+    '#terms24Card .t24-date{font-size:.67rem;color:#70445c;opacity:.78;font-variant-numeric:tabular-nums}',
+    '#terms24Card .t24-item.is-current{background:linear-gradient(160deg,#fff,var(--sea-soft,rgba(179,25,85,.1)));border-color:var(--sea,#b31955);box-shadow:0 0 0 1.5px var(--sea,#b31955),0 8px 20px rgba(0,0,0,.08)}',
     '#terms24Card .t24-item.is-current .t24-name{color:var(--sea,#b31955)}',
-    '#terms24Card .t24-item.is-current .t24-date{color:var(--sea,#b31955);opacity:.95}',
-    '#terms24Card .t24-tag{margin-top:2px;padding:1px 8px;border-radius:999px;background:var(--sea,#b31955);color:#fff;font-size:.56rem;font-weight:800;letter-spacing:.02em;line-height:1.6}',
-    '#terms24Card .t24-season--spring{--sea:#2e9e6b;--sea-soft:rgba(46,158,107,.1);--sea-line:rgba(46,158,107,.24)}',
-    '#terms24Card .t24-season--summer{--sea:#e0564e;--sea-soft:rgba(224,86,78,.1);--sea-line:rgba(224,86,78,.24)}',
-    '#terms24Card .t24-season--autumn{--sea:#c99a3a;--sea-soft:rgba(201,154,58,.12);--sea-line:rgba(201,154,58,.26)}',
-    '#terms24Card .t24-season--winter{--sea:#4f78c9;--sea-soft:rgba(79,120,201,.1);--sea-line:rgba(79,120,201,.24)}',
-    '@media (max-width:480px){#terms24Card #terms24Grid{grid-template-columns:1fr}}',
+    '#terms24Card .t24-item.is-current .t24-date{color:var(--sea,#b31955);opacity:.96}',
+    '#terms24Card .t24-tag{margin-top:2px;padding:1px 8px;border-radius:999px;background:var(--sea,#b31955);color:#fff;font-size:.56rem;font-weight:900;letter-spacing:0;line-height:1.6}',
+    '#terms24Card .t24-season--spring{--sea:#237d58;--sea-soft:rgba(46,158,107,.1);--sea-line:rgba(46,158,107,.24)}',
+    '#terms24Card .t24-season--summer{--sea:#bd3e38;--sea-soft:rgba(224,86,78,.1);--sea-line:rgba(224,86,78,.24)}',
+    '#terms24Card .t24-season--autumn{--sea:#956c1f;--sea-soft:rgba(201,154,58,.12);--sea-line:rgba(201,154,58,.26)}',
+    '#terms24Card .t24-season--winter{--sea:#365fba;--sea-soft:rgba(79,120,201,.1);--sea-line:rgba(79,120,201,.24)}',
+    '@media (max-width:640px){#terms24Card .t24-rhythm{padding:14px}#terms24Card .t24-rhythm-head{flex-direction:column}#terms24Card .t24-pill{white-space:normal}#terms24Card .t24-domain-grid,#terms24Card .t24-seasons{grid-template-columns:1fr}#terms24Card .t24-grid{grid-template-columns:repeat(2,1fr)}#terms24Card .t24-meter-meta{flex-direction:column}}',
+    '@media (prefers-reduced-motion:reduce){#terms24Card .t24-item,#terms24Card .t24-table summary::after{transition:none}}',
     /* ── 네오(달빛 다크) 대비 오버라이드 — 배경·글자색 함께 전환 ── */
     'body.neo-mode #terms24Card .terms24-intro{color:#c9bce0;opacity:.92}',
     'body.neo-mode #terms24Card .terms24-intro b{color:#e9c46a}',
-    'body.neo-mode #terms24Card .t24-season{background:linear-gradient(160deg,rgba(26,22,52,.72),rgba(18,15,40,.66));border-color:rgba(148,163,184,.22);box-shadow:0 6px 18px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.05)}',
+    'body.neo-mode #terms24Card .t24-rhythm{background:linear-gradient(160deg,rgba(26,22,52,.76),rgba(18,15,40,.7));border-color:rgba(196,181,253,.22);box-shadow:0 14px 26px rgba(0,0,0,.34),inset 0 1px 0 rgba(228,214,255,.1)}',
+    'body.neo-mode #terms24Card .t24-kicker{color:#e8d5a3}',
+    'body.neo-mode #terms24Card .t24-headline{color:#f4eeff}',
+    'body.neo-mode #terms24Card .t24-summary{color:#dbcfff}',
+    'body.neo-mode #terms24Card .t24-pill{background:rgba(232,213,163,.1);border-color:rgba(232,213,163,.24);color:#f5dea0}',
+    'body.neo-mode #terms24Card .t24-meter{background:rgba(38,32,66,.56);border-color:rgba(196,181,253,.16)}',
+    'body.neo-mode #terms24Card .t24-meter-line{background:rgba(244,238,255,.18)}',
+    'body.neo-mode #terms24Card .t24-meter-fill{background:#c4b5fd}',
+    'body.neo-mode #terms24Card .t24-meter-meta{color:#d5c8ef}',
+    'body.neo-mode #terms24Card .t24-basis span{background:rgba(38,32,66,.68);border-color:rgba(196,181,253,.18);color:#efe8ff}',
+    'body.neo-mode #terms24Card .t24-caution{background:rgba(232,213,163,.1);border-color:rgba(232,213,163,.24);color:#f0dfb8}',
+    'body.neo-mode #terms24Card .t24-domain{background:rgba(38,32,66,.62);border-color:rgba(196,181,253,.16)}',
+    'body.neo-mode #terms24Card .t24-domain h4{color:#f4eeff}',
+    'body.neo-mode #terms24Card .t24-domain p{color:#d9cff1}',
+    'body.neo-mode #terms24Card .t24-domain .t24-action{color:#f5dea0}',
+    'body.neo-mode #terms24Card .t24-table{background:rgba(38,32,66,.44);border-color:rgba(196,181,253,.18)}',
+    'body.neo-mode #terms24Card .t24-table summary{color:#f4eeff}',
+    'body.neo-mode #terms24Card .t24-table summary::after{color:#e8d5a3}',
+    'body.neo-mode #terms24Card .t24-season{background:rgba(38,32,66,.6);border-color:rgba(148,163,184,.22);box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}',
     'body.neo-mode #terms24Card .t24-item{background:rgba(38,32,66,.6);border-color:rgba(148,163,184,.16)}',
     'body.neo-mode #terms24Card .t24-name{color:#ece7f7}',
     'body.neo-mode #terms24Card .t24-name i{color:#b9a9d6;opacity:.8}',
@@ -9798,7 +9840,224 @@ function _ensureTerms24Style(){
   document.head.appendChild(style);
 }
 
-// 사주 기본 결과에 태어난 해의 24절기 카드를 렌더 (생월 절입 강조)
+function _t24Escape(value){
+  if(typeof escapeManseAttr === 'function') return escapeManseAttr(value);
+  return String(value == null ? '' : value)
+    .replace(/&/g,'&amp;')
+    .replace(/"/g,'&quot;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;');
+}
+
+function _t24TermDate(year, term){
+  if(!year || !term) return null;
+  var month = parseInt(term.month, 10);
+  var day = parseInt(term.day, 10);
+  if(!month || !day) return null;
+  return new Date(parseInt(year, 10), month - 1, day, parseInt(term.hour, 10) || 0, parseInt(term.minute, 10) || 0, 0, 0);
+}
+
+function _t24TermsByName(year){
+  var terms = computeSolarTermsForYear(year);
+  if(!terms || !terms.length) return null;
+  var byName = {};
+  terms.forEach(function(t){ byName[t.name] = t; });
+  return byName;
+}
+
+function _t24BirthDate(ctx){
+  var s = ctx && ctx.solar ? ctx.solar : {};
+  var y = parseInt(s.year, 10);
+  var m = parseInt(s.month, 10);
+  var d = parseInt(s.day, 10);
+  var h = parseInt(s.hour, 10);
+  var mi = parseInt(s.minute, 10);
+  if(!y || !m || !d) return null;
+  return new Date(y, m - 1, d, isNaN(h) ? 12 : h, isNaN(mi) ? 0 : mi, 0, 0);
+}
+
+function _t24FindTermForBirth(name, birthDate){
+  if(!name || !birthDate) return null;
+  var year = birthDate.getFullYear();
+  var byName = _t24TermsByName(year);
+  var term = byName && byName[name];
+  var termDate = _t24TermDate(year, term);
+  if(termDate && termDate.getTime() - birthDate.getTime() > 1000 * 60 * 60 * 24 * 90){
+    byName = _t24TermsByName(year - 1);
+    term = byName && byName[name];
+    termDate = _t24TermDate(year - 1, term);
+  }
+  return termDate ? { term: term, date: termDate } : null;
+}
+
+function _t24FindNextJieip(name, startDate){
+  var order = ['입춘','경칩','청명','입하','망종','소서','입추','백로','한로','입동','대설','소한'];
+  var idx = order.indexOf(name);
+  if(idx < 0 || !startDate) return null;
+  var nextName = order[(idx + 1) % order.length];
+  var year = startDate.getFullYear();
+  var byName = _t24TermsByName(year);
+  var term = byName && byName[nextName];
+  var nextDate = _t24TermDate(year, term);
+  if(!nextDate || nextDate <= startDate){
+    byName = _t24TermsByName(year + 1);
+    term = byName && byName[nextName];
+    nextDate = _t24TermDate(year + 1, term);
+  }
+  return nextDate ? { name: nextName, term: term, date: nextDate } : null;
+}
+
+function _t24FormatDate(date){
+  if(!date) return '';
+  return (date.getMonth() + 1) + '.' + date.getDate() + ' '
+    + String(date.getHours()).padStart(2, '0') + ':' + String(date.getMinutes()).padStart(2, '0');
+}
+
+function _t24SeasonProfile(monthBranch){
+  var map = {
+    '寅':{key:'wood',label:'봄 목왕절',tone:'시작하고 뻗어 나가는 힘'},
+    '卯':{key:'wood',label:'봄 목왕절',tone:'관계와 가능성을 넓히는 힘'},
+    '巳':{key:'fire',label:'여름 화왕절',tone:'표현하고 드러내는 힘'},
+    '午':{key:'fire',label:'여름 화왕절',tone:'속도와 추진력을 올리는 힘'},
+    '申':{key:'metal',label:'가을 금왕절',tone:'기준을 세우고 정리하는 힘'},
+    '酉':{key:'metal',label:'가을 금왕절',tone:'완성도와 선택 기준을 다듬는 힘'},
+    '亥':{key:'water',label:'겨울 수왕절',tone:'깊이 생각하고 축적하는 힘'},
+    '子':{key:'water',label:'겨울 수왕절',tone:'집중과 회복으로 다음 흐름을 준비하는 힘'},
+    '辰':{key:'earth',label:'봄의 토왕 환절기',tone:'벌린 일을 현실 구조로 묶는 힘'},
+    '未':{key:'earth',label:'여름의 토왕 환절기',tone:'뜨거운 흐름을 책임과 지속성으로 낮추는 힘'},
+    '戌':{key:'earth',label:'가을의 토왕 환절기',tone:'정리한 결과를 다음 단계로 넘기는 힘'},
+    '丑':{key:'earth',label:'겨울의 토왕 환절기',tone:'느린 준비를 오래가는 기반으로 만드는 힘'}
+  };
+  return map[monthBranch] || {key:'earth',label:'계절 전환기',tone:'흐름을 조율하고 기반을 다지는 힘'};
+}
+
+function _t24DomainCards(seasonKey, johu){
+  var base = {
+    wood: {
+      self:['성향의 출발점','가능성을 먼저 보고 움직이는 편이라, 방향이 선명할수록 시작과 확장이 빨라지는 편입니다.','벌인 일을 세 가지 안으로 줄여 끝맺음 기준을 정해보세요.'],
+      work:['일·돈의 작동 방식','아이디어, 학습, 기획처럼 새 가지를 뻗는 일에서 재물 흐름을 만들기 쉽습니다.','반복 가능한 작은 수익 루트 하나를 먼저 고정하세요.'],
+      relation:['관계 온도','마음을 먼저 열지만 상대의 속도까지 끌고 가려 하면 피로가 쌓일 수 있습니다.','대화를 넓히되 답을 재촉하지 않는 간격을 남겨두세요.'],
+      condition:['컨디션 조율','머리와 몸이 동시에 바빠지기 쉬워 휴식이 늦게 옵니다.','아침 산책이나 스트레칭처럼 기운을 위로 빼는 루틴이 좋습니다.']
+    },
+    fire: {
+      self:['성향의 출발점','표현력과 반응 속도가 강해 사람들 앞에서 존재감이 빨리 드러납니다.','즉흥적인 말보다 한 번 정리한 메시지로 승부하세요.'],
+      work:['일·돈의 작동 방식','홍보, 발표, 설득, 브랜딩처럼 보이는 힘을 쓰는 일에서 흐름이 붙기 쉽습니다.','속도를 올리기 전 마감 기준과 비용 한도를 먼저 잡아두세요.'],
+      relation:['관계 온도','감정 표현은 선명하지만 과열되면 상대가 숨 쉴 틈을 잃을 수 있습니다.','중요한 말은 바로 보내기보다 한 호흡 뒤에 전하세요.'],
+      condition:['컨디션 조율','열이 위로 몰리면 수면, 집중력, 예민함이 흔들리기 쉽습니다.','밤에는 화면과 자극을 줄이고 몸을 식히는 루틴을 두세요.']
+    },
+    earth: {
+      self:['성향의 출발점','흐름을 붙잡아 현실로 만들려는 힘이 강해 책임과 조율에 민감합니다.','모든 일을 혼자 떠안기보다 맡을 것과 넘길 것을 나누세요.'],
+      work:['일·돈의 작동 방식','관리, 운영, 정산, 기록처럼 흩어진 것을 안정화할 때 돈의 흐름을 만들기 쉽습니다.','지금 가진 자원을 표로 정리하고 새 지출은 하루 늦춰보세요.'],
+      relation:['관계 온도','상대에게 든든함을 주지만, 걱정이 많아지면 통제처럼 보일 수 있습니다.','도와주기 전에 상대가 원하는 방식을 먼저 물어보세요.'],
+      condition:['컨디션 조율','생각이 몸에 쌓이면 소화와 무거움으로 신호가 올 수 있습니다.','식사 시간과 수면 시간을 일정하게 두는 것이 가장 현실적인 조율입니다.']
+    },
+    metal: {
+      self:['성향의 출발점','기준과 완성도를 중시해 무엇을 남기고 버릴지 빠르게 판단합니다.','맞고 틀림보다 우선순위를 먼저 말하면 날카로움이 장점으로 바뀝니다.'],
+      work:['일·돈의 작동 방식','품질 관리, 계약, 분석, 정리처럼 기준이 필요한 일에서 성과가 납니다.','결과물을 작게라도 완성해 공개 가능한 형태로 묶어보세요.'],
+      relation:['관계 온도','선을 지키는 힘이 강하지만, 차갑게 보이면 마음이 늦게 전달됩니다.','평가보다 인정 한 문장을 먼저 건네보세요.'],
+      condition:['컨디션 조율','긴장과 건조함이 쌓이면 호흡이 얕아질 수 있습니다.','짧은 호흡 운동과 물 섭취를 루틴처럼 붙여두세요.']
+    },
+    water: {
+      self:['성향의 출발점','깊이 관찰하고 오래 생각하는 힘이 있어 복잡한 흐름을 잘 읽습니다.','생각이 길어질수록 첫 행동을 작게 쪼개 시작점을 만드세요.'],
+      work:['일·돈의 작동 방식','연구, 데이터, 상담, 저장형 지식처럼 깊이를 쌓는 일에서 가치가 커집니다.','오늘 배운 것을 기록해 나중에 팔 수 있는 자산으로 남기세요.'],
+      relation:['관계 온도','감정을 쉽게 드러내지 않아도 속으로는 많은 것을 계산하고 배려합니다.','침묵이 오해가 되지 않게 현재 감정 한 줄은 직접 말해보세요.'],
+      condition:['컨디션 조율','에너지가 안으로 모이면 움직임이 늦어지고 잠이 늘 수 있습니다.','따뜻한 빛과 가벼운 운동으로 몸의 온도를 먼저 올리세요.']
+    }
+  };
+  var cards = base[seasonKey] || base.earth;
+  var condition = cards.condition.slice();
+  if(johu && (johu.type === 'hot' || johu.type === 'warm')){
+    condition[1] += ' 현재 조후는 열감을 낮추는 쪽이 더 편안합니다.';
+  } else if(johu && (johu.type === 'cold' || johu.type === 'cool')){
+    condition[1] += ' 현재 조후는 온기와 실행감을 올릴 때 균형이 좋습니다.';
+  }
+  return [cards.self, cards.work, cards.relation, condition].map(function(item){
+    return { title:item[0], body:item[1], action:item[2] };
+  });
+}
+
+function buildSeasonalFortuneContext(ctx, p){
+  if(!p || !p.m) return null;
+  var monthBranch = p.m.j ? String(p.m.j).trim() : '';
+  var currentTerm = ST24_BRANCH_TO_JIEIP[monthBranch] || '';
+  var birthDate = _t24BirthDate(ctx);
+  if(!currentTerm || !birthDate) return null;
+
+  var start = _t24FindTermForBirth(currentTerm, birthDate);
+  var next = start ? _t24FindNextJieip(currentTerm, start.date) : null;
+  var total = next ? (next.date.getTime() - start.date.getTime()) : 0;
+  var elapsed = start ? (birthDate.getTime() - start.date.getTime()) : 0;
+  var ratio = total > 0 ? Math.max(0, Math.min(1, elapsed / total)) : null;
+  var phase = ratio == null ? '절기 흐름' : (ratio < 0.28 ? '초입' : (ratio < 0.72 ? '중반' : '마무리'));
+  var nearBoundary = ratio != null && (elapsed <= 1000 * 60 * 60 * 24 || (total - elapsed) <= 1000 * 60 * 60 * 24);
+  var season = _t24SeasonProfile(monthBranch);
+  var johu = (typeof G_JOHU !== 'undefined' && G_JOHU) ? G_JOHU : null;
+  var power = (typeof G_POWER !== 'undefined' && G_POWER) ? G_POWER : null;
+  var monthPillar = (p.m.g || '') + (p.m.j || '');
+  var monthPillarKo = ((GAN[p.m.g] && GAN[p.m.g].n) || p.m.g || '') + '·' + ((JI[p.m.j] && JI[p.m.j].a) || p.m.j || '');
+  var yong = _dfUniqueElements(power && power.yongshin).slice(0, 2).map(function(e){ return EL_K[e] || e; });
+  var caution = _dfUniqueElements(power && power.kijishin).slice(0, 2).map(function(e){ return EL_K[e] || e; });
+  var basis = [
+    '월주 ' + monthPillar + (monthPillarKo ? ' (' + monthPillarKo + ')' : ''),
+    '월령 ' + season.label,
+    currentTerm + ' 절입'
+  ];
+  if(johu && johu.badgeTxt) basis.push(String(johu.badgeTxt).replace(/[🔥🌞🌤️🍃❄️]/g,'').trim());
+  if(yong.length) basis.push('보완 기운 ' + yong.join('·'));
+  if(caution.length) basis.push('주의 리듬 ' + caution.join('·'));
+  return {
+    termName: currentTerm,
+    phase: phase,
+    phasePct: ratio == null ? 50 : Math.round(ratio * 100),
+    phaseMeta: start && next ? (_t24FormatDate(start.date) + '부터 ' + _t24FormatDate(next.date) + ' 전까지') : '',
+    nearBoundary: nearBoundary,
+    headline: '당신의 월주는 ' + currentTerm + '에서 열리는 ' + season.label + '의 리듬을 탑니다.',
+    summary: season.tone + '이 사주의 기본 계절감입니다. 이 흐름은 성격을 단정하는 표식이 아니라, 선택과 관계에서 반복되기 쉬운 반응 속도를 이해하는 기준으로 보면 좋습니다.',
+    basis: basis,
+    domains: _t24DomainCards(season.key, johu)
+  };
+}
+
+function _t24RenderDomainCards(cards){
+  return cards.map(function(card){
+    return '<article class="t24-domain">'
+      + '<h4>' + _t24Escape(card.title) + '</h4>'
+      + '<p>' + _t24Escape(card.body) + '<span class="t24-action">' + _t24Escape(card.action) + '</span></p>'
+      + '</article>';
+  }).join('');
+}
+
+function _t24RenderTermsTable(terms, currentTerm){
+  var byName = {};
+  terms.forEach(function(t){ byName[t.name] = t; });
+  var SEASONS = [
+    { key:'spring', label:'봄', el:'木', names:['입춘','우수','경칩','춘분','청명','곡우'] },
+    { key:'summer', label:'여름', el:'火', names:['입하','소만','망종','하지','소서','대서'] },
+    { key:'autumn', label:'가을', el:'金', names:['입추','처서','백로','추분','한로','상강'] },
+    { key:'winter', label:'겨울', el:'水', names:['입동','소설','대설','동지','소한','대한'] }
+  ];
+  var html = '<details class="t24-table"><summary>24절기표 보기</summary><div class="t24-seasons">';
+  SEASONS.forEach(function(s){
+    html += '<div class="t24-season t24-season--' + s.key + '">';
+    html += '<div class="t24-season-head">' + _t24Escape(s.label) + '<span class="t24-el">' + _t24Escape(s.el) + '</span></div>';
+    html += '<div class="t24-grid">';
+    s.names.forEach(function(n){
+      var t = byName[n];
+      var hanja = ST24_HANJA[n] || '';
+      var dateStr = t ? (t.month + '.' + t.day) : '-';
+      var isCur = (n === currentTerm);
+      html += '<div class="t24-item' + (isCur ? ' is-current' : '') + '">'
+        + '<span class="t24-name">' + _t24Escape(n) + (hanja ? '<i>' + _t24Escape(hanja) + '</i>' : '') + '</span>'
+        + '<span class="t24-date">' + _t24Escape(dateStr) + '</span>'
+        + (isCur ? '<span class="t24-tag">내 생월 절입</span>' : '')
+        + '</div>';
+    });
+    html += '</div></div>';
+  });
+  return html + '</div></details>';
+}
+
+// 사주 기본 결과에 태어난 해의 24절기 기반 개인 절기 리듬을 렌더
 function render24Terms(ctx, p){
   var card = document.getElementById('terms24Card');
   var grid = document.getElementById('terms24Grid');
@@ -9813,39 +10072,33 @@ function render24Terms(ctx, p){
 
   _ensureTerms24Style();
 
-  var byName = {};
-  terms.forEach(function(t){ byName[t.name] = t; });
+  var seasonalFortuneContext = buildSeasonalFortuneContext(ctx || (window.G_KASI_CONTEXT || null), p);
+  if(!seasonalFortuneContext){ card.style.display = 'none'; return; }
 
-  var monthBranch = (p && p.m && p.m.j) ? String(p.m.j).trim() : null;
-  var currentTerm = monthBranch ? ST24_BRANCH_TO_JIEIP[monthBranch] : null;
-
-  var SEASONS = [
-    { key:'spring', emoji:'🌱', label:'봄', el:'木', names:['입춘','우수','경칩','춘분','청명','곡우'] },
-    { key:'summer', emoji:'☀️', label:'여름', el:'火', names:['입하','소만','망종','하지','소서','대서'] },
-    { key:'autumn', emoji:'🍂', label:'가을', el:'金', names:['입추','처서','백로','추분','한로','상강'] },
-    { key:'winter', emoji:'❄️', label:'겨울', el:'水', names:['입동','소설','대설','동지','소한','대한'] }
-  ];
-
-  var html = '';
-  SEASONS.forEach(function(s){
-    html += '<div class="t24-season t24-season--' + s.key + '">';
-    html += '<div class="t24-season-head">' + s.emoji + ' ' + s.label + '<span class="t24-el">' + s.el + '</span></div>';
-    html += '<div class="t24-grid">';
-    s.names.forEach(function(n){
-      var t = byName[n];
-      var hanja = ST24_HANJA[n] || '';
-      var dateStr = t ? (t.month + '.' + t.day) : '—';
-      var isCur = (n === currentTerm);
-      html += '<div class="t24-item' + (isCur ? ' is-current' : '') + '">'
-        + '<span class="t24-name">' + n + (hanja ? '<i>' + hanja + '</i>' : '') + '</span>'
-        + '<span class="t24-date">' + dateStr + '</span>'
-        + (isCur ? '<span class="t24-tag">내 생월</span>' : '')
-        + '</div>';
-    });
-    html += '</div></div>';
-  });
-
-  grid.innerHTML = html;
+  var cautionLine = seasonalFortuneContext.nearBoundary
+    ? '<div class="t24-caution">절입 경계와 가까운 출생입니다. 출생 시각이 조금 달라지면 월주 판정이 민감해질 수 있어, 기록된 시간을 기준으로 보는 것이 좋습니다.</div>'
+    : '';
+  var chips = seasonalFortuneContext.basis.map(function(v){ return '<span>' + _t24Escape(v) + '</span>'; }).join('');
+  var meterStyle = ' style="--t24-phase:' + _t24Escape(seasonalFortuneContext.phasePct) + '%"';
+  grid.innerHTML =
+    '<section class="t24-rhythm" aria-label="내 절기 리듬">'
+      + '<div class="t24-rhythm-head">'
+        + '<div>'
+          + '<p class="t24-kicker">24절기 기반 월령 해석</p>'
+          + '<h3 class="t24-headline">' + _t24Escape(seasonalFortuneContext.headline) + '</h3>'
+          + '<p class="t24-summary">' + _t24Escape(seasonalFortuneContext.summary) + '</p>'
+        + '</div>'
+        + '<span class="t24-pill">' + _t24Escape(seasonalFortuneContext.phase) + ' 리듬</span>'
+      + '</div>'
+      + '<div class="t24-meter"' + meterStyle + '>'
+        + '<div class="t24-meter-line" aria-hidden="true"><span class="t24-meter-fill"></span></div>'
+        + '<div class="t24-meter-meta"><span>' + _t24Escape(seasonalFortuneContext.termName) + '에서 시작</span><span>' + _t24Escape(seasonalFortuneContext.phaseMeta || '월령 구간 안의 흐름') + '</span></div>'
+      + '</div>'
+      + '<div class="t24-basis">' + chips + '</div>'
+      + cautionLine
+    + '</section>'
+    + '<div class="t24-domain-grid">' + _t24RenderDomainCards(seasonalFortuneContext.domains) + '</div>'
+    + _t24RenderTermsTable(terms, seasonalFortuneContext.termName);
   card.style.display = '';
 }
 

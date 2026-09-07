@@ -210,7 +210,7 @@ function buildFortuneTeaHouseResultText(result: FortuneTeaHouseConsultResponse, 
 
 /** 십성 데이터에서 사전이 덮으면 안 되는 필드. id 는 판별자, colorTone 은 CSS 토큰이다. */
 const TEN_GOD_SKIP_KEYS = ["id", "colorTone"];
-/* 찻잔 상수의 id·CSS 토큰은 문구가 아니다. 배선 목록은 docs/handoff/fortune-tea-house-i18n.md 함정 9 참고. */
+/* 찻잔 상수의 id·CSS 토큰은 문구가 아니다. */
 const CUP_SKIP_KEYS = ["id", "particleTone", "accent"];
 /* 카드 정체성(id·영문명)과 주제 매칭용 힌트는 화면 문구가 아니다 — nameKo·keywords·meaning 만 사전을 탄다. */
 const CONSULT_CARD_SKIP_KEYS = ["id", "nameEn", "topicHints"];

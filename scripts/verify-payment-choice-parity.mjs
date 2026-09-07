@@ -16,7 +16,7 @@
 // BANNED_BALANCE_MARKERS 배열이 어떤 assert 에도 쓰이지 않았다). 되살리면서 --self-test 를
 // 붙였다 — 같은 방식으로 다시 죽으면 그 자기검사가 잡는다.
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
@@ -601,7 +601,7 @@ function derivePinKey(assets) {
 
 const trackedFiles = execFileSync("git", ["ls-files"], { cwd: root, encoding: "utf8" })
   .split("\n")
-  .filter((rel) => /\.(html|ts|tsx|js|mjs)$/.test(rel));
+  .filter((rel) => /\.(html|ts|tsx|js|mjs)$/.test(rel) && existsSync(resolve(root, rel)));
 assert.ok(
   trackedFiles.length > 100,
   `git ls-files 가 ${trackedFiles.length}개만 돌려줬습니다 — 핀 검사가 대상 없이 통과할 뻔했습니다.`,

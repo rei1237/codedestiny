@@ -19,6 +19,7 @@
     "dev": "node scripts/dev-with-local-auth.mjs",
     "dev:next": "node --require=./scripts/next-manifest-read-guard.cjs ./node_modules/next/dist/bin/next dev",
     "dev:local-auth-api": "node scripts/local-dev-auth-api.mjs",
+    "handoff": "node scripts/dev/create-handoff.mjs",
     "seo:check": "node scripts/check-seo-health.mjs",
     "seo:audit": "node scripts/seo-audit.mjs",
     "seo:audit:complete": "node scripts/audit-seo-adsense-i18n.mjs",
@@ -523,7 +524,9 @@
     "dev:live": "node scripts/dev-with-live-auth.mjs",
     "measure:dev-environment": "node scripts/measure-dev-environment.mjs",
     "measure:ci-timings": "node scripts/measure-ci-timings.mjs",
-    "worktree:status": "node scripts/worktree-status.mjs"
+    "worktree:status": "node scripts/worktree-status.mjs",
+    "delivery:admit": "node scripts/delivery-admit.mjs",
+    "verify:delivery-admit": "node scripts/delivery-admit.mjs --self-test"
   },
   "dependencies": {
     "@capacitor/android": "^8.4.1",
