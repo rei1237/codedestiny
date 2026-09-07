@@ -97,26 +97,8 @@ const ROOT_REGISTRARS = ["registerPaidResumeHandler", "usePaidResume"];
  * 형식: [파일, 게이트 이름, 사유]
  */
 const UNWIRED_BACKLOG = [
-  [
-    "components/fpti/FptiResultCard.tsx",
-    "purchaseFeature",
-    "FPTI 심화 리포트 — 서버 영구 해금형(featureKey: premium-fpti-report)이라 재과금은 없지만, "
-    + "복귀 문서는 스스로 열리지 않는다(핸드오프 §(c) 분류: 영구 unlock 이 '스스로 열림'을 뜻하지 않는다). "
-    + "2026-09-07 이 가드 신설 시점의 기존 미배선분 — 후속 과제.",
-  ],
-  [
-    "src/features/fortune-tea-house/FortuneTeaHousePage.tsx",
-    "runBillingCoinGate",
-    "운명 찻집 상담 — 게이트가 서버 응답 payload 로 조립되는 buildFortuneTeaBillingGateInput 를 타고, "
-    + "상담 생성이 202 폴링이라 재개 서술자에 폴링 상태까지 실어야 한다. "
-    + "2026-09-07 이 가드 신설 시점의 기존 미배선분 — 후속 과제.",
-  ],
-  [
-    "src/features/master-love-codex/MasterLoveCodexPage.tsx",
-    "runBillingCoinGate",
-    "마스터 러브 코덱스 — buildBillingGateInput(...) 결과를 그대로 넘겨 resume 자리가 없다. "
-    + "2026-09-07 이 가드 신설 시점의 기존 미배선분 — 후속 과제.",
-  ],
+  // 비어 있다 — 2026-09-07 로 유료 게이트 호출부 전수가 재개 서술자를 싣는다.
+  // 새 항목을 여기 넣는 것은 "지금은 못 배선했다"는 선언이다. 사유와 날짜를 반드시 함께 적는다.
 ];
 
 /**

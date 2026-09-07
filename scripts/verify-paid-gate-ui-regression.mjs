@@ -476,7 +476,7 @@ assertContains(billingClientSource, "hasVerifiedBillingAccess", "common paid gat
 
 const fortuneTeaSubmitSource = section(
   fortuneTeaHouseSource,
-  "async function submitQuestion(nextQuestionInput: FortuneTeaHouseQuestionInput)",
+  "async function submitQuestion(nextQuestionInput: FortuneTeaHouseQuestionInput",
   "} catch (error) {",
   "fortune tea house submit flow"
 );

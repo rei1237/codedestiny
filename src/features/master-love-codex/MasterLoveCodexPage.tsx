@@ -17,6 +17,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { authFetch } from "@/app/_lib/auth-client";
 import { isRetriableResultPollFailure } from "@/app/_lib/consultationResultPolling";
+import { usePaidResume, packPaidResumeArg, unpackPaidResumeArg } from "@/app/hooks/usePaidResume";
 import {
   beginPaidFeatureGateCheck,
   completePaidFeatureGateCheck,
@@ -60,6 +61,8 @@ const MAX_NO_PROGRESS_BATCHES = 3;
 //    일시적 실패에는 완충이 하나도 남지 않는다.
 //    서버 배치 락 TTL(120초)보다 길어야 엣지 컷 뒤 남은 락이 풀릴 때까지 버틴다.
 const GENERATION_STALL_BUDGET_MS = 240_000;
+// 결제 후 자동 재개 종류. SKU(개인/궁합)가 갈려도 복귀 경로는 하나라 featureKey 가 아니라 고정 문자열이다.
+const MASTER_LOVE_CODEX_RESUME_KIND = "master-love-codex";
 
 type SessionPayload = {
   ok?: boolean;
@@ -342,6 +345,44 @@ export default function MasterLoveCodexPage() {
     router.replace(`/master-love-codex/result?sessionId=${encodeURIComponent(startSessionId)}`);
   }, [router, errorText]);
 
+  /**
+   * 결제 후 자동 재개 — 모바일 PortOne 은 상위 프레임을 리다이렉트하므로 startCodex 의 await 가
+   * 문서와 함께 죽는다. 복귀한 문서는 landing 부터 시작해 "결제는 됐는데 코덱스는 안 열림"이 된다.
+   * 🔴 게이트를 다시 타지 않는다 — 결제 뒤 경로(/start → 배치 생성)만 그대로 잇는다.
+   * 🔴 멱등키는 서술자에 실어 온 것을 쓴다. 복귀 문서에서 새로 뽑으면 서버가 다른 회차로 보고
+   *    값을 두 번 친다(ensure-access 는 결제 이력을 보지 않는다).
+   * 실패는 false 다 — 복귀 문서에는 입력 폼이 없어 '지금 열기' 카드가 유일한 재시도 수단이고,
+   * 같은 멱등키로 다시 나가므로 이중 차감이 아니다.
+   */
+  const buildResume = usePaidResume(MASTER_LOVE_CODEX_RESUME_KIND, async (args, grant) => {
+    if (busyRef.current) return false;
+    const restored = unpackPaidResumeArg<Record<string, unknown>>(args.payload);
+    const idempotencyKey = toText(args.idempotencyKey);
+    if (!restored || !idempotencyKey) return false;
+    busyRef.current = true;
+    idempotencyRef.current = idempotencyKey;
+    chargedRef.current = true;
+    setError("");
+    setBirth((current) => ({ ...current, name: toText(asRecord(restored.birthInfo).name) || current.name }));
+    setPhase("generating");
+    try {
+      const startBody = { ...restored, ...extractPayment(grant, idempotencyKey) };
+      const started = await postJson("/api/master-love-codex/start", startBody, idempotencyKey);
+      if (!started.data?.ok || !started.data.sessionId) throw new Error(mapError(started.data, started.status, errorText));
+      sessionIdRef.current = started.data.sessionId;
+      setChapters(Array.isArray(started.data.chapters) ? started.data.chapters : []);
+      await runBatches(started.data.sessionId, toText(started.data.accessToken), started.data);
+      return true;
+    } catch (caught) {
+      setGenerationError(caught instanceof TypeError
+        ? errorText.NETWORK_ERROR
+        : caught instanceof Error ? caught.message : errorText.SERVER_ERROR);
+      return false;
+    } finally {
+      busyRef.current = false;
+    }
+  });
+
   /** 생성만 다시 돈다 — 결제·ensure-access 를 재실행하지 않으므로 이중 결제 위험이 없다. */
   const retryGeneration = useCallback(() => {
     if (busyRef.current || !sessionIdRef.current) return;
@@ -447,7 +488,10 @@ export default function MasterLoveCodexPage() {
         });
       } else if (ensure.data?.reason === "PAYMENT_REQUIRED") {
         setPhase("payment");
-        const gate = await runBillingCoinGate(buildBillingGateInput(asRecord(ensure.data.paymentPayload), idempotencyKey, gateBilling));
+        const gate = await runBillingCoinGate({
+          ...buildBillingGateInput(asRecord(ensure.data.paymentPayload), idempotencyKey, gateBilling),
+          resume: buildResume({ idempotencyKey, payload: packPaidResumeArg(payload) }),
+        });
         if (!isPaymentGranted(gate)) {
           const code = String((gate as { error?: { code?: string } })?.error?.code || "").toUpperCase();
           if (code === "AUTH_REQUIRED" || code === "LOGIN_REQUIRED") throw new Error(errorText.LOGIN_REQUIRED);

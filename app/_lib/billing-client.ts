@@ -4844,6 +4844,8 @@ export async function purchaseFeature(input: {
   reportSessionId?: string;
   profileId?: string;
   selectedProfileId?: string;
+  /** 결제 후 자동 재개 서술자. 리다이렉트 복귀 문서가 스스로 표면을 열게 한다(js/core/checkout-entry.js 계약). */
+  resume?: PaidResumeDescriptor | null;
 }) {
   return runPaidAccessGate(input as Parameters<typeof runPaidAccessGate>[0]);
 }
