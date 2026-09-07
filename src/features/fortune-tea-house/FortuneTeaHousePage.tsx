@@ -11,9 +11,10 @@ import HoneyDropRewardOverlay from "./components/HoneyDropRewardOverlay";
 import { fortuneTeaHouseAssets } from "./data/assets";
 import { toDisplayText } from "@/lib/llm-text";
 import { authFetch } from "@/app/_lib/auth-client";
-import { runAccessCheckWithTransientRetry } from "@/app/_lib/consultationResultPolling";
+import { isRetriableResultPollFailure, runAccessCheckWithTransientRetry } from "@/app/_lib/consultationResultPolling";
 import type { FortuneTeaHouseConsultMode, FortuneTeaHouseConsultRequest, FortuneTeaHouseConsultResponse, FortuneTeaHouseHoneyDropsState, FortuneTeaHouseQuestionInput, FortuneTeaTarotSpread } from "./data/consult";
-import { getFortuneTeaHouseConsultFeatureKey } from "./data/consultPricing";
+import { KRW_PER_COIN, KRW_PER_MONTHLY_CREDIT } from "@/lib/payment/coin-pricing";
+import { fortuneTeaHouseConsultPricing, getFortuneTeaHouseConsultFeatureKey, resolveFortuneTeaHousePriceKey } from "./data/consultPricing";
 import { isTeaHouseEntryStage } from "./data/entryStory";
 import type { TeaHouseStage } from "./data/story";
 import type { TeaHouseCup } from "./data/teaCups";
@@ -174,9 +175,12 @@ function buildFortuneTeaBillingGateInput(payload: FortuneTeaHouseConsultApiRespo
   const runtimeGate = asRecord(paymentPayload.runtimeGate);
   const pricing = asRecord(payload.pricing);
   const featureKey = toText(runtimeGate.featureKey ?? payload.featureKey ?? pricing.featureKey) || resolveFortuneTeaFeatureKey(source);
-  const coinPrice = Math.floor(toNumber(runtimeGate.coinPrice ?? runtimeGate.cost ?? pricing.coinPrice ?? pricing.cost));
-  const amountKRW = Math.floor(toNumber(runtimeGate.amountKRW ?? runtimeGate.amountKrw ?? runtimeGate.paymentAmount ?? pricing.amountKRW ?? pricing.paymentAmount));
-  const membershipCreditCost = Math.floor(toNumber(runtimeGate.membershipCreditCost ?? pricing.membershipCreditCost));
+  // 이용권 확인이 실패해 서버가 가격 payload 를 못 실어 준 경우에도 결제창은 떠야 한다.
+  // 새 상수를 만들지 않고 클라이언트 가격표 정본(consultPricing)과 공용 환산 상수로 채운다.
+  const fallbackAmountKRW = fortuneTeaHouseConsultPricing[resolveFortuneTeaHousePriceKey(source.consultationMode, source.tarotSpread)]?.amountKRW ?? 0;
+  const coinPrice = Math.floor(toNumber(runtimeGate.coinPrice ?? runtimeGate.cost ?? pricing.coinPrice ?? pricing.cost)) || Math.floor(fallbackAmountKRW / KRW_PER_COIN);
+  const amountKRW = Math.floor(toNumber(runtimeGate.amountKRW ?? runtimeGate.amountKrw ?? runtimeGate.paymentAmount ?? pricing.amountKRW ?? pricing.paymentAmount)) || fallbackAmountKRW;
+  const membershipCreditCost = Math.floor(toNumber(runtimeGate.membershipCreditCost ?? pricing.membershipCreditCost)) || Math.floor(fallbackAmountKRW / KRW_PER_MONTHLY_CREDIT);
   if (!featureKey || coinPrice <= 0 || amountKRW <= 0 || membershipCreditCost <= 0) {
     throw buildFortuneTeaPaymentError("결제 가격 정보를 확인하지 못했어요. 잠시 후 다시 시도해 주세요.");
   }
@@ -905,12 +909,18 @@ export default function FortuneTeaHousePage() {
       );
       if (consultRunRef.current !== consultRunId) return;
       let billingEvidenceBody: FortuneTeaConsultPostBody | null = null;
+      // 이용권 확인이 확답을 못 준 경우(일시 장애·서버 오류)는 붙잡거나 종료하지 말고 결제창을 연다.
+      // 결제 게이팅 정책 §1("확답 못 하면 기다리지 말고 결제창")이자 형제 구현(AstrologyAiClient 등)의 passGateDegraded 패턴이다.
+      // 분류되지 않은 5xx 도 포함한다 — retryable 플래그 없이 오는 서버 오류가 결제창을 닫아버리던 사각지대였다.
+      const passGateDegraded = isRetriableResultPollFailure(accessCheck.response.status, accessCheck.payload)
+        || accessCheck.response.status >= 500;
       if (accessCheck.response.ok && accessCheck.payload.ok) {
         logSubmitStep("ensure access ok");
       } else if (
         accessCheck.payload.paymentRequired
         || accessCheck.response.status === 401
         || accessCheck.response.status === 402
+        || passGateDegraded
       ) {
         setGenerationProgress((current) => ({
           ...current,
