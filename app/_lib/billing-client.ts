@@ -469,6 +469,9 @@ export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-17be4ba5
 // 다른 쪽에서도 사라진다(실제로 active TTL 이 5분/15분으로 갈라져 있었다). 여기에 사본을 두지 말 것.
 
 const BILLING_FEATURE_KEY_ALIASES: Record<string, string> = {
+  saju_ai_prompt_generator: "saju_ai_question_prompt",
+  "saju-ai-prompt": "saju_ai_question_prompt",
+  "ziwei-ai-prompt": "ziwei_ai_prompt_generator",
   gotoziweipremium: "ziwei-ai-consultation",
   gotoastrologypremium: "astrology-ai-consultation",
   gotosukuyopremium: "sukuyo-compatibility-ai",
@@ -557,9 +560,9 @@ export function normalizeEntitlementPlan(value: unknown): EntitlementPlan {
 
 function maxCoinCoveredForPlan(plan: EntitlementPlan): number | null {
   if (plan === "FAMILY") return null;
-  if (plan === "VVIP") return 100;
-  if (plan === "PREMIUM") return 50;
-  if (plan === "STANDARD") return 30;
+  if (plan === "VVIP") return 200;
+  if (plan === "PREMIUM") return 100;
+  if (plan === "STANDARD") return 50;
   return 0;
 }
 

@@ -4816,10 +4816,20 @@
     var data = _dpExtractBillingData(payload || {});
     var consume = data && data.consume && typeof data.consume === 'object' ? data.consume : {};
     var accessGrant = data && data.accessGrant && typeof data.accessGrant === 'object' ? data.accessGrant : {};
-    var values = [data.freeBySubscription === true ? 'membership_pass' : '', data.alreadyUnlocked === true ? 'already_unlocked' : '', data.accessType, data.transactionType, data.accessMethod, data.paymentMethod, consume.accessType, consume.transactionType, consume.accessMethod, consume.paymentMethod, accessGrant.accessType, accessGrant.transactionType, accessGrant.accessMethod, accessGrant.paymentMethod];
+    var accessDecision = data && data.accessDecision && typeof data.accessDecision === 'object' ? data.accessDecision : {};
+    var accessReason = String(accessDecision.reason || accessDecision.status || data.reason || '').trim().toLowerCase();
+    if (accessDecision.accessGranted === true && /^(pass_covered|pass_applied|pass_free|family_all_access|license_coin_limit)$/.test(accessReason)) return true;
+    var values = [data.freeBySubscription === true ? 'membership_pass' : '', data.alreadyUnlocked === true ? 'already_unlocked' : '', data.status, data.accessType, data.transactionType, data.accessMethod, data.paymentMethod, data.paymentMode, consume.status, consume.accessType, consume.transactionType, consume.accessMethod, consume.paymentMethod, consume.paymentMode, accessGrant.status, accessGrant.accessType, accessGrant.transactionType, accessGrant.accessMethod, accessGrant.paymentMethod, accessGrant.paymentMode, accessDecision.status, accessDecision.accessType, accessDecision.transactionType, accessDecision.accessMethod, accessDecision.paymentMethod, accessDecision.paymentMode];
     for (var i = 0; i < values.length; i += 1) {
       var value = String(values[i] || '').toLowerCase();
-      if (value === 'membership_pass' || value === 'already_unlocked') return true;
+      if (value === 'membership_pass'
+        || value === 'license_pass'
+        || value === 'subscription_pass'
+        || value === 'pass'
+        || value === 'family'
+        || value === 'family_pass'
+        || value === 'already_unlocked'
+        || value === 'pass_applied') return true;
     }
     return false;
   }
