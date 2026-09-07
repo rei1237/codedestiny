@@ -285,6 +285,20 @@ button{cursor:pointer;font-family:var(--font-body);border:none;outline:none}
 .tab-btn:active{transform:scale(0.95)}
 .tab-panel{display:none}
 .tab-panel.active{display:block}
+.vedic-lock{position:relative;border:1px solid var(--bordergold);border-radius:18px;padding:18px 16px 16px;margin:14px 0;background:linear-gradient(160deg,rgba(124,58,237,0.16),rgba(212,175,55,0.06));overflow:hidden}
+.vedic-lock-teaser{position:absolute;left:16px;right:16px;top:14px;display:grid;gap:9px;filter:blur(4px);opacity:0.35;pointer-events:none}
+.vedic-lock-teaser span{display:block;height:9px;border-radius:5px;background:linear-gradient(90deg,rgba(240,232,255,0.55),rgba(240,232,255,0.12))}
+.vedic-lock-teaser span:nth-child(2){width:88%}
+.vedic-lock-teaser span:nth-child(3){width:72%}
+.vedic-lock-teaser span:nth-child(4){width:94%}
+.vedic-lock-teaser span:nth-child(5){width:64%}
+.vedic-lock-body{position:relative;margin-top:64px;text-align:center}
+.vedic-lock-badge{display:inline-block;font-size:11px;letter-spacing:0.06em;padding:4px 10px;border-radius:999px;border:1px solid var(--bordergold);color:var(--gold2);background:rgba(212,175,55,0.1)}
+.vedic-lock-title{margin-top:10px;font-size:15px;font-weight:700;color:var(--text)}
+.vedic-lock-desc{margin-top:6px;font-size:13px;line-height:1.65;color:var(--text2)}
+.vedic-lock-free{margin-top:8px;font-size:12px;line-height:1.6;color:var(--text3)}
+.vedic-lock .vedic-lock-cta{margin-top:14px}
+.vedic-lock-note{margin-top:8px;font-size:11px;color:var(--text3)}
 
 /* 아코디언 */
 .acc-item{border:1px solid rgba(255,255,255,0.07);border-radius:12px;margin-bottom:8px;overflow:hidden}
@@ -5365,6 +5379,8 @@ function doCalculateFromProfile(profile){
       G.usedSwissFallback=!!window.__vedicSwissFallbackUsed;
       renderResult();
       showPage('result');
+      // 해금 보유자는 첫 렌더가 잠금 카드로 나갈 수 있다 — 조회가 끝난 뒤 상태가 바뀌었을 때만 다시 그린다.
+      refreshVedicBasicUnlockStatus().then(function(unlocked){ if(unlocked===true) _vedicBasicApplyUnlock(''); });
     }catch(localErr){
       console.error('[vedic] local swiss calculation failed', localErr);
       showLocalSwissError((detail?String(detail)+' | ':'') + String((localErr&&localErr.message)||localErr||'local swiss calculation failed'));
@@ -6232,13 +6248,11 @@ function renderResult(){
     </div>
   </div>
 
-  ${renderVedicSectionCards(sections.overview)}
+  ${_vedicBasicGateBody('overview', renderVedicSectionCards(sections.overview))}
 
   ${tabChart}
 
-  ${masterReadingHtml}
-
-  ${vedicCanonicalCardsHtml}
+  ${_vedicBasicGateBody('overview', masterReadingHtml + vedicCanonicalCardsHtml)}
 
   ${renderVedicPrashnaSection()}
 
@@ -6482,12 +6496,12 @@ function renderResult(){
   </div>
 
   <div id="tpanel-overview" class="tab-panel active">${tabOverview}</div>
-  <div id="tpanel-personality" class="tab-panel">${tabPersonality}</div>
-  <div id="tpanel-relation" class="tab-panel">${tabRelation}</div>
-  <div id="tpanel-moneywork" class="tab-panel">${tabMoneyWork}</div>
-  <div id="tpanel-dasha" class="tab-panel">${tabDashaFocus}</div>
-  <div id="tpanel-energy" class="tab-panel">${tabEnergy}</div>
-  <div id="tpanel-deep" class="tab-panel">${tabDeep}</div>
+  <div id="tpanel-personality" class="tab-panel">${_vedicBasicGateBody('personality', tabPersonality)}</div>
+  <div id="tpanel-relation" class="tab-panel">${_vedicBasicGateBody('relation', tabRelation)}</div>
+  <div id="tpanel-moneywork" class="tab-panel">${_vedicBasicGateBody('moneywork', tabMoneyWork)}</div>
+  <div id="tpanel-dasha" class="tab-panel">${_vedicBasicGateBody('dasha', tabDashaFocus)}</div>
+  <div id="tpanel-energy" class="tab-panel">${_vedicBasicGateBody('energy', tabEnergy)}</div>
+  <div id="tpanel-deep" class="tab-panel">${_vedicBasicGateBody('deep', tabDeep)}</div>
 
   <div style="height:36px"></div>`);
 
@@ -6531,9 +6545,15 @@ function detailHeader(icon,title,sub){
 // ─── SHOW DETAIL ──────────────────────────────────────────
 function showDetail(id){
   G.detailBack='result';
+  G.vedicBasicDetailId=id;
   const r=G.report;const c=G.chart;const ins=G.insights||{};
   let html='';
-  if(id==='personality')html=renderPersonality(r.personality,c,ins);
+  // 🔴 궁합(compat)만 무료 진입이다 — 그 화면 자체가 vedic-compatibility-per-use 로 따로 과금된다.
+  //    나머지 8종은 vedic_basic_reading 해금 전에는 본문을 만들지 않고 잠금 카드만 넣는다.
+  if(id!=='compat'&&!_vedicBasicIsUnlocked()){
+    html=_vedicBasicLockCard(id);
+  }
+  else if(id==='personality')html=renderPersonality(r.personality,c,ins);
   else if(id==='wealth')html=renderWealth(r.wealth,ins);
   else if(id==='career')html=renderCareer(r.career,ins);
   else if(id==='chakra')html=renderChakra(r.chakra,ins);
@@ -7470,6 +7490,161 @@ function runVedicCompatResume(descriptor){
   }).then(function(ok){ return ok!==false; }).catch(function(){ return false; });
 }
 
+/* ─── 베다 기본 해석 유료 잠금 (vedic_basic_reading · 30코인 = 3,000원 · 영구 해금) ──────
+   무료: 출생 차트·행성 배치표·라그나/나크샤트라/파다/현재 대운 태그·종합 탭 요약 카드.
+   잠금: 종합 탭의 해석 카드 묶음, 성향·관계·재물일·다샤·에너지·심화 6탭 본문, 상세 8종.
+   🔴 CSS blur 로만 가리지 않는다 — 잠긴 동안 본문 HTML 을 문서에 아예 넣지 않는다.
+      (클래스 하나를 지우면 전문이 새던 형태를 피한다. 티저 줄은 내용 없는 장식 막대다.)
+   짝이 되는 기존 구현: js/sibyl-system.js (독립 정적 표면의 unlock-status 조회 → 요약만 →
+   _cdOpenPaidServiceGate → 해금 후 재렌더). 이 페이지는 js/saju-engine.js 를 로드하지 않아
+   _cdGateBody() 를 쓸 수 없으므로 같은 계약을 페이지 안에 복제한다.
+   ────────────────────────────────────────────────────────────────────────────────────── */
+var VEDIC_BASIC_FEATURE_KEY='vedic_basic_reading';
+var VEDIC_BASIC_COST=30;
+var VEDIC_BASIC_AMOUNT_KRW=3000;
+var VEDIC_BASIC_RESUME_KIND='vedic-basic-reading';
+var _vedicBasicUnlocked=false;
+var _vedicBasicGateBusy=false;
+
+var VEDIC_BASIC_LOCK_LABELS={
+  overview:'종합 해석 카드',
+  personality:'성향 심층 해석',
+  relation:'관계·인연 해석',
+  moneywork:'재물·직업 해석',
+  dasha:'다샤 시기 해석',
+  energy:'차크라·처방 해석',
+  deep:'심화 데이터',
+  wealth:'재물 상세 해석',
+  career:'직업 상세 해석',
+  chakra:'차크라 상세 해석',
+  romance:'연애 상세 해석',
+  yoga:'요가 상세 해석',
+  remedies:'처방 상세 해석',
+  vimshottari:'빔쇼타리 다샤 상세'
+};
+
+function _vedicBasicIsUnlocked(){ return _vedicBasicUnlocked===true; }
+
+function _vedicBasicLockCard(sectionId){
+  var label=VEDIC_BASIC_LOCK_LABELS[sectionId]||'심층 해석';
+  return ''
+    +'<div class="vedic-lock" data-vedic-lock="'+hEsc(sectionId)+'">'
+    +  '<div class="vedic-lock-teaser" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>'
+    +  '<div class="vedic-lock-body">'
+    +    '<div class="vedic-lock-badge">🔒 '+hEsc(label)+'</div>'
+    +    '<div class="vedic-lock-title">전체 해석은 한 번만 열면 계속 볼 수 있습니다</div>'
+    +    '<div class="vedic-lock-desc">성향·관계·재물·다샤·에너지·심화 6개 탭의 해석 본문과 상세 8종이 함께 열립니다. 회당 결제가 아니라 이 기능의 영구 해금입니다.</div>'
+    +    '<div class="vedic-lock-free">출생 차트·행성 배치표·라그나·낙샤트라·현재 대운은 계속 무료입니다.</div>'
+    +    '<button type="button" class="btn-primary vedic-lock-cta" onclick="openVedicBasicUnlock()">🔓 전체 해석 열기 · 3,000원</button>'
+    +    '<div class="vedic-lock-note">달빛 이용권을 가지고 있으면 추가 결제 없이 열립니다.</div>'
+    +  '</div>'
+    +'</div>';
+}
+
+/** 잠겼으면 본문 HTML 을 만들지 않고 잠금 카드로 대체한다. */
+function _vedicBasicGateBody(sectionId, bodyHtml){
+  return _vedicBasicIsUnlocked()?bodyHtml:_vedicBasicLockCard(sectionId);
+}
+
+function _vedicBasicAuthHeaders(){
+  var headers={'Content-Type':'application/json'};
+  try{
+    var token=localStorage.getItem('fortune_auth_token')||'';
+    if(token) headers.Authorization='Bearer '+token;
+  }catch(_){}
+  return headers;
+}
+
+/** 서버에 영구 해금 보유 여부를 물어 상태만 갱신한다(결제 진입 판정이 아니다). */
+function refreshVedicBasicUnlockStatus(){
+  return fetch('/api/billing/unlock-status?featureKey='+encodeURIComponent(VEDIC_BASIC_FEATURE_KEY),{headers:_vedicBasicAuthHeaders(),credentials:'include'})
+    .then(function(res){ return res.ok?res.json().catch(function(){return null;}):null; })
+    .then(function(payload){
+      var data=(payload&&(payload.data||payload))||{};
+      if(data.unlocked===true||data.alreadyUnlocked===true||data.hasUnlock===true){ _vedicBasicUnlocked=true; }
+      return _vedicBasicUnlocked;
+    })
+    .catch(function(){ return _vedicBasicUnlocked; });
+}
+
+function _vedicBasicRequestId(){
+  var key='';
+  try{ key=vedicAiBuildChartKey(G.chart)||''; }catch(_){ key=''; }
+  return 'vedic-basic-'+(key||'anon');
+}
+
+function buildVedicBasicResumeDescriptor(){
+  var detailId='';
+  try{ detailId=String(G.vedicBasicDetailId||''); }catch(_){ detailId=''; }
+  // action 은 비운다 — 이 페이지가 곧 복귀 대상이고 핸들러가 로드 시 등록되므로
+  // runPaidResume 이 딥링크 없이 핸들러를 바로 부른다.
+  return { kind:VEDIC_BASIC_RESUME_KIND, action:'', args:{ detailId:detailId } };
+}
+
+/** 해금 이후 화면 반영 — 결과 페이지를 다시 그리고, 상세를 보던 중이면 그 상세도 다시 연다. */
+function _vedicBasicApplyUnlock(detailId){
+  _vedicBasicUnlocked=true;
+  try{ renderResult(); }catch(_){}
+  var target=String(detailId||'');
+  if(target&&target!=='compat'){
+    try{ showDetail(target); }catch(_){}
+  }
+}
+
+async function openVedicBasicUnlock(){
+  if(_vedicBasicGateBusy) return false;
+  if(_vedicBasicIsUnlocked()){ _vedicBasicApplyUnlock(''); return true; }
+  if(typeof window._cdOpenPaidServiceGate!=='function'){
+    alert('결제 선택창을 열 수 없습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.');
+    return false;
+  }
+  _vedicBasicGateBusy=true;
+  var detailId='';
+  try{ detailId=String(G.vedicBasicDetailId||''); }catch(_){ detailId=''; }
+  try{
+    var result=await window._cdOpenPaidServiceGate({
+      title:'베다 점성술 전체 해석',
+      reason:'베다 점성술 기본 해석 해금',
+      featureKey:VEDIC_BASIC_FEATURE_KEY,
+      categoryKey:'vedic',
+      subFeatureKey:'basic-reading',
+      serviceKey:'vedic-basic-reading',
+      action:'openVedicBasicUnlock',
+      coinPrice:VEDIC_BASIC_COST,
+      cost:VEDIC_BASIC_COST,
+      amountKrw:VEDIC_BASIC_AMOUNT_KRW,
+      amountKRW:VEDIC_BASIC_AMOUNT_KRW,
+      paymentAmount:VEDIC_BASIC_AMOUNT_KRW,
+      membershipCreditCost:0,
+      forcePassFirst:true,
+      requestId:_vedicBasicRequestId(),
+      // 🔴 모바일 PortOne 은 상위 프레임을 리다이렉트하므로 위 await 가 페이지와 함께 죽는다.
+      //    어느 상세를 보다 결제했는지 서술자에 실어야 복귀 문서가 그 화면으로 되돌아간다.
+      resume:buildVedicBasicResumeDescriptor()
+    });
+    if(result&&result.status==='granted'){
+      _vedicBasicApplyUnlock(detailId);
+      return true;
+    }
+    return false;
+  }catch(err){
+    console.error('[vedic] basic unlock gate failed',err);
+    return false;
+  }finally{
+    _vedicBasicGateBusy=false;
+  }
+}
+
+/** PG 리다이렉트 복귀 문서에서 호출된다 — 결제는 이미 끝났으므로 게이트를 다시 열지 않는다. */
+function runVedicBasicResume(args){
+  var detailId=String((args&&args.detailId)||'');
+  return vedicResumeWaitForChart().then(function(ready){
+    if(!ready) return false;
+    _vedicBasicApplyUnlock(detailId);
+    return true;
+  }).catch(function(){ return false; });
+}
+
 (function registerVedicResumeHandlers(){
   var entry=null;
   try{ entry=window.__cdCheckoutEntry||null; }catch(_){ entry=null; }
@@ -7477,7 +7652,11 @@ function runVedicCompatResume(descriptor){
   try{ entry.registerPaidResumeHandler(VEDIC_AI_RESUME_KIND,runVedicAiResume); }catch(_){}
   try{ entry.registerPaidResumeHandler(VEDIC_PRASHNA_RESUME_KIND,runVedicPrashnaResume); }catch(_){}
   try{ entry.registerPaidResumeHandler(VEDIC_COMPAT_RESUME_KIND,runVedicCompatResume); }catch(_){}
+  try{ entry.registerPaidResumeHandler(VEDIC_BASIC_RESUME_KIND,runVedicBasicResume); }catch(_){}
 })();
+
+// 보유 여부를 미리 받아 두면 결과 첫 렌더부터 잠금 없이 나간다(입력 폼을 채우는 동안 끝난다).
+try{ refreshVedicBasicUnlockStatus(); }catch(_){}
 
 // ─── DETAIL: YOGA ────────────────────────────────────────
 function renderYoga(y){
