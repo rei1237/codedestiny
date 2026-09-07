@@ -7,17 +7,27 @@ const crypto = require("node:crypto");
 const root = path.resolve(__dirname, "../..");
 const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
 
-test("fortune planner entry is folded into the diary modal", () => {
+test("fortune planner entry cuts over to the /diary app", () => {
   const html = read("index.html");
   const runtime = read("js/core/index-inline-runtime.js");
   const plannerRoute = read("app/fortune-planner/page.tsx");
   const legacyRoute = read("app/luck-sync-diary/page.tsx");
   const dashboard = read("js/core/saju/reportDashboard.js");
 
-  assert.match(runtime, /openFortunePlanner[\s\S]*luck-sync-diary\.js/);
-  assert.match(runtime, /LuckSyncDiary\.open/);
-  assert.match(plannerRoute, /redirect\("\/\?fortunePlanner=1"\)/);
-  assert.match(legacyRoute, /redirect\("\/\?fortunePlanner=1"\)/);
+  // 2026-09-07 컷오버(PR-J): 진입점이 셸 모달에서 /diary 앱으로 넘어갔다. 지킬 것이 뒤집힌다 —
+  // 예전에는 "이 액션이 luck-sync-diary.js 를 로드해 모달을 연다"를 지켰고, 지금은 "모달을 열지
+  // 않고 /diary 로 보낸다"를 지킨다. 🔴 doesNotMatch 가 이 가드가 무는 지점이다(match 만 두면
+  // 모달 로드를 되살려 붙여도 통과한다).
+  // 🔴 검사 범위를 진입점 함수 본문으로 좁힌다 — 파일 전체를 보면 액션 델리게이션의
+  //    지연로드 폴백(action === 'openLuckSyncDiary' 분기)에 남아 있는 LuckSyncDiary.open 이
+  //    함께 걸린다. 그 분기는 진입점이 아니고, 셸 모달 자체는 이번 컷오버에서 지우지 않았다.
+  const plannerFn = runtime.match(/window\.openFortunePlanner = function\(\) \{[\s\S]*?\n\};/);
+  assert.ok(plannerFn, "window.openFortunePlanner 정의를 찾지 못했다");
+  assert.match(plannerFn[0], /location\.assign\('\/diary\/'\)/);
+  assert.doesNotMatch(plannerFn[0], /LuckSyncDiary|luck-sync-diary\.js/);
+  assert.match(runtime, /window\.openLuckSyncDiary = window\.openFortunePlanner/);
+  assert.match(plannerRoute, /redirect\("\/diary\/"\)/);
+  assert.match(legacyRoute, /redirect\("\/diary\/"\)/);
   assert.doesNotMatch(runtime, /location\.assign\('\/fortune-planner'\)/);
   assert.doesNotMatch(runtime, /mountFortunePlannerHomeCard/);
   assert.doesNotMatch(runtime, /cdFortunePlannerCard/);

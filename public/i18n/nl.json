@@ -3758,6 +3758,17 @@
       "birthLabel": "Geboortedatum en -tijd partner",
       "runCta": "Analyseer compatibiliteit"
     },
+    "relFlow": {
+      "title": "Voorbeeld van de relatiestroom",
+      "freeBadge": "Gratis",
+      "empty": "Vul de naam en geboortedatum van de ander in om de relatiestroom te zien.",
+      "ziweiLabel": "Zi Wei Dou Shu Lite",
+      "astroLabel": "Astrologie Lite",
+      "strengthsTitle": "Wat vanzelf gaat",
+      "cautionsTitle": "Wat afstemming vraagt",
+      "tipsTitle": "Kleine stappen",
+      "diaryLink": "Goede dagen vind je in «Samen bekijken» in het dagboek →"
+    },
     "funCards": {
       "celebTitle": "Welke beroemdheid is mijn zielstweeling?",
       "fourCutTitle": "Saju viersnede: bestemmingsfilter",

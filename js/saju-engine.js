@@ -5409,6 +5409,8 @@ async function calculate(){
     var btnNewSajuEl = document.getElementById('btnNewSaju');
     if (inputPageEl) inputPageEl.style.display = 'none';
     if (resultPageEl) resultPageEl.style.display = 'block';
+    /* 내 원국이 방금 생겼다 — 관계 흐름 미리보기의 '사주 미계산' 상태를 푼다. */
+    try { _cdInitRelFlowLite(); } catch (eRelFlow) {}
     if (typeof window.cdTrack === 'function') {
       window.cdTrack('free_saju_completed', { signed_in: !!(typeof window.__dpHasLoginSession === 'function' && window.__dpHasLoginSession()) });
     }
@@ -28040,6 +28042,8 @@ function setCeleb(c){
     compatRunBtn.style.boxShadow='0 0 0 4px rgba(255,139,167,.5)';
     setTimeout(function(){compatRunBtn.style.boxShadow='';},1500);
   }
+  /* 유명인 프리필은 input 이벤트를 내지 않으므로 관계 흐름 미리보기를 직접 다시 그린다. */
+  try{renderRelFlowLite();}catch(e){}
 }
 
 /** 궁합 LLM 카드 마운트: #compatLlmHost 없으면 compatResult 뒤에 생성 */
@@ -28057,6 +28061,192 @@ function cdEnsureCompatLlmHost() {
 }
 
 /** compat-llm-prompts.js의 window.cdEnsureCompatLlmReady 사용 (콜백 큐·폴링) */
+
+/* ─── 관계 흐름 미리보기 (#relFlowLite) ─────────────────────────────
+   2026-09-07 이설(PR-J): 셸 다이어리 모달 js/luck-sync-diary.js 의 「관계 흐름 메모」
+   (#lsdCompatResult 렌더, 옛 1815~1949줄)와 자미·점성 Lite 두 줄을 결과 화면으로 옮긴 것이다.
+   🔴 셸 모달의 원본은 지우지 않았다 — 진입점만 /diary 로 돌렸고 파일은 그대로 남는다.
+   🔴 이 블록은 5,000원 게이트 **밖**이다. 아래 runCompat() 의 _cdCoinGatePerUse(50, …) 앞단에
+      아무 이용권·코인 판정도 넣지 않는다(CLAUDE.md 결제 게이팅 3).
+   옮기지 않은 것 둘:
+     - 7일 추천일 탐색 → PR-I-3 의 다이어리 「함께 보기」가 같은 일을 이미 한다. 두 번째 구현을
+       만들지 않고 마지막 줄 링크로 보낸다.
+     - 메인 궁합 폼으로 값을 밀어넣던 브리지 → 여기서는 그 폼이 곧 입력이라 브리지가 필요 없다. */
+
+/** 상대 오행 — 셸 _partnerElemByYear 와 같은 값을 낸다(연도 mod 5). */
+function _relFlowElemByYear(year) {
+  var y = Number(year || 0);
+  if (!isFinite(y) || y < 1) return 'earth';
+  var map = ['metal', 'water', 'wood', 'fire', 'earth'];
+  return map[Math.abs(y) % 5];
+}
+
+/** 오행 관계 점수 — 셸 _relScore 와 같다. 상생/상극 판정이 양방향이라 SHENG 표의 방향은 무관하다. */
+function _relFlowScore(a, b) {
+  if (!a || !b) return 0;
+  if (a === b) return 2;
+  if (SHENG[a] === b || SHENG[b] === a) return 1;
+  if (KE[a] === b || KE[b] === a) return -1;
+  return 0;
+}
+
+/** 궁합 폼의 시/분 — 숨긴 select 가 정본이고, 비었으면 표시용 텍스트에서 읽는다. */
+function _relFlowPartnerTime() {
+  var hSel = document.getElementById('compatBirthHour');
+  var mSel = document.getElementById('compatBirthMinute');
+  var h = hSel && hSel.value !== '' ? Number(hSel.value) : NaN;
+  var m = mSel && mSel.value !== '' ? Number(mSel.value) : NaN;
+  if (!isFinite(h) || !isFinite(m)) {
+    var txt = document.getElementById('compatBirthTimeText');
+    var parts = String((txt && txt.value) || '').split(':');
+    if (!isFinite(h)) h = Number(parts[0]);
+    if (!isFinite(m)) m = Number(parts[1]);
+  }
+  return {
+    hour: isFinite(h) && h >= 0 && h <= 23 ? h : 12,
+    minute: isFinite(m) && m >= 0 && m <= 59 ? m : 0
+  };
+}
+
+function _relFlowFillList(id, items) {
+  var ul = document.getElementById(id);
+  if (!ul) return;
+  ul.textContent = '';
+  items.slice(0, 3).forEach(function(text) {
+    var li = document.createElement('li');
+    li.textContent = text;
+    ul.appendChild(li);
+  });
+}
+
+/** Lite 점수 한 줄. source 가 none/fallback 이면 엔진이 못 돈 것이라 줄을 통째로 뺀다(50점을 점수처럼 보이지 않게). */
+function _relFlowFillScore(id, result) {
+  var row = document.getElementById(id);
+  if (!row) return false;
+  var ok = !!(result && typeof result.score === 'number' && result.source && result.source !== 'none' && result.source !== 'fallback');
+  row.style.display = ok ? '' : 'none';
+  if (ok) {
+    var val = row.querySelector('.val');
+    if (val) val.textContent = Math.round(result.score) + '점';
+  }
+  return ok;
+}
+
+function renderRelFlowLite() {
+  var box = document.getElementById('relFlowLite');
+  if (!box) return;
+  var emptyEl = document.getElementById('relFlowLiteEmpty');
+  var bodyEl = document.getElementById('relFlowLiteBody');
+
+  // 내 원국이 없으면 Lite 두 함수가 돌지 않는다 — 블록 자체를 감춘다.
+  var meBirth = window._ziweiBirth;
+  if (!G_PILLARS || !meBirth || !(Number(meBirth.year) >= 1900)) {
+    box.style.display = 'none';
+    return;
+  }
+  box.style.display = '';
+
+  var nameEl = document.getElementById('compatName');
+  var name = String((nameEl && nameEl.value) || '').trim();
+  var bd = _cdReadBirthDateInput('compatBirthDate');
+  if (!name || !bd) {
+    if (emptyEl) emptyEl.style.display = '';
+    if (bodyEl) bodyEl.style.display = 'none';
+    return;
+  }
+  if (emptyEl) emptyEl.style.display = 'none';
+  if (bodyEl) bodyEl.style.display = '';
+
+  var dateParts = bd.split('-');
+  var time = _relFlowPartnerTime();
+  var partnerBirth = {
+    year: Number(dateParts[0]),
+    month: Number(dateParts[1]),
+    day: Number(dateParts[2]),
+    hour: time.hour,
+    minute: time.minute
+  };
+  var typeEl = document.getElementById('compatType');
+  var ctype = String((typeEl && typeEl.value) || 'love') || 'love';
+
+  _relFlowFillScore('relFlowLiteZiwei', typeof computeZiweiCompatLite === 'function' ? computeZiweiCompatLite(meBirth, partnerBirth) : null);
+  _relFlowFillScore('relFlowLiteAstro', typeof computeAstroCompatLite === 'function' ? computeAstroCompatLite(meBirth, partnerBirth) : null);
+
+  var relationScore = _relFlowScore((G_PILLARS.d || {}).gE, _relFlowElemByYear(partnerBirth.year));
+  var strengths = [];
+  var cautions = [];
+  var tips = [];
+
+  if (relationScore >= 1) {
+    strengths.push('기본 오행 흐름이 자연스럽게 맞물려 대화가 부드럽게 이어질 수 있습니다.');
+    strengths.push('의사결정 타이밍이 비슷해 함께 움직일 때 속도가 납니다.');
+  } else if (relationScore === 0) {
+    strengths.push('서로 역할이 달라 보완 시너지가 나기 좋은 조합입니다.');
+    cautions.push('속도감 차이가 있을 수 있어 중요한 결정은 템포 합의가 필요합니다.');
+  } else {
+    strengths.push('관점이 달라 아이디어 폭이 넓어지는 조합입니다.');
+    cautions.push('느끼는 속도가 다를 수 있으니 중간에 의도를 한 번 확인해 보세요.');
+  }
+
+  if (ctype === 'love') {
+    strengths.push('감정 표현이 부드럽게 이어질 때 친밀도가 빠르게 올라갑니다.');
+    cautions.push('서운함을 참아두면 한 번에 커질 수 있어 당일 대화가 좋습니다.');
+    tips.push('저녁 산책 20분 + 감사 한 문장 공유');
+    tips.push('연락 템포를 하루 1회만 명확히 합의');
+  } else if (ctype === 'friend') {
+    strengths.push('편한 대화에서 서로의 장점을 끌어내기 좋은 흐름입니다.');
+    cautions.push('농담 톤이 과해지면 피로도가 올라갈 수 있어 선을 맞춰주세요.');
+    tips.push('짧은 커피 약속으로 근황 점검 후 일정 확정');
+    tips.push('같이 할 작은 미션 1개를 오늘 바로 시작');
+  } else {
+    strengths.push('역할 분담이 명확할수록 결과물이 빠르게 정리됩니다.');
+    cautions.push('우선순위 기준이 다르면 일정 지연이 생길 수 있습니다.');
+    tips.push('회의 전 목표 3줄 공유 + 종료 전 액션 아이템 확정');
+    tips.push('피드백은 사실-대안-기한 순서로 짧게 전달');
+  }
+
+  var vibe = relationScore >= 1 ? '잘 맞는 흐름' : (relationScore === 0 ? '편안한 흐름' : '천천히 맞출 흐름');
+  var vibeEl = document.getElementById('relFlowLiteVibe');
+  if (vibeEl) {
+    vibeEl.textContent = '';
+    var who = document.createElement('b');
+    who.textContent = name;
+    var mood = document.createElement('b');
+    mood.textContent = vibe;
+    vibeEl.appendChild(who);
+    vibeEl.appendChild(document.createTextNode(' 님과는 '));
+    vibeEl.appendChild(mood);
+    vibeEl.appendChild(document.createTextNode('입니다. ' + strengths[0] + ' 중요한 대화는 저녁 시간대에 천천히 열어보면 잘 이어집니다.'));
+  }
+
+  _relFlowFillList('relFlowLiteStrengths', strengths);
+  _relFlowFillList('relFlowLiteCautions', cautions);
+  _relFlowFillList('relFlowLiteTips', tips);
+
+  var basisEl = document.getElementById('relFlowLiteBasis');
+  if (basisEl) {
+    var typeLabel = ctype === 'business' ? '비즈니스' : (ctype === 'friend' ? '친구' : '연애');
+    basisEl.textContent = '입력 기준: ' + bd + ' ' + z2(partnerBirth.hour) + ':' + z2(partnerBirth.minute) + ' · ' + typeLabel;
+  }
+}
+window.renderRelFlowLite = renderRelFlowLite;
+
+/** 궁합 폼 입력이 바뀌면 그 자리에서 다시 그린다. 두 Lite 계산은 동기이고 캐시되므로 스피너를 두지 않는다. */
+function _cdInitRelFlowLite() {
+  var box = document.getElementById('relFlowLite');
+  if (!box) return;
+  if (!box.__cdRelFlowBound) {
+    box.__cdRelFlowBound = true;
+    ['compatName', 'compatBirthDate', 'compatBirthTimeText', 'compatType'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      el.addEventListener('input', renderRelFlowLite);
+      el.addEventListener('change', renderRelFlowLite);
+    });
+  }
+  renderRelFlowLite();
+}
+window._cdInitRelFlowLite = _cdInitRelFlowLite;
 
 async function runCompat(){
   if(!G_PILLARS||!G_NATAL||!G_POWER||!G_JOHU){

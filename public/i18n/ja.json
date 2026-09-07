@@ -3758,6 +3758,17 @@
       "birthLabel": "相手の生年月日・時間",
       "runCta": "相性を分析する"
     },
+    "relFlow": {
+      "title": "相性の流れプレビュー",
+      "freeBadge": "無料",
+      "empty": "相手の名前と生年月日を入力すると関係の流れを整理します。",
+      "ziweiLabel": "紫微斗数 Lite",
+      "astroLabel": "占星術 Lite",
+      "strengthsTitle": "なめらかな流れ",
+      "cautionsTitle": "調整したい点",
+      "tipsTitle": "小さな実践",
+      "diaryLink": "良い日はダイアリーの「一緒に見る」で →"
+    },
     "funCards": {
       "celebTitle": "私のソウルツインはどの有名人ですか?",
       "fourCutTitle": "サジュ フォーカット: 運命フィルター",

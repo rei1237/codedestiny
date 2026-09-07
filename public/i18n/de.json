@@ -3758,6 +3758,17 @@
       "birthLabel": "Geburtsdatum und -uhrzeit des Partners",
       "runCta": "Kompatibilität analysieren"
     },
+    "relFlow": {
+      "title": "Vorschau auf den Beziehungsverlauf",
+      "freeBadge": "Kostenlos",
+      "empty": "Gib Namen und Geburtsdatum deines Gegenübers ein, um den Beziehungsverlauf zu sehen.",
+      "ziweiLabel": "Zi Wei Dou Shu Lite",
+      "astroLabel": "Astrologie Lite",
+      "strengthsTitle": "Was leichtfällt",
+      "cautionsTitle": "Was Abstimmung braucht",
+      "tipsTitle": "Kleine Schritte",
+      "diaryLink": "Gute Tage findest du im Tagebuch unter „Gemeinsam ansehen“ →"
+    },
     "funCards": {
       "celebTitle": "Welcher Promi ist mein Seelenzwilling?",
       "fourCutTitle": "Saju Four-Cut: Schicksalsfilter",
