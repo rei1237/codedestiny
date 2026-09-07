@@ -50,14 +50,14 @@ check("mobile slim header exists", includesAll(index, ["id=\"cdMobileHeader\"", 
 check("mobile header keeps a single theme toggle", (index.match(/id="themeCheckbox"/g) || []).length === 1);
 check("mobile header search reuses the service index", includesAll(index, ["cd-mobile-header__search", "data-cd-service-index-jump=\"1\""]));
 check("responsive home sections present", includesAll(index, ["cd-fortune-pick", "cd-ai-feats", "honey-membership-mini", "moon-story-entry"]));
-check("hero primary CTA present", index.includes("moon-hero__cta--primary"));
+check("hero primary CTA present", index.includes('id="cdHomeFunnel"') ? index.includes('data-cdh-free') : index.includes("moon-hero__cta--primary"));
 check("sticky CTA sits above bottom nav", includesAll(index, ["id=\"cdStickyCta\"", "cd-sticky-cta", "cd-sticky-cta-v20260723"]));
 check("bottom navigation exists with safe area", includesAll(index, ["id=\"cdMobileBottomNav\"", "cd-mobile-bottom-navigation-v20260701", "env(safe-area-inset-bottom"]));
 // 메인 5탭은 실제 링크다 — data-nav-key 만 보면 숨은 퀵칩 레일에도 같은 key 가 있어 통과해버린다.
 check("bottom navigation covers main slots", includesAll(index, [
   "data-nav-key=\"home\" data-nav-icon=\"⌂\" href=\"/\"",
-  "data-nav-key=\"saju\" data-nav-icon=\"命\" href=\"/?action=cdSajuTabEntry\"",
-  "data-nav-key=\"fortunes\" data-nav-icon=\"✦\" href=\"/?action=cdOpenAllFortunes\"",
+  "data-nav-key=\"saju\" data-nav-icon=\"☼\" href=\"/?action=cdOneStepFreeSajuEntry\"",
+  "data-nav-key=\"fortunes\" data-nav-icon=\"♡\" href=\"/?view=consultations#cdhFeatured\"",
   "data-nav-key=\"pass\" data-nav-icon=\"◈\" href=\"/points/\"",
   // 마이 탭은 라우트가 아니라 셸 프로필 시트를 연다(정본: app/_lib/mobile-tabs.ts 의
   // PROFILE_SHEET_ACTION). React /me 는 중복 구현이라 제거됐고 되살리는 것은
@@ -66,12 +66,9 @@ check("bottom navigation covers main slots", includesAll(index, [
 ]));
 // 셸에서 모든 운세·마이 탭이 이동 대신 실행하는 인페이지 동작 (오버레이 / 프로필 시트)
 check("bottom navigation keeps shell in-page actions", includesAll(index, [
-  "data-action=\"cdOpenAllFortunes\"",
+  "data-action=\"cdOneStepFreeSajuEntry\"",
   "data-action=\"dpOpenList\"",
-  // 개요 패널은 스크립트가 만들어 붙이므로 마크업이 아니라 CSS 규칙 + 생성 코드로 확인한다
-  "#cdMobileFortuneOverview",
-  "'cdMobileFortuneOverview'",
-  "window.cdOpenAllFortunes",
+  "id=\"cdhFeatured\"",
 ]));
 check("profile sheet exposes my-page entry", includesAll(index, ["dp-sheet-foot", "dp-sheet-foot__link"]));
 check("bottom navigation has requested quick categories", includesAny(index, ["꽃/해몽", "꽃·해몽"]) && includesAll(index, ["data-nav-key=\"free\"", "data-nav-key=\"oracle\"", "data-nav-key=\"cosmic\"", "data-nav-key=\"music\"", "data-nav-key=\"vvip\""]));

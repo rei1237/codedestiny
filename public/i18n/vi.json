@@ -1426,6 +1426,12 @@
       "title": "Keep Code Destiny on your home screen",
       "desc": "Install it and it opens in one tap without the browser, and today's fortune loads faster.",
       "cta": "Get the app"
+    },
+    "mobileFunnel": {
+      "freeNav": "Miễn phí",
+      "freeNavAria": "Xem vận mệnh miễn phí",
+      "consultNav": "Tư vấn",
+      "consultNavAria": "Xem tư vấn đề xuất"
     }
   },
   "terms": {

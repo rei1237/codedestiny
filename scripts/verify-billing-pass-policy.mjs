@@ -849,7 +849,11 @@ assertNotContains(paymentsSource, ["pass", "Used", "Count"].join(""), "subscript
 assertContains(paymentsSource, "maxCoveredCoin: HONEY_PASS_POLICY.vvip.maxCoveredCoin", "subscription plan uses shared vvip coin policy");
 assertContains(indexSource, "cd-direct-payment-dialog", "legacy direct payment dialog");
 assertContains(checkoutEntrySource, "width:min(520px,100%)", "legacy modal width");
-assertContains(indexSource, "min-height:auto", "legacy option height");
+// Inspect the actual checkout option rule; the former whole-index match only
+// found min-height:auto on the retired home hero, not on a payment option.
+const checkoutOptionRule = checkoutEntrySource.match(/\.cd-direct-payment-option\{([^}]+)\}/)?.[1] || "";
+assert.ok(checkoutOptionRule.includes("padding:14px"), "checkout option retains content spacing");
+assert.ok(!/(?:^|;)height:\s*\d/.test(checkoutOptionRule), "checkout option grows with its content");
 assertNotContains(indexSource, 'data-mode="membership"', "payment modal avoids legacy membership mode");
 assertNotContains(indexSource, "membershipButtonHtml", "payment modal avoids legacy membership variable");
 assertNotContains(indexSource, "_cdResolvePaymentEligibilityForOptions", "payment modal avoids server eligibility helper");
