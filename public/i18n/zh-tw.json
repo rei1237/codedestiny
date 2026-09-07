@@ -3,9 +3,9 @@
   "_version": "1.0.0",
   "brand": {
     "name": "Code Destiny",
-    "tagline": "以現代專家，溫柔讀懂東方智慧",
-    "subtitle": "古老命理與星辰語言，為你照亮下一步",
-    "trustBadge": "全球80+國家，逾10萬用戶選擇的占卜體驗"
+    "tagline": "以東方占術為起點，認識自己的選擇",
+    "subtitle": "透過傳統計算與AI解讀，梳理眼前的問題",
+    "trustBadge": "分別理解四柱、紫微斗數與宿曜占星術的視角"
   },
   "home": {
     "homeGuide": {
@@ -1418,7 +1418,9 @@
       "stonehenge-runes": "自諾倫三女神之位讀出來路與去向"
     },
     "svcFinder": {
-      "go": "去看看 →"
+      "go": "去看看 →",
+      "profileHeading": "我的命運",
+      "recommendations": "為你找到感興趣的解讀"
     },
     "appInstall": {
       "title": "將應用程式加入主畫面",
@@ -1487,32 +1489,32 @@
     }
   },
   "trust": {
-    "headline": "為何超10萬人選擇Code Destiny",
+    "headline": "閱讀 CODE DESTINY 解讀前的說明",
     "badges": [
       {
         "icon": "🌍",
-        "label": "全球社群",
-        "value": "80+國家 · 逾10萬用戶"
+        "label": "不同體系",
+        "value": "尊重各自的計算前提"
       },
       {
         "icon": "🔒",
-        "label": "SSL加密",
-        "value": "256位元加密 · 安全支付"
+        "label": "個人資料",
+        "value": "請查看隱私權政策"
       },
       {
         "icon": "⭐",
-        "label": "滿意度",
-        "value": "平均分數 4.9/5"
+        "label": "解讀邊界",
+        "value": "不保證準確性或特定結果"
       },
       {
         "icon": "🌐",
-        "label": "多語言",
-        "value": "10種語言 · 隨時可用"
+        "label": "顯示語言",
+        "value": "選擇適合自己的閱讀語言"
       },
       {
         "icon": "💳",
-        "label": "安全結帳",
-        "value": "Stripe認證 · 主流信用卡"
+        "label": "使用條件",
+        "value": "請確認功能頁面與服務條款"
       }
     ]
   },

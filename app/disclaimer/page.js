@@ -1,3 +1,4 @@
+import { trustRoutes } from "../../lib/i18n/public-trust-copy.mjs";
 import { generatePageMetadata } from "../../lib/generate-page-metadata";
 import { SUPPORT_EMAIL, SUPPORT_MAILTO } from "../../lib/site-policy-config";
 
@@ -32,6 +33,7 @@ export function generateMetadata() {
   const copy = DISCLAIMER_METADATA_COPY.ko;
   return generatePageMetadata({
     path: "/disclaimer",
+    hreflangPaths: trustRoutes("disclaimer"),
     title: copy.title,
     description: copy.description,
     keywords: copy.keywords,

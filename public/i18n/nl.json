@@ -1418,7 +1418,9 @@
       "stonehenge-runes": "Lees je afgelegde en komende pad vanaf de zetels van de drie Nornen"
     },
     "svcFinder": {
-      "go": "Bekijken →"
+      "go": "Bekijken →",
+      "profileHeading": "Mijn bestemming",
+      "recommendations": "Ontdek lezingen die bij je interesses passen"
     },
     "appInstall": {
       "title": "Keep Code Destiny on your home screen",

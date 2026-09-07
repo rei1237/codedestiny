@@ -1418,7 +1418,9 @@
       "stonehenge-runes": "तीन नोर्न देवियों के स्थान से पढ़ें बीता और आता हुआ मार्ग"
     },
     "svcFinder": {
-      "go": "देखें →"
+      "go": "देखें →",
+      "profileHeading": "मेरी नियति",
+      "recommendations": "अपनी रुचि के अनुसार रीडिंग देखें"
     },
     "appInstall": {
       "title": "Keep Code Destiny on your home screen",

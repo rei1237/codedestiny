@@ -1418,7 +1418,9 @@
       "stonehenge-runes": "Lies den Weg dahinter und davor von den Sitzen der drei Nornen"
     },
     "svcFinder": {
-      "go": "Ansehen →"
+      "go": "Ansehen →",
+      "profileHeading": "Mein Schicksal",
+      "recommendations": "Entdecke passende Deutungen"
     },
     "appInstall": {
       "title": "Keep Code Destiny on your home screen",

@@ -1,3 +1,4 @@
+import { trustRoutes } from "../../lib/i18n/public-trust-copy.mjs";
 import Link from "next/link";
 import { buildSeoMetadata } from "../../lib/seo";
 import { buildBreadcrumbJsonLd, buildFaqPageJsonLd } from "../../lib/structured-data";
@@ -15,7 +16,7 @@ export const dynamic = "force-static";
 // 관리자 CMS(페이지 → 자주 묻는 질문)에서 고친 목록을 쓴다. 비어 있으면 위 기본 목록.
 const faqs = cmsQaList("faq", "faq-page", "items", FAQS_DEFAULT);
 
-export const metadata = buildSeoMetadata(seo);
+export const metadata = buildSeoMetadata({ ...seo, hreflang: trustRoutes("faq") });
 
 const jsonLd = JSON.stringify({
   "@context": "https://schema.org",

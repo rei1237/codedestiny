@@ -5,10 +5,15 @@
 
 User-agent: *
 Allow: /
+Allow: /api/og
 
 Disallow: /api/
 Disallow: /api-hello-test/
 Disallow: /admin/
+Disallow: /account/
+Disallow: /staging/
+Disallow: /preview/
+Disallow: /*-debug/
 Disallow: /auth/
 Disallow: /debug/
 Disallow: /test/
@@ -32,10 +37,15 @@ Disallow: /*?auth=
 #  verify-sitemap-integrity 가 루트 robots.txt 를 읽어 disallow 충돌을 검사한다).
 User-agent: Mediapartners-Google
 Allow: /
+Allow: /api/og
 
 Disallow: /api/
 Disallow: /api-hello-test/
 Disallow: /admin/
+Disallow: /account/
+Disallow: /staging/
+Disallow: /preview/
+Disallow: /*-debug/
 Disallow: /auth/
 Disallow: /debug/
 Disallow: /test/
@@ -62,10 +72,15 @@ Disallow: /*?auth=
 
 User-agent: GPTBot
 Allow: /
+Allow: /api/og
 
 Disallow: /api/
 Disallow: /api-hello-test/
 Disallow: /admin/
+Disallow: /account/
+Disallow: /staging/
+Disallow: /preview/
+Disallow: /*-debug/
 Disallow: /auth/
 Disallow: /debug/
 Disallow: /test/
@@ -87,10 +102,15 @@ Disallow: /*?auth=
 
 User-agent: ChatGPT-User
 Allow: /
+Allow: /api/og
 
 Disallow: /api/
 Disallow: /api-hello-test/
 Disallow: /admin/
+Disallow: /account/
+Disallow: /staging/
+Disallow: /preview/
+Disallow: /*-debug/
 Disallow: /auth/
 Disallow: /debug/
 Disallow: /test/
@@ -112,10 +132,15 @@ Disallow: /*?auth=
 
 User-agent: OAI-SearchBot
 Allow: /
+Allow: /api/og
 
 Disallow: /api/
 Disallow: /api-hello-test/
 Disallow: /admin/
+Disallow: /account/
+Disallow: /staging/
+Disallow: /preview/
+Disallow: /*-debug/
 Disallow: /auth/
 Disallow: /debug/
 Disallow: /test/
@@ -137,10 +162,15 @@ Disallow: /*?auth=
 
 User-agent: ClaudeBot
 Allow: /
+Allow: /api/og
 
 Disallow: /api/
 Disallow: /api-hello-test/
 Disallow: /admin/
+Disallow: /account/
+Disallow: /staging/
+Disallow: /preview/
+Disallow: /*-debug/
 Disallow: /auth/
 Disallow: /debug/
 Disallow: /test/
@@ -162,10 +192,15 @@ Disallow: /*?auth=
 
 User-agent: anthropic-ai
 Allow: /
+Allow: /api/og
 
 Disallow: /api/
 Disallow: /api-hello-test/
 Disallow: /admin/
+Disallow: /account/
+Disallow: /staging/
+Disallow: /preview/
+Disallow: /*-debug/
 Disallow: /auth/
 Disallow: /debug/
 Disallow: /test/
@@ -187,10 +222,15 @@ Disallow: /*?auth=
 
 User-agent: Claude-Web
 Allow: /
+Allow: /api/og
 
 Disallow: /api/
 Disallow: /api-hello-test/
 Disallow: /admin/
+Disallow: /account/
+Disallow: /staging/
+Disallow: /preview/
+Disallow: /*-debug/
 Disallow: /auth/
 Disallow: /debug/
 Disallow: /test/
@@ -212,10 +252,15 @@ Disallow: /*?auth=
 
 User-agent: PerplexityBot
 Allow: /
+Allow: /api/og
 
 Disallow: /api/
 Disallow: /api-hello-test/
 Disallow: /admin/
+Disallow: /account/
+Disallow: /staging/
+Disallow: /preview/
+Disallow: /*-debug/
 Disallow: /auth/
 Disallow: /debug/
 Disallow: /test/
@@ -237,10 +282,15 @@ Disallow: /*?auth=
 
 User-agent: Google-Extended
 Allow: /
+Allow: /api/og
 
 Disallow: /api/
 Disallow: /api-hello-test/
 Disallow: /admin/
+Disallow: /account/
+Disallow: /staging/
+Disallow: /preview/
+Disallow: /*-debug/
 Disallow: /auth/
 Disallow: /debug/
 Disallow: /test/
@@ -268,3 +318,9 @@ Disallow: /
 Host: code-destiny.com
 
 Sitemap: https://code-destiny.com/sitemap.xml
+
+Sitemap: https://code-destiny.com/sitemap-ko.xml
+Sitemap: https://code-destiny.com/sitemap-ja.xml
+Sitemap: https://code-destiny.com/sitemap-en.xml
+Sitemap: https://code-destiny.com/sitemap-zh.xml
+Sitemap: https://code-destiny.com/sitemap-zh-tw.xml

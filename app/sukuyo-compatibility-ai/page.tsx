@@ -8,6 +8,8 @@ import {
 import SukuyoNarrativeSections from "./_sections/SukuyoNarrativeSections";
 import ImmersiveRelatedLinks from "../components/ImmersiveRelatedLinks";
 import { buildKrwOffer } from "@/lib/seo/paid-offer";
+import { createHreflangFromRoutes } from "@/lib/seo/createHreflang";
+import { introductionRoutes } from "@/lib/i18n/feature-introductions.mjs";
 
 const PAGE_PATH = "/sukuyo-compatibility-ai/";
 const PAGE_TITLE = "숙요 궁합 상담 | 27수 관계 유형 1:1 해석 — Code Destiny";
@@ -19,6 +21,7 @@ export const metadata: Metadata = {
   description: PAGE_DESCRIPTION,
   alternates: {
     canonical: "/sukuyo-compatibility-ai/",
+    languages: createHreflangFromRoutes(introductionRoutes("sukuyo-compatibility-ai")),
   },
   openGraph: {
     title: "숙요점 궁합 전문가 상담",

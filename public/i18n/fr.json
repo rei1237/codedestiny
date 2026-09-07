@@ -1418,7 +1418,9 @@
       "stonehenge-runes": "Lisez le chemin parcouru et celui à venir depuis le siège des trois Nornes"
     },
     "svcFinder": {
-      "go": "Voir →"
+      "go": "Voir →",
+      "profileHeading": "Mon destin",
+      "recommendations": "Découvrez les lectures qui vous correspondent"
     },
     "appInstall": {
       "title": "Keep Code Destiny on your home screen",

@@ -1418,7 +1418,9 @@
       "stonehenge-runes": "Đọc đường đã qua và đường sắp tới từ ba vị nữ thần Norn"
     },
     "svcFinder": {
-      "go": "Xem ngay →"
+      "go": "Xem ngay →",
+      "profileHeading": "Vận mệnh của tôi",
+      "recommendations": "Khám phá luận giải phù hợp với bạn"
     },
     "appInstall": {
       "title": "Keep Code Destiny on your home screen",

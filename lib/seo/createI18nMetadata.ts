@@ -36,7 +36,7 @@ export function createI18nMetadata(input: CreateI18nMetadataInput): Metadata {
   const languages = localeIsIndexable ? createHreflangFromRoutes(routeByLocale) : undefined;
   const imageUrl = image.startsWith("http") ? image : new URL(image, siteSeo.siteUrl).toString();
   const mergedKeywords = mergeKeywords(
-    SEO_CORE_KEYWORDS,
+    locale === "ko" ? SEO_CORE_KEYWORDS : [],
     locale === "ko" ? getSeoProfileKeywords(routeByLocale.ko) : [],
     keywords,
   );

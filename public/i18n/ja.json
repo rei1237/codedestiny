@@ -3,9 +3,9 @@
   "_version": "1.0.0",
   "brand": {
     "name": "Code Destiny",
-    "tagline": "東洋の叡智を、専門家が静かに読み解く",
-    "subtitle": "古い命理の知恵と現代の専門家が、あなたの流れをやさしく照らします",
-    "trustBadge": "世界80カ国以上、10万人を超えるユーザーが選んだ占い体験"
+    "tagline": "東洋の占術を、自己理解の手がかりに",
+    "subtitle": "伝統の計算とAIの解釈から、いまの問いを整理する",
+    "trustBadge": "四柱推命・紫微斗数・宿曜占星術を、それぞれの視点で"
   },
   "home": {
     "homeGuide": {
@@ -1418,7 +1418,9 @@
       "stonehenge-runes": "ノルン三女神の座から読む、来し方と行く先"
     },
     "svcFinder": {
-      "go": "見に行く →"
+      "go": "見に行く →",
+      "profileHeading": "マイデスティニー",
+      "recommendations": "ご希望に合わせた占いをご紹介します"
     },
     "appInstall": {
       "title": "ホーム画面にアプリとして追加",
@@ -1487,32 +1489,32 @@
     }
   },
   "trust": {
-    "headline": "10万人以上がCode Destinyを選ぶ理由",
+    "headline": "CODE DESTINYの鑑定を読む前に",
     "badges": [
       {
         "icon": "🌍",
-        "label": "グローバルコミュニティ",
-        "value": "80カ国以上・10万人以上"
+        "label": "複数の占術",
+        "value": "それぞれの前提を大切に"
       },
       {
         "icon": "🔒",
-        "label": "SSL暗号化",
-        "value": "256bit暗号化・安全決済"
+        "label": "個人情報",
+        "value": "プライバシーポリシーをご確認ください"
       },
       {
         "icon": "⭐",
-        "label": "満足度",
-        "value": "平均評価 4.9/5"
+        "label": "解釈の限界",
+        "value": "結果や成果を保証するものではありません"
       },
       {
         "icon": "🌐",
-        "label": "多言語対応",
-        "value": "10言語・常時利用可能"
+        "label": "表示言語",
+        "value": "言語を選んでお読みいただけます"
       },
       {
         "icon": "💳",
-        "label": "安全決済",
-        "value": "Stripe認証・主要カード対応"
+        "label": "ご利用条件",
+        "value": "対象画面と利用規約をご確認ください"
       }
     ]
   },
