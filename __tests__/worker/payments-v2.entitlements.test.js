@@ -22,6 +22,14 @@ import {
 } from "../../worker/payments/entitlements.js";
 import { PaymentError } from "../../worker/payments/errors.js";
 import { makeFakePaymentDb } from "../fixtures/fake-payment-db.mjs";
+import { buildAccessState } from "../../worker/lib/access-state.js";
+import {
+  LEGACY_LOVE_CODE_FEATURE_KEYS,
+  LOVE_CODE_FEATURE_KEY,
+  LOVE_CODE_PRODUCT_ID,
+  normalizePaidFeatureKey,
+} from "../../worker/lib/paid-feature-registry.js";
+import { resolveProduct } from "../../worker/payments/catalog.js";
 
 const USER = "507f1f77bcf86cd799439011";
 const PRODUCT = {
@@ -204,5 +212,60 @@ describe("계정 해금 목록", () => {
     const db = makeFakePaymentDb();
     expect(await markUserFeatureUnlocked(db, { userId: USER, featureKey: "f1" })).toBe(false);
     expect(await markUserFeatureUnlocked(db, { userId: "", featureKey: "f1" })).toBe(false);
+  });
+});
+
+describe("러브 코드 영구 해금", () => {
+  const LOVE_CODE_PRODUCT = {
+    productId: LOVE_CODE_PRODUCT_ID,
+    featureKey: LOVE_CODE_FEATURE_KEY,
+    priceKRW: 10000,
+    priceCoins: 100,
+  };
+
+  test("canonical 상품은 10,000원 영구 해금이고 레거시 키는 읽기 별칭이다", () => {
+    const product = resolveProduct({ featureKey: "loveSimulation" });
+    expect(product).toMatchObject({
+      productId: LOVE_CODE_PRODUCT_ID,
+      featureKey: LOVE_CODE_FEATURE_KEY,
+      priceKRW: 10000,
+      priceCoins: 100,
+      billingType: "unlock",
+    });
+    expect(LEGACY_LOVE_CODE_FEATURE_KEYS).toContain("openLoveSimulation");
+    expect(normalizePaidFeatureKey("loveSimulation")).toBe(LOVE_CODE_FEATURE_KEY);
+    expect(normalizePaidFeatureKey("openLoveSimulation")).toBe(LOVE_CODE_FEATURE_KEY);
+  });
+
+  test.each([CONTENT_ENTITLEMENT_SOURCES.PAYMENT, CONTENT_ENTITLEMENT_SOURCES.PASS, CONTENT_ENTITLEMENT_SOURCES.MONTHLY])(
+    "%s 최초 접근은 영구 entitlement 하나를 남긴다",
+    async (source) => {
+      const db = makeFakePaymentDb();
+      const first = await grantEntitlement(db, { userId: USER, product: LOVE_CODE_PRODUCT, orderId: `love-${source}`, source });
+      const replay = await grantEntitlement(db, { userId: USER, product: LOVE_CODE_PRODUCT, orderId: `love-${source}`, source });
+      expect(first.alreadyOwned).toBe(false);
+      expect(replay.alreadyOwned).toBe(true);
+      expect(db.rows).toHaveLength(1);
+      expect(db.rows[0]).toMatchObject({
+        featureKey: LOVE_CODE_FEATURE_KEY,
+        grantType: "permanent_unlock",
+        expiresAt: null,
+        amountKRW: 10000,
+      });
+    },
+  );
+
+  test("이용권 0회·월정석 만료와 무관하게 canonical entitlement가 접근 상태에 남는다", () => {
+    const state = buildAccessState({
+      userId: USER,
+      user: {
+        unlockedFeatures: ["loveSimulation"],
+        paidFeatures: [],
+        profileSubscription: { isActive: false, expiresAt: "2020-01-01T00:00:00.000Z", membershipCreditLots: [] },
+      },
+    });
+    expect(state.unlockMap[LOVE_CODE_FEATURE_KEY]).toBe(true);
+    expect(state.hasActivePass).toBe(false);
+    expect(state.monthlyBalance.remaining).toBe(0);
   });
 });

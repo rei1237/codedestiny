@@ -3,7 +3,7 @@ import {
   getUnlockedContentSnapshot,
   isProfileScopedContentUnlockFeatureKey,
 } from "./content-unlocks.js";
-import { isPerUsePaidFeatureKey, isUnlockPaidFeatureKey } from "./paid-feature-registry.js";
+import { isPerUsePaidFeatureKey, isUnlockPaidFeatureKey, normalizePaidFeatureKey } from "./paid-feature-registry.js";
 import { KRW_PER_COIN, PASS_LIMITS, normalizePassTier, resolveMonthlyPassLimitCoin } from "./profile-limits.js";
 import {
   ACCESS_STATE_STALE_TTL_MS,
@@ -37,6 +37,10 @@ function toNonNegativeInteger(value) {
 function normalizeStringArray(value) {
   const array = Array.isArray(value) ? value : [];
   return Array.from(new Set(array.map((item) => String(item || "").trim()).filter(Boolean)));
+}
+
+function normalizeUnlockFeatureArray(value) {
+  return normalizeStringArray(value.map((key) => normalizePaidFeatureKey(key) || key));
 }
 
 /**
@@ -129,7 +133,7 @@ export function buildAccessState({
   const graceUntil = new Date(graceUntilMs).toISOString();
   const contentState = contentSnapshot && typeof contentSnapshot === "object" ? contentSnapshot : {};
   const currentProfileId = normalizeProfileId(profileId || user?.destinyProfilesCurrentId);
-  const unlockedFeatureIds = normalizeStringArray(
+  const unlockedFeatureIds = normalizeUnlockFeatureArray(
     resolvedUnlockedFeatureIds === null
       ? [
         // 🔴 회당 결제 키를 해금 맵으로 내보내지 않는다 — 클라이언트가 그 맵을 보고
@@ -150,7 +154,7 @@ export function buildAccessState({
     // 같은 이유로 회당 결제 키는 '보유 상품'이 아니다 — 그 결제는 1회 소비로 끝난 거래다.
     ...(Array.isArray(user?.paidFeatures) ? user.paidFeatures : []).filter((key) => !isPerUsePaidFeatureKey(key)),
     ...(Array.isArray(contentState?.featureKeys) ? contentState.featureKeys : []),
-  ]);
+  ].map((key) => normalizePaidFeatureKey(key) || key));
   const profileEntitlements = contentState?.entitlementsByProfile && typeof contentState.entitlementsByProfile === "object"
     ? contentState.entitlementsByProfile
     : {};
@@ -328,7 +332,7 @@ export async function resolveCompleteAccessState({
 } = {}) {
   const normalizedUserId = normalizeUserId(userId);
   const currentProfileId = normalizeProfileId(profileId || user?.destinyProfilesCurrentId);
-  const accountFeatureIds = normalizeStringArray([
+  const accountFeatureIds = normalizeUnlockFeatureArray([
     ...(Array.isArray(user?.unlockedFeatures) ? user.unlockedFeatures : []),
     ...(Array.isArray(user?.paidFeatures) ? user.paidFeatures : []),
   ]).filter((key) => isUnlockPaidFeatureKey(key) && !isProfileScopedContentUnlockFeatureKey(key));
@@ -337,7 +341,7 @@ export async function resolveCompleteAccessState({
     userId: normalizedUserId,
     profileId: currentProfileId,
   });
-  const unlockedFeatureIds = normalizeStringArray([
+  const unlockedFeatureIds = normalizeUnlockFeatureArray([
     ...accountFeatureIds,
     ...(Array.isArray(contentSnapshot?.featureKeys) ? contentSnapshot.featureKeys : []),
   ]);

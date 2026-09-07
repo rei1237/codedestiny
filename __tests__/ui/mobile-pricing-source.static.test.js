@@ -30,7 +30,7 @@ test("paid UI badges do not provide a numeric PriceBadge fallback", () => {
 
 test("targeted mobile cards carry canonical feature keys and matching registry prices", () => {
   assert.match(shell, /data-action="startIjikTarot"[\s\S]{0,240}data-feature-key="tarot-ijik"[\s\S]{0,240}data-price-krw="5000"/);
-  assert.match(shell, /data-action="openLoveSimulation"[\s\S]{0,240}data-feature-key="loveSimulation"[\s\S]{0,240}data-price-krw="10000"/);
+  assert.match(shell, /data-action="openLoveSimulation"[\s\S]{0,240}data-feature-key="love-code"[\s\S]{0,240}data-price-krw="10000"/);
   assert.match(shell, /data-action="openAnimalDestinyRoute"[\s\S]{0,260}data-feature-key="animal-destiny-unlock"[\s\S]{0,260}data-price-krw="10000"/);
 });
 

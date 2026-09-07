@@ -292,6 +292,7 @@ type RuntimeApiWindow = Window & {
       aborted?: boolean;
     }>;
     invalidateAccessDecision?: () => void;
+    revalidate?: (options?: Record<string, unknown>) => Promise<unknown>;
     // localStorage 로 지속되는 영구 해금 스냅샷의 동기 판정(js/core/access-store.js isUnlocked).
     isUnlocked?: (featureKey: string) => boolean;
   };
@@ -468,6 +469,9 @@ export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-f6af2542
 // 다른 쪽에서도 사라진다(실제로 active TTL 이 5분/15분으로 갈라져 있었다). 여기에 사본을 두지 말 것.
 
 const BILLING_FEATURE_KEY_ALIASES: Record<string, string> = {
+  "love-code": "love-code",
+  lovesimulation: "love-code",
+  openlovesimulation: "love-code",
   saju_ai_prompt_generator: "saju_ai_question_prompt",
   "saju-ai-prompt": "saju_ai_question_prompt",
   "ziwei-ai-prompt": "ziwei_ai_prompt_generator",
@@ -525,6 +529,21 @@ export function invalidateBillingBalanceCache() {
   if (typeof window !== "undefined") {
     (window as RuntimeApiWindow).CodeDestinyAccessStore?.invalidateAccessDecision?.();
   }
+}
+
+/**
+ * Payment success and mobile resume must settle against the server snapshot.
+ * Local optimistic grants only keep the transition smooth; they never decide durable access.
+ */
+export async function refreshPaidFeatureEntitlements(clientSource = "app:paid-feature-entitlement-refresh") {
+  invalidateBillingBalanceCache();
+  if (typeof window !== "undefined") {
+    await (window as RuntimeApiWindow).CodeDestinyAccessStore?.revalidate?.({
+      reason: "paid-feature-entitlement-refresh",
+      authenticated: true,
+    });
+  }
+  return fetchBillingBalance({ force: true, fresh: true, clientSource });
 }
 
 type BillingClientRuntimeWindow = Window & { __cdBillingBalanceAuthListenerInstalled?: boolean };

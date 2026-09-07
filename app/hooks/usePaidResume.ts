@@ -46,7 +46,7 @@ export type PaidResumeRunner = (
  * @param run  복귀 후 실행할 게이트 없는 코어.
  * @returns `ensurePaidAccess({ resume })` 에 넣을 서술자 생성기.
  */
-export function usePaidResume(kind: string, run: PaidResumeRunner) {
+export function usePaidResume(kind: string, run: PaidResumeRunner, options: { legacyKinds?: readonly string[] } = {}) {
   const runRef = useRef<PaidResumeRunner>(run);
   useEffect(() => {
     runRef.current = run;
@@ -58,21 +58,24 @@ export function usePaidResume(kind: string, run: PaidResumeRunner) {
     //    이 클로저가 남으므로, 죽은 화면이 재개를 삼키지 않게 alive 로 즉시 false 를 돌린다.
     let alive = true;
     try {
-      checkoutEntry.registerPaidResumeHandler(kind, (descriptor, grant) => {
-        if (!alive) return false;
-        const args =
-          descriptor && descriptor.args && typeof descriptor.args === "object"
-            ? (descriptor.args as PaidResumeArgs)
-            : {};
-        return runRef.current(args, grant || null);
-      });
+      const kinds = Array.from(new Set([kind, ...(options.legacyKinds || [])].filter(Boolean)));
+      for (const resumeKind of kinds) {
+        checkoutEntry.registerPaidResumeHandler(resumeKind, (descriptor, grant) => {
+          if (!alive) return false;
+          const args =
+            descriptor && descriptor.args && typeof descriptor.args === "object"
+              ? (descriptor.args as PaidResumeArgs)
+              : {};
+          return runRef.current(args, grant || null);
+        });
+      }
     } catch {
       /* 등록 실패는 재개 포기로만 이어진다 — 정상 인페이지 결제 흐름은 그대로다. */
     }
     return () => {
       alive = false;
     };
-  }, [kind]);
+  }, [kind, options.legacyKinds]);
 
   return useCallback(
     (args: PaidResumeArgs = {}): PaidResumeDescriptor => ({ kind, action: "", args }),
