@@ -151,7 +151,7 @@ git fetch origin main; git rebase origin/main   # 충돌 나면 두 판을 손�
 | **Play 업로드** — versionCode 40 AAB | [android-web-sync-2026-08-29.md](android-web-sync-2026-08-29.md) | 🔴 **남음.** 빌드는 이미 끝났다 → `Desktop\CodeDestiny-Build\20260830-2147-1.0.40-40-f746f878d\`. `_전부하기.ps1` 을 **다시 돌릴 필요 없다.** 빌드로그는 "인앱 상품 가격을 먼저 내린 뒤 업로드"라고 남겼다 |
 | 유명인 12명 **라이브 검수** → 문제 인물은 `reviewedAt` null 로 되돌리기 | [growth-plan-2026-08-30.md](growth-plan-2026-08-30.md) | 🔴 **남음.** 이후 AdSense 재신청은 **2026-09-14 이후** |
 | 기기(1.0.38)에서 로그인 후 30분 뒤 콜드부팅이 로그아웃되지 않는지 | [app-social-login-return-path-2026-08-30.md](app-social-login-return-path-2026-08-30.md) | 🟢 **선결조건 충족** — PR #1309(`62d9e0688`)가 라이브에 있다. 기기 확인만 남음 |
-| `release-signing.properties` versionCode 41 올리기 + 기기 확인 | [tea-house-perf.md](tea-house-perf.md) | ⏳ **40 이 Play 에 올라간 뒤.** 현재 값은 40(스크립트·프로퍼티 양쪽) |
+| `release-signing.properties` versionCode 41 올리기 + 기기 확인 | 기기 확인 후 | ⏳ **40 이 Play 에 올라간 뒤.** 현재 값은 40(스크립트·프로퍼티 양쪽) |
 | ~~프로덕션 재승격 (데스크톱 TBT)~~ | [desktop-tbt-2026-08-29.md](desktop-tbt-2026-08-29.md) | ✅ **이미 됐다.** 아래 §4-실측 |
 
 ### §4-실측 — 프로덕션은 무엇을 서빙하고 있나 (2026-08-31)

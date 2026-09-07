@@ -8,7 +8,7 @@
 
 | 항목 | 현재 상태(근거) | 리스크 | 권장 조치 | 관련 verify | 상태 |
 |---|---|---|---|---|---|
-| SEO 유틸 9파일 분산 | `lib/seo.ts`, `seo.v2.ts`, `seo-metadata.ts`, `seo-site-urls.ts`, `generate-page-metadata.ts`, `lib/seo/siteSeo.ts`, `createI18nMetadata.ts`, `createHreflang.ts`, `siteConfig.ts` | 낮음(전수 조사 결과 **8개 전부 실사용 중**, 죽은 파일 0개) | 통합하지 않는다 — 2026-08 감사(`docs/cleanup-2026-08/03-report.md` B-11)에서 이미 "통합 말고 역할 문서화"로 결론. 이 문서가 그 문서화 역할 | — | 문서화 완료 |
+| SEO 유틸 9파일 분산 | `lib/seo.ts`, `seo.v2.ts`, `seo-metadata.ts`, `seo-site-urls.ts`, `generate-page-metadata.ts`, `lib/seo/siteSeo.ts`, `createI18nMetadata.ts`, `createHreflang.ts`, `siteConfig.ts` | 낮음 | 역할이 다른 모듈은 현재 호출부 기준으로 유지한다. | — | 문서화 완료 |
 | `lib/seo.v2.ts` 죽은 export | `buildSitemapEntriesV2()`, `getIndexableRouteEntries()` 호출부 0건(정의부 외) | 낮음(typecheck가 참조 누락을 즉시 잡음) | 삭제 | `typecheck` | **별도 PR로 처리** |
 | `lib/README.md` 낡음 | SEO 유틸 9개 중 3개만 문서화, `LOCALE_MAP`에 실제 없는 `/en-us`/`/ja-jp` 경로 예시, "git push origin main" 배포 예시(현재 PR 기반 배포 계약과 모순) | 중간(다음 세션이 이 README를 정본으로 오인할 위험) | 이번 범위 밖 — SEO 작업과 무관한 전면 정비가 필요해 별도 이슈로 분리 권장 | — | 미착수 |
 | ~~GSC 인증 미확정~~ | **2026-08-13 해결 — Cloudflare DNS TXT 로 도메인 속성 인증 완료**(`dig code-destiny.com TXT` 에 `google-site-verification=f8zuI8Ok…` 확인). `index.html`·`app/layout.js` 의 placeholder 는 **주석 안**이라 아무것도 안 나가며, DNS 인증이 이를 대체하므로 주석 해제 불필요 | — | 조치 없음 | — | **완료** |

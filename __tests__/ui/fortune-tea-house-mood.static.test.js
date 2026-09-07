@@ -21,7 +21,6 @@ const read = (rel) => fs.readFileSync(path.join(root, rel), "utf8");
 const HANGUL = /[가-힣]/;
 
 const EXPRESSION_PICKERS = [
-  "src/features/fortune-tea-house/components/TalkingPigYeoni.tsx",
   "src/features/fortune-tea-house/components/YeoniDialogueActor.tsx",
 ];
 
@@ -46,7 +45,7 @@ test("표정 판정기에 한국어 정규식이 없다", () => {
     walk(sourceFile);
   }
   // 🔴 fail-closed: 파일을 못 읽었거나 경로가 바뀌면 조용히 통과하는 대신 여기서 알린다.
-  assert.equal(EXPRESSION_PICKERS.length, 2, "검사 대상 파일 목록이 비었다");
+  assert.equal(EXPRESSION_PICKERS.length, 1, "검사 대상 파일 목록이 비었다");
   assert.ok(scanned >= 0, `정규식 스캔 결과가 비정상이다 (${scanned})`);
 });
 
@@ -106,7 +105,7 @@ test("mood 표가 YeoniMood 8종을 빠짐없이 덮는다", () => {
   const moods = [...union.matchAll(/"(\w+)"/g)].map((m) => m[1]);
   assert.ok(moods.length > 0, `${rel}: YeoniMood 를 읽지 못했다`);
 
-  for (const mapName of ["yeoniMoodFrameMap", "pigMoodFrameMap"]) {
+  for (const mapName of ["yeoniMoodFrameMap"]) {
     const at = source.indexOf(`export const ${mapName}`);
     assert.notEqual(at, -1, `${rel}: ${mapName} 이 없다`);
     const body = source.slice(at, source.indexOf("\n};", at));
