@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-08
-next: "PR CI를 확인한 뒤 사용자 승인으로 main ruleset을 CI required 단일 체크와 Merge Queue 구조로 전환"
+next: "사용자 머지 후 별도 승인으로 main ruleset을 CI required 단일 체크와 Merge Queue 구조로 전환"
 ---
 
 # CI, 스테이징 감시, 세션 인수인계
@@ -21,6 +21,7 @@ next: "PR CI를 확인한 뒤 사용자 승인으로 main ruleset을 CI required
 - Landing Watchdog 앞에 scope job을 두었다. 오타·UI 문구·CSS·정적 자산은 장기 감시를 생략하고, DB 스키마·결제/인증·유료 접근·주요 Worker 라우트는 감시한다. 판정 오류는 감시 실행으로 닫는다.
 - `docs/dev/SESSION_HANDOFF_TEMPLATE.md`, `docs/dev/SESSION_WORKFLOW.md`, `npm run handoff`를 추가했다.
 - GitHub CLI는 `rei1237` 계정으로 재인증됐다. 토큰 값은 출력·저장하지 않았다.
+- PR #1759의 기존 required checks, `paid-flow-gates`, 새 aggregate `CI required`가 모두 통과했다.
 - GitHub ruleset, secret, production deploy는 변경하거나 실행하지 않았다.
 
 ## 검증 결과
@@ -45,8 +46,8 @@ Worker dry-run 중 로컬 Wrangler 로그 디렉터리 생성에 `EPERM` 경고�
 
 ## 다음 세션에서 바로 할 일
 
-1. 이 PR의 `CI required`와 기존 required check가 모두 보고되는지 확인한다.
-2. PR이 머지된 뒤, 사용자 승인을 받아 main ruleset required check를 `CI required` 하나로 전환하고 Merge Queue를 활성화한다. 그 전에는 ruleset을 바꾸지 않는다.
+1. 사용자가 PR #1759를 검토하고 머지한다. 에이전트는 별도 요청 없이 머지하지 않는다.
+2. 머지된 뒤, 사용자 승인을 받아 main ruleset required check를 `CI required` 하나로 전환하고 Merge Queue를 활성화한다. 그 전에는 ruleset을 바꾸지 않는다.
 3. Merge Queue 첫 실행에서 `merge_group` 체크와 staging release/monitor 분리를 확인한다. production 승격은 실행하지 않는다.
 
 ## 주의사항
