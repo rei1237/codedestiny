@@ -154,6 +154,12 @@ on:
       - "js/mobile-interaction-patch.js"
       - "js/core/index-inline-runtime.js"
       - "js/saju-engine.js"
+      - "app/hooks/usePaidResume.ts"
+      - "js/saju-engine-tarot-sukuyo-quantum.js"
+      - "js/entertain-engine.js"
+      - "js/sibyl-system.js"
+      - "js/iching-engine.js"
+      - "js/animal-totem-experience.js"
       - "js/share.js"
       # 🔴 관상·전생 관상은 셸이 data-action 으로 지연 로드하는 루트 자산이라 js/**에 안 걸린다.
       #    정적 재개 가드가 이 파일들을 읽으므로 루트와 public 미러를 모두 트리거에 둔다.
