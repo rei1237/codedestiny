@@ -239,8 +239,15 @@ beforeAll(async () => {
 });
 
 beforeEach(() => {
+  // These immediate LLM fixtures verify card content, not deadline behavior.
+  jest.useFakeTimers({ doNotFake: ['Date', 'performance', 'nextTick', 'queueMicrotask', 'setImmediate', 'clearImmediate'] });
   fakeCollections.clear();
   callGeminiTextMock.mockReset();
+});
+
+afterEach(() => {
+  jest.clearAllTimers();
+  jest.useRealTimers();
 });
 
 async function postConsult(body) {
