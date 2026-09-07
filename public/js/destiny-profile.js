@@ -12296,6 +12296,13 @@
       && __dpPaymentCardsApi && typeof __dpPaymentCardsApi.buildDirectPayMethodStepHtml === 'function')
       ? __dpPaymentCardsApi.buildDirectPayMethodStepHtml({ escape: esc })
       : '';
+    // 이용권 선검사 결과를 결제창에서 한 줄로 설명한다(왜 결제창이 떴는지 모르겠다는 피드백).
+    // 계약·클래스는 셸 index.html 의 passOutcomeNote 와 같고, CSS 는 공유 코어
+    // (js/core/checkout-entry.js '.cd-direct-payment-sub--reason')가 이미 갖고 있어 추가가 없다.
+    var passOutcomeNote = String(opts.passOutcomeNote || '').trim();
+    var passOutcomeNoteHtml = passOutcomeNote
+      ? '<p class="cd-direct-payment-sub cd-direct-payment-sub--reason">' + esc(passOutcomeNote) + '</p>'
+      : '';
     _dpEnsureStandalonePaymentChoiceStyle();
     return new Promise(function(resolve) {
       var settled = false;
@@ -12334,6 +12341,7 @@
               '<p class="cd-direct-payment-sub">' + esc(guideBubbleText) + '</p>' +
             '</div>' +
           '</div>' +
+          passOutcomeNoteHtml +
           '<div class="cd-direct-payment-note"><strong>' + esc(title) + '</strong>' +
             '<span>' + esc(_dpCheckoutText('payment.directModal.note.basis', '결제 금액 {amount}', { amount: _dpCheckoutFormatKrw(amountKrw) })) + '</span>' +
             '<span>' + esc(_dpCheckoutText('payment.directModal.note.withPass', '이용권 · 월정석 · 카드 중에서 고를 수 있어요.')) + '</span>' +
