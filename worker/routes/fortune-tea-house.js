@@ -1562,6 +1562,14 @@ function isLocalLikeEnv(env = {}) {
   return !mode || ["development", "dev", "local", "test"].includes(mode);
 }
 
+function isWorkersAiExplicitlyDisabled(env = {}) {
+  return cleanText(env?.WORKERS_AI_ENABLED, 20).toLowerCase() === "false";
+}
+
+function isStagingNoCostFallbackEnv(env = {}) {
+  return cleanText(env?.APP_ENV, 40).toLowerCase() === "staging" && isWorkersAiExplicitlyDisabled(env);
+}
+
 function extractJson(text) {
   const cleaned = String(text || "").trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "");
   try {
@@ -4035,7 +4043,8 @@ async function generateFortuneTeaGroup(env, { request, fallback, group, consulta
 
 async function generateConsultResult(request, fallback, env) {
   if (!hasGeminiKey(env)) {
-    if (!isLocalLikeEnv(env)) {
+    const stagingNoCostFallback = isStagingNoCostFallbackEnv(env);
+    if (!isLocalLikeEnv(env) && !stagingNoCostFallback) {
       const error = new Error("fortune tea house llm unavailable");
       error.status = 503;
       throw error;
@@ -4044,7 +4053,7 @@ async function generateConsultResult(request, fallback, env) {
       result: fallback,
       generationMeta: {
         mode: "local_fallback",
-        reason: "missing_gemini_key",
+        reason: stagingNoCostFallback ? "staging_missing_gemini_key" : "missing_gemini_key",
         generatedAt: new Date().toISOString(),
       },
     };
