@@ -77,6 +77,22 @@ jobs:
           node scripts/resolve-ci-tier.mjs --self-test
           node scripts/resolve-ci-tier.mjs
 
+      - name: Compare proposed verification plan (shadow only)
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          CD_FORCE_CRITICAL: ${{ contains(github.event.pull_request.labels.*.name, 'full-ci') }}
+        run: |
+          node --test __tests__/release/verification-plan.test.js
+          node scripts/check-changed.mjs --ci-shadow --output=verification-plan.json
+
+      - name: Save shadow plan for the 10-PR comparison
+        uses: actions/upload-artifact@v4
+        with:
+          name: verification-plan-${{ github.event.pull_request.number || github.run_id }}
+          path: verification-plan.json
+          retention-days: 30
+
   # 🔴 스택 PR 을 부모(→main)부터 머지하면 자식의 머지 커밋은 목적지를 잃은 브랜치로 들어간다.
   # GitHub 은 자식을 "Merged" 로 칠하지만 그 커밋은 main 의 조상이 아니고, 아무 신호도 남지
   # 않는다. 전수조사에서 그렇게 좌초한 PR 이 9건 나왔고 복구 PR 을 세 번 만들었다(#591·#593·#600).
@@ -146,7 +162,16 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Restore TypeScript incremental metadata
+        uses: actions/cache@v4
+        with:
+          path: tsconfig.tsbuildinfo
+          key: ${{ runner.os }}-node24-tsc-${{ hashFiles('package-lock.json', 'tsconfig.json') }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-node24-tsc-${{ hashFiles('package-lock.json', 'tsconfig.json') }}-
+
       - name: Typecheck
+        # Cache only incremental metadata; tsc still checks source freshness.
         run: npm run typecheck
 
       - name: Lint

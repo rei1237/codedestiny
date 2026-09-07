@@ -1,0 +1,160 @@
+{
+  "schemaVersion": 1,
+  "measuredAt": "2026-09-07T16:03:07.838Z",
+  "label": "after-auth-extraction-working-tree",
+  "sha": "4ab93cfd92cfcca4ae329d92a96a1d6fd4ccb73f",
+  "dirty": true,
+  "runtime": {
+    "node": "v24.18.0",
+    "platform": "win32",
+    "arch": "x64"
+  },
+  "inventory": {
+    "files": 4682,
+    "bytes": 282180564,
+    "skippedLinks": 1,
+    "unreadableEntries": 0,
+    "categories": {
+      "project": {
+        "files": 4658,
+        "bytes": 281283003
+      },
+      "generatedCandidates": {
+        "files": 24,
+        "bytes": 897561
+      }
+    },
+    "tracked": {
+      "files": 4614,
+      "bytes": 279307736,
+      "jsTsFiles": 2732,
+      "generatedCandidates": []
+    }
+  },
+  "measurements": [
+    {
+      "command": "lint",
+      "iteration": 0,
+      "cache": "unknown-cold-candidate",
+      "durationMs": 20975,
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "outputBytes": 92818,
+      "error": null
+    },
+    {
+      "command": "lint",
+      "iteration": 1,
+      "cache": "warm",
+      "durationMs": 3704,
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "outputBytes": 92496,
+      "error": null
+    },
+    {
+      "command": "lint",
+      "iteration": 2,
+      "cache": "warm",
+      "durationMs": 3867,
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "outputBytes": 92496,
+      "error": null
+    },
+    {
+      "command": "lint",
+      "iteration": 3,
+      "cache": "warm",
+      "durationMs": 3779,
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "outputBytes": 92496,
+      "error": null
+    },
+    {
+      "command": "typecheck",
+      "iteration": 0,
+      "cache": "unknown-cold-candidate",
+      "durationMs": 36168,
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "outputBytes": 48,
+      "error": null
+    },
+    {
+      "command": "typecheck",
+      "iteration": 1,
+      "cache": "warm",
+      "durationMs": 4691,
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "outputBytes": 48,
+      "error": null
+    },
+    {
+      "command": "typecheck",
+      "iteration": 2,
+      "cache": "warm",
+      "durationMs": 4367,
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "outputBytes": 48,
+      "error": null
+    },
+    {
+      "command": "typecheck",
+      "iteration": 3,
+      "cache": "warm",
+      "durationMs": 4587,
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "outputBytes": 48,
+      "error": null
+    },
+    {
+      "command": "test",
+      "iteration": 0,
+      "cache": "unknown-cold-candidate",
+      "durationMs": 153174,
+      "exitCode": 1,
+      "signal": null,
+      "timedOut": false,
+      "outputBytes": 79953,
+      "error": "command_failed_logs_not_retained"
+    },
+    {
+      "command": "test",
+      "iteration": 1,
+      "cache": "warm",
+      "durationMs": 149136,
+      "exitCode": 1,
+      "signal": null,
+      "timedOut": false,
+      "outputBytes": 80548,
+      "error": "command_failed_logs_not_retained"
+    }
+  ],
+  "notes": [
+    "Byte counts are file lengths, not allocated disk usage. Links/junctions are not followed.",
+    "First run is cache-state-unknown (cold candidate); shared caches are never cleared.",
+    "Raw command logs and environment values are never persisted.",
+    "Full test stopped after two consecutive failures. Separate test:node diagnosis: 861 tests, 860 passed, 1 failed. Jest cache records all 216 suites successful."
+  ],
+  "testFailure": {
+    "suite": "__tests__/ui/home-yehwa-motifs.static.test.js",
+    "line": 229,
+    "reason": "generator output differs: app/sukuyo-compatibility-ai/_art/yehwaScene.generated.ts",
+    "command": "node scripts/design/gen-yehwa-motifs.mjs --check",
+    "baselineComparison": "Generator and generated source unchanged in git diff. Read-only render comparison: CSS outputs exact; TS output exact after CRLF-to-LF normalization (136 CRLF lines).",
+    "resolution": "Added *.ts text eol=lf; normalized generated worktree bytes; exact byte check retained."
+  }
+}

@@ -1,6 +1,7 @@
 * text=auto
 
 *.js text eol=lf
+*.ts text eol=lf
 *.css text eol=lf
 *.html text eol=lf
 *.json text eol=lf
@@ -41,3 +42,4 @@ public/js/app.js                         merge=cachebust
 public/js/core/init.js                   merge=cachebust
 public/js/core/bootstrapDestinyFlower.js merge=cachebust
 public/js/destiny-profile.js             merge=cachebust
+.ignore text eol=lf

@@ -101,3 +101,6 @@ public/, dist/, out/   # 정적 자산 및 빌드 산출물
 
 - 정적 셸과 React 라우트는 서로 대체 가능하지 않다. 라이브 홈의 소스는 루트 `index.html` 이다.
 - 미러 검색 제외(`.ignore`)와 삭제 전 3면 grep 규칙은 [search-discipline.md](search-discipline.md) 에 있다.
+
+## 2026-09-08 개발 명령 정정
+npm run dev는 외부 호출 없는 mock 기본이며, 기존 local-auth 실제 연동은 npm run dev:live로 분리했다. 일상 검증은 npm run check:fast, CI 전체 정적 검사 정합은 npm run check:all을 사용한다. 상세 측정과 제한은 docs/dev-environment-baseline.md에 있다.
