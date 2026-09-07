@@ -174,6 +174,13 @@ on:
       - "js/tarot-love-experience.js"
       - "js/tarot-reunion-experience.js"
       - "js/tarot-year-fortune-experience.js"
+      # 🔴 관상·전생 관상은 셸이 data-action 으로 지연 로드하는 **루트 자산**이라 js/** 에 안 걸린다
+      #    (2026-09-07 추가). 이 사각지대 때문에 가드의 정적 스캔이 이 둘을 아예 안 읽었고,
+      #    resume 없는 유료 게이트 3건이 살아 있는데도 PASS 가 났다. 미러도 함께 등재한다.
+      - "PhysiognomyUI.js"
+      - "PastLifeFaceUI.js"
+      - "public/PhysiognomyUI.js"
+      - "public/PastLifeFaceUI.js"
       # ── 정적 셸 (결제수단 선택 모달 **정본**) ───────────────
       # 🔴 결제창 렌더러는 3종이지만 정본은 셸 인라인 하나다(`_cdChooseServicePaymentMode`,
       #    CSS 는 `_cdEnsureDirectPaymentStyles`). 나머지 두 렌더러(app/_lib/billing-client.ts ·

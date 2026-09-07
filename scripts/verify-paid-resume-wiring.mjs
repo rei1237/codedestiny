@@ -137,12 +137,21 @@ function walk(dir, matcher, out = []) {
 const reactFiles = ["app", "src", "components"]
   .flatMap((scanRoot) => walk(join(root, scanRoot), (name) => REACT_EXT.test(name)));
 
-const rootHtmlFiles = readdirSync(root, { withFileTypes: true })
-  .filter((entry) => entry.isFile() && entry.name.toLowerCase().endsWith(".html"))
+// 🔴 루트 레벨 *.js 도 정적 축이다(2026-09-07 추가). 관상(PhysiognomyUI.js)·전생 관상
+//    (PastLifeFaceUI.js)은 셸이 data-action 으로 지연 로드하는 **루트 자산**이라 js/** 밑에 없다.
+//    예전 스캔은 `루트 *.html + js/**` 였고, 그 사각지대에서 _cdCoinGatePerUse 3건이 resume 없이
+//    살아 있는데도 가드가 PASS 를 냈다 — 대상이 안 걸리면 통과시키는 fail-open 이었다(원칙 10).
+const rootFiles = readdirSync(root, { withFileTypes: true }).filter((entry) => entry.isFile());
+const rootHtmlFiles = rootFiles
+  .filter((entry) => entry.name.toLowerCase().endsWith(".html"))
+  .map((entry) => join(root, entry.name));
+const rootScriptFiles = rootFiles
+  .filter((entry) => /\.js$/i.test(entry.name))
   .map((entry) => join(root, entry.name));
 
 const staticFiles = [
   ...rootHtmlFiles,
+  ...rootScriptFiles,
   ...walk(join(root, "js"), (name) => name.endsWith(".js")),
 ];
 
@@ -661,6 +670,9 @@ assert.deepEqual(unexpectedUnresolved, [], `\n재개 kind 를 정적으로 풀�
     "js/animal-totem-experience.js",
     "js/core/index-inline-runtime.js",
     "js/oracle-kcg.js",
+    // 🔴 루트 자산이라 js/** 에 안 걸린다 — 위 정적 스캔이 루트 *.js 를 읽으므로 트리거에도 있어야 한다.
+    "PhysiognomyUI.js",
+    "PastLifeFaceUI.js",
   ];
   const missing = MECHANISM_FILES.filter((file) => !workflow.includes(`"${file}"`));
   assert.deepEqual(
