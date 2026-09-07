@@ -1,3 +1,4 @@
+import PolicyGuide, { policyPageClass } from "../components/PolicyGuide";
 import Link from "next/link";
 import { buildSeoMetadata } from "../../lib/seo";
 import { buildAboutPageJsonLd, buildAuthorPersonJsonLd, buildOrganizationJsonLd } from "../../lib/structured-data";
@@ -47,54 +48,10 @@ const jsonLd = JSON.stringify({
 
 export default function AboutPage() {
   return (
-    <main className="cd-main-shell">
+    <main className={`cd-main-shell ${policyPageClass}`}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
-      <header className="cd-main-header">
-        <h1 className="cd-main-title">{aboutPageText("title")}</h1>
-        <p className="cd-main-intro">
-          {aboutPageText("intro")}
-        </p>
-      </header>
+      <PolicyGuide kind="about" title={aboutPageText("title")} description={aboutPageText("intro")} />
 
-      <section className="cd-card">
-        <h2>{aboutPageText("mission.title")}</h2>
-        <p>
-          {aboutPageText("mission.body")}
-        </p>
-      </section>
-
-      <section className="cd-card">
-        <h2>{aboutPageText("services.title")}</h2>
-        <ul>
-          <li>{aboutPageText("services.saju")}</li>
-          <li>{aboutPageText("services.tarot")}</li>
-          <li>{aboutPageText("services.systems")}</li>
-          <li>{aboutPageText("services.premium")}</li>
-        </ul>
-      </section>
-
-      <section className="cd-card">
-        <h2>{aboutPageText("systems.title")}</h2>
-        <ul>
-          <li>{aboutPageText("systems.saju")}</li>
-          <li>{aboutPageText("systems.tarot")}</li>
-          <li>{aboutPageText("systems.ziwei")}</li>
-          <li>{aboutPageText("systems.astrology")}</li>
-          <li>{aboutPageText("systems.sukuyo")}</li>
-          <li>{aboutPageText("systems.compat")}</li>
-        </ul>
-      </section>
-
-      <section className="cd-card">
-        <h2>{aboutPageText("content.title")}</h2>
-        <p>
-          {aboutPageText("content.body")}
-        </p>
-      </section>
-
-      {/* insights 기사의 저자 링크(DEFAULT_ARTICLE_AUTHOR.profileUrl)가 이 페이지로 착지한다.
-          그 이름이 무엇을 가리키고 누가 책임지는지를 여기서 설명한다.
-          id="author" 는 ContentIntegrityNote 의 "저자 소개" 링크(/about#author)가 착지하는 앵커다. */}
       <section className="cd-card" id="author">
         <h2>{aboutPageText("editorial.title")}</h2>
         <p>
@@ -120,6 +77,47 @@ export default function AboutPage() {
           <Link href="/contact" className="cd-chip">{aboutPageText("editorial.contactLink")}</Link>
         </div>
       </section>
+
+      <section className="cd-card" id="about-purpose">
+        <h2>{aboutPageText("mission.title")}</h2>
+        <p>
+          {aboutPageText("mission.body")}
+        </p>
+      </section>
+
+      <section className="cd-card">
+        <h2>{aboutPageText("services.title")}</h2>
+        <ul>
+          <li>{aboutPageText("services.saju")}</li>
+          <li>{aboutPageText("services.tarot")}</li>
+          <li>{aboutPageText("services.systems")}</li>
+          <li>{aboutPageText("services.premium")}</li>
+        </ul>
+      </section>
+
+      <section className="cd-card" id="about-methods">
+        <h2>{aboutPageText("systems.title")}</h2>
+        <ul>
+          <li>{aboutPageText("systems.saju")}</li>
+          <li>{aboutPageText("systems.tarot")}</li>
+          <li>{aboutPageText("systems.ziwei")}</li>
+          <li>{aboutPageText("systems.astrology")}</li>
+          <li>{aboutPageText("systems.sukuyo")}</li>
+          <li>{aboutPageText("systems.compat")}</li>
+        </ul>
+      </section>
+
+      <section className="cd-card">
+        <h2>{aboutPageText("content.title")}</h2>
+        <p>
+          {aboutPageText("content.body")}
+        </p>
+      </section>
+
+      {/* insights 기사의 저자 링크(DEFAULT_ARTICLE_AUTHOR.profileUrl)가 이 페이지로 착지한다.
+          그 이름이 무엇을 가리키고 누가 책임지는지를 여기서 설명한다.
+          id="author" 는 ContentIntegrityNote 의 "저자 소개" 링크(/about#author)가 착지하는 앵커다. */}
+
 
       <section className="cd-card">
         <h2>{aboutPageText("principles.title")}</h2>

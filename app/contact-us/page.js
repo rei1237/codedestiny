@@ -1,3 +1,4 @@
+import PolicyGuide, { policyPageClass } from "../components/PolicyGuide";
 import Link from "next/link";
 import { generatePageMetadata } from "../../lib/generate-page-metadata";
 import { BUSINESS_IDENTITY, SUPPORT_EMAIL, SUPPORT_MAILTO } from "../../lib/site-policy-config";
@@ -41,19 +42,13 @@ export function generateMetadata() {
 
 export default function ContactUsPage() {
   return (
-    <main className="policy-doc">
-      <header className="policy-doc__head">
-        <h1 className="policy-doc__title">문의하기</h1>
-        <p className="policy-doc__meta">Contact Us · 영업일 기준 1~3일 내 회신</p>
-        <p className="policy-doc__lede">
-          서비스 이용 문의와 오류 신고, 개인정보 권리행사 요청, 제휴 문의를 받습니다. 아래 폼으로 메일 앱을 열거나 운영 이메일로 직접 보내주세요.
-        </p>
-      </header>
+    <main className={`policy-doc ${policyPageClass}`}>
+      <PolicyGuide kind="contact" title="고객센터 · Contact Us" description="서비스 이용과 결제, 개인정보 문의를 남겨주세요. 필요한 안내를 함께 찾아드릴게요." meta="영업일 기준 1~3일 내 회신" />
 
       <div className="policy-doc__single">
         <div className="policy-doc__body">
           <div className="policy-embed-body">
-            <section className="policy-embed-section">
+            <section id="support-contact" className="policy-embed-section">
               <h2 className="policy-embed-heading">이메일 문의</h2>
               <p>
                 운영 이메일: <a href={SUPPORT_MAILTO}>{SUPPORT_EMAIL}</a>

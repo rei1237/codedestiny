@@ -5,7 +5,6 @@
  * 텍스트 뒤(z-index 0)에 깔린다 — 텍스트 대비에 관여하지 않는다.
  * 불투명도 실측(2026-09-03, 1350px 연이 히어로 일러스트 위): 로즈골드 .22 는 선 대비 1.07:1 로 보이지 않았다.
  * 그래서 연이 히어로만 딥 로즈골드(--cd-yehwa-line-deep) + .5 로 올렸다(네오는 .16 에서 1.39:1 로 충분). */
-.moon-hero__ambient,
 .cd-yehwa-divider,
 .cd-yehwa-vine,
 .cd-yehwa-seal,
@@ -21,59 +20,7 @@
   --cd-yehwa-mask-sparkle: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='none' stroke='%23000' stroke-width='0.8' stroke-linejoin='round' stroke-linecap='round' d='M16 2Q16 16 30 16Q16 16 16 30Q16 16 2 16Q16 16 16 2M22.2 8.2A1.6 1.6 0 1 0 25.4 8.2A1.6 1.6 0 1 0 22.2 8.2M6.6 23.8A1.6 1.6 0 1 0 9.8 23.8A1.6 1.6 0 1 0 6.6 23.8'/%3E%3C/svg%3E");
 }
 
-/* ── 히어로: 좌하 모란 · 우상 벚가지 · 달 ──
- * .moon-hero__ambient(absolute, inset 0, overflow hidden, z-index 1) 안에 있고 .moon-hero__copy(z-index 2) 아래다.
- * 음수 오프셋으로 모서리 밖에 걸쳐 두어 카피 박스(max-width 820px)와 겹치지 않는다. */
-.moon-hero__yehwa {
-  position: absolute;
-  z-index: 0;
-  background: linear-gradient(160deg, var(--cd-yehwa-line-deep) 0%, var(--cd-yehwa-line) 100%);
-  pointer-events: none;
-}
-
-.moon-hero__yehwa--bl {
-  left: -48px;
-  bottom: -56px;
-  width: 320px;
-  height: 320px;
-  opacity: .5;
-  -webkit-mask-image: var(--cd-yehwa-mask-peony);
-  mask-image: var(--cd-yehwa-mask-peony);
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  -webkit-mask-size: 100% 100%;
-  mask-size: 100% 100%;
-}
-
-.moon-hero__yehwa--tr {
-  right: -36px;
-  top: -20px;
-  width: 300px;
-  height: 230px;
-  opacity: .46;
-  -webkit-mask-image: var(--cd-yehwa-mask-branch-corner);
-  mask-image: var(--cd-yehwa-mask-branch-corner);
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  -webkit-mask-size: 100% 100%;
-  mask-size: 100% 100%;
-}
-
 /* 브랜드 시그니처 달 — 운명의 문 카드의 .fortune-gateway__entry-shell::after 와 같은 계열. */
-.moon-hero__yehwa-moon {
-  position: absolute;
-  top: 36px;
-  right: 6%;
-  z-index: 0;
-  width: 96px;
-  aspect-ratio: 1;
-  border: 1px solid rgba(255, 255, 255, .9);
-  border-radius: 50%;
-  background: radial-gradient(circle at 40% 36%, #fffdf7, #fff3e2 58%, var(--cd-yehwa-ivory) 100%);
-  box-shadow: 0 0 44px rgba(245, 200, 170, .55), 0 0 96px rgba(255, 214, 190, .3);
-  opacity: .9;
-  pointer-events: none;
-}
 
 /* ── 섹션 구분선: 가지+꽃잎 라인 일러스트, 가운데 미니 달 ──
  * 레이아웃 높이를 가지므로 이 시트는 렌더블로킹으로 로드한다(늦게 오면 CLS). */
@@ -419,10 +366,6 @@
 }
 
 /* ── 네오: 같은 선, 샴페인 골드로 재도색(바이올렛은 그라데이션 끝 15% 만 — One Accent) ── */
-html.neo-mode body .moon-hero__yehwa {
-  background: linear-gradient(160deg, #e8d5a3 0%, #e8d5a3 85%, #c4b5fd 100%);
-  opacity: .16;
-}
 
 /* 인장·스파클은 히어로 문양(.16)보다 높다 — 320px 문양과 달리 88px 이하라 선 길이가 짧고,
    어두운 네오 표면 위에서 .16 은 1.17:1 로 눌렸다(실측). */
@@ -437,12 +380,6 @@ html.neo-mode body .cd-yehwa-sparkle {
 }
 
 /* 달은 반투명으로 두면 뒤 일러스트가 비쳐 "흐린 유리 원"이 된다(실측) — 불투명 샴페인 디스크로 칠한다. */
-html.neo-mode body .moon-hero__yehwa-moon {
-  border-color: rgba(244, 233, 200, .7);
-  background: radial-gradient(circle at 40% 36%, #fff8e6, #f1e2bb 58%, var(--cd-yehwa-ivory) 100%);
-  box-shadow: 0 0 44px rgba(232, 213, 163, .42), 0 0 96px rgba(196, 181, 253, .26);
-  opacity: .94;
-}
 
 html.neo-mode body .cd-yehwa-divider::before {
   background: linear-gradient(90deg, #c4b5fd 0%, #e8d5a3 50%, #c4b5fd 100%);
@@ -549,28 +486,10 @@ html.neo-mode body .cd-app-install__copy > .cd-yehwa-peony {
  * 브랜드 줄이 가운데 정렬이라 우상단 빈 자리는 30px 남짓뿐 — 벚가지는 끄고(글자 위를 지난다),
  * 달은 28px 로 모서리에, 모란은 좌하 모서리 밖으로 더 밀어 신뢰 배지 뒤 귀퉁이만 보이게 한다. ── */
 @media (max-width: 768px) {
-  .moon-hero__yehwa--bl {
-    left: -56px;
-    bottom: -64px;
-    width: 140px;
-    height: 140px;
-    opacity: .4;
-  }
-
-  .moon-hero__yehwa--tr {
-    display: none;
-  }
 
   /* PR-3 — 390px 실측: 왜 우리 제목이 폭을 다 쓴다(x70~245). */
   .cd-why-us > .cd-yehwa-sprig {
     display: none;
-  }
-
-  .moon-hero__yehwa-moon {
-    top: 8px;
-    right: 8px;
-    width: 28px;
-    box-shadow: 0 0 18px rgba(245, 200, 170, .5);
   }
 
   .cd-yehwa-divider {

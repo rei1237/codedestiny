@@ -14,7 +14,7 @@ const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
 test('the shell loads yehwa-motifs.css before the hero renders', () => {
   const html = read('index.html');
   const link = html.search(/<link rel="stylesheet" href="\/styles\/yehwa-motifs\.css\?v=build-[0-9a-f]+">/);
-  const hero = html.indexOf('class="normal-logo moon-hero');
+  const hero = html.indexOf('id="cdHomeFunnel"');
   assert.ok(link > 0, 'blocking <link> for /styles/yehwa-motifs.css is missing');
   assert.ok(hero > 0, 'hero marker missing');
   assert.ok(link < hero, 'yehwa-motifs.css must be linked before the hero markup');
@@ -26,19 +26,11 @@ test('section dividers sit between the home sections', () => {
   assert.ok(count >= 5 && count <= 7, `expected 5~7 dividers, got ${count}`);
 });
 
-test('hero motifs live in the ambient layer, never inside the first-paint copy', () => {
+test('hero reuses a quiet garden motif without the retired visual stack', () => {
   const html = read('index.html');
-  const ambientStart = html.indexOf('<div class="moon-hero__ambient"');
-  const copyStart = html.indexOf('<div class="moon-hero__copy">', ambientStart);
-  assert.ok(ambientStart > 0 && copyStart > ambientStart);
-  const ambient = html.slice(ambientStart, copyStart);
-  for (const cls of ['moon-hero__yehwa--bl', 'moon-hero__yehwa--tr', 'moon-hero__yehwa-moon']) {
-    assert.ok(ambient.includes(cls), `${cls} missing from .moon-hero__ambient`);
-  }
-  // 🔴 verify:hero-firstpaint-lock — 카피·trust 블록 안에 장식을 넣지 않는다.
-  const copyEnd = html.indexOf('<div class="moon-hero__visual ', copyStart);
-  assert.ok(copyEnd > copyStart);
-  assert.ok(!html.slice(copyStart, copyEnd).includes('moon-hero__yehwa'), 'motif markup leaked into .moon-hero__copy');
+  assert.match(html, /<div class="cdh-garden"><span class="cd-yehwa-spray" aria-hidden="true"><\/span>/);
+  assert.doesNotMatch(html, /class="moon-hero__(?:visual|zzz|ambient|picture--mascot)/);
+  assert.doesNotMatch(read('styles/cosmic-main.css'), /\.moon-hero__(?:visual|zzz|picture--mascot)/);
 });
 
 test('yehwa-motifs.css is generated, paired for Safari, quiet, and repainted for neo', () => {
@@ -50,17 +42,11 @@ test('yehwa-motifs.css is generated, paired for Safari, quiet, and repainted for
   const std = (css.match(/(?<![-\w])mask-image:/g) || []).length;
   assert.ok(webkit > 0 && webkit === std, `mask-image pairs mismatch: -webkit ${webkit} vs std ${std}`);
   // 네오 재도색 — 같은 마스크, 칠만 샴페인골드.
-  assert.match(css, /html\.neo-mode body \.moon-hero__yehwa[^{]*\{[^}]*background:/);
   assert.match(css, /html\.neo-mode body \.cd-yehwa-divider::before[^{]*\{[^}]*background:/);
   // 라인아트는 텍스트 뒤의 배경 장식 — 실측(2026-09-03) 연이 히어로 일러스트 위에서 .5 가 선 대비 1.3:1(은은),
   // 그 위로 올리면 일러스트를 덮는다. 상한 .5 를 넘기면 장식이 아니라 그림이 된다.
-  const blocks = css.match(/\.moon-hero__yehwa(?:--\w+)?\s*[{,][^}]*\}/g) || [];
-  assert.ok(blocks.length >= 3);
-  for (const block of blocks) {
-    const m = block.match(/opacity:\s*(\.\d+|\d(?:\.\d+)?)/);
-    if (m) assert.ok(Number(m[1]) <= 0.5, `hero motif opacity too high: ${block.slice(0, 60)} → ${m[1]}`);
-  }
-  assert.match(css, /\.moon-hero__yehwa\s*\{[^}]*z-index:\s*0/);
+  assert.doesNotMatch(css, /\.moon-hero__yehwa/);
+  assert.match(read('styles/home-funnel.css'), /\.cdh-garden>\.cd-yehwa-spray\{[^}]*opacity:\.22/);
 });
 
 // ── PR-2 (2026-09-03) — 카드 인장·스파클 ───────────────────────────────────────
@@ -128,7 +114,8 @@ test('sprigs, concern seals and peonies are child spans on their hosts', () => {
   // 방식/가격 행 사이 거터에 미러 쌍이 떠서 "나눌 것 없는 자리의 구분선"으로 읽힌다(2026-09-03 시각 판정).
   // 문양은 필터 묶음(.fortune-gateway__filters)이 아니라 가격 행 안에 있어야 자리가 행 baseline 에 붙는다.
   assert.doesNotMatch(html, /<div class="fortune-gateway__filters"[^>]*>\s*<span class="cd-yehwa/, '문양은 필터 묶음이 아니라 가격 행 안에 둔다');
-  assert.equal((html.match(/class="cd-yehwa-spray"/g) || []).length, 1, '가지 스프레이는 파인더 가격 행 1개뿐이어야 한다');
+  assert.equal((html.match(/class="cd-yehwa-spray"/g) || []).length, 2, '가지 스프레이는 파인더 가격 행과 새 홈 정원에 하나씩 둔다');
+  assert.match(html, /<div class="cdh-garden"><span class="cd-yehwa-spray" aria-hidden="true"><\/span>/, '새 홈 장식은 정원 안에서만 재사용한다');
   assert.match(html, /<div class="fortune-gateway__filter-row" role="group" aria-label="가격대로 좁히기"[^>]*>\s*<span class="cd-yehwa-spray" aria-hidden="true"><\/span>/, '가격 행 첫 자식이 가지 스프레이가 아니다');
 
   // 고민 카드 6장 전부에 인장 span 이 있고 CSS 가 aria-expanded=true 인 카드에서만 켠다.
