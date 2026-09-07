@@ -62,4 +62,4 @@ check:fast는 커밋 전 검사다. check:all은 커밋 후 push 전 검사이�
 
 최종 통합 검증: 최신 main을 격리 브랜치에 통합한 뒤 lint·typecheck·public-mirror-fresh·guard-wiring 통과. 초기 전체 계획에서 env 키 등록 누락을 발견해 정본에 추가하고 재검사했으며, 이미 통과한 정적 검사에 이어 추가/잔여 47개 검사와 Worker dry-run 빌드가 통과했다. Jest는 217 suites / 2401 tests 통과(100.216초), 종료 후 타이머 지연은 별도 진단한다. CI critical 정적 명령을 YAML과 대조한 로컬 계획의 누락은 0개다. CI 전용 설치·캐시·배포 단계까지 로컬에서 재현한다는 의미는 아니다.
 
-Jest 종료 지연은 찻집 mock 3스위트의 남은 89초 deadline으로 재현했다. 응답/콘텐츠를 검사하는 해당 스위트에만 fake timers와 teardown을 적용해 24개 테스트가 총 2.117초에 정상 종료했다. 제품 타이머와 실제 timeout 계약 테스트는 변경하지 않았다.
+Jest 종료 지연은 찻집 mock 3스위트의 남은 그룹 deadline(최대 66초)으로 재현했다. 응답/콘텐츠를 검사하는 해당 스위트에만 fake timers와 teardown을 적용해 24개 테스트가 총 2.117초에 정상 종료했다. 제품 타이머와 실제 timeout 계약 테스트는 변경하지 않았다.
