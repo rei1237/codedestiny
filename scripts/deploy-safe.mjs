@@ -1048,6 +1048,13 @@ async function promote(value, state, yes) {
       capture("Worker 100% promotion", npxCommand(), wrangler(["versions", "deploy", state.worker.versionId + "@100", "--name", value.cf.worker, "--message", deployLabel(value.git, target.label), "--yes"]), { env: envForChecks() });
       workerPromoted = true;
     }
+    // 🔴 `versions deploy` 가 Worker 버전은 승격해도 기존 Cron Trigger 드리프트까지
+    //    반드시 되돌린다고 보장할 수 없다. 2026-09 실측에서 10분 트리거만 살아 있고
+    //    일일 `0 22 * * *` 트리거가 프로덕션에서 사라져 SNS 태스크가 호출되지 않았다.
+    //    Pages-only 재배포에서도 현재 Worker의 트리거를 정본 설정과 맞추기 위해 매번 적용한다.
+    capture("Worker trigger reconciliation", npxCommand(), wrangler([
+      "triggers", "deploy", "--config", target.workerConfig, "--name", value.cf.worker,
+    ]), { env: envForChecks() });
     const pages = await deployPages(value, value.cf.pages.productionBranch, true);
     pagesPromoted = true;
     const next = {
