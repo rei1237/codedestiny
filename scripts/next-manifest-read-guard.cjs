@@ -1,3 +1,4 @@
+require('./lib/mock-network-guard.cjs'); // HOME_BUILD_MOCK_GUARD: build fixture only
 const fs = require("fs");
 const Module = require("module");
 const path = require("path");

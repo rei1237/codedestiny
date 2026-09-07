@@ -15,6 +15,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { pruneLegacyHomeCss } from './legacy-home-selectors.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const OUT = path.join(ROOT, 'styles', 'yehwa-motifs.css');
@@ -1215,7 +1216,7 @@ export const SUKUYO_BRIDGE: YehwaMotif = {
 
 // ── 실행 ────────────────────────────────────────────────────────────────
 const OUTPUTS = [
-  { out: OUT, css: render() },
+  { out: OUT, css: pruneLegacyHomeCss(render()) },
   { out: OUT_NAV, css: renderNav() },
   { out: OUT_SUKUYO, css: renderScene() },
 ];

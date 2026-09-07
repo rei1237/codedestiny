@@ -3,12 +3,12 @@
   "note": "사이트맵 lastmod 원장. scripts/lib/sitemap-lastmod.mjs 가 라우트별 소스 서명을 계산해 다시 쓴다. 손으로 고치지 말고 npm run sitemap:generate 로 갱신할 것.",
   "routes": {
     "/": {
-      "signature": "569d427ae040c818",
+      "signature": "d8987b0593012918",
       "lastmod": "2026-09-07"
     },
     "/about/": {
-      "signature": "e86d9373f12dbc37",
-      "lastmod": "2026-09-06"
+      "signature": "d5d08d40e21e222a",
+      "lastmod": "2026-09-07"
     },
     "/advertising-policy/": {
       "signature": "02c5277114c1b342",
@@ -51,8 +51,8 @@
       "lastmod": "2026-09-07"
     },
     "/contact/": {
-      "signature": "f32f482fd38ef6fe",
-      "lastmod": "2026-09-06"
+      "signature": "7c33fd1947bab319",
+      "lastmod": "2026-09-07"
     },
     "/destiny-compass/": {
       "signature": "1243c31d92fa2789",
@@ -83,7 +83,7 @@
       "lastmod": "2026-09-06"
     },
     "/en/": {
-      "signature": "bb57fc626ab14315",
+      "signature": "3f82997388f7d277",
       "lastmod": "2026-09-07"
     },
     "/en/insights/": {
@@ -123,8 +123,8 @@
       "lastmod": "2026-09-06"
     },
     "/faq/": {
-      "signature": "5cb1c4a13ccb1224",
-      "lastmod": "2026-09-06"
+      "signature": "5da1e2b43d90d3db",
+      "lastmod": "2026-09-07"
     },
     "/fortune-tea-house/": {
       "signature": "5f991294df92327e",
@@ -603,7 +603,7 @@
       "lastmod": "2026-09-06"
     },
     "/ja/": {
-      "signature": "bb57fc626ab14315",
+      "signature": "3f82997388f7d277",
       "lastmod": "2026-09-07"
     },
     "/ja/insights/": {
@@ -831,16 +831,16 @@
       "lastmod": "2026-09-07"
     },
     "/privacy/": {
-      "signature": "787deaa2f4e4cc33",
-      "lastmod": "2026-09-06"
+      "signature": "cf3e855ef687e82e",
+      "lastmod": "2026-09-07"
     },
     "/psychotest/": {
       "signature": "907c20aa0f4cfc2c",
       "lastmod": "2026-09-06"
     },
     "/refund-policy/": {
-      "signature": "2abf34ff43cc8bfc",
-      "lastmod": "2026-09-06"
+      "signature": "d62dcc275860b04e",
+      "lastmod": "2026-09-07"
     },
     "/saju-fpti/": {
       "signature": "87edc23b8a978af6",
@@ -1139,8 +1139,8 @@
       "lastmod": "2026-09-07"
     },
     "/terms/": {
-      "signature": "52b9effd1c8487ab",
-      "lastmod": "2026-09-06"
+      "signature": "899717aa992004c7",
+      "lastmod": "2026-09-07"
     },
     "/today/": {
       "signature": "d29d60947b3cd120",
@@ -1171,7 +1171,7 @@
       "lastmod": "2026-09-07"
     },
     "/zh-tw/": {
-      "signature": "bb57fc626ab14315",
+      "signature": "3f82997388f7d277",
       "lastmod": "2026-09-07"
     },
     "/zh-tw/insights/": {
@@ -1211,7 +1211,7 @@
       "lastmod": "2026-09-06"
     },
     "/zh/": {
-      "signature": "bb57fc626ab14315",
+      "signature": "3f82997388f7d277",
       "lastmod": "2026-09-07"
     },
     "/zh/insights/": {

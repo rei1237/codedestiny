@@ -1,0 +1,30 @@
+[
+  {
+    "file": "index.html",
+    "removedBytes": 72844
+  },
+  {
+    "file": "styles\\animal-totem-mystic.css",
+    "removedBytes": 3
+  },
+  {
+    "file": "styles\\cosmic-main.css",
+    "removedBytes": 91817
+  },
+  {
+    "file": "styles\\fortune-ui-home.css",
+    "removedBytes": 1403
+  },
+  {
+    "file": "styles\\fortune-ui.css",
+    "removedBytes": 1526
+  },
+  {
+    "file": "styles\\love-secret.css",
+    "removedBytes": 3
+  },
+  {
+    "file": "styles\\tarot-self-esteem-quest.css",
+    "removedBytes": 3
+  }
+]

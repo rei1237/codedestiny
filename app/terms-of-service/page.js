@@ -1,3 +1,4 @@
+import PolicyGuide, { policyPageClass } from "../components/PolicyGuide";
 import Link from "next/link";
 import { generatePageMetadata } from "../../lib/generate-page-metadata";
 import TermsContent, { TERMS_EFFECTIVE_DATE, TERMS_SECTIONS } from "./TermsContent";
@@ -49,14 +50,8 @@ export function generateMetadata() {
 
 export default function TermsOfServicePage() {
   return (
-    <main className="policy-doc">
-      <header className="policy-doc__head">
-        <h1 className="policy-doc__title">이용약관</h1>
-        <p className="policy-doc__meta">시행일 {TERMS_EFFECTIVE_DATE} · Terms of Service</p>
-        <p className="policy-doc__lede">
-          Code Destiny 서비스의 이용 조건과 절차, 유료 상품의 환불·청약철회 기준, 회사와 이용자의 권리·의무를 정리한 문서입니다.
-        </p>
-      </header>
+    <main className={`policy-doc ${policyPageClass}`}>
+      <PolicyGuide kind="terms" title="이용약관" description="서비스 이용 조건과 유료 상품, 환불·청약철회 기준을 필요한 항목부터 확인하세요." meta={`시행일 ${TERMS_EFFECTIVE_DATE}`} />
 
       <div className="policy-doc__layout">
         <nav className="policy-doc__toc" aria-label="이용약관 목차">
