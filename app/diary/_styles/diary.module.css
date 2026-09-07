@@ -77,6 +77,13 @@
   --dy-nav-h: 64px;
   --dy-nav-offset: calc(var(--dy-nav-h) + env(safe-area-inset-bottom, 0px));
 
+  /* 하단에 고정된 것 **전체**가 가리는 높이 = 하단바 + (재생 중이면) 미니 플레이어.
+     🔴 본문 여백·시트 바닥·저장 알림은 전부 이 토큰 하나를 본다 — 화면마다 미니 플레이어
+     높이를 따로 더하면 어긋나는 곳이 반드시 생긴다(원칙 6).
+     🔴 `--dy-mini-h` 는 재생 중에만 값이 있다(`DiaryAudioProvider` 가 문서 루트에 켜고 끈다).
+     하단바 자체 높이는 여기에 딸려 오면 안 되므로 `--dy-nav-offset` 과 나눠 둔다. */
+  --dy-bottom-offset: calc(var(--dy-nav-offset) + var(--dy-mini-h, 0px));
+
   min-height: 100dvh;
   background: var(--dy-bg);
   color: var(--dy-text);
@@ -137,9 +144,9 @@ html[data-cd-theme="neo"] .shell {
   flex-direction: column;
   gap: var(--cd-sp-md);
   padding: var(--cd-sp-md);
-  /* 하단바 자리 자체 공급. `verify:app-bottom-clearance` 는 /diary 를 보지 않으므로
+  /* 하단 고정물 자리 자체 공급. `verify:app-bottom-clearance` 는 /diary 를 보지 않으므로
      이 값은 __tests__/ui/diary-route-chrome.test.js 가 지킨다. */
-  padding-bottom: calc(var(--dy-nav-offset) + var(--cd-sp-lg));
+  padding-bottom: calc(var(--dy-bottom-offset) + var(--cd-sp-lg));
 }
 
 /* ── 상단바 ─────────────────────────────────────────────────────────── */
@@ -290,7 +297,7 @@ html[data-cd-theme="neo"] .shell {
 .saveNotice {
   position: fixed;
   right: var(--cd-sp-md);
-  bottom: calc(var(--dy-nav-offset) + var(--cd-sp-sm));
+  bottom: calc(var(--dy-bottom-offset) + var(--cd-sp-sm));
   left: var(--cd-sp-md);
   z-index: 5;
   margin: 0;
@@ -907,13 +914,13 @@ html[data-cd-theme="neo"] .shell {
 .sheet {
   position: fixed;
   right: 0;
-  bottom: var(--dy-nav-offset);
+  bottom: var(--dy-bottom-offset);
   left: 0;
   z-index: 4;
   display: flex;
   flex-direction: column;
   gap: var(--cd-sp-sm);
-  max-height: calc(100dvh - var(--dy-nav-offset) - var(--cd-sp-lg) * 3);
+  max-height: calc(100dvh - var(--dy-bottom-offset) - var(--cd-sp-lg) * 3);
   overflow-y: auto;
   overscroll-behavior: contain;
   padding: var(--cd-sp-sm) var(--cd-sp-md) var(--cd-sp-lg);
@@ -1697,16 +1704,6 @@ html[data-cd-theme="neo"] .shell {
   outline-offset: 2px;
 }
 
-/* 아직 화면이 없는 줄. 🔴 지우지 않고 남긴다 — 무엇이 올 자리인지 보이는 편이 낫다. */
-.moreRow[aria-disabled="true"] {
-  color: var(--dy-disabled);
-  cursor: default;
-}
-
-.moreRow[aria-disabled="true"]:hover {
-  color: var(--dy-disabled);
-}
-
 .moreIcon {
   flex: 0 0 auto;
   width: 1.5em;
@@ -1723,15 +1720,6 @@ html[data-cd-theme="neo"] .shell {
 }
 
 .moreDesc {
-  color: var(--dy-muted);
-  font-size: var(--cd-t-caption);
-}
-
-.moreBadge {
-  flex: 0 0 auto;
-  padding: 2px var(--cd-sp-xs);
-  border: 1px solid var(--dy-line);
-  border-radius: var(--cd-r-pill);
   color: var(--dy-muted);
   font-size: var(--cd-t-caption);
 }
@@ -1801,4 +1789,323 @@ html[data-cd-theme="neo"] .shell {
 .dataNotice {
   composes: emptySmall;
   color: var(--dy-text);
+}
+
+/* ── 미니 플레이어 ──────────────────────────────────────────────────────
+   🔴 하단바 **위에** 앉는다 — 하단바를 덮으면 재생 중에는 탭 이동이 막힌다.
+   높이는 `--dy-mini-h` 하나로 정해진다(프로바이더가 켜는 값). 여기서 다른 높이를 쓰면
+   본문이 비워 둔 자리와 실제로 가리는 높이가 어긋난다. */
+.miniPlayer {
+  position: fixed;
+  right: 0;
+  /* 하단바 자체 높이만큼만 올린다 — `--dy-bottom-offset` 은 이 바 높이를 이미 포함한다. */
+  bottom: var(--dy-nav-offset);
+  left: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: var(--cd-sp-sm);
+  height: var(--dy-mini-h, 52px);
+  padding: 0 var(--cd-sp-md);
+  background: var(--dy-surface-2);
+  border-top: 1px solid var(--dy-line);
+}
+
+.miniTitle {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--dy-text);
+  font-size: var(--cd-t-caption);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── 명상 트랙 목록 ─────────────────────────────────────────────────── */
+
+.trackList {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* 더보기 목록과 같은 방식으로 선 하나만 둔다 — 스물세 줄에 카드를 씌우면 시트가 벽이 된다. */
+.trackItem + .trackItem {
+  border-top: 1px solid var(--dy-line);
+}
+
+.trackRow {
+  display: flex;
+  align-items: center;
+  gap: var(--cd-sp-sm);
+  width: 100%;
+  min-height: var(--cd-btn-h);
+  padding: var(--cd-sp-xs) 0;
+  border: 0;
+  background: transparent;
+  color: var(--dy-text);
+  font-family: inherit;
+  font-size: var(--cd-t-body);
+  text-align: left;
+  cursor: pointer;
+}
+
+.trackRow:hover {
+  color: var(--dy-accent);
+}
+
+.trackRow:focus-visible {
+  outline: 2px solid var(--dy-focus);
+  outline-offset: 2px;
+}
+
+/* 지금 걸린 곡. 🔴 색만으로 구분하지 않는다 — 왼쪽 표시가 ▶/❚❚ 로 함께 바뀌고
+   재생 중에는 「재생 중」 글자가 붙는다. */
+.trackRowOn {
+  composes: trackRow;
+  color: var(--dy-accent);
+  font-weight: 600;
+}
+
+.trackIcon {
+  flex: 0 0 auto;
+  width: 1.5em;
+  text-align: center;
+  font-size: var(--cd-t-caption);
+}
+
+.trackTitle {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trackNow {
+  flex: 0 0 auto;
+  color: var(--dy-muted);
+  font-size: var(--cd-t-caption);
+  font-weight: 400;
+}
+
+/* ── 오늘의 작은 행동 ───────────────────────────────────────────────── */
+
+.actionCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--cd-sp-xs);
+  padding: var(--cd-sp-lg) var(--cd-sp-md);
+  border: 1px solid var(--dy-line-ui);
+  border-radius: var(--cd-r-card);
+  background: var(--dy-surface);
+  text-align: center;
+}
+
+.actionEmoji {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.actionName {
+  font-family: var(--font-display, inherit);
+  font-size: var(--cd-t-card);
+  font-weight: 600;
+  color: var(--dy-text);
+}
+
+.actionTip {
+  color: var(--dy-muted);
+  font-size: var(--cd-t-caption);
+  line-height: 1.7;
+}
+
+/* ── 오늘 카드 ──────────────────────────────────────────────────────────
+   🔴 여기 세 배경만 **토큰이 아니라 리터럴**이다. 미리보기는 앱 테마의 한 조각이 아니라
+   내보낼 PNG 의 축소판이고, 그 PNG 는 받는 사람의 테마를 따라가지 않는다
+   (`app/diary/_lib/share-card.ts` 의 `CARD_THEME_STOPS` 와 **같은 값**이어야 한다 —
+   미리보기와 저장본이 다른 색이면 미리보기가 거짓말이 된다).
+   그래서 라이트·네오 두 벌을 나누지 않는다. 글자색도 배경을 따라 함께 정해진다. */
+
+.cardPreview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cd-sp-xs);
+  min-height: 160px;
+  padding: var(--cd-sp-md);
+  border-radius: var(--cd-r-card);
+  background: var(--dy-card-bg);
+  color: var(--dy-card-ink);
+}
+
+.cardVivid {
+  --dy-card-bg: linear-gradient(150deg, #b31955 0%, #4f46e5 55%, #0f172a 100%);
+  --dy-card-ink: #ffffff;
+  --dy-card-sub: rgba(255, 255, 255, 0.92);
+}
+
+.cardSoft {
+  --dy-card-bg: linear-gradient(150deg, #fce7f3 0%, #ddd6fe 55%, #dbeafe 100%);
+  --dy-card-ink: #1f2937;
+  --dy-card-sub: #334155;
+}
+
+.cardNight {
+  --dy-card-bg: linear-gradient(150deg, #312e81 0%, #1e293b 55%, #020617 100%);
+  --dy-card-ink: #ffffff;
+  --dy-card-sub: rgba(255, 255, 255, 0.92);
+}
+
+.cardPreviewDate {
+  font-size: var(--cd-t-caption);
+  font-weight: 600;
+  color: var(--dy-card-sub);
+}
+
+.cardPreviewHead {
+  font-family: var(--font-display, inherit);
+  font-size: var(--cd-t-card);
+  font-weight: 700;
+}
+
+/* 저장본에서 5줄까지 들어가는 자리다. 미리보기에서는 3줄에서 끊어 시트가 밀리지 않게 한다. */
+.cardPreviewLine {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  font-size: var(--cd-t-body);
+  line-height: 1.7;
+  color: var(--dy-card-sub);
+}
+
+.cardPreviewFoot {
+  margin-top: auto;
+  font-size: var(--cd-t-caption);
+  color: var(--dy-card-sub);
+}
+
+/* 내보내기 버튼. 되돌릴 수 없는 자리가 아니므로 `.dangerButton` 을 빌리지 않는다. */
+.cardSave {
+  composes: chip;
+  border-color: var(--dy-accent);
+  background: var(--dy-accent);
+  color: var(--dy-accent-ink);
+}
+
+.cardSave:hover {
+  background: var(--dy-accent-hover);
+}
+
+.cardSave[disabled] {
+  border-color: var(--dy-line);
+  background: transparent;
+  color: var(--dy-disabled);
+}
+
+.cardSave[disabled]:hover {
+  background: transparent;
+}
+
+/* ── 함께 보기 ──────────────────────────────────────────────────────── */
+
+.togetherFields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cd-sp-xs);
+}
+
+.togetherFields > * {
+  flex: 1 1 140px;
+  min-width: 0;
+}
+
+/* 이름 칸 + 7일. 2주는 이 블록 둘이다 — 14칸을 한 줄에 깔면 한 칸이 손가락보다 좁아진다. */
+.togetherStrip {
+  display: grid;
+  grid-template-columns: 2.6em repeat(7, minmax(0, 1fr));
+  gap: 4px;
+  align-items: center;
+}
+
+.togetherWho {
+  overflow: hidden;
+  font-size: var(--cd-t-caption);
+  color: var(--dy-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.togetherHead {
+  font-size: var(--cd-t-caption);
+  color: var(--dy-muted);
+  text-align: center;
+}
+
+/* 색은 달력과 같은 결 5단계 토큰이다(`.t1`~`.t5` 가 `--dy-grain` 을 준다). */
+.togetherCell {
+  height: 22px;
+  border-radius: var(--cd-r-sm, 6px);
+  background: var(--dy-grain, var(--dy-line));
+}
+
+/* 아직 판정할 수 없는 칸(생년월일이 없다). 비었다는 것이 보이게 테두리만 남긴다. */
+.togetherCellOff {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--dy-line-ui);
+}
+
+/* 둘 다 좋게 표시된 날. 🔴 색을 바꾸지 않고 테를 두른다 — 색이 결의 등급이라 겹침 표시에 쓰면 뜻이 겹친다. */
+.togetherCellPick {
+  outline: 2px solid var(--dy-gold);
+  outline-offset: 1px;
+}
+
+.togetherPick {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cd-sp-xs);
+  padding: var(--cd-sp-sm) var(--cd-sp-md);
+  border: 1px solid var(--dy-line);
+  border-radius: var(--cd-r-card);
+  background: var(--dy-surface-2);
+}
+
+.togetherPickDate {
+  margin-left: var(--cd-sp-xs);
+  font-weight: 600;
+  color: var(--dy-gold);
+}
+
+/* 여기서 유료 화면으로 넘어간다. 🔴 금액을 적지 않는다 — 가격은 결제창이 정한다. */
+.togetherPaid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px var(--cd-sp-sm);
+  align-items: baseline;
+  justify-content: space-between;
+  padding: var(--cd-sp-sm) var(--cd-sp-md);
+  border: 1px solid var(--dy-line-ui);
+  border-radius: var(--cd-r-card);
+  color: var(--dy-text);
+  font-size: var(--cd-t-body);
+  text-decoration: none;
+}
+
+.togetherPaid:hover {
+  background: var(--dy-surface-hover);
+}
+
+.togetherPaid:focus-visible {
+  outline: 2px solid var(--dy-focus);
+  outline-offset: 2px;
+}
+
+.togetherPaidHint {
+  font-size: var(--cd-t-caption);
+  color: var(--dy-muted);
 }

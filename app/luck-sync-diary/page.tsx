@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 // 내려와 홈의 title·description·canonical 을 그대로 쓰면서 index,follow 로 노출된다.
 export const metadata = {
   title: "운기 다이어리 | Code Destiny",
-  description: "운기 다이어리는 홈 화면의 운세 플래너로 통합됐습니다. 이 주소는 예전 북마크를 위한 연결 경로입니다.",
+  description: "운기 다이어리는 /diary 로 옮겼습니다. 이 주소는 예전 북마크를 위한 연결 경로입니다.",
   // 🔴 canonical 을 다시 넣지 말 것 (2026-08-27 제거).
   //    이 라우트는 noindex 다. noindex 와 '다른 URL 을 가리키는 canonical' 을 함께 두는 것은
   //    Google 이 권하지 않는 조합이고(Search Central, Consolidate duplicate URLs),
@@ -22,5 +22,5 @@ export const metadata = {
 };
 
 export default function LegacyLuckSyncDiaryPage() {
-  redirect("/?fortunePlanner=1");
+  redirect("/diary/");
 }

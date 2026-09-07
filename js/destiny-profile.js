@@ -5026,7 +5026,18 @@
           var code = String((payload && (payload.code || payload.errorCode)) || '').toUpperCase();
           if (statusCode === 402 || code === 'MEMBERSHIP_PASS_NOT_COVERED' || code === 'PAYMENT_REQUIRED') {
             // 월 한도 소진: 스냅샷 잔여를 방금 0 으로 되썼으므로 전역 60초 잠금 없이 다음 판정이 스스로 거절한다.
-            if (bgVerdictApi && bgVerdictApi.isMonthlyLimitPayload(payload)) return;
+            // 🔴 대신 이미 낙관으로 열어 둔 이 기능만 회수한다 — 서버는 열어 주지 않았고, 낙관 해금을
+            // 남겨 두면 다음 화면이 확정 해금으로 오인해 그대로 연다(셸 _cdRevokeOptimisticPassUnlock 과 동일).
+            if (bgVerdictApi && bgVerdictApi.isMonthlyLimitPayload(payload)) {
+              try {
+                var revokeKey = _dpResolvePaidGateFeatureKey(opts, title);
+                var revokeStore = window.CodeDestinyAccessStore;
+                if (revokeKey && revokeStore && typeof revokeStore.forgetOptimisticUnlock === 'function') {
+                  revokeStore.forgetOptimisticUnlock(revokeKey);
+                }
+              } catch (_) {}
+              return;
+            }
             // 🔴 낙관 잠금은 전역 60초다. '이 가격이 이 등급 한도를 넘는다'는 미커버는 스냅샷이 이미 아는
             // 사실이라 자기수정할 것이 없는데, 여기서 잠그면 한도 이내 기능들의 낙관 통과까지 함께 죽는다.
             // 스냅샷과 서버 답이 실제로 어긋난 경우만 잠근다(셸 _cdRecordMembershipPassInBackground 와 동일 규칙).
@@ -5092,7 +5103,8 @@
         // 낙관적 즉시 허용: 로컬 구독 스냅샷이 pass 커버를 확인하면 서버 왕복을 백그라운드로 돌려 속도를 유지한다
         // (정확성은 백그라운드 미커버 응답 시 세션 갱신으로 자기수정). 단 "확인 중 → 적용 완료" 2단계 UX는
         // 그대로 유지하고, 완료 오버레이 표시 중 onGranted(콘텐츠 생성)를 병렬 진행한다.
-        if (!_dpOptimisticPassDisabled() && _dpReadActiveMembershipCoverage(coinPrice)) {
+        var _dpOptimisticCoverage = _dpOptimisticPassDisabled() ? null : _dpReadActiveMembershipCoverage(coinPrice);
+        if (_dpOptimisticCoverage) {
           _dpRecordMembershipPassInBackground(opts, title, coinPrice, requestId);
           _dpSetPaymentPending(true, '이용권을 확인하고 있어요…', 'pass');
           await _dpWaitForPaymentOverlayPaint();
@@ -5100,7 +5112,44 @@
           // 매 진입마다 버리는 인위적 지연이었다(왕복이 없는 낙관 경로라 기다릴 이유가 없다).
           await new Promise(function (resolve) { setTimeout(resolve, 150); });
           _dpShowPassAppliedOverlay(_dpText('passAppliedOverlay'));
-          return _dpBuildPaidGateGrantedResult({ status: 'pass_applied', payload: { __cdOptimisticPass: true } }, requestId, opts.onGranted);
+          /* 🔴 낙관 통과 payload 는 셸 index.html 의 _cdBuildOptimisticPassAccess 와 **같은 필드 집합**이어야 한다.
+             예전에는 `{ __cdOptimisticPass: true }` 한 칸뿐이라, 이 게이트만 로드하는 독립 정적 페이지·React 에서
+             이용권 통과가 **결제수단 표식 없는 증빙**으로 흘렀다. 서버의 AI 프롬프트 6개 라우트는
+             requireExistingPaidAccess 로 isAIPromptPassAccessPayload(accessType/accessMethod/paymentMode)를
+             보는데(worker/routes/fortune.js), 표식이 비어 있으면 이용권 보유자가 그대로 402 로 떨어졌다
+             (베다 프라슈나 프롬프트 신고 지점). 서버는 이 표식을 신뢰하지 않고 자기 정본으로 이용권을 다시
+             판정·차감하므로(findAIPromptPaidAccessEvidence → consumePassForFeature) 무료 통과 구멍이 아니다.
+             차감 중복은 (featureKey, requestId) 마커가 막는다 — 백그라운드 coin-gate 기록과 같은 requestId 다.
+             🔴 evidenceId/accessGrant/purchaseId 는 넣지 않는다(셸 주석과 같은 이유 — 아직 서버 확인 전인
+             낙관 판정이 '서버가 검증한 결제'로 굳는다). */
+          var _dpOptimisticPassPayload = {
+            ok: true,
+            bypassed: true,
+            freeBySubscription: true,
+            __cdPassGateResolved: true,
+            __cdOptimisticPass: true,
+            accessMethod: 'PASS',
+            accessType: 'membership_pass',
+            transactionType: 'membership_pass',
+            paymentMode: 'MEMBERSHIP_PASS',
+            featureKey: _dpReceiptFeatureKey || String(opts.featureKey || '').trim(),
+            categoryKey: String(opts.categoryKey || '').trim(),
+            subFeatureKey: String(opts.subFeatureKey || '').trim(),
+            serviceKey: String(opts.serviceKey || '').trim(),
+            requestId: requestId,
+            membershipPass: {
+              tier: _dpOptimisticCoverage.tier || '',
+              freeLimit: _dpOptimisticCoverage.freeLimit,
+              coinCost: coinPrice
+            }
+          };
+          return _dpBuildPaidGateGrantedResult({
+            status: 'pass_applied',
+            payload: _dpOptimisticPassPayload,
+            rawPayload: _dpOptimisticPassPayload,
+            membershipCoverage: _dpOptimisticPassPayload.membershipPass,
+            requestId: requestId
+          }, requestId, opts.onGranted);
         }
         // 🔴 여기서 서버에 이용권을 묻지 않는다(2026-08 정책 전환, 셸 index.html · React 와 동일).
         // 스냅샷이 커버를 확답하면 위에서 이미 무료로 통과했고, 확답하지 못하면 기다리지 않고 곧바로
@@ -5927,6 +5976,10 @@
               featureKey: normalizedFeatureKey || undefined,
               requestId: requestId,
               forceDirectPayment: true,
+              // 🔴 모바일 PortOne 리다이렉트는 이 프레임을 통째로 날린다 — 본선(_cdOpenPaidServiceGate)
+              //    과 같은 재개 서술자를 여기서도 실어야 복귀 문서가 기능을 다시 연다. 이 폴백만
+              //    빠져 있어서 결제 모듈만 있고 게이트가 없는 문서에서는 복귀가 홈으로 떨어졌다.
+              resume: optionBag.resume,
               internalMainGate: true,
               __cdPaymentGateAuthorized: true,
               __cdDirectPaymentChoiceConfirmed: true,
@@ -12291,6 +12344,13 @@
       && __dpPaymentCardsApi && typeof __dpPaymentCardsApi.buildDirectPayMethodStepHtml === 'function')
       ? __dpPaymentCardsApi.buildDirectPayMethodStepHtml({ escape: esc })
       : '';
+    // 이용권 선검사 결과를 결제창에서 한 줄로 설명한다(왜 결제창이 떴는지 모르겠다는 피드백).
+    // 계약·클래스는 셸 index.html 의 passOutcomeNote 와 같고, CSS 는 공유 코어
+    // (js/core/checkout-entry.js '.cd-direct-payment-sub--reason')가 이미 갖고 있어 추가가 없다.
+    var passOutcomeNote = String(opts.passOutcomeNote || '').trim();
+    var passOutcomeNoteHtml = passOutcomeNote
+      ? '<p class="cd-direct-payment-sub cd-direct-payment-sub--reason">' + esc(passOutcomeNote) + '</p>'
+      : '';
     _dpEnsureStandalonePaymentChoiceStyle();
     return new Promise(function(resolve) {
       var settled = false;
@@ -12329,6 +12389,7 @@
               '<p class="cd-direct-payment-sub">' + esc(guideBubbleText) + '</p>' +
             '</div>' +
           '</div>' +
+          passOutcomeNoteHtml +
           '<div class="cd-direct-payment-note"><strong>' + esc(title) + '</strong>' +
             '<span>' + esc(_dpCheckoutText('payment.directModal.note.basis', '결제 금액 {amount}', { amount: _dpCheckoutFormatKrw(amountKrw) })) + '</span>' +
             '<span>' + esc(_dpCheckoutText('payment.directModal.note.withPass', '이용권 · 월정석 · 카드 중에서 고를 수 있어요.')) + '</span>' +
@@ -12838,6 +12899,9 @@
         featureKey: normalizedFeatureKey,
         requestId: requestId,
         forceDirectPayment: true,
+        // 🔴 위 폴백과 같은 이유로 재개 서술자를 싣는다 — 같은 optionBag 을 쓰는 길이 둘이라
+        //    한쪽만 실으면 어느 문서에서 결제했느냐에 따라 복귀가 갈린다.
+        resume: optionBag.resume,
         internalMainGate: true,
         __cdPaymentGateAuthorized: true,
         __cdDirectPaymentChoiceConfirmed: true,

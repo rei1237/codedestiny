@@ -5,6 +5,7 @@ import { m } from "framer-motion";
 import { purchaseFeature } from "@/app/_lib/billing-client";
 import { authFetch } from "@/app/_lib/auth-client";
 import { useAccessStoreSnapshot } from "@/app/providers/UnlockProvider";
+import type { PaidResumeDescriptor } from "@/app/hooks/usePaidResume";
 import type { FptiAnalysisResult } from "@/lib/fpti/fpti-types";
 import {
   buildFptiDeepReport,
@@ -22,6 +23,11 @@ import { useFptiSharedCopy } from "./_lib/copy";
 
 type Props = {
   result: FptiAnalysisResult;
+  /**
+   * 결제 후 자동 재개 서술자 생성기. 🔴 부모(FptiExperience)가 만든다 — 복귀한 문서에서는
+   * 이 카드가 마운트되지 않아 여기에 핸들러를 등록하면 재개가 영영 안 걸린다.
+   */
+  buildResumeDescriptor: () => PaidResumeDescriptor;
 };
 
 type StoredDeepReport = {
@@ -530,7 +536,7 @@ function createInitialDeepReport(result: FptiAnalysisResult): FptiDeepReport {
   }
 }
 
-export default function FptiResultCard({ result }: Props) {
+export default function FptiResultCard({ result, buildResumeDescriptor }: Props) {
   const copy = useFptiSharedCopy();
   const codeParts = (result?.code || "").split("").filter(Boolean);
   const [deepLoading, setDeepLoading] = useState(false);
@@ -649,6 +655,9 @@ export default function FptiResultCard({ result }: Props) {
         // 생년월일 파생 시그니처를 프로필 스코프 키로 넘겨 결제분을 영구 해금으로 저장한다.
         profileId: signature,
         selectedProfileId: signature,
+        // 모바일 PortOne 은 상위 프레임을 리다이렉트해 이 await 가 문서와 함께 죽는다.
+        // 복귀 문서가 결과 화면을 스스로 다시 열도록 재개 서술자를 함께 싣는다.
+        resume: buildResumeDescriptor(),
       });
 
       if (!purchase.ok) {

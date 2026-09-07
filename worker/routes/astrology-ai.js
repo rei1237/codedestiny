@@ -27,6 +27,7 @@ import {
   failServiceExecution,
   startServiceExecution,
 } from "../lib/service-execution-task.js";
+import { autoRefundSinglePaymentDeliveryFailure } from "../lib/payment-refund.js";
 
 const SERVICE_KEY = "astrology-ai";
 const FEATURE_KEY = "astrology-ai-consultation";
@@ -40,6 +41,9 @@ const PLACE_ERROR_MESSAGE = "출생지 정보를 확인하지 못했습니다. �
 const CALCULATION_ERROR_MESSAGE = "점성술 차트 계산 중 문제가 발생했습니다. 입력값을 확인한 뒤 다시 시도해 주세요.";
 const SERVER_ERROR_MESSAGE = "상담을 준비하는 중 문제가 발생했습니다. 결제 금액은 차감되지 않았습니다.";
 const LLM_ERROR_MESSAGE = "전문가 상담 답변을 생성하지 못했습니다. 이용권 또는 결제 권한은 보존되었으니 다시 시도해 주세요.";
+// 🔴 카드 단건 결제가 실제로 환불된 경우에만 쓴다 — 위 LLM_ERROR_MESSAGE 의 "결제 권한은 보존"과
+//    정반대의 사실이라, 환불하고도 저 문구를 내보내면 사용자는 재시도가 무료라고 믿고 결제창을 다시 만난다.
+const CARD_REFUNDED_MESSAGE = "상담을 완성하지 못했습니다. 결제하신 금액은 자동으로 환불되니 확인 후 다시 시도해 주세요.";
 const RESULT_NOT_FOUND_MESSAGE = "저장된 점성술 상담 결과를 찾지 못했습니다. 로그인 상태와 결과 링크를 다시 확인해 주세요.";
 const ASTROLOGY_AI_MIN_RESULT_CHARS = 15000;
 const ASTROLOGY_AI_MAX_RESULT_CHARS = 26000;
@@ -570,6 +574,10 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
       accessType: "paid",
       paymentId: clean(paidPayment.merchantUid || paidPayment.impUid || ctx.paymentId, 160),
       source: "payment",
+      // 생성 실패 시 이 결제를 되짚을 열쇠다. 🔴 클라이언트가 준 ctx.paymentId 가 아니라 위
+      // hasPaidPayment 가 {userId, featureKey, paymentType, status} 로 좁혀 찾은 문서의 _id 를 싣는다
+      // — 조작된 식별자가 환불 대상으로 흘러들 여지를 남기지 않는다.
+      paymentDocId: clean(paidPayment._id, 64),
     };
   }
 
@@ -1462,6 +1470,46 @@ async function failRefundableExecution(env, auth, idempotencyKey, sessionId, err
   });
 }
 
+// 카드 단건 결제로 연 상담이 실패했을 때의 자동 환불. 위 실행 가드로는 닿지 않는다 —
+// startRefundableExecution 이 billing-gate(월정석·이용권) 전용이라 카드는 실행 문서 자체가 없고,
+// 설령 등록하더라도 정산기의 카드 갈래(service-execution-task.js runPaymentCancel)는 결제 상태를
+// success|fulfilled 로만 받는데 V2 카드 결제의 종착 상태는 "paid" 다(payments/orders.js markOrderPaid).
+// 그래서 지급 실패 자동환불의 정본을 직접 쓴다 — PortOne 취소 + 콘텐츠 권한 회수 + Payment 상태 기록이
+// 한 곳에 있다. 정본 짝: worker/routes/fortune.js refundAIPromptCardPaymentOnFailure.
+//
+// 🔴 스냅샷(access)의 상태로 판정하지 않고 환불 직전에 Payment 를 다시 읽는다 — 게이트 통과와 생성 실패
+// 사이에 결제가 취소됐을 수 있고, 낡은 status 로 들어가면 이미 취소된 결제를 한 번 더 취소한다.
+// 🔴 대가: 환불하면 hasPaidPayment 가 그 결제를 더는 못 찾으므로 **같은 requestId 무료 재시도가 닫힌다**
+//    (handleStart 의 existing.status==="generation_failed" 재진입 경로). 그 대신 실패 후 페이지를 떠나는
+//    사용자가 과금만 당하고 끝나는 구멍이 막힌다. 무료 재시도를 살리려면 fortune.js 의 2-스트라이크
+//    (resolveSajuAIPromptFailureBilling)를 들여와야 하고, 그건 이 수정의 범위 밖이다.
+async function refundCardPaymentOnFailure(env, auth, access, error) {
+  if (access?.source !== "payment") return { refunded: false, skipped: true, reason: "NOT_CARD_PAYMENT" };
+  const paymentDocId = clean(access.paymentDocId, 64);
+  if (!mongoose.Types.ObjectId.isValid(paymentDocId)) return { refunded: false, reason: "PAYMENT_MISSING" };
+
+  try {
+    const payment = await Payment.findOne({
+      _id: paymentDocId,
+      userId: auth.userId,
+      featureKey: FEATURE_KEY,
+      status: { $in: ["paid", "success", "fulfilled"] },
+    }).lean();
+    if (!payment) return { refunded: false, reason: "PAYMENT_NOT_FOUND" };
+
+    return await autoRefundSinglePaymentDeliveryFailure(
+      env,
+      payment,
+      clean(error?.code || "astrology_ai_generation_failed", 80),
+      clean(error?.message || LLM_ERROR_MESSAGE, 300),
+      "astrology_ai_generation",
+    );
+  } catch (refundError) {
+    console.error("[astrology-ai] card auto-refund failed", { message: clean(refundError?.message || refundError, 300) });
+    return { refunded: false, refundFailed: true, reason: clean(refundError?.message || refundError, 300) };
+  }
+}
+
 const ASPECT_KO = { conjunction: "합", opposition: "충", square: "스퀘어", trine: "트라인", sextile: "섹스타일" };
 const ASPECT_TONE = { trine: "positive", sextile: "positive", square: "caution", opposition: "caution", conjunction: "neutral" };
 
@@ -1711,6 +1759,12 @@ async function handleStart(request, env, ctx) {
     return json(publicSession(completed));
   } catch (error) {
     await failRefundableExecution(env, auth, idempotencyKey, sessionId, error);
+    const cardRefund = await refundCardPaymentOnFailure(env, auth, access, error);
+    if (cardRefund.refunded) {
+      console.info("[AstrologyAI] card payment auto-refunded", { requestId: idempotencyKey, sessionId, idempotent: Boolean(cardRefund.idempotent) });
+    } else if (cardRefund.refundFailed) {
+      console.error("[AstrologyAI] card payment auto-refund failed", { requestId: idempotencyKey, sessionId, reason: clean(cardRefund.reason, 200) });
+    }
     await AstrologyAiConsultation.updateOne(
       { id: sessionId },
       {
@@ -1725,10 +1779,15 @@ async function handleStart(request, env, ctx) {
       },
     ).catch(() => {});
     const isCalculationError = clean(error?.code).startsWith("ASTRO_") || Number(error?.status) === 400;
+    // 환불했으면 "결제 권한은 보존" 문구를 쓸 수 없다 — 사용자가 재시도를 무료로 믿고 결제창을 다시 만난다.
+    // reason·status 코드는 클라이언트 분기(copy.errorText)를 흔들지 않도록 그대로 둔다.
+    const failureMessage = cardRefund.refunded
+      ? CARD_REFUNDED_MESSAGE
+      : (isCalculationError ? CALCULATION_ERROR_MESSAGE : LLM_ERROR_MESSAGE);
     return json({
       ok: false,
       reason: isCalculationError ? "CALCULATION_ERROR" : "LLM_ERROR",
-      message: isCalculationError ? CALCULATION_ERROR_MESSAGE : LLM_ERROR_MESSAGE,
+      message: failureMessage,
     }, { status: isCalculationError ? 422 : 503 });
   }
   };
@@ -1896,4 +1955,6 @@ export const __astrologyAiTestUtils = {
   getConsultationQualityIssues,
   ASTROLOGY_AI_MIN_RESULT_CHARS,
   ASTROLOGY_AI_MAX_RESULT_CHARS,
+  refundCardPaymentOnFailure,
+  CARD_REFUNDED_MESSAGE,
 };

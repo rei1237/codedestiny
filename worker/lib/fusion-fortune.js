@@ -671,6 +671,41 @@ function pickKeys(source, keys) {
 }
 
 /**
+ * 모델이 쓴 산문에서 **의미 없는 공백 런**을 접는다. 문단 구분(빈 줄 하나)은 남긴다.
+ *
+ * 🔴 왜 있나(2026-09-06 8차 실호출, `음력·도쿄·일과 돈`): integration 묶음이 정상 산문을 쓴 뒤
+ *    `integratedReading` 본문 끝에 **연속 공백 약 9만 자**를 붙이고 JSON 을 닫았다. 파싱·키·
+ *    keyPoints 가 전부 정상이라 그룹 검증을 통과했고, `countFusionFortuneVisibleText` 가 그 공백을
+ *    그대로 세어 총 143,230자 → 상한 60,000 초과 → `degraded` 강등이 됐다. **결제한 사용자에게
+ *    품질 저하 고지가 나가고 화면에는 9만 자짜리 빈 공간이 그려진다**(본문은 whitespace-pre-wrap).
+ *
+ * 🔴 반려하지 않고 접는 이유: 공백은 뜻을 담지 않으므로 지워도 잃는 것이 없고, 반려하면 정상
+ *    산문을 통째로 버린 뒤 Gemini 를 한 번 더 부른다(실측 15~36초/회). 접는 편이 싸고 무손실이다.
+ * 🔴 적용 지점은 `pickKeys` 직후 한 곳이다 — 검증·분량 계수·저장·화면이 전부 같은 문자열을 본다.
+ */
+/**
+ * 이만큼 접혔으면 폭주로 보고 로그를 남긴다. 정상 응답의 공백 정리(줄 끝 공백·빈 줄)는 이 아래다.
+ * 🔴 임계는 판정이 아니라 **관측용**이다 — 넘어도 배달은 그대로 간다(접은 뒤 본문은 정상이다).
+ */
+export const FUSION_WHITESPACE_COLLAPSE_LOG_CHARS = 500;
+
+export function normalizeFusionProseWhitespace(value) {
+  if (typeof value === "string") {
+    return value
+      .replace(/\r\n?/g, "\n")
+      .replace(/[^\S\n]+/g, " ")
+      .replace(/ *\n */g, "\n")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
+  }
+  if (Array.isArray(value)) return value.map(normalizeFusionProseWhitespace);
+  if (value && typeof value === "object") {
+    return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, normalizeFusionProseWhitespace(item)]));
+  }
+  return value;
+}
+
+/**
  * 한 키가 담은 산문. 키마다 본문이 앉는 자리가 달라서 이 함수 하나가 그 정본이다.
  *
  * 🔴 `finalVerdict` 는 본문을 `content` 가 아니라 `rationale` 에 쓴다. 그 예외를 빠뜨리면
@@ -1023,7 +1058,14 @@ export async function generateFusionFortuneWithRealLLM({
     if (!response?.ok) return { ok: false, group, issue: text(response?.error, 80) || "provider_failed" };
     const parsed = parseFusionFortuneLLMResponse(response.text);
     if (!parsed.ok) return { ok: false, group, issue: "parse_failed" };
-    const picked = pickKeys(parsed.value, group.keys);
+    // 🔴 검증·분량 계수보다 **먼저** 공백 런을 접는다. 안 접으면 공백만 9만 자인 본문이 그룹
+    //    검증을 통과해 총 분량 상한을 넘기고, 유료 사용자에게 품질 저하 고지가 나간다(8차 실측).
+    const rawPicked = pickKeys(parsed.value, group.keys);
+    const picked = normalizeFusionProseWhitespace(rawPicked);
+    const collapsedChars = JSON.stringify(rawPicked).length - JSON.stringify(picked).length;
+    if (collapsedChars >= FUSION_WHITESPACE_COLLAPSE_LOG_CHARS) {
+      console.warn("[fusion-fortune-whitespace-collapsed]", { requestId: text(requestId, 120), stage: stageNumber, sectionGroup: group.id, collapsedChars });
+    }
     const checked = validateFusionFortuneGroup(picked, group, validationOptions);
     if (response.provider) providers.add(text(response.provider, 40));
     if (response.model) models.add(text(response.model, 100));

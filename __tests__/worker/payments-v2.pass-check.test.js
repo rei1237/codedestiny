@@ -398,6 +398,90 @@ describe("재구매 연장 — 기간과 함께 월 한도도 쌓인다", () => 
   });
 });
 
+/* 업그레이드가 사용액을 0 으로 리셋하던 것의 정정(2026-09-07 사용자 결정) — standard 한도를 다 쓰고
+   premium 을 사면 쓴 금액이 통째로 사라져 "한도가 안 줄어드는" 것으로 보였다. 기간은 종전대로 새로
+   시작하지만(computePassExpiry) 사용액은 이월한다. */
+describe("상위 등급 업그레이드 — 이미 쓴 금액은 이월된다", () => {
+  const PLAN = {
+    tier: "premium", planId: "pass_premium_1m", durationMonths: 1,
+    profileLimit: 5, maxCoveredCoin: PASS_LIMITS.premium, productType: "membership_pass",
+  };
+
+  test("🔴 사용액은 그대로 남고 한도만 새 등급 기본값이 된다", async () => {
+    const db = makeFakePaymentDb();
+    const now = new Date();
+    const priorExpiresAt = new Date(now.getTime() + 10 * DAY_MS);
+    const spent = MONTHLY_PASS_LIMITS.standard;
+    seedUser(db, {
+      tier: "standard", passTier: "standard", isActive: true, expiresAt: priorExpiresAt,
+      premiumUseCycleKey: priorExpiresAt.toISOString(),
+      monthlySpendCoin: spent, monthlyLimitCoin: MONTHLY_PASS_LIMITS.standard,
+      lastPassOrderId: "order-1",
+    });
+
+    const nextExpiresAt = new Date(now.getTime() + 30 * DAY_MS);
+    const { user } = await activatePassSubscription(db, {
+      userId: USER, plan: PLAN, orderId: "order-2", customerUid: "cu-1",
+      paymentMethod: "card_general", paidAt: now, expiresAt: nextExpiresAt, now,
+    });
+    const sub = user.profileSubscription;
+    expect(sub.monthlySpendCoin).toBe(spent);
+    expect(sub.monthlyLimitCoin).toBe(MONTHLY_PASS_LIMITS.premium);
+    expect(sub.premiumUseCycleKey).toBe(nextExpiresAt.toISOString());
+
+    // 남은 예산은 새 등급 한도에서 이미 쓴 금액을 뺀 만큼이다.
+    const coverage = evaluatePassCoverage({
+      user,
+      entitlement: { tier: "premium", passTier: "premium", isActive: true, expiresAt: nextExpiresAt },
+      coinCost: PASS_LIMITS.premium,
+    });
+    expect(coverage.budgetCoin).toBe(MONTHLY_PASS_LIMITS.premium);
+    expect(coverage.usedCoin).toBe(spent);
+  });
+});
+
+/* 서로 다른 두 주문이 동시에 확정되면 둘 다 같은 prior 를 읽어 둘 다 `E0+30일`·한도 2배를 썼다 —
+   기간은 30일인데 한도만 두 배인 문서가 남았다(2026-09-07). 읽은 만료일을 건 CAS 로 막는다. */
+describe("동시 확정 CAS — 다른 주문이 먼저 반영되면 덮어쓰지 않는다", () => {
+  const PLAN = {
+    tier: "standard", planId: "pass_standard_1m", durationMonths: 1,
+    profileLimit: 3, maxCoveredCoin: PASS_LIMITS.standard, productType: "membership_pass",
+  };
+  const now = new Date();
+
+  test("🔴 낡은 문서로 활성화하면 쓰지 않고 conflict 를 돌려준다", async () => {
+    const db = makeFakePaymentDb();
+    const priorExpiresAt = new Date(now.getTime() + 10 * DAY_MS);
+    const stale = { profileSubscription: { ...activePass("standard"), expiresAt: priorExpiresAt, lastPassOrderId: "order-1" } };
+    // 그 사이 다른 주문(order-2)이 먼저 반영돼 만료일이 밀렸다.
+    const winnerExpiresAt = new Date(priorExpiresAt.getTime() + 30 * DAY_MS);
+    seedUser(db, {
+      ...activePass("standard"), expiresAt: winnerExpiresAt,
+      premiumUseCycleKey: winnerExpiresAt.toISOString(),
+      monthlyLimitCoin: MONTHLY_PASS_LIMITS.standard * 2, lastPassOrderId: "order-2",
+    });
+
+    const result = await activatePassSubscription(db, {
+      userId: USER, plan: PLAN, orderId: "order-3", customerUid: "cu-1",
+      paymentMethod: "card_general", paidAt: now, expiresAt: new Date(priorExpiresAt.getTime() + 30 * DAY_MS),
+      now, existing: stale,
+    });
+    expect(result.conflict).toBe(true);
+    expect(db.rows[0].profileSubscription.lastPassOrderId).toBe("order-2");
+    expect(db.rows[0].profileSubscription.monthlyLimitCoin).toBe(MONTHLY_PASS_LIMITS.standard * 2);
+  });
+
+  test("🔴 확정 경로는 conflict 를 다시 읽어 기간·한도를 재계산해 재시도한다(정적)", async () => {
+    const { readFileSync } = await import("node:fs");
+    const source = readFileSync(new URL("../../worker/payments/index.js", import.meta.url), "utf8");
+    const body = source.slice(source.indexOf("async function grantPassOrderEntitlement"), source.indexOf("async function grantOrderEntitlement"));
+    expect(body).toMatch(/activation\?\.conflict/);
+    // 재시도는 만료일을 다시 계산해야 한다 — 같은 expiresAt 으로 다시 쓰면 먼저 반영된 30일을 덮어쓴다.
+    expect(body).toMatch(/computePassExpiry\(\{ transition, paidAt \}\)/);
+    expect(body).toMatch(/userDoc = await db\.findOne\(User/);
+  });
+});
+
 /* M10 Phase 2 #2 — 확정 경로(grantPassOrderEntitlement)가 재생·하위등급 판정에 쓴 users 문서를
    활성화 함수에 넘기면 같은 문서를 두 번 읽지 않는다(왕복 6→5). 인자를 안 주는 다른 호출부는 종전대로 읽는다. */
 describe("activatePassSubscription existing 인자 — 넘기면 재조회 없음, 없으면 종전대로 조회", () => {

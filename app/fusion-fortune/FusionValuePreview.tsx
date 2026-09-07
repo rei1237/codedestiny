@@ -62,6 +62,7 @@ export function FusionValuePreview() {
         {COPY.answersQuestions.map((question) => <li key={question}>{question}</li>)}
       </ul>
 
+      <hr className={styles.valueRule} />
       <h3 className={styles.valueSubheading}>결과 문서에 담기는 것</h3>
       <p className={styles.valueNote}>
         아래는 결과가 어떤 순서와 구조로 오는지를 보여 주는 목록입니다. 실제 해석 문장은 결제 후
@@ -76,6 +77,7 @@ export function FusionValuePreview() {
         ))}
       </ol>
 
+      <hr className={styles.valueRule} />
       <h3 className={styles.valueSubheading}>무료 운세와 무엇이 다른가</h3>
       <div className={styles.valueTableScroll}>
         <table className={styles.valueTable}>
@@ -98,10 +100,13 @@ export function FusionValuePreview() {
         </table>
       </div>
 
-      <h3 className={styles.valueSubheading}>미리 밝혀 두는 것</h3>
-      <ul className={styles.valueNotes}>
-        {COPY.trustNotes.map((note) => <li key={note}>{note}</li>)}
-      </ul>
+      <hr className={styles.valueRule} />
+      <details className={styles.valueDetails}>
+        <summary>미리 밝혀 두는 것</summary>
+        <ul className={styles.valueNotes}>
+          {COPY.trustNotes.map((note) => <li key={note}>{note}</li>)}
+        </ul>
+      </details>
     </section>
   );
 }

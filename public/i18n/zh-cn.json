@@ -365,7 +365,7 @@
       "ziweiAdvancedTitle": "🌟 紫微斗数进阶",
       "ziweiAdvancedDesc": "十二宫人生策略 · 命宫深度分析",
       "vedicAstrologyTitle": "🪐 吠陀占星",
-      "vedicAstrologyDesc": "基础命盘免费 · 合盘 KRW 5,000",
+      "vedicAstrologyDesc": "命盘免费 · 解读 KRW 3,000 · 合盘 KRW 5,000",
       "olympusOracleTitle": "⚡ 奥林匹斯神谕",
       "olympusOracleDesc": "12神与星座命运判读",
       "destinyFlowerTitle": "🌸 命运之花",
@@ -3757,6 +3757,17 @@
       "celebLabel": "选择名人",
       "birthLabel": "对方出生日期与时间",
       "runCta": "分析合盘"
+    },
+    "relFlow": {
+      "title": "关系流势预览",
+      "freeBadge": "免费",
+      "empty": "输入对方姓名和出生日期后，将为你梳理关系流势。",
+      "ziweiLabel": "紫微斗数 Lite",
+      "astroLabel": "占星 Lite",
+      "strengthsTitle": "顺畅之处",
+      "cautionsTitle": "需要磨合",
+      "tipsTitle": "小小实践",
+      "diaryLink": "好日子请见日记的「一起看」→"
     },
     "funCards": {
       "celebTitle": "哪位名人是我的灵魂双胞胎？",
@@ -12412,7 +12423,7 @@
         "What period am I passing through now?",
         "What is my innate temperament like?"
       ],
-      "fallbackCta": "See your Vedic reading for free"
+      "fallbackCta": "计算我的吠陀命盘"
     },
     "astrology": {
       "tagline": "A basic astrology reading that calculates your birth chart and reads your disposition and the flow of your relationships from the placements.",

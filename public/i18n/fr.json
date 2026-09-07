@@ -365,7 +365,7 @@
       "ziweiAdvancedTitle": "🌟 Zi Wei avancé",
       "ziweiAdvancedDesc": "Stratégie de vie des 12 palais · analyse profonde du palais Ming",
       "vedicAstrologyTitle": "🪐 Astrologie védique",
-      "vedicAstrologyDesc": "Carte de base gratuite · Compatibilité KRW 5,000",
+      "vedicAstrologyDesc": "Carte gratuite · Lecture KRW 3,000 · Compatibilité KRW 5,000",
       "olympusOracleTitle": "⚡ Oracle de l'Olympe",
       "olympusOracleDesc": "Lecture de destinée par 12 dieux et le zodiaque",
       "destinyFlowerTitle": "🌸 Fleur du destin",
@@ -3757,6 +3757,17 @@
       "celebLabel": "Sélectionnez une célébrité",
       "birthLabel": "Date et heure de naissance du partenaire",
       "runCta": "Analyser la compatibilité"
+    },
+    "relFlow": {
+      "title": "Aperçu du flux relationnel",
+      "freeBadge": "Gratuit",
+      "empty": "Saisissez le nom et la date de naissance de l'autre personne pour voir le flux relationnel.",
+      "ziweiLabel": "Zi Wei Dou Shu Lite",
+      "astroLabel": "Astrologie Lite",
+      "strengthsTitle": "Ce qui coule de source",
+      "cautionsTitle": "Ce qu'il faut ajuster",
+      "tipsTitle": "Petites actions",
+      "diaryLink": "Trouvez les bons jours dans « Voir ensemble » du journal →"
     },
     "funCards": {
       "celebTitle": "Quelle célébrité est mon âme jumelle?",
@@ -12412,7 +12423,7 @@
         "What period am I passing through now?",
         "What is my innate temperament like?"
       ],
-      "fallbackCta": "See your Vedic reading for free"
+      "fallbackCta": "Calculate your Vedic chart"
     },
     "astrology": {
       "tagline": "A basic astrology reading that calculates your birth chart and reads your disposition and the flow of your relationships from the placements.",

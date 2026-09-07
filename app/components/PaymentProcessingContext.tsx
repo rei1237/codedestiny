@@ -202,7 +202,10 @@ const PAID_GATE_COPY: Record<PaidFeatureGateStatus, PaidGateCopy> = {
   paymentProcessing: { label: "처리 중", title: "결제 처리 중", message: "결제 승인과 이용 권한을 확인하고 있어요\n창을 닫지 말아 주세요" },
   paymentSuccess: { label: "완료", title: "결제 완료", message: "결제가 완료됐어요\n결과를 준비하고 있어요" },
   paymentFailed: { label: "실패", title: "결제 확인 실패", message: "결제를 완료하지 못했습니다. 다시 시도해 주세요." },
-  error: { label: "오류", title: "확인 실패", message: "이용권 확인에 실패했습니다. 잠시 후 다시 시도해 주세요." },
+  // 🔴 `error` 는 네트워크 실패·결제 증빙 확인 실패까지 함께 받는 범용 상태다. 여기서 "이용권"을
+  //    특정하면 카드로 결제를 끝낸 사용자에게 "이용권 확인 실패"가 뜬다(운명 찻집 실사고). 수단을
+  //    특정하지 않는다 — en 카피("Please check your network and try again.")와 같은 태도다.
+  error: { label: "오류", title: "확인 실패", message: "확인에 실패했습니다. 잠시 후 다시 시도해 주세요." },
   paymentPreparing: { label: "결제 준비", title: "단건 결제 준비 중", message: "주문 정보와 인증 흐름이 조용히 맞춰지고 있어요\n창을 닫지 말아 주세요" },
   paymentWindowOpen: { label: "결제 진행", title: "단건 결제 준비 중", message: "주문 정보와 인증 흐름이 조용히 맞춰지고 있어요\n창을 닫지 말아 주세요" },
   savingUnlock: { label: "저장 중", title: "이용 권한 저장 중", message: "결과 화면으로 이어지도록 이용 권한을 저장하고 있습니다." },

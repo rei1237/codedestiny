@@ -4,7 +4,6 @@
  * 결정론 엔진은 세션(useCompassSession)이 처리 단계에서 실행. 결과/오늘 화면은 기존 재사용(P2에서 격상).
  */
 import { useCallback, useMemo, useState } from "react";
-import type { AnimalDestinyInput } from "@/app/saju/animal-destiny/lib/types";
 import { usePaidResume, type PaidResumeGrant } from "@/app/hooks/usePaidResume";
 import { useCompassSession, type CompassStep } from "../_hooks/useCompassSession";
 import { JourneyHub } from "./JourneyHub";

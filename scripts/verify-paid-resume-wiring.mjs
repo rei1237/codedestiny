@@ -694,4 +694,3 @@ if (backlog.size > 0) {
   console.log(`  ⚠️ 미배선 후속 과제 ${backlog.size}건이 UNWIRED_BACKLOG 에 선언돼 있습니다 — 결제 후 그 화면은 스스로 열리지 않습니다:`);
   for (const [key, why] of backlog) console.log(`     · ${key} — ${why}`);
 }
-

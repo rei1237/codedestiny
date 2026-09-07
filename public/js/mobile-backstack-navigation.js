@@ -34,7 +34,10 @@
 
   var SAJU_SUB_ACTIONS = {
     openSajuFunFeature: true,
-    openLuckSyncDiary: true
+    openLuckSyncDiary: true,
+    // 사주 결과 화면 안에서 여는 이전 버전 다이어리 모달. 사주 결과 위에 얹히는 하위 화면이라
+    // 뒤로가기가 결과 화면으로 돌아와야 한다(위 openSajuFunFeature 와 같은 처지다).
+    openLegacyLuckSyncDiary: true
   };
 
   var FEATURE_OPEN_ACTIONS = {

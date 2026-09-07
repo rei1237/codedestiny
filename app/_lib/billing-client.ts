@@ -28,7 +28,6 @@ import { resolveAppPassCoverageKRW } from "@/worker/lib/app-store-pricing.js";
 // 🔴 이용권 스냅샷·판정 정본. 정적 셸(index.html)과 독립 정적(js/destiny-profile.js)도 같은 파일을
 // classic script 로 읽는다 — 여기에 사본을 만들면 세 런타임의 판정이 갈린다.
 import passVerdict from "@/js/core/pass-verdict.js";
-import { KRW_PER_COIN } from "@/lib/payment/coin-pricing";
 import appContext from "@/js/core/app-context.js";
 import checkoutEntry, { type PaidResumeDescriptor } from "@/js/core/checkout-entry.js";
 import bundledPaymentService from "@/js/core/payment-service.js";
@@ -462,7 +461,7 @@ const BILLING_FETCH_DEFAULT_TIMEOUT_MS = 20000;
 const BILLING_FETCH_CHECKOUT_TIMEOUT_MS = 40000;
 const BILLING_FETCH_CONFIRM_TIMEOUT_MS = 60000;
 const PAYMENT_CHOICE_IN_FLIGHT_TTL_MS = 45000;
-export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-17be4ba51d2d";
+export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-0a20fb3db40a";
 // 🔴 이용권 스냅샷의 상수·읽기·쓰기·판정은 전부 js/core/pass-verdict.js 가 소유한다.
 // 셸(index.html)·독립 정적(js/destiny-profile.js)과 **같은 localStorage 키**를 공유하므로 값이 갈리면
 // 같은 사용자가 어느 런타임에서 클릭했느냐에 따라 판정이 달라지고, 한쪽이 만료로 보고 지운 캐시가
@@ -765,21 +764,16 @@ export function readSubscriptionSnapshotForUser(
  * 서버가 402 로 되돌려 보낼 때까지 화면상 무제한으로 보였다. 여기서 시드하면 첫 진입부터 한도가 보인다.
  *
  * 🔴 서버 판정을 대체하지 않는다 — 최종 판정은 언제나 서버의 차감(consumePassCoverage)이다.
- * 🔴 storeStatus/buildSnapshotFromStatus 를 태우지 않는다(활성 스냅샷에만 반영·단조 감소).
- * 🔴 remainingKRW 는 원화다 — 스냅샷 단위는 코인이라 100 으로 나눠 넣는다(1코인=100원).
+ * 🔴 파생 규칙(원화→코인 환산·활성 스냅샷에만 반영·단조 감소)은 pass-verdict 의
+ *    storeMonthlyQuotaFromAccessState 하나뿐이다. 셸·독립정적은 js/core/access-store.js 가
+ *    같은 함수를 부른다 — 여기서 다시 계산하면 세 런타임의 판정이 갈라진다.
  */
 export function seedMonthlyQuotaFromAccessState(accessData: unknown): SubscriptionSnapshot | null {
   if (typeof window === "undefined") return null;
-  const snapshot = asRecord(asRecord(accessData)?.entitlementSnapshot);
-  const usage = asRecord(snapshot?.passUsage);
-  if (!usage) return null;
-  const remainingKRW = Number(usage.remainingKRW);
-  if (!Number.isFinite(remainingKRW) || remainingKRW < 0) return null;
-  const remainingCoin = Math.max(0, Math.floor(remainingKRW / KRW_PER_COIN));
   try {
-    return passVerdict.storeMonthlyQuotaFromPayload(
+    return passVerdict.storeMonthlyQuotaFromAccessState(
       resolveSubscriptionSnapshotUserId(),
-      { monthlySpendRemaining: remainingCoin },
+      accessData,
     ) as SubscriptionSnapshot | null;
   } catch {
     return null;
@@ -1286,6 +1280,12 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
   const noteBasisText = checkoutEntry.text("payment.directModal.note.basis", "결제 금액 {amount}", { amount: formatPaymentWon(directAmount) });
   const noteWithPassText = checkoutEntry.text("payment.directModal.note.withPass", "이용권 · 월정석 · 카드 중에서 고를 수 있어요.");
   const noteWithPassHtml = canShowPassStore ? `<span>${escapePaymentText(noteWithPassText)}</span>` : "";
+  // 이용권 선검사 결과를 결제창에서 한 줄로 설명한다(왜 결제창이 떴는지 모르겠다는 피드백).
+  // 계약·클래스는 셸 index.html 의 passOutcomeNote 와 같고, CSS 는 공유 코어가 이미 갖고 있다.
+  const passOutcomeNote = toText(opts.passOutcomeNote).trim();
+  const passOutcomeNoteHtml = passOutcomeNote
+    ? `<p class="cd-direct-payment-sub cd-direct-payment-sub--reason">${escapePaymentText(passOutcomeNote)}</p>`
+    : "";
 
   return new Promise((resolve) => {
     let settled = false;
@@ -1307,6 +1307,7 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
             <p class="cd-direct-payment-sub">${escapePaymentText(guideBubbleText)}</p>
           </div>
         </div>
+        ${passOutcomeNoteHtml}
         <div class="cd-direct-payment-note"><strong>${escapePaymentText(title)}</strong><span>${escapePaymentText(noteBasisText)}</span>${noteWithPassHtml}</div>
         <div class="cd-direct-payment-choice-grid" data-choice-step="options">
           ${paymentChoiceButtonsHtml}
@@ -2377,6 +2378,8 @@ async function runPaidServiceRuntimePayment(input: BillingCoinGateInput, context
   runtimeGate?: PaidServiceRuntimeGate | null;
   // 워밍된 구독 스냅샷만으로 '이용권 미커버'가 확정된 경로(서버 왕복 없이 결제창 직행).
   snapshotSaysNoPass?: boolean;
+  // 결제창이 왜 떴는지 한 줄로 설명하는 안내(셸 index.html 의 passOutcomeNote 와 같은 계약).
+  passOutcomeNote?: string;
 }): Promise<BillingResult<BillingCoinGateData> | null> {
   if (typeof window === "undefined") return null;
   if (input.forceDeduct === false) return null;
@@ -2473,6 +2476,8 @@ async function runPaidServiceRuntimePayment(input: BillingCoinGateInput, context
          사용자는 결제만 끝난 채 기능이 닫혀 있다 — React 경로 전체가 이 한 줄이 없어 막혀 있었다.
          레거시 런타임(js/destiny-profile.js)이 opts.resume 을 그대로 복귀 티켓에 싣는다. */
       resume: input.resume || undefined,
+      // 이용권 한도 소진처럼 '왜 결제창이 떴는지'가 이미 확정된 경우 그 사유를 결제창에 싣는다.
+      passOutcomeNote: toText(context.passOutcomeNote).trim() || undefined,
       // 🔴 이중 이용권 프로브 방지. 스냅샷 즉시판정 경로에서는 eligibility 가 null 이라 passAlreadyChecked 가
       // false 였고, 그러면 레거시 런타임이 __cdApplyMembershipPassBeforePayment 로 **같은 검사를 또** 돌렸다
       // (6초 예산 + 재시도 2회). 지금까지는 런타임의 _dpResolveCertainPassMiss 가 같은 localStorage 스냅샷을
@@ -3867,7 +3872,23 @@ async function registerDeferredBillingUsage(
       billingGate: result.data,
     }),
   });
-  return await parseBillingResponse<BillingCoinGateData>(response);
+  const registered = await parseBillingResponse<BillingCoinGateData>(response);
+  if (registered.ok && registered.data) return registered;
+
+  // 🔴 여기서 실패를 그대로 올리면 **이미 결제가 끝난 세션을 클라이언트가 스스로 버린다.**
+  // 운명 찻집 단건결제에서 실제로 났던 사고다: PortOne 승인 → register 가 증빙 전파 지연으로 402
+  // → 호출부가 paymentFailed 로 접고 "이용권 확인 실패"를 띄웠다. 돈은 나갔고 상담은 안 열렸다.
+  //
+  // register 는 **증빙을 만드는 편의 계층**이지 결제 성립 판정이 아니다. 결제 성립은 이미 서버가
+  // confirm 에서 판정해 `result.data` 에 accessGrant/consume 증빙으로 서명해 넣었고, 소비 라우트는
+  // 그 증빙을 자기 쪽에서 다시 4갈래로 검증한다(worker/routes/fortune-tea-house.js 등). 그러니
+  // 등록만 실패했을 때는 **서버가 검증해 준 원래 결제 결과를 그대로 들고 진행**한다.
+  //
+  // 🔴 무료 통과가 새지 않는 이유: 미결제 사용자는 애초에 `result.ok` 인 결제 런타임 결과를 못 받고,
+  //    받았더라도 소비 라우트가 DB 증빙으로 재검증하므로 여기 통과가 최종 승인이 아니다.
+  // 🔴 재시도를 여기 감싸지 말 것(원칙 6) — 증빙 전파 지연을 기다리는 계층은 서버
+  //    `findDeferredBillingEvidenceWithSettleWindow` 하나다.
+  return result;
 }
 
 // 낙관적 pass 즉시 허용의 정확성 안전장치(정적 destiny-profile 경로와 동일 정책).
@@ -3905,6 +3926,18 @@ async function recordMembershipPassInBackground(input: BillingCoinGateInput, att
       // 스냅샷이 "활성이지만 이 가격은 한도 밖"이라고 이미 말하고 있으면 서버 402 는 스냅샷과 **일치**하는
       // 답이므로 고칠 것이 없다 — 이 경우엔 잠그지 않는다. 보유 상태가 실제로 어긋난 경우(스냅샷은 커버라는데
       // 서버는 거절)만 잠그고 세션·스냅샷을 정정한다.
+      // 🔴 월 한도 소진 402 는 잠그지 않는 대신 **이미 낙관으로 열어 둔 이 기능만 회수**한다 —
+      // 서버는 열어 주지 않았는데 원장에 낙관 엔트리가 남으면 다음 화면이 확정 해금으로 오인해
+      // 그대로 연다(셸 _cdRevokeOptimisticPassUnlock 과 같은 규칙, 2026-09-07).
+      if (passVerdict.isMonthlyLimitPayload(parsed.raw)) {
+        const revokeKey = String(input.featureKey || "").trim();
+        if (revokeKey) {
+          try {
+            const { forgetOptimisticUnlock } = await import("./optimistic-unlock-ledger");
+            forgetOptimisticUnlock(revokeKey);
+          } catch {}
+        }
+      }
       const snapshotAtDenial = readSubscriptionSnapshotForUser(undefined, { allowStaleNone: true });
       const deniedCoinCost = resolveKnownCoinCost(input, null);
       // 월 한도 소진 402 도 잠그지 않는다 — 위에서 스냅샷 잔여를 0 으로 되썼으므로 다음 판정은 스냅샷이 스스로 거절한다.
@@ -4263,6 +4296,15 @@ async function runBillingCoinGateInternal(input: BillingCoinGateInput): Promise<
         eligibility,
         runtimeGate: await runtimeGatePromise,
         snapshotSaysNoPass: snapshotSaysNoPassFast,
+        // 🔴 첫 402 에서 markPassEndedFromPayload 가 스냅샷을 source:"pass_budget_exhausted" 로 내리므로,
+        // 두 번째 클릭부터는 서버 왕복 없이 이 fast-path 로 곧장 결제창이 열린다. 여기서 같은 안내를
+        // 싣지 않으면 사유는 첫 번 한 번만 보이고 그 뒤로는 이유 없는 결제창이 된다.
+        passOutcomeNote: toText(initialSnapshot?.source) === "pass_budget_exhausted"
+          ? checkoutEntry.text(
+            "payment.directModal.note.passMonthlyExhausted",
+            "이용권 한도를 모두 사용해 이용권이 종료되었어요. 결제 방법을 고르는 창을 열었습니다.",
+          )
+          : "",
       });
       if (runtimePaymentResult) {
         const parsed = await registerDeferredBillingUsage(input, runtimePaymentResult, {
@@ -4658,6 +4700,16 @@ async function runBillingCoinGateInternal(input: BillingCoinGateInput): Promise<
           eligibility,
           runtimeGate: await runtimeGatePromise,
           snapshotSaysNoPass: snapshotSaysNoPassFast,
+          // 🔴 월 한도 소진(decisionReason MONTHLY_PASS_LIMIT_EXCEEDED)은 이용권이 **있는** 상태다.
+          // 예전에는 이 사유가 결제창에서 [이용권으로 구매]를 눌러야만 보였고, 그냥 결제창만 뜬
+          // 사용자는 "이용권이 있는데 왜 안 열리나"로 읽었다(패밀리 이용권 보고). 셸 index.html 이
+          // 이미 쓰는 passOutcomeNote 계약을 그대로 써서 결제창이 열리는 순간 사유를 보여준다.
+          passOutcomeNote: passVerdict.isMonthlyLimitPayload(parsed.raw)
+            ? checkoutEntry.text(
+              "payment.directModal.note.passMonthlyExhausted",
+              "이용권 한도를 모두 사용해 이용권이 종료되었어요. 결제 방법을 고르는 창을 열었습니다.",
+            )
+            : "",
         });
         if (runtimePaymentResult) {
           const parsedRuntimePaymentResult = await registerDeferredBillingUsage(input, runtimePaymentResult, {
@@ -4825,6 +4877,8 @@ export async function purchaseFeature(input: {
   reportSessionId?: string;
   profileId?: string;
   selectedProfileId?: string;
+  /** 결제 후 자동 재개 서술자. 리다이렉트 복귀 문서가 스스로 표면을 열게 한다(js/core/checkout-entry.js 계약). */
+  resume?: PaidResumeDescriptor | null;
 }) {
   return runPaidAccessGate(input as Parameters<typeof runPaidAccessGate>[0]);
 }

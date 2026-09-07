@@ -21,7 +21,7 @@ const SERVICE_SECTION_DEFINITIONS = [
     items: [
       { href: "/ziwei/chart", fallbackTitle: "자미두수 명반", fallbackDesc: "기본 서비스 무료 · 궁합 5,000원", isStaticCanonical: true },
       { href: "/astrology/cosmic", fallbackTitle: "점성술 코즈믹", fallbackDesc: "기본 서비스 무료 · 궁합 5,000원", isStaticCanonical: true },
-      { href: "/vedic/jyotish", fallbackTitle: "베다 점성술", fallbackDesc: "기본 서비스 무료 · 궁합 5,000원", isStaticCanonical: true },
+      { href: "/vedic/jyotish", fallbackTitle: "베다 점성술", fallbackDesc: "명반 무료 · 해석 3,000원 · 궁합 5,000원", isStaticCanonical: true },
     ],
   },
   {

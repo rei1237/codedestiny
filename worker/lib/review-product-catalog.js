@@ -140,6 +140,7 @@ export const REVIEW_PRODUCTS = Object.freeze([
       "vedic-ai-consultation",
       "vedic_ai_prompt_generator",
       "vedic_prashna_prompt",
+      "vedic_basic_reading",
     ]),
   },
   {

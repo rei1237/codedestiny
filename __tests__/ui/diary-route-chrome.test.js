@@ -45,7 +45,14 @@ test("diary supplies its own bottom clearance and never borrows the shared one",
 
   // 자체 오프셋 정의 + safe-area 는 그 안에 한 번만.
   assert.match(css, /--dy-nav-offset:\s*calc\(var\(--dy-nav-h\)\s*\+\s*env\(safe-area-inset-bottom/);
-  assert.match(css, /padding-bottom:\s*calc\(var\(--dy-nav-offset\)/);
+  // 🔴 본문이 비우는 자리는 하단바 + (재생 중이면) 미니 플레이어다. 그 합은 토큰 한 곳에서만
+  // 만들어지고, 화면은 그 토큰만 본다 — 여백을 화면마다 더하기 시작하면 어긋나는 곳이 생긴다.
+  assert.match(css, /--dy-bottom-offset:\s*calc\(var\(--dy-nav-offset\)\s*\+\s*var\(--dy-mini-h/);
+  assert.match(css, /padding-bottom:\s*calc\(var\(--dy-bottom-offset\)/);
+  // 하단바 자체 높이에는 미니 플레이어가 딸려 오면 안 된다(바가 두 배로 두꺼워진다).
+  const navBlock = /\.bottomNav \{([\s\S]*?)\n\}/.exec(css);
+  assert.ok(navBlock, ".bottomNav 블록을 찾지 못했다");
+  assert.doesNotMatch(navBlock[1], /--dy-bottom-offset|--dy-mini-h/);
 
   // 🔴 시트를 포털 없이 position:fixed 로 덮으려면 셸에 containing block 이 없어야 한다.
   const shellBlock = /\.shell \{([\s\S]*?)\n\}/.exec(css);

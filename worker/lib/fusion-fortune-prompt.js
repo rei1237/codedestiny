@@ -52,13 +52,31 @@ export const FUSION_FORTUNE_LENGTH = Object.freeze({
  *    worker/lib/fusion-fortune.js), 지시문의 어투를 모델이 본문에 되받아 쓰면 단정 술어와 만나
  *    `unsafe_phrase` 로 자기 응답이 반려될 수 있다. 지시는 단정 부사 없이 쓴다.
  * 🔴 서술자는 `string` 으로 시작해야 한다 — toGeminiSchema 가 첫 토큰으로 타입을 정한다.
+ *
+ * 🔴 ⑤ 상한(2026-09-07). ①~③ 이 하한만 밀어 올려 놓고 천장을 주지 않아, 목표 합계 36,100자
+ *    계약에 8차 실호출 4조합이 47,341~53,342자로 들어왔다(목표의 1.31~1.48배,
+ *    docs/handoff/fusion-fortune-two-stage-2026-09-06.md). 넘치는 것 자체는 반려 사유가 아니지만
+ *    (total.max 는 완충으로 남긴다) 건당 생성 원가를 그 배수만큼 태우고, 늘어난 분량은 대개
+ *    같은 판단을 다시 푼 문단이라 30,000원어치 밀도를 오히려 떨어뜨린다. 그래서 모델에게
+ *    **범위**를 준다 — 하한·목표만 받으면 목표를 바닥으로 읽고 그 위 어디에서든 멈추기 때문이다.
+ *    상한은 하한의 1.4배로, 목표(1.2배)보다 위에 둔다. 목표에 붙이면 정상 결과가 천장에 눌려
+ *    하한 쪽으로 밀리고, 그건 반려 → 결정론 폴백이라 넘치는 것보다 훨씬 비싼 실패다.
  */
+const FIELD_CEILING_RATIO = 1.4;
+
+/** 서술자와 그룹 프롬프트가 같은 상한을 보게 하는 한 자리. */
+export function fusionFieldCeilingChars(minChars) {
+  return Math.round((Number(minChars) * FIELD_CEILING_RATIO) / 100) * 100;
+}
+
 function lengthDirective(minChars, note = "") {
   const min = minChars.toLocaleString("en-US");
   const target = Math.round((minChars * 1.2) / 100) * 100;
+  const ceiling = fusionFieldCeilingChars(minChars);
   const body = [
     `한국어 ${min}자 이상, 목표 ${target.toLocaleString("en-US")}자.`,
     `${min}자 미만이면 이 응답은 통째로 반려되어 사용자에게 전달되지 않는다.`,
+    `${ceiling.toLocaleString("en-US")}자를 넘기면 같은 판단을 다시 푼 문단이 쌓여 밀도가 떨어진다 — 목표를 채운 뒤에는 더 늘리지 말고 ${ceiling.toLocaleString("en-US")}자 안에서 끝낸다.`,
     "요약하거나 압축하지 말고 근거 → 구체적 장면 → 적용 방법 순으로 문단을 끝까지 전개해 목표 분량을 채운다.",
     "같은 문장이나 뜻이 같은 표현을 되풀이해 분량을 채운 응답도 반려된다. 새로 댈 근거가 남지 않으면 되풀이하지 말고 그 자리에서 필드를 끝내고 JSON 을 닫는다 — 분량이 모자란 응답보다 같은 말을 이어 붙인 응답이 나쁘다.",
     note,
@@ -295,6 +313,15 @@ export const FUSION_SECTION_GROUP_SPECS = Object.freeze([
 ]);
 
 export const FUSION_STAGE_COUNT = 2;
+
+/**
+ * 그룹 합계 상한. 필드 상한(하한×1.4)들의 합보다 조금 위여야 한다 — 그룹에는 분량을 재지 않는
+ * 곁가지 키(title·keyPoints·luckyActions·visualization 주석 등)가 함께 들어가기 때문이다.
+ * 목표의 1.25배가 그 자리다: saju 4,300 → 5,400 은 섹션 상한 5,000 에 서문·keyPoints 몫을 더한 값과 맞는다.
+ */
+export function fusionGroupCeilingChars(group) {
+  return Math.round((Number(group?.targetChars || 0) * 1.25) / 100) * 100;
+}
 
 /** stage(1|2)에 속한 그룹. 알 수 없는 stage 는 빈 배열 — 호출자가 fail-closed 로 다룬다. */
 export function fusionGroupsForStage(stage) {
@@ -575,9 +602,14 @@ export function buildFusionSectionPromptPrefix({ context = {}, stage = 1, priorS
 export function buildFusionSectionGroupPrompt({ context = {}, group, priorSections = null, extraInstruction = "" } = {}) {
   const safeContext = projectFusionFortuneContextForPrompt(context);
   const responseSchema = pickSchema(group.keys);
+  // 🔴 상한은 스키마 서술자(lengthDirective)와 **같은 함수**에서 나온다 — 두 자리가 다른 천장을
+  //    말하면 모델이 둘 중 낮은 쪽을 목표로 읽거나(분량 미달 → 반려) 아예 무시한다.
   const minCharLines = group.keys
     .filter((key) => group.minChars?.[key])
-    .map((key) => `  · ${key}: 최소 ${Number(group.minChars[key]).toLocaleString("ko-KR")}자`);
+    .map((key) => {
+      const min = Number(group.minChars[key]);
+      return `  · ${key}: 최소 ${min.toLocaleString("ko-KR")}자 · 상한 ${fusionFieldCeilingChars(min).toLocaleString("ko-KR")}자`;
+    });
   const digest = group.stage === 2 ? buildFusionStageOneDigest(priorSections) : "";
   const systemPrompt = buildSharedSystemPrompt(safeContext, FUSION_SECTION_GROUP_LENGTH_LINE);
   const promptPrefix = composeFusionSectionPromptPrefix(safeContext, digest);
@@ -595,7 +627,7 @@ export function buildFusionSectionGroupPrompt({ context = {}, group, priorSectio
     ...(group.keys.includes("tarotSection")
       ? ["타로 기준: tarotSpread.cards의 카드 이름과 포지션 여섯 개를 모두 tarotSection에서 정확히 언급하고, 목록 밖의 카드는 절대 추가하지 않는다."]
       : []),
-    `분량 기준(이 그룹 합계 약 ${Number(group.targetChars).toLocaleString("ko-KR")}자):\n${minCharLines.join("\n")}`,
+    `분량 기준(이 그룹 합계 목표 ${Number(group.targetChars).toLocaleString("ko-KR")}자, 합계 상한 ${fusionGroupCeilingChars(group).toLocaleString("ko-KR")}자):\n${minCharLines.join("\n")}\n  합계가 목표에 닿으면 남은 근거가 있어도 거기서 마무리한다. 길이가 아니라 근거 밀도가 이 상담의 값이다.`,
     `응답 JSON 스키마(이 키만):\n${JSON.stringify(responseSchema)}`,
     ...(extraInstruction ? [extraInstruction] : []),
   ].join("\n\n");

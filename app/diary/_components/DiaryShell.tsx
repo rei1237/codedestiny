@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 
+import DiaryAudioProvider from "./DiaryAudioProvider";
 import DiaryBottomNav from "./DiaryBottomNav";
 import DiaryStoreProvider from "./DiaryStoreProvider";
 import DiaryTopBar from "./DiaryTopBar";
@@ -31,8 +32,12 @@ export default function DiaryShell({ children }: { children: ReactNode }) {
       <DiaryTopBar subtitle={today || undefined} />
       {/* 🔴 하단바도 provider 안이다 — ＋ 퀵캡처가 오늘 스냅샷과 저장 함수를 쓴다(PR-E). */}
       <DiaryStoreProvider>
-        <main className={styles.main}>{children}</main>
-        <DiaryBottomNav />
+        {/* 🔴 명상 오디오도 셸 레벨이다 — 시트 안에 두면 시트를 닫는 순간 재생이 끊긴다.
+            저장(들은 분)을 위해 provider 안쪽이어야 한다. */}
+        <DiaryAudioProvider>
+          <main className={styles.main}>{children}</main>
+          <DiaryBottomNav />
+        </DiaryAudioProvider>
       </DiaryStoreProvider>
     </div>
   );

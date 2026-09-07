@@ -365,7 +365,7 @@
       "ziweiAdvancedTitle": "🌟 Tử Vi nâng cao",
       "ziweiAdvancedDesc": "Chiến lược sống 12 cung · Phân tích sâu sắc Minh Cung",
       "vedicAstrologyTitle": "🪐 Chiêm tinh học Vệ Đà",
-      "vedicAstrologyDesc": "Biểu đồ cơ sở miễn phí · Khả năng tương thích KRW 5,000",
+      "vedicAstrologyDesc": "Biểu đồ miễn phí · Luận giải KRW 3,000 · Khả năng tương thích KRW 5,000",
       "olympusOracleTitle": "⚡ Olympus Oracle",
       "olympusOracleDesc": "Đọc vận mệnh 12 vị thần và cung hoàng đạo",
       "destinyFlowerTitle": "🌺 Hoa định mệnh",
@@ -3757,6 +3757,17 @@
       "celebLabel": "Chọn người nổi tiếng",
       "birthLabel": "Ngày và giờ sinh của đối tác",
       "runCta": "Phân tích tính tương thích"
+    },
+    "relFlow": {
+      "title": "Xem trước dòng chảy mối quan hệ",
+      "freeBadge": "Miễn phí",
+      "empty": "Nhập tên và ngày sinh của đối phương để xem dòng chảy mối quan hệ.",
+      "ziweiLabel": "Zi Wei Dou Shu Lite",
+      "astroLabel": "Chiêm tinh Lite",
+      "strengthsTitle": "Điều thuận lợi",
+      "cautionsTitle": "Điều cần điều chỉnh",
+      "tipsTitle": "Hành động nhỏ",
+      "diaryLink": "Xem ngày tốt ở mục «Cùng xem» trong nhật ký →"
     },
     "funCards": {
       "celebTitle": "Người nổi tiếng nào là người song sinh tâm hồn của tôi?",
@@ -12412,7 +12423,7 @@
         "What period am I passing through now?",
         "What is my innate temperament like?"
       ],
-      "fallbackCta": "See your Vedic reading for free"
+      "fallbackCta": "Calculate your Vedic chart"
     },
     "astrology": {
       "tagline": "A basic astrology reading that calculates your birth chart and reads your disposition and the flow of your relationships from the placements.",

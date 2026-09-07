@@ -858,6 +858,17 @@ function extractFunctionSource(source, name) {
     },
   ]);
 
+  // 🔴 참조가 하나도 없어도 되는 파일. 사유는 "셸에서 더는 로드되지 않는다"이지 "안 봐도
+  // 된다"가 아니다 — ⑬ 의 `new Date(` 스캔은 그런 파일도 그대로 본다.
+  // 여기 등재는 **캐시버스터 요구**만 면제한다(로드되지 않는 파일에는 캐시 키가 없다).
+  // 🔴 양방향이다: 등재했는데 참조가 되살아나면 stale 로 실패한다(면제가 조용히 남는 것을 막는다).
+  // 2026-09-07: js/luck-sync-diary.js 를 지웠다 — PR-J 컷오버로 사라졌던 로드 자리가
+  // 사주 결과 화면의 "운기 다이어리 (이전 버전)" 카드로 되살아났고(지연로더는
+  // js/core/index-inline-runtime.js 의 __cdLazyActionLoaders.openLegacyLuckSyncDiary),
+  // 그 참조에는 `?v=build-…` 가 붙어 있어 이 가드가 요구하는 조건을 그대로 만족한다.
+  // 지금은 비어 있고, 그것이 정상이다.
+  const UNREFERENCED_ALLOWED = Object.freeze([]);
+
   const refRows = [];
   for (const target of refTargets) {
     const text = fs.readFileSync(path.join(root, target), "utf8");
@@ -870,7 +881,10 @@ function extractFunctionSource(source, name) {
     }
   }
 
-  const missingRefs = GANJI_PATH_FILES.filter((rel) => !refRows.some((r) => r.ref === rel));
+  const referenced = new Set(refRows.map((r) => r.ref));
+  const allowUnreferenced = new Set(UNREFERENCED_ALLOWED.map((a) => a.file));
+  const missingRefs = GANJI_PATH_FILES.filter((rel) => !referenced.has(rel) && !allowUnreferenced.has(rel));
+  const staleUnreferenced = [...allowUnreferenced].filter((rel) => referenced.has(rel));
   const bareRefs = refRows.filter((r) => !r.versioned);
   const bareRefKeys = new Set(bareRefs.map((r) => `${r.file}|${r.ref}`));
   const allowRefKeys = new Set(BARE_REF_ALLOWED.map((a) => `${a.file}|${a.ref}`));
@@ -883,9 +897,18 @@ function extractFunctionSource(source, name) {
     `대상 ${refTargets.length}개 · 참조 ${refRows.length}건`,
   );
   ok(
-    "⑭ 🔴 간지 경로 7파일이 전부 최소 한 곳에서 참조된다",
+    "⑭ 🔴 간지 경로 7파일이 전부 최소 한 곳에서 참조된다(면제 등재분 제외)",
     missingRefs.length === 0,
-    `참조를 못 찾은 파일 ${missingRefs.length}개: ${missingRefs.join(", ")}`,
+    `참조를 못 찾은 파일 ${missingRefs.length}개: ${missingRefs.join(", ")}`
+    + String.fromCharCode(10) + "      "
+    + "→ 로드하는 자리가 사라진 것이면 UNREFERENCED_ALLOWED 에 사유와 함께 등재하라.",
+  );
+  ok(
+    "⑭ 🔴 참조 면제 목록이 stale 하지 않다(참조가 되살아나면 면제를 지워야 한다)",
+    staleUnreferenced.length === 0,
+    `stale ${staleUnreferenced.length}건: ${staleUnreferenced.join(" , ")}`
+    + String.fromCharCode(10) + "      "
+    + "→ 다시 참조되고 있다. `?v=build-…` 가 붙었는지 확인하고 UNREFERENCED_ALLOWED 에서 지워라.",
   );
   ok(
     "⑭ 버전 붙은 참조가 실제로 존재한다(전건 무버전이면 아래 검사가 무의미하다)",

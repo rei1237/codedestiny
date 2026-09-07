@@ -103,7 +103,10 @@ const deepVerificationRules = [
   // billing-feature-registry 는 (categoryKey, subFeatureKey) → featureKey 매핑과 reason 해석 체인을
   // 소유한다 — 서버 coin-gate 와 React 결제창이 같은 함수(getBillingFeaturePricing)로 가격을 푸는 지점이라
   // 여기가 바뀌면 표시가와 청구액이 동시에 움직인다. 목록에 없어서 deepRequired 가 아니었다.
-  [/^worker\/lib\/(portone|billing-policy|paid-feature-registry|billing-feature-registry|content-unlocks|nakshatra-paid-access|profile-card-mutation-policy)\.js$/i, "결제 정책 정본"],
+  // deferred-billing-proof 는 "이 사용자가 정말 냈는가"의 정본이다 — 여기가 null 을 돌려주면
+  // 결제를 끝낸 사용자가 402 를 받는다(운명 찻집 단건결제 실사고). 새로 만든 파일이라 목록에
+  // 자동으로 들어오지 않으므로 만든 커밋에서 함께 등재한다(원칙 10 — 가드가 보는 파일은 트리거에도).
+  [/^worker\/lib\/(portone|billing-policy|paid-feature-registry|billing-feature-registry|content-unlocks|nakshatra-paid-access|profile-card-mutation-policy|deferred-billing-proof|moonstone-spend-proof)\.js$/i, "결제 정책 정본"],
   [/^lib\/payment\//i, "결제 클라이언트"],
   [/^app\/_lib\/billing-client\.ts$/i, "React 결제 게이트"],
   [/^app\/hooks\/useCoinGate\.ts$/i, "단건 결제 훅"],
@@ -116,6 +119,11 @@ const deepVerificationRules = [
   //    월정석 잔량. 셋 다 목록에 없어서 access-state.js 조차 deepRequired 가 아니었다.
   [/^worker\/lib\/(access-state|access-state-cache|monthly-credit-store)\.js$/i, "이용권 스냅샷·월정석 잔량 저장소"],
   [/^js\/core\/(pass-verdict|checkout-entry)\.js$/i, "이용권 판정·결제 진입 정본"],
+  // 🔴 결제 후 자동 재개 배관. 여기가 서술자를 안 실으면 결제는 정상으로 끝나는데 사용자는 홈으로
+  //    떨어지고, 회당 결제는 재클릭이 곧 재과금이다(worker/lib/access-state.js 가 회당 키를 보유
+  //    목록에서 거른다). paid-flow-gates.yml 트리거에는 처음부터 있었는데 이 목록에는 없어서
+  //    이 훅만 고친 PR 은 deepRequired 가 아니었다 — access-state.js 와 같은 모양의 구멍이다.
+  [/^app\/hooks\/usePaidResume\.ts$/i, "React 결제 후 재개 배선 훅"],
 
   // ── 유료 기능 UI (정적 계약 테스트가 지키는 곳, preview 스모크는 게스트 경로만 두드린다)
   // 🔴 2026-08-22 실측: app/fusion-fortune/** 가 이 목록에도 paid-flow-gates.yml 트리거에도
@@ -241,6 +249,7 @@ export function selfTest() {
     ["worker/lib/fusion-fortune.js", true],
     ["worker/routes/fusion-fortune.js", true],
     ["app/vedic-ai/page.tsx", true],
+    ["app/hooks/usePaidResume.ts", true],
     // 아래는 level=high 여도 전체 회귀까지는 필요 없다. 이 구분이 두 축의 요점이다.
     ["worker/routes/fortune-tea-house.js", false],
     ["worker/routes/ziwei-ai.js", false],

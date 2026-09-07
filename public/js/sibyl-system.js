@@ -3725,6 +3725,77 @@ function _sibylText(key) {
     });
   }
 
+  /* ── 결제 후 자동 재개(모바일 리다이렉트 복귀) ─────────────────────────────
+     🔴 모바일 PortOne 은 상위 프레임을 리다이렉트하므로 게이트의 await 가 페이지와 함께 죽고
+     리포트가 생성되지 않는다 — 결제하고 돌아오면 홈 화면이던 증상의 정체다.
+     도미네이터 리포트는 로컬 계산이고 paymentContext 에서 쓰는 것은 requestId 하나라
+     복귀 증빙으로 그대로 조립된다(_generateDominatorReport 참조).
+     🔴 재개 실패는 절대 환불 경로를 태우지 않는다 — 결제는 이미 확정됐고 리포트만 못 연 것이므로,
+     환불을 걸면 돈도 돌려주고 리포트도 없는 상태가 된다. 조용히 false 를 돌려주면 복귀 처리가
+     '지금 열기' 카드를 그리고, 영수증이 남아 재클릭은 무료다.
+     계약 정본: js/core/checkout-entry.js */
+  var SIBYL_RESUME_KIND = 'sibyl-dominator-report';
+  var SIBYL_RESUME_WAIT_MS = 8000;
+  var SIBYL_RESUME_POLL_MS = 200;
+
+  function _sibylWaitForResumeTarget() {
+    return new Promise(function(resolve) {
+      var deadline = Date.now() + SIBYL_RESUME_WAIT_MS;
+      (function poll() {
+        var ready = false;
+        try { ready = !!(window._sibylCurrentData && _getCurrentProfile()); } catch (_) { ready = false; }
+        if (ready) { resolve(true); return; }
+        if (Date.now() >= deadline) { resolve(false); return; }
+        setTimeout(poll, SIBYL_RESUME_POLL_MS);
+      })();
+    });
+  }
+
+  function _sibylRunDominatorResume(descriptor, grant) {
+    if (!grant) return false;
+    return _sibylWaitForResumeTarget().then(function(ready) {
+      if (!ready) return false;
+      var paymentContext = {
+        requestId: String((grant && grant.requestId) || ''),
+        pricing: { featureKey: SIBYL_FEATURE_KEY, cost: 100, reason: SIBYL_FEATURE_REASON },
+        consumePayload: (grant && grant.payload && typeof grant.payload === 'object') ? grant.payload : {},
+        bypass: false,
+        // 🔴 환불 금지 표식이 아니라 재시도용 컨텍스트다 — 이 경로는 catch 에서 환불을 부르지 않는다.
+        resumed: true
+      };
+      _sibylLastPaidContext = paymentContext;
+      try { _setSibylState(SibylState.GENERATING_REPORT, '>> 도미네이터 리포트를 생성하는 중입니다…'); } catch (_) {}
+      return Promise.resolve(_generateDominatorReport(paymentContext)).then(function() {
+        // 정상 경로와 같은 후처리 — 서버 잠금해제 상태를 다시 읽어 버튼을 '저장된 리포트 열기'로 갱신한다.
+        try {
+          if (!_isAdminBypassUser()) {
+            var profile = _getCurrentProfile();
+            _invalidateSibylUnlockStatusCache();
+            _resolveSibylUnlockStatus(profile, { force: true }).then(function(st) {
+              _syncSibylUnlockButton(profile, st);
+            }).catch(function() {});
+          }
+        } catch (_) {}
+        return true;
+      }, function(error) {
+        // 🔴 여기서 _requestSibylRefund 를 부르지 않는다 — 결제는 확정됐고 리포트만 못 연 것이라,
+        //    환불을 걸면 돈도 돌려주고 리포트도 없는 상태가 된다. 영수증이 남아 재클릭은 무료다.
+        _sibylLogError('[SIBYL] resume dominator failed', error);
+        try {
+          _setSibylState(SibylState.ERROR, _toFriendlySibylErrorMessage(error, '결제는 완료됐습니다. 리포트 열기를 한 번 더 눌러 주세요.'));
+        } catch (_) {}
+        return false;
+      });
+    });
+  }
+
+  (function _registerSibylResumeHandler() {
+    var entry = null;
+    try { entry = window.__cdCheckoutEntry || null; } catch (_) { entry = null; }
+    if (!entry || typeof entry.registerPaidResumeHandler !== 'function') return;
+    try { entry.registerPaidResumeHandler(SIBYL_RESUME_KIND, _sibylRunDominatorResume); } catch (_) {}
+  })();
+
   async function _runSibylCoinGate(payloadHash) {
     var pricing;
     if (_sibylPricingPrefetch && _sibylPricingPrefetch.promise) {
@@ -3764,6 +3835,8 @@ function _sibylText(key) {
             featureKey: pricing.featureKey,
             requestId: requestId,
             payloadHash: String(payloadHash || '').slice(0, 120),
+            action: 'openSibylModal',
+            resume: { kind: SIBYL_RESUME_KIND, action: 'openSibylModal', args: {} },
             onGranted: function(transactionId, payload) {
               var grantedPayload = payload && typeof payload === 'object' ? payload : {};
               if (!grantedPayload.transactionId && transactionId) grantedPayload.transactionId = String(transactionId);

@@ -1,7 +1,7 @@
 # 베다점 기본 기능 보호 가이드 (재발 방지)
 
 > 무료 **기본 베다점** 도구가 유료 **AI 베다점 상담** 이관 작업에 휩쓸려 사라졌던 사건의 기록과, 같은 실수를 반복하지 않기 위한 규칙.
-> 최종 갱신: 2026-07-11
+> 최종 갱신: 2026-09-07
 
 ## 1. 무슨 일이 있었나
 
@@ -18,7 +18,7 @@
 
 1. **`vedic-astrology.html`(루트 + `public/` 2개 사본)은 무료 기본 베다점 클라이언트 도구다.** 스텁·리다이렉트로 바꾸지 말 것. 두 사본은 심링크가 아니므로 항상 함께 수정한다.
 2. **`/vedic-ai`(React 라우트 + `/api/vedic-ai`)는 유료 AI 베다점 상담 전용이다.** 기본 진입점(프로필 카드/코즈믹 카드/랜딩 CTA)을 여기로 돌리지 말 것. AI 상담은 오직 **VVIP 프리미엄 카드**(`index.html`의 `tarot-tile--vedic-premium`, `data-feature-key="vedic-ai-consultation"`, `data-vedic-ai-card-marker`)에서만 진입한다.
-3. **기본 베다점은 무료다.** 결제 게이트(이용권/월정석/단건결제) 대상이 아니다. basic 진입 액션에 유료 프리뷰/결제 로직을 붙이지 말 것.
+3. **기본 베다점은 "무료 미리보기 + 유료 해석"이다**(2026-09-07 갱신 — 이 줄은 2026-07-11 당시 "전부 무료"였고, PR #1741 이 게이트를 넣은 뒤로 그 서술은 거짓이다). 명반·라그나·나크샤트라·현재 마하다샤까지는 **무료로 계산되어 보이고**, 해석 본문과 심화 탭은 `vedic_basic_reading`(30코인 = 3,000원, 영구 해금) 게이트 뒤에 있다(`worker/lib/paid-feature-registry.js`). 🔴 **이 게이트를 "무료 기능인데 잘못 붙었다"고 판단해 걷어내지 말 것** — 의도된 배선이다. 이 줄이 원래 지키려던 것은 규칙 1·2다(도구 파일을 스텁으로 덮지 말 것, 기본 진입을 `/vedic-ai` 로 돌리지 말 것). 그 둘은 그대로 유효하다.
 
 ## 4. 기본 베다점 진입 배선 지도
 
@@ -26,17 +26,18 @@
 |---|---|---|
 | 프로필 카드(베다점) | `public/js/destiny-profile.js` `_dpOpenFortuneType('vedic')` (`FORTUNE_APP_VEDIC_PAYLOAD` 구성 후) | `/vedic-astrology.html?vp=...` |
 | 코즈믹 컬렉션 카드 | `index.html` `tarot-tile--vedic-fc` (앵커) | `/vedic/jyotish` 랜딩 → CTA |
+| `/vedic` SEO 랜딩 히어로 폼 | `lib/seo-landing-pages.js` `vedic.ctaHref='/?action=navigateToVedic'` (🔴 2026-09-07 이전에는 `/nakshatra/calc` 라 다른 도구로 샜다) | `navigateToVedic` 액션 |
 | `/vedic/jyotish` 랜딩 CTA | `app/components/FeatureLandingPage.tsx` `ACTION_MAP['/vedic/jyotish']='navigateToVedic'` → `/index.html?action=navigateToVedic` | `navigateToVedic` 액션 |
 | `navigateToVedic` 액션 | `index.html` (+ 5개 미러) 액션 핸들러 | destiny-profile 경유 → `/vedic-astrology.html` (폴백도 동일) |
 | **VVIP 프리미엄 카드(AI)** | `index.html` `tarot-tile--vedic-premium` + 클릭 가드 | `/vedic-ai` (유료, **이것만 AI**) |
 
 > `index.html`은 6개 셸 미러(`index.html`, `public/index.html`, `public/{en,ja,zh,static}/index.html`)로 존재한다. 위 배선을 고칠 때는 **6개 전부** 동일하게 반영한다.
 >
-> 상세/프리뷰 안내 레지스트리에서 `navigateToVedic` 키는 **무료 기본(`ct:'free'`)** 을 뜻한다. AI 카드용 프리뷰는 별도 키 `'vedic-ai-consultation'`(독립 객체)로 둔다 — `{inherit:'navigateToVedic'}`로 상속시키면 basic 복원 시 AI 카피가 깨지므로 금지.
+> 상세/프리뷰 안내 레지스트리에서 `navigateToVedic` 키는 **기본 도구**(무료 명반 + 3,000원 해석 해금)를 뜻하며 유료 AI 상담이 아니다. AI 카드용 프리뷰는 별도 키 `'vedic-ai-consultation'`(독립 객체)로 둔다 — `{inherit:'navigateToVedic'}`로 상속시키면 basic 복원 시 AI 카피가 깨지므로 금지.
 
 ## 5. 검증
 
-- 무료 경로: 프로필 선택 → 베다점 진입 → `/vedic-astrology.html`에서 "베다 차트 계산하기"로 브라우저 내 명반 계산(무료)이 뜨는지.
+- 기본 경로: 프로필 선택 → 베다점 진입 → `/vedic-astrology.html`에서 브라우저 내 명반 계산(무료)이 뜨고, 해석 본문이 3,000원 잠금 카드로 보이는지.
 - 랜딩/코즈믹: `/vedic/jyotish` CTA·코즈믹 카드 → 기본 도구 도달.
 - 유료 경로 회귀 없음: VVIP 프리미엄 카드 → `/vedic-ai` 정상, `npm run verify:vedic-ai-flow` 통과.
 

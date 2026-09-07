@@ -32,6 +32,31 @@ export function countResultChars(result: Result) {
     + countVerdictChars(result.finalVerdict);
 }
 
+/**
+ * 화면에 올리기 전에 의미 없는 공백 런을 접는다. 문단 구분(빈 줄 하나)은 남긴다.
+ *
+ * 🔴 서버(`normalizeFusionProseWhitespace`, worker/lib/fusion-fortune.js)와 **같은 규칙**의 짝이다.
+ *    서버는 새로 생성되는 결과를 막고, 여기는 **이미 보관된 결과**를 막는다 — 2026-09-06 이전
+ *    문서에는 본문 끝에 공백 9만 자가 붙은 것이 실제로 있고, 본문이 `whitespace-pre-wrap` 이라
+ *    그대로 그리면 화면에 빈 공간 수천 화면분이 생기고 글자 수·읽는 시간도 함께 튄다.
+ * 🔴 이 함수를 거친 결과가 상태에 들어가므로 글자 수·차례·PDF 가 전부 같은 문자열을 본다.
+ */
+export function tidyFusionProse<T>(value: T): T {
+  if (typeof value === "string") {
+    return value
+      .replace(/\r\n?/g, "\n")
+      .replace(/[^\S\n]+/g, " ")
+      .replace(/ *\n */g, "\n")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim() as unknown as T;
+  }
+  if (Array.isArray(value)) return value.map(tidyFusionProse) as unknown as T;
+  if (value && typeof value === "object") {
+    return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, tidyFusionProse(item)])) as T;
+  }
+  return value;
+}
+
 /** 분 단위 올림. 0자는 0분. */
 export function readingMinutes(chars: number, charsPerMinute: number) {
   if (chars <= 0) return 0;

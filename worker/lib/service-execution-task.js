@@ -1,6 +1,7 @@
 import { connectDb, mongoose, withMongoRetry } from "./db.js";
 import { CONTENT_ENTITLEMENT_STATUSES, MonthlyCreditLedger, Payment, PointHistory, ServiceExecutionTransaction, User } from "./models.js";
 import { restoreMonthlyCreditLot } from "./monthly-credit-store.js";
+import { findMoonstoneSpendEvidence } from "./moonstone-spend-proof.js";
 import { cancelPortOnePayment } from "./portone.js";
 import { revokePaymentContentAccess } from "./content-unlocks.js";
 
@@ -525,6 +526,51 @@ function extractMonthlyCreditExecutionHints(execution = {}) {
   };
 }
 
+/**
+ * V2 월정석 원장(MonthlyCreditLedger)을 되짚을 결제 식별자 후보를 모은다.
+ *
+ * 🔴 sessionId·reportId 는 일부러 뺀다 — 결제 식별자가 아니라 화면/리포트 식별자라서,
+ * 정본 조회기의 sourceId·purchaseId·orderId 절에 넣으면 남의 차감을 오매칭할 수 있다.
+ * (PointHistory 갈래는 accessType=membership_credit 로 한 번 더 좁히지만 원장에는 그 필드가 없다.)
+ * 값 정리·중복 제거·빈 값 제거는 findMoonstoneSpendEvidence 가 한다.
+ */
+function collectMonthlyCreditLedgerTokens(execution = {}, hints = {}) {
+  const metadata = execution?.metadata && typeof execution.metadata === "object" ? execution.metadata : {};
+  const billing = metadata.billing && typeof metadata.billing === "object" ? metadata.billing : {};
+  return [
+    hints.requestIdHint,
+    hints.purchaseIdHint,
+    hints.ledgerIdHint,
+    // 라우트가 access.executionSourceTransactionId(= ctx.transactionId)로 넘기는 값. V2 에서는
+    // PointHistory _id 가 아니라 원장 sourceId 와 같은 requestId 문자열이라 여기서만 쓸모가 있다.
+    execution.sourceTransactionId,
+    execution.idempotencyKey,
+    execution.coinTransactionId,
+    execution.orderId,
+    execution.paymentSessionId,
+    billing.transactionId,
+    billing.monthlyCreditLedgerId,
+    metadata.transactionId,
+    metadata.monthlyCreditLedgerId,
+  ];
+}
+
+/** 원장 serviceKey(= 상품 featureKey)와 실행 레코드의 키가 어긋날 수 있어 후보를 함께 넘긴다. */
+function collectMonthlyCreditFeatureKeys(execution = {}, featureKey = "") {
+  const metadata = execution?.metadata && typeof execution.metadata === "object" ? execution.metadata : {};
+  const billing = metadata.billing && typeof metadata.billing === "object" ? metadata.billing : {};
+  return [
+    featureKey,
+    execution.featureKey,
+    execution.serviceId,
+    execution.productId,
+    metadata.serviceKey,
+    metadata.featureKey,
+    billing.featureKey,
+    billing.serviceKey,
+  ];
+}
+
 async function resolveMonthlyCreditSourceTransactionId({
   userId,
   featureKey,
@@ -629,7 +675,162 @@ async function resolveMonthlyCreditSourceTransactionId({
   return cleanMetadataText(pointHistory._id, 120);
 }
 
+/**
+ * 월정석 자동환불 진입점.
+ *
+ * 2026-08-12 V2 컷오버 이후 spendMoonstone 은 PointHistory 를 쓰지 않고 MonthlyCreditLedger
+ * 한 컬렉션만 남긴다(worker/payments/moonstone.js). 그래서 아래 PointHistory 갈래는 V2 결제에
+ * 대해 **구조적으로** 아무것도 못 찾고, 환불이 통째로 skip 돼 refundStatus:"refund_failed" 로
+ * 굳었다(재시도 리퍼는 pending 만 줍는다). 구 데이터를 위해 PointHistory 갈래를 먼저 태우고,
+ * 그것이 "차감 이력 없음"으로 끝나면 원장 갈래로 넘긴다.
+ */
 async function runMonthlyCreditRefund({
+  env,
+  userId,
+  featureKey,
+  sourceTransactionId,
+  executionId,
+  requestId,
+  reason,
+  execution,
+}) {
+  const legacy = await runMonthlyCreditPointHistoryRefund({
+    userId,
+    featureKey,
+    sourceTransactionId,
+    executionId,
+    requestId,
+    reason,
+    execution,
+  });
+  if (legacy.reason !== "DEDUCT_HISTORY_NOT_FOUND") return legacy;
+
+  return runMonthlyCreditLedgerRefund({
+    env,
+    userId,
+    featureKey: cleanMetadataText(featureKey, 80),
+    executionId,
+    requestId,
+    reason,
+    execution,
+  });
+}
+
+/**
+ * V2 월정석 원장 기반 환불.
+ *
+ * 🔴 원장 조회는 반드시 정본 findMoonstoneSpendEvidence 에 위임한다 — 라우트마다 복제한 원장
+ * 쿼리가 writer 변경 때 조용히 죽은 사고가 3건 있었고(docs/context/payment-gating.md),
+ * 여기에 16번째 사본을 만들면 같은 함정을 되판다.
+ */
+async function runMonthlyCreditLedgerRefund({
+  env,
+  userId,
+  featureKey,
+  executionId,
+  requestId,
+  reason,
+  execution,
+}) {
+  const uid = cleanMetadataText(userId, 64);
+  const executionKey = cleanMetadataText(executionId, 120);
+  if (!uid || !executionKey) return { refunded: false, skipped: true, reason: "DEDUCT_HISTORY_NOT_FOUND" };
+
+  // 🔴 멱등키를 원장 id 가 아니라 **실행 id** 로 잡는 이유: 환불이 원본 SPEND 행에
+  // refundedForServiceExecution 표식을 찍고 나면 정본 조회기가 REFUND_MARKERS 로 그 행을 영영
+  // 배제한다. 원장 기준 키였다면 재진입 때 증빙을 못 찾아 idempotent 대신 DEDUCT_HISTORY_NOT_FOUND
+  // 로 떨어진다. 실행 id 는 표식과 무관하게 항상 같은 값이고, 이 함수의 유일한 호출자
+  // settleExecutionById 가 항상 넘긴다.
+  const refundSourceId = `service-exec-refund:exec:${executionKey}`.slice(0, 180);
+  const existingLedger = await MonthlyCreditLedger.findOne({
+    userId: uid,
+    type: "MONTHLY_CREDIT_GRANT",
+    sourceId: refundSourceId,
+  }).lean();
+  if (existingLedger) {
+    return {
+      refunded: true,
+      idempotent: true,
+      amount: Number(existingLedger.amount || 0),
+      ledgerId: String(existingLedger._id || ""),
+    };
+  }
+
+  const hints = extractMonthlyCreditExecutionHints(execution);
+  const evidence = await findMoonstoneSpendEvidence(env, {
+    userId: uid,
+    featureKeys: collectMonthlyCreditFeatureKeys(execution, featureKey),
+    tokens: collectMonthlyCreditLedgerTokens(execution, hints),
+  });
+  if (!evidence) return { refunded: false, skipped: true, reason: "DEDUCT_HISTORY_NOT_FOUND" };
+
+  // 🔴 원장 amount 는 이미 **월정석 단위**의 양수다(moonstone.js 가 cost 를 그대로 적는다).
+  // execution.cost 는 코인 단위라서, 코인 단가(MEMBERSHIP_CREDIT_PER_COIN=10)로 환산하거나
+  // execution.cost 를 대신 쓰면 10배를 물어준다.
+  const amount = normalizeCost(evidence.amount);
+  if (amount <= 0) return { refunded: false, skipped: true, reason: "MEMBERSHIP_CREDIT_AMOUNT_MISSING" };
+
+  // 🔴 pullRequestId 는 선택 인자가 아니다 — 차감 때 lot CAS 가 recentConsumeRequestIds 에 넣은
+  // sourceId 를 빼 주지 않으면 같은 purchaseId 재구매가 ALREADY_PROCESSED 로 402 를 맞고
+  // E11000 이 안 나므로 키 해제 경로조차 돌지 않는다(= 환불받고 영영 못 여는 락).
+  const updatedUser = await restoreMonthlyCreditLot({
+    userId: uid,
+    lotId: refundSourceId,
+    amount,
+    pullRequestId: cleanMetadataText(evidence.sourceId, 160),
+  });
+  if (!updatedUser) throw new Error("USER_NOT_FOUND_FOR_MONTHLY_CREDIT_REFUND");
+
+  const afterBalance = Math.max(0, Math.floor(Number(updatedUser?.profileSubscription?.membershipCreditBalance || 0)));
+  const ledger = await MonthlyCreditLedger.create({
+    userId: uid,
+    type: "MONTHLY_CREDIT_GRANT",
+    amount,
+    beforeBalance: Math.max(0, afterBalance - amount),
+    afterBalance,
+    reason,
+    sourceId: refundSourceId,
+    serviceKey: cleanMetadataText(evidence.serviceKey || featureKey, 120),
+    profileId: cleanMetadataText(execution?.profileId, 120),
+    metadata: {
+      source: "billing.service-execution",
+      requestId: String(requestId || "").slice(0, 120),
+      executionId: executionKey,
+      originalLedgerId: cleanMetadataText(evidence.ledgerId, 120),
+      sourceTransactionId: cleanMetadataText(evidence.sourceId, 160),
+      accessType: "membership_credit",
+      refundedAt: new Date(),
+    },
+  }).catch(async (error) => {
+    // 같은 실행에 대한 동시 정산 — 유니크 인덱스 {userId,type,sourceId}가 잡는다.
+    if (Number(error?.code) !== 11000) throw error;
+    return MonthlyCreditLedger.findOne({ userId: uid, type: "MONTHLY_CREDIT_GRANT", sourceId: refundSourceId }).lean();
+  });
+
+  await MonthlyCreditLedger.updateOne(
+    { _id: evidence.ledgerId, userId: uid },
+    {
+      $set: {
+        "metadata.refundedForServiceExecution": true,
+        // 원장 쪽 키 해제 계약 표식 — releaseRefundedSpendSourceId 가 이 표식으로만 환불 원장을
+        // 골라 sourceId 를 비운다(재구매 가능하게).
+        "metadata.refundedForUnlockFailure": true,
+        "metadata.refundedAt": new Date(),
+        "metadata.refundExecutionId": executionKey,
+        "metadata.refundLedgerId": String(ledger?._id || ""),
+      },
+    },
+  ).catch(() => {});
+
+  return {
+    refunded: true,
+    idempotent: false,
+    amount,
+    ledgerId: String(ledger?._id || ""),
+  };
+}
+
+async function runMonthlyCreditPointHistoryRefund({
   userId,
   featureKey,
   sourceTransactionId,
@@ -956,10 +1157,12 @@ async function settleExecutionById(env, executionId, reasonCode, reasonMessage) 
       reason: `${reason.message}`.slice(0, 120),
     }), { retries: 0 });
 
-    // attemptTimeoutMS 15000 — 조회 5회 + 원장 생성 + 갱신 2회로 이 파일에서 가장 긴 단위다.
+    // attemptTimeoutMS 15000 — PointHistory 갈래(조회 5회 + 원장 생성 + 갱신 2회)와, 그것이 비었을
+    // 때 이어 도는 원장 갈래(증빙 조회 + lot 복원 + 원장 생성/갱신)를 합쳐 이 파일에서 가장 긴 단위다.
     // 🔴 15000 을 넘기지 않는다: db.js 의 ABANDONED_OP_MAX_AGE_MS 가 15초라, 그보다 오래 도는 콜백은
     // 꼬리에서 in-flight 집계가 풀려 감싼 의미가 사라진다.
     const monthlyCreditResult = await withMongoRetry(env, () => runMonthlyCreditRefund({
+      env,
       userId: execution.userId,
       featureKey: execution.featureKey,
       sourceTransactionId: execution.sourceTransactionId,

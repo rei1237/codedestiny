@@ -39,6 +39,21 @@ export interface DiaryLegacyEntry {
   moodEmoji?: string;
   iAmAffirmation?: string;
   iAmCompleted?: boolean;
+  /** 직전에 고른 문장 자리. 같은 문장이 연달아 나오지 않게 하는 것뿐이다(셸 `:2383`). */
+  iAmLastIndex?: number;
+  /** 장면 그리기. 셸 `:4455-4462` 가 쓰는 것과 같은 네 필드다. */
+  satsKeyword?: string;
+  satsScene?: string;
+  satsSceneLastIndex?: number;
+  satsCompleted?: boolean;
+  /** 다시 쓰기. 셸 `:4425`·`:4442` 와 같다. */
+  revisionOriginal?: string;
+  revisionImagined?: string;
+  revisionDoneCount?: number;
+  /** 실제로 들은 시간(분)과 그 기록. 셸 `:836-838` 이 자리를 만든다. */
+  meditationMinutes?: number;
+  meditationPoints?: number;
+  meditationLogs?: { type?: string; ts?: number; trackId?: string; ok?: boolean }[];
   practiceNote?: string;
   nightLog?: string;
   memoNote?: string;
@@ -46,6 +61,22 @@ export interface DiaryLegacyEntry {
   reviewNote?: string;
   /** 회고 만족도 0~5. `reviewNote` 와 같은 자리다. */
   reviewRate?: number;
+  /** 카드로 내보낼 때의 꾸밈. 셸 `:641-645` 가 자리를 만들고 `:4724-4728` 이 쓴다. */
+  shareNickname?: string;
+  shareCaption?: string;
+  shareTheme?: string;
+  shareUseSticker?: boolean;
+  shareUseBadge?: boolean;
+  /** 셸의 스티커·배지 서랍(`:606-607`). 앱에는 고르는 자리가 없고 카드에 얹을 때만 읽는다. */
+  stickers?: string[];
+  badges?: string[];
+  /** 나란히 볼 상대 한 명. 셸 `:4735-4753` 이 그날 엔트리에 적는 것과 같은 필드다. */
+  partnerName?: string;
+  partnerBirthYear?: string;
+  partnerBirthDate?: string;
+  partnerBirthTime?: string;
+  partnerBirthCity?: string;
+  compatType?: string;
 }
 
 /** 날짜 키 → 엔트리. 셸 모달과 공유하는 v2 평면 맵 그대로다. */

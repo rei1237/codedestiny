@@ -12,6 +12,10 @@ import {
   type DestinyProfileCard,
 } from "@/app/_lib/profile-card-storage";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
+import { usePaidResume, packPaidResumeArg, unpackPaidResumeArg, type PaidResumeDescriptor } from "@/app/hooks/usePaidResume";
+
+// 결제 후 자동 재개 종류 — 심층 리포트의 featureKey 와 같은 값이다(FptiResultCard 의 purchaseFeature).
+const FPTI_DEEP_REPORT_RESUME_KIND = "premium-fpti-report";
 
 const FptiLoading = dynamic(() => import("./FptiLoading"), {
   loading: () => null,
@@ -606,6 +610,27 @@ export default function FptiExperience() {
     };
   }, [analyzeWith, autoReady, form, phase]);
 
+  /**
+   * 결제 후 자동 재개 — 심층 리포트 결제는 FptiResultCard 에서 일어나지만, 핸들러는 여기에 둔다.
+   * 🔴 복귀한 문서는 phase="landing" 에서 시작해 결과 카드가 아예 마운트되지 않는다 —
+   *    잎 컴포넌트에 등록하면 핸들러가 영영 등록되지 않아 '지금 열기' 카드로만 떨어진다.
+   * 열기 방법: 결제 전 입력을 되살려 같은 결과 화면을 다시 연다. 해금 복원은 결과 카드가
+   *    마운트될 때 이미 도는 서버 조회(/api/fpti/deep-report)가 그대로 한다 — 이 기능은
+   *    시그니처 스코프 영구 해금이라 결제분이 서버에 남아 있고, 여기서 해금 로직을 다시
+   *    구현하면 같은 판정이 둘로 갈린다(원칙 6).
+   */
+  const buildDeepReportResume = usePaidResume(FPTI_DEEP_REPORT_RESUME_KIND, async (args) => {
+    const restored = unpackPaidResumeArg<FptiFormInput>(args.form);
+    if (!restored) return false;
+    setForm(restored);
+    return analyzeWith(restored, "profile");
+  });
+
+  const buildDeepReportResumeDescriptor = useCallback(
+    (): PaidResumeDescriptor => buildDeepReportResume({ form: packPaidResumeArg(form) }),
+    [buildDeepReportResume, form],
+  );
+
   const sourcePillars = useMemo(() => {
     if (!sajuSource) return null;
     return [
@@ -688,7 +713,7 @@ export default function FptiExperience() {
 
         {phase === "result" && result && (
           <section id="fpti-result">
-            <FptiResultCard result={result} />
+            <FptiResultCard result={result} buildResumeDescriptor={buildDeepReportResumeDescriptor} />
           </section>
         )}
 

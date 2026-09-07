@@ -514,6 +514,12 @@
         authority: 'server',
         degraded: false
       }, 'access-state');
+      // 🔴 같은 응답이 실어 온 월 잔여(passUsage.remainingKRW)를 버리지 않고 스냅샷에 시드한다.
+      // 이게 없으면 월 한도를 다 쓴 사용자도 재진입 첫 유료 클릭에서 낙관 통과된다 —
+      // pass-verdict 의 월 검사는 잔여 캐시가 없으면 건너뛰기 때문이다(요청 추가 0건).
+      if (hasActivePass && typeof verdict.storeMonthlyQuotaFromAccessState === 'function') {
+        verdict.storeMonthlyQuotaFromAccessState(uid, source);
+      }
     } catch (e) {
       // 스냅샷 반영 실패가 접근 상태 갱신을 막아서는 안 된다.
     }

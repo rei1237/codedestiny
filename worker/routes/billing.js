@@ -26,6 +26,13 @@ import {
 import { connectDb, mongoose, withMongoRetry, mongoTransactionOptions } from "../lib/db.js";
 import { canAccessPaidFeature } from "../lib/paid-feature-access.js";
 import {
+  collectDeferredEvidenceIds,
+  deferredAccessType,
+  findDeferredBillingEvidenceWithSettleWindow,
+  normalizeDeferredPaymentMethod,
+  objectIdLike,
+} from "../lib/deferred-billing-proof.js";
+import {
   CONTENT_ENTITLEMENT_SOURCES,
   CheckoutFunnelEvent,
   MonthlyCreditLedger,
@@ -2163,22 +2170,8 @@ function safeObject(value) {
   return value && typeof value === "object" && !Array.isArray(value) ? value : {};
 }
 
-function objectIdLike(value) {
-  const text = String(value || "").trim();
-  return Boolean(text && mongoose.Types.ObjectId.isValid(text));
-}
-
 function deferredExecutionId(featureKey, userId, requestId) {
   return `deferred:${String(featureKey || "").trim()}:${String(userId || "").trim()}:${String(requestId || "").trim()}`.slice(0, 160);
-}
-
-function normalizeDeferredPaymentMethod(value) {
-  const method = String(value || "").trim().toUpperCase();
-  if (method === "MONTHLY" || method === "MONTHLY_CREDIT" || method === "MOONLIGHT_STONE") return "MONTHLY";
-  if (method === "PASS" || method === "MEMBERSHIP_PASS") return "PASS";
-  if (method === "FAMILY" || method === "FAMILY_PASS") return "FAMILY";
-  if (method === "DIRECT_KRW" || method === "CARD" || method === "SINGLE_PURCHASE") return "DIRECT_KRW";
-  return "COIN";
 }
 
 function deferredRecordAccessMethod(paymentMethod) {
@@ -2189,47 +2182,12 @@ function deferredRecordAccessMethod(paymentMethod) {
   return "single";
 }
 
-function deferredAccessType(paymentMethod) {
-  const method = normalizeDeferredPaymentMethod(paymentMethod);
-  if (method === "MONTHLY") return "membership_credit";
-  if (method === "PASS") return "membership_pass";
-  if (method === "FAMILY") return "family";
-  if (method === "DIRECT_KRW") return "single_purchase";
-  return "coin";
-}
-
 function applyPaymentModeForDeferred(paymentMethod) {
   const method = normalizeDeferredPaymentMethod(paymentMethod);
   if (method === "MONTHLY") return "monthly_credit";
   if (method === "PASS" || method === "FAMILY") return "membership_pass";
   if (method === "DIRECT_KRW") return "single_purchase";
   return "coin";
-}
-
-function collectDeferredEvidenceIds(...sources) {
-  const ids = new Set();
-  const visit = (value, depth = 0) => {
-    if (!value || depth > 3) return;
-    if (typeof value !== "object") return;
-    for (const key of ["_id", "id", "paymentId", "merchantUid", "merchant_uid", "impUid", "imp_uid", "transactionId", "purchaseId", "evidenceId", "requestId", "idempotencyKey", "orderId", "ledgerId"]) {
-      const id = String(value?.[key] || "").trim();
-      if (id) ids.add(id);
-    }
-    for (const key of ["data", "consume", "accessGrant", "payment", "pricing", "billingGate"]) visit(value?.[key], depth + 1);
-  };
-  sources.forEach((source) => visit(source));
-  return [...ids];
-}
-
-function deferredEvidenceClauses(ids = []) {
-  const clauses = [];
-  for (const id of ids) {
-    clauses.push({ requestId: id }, { idempotencyKey: id }, { merchantUid: id }, { impUid: id });
-    clauses.push({ "metadata.requestId": id }, { "metadata.purchaseId": id }, { "metadata.idempotencyKey": id }, { "metadata.orderId": id }, { "metadata.ledgerId": id }, { "metadata.pointHistoryId": id });
-    clauses.push({ sourceId: id });
-    if (objectIdLike(id)) clauses.push({ _id: id }, { paymentId: id });
-  }
-  return clauses;
 }
 
 function deferredUsageSnapshot(record = {}) {
@@ -2358,77 +2316,6 @@ async function createDeferredUsageGrant(env, authUserId, pricing, requestId, opt
   );
 }
 
-async function findVerifiedDeferredBillingEvidence(env, authUserId, featureKey, body = {}) {
-  await connectDb(env);
-  const gate = safeObject(body.billingGate || body.billing || body.billingResult || body.paymentContext);
-  const ids = collectDeferredEvidenceIds(body, gate);
-  const clauses = deferredEvidenceClauses(ids);
-  if (!clauses.length) return null;
-
-  const pointHistory = await PointHistory.findOne({
-    userId: authUserId,
-    kind: "deduct",
-    featureKey,
-    $or: clauses,
-  }).sort({ createdAt: -1 }).select("_id metadata").lean();
-  if (pointHistory) {
-    const meta = safeObject(pointHistory.metadata);
-    const method = normalizeDeferredPaymentMethod(meta.paymentMethod || meta.accessMethod || meta.accessType);
-    return {
-      source: "point_history",
-      paymentMethod: method,
-      accessType: meta.accessType || deferredAccessType(method),
-      paymentId: String(pointHistory._id || ""),
-      evidence: { pointHistoryId: String(pointHistory._id || "") },
-      alreadyConsumed: true,
-    };
-  }
-
-  const ledger = await MonthlyCreditLedger.findOne({
-    userId: authUserId,
-    type: "MONTHLY_CREDIT_SPEND",
-    serviceKey: featureKey,
-    $or: clauses,
-  }).sort({ createdAt: -1 }).select("_id").lean();
-  if (ledger) {
-    return {
-      source: "monthly_credit_ledger",
-      paymentMethod: "MONTHLY",
-      accessType: "membership_credit",
-      paymentId: String(ledger._id || ""),
-      evidence: { ledgerId: String(ledger._id || "") },
-      alreadyConsumed: true,
-    };
-  }
-
-  const payment = await Payment.findOne({
-    userId: authUserId,
-    paymentType: "digital_content",
-    status: { $in: ["paid", "success", "fulfilled"] },
-    $and: [
-      { $or: clauses },
-      {
-        $or: [
-          { featureKey },
-          { "pricingSnapshot.featureKey": featureKey },
-        ],
-      },
-    ],
-  }).sort({ paidAt: -1, updatedAt: -1, createdAt: -1 }).select("_id merchantUid impUid requestId").lean();
-  if (payment) {
-    return {
-      source: "payment",
-      paymentMethod: "DIRECT_KRW",
-      accessType: "single_purchase",
-      paymentId: String(payment.merchantUid || payment.impUid || payment.requestId || payment._id || ""),
-      evidence: { paymentId: String(payment._id || ""), merchantUid: payment.merchantUid || "", impUid: payment.impUid || "" },
-      alreadyConsumed: true,
-    };
-  }
-
-  return null;
-}
-
 async function handleDeferredUsageRegister(request, env) {
   const body = await readJson(request);
   const pricingResult = resolvePricingFromBody(body);
@@ -2437,7 +2324,11 @@ async function handleDeferredUsageRegister(request, env) {
   if (!authCheck.ok) return authCheck.response;
   const requestId = resolveRequestId(request, body);
   const featureKey = String(pricingResult.pricing?.featureKey || body?.featureKey || "").trim();
-  const evidence = await findVerifiedDeferredBillingEvidence(env, authCheck.auth.userId, featureKey, body);
+  await connectDb(env);
+  // 🔴 결제는 이미 끝난 지점이다. 증빙 write 가 아직 안 읽히는 창에서 402 를 내면 사용자는
+  //    돈을 내고도 서비스를 못 받는다 — 그래서 짧은 정산 창만큼 다시 본다(정본: deferred-billing-proof).
+  //    창을 넘겨도 증빙이 없으면 통과시키지 않는다(fail-closed).
+  const evidence = await findDeferredBillingEvidenceWithSettleWindow(env, authCheck.auth.userId, featureKey, body);
   if (!evidence) {
     return failure(402, "PAYMENT_VERIFICATION_FAILED", "결제 확인이 완료되지 않았습니다.");
   }
