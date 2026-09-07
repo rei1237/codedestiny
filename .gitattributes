@@ -42,3 +42,4 @@ public/js/app.js                         merge=cachebust
 public/js/core/init.js                   merge=cachebust
 public/js/core/bootstrapDestinyFlower.js merge=cachebust
 public/js/destiny-profile.js             merge=cachebust
+.ignore text eol=lf
