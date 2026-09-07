@@ -1,6 +1,6 @@
 const fs = require("fs");
 const path = require("path");
-const test = require("node:test");
+const test = typeof globalThis.test === "function" ? globalThis.test : require("node:test");
 const assert = require("node:assert/strict");
 
 const ROOT = path.join(__dirname, "..", "..");
