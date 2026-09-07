@@ -1324,7 +1324,7 @@ export default {
            응답은 legacyShape 로 나간다: 서버만 바뀌고 클라이언트는 그대로인 구간에서 키가 어긋나면
            200 이 오고 파싱도 되는데 값만 undefined 라 **에러 없이 화면이 빈다**(worker/payments/compat.js). */
         if (request.method === "GET"
-          && /^\/api\/payments\/orders\/[^/]+$/.test(url.pathname)) {
+          && /^\/api\/payments\/orders\/[^/]+(?:\/resume)?$/.test(url.pathname)) {
           const { handlePaymentsContext } = await import("./payments/index.js");
           return withCorsHeaders(request, env, await handlePaymentsContext(request, env, {
             prefix: "/api/payments",

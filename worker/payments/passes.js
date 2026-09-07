@@ -88,7 +88,7 @@ export async function derivePassOrderId(userId, idempotencyKey, tier) {
  * 같은 키의 기존 주문이 다른 금액·등급이면 IDEMPOTENCY_CONFLICT — 옛 가격 주문을 조용히
  * 돌려주지 않는다. 그 409 를 흡수하는 것은 아래 createPayablePassOrder 다(호출부는 그쪽을 쓴다).
  */
-export async function createPassOrder(db, { userId, plan, idempotencyKey, paymentMethod = "card_general" }) {
+export async function createPassOrder(db, { userId, plan, idempotencyKey, paymentMethod = "card_general", paidResume = null }) {
   const uid = toObjectId(userId);
   if (!uid) throw paymentError("UNAUTHORIZED", "로그인이 필요합니다.");
   const orderId = await derivePassOrderId(userId, idempotencyKey, plan.tier);
@@ -116,6 +116,7 @@ export async function createPassOrder(db, { userId, plan, idempotencyKey, paymen
           productId: plan.planId,
           confirmAttempts: 0,
           metadata: {
+            ...(paidResume ? { paidResume } : {}),
             planId: plan.planId,
             durationMonths: plan.durationMonths,
             durationDays: plan.durationDays,
@@ -521,6 +522,11 @@ export async function consumePassCoverage(db, { userId, coverage, marker, existi
   const uid = toObjectId(userId);
   if (!uid) throw paymentError("UNAUTHORIZED", "로그인이 필요합니다.");
   const cost = Math.max(0, Math.floor(Number(coverage?.coinCost || 0)));
+  async function readConcurrentReplay() {
+    if (!marker) return null;
+    const current = await db.findOne(User, { _id: uid });
+    return Array.isArray(current?.recentConsumeRequestIds) && current.recentConsumeRequestIds.includes(marker) ? current : null;
+  }
   const markerSet = { ...(marker ? { recentConsumeRequestIds: { $ne: marker } } : {}) };
   const markerWrite = !marker
     ? {}
@@ -541,7 +547,7 @@ export async function consumePassCoverage(db, { userId, coverage, marker, existi
       mergeUpdate({ $set: baseSet }, markerWrite),
       { returnDocument: "after" },
     );
-    return unwrapUser(updated);
+    return unwrapUser(updated) || readConcurrentReplay();
   }
 
   // 같은 사이클이면 증분(예산 잔량을 필터로 재검사), 새 사이클이면 이번 건부터 다시 센다.
@@ -585,7 +591,9 @@ export async function consumePassCoverage(db, { userId, coverage, marker, existi
     const updated = unwrapUser(await db.findOneAndUpdate(User, attempt.filter, attempt.update, { returnDocument: "after" }));
     if (updated) return applyBudgetExhaustionTermination(db, { userId, coverage, updated, now });
   }
-  return null;
+  // 낙관 패스의 백그라운드 기록과 실제 생성 요청은 동시에 올 수 있다.
+  // CAS 패배를 거절로 바꾸기 전에 같은 실행의 소비 성공을 서버에서 확인한다.
+  return readConcurrentReplay();
 }
 
 /**

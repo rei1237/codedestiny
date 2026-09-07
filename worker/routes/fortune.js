@@ -104,7 +104,7 @@ import { resolveCanonicalEntitlement } from "../lib/entitlement-policy.js";
 // 🔴 이용권 무료 통과는 **차감을 동반해야** 한도가 존재한다. 이 파일의 두 통과 지점
 // (AI 프롬프트 이용권 증빙 · SUBSCRIPTION_INCLUDED)은 coin-gate 를 거치지 않아 지금까지
 // monthlySpendCoin 을 한 번도 올리지 않았다. 판정·소비 정본은 worker/payments/passes.js.
-import { consumePassForFeature, passDenialCode } from "../lib/pass-consumption.js";
+import { consumePassForFeature, hasConsumedPassFeature, passDenialCode } from "../lib/pass-consumption.js";
 import { calculateKrwAmountFromCoins, calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { autoRefundSinglePaymentDeliveryFailure } from "../lib/payment-refund.js";
 import { EDGE_RESPONSE_DEADLINE_MS, clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
@@ -944,7 +944,7 @@ async function findSajuAIExecutionForRead({ auth, jobId = "", resultId = "", req
 // 대신 202(진행 중)로 수렴하고, 백그라운드(waitUntil) 생성의 완료/실패도 레코드로 전달된다.
 // 식별자(executionId·requestId·profileId)와 과금 필드는 완료 저장(saveSajuAIConsultationResultRecord)의
 // $setOnInsert와 동일 정본을 쓴다 — 불일치 시 폴링이 레코드를 못 찾아 404가 재발한다.
-async function beginSajuAIConsultationGeneratingRecord({ auth, body, profileId, requestId, resultId, consumePayload, paymentIdentity, chargedCoins, membershipCreditCost, env }) {
+async function beginSajuAIConsultationGeneratingRecord({ auth, body, profileId, requestId, resultId, consumePayload, paymentIdentity, chargedCoins, membershipCreditCost, env, existingExecution = null }) {
   const userId = String(auth?.userId || "").trim();
   const normalizedProfileId = String(profileId || "default").trim() || "default";
   const normalizedRequestId = String(requestId || "").trim();
@@ -954,12 +954,15 @@ async function beginSajuAIConsultationGeneratingRecord({ auth, body, profileId, 
   const executionId = buildSajuAIPromptExecutionId({ userId, profileId: normalizedProfileId, requestId: normalizedRequestId });
   const paymentId = String(paymentIdentity?.paymentId || "").trim();
   const orderId = String(paymentIdentity?.orderId || normalizedRequestId).trim();
-  await withMongoRetry(env, () => PaidExecutionRecord.findOneAndUpdate(
+  const claimed = await withMongoRetry(env, () => PaidExecutionRecord.findOneAndUpdate(
     {
       userId,
       featureId: SAJU_AI_PROMPT_FEATURE_KEY,
       profileId: normalizedProfileId,
       requestId: normalizedRequestId,
+      ...(existingExecution
+        ? { status: existingExecution.status, updatedAt: existingExecution.updatedAt || null }
+        : { status: { $exists: false } }),
     },
     {
       $setOnInsert: {
@@ -988,11 +991,13 @@ async function beginSajuAIConsultationGeneratingRecord({ auth, body, profileId, 
       },
       $unset: { error: "", completedAt: "" },
     },
-    { upsert: true },
+    { upsert: !existingExecution, new: true },
   )).catch((error) => {
+    if (error?.code === 11000) return null; // 같은 executionId를 다른 요청이 먼저 시작했다.
     console.warn("[fortune][saju-ai-prompt] begin generating record failed:", error?.message || error);
+    throw error;
   });
-  return executionId;
+  return claimed ? executionId : null;
 }
 
 async function saveSajuAIConsultationResultRecord({ auth, body, profileId, requestId, resultId, resultPayload, builtPrompt, consumePayload, paymentIdentity, promptDigest, env }) {
@@ -1818,13 +1823,14 @@ async function findAIPromptPaidAccessEvidence({ auth, featureKey, body, requestI
     // 나란히 돌린다(worker/lib/nakshatra-paid-access.js 의 같은 패턴 참고). 판정을 못 내리면
     // (만료일 없음 등) applies=false 로 열어 둔다 — 셀 수 없는 상태에서 막지 않는다.
     const canonicalEntitlement = resolveCanonicalEntitlement(passUser || {});
+    const alreadyConsumed = await hasConsumedPassFeature(passUser, featureKey, requestId);
     const premiumQuota = resolvePremiumQuota(passUser?.profileSubscription || {}, canonicalEntitlement, cost);
     const monthlyQuota = resolveMonthlySpendQuota(passUser?.profileSubscription || {}, canonicalEntitlement, cost);
     // premiumQuota.eligible 인 건은 canUseByPass(건당 상한)를 통과 못해도 커버 대상이다 — VVIP는
     // 건당 상한(10,000원)이 상담 포함횟수 기준가(300코인=30,000원)보다 낮다. cycleKey를 못 구해도
     // (만료일 없음) 열어 둬야 하므로 applies가 아니라 eligible을 쓴다(profile-limits.js 참고).
-    if ((canUseByPass(passEntitlement, cost) || premiumQuota.eligible) && !(premiumQuota.applies && premiumQuota.exhausted) && !(monthlyQuota.applies && monthlyQuota.exceeded)) {
-      if (consume) {
+    if (alreadyConsumed || ((canUseByPass(passEntitlement, cost) || premiumQuota.eligible) && !(premiumQuota.applies && premiumQuota.exhausted) && !(monthlyQuota.applies && monthlyQuota.exceeded))) {
+      if (consume && !alreadyConsumed) {
         // 🔴 위 monthlyQuota 검사는 **읽기**뿐이라, 아무도 쓰지 않던 monthlySpendCoin 은 영원히 0
         //    이었고 한도에 도달하는 것 자체가 불가능했다. 정본으로 판정하고 실제로 차감한다.
         //    코드가 빈 문자열이면 막지 않는다(pass-consumption.passDenialCode 주석).
@@ -4685,7 +4691,7 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
     console.warn("[fortune][saju-ai-prompt] execution reconnect lookup failed:", error?.message || error);
   }
   // 생성 시작 표시 — 이 레코드가 있어야 클라이언트 /status 폴링이 404 대신 202로 수렴한다.
-  await beginSajuAIConsultationGeneratingRecord({
+  const claimedExecutionId = await beginSajuAIConsultationGeneratingRecord({
     auth,
     body,
     profileId,
@@ -4696,7 +4702,17 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
     chargedCoins,
     membershipCreditCost,
     env,
-  });
+    existingExecution,
+  }).catch(() => null);
+  if (!claimedExecutionId) {
+    const current = await findSajuAIExecutionForRead({ auth, jobId: sajuExecutionId, resultId, requestId, profileId }).catch(() => null);
+    if (current?.status === "completed") {
+      const stored = normalizeSajuAIStoredResult(current);
+      if (stored) return json(stored);
+    }
+    if (current?.status === "generating") return json(buildSajuAIStatusPayload(current), { status: 202 });
+    return buildSajuAIPromptError("GENERATION_START_RETRYABLE", "상담 시작 상태를 확인하고 있습니다. 추가 결제 없이 잠시 후 다시 시도해 주세요.", 503);
+  }
 
   logSajuAIPromptStage("LLM_JOB_STARTED", {
     userId: auth.userId,

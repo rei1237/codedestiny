@@ -12,9 +12,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { postPaidBody } from "../nakshatra-fetch";
 import { useCoinGate } from "@/app/hooks/useCoinGate";
-import { usePaidResume } from "@/app/hooks/usePaidResume";
+import { usePaidResume, packPaidResumeArg, unpackPaidResumeArg } from "@/app/hooks/usePaidResume";
 import { useContentUnlock } from "@/app/_lib/use-content-unlock";
-import { hasLedgerUnlock } from "@/app/_lib/optimistic-unlock-ledger";
+import { hasLedgerUnlock, forgetOptimisticUnlock } from "@/app/_lib/optimistic-unlock-ledger";
+import passVerdict from "@/js/core/pass-verdict.js";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { NAKSHATRA_RESULT_STORAGE_KEY } from "../NakshatraFormClient";
 import { birthFromProfileSeed, type NakshatraBirthInput } from "../nakshatra-birth";
@@ -146,29 +147,43 @@ export function usePremiumReport<T>(product: PremiumProduct): UsePremiumReportRe
   const isUnlocked = ledgerUnlocked || unlocked[product.featureKey] === true;
   const confirmedLocked = unlockStatus === "ready" && !isUnlocked;
 
-  const load = useCallback(async () => {
-    if (!birth || loading) return;
+  const fetchingRef = useRef(false);
+  const load = useCallback(async (restoredBirth: NakshatraBirthInput | null = birth) => {
+    if (!restoredBirth || fetchingRef.current) return false;
+    fetchingRef.current = true;
     setLoading(true);
     setError("");
     try {
       // 🔴 일시적 503(Mongo 블립·세션 리프레시 지연)은 공용 판정·백오프로 자동 재시도한다.
       //    이 완충이 없으면 블립 한 번에 "연결이 불안정해요"로 굳어 사용자가 수동 재시도해야 했다.
-      const { data, status, transient } = await postPaidBody(product.endpoint, birth as unknown as Record<string, unknown>);
+      const { data, status, transient } = await postPaidBody(product.endpoint, restoredBirth as unknown as Record<string, unknown>);
       if (data.ok && data.report) {
         setReport(data.report as T);
         fetchedRef.current = true;
-        return;
+        return true;
       }
-      if (status === 402 || data.reason === "PAYMENT_REQUIRED") return;   // 잠금 유지
-      if (status === 401 || data.reason === "LOGIN_REQUIRED") { setError(ERROR_TEXT.login); return; }
-      if (transient) { setError(ERROR_TEXT.degraded); return; }
+      if (status === 402 || data.reason === "PAYMENT_REQUIRED") {
+        // PAYMENT_REQUIRED만으로 정상 이용권을 회수하지 않는다. 백그라운드 이용권
+        // 적용보다 결과 요청이 먼저 도착할 수 있다. 명시적 한도 소진만 회수한다.
+        if (passVerdict.isMonthlyLimitPayload(data)) {
+          forgetOptimisticUnlock(product.featureKey);
+          setLedgerUnlocked(false);
+        }
+        setError(ERROR_TEXT.payment);
+        return false;
+      }
+      if (status === 401 || data.reason === "LOGIN_REQUIRED") { setError(ERROR_TEXT.login); return false; }
+      if (transient) { setError(ERROR_TEXT.degraded); return false; }
       setError(toText(data.message) || ERROR_TEXT.failed);
+      return false;
     } catch {
       setError(ERROR_TEXT.failed);
+      return false;
     } finally {
+      fetchingRef.current = false;
       setLoading(false);
     }
-  }, [birth, loading, product.endpoint, ERROR_TEXT]);
+  }, [birth, product.endpoint, product.featureKey, ERROR_TEXT]);
 
   // 해금 + 생년 정보가 갖춰지면 한 번만 자동으로 본문을 채운다.
   useEffect(() => {
@@ -177,23 +192,24 @@ export function usePremiumReport<T>(product: PremiumProduct): UsePremiumReportRe
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isUnlocked, birth, report]);
 
-  /* 결제 후 자동 재개 — 영구 해금이라 서버 원장에도 남지만, 복귀 직후의 해금 조회가 결제 확정보다
-     먼저 끝나면 "미해금"으로 굳어 사용자가 새로고침해야 했다. 낙관적 해금만 켜 주면 위의 자동
-     본문 로드 효과가 생년이 준비되는 대로 이어받는다(load 를 여기서 직접 부르면 birth 가 아직
-     비어 있는 프레임에서 조용히 빠진다). 🔴 게이트(unlock)를 다시 타지 않는다. */
-  const buildResume = usePaidResume(product.featureKey, () => {
+  // 복원한 입력을 직접 전달하고 실제 리포트 수신까지 기다린다. React 상태 반영이나
+  // 낙관적 해금만으로 resume 완료를 반환하지 않으며 구매 게이트를 다시 타지 않는다.
+  const buildResume = usePaidResume(product.featureKey, async (args) => {
+    const restored = unpackPaidResumeArg<NakshatraBirthInput>(args.birth) || birth;
+    if (!restored) return false;
+    setBirth(restored);
     markOptimisticallyUnlocked(product.featureKey);
     setLedgerUnlocked(true);
     fetchedRef.current = false;
     void refetchUnlocks({ force: true });
-    return true;
+    return load(restored);
   });
 
   const unlock = useCallback(async () => {
     if (isPaying || loading) return;
     setError("");
     const result = await ensurePaidAccess({
-      resume: buildResume(),
+      resume: buildResume({ birth: packPaidResumeArg(birth) }),
       featureKey: product.featureKey,
       coinPrice: product.coinPrice,
       cost: product.coinPrice,

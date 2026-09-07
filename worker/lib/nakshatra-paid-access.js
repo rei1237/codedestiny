@@ -31,7 +31,7 @@ import { normalizeHoneyPassEntitlement, canUseByPass, resolvePremiumQuota } from
 import { resolveCanonicalEntitlement } from "./entitlement-policy.js";
 // 🔴 이용권 통과는 **차감을 동반해야** 한도가 존재한다. 판정·소비 정본은 worker/payments/passes.js
 // 이며 이 어댑터가 그 정본을 부른다(worker/lib/pass-consumption.js 머리주석).
-import { consumePassForFeature, passDenialCode } from "./pass-consumption.js";
+import { consumePassForFeature, hasConsumedPassFeature, passDenialCode } from "./pass-consumption.js";
 
 const ID_MAX = 180;
 
@@ -145,6 +145,9 @@ export async function verifyPerUsePayment(env, { userId, featureKey, coinPrice =
       .select("role profileSubscription subscription membership membershipPass pass entitlement licensePass passTier expiresAt isActive recentConsumeRequestIds")
       .lean());
     if (!user) return { proven: false, source: "", reason: "USER_NOT_FOUND" };
+    if (await hasConsumedPassFeature(user, key, rid)) {
+      return { proven: true, source: "pass", reason: "" };
+    }
     if (String(user.role || "").toLowerCase() === "admin") {
       return { proven: true, source: "admin", reason: "" };
     }

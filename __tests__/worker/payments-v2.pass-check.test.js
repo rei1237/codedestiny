@@ -54,6 +54,19 @@ async function postPassCheck(db, body) {
 }
 
 describe("정책 — 건당 상한 + 단일 월 예산 2규칙", () => {
+  test("마지막 커버 실행은 이용권 소진 후 동일 requestId로 200 재개하고 신규 실행은 거절한다", async () => {
+    const db = makeFakePaymentDb();
+    const pass = activePass("standard");
+    pass.premiumUseCycleKey = pass.expiresAt.toISOString();
+    pass.monthlySpendCoin = MONTHLY_PASS_LIMITS.standard - CHEAP.priceCoins;
+    seedUser(db, pass);
+    const body = { featureKey: CHEAP.featureKey, requestId: "resume-last-covered" };
+    expect((await postPassCheck(db, body)).response.status).toBe(200);
+    const repeated = await postPassCheck(db, body);
+    expect(repeated.response.status).toBe(200);
+    expect(repeated.payload.data.consume.ok).toBe(true);
+    expect((await postPassCheck(db, { ...body, requestId: "new-after-end" })).response.status).toBe(402);
+  });
   const ent = (tier) => ({ tier, passTier: tier, isActive: true, expiresAt: new Date(Date.now() + 10 * DAY_MS) });
 
   test("상한 이하 + 예산 여유 → 커버", () => {

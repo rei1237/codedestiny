@@ -1274,14 +1274,17 @@
     var store = localStore() || sessionStore();
     if (!store || !ticket) return false;
     try {
-      store.setItem(DIRECT_RESUME_KEY, JSON.stringify({
+      var serialized = JSON.stringify({
         at: Number(ticket.at) || Date.now(),
         merchantUid: text(ticket.merchantUid),
         paymentMethod: text(ticket.paymentMethod || (ticket.confirmBody && ticket.confirmBody.paymentMethod)),
         confirmBody: ticket.confirmBody || null,
         // 복귀한 문서가 "무엇을 다시 열어야 하는지" — 없으면 종전대로 완료 안내까지만 한다.
         resume: sanitizePaidResumeDescriptor(ticket.resume),
-      }));
+      });
+      // 주문별 키가 정본이다. 단일 키는 이미 결제 중인 이전 클라이언트 호환용이다.
+      store.setItem(DIRECT_RESUME_KEY + ':' + text(ticket.merchantUid), serialized);
+      store.setItem(DIRECT_RESUME_KEY, serialized);
       return true;
     } catch (_writeError) {
       return false;
@@ -1289,16 +1292,19 @@
   }
 
   /** TTL 이 지난 티켓은 없는 것으로 본다(회수까지 하지는 않는다 — 회수는 확정·실패가 결정한다). */
-  function readDirectPaymentResumeTicket() {
+  function readDirectPaymentResumeTicket(paymentId) {
     var stores = [localStore(), sessionStore()];
     for (var i = 0; i < stores.length; i += 1) {
       if (!stores[i]) continue;
       var raw = "";
-      try { raw = String(stores[i].getItem(DIRECT_RESUME_KEY) || ""); } catch (_readError) { continue; }
+      try {
+        raw = String((paymentId && stores[i].getItem(DIRECT_RESUME_KEY + ':' + text(paymentId))) || stores[i].getItem(DIRECT_RESUME_KEY) || "");
+      } catch (_readError) { continue; }
       if (!raw) continue;
       var parsed = null;
       try { parsed = JSON.parse(raw); } catch (_parseError) { continue; }
       if (!parsed || typeof parsed !== "object") continue;
+      if (paymentId && text(parsed.merchantUid) !== text(paymentId)) continue;
       if (Date.now() - (Number(parsed.at) || 0) > DIRECT_RESUME_TTL_MS) continue;
       return parsed;
     }
@@ -1306,11 +1312,16 @@
   }
 
   /** 두 저장소를 모두 지운다 — 한쪽만 지우면 구 티켓이 남아 죽은 결제를 다시 확정하려 든다. */
-  function clearDirectPaymentResumeTicket() {
+  function clearDirectPaymentResumeTicket(paymentId) {
     var stores = [localStore(), sessionStore()];
     for (var i = 0; i < stores.length; i += 1) {
       if (!stores[i]) continue;
-      try { stores[i].removeItem(DIRECT_RESUME_KEY); } catch (_clearError) { /* 지우기 실패는 삼킨다 */ }
+      try {
+        var legacy = JSON.parse(stores[i].getItem(DIRECT_RESUME_KEY) || 'null');
+        var target = text(paymentId || (legacy && legacy.merchantUid));
+        if (target) stores[i].removeItem(DIRECT_RESUME_KEY + ':' + target);
+        if (!paymentId || (legacy && text(legacy.merchantUid) === text(paymentId))) stores[i].removeItem(DIRECT_RESUME_KEY);
+      } catch (_clearError) { /* 지우기 실패는 삼킨다 */ }
     }
   }
 
@@ -1462,7 +1473,7 @@
     };
   }
 
-  function runPaidResume(descriptor, proof) {
+  function runPaidResumeOnce(descriptor, proof) {
     var win = runtimeWindow();
     var resume = sanitizePaidResumeDescriptor(descriptor);
     if (!win || !resume) return Promise.resolve(false);
@@ -1480,6 +1491,31 @@
       if (!lateHandler) return false;
       return invokePaidResumeHandler(lateHandler, resume, grant);
     });
+  }
+
+  // classic script와 React import가 같은 실행을 합류한다. 실패는 동일 증빙으로
+  // 재시도할 수 있다. 서버의 소비/결과 멱등성은 이 문서 내 락과 별도로 필요하다.
+  function runPaidResume(descriptor, proof) {
+    var win = runtimeWindow();
+    var resume = sanitizePaidResumeDescriptor(descriptor);
+    if (!win || !resume) return Promise.resolve(false);
+    var grant = buildPaidResumeGrant(proof);
+    var operation = text(grant && (grant.merchantUid || grant.requestId));
+    if (!operation) return runPaidResumeOnce(resume, proof);
+    var key = JSON.stringify([operation, resume.kind]);
+    var runs = win.__cdPaidResumeRuns || (win.__cdPaidResumeRuns = Object.create(null));
+    if (runs[key]) return runs[key];
+    // microtask에서 시작하여 동기 핸들러 재진입에도 먼저 락이 보이게 한다.
+    runs[key] = Promise.resolve().then(function () {
+      return runPaidResumeOnce(resume, proof);
+    }).then(function (opened) {
+      if (!opened) delete runs[key];
+      return opened;
+    }, function () {
+      delete runs[key];
+      return false;
+    });
+    return runs[key];
   }
 
   /* ── 유료 개방 영수증 ──────────────────────────────────────────────────────
@@ -1582,6 +1618,21 @@
    *  다른 앱으로 이탈했다 돌아오는 수단은 **새 탭으로 복귀**하는 일이 흔해, sessionStorage 에만 두면
    *  /points 에 돌아와도 복귀 지점이 사라져 원래 화면으로 못 돌아간다(pending 주문은 localStorage 라
    *  살아 있어 결제는 확정되는데 사용자는 /points 에 머무는 상태가 정확히 이것이다). */
+  function buildPaidResumeContext(options) {
+    var opts = options || {};
+    var resume = sanitizePaidResumeDescriptor(opts.resume);
+    var win = runtimeWindow();
+    if (!resume || !win || !win.location) return null;
+    var gate = {};
+    ['featureKey', 'productId', 'categoryKey', 'subFeatureKey', 'contentKey', 'profileId', 'selectedProfileId', 'requestId', 'reason', 'coinPrice', 'cost', 'mode', 'reportMode', 'reportType'].forEach(function (key) {
+      var value = opts[key];
+      if (typeof value === 'string' || (typeof value === 'number' && isFinite(value))) gate[key] = value;
+    });
+    gate.requestId = text(gate.requestId || resume.args.requestId || resume.args.idempotencyKey || resume.args.attemptId)
+      || ('resume-' + mintPaymentAttemptScope());
+    return { version: 1, originPath: win.location.pathname + win.location.search + win.location.hash, resume: resume, gate: gate };
+  }
+
   function rememberCheckoutReturn(options) {
     var store = localStore() || sessionStore();
     if (!store) return false;
@@ -1593,6 +1644,7 @@
         url: url,
         label: text(opts.label),
         featureKey: text(opts.featureKey),
+        paidResume: opts.paidResume || null,
         savedAt: Date.now(),
       }));
       return true;
@@ -1605,7 +1657,7 @@
    * 복귀 지점을 읽고 **즉시 지운다**. 지우고 나서 이동해야 목적지에서 같은 지점을 다시 읽어
    * 왕복하는 루프가 생기지 않는다.
    */
-  function consumeCheckoutReturn() {
+  function consumeCheckoutReturn(keep) {
     // localStorage → sessionStorage 순으로 읽고 **둘 다 지운다** — 배포 시점에 구 코드가 sessionStorage 에
     // 남긴 복귀 지점으로 결제 중인 사용자가 있고, 한쪽만 지우면 그 티켓이 다음 결제 때 되살아난다.
     var stores = [localStore(), sessionStore()];
@@ -1614,7 +1666,7 @@
       if (!stores[i]) continue;
       try {
         var candidate = stores[i].getItem(RETURN_KEY);
-        stores[i].removeItem(RETURN_KEY);
+        if (!keep) stores[i].removeItem(RETURN_KEY);
         if (raw == null && candidate) raw = candidate;
       } catch (_readError) { /* 한 저장소가 막혀도 다른 쪽은 읽는다 */ }
     }
@@ -1624,7 +1676,9 @@
       if (!parsed || !text(parsed.url)) return null;
       var age = Date.now() - Number(parsed.savedAt || 0);
       if (!(age >= 0) || age > RETURN_TTL_MS) return null;
-      return { url: text(parsed.url), label: text(parsed.label), featureKey: text(parsed.featureKey) };
+      var returnPoint = { url: text(parsed.url), label: text(parsed.label), featureKey: text(parsed.featureKey) };
+      if (parsed.paidResume) returnPoint.paidResume = parsed.paidResume;
+      return returnPoint;
     } catch (_parseError) {
       return null;
     }
@@ -1696,6 +1750,8 @@
 
   return {
     VERSION: 1,
+    buildPaidResumeContext: buildPaidResumeContext,
+    peekCheckoutReturn: function () { return consumeCheckoutReturn(true); },
     RETURN_KEY: RETURN_KEY,
     RETURN_TTL_MS: RETURN_TTL_MS,
     FUNNEL_PATH: FUNNEL_PATH,
