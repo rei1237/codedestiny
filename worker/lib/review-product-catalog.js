@@ -22,7 +22,7 @@ export const REVIEW_PRODUCTS = Object.freeze([
       "saju-guardian-unlock",
       "animal-destiny-unlock",
       "destiny_meeting_place",
-      "loveSimulation",
+      "love-code",
       "section_daewun",
       "section_summary",
       "healthReport",

@@ -14,6 +14,8 @@
  */
 import {
   FEATURE_KEY_PRICE_TABLE,
+  LOVE_CODE_FEATURE_KEY,
+  LOVE_CODE_PRODUCT_ID,
   PAID_FEATURE_BILLING_TYPES,
   PIG_COIN_UNLOCK_PRODUCTS,
   getPaidFeatureBillingType,
@@ -47,6 +49,9 @@ const UNLOCK_PRODUCT_ID_BY_FEATURE_KEY = Object.freeze(
 function lookupSpec(productId, featureKey) {
   if (productId && PIG_COIN_UNLOCK_PRODUCTS[productId]) {
     return { spec: PIG_COIN_UNLOCK_PRODUCTS[productId], productId };
+  }
+  if (featureKey === LOVE_CODE_FEATURE_KEY && PIG_COIN_UNLOCK_PRODUCTS[LOVE_CODE_PRODUCT_ID]) {
+    return { spec: PIG_COIN_UNLOCK_PRODUCTS[LOVE_CODE_PRODUCT_ID], productId: LOVE_CODE_PRODUCT_ID };
   }
   if (!featureKey) return null;
   if (FEATURE_KEY_PRICE_TABLE[featureKey]) {

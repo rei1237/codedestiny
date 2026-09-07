@@ -783,7 +783,7 @@ async function grantOrderEntitlement(db, order) {
       contentKey: String(snapshot.contentKey || ""),
       scope: String(snapshot.scope || ""),
     });
-    await markUserFeatureUnlocked(db, { userId: String(order.userId || ""), featureKey: String(order.featureKey || "") });
+    await markUserFeatureUnlocked(db, { userId: String(order.userId || ""), featureKey: product.featureKey });
     await markEntitlementGranted(db, { orderId: String(order.merchantUid || "") });
     invalidateBalanceSnapshot(order?.userId); // 해금 스냅샷(unlockedFeatures/unlockMap) 갱신 반영
     return true;

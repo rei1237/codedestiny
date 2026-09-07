@@ -1513,6 +1513,9 @@ function __cdResolveTileLockAliasKeys(lockKey) {
   if (base === 'olympus-profile-fc') map['olympus-fc'] = true;
   if (base === 'olympus-fc') map['olympus-profile-fc'] = true;
   var aliases = {
+    'love-code': ['loveSimulation', 'openLoveSimulation'],
+    loveSimulation: ['love-code', 'openLoveSimulation'],
+    openLoveSimulation: ['love-code', 'loveSimulation'],
     flower_all: ['flower', 'flower-fc', 'flower-destiny', 'flower-astro', 'flower-ziwei', 'flower-sukuyo'],
     'flower-fc': ['flower', 'flower-destiny', 'flower-astro', 'flower-ziwei', 'flower-sukuyo'],
     flower: ['flower-fc', 'flower-destiny', 'flower-astro', 'flower-ziwei', 'flower-sukuyo'],

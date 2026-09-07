@@ -17,16 +17,18 @@ import type { CompatibilityProfile } from "../_engine/compatibilityTypes";
 import type { AnimalDestinyInput } from "../../animal-destiny/lib/types";
 import { formatBirthDateDigits, normalizeBirthDateFromDigits } from "@/lib/birthDateInput";
 import { readCurrentDestinyProfile } from "@/app/_lib/profile-card-storage";
-import { holdPaidFeatureGateOpen, openPaidFeatureGate, releasePaidFeatureGate, runPaidAccessGate, updatePaidFeatureGate } from "@/app/_lib/billing-client";
+import { holdPaidFeatureGateOpen, openPaidFeatureGate, refreshPaidFeatureEntitlements, releasePaidFeatureGate, runPaidAccessGate, updatePaidFeatureGate } from "@/app/_lib/billing-client";
+import { LOVE_CODE_FEATURE_KEY, normalizeLoveCodeFeatureKey } from "@/app/_lib/love-code-entitlement";
+import { useCanUseFeature } from "@/app/_lib/use-content-unlock";
 import { packPaidResumeArg, unpackPaidResumeArg, usePaidResume } from "@/app/hooks/usePaidResume";
 import { resolveServerFeaturePricing } from "@/lib/payment/server-feature-pricing";
 
 const LoveCharacterStorySection = lazy(() => import("./LoveCharacterStorySection"));
 
-const LOVE_SIMULATION_FEATURE_KEY = "loveSimulation";
 const LOVE_SIMULATION_FEATURE_REASON = "LOVE CODE 사주 연애 시뮬레이션";
-// 가격은 서버 가격표에서 읽는다. 정본: worker/lib/paid-feature-registry.js → loveSimulation = 100코인 / 10,000원
-const LOVE_SIMULATION_PRICING = resolveServerFeaturePricing({ featureKey: LOVE_SIMULATION_FEATURE_KEY });
+const LEGACY_LOVE_CODE_RESUME_KINDS = ["loveSimulation"] as const;
+// 가격은 서버 가격표에서 읽는다. 정본: worker/lib/paid-feature-registry.js → love-code = 10,000원 영구 해금
+const LOVE_SIMULATION_PRICING = resolveServerFeaturePricing({ featureKey: LOVE_CODE_FEATURE_KEY });
 const LOVE_SIMULATION_FEATURE_COST = LOVE_SIMULATION_PRICING?.cost ?? 0;
 const LOVE_SIMULATION_FEATURE_AMOUNT_KRW = LOVE_SIMULATION_PRICING?.amountKRW ?? 0;
 
@@ -1471,6 +1473,7 @@ export const LoveSimulationEngine: React.FC = () => {
   // Layer 1 — 두 사람의 사주만으로 결정되는 궁합 프로필. 선택지/stats와 무관하게 진입 시 1회 계산해 고정.
   const [profile, setProfile] = useState<CompatibilityProfile | null>(null);
   const [profileStatus, setProfileStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
+  const loveCodeAccess = useCanUseFeature(LOVE_CODE_FEATURE_KEY);
 
   useEffect(() => {
     const syncLocale = (event?: Event) => {
@@ -1528,7 +1531,8 @@ export const LoveSimulationEngine: React.FC = () => {
   //    옛 주석은 틀렸다 — cost 는 스냅샷 판정을 켜는 입력이고, 빼면 결제창이 0원으로 뜬다.
   // 모바일 PortOne 리다이렉트로 startWithCharacter 의 await 가 죽은 뒤, 복귀한 새 문서에서 시뮬레이션을
   // 이어받는다. 🔴 게이트를 다시 타지 않고 게이트 없는 코어(startSimulationScene)를 결제 직전 상태로 부른다.
-  const buildResume = usePaidResume(LOVE_SIMULATION_FEATURE_KEY, (args) => {
+  const buildResume = usePaidResume(LOVE_CODE_FEATURE_KEY, async (args) => {
+    if (args.featureKey && normalizeLoveCodeFeatureKey(args.featureKey) !== LOVE_CODE_FEATURE_KEY) return false;
     const characterId = typeof args.characterId === "string" ? args.characterId : "";
     const matched = LOVE_CHARACTERS.find((item) => item.id === characterId);
     if (!matched) return false;
@@ -1557,18 +1561,28 @@ export const LoveSimulationEngine: React.FC = () => {
       setPartnerHasTime(partner.hasTime);
     }
     if (compatibility) setCoupleCompatibility(compatibility);
+    await refreshPaidFeatureEntitlements("app:love-code-mobile-resume");
     setMatchError("");
     startSimulationScene(matched.id, mode, compatibility);
     return true;
-  });
+  }, { legacyKinds: LEGACY_LOVE_CODE_RESUME_KINDS });
 
   const startWithCharacter = async (id: CharacterId, mode: "preset" | "sajuMatch" = "preset") => {
-    if (isStartingSimulation) return;
+    if (isStartingSimulation || loveCodeAccess.isChecking) return;
+    if (loveCodeAccess.state === "error") {
+      await loveCodeAccess.refetch({ force: true });
+      return;
+    }
+    if (loveCodeAccess.canUse) {
+      setMatchError("");
+      startSimulationScene(id, mode);
+      return;
+    }
     const requestId = `love-simulation:${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
     setIsStartingSimulation(true);
     try {
       openPaidFeatureGate({
-        featureKey: LOVE_SIMULATION_FEATURE_KEY,
+        featureKey: LOVE_CODE_FEATURE_KEY,
         requestId,
         cost: LOVE_SIMULATION_FEATURE_COST,
         paymentMode: "pass",
@@ -1577,13 +1591,14 @@ export const LoveSimulationEngine: React.FC = () => {
       holdPaidFeatureGateOpen({ requestId, maxMs: 8000 });
 
       const gate = await runPaidAccessGate({
-        featureKey: LOVE_SIMULATION_FEATURE_KEY,
+        featureKey: LOVE_CODE_FEATURE_KEY,
         reason: LOVE_SIMULATION_FEATURE_REASON,
         requestId,
         cost: LOVE_SIMULATION_FEATURE_COST,
         coinPrice: LOVE_SIMULATION_FEATURE_COST,
         amountKRW: LOVE_SIMULATION_FEATURE_AMOUNT_KRW,
         resume: buildResume({
+          featureKey: LOVE_CODE_FEATURE_KEY,
           characterId: id,
           mode,
           partner: packPaidResumeArg({
@@ -1608,11 +1623,18 @@ export const LoveSimulationEngine: React.FC = () => {
             : code === "INSUFFICIENT_COINS"
               ? copy.paymentRequiredError
               : gate.error?.message || copy.paymentVerifyFailedError;
-        updatePaidFeatureGate({ featureKey: LOVE_SIMULATION_FEATURE_KEY, requestId, status: "error", message });
+        updatePaidFeatureGate({ featureKey: LOVE_CODE_FEATURE_KEY, requestId, status: "error", message });
         setMatchError(message);
         return;
       }
 
+      updatePaidFeatureGate({
+        featureKey: LOVE_CODE_FEATURE_KEY,
+        requestId,
+        status: "paymentProcessing",
+        message: "결제를 확인하고 러브 코드를 열고 있어요...",
+      });
+      await refreshPaidFeatureEntitlements("app:love-code-payment-success");
       setMatchError("");
       startSimulationScene(id, mode);
     } finally {
@@ -2185,6 +2207,17 @@ export const LoveSimulationEngine: React.FC = () => {
             </div>
           </header>
 
+          <div className="mb-5 border border-white/10 bg-black/20 px-4 py-3 text-sm leading-6 text-white/78" role="status">
+            {loveCodeAccess.state === "loading" ? "러브 코드 이용권을 확인하고 있어요..." : null}
+            {loveCodeAccess.state === "unlocked" ? (
+              <><strong className="block text-white">러브 코드 잠금 해제됨</strong>이미 구매한 기능이에요. 계속 이용할 수 있어요.</>
+            ) : null}
+            {loveCodeAccess.state === "locked" ? (
+              <><strong className="block text-white">러브 코드 잠금 해제</strong>1회 10,000원 결제로 계속 이용할 수 있어요.</>
+            ) : null}
+            {loveCodeAccess.state === "error" ? "러브 코드 이용권을 다시 확인하고 있어요..." : null}
+          </div>
+
           <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
             {LOVE_CHARACTERS.map((item) => {
               const isExpanded = expandedProfileId === item.id;
@@ -2288,10 +2321,16 @@ export const LoveSimulationEngine: React.FC = () => {
                                 event.stopPropagation();
                                 void startWithCharacter(item.id, "preset");
                               }}
-                              disabled={isStartingSimulation}
+                              disabled={isStartingSimulation || loveCodeAccess.isChecking}
                               className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-gradient-to-r px-5 py-3 text-sm font-bold text-zinc-950 shadow-[0_18px_36px_rgba(0,0,0,0.22)] transition hover:brightness-110 ${item.palette.button}`}
                             >
-                              {formatTemplate(copy.talkWithButton, { name: characterCopy[item.id].name })}
+                              {loveCodeAccess.state === "unlocked"
+                                ? "러브 코드 이용하기"
+                                : loveCodeAccess.state === "locked"
+                                  ? "러브 코드 잠금 해제 (10,000원)"
+                                  : loveCodeAccess.state === "error"
+                                    ? "러브 코드 이용권 다시 확인"
+                                    : "러브 코드 이용권 확인 중"}
                               <ChevronRight className="h-4 w-4" />
                             </button>
                           </div>

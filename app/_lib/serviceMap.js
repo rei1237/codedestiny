@@ -1409,7 +1409,7 @@ export const SERVICE_MAP = {
     ],
   },
   "saju/love-simulation": {
-    componentKey: "loveSimulation",
+    componentKey: "love-code",
     title: "LOVE CODE - 사주 연애 시뮬레이션",
     h1: "LOVE CODE 사주 연애 시뮬레이션",
     description:
