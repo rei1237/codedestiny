@@ -238,6 +238,40 @@
     }
   }
 
+  // access-state 진입 응답의 월 잔여(entitlementSnapshot.passUsage.remainingKRW, 서버 정본은
+  // worker/lib/access-state.js buildPassUsage) → 코인. 없으면 NaN(=모름)이다.
+  // 🔴 remainingKRW 는 원화다. 스냅샷 단위는 코인이라 100 으로 나눈다(서버 정본은
+  //    worker/lib/billing-policy.js 의 KRW_PER_COIN = 100. 이 파일은 번들러 없이 로드되는
+  //    classic script 라 그 상수를 끌어올 수 없어 리터럴로 둔다).
+  function monthlyRemainingFromPassUsage(node) {
+    var root = node && typeof node === "object" ? node : {};
+    var snap = root.entitlementSnapshot && typeof root.entitlementSnapshot === "object" ? root.entitlementSnapshot : root;
+    var usage = snap && snap.passUsage && typeof snap.passUsage === "object" ? snap.passUsage : null;
+    if (!usage) return NaN;
+    var remainingKRW = numberOrNaN(usage.remainingKRW);
+    if (!Number.isFinite(remainingKRW) || remainingKRW < 0) return NaN;
+    return Math.max(0, Math.floor(remainingKRW / 100));
+  }
+
+  // profileSubscription 원문(사용자 문서를 그대로 싣는 응답: /api/auth/me · verified-auth-cache)에서
+  // 월 잔여를 유도한다. 서버 정본 worker/lib/profile-limits.js resolveMonthlyPassLimitCoin 과 같은 규칙:
+  // 사이클 키(=만료일 ISO)가 이 스냅샷의 만료일과 **일치할 때만** 유효하고, 저장 한도가 등급 기본
+  // 한도보다 작으면 기본 한도를 쓴다(낡은 문서가 한도를 깎는 방향으로 작동하지 못하게).
+  // 키가 어긋난 문서는 서버도 사용액을 0 으로 읽으므로 여기서도 유도하지 않는다.
+  function monthlyRemainingFromSubscriptionDoc(node, tier, expiresAt) {
+    var root = node && typeof node === "object" ? node : {};
+    var sub = root.profileSubscription && typeof root.profileSubscription === "object" ? root.profileSubscription : root;
+    if (!sub || typeof sub !== "object" || !expiresAt) return NaN;
+    if (normalizeDate(sub.premiumUseCycleKey) !== expiresAt) return NaN;
+    var spend = numberOrNaN(sub.monthlySpendCoin);
+    if (!Number.isFinite(spend)) return NaN;
+    var baseLimit = monthlyLimitForTier(tier);
+    if (!(baseLimit > 0)) return NaN;
+    var storedLimit = numberOrNaN(sub.monthlyLimitCoin);
+    var limitCoin = Number.isFinite(storedLimit) && storedLimit > baseLimit ? storedLimit : baseLimit;
+    return Math.max(0, Math.floor(limitCoin - Math.max(0, spend)));
+  }
+
   // 서버 응답(형태가 라우트마다 다르다) → 스냅샷. 후보 필드는 셸·React 두 목록의 합집합이다.
   function buildSnapshotFromStatus(userId, status, source) {
     var data = status && typeof status === "object" ? status : {};
@@ -288,12 +322,21 @@
     var state = tier !== "free" && !expiredByDate && !explicitInactive && (explicitActive || isFutureDate(expiresAt))
       ? "active"
       : "none";
-    // 월 누적 한도 잔여(coin). buildPassPaymentDecision(billing.js)의 monthlySpendRemaining이
-    // 호출부의 `...data, ...options` 스프레드를 거쳐 여기 도달한다 — 값이 있을 때만 신선한
-    // 캐시로 반영하고(monthlyCheckedAt=지금), 없으면 null로 남겨 resolveVerdict가 "모름"으로 처리한다.
+    // 월 누적 한도 잔여(coin). 값이 있을 때만 신선한 캐시로 반영하고(monthlyCheckedAt=지금), 없으면
+    // null 로 남겨 resolveVerdict 가 "모름"으로 처리한다.
+    // 🔴 후보가 셋인 이유: 잔여를 실어 주는 형태가 라우트마다 다른데 하나만 보면 진입 경로에 따라
+    // "모름"이 되고, 그러면 resolveVerdict 가 월 한도 검사를 통째로 건너뛴다 — 한도를 다 쓴 사용자가
+    // 재진입할 때마다 첫 유료 클릭을 낙관 통과로 받아 갔다(2026-09-07).
+    //  1) monthlySpendRemaining — coin-gate 판정 응답(buildPassPaymentDecision).
+    //  2) passUsage.remainingKRW — access-state 진입 응답.
+    //  3) profileSubscription 원문 — 사용자 문서를 그대로 싣는 응답(verified-auth-cache 진입 경로).
     var monthlySpendRemainingRaw = data.monthlySpendRemaining ?? nested.monthlySpendRemaining
       ?? membership.monthlySpendRemaining ?? membershipPass.monthlySpendRemaining;
     var monthlySpendRemainingCoin = numberOrNaN(monthlySpendRemainingRaw);
+    if (!Number.isFinite(monthlySpendRemainingCoin)) monthlySpendRemainingCoin = monthlyRemainingFromPassUsage(data);
+    if (!Number.isFinite(monthlySpendRemainingCoin)) {
+      monthlySpendRemainingCoin = monthlyRemainingFromSubscriptionDoc(data, tier, expiresAt);
+    }
     var hasMonthlySpendRemaining = state === "active" && Number.isFinite(monthlySpendRemainingCoin);
     return {
       userId: normalizeUserId(userId),
@@ -520,22 +563,13 @@
   // 도착해 그때서야 잠긴다). 진입 시점에 시드하면 첫 클릭부터 결제창으로 간다.
   //
   // 🔴 서버 판정을 대체하지 않는다 — 최종 확정은 언제나 서버 차감(consumePassCoverage)이다.
-  // 🔴 remainingKRW 는 원화다. 스냅샷 단위는 코인이라 100 으로 나눈다(서버 정본은
-  //    worker/lib/billing-policy.js 의 KRW_PER_COIN = 100. 이 파일은 번들러 없이 로드되는
-  //    classic script 라 그 상수를 끌어올 수 없어 리터럴로 둔다).
+  // 원화→코인 환산은 monthlyRemainingFromPassUsage 하나로 둔다(스냅샷 생성 경로와 같은 규칙).
   function storeMonthlyQuotaFromAccessState(userId, accessData) {
     if (!accessData || typeof accessData !== "object") return null;
     var root = accessData.data && typeof accessData.data === "object" ? accessData.data : accessData;
-    var snap = root.entitlementSnapshot && typeof root.entitlementSnapshot === "object"
-      ? root.entitlementSnapshot
-      : null;
-    var usage = snap && snap.passUsage && typeof snap.passUsage === "object" ? snap.passUsage : null;
-    if (!usage) return null;
-    var remainingKRW = Number(usage.remainingKRW);
-    if (!Number.isFinite(remainingKRW) || remainingKRW < 0) return null;
-    return storeMonthlyQuotaFromPayload(userId, {
-      monthlySpendRemaining: Math.max(0, Math.floor(remainingKRW / 100)),
-    });
+    var remainingCoin = monthlyRemainingFromPassUsage(root);
+    if (!Number.isFinite(remainingCoin)) return null;
+    return storeMonthlyQuotaFromPayload(userId, { monthlySpendRemaining: remainingCoin });
   }
 
   // coin-gate 성공 200 이 "이 건으로 월 한도를 다 써서 이용권이 종료됐다"고 알리면(서버 정본은

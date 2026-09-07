@@ -103,7 +103,10 @@ const deepVerificationRules = [
   // billing-feature-registry 는 (categoryKey, subFeatureKey) → featureKey 매핑과 reason 해석 체인을
   // 소유한다 — 서버 coin-gate 와 React 결제창이 같은 함수(getBillingFeaturePricing)로 가격을 푸는 지점이라
   // 여기가 바뀌면 표시가와 청구액이 동시에 움직인다. 목록에 없어서 deepRequired 가 아니었다.
-  [/^worker\/lib\/(portone|billing-policy|paid-feature-registry|billing-feature-registry|content-unlocks|nakshatra-paid-access|profile-card-mutation-policy)\.js$/i, "결제 정책 정본"],
+  // deferred-billing-proof 는 "이 사용자가 정말 냈는가"의 정본이다 — 여기가 null 을 돌려주면
+  // 결제를 끝낸 사용자가 402 를 받는다(운명 찻집 단건결제 실사고). 새로 만든 파일이라 목록에
+  // 자동으로 들어오지 않으므로 만든 커밋에서 함께 등재한다(원칙 10 — 가드가 보는 파일은 트리거에도).
+  [/^worker\/lib\/(portone|billing-policy|paid-feature-registry|billing-feature-registry|content-unlocks|nakshatra-paid-access|profile-card-mutation-policy|deferred-billing-proof|moonstone-spend-proof)\.js$/i, "결제 정책 정본"],
   [/^lib\/payment\//i, "결제 클라이언트"],
   [/^app\/_lib\/billing-client\.ts$/i, "React 결제 게이트"],
   [/^app\/hooks\/useCoinGate\.ts$/i, "단건 결제 훅"],

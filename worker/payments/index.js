@@ -719,25 +719,34 @@ async function grantPassOrderEntitlement(db, order) {
     return false;
   }
   const userId = String(order.userId || "");
-  const userDoc = await db.findOne(User, { _id: toObjectId(userId) });
-  const replay = String(userDoc?.profileSubscription?.lastPassOrderId || "") === orderId;
   const paidAt = order.paidAt || new Date();
-  const transition = evaluatePassTierTransition(userDoc?.profileSubscription, plan.tier);
-  if (transition.code === "DOWNGRADE_BLOCKED" && !replay) {
-    console.error("[payments] pass grant skipped", { orderId, code: "DOWNGRADE_BLOCKED", userId });
-    return false;
+  // 🔴 활성화는 읽은 만료일을 건 CAS 다(passes.js activatePassSubscription). 그 사이 **다른 주문**이
+  // 활성화되면 conflict 로 돌아오는데, 그때는 기간·한도를 이 문서 기준으로 다시 계산해야 한다 —
+  // 같은 expiresAt 으로 재시도하면 먼저 반영된 주문의 30일을 덮어써 없앤다. 마지막 시도는 가드를
+  // 내려 종전 동작으로 지급을 보장한다(돈은 이미 받았고, 지급 실패는 사용자가 재결제하게 만든다).
+  let userDoc = await db.findOne(User, { _id: toObjectId(userId) });
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const replay = String(userDoc?.profileSubscription?.lastPassOrderId || "") === orderId;
+    const transition = evaluatePassTierTransition(userDoc?.profileSubscription, plan.tier);
+    if (transition.code === "DOWNGRADE_BLOCKED" && !replay) {
+      console.error("[payments] pass grant skipped", { orderId, code: "DOWNGRADE_BLOCKED", userId });
+      return false;
+    }
+    const activation = await activatePassSubscription(db, {
+      userId,
+      plan,
+      orderId,
+      customerUid: buildPassCustomerUid(userId),
+      paymentMethod: String(order.paymentMethod || "card_general"),
+      paidAt,
+      expiresAt: computePassExpiry({ transition, paidAt }),
+      // 위에서 읽은 문서를 그대로 넘겨 활성화 함수의 재조회를 없앤다(왕복 6→5).
+      existing: userDoc,
+      casGuard: attempt < 2,
+    });
+    if (!activation?.conflict) break;
+    userDoc = await db.findOne(User, { _id: toObjectId(userId) });
   }
-  await activatePassSubscription(db, {
-    userId,
-    plan,
-    orderId,
-    customerUid: buildPassCustomerUid(userId),
-    paymentMethod: String(order.paymentMethod || "card_general"),
-    paidAt,
-    expiresAt: computePassExpiry({ transition, paidAt }),
-    // 위에서 읽은 문서를 그대로 넘겨 활성화 함수의 재조회를 없앤다(왕복 6→5).
-    existing: userDoc,
-  });
   await markEntitlementGranted(db, { orderId });
   return true;
 }

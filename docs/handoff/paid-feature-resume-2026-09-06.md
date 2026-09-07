@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-07
-next: **재개 누락을 잡는 fail-closed 가드 신설 완료 — `npm run verify:paid-resume-wiring`.** 정적·독립정적·React 세 축 배선은 PR #1720·#1723 으로 닫혔다. 다음 세션이 할 일은 ① 아래 §자동 가드 의 `UNWIRED_BACKLOG` 4건을 배선해 하나씩 지우기 ② 아래 "인접 결함" 의 미해결분. 🔴 **새 유료 기능은 이제 가드가 잡는다** — 게이트 호출부에 `resume` 을 안 넘기면 `paid-flow-gates.yml` 이 실패한다.
+next: **재개 누락을 잡는 fail-closed 가드 신설 완료 — `npm run verify:paid-resume-wiring`.** 정적·독립정적·React 세 축 배선은 PR #1720·#1723 으로 닫혔고, 신년 타로 폴백 갈래도 배선했다(정적 42/42). 다음 세션이 할 일은 ① 아래 §자동 가드 의 `UNWIRED_BACKLOG` **3건**(FPTI 심화 리포트 · 운명 찻집 · 마스터 러브 코덱스 — 전부 React 축)을 배선해 하나씩 지우기 ② 아래 "인접 결함" 의 미해결분. 🔴 **새 유료 기능은 이제 가드가 잡는다** — 게이트 호출부에 `resume` 을 안 넘기면 `paid-flow-gates.yml` 이 실패한다.
 ---
 
 # 유료 기능 결제 후 자동 개방 (리다이렉트 복귀)
@@ -227,14 +227,14 @@ React 배관도 같은 PR 에서 열렸다: `EnsurePaidAccessInput`/`BillingCoin
 - 변이 3건으로 무는 것을 확인했다(2026-09-07): 배선된 React 호출부의 `resume` 제거 → ②로 실패 · `registerPaidResumeHandler` 리네임 → 계약 생존 검사 실패 · 게이트 이름 교체 → ④로 실패.
 - 실측 결과: 게이트 호출부 **React 37/40 · 정적 41/42** 배선, 재개 `kind` **39개**가 핸들러와 짝을 이룬다.
 
-### `UNWIRED_BACKLOG` 4건 (이 가드가 찾아낸 기존 미배선 — 원칙 14 로 고치지 않았다)
+### `UNWIRED_BACKLOG` 3건 (이 가드가 찾아낸 기존 미배선 — 원칙 14 로 고치지 않았다)
 
 | 호출부 | 게이트 | 왜 아직 |
 |---|---|---|
 | `components/fpti/FptiResultCard.tsx` | `purchaseFeature` | FPTI 심화 리포트. 서버 영구 해금형(`premium-fpti-report`)이라 재과금은 없지만 복귀 문서가 스스로 열리지 않는다. 🔴 **영구 unlock 은 '스스로 열림'을 뜻하지 않는다.** |
 | `src/features/fortune-tea-house/FortuneTeaHousePage.tsx` | `runBillingCoinGate` | 상담 생성이 202 폴링형이라 서술자에 폴링 상태까지 실어야 한다. |
 | `src/features/master-love-codex/MasterLoveCodexPage.tsx` | `runBillingCoinGate` | `buildBillingGateInput(...)` 결과를 그대로 넘겨 `resume` 자리가 없다. |
-| `js/tarot-year-fortune-experience.js` | `_cdOpenPaidServiceGate` | 신년 타로의 **폴백** 갈래(`consumeCoinDirect`). 주 경로 `requireYearAccess` 는 같은 파일 `:485` 에서 `_cdCoinGatePerUse` 로 `resume` 을 넘긴다. 이 갈래는 `_cdCoinGatePerUse` 가 없을 때만 탄다. |
+| ~~`js/tarot-year-fortune-experience.js`~~ | `_cdOpenPaidServiceGate` | ✅ **2026-09-07 배선 완료.** 폴백 갈래(`consumeCoinDirect`)가 주 경로와 같은 `buildYearResumeDescriptor(state.year, requestId)` 를 게이트 옵션에 싣는다. 서술자가 **결제에 쓴 requestId** 를 받도록 빌더에 인자 2개를 열었다(기본값은 종전 `state` 참조 그대로). |
 
 🔴 **앞 셋은 2026-09-06 "React 축 배선 완료" 이후에 생긴 것으로 보인다** — 손으로 센 목록이 낡는다는 증거이자, 이 가드가 존재하는 이유다. 배선을 끝내면 `UNWIRED_BACKLOG` 에서 그 줄을 지워야 통과한다(체크 ③).
 

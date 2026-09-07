@@ -112,13 +112,6 @@ const UNWIRED_BACKLOG = [
     + "2026-09-07 이 가드 신설 시점의 기존 미배선분 — 후속 과제.",
   ],
   [
-    "js/tarot-year-fortune-experience.js",
-    "_cdOpenPaidServiceGate",
-    "신년 타로의 **폴백** 경로(consumeCoinDirect) — 주 경로 requireYearAccess 는 _cdCoinGatePerUse 로 "
-    + "resume 을 넘긴다(같은 파일 :485). 이 갈래는 _cdCoinGatePerUse 가 없을 때만 타고 resume 파라미터 "
-    + "자체를 받지 않는다. 핸드오프 §초판 6건의 '_dpChooseServicePaymentMode 폴백' 과 같은 형태다 — 후속 과제.",
-  ],
-  [
     "src/features/master-love-codex/MasterLoveCodexPage.tsx",
     "runBillingCoinGate",
     "마스터 러브 코덱스 — buildBillingGateInput(...) 결과를 그대로 넘겨 resume 자리가 없다. "

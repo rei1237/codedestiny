@@ -89,6 +89,39 @@ export function recordOptimisticUnlock(featureKey: string): void {
   }
 }
 
+/**
+ * recordOptimisticUnlock 의 짝. 서버가 "열어 주지 않았다"고 답했을 때(월 한도 소진 402) 그 키의
+ * **낙관 엔트리만** 지운다 — 확정 엔트리는 실제 결제의 결과라 건드리지 않는다.
+ * 셸 정본은 index.html `_cdRevokeOptimisticPassUnlock`(원장 + access-store 낙관 해금)이고,
+ * 여기서도 같은 두 곳을 지운다. 남겨 두면 다음 화면이 "확정 해금"으로 오인해 무료로 연다.
+ */
+export function forgetOptimisticUnlock(featureKey: string): void {
+  const key = String(featureKey || "").trim();
+  if (!key || typeof window === "undefined") return;
+  try {
+    const map = readGrantMap();
+    if (map[`${key}::`]?.mode === "optimistic") {
+      delete map[`${key}::`];
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(map));
+    }
+  } catch {
+    /* noop */
+  }
+  try {
+    const store = (window as Window & {
+      CodeDestinyAccessStore?: { forgetOptimisticUnlock?: (key: string) => boolean };
+    }).CodeDestinyAccessStore;
+    store?.forgetOptimisticUnlock?.(key);
+  } catch {
+    /* noop */
+  }
+  try {
+    window.dispatchEvent(new CustomEvent("cd:unlocks-changed"));
+  } catch {
+    /* noop */
+  }
+}
+
 /** 서버가 해금을 확정했을 때 호출한다. 낙관 엔트리를 확정 엔트리로 승격해 다음 방문에서도 즉시 열린다. */
 export function recordVerifiedUnlock(featureKey: string, grant?: Record<string, unknown>): void {
   const key = String(featureKey || "").trim();
