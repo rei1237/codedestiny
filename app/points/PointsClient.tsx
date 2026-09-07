@@ -12,7 +12,7 @@ import type { PaymentLoadingProps } from "../components/common/PaymentLoading";
 import { getSubscriptionTierLabel } from "../components/subscriptionNotice";
 import { getAssetUrlFromPublicPath } from "@/lib/r2-public-url";
 import { PASS_MONTHLY_WON } from "@/lib/payment/pass-pricing";
-import { PAYMENT_PIG_LOGO_URL } from "../components/common/PaymentPigVisual";
+import { MoonShopMain, MoonShopSkeleton, MoonlightShopHero, ShopPigImage } from "./MoonShopFrame";
 import SubscriptionStatusCard from "./SubscriptionStatusCard";
 import { authFetch, clearClientAuthState } from "../_lib/auth-client";
 import { getApiBaseUrl } from "../_lib/api-config";
@@ -2413,90 +2413,9 @@ function getMoonlightPlanPhase(plan: SubscriptionPlan): MoonPhase {
   return "crescent";
 }
 
-// 히어로 메달리온·지갑 카드·빈 주문 내역 세 곳이 같은 연이를 쓰므로 로딩 실패 폴백까지 여기서만 관리한다.
-// (URL 정본은 결제 대기 화면과 공유하는 PAYMENT_PIG_LOGO_URL — 상점용 상수를 따로 만들지 않는다.)
-// 상점에서는 최대 90px로만 쓰므로 Cloudflare Image Resizing 축소본을 먼저 받는다.
-// 정본이 동일 오리진 상대경로가 된 뒤에도 축소본을 계속 쓰도록 상대경로를 그대로 이어 붙인다
-// (예전에는 new URL(상대경로)가 throw 해서 catch 로 떨어지며 축소를 조용히 포기했다).
-const SHOP_PIG_RESIZED_URL = (() => {
-  const resizePrefix = "/cdn-cgi/image/width=220,quality=82,format=auto";
-  if (PAYMENT_PIG_LOGO_URL.startsWith("/")) return `${resizePrefix}${PAYMENT_PIG_LOGO_URL}`;
-  try {
-    const parsed = new URL(PAYMENT_PIG_LOGO_URL);
-    return `${parsed.origin}${resizePrefix}${parsed.pathname}`;
-  } catch {
-    return PAYMENT_PIG_LOGO_URL;
-  }
-})();
-
-function ShopPigImage({ className = "" }: { className?: string }) {
-  const [src, setSrc] = useState(SHOP_PIG_RESIZED_URL);
-  const [failed, setFailed] = useState(false);
-  if (failed) return null;
-
-  return (
-    <img
-      src={src}
-      alt=""
-      loading="eager"
-      decoding="async"
-      className={className}
-      onError={() => {
-        // 축소본 실패 시 원본으로, 원본까지 실패하면 숨긴다(달·문구는 그대로 남는다).
-        if (src !== PAYMENT_PIG_LOGO_URL) setSrc(PAYMENT_PIG_LOGO_URL);
-        else setFailed(true);
-      }}
-    />
-  );
-}
-
-function MoonlightShopHero() {
-  return (
-    <header className="moon-shop-hero -mx-4 px-4 py-7 sm:mx-0 sm:rounded-[28px] sm:px-8 sm:py-8">
-      <div className="moon-shop-stars" aria-hidden="true">
-        <span />
-        <span />
-        <span />
-        <span />
-        <span />
-      </div>
-      <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex flex-col items-center gap-5 text-center sm:flex-row sm:text-left">
-          <div className="moon-shop-visual" aria-hidden="true">
-            <span className="moon-shop-visual-ring moon-shop-visual-ring--one" />
-            <span className="moon-shop-visual-ring moon-shop-visual-ring--two" />
-            <MoonIcon phase="full" className="moon-shop-visual-moon" />
-            <ShopPigImage className="moon-shop-visual-pig" />
-            <span className="moon-shop-visual-spark moon-shop-visual-spark--one" />
-            <span className="moon-shop-visual-spark moon-shop-visual-spark--two" />
-            <span className="moon-shop-visual-spark moon-shop-visual-spark--three" />
-          </div>
-          <div className="max-w-2xl">
-            <p className="text-xs font-black uppercase tracking-[0.28em] text-[color:var(--moon-silver)]">연이의 달빛 이용권 상점</p>
-            <h1 className="mt-2 text-3xl font-black leading-tight text-white sm:text-4xl">연이의 달빛 이용권 상점</h1>
-            <p className="mt-3 text-sm font-semibold leading-6 text-[color:var(--moon-silver)] sm:text-base">
-              달빛 이용권 상품과 원화 결제 조건을 한 화면에서 확인하세요.
-            </p>
-            <p className="mt-2 text-sm font-black leading-6 text-[color:var(--moon-gold)]">
-              이용권은 원화 단건 결제로만 구매할 수 있습니다. 월정석으로는 이용권을 구매할 수 없습니다.
-            </p>
-          </div>
-        </div>
-        <div className="relative z-10 flex flex-col gap-2 sm:flex-row lg:flex-col">
-          <Link href="/" prefetch={false} className="btn-moonlight inline-flex min-h-11 items-center justify-center rounded-xl px-4 text-sm font-black">
-            홈 화면 바로가기
-          </Link>
-          <Link href="/points/history" className="btn-moonlight inline-flex min-h-11 items-center justify-center rounded-xl px-4 text-sm font-black">
-            이용권 주문 내역
-          </Link>
-          <Link href="/" prefetch={false} className="btn-moonlight-ghost inline-flex min-h-11 items-center justify-center rounded-xl px-4 text-sm font-black">
-            ← 서비스 화면으로
-          </Link>
-        </div>
-      </div>
-    </header>
-  );
-}
+// 🔴 ShopPigImage · MoonlightShopHero 는 app/points/MoonShopFrame.tsx 로 옮겼다(2026-09-07).
+//    로딩 폴백(ssr:false)과 부팅 중 화면이 본 렌더와 **같은 히어로**를 그려야 LCP/CLS 가 잡히는데,
+//    이 파일은 지연 로드되는 청크라 여기 두면 서버 HTML 에 들어가지 못한다.
 
 function MoonlightActivePassCard({
   subscription,
@@ -4766,18 +4685,11 @@ export default function PointsPage() {
   /* ── 패키지 선택 핸들러 ─────────────────────────────────────────── */
 
   /* ── 부팅 중 화면 ───────────────────────────────────────────────── */
+  // 🔴 next/dynamic 로딩 폴백과 **같은 컴포넌트**를 쓴다(2026-09-07).
+  //    예전에는 여기서 가운데 정렬 로더를 그렸는데, 폴백(2열 그리드) → 이 화면 → 본 렌더로
+  //    기하가 세 번 바뀌면서 CLS 0.524 가 났다. 셋이 같은 껍데기를 쓰면 히어로는 움직이지 않는다.
   if (isBooting) {
-    return (
-      <main
-        className="flex min-h-[100dvh] items-center justify-center text-slate-100"
-        style={{ background: "var(--cd-page-bg-gradient, linear-gradient(160deg, #071126 0%, #151a3d 46%, #332255 100%))" }}
-      >
-        <div className="text-center">
-          <div className="mb-3 text-5xl animate-pulse">🌙</div>
-          <p className="font-semibold">이용권 상점을 불러오는 중...</p>
-        </div>
-      </main>
-    );
+    return <MoonShopSkeleton />;
   }
 
   // 잔량이 "확정적으로" 부족할 때만 버튼을 잠근다. 미확정(서버가 확인 못 함)이면 열어두고
@@ -4815,26 +4727,7 @@ export default function PointsPage() {
 
   /* ── 메인 렌더 ─────────────────────────────────────────────────── */
   return (
-    <main
-      className="moon-shop relative min-h-[100dvh] overflow-hidden px-4 py-8 text-slate-100"
-      style={{ background: "var(--cd-page-bg-gradient, radial-gradient(circle at 50% -10%, rgba(30,27,96,0.54), transparent 38%), #08091A)" }}
-    >
-      {/* ── 배경 글로우 오브 ─────────────────────────────────────── */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-        <div
-          className="absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full opacity-40"
-          style={{ background: "radial-gradient(circle, rgba(202,184,255,0.46) 0%, rgba(140,184,255,0.18) 52%, transparent 70%)" }}
-        />
-        <div
-          className="absolute top-1/3 -right-48 w-[450px] h-[450px] rounded-full opacity-25"
-          style={{ background: "radial-gradient(circle, rgba(243,221,154,0.58) 0%, transparent 70%)" }}
-        />
-        <div
-          className="absolute bottom-0 left-1/3 w-[300px] h-[300px] rounded-full opacity-20"
-          style={{ background: "radial-gradient(circle, rgba(255,255,255,0.38) 0%, transparent 70%)" }}
-        />
-      </div>
-
+    <MoonShopMain>
       {/* ── 결제 성공 StarBurst 이펙트 ───────────────────────────── */}
       {showStarBurst && (
         <div className="pointer-events-none fixed inset-0 z-[90]" aria-hidden="true">
@@ -5050,9 +4943,13 @@ export default function PointsPage() {
                   <p className="text-xs font-extrabold tracking-[0.22em] text-[#ded4ff] uppercase">
                     연이의 달빛 이용권 상점
                   </p>
-                  <h1 className="mt-0.5 text-[22px] font-black text-white sm:text-3xl leading-tight">
+                  {/* 🔴 h1 이 아니라 h2 다(2026-09-07). 이 블록은 `{false &&}` 로 죽어 있지만
+                      verify:hydrated-h1-integrity 는 파일을 정적으로 읽으므로, 여기 h1 이 남아 있으면
+                      "서버 h1(MoonShopFrame 히어로) + ssr:false 클라이언트 h1" 으로 잡힌다.
+                      /points 의 h1 정본은 app/points/MoonShopFrame.tsx 의 MoonlightShopHero 하나다. */}
+                  <h2 className="mt-0.5 text-[22px] font-black text-white sm:text-3xl leading-tight">
                     연이의 달빛 이용권 상점
-                  </h1>
+                  </h2>
                   <p className="mt-2 text-[15px] leading-relaxed text-slate-100">
                     달빛 이용권 상품과 원화 결제 조건을 한 화면에서 확인하세요.
                   </p>
@@ -5308,6 +5205,6 @@ export default function PointsPage() {
         hasLocalAuth={true}
       />
 
-    </main>
+    </MoonShopMain>
   );
 }

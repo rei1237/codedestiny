@@ -276,6 +276,10 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "vedic_ai_prompt_generator": { cost: 100, reason: "베다 점성술 AI 질문 프롬프트 생성" },
   "sukuyo_ai_prompt_generator": { cost: 100, reason: "숙요점 전문가 상담" },
   "vedic_prashna_prompt": { cost: 50, reason: "프라슈나 프롬프트" },
+  // 베다 기본 해석 — 차트·라그나·나크샤트라·현재 마하다샤까지는 무료 미리보기이고,
+  // 성향·관계·재물·다샤·에너지·심화 6탭 본문과 상세 8종이 이 키로 잠긴다.
+  // 결정론 산출(LLM 미사용)이라 재열람이 전제 → 회당이 아니라 영구 해금이다.
+  "vedic_basic_reading": { cost: 30, reason: "베다 점성술 기본 해석 해금" },
   "astro_career_talent_deep": { cost: 50, reason: "점성술 커리어·재능 정밀 분석" },
   "astro_talent_attraction_deep": { cost: 50, reason: "점성술 재능과 끌림 심화 분석" },
   "astro_relationship_deep": { cost: 50, reason: "점성술 관계·끌림 심화 분석" },
@@ -358,6 +362,7 @@ const RAW_PIG_COIN_UNLOCK_PRODUCTS = Object.freeze({
   "unlock.ziwei_life_yearly_flow": { featureKey: "ziwei_life_yearly_flow", cost: 100, reason: "자미두수 생애 총론과 연간 흐름 해금" },
   "unlock.nakshatra_lord_report": { featureKey: "nakshatra-lord-report", cost: 100, reason: "나크샤트라 지배성 심화 리포트 해금" },
   "unlock.nakshatra_dasha_map": { featureKey: "nakshatra-dasha-map", cost: 100, reason: "나크샤트라 다샤 인생지도 해금" },
+  "unlock.vedic_basic_reading": { featureKey: "vedic_basic_reading", cost: 30, reason: "베다 점성술 기본 해석 해금" },
 });
 
 export const PIG_COIN_UNLOCK_PRODUCTS = normalizeRegistryPricingTable(RAW_PIG_COIN_UNLOCK_PRODUCTS);
