@@ -676,6 +676,11 @@ window.__cdServiceRegistry = [
     id: "luck-sync-diary",
     name: "운기 다이어리와 플래너",
     desc: "오늘의 흐름 기록 · 월간 플래너",
+    /* 셸 모달이 아니라 /diary 앱으로 간다(2026-09-07 컷오버 — window.openLuckSyncDiary 는
+       이제 location.assign('/diary/') 다). action 을 함께 남기는 이유는 상세 문안
+       FEATURE_MARKETING_COPY 의 키가 'openLuckSyncDiary' 이기 때문이다
+       (scripts/verify-home-service-registry.mjs 의 문안 대조가 이 키로 찾는다). */
+    href: "/diary/",
     action: "openLuckSyncDiary",
     price: "무료",
     purposes: ["today", "etc"],
