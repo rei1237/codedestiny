@@ -11,12 +11,12 @@ import Link from "next/link";
 import { postPaidBody } from "../nakshatra-fetch";
 import { useCoinGate } from "@/app/hooks/useCoinGate";
 import { usePaidResume, packPaidResumeArg, unpackPaidResumeArg } from "@/app/hooks/usePaidResume";
-import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import styles from "../_premium/premium.module.css";
 import local from "./vvip.module.css";
 import { GenderPrompt, NatalBar, NeedBirth, type ReportSection } from "../_premium/PremiumParts";
-import { NAKSHATRA_RESULT_STORAGE_KEY } from "../NakshatraFormClient";
-import { birthFromProfileSeed, type NakshatraBirthInput } from "../nakshatra-birth";
+import NakshatraProfilePicker from "../_components/NakshatraProfilePicker";
+import { useNakshatraProfileContext } from "../_lib/nakshatra-context";
+import type { NakshatraBirthInput } from "../nakshatra-birth";
 import { useNakshatraCopy } from "../_lib/copy";
 
 const FEATURE_KEY = "nakshatra-vvip-codex";
@@ -51,10 +51,6 @@ interface VvipCodex {
   toc: { id: string; title: string; icon: string }[];
   chapters: Chapter[];
   charCount: number;
-}
-
-function asRecord(value: unknown): Record<string, unknown> {
-  return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
 }
 
 function ChapterView({ chapter, myPlaceLabel }: { chapter: Chapter; myPlaceLabel: string }) {
@@ -108,10 +104,8 @@ function ChapterView({ chapter, myPlaceLabel }: { chapter: Chapter; myPlaceLabel
 export default function VvipClient() {
   const copy = useNakshatraCopy();
   const { ensurePaidAccess, isPaying } = useCoinGate();
-  const { seed: profileSeed } = useAiProfileSeed();
-
-  const [birth, setBirth] = useState<NakshatraBirthInput | null>(null);
-  const [natal, setNatal] = useState<{ sukuyoKo: string; sukuyoHan: string; nakshatraKo: string; nakshatraEn: string } | null>(null);
+  const profilePicker = useNakshatraProfileContext();
+  const { birth, natal } = profilePicker;
   const [report, setReport] = useState<VvipCodex | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -119,46 +113,22 @@ export default function VvipClient() {
   // 결제는 끝났는데 본문만 못 받은 상태 — 재결제 없이 다시 받을 수 있게 입력을 붙들어 둔다.
   const [canRetry, setCanRetry] = useState(false);
   const paidRef = useRef<{ birth: NakshatraBirthInput; requestId: string } | null>(null);
+  const previousBirthKeyRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    const nextKey = birth ? JSON.stringify(birth) : "";
+    if (previousBirthKeyRef.current && nextKey && previousBirthKeyRef.current !== nextKey) {
+      setReport(null);
+      setCanRetry(false);
+      paidRef.current = null;
+    }
+    previousBirthKeyRef.current = nextKey;
+  }, [birth]);
 
   // 성별은 제5장 동양 대운에만 쓰인다 — 고르면 birth 에 덧대기만 하고 다른 필드는 건드리지 않는다.
   const setGender = useCallback((gender: "male" | "female") => {
-    setBirth((prev) => (prev ? { ...prev, gender } : prev));
-  }, []);
-
-  useEffect(() => {
-    try {
-      const raw = sessionStorage.getItem(NAKSHATRA_RESULT_STORAGE_KEY);
-      if (!raw) return;
-      const parsed = asRecord(JSON.parse(raw));
-      const input = asRecord(parsed.input);
-      if (!Number(input.year)) return;
-      setBirth({
-        year: Number(input.year), month: Number(input.month), day: Number(input.day),
-        hour: Number(input.hour ?? 12), minute: Number(input.minute ?? 0),
-        timezone: Number(input.timezone ?? 9), lat: Number(input.lat ?? 37.5665), lon: Number(input.lon ?? 126.978),
-        timeUnknown: Boolean(input.timeUnknown), gender: "",
-      });
-      const dongyang = asRecord(parsed.dongyang);
-      const india = asRecord(parsed.india);
-      setNatal({
-        sukuyoKo: String(dongyang.nameKo || ""), sukuyoHan: String(dongyang.nameHan || ""),
-        nakshatraKo: String(india.nameKo || ""), nakshatraEn: String(india.nameEn || ""),
-      });
-    } catch {
-      // sessionStorage 불가 — 프로필 시드로 폴백한다.
-    }
-  }, []);
-
-  // 성별은 제5장(동양 대운)에만 쓰인다 — 없으면 그 축만 빠지고 나머지는 온전하다.
-  useEffect(() => {
-    const derived = birthFromProfileSeed(profileSeed);
-    if (!derived) return;
-    setBirth((prev) => {
-      if (!prev) return derived;
-      if (prev.gender || !derived.gender) return prev;
-      return { ...prev, gender: derived.gender };
-    });
-  }, [profileSeed]);
+    profilePicker.setGender(gender);
+  }, [profilePicker]);
 
   // 결제 뒤의 본문 요청만 담당한다. 결제는 다시 하지 않는다.
   const fetchCodex = useCallback(async (paid: { birth: NakshatraBirthInput; requestId: string }) => {
@@ -257,6 +227,7 @@ export default function VvipClient() {
           <p className={styles.lede}>{copy.vvipLede}</p>
         </header>
 
+        <NakshatraProfilePicker context={profilePicker} copy={copy} disabled={isPaying || loading} />
         <NatalBar natal={natal} meta={meta} />
 
         {!birth && <NeedBirth />}

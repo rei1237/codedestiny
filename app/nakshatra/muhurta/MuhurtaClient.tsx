@@ -12,12 +12,12 @@ import Link from "next/link";
 import { postPaidBody } from "../nakshatra-fetch";
 import { useCoinGate } from "@/app/hooks/useCoinGate";
 import { usePaidResume, packPaidResumeArg, unpackPaidResumeArg } from "@/app/hooks/usePaidResume";
-import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import styles from "../_premium/premium.module.css";
 import local from "./muhurta.module.css";
 import { NatalBar, NeedBirth, SectionCards, type ReportSection } from "../_premium/PremiumParts";
-import { NAKSHATRA_RESULT_STORAGE_KEY } from "../NakshatraFormClient";
-import { birthFromProfileSeed, type NakshatraBirthInput } from "../nakshatra-birth";
+import NakshatraProfilePicker from "../_components/NakshatraProfilePicker";
+import { useNakshatraProfileContext } from "../_lib/nakshatra-context";
+import type { NakshatraBirthInput } from "../nakshatra-birth";
 import { useNakshatraCopy, type MuhurtaPurposeKey } from "../_lib/copy";
 
 const FEATURE_KEY = "nakshatra-muhurta";
@@ -70,9 +70,6 @@ interface MuhurtaReport {
   charCount: number;
 }
 
-function asRecord(value: unknown): Record<string, unknown> {
-  return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
-}
 function todayKst() {
   return new Date(Date.now() + 9 * 3600000).toISOString().slice(0, 10);
 }
@@ -104,10 +101,8 @@ function PickCard({ day, copy }: { day: MuhurtaDay; copy: ReturnType<typeof useN
 export default function MuhurtaClient() {
   const copy = useNakshatraCopy();
   const { ensurePaidAccess, isPaying } = useCoinGate();
-  const { seed: profileSeed } = useAiProfileSeed();
-
-  const [birth, setBirth] = useState<NakshatraBirthInput | null>(null);
-  const [natal, setNatal] = useState<{ sukuyoKo: string; sukuyoHan: string; nakshatraKo: string; nakshatraEn: string } | null>(null);
+  const profilePicker = useNakshatraProfileContext();
+  const { birth, natal } = profilePicker;
   const [purpose, setPurpose] = useState<string>("marriage");
   const [startDate, setStartDate] = useState<string>(todayKst());
   const [report, setReport] = useState<MuhurtaReport | null>(null);
@@ -116,36 +111,17 @@ export default function MuhurtaClient() {
   // 결제는 끝났는데 본문만 못 받은 상태 — 재결제 없이 다시 받을 수 있게 입력을 붙들어 둔다.
   const [canRetry, setCanRetry] = useState(false);
   const paidRef = useRef<{ birth: NakshatraBirthInput; purpose: string; startDate: string; requestId: string } | null>(null);
+  const previousBirthKeyRef = useRef<string | null>(null);
 
   useEffect(() => {
-    try {
-      const raw = sessionStorage.getItem(NAKSHATRA_RESULT_STORAGE_KEY);
-      if (!raw) return;
-      const parsed = asRecord(JSON.parse(raw));
-      const input = asRecord(parsed.input);
-      if (!Number(input.year)) return;
-      setBirth({
-        year: Number(input.year), month: Number(input.month), day: Number(input.day),
-        hour: Number(input.hour ?? 12), minute: Number(input.minute ?? 0),
-        timezone: Number(input.timezone ?? 9), lat: Number(input.lat ?? 37.5665), lon: Number(input.lon ?? 126.978),
-        timeUnknown: Boolean(input.timeUnknown), gender: "",
-      });
-      const dongyang = asRecord(parsed.dongyang);
-      const india = asRecord(parsed.india);
-      setNatal({
-        sukuyoKo: String(dongyang.nameKo || ""), sukuyoHan: String(dongyang.nameHan || ""),
-        nakshatraKo: String(india.nameKo || ""), nakshatraEn: String(india.nameEn || ""),
-      });
-    } catch {
-      // sessionStorage 불가 — 아래 프로필 시드로 폴백한다.
+    const nextKey = birth ? JSON.stringify(birth) : "";
+    if (previousBirthKeyRef.current && nextKey && previousBirthKeyRef.current !== nextKey) {
+      setReport(null);
+      setCanRetry(false);
+      paidRef.current = null;
     }
-  }, []);
-
-  useEffect(() => {
-    if (birth) return;
-    const derived = birthFromProfileSeed(profileSeed);
-    if (derived) setBirth(derived);
-  }, [birth, profileSeed]);
+    previousBirthKeyRef.current = nextKey;
+  }, [birth]);
 
   const purposeFocus = copy.muhurtaPurposeFocus[purpose as MuhurtaPurposeKey];
 
@@ -234,6 +210,7 @@ export default function MuhurtaClient() {
           <p className={styles.lede} dangerouslySetInnerHTML={{ __html: copy.muhurtaLede }} />
         </header>
 
+        <NakshatraProfilePicker context={profilePicker} copy={copy} disabled={isPaying || loading} />
         <NatalBar natal={natal} meta={meta} />
 
         {!birth && <NeedBirth />}

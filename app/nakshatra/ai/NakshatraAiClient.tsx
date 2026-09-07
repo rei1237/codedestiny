@@ -6,13 +6,13 @@ import { authFetch } from "@/app/_lib/auth-client";
 import { runBillingCoinGate, formatPaymentWon } from "@/app/_lib/billing-client";
 import { packPaidResumeArg, unpackPaidResumeArg, usePaidResume } from "@/app/hooks/usePaidResume";
 import { isRetriableResultPollFailure } from "@/app/_lib/consultationResultPolling";
-import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { useServerPrice } from "@/app/hooks/useServerPrice";
 import { PriceBadge } from "@/app/components/PriceBadge";
 import { PaidValueSection } from "@/app/components/PaidValueSection";
 import { type FeatureMarketingTarget } from "@/app/components/FeatureMarketingDetailModal";
-import { NAKSHATRA_RESULT_STORAGE_KEY } from "../NakshatraFormClient";
-import { birthFromProfileSeed, type NakshatraBirthInput } from "../nakshatra-birth";
+import NakshatraProfilePicker from "../_components/NakshatraProfilePicker";
+import { useNakshatraProfileContext } from "../_lib/nakshatra-context";
+import type { NakshatraBirthInput } from "../nakshatra-birth";
 import { useNakshatraCopy, type NakshatraCopy } from "../_lib/copy";
 import AiConsultDecks, { type Decks, type NatalIdentity, type TopInsight } from "./AiConsultDecks";
 
@@ -112,9 +112,9 @@ function extractPaymentContext(gate: { data: unknown; raw?: unknown }, requestId
 
 export default function NakshatraAiClient() {
   const copy = useNakshatraCopy();
-  const [birth, setBirth] = useState<BirthInput | null>(null);
+  const profilePicker = useNakshatraProfileContext();
+  const { birth, natal, ready } = profilePicker;
   const [identity, setIdentity] = useState<NatalIdentity | null>(null);
-  const [loaded, setLoaded] = useState(false);
   const [question, setQuestion] = useState("");
   const [phase, setPhase] = useState<Phase>("intro");
   const [statusMsg, setStatusMsg] = useState("");
@@ -128,42 +128,15 @@ export default function NakshatraAiClient() {
   const exportRootRef = useRef<HTMLDivElement | null>(null);
   const [pdfBusy, setPdfBusy] = useState(false);
   const [pdfError, setPdfError] = useState("");
-  const { seed: profileSeed } = useAiProfileSeed();
-
   useEffect(() => {
-    try {
-      const raw = sessionStorage.getItem(NAKSHATRA_RESULT_STORAGE_KEY);
-      if (raw) {
-        const parsed = asRecord(JSON.parse(raw));
-        const input = asRecord(parsed.input);
-        if (Number(input.year) && Number(input.month) && Number(input.day)) {
-          setBirth({
-            year: Number(input.year), month: Number(input.month), day: Number(input.day),
-            hour: Number(input.hour ?? 12), minute: Number(input.minute ?? 0),
-            timezone: Number(input.timezone ?? 9), lat: Number(input.lat ?? 37.5665), lon: Number(input.lon ?? 126.978),
-            timeUnknown: Boolean(input.timeUnknown),
-          });
-          const dongyang = asRecord(parsed.dongyang);
-          const india = asRecord(parsed.india);
-          const summary = asRecord(parsed.summary);
-          setIdentity({
-            sukuyoKo: toText(dongyang.nameKo), sukuyoHan: toText(dongyang.nameHan),
-            nakshatraKo: toText(india.nameKo || summary.nakshatraKo), nakshatraEn: toText(india.nameEn || summary.nakshatraEn),
-          });
-        }
-      }
-    } catch {
-      // sessionStorage 불가 — 아래 프로필 카드 시드 또는 계산 유도로 이어진다.
-    }
-    setLoaded(true);
-  }, []);
-
-  // 프로필 카드 프리필(공용 훅) — 세션에 명식이 없을 때만 채우고, 이미 있으면 덮어쓰지 않는다.
-  useEffect(() => {
-    if (birth) return;
-    const derived = birthFromProfileSeed(profileSeed);
-    if (derived) setBirth(derived);
-  }, [birth, profileSeed]);
+    if (!natal) return;
+    setIdentity({
+      sukuyoKo: toText(natal.sukuyoKo),
+      sukuyoHan: toText(natal.sukuyoHan),
+      nakshatraKo: toText(natal.nakshatraKo),
+      nakshatraEn: toText(natal.nakshatraEn),
+    });
+  }, [natal]);
 
   const finish = useCallback((session: Record<string, unknown>) => {
     const nextDecks = asRecord(session.decks);
@@ -355,7 +328,7 @@ export default function NakshatraAiClient() {
     } catch {
       fail(copy.aiErrorNetwork);
     }
-  }, [birth, question, finish, fail, startConsult, copy]);
+  }, [birth, question, finish, fail, startConsult, buildResume, copy]);
 
   // PDF 저장 — 이미 결제로 열린 결과의 무료 부가 기능(가격·결제 문구 금지).
   // 접힌 <details> 는 빈 캔버스가 되므로 강제 오픈 → 2×rAF+120ms 렌더 대기 → 캡처 → 이전 상태 복원.
@@ -392,12 +365,14 @@ export default function NakshatraAiClient() {
   const bgClass =
     "relative isolate min-h-[100dvh] overflow-hidden bg-[radial-gradient(circle_at_18%_8%,rgba(179,25,85,0.14),transparent_34%),radial-gradient(circle_at_85%_10%,rgba(212,175,55,0.12),transparent_36%),linear-gradient(160deg,#0a0818_0%,#12102a_55%,#070510_100%)] px-4 py-8 text-slate-100 md:py-12";
 
-  if (!loaded) return <main className="min-h-[100dvh] bg-[#070812]" aria-busy="true" />;
+  if (!ready) return <main className="min-h-[100dvh] bg-[#070812]" aria-busy="true" />;
 
   if (!birth) {
     return (
       <main className={`grid place-items-center ${bgClass}`}>
-        <div className="max-w-sm text-center motion-safe:animate-fade-in-up">
+        <div className="w-full max-w-lg text-center motion-safe:animate-fade-in-up">
+          <NakshatraProfilePicker context={profilePicker} copy={copy} />
+          <div className="mx-auto max-w-sm">
           <div className="mx-auto mb-5 grid h-16 w-16 place-items-center rounded-full bg-[radial-gradient(circle_at_35%_30%,rgba(232,213,163,0.32),rgba(20,16,42,0.5)_70%)] shadow-moon-glow" aria-hidden="true">
             <span className="text-2xl text-amber-100">✶</span>
           </div>
@@ -408,6 +383,7 @@ export default function NakshatraAiClient() {
           <Link href="/nakshatra/calc" className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl bg-amber-200 px-5 text-sm font-bold text-slate-950 outline-none transition hover:bg-amber-100 focus-visible:ring-2 focus-visible:ring-amber-200/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0818]">
             {copy.aiNeedBirthButton}
           </Link>
+          </div>
         </div>
       </main>
     );
@@ -450,6 +426,7 @@ export default function NakshatraAiClient() {
         <WaitingView phase={phase} statusMsg={statusMsg} identity={identity} progress={progress} copy={copy} />
       ) : (
         <div className="mx-auto grid w-full max-w-lg gap-4">
+          <NakshatraProfilePicker context={profilePicker} copy={copy} disabled={working || profilePicker.selecting} />
           <IntroView
             identity={identity}
             birth={birth}
