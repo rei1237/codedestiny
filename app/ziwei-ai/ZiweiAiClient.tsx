@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties, type FormEven
 import { readAiProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { PriceBadge } from "@/app/components/PriceBadge";
+import { ExpertStickyCta, ExpertValueCards } from "@/app/components/expert-consulting/ExpertConsultationFrame";
 import { Download, Loader2, Moon, Sparkles, Stars, WalletCards } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
 import { isRetriableResultPollFailure, runAccessCheckWithTransientRetry } from "@/app/_lib/consultationResultPolling";
@@ -1166,7 +1167,8 @@ export default function ZiweiAiPage() {
       </section>
 
       <section className="workspace">
-        <form className="consultForm" onSubmit={handleSubmit}>
+        <ExpertValueCards theme="ziwei" points={[{ title: "명궁의 기질", description: "명궁과 주요 별이 보여주는 기본 반응과 선택 습관을 살핍니다." }, { title: "12궁의 무대", description: "일·돈·관계처럼 지금 질문이 놓인 삶의 영역을 나눠 읽습니다." }, { title: "별의 전환점", description: "현재 흐름에서 서두를 때와 정리할 때를 현실적인 언어로 짚습니다." }]} />
+        <form id="ziwei-consultation-form" className="consultForm" onSubmit={handleSubmit}>
           <div className="formHeader flex-wrap">
             <div className="flex min-w-0 flex-1 items-center gap-2">
               <Sparkles size={20} />
@@ -1260,6 +1262,7 @@ export default function ZiweiAiPage() {
           {notice && <p className="notice"><Moon size={16} />{notice}</p>}
           {error && <p className="error">{error}</p>}
         </form>
+        <ExpertStickyCta theme="ziwei" targetId="ziwei-consultation-form" label="별궁 상담 열기" price={<PriceBadge featureKey="ziwei-ai-consultation" prefix="상담 이용 가격 " />} />
 
         <div className="resultPane">
           {isLoadingConsultation ? (

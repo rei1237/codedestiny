@@ -35,6 +35,7 @@ import { packPaidResumeArg, unpackPaidResumeArg, usePaidResume, type PaidResumeD
 import { readAiProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { PriceBadge } from "@/app/components/PriceBadge";
+import { ExpertStickyCta, ExpertValueCards } from "@/app/components/expert-consulting/ExpertConsultationFrame";
 import {
   getActivePaidAttemptSession,
   markPaidAttemptFailed,
@@ -2239,6 +2240,7 @@ export default function LoveSecretAiPage() {
         />
 
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+          <ExpertValueCards theme="love" points={[{ title: "내 마음의 속도", description: "지금 관계에서 내가 먼저 반응하는 지점과 원하는 거리를 살핍니다." }, { title: "상대와의 결", description: "상대의 마음을 단정하지 않고 관계의 패턴과 흐름으로 읽습니다." }, { title: "다음 대화", description: "불안을 키우기보다 지금 선택할 수 있는 대화와 간격을 정리합니다." }]} />
           <form onSubmit={handleSubmit} id={FORM_ANCHOR_ID} className="min-w-0">
             <div
               key={busy ? "busy" : activeStep.id}
@@ -2390,6 +2392,7 @@ export default function LoveSecretAiPage() {
               )}
             </div>
           </form>
+          <ExpertStickyCta theme="love" targetId={FORM_ANCHOR_ID} label="연애 비책 펼치기" price={<PriceBadge featureKey="love-secret-ai-consultation" prefix="상담 이용 가격 " />} />
 
           <aside className="space-y-5">
             <LoveSecretPromiseCard />

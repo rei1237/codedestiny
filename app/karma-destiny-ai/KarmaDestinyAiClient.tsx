@@ -16,10 +16,12 @@ import { packPaidResumeArg, unpackPaidResumeArg, usePaidResume } from "@/app/hoo
 import { readAiProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { PriceBadge } from "@/app/components/PriceBadge";
+import { ExpertStickyCta, ExpertValueCards } from "@/app/components/expert-consulting/ExpertConsultationFrame";
 import { DeliverableSpec } from "@/app/components/DeliverableSpec";
 import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from "@/lib/llm-text";
 import { detectLocale } from "@/lib/i18n/dictionary";
 import { getCurrentLoadingLocale, INTL_LOCALE_BY_LOADING_LOCALE, type LoadingLocale } from "@/constants/loadingMessages";
+import polish from "./KarmaDestinyAiClient.module.css";
 
 type AccessType = "pass" | "paid" | "monthly_credit" | "membership_credit" | "subscription" | "admin";
 type CalendarType = "solar" | "lunar";
@@ -2556,27 +2558,8 @@ export default function KarmaDestinyAiPage() {
   const keywords = summaryCards?.keywords?.length ? summaryCards.keywords.slice(0, 3) : copy.defaultKeywords;
 
   return (
-    <main className="kdai-page" data-karma-destiny-ai="v20260629">
+    <main className={`kdai-page ${polish.page}`} data-karma-destiny-ai="v20260629">
       <section className="kdai-hero" aria-label={copy.heroAriaLabel}>
-        <div className="kdai-hero__sigil" aria-hidden="true" />
-        <div className="kdai-hero__image kdai-hero__image--sigil" data-cd-marker="karma-destiny-ai-css-visual-v20260629" aria-hidden="true">
-          <div className="kdai-oracle">
-            <span className="kdai-oracle__ring kdai-oracle__ring--outer" />
-            <span className="kdai-oracle__ring kdai-oracle__ring--middle" />
-            <span className="kdai-oracle__thread kdai-oracle__thread--one" />
-            <span className="kdai-oracle__thread kdai-oracle__thread--two" />
-            <div className="kdai-oracle__core">
-              <span className="kdai-oracle__glyph">業</span>
-              <span className="kdai-oracle__axis">命 · 業 · 時</span>
-            </div>
-            <div className="kdai-oracle__status">{statusText}</div>
-            <div className="kdai-oracle__keywords">
-              {keywords.map((keyword) => (
-                <span className="kdai-oracle__keyword" key={keyword}>{keyword}</span>
-              ))}
-            </div>
-          </div>
-        </div>
         <div className="kdai-hero__copy">
           <div className="kdai-kicker"><Moon size={16} /> Karma · Saju · Astrology · Vedic Reading</div>
           <h2>{copy.heroTitle}</h2>
@@ -2586,8 +2569,20 @@ export default function KarmaDestinyAiPage() {
             <span>{statusText}</span>
           </div>
           {accessType && <p className="kdai-access">{copy.accessTypeLabelPrefix}{accessType}</p>}
+          <a className={polish.heroCta} href="#karma-destiny-consultation">
+            운명의 패턴 해석 준비하기
+          </a>
         </div>
       </section>
+
+      <ExpertValueCards
+        theme="karma"
+        points={[
+          { title: "반복되는 관계 패턴", description: "같은 장면에서 마음이 흔들리는 이유를 정리합니다." },
+          { title: "일과 돈의 막힘", description: "노력의 방향을 막는 습관과 선택의 결을 살핍니다." },
+          { title: "다시 선택할 방향", description: "놓아도 되는 감정의 매듭과 다음 행동을 찾습니다." },
+        ]}
+      />
 
       <section className="kdai-premium-map" aria-label={copy.premiumMapAriaLabel}>
         <div className="kdai-premium-map__intro">
@@ -2606,7 +2601,7 @@ export default function KarmaDestinyAiPage() {
       </section>
 
       <section className="kdai-workspace">
-        <form className="kdai-form kdai-panel" onSubmit={handleSubmit}>
+        <form id="karma-destiny-consultation" className="kdai-form kdai-panel" onSubmit={handleSubmit}>
           <div className="kdai-panel-title kdai-panel-title--split">
             <div>
               <CalendarDays size={18} />
@@ -2826,16 +2821,14 @@ export default function KarmaDestinyAiPage() {
         />
       )}
 
-      <style jsx global>{`
-        body:has(.kdai-page) header,
-        body:has(.kdai-page) footer,
-        body:has(.kdai-page) .site-header,
-        body:has(.kdai-page) .site-footer,
-        body:has(.kdai-page) .app-chrome__header,
-        body:has(.kdai-page) .app-chrome__footer {
-          display: none !important;
-        }
-      `}</style>
+      {messages.length === 0 && status === "idle" && (
+        <ExpertStickyCta
+          theme="karma"
+          targetId="karma-destiny-consultation"
+          label="상담 정보 입력하기"
+          price={<PriceBadge featureKey="karma-destiny-ai-consultation" prefix="" />}
+        />
+      )}
 
       <style jsx>{`
         .kdai-page {
@@ -2982,187 +2975,11 @@ export default function KarmaDestinyAiPage() {
           transform: rotate(-7deg);
         }
 
-        .kdai-hero::after {
-          position: absolute;
-          inset: 18px 18px auto auto;
-          width: min(36vw, 360px);
-          aspect-ratio: 1;
-          border: 1px solid rgba(239, 204, 137, .18);
-          border-radius: 50%;
-          content: "";
-          background:
-            conic-gradient(from 22deg, transparent 0 12%, rgba(239, 204, 137, .28) 12% 13%, transparent 13% 28%, rgba(244, 114, 182, .22) 28% 29%, transparent 29% 100%);
-          opacity: .58;
-        }
-
-        .kdai-hero__sigil {
-          position: absolute;
-          inset: 12% auto auto 22%;
-          width: 220px;
-          aspect-ratio: 1;
-          border: 1px solid rgba(239, 204, 137, .16);
-          border-radius: 50%;
-          background:
-            repeating-conic-gradient(from 12deg, rgba(239, 204, 137, .16) 0 4deg, transparent 4deg 18deg),
-            radial-gradient(circle, transparent 0 48%, rgba(190, 18, 60, .18) 49% 50%, transparent 51%);
-          opacity: .34;
-          animation: kdaiSlowTurn 38s linear infinite;
-        }
-
-        .kdai-hero__image {
-          position: relative;
-          z-index: 1;
-          overflow: hidden;
-          display: grid;
-          place-items: center;
-          min-height: 320px;
-          aspect-ratio: 1 / 1;
-          border-radius: 8px;
-          border: 1px solid rgba(239, 204, 137, .28);
-          background:
-            linear-gradient(135deg, rgba(255, 247, 223, .12), transparent 33%),
-            linear-gradient(28deg, rgba(148, 31, 52, .28), transparent 54%),
-            conic-gradient(from 142deg at 50% 52%, rgba(239, 204, 137, .2), rgba(8, 10, 22, .96), rgba(109, 37, 47, .34), rgba(7, 10, 22, .98), rgba(239, 204, 137, .16));
-          box-shadow: inset 0 0 0 1px rgba(255, 247, 223, .05);
-        }
-
         .kdai-hero__copy,
         .kdai-form,
         .kdai-result {
           position: relative;
           z-index: 1;
-        }
-
-        .kdai-hero__image--sigil::before,
-        .kdai-hero__image--sigil::after {
-          position: absolute;
-          content: "";
-          pointer-events: none;
-        }
-
-        .kdai-hero__image--sigil::before {
-          inset: 18px;
-          border: 1px solid rgba(239, 204, 137, .2);
-          border-radius: 50%;
-          transform: rotate(-8deg);
-        }
-
-        .kdai-hero__image--sigil::after {
-          inset: 34px 30px;
-          border: 1px solid rgba(255, 255, 255, .1);
-          border-radius: 8px;
-          transform: rotate(8deg);
-        }
-
-        .kdai-oracle {
-          position: relative;
-          display: grid;
-          place-items: center;
-          width: min(82%, 300px);
-          aspect-ratio: 1;
-          color: #fff7df;
-        }
-
-        .kdai-oracle__ring {
-          position: absolute;
-          border-radius: 50%;
-          border: 1px solid rgba(239, 204, 137, .32);
-          background:
-            repeating-conic-gradient(from 18deg, rgba(239, 204, 137, .24) 0 3deg, transparent 3deg 17deg),
-            radial-gradient(circle, transparent 0 54%, rgba(239, 204, 137, .12) 55% 57%, transparent 58%);
-          animation: kdaiSlowTurn 34s linear infinite;
-        }
-
-        .kdai-oracle__ring--outer {
-          inset: 0;
-        }
-
-        .kdai-oracle__ring--middle {
-          inset: 22%;
-          background: none;
-          border-color: rgba(255, 247, 223, .22);
-          animation-duration: 24s;
-          animation-direction: reverse;
-        }
-
-        .kdai-oracle__thread {
-          position: absolute;
-          width: 118%;
-          height: 1px;
-          background: linear-gradient(90deg, transparent, rgba(239, 204, 137, .76), rgba(244, 114, 182, .38), transparent);
-          box-shadow: 0 0 18px rgba(239, 204, 137, .22);
-        }
-
-        .kdai-oracle__thread--one {
-          transform: rotate(-28deg);
-        }
-
-        .kdai-oracle__thread--two {
-          transform: rotate(32deg);
-          opacity: .72;
-        }
-
-        .kdai-oracle__core {
-          position: relative;
-          display: grid;
-          place-items: center;
-          gap: 10px;
-          text-align: center;
-        }
-
-        .kdai-oracle__glyph {
-          font-family: CodeDestinyDisplay, CodeDestinyBody, serif;
-          font-size: 86px;
-          font-weight: 900;
-          line-height: 1;
-          text-shadow: 0 0 30px rgba(239, 204, 137, .5), 0 2px 18px rgba(0, 0, 0, .62);
-        }
-
-        .kdai-oracle__axis,
-        .kdai-oracle__status,
-        .kdai-oracle__keyword {
-          border: 1px solid rgba(239, 204, 137, .24);
-          border-radius: 999px;
-          background: rgba(7, 10, 22, .68);
-          color: rgba(255, 247, 223, .82);
-          font-size: 12px;
-          font-weight: 900;
-          line-height: 1.3;
-        }
-
-        .kdai-oracle__axis {
-          padding: 5px 10px;
-          letter-spacing: .08em;
-        }
-
-        .kdai-oracle__status {
-          position: absolute;
-          right: -6%;
-          bottom: 20%;
-          max-width: 190px;
-          padding: 8px 10px;
-          overflow-wrap: anywhere;
-          text-align: center;
-          box-shadow: 0 14px 34px rgba(0, 0, 0, .26);
-        }
-
-        .kdai-oracle__keywords {
-          position: absolute;
-          left: 50%;
-          bottom: -8px;
-          display: flex;
-          width: min(112%, 330px);
-          transform: translateX(-50%);
-          justify-content: center;
-          gap: 6px;
-          flex-wrap: wrap;
-        }
-
-        .kdai-oracle__keyword {
-          max-width: 120px;
-          padding: 6px 9px;
-          overflow-wrap: anywhere;
-          text-align: center;
         }
 
         .kdai-kicker,
@@ -3252,7 +3069,7 @@ export default function KarmaDestinyAiPage() {
         }
 
         .kdai-ghost-action {
-          min-height: 34px;
+          min-height: 44px;
           padding: 0 10px;
           border: 1px solid rgba(239, 204, 137, .26);
           border-radius: 8px;
@@ -4022,32 +3839,6 @@ export default function KarmaDestinyAiPage() {
 
           .kdai-premium-map__cards {
             grid-template-columns: repeat(2, minmax(0, 1fr));
-          }
-
-          .kdai-hero__image {
-            min-height: 260px;
-            max-height: none;
-            aspect-ratio: 16 / 9;
-          }
-
-          .kdai-oracle {
-            width: min(72%, 250px);
-          }
-
-          .kdai-oracle__glyph {
-            font-size: 64px;
-          }
-
-          .kdai-oracle__status {
-            right: 50%;
-            bottom: 14%;
-            max-width: 220px;
-            transform: translateX(50%);
-          }
-
-          .kdai-oracle__keywords {
-            bottom: -4px;
-            width: min(118%, 310px);
           }
 
           .kdai-hero h2 {

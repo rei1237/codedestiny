@@ -1112,29 +1112,50 @@ const NYAI_SEASON_CSS = `
   display: block;
   font-size: 13px;
   font-weight: 700;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 .nyai-year-chips {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
+  padding: 8px;
+  border: 1px solid rgba(227, 196, 106, .18);
+  border-radius: 12px;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(227, 196, 106, .08) 0 1px, transparent 1.5px),
+    rgba(19, 8, 15, .44);
+  background-size: 14px 14px, auto;
 }
 
 .nyai-year-chip {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 2px;
   min-height: 44px;
   padding: 10px 12px;
-  border-radius: var(--nyai-radius-pill, 999px);
-  border: 1px solid var(--nyai-gold-hair);
+  border-radius: 8px;
+  border: 1px solid rgba(227, 196, 106, .2);
   background: rgba(42, 16, 24, 0.55);
   color: inherit;
   cursor: pointer;
   text-align: left;
-  transition: border-color 0.2s ease, background 0.2s ease;
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
 }
+
+.nyai-year-chip::before {
+  content: "";
+  position: absolute;
+  top: 9px;
+  left: 8px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(227, 196, 106, .45);
+}
+
+.nyai-year-chip strong { padding-left: 8px; font-size: 14px; }
 
 .nyai-year-chip small {
   font-size: 11px;
@@ -1142,8 +1163,21 @@ const NYAI_SEASON_CSS = `
 }
 
 .nyai-year-chip.is-active {
-  border-color: var(--nyai-gold);
-  background: var(--nyai-gold-veil);
+  border-color: rgba(242, 214, 142, .82);
+  background: linear-gradient(135deg, rgba(227, 196, 106, .21), rgba(125, 53, 80, .28));
+  box-shadow: inset 0 0 0 1px rgba(255, 242, 194, .1), 0 8px 18px rgba(0, 0, 0, .18);
+}
+
+.nyai-year-chip.is-active::before { background: var(--nyai-gold-bright); box-shadow: 0 0 9px var(--nyai-gold); }
+.nyai-year-chip:focus-visible { outline: 2px solid var(--nyai-gold-bright); outline-offset: 2px; }
+.nyai-year-chip:not(:disabled):active { transform: translateY(1px); }
+
+.nyai-year-status {
+  display: block;
+  margin-top: 8px;
+  color: var(--nyai-text-dim);
+  font-size: 12px;
+  line-height: 1.45;
 }
 
 .nyai-year-field input {
@@ -2062,7 +2096,7 @@ export default function NewYearAiConsultationPage() {
                 <option value="lunar">음력</option>
               </select>
             </label>
-            <div className="nyai-year-field">
+            <div className="nyai-year-field" data-year-mode={showCustomYear ? "custom" : "preset"}>
               <span>상담 연도</span>
               <div className="nyai-year-chips" role="radiogroup" aria-label={copy.yearChipsAria}>
                 {[currentYear, currentYear + 1].map((year) => {
@@ -2109,6 +2143,9 @@ export default function NewYearAiConsultationPage() {
                   required
                 />
               )}
+              <small className="nyai-year-status" aria-live="polite">
+                {showCustomYear ? "직접 입력한 연도의 흐름을 준비합니다." : `${form.targetYear || currentYear}년 상담 흐름을 선택했습니다.`}
+              </small>
             </div>
           </div>
           <div className="nyai-focus-panel">

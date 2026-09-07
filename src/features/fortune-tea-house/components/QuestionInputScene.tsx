@@ -787,7 +787,7 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
           </div>
         </div>
       </div>
-      <form className={`${styles.questionPanel} ${questionPanelUi}`} onSubmit={handleSubmit}>
+      <form id="tea-question-form" className={`${styles.questionPanel} ${questionPanelUi}`} onSubmit={handleSubmit}>
         <p className={styles.sceneEyebrow}>{selectedCup.ritualTitle}</p>
         <h2 id="teaQuestionTitle">{selectedCup.name}  {copy.kfabu8cs}</h2>
         <p className={styles.sceneDescription}>
