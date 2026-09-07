@@ -31,7 +31,13 @@ test("fortune planner entry cuts over to the /diary app", () => {
   assert.doesNotMatch(runtime, /location\.assign\('\/fortune-planner'\)/);
   assert.doesNotMatch(runtime, /mountFortunePlannerHomeCard/);
   assert.doesNotMatch(runtime, /cdFortunePlannerCard/);
-  assert.match(html, /id="cdDiaryPlannerEntry"[\s\S]*data-action="openLuckSyncDiary"/);
+  // 2026-09-07: 홈 진입점을 <button data-action> 에서 앵커로 바꿨다 — data-action 은 상세
+  // 마케팅 카드를 한 번 거쳐 두 번 눌러야 /diary 에 닿았다. 지킬 것은 "홈 진입점이 /diary 로
+  // 곧장 간다"이므로 검사 범위를 그 섹션 안으로 좁히고, data-action 이 되살아나면 실패시킨다.
+  const diaryEntry = html.match(/<section class="cd-diary-planner-entry" id="cdDiaryPlannerEntry"[\s\S]*?<\/section>/);
+  assert.ok(diaryEntry, "#cdDiaryPlannerEntry 섹션을 찾지 못했다");
+  assert.match(diaryEntry[0], /<a class="cd-diary-planner-entry__action" href="\/diary\/"/);
+  assert.doesNotMatch(diaryEntry[0], /data-action=/);
   // 제목 안의 마크업은 고정하지 않는다 — 이 가드가 지키려는 것은 "다이어리 모달 진입점이
   // 이 문구를 단다"이지 문구가 요소의 첫 바이트라는 사실이 아니다. i18n 마킹이 각 줄을
   // <span data-cd-trans> 로 감싸면서 인접이 깨졌는데, 그건 회귀가 아니라 로케일화의 정상
