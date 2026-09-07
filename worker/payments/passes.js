@@ -204,6 +204,13 @@ export async function createPayablePassOrder(db, input) {
  * 멱등이다: 같은 주문으로 다시 실행해도 같은 값이 다시 쓰일 뿐이다(연장 스택은 transition 이
  * 활성 만료를 앵커로 쓰므로, 같은 주문의 재실행은 이미 반영된 만료를 다시 늘리지 않도록
  * lastPassOrderId 가드로 막는다).
+ *
+ * 🔴 **서로 다른 두 주문이 동시에 확정되는 경우**는 lastPassOrderId 가드가 못 막는다 — 둘 다 같은
+ * prior(만료 E0)를 읽어 둘 다 `E0+30일`·`한도 600` 을 쓰므로 기간은 30일인데 한도만 두 배가 됐다
+ * (2026-09-07). 그래서 읽은 시점의 expiresAt 을 필터에 넣는 CAS 로 쓴다 — 소비 차감
+ * (consumePassCoverage)이 이미 쓰는 관용구와 같은 형태다. 필터가 빗나가면 던지지 않고
+ * `{ conflict: true }` 를 돌려주고, 호출부가 문서를 다시 읽어 기간·한도를 **다시 계산**해 재시도한다
+ * (여기서 같은 expiresAt 으로 재시도하면 먼저 반영된 주문의 기간을 덮어써 30일을 잃는다).
  */
 export async function activatePassSubscription(db, {
   userId, plan, orderId, customerUid, paymentMethod, paidAt, expiresAt, now = new Date(),
@@ -211,6 +218,9 @@ export async function activatePassSubscription(db, {
   // 6→5, M10 Phase 2 #2). 두 읽기가 원래도 순차·비트랜잭션이라 동시성 창은 줄어들 뿐 넓어지지 않는다.
   // 🔴 프로젝션으로 잘린 문서를 넘기지 말 것 — 재생 가드·사이클 계산이 profileSubscription 전체를 본다.
   existing = undefined,
+  // 마지막 시도에서만 false 로 내린다 — 필터가 구조적으로 못 맞는 문서(만료일이 문자열로 저장된
+  // 옛 문서 등)에서 정상 결제가 지급되지 않는 쪽이 더 큰 사고다. 종전 동작으로 되돌아간다.
+  casGuard = true,
 }) {
   const uid = toObjectId(userId);
   if (existing === undefined) existing = await db.findOne(User, { _id: uid });
@@ -253,8 +263,17 @@ export async function activatePassSubscription(db, {
     "profileSubscription.monthlyLimitCoin": cycle.monthlyLimitCoin,
     "profileSubscription.updatedAt": now,
   };
-  const updated = await db.findOneAndUpdate(User, { _id: uid }, { $set: update }, { returnDocument: "after" });
+  const filter = { _id: uid };
+  if (casGuard) {
+    // Mongo 에서 `{ field: null }` 은 null 과 미존재를 함께 매칭한다 — 이용권을 처음 사는 문서가 여기 온다.
+    const priorExpiresAt = prior.expiresAt ? new Date(prior.expiresAt) : null;
+    filter["profileSubscription.expiresAt"] = priorExpiresAt && Number.isFinite(priorExpiresAt.getTime())
+      ? priorExpiresAt
+      : null;
+  }
+  const updated = await db.findOneAndUpdate(User, filter, { $set: update }, { returnDocument: "after" });
   const user = updated && typeof updated === "object" && "value" in updated && !("_id" in updated) ? updated.value : updated;
+  if (!user && casGuard) return { user: null, replayed: false, conflict: true };
   if (!user) throw paymentError("DB_UNAVAILABLE", "이용권 활성화를 반영하지 못했습니다. 잠시 후 '결제 상태 다시 확인'으로 재시도해 주세요.", { orderId });
   return { user, replayed: false };
 }

@@ -194,7 +194,11 @@ export function computePassExpiry({ transition, paidAt, now = new Date(), durati
  *
  * 같은 등급을 **활성 상태에서** 다시 사면 기간이 이어붙으므로(EXTENSION) 한도도
  * `이전 한도 + 30일치`로 올리고 사용액은 그대로 둔다 — 사용자가 낸 돈만큼 정확히 커버된다.
- * 신규·업그레이드는 기간과 마찬가지로 이전 사이클을 버리고 0 부터 시작한다.
+ * 🔴 상위 등급 업그레이드도 **이미 쓴 금액은 이월한다**(2026-09-07 사용자 결정). 한도만 새 등급
+ * 기본값으로 올린다 — 기간이 새로 시작하므로(computePassExpiry) 연장분 스택은 소멸한다.
+ * 예전에는 업그레이드가 사용액을 0 으로 리셋해서, standard 한도를 다 쓴 뒤 premium 을 사면
+ * 쓴 금액이 통째로 사라졌다("한도가 안 줄어든다"의 서버측 실체 중 하나).
+ * 활성 이용권이 없는 신규만 0 부터 시작한다.
  *
  * 🔴 웹 카드 결제(worker/payments/passes.js activatePassSubscription)와 앱 Play Billing
  * (worker/routes/app-store.js buildEntitlementUpdate)이 이 함수 하나를 공유한다 —
@@ -217,17 +221,19 @@ export function buildPassCycleFields({ priorSubscription, tier: tierInput, expir
   const priorActive = Boolean(priorExpiresAt)
     && Number.isFinite(priorExpiresAt.getTime())
     && priorExpiresAt.getTime() > new Date(now).getTime();
-  const isExtension = priorActive && normalizePassTier(prior.passTier || prior.tier) === tier;
-  if (!isExtension) {
+  const priorTier = normalizePassTier(prior.passTier || prior.tier);
+  if (!priorActive || !priorTier) {
     return { premiumUseCycleKey: cycleKey, premiumUseCount: 0, monthlySpendCoin: 0, monthlyLimitCoin: baseCoin };
   }
   const priorCycleKey = priorExpiresAt.toISOString();
   const sameCycle = String(prior.premiumUseCycleKey || "") === priorCycleKey;
+  const isExtension = priorTier === tier;
   return {
     premiumUseCycleKey: cycleKey,
     premiumUseCount: sameCycle ? Math.max(0, Math.floor(Number(prior.premiumUseCount || 0))) : 0,
     monthlySpendCoin: sameCycle ? Math.max(0, Math.floor(Number(prior.monthlySpendCoin || 0))) : 0,
-    monthlyLimitCoin: resolveMonthlyPassLimitCoin(prior, tier, priorCycleKey) + baseCoin,
+    // 연장은 낸 돈만큼 한도를 쌓고, 업그레이드는 새 등급 기본 한도로 갈아 끼운다(사용액은 위에서 이월).
+    monthlyLimitCoin: isExtension ? resolveMonthlyPassLimitCoin(prior, tier, priorCycleKey) + baseCoin : baseCoin,
   };
 }
 
