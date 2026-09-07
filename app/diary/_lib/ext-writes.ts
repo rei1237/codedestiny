@@ -92,6 +92,16 @@ export function addTag(text: string): DiaryExtDayMutate {
   };
 }
 
+/**
+ * 그날 상대에 대해 남긴 메모. 🔴 셸과 공유하는 v2 엔트리가 아니라 확장 하루치에 쓴다 —
+ * 셸에는 이 메모를 읽는 자리가 없다(`./ext-snapshot.ts` 의 `partnerNote` 주석).
+ */
+export function writePartnerNote(text: string): DiaryExtDayMutate {
+  return (day) => {
+    day.partnerNote = text.slice(0, DIARY_EXT_TEXT_MAX);
+  };
+}
+
 /** 태그 삭제. 이름이 곧 동일성이라 이름으로 지운다. */
 export function removeTag(text: string): DiaryExtDayMutate {
   return (day) => {
