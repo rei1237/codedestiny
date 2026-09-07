@@ -166,7 +166,6 @@ export default function MuhurtaClient() {
       startDate: String(args.startDate || todayKst()),
       requestId,
     };
-    setBirth(restored);
     return fetchReport(paidRef.current);
   });
 

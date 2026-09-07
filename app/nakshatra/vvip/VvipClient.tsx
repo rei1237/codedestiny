@@ -164,7 +164,6 @@ export default function VvipClient() {
     const requestId = String(args.requestId || grant?.requestId || grant?.merchantUid || "");
     if (!restored || !requestId) return false;
     paidRef.current = { birth: restored, requestId };
-    setBirth(restored);
     return fetchCodex(paidRef.current);
   });
 
