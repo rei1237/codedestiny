@@ -591,7 +591,6 @@ function _lsdText(key) {
     todayGZ: null,
     scores: null,
     mainTenStar: null,
-    morningMsg: '',
     pillars: null,
     power: null,
     jong: null
@@ -606,7 +605,6 @@ function _lsdText(key) {
     if (!Array.isArray(entry.stickers)) entry.stickers = [];
     if (!Array.isArray(entry.badges)) entry.badges = [];
     if (!Array.isArray(entry.nightPractices)) entry.nightPractices = [];
-    if (!Array.isArray(entry.actionPlan)) entry.actionPlan = [];
     if (!Array.isArray(entry.challengeCatalog)) entry.challengeCatalog = [];
     if (!Array.isArray(entry.tomorrowActionPlan)) entry.tomorrowActionPlan = [];
     if (!Array.isArray(entry.meditationLogs)) entry.meditationLogs = [];
@@ -631,7 +629,6 @@ function _lsdText(key) {
     if (typeof entry.meditationMinutes !== 'number') entry.meditationMinutes = 0;
     if (typeof entry.meditationPoints !== 'number') entry.meditationPoints = 0;
     if (typeof entry.memoNote !== 'string') entry.memoNote = '';
-    if (typeof entry.morningFortune !== 'string') entry.morningFortune = '';
     if (typeof entry.partnerName !== 'string') entry.partnerName = '';
     if (typeof entry.partnerBirthYear !== 'string') entry.partnerBirthYear = '';
     if (typeof entry.partnerBirthDate !== 'string') entry.partnerBirthDate = '';
@@ -697,31 +694,6 @@ function _lsdText(key) {
         close();
         if (typeof onConfirm === 'function') onConfirm();
       };
-      overlay.addEventListener('click', function (ev) {
-        if (ev.target === overlay) close();
-      });
-    } catch (_) {}
-  }
-
-  function showDiaryPwaGuide() {
-    try {
-      var host = document.getElementById('luckSyncDiaryModal') || document.body;
-      if (!host) return;
-      var old = document.getElementById('lsdPwaGuideOverlay');
-      if (old && old.parentNode) old.parentNode.removeChild(old);
-      var overlay = document.createElement('div');
-      overlay.id = 'lsdPwaGuideOverlay';
-      overlay.className = 'lsd-confirm-overlay';
-      overlay.innerHTML = ''
-        + '<div class="lsd-confirm-card" role="dialog" aria-modal="true" aria-labelledby="lsdPwaGuideTitle" aria-describedby="lsdPwaGuideDesc">'
-        + '<p id="lsdPwaGuideTitle" class="lsd-confirm-title">홈 화면에 추가하기</p>'
-        + '<p id="lsdPwaGuideDesc" class="lsd-confirm-copy">' + escHtml(getLsdHomeGuideText()) + '<br><br>기록은 서버가 아닌 사용자님의 기기에만 저장됩니다.</p>'
-        + '<div class="lsd-confirm-actions"><button type="button" class="lsd-confirm-cancel">확인</button></div></div>';
-      host.appendChild(overlay);
-      var close = function () {
-        if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
-      };
-      overlay.querySelector('.lsd-confirm-cancel').onclick = close;
       overlay.addEventListener('click', function (ev) {
         if (ev.target === overlay) close();
       });
@@ -814,7 +786,6 @@ return true;
         feedback: null,
         moodEmoji: '',
         nightPractices: [],
-        actionPlan: [],
         challengeCatalog: [],
         challengeTotalToday: 0,
         practiceNote: '',
@@ -846,143 +817,6 @@ return true;
     // 운세 플래너는 누구나 쓸 수 있는 기기 로컬 기능이다. 과거 구매 기록은 읽거나
     // 삭제하지 않으며, 이 화면을 열기 위한 entitlement 조회도 하지 않는다.
     return true;
-  }
-
-  var _lsdPwaPrompt = null;
-  var _lsdPwaInstalled = false;
-
-  function isLsdStandaloneMode() {
-    try {
-      return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
-    } catch (_) {
-      return false;
-    }
-  }
-
-  function getLsdPwaPrompt() {
-    // 다이어리 전용 prompt를 우선 사용하되, 기존 공통 PWA 스크립트가 보관한 prompt도 재사용한다.
-    return _lsdPwaPrompt || window._pwaPrompt || null;
-  }
-
-  function getLsdHomeGuideText() {
-    var ua = String(navigator.userAgent || '').toLowerCase();
-    var isIOS = /iphone|ipad|ipod/.test(ua);
-    var isSafari = /safari/.test(ua) && !/chrome|crios|android/.test(ua);
-    if (isIOS || isSafari) {
-      return '전용 설치 흐름은 아직 잠겨 있습니다.';
-    }
-    return '전용 설치 흐름은 아직 잠겨 있습니다.';
-  }
-
-  function updateDiaryPwaInstallUI() {
-    // 잠금 해제 여부, 설치 가능 이벤트, 이미 설치된 상태를 조합해 버튼과 안내 문구만 분기한다.
-    // 실제 접근 권한 판단은 기존 unlock 저장소를 읽기만 하며, 결제/권한 로직은 새로 만들지 않는다.
-    var card = document.getElementById('lsdPwaInstallCard');
-    if (!card) return;
-    /* 앱(Android WebView)에는 "홈 화면에 추가"가 성립하지 않는다 — beforeinstallprompt 가 오지
-       않아 항상 안내 문구만 남고, 이미 설치된 앱 안에서 설치를 권하는 꼴이라 Play 심사에도 걸린다.
-       판별 정본은 js/core/app-context.js(docs/app-audit/APP_UIUX_SPEC.md §2). */
-    try {
-      var ctx = window.__cdAppContext;
-      if (ctx && typeof ctx.isApp === 'function' && ctx.isApp()) {
-        card.style.display = 'none';
-        return;
-      }
-    } catch (_) {}
-    var unlocked = isLuckSyncDiaryUnlocked();
-    var prompt = getLsdPwaPrompt();
-    var installed = _lsdPwaInstalled || isLsdStandaloneMode();
-    var actionWrap = document.getElementById('lsdPwaInstallActions');
-    var status = document.getElementById('lsdPwaInstallStatus');
-    var guide = document.getElementById('lsdPwaInstallGuide');
-    var installBtn = document.getElementById('lsdPwaInstallBtn');
-    var guideBtn = document.getElementById('lsdPwaGuideBtn');
-
-    card.classList.toggle('is-locked', !unlocked);
-    card.classList.toggle('is-installed', installed);
-    if (installBtn) installBtn.style.display = (unlocked && !installed && prompt) ? 'inline-flex' : 'none';
-    if (guideBtn) guideBtn.style.display = (unlocked && !installed && !prompt) ? 'inline-flex' : 'none';
-    if (actionWrap) actionWrap.style.display = unlocked ? 'flex' : 'none';
-
-    if (!unlocked) {
-      if (status) status.textContent = '전용 설치 준비 중';
-      if (guide) guide.textContent = '전용 설치 흐름은 아직 잠겨 있습니다.';
-      return;
-    }
-    if (installed) {
-      if (status) status.textContent = '이미 기기에 설치된 상태입니다.';
-      if (guide) guide.textContent = '기록은 서버가 아닌 사용자님의 기기에만 저장됩니다.';
-      return;
-    }
-    if (prompt) {
-      if (status) status.textContent = '설치 가능한 브라우저입니다.';
-      if (guide) guide.textContent = '전용 설치 흐름은 아직 잠겨 있습니다.';
-    } else {
-      if (status) status.textContent = '홈 화면에 추가 안내';
-      if (guide) guide.textContent = getLsdHomeGuideText();
-    }
-  }
-
-  function requestDiaryPwaInstall() {
-    // 설치 가능한 브라우저는 beforeinstallprompt를 실행하고, 지원하지 않는 환경은 홈 화면 추가 안내로 대체한다.
-    // 기록 저장 위치는 그대로 로컬 저장소이며, 설치 버튼은 라우팅이나 서버 저장 정책을 변경하지 않는다.
-    if (!isLuckSyncDiaryUnlocked()) {
-      showDiaryToast('전용 설치 흐름은 아직 잠겨 있습니다.');
-      updateDiaryPwaInstallUI();
-      return;
-    }
-    if (_lsdPwaInstalled || isLsdStandaloneMode()) {
-      showDiaryToast('이미 기기에 설치되어 있습니다.');
-      updateDiaryPwaInstallUI();
-      return;
-    }
-    var prompt = getLsdPwaPrompt();
-    if (!prompt || typeof prompt.prompt !== 'function') {
-      showDiaryPwaGuide();
-      updateDiaryPwaInstallUI();
-      return;
-    }
-    _lsdPwaPrompt = null;
-    try {
-      if (window._pwaPrompt === prompt) window._pwaPrompt = null;
-    } catch (_) {}
-    try {
-      prompt.prompt();
-      Promise.resolve(prompt.userChoice).then(function (result) {
-        if (result && result.outcome === 'accepted') {
-          _lsdPwaInstalled = true;
-          showDiaryToast('기기에 다이어리 바로가기를 설치하는 중입니다.');
-        } else {
-          showDiaryToast('설치를 취소했습니다. 필요할 때 다시 시도할 수 있습니다.');
-        }
-        updateDiaryPwaInstallUI();
-      }, function () {
-        showDiaryPwaGuide();
-        updateDiaryPwaInstallUI();
-      });
-    } catch (_) {
-      showDiaryPwaGuide();
-      updateDiaryPwaInstallUI();
-    }
-  }
-
-  if (!window.__lsdPwaInstallBound) {
-    window.__lsdPwaInstallBound = true;
-    _lsdPwaInstalled = isLsdStandaloneMode();
-    window.addEventListener('beforeinstallprompt', function (ev) {
-      try {
-        // 브라우저 기본 설치 배너를 즉시 띄우지 않고, 잠금 해제 사용자 카드의 버튼에서 호출한다.
-        if (ev && ev.preventDefault) ev.preventDefault();
-        _lsdPwaPrompt = ev;
-        updateDiaryPwaInstallUI();
-      } catch (_) {}
-    });
-    window.addEventListener('appinstalled', function () {
-      _lsdPwaInstalled = true;
-      _lsdPwaPrompt = null;
-      updateDiaryPwaInstallUI();
-      showDiaryToast('기기에 다이어리 바로가기를 설치했습니다.');
-    });
   }
 
   function ensureMzStyles() {
@@ -1577,7 +1411,6 @@ return true;
       todayGZ: todayGZ,
       scores: scores,
       mainTenStar: mainTenStar,
-      morningMsg: (document.getElementById('lsdEnergyGuide') || {}).textContent || '',
       pillars: pillars || null,
       power: power || null,
       jong: jongData || null
@@ -1946,92 +1779,6 @@ return true;
       + '<div style="margin-top:6px"><b>조율할 점</b><br>' + toBullets(cautions) + '</div>'
       + '<div style="margin-top:6px"><b>작은 실천</b><br>' + toBullets(boostTips) + '</div>'
       + '<span style="font-size:var(--lsd-t-micro);color:var(--lsd-ink-muted)">입력 기준: ' + escHtml((bdate || (by + '-01-01')) + ' ' + btime + ' · ' + bcity + ' · ' + ctype) + '</span>';
-  }
-
-  /* ─── 레이더 차트 (Canvas) ───────────────────────────────────── */
-  function drawRadar(scores) {
-    var canvas = document.getElementById('lsdRadarCanvas');
-    if (!canvas || !canvas.getContext) return;
-    var ctx = canvas.getContext('2d');
-    var W = canvas.width, H = canvas.height;
-    var cx = W / 2, cy = H / 2;
-    var R = Math.min(W, H) / 2 - 36;
-    var N = 5;
-    var labels  = ['재물 💰', '애정 💕', '명예 👑', '건강 💚', '학습 📚'];
-    var vals    = [scores.wealth, scores.love, scores.fame, scores.health, scores.study];
-    var dotColors = ['#fbbf24', '#f472b6', '#a78bfa', '#4ade80', '#60a5fa'];
-
-    function angle(i) { return (Math.PI * 2 * i / N) - Math.PI / 2; }
-
-    ctx.clearRect(0, 0, W, H);
-
-    // 배경 그리드
-    for (var r = 1; r <= 5; r++) {
-      ctx.beginPath();
-      for (var i = 0; i < N; i++) {
-        var a = angle(i), pr = R * r / 5;
-        var x = cx + pr * Math.cos(a), y = cy + pr * Math.sin(a);
-        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-      }
-      ctx.closePath();
-      ctx.strokeStyle = r === 5 ? 'rgba(148,163,184,0.4)' : 'rgba(148,163,184,0.15)';
-      ctx.lineWidth = r === 5 ? 1.5 : 1;
-      ctx.stroke();
-    }
-
-    // 축선
-    for (var i = 0; i < N; i++) {
-      var a = angle(i);
-      ctx.beginPath();
-      ctx.moveTo(cx, cy);
-      ctx.lineTo(cx + R * Math.cos(a), cy + R * Math.sin(a));
-      ctx.strokeStyle = 'rgba(148,163,184,0.25)';
-      ctx.lineWidth = 1;
-      ctx.stroke();
-    }
-
-    // 데이터 폴리곤
-    ctx.beginPath();
-    for (var i = 0; i < N; i++) {
-      var a = angle(i);
-      var pr = R * vals[i] / 100;
-      var x = cx + pr * Math.cos(a), y = cy + pr * Math.sin(a);
-      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-    }
-    ctx.closePath();
-    var grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, R);
-    grad.addColorStop(0, 'rgba(129,140,248,0.5)');
-    grad.addColorStop(1, 'rgba(129,140,248,0.08)');
-    ctx.fillStyle = grad;
-    ctx.fill();
-    ctx.strokeStyle = '#818cf8';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-
-    // 점 + 레이블
-    for (var i = 0; i < N; i++) {
-      var a = angle(i);
-      var pr = R * vals[i] / 100;
-      var x = cx + pr * Math.cos(a), y = cy + pr * Math.sin(a);
-
-      // 글로우 점
-      ctx.beginPath();
-      ctx.arc(x, y, 5, 0, Math.PI * 2);
-      ctx.fillStyle = dotColors[i];
-      ctx.shadowColor = dotColors[i];
-      ctx.shadowBlur = 10;
-      ctx.fill();
-      ctx.shadowBlur = 0;
-
-      // 레이블
-      var lx = cx + (R + 22) * Math.cos(a);
-      var ly = cy + (R + 22) * Math.sin(a);
-      ctx.fillStyle = dotColors[i];
-      ctx.font = 'bold 10px "Noto Sans KR", sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(labels[i] + ' ' + vals[i], lx, ly);
-    }
   }
 
   /* ─── 챌린지 빌드 ─────────────────────────────────────────────── */
@@ -2553,7 +2300,6 @@ return true;
 
     entry.challengeCatalog = allChallenges.map(function (c) { return { id: c.id, text: c.text }; });
     entry.challengeTotalToday = allChallenges.length;
-    entry.actionPlan = allChallenges.map(function (c) { return { id: c.id, text: c.text, group: c.type }; });
     if (!Array.isArray(entry.challenges)) entry.challenges = [];
     entry.challenges = entry.challenges.filter(function (id) {
       return allChallenges.some(function (c) { return c.id === id; });
@@ -4191,7 +3937,6 @@ return true;
     if (miniLuckySub) miniLuckySub.textContent = (luckyInfo.lotto || '오늘의 보충 기운') + ' 중심';
     if (miniCaution) miniCaution.textContent = cautionInfo ? cautionInfo.cn : '균형';
     if (miniCautionSub) miniCautionSub.textContent = cautionInfo ? '과소비·과로를 낮게' : '과한 흐름은 잠시 멈춤';
-    updateDiaryPwaInstallUI();
 
     renderFortuneDetail(pillars, power, todayGZ, scores, mainTenStar, _luckyEl);
 
@@ -4326,12 +4071,6 @@ return true;
     });
 
     switchTab(_lsdActiveTab, modal);
-
-    var pwaInstallBtn = document.getElementById('lsdPwaInstallBtn');
-    if (pwaInstallBtn) pwaInstallBtn.onclick = requestDiaryPwaInstall;
-    var pwaGuideBtn = document.getElementById('lsdPwaGuideBtn');
-    if (pwaGuideBtn) pwaGuideBtn.onclick = showDiaryPwaGuide;
-    updateDiaryPwaInstallUI();
 
     /* 기분 이모지 */
     var moodBtns = modal.querySelectorAll('.lsd-mood-btn');

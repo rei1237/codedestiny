@@ -2620,8 +2620,6 @@ function __cdInvokeAction(action, actionEl, event) {
       if (typeof window[action] !== 'function') {
         if (action === 'openOlympusOracleModal' && typeof window._dpOpenFortuneType === 'function') {
           window._dpOpenFortuneType('olympus');
-        } else if (action === 'openLuckSyncDiary' && window.LuckSyncDiary && typeof window.LuckSyncDiary.open === 'function') {
-          window.LuckSyncDiary.open();
         } else if (action === 'closeLuckSyncDiary' && window.LuckSyncDiary && typeof window.LuckSyncDiary.close === 'function') {
           window.LuckSyncDiary.close();
         }
