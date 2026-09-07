@@ -122,16 +122,15 @@ export function usePremiumReport<T>(product: PremiumProduct): UsePremiumReportRe
         fetchedRef.current = true;
         return true;
       }
-      if (status === 402 || data.reason === "PAYMENT_REQUIRED") {
-        // PAYMENT_REQUIRED만으로 정상 이용권을 회수하지 않는다. 백그라운드 이용권
-        // 적용보다 결과 요청이 먼저 도착할 수 있다. 명시적 한도 소진만 회수한다.
-        if (passVerdict.isMonthlyLimitPayload(data)) {
-          forgetOptimisticUnlock(product.featureKey);
-          setLedgerUnlocked(false);
-        }
-        setError(ERROR_TEXT.payment);
-        return false;
+      // PAYMENT_REQUIRED만으로 정상 이용권을 회수하지 않는다. 백그라운드 이용권
+      // 적용보다 결과 요청이 먼저 도착할 수 있다. 명시적 한도 소진만 회수한다.
+      if ((status === 402 || data.reason === "PAYMENT_REQUIRED") && passVerdict.isMonthlyLimitPayload(data)) {
+        forgetOptimisticUnlock(product.featureKey);
+        setLedgerUnlocked(false);
       }
+      // 402는 정상적인 잠금 상태다. 사용자 오류로 표시하지 않고 잠금을 유지한다.
+      if (status === 402) return;
+      if (data.reason === "PAYMENT_REQUIRED") return false;
       if (status === 401 || data.reason === "LOGIN_REQUIRED") { setError(ERROR_TEXT.login); return false; }
       if (transient) { setError(ERROR_TEXT.degraded); return false; }
       setError(toText(data.message) || ERROR_TEXT.failed);
