@@ -30,6 +30,7 @@ import {
   type Result,
 } from "./fusion-thread";
 import { useFusionSharedCopy } from "./_lib/copy";
+import { tidyFusionProse } from "./_lib/reading";
 import styles from "./fusion-fortune.module.css";
 import { getCurrentLoadingLocale, INTL_LOCALE_BY_LOADING_LOCALE, type LoadingLocale } from "@/constants/loadingMessages";
 
@@ -1967,7 +1968,10 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
   const { ensurePaidAccess, isPaying } = useCoinGate();
   const [status, setStatus] = useState<Status>(EMPTY_STATUS);
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<Result | null>(null);
+  const [result, setResultState] = useState<Result | null>(null);
+  // 🔴 결과가 상태에 들어가는 유일한 문이다 — 여기서 공백 런을 접어 화면·글자 수·차례·PDF 가
+  //    같은 문자열을 본다. 보관본에는 본문 뒤에 공백 9만 자가 붙은 것이 실제로 있다(8차 실호출).
+  const setResult = useCallback((next: Result) => setResultState(tidyFusionProse(next)), []);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   /** refresh() 가 실패해 status 가 EMPTY_STATUS(nextAction:"disabled")에 갇혔을 때만 켠다 —
