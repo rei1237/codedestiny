@@ -48,6 +48,17 @@ describe("canonical entitlement and feature access policy", () => {
     expect(result.accessType).toBe("family");
   });
 
+  test("상담 토큰은 membership_pass·family 를 pass 로 정규화해 generate 가 받는다", () => {
+    expect(policy.normalizeConsultAccessType("membership_pass")).toBe("pass");
+    expect(policy.normalizeConsultAccessType("family")).toBe("pass");
+    expect(policy.normalizeConsultAccessType("FAMILY_PASS")).toBe("pass");
+    expect(policy.normalizeConsultAccessType("subscription")).toBe("subscription");
+    expect(policy.normalizeConsultAccessType("paid")).toBe("paid");
+    expect(policy.isAllowedConsultTokenAccessType("membership_pass")).toBe(true);
+    expect(policy.isAllowedConsultTokenAccessType("family")).toBe(true);
+    expect(policy.isAllowedConsultTokenAccessType("unknown")).toBe(false);
+  });
+
   test("canonical standard is never elevated by legacy family", () => {
     const user = {
       ...active("standard"),
