@@ -119,6 +119,11 @@ const deepVerificationRules = [
   //    월정석 잔량. 셋 다 목록에 없어서 access-state.js 조차 deepRequired 가 아니었다.
   [/^worker\/lib\/(access-state|access-state-cache|monthly-credit-store)\.js$/i, "이용권 스냅샷·월정석 잔량 저장소"],
   [/^js\/core\/(pass-verdict|checkout-entry)\.js$/i, "이용권 판정·결제 진입 정본"],
+  // 🔴 결제 후 자동 재개 배관. 여기가 서술자를 안 실으면 결제는 정상으로 끝나는데 사용자는 홈으로
+  //    떨어지고, 회당 결제는 재클릭이 곧 재과금이다(worker/lib/access-state.js 가 회당 키를 보유
+  //    목록에서 거른다). paid-flow-gates.yml 트리거에는 처음부터 있었는데 이 목록에는 없어서
+  //    이 훅만 고친 PR 은 deepRequired 가 아니었다 — access-state.js 와 같은 모양의 구멍이다.
+  [/^app\/hooks\/usePaidResume\.ts$/i, "React 결제 후 재개 배선 훅"],
 
   // ── 유료 기능 UI (정적 계약 테스트가 지키는 곳, preview 스모크는 게스트 경로만 두드린다)
   // 🔴 2026-08-22 실측: app/fusion-fortune/** 가 이 목록에도 paid-flow-gates.yml 트리거에도
@@ -244,6 +249,7 @@ export function selfTest() {
     ["worker/lib/fusion-fortune.js", true],
     ["worker/routes/fusion-fortune.js", true],
     ["app/vedic-ai/page.tsx", true],
+    ["app/hooks/usePaidResume.ts", true],
     // 아래는 level=high 여도 전체 회귀까지는 필요 없다. 이 구분이 두 축의 요점이다.
     ["worker/routes/fortune-tea-house.js", false],
     ["worker/routes/ziwei-ai.js", false],

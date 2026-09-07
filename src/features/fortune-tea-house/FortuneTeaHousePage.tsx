@@ -249,6 +249,13 @@ type FortuneTeaPrepaidResume = {
   grant: PaidResumeGrant | null;
 };
 
+/** 결제는 끝났는데 상담 생성이 실패한 시도. 인페이지 재제출이 이 값을 이어받아 재과금을 막는다. */
+type FortuneTeaSettledAttempt = {
+  attemptId: string;
+  featureKey: string;
+  billingGate: Record<string, unknown>;
+};
+
 /**
  * 결제 증빙을 실은 /consult 본문. 인페이지 결제와 재개가 같은 조립기를 쓴다 —
  * 갈래마다 따로 만들면 서버가 읽는 증빙 모양이 둘로 갈린다(원칙 6).
@@ -535,6 +542,13 @@ export default function FortuneTeaHousePage() {
   // 재개 핸들러가 "상담이 실제로 열렸는가"를 판정하는 표식. false 를 돌려주면 복귀 처리가
   // '지금 열기' 카드를 그려, 같은 attemptId 로 다시 시도할 수단이 남는다.
   const submitSucceededRef = useRef(false);
+  /**
+   * 🔴 재과금 방지 — 결제까지 끝내고 상담 생성에서 실패한 시도를 성공할 때까지 붙들어 둔다.
+   * createFortuneTeaAttemptId 는 시각·난수를 섞어 매번 다른 값을 주므로, 재제출이 새 키를
+   * 뽑으면 서버가 그 키로 결제 기록을 못 찾아 결제창을 다시 띄운다(= 같은 상담에 두 번 청구).
+   * featureKey 가 다르면 가격이 다른 상담이므로 이어받지 않는다.
+   */
+  const unusedPaidAttemptRef = useRef<FortuneTeaSettledAttempt | null>(null);
   const loadingBgmIndexRef = useRef(0);
   const currentBgmTrack = stage === "scentLoading" ? FORTUNE_TEA_LOADING_PLAYLIST[loadingBgmIndex] : getFortuneTeaBgmTrack(stage);
   const reduceMotion = useReducedMotion();
@@ -958,10 +972,23 @@ export default function FortuneTeaHousePage() {
         sajuCompatibility: nextQuestionInput.sajuCompatibility,
         question: nextQuestionInput.question,
       };
-      const attemptId = prepaid ? prepaid.attemptId : createFortuneTeaAttemptId(requestPayload);
+      // 앞선 시도가 결제까지 끝내고 생성에서 실패했다면 그 시도를 그대로 이어받는다 —
+      // 새 attemptId 로 다시 게이트를 타면 서버가 결제 기록을 못 찾아 재과금된다.
+      const reusablePaidAttempt = unusedPaidAttemptRef.current;
+      const carriedPaid = !prepaid
+        && reusablePaidAttempt
+        && reusablePaidAttempt.featureKey === resolveFortuneTeaFeatureKey(nextQuestionInput)
+        ? reusablePaidAttempt
+        : null;
+      const settledPayment = Boolean(prepaid || carriedPaid);
+      const attemptId = prepaid
+        ? prepaid.attemptId
+        : carriedPaid
+          ? carriedPaid.attemptId
+          : createFortuneTeaAttemptId(requestPayload);
       localPreviewResultId = attemptId;
-      // 재개는 결제가 이미 끝난 뒤라 '이용권 확인' 게이트를 다시 열지 않는다.
-      if (!prepaid) {
+      // 재개·이어받기는 결제가 이미 끝난 뒤라 '이용권 확인' 게이트를 다시 열지 않는다.
+      if (!settledPayment) {
         await beginFortuneTeaAccessGate(nextQuestionInput, attemptId);
         accessGateStarted = true;
       }
@@ -985,6 +1012,15 @@ export default function FortuneTeaHousePage() {
           localDraft,
           toText(prepaid.grant?.featureKey) || resolveFortuneTeaFeatureKey(nextQuestionInput),
           billingGate,
+          attemptId,
+        );
+      } else if (carriedPaid) {
+        // 이미 청구된 시도의 증빙을 다시 조립한다 — 결제창도 이용권 재검사도 타지 않는다.
+        billingEvidenceBody = buildFortuneTeaBillingEvidenceBody(
+          requestPayloadWithAttempt,
+          localDraft,
+          carriedPaid.featureKey,
+          carriedPaid.billingGate,
           attemptId,
         );
       } else {
@@ -1045,8 +1081,18 @@ export default function FortuneTeaHousePage() {
         }
       }
 
+      // 결제 증빙이 생긴 시도는 생성이 실패해도 이미 청구된 상태다 — 성공할 때까지 붙들어 두고
+      // 인페이지 재제출이 같은 attemptId 로 이어받게 한다(재과금 방지).
+      if (billingEvidenceBody) {
+        unusedPaidAttemptRef.current = {
+          attemptId,
+          featureKey: toText(billingEvidenceBody.featureKey) || resolveFortuneTeaFeatureKey(nextQuestionInput),
+          billingGate: asRecord(billingEvidenceBody.billingGate),
+        };
+      }
+
       // 이용권/결제 판정이 끝났으니 게이트를 닫고, 생성은 찻집 테마 로딩(scentLoading) 아래에서 진행한다.
-      if (!prepaid) {
+      if (!settledPayment) {
         await completeFortuneTeaAccessGate(nextQuestionInput, attemptId);
         accessGateStarted = false;
       }
@@ -1114,6 +1160,8 @@ export default function FortuneTeaHousePage() {
         setHoneyRewardMessage(pickHoneyDropMessage(serverHoneyDrops));
         setHoneyRewardBurstKey((key) => key + 1);
       }
+      // 상담문이 실제로 도착했다 — 이 시도의 결제는 소진됐으므로 이어받기 대상에서 뺀다.
+      if (unusedPaidAttemptRef.current?.attemptId === attemptId) unusedPaidAttemptRef.current = null;
       submitSucceededRef.current = true;
       setConsultResult(nextResult);
       if (payload.generationMeta?.mode === "local_fallback") {
