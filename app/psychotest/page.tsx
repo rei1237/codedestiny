@@ -7,6 +7,7 @@ import {
 } from "../../lib/psychotest-catalog";
 import DestinyBiasPromoSection from "./_components/DestinyBiasPromoSection";
 import RouteMetadataLocaleSync from "../components/RouteMetadataLocaleSync";
+import { introductionRoutes } from "../../lib/i18n/feature-introductions.mjs";
 
 const PSYCHOTEST_PAGE_METADATA_COPY = {
   ko: {
@@ -49,7 +50,7 @@ const META = {
 } as const;
 
 export function generateMetadata() {
-  return generatePageMetadata(META);
+  return generatePageMetadata({ ...META, hreflangPaths: introductionRoutes("psychotest") });
 }
 
 const BASE_GRAPH = JSON.parse(buildFortuneJsonLd(META));

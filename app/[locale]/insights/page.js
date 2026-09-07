@@ -1,3 +1,4 @@
+import PublicReadingGuide from "../../components/PublicReadingGuide";
 import Link from "next/link";
 import { PUBLIC_LOCALES, LOCALE_CONFIG, localeUrlSegment } from "../../../lib/i18n/locales";
 import { createI18nMetadata } from "../../../lib/seo/createI18nMetadata";
@@ -96,6 +97,7 @@ export default async function LocaleInsightsIndexPage({ params }) {
           </Link>
         ))}
       </section>
+      <PublicReadingGuide locale={locale} topic="insights" />
     </main>
   );
 }

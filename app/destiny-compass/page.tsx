@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { buildSeoMetadata } from "../../lib/seo";
 import { CompassApp } from "./_components/CompassApp";
+import { introductionRoutes } from "../../lib/i18n/feature-introductions.mjs";
 
 // 기본 레이아웃의 canonical 은 "/" 라, 직접 지정하지 않으면 홈으로 canonical 이 넘어간다.
 // buildSeoMetadata 가 self-canonical 과 index/follow 를 함께 세운다.
@@ -10,6 +11,7 @@ export const metadata = buildSeoMetadata({
   description:
     "사주 명식과 자미두수 명반을 함께 세워 지금 나아갈 방향과 오늘 실행할 한 걸음을 정리합니다. 계산 기준과 해석의 한계까지 함께 안내합니다.",
   keywords: ["운명의 나침반", "사주 자미두수 종합", "오늘의 방향", "사주 상담"],
+  hreflang: introductionRoutes("destiny-compass"),
 });
 
 export default function DestinyCompassPage() {
@@ -22,7 +24,7 @@ export default function DestinyCompassPage() {
         인터랙티브 화면 아래에 서버 렌더 해설을 두어 무엇을 계산하고 어디까지
         참고하면 되는지 밝힌다. 숨김 처리(sr-only)하지 않고 실제로 보이게 둔다.
       */}
-      <section className="mx-auto w-full max-w-3xl px-4 pb-10 pt-2 text-slate-100/45 opacity-35 transition-opacity duration-200 hover:opacity-70 focus-within:opacity-80 md:px-6">
+      <section className="mx-auto w-full max-w-3xl px-4 pb-10 pt-2 text-slate-100 md:px-6">
         <div className="rounded-2xl border border-white/[0.04] bg-[#080d1a]/25 px-5 py-5 md:px-8 md:py-6">
           <h2 className="text-xl font-semibold text-amber-100 md:text-2xl">운명의 나침반은 무엇을 보는가</h2>
           <p className="mt-4 break-keep text-sm leading-8 text-slate-300 md:text-base">

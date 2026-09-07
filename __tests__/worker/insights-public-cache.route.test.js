@@ -10,6 +10,7 @@ import { jest } from "@jest/globals";
 const connectDb = jest.fn(async () => null);
 const findOne = jest.fn();
 const find = jest.fn();
+const aggregate = jest.fn();
 const updateOne = jest.fn(() => Promise.resolve(null));
 
 function chain(result) {
@@ -20,6 +21,13 @@ function chain(result) {
     lean: () => Promise.resolve(result),
   };
   return self;
+}
+
+function aggregateChain(result) {
+  return {
+    collation: () => Promise.resolve(result),
+    then: (resolve, reject) => Promise.resolve(result).then(resolve, reject),
+  };
 }
 
 const PUBLISHED = {
@@ -43,7 +51,7 @@ beforeAll(async () => {
       isTransientMongoError: () => false,
     })),
     jest.unstable_mockModule("../../worker/lib/models.js", () => ({
-      Insight: { find, findOne, updateOne },
+      Insight: { find, findOne, aggregate, updateOne },
     })),
   ]);
   ({ handleInsightsRoutes } = await import("../../worker/routes/insights.js"));
@@ -55,25 +63,46 @@ beforeEach(async () => {
   connectDb.mockClear();
   find.mockReset();
   findOne.mockReset();
+  aggregate.mockReset();
   updateOne.mockClear();
   find.mockImplementation(() => chain([PUBLISHED]));
   findOne.mockImplementation(() => chain(PUBLISHED));
+  aggregate.mockImplementation((pipeline) => {
+    const facet = pipeline.find((stage) => stage.$facet)?.$facet;
+    if (facet?.items) return aggregateChain([{ items: [PUBLISHED], total: [{ value: 1 }] }]);
+    if (facet?.recommended) return aggregateChain([{ recommended: [], categories: [], tags: [] }]);
+    return aggregateChain([{}]);
+  });
   await purgeInsightPublicCache(["cached-post", "missing-post", "renamed-post"]);
 });
 
 const req = (path) => new Request(`https://code-destiny.com${path}`, { method: "GET" });
 
-test("목록: 두 번째 요청은 캐시 히트라 connectDb 를 부르지 않는다", async () => {
+test("목록: 페이지 단위 MongoDB 집계만 실행하고 전체 본문 캐시는 쓰지 않는다", async () => {
   const first = await handleInsightsRoutes(req("/api/insights"), {});
   expect(first.status).toBe(200);
-  expect(first.headers.get("X-CD-Cache")).toBe("miss");
+  expect(first.headers.get("X-CD-Cache")).toBe("bypass");
+  expect(first.headers.get("X-CD-Query")).toBe("mongo-aggregate");
   expect(connectDb).toHaveBeenCalledTimes(1);
 
   const second = await handleInsightsRoutes(req("/api/insights?page=2"), {});
   expect(second.status).toBe(200);
-  expect(second.headers.get("X-CD-Cache")).toBe("hit");
-  expect(connectDb).toHaveBeenCalledTimes(1);
-  expect(find).toHaveBeenCalledTimes(1);
+  expect(second.headers.get("X-CD-Cache")).toBe("bypass");
+  expect(connectDb).toHaveBeenCalledTimes(2);
+  expect(aggregate).toHaveBeenCalledTimes(4);
+});
+
+test("검색 목록: Atlas Search를 첫 단계로 두고 카드 projection에 본문을 넣지 않는다", async () => {
+  const response = await handleInsightsRoutes(req("/api/insights?q=%EC%82%AC%EC%A3%BC"), {});
+  expect(response.status).toBe(200);
+  expect(response.headers.get("X-CD-Query")).toBe("atlas-search");
+
+  const pipeline = aggregate.mock.calls[0][0];
+  expect(pipeline[0].$search.index).toBe("insights_public_search_v1");
+  const itemProject = pipeline.find((stage) => stage.$facet)?.$facet.items.at(-1).$project;
+  expect(itemProject.content).toBeUndefined();
+  expect(itemProject.contentHtml).toBeUndefined();
+  expect(itemProject.body).toBeUndefined();
 });
 
 test("상세: 히트 시 connectDb·viewCount 증가를 건너뛰고 shareUrl 은 요청 origin 으로 붙는다", async () => {
@@ -106,7 +135,7 @@ test("상세: 404 는 캐시되지 않아 다음 요청이 다시 DB 를 본다"
   expect(connectDb).toHaveBeenCalledTimes(2);
 });
 
-test("관리자 쓰기 무효화: purgeInsightPublicCache 뒤 목록·상세가 다시 DB 를 본다", async () => {
+test("관리자 쓰기 무효화: 목록은 항상 DB 집계하고 상세 캐시만 무효화한다", async () => {
   await handleInsightsRoutes(req("/api/insights"), {});
   await handleInsightsRoutes(req("/api/insights/cached-post"), {});
   expect(connectDb).toHaveBeenCalledTimes(2);

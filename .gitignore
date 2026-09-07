@@ -139,3 +139,6 @@ reports/
 # 외부 에이전트/도구의 로컬 스크래치
 .codex-tmp/
 .playwright-mcp/
+
+# Reproducible local SEO crawl, browser screenshots and Lighthouse reports.
+seo-qa/

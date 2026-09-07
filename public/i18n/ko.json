@@ -1265,7 +1265,9 @@
       "stonehenge-runes": "노른 세 여신의 자리에서 읽는 지나온 길과 다가올 길"
     },
     "svcFinder": {
-      "go": "보러 가기 →"
+      "go": "보러 가기 →",
+      "profileHeading": "마이 데스티니",
+      "recommendations": "찾으시는 운세를 골랐어요"
     },
     "appInstall": {
       "title": "홈 화면에 앱으로 담아 두세요",

@@ -1326,7 +1326,13 @@ for (const shellPath of staticShells) {
     // 내부 링크에는 후행 슬래시가 붙는다(next.config.mjs 의 trailingSlash:true — 없으면 308 을
     // 한 번 탄다). 목록은 라우트 **정체**이고 policyContentExpectations 의 키이기도 하므로
     // 목록을 고치지 않고 여기서 두 표기를 모두 인정한다.
-    const acceptedHrefs = [route, staticShellTrustLinkAliases[route]].filter(Boolean);
+    const locale = shellPath.match(/\/(en|ja|zh|zh-tw)\/index\.html$/)?.[1];
+    const canonicalRoute = staticShellTrustLinkAliases[route] || route;
+    const localizedPolicy = { "/privacy": "privacy-policy", "/terms": "terms-of-service", "/refund-policy": "refund-policy" };
+    const localizedTrust = ["/about", "/contact", "/disclaimer", "/faq"].includes(canonicalRoute) && locale !== "zh-tw";
+    const localizedHref = locale && (localizedPolicy[canonicalRoute] || localizedTrust)
+      ? `/${locale}/${localizedPolicy[canonicalRoute] || canonicalRoute.slice(1)}` : null;
+    const acceptedHrefs = localizedHref ? [localizedHref] : [route, staticShellTrustLinkAliases[route]].filter(Boolean);
     assert(
       acceptedHrefs.some((href) => html.includes(`href="${href}"`) || html.includes(`href="${href}/"`)),
       `${shellPath}: missing trust link ${acceptedHrefs.join(" or ")}`,

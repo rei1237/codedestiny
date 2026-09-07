@@ -3,6 +3,8 @@ import { siteSeo } from "@/lib/seo/siteSeo";
 import FortuneTeaHouseClient from "./FortuneTeaHouseClient";
 import ServiceIntroSection from "@/app/components/ServiceIntroSection";
 import { fortuneTeaHouseAssets } from "@/src/features/fortune-tea-house/data/assets";
+import { createHreflangFromRoutes } from "@/lib/seo/createHreflang";
+import { introductionRoutes } from "@/lib/i18n/feature-introductions.mjs";
 
 export const metadata: Metadata = {
   title: "운명의 찻집 | Code Destiny",
@@ -10,6 +12,7 @@ export const metadata: Metadata = {
     "달빛이 머무는 숨겨진 찻집에서 꽃돼지 연이를 만나고, 연이가 당신의 이야기를 조용히 맞이하는 감성형 운명의 찻집입니다.",
   alternates: {
     canonical: "https://code-destiny.com/fortune-tea-house",
+    languages: createHreflangFromRoutes(introductionRoutes("fortune-tea-house")),
   },
   openGraph: {
     title: "운명의 찻집 | Code Destiny",

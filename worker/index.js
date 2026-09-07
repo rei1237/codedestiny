@@ -481,6 +481,7 @@ function createLazyRouteHandler(modulePath, loadModule, exportName, routeNameOve
 }
 
 const handleAuthRoutes = createLazyRouteHandler("./routes/auth.js", () => import("./routes/auth.js"), "handleAuthRoutes");
+const handleAuthMeRoute = createLazyRouteHandler("./routes/auth-me.js", () => import("./routes/auth-me.js"), "handleAuthMeRoute", "api/auth/me");
 const handleAppStoreRoutes = createLazyRouteHandler("./routes/app-store.js", () => import("./routes/app-store.js"), "handleAppStoreRoutes", "api/app-store");
 const handleAdminRoutes = createLazyRouteHandler("./routes/admin.js", () => import("./routes/admin.js"), "handleAdminRoutes");
 const handleFortuneRoutes = createLazyRouteHandler("./routes/fortune.js", () => import("./routes/fortune.js"), "handleFortuneRoutes");
@@ -528,6 +529,7 @@ const handleAnimalTotemRoutes = createLazyRouteHandler("./routes/animal-totem.js
 const handleKasiRoutes = createLazyRouteHandler("./routes/kasi.js", () => import("./routes/kasi.js"), "handleKasiRoutes");
 const handleUserRoutes = createLazyRouteHandler("./routes/user.js", () => import("./routes/user.js"), "handleUserRoutes");
 const handleProfileRoutes = createLazyRouteHandler("./routes/profile.js", () => import("./routes/profile.js"), "handleProfileRoutes");
+const handleProfileListRoute = createLazyRouteHandler("./routes/profile-list.js", () => import("./routes/profile-list.js"), "handleProfileListRoute", "api/profile");
 const handleAccessStateRoutes = createLazyRouteHandler("./routes/access-state.js", () => import("./routes/access-state.js"), "handleAccessStateRoutes", "api/me/access-state");
 const handleSubscriptionRoutes = createLazyRouteHandler("./routes/subscriptions.js", () => import("./routes/subscriptions.js"), "handleSubscriptionRoutes");
 const handleAstrologyAiRoutes = createLazyRouteHandler("./routes/astrology-ai.js", () => import("./routes/astrology-ai.js"), "handleAstrologyAiRoutes");
@@ -1230,6 +1232,10 @@ export default {
         });
       }
 
+      if (url.pathname === "/api/auth/me" && request.method.toUpperCase() === "GET") {
+        return withCorsHeaders(request, env, await handleAuthMeRoute(request, env, ctx));
+      }
+
       // ctx: 로그아웃의 세션 폐기를 즉시-응답 + waitUntil 백그라운드로 돌리기 위해 전달.
       if (url.pathname === "/api/auth" || url.pathname.startsWith("/api/auth/")) {
         return withCorsHeaders(request, env, await handleAuthRoutes(request, env, ctx));
@@ -1803,6 +1809,15 @@ export default {
 
       if (url.pathname === "/api/user" || url.pathname.startsWith("/api/user/")) {
         return withCorsHeaders(request, env, await handleUserRoutes(request, env));
+      }
+
+      if ((url.pathname === "/api/profiles" || url.pathname === "/api/profiles/") && request.method.toUpperCase() === "GET") {
+        const rewrittenRequest = rewriteRequestPath(request, "/api/profile");
+        return withCorsHeaders(request, env, await handleProfileListRoute(rewrittenRequest, env));
+      }
+
+      if ((url.pathname === "/api/profile" || url.pathname === "/api/profile/") && request.method.toUpperCase() === "GET") {
+        return withCorsHeaders(request, env, await handleProfileListRoute(request, env));
       }
 
       if (url.pathname === "/api/profiles" || url.pathname.startsWith("/api/profiles/")) {

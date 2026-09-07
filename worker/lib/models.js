@@ -2101,6 +2101,8 @@ const insightSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 insightSchema.index({ type: 1, status: 1, updatedAt: -1 });
+insightSchema.index({ type: 1, status: 1, publishedAt: -1, updatedAt: -1, createdAt: -1 });
+insightSchema.index({ type: 1, status: 1, isFeatured: 1, publishedAt: -1, updatedAt: -1, createdAt: -1 });
 insightSchema.index({ status: 1, updatedAt: -1 });
 insightSchema.index({ category: 1, updatedAt: -1 });
 insightSchema.index({ isFeatured: 1, updatedAt: -1 });
