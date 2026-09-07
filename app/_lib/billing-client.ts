@@ -461,7 +461,7 @@ const BILLING_FETCH_DEFAULT_TIMEOUT_MS = 20000;
 const BILLING_FETCH_CHECKOUT_TIMEOUT_MS = 40000;
 const BILLING_FETCH_CONFIRM_TIMEOUT_MS = 60000;
 const PAYMENT_CHOICE_IN_FLIGHT_TTL_MS = 45000;
-export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-17be4ba51d2d";
+export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-319a473f9a42";
 // 🔴 이용권 스냅샷의 상수·읽기·쓰기·판정은 전부 js/core/pass-verdict.js 가 소유한다.
 // 셸(index.html)·독립 정적(js/destiny-profile.js)과 **같은 localStorage 키**를 공유하므로 값이 갈리면
 // 같은 사용자가 어느 런타임에서 클릭했느냐에 따라 판정이 달라지고, 한쪽이 만료로 보고 지운 캐시가
@@ -3912,6 +3912,18 @@ async function recordMembershipPassInBackground(input: BillingCoinGateInput, att
       // 스냅샷이 "활성이지만 이 가격은 한도 밖"이라고 이미 말하고 있으면 서버 402 는 스냅샷과 **일치**하는
       // 답이므로 고칠 것이 없다 — 이 경우엔 잠그지 않는다. 보유 상태가 실제로 어긋난 경우(스냅샷은 커버라는데
       // 서버는 거절)만 잠그고 세션·스냅샷을 정정한다.
+      // 🔴 월 한도 소진 402 는 잠그지 않는 대신 **이미 낙관으로 열어 둔 이 기능만 회수**한다 —
+      // 서버는 열어 주지 않았는데 원장에 낙관 엔트리가 남으면 다음 화면이 확정 해금으로 오인해
+      // 그대로 연다(셸 _cdRevokeOptimisticPassUnlock 과 같은 규칙, 2026-09-07).
+      if (passVerdict.isMonthlyLimitPayload(parsed.raw)) {
+        const revokeKey = String(input.featureKey || "").trim();
+        if (revokeKey) {
+          try {
+            const { forgetOptimisticUnlock } = await import("./optimistic-unlock-ledger");
+            forgetOptimisticUnlock(revokeKey);
+          } catch {}
+        }
+      }
       const snapshotAtDenial = readSubscriptionSnapshotForUser(undefined, { allowStaleNone: true });
       const deniedCoinCost = resolveKnownCoinCost(input, null);
       // 월 한도 소진 402 도 잠그지 않는다 — 위에서 스냅샷 잔여를 0 으로 되썼으므로 다음 판정은 스냅샷이 스스로 거절한다.
