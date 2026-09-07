@@ -3858,7 +3858,23 @@ async function registerDeferredBillingUsage(
       billingGate: result.data,
     }),
   });
-  return await parseBillingResponse<BillingCoinGateData>(response);
+  const registered = await parseBillingResponse<BillingCoinGateData>(response);
+  if (registered.ok && registered.data) return registered;
+
+  // 🔴 여기서 실패를 그대로 올리면 **이미 결제가 끝난 세션을 클라이언트가 스스로 버린다.**
+  // 운명 찻집 단건결제에서 실제로 났던 사고다: PortOne 승인 → register 가 증빙 전파 지연으로 402
+  // → 호출부가 paymentFailed 로 접고 "이용권 확인 실패"를 띄웠다. 돈은 나갔고 상담은 안 열렸다.
+  //
+  // register 는 **증빙을 만드는 편의 계층**이지 결제 성립 판정이 아니다. 결제 성립은 이미 서버가
+  // confirm 에서 판정해 `result.data` 에 accessGrant/consume 증빙으로 서명해 넣었고, 소비 라우트는
+  // 그 증빙을 자기 쪽에서 다시 4갈래로 검증한다(worker/routes/fortune-tea-house.js 등). 그러니
+  // 등록만 실패했을 때는 **서버가 검증해 준 원래 결제 결과를 그대로 들고 진행**한다.
+  //
+  // 🔴 무료 통과가 새지 않는 이유: 미결제 사용자는 애초에 `result.ok` 인 결제 런타임 결과를 못 받고,
+  //    받았더라도 소비 라우트가 DB 증빙으로 재검증하므로 여기 통과가 최종 승인이 아니다.
+  // 🔴 재시도를 여기 감싸지 말 것(원칙 6) — 증빙 전파 지연을 기다리는 계층은 서버
+  //    `findDeferredBillingEvidenceWithSettleWindow` 하나다.
+  return result;
 }
 
 // 낙관적 pass 즉시 허용의 정확성 안전장치(정적 destiny-profile 경로와 동일 정책).

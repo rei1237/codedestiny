@@ -314,14 +314,17 @@ async function failFortuneTeaAccessGate(source: FortuneTeaFeatureKeySource, atte
     failPaidFeatureGateCheck: FailPaidFeatureGateCheck;
   };
   const cancelled = /PAYMENT_CANCELLED|취소/.test(message || "");
+  // 🔴 이 게이트는 이용권뿐 아니라 단건결제·월정석 실패도 함께 받는다. 제목을 "이용권 확인 실패"로
+  //    박아 두면 카드 결제를 끝낸 사용자에게 엉뚱한 원인이 표시된다(실사고). 수단을 특정하지 않는다.
+  const paymentEvidenceIssue = /PAYMENT_VERIFICATION_FAILED|PAYMENT_VERIFY_FAILED|SERVER_ACCESS_GRANT_MISSING|결제/.test(message || "");
   failPaidFeatureGateCheck({
     featureKey: resolveFortuneTeaFeatureKey(source),
     requestId: attemptId,
-    title: "이용권 확인 실패",
+    title: paymentEvidenceIssue ? "결제 확인 실패" : "확인 실패",
     reason: "운명 찻집 상담",
     paymentMode: "MEMBERSHIP_PASS",
     cancelled,
-    message: message || "이용권 확인이 잠시 멈췄어요. 다시 한 번만 시도해 주세요.",
+    message: message || "확인이 잠시 멈췄어요. 다시 한 번만 시도해 주세요.",
   });
 }
 
