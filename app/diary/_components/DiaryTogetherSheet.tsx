@@ -22,6 +22,7 @@ import {
   type DiaryTogetherDay,
 } from "../_lib/partner";
 import { useDiaryDraft } from "../_lib/use-diary-draft";
+import { SAJU_TAB_ACTION } from "@/app/_lib/mobile-tabs";
 import { normalizeBirthDateInput } from "@/lib/birthDateInput";
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import styles from "../_styles/diary.module.css";
@@ -56,7 +57,7 @@ const DIARY_TOGETHER_TEXT = {
     needName: "이름과 생년월일을 적으면 두 사람의 2주가 나란히 깔립니다.",
     needMine: "내 생년월일을 등록하면 내 줄도 함께 표시됩니다.",
     compat: "사주 궁합 보기",
-    compatHint: "결제 화면에서 이어집니다.",
+    compatHint: "내 사주를 계산한 화면에서 이어집니다.",
     empty: "오늘의 기록을 불러오는 중입니다.",
   },
   en: {
@@ -77,7 +78,7 @@ const DIARY_TOGETHER_TEXT = {
     needName: "Add a name and birth date to lay out two weeks side by side.",
     needMine: "Add your own birth date and your row appears too.",
     compat: "See the saju compatibility",
-    compatHint: "Continues on the checkout screen.",
+    compatHint: "Continues on your own saju result screen.",
     empty: "Loading today's entry.",
   },
 } as const;
@@ -253,8 +254,20 @@ export default function DiaryTogetherSheet({ onClose }: { onClose: () => void })
             rows={3}
           />
 
-          {/* 여기서 끝이다 — 그 이상은 기존 궁합 화면으로 넘긴다(금액은 결제창이 정한다). */}
-          <Link className={styles.togetherPaid} href="/#compatCard">
+          {/* 여기서 끝이다 — 그 이상은 기존 궁합 화면으로 넘긴다(금액은 결제창이 정한다).
+              🔴 여기에 인페이지 앵커를 쓰지 말 것. 궁합 카드로 가는 앵커 후보 셋은 전부
+              찬 방문에서 죽는다(2026-09-07 실측):
+                - `/#compatCard` — 셸의 `<article id="resultPage" style="display:none">` 안이라
+                  대상이 숨겨져 있어 브라우저가 홈 맨 위에 그대로 세운다.
+                - `/?action=runCompat` — runCompat 은 G_PILLARS 가 없으면 조용히 return 하고
+                  안내 alert 조차 일부러 막는다(js/saju-engine.js:28252).
+                - `/#destinyCardForm` — 패널이 접힌 기본 상태에서 `display:none!important` 다
+                  (index.html 의 `.dp-destiny-panel:not(.is-form-open)` 규칙). 펼치기는 같은
+                  문서의 클릭 위임이 하므로 다른 페이지에서 온 앵커에는 걸리지 않는다.
+              그래서 React 페이지 → 셸 사주의 정본 다리를 쓴다(app/_lib/mobile-tabs.ts 의
+              SAJU_TAB_ACTION · js/destiny-profile.js 의 window.cdSajuTabEntry). 대표 프로필이
+              있으면 곧바로 원국을 계산해 #resultPage 를 펼치고, 궁합 카드는 그 안에 있다. */}
+          <Link className={styles.togetherPaid} href={`/?action=${SAJU_TAB_ACTION}`}>
             <span>{`${partnerLabel} ${copy.compat}`}</span>
             <span className={styles.togetherPaidHint}>{copy.compatHint}</span>
           </Link>
