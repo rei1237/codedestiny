@@ -47,4 +47,3 @@ export function mapSocialProfile(provider, payload) {
 
   return { providerId: "", email: "", emailVerified: null, name: "", image: "" };
 }
-

@@ -49,4 +49,3 @@
 - CI·배포 계약: [docs/context/delivery-and-ci.md](docs/context/delivery-and-ci.md)
 
 기능 경계는 기존 위치를 유지한다. 이 지도는 새 폴더로 이동하라는 지시가 아니다.
-

@@ -24,4 +24,3 @@ export function normalizeSessionLocale(raw: string): string {
   const short = value.slice(0, 2);
   return ["ko", "en", "ja", "vi", "hi", "es", "fr", "de", "nl", "ms"].includes(short) ? short : "ko";
 }
-
