@@ -61,7 +61,8 @@
   - `deepRequired` 를 `level` 과 **함께** 본다. `app/hooks/useCoinGate.ts` 는 `app/` 이라 `level=medium` 이지만 단건 결제 훅이라 `critical` 이어야 한다. 한 축만 보면 구멍이 난다.
   - **변경 파일을 못 구하면 `critical` 로 간다**(fail closed). "모른다"를 "안전하다"로 읽지 않는다.
   - 🔴 **내부 CI lane은 티어와 무관하게 항상 실행된다.** 건너뛰는 것은 잡이 아니라 그 안의 스텝이다. 마지막 `CI required`가 모든 lane 결과를 `always()`로 집계한다. 브랜치 룰셋을 전환하기 전에는 기존 필수 체크 이름도 유지하고, 전환 후에는 안정된 aggregate 이름 `CI required` 하나만 required로 둔다(`verify:worker-single-deploy`가 배선을 감시).
-  - **Merge Queue 권장값**: `pull_request`·`merge_group(checks_requested)`·`push(main)`에서 같은 PR CI가 실행된다. PR의 후속 push만 이전 실행을 취소하고, merge group과 main 건강 검사는 취소하지 않는다. Queue를 쓰면 `Require branches to be up to date`는 끈 상태를 유지해 수동 rebase를 반복하지 않는다.
+  - **Merge Queue 준비값**: `pull_request`·`merge_group(checks_requested)`·`push(main)`에서 같은 PR CI가 실행된다. PR의 후속 push만 이전 실행을 취소하고, merge group과 main 건강 검사는 취소하지 않는다. Queue를 쓰면 `Require branches to be up to date`는 끈 상태를 유지해 수동 rebase를 반복하지 않는다.
+  - **현재 사용 가능성(2026-09-08 확인)**: 이 저장소는 공개지만 개인 계정(`ownerType: User`) 소유다. GitHub Merge Queue는 조직 소유 공개 저장소 또는 GitHub Enterprise Cloud 조직 소유 비공개 저장소에만 제공되므로 현재 ruleset에는 활성화할 수 없다. `merge_group` 트리거는 향후 조직 이전 시 설정 순서가 뒤집혀 체크가 사라지는 일을 막는 준비다. 이전 전에는 `CI required` 단일 필수 체크 + strict up-to-date 비활성 유지가 권장값이며, 실제 충돌 PR만 머지 직전 수동 갱신한다.
   - **라벨 탈출구**: `full-ci` 는 티어를 `critical` 로 올린다. 경로만으로는 안 잡히는데 사람은 아는 변경에 쓴다(예: 공용 유틸을 고쳐 결제·인증에 **간접** 영향이 가는 경우). 내리는 라벨은 없다 — 그건 게이트를 끄는 버튼이다.
 - 🔴 **PR 별 프리뷰 단계는 없다(2026-08-11).** Worker 프리뷰 버전은 라우팅되지 않아 프리뷰 URL 의 `/api/*` 를 **지금 라이브인 워커**(옛 코드)가 응답하고, 그 `/api` 는 프로덕션 DB 를 본다(샌드박스가 아니다). 결제·인증·Worker 변경에는 무용했고 Cloudflare 아티팩트만 쌓였다.
   - 🔴 **다만 2026-08-20 이후 머지는 곧바로 프로덕션이 아니라 스테이징에 반영된다** — 위 "배포 흐름" 참고. 스테이징은 프로덕션과 분리된 DB 를 쓰는 실제 배포라 PR 프리뷰보다는 유의미하지만, 별도 결제 샌드박스 채널이 붙어 있는지는 미검증이므로 스테이징 결제 시도를 "안전하다"고 단정하지 않는다.

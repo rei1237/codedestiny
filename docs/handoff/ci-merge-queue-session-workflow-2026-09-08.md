@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-08
-next: "사용자 머지 후 별도 승인으로 main ruleset을 CI required 단일 체크와 Merge Queue 구조로 전환"
+next: "사용자 머지 후 별도 승인으로 required check를 CI required 하나로 전환하고, 조직 이전 여부를 별도 결정"
 ---
 
 # CI, 스테이징 감시, 세션 인수인계
@@ -22,6 +22,7 @@ next: "사용자 머지 후 별도 승인으로 main ruleset을 CI required 단�
 - `docs/dev/SESSION_HANDOFF_TEMPLATE.md`, `docs/dev/SESSION_WORKFLOW.md`, `npm run handoff`를 추가했다.
 - GitHub CLI는 `rei1237` 계정으로 재인증됐다. 토큰 값은 출력·저장하지 않았다.
 - PR #1759의 기존 required checks, `paid-flow-gates`, 새 aggregate `CI required`가 모두 통과했다.
+- 저장소가 개인 계정 소유라 GitHub의 현재 제공 조건상 Merge Queue를 바로 활성화할 수 없음을 확인했다. `merge_group`은 향후 조직 이전을 위한 준비다.
 - GitHub ruleset, secret, production deploy는 변경하거나 실행하지 않았다.
 
 ## 검증 결과
@@ -47,14 +48,15 @@ Worker dry-run 중 로컬 Wrangler 로그 디렉터리 생성에 `EPERM` 경고�
 ## 다음 세션에서 바로 할 일
 
 1. 사용자가 PR #1759를 검토하고 머지한다. 에이전트는 별도 요청 없이 머지하지 않는다.
-2. 머지된 뒤, 사용자 승인을 받아 main ruleset required check를 `CI required` 하나로 전환하고 Merge Queue를 활성화한다. 그 전에는 ruleset을 바꾸지 않는다.
-3. Merge Queue 첫 실행에서 `merge_group` 체크와 staging release/monitor 분리를 확인한다. production 승격은 실행하지 않는다.
+2. 머지된 뒤, 사용자 승인을 받아 main ruleset required check를 `CI required` 하나로 전환한다. strict up-to-date는 비활성 상태를 유지한다.
+3. Merge Queue가 필요하면 저장소의 조직 이전을 별도 검토한다. 이전·Queue 활성화 모두 사용자 승인 전에는 실행하지 않는다.
 
 ## 주의사항
 
 - 모든 main 머지는 계속 스테이징에 배포된다. 이번 변경은 **장기 도달 감시 범위만** 줄인다.
 - 결제·인증·DB·유료 접근 판정은 보수적으로 유지하고, 분류 실패는 Quick Pass로 낮추지 않는다.
 - required check를 먼저 `CI required`로 바꾸면 아직 main에 없는 워크플로를 기다리므로 머지가 막힐 수 있다. 반드시 이 PR 머지 후 전환한다.
+- 개인 계정 소유 상태에서 Merge Queue 활성화를 전제로 후속 작업하지 않는다. 조직 이전은 URL·권한·연동 영향 검토가 필요한 별도 변경이다.
 - 실제 LLM·결제·외부 API 테스트, secret 변경, production deploy는 사용자 승인 전 금지다.
 
 ## 다음 세션 시작 프롬프트
