@@ -442,7 +442,7 @@ test("확장 쓰기도 실패를 성공처럼 돌려주지 않는다", () => {
   assert.deepEqual(ext.readAllExtDays(broken), {});
 });
 
-/* ─── 더보기(명상·마음 훈련) 공유 필드 ────────────────────────── */
+/* ─── 더보기(명상·마음 훈련·오늘 카드·함께 보기) 공유 필드 ────────────────────────── */
 
 test("더보기가 쓰는 v2 필드를 셸이 그대로 읽고 기본값으로 덧칠하지 않는다", () => {
   const storage = makeStorage();
@@ -481,6 +481,66 @@ test("더보기가 쓰는 v2 필드를 셸이 그대로 읽고 기본값으로 �
   assert.equal(shellDiary[YMD].revisionDoneCount, 2);
   assert.equal(shellDiary[YMD].meditationLogs.length, 2);
   assert.equal(shellDiary[YMD].meditationLogs[0].trackId, "meditation-3");
+});
+
+test("오늘 카드·함께 보기가 쓰는 v2 필드도 셸이 그대로 읽는다", () => {
+  const storage = makeStorage();
+  const shell = buildShellSandbox(storage);
+
+  // `app/diary/_lib/entry-writes.ts` 의 카드·상대 뮤테이터가 쓰는 필드 전부.
+  // 🔴 새 저장 키가 하나도 없다 — 셸 모달이 이미 쓰던 자리에 그대로 쓴다.
+  const written = store.updateDiaryEntry(storage, YMD, (entry) => {
+    entry.shareTheme = "night";
+    entry.shareNickname = "앱에서 적은 이름";
+    entry.shareCaption = "앱에서 적은 한 줄";
+    entry.shareUseSticker = false;
+    entry.shareUseBadge = true;
+    entry.partnerName = "민서";
+    entry.partnerBirthYear = "1994";
+    entry.partnerBirthDate = "1994-11-02";
+    entry.compatType = "friend";
+  });
+  assert.ok(written, "카드·상대 필드 저장이 실패했다");
+
+  const shellDiary = shell.loadDiary();
+  const before = JSON.parse(JSON.stringify(shellDiary[YMD]));
+  shell.ensureEntryShape(shellDiary[YMD]);
+  assert.deepEqual(
+    shellDiary[YMD],
+    before,
+    "셸이 카드·상대 필드에 기본값을 덧칠했다 — 앱이 쓴 필드 이름이 셸과 갈렸다",
+  );
+  assert.equal(shellDiary[YMD].shareTheme, "night");
+  assert.equal(shellDiary[YMD].shareUseSticker, false, "꾸밈 끄기가 기본값 true 로 되돌아갔다");
+  assert.equal(shellDiary[YMD].partnerBirthDate, "1994-11-02");
+  assert.equal(shellDiary[YMD].compatType, "friend");
+});
+
+test("상대 메모는 확장 샤드에만 쓰고 v2 를 건드리지 않는다", () => {
+  const storage = makeStorage();
+  const shell = buildShellSandbox(storage);
+
+  const diary = shell.loadDiary();
+  const entry = { date: YMD };
+  shell.ensureEntryShape(entry); // 제자리에서 채운다 — 돌려주지 않는다
+  entry.partnerName = "민서";
+  diary[YMD] = entry;
+  assert.equal(shell.saveDiary(diary), true);
+  const v2Before = storage.getItem(store.DIARY_STORAGE_KEY);
+
+  // 셸에는 이 메모를 읽는 자리가 없어 v2 가 아니라 확장 하루치에 쓴다.
+  const days = ext.updateExtDay(storage, YMD, (day) => {
+    day.partnerNote = "오늘은 먼저 연락이 왔다";
+  });
+
+  assert.ok(days, "상대 메모 저장이 실패했다");
+  assert.equal(days[YMD].partnerNote, "오늘은 먼저 연락이 왔다");
+  assert.equal(
+    storage.getItem(store.DIARY_STORAGE_KEY),
+    v2Before,
+    "상대 메모가 v2 키를 건드렸다 — 셸 모달이 모르는 필드를 안고 다니게 된다",
+  );
+  assert.equal(shell.loadDiary()[YMD].partnerName, "민서", "확장 쓰기가 셸의 상대를 지웠다");
 });
 
 /**

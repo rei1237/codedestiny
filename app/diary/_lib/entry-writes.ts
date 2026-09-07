@@ -176,3 +176,73 @@ export function completeIam(text: string): DiaryEntryMutate {
     entry.meditationPoints = meditationPoints(entry);
   };
 }
+
+/* ── 더보기 · 오늘 카드 ─────────────────────────────────────────────────
+ * 🔴 다섯 필드 전부 셸 `:4724-4728` 과 같은 v2 자리다 — 셸에서 고른 테마·닉네임이 앱에서도
+ * 그대로 보이고, 앱에서 바꾼 것이 셸 카드에도 그대로 간다. */
+
+/** 카드 배경 3종. 셸 `generateShareCard:1728-1740` 이 아는 값과 같아야 한다. */
+export const DIARY_CARD_THEMES = ["vivid", "soft", "night"] as const;
+export type DiaryCardTheme = (typeof DIARY_CARD_THEMES)[number];
+
+export function writeCardTheme(theme: DiaryCardTheme): DiaryEntryMutate {
+  return (entry) => {
+    entry.shareTheme = theme;
+  };
+}
+
+export function writeCardNickname(text: string): DiaryEntryMutate {
+  return (entry) => {
+    entry.shareNickname = text;
+  };
+}
+
+export function writeCardCaption(text: string): DiaryEntryMutate {
+  return (entry) => {
+    entry.shareCaption = text;
+  };
+}
+
+/**
+ * 스티커·배지를 카드에 얹을지 뒤집는다.
+ * 🔴 켜짐 판정은 셸과 같이 `!== false` 다(`:1715-1716`) — 값이 없는 엔트리는 켜진 것으로 본다.
+ */
+export function toggleCardDecoration(kind: "sticker" | "badge"): DiaryEntryMutate {
+  return (entry) => {
+    if (kind === "sticker") entry.shareUseSticker = entry.shareUseSticker === false;
+    else entry.shareUseBadge = entry.shareUseBadge === false;
+  };
+}
+
+/* ── 더보기 · 함께 보기 ─────────────────────────────────────────────────
+ * 🔴 상대는 한 명이고, 셸 `:4735-4753` 이 쓰던 필드를 그대로 쓴다. 새 저장 자리를 만들지
+ * 않으므로 셸에 적어 둔 상대가 앱에서 그대로 보인다.
+ * 🔴 생시·도시(`partnerBirthTime`·`partnerBirthCity`)는 앱에 입력 칸이 없어 건드리지 않는다 —
+ * 셸이 적어 둔 값이 있으면 그대로 남고, 읽기만 한다. */
+
+/** 관계 종류. 셸 셀렉트(`:1132-1133`)와 같은 값이다. */
+export const DIARY_COMPAT_TYPES = ["love", "friend", "business"] as const;
+export type DiaryCompatType = (typeof DIARY_COMPAT_TYPES)[number];
+
+export function writePartnerName(text: string): DiaryEntryMutate {
+  return (entry) => {
+    entry.partnerName = text;
+  };
+}
+
+/**
+ * 상대 생일. 🔴 셸 `:4744-4749` 처럼 연도 칸을 함께 맞춘다 — 그쪽 화면이 `partnerBirthYear` 를
+ * 따로 읽으므로(`:1702`), 한쪽만 쓰면 셸에서 연도가 빈 칸으로 보인다.
+ */
+export function writePartnerBirth(ymd: string): DiaryEntryMutate {
+  return (entry) => {
+    entry.partnerBirthDate = ymd;
+    entry.partnerBirthYear = ymd ? ymd.slice(0, 4) : "";
+  };
+}
+
+export function writeCompatType(type: DiaryCompatType): DiaryEntryMutate {
+  return (entry) => {
+    entry.compatType = type;
+  };
+}

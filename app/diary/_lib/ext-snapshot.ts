@@ -35,6 +35,12 @@ export interface DiaryExtDay {
   todos?: DiaryTodoItem[];
   /** 그날의 태그. 문자열 배열이다 — 태그에 id 나 색을 두지 않는다(이름이 곧 동일성이다). */
   tags?: string[];
+  /**
+   * 그날 상대에 대해 남긴 메모. 🔴 셸에 대응 필드가 없어 여기(확장)에 둔다 — v2 에 새 필드를
+   * 만들면 셸이 읽지도 쓰지도 않는 값이 공유 자리에 섞인다(머리 주석).
+   * 🔴 사람이 아니라 **하루**에 붙는다 — 상대는 한 명이고 그날 무엇을 느꼈는지가 기록이다.
+   */
+  partnerNote?: string;
   updatedAt?: string;
 }
 
@@ -96,6 +102,11 @@ export function readTodos(day: DiaryExtDay | null): DiaryTodoItem[] {
 export function readTags(day: DiaryExtDay | null): string[] {
   const items = Array.isArray(day?.tags) ? day.tags : [];
   return items.filter((tag): tag is string => typeof tag === "string" && tag.length > 0);
+}
+
+/** 그날 상대에 대해 남긴 메모. 없으면 빈 글자다(입력 칸에 그대로 들어간다). */
+export function readPartnerNote(day: DiaryExtDay | null): string {
+  return typeof day?.partnerNote === "string" ? day.partnerNote : "";
 }
 
 /** 할 일 진행도. 성취 바가 루틴 진행도와 합산해 쓴다(`./today-snapshot` 의 `readAchievement`). */
