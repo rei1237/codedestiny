@@ -160,48 +160,31 @@ export function auditToday(source) {
 }
 
 /**
- * /api/insights 목록·상세 (2026-08-31, 계획 5단계). 키는 insight-public-cache.js 의 상수·슬러그 함수만 쓴다.
- * 상세는 404 를 캐시에 넣지 않아야 한다 — load() 안에서 throw 하지 않으면 없는 슬러그가 5분 굳는다.
+ * /api/insights 상세만 엣지 캐시한다. 목록은 검색·필터별 키를 정확히 무효화할 수 없어
+ * MongoDB 집계로 페이지 단위 조회한다. 상세는 404 를 캐시에 넣지 않아야 한다.
  */
 export function auditInsights(source) {
   const failures = [];
   const need = (ok, message) => { if (!ok) failures.push(`${REL.insights}: ${message}`); };
 
   const total = countOccurrences(source, CACHE_CALL);
-  need(total === 2, `readCmsThroughCache 호출이 ${total}곳이다. 분류된 것은 handleInsightsList·handleInsightDetail 2곳뿐이므로, 새로 붙였다면 이 가드에 분류를 추가할 것.`);
+  need(total === 1, `readCmsThroughCache 호출이 ${total}곳이다. 인사이트 목록은 쿼리별 캐시가 아닌 MongoDB 집계여야 하고, 상세만 캐시한다.`);
 
-  for (const [marker, label] of [
-    ["async function handleInsightsList(request, env) {", "handleInsightsList"],
-    ["async function handleInsightDetail(path, request, env) {", "handleInsightDetail"],
-  ]) {
-    let body = "";
-    try {
-      body = sliceFunction(source, marker, label);
-    } catch (error) {
-      need(false, `${label} 을 잘라내지 못했다 — ${String(error?.message || error)}`);
-      continue;
-    }
-    need(body.includes(CACHE_CALL), `${label} 이 엣지 캐시를 지나지 않는다. 공개 응답이 매번 Mongo 핸드셰이크(~1.3s)를 문다.`);
-    need(
-      cacheComesBeforeConnect(body),
-      `${label}: connectDb 가 캐시 조회보다 앞에 있다. 캐시가 맞아도 핸드셰이크를 그대로 물어 효과가 사라진다 — connectDb 는 load() 안에 둘 것.`,
-    );
-    need(body.includes("publicCacheHeaders("), `${label}: X-CD-Cache 헤더가 빠졌다. stale(=DB 실패로 옛 값을 냄)을 구분할 수 없으면 캐시가 장애를 가린다.`);
-  }
-
-  // 목록: 공개 판정(isPublicInsight)은 캐시 밖 — 예약 발행 시각을 읽는 시점으로 판정해야 한다.
   let listBody = "";
   try { listBody = sliceFunction(source, "async function handleInsightsList(request, env) {", "handleInsightsList"); } catch { /* 위에서 보고됨 */ }
   if (listBody) {
-    const loadEndAt = listBody.indexOf("return raw.map(");
-    const publicAt = listBody.indexOf("isPublicInsight(item)");
-    need(loadEndAt !== -1 && publicAt !== -1 && publicAt > loadEndAt,
-      "handleInsightsList: isPublicInsight 가 load() 안으로 들어갔다. 예약 발행이 캐시 TTL 동안 안 풀리거나, 캐시 시점에 비공개였던 글이 굳는다.");
+    need(!listBody.includes(CACHE_CALL), "handleInsightsList: 목록 전체를 엣지 캐시한다 — 쿼리별 무효화 불가 상태가 되살아난다.");
+    need(listBody.includes("await connectDb(env)"), "handleInsightsList: MongoDB 연결 없이 집계를 실행한다.");
+    need(listBody.includes("$facet"), "handleInsightsList: 페이지·건수·메타데이터를 DB 집계로 계산하지 않는다.");
+    need(!listBody.includes(".limit(6000)"), "handleInsightsList: 최대 6,000건을 Worker로 가져오는 경로가 남아 있다.");
+    need(listBody.includes('"X-CD-Query"'), "handleInsightsList: Atlas Search/집계 경로 진단 헤더가 없다.");
   }
 
   let detailBody = "";
   try { detailBody = sliceFunction(source, "async function handleInsightDetail(path, request, env) {", "handleInsightDetail"); } catch { /* 위에서 보고됨 */ }
   if (detailBody) {
+    need(detailBody.includes(CACHE_CALL), "handleInsightDetail 이 엣지 캐시를 지나지 않는다.");
+    need(cacheComesBeforeConnect(detailBody), "handleInsightDetail: connectDb 가 캐시 조회보다 앞에 있다.");
     need(detailBody.includes('throw new Error("INSIGHT_NOT_FOUND")'), "handleInsightDetail: 없는 슬러그가 캐시에 들어간다. load() 안에서 throw 하지 않으면 404 가 5분 굳고, 새로 발행한 글이 그동안 안 보인다.");
     need(detailBody.includes("if (missing) return notFound();"), "handleInsightDetail: missing 플래그로 404 를 내지 않는다 — stale 폴백이 휴지통 글을 되살린다.");
     need(detailBody.includes("shareUrl: buildShareUrl(request,"), "handleInsightDetail: shareUrl 이 캐시 밖에서 붙지 않는다. 요청 origin 이 캐시에 굳으면 다른 도메인 방문자가 남의 origin 을 받는다.");
@@ -209,7 +192,7 @@ export function auditInsights(source) {
 
   for (const key of collectCacheKeys(source)) {
     need(key.length > 0, "readCmsThroughCache 호출에 key: 가 없다.");
-    need(/key: (INSIGHT_PUBLIC_LIST_KEY|insightDetailCacheKey\(slug\)),?$/.test(key), `캐시 키는 insight-public-cache.js 의 상수·insightDetailCacheKey(slug) 만 허용한다 — 다른 키는 admin.js 의 무효화가 못 지운다. (${key})`);
+    need(/key: insightDetailCacheKey\(slug\),?$/.test(key), `인사이트 캐시 키는 insightDetailCacheKey(slug)만 허용한다 — 다른 키는 admin.js의 무효화가 못 지운다. (${key})`);
     for (const token of FORBIDDEN_KEY_TOKENS) {
       need(!key.includes(token), `캐시 키에 '${token}' 이 들어갔다 — 공개 캐시가 아니라 남의 응답을 나눠주는 장치가 된다. (${key})`);
     }
@@ -303,17 +286,14 @@ function runSelfTest() {
       /호출이 2곳이다/,
     ],
     [
-      "insights: 캐시 제거",
+      "insights: 상세 캐시 제거",
       () => auditInsights(base.insights.split(CACHE_CALL).join("noCache({")),
-      /엣지 캐시를 지나지 않는다|호출이 0곳이다/,
+      /상세만 캐시한다|엣지 캐시를 지나지 않는다/,
     ],
     [
-      "insights: connectDb 를 캐시보다 앞으로 되돌림",
-      () => auditInsights(base.insights.replace(
-        "async function handleInsightsList(request, env) {\n",
-        "async function handleInsightsList(request, env) {\n  await connectDb(env);\n",
-      )),
-      /handleInsightsList: connectDb 가 캐시 조회보다 앞에 있다/,
+      "insights: 목록 DB 집계를 제거",
+      () => auditInsights(base.insights.split("$facet:").join("facetRemoved:")),
+      /DB 집계로 계산하지 않는다/,
     ],
     [
       "insights: 상세 404 를 throw 대신 반환",
@@ -376,7 +356,7 @@ function main() {
   }
   console.log("  ✓ worker/routes/reviews.js — handleList·handleSummary 가 캐시를 먼저 본다");
   console.log("  ✓ worker/routes/fortune-today.js — 공개 모드만 캐시하고 개인화는 앞에서 반환한다");
-  console.log("  ✓ worker/routes/insights.js — 목록·상세가 캐시를 먼저 보고, 404 는 캐시하지 않는다");
+  console.log("  ✓ worker/routes/insights.js — 목록은 DB 집계, 상세만 캐시하며 404 는 캐시하지 않는다");
   console.log("  ✓ worker/routes/content.js — sitemap·rss 피드만 캐시한다");
 
   if (selfTest) {

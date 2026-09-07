@@ -17,7 +17,6 @@ import { purgeCmsCache } from "./cms-cache.js";
 export const INSIGHT_PUBLIC_CACHE_TTL_SECONDS = 300;
 export const INSIGHT_PUBLIC_STALE_TTL_SECONDS = 900;
 
-export const INSIGHT_PUBLIC_LIST_KEY = "insights-public:v1:list";
 export const CONTENT_FEED_RSS_KEY = "content-feed:v1:rss";
 export const CONTENT_FEED_SITEMAP_KEY = "content-feed:v1:sitemap";
 
@@ -25,13 +24,13 @@ export function insightDetailCacheKey(slug) {
   return `insights-public:v1:detail:${String(slug || "")}`;
 }
 
-/** Insight 문서를 쓴 직후 호출한다. 목록·피드는 항상, 상세는 넘겨받은 슬러그만 지운다. */
+/** Insight 문서를 쓴 직후 호출한다. 피드는 항상, 상세는 넘겨받은 슬러그만 지운다.
+ * 목록은 쿼리별 집계라 Cache API에 저장하지 않는다. */
 export async function purgeInsightPublicCache(slugs = []) {
   const list = (Array.isArray(slugs) ? slugs : [slugs])
     .map((slug) => String(slug || "").trim())
     .filter(Boolean);
   await purgeCmsCache([
-    INSIGHT_PUBLIC_LIST_KEY,
     CONTENT_FEED_RSS_KEY,
     CONTENT_FEED_SITEMAP_KEY,
     ...Array.from(new Set(list)).map((slug) => insightDetailCacheKey(slug)),

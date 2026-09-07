@@ -40,7 +40,12 @@ const env = {
 
 const BACKFILL_SUCCESS = ["success", "paid", "fulfilled"]; // worker/routes/access.js:58
 const LEVEL_REWARD_PAID = ["paid", "success", "fulfilled"]; // worker/routes/rpg.js:136
-const PUBLIC_INSIGHT_STATUS = (now) => ({ $or: [{ status: "published" }, { status: "scheduled", publishedAt: { $lte: now } }] }); // insights.js:280
+const PUBLIC_INSIGHT_STATUS = (now) => ({ $or: [
+  { status: "published" },
+  { status: "scheduled", publishedAt: { $lte: now } },
+  { status: { $exists: false }, isPublished: { $ne: false } },
+  { status: "", isPublished: { $ne: false } },
+] }); // insights.js:388
 const INSIGHT_TYPE_OR = { $or: [{ type: "fortune_insight" }, { type: { $exists: false } }, { type: "" }] };
 
 /** 코드에서 그대로 옮긴 쿼리 모양. sample 은 실제 문서에서 채운다. */
@@ -77,9 +82,9 @@ function buildCases(sample) {
       id: "billing.js:876 (_id 점조회 — 계획 표의 COLLSCAN 후보 지목은 오류)", coll: "users", op: "find", limit: 1,
       filter: { _id: userId, $and: [{ $or: [{ "profileSubscription.tier": { $in: ["basic"] } }, { plan: { $in: ["basic"] } }] }, { $or: [{ expiresAt: { $gt: now } }, { expiresAt: null }, { expiresAt: { $exists: false } }] }] },
     },
-    { id: "insights.js:364", coll: "insights", op: "find", filter: INSIGHT_TYPE_OR, limit: 6000 },
-    { id: "insights.js:496", coll: "insights", op: "find", filter: { $and: [PUBLIC_INSIGHT_STATUS(now), INSIGHT_TYPE_OR] }, sort: { publishedAt: -1, updatedAt: -1, createdAt: -1 } },
-    { id: "insights.js:540", coll: "insights", op: "find", filter: { $and: [PUBLIC_INSIGHT_STATUS(now), INSIGHT_TYPE_OR, { $or: [{ tags: { $in: ["사주"] } }] }] } },
+    { id: "insights.js:list (q 없음 집계 $match)", coll: "insights", op: "find", filter: { $and: [PUBLIC_INSIGHT_STATUS(now), INSIGHT_TYPE_OR] }, sort: { publishedAt: -1, updatedAt: -1, createdAt: -1 }, limit: 48 },
+    { id: "insights.js:metadata 추천", coll: "insights", op: "find", filter: { $and: [PUBLIC_INSIGHT_STATUS(now), INSIGHT_TYPE_OR, { isFeatured: true }] }, sort: { publishedAt: -1, updatedAt: -1, createdAt: -1 }, limit: 6 },
+    { id: "insights.js:관련 글", coll: "insights", op: "find", filter: { $and: [PUBLIC_INSIGHT_STATUS(now), INSIGHT_TYPE_OR, { $or: [{ tags: { $in: ["사주"] } }] }] } },
     { id: "rpg.js:897", coll: "payments", op: "find", filter: { userId, status: { $in: LEVEL_REWARD_PAID } }, sort: { createdAt: -1 }, limit: 60 },
     { id: "payment-reconcile-task.js:74 (cron)", coll: "payments", op: "find", filter: { status: { $in: ["pending", "processing"] }, createdAt: { $lte: now, $gte: new Date(now.getTime() - 7 * 86400000) }, $or: [{ "metadata.reconcile.attempts": { $exists: false } }, { "metadata.reconcile.attempts": { $lt: 5 } }] } },
     { id: "daily-fortune-task.js:456 (cron)", coll: "dailyfortunesubscriptions", op: "find", filter: { isActive: true, subDaily: true } },

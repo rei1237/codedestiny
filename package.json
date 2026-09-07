@@ -406,6 +406,8 @@
     "migrate:human-design-report-indexes": "node scripts/migrations/20260823-add-human-design-report-indexes.mjs",
     "verify:human-design-report-indexes": "node scripts/migrations/20260823-add-human-design-report-indexes.mjs --check",
     "migrate:request-path-indexes": "node scripts/migrations/20260830-add-request-path-indexes.mjs",
+    "migrate:insight-public-read-indexes": "node scripts/migrations/20260908-add-insight-public-read-indexes.mjs",
+    "verify:insight-public-read-indexes": "node scripts/migrations/20260908-add-insight-public-read-indexes.mjs --check",
     "verify:request-path-indexes": "node scripts/migrations/20260830-add-request-path-indexes.mjs --check",
     "migrate:reconcile-index-drift": "node scripts/migrations/20260906-reconcile-index-drift.mjs",
     "verify:reconcile-index-drift": "node scripts/migrations/20260906-reconcile-index-drift.mjs --check",

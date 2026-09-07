@@ -38,6 +38,8 @@ import { maskDisplayName } from "../lib/mask-display-name.js";
 const DEFAULT_PAGE_SIZE = 20;
 const MAX_PAGE_SIZE = 50;
 const PUBLIC_CACHE_HEADERS = Object.freeze({ "Cache-Control": "public, max-age=60" });
+const PUBLIC_REVIEW_PROJECTION = "authorName authorImage productId productName rating title body locale isVerifiedPurchase usageSource displayedAt";
+const OWN_REVIEW_PROJECTION = `${PUBLIC_REVIEW_PROJECTION} status adminNote createdAt`;
 
 // 공개 조회(목록·요약)는 엣지 캐시를 지난다. TTL 은 위 Cache-Control 과 같은 60초라 클라이언트가
 // 보던 신선도 계약은 그대로다. 바뀌는 것은 "그 60초를 누가 지키느냐" 뿐이다 — 지금까지는 아무도
@@ -177,6 +179,7 @@ async function handleList(request, env) {
       // 캐시 히트면 슬롯을 아예 건드리지 않는다.
       const [items, total] = await Promise.all([
         withMongoRetry(env, () => Review.find(filter)
+          .select(PUBLIC_REVIEW_PROJECTION)
           .sort(buildSort(sortKey))
           .skip((page - 1) * limit)
           .limit(limit)
@@ -276,6 +279,7 @@ async function handleMine(request, env) {
   await connectDb(env);
 
   const items = await withMongoRetry(env, () => Review.find({ userId: String(auth.userId) })
+    .select(OWN_REVIEW_PROJECTION)
     .sort({ createdAt: -1 })
     .limit(MAX_PAGE_SIZE)
     .lean());
