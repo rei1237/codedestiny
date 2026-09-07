@@ -292,6 +292,7 @@ type RuntimeApiWindow = Window & {
       aborted?: boolean;
     }>;
     invalidateAccessDecision?: () => void;
+    revalidate?: (options?: Record<string, unknown>) => Promise<unknown>;
     // localStorage 로 지속되는 영구 해금 스냅샷의 동기 판정(js/core/access-store.js isUnlocked).
     isUnlocked?: (featureKey: string) => boolean;
   };
@@ -461,13 +462,16 @@ const BILLING_FETCH_DEFAULT_TIMEOUT_MS = 20000;
 const BILLING_FETCH_CHECKOUT_TIMEOUT_MS = 40000;
 const BILLING_FETCH_CONFIRM_TIMEOUT_MS = 60000;
 const PAYMENT_CHOICE_IN_FLIGHT_TTL_MS = 45000;
-export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-f6af254271b7";
+export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-2820e30c3c03";
 // 🔴 이용권 스냅샷의 상수·읽기·쓰기·판정은 전부 js/core/pass-verdict.js 가 소유한다.
 // 셸(index.html)·독립 정적(js/destiny-profile.js)과 **같은 localStorage 키**를 공유하므로 값이 갈리면
 // 같은 사용자가 어느 런타임에서 클릭했느냐에 따라 판정이 달라지고, 한쪽이 만료로 보고 지운 캐시가
 // 다른 쪽에서도 사라진다(실제로 active TTL 이 5분/15분으로 갈라져 있었다). 여기에 사본을 두지 말 것.
 
 const BILLING_FEATURE_KEY_ALIASES: Record<string, string> = {
+  "love-code": "love-code",
+  lovesimulation: "love-code",
+  openlovesimulation: "love-code",
   saju_ai_prompt_generator: "saju_ai_question_prompt",
   "saju-ai-prompt": "saju_ai_question_prompt",
   "ziwei-ai-prompt": "ziwei_ai_prompt_generator",
@@ -525,6 +529,21 @@ export function invalidateBillingBalanceCache() {
   if (typeof window !== "undefined") {
     (window as RuntimeApiWindow).CodeDestinyAccessStore?.invalidateAccessDecision?.();
   }
+}
+
+/**
+ * Payment success and mobile resume must settle against the server snapshot.
+ * Local optimistic grants only keep the transition smooth; they never decide durable access.
+ */
+export async function refreshPaidFeatureEntitlements(clientSource = "app:paid-feature-entitlement-refresh") {
+  invalidateBillingBalanceCache();
+  if (typeof window !== "undefined") {
+    await (window as RuntimeApiWindow).CodeDestinyAccessStore?.revalidate?.({
+      reason: "paid-feature-entitlement-refresh",
+      authenticated: true,
+    });
+  }
+  return fetchBillingBalance({ force: true, fresh: true, clientSource });
 }
 
 type BillingClientRuntimeWindow = Window & { __cdBillingBalanceAuthListenerInstalled?: boolean };
@@ -990,7 +1009,7 @@ function emitBillingBalanceUpdated(source: Record<string, unknown> | null | unde
 // 🔴 이용권 상점 진입은 셸·독립 정적과 **같은 모듈**을 쓴다(js/core/checkout-entry.js).
 // 특히 앱 분기가 중요하다 — 앱 번들에는 /points 가 없고 app-payment-guard 는 앵커 클릭만
 // 가로채므로, 프로그래매틱 이동은 그대로 빈 화면이 된다.
-function openMembershipPassStore(coinPrice: number, currentTier?: string, featureKey?: string) {
+function openMembershipPassStore(coinPrice: number, currentTier?: string, featureKey?: string, options: Record<string, unknown> = {}) {
   if (typeof window === "undefined") return;
   const runtimeWindow = window as RuntimeApiWindow;
   runtimeWindow._cdSetCoinGateOverlay?.(false);
@@ -1004,6 +1023,7 @@ function openMembershipPassStore(coinPrice: number, currentTier?: string, featur
     checkoutEntry.rememberCheckoutReturn({
       url: `${window.location.pathname}${window.location.search}${window.location.hash}`,
       featureKey,
+      paidResume: checkoutEntry.buildPaidResumeContext(options),
     });
     window.location.assign(storeUrl);
     return;
@@ -1551,7 +1571,7 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
           setStatus("보유하신 이용권으로는 열리지 않아 이용권 상점으로 이동합니다.");
           leavingForPassStore = true;
           close("cancel");
-          openMembershipPassStore(coinPrice, passTier, passCheckFeatureKey);
+          openMembershipPassStore(coinPrice, passTier, passCheckFeatureKey, opts);
           return;
         }
         if (button.disabled) return;

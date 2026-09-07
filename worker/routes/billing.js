@@ -13,8 +13,11 @@ import {
   listBillingFeatures,
 } from "../lib/billing-feature-registry.js";
 import {
+  LEGACY_LOVE_CODE_FEATURE_KEYS,
+  LOVE_CODE_FEATURE_KEY,
   isPerUsePaidFeatureKey,
   isUnlockPaidFeatureKey,
+  normalizePaidFeatureKey,
 } from "../lib/paid-feature-registry.js";
 import {
   completeServiceExecution,
@@ -482,15 +485,19 @@ async function findActiveSajuProfileUnlock(env, { userId, profileId, featureKey,
 // 넘어오면 같은 필드를 User.exists 로 다시 묻지 않는다 — 아래 쿼리가 보는 필드와 **완전히 동일**하다
 // (BILLING_SNAPSHOT_USER_PROJECTION 에 unlockedFeatures 포함). 판정 근거가 바뀌지 않는 순수 왕복 제거다.
 async function hasUserScopedPermanentUnlock(env, { userId, featureKey, unlockedFeatures = null }) {
-  const key = String(featureKey || "").trim();
+  const key = normalizePaidFeatureKey(featureKey);
   if (!userId || !key || !isUnlockPaidFeatureKey(key) || resolveSajuProfileUnlockContentKey(key)) {
     return false;
   }
   if (Array.isArray(unlockedFeatures)) {
-    return unlockedFeatures.some((entry) => String(entry || "").trim() === key);
+    return unlockedFeatures.some((entry) => normalizePaidFeatureKey(entry) === key);
   }
   await connectDb(env);
-  const row = await User.exists({ _id: userId, unlockedFeatures: key });
+  const readKeys = key === LOVE_CODE_FEATURE_KEY ? [key, ...LEGACY_LOVE_CODE_FEATURE_KEYS] : [key];
+  const row = await User.exists({
+    _id: userId,
+    $or: [{ unlockedFeatures: { $in: readKeys } }, { paidFeatures: { $in: readKeys } }],
+  });
   return Boolean(row);
 }
 
@@ -2496,9 +2503,9 @@ function isProfileScopedUnlockKey(featureKey) {
 // 결제창 없이 열린다. 진입 직전까지 오가는 모든 방출구가 이 함수를 거치므로 여기 한 곳에서 걱러낸다.
 function normalizeUnlockedFeatureList(values = []) {
   if (!Array.isArray(values)) return [];
-  return values
-    .map((key) => String(key || "").trim())
-    .filter((key) => key && key !== LOTTO_RITUAL_REPORT_FEATURE_KEY && !isPerUsePaidFeatureKey(key));
+  return Array.from(new Set(values
+    .map((key) => normalizePaidFeatureKey(key))
+    .filter((key) => key && key !== LOTTO_RITUAL_REPORT_FEATURE_KEY && !isPerUsePaidFeatureKey(key))));
 }
 
 async function resolveProfileScopedUnlocks(authUserId, profileId, accountFeatureKeys = []) {
@@ -2548,7 +2555,7 @@ async function successWithPremiumAccess(env, authUserId, data, message = "요청
   const pricing = data?.pricing || {};
   const consume = data?.consume || {};
   const accessGrant = data?.accessGrant && typeof data.accessGrant === "object" ? data.accessGrant : {};
-  const featureKey = String(pricing?.featureKey || consume?.featureKey || accessGrant?.featureKey || "").trim();
+  const featureKey = normalizePaidFeatureKey(pricing?.featureKey || consume?.featureKey || accessGrant?.featureKey);
   const reason = String(pricing?.reason || "").trim();
   const profileId = cleanProfileId(accessGrant?.profileId || consume?.profileId || data?.profileId);
   const transactionId = String(
@@ -2604,7 +2611,7 @@ async function successWithPremiumAccess(env, authUserId, data, message = "요청
       { $addToSet: { unlockedFeatures: featureKey } },
       { returnDocument: "after", projection: { unlockedFeatures: 1 } },
     ).lean();
-    unlockedFeatures = Array.isArray(updatedUser?.unlockedFeatures) ? updatedUser.unlockedFeatures : unlockedFeatures;
+    unlockedFeatures = normalizeUnlockedFeatureList(Array.isArray(updatedUser?.unlockedFeatures) ? updatedUser.unlockedFeatures : unlockedFeatures);
     unlockMap = { ...unlockMap, [featureKey]: true };
   }
   const accessStatus = resolveSuccessAccessStatus(data, consume, data?.accessGrant || {});
@@ -3557,11 +3564,14 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       requestedPaymentMode,
       allowPassAutoUnlock: false,
       subscriptionPass: subscriptionPassForDecision,
-      // 인증 조회가 이미 읽어 온 User.unlockedFeatures 원본을 넘겨 같은 필드의 User.exists 왕복을 없앤다
-      // (BILLING_SNAPSHOT_USER_PROJECTION에 unlockedFeatures가 포함돼 있다). 배열이 아니면 null로 넘겨
+      // 인증 조회가 이미 읽어 온 계정 영구 권한 원본을 넘겨 같은 필드의 User.exists 왕복을 없앤다.
+      // `paidFeatures`만 남은 구 구매자도 읽어야 하므로 두 배열을 합친다. 배열이 아니면 null로 넘겨
       // 기존 User.exists 폴백을 그대로 태운다 — 빈 배열로 넘기면 오탐 거부가 난다.
-      accountUnlockedFeatures: Array.isArray(authCheck.auth.authUserDoc?.unlockedFeatures)
-        ? authCheck.auth.authUserDoc.unlockedFeatures
+      accountUnlockedFeatures: authCheck.auth.authUserDoc
+        ? [
+          ...(Array.isArray(authCheck.auth.authUserDoc.unlockedFeatures) ? authCheck.auth.authUserDoc.unlockedFeatures : []),
+          ...(Array.isArray(authCheck.auth.authUserDoc.paidFeatures) ? authCheck.auth.authUserDoc.paidFeatures : []),
+        ]
         : null,
       body: scopedBody,
     });
@@ -5773,10 +5783,14 @@ async function readBillingSnapshot(request, env, options = {}) {
     const sub = effectiveUser?.profileSubscription || {};
     const entitlement = resolveActivePassPolicyWithProfileFallback(effectiveUser || {});
     const scopedProfileId = cleanProfileId(effectiveUser?.destinyProfilesCurrentId);
+    const accountFeatureKeys = [
+      ...(Array.isArray(effectiveUser?.unlockedFeatures) ? effectiveUser.unlockedFeatures : []),
+      ...(Array.isArray(effectiveUser?.paidFeatures) ? effectiveUser.paidFeatures : []),
+    ];
     const scopedUnlocks = includeUnlocks && auth.userId
-      ? await resolveProfileScopedUnlocks(auth.userId, scopedProfileId, effectiveUser?.unlockedFeatures)
+      ? await resolveProfileScopedUnlocks(auth.userId, scopedProfileId, accountFeatureKeys)
       : {
-          unlockedFeatures: normalizeUnlockedFeatureList(effectiveUser?.unlockedFeatures || []),
+          unlockedFeatures: normalizeUnlockedFeatureList(accountFeatureKeys),
           unlockMap: {},
           contentKeys: [],
           profileScopedAuthoritative: false,
@@ -5837,10 +5851,8 @@ async function readBillingSnapshot(request, env, options = {}) {
       currentProfileId: scopedProfileId || undefined,
       user: buildBillingSnapshotUser(auth, effectiveUser, balance, unlockedFeatures, membershipCreditBalance, membership, includeLegacyCoinBalance),
       unlockedFeatures,
-      // 🔴 unlockedFeatures 와 다르다. 위쪽은 프로필 스코프 해금·레거시 이력까지 합친 **합집합**이고,
-      // 이건 User.unlockedFeatures 원본 그대로다. hasUserScopedPermanentUnlock 이 보는 필드와 동일해야
-      // 판정이 바뀌지 않으므로 재사용 목적으로는 반드시 이 원본을 쓴다(합집합을 쓰면 더 넓게 허용된다).
-      accountUnlockedFeatures: Array.isArray(effectiveUser?.unlockedFeatures) ? effectiveUser.unlockedFeatures : [],
+      // 프로필 해금은 제외하고 계정 영구 권한의 두 레거시 배열만 합친다.
+      accountUnlockedFeatures: accountFeatureKeys,
       unlockMap,
       degraded: false,
     };

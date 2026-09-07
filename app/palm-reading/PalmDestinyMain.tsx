@@ -19,7 +19,7 @@ import { buildPalmInterpretationReport } from "@/lib/palm/interpretation-engine"
 import { holdPaidFeatureGateOpen, openPaidFeatureGate, releasePaidFeatureGate, runBillingCoinGate, updatePaidFeatureGate } from "@/app/_lib/billing-client";
 import { resolveServerFeaturePricing } from "@/lib/payment/server-feature-pricing";
 import { usePalmDestinyCopy, type PalmDestinyCopy } from "./_lib/copy";
-import { usePaidResume } from "@/app/hooks/usePaidResume";
+import { usePaidResume, packPaidResumeArg, unpackPaidResumeArg } from "@/app/hooks/usePaidResume";
 
 type HandSide = "left" | "right";
 type DominantHand = PalmDominantHand;
@@ -2144,7 +2144,7 @@ export default function PalmDestinyMain() {
   //    사진이 없어 실패하거나(복귀 문서엔 File 이 없다) 같은 판독에 두 번 값을 치른다.
   const buildResume = usePaidResume(PALM_BILLING_CATEGORY_KEY, (args) => {
     const requestId = typeof args.requestId === "string" ? args.requestId : "";
-    const payloadRoot = readPalmResumePayload(requestId);
+    const payloadRoot = unpackPaidResumeArg<Record<string, unknown>>(args.payloadRoot) || readPalmResumePayload(requestId);
     if (!payloadRoot) return false;
     const prepared = preparePalmResult(payloadRoot);
     if (!shouldShowPalmResult(prepared.canonical)) return false;
@@ -2355,7 +2355,7 @@ export default function PalmDestinyMain() {
       // 모바일 PortOne 리다이렉트는 이 문서를 통째로 날린다 — 결제창을 열기 직전에 판독 응답을 이 탭에 남긴다.
       stashPalmResumePayload(billingRequestId, payloadRoot);
       const coinGateResult = await runBillingCoinGate({
-        resume: buildResume({ requestId: billingRequestId }),
+        resume: buildResume({ requestId: billingRequestId, payloadRoot: packPaidResumeArg(payloadRoot) }),
         categoryKey: PALM_BILLING_CATEGORY_KEY,
         subFeatureKey: initialSubFeatureKey,
         requestId: billingRequestId,

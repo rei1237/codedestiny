@@ -1,6 +1,12 @@
 import { normalizePaidFeaturePricingShape } from "./billing-policy.js";
 import { isMusicTrackFeatureKey } from "../../lib/music-access-policy.js";
 
+// 러브 코드는 재실행마다 소비하는 리포트가 아니라 계정 단위 영구 해금 상품이다.
+// 과거 결제/셸 키는 읽기 호환용 별칭으로만 유지한다.
+export const LOVE_CODE_FEATURE_KEY = "love-code";
+export const LOVE_CODE_PRODUCT_ID = "unlock.love-code";
+export const LEGACY_LOVE_CODE_FEATURE_KEYS = Object.freeze(["loveSimulation", "openLoveSimulation"]);
+
 function normalizeRegistryPricingEntry(entry = {}, fallbackAccessModel = "per_use") {
   const normalized = normalizePaidFeaturePricingShape(entry);
   const { forceDeduct: _legacyForceDeduct, ...policy } = normalized;
@@ -39,7 +45,7 @@ const INTERNAL_FRONTEND_FEATURE_KEYS = [
   "openGeomancyOracle",
   "openJuyukModal",
   "openKemetModal",
-  "loveSimulation",
+  LOVE_CODE_FEATURE_KEY,
   "turtleIChing",
   "egyptOracle",
   "egyptian_oracle_ai_prompt",
@@ -243,7 +249,7 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   openJuyukModal: { cost: 30, reason: "주역 거북점 리딩" },
   openKemetModal: { cost: 30, reason: "이집트 신탁 리딩" },
   openGeomancyOracle: { cost: 50, reason: "지오맨시 오라클 리딩" },
-  loveSimulation: { cost: 100, reason: "LOVE CODE 사주 연애 시뮬레이션" },
+  [LOVE_CODE_FEATURE_KEY]: { cost: 100, amountKRW: 10000, reason: "러브 코드" },
   turtleIChing: { cost: 30, reason: "주역 거북점 리딩" },
   egyptOracle: { cost: 30, reason: "이집트 신탁 리딩" },
   "egyptian_oracle_ai_prompt": { cost: 30, reason: "이집트 신탁 AI 질문 프롬프트 생성" },
@@ -340,6 +346,12 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
 export const FEATURE_KEY_PRICE_TABLE = normalizeRegistryPricingTable(RAW_FEATURE_KEY_PRICE_TABLE);
 
 const RAW_PIG_COIN_UNLOCK_PRODUCTS = Object.freeze({
+  [LOVE_CODE_PRODUCT_ID]: {
+    featureKey: LOVE_CODE_FEATURE_KEY,
+    cost: 100,
+    amountKRW: 10000,
+    reason: "러브 코드",
+  },
   "unlock.section_daewun": { featureKey: "section_daewun", cost: 50, reason: "Section daewun unlock" },
   "unlock.section_summary": { featureKey: "section_summary", cost: 50, reason: "Section summary unlock" },
   "unlock.section_compat": { featureKey: "section_compat", cost: 50, reason: "Section compat unlock" },
@@ -519,7 +531,7 @@ const EXTRA_UNLOCK_PAID_FEATURE_KEY_LIST = Object.freeze([
   "section_compat",
   "animal-destiny-unlock",
   "saju-guardian-unlock",
-  "loveSimulation",
+  LOVE_CODE_FEATURE_KEY,
   "nakshatra-lord-report",
   "nakshatra-dasha-map",
   "ziwei-island-deep-report",
@@ -584,6 +596,8 @@ export function isUnlockPaidFeatureKey(featureKey) {
 }
 
 export const PAID_FEATURE_KEY_ALIASES = Object.freeze({
+  loveSimulation: LOVE_CODE_FEATURE_KEY,
+  openLoveSimulation: LOVE_CODE_FEATURE_KEY,
   "saju_ai_prompt_generator": "saju_ai_question_prompt",
   "openjuyuk": "openJuyukModal",
   "openkemet": "openKemetModal",
@@ -604,7 +618,6 @@ export const PAID_FEATURE_KEY_ALIASES = Object.freeze({
   openMindScanTarot: "tarot-mindscan",
   openTarotMindScanModal: "tarot-mindscan",
   openCelestialHarmony: "tarot-celestial-harmony",
-  openLoveSimulation: "loveSimulation",
   // 🔴 아틀리에의 실제 상품은 영구 해금 `flower-fc` 하나다(1만원). 2026-08-23 에 홈 타일 4장을
   //    한 장으로 합치면서 회당 결제 `flower-studio-per-use` 는 청구처가 0곳이 됐고, 2026-08-24 에
   //    레지스트리에서도 지웠다. 셸에는 액션 이름 4개가 그대로 남아 있으므로 별칭은 유지하되

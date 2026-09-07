@@ -136,15 +136,16 @@ export default function VvipClient() {
     setError("");
     try {
       const { data, status, transient } = await postPaidBody(ENDPOINT, { ...paid.birth, requestId: paid.requestId });
-      if (data.ok && data.report) { setReport(data.report as VvipCodex); setCanRetry(false); return; }
-      if (status === 401) { setError(copy.loginRequiredMessage); setCanRetry(true); return; }
+      if (data.ok && data.report) { setReport(data.report as VvipCodex); setCanRetry(false); return true; }
+      if (status === 401) { setError(copy.loginRequiredMessage); setCanRetry(true); return false; }
       if (transient) {
         setError(copy.connectionUnstableRetryMessage);
         setCanRetry(true);
-        return;
+        return false;
       }
       setError(String(data.message || copy.vvipReportFailedMessage));
       setCanRetry(true);
+      return false;
     } finally {
       setLoading(false);
     }
@@ -163,8 +164,7 @@ export default function VvipClient() {
     const requestId = String(args.requestId || grant?.requestId || grant?.merchantUid || "");
     if (!restored || !requestId) return false;
     paidRef.current = { birth: restored, requestId };
-    void fetchCodex(paidRef.current);
-    return true;
+    return fetchCodex(paidRef.current);
   });
 
   const run = useCallback(async () => {

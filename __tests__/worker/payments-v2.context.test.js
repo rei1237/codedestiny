@@ -52,6 +52,7 @@ describe("라우트 표", () => {
       "GET /config",
       "GET /features",
       "GET /orders/:id",
+      "GET /orders/:id/resume",
       // 월정석 컷오버 어댑터 — 구 coin-gate 의 MOONLIGHT_STONE 분기(재작성)가 여기로 온다.
       "POST /coin-gate/moonstone",
       // 이용권 검사 컷오버 — 구 coin-gate 의 MEMBERSHIP_PASS 분기(재작성)가 여기로 온다.
@@ -71,6 +72,7 @@ describe("라우트 표", () => {
   });
 
   test(":id 를 뽑아낸다", () => {
+    expect(matchRoute("GET", "/orders/cd123/resume")).toMatchObject({ params: { id: "cd123" } });
     expect(matchRoute("GET", "/orders/cd123")).toMatchObject({ params: { id: "cd123" } });
     expect(matchRoute("POST", "/orders/cd123/confirm")).toMatchObject({ params: { id: "cd123" } });
     expect(matchRoute("GET", "/orders")).toBeNull();

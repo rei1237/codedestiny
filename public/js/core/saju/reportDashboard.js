@@ -142,7 +142,7 @@ var LOVE_CODE_FEATURE = {
   requiresLogin: true,
   requiresProfile: false,
   cta: _reportDashboardText("rd.cta.003"),
-  lockKey: 'loveSimulation',
+  lockKey: 'love-code',
   coinCost: 100,
   selfGated: true,
   thumb: 'love code.webp',

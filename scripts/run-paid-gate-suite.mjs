@@ -91,6 +91,7 @@ const SUITE = [
   { run: "npm run verify:entry-fanout", why: "홈 진입 팬아웃 계약. 워밍이 채우던 것이 **이용권 스냅샷**이라, 이 계약이 깨지면 결제창 fast-path 와 이용권 판정이 함께 흔들린다. auth/me 의 degraded 응답을 스냅샷에 쓰면 tier:'free' 가 굳어 **이용권 보유자에게 결제창이 뜬다** — 돈 문제다." },
   { run: "npm run verify:pass-recovery-path", why: "이용권 구제 경로의 회귀 방지. 과거 두 사고가 모두 '핸들러·소비자는 남고 진입점만 사라진' 형태라 이름 grep 으로는 정상으로 보였다." },
   { run: "npm run verify:saju-fun-content-gate", why: "재밌는 사주 콘텐츠 타일: 상세 팝업이 결제보다 먼저 뜨는지 + 해금 후 CTA 가 카드를 열었다 닫지 않는지(이중 처리). 여기서는 6미러 불변식만 본다." },
+  { run: "npm run verify:love-code-permanent-unlock", why: "러브 코드 영구 해금이 레거시 별칭과 정본 featureKey 사이에서 유실되지 않고, 재방문 시 다시 결제를 요구하지 않는지 확인한다." },
   { run: "npm run verify:profile-fresh-signup", why: "가입 직후 프로필 카드가 /api/profile 왕복을 기다리지 않고 즉시 최종 상태로 뜨는지. 힌트를 쓰는 쪽(AuthShell.tsx)과 읽는 쪽(js/destiny-profile.js)이 키·형식으로만 이어져 있어서 한쪽만 바뀌면 힌트가 조용히 무효가 된다." },
   { run: "npm run verify:human-design", why: "휴먼 디자인은 결정론 계산이 곧 상품이다(회당 10,000원). 만다라 배열/앵커가 한 칸 어긋나거나 Design 순간을 '88일 차감'으로 근사하면 결과는 여전히 '그럴듯하게' 나오고 테스트도 통과한다 — 그래서 구조 불변식(프로그래밍 파트너 32쌍·합 360°·간극 0)과 금지 구현 패턴, 그리고 외부 계산기 기대값 기입 여부를 fail-closed 로 강제한다." },
   { run: "npm run verify:human-design-ai", why: "🔴 AI 해석의 계약은 '계산 결과만 해석한다' 하나다. 프롬프트에 출생 데이터가 한 줄이라도 새면 모델이 자기가 다시 계산해 확정 타입·프로파일과 다른 값을 쓰기 시작하는데, 결과는 여전히 그럴듯해서 아무도 모른다. 폴백 문턱(fallbackMinChars)이 빠지면 8% 분량이 정상 결제 결과로 나가고, 사후 검산이 빠지면 모순된 해석이 저장된다. LLM 실호출 0회로 이 셋을 본다." },
