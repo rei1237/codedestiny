@@ -28,6 +28,7 @@ const PROFILE_CARD_MANAGE_FEATURE_KEY = "profile-card-manage";
 const PROFILE_CARD_MANAGE_COST = PROFILE_CARD_DELETE_COST_COINS;
 const PROFILE_CARD_MANAGE_AMOUNT_KRW = PROFILE_CARD_DELETE_COST_KRW;
 const PROFILE_CARD_MANAGE_MEMBERSHIP_COST = PROFILE_CARD_DELETE_COST_MONTHLY_STONES || calculateMembershipCreditCost(PROFILE_CARD_MANAGE_COST);
+const PROFILE_LIST_PROJECTION = "profileId userId name gender birth location createdAt updatedAt";
 
 /* 인증 조회(resolveActiveUserAuth)를 이 필드까지 확장해 원본 문서를 auth.authUserDoc 로 받는다.
    그동안 이 라우트는 인증 단계에서 User 를 한 번 읽고 핸들러에서 같은 문서를 또 읽어, 요청 1회에
@@ -359,7 +360,10 @@ function toClientProfile(doc) {
 }
 
 async function listUserProfiles(userId) {
-  const docs = await ProfileCard.find({ userId }).sort({ createdAt: 1 }).lean();
+  const docs = await ProfileCard.find({ userId })
+    .select(PROFILE_LIST_PROJECTION)
+    .sort({ createdAt: 1 })
+    .lean();
   return docs.map(toClientProfile);
 }
 

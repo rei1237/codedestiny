@@ -1,0 +1,183 @@
+.hero {
+  display: none;
+}
+
+.valueSection {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  width: min(1160px, calc(100% - 32px));
+  margin: 0 auto 18px;
+}
+
+.valueCard {
+  min-height: 132px;
+  padding: 16px;
+  border: 1px solid var(--expert-line, rgba(255, 255, 255, .16));
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--expert-surface, #10152e) 84%, transparent);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, .16);
+}
+
+.valueCard span {
+  display: block;
+  margin-bottom: 12px;
+  color: var(--expert-accent, #f6d67e);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .08em;
+}
+
+.valueCard strong {
+  display: block;
+  color: var(--expert-text, #fff9e7);
+  font-size: 15px;
+}
+
+.valueCard p {
+  margin: 6px 0 0;
+  color: var(--expert-muted, rgba(255,255,255,.68));
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.vedic {
+  --expert-accent: #f6d67e;
+  --expert-line: rgba(246, 214, 126, .22);
+  --expert-surface: #101936;
+  --expert-text: #fff5d9;
+  --expert-muted: rgba(222, 232, 255, .74);
+}
+
+.karma {
+  --expert-accent: #ffc2df;
+  --expert-line: rgba(255, 190, 219, .22);
+  --expert-surface: #231329;
+  --expert-text: #fff3fa;
+  --expert-muted: rgba(248, 220, 239, .76);
+}
+
+.moon {
+  --expert-accent: #ffe8b6;
+  --expert-line: rgba(255, 232, 182, .22);
+  --expert-surface: #17162b;
+  --expert-text: #fff9eb;
+  --expert-muted: rgba(239, 235, 255, .75);
+}
+
+.lifeBook { --expert-accent: #f2d07a; --expert-line: rgba(242, 208, 122, .24); --expert-surface: #1b120b; --expert-text: #fff5df; --expert-muted: rgba(240, 222, 192, .78); }
+.ziwei { --expert-accent: #fbbf24; --expert-line: rgba(251, 191, 36, .24); --expert-surface: #101025; --expert-text: #fff7d6; --expert-muted: rgba(224, 226, 255, .78); }
+.astrology { --expert-accent: #f5d487; --expert-line: rgba(245, 212, 135, .24); --expert-surface: #0b1027; --expert-text: #fff8e8; --expert-muted: rgba(226, 232, 240, .78); }
+.love { --expert-accent: #f0a4bd; --expert-line: rgba(240, 164, 189, .24); --expert-surface: #32152a; --expert-text: #fff2f7; --expert-muted: rgba(255, 225, 237, .78); }
+.nakshatra { --expert-accent: #e8d5a3; --expert-line: rgba(232, 213, 163, .24); --expert-surface: #12102a; --expert-text: #fff8e9; --expert-muted: rgba(224, 226, 255, .78); }
+.fusion { --expert-accent: #e8d5a3; --expert-line: rgba(232, 213, 163, .24); --expert-surface: #13102a; --expert-text: #fff8e9; --expert-muted: rgba(224, 226, 255, .78); }
+.island { --expert-accent: #b79cf0; --expert-line: rgba(183, 156, 240, .28); --expert-surface: #241b4d; --expert-text: #f6f1ff; --expert-muted: rgba(235, 227, 255, .8); }
+.yeoni { --expert-accent: #b31955; --expert-line: rgba(179, 25, 85, .24); --expert-surface: #fff3f8; --expert-text: #4e1730; --expert-muted: rgba(78, 23, 48, .74); }
+.neo { --expert-accent: #c4b5fd; --expert-line: rgba(196, 181, 253, .24); --expert-surface: #13102a; --expert-text: #f6f1ff; --expert-muted: rgba(226, 218, 255, .78); }
+
+.stickyCta {
+  display: none;
+}
+
+@media (max-width: 720px) {
+  .hero {
+    display: block;
+    width: min(100%, 620px);
+    margin: 0 auto;
+    padding: 0 2px 18px;
+  }
+
+  .label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--expert-accent);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: .04em;
+  }
+
+  .hero h2 {
+    margin: 10px 0 8px;
+    color: var(--expert-text);
+    font-size: 25px;
+    line-height: 1.28;
+  }
+
+  .hero p {
+    margin: 0;
+    color: var(--expert-muted);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .heroCta {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+    gap: 8px;
+    margin-top: 16px;
+    padding: 10px 14px;
+    border: 1px solid var(--expert-line);
+    border-radius: 999px;
+    color: var(--expert-text);
+    background: color-mix(in srgb, var(--expert-surface) 76%, transparent);
+    font-size: 14px;
+    font-weight: 800;
+  }
+
+  .valueSection {
+    grid-template-columns: 1fr;
+    width: 100%;
+    gap: 8px;
+    margin: 0 0 14px;
+  }
+
+  .valueCard {
+    display: grid;
+    grid-template-columns: 34px 1fr;
+    min-height: 0;
+    padding: 13px 14px;
+  }
+
+  .valueCard span { grid-row: span 2; margin: 2px 0 0; }
+  .valueCard p { grid-column: 2; }
+
+  .stickyCta {
+    position: fixed;
+    z-index: 70;
+    right: 12px;
+    bottom: max(12px, env(safe-area-inset-bottom));
+    left: 12px;
+    display: flex;
+    min-height: 56px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 7px 8px 7px 14px;
+    border: 1px solid var(--expert-line);
+    border-radius: 8px;
+    color: var(--expert-text);
+    background: color-mix(in srgb, var(--expert-surface) 93%, #06060c);
+    box-shadow: 0 14px 34px rgba(0, 0, 0, .34);
+  }
+
+  .stickyCta span { min-width: 0; font-size: 12px; }
+  .stickyCta strong {
+    display: inline-flex;
+    min-height: 42px;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 0 12px;
+    border-radius: 6px;
+    color: #14101b;
+    background: var(--expert-accent);
+    font-size: 13px;
+    white-space: nowrap;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .heroCta, .stickyCta { scroll-behavior: auto; }
+}

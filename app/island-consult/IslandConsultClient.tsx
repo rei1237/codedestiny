@@ -21,6 +21,8 @@ import { useContentUnlock } from "@/app/_lib/use-content-unlock";
 import { hasLedgerUnlock } from "@/app/_lib/optimistic-unlock-ledger";
 import PagedResultViewer, { usePagedViewerMode, type ResultViewerPage } from "@/components/fortune/PagedResultViewer";
 import AiResultProse from "@/components/fortune/AiResultProse";
+import { PriceBadge } from "@/app/components/PriceBadge";
+import { ExpertStickyCta, ExpertValueCards } from "@/app/components/expert-consulting/ExpertConsultationFrame";
 
 // ── 상품 상수(레지스트리 ziwei-island-palace-consult와 일치) ──
 const FEATURE_KEY = "ziwei-island-palace-consult";
@@ -890,7 +892,8 @@ export default function IslandConsultClient() {
 
           {renderReportSection(palace)}
 
-          <form className="ic-form" onSubmit={startConsult}>
+          <ExpertValueCards theme="island" points={[{ title: "궁의 주제", description: "12궁 중 지금 질문이 머무는 삶의 영역을 먼저 고릅니다." }, { title: "별과 사화", description: "해당 궁의 별 배치와 움직임을 현재 고민에 맞춰 풀어냅니다." }, { title: "다음 전략", description: "연이의 마음 읽기와 네오의 현실 조언을 한 상담으로 정리합니다." }]} />
+          <form id="island-consultation-form" className="ic-form" onSubmit={startConsult}>
           <div className="ic-lead">
             <span className="ic-lead__tag">전문가 상담</span>
             <p className="ic-lead__desc"><strong>{palace.name} 하나</strong>를 지금 고민에 맞춰 연이·네오가 새로 읽어 드려요.</p>
@@ -934,6 +937,7 @@ export default function IslandConsultClient() {
           <button type="submit" className="ic-primary" disabled={isPaying}>🔮 {palace.name} 심층 상담 시작 · 20,000원</button>
           <p className="ic-note">이용권·월정석이 있으면 자동으로 먼저 적용돼요. 생성에 실패하면 자동 환불됩니다.</p>
           </form>
+          <ExpertStickyCta theme="island" targetId="island-consultation-form" label="이 궁 상담 시작" price={<PriceBadge featureKey={FEATURE_KEY} prefix="상담 이용 가격 " />} />
         </div>
       )}
 

@@ -8,6 +8,7 @@ import { packPaidResumeArg, unpackPaidResumeArg, usePaidResume } from "@/app/hoo
 import { isRetriableResultPollFailure } from "@/app/_lib/consultationResultPolling";
 import { useServerPrice } from "@/app/hooks/useServerPrice";
 import { PriceBadge } from "@/app/components/PriceBadge";
+import { ExpertStickyCta, ExpertValueCards } from "@/app/components/expert-consulting/ExpertConsultationFrame";
 import { PaidValueSection } from "@/app/components/PaidValueSection";
 import { type FeatureMarketingTarget } from "@/app/components/FeatureMarketingDetailModal";
 import NakshatraProfilePicker from "../_components/NakshatraProfilePicker";
@@ -427,6 +428,7 @@ export default function NakshatraAiClient() {
       ) : (
         <div className="mx-auto grid w-full max-w-lg gap-4">
           <NakshatraProfilePicker context={profilePicker} copy={copy} disabled={working || profilePicker.selecting} />
+          <ExpertValueCards theme="nakshatra" points={[{ title: "달이 머문 별자리", description: "나크샤트라가 보여주는 감정의 결과 본능적인 반응을 살핍니다." }, { title: "숙요와 다샤", description: "서로 다른 시기 언어가 지금의 질문에 어떤 신호를 보태는지 확인합니다." }, { title: "현실적인 다음 수", description: "결과를 단정하지 않고 관계와 선택에서 적용할 수 있는 방향을 남깁니다." }]} />
           <IntroView
             identity={identity}
             birth={birth}
@@ -435,7 +437,8 @@ export default function NakshatraAiClient() {
             onStart={beginConsultation}
             errorMsg={phase === "error" ? errorMsg : ""}
             copy={copy}
-          />
+           />
+           <ExpertStickyCta theme="nakshatra" targetId="nakshatra-ai-form" label="나크샤트라 상담 시작" price={<PriceBadge featureKey={FEATURE_KEY} />} />
           {/* 결제 결정 전에 "무엇을 받는지" 를 같은 화면에서 보여 준다. 문구 정본은 정적 셸이다. */}
           <PaidValueSection target={MARKETING_TARGET} />
         </div>
@@ -460,7 +463,7 @@ function IntroView({
   //    금액 필드는 손대지 않는다 — 표시만 옮긴다.
   const price = useServerPrice({ featureKey: FEATURE_KEY });
   return (
-    <div className="rounded-2xl border border-amber-200/20 bg-white/[0.03] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.4)] motion-safe:animate-fade-in-up md:p-8">
+    <div id="nakshatra-ai-form" className="rounded-2xl border border-amber-200/20 bg-white/[0.03] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.4)] motion-safe:animate-fade-in-up md:p-8">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-100/70">{copy.aiIntroEyebrow}</p>
         <PriceBadge featureKey={FEATURE_KEY} />

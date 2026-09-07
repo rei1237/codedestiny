@@ -1,0 +1,63 @@
+.page {
+  --karma-garden-image: url("/images/expert-consulting/karma-garden-moonlit-v2.webp");
+  padding-bottom: max(104px, calc(env(safe-area-inset-bottom) + 88px));
+}
+
+.page :global(.kdai-hero) {
+  isolation: isolate;
+  min-height: clamp(440px, 58vw, 620px);
+  align-items: end;
+  grid-template-columns: minmax(0, 650px) !important;
+  justify-content: start;
+  border: 1px solid rgba(255, 192, 222, .16);
+  border-radius: 8px;
+  background:
+    linear-gradient(90deg, rgba(10, 7, 22, .94) 0%, rgba(13, 8, 27, .72) 48%, rgba(13, 8, 27, .22) 100%),
+    var(--karma-garden-image),
+    radial-gradient(circle at 75% 42%, rgba(247, 156, 209, .22), transparent 35%) !important;
+  background-position: center, center, center;
+  background-size: cover, cover, cover;
+}
+
+.page :global(.kdai-hero__copy) {
+  position: relative;
+  z-index: 2;
+  max-width: 650px;
+}
+
+.heroCta {
+  display: inline-flex;
+  min-height: 46px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 20px;
+  padding: 0 16px;
+  border: 1px solid rgba(255, 205, 230, .44);
+  border-radius: 8px;
+  color: #fff4fb;
+  background: rgba(57, 24, 68, .68);
+  box-shadow: 0 12px 28px rgba(4, 3, 15, .28);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.heroCta:hover { background: rgba(91, 36, 94, .82); }
+
+@media (max-width: 900px) {
+  .page { padding: 12px 12px max(94px, calc(env(safe-area-inset-bottom) + 78px)); }
+  .page :global(.kdai-hero) {
+    min-height: 466px;
+    padding: 28px 18px;
+    background:
+      linear-gradient(180deg, rgba(10, 7, 22, .58) 0%, rgba(13, 8, 27, .93) 74%),
+      var(--karma-garden-image),
+      radial-gradient(circle at 75% 42%, rgba(247, 156, 209, .22), transparent 35%) !important;
+    background-position: center, 63% center, center;
+  }
+  .page :global(.kdai-hero__copy h2) { font-size: clamp(30px, 9vw, 42px); line-height: 1.18; }
+  .heroCta { width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page :global(*) { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}

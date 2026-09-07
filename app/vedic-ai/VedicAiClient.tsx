@@ -23,7 +23,8 @@ import { packPaidResumeArg, unpackPaidResumeArg, usePaidResume } from "@/app/hoo
 import { readAiProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { PriceBadge } from "@/app/components/PriceBadge";
-import { DashaProgressRing, DashaTimeline, getGrahaMeta, GrahaNatureDot, HeroChartPreview, NorthIndianChart } from "./VedicChartVisuals";
+import { ExpertStickyCta, ExpertValueCards } from "@/app/components/expert-consulting/ExpertConsultationFrame";
+import { DashaProgressRing, DashaTimeline, getGrahaMeta, GrahaNatureDot, NorthIndianChart } from "./VedicChartVisuals";
 import styles from "./VedicAiClient.module.css";
 import { detectLocale } from "@/lib/i18n/dictionary";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
@@ -3260,18 +3261,29 @@ export default function VedicAiClient() {
               <span>{copy.heroPrice}</span>
               <span>{copy.heroDashaBadge}</span>
             </div>
+            <a className={styles.heroCta} href="#vedic-consultation-form">나의 별빛 상담 열기</a>
           </div>
           <div className={styles.mandalaStage} aria-hidden="true">
-            <div className={styles.mandalaCore} />
-            <div className={styles.orbitOne} />
-            <div className={styles.orbitTwo} />
-            <HeroChartPreview />
+            <div className={styles.templeInstrument}>
+              <span className={styles.instrumentMoon} />
+              <span className={styles.instrumentHalo} />
+              <span className={styles.instrumentCaption}>NAKSHATRA</span>
+            </div>
           </div>
         </div>
       </section>
 
+      <ExpertValueCards
+        theme="vedic"
+        points={[
+          { title: "나크샤트라", description: "마음이 반응하는 별자리와 관계의 결을 읽습니다." },
+          { title: "다샤", description: "지금 지나가는 운의 계절과 전환점을 살핍니다." },
+          { title: "라그나", description: "삶을 바라보는 첫 시선과 행동의 리듬을 정리합니다." },
+        ]}
+      />
+
       <section className={styles.workspace}>
-        <form className={styles.formPanel} onSubmit={(event) => { event.preventDefault(); void handleSubmit(); }}>
+        <form id="vedic-consultation-form" className={styles.formPanel} onSubmit={(event) => { event.preventDefault(); void handleSubmit(); }}>
           <div className={`${styles.panelHeader} flex-wrap`}>
             <span className="min-w-0 flex-1"><Star size={18} /> {copy.formPanelHeading}</span>
             <strong>Vedic AI</strong>
@@ -3460,6 +3472,14 @@ export default function VedicAiClient() {
           )}
         </section>
       </section>
+      {!consultation && (
+        <ExpertStickyCta
+          theme="vedic"
+          targetId="vedic-consultation-form"
+          label="별빛 상담 준비하기"
+          price={<PriceBadge featureKey="vedic-ai-consultation" prefix="" />}
+        />
+      )}
     </main>
   );
 }
