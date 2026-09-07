@@ -7775,18 +7775,22 @@ function syBuildUnlockResumeDescriptor(kind, action, args) {
   return { kind: kind, action: action, args: args && typeof args === 'object' ? args : {} };
 }
 
-// 딥링크가 표면을 연 직후에도 코어는 아직 안 걸려 있다 — 상한을 두고 기다린다.
-function syWaitForUnlockResumeCore(globalName) {
+// 딥링크가 표면을 연 직후에도 코어·상태는 아직 안 걸려 있다 — 상한을 두고 기다린다.
+function syWaitForUnlockResumeTarget(isReady) {
   return new Promise(function(resolve) {
     var deadline = Date.now() + SY_UNLOCK_RESUME_WAIT_MS;
     (function poll() {
       var ready = false;
-      try { ready = typeof window[globalName] === 'function'; } catch (_syUnlockReadyError) { ready = false; }
+      try { ready = !!isReady(); } catch (_syUnlockReadyError) { ready = false; }
       if (ready) { resolve(true); return; }
       if (Date.now() >= deadline) { resolve(false); return; }
       setTimeout(poll, SY_UNLOCK_RESUME_POLL_MS);
     })();
   });
+}
+
+function syWaitForUnlockResumeCore(globalName) {
+  return syWaitForUnlockResumeTarget(function() { return typeof window[globalName] === 'function'; });
 }
 
 /* 🔴 여기서 전역 코어를 null 로 지우지 않는다 — 이 셋은 보고서를 새로 그리지 않고 딥링크가 연 그 렌더의
@@ -7802,6 +7806,24 @@ function syRunUnlockResume(globalName, featureKey) {
   });
 }
 
+var SY_AI_PROMPT_RESUME_KIND = 'sukuyo-ai-prompt';
+
+/* AI 상담은 결제 후 서버 POST 가 남아 있어 잠금해제 3종과 다르다 — 복귀 증빙을 컴포저의 기존
+   '재결제 없는 재시도' 저장소에 넣고 정상 경로를 그대로 태운다(코어가 게이트를 다시 열지 않는다). */
+function syRunSukuyoAiPromptResume(descriptor, grant) {
+  if (!grant) return false;
+  var args = (descriptor && descriptor.args && typeof descriptor.args === 'object') ? descriptor.args : {};
+  if (!String(args.question || '').trim()) return false;
+  return syWaitForUnlockResumeCore('_syRunSukuyoPromptResumeCore').then(function(ready) {
+    if (!ready) return false;
+    try {
+      return window._syRunSukuyoPromptResumeCore(args, grant) !== false;
+    } catch (_syAiPromptResumeError) {
+      return false;
+    }
+  });
+}
+
 (function syRegisterUnlockResumeHandlers() {
   syRegisterUnlockResumeHandler(SY_EXTREME_T_RESUME_KIND, function() {
     return syRunUnlockResume('_syRenderTTestCore', SY_PAID_FEATURES.extremeTRelationshipCircuit.key);
@@ -7812,6 +7834,7 @@ function syRunUnlockResume(globalName, featureKey) {
   syRegisterUnlockResumeHandler(SY_ENCYCLOPEDIA_RESUME_KIND, function() {
     return syRunUnlockResume('_syRevealEncyclopediaCore', SY_PAID_FEATURES.relationshipEncyclopedia.key);
   });
+  syRegisterUnlockResumeHandler(SY_AI_PROMPT_RESUME_KIND, syRunSukuyoAiPromptResume);
 })();
 
 function syPaidPriceLabel(feature) {
@@ -14794,6 +14817,34 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
   // 다시 수행해(already_unlocked → 차감 없이 통과) 중복이었으며 ③조회가 죽으면 결제 경로까지 함께
   // 죽었다(503 이 뜬 화면에서 CTA 를 눌러도 같은 이유로 실패 → 코인 게이트에 도달할 방법이 없었다).
   // 그 라우트는 캐시된 구버전 클라이언트를 위해 서버에 그대로 남아 있다 — 호출자만 0 이다.
+  var SY_YEARLY_RESUME_KIND = 'sukuyo-yearly-fortune';
+
+  /* 결제 확정 뒤의 "서버 검증 → 로컬 해금 → 본문 하이드레이션" 꼬리다.
+     🔴 정상 결제 경로와 리다이렉트 복귀 재개가 **같은 코어**를 쓴다 — 갈라 두면 한쪽만 고쳐진다.
+     grant 는 인페이지 gateResult 와 같은 자리에 accessGrant·consume 을 담고 있어
+     syBuildSukuyoYearlyVerifyBody 가 고칠 것 없이 그대로 읽는다. */
+  function syCompleteSukuyoYearlyUnlock(state, targetYear, profileId, grant) {
+    var source = state && typeof state === 'object' ? state : {};
+    var contentKey = syBuildSukuyoYearlyContentKey(targetYear);
+    return syVerifySukuyoYearlyPaymentWithRetry({
+      profileId: profileId,
+      selectedProfileId: profileId,
+      targetYear: targetYear,
+      contentKey: contentKey,
+      contentId: contentKey,
+      serviceKey: 'sukuyo',
+      serviceId: 'sukuyo',
+      featureKey: 'sukyo_yearly_fortune_unlock'
+    }, grant).then(function(verifyPayload) {
+      if (!verifyPayload || verifyPayload.unlocked !== true) throw new Error('해금 기록이 아직 확인되지 않았습니다.');
+      // 로컬에도 그 연도의 해금을 남긴다. 다음 펼침이 AccessStore 재검증을 기다리지 않고
+      // 곧바로 본문을 연다(서버 기록이 정본이고 이건 그 반영을 앞당길 뿐이다).
+      syMarkSukuyoYearlyUnlockedLocally(targetYear);
+      syHydrateSukuyoYearlyFortune(Object.assign({}, source, { profileId: profileId, targetYear: targetYear }));
+      return true;
+    });
+  }
+
   function syOpenSukuyoYearlyCheckout(state, targetYear, profileId) {
     if (window._sySukuyoYearlyUnlockBusy) return Promise.resolve(false);
     if (typeof window._cdOpenPaidServiceGate !== 'function') {
@@ -14825,7 +14876,13 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       targetYear: targetYear,
       coinPrice: 100,
       cost: 100,
-      amountKrw: 10000
+      amountKrw: 10000,
+      action: 'openSukuyoModal',
+      resume: {
+        kind: SY_YEARLY_RESUME_KIND,
+        action: 'openSukuyoModal',
+        args: { targetYear: String(targetYear), profileId: String(profileId) }
+      }
     })).then(function(result) {
       // 사용자가 결제창을 닫은 것은 오류가 아니다 — 조용히 CTA 만 되돌린다.
       // ('보기' 만으로 결제창이 열리므로, 닫을 때마다 경고창이 뜨면 조회 자체가 불가능해진다.)
@@ -14837,23 +14894,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       var savingLabel = grantedByPass ? '이용권으로 열람되었습니다 · 해금 반영 중' : '결제 확인됨 · 해금 반영 중';
       sySetSukuyoYearlyUnlockStateV2(false, targetYear, savingLabel);
       sySetSukuyoYearlyUnlockButtonLabel(savingLabel, true);
-      return syVerifySukuyoYearlyPaymentWithRetry({
-        profileId: profileId,
-        selectedProfileId: profileId,
-        targetYear: targetYear,
-        contentKey: contentKey,
-        contentId: contentKey,
-        serviceKey: 'sukuyo',
-        serviceId: 'sukuyo',
-        featureKey: 'sukyo_yearly_fortune_unlock'
-      }, result).then(function(verifyPayload) {
-        if (!verifyPayload || verifyPayload.unlocked !== true) throw new Error('해금 기록이 아직 확인되지 않았습니다.');
-        // 로컬에도 그 연도의 해금을 남긴다. 다음 펼침이 AccessStore 재검증을 기다리지 않고
-        // 곧바로 본문을 연다(서버 기록이 정본이고 이건 그 반영을 앞당길 뿐이다).
-        syMarkSukuyoYearlyUnlockedLocally(targetYear);
-        syHydrateSukuyoYearlyFortune(Object.assign({}, source, { profileId: profileId, targetYear: targetYear }));
-        return true;
-      });
+      return syCompleteSukuyoYearlyUnlock(source, targetYear, profileId, result);
     }).catch(function(error) {
       sySetSukuyoYearlyUnlockButtonLabel(idleLabel, false);
       window.alert(error && error.message ? error.message : '잠금 해제 처리에 실패했습니다.');
@@ -14863,6 +14904,30 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       return granted;
     });
   }
+
+  /* 결제 후 자동 재개 — 리다이렉트로 돌아오면 딥링크가 숙요 모달을 열고, 그 렌더가 남기는
+     window._sySukuyoYearlyReading(syRenderSukuyoAnnualMonthlySections 가 매 렌더 갱신)을
+     기다렸다가 정상 경로와 같은 코어를 부른다.
+     🔴 핸들러가 화면을 또 열지 않는다 — 여는 책임은 checkout-entry 의 runPaidResume 하나다. */
+  function syRunSukuyoYearlyResume(descriptor, grant) {
+    var args = (descriptor && descriptor.args && typeof descriptor.args === 'object') ? descriptor.args : {};
+    var targetYear = Number(args.targetYear || 0);
+    var profileId = String(args.profileId || '').trim();
+    if (!targetYear || !profileId || !grant) return false;
+    return syWaitForUnlockResumeTarget(function() {
+      return !!(window._sySukuyoYearlyReading && document.querySelector('[data-sy-yearly-fortune-card]'));
+    }).then(function(ready) {
+      if (!ready) return false;
+      var state = window._sySukuyoYearlyReading || {};
+      // 🔴 실패는 조용히 false 로 떨어뜨린다 — 여기서 alert 를 띄우면 복귀 직후 원인 없는 경고가 뜨고,
+      //    영수증이 남아 있어 사용자가 다시 눌러도 재과금되지 않는다.
+      return syCompleteSukuyoYearlyUnlock(state, targetYear, profileId, grant).then(function(done) {
+        return done !== false;
+      }, function() { return false; });
+    });
+  }
+
+  syRegisterUnlockResumeHandler(SY_YEARLY_RESUME_KIND, syRunSukuyoYearlyResume);
 
   function syBindSukuyoYearlyUnlockButton(reading) {
     var btn = document.querySelector('[data-sy-yearly-unlock]');
@@ -15601,7 +15666,10 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         paymentAmount: Math.max(0, Math.floor(Number(opts.amountKrw || opts.amountKRW || opts.paymentAmount || (cost * 100)))),
         membershipCreditCost: Math.max(0, Math.floor(Number(opts.membershipCreditCost || (cost * 10)))),
         forcePassFirst: true,
-        requestId: requestId
+        requestId: requestId,
+        // 🔴 결제 후 자동 재개 — 이 두 줄이 없으면 모바일 리다이렉트 복귀 때 홈 화면에서 끝난다.
+        action: String(opts.action || '').trim() || undefined,
+        resume: opts.resume && typeof opts.resume === 'object' ? opts.resume : undefined
       }).then(function(openResult) {
         if (syIsPaidGateGranted(openResult)) {
           return normalize({ ok: true, status: 200, payload: openResult.payload || {} });
@@ -15794,7 +15862,9 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       reason: '숙요점 AI 상담',
       cost: 100,
       requestId: requestId,
-      categoryKey: 'sukuyo'
+      categoryKey: 'sukuyo',
+      action: opts.action || 'openSukuyoModal',
+      resume: opts.resume || null
     }).then(function(gateResult) {
       if (!gateResult.ok) return syPromptGateFailureResult(gateResult);
       return postWithEvidence(syPromptGateEvidence(gateResult));
@@ -15904,7 +15974,18 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         preferCompatibility: !!opts.preferCompatibility,
         domain: opts.domain,
         epoch: requestEpoch,
-        paidEvidence: reusableEvidence
+        paidEvidence: reusableEvidence,
+        // 질문은 결제창을 거치며 사라지므로 복귀 티켓에 실어 보낸다(원시값만 살아남는다).
+        action: 'openSukuyoModal',
+        resume: {
+          kind: SY_AI_PROMPT_RESUME_KIND,
+          action: 'openSukuyoModal',
+          args: {
+            question: question,
+            domain: String(opts.domain || '').trim(),
+            preferCompatibility: !!opts.preferCompatibility
+          }
+        }
       }).then(function(result) {
         var payload = result && result.payload ? result.payload : {};
         var resultText = String(payload.resultText || '').trim();
@@ -15976,6 +16057,35 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         setLoading(false);
       });
     }
+
+    /* 결제 후 자동 재개 코어 — 게이트를 다시 타지 않는다.
+       복귀 증빙을 컴포저의 기존 '재결제 없는 재시도' 저장소에 넣고 onGenerate 를 부르면,
+       requestId 가 같으므로 게이트를 건너뛰고 렌더·오류 처리까지 정상 경로를 그대로 탄다. */
+    window._syRunSukuyoPromptResumeCore = function(args, grant) {
+      var item = args && typeof args === 'object' ? args : {};
+      var question = String(item.question || '').trim();
+      if (!question || !paidEvidenceStore) return false;
+      questionEl.value = question;
+      try { updateCount(); } catch (_syPromptResumeCountError) {}
+      var pendingRequestId = syBuildSukuyoPromptRequestId({
+        domain: String(item.domain || opts.domain || syInferSukuyoPromptDomain(question, !!item.preferCompatibility)).trim(),
+        question: question,
+        basicResult: syGetPromptBasicResult(),
+        compatibilityResult: syGetPromptCompatibilityResult(syGetPromptBasicResult(), !!item.preferCompatibility),
+        epoch: requestEpoch
+      });
+      // 게이트가 돌려주던 모양으로 복원한다 — 정본 _seResumeEvidence(js/saju-engine.js:5837) 와 같은 계약.
+      var grantPayload = (grant && grant.payload && typeof grant.payload === 'object') ? grant.payload : {};
+      paidEvidenceStore.set(pendingRequestId, syPromptGateEvidence({
+        ok: true,
+        status: 200,
+        payload: grantPayload,
+        data: syPromptPayloadData(grantPayload),
+        requestId: String((grant && (grant.requestId || grant.merchantUid)) || pendingRequestId).trim()
+      }));
+      onGenerate();
+      return true;
+    };
 
     questionEl.addEventListener('input', function() {
       // 질문이 바뀌면 requestId 가 달라져 증거는 어차피 못 쓴다. 라벨도 함께 되돌린다.

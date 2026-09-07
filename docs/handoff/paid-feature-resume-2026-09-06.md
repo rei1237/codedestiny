@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-09-06
-next: **React 축 배선 완료 — PR 생성 후 사용자 머지 대기.** 브랜치 `feat-paid-resume-static5` 에 운명의 나침반 4건(`8ac33c8ee`) + maya/neo 2건(`44aed3b25`) 이 올라가 있다. 🔴 **"React 36건" 은 실측과 달랐다** — 게이트 호출부는 32곳이고 그중 진짜 미배선은 **2곳뿐**이었다(나머지는 이미 `resume` 을 넘기거나 `openPaymentGate`·`runLoveSecretPaymentGate`·`verifyGuardianUnlockAccess` 를 거쳐 서술자가 흘러가고 있었다). 다음 세션이 이어서 할 일은 ① 이 브랜치 push + PR ② 남은 **정적 잔여 1건**(숙요 AI 프롬프트 `js/saju-engine-tarot-sukuyo-quantum.js:15512`)과 **(c) 6건**(아래 "(c) 서버 영구 unlock") ③ 아래 "인접 결함" 의 미해결분이다.
+updated: 2026-09-07
+next: **정적 축 잔여 7건 배선 완료 — PR #1723 머지 대기.** PR #1720(잠금 해제형 4종)은 2026-09-07 머지됨. PR #1723 이 서버 왕복형 3종(`sukuyo-yearly-fortune` · `sibyl-dominator-report` · `sukuyo-ai-prompt`)을 덮어 **정적·독립정적·React 세 축이 모두 닫혔다.** 다음 세션이 할 일은 ① PR #1723 머지 확인 ② 아래 "인접 결함" 의 미해결분 ③ 🔴 **재개 누락을 잡는 fail-closed 가드 신설**(아직 0건 — 새 유료 기능이 조용히 미배선으로 태어난다).
 ---
 
 # 유료 기능 결제 후 자동 개방 (리다이렉트 복귀)
@@ -14,7 +14,10 @@ next: **React 축 배선 완료 — PR 생성 후 사용자 머지 대기.** 브
 ## 지금 상태
 
 - 공통 뼈대 + 카카오페이 타일 정합성 완료. 배선된 기능은 **31건**(등록된 `kind` 는 32개 — 펫사주가 2개다) — 숙요 기본 궁합 · 연애 타로 · 재회 타로 · 명리 타로 3카드 · 숙요 정밀 궁합 확장 · 숙요 인연 레이더 · 코스믹 명상 · 네빌 명상 · 애니멀 토템 진입(PR #1667) · **`js/saju-engine.js` 7건**(PR #1674 — 셜럭 시나스트리 · 직접입력 시나스트리 · 자미두수 궁합 · 사주 궁합 · AI 상담 3종) · **기타 정적 5건**(PR #1687 — 신년 타로 · 프로필 카드 추가/삭제 · 애니멀 토템 뽑기 · 케메트 · 주역) · **루트 독립 정적 HTML 10건**(아래 표).
-- 🔴 **정적 축의 남은 미배선은 숙요 AI 프롬프트 1건**(`js/saju-engine-tarot-sukuyo-quantum.js:15512`)이다. 등록된 핸들러 전수는 **26개**(`git grep -n "registerPaidResumeHandler(" -- js '*.html' | grep -v '^public/'` 에서 정의부 3줄 제외).
+- ✅ **정적 축 미배선 0건 (2026-09-07).** 마지막 7건을 두 PR 로 닫았다:
+  - **PR #1720 (머지됨)** — 잠금 해제형 4종: `sukuyo-extreme-t` · `sukuyo-nature-deep-dive` · `sukuyo-encyclopedia` · `tetogen-deep-report`. 렌더 클로저의 코어를 `window.<코어>` 로 노출하고(대입은 **모든 조기 반환보다 앞에**) 재개 핸들러가 폴링해 부른다. 🔴 이 넷은 정밀 궁합 재개와 달리 **전역을 `null` 로 지우지 않는다** — 코어를 거는 것이 딥링크 렌더 쪽이라 지우면 상한까지 기다리다 실패한다.
+  - **PR #1723 (대기)** — 서버 왕복형 3종: `sukuyo-yearly-fortune`(꼬리를 `syCompleteSukuyoYearlyUnlock` 공유 코어로 추출) · `sibyl-dominator-report`(`grant` → `paymentContext` 재조립, 🔴 **재개 실패는 `_requestSibylRefund` 를 부르지 않는다**) · `sukuyo-ai-prompt`(`syPromptGate` 이 `resume`/`action` 을 포워딩하도록 고치고, 복귀 증빙을 컴포저의 기존 `paidEvidenceStore` 에 넣어 게이트를 건너뛴다).
+  - 회귀 가드: `__tests__/ui/paid-resume-unlock-wiring.static.test.js` (21 pass). kind 등록 · 코어 전역 · 게이트 서술자 · 환불 미호출 · 게이트 재진입 금지를 소스에 고정한다.
 - **React 축도 배선 완료다**(2026-09-06). 운명의 나침반 4 kind(`destiny-compass-{crossroads,future-sim,life-voyage,deep-report}`) · `maya-prompt-generator` · `neo-operation-room-consultation`. React 는 `usePaidResume(featureKey, handler)` 훅 하나로 등록·서술자 생성을 겸한다.
 - 🔴 **배관은 끝났다** — `window._cdCoinGatePerUse` 정의 2곳(`js/destiny-profile.js:5673`·`:12488`)이 `resume` 을 게이트로 넘긴다. 이전에는 안 넘겨서, 옵션 백 없는 축약형을 쓰는 기능(타로 3종)은 서술자를 만들어도 티켓에 안 실렸다. 회귀 가드는 `__tests__/ui/direct-payment-resume.behavior.test.js` 의 "_cdCoinGatePerUse 는 resume 서술자를…" 테스트.
 - 원인: 모바일 PortOne 은 상위 프레임을 리다이렉트하므로 결제 게이트의 `await` 가 페이지와 함께 죽는다 → `onGranted` 가 **어떤 기능에서도** 실행되지 않는다. 복귀 처리(`_dpResumeDirectPaymentAfterRedirect`)는 완료 오버레이만 띄우고 기능을 다시 열지 않았다.
@@ -46,10 +49,10 @@ git grep -n "registerPaidResumeHandler(" -- js | grep -v '^public/'   # 배선 �
 
 | 계열 | 개수 | 지금 상태 |
 |---|---|---|
-| 정적·레거시 (`index.html`·`js/**`) | 23건 | **19건 배선**(saju-engine 7건 + 기타 정적 5건 포함), 4건 미배선 |
+| 정적·레거시 (`index.html`·`js/**`) | 23건 | ✅ **전건 배선** (PR #1720·#1723 으로 잔여 7건 종료, 2026-09-07) |
 
-🔴 미배선 4건 중 이름이 있는 것은 **숙요 AI 프롬프트 1건**뿐이다. **나머지 3건은 초판부터 이름이 없다(미분류·미검증)** — 위 수집 명령을 다시 돌려 배선 완료분을 뺀 차집합으로 확정할 것. 🔴 `git grep -c` 는 **줄 수**라 기능 수가 아니다(saju-engine 7건은 IIFE 한 줄에서 등록된다).
-| 루트 독립 정적 HTML | 12건 / 11파일 | **2건 배선**(명상 2종), 10건 미배선 |
+✅ 위 "4건 미배선" 은 2026-09-07 에 이름이 확정돼 전부 닫혔다 — 숙요 AI 프롬프트 · 숙요 1년운 · 시빌라 도미네이터 · 테토에겐 상세 리포트(+ 잠금해제 3종). 🔴 `git grep -c` 는 **줄 수**라 기능 수가 아니라는 것은 그대로다(saju-engine 7건은 IIFE 한 줄에서 등록된다).
+| 루트 독립 정적 HTML | 12건 / 11파일 | ✅ **전건 배선** (2026-09-06 실측 재확인 — 10/10) |
 | React 게이트 호출부 전수(`ensurePaidAccess(`·`runBillingCoinGate(`·`requestPaidAccess(`) | 32곳 | ✅ **전건 배선**(2026-09-06 재감사) |
 
 ✅ **React resume 배관은 PR #1656 에서, 배선은 2026-09-06 에 끝났다.** 🔴 **"36건" 은 오계수였다** — 초판이 파일 수(17)와 줄 수(19)를 더한 값이다. 실제 호출부는 32곳이고 그중 미배선은 **2곳뿐**이었다. 재감사 명령과 결과는 아래 "React 축 재감사".
@@ -74,7 +77,7 @@ git grep -n "registerPaidResumeHandler(" -- js | grep -v '^public/'   # 배선 �
 | 명리 타로 3카드 | `sukuyo-quantum.js:896` | ✅ `myeongri-tarot-three-card` |
 | 숙요 정밀 궁합 확장 | `sukuyo-quantum.js:17258` | ✅ `sukuyo-compat-precision` |
 | 숙요 인연 레이더 | `sukuyo-quantum.js:12677` | ✅ `sukuyo-bond-report` |
-| 숙요 AI 프롬프트 | `sukuyo-quantum.js:15509` | 🔴 미배선 (계약은 닫혔다) |
+| 숙요 AI 프롬프트 | `sukuyo-quantum.js` `syPromptGate` | ✅ 배선 (PR #1723) |
 | 사주·점성술·자미두수 AI 상담 | `js/saju-engine.js` 공통 게이트 `_cdAIPromptGate` | ✅ `saju-engine-{saju,astro,ziwei}-ai-prompt` (PR #1674) |
 
 등록된 핸들러 전수: `git grep -n "registerPaidResumeHandler(" -- js '*.html' | grep -v '^public/'` → 9건. 🔴 명상 2종은 `js/**` 가 아니라 루트 HTML 의 인라인 스크립트에 있으므로 **`'*.html'` 를 범위에 넣어야 보인다.**
