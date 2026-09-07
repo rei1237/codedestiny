@@ -39,7 +39,6 @@
       "Bash(node --input-type=module --check)",
       "Bash(node -e *)",
       "Bash(node scripts/lib/change-risk.mjs *)",
-      "Bash(node .claude/skills/impeccable/scripts/*)",
       "Bash(grep *)",
       "Bash(rg *)",
       "Bash(sed -n *)",
@@ -85,7 +84,6 @@
     "caveman-review": "user-invocable-only",
     "content-strategy": "user-invocable-only",
     "critique": "user-invocable-only",
-    "impeccable": "user-invocable-only",
     "polish": "user-invocable-only",
     "programmatic-seo": "user-invocable-only",
     "schema": "user-invocable-only",
@@ -164,13 +162,7 @@
       {
         "matcher": "Edit|Write|MultiEdit",
         "hooks": [
-          {
-            "type": "command",
-            "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/skills/impeccable/scripts/hook.mjs\"",
-            "timeout": 5,
-            "statusMessage": "Checking UI changes"
-          },
-          {
+        {
             "type": "command",
             "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/seo-search-intent-check.mjs\"",
             "timeout": 5,
