@@ -4506,15 +4506,21 @@ return true;
   }
 
   /* ─── 전역 data-action 이벤트 위임 ─────────────────────────── */
-  var LSD_ACTIONS = ['openLuckSyncDiary', 'closeLuckSyncDiary'];
-
+  /* 🔴 여는 분기는 여기 두지 않는다.
+     ① 'openLuckSyncDiary' 는 2026-09-07 컷오버 이후 **새 /diary 앱**의 액션 이름이다
+        (js/core/service-registry.js:684 · index.html:33375). 이 파일이 그 이름을 잡으면
+        서비스 카드가 /diary 대신 이 모달을 열어 컷오버를 뒤집는다.
+     ② 이전 버전의 액션 이름 'openLegacyLuckSyncDiary' 도 잡지 않는다 — 셸의
+        __cdInvokeAction 이 스크립트를 실은 뒤 window.openLegacyLuckSyncDiary 를 다시
+        호출하므로, 여기서도 잡으면 두 번째 클릭부터 openDiary 가 두 번 돈다.
+     닫기는 반대다: 셸에 window.closeLuckSyncDiary 전역이 없어(공개 API 는 LuckSyncDiary
+     객체뿐) 이 위임이 유일한 처리 지점이다. */
   document.addEventListener('click', function (e) {
     var el = e.target ? e.target.closest('[data-action]') : null;
     if (!el) return;
-    var action = el.getAttribute('data-action');
-    if (!action) return;
-    if (action === 'openLuckSyncDiary')  { e.preventDefault(); openDiary(); }
-    if (action === 'closeLuckSyncDiary') { e.preventDefault(); closeDiary(); }
+    if (el.getAttribute('data-action') !== 'closeLuckSyncDiary') return;
+    e.preventDefault();
+    closeDiary();
   }, false);
 
   /* 배경 클릭 닫기 */
@@ -4533,5 +4539,9 @@ return true;
 
   /* 공개 API */
   window.LuckSyncDiary = { open: openDiary, close: closeDiary };
+  /* 사주 결과 화면의 "운기 다이어리 (이전 버전)" 카드가 부르는 이름.
+     셸은 이 전역이 생기기 전 첫 클릭에서 스크립트를 실은 뒤 같은 이름으로 다시 호출한다
+     (js/core/index-inline-runtime.js 의 __cdLazyActionLoaders · __cdInvokeAction). */
+  window.openLegacyLuckSyncDiary = openDiary;
 
 })();

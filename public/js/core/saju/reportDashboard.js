@@ -162,6 +162,12 @@ var REPORT_CARDS = [
   { id:'vilun',      label:_reportDashboardText("rd.label.009"),        desc:'내 인생을 흔드는 위험 유형을 분석합니다.',               note:'유난히 소모되는 관계의 패턴을 파악하고, 피해야 할 시그널을 정리해드립니다.', cta:_reportDashboardText("rd.cta.012"),          accent:'#f87171', thumb:'vilun-new.webp', glow:'rgba(248,113,113,.55)', target:'villainCard',         coinCost:50  },
   { id:'lotto',      thumb:'사주 로또.webp', label:_reportDashboardText("rd.label.010"),       desc:'사주 오행과 수리 상징으로 만든 재미용 번호가 떠오릅니다.',          note:'오늘 운의 파동과 맞는 상징 번호와 행운 루틴이 가볍게 머뭅니다.', cta:_reportDashboardText("rd.cta.013"),          accent:'#fde047', glow:'rgba(253,224,71,.55)',  target:'lottoCard',          coinCost:0   },
   { id:'fortunePlanner', thumb:'사주 다이어리.webp', label:'갓생 다이어리', desc:'오늘의 일정·할 일·실천 운을 다이어리 한 화면에서 함께 정리해보세요.', note:'기존 다이어리에 생활 운세와 플래너 흐름을 통합했습니다.', cta:'다이어리 열기', accent:'#818cf8', glow:'rgba(129,140,248,.55)', action:'openFortunePlanner', coinCost:0, badge:'FREE' },
+  // 이전 버전(셸 모달) 다이어리의 유일한 진입점이다. 새 /diary 앱은 홈 카드가 맡고,
+  // 이전 버전은 여기 — 원국이 이미 계산돼 G_PILLARS 가 살아있는 결과 화면 안 — 에서만 연다.
+  // 🔴 target 을 비우지 말 것. 아래 중복 제거가 seenTargets[c.target] 로 묶어서, target 이
+  // 없으면 같은 처지인 fortunePlanner 카드와 undefined 키를 공유해 한 블록으로 합쳐지고
+  // rpt-v2-section-undefined 가 두 번 나온다.
+  { id:'legacyLuckSyncDiary', thumb:'luck-sync-diary-v2.webp', label:'운기 다이어리 (이전 버전)', desc:'사주 원국과 동기화된 이전 버전 다이어리를 이 화면에서 그대로 열어봅니다.', note:'새 다이어리로 옮기기 전 쓰던 월간 운기 달력과 감성 기록 화면입니다.', cta:'이전 버전 열기', accent:'#a78bfa', glow:'rgba(167,139,250,.5)', target:'legacyLuckSyncDiary', action:'openLegacyLuckSyncDiary', coinCost:0, badge:'FREE' },
   { id:'4CUT',       thumb:'사주 네컷.webp', label:_reportDashboardText("rd.label.012"),   desc:'사주 데이터를 인생네컷 감성으로 재해석해 한 장에 담아보세요.', note:'킹받는데 공감되는 팩폭으로 네 컷을 완성했어요. 저장하고 카톡으로 바로 던져봐.', cta:_reportDashboardText("rd.cta.015"),            accent:'#f97316', glow:'rgba(249,115,22,.45)',  target:'sajuFourCutCard',    coinCost:0   },
   { id:'dopamine',   thumb:'도파민 중독.webp', label:_reportDashboardText("rd.label.018"), shortTitle:'도파민 중독 테스트', desc:'새로운 자극을 쫓는 타입인지, 안정을 더 사랑하는 타입인지 확인해보세요.', note:'자극 지수와 등급, 자극 레이더 8축, 몰입 분야, 오늘의 미션까지 한 번에 확인합니다.', cta:_reportDashboardText("rd.cta.017"), accent:'#e879f9', glow:'rgba(232,121,249,.5)', target:'dopamineCard', coinCost:0, badge:'NEW' },
   { id:'secretHouse', thumb:'시크릿 하우스.webp', label:_reportDashboardText("rd.label.013"), desc:'선택형 사주 연애 리얼리티로 엔딩 루트를 체험해보세요.', note:'자동 일간 연동 + 다중 엔딩 + 엔딩 카드 저장/공유까지 이어지는 몰입형 콘텐츠입니다.', cta:_reportDashboardText("rd.cta.016"), accent:'#f43f5e', glow:'rgba(244,63,94,.45)', target:'secretHouseEntryCard', action:'openSecretHouseRoute', coinCost:50 },
@@ -302,7 +308,7 @@ var REPORT_CARDS = [
 })();
 
 function _rptIsDirectAction(actionName) {
-  return actionName === 'openFortunePlanner' || actionName === 'openSecretHouseRoute' || actionName === 'openAnimalDestinyRoute' || actionName === 'openDestinyMeetingPlaceRoute' || actionName === 'openLoveSimulationRoute';
+  return actionName === 'openFortunePlanner' || actionName === 'openLegacyLuckSyncDiary' || actionName === 'openSecretHouseRoute' || actionName === 'openAnimalDestinyRoute' || actionName === 'openDestinyMeetingPlaceRoute' || actionName === 'openLoveSimulationRoute';
 }
 
 window.openSecretHouseRoute = function() {
