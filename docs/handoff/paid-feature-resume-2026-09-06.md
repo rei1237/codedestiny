@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-07
-next: **정적 축 잔여 7건 배선 완료 — PR #1723 머지 대기.** PR #1720(잠금 해제형 4종)은 2026-09-07 머지됨. PR #1723 이 서버 왕복형 3종(`sukuyo-yearly-fortune` · `sibyl-dominator-report` · `sukuyo-ai-prompt`)을 덮어 **정적·독립정적·React 세 축이 모두 닫혔다.** 다음 세션이 할 일은 ① PR #1723 머지 확인 ② 아래 "인접 결함" 의 미해결분 ③ 🔴 **재개 누락을 잡는 fail-closed 가드 신설**(아직 0건 — 새 유료 기능이 조용히 미배선으로 태어난다).
+next: **재개 누락을 잡는 fail-closed 가드 신설 완료 — `npm run verify:paid-resume-wiring`.** 정적·독립정적·React 세 축 배선은 PR #1720·#1723 으로 닫혔다. 다음 세션이 할 일은 ① 아래 §자동 가드 의 `UNWIRED_BACKLOG` 4건을 배선해 하나씩 지우기 ② 아래 "인접 결함" 의 미해결분. 🔴 **새 유료 기능은 이제 가드가 잡는다** — 게이트 호출부에 `resume` 을 안 넘기면 `paid-flow-gates.yml` 이 실패한다.
 ---
 
 # 유료 기능 결제 후 자동 개방 (리다이렉트 복귀)
@@ -208,6 +208,36 @@ React 배관도 같은 PR 에서 열렸다: `EnsurePaidAccessInput`/`BillingCoin
 
 "됐다"의 판정: 모바일 에뮬레이션에서 결제 → 복귀 시 그 기능이 **스스로** 열리고, 곧바로 다시 눌러도 결제창이 안 뜨며(영수증 소비), 그 다음 클릭에는 정상적으로 뜬다.
 
+## 자동 가드 — `verify:paid-resume-wiring` (2026-09-07 신설)
+
+`scripts/verify-paid-resume-wiring.mjs`. TypeScript 컴파일러 AST 로 **유료 게이트 호출부를 전수 발견**하고(손으로 쓴 목록이 아니다 — 원칙 10) 6방향으로 fail-closed 다:
+
+1. 축별 호출부가 0개면 실패 — 게이트 이름이 바뀌면 초록으로 통과하는 대신 죽는다.
+2. 호출부가 `resume` 서술자를 안 넘기면 실패.
+3. `UNWIRED_BACKLOG` 에 있는데 실제로는 배선됐으면 실패 — 목록이 낡는 것을 막는다.
+4. `UNWIRED_BACKLOG` 가 가리키는 호출부가 소스에 없으면 실패.
+5. 서술자의 `kind` 에 등록된 핸들러가 없으면 실패.
+6. 핸들러만 등록되고 그 `kind` 를 만드는 서술자가 없으면 실패.
+
+여기에 계약 생존 검사(`js/core/checkout-entry.js` 의 `registerPaidResumeHandler`/`readPaidResumeHandler`/`runPaidResume`/`sanitizePaidResumeDescriptor`, `app/hooks/usePaidResume.ts` 의 `action: ""`, `_cdCoinGatePerUse` 의 `resume` 포워딩)와, **가드가 읽는 파일이 `paid-flow-gates.yml` 트리거 `paths` 에 있는지** 검사가 붙는다.
+
+- 보는 축: React(`ensurePaidAccess`·`runPaidAccessGate`·`runBillingCoinGate`·`purchaseFeature`, 전부 arg0 옵션 백) · 정적(`_cdOpenPaidServiceGate` arg0 · `_cdCoinGatePerUse` arg3/arg4 · `syRequirePaidSukuyoFeature` 위치인자 2). 정적 축은 루트 `*.html` 의 인라인 `<script>` 까지 줄 번호를 보정해 읽는다.
+- 옵션 백 환원: 객체 리터럴 · 식별자→초기화식 · 같은 파일 빌더의 return · `Object.assign` · 정적으로 풀리는 스프레드 · **삼항 양 갈래**(`resume ? { resume } : undefined`) · **나중 대입**(`opts.resume = resume`). 등록기·서술자 빌더는 **고정점 탐색**이라 `_seRegisterResumeHandler`·`syBuildUnlockResumeDescriptor` 같은 간접 배선도 없는 것으로 오판하지 않는다.
+- 🔴 **서술자 빌더 판정에 `action`/`args` 를 요구한다** — `{kind: p0}` 만 보면 레벨 원장(`_cdLevelPostAward`)처럼 무관한 축이 딸려온다(실측 오탐).
+- 변이 3건으로 무는 것을 확인했다(2026-09-07): 배선된 React 호출부의 `resume` 제거 → ②로 실패 · `registerPaidResumeHandler` 리네임 → 계약 생존 검사 실패 · 게이트 이름 교체 → ④로 실패.
+- 실측 결과: 게이트 호출부 **React 37/40 · 정적 41/42** 배선, 재개 `kind` **39개**가 핸들러와 짝을 이룬다.
+
+### `UNWIRED_BACKLOG` 4건 (이 가드가 찾아낸 기존 미배선 — 원칙 14 로 고치지 않았다)
+
+| 호출부 | 게이트 | 왜 아직 |
+|---|---|---|
+| `components/fpti/FptiResultCard.tsx` | `purchaseFeature` | FPTI 심화 리포트. 서버 영구 해금형(`premium-fpti-report`)이라 재과금은 없지만 복귀 문서가 스스로 열리지 않는다. 🔴 **영구 unlock 은 '스스로 열림'을 뜻하지 않는다.** |
+| `src/features/fortune-tea-house/FortuneTeaHousePage.tsx` | `runBillingCoinGate` | 상담 생성이 202 폴링형이라 서술자에 폴링 상태까지 실어야 한다. |
+| `src/features/master-love-codex/MasterLoveCodexPage.tsx` | `runBillingCoinGate` | `buildBillingGateInput(...)` 결과를 그대로 넘겨 `resume` 자리가 없다. |
+| `js/tarot-year-fortune-experience.js` | `_cdOpenPaidServiceGate` | 신년 타로의 **폴백** 갈래(`consumeCoinDirect`). 주 경로 `requireYearAccess` 는 같은 파일 `:485` 에서 `_cdCoinGatePerUse` 로 `resume` 을 넘긴다. 이 갈래는 `_cdCoinGatePerUse` 가 없을 때만 탄다. |
+
+🔴 **앞 셋은 2026-09-06 "React 축 배선 완료" 이후에 생긴 것으로 보인다** — 손으로 센 목록이 낡는다는 증거이자, 이 가드가 존재하는 이유다. 배선을 끝내면 `UNWIRED_BACKLOG` 에서 그 줄을 지워야 통과한다(체크 ③).
+
 ## 함정
 
 - 🔴 **React 직접 호출 19곳에는 영수증 단축을 넣지 못했다.** `runBillingCoinGate` 는 결제 뒤 서버 응답을 `hasVerifiedBillingAccess` 로 검사하므로, 영수증만으로 통과시키려면 서버 모양의 `BillingCoinGateData` 를 위조해야 한다(호출부마다 `consume`·`pricing` 에서 읽는 필드가 다르다). 각 호출부에서 개별 판단이 필요하다.
@@ -230,12 +260,12 @@ React 배관도 같은 PR 에서 열렸다: `EnsurePaidAccessInput`/`BillingCoin
 - ✅ **게이팅 절대 순서 1 위반 — PR #1656 에서 제거.** `pet-saju.html` 의 진입 전 `_cdResolvePaidContentAccess` 선검사를 지우고 `_cdOpenPaidServiceGate` 에 위임했다. 🔴 그 페이지는 `_cdResolvePaidContentAccess` 를 정의하는 `index.html` 을 로드하지 않아 **실행되지 않던 죽은 코드**였다(스크립트 4개만 로드: pass-verdict·checkout-entry·payment-service·destiny-profile) — 형태 위반이라 지웠다. 같은 PR 에서 `js/destiny-profile.js` 진입점 2곳(`:5804`·`:12611`)에 빠져 있던 `snapshotVerdictOnly:true` 도 채웠다.
 - 🔴 **판정 전 인증 선워밍 이중 (미해결 · 결제 동결 파일)** — `app/hooks/useCoinGate.ts:370-373` 과 `app/_lib/billing-client.ts:4039-4046` 이 각각 `Promise.race([refreshAuth({force:true,silent:true}), 예산 ms])` 를 스냅샷 판정 전에 await 한다(2026-09-06 좌표 재확인 — 후자는 `:4011` 이 아니다). 🔴 **두 파일 모두 주석으로 이 축을 이미 다뤘다** — useCoinGate 쪽은 "아래 finalAuth 검사가 끊으므로 중복 발사 아님", billing-client 쪽은 "refreshAuth 는 auth-store 에서 single-flight 라 기존 요청에 합류한다"고 적혀 있다. `definitelySignedOut` 이 false 인 상태(`unknown`/`refreshing`/`temporarilyOffline`)에서는 **둘 다** 걸려 판정까지 최대 8초, 두 번째 `force:true` 가 `/me → /refresh → /me` 를 다시 태울 수 있다. 단일비행이 대개 합쳐 주지만 보장은 아니다. 두 파일 모두 payment-freeze `wholeFiles` 이고 주석에 양방향 회귀 이력이 남아 있어 **사용자 판단 후** 손댄다.
 - ⚠️ **결제창 이용권 카드 제거 (의심)** — `app/music/MusicPlayerExample.tsx:1428-1434` 가 `isDownloadOnlyPurchase` 일 때 `disablePassChoice:true`·`allowedPaymentModes:["direct","monthly"]` 를 넘긴다. `docs/payment-policy-flow.md:55` 는 **`passExcluded` 등재 기능에 한해** 이 형태를 허용하는데, `music_track` 다운로드 전용 구매의 서버 등재 여부는 **미확인**이다.
-- 🔴 **CI 트리거 구멍 (원칙 10)** — `.github/workflows/paid-flow-gates.yml` 의 `paths` 에 `js/saju-engine-tarot-sukuyo-quantum.js`·`js/tarot-*-experience.js`(신년 타로 포함)·`js/entertain-engine.js`·`js/sibyl-system.js`·`js/animal-totem-experience.js`·`js/iching-engine.js` 가 없다. **2026-09-06 재확인**: `js/destiny-profile.js`(`:135`)·`js/oracle-kcg.js`(`:145`)는 미러와 함께 등재돼 있고, 위 목록은 여전히 없다. 지금 이 파일들을 읽는 가드가 없어(동결 매니페스트에도 미등재) 무는 구멍은 아니지만, 가드를 하나라도 붙이는 순간 사각지대가 된다. 실제로는 `sync:public` 이 `index.html` 핀을 회전시켜 게이트가 깨어나지만(그건 우연이다), 이 파일들만 바뀌는 PR 은 결제 게이트를 안 깨운다. `scripts/lib/change-risk.mjs` 에서도 `level=medium`·`deepRequired=false` 로 떨어진다.
+- ✅ **CI 트리거 구멍 (원칙 10) — 2026-09-07 닫았다.** `.github/workflows/paid-flow-gates.yml` 의 `paths` 에 `app/hooks/usePaidResume.ts` · `js/saju-engine-tarot-sukuyo-quantum.js` · `js/entertain-engine.js` · `js/sibyl-system.js` · `js/iching-engine.js` · `js/animal-totem-experience.js` · `js/tarot-{love,reunion,year-fortune}-experience.js` 를 추가했다. `verify:paid-resume-wiring` 이 이 파일들을 읽으므로 **이제는 무는 구멍이었다** — 가드 자신이 `MECHANISM_FILES` 로 이 등재를 검사하므로 다음에 기계 파일이 늘면 등재를 잊는 순간 실패한다. 🔴 `scripts/lib/change-risk.mjs` 의 `level`/`deepRequired` 는 그대로다(미해결).
 
 **React 배선에서 새로 나온 4건 (2026-09-06 — 전부 미해결, 원칙 14 로 손대지 않았다)**
 
 - 🔴 **영수증 3중 키 불일치로 React 폴백이 재과금한다** — `js/destiny-profile.js:4569-4575` 는 영수증을 저장할 때 `profileId`(확정 응답의 `profileId || selectedProfileId`)를 실어 주는데, `app/hooks/useCoinGate.ts:412-416` 은 `{featureKey}` 만으로 소비를 시도한다. `grantReceiptMatches` 는 `featureKey|contentKey|profileId` **3중 일치**를 요구하므로 MISS 가 나고, 회당 결제 키는 `worker/lib/access-state.js` 가 보유 목록에서 걸러내므로 **재클릭하면 또 결제된다.** 이번 배선은 서술자 축이라 이 경로를 안 타지만, 핸들러가 `false` 를 돌린 뒤 '지금 열기' 카드를 누르는 길에서는 걸릴 수 있다(미검증).
-- 🔴 **재개 배선에 fail-closed 가드가 없다 (원칙 10)** — 게이트 호출부를 전수 발견해 `resume:` 누락을 실패시키는 검증기가 **하나도 없다**(`grep resume package.json` · `ls scripts | grep -i resume` 둘 다 0건). 그래서 이번 "36건 → 실제 2건" 같은 오계수가 손으로만 잡힌다. 앞으로 추가되는 유료 기능은 조용히 미배선으로 태어난다. `verify:guard-wiring` 형태로 하나 만들 대상이다.
+- ✅ **재개 배선 fail-closed 가드 — 2026-09-07 신설했다.** `npm run verify:paid-resume-wiring`(위 §자동 가드). `run-paid-gate-suite.mjs` 와 `paid-flow-gates.yml` 에 배선돼 `verify:guard-wiring` 이 배선된 것으로 센다.
 - ⚠️ **`app/destiny-compass/_components/CompassApp.tsx` 가 저장소에 CRLF 로 들어 있었다** — 같은 디렉터리의 다른 파일은 전부 LF 다. `text=auto`+`core.autocrlf=true` 조합에서 git 은 이미 CRLF 인 인덱스 항목을 재정규화하지 않으므로 `git diff --check` 가 **추가한 모든 줄**을 trailing whitespace 로 잡아 `check:changed` 가 BLOCKED 된다. 이번엔 파일 전체를 LF 로 정규화해 풀었다(그래서 그 커밋의 diff 가 전문이다). 🔴 같은 증상을 만나면 파일 인코딩을 먼저 의심할 것 — 내가 넣은 공백이 아니다.
 - 같은 파일 7줄의 `import type { AnimalDestinyInput }` 은 쓰이지 않는다(HEAD 에도 있던 기존 경고).
 
@@ -256,6 +286,7 @@ React 배관도 같은 PR 에서 열렸다: `EnsurePaidAccessInput`/`BillingCoin
 npm run verify:checkout-pass-card && npm run verify:payment-choice-parity
 npm run verify:paid-gate-ui && npm run verify:portone-single-payment
 npm run verify:billing-pass-policy && npm run verify:paid-feature-billing-policy
+npm run verify:paid-resume-wiring
 npm run verify:payment-freeze && npm run verify:guard-wiring
 npm run verify:tarot-love-flow
 node --test __tests__/ui/direct-payment-resume.behavior.test.js
