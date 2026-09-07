@@ -85,6 +85,56 @@
   let plfImageEl = null;
   let plfMounted = false;
 
+  // ── 결제 후 자동 재개 ────────────────────────────────────────────────────
+  // 🔴 모바일 PortOne 은 상위 프레임을 리다이렉트한다 — _cdCoinGatePerUse 의 onGranted 클로저가
+  //    문서와 함께 죽어 "결제는 됐는데 화면은 홈" 이 된다. 복구 수단은 게이트에 넘기는 재개 서술자와
+  //    등록된 핸들러 하나뿐이다(계약 정본: js/core/checkout-entry.js 의 runPaidResume).
+  // 🔴 전생 관상은 LLM·서버를 쓰지 않는 클라이언트 계산이라 복귀 문서에 plfSelfResult 가 없다.
+  //    결제를 열기 **직전에** 굳혀 두지 않으면 되살릴 재료가 없다.
+  const PLF_COMPAT_RESUME_KIND = 'physiognomy-pastlife-compatibility';
+  const PLF_RESUME_SURFACE_ACTION = 'openPastLifeFaceApp';
+  const PLF_RESUME_SNAPSHOT_KEY = 'cd_pastlife_face_resume_snapshot';
+  const PLF_RESUME_SNAPSHOT_TTL_MS = 30 * 60 * 1000;
+  const PLF_RESUME_SNAPSHOT_MAX_CHARS = 512 * 1024;
+
+  // 🔴 localStorage 다 — 카카오페이처럼 다른 앱을 거쳐 오면 안드로이드가 새 탭으로 복귀시켜
+  //    sessionStorage 가 통째로 비어 있다(checkout-entry 복귀 티켓과 같은 이유).
+  function plfResumeStore() {
+    try { return window.localStorage || null; } catch (_plfStoreError) { return null; }
+  }
+
+  function plfSaveResumeSnapshot() {
+    const store = plfResumeStore();
+    if (!store || !plfSelfResult) return false;
+    try {
+      const raw = JSON.stringify({ at: Date.now(), self: plfSelfResult });
+      if (!raw || raw.length > PLF_RESUME_SNAPSHOT_MAX_CHARS) return false;
+      store.setItem(PLF_RESUME_SNAPSHOT_KEY, raw);
+      return true;
+    } catch (_plfSnapshotWriteError) {
+      return false;
+    }
+  }
+
+  function plfReadResumeSnapshot() {
+    const store = plfResumeStore();
+    if (!store) return null;
+    let parsed = null;
+    try { parsed = JSON.parse(String(store.getItem(PLF_RESUME_SNAPSHOT_KEY) || '')); } catch (_plfSnapshotReadError) { return null; }
+    if (!parsed || typeof parsed !== 'object' || !parsed.self) return null;
+    const at = Number(parsed.at);
+    if (!(at > 0) || Date.now() - at > PLF_RESUME_SNAPSHOT_TTL_MS) return null;
+    return parsed.self;
+  }
+
+  function plfRestoreSelfResult() {
+    if (plfSelfResult) return true;
+    const restored = plfReadResumeSnapshot();
+    if (!restored) return false;
+    plfSelfResult = restored;
+    return true;
+  }
+
   // ============================================================
   // 콘텐츠 데이터 — 전생 서사 레이어
   //
@@ -3198,6 +3248,24 @@
   // 전생 인연 궁합 (회당 5,000원) — 공용 결제 게이트 경유
   // ============================================================
 
+  /**
+   * 🔴 게이트 없는 코어. 결제 성공(인페이지)과 재개(리다이렉트 복귀)가 이것 하나를 공유한다 —
+   *    재개가 plfStartCompat 을 다시 부르면 게이트를 또 타서 재과금된다.
+   * @param openPicker 파일 선택창을 바로 열지 여부. 🔴 재개 경로에서는 false 다 — 복귀 직후에는
+   *        사용자 제스처가 없어 브라우저가 input.click() 을 조용히 막는다. 대신 궁합 문구가 적용된
+   *        gate 화면의 [상대 사진 올리기] 버튼이 그대로 보인다.
+   */
+  function plfBeginCompat(openPicker) {
+    if (!plfRestoreSelfResult()) return false;
+    plfCompatMode = true;
+    plfPartnerResult = null;
+    plfUploadToken += 1;
+    plfSetGateCopy('compat');
+    plfShowStage('gate');
+    if (openPicker) plfEl('plfFileInput').click();
+    return true;
+  }
+
   function plfStartCompat() {
     if (!plfSelfResult) {
       window.alert('먼저 내 전생 관상을 열어 주세요.');
@@ -3209,20 +3277,29 @@
     }
 
     const requestId = 'physiognomy-pastlife-compatibility:' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
+    plfSaveResumeSnapshot();
     window._cdCoinGatePerUse(PLF_COMPAT_COIN_COST, '전생 관상 궁합 분석', function () {
-      plfCompatMode = true;
-      plfPartnerResult = null;
-      plfUploadToken += 1;
-      plfSetGateCopy('compat');
-      plfShowStage('gate');
-      plfEl('plfFileInput').click();
+      plfBeginCompat(true);
     }, null, {
       featureKey: 'physiognomy-pastlife-compatibility',
       serviceKey: 'physiognomy',
       action: 'startPastLifePhysiognomyCompatibility',
-      requestId: requestId
+      requestId: requestId,
+      resume: { kind: PLF_COMPAT_RESUME_KIND, action: PLF_RESUME_SURFACE_ACTION, args: {} }
     });
   }
+
+  // 🔴 재개 핸들러 등록. 복귀 문서는 셸 홈이라 openPaidResumeSurface 가 전생 관상 타일을 눌러 이
+  //    스크립트를 지연 로드하고, runPaidResume 이 최대 8초 기다렸다가 이 핸들러를 부른다.
+  //    false 를 돌려주면 호출부가 '지금 열기' 카드를 그린다.
+  (function plfRegisterPaidResumeHandler() {
+    let entry = null;
+    try { entry = window.__cdCheckoutEntry || null; } catch (_plfEntryError) { entry = null; }
+    if (!entry || typeof entry.registerPaidResumeHandler !== 'function') return;
+    try {
+      entry.registerPaidResumeHandler(PLF_COMPAT_RESUME_KIND, function () { return plfBeginCompat(false); });
+    } catch (_plfRegisterError) { /* 등록 실패는 재개 포기로만 이어진다 */ }
+  })();
 
   // ============================================================
   // 공유

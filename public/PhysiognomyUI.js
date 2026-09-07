@@ -68,6 +68,63 @@ let firstAnalysisResult = null; // 첫 번째 사람 분석 결과 저장
 let secondAnalysisResult = null; // 두 번째 사람 분석 결과 저장
 let ogwanMoleUnlocked = false;   // 오관·점 프리미엄(회당 5,000원) 잠금 해제 여부 — 새 분석마다 리셋
 
+// ── 결제 후 자동 재개 ──────────────────────────────────────────────────────
+// 🔴 모바일 PortOne 은 상위 프레임을 리다이렉트한다 — _cdCoinGatePerUse 의 onGranted 클로저가
+//    문서와 함께 죽어 "결제는 됐는데 화면은 홈" 이 된다. 복구 수단은 게이트에 넘기는 재개 서술자와
+//    등록된 핸들러 하나뿐이다(계약 정본: js/core/checkout-entry.js 의 runPaidResume).
+// 🔴 관상 분석은 전부 클라이언트 계산이라 서버에 남는 것이 없다(이 파일에 fetch 가 0건). 복귀한
+//    문서에는 firstAnalysisResult 가 없으므로 결제를 열기 **직전에** 결과를 굳혀 두지 않으면 되살릴
+//    재료 자체가 없다. 서술자 args 는 원시값만 살아남으므로 결과는 별도 스냅샷에 담는다.
+const PHY_OGWAN_RESUME_KIND = 'physiognomy-ogwan-mole-deep';
+const PHY_COMPAT_RESUME_KIND = 'physiognomy-compatibility';
+// 복귀 문서는 셸 홈이다 — 이 딥링크로 관상 타일을 눌러야 이 스크립트가 로드되고 핸들러가 등록된다.
+const PHY_RESUME_SURFACE_ACTION = 'openPhysiognomyApp';
+const PHY_RESUME_SNAPSHOT_KEY = 'cd_physiognomy_resume_snapshot';
+const PHY_RESUME_SNAPSHOT_TTL_MS = 30 * 60 * 1000;
+// 상한을 넘으면 저장을 포기한다 — 재개가 '지금 열기' 카드로 떨어질 뿐이고, 재과금은 checkout-entry
+// 의 유료 개방 영수증(cd_paid_grant_receipt)이 막는다.
+const PHY_RESUME_SNAPSHOT_MAX_CHARS = 512 * 1024;
+
+// 🔴 localStorage 다. 카카오페이처럼 다른 앱으로 이탈했다 돌아오는 수단은 안드로이드가 **새 탭으로**
+//    복귀시키는 일이 흔해 sessionStorage 가 통째로 비어 있다(checkout-entry 복귀 티켓과 같은 이유).
+function phyResumeStore() {
+  try { return window.localStorage || null; } catch (_phyStoreError) { return null; }
+}
+
+/** 결제창을 열기 직전에 부른다. 저장 실패는 재개 포기로만 이어진다(결제 흐름은 그대로). */
+function savePhyResumeSnapshot() {
+  const store = phyResumeStore();
+  if (!store || !firstAnalysisResult) return false;
+  try {
+    const raw = JSON.stringify({ at: Date.now(), first: firstAnalysisResult });
+    if (!raw || raw.length > PHY_RESUME_SNAPSHOT_MAX_CHARS) return false;
+    store.setItem(PHY_RESUME_SNAPSHOT_KEY, raw);
+    return true;
+  } catch (_phySnapshotWriteError) {
+    return false;
+  }
+}
+
+function readPhyResumeSnapshot() {
+  const store = phyResumeStore();
+  if (!store) return null;
+  let parsed = null;
+  try { parsed = JSON.parse(String(store.getItem(PHY_RESUME_SNAPSHOT_KEY) || '')); } catch (_phySnapshotReadError) { return null; }
+  if (!parsed || typeof parsed !== 'object' || !parsed.first) return null;
+  const at = Number(parsed.at);
+  if (!(at > 0) || Date.now() - at > PHY_RESUME_SNAPSHOT_TTL_MS) return null;
+  return parsed.first;
+}
+
+/** 인페이지 결제면 메모리에 그대로 있고, 리다이렉트 복귀면 스냅샷에서 되살린다. */
+function restorePhyFirstAnalysisResult() {
+  if (firstAnalysisResult) return true;
+  const restored = readPhyResumeSnapshot();
+  if (!restored) return false;
+  firstAnalysisResult = restored;
+  return true;
+}
+
 if(document.getElementById('phy-styles')) document.getElementById('phy-styles').remove();
 if(document.getElementById('physiognomy-app')) document.getElementById('physiognomy-app').remove();
 
@@ -1618,15 +1675,30 @@ function buildLockedSectionHtml() {
     </div>`;
 }
 
+/**
+ * 🔴 게이트 없는 코어. 재개 핸들러는 반드시 이것을 부른다 — 공개 진입점(triggerOgwanMoleUnlock)을
+ *    다시 부르면 게이트를 또 타서 재과금된다(app/hooks/usePaidResume.ts 계약 3).
+ */
+function applyOgwanMoleUnlock() {
+  ogwanMoleUnlocked = true;
+  if (!restorePhyFirstAnalysisResult()) return false;
+  renderResult(firstAnalysisResult);
+  return true;
+}
+
 function triggerOgwanMoleUnlock() {
   if (typeof window._cdCoinGatePerUse !== 'function') {
     window.alert('결제 모듈을 불러오지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.');
     return;
   }
+  savePhyResumeSnapshot();
   window._cdCoinGatePerUse(50, '오관·점 정밀 분석', function () {
-    ogwanMoleUnlocked = true;
-    if (firstAnalysisResult) renderResult(firstAnalysisResult);
-  }, null, { featureKey: 'physiognomy-ogwan-mole-deep', serviceKey: 'physiognomy' });
+    applyOgwanMoleUnlock();
+  }, null, {
+    featureKey: 'physiognomy-ogwan-mole-deep',
+    serviceKey: 'physiognomy',
+    resume: { kind: PHY_OGWAN_RESUME_KIND, action: PHY_RESUME_SURFACE_ACTION, args: {} },
+  });
 }
 
 function renderSectionCards(container, sections) {
@@ -2380,7 +2452,7 @@ window.openPastLifeFaceFromPhysiognomy = async function openPastLifeFaceFromPhys
     if (typeof window.openPastLifeFaceApp !== 'function') {
       await new Promise((resolve, reject) => {
         const script = document.createElement('script');
-        script.src = 'PastLifeFaceUI.js?v=h13175ee5f324';
+        script.src = 'PastLifeFaceUI.js?v=h8cca93b6152f';
         script.onload = resolve;
         script.onerror = () => reject(new Error('PAST_LIFE_SCRIPT_LOAD_FAILED'));
         document.head.appendChild(script);
@@ -2411,6 +2483,55 @@ window.openPastLifeFaceFromPhysiognomy = async function openPastLifeFaceFromPhys
   }
 
   // ── 궁합 모드 관련 함수 ──
+
+  /**
+   * 🔴 게이트 없는 코어. 결제 성공(인페이지)과 재개(리다이렉트 복귀)가 **이것 하나**를 공유한다 —
+   *    재개가 window.startCompatMode 를 다시 부르면 게이트를 또 타서 재과금된다.
+   */
+  function beginPhysiognomyCompatibility() {
+    if (!restorePhyFirstAnalysisResult()) return false;
+
+    compatMode = true;
+    _phyUploadToken += 1;
+
+    // UI 리셋하되 궁합 상태는 유지
+    isAnalyzing = false;
+    analysisComplete = false;
+    landmarksData = null;
+    document.getElementById('phyResult').style.display = 'none';
+    document.getElementById('scanOverlay').style.display = 'none';
+    document.getElementById('captureBtn').style.display = 'none';
+    document.getElementById('pastLifeBridgeBtn').style.display = 'none';
+    document.getElementById('expertReportContainer').innerHTML = '';
+    clearResultMeta();
+    showAnalysisStage(false);
+    showPreviewSkeleton(false);
+    clearPreparedImageResources();
+
+    const imgEl = document.getElementById('phyImage');
+    if(imgEl) {
+      imgEl.src = '';
+      imgEl.onload = null;
+    }
+    if(canvasCtx) canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+
+    // 궁합 안내 상태 텍스트
+    document.getElementById('phyStatus').innerHTML = `<div style="text-align:center;">
+      <div style="font-size:1.1rem; font-weight:800; color:#f472b6; margin-bottom:6px;">💕 궁합 분석 모드</div>
+      <div style="font-size:0.9rem; color:#a7f3d0;">상대방의 사진을 촬영하거나 업로드해주세요</div>
+      <div style="font-size:0.8rem; color:#94a3b8; margin-top:4px;">첫 번째: ${firstAnalysisResult.emoji} ${firstAnalysisResult.primaryAnimal}</div>
+    </div>`;
+
+    // 파일 모드면 업로드 UI 다시 표시
+    if (currentMode === 'file') {
+      document.getElementById('fileUploadContainer').style.display = 'block';
+    } else {
+      // 카메라 모드면 카메라 재시작
+      if(camera) camera.start();
+    }
+    return true;
+  }
+
   window.startCompatMode = function() {
     // 첫 번째 분석 결과 저장
     if (!firstAnalysisResult) {
@@ -2426,54 +2547,31 @@ window.openPastLifeFaceFromPhysiognomy = async function openPastLifeFaceFromPhys
       }
 
       const compatRequestId = 'physiognomy-compatibility:' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
+      savePhyResumeSnapshot();
       window._cdCoinGatePerUse(50, '관상 궁합 분석', function () {
         // 결제 확인 성공 → 궁합 모드 시작
-        compatMode = true;
-        _phyUploadToken += 1;
-
-        // UI 리셋하되 궁합 상태는 유지
-        isAnalyzing = false;
-        analysisComplete = false;
-        landmarksData = null;
-        document.getElementById('phyResult').style.display = 'none';
-        document.getElementById('scanOverlay').style.display = 'none';
-        document.getElementById('captureBtn').style.display = 'none';
-        document.getElementById('pastLifeBridgeBtn').style.display = 'none';
-        document.getElementById('expertReportContainer').innerHTML = '';
-        clearResultMeta();
-        showAnalysisStage(false);
-        showPreviewSkeleton(false);
-        clearPreparedImageResources();
-
-        const imgEl = document.getElementById('phyImage');
-        if(imgEl) {
-          imgEl.src = '';
-          imgEl.onload = null;
-        }
-        if(canvasCtx) canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-
-        // 궁합 안내 상태 텍스트
-        document.getElementById('phyStatus').innerHTML = `<div style="text-align:center;">
-          <div style="font-size:1.1rem; font-weight:800; color:#f472b6; margin-bottom:6px;">💕 궁합 분석 모드</div>
-          <div style="font-size:0.9rem; color:#a7f3d0;">상대방의 사진을 촬영하거나 업로드해주세요</div>
-          <div style="font-size:0.8rem; color:#94a3b8; margin-top:4px;">첫 번째: ${firstAnalysisResult.emoji} ${firstAnalysisResult.primaryAnimal}</div>
-        </div>`;
-
-        // 파일 모드면 업로드 UI 다시 표시
-        if (currentMode === 'file') {
-          document.getElementById('fileUploadContainer').style.display = 'block';
-        } else {
-          // 카메라 모드면 카메라 재시작
-          if(camera) camera.start();
-        }
+        beginPhysiognomyCompatibility();
       }, null, {
         featureKey: 'physiognomy-compatibility',
         serviceKey: 'physiognomy',
         action: 'startPhysiognomyCompatibility',
-        requestId: compatRequestId
+        requestId: compatRequestId,
+        resume: { kind: PHY_COMPAT_RESUME_KIND, action: PHY_RESUME_SURFACE_ACTION, args: {} }
       });
     })();
   }
+
+  // 🔴 재개 핸들러 등록. 복귀한 문서가 이 스크립트를 지연 로드하면 그때 등록되고, runPaidResume 이
+  //    최대 8초 기다렸다가 부른다. false 를 돌려주면 호출부가 '지금 열기' 카드를 그린다.
+  (function _phyRegisterPaidResumeHandlers() {
+    let entry = null;
+    try { entry = window.__cdCheckoutEntry || null; } catch (_phyEntryError) { entry = null; }
+    if (!entry || typeof entry.registerPaidResumeHandler !== 'function') return;
+    try {
+      entry.registerPaidResumeHandler(PHY_OGWAN_RESUME_KIND, function () { return applyOgwanMoleUnlock(); });
+      entry.registerPaidResumeHandler(PHY_COMPAT_RESUME_KIND, function () { return beginPhysiognomyCompatibility(); });
+    } catch (_phyRegisterError) { /* 등록 실패는 재개 포기로만 이어진다 */ }
+  })();
 
   // 궁합 결과 렌더링
   function renderCompatResult(compatResult) {
