@@ -13,7 +13,8 @@ import { decryptPhoneNumber } from "../lib/pii-crypto.js";
 import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
-import { resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
+import { isAllowedConsultTokenAccessType, normalizeConsultAccessType, resolveCanonicalEntitlement, resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
+import { consumePassForFeature, passDenialCode } from "../lib/pass-consumption.js";
 import { fetchPortOnePayment, getPortOnePublicConfig } from "../lib/portone.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
@@ -2159,10 +2160,10 @@ async function restorePrepaidAccessOnFailure({ userId, access = {}, idempotencyK
   return false;
 }
 
-async function applyUsageOnce({ userId, sessionId, accessType, paymentId, pricing, prepaid = false }) {
+async function applyUsageOnce({ userId, sessionId, accessType, paymentId, pricing, prepaid = false, requestId = "" }) {
   const existing = await ZiweiAiConsultation.findOne({ id: sessionId }).select("usageAppliedAt").lean();
   if (existing?.usageAppliedAt) return true;
-  if (prepaid) {
+  if (prepaid && normalizeConsultAccessType(accessType) !== "pass") {
     await ZiweiAiConsultation.updateOne(
       { id: sessionId, usageAppliedAt: null },
       { $set: { usageAppliedAt: new Date() } },
@@ -2170,13 +2171,32 @@ async function applyUsageOnce({ userId, sessionId, accessType, paymentId, pricin
     return true;
   }
 
-  if (accessType === "subscription") {
+  const tokenAccessType = normalizeConsultAccessType(accessType);
+  if (tokenAccessType === "subscription") {
     const error = new Error("A Payment Service access grant is required for monthly usage.");
     error.code = "PAYMENT_ACCESS_GRANT_REQUIRED";
     throw error;
   }
 
-  if (accessType === "paid" && paymentId) {
+  if (tokenAccessType === "pass") {
+    const passUser = await User.findById(userId).select("profileSubscription recentConsumeRequestIds").lean();
+    const consumed = await consumePassForFeature({
+      user: passUser || {},
+      entitlement: resolveCanonicalEntitlement(passUser || {}),
+      userId,
+      featureKey: FEATURE_KEY,
+      requestId,
+      coinCost: pricing.coinPrice,
+    });
+    const denial = consumed.covered ? "" : passDenialCode(consumed.reason);
+    if (denial) {
+      const error = new Error(denial);
+      error.code = denial;
+      throw error;
+    }
+  }
+
+  if (tokenAccessType === "paid" && paymentId) {
     await Payment.updateOne(
       { userId, featureKey: FEATURE_KEY, merchantUid: paymentId },
       {
@@ -2300,17 +2320,18 @@ async function handleEnsureAccess(request, env, route = "/api/ziwei-ai/prepare")
   // prepare에서 곧바로 접근 토큰을 발급한다. 이용권 보유자가 결제 게이트로 새어
   // "이용권 상태를 일시적으로 확인하지 못했습니다"로 막히던 문제를 차단한다.
   if (access.ok) {
-    logZiweiAi("Access Check Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
+    const tokenAccessType = normalizeConsultAccessType(access.accessType) || access.accessType;
+    logZiweiAi("Access Check Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: tokenAccessType, env }));
     return json({
       ok: true,
       accessToken: await createAccessToken(env, {
         userId: auth.userId,
-        accessType: access.accessType,
+        accessType: tokenAccessType,
         idempotencyKey,
         inputHash: normalized.inputHash,
         paymentId: access.paymentId || "",
       }),
-      accessType: access.accessType,
+      accessType: tokenAccessType,
     });
   }
   if (access.reason === "INVALID_INPUT") return invalidInput(access.message, 409);
@@ -2344,10 +2365,10 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
     if (clean(payload.userId) !== clean(auth.userId) || clean(payload.idempotencyKey) !== idempotencyKey || clean(payload.inputHash) !== normalized.inputHash) {
       return { ok: false, reason: "INVALID_INPUT", message: "상담 접근 정보가 현재 입력값과 일치하지 않습니다." };
     }
-    const accessType = clean(payload.accessType);
+    const accessType = normalizeConsultAccessType(payload.accessType);
     // prepare에서 발급한 이용권/월정석/결제/관리자 토큰을 모두 신뢰한다(네오와 동일).
     // 월정석(subscription)은 아래 handleStart의 applyUsageOnce에서 실제 차감된다.
-    if (!["admin", "paid", "pass", "subscription"].includes(accessType)) return { ok: false, reason: "PAYMENT_REQUIRED" };
+    if (!isAllowedConsultTokenAccessType(payload.accessType)) return { ok: false, reason: "PAYMENT_REQUIRED" };
     return { ok: true, accessType, paymentId: clean(payload.paymentId, 160) };
   }
 
@@ -2459,7 +2480,7 @@ async function handleStart(request, env, route = "/api/ziwei-ai/generate", ctx =
     // 예전의 단일 호출 옵션(minBodyChars: MIN_INITIAL_CONSULTATION_BODY_CHARS,
     // maxBodyChars: MAX_INITIAL_CONSULTATION_BODY_CHARS)은 병합 결과를 판정하는 기준으로 그대로 살아 있다.
     const generated = await generateInitialConsultation(env, { input: normalized.input, chart, logContext });
-    await applyUsageOnce({ userId: auth.userId, sessionId, accessType: access.accessType, paymentId: access.paymentId || "", pricing, prepaid: access.prepaid === true });
+    await applyUsageOnce({ userId: auth.userId, sessionId, accessType: access.accessType, paymentId: access.paymentId || "", pricing, prepaid: access.prepaid === true, requestId: idempotencyKey });
     const firstUserMessage = normalized.input.userQuestion || normalized.input.topic;
     const completed = await ZiweiAiConsultation.findOneAndUpdate(
       { id: sessionId },

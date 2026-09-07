@@ -13,7 +13,8 @@ import { decryptPhoneNumber } from "../lib/pii-crypto.js";
 import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
-import { resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
+import { isAllowedConsultTokenAccessType, normalizeConsultAccessType, resolveCanonicalEntitlement, resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
+import { consumePassForFeature, passDenialCode } from "../lib/pass-consumption.js";
 import { fetchPortOnePayment, getPortOnePublicConfig } from "../lib/portone.js";
 import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
@@ -390,16 +391,34 @@ async function verifyPaymentForStart({ env, auth, paymentId, idempotencyKey, inp
   }).catch(() => {});
   return { ok: true, accessType: "paid", paymentId: normalizedPaymentId };
 }
-async function applyUsageOnce({ userId, sessionId, accessType, paymentId, pricing, prepaid = false }) {
+async function applyUsageOnce({ userId, sessionId, accessType, paymentId, pricing, prepaid = false, requestId = "" }) {
   const existing = await ZiweiAiConsultation.findOne({ id: sessionId }).select("usageAppliedAt").lean();
   if (existing?.usageAppliedAt) return true;
-  if (prepaid) { await ZiweiAiConsultation.updateOne({ id: sessionId, usageAppliedAt: null }, { $set: { usageAppliedAt: new Date() } }); return true; }
-  if (accessType === "subscription") {
+  const tokenAccessType = normalizeConsultAccessType(accessType);
+  if (prepaid && tokenAccessType !== "pass") { await ZiweiAiConsultation.updateOne({ id: sessionId, usageAppliedAt: null }, { $set: { usageAppliedAt: new Date() } }); return true; }
+  if (tokenAccessType === "subscription") {
     const error = new Error("A Payment Service access grant is required for monthly usage.");
     error.code = "PAYMENT_ACCESS_GRANT_REQUIRED";
     throw error;
   }
-  if (accessType === "paid" && paymentId) {
+  if (tokenAccessType === "pass") {
+    const passUser = await User.findById(userId).select("profileSubscription recentConsumeRequestIds").lean();
+    const consumed = await consumePassForFeature({
+      user: passUser || {},
+      entitlement: resolveCanonicalEntitlement(passUser || {}),
+      userId,
+      featureKey: FEATURE_KEY,
+      requestId,
+      coinCost: pricing.coinPrice,
+    });
+    const denial = consumed.covered ? "" : passDenialCode(consumed.reason);
+    if (denial) {
+      const error = new Error(denial);
+      error.code = denial;
+      throw error;
+    }
+  }
+  if (tokenAccessType === "paid" && paymentId) {
     await Payment.updateOne({ userId, featureKey: FEATURE_KEY, merchantUid: paymentId }, { $set: { status: "fulfilled", orderState: "UNLOCKED", reportId: sessionId, sessionId, "pricingSnapshot.sessionId": sessionId, "pricingSnapshot.usageAppliedAt": new Date().toISOString() } }).catch(() => {});
   }
   await ZiweiAiConsultation.updateOne({ id: sessionId, usageAppliedAt: null }, { $set: { usageAppliedAt: new Date() } });
@@ -552,7 +571,7 @@ async function handleEnsureAccess(request, env, route = "/api/ziwei-island-ai/pr
   if (!user) return loginRequired();
   const access = await withMongoRetry(env, () => resolveServerAccess({ auth, user, pricing, idempotencyKey, inputHash: normalized.inputHash }));
   if (access.ok) {
-    return json({ ok: true, accessToken: await createAccessToken(env, { userId: auth.userId, accessType: access.accessType, idempotencyKey, inputHash: normalized.inputHash, paymentId: access.paymentId || "" }), accessType: access.accessType });
+    return json({ ok: true, accessToken: await createAccessToken(env, { userId: auth.userId, accessType: normalizeConsultAccessType(access.accessType) || access.accessType, idempotencyKey, inputHash: normalized.inputHash, paymentId: access.paymentId || "" }), accessType: normalizeConsultAccessType(access.accessType) || access.accessType });
   }
   if (access.reason === "INVALID_INPUT") return invalidInput(access.message, 409);
   const payment = await createOrReusePaymentPayload({ env, auth, user, pricing, idempotencyKey, inputHash: normalized.inputHash });
@@ -567,8 +586,8 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
     if (clean(payload.userId) !== clean(auth.userId) || clean(payload.idempotencyKey) !== idempotencyKey || clean(payload.inputHash) !== normalized.inputHash) {
       return { ok: false, reason: "INVALID_INPUT", message: "상담 접근 정보가 현재 입력값과 일치하지 않습니다." };
     }
-    const accessType = clean(payload.accessType);
-    if (!["admin", "paid", "pass", "subscription"].includes(accessType)) return { ok: false, reason: "PAYMENT_REQUIRED" };
+    const accessType = normalizeConsultAccessType(payload.accessType);
+    if (!isAllowedConsultTokenAccessType(payload.accessType)) return { ok: false, reason: "PAYMENT_REQUIRED" };
     return { ok: true, accessType, paymentId: clean(payload.paymentId, 160) };
   }
   const paymentId = clean(body?.paymentId || body?.merchantUid || body?.merchant_uid, 160);
@@ -634,7 +653,7 @@ async function handleStart(request, env, route = "/api/ziwei-island-ai/generate"
     try {
       const { prompt } = buildPalaceFirstPrompt(normalized.input.palaceKey, normalized.input, chart);
       const generated = await generatePalaceText(env, prompt, { minLength: 300, maxOutputTokens: PALACE_CONSULT_MAX_OUTPUT_TOKENS });
-      await applyUsageOnce({ userId: auth.userId, sessionId, accessType: access.accessType, paymentId: access.paymentId || "", pricing, prepaid: access.prepaid === true });
+      await applyUsageOnce({ userId: auth.userId, sessionId, accessType: access.accessType, paymentId: access.paymentId || "", pricing, prepaid: access.prepaid === true, requestId: idempotencyKey });
       const firstUserMessage = normalized.input.userQuestion || normalized.input.topic;
       const completed = await ZiweiAiConsultation.findOneAndUpdate(
         { id: sessionId },
