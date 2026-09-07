@@ -15,9 +15,12 @@ import { useCoinGate } from "@/app/hooks/useCoinGate";
 import { usePaidResume } from "@/app/hooks/usePaidResume";
 import { useContentUnlock } from "@/app/_lib/use-content-unlock";
 import { hasLedgerUnlock } from "@/app/_lib/optimistic-unlock-ledger";
-import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
-import { NAKSHATRA_RESULT_STORAGE_KEY } from "../NakshatraFormClient";
-import { birthFromProfileSeed, type NakshatraBirthInput } from "../nakshatra-birth";
+import {
+  useNakshatraProfileContext,
+  type NakshatraNatalLabel,
+  type NakshatraProfileContext,
+} from "../_lib/nakshatra-context";
+import type { NakshatraBirthInput } from "../nakshatra-birth";
 import { useNakshatraCopy, type NakshatraCopy } from "../_lib/copy";
 
 function errorText(copy: NakshatraCopy) {
@@ -29,6 +32,10 @@ function errorText(copy: NakshatraCopy) {
   } as const;
 }
 
+function toText(value: unknown): string {
+  return value == null ? "" : String(value).trim();
+}
+
 export interface PremiumProduct {
   featureKey: string;
   coinPrice: number;
@@ -37,53 +44,13 @@ export interface PremiumProduct {
   endpoint: string;
 }
 
-export interface NatalLabel {
-  sukuyoKo: string;
-  sukuyoHan: string;
-  nakshatraKo: string;
-  nakshatraEn: string;
-}
-
-function asRecord(value: unknown): Record<string, unknown> {
-  return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
-}
-function toText(value: unknown): string {
-  return value == null ? "" : String(value).trim();
-}
-
-// /nakshatra 무료 결과가 sessionStorage 에 남긴 명식 + 입력을 되살린다.
-function readStoredSession(): { birth: NakshatraBirthInput; natal: NatalLabel } | null {
-  try {
-    const raw = sessionStorage.getItem(NAKSHATRA_RESULT_STORAGE_KEY);
-    if (!raw) return null;
-    const parsed = asRecord(JSON.parse(raw));
-    const input = asRecord(parsed.input);
-    if (!Number(input.year) || !Number(input.month) || !Number(input.day)) return null;
-    const dongyang = asRecord(parsed.dongyang);
-    const india = asRecord(parsed.india);
-    const summary = asRecord(parsed.summary);
-    return {
-      birth: {
-        year: Number(input.year), month: Number(input.month), day: Number(input.day),
-        hour: Number(input.hour ?? 12), minute: Number(input.minute ?? 0),
-        timezone: Number(input.timezone ?? 9), lat: Number(input.lat ?? 37.5665), lon: Number(input.lon ?? 126.978),
-        timeUnknown: Boolean(input.timeUnknown),
-        gender: input.gender === "male" || input.gender === "female" ? input.gender : "",
-      },
-      natal: {
-        sukuyoKo: toText(dongyang.nameKo), sukuyoHan: toText(dongyang.nameHan),
-        nakshatraKo: toText(india.nameKo || summary.nakshatraKo), nakshatraEn: toText(india.nameEn || summary.nakshatraEn),
-      },
-    };
-  } catch {
-    return null;
-  }
-}
+export type NatalLabel = NakshatraNatalLabel;
 
 export interface UsePremiumReportResult<T> {
   report: T | null;
   birth: NakshatraBirthInput | null;
   natal: NatalLabel | null;
+  profilePicker: NakshatraProfileContext;
   /** 서버 판정이 끝났고 미해금일 때만 true — "확인 실패"를 미구매로 취급하지 않는다. */
   confirmedLocked: boolean;
   unlocked: boolean;
@@ -102,46 +69,39 @@ export function usePremiumReport<T>(product: PremiumProduct): UsePremiumReportRe
   const ERROR_TEXT = errorText(copy);
   const { ensurePaidAccess, isPaying } = useCoinGate();
   const { unlocked, status: unlockStatus, refetch: refetchUnlocks, markOptimisticallyUnlocked } = useContentUnlock([product.featureKey]);
-  const { seed: profileSeed } = useAiProfileSeed();
+  const profilePicker = useNakshatraProfileContext();
 
   // 원장을 먼저 읽어 첫 페인트에서 잠금 화면이 번쩍이지 않게 한다(IslandConsultClient 선례).
   const [ledgerUnlocked, setLedgerUnlocked] = useState(false);
-  const [birth, setBirth] = useState<NakshatraBirthInput | null>(null);
-  const [natal, setNatal] = useState<NatalLabel | null>(null);
+  const { birth, natal } = profilePicker;
   const [report, setReport] = useState<T | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const fetchedRef = useRef(false);
+  const previousBirthKeyRef = useRef<string | null>(null);
 
   useEffect(() => { if (hasLedgerUnlock(product.featureKey)) setLedgerUnlocked(true); }, [product.featureKey]);
 
   useEffect(() => {
-    const stored = readStoredSession();
-    if (!stored) return;
-    setBirth(stored.birth);
-    setNatal(stored.natal);
-  }, []);
+    const nextKey = birth ? JSON.stringify(birth) : "";
+    if (previousBirthKeyRef.current && nextKey && previousBirthKeyRef.current !== nextKey) {
+      fetchedRef.current = false;
+      setReport(null);
+      setError("");
+    }
+    previousBirthKeyRef.current = nextKey;
+  }, [birth]);
 
   // 세션에 명식이 없을 때만 프로필 카드 시드로 채운다(빈 값만 채우는 원칙).
   //
   // 🔴 성별은 예외로 세션 값이 있어도 보강한다 — /api/nakshatra/resolve 는 입력을 되돌려 줄 때
   //    gender 를 싣지 않고(무료 폼도 성별을 받지 않는다), 다샤 인생지도의 동양 대운은 성별이 없으면
   //    순행·역행이 정해지지 않아 통째로 빠진다. 프로필 카드가 이 값의 정본이다.
-  useEffect(() => {
-    const derived = birthFromProfileSeed(profileSeed);
-    if (!derived) return;
-    setBirth((prev) => {
-      if (!prev) return derived;
-      if (prev.gender || !derived.gender) return prev;
-      return { ...prev, gender: derived.gender };
-    });
-  }, [profileSeed]);
-
   const setGender = useCallback((gender: "male" | "female") => {
-    setBirth((prev) => (prev ? { ...prev, gender } : prev));
+    profilePicker.setGender(gender);
     fetchedRef.current = false;
     setReport(null);
-  }, []);
+  }, [profilePicker]);
 
   const isUnlocked = ledgerUnlocked || unlocked[product.featureKey] === true;
   const confirmedLocked = unlockStatus === "ready" && !isUnlocked;
@@ -224,6 +184,7 @@ export function usePremiumReport<T>(product: PremiumProduct): UsePremiumReportRe
     report,
     birth,
     natal,
+    profilePicker,
     confirmedLocked,
     unlocked: isUnlocked,
     checking: unlockStatus === "loading",
