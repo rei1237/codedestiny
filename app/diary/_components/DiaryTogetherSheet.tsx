@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 
 import { useDiaryToday, useDiaryWriter } from "./DiaryStoreProvider";
@@ -22,6 +22,8 @@ import {
   type DiaryTogetherDay,
 } from "../_lib/partner";
 import { useDiaryDraft } from "../_lib/use-diary-draft";
+import { normalizeBirthDateInput } from "@/lib/birthDateInput";
+import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import styles from "../_styles/diary.module.css";
 
 /**
@@ -152,6 +154,20 @@ export default function DiaryTogetherSheet({ onClose }: { onClose: () => void })
   });
 
   const birthDate = partner?.birthDate || "";
+  /* 타자 중인 값은 화면에만 두고, 저장은 8자리가 다 찼을 때만 한다(반쪽 날짜를 v2 에 넣지 않는다). */
+  const [birthText, setBirthText] = useState(birthDate);
+  const storedBirth = useRef(birthDate);
+  useEffect(() => {
+    if (storedBirth.current === birthDate) return;
+    storedBirth.current = birthDate;
+    setBirthText(birthDate);
+  }, [birthDate]);
+  const onBirth = (next: string) => {
+    setBirthText(next);
+    const normalized = normalizeBirthDateInput(next);
+    if (normalized || !next.trim()) updateEntry(ymd, writePartnerBirth(normalized));
+  };
+
   const compatType = String(entry?.compatType || partner?.compatType || "love");
   const partnerLabel = name.value.trim() || copy.partnerFallback;
 
@@ -181,12 +197,11 @@ export default function DiaryTogetherSheet({ onClose }: { onClose: () => void })
               placeholder={copy.namePlaceholder}
               aria-label={copy.name}
             />
-            {/* 🔴 날짜는 초안(디바운스)에 태우지 않는다 — 타자 도중의 반쪽 날짜가 저장된다. */}
+            {/* 🔴 달력 피커를 쓰지 않는다 — 레포 공용 헬퍼(lib/birthDateInputProps.ts)가 정본이고
+                전수 가드가 이 규칙을 문다. 저장은 위 onBirth 가 8자리에서만 한다. */}
             <input
-              type="date"
+              {...birthDateTextInputProps(birthText, onBirth)}
               className={styles.input}
-              value={birthDate}
-              onChange={(event) => updateEntry(ymd, writePartnerBirth(event.target.value))}
               aria-label={copy.birth}
             />
           </div>
