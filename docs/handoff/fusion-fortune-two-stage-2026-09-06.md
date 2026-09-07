@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-06
-next: 🔴 **5조합 실호출 검증(4/5 통과) · 후속 ①② 구현 완료 — PR #1712 사용자 머지 대기.** 8차 실측(2026-09-06 12:02Z, `--samples=5`, 승인 1회 소진): `생시O 장소O` 53,342 · `생시O 장소X` 51,068 · `생시X 장소O` 49,948 · `생시X 장소X` 47,341 자 **전부 `full` · 폴백 0 · `generationSource=gemini`**, 그러나 `음력·도쿄·일과 돈` 하나만 **143,230자 `degraded`(`length`)** — integration w1 이 본문 뒤에 **공백 약 9만 자**를 붙인 폭주다(후속 ④, 이 PR 에서 **안 고쳤다**). 같은 PR 에 후속 ①(컨텍스트 캐시 배선)·②(`visibleTextLength` 의미 정정)를 담았다. 다음 세션 첫 문장: **"#1712 가 머지됐는지 확인하고, 됐으면 후속 ④(공백 폭주로 분량 상한 초과)를 착수한다."** 이전 축(레일 결함 3건)은 **머지 완료**(#1709 = `origin/main` `9e3e891d9`) — 수치는 아래 §남은 작업·§육안 판정에 그대로 있다.
+next: 🔴 **후속 ④(공백 폭주) 구현 완료 — 브랜치 `worktree-fusion-whitespace-runaway`, 사용자 머지 대기.** 서버 `normalizeFusionProseWhitespace`(수신 시점, `pickKeys` 뒤 · 검증 앞)와 클라이언트 `tidyFusionProse`(보관본 대비) 짝으로 접는다 — 상세는 §후속 ④ 처리. 🔴 **실호출 재검증은 안 했다**(mock·회귀 테스트만) — 다음 실호출 승인이 나면 `음력·도쿄·일과 돈` 조합을 다시 돌려 `full` 인지 본다. 남은 후속은 **③ 관리자 프롬프트 랩 그룹 수 하드코딩(미검증)** 하나다. 다음 세션 첫 문장: **"`worktree-fusion-whitespace-runaway` PR 이 머지됐는지 확인하고, 됐으면 후속 ③ 을 착수한다."** 8차 실측 수치(5조합 전수)는 아래 §남은 작업에 그대로 있다.
 ---
 
 # 초융합 운세 개선 — 2단계 생성(Phase 1) 이후
@@ -67,7 +67,7 @@ next: 🔴 **5조합 실호출 검증(4/5 통과) · 후속 ①② 구현 완료
     - ⚠️ 탈락 기록 5건(전체 54회 중): `section_depth` 3(saju 3,320·3,173 · sukuyo 1,130) · `parse_failed` 1(tarot) · **`unsafe_phrase` 1**(integration 보완 물결, 5,719자). 🔴 공기 판정 전환(#1702) 뒤 첫 `unsafe_phrase` 다 — 다만 최종 `fallbackGroups` 는 5조합 전부 0이라 **배달에는 영향이 없었다**(원문 미확인, 오탐 여부 **미판정**).
     - ✅ **PR #1706(verdict 글자 수) 실호출 재검증 — 효과 확인.** 덤프 `10-s2-verdict-w1.json` 의 `finalVerdict` 가 **1,902자로 세어진다**(옛 계수는 0자였다). `verdict.ok: true` 이고 묶음 합계가 5,000자대라 **분량 미달로 인한 보완 물결은 5조합 전부 0**이다. 🔴 다만 5조합 중 2건(`생시O 장소O`·`생시O 장소X`)에서 verdict 보완 물결이 돌긴 했다 — w1 이 `ok` 이고 합계가 임계(3,400×0.8=2,720)를 크게 넘겼으므로 **분량 축이 아니고**, 두 조합 모두 `cross_section_duplicate` 가 붙은 것으로 보아 중복 축으로 **추정**한다(미확정).
   - 원문 덤프: `_tmp_fusion-live/<타임스탬프>/`(`.gitignore` 의 `_tmp_*`, 커밋 안 됨). 호출 1회당 `.txt`(응답 원문) + `.json`(판정·키별 글자수/임계·`fields`·`droppedKeys`) + `summary.md` 표. 🔴 **워크트리를 지우면 같이 사라진다** — 실호출 재승인 없이 다시 못 만든다.
-- [ ] **후속(범위 밖 보고)**: ~~① 프롬프트 캐싱 미배선~~ **완료(이 PR)** · ~~② `visibleTextLength` 이름·의미 불일치~~ **완료(이 PR)** — 상세는 아래 §후속 ①② 처리. 🆕 **④ integration 묶음이 본문 뒤에 공백 약 9만 자를 붙여 분량 상한을 넘긴다**(8차 실측 `음력·도쿄·일과 돈`, 143,230자 `degraded/length`). 파싱·키·`keyPoints` 가 전부 정상이라 그룹 검증을 통과하고, 총량 판정에서만 걸려 **유료 사용자에게 품질 저하 고지가 나간다**. 손댈 자리 후보: `validateFusionFortuneGroup` 에 연속 공백 상한을 추가하거나, `countFusionFortuneVisibleText` 전에 공백을 접는다 — 🔴 후자는 **저장 본문 자체가 바뀌는 축**이라 승인 없이 하지 않는다. ③ 관리자 프롬프트 랩이 그룹 수를 하드코딩하는지 **미검증**(`worker/routes/admin*.js` 에서 `FUSION_SECTION_GROUP_SPECS` 참조 0건, 범위 `worker/routes`·`worker/lib`). ~~④ `countFusionGroupChars` 가 `finalVerdict` 를 0자로 센다~~ **해결(PR #1706)** — 어느 자리가 산문인지 정하는 `fusionKeyProse()` 하나를 세우고 분량 계수와 중복 판정(`fusionSectionProse`)이 **같은 표**를 보게 했다. 임계는 안 건드렸다(위 7차 기록의 정정 참조). 회귀 테스트 1건(`__tests__/worker/fusion-fortune.test.js`, mock): rationale 만 긴 verdict 묶음이 `shortGroups` 로 안 빠지는지 — 변이(`finalVerdict` 분기를 상수로 치환)로 무는 것을 확인했다. 🔴 실호출 재검증은 **안 했다** — 다음 실호출 승인이 나면 verdict 묶음 호출이 1회로 줄었는지 확인한다.
+- [ ] **후속(범위 밖 보고)**: ~~① 프롬프트 캐싱 미배선~~ **완료(이 PR)** · ~~② `visibleTextLength` 이름·의미 불일치~~ **완료(이 PR)** — 상세는 아래 §후속 ①② 처리. ~~④ integration 묶음이 본문 뒤에 공백 약 9만 자를 붙여 분량 상한을 넘긴다~~ **해결(이 PR)** — 상세는 아래 §후속 ④ 처리. ③ 관리자 프롬프트 랩이 그룹 수를 하드코딩하는지 **미검증**(`worker/routes/admin*.js` 에서 `FUSION_SECTION_GROUP_SPECS` 참조 0건, 범위 `worker/routes`·`worker/lib`). ~~④ `countFusionGroupChars` 가 `finalVerdict` 를 0자로 센다~~ **해결(PR #1706)** — 어느 자리가 산문인지 정하는 `fusionKeyProse()` 하나를 세우고 분량 계수와 중복 판정(`fusionSectionProse`)이 **같은 표**를 보게 했다. 임계는 안 건드렸다(위 7차 기록의 정정 참조). 회귀 테스트 1건(`__tests__/worker/fusion-fortune.test.js`, mock): rationale 만 긴 verdict 묶음이 `shortGroups` 로 안 빠지는지 — 변이(`finalVerdict` 분기를 상수로 치환)로 무는 것을 확인했다. 🔴 실호출 재검증은 **안 했다** — 다음 실호출 승인이 나면 verdict 묶음 호출이 1회로 줄었는지 확인한다.
 
 ## 후속 ①② 처리 (2026-09-06, 이 PR)
 
@@ -86,6 +86,18 @@ next: 🔴 **5조합 실호출 검증(4/5 통과) · 후속 ①② 구현 완료
 
 - 🔴 **문서 크기 상한(`FUSION_CONSULTATION_MAX_RESULT_CHARS`)은 일부러 `serialized.length` 로 남겼다** — 16MB 문서 한계를 막는 것은 직렬화 크기이지 화면 글자 수가 아니다.
 - 🔴 **클라이언트는 여전히 서버 값을 쓰면 안 된다** — 2026-09-06 이전에 저장된 문서에는 옛(+7%) 값이 그대로 들어 있다. 이유를 `app/fusion-fortune/_lib/reading.ts` 머리주석에 적어 뒀다.
+
+## 후속 ④ 처리 — 공백 폭주 (2026-09-06, 브랜치 `worktree-fusion-whitespace-runaway`)
+
+**증상**: 8차 실호출의 `음력·도쿄·일과 돈` 에서 integration w1 이 정상 산문 뒤에 **연속 공백 약 9만 자**를 붙였다. 그룹 검증은 통과한다 — `validateFusionFortuneGroup` 이 깊이를 잴 때 `text(v, 50000)` 으로 **잘라서** 보기 때문에 꼬리가 애초에 안 보인다. 반면 `countFusionFortuneVisibleText` 는 원문을 그대로 세어 총 143,230자가 되고, `total.max`(60,000)를 넘겨 `degraded/length` → **30,000원짜리 결과에 품질 저하 고지**가 붙는다.
+
+**고른 방향: 반려가 아니라 수신 시점에 접는다.** 공백에는 의미가 없어 접어도 잃는 것이 없고, 반려하면 **멀쩡한 산문을 버리고 Gemini 호출을 한 번 더 태운다**(회차 실측 15~36초). 반대로 상한만 올리는 것은 폭주를 배달하는 것이라 선택지가 아니다.
+
+- **서버** `normalizeFusionProseWhitespace`(`worker/lib/fusion-fortune.js`) — CRLF 정규화 → 줄바꿈 아닌 공백 런을 한 칸으로 → 줄 앞뒤 공백 제거 → 빈 줄 3개 이상은 하나로 → `trim`. **문단 구분(빈 줄 하나)은 남긴다.** 적용 지점은 `runGroup` 의 `pickKeys` **직후 · 검증 직전** 한 곳뿐이라 검증·글자 수·보관본·화면이 전부 같은 문자열을 본다.
+- 🔴 **접힌 양이 `FUSION_WHITESPACE_COLLAPSE_LOG_CHARS`(500) 이상이면 `console.warn("[fusion-fortune-whitespace-collapsed]", …)`** 로 남긴다 — 이 임계는 **판정이 아니라 관측용**이다(넘어도 반려하지 않는다). 폭주가 계속 나는지 로그로만 본다.
+- **클라이언트** `tidyFusionProse`(`app/fusion-fortune/_lib/reading.ts`) — 서버와 **같은 규칙**의 짝이고, 막는 대상은 **이미 보관된 문서**다. 본문이 `whitespace-pre-wrap` 이라 옛 문서를 그대로 그리면 빈 공간 수천 화면분이 생기고 글자 수·읽는 시간·차례·PDF 가 함께 튄다. `FusionFortuneClient.tsx` 의 `setResult` 를 **결과가 상태에 들어가는 유일한 문**으로 감싸 4개 진입점(재오픈·dev-preview·1단계 부분·최종 스트림)을 한 번에 덮었다.
+- 회귀 테스트 1건(`__tests__/worker/fusion-fortune.test.js`, mock): integration 응답 뒤에 공백 9만 자를 붙여도 `qualityTier: full` 이고 `countFusionFortuneVisibleText < total.max` 이며 폴백에 `integration` 이 없는지. **변이(정규화를 통과 함수로 치환)로 무는 것을 확인했다.**
+- 🔴 **실호출 재검증은 안 했다** — 승인이 나면 `음력·도쿄·일과 돈` 을 다시 돌려 `full` 인지 본다.
 
 ## 정본 예시
 
@@ -129,6 +141,7 @@ next: 🔴 **5조합 실호출 검증(4/5 통과) · 후속 ①② 구현 완료
 - ✅ **③ 대기 항목 대비 3.01:1** — 원인은 `opacity-55`(색이 아니라 합성 투명도)였다. `opacity-85` 로 4.87:1(레일)·5.51:1(도크 시트).
 
 **범위 밖 관찰 1건**(고치지 않음): 도크의 섹션 라벨 줄이 중간 캡처 3장 모두에서 비어 보인다 — 스크롤 중 활성 키가 비는 순간인지 라벨 자체가 안 그려지는지 미확인.
+- 🔴 **코드로는 재현 근거를 못 찾았다**(2026-09-06, 후속 ④ 세션에서 읽기만 함). `_lib/toc.ts:59` 의 `activeIndex = Math.max(0, findIndex)` 라 활성 키가 비어도 0번(`opening`)으로 떨어지고, `FusionResultDock` 의 `activeLabel = toc.items[toc.activeIndex]?.label || ""` 는 그 0번 라벨을 잡는다. `openingShortLabel` 은 **12 로케일 전부 정의돼 있다**(범위: `app/fusion-fortune/_lib/copy.ts`). 즉 빈 라벨이 나오려면 `items` 자체가 비어야 하는데 opening 은 무조건 들어간다. **캡처 쪽(폭 부족·클리핑)일 가능성이 남아 있어 손대지 않았다** — 다음에 볼 때 캡처가 아니라 브라우저에서 `data-fusion-toc` 활성 키를 직접 찍어 판정한다.
 
 ## 검증
 

@@ -6,6 +6,7 @@ import {
   buildFusionFortuneContext,
   buildFusionFortuneStatus,
   collectFusionEvidenceTokens,
+  countFusionFortuneVisibleText,
   createMemoryFusionFortuneStore,
   generateFusionFortuneRequest,
   generateFusionFortuneWithMockLLM,
@@ -336,6 +337,38 @@ describe("Fusion Fortune per-use billing and mock generation", () => {
     // rationale 을 세지 않으면 여기가 2회가 된다 — 검증을 통과한 묶음에 Gemini 호출 1회를 더 태운 값이다.
     expect(providerCall.mock.calls.filter(([, , options]) => options.logContext.sectionGroup === "verdict")).toHaveLength(1);
     expect(generated).toMatchObject({ deliverable: true, generationSource: "gemini" });
+  });
+
+  it("🔴 collapses a runaway whitespace tail so the paid reading is not downgraded for length", async () => {
+    // 2026-09-06 8차 실호출(음력·도쿄·일과 돈): integration 묶음이 정상 산문 뒤에 공백 약 9만 자를
+    // 붙이고 JSON 을 닫았다. 파싱·키·keyPoints 가 정상이라 그룹 검증을 통과했고, 총 143,230자로
+    // 상한 60,000 을 넘겨 degraded/length 로 강등됐다 — 결제한 사용자에게 품질 저하 고지가 나갔다.
+    const calls = Object.fromEntries(["saju", "ziwei", "vedic", "sukuyo", "astrology", "tarot"].map((name) => [name, 0]));
+    const built = await buildFusionFortuneContext({
+      ...input,
+      birthPlace: { city: "서울", country: "KR", latitude: 37.5665, longitude: 126.978, timezone: "Asia/Seoul" },
+    }, { adapters: fusionAdapters(calls) });
+    const cards = built.context.tarotSpread.cards;
+    const providerCall = jest.fn(async (_env, _prompt, options) => {
+      const group = FUSION_SECTION_GROUP_SPECS.find((item) => item.id === options.logContext.sectionGroup);
+      const payload = buildFusionGroupPayload(group, cards);
+      if (group.id === "integration") payload.integratedReading.content += " ".repeat(90000);
+      return { ok: true, provider: "gemini", model: "gemini-2.5-flash", text: JSON.stringify(payload) };
+    });
+    const { second: generated } = await runFusionStages({
+      input,
+      context: built.context,
+      requestId: "fusion-whitespace-runaway-test",
+      env: { NODE_ENV: "staging", ENABLE_FUSION_FORTUNE_REAL_LLM: "true", ALLOW_FUSION_FORTUNE_REAL_LLM: "true", GEMINI_API_KEY: "test-only-key" },
+      providerCall,
+    });
+
+    expect(generated).toMatchObject({ deliverable: true, generationSource: "gemini", qualityTier: "full" });
+    expect(countFusionFortuneVisibleText(generated.result)).toBeLessThan(FUSION_FORTUNE_LENGTH.total.max);
+    // 본문은 남고 꼬리 공백만 사라진다 — 반려가 아니라 정리라서 그룹이 폴백으로 대체되지 않는다.
+    expect(generated.result.integratedReading.content).toContain("integratedReading");
+    expect(generated.result.integratedReading.content).not.toMatch(/ {3}/);
+    expect(generated.fallbackGroups || []).not.toContain("integration");
   });
 
   it("ignores keys a group does not own so it cannot clobber another group's section", async () => {
