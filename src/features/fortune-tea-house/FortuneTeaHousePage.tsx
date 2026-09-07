@@ -247,6 +247,7 @@ type FortuneTeaPrepaidResume = {
   attemptId: string;
   cup: TeaHouseCup;
   grant: PaidResumeGrant | null;
+  requestPayload?: FortuneTeaConsultPostBody | null;
 };
 
 /** 결제는 끝났는데 상담 생성이 실패한 시도. 인페이지 재제출이 이 값을 이어받아 재과금을 막는다. */
@@ -269,6 +270,7 @@ function buildFortuneTeaBillingEvidenceBody(
 ): FortuneTeaConsultPostBody {
   const accessGrant = asRecord(billingGate.accessGrant);
   const consume = asRecord(billingGate.consume);
+  const payment = asRecord(billingGate.payment);
   return {
     ...body,
     draftResult,
@@ -276,6 +278,7 @@ function buildFortuneTeaBillingEvidenceBody(
     billingGate,
     accessGrant,
     consume,
+    payment,
     _paymentContext: {
       featureKey,
       requestId: attemptId,
@@ -283,7 +286,30 @@ function buildFortuneTeaBillingEvidenceBody(
       billingGate,
       accessGrant,
       consume,
+      payment,
     },
+  };
+}
+
+function buildFortuneTeaQuestionInputFromRequestPayload(payload: FortuneTeaConsultPostBody | null): FortuneTeaHouseQuestionInput | null {
+  if (!payload?.consultationMode || !payload.question) return null;
+  return {
+    consultationMode: payload.consultationMode,
+    nickname: payload.nickname,
+    concernTopic: payload.concernTopic || payload.selectedTeaCupTopic,
+    birthInfo: payload.birthInfo,
+    profileId: payload.profileId,
+    birthDate: payload.birthDate,
+    birthTime: payload.birthTime,
+    birthTimeUnknown: payload.birthTimeUnknown,
+    birthPlace: payload.birthPlace,
+    timezone: payload.timezone,
+    gender: payload.gender,
+    calendarType: payload.calendarType,
+    tarotSpread: payload.tarotSpread,
+    sukuyo: payload.sukuyo,
+    sajuCompatibility: payload.sajuCompatibility,
+    question: payload.question,
   };
 }
 
@@ -890,13 +916,16 @@ export default function FortuneTeaHousePage() {
    */
   const buildResume = usePaidResume(FORTUNE_TEA_RESUME_KIND, async (args, grant) => {
     if (isSubmitting || submitLockRef.current) return false;
-    const restoredInput = unpackPaidResumeArg<FortuneTeaHouseQuestionInput>(args.questionInput);
-    const attemptId = toText(args.attemptId);
-    const cup = getTeaHouseCupById(toText(args.cupId));
-    if (!restoredInput || !attemptId || !cup) return false;
+    const restoredPayload = unpackPaidResumeArg<FortuneTeaConsultPostBody>(args.requestPayload);
+    const restoredCup = unpackPaidResumeArg<TeaHouseCup>(args.selectedCup);
+    const restoredInput = unpackPaidResumeArg<FortuneTeaHouseQuestionInput>(args.questionInput)
+      || buildFortuneTeaQuestionInputFromRequestPayload(restoredPayload);
+    const attemptId = toText(args.attemptId || restoredPayload?.attemptId || restoredPayload?.requestId || restoredPayload?.idempotencyKey);
+    const cup = getTeaHouseCupById(toText(restoredCup?.id || restoredPayload?.selectedTeaCupId || args.cupId)) || restoredCup;
+    if (!restoredInput || !attemptId || !cup || !grant?.payload) return false;
     setSelectedCup(cup);
     setQuestionInput(restoredInput);
-    await submitQuestion(restoredInput, { attemptId, cup, grant });
+    await submitQuestion(restoredInput, { attemptId, cup, grant, requestPayload: restoredPayload });
     return submitSucceededRef.current;
   });
 
@@ -995,7 +1024,10 @@ export default function FortuneTeaHousePage() {
       // Phase-1 이전에 인증을 예열해 이용권 보유자가 첫 제출에서 서버 게이트를 원샷 통과하도록 한다.
       await ensureFortuneTeaAuthReady();
       const requestPayloadWithAttempt: FortuneTeaConsultPostBody = {
-        ...requestPayload,
+        ...(prepaid?.requestPayload || requestPayload),
+        selectedTeaCupId: activeCup.id,
+        selectedTeaCupName: activeCup.name,
+        selectedTeaCupTopic: activeCup.topic,
         attemptId,
         requestId: attemptId,
         idempotencyKey: attemptId,
@@ -1065,6 +1097,8 @@ export default function FortuneTeaHousePage() {
             attemptId,
             cupId: activeCup.id,
             questionInput: packPaidResumeArg(nextQuestionInput),
+            requestPayload: packPaidResumeArg(requestPayloadWithAttempt),
+            selectedCup: packPaidResumeArg(activeCup),
           }));
           if (consultRunRef.current !== consultRunId) return;
           const billingGate = asRecord(billing.data);
