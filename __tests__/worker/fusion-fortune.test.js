@@ -23,6 +23,8 @@ import {
   FUSION_FORTUNE_LENGTH,
   FUSION_FORTUNE_RESPONSE_SCHEMA,
   FUSION_SECTION_GROUP_SPECS,
+  fusionFieldCeilingChars,
+  fusionGroupCeilingChars,
   toGeminiSchema,
 } from "../../worker/lib/fusion-fortune-prompt.js";
 import { FEATURE_KEY_PRICE_TABLE, isPerUsePaidFeatureKey } from "../../worker/lib/paid-feature-registry.js";
@@ -634,6 +636,44 @@ describe("Fusion Fortune per-use billing and mock generation", () => {
       //    거기서 단정 술어와 만나면 unsafe_phrase 로 자기 응답이 반려된다.
       expect(node.description).not.toMatch(/무조건|반드시/);
     }
+  });
+
+  it("🔴 caps each length field above its target — the 2026-09-06 live runs overshot the 36,100-char plan by 1.31~1.48x", () => {
+    // 하한·목표만 주면 모델이 목표를 바닥으로 읽고 그 위 어디에서든 멈춘다(8차 4조합 47,341~53,342자).
+    // 천장은 목표 위에 둔다 — 목표에 붙이면 정상 결과가 눌려 하한 미달 → 결정론 폴백이 된다.
+    const schema = toGeminiSchema(FUSION_FORTUNE_RESPONSE_SCHEMA);
+    const lengthFields = [
+      [schema.properties.sajuSection.properties.content, FUSION_FORTUNE_LENGTH.section],
+      [schema.properties.integratedReading.properties.content, FUSION_FORTUNE_LENGTH.integratedReading],
+      [schema.properties.timingAndAction.properties.content, FUSION_FORTUNE_LENGTH.timingAndAction],
+      [schema.properties.executiveSummary, FUSION_FORTUNE_LENGTH.executiveSummary],
+      [schema.properties.closingMessage, FUSION_FORTUNE_LENGTH.closingMessage],
+      [schema.properties.finalVerdict.properties.rationale, FUSION_FORTUNE_LENGTH.finalVerdictRationale],
+    ];
+    for (const [node, minChars] of lengthFields) {
+      const ceiling = fusionFieldCeilingChars(minChars);
+      const target = Math.round((minChars * 1.2) / 100) * 100;
+      expect(ceiling).toBeGreaterThan(target);
+      expect(node.description).toContain(`${ceiling.toLocaleString("en-US")}자를 넘기면`);
+      expect(node.description).not.toMatch(/무조건|반드시/);
+    }
+  });
+
+  it("🔴 keeps the group prompt ceiling and the schema ceiling on the same number, and the sum under the degradation gate", () => {
+    // 두 자리가 다른 천장을 말하면 모델이 낮은 쪽을 목표로 읽어 하한 미달로 떨어진다.
+    for (const group of FUSION_SECTION_GROUP_SPECS) {
+      const prompt = buildFusionSectionGroupPrompt({ context: { birthTimeKnown: true }, group });
+      expect(prompt.userPrompt).toContain(`합계 상한 ${fusionGroupCeilingChars(group).toLocaleString("ko-KR")}자`);
+      for (const [key, minChars] of Object.entries(group.minChars || {})) {
+        expect(prompt.userPrompt).toContain(`· ${key}: 최소 ${Number(minChars).toLocaleString("ko-KR")}자 · 상한 ${fusionFieldCeilingChars(minChars).toLocaleString("ko-KR")}자`);
+      }
+    }
+    // 🔴 모든 그룹이 천장까지 써도 강등 게이트(total.max) 아래여야 한다 — 넘으면 지시를 그대로
+    //    따른 결과가 "넘쳤다"는 이유로 degraded 강등되어 유료 결과에 품질 저하 고지가 붙는다.
+    const ceilingSum = FUSION_SECTION_GROUP_SPECS.reduce((sum, group) => sum + fusionGroupCeilingChars(group), 0);
+    const targetSum = FUSION_SECTION_GROUP_SPECS.reduce((sum, group) => sum + group.targetChars, 0);
+    expect(ceilingSum).toBeGreaterThan(targetSum);
+    expect(ceilingSum).toBeLessThan(FUSION_FORTUNE_LENGTH.total.max);
   });
 
   it("🔴 transmits a schema that requires keyPoints — the 2026-09-06 live run omitted it in five of eight rejected groups", () => {
