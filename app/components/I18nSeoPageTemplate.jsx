@@ -1,3 +1,4 @@
+import PublicReadingGuide from "./PublicReadingGuide";
 import Link from "next/link";
 import { SEO_SITE_CONFIG } from "../../lib/seo/siteConfig";
 import { LOCALE_CONFIG, SEO_INDEXABLE_LOCALES } from "../../lib/i18n/locales";
@@ -237,12 +238,12 @@ export default function I18nSeoPageTemplate({
             </div>
 
             <div className="mt-6 flex flex-wrap gap-2.5">
-              <Link
+              <a
                 href={content.cta.href}
                 className="inline-flex rounded-xl border border-cyan-300/35 bg-cyan-700/25 px-4 py-2 text-sm font-semibold text-cyan-100 hover:bg-cyan-600/35"
               >
                 {content.cta.label}
-              </Link>
+              </a>
               {content.internalLinks[0] ? (
                 <Link
                   href={content.internalLinks[0].href}
@@ -357,6 +358,7 @@ export default function I18nSeoPageTemplate({
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
       ) : null}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageJsonLd) }} />
+      <PublicReadingGuide locale={locale} topic={stripLocalePrefix(currentPath).replace(/^\//, "")} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
     </main>
   );

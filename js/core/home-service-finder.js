@@ -278,9 +278,9 @@
     var head = document.createElement("p");
     head.className = "fortune-gateway__recs-head";
     var single = (state.purposes || []).length === 1 ? PURPOSE_LABEL[state.purposes[0]] : null;
-    head.textContent = single
-      ? single.emoji + " " + single.label + "에 딱 맞는 운세를 골랐어요"
-      : "찾으시는 운세를 골랐어요";
+    head.setAttribute("data-cd-trans", "home.svcFinder.recommendations");
+    head.textContent = (single ? single.emoji + " " : "")
+      + translate("home.svcFinder.recommendations", "찾으시는 운세를 골랐어요");
     panel.appendChild(head);
 
     var grid = document.createElement("div");

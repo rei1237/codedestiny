@@ -497,7 +497,7 @@ const LOCALE_SHELL_SEO = {
     language: "Japanese",
     title: "無料占い | 四柱推命・タロット・相性・今日の運勢 — CODE DESTINY",
     description:
-      "命理歴10年の鑑定家 Park Byeong-ha が監修。生年月日だけで四柱推命、タロット、紫微斗数、宿曜占星術、相性占いまで無料。AIが毎日の運勢と恋愛の流れを読み解きます。",
+      "四柱推命、紫微斗数、宿曜占星術、タロットから自分の傾向と選択を見つめる占いサービス。公開解説とAI鑑定の違い、各機能の利用条件をご案内します。",
     keywords:
       "四柱推命 無料, 占い 無料, タロット占い 無料, 今日の運勢, 相性占い, 紫微斗数, 宿曜占星術, 誕生日占い, 恋愛占い, 韓国 占い, 無料鑑定",
     appTitle: "CODE DESTINY ハニーピッグ占い",
@@ -511,7 +511,7 @@ const LOCALE_SHELL_SEO = {
     language: "Chinese",
     title: "免费算命 | 八字·塔罗·紫微斗数·今日运势 — CODE DESTINY",
     description:
-      "由拥有十年经验的命理师 Park Byeong-ha 审定。输入出生日期即可免费查看八字命理、塔罗牌、紫微斗数、宿曜占星与合婚配对。AI 为你细致解读每日运势与感情走向。",
+      "通过四柱命理、紫微斗数、宿曜占星术与塔罗认识自己的行为和关系。阅读公开解说，了解AI解读的用途与局限，并在各功能页面确认使用条件。",
     keywords:
       "免费算命, 八字算命, 生辰八字, 塔罗牌占卜, 今日运势, 合婚配对, 紫微斗数, 宿曜占星, 星座运势, 姻缘测算",
     appTitle: "CODE DESTINY 蜜豚运势",
@@ -527,7 +527,7 @@ const LOCALE_SHELL_SEO = {
     language: "Chinese",
     title: "免費算命 | 八字·塔羅·紫微斗數·今日運勢 — CODE DESTINY",
     description:
-      "由擁有十年經驗的命理師 Park Byeong-ha 審定。輸入出生日期即可免費查看八字命理、塔羅牌、紫微斗數、宿曜占星與合婚配對。AI 為你細緻解讀每日運勢與感情走向。",
+      "透過四柱命理、紫微斗數、宿曜占星術與塔羅認識自己的行為和關係。閱讀公開解說，了解AI解讀的用途與局限，並在各功能頁面確認使用條件。",
     keywords:
       "免費算命, 八字算命, 生辰八字, 塔羅牌占卜, 今日運勢, 合婚配對, 紫微斗數, 宿曜占星, 星座運勢, 姻緣測算",
     appTitle: "CODE DESTINY 蜜豚運勢",
@@ -541,7 +541,7 @@ const LOCALE_SHELL_SEO = {
     language: "English",
     title: "Free Fortune Telling | Saju, Tarot & Daily Horoscope — CODE DESTINY",
     description:
-      "Reviewed by Park Byeong-ha, a myeongri practitioner of 10 years. Free Korean Saju (Four Pillars), tarot, Zi Wei Dou Shu, Sukuyo and compatibility readings.",
+      "Explore Saju, tarot, Zi Wei Dou Shu and Sukuyo for self-reflection. Read public guides and understand AI readings, their limits and each feature’s access terms.",
     keywords:
       "free fortune telling, saju reading, four pillars of destiny, free tarot reading, daily horoscope, zi wei dou shu, compatibility test, korean astrology, birth chart",
     appTitle: "CODE DESTINY Honey Pig Fortune",
@@ -648,6 +648,17 @@ function writeLocaleManifest(localePath) {
 function applyLocaleSeoMeta(indexHtml, localePath) {
   const seo = LOCALE_SHELL_SEO[localePath];
   if (!seo) return indexHtml;
+  const dictionary = JSON.parse(stripLeadingBom(readFileSync(resolve(publicDir, "i18n", seo.dictionaryFile))).toString("utf8"));
+  const profileHeading = dictionary.home?.svcFinder?.profileHeading;
+  if (profileHeading) indexHtml = indexHtml.replace(/content:\s*"마이 데스티니"/g, `content:${JSON.stringify(profileHeading)}`);
+
+  // Localized public trust destinations exist only for these reviewed locales.
+  const trustSlugs = new Set(["about", "contact", "faq", "disclaimer"]);
+  const legalSlugs = { terms: "terms-of-service", "terms-of-service": "terms-of-service", privacy: "privacy-policy", "privacy-policy": "privacy-policy", refund: "refund-policy", "refund-policy": "refund-policy" };
+  indexHtml = indexHtml.replace(/(<a\b[^>]*\bhref=")\/(about|contact|faq|disclaimer|terms|terms-of-service|privacy|privacy-policy|refund|refund-policy)\/?("[^>]*>)/gi, (full, start, slug, end) => {
+    if (trustSlugs.has(slug) && localePath === "/zh-tw") return full;
+    return `${start}${localePath}/${legalSlugs[slug] || slug}/${end}`;
+  });
 
   const canonicalUrl = `https://code-destiny.com${localePath}/`;
   const manifestFile = writeLocaleManifest(localePath);
@@ -667,9 +678,9 @@ function applyLocaleSeoMeta(indexHtml, localePath) {
     .replace(/<meta name="keywords" content="[^"]*"/i, `<meta name="keywords" content="${seo.keywords}"`)
     .replace(/<meta property="og:url" content="[^"]*">/i, `<meta property="og:url" content="${canonicalUrl}">`)
     .replace(/<meta property="og:locale" content="[^"]*">/i, `<meta property="og:locale" content="${seo.ogLocale}">`)
-    .replace(/<meta property="og:title" content="[^"]*">/i, `<meta property="og:title" content="${seo.title}">`)
+    .replace(/<meta property="og:title" content="[^"]*">/i, `<meta property="og:title" content="${localeShellTitle}">`)
     .replace(/<meta property="og:description" content="[^"]*">/i, `<meta property="og:description" content="${seo.description}">`)
-    .replace(/<meta name="twitter:title" content="[^"]*">/i, `<meta name="twitter:title" content="${seo.title}">`)
+    .replace(/<meta name="twitter:title" content="[^"]*">/i, `<meta name="twitter:title" content="${localeShellTitle}">`)
     .replace(/<meta name="twitter:description" content="[^"]*">/i, `<meta name="twitter:description" content="${seo.description}">`)
     .replace(/<meta name="language" content="[^"]*">/i, `<meta name="language" content="${seo.language}">`)
     .replace(/<meta http-equiv="content-language" content="[^"]*">/i, `<meta http-equiv="content-language" content="${seo.lang}">`)

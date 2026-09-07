@@ -168,7 +168,7 @@ export function generatePageMetadata(opts: FortunePageMeta) {
   return {
     title: uniqueTitle,
     description: uniqueDescription,
-    keywords: mergeKeywords(getSeoProfileKeywords(canonicalPath), [...(keywords ?? [])], SEO_CORE_KEYWORDS),
+    keywords: mergeKeywords(inLanguage.startsWith("ko") ? getSeoProfileKeywords(canonicalPath) : [], [...(keywords ?? [])], inLanguage.startsWith("ko") ? SEO_CORE_KEYWORDS : []),
     alternates: {
       canonical: canonicalUrl,
       ...(hasLanguages ? { languages: languagesMap } : {}),

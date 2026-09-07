@@ -18,10 +18,15 @@ import {
 } from "@/app/_lib/mobile-tabs";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { useTPick } from "@/lib/i18n/useT";
+import { MOBILE_NAV_SSR_COPY } from "@/lib/i18n/mobile-nav-ssr-copy";
+import { localeFromPathname } from "@/lib/i18n/locales";
 
 const NAV_ARIA_LABEL: Partial<Record<LoadingLocale, string>> = {
   ko: "주요 화면",
   en: "Main screens",
+  ja: "メインメニュー",
+  "zh-CN": "主菜单",
+  "zh-TW": "主選單",
 };
 
 function getNavAriaLabel(locale: LoadingLocale): string {
@@ -82,6 +87,9 @@ function MobileBottomNav() {
   // 탭 라벨·aria 문구는 정적 셸이 쓰던 코어 사전 키를 그대로 읽는다. useTPick 은 값이
   // 없으면 넘긴 한국어를 돌려주므로 한국어 화면이 비지 않는다.
   const pick = useTPick();
+  const pathLocale = localeFromPathname(pathname);
+  const initialCopy = pathLocale ? MOBILE_NAV_SSR_COPY[pathLocale] : undefined;
+  const navText = (key: string, original: string) => pick(key, initialCopy?.[key] ?? original);
 
   useEffect(() => {
     const syncLocale = () => setLocale(getCurrentLoadingLocale());
@@ -175,7 +183,7 @@ function MobileBottomNav() {
   }, []);
 
   return (
-    <nav className="cd-mnav" aria-label={getNavAriaLabel(locale)}>
+    <nav className="cd-mnav" aria-label={getNavAriaLabel(pathLocale === "zh" ? "zh-CN" : pathLocale || locale)}>
       {/* 접기 손잡이. <ul> 앞의 형제라 마크업 이동 없이 바 상단 줄에 앉는다.
           데스크탑은 바 위로 튀어나온 nub, 모바일·앱은 바 안쪽 손잡이 줄(달)이다 — 표현은 전부 CSS. */}
       <button
@@ -183,7 +191,7 @@ function MobileBottomNav() {
         className="cd-mnav__handle"
         aria-expanded={!collapsed}
         aria-controls="cd-mnav-list"
-        aria-label={pick(MNAV_TOGGLE_TRANS_KEY, MNAV_TOGGLE_LABEL_KO)}
+        aria-label={navText(MNAV_TOGGLE_TRANS_KEY, MNAV_TOGGLE_LABEL_KO)}
         onClick={toggleCollapsed}
       >
         <span className="cd-mnav__chevron" aria-hidden="true" />
@@ -203,13 +211,13 @@ function MobileBottomNav() {
                 prefetch={targetsStaticShellHome(tab.href) ? false : undefined}
                 className={loading ? "cd-mnav__link opacity-70" : "cd-mnav__link"}
                 data-nav-key={tab.key}
-                aria-label={pick(tab.ariaTransKey, tab.ariaLabel)}
+                aria-label={navText(tab.ariaTransKey, tab.ariaLabel)}
                 aria-current={isActive ? "page" : undefined}
                 aria-busy={loading}
                 onClick={(event) => handleTabClick(event, tab)}
               >
                 <TabIcon tabKey={tab.key} />
-                <span className="cd-mnav__label">{pick(tab.transKey, tab.label)}</span>
+                <span className="cd-mnav__label">{navText(tab.transKey, tab.label)}</span>
               </Link>
             </li>
           );

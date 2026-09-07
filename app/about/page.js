@@ -1,3 +1,4 @@
+import { trustRoutes } from "../../lib/i18n/public-trust-copy.mjs";
 import Link from "next/link";
 import { buildSeoMetadata } from "../../lib/seo";
 import { buildAboutPageJsonLd, buildAuthorPersonJsonLd, buildOrganizationJsonLd } from "../../lib/structured-data";
@@ -7,7 +8,7 @@ import { ABOUT_PAGE_TEXT_TRANSLATIONS } from "../_content/about-copy";
 
 const seo = publicSeoPages.about;
 
-export const metadata = buildSeoMetadata(seo);
+export const metadata = buildSeoMetadata({ ...seo, hreflang: trustRoutes("about") });
 
 
 // 관리자 CMS(페이지 → 서비스 소개)에서 고친 값을 코드 원문 위에 얹는다.
