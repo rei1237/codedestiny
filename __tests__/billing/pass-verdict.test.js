@@ -602,6 +602,47 @@ describe("storeMonthlyQuotaFromAccessState — 진입 응답의 월 잔여 시�
   });
 });
 
+describe("buildSnapshotFromStatus — profileSubscription 원문에서 월 잔여를 유도한다", () => {
+  // 사용자 문서를 그대로 싣는 응답(verified-auth-cache 진입 경로)에는 monthlySpendRemaining 도
+  // passUsage 도 없다. 유도하지 않으면 잔여가 "모름"이라 월 검사가 생략되고, 이용권을 한 장 더 사서
+  // 만료일이 바뀐 직후(=캐시가 버려진 상태) 재진입할 때마다 한 번씩 무료로 열렸다(2026-09-07).
+  const expiresAt = () => new Date(Date.now() + 10 * DAY).toISOString();
+
+  it("사이클 키가 만료일과 일치하면 한도 − 사용액을 잔여로 쓴다", () => {
+    const exp = expiresAt();
+    const snapshot = passVerdict.buildSnapshotFromStatus(USER_ID, {
+      tier: "premium", isActive: true, expiresAt: exp,
+      profileSubscription: { premiumUseCycleKey: exp, monthlyLimitCoin: 1000, monthlySpendCoin: 995 },
+    }, "unit-test");
+    expect(snapshot.state).toBe("active");
+    expect(snapshot.monthlySpendRemainingCoin).toBe(5);
+    const verdict = passVerdict.resolveVerdict(snapshot, 30);
+    expect(verdict.cannotCover).toBe(true);
+    expect(verdict.reason).toBe("monthly_pass_limit_exceeded");
+  });
+
+  it("저장 한도가 등급 기본값보다 작으면 기본값을 쓴다(낡은 문서가 한도를 깎지 못한다)", () => {
+    const exp = expiresAt();
+    const snapshot = passVerdict.buildSnapshotFromStatus(USER_ID, {
+      tier: "premium", isActive: true, expiresAt: exp,
+      profileSubscription: { premiumUseCycleKey: exp, monthlyLimitCoin: 300, monthlySpendCoin: 300 },
+    }, "unit-test");
+    expect(snapshot.monthlySpendRemainingCoin).toBe(700); // premium 기본 1000 − 300
+  });
+
+  it("🔴 사이클 키가 어긋나면 유도하지 않고 null 로 남긴다", () => {
+    const snapshot = passVerdict.buildSnapshotFromStatus(USER_ID, {
+      tier: "premium", isActive: true, expiresAt: expiresAt(),
+      profileSubscription: {
+        premiumUseCycleKey: new Date(Date.now() - 40 * DAY).toISOString(),
+        monthlyLimitCoin: 1000, monthlySpendCoin: 1000,
+      },
+    }, "unit-test");
+    expect(snapshot.monthlySpendRemainingCoin).toBeNull();
+    expect(passVerdict.resolveVerdict(snapshot, 30).coversNow).toBe(true);
+  });
+});
+
 describe("writeSnapshot — 소진 기억(잔여 0) 보존", () => {
   it("만료일을 싣지 않은 활성 갱신은 캐시된 잔여를 지우지 않는다", () => {
     seed(storage, {

@@ -5016,7 +5016,18 @@
           var code = String((payload && (payload.code || payload.errorCode)) || '').toUpperCase();
           if (statusCode === 402 || code === 'MEMBERSHIP_PASS_NOT_COVERED' || code === 'PAYMENT_REQUIRED') {
             // 월 한도 소진: 스냅샷 잔여를 방금 0 으로 되썼으므로 전역 60초 잠금 없이 다음 판정이 스스로 거절한다.
-            if (bgVerdictApi && bgVerdictApi.isMonthlyLimitPayload(payload)) return;
+            // 🔴 대신 이미 낙관으로 열어 둔 이 기능만 회수한다 — 서버는 열어 주지 않았고, 낙관 해금을
+            // 남겨 두면 다음 화면이 확정 해금으로 오인해 그대로 연다(셸 _cdRevokeOptimisticPassUnlock 과 동일).
+            if (bgVerdictApi && bgVerdictApi.isMonthlyLimitPayload(payload)) {
+              try {
+                var revokeKey = _dpResolvePaidGateFeatureKey(opts, title);
+                var revokeStore = window.CodeDestinyAccessStore;
+                if (revokeKey && revokeStore && typeof revokeStore.forgetOptimisticUnlock === 'function') {
+                  revokeStore.forgetOptimisticUnlock(revokeKey);
+                }
+              } catch (_) {}
+              return;
+            }
             // 🔴 낙관 잠금은 전역 60초다. '이 가격이 이 등급 한도를 넘는다'는 미커버는 스냅샷이 이미 아는
             // 사실이라 자기수정할 것이 없는데, 여기서 잠그면 한도 이내 기능들의 낙관 통과까지 함께 죽는다.
             // 스냅샷과 서버 답이 실제로 어긋난 경우만 잠근다(셸 _cdRecordMembershipPassInBackground 와 동일 규칙).
