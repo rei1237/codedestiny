@@ -1704,16 +1704,6 @@ html[data-cd-theme="neo"] .shell {
   outline-offset: 2px;
 }
 
-/* 아직 화면이 없는 줄. 🔴 지우지 않고 남긴다 — 무엇이 올 자리인지 보이는 편이 낫다. */
-.moreRow[aria-disabled="true"] {
-  color: var(--dy-disabled);
-  cursor: default;
-}
-
-.moreRow[aria-disabled="true"]:hover {
-  color: var(--dy-disabled);
-}
-
 .moreIcon {
   flex: 0 0 auto;
   width: 1.5em;
@@ -1730,15 +1720,6 @@ html[data-cd-theme="neo"] .shell {
 }
 
 .moreDesc {
-  color: var(--dy-muted);
-  font-size: var(--cd-t-caption);
-}
-
-.moreBadge {
-  flex: 0 0 auto;
-  padding: 2px var(--cd-sp-xs);
-  border: 1px solid var(--dy-line);
-  border-radius: var(--cd-r-pill);
   color: var(--dy-muted);
   font-size: var(--cd-t-caption);
 }
@@ -1941,4 +1922,190 @@ html[data-cd-theme="neo"] .shell {
   color: var(--dy-muted);
   font-size: var(--cd-t-caption);
   line-height: 1.7;
+}
+
+/* ── 오늘 카드 ──────────────────────────────────────────────────────────
+   🔴 여기 세 배경만 **토큰이 아니라 리터럴**이다. 미리보기는 앱 테마의 한 조각이 아니라
+   내보낼 PNG 의 축소판이고, 그 PNG 는 받는 사람의 테마를 따라가지 않는다
+   (`app/diary/_lib/share-card.ts` 의 `CARD_THEME_STOPS` 와 **같은 값**이어야 한다 —
+   미리보기와 저장본이 다른 색이면 미리보기가 거짓말이 된다).
+   그래서 라이트·네오 두 벌을 나누지 않는다. 글자색도 배경을 따라 함께 정해진다. */
+
+.cardPreview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cd-sp-xs);
+  min-height: 160px;
+  padding: var(--cd-sp-md);
+  border-radius: var(--cd-r-card);
+  background: var(--dy-card-bg);
+  color: var(--dy-card-ink);
+}
+
+.cardVivid {
+  --dy-card-bg: linear-gradient(150deg, #b31955 0%, #4f46e5 55%, #0f172a 100%);
+  --dy-card-ink: #ffffff;
+  --dy-card-sub: rgba(255, 255, 255, 0.92);
+}
+
+.cardSoft {
+  --dy-card-bg: linear-gradient(150deg, #fce7f3 0%, #ddd6fe 55%, #dbeafe 100%);
+  --dy-card-ink: #1f2937;
+  --dy-card-sub: #334155;
+}
+
+.cardNight {
+  --dy-card-bg: linear-gradient(150deg, #312e81 0%, #1e293b 55%, #020617 100%);
+  --dy-card-ink: #ffffff;
+  --dy-card-sub: rgba(255, 255, 255, 0.92);
+}
+
+.cardPreviewDate {
+  font-size: var(--cd-t-caption);
+  font-weight: 600;
+  color: var(--dy-card-sub);
+}
+
+.cardPreviewHead {
+  font-family: var(--font-display, inherit);
+  font-size: var(--cd-t-card);
+  font-weight: 700;
+}
+
+/* 저장본에서 5줄까지 들어가는 자리다. 미리보기에서는 3줄에서 끊어 시트가 밀리지 않게 한다. */
+.cardPreviewLine {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  font-size: var(--cd-t-body);
+  line-height: 1.7;
+  color: var(--dy-card-sub);
+}
+
+.cardPreviewFoot {
+  margin-top: auto;
+  font-size: var(--cd-t-caption);
+  color: var(--dy-card-sub);
+}
+
+/* 내보내기 버튼. 되돌릴 수 없는 자리가 아니므로 `.dangerButton` 을 빌리지 않는다. */
+.cardSave {
+  composes: chip;
+  border-color: var(--dy-accent);
+  background: var(--dy-accent);
+  color: var(--dy-accent-ink);
+}
+
+.cardSave:hover {
+  background: var(--dy-accent-hover);
+}
+
+.cardSave[disabled] {
+  border-color: var(--dy-line);
+  background: transparent;
+  color: var(--dy-disabled);
+}
+
+.cardSave[disabled]:hover {
+  background: transparent;
+}
+
+/* ── 함께 보기 ──────────────────────────────────────────────────────── */
+
+.togetherFields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cd-sp-xs);
+}
+
+.togetherFields > * {
+  flex: 1 1 140px;
+  min-width: 0;
+}
+
+/* 이름 칸 + 7일. 2주는 이 블록 둘이다 — 14칸을 한 줄에 깔면 한 칸이 손가락보다 좁아진다. */
+.togetherStrip {
+  display: grid;
+  grid-template-columns: 2.6em repeat(7, minmax(0, 1fr));
+  gap: 4px;
+  align-items: center;
+}
+
+.togetherWho {
+  overflow: hidden;
+  font-size: var(--cd-t-caption);
+  color: var(--dy-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.togetherHead {
+  font-size: var(--cd-t-caption);
+  color: var(--dy-muted);
+  text-align: center;
+}
+
+/* 색은 달력과 같은 결 5단계 토큰이다(`.t1`~`.t5` 가 `--dy-grain` 을 준다). */
+.togetherCell {
+  height: 22px;
+  border-radius: var(--cd-r-sm, 6px);
+  background: var(--dy-grain, var(--dy-line));
+}
+
+/* 아직 판정할 수 없는 칸(생년월일이 없다). 비었다는 것이 보이게 테두리만 남긴다. */
+.togetherCellOff {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--dy-line-ui);
+}
+
+/* 둘 다 좋게 표시된 날. 🔴 색을 바꾸지 않고 테를 두른다 — 색이 결의 등급이라 겹침 표시에 쓰면 뜻이 겹친다. */
+.togetherCellPick {
+  outline: 2px solid var(--dy-gold);
+  outline-offset: 1px;
+}
+
+.togetherPick {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cd-sp-xs);
+  padding: var(--cd-sp-sm) var(--cd-sp-md);
+  border: 1px solid var(--dy-line);
+  border-radius: var(--cd-r-card);
+  background: var(--dy-surface-2);
+}
+
+.togetherPickDate {
+  margin-left: var(--cd-sp-xs);
+  font-weight: 600;
+  color: var(--dy-gold);
+}
+
+/* 여기서 유료 화면으로 넘어간다. 🔴 금액을 적지 않는다 — 가격은 결제창이 정한다. */
+.togetherPaid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px var(--cd-sp-sm);
+  align-items: baseline;
+  justify-content: space-between;
+  padding: var(--cd-sp-sm) var(--cd-sp-md);
+  border: 1px solid var(--dy-line-ui);
+  border-radius: var(--cd-r-card);
+  color: var(--dy-text);
+  font-size: var(--cd-t-body);
+  text-decoration: none;
+}
+
+.togetherPaid:hover {
+  background: var(--dy-surface-hover);
+}
+
+.togetherPaid:focus-visible {
+  outline: 2px solid var(--dy-focus);
+  outline-offset: 2px;
+}
+
+.togetherPaidHint {
+  font-size: var(--cd-t-caption);
+  color: var(--dy-muted);
 }
