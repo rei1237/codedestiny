@@ -102,6 +102,12 @@ function isCacheBustLine(line) {
   return /\?v=(build-[0-9a-f]+|h[0-9a-f]+)/.test(line);
 }
 
+function isVisualPaymentStyleLine(line) {
+  const value = String(line || "").replace(/^[-+]/, "").trim();
+  if (!value || /data-mode|data-pay-method|data-pay-step|checkout|unlock|featureKey|addEventListener|onclick/i.test(value)) return false;
+  return /^(?:color|background(?:-color)?|border(?:-(?:top|right|bottom|left))?|border-radius|box-shadow|font(?:-[a-z-]+)?|letter-spacing|line-height|text-(?:align|decoration|shadow|transform)|opacity|outline(?:-[a-z-]+)?|padding(?:-[a-z-]+)?|margin(?:-[a-z-]+)?|gap|grid-template-(?:columns|rows)|justify-content|align-items|transform|transition|animation(?:-[a-z-]+)?)\s*:/.test(value);
+}
+
 /** 파일별로 "캐시키가 아닌 실제 변경이 있는 새 파일 기준 줄번호" 목록을 뽑는다. */
 function substantiveChangedLines(base, head, file) {
   const patch = git(["diff", "--unified=0", `${base}...${head}`, "--", file]);
@@ -112,13 +118,13 @@ function substantiveChangedLines(base, head, file) {
     if (hunk) { newLine = Number(hunk[1]); continue; }
     if (raw.startsWith("+++") || raw.startsWith("---")) continue;
     if (raw.startsWith("+")) {
-      if (!isCacheBustLine(raw)) lines.push(newLine);
+      if (!isCacheBustLine(raw)) lines.push({ line: newLine, text: raw });
       newLine += 1;
       continue;
     }
     if (raw.startsWith("-")) {
       // 삭제 줄은 새 파일에 위치가 없다. 캐시키가 아니면 그 자리(newLine)를 대표값으로 쓴다.
-      if (!isCacheBustLine(raw)) lines.push(newLine);
+      if (!isCacheBustLine(raw)) lines.push({ line: newLine, text: raw });
     }
   }
   return lines;
@@ -163,7 +169,7 @@ function paymentRegions(fileText) {
 function decide() {
   const base = arg("--base");
   const head = arg("--head") || "HEAD";
-  if (!base) return { run: true, reason: "base 를 못 구했다 (fail-closed)" };
+  if (!base) return { run: true, mode: "full", reason: "base 를 못 구했다 (fail-closed)" };
 
   const files = git(["diff", "--name-only", `${base}...${head}`])
     .split("\n").map((v) => v.trim()).filter(Boolean);
@@ -173,40 +179,48 @@ function decide() {
   const deep = requiresDeepVerification(files);
   if (deep && deep.required) {
     const why = (deep.matches || []).slice(0, 3).map((m) => `${m.file}(${m.reason})`).join(", ");
-    return { run: true, reason: `change-risk deepRequired: ${why}` };
+    return { run: true, mode: "full", reason: `change-risk deepRequired: ${why}` };
   }
 
   // 2) 트리거 목록은 워크플로에서 읽는다.
   const globs = readTriggerGlobs().map(globToRegExp);
   const triggered = files.filter((f) => globs.some((re) => re.test(f)));
-  if (!triggered.length) return { run: false, reason: "트리거 경로에 걸린 변경이 없다" };
+  if (!triggered.length) return { run: false, mode: "skip", reason: "트리거 경로에 걸린 변경이 없다" };
 
   // 3) 캐시키뿐인 변경과, 결제 구간 밖의 셸 변경을 걷어낸다.
   const remaining = [];
+  const visualOnly = [];
   for (const file of triggered) {
     const changed = substantiveChangedLines(base, head, file);
     if (!changed.length) continue; // 캐시키만 바뀐 파일
     if (!SHELLS.has(file)) { remaining.push(`${file}(실변경 ${changed.length}줄)`); continue; }
     let text;
     try { text = fs.readFileSync(path.resolve(file), "utf8"); }
-    catch { return { run: true, reason: `셸을 읽지 못했다: ${file} (fail-closed)` }; }
+    catch { return { run: true, mode: "full", reason: `셸을 읽지 못했다: ${file} (fail-closed)` }; }
     const regions = paymentRegions(text);
-    if (!regions.length) return { run: true, reason: `셸에서 결제 구간을 못 찾았다: ${file} (fail-closed)` };
-    const inside = changed.filter((ln) => regions.some(([s, e]) => ln >= s && ln <= e));
-    if (inside.length) remaining.push(`${file}(결제 구간 ${inside.length}줄)`);
+    if (!regions.length) return { run: true, mode: "full", reason: `셸에서 결제 구간을 못 찾았다: ${file} (fail-closed)` };
+    const inside = changed.filter(({ line }) => regions.some(([s, e]) => line >= s && line <= e));
+    if (inside.length) {
+      if (inside.every(({ text }) => isVisualPaymentStyleLine(text))) {
+        visualOnly.push(`${file}(시각 스타일 ${inside.length}줄)`);
+      } else {
+        remaining.push(`${file}(결제 구간 ${inside.length}줄)`);
+      }
+    }
   }
 
-  if (remaining.length) return { run: true, reason: `실제 결제 관련 변경: ${remaining.slice(0, 4).join(", ")}` };
-  return { run: false, reason: `셸/미러의 비결제 변경뿐 (트리거 매칭 ${triggered.length}개)` };
+  if (remaining.length) return { run: true, mode: "full", reason: `실제 결제 관련 변경: ${remaining.slice(0, 4).join(", ")}` };
+  if (visualOnly.length) return { run: true, mode: "ui-contract", reason: `결제 UI 시각 스타일 변경: ${visualOnly.slice(0, 4).join(", ")}` };
+  return { run: false, mode: "skip", reason: `셸/미러의 비결제 변경뿐 (트리거 매칭 ${triggered.length}개)` };
 }
 
 let verdict;
 try {
   verdict = decide();
 } catch (error) {
-  verdict = { run: true, reason: `판정 실패: ${error.message} (fail-closed)` };
+  verdict = { run: true, mode: "full", reason: `판정 실패: ${error.message} (fail-closed)` };
 }
 console.log(`[paid-gate-scope] run=${verdict.run} — ${verdict.reason}`);
 if (process.env.GITHUB_OUTPUT) {
-  fs.appendFileSync(process.env.GITHUB_OUTPUT, `run=${verdict.run}\n`);
+  fs.appendFileSync(process.env.GITHUB_OUTPUT, `run=${verdict.run}\nmode=${verdict.mode || "full"}\n`);
 }

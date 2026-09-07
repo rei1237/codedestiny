@@ -34,6 +34,14 @@ const TIERS = {
   critical: { runsBuild: true, runsCritical: true, label: "Critical" },
 };
 
+const DESIGN_ONLY_FILE = /\.(css|scss|sass|less)$/i;
+const DESIGN_ONLY_ASSET = /\.(svg|png|jpg|jpeg|webp|gif|ico|avif)$/i;
+
+export function isDesignOnly(files) {
+  const list = (files || []).map((file) => String(file || "").replace(/\\/g, "/").trim()).filter(Boolean);
+  return list.length > 0 && list.every((file) => DESIGN_ONLY_FILE.test(file) || DESIGN_ONLY_ASSET.test(file));
+}
+
 function argValue(name) {
   const prefix = `--${name}=`;
   const inline = process.argv.find((item) => item.startsWith(prefix));
@@ -49,6 +57,7 @@ export function resolveTier(files) {
   // 변경 파일을 못 구했다는 것은 "안전하다"가 아니라 "모른다"이다. 모르면 무겁게 간다.
   if (!list.length) return "critical";
   if (requiresDeepVerification(list).required) return "critical";
+  if (isDesignOnly(list)) return "fast";
   const level = riskOf(list).level;
   if (level === "high") return "critical";
   if (level === "medium") return "standard";
@@ -78,6 +87,8 @@ function changedFiles() {
 function selfTest() {
   const cases = [
     [["styles/site.css"], "fast"],
+    [["app/home.module.css"], "fast"],
+    [["styles/site.css", "public/images/hero.webp"], "fast"],
     [["docs/guide.md"], "fast"],
     [["public/images/hero.webp"], "fast"],
     [["components/Button.tsx"], "standard"],
@@ -113,6 +124,9 @@ function selfTest() {
   }
   if (!explainTier(["worker/routes/payments.js"])[0].reason) throw new Error("explainTier must give a reason");
   if (!explainTier([])[0].reason.includes("fail closed")) throw new Error("empty change set must explain the fail-closed default");
+  if (!isDesignOnly(["app/home.module.css", "styles/site.css"])) throw new Error("style-only changes must be design-only");
+  if (isDesignOnly(["styles/site.css", "app/page.tsx"])) throw new Error("mixed style and source changes must not be design-only");
+  if (isDesignOnly(["app/hooks/useCoinGate.ts"])) throw new Error("payment source changes must not be design-only");
   console.log(`[resolve-ci-tier] self-test passed (${cases.length} cases)`);
 }
 
@@ -140,17 +154,21 @@ function main() {
         `tier=${tier}`,
         `runs_build=${config.runsBuild}`,
         `runs_critical=${config.runsCritical}`,
+        `design_only=${!forced && isDesignOnly(files)}`,
         `file_count=${files.length}`,
       ].join("\n") + "\n",
     );
   }
 
   if (process.env.GITHUB_STEP_SUMMARY) {
-    const what = tier === "critical"
-      ? "typecheck · lint · build · 전체 테스트 · 배포 설정 가드 · 자동 Preview"
-      : tier === "standard"
-        ? "typecheck · lint · build"
-        : "typecheck · lint";
+    let what = "정적 UI 가드(의존성 설치·typecheck·lint·build 생략)";
+    if (forced || !isDesignOnly(files)) {
+      what = tier === "critical"
+        ? "typecheck · lint · build · 전체 테스트 · 배포 설정 가드 · 자동 Preview"
+        : tier === "standard"
+          ? "typecheck · lint · build"
+          : "typecheck · lint";
+    }
     const lines = [
       `## 검증 티어: **${config.label}**`,
       "",

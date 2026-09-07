@@ -40,6 +40,7 @@ jobs:
       tier: ${{ steps.tier.outputs.tier }}
       runs_build: ${{ steps.tier.outputs.runs_build }}
       runs_critical: ${{ steps.tier.outputs.runs_critical }}
+      design_only: ${{ steps.tier.outputs.design_only }}
     steps:
       - name: Checkout PR head
         uses: actions/checkout@v4
@@ -125,12 +126,15 @@ jobs:
           cache: npm
 
       - name: Install dependencies
+        if: needs.classify.outputs.design_only != 'true'
         run: npm ci
 
       - name: Typecheck
+        if: needs.classify.outputs.design_only != 'true'
         run: npm run typecheck
 
       - name: Lint
+        if: needs.classify.outputs.design_only != 'true'
         run: npm run lint
 
       # 🔴 `npm run lint` 는 `next lint` 이고 `pages/ app/ components/ lib/ src/` 만 본다.
@@ -141,6 +145,7 @@ jobs:
       # (2026-08-22 run 32584789263: __tests__/worker/fpti-deep-report.quality.test.js).
       # 대상 선정 정본은 scripts/lib/lint-targets.mjs 이고 배포도 같은 모듈을 쓴다.
       - name: Lint changed files exactly as the release does
+        if: needs.classify.outputs.design_only != 'true'
         env:
           PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
           PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}

@@ -357,6 +357,7 @@ jobs:
     timeout-minutes: 5
     outputs:
       run: ${{ steps.decide.outputs.run }}
+      mode: ${{ steps.decide.outputs.mode }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -392,7 +393,14 @@ jobs:
           cache: npm
 
       - name: Install dependencies
+        if: needs.scope.outputs.mode == 'full'
         run: npm ci
+
+      - name: Verify payment UI contract without running payment flow
+        if: needs.scope.outputs.mode == 'ui-contract'
+        run: |
+          npm run verify:payment-choice-parity
+          npm run verify:paid-gate-ui
 
       # 🔴 스위트 목록의 정본은 scripts/run-paid-gate-suite.mjs 한 벌이다. 여기에 스텝을 다시
       #    늘어놓지 않는다 — 예전에는 48개 스텝이 순차라 (a) 첫 실패에서 멈춰 깨진 가드가 2개면
@@ -400,4 +408,5 @@ jobs:
       #    verify:guard-wiring 은 이 YAML → 러너 파일 → npm run 이름 순으로 간선을 따라가므로
       #    48개 가드의 배선은 그대로 계산된다.
       - name: Run paid flow gate suite
+        if: needs.scope.outputs.mode == 'full'
         run: node scripts/run-paid-gate-suite.mjs --base "${{ github.event.pull_request.base.sha }}"
