@@ -5,6 +5,8 @@ import { useCoinGate } from "../../hooks/useCoinGate";
 import { usePaidResume, packPaidResumeArg, unpackPaidResumeArg } from "../../hooks/usePaidResume";
 import { postPaidBody } from "../nakshatra-fetch";
 import { useNakshatraCopy, type CompatCityKey } from "../_lib/copy";
+import NakshatraProfilePicker from "../_components/NakshatraProfilePicker";
+import { useNakshatraProfileContext } from "../_lib/nakshatra-context";
 import CompatResultView, { type CompatResult } from "./CompatResultView";
 
 const FEATURE_KEY = "nakshatra-compat";
@@ -15,19 +17,17 @@ const CITY: { key: CompatCityKey; lat: number; lon: number }[] = [
   { key: "jeju", lat: 33.4996, lon: 126.5312 },
 ];
 
-interface P { name: string; year: string; month: string; day: string; hour: string; minute: string; timeUnknown: boolean; gender: "" | "male" | "female"; cityIndex: number }
+interface P { name: string; year: string; month: string; day: string; hour: string; minute: string; timeUnknown: boolean; gender: "" | "male" | "female"; cityIndex: number; latitude?: number; longitude?: number; timezone?: number }
 const emptyP = (): P => ({ name: "", year: "", month: "", day: "", hour: "", minute: "", timeUnknown: false, gender: "", cityIndex: 0 });
 const valid = (p: P) => Number(p.year) > 0 && Number(p.month) >= 1 && Number(p.month) <= 12 && Number(p.day) >= 1 && Number(p.day) <= 31;
 function payload(p: P) {
   const c = CITY[p.cityIndex] || CITY[0];
-  return { year: +p.year, month: +p.month, day: +p.day, hour: p.timeUnknown ? 12 : +(p.hour || 12), minute: p.timeUnknown ? 0 : +(p.minute || 0), timezone: 9, lat: c.lat, lon: c.lon, timeUnknown: p.timeUnknown, gender: p.gender || undefined };
+  return { year: +p.year, month: +p.month, day: +p.day, hour: p.timeUnknown ? 12 : +(p.hour || 12), minute: p.timeUnknown ? 0 : +(p.minute || 0), timezone: p.timezone ?? 9, lat: p.latitude ?? c.lat, lon: p.longitude ?? c.lon, timeUnknown: p.timeUnknown, gender: p.gender || undefined };
 }
 const enc = (p: P) => { try { return btoa(encodeURIComponent(JSON.stringify(p))); } catch { return ""; } };
 const dec = (s: string): P | null => { try { return JSON.parse(decodeURIComponent(atob(s))); } catch { return null; } };
 
 const IN = "w-full rounded-lg border border-white/15 bg-white/[0.04] px-3 py-2.5 text-slate-100 placeholder:text-slate-500 outline-none focus:border-amber-200/60";
-const LB = "mb-1.5 block text-xs font-semibold text-amber-100/80";
-
 function Person({ v, set, locked, title, copy }: { v: P; set: (p: P) => void; locked?: boolean; title: string; copy: ReturnType<typeof useNakshatraCopy> }) {
   const u = (patch: Partial<P>) => set({ ...v, ...patch });
   const dg = (x: string, n: number) => x.replace(/\D/g, "").slice(0, n);
@@ -64,6 +64,7 @@ function Person({ v, set, locked, title, copy }: { v: P; set: (p: P) => void; lo
 export default function NakshatraCompatClient() {
   const copy = useNakshatraCopy();
   const { ensurePaidAccess, isPaying } = useCoinGate();
+  const profilePicker = useNakshatraProfileContext();
   const [a, setA] = useState<P>(emptyP);
   const [b, setB] = useState<P>(emptyP);
   const [aLocked, setALocked] = useState(false);
@@ -83,6 +84,24 @@ export default function NakshatraCompatClient() {
       if (d && valid(d)) { setA(d); setALocked(true); }
     } catch { /* ignore */ }
   }, []);
+
+  useEffect(() => {
+    if (aLocked || !profilePicker.birth || !profilePicker.selectionSource) return;
+    const next = profilePicker.birth;
+    setA((previous) => ({
+      ...previous,
+      year: String(next.year),
+      month: String(next.month),
+      day: String(next.day),
+      hour: next.timeUnknown ? "" : String(next.hour),
+      minute: next.timeUnknown ? "" : String(next.minute),
+      timeUnknown: next.timeUnknown,
+      gender: next.gender === "male" || next.gender === "female" ? next.gender : previous.gender,
+      latitude: next.lat,
+      longitude: next.lon,
+      timezone: next.timezone,
+    }));
+  }, [aLocked, profilePicker.birth, profilePicker.selectionSource]);
 
   /* 결제 후 자동 재개 — 모바일 PortOne 은 상위 프레임을 리다이렉트하므로 submitOnce 의 await 가
      페이지와 함께 죽는다. 두 사람의 입력은 state 안에만 있어 복귀한 문서에서 재현할 수 없으니 결제
@@ -158,6 +177,7 @@ export default function NakshatraCompatClient() {
 
   return (
     <div className="mx-auto w-full max-w-2xl">
+      <NakshatraProfilePicker context={profilePicker} copy={copy} disabled={aLocked || isPaying || loading} />
       <div className="grid gap-4">
         <Person title={copy.compatMeLabel} v={a} set={setA} locked={aLocked} copy={copy} />
         <Person title={copy.compatPartnerLabel} v={b} set={setB} copy={copy} />
