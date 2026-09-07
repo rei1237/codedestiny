@@ -54,7 +54,7 @@ function boot(options) {
   if (typeof window.AbortController === "undefined") window.AbortController = AbortController;
   if (typeof window.CSS === "undefined") window.CSS = { escape: (s) => String(s) };
 
-  const calls = { confirm: [], report: [], alert: [], overlay: [], refresh: 0, scroll: 0, events: [] };
+  const calls = { confirm: [], pass: [], report: [], alert: [], overlay: [], refresh: 0, scroll: 0, events: [] };
   window.Element.prototype.scrollIntoView = function () { calls.scroll += 1; };
   window.alert = (msg) => { calls.alert.push(String(msg)); };
   window._cdSetCoinGateOverlay = (open, message, mode) => { calls.overlay.push({ open: !!open, message: String(message || ""), mode: String(mode || "") }); };
@@ -64,7 +64,14 @@ function boot(options) {
   window.addEventListener("cd:direct-payment-resumed", (event) => { calls.events.push(event.detail); });
   window.fetch = (url, init) => {
     const target = String(url);
-    if (target.indexOf("/api/billing/confirm") >= 0) {
+    if (/\/api\/payments\/orders\/[^/]+\/resume/.test(target)) {
+      return Promise.resolve(jsonResponse({ ok: true, context: opts.serverContext || null }));
+    }
+    if (target.indexOf('/api/billing/coin-gate') >= 0) {
+      calls.pass.push(JSON.parse(String(init.body)));
+      return Promise.resolve(opts.passResponse ? opts.passResponse() : jsonResponse({ ok: true, data: { consume: { ok: true, requestId: 'original-attempt' }, accessGrant: { ok: true, featureKey: 'tea' } } }));
+    }
+    if (target.indexOf("/api/billing/confirm") >= 0 || target.indexOf('/api/payments/subscription/confirm') >= 0) {
       calls.confirm.push({ url: target, body: JSON.parse(String((init && init.body) || "{}")) });
       return Promise.resolve(opts.confirmResponse ? opts.confirmResponse() : jsonResponse({ ok: true }));
     }
@@ -107,7 +114,119 @@ function resumeCard(window) {
   return window.document.getElementById("cdDirectResumeCard");
 }
 
-test("성공 복귀(재개 서술자 없음): confirm 1회 → 티켓 회수 → access 갱신 1회 → URL 정리(해시 보존) → 지속 카드·카드 강조·이벤트", async () => {
+test('이용권 상점 복귀는 원래 상담의 서버 소비 증빙으로 같은 workflow를 실행한다', async () => {
+  let executed = 0;
+  const { window, calls } = boot({
+    url: 'https://code-destiny.com/fortune-tea-house?paid_pass_resume=1&paymentId=pass-order',
+    ticket: null,
+    serverContext: { merchantUid: 'pass-order', originPath: '/fortune-tea-house', resume: { kind: 'tea-pass', action: '', args: { question: 'original' } }, gate: { featureKey: 'tea', requestId: 'original-attempt', cost: 50 }, confirmBody: { merchantUid: 'pass-order' } },
+    beforeProfile(win) {
+      win.__cdCheckoutEntry.registerPaidResumeHandler('tea-pass', (descriptor, grant) => {
+        assert.equal(descriptor.args.question, 'original');
+        assert.equal(grant.requestId, 'original-attempt');
+        assert.equal(grant.payload.data.consume.ok, true);
+        executed++;
+        return true;
+      });
+    },
+  });
+  try {
+    await waitFor(() => calls.events.length === 1, 'pass workflow resume');
+    assert.match(calls.confirm[0].url, /subscription\/confirm/);
+    assert.equal(calls.pass.length, 1);
+    assert.equal(calls.pass[0].paymentMode, 'MEMBERSHIP_PASS');
+    assert.equal(executed, 1);
+    assert.doesNotMatch(window.location.search, /paid_pass_resume/);
+  } finally { window.close(); }
+});
+
+test('다른 탭 주문의 입력을 현재 승인에 붙이지 않는다', async () => {
+  const { window, calls } = boot({
+    url: 'https://code-destiny.com/?portone_redirect=1&paymentId=ord_2',
+    ticket: { merchantUid: 'ord_1', confirmBody: { merchantUid: 'ord_1', requestId: 'wrong-attempt', featureKey: 'wrong-feature' } },
+  });
+  try {
+    await waitFor(() => calls.events.length === 1, 'different order');
+    assert.equal(calls.confirm[0].body.merchantUid, 'ord_2');
+    assert.equal(calls.confirm[0].body.requestId, undefined);
+    assert.ok(window.localStorage.getItem(RESUME_KEY), '다른 주문의 context를 지우지 않는다');
+  } finally { window.close(); }
+});
+
+test('주문별 티켓은 다른 결제의 저장/완료로 덮어쓰거나 삭제하지 않는다', () => {
+  const { window } = boot({ url: 'https://code-destiny.com/', ticket: null });
+  try {
+    const entry = window.__cdCheckoutEntry;
+    entry.saveDirectPaymentResumeTicket({ merchantUid: 'a', resume: { kind: 'tea', action: '', args: { question: 'a' } } });
+    entry.saveDirectPaymentResumeTicket({ merchantUid: 'b', resume: { kind: 'tea', action: '', args: { question: 'b' } } });
+    assert.equal(entry.readDirectPaymentResumeTicket('a').resume.args.question, 'a');
+    entry.clearDirectPaymentResumeTicket('a');
+    assert.equal(entry.readDirectPaymentResumeTicket('a'), null);
+    assert.equal(entry.readDirectPaymentResumeTicket('b').resume.args.question, 'b');
+  } finally { window.close(); }
+});
+
+test("local/sessionStorage 없는 모바일 복귀는 서버 context 입력과 승인 증빙으로 실행한다", async () => {
+  let received;
+  const { window, calls } = boot({
+    url: "https://code-destiny.com/fortune-tea-house?portone_redirect=1&paymentId=ord_2",
+    ticket: null,
+    serverContext: { merchantUid: 'ord_2', resume: { kind: 'tea-fixture', action: '', args: { cards: '[1,2,3]', question: 'saved question' } }, confirmBody: { featureKey: 'tea', requestId: 'same-attempt', merchantUid: 'ord_2' } },
+    confirmResponse: () => jsonResponse({ ok: true, unlocked: true, featureKey: 'tea' }),
+    beforeProfile(win) {
+      win.__cdCheckoutEntry.registerPaidResumeHandler('tea-fixture', (descriptor, grant) => { received = { descriptor, grant }; return true; });
+    },
+  });
+  try {
+    await waitFor(() => calls.events.length === 1, 'server resume');
+    assert.equal(received.descriptor.args.question, 'saved question');
+    assert.equal(received.grant.requestId, 'same-attempt');
+    assert.equal(calls.confirm[0].body.merchantUid, 'ord_2');
+    assert.equal(calls.events[0].resumed, true);
+  } finally { window.close(); }
+});
+
+test("생성 실패 후 티켓·URL을 유지하고 같은 입력으로 다시 실행한다", async () => {
+  let executions = 0;
+  const { window, calls } = boot({
+    url: 'https://code-destiny.com/?portone_redirect=1&paymentId=ord_1',
+    ticket: { resume: { kind: 'retry-fixture', action: '', args: { question: 'original' } } },
+    confirmResponse: () => jsonResponse({ ok: true, unlocked: true }),
+    beforeProfile(win) {
+      win.__cdCheckoutEntry.registerPaidResumeHandler('retry-fixture', descriptor => {
+        assert.equal(descriptor.args.question, 'original');
+        return ++executions > 1;
+      });
+    },
+  });
+  try {
+    await waitFor(() => calls.events.length === 1, 'failed resume');
+    assert.ok(window.localStorage.getItem(RESUME_KEY));
+    assert.match(window.location.search, /portone_redirect/);
+    resumeCard(window).querySelector('.cd-direct-resume-open').click();
+    await waitFor(() => calls.events.length === 2, 'retried resume');
+    assert.equal(executions, 2);
+    assert.equal(calls.events[1].resumed, true);
+    assert.equal(window.localStorage.getItem(RESUME_KEY), null);
+    assert.equal(calls.confirm.every(call => call.body.merchantUid === 'ord_1'), true);
+  } finally { window.close(); }
+});
+
+test("같은 문서의 중복 resume는 하나의 실행에 합류한다", async () => {
+  const { window, calls } = boot({ url: 'https://code-destiny.com/', ticket: null });
+  try {
+    let executions = 0;
+    window.__cdCheckoutEntry.registerPaidResumeHandler('duplicate-fixture', async () => { executions++; return true; });
+    const descriptor = { kind: 'duplicate-fixture', action: '', args: {} };
+    const proof = { merchantUid: 'same-order', requestId: 'same-attempt', payload: { ok: true } };
+    const outcomes = await Promise.all(Array.from({ length: 4 }, () => window.__cdCheckoutEntry.runPaidResume(descriptor, proof)));
+    assert.equal(outcomes.every(Boolean), true);
+    assert.equal(executions, 1);
+    assert.equal(calls.confirm.length, 0);
+  } finally { window.close(); }
+});
+
+test("승인 복귀(재개 서술자 없음): 미완료 티켓·URL 보존 → 지속 카드·카드 강조·이벤트", async () => {
   const { window, calls } = boot({
     url: "https://code-destiny.com/?portone_redirect=1&paymentId=ord_1&transactionType=PAYMENT&txId=tx_1&keep=1#tab",
     confirmResponse: () => jsonResponse({ ok: true, unlocked: true, featureKey: "neville-meditation" }),
@@ -121,10 +240,10 @@ test("성공 복귀(재개 서술자 없음): confirm 1회 → 티켓 회수 →
     assert.equal(calls.confirm[0].body.paymentMethod, "kakaopay", "티켓의 confirmBody 가 그대로 실린다");
     assert.equal(calls.refresh, 1, "access-state 60초 스냅샷 무효화는 1회");
     assert.equal(calls.alert.length, 0, "성공에 alert 없음");
-    assert.equal(window.localStorage.getItem(RESUME_KEY), null, "성공 뒤 티켓은 회수된다");
+    assert.ok(window.localStorage.getItem(RESUME_KEY), "실행하지 못한 주문의 티켓은 보존한다");
 
     const search = window.location.search;
-    assert.doesNotMatch(search, /portone_redirect|paymentId|transactionType|txId/, `PG 파라미터가 남았다: ${search}`);
+    assert.match(search, /portone_redirect=1/, "다음 방문도 동일 승인 주문으로 복구한다");
     assert.match(search, /keep=1/, "무관한 쿼리는 보존한다");
     assert.equal(window.location.hash, "#tab", "해시를 보존한다");
 

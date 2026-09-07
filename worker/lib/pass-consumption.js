@@ -29,6 +29,9 @@ function loadPassPolicy() {
    슬롯 부기 없는 얇은 판을 쓴다 — 네이티브 드라이버라 mongoose strict 가 필드를 버리는
    함정을 통과하지 않는다(같은 파일 머리주석의 이유와 동일). */
 const nativeDb = {
+  findOne(Model, filter, options) {
+    return Model.collection.findOne(filter, options);
+  },
   updateOne(Model, filter, update, options) {
     return Model.collection.updateOne(filter, update, options);
   },
@@ -67,20 +70,25 @@ export function passDenialCode(reason) {
   return "";
 }
 
+export async function hasConsumedPassFeature(user, featureKey, requestId) {
+  const { buildPassConsumeMarker } = await loadPassPolicy();
+  const marker = buildPassConsumeMarker(featureKey, requestId);
+  return Boolean(marker && Array.isArray(user?.recentConsumeRequestIds) && user.recentConsumeRequestIds.includes(marker));
+}
+
 export async function consumePassForFeature({ user, entitlement, userId, featureKey, requestId = "", coinCost = 0, db = nativeDb }) {
   const { buildPassConsumeMarker, consumePassCoverage, evaluatePassCoverage } = await loadPassPolicy();
   const cost = Math.max(0, Math.floor(Number(coinCost) || 0));
   const coverage = evaluatePassCoverage({ user, entitlement, coinCost: cost });
-  if (!coverage.covered) {
-    return { covered: false, reason: String(coverage.reason || "pass_not_covered"), replayed: false, coverage };
-  }
-
   // 멱등: 같은 (기능, requestId) 재시도가 예산을 두 번 깎지 않는다.
   // 정본과 같은 마커·같은 배열을 쓰므로 coin-gate 경로와도 서로 중복 차감하지 않는다.
   const markers = Array.isArray(user?.recentConsumeRequestIds) ? user.recentConsumeRequestIds : [];
   const marker = buildPassConsumeMarker(featureKey, requestId);
   if (marker && markers.includes(marker)) {
-    return { covered: true, reason: "", replayed: true, coverage, user };
+    return { covered: true, reason: "", replayed: true, coverage: { ...coverage, covered: true, reason: "", coinCost: cost }, user };
+  }
+  if (!coverage.covered) {
+    return { covered: false, reason: String(coverage.reason || "pass_not_covered"), replayed: false, coverage };
   }
 
   const updated = await consumePassCoverage(db, { userId, coverage, marker, existingMarkers: markers });

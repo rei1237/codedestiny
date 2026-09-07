@@ -57,6 +57,38 @@ function consume(db, user, at, { cost, requestId }) {
 }
 
 describe("한도 경계 — 도달 직전 · 도달 · 초과 이후", () => {
+  test.each(["saju_ai_prompt_generator", "ziwei_ai_prompt_generator", "astrology_ai_prompt_generator"])("%s: 백그라운드 기록과 생성 요청이 경합해도 둘 다 통과하고 1회 소비", async (featureKey) => {
+    const db = makeFakePaymentDb();
+    const at = expiresAt();
+    const user = seed(db, { spent: 0, at });
+    const snapshot = structuredClone(user);
+    const cost = PASS_LIMITS[TIER];
+    const input = { db, user: snapshot, entitlement: entitlement(at), userId: USER, featureKey, requestId: "same-operation", coinCost: cost };
+    const results = await Promise.all([consumePassForFeature(input), consumePassForFeature(input)]);
+    expect(results.every((result) => result.covered)).toBe(true);
+    expect(db.rows[0].profileSubscription.monthlySpendCoin).toBe(cost);
+    expect(db.rows[0].recentConsumeRequestIds).toHaveLength(1);
+  });
+  test("마지막 한도를 사용한 실행은 이용권 종료 후에도 재결제 없이 재개한다", async () => {
+    const db = makeFakePaymentDb();
+    const at = expiresAt();
+    const cost = PASS_LIMITS[TIER];
+    const user = seed(db, { spent: BUDGET - cost, at });
+    expect((await consume(db, user, at, { cost, requestId: "last-covered" })).covered).toBe(true);
+    const ended = db.rows[0];
+    const result = await consumePassForFeature({
+      db, user: ended, entitlement: { isActive: false, tier: "free" }, userId: USER,
+      featureKey: FEATURE, requestId: "last-covered", coinCost: cost,
+    });
+    expect(result.covered).toBe(true);
+    expect(result.replayed).toBe(true);
+    expect(ended.profileSubscription.monthlySpendCoin).toBe(BUDGET);
+    const next = await consumePassForFeature({
+      db, user: ended, entitlement: { isActive: false, tier: "free" }, userId: USER,
+      featureKey: FEATURE, requestId: "new-request", coinCost: cost,
+    });
+    expect(next.covered).toBe(false);
+  });
   test("한도 안이면 통과하고 누적 사용액이 정확히 가격만큼 증가한다", async () => {
     const db = makeFakePaymentDb();
     const at = expiresAt();

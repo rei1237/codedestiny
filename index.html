@@ -21624,13 +21624,14 @@ return you.name.restore();</span>
   var CD_CHECKOUT_GUIDE_PIG_SRC = '/icons/app-logo-176.webp?v=build-c2ceee3ced5f';
   // 이용권을 사러 떠나기 직전에 남긴다 — /points 가 결제 성공 후 이 지점으로 돌려보낸다.
   // 셸은 화면 상태가 해시·쿼리에 있으므로 셋 다 담는다.
-  function _cdRememberCheckoutReturn(label) {
+  function _cdRememberCheckoutReturn(label, options) {
     var api = _cdCheckoutEntry();
     if (!api || typeof api.rememberCheckoutReturn !== 'function') return;
     try {
       api.rememberCheckoutReturn({
         url: String(window.location.pathname || '/') + String(window.location.search || '') + String(window.location.hash || ''),
-        label: String(label || '')
+        label: String(label || ''),
+        paidResume: api.buildPaidResumeContext(options || {})
       });
     } catch (_rememberError) { /* 복귀 지점 저장 실패는 결제를 막지 않는다 */ }
   }
@@ -22346,7 +22347,7 @@ return you.name.restore();</span>
               // 웹: 중간 충전 모달(플랜 재선택)을 건너뛰고 /points 의 이용권 결제 확인 모달까지 한 번에 간다.
               var passStoreUrl = _cdBuildPassStoreUrl(coinPrice, passCoverage, 'direct-payment-pass-store');
               if (passStoreUrl) {
-                _cdRememberCheckoutReturn(title);
+                _cdRememberCheckoutReturn(title, opts);
                 window.location.assign(passStoreUrl);
                 return;
               }
@@ -23468,6 +23469,10 @@ return you.name.restore();</span>
         checkoutPayload.selectedProfileId = checkoutProfileId;
       }
     }
+    if (opts.resume) checkoutPayload.paidResume = {
+      originPath: window.location.pathname + window.location.search + window.location.hash,
+      resume: opts.resume
+    };
     return { checkoutPayload: checkoutPayload, coinPrice: coinPrice, amountKrw: amountKrw, featureKey: directFeatureKey };
   }
 

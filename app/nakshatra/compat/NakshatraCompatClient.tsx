@@ -113,8 +113,7 @@ export default function NakshatraCompatClient() {
     const requestId = String(args.requestId || "");
     if (!pa || !pb || !requestId) return false;
     paidRef.current = { a: pa, b: pb, requestId };
-    void fetchCompat(paidRef.current);
-    return true;
+    return fetchCompat(paidRef.current);
   });
 
   async function submit() {
@@ -151,15 +150,16 @@ export default function NakshatraCompatClient() {
     setError(null);
     try {
       const { data, status, transient } = await postPaidBody("/api/nakshatra/compat", paid as Record<string, unknown>);
-      if (data && data.ok) { setResult(data as unknown as CompatResult); setCanRetry(false); return; }
-      if (status === 401) { setError(copy.loginRequiredMessage); setCanRetry(true); return; }
+      if (data && data.ok) { setResult(data as unknown as CompatResult); setCanRetry(false); return true; }
+      if (status === 401) { setError(copy.loginRequiredMessage); setCanRetry(true); return false; }
       if (transient) {
         setError(copy.connectionUnstableRetryMessage);
         setCanRetry(true);
-        return;
+        return false;
       }
       setError(String(data?.message || copy.compatFetchFailedError));
       setCanRetry(true);
+      return false;
     } finally {
       setLoading(false);
     }
