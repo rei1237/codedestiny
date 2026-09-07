@@ -1,4 +1,4 @@
-import { registerFlowerArtGlobals } from '../services/destiny-flower-art.js?v=build-eaaf7df66d8c';
+import { registerFlowerArtGlobals } from '../services/destiny-flower-art.js?v=build-51d460b55d2a';
 
 /**
  * 🔴 매칭 엔진은 여기서 올리지 않는다. 2026-08-24 에 `worker/lib/destiny-flower-engine.js` 로
