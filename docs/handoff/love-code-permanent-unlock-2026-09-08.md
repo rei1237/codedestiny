@@ -1,3 +1,9 @@
+---
+status: active
+updated: 2026-09-08
+next: PR #1808 CI 통과 후 delivery:admit을 실행하고 순차 머지한다
+---
+
 # 러브 코드 영구 해금 정정
 
 ## 정책과 정본
