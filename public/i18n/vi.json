@@ -365,7 +365,7 @@
       "ziweiAdvancedTitle": "🌟 Tử Vi nâng cao",
       "ziweiAdvancedDesc": "Chiến lược sống 12 cung · Phân tích sâu sắc Minh Cung",
       "vedicAstrologyTitle": "🪐 Chiêm tinh học Vệ Đà",
-      "vedicAstrologyDesc": "Biểu đồ cơ sở miễn phí · Khả năng tương thích KRW 5,000",
+      "vedicAstrologyDesc": "Biểu đồ miễn phí · Luận giải KRW 3,000 · Khả năng tương thích KRW 5,000",
       "olympusOracleTitle": "⚡ Olympus Oracle",
       "olympusOracleDesc": "Đọc vận mệnh 12 vị thần và cung hoàng đạo",
       "destinyFlowerTitle": "🌺 Hoa định mệnh",
@@ -12423,7 +12423,7 @@
         "What period am I passing through now?",
         "What is my innate temperament like?"
       ],
-      "fallbackCta": "See your Vedic reading for free"
+      "fallbackCta": "Calculate your Vedic chart"
     },
     "astrology": {
       "tagline": "A basic astrology reading that calculates your birth chart and reads your disposition and the flow of your relationships from the placements.",

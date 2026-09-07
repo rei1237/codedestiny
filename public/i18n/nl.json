@@ -365,7 +365,7 @@
       "ziweiAdvancedTitle": "🌟 Gevorderde Zi Wei",
       "ziweiAdvancedDesc": "12-paleizen levensstrategie · diepe Ming-paleisanalyse",
       "vedicAstrologyTitle": "🪐 Vedische astrologie",
-      "vedicAstrologyDesc": "Gratis basiskaart · compatibiliteit KRW 5,000",
+      "vedicAstrologyDesc": "Gratis kaart · duiding KRW 3,000 · compatibiliteit KRW 5,000",
       "olympusOracleTitle": "⚡ Olympus-orakel",
       "olympusOracleDesc": "12 goden en dierenriemlotslezing",
       "destinyFlowerTitle": "🌸 Lotsbloem",
@@ -12423,7 +12423,7 @@
         "What period am I passing through now?",
         "What is my innate temperament like?"
       ],
-      "fallbackCta": "See your Vedic reading for free"
+      "fallbackCta": "Calculate your Vedic chart"
     },
     "astrology": {
       "tagline": "A basic astrology reading that calculates your birth chart and reads your disposition and the flow of your relationships from the placements.",
