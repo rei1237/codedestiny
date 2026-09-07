@@ -637,7 +637,17 @@ function buildLuckRow(raw, fallbackScope) {
   };
 }
 
-function buildSexagenaryYearPillar(year) {
+// 간지(한자/한글 혼용)를 한글 표기로 맞춘다. 이 파일의 간지 정본은 한자인데
+// 찻집 프롬프트의 명식은 한글("정축")이라, 같은 프롬프트 안에서 표기가 갈리면 LLM 이 두 표를 다른 것으로 읽는다.
+export function toKoreanGanji(value) {
+  const stem = normalizeStem(value);
+  const branch = normalizeBranch(value);
+  return `${STEM_KO[stem] || ""}${BRANCH_KO[branch] || ""}`;
+}
+
+// 🔴 normalizeSajuLuckRows 는 여러 운세 라우트가 공유하므로 세운 행 수를 늘리지 않는다(회귀 위험).
+// 다년 세운이 필요한 호출자는 이 함수를 연도별로 직접 호출한다.
+export function buildSexagenaryYearPillar(year) {
   const y = Number(year);
   if (!Number.isFinite(y) || y < 1900) return null;
   const index = ((Math.trunc(y) - 4) % 60 + 60) % 60;

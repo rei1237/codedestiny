@@ -8,7 +8,13 @@ import { createHash } from "node:crypto";
 import { getCurrentUser, getOptionalUserFromRequest } from "../lib/auth.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
 import { buildSukuyoAiCompatibility, buildSukuyoFromLunar, describeSukuyoDirectionalRelation } from "../lib/sukuyo-ai-calculation.js";
-import { buildSajuAdvancedFactors, buildSajuMyeongsikFactSnapshot } from "../lib/saju-ai-prompt.js";
+import {
+  buildSajuAdvancedFactors,
+  buildSajuMyeongsikFactSnapshot,
+  buildSexagenaryYearPillar,
+  getTenGodFromDayMaster,
+  toKoreanGanji,
+} from "../lib/saju-ai-prompt.js";
 import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { getAmbientAiLocale } from "../lib/ai-locale-context.js";
@@ -1681,7 +1687,9 @@ function formatSajuFactItem(item) {
   const value = item.value ?? item.score ?? item.percent ?? item.strength;
   const valueText = value === undefined || value === null ? "" : cleanText(value, 40);
   const detail = cleanText(item.summary || item.meaning || item.description || item.relation, 160);
-  const head = [label, valueText].filter(Boolean).join(" ");
+  // 🔴 ganji 를 빼면 pillars 가 "년주 · 월주 · 일주 · 시주"로 간지 없이 직렬화되어 LLM 이 명식을 전혀 못 본다.
+  const ganji = cleanText(item.ganji || `${item.heavenlyStem || ""}${item.earthlyBranch || ""}`, 12);
+  const head = [label, ganji && ganji !== label ? ganji : "", valueText].filter(Boolean).join(" ");
   return head && detail ? `${head}: ${detail}` : head || detail || JSON.stringify(item);
 }
 
@@ -1802,6 +1810,19 @@ function buildFortuneTeaSajuMyeongsikFacts(request, saju) {
       doChung,
       earthStorageOpenings: openings.length ? openings : ["뚜렷한 개고 없음"],
       luckRows,
+      // 이미 계산되고도 프롬프트에서 버려지던 값들(추가 계산 비용 0) — 근거의 두께를 올린다.
+      gyeokguk: cleanText(
+        [advanced?.gyeokguk?.finalGyeokguk, advanced?.gyeokguk?.finalType].filter(Boolean).join(" / "),
+        80,
+      ),
+      twelveLifeStages: (factSnapshot.majorStructures?.twelveLifeStages || [])
+        .slice(0, 4)
+        .map((row) => cleanText([row?.label, row?.stage || row?.name].filter(Boolean).join(" "), 40))
+        .filter(Boolean)
+        .join(" · "),
+      yongshin: (factSnapshot.yongshinKijishin?.yongshin || []).slice(0, 3).join(", "),
+      kijishin: (factSnapshot.yongshinKijishin?.kijishin || []).slice(0, 3).join(", "),
+      johu: cleanText(factSnapshot.johu?.summary || factSnapshot.johu?.label, 160),
     };
   } catch {
     return undefined;
@@ -1839,6 +1860,60 @@ function buildSajuPersonProfile(request, personEntry, defaultName = "상대") {
     monthSeason: combineSajuFactText(personSaju.monthBranch, personSaju.season),
     coreSummary: cleanMultiline(personSaju.coreSummary, 800),
     myeongsikFacts: scopeMyeongsikTableRule(buildFortuneTeaSajuMyeongsikFacts(request, personSaju), name),
+  };
+}
+
+// 시기 질문("언제쯤")에 답할 수 있는 유일한 근거를 산문이 아니라 **구조화 배열**로 싣는다.
+// 이전에는 대운이 어댑터 전달 결함으로 0건 유입됐고 세운은 올해 1행뿐이어서, 프롬프트가 필수 섹션으로
+// 요구하던 "지금 이 시기"가 사실상 LLM 창작이었다. resolution 이 근거 유무를 프롬프트에 그대로 전달한다.
+const FORTUNE_TEA_SEWOON_YEARS_AHEAD = 5;
+
+function buildFortuneTeaTimingFacts(saju) {
+  const dayGanji = fortuneTeaSajuPillarGanji(saju, "day");
+  const dayStem = dayGanji ? Array.from(dayGanji)[0] : "";
+  const nowYear = new Date().getUTCFullYear();
+
+  const daewoonRows = (Array.isArray(saju?.daewoon) ? saju.daewoon : [])
+    .slice(0, 8)
+    .map((row) => ({
+      label: cleanText(row?.label, 60),
+      pillar: cleanText(row?.pillar, 12),
+      startYear: Number.isFinite(Number(row?.startYear)) ? Number(row.startYear) : undefined,
+      endYear: Number.isFinite(Number(row?.endYear)) ? Number(row.endYear) : undefined,
+      isCurrent: row?.isCurrent === true,
+    }))
+    .filter((row) => row.pillar);
+
+  const sewoonRows = [];
+  for (let offset = 0; offset <= FORTUNE_TEA_SEWOON_YEARS_AHEAD; offset += 1) {
+    const pillar = buildSexagenaryYearPillar(nowYear + offset);
+    if (!pillar) continue;
+    // 🔴 이 표만 한자로 나가면 명식(한글)과 표기가 갈려 LLM 이 서로 다른 자료로 읽는다.
+    const ganji = toKoreanGanji(`${pillar.stem}${pillar.branch}`);
+    sewoonRows.push({
+      year: pillar.year,
+      pillar: ganji,
+      label: `${pillar.year}년 ${ganji}`,
+      tenGodHint: dayStem ? getTenGodFromDayMaster(dayStem, pillar.stem) : "",
+    });
+  }
+
+  const availableYears = [
+    ...sewoonRows.map((row) => row.year),
+    ...daewoonRows.flatMap((row) => [row.startYear, row.endYear]),
+  ].filter((year) => Number.isFinite(year));
+
+  return {
+    currentYear: nowYear,
+    daewoonRows,
+    sewoonRows,
+    monthlyAvailable: false,
+    availableYears: Array.from(new Set(availableYears)).sort((a, b) => a - b),
+    // 시기 답변의 최대 해상도. 대운이 있으면 구간(PERIOD), 세운만 있으면 연(YEAR), 아무것도 없으면 NONE.
+    resolution: daewoonRows.length ? "PERIOD" : sewoonRows.length ? "YEAR" : "NONE",
+    rule: daewoonRows.length || sewoonRows.length
+      ? "시기를 답할 때는 daewoonRows/sewoonRows 에 실제로 있는 연도·구간만 인용한다. 표에 없는 연·월을 만들어 쓰지 않는다. 월 단위는 데이터가 없으므로 '상반기/하반기' 같은 구간 표현까지만 쓴다."
+      : "시기 근거 데이터가 없다. 연도나 월을 특정하지 말고 '어떤 조건이 갖춰지면'의 조건부 표현으로만 답하고, 시기를 특정할 수 없는 이유를 한 문장으로 밝힌다.",
   };
 }
 
@@ -1907,7 +1982,9 @@ function buildSajuFactInput(request, saju, rule, fallback) {
       tenGodsBalance,
       strongElements: normalizeSajuFactText(saju?.dominantElements),
       tenGodSnapshot: normalizeSajuFactText(saju?.tenGodSnapshot?.tenGodLabels),
-      stemBranchRelations,
+      // 🔴 원국 합·충·형·파·해 계산기는 이 레포에 없다. 값이 비면 키 자체를 빼서
+      // "빈 항목을 채우려는" 창작을 유도하지 않는다(충/형/파/해 근거는 myeongsikFacts.earthStorageOpenings 경유분만 쓴다).
+      ...(stemBranchRelations ? { stemBranchRelations } : {}),
       currentLuckSummary: cleanMultiline(luckFlow || saju?.summary, 1200),
       caution: cleanMultiline(saju?.cautionReading || saju?.caution, 800),
       actionPrescription: cleanMultiline(saju?.actionPrescription, 800),
@@ -1915,6 +1992,8 @@ function buildSajuFactInput(request, saju, rule, fallback) {
         ? "sajuFacts는 본인(selfProfile)의 명식 사실이다. 상대 명식에는 쓰지 않는다. 비어 있는 항목은 추측하지 말고 확인된 항목끼리만 연결한다."
         : "비어 있는 항목은 추측하지 말고, 확인된 항목끼리만 연결한다.",
     },
+    // 시기 질문의 유일한 근거 테이블. sajuFacts 밖 최상위에 두어 우선순위를 드러낸다.
+    timingFacts: buildFortuneTeaTimingFacts(saju),
     // 명식 심화 사실(십성 확정표·지장간·투간/투출·도충·개고·운 흐름) — 독립 AI 사주 생성 로직 재사용.
     // 궁합에서는 사람별 확정표(selfProfile/partnerProfile.myeongsikFacts)만 쓰고, 전역 확정표는 두지 않는다(유출 방지).
     myeongsikFacts: isCompat ? undefined : buildFortuneTeaSajuMyeongsikFacts(request, saju),
@@ -2221,6 +2300,20 @@ function buildCategorySajuDeepSections(request, saju = {}, rule = resolveSajuCat
     "관계에서는 내 마음이 원하는 속도와 상대가 실제로 보여 준 속도를 분리해 보는 것이 필요합니다.",
     "몸과 마음이 지친 날에는 큰 결정을 미루고 수면, 식사, 정리 같은 기본 리듬을 먼저 회복하세요.",
   ];
+  // 🔴 이전에는 아홉 섹션 전부가 같은 문장("지금 필요한 것은 감정을 키우는 말보다 조건, 경계, 다음 행동을
+  // 분명히 세우는 일입니다")으로 끝나, 폴백으로 떨어진 상담이 같은 말을 아홉 번 반복했다.
+  // 공통 조언 문장은 결과당 1회로 제한하고 나머지 섹션은 서로 다른 마무리를 쓴다.
+  const closingGuides = [
+    "그래서 이 상담은 결론을 서두르는 대신, 지금 무엇이 확인된 사실이고 무엇이 아직 해석인지부터 갈라 놓습니다.",
+    `${rule.category}의 결에서는 마음이 먼저 움직인 자리와 조건이 아직 따라오지 못한 자리가 다르게 보입니다.`,
+    "이 대목의 패턴은 손님이 반복해서 같은 선택을 하게 만드는 자리이기도 합니다.",
+    "여기서 드러나는 강점은 애써 만들지 않아도 이미 손님이 쓰고 있던 힘입니다.",
+    "이 자리는 약점이라기보다, 힘이 한쪽으로 쏠릴 때 먼저 표가 나는 지점입니다.",
+    "운의 결은 결과를 정해 주지 않고, 지금 어떤 선택이 덜 소모적인지를 알려 줍니다.",
+    "그래서 다음 걸음은 크게 바꾸는 일이 아니라, 기준 하나를 분명히 하는 일에서 시작합니다.",
+    "지금 필요한 것은 감정을 키우는 말보다 조건, 경계, 다음 행동을 분명히 세우는 일입니다.",
+    "연이는 이 잔의 마지막에서 손님이 스스로 고른 기준 하나를 챙겨 가시기를 바랍니다.",
+  ];
   const sectionCount = rule.requiredSections.length;
   return rule.requiredSections.map((title, index) => {
     const focus = rule.focus[index % rule.focus.length];
@@ -2235,7 +2328,7 @@ function buildCategorySajuDeepSections(request, saju = {}, rule = resolveSajuCat
       id: `${rule.resultKey}-${index + 1}`,
       title,
       tone: index <= 1 ? "summary" : index <= 3 ? "element" : index <= 5 ? "flow" : index <= 7 ? "advice" : "caution",
-      body: `${opener}이 대목에서는 ${title}을 먼저 보겠습니다. ${factLine}${angle}${focus}을 기준으로 보면 지금 필요한 것은 감정을 키우는 말보다 조건, 경계, 다음 행동을 분명히 세우는 일입니다.${yeoniLine}${action}`,
+      body: `${opener}이 대목에서는 ${title}을 먼저 보겠습니다. ${factLine}${angle}${focus}을 기준으로 보면, ${closingGuides[index % closingGuides.length]}${yeoniLine}${action}`,
     };
   });
 }
@@ -2736,6 +2829,43 @@ function mergeLuckyKeywords(candidates, fallbackKeywords) {
   return merged.length >= 2 ? merged : fallbackKeywords;
 }
 
+// 섹션 하나가 어긋나도 아홉 개 전부가 폴백 문구로 갈아치워지던 all-or-nothing 교체를 없앤다.
+// LLM 이 제대로 낸 섹션은 살리고 빠진 자리만 폴백으로 채운다.
+// 🔴 id 는 폴백 것을 유지한다 — 본문 확장 룩업(expansions[section.id])과 React key 가 id 기반이다.
+const FORTUNE_TEA_SECTION_BODY_FLOOR = 140;
+
+function mergeDeepSections(parsedSections, fallbackSections) {
+  const parsed = Array.isArray(parsedSections) ? parsedSections : [];
+  const base = Array.isArray(fallbackSections) ? fallbackSections : [];
+  if (!base.length) return parsed;
+  if (!parsed.length) return base;
+
+  const usable = parsed.filter((section) => cleanMultiline(section?.body, 1800).length >= FORTUNE_TEA_SECTION_BODY_FLOOR);
+  const byTitle = new Map();
+  for (const section of usable) {
+    const title = cleanText(section?.title, 80);
+    if (title && !byTitle.has(title)) byTitle.set(title, section);
+  }
+  const consumed = new Set();
+  const merged = base.map((fallbackSection) => {
+    const match = byTitle.get(cleanText(fallbackSection?.title, 80));
+    if (!match) return fallbackSection;
+    consumed.add(match);
+    return { ...fallbackSection, body: match.body, tone: match.tone || fallbackSection.tone };
+  });
+  // 제목이 어긋난 자리는 남은 LLM 섹션을 순서대로 채운다(제목·id 는 폴백 정본을 유지).
+  const leftovers = usable.filter((section) => !consumed.has(section));
+  if (leftovers.length) {
+    let cursor = 0;
+    for (let index = 0; index < merged.length && cursor < leftovers.length; index += 1) {
+      if (merged[index] !== base[index]) continue;
+      merged[index] = { ...base[index], body: leftovers[cursor].body, tone: leftovers[cursor].tone || base[index].tone };
+      cursor += 1;
+    }
+  }
+  return merged;
+}
+
 function mergeLlmResult(fallback, parsed) {
   const safeParsed = parsed && typeof parsed === "object" ? parsed : {};
   const parsedDeepSections = normalizeDeepSections(safeParsed.saju?.deepSections);
@@ -2765,7 +2895,7 @@ function mergeLlmResult(fallback, parsed) {
       fiveElements: fallback.saju.fiveElements,
       primaryTenGod: fallback.saju.primaryTenGod,
       secondaryTenGods: fallback.saju.secondaryTenGods,
-      deepSections: parsedDeepSections.length ? parsedDeepSections : fallback.saju.deepSections,
+      deepSections: mergeDeepSections(parsedDeepSections, fallback.saju.deepSections),
       monthBranch: fallback.saju.monthBranch,
       season: fallback.saju.season,
       daewoon: fallback.saju.daewoon,
@@ -3373,6 +3503,30 @@ function describeQualityIssue(message) {
   return "품질 기준에 미달했다. 필수 구조, 요구 분량, 근거 연결을 모두 지킨다.";
 }
 
+// 품질 오류 메시지 → 다시 써야 할 그룹 키. 재시도해도 결과가 달라지지 않는 실패
+// (스키마 파손, 카드·본명숙 정체성 변조 등 서버가 fallback 으로 고정하는 값)는 빈 배열을 돌려
+// 즉시 degrade 로 배출한다. 필드 이름이 그대로 오류 메시지에 실리므로 소유 그룹을 역산할 수 있다.
+const FORTUNE_TEA_QUALITY_ERROR_GROUPS = Object.freeze([
+  Object.freeze({ pattern: /saju|deepSections|sessionTitle|questionSummary|tarot\.reading|sukuyo/i, key: "core" }),
+  Object.freeze({ pattern: /yeoniReading|emotionAnalysis/i, key: "reading" }),
+  Object.freeze({ pattern: /synthesis|choiceSimulation|actionPrescription|luckyKeywords|closingLine/i, key: "prescription" }),
+]);
+// 소유 그룹을 특정할 수 없지만 다시 쓰면 나아지는 실패(분량·반복·금지 표현)는 전 그룹을 다시 쓴다.
+const FORTUNE_TEA_GLOBAL_RETRY_PATTERN = /length|repeated|forbidden|generic|copy|terms/i;
+// 재시도로 복구 불가능한 실패 — 서버가 고정하는 정체성 값이라 LLM 이 다시 써도 같은 판정이 난다.
+const FORTUNE_TEA_UNRECOVERABLE_PATTERN = /orientation|cardId|nameKo|nameEn|relationType|sukuyoName|scores|relationDetail/i;
+
+function groupKeysForQualityError(message, groups) {
+  const text = String(message || "");
+  const available = new Set(groups.map((group) => group.key));
+  if (FORTUNE_TEA_UNRECOVERABLE_PATTERN.test(text)) return [];
+  const owners = FORTUNE_TEA_QUALITY_ERROR_GROUPS
+    .filter((entry) => entry.pattern.test(text) && available.has(entry.key))
+    .map((entry) => entry.key);
+  if (owners.length) return owners;
+  return FORTUNE_TEA_GLOBAL_RETRY_PATTERN.test(text) ? [...available] : [];
+}
+
 // ── 섹션 병렬 생성 ───────────────────────────────────────────────────────────
 // 통짜 한 호출은 6천 자 근처에서 스스로 멈춘다 — 예전 하한(타로 3,200·사주 6,000)이 거기 묶여
 // 있던 이유다. 그래서 결과 JSON 을 서로 겹치지 않는 그룹으로 나눠 한 요청 안에서 동시에 돌린다.
@@ -3556,8 +3710,8 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "", 
               "일간이 월지 계절에서 힘을 얻는지 잃는지, 생극제화의 방향을 먼저 본다.",
               "오행 분포의 과다/부족과 그것이 삶에서 나타나는 장면을 본다.",
               "십성 배치가 만드는 표현·현실·절제·생각·자아의 균형을 본다.",
-              "지지 합충형해파가 실제 생활에서 만드는 마찰과 조화 지점을 찾는다.",
-              "지금 대운·세운이 이 질문에 순풍인지 역풍인지 판정한다.",
+              "myeongsikFacts의 개고·도충이 실제 생활에서 만드는 마찰과 조화 지점을 찾는다(원국 합·충·형·파·해 표는 입력에 없으므로 지어내지 않는다).",
+              "timingFacts.daewoonRows/sewoonRows를 보고 지금과 앞으로의 운이 이 질문에 순풍인지 역풍인지 판정한다. 표에 있는 연도·구간만 쓴다.",
               "myeongsikFacts가 있으면 십성 확정표(tenGodFixedTable)를 벗어난 십성을 만들지 말고, 지장간 투간/투출·개고·도충·운 흐름(luckRows) 사실을 해당 챕터의 근거로 자연스럽게 인용한다.",
               "위 근거들을 손님의 질문 한 문장과 연결해 하나의 이야기로 엮는다.",
             ],
@@ -3578,9 +3732,9 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "", 
               "첫 잔: 인사와 첫인상. 앞서 읽은 성향을 이어받아, 그런 손님이 이 질문을 들고 온 이유를 한 폭의 그림처럼 짧게 연다.",
               "마음의 물길: 십성 배치가 만드는 마음과 행동의 패턴을 현실 장면으로 풀어준다.",
               "잘 풀리는 결: 강점 2~3가지. 각각에 명리 근거를 명시한다.",
-              "삐걱대는 결: 주의점 2~3가지. 합충형해파나 오행 치우침 근거를 붙이되 위협이 아니라 '이 부분만 알고 있으면 돼요'의 온도로 말한다.",
-              "지금 이 시기: 대운·세운 타이밍 조언. 서두를 때와 기다릴 때를 구분한다.",
-              "찻집의 처방: 실천 가능한 행동 플랜을 날짜 감각과 함께 준다.",
+              "삐걱대는 결: 주의점 2~3가지. 개고·도충(myeongsikFacts)이나 오행 치우침 근거를 붙이되 위협이 아니라 '이 부분만 알고 있으면 돼요'의 온도로 말한다.",
+              "지금 이 시기: timingFacts.daewoonRows/sewoonRows에 실제로 있는 대운 구간과 세운 연도를 인용해 서두를 때와 기다릴 때를 구분한다. 표에 없는 연·월은 쓰지 않는다.",
+              "찻집의 처방: 실천 가능한 행동 플랜을 준다. 날짜를 붙일 때는 timingFacts에 있는 연도·구간만 쓴다.",
               "연이의 한마디: 실천 가능한 따뜻한 제안 하나로 마무리한다.",
             ],
             qualityChecklist: isSajuCompat
@@ -3601,10 +3755,18 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "", 
             sectionLengthRule: "각 deepSection body는 요구 하한을 넘겨 대략 250~350자 안팎으로 쓰되, 분량은 아래 evidenceDistribution의 서로 다른 근거로 채운다. 같은 명식 사실을 여러 챕터에서 되풀이해 길이를 늘리지 않는다.",
             evidenceDistribution: isSajuCompat
               ? "섹션마다 서로 다른 근거를 나눠 쓴다: '당신의 사주'=selfProfile의 일간·월지/계절·오행·selfProfile.myeongsikFacts 십성 확정표, '상대방의 사주'=partnerProfile의 일간·월지/계절·오행·partnerProfile.myeongsikFacts 십성 확정표, '두 사람의 궁합'=두 일간의 상생·상극과 오행 보완·충돌·십성 대조, '지금 이 시기 관계의 운'=두 사람의 대운/세운 순풍·역풍. 본인 근거와 상대 근거를 섞지 않는다."
-              : "챕터마다 myeongsikFacts의 서로 다른 근거를 나눠 쓴다: '타고난 결/마음의 물길'=일간·월지/계절·오행·십성 확정표, '잘 풀리는 결'=강하게 드러난 십성과 지장간 투간(성향·재능으로 발현), '삐걱대는 결'=개고·도충·합충형해파와 치우친 오행, '지금 이 시기'=대운/세운(luckRows)의 순풍·역풍. 한 챕터에서 쓴 근거를 다른 챕터에서 그대로 되풀이하지 않는다.",
+              : "챕터마다 myeongsikFacts의 서로 다른 근거를 나눠 쓴다: '타고난 결/마음의 물길'=일간·월지/계절·오행·십성 확정표·격국, '잘 풀리는 결'=강하게 드러난 십성과 지장간 투간(성향·재능으로 발현)·용신, '삐걱대는 결'=개고·도충과 치우친 오행·기신, '지금 이 시기'=timingFacts의 대운 구간과 세운 연도. 한 챕터에서 쓴 근거를 다른 챕터에서 그대로 되풀이하지 않는다.",
             evidenceUseOrder: isSajuCompat
               ? ["사용자 질문", "본인 일간(selfProfile)", "상대 일간(partnerProfile)", "각자의 월지/계절", "각자의 오행 과다/부족", "두 명식의 십성 대조(사람별 확정표 준수)", "두 일간의 상생·상극·동류·보완", "두 사람의 대운·세운", "찻잔 카테고리"]
-              : ["사용자 질문", "일간", "월지/계절", "오행 과다/부족", "십성 구조(myeongsikFacts.tenGodFixedTable 준수)", "지장간과 투간/투출(myeongsikFacts)", "천간·지지 관계와 개고·도충(myeongsikFacts)", "대운·세운·월운(myeongsikFacts.luckRows)", "찻잔 카테고리"],
+              : ["사용자 질문", "일간", "월지/계절", "오행 과다/부족", "십성 구조(myeongsikFacts.tenGodFixedTable 준수)", "지장간과 투간/투출(myeongsikFacts)", "개고·도충(myeongsikFacts)", "대운 구간·세운 연도(timingFacts)", "찻잔 카테고리"],
+            // 🔴 시기 답변의 근거는 timingFacts 하나뿐이다. resolution 이 데이터 유무에 따라 확신 수위를 자동 전환한다.
+            timingRule: [
+              "'언제', '언제쯤', '몇 년', '얼마나 기다려야' 류의 질문에는 timingFacts를 근거로 **시기를 먼저 답하고** 그 다음에 명식 근거를 설명한다. 시기 답을 마지막 문단으로 미루지 않는다.",
+              "인용 가능한 연도·구간은 timingFacts.availableYears와 daewoonRows의 startYear~endYear 뿐이다. 여기에 없는 연도·월을 쓰면 실패다.",
+              "월 단위 운은 계산 입력이 없다(timingFacts.monthlyAvailable=false). '○월'로 특정하지 말고 '상반기/하반기', '초반/중반' 구간 표현까지만 쓴다.",
+              "확정 어투를 쓰지 않는다. '2027년 3월에 반드시 벌게 됩니다'가 아니라 '2027년 세운이 ○○이라 수익화 흐름이 강해지는 것으로 해석할 수 있습니다'처럼 근거와 해석을 함께 쓴다.",
+              "timingFacts.resolution이 'NONE'이면 연도를 아예 쓰지 말고 조건부로만 답한 뒤 시기를 특정할 수 없는 이유를 한 문장 밝힌다.",
+            ],
             personalizationRule: "누구에게나 맞는 위로 대신 '왜 이 질문이 이 명식에서 지금 커졌는지'와 '현실에서 어떤 행동을 줄이거나 시작할지'를 함께 쓴다.",
             uncertaintyRule: "sajuFactInput에 없는 항목은 만들지 않는다. 부족한 항목은 단정하지 말고 입력된 정보만으로 볼 수 있는 범위를 밝힌다.",
             topicCoverageRule: "가능한 경우 성향과 마음의 패턴, 일과 재능, 돈과 현실 감각, 연애와 관계, 현재 운의 흐름, 조심할 점, 지금 바로 할 수 있는 행동 조언을 모두 건드린다.",
@@ -3845,7 +4007,10 @@ async function generateFortuneTeaGroup(env, { request, fallback, group, consulta
         store: createLlmCacheStore(env),
         deterministic: true,
         ttlSeconds: 30 * 24 * 60 * 60,
-        keyExtra: `tea-house-${consultationMode}-${group.key}-v1`,
+        // 🔴 프롬프트를 바꾼 PR 은 이 버전을 반드시 올린다. 결정론 캐시 TTL 이 30일이라
+        // 버전을 그대로 두면 캐시된 구버전 응답이 재생되어 테스트는 통과하는데 프로덕션 효과가 0이 된다.
+        // v2: timingFacts(대운·다년 세운) 도입 + 시기 규칙 + 합충형해파 요구 제거.
+        keyExtra: `tea-house-${consultationMode}-${group.key}-v2`,
         minChars: group.minChars,
       },
     });
@@ -3929,8 +4094,12 @@ async function generateConsultResult(request, fallback, env) {
   let lastCandidate = null;
   let lastError = null;
   let roundResults = results;
+  // degrade 가 실제로 줄었는지 판정할 근거를 저장에 남긴다 — scripts/query-tea-house-degrade-reasons.mjs 가 읽는다.
+  const retriedGroups = [...new Set(retryIndexes.map((index) => groups[index].key))];
+  let qualityRounds = 0;
 
   for (let round = 0; round < 2; round += 1) {
+    qualityRounds = round + 1;
     const produced = roundResults.filter((result) => result.ok && result.parsed);
     if (!produced.length) {
       lastError = new Error(roundResults.map((result) => `${result.key}:${result.reason}`).join(", ") || "gemini_failed");
@@ -3949,6 +4118,8 @@ async function generateConsultResult(request, fallback, env) {
           mode: "gemini",
           provider: produced[0].provider || "gemini",
           model: produced[0].model,
+          qualityRounds,
+          retriedGroups,
           generatedAt: new Date().toISOString(),
         },
       };
@@ -3956,20 +4127,24 @@ async function generateConsultResult(request, fallback, env) {
       lastError = error;
     }
 
-    // 반복 장문만 다시 쓴다 — 통짜 시절의 전면 재작성과 같은 처방을 그룹 단위로 유지한다.
-    // 그 외 소프트 미스는 다음 시도도 같은 결정론적 이유로 실패하므로 즉시 degrade 로 배출한다.
+    // 복구 가능한 품질 실패는 **원인이 된 그룹만** 다시 쓴다.
+    // 이전에는 /repeated/ 하나만 재시도했고 그마저 전 그룹을 다시 호출해 예산을 태웠다 —
+    // 나머지 품질 실패는 재시도 0회로 즉시 degrade 했고, 그것이 사용자가 폴백 문구를 본 경로다.
     const message = lastError instanceof Error ? lastError.message : String(lastError || "");
-    if (round > 0 || !/repeated/i.test(message) || !(budgetedTimeout(FORTUNE_TEA_REPAIR_TIMEOUT_MS) > 0)) break;
+    const retryKeys = groupKeysForQualityError(message, groups);
+    if (round > 0 || !retryKeys.length || !(budgetedTimeout(FORTUNE_TEA_REPAIR_TIMEOUT_MS) > 0)) break;
     const previous = roundResults;
-    roundResults = await Promise.all(groups.map((group, index) => generateFortuneTeaGroup(env, {
-      request,
-      fallback,
-      group,
-      consultationMode,
-      timeoutMs: budgetedTimeout(FORTUNE_TEA_REPAIR_TIMEOUT_MS),
-      attempt: 1,
-      qualityHint: message,
-    }).then((result) => (result.ok ? result : previous[index]))));
+    roundResults = await Promise.all(groups.map((group, index) => (retryKeys.includes(group.key)
+      ? generateFortuneTeaGroup(env, {
+          request,
+          fallback,
+          group,
+          consultationMode,
+          timeoutMs: budgetedTimeout(FORTUNE_TEA_REPAIR_TIMEOUT_MS),
+          attempt: 1,
+          qualityHint: message,
+        }).then((result) => (result.ok ? result : previous[index]))
+      : Promise.resolve(previous[index]))));
   }
 
   console.warn("[fortune-tea-house/consult] LLM fallback used", lastError);
@@ -3983,6 +4158,9 @@ async function generateConsultResult(request, fallback, env) {
         mode: lastCandidate ? "gemini_degraded" : "local_fallback",
         reason: lastError instanceof Error ? lastError.message : "quality_gate_degraded",
         degraded: true,
+        qualityRounds,
+        retriedGroups,
+        groupReasons: roundResults.filter((result) => !result.ok).map((result) => `${result.key}:${result.reason}`),
         generatedAt: new Date().toISOString(),
       },
     };
