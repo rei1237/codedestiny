@@ -5776,12 +5776,16 @@ function _cdAIPromptIsPassPayload(payload, access) {
   var accessStatus = String(access && access.status || '').trim().toLowerCase();
   var accessReason = String(accessDecision.reason || accessDecision.status || '').trim().toLowerCase();
   return layers.some(function(layer) { return layer && layer.freeBySubscription === true; })
-    || (accessDecision.accessGranted === true && accessReason === 'pass_covered')
+    || (accessDecision.accessGranted === true && /^(pass_covered|pass_applied|pass_free|family_all_access)$/.test(accessReason))
     || accessStatus === 'pass_applied'
     || accessType === 'membership_pass'
+    || accessType === 'license_pass'
     || accessType === 'usage_pass'
     || accessType === 'subscription_pass'
-    || accessMethod === 'PASS';
+    || accessType === 'family'
+    || accessType === 'family_pass'
+    || accessMethod === 'PASS'
+    || accessMethod === 'FAMILY';
 }
 
 /* ── 결제 후 자동 재개 공통 배관 (js/saju-engine.js) ─────────────────────────────
@@ -6204,11 +6208,12 @@ function _cdAIPromptGateEvidence(gateResult) {
   var accessDecision = _cdAIPromptFirstObject(layers, 'accessDecision');
   var paymentLayer = _cdAIPromptFirstObject(layers, 'payment');
   var payment = Object.keys(paymentLayer).length ? paymentLayer : undefined;
+  var passAccess = _cdAIPromptIsPassPayload(gate.payload, gate.access || gate);
   return {
     requestId: String(gate.requestId || data.requestId || accessDecision.requestId || accessGrant.requestId || consume.requestId || '').trim(),
     accessGrant: accessGrant,
     accessDecision: accessDecision,
-    freeBySubscription: layers.some(function(layer) { return layer && layer.freeBySubscription === true; }),
+    freeBySubscription: passAccess || layers.some(function(layer) { return layer && layer.freeBySubscription === true; }),
     consume: consume,
     payment: payment,
     _paymentContext: {
@@ -7539,6 +7544,8 @@ function _requestSajuQuestionPrompt(question, privacyOptions, domain, options) {
 }
 
 function _buildSajuQuestionPromptHtml() {
+  var sajuAiAmountKrw = 20000;
+  var sajuAiPriceLabel = sajuAiAmountKrw.toLocaleString('ko-KR') + '원';
   var steps = [
     ['0', '결제 확인'],
     ['15', '명식 로딩'],
@@ -7557,12 +7564,12 @@ function _buildSajuQuestionPromptHtml() {
     +   '<div style="position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(230,196,112,.14),transparent 32%,rgba(255,255,255,.1) 100%);"></div>'
     +   '<div style="position:relative;display:flex;justify-content:space-between;gap:14px;align-items:flex-start;flex-wrap:wrap;margin-bottom:13px;">'
     +     '<div style="display:flex;gap:12px;align-items:flex-start;min-width:220px;flex:1 1 300px;"><span aria-hidden="true" style="flex:0 0 auto;width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,231,164,.72);background:radial-gradient(circle at 50% 28%,#f8ead4 0 10%,transparent 11%),radial-gradient(circle at 50% 72%,#24170c 0 10%,transparent 11%),linear-gradient(180deg,#b91c1c 0 50%,#123c7d 50% 100%);box-shadow:0 10px 24px rgba(0,0,0,.28),inset 0 0 0 3px rgba(255,247,223,.72);"></span><div><div style="font-size:0.72rem;color:#e8c778;letter-spacing:.14em;font-weight:900;text-transform:uppercase;">Saju AI Consultation</div><span class="prem-title" style="display:block;margin-top:4px;color:#fff7df;font-size:1.04rem;line-height:1.35;font-weight:900;">명식이 답하는 사주 AI 상담</span><p style="font-size:0.82rem;color:rgba(255,247,223,.8);margin:5px 0 0;line-height:1.7;word-break:keep-all;">고민을 남기면 일간·월령·조후·십성의 결을 따라 지금 필요한 흐름과 선택의 방향이 상담문으로 열립니다.</p></div></div>'
-    +     '<span style="white-space:nowrap;font-size:0.72rem;color:#2a2117;border:1px solid rgba(244,216,142,.68);background:linear-gradient(135deg,#fde8a4,#c6923a);padding:7px 11px;border-radius:999px;font-weight:900;box-shadow:0 10px 20px rgba(0,0,0,.18);">결제 · 월정석 · 이용권</span>'
+    +     '<span style="white-space:nowrap;font-size:0.72rem;color:#2a2117;border:1px solid rgba(244,216,142,.68);background:linear-gradient(135deg,#fde8a4,#c6923a);padding:7px 11px;border-radius:999px;font-weight:900;box-shadow:0 10px 20px rgba(0,0,0,.18);">1회 ' + sajuAiPriceLabel + '</span>'
     +   '</div>'
     +   '<textarea data-saju-ai-question maxlength="1000" placeholder="' + _sajuEngineText("se_6277_attr_placeholder") + '" style="position:relative;width:100%;min-height:116px;border-radius:8px;border:1px solid rgba(230,196,112,.55);background:rgba(255,252,243,.94);color:#24170c;padding:13px 14px;font-size:0.88rem;line-height:1.68;resize:vertical;box-sizing:border-box;box-shadow:inset 0 1px 12px rgba(44,29,12,.09),0 0 0 1px rgba(255,244,205,.18);"></textarea>'
     +   '<div style="position:relative;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;">'
     +     '<span data-saju-ai-count style="font-size:0.72rem;color:rgba(255,247,223,.68);font-weight:800;">0 / 1000</span>'
-    +     '<span style="font-size:0.72rem;color:rgba(255,247,223,.72);font-weight:700;">질문 5자 이상 · 결제 확인 뒤 상담문 생성</span>'
+    +     '<span style="font-size:0.72rem;color:rgba(255,247,223,.72);font-weight:700;">질문 5자 이상 · 1회 ' + sajuAiPriceLabel + ' · 결제 확인 뒤 상담문 생성</span>'
     +   '</div>'
     +   '<div style="position:relative;margin-top:13px;">'
     +     '<div style="font-size:0.72rem;color:#e8c778;font-weight:900;margin-bottom:7px;letter-spacing:.04em;">질문이 향하는 자리</div>'
@@ -7606,7 +7613,7 @@ function _buildSajuQuestionPromptHtml() {
     +     '<div data-saju-ai-basis-live style="display:none;margin-top:10px;max-height:280px;overflow-y:auto;"></div>'
     +   '</div>'
     +   '<div style="position:relative;display:flex;gap:8px;flex-wrap:wrap;margin-top:13px;">'
-    +     '<button data-saju-ai-generate type="button" style="background:linear-gradient(135deg,#ffe6a3,#c89236);color:#1e160c;border:1px solid rgba(255,234,166,.78);padding:11px 15px;border-radius:8px;font-size:0.82rem;font-weight:900;cursor:pointer;box-shadow:0 12px 24px rgba(0,0,0,.24);">사주 AI 상담 받기</button>'
+    +     '<button data-saju-ai-generate type="button" style="background:linear-gradient(135deg,#ffe6a3,#c89236);color:#1e160c;border:1px solid rgba(255,234,166,.78);padding:11px 15px;border-radius:8px;font-size:0.82rem;font-weight:900;cursor:pointer;box-shadow:0 12px 24px rgba(0,0,0,.24);">' + sajuAiPriceLabel + '으로 사주 AI 상담 받기</button>'
     +     '<button data-saju-ai-regenerate type="button" style="display:none;background:rgba(255,255,255,.08);color:#fff7df;border:1px solid rgba(230,196,112,.44);padding:11px 13px;border-radius:8px;font-size:0.78rem;font-weight:800;cursor:pointer;">다시 상담 받기</button>'
     +     '<button data-saju-ai-resume type="button" style="display:none;background:rgba(255,255,255,.08);color:#fff7df;border:1px solid rgba(230,196,112,.44);padding:11px 13px;border-radius:8px;font-size:0.78rem;font-weight:800;cursor:pointer;">이전 상담문 이어보기</button>'
     +   '</div>'

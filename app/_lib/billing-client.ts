@@ -461,13 +461,16 @@ const BILLING_FETCH_DEFAULT_TIMEOUT_MS = 20000;
 const BILLING_FETCH_CHECKOUT_TIMEOUT_MS = 40000;
 const BILLING_FETCH_CONFIRM_TIMEOUT_MS = 60000;
 const PAYMENT_CHOICE_IN_FLIGHT_TTL_MS = 45000;
-export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-0a20fb3db40a";
+export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-f6af254271b7";
 // 🔴 이용권 스냅샷의 상수·읽기·쓰기·판정은 전부 js/core/pass-verdict.js 가 소유한다.
 // 셸(index.html)·독립 정적(js/destiny-profile.js)과 **같은 localStorage 키**를 공유하므로 값이 갈리면
 // 같은 사용자가 어느 런타임에서 클릭했느냐에 따라 판정이 달라지고, 한쪽이 만료로 보고 지운 캐시가
 // 다른 쪽에서도 사라진다(실제로 active TTL 이 5분/15분으로 갈라져 있었다). 여기에 사본을 두지 말 것.
 
 const BILLING_FEATURE_KEY_ALIASES: Record<string, string> = {
+  saju_ai_prompt_generator: "saju_ai_question_prompt",
+  "saju-ai-prompt": "saju_ai_question_prompt",
+  "ziwei-ai-prompt": "ziwei_ai_prompt_generator",
   gotoziweipremium: "ziwei-ai-consultation",
   gotoastrologypremium: "astrology-ai-consultation",
   gotosukuyopremium: "sukuyo-compatibility-ai",
@@ -556,9 +559,9 @@ export function normalizeEntitlementPlan(value: unknown): EntitlementPlan {
 
 function maxCoinCoveredForPlan(plan: EntitlementPlan): number | null {
   if (plan === "FAMILY") return null;
-  if (plan === "VVIP") return 100;
-  if (plan === "PREMIUM") return 50;
-  if (plan === "STANDARD") return 30;
+  if (plan === "VVIP") return 200;
+  if (plan === "PREMIUM") return 100;
+  if (plan === "STANDARD") return 50;
   return 0;
 }
 

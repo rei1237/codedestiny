@@ -2696,7 +2696,11 @@ function normalizeDraftResult(candidate, request) {
   }
   const normalizedEmotionAnalysis = isSajuFamilyMode(request.consultationMode)
     ? buildSajuCategoryGauges(request, mergedSaju)
-    : Array.isArray(draft.emotionAnalysis) && draft.emotionAnalysis.length ? draft.emotionAnalysis : fallback.emotionAnalysis;
+    : Array.isArray(draft.emotionAnalysis)
+      && draft.emotionAnalysis.length
+      && (request.consultationMode !== "tarot" || !isAllZeroEmotionAnalysis(draft.emotionAnalysis))
+      ? draft.emotionAnalysis
+      : fallback.emotionAnalysis;
   // 클라 초안에는 카드별 detail이 없다. LLM이 통째로 실패해 이 초안이 그대로 degrade 전달될 때도
   // 카드별 섹션이 비지 않도록 여기서 결정론 detail을 채워 둔다.
   const draftSpreadCards = (Array.isArray(draft.tarotSpreadCards) && draft.tarotSpreadCards.length ? draft.tarotSpreadCards : fallback.tarotSpreadCards)
@@ -2748,13 +2752,29 @@ function mergeLine(candidate, fallbackText, maxLength = 160) {
 }
 
 function mergePercentValue(candidate, fallbackValue) {
-  const numeric = Math.round(Number(String(candidate ?? "").replace(/[^\d.-]/g, "")));
+  const raw = String(candidate ?? "").replace(/[^\d.-]/g, "").trim();
+  if (!raw) return fallbackValue;
+  const numeric = Math.round(Number(raw));
   if (!Number.isFinite(numeric)) return fallbackValue;
   return Math.min(100, Math.max(0, numeric));
 }
 
-function mergeEmotionAnalysis(candidates, fallbackItems) {
-  const list = Array.isArray(candidates) ? candidates : [];
+function isAllZeroEmotionAnalysis(items) {
+  return Array.isArray(items)
+    && items.length > 0
+    && items.every((item) => {
+      const numeric = Number(String(item?.value ?? "").replace(/[^\d.-]/g, ""));
+      return Number.isFinite(numeric) && numeric === 0;
+    });
+}
+
+function mergeEmotionAnalysis(candidates, fallbackItems, treatAllZeroAsMissing = false) {
+  // 타로 결과의 게이지는 결정론 폴백도 모두 0이 아니므로, 전부 0인 후보는
+  // LLM이 수치를 채우지 못한 것으로 보고 후보 전체를 무시한다. 개별 0은
+  // 기존 병합 규칙을 유지하되, 이 예외만으로 모든 게이지가 0으로 덮이는 것을 막는다.
+  const list = treatAllZeroAsMissing && isAllZeroEmotionAnalysis(candidates)
+    ? []
+    : (Array.isArray(candidates) ? candidates : []);
   const merged = fallbackItems.map((fallbackItem, index) => {
     const candidate = list[index] && typeof list[index] === "object" ? list[index] : {};
     return {
@@ -2936,7 +2956,11 @@ function mergeLlmResult(fallback, parsed) {
     sukuyoCompatibility: mergeFortuneTeaSukuyoCompatibility(fallback.sukuyoCompatibility, safeParsed.sukuyoCompatibility),
     // 사주 궁합 두 사람 명식 스냅샷은 결정적 계산값이므로 LLM 출력으로 덮지 않고 fallback 구조를 보존한다.
     sajuCompatibility: fallback.sajuCompatibility,
-    emotionAnalysis: mergeEmotionAnalysis(safeParsed.emotionAnalysis, fallback.emotionAnalysis),
+    emotionAnalysis: mergeEmotionAnalysis(
+      safeParsed.emotionAnalysis,
+      fallback.emotionAnalysis,
+      fallback.consultationMode === "tarot",
+    ),
     yeoniReading: {
       ...fallback.yeoniReading,
       intro: mergeProse(safeParsed.yeoniReading?.intro, fallback.yeoniReading.intro),

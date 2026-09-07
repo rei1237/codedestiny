@@ -15,7 +15,7 @@ const withBundleAnalyzer = createBundleAnalyzer({
 // correctly parses their CommonJS wrapper as a non-module and then rejects
 // that injected ESM-only syntax.  Keep the shared legacy boundary out of the
 // refresh transform; webpack still bundles its plain CommonJS exports.
-const LEGACY_SHARED_BROWSER_MODULE = /[\\/]js[\\/]core[\\/](?:checkout-entry|pass-verdict|payment-service)\.js$/;
+const LEGACY_SHARED_BROWSER_MODULE = /[\\/]js[\\/]core[\\/](?:app-context|checkout-entry|pass-verdict|payment-service)\.js$/;
 
 function isRefreshOrSwcRule(rule) {
   const loaders = Array.isArray(rule?.use) ? rule.use : [rule?.use];
@@ -92,6 +92,7 @@ function isLocalApiBase(rawValue) {
 }
 
 function resolveDevelopmentApiBase() {
+  if (process.env.CD_MOCK_DEV === "1") return `http://127.0.0.1:${process.env.LOCAL_DEV_AUTH_API_PORT}`;
   return firstNonEmpty([
     normalizeBaseUrl(process.env.NEXT_PUBLIC_AUTH_API_BASE_URL),
     normalizeBaseUrl(process.env.NEXT_PUBLIC_API_BASE_URL),
@@ -106,6 +107,7 @@ function resolveDevelopmentApiBase() {
 }
 
 function resolvePublicApiBase() {
+  if (process.env.CD_MOCK_DEV === "1") return "";
   const apiBase = firstNonEmpty([
     normalizeBaseUrl(process.env.NEXT_PUBLIC_API_URL),
     normalizeBaseUrl(process.env.NEXT_PUBLIC_AUTH_API_BASE_URL),
@@ -151,6 +153,8 @@ function createNextConfig(phase) {
   const isProductionBuild = !isDevelopmentServer && process.env.NODE_ENV === "production";
 
   const config = {
+    // A nested worktree must not inherit its parent checkout's dependency root.
+    outputFileTracingRoot: fileURLToPath(new URL('.', import.meta.url)),
     output: isProductionBuild ? "export" : undefined,
     // deploymentId(?dpl=) 금지 — 2026-07-07 에 "엣지 404 오염 차단"을 노리고 넣었지만
     // 정확히 반대로 작동했다. 배포마다 모든 에셋 URL 이 새 캐시 키가 되어 전환 순간 전부
@@ -210,14 +214,24 @@ function createNextConfig(phase) {
   };
 
   if (isDevelopmentServer) {
+    const mockDev = process.env.CD_MOCK_DEV === "1";
+    if (mockDev) {
+      // Block hard-coded browser API/PG fallbacks, even if a local fixture is missing.
+      config.headers = async () => [{ source: "/:path*", headers: [{
+        key: "Content-Security-Policy",
+        value: "connect-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; frame-src 'self'; form-action 'self'; object-src 'none'",
+      }] }];
+    }
     config.rewrites = async () => {
       const apiBase = resolveDevelopmentApiBase();
-      return [
+      const apiRewrites = [
         {
           source: "/api/:path*",
           destination: `${apiBase}/api/:path*`,
         },
       ];
+      // beforeFiles also intercepts existing app/api routes (which can use live DB).
+      return mockDev ? { beforeFiles: apiRewrites, afterFiles: [], fallback: [] } : apiRewrites;
     };
   }
 
