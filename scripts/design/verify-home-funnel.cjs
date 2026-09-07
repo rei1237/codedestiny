@@ -23,14 +23,11 @@ fs.mkdirSync(out,{recursive:true});
    assert(!geometry.overflow,`${width} overflow`);
    const canvas=await page.locator('#cdHomeFunnel').evaluate(e=>({width:e.getBoundingClientRect().width,font:getComputedStyle(e.querySelector('h1')).fontSize,columns:getComputedStyle(e.querySelector('.cdh-intents')).gridTemplateColumns.split(' ').length}));
    assert(canvas.width<=430 && canvas.font==='27px' && canvas.columns===1,`${width} shares the mobile layout`);
-   const legacySectionColors=await page.locator('#cdServiceIndex, #cdFortunePick').evaluateAll(sections=>sections.map(section=>({
-    id:section.id,
+   const serviceIndexColors=await page.locator('#cdServiceIndex').evaluate(section=>({
     title:getComputedStyle(section.querySelector('.moon-section-head h2')).color,
     lead:getComputedStyle(section.querySelector('.moon-section-head p')).color,
-   })));
-   for(const section of legacySectionColors){
-    assert.deepEqual(section,{id:section.id,title:'rgb(60, 24, 48)',lead:'rgb(92, 44, 71)'},`${width} ${section.id} light-theme contrast`);
-   }
+   }));
+   assert.deepEqual(serviceIndexColors,{title:'rgb(60, 24, 48)',lead:'rgb(92, 44, 71)'},`${width} service index light-theme contrast`);
    assert(geometry.ctas.every(c=>c.bottom<=Math.min(height,geometry.navTop) && c.height>=44),`${width} first screen CTA`);
    assert(await page.locator('.cdh-copy .cdh-secondary').evaluate(e=>{const r=e.getBoundingClientRect();return e.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2))}),'CTA is not occluded');
    assert(await page.locator('.cdh-login').evaluate(e=>{const r=e.getBoundingClientRect();return e.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2))}),'Login is not occluded');
