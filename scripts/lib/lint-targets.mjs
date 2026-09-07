@@ -15,7 +15,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const LINTABLE = /\.(c|m)?js$|\.(c|m)?tsx?$/;
+const LINTABLE = /\.(?:[cm]?js|jsx|[cm]?ts|tsx)$/;
 
 /**
  * @param {string[]} files 변경 파일 목록(리포 루트 기준 상대 경로)
@@ -41,13 +41,14 @@ export function selfTestLintTargets() {
   // 문자를 붙이므로, 픽스처도 같은 방식으로 만들어야 플랫폼마다 결과가 갈리지 않는다.
   const root = "/repo";
   const present = new Set(
-    ["a.ts", "b.tsx", "c.js", "d.mjs", "e.cjs"].map((file) => path.resolve(root, file)),
+    ["a.ts", "b.tsx", "c.js", "d.mjs", "e.cjs", "f.jsx", "g.mts", "h.cts"].map((file) => path.resolve(root, file)),
   );
   const exists = (absolutePath) => present.has(absolutePath);
   const run = (files) => lintTargets(files, { root, exists });
 
   const cases = [
     [run(["a.ts", "b.tsx", "c.js", "d.mjs", "e.cjs"]).length === 5, "린트 가능한 확장자는 전부 남는다"],
+    [run(["f.jsx", "g.mts", "h.cts"]).length === 3, "JSX와 ESM/CommonJS TypeScript를 관련 검사에서 누락하지 않는다"],
     [run(["docs/guide.md", "styles/site.css", "public/hero.webp"]).length === 0, "린트 대상이 아닌 확장자는 걸러진다"],
     [run(["deleted.ts"]).length === 0, "삭제된 파일은 eslint 에 넘기지 않는다"],
     [run(["", null, undefined]).length === 0, "빈 값은 무시한다"],

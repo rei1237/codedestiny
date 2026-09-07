@@ -239,8 +239,15 @@ beforeAll(async () => {
 });
 
 beforeEach(() => {
+  // These immediate LLM fixtures verify card content, not deadline behavior.
+  jest.useFakeTimers({ doNotFake: ['Date', 'performance', 'nextTick', 'queueMicrotask', 'setImmediate', 'clearImmediate'] });
   fakeCollections.clear();
   callGeminiTextMock.mockReset();
+});
+
+afterEach(() => {
+  jest.clearAllTimers();
+  jest.useRealTimers();
 });
 
 async function postConsult(body) {
@@ -301,6 +308,22 @@ describe("운명 찻집 타로 — 카드별 해석", () => {
     expect(status).toBe(200);
     // 품질 게이트는 실패하지만(degrade), 결제된 결과는 버리지 않고 카드별 폴백 해석과 함께 전달된다.
     expectEveryCardExplained(payload.result, 5);
+  });
+
+  test("LLM이 타로 게이지를 모두 0으로 보내도 결정론 폴백 수치를 유지한다", async () => {
+    const zeroGaugePayload = buildLlmPayload("three");
+    zeroGaugePayload.emotionAnalysis.forEach((item) => { item.value = 0; });
+    callGeminiTextMock.mockImplementation(async () => ({
+      ok: true,
+      provider: "gemini",
+      model: "gemini-2.5-flash",
+      text: JSON.stringify(zeroGaugePayload),
+    }));
+
+    const { status, payload } = await postConsult(consultBody({ spread: "three", attemptId: "cardwise-zero-gauges" }));
+
+    expect(status).toBe(200);
+    expect(payload.result.emotionAnalysis.map((item) => item.value)).toEqual([66, 72, 61, 58]);
   });
 
   test("반복된 장문 타로 상세는 전달 전에 다시 작성된다", async () => {

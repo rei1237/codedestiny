@@ -9,6 +9,7 @@ playwright-report/
 test-results/
 .wrangler/
 build-cache/
+.cache/
 .deploy-state/
 
 # 빌드 스탬프(HEAD sha + buildTime). scripts/write-version-json.mjs 가 매 빌드마다 새로 쓴다.
@@ -29,7 +30,8 @@ dev_log.txt
 .DS_Store
 Thumbs.db
 
-.vscode/
+.vscode/*
+!.vscode/settings.json
 .cursor/
 
 # Local worktree/session coordination (never part of feature PRs)

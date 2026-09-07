@@ -145,8 +145,16 @@ beforeAll(async () => {
 });
 
 beforeEach(() => {
+  // LLM resolves immediately in this suite; its losing group deadline must not
+  // keep the Node test process alive. This suite checks content, not timeouts.
+  jest.useFakeTimers({ doNotFake: ['Date', 'performance', 'nextTick', 'queueMicrotask', 'setImmediate', 'clearImmediate'] });
   fakeCollections.clear();
   callGeminiTextMock.mockReset();
+});
+
+afterEach(() => {
+  jest.clearAllTimers();
+  jest.useRealTimers();
 });
 
 describe("운명 찻집 사주 — 시기 근거 테이블", () => {

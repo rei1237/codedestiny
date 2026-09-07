@@ -9,9 +9,9 @@
 @keyframes dotPulse{0%,100%{transform:translateY(0);opacity:.35}50%{transform:translateY(-3px);opacity:1}}@media (max-width:560px){.header{min-height:66px}.timeline{padding:14px 12px 136px}.welcomeCard{min-height:166px;padding:18px}.welcomePig{right:-19px;width:154px;height:154px}.welcomeCard>div{max-width:20rem}.message{max-width:94%}.bubble{font-size:.94rem}.characterPicker{gap:6px}.characterPicker button{min-height:78px;padding:9px 8px;column-gap:5px}.characterPicker button>span{font-size:1.08rem}.characterPicker strong{font-size:.78rem}.characterPicker small{font-size:.66rem;line-height:1.2}}@media (prefers-reduced-motion:reduce){.room *{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
 
 /* ────────────────────────────────────────────────────────────────────────────
-   두 상담자 = 같은 구조, 다른 색 계열 (DESIGN.md "두 페르소나를 가르는 축은 밝기가
-   아니라 색상 계열"). 값은 디자인 토큰(styles/theme-tokens.css)에서 가져오고, 이 화면이
-   자체 팔레트를 다시 정의하지 않는다. 폴백은 토큰이 없는 문맥(정적 미리보기)용이다.
+   대화형 운명 상담은 연이의 기존 상담 CSS를 공통으로 사용한다. 화면 진입 시 셸의
+   네오 테마 토큰을 상속하면 연보라색 표면이 섞여 가독성이 무너지므로, 이 화면의
+   색상은 연이 팔레트로 고정한다.
 
    🔴 표면·텍스트·강조색은 반드시 한 세트로 함께 바뀐다. 배경만 바꾸고 글자색을 두면
    가독성이 무너진다(PRODUCT.md anti-reference: 반쪽 테마 오버라이드).
@@ -23,12 +23,12 @@
   grid-template-columns: minmax(0, 1fr);
 
   /* 연이 — 로즈/크림. 밝은 표면이 기본. */
-  --ink: var(--cd-text, #3c1830);
-  --muted: var(--cd-text-muted, #70445c);
-  --rose: var(--cd-accent, #b31955);
-  --rose-soft: var(--cd-accent-soft, #f4bed1);
-  --gold: var(--cd-gold, #ead089);
-  --line: var(--cd-border, rgba(179, 25, 85, .16));
+  --ink: #3c1830;
+  --muted: #70445c;
+  --rose: #b31955;
+  --rose-soft: #f4bed1;
+  --gold: #ead089;
+  --line: rgba(179, 25, 85, .16);
   --bubble: #fff;
   --bubble-mine-ink: #fff;
   --halo: rgba(179, 25, 85, .12);
@@ -41,34 +41,9 @@
   transition: background-color 260ms cubic-bezier(.22, 1, .36, 1), color 260ms cubic-bezier(.22, 1, .36, 1);
 }
 
-/* 네오 — 미드나잇 잉크 + 트와일라잇 바이올렛. 아이스블루는 강조가 아니라 글로우 보조색이라
-   본문에는 쓰지 않는다(One Accent Rule: 모드당 강조색은 하나). */
-.room[data-character="neo"] {
-  --ink: #f4eeff;
-  --muted: #cbb6ff;
-  --rose: #c4b5fd;
-  --rose-soft: rgba(167, 139, 250, .26);
-  --gold: #e8d5a3;
-  --line: rgba(196, 181, 253, .32);
-  --bubble: rgba(24, 20, 50, .96);
-  --bubble-mine-ink: #0a0818;
-  --halo: rgba(125, 211, 252, .22);
-  --focus-ring: rgba(125, 211, 252, .55);
-
-  background:
-    radial-gradient(circle at 82% 10%, rgba(125, 211, 252, .16), transparent 20rem),
-    radial-gradient(circle at 14% 0%, rgba(167, 139, 250, .26), transparent 28rem),
-    linear-gradient(168deg, #0a0818 0%, #13102a 52%, #090718 100%);
-  color: var(--ink);
-}
-
 .header {
   box-shadow: 0 1px 0 rgba(255, 255, 255, .86), 0 10px 28px rgba(150, 72, 104, .06);
   background: color-mix(in srgb, var(--bubble) 88%, transparent);
-}
-
-.room[data-character="neo"] .header {
-  box-shadow: 0 1px 0 rgba(196, 181, 253, .1), 0 10px 28px rgba(4, 2, 16, .5);
 }
 
 .backButton,
@@ -82,9 +57,6 @@
 .resetButton { color: var(--rose); }
 .brand span,
 .policy { color: var(--muted); }
-
-.room[data-character="neo"] .backButton:hover,
-.room[data-character="neo"] .resetButton:hover { background: rgba(196, 181, 253, .12); }
 
 .backButton:focus-visible,
 .resetButton:focus-visible,
@@ -116,7 +88,7 @@
   border-color: rgba(179, 25, 85, .24);
   background:
     radial-gradient(circle at 77% 18%, rgba(255, 245, 198, .72), transparent 15%),
-    linear-gradient(125deg, #fffdfd 0%, #fff0f6 62%, #fbeeff 100%);
+    linear-gradient(125deg, #fffdfd 0%, #fff0f6 62%, #fff8ed 100%);
   box-shadow: 0 18px 38px -26px rgba(135, 49, 82, .56), inset 0 1px 0 rgba(255, 255, 255, .92);
 }
 
@@ -142,18 +114,6 @@
 }
 .welcomeCard span { max-width: 34ch; font-size: .92rem; color: var(--muted); word-break: keep-all; }
 .welcomeCard p { color: var(--rose); }
-
-.room[data-character="neo"] .welcomeCard {
-  border-color: rgba(196, 181, 253, .3);
-  background:
-    radial-gradient(circle at 92% 4%, rgba(125, 211, 252, .16), transparent 22%),
-    linear-gradient(125deg, #171334 0%, #14112c 58%, #0d0a22 100%);
-  box-shadow: 0 20px 44px -28px rgba(2, 0, 12, .9), inset 0 1px 0 rgba(196, 181, 253, .16);
-}
-
-/* 링 장식은 네오 캐릭터 머리/갈기와 겹쳐 보여 지저분해진다 — 네오 아바타는 이미 자체
-   drop-shadow 글로우가 있어 이 원형 테두리 없이도 카드에서 떠 보인다. */
-.room[data-character="neo"] .welcomeCard::after { display: none; }
 
 /* ── 상담자 아바타 ─────────────────────────────────────────────────────────
    표정 시트 한 장에서 셀 하나를 잘라 쓴다(app/fortune-chat/personaSprite.ts).
@@ -182,11 +142,6 @@
 .avatar_md { width: 54px; height: 54px; }
 .avatar_lg { width: 132px; height: 132px; border-radius: 28px; }
 
-.room[data-character="neo"] .avatar {
-  background-color: rgba(125, 211, 252, .12);
-  box-shadow: inset 0 0 0 1px rgba(196, 181, 253, .34), 0 0 18px -6px rgba(125, 211, 252, .5);
-}
-
 /* 웰컴 카드의 큰 상담자 — 숨쉬듯 아주 조금만 움직인다.
    원반 배경은 여기서 걷어낸다. 카드 위에서는 캐릭터가 그대로 서 있어야 한다.
    (페르소나별 .avatar 규칙보다 선택자를 무겁게 잡아야 원반이 되살아나지 않는다.) */
@@ -208,10 +163,6 @@
 .room .welcomeCard .avatar_lg :global(img) {
   object-fit: contain;
   object-position: 50% 100%;
-}
-
-.room[data-character="neo"] .welcomeCard .avatar_lg {
-  filter: drop-shadow(0 16px 22px rgba(2, 0, 12, .6)) drop-shadow(0 0 26px rgba(125, 211, 252, .28));
 }
 
 @keyframes personaBreathe {
@@ -250,14 +201,6 @@
   border-color: var(--rose);
   background: linear-gradient(135deg, color-mix(in srgb, var(--rose-soft) 26%, var(--bubble)), var(--bubble));
   box-shadow: 0 0 0 3px var(--halo), inset 0 1px 0 rgba(255, 255, 255, .92);
-}
-
-.room[data-character="neo"] .characterPicker button {
-  box-shadow: inset 0 1px 0 rgba(196, 181, 253, .12);
-}
-
-.room[data-character="neo"] .characterPicker button[aria-pressed=true] {
-  box-shadow: 0 0 0 3px var(--halo), 0 0 24px -10px rgba(125, 211, 252, .8);
 }
 
 .message { gap: 9px; }
@@ -318,9 +261,6 @@
 .bubble details p { color: var(--muted); }
 .cta .bubble { background: color-mix(in srgb, var(--rose-soft) 16%, var(--bubble)); }
 
-.room[data-character="neo"] .bubble { box-shadow: 0 14px 30px -20px rgba(2, 0, 12, .9); }
-.room[data-character="neo"] .cta .bubble { background: color-mix(in srgb, rgba(125, 211, 252, .14) 60%, var(--bubble)); }
-
 /* 새 말풍선은 아래에서 살짝 올라오며 자리를 잡는다(도착을 알리는 모션). */
 .message { animation: bubbleArrive 320ms cubic-bezier(.22, 1, .36, 1) both; }
 
@@ -339,8 +279,6 @@
   background: color-mix(in srgb, var(--bubble) 92%, transparent);
   box-shadow: 0 -14px 30px rgba(150, 72, 104, .06);
 }
-
-.room[data-character="neo"] .composer { box-shadow: 0 -14px 30px rgba(2, 0, 12, .55); }
 
 .policy { display: flex; align-items: center; gap: 6px; }
 .policy::before { width: 7px; height: 7px; border-radius: 50%; background: var(--rose); content: ""; box-shadow: 0 0 0 3px var(--halo); }
@@ -420,9 +358,6 @@
 .birthGrid select:focus { border-color: var(--rose); outline: none; box-shadow: 0 0 0 3px var(--halo); }
 .birthReload { min-height: 44px; margin-top: 9px; border: 1px solid var(--line); border-radius: 999px; background: var(--bubble); padding: 0 12px; color: var(--rose); font: inherit; font-size: .76rem; font-weight: 800; cursor: pointer; }
 .birthReload:hover { background: color-mix(in srgb, var(--rose-soft) 20%, var(--bubble)); }
-
-/* 네오의 날짜·시간 입력은 브라우저 기본 피커 아이콘이 검정이라 어두운 표면에서 사라진다. */
-.room[data-character="neo"] .birthGrid input::-webkit-calendar-picker-indicator { filter: invert(1) brightness(1.6); }
 
 @media (max-width:560px) {
   .timeline { gap: 13px; padding-top: 18px; }
