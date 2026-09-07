@@ -1,10 +1,10 @@
 ---
 status: active
 updated: 2026-09-07
-next: F1 은 PR #1736 으로 끝났다(머지 여부부터 확인). 다음은 F2 — 아래 F2 절의 실측을 근거로 사전 보고 7항목부터 낸다.
+next: F1(#1736 머지) · F2(#1742 머지 대기) 끝. 다음은 F3 — 아래 F3 절의 실측을 근거로 사전 보고 7항목부터 낸다.
 ---
 
-# 결제 차감 후 결과 미전달 — 잔여 결함 (F1 수정 PR 대기, F2~F5 미착수)
+# 결제 차감 후 결과 미전달 — 잔여 결함 (F1·F2 수정 완료, F3~F5 미착수)
 
 - 작성 2026-09-07
 - 선행: PR #1728(지연차감 register 증빙 5갈래 보강) 머지 완료(`f979d8ea4`). 이 문서는 **그 다음에 남은 것**이다.
@@ -13,7 +13,7 @@ next: F1 은 PR #1736 으로 끝났다(머지 여부부터 확인). 다음은 F2
 
 ## 다음 세션 첫 문장
 
-"**F1 은 PR #1736 으로 끝났다**(머지 여부부터 확인). 다음은 **F2(카드 단건 실패가 실행 등록 자체를 건너뜀)** 다 — 아래 F2 절의 실측을 근거로 사전 보고 7항목부터 낸다. `/effort high` 와 워크트리 필수."
+"**F1 은 #1736, F2 는 #1742 로 끝났다**(#1742 머지 여부부터 확인). 다음은 **F3(`/deferred/cancel` 이 아무것도 복원하지 않는다)** 다 — 아래 F3 절의 실측을 근거로 사전 보고 7항목부터 낸다. `/effort high` 와 워크트리 필수. 🔴 F3 은 `billing.js` 가 7147/7148 이라 헬퍼 분리가 전제다."
 
 ## ~~F1~~ ✅ 수정 완료 — PR #1736 (`fix/moonstone-auto-refund-v2`, 머지 대기)
 
@@ -43,14 +43,32 @@ next: F1 은 PR #1736 으로 끝났다(머지 여부부터 확인). 다음은 F2
 
 </details>
 
-## F2 (다음 차례 · **실측 확인 완료**) 카드 단건 실패는 실행 등록 자체를 건너뛴다
+## ~~F2~~ ✅ 수정 완료 — PR #1742 (`fix/card-single-payment-auto-refund`, 머지 대기)
 
-2026-09-07 두 파일을 직접 열어 확인했다. `startRefundableExecution` 이 **첫 줄에서** 빠진다:
-`astrology-ai.js:1417` · `neo-operation-room.js:1216` 모두
-`if (access.source !== "billing-gate" || !access.executionSourceTransactionId) return null;`.
-카드는 `source:"payment"` 라 실행이 아예 등록되지 않고, 실패해도 `failServiceExecution` 이 404 로 끝나
-환불·기록이 0. **월정석이라도 `ctx.transactionId` 가 비면 같은 줄에서 빠진다** — F1 이 구제할 수 있는
-범위도 이 조건만큼 좁다. 정본 짝은 `worker/routes/fortune.js:1242`(`autoRefundSinglePaymentDeliveryFailure`).
+**고친 형태**: 공유 모듈을 **0줄** 건드리지 않고, 두 라우트(`astrology-ai` · `neo-operation-room`)가
+생성 실패 `catch` 에서 정본 `autoRefundSinglePaymentDeliveryFailure` 를 직접 부른다. 카드 갈래가
+`access.paymentDocId` 에 **서버가 좁혀 찾은** Payment `_id` 를 싣고, 환불 직전에
+`{_id, userId, featureKey, status}` 로 다시 조회한다. 환불되면 실패 문구를 `CARD_REFUNDED_MESSAGE` 로
+바꾼다(기존 문구가 "결제 권한은 보존"이라 환불 후 그대로 쓰면 사용자가 결제창을 다시 만난다).
+회귀 테스트 `__tests__/worker/card-single-payment-auto-refund.test.js`(변이로 무는 것 확인).
+
+🔴 **작업 중 찾은 두 번째 결함 — 다른 축에도 적용된다.** 카드 실행을 등록**했더라도** 정산기의 카드
+갈래 `runPaymentCancel`(`service-execution-task.js:1000-1002`)은 결제 상태를 `success|fulfilled` 로만
+받는데 **V2 카드 결제의 종착 상태는 `"paid"`** 다(`payments/orders.js:121,191` `markOrderPaid`).
+즉 `ServiceExecutionTransaction` 경유로 카드를 환불하는 **모든** 라우트가 조용히 skip 된다(미전수).
+이 PR 은 그 갈래를 우회했을 뿐 고치지 않았다.
+
+🔴 **알고 받은 대가**: 환불하면 `hasPaidPayment` 가 그 결제를 못 찾으므로 **같은 requestId 무료
+재시도가 닫힌다**. `fortune.js` 의 2-스트라이크(`resolveSajuAIPromptFailureBilling`)를 들여올지는
+미결이다.
+
+### F2 잔여 (후속 과제)
+
+- **월정석이라도 `ctx.transactionId` 가 비면 같은 줄에서 빠진다** — F1 이 구제할 수 있는 범위도 이
+  조건만큼 좁다. 이 PR 은 카드 축만 고쳤다.
+- 위 `runPaymentCancel` 의 `paid` 미수용 — 공유 모듈 수정이라 별도 RED 축이다.
+- `neo-operation-room.js:1602` 의 **생성 전** 차트 계산 실패(422)는 그대로 뒀다 — 결제가 남고 같은 키
+  재시도가 무료라 지금 형태가 맞다.
 
 ## F3 (중간 · 부분 실측) `/deferred/cancel` 이 아무것도 복원하지 않는다
 
@@ -87,6 +105,9 @@ CI `build` 잡이 잡으므로 그 한 줄은 무시한다.
 
 ## 미검증 · 남은 구멍
 
+- `astrology-ai` 클라 재시도 키(2026-09-07 실측): `AstrologyAiClient.tsx:1767` 이 `idempotencyKeyRef` 를
+  **재사용**하고 `reset():1876` 만 새로 만든다 → 실패 직후 제자리 재시도는 무료였다(F2 가 닫은 것이 이것).
+  페이지를 새로고침하면 새 키라 무료 재시도가 애초에 없었다.
 - **런타임 재현 0건.** 전부 정적 판독이다. DB 조회도 안 했으므로 실제 피해 건수와 지금 `refund_failed` 로 굳은 실행이 있는지는 모른다.
 - 환불 write 로 **추정**만 하고 본문을 열지 않은 곳: `ziwei-ai.js:2092/2104` · `vedic-ai.js:731/743` · `sukuyo-compatibility-ai.js:1675/1687` · `ziwei-island-ai.js:429/436` · `love-secret-ai.js:964/981/1015` · `life-book-ai.js:1787-1825` · `naming-prompt.js:1441-1488`.
 - 유료 여부조차 확인 안 한 라우트: `pet-saju-ai` · `dream` · `oracle` · `palm` · `celestial-harmony` · `ziwei-island-report` · `ziwei-daehan` · `saju-new-year` · `destiny-flower` · `fpti` · `guardian-image` · `rpg` · `yoga-guru` · `sibyl` · `music`.
