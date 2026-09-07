@@ -126,6 +126,7 @@ export type FortuneTeaSajuDaewoonRow = {
   label?: string;
   startAge?: number;
   startYear?: number;
+  endYear?: number;
   isCurrent?: boolean;
 };
 

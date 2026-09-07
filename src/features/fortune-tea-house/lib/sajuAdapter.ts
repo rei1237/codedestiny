@@ -111,18 +111,37 @@ type SajuProfile = {
     yong?: unknown;
     hee?: unknown;
   };
-  daewoon?: {
-    directionLabel?: string;
-    list?: Array<{
-      index?: number;
-      pillar?: string;
-      startAgeDecimal?: number;
-      startAgeDisplay?: string;
-      endAgeDisplay?: string;
-      estimatedStartYear?: number;
-      estimatedEndYear?: number;
-    }>;
+  // 🔴 엔진(worker/lib/destiny-bias-engine.js)은 profile.daewoon 을 **평평한 레거시 배열**로 주고
+  // (ganji/startAge/endAge/startYear/endYear), .list 를 가진 구조체는 profile.sajuCoreResult.daewoon 에 둔다.
+  // 이 타입은 untyped JS 엔진 위에 손으로 쓴 구조 타입이라 typecheck 가 그 불일치를 잡지 못했다.
+  daewoon?:
+    | DaewoonListShape
+    | Array<{
+        index?: number;
+        ganji?: string;
+        startAge?: number;
+        endAge?: number;
+        startYear?: number;
+        endYear?: number;
+      }>;
+  sajuCoreResult?: {
+    daewoon?: DaewoonListShape;
   };
+};
+
+type DaewoonListShape = {
+  directionLabel?: string;
+  list?: DaewoonListRow[];
+};
+
+type DaewoonListRow = {
+  index?: number;
+  pillar?: string;
+  startAgeDecimal?: number;
+  startAgeDisplay?: string;
+  endAgeDisplay?: string;
+  estimatedStartYear?: number;
+  estimatedEndYear?: number;
 };
 
 // 월지 → 계절 (엔진 pillar가 한글/한자 어느 쪽이든 매칭되도록 양쪽 표기 수록)
@@ -148,10 +167,33 @@ function seasonFromMonthBranch(monthBranch: string) {
   return "";
 }
 
+// 엔진 반환 형태가 두 벌이라 어느 쪽이 와도 DaewoonListRow 로 맞춘다.
+// 정본은 sajuCoreResult.daewoon.list, 레거시는 평평한 profile.daewoon 배열이다.
+function resolveDaewoonRows(profile: SajuProfile): DaewoonListRow[] {
+  const structured = profile.sajuCoreResult?.daewoon?.list;
+  if (Array.isArray(structured) && structured.length) return structured;
+
+  const legacy = profile.daewoon;
+  if (Array.isArray(legacy) && legacy.length) {
+    return legacy.map((row) => ({
+      index: row?.index,
+      pillar: text(row?.ganji),
+      startAgeDecimal: Number.isFinite(Number(row?.startAge)) ? Number(row.startAge) : undefined,
+      startAgeDisplay: Number.isFinite(Number(row?.startAge)) ? `${row.startAge}세` : undefined,
+      endAgeDisplay: Number.isFinite(Number(row?.endAge)) ? `${row.endAge}세` : undefined,
+      estimatedStartYear: row?.startYear,
+      estimatedEndYear: row?.endYear,
+    }));
+  }
+
+  const nested = !Array.isArray(legacy) ? legacy?.list : undefined;
+  return Array.isArray(nested) ? nested : [];
+}
+
 // 엔진이 계산한 대운 목록을 프롬프트 factInput용 행으로 축약한다 (현재 대운 표시 포함).
 function buildDaewoonSnapshot(profile: SajuProfile): FortuneTeaSajuDaewoonRow[] | undefined {
-  const rows = profile.daewoon?.list;
-  if (!Array.isArray(rows) || !rows.length) return undefined;
+  const rows = resolveDaewoonRows(profile);
+  if (!rows.length) return undefined;
   const nowYear = new Date().getFullYear();
   const mapped = rows.slice(0, 8).map((row) => {
     const pillar = text(row?.pillar);
@@ -164,6 +206,7 @@ function buildDaewoonSnapshot(profile: SajuProfile): FortuneTeaSajuDaewoonRow[] 
       label: `${row?.index ? `${row.index}대운 ` : ""}${pillar}${ageRange ? ` ${ageRange}` : ""}${isCurrent ? " (현재 대운)" : ""}`,
       startAge: Number.isFinite(Number(row?.startAgeDecimal)) ? Math.floor(Number(row?.startAgeDecimal)) : undefined,
       startYear: Number.isFinite(startYear) ? startYear : undefined,
+      endYear: Number.isFinite(endYear) ? endYear : undefined,
       isCurrent: isCurrent || undefined,
     };
   }).filter((row) => row.pillar);
