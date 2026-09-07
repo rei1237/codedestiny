@@ -365,7 +365,7 @@
       "ziweiAdvancedTitle": "🌟 紫微斗数深掘り",
       "ziweiAdvancedDesc": "十二宮人生戦略 · 命宮深層分析",
       "vedicAstrologyTitle": "🪐 ヴェーダ占星術",
-      "vedicAstrologyDesc": "基本命盤無料 · 相性 KRW 5,000",
+      "vedicAstrologyDesc": "命盤無料 · 解釈 KRW 3,000 · 相性 KRW 5,000",
       "olympusOracleTitle": "⚡ オリンポス神託",
       "olympusOracleDesc": "12神と星座の運命判読",
       "destinyFlowerTitle": "🌸 運命の花",
@@ -12423,7 +12423,7 @@
         "What period am I passing through now?",
         "What is my innate temperament like?"
       ],
-      "fallbackCta": "See your Vedic reading for free"
+      "fallbackCta": "ヴェーダ命盤を計算する"
     },
     "astrology": {
       "tagline": "A basic astrology reading that calculates your birth chart and reads your disposition and the flow of your relationships from the placements.",

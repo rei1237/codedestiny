@@ -365,7 +365,7 @@
       "ziweiAdvancedTitle": "🌟 Advanced Zi Wei",
       "ziweiAdvancedDesc": "12-palace life strategy · deep Ming Palace analysis",
       "vedicAstrologyTitle": "🪐 Vedic Astrology",
-      "vedicAstrologyDesc": "Free base chart · Compatibility KRW 5,000",
+      "vedicAstrologyDesc": "Free chart · Reading KRW 3,000 · Compatibility KRW 5,000",
       "olympusOracleTitle": "⚡ Olympus Oracle",
       "olympusOracleDesc": "12 gods and zodiac destiny reading",
       "destinyFlowerTitle": "🌸 Destiny Flower",
@@ -12423,7 +12423,7 @@
         "What period am I passing through now?",
         "What is my innate temperament like?"
       ],
-      "fallbackCta": "See your Vedic reading for free"
+      "fallbackCta": "Calculate your Vedic chart"
     },
     "astrology": {
       "tagline": "A basic astrology reading that calculates your birth chart and reads your disposition and the flow of your relationships from the placements.",

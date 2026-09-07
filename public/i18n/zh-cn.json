@@ -365,7 +365,7 @@
       "ziweiAdvancedTitle": "🌟 紫微斗数进阶",
       "ziweiAdvancedDesc": "十二宫人生策略 · 命宫深度分析",
       "vedicAstrologyTitle": "🪐 吠陀占星",
-      "vedicAstrologyDesc": "基础命盘免费 · 合盘 KRW 5,000",
+      "vedicAstrologyDesc": "命盘免费 · 解读 KRW 3,000 · 合盘 KRW 5,000",
       "olympusOracleTitle": "⚡ 奥林匹斯神谕",
       "olympusOracleDesc": "12神与星座命运判读",
       "destinyFlowerTitle": "🌸 命运之花",
@@ -12423,7 +12423,7 @@
         "What period am I passing through now?",
         "What is my innate temperament like?"
       ],
-      "fallbackCta": "See your Vedic reading for free"
+      "fallbackCta": "计算我的吠陀命盘"
     },
     "astrology": {
       "tagline": "A basic astrology reading that calculates your birth chart and reads your disposition and the flow of your relationships from the placements.",

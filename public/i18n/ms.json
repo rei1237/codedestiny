@@ -365,7 +365,7 @@
       "ziweiAdvancedTitle": "🌟 Zi Wei Lanjutan",
       "ziweiAdvancedDesc": "Strategi hidup 12 istana · analisis mendalam Istana Ming",
       "vedicAstrologyTitle": "🪐 Astrologi Veda",
-      "vedicAstrologyDesc": "Carta asas percuma · Keserasian KRW 5,000",
+      "vedicAstrologyDesc": "Carta percuma · Tafsiran KRW 3,000 · Keserasian KRW 5,000",
       "olympusOracleTitle": "⚡ Orakel Olympus",
       "olympusOracleDesc": "Bacaan takdir 12 dewa dan zodiak",
       "destinyFlowerTitle": "🌸 Bunga Takdir",
@@ -12423,7 +12423,7 @@
         "What period am I passing through now?",
         "What is my innate temperament like?"
       ],
-      "fallbackCta": "See your Vedic reading for free"
+      "fallbackCta": "Calculate your Vedic chart"
     },
     "astrology": {
       "tagline": "A basic astrology reading that calculates your birth chart and reads your disposition and the flow of your relationships from the placements.",

@@ -365,7 +365,7 @@
       "ziweiAdvancedTitle": "🌟 उन्नत ज़ी वेई",
       "ziweiAdvancedDesc": "12-भाव जीवन रणनीति · मिंग पैलेस गहन विश्लेषण",
       "vedicAstrologyTitle": "🪐 वैदिक ज्योतिष",
-      "vedicAstrologyDesc": "मुफ़्त आधार चार्ट · अनुकूलता KRW 5,000",
+      "vedicAstrologyDesc": "मुफ़्त चार्ट · व्याख्या KRW 3,000 · अनुकूलता KRW 5,000",
       "olympusOracleTitle": "⚡ ओलिंपस ओरैकल",
       "olympusOracleDesc": "12 देव और राशि नियति पठन",
       "destinyFlowerTitle": "🌸 भाग्य फूल",
@@ -12423,7 +12423,7 @@
         "What period am I passing through now?",
         "What is my innate temperament like?"
       ],
-      "fallbackCta": "See your Vedic reading for free"
+      "fallbackCta": "Calculate your Vedic chart"
     },
     "astrology": {
       "tagline": "A basic astrology reading that calculates your birth chart and reads your disposition and the flow of your relationships from the placements.",
