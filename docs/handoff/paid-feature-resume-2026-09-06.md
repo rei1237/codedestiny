@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-07
-next: **재개 누락을 잡는 fail-closed 가드 신설 완료 — `npm run verify:paid-resume-wiring`.** 정적·독립정적·React 세 축 배선은 PR #1720·#1723 으로 닫혔고, 신년 타로 폴백 갈래도 배선했다(정적 42/42). 다음 세션이 할 일은 ① 아래 §자동 가드 의 `UNWIRED_BACKLOG` **3건**(FPTI 심화 리포트 · 운명 찻집 · 마스터 러브 코덱스 — 전부 React 축)을 배선해 하나씩 지우기 ② 아래 "인접 결함" 의 미해결분. 🔴 **새 유료 기능은 이제 가드가 잡는다** — 게이트 호출부에 `resume` 을 안 넘기면 `paid-flow-gates.yml` 이 실패한다.
+next: **유료 게이트 호출부 전수 배선 완료 — `npm run verify:paid-resume-wiring` 이 React 40/40 · 정적 42/42 로 통과한다.** `UNWIRED_BACKLOG` 는 비었다. 다음 세션이 할 일은 아래 "인접 결함" 의 미해결분뿐이다(특히 🔴 **운명 찻집 인페이지 재시도의 attemptId 재발급 → 재과금 가능성**). 🔴 **새 유료 기능은 이제 가드가 잡는다** — 게이트 호출부에 `resume` 을 안 넘기면 `paid-flow-gates.yml` 이 실패한다.
 ---
 
 # 유료 기능 결제 후 자동 개방 (리다이렉트 복귀)
@@ -225,18 +225,21 @@ React 배관도 같은 PR 에서 열렸다: `EnsurePaidAccessInput`/`BillingCoin
 - 옵션 백 환원: 객체 리터럴 · 식별자→초기화식 · 같은 파일 빌더의 return · `Object.assign` · 정적으로 풀리는 스프레드 · **삼항 양 갈래**(`resume ? { resume } : undefined`) · **나중 대입**(`opts.resume = resume`). 등록기·서술자 빌더는 **고정점 탐색**이라 `_seRegisterResumeHandler`·`syBuildUnlockResumeDescriptor` 같은 간접 배선도 없는 것으로 오판하지 않는다.
 - 🔴 **서술자 빌더 판정에 `action`/`args` 를 요구한다** — `{kind: p0}` 만 보면 레벨 원장(`_cdLevelPostAward`)처럼 무관한 축이 딸려온다(실측 오탐).
 - 변이 3건으로 무는 것을 확인했다(2026-09-07): 배선된 React 호출부의 `resume` 제거 → ②로 실패 · `registerPaidResumeHandler` 리네임 → 계약 생존 검사 실패 · 게이트 이름 교체 → ④로 실패.
-- 실측 결과: 게이트 호출부 **React 37/40 · 정적 41/42** 배선, 재개 `kind` **39개**가 핸들러와 짝을 이룬다.
+- 실측 결과(2026-09-07): 게이트 호출부 **React 40/40 · 정적 42/42** 배선, 재개 `kind` **39개**가 핸들러와 짝을 이룬다. `UNWIRED_BACKLOG` 는 비어 있다.
 
-### `UNWIRED_BACKLOG` 3건 (이 가드가 찾아낸 기존 미배선 — 원칙 14 로 고치지 않았다)
+### `UNWIRED_BACKLOG` — 비었다 (2026-09-07 마지막 3건 배선 완료)
 
-| 호출부 | 게이트 | 왜 아직 |
+가드가 찾아냈던 미배선 4건을 모두 닫았다. 새 항목을 배열에 넣는 것은 "지금은 못 배선했다"는 선언이므로 사유와 날짜를 함께 적는다.
+
+| 호출부 | 게이트 | 어떻게 배선했나 |
 |---|---|---|
-| `components/fpti/FptiResultCard.tsx` | `purchaseFeature` | FPTI 심화 리포트. 서버 영구 해금형(`premium-fpti-report`)이라 재과금은 없지만 복귀 문서가 스스로 열리지 않는다. 🔴 **영구 unlock 은 '스스로 열림'을 뜻하지 않는다.** |
-| `src/features/fortune-tea-house/FortuneTeaHousePage.tsx` | `runBillingCoinGate` | 상담 생성이 202 폴링형이라 서술자에 폴링 상태까지 실어야 한다. |
-| `src/features/master-love-codex/MasterLoveCodexPage.tsx` | `runBillingCoinGate` | `buildBillingGateInput(...)` 결과를 그대로 넘겨 `resume` 자리가 없다. |
-| ~~`js/tarot-year-fortune-experience.js`~~ | `_cdOpenPaidServiceGate` | ✅ **2026-09-07 배선 완료.** 폴백 갈래(`consumeCoinDirect`)가 주 경로와 같은 `buildYearResumeDescriptor(state.year, requestId)` 를 게이트 옵션에 싣는다. 서술자가 **결제에 쓴 requestId** 를 받도록 빌더에 인자 2개를 열었다(기본값은 종전 `state` 참조 그대로). |
+| `components/fpti/FptiResultCard.tsx` | `purchaseFeature` | kind `premium-fpti-report`. 핸들러는 **항상 마운트된 조상** `components/fpti/FptiExperience.tsx` 에 건다(리프는 복귀 시 안 떠 있다). 서술자에 폼을 접어 싣고, 복귀하면 `setForm(restored)` → `analyzeWith(restored, "profile")` 로 결과 표면을 다시 연다. 🔴 **해금 복원은 새로 만들지 않았다** — 카드가 마운트 때 도는 `fetchServerDeepReport('/api/fpti/deep-report')` 동기화가 서버 영구 해금을 그대로 반영한다(원칙 6). |
+| `src/features/fortune-tea-house/FortuneTeaHousePage.tsx` | `runBillingCoinGate` | kind `fortune-tea-house-consultation`. `submitQuestion(input, prepaid?)` 에 **선결제 갈래**를 냈다 — `prepaid` 가 있으면 begin-gate · ensure-access · 빌링 게이트를 **건너뛰고** `grant.payload` 로 증빙을 재조립해 곧장 상담 POST 로 간다(202 폴링 로직은 그대로 재사용). 증빙 조립은 인페이지·재개가 **같은 함수**(`buildFortuneTeaBillingEvidenceBody`)를 쓴다. 🔴 `attemptId` 는 비결정적이라 서술자에 실어 나른다. 실패는 `submitSucceededRef` 로 `false` 를 돌려 영수증 카드를 남긴다. |
+| `src/features/master-love-codex/MasterLoveCodexPage.tsx` | `runBillingCoinGate` | kind `master-love-codex`. 게이트 입력 뒤에 `resume: buildResume({ idempotencyKey, payload })` 를 붙였다(빌더 결과를 스프레드하고 그 자리에서 얹는다). 복귀하면 게이트를 다시 타지 않고 `/api/master-love-codex/start` + 배치 생성으로 바로 들어간다 — **멱등키를 서술자가 나르므로** 재과금되지 않는다. |
+| ~~`js/tarot-year-fortune-experience.js`~~ | `_cdOpenPaidServiceGate` | ✅ 2026-09-07 배선 완료. 폴백 갈래(`consumeCoinDirect`)가 주 경로와 같은 `buildYearResumeDescriptor(state.year, requestId)` 를 게이트 옵션에 싣는다. |
 
-🔴 **앞 셋은 2026-09-06 "React 축 배선 완료" 이후에 생긴 것으로 보인다** — 손으로 센 목록이 낡는다는 증거이자, 이 가드가 존재하는 이유다. 배선을 끝내면 `UNWIRED_BACKLOG` 에서 그 줄을 지워야 통과한다(체크 ③).
+🔴 `app/_lib/billing-client.ts` 의 `purchaseFeature` 입력 타입에 `resume` 자리를 열었다(동결 파일 — `config/payment-freeze.json` 을 같은 커밋에 갱신했다).
+🔴 `scripts/verify-paid-gate-ui-regression.mjs` 의 찻집 섹션 시작 마커에서 닫는 괄호를 뺐다 — `submitQuestion` 이 인자를 하나 더 받게 됐기 때문이며, 그 안에서 검사하는 불변식(게이트가 상담 API 보다 먼저)은 그대로다.
 
 ## 함정
 
@@ -268,6 +271,10 @@ React 배관도 같은 PR 에서 열렸다: `EnsurePaidAccessInput`/`BillingCoin
 - ✅ **재개 배선 fail-closed 가드 — 2026-09-07 신설했다.** `npm run verify:paid-resume-wiring`(위 §자동 가드). `run-paid-gate-suite.mjs` 와 `paid-flow-gates.yml` 에 배선돼 `verify:guard-wiring` 이 배선된 것으로 센다.
 - ⚠️ **`app/destiny-compass/_components/CompassApp.tsx` 가 저장소에 CRLF 로 들어 있었다** — 같은 디렉터리의 다른 파일은 전부 LF 다. `text=auto`+`core.autocrlf=true` 조합에서 git 은 이미 CRLF 인 인덱스 항목을 재정규화하지 않으므로 `git diff --check` 가 **추가한 모든 줄**을 trailing whitespace 로 잡아 `check:changed` 가 BLOCKED 된다. 이번엔 파일 전체를 LF 로 정규화해 풀었다(그래서 그 커밋의 diff 가 전문이다). 🔴 같은 증상을 만나면 파일 인코딩을 먼저 의심할 것 — 내가 넣은 공백이 아니다.
 - 같은 파일 7줄의 `import type { AnimalDestinyInput }` 은 쓰이지 않는다(HEAD 에도 있던 기존 경고).
+
+**마지막 React 3건 배선에서 새로 나온 1건 (2026-09-07 — 미해결, 원칙 14 로 손대지 않았다)**
+
+- 🔴 **운명 찻집 인페이지 재시도가 재과금할 수 있다** — `createFortuneTeaAttemptId(payload)` 는 `Date.now()`+`Math.random()` 이라 비결정적이다. 결제 뒤 상담 POST 가 실패해 사용자가 다시 제출하면 **새 attemptId** 로 게이트를 다시 타므로 이미 결제한 건이 한 번 더 청구될 수 있다. 재개 갈래는 서술자가 attemptId 를 나르므로 안전하지만, **인페이지 재시도는 그대로다.** 고치려면 실패한 시도의 attemptId 를 컴포넌트에 붙들어 두고 재제출 때 재사용해야 한다(`src/features/fortune-tea-house/FortuneTeaHousePage.tsx`).
 
 **초판에 있던 6건**
 

@@ -1838,6 +1838,17 @@
       "birthLabel": "상대 생년월일 · 시간",
       "runCta": "💗 궁합 분석하기"
     },
+    "relFlow": {
+      "title": "관계 흐름 미리보기",
+      "freeBadge": "무료",
+      "empty": "상대 이름과 생년월일을 입력하면 관계 흐름을 정리합니다.",
+      "ziweiLabel": "자미두수 Lite",
+      "astroLabel": "점성 Lite",
+      "strengthsTitle": "부드러운 흐름",
+      "cautionsTitle": "조율할 점",
+      "tipsTitle": "작은 실천",
+      "diaryLink": "좋은 날은 다이어리 함께 보기에서 →"
+    },
     "funCards": {
       "celebTitle": "✨ 나와 영혼의 쌍둥이 연예인은?",
       "fourCutTitle": "📸 사주네컷 운명 필터 ON",
