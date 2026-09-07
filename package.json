@@ -521,7 +521,9 @@
     "dev:live": "node scripts/dev-with-live-auth.mjs",
     "measure:dev-environment": "node scripts/measure-dev-environment.mjs",
     "measure:ci-timings": "node scripts/measure-ci-timings.mjs",
-    "worktree:status": "node scripts/worktree-status.mjs"
+    "worktree:status": "node scripts/worktree-status.mjs",
+    "delivery:admit": "node scripts/delivery-admit.mjs",
+    "verify:delivery-admit": "node scripts/delivery-admit.mjs --self-test"
   },
   "dependencies": {
     "@capacitor/android": "^8.4.1",

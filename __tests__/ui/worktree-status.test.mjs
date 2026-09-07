@@ -75,6 +75,7 @@ test('read-only inspection finds staged overlaps, ignores ignored files, and rep
   assert.equal(report.isolation.isolated, false);
   assert.equal(report.dependencies.compatible, true);
   assert.deepEqual(report.overlaps[0].files, ['shared.txt']);
+  assert.deepEqual(report.activeOverlaps[0].files, ['shared.txt']);
   assert.equal(report.cachebustMergeDriverConfigured, false);
   const isolated = await inspectWorktree(other);
   assert.equal(isolated.isolation.isolated, true);
@@ -91,6 +92,7 @@ test('read-only inspection finds staged overlaps, ignores ignored files, and rep
   git(other, ['-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid', 'commit', '-m', 'other committed change']);
   const committed = await inspectWorktree(root, { untracked: false });
   assert.deepEqual(committed.overlaps[0].files, ['shared.txt']);
+  assert.equal(committed.activeOverlaps.length, 0);
   assert.deepEqual(committed.uncertainWorktrees, []);
   const observer = join(base, 'observer');
   git(root, ['worktree', 'add', '-b', 'observer', observer, 'origin/main']);
