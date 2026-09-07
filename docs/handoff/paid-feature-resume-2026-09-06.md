@@ -1,7 +1,7 @@
 ---
-status: active
+status: done
 updated: 2026-09-07
-next: **유료 게이트 호출부 전수 배선 완료 — `npm run verify:paid-resume-wiring` 이 React 40/40 · 정적 42/42 로 통과한다.** `UNWIRED_BACKLOG` 는 비었다. 다음 세션이 할 일은 아래 "인접 결함" 의 미해결분뿐이다(특히 🔴 **운명 찻집 인페이지 재시도의 attemptId 재발급 → 재과금 가능성**). 🔴 **새 유료 기능은 이제 가드가 잡는다** — 게이트 호출부에 `resume` 을 안 넘기면 `paid-flow-gates.yml` 이 실패한다.
+next: **배선은 끝났다** — `npm run verify:paid-resume-wiring` 이 React 40/40 · 정적 42/42 로 통과하고 `UNWIRED_BACKLOG` 는 비었다. 🔴 남은 인접 결함은 [paid-resume-adjacent-defects-2026-09-07.md](paid-resume-adjacent-defects-2026-09-07.md) 로 옮겼다 — **이어받는 세션은 그 문서를 연다.** 이 문서는 재개 계약·핀 회전 함정의 정본으로만 남는다.
 ---
 
 # 유료 기능 결제 후 자동 개방 (리다이렉트 복귀)
