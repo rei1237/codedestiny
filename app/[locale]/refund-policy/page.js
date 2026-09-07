@@ -3,7 +3,7 @@ import { generatePageMetadata } from "../../../lib/generate-page-metadata";
 import { LOCALE_CONFIG, PUBLIC_LOCALES, localeUrlSegment } from "../../../lib/i18n/locales";
 import { I18N_POLICY_ROUTE_MAP } from "../../../lib/i18n/routes";
 import { TERMS_CONTENT } from "../../../lib/legal/legalContent";
-import { LEGAL_TRANSLATION_NOTICE, REFUND_INTRO, REFUND_JURISDICTION_NOTES, getRefundSection } from "../../../lib/legal/refundContent";
+import { LEGAL_TRANSLATION_NOTICE, REFUND_INTRO, REFUND_JURISDICTION_NOTES, REFUND_PAGE_GUIDANCE, getRefundSection } from "../../../lib/legal/refundContent";
 import LegalDocumentBody from "../../components/LegalDocumentBody";
 import { resolveLocale } from "../_lib";
 
@@ -64,13 +64,16 @@ export default async function LocaleRefundPolicyPage({ params }) {
   const section = getRefundSection(locale);
   const intro = REFUND_INTRO[locale];
   const note = REFUND_JURISDICTION_NOTES[locale];
+  const guidance = REFUND_PAGE_GUIDANCE[locale];
   const prefix = LOCALE_CONFIG[locale].pathPrefix;
 
   const document = {
     effectiveDate: TERMS_CONTENT[locale].effectiveDate,
-    sections: note
-      ? [{ ...section, heading: copy.heading }, { id: "jurisdiction-note", heading: note.heading, paragraphs: note.paragraphs }]
-      : [{ ...section, heading: copy.heading }],
+    sections: [
+      { ...section, heading: copy.heading },
+      { id: "refund-page-guidance", heading: guidance.heading, paragraphs: guidance.paragraphs },
+      ...(note ? [{ id: "jurisdiction-note", heading: note.heading, paragraphs: note.paragraphs }] : []),
+    ],
   };
 
   return (
