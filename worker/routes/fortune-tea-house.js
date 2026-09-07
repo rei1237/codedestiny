@@ -1154,10 +1154,17 @@ async function leanFindOne(model, query, options = {}) {
   return finder;
 }
 
-function idClauses(ids = [], fields = []) {
+// 스키마가 ObjectId 인 경로에 24-hex 가 아닌 증빙 토큰을 넣으면 Mongoose 가 쿼리 캐스팅 단계에서
+// CastError 를 던지고, 그 오류는 transient 로 분류되지 않아 결제 안내 대신 500 이 된다.
+// 대상 필드를 손으로 열거하지 말고 모델 스키마에서 판별한다(원칙 10).
+export function idClauses(model, ids = [], fields = []) {
+  const isObjectIdPath = (field) => model?.schema?.path?.(field)?.instance === "ObjectId";
   const clauses = [];
   ids.forEach((id) => {
-    fields.forEach((field) => clauses.push({ [field]: id }));
+    fields.forEach((field) => {
+      if (isObjectIdPath(field) && !isObjectIdLike(id)) return;
+      clauses.push({ [field]: id });
+    });
     if (isObjectIdLike(id)) clauses.push({ _id: id });
   });
   return clauses;
@@ -1204,7 +1211,7 @@ async function resolveFortuneTeaBillingEvidenceAccess({ env, auth, body, feature
 
   await connectDb(env);
 
-  const deferredClauses = idClauses(ids, ["requestId", "idempotencyKey", "executionId", "paymentId", "orderId", "result.deferredUsage.requestId", "result.deferredUsage.paymentId"]);
+  const deferredClauses = idClauses(PaidExecutionRecord, ids, ["requestId", "idempotencyKey", "executionId", "paymentId", "orderId", "result.deferredUsage.requestId", "result.deferredUsage.paymentId"]);
   const deferredRecord = deferredClauses.length
     ? await leanFindOne(PaidExecutionRecord, {
       userId: cleanText(auth.userId, 120),
@@ -1231,7 +1238,7 @@ async function resolveFortuneTeaBillingEvidenceAccess({ env, auth, body, feature
     };
   }
 
-  const pointClauses = idClauses(ids, ["paymentId", "impUid", "merchantUid", "metadata.requestId", "metadata.idempotencyKey", "metadata.purchaseId", "metadata.transactionId", "metadata.ledgerId", "metadata.evidenceId", "metadata.paymentId"]);
+  const pointClauses = idClauses(PointHistory, ids, ["paymentId", "impUid", "merchantUid", "metadata.requestId", "metadata.idempotencyKey", "metadata.purchaseId", "metadata.transactionId", "metadata.ledgerId", "metadata.evidenceId", "metadata.paymentId"]);
   const pointHistory = pointClauses.length
     ? await leanFindOne(PointHistory, {
       userId: auth.userId,
@@ -1275,7 +1282,7 @@ async function resolveFortuneTeaBillingEvidenceAccess({ env, auth, body, feature
     };
   }
 
-  const paymentClauses = idClauses(ids, ["requestId", "idempotencyKey", "merchantUid", "impUid", "metadata.requestId", "metadata.idempotencyKey", "metadata.purchaseId", "metadata.transactionId", "metadata.paymentId"]);
+  const paymentClauses = idClauses(Payment, ids, ["requestId", "idempotencyKey", "merchantUid", "impUid", "metadata.requestId", "metadata.idempotencyKey", "metadata.purchaseId", "metadata.transactionId", "metadata.paymentId"]);
   const payment = paymentClauses.length
     ? await leanFindOne(Payment, {
       userId: auth.userId,
@@ -1497,7 +1504,14 @@ async function verifyFortuneTeaHouseConsultAccess(request, env, body, consultReq
     if (isTransientMongoError(error)) {
       return { ok: false, response: buildFortuneTeaAccessDegradedResponse() };
     }
-    throw error;
+    // 증빙 조회는 접근을 '더 열어 주는' 보너스 경로다 — 여기서 던지면 결제 안내(402)까지 막혀
+    // 사용자는 결제창도 못 본 채 내부 서버 오류만 받는다. 원인은 남기고 '증빙 없음'으로 떨어뜨린다.
+    console.error("[fortune-tea-house] billing evidence lookup failed", {
+      featureKey,
+      name: error?.name,
+      message: error?.message,
+    });
+    billingEvidenceAccess = null;
   }
   if (billingEvidenceAccess?.reason === "FEATURE_MISMATCH") {
     return {
