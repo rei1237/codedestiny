@@ -33,6 +33,9 @@ const steps = [
   // 🔴 externalize 뒤에 둔다. 그래야 셸에서 빠져나간 인라인 <script> 안의 `<style>` 문자열이
   //    HTML 에 남아 있지 않고, CSS minify 가 볼 <style> 은 전부 진짜 마크업이다.
   "scripts/minify-dist-css.mjs",
+  // 🔴 CSS minify 뒤에 실행한다. 내용 해시는 실제 배포 바이트를 기준으로 만들고, 소스 셸은
+  //    손대지 않은 채 정적 홈 셸의 연속 style 구간만 캐시 가능한 파일로 바꾼다.
+  "scripts/externalize-dist-inline-css.mjs",
   // 🔴 minify 뒤 · 마지막. 저작 주석은 브라우저가 쓸 일이 없고, 셸 HTML 은 no-cache 라
   //    매 방문 다시 내려간다. 정적 셸만 대상이고 하이드레이션 HTML 은 건너뛴다.
   "scripts/strip-dist-html-comments.mjs",
