@@ -4,7 +4,6 @@ import { createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed
 import { readCmsThroughCache } from "../lib/cms-cache.js";
 import {
   INSIGHT_PUBLIC_CACHE_TTL_SECONDS,
-  INSIGHT_PUBLIC_LIST_KEY,
   INSIGHT_PUBLIC_STALE_TTL_SECONDS,
   insightDetailCacheKey,
 } from "../lib/insight-public-cache.js";
@@ -293,21 +292,6 @@ function buildPublicInsightStatusQuery(now = new Date()) {
   };
 }
 
-function normalizeSearchText(value) {
-  return String(value || "").toLowerCase().replace(/\s+/g, " ").trim();
-}
-
-function buildSearchBag(item) {
-  return normalizeSearchText([
-    item.title,
-    item.subtitle,
-    item.excerpt,
-    stripHtml(item.body),
-    item.categoryLabel,
-    item.tags.join(" "),
-  ].join(" "));
-}
-
 function buildListQuery(request) {
   const url = new URL(request.url);
   const params = url.searchParams;
@@ -369,93 +353,162 @@ function publicCacheHeaders({ loaded, stale }) {
   return { "X-CD-Cache": stale ? "stale" : loaded ? "miss" : "hit" };
 }
 
+const INSIGHT_CARD_PROJECTION = {
+  _id: 1,
+  slug: 1,
+  title: 1,
+  subtitle: 1,
+  summary: 1,
+  excerpt: 1,
+  category: 1,
+  categoryLabel: 1,
+  tags: 1,
+  featuredImage: 1,
+  thumbnailUrl: 1,
+  canonicalUrl: 1,
+  seo: 1,
+  isFeatured: 1,
+  noIndex: 1,
+  viewCount: 1,
+  readingTime: 1,
+  publishedAt: 1,
+  updatedAt: 1,
+  createdAt: 1,
+};
+
+const INSIGHT_SEARCH_PATHS = [
+  "title",
+  "subtitle",
+  "summary",
+  "excerpt",
+  "content",
+  "contentHtml",
+  "body",
+  "category",
+  "categoryLabel",
+  "tags",
+  "tag",
+];
+
+function buildPublicInsightListMatch({ category, tag, featuredOnly, excludeNoIndex }, now = new Date()) {
+  const clauses = [
+    {
+      $or: [
+        { type: "fortune_insight" },
+        { type: { $exists: false } },
+        { type: "" },
+      ],
+    },
+    {
+      $or: [
+        { status: "published" },
+        { status: "scheduled", publishedAt: { $lte: now } },
+        { status: { $exists: false }, isPublished: { $ne: false } },
+        { status: "", isPublished: { $ne: false } },
+      ],
+    },
+    { slug: { $type: "string", $ne: "" } },
+    { title: { $type: "string", $ne: "" } },
+  ];
+
+  if (excludeNoIndex) clauses.push({ noIndex: { $ne: true } });
+  if (featuredOnly) clauses.push({ isFeatured: true });
+  if (category) {
+    clauses.push({
+      $or: [
+        { category },
+        { categoryLabel: category },
+        { categoryName: category },
+        { categorySlug: category },
+      ],
+    });
+  }
+  if (tag) clauses.push({ $or: [{ tags: tag }, { tag }] });
+
+  return { $and: clauses };
+}
+
+function buildInsightSort(sort) {
+  if (sort === "popular") return { viewCount: -1, effectivePublishedAt: -1, _id: -1 };
+  return { effectivePublishedAt: -1, _id: -1 };
+}
+
+function buildEffectivePublishedAt() {
+  return {
+    $ifNull: ["$publishedAt", { $ifNull: ["$updatedAt", "$createdAt"] }],
+  };
+}
+
+function readFacetCount(value) {
+  return Math.max(0, Number(value?.[0]?.value || 0));
+}
+
 async function handleInsightsList(request, env) {
   const { q, category, tag, sort, page, pageSize, featuredOnly, excludeNoIndex } = buildListQuery(request);
-
-  // 캐시는 정규화된 전체 문서 집합 하나(키 1개)다. 필터·정렬·페이지는 요청마다 JS 로 하므로 쿼리스트링이
-  // 키에 들어가지 않고, 관리자 저장은 purgeInsightPublicCache 가 이 키를 정확히 지운다.
-  // 🔴 isPublicInsight 는 캐시 밖에서 건다 — 예약 발행은 "읽는 시점"의 시각으로 판정해야 한다.
-  let loaded = false;
-  const { value: normalizedRaw, stale } = await readCmsThroughCache({
-    key: INSIGHT_PUBLIC_LIST_KEY,
-    ttlSeconds: INSIGHT_PUBLIC_CACHE_TTL_SECONDS,
-    staleTtlSeconds: INSIGHT_PUBLIC_STALE_TTL_SECONDS,
-    load: async () => {
-      loaded = true;
-      await connectDb(env);
-      const raw = await Insight.find({
-        $or: [{ type: "fortune_insight" }, { type: { $exists: false } }, { type: "" }],
-      })
-        .select("slug title subtitle summary excerpt content contentHtml body category categoryLabel categoryName categorySlug tags tag featuredImage thumbnailUrl canonicalUrl seo isFeatured noIndex viewCount readingTime publishedAt updatedAt createdAt status isPublished cta ctaLabel ctaServiceRoute targetRoute serviceLink internalLinks type kind")
-        .limit(6000)
-        .lean();
-      return raw.map((item) => normalizeInsightPost(item));
+  const now = new Date();
+  const listMatch = buildPublicInsightListMatch({ category, tag, featuredOnly, excludeNoIndex }, now);
+  const publicMatch = buildPublicInsightListMatch({}, now);
+  const searchStage = q ? {
+    $search: {
+      index: "insights_public_search_v1",
+      text: { query: q, path: INSIGHT_SEARCH_PATHS },
     },
-  });
+  } : null;
 
-  const normalizedAll = normalizedRaw
-    .filter((item) => item.slug && item.title && isPublicInsight(item));
+  await connectDb(env);
+  const [listResult, metadataResult] = await Promise.all([
+    Insight.aggregate([
+      ...(searchStage ? [searchStage] : []),
+      { $match: listMatch },
+      { $set: { effectivePublishedAt: buildEffectivePublishedAt() } },
+      {
+        $facet: {
+          items: [
+            { $sort: buildInsightSort(sort) },
+            { $skip: (page - 1) * pageSize },
+            { $limit: pageSize },
+            { $project: INSIGHT_CARD_PROJECTION },
+          ],
+          total: [{ $count: "value" }],
+        },
+      },
+    ]).collation({ locale: "ko", strength: 2 }),
+    Insight.aggregate([
+      { $match: publicMatch },
+      { $set: { effectivePublishedAt: buildEffectivePublishedAt() } },
+      {
+        $facet: {
+          recommended: [
+            { $match: { isFeatured: true } },
+            { $sort: { effectivePublishedAt: -1, _id: -1 } },
+            { $limit: 6 },
+            { $project: INSIGHT_CARD_PROJECTION },
+          ],
+          categories: [
+            { $project: { value: { $ifNull: ["$categoryLabel", "$category"] } } },
+            { $match: { value: { $type: "string", $ne: "" } } },
+            { $group: { _id: "$value" } },
+            { $sort: { _id: 1 } },
+          ],
+          tags: [
+            { $unwind: "$tags" },
+            { $match: { tags: { $type: "string", $ne: "" } } },
+            { $group: { _id: "$tags" } },
+            { $sort: { _id: 1 } },
+            { $limit: 200 },
+          ],
+        },
+      },
+    ]).collation({ locale: "ko", strength: 2 }),
+  ]);
 
-  const qNorm = normalizeSearchText(q);
-
-  let filtered = normalizedAll.filter((item) => {
-    if (excludeNoIndex && item.noIndex) return false;
-    if (featuredOnly && !item.isFeatured) return false;
-
-    if (category) {
-      const categoryNorm = normalizeSearchText(category);
-      const itemCategoryNorm = normalizeSearchText(item.category || item.categoryLabel);
-      if (itemCategoryNorm !== categoryNorm) return false;
-    }
-
-    if (tag) {
-      const tagNorm = normalizeSearchText(tag);
-      if (!item.tags.some((itemTag) => normalizeSearchText(itemTag) === tagNorm)) return false;
-    }
-
-    if (qNorm) {
-      const bag = buildSearchBag(item);
-      if (!bag.includes(qNorm)) return false;
-    }
-
-    return true;
-  });
-
-  filtered = filtered.sort((a, b) => {
-    if (sort === "popular") {
-      if (b.viewCount !== a.viewCount) return b.viewCount - a.viewCount;
-    }
-    const timeA = new Date(a.publishedAt || a.updatedAt || a.createdAt || 0).getTime();
-    const timeB = new Date(b.publishedAt || b.updatedAt || b.createdAt || 0).getTime();
-    return timeB - timeA;
-  });
-
-  const totalCount = filtered.length;
-  const start = (page - 1) * pageSize;
-  const items = filtered.slice(start, start + pageSize);
-
-  const recommended = normalizedAll
-    .filter((item) => item.isFeatured)
-    .sort((a, b) => {
-      const timeA = new Date(a.publishedAt || a.updatedAt || a.createdAt || 0).getTime();
-      const timeB = new Date(b.publishedAt || b.updatedAt || b.createdAt || 0).getTime();
-      return timeB - timeA;
-    })
-    .slice(0, 6);
-
-  const categories = Array.from(
-    new Set(
-      normalizedAll
-        .map((item) => normalizeText(item.categoryLabel || item.category, 120))
-        .filter(Boolean),
-    ),
-  );
-
-  const tags = Array.from(
-    new Set(
-      normalizedAll.flatMap((item) => item.tags),
-    ),
-  );
+  const list = listResult?.[0] || {};
+  const metadata = metadataResult?.[0] || {};
+  const totalCount = readFacetCount(list.total);
+  const items = Array.isArray(list.items) ? list.items : [];
+  const recommended = Array.isArray(metadata.recommended) ? metadata.recommended : [];
+  const categories = Array.isArray(metadata.categories) ? metadata.categories.map((item) => item._id) : [];
+  const tags = Array.isArray(metadata.tags) ? metadata.tags.map((item) => item._id) : [];
 
   return json({
     ok: true,
@@ -480,7 +533,7 @@ async function handleInsightsList(request, env) {
       .sort((a, b) => a.localeCompare(b, "ko")),
     items: items.map(serializeInsightCard),
     recommended: recommended.map(serializeInsightCard),
-  }, { headers: publicCacheHeaders({ loaded, stale }) });
+  }, { headers: { "X-CD-Cache": "bypass", "X-CD-Query": q ? "atlas-search" : "mongo-aggregate" } });
 }
 
 function normalizePublicSlug(path) {
@@ -517,23 +570,62 @@ function serializeLinkItem(item) {
 }
 
 async function findPrevNextInsight(currentId) {
-  const ordered = await Insight.find({
-    $and: [
-      buildPublicInsightStatusQuery(),
-      { $or: [{ type: "fortune_insight" }, { type: { $exists: false } }, { type: "" }] },
-    ],
-  })
-    .sort({ publishedAt: -1, updatedAt: -1, createdAt: -1 })
-    .select("_id slug title category publishedAt featuredImage thumbnailUrl")
-    .limit(5000)
-    .lean();
-
-  const index = ordered.findIndex((item) => String(item?._id || "") === String(currentId || ""));
-  if (index < 0) return { previous: null, next: null };
-
+  const rows = await Insight.aggregate([
+    {
+      $match: {
+        $and: [
+          buildPublicInsightStatusQuery(),
+          { $or: [{ type: "fortune_insight" }, { type: { $exists: false } }, { type: "" }] },
+        ],
+      },
+    },
+    {
+      $setWindowFields: {
+        sortBy: { publishedAt: -1, updatedAt: -1, createdAt: -1, _id: -1 },
+        output: {
+          previousSlug: { $shift: { output: "$slug", by: -1, default: null } },
+          previousTitle: { $shift: { output: "$title", by: -1, default: null } },
+          previousCategory: { $shift: { output: "$category", by: -1, default: null } },
+          previousPublishedAt: { $shift: { output: "$publishedAt", by: -1, default: null } },
+          previousFeaturedImage: { $shift: { output: "$featuredImage", by: -1, default: null } },
+          previousThumbnailUrl: { $shift: { output: "$thumbnailUrl", by: -1, default: null } },
+          nextSlug: { $shift: { output: "$slug", by: 1, default: null } },
+          nextTitle: { $shift: { output: "$title", by: 1, default: null } },
+          nextCategory: { $shift: { output: "$category", by: 1, default: null } },
+          nextPublishedAt: { $shift: { output: "$publishedAt", by: 1, default: null } },
+          nextFeaturedImage: { $shift: { output: "$featuredImage", by: 1, default: null } },
+          nextThumbnailUrl: { $shift: { output: "$thumbnailUrl", by: 1, default: null } },
+        },
+      },
+    },
+    { $match: { _id: currentId } },
+    {
+      $project: {
+        _id: 0,
+        previous: {
+          slug: "$previousSlug",
+          title: "$previousTitle",
+          category: "$previousCategory",
+          publishedAt: "$previousPublishedAt",
+          featuredImage: "$previousFeaturedImage",
+          thumbnailUrl: "$previousThumbnailUrl",
+        },
+        next: {
+          slug: "$nextSlug",
+          title: "$nextTitle",
+          category: "$nextCategory",
+          publishedAt: "$nextPublishedAt",
+          featuredImage: "$nextFeaturedImage",
+          thumbnailUrl: "$nextThumbnailUrl",
+        },
+      },
+    },
+  ]);
+  const row = rows[0];
+  if (!row) return { previous: null, next: null };
   return {
-    previous: serializeLinkItem(ordered[index - 1] || null),
-    next: serializeLinkItem(ordered[index + 1] || null),
+    previous: row.previous?.slug ? serializeLinkItem(row.previous) : null,
+    next: row.next?.slug ? serializeLinkItem(row.next) : null,
   };
 }
 
@@ -582,7 +674,9 @@ async function loadInsightDetail(slug) {
   const rawItem = await Insight.findOne({
     slug,
     $or: [{ type: "fortune_insight" }, { type: { $exists: false } }, { type: "" }],
-  }).lean();
+  })
+    .select("slug title subtitle summary excerpt content contentHtml body category categoryLabel categoryName categorySlug tags tag featuredImage thumbnailUrl canonicalUrl seo isFeatured noIndex viewCount readingTime publishedAt updatedAt createdAt status isPublished cta ctaLabel ctaServiceRoute targetRoute serviceLink internalLinks type kind")
+    .lean();
 
   if (!rawItem) return null;
 
