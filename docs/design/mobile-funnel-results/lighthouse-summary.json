@@ -1,0 +1,53 @@
+[
+  {
+    "mode": "baseline",
+    "scores": {
+      "performance": 55,
+      "accessibility": 94,
+      "seo": 100
+    },
+    "lcp": 15471.037500000004,
+    "cls": 0,
+    "tbt": 17,
+    "failed": [
+      "first-contentful-paint",
+      "largest-contentful-paint",
+      "color-contrast",
+      "label-content-name-mismatch",
+      "target-size",
+      "unminified-css",
+      "unminified-javascript",
+      "unused-css-rules",
+      "unused-javascript",
+      "cache-insight",
+      "forced-reflow-insight",
+      "image-delivery-insight",
+      "network-dependency-tree-insight",
+      "render-blocking-insight"
+    ]
+  },
+  {
+    "mode": "current",
+    "scores": {
+      "performance": 61,
+      "accessibility": 100,
+      "seo": 100
+    },
+    "lcp": 7131.418500000002,
+    "cls": 0,
+    "tbt": 31.49999999999727,
+    "failed": [
+      "mainthread-work-breakdown",
+      "label-content-name-mismatch",
+      "unminified-css",
+      "unminified-javascript",
+      "unused-css-rules",
+      "unused-javascript",
+      "cache-insight",
+      "forced-reflow-insight",
+      "image-delivery-insight",
+      "network-dependency-tree-insight",
+      "render-blocking-insight"
+    ]
+  }
+]

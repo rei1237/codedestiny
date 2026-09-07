@@ -61,7 +61,7 @@ function TabIcon({ tabKey }: { tabKey: MobileTabKey }) {
     default:
       return (
         <span className={ICON_CLASS} aria-hidden="true">
-          命
+          ☼
         </span>
       );
   }

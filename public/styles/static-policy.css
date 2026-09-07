@@ -1,0 +1,364 @@
+/* app/components/PolicyGuide.module.css */
+.PolicyGuide_page {
+  --pg-bg:#fffaf7;
+  --pg-surface:#fff0f4;
+  --pg-card:#fff;
+  --pg-ink:#3c1830;
+  --pg-muted:#70445c;
+  --pg-line:#e8d8df;
+  --pg-accent:#a41e50;
+  width: calc(100% - 16px);
+  max-width: 430px !important;
+  background: var(--pg-bg);
+  color: var(--pg-ink);
+  line-height: 1.85;
+  color-scheme: light;
+}
+.PolicyGuide_hero {
+  display: flex;
+  justify-content: space-between;
+  background: var(--pg-surface);
+  border: 1px solid var(--pg-line);
+  border-radius: 24px;
+}
+.PolicyGuide_hero h1 {
+  font-weight: 700;
+  line-height: 1.4;
+  font-family: inherit;
+  letter-spacing: -.03em;
+  word-break: keep-all;
+  color: var(--pg-ink);
+  margin: 0;
+}
+.PolicyGuide_eyebrow {
+  font-size: 12px;
+  color: var(--pg-accent);
+  margin: 0 0 10px;
+}
+.PolicyGuide_description {
+  color: var(--pg-muted);
+  max-width: 65ch;
+  margin: 12px 0 0;
+  word-break: keep-all;
+}
+.PolicyGuide_meta {
+  font-size: 12px;
+  color: var(--pg-muted);
+  margin: 10px 0 0;
+}
+.PolicyGuide_pig {
+  flex-shrink: 0;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 4px solid #fff9f1;
+}
+.PolicyGuide_nav {
+  display: flex;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--pg-line);
+  margin: 18px 0;
+}
+.PolicyGuide_nav a {
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  font-size: 13px;
+  color: var(--pg-muted);
+}
+.PolicyGuide_nav a[aria-current] {
+  color: var(--pg-accent);
+  font-weight: 750;
+  text-decoration: underline;
+  text-underline-offset: 12px;
+}
+.PolicyGuide_summaries {
+  display: grid;
+  margin: 22px 0 30px;
+}
+.PolicyGuide_summary {
+  display: grid;
+  gap: 6px;
+  border: 1px solid var(--pg-line);
+  border-radius: 16px;
+  background: var(--pg-card);
+  color: var(--pg-ink);
+  text-decoration: none !important;
+}
+.PolicyGuide_summary span:first-of-type {
+  color: var(--pg-muted);
+}
+.PolicyGuide_summary span:last-child {
+  align-self: center;
+  color: var(--pg-accent);
+}
+.PolicyGuide_summary:hover {
+  border-color: var(--pg-accent);
+}
+.PolicyGuide_page a:focus-visible,
+.PolicyGuide_page button:focus-visible,
+.PolicyGuide_page input:focus-visible,
+.PolicyGuide_page textarea:focus-visible,
+.PolicyGuide_page summary:focus-visible {
+  outline: 3px solid #2388a5;
+  outline-offset: 4px;
+}
+.PolicyGuide_page .policy-doc__toc {
+  background: var(--pg-card);
+  border-color: var(--pg-line);
+  color: var(--pg-ink);
+}
+.PolicyGuide_page .policy-doc__toc-link {
+  color: var(--pg-accent);
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+.PolicyGuide_page .policy-doc__toc-title,
+.PolicyGuide_page .policy-embed-heading,
+.PolicyGuide_page .policy-doc__section-title,
+.PolicyGuide_page .cd-card h2 {
+  color: var(--pg-ink);
+}
+.PolicyGuide_page .policy-embed-body,
+.PolicyGuide_page .policy-embed-body p,
+.PolicyGuide_page .policy-embed-body li,
+.PolicyGuide_page .policy-doc__body,
+.PolicyGuide_page .cd-card p,
+.PolicyGuide_page .cd-card li {
+  color: var(--pg-muted);
+  font-size: 15px;
+  line-height: 1.9;
+}
+.PolicyGuide_page .policy-embed-body strong,
+.PolicyGuide_page .cd-card strong {
+  color: var(--pg-ink);
+}
+.PolicyGuide_page .policy-embed-body a,
+.PolicyGuide_page .cd-card a {
+  color: var(--pg-accent);
+}
+.PolicyGuide_page .policy-embed-date,
+.PolicyGuide_page .policy-doc__note {
+  color: var(--pg-muted);
+}
+.PolicyGuide_page .policy-embed-section,
+.PolicyGuide_page .policy-doc__section {
+  scroll-margin-top: 24px;
+  border-color: var(--pg-line);
+}
+.PolicyGuide_page .cd-card,
+.PolicyGuide_page .policy-doc__form-panel {
+  background: var(--pg-card);
+  border: 1px solid var(--pg-line);
+  border-radius: 18px;
+  box-shadow: none;
+  color: var(--pg-ink);
+}
+.PolicyGuide_page .cd-chip {
+  background: var(--pg-card);
+  border: 1px solid var(--pg-line);
+  color: var(--pg-accent);
+  min-height: 44px;
+}
+.PolicyGuide_page .cd-card-grid {
+  display: block;
+}
+.PolicyGuide_page .cd-card-grid > details {
+  margin-bottom: 12px;
+}
+.PolicyGuide_page .cd-card > summary {
+  font-weight: 650;
+  color: var(--pg-ink);
+  min-height: 44px;
+  cursor: pointer;
+}
+.PolicyGuide_page .cd-card > summary + p {
+  margin-top: 16px;
+}
+.PolicyGuide_page input,
+.PolicyGuide_page textarea,
+.PolicyGuide_page select {
+  background: var(--pg-card);
+  color: var(--pg-ink);
+  font-size: 16px;
+  border-color: var(--pg-line);
+}
+.PolicyGuide_accordion {
+  border: 1px solid var(--pg-line);
+  border-radius: 16px;
+  padding: 8px 18px;
+  margin: 16px 0;
+  background: var(--pg-card);
+  scroll-margin-top: 20px;
+}
+.PolicyGuide_accordion summary {
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 650;
+  min-height: 44px;
+  padding: 10px 0;
+  color: var(--pg-ink);
+}
+.PolicyGuide_accordion > div {
+  font-size: 14px;
+  color: var(--pg-muted);
+  padding: 8px 0 16px;
+  max-width: 70ch;
+}
+.PolicyGuide_accordion a {
+  color: var(--pg-accent);
+  text-decoration: underline;
+}
+.PolicyGuide_accordion p {
+  margin: 12px 0;
+}
+.PolicyGuide_page .cd-main-header {
+  margin-bottom: 24px;
+}
+.PolicyGuide_page {
+  margin: 12px auto !important;
+  padding: 14px !important;
+  border-radius: 22px;
+}
+body:has(.PolicyGuide_page) .cd-mnav {
+  max-width: 430px;
+  margin-inline: auto;
+}
+.PolicyGuide_hero {
+  position: relative;
+  padding: 22px 18px 32px;
+  gap: 12px;
+  align-items: flex-start;
+  border-color: var(--pg-motif,#a97b3e);
+  outline: 1px solid var(--pg-line);
+  outline-offset: -6px;
+}
+.PolicyGuide_hero::after {
+  content: "";
+  position: absolute;
+  bottom: 5px;
+  left: 50%;
+  width: 180px;
+  height: 18px;
+  transform: translateX(-50%);
+  background: var(--pg-motif,#a97b3e);
+  -webkit-mask: url(/icons/yehwa-branch.svg) center/contain no-repeat;
+  mask: url(/icons/yehwa-branch.svg) center/contain no-repeat;
+  opacity: .7;
+  pointer-events: none;
+}
+.PolicyGuide_page ::selection {
+  background: var(--pg-accent);
+  color: var(--pg-bg);
+}
+@media (prefers-color-scheme:dark) {
+  .PolicyGuide_page {
+    --pg-motif:#e8d5a3;
+  }
+}
+.PolicyGuide_hero h1 {
+  font-size: 26px;
+}
+.PolicyGuide_pig {
+  width: 72px;
+  height: 72px;
+}
+.PolicyGuide_description {
+  font-size: 13px;
+}
+.PolicyGuide_hero > div {
+  min-width: 0;
+}
+.PolicyGuide_summaries {
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+.PolicyGuide_summary {
+  padding: 12px 16px;
+  grid-template-columns: 92px 1fr auto;
+  align-items: center;
+}
+.PolicyGuide_summary span:first-of-type {
+  grid-column: 2;
+}
+.PolicyGuide_summary span:last-child {
+  grid-column: 3;
+  grid-row: 1;
+}
+.PolicyGuide_summary strong {
+  font-size: 14px;
+}
+.PolicyGuide_summary span:first-of-type {
+  font-size: 12px;
+}
+.PolicyGuide_nav {
+  gap: 18px;
+}
+.PolicyGuide_page .policy-doc__layout {
+  display: block;
+}
+.PolicyGuide_page .policy-doc__toc {
+  position: static;
+  padding: 14px;
+  margin-bottom: 22px;
+}
+.PolicyGuide_page .policy-doc__toc-list {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+.PolicyGuide_page .policy-doc__toc-list li {
+  flex-shrink: 0;
+  max-width: 210px;
+}
+.PolicyGuide_page .policy-doc__toc-link {
+  line-height: 1.5;
+}
+.PolicyGuide_page .policy-embed-body,
+.PolicyGuide_page .policy-embed-body p {
+  font-size: 14px;
+}
+.PolicyGuide_page .cd-card {
+  padding: 18px;
+  margin-bottom: 14px;
+}
+@media (prefers-color-scheme:dark) {
+  .PolicyGuide_page {
+    --pg-bg:#151020;
+    --pg-surface:#291a32;
+    --pg-card:#21182a;
+    --pg-ink:#fff1f7;
+    --pg-muted:#ddc9d8;
+    --pg-line:#5e4258;
+    --pg-accent:#f4bed1;
+    color-scheme: dark;
+  }
+}
+@media (prefers-reduced-motion:reduce) {
+  .PolicyGuide_page * {
+    scroll-behavior: auto !important;
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* Standalone policy chrome. The page uses the same cream/rose and Yehwa art as home. */
+html{--policy-bg:#fffaf7;--policy-ink:#3c1830;--policy-muted:#70445c;--policy-line:#e8d8df;--policy-accent:#b31955;--policy-gold:#a97b3e;background:var(--policy-bg);color:var(--policy-ink);color-scheme:light;scroll-behavior:smooth}
+html.neo-mode{--policy-bg:#0a0818;--policy-ink:#f4eeff;--policy-muted:#d8c8ea;--policy-line:#514260;--policy-accent:#d5b5fa;--policy-gold:#e8d5a3;color-scheme:dark}
+*{box-sizing:border-box}body.cd-policy-static{margin:0;font-family:'Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif;line-height:1.85;background:var(--policy-bg);color:var(--policy-ink)}
+.cd-policy-static a{color:var(--policy-accent);text-underline-offset:4px}.cd-policy-static a:focus-visible,.cd-policy-static button:focus-visible,.cd-policy-static summary:focus-visible{outline:3px solid var(--policy-accent);outline-offset:4px}
+.policy-site-header,.policy-site-footer,.policy-nojs{width:calc(100% - 40px);max-width:390px;margin-inline:auto}
+.policy-site-header{display:flex;justify-content:space-between;align-items:center;min-height:76px;gap:16px;border-bottom:1px solid var(--policy-line)}
+.policy-site-header>a{display:inline-flex;align-items:center;min-height:44px;text-decoration:none;font-size:13px}.policy-site-header .policy-brand{font-size:20px;color:var(--policy-ink);gap:10px}.policy-brand>span{font-family:serif;font-size:16px;border:1px solid var(--policy-gold);padding:3px 7px;color:var(--policy-accent)}
+.cd-policy-static main{--pg-bg:var(--policy-bg);--pg-ink:var(--policy-ink);--pg-muted:var(--policy-muted);--pg-line:var(--policy-line);--pg-accent:var(--policy-accent);--pg-motif:var(--policy-gold);--pg-surface:#fff0f4;--pg-card:#fff;color-scheme:light}
+html.neo-mode .cd-policy-static main{--pg-surface:#1c1533;--pg-card:#211931;color-scheme:dark}
+.policy-site-footer{position:relative;margin-top:40px;padding:34px 0 28px;border-top:1px solid var(--policy-line);font-size:12px;color:var(--policy-muted)}
+.policy-site-footer::before{content:'';position:absolute;top:-10px;left:50%;width:190px;height:20px;transform:translateX(-50%);background:var(--policy-gold);-webkit-mask:url('/icons/yehwa-branch.svg') center/contain no-repeat;mask:url('/icons/yehwa-branch.svg') center/contain no-repeat}
+.policy-site-footer>.policy-brand{font-family:'Batang',Georgia,serif;font-size:19px;color:var(--policy-ink);text-decoration:none}.policy-site-footer nav{display:flex;flex-wrap:wrap;column-gap:18px;padding:12px 0;border-block:1px solid var(--policy-line);margin:18px 0}.policy-site-footer nav a,.policy-home{display:inline-flex;align-items:center;min-height:44px}.policy-site-footer summary{min-height:44px;padding:10px 0;cursor:pointer}.policy-site-footer p{overflow-wrap:anywhere}.policy-home{margin-top:12px}
+.policy-skip{position:absolute;top:0;left:12px;transform:translateY(-150%);background:var(--policy-bg);padding:8px;z-index:5}.policy-skip:focus{transform:none}
+.cd-policy-static main h2{font-size:20px;line-height:1.5;word-break:keep-all}.cd-policy-static main h3{font-size:17px;line-height:1.6}.cd-policy-static main p,.cd-policy-static main li{overflow-wrap:anywhere}.cd-policy-static main ul{padding-left:22px}
+.policy-doc__layout{display:block}.policy-doc__toc{border:1px solid var(--pg-line);border-radius:16px;padding:18px;margin:24px 0}.policy-doc__toc-title{font-weight:700}.policy-doc__toc-list{margin:0}.policy-doc__section,.policy-embed-section{padding:12px 0;border-bottom:1px solid var(--pg-line);scroll-margin-top:24px}.policy-doc__related{display:flex;gap:8px 18px;flex-wrap:wrap;margin-top:24px}.cd-policy-static .cd-card{padding:18px;margin-block:18px}.policy-doc__form-panel{padding:18px;margin-top:24px}
+.policy-field{margin-bottom:18px}.policy-label{display:block;font-size:14px;margin-bottom:6px}.policy-input{width:100%;min-height:48px;border:1px solid var(--pg-line);border-radius:10px;padding:10px;font:inherit}.policy-btn{min-height:48px;padding:12px 18px;border:0;border-radius:12px;background:var(--policy-accent);color:var(--policy-bg);font:inherit;cursor:pointer}.policy-doc__inline-btn{min-height:44px;background:transparent;border:0;color:var(--policy-accent);text-decoration:underline;font:inherit;cursor:pointer}.policy-contact-status{font-size:13px;color:var(--policy-muted)}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}

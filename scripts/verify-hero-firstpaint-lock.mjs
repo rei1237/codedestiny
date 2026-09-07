@@ -67,6 +67,22 @@ const failures = [];
 const fail = (msg) => failures.push(msg);
 
 const raw = readFileSync(ENTRY, "utf8");
+// The replacement hero has one blocking stylesheet rather than duplicated inline locks.
+if (raw.includes('id="cdHomeFunnel"')) {
+  const assert = (await import('node:assert/strict')).default;
+  const css = readFileSync(resolve(root, 'styles/home-funnel.css'), 'utf8');
+  const link = raw.indexOf('href="/styles/home-funnel.css');
+  assert(link > 0 && link < raw.indexOf('id="cdHomeFunnel"'), 'Home styles must precede first paint');
+  assert.match(raw, /id="honeypigLogo"[^>]*width="512" height="512"/);
+  assert.equal((raw.match(/<link rel="preload" as="image"/g) || []).length, 1, 'Only the shared hero/payment art is preloaded');
+  assert.doesNotMatch(raw, /class="moon-hero__(?:visual|zzz|ambient|copy)/);
+  assert.doesNotMatch(css, /(?:min-)?height:\s*100(?:d|s)?vh/);
+  assert.match(css, /\.cdh-garden>img\{[^}]*width:116px;height:116px/);
+  assert.ok(css.includes('max-width:430px'), 'shared mobile canvas on desktop');
+  assert.match(raw, /class="cdh-trust"/);
+  console.log('[hero-firstpaint-lock] PASS: single source compact hero, reserved image geometry, static trust');
+  process.exit(0);
+}
 
 /**
  * HTML 주석을 같은 길이의 공백으로 덮는다 — 오프셋은 그대로 두고 내용만 지운다.

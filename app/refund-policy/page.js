@@ -1,3 +1,4 @@
+import PolicyGuide, { policyPageClass, PolicyAccordion } from "../components/PolicyGuide";
 import Link from "next/link";
 import { generatePageMetadata } from "../../lib/generate-page-metadata";
 import { I18N_POLICY_ROUTE_MAP } from "../../lib/i18n/routes";
@@ -32,16 +33,14 @@ export function generateMetadata() {
 
 export default function RefundPolicyPage() {
   return (
-    <main className="policy-doc">
-      <header className="policy-doc__head">
-        <h1 className="policy-doc__title">환불 및 청약철회 정책</h1>
-        <p className="policy-doc__meta">시행일 {TERMS_EFFECTIVE_DATE} · Refund Policy</p>
-        <p className="policy-doc__lede">
-          Code Destiny의 유료 상품(30일 이용권, 상품별 원화 단건 결제)에 대한 환불·청약철회 기준입니다.
-          내용은 이용약관 제12조와 동일하며, 결제 전후에 찾아보기 쉽도록 별도 페이지로 제공합니다.
-        </p>
-      </header>
+    <main className={`policy-doc ${policyPageClass}`}>
+      <PolicyGuide kind="refund" title="환불·취소 안내" description="단건 결제와 30일 이용권의 환불·청약철회 기준입니다. 아래 전문은 이용약관 제12조와 동일합니다." meta={`시행일 ${TERMS_EFFECTIVE_DATE}`} />
 
+      <PolicyAccordion id="payment-help" title="결제 반영이 늦거나, 모바일 결제 후 돌아오지 못했어요">
+        <p>결제 완료 내역이 있는데 결과나 이용권이 보이지 않으면, 추가 결제 전에 결제 내역과 현재 이용 상태를 확인해 주세요.</p>
+        <p>결제 후 원래 화면으로 돌아오지 못했거나 반영이 지연되는 경우, 결제 시각·상품명·결제 내역과 문제가 발생한 화면을 고객센터에 알려주세요. 카드번호 전체나 비밀번호는 보내지 마세요.</p>
+        <Link href="/contact">결제 내역을 기준으로 문의하기</Link>
+      </PolicyAccordion>
       <div className="policy-doc__layout">
         <div className="policy-doc__body">
           <section id={REFUND_SECTION.id} className="policy-doc__section">
