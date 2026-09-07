@@ -249,6 +249,7 @@
     "verify:payment-policy-md": "node scripts/verify-payment-policy-md.mjs",
     "verify:paid-feature-common-flow": "node scripts/verify-paid-feature-common-flow.mjs",
     "verify:paid-gate-price-coverage": "node scripts/verify-paid-gate-price-coverage.mjs",
+    "verify:paid-resume-wiring": "node scripts/verify-paid-resume-wiring.mjs",
     "verify:home-service-registry": "node scripts/verify-home-service-registry.mjs",
     "verify:hero-firstpaint-lock": "node scripts/verify-hero-firstpaint-lock.mjs",
     "verify:auth-bar-reservation": "node scripts/verify-auth-bar-reservation.mjs",

@@ -113,6 +113,7 @@ const SUITE = [
   { run: "npm run verify:direct-confirm-pending-recovery", why: "승인 후 복구 계약 — 복귀 티켓 수명과 202 PENDING_CONFIRMATION 이 '결제가 완료되지 않았어요'(재결제 유도)로 세탁되지 않는 분기를 브레이스 균형 슬라이스로 7셸+dp 에서 고정한다." },
   { run: "npm run verify:paid-feature-common-flow", why: "유료 기능 공통 플로우." },
   { run: "npm run verify:paid-gate-price-coverage", why: "결제창 '0원' 회귀 방지. 9bc21abc6 이 호출부 3곳에서 cost 를 지웠는데 가드 36개 중 하나도 울지 않았다 — 전부 '공통 게이트를 쓰는가'만 보고 '그 게이트가 가격을 푸는가'는 아무도 안 봤다. 결과는 단건 0원 + 월정석 카드 영구 비활성이었다. 이 가드는 호출부를 전수 발견해 출하되는 해석기로 실제 실행해 본다." },
+  { run: "npm run verify:paid-resume-wiring", why: "결제 후 자동 재개(resume) 누락 방지. 모바일 PortOne 은 최상위 프레임을 리다이렉트하므로 게이트의 await 가 페이지와 함께 죽고 onGranted 가 영영 안 돈다 — 증상은 '결제는 됐는데 그 기능이 안 열리고 메인 화면'이다. 이 가드는 유료 게이트 호출부를 React·정적 두 축에서 전수 발견해 ① resume 서술자를 넘기는가 ② 그 kind 에 registerPaidResumeHandler/usePaidResume 핸들러가 있는가 를 양방향으로 대조한다. 미배선은 UNWIRED_BACKLOG 에 사유와 함께 선언해야만 통과하고, 배선이 끝난 항목이 backlog 에 남아 있어도 실패한다." },
   { run: "npm run verify:static-paid-gate-failsafe", why: "정적 셸 유료 게이트 페일세이프." },
   { run: "npm run verify:saju-unlock-entitlement-regression", why: "배선이 없던 시절 결제창 문구가 재작성된 뒤 깨진 채로 방치됐고, 아무도 알아채지 못했다." },
   { run: "npm run verify:profile-card-action-policy", why: "프로필 카드 액션 정책." },
