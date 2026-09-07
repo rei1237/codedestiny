@@ -150,3 +150,14 @@ When a new stale reference or document conflict is found:
 1. update `docs/CURRENT_DEV_BASELINE.md` if the current baseline changed
 2. remove the stale link from active docs when possible
 3. record the exception here only if the older material must remain for evidence
+
+## 2026-09-08 개발환경 계약 정합
+
+사용자 승인으로 파일 수 기반 RED 및 GREEN 워크트리 면제를 폐기했다. 위험도는 검증 강도, 워크트리는 동시 편집 격리로 분리한다. CLAUDE.md는 짧은 정본, AGENTS.md는 Codex 진입점, ARCHITECTURE.md는 작업 지도다. Claude 훅을 Codex가 실행한다고 가정하지 않는다.
+
+커밋 전 중복 lint/typecheck/check 체인 대신 공통 변경 검사 계획을 사용한다. CI는 기존 검사를 유지하고 새 선택 계획만 비교한다. 10개 PR 관측 전 실제 검사 축소는 금지한다. 과거 문서의 고정 high effort 및 파일 수 기반 실행 계약은 현재 정본보다 우선하지 않는다.
+
+결제 CSS와 카드 마크업 공유는 checkout-entry 모듈에 이미 구현되어 있다. 과거 인수인계의 미완료 표시는 현재 작업 지시로 사용하지 않는다. 이번 변경은 결제 정책·cutover를 바꾸지 않는다.
+
+## 2026-09-08 사용자 전달 방식 변경
+PR 생성 후 필수 검사와 최신 base 충돌을 확인하고 에이전트가 안전하게 머지한다. 스테이징에서 Pages·Worker 배포 SHA 및 읽기 전용 핵심 응답을 확인한다. 과거 사용자 수동 머지·머지 후 배포 미확인 조항보다 이 지시가 우선한다. 프로덕션 승격은 여전히 사용자의 명시적인 1회 승인 때만 진행한다. branch protection을 우회하지 않으며 실패·필수 승인 대기는 보고한다.

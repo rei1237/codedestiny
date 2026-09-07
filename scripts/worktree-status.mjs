@@ -1,99 +1,121 @@
 #!/usr/bin/env node
-
-/*
- * 워크트리별로 무엇을 건드리고 있는지, 그리고 겹치는 파일이 있는지 보고한다.
- *
- * "같은 부분이 아니면 워크트리를 나눈다"는 판단을 사람 기억이 아니라 실제 git 상태로 한다.
- * 세션이 직접 등록하는 claim 파일 방식은 갱신을 잊는 순간 거짓말이 되므로 쓰지 않는다.
- *
- * 세는 것: 각 워크트리의 미커밋 변경 + origin/main 에 아직 없는 커밋이 건드린 파일.
- * 읽기 전용이며 아무것도 바꾸지 않는다.
- */
-import { spawnSync } from "node:child_process";
-import path from "node:path";
-
-const args = new Set(process.argv.slice(2));
-const strict = args.has("--strict");
-
-function git(gitArgs, cwd) {
-  const result = spawnSync("git", gitArgs, { cwd, encoding: "utf8", windowsHide: true });
-  return result.status === 0 ? String(result.stdout || "").trim() : "";
-}
-function lines(value) {
-  return value ? value.split(/\r?\n/).map((item) => item.trim()).filter(Boolean) : [];
-}
-
-function worktrees() {
-  const out = git(["worktree", "list", "--porcelain"], process.cwd());
-  const entries = [];
-  let current = null;
-  for (const line of lines(out)) {
-    if (line.startsWith("worktree ")) {
-      if (current) entries.push(current);
-      current = { path: line.slice("worktree ".length).trim(), branch: "", head: "" };
-    } else if (current && line.startsWith("branch ")) {
-      current.branch = line.slice("branch ".length).replace(/^refs\/heads\//, "");
-    } else if (current && line.startsWith("HEAD ")) {
-      current.head = line.slice("HEAD ".length).trim();
-    }
+// Read-only preflight: never checkout, stash, merge, install or edit Git configuration.
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
+import { lstat, readFile, realpath } from 'node:fs/promises';
+import { resolve, dirname, join } from 'node:path';
+import { createHash } from 'node:crypto';
+import { pathToFileURL } from 'node:url';
+const execute = promisify(execFile);
+async function git(root, args, optional = false) {
+  try {
+    const { stdout } = await execute('git', ['-c', `safe.directory=${root}`, '-C', root, ...args], { encoding: 'utf8', windowsHide: true, timeout: 15000, maxBuffer: 4 * 1024 * 1024, env: { ...process.env, GIT_OPTIONAL_LOCKS: '0' } });
+    return stdout;
+  } catch {
+    if (optional) return null;
+    throw new Error(`Git inspection failed: ${args[0]}`);
   }
-  if (current) entries.push(current);
-  return entries;
 }
-
-/** 이 워크트리가 "지금 작업 중인" 파일. 미커밋 + origin/main 에 없는 커밋. */
-function touchedFiles(cwd) {
-  const working = [
-    git(["diff", "--name-only"], cwd),
-    git(["diff", "--cached", "--name-only"], cwd),
-    git(["ls-files", "--others", "--exclude-standard"], cwd),
-  ].flatMap(lines);
-  // origin/main 이 없으면 커밋 범위는 건너뛴다. 미커밋 변경만으로도 겹침은 드러난다.
-  const committed = git(["rev-parse", "--verify", "--quiet", "origin/main"], cwd)
-    ? lines(git(["diff", "--name-only", "origin/main...HEAD"], cwd))
-    : [];
-  return [...new Set([...working, ...committed])].sort();
+export function parseWorktrees(output) {
+  const records = [];
+  let current;
+  for (const field of output.split('\0')) {
+    if (field.startsWith('worktree ')) { current = { path: field.slice(9) }; records.push(current); }
+    else if (current && field.startsWith('branch ')) current.branch = field.slice(7).replace(/^refs\/heads\//, '');
+    else if (current && field.startsWith('HEAD ')) current.sha = field.slice(5);
+    else if (current && field === 'detached') current.branch = '(detached)';
+  }
+  return records;
 }
-
-const entries = worktrees().map((entry) => ({ ...entry, files: touchedFiles(entry.path) }));
-const owners = new Map();
-for (const entry of entries) {
-  for (const file of entry.files) {
+export function overlappingFiles(current, other) {
+  const owned = new Set(current);
+  return [...new Set(other.filter(file => owned.has(file)))].sort();
+}
+const normalized = value => process.platform === 'win32' ? resolve(value).toLowerCase() : resolve(value);
+async function lockHash(root) {
+  try { return createHash('sha256').update(await readFile(join(root, 'package-lock.json'))).digest('hex'); }
+  catch { return null; }
+}
+export async function dependencyStatus(root) {
+  const modulePath = join(root, 'node_modules');
+  let stat;
+  try { stat = await lstat(modulePath); } catch { return { state: 'missing', linked: false, compatible: false }; }
+  let target;
+  try { target = await realpath(modulePath); } catch { return { state: 'unreadable-link', linked: stat.isSymbolicLink(), compatible: false }; }
+  const linked = stat.isSymbolicLink() || normalized(target) !== normalized(modulePath);
+  if (!linked) return { state: 'local', linked: false, path: target, compatible: true, note: 'Local install; installed dependency freshness is not inferred.' };
+  const [worktreeLockHash, installLockHash] = await Promise.all([lockHash(root), lockHash(dirname(target))]);
+  const compatible = Boolean(worktreeLockHash && installLockHash && worktreeLockHash === installLockHash);
+  return { state: compatible ? 'linked-compatible' : 'linked-lock-mismatch', linked: true, path: target, installRoot: dirname(target), worktreeLockHash, installLockHash, compatible, note: 'Compares current worktree and install-root lockfiles; does not certify when node_modules was installed.' };
+}
+async function touchedFiles(root, untracked) {
+  const requests = [
+    git(root, ['diff', '--no-ext-diff', '--no-textconv', '--name-only', '-z', '--']),
+    git(root, ['diff', '--no-ext-diff', '--no-textconv', '--cached', '--name-only', '-z', '--']),
+  ];
+  if (untracked) requests.push(git(root, ['ls-files', '--others', '--exclude-standard', '-z']));
+  const working = (await Promise.all(requests)).flatMap(value => value.split('\0').filter(Boolean));
+  const base = await git(root, ['rev-parse', '--verify', '--quiet', 'origin/main'], true);
+  const committed = base ? await git(root, ['diff', '--no-ext-diff', '--no-textconv', '--name-only', '-z', 'origin/main...HEAD', '--'], true) : null;
+  return { files: [...new Set([...working, ...(committed || '').split('\0').filter(Boolean)])].sort(), uncertainty: committed === null ? 'origin/main range unavailable; committed changes unknown' : null };
+}
+export async function inspectWorktree(cwd, { untracked = true } = {}) {
+  const root = (await git(cwd, ['rev-parse', '--show-toplevel'])).trim();
+  const [sha, branch, gitDir, commonDir, worktreeList, driver, dependencies] = await Promise.all([
+    git(root, ['rev-parse', 'HEAD']), git(root, ['symbolic-ref', '--short', '-q', 'HEAD'], true),
+    git(root, ['rev-parse', '--absolute-git-dir']), git(root, ['rev-parse', '--path-format=absolute', '--git-common-dir']),
+    git(root, ['worktree', 'list', '--porcelain', '-z']), git(root, ['config', '--get', 'merge.cachebust.driver'], true),
+    dependencyStatus(root),
+  ]);
+  const entries = await Promise.all(parseWorktrees(worktreeList).map(async item => {
+    try { return { ...item, ...(await touchedFiles(item.path, untracked)) }; }
+    catch { return { ...item, files: [], error: 'unavailable', uncertainty: 'working and committed changes unknown' }; }
+  }));
+  const current = entries.find(item => normalized(item.path) === normalized(root));
+  if (!current) throw new Error('Current worktree missing from Git worktree listing');
+  const owners = new Map();
+  for (const item of entries) for (const file of item.files) {
     if (!owners.has(file)) owners.set(file, []);
-    owners.get(file).push(entry);
+    owners.get(file).push({ path: item.path, branch: item.branch });
   }
+  const collisions = [...owners.entries()].filter(([, items]) => items.length > 1)
+    .map(([file, items]) => ({ file, owners: items })).sort((a, b) => b.owners.length - a.owners.length || a.file.localeCompare(b.file));
+  const overlaps = entries.filter(item => normalized(item.path) !== normalized(root)).map(item => {
+    const files = overlappingFiles(current.files, item.files);
+    return { path: item.path, branch: item.branch, overlapCount: files.length, files: files.slice(0, 20) };
+  }).filter(item => item.overlapCount > 0);
+  return {
+    root, sha: sha.trim(), branch: branch?.trim() || '(detached)',
+    isolation: { isolated: normalized(gitDir.trim()) !== normalized(commonDir.trim()), gitDir: gitDir.trim(), commonDir: commonDir.trim() },
+    dependencies, cachebustMergeDriverConfigured: Boolean(driver?.trim()), changedFileCount: current.files.length,
+    includesUntracked: untracked, includesCommitted: true, committedBase: 'origin/main', otherWorktreesInspected: entries.length - 1,
+    overlaps, collisions, worktrees: entries,
+    unavailableWorktrees: entries.filter(item => item.error), uncertainWorktrees: entries.filter(item => item.uncertainty).map(({ path, uncertainty }) => ({ path, uncertainty })),
+    note: 'Includes uncommitted paths and origin/main...HEAD changes across all worktrees. Read-only snapshot; overlap requires coordination, not automatic merging.',
+  };
 }
-const collisions = [...owners.entries()]
-  .filter(([, list]) => list.length > 1)
-  .sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0]));
-
-for (const entry of entries) {
-  const name = path.basename(entry.path);
-  const label = entry.branch || entry.head.slice(0, 12) || "detached";
-  console.log(`\n${name}  [${label}]  ${entry.files.length} file(s)`);
-  for (const file of entry.files.slice(0, 12)) {
-    const shared = owners.get(file).length > 1;
-    console.log(`  ${shared ? "!" : " "} ${file}`);
+async function main() {
+  const args = new Set(process.argv.slice(2));
+  if ([...args].some(arg => !['--json', '--untracked', '--strict'].includes(arg))) throw new Error('Usage: node scripts/worktree-status.mjs [--json] [--untracked] [--strict]');
+  const report = await inspectWorktree(process.cwd(), { untracked: true });
+  if (args.has('--json')) console.log(JSON.stringify(report, null, 2));
+  else {
+    console.log(`[worktree] ${report.branch} @ ${report.sha.slice(0, 12)} | isolated=${report.isolation.isolated}`);
+    console.log(`[dependencies] ${report.dependencies.state}${report.dependencies.path ? `: ${report.dependencies.path}` : ''}`);
+    console.log(`[cachebust] configured=${report.cachebustMergeDriverConfigured}`);
+    console.log(`[overlap] ${report.overlaps.length} worktrees | ${report.changedFileCount} current changed paths`);
+    let remaining = 20;
+    for (const item of report.overlaps) {
+      if (!remaining) break;
+      const shown = item.files.slice(0, remaining);
+      console.log(`  ${item.branch || item.path}: ${shown.join(', ')}${item.overlapCount > shown.length ? ` (+${item.overlapCount - shown.length})` : ''}`);
+      remaining -= shown.length;
+    }
+    console.log(`[global collisions] ${report.collisions.length} paths across all worktrees`);
+    for (const item of report.collisions.slice(0, 20)) console.log(`  ${item.file}: ${item.owners.slice(0, 3).map(owner => owner.branch || owner.path).join(', ') + (item.owners.length > 3 ? ` (+${item.owners.length - 3})` : '')}`);
+    if (report.uncertainWorktrees.length) console.log(`[uncertain] ${report.uncertainWorktrees.length} worktrees have unknown committed/working changes`);
+    if (report.unavailableWorktrees.length) console.log(`[inspection] ${report.unavailableWorktrees.length} worktrees unavailable`);
   }
-  if (entry.files.length > 12) console.log(`    … ${entry.files.length - 12} more`);
+  if (!report.dependencies.compatible || (args.has('--strict') && (report.collisions.length || report.uncertainWorktrees.length))) process.exitCode = 1;
 }
-
-console.log("");
-if (!collisions.length) {
-  console.log("[worktree-status] No file is touched by two worktrees. Safe to work and deploy in parallel.");
-  process.exit(0);
-}
-
-console.log(`[worktree-status] ${collisions.length} file(s) touched by more than one worktree:`);
-for (const [file, list] of collisions.slice(0, 25)) {
-  console.log(`  ${file}`);
-  for (const entry of list) console.log(`      ${path.basename(entry.path)} [${entry.branch || "detached"}]`);
-}
-if (collisions.length > 25) console.log(`  … ${collisions.length - 25} more`);
-console.log("");
-console.log("  Overlap is not automatically wrong — it means those worktrees must merge before");
-console.log("  the second one promotes, or one of them should take over the file entirely.");
-console.log("  Production promotion is already guarded: deploy-safe refuses to promote a HEAD");
-console.log("  that does not contain the currently live commit.");
-
-process.exitCode = strict ? 1 : 0;
+if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) main().catch(error => { console.error(error.message); process.exitCode = 1; });
