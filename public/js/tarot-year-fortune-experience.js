@@ -438,6 +438,10 @@
         amountKRW: Math.max(0, Number(cost || 0)) * 100,
         featureKey: featureKey,
         requestId: requestId,
+        // 🔴 폴백 갈래도 주 경로(_cdCoinGatePerUse, 아래 requireYearAccess)와 같은 재개 서술자를 싣는다.
+        //    안 실으면 모바일 리다이렉트 복귀 문서는 돈만 내고 12장 뽑기가 열리지 않는다.
+        //    결제에 쓴 requestId 를 그대로 넘긴다 — seed 이자 서버 증빙의 열쇠다.
+        resume: buildYearResumeDescriptor(state.year, requestId),
       })).then(function(result) {
         return !!(result && (result.status === "granted" || result.ok === true || result.payload));
       }).catch(function(error) {
@@ -1821,13 +1825,13 @@ function renderTarotYearResult() {
   var YEAR_RESUME_WAIT_MS = 8000;
   var YEAR_RESUME_POLL_MS = 200;
 
-  function buildYearResumeDescriptor() {
+  function buildYearResumeDescriptor(yearOverride, requestIdOverride) {
     return {
       kind: YEAR_RESUME_KIND,
       action: "openTarotYearFortuneModal",
       args: {
-        year: String(state.year || new Date().getFullYear()),
-        requestId: String(state.requestId || ""),
+        year: String(yearOverride || state.year || new Date().getFullYear()),
+        requestId: String(requestIdOverride || state.requestId || ""),
       },
     };
   }
