@@ -128,7 +128,10 @@ const sessionCacheFile = emit('user-session-cache.js', transpile('app/_lib/user-
   '@/app/_lib/auth-client': './auth-client.js',
 }));
 
+emit('auth-session-copy.js', transpile('app/_lib/auth-session-copy.ts'));
+
 const authStoreFile = emit('auth-store.js', transpile('app/_lib/auth-store.ts', {
+  './auth-session-copy': './auth-session-copy.js',
   react: './stub-react.js',
   './api-config': './stub-api-config.js',
   './auth-client': './auth-client.js',

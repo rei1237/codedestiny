@@ -5776,12 +5776,16 @@ function _cdAIPromptIsPassPayload(payload, access) {
   var accessStatus = String(access && access.status || '').trim().toLowerCase();
   var accessReason = String(accessDecision.reason || accessDecision.status || '').trim().toLowerCase();
   return layers.some(function(layer) { return layer && layer.freeBySubscription === true; })
-    || (accessDecision.accessGranted === true && accessReason === 'pass_covered')
+    || (accessDecision.accessGranted === true && /^(pass_covered|pass_applied|pass_free|family_all_access)$/.test(accessReason))
     || accessStatus === 'pass_applied'
     || accessType === 'membership_pass'
+    || accessType === 'license_pass'
     || accessType === 'usage_pass'
     || accessType === 'subscription_pass'
-    || accessMethod === 'PASS';
+    || accessType === 'family'
+    || accessType === 'family_pass'
+    || accessMethod === 'PASS'
+    || accessMethod === 'FAMILY';
 }
 
 /* ── 결제 후 자동 재개 공통 배관 (js/saju-engine.js) ─────────────────────────────
@@ -6204,11 +6208,12 @@ function _cdAIPromptGateEvidence(gateResult) {
   var accessDecision = _cdAIPromptFirstObject(layers, 'accessDecision');
   var paymentLayer = _cdAIPromptFirstObject(layers, 'payment');
   var payment = Object.keys(paymentLayer).length ? paymentLayer : undefined;
+  var passAccess = _cdAIPromptIsPassPayload(gate.payload, gate.access || gate);
   return {
     requestId: String(gate.requestId || data.requestId || accessDecision.requestId || accessGrant.requestId || consume.requestId || '').trim(),
     accessGrant: accessGrant,
     accessDecision: accessDecision,
-    freeBySubscription: layers.some(function(layer) { return layer && layer.freeBySubscription === true; }),
+    freeBySubscription: passAccess || layers.some(function(layer) { return layer && layer.freeBySubscription === true; }),
     consume: consume,
     payment: payment,
     _paymentContext: {
@@ -7539,6 +7544,8 @@ function _requestSajuQuestionPrompt(question, privacyOptions, domain, options) {
 }
 
 function _buildSajuQuestionPromptHtml() {
+  var sajuAiAmountKrw = 20000;
+  var sajuAiPriceLabel = sajuAiAmountKrw.toLocaleString('ko-KR') + '원';
   var steps = [
     ['0', '결제 확인'],
     ['15', '명식 로딩'],
@@ -7557,12 +7564,12 @@ function _buildSajuQuestionPromptHtml() {
     +   '<div style="position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(230,196,112,.14),transparent 32%,rgba(255,255,255,.1) 100%);"></div>'
     +   '<div style="position:relative;display:flex;justify-content:space-between;gap:14px;align-items:flex-start;flex-wrap:wrap;margin-bottom:13px;">'
     +     '<div style="display:flex;gap:12px;align-items:flex-start;min-width:220px;flex:1 1 300px;"><span aria-hidden="true" style="flex:0 0 auto;width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,231,164,.72);background:radial-gradient(circle at 50% 28%,#f8ead4 0 10%,transparent 11%),radial-gradient(circle at 50% 72%,#24170c 0 10%,transparent 11%),linear-gradient(180deg,#b91c1c 0 50%,#123c7d 50% 100%);box-shadow:0 10px 24px rgba(0,0,0,.28),inset 0 0 0 3px rgba(255,247,223,.72);"></span><div><div style="font-size:0.72rem;color:#e8c778;letter-spacing:.14em;font-weight:900;text-transform:uppercase;">Saju AI Consultation</div><span class="prem-title" style="display:block;margin-top:4px;color:#fff7df;font-size:1.04rem;line-height:1.35;font-weight:900;">명식이 답하는 사주 AI 상담</span><p style="font-size:0.82rem;color:rgba(255,247,223,.8);margin:5px 0 0;line-height:1.7;word-break:keep-all;">고민을 남기면 일간·월령·조후·십성의 결을 따라 지금 필요한 흐름과 선택의 방향이 상담문으로 열립니다.</p></div></div>'
-    +     '<span style="white-space:nowrap;font-size:0.72rem;color:#2a2117;border:1px solid rgba(244,216,142,.68);background:linear-gradient(135deg,#fde8a4,#c6923a);padding:7px 11px;border-radius:999px;font-weight:900;box-shadow:0 10px 20px rgba(0,0,0,.18);">결제 · 월정석 · 이용권</span>'
+    +     '<span style="white-space:nowrap;font-size:0.72rem;color:#2a2117;border:1px solid rgba(244,216,142,.68);background:linear-gradient(135deg,#fde8a4,#c6923a);padding:7px 11px;border-radius:999px;font-weight:900;box-shadow:0 10px 20px rgba(0,0,0,.18);">1회 ' + sajuAiPriceLabel + '</span>'
     +   '</div>'
     +   '<textarea data-saju-ai-question maxlength="1000" placeholder="' + _sajuEngineText("se_6277_attr_placeholder") + '" style="position:relative;width:100%;min-height:116px;border-radius:8px;border:1px solid rgba(230,196,112,.55);background:rgba(255,252,243,.94);color:#24170c;padding:13px 14px;font-size:0.88rem;line-height:1.68;resize:vertical;box-sizing:border-box;box-shadow:inset 0 1px 12px rgba(44,29,12,.09),0 0 0 1px rgba(255,244,205,.18);"></textarea>'
     +   '<div style="position:relative;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;">'
     +     '<span data-saju-ai-count style="font-size:0.72rem;color:rgba(255,247,223,.68);font-weight:800;">0 / 1000</span>'
-    +     '<span style="font-size:0.72rem;color:rgba(255,247,223,.72);font-weight:700;">질문 5자 이상 · 결제 확인 뒤 상담문 생성</span>'
+    +     '<span style="font-size:0.72rem;color:rgba(255,247,223,.72);font-weight:700;">질문 5자 이상 · 1회 ' + sajuAiPriceLabel + ' · 결제 확인 뒤 상담문 생성</span>'
     +   '</div>'
     +   '<div style="position:relative;margin-top:13px;">'
     +     '<div style="font-size:0.72rem;color:#e8c778;font-weight:900;margin-bottom:7px;letter-spacing:.04em;">질문이 향하는 자리</div>'
@@ -7606,7 +7613,7 @@ function _buildSajuQuestionPromptHtml() {
     +     '<div data-saju-ai-basis-live style="display:none;margin-top:10px;max-height:280px;overflow-y:auto;"></div>'
     +   '</div>'
     +   '<div style="position:relative;display:flex;gap:8px;flex-wrap:wrap;margin-top:13px;">'
-    +     '<button data-saju-ai-generate type="button" style="background:linear-gradient(135deg,#ffe6a3,#c89236);color:#1e160c;border:1px solid rgba(255,234,166,.78);padding:11px 15px;border-radius:8px;font-size:0.82rem;font-weight:900;cursor:pointer;box-shadow:0 12px 24px rgba(0,0,0,.24);">사주 AI 상담 받기</button>'
+    +     '<button data-saju-ai-generate type="button" style="background:linear-gradient(135deg,#ffe6a3,#c89236);color:#1e160c;border:1px solid rgba(255,234,166,.78);padding:11px 15px;border-radius:8px;font-size:0.82rem;font-weight:900;cursor:pointer;box-shadow:0 12px 24px rgba(0,0,0,.24);">' + sajuAiPriceLabel + '으로 사주 AI 상담 받기</button>'
     +     '<button data-saju-ai-regenerate type="button" style="display:none;background:rgba(255,255,255,.08);color:#fff7df;border:1px solid rgba(230,196,112,.44);padding:11px 13px;border-radius:8px;font-size:0.78rem;font-weight:800;cursor:pointer;">다시 상담 받기</button>'
     +     '<button data-saju-ai-resume type="button" style="display:none;background:rgba(255,255,255,.08);color:#fff7df;border:1px solid rgba(230,196,112,.44);padding:11px 13px;border-radius:8px;font-size:0.78rem;font-weight:800;cursor:pointer;">이전 상담문 이어보기</button>'
     +   '</div>'
@@ -19207,101 +19214,6 @@ function renderZiwei(p, natal, targetId) {
         transform: none !important;
       }
     }
-
-/* 퀀텀 명리 엔진 업그레이드 스타일 (Premium UX) */
-.quantum-mode {
-  padding: 35px 25px;
-  background: linear-gradient(145deg, rgba(20,25,45,0.85), rgba(30,35,65,0.95));
-  border-radius: 28px;
-  border: 1px solid rgba(255,255,255,0.1);
-  box-shadow: 0 25px 50px rgba(0,0,0,0.6), inset 0 0 20px rgba(255,255,255,0.03);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  color: #f8fafc;
-  margin-bottom: 35px;
-  position: relative;
-  overflow: visible;
-  text-align: center;
-  font-family: 'Pretendard', sans-serif;
-}
-.quantum-title {
-  font-size: 1.6rem;
-  font-weight: 900;
-  letter-spacing: 4px;
-  background: linear-gradient(to right, #e2e8f0, #a78bfa, #f472b6);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  margin-bottom: 10px;
-  text-transform: uppercase;
-  text-shadow: 0 2px 10px rgba(167,139,250,0.2);
-}
-.quantum-subtitle { font-size: 0.95rem; color: #cbd5e1; font-weight: 400; margin-bottom: 35px; letter-spacing: 0.5px; opacity: 0.9; }
-
-/* 3D Card */
-.quantum-card-scene { width: 190px; height: 280px; margin: 0 auto; perspective: 1200px; z-index: 2; position: relative; }
-.quantum-card { width: 100%; height: 100%; position: relative; transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform-style: preserve-3d; cursor: pointer; }
-.quantum-card.flip-it { transform: rotateY(180deg) scale(1.08); box-shadow: 0 0 45px rgba(139, 92, 246, 0.5); animation: q-glow 3s infinite alternate; }
-@keyframes q-glow {
-  0% { box-shadow: 0 0 35px rgba(167, 139, 250, 0.4), 0 0 15px rgba(167, 139, 250, 0.2) inset; }
-  100% { box-shadow: 0 0 55px rgba(236, 72, 153, 0.6), 0 0 25px rgba(236, 72, 153, 0.3) inset; }
-}
-.quantum-card-inner { width: 100%; height: 100%; position: absolute; transform-style: preserve-3d; }
-.quantum-card-front, .quantum-card-back { width: 100%; height: 100%; position: absolute; backface-visibility: hidden; border-radius: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-.quantum-card-front {
-  background: linear-gradient(135deg, #0f172a, #2e1065);
-  border: 1px solid rgba(255,255,255,0.2);
-  overflow: hidden;
-  box-shadow: inset 0 0 30px rgba(0,0,0,0.5);
-}
-.quantum-card-back {
-  background: linear-gradient(135deg, rgba(30,41,59,0.95), rgba(15,23,42,0.95));
-  border: 1px solid rgba(167,139,250,0.4);
-  transform: rotateY(180deg);
-  padding: 24px;
-  text-align: center;
-  backdrop-filter: blur(12px);
-}
-.q-stars { position: absolute; top:0; left:0; right:0; bottom:0; background-image: radial-gradient(rgba(255,255,255,0.9) 1px, transparent 1px); background-size: 20px 20px; opacity: 0.2; }
-.q-logo { font-size: 56px; font-weight: 900; color: #fff; text-shadow: 0 0 20px rgba(167, 139, 250, 1), 0 0 40px rgba(167, 139, 250, 0.6); z-index: 1; margin-bottom: 12px; }
-.q-tap-text { z-index: 1; font-size: 0.85rem; color: #e2e8f0; text-transform: uppercase; letter-spacing: 4px; font-weight: 600; background: rgba(0,0,0,0.3); padding: 4px 12px; border-radius: 20px; }
-
-/* Expanded Dashboard */
-.q-dashboard { margin-top: -30px; padding-top: 50px; opacity: 0; transform: translateY(20px); transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1); display: none; }
-.q-dashboard.show { opacity: 1; transform: translateY(0); }
-
-/* Daily Pillars */
-.q-pillars-wrap { display: flex; justify-content: center; gap: 20px; margin-bottom: 25px; }
-.q-pillar { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 15px 20px; width: 100px; backdrop-filter: blur(5px); transition: transform 0.3s ease, background 0.3s ease; }
-.q-pillar:hover { transform: translateY(-3px); background: rgba(255,255,255,0.08); }
-.q-p-label { font-size: 0.7rem; color: #94a3b8; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
-.q-p-char { font-size: 2rem; font-weight: 700; color: #f8fafc; text-shadow: 0 0 10px rgba(255,255,255,0.3); }
-.q-p-desc { font-size: 0.75rem; color: #cbd5e1; margin-top: 5px; }
-
-/* Explanation Core */
-.q-explanation { font-size: 0.9rem; line-height: 1.6; color: #e2e8f0; font-weight: 300; margin: 0 auto 30px auto; max-width: 90%; background: rgba(0,0,0,0.2); padding: 20px; border-radius: 16px; border-left: 2px solid #a78bfa; text-align: left; }
-.q-explanation strong { color: #fff; font-weight: 600; }
-
-/* Elemental Balance Chips */
-.q-elements-title { font-size: 0.8rem; color: #94a3b8; letter-spacing: 2px; margin-bottom: 15px; text-transform: uppercase; }
-.q-elements-row { display: flex; justify-content: center; gap: 12px; margin-bottom: 30px; flex-wrap: wrap; }
-.q-chip { position: relative; width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; font-weight: 600; color: #fff; cursor: pointer; transition: all 0.3s ease; border: 1px solid rgba(255,255,255,0.2); }
-.q-chip:hover { transform: scale(1.15); z-index: 10; }
-.q-chip.wood { background: linear-gradient(135deg, #10b981, #047857); box-shadow: 0 0 15px rgba(16, 185, 129, 0.4); }
-.q-chip.fire { background: linear-gradient(135deg, #f43f5e, #be123c); box-shadow: 0 0 15px rgba(244, 63, 94, 0.4); }
-.q-chip.earth { background: linear-gradient(135deg, #eab308, #a16207); box-shadow: 0 0 15px rgba(234, 179, 8, 0.4); }
-.q-chip.metal { background: linear-gradient(135deg, #94a3b8, #475569); box-shadow: 0 0 15px rgba(148, 163, 184, 0.4); }
-.q-chip.water { background: linear-gradient(135deg, #3b82f6, #1d4ed8); box-shadow: 0 0 15px rgba(59, 130, 246, 0.4); }
-.q-chip.active { border: 2px solid #fff; box-shadow: 0 0 25px currentColor; }
-
-/* Tooltip */
-.q-chip .q-tooltip { visibility: hidden; width: 140px; background: rgba(15,23,42,0.95); color: #f8fafc; text-align: center; border-radius: 8px; padding: 10px; position: absolute; z-index: 1; bottom: 125%; left: 50%; transform: translateX(-50%) translateY(10px); opacity: 0; transition: opacity 0.3s, transform 0.3s; border: 1px solid rgba(255,255,255,0.1); font-size: 0.75rem; font-weight: 400; line-height: 1.4; pointer-events: none; }
-.q-chip .q-tooltip::after { content: ""; position: absolute; top: 100%; left: 50%; margin-left: -5px; border-width: 5px; border-style: solid; border-color: rgba(15,23,42,0.95) transparent transparent transparent; }
-.q-chip:hover .q-tooltip { visibility: visible; opacity: 1; transform: translateX(-50%) translateY(0); }
-
-/* Gaeun Prescript */
-.gaeun-prescript { padding: 20px; border-radius: 16px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); box-shadow: inset 0 0 20px rgba(0,0,0,0.2); }
-.gaeun-title { font-size: 0.95rem; color: #c4b5fd; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
 
 /* Destiny Portfolio: Cosmic Glassmorphism (isolated namespace) */
 .zw-portfolio-mount {

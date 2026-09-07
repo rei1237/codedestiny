@@ -1,0 +1,49 @@
+{
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/.git/objects/**": true,
+    "**/.next/**": true,
+    "**/.open-next/**": true,
+    "**/dist/**": true,
+    "**/out/**": true,
+    "**/build/**": true,
+    "**/build-cache/**": true,
+    "**/.wrangler/**": true,
+    "**/coverage/**": true,
+    "**/playwright-report/**": true,
+    "**/test-results/**": true,
+    "**/.claude/worktrees/**": true,
+    "**/.codex-worktrees/**": true
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/.next": true,
+    "**/.open-next": true,
+    "**/dist": true,
+    "**/out": true,
+    "**/build": true,
+    "**/build-cache": true,
+    "**/.wrangler": true,
+    "**/coverage": true,
+    "**/playwright-report": true,
+    "**/test-results": true,
+    "**/*.tsbuildinfo": true
+  },
+  "files.exclude": {
+    "**/.next": true,
+    "**/.open-next": true,
+    "**/dist": true,
+    "**/out": true,
+    "**/.wrangler": true
+  },
+  "typescript.tsserver.maxTsServerMemory": 4096,
+  "typescript.tsserver.watchOptions": {
+    "watchFile": "useFsEventsOnParentDirectory",
+    "watchDirectory": "useFsEvents",
+    "excludeDirectories": ["**/node_modules", "**/.next", "**/dist", "**/out", "**/.claude/worktrees", "**/.codex-worktrees"]
+  },
+  "java.server.launchMode": "LightWeight",
+  "java.configuration.updateBuildConfiguration": "interactive",
+  "gradle.nestedProjects": ["apps/mobile/android"],
+  "java.import.exclusions": ["**/node_modules/**", "**/.metadata/**", "**/archetype-resources/**", "**/META-INF/maven/**", "**/.claude/**"]
+}

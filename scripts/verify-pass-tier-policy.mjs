@@ -230,6 +230,17 @@ for (const tier of TIERS) {
   }
 }
 
+// 사본 2-b — React 결제 클라이언트의 로컬 이용권 한도 폴백
+const billingClient = read("app/_lib/billing-client.ts");
+const billingClientLimits = extractAll("app/_lib/billing-client.ts maxCoinCoveredForPlan", billingClient, (tier) => {
+  const plan = tier.toUpperCase();
+  return new RegExp(`plan\\s*===\\s*"${plan}"\\)\\s*return\\s*(\\d+|null)`);
+});
+for (const tier of TIERS) {
+  const expected = tier === "family" ? null : PASS_LIMITS[tier];
+  check(`React billing maxCoinCoveredForPlan[${tier}]`, billingClientLimits[tier] === expected, `실제=${billingClientLimits[tier]} 정본=${expected}`);
+}
+
 // 사본 3 — 정적 셸 goldenPackages (public/** 미러는 sync:public 산출물이라 원본만 본다)
 const shell = read("index.html");
 const goldenFor = (tier, field) => new RegExp(`id:\\s*'${tier}'[^}]*?${field}:\\s*(\\d+|null)`);
