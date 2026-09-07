@@ -116,6 +116,17 @@ function readPhyResumeSnapshot() {
   return parsed.first;
 }
 
+function clearPhyResumeSnapshot() {
+  const store = phyResumeStore();
+  if (!store) return false;
+  try {
+    store.removeItem(PHY_RESUME_SNAPSHOT_KEY);
+    return true;
+  } catch (_phySnapshotClearError) {
+    return false;
+  }
+}
+
 /** 인페이지 결제면 메모리에 그대로 있고, 리다이렉트 복귀면 스냅샷에서 되살린다. */
 function restorePhyFirstAnalysisResult() {
   if (firstAnalysisResult) return true;
@@ -1680,9 +1691,10 @@ function buildLockedSectionHtml() {
  *    다시 부르면 게이트를 또 타서 재과금된다(app/hooks/usePaidResume.ts 계약 3).
  */
 function applyOgwanMoleUnlock() {
-  ogwanMoleUnlocked = true;
   if (!restorePhyFirstAnalysisResult()) return false;
+  ogwanMoleUnlocked = true;
   renderResult(firstAnalysisResult);
+  clearPhyResumeSnapshot();
   return true;
 }
 
@@ -2452,7 +2464,7 @@ window.openPastLifeFaceFromPhysiognomy = async function openPastLifeFaceFromPhys
     if (typeof window.openPastLifeFaceApp !== 'function') {
       await new Promise((resolve, reject) => {
         const script = document.createElement('script');
-        script.src = 'PastLifeFaceUI.js?v=h8cca93b6152f';
+        script.src = 'PastLifeFaceUI.js?v=hb3be4acdb247';
         script.onload = resolve;
         script.onerror = () => reject(new Error('PAST_LIFE_SCRIPT_LOAD_FAILED'));
         document.head.appendChild(script);
@@ -2529,6 +2541,7 @@ window.openPastLifeFaceFromPhysiognomy = async function openPastLifeFaceFromPhys
       // 카메라 모드면 카메라 재시작
       if(camera) camera.start();
     }
+    clearPhyResumeSnapshot();
     return true;
   }
 
@@ -2559,7 +2572,7 @@ window.openPastLifeFaceFromPhysiognomy = async function openPastLifeFaceFromPhys
         resume: { kind: PHY_COMPAT_RESUME_KIND, action: PHY_RESUME_SURFACE_ACTION, args: {} }
       });
     })();
-  }
+  };
 
   // 🔴 재개 핸들러 등록. 복귀한 문서가 이 스크립트를 지연 로드하면 그때 등록되고, runPaidResume 이
   //    최대 8초 기다렸다가 부른다. false 를 돌려주면 호출부가 '지금 열기' 카드를 그린다.
