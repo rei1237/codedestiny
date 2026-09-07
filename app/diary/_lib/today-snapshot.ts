@@ -39,6 +39,21 @@ export interface DiaryLegacyEntry {
   moodEmoji?: string;
   iAmAffirmation?: string;
   iAmCompleted?: boolean;
+  /** 직전에 고른 문장 자리. 같은 문장이 연달아 나오지 않게 하는 것뿐이다(셸 `:2383`). */
+  iAmLastIndex?: number;
+  /** 장면 그리기. 셸 `:4455-4462` 가 쓰는 것과 같은 네 필드다. */
+  satsKeyword?: string;
+  satsScene?: string;
+  satsSceneLastIndex?: number;
+  satsCompleted?: boolean;
+  /** 다시 쓰기. 셸 `:4425`·`:4442` 와 같다. */
+  revisionOriginal?: string;
+  revisionImagined?: string;
+  revisionDoneCount?: number;
+  /** 실제로 들은 시간(분)과 그 기록. 셸 `:836-838` 이 자리를 만든다. */
+  meditationMinutes?: number;
+  meditationPoints?: number;
+  meditationLogs?: { type?: string; ts?: number; trackId?: string; ok?: boolean }[];
   practiceNote?: string;
   nightLog?: string;
   memoNote?: string;
