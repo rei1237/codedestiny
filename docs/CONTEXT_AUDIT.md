@@ -105,7 +105,7 @@ If the first three documents disagree, do not merge rules silently. Record the m
 - **2026-09-04 에 무엇이 남고 무엇이 갔나**: 폐기된 것은 "인접 코드를 개선하지 않는다 / 깨지지 않은 것을 리팩터링하지 않는다 / 무관한 데드코드는 언급만". 남은 것은 **기존 스타일 따르기**와 **내 변경으로 생긴 미사용 import·변수 제거**. 취지는 코딩 원칙 7(회귀 위험 선보고)과 신설 14(주입 규칙 우선순위) 첫 항이 이어받았다.
 - 🔴 **2026-09-06, 사용자 요청으로 폐기 표시 자체를 삭제하고 원칙 14 의 인접 결함 오버라이드도 걷어냈다.** 이제 **인접 결함 축은 주입 규칙(`oh-my-fable`)을 그대로 따른다** — 요청한 동작이 그것 없이는 성립하지 않는 경우가 아니면 고치지 말고 후속 과제로 보고만 한다. **범위 안에서 발견한 것도 같다.** 2026-09-04 에 "남은 것"으로 적었던 두 줄(기존 스타일 따르기 · 내 변경으로 생긴 미사용 import 제거)은 이 삭제로 규약 문서에서 사라졌고, 각각 하네스 기본 지시와 `lint` 가 대신 받는다.
 - 🔴 **번호는 비우지 않았다.** `원칙 N` 을 번호로 가리키는 줄이 레포에 338개이고(2026-09-04, 전 레포 `git grep` 실측), 훅 테스트가 번호 문자열을 직접 단언한다(`.claude/hooks/session-context-budget.test.mjs` 의 `/원칙 12/`). 3번 자리는 **결번**으로 남기고 4번 이후는 그대로 둔다 — 재사용도 재번호도 하지 않는다.
-- **같이 고친 곳**: `CLAUDE.md`, `docs/context/coding-principles.md`, `AGENTS.md`(원칙 개수 단언), `Rules/agent-regression-guard.md`, `docs/vedic-basic-feature-guard.md`. `docs/context/CLAUDE.archive-2026-08-15.md` 는 대조용 스냅샷이라, `docs/handoff/**` 는 당시 규칙 아래 실제로 한 일의 기록이라 **건드리지 않았다**.
+- **같이 고친 곳**: `CLAUDE.md`, `docs/context/coding-principles.md`, `AGENTS.md`(원칙 개수 단언), `Rules/agent-regression-guard.md`, `docs/vedic-basic-feature-guard.md`. `docs/handoff/**` 는 당시 규칙 아래 실제로 한 일의 기록이라 **건드리지 않았다**.
 
 ### `CLAUDE.md` 구조 최적화 (2026-09-04, **해결**)
 

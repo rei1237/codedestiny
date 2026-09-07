@@ -8,7 +8,7 @@ Last curated: `2026-08-30`
 2. Keep only repo facts that are directly useful for the current working tree and the active service roadmap.
 3. Prefer current code, current tests, and root operating docs over historical audits or generated reports.
 4. Exclude these paths from default reference unless the user explicitly asks for them:
-   `.claude/worktrees/**`, `.codex-worktrees/**`, `.cleanup/**`, `reports/**`, `docs/performance-audit/results/**`
+   `.claude/worktrees/**`, `.codex-worktrees/**`, `.cleanup/**`, `reports/**`
 5. If a detail is no longer actionable for current development, remove it here and keep it only as historical evidence elsewhere when needed.
 
 ## Active Sources

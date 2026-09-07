@@ -21,7 +21,6 @@ const FORBIDDEN_PREFIXES = [
   '.codex-worktrees/',
   '.cleanup/',
   'reports/',
-  'docs/performance-audit/results/',
 ];
 
 const ROOT_ONE_OFF_REPORT_PATTERNS = [
