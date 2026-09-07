@@ -17,7 +17,7 @@ import { KRW_PER_COIN, KRW_PER_MONTHLY_CREDIT } from "@/lib/payment/coin-pricing
 import { fortuneTeaHouseConsultPricing, getFortuneTeaHouseConsultFeatureKey, resolveFortuneTeaHousePriceKey } from "./data/consultPricing";
 import { isTeaHouseEntryStage } from "./data/entryStory";
 import type { TeaHouseStage } from "./data/story";
-import type { TeaHouseCup } from "./data/teaCups";
+import { getTeaHouseCupById, type TeaHouseCup } from "./data/teaCups";
 import { buildFortuneTeaHouseConsultResult } from "./lib/buildConsultResult";
 import {
   createFortuneTeaAttemptId,
@@ -25,6 +25,13 @@ import {
   pickHoneyDropMessage,
 } from "./lib/honeyDrops";
 import styles from "./styles/fortune-tea-house.module.css";
+import {
+  usePaidResume,
+  packPaidResumeArg,
+  unpackPaidResumeArg,
+  type PaidResumeDescriptor,
+  type PaidResumeGrant,
+} from "@/app/hooks/usePaidResume";
 
 type RunBillingCoinGate = typeof import("@/app/_lib/billing-client")["runBillingCoinGate"];
 type BeginPaidFeatureGateCheck = typeof import("@/app/_lib/billing-client")["beginPaidFeatureGateCheck"];
@@ -232,6 +239,47 @@ async function postFortuneTeaEnsureAccessRequest(body: FortuneTeaConsultPostBody
 // 서버가 즉시-202 + 백그라운드 생성으로 전환되어 폴링이 유일한 전달로가 됐다 — 상한이 생성 최악치
 // (타로 ~150s·사주 ~200s·숙요 ~240s)보다 짧으면 완료된 유료 결과에 거짓 "지연"이 뜬다.
 // 첫 폴 0.7s 프로브 후 8s 간격으로 ~263s 커버(36회, 1req/8s라 CF rate-limit 10s/100회에 여유 큼).
+// 결제 후 자동 재개 종류. 상담 모드(타로·사주·숙요)가 갈려도 복귀 경로는 하나다.
+const FORTUNE_TEA_RESUME_KIND = "fortune-tea-house-consultation";
+
+/** 리다이렉트 저편에서 결제가 끝난 채로 들어오는 재개 입력. 이 값이 있으면 게이트를 다시 타지 않는다. */
+type FortuneTeaPrepaidResume = {
+  attemptId: string;
+  cup: TeaHouseCup;
+  grant: PaidResumeGrant | null;
+};
+
+/**
+ * 결제 증빙을 실은 /consult 본문. 인페이지 결제와 재개가 같은 조립기를 쓴다 —
+ * 갈래마다 따로 만들면 서버가 읽는 증빙 모양이 둘로 갈린다(원칙 6).
+ */
+function buildFortuneTeaBillingEvidenceBody(
+  body: FortuneTeaConsultPostBody,
+  draftResult: FortuneTeaHouseConsultResponse,
+  featureKey: string,
+  billingGate: Record<string, unknown>,
+  attemptId: string,
+): FortuneTeaConsultPostBody {
+  const accessGrant = asRecord(billingGate.accessGrant);
+  const consume = asRecord(billingGate.consume);
+  return {
+    ...body,
+    draftResult,
+    featureKey,
+    billingGate,
+    accessGrant,
+    consume,
+    _paymentContext: {
+      featureKey,
+      requestId: attemptId,
+      idempotencyKey: attemptId,
+      billingGate,
+      accessGrant,
+      consume,
+    },
+  };
+}
+
 const FORTUNE_TEA_POLL_BACKOFFS_MS = [700, 1500, 2500, 4000, 6000, ...Array(31).fill(8000)];
 async function pollFortuneTeaConsultResult(body: FortuneTeaConsultPostBody, isCancelled: () => boolean) {
   for (let attempt = 0; attempt < FORTUNE_TEA_POLL_BACKOFFS_MS.length; attempt += 1) {
@@ -244,8 +292,15 @@ async function pollFortuneTeaConsultResult(body: FortuneTeaConsultPostBody, isCa
   return null; // 상한 소진 — 여전히 생성 중
 }
 
-async function runFortuneTeaBillingGate(payload: FortuneTeaHouseConsultApiResponse, source: FortuneTeaFeatureKeySource, attemptId: string) {
-  const billingInput = buildFortuneTeaBillingGateInput(payload, source, attemptId);
+async function runFortuneTeaBillingGate(
+  payload: FortuneTeaHouseConsultApiResponse,
+  source: FortuneTeaFeatureKeySource,
+  attemptId: string,
+  resume: PaidResumeDescriptor,
+) {
+  // 🔴 모바일 PortOne 은 상위 프레임을 리다이렉트해 아래 await 가 문서와 함께 죽는다.
+  //    서술자를 결제 **전에** 실어야 복귀한 문서가 상담을 스스로 이어 간다.
+  const billingInput = { ...buildFortuneTeaBillingGateInput(payload, source, attemptId), resume };
   const { runBillingCoinGate } = await import("@/app/_lib/billing-client");
   const gate = await runBillingCoinGate(billingInput);
   if (!gate.ok || !gate.data) {
@@ -477,6 +532,9 @@ export default function FortuneTeaHousePage() {
   const progressStartedAtRef = useRef(0);
   const consultRunRef = useRef(0);
   const submitLockRef = useRef(false);
+  // 재개 핸들러가 "상담이 실제로 열렸는가"를 판정하는 표식. false 를 돌려주면 복귀 처리가
+  // '지금 열기' 카드를 그려, 같은 attemptId 로 다시 시도할 수단이 남는다.
+  const submitSucceededRef = useRef(false);
   const loadingBgmIndexRef = useRef(0);
   const currentBgmTrack = stage === "scentLoading" ? FORTUNE_TEA_LOADING_PLAYLIST[loadingBgmIndex] : getFortuneTeaBgmTrack(stage);
   const reduceMotion = useReducedMotion();
@@ -810,13 +868,33 @@ export default function FortuneTeaHousePage() {
     return window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || window.location.hostname === "::1";
   }
 
-  async function submitQuestion(nextQuestionInput: FortuneTeaHouseQuestionInput) {
+  /**
+   * 결제 후 자동 재개. 복귀한 문서는 landing 단계라 찻잔·질문·시도 ID 가 전부 사라져 있다 —
+   * 서술자에 실어 둔 값으로 되살린 뒤 결제 게이트를 건너뛴 채 상담 생성부터 잇는다.
+   * 🔴 attemptId 는 서술자에 실어 온 것을 쓴다 — createFortuneTeaAttemptId 는 시각·난수를
+   *    섞어 매번 다른 값을 주므로, 새로 뽑으면 서버가 결제 증빙을 못 찾아 다시 결제된다.
+   */
+  const buildResume = usePaidResume(FORTUNE_TEA_RESUME_KIND, async (args, grant) => {
+    if (isSubmitting || submitLockRef.current) return false;
+    const restoredInput = unpackPaidResumeArg<FortuneTeaHouseQuestionInput>(args.questionInput);
+    const attemptId = toText(args.attemptId);
+    const cup = getTeaHouseCupById(toText(args.cupId));
+    if (!restoredInput || !attemptId || !cup) return false;
+    setSelectedCup(cup);
+    setQuestionInput(restoredInput);
+    await submitQuestion(restoredInput, { attemptId, cup, grant });
+    return submitSucceededRef.current;
+  });
+
+  async function submitQuestion(nextQuestionInput: FortuneTeaHouseQuestionInput, prepaid?: FortuneTeaPrepaidResume) {
     if (isSubmitting || submitLockRef.current) return;
     logSubmitStep("start");
     logSubmitStep("selectedCup", selectedCup);
     logSubmitStep("input", nextQuestionInput);
 
-    if (!selectedCup) {
+    // 재개는 서술자에 실린 찻잔으로 들어온다 — 복귀 문서의 selectedCup 은 아직 null 이다.
+    const activeCup = prepaid?.cup || selectedCup;
+    if (!activeCup) {
       goToStage("teaSelect");
       return;
     }
@@ -824,6 +902,7 @@ export default function FortuneTeaHousePage() {
     submitLockRef.current = true;
     setIsSubmitting(true);
     setSubmitError("");
+    submitSucceededRef.current = false;
     setQuestionInput(nextQuestionInput);
     setConsultResult(null);
     startGenerationProgress(nextQuestionInput.consultationMode);
@@ -838,9 +917,9 @@ export default function FortuneTeaHousePage() {
       const startedAt = Date.now();
       const localDraft = buildFortuneTeaHouseConsultResult({
         consultationMode: nextQuestionInput.consultationMode,
-        selectedTeaCupId: selectedCup.id,
-        selectedTeaCupName: selectedCup.name,
-        selectedTeaCupTopic: selectedCup.topic,
+        selectedTeaCupId: activeCup.id,
+        selectedTeaCupName: activeCup.name,
+        selectedTeaCupTopic: activeCup.topic,
         nickname: nextQuestionInput.nickname,
         concernTopic: nextQuestionInput.concernTopic,
         birthInfo: nextQuestionInput.birthInfo,
@@ -860,9 +939,9 @@ export default function FortuneTeaHousePage() {
       localPreviewResult = localDraft;
       const requestPayload: FortuneTeaHouseConsultRequest = {
         consultationMode: nextQuestionInput.consultationMode,
-        selectedTeaCupId: selectedCup.id,
-        selectedTeaCupName: selectedCup.name,
-        selectedTeaCupTopic: selectedCup.topic,
+        selectedTeaCupId: activeCup.id,
+        selectedTeaCupName: activeCup.name,
+        selectedTeaCupTopic: activeCup.topic,
         nickname: nextQuestionInput.nickname,
         concernTopic: nextQuestionInput.concernTopic,
         birthInfo: nextQuestionInput.birthInfo,
@@ -879,10 +958,13 @@ export default function FortuneTeaHousePage() {
         sajuCompatibility: nextQuestionInput.sajuCompatibility,
         question: nextQuestionInput.question,
       };
-      const attemptId = createFortuneTeaAttemptId(requestPayload);
+      const attemptId = prepaid ? prepaid.attemptId : createFortuneTeaAttemptId(requestPayload);
       localPreviewResultId = attemptId;
-      await beginFortuneTeaAccessGate(nextQuestionInput, attemptId);
-      accessGateStarted = true;
+      // 재개는 결제가 이미 끝난 뒤라 '이용권 확인' 게이트를 다시 열지 않는다.
+      if (!prepaid) {
+        await beginFortuneTeaAccessGate(nextQuestionInput, attemptId);
+        accessGateStarted = true;
+      }
       // Phase-1 이전에 인증을 예열해 이용권 보유자가 첫 제출에서 서버 게이트를 원샷 통과하도록 한다.
       await ensureFortuneTeaAuthReady();
       const requestPayloadWithAttempt: FortuneTeaConsultPostBody = {
@@ -893,73 +975,81 @@ export default function FortuneTeaHousePage() {
       };
       // 이용권 판정은 체크 전용 ensure-access로 먼저 끝낸다 (네오 전략실 ensureAccess 패턴).
       // 접근 판정과 LLM 생성을 분리해 "이용권 확인" 게이트가 생성까지 덮지 않게 한다.
-      logSubmitStep("ensure access start");
-      // 이용권 확인 앞단의 일시적 DB 장애(503 DB_DEGRADED / ACCESS_CHECK_DEGRADED 등)는 재시도로 흡수한다.
-      // (찻집은 즉시응답 방식이라 선검사 실패가 곧바로 하드 종료로 굳던 사각지대였다.)
-      // data 필드는 헬퍼의 재시도 판정용이며, 아래 로직은 기존대로 .response/.payload를 쓴다.
-      const accessCheck = await runAccessCheckWithTransientRetry(
-        async () => {
-          const r = await postFortuneTeaEnsureAccessRequest(requestPayloadWithAttempt);
-          return { response: r.response, payload: r.payload, data: r.payload };
-        },
-        {
-          onRetry: () => setGenerationProgress((current) => ({
-            ...current,
-            label: "다시 확인",
-            message: "연결이 잠시 불안정해요. 이용권을 다시 확인하는 중이에요.",
-          })),
-        },
-      );
-      if (consultRunRef.current !== consultRunId) return;
       let billingEvidenceBody: FortuneTeaConsultPostBody | null = null;
-      // 이용권 확인이 확답을 못 준 경우(일시 장애·서버 오류)는 붙잡거나 종료하지 말고 결제창을 연다.
-      // 결제 게이팅 정책 §1("확답 못 하면 기다리지 말고 결제창")이자 형제 구현(AstrologyAiClient 등)의 passGateDegraded 패턴이다.
-      // 분류되지 않은 5xx 도 포함한다 — retryable 플래그 없이 오는 서버 오류가 결제창을 닫아버리던 사각지대였다.
-      const passGateDegraded = isRetriableResultPollFailure(accessCheck.response.status, accessCheck.payload)
-        || accessCheck.response.status >= 500;
-      if (accessCheck.response.ok && accessCheck.payload.ok) {
-        logSubmitStep("ensure access ok");
-      } else if (
-        accessCheck.payload.paymentRequired
-        || accessCheck.response.status === 401
-        || accessCheck.response.status === 402
-        || passGateDegraded
-      ) {
-        setGenerationProgress((current) => ({
-          ...current,
-          percent: Math.max(current.percent, 24),
-          label: "가격 확인",
-          message: "상담 가격과 결제 권한을 확인하고 있어요.",
-        }));
-        const billing = await runFortuneTeaBillingGate(accessCheck.payload, nextQuestionInput, attemptId);
-        if (consultRunRef.current !== consultRunId) return;
-        const billingGate = asRecord(billing.data);
-        const accessGrant = asRecord(billingGate.accessGrant);
-        const consume = asRecord(billingGate.consume);
-        logSubmitStep("billing gate success", { featureKey: billing.featureKey });
-        billingEvidenceBody = {
-          ...requestPayloadWithAttempt,
-          draftResult: localDraft,
-          featureKey: billing.featureKey,
+      if (prepaid) {
+        // 결제는 리다이렉트 저편에서 끝났다 — 게이트를 다시 타지 않고 증빙만 다시 조립한다.
+        // 🔴 여기서 이용권을 재검사하지 않는다(결제 게이팅 절대 순서 3).
+        const billingGate = asRecord(prepaid.grant?.payload);
+        billingEvidenceBody = buildFortuneTeaBillingEvidenceBody(
+          requestPayloadWithAttempt,
+          localDraft,
+          toText(prepaid.grant?.featureKey) || resolveFortuneTeaFeatureKey(nextQuestionInput),
           billingGate,
-          accessGrant,
-          consume,
-          _paymentContext: {
-            featureKey: billing.featureKey,
-            requestId: attemptId,
-            idempotencyKey: attemptId,
-            billingGate,
-            accessGrant,
-            consume,
-          },
-        };
+          attemptId,
+        );
       } else {
-        throw new Error(toText(accessCheck.payload.message) || "이용권 확인이 잠시 멈췄어요. 다시 한 번만 시도해 주세요.");
+        logSubmitStep("ensure access start");
+        // 이용권 확인 앞단의 일시적 DB 장애(503 DB_DEGRADED / ACCESS_CHECK_DEGRADED 등)는 재시도로 흡수한다.
+        // (찻집은 즉시응답 방식이라 선검사 실패가 곧바로 하드 종료로 굳던 사각지대였다.)
+        // data 필드는 헬퍼의 재시도 판정용이며, 아래 로직은 기존대로 .response/.payload를 쓴다.
+        const accessCheck = await runAccessCheckWithTransientRetry(
+          async () => {
+            const r = await postFortuneTeaEnsureAccessRequest(requestPayloadWithAttempt);
+            return { response: r.response, payload: r.payload, data: r.payload };
+          },
+          {
+            onRetry: () => setGenerationProgress((current) => ({
+              ...current,
+              label: "다시 확인",
+              message: "연결이 잠시 불안정해요. 이용권을 다시 확인하는 중이에요.",
+            })),
+          },
+        );
+        if (consultRunRef.current !== consultRunId) return;
+        // 이용권 확인이 확답을 못 준 경우(일시 장애·서버 오류)는 붙잡거나 종료하지 말고 결제창을 연다.
+        // 결제 게이팅 정책 §1("확답 못 하면 기다리지 말고 결제창")이자 형제 구현(AstrologyAiClient 등)의 passGateDegraded 패턴이다.
+        // 분류되지 않은 5xx 도 포함한다 — retryable 플래그 없이 오는 서버 오류가 결제창을 닫아버리던 사각지대였다.
+        const passGateDegraded = isRetriableResultPollFailure(accessCheck.response.status, accessCheck.payload)
+          || accessCheck.response.status >= 500;
+        if (accessCheck.response.ok && accessCheck.payload.ok) {
+          logSubmitStep("ensure access ok");
+        } else if (
+          accessCheck.payload.paymentRequired
+          || accessCheck.response.status === 401
+          || accessCheck.response.status === 402
+          || passGateDegraded
+        ) {
+          setGenerationProgress((current) => ({
+            ...current,
+            percent: Math.max(current.percent, 24),
+            label: "가격 확인",
+            message: "상담 가격과 결제 권한을 확인하고 있어요.",
+          }));
+          const billing = await runFortuneTeaBillingGate(accessCheck.payload, nextQuestionInput, attemptId, buildResume({
+            attemptId,
+            cupId: activeCup.id,
+            questionInput: packPaidResumeArg(nextQuestionInput),
+          }));
+          if (consultRunRef.current !== consultRunId) return;
+          const billingGate = asRecord(billing.data);
+          logSubmitStep("billing gate success", { featureKey: billing.featureKey });
+          billingEvidenceBody = buildFortuneTeaBillingEvidenceBody(
+            requestPayloadWithAttempt,
+            localDraft,
+            billing.featureKey,
+            billingGate,
+            attemptId,
+          );
+        } else {
+          throw new Error(toText(accessCheck.payload.message) || "이용권 확인이 잠시 멈췄어요. 다시 한 번만 시도해 주세요.");
+        }
       }
 
       // 이용권/결제 판정이 끝났으니 게이트를 닫고, 생성은 찻집 테마 로딩(scentLoading) 아래에서 진행한다.
-      await completeFortuneTeaAccessGate(nextQuestionInput, attemptId);
-      accessGateStarted = false;
+      if (!prepaid) {
+        await completeFortuneTeaAccessGate(nextQuestionInput, attemptId);
+        accessGateStarted = false;
+      }
       // 다음 화면(scentLoading)이 마운트되는 시점 — 게이트 오버레이 hold를 해제한다(찻집 로딩과 이중 표시 방지).
       void releaseFortuneTeaAccessGate(attemptId);
       goToStage("scentLoading");
@@ -1024,6 +1114,7 @@ export default function FortuneTeaHousePage() {
         setHoneyRewardMessage(pickHoneyDropMessage(serverHoneyDrops));
         setHoneyRewardBurstKey((key) => key + 1);
       }
+      submitSucceededRef.current = true;
       setConsultResult(nextResult);
       if (payload.generationMeta?.mode === "local_fallback") {
         setNotice(
