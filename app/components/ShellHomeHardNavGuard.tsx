@@ -2,11 +2,9 @@
 
 import { useEffect } from "react";
 import { hardNavigateToShellHome, isShellHomePath } from "@/lib/navigation/shellHome";
-import { isStaticPolicyPath } from "@/lib/navigation/static-policy-routes.mjs";
 
 /**
  * React 화면 안의 "홈으로" 링크(`href="/"`)를 문서 로드로 보낸다.
- * 정적 정책 6종과 그 별칭도 같은 방식으로 이동해 기존 RSC 화면이 다시 뜨지 않게 한다.
  *
  * next/link 로 "/" 에 가면 app/page.js(React 홈)가 먼저 렌더돼 글로벌 헤더·푸터·하단 네비가
  * 한 번 번쩍인 뒤에야 정적 셸로 넘어간다(자세한 배경은 lib/navigation/shellHome.ts).
@@ -41,14 +39,10 @@ export default function ShellHomeHardNavGuard() {
         return;
       }
       if (url.origin !== window.location.origin) return;
-      const isPolicy = isStaticPolicyPath(url.pathname);
-      if (!isShellHomePath(url.pathname) && !isPolicy) return;
+      if (!isShellHomePath(url.pathname)) return;
 
       event.preventDefault();
-      // Exported policy HTML has no React runtime. Do not let Next consume the
-      // old RSC payload and briefly restore the previous app chrome.
-      if (isPolicy) window.location.assign(url.pathname + url.search + url.hash);
-      else hardNavigateToShellHome(url.search, url.hash);
+      hardNavigateToShellHome(url.search, url.hash);
     };
 
     document.addEventListener("click", onClickCapture, true);
