@@ -2984,9 +2984,9 @@
           "지금은 어떤 시기를 지나고 있나요?",
           "타고난 기질은 어떤가요?"
         ],
-        "badge": "무료 시작",
+        "badge": "차트 무료",
         "category": "베다점",
-        "ctaLabel": "무료로 베다점 보기",
+        "ctaLabel": "베다 차트 계산하기",
         "featureId": "vedic",
         "headline": "인도 점성술의 시간 지도 위에 지금 자리를 찍어 보세요.",
         "painPoints": [
