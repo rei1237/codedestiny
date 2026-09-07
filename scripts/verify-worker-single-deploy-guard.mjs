@@ -8,12 +8,21 @@ import { runProductionDeployGuardSelfTest } from "./lib/production-deploy-guard.
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const canonicalWorkflow = ".github/workflows/cloudflare-pages-deploy.yml";
 /**
- * 브랜치 룰셋이 필수로 요구하는 체크 이름. pr-ci.yml 의 잡 이름과 **글자 그대로** 같아야 한다.
+ * PR CI 가 최종 게이트에 집계하는 체크 이름. 전환 중인 ruleset 의 기존 필수 체크도 계속
+ * 보고되어야 하므로 내부 lane 과 aggregate 이름을 함께 고정한다.
  *
  * 🔴 이 네 잡은 티어와 무관하게 **항상 실행**된다. 티어에 따라 건너뛰는 것은 잡이 아니라 그
  * 안의 스텝이다. 잡 자체를 if 로 막으면 룰셋이 보고를 못 받아 머지가 영영 막히기 때문이다.
  */
-const REQUIRED_CHECK_NAMES = ["Risk tier", "Typecheck and lint", "Build Pages and Worker", "Critical checks"];
+const REQUIRED_CHECK_NAMES = [
+  "Risk tier",
+  "Landing order",
+  "Typecheck and lint",
+  "Static guards",
+  "Build Pages and Worker",
+  "Critical checks",
+  "CI required",
+];
 /**
  * 정본 워크플로 밖에서 배포를 부르는 명령.
  *
@@ -276,7 +285,12 @@ async function verifyPullRequestGate() {
   });
   const triggers = deploymentTriggerBlock(workflow);
   assert(/^\s+pull_request:/m.test(triggers), `${prWorkflow} must run on pull_request.`);
-  assert(!/^\s+push:/m.test(triggers), `${prWorkflow} must not run on push; the same commit would be checked twice.`);
+  assert(/^\s+merge_group:/m.test(triggers), `${prWorkflow} must run on merge_group before enabling the merge queue.`);
+  assert(/^\s+push:[\s\S]*?branches:\s*\[\s*main\s*\]/m.test(triggers), `${prWorkflow} push trigger must be limited to main.`);
+  assert(
+    /cancel-in-progress:\s*\$\{\{\s*github\.event_name\s*==\s*'pull_request'\s*\}\}/.test(workflow),
+    `${prWorkflow} may cancel superseded PR runs, but must not cancel merge_group or main health checks.`,
+  );
   for (const command of ["npm run typecheck", "npm run lint", "npm test", "npm run build:cf", "npm run build:worker"]) {
     assert(workflow.includes(command), `${prWorkflow} must run ${command}.`);
   }
@@ -301,6 +315,11 @@ async function verifyPullRequestGate() {
   // 기다리며 모든 PR 의 머지를 막는다. 이름을 바꿀 때는 룰셋도 함께 고쳐야 한다.
   for (const jobName of REQUIRED_CHECK_NAMES) {
     assert(workflow.includes(`name: ${jobName}`), `${prWorkflow} must keep the required check job named "${jobName}" (branch ruleset depends on it).`);
+  }
+  const aggregate = jobBody(workflow, "ci-required");
+  assert(/if:\s*\$\{\{\s*always\(\)\s*\}\}/.test(aggregate), `${prWorkflow} ci-required must report even when an upstream lane fails.`);
+  for (const dependency of ["classify", "landing-order", "fast", "guards", "build", "critical"]) {
+    assert(new RegExp(`needs:\\s*\\[[^\\]]*\\b${dependency.replace("-", "\\-")}\\b`).test(aggregate), `${prWorkflow} ci-required must depend on ${dependency}.`);
   }
 }
 
