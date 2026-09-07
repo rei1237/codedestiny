@@ -8,7 +8,7 @@
 <script src="/js/core/pass-verdict.js?v=build-875614abb0e8"></script>
 <script src="/js/core/checkout-entry.js?v=build-875614abb0e8"></script>
 <script src="/js/core/payment-service.js?v=build-payment-service-v1"></script>
-<script src="/js/destiny-profile.js?v=build-319a473f9a42"></script>
+<script src="/js/destiny-profile.js?v=build-b5c025beffdf"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css" onerror="this.remove()">
 <style>
 /* ── 오프라인 폴백 폰트 스택 ─────────────────────────────
@@ -3917,10 +3917,51 @@ function buildVedicAiResumeDescriptor(requestId, question){
   return { kind:VEDIC_AI_RESUME_KIND, action:'', args:{ requestId:id, question:text } };
 }
 
+/* 🔴 복귀 문서가 차트를 다시 만들 수 있게 **계산에 쓴 프로필을 남긴다.**
+   저장 프로필 없이 입력 폼으로 들어온 사용자는 이 프로필이 어디에도 안 남아서(수동 입력은
+   FORTUNE_APP_USER_PROFILE 을 건드리지 않고, 핸드오프 키 FORTUNE_APP_VEDIC_PAYLOAD 는 첫 로드에서
+   지워진다) 모바일 결제 복귀 문서에서 initVedicPage 가 입력 화면으로 떨어졌다 — 결제는 확정됐는데
+   차트가 없어 재개가 8초 뒤 실패하고 결과가 영영 안 나오는 상태가 정확히 이것이다.
+   결제 티켓과 같은 30분 TTL 이고, localStorage 가 막히면 sessionStorage 로 떨어진다
+   (카카오페이처럼 새 탭으로 돌아오는 수단은 sessionStorage 가 비어 있어 localStorage 가 먼저다). */
+var VEDIC_RESUME_PROFILE_KEY='cd_vedic_resume_profile';
+var VEDIC_RESUME_PROFILE_TTL_MS=1800000;
+
+function vedicRememberProfileForResume(profile){
+  if(!profile||typeof profile!=='object') return;
+  var raw='';
+  try{ raw=JSON.stringify({savedAt:Date.now(),profile:profile}); }catch(_){ return; }
+  if(!raw) return;
+  try{ localStorage.setItem(VEDIC_RESUME_PROFILE_KEY,raw); return; }catch(_){}
+  try{ sessionStorage.setItem(VEDIC_RESUME_PROFILE_KEY,raw); }catch(_){}
+}
+
+function vedicReadProfileForResume(){
+  var raw='';
+  try{ raw=localStorage.getItem(VEDIC_RESUME_PROFILE_KEY)||''; }catch(_){ raw=''; }
+  if(!raw){ try{ raw=sessionStorage.getItem(VEDIC_RESUME_PROFILE_KEY)||''; }catch(_){ raw=''; } }
+  if(!raw) return null;
+  var parsed=null;
+  try{ parsed=JSON.parse(raw); }catch(_){ return null; }
+  if(!parsed||typeof parsed!=='object') return null;
+  if(!(Date.now()-Number(parsed.savedAt||0)<VEDIC_RESUME_PROFILE_TTL_MS)) return null;
+  var profile=parsed.profile;
+  if(!profile||typeof profile!=='object'||!_hasValidBirth(profile)) return null;
+  return profile;
+}
+
 /* 차트는 initVedicPage 가 저장 프로필로 다시 만든다(Swiss 브리지까지 최대 4.5초).
-   준비되기 전에 생성을 걸면 스냅샷이 없어 그냥 실패하므로, 등록 재시도와 같은 8초 상한으로 기다린다. */
+   준비되기 전에 생성을 걸면 스냅샷이 없어 그냥 실패하므로, 등록 재시도와 같은 8초 상한으로 기다린다.
+   🔴 상한을 늘리지 않는다(이미 핸들러 폴링·등록 재시도와 3겹이다, 원칙 6) — 대신 initVedicPage 가
+   차트를 못 만든 복귀에서 **직접 한 번 계산을 건다.** 기다림이 모자란 게 아니라 입력이 없던 것이다. */
 function vedicResumeWaitForChart(){
   if(G&&G.chart) return Promise.resolve(true);
+  if(!G||!G.__vedicResumeRecalcStarted){
+    var resumeProfile=vedicReadProfileForResume();
+    if(resumeProfile){
+      try{ if(G) G.__vedicResumeRecalcStarted=true; doCalculateFromProfile(resumeProfile); }catch(_){}
+    }
+  }
   return new Promise(function(resolve){
     var deadline=Date.now()+8000;
     (function attempt(){
@@ -4150,12 +4191,12 @@ function vedicPrashnaGateEvidence(gateResult,requestId){
   return evidence;
 }
 
-async function vedicPrashnaPaidGate(snapshot,order){
+async function vedicPrashnaPaidGate(snapshot,order,gateOverrides){
   var requestId=vedicPrashnaCreateRequestId(snapshot&&snapshot.orderId);
   if(typeof window._cdOpenPaidServiceGate!=='function'){
     return {ok:false,status:402,code:'PAYMENT_REQUIRED',message:'결제 선택창을 열 수 없습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.'};
   }
-  var result=await window._cdOpenPaidServiceGate({
+  var result=await window._cdOpenPaidServiceGate(Object.assign({
     title:'프라슈나 프롬프트',
     reason:'프라슈나 프롬프트',
     featureKey:VEDIC_PRASHNA_FEATURE_KEY,
@@ -4174,7 +4215,7 @@ async function vedicPrashnaPaidGate(snapshot,order){
     // 🔴 모바일 PortOne 은 상위 프레임을 리다이렉트하므로 위 await 가 페이지와 함께 죽는다.
     //    주문 스냅샷은 메모리에만 있으므로 서술자에 실어야 복귀 문서가 같은 주문으로 생성을 이어간다.
     resume:buildVedicPrashnaResumeDescriptor(requestId,snapshot,order)
-  });
+  },gateOverrides||null));
   if(result&&result.status==='granted'){
     return Object.assign({ok:true,status:200},vedicPrashnaGateEvidence(result,requestId));
   }
@@ -4282,38 +4323,65 @@ async function vedicPrashnaConfirmGenerateCore(resumeGate){
     vedicPrashnaRefreshUi();
   },900);
   try{
-    var gate=resumeGate||await vedicPrashnaPaidGate(state.snapshot,state.order);
-    if(!gate||gate.ok!==true){
+    /* 🔴 결제 확인 실패(402)는 "생성 실패"가 아니라 **결제창을 다시 열어야 하는 상태**다.
+       예전에는 서버가 PAYMENT_REQUIRED 를 돌려줘도 문구만 바꾸고 끝나서, 사용자에게는
+       "이용권을 확인했다는데 결과도 없고 결제창도 안 뜬다"로만 보였다.
+       재시도는 1회다 — 같은 orderId(=requestId)로 다시 타므로 중복 결제·중복 차감이 생기지 않는다.
+       2회차는 disablePassFirst 로 낙관 통과를 건너뛰고 결제창을 연다: 게이팅 절대 순서 2 대로
+       [이용권으로 구매]·단건결제·월정석이 함께 보이고, 이용권 판정은 그 카드가 서버에서 수행한다. */
+    var gate=null,resp=null,data={};
+    for(var prashnaAttempt=0;prashnaAttempt<2;prashnaAttempt+=1){
+      gate=(prashnaAttempt===0&&resumeGate)
+        ? resumeGate
+        : await vedicPrashnaPaidGate(state.snapshot,state.order,prashnaAttempt===0?null:{disablePassFirst:true});
+      if(!gate||gate.ok!==true){
+        state.statusError=true;
+        state.statusMessage=String(gate&&gate.message||'결제가 완료되지 않았습니다. 이용 금액은 청구되지 않았으며 프라슈나 차트도 생성되지 않았습니다.');
+        vedicPrashnaTrack('prashna_payment_failed',{orderId:state.order.orderId});
+        vedicPrashnaRefreshUi();
+        return false;
+      }
+      state.loadingStep=2;
+      state.statusMessage=VEDIC_PRASHNA_STEPS[2];
+      vedicPrashnaTrack('prashna_payment_succeeded',{orderId:state.order.orderId});
+      vedicPrashnaRefreshUi();
+      var headers=vedicPrashnaReadAuthHeaders();
+      headers['idempotency-key']=gate.requestId||state.snapshot.orderId;
+      resp=await fetch('/api/fortune/vedic/prashna/generate',{
+        method:'POST',
+        headers:headers,
+        body:JSON.stringify({
+          orderId:state.order.orderId,
+          snapshot:state.snapshot,
+          requestId:gate.requestId||state.snapshot.orderId,
+          accessGrant:gate.accessGrant,
+          accessDecision:gate.accessDecision,
+          freeBySubscription:gate.freeBySubscription===true,
+          consume:gate.consume,
+          payment:gate.payment,
+          _paymentContext:gate._paymentContext
+        })
+      });
+      data=await resp.json().catch(function(){return{};});
+      if(resp.ok) break;
+      var prashnaCode=String(data&&data.code||'').trim().toUpperCase();
+      var prashnaNeedsPayment=resp.status===402||prashnaCode==='PAYMENT_REQUIRED';
+      if(prashnaNeedsPayment&&prashnaAttempt===0){
+        state.statusError=false;
+        state.statusMessage='결제 확인이 필요합니다. 결제 방법을 다시 선택해 주세요.';
+        vedicPrashnaTrack('prashna_payment_reoffered',{orderId:state.order.orderId,code:prashnaCode});
+        vedicPrashnaRefreshUi();
+        continue;
+      }
       state.statusError=true;
-      state.statusMessage=String(gate&&gate.message||'결제가 완료되지 않았습니다. 이용 금액은 청구되지 않았으며 프라슈나 차트도 생성되지 않았습니다.');
-      vedicPrashnaTrack('prashna_payment_failed',{orderId:state.order.orderId});
+      state.statusMessage=String(data&&data.message||'결제는 확인되었지만 결과 생성에 실패했습니다. 결제 취소 또는 무료 재생성 절차를 진행합니다.');
+      vedicPrashnaTrack('prashna_generation_failed',{orderId:state.order.orderId,code:prashnaCode});
       vedicPrashnaRefreshUi();
       return false;
     }
-    state.loadingStep=2;
-    state.statusMessage=VEDIC_PRASHNA_STEPS[2];
-    vedicPrashnaTrack('prashna_payment_succeeded',{orderId:state.order.orderId});
-    vedicPrashnaRefreshUi();
-    var headers=vedicPrashnaReadAuthHeaders();
-    headers['idempotency-key']=gate.requestId||state.snapshot.orderId;
-    var resp=await fetch('/api/fortune/vedic/prashna/generate',{
-      method:'POST',
-      headers:headers,
-      body:JSON.stringify({
-        orderId:state.order.orderId,
-        snapshot:state.snapshot,
-        requestId:gate.requestId||state.snapshot.orderId,
-        accessGrant:gate.accessGrant,
-        accessDecision:gate.accessDecision,
-        consume:gate.consume,
-        payment:gate.payment,
-        _paymentContext:gate._paymentContext
-      })
-    });
-    var data=await resp.json().catch(function(){return{};});
-    if(!resp.ok){
+    if(!resp||!resp.ok){
       state.statusError=true;
-      state.statusMessage=String(data&&data.message||'결제는 확인되었지만 결과 생성에 실패했습니다. 결제 취소 또는 무료 재생성 절차를 진행합니다.');
+      state.statusMessage=String(data&&data.message||'결제 확인에 실패했습니다. 이용 금액은 청구되지 않았습니다.');
       vedicPrashnaTrack('prashna_generation_failed',{orderId:state.order.orderId,code:String(data&&data.code||'')});
       vedicPrashnaRefreshUi();
       return false;
@@ -5360,6 +5428,8 @@ function doCalculateFromProfile(profile){
   if(isNaN(f.lat)||isNaN(f.lon)){alert('위도/경도를 확인해 주세요. 장소를 선택하거나 수동으로 입력해 주세요.');return;}
   var nameEl=document.getElementById('loading-name');
   if(nameEl) nameEl.textContent=f.name+'님의';
+  // 🔴 모바일 결제 리다이렉트 복귀 문서가 이 차트를 다시 만들 유일한 재료다(vedicResumeWaitForChart).
+  vedicRememberProfileForResume(profile);
   showPage('loading');
 
   function runWithLocalSwiss(detail){
