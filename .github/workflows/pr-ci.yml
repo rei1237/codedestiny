@@ -206,7 +206,9 @@ jobs:
       # fast 잡에 두는 이유: 이 가드들의 입력은 index.html·js/·styles/ 라 티어가 fast 로
       # 잡히는 변경에서도 깨어나야 한다. 실측 13.7초 / 296 tests (2026-08-23).
       - name: Run the static UI guards the release runs
-        run: npm run test:node
+        run: |
+          npm run test:node
+          npm run verify:quantum-card-cascade
 
       # 🔴 이것은 **fast 잡**이어야 한다. 사이트맵을 어긋나게 만드는 것은 라우트 추가만이
       # 아니라 글 한 편, 공용 컴포넌트 한 줄이다(lastmod 서명이 소스 파일에서 나온다).
