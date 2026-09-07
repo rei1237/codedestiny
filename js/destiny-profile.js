@@ -5093,7 +5093,8 @@
         // 낙관적 즉시 허용: 로컬 구독 스냅샷이 pass 커버를 확인하면 서버 왕복을 백그라운드로 돌려 속도를 유지한다
         // (정확성은 백그라운드 미커버 응답 시 세션 갱신으로 자기수정). 단 "확인 중 → 적용 완료" 2단계 UX는
         // 그대로 유지하고, 완료 오버레이 표시 중 onGranted(콘텐츠 생성)를 병렬 진행한다.
-        if (!_dpOptimisticPassDisabled() && _dpReadActiveMembershipCoverage(coinPrice)) {
+        var _dpOptimisticCoverage = _dpOptimisticPassDisabled() ? null : _dpReadActiveMembershipCoverage(coinPrice);
+        if (_dpOptimisticCoverage) {
           _dpRecordMembershipPassInBackground(opts, title, coinPrice, requestId);
           _dpSetPaymentPending(true, '이용권을 확인하고 있어요…', 'pass');
           await _dpWaitForPaymentOverlayPaint();
@@ -5101,7 +5102,44 @@
           // 매 진입마다 버리는 인위적 지연이었다(왕복이 없는 낙관 경로라 기다릴 이유가 없다).
           await new Promise(function (resolve) { setTimeout(resolve, 150); });
           _dpShowPassAppliedOverlay(_dpText('passAppliedOverlay'));
-          return _dpBuildPaidGateGrantedResult({ status: 'pass_applied', payload: { __cdOptimisticPass: true } }, requestId, opts.onGranted);
+          /* 🔴 낙관 통과 payload 는 셸 index.html 의 _cdBuildOptimisticPassAccess 와 **같은 필드 집합**이어야 한다.
+             예전에는 `{ __cdOptimisticPass: true }` 한 칸뿐이라, 이 게이트만 로드하는 독립 정적 페이지·React 에서
+             이용권 통과가 **결제수단 표식 없는 증빙**으로 흘렀다. 서버의 AI 프롬프트 6개 라우트는
+             requireExistingPaidAccess 로 isAIPromptPassAccessPayload(accessType/accessMethod/paymentMode)를
+             보는데(worker/routes/fortune.js), 표식이 비어 있으면 이용권 보유자가 그대로 402 로 떨어졌다
+             (베다 프라슈나 프롬프트 신고 지점). 서버는 이 표식을 신뢰하지 않고 자기 정본으로 이용권을 다시
+             판정·차감하므로(findAIPromptPaidAccessEvidence → consumePassForFeature) 무료 통과 구멍이 아니다.
+             차감 중복은 (featureKey, requestId) 마커가 막는다 — 백그라운드 coin-gate 기록과 같은 requestId 다.
+             🔴 evidenceId/accessGrant/purchaseId 는 넣지 않는다(셸 주석과 같은 이유 — 아직 서버 확인 전인
+             낙관 판정이 '서버가 검증한 결제'로 굳는다). */
+          var _dpOptimisticPassPayload = {
+            ok: true,
+            bypassed: true,
+            freeBySubscription: true,
+            __cdPassGateResolved: true,
+            __cdOptimisticPass: true,
+            accessMethod: 'PASS',
+            accessType: 'membership_pass',
+            transactionType: 'membership_pass',
+            paymentMode: 'MEMBERSHIP_PASS',
+            featureKey: _dpReceiptFeatureKey || String(opts.featureKey || '').trim(),
+            categoryKey: String(opts.categoryKey || '').trim(),
+            subFeatureKey: String(opts.subFeatureKey || '').trim(),
+            serviceKey: String(opts.serviceKey || '').trim(),
+            requestId: requestId,
+            membershipPass: {
+              tier: _dpOptimisticCoverage.tier || '',
+              freeLimit: _dpOptimisticCoverage.freeLimit,
+              coinCost: coinPrice
+            }
+          };
+          return _dpBuildPaidGateGrantedResult({
+            status: 'pass_applied',
+            payload: _dpOptimisticPassPayload,
+            rawPayload: _dpOptimisticPassPayload,
+            membershipCoverage: _dpOptimisticPassPayload.membershipPass,
+            requestId: requestId
+          }, requestId, opts.onGranted);
         }
         // 🔴 여기서 서버에 이용권을 묻지 않는다(2026-08 정책 전환, 셸 index.html · React 와 동일).
         // 스냅샷이 커버를 확답하면 위에서 이미 무료로 통과했고, 확답하지 못하면 기다리지 않고 곧바로
