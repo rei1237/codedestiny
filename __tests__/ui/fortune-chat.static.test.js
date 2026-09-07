@@ -69,14 +69,14 @@ test("both personas render from their own expression sheet", () => {
   assert.match(client, /persona=\{character\}/);
 });
 
-test("the chat surface themes from design tokens, not a private palette", () => {
+test("the chat surface keeps the original Yeoni palette in every consultant mode", () => {
   const css = read("app/fortune-chat/fortune-chat.module.css");
 
-  // 색은 styles/theme-tokens.css 에서 온다. 여기서 팔레트를 다시 정의하면 드리프트다.
-  assert.match(css, /--ink: var\(--cd-text/);
-  assert.match(css, /--rose: var\(--cd-accent/);
-  // 네오는 표면·텍스트·강조색을 한 세트로 바꾼다(반쪽 오버라이드 금지).
-  assert.match(css, /\.room\[data-character="neo"\]/);
+  // 대화형 상담은 셸의 네오 토큰을 상속하지 않고, 기존 연이 팔레트를 공통으로 사용한다.
+  assert.match(css, /--ink: #3c1830/);
+  assert.match(css, /--rose: #b31955/);
+  assert.doesNotMatch(css, /\.room\[data-character="neo"\]/);
+  assert.doesNotMatch(css, /#fbeeff|#c4b5fd|#a78bfa/);
   // grid 열을 못 박지 않으면 암묵 열이 max-content 라 모바일에서 가로로 밀린다.
   assert.match(css, /grid-template-columns: minmax\(0, 1fr\)/);
   // 한국어 제목은 어절 중간에서 끊으면 안 된다.

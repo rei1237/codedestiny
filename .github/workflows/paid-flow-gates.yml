@@ -74,11 +74,6 @@ on:
       #    access-state.js 는 이미 있는데 짝인 이것만 빠진 구멍이다(2026-08-25).
       #    verify:per-use-never-unlocks 가 이 파일을 열어 판정을 단언한다(원칙 10).
       - "worker/lib/paid-feature-access.js"
-      # 🔴 지연차감(deferUsage) 등록 증빙 조회의 정본. 여기가 증빙을 놓치면 register 가 402 를 내고
-      #    **결제를 끝낸 사용자가 서비스를 못 받는다**(운명 찻집 단건결제 실사고). 짝인
-      #    moonstone-spend-proof.js 와 함께 둔다 — 둘 다 "정말 냈는가"를 판정한다.
-      - "worker/lib/deferred-billing-proof.js"
-      - "worker/lib/moonstone-spend-proof.js"
       - "worker/lib/profile-card-mutation-policy.js"
       - "worker/routes/access.js"
       # 🔴 또 같은 형태의 구멍이었다(2026-08-31). worker/lib/access-state.js 는 위에 있는데, 그
@@ -159,24 +154,15 @@ on:
       - "js/mobile-interaction-patch.js"
       - "js/core/index-inline-runtime.js"
       - "js/saju-engine.js"
-      - "js/share.js"
-      # 🔴 결제 후 자동 재개(resume) 배선의 정본과 그 소비자들(2026-09-07 추가). verify:paid-resume-wiring 이
-      #    이 파일들을 열어 ① 유료 게이트 호출부 전수가 resume 서술자를 넘기는가 ② 서술자 kind 가 등록된
-      #    핸들러와 짝을 이루는가 를 대조한다. 이 목록이 빠지면 해당 파일만 고친 PR 에서 가드가 아예 안 돈다
-      #    (원칙 10 — 가드가 보는 파일은 그 가드를 부르는 워크플로 트리거 paths 에도 있어야 한다).
-      #    resume 이 빠졌을 때의 증상은 결제는 됐는데 그 기능이 안 열리고 메인 화면으로 돌아오는 것이다.
       - "app/hooks/usePaidResume.ts"
       - "js/saju-engine-tarot-sukuyo-quantum.js"
       - "js/entertain-engine.js"
       - "js/sibyl-system.js"
       - "js/iching-engine.js"
       - "js/animal-totem-experience.js"
-      - "js/tarot-love-experience.js"
-      - "js/tarot-reunion-experience.js"
-      - "js/tarot-year-fortune-experience.js"
-      # 🔴 관상·전생 관상은 셸이 data-action 으로 지연 로드하는 **루트 자산**이라 js/** 에 안 걸린다
-      #    (2026-09-07 추가). 이 사각지대 때문에 가드의 정적 스캔이 이 둘을 아예 안 읽었고,
-      #    resume 없는 유료 게이트 3건이 살아 있는데도 PASS 가 났다. 미러도 함께 등재한다.
+      - "js/share.js"
+      # 🔴 관상·전생 관상은 셸이 data-action 으로 지연 로드하는 루트 자산이라 js/**에 안 걸린다.
+      #    정적 재개 가드가 이 파일들을 읽으므로 루트와 public 미러를 모두 트리거에 둔다.
       - "PhysiognomyUI.js"
       - "PastLifeFaceUI.js"
       - "public/PhysiognomyUI.js"

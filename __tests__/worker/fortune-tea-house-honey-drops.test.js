@@ -272,10 +272,17 @@ beforeAll(async () => {
 });
 
 beforeEach(() => {
+  // LLM fixtures settle immediately; clear unused group deadlines per test.
+  jest.useFakeTimers({ doNotFake: ['Date', 'performance', 'nextTick', 'queueMicrotask', 'setImmediate', 'clearImmediate'] });
   fakeDb.reset();
   authState = { userId: USER_ID, email: "tea@example.com", role: "user" };
   paidAccessAllowed = true;
   callGeminiTextMock?.mockClear();
+});
+
+afterEach(() => {
+  jest.clearAllTimers();
+  jest.useRealTimers();
 });
 
 const FEATURE_KEYS = {

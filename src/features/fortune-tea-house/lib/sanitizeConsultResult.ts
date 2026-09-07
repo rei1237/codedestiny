@@ -19,6 +19,20 @@ function textList(values: unknown, maxItems = 12): string[] {
   return values.map((item) => text(item)).filter(Boolean).slice(0, maxItems);
 }
 
+const ZERO_TAROT_EMOTION_FALLBACK_VALUES = [66, 72, 61, 58, 50];
+
+function recoverZeroTarotEmotionAnalysis(
+  items: FortuneTeaHouseConsultResponse["emotionAnalysis"],
+  consultationMode: FortuneTeaHouseConsultResponse["consultationMode"],
+): FortuneTeaHouseConsultResponse["emotionAnalysis"] {
+  if (consultationMode !== "tarot" || items.length === 0 || items.some((item) => item.value !== 0)) return items;
+  return items.map((item, index) => ({
+    ...item,
+    // 서버의 결정론 폴백 수치와 같은 기준을 사용해 과거 저장분도 0% 상태에서 복구한다.
+    value: ZERO_TAROT_EMOTION_FALLBACK_VALUES[index] ?? 50,
+  }));
+}
+
 export function sanitizeTeaHouseConsultResult(result: FortuneTeaHouseConsultResponse): FortuneTeaHouseConsultResponse {
   const saju = result.saju
     ? {
@@ -122,14 +136,17 @@ export function sanitizeTeaHouseConsultResult(result: FortuneTeaHouseConsultResp
       : undefined,
     sukuyoCompatibility: sukuyo,
     sajuCompatibility: sajuCompat,
-    emotionAnalysis: (result.emotionAnalysis || [])
-      .map((item) => ({
-        ...item,
-        label: text(item?.label),
-        value: percent(item?.value),
-        description: text(item?.description),
-      }))
-      .filter((item) => item.label || item.description),
+    emotionAnalysis: recoverZeroTarotEmotionAnalysis(
+      (result.emotionAnalysis || [])
+        .map((item) => ({
+          ...item,
+          label: text(item?.label),
+          value: percent(item?.value),
+          description: text(item?.description),
+        }))
+        .filter((item) => item.label || item.description),
+      result.consultationMode,
+    ),
     yeoniReading: {
       intro: text(result.yeoniReading?.intro),
       main: text(result.yeoniReading?.main),

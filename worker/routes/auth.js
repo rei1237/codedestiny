@@ -1,3 +1,4 @@
+import { mapSocialProfile, normalizeKoreanPhoneNumber } from "../lib/social-profile.js";
 import { connectDb, mongoose, requestPoolRecovery, resolveMongoDbName, withMongoRetry } from "../lib/db.js";
 import { IdempotencyKey, MonthlyCreditLedger, PointHistory, RESTORE_CREDENTIAL_CAP, RefreshTokenSession, User } from "../lib/models.js";
 import { MONTHLY_CREDIT_TTL_MS } from "../lib/monthly-credit-lots.js";
@@ -1656,48 +1657,6 @@ function buildProviderConfig(provider, request, env) {
   throw new Error("unsupported_provider");
 }
 
-function mapSocialProfile(provider, payload) {
-  if (provider === "google") {
-    return {
-      providerId: String(payload?.sub || ""),
-      email: payload?.email ? String(payload.email).toLowerCase() : "",
-      emailVerified: payload?.email_verified === false ? false : (payload?.email_verified === true ? true : null),
-      name: String(payload?.name || payload?.given_name || "Google user"),
-      image: String(payload?.picture || ""),
-      phoneNumber: normalizeKoreanPhoneNumber(payload?.phone_number || payload?.phoneNumber || ""),
-    };
-  }
-
-  if (provider === "naver") {
-    const profile = payload?.response || {};
-    return {
-      providerId: String(profile?.id || ""),
-      email: profile?.email ? String(profile.email).toLowerCase() : "",
-      emailVerified: profile?.email_verified === false ? false : (profile?.email_verified === true ? true : null),
-      name: String(profile?.name || profile?.nickname || "Naver user"),
-      image: String(profile?.profile_image || ""),
-      phoneNumber: normalizeKoreanPhoneNumber(profile?.mobile || profile?.mobile_e164 || profile?.phone || profile?.phoneNumber || ""),
-      // 제공 항목 "출생연도" 가 켜져 있을 때만 온다(YYYY). 없으면 가입 화면이 직접 묻는다.
-      birthYear: String(profile?.birthyear || "").trim(),
-    };
-  }
-
-  if (provider === "kakao") {
-    const account = payload?.kakao_account || {};
-    const profile = account?.profile || {};
-    return {
-      providerId: String(payload?.id || ""),
-      email: account?.email ? String(account.email).toLowerCase() : "",
-      emailVerified: account?.is_email_verified === false ? false : (account?.is_email_verified === true ? true : null),
-      name: String(profile?.nickname || "Kakao user"),
-      image: String(profile?.profile_image_url || profile?.thumbnail_image_url || ""),
-      phoneNumber: normalizeKoreanPhoneNumber(account?.phone_number || account?.phoneNumber || account?.phone || ""),
-    };
-  }
-
-  return { providerId: "", email: "", emailVerified: null, name: "", image: "" };
-}
-
 // OAuth 공급자(네이버·카카오·구글) 토큰/프로필 fetch용 타임아웃+제한적 재시도 래퍼.
 // 국내 호스팅 공급자 API의 지연 편차가 그대로 로그인 실패로 표면화되던 문제를 흡수한다.
 // (kasi.js의 AbortController+setTimeout(abort) 패턴 재사용)
@@ -2342,13 +2301,6 @@ function resolveAuthDbName(env) {
 
 function toErrorMessage(error) {
   return String(error?.message || "").slice(0, 240);
-}
-
-function normalizeKoreanPhoneNumber(value) {
-  const digits = String(value || "").replace(/\D/g, "");
-  const localDigits = digits.startsWith("82") && /^821\d{8,9}$/.test(digits) ? `0${digits.slice(2)}` : digits;
-  if (!/^01\d{8,9}$/.test(localDigits)) return "";
-  return localDigits;
 }
 
 function maskKoreanPhoneNumber(value) {

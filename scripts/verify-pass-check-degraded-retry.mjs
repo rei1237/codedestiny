@@ -14,7 +14,7 @@
  *   ⑤ 429(레이트리밋)는 재시도하지 않는다 — 다시 물어도 같은 답이고 상한만 더 태운다.
  *   ⑥ 🔴 월정석/단건 등 **과금이 일어나는** coin-gate POST 는 재시도하지 않는다.
  *
- * 실제 모델·결제·서버 호출은 없다. fetchJsonWithAuth 를 통째로 mock 한다.
+ * 실제 모델·결제·서버 호출은 없다. 인증 fetch 와 fetchJsonWithAuth 를 통째로 mock 한다.
  */
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -23,9 +23,33 @@ import { fileURLToPath } from "node:url";
 import { JSDOM, VirtualConsole } from "jsdom";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const RUNTIME_FILES = ["js/core/pass-verdict.js", "js/core/checkout-entry.js", "js/destiny-profile.js"];
+const RUNTIME_FILES = ["js/core/auth-hint.js", "js/core/pass-verdict.js", "js/core/checkout-entry.js", "js/destiny-profile.js"];
 
-const GRANTED = { ok: true, status: 200, payload: { data: { freeBySubscription: true, consume: { accessType: "membership_pass" } } } };
+const FAMILY_GRANTED = {
+  ok: true,
+  status: 200,
+  payload: {
+    data: {
+      freeBySubscription: true,
+      accessType: "family",
+      accessMethod: "FAMILY",
+      transactionType: "family_pass",
+      paymentMode: "MEMBERSHIP_PASS",
+      consume: {
+        accessType: "family",
+        accessMethod: "FAMILY",
+        transactionType: "family_pass",
+        paymentMode: "MEMBERSHIP_PASS",
+      },
+      accessGrant: {
+        accessType: "family",
+        accessMethod: "FAMILY",
+        paymentMode: "MEMBERSHIP_PASS",
+        evidenceId: "membership:family:fusion-fortune-consultation:verify-1",
+      },
+    },
+  },
+};
 const DEGRADED_503 = { ok: false, status: 503, payload: { code: "PASS_STATUS_TEMPORARILY_UNAVAILABLE", degraded: true } };
 const EVIDENCE_503 = { ok: false, status: 503, payload: { code: "PAID_ACCESS_VERIFY_RETRYABLE", retryable: true } };
 const NOT_COVERED_402 = { ok: false, status: 402, payload: { code: "MEMBERSHIP_PASS_NOT_COVERED" } };
@@ -50,7 +74,21 @@ function bootRuntime(coinGateResponses) {
   // 로그인 흔적. _dpPrepareMembershipPassAuth 가 이 힌트로 통과해야 coin-gate 까지 도달한다.
   window.document.cookie = "fortune_auth_role=user";
 
-  // 유일한 네트워크 표면. 실제 서버·결제·모델 호출은 일어나지 않는다.
+  window.fetch = async (url) => {
+    const pathname = new URL(String(url), window.location.origin).pathname;
+    if (pathname === "/api/auth/me" || pathname === "/api/auth/refresh") {
+      return new Response(JSON.stringify({ ok: true, user: { id: "u1" } }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    return new Response(JSON.stringify({ ok: false, code: "UNEXPECTED_TEST_FETCH" }), {
+      status: 404,
+      headers: { "Content-Type": "application/json" },
+    });
+  };
+
+  // 이용권 확인 네트워크 표면. 실제 서버·결제·모델 호출은 일어나지 않는다.
   window.fetchJsonWithAuth = async (pathname, init) => {
     const url = String(pathname || "");
     if (url.indexOf("/api/billing/coin-gate") === 0) {
@@ -95,9 +133,9 @@ function check(label, fn) {
 // ── ① degraded-503 → 재시도 성공 시 무료 통과 ─────────────────────────────
 console.log("\n[1] degraded-503 뒤 재시도가 성공하면 이용권으로 무료 통과하는가");
 {
-  const { window, coinGateCalls } = bootRuntime([DEGRADED_503, GRANTED]);
+  const { window, coinGateCalls } = bootRuntime([DEGRADED_503, FAMILY_GRANTED]);
   const result = await applyPass(window);
-  check("무료 통과(pass_applied)", () => assert.equal(result.status, "pass_applied"));
+  check("FAMILY 무료 통과(pass_applied)", () => assert.equal(result.status, "pass_applied"));
   check("coin-gate 를 2회 호출(최초 + 재시도 1회)", () => assert.equal(coinGateCalls.length, 2));
   check("재시도가 같은 requestId 를 쓴다(서버 멱등 마커 근거)", () => {
     assert.equal(coinGateCalls[0].requestId, coinGateCalls[1].requestId);
@@ -121,16 +159,16 @@ console.log("\n[2] 계속 degraded 여도 재시도가 1회에서 멈추는가")
 // ── ③ PAID_ACCESS_VERIFY_RETRYABLE(family 이용권 기록 지연) 도 재시도 대상 ──
 console.log("\n[3] PAID_ACCESS_VERIFY_RETRYABLE 503 도 재시도하는가");
 {
-  const { window, coinGateCalls } = bootRuntime([EVIDENCE_503, GRANTED]);
+  const { window, coinGateCalls } = bootRuntime([EVIDENCE_503, FAMILY_GRANTED]);
   const result = await applyPass(window);
-  check("재시도 후 무료 통과", () => assert.equal(result.status, "pass_applied"));
+  check("재시도 후 FAMILY 무료 통과", () => assert.equal(result.status, "pass_applied"));
   check("coin-gate 2회", () => assert.equal(coinGateCalls.length, 2));
 }
 
 // ── ④ 402 는 확정 응답 — 재시도 금지 ─────────────────────────────────────
 console.log("\n[4] 402(미커버)를 재시도하지 않고 곧바로 상점 인계로 넘기는가");
 {
-  const { window, coinGateCalls } = bootRuntime([NOT_COVERED_402, GRANTED]);
+  const { window, coinGateCalls } = bootRuntime([NOT_COVERED_402, FAMILY_GRANTED]);
   const result = await applyPass(window);
   check("payment_required 로 즉시 반환", () => assert.equal(result.status, "payment_required"));
   check("coin-gate 1회만 호출(재시도 없음)", () => assert.equal(coinGateCalls.length, 1));
@@ -139,7 +177,7 @@ console.log("\n[4] 402(미커버)를 재시도하지 않고 곧바로 상점 인
 // ── ⑤ 429 는 재시도 금지 ─────────────────────────────────────────────────
 console.log("\n[5] 429(레이트리밋)를 재시도하지 않는가");
 {
-  const { window, coinGateCalls } = bootRuntime([RATE_LIMITED_429, GRANTED]);
+  const { window, coinGateCalls } = bootRuntime([RATE_LIMITED_429, FAMILY_GRANTED]);
   const result = await applyPass(window);
   check("coin-gate 1회만 호출(상한을 더 태우지 않는다)", () => assert.equal(coinGateCalls.length, 1));
   check("error 로 남는다(미커버 세탁 금지)", () => assert.equal(result.status, "error"));
@@ -148,9 +186,9 @@ console.log("\n[5] 429(레이트리밋)를 재시도하지 않는가");
 // ── ⑥ 🔴 첫 시도가 곧바로 성공하면 재시도하지 않는다 ────────────────────
 console.log("\n[6] 정상 응답에는 추가 왕복이 없는가");
 {
-  const { window, coinGateCalls } = bootRuntime([GRANTED]);
+  const { window, coinGateCalls } = bootRuntime([FAMILY_GRANTED]);
   const result = await applyPass(window);
-  check("무료 통과", () => assert.equal(result.status, "pass_applied"));
+  check("FAMILY 무료 통과", () => assert.equal(result.status, "pass_applied"));
   check("coin-gate 1회", () => assert.equal(coinGateCalls.length, 1));
 }
 

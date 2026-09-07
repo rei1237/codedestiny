@@ -127,6 +127,17 @@
     return parsed.self;
   }
 
+  function plfClearResumeSnapshot() {
+    const store = plfResumeStore();
+    if (!store) return false;
+    try {
+      store.removeItem(PLF_RESUME_SNAPSHOT_KEY);
+      return true;
+    } catch (_plfSnapshotClearError) {
+      return false;
+    }
+  }
+
   function plfRestoreSelfResult() {
     if (plfSelfResult) return true;
     const restored = plfReadResumeSnapshot();
@@ -3263,6 +3274,7 @@
     plfSetGateCopy('compat');
     plfShowStage('gate');
     if (openPicker) plfEl('plfFileInput').click();
+    plfClearResumeSnapshot();
     return true;
   }
 
