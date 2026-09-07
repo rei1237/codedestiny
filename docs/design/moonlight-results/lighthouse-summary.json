@@ -1,0 +1,24 @@
+[
+  {
+    "mode": "baseline",
+    "score": 57,
+    "accessibility": 96,
+    "seo": 100,
+    "lcp": 9973.565999999999,
+    "cls": 0,
+    "tbt": 0,
+    "transferBytes": 1050068,
+    "frameworkRequests": 37
+  },
+  {
+    "mode": "current",
+    "score": 100,
+    "accessibility": 100,
+    "seo": 100,
+    "lcp": 1128.3875,
+    "cls": 0,
+    "tbt": 0,
+    "transferBytes": 69787,
+    "frameworkRequests": 0
+  }
+]

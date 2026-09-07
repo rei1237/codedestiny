@@ -72,7 +72,11 @@ test('mock Next rewrites intercept app API routes and CSP blocks remote browser 
   try {
     const { default: createConfig } = await import('../../next.config.mjs');
     const config = createConfig('phase-development-server');
-    assert.deepEqual((await config.rewrites()).beforeFiles, [{ source: '/api/:path*', destination: 'http://127.0.0.1:18790/api/:path*' }]);
+    const rules = (await config.rewrites()).beforeFiles;
+    assert.deepEqual(rules.filter(rule => rule.source.startsWith('/api/')), [{ source: '/api/:path*', destination: 'http://127.0.0.1:18790/api/:path*' }]);
+    const policies = rules.filter(rule => !rule.source.startsWith('/api/'));
+    assert.equal(policies.length, 9);
+    assert.ok(policies.every(rule => /^\/static\/policies\/[a-z]+\/index\.html$/.test(rule.destination)), 'policy rewrites remain local static files');
     const csp = (await config.headers())[0].headers[0].value;
     assert.match(csp, /connect-src 'self';/);
     assert.match(csp, /script-src 'self'/);

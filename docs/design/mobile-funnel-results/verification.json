@@ -1,0 +1,169 @@
+[
+  {
+    "width": 360,
+    "height": 640,
+    "geometry": {
+      "overflow": false,
+      "ctas": [
+        {
+          "text": "무료로 내 운세 보기 ↗",
+          "bottom": 452.859375,
+          "height": 50
+        },
+        {
+          "text": "이용권으로 1/3 가격에 보기",
+          "bottom": 512.859375,
+          "height": 50
+        }
+      ],
+      "navTop": 519
+    },
+    "canvas": {
+      "width": 330,
+      "font": "27px",
+      "columns": 1
+    },
+    "freeInput": true,
+    "search": true,
+    "errors": [],
+    "externalBlocked": []
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "geometry": {
+      "overflow": false,
+      "ctas": [
+        {
+          "text": "무료로 내 운세 보기 ↗",
+          "bottom": 452.859375,
+          "height": 50
+        },
+        {
+          "text": "이용권으로 1/3 가격에 보기",
+          "bottom": 512.859375,
+          "height": 50
+        }
+      ],
+      "navTop": 723
+    },
+    "canvas": {
+      "width": 360,
+      "font": "27px",
+      "columns": 1
+    },
+    "freeInput": true,
+    "search": true,
+    "errors": [],
+    "externalBlocked": []
+  },
+  {
+    "width": 430,
+    "height": 932,
+    "geometry": {
+      "overflow": false,
+      "ctas": [
+        {
+          "text": "무료로 내 운세 보기 ↗",
+          "bottom": 392.96875,
+          "height": 50
+        },
+        {
+          "text": "이용권으로 1/3 가격에 보기",
+          "bottom": 452.96875,
+          "height": 50
+        }
+      ],
+      "navTop": 811
+    },
+    "canvas": {
+      "width": 400,
+      "font": "27px",
+      "columns": 1
+    },
+    "freeInput": true,
+    "search": true,
+    "errors": [],
+    "externalBlocked": []
+  },
+  {
+    "width": 1280,
+    "height": 900,
+    "geometry": {
+      "overflow": false,
+      "ctas": [
+        {
+          "text": "무료로 내 운세 보기 ↗",
+          "bottom": 392.96875,
+          "height": 50
+        },
+        {
+          "text": "이용권으로 1/3 가격에 보기",
+          "bottom": 452.96875,
+          "height": 50
+        }
+      ],
+      "navTop": 816
+    },
+    "canvas": {
+      "width": 430,
+      "font": "27px",
+      "columns": 1
+    },
+    "freeInput": true,
+    "search": true,
+    "errors": [],
+    "externalBlocked": [
+      "https://assets.code-destiny.com"
+    ]
+  },
+  {
+    "route": "terms-of-service",
+    "status": 200,
+    "summaryCards": 3,
+    "anchors": true,
+    "desktopMobileCanvas": true
+  },
+  {
+    "route": "privacy-policy",
+    "status": 200,
+    "summaryCards": 3,
+    "anchors": true,
+    "desktopMobileCanvas": true
+  },
+  {
+    "route": "refund-policy",
+    "status": 200,
+    "summaryCards": 3,
+    "anchors": true,
+    "desktopMobileCanvas": true
+  },
+  {
+    "route": "contact-us",
+    "status": 200,
+    "summaryCards": 3,
+    "anchors": true,
+    "desktopMobileCanvas": true
+  },
+  {
+    "route": "about",
+    "status": 200,
+    "summaryCards": 3,
+    "anchors": true,
+    "desktopMobileCanvas": true
+  },
+  {
+    "route": "faq",
+    "status": 200,
+    "summaryCards": 3,
+    "anchors": true,
+    "desktopMobileCanvas": true
+  },
+  {
+    "memberControls": true,
+    "profileSavedAndLoaded": true,
+    "mutations": 1,
+    "legacySearchDeepLink": true,
+    "mockOnly": true
+  }
+]

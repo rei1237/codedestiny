@@ -2,6 +2,8 @@
  * Copies root static assets → public/ (Cloudflare / static hosting).
  * 사주 엔진은 js/saju-engine.js + tarot-sukuyo-quantum + core/saju/reportDashboard + continuation 순서로 index.html에 로드됨.
  */
+import "./design/build-home-funnel.mjs";
+import "./design/gen-yehwa-motifs.mjs";
 import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync, statSync, readdirSync, rmSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { dirname, resolve, join } from "node:path";
@@ -1229,6 +1231,9 @@ function syncSearchIgnoreList() {
 syncRootAssetCacheKeys();
 
 sanitizePublicGoogleFontReferences(publicDir);
+// Build policy pages after asset copying so the compiled CSS module is not
+// overwritten by the source-only policy chrome stylesheet.
+await import("./design/build-static-policy-pages.mjs");
 
 // 🔴 반드시 마지막이다 — 위의 캐시키 재작성·폰트 정리가 사본 내용을 바꾸므로,
 //    그전에 돌면 방금 어긋난 파일을 "미러 아님"으로 잘못 판정한다.

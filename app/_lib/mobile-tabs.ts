@@ -32,8 +32,8 @@ export interface MobileTab {
   shellAction?: string;
 }
 
-/** 사주 탭이 셸에서 실행하는 ?action= 이름. js/destiny-profile.js 의 window.cdSajuTabEntry 와 짝. */
-export const SAJU_TAB_ACTION = "cdSajuTabEntry";
+/** 무료 탭 진입점. 기존 게스트/저장 프로필 진입 컨트롤러를 재사용한다. */
+export const SAJU_TAB_ACTION = "cdOneStepFreeSajuEntry";
 
 /** 모든 운세 탭이 셸에서 실행하는 ?action= 이름. index.html 의 window.cdOpenAllFortunes 와 짝. */
 export const ALL_FORTUNES_ACTION = "cdOpenAllFortunes";
@@ -64,27 +64,26 @@ export const MOBILE_TABS: readonly MobileTab[] = [
   { key: "home", label: "홈", href: "/", ariaLabel: "홈", glyph: "⌂", transKey: "home.nav.home", ariaTransKey: "home.nav.home" },
   {
     key: "saju",
-    label: "사주",
+    label: "무료",
     href: `/?action=${SAJU_TAB_ACTION}`,
-    ariaLabel: "내 프로필로 사주 보기",
+    ariaLabel: "무료로 내 운세 보기",
     // 🔴 셸 탭바와 같은 탭 전용 키를 쓴다. home.nav.saju 는 카드·링크용 정식 명칭이라 탭 칸(58px)에
     // 안 들어간다 — es "Cuatro Pilares" 66.8px, fr "Quatre Piliers" 64.2px, ms "Empat Tiang" 60.3px.
     // Main 네임스페이스에는 그 자리용 짧은 형(es "4 Pilares")이 이미 저작돼 있고,
     // verify-mobile-bottom-nav-sync 가 이 네임스페이스에 12자 상한을 건다.
-    transKey: "shell.cdMobileBottomNav.cdMobileBottomNavMain.kxvio",
-    ariaTransKey: "shell.cdMobileBottomNav.cdMobileBottomNavMain.kb86wy0.ariaLabel",
-    glyph: "命",
+    transKey: "home.mobileFunnel.freeNav",
+    ariaTransKey: "home.mobileFunnel.freeNavAria",
+    glyph: "☼",
     shellAction: SAJU_TAB_ACTION,
   },
   {
     key: "fortunes",
-    label: "모든 운세",
-    href: `/?action=${ALL_FORTUNES_ACTION}`,
-    ariaLabel: "모든 운세 둘러보기",
-    transKey: "shell.cdMobileBottomNav.cdMobileBottomNavMain.k16cq4to",
-    ariaTransKey: "shell.cdMobileBottomNav.cdMobileBottomNavMain.k1mpcz5w.ariaLabel",
-    glyph: "✦",
-    shellAction: ALL_FORTUNES_ACTION,
+    label: "상담",
+    href: "/?view=consultations#cdhFeatured",
+    ariaLabel: "추천 상담 살펴보기",
+    transKey: "home.mobileFunnel.consultNav",
+    ariaTransKey: "home.mobileFunnel.consultNavAria",
+    glyph: "♡",
   },
   { key: "pass", label: "이용권", href: "/points/", ariaLabel: "이용권 상점", glyph: "◈",
     transKey: "shell.cdMobileBottomNav.cdMobileBottomNavMain.ku6gdz",
@@ -138,7 +137,8 @@ export function resolveActiveTabKey(pathname: string, search = ""): MobileTabKey
 
   // 사주·모든 운세·마이 탭은 홈(/)과 pathname 이 같으므로 ?action= 으로만 구분된다.
   const action = readActionParam(search);
-  if (action === SAJU_TAB_ACTION) return "saju";
+  if (action === SAJU_TAB_ACTION || action === "cdSajuTabEntry") return "saju";
+  if (new URLSearchParams(search).get("view") === "consultations") return "fortunes";
   if (action === ALL_FORTUNES_ACTION) return "fortunes";
   if (action === PROFILE_SHEET_ACTION) return "my";
   if (path === "/") return "home";

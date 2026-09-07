@@ -1,3 +1,4 @@
+import PolicyGuide, { policyPageClass } from "../components/PolicyGuide";
 import Link from "next/link";
 import { buildSeoMetadata } from "../../lib/seo";
 import { buildBreadcrumbJsonLd, buildFaqPageJsonLd } from "../../lib/structured-data";
@@ -30,23 +31,18 @@ const jsonLd = JSON.stringify({
 
 export default function FaqPage() {
   return (
-    <main className="cd-main-shell">
+    <main className={`cd-main-shell ${policyPageClass}`}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
-      <header className="cd-main-header">
-        <h1 className="cd-main-title">Code Destiny 자주 묻는 질문</h1>
-        <p className="cd-main-intro">
-          무료 사주, 만세력, 타로, 오늘의 운세, 궁합, 결제와 개인정보 처리에 관해 자주 묻는 질문을 정리했습니다.
-        </p>
-      </header>
+      <PolicyGuide kind="faq" title="자주 묻는 질문" description="무료 운세부터 이용권, 결제와 프로필까지 궁금한 항목을 펼쳐보세요." />
 
       <EditorNote note={getEditorNote("/faq")} className="cd-editor-note" />
 
-      <section className="cd-card-grid">
+      <section className="cd-card-grid" id="faq-list" aria-label="질문과 답변">
         {faqs.map((item) => (
-          <article key={item.question} className="cd-card">
-            <h2>{item.question}</h2>
+          <details key={item.question} className="cd-card">
+            <summary>{item.question}</summary>
             <p>{item.answer}</p>
-          </article>
+          </details>
         ))}
       </section>
 

@@ -1,0 +1,105 @@
+[
+  {
+    "route": "terms",
+    "status": 200,
+    "noJavaScript": true,
+    "widths": [
+      360,
+      390,
+      430,
+      1280
+    ]
+  },
+  {
+    "route": "terms-of-service",
+    "status": 200,
+    "noJavaScript": true,
+    "widths": [
+      360,
+      390,
+      430,
+      1280
+    ]
+  },
+  {
+    "route": "privacy",
+    "status": 200,
+    "noJavaScript": true,
+    "widths": [
+      360,
+      390,
+      430,
+      1280
+    ]
+  },
+  {
+    "route": "privacy-policy",
+    "status": 200,
+    "noJavaScript": true,
+    "widths": [
+      360,
+      390,
+      430,
+      1280
+    ]
+  },
+  {
+    "route": "refund-policy",
+    "status": 200,
+    "noJavaScript": true,
+    "widths": [
+      360,
+      390,
+      430,
+      1280
+    ]
+  },
+  {
+    "route": "contact",
+    "status": 200,
+    "noJavaScript": true,
+    "widths": [
+      360,
+      390,
+      430,
+      1280
+    ]
+  },
+  {
+    "route": "contact-us",
+    "status": 200,
+    "noJavaScript": true,
+    "widths": [
+      360,
+      390,
+      430,
+      1280
+    ]
+  },
+  {
+    "route": "about",
+    "status": 200,
+    "noJavaScript": true,
+    "widths": [
+      360,
+      390,
+      430,
+      1280
+    ]
+  },
+  {
+    "route": "faq",
+    "status": 200,
+    "noJavaScript": true,
+    "widths": [
+      360,
+      390,
+      430,
+      1280
+    ]
+  },
+  {
+    "reactToStaticDocument": true,
+    "queryAndHashPreserved": true
+  }
+]

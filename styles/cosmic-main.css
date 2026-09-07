@@ -560,224 +560,24 @@ body.neo-mode .card.input-section .fortune-point-notice {
 }
 
 /* ── 크레센트 달 오브젝트 ── */
-/* hero 비주얼 내 .moon-hero__moon 를 CSS 달로 만듦 */
-body:not(.neo-mode) .moon-hero__moon,
-body.neo-mode .moon-hero__moon {
-	background: transparent;
-	border-radius: 50%;
-	box-shadow:
-		14px -10px 0 6px rgba(220,230,255,0.92),
-		14px -10px 0 8px rgba(160,195,255,0.55),
-		14px -10px 0 22px rgba(140,175,240,0.14);
-	animation: moonCrescentFloat 7s ease-in-out infinite;
-}
-body.neo-mode .moon-hero__moon {
-	box-shadow:
-		14px -10px 0 6px rgba(243,221,154,0.88),
-		14px -10px 0 8px rgba(220,185,80,0.55),
-		14px -10px 0 22px rgba(200,155,40,0.14);
-}
 
 /* 달빛 헤일로 (달 주변 글로우) */
-body:not(.neo-mode) .moon-hero__moon::before,
-body.neo-mode .moon-hero__moon::before {
-	content: '';
-	position: absolute;
-	inset: -28px;
-	border-radius: 50%;
-	background: radial-gradient(circle,
-		rgba(160,195,255,0.18) 0%,
-		rgba(120,160,240,0.09) 50%,
-		transparent 70%);
-	animation: moonHaloPulse 4.8s ease-in-out infinite;
-	pointer-events: none;
-}
-body.neo-mode .moon-hero__moon::before {
-	background: radial-gradient(circle,
-		rgba(243,221,154,0.2) 0%,
-		rgba(220,180,80,0.1) 50%,
-		transparent 70%);
-}
 
 /* ── 달빛 Portal (hero 비주얼 배경 포털 오라) ── */
-body:not(.neo-mode) .moon-hero__portal,
-body.neo-mode .moon-hero__portal {
-	background:
-		radial-gradient(ellipse at 50% 30%,
-			rgba(140,175,255,0.28) 0%,
-			rgba(80,120,220,0.14) 40%,
-			transparent 70%),
-		radial-gradient(ellipse at 50% 80%,
-			rgba(60,40,120,0.32) 0%,
-			transparent 60%);
-}
-body.neo-mode .moon-hero__portal {
-	background:
-		radial-gradient(ellipse at 50% 30%,
-			rgba(243,221,154,0.22) 0%,
-			rgba(200,155,60,0.12) 40%,
-			transparent 70%),
-		radial-gradient(ellipse at 50% 80%,
-			rgba(80,50,10,0.32) 0%,
-			transparent 60%);
-}
 
 /* ── Moonlit Glass 공통 카드 유틸리티 ── */
 /* 꽃돼지 모드: hero 비주얼 패널 달빛 글래스 강화 */
-body:not(.neo-mode) .moon-hero__visual {
-	background:
-		radial-gradient(circle at 76% 18%,
-			rgba(140,180,255,0.22) 0%,
-			rgba(90,130,220,0.10) 35%,
-			transparent 58%),
-		linear-gradient(145deg,
-			rgba(12,20,60,0.85) 0%,
-			rgba(28,38,90,0.78) 50%,
-			rgba(6,10,36,0.92) 100%);
-	border: 1px solid rgba(160,200,255,0.26) !important;
-	box-shadow:
-		0 24px 64px rgba(0,0,20,0.58),
-		inset 0 1px 0 rgba(200,216,255,0.26),
-		inset 0 -1px 0 rgba(80,110,200,0.12) !important;
-}
 /* 네오 모드: hero 비주얼 패널 달빛 글래스 (골드 톤) */
-body.neo-mode .moon-hero__visual {
-	background:
-		radial-gradient(circle at 76% 18%,
-			rgba(243,221,154,0.18) 0%,
-			rgba(200,155,60,0.09) 35%,
-			transparent 58%),
-		linear-gradient(145deg,
-			rgba(16,12,4,0.88) 0%,
-			rgba(30,22,6,0.82) 50%,
-			rgba(8,6,2,0.95) 100%);
-	border: 1px solid rgba(243,221,154,0.26) !important;
-	box-shadow:
-		0 24px 64px rgba(0,0,0,0.62),
-		inset 0 1px 0 rgba(243,221,154,0.22),
-		inset 0 -1px 0 rgba(180,140,40,0.12) !important;
-}
 
 /* 카드 스택 (타로 카드 비주얼) — 달빛 컬러 */
-body:not(.neo-mode) .moon-hero__card-stack span:nth-child(1) {
-	background: radial-gradient(circle at 50% 0%,rgba(232,223,200,0.16),transparent 28%),radial-gradient(circle at 18% 88%,rgba(201,168,76,0.12),transparent 34%),linear-gradient(158deg,rgba(2,3,8,0.99),rgba(7,9,18,0.98) 48%,rgba(13,17,31,0.97));
-	border: 1px solid rgba(232,223,200,0.28);
-	transform: rotate(-8deg) translate(-18px,10px);
-	box-shadow: 0 16px 34px rgba(1,3,10,0.58),0 0 18px rgba(201,168,76,0.1),inset 0 1px 0 rgba(255,255,255,0.1);
-}
-body:not(.neo-mode) .moon-hero__card-stack span:nth-child(2) {
-	background: radial-gradient(circle at 52% 0%,rgba(232,223,200,0.2),transparent 30%),linear-gradient(158deg,rgba(3,4,10,0.99),rgba(9,12,24,0.98) 52%,rgba(18,22,38,0.96));
-	border: 1px solid rgba(232,223,200,0.36);
-	transform: rotate(-2deg) translate(-2px,4px);
-	box-shadow: 0 18px 38px rgba(1,3,10,0.56),0 0 22px rgba(201,168,76,0.13),inset 0 1px 0 rgba(255,255,255,0.12);
-}
-body:not(.neo-mode) .moon-hero__card-stack span:nth-child(3) {
-	background: radial-gradient(circle at 50% 0%,rgba(201,168,76,0.12),transparent 28%),linear-gradient(158deg,rgba(2,3,8,0.99),rgba(7,10,20,0.98) 55%,rgba(12,16,30,0.96));
-	border: 1px solid rgba(201,168,76,0.22);
-	transform: rotate(5deg) translate(16px,-4px);
-	box-shadow: 0 18px 36px rgba(1,3,10,0.54),0 0 18px rgba(201,168,76,0.1),inset 0 1px 0 rgba(255,255,255,0.08);
-}
-body.neo-mode .moon-hero__card-stack span:nth-child(1) {
-	background: linear-gradient(145deg,rgba(120,80,10,0.72),rgba(80,50,5,0.88));
-	border: 1px solid rgba(243,221,154,0.38);
-	transform: rotate(-8deg) translate(-18px,10px);
-	box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-}
-body.neo-mode .moon-hero__card-stack span:nth-child(2) {
-	background: linear-gradient(145deg,rgba(160,110,20,0.68),rgba(110,70,8,0.85));
-	border: 1px solid rgba(243,221,154,0.32);
-	transform: rotate(-2deg) translate(-2px,4px);
-	box-shadow: 0 10px 28px rgba(0,0,0,0.48);
-}
-body.neo-mode .moon-hero__card-stack span:nth-child(3) {
-	background: linear-gradient(145deg,rgba(200,148,30,0.65),rgba(145,95,12,0.82));
-	border: 1px solid rgba(255,238,180,0.28);
-	transform: rotate(5deg) translate(16px,-4px);
-	box-shadow: 0 12px 32px rgba(0,0,0,0.42);
-}
 
 /* ── hero 텍스트 달빛 강화 ── */
-body:not(.neo-mode) .moon-hero h1 {
-	background: linear-gradient(118deg,
-		#EEF2FF 0%,
-		#C8D8FF 34%,
-		#F3DD9A 68%,
-		#EEF2FF 100%);
-	-webkit-background-clip: text;
-	-webkit-text-fill-color: transparent;
-	background-clip: text;
-	text-shadow: none;
-	filter: drop-shadow(0 0 18px rgba(160,195,255,0.28));
-}
-body.neo-mode .moon-hero h1 {
-	background: linear-gradient(118deg,
-		#FFF8E0 0%,
-		#F3DD9A 38%,
-		#FFD700 65%,
-		#FFF8E0 100%);
-	-webkit-background-clip: text;
-	-webkit-text-fill-color: transparent;
-	background-clip: text;
-	text-shadow: none;
-	filter: drop-shadow(0 0 18px rgba(243,221,154,0.32));
-}
 
 /* hero lead (설명문) 달빛 색 */
-body:not(.neo-mode) .moon-hero__lead {
-	color: rgba(200,220,255,0.88) !important;
-}
-body.neo-mode .moon-hero__lead {
-	color: rgba(255,236,180,0.85) !important;
-}
 
 /* trust 뱃지 달빛 스타일 */
-body:not(.neo-mode) .moon-hero__trust span {
-	background: rgba(30,50,120,0.55);
-	border: 1px solid rgba(140,180,255,0.28);
-	color: rgba(190,215,255,0.92);
-	font-size: .78rem;
-	font-weight: 700;
-	box-shadow: inset 0 1px 0 rgba(200,216,255,0.18);
-}
-body.neo-mode .moon-hero__trust span {
-	background: rgba(50,35,8,0.55);
-	border: 1px solid rgba(243,221,154,0.28);
-	color: rgba(255,236,180,0.92);
-	font-size: .78rem;
-	font-weight: 700;
-	box-shadow: inset 0 1px 0 rgba(243,221,154,0.16);
-}
 
 /* hero CTA 버튼 달빛 */
-body:not(.neo-mode) .moon-hero__cta--primary {
-	background: linear-gradient(135deg,rgba(80,110,220,0.92),rgba(100,140,255,0.88)) !important;
-	border: 1px solid rgba(160,200,255,0.42) !important;
-	color: #EEF2FF !important;
-	font-weight: 900 !important;
-	box-shadow:
-		0 8px 28px rgba(80,110,220,0.38),
-		inset 0 1px 0 rgba(200,216,255,0.32) !important;
-	transition: transform .22s ease, box-shadow .22s ease !important;
-}
-body:not(.neo-mode) .moon-hero__cta--primary:hover {
-	transform: translateY(-2px) !important;
-	box-shadow:
-		0 14px 36px rgba(80,110,220,0.52),
-		inset 0 1px 0 rgba(200,216,255,0.38) !important;
-}
-body.neo-mode .moon-hero__cta--primary {
-	background: linear-gradient(135deg,rgba(160,110,20,0.92),rgba(220,165,30,0.88)) !important;
-	border: 1px solid rgba(243,221,154,0.44) !important;
-	color: #FFF8E0 !important;
-	font-weight: 900 !important;
-	box-shadow:
-		0 8px 28px rgba(180,130,20,0.38),
-		inset 0 1px 0 rgba(243,221,154,0.28) !important;
-}
-body.neo-mode .moon-hero__cta--primary:hover {
-	transform: translateY(-2px) !important;
-	box-shadow: 0 14px 36px rgba(200,155,20,0.52) !important;
-}
 
 /* ── logo-area 달빛 배경 강화 (꽃돼지 모드는 index.html 인라인 critical CSS 적용) ── */
 /* 네오 모드 logo-area 달빛 골드 강화 */
@@ -993,9 +793,6 @@ body.neo-mode {
 
 /* ── 성능 최적화: 저사양/reduced-motion 대응 ── */
 @media (prefers-reduced-motion: reduce) {
-	.moon-hero__moon,
-	.moon-hero__moon::before,
-	.moon-hero__portal,
 	.cd-shooting-star,
 	.logo-cosmos .logo-nebula--1,
 	.logo-cosmos .logo-nebula--2 {
@@ -1012,27 +809,15 @@ body.neo-mode {
 .cd-mobile-lite .logo-cosmos .logo-nebula--2 {
 	display: none !important;
 }
-.cd-mobile-lite .moon-hero__moon {
-	animation: none !important;
-	will-change: auto !important;
-}
-.cd-mobile-lite .moon-hero__moon::before {
-	display: none !important;
-}
-@media (min-width: 1025px) {
-	.moon-hero__moon {
-		animation-duration: 10s;
-	}
-}
 
         body:not(.neo-mode) .logo-area{--cd-night:#070712;--cd-night-2:#151128;--cd-violet:167,139,250;--cd-violet-soft:196,181,253;--cd-pink:249,168,212;--cd-gold:253,230,138;--cd-mint:94,234,212;position:relative;isolation:isolate;overflow:hidden;padding:16px 18px 32px!important;border:1px solid rgba(255,255,255,.15)!important;background:radial-gradient(circle at 50% -6%,rgba(255,248,220,.18),transparent 26%),radial-gradient(circle at 82% 16%,rgba(var(--cd-gold),.14),transparent 30%),radial-gradient(circle at 16% 24%,rgba(var(--cd-pink),.13),transparent 28%),radial-gradient(circle at 52% 72%,rgba(var(--cd-violet-soft),.14),transparent 42%),linear-gradient(165deg,#080712 0%,#171228 36%,#231733 68%,#0c0a18 100%)!important;color:#f8fafc;box-shadow:0 34px 94px rgba(4,3,14,.66),0 0 0 1px rgba(253,230,138,.05),inset 0 1px 0 rgba(255,255,255,.15)!important}
         body:not(.neo-mode) .logo-area::before{content:'';position:absolute;inset:0;z-index:0;pointer-events:none;background-image:radial-gradient(1px 1px at 8% 16%,rgba(255,255,255,.86),transparent),radial-gradient(1.5px 1.5px at 20% 34%,rgba(var(--cd-gold),.78),transparent),radial-gradient(1px 1px at 39% 12%,rgba(var(--cd-violet-soft),.76),transparent),radial-gradient(1.5px 1.5px at 63% 26%,rgba(255,255,255,.72),transparent),radial-gradient(1px 1px at 78% 56%,rgba(var(--cd-pink),.7),transparent),radial-gradient(1.5px 1.5px at 92% 18%,rgba(var(--cd-gold),.84),transparent),linear-gradient(108deg,rgba(255,255,255,.1),transparent 28%,rgba(var(--cd-violet),.08) 58%,rgba(var(--cd-mint),.06) 78%,transparent 90%),repeating-linear-gradient(135deg,rgba(255,255,255,.026) 0 1px,transparent 1px 28px);opacity:.78}
         body:not(.neo-mode) .logo-area::after{content:'';position:absolute;inset:1px;z-index:1;border-radius:24px;pointer-events:none;border:1px solid rgba(255,255,255,.08);background:linear-gradient(180deg,rgba(255,255,255,.05),transparent 22%,rgba(255,255,255,.025))}
         body:not(.neo-mode) .logo-area>*{position:relative;z-index:2}
-        body:not(.neo-mode) .moon-topbar,body:not(.neo-mode) .moon-hero{--midnight:#0A0B1A;--deep-space:#0F1035;--nebula:#1A1550;--moon-glow:#E8DFC8;--silver-ray:#A8B8D8;--lunar-gold:#C9A84C;--aurora-blue:#4A6FA5;--star-white:#F0EEE8}
+        body:not(.neo-mode) .moon-topbar{--midnight:#0A0B1A;--deep-space:#0F1035;--nebula:#1A1550;--moon-glow:#E8DFC8;--silver-ray:#A8B8D8;--lunar-gold:#C9A84C;--aurora-blue:#4A6FA5;--star-white:#F0EEE8}
         body:not(.neo-mode) .moon-topbar{position:relative;min-height:62px!important;margin-bottom:20px!important;padding:8px 12px 10px!important;border-radius:22px!important;border:1px solid rgba(232,223,200,.2)!important;background:radial-gradient(640px 120px at 50% 0%,rgba(201,168,76,.12),transparent 64%),linear-gradient(180deg,rgba(13,13,31,.92),rgba(8,9,24,.88))!important;box-shadow:0 18px 44px rgba(4,5,18,.44),inset 0 1px 0 rgba(240,238,232,.14),inset 0 -1px 0 rgba(201,168,76,.08)!important;backdrop-filter:blur(20px) saturate(1.08)!important;-webkit-backdrop-filter:blur(20px) saturate(1.08)!important}
         body:not(.neo-mode) .moon-topbar__brand strong,body:not(.neo-mode) .moon-section-head h2,body:not(.neo-mode) .post-saju-services-intro strong,body:not(.neo-mode) .feat-collection__title,body:not(.neo-mode) .feat-collection__grid .tarot-tile__title{font-family:var(--font-display)!important;font-weight:800!important;letter-spacing:0!important;text-wrap:balance;word-break:keep-all}
-        body:not(.neo-mode) .moon-topbar__brand em,body:not(.neo-mode) .moon-topbar__nav a,body:not(.neo-mode) .moon-topbar__nav button,body:not(.neo-mode) .moon-hero__brand-line,body:not(.neo-mode) .moon-hero__lead,body:not(.neo-mode) .moon-hero__cta,body:not(.neo-mode) .moon-section-head p,body:not(.neo-mode) .post-saju-services-intro>span:not(.post-saju-services-intro__kicker),body:not(.neo-mode) .feat-collection__subtitle,body:not(.neo-mode) .feat-collection__lede,body:not(.neo-mode) .tarot-tile__desc{font-family:var(--font-body)!important;letter-spacing:0!important;word-break:keep-all}
+        body:not(.neo-mode) .moon-topbar__brand em,body:not(.neo-mode) .moon-topbar__nav a,body:not(.neo-mode) .moon-topbar__nav button,body:not(.neo-mode) .moon-section-head p,body:not(.neo-mode) .post-saju-services-intro>span:not(.post-saju-services-intro__kicker),body:not(.neo-mode) .feat-collection__subtitle,body:not(.neo-mode) .feat-collection__lede,body:not(.neo-mode) .tarot-tile__desc{font-family:var(--font-body)!important;letter-spacing:0!important;word-break:keep-all}
         body:not(.neo-mode) .moon-topbar__brand{display:flex!important;justify-content:center!important;text-decoration:none!important}
         body:not(.neo-mode) .moon-topbar__brand span{position:relative;display:inline-flex;align-items:center;gap:8px;overflow:hidden;white-space:nowrap;padding:4px 14px 5px;border-radius:999px;border:1px solid rgba(232,223,200,.3);background:linear-gradient(135deg,rgba(245,235,202,.13),rgba(18,20,49,.72) 46%,rgba(81,97,156,.16));box-shadow:0 10px 24px rgba(4,5,18,.28),0 0 0 1px rgba(201,168,76,.08),inset 0 1px 0 rgba(255,255,255,.18),inset 0 -1px 0 rgba(201,168,76,.18)}
         body:not(.neo-mode) .moon-topbar__brand span::before{content:'';width:6px;height:6px;border-radius:999px;background:#f5e9bc;box-shadow:0 0 12px rgba(245,233,188,.78),34px 0 46px rgba(141,164,232,.22);flex:0 0 auto}
@@ -1046,70 +831,8 @@ body.neo-mode {
         body:not(.neo-mode) .moon-topbar__nav a[aria-current="page"]{background:linear-gradient(145deg,rgba(245,235,202,.18),rgba(64,74,132,.22))!important;box-shadow:0 10px 26px rgba(4,5,18,.26),0 0 18px rgba(201,168,76,.1),inset 0 1px 0 rgba(255,255,255,.14),inset 0 -10px 24px rgba(10,11,26,.22)!important}
         body:not(.neo-mode) .moon-topbar__brand:focus-visible,body:not(.neo-mode) .moon-topbar__nav a:focus-visible,body:not(.neo-mode) .moon-topbar__nav button:focus-visible{outline:2px solid rgba(232,223,200,.48)!important;outline-offset:3px!important}
         body:not(.neo-mode) .moon-topbar__nav a::after,body:not(.neo-mode) .moon-topbar__nav a[aria-current="page"]::after{display:none!important;content:none!important}
-        body:not(.neo-mode) .moon-hero{position:relative;z-index:0;isolation:isolate;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr) minmax(350px,.78fr)!important;align-items:center;gap:28px!important;min-height:520px!important;padding:42px 34px 38px!important;border-radius:30px!important;border:1px solid rgba(232,223,200,.16)!important;background:radial-gradient(circle at 72% 16%,rgba(201,168,76,.14),transparent 28%),radial-gradient(circle at 18% 22%,rgba(74,111,165,.16),transparent 32%),linear-gradient(150deg,var(--midnight) 0%,var(--deep-space) 48%,var(--nebula) 100%)!important;box-shadow:0 34px 72px rgba(4,5,18,.5),inset 0 1px 0 rgba(240,238,232,.14)!important}
-        body:not(.neo-mode) .moon-hero::before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;background-image:radial-gradient(1px 1px at 12% 18%,rgba(240,238,232,.86),transparent),radial-gradient(1px 1px at 42% 26%,rgba(168,184,216,.72),transparent),radial-gradient(1.5px 1.5px at 78% 16%,rgba(201,168,76,.62),transparent),radial-gradient(1px 1px at 86% 72%,rgba(240,238,232,.74),transparent),radial-gradient(1.5px 1.5px at 28% 68%,rgba(168,184,216,.68),transparent);background-size:180px 160px,230px 210px,310px 280px,390px 340px,520px 460px;opacity:.7;animation:cdLunarStarDrift 34s linear infinite}
-        body:not(.neo-mode) .moon-hero::after{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(115deg,transparent 0 42%,rgba(232,223,200,.08) 46%,transparent 54%),linear-gradient(90deg,transparent,rgba(201,168,76,.18),transparent);opacity:.72}
-        body:not(.neo-mode) .moon-hero__copy{position:relative;z-index:3;display:flex!important;min-width:0!important;max-width:690px;flex-direction:column;gap:17px!important}
-        body:not(.neo-mode) .moon-hero__brand{display:flex!important;align-items:flex-start!important;gap:15px!important}
-        body:not(.neo-mode) .moon-hero__mascot .honeypig-logo-icon{width:48px!important;height:48px!important;border-radius:12px!important;border:1px solid rgba(201,168,76,.3)!important;background:linear-gradient(145deg,rgba(26,21,80,.92),rgba(15,16,53,.86))!important;box-shadow:0 12px 26px rgba(0,0,0,.38),inset 0 1px 0 rgba(232,223,200,.18)!important;animation:none!important;-webkit-animation:none!important}
-        body:not(.neo-mode) .moon-hero__brand-text{display:flex!important;flex-direction:column;gap:5px!important}
-        body:not(.neo-mode) .moon-hero__brand-text::after{content:'';display:block;width:40px;height:1px;margin-top:7px;background:rgba(201,168,76,.6)}
-        body:not(.neo-mode) .moon-hero__eyebrow{font-family:var(--font-body)!important;color:var(--silver-ray)!important;font-size:11px!important;font-weight:500!important;line-height:1.3!important;letter-spacing:.15em!important;text-transform:uppercase!important;text-shadow:none!important}
-        body:not(.neo-mode) .moon-hero__brand-line{color:var(--silver-ray)!important;font-size:11px!important;font-weight:500!important;line-height:1.3!important;letter-spacing:.15em!important;text-transform:uppercase!important}
-        body:not(.neo-mode) .moon-hero h1{max-width:700px!important;margin:0!important;color:var(--moon-glow)!important;font-family:var(--font-display)!important;font-size:3.9rem!important;font-style:normal!important;font-weight:900!important;line-height:1.08!important;letter-spacing:0!important;text-shadow:0 18px 44px rgba(4,5,18,.5),0 0 26px rgba(232,223,200,.1)!important;word-break:keep-all}
-        body:not(.neo-mode) .moon-hero__line{display:block;white-space:nowrap}
-        body:not(.neo-mode) .moon-hero__accent{color:var(--lunar-gold)!important;text-shadow:0 0 18px rgba(201,168,76,.24)}
-        body:not(.neo-mode) .moon-hero__lead{max-width:620px!important;margin:0!important;color:var(--silver-ray)!important;font-family:var(--font-display)!important;font-size:15px!important;font-weight:400!important;line-height:1.7!important;text-shadow:0 1px 10px rgba(0,0,0,.42)!important}
-        body:not(.neo-mode) .moon-hero__actions{display:flex!important;flex-wrap:wrap!important;align-items:center!important;gap:12px!important;margin-top:4px!important;max-width:100%!important}
-        body:not(.neo-mode) .moon-hero__cta{display:inline-flex!important;align-items:center!important;justify-content:center!important;position:relative;overflow:hidden;flex:0 1 auto;max-width:100%;min-height:50px!important;padding:14px 28px!important;border-radius:40px!important;font-family:var(--font-body)!important;font-size:.92rem!important;font-weight:600!important;line-height:1.15!important;text-decoration:none!important;white-space:nowrap!important;transition:transform .22s ease,border-color .22s ease,background .22s ease,box-shadow .22s ease,color .22s ease!important}
-        body:not(.neo-mode) .moon-hero__cta::before,body:not(.neo-mode) .feat-collection__grid .tarot-tile::after,body:not(.neo-mode) .moon-collection-nav .moon-preview-card::after{content:'';position:absolute;inset:-45% auto auto -70%;width:60%;height:190%;pointer-events:none;background:linear-gradient(115deg,transparent,rgba(255,255,255,.24),transparent);transform:translateX(0) rotate(12deg);opacity:0}
-        body:not(.neo-mode) .moon-hero__cta:hover{transform:scale(1.03)!important}
-        body:not(.neo-mode) .moon-hero__cta:hover::before,body:not(.neo-mode) .feat-collection__grid .tarot-tile:hover::after,body:not(.neo-mode) .moon-collection-nav .moon-preview-card:hover::after{animation:cdCollectionShine .72s ease both}
-        body:not(.neo-mode) .moon-hero__cta--primary{gap:9px;border:0!important;background:linear-gradient(135deg,#C9A84C 0%,#B8923C 100%)!important;color:#0A0B1A!important;box-shadow:0 18px 34px rgba(201,168,76,.22),inset 0 1px 0 rgba(255,255,255,.32)!important}
-        body:not(.neo-mode) .moon-hero__cta--primary:hover{box-shadow:0 20px 42px rgba(201,168,76,.3),0 0 12px rgba(201,168,76,.3),inset 0 1px 0 rgba(255,255,255,.34)!important}
-        body:not(.neo-mode) .moon-hero__cta--primary::after{content:'✦';display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:999px;background:rgba(10,11,26,.12);color:#0A0B1A;font-size:.78rem;animation:cdCtaSigilSpin 4s linear infinite}
-        body:not(.neo-mode) .moon-hero__cta--ghost{border:1px solid rgba(232,223,200,.4)!important;background:transparent!important;color:var(--moon-glow)!important;box-shadow:none!important}
-        body:not(.neo-mode) .moon-hero__cta--ghost:hover{background:rgba(232,223,200,.08)!important}
-        body:not(.neo-mode) .moon-hero__cta--soft{min-height:36px!important;padding:4px 0!important;border:0!important;border-radius:0!important;background:transparent!important;color:var(--silver-ray)!important;border-bottom:1px dashed rgba(168,184,216,.5)!important;box-shadow:none!important}
-        body:not(.neo-mode) .moon-hero__cta--soft:hover{color:var(--moon-glow)!important;border-bottom-style:solid!important;background:transparent!important}
-        body:not(.neo-mode) .moon-hero__visual{display:block!important;position:relative;align-self:stretch!important;min-height:430px!important;border-radius:26px!important;overflow:hidden;border:1px solid rgba(168,184,216,.22)!important;background:radial-gradient(circle at 72% 24%,rgba(232,223,200,.16),transparent 25%),radial-gradient(circle at 20% 82%,rgba(74,111,165,.2),transparent 30%),linear-gradient(155deg,rgba(10,11,26,.86),rgba(15,16,53,.84) 48%,rgba(26,21,80,.72))!important;box-shadow:0 28px 62px rgba(4,5,18,.48),inset 0 1px 0 rgba(240,238,232,.12)!important;backdrop-filter:blur(14px) saturate(1.08)!important;-webkit-backdrop-filter:blur(14px) saturate(1.08)!important}
-        body:not(.neo-mode) .moon-hero__visual::before{content:'';position:absolute;inset:0;z-index:0;pointer-events:none;background-image:radial-gradient(1px 1px at 18% 18%,rgba(240,238,232,.86),transparent),radial-gradient(1px 1px at 62% 20%,rgba(168,184,216,.78),transparent),radial-gradient(1.5px 1.5px at 82% 72%,rgba(201,168,76,.72),transparent),radial-gradient(1px 1px at 34% 76%,rgba(240,238,232,.68),transparent);background-size:120px 120px,190px 180px,260px 230px,340px 310px;opacity:.76;animation:cdLunarTwinkle 7s ease-in-out infinite}
-        body:not(.neo-mode) .moon-hero__visual::after{content:'';position:absolute;inset:0;z-index:2;pointer-events:none;background:linear-gradient(160deg,rgba(232,223,200,.18),transparent 32%,rgba(201,168,76,.08) 62%,transparent 78%),linear-gradient(90deg,rgba(5,7,19,.42),transparent 58%,rgba(232,223,200,.06))!important}
-        body:not(.neo-mode) .moon-hero__constellation{position:absolute;inset:18px;z-index:1;width:calc(100% - 36px);height:calc(100% - 36px);opacity:.06;transition:opacity .28s ease}
-        body:not(.neo-mode) .moon-hero__visual:hover .moon-hero__constellation{opacity:.15}
-        body:not(.neo-mode) .moon-hero__constellation path{fill:none;stroke:var(--star-white);stroke-width:1}
-        body:not(.neo-mode) .moon-hero__constellation circle{fill:var(--star-white)}
-        body:not(.neo-mode) .moon-hero__moon{position:absolute;right:18px;top:16px;z-index:3;width:320px!important;height:320px!important;border-radius:50%;background:transparent!important;box-shadow:none!important;animation:cdLivingMoonFloat 30s ease-in-out infinite}
-        body:not(.neo-mode) .moon-hero__moon svg{display:block;width:100%;height:100%;overflow:visible}
-        body:not(.neo-mode) .moon-hero__halo{fill:none;stroke:#E8DFC8}
-        body:not(.neo-mode) .moon-hero__halo--wide{opacity:.02;stroke-width:22}
-        body:not(.neo-mode) .moon-hero__halo--mid{opacity:.05;stroke-width:15}
-        body:not(.neo-mode) .moon-hero__halo--near{opacity:.08;stroke-width:9}
-        body:not(.neo-mode) .moon-hero__crater{fill:#5E533F;opacity:.22}
-        body:not(.neo-mode) .moon-hero__phase-shadow{clip-path:ellipse(0% 52% at 92% 50%);animation:cdLunarPhase 30s ease-in-out infinite}
-        body:not(.neo-mode) .moon-hero__portal{position:absolute;left:34%;right:24px;bottom:30px;z-index:1;height:206px;border-radius:28px!important;border:1px solid rgba(201,168,76,.22)!important;background:radial-gradient(circle at 56% 42%,rgba(232,223,200,.2),transparent 20%),linear-gradient(150deg,rgba(15,16,53,.58),rgba(26,21,80,.36))!important;box-shadow:inset 0 0 42px rgba(232,223,200,.08),0 0 34px rgba(201,168,76,.08)!important}
-        body:not(.neo-mode) .moon-hero__portal::before{content:'';position:absolute;inset:0;border-radius:inherit;background:linear-gradient(180deg,rgba(232,223,200,.1),rgba(10,11,26,.58))!important}
-        body:not(.neo-mode) .moon-hero__card-stack{position:absolute;left:18px;bottom:30px;z-index:5;width:164px;height:146px;perspective:900px;transform:none!important;transform-origin:left bottom!important}
-        body:not(.neo-mode) .moon-hero__tarot-card{position:absolute;inset:auto;width:92px;height:132px;overflow:hidden;border-radius:16px;border:1px solid rgba(232,223,200,.28);background:radial-gradient(circle at 50% 0%,rgba(232,223,200,.16),transparent 28%),radial-gradient(circle at 18% 88%,rgba(201,168,76,.12),transparent 34%),linear-gradient(158deg,rgba(2,3,8,.99),rgba(7,9,18,.98) 48%,rgba(13,17,31,.97));box-shadow:0 22px 44px rgba(1,3,10,.62),0 0 24px rgba(201,168,76,.12),inset 0 1px 0 rgba(255,255,255,.11),inset 0 0 0 1px rgba(201,168,76,.08),inset 0 -20px 36px rgba(0,0,0,.46);transform-style:preserve-3d;backface-visibility:hidden;transition:transform .5s ease,box-shadow .5s ease,filter .5s ease}
-        body:not(.neo-mode) .moon-hero__tarot-card::before{content:'';position:absolute;inset:9px;border-radius:13px;border:1px solid rgba(201,168,76,.32);background:radial-gradient(circle at 50% 18%,rgba(232,223,200,.58) 0 1.4px,transparent 2.4px),radial-gradient(circle at 50% 82%,rgba(232,223,200,.4) 0 1.3px,transparent 2.3px),radial-gradient(circle at 24% 50%,rgba(201,168,76,.42) 0 1.2px,transparent 2.2px),radial-gradient(circle at 76% 50%,rgba(201,168,76,.42) 0 1.2px,transparent 2.2px),radial-gradient(ellipse at 50% 50%,transparent 0 36%,rgba(201,168,76,.23) 37% 38%,transparent 39%),radial-gradient(circle at 50% 50%,rgba(201,168,76,.16),transparent 24%),linear-gradient(180deg,rgba(232,223,200,.055),transparent 44%,rgba(201,168,76,.045))}
-        body:not(.neo-mode) .moon-hero__tarot-card::after{content:'☾';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;border-radius:16px;color:#d9c27d;font-family:var(--font-display);font-size:28px;font-weight:700;line-height:1;text-shadow:0 0 10px rgba(201,168,76,.42),0 2px 8px rgba(0,0,0,.7);background:radial-gradient(circle at 50% 50%,rgba(232,223,200,.08),transparent 28%),linear-gradient(180deg,rgba(255,255,255,.08),transparent 30%,rgba(201,168,76,.06));filter:blur(.1px)}
-        body:not(.neo-mode) .moon-hero__tarot-card--back{left:2px;top:12px;z-index:2;transform:rotate(-11deg)}
-        body:not(.neo-mode) .moon-hero__tarot-card--glow{left:36px;top:0;z-index:3;filter:none;opacity:1;transform:rotate(2deg);border-color:rgba(232,223,200,.36);background:radial-gradient(circle at 52% 0%,rgba(232,223,200,.2),transparent 30%),linear-gradient(158deg,rgba(3,4,10,.99),rgba(9,12,24,.98) 52%,rgba(18,22,38,.96))}
-        body:not(.neo-mode) .moon-hero__tarot-card--edge{left:68px;top:14px;z-index:1;transform:rotate(13deg);border-color:rgba(201,168,76,.22);background:radial-gradient(circle at 50% 0%,rgba(201,168,76,.12),transparent 28%),linear-gradient(158deg,rgba(2,3,8,.99),rgba(7,10,20,.98) 55%,rgba(12,16,30,.96))}
-        body:not(.neo-mode) .moon-hero__card-stack:hover .moon-hero__tarot-card--back{transform:translateY(-4px) rotate(-13deg)}
-        body:not(.neo-mode) .moon-hero__card-stack:hover .moon-hero__tarot-card--glow{transform:translateY(-8px) rotate(2deg);box-shadow:0 24px 46px rgba(1,5,18,.5),0 0 30px rgba(130,148,208,.16),inset 0 1px 0 rgba(255,255,255,.2)}
-        body:not(.neo-mode) .moon-hero__card-stack:hover .moon-hero__tarot-card--edge{transform:translateY(-4px) rotate(15deg)}
-        body:not(.neo-mode) .moon-hero__picture--mascot{position:absolute;right:18px!important;bottom:22px!important;z-index:6;width:136px!important;height:136px!important;overflow:visible!important;border:0!important;background:transparent!important;box-shadow:none!important;filter:drop-shadow(0 18px 20px rgba(1,5,18,.4))}
-        body:not(.neo-mode) .moon-hero__picture--mascot img{display:block!important;width:100%!important;height:100%!important;object-fit:contain!important;background:transparent!important;box-shadow:none!important}
-        body:not(.neo-mode) .moon-hero__zzz{position:absolute;right:7px;top:2px;color:rgba(168,184,216,.9);font-family:var(--font-body);font-size:18px;font-weight:700;letter-spacing:.08em;text-shadow:0 0 12px rgba(232,223,200,.22);animation:cdZzzFloat 2s ease-in-out infinite}
-        body:not(.neo-mode) .moon-hero__spark{position:absolute;z-index:4;width:5px;height:5px;border-radius:50%;background:var(--star-white);box-shadow:0 0 12px rgba(232,223,200,.72);animation:cdLunarSpark 3.6s ease-in-out infinite}
-        body:not(.neo-mode) .moon-hero__spark--1{right:154px;bottom:82px}
-        body:not(.neo-mode) .moon-hero__spark--2{right:26px;bottom:168px;animation-delay:.6s}
-        body:not(.neo-mode) .moon-hero__spark--3{left:194px;bottom:54px;animation-delay:1.2s}
-        body:not(.neo-mode) .moon-hero .golden-grain-badge{top:20px;right:20px;width:min(258px,calc(100% - 40px));border-radius:18px;border-color:rgba(168,184,216,.34);background:linear-gradient(135deg,rgba(15,16,53,.9),rgba(26,21,80,.78))!important;color:var(--moon-glow);box-shadow:0 14px 30px rgba(4,5,18,.42),inset 0 1px 0 rgba(240,238,232,.15)}
-        body:not(.neo-mode) .moon-hero .golden-grain-badge__label{color:var(--silver-ray)}
-        body:not(.neo-mode) .moon-hero .golden-grain-badge__balance{color:var(--moon-glow)}
-        body:not(.neo-mode) .moon-hero .golden-grain-badge__charge{border-radius:8px;background:#4A6FA5!important;color:#fff!important;box-shadow:0 8px 18px rgba(74,111,165,.28),inset 0 1px 0 rgba(255,255,255,.18)}
+        body:not(.neo-mode) .feat-collection__grid .tarot-tile::after,body:not(.neo-mode) .moon-collection-nav .moon-preview-card::after{content:'';position:absolute;inset:-45% auto auto -70%;width:60%;height:190%;pointer-events:none;background:linear-gradient(115deg,transparent,rgba(255,255,255,.24),transparent);transform:translateX(0) rotate(12deg);opacity:0}
+        body:not(.neo-mode) .feat-collection__grid .tarot-tile:hover::after,body:not(.neo-mode) .moon-collection-nav .moon-preview-card:hover::after{animation:cdCollectionShine .72s ease both}
         body:not(.neo-mode) .moon-section-head{max-width:780px;margin:0 auto 16px!important;padding:0 16px;text-align:center}
         body:not(.neo-mode) .moon-section-kicker,body:not(.neo-mode) .post-saju-services-intro__kicker{display:inline-flex;align-items:center;justify-content:center;min-height:28px;padding:6px 12px;border-radius:999px;border:1px solid rgba(201,168,76,.32);background:rgba(232,223,200,.055);color:#C9A84C!important;font-size:.7rem;font-weight:900;letter-spacing:.1em!important;text-transform:uppercase}
         body:not(.neo-mode) .moon-section-head h2{margin:10px 0 6px!important;color:#E8DFC8!important;font-size:1.46rem!important;line-height:1.36!important}
@@ -1157,22 +880,16 @@ body.neo-mode {
         @keyframes cdCollectionRise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
         @keyframes cdLunarStarDrift{from{background-position:0 0,0 0,0 0,0 0,0 0}to{background-position:180px 160px,-230px 210px,310px -280px,-390px 340px,520px -460px}}
         @keyframes cdLunarTwinkle{0%,100%{opacity:.62;filter:brightness(1)}50%{opacity:.92;filter:brightness(1.12)}}
-        @keyframes cdLivingMoonFloat{0%,100%{transform:translate3d(0,0,0)}50%{transform:translate3d(-8px,6px,0)}}
-        @keyframes cdLunarPhase{0%,100%{clip-path:ellipse(0% 52% at 94% 50%);opacity:.28}25%{clip-path:ellipse(58% 54% at 68% 50%);opacity:.82}50%{clip-path:ellipse(0% 52% at 6% 50%);opacity:.24}75%{clip-path:ellipse(58% 54% at 32% 50%);opacity:.82}}
         @keyframes cdCtaSigilSpin{to{transform:rotate(360deg)}}
-        @keyframes cdZzzFloat{0%,100%{transform:translate3d(0,0,0);opacity:.58}50%{transform:translate3d(0,-9px,0);opacity:.95}}
         @keyframes cdLunarSpark{0%,100%{transform:scale(.72);opacity:.34}50%{transform:scale(1.18);opacity:.9}}
         @media (prefers-reduced-motion:no-preference){body:not(.neo-mode) .moon-collection-nav .moon-preview-card,body:not(.neo-mode) .feat-collection__grid .tarot-tile{animation:cdCollectionRise .46s ease both}body:not(.neo-mode) .moon-collection-nav .moon-preview-card:nth-of-type(2),body:not(.neo-mode) .feat-collection__grid .tarot-tile:nth-child(2){animation-delay:.04s}body:not(.neo-mode) .moon-collection-nav .moon-preview-card:nth-of-type(3),body:not(.neo-mode) .feat-collection__grid .tarot-tile:nth-child(3){animation-delay:.08s}body:not(.neo-mode) .moon-collection-nav .moon-preview-card:nth-of-type(4),body:not(.neo-mode) .feat-collection__grid .tarot-tile:nth-child(4){animation-delay:.12s}}
         @media (max-width:860px){body:not(.neo-mode) .logo-area{padding:12px 10px 22px!important}body:not(.neo-mode) .moon-topbar{border-radius:20px!important;padding:9px!important;margin-bottom:16px!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}body:not(.neo-mode) .moon-topbar__nav{flex-wrap:nowrap!important;gap:7px!important;justify-content:flex-start!important;overflow-x:auto;scrollbar-width:none;padding:1px 1px 3px!important}body:not(.neo-mode) .moon-topbar__nav::-webkit-scrollbar{display:none}body:not(.neo-mode) .moon-topbar__nav a,body:not(.neo-mode) .moon-topbar__nav button{flex:0 0 auto;min-height:37px!important;padding:8px 12px!important;font-size:.74rem!important;white-space:nowrap}body:not(.neo-mode) .moon-section-head{text-align:left!important;margin-bottom:12px!important;padding:0 12px!important}body:not(.neo-mode) .moon-section-head h2{font-size:1.16rem!important}body:not(.neo-mode) .moon-section-head p{font-size:.84rem!important;line-height:1.58!important}body:not(.neo-mode) .moon-collection-nav{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:7px!important;margin-left:12px!important;margin-right:12px!important;padding:12px 10px!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}body:not(.neo-mode) .moon-collection-nav .moon-preview-card{min-height:84px!important;border-radius:14px!important;padding:8px 5px!important;transition:none!important}body:not(.neo-mode) .moon-collection-nav .moon-preview-card:hover{transform:none!important}body:not(.neo-mode) .moon-collection-nav .moon-preview-card__sigil{width:46px!important;height:46px!important;border-radius:15px!important;font-size:1.34rem!important}body:not(.neo-mode) .moon-collection-nav .moon-preview-card__name{font-size:.67rem!important}body:not(.neo-mode) .moon-collection-nav .moon-preview-card__meta{display:none!important}body:not(.neo-mode) .post-saju-services-intro{margin-left:12px!important;margin-right:12px!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}body:not(.neo-mode) .feat-collection__grid .tarot-tile:hover{transform:none!important}}
-        @media (max-width:767px){body:not(.neo-mode) .moon-hero__mascot .honeypig-logo-icon{width:54px!important;height:54px!important;border-radius:16px!important}body:not(.neo-mode) .moon-hero__cta{line-height:1.28!important}body:not(.neo-mode) .moon-hero__cta--soft{width:auto!important;align-self:flex-start}body:not(.neo-mode) .moon-hero__portal{left:27%;right:12px;bottom:20px;height:172px}body:not(.neo-mode) .moon-hero .golden-grain-badge{top:12px;right:12px;width:min(228px,calc(100% - 24px));transform-origin:top right}}
-        @media (max-width:520px){body:not(.neo-mode) .logo-area{padding:8px 8px 16px!important}body:not(.neo-mode) .moon-topbar{margin-bottom:10px!important}body:not(.neo-mode) .moon-hero__zzz{font-size:13px}body:not(.neo-mode) .moon-collection-nav{grid-template-columns:repeat(3,minmax(0,1fr))!important}body:not(.neo-mode) #inputPage [data-collection-open="true"]>.feat-collection__grid,body:not(.neo-mode) #inputPage [data-collection-open="true"]>.tarot-collection__grid{grid-template-columns:1fr!important;gap:10px!important}}
-        @media (prefers-reduced-motion:reduce){body:not(.neo-mode) .moon-hero::before,body:not(.neo-mode) .moon-hero__visual::before,body:not(.neo-mode) .moon-hero__moon,body:not(.neo-mode) .moon-hero__phase-shadow,body:not(.neo-mode) .moon-hero__cta--primary::after,body:not(.neo-mode) .moon-hero__zzz,body:not(.neo-mode) .moon-hero__spark,body:not(.neo-mode) .moon-collection-nav .moon-preview-card,body:not(.neo-mode) .feat-collection__grid .tarot-tile{animation:none!important;transition:none!important}body:not(.neo-mode) .moon-hero__cta:hover,body:not(.neo-mode) .moon-collection-nav .moon-preview-card:hover,body:not(.neo-mode) .feat-collection__grid .tarot-tile:hover{transform:none!important}}
+        @media (max-width:520px){body:not(.neo-mode) .logo-area{padding:8px 8px 16px!important}body:not(.neo-mode) .moon-topbar{margin-bottom:10px!important}body:not(.neo-mode) .moon-collection-nav{grid-template-columns:repeat(3,minmax(0,1fr))!important}body:not(.neo-mode) #inputPage [data-collection-open="true"]>.feat-collection__grid,body:not(.neo-mode) #inputPage [data-collection-open="true"]>.tarot-collection__grid{grid-template-columns:1fr!important;gap:10px!important}}
+        @media (prefers-reduced-motion:reduce){body:not(.neo-mode) .moon-collection-nav .moon-preview-card,body:not(.neo-mode) .feat-collection__grid .tarot-tile{animation:none!important;transition:none!important}body:not(.neo-mode) .moon-collection-nav .moon-preview-card:hover,body:not(.neo-mode) .feat-collection__grid .tarot-tile:hover{transform:none!important}}
 
 
         body:not(.neo-mode) .logo-area{--cd-night:#050615;--cd-night-2:#111032;background:radial-gradient(circle at 50% -8%,rgba(238,228,188,.2),transparent 24%),radial-gradient(circle at 82% 16%,rgba(253,230,138,.15),transparent 30%),radial-gradient(circle at 15% 22%,rgba(167,139,250,.18),transparent 32%),radial-gradient(circle at 50% 78%,rgba(68,46,124,.24),transparent 46%),linear-gradient(165deg,#050615 0%,#0d0b24 34%,#211145 67%,#070916 100%)!important}
         body:not(.neo-mode) .logo-area::before{background-image:radial-gradient(1px 1px at 8% 16%,rgba(255,255,255,.9),transparent),radial-gradient(1.5px 1.5px at 20% 34%,rgba(253,230,138,.82),transparent),radial-gradient(1px 1px at 39% 12%,rgba(196,181,253,.78),transparent),radial-gradient(1.5px 1.5px at 63% 26%,rgba(255,255,255,.78),transparent),radial-gradient(1px 1px at 78% 56%,rgba(249,168,212,.72),transparent),radial-gradient(1.5px 1.5px at 92% 18%,rgba(253,230,138,.84),transparent),linear-gradient(108deg,rgba(255,255,255,.1),transparent 28%,rgba(167,139,250,.1) 58%,rgba(94,234,212,.06) 78%,transparent 90%),linear-gradient(32deg,transparent 0 42%,rgba(232,223,200,.08) 43%,transparent 47%),linear-gradient(152deg,transparent 0 55%,rgba(168,184,216,.06) 56%,transparent 60%),repeating-linear-gradient(135deg,rgba(255,255,255,.026) 0 1px,transparent 1px 28px)!important;opacity:.86!important}
-        body:not(.neo-mode) .moon-hero::before{background-image:radial-gradient(1px 1px at 12% 18%,rgba(240,238,232,.9),transparent),radial-gradient(1px 1px at 42% 26%,rgba(168,184,216,.76),transparent),radial-gradient(1.5px 1.5px at 78% 16%,rgba(201,168,76,.7),transparent),radial-gradient(1px 1px at 86% 72%,rgba(240,238,232,.78),transparent),radial-gradient(1.5px 1.5px at 28% 68%,rgba(168,184,216,.72),transparent),linear-gradient(24deg,transparent 0 36%,rgba(232,223,200,.11) 37%,transparent 39%),linear-gradient(142deg,transparent 0 61%,rgba(168,184,216,.08) 62%,transparent 64%)!important;background-size:180px 160px,230px 210px,310px 280px,390px 340px,520px 460px,340px 260px,420px 320px!important;opacity:.82!important}
-        body:not(.neo-mode) .moon-hero h1.moon-hero__title{font-style:normal!important}
         body:not(.neo-mode) .moon-topbar{min-height:58px!important;margin-bottom:16px!important;padding:8px 14px 9px!important;border-color:rgba(232,223,200,.16)!important;background:linear-gradient(180deg,rgba(13,14,32,.94),rgba(8,9,24,.9))!important;box-shadow:0 16px 38px rgba(4,5,18,.42),inset 0 1px 0 rgba(240,238,232,.12)!important}
         body:not(.neo-mode) .moon-topbar__brand span{gap:7px;padding:4px 13px 5px;border-color:rgba(232,223,200,.22);background:linear-gradient(135deg,rgba(245,235,202,.1),rgba(18,20,49,.62) 54%,rgba(191,205,244,.1));box-shadow:0 8px 18px rgba(4,5,18,.24),inset 0 1px 0 rgba(255,255,255,.14)}
         body:not(.neo-mode) .moon-topbar__brand span::before{width:4px;height:4px;background:#efd88d;box-shadow:0 0 10px rgba(239,216,141,.68)}
@@ -1183,425 +900,7 @@ body.neo-mode {
         body:not(.neo-mode) .moon-topbar__nav a::before,body:not(.neo-mode) .moon-topbar__nav button::before{left:10px;right:10px;top:auto;bottom:5px;background:linear-gradient(90deg,transparent,rgba(201,168,76,.42),transparent);opacity:0}
         body:not(.neo-mode) .moon-topbar__nav a[aria-current="page"],body:not(.neo-mode) .moon-topbar__nav a:hover,body:not(.neo-mode) .moon-topbar__nav button:hover{color:#f6edda!important;background:rgba(232,223,200,.06)!important;border-color:rgba(201,168,76,.28)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.08)!important;transform:none!important}
         body:not(.neo-mode) .moon-topbar__nav a[aria-current="page"]::before,body:not(.neo-mode) .moon-topbar__nav a:hover::before,body:not(.neo-mode) .moon-topbar__nav button:hover::before{opacity:1}
-        body:not(.neo-mode) .moon-hero__eyebrow,body:not(.neo-mode) .moon-hero__brand-line{letter-spacing:0!important;color:rgba(196,207,235,.8)!important}
-        body:not(.neo-mode) .moon-hero h1{background:linear-gradient(180deg,#fffaf0 0%,#eadcbf 48%,#c8b071 72%,#f7f4ea 100%)!important;-webkit-background-clip:text!important;background-clip:text!important;color:transparent!important;-webkit-text-fill-color:transparent!important;font-family:var(--font-display)!important;font-size:3.42rem!important;font-weight:300!important;font-kerning:normal!important;font-feature-settings:'palt' 1!important;line-height:1.2!important;text-shadow:0 18px 42px rgba(4,5,18,.54),0 0 18px rgba(232,223,200,.12)!important}
-        body:not(.neo-mode) .moon-hero__line{position:relative;width:max-content;max-width:100%}
-        body:not(.neo-mode) .moon-hero__line::after{content:'';position:absolute;left:0;right:0;bottom:.03em;height:1px;background:linear-gradient(90deg,transparent,rgba(201,168,76,.28),transparent);opacity:.42}
-        body:not(.neo-mode) .moon-hero__accent{background:linear-gradient(180deg,#fff6d3 0%,#d8b85e 64%,#f6ecd1 100%)!important;-webkit-background-clip:text!important;background-clip:text!important;color:transparent!important;-webkit-text-fill-color:transparent!important;text-shadow:0 0 18px rgba(201,168,76,.2)!important}
-        body:not(.neo-mode) .moon-hero__lead{max-width:560px!important;color:rgba(232,223,200,.86)!important;font-family:var(--font-body)!important;font-size:15px!important;font-weight:400!important;line-height:1.86!important;text-shadow:0 1px 10px rgba(0,0,0,.36)!important}
-        body:not(.neo-mode) #inputPage .moon-hero .moon-hero__lead{color:rgba(232,223,200,.86)!important}
-        body:not(.neo-mode) .moon-hero__cta{font-family:'Avenir Next','Lato',var(--font-body)!important;font-weight:700!important;text-decoration:none!important}
-        body:not(.neo-mode) .moon-hero__cta--primary{border:1px solid rgba(247,238,197,.46)!important;background:linear-gradient(135deg,#f1d37a 0%,#7d9af2 48%,#526cda 100%)!important;color:#081126!important;box-shadow:0 18px 34px rgba(79,109,218,.28),0 0 20px rgba(201,168,76,.18),inset 0 1px 0 rgba(255,255,255,.42)!important}
-        body:not(.neo-mode) .moon-hero__cta--ghost{border:1px solid rgba(232,223,200,.42)!important;background:linear-gradient(135deg,rgba(232,223,200,.08),rgba(74,111,165,.08))!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.14)!important}
-        body:not(.neo-mode) .moon-hero__cta--soft{min-height:36px!important;padding:8px 13px!important;border:1px solid rgba(201,168,76,.24)!important;border-radius:999px!important;background:rgba(232,223,200,.045)!important;color:#e8dfc8!important;font-family:var(--font-body)!important;font-weight:600!important;box-shadow:inset 0 1px 0 rgba(240,238,232,.1)!important}
-        body:not(.neo-mode) .moon-hero__visual::before{background-image:radial-gradient(1px 1px at 18% 18%,rgba(240,238,232,.9),transparent),radial-gradient(1px 1px at 62% 20%,rgba(168,184,216,.82),transparent),radial-gradient(1.5px 1.5px at 82% 72%,rgba(201,168,76,.78),transparent),radial-gradient(1px 1px at 34% 76%,rgba(240,238,232,.72),transparent),linear-gradient(35deg,transparent 0 33%,rgba(232,223,200,.13) 34%,transparent 36%),linear-gradient(126deg,transparent 0 59%,rgba(168,184,216,.1) 60%,transparent 62%)!important;background-size:120px 120px,190px 180px,260px 230px,340px 310px,260px 220px,320px 260px!important;opacity:.86!important}
-        body:not(.neo-mode) .moon-hero__constellation{opacity:.12!important}
-        body:not(.neo-mode) .moon-hero__visual:hover .moon-hero__constellation{opacity:.24!important}
-        body:not(.neo-mode) .moon-hero__moon{top:86px!important}
-        body:not(.neo-mode) .moon-hero__halo{stroke:#f0e7c7!important}
-        body:not(.neo-mode) .moon-hero__halo--wide{opacity:.04!important;stroke-width:24!important}
-        body:not(.neo-mode) .moon-hero__halo--mid{opacity:.08!important;stroke-width:16!important}
-        body:not(.neo-mode) .moon-hero__halo--near{opacity:.13!important;stroke-width:10!important}
-        body:not(.neo-mode) .moon-hero__moon-body{filter:drop-shadow(0 0 18px rgba(232,223,200,.28))!important}
-        body:not(.neo-mode) .moon-hero__crater{fill:#6a6049!important;opacity:.3!important}
-        body:not(.neo-mode) .moon-hero__crater--2,body:not(.neo-mode) .moon-hero__crater--5{opacity:.18!important}
-        body:not(.neo-mode) .moon-hero__tarot-card{border-color:rgba(232,223,200,.32)!important;background:radial-gradient(circle at 50% 0%,rgba(232,223,200,.18),transparent 28%),radial-gradient(circle at 18% 88%,rgba(201,168,76,.14),transparent 34%),repeating-linear-gradient(52deg,rgba(201,168,76,.08) 0 1px,transparent 1px 11px),linear-gradient(158deg,rgba(2,3,8,.99),rgba(8,9,24,.98) 48%,rgba(20,18,43,.97))!important;box-shadow:0 22px 44px rgba(1,3,10,.62),0 0 26px rgba(201,168,76,.18),inset 0 1px 0 rgba(255,255,255,.13),inset 0 0 0 1px rgba(201,168,76,.1),inset 0 -20px 36px rgba(0,0,0,.46)!important}
-        body:not(.neo-mode) .moon-hero__tarot-card::before{border-color:rgba(201,168,76,.38)!important;background:radial-gradient(circle at 50% 18%,rgba(232,223,200,.62) 0 1.4px,transparent 2.4px),radial-gradient(circle at 50% 82%,rgba(232,223,200,.42) 0 1.3px,transparent 2.3px),radial-gradient(circle at 24% 50%,rgba(201,168,76,.48) 0 1.2px,transparent 2.2px),radial-gradient(circle at 76% 50%,rgba(201,168,76,.48) 0 1.2px,transparent 2.2px),radial-gradient(circle at 36% 34%,rgba(201,168,76,.42) 0 1px,transparent 2px),radial-gradient(circle at 66% 66%,rgba(232,223,200,.36) 0 1px,transparent 2px),conic-gradient(from 18deg at 50% 50%,transparent 0 14%,rgba(201,168,76,.22) 15% 16%,transparent 17% 32%,rgba(232,223,200,.14) 33% 34%,transparent 35% 100%),radial-gradient(ellipse at 50% 50%,transparent 0 34%,rgba(201,168,76,.28) 35% 36%,transparent 37%),linear-gradient(180deg,rgba(232,223,200,.065),transparent 44%,rgba(201,168,76,.055))!important}
-        body:not(.neo-mode) .moon-hero__tarot-card::after{content:'☽'!important;color:#e5cd82!important;font-size:30px!important;text-shadow:0 0 12px rgba(201,168,76,.5),0 2px 8px rgba(0,0,0,.72)!important;background:radial-gradient(circle at 50% 37%,rgba(232,223,200,.1),transparent 20%),radial-gradient(circle at 50% 63%,rgba(201,168,76,.08),transparent 22%),linear-gradient(180deg,rgba(255,255,255,.08),transparent 30%,rgba(201,168,76,.06))!important}
-        body:not(.neo-mode) .moon-hero__picture--mascot::before,body:not(.neo-mode) .moon-hero__picture--mascot::after{position:absolute;z-index:2;color:#e4c86f;font-family:var(--font-display);font-weight:700;text-shadow:0 0 10px rgba(201,168,76,.48),0 2px 8px rgba(0,0,0,.45);pointer-events:none}
-        body:not(.neo-mode) .moon-hero__picture--mascot::before{content:'☉  ☽  ♃';left:-20px;top:18px;font-size:15px;letter-spacing:.14em;transform:rotate(-14deg)}
-        body:not(.neo-mode) .moon-hero__picture--mascot::after{content:'✦  ♀  ☿';right:-14px;bottom:16px;font-size:14px;letter-spacing:.12em;transform:rotate(10deg)}
-        body:not(.neo-mode) .moon-hero__picture--mascot img{filter:saturate(1.08) contrast(1.02) brightness(1.03)!important}
-        body:not(.neo-mode) .moon-hero .golden-grain-badge{border-color:rgba(232,205,126,.42)!important;background:linear-gradient(135deg,rgba(7,18,45,.94),rgba(17,36,87,.88) 48%,rgba(23,18,58,.9))!important;box-shadow:0 14px 30px rgba(4,5,18,.42),0 0 22px rgba(201,168,76,.16),inset 0 1px 0 rgba(240,238,232,.18)!important}
-        body:not(.neo-mode) .moon-hero .golden-grain-badge__coin{background:conic-gradient(from 20deg,#f8fbff 0 12%,#9ec5ff 13% 28%,#7c69ff 29% 46%,#f2d56f 47% 62%,#24447f 63% 82%,#f8fbff 83% 100%)!important;border-color:rgba(246,226,146,.7)!important;box-shadow:0 0 18px rgba(126,154,255,.34),0 0 12px rgba(201,168,76,.28),inset 0 2px 6px rgba(255,255,255,.48)!important}
-        body:not(.neo-mode) .moon-hero .golden-grain-badge__charge{border:1px solid rgba(232,205,126,.46)!important;border-radius:9px!important;background:linear-gradient(135deg,#0c2457 0%,#1b4f9d 58%,#0a183a 100%)!important;color:#fff7d6!important;box-shadow:0 8px 18px rgba(20,58,128,.34),0 0 12px rgba(201,168,76,.18),inset 0 1px 0 rgba(255,255,255,.2)!important}
         body:not(.neo-mode) .moon-collection-nav a,body:not(.neo-mode) .moon-collection-nav a:hover,body:not(.neo-mode) .moon-collection-nav a:focus,body:not(.neo-mode) .moon-collection-nav a:visited,body:not(.neo-mode) .moon-collection-nav__link,body:not(.neo-mode) .moon-collection-nav__link *,body:not(.neo-mode) .moon-preview-card,body:not(.neo-mode) .moon-preview-card *{text-decoration:none!important}
-
-
-body:not(.neo-mode) .moon-hero{
-          position:relative!important;
-          z-index:1!important;
-          display:grid!important;
-          grid-template-columns:minmax(0,1.08fr) minmax(260px,.92fr)!important;
-          gap:22px!important;
-          align-items:center!important;
-          min-height:430px!important;
-          padding:24px!important;
-          border-radius:28px!important;
-          border:1px solid rgba(255,236,190,.22)!important;
-          background:linear-gradient(145deg,rgba(7,13,42,.92),rgba(29,20,69,.84))!important;
-          text-align:left!important;
-          box-shadow:0 16px 34px rgba(2,6,23,.34),inset 0 1px 0 rgba(255,255,255,.12)!important;
-        }
-        body:not(.neo-mode) .moon-hero::before{
-          content:''!important;
-          position:absolute!important;
-          inset:0!important;
-          z-index:0!important;
-          pointer-events:none!important;
-          background:radial-gradient(circle at 18% 20%,rgba(255,236,190,.12),transparent 25%),radial-gradient(circle at 84% 14%,rgba(196,181,253,.14),transparent 20%),radial-gradient(circle at 50% 100%,rgba(16,185,129,.10),transparent 28%),repeating-linear-gradient(135deg,rgba(255,255,255,.024) 0 1px,transparent 1px 18px)!important;
-          opacity:.82!important;
-        }
-        body:not(.neo-mode) .moon-hero::after{
-          content:''!important;
-          position:absolute!important;
-          left:-8%!important;
-          right:-8%!important;
-          bottom:-24%!important;
-          height:42%!important;
-          background:radial-gradient(ellipse at center,rgba(250,204,21,.14),transparent 68%)!important;
-          filter:blur(10px)!important;
-          pointer-events:none!important;
-        }
-        body:not(.neo-mode) .moon-hero__copy{
-          position:relative!important;
-          z-index:2!important;
-          display:flex!important;
-          flex-direction:column!important;
-          align-items:flex-start!important;
-          gap:14px!important;
-          max-width:680px!important;
-        }
-        body:not(.neo-mode) .moon-hero__brand{display:flex!important;align-items:center!important;gap:14px!important}
-        body:not(.neo-mode) .moon-hero__mascot{min-height:0!important;padding:0!important;flex-shrink:0!important}
-        body:not(.neo-mode) .moon-hero__mascot .honeypig-logo-icon{
-          width:82px!important;
-          height:82px!important;
-          border-radius:22px!important;
-          object-fit:contain!important;
-          border:1px solid rgba(255,236,190,.52)!important;
-          background:linear-gradient(145deg,rgba(255,251,235,.28),rgba(167,139,250,.14))!important;
-          box-shadow:0 10px 32px rgba(0,0,0,.36),0 0 24px rgba(251,191,36,.22)!important;
-        }
-        body:not(.neo-mode) .moon-hero__brand-text{display:flex!important;flex-direction:column!important;gap:4px!important}
-        body:not(.neo-mode) .moon-hero__brand-text::after{display:none!important}
-        body:not(.neo-mode) .moon-hero__eyebrow{
-          font-family:var(--font-display)!important;
-          font-size:clamp(1.08rem,2.2vw,1.4rem)!important;
-          line-height:1.18!important;
-          font-weight:900!important;
-          color:#fff1bd!important;
-          letter-spacing:0!important;
-          text-transform:none!important;
-          /* 글로우는 여기서 고정한다 — 키프레임은 밝기(filter)만 맥동시킨다. */
-          text-shadow:0 1px 10px rgba(0,0,0,.78),0 0 22px rgba(255,225,162,.61),0 0 40px rgba(167,139,250,.29)!important;
-          animation:cdB89TextGlow 2.8s ease-in-out infinite!important;
-        }
-        body:not(.neo-mode) .moon-hero__brand-line{
-          font-size:clamp(.92rem,1.5vw,1.08rem)!important;
-          line-height:1.34!important;
-          font-weight:900!important;
-          color:#f3f7ff!important;
-          letter-spacing:0!important;
-          text-transform:none!important;
-          text-shadow:0 1px 8px rgba(0,0,0,.74),0 0 16px rgba(196,181,253,.38)!important;
-        }
-        body:not(.neo-mode) .moon-hero__alias{
-          font-family:var(--font-display)!important;
-          font-size:clamp(1.75rem,4.2vw,2.125rem)!important;
-          line-height:1.2!important;
-          font-weight:900!important;
-          letter-spacing:0!important;
-          text-transform:none!important;
-        }
-        body:not(.neo-mode) .moon-hero h1{
-          max-width:620px!important;
-          margin:0!important;
-          color:#fff8df!important;
-          background:none!important;
-          -webkit-text-fill-color:#fff8df!important;
-          font-family:var(--font-display)!important;
-          font-size:clamp(2rem,4vw,3.12rem)!important;
-          font-weight:900!important;
-          line-height:1.26!important;
-          letter-spacing:0!important;
-          word-break:keep-all!important;
-          text-shadow:0 2px 18px rgba(0,0,0,.42),0 0 18px rgba(255,220,143,.45),0 0 34px rgba(167,139,250,.26)!important;
-          animation:cdB89TitleGlow 3.2s ease-in-out infinite!important;
-        }
-        body:not(.neo-mode) .moon-hero__lead{
-          max-width:610px!important;
-          margin:0!important;
-          color:#eef2ff!important;
-          font-family:var(--font-display)!important;
-          font-size:clamp(1.04rem,2vw,1.22rem)!important;
-          font-weight:600!important;
-          line-height:1.64!important;
-          text-shadow:0 1px 10px rgba(0,0,0,.62),0 0 18px rgba(196,181,253,.24)!important;
-        }
-        body:not(.neo-mode) .moon-hero__trust{display:flex!important;flex-wrap:wrap!important;gap:8px!important}
-        body:not(.neo-mode) .moon-hero__trust span,
-        body:not(.neo-mode) .moon-hero__trust a,
-        body:not(.neo-mode) .moon-hero__trust button{
-          display:inline-flex!important;
-          align-items:center!important;
-          gap:6px!important;
-          min-height:36px!important;
-          padding:8px 12px!important;
-          border-radius:999px!important;
-          border:1px solid rgba(255,228,170,.34)!important;
-          background:rgba(2,6,23,.42)!important;
-          color:#fff7df!important;
-          font-size:.78rem!important;
-          font-weight:800!important;
-          font-family:inherit!important;
-          line-height:1.2!important;
-          text-decoration:none!important;
-          text-shadow:0 1px 7px rgba(0,0,0,.55),0 0 12px rgba(255,220,143,.18)!important;
-          cursor:pointer!important;
-        }
-        body:not(.neo-mode) .moon-hero__trust span::before,
-        body:not(.neo-mode) .moon-hero__trust a::before,
-        body:not(.neo-mode) .moon-hero__trust button::before{content:'✦';color:#8ee7d2}
-        body:not(.neo-mode) .moon-hero__trust a:hover,
-        body:not(.neo-mode) .moon-hero__trust a:focus-visible,
-        body:not(.neo-mode) .moon-hero__trust button:hover,
-        body:not(.neo-mode) .moon-hero__trust button:focus-visible{border-color:rgba(244,114,182,.36)!important;background:rgba(255,255,255,.86)!important;color:#4c1d5f!important;outline:none!important;box-shadow:0 8px 18px rgba(148,92,120,.16),0 0 0 3px rgba(244,114,182,.14)!important;text-shadow:none!important}
-        body:not(.neo-mode) .moon-hero__actions{display:flex!important;flex-wrap:wrap!important;gap:12px!important;margin-top:4px!important}
-        body:not(.neo-mode) .moon-hero__cta{
-          display:inline-flex!important;
-          align-items:center!important;
-          justify-content:center!important;
-          min-height:48px!important;
-          padding:13px 18px!important;
-          border-radius:999px!important;
-          border:1px solid rgba(255,255,255,.2)!important;
-          font-family:var(--font-body)!important;
-          font-size:.94rem!important;
-          font-weight:900!important;
-          text-decoration:none!important;
-          white-space:nowrap!important;
-          cursor:pointer!important;
-          box-shadow:0 12px 28px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.16)!important;
-        }
-        body:not(.neo-mode) .moon-hero__cta--primary{background:linear-gradient(135deg,#fff0b8 0%,#f8c06e 34%,#ef83ca 68%,#8f5dff 100%)!important;color:#180c2f!important;border-color:rgba(255,244,204,.58)!important}
-        body:not(.neo-mode) .moon-hero__cta--ghost{background:rgba(3,7,24,.72)!important;color:#fff5d5!important;border-color:rgba(255,222,158,.5)!important}
-        body:not(.neo-mode) .moon-hero__cta--soft{background:rgba(16,185,129,.12)!important;color:#dcfff7!important;border-color:rgba(94,234,212,.42)!important}
-        body:not(.neo-mode) .moon-hero__visual{
-          position:relative!important;
-          z-index:1!important;
-          min-height:338px!important;
-          border-radius:24px!important;
-          overflow:hidden!important;
-          border:1px solid rgba(255,236,190,.28)!important;
-          background:radial-gradient(circle at 18% 12%,rgba(255,236,190,.12),transparent 22%),radial-gradient(circle at 82% 18%,rgba(196,181,253,.10),transparent 24%),linear-gradient(180deg,rgba(8,10,35,.18),rgba(6,8,26,.92)),linear-gradient(145deg,rgba(42,24,92,.72),rgba(7,13,42,.92))!important;
-          box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 14px 34px rgba(0,0,0,.30)!important;
-        }
-        body:not(.neo-mode) .moon-hero__visual>span,
-        body:not(.neo-mode) .moon-hero__constellation,
-        body:not(.neo-mode) .moon-hero__spark,
-        body:not(.neo-mode) .moon-hero__zzz{display:none!important}
-        body:not(.neo-mode) .moon-hero__moon svg{display:none!important}
-        body:not(.neo-mode) .moon-hero__moon{
-          position:absolute!important;
-          right:42px!important;
-          top:44px!important;
-          width:96px!important;
-          height:96px!important;
-          border-radius:50%!important;
-          background:
-            radial-gradient(circle at 31% 28%,rgba(255,255,255,.92) 0 5%,transparent 6%),
-            radial-gradient(circle at 44% 62%,rgba(147,116,54,.22) 0 6%,transparent 7%),
-            radial-gradient(circle at 25% 72%,rgba(120,91,44,.18) 0 4%,transparent 5%),
-            radial-gradient(circle at 34% 30%,#fffdf0 0%,#fff3c4 36%,#e8c46d 68%,#b98635 100%)!important;
-          box-shadow:0 0 30px rgba(255,229,158,.48),0 0 62px rgba(196,181,253,.2),inset -10px -8px 18px rgba(105,67,30,.28),inset 8px 7px 16px rgba(255,255,255,.42)!important;
-          animation:cdHeroMoonCrescentFloat 7s ease-in-out infinite!important;
-          transform-origin:50% 50%!important;
-        }
-        body:not(.neo-mode) .moon-hero__moon::before{
-          content:''!important;
-          position:absolute!important;
-          inset:-24px!important;
-          border-radius:50%!important;
-          background:radial-gradient(circle,rgba(255,247,219,.18) 0%,rgba(196,181,253,.09) 52%,transparent 72%)!important;
-          box-shadow:none!important;
-          animation:cdHeroMoonHaloPulse 5.4s ease-in-out infinite!important;
-          pointer-events:none!important;
-        }
-        body:not(.neo-mode) .moon-hero__moon::after{
-          content:''!important;
-          position:absolute!important;
-          left:30px!important;
-          top:-5px!important;
-          width:84px!important;
-          height:106px!important;
-          border-radius:50%!important;
-          background:linear-gradient(145deg,#111640 0%,#080d2b 100%)!important;
-          box-shadow:-8px 4px 18px rgba(12,15,48,.24),inset 7px 0 16px rgba(196,181,253,.06)!important;
-        }
-        body:not(.neo-mode) .moon-hero__portal{
-          position:absolute!important;
-          right:56px!important;
-          bottom:46px!important;
-          width:220px!important;
-          height:260px!important;
-          border-radius:110px 110px 16px 16px!important;
-          overflow:hidden!important;
-          border:1px solid rgba(255,231,177,.7)!important;
-          background:
-            radial-gradient(circle at 48% 18%,rgba(255,248,220,.34),transparent 11%),
-            radial-gradient(circle at 50% 52%,rgba(199,187,255,.2),transparent 38%),
-            linear-gradient(158deg,rgba(15,18,55,.78),rgba(28,24,82,.58) 45%,rgba(78,42,104,.46))!important;
-          box-shadow:
-            0 0 34px rgba(255,221,154,.2),
-            0 0 54px rgba(167,139,250,.24),
-            inset 0 1px 0 rgba(255,255,255,.28),
-            inset 0 0 38px rgba(255,231,177,.14),
-            inset 0 -36px 50px rgba(5,7,28,.56)!important;
-          transform:translateZ(0)!important;
-          animation:cdHeroPearlPortalBreathe 6.4s ease-in-out infinite!important;
-        }
-        body:not(.neo-mode) .moon-hero__portal::before{
-          content:''!important;
-          position:absolute!important;
-          inset:14px 18px 18px!important;
-          border-radius:94px 94px 12px 12px!important;
-          border:1px solid rgba(255,239,196,.48)!important;
-          background:
-            radial-gradient(circle at 50% 16%,rgba(255,248,220,.5) 0 2px,transparent 3px),
-            radial-gradient(circle at 29% 44%,rgba(255,231,177,.28) 0 1px,transparent 2px),
-            radial-gradient(circle at 70% 38%,rgba(221,214,254,.32) 0 1px,transparent 2px),
-            radial-gradient(circle at 46% 72%,rgba(255,231,177,.18) 0 1px,transparent 2px),
-            linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.02) 28%,rgba(10,12,42,.68) 100%)!important;
-          box-shadow:
-            inset 0 0 24px rgba(255,231,177,.16),
-            inset 0 -24px 34px rgba(5,7,28,.38),
-            0 0 20px rgba(255,231,177,.14)!important;
-          animation:cdHeroPortalStardust 5.2s ease-in-out infinite!important;
-        }
-        body:not(.neo-mode) .moon-hero__portal::after{
-          content:''!important;
-          position:absolute!important;
-          left:50%!important;
-          top:18px!important;
-          bottom:18px!important;
-          width:2px!important;
-          border-radius:999px!important;
-          background:linear-gradient(180deg,transparent,rgba(255,242,204,.78) 18%,rgba(255,213,151,.22) 54%,transparent)!important;
-          box-shadow:
-            -34px 20px 0 -1px rgba(255,231,177,.24),
-            34px 30px 0 -1px rgba(221,214,254,.22),
-            0 0 18px rgba(255,231,177,.54),
-            0 0 34px rgba(221,214,254,.32)!important;
-          transform:translateX(-50%)!important;
-          opacity:.88!important;
-          animation:cdHeroPortalSeamGlow 4.6s ease-in-out infinite!important;
-        }
-        body:not(.neo-mode) .moon-hero__picture--mascot{
-          position:absolute!important;
-          right:18px!important;
-          bottom:18px!important;
-          z-index:2!important;
-          width:142px!important;
-          height:142px!important;
-          border:0!important;
-          border-radius:0!important;
-          background:transparent!important;
-          box-shadow:none!important;
-          overflow:visible!important;
-        }
-        body:not(.neo-mode) .moon-hero__picture--mascot img{width:100%!important;height:100%!important;object-fit:contain!important;background:transparent!important;filter:none!important}
-        body:not(.neo-mode) .moon-hero__card-stack{position:absolute!important;left:38px!important;bottom:48px!important;width:176px!important;height:126px!important}
-        body:not(.neo-mode) .moon-hero__card-stack span{
-          position:absolute!important;
-          width:94px!important;
-          height:126px!important;
-          border-radius:16px!important;
-          border:1px solid rgba(243,221,154,.48)!important;
-          background:linear-gradient(150deg,rgba(23,18,68,.96),rgba(78,35,122,.88))!important;
-          box-shadow:0 14px 28px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.18)!important;
-        }
-        body:not(.neo-mode) .moon-hero__card-stack span:nth-child(1){left:8px!important;top:8px!important;transform:rotate(-11deg)!important}
-        body:not(.neo-mode) .moon-hero__card-stack span:nth-child(2){left:48px!important;top:0!important;transform:rotate(2deg)!important}
-        body:not(.neo-mode) .moon-hero__card-stack span:nth-child(3){left:84px!important;top:13px!important;transform:rotate(13deg)!important}
-        body:not(.neo-mode) .moon-hero__card-stack span::after{content:'☽';position:absolute;inset:0;display:grid;place-items:center;color:#f9d98b;font-size:2rem;text-shadow:0 0 16px rgba(252,211,77,.5)}
-        body:not(.neo-mode) .moon-hero__card-stack[data-transparent-hero-asset="tarot-card-obsidian-lux-no-x-v20260612"]{
-          perspective:620px!important;
-          filter:drop-shadow(0 22px 34px rgba(7,8,26,.44))!important;
-          animation:cdHeroTarotStackBreathe 5.6s ease-in-out infinite!important;
-        }
-        body:not(.neo-mode) .moon-hero__card-stack .moon-hero__tarot-card{
-          overflow:hidden!important;
-          border-radius:17px!important;
-          border:1px solid rgba(246,218,145,.62)!important;
-          background:
-            linear-gradient(150deg,rgba(14,16,38,.98),rgba(32,27,76,.95) 45%,rgba(96,55,103,.92))!important;
-          box-shadow:
-            0 18px 34px rgba(5,7,22,.48),
-            0 0 28px rgba(245,203,122,.16),
-            inset 0 1px 0 rgba(255,255,255,.24),
-            inset 0 -18px 34px rgba(8,9,30,.48)!important;
-          transform-style:preserve-3d!important;
-          backface-visibility:hidden!important;
-          animation:cdHeroTarotCardFloat 4.8s ease-in-out infinite!important;
-          transition:transform .38s ease,filter .38s ease,box-shadow .38s ease!important;
-        }
-        body:not(.neo-mode) .moon-hero__card-stack .moon-hero__tarot-card::before{
-          content:""!important;
-          position:absolute!important;
-          inset:9px!important;
-          border-radius:12px!important;
-          border:1px solid rgba(249,221,151,.5)!important;
-          background:
-            radial-gradient(circle at 50% 24%,rgba(255,239,190,.55) 0 3px,transparent 4px),
-            radial-gradient(circle at 50% 76%,rgba(255,239,190,.36) 0 2px,transparent 3px),
-            conic-gradient(from 20deg at 50% 50%,transparent 0 18%,rgba(247,216,139,.3) 20%,transparent 22% 48%,rgba(190,168,255,.2) 50%,transparent 54% 82%,rgba(247,216,139,.26) 84%,transparent 88%),
-            linear-gradient(135deg,rgba(255,255,255,.12),transparent 34%,rgba(245,203,122,.11) 68%,transparent)!important;
-          box-shadow:inset 0 0 22px rgba(247,216,139,.14),0 0 18px rgba(167,139,250,.16)!important;
-          opacity:.95!important;
-          animation:cdHeroTarotSigilShimmer 6.2s ease-in-out infinite!important;
-        }
-        body:not(.neo-mode) .moon-hero__card-stack .moon-hero__tarot-card::after{
-          content:"☽"!important;
-          position:absolute!important;
-          inset:0!important;
-          display:grid!important;
-          place-items:center!important;
-          color:#ffe9a9!important;
-          font-family:var(--font-display)!important;
-          font-size:2.18rem!important;
-          line-height:1!important;
-          text-shadow:0 0 12px rgba(255,233,169,.76),0 0 28px rgba(196,181,253,.38)!important;
-          animation:cdHeroTarotGlyphPulse 3.8s ease-in-out infinite!important;
-        }
-        body:not(.neo-mode) .moon-hero__card-stack .moon-hero__tarot-card--back{
-          left:2px!important;
-          top:12px!important;
-          z-index:2!important;
-          transform:rotate(-11deg)!important;
-          animation-delay:0s!important;
-        }
-        body:not(.neo-mode) .moon-hero__card-stack .moon-hero__tarot-card--glow{
-          left:36px!important;
-          top:0!important;
-          z-index:3!important;
-          transform:rotate(2deg)!important;
-          border-color:rgba(255,231,168,.78)!important;
-          box-shadow:
-            0 20px 42px rgba(5,7,22,.5),
-            0 0 34px rgba(246,218,145,.24),
-            0 0 52px rgba(167,139,250,.17),
-            inset 0 1px 0 rgba(255,255,255,.26),
-            inset 0 -18px 34px rgba(8,9,30,.46)!important;
-          animation-delay:.18s!important;
-        }
-        body:not(.neo-mode) .moon-hero__card-stack .moon-hero__tarot-card--edge{
-          left:68px!important;
-          top:14px!important;
-          z-index:1!important;
-          transform:rotate(13deg)!important;
-          animation-delay:.36s!important;
-        }
-        body:not(.neo-mode) .moon-hero:hover .moon-hero__tarot-card--back{transform:translateY(-4px) rotate(-13deg)!important}
-        body:not(.neo-mode) .moon-hero:hover .moon-hero__tarot-card--glow{transform:translateY(-8px) rotate(2deg)!important}
-        body:not(.neo-mode) .moon-hero:hover .moon-hero__tarot-card--edge{transform:translateY(-4px) rotate(15deg)!important}
-        @keyframes cdHeroTarotStackBreathe{0%,100%{filter:drop-shadow(0 22px 34px rgba(7,8,26,.44)) brightness(1)}50%{filter:drop-shadow(0 26px 42px rgba(7,8,26,.52)) brightness(1.05)}}
-        @keyframes cdHeroTarotCardFloat{0%,100%{translate:0 0}50%{translate:0 -5px}}
-        @keyframes cdHeroTarotSigilShimmer{0%,100%{opacity:.88;filter:brightness(1)}50%{opacity:1;filter:brightness(1.18)}}
-        @keyframes cdHeroTarotGlyphPulse{0%,100%{transform:scale(1);opacity:.92}50%{transform:scale(1.07);opacity:1}}
-        @keyframes cdHeroPearlPortalBreathe{0%,100%{filter:brightness(1) saturate(1)}50%{filter:brightness(1.1) saturate(1.08)}}
-        @keyframes cdHeroPortalStardust{0%,100%{opacity:.88;filter:brightness(1)}50%{opacity:1;filter:brightness(1.18)}}
-        @keyframes cdHeroPortalSeamGlow{0%,100%{opacity:.68;filter:blur(.1px)}50%{opacity:1;filter:blur(0)}}
         /* 🔴 text-shadow 를 애니메이션하지 말 것 — 매 프레임 paint 를 유발한다.
            히어로 제목(17k px²)·아이브로는 초기 뷰포트 애니메이션 19개 중 유일하게 합성을
            못 타던 둘이었다. 글로우는 요소의 정적 text-shadow 로 고정하고, 밝기 맥동만
@@ -1609,48 +908,6 @@ body:not(.neo-mode) .moon-hero{
            정적 값은 원래 0%↔50% 의 중간이라 육안 인상이 유지된다. */
         @keyframes cdB89TitleGlow{0%,100%{filter:brightness(1)}50%{filter:brightness(1.08)}}
         @keyframes cdB89TextGlow{0%,100%{filter:brightness(1)}50%{filter:brightness(1.14)}}
-        @keyframes cdHeroMoonCrescentFloat{0%,100%{transform:translate3d(0,0,0) rotate(-3deg)}50%{transform:translate3d(0,-6px,0) rotate(-1deg)}}
-        @keyframes cdHeroMoonHaloPulse{0%,100%{opacity:.72;transform:scale(1)}50%{opacity:1;transform:scale(1.05)}}
-        @media(max-width:860px){
-          body:not(.neo-mode) .moon-hero{grid-template-columns:1fr!important;min-height:0!important;gap:16px!important;padding:18px 14px!important;border-radius:24px!important}
-          body:not(.neo-mode) .moon-hero h1{font-size:clamp(2rem,8vw,2.4rem)!important;line-height:1.32!important}
-          body:not(.neo-mode) .moon-hero__lead{font-size:1rem!important;line-height:1.58!important}
-          body:not(.neo-mode) .moon-hero__actions{width:100%!important}
-          body:not(.neo-mode) .moon-hero__cta{width:100%!important;min-height:52px!important;font-size:.98rem!important;white-space:normal!important;text-align:center!important}
-          body:not(.neo-mode) .moon-hero__visual{min-height:210px!important}
-          body:not(.neo-mode) .moon-hero__portal{right:24px!important;bottom:24px!important;width:146px!important;height:168px!important;border-radius:74px 74px 14px 14px!important}
-          body:not(.neo-mode) .moon-hero__moon{right:28px!important;top:28px!important;width:68px!important;height:68px!important}
-          body:not(.neo-mode) .moon-hero__moon::before{inset:-18px!important}
-          body:not(.neo-mode) .moon-hero__moon::after{left:22px!important;top:-4px!important;width:60px!important;height:76px!important}
-          body:not(.neo-mode) .moon-hero__card-stack{left:20px!important;bottom:28px!important;transform:scale(.74)!important;transform-origin:left bottom!important}
-          body:not(.neo-mode) .moon-hero__picture--mascot{right:10px!important;bottom:10px!important;width:104px!important;height:104px!important}
-        }
-        @media(prefers-reduced-motion:reduce){
-          body:not(.neo-mode) .moon-hero h1,
-          body:not(.neo-mode) .moon-hero__eyebrow,
-          body:not(.neo-mode) .moon-hero__moon,
-          body:not(.neo-mode) .moon-hero__moon::before,
-          body:not(.neo-mode) .moon-hero__moon::after,
-          body:not(.neo-mode) .moon-hero__portal,
-          body:not(.neo-mode) .moon-hero__portal::before,
-          body:not(.neo-mode) .moon-hero__portal::after,
-          body:not(.neo-mode) .moon-hero__card-stack,
-          body:not(.neo-mode) .moon-hero__tarot-card,
-          body:not(.neo-mode) .moon-hero__tarot-card::before,
-          body:not(.neo-mode) .moon-hero__tarot-card::after{animation:none!important}
-        }
-
-
-        body:not(.neo-mode) .moon-hero,
-        body:not(.neo-mode) .moon-hero__visual {
-          contain: paint;
-        }
-        @media (max-width: 768px), (prefers-reduced-motion: reduce) {
-          body:not(.neo-mode) .moon-hero__visual {
-            -webkit-backdrop-filter: none !important;
-            backdrop-filter: none !important;
-          }
-        }
 
 
         body.neo-mode .logo-area{position:relative!important;isolation:isolate;overflow:hidden;padding:16px 18px 32px!important;border-radius:24px!important;text-align:left!important}
@@ -1664,34 +921,7 @@ body:not(.neo-mode) .moon-hero{
         body.neo-mode .moon-topbar__brand em{padding-left:8px!important;border-left:1px solid rgba(243,221,154,.22)!important;font-size:.68rem!important;font-weight:800!important;text-transform:uppercase!important;text-decoration:none!important}
         body.neo-mode .moon-topbar__nav{display:flex!important;flex-wrap:wrap!important;justify-content:center!important;gap:8px!important;align-items:center!important;margin-top:4px!important}
         body.neo-mode .moon-topbar__nav a,body.neo-mode .moon-topbar__nav button{position:relative;overflow:hidden;min-height:38px!important;padding:8px 14px!important;border-radius:999px!important;text-decoration:none!important;font-size:.82rem!important;font-weight:700!important;line-height:1!important}
-        body.neo-mode .normal-logo.moon-hero{position:relative!important;z-index:1!important;isolation:isolate!important;overflow:hidden!important;display:grid!important;grid-template-columns:minmax(0,1.08fr) minmax(260px,.92fr)!important;gap:22px!important;align-items:center!important;min-height:430px!important;padding:24px!important;border-radius:28px!important;text-align:left!important;contain:paint}
-        body.neo-mode .moon-hero::before{content:''!important;position:absolute!important;inset:0!important;z-index:0!important;pointer-events:none!important;background:radial-gradient(circle at 18% 20%,rgba(243,221,154,.11),transparent 25%),radial-gradient(circle at 84% 14%,rgba(255,215,0,.12),transparent 20%),radial-gradient(circle at 50% 100%,rgba(120,80,10,.14),transparent 28%),repeating-linear-gradient(135deg,rgba(255,255,255,.018) 0 1px,transparent 1px 18px)!important;opacity:.86!important}
-        body.neo-mode .moon-hero::after{content:''!important;position:absolute!important;left:-8%!important;right:-8%!important;bottom:-24%!important;height:42%!important;background:radial-gradient(ellipse at center,rgba(243,221,154,.12),transparent 68%)!important;filter:blur(10px)!important;pointer-events:none!important}
-        body.neo-mode .moon-hero__copy{position:relative!important;z-index:2!important;display:flex!important;flex-direction:column!important;align-items:flex-start!important;gap:14px!important;max-width:680px!important}
-        body.neo-mode .moon-hero__brand{display:flex!important;align-items:center!important;gap:14px!important}
-        body.neo-mode .moon-hero__mascot{min-height:0!important;padding:0!important;flex-shrink:0!important}
-        body.neo-mode .moon-hero__mascot .honeypig-logo-icon{width:82px!important;height:82px!important;border-radius:22px!important;object-fit:contain!important;border:1px solid rgba(243,221,154,.52)!important;background:linear-gradient(145deg,rgba(255,248,224,.16),rgba(80,54,8,.18))!important;box-shadow:0 10px 32px rgba(0,0,0,.42),0 0 24px rgba(243,221,154,.18)!important}
-        body.neo-mode .moon-hero__brand-text{display:flex!important;flex-direction:column!important;gap:4px!important}
-        body.neo-mode .moon-hero__brand-text::after{display:none!important}
-        body.neo-mode .moon-hero__eyebrow{font-family:var(--font-display)!important;font-size:clamp(1.08rem,2.2vw,1.4rem)!important;line-height:1.18!important;font-weight:900!important;letter-spacing:0!important;text-transform:none!important}
-        body.neo-mode .moon-hero__alias{font-family:var(--font-display)!important;font-size:clamp(1.75rem,4.2vw,2.125rem)!important;line-height:1.2!important;font-weight:900!important;letter-spacing:0!important;text-transform:none!important;color:#e8d5a3!important;text-shadow:0 0 18px rgba(232,213,163,.4)!important}
-        body.neo-mode .moon-hero__brand-line{font-size:clamp(.92rem,1.5vw,1.08rem)!important;line-height:1.34!important;font-weight:900!important;letter-spacing:0!important;text-transform:none!important}
-        body.neo-mode .moon-hero h1{max-width:620px!important;margin:0!important;font-family:var(--font-display)!important;font-size:clamp(2rem,4vw,3.12rem)!important;font-weight:900!important;line-height:1.26!important;letter-spacing:0!important;word-break:keep-all!important}
-        body.neo-mode .moon-hero__lead{max-width:610px!important;margin:0!important;font-family:var(--font-display)!important;font-size:clamp(1.04rem,2vw,1.22rem)!important;font-weight:600!important;line-height:1.64!important}
-        body.neo-mode .moon-hero__trust{display:flex!important;flex-wrap:wrap!important;gap:8px!important}
-        body.neo-mode .moon-hero__trust span,body.neo-mode .moon-hero__trust a,body.neo-mode .moon-hero__trust button{display:inline-flex!important;align-items:center!important;gap:6px!important;min-height:36px!important;padding:8px 12px!important;border-radius:999px!important;font-size:.78rem!important;font-weight:800!important;font-family:inherit!important;line-height:1.2!important;text-decoration:none!important;cursor:pointer!important}
-        body.neo-mode .moon-hero__actions{display:flex!important;flex-wrap:wrap!important;gap:12px!important;margin-top:4px!important}
-        body.neo-mode .moon-hero__cta{display:inline-flex!important;align-items:center!important;justify-content:center!important;min-height:48px!important;padding:13px 18px!important;border-radius:999px!important;font-family:var(--font-body)!important;font-size:.94rem!important;font-weight:900!important;text-decoration:none!important;white-space:nowrap!important;cursor:pointer!important}
-        body.neo-mode .moon-hero__visual{position:relative!important;z-index:1!important;min-height:338px!important;border-radius:24px!important;overflow:hidden!important;contain:paint}
-        body.neo-mode .moon-hero__visual>span,body.neo-mode .moon-hero__constellation,body.neo-mode .moon-hero__spark,body.neo-mode .moon-hero__zzz{display:none!important}
-        body.neo-mode .moon-hero__moon svg{display:none!important}
-        body.neo-mode .moon-hero__moon{position:absolute!important;right:42px!important;top:44px!important;width:96px!important;height:96px!important;border-radius:50%!important;animation:none!important}
-        body.neo-mode .moon-hero__moon::after{content:''!important;position:absolute!important;left:28px!important;top:-4px!important;width:88px!important;height:104px!important;border-radius:50%!important;background:#0d0b08!important}
-        body.neo-mode .moon-hero__portal{position:absolute!important;right:56px!important;bottom:46px!important;width:220px!important;height:260px!important;border-radius:110px 110px 16px 16px!important;overflow:hidden!important;transform:translateZ(0)!important}
-        body.neo-mode .moon-hero__picture--mascot{position:absolute!important;right:18px!important;bottom:18px!important;z-index:2!important;width:142px!important;height:142px!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;overflow:visible!important}
-        body.neo-mode .moon-hero__picture--mascot img{width:100%!important;height:100%!important;object-fit:contain!important;background:transparent!important;filter:none!important}
-        body.neo-mode .moon-hero__card-stack{position:absolute!important;left:38px!important;bottom:48px!important;width:176px!important;height:126px!important}
-        @media(max-width:860px){body.neo-mode .logo-area{padding:12px 10px 22px!important}body.neo-mode .moon-topbar{border-radius:20px!important;padding:9px!important;margin-bottom:16px!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}body.neo-mode .moon-topbar__nav{flex-wrap:nowrap!important;gap:7px!important;justify-content:flex-start!important;overflow-x:auto;scrollbar-width:none;padding:1px 1px 3px!important}body.neo-mode .moon-topbar__nav::-webkit-scrollbar{display:none}body.neo-mode .moon-topbar__nav a,body.neo-mode .moon-topbar__nav button{flex:0 0 auto;min-height:37px!important;padding:8px 12px!important;font-size:.74rem!important;white-space:nowrap}body.neo-mode .normal-logo.moon-hero{grid-template-columns:1fr!important;min-height:0!important;gap:16px!important;padding:18px 14px!important;border-radius:24px!important}body.neo-mode .moon-hero h1{font-size:clamp(2rem,8vw,2.4rem)!important;line-height:1.32!important}body.neo-mode .moon-hero__lead{font-size:1rem!important;line-height:1.58!important}body.neo-mode .moon-hero__actions{width:100%!important}body.neo-mode .moon-hero__cta{width:100%!important;min-height:52px!important;font-size:.98rem!important;white-space:normal!important;text-align:center!important}body.neo-mode .moon-hero__visual{min-height:210px!important}body.neo-mode .moon-hero__portal{right:24px!important;bottom:24px!important;width:146px!important;height:168px!important;border-radius:74px 74px 14px 14px!important}body.neo-mode .moon-hero__moon{right:28px!important;top:28px!important;width:68px!important;height:68px!important}body.neo-mode .moon-hero__moon::after{left:20px!important;top:-4px!important;width:64px!important;height:78px!important}body.neo-mode .moon-hero__card-stack{left:20px!important;bottom:28px!important;transform:scale(.74)!important;transform-origin:left bottom!important}body.neo-mode .moon-hero__picture--mascot{right:10px!important;bottom:10px!important;width:104px!important;height:104px!important}}
+        @media(max-width:860px){body.neo-mode .logo-area{padding:12px 10px 22px!important}body.neo-mode .moon-topbar{border-radius:20px!important;padding:9px!important;margin-bottom:16px!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}body.neo-mode .moon-topbar__nav{flex-wrap:nowrap!important;gap:7px!important;justify-content:flex-start!important;overflow-x:auto;scrollbar-width:none;padding:1px 1px 3px!important}body.neo-mode .moon-topbar__nav::-webkit-scrollbar{display:none}body.neo-mode .moon-topbar__nav a,body.neo-mode .moon-topbar__nav button{flex:0 0 auto;min-height:37px!important;padding:8px 12px!important;font-size:.74rem!important;white-space:nowrap}}
         @media(max-width:520px){body.neo-mode .logo-area{padding:8px 8px 16px!important}body.neo-mode .moon-topbar{margin-bottom:10px!important}}
 
 
@@ -1706,30 +936,6 @@ body:not(.neo-mode) .moon-hero{
         body:not(.neo-mode) .moon-topbar__nav a:hover,body:not(.neo-mode) .moon-topbar__nav button:hover,body:not(.neo-mode) .moon-topbar__nav a:focus-visible,body:not(.neo-mode) .moon-topbar__nav button:focus-visible{color:#35132f!important;border-color:rgba(236,72,153,.36)!important;background:radial-gradient(circle at 28% 16%,rgba(255,255,255,.96),rgba(255,255,255,0) 36%),linear-gradient(135deg,rgba(255,247,194,.92),rgba(249,168,212,.82) 50%,rgba(147,197,253,.82))!important;box-shadow:0 8px 18px rgba(148,92,120,.18),0 0 0 1px rgba(255,255,255,.62),inset 0 1px 0 rgba(255,255,255,.94)!important}
         body:not(.neo-mode) .moon-topbar__nav a[aria-current="page"]{min-width:42px!important;border-color:rgba(236,72,153,.44)!important;background:radial-gradient(circle at 28% 18%,rgba(255,255,255,.96),rgba(255,255,255,0) 34%),linear-gradient(135deg,rgba(255,247,194,.96) 0%,rgba(249,168,212,.9) 48%,rgba(147,197,253,.86) 100%)!important;color:#421638!important;font-family:var(--font-playful,var(--font-display))!important;font-weight:900!important;box-shadow:0 9px 20px rgba(148,92,120,.2),0 0 0 1px rgba(255,255,255,.66),inset 0 1px 0 rgba(255,255,255,.94)!important}
         body:not(.neo-mode) .moon-topbar__nav a[aria-current="page"]::after{background:linear-gradient(90deg,transparent,rgba(255,255,255,.82),rgba(14,165,233,.52),transparent)!important;opacity:.78!important}
-        body:not(.neo-mode) .moon-hero{background:radial-gradient(circle at 18% 12%,rgba(255,255,255,.82),transparent 22%),radial-gradient(circle at 86% 16%,rgba(251,207,232,.5),transparent 28%),radial-gradient(circle at 50% 100%,rgba(125,211,252,.28),transparent 32%),linear-gradient(145deg,rgba(255,250,244,.95),rgba(255,240,249,.9) 52%,rgba(235,248,255,.9))!important;border-color:rgba(244,114,182,.24)!important;color:#2d1d3d!important;box-shadow:0 18px 42px rgba(148,92,120,.16),inset 0 1px 0 rgba(255,255,255,.92)!important}
-        body:not(.neo-mode) .moon-hero::before{background:radial-gradient(circle at 18% 20%,rgba(244,114,182,.13),transparent 25%),radial-gradient(circle at 84% 14%,rgba(59,130,246,.14),transparent 20%),radial-gradient(circle at 50% 100%,rgba(250,204,21,.12),transparent 28%),repeating-linear-gradient(135deg,rgba(124,58,237,.026) 0 1px,transparent 1px 18px)!important}
-        body:not(.neo-mode) .moon-hero h1{background:linear-gradient(118deg,#7c2d72 0%,#db2777 34%,#2563eb 68%,#7c2d72 100%)!important;-webkit-background-clip:text!important;background-clip:text!important;-webkit-text-fill-color:transparent!important;filter:drop-shadow(0 8px 22px rgba(255,255,255,.7))!important}
-        body:not(.neo-mode) .moon-hero__eyebrow{color:#9d174d!important}
-        body:not(.neo-mode) .moon-hero__brand-line,body:not(.neo-mode) .moon-hero__lead{color:#4c1d5f!important;text-shadow:none!important}
-        body:not(.neo-mode) .moon-hero__trust span,body:not(.neo-mode) .moon-hero__trust a,body:not(.neo-mode) .moon-hero__trust button{background:rgba(255,255,255,.7)!important;border-color:rgba(244,114,182,.22)!important;color:#5b315f!important;text-shadow:none!important}
-        body:not(.neo-mode) .moon-hero__visual{background:radial-gradient(circle at 18% 12%,rgba(255,255,255,.78),transparent 22%),radial-gradient(circle at 82% 18%,rgba(251,207,232,.34),transparent 24%),linear-gradient(180deg,rgba(255,255,255,.18),rgba(255,249,253,.82)),linear-gradient(145deg,rgba(255,244,250,.9),rgba(235,248,255,.88))!important;border-color:rgba(244,114,182,.24)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 14px 34px rgba(148,92,120,.14)!important}
-        body:not(.neo-mode) .moon-hero__picture--mascot{position:absolute!important;right:18px!important;bottom:18px!important;z-index:2!important;width:142px!important;height:142px!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;overflow:visible!important;isolation:auto!important;pointer-events:auto!important}
-        body:not(.neo-mode) .moon-hero__picture--mascot::before,body:not(.neo-mode) .moon-hero__picture--mascot::after{position:absolute!important;z-index:2!important;color:#e4c86f!important;font-family:var(--font-display)!important;font-weight:700!important;text-shadow:0 0 10px rgba(201,168,76,.48),0 2px 8px rgba(0,0,0,.45)!important;pointer-events:none!important}
-        body:not(.neo-mode) .moon-hero__picture--mascot::before{content:'☉  ☽  ♃'!important;left:-20px!important;top:18px!important;font-size:15px!important;letter-spacing:.14em!important;transform:rotate(-14deg)!important}
-        body:not(.neo-mode) .moon-hero__picture--mascot::after{display:block!important;content:'✦  ♀  ☿'!important;right:-14px!important;bottom:16px!important;font-size:14px!important;letter-spacing:.12em!important;transform:rotate(10deg)!important}
-        body:not(.neo-mode) .moon-hero__picture--mascot img{width:100%!important;height:100%!important;object-fit:contain!important;background:transparent!important;filter:saturate(1.08) contrast(1.02) brightness(1.03)!important}
-        body.neo-mode .moon-hero__picture--mascot{position:absolute!important;right:18px!important;bottom:18px!important;z-index:2!important;width:142px!important;height:142px!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;overflow:visible!important;isolation:auto!important;pointer-events:auto!important}
-        body.neo-mode .moon-hero__picture--mascot::before,body.neo-mode .moon-hero__picture--mascot::after{display:none!important;content:none!important}
-        body.neo-mode .moon-hero__picture--mascot img{width:100%!important;height:100%!important;object-fit:contain!important;background:transparent!important;filter:none!important}
-        body:not(.neo-mode) .moon-hero__cta--primary{background:linear-gradient(135deg,#fff7c2 0%,#f9a8d4 42%,#93c5fd 100%)!important;color:#421638!important;border-color:rgba(244,114,182,.3)!important}
-        body:not(.neo-mode) .moon-hero__cta--ghost{background:rgba(255,255,255,.78)!important;color:#4c1d5f!important;border-color:rgba(124,58,237,.2)!important}
-        body:not(.neo-mode) .moon-hero__cta--soft{background:rgba(255,255,255,.5)!important;color:#7c2d72!important;border-color:rgba(244,114,182,.22)!important}
-        body.neo-mode .moon-hero__actions{display:flex!important;flex-wrap:wrap!important;align-items:center!important;gap:12px!important}
-        body.neo-mode .moon-hero__cta{position:relative!important;overflow:hidden!important;max-width:100%!important;border:1px solid rgba(243,221,154,.28)!important;box-shadow:0 14px 30px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,244,194,.14)!important;transition:transform .2s ease,border-color .2s ease,background .2s ease,color .2s ease!important}
-        body.neo-mode .moon-hero__cta--primary{background:linear-gradient(135deg,#f8c84b 0%,#c08b19 100%)!important;color:#130f05!important;border-color:rgba(255,247,221,.34)!important}
-        body.neo-mode .moon-hero__cta--ghost{background:linear-gradient(135deg,rgba(255,247,221,.12),rgba(255,247,221,.06))!important;color:#fff7dd!important;border-color:rgba(243,221,154,.32)!important}
-        body.neo-mode .moon-hero__cta--soft{min-height:42px!important;padding:10px 16px!important;background:rgba(255,247,221,.055)!important;color:#f3dd9a!important;border-color:rgba(243,221,154,.2)!important;text-decoration:none!important}
-        body.neo-mode .moon-hero__cta:hover{transform:translateY(-1px)!important;border-color:rgba(248,200,75,.5)!important}
         body:not(.neo-mode) .moon-collection-nav,body:not(.neo-mode) .feat-collection{background:linear-gradient(150deg,rgba(255,255,255,.82),rgba(255,244,252,.72) 52%,rgba(236,248,255,.74))!important;border-color:rgba(244,114,182,.2)!important;box-shadow:0 16px 34px rgba(148,92,120,.12),inset 0 1px 0 rgba(255,255,255,.82)!important}
         body:not(.neo-mode) .moon-collection-nav .moon-preview-card__name,body:not(.neo-mode) .feat-collection__title,body:not(.neo-mode) .feat-collection__grid .tarot-tile__title{color:#4c1d5f!important;text-shadow:none!important}
         body:not(.neo-mode) .moon-collection-nav .moon-preview-card__meta,body:not(.neo-mode) .feat-collection__subtitle,body:not(.neo-mode) .feat-collection__lede{color:#5b4966!important;text-shadow:none!important}
@@ -1751,12 +957,6 @@ body:not(.neo-mode) .moon-hero{
         body.neo-mode .feat-collection__featureline{color:#E8DFC8!important;border-color:rgba(201,168,76,.24)!important;background:rgba(10,11,26,.38)!important}
         body.neo-mode .feat-collection__grid .tarot-tile{border-color:rgba(232,223,200,.13)!important;background:linear-gradient(160deg,rgba(10,11,26,.76),rgba(15,16,53,.68) 54%,rgba(26,21,80,.56))!important;box-shadow:0 16px 34px rgba(4,5,18,.34),inset 0 1px 0 rgba(240,238,232,.1)!important}
         body.neo-mode .feat-collection__grid .tarot-tile__body{background:linear-gradient(180deg,rgba(10,11,26,.08),rgba(10,11,26,.38))!important}
-        @media(max-width:860px){body:not(.neo-mode) .moon-hero__picture--mascot,body.neo-mode .moon-hero__picture--mascot{right:10px!important;bottom:10px!important;width:104px!important;height:104px!important}}
-        body:not(.neo-mode) .moon-hero__eyebrow,body:not(.neo-mode) .moon-hero__brand-line{color:#7c2d72!important;text-shadow:0 1px 0 rgba(255,255,255,.8)!important}
-        body:not(.neo-mode) .moon-hero__alias{color:#7c2d72!important;text-shadow:0 1px 0 rgba(255,255,255,.8)!important}
-        body:not(.neo-mode) .moon-hero h1{background:linear-gradient(112deg,#9d174d 0%,#c02674 36%,#6d28d9 72%,#4338ca 100%)!important;-webkit-background-clip:text!important;background-clip:text!important;-webkit-text-fill-color:transparent!important;text-shadow:none!important;filter:drop-shadow(0 2px 0 rgba(255,255,255,.8)) drop-shadow(0 12px 24px rgba(157,23,77,.18))!important}
-        body:not(.neo-mode) .moon-hero__lead{color:#6b235f!important;font-weight:800!important;text-shadow:0 1px 0 rgba(255,255,255,.72)!important}
-        body:not(.neo-mode) .moon-hero__trust span,body:not(.neo-mode) .moon-hero__trust a,body:not(.neo-mode) .moon-hero__trust button{color:#5b2162!important}
         body:not(.neo-mode) .feat-collection--animal{background:linear-gradient(180deg,rgba(8,78,62,.72),rgba(3,48,44,.82))!important;border-color:rgba(167,243,208,.55)!important;box-shadow:0 8px 32px rgba(0,0,0,.28),0 0 0 1px rgba(34,197,94,.3) inset!important}
         body:not(.neo-mode) .feat-collection--oracle{background:linear-gradient(160deg,rgba(120,53,15,.6),rgba(69,26,3,.7))!important;border-color:rgba(253,224,71,.7)!important;box-shadow:0 8px 32px rgba(0,0,0,.25),0 0 0 1px rgba(245,158,11,.35) inset!important}
         body:not(.neo-mode) .feat-collection--cosmic{background:linear-gradient(160deg,rgba(46,16,101,.7),rgba(30,27,75,.75))!important;border-color:rgba(167,139,250,.7)!important;box-shadow:0 8px 32px rgba(0,0,0,.25),0 0 0 1px rgba(139,92,246,.35) inset!important}
@@ -1842,90 +1042,9 @@ body:not(.neo-mode) .moon-hero{
         body.neo-mode .tarot-collection__header,body.neo-mode .feat-collection__header{border-radius:18px!important}
         @media(max-width:860px){body:not(.neo-mode) .moon-collection-nav,body.neo-mode .moon-collection-nav{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:7px!important;margin-left:12px!important;margin-right:12px!important;padding:14px 10px!important}body:not(.neo-mode) .moon-collection-nav .moon-preview-card,body.neo-mode .moon-collection-nav .moon-preview-card{min-height:86px!important}}
         @media(max-width:520px){body:not(.neo-mode) .moon-collection-nav,body.neo-mode .moon-collection-nav{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
-
-
-        body.neo-mode .moon-hero__visual{min-height:392px!important;overflow:hidden!important;background:radial-gradient(circle at 56% 16%,rgba(255,255,255,.46),transparent 23%),radial-gradient(circle at 18% 78%,rgba(168,184,216,.24),transparent 35%),linear-gradient(180deg,rgba(232,223,200,.18),rgba(180,184,204,.2)),linear-gradient(145deg,#d8d6d8 0%,#f1eef2 48%,#c8cedb 100%)!important;border-color:rgba(243,221,154,.24)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 20px 46px rgba(4,5,18,.36)!important}
-        body.neo-mode .moon-hero__visual::before{background:radial-gradient(circle at 42% 34%,rgba(255,255,255,.28),transparent 20%),repeating-linear-gradient(90deg,rgba(10,11,26,.035) 0 1px,transparent 1px 4px)!important;opacity:.78!important}
-        body.neo-mode .moon-hero__moon{right:32px!important;top:-26px!important;z-index:6!important;width:126px!important;height:126px!important;background:linear-gradient(135deg,#d8911b 0%,#111545 64%,#090d2a 100%)!important;border-radius:50%!important;box-shadow:0 18px 34px rgba(4,5,18,.32)!important}
-        body.neo-mode .moon-hero__moon::after{left:50px!important;top:12px!important;width:96px!important;height:112px!important;background:#090d2a!important;border-radius:50%!important;box-shadow:none!important}
-        body.neo-mode .moon-hero__portal{right:70px!important;bottom:46px!important;z-index:2!important;width:238px!important;height:272px!important;border-radius:124px 124px 18px 18px!important;border:1px solid rgba(243,221,154,.36)!important;background:radial-gradient(circle at 50% 22%,rgba(255,255,255,.34),transparent 15%),radial-gradient(circle at 48% 44%,rgba(168,184,216,.32),transparent 34%),linear-gradient(165deg,rgba(61,55,92,.86),rgba(36,31,62,.9) 62%,rgba(28,22,45,.94))!important;box-shadow:0 20px 34px rgba(4,5,18,.24),inset 0 0 0 1px rgba(255,255,255,.18),inset 0 0 48px rgba(232,223,200,.1)!important}
-        body.neo-mode .moon-hero__portal::before{content:''!important;position:absolute!important;inset:18px 18px 0!important;border-radius:104px 104px 12px 12px!important;border:1px solid rgba(232,223,200,.34)!important;border-bottom:0!important;background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(10,11,26,.18))!important}
-        body.neo-mode .moon-hero__portal::after{content:''!important;position:absolute!important;left:50%!important;top:34px!important;bottom:22px!important;width:1px!important;background:linear-gradient(180deg,rgba(255,255,255,.72),rgba(243,221,154,.36),rgba(255,255,255,.08))!important;box-shadow:0 0 16px rgba(255,255,255,.38)!important}
-        body.neo-mode .moon-hero__card-stack{display:block!important;left:28px!important;bottom:46px!important;z-index:5!important;width:220px!important;height:154px!important;transform:rotate(-6deg)!important;transform-origin:left bottom!important;filter:drop-shadow(0 18px 22px rgba(4,5,18,.38))!important}
-        body.neo-mode .moon-hero__card-stack .moon-hero__tarot-card{display:block!important;position:absolute!important;width:96px!important;height:128px!important;border-radius:14px!important;border:1px solid rgba(243,221,154,.42)!important;background:radial-gradient(circle at 52% 38%,rgba(232,223,200,.22),transparent 18%),linear-gradient(150deg,#2e2549 0%,#17162f 62%,#100d20 100%)!important;box-shadow:0 16px 24px rgba(4,5,18,.28),inset 0 0 0 2px rgba(255,255,255,.07)!important}
-        body.neo-mode .moon-hero__card-stack .moon-hero__tarot-card::before{content:''!important;position:absolute!important;inset:10px!important;border:1px solid rgba(243,221,154,.26)!important;border-radius:10px!important}
-        body.neo-mode .moon-hero__card-stack .moon-hero__tarot-card::after{content:'\263E'!important;position:absolute!important;inset:0!important;display:grid!important;place-items:center!important;color:#f3dd9a!important;font-size:2rem!important;text-shadow:0 0 16px rgba(248,200,75,.45)!important}
-        body.neo-mode .moon-hero__card-stack .moon-hero__tarot-card--back{left:0!important;bottom:8px!important;transform:rotate(-14deg)!important}
-        body.neo-mode .moon-hero__card-stack .moon-hero__tarot-card--glow{left:58px!important;bottom:18px!important;z-index:2!important;transform:rotate(2deg)!important}
-        body.neo-mode .moon-hero__card-stack .moon-hero__tarot-card--edge{left:120px!important;bottom:2px!important;transform:rotate(13deg)!important}
-        body.neo-mode .moon-hero__picture--mascot{right:36px!important;bottom:20px!important;z-index:7!important;width:136px!important;height:136px!important;filter:drop-shadow(0 16px 18px rgba(4,5,18,.28))!important}
-        body.neo-mode .moon-hero__picture--mascot img{filter:saturate(1.04) contrast(1.02) brightness(1.02)!important}
-        body.neo-mode .moon-hero__zzz{display:block!important;right:2px!important;top:4px!important;color:rgba(167,139,250,.9)!important;text-shadow:0 0 12px rgba(255,255,255,.34)!important}
-        @media(max-width:860px){body.neo-mode .moon-hero__visual{min-height:370px!important}body.neo-mode .moon-hero__moon{right:18px!important;top:-18px!important;width:108px!important;height:108px!important}body.neo-mode .moon-hero__moon::after{left:42px!important;top:10px!important;width:84px!important;height:96px!important}body.neo-mode .moon-hero__portal{right:54px!important;bottom:44px!important;width:194px!important;height:226px!important;border-radius:100px 100px 16px 16px!important}body.neo-mode .moon-hero__card-stack{left:22px!important;bottom:48px!important;transform:scale(.86) rotate(-6deg)!important}body.neo-mode .moon-hero__picture--mascot{right:20px!important;bottom:18px!important;width:118px!important;height:118px!important}}
-        @media(max-width:520px){body.neo-mode .moon-hero__visual{min-height:390px!important}body.neo-mode .moon-hero__portal{right:34px!important;bottom:50px!important;width:178px!important;height:216px!important}body.neo-mode .moon-hero__card-stack{left:18px!important;bottom:54px!important;transform:scale(.8) rotate(-6deg)!important}body.neo-mode .moon-hero__picture--mascot{right:18px!important;bottom:18px!important;width:112px!important;height:112px!important}}
-
-        body:not(.neo-mode) .moon-hero__moon,
-        body.neo-mode .moon-hero__moon{position:absolute!important;right:30px!important;top:12px!important;z-index:6!important;width:112px!important;height:112px!important;overflow:visible!important;border-radius:50%!important;background:radial-gradient(circle at 28% 24%,rgba(255,255,255,.96) 0 4%,transparent 5%),radial-gradient(circle at 38% 64%,rgba(125,84,42,.2) 0 5%,transparent 6%),radial-gradient(circle at 18% 70%,rgba(114,78,40,.16) 0 3%,transparent 4%),radial-gradient(circle at 34% 32%,#fffbe6 0%,#f6d985 36%,#d99b34 64%,#825323 100%)!important;box-shadow:0 0 34px rgba(255,231,166,.42),0 0 70px rgba(196,181,253,.2),0 18px 34px rgba(4,5,18,.22),inset -14px -10px 24px rgba(97,63,28,.3),inset 9px 8px 18px rgba(255,255,255,.44)!important;animation:cdHeroMoonCrescentFloat 7.2s ease-in-out infinite!important;transform-origin:50% 50%!important}
         /* ── 네오 달빛 통합: 모바일 히어로 달을 골드-브라운 → 샴페인·실버 문라이트로 승격(네오 라벤더 팔레트 정합).
            크레이터 다층·냉색, 라벤더+샴페인 헤일로, 하드 크레센트(#0d0b08) → 소프트 터미네이터.
            성능: blur 필터 없이 그라디언트·box-shadow(합성 레이어)만 사용. 연이(위 공유 규칙)는 무변경. ── */
-        body.neo-mode .moon-hero__moon{
-          background:
-            radial-gradient(circle at 30% 24%, rgba(255,255,255,.96) 0 3%, transparent 6%),
-            radial-gradient(circle at 62% 40%, rgba(108,100,140,.20) 0 4%, transparent 5%),
-            radial-gradient(circle at 40% 66%, rgba(108,100,140,.17) 0 5%, transparent 6%),
-            radial-gradient(circle at 24% 52%, rgba(108,100,140,.13) 0 3%, transparent 4%),
-            radial-gradient(circle at 70% 66%, rgba(108,100,140,.14) 0 3%, transparent 4%),
-            radial-gradient(circle at 34% 30%, #fffdf6 0%, #f4ecd6 32%, #ddd4c2 58%, #b9b2cc 82%, #8d88a6 100%) !important;
-          box-shadow:
-            0 0 30px rgba(232,213,163,.40),
-            0 0 66px rgba(196,181,253,.30),
-            0 16px 34px rgba(6,9,27,.28),
-            inset -13px -11px 26px rgba(66,60,94,.34),
-            inset 10px 9px 20px rgba(255,255,255,.5) !important;
-        }
-        body.neo-mode .moon-hero__moon::after{
-          background: radial-gradient(122% 118% at 16% 32%, transparent 44%, rgba(44,38,70,.32) 72%, rgba(18,14,34,.58) 100%) !important;
-          filter: none !important;
-        }
-        body:not(.neo-mode) .moon-hero__moon svg,
-        body.neo-mode .moon-hero__moon svg{display:none!important}
-        body:not(.neo-mode) .moon-hero__moon::before,
-        body.neo-mode .moon-hero__moon::before{content:''!important;position:absolute!important;inset:-24px!important;border-radius:50%!important;background:radial-gradient(circle,rgba(255,246,218,.24) 0%,rgba(247,216,139,.12) 42%,rgba(196,181,253,.1) 58%,transparent 74%)!important;box-shadow:none!important;animation:cdHeroMoonHaloPulse 5.4s ease-in-out infinite!important;pointer-events:none!important}
-        body:not(.neo-mode) .moon-hero__moon::after,
-        body.neo-mode .moon-hero__moon::after{content:''!important;position:absolute!important;left:38px!important;top:-8px!important;width:98px!important;height:124px!important;border-radius:50%!important;background:linear-gradient(145deg,#111747 0%,#090e2f 58%,#07091f 100%)!important;box-shadow:-10px 5px 20px rgba(9,14,47,.24),inset 9px 0 18px rgba(196,181,253,.08)!important}
-        body.neo-mode .moon-hero__card-stack[data-transparent-hero-asset="tarot-card-obsidian-lux-no-x-v20260612"]{display:block!important;left:38px!important;bottom:48px!important;z-index:5!important;width:176px!important;height:126px!important;perspective:620px!important;transform:none!important;transform-origin:left bottom!important;filter:drop-shadow(0 22px 34px rgba(7,8,26,.44))!important;animation:cdHeroTarotStackBreathe 5.6s ease-in-out infinite!important}
-        body.neo-mode .moon-hero__card-stack .moon-hero__tarot-card{display:block!important;position:absolute!important;right:auto!important;bottom:auto!important;width:94px!important;height:126px!important;overflow:hidden!important;border-radius:17px!important;border:1px solid rgba(246,218,145,.62)!important;background:linear-gradient(150deg,rgba(14,16,38,.98),rgba(32,27,76,.95) 45%,rgba(96,55,103,.92))!important;box-shadow:0 18px 34px rgba(5,7,22,.48),0 0 28px rgba(245,203,122,.16),inset 0 1px 0 rgba(255,255,255,.24),inset 0 -18px 34px rgba(8,9,30,.48)!important;transform-style:preserve-3d!important;backface-visibility:hidden!important;animation:cdHeroTarotCardFloat 4.8s ease-in-out infinite!important;transition:transform .38s ease,filter .38s ease,box-shadow .38s ease!important}
-        body.neo-mode .moon-hero__card-stack .moon-hero__tarot-card::before{content:''!important;position:absolute!important;inset:9px!important;border-radius:12px!important;border:1px solid rgba(249,221,151,.5)!important;background:radial-gradient(circle at 50% 24%,rgba(255,239,190,.55) 0 3px,transparent 4px),radial-gradient(circle at 50% 76%,rgba(255,239,190,.36) 0 2px,transparent 3px),conic-gradient(from 20deg at 50% 50%,transparent 0 18%,rgba(247,216,139,.3) 20%,transparent 22% 48%,rgba(190,168,255,.2) 50%,transparent 54% 82%,rgba(247,216,139,.26) 84%,transparent 88%),linear-gradient(135deg,rgba(255,255,255,.12),transparent 34%,rgba(245,203,122,.11) 68%,transparent)!important;box-shadow:inset 0 0 22px rgba(247,216,139,.14),0 0 18px rgba(167,139,250,.16)!important;opacity:.95!important;animation:cdHeroTarotSigilShimmer 6.2s ease-in-out infinite!important}
-        body.neo-mode .moon-hero__card-stack .moon-hero__tarot-card::after{content:'\263D'!important;position:absolute!important;inset:0!important;display:grid!important;place-items:center!important;color:#ffe9a9!important;font-family:var(--font-display)!important;font-size:2.18rem!important;line-height:1!important;text-shadow:0 0 12px rgba(255,233,169,.76),0 0 28px rgba(196,181,253,.38)!important;animation:cdHeroTarotGlyphPulse 3.8s ease-in-out infinite!important}
-        body.neo-mode .moon-hero__card-stack .moon-hero__tarot-card--back{left:2px!important;top:12px!important;z-index:2!important;transform:rotate(-11deg)!important;animation-delay:0s!important}
-        body.neo-mode .moon-hero__card-stack .moon-hero__tarot-card--glow{left:36px!important;top:0!important;z-index:3!important;transform:rotate(2deg)!important;border-color:rgba(255,231,168,.78)!important;box-shadow:0 20px 42px rgba(5,7,22,.5),0 0 34px rgba(246,218,145,.24),0 0 52px rgba(167,139,250,.17),inset 0 1px 0 rgba(255,255,255,.26),inset 0 -18px 34px rgba(8,9,30,.46)!important;animation-delay:.18s!important}
-        body.neo-mode .moon-hero__card-stack .moon-hero__tarot-card--edge{left:68px!important;top:14px!important;z-index:1!important;transform:rotate(13deg)!important;animation-delay:.36s!important}
-        body.neo-mode .moon-hero:hover .moon-hero__tarot-card--back{transform:translateY(-4px) rotate(-13deg)!important}
-        body.neo-mode .moon-hero:hover .moon-hero__tarot-card--glow{transform:translateY(-8px) rotate(2deg)!important}
-        body.neo-mode .moon-hero:hover .moon-hero__tarot-card--edge{transform:translateY(-4px) rotate(15deg)!important}
-        @media(max-width:860px){body:not(.neo-mode) .moon-hero__moon,body.neo-mode .moon-hero__moon{right:24px!important;top:22px!important;width:78px!important;height:78px!important}body:not(.neo-mode) .moon-hero__moon::before,body.neo-mode .moon-hero__moon::before{inset:-18px!important}body:not(.neo-mode) .moon-hero__moon::after,body.neo-mode .moon-hero__moon::after{left:27px!important;top:-5px!important;width:68px!important;height:88px!important}body.neo-mode .moon-hero__card-stack[data-transparent-hero-asset="tarot-card-obsidian-lux-no-x-v20260612"]{left:20px!important;bottom:28px!important;transform:scale(.74)!important;transform-origin:left bottom!important}}
-        @media(max-width:520px){body:not(.neo-mode) .moon-hero__moon,body.neo-mode .moon-hero__moon{right:24px!important;top:24px!important;width:72px!important;height:72px!important}body:not(.neo-mode) .moon-hero__moon::after,body.neo-mode .moon-hero__moon::after{left:25px!important;top:-5px!important;width:64px!important;height:82px!important}body.neo-mode .moon-hero__card-stack[data-transparent-hero-asset="tarot-card-obsidian-lux-no-x-v20260612"]{left:20px!important;bottom:28px!important;transform:scale(.74)!important;transform-origin:left bottom!important}}
-        @media(prefers-reduced-motion:reduce){body:not(.neo-mode) .moon-hero__moon,body:not(.neo-mode) .moon-hero__moon::before,body.neo-mode .moon-hero__moon,body.neo-mode .moon-hero__moon::before,body.neo-mode .moon-hero__card-stack,body.neo-mode .moon-hero__tarot-card,body.neo-mode .moon-hero__tarot-card::before,body.neo-mode .moon-hero__tarot-card::after{animation:none!important;transition:none!important}}
-
-
-        body.neo-mode .moon-hero__trust{display:flex!important;flex-wrap:wrap!important;align-items:center!important;gap:10px!important;margin-top:2px!important;padding:4px 0!important}
-        body.neo-mode .moon-hero__trust a,body.neo-mode .moon-hero__trust button,body.neo-mode .moon-hero__trust span{position:relative!important;isolation:isolate!important;overflow:hidden!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:7px!important;min-height:40px!important;padding:10px 15px!important;border-radius:999px!important;border:1px solid rgba(243,221,154,.28)!important;background:radial-gradient(circle at 20% 16%,rgba(255,247,221,.2),transparent 28%),linear-gradient(145deg,rgba(15,11,3,.84),rgba(36,26,7,.64) 56%,rgba(10,11,26,.68))!important;color:#fff7dd!important;font-size:.82rem!important;font-weight:900!important;line-height:1.15!important;text-decoration:none!important;text-shadow:0 1px 8px rgba(0,0,0,.58)!important;box-shadow:0 10px 24px rgba(0,0,0,.26),inset 0 1px 0 rgba(255,244,194,.16)!important;transition:transform .22s ease,border-color .22s ease,background .22s ease,color .22s ease,box-shadow .22s ease!important}
-        body.neo-mode .moon-hero__trust a::before,body.neo-mode .moon-hero__trust button::before,body.neo-mode .moon-hero__trust span::before{content:''!important;flex:0 0 auto!important;width:6px!important;height:6px!important;border-radius:50%!important;background:#f8c84b!important;box-shadow:0 0 12px rgba(248,200,75,.62)!important}
-        body.neo-mode .moon-hero__trust a::after,body.neo-mode .moon-hero__trust button::after,body.neo-mode .moon-hero__trust span::after{content:''!important;position:absolute!important;inset:1px 10px auto!important;height:1px!important;border-radius:999px!important;background:linear-gradient(90deg,transparent,rgba(255,247,221,.58),transparent)!important;opacity:.58!important;pointer-events:none!important}
-        body.neo-mode .moon-hero__trust a[data-cd-hero-trust-kind="membership"]{border-color:rgba(248,200,75,.42)!important;background:radial-gradient(circle at 18% 18%,rgba(255,247,221,.26),transparent 30%),linear-gradient(145deg,rgba(58,41,8,.9),rgba(24,18,5,.78) 58%,rgba(10,11,26,.66))!important;color:#fff3bf!important;box-shadow:0 12px 28px rgba(0,0,0,.3),0 0 0 1px rgba(248,200,75,.08),inset 0 1px 0 rgba(255,244,194,.2)!important}
-        body.neo-mode .moon-hero__trust a:hover,body.neo-mode .moon-hero__trust a:focus-visible,body.neo-mode .moon-hero__trust button:hover,body.neo-mode .moon-hero__trust button:focus-visible{transform:translateY(-1px)!important;border-color:rgba(248,200,75,.58)!important;background:radial-gradient(circle at 20% 16%,rgba(255,247,221,.28),transparent 30%),linear-gradient(145deg,rgba(62,45,10,.9),rgba(18,14,4,.78) 58%,rgba(16,18,46,.72))!important;color:#fff9e8!important;outline:none!important;box-shadow:0 14px 30px rgba(0,0,0,.34),0 0 0 3px rgba(248,200,75,.14),inset 0 1px 0 rgba(255,244,194,.2)!important}
-        body.neo-mode .moon-hero__trust a:active,body.neo-mode .moon-hero__trust button:active{transform:translateY(0)!important}
-        @media(max-width:860px){body.neo-mode .moon-hero__trust{gap:8px!important}body.neo-mode .moon-hero__trust a,body.neo-mode .moon-hero__trust button,body.neo-mode .moon-hero__trust span{min-height:38px!important;padding:9px 12px!important;font-size:.76rem!important}}
-        @media(max-width:520px){body.neo-mode .moon-hero__trust{display:grid!important;grid-template-columns:1fr!important;width:100%!important}body.neo-mode .moon-hero__trust a,body.neo-mode .moon-hero__trust button,body.neo-mode .moon-hero__trust span{width:100%!important;justify-content:flex-start!important}}
-
-
-        body.neo-mode .moon-hero .golden-grain-badge{top:20px!important;right:20px!important;width:min(258px,calc(100% - 40px))!important;border-radius:18px!important;border-color:rgba(232,205,126,.42)!important;background:linear-gradient(135deg,rgba(7,18,45,.94),rgba(17,36,87,.88) 48%,rgba(23,18,58,.9))!important;box-shadow:0 14px 30px rgba(4,5,18,.42),0 0 22px rgba(201,168,76,.16),inset 0 1px 0 rgba(240,238,232,.18)!important}
-        body.neo-mode .moon-hero .golden-grain-badge__coin{background:conic-gradient(from 20deg,#f8fbff 0 12%,#9ec5ff 13% 28%,#7c69ff 29% 46%,#f2d56f 47% 62%,#24447f 63% 82%,#f8fbff 83% 100%)!important;border-color:rgba(246,226,146,.7)!important;box-shadow:0 0 18px rgba(126,154,255,.34),0 0 12px rgba(201,168,76,.28),inset 0 2px 6px rgba(255,255,255,.48)!important}
-        body.neo-mode .moon-hero .golden-grain-badge__label{color:#A8B8D8!important}
-        body.neo-mode .moon-hero .golden-grain-badge__balance{color:#E8DFC8!important}
-        body.neo-mode .moon-hero .golden-grain-badge__charge{border:1px solid rgba(232,205,126,.46)!important;border-radius:9px!important;background:linear-gradient(135deg,#0c2457 0%,#1b4f9d 58%,#0a183a 100%)!important;color:#fff7d6!important;box-shadow:0 8px 18px rgba(20,58,128,.34),0 0 12px rgba(201,168,76,.18),inset 0 1px 0 rgba(255,255,255,.2)!important}
-        @media(max-width:767px){body.neo-mode .moon-hero .golden-grain-badge{top:12px!important;right:12px!important;width:min(228px,calc(100% - 24px))!important;transform-origin:top right!important}}
 
 
       :root{--moon-bg:#0a0d1a;--moon-surface:#111628;--moon-border:rgba(180,160,255,.18);--moon-border-focus:rgba(200,180,255,.55);--moon-glow:rgba(190,160,255,.12);--moon-text-primary:#e8e0ff;--moon-text-secondary:rgba(200,185,255,.6);--moon-text-hint:rgba(180,165,230,.4);--moon-accent:#c8a8ff;--moon-accent-warm:#ffd580;--moon-cta:linear-gradient(135deg,#c87dff 0%,#ffb347 100%);--moon-divider:rgba(180,160,255,.1)}
@@ -2015,7 +1134,6 @@ body:not(.neo-mode) .moon-hero{
       #destinyCardForm .dp-kakao-referral-link{display:inline-flex;align-items:center;justify-content:center;margin:0 5px;color:var(--moon-accent-warm)!important;font-weight:700;text-decoration:underline;text-underline-offset:3px}
       #destinyCardForm .dp-kakao-referral-copy{display:inline-flex;align-items:center;justify-content:center;min-height:28px;margin-left:6px;padding:4px 10px;border:1px solid rgba(255,213,128,.36);border-radius:999px;background:rgba(255,213,128,.14);color:var(--moon-accent-warm);font-size:12px;font-weight:700;line-height:1.2;cursor:pointer}
       #destinyCardForm .dp-kakao-referral-url{display:block;max-width:100%;margin-top:5px;color:var(--moon-accent-warm);font-size:12px;line-height:1.45;overflow-wrap:anywhere;word-break:break-all}
-      body:not(.neo-mode) #inputPage .moon-hero .moon-hero__lead{display:inline-block!important;width:max-content;max-width:min(100%,620px)!important;padding:10px 14px!important;border:1px solid rgba(255,255,255,.24)!important;border-radius:16px!important;background:linear-gradient(135deg,rgba(76,29,95,.86),rgba(190,24,93,.66))!important;color:#fff8fb!important;font-family:var(--font-premium,var(--font-body))!important;font-weight:800!important;line-height:1.62!important;text-shadow:0 1px 10px rgba(45,10,56,.62)!important;box-shadow:0 12px 28px rgba(124,45,114,.18),inset 0 1px 0 rgba(255,255,255,.18)!important}
       body:not(.neo-mode) #destinyCardForm.moon-destiny-form{--moon-bg:#fffafd;--moon-surface:#fff;--moon-border:rgba(219,39,119,.2);--moon-border-focus:rgba(190,24,93,.52);--moon-glow:rgba(244,114,182,.18);--moon-text-primary:#35143f;--moon-text-secondary:#68405f;--moon-text-hint:rgba(104,64,95,.6);--moon-accent:#be185d;--moon-accent-warm:#9d174d;--moon-divider:rgba(190,24,93,.12);border-radius:44px 24px 46px 24px!important;background:radial-gradient(ellipse 260px 170px at 12% 4%,rgba(255,255,255,.96),transparent 64%),radial-gradient(ellipse 180px 120px at 94% 2%,rgba(253,224,71,.28),transparent 58%),radial-gradient(ellipse 190px 150px at 8% 96%,rgba(167,243,208,.28),transparent 62%),radial-gradient(ellipse 220px 150px at 91% 85%,rgba(191,219,254,.3),transparent 60%),linear-gradient(145deg,#fffafd 0%,#fff0f7 44%,#f5fbff 100%)!important;color:#35143f!important;border-color:rgba(244,114,182,.32)!important;box-shadow:0 26px 62px rgba(148,92,120,.18),0 0 0 1px rgba(255,255,255,.78),inset 0 1px 0 rgba(255,255,255,.92)!important}
       body:not(.neo-mode) #destinyCardForm.moon-destiny-form::before{background:radial-gradient(ellipse 70px 34px at 8% 12%,rgba(244,114,182,.2),transparent 72%),radial-gradient(ellipse 34px 76px at 13% 19%,rgba(251,207,232,.34),transparent 70%),radial-gradient(ellipse 72px 34px at 91% 14%,rgba(253,224,71,.22),transparent 72%),radial-gradient(ellipse 36px 78px at 86% 21%,rgba(244,114,182,.18),transparent 70%),radial-gradient(ellipse 92px 40px at 18% 86%,rgba(167,243,208,.2),transparent 70%),radial-gradient(ellipse 44px 90px at 23% 82%,rgba(244,114,182,.12),transparent 74%),radial-gradient(1px 1px at 18% 22%,rgba(190,24,93,.28),transparent),radial-gradient(1px 1px at 66% 34%,rgba(14,165,233,.28),transparent),radial-gradient(1.2px 1.2px at 78% 72%,rgba(251,191,36,.34),transparent)!important;opacity:.98!important}
       body:not(.neo-mode) #destinyCardForm.moon-destiny-form::after{background:linear-gradient(120deg,transparent 0 45%,rgba(255,255,255,.34) 50%,transparent 56%),repeating-linear-gradient(135deg,rgba(190,24,93,.035) 0 1px,transparent 1px 18px)!important;opacity:.9!important}

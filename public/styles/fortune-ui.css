@@ -16708,61 +16708,6 @@ button,.tog-btn,.btn-main,.btn-sub,.dw-item,.feature-card,
 }
 
 :is(
-  .logo-area h1,
-  .moon-topbar__brand strong,
-  .moon-hero h1,
-  .moon-section-head h2,
-  .post-saju-services-intro strong,
-  .feat-collection__title,
-  .feature-card__title,
-  .tarot-tile__title,
-  .fortune-score,
-  .fortune-oneliner,
-  .fortune-sec-title,
-  .oracle-title-m,
-  #tarotModalOverlay #tarotCardName,
-  #tarotModalOverlay .tarot-card-name,
-  .res-title,
-  .df-studio-hero h2,
-  .ilju-v2-hero h2,
-  .t-hero-copy h1,
-  .t-hero-copy h2,
-  .t-hero-copy h3
-) {
-  font-family: var(--font-display);
-  letter-spacing: 0;
-  word-break: keep-all;
-  overflow-wrap: break-word;
-  text-wrap: balance;
-  font-feature-settings: "palt" 1;
-}
-
-:is(
-  .moon-hero__lead,
-  .moon-section-head p,
-  .post-saju-services-intro span,
-  .feature-card__desc,
-  .feature-card__detail-text,
-  .tarot-tile__desc,
-  .fortune-section,
-  .sub-desc,
-  .sub-daily-note,
-  #tarotModalOverlay .oracle-text-m,
-  #tarotModalOverlay .ritual-text-m,
-  .result-content,
-  .res-text--keyword,
-  .villain-v2-section p,
-  .villain-zone-card p,
-  .villain-one-line,
-  .villain-profile-card .villain-quote
-) {
-  font-family: var(--font-body);
-  letter-spacing: 0;
-  word-break: keep-all;
-  overflow-wrap: break-word;
-}
-
-:is(
   .membership-recap-cta__title,
   .membership-recap-cta__btn,
   .honey-membership-mini__title,
@@ -16813,22 +16758,6 @@ button,.tog-btn,.btn-main,.btn-sub,.dw-item,.feature-card,
   word-break: keep-all;
 }
 
-:is(
-  .feature-card__launch,
-  .feature-card__cta,
-  .moon-hero__cta,
-  .mystic-summon-btn,
-  .btn-subscribe,
-  .villain-copy-btn,
-  .lotto-draw-btn
-) {
-  font-family: var(--font-body);
-  font-weight: 800;
-  letter-spacing: 0;
-  word-break: keep-all;
-  overflow-wrap: break-word;
-}
-
 @media (max-width: 480px) {
   :is(
     .feature-card__title,
@@ -16849,7 +16778,6 @@ button,.tog-btn,.btn-main,.btn-sub,.dw-item,.feature-card,
   }
 }
 
-.moon-hero h1,
 .moon-topbar__brand strong,
 .moon-section-head h2,
 .feat-collection__title,
@@ -16929,7 +16857,6 @@ button,.tog-btn,.btn-main,.btn-sub,.dw-item,.feature-card,
   word-break: keep-all;
 }
 
-.moon-hero__lead,
 .moon-section-head p,
 .feature-card__desc,
 .feature-card__detail-text,
@@ -16952,7 +16879,6 @@ button,.tog-btn,.btn-main,.btn-sub,.dw-item,.feature-card,
 
 .feature-card__launch,
 .feature-card__cta,
-.moon-hero__cta,
 .mystic-summon-btn,
 .btn-subscribe,
 .membership-recap-cta__btn,
