@@ -129,7 +129,7 @@ export function usePremiumReport<T>(product: PremiumProduct): UsePremiumReportRe
         setLedgerUnlocked(false);
       }
       // 402는 정상적인 잠금 상태다. 사용자 오류로 표시하지 않고 잠금을 유지한다.
-      if (status === 402) return;
+      if (status === 402) return false;
       if (data.reason === "PAYMENT_REQUIRED") return false;
       if (status === 401 || data.reason === "LOGIN_REQUIRED") { setError(ERROR_TEXT.login); return false; }
       if (transient) { setError(ERROR_TEXT.degraded); return false; }

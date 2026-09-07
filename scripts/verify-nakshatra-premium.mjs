@@ -443,7 +443,7 @@ console.log("\n[9] 프론트 계약 — 결제·잠금 판정의 단일 정본")
     /markOptimisticallyUnlocked\(/.test(hookCode) && /hasLedgerUnlock\(/.test(hookCode));
   check(`${hookPath}: paymentMode 를 강제하지 않는다`, !/paymentMode/.test(hookCode));
   check(`${hookPath}: 402 를 잠금 유지로만 처리한다(에러 문구로 세탁 금지)`,
-    /status === 402[\s\S]{0,120}return;/.test(hookCode));
+    /status === 402[\s\S]{0,120}return(?:\s+false)?;/.test(hookCode));
   check(`${hookPath}: 공용 나크샤트라 프로필 컨텍스트 재사용`,
     /useNakshatraProfileContext/.test(hookCode));
   const profileContextPath = "app/nakshatra/_lib/nakshatra-context.ts";
