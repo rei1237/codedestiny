@@ -35,7 +35,7 @@ import { canUseByPass, normalizeHoneyPassEntitlement, resolvePremiumQuota } from
 import { resolveCanonicalEntitlement } from "../lib/entitlement-policy.js";
 // 🔴 이 라우트는 coin-gate 를 거치지 않는 자체 게이트라, 이용권 통과를 내주면서 누적 사용량을
 // 아무도 차감하지 않았다(한도가 존재하지 않았다). 판정·소비 정본은 worker/payments/passes.js.
-import { consumePassForFeature, passDenialCode } from "../lib/pass-consumption.js";
+import { consumePassForFeature, hasConsumedPassFeature, passDenialCode } from "../lib/pass-consumption.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
@@ -801,6 +801,7 @@ async function handleEnsureAccess(request, env) {
   await connectDb(env);
   const user = await withMongoRetry(env, () => loadBillingUser(auth.userId));
   if (clean(user?.role).toLowerCase() === "admin") return grant("admin");
+  if (await hasConsumedPassFeature(user, resolveMode(normalized.mode).featureKey, idempotencyKey)) return grant("pass");
 
   // 이용권 선검사 — 커버되면 결제창 없이 무료 통과한다.
   // canUseByPass(건당 상한)만 보면 상담 포함횟수(family 10회·vvip 3회)와 월 누적 한도를 우회할
@@ -870,6 +871,9 @@ async function resolveStartAccess(request, env, auth, body, normalized, idempote
 
   const user = await withMongoRetry(env, () => loadBillingUser(auth.userId));
   if (clean(user?.role).toLowerCase() === "admin") return { ok: true, accessType: "admin", paymentId: "", billingRequestId: idempotencyKey };
+  if (await hasConsumedPassFeature(user, resolveMode(normalized.mode).featureKey, idempotencyKey)) {
+    return { ok: true, accessType: "pass", paymentId: "", billingRequestId: idempotencyKey };
+  }
   const startCoinCost = getPricing(normalized.mode).coinPrice;
   {
     const canonicalEntitlement = resolveCanonicalEntitlement(user || {});

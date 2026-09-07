@@ -3142,13 +3142,14 @@
     } catch (_passStoreUrlError) { return ''; }
   }
   // 이용권을 사러 떠나기 직전에 남긴다 — /points 가 결제 성공 후 이 지점으로 돌려보낸다.
-  function _dpRememberCheckoutReturn(featureKey) {
+  function _dpRememberCheckoutReturn(featureKey, options) {
     var api = _dpCheckoutEntry();
     if (!api || typeof api.rememberCheckoutReturn !== 'function') return;
     try {
       api.rememberCheckoutReturn({
         url: String(window.location.pathname || '/') + String(window.location.search || '') + String(window.location.hash || ''),
-        featureKey: String(featureKey || '')
+        featureKey: String(featureKey || ''),
+        paidResume: api.buildPaidResumeContext(options || {})
       });
     } catch (_rememberError) { /* 복귀 지점 저장 실패는 결제를 막지 않는다 */ }
   }
@@ -4117,6 +4118,10 @@
     if (opts.targetYear !== undefined && opts.targetYear !== null) checkoutPayload.targetYear = opts.targetYear;
     if (opts.serviceKey) checkoutPayload.serviceKey = opts.serviceKey;
     if (opts.serviceId || opts.serviceKey) checkoutPayload.serviceId = opts.serviceId || opts.serviceKey;
+    if (opts.resume) checkoutPayload.paidResume = {
+      originPath: window.location.pathname + window.location.search + window.location.hash,
+      resume: opts.resume
+    };
     return { checkoutPayload: checkoutPayload, coinPrice: coinPrice, amountKrw: amountKrw, featureKey: directFeatureKey };
   }
 
@@ -4222,18 +4227,18 @@
     } catch (_) {}
   }
 
-  function _dpClearDirectResumeTicket() {
+  function _dpClearDirectResumeTicket(paymentId) {
     var api = _dpCheckoutEntry();
     if (api && typeof api.clearDirectPaymentResumeTicket === 'function') {
-      api.clearDirectPaymentResumeTicket();
+      api.clearDirectPaymentResumeTicket(paymentId);
       return;
     }
     try { sessionStorage.removeItem(_DP_DIRECT_RESUME_KEY); } catch (_) {}
   }
 
-  function _dpReadDirectResumeTicket() {
+  function _dpReadDirectResumeTicket(paymentId) {
     var api = _dpCheckoutEntry();
-    if (api && typeof api.readDirectPaymentResumeTicket === 'function') return api.readDirectPaymentResumeTicket();
+    if (api && typeof api.readDirectPaymentResumeTicket === 'function') return api.readDirectPaymentResumeTicket(paymentId);
     var raw = '';
     try { raw = String(sessionStorage.getItem(_DP_DIRECT_RESUME_KEY) || ''); } catch (_) { return null; }
     if (!raw) return null;
@@ -4262,7 +4267,7 @@
   // 같은 실패 알림이 다시 뜬다(실패). 나머지 쿼리·해시는 보존한다. PENDING·오류 갈래는 부르지 않는다
   // (거기서는 새로고침이 곧 멱등 재시도라 파라미터가 살아 있어야 한다).
   var _DP_DIRECT_RESUME_QUERY_KEYS = [
-    'portone_redirect', 'paymentId', 'payment_id', 'imp_uid', 'imp_success', 'merchant_uid',
+    'portone_redirect', 'paid_pass_resume', 'paymentId', 'payment_id', 'imp_uid', 'imp_success', 'merchant_uid',
     'code', 'message', 'error_code', 'error_msg', 'transactionType', 'txId',
   ];
   function _dpStripDirectResumeQuery() {
@@ -4437,14 +4442,17 @@
     if (typeof window === 'undefined') return;
     var query;
     try { query = new URLSearchParams(window.location.search || ''); } catch (_) { return; }
-    if (query.get('portone_redirect') !== '1') return;
+    var isPassReturn = query.get('paid_pass_resume') === '1';
+    if (query.get('portone_redirect') !== '1' && !isPassReturn) return;
     // 이용권·월정석·코인 복귀는 /points 의 몫이다.
     if (query.get('portone_subscription_redirect') || _dpIsPointsShopPath()) return;
 
-    var ticket = _dpReadDirectResumeTicket();
     var queryPaymentId = String(
       query.get('paymentId') || query.get('payment_id') || query.get('imp_uid') || '',
     ).trim();
+    var ticket = _dpReadDirectResumeTicket(queryPaymentId);
+    // 다른 탭에서 시작한 주문의 입력을 현재 PG 승인에 붙이지 않는다.
+    if (ticket && queryPaymentId && String(ticket.merchantUid || '') !== queryPaymentId) ticket = null;
     /* 🔴 티켓이 없다고 포기하지 않는다.
        카카오페이처럼 외부 앱을 거쳐 오는 수단은 브라우저가 **새 탭으로 복귀**시키는 일이 흔하고,
        그러면 세션 저장소가 통째로 비어 티켓이 사라진다 — 돈은 나갔는데 화면은 아무 것도 안 하는
@@ -4454,6 +4462,12 @@
     if ((!ticket || !ticket.confirmBody) && !queryPaymentId) return;
 
     var paymentId = String(queryPaymentId || (ticket && ticket.merchantUid) || '').trim();
+    if (paymentId && (isPassReturn || !ticket || !ticket.resume)) {
+      try {
+        var restored = await _dpPaymentFetchJson('/api/payments/orders/' + encodeURIComponent(paymentId) + '/resume', { method: 'GET' }, { retryOn401: true, refreshOn401: true });
+        if (restored.ok && restored.payload && restored.payload.context) ticket = restored.payload.context;
+      } catch (_resumeContextError) { /* 주문 확정은 계속하고, 입력 없는 실행은 하지 않는다. */ }
+    }
     var failed = String(query.get('code') || '').trim() !== ''
       || String(query.get('imp_success') || '').toLowerCase() === 'false';
     // 수단은 **티켓**에서 읽는다 — 선택 슬롯(setSelectedDirectPayMethod, TTL 120s)은 카카오톡을 다녀오는
@@ -4465,7 +4479,7 @@
 
     if (!paymentId || failed) {
       // 승인이 나지 않은 복귀다 — 티켓을 회수한다.
-      _dpClearDirectResumeTicket();
+      _dpClearDirectResumeTicket(paymentId);
       /* 🔴 실패 이유를 버리지 않는다.
          PG 는 리다이렉트 URL 에 code(예: FAILURE_TYPE_PG_PROVIDER)와 message 를 실어 보내는데,
          예전에는 message 만 읽고 code 는 통째로 버렸다. message 가 비어 오는 코드가 많아서
@@ -4521,7 +4535,7 @@
         impUid: paymentId,
         paymentId: paymentId,
       }));
-      var confirmRes = await _dpPaymentFetchJson('/api/billing/confirm', { method: 'POST', body: dpResumeBody }, { retryOn401: true, refreshOn401: true });
+      var confirmRes = await _dpPaymentFetchJson(isPassReturn ? '/api/payments/subscription/confirm' : '/api/billing/confirm', { method: 'POST', body: dpResumeBody }, { retryOn401: true, refreshOn401: true });
       var resumePayload = (confirmRes && confirmRes.payload && typeof confirmRes.payload === 'object') ? confirmRes.payload : {};
       /* 🔴 PENDING 은 실패가 아니다(셸 index.html 의 confirm 판정 순서와 같다). 서버는 지급 지연을
          200 + code:'GRANT_PENDING' + recoveryRequired:true 로 준다(worker/payments/compat.js) —
@@ -4541,9 +4555,26 @@
         window.alert(_dpReadBillingMessage(resumePayload, '결제 검증에 실패했습니다. 고객센터로 문의해 주세요.'));
         return;
       }
+      if (isPassReturn) {
+        // 이용권 구매 승인은 원래 상담의 소비 완료가 아니다. 원래 requestId로
+        // 서버 이용권 검사/멱등 차감을 수행한 증빙만 핸들러에 전달한다.
+        if (!ticket || !ticket.resume || !ticket.gate || !ticket.gate.requestId) {
+          _dpShowDirectResumeNotice('이용권은 적용되었습니다. 이전 상담의 입력을 복구하지 못했습니다. 결제 내역에서 주문을 확인해 주세요.', 'unlock-saving', 8000);
+          return;
+        }
+        var passGateBody = Object.assign({}, ticket.gate, { paymentMode: 'MEMBERSHIP_PASS' });
+        var passGateRes = await _dpPaymentFetchJson('/api/billing/coin-gate', { method: 'POST', body: JSON.stringify(passGateBody) }, { retryOn401: true, refreshOn401: true });
+        var passGateData = passGateRes.payload && (passGateRes.payload.data || passGateRes.payload);
+        if (!passGateRes.ok || !passGateData || !passGateData.consume || passGateData.consume.ok !== true) {
+          _dpShowDirectResumeNotice(_dpReadBillingMessage(passGateRes.payload, '이용권은 적용되었지만 이 상담의 이용 조건을 확인하지 못했습니다. 추가 결제 없이 같은 주문으로 다시 확인해 주세요.'), 'unlock-saving', 8000);
+          return;
+        }
+        ticket.confirmBody = passGateBody;
+        confirmRes = passGateRes;
+        resumePayload = passGateRes.payload;
+      }
       // 서버 confirm 은 멱등이다(existingUnlock 감지 → alreadyUnlocked). 중복 확정 위험은 없다.
-      // ① 확정됐으니 티켓 회수.
-      _dpClearDirectResumeTicket();
+      // 승인과 기능 실행은 별개다. 입력을 가진 티켓은 재개가 성공할 때까지 보존한다.
       // ② 🔴 데스크톱 confirm 경로와 같은 자리·같은 조건 — 서버가 확정을 검증한 뒤에만
       //    /api/me/access-state 의 60초 스냅샷을 강제 무효화한다. 안 하면 방금 산 기능이 최대 60초간
       //    잠긴 채로 보인다(리다이렉트 복귀는 이 호출이 빠져 있었다). 결과는 기다리지 않는다.
@@ -4587,9 +4618,8 @@
       try {
         if (typeof window.__cdClearPaidPrecheckCache === 'function') window.__cdClearPaidPrecheckCache('direct-payment-resume');
       } catch (_dpResumePrecheckError) {}
-      // ⑤ URL 정리(새로고침 재실행 방지). 자동 재개보다 먼저 한다 — 재개가 화면을 갈아엎는 사이
-      //    사용자가 새로고침하면 같은 주문을 또 확정하려 든다.
-      _dpStripDirectResumeQuery();
+      // URL도 실행 완료 전에는 유지한다. 새로고침은 같은 주문의 멱등 confirm과
+      // 같은 requestId의 결과 복구를 다시 시작해야 한다.
       // ⑥ 결제한 카드로 시선을 옮긴다. 카드가 없는 표면(독립 정적 페이지 등)이면 조용히 건너뛴다.
       var resumeTile = null;
       if (resumeFeatureKey && typeof CSS !== 'undefined' && CSS && typeof CSS.escape === 'function') {
@@ -4617,6 +4647,8 @@
         })
         : false;
       if (resumeOpened) {
+        _dpClearDirectResumeTicket(paymentId);
+        _dpStripDirectResumeQuery();
         /* 🔴 자동 재개가 성공했으면 영수증을 여기서 쓴다. 안 그러면 회당 결제 한 번에 "자동 개방 +
            다음 클릭 무료"로 두 번 열린다(③이 남겨 둔 것은 재개가 실패했을 때의 구제용이다). */
         if (resumeFeatureKey) {
@@ -4633,7 +4665,10 @@
         var resumeAction = String((resumeDescriptor && resumeDescriptor.action) || '').trim();
         _dpShowDirectResumeCard(
           resumeFeatureLabel,
-          resumeAction ? function () { _dpOpenRouteAction(resumeAction); } : null,
+          resumeDescriptor ? function () {
+            // 게이트를 다시 열면 회당 결제가 반복될 수 있다. 원래 입력/증빙으로 재개한다.
+            _dpResumeDirectPaymentAfterRedirect();
+          } : (resumeAction ? function () { _dpOpenRouteAction(resumeAction); } : null),
           // 열기 버튼이 없으면 "다시 누르면 무료"가 사용자가 할 수 있는 유일한 행동이다.
           resumeAction ? '' : _dpDirectResumeText('directResumeComplete', resumeMethodLabel),
         );
@@ -12473,7 +12508,7 @@
         // 웹: 중간 충전 모달을 건너뛰고 /points 의 이용권 결제 확인 모달까지 한 번에 간다.
         var storeUrl = _dpBuildPassStoreUrl(cost, coverage, 'standalone-payment-pass-store');
         if (storeUrl) {
-          _dpRememberCheckoutReturn(opts.featureKey);
+          _dpRememberCheckoutReturn(opts.featureKey, opts);
           try { window.location.assign(storeUrl); } catch (_) { window.location.href = storeUrl; }
           return;
         }

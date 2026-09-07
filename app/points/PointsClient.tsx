@@ -3104,6 +3104,7 @@ export default function PointsPage() {
         currency: "KRW",
         productType: plan.productType,
         paymentMethod: method,
+        paidResume: checkoutEntry.peekCheckoutReturn()?.paidResume || undefined,
       }),
     }, {
       retryOn401: true,
@@ -3197,14 +3198,28 @@ export default function PointsPage() {
   /**
    * 🔴 결제창의 '이용권으로 구매'로 넘어온 사용자를 원래 보던 화면으로 돌려보낸다.
    * 예전에는 상점으로 이동하는 순간 원래 요청이 버려져(status:'cancelled') 사용자가 스스로
-   * 되돌아가야 했다. 기능을 자동 재실행하지는 않는다 — 돌아간 화면에서 다시 누르면 이용권
-   * 커버로 무료 통과한다(자동 실행은 의도치 않은 생성·중복 실행 위험이 이득보다 크다).
-   * 복귀 지점은 consumeCheckoutReturn 이 읽는 즉시 지우므로 왕복 루프가 생기지 않는다.
+   * 되돌아가야 했다. 이제 주문에 저장한 입력과 requestId로 원래 화면에서 서버 이용권 검사를
+   * 거쳐 상담을 재개한다. PG 승인만으로 상담 완료나 이용권 소비를 판정하지 않는다.
    */
-  const scheduleCheckoutReturn = useCallback(() => {
+  const scheduleCheckoutReturn = useCallback(async (orderId?: string) => {
     if (typeof window === "undefined") return false;
-    const target = checkoutEntry.consumeCheckoutReturn();
+    let target = checkoutEntry.consumeCheckoutReturn();
+    // PG가 새 브라우저로 돌아왔으면 로컬 복귀 티켓이 없다. 승인된 주문의
+    // 암호화 context를 소유자 인증으로 되읽는다. URL에는 주문 ID만 추가한다.
+    if ((!target?.paidResume || !target?.url) && orderId) {
+      try {
+        const restored = await authFetch(`${apiBase}/api/payments/orders/${encodeURIComponent(orderId)}/resume`, { credentials: "include" }, { retryOn401: true, apiBase });
+        const payload = await safeParseJson<{ context?: { originPath: string; resume: { kind: string; action: string; args: Record<string, string | number | boolean | null> }; gate: Record<string, string | number>; version: number } }>(restored);
+        if (restored.ok && payload.context) target = { url: payload.context.originPath, label: "", featureKey: String(payload.context.gate.featureKey || ""), paidResume: payload.context };
+      } catch { /* context 확인 실패 시 기존 복귀 정보만 사용한다. */ }
+    }
     if (!target?.url) return false;
+    const destination = new URL(target.url, window.location.origin);
+    if (destination.origin !== window.location.origin) return false;
+    if (target.paidResume && orderId) {
+      destination.searchParams.set("paid_pass_resume", "1");
+      destination.searchParams.set("paymentId", orderId);
+    }
     pushToast("success", "달빛 이용권이 적용되었습니다. 원래 보시던 화면으로 돌아갈게요.");
     // 🔴 예전에는 스냅샷을 지우고 떠났다. 그러면 목적지의 재예열이 idle(1200~2200ms)이라, 도착 직후
     // 첫 클릭이 snapshotVerdictOnly 진입 판정에서 indeterminate 로 떨어져 **방금 이용권을 산 사용자에게
@@ -3236,7 +3251,7 @@ export default function PointsPage() {
       if (!warmed) {
         try { clearSubscriptionSnapshotForUser(); } catch { /* 스냅샷 정리 실패는 복귀를 막지 않는다 */ }
       }
-      window.setTimeout(() => { window.location.assign(target.url); }, Math.max(0, departAt - Date.now()));
+      window.setTimeout(() => { window.location.assign(destination.toString()); }, Math.max(0, departAt - Date.now()));
     })();
     return true;
   }, [apiBase, pushToast]);
@@ -3736,7 +3751,7 @@ export default function PointsPage() {
         refreshUserAccessAfterPayment().catch(() => {});
         // 결제 성공 지점은 카드·월정석·모바일 리다이렉트 복귀 세 곳인데 전부 이 헬퍼를 지난다.
         // 여기서 '예약'만 하므로(1.2초 뒤 이동) 호출부의 상태 갱신·토스트가 끝날 시간이 남는다.
-        scheduleCheckoutReturn();
+        await scheduleCheckoutReturn(body.merchantUid);
         return data;
       })();
 
