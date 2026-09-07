@@ -33,6 +33,12 @@ If the first three documents disagree, do not merge rules silently. Record the m
 
 ## Current Conflict Resolutions
 
+### 실행 등급과 GREEN 격리 면제 문구 충돌 (2026-09-08, 확인 필요)
+
+- `CLAUDE.md`의 현재 실행 계약은 2개 이상 파일 또는 CI·배포 축을 RED로 판정하고 격리 worktree를 요구한다.
+- `docs/context/coding-principles.md`의 “2026-09-08 실행 범위 정정”은 파일 수 기반 등급과 GREEN 격리 면제가 폐기됐다고 적어 정면으로 어긋난다.
+- 이번 작업은 우선순위가 높은 `CLAUDE.md`를 따라 RED·격리로 수행한다. 어느 문장을 정본으로 남길지는 별도 문서 정리에서 결정해야 하며, 여기서 조용히 합치지 않는다.
+
 ### `docs/DEPLOYMENT_AND_INFRA.md` 첫 절이 폐기된 배포 계약을 지시한다 (2026-08-24, **표시 완료**)
 
 - **충돌 내용**: 그 문서의 첫 절 "Current release policy (2026-08-08)" 이 **"PR-first delivery was

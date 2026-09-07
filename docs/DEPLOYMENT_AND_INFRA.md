@@ -283,6 +283,8 @@ Server/Worker secrets or vars:
 
 ## 배포
 
+> 2026-09-08 CI 운영 변경: Merge Queue용 `merge_group` 검증, aggregate 필수 체크 `CI required`, Quick Pass 스테이징 감시 제외의 정본은 [context/delivery-and-ci.md](context/delivery-and-ci.md)다. GitHub ruleset 변경은 워크플로 PR이 머지된 뒤 별도 승인으로 적용한다.
+
 🔴 **2026-08-11 개정 — 프로덕션 배포는 GitHub Actions 에서만 일어난다.** `deploy:cf:pages`,
 `deploy:cf:worker`, `deploy:cf:opennext`, `deploy:production`, `deploy:rollback --yes` 는 전부
 `scripts/lib/production-deploy-guard.mjs` 로 막혀 있고, 로컬에서 실행하면 exit 1 이다.

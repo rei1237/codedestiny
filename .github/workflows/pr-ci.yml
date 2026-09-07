@@ -19,11 +19,17 @@ on:
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled]
+  merge_group:
+    types: [checks_requested]
+  push:
+    branches: [main]
   workflow_dispatch:
 
 concurrency:
-  group: pr-ci-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  group: pr-ci-${{ github.event.pull_request.number || github.event.merge_group.head_ref || github.run_id }}
+  # PR 의 새 커밋만 이전 실행을 대체한다. merge queue 와 main 건강 검사는 서로의
+  # 필수 체크를 취소하면 안 되므로 끝까지 실행한다.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
@@ -69,9 +75,9 @@ jobs:
       - name: Resolve verification tier from changed paths
         id: tier
         env:
-          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-          CD_FORCE_CRITICAL: ${{ contains(github.event.pull_request.labels.*.name, 'full-ci') }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha || github.event.before }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha || github.sha }}
+          CD_FORCE_CRITICAL: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'full-ci') }}
         run: |
           node scripts/lib/change-risk.mjs --self-test
           node scripts/resolve-ci-tier.mjs --self-test
@@ -79,9 +85,9 @@ jobs:
 
       - name: Compare proposed verification plan (shadow only)
         env:
-          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-          CD_FORCE_CRITICAL: ${{ contains(github.event.pull_request.labels.*.name, 'full-ci') }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha || github.event.before }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha || github.sha }}
+          CD_FORCE_CRITICAL: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'full-ci') }}
         run: |
           node --test __tests__/release/verification-plan.test.js
           node scripts/check-changed.mjs --ci-shadow --output=verification-plan.json
@@ -186,8 +192,8 @@ jobs:
       # 대상 선정 정본은 scripts/lib/lint-targets.mjs 이고 배포도 같은 모듈을 쓴다.
       - name: Lint changed files exactly as the release does
         env:
-          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha || github.event.before }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha || github.sha }}
         run: |
           npm run lint:changed -- --self-test
           npm run lint:changed
@@ -980,4 +986,31 @@ jobs:
       - name: Scan for leaked secrets
         if: needs.classify.outputs.runs_critical == 'true'
         run: npm run verify:no-secret-leak
+
+  # 브랜치 룰셋은 내부 잡 이름 여럿 대신 이 한 이름만 요구한다. 내부 병렬화나 잡 분리는
+  # ruleset 변경 없이 가능하고, merge_group 에서도 같은 최종 판정을 보고한다.
+  ci-required:
+    name: CI required
+    if: ${{ always() }}
+    needs: [classify, landing-order, fast, guards, build, critical]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require every CI lane to succeed
+        env:
+          CLASSIFY_RESULT: ${{ needs.classify.result }}
+          LANDING_ORDER_RESULT: ${{ needs.landing-order.result }}
+          FAST_RESULT: ${{ needs.fast.result }}
+          GUARDS_RESULT: ${{ needs.guards.result }}
+          BUILD_RESULT: ${{ needs.build.result }}
+          CRITICAL_RESULT: ${{ needs.critical.result }}
+        run: |
+          set -euo pipefail
+          for result in "$CLASSIFY_RESULT" "$LANDING_ORDER_RESULT" "$FAST_RESULT" "$GUARDS_RESULT" "$BUILD_RESULT" "$CRITICAL_RESULT"; do
+            if [ "$result" != "success" ]; then
+              echo "::error::필수 CI lane 이 성공하지 못했습니다: $result"
+              exit 1
+            fi
+          done
+          echo "모든 필수 CI lane 이 성공했습니다."
 
