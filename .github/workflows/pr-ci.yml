@@ -104,7 +104,7 @@ jobs:
             echo "::notice::PR 컨텍스트가 없어 착지 순서를 검사하지 않습니다."
             exit 0
           fi
-          children=$(gh api "repos/${GITHUB_REPOSITORY}/pulls?state=open&base=${PR_HEAD_REF}&per_page=100" \
+          children=$(gh pr list --state open --base "$PR_HEAD_REF" --json number,title \
             --jq '.[] | "  - #\(.number) \(.title)"')
           if [ -z "$children" ]; then
             echo "이 브랜치(${PR_HEAD_REF})를 base 로 하는 열린 PR 이 없습니다. 지금 머지해도 좌초하지 않습니다."
