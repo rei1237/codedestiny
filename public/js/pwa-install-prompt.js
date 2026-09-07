@@ -39,6 +39,14 @@
     }
   }
 
+  function isMobileViewport() {
+    try {
+      return !!(window.matchMedia && window.matchMedia('(max-width:720px)').matches);
+    } catch (_) {
+      return false;
+    }
+  }
+
   function getCard() {
     return document.getElementById(CARD_ID);
   }
@@ -86,4 +94,10 @@
     deferredInstallPrompt = null;
     hideCard();
   });
+
+  /* 모바일 웹 환경(네이티브 앱 제외)에서는 beforeinstallprompt 가 오지 않는 브라우저(예: iOS Safari)
+     에서도 카드를 보여준다 — beforeinstallprompt 로 열렸으면 그대로 두고 중복 바인딩만 피한다. */
+  if (!isNativeApp() && !isStandalone() && isMobileViewport()) {
+    showCard();
+  }
 })();
