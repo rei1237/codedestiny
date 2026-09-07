@@ -2464,7 +2464,7 @@ window.openPastLifeFaceFromPhysiognomy = async function openPastLifeFaceFromPhys
     if (typeof window.openPastLifeFaceApp !== 'function') {
       await new Promise((resolve, reject) => {
         const script = document.createElement('script');
-        script.src = 'PastLifeFaceUI.js?v=h8cca93b6152f';
+        script.src = 'PastLifeFaceUI.js?v=hb3be4acdb247';
         script.onload = resolve;
         script.onerror = () => reject(new Error('PAST_LIFE_SCRIPT_LOAD_FAILED'));
         document.head.appendChild(script);
