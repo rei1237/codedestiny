@@ -138,7 +138,7 @@ window.__cdServiceRegistry = [
     name: "LOVE CODE 연애 시뮬레이션",
     desc: "궁합을 표가 아니라 장면으로 겪어 보는 LOVE CODE",
     action: "openLoveSimulation",
-    featureKey: "loveSimulation",
+    featureKey: "love-code",
     price: "10,000원",
     purposes: ["love", "compatibility"],
     methods: ["saju", "ai"],

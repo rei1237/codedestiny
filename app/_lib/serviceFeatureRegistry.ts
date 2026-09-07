@@ -4020,7 +4020,7 @@ const FEATURE_DEFINITIONS: ServiceFeatureDefinition[] = ([
     detailRoute: "/services/love-code",
     launchRoute: "/index.html?action=openLoveSimulation",
     accessType: "paid",
-    featureKey: "loveSimulation",
+    featureKey: "love-code",
   },
   {
     slug: "omikuji",

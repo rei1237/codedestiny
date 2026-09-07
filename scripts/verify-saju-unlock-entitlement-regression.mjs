@@ -671,7 +671,7 @@ assert.ok(
 );
 
 const loveSimulationEngineSource = fs.readFileSync(path.join(root, "app/saju/love-simulation/_components/LoveSimulationEngine.tsx"), "utf8");
-for (const marker of ["runPaidAccessGate", "openPaidFeatureGate", "LOVE_SIMULATION_FEATURE_KEY"]) {
+for (const marker of ["runPaidAccessGate", "openPaidFeatureGate", "LOVE_CODE_FEATURE_KEY"]) {
   assert.ok(
     loveSimulationEngineSource.includes(marker),
     `러브 코드 결제가 실행 CTA 에서 공용 게이트로 돈다: ${marker}`,

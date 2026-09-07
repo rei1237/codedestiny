@@ -2260,7 +2260,7 @@ const PERSISTENT_UNLOCK_KEY_SET = new Set([
   "healthReport",
   "secretHouseEpisodes",
   "animal-destiny-unlock",
-  "loveSimulation",
+  "love-code",
   "sukuyo-relationship-encyclopedia",
   "sukuyo-nature-deep-dive",
   "premiumDivinationPack",
