@@ -164,14 +164,14 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
       disclaimer: "해석은 참고용이며 실제 선택은 개인의 상황과 판단을 함께 고려해야 합니다.",
     },
     ja: {
-      title: "紫微斗数 無料鑑定 | 命盤と十二宮の流れ",
+      title: "紫微斗数の命盤と十二宮｜性格・仕事・関係を読む",
       description: "命宮、財帛宮、官禄宮、夫妻宮など十二宮の流れから、性格、人間関係、仕事、お金の方向性までを落ち着いて読み解きます。",
       h1: "紫微斗数の命盤鑑定",
       intro: "紫微斗数は人生の領域を宮で分け、星の配置から現実的な選択の流れを読む東洋占星術です。",
       mainKeyword: "紫微斗数",
       relatedKeywords: ["紫微斗数 命盤", "命宮", "十二宮", "財帛宮"],
       valuePoints: ["十二宮ごとの主要テーマを整理", "関係と仕事の流れを接続", "初心者にもやさしい解説"],
-      cta: { label: "紫微斗数を始める", href: "/ja/ziwei" },
+      cta: { label: "紫微斗数を始める", href: "/ziwei/chart/?lang=ja" },
       internalLinks: [
         { href: "/ja/insights/ziwei-basics-jp", label: "紫微斗数入門を読む" },
         { href: "/ja/today", label: "今日の流れを見る" },
@@ -191,7 +191,7 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
       mainKeyword: "紫微斗数",
       relatedKeywords: ["紫微斗数命盘", "命宫", "十二宫", "财帛宫"],
       valuePoints: ["整理十二宫核心主题", "连接关系与事业流向", "适合新手的清晰解读"],
-      cta: { label: "开始紫微斗数", href: "/zh/ziwei" },
+      cta: { label: "开始紫微斗数", href: "/ziwei/chart/?lang=zh" },
       internalLinks: [
         { href: "/zh/insights/ziwei-basics-zh", label: "阅读紫微斗数入门" },
         { href: "/zh/today", label: "查看今日流向" },
@@ -211,7 +211,7 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
       mainKeyword: "紫微斗數",
       relatedKeywords: ["紫微斗數命盤", "命宮", "十二宮", "財帛宮"],
       valuePoints: ["整理十二宮核心主題", "連結關係與事業流向", "適合新手的清楚解讀"],
-      cta: { label: "開始紫微斗數", href: "/zh-tw/ziwei" },
+      cta: { label: "開始紫微斗數", href: "/ziwei/chart/?lang=zh-tw" },
       internalLinks: [
         { href: "/zh-tw/insights/ziwei-basics-tw", label: "閱讀紫微斗數入門" },
         { href: "/zh-tw/today", label: "查看今日流向" },
@@ -231,7 +231,7 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
       mainKeyword: "zi wei dou shu",
       relatedKeywords: ["zi wei chart", "life palace", "twelve palaces", "wealth palace"],
       valuePoints: ["Palace-by-palace theme summary", "Career and relationship context", "Beginner-friendly explanations"],
-      cta: { label: "Start Zi Wei Dou Shu", href: "/en/ziwei" },
+      cta: { label: "Start Zi Wei Dou Shu", href: "/ziwei/chart/?lang=en" },
       internalLinks: [
         { href: "/en/insights/ziwei-basics-en", label: "Read Zi Wei Basics" },
         { href: "/en/today", label: "Check Today’s Flow" },
@@ -266,14 +266,14 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
       disclaimer: "궁합은 관계를 이해하기 위한 참고이며 상대의 마음을 확정하지 않습니다.",
     },
     ja: {
-      title: "宿曜占星 相性診断 | 27宿の関係の流れ",
+      title: "宿曜占星術の相性占い｜27宿から考える二人の距離",
       description: "27宿をもとに、二人の引力、安心感、衝突のパターン、そして関係が回復するタイミングまでを丁寧に読み解いていきます。",
-      h1: "宿曜の相性と関係リーディング",
+      h1: "宿曜占星術で読み解く相性と距離感",
       intro: "宿曜は生まれた日の宿を基準に、関係の距離感と繰り返す感情の流れを読む伝統的な相性体系です。",
       mainKeyword: "宿曜 相性",
       relatedKeywords: ["27宿", "栄親", "業胎", "安壊"],
       valuePoints: ["関係の引力と緊張を把握", "衝突が強まる時期を確認", "回復の会話の糸口を探す"],
-      cta: { label: "宿曜を見る", href: "/ja/sukuyo" },
+      cta: { label: "宿曜を見る", href: "/ja/?action=openSukuyoModal" },
       internalLinks: [
         { href: "/ja/insights/sukuyo-basics-jp", label: "宿曜入門を読む" },
         { href: "/ja/today", label: "今日の流れを見る" },
@@ -293,7 +293,7 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
       mainKeyword: "宿曜相性",
       relatedKeywords: ["27宿", "荣亲关系", "业胎关系", "安坏关系"],
       valuePoints: ["看清关系的吸引与紧张", "确认冲突容易放大的阶段", "找到修复对话的线索"],
-      cta: { label: "查看宿曜", href: "/zh/sukuyo" },
+      cta: { label: "查看宿曜", href: "/zh/?action=openSukuyoModal" },
       internalLinks: [
         { href: "/zh/insights/sukuyo-basics-zh", label: "阅读宿曜入门" },
         { href: "/zh/today", label: "查看今日流向" },
@@ -313,7 +313,7 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
       mainKeyword: "宿曜相性",
       relatedKeywords: ["27宿", "榮親關係", "業胎關係", "安壞關係"],
       valuePoints: ["看清關係的吸引與緊張", "確認衝突容易放大的階段", "找到修復對話的線索"],
-      cta: { label: "查看宿曜", href: "/zh-tw/sukuyo" },
+      cta: { label: "查看宿曜", href: "/zh-tw/?action=openSukuyoModal" },
       internalLinks: [
         { href: "/zh-tw/insights/sukuyo-basics-tw", label: "閱讀宿曜入門" },
         { href: "/zh-tw/today", label: "查看今日流向" },
@@ -333,7 +333,7 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
       mainKeyword: "sukuyo compatibility",
       relatedKeywords: ["27 mansions", "eishin", "gyoutai", "ankai"],
       valuePoints: ["See attraction and tension clearly", "Spot high-friction windows", "Find better recovery conversations"],
-      cta: { label: "Open Sukuyo", href: "/en/sukuyo" },
+      cta: { label: "Open Sukuyo", href: "/en/?action=openSukuyoModal" },
       internalLinks: [
         { href: "/en/insights/sukuyo-basics-en", label: "Read Sukuyo Basics" },
         { href: "/en/today", label: "Check Today’s Flow" },
@@ -375,7 +375,7 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
       mainKeyword: "今日の運勢",
       relatedKeywords: ["無料運勢", "日運", "今日 占い"],
       valuePoints: ["一日の感情の流れを確認", "関係の注意点を点検", "行動タイミングを調整"],
-      cta: { label: "紫微斗数でもっと深く見る", href: "/ja/ziwei" },
+      cta: { label: "紫微斗数でもっと深く見る", href: "/ziwei/chart/?lang=ja" },
       internalLinks: [
         { href: "/ja/sukuyo", label: "宿曜で関係を見る" },
         { href: "/ja/insights", label: "運勢インサイトを読む" },
@@ -395,7 +395,7 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
       mainKeyword: "今日运势",
       relatedKeywords: ["免费运势", "每日运势", "今日占卜"],
       valuePoints: ["确认一天的情绪流向", "检查关系注意点", "调整行动时机"],
-      cta: { label: "用紫微斗数深入查看", href: "/zh/ziwei" },
+      cta: { label: "用紫微斗数深入查看", href: "/ziwei/chart/?lang=zh" },
       internalLinks: [
         { href: "/zh/sukuyo", label: "用宿曜查看关系" },
         { href: "/zh/insights", label: "阅读运势洞察" },
@@ -415,7 +415,7 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
       mainKeyword: "今日運勢",
       relatedKeywords: ["免費運勢", "每日運勢", "今日占卜"],
       valuePoints: ["確認一天的情緒流向", "檢查關係注意點", "調整行動時機"],
-      cta: { label: "用紫微斗數深入查看", href: "/zh-tw/ziwei" },
+      cta: { label: "用紫微斗數深入查看", href: "/ziwei/chart/?lang=zh-tw" },
       internalLinks: [
         { href: "/zh-tw/sukuyo", label: "用宿曜查看關係" },
         { href: "/zh-tw/insights", label: "閱讀運勢洞察" },
@@ -435,7 +435,7 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
       mainKeyword: "daily fortune",
       relatedKeywords: ["free fortune", "daily horoscope", "today reading"],
       valuePoints: ["Read the emotional tone", "Check relationship cautions", "Adjust timing before action"],
-      cta: { label: "Go Deeper with Zi Wei", href: "/en/ziwei" },
+      cta: { label: "Go Deeper with Zi Wei", href: "/ziwei/chart/?lang=en" },
       internalLinks: [
         { href: "/en/sukuyo", label: "Read Relationships with Sukuyo" },
         { href: "/en/insights", label: "Read Fortune Insights" },
@@ -449,3 +449,14 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
     },
   },
 };
+
+// 번체 공개 경로는 새 URL을 늘리지 않고, 기존 허브에서 읽을 수 있는 설명을 보강한다.
+const TRADITIONAL_READING_CONTEXT = "閱讀時請先確認頁面要求的出生資料、日期與曆法設定，並保留不知道的部分。命理用語不是對人格或未來的定論；更適合把它視為觀察重複模式、整理下一次對話或小行動的參考。若解讀與實際的健康、法律、財務條件或他人的明確意願不同，應以可確認的現實資訊為先。";
+for (const page of Object.values(I18N_SEO_PAGES)) {
+  const traditional = page["zh-TW"];
+  traditional.intro = `${traditional.intro}${TRADITIONAL_READING_CONTEXT}`;
+  traditional.faq.push({
+    question: "閱讀結果時應注意什麼？",
+    answer: "請保留輸入資料的不確定性，將結果與實際情況、清楚的溝通和可確認的條件一起判斷，不要把它當成對未來或他人心意的保證。",
+  });
+}

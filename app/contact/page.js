@@ -1,3 +1,4 @@
+import { trustRoutes } from "../../lib/i18n/public-trust-copy.mjs";
 import { generatePageMetadata } from "../../lib/generate-page-metadata";
 import ContactUsPage from "../contact-us/page";
 
@@ -23,6 +24,7 @@ export function generateMetadata() {
   const copy = CONTACT_PAGE_TEXT_TRANSLATIONS.ko;
   return generatePageMetadata({
     path: "/contact",
+    hreflangPaths: trustRoutes("contact"),
     title: copy.title,
     description: copy.description,
     keywords: copy.keywords,

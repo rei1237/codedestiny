@@ -1,3 +1,6 @@
+import { INTRO_LOCALES, INTRO_TOPICS, FEATURE_INTRODUCTIONS } from "../../lib/i18n/feature-introductions.mjs";
+import { TRUST_LOCALES, TRUST_UI } from "../../lib/i18n/public-trust-copy.mjs";
+import { I18N_POLICY_ROUTE_MAP } from "../../lib/i18n/routes";
 import styles from "./SiteFooterHub.module.css";
 import SocialFooter from "../_components/SocialFooter";
 import {
@@ -70,10 +73,21 @@ function buildLocaleNavLinks(locale, labels) {
     { href: I18N_ROUTE_MAP.insights[locale], text: labels.insights },
   ].map((link) => ({ ...link, href: link.href.endsWith("/") ? link.href : `${link.href}/` }));
 
+  if (INTRO_LOCALES.includes(locale)) {
+    for (const topic of INTRO_TOPICS) links.push({ href: `/${locale}/${topic}/`, text: FEATURE_INTRODUCTIONS[topic][locale].heading });
+  }
+
   if (locale === "ja" && labels.tokushoho) {
     links.push({ href: "/ja/tokushoho/", text: labels.tokushoho });
   }
   return links;
+}
+
+function localizedPolicyHref(href, locale) {
+  const key = href.replace(/\//g, "");
+  if (TRUST_LOCALES.includes(locale) && ["about", "faq", "contact", "disclaimer"].includes(key)) return `/${locale}/${key}/`;
+  const policyKey = { privacy: "privacy", "privacy-policy": "privacy", terms: "terms", "terms-of-service": "terms", "refund-policy": "refundPolicy" }[key];
+  return policyKey ? `${I18N_POLICY_ROUTE_MAP[policyKey][locale]}/` : href;
 }
 
 export default function LocaleFooterHub({ locale }) {
@@ -119,7 +133,7 @@ export default function LocaleFooterHub({ locale }) {
                       <h2 className={styles.sfhGroupTitle}>{groupTitle}</h2>
                       <nav className={styles.sfhLinkNav} aria-label={`${groupTitle} ${copy.linkNavSuffix}`}>
                         {group.hrefs.map((href) => (
-                          <a key={href} href={href} className={styles.sfhLink}>
+                          <a key={href} href={localizedPolicyHref(href, locale)} className={styles.sfhLink}>
                             {copy.linkLabels[href]}
                           </a>
                         ))}
@@ -154,7 +168,7 @@ export default function LocaleFooterHub({ locale }) {
             <h2 style={{ fontSize: '1.25rem', marginTop: '2rem', marginBottom: '1rem', fontWeight: 600 }}>{copy.disclaimerTitle}</h2>
             <p style={{ marginBottom: '0.5rem', lineHeight: 1.6 }}>{copy.disclaimerBody}</p>
             <p style={{ fontSize: '0.95rem', lineHeight: 1.6 }}>
-              <a href="/disclaimer/" className={styles.sfhLink}>{copy.disclaimerLinkLabel}</a>
+              <a href={localizedPolicyHref("/disclaimer/", locale)} className={styles.sfhLink}>{copy.disclaimerLinkLabel}</a>
             </p>
           </section>
         </section>
@@ -178,8 +192,11 @@ export default function LocaleFooterHub({ locale }) {
         </section>
 
         <nav aria-label={copy.policyNavAriaLabel} className={styles.sfhPolicyNav}>
+          {TRUST_LOCALES.includes(locale) && ["about", "faq", "contact", "disclaimer"].map(key => (
+            <a key={key} href={`/${locale}/${key}/`} className={styles.sfhPolicyLink}>{TRUST_UI[locale][key]}</a>
+          ))}
           {FOOTER_POLICY_HREFS.map((href) => (
-            <a key={href} href={href} className={styles.sfhPolicyLink}>
+            <a key={href} href={localizedPolicyHref(href, locale)} className={styles.sfhPolicyLink}>
               {copy.policyLabels[href]}
             </a>
           ))}
