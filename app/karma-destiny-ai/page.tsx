@@ -7,6 +7,7 @@ import {
 } from "../../lib/structured-data";
 import { siteSeo } from "../../lib/seo/siteSeo";
 import ServiceIntroSection from "../components/ServiceIntroSection";
+import ImmersiveRelatedLinks from "../components/ImmersiveRelatedLinks";
 import { buildKrwOffer } from "@/lib/seo/paid-offer";
 
 const PAGE_PATH = "/karma-destiny-ai/";
@@ -160,6 +161,7 @@ export default function KarmaDestinyAiPage() {
           </div>
         ))}
                   </ServiceIntroSection>
+      <ImmersiveRelatedLinks fromPath="/karma-destiny-ai" />
     </>
   );
 }

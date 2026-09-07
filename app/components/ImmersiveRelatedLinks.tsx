@@ -36,6 +36,7 @@ const RELATED_LINK_LIMIT = 4;
  *    (CURATED_RELATED_PATHS 의 오타 판정과 같은 fail-closed).
  */
 const ROUTE_DATES: Record<string, { datePublished: string; dateModified: string }> = {
+  "/karma-destiny-ai": { datePublished: "2026-06-27", dateModified: "2026-09-08" },
   "/life-book-ai": { datePublished: "2026-06-27", dateModified: "2026-09-06" },
   "/love-secret-ai": { datePublished: "2026-06-27", dateModified: "2026-09-06" },
   "/master-love-codex": { datePublished: "2026-07-29", dateModified: "2026-09-06" },
