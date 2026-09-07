@@ -323,14 +323,18 @@
       var monthlyCheckedAt = numberOrNaN(snapshot.monthlyCheckedAt);
       var hasMonthly = Number.isFinite(monthlySpendRemainingCoin) && Number.isFinite(monthlyCheckedAt);
       // 이번 갱신에 월 한도 정보가 없으면(예: 이용권 정보만 담은 다른 상태 응답) 무작정 지우지
-      // 않는다 — 같은 이용권(같은 등급·만료일)이면 기존 캐시를 그대로 보존한다. 등급/만료일이
-      // 바뀌면(=다른 이용권) 보존하지 않는다 — 새 사이클의 잔여 한도를 옛 캐시로 오판할 수 있다.
+      // 않는다 — 같은 이용권(같은 등급·만료일)이면 기존 캐시를 그대로 보존한다. 등급이 바뀌거나
+      // **다른 만료일**이 실려 오면(=다른 이용권) 보존하지 않는다 — 새 사이클의 잔여 한도를 옛
+      // 캐시로 오판할 수 있다.
+      // 🔴 만료일을 아예 싣지 않은 갱신(isActive:true 만 있는 구 unlock-status?scope=pass 등)은
+      // "다른 이용권"의 근거가 아니다. 예전엔 그것도 불일치로 봐서 소진자의 '잔여 0' 이 통째로
+      // 날아갔고, 다음 진입이 다시 무검사 낙관 통과로 1회를 흘렸다(2026-09-07).
       if (!hasMonthly && snapshot.state === "active") {
         var prior = readSnapshot(uid, { allowStaleNone: true });
         if (
           prior && prior.state === "active"
           && prior.tier === snapshot.tier
-          && prior.expiresAt === (snapshot.expiresAt || null)
+          && (!snapshot.expiresAt || prior.expiresAt === snapshot.expiresAt)
           && Number.isFinite(prior.monthlySpendRemainingCoin)
           && Number.isFinite(prior.monthlyCheckedAt)
         ) {
@@ -507,6 +511,33 @@
     }));
   }
 
+  // access-state 응답이 **이미 싣고 오는** 월 잔여(entitlementSnapshot.passUsage.remainingKRW,
+  // 서버 정본 worker/lib/access-state.js buildPassUsage)를 스냅샷에 시드한다. 추가 요청은 0건이다.
+  //
+  // 왜 필요한가: resolveVerdict 는 monthlySpendRemainingCoin 이 null(=모름)이면 월 한도 검사를
+  // 통째로 건너뛴다. 그 값을 채우는 곳이 coin-gate 응답뿐이라, 한도를 다 쓴 사용자도 **재진입할
+  // 때마다** 첫 유료 클릭을 낙관 통과로 받아 갔다(콘텐츠는 이미 렌더된 뒤 백그라운드 402 가
+  // 도착해 그때서야 잠긴다). 진입 시점에 시드하면 첫 클릭부터 결제창으로 간다.
+  //
+  // 🔴 서버 판정을 대체하지 않는다 — 최종 확정은 언제나 서버 차감(consumePassCoverage)이다.
+  // 🔴 remainingKRW 는 원화다. 스냅샷 단위는 코인이라 100 으로 나눈다(서버 정본은
+  //    worker/lib/billing-policy.js 의 KRW_PER_COIN = 100. 이 파일은 번들러 없이 로드되는
+  //    classic script 라 그 상수를 끌어올 수 없어 리터럴로 둔다).
+  function storeMonthlyQuotaFromAccessState(userId, accessData) {
+    if (!accessData || typeof accessData !== "object") return null;
+    var root = accessData.data && typeof accessData.data === "object" ? accessData.data : accessData;
+    var snap = root.entitlementSnapshot && typeof root.entitlementSnapshot === "object"
+      ? root.entitlementSnapshot
+      : null;
+    var usage = snap && snap.passUsage && typeof snap.passUsage === "object" ? snap.passUsage : null;
+    if (!usage) return null;
+    var remainingKRW = Number(usage.remainingKRW);
+    if (!Number.isFinite(remainingKRW) || remainingKRW < 0) return null;
+    return storeMonthlyQuotaFromPayload(userId, {
+      monthlySpendRemaining: Math.max(0, Math.floor(remainingKRW / 100)),
+    });
+  }
+
   // coin-gate 성공 200 이 "이 건으로 월 한도를 다 써서 이용권이 종료됐다"고 알리면(서버 정본은
   // worker/lib/profile-limits.js isPassBudgetExhausted → compat.js membershipPass.passEnded)
   // 로컬 스냅샷을 즉시 미보유로 내린다. 안 내리면 다음 진입이 낙관 통과 → 402 → 결제창으로
@@ -572,6 +603,7 @@
     resolveVerdict: resolveVerdict,
     coverageFromSnapshot: coverageFromSnapshot,
     storeMonthlyQuotaFromPayload: storeMonthlyQuotaFromPayload,
+    storeMonthlyQuotaFromAccessState: storeMonthlyQuotaFromAccessState,
     markPassEndedFromPayload: markPassEndedFromPayload,
     isMonthlyLimitPayload: isMonthlyLimitPayload,
   };

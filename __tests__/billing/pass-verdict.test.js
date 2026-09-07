@@ -568,6 +568,66 @@ describe("storeMonthlyQuotaFromPayload — coin-gate 응답의 월 한도 반영
   });
 });
 
+describe("storeMonthlyQuotaFromAccessState — 진입 응답의 월 잔여 시드", () => {
+  const activeExpiresAt = () => new Date(Date.now() + 10 * DAY).toISOString();
+
+  it("access-state 의 passUsage.remainingKRW 를 코인으로 시드해 재진입 첫 판정부터 한도를 적용한다", () => {
+    // 재진입 = 새 문서 로드라 월 잔여 캐시가 비어 있고, 그 상태에서는 월 검사가 통째로 생략돼
+    // 한도 소진자도 1회를 낙관 통과로 받아 갔다(2026-09-07 버그).
+    seed(storage, {
+      state: "active", tier: "premium", expiresAt: activeExpiresAt(), checkedAt: Date.now(), stale: false,
+    });
+    expect(passVerdict.resolveVerdict(passVerdict.readSnapshot(USER_ID), 30).coversNow).toBe(true);
+    const stored = passVerdict.storeMonthlyQuotaFromAccessState(USER_ID, {
+      entitlementSnapshot: { tier: "premium", passUsage: { remainingKRW: 500 } },
+    });
+    expect(stored.monthlySpendRemainingCoin).toBe(5); // 500원 ÷ 100 = 5코인
+    const verdict = passVerdict.resolveVerdict(passVerdict.readSnapshot(USER_ID), 30);
+    expect(verdict.cannotCover).toBe(true);
+    expect(verdict.reason).toBe("monthly_pass_limit_exceeded");
+  });
+
+  it("passUsage 가 없는 응답은 무시하고, 스냅샷이 없으면 날조하지 않는다", () => {
+    seed(storage, {
+      state: "active", tier: "premium", expiresAt: activeExpiresAt(), checkedAt: Date.now(), stale: false,
+      monthlySpendRemainingCoin: 20, monthlyCheckedAt: Date.now(),
+    });
+    expect(passVerdict.storeMonthlyQuotaFromAccessState(USER_ID, { entitlementSnapshot: { tier: "premium" } })).toBeNull();
+    expect(passVerdict.readSnapshot(USER_ID).monthlySpendRemainingCoin).toBe(20);
+    storage.removeItem(passVerdict.snapshotKey(USER_ID));
+    expect(passVerdict.storeMonthlyQuotaFromAccessState(USER_ID, {
+      entitlementSnapshot: { passUsage: { remainingKRW: 0 } },
+    })).toBeNull();
+    expect(storage.has(passVerdict.snapshotKey(USER_ID))).toBe(false);
+  });
+});
+
+describe("writeSnapshot — 소진 기억(잔여 0) 보존", () => {
+  it("만료일을 싣지 않은 활성 갱신은 캐시된 잔여를 지우지 않는다", () => {
+    seed(storage, {
+      state: "active", tier: "premium", expiresAt: new Date(Date.now() + 10 * DAY).toISOString(),
+      checkedAt: Date.now(), stale: false, monthlySpendRemainingCoin: 0, monthlyCheckedAt: Date.now(),
+    });
+    // isActive 만 담고 만료일이 없는 응답(구 unlock-status?scope=pass 등)이 와도 소진 기억은 남아야 한다.
+    const stored = passVerdict.storeStatus(USER_ID, { tier: "premium", isActive: true, status: "active" }, "unlock-status");
+    expect(stored.monthlySpendRemainingCoin).toBe(0);
+    expect(passVerdict.resolveVerdict(passVerdict.readSnapshot(USER_ID), 10).reason).toBe("monthly_pass_limit_exceeded");
+  });
+
+  it("다른 이용권(새 만료일·등급 변경)이면 옛 잔여를 물려주지 않는다", () => {
+    seed(storage, {
+      state: "active", tier: "premium", expiresAt: new Date(Date.now() + 10 * DAY).toISOString(),
+      checkedAt: Date.now(), stale: false, monthlySpendRemainingCoin: 0, monthlyCheckedAt: Date.now(),
+    });
+    const renewed = passVerdict.storeStatus(USER_ID, {
+      tier: "premium", isActive: true, status: "active",
+      expiresAt: new Date(Date.now() + 30 * DAY).toISOString(),
+    }, "access-state");
+    expect(renewed.monthlySpendRemainingCoin).toBeNull();
+    expect(passVerdict.resolveVerdict(renewed, 10).coversNow).toBe(true);
+  });
+});
+
 describe("isMonthlyLimitPayload", () => {
   it("decisionReason 이 최상위·data·paymentOptions 어디에 있어도 잡는다", () => {
     expect(passVerdict.isMonthlyLimitPayload({ decisionReason: "MONTHLY_PASS_LIMIT_EXCEEDED" })).toBe(true);

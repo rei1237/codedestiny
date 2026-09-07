@@ -28,7 +28,6 @@ import { resolveAppPassCoverageKRW } from "@/worker/lib/app-store-pricing.js";
 // 🔴 이용권 스냅샷·판정 정본. 정적 셸(index.html)과 독립 정적(js/destiny-profile.js)도 같은 파일을
 // classic script 로 읽는다 — 여기에 사본을 만들면 세 런타임의 판정이 갈린다.
 import passVerdict from "@/js/core/pass-verdict.js";
-import { KRW_PER_COIN } from "@/lib/payment/coin-pricing";
 import appContext from "@/js/core/app-context.js";
 import checkoutEntry, { type PaidResumeDescriptor } from "@/js/core/checkout-entry.js";
 import bundledPaymentService from "@/js/core/payment-service.js";
@@ -762,21 +761,16 @@ export function readSubscriptionSnapshotForUser(
  * 서버가 402 로 되돌려 보낼 때까지 화면상 무제한으로 보였다. 여기서 시드하면 첫 진입부터 한도가 보인다.
  *
  * 🔴 서버 판정을 대체하지 않는다 — 최종 판정은 언제나 서버의 차감(consumePassCoverage)이다.
- * 🔴 storeStatus/buildSnapshotFromStatus 를 태우지 않는다(활성 스냅샷에만 반영·단조 감소).
- * 🔴 remainingKRW 는 원화다 — 스냅샷 단위는 코인이라 100 으로 나눠 넣는다(1코인=100원).
+ * 🔴 파생 규칙(원화→코인 환산·활성 스냅샷에만 반영·단조 감소)은 pass-verdict 의
+ *    storeMonthlyQuotaFromAccessState 하나뿐이다. 셸·독립정적은 js/core/access-store.js 가
+ *    같은 함수를 부른다 — 여기서 다시 계산하면 세 런타임의 판정이 갈라진다.
  */
 export function seedMonthlyQuotaFromAccessState(accessData: unknown): SubscriptionSnapshot | null {
   if (typeof window === "undefined") return null;
-  const snapshot = asRecord(asRecord(accessData)?.entitlementSnapshot);
-  const usage = asRecord(snapshot?.passUsage);
-  if (!usage) return null;
-  const remainingKRW = Number(usage.remainingKRW);
-  if (!Number.isFinite(remainingKRW) || remainingKRW < 0) return null;
-  const remainingCoin = Math.max(0, Math.floor(remainingKRW / KRW_PER_COIN));
   try {
-    return passVerdict.storeMonthlyQuotaFromPayload(
+    return passVerdict.storeMonthlyQuotaFromAccessState(
       resolveSubscriptionSnapshotUserId(),
-      { monthlySpendRemaining: remainingCoin },
+      accessData,
     ) as SubscriptionSnapshot | null;
   } catch {
     return null;
