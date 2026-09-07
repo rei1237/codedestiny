@@ -95,6 +95,11 @@ async function readRepoFile(relativePath) {
 
 async function verifyCanonicalWorkflow() {
   assertWorkflowShape(await readRepoFile(canonicalWorkflow));
+  const deploySafe = await readRepoFile("scripts/deploy-safe.mjs");
+  assert(
+    /wrangler\(\[\s*"triggers",\s*"deploy",\s*"--config",\s*target\.workerConfig,\s*"--name",\s*value\.cf\.worker,?\s*\]\)/.test(deploySafe),
+    "scripts/deploy-safe.mjs must reconcile Worker Routes and Cron Triggers during production promotion.",
+  );
 }
 
 /**
