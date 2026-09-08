@@ -4,7 +4,7 @@
 
 서버 정규 키 146개, manifest 123개, 고유 음원 상품 123개, 전체 상품/변형/SKU 행 305개. 최종 서비스 개수 미확정.
 
-미검토 항목 1218개. 전체 근거 및 모든 요청 열은 payment-inventory.json에 보존한다.
+미검토 항목 1091개. 전체 근거 및 모든 요청 열은 payment-inventory.json에 보존한다.
 
 | 상품/변형 | 이름 | 가격 | 근거 route | Desktop | Android | iPhone | Reload Recovery | Result |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |

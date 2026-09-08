@@ -22,6 +22,7 @@
 let canAccessPaidFeature;
 let userFindById;
 let paymentFind;
+let unlockSnapshot;
 
 // 판정 결과는 모듈 안 캐시(userId + featureKey + coinCost)에 남는다 — 케이스마다 다른 userId 를 쓴다.
 let seq = 0;
@@ -34,6 +35,7 @@ function lean(value) {
 beforeAll(async () => {
   userFindById = jest.fn();
   paymentFind = jest.fn();
+  unlockSnapshot = jest.fn();
 
   jest.unstable_mockModule("../../worker/lib/db.js", () => ({
     connectDb: jest.fn(async () => undefined),
@@ -45,7 +47,7 @@ beforeAll(async () => {
   }));
   jest.unstable_mockModule("../../worker/lib/content-unlocks.js", () => ({
     // 영구 해금 스냅샷은 이 테스트의 관심사가 아니다(그쪽은 이미 isUnlockPaidFeatureKey 로 걸러진다).
-    getUnlockedContentSnapshot: jest.fn(async () => ({ featureKeys: [], contentKeys: [] })),
+    getUnlockedContentSnapshot: (...args) => unlockSnapshot(...args),
   }));
 
   ({ canAccessPaidFeature } = await import("../../worker/lib/paid-feature-access.js"));
@@ -54,6 +56,7 @@ beforeAll(async () => {
 beforeEach(() => {
   jest.clearAllMocks();
   paymentFind.mockReturnValue({ select: () => ({ lean: async () => [] }) });
+  unlockSnapshot.mockResolvedValue({ featureKeys: [], contentKeys: [] });
 });
 
 /** 이용권·구독·라이선스가 전혀 없는 순수 계정. 통과한다면 근거는 배열이나 Payment 행뿐이다. */
@@ -151,4 +154,37 @@ test("③ 영구 해금의 Payment 조회는 여전히 결제 건을 특정하�
 
   expect(decision.allowed).toBe(true);
   expect(paymentFind.mock.calls[0][0].$or).toBeUndefined();
+});
+
+test("회당 결제 캐시는 같은 요청만 재사용하고 다른 요청과 무증빙 호출을 열지 않는다", async () => {
+  const userId = nextUserId();
+  seedUser(userId);
+  paymentFind.mockImplementation((query) => lean(
+    query.$or?.some((scope) => scope.requestId === "paid-attempt")
+      ? [{ featureKey: "ziwei-deep-pdf" }] : [],
+  ));
+  const options = { env: {}, requestId: "paid-attempt" };
+  expect((await canAccessPaidFeature(userId, "ziwei-deep-pdf", options)).allowed).toBe(true);
+  expect((await canAccessPaidFeature(userId, "ziwei-deep-pdf", options)).allowed).toBe(true);
+  expect(paymentFind).toHaveBeenCalledTimes(1);
+  expect((await canAccessPaidFeature(userId, "ziwei-deep-pdf", { env: {}, requestId: "new-attempt" })).allowed).toBe(false);
+  expect((await canAccessPaidFeature(userId, "ziwei-deep-pdf", { env: {} })).allowed).toBe(false);
+});
+
+test("무증빙 거절 캐시가 결제한 요청의 복구를 막지 않는다", async () => {
+  const userId = nextUserId();
+  seedUser(userId);
+  expect((await canAccessPaidFeature(userId, "ziwei-deep-pdf", { env: {} })).allowed).toBe(false);
+  paymentFind.mockReturnValue(lean([{ featureKey: "ziwei-deep-pdf" }]));
+  expect((await canAccessPaidFeature(userId, "ziwei-deep-pdf", { env: {}, idempotencyKey: "paid-attempt" })).allowed).toBe(true);
+});
+
+test("프로필 해금 캐시를 다른 프로필에 재사용하지 않는다", async () => {
+  const userId = nextUserId();
+  seedUser(userId);
+  unlockSnapshot.mockImplementation(async ({ profileId }) => ({
+    featureKeys: profileId === "paid-profile" ? ["sukuyo-relationship-encyclopedia"] : [], contentKeys: [],
+  }));
+  expect((await canAccessPaidFeature(userId, "sukuyo-relationship-encyclopedia", { env: {}, profileId: "paid-profile" })).allowed).toBe(true);
+  expect((await canAccessPaidFeature(userId, "sukuyo-relationship-encyclopedia", { env: {}, profileId: "other-profile" })).allowed).toBe(false);
 });

@@ -34,6 +34,7 @@ export function sourceRoute(file) {
 
 export function inspectSource(file, source, knownKeys) {
   const evidence = { file, sha256: createHash('sha256').update(source).digest('hex'), route: sourceRoute(file),
+    reviewSha256: createHash('sha256').update(source.replace(/\r\n/g, '\n')).digest('hex'),
     frontendType: file.startsWith('apps/mobile/') ? 'native' : file.endsWith('.html') ? 'static' : file.startsWith('app/') ? 'React' : null,
     keywordLines: [], features: [], calls: [], apiPaths: [], externalLinks: [], parseErrors: [] };
   source.split(/\r?\n/).forEach((line, index) => { if (PAYMENT_TERMS.test(line)) evidence.keywordLines.push(index + 1); });
@@ -162,7 +163,7 @@ export function applyInventoryReviews(inventory, reviews = { sources: {}, produc
   const errors = [];
   for (const [file, review] of Object.entries(reviews.sources || {})) {
     const source = byFile.get(file);
-    if (!source || source.sha256 !== review.sha256 || !review.rationale?.trim()
+    if (!source || (source.reviewSha256 || source.sha256) !== review.sha256 || !review.rationale?.trim()
         || !['entry', 'payment-core', 'feature-consumer', 'supporting-code', 'non-payment'].includes(review.role)) {
       errors.push(`INVALID_SOURCE_REVIEW:${file}`);
       continue;
@@ -180,7 +181,7 @@ export function applyInventoryReviews(inventory, reviews = { sources: {}, produc
     const references = review.evidence || [];
     const validEvidence = references.length > 0 && references.every(ref => {
       const source = byFile.get(ref.file);
-      return source && source.sha256 === ref.sha256 && Number.isInteger(ref.line) && ref.line > 0;
+      return source && (source.reviewSha256 || source.sha256) === ref.sha256 && Number.isInteger(ref.line) && ref.line > 0;
     });
     const detailKeys = ['displayName', 'routes', 'frontendTypes', 'pass', 'moonstone', 'pg', 'kakaoPay',
       'paymentStart', 'paymentApis', 'returnDestinations', 'resume', 'entitlementStorage', 'resultTiming', 'recovery'];
