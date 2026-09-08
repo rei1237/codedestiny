@@ -4,13 +4,13 @@
   if (window.BasicFortunePresentation) return;
   var styleVersion = document.currentScript ? new URL(document.currentScript.src, location.href).search : '';
   var copy = {
-    ko: ['숙요점', '점성술', '자미두수', '핵심 해석', '차트', '자세히 읽기', '다음 이야기', '출생 프로필로 읽는 기본 분석', '나의 운명 기록', '먼저 읽어보세요', '전체 12궁과 명반', '나의 숙을 더 깊이 이해하기', '27숙 명반과 달력', '성향과 선택', '인간관계', '사랑', '일과 재능', '기억할 한 가지', '기본 분석', '명궁', '나의 성향을 읽는 중심', '신궁', '삶에서 힘을 쓰는 방향', '오행국', '명반의 흐름을 나누는 기준', '궁을 선택하면 아래에서 해석을 읽을 수 있어요.', '행성과 삶의 영역', '상담과 관계 탐색', '전체 해석과 참고 기록'],
-    en: ['Sukuyo', 'Astrology', 'Ziwei', 'Key reading', 'Chart', 'Read more', 'Explore next', 'A basic reading based on your birth profile', 'My celestial record', 'Start here', 'All 12 palaces and chart', 'Understanding your mansion', '27 mansions and calendar', 'Temperament and choices', 'Relationships', 'Love', 'Work and talents', 'Keep in mind', 'Basic reading', 'Life palace', 'The centre of your temperament', 'Body palace', 'Where you direct your energy', 'Element bureau', 'The cycle used by this chart', 'Select a palace to read its interpretation below.', 'Planets and life areas', 'Consultation and relationships', 'Full reading and reference'],
-    ja: ['宿曜占', '西洋占星術', '紫微斗数', '基本の読み解き', '命盤', '詳しく読む', '次の物語へ', 'プロフィールの出生情報をもとにした基本分析', '私の星の記録', 'ここから読む', '全12宮と命盤', '本命宿を深く知る', '27宿の命盤と暦', '気質と選択', '人間関係', '恋愛', '仕事と才能', '心に留めたいこと', '基本分析', '命宮', '気質を読み解く中心', '身宮', '人生で力を注ぐ方向', '五行局', '命盤の流れを分ける基準', '宮を選ぶと下に解説が表示されます。', '惑星と人生の領域', '相談と相性を探る', '全体の解説と参考資料'],
-    zh: ['宿曜占', '西洋占星', '紫微斗数', '核心解读', '星盘', '详细阅读', '继续探索', '根据个人出生资料解读的基础分析', '我的星辰记录', '从这里开始', '完整十二宫与命盘', '深入了解本命宿', '二十七宿与日历', '性情与选择', '人际关系', '爱情', '工作与才能', '值得记住的事', '基础分析', '命宫', '了解性情的核心', '身宫', '人生投入力量的方向', '五行局', '命盘周期的划分依据', '选择宫位后，可在下方阅读解读。', '行星与生活领域', '咨询与关系探索', '完整解读与参考资料'],
-    'zh-TW': ['宿曜占', '西洋占星', '紫微斗數', '核心解讀', '星盤', '詳細閱讀', '繼續探索', '根據個人出生資料解讀的基礎分析', '我的星辰記錄', '從這裡開始', '完整十二宮與命盤', '深入了解本命宿', '二十七宿與日曆', '性情與選擇', '人際關係', '愛情', '工作與才能', '值得記住的事', '基礎分析', '命宮', '了解性情的核心', '身宮', '人生投入力量的方向', '五行局', '命盤週期的劃分依據', '選擇宮位後，可在下方閱讀解讀。', '行星與生活領域', '諮詢與關係探索', '完整解讀與參考資料']
+    ko: ['숙요점', '점성술', '자미두수', '핵심 해석', '차트', '자세히 읽기', '다음 이야기', '출생 프로필로 읽는 기본 분석', '나의 운명 기록', '먼저 읽어보세요', '전체 12궁과 명반', '나의 숙을 더 깊이 이해하기', '27숙 명반과 달력', '성향과 선택', '인간관계', '사랑', '일과 재능', '기억할 한 가지', '기본 분석', '명궁', '나의 성향을 읽는 중심', '신궁', '삶에서 힘을 쓰는 방향', '오행국', '명반의 흐름을 나누는 기준', '궁을 선택하면 아래에서 해석을 읽을 수 있어요.', '행성과 삶의 영역', '상담과 관계 탐색', '전체 해석과 참고 기록', '명궁', '재백궁', '관록궁', '부부궁', '복덕궁'],
+    en: ['Sukuyo', 'Astrology', 'Ziwei', 'Key reading', 'Chart', 'Read more', 'Explore next', 'A basic reading based on your birth profile', 'My celestial record', 'Start here', 'All 12 palaces and chart', 'Understanding your mansion', '27 mansions and calendar', 'Temperament and choices', 'Relationships', 'Love', 'Work and talents', 'Keep in mind', 'Basic reading', 'Life palace', 'The centre of your temperament', 'Body palace', 'Where you direct your energy', 'Element bureau', 'The cycle used by this chart', 'Select a palace to read its interpretation below.', 'Planets and life areas', 'Consultation and relationships', 'Full reading and reference', 'Life palace', 'Wealth palace', 'Career palace', 'Spouse palace', 'Wellbeing palace'],
+    ja: ['宿曜占', '西洋占星術', '紫微斗数', '基本の読み解き', '命盤', '詳しく読む', '次の物語へ', 'プロフィールの出生情報をもとにした基本分析', '私の星の記録', 'ここから読む', '全12宮と命盤', '本命宿を深く知る', '27宿の命盤と暦', '気質と選択', '人間関係', '恋愛', '仕事と才能', '心に留めたいこと', '基本分析', '命宮', '気質を読み解く中心', '身宮', '人生で力を注ぐ方向', '五行局', '命盤の流れを分ける基準', '宮を選ぶと下に解説が表示されます。', '惑星と人生の領域', '相談と相性を探る', '全体の解説と参考資料', '命宮', '財帛宮', '官禄宮', '夫妻宮', '福徳宮'],
+    zh: ['宿曜占', '西洋占星', '紫微斗数', '核心解读', '星盘', '详细阅读', '继续探索', '根据个人出生资料解读的基础分析', '我的星辰记录', '从这里开始', '完整十二宫与命盘', '深入了解本命宿', '二十七宿与日历', '性情与选择', '人际关系', '爱情', '工作与才能', '值得记住的事', '基础分析', '命宫', '了解性情的核心', '身宫', '人生投入力量的方向', '五行局', '命盘周期的划分依据', '选择宫位后，可在下方阅读解读。', '行星与生活领域', '咨询与关系探索', '完整解读与参考资料', '命宫', '财帛宫', '官禄宫', '夫妻宫', '福德宫'],
+    'zh-TW': ['宿曜占', '西洋占星', '紫微斗數', '核心解讀', '星盤', '詳細閱讀', '繼續探索', '根據個人出生資料解讀的基礎分析', '我的星辰記錄', '從這裡開始', '完整十二宮與命盤', '深入了解本命宿', '二十七宿與日曆', '性情與選擇', '人際關係', '愛情', '工作與才能', '值得記住的事', '基礎分析', '命宮', '了解性情的核心', '身宮', '人生投入力量的方向', '五行局', '命盤週期的劃分依據', '選擇宮位後，可在下方閱讀解讀。', '行星與生活領域', '諮詢與關係探索', '完整解讀與參考資料', '命宮', '財帛宮', '官祿宮', '夫妻宮', '福德宮']
   };
-  var labelKeys = ["sukuyo","astro","ziwei","keyReading","chart","readMore","explore","profileBasis","myRecord","startHere","allPalaces","mansionDetails","mansionChart","temperament","relationships","love","work","advice","basicReading","lifePalace","lifeMeaning","bodyPalace","bodyMeaning","bureau","bureauMeaning","selectPalace","planets","consultation","fullReading"];
+  var labelKeys = ["sukuyo","astro","ziwei","keyReading","chart","readMore","explore","profileBasis","myRecord","startHere","allPalaces","mansionDetails","mansionChart","temperament","relationships","love","work","advice","basicReading","lifePalace","lifeMeaning","bodyPalace","bodyMeaning","bureau","bureauMeaning","selectPalace","planets","consultation","fullReading","palaceLife","palaceWealth","palaceCareer","palaceSpouse","palaceWellbeing"];
   function t(key) {
     var index = typeof key === 'number' ? key : labelKeys.indexOf(key);
     var lang = document.documentElement.lang || 'ko';
@@ -147,12 +147,12 @@
     var choices = node('div', 'fr-palace-choices');
     var dashboard = area.querySelector('.zw-dashboard');
     var cells = Array.from(dashboard.querySelectorAll('.zw-cell[role="button"]'));
-    ['명궁', '재백궁', '관록궁', '부부궁', '복덕궁'].forEach(function (name) {
-      var cell = cells.find(function (el) { var label = el.querySelector('.zw-palace-name'); return label && label.textContent.trim() === name; });
+    [['명궁', 'palaceLife'], ['재백궁', 'palaceWealth'], ['관록궁', 'palaceCareer'], ['부부궁', 'palaceSpouse'], ['복덕궁', 'palaceWellbeing']].forEach(function (palace) {
+      var cell = cells.find(function (el) { var label = el.querySelector('.zw-palace-name'); return label && label.textContent.trim() === palace[0]; });
       if (!cell) return;
       var button = node('button', 'fr-palace-choice'); button.type = 'button';
       button.dataset.palaceIndex = cell.className.match(/\bzw-cell-(\d+)\b/)[1];
-      button.appendChild(node('strong', '', name));
+      button.appendChild(node('strong', '', t(palace[1])));
       button.appendChild(node('span', '', cell.querySelector('.zw-branch-name').textContent));
       button.setAttribute('aria-pressed', 'false');
       button.addEventListener('click', function () {
@@ -196,7 +196,12 @@
     }
     ['sukuyo', 'ziwei'].forEach(function (type) {
       var overlay = document.getElementById(type + 'ModalOverlay');
-      if (overlay) { overlay.classList.add('fr-overlay', 'fr-' + type); overlay.setAttribute('aria-label', t(['sukuyo', 'astro', 'ziwei'].indexOf(type))); }
+      if (overlay) {
+        overlay.classList.add('fr-overlay', 'fr-' + type);
+        overlay.setAttribute('role', 'dialog');
+        overlay.setAttribute('aria-label', t(['sukuyo', 'astro', 'ziwei'].indexOf(type)));
+        overlay.setAttribute('aria-hidden', overlay.style.display === 'flex' ? 'false' : 'true');
+      }
     });
   }
   window.BasicFortunePresentation = { sukuyo: sukuyo, ziwei: ziwei, init: init };

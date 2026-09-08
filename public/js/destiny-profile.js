@@ -10914,7 +10914,16 @@
                  + '&nbsp;·&nbsp;' + String(b.hour != null ? b.hour : 12).padStart(2,'0')
                  + ':' + String(b.minute != null ? b.minute : 0).padStart(2,'0');
     var ov = document.createElement('div');
+    var fortuneSelReturnFocus = document.activeElement && document.activeElement !== document.body
+      ? document.activeElement
+      : document.querySelector('.dp-mc-load-btn');
     ov.className = 'dp-fsel-overlay';
+    ov.setAttribute('role', 'dialog');
+    ov.setAttribute('aria-modal', 'true');
+    ov.setAttribute('aria-labelledby', 'dpFortuneSelTitle');
+    ov.setAttribute('aria-hidden', 'false');
+    ov.tabIndex = -1;
+    ov.__dpReturnFocus = fortuneSelReturnFocus;
     ov.innerHTML =
       '<div class="dp-fsel-modal">'
       + '<button type="button" class="dp-fsel-close-btn" aria-label="' + _esc(_dpText('close')) + '" onclick="window._dpCloseFortuneSel && window._dpCloseFortuneSel(); return false;">✕</button>'
@@ -10925,16 +10934,16 @@
         + (l.label ? '<div class="dp-fsel-ploc">📍 ' + _esc(l.label) + '</div>' : '')
       + '</div>'
       + '<div class="dp-fsel-divider"></div>'
-      + '<div class="dp-fsel-ask">어떤 운세를 보시겠습니까?</div>'
+      + '<div class="dp-fsel-ask" id="dpFortuneSelTitle">어떤 운세를 보시겠습니까?</div>'
       + '<div class="dp-fsel-btns">'
-        + '<button class="dp-fsel-btn dp-fsel-btn--saju"   onclick="window._dpOpenFortuneType(\'saju\')"   style="touch-action:manipulation"><span class="dp-fsel-btn-icon">🔮</span><span class="dp-fsel-btn-label">사주 풀이</span></button>'
-        + '<button class="dp-fsel-btn dp-fsel-btn--sukuyo" onclick="window._dpOpenFortuneType(\'sukuyo\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">💫</span><span class="dp-fsel-btn-label">숙요점</span></button>'
-        + '<button class="dp-fsel-btn dp-fsel-btn--ziwei" onclick="window._dpOpenFortuneType(\'ziwei\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">🌌</span><span class="dp-fsel-btn-label">자미두수</span></button>'
-        + '<button class="dp-fsel-btn dp-fsel-btn--astro" onclick="window._dpOpenFortuneType(\'astro\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">✨</span><span class="dp-fsel-btn-label">점성술</span></button>'
-        + '<button class="dp-fsel-btn dp-fsel-btn--juyuk" onclick="window._dpOpenFortuneType(\'juyuk\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">☯️</span><span class="dp-fsel-btn-label">주역 거북점</span></button>'
-        + '<button class="dp-fsel-btn dp-fsel-btn--vedic" onclick="window._dpOpenFortuneType(\'vedic\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">🪐</span><span class="dp-fsel-btn-label">베다점</span></button>'
-        + '<button class="dp-fsel-btn dp-fsel-btn--tarot"  onclick="window._dpOpenFortuneType(\'tarot\')"  style="touch-action:manipulation"><span class="dp-fsel-btn-icon">🃏</span><span class="dp-fsel-btn-label">타로</span></button>'
-        + '<button class="dp-fsel-btn dp-fsel-btn--kemet" onclick="window._dpOpenFortuneType(\'kemet\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">𓂀</span><span class="dp-fsel-btn-label">이집트 신탁</span></button>'
+        + '<button type="button" class="dp-fsel-btn dp-fsel-btn--saju"   onclick="window._dpOpenFortuneType(\'saju\')"   style="touch-action:manipulation"><span class="dp-fsel-btn-icon">🔮</span><span class="dp-fsel-btn-label">사주 풀이</span></button>'
+        + '<button type="button" class="dp-fsel-btn dp-fsel-btn--sukuyo" onclick="window._dpOpenFortuneType(\'sukuyo\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">💫</span><span class="dp-fsel-btn-label">숙요점</span></button>'
+        + '<button type="button" class="dp-fsel-btn dp-fsel-btn--ziwei" onclick="window._dpOpenFortuneType(\'ziwei\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">🌌</span><span class="dp-fsel-btn-label">자미두수</span></button>'
+        + '<button type="button" class="dp-fsel-btn dp-fsel-btn--astro" onclick="window._dpOpenFortuneType(\'astro\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">✨</span><span class="dp-fsel-btn-label">점성술</span></button>'
+        + '<button type="button" class="dp-fsel-btn dp-fsel-btn--juyuk" onclick="window._dpOpenFortuneType(\'juyuk\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">☯️</span><span class="dp-fsel-btn-label">주역 거북점</span></button>'
+        + '<button type="button" class="dp-fsel-btn dp-fsel-btn--vedic" onclick="window._dpOpenFortuneType(\'vedic\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">🪐</span><span class="dp-fsel-btn-label">베다점</span></button>'
+        + '<button type="button" class="dp-fsel-btn dp-fsel-btn--tarot"  onclick="window._dpOpenFortuneType(\'tarot\')"  style="touch-action:manipulation"><span class="dp-fsel-btn-icon">🃏</span><span class="dp-fsel-btn-label">타로</span></button>'
+        + '<button type="button" class="dp-fsel-btn dp-fsel-btn--kemet" onclick="window._dpOpenFortuneType(\'kemet\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">𓂀</span><span class="dp-fsel-btn-label">이집트 신탁</span></button>'
       + '</div>'
       + '</div>';
     document.body.appendChild(ov);
@@ -10976,21 +10985,60 @@
     ov.addEventListener('click', function(e) {
       if (e.target === ov) doClose(e);
     });
-    requestAnimationFrame(function() { ov.classList.add('dp-fsel-overlay--in'); });
+    ov.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        doClose(e);
+        return;
+      }
+      if (e.key !== 'Tab') return;
+      var focusable = Array.prototype.slice.call(ov.querySelectorAll('button,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])'))
+        .filter(function(el) { return !el.disabled && el.getAttribute('aria-hidden') !== 'true' && el.offsetParent !== null; });
+      if (!focusable.length) {
+        e.preventDefault();
+        ov.focus();
+        return;
+      }
+      var first = focusable[0];
+      var last = focusable[focusable.length - 1];
+      if (e.shiftKey && (document.activeElement === first || !ov.contains(document.activeElement))) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && (document.activeElement === last || !ov.contains(document.activeElement))) {
+        e.preventDefault();
+        first.focus();
+      }
+    });
+    requestAnimationFrame(function() {
+      ov.classList.add('dp-fsel-overlay--in');
+      var initialFocus = ov.querySelector('.dp-fsel-close-btn');
+      if (initialFocus && typeof initialFocus.focus === 'function') initialFocus.focus();
+    });
   };
 
   window._dpCloseFortuneSel = function() {
     var ov = window._dpFortuneSelEl || document.querySelector('.dp-fsel-overlay');
     if (!ov) return;
+    var returnFocus = ov.__dpReturnFocus;
+    ov.setAttribute('aria-hidden', 'true');
     ov.classList.remove('dp-fsel-overlay--in');
     setTimeout(function() { if (ov.parentNode) ov.parentNode.removeChild(ov); }, 350);
     window._dpFortuneSelEl = null;
+    requestAnimationFrame(function() {
+      if (returnFocus && document.documentElement.contains(returnFocus) && typeof returnFocus.focus === 'function') {
+        try { returnFocus.focus({ preventScroll: true }); } catch (_) { returnFocus.focus(); }
+      }
+    });
   };
 
   window._dpOpenFortuneType = function(type) {
     /* fsel 오버레이를 페이드아웃 후 DOM에서 완전 제거한 뒤 모달 열기
        (backdrop-filter stacking context → iOS WebKit 화이트스크린 방지) */
     var ov = window._dpFortuneSelEl || document.querySelector('.dp-fsel-overlay');
+    if ((type === 'sukuyo' || type === 'ziwei') && ov && ov.__dpReturnFocus) {
+      window.__cdBasicFortuneReturnFocus = ov.__dpReturnFocus;
+    }
     window._dpFortuneSelEl = null;
 
     function _openTarget() {
@@ -11174,6 +11222,7 @@
     if (!ov) { _openTarget(); return; }
 
     /* CSS 트랜지션 후 제거 → 모달 열기 */
+    ov.setAttribute('aria-hidden', 'true');
     ov.classList.remove('dp-fsel-overlay--in');
     setTimeout(function() {
       if (ov.parentNode) ov.parentNode.removeChild(ov);
