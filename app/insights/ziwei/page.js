@@ -1,4 +1,5 @@
 import InsightTopicArchive from "../InsightTopicArchive";
+import { ZIWEI_READING_ORDER } from "../ziwei-reading-order";
 import { buildSeoMetadata } from "../../../lib/seo";
 import { buildBreadcrumbJsonLd, buildCollectionPageJsonLd } from "../../../lib/structured-data";
 
@@ -55,6 +56,7 @@ export default function InsightsZiweiPage() {
         title={insightsZiweiPageCopy.archiveTitle}
         intro={insightsZiweiPageCopy.intro}
         serviceCtaPath="/ziwei"
+        curatedSlugs={ZIWEI_READING_ORDER}
       />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionPage) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
