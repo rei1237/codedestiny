@@ -64,6 +64,7 @@ const deploymentMode = firstNonEmpty([
   "manual-pages-only",
 ]);
 const environment = firstNonEmpty([
+  process.env.CD_DEPLOY_TARGET,
   process.env.CF_PAGES === "1" || process.env.CF_PAGES === "true" ? "production" : "",
   process.env.NODE_ENV,
   "production",

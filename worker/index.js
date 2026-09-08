@@ -797,7 +797,9 @@ function buildVersionPayload(env) {
     || "",
   ).trim() || null;
   const source = String(getEnv(env, "DEPLOY_SOURCE") || "worker-native").trim() || "worker-native";
-  const environment = String(getEnv(env, "NODE_ENV") || getEnv(env, "APP_ENV") || "production").trim() || "production";
+  // NODE_ENV stays "production" on staging for security behavior. APP_ENV is the
+  // deployment identity and must win only in the public version metadata.
+  const environment = String(getEnv(env, "APP_ENV") || getEnv(env, "NODE_ENV") || "production").trim() || "production";
   const deploymentMode = String(getEnv(env, "DEPLOYMENT_MODE") || "manual-pages-only").trim() || "manual-pages-only";
   const appVersion = String(
     getEnv(env, "APP_VERSION")

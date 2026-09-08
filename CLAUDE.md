@@ -18,6 +18,7 @@ GREEN은 관련 파일부터 수정하고, RED는 위험·검증·롤백을 먼�
 4. 수정 금지: .env*, package-lock.json, .wrangler/, dist/, out/, 마이그레이션 결과물, worker/wrangler.toml 구조. vars 예외는 참조 문서.
 5. 비밀정보 출력·저장·커밋 금지. 승인 연락처 예외는 참조 문서.
 6. 요청 밖 기능·라우트·콘텐츠 삭제 금지. 삭제는 소스·테스트·검증기 참조 확인 후 별도 변경으로 다룬다.
+7. 완료 세션은 검증→commit→push→Ready PR→인수인계 순서를 지킨다. 다음 세션은 PR merge와 staging SHA 확인 후 최신 `origin/main` 기반 linked worktree에서 `npm run session:start -- --handoff=...`를 통과하고 시작한다.
 
 ## 코딩 원칙 (번호 유지)
 
