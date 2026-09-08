@@ -14,6 +14,7 @@
  */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, relative, resolve } from "node:path";
+import { writeVisualDetails } from "./lib/build-visual-details.mjs";
 
 import {
   GENERATED_COPY_PATH,
@@ -22,7 +23,8 @@ import {
   serializeFeatureMarketingCopy,
 } from "./lib/feature-marketing-extract.mjs";
 
-const data = buildFeatureMarketingCopy(readShellHtml());
+const shellHtml = readShellHtml();
+const data = buildFeatureMarketingCopy(shellHtml);
 
 const itemCount = Object.keys(data.items).length;
 const templateCount = Object.keys(data.templates).length;
@@ -41,6 +43,7 @@ if (!itemCount || !templateCount || !categoryCount || !trustCount) {
 
 mkdirSync(dirname(GENERATED_COPY_PATH), { recursive: true });
 writeFileSync(GENERATED_COPY_PATH, serializeFeatureMarketingCopy(data), "utf8");
+await writeVisualDetails(shellHtml, data);
 
 const shown = relative(resolve(process.cwd()), GENERATED_COPY_PATH).split("\\").join("/");
 console.log(

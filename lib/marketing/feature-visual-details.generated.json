@@ -1,0 +1,4665 @@
+{
+  "index": [
+    {
+      "slug": "master-love-codex",
+      "title": "마스터 인연의 서",
+      "href": "/master-love-codex/",
+      "featureKey": "master-love-codex",
+      "featureKeyTo": "master-love-codex-compat",
+      "accessType": "unknown",
+      "image": "",
+      "aliases": [
+        "master-love-codex",
+        "/master-love-codex/",
+        "/master-love-codex"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "fortune-tea-house",
+      "title": "운명의 찻집",
+      "href": "/fortune-tea-house/",
+      "featureKey": "fortune-tea-house-tarot-consultation",
+      "featureKeyTo": "fortune-tea-house-sukuyo-compatibility-consultation",
+      "accessType": "unknown",
+      "image": "/feature-details/assets/fortune-tea-house-960.webp",
+      "aliases": [
+        "fortune-tea-house-tarot-consultation",
+        "fortune-tea-house",
+        "/fortune-tea-house/",
+        "/fortune-tea-house"
+      ],
+      "verification": "verified"
+    },
+    {
+      "slug": "love-secret-ai",
+      "title": "연애 비책",
+      "href": "/love-secret-ai/",
+      "featureKey": "love-secret-ai-consultation",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "",
+      "aliases": [
+        "love-secret-ai-consultation",
+        "love-secret-ai",
+        "/love-secret-ai/",
+        "/love-secret-ai"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "fortune-chat",
+      "title": "대화형 운명 상담",
+      "href": "/fortune-chat/",
+      "featureKey": "fortune-chat-consultation",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "",
+      "aliases": [
+        "fortune-chat-consultation",
+        "fortune-chat",
+        "/fortune-chat/",
+        "/fortune-chat"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "tarot-love-relationship",
+      "title": "우리는 무슨 사이?",
+      "href": "/index.html?action=openTarotLoveModal",
+      "featureKey": "tarot-love-relationship",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "/fuctionassets/tarolove.webp",
+      "aliases": [
+        "tarot-love-relationship",
+        "openTarotLoveModal",
+        "/index.html?action=openTarotLoveModal",
+        "/index.html?action=openTarotLoveModal/"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "tarot-reunion",
+      "title": "재회운 타로",
+      "href": "/index.html?action=openTarotReunionModal",
+      "featureKey": "tarot-reunion-reading",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "/fuctionassets/reunion.webp",
+      "aliases": [
+        "tarot-reunion-reading",
+        "openTarotReunionModal",
+        "tarot-reunion",
+        "/index.html?action=openTarotReunionModal",
+        "/index.html?action=openTarotReunionModal/"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "tarot-mindscan",
+      "title": "말과 행동 사이 타로",
+      "href": "/tarot/mindscan/",
+      "featureKey": "tarot-mindscan",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "",
+      "aliases": [
+        "tarot-mindscan",
+        "/tarot/mindscan/",
+        "/tarot/mindscan"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "love-simulation",
+      "title": "LOVE CODE 연애 시뮬레이션",
+      "href": "/index.html?action=openLoveSimulation",
+      "featureKey": "love-code",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "/fuctionassets/love code.webp",
+      "aliases": [
+        "love-code",
+        "openLoveSimulation",
+        "love-simulation",
+        "/index.html?action=openLoveSimulation",
+        "/index.html?action=openLoveSimulation/"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "nakshatra-compat",
+      "title": "동서 통합 궁합",
+      "href": "/nakshatra/compat/",
+      "featureKey": "nakshatra-compat",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "",
+      "aliases": [
+        "nakshatra-compat",
+        "/nakshatra/compat/",
+        "/nakshatra/compat"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "neo-operation-room",
+      "title": "팩폭 전략소",
+      "href": "/neo-operation-room/",
+      "featureKey": "neo-operation-room-consultation",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "https://assets.code-destiny.com/DestinyWar/%EB%84%A4%EC%98%A4%EC%9D%98%20%ED%8C%A9%ED%8F%AD%20%EC%9A%B4%EB%AA%85%20%EC%9E%91%EC%A0%84%EC%8B%A4.webp",
+      "aliases": [
+        "neo-operation-room-consultation",
+        "neo-operation-room",
+        "/neo-operation-room/",
+        "/neo-operation-room"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "destiny-compass",
+      "title": "운명의 나침반",
+      "href": "/destiny-compass/",
+      "featureKey": "destiny-compass-life-voyage",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "",
+      "aliases": [
+        "destiny-compass-life-voyage",
+        "destiny-compass",
+        "/destiny-compass/",
+        "/destiny-compass"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "saju-sibyl",
+      "title": "사이빌 전문가 상담",
+      "href": "/saju/sibyl/",
+      "featureKey": "premium-sibyl-dominator",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "",
+      "aliases": [
+        "premium-sibyl-dominator",
+        "saju-sibyl",
+        "/saju/sibyl/",
+        "/saju/sibyl"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "new-year-ai",
+      "title": "신년운세",
+      "href": "/new-year-ai-consultation/",
+      "featureKey": "new-year-ai-consultation",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "",
+      "aliases": [
+        "new-year-ai-consultation",
+        "new-year-ai",
+        "/new-year-ai-consultation/",
+        "/new-year-ai-consultation"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "tarot-ijik",
+      "title": "이직 운명의 카드",
+      "href": "/tarot-ijik.html",
+      "featureKey": "tarot-ijik",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "",
+      "aliases": [
+        "tarot-ijik",
+        "/tarot-ijik.html",
+        "/tarot-ijik.html/"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "life-book-ai",
+      "title": "인생의 책",
+      "href": "/life-book-ai/",
+      "featureKey": "life-book-ai-consultation",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "/feature-details/assets/life-book-ai-960.webp",
+      "aliases": [
+        "life-book-ai-consultation",
+        "life-book-ai",
+        "/life-book-ai/",
+        "/life-book-ai"
+      ],
+      "verification": "verified"
+    },
+    {
+      "slug": "karma-destiny-ai",
+      "title": "운명의 업",
+      "href": "/karma-destiny-ai/",
+      "featureKey": "karma-destiny-ai-consultation",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "",
+      "aliases": [
+        "karma-destiny-ai-consultation",
+        "karma-destiny-ai",
+        "/karma-destiny-ai/",
+        "/karma-destiny-ai"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "saju-guardian",
+      "title": "사주 가디언 소환진",
+      "href": "/index.html?action=openSajuGuardianPage",
+      "featureKey": "saju-guardian-unlock",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "/fuctionassets/saju-guardian-animal-v20260615.webp",
+      "aliases": [
+        "saju-guardian-unlock",
+        "openSajuGuardianPage",
+        "saju-guardian",
+        "/index.html?action=openSajuGuardianPage",
+        "/index.html?action=openSajuGuardianPage/"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "naming-ai",
+      "title": "전문가 작명소",
+      "href": "/naming-ai/",
+      "featureKey": "premium-naming-prompt",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "",
+      "aliases": [
+        "premium-naming-prompt",
+        "naming-ai",
+        "/naming-ai/",
+        "/naming-ai"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "fusion-fortune",
+      "title": "초융합 심층 리딩",
+      "href": "/fusion-fortune/",
+      "featureKey": "fusion-fortune-consultation",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "",
+      "aliases": [
+        "fusion-fortune-consultation",
+        "fusion-fortune",
+        "/fusion-fortune/",
+        "/fusion-fortune"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "tarot-year-fortune",
+      "title": "십이지신 천운 타로",
+      "href": "/index.html?action=openTarotYearFortuneModal",
+      "featureKey": "tarot-year-fortune",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "/fuctionassets/12animals.webp",
+      "aliases": [
+        "tarot-year-fortune",
+        "openTarotYearFortuneModal",
+        "/index.html?action=openTarotYearFortuneModal",
+        "/index.html?action=openTarotYearFortuneModal/"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "tarot-celestial-harmony",
+      "title": "천체의 선율",
+      "href": "/celestial-harmony.html",
+      "featureKey": "tarot-celestial-harmony",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "",
+      "aliases": [
+        "tarot-celestial-harmony",
+        "/celestial-harmony.html",
+        "/celestial-harmony.html/"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "nakshatra-muhurta",
+      "title": "택일 무후르타",
+      "href": "/nakshatra/muhurta/",
+      "featureKey": "nakshatra-muhurta",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "",
+      "aliases": [
+        "nakshatra-muhurta",
+        "/nakshatra/muhurta/",
+        "/nakshatra/muhurta"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "saju",
+      "title": "사주",
+      "href": "/saju/",
+      "featureKey": "saju",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "",
+      "aliases": [
+        "saju",
+        "/saju/",
+        "/saju"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "tarot",
+      "title": "타로",
+      "href": "/tarot/",
+      "featureKey": "tarot",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "/fuctionassets/ai%20tarrot.webp",
+      "aliases": [
+        "openTarotModal",
+        "tarot",
+        "/tarot/",
+        "/tarot"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "ziwei",
+      "title": "자미두수",
+      "href": "/ziwei/",
+      "featureKey": "ziwei-basic",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "/fuctionassets/jami.webp",
+      "aliases": [
+        "openZiweiModal",
+        "ziwei",
+        "/ziwei/",
+        "/ziwei"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "sukuyo",
+      "title": "숙요점",
+      "href": "/sukuyo/",
+      "featureKey": "compat-sukuyo-compatibility",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "",
+      "aliases": [
+        "openSukuyoModal",
+        "sukuyo",
+        "/sukuyo/",
+        "/sukuyo"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "vedic",
+      "title": "베다점",
+      "href": "/vedic/",
+      "featureKey": "vedic",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "",
+      "aliases": [
+        "vedic",
+        "/vedic/",
+        "/vedic"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "astrology",
+      "title": "점성술",
+      "href": "/astrology/",
+      "featureKey": "astro-basic",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "/fuctionassets/jumsung.webp",
+      "aliases": [
+        "openAstroModal",
+        "astrology",
+        "/astrology/",
+        "/astrology"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "human-design",
+      "title": "휴먼 디자인",
+      "href": "/human-design/",
+      "featureKey": "human-design-chart",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "",
+      "aliases": [
+        "human-design-chart",
+        "human-design",
+        "/human-design/",
+        "/human-design"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "nakshatra",
+      "title": "나크샤트라 결정판",
+      "href": "/nakshatra/",
+      "featureKey": "nakshatra",
+      "featureKeyTo": "",
+      "accessType": "free",
+      "image": "",
+      "aliases": [
+        "nakshatra",
+        "/nakshatra/",
+        "/nakshatra"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "maya",
+      "title": "마야점",
+      "href": "/maya/",
+      "featureKey": "maya",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "",
+      "aliases": [
+        "maya",
+        "/maya/",
+        "/maya"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "daily-fortune",
+      "title": "오늘의 운세",
+      "href": "/daily-fortune/",
+      "featureKey": "daily-fortune",
+      "featureKeyTo": "",
+      "accessType": "free",
+      "image": "",
+      "aliases": [
+        "daily-fortune",
+        "/daily-fortune/",
+        "/daily-fortune"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "today-hub",
+      "title": "오늘의 운세 허브",
+      "href": "/today/",
+      "featureKey": "today-hub",
+      "featureKeyTo": "",
+      "accessType": "free",
+      "image": "",
+      "aliases": [
+        "today-hub",
+        "/today/",
+        "/today"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "palm-reading",
+      "title": "손금",
+      "href": "/palm-reading/",
+      "featureKey": "palm-reading-general",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "/fuctionassets/%EC%86%90%EA%B8%88.webp",
+      "aliases": [
+        "palm-reading",
+        "/palm-reading/",
+        "/palm-reading"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "physiognomy",
+      "title": "관상",
+      "href": "/physiognomy/",
+      "featureKey": "physiognomy",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "/fuctionassets/ai%20animal.webp",
+      "aliases": [
+        "openPhysiognomyApp",
+        "physiognomy",
+        "/physiognomy/",
+        "/physiognomy"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "dream",
+      "title": "꿈해몽",
+      "href": "/dream/",
+      "featureKey": "dream",
+      "featureKeyTo": "",
+      "accessType": "free",
+      "image": "/fuctionassets/heamong.webp",
+      "aliases": [
+        "openDreamModal",
+        "dream",
+        "/dream/",
+        "/dream"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "psychotest",
+      "title": "심리테스트",
+      "href": "/psychotest/",
+      "featureKey": "psychotest",
+      "featureKeyTo": "",
+      "accessType": "free",
+      "image": "",
+      "aliases": [
+        "psychotest",
+        "/psychotest/",
+        "/psychotest"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "manse",
+      "title": "만세력",
+      "href": "/manse/",
+      "featureKey": "manse",
+      "featureKeyTo": "",
+      "accessType": "free",
+      "image": "",
+      "aliases": [
+        "manse",
+        "/manse/",
+        "/manse"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "famous-saju",
+      "title": "유명인 사주",
+      "href": "/insights/famous-saju/",
+      "featureKey": "famous-saju",
+      "featureKeyTo": "",
+      "accessType": "free",
+      "image": "",
+      "aliases": [
+        "famous-saju",
+        "/insights/famous-saju/",
+        "/insights/famous-saju"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "animal-destiny",
+      "title": "운명의 동물 도감",
+      "href": "/saju/animal-destiny/",
+      "featureKey": "",
+      "featureKeyTo": "",
+      "accessType": "free",
+      "image": "",
+      "aliases": [
+        "animal-destiny",
+        "/saju/animal-destiny/",
+        "/saju/animal-destiny",
+        "openAnimalDestinyRoute"
+      ],
+      "verification": "verified"
+    },
+    {
+      "slug": "kemet-oracle",
+      "title": "이집트 신탁",
+      "href": "/index.html?action=openKemetModal",
+      "featureKey": "openKemetModal",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "/fuctionassets/egypt.webp",
+      "aliases": [
+        "openKemetModal",
+        "kemet-oracle",
+        "/index.html?action=openKemetModal",
+        "/index.html?action=openKemetModal/"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "ifa-oracle",
+      "title": "IFÀ 오라클",
+      "href": "/ifa-oracle.html",
+      "featureKey": "ifa-oracle",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "",
+      "aliases": [
+        "ifa-oracle",
+        "/ifa-oracle.html",
+        "/ifa-oracle.html/"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "juyuk-turtle",
+      "title": "주역 거북점",
+      "href": "/oracle/juyuk/",
+      "featureKey": "openJuyukModal",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "/fuctionassets/juyuk.webp",
+      "aliases": [
+        "openJuyukModal",
+        "juyuk-turtle",
+        "/oracle/juyuk/",
+        "/oracle/juyuk"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "neville-meditation",
+      "title": "네빌 명상 실습",
+      "href": "/neville-meditation.html",
+      "featureKey": "neville-meditation",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "",
+      "aliases": [
+        "neville-meditation",
+        "/neville-meditation.html",
+        "/neville-meditation.html/"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "yoga-guru",
+      "title": "Divya Yoga",
+      "href": "/yoga-guru.html",
+      "featureKey": "yoga-guru-per-use",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "",
+      "aliases": [
+        "yoga-guru-per-use",
+        "yoga-guru",
+        "/yoga-guru.html",
+        "/yoga-guru.html/"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "tarot-numerology",
+      "title": "수비학 타로",
+      "href": "/tarot/numerology/",
+      "featureKey": "tarot-numerology-reading",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "",
+      "aliases": [
+        "tarot-numerology-reading",
+        "tarot-numerology",
+        "/tarot/numerology/",
+        "/tarot/numerology"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "dream-psycho-analysis",
+      "title": "정신분석 해몽",
+      "href": "/index.html?action=openPsychoDreamModal",
+      "featureKey": "dream-psycho-analysis",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "/fuctionassets/phydream.webp",
+      "aliases": [
+        "dream-psycho-analysis",
+        "openPsychoDreamModal",
+        "/index.html?action=openPsychoDreamModal",
+        "/index.html?action=openPsychoDreamModal/"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "animal-totem",
+      "title": "애니멀 토템",
+      "href": "/index.html?action=openAnimalTotemModal",
+      "featureKey": "animal-totem-basic",
+      "featureKeyTo": "animal-totem-deep",
+      "accessType": "unknown",
+      "image": "/fuctionassets/animaltotem.webp",
+      "aliases": [
+        "animal-totem-basic",
+        "openAnimalTotemModal",
+        "animal-totem",
+        "/index.html?action=openAnimalTotemModal",
+        "/index.html?action=openAnimalTotemModal/"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "mbti-animal-compat",
+      "title": "MBTI 동물 궁합",
+      "href": "/index.html?action=openMbtiModal",
+      "featureKey": "mbti-animal-compat",
+      "featureKeyTo": "",
+      "accessType": "free",
+      "image": "/fuctionassets/ai%20face.webp",
+      "aliases": [
+        "openMbtiModal",
+        "mbti-animal-compat",
+        "/index.html?action=openMbtiModal",
+        "/index.html?action=openMbtiModal/"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "tarot-crystal-soul",
+      "title": "원석 소울 타로",
+      "href": "/tarot/crystal-soul/",
+      "featureKey": "tarot-crystal-soul-reading",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "",
+      "aliases": [
+        "tarot-crystal-soul-reading",
+        "tarot-crystal-soul",
+        "/tarot/crystal-soul/",
+        "/tarot/crystal-soul"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "royal-tea-oracle",
+      "title": "영국 홍차점",
+      "href": "/index.html?action=openRoyalTeaOracle",
+      "featureKey": "royal-tea-oracle",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "/fuctionassets/london.webp",
+      "aliases": [
+        "royal-tea-oracle",
+        "openRoyalTeaOracle",
+        "/index.html?action=openRoyalTeaOracle",
+        "/index.html?action=openRoyalTeaOracle/"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "geomancy-oracle",
+      "title": "지오맨시 흙점",
+      "href": "/index.html?action=openGeomancyOracle",
+      "featureKey": "openGeomancyOracle",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "/fuctionassets/geomancy.webp",
+      "aliases": [
+        "openGeomancyOracle",
+        "geomancy-oracle",
+        "/index.html?action=openGeomancyOracle",
+        "/index.html?action=openGeomancyOracle/"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "stonehenge-runes",
+      "title": "스톤헨지 룬",
+      "href": "/index.html?action=openRuneOracle",
+      "featureKey": "stonehenge-runes-single",
+      "featureKeyTo": "stonehenge-runes-yearly",
+      "accessType": "unknown",
+      "image": "/fuctionassets/rune.webp",
+      "aliases": [
+        "stonehenge-runes-single",
+        "openRuneOracle",
+        "stonehenge-runes",
+        "/index.html?action=openRuneOracle",
+        "/index.html?action=openRuneOracle/"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "luck-sync-diary",
+      "title": "운기 다이어리와 플래너",
+      "href": "/diary/",
+      "featureKey": "luck-sync-diary",
+      "featureKeyTo": "",
+      "accessType": "free",
+      "image": "",
+      "aliases": [
+        "openLuckSyncDiary",
+        "luck-sync-diary",
+        "/diary/",
+        "/diary"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "music",
+      "title": "달빛 음악 플레이어",
+      "href": "/music/",
+      "featureKey": "music",
+      "featureKeyTo": "",
+      "accessType": "free",
+      "image": "",
+      "aliases": [
+        "music",
+        "/music/",
+        "/music"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "novel",
+      "title": "라이트 노벨",
+      "href": "/codedestiny-novel.html",
+      "featureKey": "novel",
+      "featureKeyTo": "",
+      "accessType": "free",
+      "image": "",
+      "aliases": [
+        "novel",
+        "/codedestiny-novel.html",
+        "/codedestiny-novel.html/"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "points",
+      "title": "달빛 이용권",
+      "href": "/points/",
+      "featureKey": "points",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "",
+      "aliases": [
+        "points",
+        "/points/",
+        "/points"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "saju",
+      "title": "사주 정밀 분석",
+      "href": "/saju/basic/play",
+      "featureKey": "",
+      "featureKeyTo": "",
+      "accessType": "free",
+      "image": "/fuctionassets/saju.webp",
+      "aliases": [
+        "saju",
+        "/saju/basic/play",
+        "/saju/basic/play/"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "ziwei",
+      "title": "심화 자미두수 12궁 상담",
+      "href": "/ziwei/chart",
+      "featureKey": "",
+      "featureKeyTo": "",
+      "accessType": "free",
+      "image": "/fuctionassets/jami.webp",
+      "aliases": [
+        "ziwei",
+        "/ziwei/chart",
+        "/ziwei/chart/"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "sukyo",
+      "title": "숙요 인연 레이더",
+      "href": "/index.html?action=openSukuyoModal",
+      "featureKey": "",
+      "featureKeyTo": "",
+      "accessType": "free",
+      "image": "/fuctionassets/sukyo.webp",
+      "aliases": [
+        "sukyo",
+        "/index.html?action=openSukuyoModal",
+        "/index.html?action=openSukuyoModal/"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "vedic",
+      "title": "베다 점성술 분석",
+      "href": "/index.html?action=navigateToVedic",
+      "featureKey": "",
+      "featureKeyTo": "",
+      "accessType": "free",
+      "image": "/fuctionassets/veda.webp",
+      "aliases": [
+        "vedic",
+        "/index.html?action=navigateToVedic",
+        "/index.html?action=navigateToVedic/"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "astrology",
+      "title": "서양 점성술 차트 분석",
+      "href": "/index.html?action=openAstroModal",
+      "featureKey": "",
+      "featureKeyTo": "",
+      "accessType": "free",
+      "image": "/fuctionassets/jumsung.webp",
+      "aliases": [
+        "astrology",
+        "/index.html?action=openAstroModal",
+        "/index.html?action=openAstroModal/"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "tarot",
+      "title": "타로 리딩",
+      "href": "/index.html?action=openTarotModal",
+      "featureKey": "",
+      "featureKeyTo": "",
+      "accessType": "free",
+      "image": "/fuctionassets/ai%20tarrot.webp",
+      "aliases": [
+        "tarot",
+        "/index.html?action=openTarotModal",
+        "/index.html?action=openTarotModal/"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "tarot-prompt-maker",
+      "title": "타로 오라클 상담",
+      "href": "/tarot/prompt-maker",
+      "featureKey": "tarot-prompt-maker",
+      "featureKeyTo": "",
+      "accessType": "paid",
+      "image": "/fuctionassets/연애 재회 타로 프롬프트 메이커.webp",
+      "aliases": [
+        "tarot-prompt-maker",
+        "/tarot/prompt-maker",
+        "/tarot/prompt-maker/"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "face-reading",
+      "title": "전문가 관상 분석",
+      "href": "/saju-guardian",
+      "featureKey": "",
+      "featureKeyTo": "",
+      "accessType": "free",
+      "image": "/fuctionassets/ai%20animal.webp",
+      "aliases": [
+        "face-reading",
+        "/saju-guardian",
+        "/saju-guardian/"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "bias-destiny",
+      "title": "최애운명",
+      "href": "/saju/destiny-bias",
+      "featureKey": "destiny-bias-analyze",
+      "featureKeyTo": "",
+      "accessType": "free",
+      "image": "/fuctionassets/%EC%B5%9C%EC%95%A0%EC%9A%B4%EB%AA%85.webp",
+      "aliases": [
+        "bias-destiny",
+        "/saju/destiny-bias",
+        "/saju/destiny-bias/"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "omikuji",
+      "title": "이모이 오미쿠지",
+      "href": "/emoi_omikuji_v2.html",
+      "featureKey": "",
+      "featureKeyTo": "",
+      "accessType": "free",
+      "image": "/fuctionassets/%EC%98%A4%EB%AF%B8%EC%BF%A0%EC%A7%80.webp",
+      "aliases": [
+        "omikuji",
+        "/emoi_omikuji_v2.html",
+        "/emoi_omikuji_v2.html/"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "destiny-meeting-place",
+      "title": "사주로 보는 인연의 장소",
+      "href": "/saju/destiny-meeting-place",
+      "featureKey": "destiny_meeting_place",
+      "featureKeyTo": "",
+      "accessType": "paid",
+      "image": "/fuctionassets/%EC%82%AC%EC%A3%BC%EB%A1%9C%EB%B3%B4%EB%8A%94%20%EC%9D%B8%EC%97%B0%EC%9D%98%20%EC%9E%A5%EC%86%8C.webp",
+      "aliases": [
+        "destiny_meeting_place",
+        "destiny-meeting-place",
+        "/saju/destiny-meeting-place",
+        "/saju/destiny-meeting-place/"
+      ],
+      "verification": "source-inventory-only"
+    },
+    {
+      "slug": "ziwei-ai",
+      "title": "자미두수 전문가 상담",
+      "href": "/ziwei-ai",
+      "featureKey": "ziwei-ai-consultation",
+      "featureKeyTo": "",
+      "accessType": "paid",
+      "image": "/fuctionassets/jamipremiun.webp",
+      "aliases": [
+        "ziwei-ai-consultation",
+        "ziwei-ai",
+        "/ziwei-ai",
+        "/ziwei-ai/"
+      ],
+      "verification": "source-inventory-only"
+    }
+  ],
+  "items": {
+    "master-love-codex": {
+      "slug": "master-love-codex",
+      "title": "마스터 인연의 서",
+      "href": "/master-love-codex/",
+      "featureKey": "master-love-codex",
+      "featureKeyTo": "master-love-codex-compat",
+      "accessType": "unknown",
+      "image": "",
+      "aliases": [
+        "master-love-codex",
+        "/master-love-codex/",
+        "/master-love-codex"
+      ],
+      "headline": "당신의 연애를 스무 개의 장으로 나눠 한 권으로 정리합니다.",
+      "description": "일간의 기질과 명궁 주성을 근거로 타고난 연애 성향부터 시기별 전망까지 순서대로 쌓아 올리는 최상위 연애 해석서입니다.",
+      "panels": [
+        {
+          "title": "이런 질문에 도움이 됩니다",
+          "items": [
+            "왜 매번 같은 방식으로 끝날까요?",
+            "끌리는 사람과 맞는 사람이 왜 다를까요?",
+            "다음 연애에서는 뭘 바꿔야 할까요?"
+          ]
+        },
+        {
+          "title": "이 기능으로 살펴보는 것",
+          "items": [
+            "생년월일시로 사주 원국과 자미두수 명반을 함께 계산",
+            "스무 개 장을 순서대로 생성하며 앞 장을 뒷 장의 근거로 사용",
+            "일간·십성·부부궁·천이궁 등 장마다 근거를 명시",
+            "연애 DNA 지표와 앞으로 3년의 인연 흐름을 별도 장으로 정리"
+          ]
+        },
+        {
+          "title": "결과에서 받아보는 내용",
+          "items": [
+            "운명의 문 · 타고난 연애 기질 · 부부궁이 말하는 배우자상",
+            "끌림의 원리 · 애착과 표현 방식 · 마음의 방어기제",
+            "인연이 열리는 자리 · 썸에서 연애로 · 고백과 타이밍",
+            "관계의 온도 곡선 · 갈등의 뿌리 · 화해와 회복의 언어",
+            "질투와 거리두기 · 친밀감의 리듬 · 이별과 재회의 문",
+            "결혼운과 장기 동행 · 사주 × 자미두수 교차검증",
+            "연애 DNA 프로필 · 앞으로 3년 · 마지막 편지"
+          ]
+        },
+        {
+          "title": "어떻게 이용하나요?",
+          "steps": [
+            {
+              "label": "명식 계산",
+              "detail": "생년월일시로 사주 원국과 자미두수 명반을 함께 계산합니다."
+            },
+            {
+              "label": "연애 축 추출",
+              "detail": "일간·십성과 부부궁·복덕궁에서 연애의 큰 축 세 가지를 뽑습니다."
+            },
+            {
+              "label": "장별 전개",
+              "detail": "그 축을 스무 개 장으로 나눠 서로 겹치지 않게 배분합니다."
+            },
+            {
+              "label": "해석서 작성",
+              "detail": "앞 장이 뒷 장의 근거가 되도록 순서대로 써 내려갑니다."
+            }
+          ]
+        },
+        {
+          "title": "이런 분께 어울려요",
+          "items": [
+            "연애 패턴을 한 번 제대로 정리하고 싶은 분",
+            "요약이 아니라 한 권 분량을 원하는 분",
+            "근거까지 확인하며 읽고 싶은 분"
+          ]
+        }
+      ],
+      "ctaLabel": "연애 해석서 열람하기",
+      "evidence": [
+        "index.html:FEATURE_MARKETING_COPY:master_love_codex"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "fortune-tea-house": {
+      "slug": "fortune-tea-house",
+      "title": "운명의 찻집",
+      "href": "/fortune-tea-house/",
+      "featureKey": "fortune-tea-house-tarot-consultation",
+      "featureKeyTo": "fortune-tea-house-sukuyo-compatibility-consultation",
+      "accessType": "unknown",
+      "image": "/feature-details/assets/fortune-tea-house-960.webp",
+      "aliases": [
+        "fortune-tea-house-tarot-consultation",
+        "fortune-tea-house",
+        "/fortune-tea-house/",
+        "/fortune-tea-house"
+      ],
+      "headline": "말하지 못한 마음에도, 차 한 잔의 자리를.",
+      "description": "연애와 재회, 일과 돈, 마음의 회복까지. 지금의 고민을 골라 연이에게 이야기를 건네 보세요.",
+      "panels": [
+        {
+          "title": "당신에게 맞는 찻잔으로 이야기를 시작해요.",
+          "items": [
+            "닫히지 않은 관계 — 다시 연락할지, 기다릴지. 마음을 정리할 질문이 필요할 때.",
+            "갈림길 앞의 선택 — 일과 돈의 고민을 한 걸음씩 풀어 보고 싶을 때.",
+            "나를 돌보는 시간 — 이별과 지친 마음을 돌아보고 다음 선택을 찾고 싶을 때."
+          ]
+        },
+        {
+          "title": "네 가지 상담 방식, 같은 고민을 보는 다른 창.",
+          "steps": [
+            {
+              "label": "타로",
+              "detail": "질문과 카드의 상징을 연결합니다. 3카드와 5카드 중 선택합니다."
+            },
+            {
+              "label": "사주",
+              "detail": "나의 출생 정보를 바탕으로 기질과 흐름을 읽습니다."
+            },
+            {
+              "label": "사주 궁합",
+              "detail": "두 사람의 사주를 함께 살펴 관계의 결을 읽습니다."
+            },
+            {
+              "label": "숙요",
+              "detail": "두 사람의 출생 정보로 27숙 관계의 흐름을 살핍니다."
+            }
+          ]
+        },
+        {
+          "title": "무슨 말을 꺼낼지부터 함께 골라 볼까요?",
+          "text": "고민 주제 → 상담 방식 → 질문 입력 → 이용 조건 확인 → 결과 순서로 이어집니다. 필요한 출생 정보는 방식에 따라 다릅니다."
+        }
+      ],
+      "ctaLabel": "내 고민에 맞는 찻잔 고르기",
+      "evidence": [
+        "src/features/fortune-tea-house/data/consult.ts",
+        "src/features/fortune-tea-house/components/QuestionInputScene.tsx",
+        "scripts/test-mobile-platform-journeys.mjs"
+      ],
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/fortune-tea-house-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/fortune-tea-house-960.webp",
+          "width": 960
+        }
+      ]
+    },
+    "love-secret-ai": {
+      "slug": "love-secret-ai",
+      "title": "연애 비책",
+      "href": "/love-secret-ai/",
+      "featureKey": "love-secret-ai-consultation",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "",
+      "aliases": [
+        "love-secret-ai-consultation",
+        "love-secret-ai",
+        "/love-secret-ai/",
+        "/love-secret-ai"
+      ],
+      "headline": "연애를 여섯 부, 스물여덟 개 섹션으로 나눠 사주 명식으로 읽습니다.",
+      "description": "연애운과 성향부터 궁합·갈등·시기·실천까지, 항목을 나눠 각각 따로 씁니다. 상대 생년 정보를 넣으면 궁합 항목이 함께 계산됩니다.",
+      "panels": [
+        {
+          "title": "이런 질문에 도움이 됩니다",
+          "items": [
+            "그 사람은 지금 어떤 마음일까요?",
+            "내가 반복하는 연애 패턴은 뭘까요?",
+            "이 관계를 이어가도 될까요?"
+          ]
+        },
+        {
+          "title": "이 기능으로 살펴보는 것",
+          "items": [
+            "내 명식으로 연애 성향·장점·약점·애착 방식을 항목별로 해석",
+            "상대 생년 정보를 입력하면 궁합·이상형·감정 거리감까지 함께 계산",
+            "올해 연애운과 계산된 일진으로 고른 좋은 날짜를 함께 제시",
+            "재회 조건·바람기·자기 보호처럼 민감한 주제도 별도 섹션으로 분리"
+          ]
+        },
+        {
+          "title": "결과에서 받아보는 내용",
+          "items": [
+            "핵심 연애운과 질문의 답",
+            "나의 연애 성향 — 장점·약점·심리",
+            "상대·궁합·이상형",
+            "갈등·바람기·재회·자기 보호",
+            "대운·올해·좋은 날짜·결혼운",
+            "썸 전략·대화·매력·실천"
+          ]
+        },
+        {
+          "title": "이런 분께 어울려요",
+          "items": [
+            "상대의 진심을 확인할 방법이 없어 지쳐가는 분",
+            "고백이나 재회의 타이밍을 이제는 정해야 하는 분",
+            "붙잡을지 놓을지 스스로 결론이 서지 않는 분"
+          ]
+        }
+      ],
+      "ctaLabel": "사랑의 속마음 열람하기",
+      "evidence": [
+        "index.html:FEATURE_MARKETING_COPY:love_secret_ai"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "fortune-chat": {
+      "slug": "fortune-chat",
+      "title": "대화형 운명 상담",
+      "href": "/fortune-chat/",
+      "featureKey": "fortune-chat-consultation",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "",
+      "aliases": [
+        "fortune-chat-consultation",
+        "fortune-chat",
+        "/fortune-chat/",
+        "/fortune-chat"
+      ],
+      "headline": "질문 하나로 끝내지 말고, 오갈수록 좁혀지는 대화로 물어보세요.",
+      "description": "연이와 네오 두 화자가 같은 질문을 다른 결로 받아, 주고받는 대화 속에서 지금 상황의 초점을 좁혀 가는 상담입니다.",
+      "panels": [
+        {
+          "title": "이런 질문에 도움이 됩니다",
+          "items": [
+            "제 상황에서는 어느 쪽이 나을까요?",
+            "이 선택의 위험은 무엇인가요?",
+            "지금 놓치고 있는 게 있을까요?"
+          ]
+        },
+        {
+          "title": "이런 분께 어울려요",
+          "items": [
+            "묻고 답하며 정리하고 싶은 분",
+            "상황 설명이 길어 정형 입력이 답답한 분",
+            "연이와 네오의 다른 시선을 함께 듣고 싶은 분"
+          ]
+        }
+      ],
+      "ctaLabel": "운명 상담 대화 시작하기",
+      "evidence": [
+        "index.html:FEATURE_MARKETING_COPY:fortune_chat"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "tarot-love-relationship": {
+      "slug": "tarot-love-relationship",
+      "title": "우리는 무슨 사이?",
+      "href": "/index.html?action=openTarotLoveModal",
+      "featureKey": "tarot-love-relationship",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "/fuctionassets/tarolove.webp",
+      "aliases": [
+        "tarot-love-relationship",
+        "openTarotLoveModal",
+        "/index.html?action=openTarotLoveModal",
+        "/index.html?action=openTarotLoveModal/"
+      ],
+      "headline": "말과 행동 사이에 남은 관계의 온도를 카드로 펼쳐보세요.",
+      "description": "상대의 감정을 단정하기보다, 지금 두 사람 사이에 흐르는 분위기와 조심할 선을 나눠 읽습니다.",
+      "panels": [
+        {
+          "title": "결과에서 받아보는 내용",
+          "items": [
+            "현재 관계의 분위기와 감정 온도",
+            "끌림과 망설임이 생기는 지점",
+            "지금 건네도 좋은 말과 지켜야 할 선",
+            "결제 후 기존 타로 리딩 화면으로 이동"
+          ]
+        },
+        {
+          "title": "이런 분께 어울려요",
+          "items": [
+            "상대의 말과 행동이 달라 혼란스러운 분",
+            "먼저 연락해도 될지 매번 망설이는 분",
+            "관계를 정의하기 전에 온도를 확인하고 싶은 분"
+          ]
+        }
+      ],
+      "ctaLabel": "관계 흐름 확인하기",
+      "evidence": [
+        "index.html:FEATURE_MARKETING_COPY:openTarotLoveModal"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "tarot-reunion": {
+      "slug": "tarot-reunion",
+      "title": "재회운 타로",
+      "href": "/index.html?action=openTarotReunionModal",
+      "featureKey": "tarot-reunion-reading",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "/fuctionassets/reunion.webp",
+      "aliases": [
+        "tarot-reunion-reading",
+        "openTarotReunionModal",
+        "tarot-reunion",
+        "/index.html?action=openTarotReunionModal",
+        "/index.html?action=openTarotReunionModal/"
+      ],
+      "headline": "멈춘 연락 앞에서, 다시 다가가도 되는지부터 확인하세요.",
+      "description": "다섯 자리 카드가 남은 감정의 온기부터 관계 회복의 조건까지 짚고, 부담을 낮춘 첫 문장과 7일 마음 회복 루틴으로 마무리하는 재회 리딩입니다.",
+      "panels": [
+        {
+          "title": "이런 질문에 도움이 됩니다",
+          "items": [
+            "상대에게 아직 마음이 남아 있을까요?",
+            "지금 연락해도 괜찮을까요?",
+            "이 관계는 다시 이어질 수 있을까요?"
+          ]
+        },
+        {
+          "title": "이 기능으로 살펴보는 것",
+          "items": [
+            "남은 감정의 온기 · 상대의 지금 마음 · 연락이 멈춘 배경 · 말 너머 속마음 · 관계 회복의 조건, 다섯 자리 리딩",
+            "카드 한 장마다 여덟 갈래로 나눠 읽는 상세 해석",
+            "먼저 움직이기 전의 기준과 부담을 낮춘 첫 문장 제안",
+            "앞으로 7일 마음 회복 루틴과 재회 체크리스트"
+          ]
+        },
+        {
+          "title": "결과에서 받아보는 내용",
+          "items": [
+            "다섯 자리에 놓인 카드와 자리별 해석",
+            "다시 다가갈 때의 기준과 첫 문장",
+            "지금은 잠시 아껴둘 표현",
+            "7일 안에 지킬 재회 체크리스트"
+          ]
+        },
+        {
+          "title": "어떻게 이용하나요?",
+          "steps": [
+            {
+              "label": "마음 가라앉히기",
+              "detail": "짧은 호흡 안내와 함께 차분히 리딩을 시작합니다."
+            },
+            {
+              "label": "다섯 자리 카드 열기",
+              "detail": "남은 감정부터 회복의 조건까지 자리마다 카드를 폅니다."
+            },
+            {
+              "label": "회복 가이드 정리",
+              "detail": "첫 문장 · 아껴둘 표현 · 7일 루틴 · 체크리스트로 마무리합니다."
+            }
+          ]
+        },
+        {
+          "title": "이런 분께 어울려요",
+          "items": [
+            "헤어진 뒤에도 마음이 정리되지 않은 분",
+            "연락을 다시 시작할 타이밍을 재고 있는 분",
+            "붙잡을 이유가 남았는지 확인하고 싶은 분"
+          ]
+        }
+      ],
+      "ctaLabel": "재회 리딩 시작하기",
+      "evidence": [
+        "index.html:FEATURE_MARKETING_COPY:openTarotReunionModal"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "tarot-mindscan": {
+      "slug": "tarot-mindscan",
+      "title": "말과 행동 사이 타로",
+      "href": "/tarot/mindscan/",
+      "featureKey": "tarot-mindscan",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "",
+      "aliases": [
+        "tarot-mindscan",
+        "/tarot/mindscan/",
+        "/tarot/mindscan"
+      ],
+      "headline": "겉으로 나온 말과 안에 남은 마음 사이의 간격을 재어 봅니다.",
+      "description": "다섯 자리에 메인 카드를 놓고 숨은 감정 보조 카드 다섯 장을 겹쳐, 지금 관계에 남은 온도차와 보내기 좋은 말까지 정리하는 10장 리딩입니다.",
+      "panels": [
+        {
+          "title": "이런 질문에 도움이 됩니다",
+          "items": [
+            "상대의 말과 마음은 얼마나 벌어져 있나요?",
+            "지금 관계가 멈춰 있는 이유는 무엇인가요?",
+            "어떤 말로 다시 말을 걸어야 하나요?"
+          ]
+        },
+        {
+          "title": "이 기능으로 살펴보는 것",
+          "items": [
+            "겉말 · 마음결 · 멈춤 · 바람 · 현실 다섯 자리 배치",
+            "숨은 감정 보조 카드 다섯 장을 겹쳐 읽기",
+            "78장 정식 덱에서 뽑는 메인 5장과 보조 5장",
+            "지금 보내기 좋은 메시지 예시"
+          ]
+        },
+        {
+          "title": "결과에서 받아보는 내용",
+          "items": [
+            "관계 간격의 전체 기류",
+            "숨은 감정 보조 카드 해석",
+            "지금 보내기 좋은 메시지 예시",
+            "현실적인 행동 가이드"
+          ]
+        },
+        {
+          "title": "어떻게 이용하나요?",
+          "steps": [
+            {
+              "label": "질문 입력",
+              "detail": "확인하고 싶은 관계와 질문을 적습니다."
+            },
+            {
+              "label": "10장 배치",
+              "detail": "메인 다섯 자리에 카드를 놓고 숨은 감정 보조 카드를 겹칩니다."
+            },
+            {
+              "label": "간격 해석",
+              "detail": "겉말과 마음결의 차이를 정리하고 메시지 예시와 행동 가이드로 마무리합니다."
+            }
+          ]
+        },
+        {
+          "title": "이런 분께 어울려요",
+          "items": [
+            "상대의 진심을 확인하고 싶은 분",
+            "연락의 다음 수를 고르지 못한 분",
+            "관계의 온도차를 말로 정리하고 싶은 분"
+          ]
+        }
+      ],
+      "ctaLabel": "관계 간격 읽기",
+      "evidence": [
+        "index.html:FEATURE_MARKETING_COPY:tarot_mindscan"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "love-simulation": {
+      "slug": "love-simulation",
+      "title": "LOVE CODE 연애 시뮬레이션",
+      "href": "/index.html?action=openLoveSimulation",
+      "featureKey": "love-code",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "/fuctionassets/love code.webp",
+      "aliases": [
+        "love-code",
+        "openLoveSimulation",
+        "love-simulation",
+        "/index.html?action=openLoveSimulation",
+        "/index.html?action=openLoveSimulation/"
+      ],
+      "headline": "궁합을 표가 아니라 장면으로 겪어 보는 연애 시뮬레이션입니다.",
+      "description": "상대 캐릭터 16명, 인물당 장면 20개를 고르며 호감·신뢰·케미·긴장·안정 다섯 수치를 움직입니다.",
+      "panels": [
+        {
+          "title": "이런 질문에 도움이 됩니다",
+          "items": [
+            "이 사람과 있으면 왜 유독 긴장이 올라갈까요?",
+            "우리는 주로 어떤 상황에서 부딪히나요?",
+            "오래 이어질 수 있는 관계인가요?"
+          ]
+        },
+        {
+          "title": "이 기능으로 살펴보는 것",
+          "items": [
+            "상대 캐릭터 16명 · 인물당 장면 20개, 장면마다 선택지 3개",
+            "선택할 때마다 호감·신뢰·케미·긴장·안정 다섯 수치가 바뀝니다",
+            "궁합은 끌림·안정성·소통·갈등 양상·장기 지속성 5축을 0~100으로 냅니다",
+            "항목마다 일간 합·충, 지지 관계, 오행 용신·기신, 십성, 신살(도화·홍염) 근거와 확신도를 함께 표시합니다"
+          ]
+        },
+        {
+          "title": "결과에서 받아보는 내용",
+          "items": [
+            "상대 캐릭터 16명 전체 선택",
+            "인물당 장면 20개 진행",
+            "다섯 수치 변화가 반영된 궁합 결과",
+            "5축 점수와 항목별 사주 근거·확신도"
+          ]
+        },
+        {
+          "title": "어떻게 이용하나요?",
+          "steps": [
+            {
+              "label": "상대 선택",
+              "detail": "캐릭터 16명 중 한 명을 고르고 두 사람의 생년 정보를 넣습니다."
+            },
+            {
+              "label": "장면 진행",
+              "detail": "장면마다 선택지 3개 중 하나를 고르면 다섯 수치가 그 자리에서 바뀝니다."
+            },
+            {
+              "label": "신호 추출",
+              "detail": "두 사람의 일간 합·충, 지지 관계, 오행 용신·기신, 십성, 신살에서 궁합 신호를 뽑습니다."
+            },
+            {
+              "label": "결과 정리",
+              "detail": "끌림·안정성·소통·갈등 양상·장기 지속성 5축 점수와 각 신호의 근거·확신도를 함께 표시합니다."
+            }
+          ]
+        },
+        {
+          "title": "이런 분께 어울려요",
+          "items": [
+            "궁합을 장면으로 겪어 보고 싶은 분",
+            "상대 유형별 전개를 비교해 보고 싶은 분",
+            "궁합 점수의 근거까지 확인하고 싶은 분"
+          ]
+        }
+      ],
+      "ctaLabel": "LOVE CODE 열람하기",
+      "evidence": [
+        "index.html:FEATURE_MARKETING_COPY:openLoveSimulation"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "nakshatra-compat": {
+      "slug": "nakshatra-compat",
+      "title": "동서 통합 궁합",
+      "href": "/nakshatra/compat/",
+      "featureKey": "nakshatra-compat",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "",
+      "aliases": [
+        "nakshatra-compat",
+        "/nakshatra/compat/",
+        "/nakshatra/compat"
+      ],
+      "headline": "인도 아쉬타쿠타 36점과 동양 숙요 격각을 한 화면에 겹쳐 봅니다.",
+      "description": "두 체계가 같은 말을 하는 지점과 갈라지는 지점을 먼저 짚고, 항목별 점수와 관계 유형 · 역할 행동 가이드까지 정리하는 궁합입니다.",
+      "panels": [
+        {
+          "title": "이런 질문에 도움이 됩니다",
+          "items": [
+            "두 체계는 이 관계를 같게 보나요?",
+            "우리가 가장 부딪히는 지점은 어디인가요?",
+            "내 자리에서 무엇을 하면 좋아지나요?"
+          ]
+        },
+        {
+          "title": "이 기능으로 살펴보는 것",
+          "items": [
+            "인도 아쉬타쿠타 36점 항목별 계산",
+            "동양 숙요 격각의 관계 유형 판정",
+            "두 체계의 수렴점과 갈라지는 지점을 먼저 정리",
+            "상대에게 보내는 초대 링크로 정보 입력 받기"
+          ]
+        },
+        {
+          "title": "결과에서 받아보는 내용",
+          "items": [
+            "통합 총평과 통합 점수",
+            "아쉬타쿠타 항목별 점수와 도샤 표기",
+            "궁합력 · 안정도 · 충돌도 세 점수",
+            "서로의 자리에 맞춘 행동 가이드"
+          ]
+        },
+        {
+          "title": "어떻게 이용하나요?",
+          "steps": [
+            {
+              "label": "두 사람 정보",
+              "detail": "이름 · 생년월일 · 출생 시각 · 성별 · 출생 도시를 넣습니다. 초대 링크로도 받을 수 있습니다."
+            },
+            {
+              "label": "두 체계 계산",
+              "detail": "아쉬타쿠타 36점과 숙요 격각을 각각 셈합니다."
+            },
+            {
+              "label": "통합 정리",
+              "detail": "수렴점과 갈라지는 지점을 정리하고 역할별 행동 가이드로 마무리합니다."
+            }
+          ]
+        },
+        {
+          "title": "이런 분께 어울려요",
+          "items": [
+            "한 체계의 결과만으로는 확신이 서지 않는 분",
+            "점수보다 무엇을 조심할지 알고 싶은 분",
+            "상대의 정보를 직접 받고 싶은 분"
+          ]
+        }
+      ],
+      "ctaLabel": "통합 궁합 보기",
+      "evidence": [
+        "index.html:FEATURE_MARKETING_COPY:nakshatra_compat"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "neo-operation-room": {
+      "slug": "neo-operation-room",
+      "title": "팩폭 전략소",
+      "href": "/neo-operation-room/",
+      "featureKey": "neo-operation-room-consultation",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "https://assets.code-destiny.com/DestinyWar/%EB%84%A4%EC%98%A4%EC%9D%98%20%ED%8C%A9%ED%8F%AD%20%EC%9A%B4%EB%AA%85%20%EC%9E%91%EC%A0%84%EC%8B%A4.webp",
+      "aliases": [
+        "neo-operation-room-consultation",
+        "neo-operation-room",
+        "/neo-operation-room/",
+        "/neo-operation-room"
+      ],
+      "headline": "흩어진 고민을 하나의 작전 지도로 정리해보세요.",
+      "description": "사주와 별자리 흐름을 함께 놓고, 지금 밀리는 지점과 다시 잡아야 할 기준을 읽어주는 전략형 상담입니다.",
+      "panels": [
+        {
+          "title": "이런 질문에 도움이 됩니다",
+          "items": [
+            "여러 고민 중 무엇부터 손대야 할까요?",
+            "지금 버틸 것과 바꿀 것은 무엇인가요?",
+            "왜 노력해도 한 영역만 계속 막힐까요?"
+          ]
+        },
+        {
+          "title": "이 기능으로 살펴보는 것",
+          "items": [
+            "첫 진단부터 7일 전투 계획까지 열네 개 섹션을 순서대로 작성",
+            "타고난 성향의 핵과 강점·약점을 먼저 판독한 뒤 주제별 심층으로 진행",
+            "반복되는 선택과 지금 밀리는 자리를 각각 별도 섹션으로 분리",
+            "술수 근거를 밝히는 정찰 보고와 오늘 금지 행동을 함께 제시"
+          ]
+        },
+        {
+          "title": "결과에서 받아보는 내용",
+          "items": [
+            "작전 개시 — 네오의 첫 진단",
+            "병력 판독 — 타고난 성향의 핵과 강점·약점",
+            "주제 맞춤 판독 · 영역별 심층 · 시기 흐름",
+            "본래 무기 체계 · 반복되는 패전 · 어긋난 전선",
+            "정찰 보고(술수 근거)와 네오의 팩폭",
+            "즉시 작전 · 7일 전투 계획 · 전황 점검"
+          ]
+        },
+        {
+          "title": "이런 분께 어울려요",
+          "items": [
+            "위로보다 냉정한 진단이 필요한 분",
+            "고민이 여러 개 얽혀 우선순위가 안 잡히는 분",
+            "사주와 별자리를 한 번에 묶어서 보고 싶은 분"
+          ]
+        }
+      ],
+      "ctaLabel": "작전실 열기",
+      "evidence": [
+        "index.html:FEATURE_MARKETING_COPY:neo_operation_room"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "destiny-compass": {
+      "slug": "destiny-compass",
+      "title": "운명의 나침반",
+      "href": "/destiny-compass/",
+      "featureKey": "destiny-compass-life-voyage",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "",
+      "aliases": [
+        "destiny-compass-life-voyage",
+        "destiny-compass",
+        "/destiny-compass/",
+        "/destiny-compass"
+      ],
+      "headline": "갈림길 앞에서 어느 쪽이 내 결과 맞는지부터 확인해보세요.",
+      "description": "사주 흐름과 지금의 선택지를 함께 놓고, 방향과 시점을 나눠 읽어 주는 리포트형 해석입니다.",
+      "panels": [
+        {
+          "title": "이런 질문에 도움이 됩니다",
+          "items": [
+            "지금 방향을 바꿔도 될까요?",
+            "언제 움직이는 게 무리가 적을까요?",
+            "무엇부터 정리해야 할까요?"
+          ]
+        },
+        {
+          "title": "이런 분께 어울려요",
+          "items": [
+            "이직·이사·진로 같은 큰 선택을 앞둔 분",
+            "결정을 미뤄 온 지 오래된 분",
+            "판단 기준을 글로 남겨 두고 싶은 분"
+          ]
+        }
+      ],
+      "ctaLabel": "나침반 리딩 열기",
+      "evidence": [
+        "index.html:FEATURE_MARKETING_COPY:destiny_compass"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "saju-sibyl": {
+      "slug": "saju-sibyl",
+      "title": "사이빌 전문가 상담",
+      "href": "/saju/sibyl/",
+      "featureKey": "premium-sibyl-dominator",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "",
+      "aliases": [
+        "premium-sibyl-dominator",
+        "saju-sibyl",
+        "/saju/sibyl/",
+        "/saju/sibyl"
+      ],
+      "headline": "요약 해석에서 멈추지 말고, 사주를 끝까지 파고들어 보세요.",
+      "description": "원국과 지금 지나는 운을 함께 놓고, 반복되는 패턴과 그 뿌리까지 짚어 주는 심층 상담형 해석입니다.",
+      "panels": [
+        {
+          "title": "이런 질문에 도움이 됩니다",
+          "items": [
+            "제 사주의 핵심은 결국 무엇인가요?",
+            "지금 시기는 어떤 국면인가요?",
+            "반복되는 패턴을 어디서 끊어야 하나요?"
+          ]
+        },
+        {
+          "title": "이런 분께 어울려요",
+          "items": [
+            "사주 해석을 이미 여러 번 본 분",
+            "표면 조언 말고 근거를 원하는 분",
+            "장기 계획을 세우려는 분"
+          ]
+        }
+      ],
+      "ctaLabel": "사이빌 심층 상담 열기",
+      "evidence": [
+        "index.html:FEATURE_MARKETING_COPY:saju_sibyl"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "new-year-ai": {
+      "slug": "new-year-ai",
+      "title": "신년운세",
+      "href": "/new-year-ai-consultation/",
+      "featureKey": "new-year-ai-consultation",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "",
+      "aliases": [
+        "new-year-ai-consultation",
+        "new-year-ai",
+        "/new-year-ai-consultation/",
+        "/new-year-ai-consultation"
+      ],
+      "headline": "선택한 해의 세운을 다섯 개 섹션으로 나눠 명식과 함께 읽습니다.",
+      "description": "명식과 그 해 세운이 만나는 지점에서 총운·재물과 직업·애정과 대인관계·월별 흐름·건강과 개운법을 각각 따로 씁니다.",
+      "panels": [
+        {
+          "title": "이런 질문에 도움이 됩니다",
+          "items": [
+            "올해 무엇부터 준비해야 할까요?",
+            "이직과 투자는 몇 월이 좋을까요?",
+            "올해 조심해야 할 시기는 언제인가요?"
+          ]
+        },
+        {
+          "title": "이 기능으로 살펴보는 것",
+          "items": [
+            "상담할 해를 직접 고를 수 있고, 기본값은 내년입니다",
+            "그 해 세운 간지와 대운을 명식과 대조해 총운을 먼저 정리",
+            "재물·직업과 애정·대인관계를 각각 별도 섹션으로 해석",
+            "1월부터 12월까지 열두 달의 흐름을 월별로 나눠 제시"
+          ]
+        },
+        {
+          "title": "결과에서 받아보는 내용",
+          "items": [
+            "올해의 총운",
+            "재물과 직업",
+            "애정과 대인관계",
+            "1월~12월 월별 흐름",
+            "건강과 개운법"
+          ]
+        },
+        {
+          "title": "이런 분께 어울려요",
+          "items": [
+            "올해 무엇부터 준비해야 할지 막막한 분",
+            "이직·투자·결혼처럼 시기를 골라야 하는 분",
+            "작년과 같은 실수를 반복하고 싶지 않은 분"
+          ]
+        }
+      ],
+      "ctaLabel": "신년운세 받기",
+      "evidence": [
+        "index.html:FEATURE_MARKETING_COPY:new_year_ai_consultation"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "tarot-ijik": {
+      "slug": "tarot-ijik",
+      "title": "이직 운명의 카드",
+      "href": "/tarot-ijik.html",
+      "featureKey": "tarot-ijik",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "",
+      "aliases": [
+        "tarot-ijik",
+        "/tarot-ijik.html",
+        "/tarot-ijik.html/"
+      ],
+      "headline": "남을지 옮길지, 일의 기준부터 카드로 세워 봅니다.",
+      "description": "일곱 자리 고정 스프레드로 남았을 때의 흐름과 이직의 문이 열리는 조건을 나눠 읽고, 움직일 시기와 결정 전 확인할 조건까지 정리합니다.",
+      "panels": [
+        {
+          "title": "이런 질문에 도움이 됩니다",
+          "items": [
+            "지금 옮기는 것이 맞나요?",
+            "움직이기 좋은 시기는 언제인가요?",
+            "결정 전에 무엇을 확인해야 하나요?"
+          ]
+        },
+        {
+          "title": "이 기능으로 살펴보는 것",
+          "items": [
+            "남을 때의 흐름과 이직의 문이 열리는 조건을 나눠 배치",
+            "진짜 바꾸고 싶은 것을 짚는 자리",
+            "옮겼을 때의 가까운 흐름과 준비하면 열리는 시기",
+            "최종 방향과 시기까지 일곱 자리 고정 스프레드"
+          ]
+        },
+        {
+          "title": "결과에서 받아보는 내용",
+          "items": [
+            "이직 흐름 해석",
+            "움직일 시기",
+            "현직 유지 쪽 해석",
+            "결정 전 확인할 조건"
+          ]
+        },
+        {
+          "title": "어떻게 이용하나요?",
+          "steps": [
+            {
+              "label": "질문 정리",
+              "detail": "지금의 상황과 고민을 적습니다."
+            },
+            {
+              "label": "7장 배치",
+              "detail": "남을 때의 흐름부터 최종 방향까지 일곱 자리에 카드를 놓습니다."
+            },
+            {
+              "label": "결과 정리",
+              "detail": "이직 흐름 · 움직일 시기 · 현직 유지 · 확인할 조건으로 나눠 정리합니다."
+            }
+          ]
+        },
+        {
+          "title": "이런 분께 어울려요",
+          "items": [
+            "이직을 두고 오래 고민한 분",
+            "지금이 시기인지 확인하고 싶은 분",
+            "남는 선택도 함께 저울질하고 싶은 분"
+          ]
+        }
+      ],
+      "ctaLabel": "이직 카드 열기",
+      "evidence": [
+        "index.html:FEATURE_MARKETING_COPY:tarot_ijik"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "life-book-ai": {
+      "slug": "life-book-ai",
+      "title": "인생의 책",
+      "href": "/life-book-ai/",
+      "featureKey": "life-book-ai-consultation",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "/feature-details/assets/life-book-ai-960.webp",
+      "aliases": [
+        "life-book-ai-consultation",
+        "life-book-ai",
+        "/life-book-ai/",
+        "/life-book-ai"
+      ],
+      "headline": "흩어져 있던 삶의 장면을, 한 권의 흐름으로.",
+      "description": "타고난 사주와 시간의 흐름을 함께 읽으며, 나의 기질과 삶의 방향을 차분히 돌아보는 리포트입니다.",
+      "panels": [
+        {
+          "title": "나를 이해하는 순간, 다음 장이 달라집니다.",
+          "text": "나를 설명하는 한 문장에서 시작해, 타고난 기질과 삶의 흐름을 한 장씩 연결해 보세요.",
+          "visualPreview": "book"
+        },
+        {
+          "title": "단편적인 답보다 내 삶의 맥락이 궁금할 때.",
+          "items": [
+            "기질을 이해하기 — 타고난 사주의 원형을 바탕으로 자신을 돌아봅니다.",
+            "시간의 흐름 읽기 — 삶의 장면을 시간의 변화와 연결해 살펴봅니다.",
+            "장별로 차근차근 — 목차를 따라 필요한 내용을 나누어 읽습니다."
+          ]
+        },
+        {
+          "title": "나의 첫 장을 열어 볼까요?",
+          "text": "생년월일과 출생 정보를 준비해 주세요. 나의 이야기를 읽기 전, 이용 방법과 가격을 확인할 수 있습니다."
+        }
+      ],
+      "ctaLabel": "인생의 책 시작하기",
+      "evidence": [
+        "app/life-book-ai/result/LifeBookAiResultClient.tsx",
+        "lib/dev-preview/fixtures/life-book.ts",
+        "scripts/test-mobile-platform-journeys.mjs"
+      ],
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/life-book-ai-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/life-book-ai-960.webp",
+          "width": 960
+        }
+      ]
+    },
+    "karma-destiny-ai": {
+      "slug": "karma-destiny-ai",
+      "title": "운명의 업",
+      "href": "/karma-destiny-ai/",
+      "featureKey": "karma-destiny-ai-consultation",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "",
+      "aliases": [
+        "karma-destiny-ai-consultation",
+        "karma-destiny-ai",
+        "/karma-destiny-ai/",
+        "/karma-destiny-ai"
+      ],
+      "headline": "같은 인연과 같은 사건이 왜 반복되는지, 그 뿌리부터 되짚습니다.",
+      "description": "명식에 새겨진 오래된 흐름과 지금의 관계·선택을 연결해, 반복의 원인과 끊어낼 지점을 정리하는 최상위 상담입니다.",
+      "panels": [
+        {
+          "title": "이런 질문에 도움이 됩니다",
+          "items": [
+            "왜 비슷한 사람에게 계속 끌릴까요?",
+            "이 패턴은 언제부터 시작됐나요?",
+            "무엇을 끊어야 반복이 멈추나요?"
+          ]
+        },
+        {
+          "title": "이 기능으로 살펴보는 것",
+          "items": [
+            "명식을 근거로 열다섯 개 장을 순서대로 작성하고 한 번에 한 장씩 깊게 전개",
+            "인간관계·사랑·돈·직업·건강의 업을 각각 독립된 장으로 분리",
+            "숨겨진 재능과 운명의 전환점을 별도 장에서 정리",
+            "다섯 관점의 종합 결론과 마지막 편지로 마무리"
+          ]
+        },
+        {
+          "title": "결과에서 받아보는 내용",
+          "items": [
+            "운명의 핵심 주제 · 운명의 근원 · 현재 삶의 흐름",
+            "업의 핵심 과제 · 인간관계의 업 · 사랑의 업",
+            "돈의 업 · 직업의 업 · 건강 에너지",
+            "숨겨진 재능 · 운명의 전환점 · 앞으로의 성장 전략",
+            "다섯 관점의 종합 결론",
+            "운명을 바꾸는 핵심 문장 · 최종 편지"
+          ]
+        },
+        {
+          "title": "이런 분께 어울려요",
+          "items": [
+            "원인을 모른 채 같은 패턴을 반복해온 분",
+            "관계에서 매번 같은 역할을 떠맡게 되는 분",
+            "한 번은 뿌리까지 정리하고 넘어가고 싶은 분"
+          ]
+        }
+      ],
+      "ctaLabel": "운명의 업 열람하기",
+      "evidence": [
+        "index.html:FEATURE_MARKETING_COPY:karma_destiny_ai_consultation"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "saju-guardian": {
+      "slug": "saju-guardian",
+      "title": "사주 가디언 소환진",
+      "href": "/index.html?action=openSajuGuardianPage",
+      "featureKey": "saju-guardian-unlock",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "/fuctionassets/saju-guardian-animal-v20260615.webp",
+      "aliases": [
+        "saju-guardian-unlock",
+        "openSajuGuardianPage",
+        "saju-guardian",
+        "/index.html?action=openSajuGuardianPage",
+        "/index.html?action=openSajuGuardianPage/"
+      ],
+      "headline": "당신의 일주가 부르는 수호 가디언, 소환진 위에 나타납니다.",
+      "description": "태어난 날의 일주가 예순 갑자 가운데 당신의 가디언을 정하고, 같은 명식이면 늘 같은 모습으로 소환됩니다. 다섯 패널의 풀이와 부적 주머니가 함께 열립니다.",
+      "panels": [
+        {
+          "title": "이런 질문에 도움이 됩니다",
+          "items": [
+            "내 일주의 가디언은 어떤 모습인가요?",
+            "관계 · 일 · 재물은 어떻게 운용해야 하나요?",
+            "오늘 나를 지키는 의식은 무엇인가요?"
+          ]
+        },
+        {
+          "title": "이 기능으로 살펴보는 것",
+          "items": [
+            "예순 갑자 그대로, 60가지 수호 가디언 캐릭터",
+            "같은 명식이면 같은 모습 — AI가 그려내는 내 가디언 이미지",
+            "핵심 수호 인장 · 관계/일/재물 운용 · 오늘의 개운 의식 · 7일 가디언 미션 · 실전 가디언 가이드 다섯 패널",
+            "오늘의 색 · 소환 주문 · 작은 실행 · 시간 열쇠를 담은 부적 주머니"
+          ]
+        },
+        {
+          "title": "결과에서 받아보는 내용",
+          "items": [
+            "내 일주의 수호 가디언과 AI 이미지",
+            "핵심 수호 인장과 관계 · 일 · 재물 운용",
+            "오늘의 개운 의식과 7일 가디언 미션",
+            "부적 주머니 — 오늘의 색 · 소환 주문 · 작은 실행 · 시간 열쇠"
+          ]
+        },
+        {
+          "title": "어떻게 이용하나요?",
+          "steps": [
+            {
+              "label": "명식 계산",
+              "detail": "생년월일시로 일주를 세웁니다."
+            },
+            {
+              "label": "가디언 소환",
+              "detail": "예순 갑자에서 내 가디언이 정해지고 같은 모습으로 나타납니다."
+            },
+            {
+              "label": "풀이·부적 열기",
+              "detail": "다섯 패널 풀이와 부적 주머니가 열립니다."
+            }
+          ]
+        },
+        {
+          "title": "이런 분께 어울려요",
+          "items": [
+            "사주 용어가 어렵게 느껴졌던 분",
+            "나만의 수호 캐릭터를 갖고 싶은 분",
+            "짧은 개운 루틴을 원하는 분"
+          ]
+        }
+      ],
+      "ctaLabel": "수호 가디언 소환하기",
+      "evidence": [
+        "index.html:FEATURE_MARKETING_COPY:openSajuGuardianPage"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "naming-ai": {
+      "slug": "naming-ai",
+      "title": "전문가 작명소",
+      "href": "/naming-ai/",
+      "featureKey": "premium-naming-prompt",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "",
+      "aliases": [
+        "premium-naming-prompt",
+        "naming-ai",
+        "/naming-ai/",
+        "/naming-ai"
+      ],
+      "headline": "사주 용신에 맞춘 이름 후보를 작명첩 한 권으로 만들어 드립니다.",
+      "description": "8장 구성의 작명첩에 새 이름 5~7개를 제안하고, 그 작명첩을 만든 프롬프트 원문까지 함께 드립니다.",
+      "panels": [
+        {
+          "title": "이런 질문에 도움이 됩니다",
+          "items": [
+            "이 이름이 우리 아이 사주와 맞나요?",
+            "한자를 바꾸면 무엇이 달라지나요?",
+            "왜 이 이름을 추천했나요?"
+          ]
+        },
+        {
+          "title": "이 기능으로 살펴보는 것",
+          "items": [
+            "작명첩은 8장으로 구성됩니다",
+            "새 이름 후보를 5~7개 제안합니다",
+            "직접 생각한 후보를 넣으면 평가한 뒤 3~5개를 더 제안합니다",
+            "용신·희신을 기준으로 이름의 오행을 검증합니다",
+            "소리오행 흐름과 원형이정 수리 4격을 함께 봅니다",
+            "본문은 5,000자 이상으로 나옵니다",
+            "작명첩을 만든 프롬프트 원문을 함께 제공합니다"
+          ]
+        },
+        {
+          "title": "결과에서 받아보는 내용",
+          "items": [
+            "8장 구성 작명첩",
+            "새 이름 5~7개 제안",
+            "내 후보 평가와 추가 제안 3~5개",
+            "용신·소리오행·수리 4격 검증",
+            "프롬프트 원문 제공"
+          ]
+        },
+        {
+          "title": "어떻게 이용하나요?",
+          "steps": [
+            {
+              "label": "사주 계산",
+              "detail": "생년월일시로 원국을 세우고 용신·희신을 가립니다."
+            },
+            {
+              "label": "후보 생성",
+              "detail": "그 오행에 맞는 새 이름을 5~7개 만듭니다. 직접 넣은 후보가 있으면 먼저 평가합니다."
+            },
+            {
+              "label": "이름 검증",
+              "detail": "소리오행 흐름과 원형이정 수리 4격으로 후보를 다시 거릅니다."
+            },
+            {
+              "label": "작명첩 작성",
+              "detail": "8장 구성으로 정리하고 만들 때 쓴 프롬프트 원문을 함께 담습니다."
+            }
+          ]
+        },
+        {
+          "title": "이런 분께 어울려요",
+          "items": [
+            "아이 이름을 근거와 함께 정하고 싶은 분",
+            "받은 후보가 맞는지 검증받고 싶은 분",
+            "작명 기준을 문서로 남기고 싶은 분"
+          ]
+        }
+      ],
+      "ctaLabel": "작명 시작하기",
+      "evidence": [
+        "index.html:FEATURE_MARKETING_COPY:openNamingPromptModal"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "fusion-fortune": {
+      "slug": "fusion-fortune",
+      "title": "초융합 심층 리딩",
+      "href": "/fusion-fortune/",
+      "featureKey": "fusion-fortune-consultation",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "",
+      "aliases": [
+        "fusion-fortune-consultation",
+        "fusion-fortune",
+        "/fusion-fortune/",
+        "/fusion-fortune"
+      ],
+      "headline": "여섯 체계가 같은 곳을 가리키는 지점과, 서로 엇갈리는 지점을 함께 봅니다.",
+      "description": "사주·자미두수·베다점·숙요점·점성술·타로를 각 전통의 언어로 따로 읽은 뒤, 겹치는 신호는 우선순위로 엇갈리는 신호는 상황별 선택지로 묶어 하나의 상담으로 잇습니다.",
+      "panels": [
+        {
+          "title": "이런 질문에 도움이 됩니다",
+          "items": [
+            "여러 운세가 서로 다른 말을 하는데 무엇을 따라야 할까요?",
+            "올해 남은 기간에 무엇을 준비해야 할까요?",
+            "지금 이 결정을 밀어붙여도 될까요?"
+          ]
+        },
+        {
+          "title": "이 기능으로 살펴보는 것",
+          "items": [
+            "사주·자미두수·베다점·숙요점·점성술·타로를 각 전통의 언어로 따로 해석",
+            "여섯 체계를 교차 검증해 겹치는 신호와 엇갈리는 신호를 나눠 정리",
+            "서버가 뽑은 여섯 장의 카드를 타로 섹션에서 함께 읽음",
+            "앞으로 12개월 시기 라인과 현실 행동 지침을 마지막에 배치"
+          ]
+        },
+        {
+          "title": "결과에서 받아보는 내용",
+          "items": [
+            "여섯 체계를 각각 전문가 깊이로 읽은 본문 20,000자 이상",
+            "두 체계 이상이 함께 가리키는 신호를 정리한 교차 검증",
+            "체계별 신호 강도 레이더와 앞으로 12개월 시기 라인",
+            "시기별로 준비·시험·정리할 일을 나눈 행동 지침"
+          ]
+        },
+        {
+          "title": "어떻게 이용하나요?",
+          "steps": [
+            {
+              "label": "사주 — 기질과 계절의 흐름"
+            },
+            {
+              "label": "자미두수 — 삶의 무대와 역할"
+            },
+            {
+              "label": "베다점 — 무의식의 리듬"
+            },
+            {
+              "label": "숙요점 — 관계의 거리"
+            },
+            {
+              "label": "점성술 — 표현과 책임"
+            },
+            {
+              "label": "타로 — 지금의 선택"
+            },
+            {
+              "label": "융합 — 교차 검증과 시기·행동"
+            }
+          ]
+        },
+        {
+          "title": "이런 분께 어울려요",
+          "items": [
+            "이직·이사·결혼처럼 되돌리기 어려운 결정을 앞둔 분",
+            "여러 곳에서 본 해석이 서로 달라 혼란스러운 분",
+            "한 해의 흐름을 한 번에 정리해 두고 싶은 분"
+          ]
+        }
+      ],
+      "ctaLabel": "초융합 리딩 열기",
+      "evidence": [
+        "index.html:FEATURE_MARKETING_COPY:fusion_fortune"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "tarot-year-fortune": {
+      "slug": "tarot-year-fortune",
+      "title": "십이지신 천운 타로",
+      "href": "/index.html?action=openTarotYearFortuneModal",
+      "featureKey": "tarot-year-fortune",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "/fuctionassets/12animals.webp",
+      "aliases": [
+        "tarot-year-fortune",
+        "openTarotYearFortuneModal",
+        "/index.html?action=openTarotYearFortuneModal",
+        "/index.html?action=openTarotYearFortuneModal/"
+      ],
+      "headline": "열두 수호신과 열두 장의 카드로 한 해를 미리 걸어봅니다.",
+      "description": "메이저 카드 12장을 달마다 한 장씩 놓고, 태어난 해의 수호신 이야기와 함께 열두 분야의 흐름과 전환점 · 행운 행동까지 정리하는 연간 리딩입니다.",
+      "panels": [
+        {
+          "title": "이런 질문에 도움이 됩니다",
+          "items": [
+            "올해 가장 조심해야 할 시기는 언제인가요?",
+            "금전운과 일·사업운은 어떻게 흘러가나요?",
+            "올해 나에게 오는 기회는 무엇인가요?"
+          ]
+        },
+        {
+          "title": "이 기능으로 살펴보는 것",
+          "items": [
+            "올해의 핵심 카드와 1년 총운을 하나의 흐름으로 해석",
+            "1월부터 12월까지 월별 카드를 원인 · 과정 · 결과 세 장으로 다시 여는 드릴다운",
+            "금전운 · 일·사업운 · 연애운 · 귀인운 등 열두 분야별 리딩",
+            "올해의 전환점과 바로 실천할 행운 행동 정리",
+            "결과가 저장되어 언제든 다시 열람"
+          ]
+        },
+        {
+          "title": "결과에서 받아보는 내용",
+          "items": [
+            "올해의 핵심 카드 심층 해석",
+            "월별 카드 12장과 분야별 흐름",
+            "주의해야 할 선택과 올해의 기회",
+            "저장된 결과 다시 보기"
+          ]
+        },
+        {
+          "title": "어떻게 이용하나요?",
+          "steps": [
+            {
+              "label": "수호신 확인",
+              "detail": "태어난 해로 열두 수호신 가운데 나의 수호신을 찾습니다."
+            },
+            {
+              "label": "12장 카드 배치",
+              "detail": "메이저 카드 12장을 달마다 한 장씩 놓습니다."
+            },
+            {
+              "label": "분야·전환점 정리",
+              "detail": "열두 분야의 흐름과 전환점, 행운 행동을 정리합니다."
+            }
+          ]
+        },
+        {
+          "title": "이런 분께 어울려요",
+          "items": [
+            "한 해 계획을 세우기 전에 흐름을 보고 싶은 분",
+            "중요한 일정을 어느 달에 둘지 고민인 분",
+            "수호신 서사와 함께 깊은 리딩을 원하는 분"
+          ]
+        }
+      ],
+      "ctaLabel": "연간 리딩 시작하기",
+      "evidence": [
+        "index.html:FEATURE_MARKETING_COPY:openTarotYearFortuneModal"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "tarot-celestial-harmony": {
+      "slug": "tarot-celestial-harmony",
+      "title": "천체의 선율",
+      "href": "/celestial-harmony.html",
+      "featureKey": "tarot-celestial-harmony",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "",
+      "aliases": [
+        "tarot-celestial-harmony",
+        "/celestial-harmony.html",
+        "/celestial-harmony.html/"
+      ],
+      "headline": "카이론까지 아우르는 열한 행성의 자리에서 마음의 축을 나눠 읽습니다.",
+      "description": "열한 행성 자리에 카드를 놓고 마지막 통합 카드로 묶어, 사랑 · 일 · 재물 · 건강의 축을 나눠 읽는 확장형 코즈믹 타로 리딩입니다.",
+      "panels": [
+        {
+          "title": "이런 질문에 도움이 됩니다",
+          "items": [
+            "지금 나를 가장 흔드는 축은 무엇인가요?",
+            "사랑과 일 중 어디에 힘을 실어야 하나요?",
+            "다음 일주일을 어떻게 보내야 하나요?"
+          ]
+        },
+        {
+          "title": "이 기능으로 살펴보는 것",
+          "items": [
+            "열한 행성 자리와 통합 카드로 이어지는 대형 스프레드",
+            "카드 한 장마다 여덟 관점으로 나눠 읽는 해석",
+            "사랑 · 일 · 재물 · 건강 네 영역 정리",
+            "다음 7일을 위한 별빛 조율 가이드"
+          ]
+        },
+        {
+          "title": "결과에서 받아보는 내용",
+          "items": [
+            "행성 자리별 카드 해석 전체",
+            "지금 가장 강하게 작용하는 축",
+            "서로 부딪히는 마음의 지점",
+            "7일 별빛 조율 가이드"
+          ]
+        },
+        {
+          "title": "어떻게 이용하나요?",
+          "steps": [
+            {
+              "label": "카드 배치",
+              "detail": "열한 행성 자리와 통합 자리에 카드를 놓습니다."
+            },
+            {
+              "label": "AI 통합 리딩",
+              "detail": "AI가 배치 전체를 묶어 긴 호흡의 해석을 작성합니다."
+            },
+            {
+              "label": "영역·7일 정리",
+              "detail": "사랑 · 일 · 재물 · 건강 네 영역과 7일 조율 가이드로 정리합니다."
+            }
+          ]
+        },
+        {
+          "title": "이런 분께 어울려요",
+          "items": [
+            "고민이 하나가 아니라 여러 갈래인 분",
+            "짧은 리딩으로는 늘 아쉬웠던 분",
+            "감정과 현실을 분리해서 보고 싶은 분"
+          ]
+        }
+      ],
+      "ctaLabel": "천체의 선율 시작하기",
+      "evidence": [
+        "index.html:FEATURE_MARKETING_COPY:tarot_celestial_harmony"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "nakshatra-muhurta": {
+      "slug": "nakshatra-muhurta",
+      "title": "택일 무후르타",
+      "href": "/nakshatra/muhurta/",
+      "featureKey": "nakshatra-muhurta",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "",
+      "aliases": [
+        "nakshatra-muhurta",
+        "/nakshatra/muhurta/",
+        "/nakshatra/muhurta"
+      ],
+      "headline": "인도 무후르타와 동양 숙요가 함께 좋게 보는 날만 골라 드립니다.",
+      "description": "앞으로 60일을 하루씩 셈해 목적에 맞는 가장 좋은 날과 옮길 수 있으면 피할 날을, 두 체계의 일치 여부까지 붙여 정리합니다.",
+      "panels": [
+        {
+          "title": "이런 질문에 도움이 됩니다",
+          "items": [
+            "이 일에 가장 좋은 날은 언제인가요?",
+            "피하는 편이 나은 날은 언제인가요?",
+            "왜 그 날이 좋은가요?"
+          ]
+        },
+        {
+          "title": "이 기능으로 살펴보는 것",
+          "items": [
+            "결혼 · 개업 · 계약 · 이사 · 착수 · 회복 여섯 목적",
+            "앞으로 60일을 하루씩 점수화",
+            "두 체계가 함께 좋게 본 날에 일치 배지",
+            "날짜마다 나크샤트라 · 숙요 · 타라 등급과 사유 표기"
+          ]
+        },
+        {
+          "title": "결과에서 받아보는 내용",
+          "items": [
+            "목적별 가장 좋은 날",
+            "옮길 수 있으면 피할 날",
+            "60일 전체 점수 표",
+            "날짜마다의 선정 사유"
+          ]
+        },
+        {
+          "title": "어떻게 이용하나요?",
+          "steps": [
+            {
+              "label": "목적 선택",
+              "detail": "결혼 · 개업 · 계약 · 이사 · 착수 · 회복 가운데 하나를 고릅니다."
+            },
+            {
+              "label": "60일 셈",
+              "detail": "나크샤트라와 숙요를 하루씩 겹쳐 점수와 등급을 냅니다."
+            },
+            {
+              "label": "날짜 정리",
+              "detail": "가장 좋은 날과 피할 날을 사유와 함께 정리합니다."
+            }
+          ]
+        },
+        {
+          "title": "이런 분께 어울려요",
+          "items": [
+            "중요한 일정의 날짜를 정해야 하는 분",
+            "두 체계를 함께 보고 결정하고 싶은 분",
+            "피할 날부터 걸러 내고 싶은 분"
+          ]
+        }
+      ],
+      "ctaLabel": "좋은 날 찾기",
+      "evidence": [
+        "index.html:FEATURE_MARKETING_COPY:nakshatra_muhurta"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "saju": {
+      "slug": "saju",
+      "title": "사주 정밀 분석",
+      "href": "/saju/basic/play",
+      "featureKey": "",
+      "featureKeyTo": "",
+      "accessType": "free",
+      "image": "/fuctionassets/saju.webp",
+      "aliases": [
+        "saju",
+        "/saju/basic/play",
+        "/saju/basic/play/"
+      ],
+      "headline": "사주 정밀 분석",
+      "description": "생년월일과 태어난 시간을 기반으로 사주팔자 구조를 계산하고, 성격/연애/진로/재물 흐름을 이해하기 쉽게 정리합니다.",
+      "panels": [],
+      "ctaLabel": "이 기능 시작하기",
+      "evidence": [
+        "js/core/service-registry.js"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "tarot": {
+      "slug": "tarot",
+      "title": "타로 리딩",
+      "href": "/index.html?action=openTarotModal",
+      "featureKey": "",
+      "featureKeyTo": "",
+      "accessType": "free",
+      "image": "/fuctionassets/ai%20tarrot.webp",
+      "aliases": [
+        "tarot",
+        "/index.html?action=openTarotModal",
+        "/index.html?action=openTarotModal/"
+      ],
+      "headline": "타로 리딩",
+      "description": "타로 상징과 스프레드의 흐름 속에서 현재의 감정과 선택의 실마리가 강하게 떠오릅니다.",
+      "panels": [],
+      "ctaLabel": "이 기능 시작하기",
+      "evidence": [
+        "js/core/service-registry.js"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "ziwei": {
+      "slug": "ziwei",
+      "title": "심화 자미두수 12궁 상담",
+      "href": "/ziwei/chart",
+      "featureKey": "",
+      "featureKeyTo": "",
+      "accessType": "free",
+      "image": "/fuctionassets/jami.webp",
+      "aliases": [
+        "ziwei",
+        "/ziwei/chart",
+        "/ziwei/chart/"
+      ],
+      "headline": "심화 자미두수 12궁 상담",
+      "description": "자미두수의 12궁 구조와 주요 성요 조합을 기반으로 인생 테마, 관계 패턴, 진로 흐름을 입체적으로 분석합니다.",
+      "panels": [],
+      "ctaLabel": "이 기능 시작하기",
+      "evidence": [
+        "js/core/service-registry.js"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "sukuyo": {
+      "slug": "sukuyo",
+      "title": "숙요점",
+      "href": "/sukuyo/",
+      "featureKey": "compat-sukuyo-compatibility",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "",
+      "aliases": [
+        "openSukuyoModal",
+        "sukuyo",
+        "/sukuyo/",
+        "/sukuyo"
+      ],
+      "headline": "상대의 생년월일만 있으면 두 사람이 어떤 거리의 인연인지 바로 나옵니다.",
+      "description": "27수 가운데 두 사람의 본명숙을 각각 계산해 관계 유형과 거리를 판정하고, 연애·결혼·재회·비밀연애·장거리·협업 여섯 주제로 나눠 읽습니다.",
+      "panels": [
+        {
+          "title": "이런 질문에 도움이 됩니다",
+          "items": [
+            "이 사람과는 어떤 거리의 인연인가요?",
+            "연애 말고 협업이나 장거리로는 어떤가요?",
+            "가까워질수록 부딪히는 이유가 무엇인가요?"
+          ]
+        },
+        {
+          "title": "이 기능으로 살펴보는 것",
+          "items": [
+            "내 본명숙 계산과 기본 해석은 무료 — 궁합을 열 때만 5,000원 회당 결제",
+            "상대의 생년월일·출생시각·양력/음력·성별을 넣어 상대의 본명숙을 함께 계산",
+            "명·업태·영친·우쇠·안괴·성위 여섯 관계 유형과 근거리·중거리·원거리 판정",
+            "연애·결혼·재회·비밀연애·장거리·협업 여섯 주제를 각각 따로 해석"
+          ]
+        },
+        {
+          "title": "결과에서 받아보는 내용",
+          "items": [
+            "관계 타입과 관계 별명, 두 사람의 숙과 각자의 역할",
+            "인연의 본질 · 가까워질수록 생기는 것 · 반복되는 감정 패턴",
+            "체감 속도와 거리의 장점, 주의할 거리감과 운영법",
+            "좋은 타이밍 — 가장 좋은 창과 조심할 창",
+            "연애·결혼·재회·비밀연애·장거리·협업 여섯 주제별 해석과 주의점",
+            "오래 가는 처방과 오늘의 질문"
+          ]
+        },
+        {
+          "title": "어떻게 이용하나요?",
+          "steps": [
+            {
+              "label": "내 본명숙 산출",
+              "detail": "생년월일로 27수 가운데 내 본명숙을 계산합니다. 여기까지는 무료입니다."
+            },
+            {
+              "label": "상대 본명숙 산출",
+              "detail": "상대의 생년월일·출생시각·양력/음력·성별을 받아 상대의 본명숙을 계산합니다."
+            },
+            {
+              "label": "관계 유형과 거리 판정",
+              "detail": "두 본명숙이 이루는 여섯 관계 유형과 근거리·중거리·원거리를 확정합니다."
+            },
+            {
+              "label": "주제별 해석",
+              "detail": "여섯 주제를 각각 나눠 상태와 지금 할 일, 주의점을 정리합니다."
+            }
+          ]
+        },
+        {
+          "title": "이런 분께 어울려요",
+          "items": [
+            "상대와 이상하게 끌리면서도 자꾸 부딪히는 분",
+            "연애·결혼·재회 중 어느 쪽으로 봐야 할지 정하고 싶은 분",
+            "장거리나 협업처럼 연애 밖의 관계도 함께 보고 싶은 분"
+          ]
+        }
+      ],
+      "ctaLabel": "숙요점 열기",
+      "evidence": [
+        "index.html:FEATURE_MARKETING_COPY:openSukuyoModal"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "vedic": {
+      "slug": "vedic",
+      "title": "베다 점성술 분석",
+      "href": "/index.html?action=navigateToVedic",
+      "featureKey": "",
+      "featureKeyTo": "",
+      "accessType": "free",
+      "image": "/fuctionassets/veda.webp",
+      "aliases": [
+        "vedic",
+        "/index.html?action=navigateToVedic",
+        "/index.html?action=navigateToVedic/"
+      ],
+      "headline": "베다 점성술 분석",
+      "description": "인도 전통 조티쉬(Jyotish)의 라그나와 나크샤트라, 다샤 위로 인생의 장기 흐름이 드러납니다.",
+      "panels": [],
+      "ctaLabel": "이 기능 시작하기",
+      "evidence": [
+        "js/core/service-registry.js"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "astrology": {
+      "slug": "astrology",
+      "title": "서양 점성술 차트 분석",
+      "href": "/index.html?action=openAstroModal",
+      "featureKey": "",
+      "featureKeyTo": "",
+      "accessType": "free",
+      "image": "/fuctionassets/jumsung.webp",
+      "aliases": [
+        "astrology",
+        "/index.html?action=openAstroModal",
+        "/index.html?action=openAstroModal/"
+      ],
+      "headline": "서양 점성술 차트 분석",
+      "description": "태양궁, 달궁, 상승궁과 하우스 구조를 중심으로 성향과 시기 흐름을 읽는 서양 점성술 분석 서비스입니다.",
+      "panels": [],
+      "ctaLabel": "이 기능 시작하기",
+      "evidence": [
+        "js/core/service-registry.js"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "human-design": {
+      "slug": "human-design",
+      "title": "휴먼 디자인",
+      "href": "/human-design/",
+      "featureKey": "human-design-chart",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "",
+      "aliases": [
+        "human-design-chart",
+        "human-design",
+        "/human-design/",
+        "/human-design"
+      ],
+      "headline": "내 에너지가 어떤 방식으로 작동하도록 설계됐는지 확인해보세요.",
+      "description": "출생 데이터로 타입·전략·내적권위·센터 정의를 계산해, 결정과 소모의 방식이 어떻게 설계돼 있는지 보여 줍니다.",
+      "panels": [
+        {
+          "title": "이런 질문에 도움이 됩니다",
+          "items": [
+            "저는 어떤 타입인가요?",
+            "결정은 어떻게 내리는 게 맞나요?",
+            "어디서 에너지가 새고 있나요?"
+          ]
+        },
+        {
+          "title": "이런 분께 어울려요",
+          "items": [
+            "자기 결정 방식을 알고 싶은 분",
+            "소모되는 패턴을 줄이고 싶은 분",
+            "MBTI 외의 자기 이해 도구를 찾는 분"
+          ]
+        }
+      ],
+      "ctaLabel": "무료로 차트 계산하기",
+      "evidence": [
+        "index.html:FEATURE_MARKETING_COPY:human_design"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "nakshatra": {
+      "slug": "nakshatra",
+      "title": "나크샤트라 결정판",
+      "href": "/nakshatra/",
+      "featureKey": "nakshatra",
+      "featureKeyTo": "",
+      "accessType": "free",
+      "image": "",
+      "aliases": [
+        "nakshatra",
+        "/nakshatra/",
+        "/nakshatra"
+      ],
+      "headline": "달이 머문 별자리 하나가 타고난 결을 가장 먼저 말해 줍니다.",
+      "description": "출생 시 달의 위치로 27개 나크샤트라 가운데 하나를 계산해, 그 별자리가 가진 기질과 삶의 방향을 정리해 줍니다.",
+      "panels": [
+        {
+          "title": "이런 질문에 도움이 됩니다",
+          "items": [
+            "제 나크샤트라는 무엇인가요?",
+            "타고난 결은 어떤가요?",
+            "어떤 방향이 저와 맞나요?"
+          ]
+        },
+        {
+          "title": "이런 분께 어울려요",
+          "items": [
+            "자기 본질을 짚고 싶은 분",
+            "베다 점성술의 핵심만 보고 싶은 분",
+            "출생 시간을 아는 분"
+          ]
+        }
+      ],
+      "ctaLabel": "무료로 나크샤트라 보기",
+      "evidence": [
+        "index.html:FEATURE_MARKETING_COPY:nakshatra"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "maya": {
+      "slug": "maya",
+      "title": "마야점",
+      "href": "/maya/",
+      "featureKey": "maya",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "",
+      "aliases": [
+        "maya",
+        "/maya/",
+        "/maya"
+      ],
+      "headline": "마야 달력의 하루하루에는 저마다 다른 기운이 붙어 있습니다.",
+      "description": "촐킨 달력으로 생년월일과 오늘의 날짜 기운을 계산해, 타고난 인장과 오늘의 흐름을 함께 보여 줍니다.",
+      "panels": [
+        {
+          "title": "이런 질문에 도움이 됩니다",
+          "items": [
+            "오늘은 어떤 기운의 날인가요?",
+            "제 마야 인장은 무엇인가요?",
+            "오늘 무엇에 집중하면 좋을까요?"
+          ]
+        },
+        {
+          "title": "이런 분께 어울려요",
+          "items": [
+            "새로운 체계를 경험하고 싶은 분",
+            "오늘의 기운을 확인하고 싶은 분",
+            "상징 해석을 좋아하는 분"
+          ]
+        }
+      ],
+      "ctaLabel": "무료로 마야점 보기",
+      "evidence": [
+        "index.html:FEATURE_MARKETING_COPY:maya"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "daily-fortune": {
+      "slug": "daily-fortune",
+      "title": "오늘의 운세",
+      "href": "/daily-fortune/",
+      "featureKey": "daily-fortune",
+      "featureKeyTo": "",
+      "accessType": "free",
+      "image": "",
+      "aliases": [
+        "daily-fortune",
+        "/daily-fortune/",
+        "/daily-fortune"
+      ],
+      "headline": "긴 해석은 나중에, 오늘 하루의 흐름부터 확인해보세요.",
+      "description": "생년월일 기준으로 오늘 날짜의 기운을 대조해, 하루 동안 무엇을 밀고 무엇을 미룰지 짧게 정리해 줍니다.",
+      "panels": [
+        {
+          "title": "이런 질문에 도움이 됩니다",
+          "items": [
+            "오늘 하루는 어떤 흐름인가요?",
+            "오늘 조심할 것은 무엇인가요?",
+            "오늘 무엇을 하면 좋을까요?"
+          ]
+        },
+        {
+          "title": "이런 분께 어울려요",
+          "items": [
+            "매일 짧게 확인하고 싶은 분",
+            "오늘의 컨디션이 궁금한 분",
+            "운세를 습관처럼 보고 싶은 분"
+          ]
+        }
+      ],
+      "ctaLabel": "오늘의 운세 보기",
+      "evidence": [
+        "index.html:FEATURE_MARKETING_COPY:daily_fortune"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "today-hub": {
+      "slug": "today-hub",
+      "title": "오늘의 운세 허브",
+      "href": "/today/",
+      "featureKey": "today-hub",
+      "featureKeyTo": "",
+      "accessType": "free",
+      "image": "",
+      "aliases": [
+        "today-hub",
+        "/today/",
+        "/today"
+      ],
+      "headline": "오늘 하루를 사주·숙요점·베다점 세 갈래로 나란히 확인해보세요.",
+      "description": "한 화면에서 세 체계의 오늘 해석을 함께 놓고, 서로 겹치는 신호와 갈리는 지점을 비교해 볼 수 있는 허브입니다.",
+      "panels": [
+        {
+          "title": "이런 질문에 도움이 됩니다",
+          "items": [
+            "세 체계가 오늘을 어떻게 보나요?",
+            "공통으로 짚는 신호는 무엇인가요?",
+            "오늘의 우선순위는 무엇인가요?"
+          ]
+        },
+        {
+          "title": "이런 분께 어울려요",
+          "items": [
+            "여러 체계를 비교하고 싶은 분",
+            "오늘 흐름을 교차 확인하고 싶은 분",
+            "한 화면에서 끝내고 싶은 분"
+          ]
+        }
+      ],
+      "ctaLabel": "오늘의 운세 허브 열기",
+      "evidence": [
+        "index.html:FEATURE_MARKETING_COPY:today"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "palm-reading": {
+      "slug": "palm-reading",
+      "title": "손금",
+      "href": "/palm-reading/",
+      "featureKey": "palm-reading-general",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "/fuctionassets/%EC%86%90%EA%B8%88.webp",
+      "aliases": [
+        "palm-reading",
+        "/palm-reading/",
+        "/palm-reading"
+      ],
+      "headline": "양손 사진을 올리면 손금 선과 언덕을 읽어 상담문으로 정리합니다.",
+      "description": "주요선 4개와 보조선 9종, 손바닥 언덕 7구, 특수 문양 6종을 확인하고 1,200자 이상의 해석을 씁니다.",
+      "panels": [
+        {
+          "title": "이런 질문에 도움이 됩니다",
+          "items": [
+            "내 손금에서 가장 뚜렷한 선은 무엇인가요?",
+            "양손이 왜 다르게 보이나요?",
+            "지금 고민과 닿는 선은 어디인가요?"
+          ]
+        },
+        {
+          "title": "이 기능으로 살펴보는 것",
+          "items": [
+            "양손 사진을 한 번에 올려 각각 읽습니다",
+            "생명선·두뇌선·감정선·운명선 주요 4선을 판독합니다",
+            "보조선 9종과 손바닥 언덕 7구를 함께 확인합니다",
+            "특수 문양 6종은 사진에서 확인된 것만 씁니다",
+            "상담 목적 6가지 중 하나를 골라 그 축으로 해석합니다",
+            "상담문은 1,200자 이상으로 나옵니다"
+          ]
+        },
+        {
+          "title": "결과에서 받아보는 내용",
+          "items": [
+            "양손 각각의 선 판독",
+            "주요선 4 · 보조선 9 · 언덕 7구 정리",
+            "상담 목적에 맞춘 해석",
+            "1,200자 이상 상담문"
+          ]
+        },
+        {
+          "title": "어떻게 이용하나요?",
+          "steps": [
+            {
+              "label": "사진 업로드",
+              "detail": "양손 사진을 올리고 상담 목적 6가지 중 하나를 고릅니다."
+            },
+            {
+              "label": "선·언덕 판독",
+              "detail": "두 손을 함께 읽어 주요선 4개, 보조선 9종, 언덕 7구, 특수 문양 6종을 확인합니다."
+            },
+            {
+              "label": "점수 정리",
+              "detail": "판독 결과를 6개 항목 점수로 환산합니다."
+            },
+            {
+              "label": "상담문 작성",
+              "detail": "고른 목적을 축으로 1,200자 이상의 해석을 씁니다."
+            }
+          ]
+        },
+        {
+          "title": "이런 분께 어울려요",
+          "items": [
+            "손금을 근거와 함께 읽고 싶은 분",
+            "양손을 비교해 보고 싶은 분",
+            "특정 고민을 축으로 해석을 받고 싶은 분"
+          ]
+        }
+      ],
+      "ctaLabel": "손금 분석 시작하기",
+      "evidence": [
+        "index.html:FEATURE_MARKETING_COPY:palm_reading"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "physiognomy": {
+      "slug": "physiognomy",
+      "title": "관상",
+      "href": "/physiognomy/",
+      "featureKey": "physiognomy",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "/fuctionassets/ai%20animal.webp",
+      "aliases": [
+        "openPhysiognomyApp",
+        "physiognomy",
+        "/physiognomy/",
+        "/physiognomy"
+      ],
+      "headline": "얼굴에 남은 인상의 결로 지금의 나를 읽어보세요.",
+      "description": "사진 속 이목구비의 형태와 균형을 분석해, 인상에서 드러나는 기질과 어울리는 길을 정리해 주는 관상 해석입니다.",
+      "panels": [
+        {
+          "title": "이런 질문에 도움이 됩니다",
+          "items": [
+            "제 인상은 어떻게 읽히나요?",
+            "어떤 강점이 드러나나요?",
+            "어떤 일이 저와 어울리나요?"
+          ]
+        },
+        {
+          "title": "이런 분께 어울려요",
+          "items": [
+            "첫인상이 궁금한 분",
+            "생년월일 없이 보고 싶은 분",
+            "자기 강점을 다른 각도로 찾고 싶은 분"
+          ]
+        }
+      ],
+      "ctaLabel": "무료로 관상 보기",
+      "evidence": [
+        "index.html:FEATURE_MARKETING_COPY:physiognomy"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "dream": {
+      "slug": "dream",
+      "title": "꿈해몽",
+      "href": "/dream/",
+      "featureKey": "dream",
+      "featureKeyTo": "",
+      "accessType": "free",
+      "image": "/fuctionassets/heamong.webp",
+      "aliases": [
+        "openDreamModal",
+        "dream",
+        "/dream/",
+        "/dream"
+      ],
+      "headline": "간밤의 꿈이 남긴 장면을 그냥 넘기지 마세요.",
+      "description": "꿈에 나온 소재와 상황을 풀어, 그 상징이 지금의 심리와 상황에 어떻게 닿는지 설명해 주는 해몽입니다.",
+      "panels": [
+        {
+          "title": "이런 질문에 도움이 됩니다",
+          "items": [
+            "이 꿈은 무슨 의미인가요?",
+            "왜 이런 꿈을 반복해서 꾸나요?",
+            "지금 마음은 어떤 상태인가요?"
+          ]
+        },
+        {
+          "title": "이런 분께 어울려요",
+          "items": [
+            "인상 깊은 꿈을 꾼 분",
+            "반복되는 꿈이 있는 분",
+            "심리적 의미가 궁금한 분"
+          ]
+        }
+      ],
+      "ctaLabel": "무료로 꿈 해몽하기",
+      "evidence": [
+        "index.html:FEATURE_MARKETING_COPY:dream"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "psychotest": {
+      "slug": "psychotest",
+      "title": "심리테스트",
+      "href": "/psychotest/",
+      "featureKey": "psychotest",
+      "featureKeyTo": "",
+      "accessType": "free",
+      "image": "",
+      "aliases": [
+        "psychotest",
+        "/psychotest/",
+        "/psychotest"
+      ],
+      "headline": "가볍게 답하다 보면 나에 대해 몰랐던 문장이 남습니다.",
+      "description": "짧은 문항에 답하면 성향과 지금의 상태를 정리해 주는 심리 테스트 모음입니다. 생년월일 없이도 볼 수 있어요.",
+      "panels": [
+        {
+          "title": "이런 질문에 도움이 됩니다",
+          "items": [
+            "저는 어떤 성향인가요?",
+            "지금 제 상태는 어떤가요?",
+            "어떤 관계가 저와 맞나요?"
+          ]
+        },
+        {
+          "title": "이런 분께 어울려요",
+          "items": [
+            "가볍게 시작하고 싶은 분",
+            "생년월일 입력이 부담스러운 분",
+            "친구와 결과를 나누고 싶은 분"
+          ]
+        }
+      ],
+      "ctaLabel": "무료 심리테스트 하기",
+      "evidence": [
+        "index.html:FEATURE_MARKETING_COPY:psychotest"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "manse": {
+      "slug": "manse",
+      "title": "만세력",
+      "href": "/manse/",
+      "featureKey": "manse",
+      "featureKeyTo": "",
+      "accessType": "free",
+      "image": "",
+      "aliases": [
+        "manse",
+        "/manse/",
+        "/manse"
+      ],
+      "headline": "해석을 받기 전에 원국을 직접 세워 볼 수 있습니다.",
+      "description": "생년월일시를 넣으면 절기 기준으로 사주 원국과 대운을 계산해 표로 보여 주는 만세력 도구입니다.",
+      "panels": [
+        {
+          "title": "이런 질문에 도움이 됩니다",
+          "items": [
+            "제 사주 여덟 글자는 무엇인가요?",
+            "대운은 언제 바뀌나요?",
+            "절기 경계에 걸리나요?"
+          ]
+        },
+        {
+          "title": "이런 분께 어울려요",
+          "items": [
+            "사주를 직접 공부하는 분",
+            "계산 결과를 대조하고 싶은 분",
+            "원국을 기록해 두고 싶은 분"
+          ]
+        }
+      ],
+      "ctaLabel": "만세력 열기",
+      "evidence": [
+        "index.html:FEATURE_MARKETING_COPY:manse"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "famous-saju": {
+      "slug": "famous-saju",
+      "title": "유명인 사주",
+      "href": "/insights/famous-saju/",
+      "featureKey": "famous-saju",
+      "featureKeyTo": "",
+      "accessType": "free",
+      "image": "",
+      "aliases": [
+        "famous-saju",
+        "/insights/famous-saju/",
+        "/insights/famous-saju"
+      ],
+      "headline": "이름이 알려진 사람들의 사주로 원리를 눈으로 익혀보세요.",
+      "description": "실존 인물의 명식을 예시로 놓고, 어떤 배치가 어떤 삶의 모양으로 나타났는지 사례로 풀어 주는 읽을거리입니다.",
+      "panels": [
+        {
+          "title": "이런 질문에 도움이 됩니다",
+          "items": [
+            "이 배치는 어떤 삶으로 나타나나요?",
+            "같은 글자라도 왜 결과가 다른가요?",
+            "제 명식과 무엇이 닮았나요?"
+          ]
+        },
+        {
+          "title": "이런 분께 어울려요",
+          "items": [
+            "사주 원리를 익히고 싶은 분",
+            "사례로 배우는 것을 선호하는 분",
+            "읽을거리를 찾는 분"
+          ]
+        }
+      ],
+      "ctaLabel": "유명인 사주 읽어보기",
+      "evidence": [
+        "index.html:FEATURE_MARKETING_COPY:insights_famous_saju"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "animal-destiny": {
+      "slug": "animal-destiny",
+      "title": "운명의 동물 도감",
+      "href": "/saju/animal-destiny/",
+      "featureKey": "",
+      "featureKeyTo": "",
+      "accessType": "free",
+      "image": "",
+      "aliases": [
+        "animal-destiny",
+        "/saju/animal-destiny/",
+        "/saju/animal-destiny",
+        "openAnimalDestinyRoute"
+      ],
+      "headline": "나를 움직이는 힘은 어떤 동물을 닮았을까?",
+      "description": "사주의 십이운성, 열두 성장 단계를 동물의 상징으로 만나 보세요. 이름을 붙이는 재미를 넘어 나의 성향과 성장 방향을 읽습니다.",
+      "panels": [
+        {
+          "title": "닮은 동물을 찾고, 나다운 성장을 시작해요.",
+          "text": "나의 성향을 담은 동물에서 오늘의 작은 행동까지. 읽는 재미가 일상의 발견으로 이어집니다.",
+          "visualPreview": "animal"
+        },
+        {
+          "title": "동물 하나에서 시작해, 나의 리듬까지.",
+          "items": [
+            "사주와 연결된 상징 — 연·월·일·시의 십이운성을 살펴봅니다. 시간을 모르면 연·월·일 중심으로 읽습니다.",
+            "열두 동물 도감 — 다른 동물의 상징과 성장 단계를 함께 탐색합니다.",
+            "두 사람의 궁합 — 상대의 출생 정보로 두 동물의 관계를 비교합니다."
+          ]
+        },
+        {
+          "title": "내 안의 동물을 만나 보세요.",
+          "text": "출생일은 필수이며 태어난 시간은 몰라도 시작할 수 있습니다."
+        }
+      ],
+      "ctaLabel": "내 운명의 동물 찾기",
+      "evidence": [
+        "app/saju/animal-destiny/components/AnimalResultScreen.tsx",
+        "app/saju/animal-destiny/components/TwelveAnimalShareCard.tsx",
+        "scripts/test-mobile-platform-journeys.mjs"
+      ],
+      "verification": "verified"
+    },
+    "kemet-oracle": {
+      "slug": "kemet-oracle",
+      "title": "이집트 신탁",
+      "href": "/index.html?action=openKemetModal",
+      "featureKey": "openKemetModal",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "/fuctionassets/egypt.webp",
+      "aliases": [
+        "openKemetModal",
+        "kemet-oracle",
+        "/index.html?action=openKemetModal",
+        "/index.html?action=openKemetModal/"
+      ],
+      "headline": "열두 신의 카드 가운데 세 장, 당신 손으로 직접 고릅니다.",
+      "description": "라 · 오시리스 · 이시스 · 호루스 등 열두 신의 카드에서 과거 · 현재 · 미래 세 장을 직접 고르면, 자리별 해석과 세 신의 합이 질문의 결을 따라 풀립니다.",
+      "panels": [
+        {
+          "title": "이런 질문에 도움이 됩니다",
+          "items": [
+            "이 상황은 어디서 와서 어디로 가나요?",
+            "지금 내 질문에 신들은 무엇을 짚나요?",
+            "앞으로 나는 어떤 태도를 가져야 하나요?"
+          ]
+        },
+        {
+          "title": "이 기능으로 살펴보는 것",
+          "items": [
+            "라 · 오시리스 · 이시스 · 호루스 · 토트 · 아누비스 등 열두 신의 카드",
+            "과거 · 현재 · 미래 세 자리, 세 장 직접 선택",
+            "자리별 해석에 이어지는 세 신의 합 종합 풀이",
+            "질문의 초점을 읽어 결에 맞춘 카테고리 해석"
+          ]
+        },
+        {
+          "title": "결과에서 받아보는 내용",
+          "items": [
+            "세 자리에 놓인 신들의 뜻",
+            "과거에서 미래로 이어지는 서사",
+            "세 신의 합이 가리키는 방향",
+            "질문의 결에 맞춘 조언"
+          ]
+        },
+        {
+          "title": "어떻게 이용하나요?",
+          "steps": [
+            {
+              "label": "질문 올리기",
+              "detail": "세 글자 이상, 마음에 걸린 물음을 적습니다."
+            },
+            {
+              "label": "세 장 직접 선택",
+              "detail": "열두 신의 카드에서 과거 · 현재 · 미래 세 장을 고릅니다."
+            },
+            {
+              "label": "신탁 풀이",
+              "detail": "자리별 해석과 세 신의 합으로 답을 정리합니다."
+            }
+          ]
+        },
+        {
+          "title": "이런 분께 어울려요",
+          "items": [
+            "이집트 신화의 상징을 좋아하는 분",
+            "직접 고르는 의식감을 원하는 분",
+            "세 장의 흐름으로 상황을 정리하고 싶은 분"
+          ]
+        }
+      ],
+      "ctaLabel": "세 신에게 묻기",
+      "evidence": [
+        "index.html:FEATURE_MARKETING_COPY:openKemetModal"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "ifa-oracle": {
+      "slug": "ifa-oracle",
+      "title": "IFÀ 오라클",
+      "href": "/ifa-oracle.html",
+      "featureKey": "ifa-oracle",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "",
+      "aliases": [
+        "ifa-oracle",
+        "/ifa-oracle.html",
+        "/ifa-oracle.html/"
+      ],
+      "headline": "여덟 자리가 차례로 열리면, 256가지 신탁 가운데 하나가 당신의 답이 됩니다.",
+      "description": "서아프리카 요루바 이파 점의 방식대로 기본 오두 16개가 짝을 이뤄 256가지 신탁을 만들고, 그 안의 이야기와 금기가 지금 상황에 대응하는 답이 됩니다.",
+      "panels": [
+        {
+          "title": "이런 질문에 도움이 됩니다",
+          "items": [
+            "지금 이 일을 진행해도 될까요?",
+            "무엇을 조심해야 하나요?",
+            "어떤 갈래의 운을 먼저 봐야 하나요?"
+          ]
+        },
+        {
+          "title": "이 기능으로 살펴보는 것",
+          "items": [
+            "기본 오두 16개가 짝을 이뤄 만드는 256가지 신탁 체계",
+            "총운 / 연애·관계 / 재물·사업 / 건강·내면 네 갈래 맞춤 리딩",
+            "오펠레 체인이 여덟 자리를 하나씩 여는 순차 공개 의식",
+            "신탁과 함께 전하는 의식 · 금기 안내",
+            "결과를 텍스트 파일로 내려받아 보관"
+          ]
+        },
+        {
+          "title": "결과에서 받아보는 내용",
+          "items": [
+            "열린 오두와 그 안의 이야기",
+            "지금 상황에 대응하는 메시지",
+            "지켜야 할 금기와 피할 태도",
+            "일상에서 실천할 구체적 행동"
+          ]
+        },
+        {
+          "title": "어떻게 이용하나요?",
+          "steps": [
+            {
+              "label": "갈래 선택",
+              "detail": "총운 · 연애 · 재물 · 건강 가운데 물음의 갈래를 고릅니다."
+            },
+            {
+              "label": "여덟 자리 열기",
+              "detail": "오펠레 체인이 여덟 자리를 차례로 엽니다."
+            },
+            {
+              "label": "오두 풀이",
+              "detail": "열린 오두의 이야기와 금기 · 실천 안내를 받습니다."
+            }
+          ]
+        },
+        {
+          "title": "이런 분께 어울려요",
+          "items": [
+            "흔한 운세 방식이 지루해진 분",
+            "스스로 어기고 있는 원칙이 무엇인지 알고 싶은 분",
+            "다른 문화권의 해석을 경험하고 싶은 분"
+          ]
+        }
+      ],
+      "ctaLabel": "이파 신탁 열기",
+      "evidence": [
+        "index.html:FEATURE_MARKETING_COPY:openIfaOracle"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "juyuk-turtle": {
+      "slug": "juyuk-turtle",
+      "title": "주역 거북점",
+      "href": "/oracle/juyuk/",
+      "featureKey": "openJuyukModal",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "/fuctionassets/juyuk.webp",
+      "aliases": [
+        "openJuyukModal",
+        "juyuk-turtle",
+        "/oracle/juyuk/",
+        "/oracle/juyuk"
+      ],
+      "headline": "지금 밀어붙일 때인지 기다릴 때인지, 육십사괘가 형세를 가려 드립니다.",
+      "description": "질문을 올리고 거북 등껍질 의식을 거치면 육십사괘 가운데 한 괘가 열리고, 연애 · 진로 · 재물 · 시험 · 계약 다섯 갈래로 형세를 풀어 읽는 동양 고전 점법입니다.",
+      "panels": [
+        {
+          "title": "이런 질문에 도움이 됩니다",
+          "items": [
+            "이 일은 지금 밀어붙여도 될까요?",
+            "이 계약 · 시험의 형세는 어떤가요?",
+            "지금은 나아갈 때인가요, 물러설 때인가요?"
+          ]
+        },
+        {
+          "title": "이 기능으로 살펴보는 것",
+          "items": [
+            "중천건부터 화수미제까지 육십사괘 전체 해석 수록",
+            "상괘와 하괘의 관계로 읽는 체용의 형세",
+            "연애·인연 / 진로·성취 / 재물·거래 / 시험·심사 / 문서·계약 다섯 갈래 통변",
+            "질문의 기운을 비추는 거북 등껍질 의식"
+          ]
+        },
+        {
+          "title": "결과에서 받아보는 내용",
+          "items": [
+            "지금 상황에 해당하는 괘와 그 뜻",
+            "나아갈 때와 멈출 때의 구분",
+            "다섯 갈래로 나눈 분야별 형세",
+            "현실에서 취할 구체적 태도"
+          ]
+        },
+        {
+          "title": "어떻게 이용하나요?",
+          "steps": [
+            {
+              "label": "질문 올리기",
+              "detail": "마음에 걸린 물음을 적습니다."
+            },
+            {
+              "label": "등껍질 의식",
+              "detail": "거북 등껍질이 갈라지며 괘가 정해집니다."
+            },
+            {
+              "label": "형세 풀이",
+              "detail": "괘의 뜻과 체용, 다섯 갈래 통변으로 형세를 읽습니다."
+            }
+          ]
+        },
+        {
+          "title": "이런 분께 어울려요",
+          "items": [
+            "진퇴를 결정해야 하는 갈림길에 선 분",
+            "일의 때를 가늠하고 싶은 분",
+            "가벼운 점보다 고전적인 해석을 원하는 분"
+          ]
+        }
+      ],
+      "ctaLabel": "거북점 보기",
+      "evidence": [
+        "index.html:FEATURE_MARKETING_COPY:openJuyukModal"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "neville-meditation": {
+      "slug": "neville-meditation",
+      "title": "네빌 명상 실습",
+      "href": "/neville-meditation.html",
+      "featureKey": "neville-meditation",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "",
+      "aliases": [
+        "neville-meditation",
+        "/neville-meditation.html",
+        "/neville-meditation.html/"
+      ],
+      "headline": "네빌 고다드의 SATS 를 시간에 맞춰 안내하는 유도 명상입니다.",
+      "description": "30분 4단계와 60분 5단계 코스 중 하나를 고르면, 초 단위 시간표에 맞춰 안내 문구가 순서대로 나옵니다.",
+      "panels": [
+        {
+          "title": "이런 질문에 도움이 됩니다",
+          "items": [
+            "SATS 는 어떤 순서로 하나요?",
+            "한 번에 얼마나 하면 되나요?",
+            "어느 단계에서 무엇에 집중해야 하나요?"
+          ]
+        },
+        {
+          "title": "이 기능으로 살펴보는 것",
+          "items": [
+            "30분 코스(4단계)와 60분 코스(5단계) 중 고릅니다",
+            "30분: 급속 이완 → 순수 의식 진입 → 핵심 루프(SATS) → 확정 및 귀환",
+            "60분: 준비 및 정렬 → 점진적 이완 → 공(空)의 상태(SATS) → 결과 내에서의 상상 → 느낌의 고착 및 귀환",
+            "두 코스를 합쳐 초 단위 안내 문구 242개가 시간표대로 준비돼 있습니다",
+            "단계가 바뀌면 배경 음악도 함께 바뀝니다"
+          ]
+        },
+        {
+          "title": "결과에서 받아보는 내용",
+          "items": [
+            "30분 또는 60분 유도 코스 전체",
+            "초 단위 시간표에 맞춘 단계별 안내",
+            "단계에 맞춰 바뀌는 배경 음악",
+            "시간을 재지 않고 따라가기만 하면 되는 진행"
+          ]
+        },
+        {
+          "title": "어떻게 이용하나요?",
+          "steps": [
+            {
+              "label": "코스 선택",
+              "detail": "30분(4단계)과 60분(5단계) 중 하나를 고릅니다."
+            },
+            {
+              "label": "이완",
+              "detail": "몸의 힘을 빼고 의식이 가라앉는 상태까지 안내합니다."
+            },
+            {
+              "label": "SATS 실습",
+              "detail": "잠들기 직전의 상태에서 원하는 장면을 반복해 그리는 핵심 구간입니다."
+            },
+            {
+              "label": "확정과 귀환",
+              "detail": "그 느낌을 고정하고 깨어 있는 상태로 돌아옵니다."
+            }
+          ]
+        },
+        {
+          "title": "이런 분께 어울려요",
+          "items": [
+            "SATS 를 순서대로 따라 하고 싶은 분",
+            "혼자 하면 흐름이 끊기는 분",
+            "정해진 시간 안에 실습을 마치고 싶은 분"
+          ]
+        }
+      ],
+      "ctaLabel": "명상 실습 열기",
+      "evidence": [
+        "index.html:FEATURE_MARKETING_COPY:openNevilleMeditationPage"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "yoga-guru": {
+      "slug": "yoga-guru",
+      "title": "Divya Yoga",
+      "href": "/yoga-guru.html",
+      "featureKey": "yoga-guru-per-use",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "",
+      "aliases": [
+        "yoga-guru-per-use",
+        "yoga-guru",
+        "/yoga-guru.html",
+        "/yoga-guru.html/"
+      ],
+      "headline": "고른 조건에 맞춰 요가 시퀀스를 그때그때 새로 짜 줍니다.",
+      "description": "30분 또는 60분을 고르면 워밍업부터 마무리 이완까지 동작 순서와 호흡 안내를 한 편으로 만들어 줍니다.",
+      "panels": [
+        {
+          "title": "이런 질문에 도움이 됩니다",
+          "items": [
+            "오늘은 어떤 순서로 하면 좋을까요?",
+            "이 동작은 어떻게 호흡해야 하나요?",
+            "30분 안에 무엇까지 할 수 있나요?"
+          ]
+        },
+        {
+          "title": "이 기능으로 살펴보는 것",
+          "items": [
+            "30분과 60분 중 세션 길이를 고릅니다",
+            "워밍업 · 아사나 · 프라나야마 · 명상 · 이완 순서로 시퀀스를 구성합니다",
+            "동작마다 산스크리트어 이름과 영문·한국어 이름, 유지 시간을 표시합니다",
+            "동작마다 안내 3줄 · 호흡법 · 신체 효과 · 정신적 의미 · 주의사항을 붙입니다",
+            "난이도(초급·중급·고급), 집중 부위, 차크라 테마를 함께 정리합니다",
+            "마무리 만트라로 세션을 닫습니다",
+            "코스 생성에 실패하면 사용한 금액을 자동으로 돌려드립니다"
+          ]
+        },
+        {
+          "title": "결과에서 받아보는 내용",
+          "items": [
+            "30분 또는 60분 전체 시퀀스",
+            "동작별 이름·유지 시간·안내 3줄",
+            "호흡법과 주의사항",
+            "난이도·집중 부위·차크라 테마",
+            "마무리 만트라"
+          ]
+        },
+        {
+          "title": "어떻게 이용하나요?",
+          "steps": [
+            {
+              "label": "조건 선택",
+              "detail": "세션 길이(30분·60분)와 원하는 방향을 고릅니다."
+            },
+            {
+              "label": "시퀀스 구성",
+              "detail": "워밍업부터 마무리 이완까지 동작 순서와 각 동작의 유지 시간을 짭니다."
+            },
+            {
+              "label": "안내 작성",
+              "detail": "동작마다 안내 3줄, 호흡법, 신체 효과, 정신적 의미, 주의사항을 붙입니다."
+            },
+            {
+              "label": "마무리",
+              "detail": "난이도·집중 부위·차크라 테마를 정리하고 마무리 만트라로 닫습니다."
+            }
+          ]
+        },
+        {
+          "title": "이런 분께 어울려요",
+          "items": [
+            "정해진 순서대로 따라 하고 싶은 분",
+            "동작 이름과 호흡을 함께 익히고 싶은 분",
+            "시간을 정해 두고 수련하고 싶은 분"
+          ]
+        }
+      ],
+      "ctaLabel": "요가 가이드 열기",
+      "evidence": [
+        "index.html:FEATURE_MARKETING_COPY:openYogaGuru"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "tarot-numerology": {
+      "slug": "tarot-numerology",
+      "title": "수비학 타로",
+      "href": "/tarot/numerology/",
+      "featureKey": "tarot-numerology-reading",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "",
+      "aliases": [
+        "tarot-numerology-reading",
+        "tarot-numerology",
+        "/tarot/numerology/",
+        "/tarot/numerology"
+      ],
+      "headline": "생년월일에서 나오는 수를 타로 다섯 장으로 이어 읽습니다.",
+      "description": "생명수와 오늘수를 계산해 그 수에 맞는 카드를 배치하고, 타고난 결과 오늘의 흐름을 다섯 장으로 나눠 읽는 리딩입니다.",
+      "panels": [
+        {
+          "title": "이런 질문에 도움이 됩니다",
+          "items": [
+            "오늘 나에게 필요한 태도는 무엇인가요?",
+            "내 타고난 수는 무엇을 말하나요?",
+            "지금 흐름은 어디로 향하나요?"
+          ]
+        },
+        {
+          "title": "이런 분께 어울려요",
+          "items": [
+            "수비학에 관심 있는 분",
+            "매일의 흐름을 짚고 싶은 분",
+            "타로를 조금 더 구조적으로 보고 싶은 분"
+          ]
+        }
+      ],
+      "ctaLabel": "수비학 타로 5카드 열기",
+      "evidence": [
+        "index.html:FEATURE_MARKETING_COPY:tarot_numerology"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "dream-psycho-analysis": {
+      "slug": "dream-psycho-analysis",
+      "title": "정신분석 해몽",
+      "href": "/index.html?action=openPsychoDreamModal",
+      "featureKey": "dream-psycho-analysis",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "/fuctionassets/phydream.webp",
+      "aliases": [
+        "dream-psycho-analysis",
+        "openPsychoDreamModal",
+        "/index.html?action=openPsychoDreamModal",
+        "/index.html?action=openPsychoDreamModal/"
+      ],
+      "headline": "꿈이 남긴 감정의 잔향을 차분히 따라가 보세요.",
+      "description": "꿈의 장면과 깨어난 뒤의 감정을 바탕으로 무의식의 반복 신호를 해석하는 해몽형 리딩입니다.",
+      "panels": [
+        {
+          "title": "결과에서 받아보는 내용",
+          "items": [
+            "꿈 장면과 감정 단서 정리",
+            "욕구·불안·반복 신호 중심 해석",
+            "현재 심리 흐름과 연결되는 상징",
+            "결제 후 기존 정신분석 해몽 화면으로 이동"
+          ]
+        },
+        {
+          "title": "이런 분께 어울려요",
+          "items": [
+            "같은 꿈을 반복해서 꾸는 분",
+            "꿈이 남긴 기분이 오래 가는 분",
+            "해몽 사전식 풀이가 아쉬웠던 분"
+          ]
+        }
+      ],
+      "ctaLabel": "해몽 리딩 열람하기",
+      "evidence": [
+        "index.html:FEATURE_MARKETING_COPY:openPsychoDreamModal"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "animal-totem": {
+      "slug": "animal-totem",
+      "title": "애니멀 토템",
+      "href": "/index.html?action=openAnimalTotemModal",
+      "featureKey": "animal-totem-basic",
+      "featureKeyTo": "animal-totem-deep",
+      "accessType": "unknown",
+      "image": "/fuctionassets/animaltotem.webp",
+      "aliases": [
+        "animal-totem-basic",
+        "openAnimalTotemModal",
+        "animal-totem",
+        "/index.html?action=openAnimalTotemModal",
+        "/index.html?action=openAnimalTotemModal/"
+      ],
+      "headline": "열두 신의 카드 가운데 세 장, 당신 손으로 직접 고릅니다.",
+      "description": "라 · 오시리스 · 이시스 · 호루스 등 열두 신의 카드에서 과거 · 현재 · 미래 세 장을 직접 고르면, 자리별 해석과 세 신의 합이 질문의 결을 따라 풀립니다.",
+      "panels": [
+        {
+          "title": "이런 질문에 도움이 됩니다",
+          "items": [
+            "이 상황은 어디서 와서 어디로 가나요?",
+            "지금 내 질문에 신들은 무엇을 짚나요?",
+            "앞으로 나는 어떤 태도를 가져야 하나요?"
+          ]
+        },
+        {
+          "title": "이 기능으로 살펴보는 것",
+          "items": [
+            "라 · 오시리스 · 이시스 · 호루스 · 토트 · 아누비스 등 열두 신의 카드",
+            "과거 · 현재 · 미래 세 자리, 세 장 직접 선택",
+            "자리별 해석에 이어지는 세 신의 합 종합 풀이",
+            "질문의 초점을 읽어 결에 맞춘 카테고리 해석"
+          ]
+        },
+        {
+          "title": "결과에서 받아보는 내용",
+          "items": [
+            "세 자리에 놓인 신들의 뜻",
+            "과거에서 미래로 이어지는 서사",
+            "세 신의 합이 가리키는 방향",
+            "질문의 결에 맞춘 조언"
+          ]
+        },
+        {
+          "title": "어떻게 이용하나요?",
+          "steps": [
+            {
+              "label": "질문 올리기",
+              "detail": "세 글자 이상, 마음에 걸린 물음을 적습니다."
+            },
+            {
+              "label": "세 장 직접 선택",
+              "detail": "열두 신의 카드에서 과거 · 현재 · 미래 세 장을 고릅니다."
+            },
+            {
+              "label": "신탁 풀이",
+              "detail": "자리별 해석과 세 신의 합으로 답을 정리합니다."
+            }
+          ]
+        },
+        {
+          "title": "이런 분께 어울려요",
+          "items": [
+            "이집트 신화의 상징을 좋아하는 분",
+            "직접 고르는 의식감을 원하는 분",
+            "세 장의 흐름으로 상황을 정리하고 싶은 분"
+          ]
+        }
+      ],
+      "ctaLabel": "세 신에게 묻기",
+      "evidence": [
+        "index.html:FEATURE_MARKETING_COPY:openKemetModal"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "mbti-animal-compat": {
+      "slug": "mbti-animal-compat",
+      "title": "MBTI 동물 궁합",
+      "href": "/index.html?action=openMbtiModal",
+      "featureKey": "mbti-animal-compat",
+      "featureKeyTo": "",
+      "accessType": "free",
+      "image": "/fuctionassets/ai%20face.webp",
+      "aliases": [
+        "openMbtiModal",
+        "mbti-animal-compat",
+        "/index.html?action=openMbtiModal",
+        "/index.html?action=openMbtiModal/"
+      ],
+      "headline": "MBTI 열여섯 유형을 동물 토템으로 바꿔 궁합을 봅니다.",
+      "description": "두 사람의 유형을 각각 동물 토템으로 옮기고, 그 조합이 어떤 방식으로 맞물리는지 관계 궁합으로 풀어 줍니다.",
+      "panels": [
+        {
+          "title": "이런 질문에 도움이 됩니다",
+          "items": [
+            "우리 조합은 어떤가요?",
+            "어디서 부딪히기 쉬운가요?",
+            "서로에게 무엇이 필요한가요?"
+          ]
+        },
+        {
+          "title": "이런 분께 어울려요",
+          "items": [
+            "서로의 MBTI를 아는 분",
+            "관계의 차이를 이해하고 싶은 분",
+            "가볍게 확인하고 싶은 분"
+          ]
+        }
+      ],
+      "ctaLabel": "MBTI 동물 궁합 보기",
+      "evidence": [
+        "index.html:FEATURE_MARKETING_COPY:openMbtiModal"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "tarot-crystal-soul": {
+      "slug": "tarot-crystal-soul",
+      "title": "원석 소울 타로",
+      "href": "/tarot/crystal-soul/",
+      "featureKey": "tarot-crystal-soul-reading",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "",
+      "aliases": [
+        "tarot-crystal-soul-reading",
+        "tarot-crystal-soul",
+        "/tarot/crystal-soul/",
+        "/tarot/crystal-soul"
+      ],
+      "headline": "손이 멈추는 원석 하나가 오늘의 기운을 먼저 말해 줍니다.",
+      "description": "열두 가지 원석 가운데 마음이 머무는 하나를 문질러 깨운 뒤, 다섯 자리 스프레드로 지금의 빛과 가려진 면을 나눠 읽는 리딩입니다.",
+      "panels": [
+        {
+          "title": "이런 질문에 도움이 됩니다",
+          "items": [
+            "지금 나에게 흐르는 기운은 어떤 결인가요?",
+            "내가 못 보고 있는 면은 무엇인가요?",
+            "무엇을 조심하면 길이 열리나요?"
+          ]
+        },
+        {
+          "title": "이 기능으로 살펴보는 것",
+          "items": [
+            "열두 원석 가운데 손이 멈추는 하나를 고르기",
+            "원석을 문질러 깨우는 진입 연출",
+            "첫 번째 빛 · 가려진 면 · 경고 · 처방 · 열릴 문 다섯 자리",
+            "고른 원석의 결을 해석에 함께 반영"
+          ]
+        },
+        {
+          "title": "결과에서 받아보는 내용",
+          "items": [
+            "다섯 자리 카드 해석 전체",
+            "지금 가려져 있는 면",
+            "원석이 보내는 경고",
+            "크리스탈의 처방과 빛이 열어줄 문"
+          ]
+        },
+        {
+          "title": "어떻게 이용하나요?",
+          "steps": [
+            {
+              "label": "원석 선택",
+              "detail": "열두 원석 가운데 손이 멈추는 하나를 골라 문질러 깨웁니다."
+            },
+            {
+              "label": "5장 배치",
+              "detail": "첫 번째 빛부터 빛이 열어줄 문까지 다섯 자리에 카드를 놓습니다."
+            },
+            {
+              "label": "해석 정리",
+              "detail": "원석의 결과 카드 배치를 묶어 경고와 처방으로 정리합니다."
+            }
+          ]
+        },
+        {
+          "title": "이런 분께 어울려요",
+          "items": [
+            "질문을 또렷하게 정하지 못한 분",
+            "오늘의 기운부터 짚고 싶은 분",
+            "조심할 지점을 미리 알고 싶은 분"
+          ]
+        }
+      ],
+      "ctaLabel": "원석 고르고 시작하기",
+      "evidence": [
+        "index.html:FEATURE_MARKETING_COPY:tarot_crystal_soul_reading"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "royal-tea-oracle": {
+      "slug": "royal-tea-oracle",
+      "title": "영국 홍차점",
+      "href": "/index.html?action=openRoyalTeaOracle",
+      "featureKey": "royal-tea-oracle",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "/fuctionassets/london.webp",
+      "aliases": [
+        "royal-tea-oracle",
+        "openRoyalTeaOracle",
+        "/index.html?action=openRoyalTeaOracle",
+        "/index.html?action=openRoyalTeaOracle/"
+      ],
+      "headline": "잔에 남은 찻잎의 자리와 짙기가, 가까운 석 달의 결을 말해 줍니다.",
+      "description": "14가지 찻잎 형상이 다섯 물음 영역과 만나 일흔 갈래의 풀이를 이루고, 잔의 테두리 · 벽 · 바닥 세 자리가 시기를 나눠 주는 영국 홍차점 리딩입니다.",
+      "panels": [
+        {
+          "title": "이런 질문에 도움이 됩니다",
+          "items": [
+            "앞으로 두어 주 사이에 무엇이 움직이나요?",
+            "이 물음의 답은 석 달 안에 올까요?",
+            "오늘의 나에게 필요한 조언은 무엇인가요?"
+          ]
+        },
+        {
+          "title": "이 기능으로 살펴보는 것",
+          "items": [
+            "14가지 찻잎 형상 × 다섯 물음 영역(연애·인연 / 일·커리어 / 금전·재물 / 관계·가족 / 전환·선택) = 일흔 갈래 풀이",
+            "테두리(지금~2주) · 벽(2주~3개월) · 바닥(3개월 이후) 세 자리 시기 읽기",
+            "형상이 놓인 방위 네 갈래와 짙기 세 단계까지 살피는 감정과 행동 조언",
+            "입력이 같으면 하루 동안은 같은 잔 — 날이 바뀌면 새로 우려지는 하루 단위 리딩"
+          ]
+        },
+        {
+          "title": "결과에서 받아보는 내용",
+          "items": [
+            "잔에 맺힌 형상들과 자리별 풀이",
+            "테두리 · 벽 · 바닥으로 나눈 시기 읽기",
+            "방위와 짙기가 더하는 결",
+            "오늘의 잔이 건네는 행동 조언"
+          ]
+        },
+        {
+          "title": "어떻게 이용하나요?",
+          "steps": [
+            {
+              "label": "물음 영역 고르기",
+              "detail": "연애 · 일 · 금전 · 관계 · 전환 다섯 영역에서 고릅니다."
+            },
+            {
+              "label": "잔 우리기",
+              "detail": "오늘의 잔에 찻잎 형상이 맺힙니다."
+            },
+            {
+              "label": "세 자리 풀이",
+              "detail": "테두리 · 벽 · 바닥의 형상과 방위 · 짙기를 읽습니다."
+            }
+          ]
+        },
+        {
+          "title": "이런 분께 어울려요",
+          "items": [
+            "가까운 미래의 흐름이 궁금한 분",
+            "하루 한 잔, 의식처럼 점을 보고 싶은 분",
+            "영국 티타임의 낭만을 좋아하는 분"
+          ]
+        }
+      ],
+      "ctaLabel": "오늘의 잔 열기",
+      "evidence": [
+        "index.html:FEATURE_MARKETING_COPY:openRoyalTeaOracle"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "geomancy-oracle": {
+      "slug": "geomancy-oracle",
+      "title": "지오맨시 흙점",
+      "href": "/index.html?action=openGeomancyOracle",
+      "featureKey": "openGeomancyOracle",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "/fuctionassets/geomancy.webp",
+      "aliases": [
+        "openGeomancyOracle",
+        "geomancy-oracle",
+        "/index.html?action=openGeomancyOracle",
+        "/index.html?action=openGeomancyOracle/"
+      ],
+      "headline": "찍힌 점들이 쌓아 올린 방패 차트로 조건의 유불리를 셈합니다.",
+      "description": "비아부터 포풀루스까지 16가지 도형이 어머니 · 딸 · 조카 · 증인을 거쳐 재판관에 이르는 15자리 방패 차트를 세우고, AI가 도형만을 근거로 원인 · 흐름 · 신탁을 풀어 읽습니다.",
+      "panels": [
+        {
+          "title": "이런 질문에 도움이 됩니다",
+          "items": [
+            "이 일의 형세는 유리한가요, 불리한가요?",
+            "문제의 원인은 어디에 있나요?",
+            "언제쯤 흐름이 움직이나요?"
+          ]
+        },
+        {
+          "title": "이 기능으로 살펴보는 것",
+          "items": [
+            "비아 · 포풀루스 · 푸에르 등 16가지 지오맨시 도형 체계",
+            "어머니 4 · 딸 4 · 조카 4 · 증인 2를 거쳐 재판관에 이르는 15자리 방패 차트",
+            "도형만을 근거로 원인 · 흐름 · 신탁을 종합하는 AI 풀이",
+            "7일 · 21일 · 40일 시간축과 바로 옮길 실행 제안"
+          ]
+        },
+        {
+          "title": "결과에서 받아보는 내용",
+          "items": [
+            "15자리 방패 차트 전체",
+            "핵심을 판가름하는 재판관 도형의 뜻",
+            "원인 · 흐름 · 신탁을 잇는 종합 풀이",
+            "시간축별 주의점과 실행 제안"
+          ]
+        },
+        {
+          "title": "어떻게 이용하나요?",
+          "steps": [
+            {
+              "label": "질문 입력",
+              "detail": "셈하고 싶은 물음을 적습니다."
+            },
+            {
+              "label": "차트 세우기",
+              "detail": "찍힌 점들이 16도형이 되어 15자리 방패 차트를 쌓습니다."
+            },
+            {
+              "label": "AI 종합 풀이",
+              "detail": "도형을 근거로 원인 · 흐름 · 신탁과 실행 제안을 정리합니다."
+            }
+          ]
+        },
+        {
+          "title": "이런 분께 어울려요",
+          "items": [
+            "결정을 앞두고 유불리를 가늠하고 싶은 분",
+            "구조적인 점법을 경험하고 싶은 분",
+            "타로 · 별자리와 다른 체계가 궁금한 분"
+          ]
+        }
+      ],
+      "ctaLabel": "방패 차트 세우기",
+      "evidence": [
+        "index.html:FEATURE_MARKETING_COPY:openGeomancyOracle"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "stonehenge-runes": {
+      "slug": "stonehenge-runes",
+      "title": "스톤헨지 룬",
+      "href": "/index.html?action=openRuneOracle",
+      "featureKey": "stonehenge-runes-single",
+      "featureKeyTo": "stonehenge-runes-yearly",
+      "accessType": "unknown",
+      "image": "/fuctionassets/rune.webp",
+      "aliases": [
+        "stonehenge-runes-single",
+        "openRuneOracle",
+        "stonehenge-runes",
+        "/index.html?action=openRuneOracle",
+        "/index.html?action=openRuneOracle/"
+      ],
+      "headline": "노른 세 여신의 자리에서 지나온 길 · 지금 · 다가올 길을 읽습니다.",
+      "description": "24룬에 공백 룬 위르드를 더한 25룬 체계로, 과거 우르드 · 현재 베르단디 · 미래 스쿨드 세 자리의 흐름을 정 · 역방향까지 갈라 읽는 룬 리딩입니다.",
+      "panels": [
+        {
+          "title": "이런 질문에 도움이 됩니다",
+          "items": [
+            "이 흐름은 어디서 시작됐나요?",
+            "지금 나는 어느 지점에 서 있나요?",
+            "앞으로의 방향은 어느 쪽인가요?"
+          ]
+        },
+        {
+          "title": "이 기능으로 살펴보는 것",
+          "items": [
+            "24룬에 공백 룬 위르드를 더한 25룬 체계",
+            "과거 우르드 · 현재 베르단디 · 미래 스쿨드, 노른 세 여신의 세 자리 배치",
+            "룬마다 갈라 읽는 정방향 · 역방향 해석",
+            "아무것도 정해지지 않았다는 신호, 공백 룬 위르드의 특별한 해석"
+          ]
+        },
+        {
+          "title": "결과에서 받아보는 내용",
+          "items": [
+            "세 자리에 놓인 룬과 자리별 해석",
+            "정방향 · 역방향이 갈라 주는 의미",
+            "과거에서 현재로 이어진 흐름",
+            "다가올 길을 대하는 태도"
+          ]
+        },
+        {
+          "title": "어떻게 이용하나요?",
+          "steps": [
+            {
+              "label": "스프레드 확인",
+              "detail": "과거 · 현재 · 미래 세 자리 배치로 진행합니다."
+            },
+            {
+              "label": "룬 세 개 열기",
+              "detail": "우르드 · 베르단디 · 스쿨드 자리에 룬이 놓입니다."
+            },
+            {
+              "label": "흐름 풀이",
+              "detail": "자리별 해석과 정 · 역방향의 의미를 읽습니다."
+            }
+          ]
+        },
+        {
+          "title": "이런 분께 어울려요",
+          "items": [
+            "타로와 다른 상징 체계를 경험하고 싶은 분",
+            "흐름의 앞뒤 맥락까지 보고 싶은 분",
+            "짧고 굵은 세 자리 리딩을 원하는 분"
+          ]
+        }
+      ],
+      "ctaLabel": "룬 세 개 열기",
+      "evidence": [
+        "index.html:FEATURE_MARKETING_COPY:openRuneOracle"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "luck-sync-diary": {
+      "slug": "luck-sync-diary",
+      "title": "운기 다이어리와 플래너",
+      "href": "/diary/",
+      "featureKey": "luck-sync-diary",
+      "featureKeyTo": "",
+      "accessType": "free",
+      "image": "",
+      "aliases": [
+        "openLuckSyncDiary",
+        "luck-sync-diary",
+        "/diary/",
+        "/diary"
+      ],
+      "headline": "운세를 보고 끝내지 말고, 실제로 어땠는지 남겨 보세요.",
+      "description": "오늘의 흐름을 기록하고 월간 플래너에서 지난 기록과 나란히 볼 수 있는 다이어리입니다.",
+      "panels": [
+        {
+          "title": "이런 질문에 도움이 됩니다",
+          "items": [
+            "이번 달 흐름은 어땠나요?",
+            "기록과 운세가 얼마나 맞았나요?",
+            "다음 달은 무엇을 준비할까요?"
+          ]
+        },
+        {
+          "title": "이런 분께 어울려요",
+          "items": [
+            "기록하는 습관을 들이고 싶은 분",
+            "운세와 실제를 대조하고 싶은 분",
+            "월 단위로 흐름을 보고 싶은 분"
+          ]
+        }
+      ],
+      "ctaLabel": "운기 다이어리 열기",
+      "evidence": [
+        "index.html:FEATURE_MARKETING_COPY:openLuckSyncDiary"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "music": {
+      "slug": "music",
+      "title": "달빛 음악 플레이어",
+      "href": "/music/",
+      "featureKey": "music",
+      "featureKeyTo": "",
+      "accessType": "free",
+      "image": "",
+      "aliases": [
+        "music",
+        "/music/",
+        "/music"
+      ],
+      "headline": "해석을 읽고 남은 마음을 음악으로 마저 가라앉혀 보세요.",
+      "description": "연이와 네오의 세계관에 맞춰 만든 곡을 모아 둔 플레이어입니다. 운세를 보는 동안 배경으로 틀어 둘 수 있어요.",
+      "panels": [
+        {
+          "title": "이런 질문에 도움이 됩니다",
+          "items": [
+            "어떤 곡이 있나요?",
+            "운세를 보면서 틀어도 되나요?",
+            "세계관과 어떻게 이어지나요?"
+          ]
+        },
+        {
+          "title": "이런 분께 어울려요",
+          "items": [
+            "배경음과 함께 보고 싶은 분",
+            "연이·네오 세계관을 좋아하는 분",
+            "조용히 마음을 정리하고 싶은 분"
+          ]
+        }
+      ],
+      "ctaLabel": "달빛 플레이어 열기",
+      "evidence": [
+        "index.html:FEATURE_MARKETING_COPY:music"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "novel": {
+      "slug": "novel",
+      "title": "라이트 노벨",
+      "href": "/codedestiny-novel.html",
+      "featureKey": "novel",
+      "featureKeyTo": "",
+      "accessType": "free",
+      "image": "",
+      "aliases": [
+        "novel",
+        "/codedestiny-novel.html",
+        "/codedestiny-novel.html/"
+      ],
+      "headline": "운명의 서재에서 연이와 네오의 이야기를 이어 읽어보세요.",
+      "description": "서비스 세계관을 배경으로 한 라이트 노벨 연재입니다. 운세와 별개로 읽을거리로 즐길 수 있어요.",
+      "panels": [
+        {
+          "title": "이런 질문에 도움이 됩니다",
+          "items": [
+            "어떤 이야기인가요?",
+            "운세와 관련이 있나요?",
+            "어디서부터 읽으면 되나요?"
+          ]
+        },
+        {
+          "title": "이런 분께 어울려요",
+          "items": [
+            "연이·네오 캐릭터를 좋아하는 분",
+            "연재물을 즐기는 분",
+            "세계관을 더 알고 싶은 분"
+          ]
+        }
+      ],
+      "ctaLabel": "운명의 서재 열기",
+      "evidence": [
+        "index.html:FEATURE_MARKETING_COPY:codedestiny_novel_html"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "points": {
+      "slug": "points",
+      "title": "달빛 이용권",
+      "href": "/points/",
+      "featureKey": "points",
+      "featureKeyTo": "",
+      "accessType": "unknown",
+      "image": "",
+      "aliases": [
+        "points",
+        "/points/",
+        "/points"
+      ],
+      "headline": "유료 기능을 자주 본다면 매번 결제하지 않아도 됩니다.",
+      "description": "달빛 이용권은 정해진 기간 동안 유료 기능을 이용할 수 있게 해 주는 이용권입니다. 보유 현황과 사용 내역을 여기서 확인할 수 있어요.",
+      "panels": [
+        {
+          "title": "이런 질문에 도움이 됩니다",
+          "items": [
+            "이용권은 어디에 쓸 수 있나요?",
+            "지금 얼마나 남았나요?",
+            "단건결제와 무엇이 다른가요?"
+          ]
+        },
+        {
+          "title": "이런 분께 어울려요",
+          "items": [
+            "유료 기능을 자주 이용하는 분",
+            "보유 현황을 확인하려는 분",
+            "결제 방식을 비교하려는 분"
+          ]
+        }
+      ],
+      "ctaLabel": "이용권 확인하기",
+      "evidence": [
+        "index.html:FEATURE_MARKETING_COPY:points"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "sukyo": {
+      "slug": "sukyo",
+      "title": "숙요 인연 레이더",
+      "href": "/index.html?action=openSukuyoModal",
+      "featureKey": "",
+      "featureKeyTo": "",
+      "accessType": "free",
+      "image": "/fuctionassets/sukyo.webp",
+      "aliases": [
+        "sukyo",
+        "/index.html?action=openSukuyoModal",
+        "/index.html?action=openSukuyoModal/"
+      ],
+      "headline": "숙요 인연 레이더",
+      "description": "내 본명숙과 상대 본명숙을 바탕으로 관계 타입, 거리, 레이더 지수, 관계 목적별 조언을 엽니다.",
+      "panels": [],
+      "ctaLabel": "이 기능 시작하기",
+      "evidence": [
+        "js/core/service-registry.js"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "tarot-prompt-maker": {
+      "slug": "tarot-prompt-maker",
+      "title": "타로 오라클 상담",
+      "href": "/tarot/prompt-maker",
+      "featureKey": "tarot-prompt-maker",
+      "featureKeyTo": "",
+      "accessType": "paid",
+      "image": "/fuctionassets/연애 재회 타로 프롬프트 메이커.webp",
+      "aliases": [
+        "tarot-prompt-maker",
+        "/tarot/prompt-maker",
+        "/tarot/prompt-maker/"
+      ],
+      "headline": "질문이 깊어야 카드도 깊게 답합니다.",
+      "description": "77종 스프레드에서 상황에 맞는 구조를 골라 카드를 직접 열면, AI가 그 배치로 상담 결과를 바로 작성하고 사용된 프롬프트 원문까지 보여 드립니다.",
+      "panels": [
+        {
+          "title": "이런 질문에 도움이 됩니다",
+          "items": [
+            "이 상황에는 어떤 스프레드가 맞나요?",
+            "내가 뽑은 카드 배치는 무슨 뜻인가요?",
+            "이 고민은 카드로 어떻게 물어야 하나요?"
+          ]
+        },
+        {
+          "title": "이 기능으로 살펴보는 것",
+          "items": [
+            "1장부터 14장까지, 77종 스프레드 가운데 구조 직접 선택",
+            "78장 덱에서 카드를 직접 고르고 정 · 역방향까지 지정",
+            "선택한 배치 그대로 AI가 실제 상담 결과 작성",
+            "상담에 쓰인 프롬프트 원문 열람 · 복사",
+            "문체 3종 가운데 원하는 톤 선택"
+          ]
+        },
+        {
+          "title": "결과에서 받아보는 내용",
+          "items": [
+            "내 배치에 맞춘 AI 타로 상담 결과",
+            "포지션과 방향을 반영한 해석과 행동 조언",
+            "상담에 쓰인 프롬프트 원문 그대로 열람",
+            "완성 문장을 복사해 이어가는 나만의 상담 흐름"
+          ]
+        },
+        {
+          "title": "어떻게 이용하나요?",
+          "steps": [
+            {
+              "label": "스프레드 선택",
+              "detail": "77종 가운데 질문에 맞는 구조를 고릅니다."
+            },
+            {
+              "label": "카드 직접 열기",
+              "detail": "78장 덱에서 카드와 정 · 역방향을 정합니다."
+            },
+            {
+              "label": "AI 상담 작성",
+              "detail": "배치를 반영한 상담 결과와 프롬프트 원문을 받습니다."
+            }
+          ]
+        },
+        {
+          "title": "이런 분께 어울려요",
+          "items": [
+            "타로를 자주 보는데 답이 얕게 느껴지는 분",
+            "내 상황에 꼭 맞는 스프레드로 보고 싶은 분",
+            "리딩 문장을 직접 다듬어 쓰고 싶은 분"
+          ]
+        }
+      ],
+      "ctaLabel": "AI 상담 시작하기",
+      "evidence": [
+        "index.html:FEATURE_MARKETING_COPY:tarot_prompt_maker"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "face-reading": {
+      "slug": "face-reading",
+      "title": "전문가 관상 분석",
+      "href": "/saju-guardian",
+      "featureKey": "",
+      "featureKeyTo": "",
+      "accessType": "free",
+      "image": "/fuctionassets/ai%20animal.webp",
+      "aliases": [
+        "face-reading",
+        "/saju-guardian",
+        "/saju-guardian/"
+      ],
+      "headline": "전문가 관상 분석",
+      "description": "얼굴 이미지를 바탕으로 인상, 기질, 관계 성향, 커뮤니케이션 특성을 분석하는 전문가 관상 서비스입니다.",
+      "panels": [],
+      "ctaLabel": "이 기능 시작하기",
+      "evidence": [
+        "js/core/service-registry.js"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "bias-destiny": {
+      "slug": "bias-destiny",
+      "title": "최애운명",
+      "href": "/saju/destiny-bias",
+      "featureKey": "destiny-bias-analyze",
+      "featureKeyTo": "",
+      "accessType": "free",
+      "image": "/fuctionassets/%EC%B5%9C%EC%95%A0%EC%9A%B4%EB%AA%85.webp",
+      "aliases": [
+        "bias-destiny",
+        "/saju/destiny-bias",
+        "/saju/destiny-bias/"
+      ],
+      "headline": "최애와 나의 사주를 맞춰 포토카드 한 장으로 뽑아 주는 무료 리딩입니다.",
+      "description": "로그인만 하면 열리며, 총점·감정·팬덤·장기·서포트 다섯 점수와 카드 이미지를 그 자리에서 만들어 줍니다.",
+      "panels": [
+        {
+          "title": "이런 질문에 도움이 됩니다",
+          "items": [
+            "최애와 나는 어떤 결로 닮았나요?",
+            "내 응원 방식은 어떤 유형인가요?",
+            "우리 사이의 케미는 어디서 나오나요?"
+          ]
+        },
+        {
+          "title": "이 기능으로 살펴보는 것",
+          "items": [
+            "로그인만 하면 열리는 무료 기능입니다",
+            "총점·감정·팬덤·장기·서포트 다섯 점수와 운명 등급을 냅니다",
+            "아우라 타입과 재질, 무드 키워드, 매칭 태그를 뽑아 포토카드 이미지로 만듭니다",
+            "한줄 케미 · 오행 궁합 · 일간 관계 · 지지 케미 · 부스터 팁 다섯 개 탭으로 나눠 보여 줍니다",
+            "나와 최애의 오행 분포와 일간·일지·십성 신호를 함께 표시합니다",
+            "관계 MBTI · 전생 · 등급 밈 · 해시태그도 함께 나옵니다"
+          ]
+        },
+        {
+          "title": "결과에서 받아보는 내용",
+          "items": [
+            "다섯 점수와 운명 등급",
+            "아우라 타입·재질이 반영된 포토카드",
+            "오행 궁합·일간 관계·지지 케미 상세 탭",
+            "관계 MBTI와 해시태그"
+          ]
+        },
+        {
+          "title": "어떻게 이용하나요?",
+          "steps": [
+            {
+              "label": "정보 입력",
+              "detail": "나와 최애의 생년 정보를 넣습니다."
+            },
+            {
+              "label": "사주 신호 추출",
+              "detail": "일간 관계·일지 관계·오행 균형·십성 관계에서 궁합 신호를 뽑습니다."
+            },
+            {
+              "label": "점수 산출",
+              "detail": "총점·감정·팬덤·장기·서포트 다섯 점수와 운명 등급을 계산합니다."
+            },
+            {
+              "label": "카드 생성",
+              "detail": "아우라 타입과 무드 키워드를 얹어 포토카드 이미지와 상세 탭 다섯 개를 만듭니다."
+            }
+          ]
+        },
+        {
+          "title": "이런 분께 어울려요",
+          "items": [
+            "최애와 나의 궁합을 카드로 남기고 싶은 분",
+            "오행·일간 근거까지 함께 보고 싶은 분",
+            "가볍게 즐길 무료 리딩을 찾는 분"
+          ]
+        }
+      ],
+      "ctaLabel": "최애운명 열람하기",
+      "evidence": [
+        "index.html:FEATURE_MARKETING_COPY:openDestinyBias"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "omikuji": {
+      "slug": "omikuji",
+      "title": "이모이 오미쿠지",
+      "href": "/emoi_omikuji_v2.html",
+      "featureKey": "",
+      "featureKeyTo": "",
+      "accessType": "free",
+      "image": "/fuctionassets/%EC%98%A4%EB%AF%B8%EC%BF%A0%EC%A7%80.webp",
+      "aliases": [
+        "omikuji",
+        "/emoi_omikuji_v2.html",
+        "/emoi_omikuji_v2.html/"
+      ],
+      "headline": "이모이 오미쿠지",
+      "description": "오늘의 기분과 고민을 바탕으로 간단한 운세 메시지와 행동 힌트를 제공하는 감성형 오미쿠지 콘텐츠입니다.",
+      "panels": [],
+      "ctaLabel": "이 기능 시작하기",
+      "evidence": [
+        "js/core/service-registry.js"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "destiny-meeting-place": {
+      "slug": "destiny-meeting-place",
+      "title": "사주로 보는 인연의 장소",
+      "href": "/saju/destiny-meeting-place",
+      "featureKey": "destiny_meeting_place",
+      "featureKeyTo": "",
+      "accessType": "paid",
+      "image": "/fuctionassets/%EC%82%AC%EC%A3%BC%EB%A1%9C%EB%B3%B4%EB%8A%94%20%EC%9D%B8%EC%97%B0%EC%9D%98%20%EC%9E%A5%EC%86%8C.webp",
+      "aliases": [
+        "destiny_meeting_place",
+        "destiny-meeting-place",
+        "/saju/destiny-meeting-place",
+        "/saju/destiny-meeting-place/"
+      ],
+      "headline": "인연이 열릴 만한 장소와 시기를 사주에서 뽑아 목록으로 줍니다.",
+      "description": "추천 장소 5곳, 국가 5곳, 만남 유형 4가지에 계절·월·시간대와 인연 아이템까지 함께 정리합니다.",
+      "panels": [
+        {
+          "title": "이런 질문에 도움이 됩니다",
+          "items": [
+            "나는 어떤 자리에서 인연이 열리나요?",
+            "언제 움직이는 게 좋을까요?",
+            "만남 자리에 무엇을 지니면 좋을까요?"
+          ]
+        },
+        {
+          "title": "이 기능으로 살펴보는 것",
+          "items": [
+            "추천 장소 5곳과 추천 국가 5곳을 뽑습니다",
+            "만남 유형 4가지를 제시합니다",
+            "계절 3개 · 월 4개 · 시간대 3개로 행운 타이밍을 좁힙니다",
+            "인연 아이템 5가지와 스타일링 가이드를 함께 줍니다",
+            "피해야 할 자리와 실행 계획을 따로 정리합니다",
+            "이미지 생성에 쓸 프롬프트 7종을 함께 담습니다"
+          ]
+        },
+        {
+          "title": "결과에서 받아보는 내용",
+          "items": [
+            "추천 장소 5곳 · 국가 5곳",
+            "만남 유형 4가지와 행운 타이밍",
+            "인연 아이템과 스타일링 가이드",
+            "피할 자리와 실행 계획",
+            "프롬프트 7종"
+          ]
+        },
+        {
+          "title": "어떻게 이용하나요?",
+          "steps": [
+            {
+              "label": "생년 정보 입력",
+              "detail": "생년월일시로 사주를 계산합니다."
+            },
+            {
+              "label": "에너지 정리",
+              "detail": "오행 배치에서 인연이 열리는 방향과 결을 뽑습니다."
+            },
+            {
+              "label": "장소·시기 선정",
+              "detail": "그 결에 맞는 장소 5곳, 국가 5곳, 유형 4가지와 계절·월·시간대를 고릅니다."
+            },
+            {
+              "label": "실행안 작성",
+              "detail": "인연 아이템, 스타일링, 피할 자리, 실행 계획을 함께 정리합니다."
+            }
+          ]
+        },
+        {
+          "title": "이런 분께 어울려요",
+          "items": [
+            "만남의 자리를 구체적으로 정하고 싶은 분",
+            "움직일 시기를 좁히고 싶은 분",
+            "준비물과 스타일까지 함께 받고 싶은 분"
+          ]
+        }
+      ],
+      "ctaLabel": "인연의 장소 열람하기",
+      "evidence": [
+        "index.html:FEATURE_MARKETING_COPY:saju_destiny_meeting_place"
+      ],
+      "verification": "source-inventory-only"
+    },
+    "ziwei-ai": {
+      "slug": "ziwei-ai",
+      "title": "자미두수 전문가 상담",
+      "href": "/ziwei-ai",
+      "featureKey": "ziwei-ai-consultation",
+      "featureKeyTo": "",
+      "accessType": "paid",
+      "image": "/fuctionassets/jamipremiun.webp",
+      "aliases": [
+        "ziwei-ai-consultation",
+        "ziwei-ai",
+        "/ziwei-ai",
+        "/ziwei-ai/"
+      ],
+      "headline": "자미두수 명반을 세우고 14개 주제로 나눠 상담문을 씁니다.",
+      "description": "본문은 20,700자 이상으로 나오고, 결과를 받은 뒤 추가 질문은 요금 없이 이어서 할 수 있습니다.",
+      "panels": [
+        {
+          "title": "이런 질문에 도움이 됩니다",
+          "items": [
+            "지금 이직해도 괜찮을까요?",
+            "돈과 일 중 어디에 무게를 둬야 할까요?",
+            "올해 큰 결정을 내려도 될까요?"
+          ]
+        },
+        {
+          "title": "이 기능으로 살펴보는 것",
+          "items": [
+            "생년월일시로 12궁 명반을 세웁니다",
+            "상담문을 14개 주제로 나눠 정리합니다",
+            "본문은 20,700자 이상입니다",
+            "결과를 받은 뒤 추가 질문을 요금 없이 이어서 할 수 있습니다",
+            "상담 내용이 저장되어 다시 열어볼 수 있습니다"
+          ]
+        },
+        {
+          "title": "결과에서 받아보는 내용",
+          "items": [
+            "12궁 명반 해석",
+            "14개 주제로 나눈 상담문",
+            "20,700자 이상 본문",
+            "추가 질문 이어가기",
+            "결과 재열람"
+          ]
+        },
+        {
+          "title": "어떻게 이용하나요?",
+          "steps": [
+            {
+              "label": "명반 작성",
+              "detail": "생년월일시로 12궁에 주성과 사화를 배치합니다."
+            },
+            {
+              "label": "궁 강약 판정",
+              "detail": "어느 궁에 힘이 실리고 어디가 비었는지 가립니다."
+            },
+            {
+              "label": "주제별 작성",
+              "detail": "14개 주제로 나눠 각각 상담문을 씁니다."
+            },
+            {
+              "label": "추가 질문",
+              "detail": "결과를 읽고 남은 질문을 요금 없이 이어서 물을 수 있습니다."
+            }
+          ]
+        },
+        {
+          "title": "이런 분께 어울려요",
+          "items": [
+            "자미두수를 제대로 한 번 보고 싶은 분",
+            "읽고 나서 되묻고 싶은 분",
+            "긴 분량의 해석을 원하는 분"
+          ]
+        }
+      ],
+      "ctaLabel": "자미두수 상담 열기",
+      "evidence": [
+        "index.html:FEATURE_MARKETING_COPY:gotoZiweiPremium"
+      ],
+      "verification": "source-inventory-only"
+    }
+  }
+}
