@@ -8314,6 +8314,23 @@ function syYehwaMoonArt(cx, cy, r, lit, side, key, withBloom) {
     + '</g>';
 }
 
+// 숙요점 세 핵심 화면의 달빛 아트는 의미별로 분리해 사용한다.
+// 장식 이미지이므로 계산 결과·텍스트·결제 흐름과 분리하고, 한 번 생성된 DOM은
+// 기존 SVG 함수와 같은 호출 위치에서 그대로 교체할 수 있게 작은 프레젠테이션 헬퍼로 둔다.
+var SY_MOONLIGHT_ASSETS = Object.freeze({
+  compat: '/images/sukuyo/sukuyo-moonlight-bond-v1.webp',
+  radar: '/images/sukuyo/sukuyo-moonlight-radar-v1.webp',
+  dogam: '/images/sukuyo/sukuyo-moonlight-dogam-v1.webp'
+});
+
+function syMoonlightArt(kind) {
+  var src = SY_MOONLIGHT_ASSETS[kind] || SY_MOONLIGHT_ASSETS.compat;
+  return ''
+    + '<div class="sy-crest-art sy-crest-art--' + kind + '" aria-hidden="true">'
+    + '<img src="' + src + '" alt="" width="1600" height="900" loading="lazy" decoding="async" fetchpriority="low">'
+    + '</div>';
+}
+
 // 인연의 끈 궁합 — 두 개의 달을 잇는 금실. 결과 화면의 붉은 실 다이어그램
 // (.sy-compat-fate-svg)과 겹치지 않게 색을 골드로 낮춘 조용한 예고편이다.
 function syCompatBandSvg() {
@@ -10467,10 +10484,16 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         /* 결제 전 진입 카드의 상단 크레스트 밴드. 래퍼+SVG 구조는 결과 화면의
            .sy-compat-fate-wrap / .sy-compat-fate-svg 관례를 그대로 따른다. */
         /* 밴드 폭은 데스크탑에서 정확히 1080px 이 상한이라(.modal-content-inner-wide 1200px −
-           안쪽 패딩들) 캔버스를 1080×88 로 잡고 slice 를 쓴다. 폭이 줄면 세로는 그대로 두고
-           좌우만 잘리므로 아트의 코어 존이 항상 살아남는다. box-sizing 은 이 스타일시트에
-           전역 리셋이 없어서 직접 준다(안 주면 border 1px 때문에 90px 이 된다). */
-        .sy-crest-band { position:relative; box-sizing:border-box; width:100%; height:88px; margin:0 0 13px; border-radius:14px; overflow:hidden; border:1px solid rgba(219,234,254,0.18); background:radial-gradient(circle at 50% 118%, rgba(196,181,253,0.16), transparent 58%), rgba(2,6,23,0.26); box-shadow:inset 0 1px 0 rgba(255,255,255,0.06); }
+           안쪽 패딩들) 원본 비율을 보존하는 반응형 프레임으로 표시한다. 폭이 줄어도
+           전체 아트가 유지되도록 contain 을 사용한다. box-sizing 은 이 스타일시트에
+           전역 리셋이 없어서 직접 준다. */
+        .sy-crest-band { position:relative; box-sizing:border-box; width:100%; height:auto; aspect-ratio:2.8 / 1; min-height:132px; max-height:214px; margin:0 0 13px; border-radius:14px; overflow:hidden; border:1px solid rgba(219,234,254,0.24); background:radial-gradient(circle at 50% 118%, rgba(196,181,253,0.16), transparent 58%), rgba(2,6,23,0.36); box-shadow:inset 0 1px 0 rgba(255,255,255,0.08), 0 10px 24px rgba(2,6,23,0.22); }
+        .sy-crest-art { position:absolute; inset:0; isolation:isolate; background:#0b0a1a; }
+        .sy-crest-art::after { content:''; position:absolute; inset:0; z-index:1; pointer-events:none; background:linear-gradient(90deg, rgba(5,7,19,0.48), transparent 18%, transparent 82%, rgba(5,7,19,0.48)), linear-gradient(180deg, rgba(5,7,19,0.18), transparent 38%, rgba(5,7,19,0.36)); }
+        .sy-crest-art img { display:block; width:100%; height:100%; object-fit:contain; object-position:center; opacity:0.94; }
+        .sy-crest-art--compat img { object-position:center 54%; }
+        .sy-crest-art--radar img { object-position:center 52%; }
+        .sy-crest-art--dogam img { object-position:center 50%; }
         .sy-crest-svg { display:block; width:100%; height:100%; }
         .sy-crest-spark { animation:syCrestSparkle 3.4s ease-in-out infinite; }
         .sy-crest-spark--b { animation-duration:4.6s; animation-delay:0.8s; }
@@ -10780,7 +10803,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           .sy-dogam-score-mini { grid-template-columns:1fr; }
           .sy-canon-moon-stage { min-height:116px; }
           .sy-canon-moon-core { width:58px; height:58px; }
-          .sy-crest-band { height:68px; margin-bottom:11px; }
+          .sy-crest-band { min-height:132px; max-height:174px; margin-bottom:11px; }
           .sy-lunar-year-grid { grid-template-columns:1fr; }
           .sy-lunar-score-orb { min-height:116px; }
           .sy-mini-grid { grid-template-columns:1fr; }
@@ -10938,7 +10961,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     }
 
     html += `<div class="sy-card sy-compat-card" data-sy-compat-moonlight="20260603" style="margin-top: 15px;">
-        <div class="sy-crest-band" aria-hidden="true">${syCompatBandSvg()}</div>
+        <div class="sy-crest-band" aria-hidden="true">${syMoonlightArt('compat')}</div>
         <h4 class="sy-compat-title">인연의 끈 궁합</h4>
         <p class="sy-compat-lede">상대 생년월일을 입력하면 두 사람의 인연 리듬과 관계 유형을 확인할 수 있습니다.</p>
                               
@@ -10986,7 +11009,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     const _radarBirthDigits = _radarBirth.replace(/\D/g, '').slice(0, 8);
     const _radarHasSelf = !!sData;
     html += `<div class="sy-card sy-past-life-card sy-bond-card" data-sy-bond-card="20260801-sukyo-bond-report-v1" data-sy-paid-feature="${SY_PAID_FEATURES.pastLifeReading.key}">
-        <div class="sy-crest-band" aria-hidden="true">${syBondBandSvg()}</div>
+        <div class="sy-crest-band" aria-hidden="true">${syMoonlightArt('radar')}</div>
         <div class="sy-paid-card-head">
           <div>
             <div class="sy-paid-kicker">숙요 관계 심층 · ${syPaidPriceLabel(SY_PAID_FEATURES.pastLifeReading)}</div>
@@ -11022,7 +11045,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     </div>`;
 
     html += `<div class="sy-card sy-dogam-card" data-sy-dogam-card="20260616-sukyo-relationship-encyclopedia" data-sy-paid-feature="${SY_PAID_FEATURES.relationshipEncyclopedia.key}">
-        <div class="sy-crest-band" aria-hidden="true">${syDogamBandSvg()}</div>
+        <div class="sy-crest-band" aria-hidden="true">${syMoonlightArt('dogam')}</div>
         <div class="sy-paid-card-head">
           <div>
             <div class="sy-paid-kicker">숙요 관계 도감 · ${syPaidPriceLabel(SY_PAID_FEATURES.relationshipEncyclopedia)}</div>
