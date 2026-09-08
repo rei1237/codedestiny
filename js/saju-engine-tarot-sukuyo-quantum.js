@@ -8267,6 +8267,53 @@ function syCanonicalMoonSvg(phase, phaseLabel) {
 var SY_CREST_W = 1080;
 var SY_CREST_MID = 540;
 
+// 달빛 예화(月花) 밴드용 달 — 단순한 반달 글리프 대신, 불투명한 아이보리 달과
+// 얇은 로즈골드 림·잔잔한 지구조·작은 꽃 선화를 하나의 문양으로 묶는다.
+// 여러 밴드가 한 문서에 함께 렌더링되어도 SVG defs가 충돌하지 않도록 인스턴스별 id를 쓴다.
+var _syYehwaMoonSeq = 0;
+
+function syYehwaMoonArt(cx, cy, r, lit, side, key, withBloom) {
+  var uid = 'sym-yehwa-' + key + '-' + (_syYehwaMoonSeq += 1);
+  var phasePath = syMoonPhasePath(cx, cy, r, lit, side);
+  var haloR = (r * 1.9).toFixed(2);
+  var bloomX = (cx + (side >= 0 ? -r * 0.62 : r * 0.62)).toFixed(2);
+  var bloomY = (cy + r + 10).toFixed(2);
+  return ''
+    + '<g class="sy-yehwa-moon" aria-hidden="true">'
+    + '<defs>'
+    + '<radialGradient id="' + uid + '-halo" cx="50%" cy="48%" r="50%">'
+    + '<stop offset="0%" stop-color="#f8e7b7" stop-opacity="0.34"/><stop offset="58%" stop-color="#e8d5a3" stop-opacity="0.10"/><stop offset="100%" stop-color="#c4b5fd" stop-opacity="0"/>'
+    + '</radialGradient>'
+    + '<radialGradient id="' + uid + '-disc" cx="34%" cy="28%" r="76%">'
+    + '<stop offset="0%" stop-color="#fffdf6"/><stop offset="48%" stop-color="#f8e7b7"/><stop offset="100%" stop-color="#d6c396"/>'
+    + '</radialGradient>'
+    + '<filter id="' + uid + '-glow" x="-55%" y="-55%" width="210%" height="210%">'
+    + '<feGaussianBlur stdDeviation="1.8" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>'
+    + '</filter>'
+    + '<clipPath id="' + uid + '-lit"><path d="' + phasePath + '"/></clipPath>'
+    + '</defs>'
+    + '<circle cx="' + cx + '" cy="' + cy + '" r="' + haloR + '" fill="url(#' + uid + '-halo)"/>'
+    + '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="#17152a" fill-opacity="0.94"/>'
+    + '<g filter="url(#' + uid + '-glow)">'
+    + '<g clip-path="url(#' + uid + '-lit)">'
+    + '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="url(#' + uid + '-disc)"/>'
+    + '<ellipse cx="' + (cx - r * 0.27).toFixed(2) + '" cy="' + (cy - r * 0.24).toFixed(2) + '" rx="' + (r * 0.28).toFixed(2) + '" ry="' + (r * 0.18).toFixed(2) + '" fill="#8d795b" fill-opacity="0.17"/>'
+    + '<ellipse cx="' + (cx + r * 0.26).toFixed(2) + '" cy="' + (cy + r * 0.24).toFixed(2) + '" rx="' + (r * 0.22).toFixed(2) + '" ry="' + (r * 0.15).toFixed(2) + '" fill="#8d795b" fill-opacity="0.13"/>'
+    + '<circle cx="' + (cx - r * 0.08).toFixed(2) + '" cy="' + (cy + r * 0.37).toFixed(2) + '" r="' + (r * 0.1).toFixed(2) + '" fill="#8d795b" fill-opacity="0.12"/>'
+    + '</g>'
+    + '</g>'
+    + '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none" stroke="#e8d5a3" stroke-opacity="0.72" stroke-width="0.8"/>'
+    + '<circle cx="' + cx + '" cy="' + cy + '" r="' + (r + 3.2).toFixed(2) + '" fill="none" stroke="#e8d5a3" stroke-opacity="0.28" stroke-width="0.65" stroke-dasharray="1.2 3.8"/>'
+    + (withBloom
+      ? '<path d="M ' + (cx - r * 1.52).toFixed(2) + ' ' + (cy + r + 13).toFixed(2) + ' Q ' + cx + ' ' + (cy + r + 3).toFixed(2) + ' ' + (cx + r * 1.52).toFixed(2) + ' ' + (cy + r + 13).toFixed(2) + '" fill="none" stroke="#d4af7a" stroke-opacity="0.38" stroke-width="0.7" stroke-linecap="round"/>'
+        + '<g transform="translate(' + bloomX + ' ' + bloomY + ')" fill="none" stroke="#e8d5a3" stroke-opacity="0.52" stroke-width="0.6" stroke-linecap="round">'
+        + '<path d="M 0 0 C -5 -5 -5 -10 0 -12 C 5 -10 5 -5 0 0 M 0 0 C 5 -5 10 -5 12 0 C 10 5 5 5 0 0 M 0 0 C 5 5 5 10 0 12 C -5 10 -5 5 0 0 M 0 0 C -5 5 -10 5 -12 0 C -10 -5 -5 -5 0 0"/>'
+        + '<circle cx="0" cy="0" r="1.5" fill="#f8e7b7" stroke="none"/>'
+        + '</g>'
+      : '')
+    + '</g>';
+}
+
 // 인연의 끈 궁합 — 두 개의 달을 잇는 금실. 결과 화면의 붉은 실 다이어그램
 // (.sy-compat-fate-svg)과 겹치지 않게 색을 골드로 낮춘 조용한 예고편이다.
 function syCompatBandSvg() {
@@ -8276,9 +8323,6 @@ function syCompatBandSvg() {
   return ''
     + '<svg class="sy-crest-svg" viewBox="0 0 ' + SY_CREST_W + ' 88" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">'
     + '<defs>'
-    + '<radialGradient id="sym-compat-halo" cx="50%" cy="50%" r="50%">'
-    + '<stop offset="0%" stop-color="rgba(248,231,183,0.34)"/><stop offset="100%" stop-color="rgba(248,231,183,0)"/>'
-    + '</radialGradient>'
     + '<linearGradient id="sym-compat-thread" x1="0" y1="0" x2="1" y2="0">'
     + '<stop offset="0%" stop-color="rgba(232,213,163,0.12)"/><stop offset="50%" stop-color="rgba(248,231,183,0.92)"/><stop offset="100%" stop-color="rgba(196,181,253,0.34)"/>'
     + '</linearGradient>'
@@ -8293,19 +8337,13 @@ function syCompatBandSvg() {
     + '<path d="M' + (SY_CREST_W - 40) + ' 44 Q' + (SY_CREST_W - lx / 2) + ' 68 ' + (rx + mr) + ' 44" fill="none" stroke="url(#sym-compat-tail)" stroke-width="0.9" stroke-linecap="round" stroke-dasharray="3 6"/>'
     + '<circle cx="202" cy="44" r="1.8" fill="rgba(232,213,163,0.42)"/>'
     + '<circle cx="878" cy="44" r="1.8" fill="rgba(196,181,253,0.45)"/>'
-    // 코어 — 두 초승달은 서로를 향해 밝은 면을 돌린다
-    + '<circle cx="' + lx + '" cy="44" r="36" fill="url(#sym-compat-halo)"/>'
-    + '<circle cx="' + rx + '" cy="44" r="36" fill="url(#sym-compat-halo)"/>'
-    + '<path d="M' + (lx + mr) + ' 44 Q' + SY_CREST_MID + ' 12 ' + (rx - mr) + ' 44" fill="none" stroke="url(#sym-compat-thread)" stroke-width="1.7" stroke-linecap="round"/>'
-    + '<path d="M' + (lx + mr) + ' 44 Q' + SY_CREST_MID + ' 76 ' + (rx - mr) + ' 44" fill="none" stroke="rgba(196,181,253,0.4)" stroke-width="1.1" stroke-linecap="round" stroke-dasharray="3 5"/>'
-    + '<circle cx="' + SY_CREST_MID + '" cy="44" r="3.6" fill="#f8e7b7"/>'
-    + '<circle cx="' + SY_CREST_MID + '" cy="44" r="9" fill="none" stroke="rgba(248,231,183,0.36)" stroke-width="0.8" stroke-dasharray="2 3"/>'
-    + '<circle cx="' + lx + '" cy="44" r="' + mr + '" fill="rgba(22,19,46,0.6)"/>'
-    + '<circle cx="' + rx + '" cy="44" r="' + mr + '" fill="rgba(22,19,46,0.6)"/>'
-    + '<path d="' + syMoonPhasePath(lx, 44, mr, 0.32, 1) + '" fill="#f6ead0"/>'
-    + '<path d="' + syMoonPhasePath(rx, 44, mr, 0.32, -1) + '" fill="#f6ead0"/>'
-    + '<circle cx="' + lx + '" cy="44" r="' + mr + '" fill="none" stroke="rgba(232,213,163,0.44)" stroke-width="0.8"/>'
-    + '<circle cx="' + rx + '" cy="44" r="' + mr + '" fill="none" stroke="rgba(232,213,163,0.44)" stroke-width="0.8"/>'
+    // 코어 — 두 달의 밝은 면이 서로를 향하고, 아래에는 예화 인장 한 송이씩만 남긴다.
+    + '<path d="M' + (lx + mr + 2) + ' 44 Q' + SY_CREST_MID + ' 12 ' + (rx - mr - 2) + ' 44" fill="none" stroke="url(#sym-compat-thread)" stroke-width="1.35" stroke-linecap="round"/>'
+    + '<path d="M' + (lx + mr + 2) + ' 44 Q' + SY_CREST_MID + ' 76 ' + (rx - mr - 2) + ' 44" fill="none" stroke="rgba(196,181,253,0.26)" stroke-width="0.85" stroke-linecap="round" stroke-dasharray="2 5"/>'
+    + '<circle cx="' + SY_CREST_MID + '" cy="44" r="3.1" fill="#f8e7b7"/>'
+    + '<circle cx="' + SY_CREST_MID + '" cy="44" r="8" fill="none" stroke="rgba(248,231,183,0.28)" stroke-width="0.7" stroke-dasharray="1.5 3"/>'
+    + syYehwaMoonArt(lx, 44, mr, 0.32, 1, 'compat-a', true)
+    + syYehwaMoonArt(rx, 44, mr, 0.32, -1, 'compat-b', true)
     + '<circle class="sy-crest-spark" cx="472" cy="20" r="1.7" fill="rgba(255,255,255,0.8)"/>'
     + '<circle class="sy-crest-spark sy-crest-spark--b" cx="612" cy="70" r="1.4" fill="rgba(232,213,163,0.75)"/>'
     + '<circle class="sy-crest-spark sy-crest-spark--c" cx="352" cy="66" r="1.5" fill="rgba(196,181,253,0.7)"/>'
@@ -8366,16 +8404,11 @@ function syDogamBandSvg() {
     // 차오르는 동안은 오른쪽이, 보름을 지나 기우는 동안은 왼쪽이 밝다.
     var lit = (1 - Math.cos((2 * Math.PI * j) / (count - 1))) / 2;
     var side = j <= (count - 1) / 2 ? 1 : -1;
-    discs += '<circle cx="' + xs[j] + '" cy="' + ys[j] + '" r="' + rr[j] + '" fill="rgba(24,20,48,0.62)"/>'
-      + '<path d="' + syMoonPhasePath(xs[j], ys[j], rr[j], lit, side) + '" fill="url(#sym-dogam-disc)"/>'
-      + '<circle cx="' + xs[j] + '" cy="' + ys[j] + '" r="' + rr[j] + '" fill="none" stroke="rgba(232,213,163,0.34)" stroke-width="0.7"/>';
+    discs += syYehwaMoonArt(xs[j], ys[j], rr[j], lit, side, 'dogam-' + j, false);
   }
   return ''
     + '<svg class="sy-crest-svg" viewBox="0 0 ' + SY_CREST_W + ' 88" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">'
     + '<defs>'
-    + '<radialGradient id="sym-dogam-disc" cx="38%" cy="30%" r="72%">'
-    + '<stop offset="0%" stop-color="#fffdf6"/><stop offset="52%" stop-color="#f4e3b6"/><stop offset="100%" stop-color="#d6c396"/>'
-    + '</radialGradient>'
     + '<radialGradient id="sym-dogam-glow" cx="50%" cy="58%" r="52%">'
     + '<stop offset="0%" stop-color="rgba(248,231,183,0.22)"/><stop offset="100%" stop-color="rgba(248,231,183,0)"/>'
     + '</radialGradient>'
