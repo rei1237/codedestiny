@@ -20,7 +20,7 @@ const TOKUSHOHO_ROWS = [
   { label: "販売事業者名", value: BUSINESS_IDENTITY.companyName },
   { label: "運営統括責任者", value: `${BUSINESS_IDENTITY.representative}（パク・ビョンハ）` },
   { label: "所在地", value: `${BUSINESS_IDENTITY.address}（大韓民国）` },
-  { label: "電話番号", value: `${BUSINESS_PHONE_INTL}（受付時間内にお問い合わせください）` },
+  { label: "電話番号", value: BUSINESS_PHONE_INTL },
   { label: "メールアドレス", value: SUPPORT_EMAIL },
   { label: "事業者登録番号（韓国）", value: BUSINESS_IDENTITY.registrationNumber },
   { label: "通信販売業申告番号（韓国）", value: BUSINESS_IDENTITY.mailOrderNumber },
@@ -28,7 +28,8 @@ const TOKUSHOHO_ROWS = [
   { label: "商品代金以外に必要な料金", value: "なし（利用者側のインターネット接続料金・通信費を除く）" },
   { label: "支払方法", value: "クレジットカード決済（決済代行: PortOne / KG Inicis）" },
   { label: "支払時期", value: "注文確定と同時に即時決済" },
-  { label: "商品の引渡時期", value: "決済承認完了後、直ちにデジタルコンテンツとして提供" },
+  { label: "商品の引渡時期", value: "決済確認後、購入したアカウントに利用権限が反映されます。個別のAIコンテンツは必要な情報の入力と処理の完了後に提供され、決済承認と同時に生成が完了するとは限りません。" },
+  { label: "購入と更新", value: "パスは自動更新のない都度購入です。30日経過または利用可能な枠の消化のうち、先に到達した時点で終了します。個別コンテンツの都度決済は、選択したサービスの内容と価格をご確認ください。" },
   { label: "返品・交換について", value: "デジタルコンテンツの性質上、提供が開始された部分については返品が制限される場合があります。詳細は返金ポリシーをご覧ください。" },
   { label: "キャンセルについて", value: "決済完了前はいつでもキャンセルできます。決済完了後、提供が開始される前であればカスタマーサポートまでご連絡ください。" },
   { label: "動作環境", value: "最新版のモダンブラウザ（Chrome、Safari、Edge等）" },
@@ -82,6 +83,9 @@ export default function TokushohoPage() {
           </div>
 
           <nav className="policy-doc__related" aria-label="関連文書">
+            <Link className="policy-doc__toc-link" href="/ja/contact/#business-information">
+              事業者情報・購入方法・お問い合わせ
+            </Link>
             <Link className="policy-doc__toc-link" href="/ja/terms-of-service">
               利用規約
             </Link>

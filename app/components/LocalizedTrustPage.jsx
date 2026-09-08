@@ -3,6 +3,7 @@ import { TRUST_COPY, TRUST_UI, TRUST_UPDATED, trustRoutes } from "../../lib/i18n
 import { SUPPORT_EMAIL, SUPPORT_MAILTO } from "../../lib/site-policy-config";
 import { buildBreadcrumbJsonLd, buildFaqPageJsonLd, buildOrganizationJsonLd, buildWebsiteJsonLd } from "../../lib/structured-data";
 import { generatePageMetadata } from "../../lib/generate-page-metadata";
+import CommerceDisclosure from "./CommerceDisclosure";
 
 export function trustMetadata(locale, pageKey) {
   const copy = TRUST_COPY[locale][pageKey];
@@ -28,6 +29,7 @@ export default function LocalizedTrustPage({ locale, pageKey }) {
         <p>{copy.intro}</p>
       </header>
       <div className="policy-doc__single"><div className="policy-doc__body"><div className="policy-embed-body">
+        {pageKey === "contact" && <CommerceDisclosure locale={locale} />}
         {copy.sections.map(([heading, body]) => <section className="policy-embed-section" key={heading}>
           <h2 className="policy-embed-heading">{heading}</h2><p>{body}</p>
         </section>)}
