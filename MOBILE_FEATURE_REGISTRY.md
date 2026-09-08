@@ -39,7 +39,7 @@
 | 네오의 팩폭 작전실 | VVIP 대표 상담 카드, 모바일 허브 | `/neo-operation-room` | AI 상담 30,000원 | 대표 기능이 컬렉션 안에 묻힘 | 별도 route 자산 | 모바일 대표 CTA 유지 |
 | 종합 운세 프롬프트 | 홈 prompt entry | `/fortune/prompt-hub` | 무료/프롬프트 | 배너가 세로 공간 차지 | 이미지 1개 | 모바일에서는 compact banner |
 | 관상 & 심볼 | 모바일 빠른 탐색, 컬렉션 탭 | `animalCollection`, 관상 & 심볼 컬렉션 | 무료/유료 혼합 | 개별 카드 수가 많아 첫 화면 탐색이 느림 | 이미지/모달/route 혼합 | 컬렉션 허브는 접힘, 대표 카드만 우선 노출 |
-| AI 동물 관상 | 관상 & 심볼 컬렉션 | `openPhysiognomyApp`, `/services/face-reading` | 무료, 궁합 5,000원 | 컬렉션 미오픈 시 찾기 어려움 | 이미지/앱 route 로딩 | 심볼 chip으로 진입 |
+| AI 동물 관상 | 관상 & 심볼 컬렉션 | `openPhysiognomyApp`, `/animal/physio` | 무료, 궁합 5,000원 | 컬렉션 미오픈 시 찾기 어려움 | 이미지/앱 route 로딩 | 심볼 chip으로 진입 |
 | MBTI 동물 궁합 | 관상 & 심볼 컬렉션 | `openMbtiModal` | 무료 (레지스트리 미등록) | 모달이 홈 안에 존재 | hidden modal | 필요 시 모달 열기 |
 | 애니멀 토템 | 관상 & 심볼 컬렉션 | `openAnimalTotemModal`, `/services/animal-totem` | 3,000원~6,000원 | 카드가 많은 컬렉션에 묻힘 | lazy script 필요 | 심볼 chip 후 카드 노출 |
 | 사주 가디언 소환진 | 관상 & 심볼 컬렉션 | `/saju-guardian`, `openSajuGuardianPage` | 영구 해금 10,000원 | 기능 성격 설명이 길어짐 | Next route bundle | 카드 CTA만 유지 |

@@ -4001,8 +4001,8 @@ const FEATURE_DEFINITIONS: ServiceFeatureDefinition[] = ([
     copyKey: "face-reading",
     category: "face",
     image: "/fuctionassets/ai%20animal.webp",
-    detailRoute: "/services/face-reading",
-    launchRoute: "/saju-guardian",
+    detailRoute: "/features/face-reading",
+    launchRoute: "/animal/physio",
     accessType: "free",
   },
   {

@@ -26,7 +26,7 @@ const REVIEWED_FEATURES = new Set([
   'tarot-ijik', 'karma-destiny-ai', 'saju-guardian', 'naming-ai', 'fusion-fortune',
   'tarot-year-fortune', 'tarot-celestial-harmony', 'nakshatra-muhurta', 'tarot',
   'sukuyo', 'human-design', 'nakshatra', 'maya', 'daily-fortune', 'today-hub',
-  'palm-reading', 'physiognomy', 'dream', 'psychotest', 'manse', 'famous-saju',
+  'palm-reading', 'physiognomy', 'face-reading', 'dream', 'psychotest', 'manse', 'famous-saju',
   'kemet-oracle', 'ifa-oracle', 'juyuk-turtle', 'neville-meditation', 'yoga-guru',
   'tarot-numerology', 'dream-psycho-analysis', 'animal-totem', 'mbti-animal-compat',
   'tarot-crystal-soul', 'royal-tea-oracle', 'geomancy-oracle', 'stonehenge-runes',

@@ -17,7 +17,7 @@ next: 로컬 전체 검사와 PR #1824 최신 CI를 확인한다. 필수 검사�
 
 - 모바일 찻집 대기 화면 중첩 장식 제거, 질문 초안 보존, 240ms 강제 홈 이동 제거.
 - React 공유 fallback을 공통 서비스로 연결. 개인 결과 공개 공유 백엔드는 만들거나 활성화하지 않음.
-- 레지스트리 69개 목적지를 64개 고유 기능으로 정규화. 구현 근거를 확인한 62개에 독립 소개주소·canonical/OG·기존 CTA 제공.
+- 레지스트리 69개 목적지를 65개 고유 실행 경로로 정규화. 구현 근거를 확인한 63개에 독립 소개주소·canonical/OG·기존 CTA 제공. 후속 라우트 정합성 작업에서 `face-reading`을 `/animal/physio` 실행과 `/features/face-reading/` 소개로 연결.
 - 소개주소는 `noindex, follow`로 유지하고 sitemap에서 제외. 검색 유입은 기존 실제 서비스 랜딩이 담당한다.
 - 소개 목록 slug 중복 제거. 검색, 7개 분류 필터, 검색 빈 상태와 복구 추가.
 - 기능별 마케팅 정본을 SVG/HTML 편집형 핵심 흐름 미리보기로 재사용. 개인 결과를 가장하지 않음.
@@ -28,7 +28,7 @@ next: 로컬 전체 검사와 PR #1824 최신 CI를 확인한다. 필수 검사�
 ## 제외한 범위
 
 - `points`: 이용권 상점이며 결과 상세 기능이 아님. 결제 정책을 소개 콘텐츠로 재해석하지 않음.
-- `face-reading`: 현재 레지스트리 CTA가 관상 대신 `/saju-guardian`으로 연결됨. 잘못된 CTA 공개 대신 source-inventory-only 유지.
+- `face-reading`: 레거시 `/face-reading`은 `/physiognomy/`로 유지하고, 실제 동물 관상 실행은 `/animal/physio`, 소개 상세는 `/features/face-reading/`으로 분리.
 - 개인 결과 공개 요약·소유권·90일 만료 백엔드: 개인정보·DB 범위. 상세 소개 UX 완료를 위해 임의 구현하지 않음.
 - 운영 Kakao 설정, 실기기 iOS/Android, 운영 CWV: 외부 환경 미검증.
 
@@ -49,7 +49,7 @@ npm run check:fast
 npm run verify:public-mirror-fresh
 ```
 
-62개 상세주소 검증은 직접 진입·새로고침·OG·CTA·320/360/375/390/412/430/768/1280px overflow를 포함한다. 최신 실행 결과는 커밋과 PR 검사에 맞춰 최종 보고한다.
+63개 상세주소 검증은 직접 진입·새로고침·OG·CTA·320/360/375/390/412/430/768/1280px overflow를 포함한다. 최신 실행 결과는 커밋과 PR 검사에 맞춰 최종 보고한다.
 
 ## 재개
 

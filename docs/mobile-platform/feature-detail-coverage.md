@@ -1,6 +1,6 @@
 # 기능별 상세페이지 확장 원장
 
-2026-09-08 완료 기준. 레지스트리 원본 69개 목적지를 slug 기준 64개 고유 기능으로 정규화했다. 실제 구현 근거를 확인한 62개는 독립 소개주소·OG·CTA·모바일 상세 콘텐츠를 공개한다. 소개주소는 `noindex, follow`이며 sitemap에서 제외해 기존 실제 서비스 랜딩의 검색 소유권을 유지한다. 2개는 아래 사유로 제외한다.
+2026-09-09 후속 반영 기준. 레지스트리 원본 69개 목적지를 65개 고유 실행 경로로 정규화했다. 실제 구현 근거를 확인한 63개는 독립 소개주소·OG·CTA·모바일 상세 콘텐츠를 공개한다. 소개주소는 `noindex, follow`이며 sitemap에서 제외해 기존 실제 서비스 랜딩의 검색 소유권을 유지한다. `points`와 `saju-animal`(사주 가디언 동일 경로 별칭)은 source-inventory-only로 남긴다.
 
 정본:
 
@@ -18,20 +18,20 @@
 | 타로·신탁 | 17 | tarot-love-relationship, tarot-reunion, tarot-mindscan, tarot-ijik, tarot-year-fortune, tarot-celestial-harmony, tarot, kemet-oracle, ifa-oracle, juyuk-turtle, tarot-numerology, tarot-crystal-soul, royal-tea-oracle, geomancy-oracle, stonehenge-runes, tarot-prompt-maker, omikuji |
 | 오늘·시기 | 4 | new-year-ai, daily-fortune, today-hub, luck-sync-diary |
 | 별자리·동양 점성 | 6 | nakshatra-muhurta, vedic, astrology, human-design, nakshatra, maya |
-| 상징·마음 | 7 | palm-reading, physiognomy, dream, psychotest, animal-destiny, dream-psycho-analysis, animal-totem |
+| 상징·마음 | 8 | palm-reading, physiognomy, face-reading, dream, psychotest, animal-destiny, dream-psycho-analysis, animal-totem |
 | 휴식·콘텐츠 | 4 | neville-meditation, yoga-guru, music, novel |
-| 합계 | 62 | `public/feature-details/catalog.json`과 일치 |
+| 합계 | 63 | `public/feature-details/catalog.json`과 일치 |
 
 ## 의도적으로 제외한 항목
 
 | 기능 ID | 이유 | 다음 조건 |
 | --- | --- | --- |
 | points | 이용권 상점. 운세 결과 상세가 아니며 가격·정책 화면을 소개 콘텐츠로 재해석하지 않는다. | 결제 정책 전용 작업에서 별도 검토 |
-| face-reading | React 레지스트리의 `launchRoute`가 관상 화면이 아닌 `/saju-guardian`을 가리킨다. 잘못된 CTA를 공개하지 않는다. | 라우트 소유 작업에서 `/face-reading` 계약 확인 후 검토 목록 추가 |
+| saju-animal | 사주 가디언과 동일 실행 경로 별칭이라 별도 소개를 만들지 않는다. | 별칭 정책을 정리하는 라우트 작업에서 검토 |
 
 ## 완료 조건과 증거
 
-- 62개 모두 실제 파일 근거가 존재하고, 새 레지스트리 항목은 명시적 검토 목록 없이는 공개되지 않는다.
+- 63개 모두 실제 파일 근거가 존재하고, 새 레지스트리 항목은 명시적 검토 목록 없이는 공개되지 않는다.
 - 소개 목록은 slug 중복이 없고 검색·분류·빈 상태 복구를 제공한다.
 - 각 소개주소는 직접 진입·새로고침·canonical/OG·기존 CTA를 유지한다.
 - 320/360/375/390/412/430/768/1280px에서 가로 넘침을 검사한다.
