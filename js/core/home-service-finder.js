@@ -272,7 +272,10 @@
   function renderRichResults(panel, list, state) {
     panel.textContent = "";
     if (!list.length) {
-      panel.hidden = true;
+      var empty = document.createElement("p");
+      empty.textContent = "일치하는 서비스가 없어요. 검색어나 필터를 바꿔보세요.";
+      panel.appendChild(empty);
+      panel.hidden = false;
       return;
     }
     var head = document.createElement("p");
@@ -398,7 +401,7 @@
       var current = state();
       var active = current.query || current.purposes.length || current.methods.length || current.buckets.length;
       /* 아무것도 고르지 않은 상태 = 기본 목록. 필터를 켰다가 모두 끄면 이리로 되돌아온다. */
-      var list = active ? filterServices(current) : DEFAULT_PICKS;
+      var list = active || document.getElementById("cdHomeFunnel") ? filterServices(current) : DEFAULT_PICKS;
       if (config.layout === "rich") renderRichResults(panel, list, current);
       else renderCompactResults(panel, list);
     }
@@ -467,6 +470,13 @@
   }
 
   function boot() {
+    if (document.getElementById("cdHomeFunnel") && !boot.requested) {
+      document.addEventListener("cd:home-finder-open", function () {
+        boot.requested = true;
+        boot();
+      }, { once: true });
+      return;
+    }
     mount({
       rootId: "fortuneGatewayDiscover",
       resultsId: "fortuneGatewayRecs",
@@ -491,6 +501,11 @@
     document.addEventListener("click", function (event) {
       var jump = event.target instanceof Element ? event.target.closest("[data-cd-service-index-jump]") : null;
       if (!jump) return;
+      if (document.getElementById("cdHomeFunnel")) {
+        event.preventDefault();
+        location.hash = "services";
+        return;
+      }
       var target = document.getElementById("cdServiceIndex");
       var input = document.getElementById("cdServiceSearchInput");
       if (!target) return;

@@ -26,6 +26,15 @@
     'ziwei.symbolicLayer': 'ziwei_symbolic_layer',
     'ziwei.lifeYearlyFlow': 'ziwei_life_yearly_flow'
   };
+  var FEATURE_KEY_ALIASES = {
+    loveSimulation: 'love-code',
+    openLoveSimulation: 'love-code'
+  };
+
+  function normalizeFeatureKey(rawKey) {
+    var key = String(rawKey || '').trim();
+    return FEATURE_KEY_ALIASES[key] || key;
+  }
   var listeners = [];
   var inFlight = Object.create(null);
   var accessDecisionInFlight = Object.create(null);
@@ -67,7 +76,7 @@
     var result = Object.create(null);
     if (!value || typeof value !== 'object') return result;
     Object.keys(value).forEach(function (key) {
-      if (value[key]) result[key] = true;
+      if (value[key]) result[normalizeFeatureKey(key)] = true;
     });
     return result;
   }
@@ -353,7 +362,7 @@
         if (confirmedOnly && String(grant.mode || '') !== 'confirmed') return;
         var expiresAt = Number(grant.expiresAt || grant.expiry || 0);
         if (expiresAt && expiresAt < Date.now()) return;
-        result[key.split('::')[0]] = true;
+        result[normalizeFeatureKey(key.split('::')[0])] = true;
       });
       return result;
     } catch (_) {
@@ -431,7 +440,7 @@
   function extractUnlockMap(payload) {
     var result = Object.create(null);
     function addKey(rawKey) {
-      var key = String(rawKey || '').trim();
+      var key = normalizeFeatureKey(rawKey);
       if (!key) return;
       result[key] = true;
       if (CONTENT_KEY_TO_FEATURE_KEY[key]) result[CONTENT_KEY_TO_FEATURE_KEY[key]] = true;
@@ -946,7 +955,7 @@
   }
 
   function isUnlocked(featureKey) {
-    var key = String(featureKey || '');
+    var key = normalizeFeatureKey(featureKey);
     return Boolean(state.confirmedUnlocks[key] || state.persistentUnlocks[key]
       || state.optimistic[key] && state.optimistic[key].expiresAt > Date.now());
   }
@@ -985,7 +994,7 @@
   }
 
   function markOptimisticallyUnlocked(featureKey, profileId, metadata) {
-    var key = String(featureKey || '');
+    var key = normalizeFeatureKey(featureKey);
     if (!key) return false;
     var targetProfileId = String(profileId || state.profileId || '');
     state.optimistic[key] = {
@@ -1003,7 +1012,7 @@
   // 키 단위 낙관 제거. rollbackOptimisticUpdate 는 state.optimistic 을 통째로 비워 무관한 정당한
   // 낙관 해금까지 죽이므로, 월 한도 402 회수는 그 키(와 별칭)만 지운다. 확정 해금은 건드리지 않는다.
   function forgetOptimisticUnlock(featureKey) {
-    var key = String(featureKey || '').trim();
+    var key = normalizeFeatureKey(featureKey);
     if (!key || !state.optimistic[key]) return false;
     delete state.optimistic[key];
     syncLegacyFeatureMap();
@@ -1014,7 +1023,7 @@
   }
 
   function markConfirmedUnlocked(featureKey, profileId, metadata) {
-    var key = String(featureKey || '').trim();
+    var key = normalizeFeatureKey(featureKey);
     if (!key) return false;
     state.confirmedUnlocks[key] = true;
     delete state.optimistic[key];
@@ -1039,7 +1048,7 @@
         if (!grant || typeof grant !== 'object') return;
         var grantType = String(grant.grantType || '').trim().toLowerCase();
         var status = String(grant.status || '').trim().toLowerCase();
-        var key = String(grant.featureKey || '').trim();
+        var key = normalizeFeatureKey(grant.featureKey);
         if (key && grantType === 'permanent_unlock' && status === 'active') result[key] = grant;
       });
       if (value.data && typeof value.data === 'object') visit(value.data, depth + 1);

@@ -15,6 +15,7 @@
  */
 import { Payment } from "../lib/models.js";
 import { REFUND_LOCK_TTL_MS, markOrderCancelled } from "./orders.js";
+import { RESUME_APPROVED_TTL_MS } from "./resume-context.js";
 
 const PAID_RAW_STATUSES = Object.freeze(["paid", "success", "fulfilled"]);
 
@@ -130,9 +131,31 @@ export async function releaseStaleRefundLocks(db, { now = new Date(), limit = 50
  * 크론 진입점. 셋을 **직렬로** 돈다 —
  * 병렬로 돌리면 한 번에 여는 Mongo 작업이 늘어 사용자 요청이 쓸 슬롯을 빼앗는다.
  */
+export async function purgeExpiredResumePayloads(db, { now = new Date(), limit = 50 } = {}) {
+  const cutoff = new Date(now.getTime() - RESUME_APPROVED_TTL_MS);
+  const orders = await db.find(Payment, {
+    "metadata.paidResume.payload": { $exists: true },
+    "metadata.paidResume.createdAt": { $lt: cutoff },
+  }, { limit, sort: { "metadata.paidResume.createdAt": 1 }, projection: { merchantUid: 1 } });
+  let purged = 0;
+  for (const order of orders) {
+    const result = await db.updateOne(Payment, {
+      merchantUid: order.merchantUid,
+      "metadata.paidResume.createdAt": { $lt: cutoff },
+    }, {
+      $unset: { "metadata.paidResume.payload": "" },
+      $set: { "metadata.paidResume.expiredAt": now },
+    });
+    purged += Number(result?.modifiedCount || 0);
+  }
+  // 주문 및 승인 기록은 보존하고 민감한 복원 입력만 제거한다.
+  return { scanned: orders.length, purged };
+}
+
 export async function runPaymentReconcile(db, { grant, now = new Date(), limit = 50 } = {}) {
   const regrant = await regrantUnfulfilledOrders(db, { grant, now, limit });
   const expired = await expireStalePendingOrders(db, { now, limit });
   const locks = await releaseStaleRefundLocks(db, { now, limit });
-  return { regrant, expired, locks };
+  const resumePrivacy = await purgeExpiredResumePayloads(db, { now, limit });
+  return { regrant, expired, locks, resumePrivacy };
 }

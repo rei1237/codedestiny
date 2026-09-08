@@ -53,6 +53,14 @@ export type CheckoutReturnPoint = {
   url: string;
   label: string;
   featureKey: string;
+  paidResume?: PaidResumeContext | null;
+};
+
+export type PaidResumeContext = {
+  version: number;
+  originPath: string;
+  resume: PaidResumeDescriptor;
+  gate: Record<string, string | number>;
 };
 
 /**
@@ -360,7 +368,9 @@ declare const checkoutEntry: {
   }): string;
   /** true 면 /points 대신 window.__cdOpenChargeModal()(앱 전용 상점)을 타야 한다. */
   shouldUseAppStoreEntry(): boolean;
-  rememberCheckoutReturn(options: { url: string; label?: string; featureKey?: string }): boolean;
+  buildPaidResumeContext(options: Record<string, unknown>): PaidResumeContext | null;
+  peekCheckoutReturn(): CheckoutReturnPoint | null;
+  rememberCheckoutReturn(options: { url: string; label?: string; featureKey?: string; paidResume?: PaidResumeContext | null }): boolean;
   /** 복귀 지점을 읽고 즉시 지운다(복귀 루프 방지). 만료·부재면 null. */
   consumeCheckoutReturn(): CheckoutReturnPoint | null;
   trackCheckoutEvent(name: CheckoutFunnelEventName, payload?: CheckoutFunnelPayload): boolean;
@@ -373,8 +383,8 @@ declare const checkoutEntry: {
   DIRECT_RESUME_TTL_MS: number;
   saveDirectPaymentResumeTicket(ticket: DirectPaymentResumeTicket): boolean;
   /** TTL 이 지난 티켓은 없는 것으로 본다(회수는 확정·실패가 결정한다). */
-  readDirectPaymentResumeTicket(): DirectPaymentResumeTicket | null;
-  clearDirectPaymentResumeTicket(): void;
+  readDirectPaymentResumeTicket(paymentId?: string): DirectPaymentResumeTicket | null;
+  clearDirectPaymentResumeTicket(paymentId?: string): void;
   /**
    * 유료 개방 영수증. 리다이렉트로 돌아와 재개에 실패한 사용자가 기능을 다시 눌러도 **재과금되지
    * 않게** 한다 — 회당 결제 키는 서버 보유 목록에 남지 않아 서버에 물어봐도 "없음"이다.

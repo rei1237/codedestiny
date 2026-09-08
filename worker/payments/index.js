@@ -27,6 +27,7 @@ import { CREDENTIAL_CACHE_PREFIXES, purgeCredentialCache } from "../lib/credenti
 //    안 실렸으면 조용히 no-op 이라 fail-open 이고, verify:access-state-cache-order 가 거부한다.
 import { invalidateAccessStateCacheForUser } from "../lib/access-state-cache.js";
 import { User } from "../lib/models.js";
+import { prepareResumeContext, readOrderResumeContext } from "./resume-context.js";
 import { getPortOnePublicConfig, resolveChargeAmountKRW } from "../lib/portone.js";
 import { decryptPhoneNumber } from "../lib/pii-crypto.js";
 import { classify, contractFor, paymentError, responseHeadersFor } from "./errors.js";
@@ -421,6 +422,9 @@ async function handlePassPrepare({ request, env, ctx, userId, body, withDb }) {
   const headerKey = String(request.headers.get("Idempotency-Key") || request.headers.get("X-Idempotency-Key") || "").trim();
   let idempotencyKey = String(body.idempotencyKey || "").trim() || headerKey || String(body.requestId || "").trim();
   if (!idempotencyKey) idempotencyKey = `pass-${crypto.randomUUID()}`;
+  const paidResume = await prepareResumeContext(body.paidResume, {
+    userId, requestId: idempotencyKey, featureKey: plan.planId, env,
+  });
 
   const { order, user } = await withDb(env, ctx, async (db) => {
     const userDoc = await db.findOne(User, { _id: toObjectId(userId) });
@@ -436,7 +440,7 @@ async function handlePassPrepare({ request, env, ctx, userId, body, withDb }) {
        구매 차단처럼 구매 정책은 상품 가치 기준이어야 하고, 청구가로 판정하면 스테이징에서만
        정책이 달라진다. 주문에 실리는 금액만 청구가로 바꾼다. */
     const chargePlan = chargeKRW === Number(plan.wonPrice) ? plan : { ...plan, wonPrice: chargeKRW };
-    const created = await createPayablePassOrder(db, { userId, plan: chargePlan, idempotencyKey, paymentMethod });
+    const created = await createPayablePassOrder(db, { userId, plan: chargePlan, idempotencyKey, paymentMethod, paidResume });
     return { order: created, user: userDoc };
   });
   ctx.orderId = String(order.merchantUid || "");
@@ -783,7 +787,7 @@ async function grantOrderEntitlement(db, order) {
       contentKey: String(snapshot.contentKey || ""),
       scope: String(snapshot.scope || ""),
     });
-    await markUserFeatureUnlocked(db, { userId: String(order.userId || ""), featureKey: String(order.featureKey || "") });
+    await markUserFeatureUnlocked(db, { userId: String(order.userId || ""), featureKey: product.featureKey });
     await markEntitlementGranted(db, { orderId: String(order.merchantUid || "") });
     invalidateBalanceSnapshot(order?.userId); // 해금 스냅샷(unlockedFeatures/unlockMap) 갱신 반영
     return true;
@@ -854,6 +858,20 @@ const ROUTES = {
         payMethod: config.payMethod,
         noticeUrl: config.noticeUrl,
       });
+    },
+  },
+
+  "GET /orders/:id/resume": {
+    auth: "required",
+    async handle({ env, ctx, userId, params, withDb }) {
+      const order = await withDb(env, ctx, (db) => findOrder(db, { orderId: params.id }));
+      assertOrderOwner(order, userId);
+      const context = await readOrderResumeContext(order, env);
+      ctx.orderId = String(order.merchantUid || "");
+      ctx.productId = String(order.productId || "");
+      ctx.paymentStatus = String(order.status || "");
+      ctx.resumeEvent = context ? "RESUME_CONTEXT_FOUND" : "RESUME_CONTEXT_MISSING";
+      return json({ ok: true, context }, { headers: { "Cache-Control": "no-store" } });
     },
   },
 
@@ -932,6 +950,9 @@ const ROUTES = {
       }
       // 주문에 실리는 금액만 청구가다. pricing(화면 표시가)은 아래 응답 조립에서 정가 상품을 그대로 쓴다.
       const product = withChargeAmount(env, listedProduct);
+      const paidResume = await prepareResumeContext(body.paidResume, {
+        userId, requestId: body.requestId || "", featureKey: product.featureKey, env,
+      });
 
       const headerKey = String(request.headers.get("Idempotency-Key") || request.headers.get("X-Idempotency-Key") || "").trim();
       let idempotencyKey = String(body.idempotencyKey || "").trim()
@@ -961,6 +982,7 @@ const ROUTES = {
           product,
           idempotencyKey,
           requestId: body.requestId,
+          paidResume,
           profileId,
           contentKey: body.contentKey,
           scope: body.scope,
@@ -1217,13 +1239,14 @@ const ROUTES = {
         const user = await db.findOne(User, { _id: toObjectId(userId) });
         const entitlement = resolveCanonicalEntitlement(user || {});
         const coverage = evaluatePassCoverage({ user, entitlement, coinCost: product.priceCoins });
-        if (!coverage.covered) return { coverage, entitlement };
 
-        // 멱등: 같은 (기능, requestId) 로 이미 통과했으면 예산을 다시 깎지 않는다.
+        // 이미 커버한 실행은 마지막 소비로 이용권이 종료됐어도 복구한다.
+        // 현재 잔여 한도는 새 실행에만 적용하고 동일 요청의 재열람에 적용하지 않는다.
         const markers = Array.isArray(user?.recentConsumeRequestIds) ? user.recentConsumeRequestIds : [];
         if (marker && markers.includes(marker)) {
-          return { coverage, entitlement, user, replayed: true };
+          return { coverage: { ...coverage, covered: true, reason: "", coinCost: product.priceCoins }, entitlement, user, replayed: true };
         }
+        if (!coverage.covered) return { coverage, entitlement };
 
         /* 🔴 영구 해금형은 **소유 여부를 먼저** 확정한다. 뒤로 미루면 이미 가진 콘텐츠를 다시 열
            때마다 월 예산이 또 깎여, 재열람이 사실상 반복 과금이 된다(구 accessDecision 의
@@ -1531,7 +1554,7 @@ export async function handlePaymentsContext(request, env, options = {}) {
       durationMs: Date.now() - ctx.startedAt,
       mongoOps: ctx.mongoOps,
       // durationMs 를 admission 대기 / 커넥션 수립 / 실제 쿼리로 가른다(withPaymentDb 가 채운다).
-      extra: { ...(ctx.dbTimings || {}), reason: errorReason },
+      extra: { ...(ctx.dbTimings || {}), reason: errorReason, ...(ctx.resumeEvent ? { resumeEvent: ctx.resumeEvent } : {}) },
     });
   }
 }

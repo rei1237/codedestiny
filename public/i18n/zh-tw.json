@@ -1426,6 +1426,12 @@
       "title": "將應用程式加入主畫面",
       "desc": "安裝後不必經過瀏覽器即可一鍵開啟，今日運勢也能更快查看。",
       "cta": "取得應用程式"
+    },
+    "mobileFunnel": {
+      "freeNav": "免費",
+      "freeNavAria": "查看免費運勢",
+      "consultNav": "諮詢",
+      "consultNavAria": "查看推薦諮詢"
     }
   },
   "terms": {

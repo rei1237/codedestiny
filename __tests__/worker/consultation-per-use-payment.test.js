@@ -79,6 +79,7 @@ beforeAll(async () => {
        이 파일의 주제는 "증빙 5경로와 판단 보류" 이지 예산 회계가 아니므로 차감은 목으로 세우고,
        한도·차감·멱등 계약은 __tests__/worker/pass-budget-hard-gate.test.js 가 따로 고정한다. */
     jest.unstable_mockModule("../../worker/lib/pass-consumption.js", () => ({
+      hasConsumedPassFeature: async () => false,
       consumePassForFeature: (...args) => consumePassForFeatureMock(...args),
       // 거절 코드 매핑은 목이 아니라 정본과 같아야 한다 — 여기서 바꾸면 이 파일이
       // "한도 초과인데 통과"를 못 잡는다.

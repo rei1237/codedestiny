@@ -15,6 +15,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { pruneLegacyHomeCss } from './legacy-home-selectors.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const OUT = path.join(ROOT, 'styles', 'yehwa-motifs.css');
@@ -289,6 +290,7 @@ function render() {
  * 텍스트 뒤(z-index 0)에 깔린다 — 텍스트 대비에 관여하지 않는다.
  * 불투명도 실측(2026-09-03, 1350px 연이 히어로 일러스트 위): 로즈골드 .22 는 선 대비 1.07:1 로 보이지 않았다.
  * 그래서 연이 히어로만 딥 로즈골드(--cd-yehwa-line-deep) + .5 로 올렸다(네오는 .16 에서 1.39:1 로 충분). */
+.cdh,
 .moon-hero__ambient,
 .cd-yehwa-divider,
 .cd-yehwa-vine,
@@ -1215,9 +1217,11 @@ export const SUKUYO_BRIDGE: YehwaMotif = {
 
 // ── 실행 ────────────────────────────────────────────────────────────────
 const OUTPUTS = [
-  { out: OUT, css: render() },
+  { out: OUT, css: pruneLegacyHomeCss(render()) },
   { out: OUT_NAV, css: renderNav() },
   { out: OUT_SUKUYO, css: renderScene() },
+  // Policy pages reuse this single branch without importing the whole home sheet.
+  { out: path.join(ROOT, 'public', 'icons', 'yehwa-branch.svg'), css: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 64"><path fill="none" stroke="#000" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" d="${branchH()}"/></svg>\n` },
 ];
 
 if (process.argv.includes('--check')) {

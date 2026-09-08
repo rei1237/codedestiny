@@ -112,6 +112,7 @@ function extractPaymentContext(gate: { data: unknown; raw?: unknown }, requestId
 }
 
 export default function NakshatraAiClient() {
+  const resumeCompletedRef = useRef(false);
   const copy = useNakshatraCopy();
   const profilePicker = useNakshatraProfileContext();
   const { birth, natal, ready } = profilePicker;
@@ -140,6 +141,7 @@ export default function NakshatraAiClient() {
   }, [natal]);
 
   const finish = useCallback((session: Record<string, unknown>) => {
+    resumeCompletedRef.current = true;
     const nextDecks = asRecord(session.decks);
     setDecks({
       sukuyo: Array.isArray(nextDecks.sukuyo) ? (nextDecks.sukuyo as Decks["sukuyo"]) : [],
@@ -236,6 +238,7 @@ export default function NakshatraAiClient() {
   }, [finish, fail, pollResult, applyProgress, copy]);
 
   const startConsult = useCallback(async (payload: Record<string, unknown>, access: Record<string, unknown>) => {
+    resumeCompletedRef.current = false;
     setPhase("generating");
     setStatusMsg(copy.aiStatusGenerating);
     const accessToken = toText(access.accessToken);
@@ -272,7 +275,7 @@ export default function NakshatraAiClient() {
     setErrorMsg("");
     setAskedQuestion(toText(payload.question));
     await startConsult(payload, extractPaymentContext({ data: grant?.payload }, idempotencyKey));
-    return true;
+    return resumeCompletedRef.current;
   });
 
   const beginConsultation = useCallback(async () => {

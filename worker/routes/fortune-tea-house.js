@@ -4283,8 +4283,12 @@ async function beginFortuneTeaHouseGeneration({ auth, resultId, consultRequest, 
   }
 
   try {
-    await results.updateOne(
-      { userId, resultId },
+    // 조회 이후 다른 요청이 생성/완료했을 수 있다. 읽은 상태와 시각이 여전히
+    // 같은 문서만 claim한다. 최초 생성은 결정적 _id의 unique 제약이 중재한다.
+    const claimed = await results.updateOne(
+      existing
+        ? { userId, resultId, status: existing.status, updatedAt: existing.updatedAt || null }
+        : { userId, resultId, _id: buildFortuneTeaResultStorageId(userId, resultId), status: { $exists: false } },
       {
         $set: {
           userId,
@@ -4307,8 +4311,11 @@ async function beginFortuneTeaHouseGeneration({ auth, resultId, consultRequest, 
           createdAt: now,
         },
       },
-      { upsert: true },
+      { upsert: !existing },
     );
+    if (!claimed.matchedCount && !claimed.upsertedCount && !claimed.upsertedId) {
+      return { ok: false, inProgress: true };
+    }
   } catch (error) {
     if (Number(error?.code) === 11000) return { ok: false, inProgress: true };
     throw error;

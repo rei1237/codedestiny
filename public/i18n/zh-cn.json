@@ -1426,6 +1426,12 @@
       "title": "把应用添加到主屏幕",
       "desc": "安装后无需经过浏览器即可一键打开，今日运势也能更快查看。",
       "cta": "获取应用"
+    },
+    "mobileFunnel": {
+      "freeNav": "免费",
+      "freeNavAria": "查看免费运势",
+      "consultNav": "咨询",
+      "consultNavAria": "查看推荐咨询"
     }
   },
   "terms": {

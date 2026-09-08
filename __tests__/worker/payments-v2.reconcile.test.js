@@ -14,12 +14,27 @@ import {
   regrantUnfulfilledOrders,
   releaseStaleRefundLocks,
   runPaymentReconcile,
+  purgeExpiredResumePayloads,
 } from "../../worker/payments/reconcile.js";
 import { REFUND_LOCK_TTL_MS } from "../../worker/payments/orders.js";
 import { makeFakePaymentDb } from "../fixtures/fake-payment-db.mjs";
 
 const NOW = new Date("2026-08-11T12:00:00Z");
 const ago = (ms) => new Date(NOW.getTime() - ms);
+
+test("resume retention removes expired encrypted inputs and preserves the financial order", async () => {
+  const db = makeFakePaymentDb();
+  await seed(db, [
+    { merchantUid: "expired", status: "paid", paymentAmount: 3000, metadata: { paidResume: { createdAt: ago(8 * 86400000), payload: "encrypted-old" } } },
+    { merchantUid: "fresh", status: "paid", metadata: { paidResume: { createdAt: ago(86400000), payload: "encrypted-fresh" } } },
+  ]);
+  expect(await purgeExpiredResumePayloads(db, { now: NOW })).toEqual({ scanned: 1, purged: 1 });
+  const old = db.rows.find((row) => row.merchantUid === "expired");
+  expect(old.status).toBe("paid");
+  expect(old.paymentAmount).toBe(3000);
+  expect(old.metadata.paidResume.payload).toBeUndefined();
+  expect(db.rows.find((row) => row.merchantUid === "fresh").metadata.paidResume.payload).toBe("encrypted-fresh");
+});
 
 async function seed(db, rows) {
   for (const row of rows) await db.insertOne({}, row);

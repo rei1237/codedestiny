@@ -107,7 +107,13 @@ export function applyUpdate(doc, update) {
   // $inc 도 dot notation 을 따라야 한다 — 평면 키로 쓰면 필터가 보는 중첩 필드와 갈라져
   // 낙관적 버전 가드가 영원히 0 을 읽는다(= 경합 테스트가 통과하는 척만 한다).
   if (update.$inc) for (const [k, v] of Object.entries(update.$inc)) setPath(doc, k, (Number(getPath(doc, k)) || 0) + v);
-  if (update.$unset) for (const k of Object.keys(update.$unset)) delete doc[k];
+  if (update.$unset) for (const k of Object.keys(update.$unset)) {
+    const parts = k.split(".");
+    const leaf = parts.pop();
+    let parent = doc;
+    for (const part of parts) parent = parent && typeof parent === "object" ? parent[part] : undefined;
+    if (parent && typeof parent === "object") delete parent[leaf];
+  }
   if (update.$addToSet) {
     for (const [k, v] of Object.entries(update.$addToSet)) {
       const list = Array.isArray(getPath(doc, k)) ? getPath(doc, k) : [];
@@ -186,6 +192,7 @@ export function makeFakePaymentDb(options = {}) {
       if (options.onDuplicate?.(filter)) throw duplicateKeyError();
       const created = { _id: `oid${nextId += 1}`, ...(update.$setOnInsert || {}) };
       applyUpdate(created, { ...update, $setOnInsert: undefined });
+      if (violatesUnique(created)) throw duplicateKeyError();
       rows.push(created);
       // upsert 로 **새로 만든** 경우 before 는 없다. 이 null 이 "처음 지급"의 신호다.
       return opts.returnDocument === "before" ? null : created;
