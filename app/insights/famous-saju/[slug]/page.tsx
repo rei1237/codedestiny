@@ -810,8 +810,6 @@ export default async function FamousSajuInsightDetailPage({ params }: PageProps)
       <style
         dangerouslySetInnerHTML={{
           __html: `
-body:has(main[data-famous-saju-detail]) > header,
-body:has(main[data-famous-saju-detail]) > footer,
 body:has(main[data-famous-saju-detail]) > div[class*="LegalUi_disclaimerBar"],
 body:has(main[data-famous-saju-detail]) > button.fixed {
   display: none !important;
