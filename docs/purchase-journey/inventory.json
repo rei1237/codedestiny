@@ -1,13 +1,13 @@
 {
-  "sourceFingerprint": "491569c0650f2d15ca0795837366794d2d036852d6458594037e84257fcd6695",
+  "sourceFingerprint": "695a994e395583f3195b1b1492d3c25e836c853be05146e7220701a928eb12d1",
   "methodology": "소스 후보 목록이며 화면 감사 또는 서비스 개수 확정이 아님. 상품 별칭만 서버 정규화로 병합. 라우트·액션 중복은 증거 확인 전 유지. 기존 verified 메타데이터는 이번 작업의 검증을 뜻하지 않음.",
   "counts": {
     "registry": 57,
-    "visualDestinations": 64,
-    "visualPreviouslyReviewed": 62,
+    "visualDestinations": 65,
+    "visualPreviouslyReviewed": 63,
     "marketingKeys": 155,
     "shellTiles": 62,
-    "candidateRecords": 218,
+    "candidateRecords": 219,
     "appRoutes": 243
   },
   "rows": [
@@ -17073,6 +17073,54 @@
       ]
     },
     {
+      "identity": "route:/animal/physio",
+      "sources": [
+        "scripts/lib/build-visual-details.mjs"
+      ],
+      "entrypoints": [
+        {
+          "href": "/animal/physio",
+          "action": "",
+          "source": "scripts/lib/build-visual-details.mjs"
+        }
+      ],
+      "scores": {
+        "Awareness": null,
+        "Interest": null,
+        "Consideration": null,
+        "Trust": null,
+        "Conversion": null,
+        "Loyalty": null
+      },
+      "status": "화면 미확인",
+      "slug": "face-reading",
+      "title": "전문가 동물 관상",
+      "accessType": "free",
+      "image": "/fuctionassets/ai%20animal.webp",
+      "aliases": [
+        "face-reading",
+        "/animal/physio",
+        "/animal/physio/"
+      ],
+      "category": "상징·마음",
+      "description": "얼굴형·표정·분위기 신호를 동물 비유로 풀어, 자기표현과 관계 소통에 활용할 힌트를 정리합니다.",
+      "verification": "verified",
+      "visualMetadata": "verified",
+      "existingCopy": null,
+      "copySource": null,
+      "pricing": null,
+      "routeEvidence": [
+        "app/animal/physio/page.tsx"
+      ],
+      "callsiteCandidates": [],
+      "gaps": [
+        "개별 상세 카피 연결 확인 필요",
+        "질문형 Hook 3개 이상 확인 필요",
+        "결과 중심 CTA 확인 필요",
+        "입력·잠금·결제·결과·재열람·추천의 실제 화면 검증 필요"
+      ]
+    },
+    {
       "identity": "route:/codedestiny-novel.html",
       "sources": [
         "js/core/service-registry.js"
@@ -18423,17 +18471,17 @@
         "Loyalty": null
       },
       "status": "화면 미확인",
-      "slug": "face-reading",
-      "title": "전문가 관상 분석",
+      "slug": "saju-animal",
+      "title": "사주 가디언 아트",
       "accessType": "free",
-      "image": "/fuctionassets/ai%20animal.webp",
+      "image": "/fuctionassets/Who%20am%20I%20with%20saju.webp",
       "aliases": [
-        "face-reading",
+        "saju-animal",
         "/saju-guardian",
         "/saju-guardian/"
       ],
-      "category": "사주·심층 상담",
-      "description": "얼굴 이미지를 바탕으로 인상, 기질, 관계 성향, 커뮤니케이션 특성을 분석하는 전문가 관상 서비스입니다.",
+      "category": "상징·마음",
+      "description": "십이운성 동물점이 아닌, 생년월일의 일주와 오행 기운으로 지금 나를 지키는 가디언 상징을 카드형으로 안내합니다.",
       "verification": "source-inventory-only",
       "visualMetadata": "source-inventory-only",
       "existingCopy": null,

@@ -210,7 +210,7 @@ function routeAliasExists(token) {
   const normalized = token.replace(/\/+$/, "");
   const aliases = {
     "/today": ["#destinyCardForm", "/static/#destinyCardForm"],
-    "/services/face-reading": ["/palm-reading"],
+    "/animal/physio": ["openPhysiognomyApp"],
     "/services/animal-totem": ["openAnimalTotemModal"],
     "/services/palm-reading": ["/palm-reading"],
     "/services/tarot": ["openTarotModal", "/tarot/mingri"],

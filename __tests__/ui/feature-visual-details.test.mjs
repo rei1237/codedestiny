@@ -6,9 +6,9 @@ import { renderFeatureDetailPanels } from '../../js/feature-detail-panels.mjs';
 const catalog = JSON.parse(fs.readFileSync('public/feature-details/catalog.json', 'utf8'));
 test('published visual introductions have proven sources, real assets, and distinct destinations', () => {
   const generated = JSON.parse(fs.readFileSync('lib/marketing/feature-visual-details.generated.json', 'utf8'));
-  assert.equal(generated.index.length, 64);
+  assert.equal(generated.index.length, 65);
   assert.equal(new Set(generated.index.map(item => item.slug)).size, generated.index.length);
-  assert.equal(catalog.length, 62);
+  assert.equal(catalog.length, 63);
   assert.equal(new Set(catalog.map(item => item.slug)).size, catalog.length);
   for (const entry of catalog) {
     const detail = JSON.parse(fs.readFileSync(`public/feature-details/${entry.slug}.json`, 'utf8'));
@@ -46,7 +46,13 @@ test('published visual introductions have proven sources, real assets, and disti
   }
   const animal = JSON.parse(fs.readFileSync('public/feature-details/animal-destiny.json', 'utf8'));
   assert.ok(animal.image, '동물 도감의 독립 소개 OG 대표 이미지가 없다');
-  assert.deepEqual(Object.values(generated.items).filter(item => item.verification !== 'verified').map(item => item.slug).sort(), ['face-reading', 'points']);
+  const face = JSON.parse(fs.readFileSync('public/feature-details/face-reading.json', 'utf8'));
+  const registry = fs.readFileSync('app/_lib/serviceFeatureRegistry.ts', 'utf8');
+  assert.match(registry, /slug: "face-reading"[\s\S]*detailRoute: "\/features\/face-reading"[\s\S]*launchRoute: "\/animal\/physio"/);
+  assert.equal(face.href, '/animal/physio');
+  assert.equal(face.ctaLabel, '무료로 동물 관상 보기');
+  assert.equal(face.panels[0].previewTone, '상징·마음');
+  assert.deepEqual(Object.values(generated.items).filter(item => item.verification !== 'verified').map(item => item.slug).sort(), ['points', 'saju-animal']);
 });
 
 test('shared renderer escapes text and rejects unsafe image URLs and unverified content', () => {

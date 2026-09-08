@@ -3,7 +3,7 @@
 ## 실제 변경
 
 - 별도 상세페이지로 다시 이동하라는 팝업 링크를 제거했다. 기존 공개 소개 URL은 공유를 받은 사람이 들어오는 목적지로 유지한다.
-- 공개 이미지형 상세 62개에 질문형 Hook을 제공한다. 기존 카피에 없던 9개는 홈의 `FEATURE_VISUAL_DETAILS`에서 저작하며 모두 질문 3개 이상이다.
+- 공개 이미지형 상세 63개에 질문형 Hook을 제공한다. 새로 통합한 관상은 기존 질문 패널을 재사용하고, 기존 카피에 없던 9개는 홈의 `FEATURE_VISUAL_DETAILS`에서 저작하며 모두 질문 3개 이상이다.
 - 기존 이미지·SVG/HTML 패널을 보존하고 미리보기를 앞에 배치한다. 같은 질문 목록의 중복은 제거한다. 해석 안내와 기존 상품 FAQ를 이미지형 렌더러 안으로 가져왔다.
 - 가격·이용 방법 버튼은 기존 가격 표시와 CTA로 이동하고 포커스만 전달한다. 자동 클릭·결제·새 권한 판정은 없다.
 - 정적 팝업의 본문 스크롤과 하단 CTA를 분리한다. React 팝업도 같은 렌더러·공유 도우미를 사용한다.
@@ -36,11 +36,11 @@
 - `js/feature-detail-panels.mjs`, `js/feature-detail-preview.mjs`: 이미지형 본문·팝업 연결.
 - `app/components/FeatureVisualDetail.tsx`, `FeatureMarketingDetailModal.tsx`: React 연결.
 - `js/feature-introduction-share.mjs`, `lib/share.v2.ts`, `js/core/analytics.js`: 공개 공유와 유입 계측.
-- `scripts/lib/build-visual-details.mjs`: 기존 저작 데이터에서 62개 공개 소개 생성. 생성 JSON·미러는 직접 수정하지 않음.
+- `scripts/lib/build-visual-details.mjs`: 기존 저작 데이터에서 63개 공개 소개 생성. 생성 JSON·미러는 직접 수정하지 않음.
 
 ## 검증 명령과 증거
 
-- `node scripts/verify-feature-popup-journey.mjs`: 실제 정적 팝업 템플릿 62개 × 360/390/430/1280px, 가로 넘침·CTA 44px·본문 가림·소개 공유 URL·홈 공유·한국어 범위 검증. LLM/결제/API 호출 차단, 기존 CDN 이미지만 허용.
+- `node scripts/verify-feature-popup-journey.mjs`: 실제 정적 팝업 템플릿 63개 × 360/390/430/1280px, 가로 넘침·CTA 44px·본문 가림·소개 공유 URL·홈 공유·한국어 범위 검증. LLM/결제/API 호출 차단, 기존 CDN 이미지만 허용.
 - `node --test __tests__/ui/feature-visual-details.test.mjs __tests__/ui/feature-introduction-share.test.mjs`: 미검수 결과 차단·escaping·로더 재시도·공개/비공개 경계·취소·수동 복사·중복 공유·계측 실패 검증.
 - `npm run verify:analytics-events`: 기존 리퍼럴과 공개 소개 UTM 유입, 수신 1회 발화.
 - `npm run verify:mobile-detail-nonintrusive`, `npm run verify:hero-contrast`: 공용 모바일 래퍼와 대비 규칙 보존.
@@ -68,4 +68,4 @@ A/B 후보: 질문형 제목과 기존 기능명 제목, 첫 이미지 뒤와 �
 
 가격·이용권·월정석·단건 결제, entitlement, 로그인, 결제 resume, 개인 결과의 공개 범위를 변경하지 않았다. 공유는 기능 소개를 전달하며 유료 결과 원문을 해금하지 않는다.
 
-이 변경을 전체 사이트 구매 여정 감사 완료로 간주하지 않는다. 62개 이미지형 상세 밖의 경로, 실제 PG·실기기 카카오톡, 공유 유입의 실측 구매 전환율은 별도 확인이 필요하다. 새 보상·할인·공유 강요 팝업은 없다. 공유 효과는 배포 후 실측하며 증가율을 보장하지 않는다.
+이 변경을 전체 사이트 구매 여정 감사 완료로 간주하지 않는다. 63개 이미지형 상세 밖의 경로, 실제 PG·실기기 카카오톡, 공유 유입의 실측 구매 전환율은 별도 확인이 필요하다. 새 보상·할인·공유 강요 팝업은 없다. 공유 효과는 배포 후 실측하며 증가율을 보장하지 않는다.
