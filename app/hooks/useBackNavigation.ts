@@ -55,6 +55,19 @@ export function useBackNavigation(options: UseBackNavigationOptions) {
       unregister();
     };
   }, [context]);
+
+  // route 전환 없이 열리는 sheet/modal 은 guard entry 가 있어야 브라우저 back 이
+  // 이전 문서로 이탈하기 전에 이 hook 의 onBack 으로 들어온다. enabled 가 함수인
+  // 기존 analysis 호출부는 현재 동작을 보존하고, 새 transient 표면은 boolean enabled
+  // 를 넘겨 렌더 시점마다 안전하게 guard 를 동기화한다.
+  useEffect(() => {
+    if (!context) return;
+    const scope = options.scope || "analysis";
+    if (scope === "analysis") return;
+    if (resolveMaybe(options.enabled, true)) {
+      context.ensureTransientBackGuard();
+    }
+  }, [context, options.enabled, options.scope]);
 }
 
 export default useBackNavigation;

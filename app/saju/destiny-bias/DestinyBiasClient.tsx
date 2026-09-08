@@ -5,6 +5,11 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState, type ChangeEvent, type CSSProperties } from "react";
 import { readSanitizedAuthUser } from "@/app/_lib/auth-storage";
+import {
+  clearFeatureSessionDraft,
+  readFeatureSessionDraft,
+  writeFeatureSessionDraft,
+} from "@/app/_lib/feature-session-draft";
 import { readCurrentDestinyProfile, resolveDestinyProfileBirthParts } from "@/app/_lib/profile-card-storage";
 import { useBackNavigation } from "@/app/hooks/useBackNavigation";
 import DestinyIcon from "@/app/components/icons/DestinyIcon";
@@ -84,6 +89,29 @@ type StoredAuthUser = {
 };
 
 type UiStep = 0 | 1 | 2 | 3 | 4 | 5;
+
+type DestinyBiasDraft = {
+  uiStep: UiStep;
+  meInput: PersonInputState;
+  biasInput: PersonInputState;
+  meGender: (typeof GENDER_OPTIONS)[number];
+  biasArtistInput: string;
+  selectedCelebPresetId: string;
+  biasMood: (typeof BIAS_MOODS)[number];
+  relationMood: (typeof RELATION_MOODS)[number];
+  activeThemeKey: string;
+};
+
+const DESTINY_BIAS_DRAFT_FEATURE_KEY = "saju-destiny-bias";
+
+function getDestinyBiasDraftScope() {
+  const profile = readCurrentDestinyProfile();
+  return {
+    featureKey: DESTINY_BIAS_DRAFT_FEATURE_KEY,
+    profileId: String(profile?.id || "anonymous"),
+    route: window.location.pathname || "/saju/destiny-bias",
+  };
+}
 
 function normalizeBirthDateText(value: unknown) {
   const digits = String(value || "").replace(/\D/g, "");
@@ -260,6 +288,7 @@ export default function DestinyBiasClient() {
   const [resultVm, setResultVm] = useState<DestinyBiasResultViewModel | null>(null);
   const [error, setError] = useState("");
   const [toast, setToast] = useState("");
+  const [draftReady, setDraftReady] = useState(false);
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLowSpec, setIsLowSpec] = useState(false);
@@ -330,6 +359,54 @@ export default function DestinyBiasClient() {
 
     setIsLoggedIn(loggedIn);
   }, []);
+
+  useEffect(() => {
+    const draft = readFeatureSessionDraft<DestinyBiasDraft>(getDestinyBiasDraftScope());
+    if (draft?.value) {
+      const value = draft.value;
+      setUiStep(value.uiStep);
+      setMeInput(value.meInput);
+      setBiasInput(value.biasInput);
+      setMeGender(value.meGender);
+      setBiasArtistInput(value.biasArtistInput);
+      setSelectedCelebPresetId(value.selectedCelebPresetId);
+      setBiasMood(value.biasMood);
+      setRelationMood(value.relationMood);
+      setActiveThemeKey(value.activeThemeKey);
+    }
+    setDraftReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (!draftReady || uiStep > 3 || resultVm) return;
+    writeFeatureSessionDraft<DestinyBiasDraft>(getDestinyBiasDraftScope(), {
+      uiStep,
+      meInput,
+      biasInput,
+      meGender,
+      biasArtistInput,
+      selectedCelebPresetId,
+      biasMood,
+      relationMood,
+      activeThemeKey,
+    });
+  }, [
+    activeThemeKey,
+    biasArtistInput,
+    biasInput,
+    biasMood,
+    draftReady,
+    meGender,
+    meInput,
+    relationMood,
+    resultVm,
+    selectedCelebPresetId,
+    uiStep,
+  ]);
+
+  useEffect(() => {
+    if (resultVm) clearFeatureSessionDraft(getDestinyBiasDraftScope());
+  }, [resultVm]);
 
   useEffect(() => {
     const applyProfileData = () => {
@@ -499,11 +576,6 @@ export default function DestinyBiasClient() {
   }, [shouldBlockClick]);
 
   const handleAnalysisBack = useCallback(() => {
-    if (coinModal.open) {
-      setCoinModal((prev) => ({ ...prev, open: false }));
-      return true;
-    }
-
     if (analyzing && uiStep === 4) {
       return false;
     }
@@ -524,7 +596,20 @@ export default function DestinyBiasClient() {
     });
     setError("");
     return true;
-  }, [analyzing, coinModal.open, uiStep]);
+  }, [analyzing, uiStep]);
+
+  // 결제 안내 sheet가 열려 있으면 결과/입력 단계보다 먼저 닫는다. boolean enabled
+  // 를 넘겨 hook 이 이 표면 전용 history guard를 같은 렌더에서 설치한다.
+  useBackNavigation({
+    scope: "overlay",
+    priority: 100,
+    enabled: coinModal.open,
+    canGoBack: true,
+    onBack: () => {
+      setCoinModal((prev) => ({ ...prev, open: false }));
+      return true;
+    },
+  });
 
   useBackNavigation({
     scope: "analysis",
@@ -538,6 +623,10 @@ export default function DestinyBiasClient() {
 
   const goBackToMain = useCallback(() => {
     if (handleAnalysisBack()) return;
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      window.history.back();
+      return;
+    }
     if (typeof window !== "undefined") {
       const host = window.location.hostname;
       if (host === "localhost" || host === "127.0.0.1" || host === "::1" || window.location.search.includes("debugSajuRedirect=1")) {
