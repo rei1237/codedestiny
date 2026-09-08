@@ -46,6 +46,34 @@ window.__cdServiceRegistryMeta = {
   methods: ["saju", "ziwei", "sukuyo", "vedic", "astrology", "tarot", "ai"],
 };
 
+/* app/_lib/serviceFeatureRegistry.ts 의 SERVICE_FEATURE_MEDIA_BY_SLUG 과 맞추는 정적 셸 미러.
+   홈 검색은 번들 경계 밖의 정적 런타임이라 직접 import할 수 없으므로, 서비스 메타데이터 중
+   표시 계층에 필요한 대표 이미지와 alt만 이 파일에 복제한다. 이미지가 없는 항목은 finder가
+   공통 fallback을 사용한다. */
+var SERVICE_MEDIA_BY_ID = {
+  "master-love-codex": { image: "/fuctionassets/lovebible.webp", imageAlt: "마스터 인연의 서 대표 이미지" },
+  "fortune-tea-house": { image: "/images/fortune-tea-house/premium-tea-house-mobile.webp", imageAlt: "운명의 찻집 대표 이미지" },
+  "tarot-love-relationship": { image: "/fuctionassets/tarolove.webp", imageAlt: "우리는 무슨 사이 타로 대표 이미지" },
+  "tarot-reunion": { image: "/fuctionassets/reunion.webp", imageAlt: "재회운 타로 대표 이미지" },
+  "tarot-mindscan": { image: "/fuctionassets/mindscantaro.webp", imageAlt: "말과 행동 사이 타로 대표 이미지" },
+  "love-simulation": { image: "/fuctionassets/love%20code.webp", imageAlt: "LOVE CODE 연애 시뮬레이션 대표 이미지" },
+  "neo-operation-room": { image: "/images/novel/neo-strategy-sheet.webp", imageAlt: "팩폭 전략소 대표 이미지" },
+  "destiny-compass": { image: "/images/destiny-compass/premium-compass-ornament.webp", imageAlt: "운명의 나침반 대표 이미지" },
+  "new-year-ai": { image: "/fuctionassets/new-year-almanac-v1.webp", imageAlt: "신년운세 대표 이미지" },
+  "life-book-ai": { image: "/fuctionassets/lifebook.webp", imageAlt: "인생의 책 대표 이미지" },
+  "saju-guardian": { image: "/fuctionassets/saju-guardian-animal-v20260615.webp", imageAlt: "사주 가디언 대표 이미지" },
+  "fusion-fortune": { image: "/images/fusion-fortune/fusion-guardian-celestial-hero.webp", imageAlt: "초융합 심층 리딩 대표 이미지" },
+  "saju": { image: "/fuctionassets/saju.webp", imageAlt: "사주 대표 이미지" },
+  "tarot": { image: "/fuctionassets/ai%20tarrot.webp", imageAlt: "타로 대표 이미지" },
+  "ziwei": { image: "/fuctionassets/jami.webp", imageAlt: "자미두수 대표 이미지" },
+  "sukuyo": { image: "/fuctionassets/sukyo.webp", imageAlt: "숙요점 대표 이미지" },
+  "vedic": { image: "/fuctionassets/veda.webp", imageAlt: "베다점 대표 이미지" },
+  "astrology": { image: "/fuctionassets/jumsung.webp", imageAlt: "점성술 대표 이미지" },
+  "tarot-year-fortune": { image: "/fuctionassets/new-year-almanac-v1.webp", imageAlt: "십이지신 천운 타로 대표 이미지" },
+  "tarot-celestial-harmony": { image: "/fuctionassets/Celestial%20Harmony.webp", imageAlt: "천체의 선율 대표 이미지" },
+  "animal-totem": { image: "/fuctionassets/animaltotem.webp", imageAlt: "애니멀 토템 대표 이미지" },
+};
+
 window.__cdServiceRegistry = [
   /* ── 연애 · 인연 ─────────────────────────────────────────────── */
   {
@@ -718,3 +746,9 @@ window.__cdServiceRegistry = [
     keys: "이용권 패스 문라이트 멤버십 구독 정기권",
   },
 ];
+
+window.__cdServiceRegistry.forEach(function (item) {
+  var media = SERVICE_MEDIA_BY_ID[item.id];
+  item.image = media ? media.image : "";
+  item.imageAlt = media ? media.imageAlt : "";
+});

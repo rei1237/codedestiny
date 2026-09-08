@@ -296,7 +296,12 @@ async function verifyPullRequestGate() {
     /cancel-in-progress:\s*\$\{\{\s*github\.event_name\s*==\s*'pull_request'\s*\}\}/.test(workflow),
     `${prWorkflow} may cancel superseded PR runs, but must not cancel merge_group or main health checks.`,
   );
-  for (const command of ["npm run typecheck", "npm run lint", "npm test", "npm run build:cf", "npm run build:worker"]) {
+  const packageScripts = JSON.parse(await readRepoFile("package.json")).scripts;
+  assert(/run:\s*npm run ci:fast\s*(?:\r?\n|$)/.test(workflow), `${prWorkflow} must execute the shared ci:fast entrypoint.`);
+  for (const command of ["npm run lint", "npm run lint:changed", "npm run typecheck"]) {
+    assert(packageScripts["ci:fast"].split(" && ").includes(command), `ci:fast must run ${command}.`);
+  }
+  for (const command of ["npm run test:jest", "npm run test:node", "npm run build:cf", "npm run build:worker"]) {
     assert(workflow.includes(command), `${prWorkflow} must run ${command}.`);
   }
 

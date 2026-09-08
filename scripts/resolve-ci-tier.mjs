@@ -24,6 +24,8 @@
  * 이지만 단건 결제 훅이라 전체 검증이 필요하다. 두 축은 독립이므로 둘 중 하나만 봐도 구멍이 난다.
  */
 
+import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 import { appendFileSync } from "node:fs";
 import { riskOf, requiresDeepVerification } from "./lib/change-risk.mjs";
@@ -167,4 +169,4 @@ function main() {
   }
 }
 
-main();
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main();

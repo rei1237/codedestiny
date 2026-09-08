@@ -816,6 +816,18 @@ html.neo-mode body .fortune-gateway__door:focus-visible { outline-color: #e8d5a3
   color: inherit;
   transition: transform 0.18s ease, box-shadow 0.18s ease;
 }
+.fortune-gateway__rec-media,
+.fortune-gateway__rec-media img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+}
+.fortune-gateway__rec-media {
+  overflow: hidden;
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(126, 16, 57, .14), rgba(212, 183, 124, .18));
+}
+.fortune-gateway__rec-media img { object-fit: cover; }
 .fortune-gateway__rec:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(60, 24, 48, 0.1);
@@ -828,6 +840,10 @@ html.neo-mode body .fortune-gateway__door:focus-visible { outline-color: #e8d5a3
   color: #3c1830;
   font-size: 14px;
   font-weight: 800;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .fortune-gateway__rec-name b {
   font-size: 10px;
@@ -843,6 +859,10 @@ html.neo-mode body .fortune-gateway__door:focus-visible { outline-color: #e8d5a3
   color: #70445c;
   font-size: 12.5px;
   line-height: 1.5;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
 }
 .fortune-gateway__rec-foot {
   display: flex;
@@ -907,6 +927,7 @@ html.neo-mode body .fortune-gateway__rec {
   background: rgba(10, 11, 26, 0.6);
   border-color: rgba(201, 168, 76, 0.18);
 }
+html.neo-mode body .fortune-gateway__rec-media { background: linear-gradient(135deg, rgba(196, 181, 253, .2), rgba(232, 213, 163, .16)); }
 html.neo-mode body .fortune-gateway__rec-name { color: #e8dfc8; }
 html.neo-mode body .fortune-gateway__rec-name b {
   background: linear-gradient(135deg, #c9a84c, #8a6d2f);
@@ -1182,6 +1203,11 @@ html.neo-mode body .fortune-gateway__fchip[aria-pressed="true"] {
   .cd-finder .fortune-gateway__discover { padding: 14px 12px 16px; border-radius: 22px; }
   .fortune-gateway__filter-row { gap: 6px; }
   .fortune-gateway__fchip { padding: 8px 11px; font-size: 12.5px; }
+  .fortune-gateway__rec { display: grid; grid-template-columns: 88px minmax(0, 1fr); grid-template-rows: auto auto 1fr; column-gap: 10px; padding: 10px; }
+  .fortune-gateway__rec-media { grid-column: 1; grid-row: 1 / span 3; align-self: start; }
+  .fortune-gateway__rec-name { grid-column: 2; grid-row: 1; }
+  .fortune-gateway__rec-desc { grid-column: 2; grid-row: 2; }
+  .fortune-gateway__rec-foot { grid-column: 2; grid-row: 3; }
 }
 
 @media (prefers-reduced-motion: reduce) {

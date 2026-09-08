@@ -32,7 +32,7 @@ export interface MobileTab {
   shellAction?: string;
 }
 
-/** 무료 탭 진입점. 기존 게스트/저장 프로필 진입 컨트롤러를 재사용한다. */
+/** 사주 탭 진입점. 기존 게스트/저장 프로필 진입 컨트롤러를 재사용한다. */
 export const SAJU_TAB_ACTION = "cdOneStepFreeSajuEntry";
 
 /** 모든 운세 탭이 셸에서 실행하는 ?action= 이름. index.html 의 window.cdOpenAllFortunes 와 짝. */
@@ -64,13 +64,9 @@ export const MOBILE_TABS: readonly MobileTab[] = [
   { key: "home", label: "홈", href: "/", ariaLabel: "홈", glyph: "⌂", transKey: "home.nav.home", ariaTransKey: "home.nav.home" },
   {
     key: "saju",
-    label: "무료",
+    label: "사주",
     href: `/?action=${SAJU_TAB_ACTION}`,
-    ariaLabel: "무료로 내 운세 보기",
-    // 🔴 셸 탭바와 같은 탭 전용 키를 쓴다. home.nav.saju 는 카드·링크용 정식 명칭이라 탭 칸(58px)에
-    // 안 들어간다 — es "Cuatro Pilares" 66.8px, fr "Quatre Piliers" 64.2px, ms "Empat Tiang" 60.3px.
-    // Main 네임스페이스에는 그 자리용 짧은 형(es "4 Pilares")이 이미 저작돼 있고,
-    // verify-mobile-bottom-nav-sync 가 이 네임스페이스에 12자 상한을 건다.
+    ariaLabel: "사주",
     transKey: "home.mobileFunnel.freeNav",
     ariaTransKey: "home.mobileFunnel.freeNavAria",
     glyph: "☼",

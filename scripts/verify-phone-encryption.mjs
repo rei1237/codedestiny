@@ -35,7 +35,13 @@ const envelope = await encryptPhoneNumber(PHONE, KEY_A);
 assert.ok(isEncryptedPiiValue(envelope), "encrypted value must carry the v1: prefix");
 assert.equal(envelope.split(":").length, 3, "envelope must be v1:<iv>:<ciphertext>");
 assert.ok(!envelope.includes(PHONE), "ciphertext must not contain the plaintext phone number");
-assert.ok(!/\d{8,}/.test(envelope.replace(/^v1:/, "")), "envelope must not leak a long digit run");
+// Random base64 can contain eight digits by chance. Validate authenticated
+// encryption instead of treating a random substring as a plaintext leak.
+const [version, iv, ciphertext] = envelope.split(":");
+assert.equal(Buffer.from(iv, "base64").length, 12, "GCM IV must be 96 bits");
+const tampered = Buffer.from(ciphertext, "base64");
+tampered[tampered.length - 1] ^= 1;
+assert.equal(await decryptPhoneNumber(`${version}:${iv}:${tampered.toString("base64")}`, KEY_A), "", "modified authentication tag must be rejected");
 
 // 2. 왕복 일치.
 assert.equal(await decryptPhoneNumber(envelope, KEY_A), PHONE, "roundtrip must return the original number");
