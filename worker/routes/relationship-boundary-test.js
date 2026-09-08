@@ -137,7 +137,9 @@ async function handlePrepare(request, env) {
   return json({ ok: false, reason: "PAYMENT_REQUIRED", paymentPayload: paymentPayload(requestId) }, { status: 402 });
 }
 
-async function handleGenerate(request, env) {
+// `/generate` URL은 클라이언트 계약이다. 이 기능은 웨이브 이어쓰기가 아니라
+// 한 번에 장문 리포트를 생성하므로 보안 계층에서는 start 버킷으로 분류한다.
+async function handleStart(request, env) {
   const body = await readJson(request); const requestId = clean(body.idempotencyKey || request.headers.get("Idempotency-Key"), 180); const input = normalize(body);
   if (!input.ok || requestId.length < 12) return json({ ok: false, reason: "INVALID_INPUT", message: input.message || "입력 정보를 확인해 주세요." }, { status: 422 });
   const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
@@ -163,7 +165,7 @@ async function handleResult(request, env) {
 }
 
 export async function handleRelationshipBoundaryTestRoutes(request, env = {}) {
-  try { const path = getRoutePath(request, "/api/relationship-boundary-test"); if (request.method === "POST" && path === "/prepare") return handlePrepare(request, env); if (request.method === "POST" && path === "/generate") return handleGenerate(request, env); if (request.method === "GET" && path === "/result") return handleResult(request, env); return ["GET", "POST"].includes(request.method) ? notFound() : methodNotAllowed(); }
+  try { const path = getRoutePath(request, "/api/relationship-boundary-test"); if (request.method === "POST" && path === "/prepare") return handlePrepare(request, env); if (request.method === "POST" && path === "/generate") return handleStart(request, env); if (request.method === "GET" && path === "/result") return handleResult(request, env); return ["GET", "POST"].includes(request.method) ? notFound() : methodNotAllowed(); }
   catch (error) { if (isTransientMongoError(error)) return json({ ok: false, retryable: true, reason: "DB_DEGRADED", message: "일시적인 연결 문제가 있어요." }, { status: 503 }); console.error("[relationship-boundary-test]", clean(error?.message || error, 300)); return json({ ok: false, reason: "SERVER_ERROR", message: "결과를 준비하는 중 문제가 생겼어요." }, { status: 500 }); }
 }
 
