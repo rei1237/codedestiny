@@ -4,6 +4,7 @@ import { createHash } from "node:crypto";
 import { build } from "esbuild";
 import { getContentReview, hasAdvertisingReview } from "../lib/content/editorial-review.mjs";
 import { inspectPublisherDocument } from "./lib/publisher-document.mjs";
+import { INSIGHT_SEO_TITLES } from "../app/insights/seo-titles.js";
 
 const bundled = await build({ stdin: { contents: 'export { INSIGHT_SEED_ARTICLES } from "./app/insights/seed-articles.js"; export { buildArticleJsonLd } from "./lib/structured-data.ts";', resolveDir: process.cwd() }, bundle: true, write: false, platform: "node", format: "esm" });
 const { INSIGHT_SEED_ARTICLES, buildArticleJsonLd } = await import(`data:text/javascript;base64,${Buffer.from(bundled.outputFiles[0].text).toString("base64")}`);
@@ -17,6 +18,9 @@ for (const record of records) {
   assert.ok(article, record.slug);
   assert.equal(createHash("sha256").update(article.contentHtml).digest("hex"), record.manuscriptSha256, `Stale review: ${record.slug}`);
   assert.equal(record.title, article.title);
+  const searchTitle = INSIGHT_SEO_TITLES[article.slug] || `${article.title} | 운세 인사이트`;
+  const titleWidth = [...searchTitle].reduce((width, char) => width + (/[\u1100-\u115F\u2E80-\u303E\u3041-\u33FF\u3400-\u4DBF\u4E00-\u9FFF\uA000-\uA4CF\uAC00-\uD7A3\uF900-\uFAFF\uFE30-\uFE6F\uFF00-\uFF60\uFFE0-\uFFE6]/u.test(char) ? 2 : 1), 0);
+  assert.ok(titleWidth <= 60, `Search title exceeds display budget: ${record.slug} (${titleWidth})`);
   assert.equal(record.status, "ai-edited");
   const path = `/insights/${record.slug}/`;
   assert.equal(getContentReview(path), null, "AI editing must not create human review");

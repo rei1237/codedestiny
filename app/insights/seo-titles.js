@@ -16,6 +16,7 @@
  * `verifyIndexableTitleWidth` 가 산출물에서 사이트맵 URL 전량을 훑어서 한다.
  */
 export const INSIGHT_SEO_TITLES = {
+  "ten-gods-beginner-map": "십성 입문: 일간·오행·음양의 관계",
   "astrology-vs-saju-differences": "점성술과 사주: 계산·해석 기준 비교",
   "africa-divination-traditions-deep-guide": "아프리카 점복 전통 — 이파(Ifa)와 공동체의 지혜",
   "asia-divination-traditions-deep-guide": "아시아 점복 전통 — 주역·사주·자미두수의 세계",
