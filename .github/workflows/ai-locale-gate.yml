@@ -19,6 +19,12 @@ on:
   pull_request:
     branches: [main]
     paths:
+      - "**/*.js"
+      - "**/*.ts"
+      - "**/*.tsx"
+      - "**/*.mjs"
+      - "**/*.html"
+      - "config/ai-locale-call-inventory.json"
       # ── 로케일 정본 ───────────────────────────────────────
       - "lib/i18n/ai-locale.js"
       - "lib/i18n/locale-normalize.js"
@@ -62,3 +68,12 @@ jobs:
       # 의존성이 필요 없는 순수 모듈이라 npm ci 를 돌리지 않는다.
       - name: Verify AI locale pipeline invariants
         run: npm run verify:ai-locale-pipeline
+
+      - name: Install AST and browser test dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Verify complete call inventory and mock locale boundaries
+        run: |
+          node scripts/audit-ai-locale-calls.mjs --check
+          node scripts/verify-ai-locale-browser-contract.mjs
+          node --experimental-strip-types --no-warnings scripts/verify-ai-locale-provider-contract.mjs

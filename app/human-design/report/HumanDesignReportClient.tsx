@@ -36,6 +36,8 @@ import { say } from "./_lib/copy";
 import type { ReportLocale, ReportPlan } from "./_lib/types";
 import { useActiveChapter, useReadingProgress } from "./_lib/useActiveChapter";
 import { useReportGeneration } from "./_lib/useReportGeneration";
+import { useLocale } from "@/lib/i18n/useT";
+import { normalizeLocale } from "@/lib/i18n/locale-normalize.js";
 import scene from "./_components/generation-scene.module.css";
 import styles from "./report.module.css";
 
@@ -143,11 +145,8 @@ export default function HumanDesignReportClient({ locale: localeOverride }: { lo
     ? ("text" in chartError ? chartError.text : say(chartError.key, locale))
     : "";
 
-  // 🔴 본문 언어는 뷰어 언어를 따르지 않는다. 서버 생성 계약이 ko|en 이고, 무엇보다
-  //    이 값이 stableRequestId 에 들어가 **결제 요청 식별자**가 된다 — 바꾸면 지금까지
-  //    ":ko" 로 만들던 사용자가 새 id 를 받아 재청구 위험이 생긴다. 본문 언어를 뷰어에
-  //    맞추는 것은 서버 계약과 결제 검토가 함께 필요한 별도 작업이다.
-  const bodyRequestLocale: ReportLocale = "ko";
+  // New reports use the service locale. Existing report IDs retain their saved language.
+  const bodyRequestLocale: ReportLocale = useLocale();
 
   const generation = useReportGeneration({
     inputHash,
@@ -175,7 +174,7 @@ export default function HumanDesignReportClient({ locale: localeOverride }: { lo
   // 쓰므로 결제 전후로 값이 달라 보이는 일이 없다.
   const lockedFacts = useMemo(() => (chart ? buildReportCoverFacts(chart, locale) : []), [chart, locale]);
 
-  const bodyLocale: ReportLocale = doc?.locale === "en" ? "en" : "ko";
+  const bodyLocale: ReportLocale = normalizeLocale(doc?.locale);
 
   return (
     <main className={styles.page}>

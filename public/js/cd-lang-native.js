@@ -59,6 +59,9 @@
   function normalizeLang(lang) {
     var next = String(lang || '').trim();
     var lower = next.toLowerCase().replace('_', '-');
+    var parts = lower.split('-');
+    if (parts[0] === 'zh') return parts.indexOf('hant') !== -1 || parts.some(function (part) { return ['tw', 'hk', 'mo'].indexOf(part) !== -1; }) ? 'zh-TW' : 'zh-CN';
+    if (isSupportedLang(parts[0])) return parts[0];
     if (lower === 'zh' || lower === 'zh-cn' || lower === 'zh-hans') return 'zh-CN';
     if (lower === 'zh-tw' || lower === 'zh-hant' || lower === 'zh-hk' || lower === 'zh-mo') return 'zh-TW';
     if (lower === 'vi-vn') return 'vi';
@@ -123,6 +126,8 @@
     //    2026-08-23 실측: dist/zh-tw/index.html 에 data-cd-origin-text 1,303개.
     try {
       var seg = String(window.location.pathname || '').split('/')[1] || '';
+      if (seg === 'ko') return 'ko';
+      if (isSupportedLang(seg)) return seg;
       if (seg === 'ja') return 'ja';
       if (seg === 'zh') return 'zh-CN';
       if (seg === 'zh-tw') return 'zh-TW';

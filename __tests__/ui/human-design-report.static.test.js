@@ -285,7 +285,7 @@ test("🔴 읽기 진행률이 리렌더를 만들지 않는다", () => {
 
 test("본문 언어는 저장된 report.locale 이다", () => {
   assert.ok(
-    CLIENT.includes('doc?.locale === "en" ? "en" : "ko"'),
+    CLIENT.includes('normalizeLocale(doc?.locale)'),
     "🔴 본문 언어를 뷰어 언어에서 끌어오면 ko 리포트를 en 브라우저에서 열 때 웹과 PDF 가 갈린다",
   );
   assert.ok(CLIENT.includes("lang={bodyLocale}"), "본문에 lang 을 달지 않았다");

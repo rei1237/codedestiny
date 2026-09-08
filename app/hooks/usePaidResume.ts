@@ -22,6 +22,7 @@
  */
 
 import { useCallback, useEffect, useRef } from "react";
+import { detectLocale } from "@/lib/i18n/dictionary";
 import checkoutEntry, {
   type PaidResumeDescriptor,
   type PaidResumeGrant,
@@ -78,7 +79,7 @@ export function usePaidResume(kind: string, run: PaidResumeRunner, options: { le
   }, [kind, options.legacyKinds]);
 
   return useCallback(
-    (args: PaidResumeArgs = {}): PaidResumeDescriptor => ({ kind, action: "", args }),
+    (args: PaidResumeArgs = {}): PaidResumeDescriptor => ({ kind, action: "", args, locale: detectLocale() }),
     [kind],
   );
 }

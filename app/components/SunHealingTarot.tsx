@@ -11,6 +11,8 @@ import {
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSunHealingTarotCopy, type SunHealingTarotCopy } from "./_lib/sun-healing-tarot-copy";
+import { detectLocale } from "@/lib/i18n/dictionary";
+import { AI_LOCALE_HEADER } from "@/lib/i18n/ai-locale";
 
 
 // ─── Design Token ───────────────────────────────────────────────────────────
@@ -522,7 +524,7 @@ export default function SunHealingTarot() {
       const payloadCards = cardsToRead.map((c) => ({ cardId: c.cardId, position: c.position, orientation: c.orientation }));
       const res = await fetch(READING_ENDPOINT, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", [AI_LOCALE_HEADER]: detectLocale() },
         body: JSON.stringify({ category: "healing", spreadType: SPREAD_TYPE, cards: payloadCards }),
         signal: ac.signal,
       });

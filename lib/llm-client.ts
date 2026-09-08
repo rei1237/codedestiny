@@ -970,7 +970,7 @@ async function callLLMUncached(
  */
 function applyOutputLocale(request: LLMRequest): LLMRequest {
   const directive = buildOutputLanguageDirective(toAiLocale(request.locale));
-  if (!directive) return request; // ko — 기존 트래픽 100% 보존
+  if (!directive) return request;
   return {
     ...request,
     systemPrompt: [request.systemPrompt || "", directive].filter(Boolean).join("\n\n"),

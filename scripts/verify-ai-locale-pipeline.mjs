@@ -80,7 +80,7 @@ const ORDINARY_PROSE = [
   );
   assert(
     /if \(!directive\) return request;/.test(source),
-    "lib/llm-client.ts: ko(빈 지시문)는 request 를 그대로 돌려줘야 한다 (기존 트래픽 보존)",
+    "lib/llm-client.ts: 빈 지시문 방어를 유지해야 한다",
   );
 }
 
@@ -127,7 +127,7 @@ const ORDINARY_PROSE = [
 {
   const source = read("worker/index.js");
   assert(
-    /runWithAiLocale\(resolveAiLocaleFromRequest\(args\[0\]\)/.test(source),
+    /runWithAiLocale\(await resolveAiLocaleForRequest\(args\[0\]\)/.test(source),
     "worker/index.js: createLazyRouteHandler 가 runWithAiLocale 로 감싸야 한다",
   );
 }
@@ -179,8 +179,8 @@ const ORDINARY_PROSE = [
 //     번체 표기(繁體中文)가 깨지면 en/ja/zh-CN 은 멀쩡한데 zh-TW 만 조용히 무력화된다.
 {
   assert(
-    buildOutputLanguageDirective("ko") === "",
-    "buildOutputLanguageDirective('ko') 는 빈 문자열이어야 한다 (기존 트래픽 100% 보존)",
+    buildOutputLanguageDirective("ko").includes("Korean only"),
+    "buildOutputLanguageDirective('ko') 도 한국어 출력을 명시해야 한다",
   );
 
   // 🔴 개수를 손으로 박지 않는다 — 정본 두 곳이 같은 값인지 본다. 갈라지면 그 로케일 사용자는

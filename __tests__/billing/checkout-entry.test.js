@@ -33,6 +33,24 @@ afterEach(() => {
   delete globalThis.window;
 });
 
+describe("paid resume language", () => {
+  it("restores the saved language before invoking the existing paid handler", async () => {
+    let language = "ko";
+    window.__cdNativeLangBound = true;
+    window.cdGetCurrentLanguage = () => language;
+    window.changeLanguage = (next) => { language = next; };
+    const received = [];
+    checkoutEntry.registerPaidResumeHandler("locale-test", (descriptor, grant) => {
+      received.push({ language, descriptor, grant });
+      return true;
+    });
+    await checkoutEntry.runPaidResume({ kind: "locale-test", action: "", args: { requestId: "existing-proof" }, locale: "ja" }, null);
+    expect(received).toHaveLength(1);
+    expect(received[0].language).toBe("ja");
+    expect(received[0].descriptor.args.requestId).toBe("existing-proof");
+  });
+});
+
 describe("resolveStorePlan", () => {
   it("금액을 덮는 가장 낮은 등급을 고른다", () => {
     // 2026-08-24 적용 가격 범위: standard 50 · premium 100 · vvip 200 코인(family 상한 없음).

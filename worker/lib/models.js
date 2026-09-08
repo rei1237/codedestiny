@@ -1,4 +1,5 @@
 import { mongoose } from "./db.js";
+import { AI_OUTPUT_LOCALES } from "../../lib/i18n/ai-locale.js";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const birthDateRegex = /^\d{4}-\d{2}-\d{2}$/;
@@ -1644,7 +1645,7 @@ const humanDesignReportSchema = new mongoose.Schema({
   inputHash: { type: String, required: true, trim: true, maxlength: 80 },
   calculationVersion: { type: String, default: "", trim: true, maxlength: 40 },
   contractVersion: { type: String, required: true, trim: true, maxlength: 60 },
-  locale: { type: String, enum: ["ko", "en"], required: true },
+  locale: { type: String, enum: AI_OUTPUT_LOCALES, required: true },
 
   // 🔴 확정표와 허용 id 를 문서에 담는다. 웨이브마다 계산 문서를 다시 읽으면 LAX↔서울
   //    왕복(1.3초)이 웨이브 수만큼 붙는다. 락 클레임 한 번이 문서 전체를 돌려주므로

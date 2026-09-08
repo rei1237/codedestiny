@@ -55,8 +55,10 @@ function objectLiteral(source, name) {
 
 test("정적 셸이 /zh-tw/ 경로에서 번체를 고른다", () => {
   const context = { window: { location: { pathname: "/" } } };
-  vm.runInNewContext(`${extractFunction(shellRuntime, "getPathPrefixLang")}; this.fn = getPathPrefixLang;`, context);
+  vm.runInNewContext(`${shellRuntime.match(/var SUPPORTED_LANGS = \[[^;]+;/)[0]} ${extractFunction(shellRuntime, "isSupportedLang")} ${extractFunction(shellRuntime, "getPathPrefixLang")}; this.fn = getPathPrefixLang;`, context);
   const cases = [
+    ["/ko/", "ko"],
+    ["/fr/", "fr"],
     ["/zh-tw/", "zh-TW"],
     ["/zh-tw/insights/", "zh-TW"],
     ["/zh/", "zh-CN"],

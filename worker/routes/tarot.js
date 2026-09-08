@@ -1849,7 +1849,7 @@ export async function handleTarotRoutes(request, env = {}) {
       // 🔴 지연 import — 정적으로 걸면 이 라우트 모듈 그래프에 llm-client 체인과 models.js 가
       // 딸려와, models.js 를 부분 mock 하는 다른 타로 라우트 테스트들이 통째로 죽는다
       // (rate-limit.js 를 정적으로 걸었다가 같은 일을 겪고 되돌렸다).
-      const consultationLocale = asText(body?.locale) || "ko";
+      const consultationLocale = getAmbientAiLocale() || asText(body?.locale) || "ko";
       const { createOracleConsultationLlm } = await import("../lib/tarot-oracle-llm.js");
       const result = await generateOracleConsultation(body, {
         env,
