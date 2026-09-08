@@ -34,6 +34,11 @@
 .featureVisualDetail .featureEditorial dl>div{display:flex;gap:16px;justify-content:space-between;align-items:baseline;padding:14px 0;border-bottom:1px solid #c7bba8;font-size:13px;line-height:1.6}
 .featureVisualDetail .featureEditorial dt{font-weight:600;flex-shrink:0;color:#3d3540}
 .featureVisualDetail .featureEditorial dd{margin:0;text-align:right;color:#645565;word-break:keep-all}
+.featureVisualDetail .featureEditorialNeo{background:#17142b;color:#f5efff}
+.featureVisualDetail .featureEditorialNeo .featureEditorialTitle,.featureVisualDetail .featureEditorialNeo dt{color:#f5efff}
+.featureVisualDetail .featureEditorialNeo dd{color:#ded3ff}
+.featureVisualDetail .featureEditorialNeo dl{border-color:rgba(198,181,255,.42)}
+.featureVisualDetail .featureEditorialNeo dl>div{border-color:rgba(198,181,255,.28)}
 @media(min-width:700px){.featureVisualDetail .featureEditorial{margin-top:0;padding:28px 24px 32px}}
 .featureDetailStandaloneLink{display:inline-flex;min-height:44px;align-items:center;padding:8px 0;margin-bottom:20px;color:#e7cc9f;font-size:14px;text-decoration:underline;text-underline-offset:5px}
 .tile-pvw-overlay.pvw-visual #tilePvwHero,.tile-pvw-overlay.pvw-visual #tilePvwTagline,.tile-pvw-overlay.pvw-visual .tile-pvw-divider,.tile-pvw-overlay.pvw-visual #tilePvwFeatsLabel,.tile-pvw-overlay.pvw-visual #tilePvwFeats,.tile-pvw-overlay.pvw-visual #tilePvwPremiumBlock,.tile-pvw-overlay.pvw-visual #tilePvwScaleSec,.tile-pvw-overlay.pvw-visual #tilePvwQuestSec,.tile-pvw-overlay.pvw-visual #tilePvwStepsSec,.tile-pvw-overlay.pvw-visual #tilePvwReqSec,.tile-pvw-overlay.pvw-visual #tilePvwAudSec,.tile-pvw-overlay.pvw-visual #tilePvwCompareSec,.tile-pvw-overlay.pvw-visual #tilePvwFaqSec{display:none}

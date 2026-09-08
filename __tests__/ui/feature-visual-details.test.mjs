@@ -5,7 +5,7 @@ import { renderFeatureDetailPanels } from '../../js/feature-detail-panels.mjs';
 
 const catalog = JSON.parse(fs.readFileSync('public/feature-details/catalog.json', 'utf8'));
 test('published visual introductions have proven sources, real assets, and distinct destinations', () => {
-  assert.ok(catalog.length >= 3);
+  assert.ok(catalog.length >= 4);
   assert.equal(new Set(catalog.map(item => item.slug)).size, catalog.length);
   for (const entry of catalog) {
     const detail = JSON.parse(fs.readFileSync(`public/feature-details/${entry.slug}.json`, 'utf8'));
@@ -21,6 +21,10 @@ test('published visual introductions have proven sources, real assets, and disti
     assert.ok(renderFeatureDetailPanels(detail).includes(detail.headline));
   }
   assert.ok(!catalog.find(item => item.slug === 'animal-destiny').aliases.includes('animal-destiny-unlock'), 'free route must not replace a separately locked feature');
+  const neo = JSON.parse(fs.readFileSync('public/feature-details/neo-operation-room.json', 'utf8'));
+  assert.equal(neo.panels[0].visualPreview, 'neo');
+  assert.match(renderFeatureDetailPanels(neo), /한 가지 지도로/);
+  assert.doesNotMatch(renderFeatureDetailPanels(neo), /개발용 예시|개인 결과/);
 });
 
 test('shared renderer escapes text and rejects unsafe image URLs and unverified content', () => {

@@ -34,12 +34,12 @@ try {
   console.log('PASS unknown feature is 404');
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(origin + '/app/', { waitUntil: 'domcontentloaded', timeout: 120000 });
-  console.log('React hub links:', await page.locator('a[href*="life-book"]').count());
-  await page.locator('a[href*="life-book"]').first().click();
+  console.log('React hub Neo links:', await page.locator('a[href="/neo-operation-room"]').count());
+  await page.locator('a[href="/neo-operation-room"]').first().click();
   const dialog = page.getByRole('dialog');
-  await dialog.locator('[data-feature-visual-detail="life-book-ai"]').waitFor({ timeout: 30000 });
+  await dialog.locator('[data-feature-visual-detail="neo-operation-room"]').waitFor({ timeout: 30000 });
   await dialog.screenshot({ path: path.join(output, 'detail-react-popup.png') });
   await page.keyboard.press('Escape');
   assert.equal(await dialog.count(), 0);
-  console.log('PASS React detail popup and Escape close');
+  console.log('PASS React Neo detail popup and Escape close');
 } finally { await browser.close(); }
