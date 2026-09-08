@@ -164,8 +164,14 @@ const PAID_FEATURE_ACCESS_CACHE_MAX_ENTRIES = 2500;
 const sharedPaidAccessDecisionCache = globalThis.__paidAccessDecisionCache
   || (globalThis.__paidAccessDecisionCache = { entries: new Map(), lastPruneAt: 0 });
 
-function buildFeatureAccessCacheKey(userId, effectiveFeatureKey, coinCost) {
-  return `${cleanText(userId)}|pfa:${cleanText(effectiveFeatureKey)}|${Math.max(0, Math.floor(Number(coinCost || 0)))}`;
+function buildFeatureAccessCacheKey(userId, effectiveFeatureKey, coinCost, options) {
+  // 회당 결제 증빙과 프로필 해금은 조회와 캐시의 범위가 같아야 한다.
+  // JSON 배열로 묶어 requestId/profileId 안의 구분자도 서로 다른 키로 보존한다.
+  const scope = JSON.stringify([
+    cleanText(options.profileId || options.userDoc?.destinyProfilesCurrentId),
+    isPerUsePaidFeatureKey(effectiveFeatureKey) ? cleanText(options.requestId || options.idempotencyKey) : "",
+  ]);
+  return `${cleanText(userId)}|pfa:${cleanText(effectiveFeatureKey)}|${Math.max(0, Math.floor(Number(coinCost || 0)))}|${scope}`;
 }
 
 function readFeatureAccessDecisionFromCache(cacheKey) {
@@ -360,7 +366,7 @@ export async function canAccessPaidFeaturesBatch(userId, featureKeys, options = 
 
   const pendingSpecs = [];
   for (const spec of specs) {
-    spec.cacheKey = buildFeatureAccessCacheKey(normalizedUserId, spec.effectiveFeatureKey, spec.coinCost);
+    spec.cacheKey = buildFeatureAccessCacheKey(normalizedUserId, spec.effectiveFeatureKey, spec.coinCost, options);
     const cached = readFeatureAccessDecisionFromCache(spec.cacheKey);
     if (cached) {
       decisions[spec.requestedFeatureKey] = cached;

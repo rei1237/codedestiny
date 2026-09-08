@@ -91,7 +91,7 @@ Phase 1의 미분류 0개 조건은 아직 충족되지 않았다. 다만 순수
 
 다음 검토는 Inventory의 source → import/호출자 → route → prepare → grant → 실제 entitlement reader → result 저장을 연결한다. 모든 keyword hit를 유료 진입점으로 세지 말고, core/consumer/supporting/non-payment 역할을 근거로 분류한다. source 검토에는 모든 후보 call의 행번호·이유가 필요하다. 상품 검토에는 모든 상세 열과 source hash/행 근거가 필요하다.
 
-`docs/payments/payment-inventory-reviews.json`에 `sources`/`products` 객체로 검토를 추가할 수 있다. source 키는 경로이고 값은 `sha256`, `role`, `rationale`, `calls:[{name,line,rationale}]`이다. product 키는 Inventory id이고 값은 `fingerprint`, `rationale`, `evidence:[{file,sha256,line}]`, `details`다. `details`에는 displayName/routes/frontendTypes/pass/moonstone/pg/kakaoPay/paymentStart/paymentApis/returnDestinations/resume/entitlementStorage/resultTiming/recovery가 필요하다. 해당 없는 항목은 근거 있는 N/A로 작성한다. 코드 hash가 달라지면 검토를 다시 해야 한다. 이 검토는 기기 E2E 증거를 대신하지 않는다.
+`docs/payments/payment-inventory-reviews.json`에 `sources`/`products` 객체로 검토를 추가할 수 있다. source 키는 경로이고 값은 `sha256`(source의 LF 정규화 `reviewSha256`), `role`, `rationale`, `calls:[{name,line,rationale}]`이다. product 키는 Inventory id이고 값은 `fingerprint`, `rationale`, `evidence:[{file,sha256,line}]`, `details`다. `details`에는 displayName/routes/frontendTypes/pass/moonstone/pg/kakaoPay/paymentStart/paymentApis/returnDestinations/resume/entitlementStorage/resultTiming/recovery가 필요하다. 해당 없는 항목은 근거 있는 N/A로 작성한다. 코드 hash가 달라지면 검토를 다시 해야 한다. 이 검토는 기기 E2E 증거를 대신하지 않는다.
 
 ```sh
 node --require ./scripts/lib/mock-network-guard.cjs scripts/payment-inventory.mjs --write --check
@@ -103,3 +103,20 @@ npm run check:fast
 추출 CLI 자체는 로컬 파일만 읽고 `--write`에서 문서만 쓴다. 현재 `--check` 실패는 조사 미완료를 드러내는 계약이다. CI 필수 게이트 연결은 아직 하지 않았으며, 연결 완료로 보고하지 않는다.
 
 운영 반영·과거 데이터 복원 적용은 하지 않았다. 롤백 시 승인 주문·권한·소비 증빙을 삭제하지 않는다. Inventory 검토·durable resume·운영 환경 검증이 남아 있어 PR은 draft로 유지한다.
+
+
+## 2026-09-08 후속 검토: 복구·캐시·재구매
+
+최신 main `8cc8d24b7`에서 `codex/payment-stabilization-review`로 계속했다. 기존 `payment-inventory-phase1`의 인계 커밋은 보존했다.
+
+- **접근 캐시 범위:** 회당 결제 A의 허용 캐시가 미결제 B를 통과시키고, 무증빙 호출의 거절 캐시가 결제 완료 복구를 막는 두 방향을 mock으로 재현했다. 캐시를 요청·프로필로 분리했다. 동일 요청은 기존 3초 캐시를 재사용하고 사용자 prefix 무효화는 유지한다.
+- **암호문 binding:** 저장된 binding만 믿지 않고 주문의 사용자·요청·상품과 대조한다. 이용권의 기존 재구매 세대 키도 허용하며 소유자/요청/상품이 달라지면 복구 입력을 반환하지 않는다.
+- **환불 후 재구매:** 기존 구현은 REFUNDED를 ACTIVE로만 바꿔 `alreadyOwned=true`와 이전 주문번호를 남겼다. 환불된 행에만 CAS를 적용해 새 주문·결제수단·가격·지급시각으로 전환한다. 활성 권한 재생은 최초 주문을 보존하고 이전 주문의 환불 재생은 새 권한을 회수하지 않는다. 주문 이력은 Payment에 남긴다.
+- **음원 검토:** manifest의 고유 음원 123개를 공용 플레이어 → 게이트 → catalog/지급 → 접근 reader → 다운로드 경로로 검토했다. 4개 source 및 2개 call 근거도 hash에 고정했다. 현재 미검토는 재추출 기준 1,220 → 1,091개이며 Phase 1은 아직 실패한다. 상품 검토는 실제 기기/PG/E2E 성공을 뜻하지 않는다.
+- **TTL 사실 정정:** `worker/payments/reconcile.js`에 7일 초과 payload 제거가 이미 구현돼 있다. 주문 자체는 삭제하지 않는다. 별도 TTL collection, 결과 저장 완료 즉시 입력 제거, 전체 기능 복구 계약 검토는 남아 있다.
+
+검증: 결제 v2 26 suites / 389 tests PASS, 접근 캐시 10 tests PASS, 서버 복구 7 tests PASS. 전체 `check:fast` 결과는 최신 인계 문서 참조. 실결제·실 LLM·운영 DB 변경은 실행하지 않았다. 가격·이용권/월정석/단건 선택 정책·인증·API 응답 구조·DB 스키마는 유지했다.
+
+롤백은 이번 코드 변경을 되돌리는 PR로 수행한다. 주문·권한·사용량 기록을 삭제하거나 예산을 다시 지급하지 않는다. 실제 PG/실기기 증거, 미검토 1,091개, 과거 조기 종료 read-only 후보 보고, 성능 비교가 남아 있다.
+
+검토 hash는 LF 정규화한 `reviewSha256`를 쓴다. 원본 `sha256`는 정확한 바이트 미러 판정용으로 유지한다. Windows/CI 줄바꿈 차이는 검토를 무효화하지 않지만 실제 코드 차이는 무효화한다. Inventory 회귀 11 tests PASS.

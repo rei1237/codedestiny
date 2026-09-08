@@ -159,14 +159,38 @@ describe("지급은 멱등이다", () => {
     await revokeEntitlementForOrder(db, { orderId: ORDER });
     expect(db.rows[0].status).toBe(CONTENT_ENTITLEMENT_STATUSES.REFUNDED);
 
-    await grantEntitlement(db, { userId: USER, product: PRODUCT, orderId: "cdorder2" });
+    const repurchase = await grantEntitlement(db, { userId: USER, product: PRODUCT, orderId: "cdorder2" });
     expect(db.rows).toHaveLength(1);
     expect(db.rows[0].status).toBe(CONTENT_ENTITLEMENT_STATUSES.ACTIVE);
+    expect(repurchase.alreadyOwned).toBe(false);
+    expect(db.rows[0].orderId).toBe("cdorder2");
+    expect(await revokeEntitlementForOrder(db, { orderId: ORDER })).toBe(false);
+    expect(await revokeEntitlementForOrder(db, { orderId: "cdorder2" })).toBe(true);
   });
 
   test("로그인하지 않았으면 지급하지 않는다", async () => {
     const db = makeFakePaymentDb();
     await expect(grantEntitlement(db, { userId: "", product: PRODUCT, orderId: ORDER })).rejects.toThrow(PaymentError);
+  });
+
+  test("환불된 주문의 재생은 권한을 되살리지 않는다", async () => {
+    const db = makeFakePaymentDb();
+    await grantEntitlement(db, { userId: USER, product: PRODUCT, orderId: ORDER });
+    await revokeEntitlementForOrder(db, { orderId: ORDER });
+    await expect(grantEntitlement(db, { userId: USER, product: PRODUCT, orderId: ORDER })).rejects.toThrow(PaymentError);
+    expect(db.rows[0].status).toBe(CONTENT_ENTITLEMENT_STATUSES.REFUNDED);
+  });
+
+  test("동시 재구매는 하나의 주문만 새 지급으로 처리한다", async () => {
+    const db = makeFakePaymentDb();
+    await grantEntitlement(db, { userId: USER, product: PRODUCT, orderId: ORDER });
+    await revokeEntitlementForOrder(db, { orderId: ORDER });
+    const results = await Promise.all(["repurchase-a", "repurchase-b"].map(orderId =>
+      grantEntitlement(db, { userId: USER, product: PRODUCT, orderId }),
+    ));
+    expect(results.filter(result => !result.alreadyOwned)).toHaveLength(1);
+    expect(db.rows).toHaveLength(1);
+    expect(["repurchase-a", "repurchase-b"]).toContain(db.rows[0].orderId);
   });
 
   test("🔴 userId 는 String 으로 저장된다 — ObjectId 로 섞이면 unique 가 충돌하지 않는다", async () => {
