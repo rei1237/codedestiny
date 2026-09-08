@@ -8,8 +8,9 @@ next: Ready PR의 최신 HEAD 검사 상태를 확인하고 명시적으로 승�
 - 작업 폴더: D:\Development\worktree-sukuyo-reading-house
 - 브랜치: codex/sukuyo-reading-house
 - 기준: origin/main 174c363ee9e3 (PR #1818)
-- 상태: 사용자 승인 시안 적용 및 로컬 검증 완료. PR 생성 진행 중.
-- PR/마지막 푸시: 생성 후 이 문서에 기록한다.
+- 상태: 사용자 승인 시안 적용 및 로컬 검증 완료. Ready PR 생성 완료, CI 확인 중.
+- PR: https://github.com/rei1237/codedestiny/pull/1835
+- 구현 푸시 SHA: 17f406301. 이 문서의 PR 기록 후속 커밋이 최신 HEAD이며 `git rev-parse HEAD`로 확인한다.
 
 ## 구현과 유지 경계
 
@@ -28,6 +29,7 @@ next: Ready PR의 최신 HEAD 검사 상태를 확인하고 명시적으로 승�
 - node scripts/verify-sukuyo-reading-house.mjs: 기존 컨트롤 보존, 27숙 탐색 중 본명숙 불변, 글 26편 열기/포커스 복귀, 360/390/430/1280 가로 넘침 없음, JS 오류 없음.
 - node scripts/verify-insight-authored.mjs sukuyo-myeongseong sukuyo-wiseong: 원문 렌더·1200자 이상·중복 지문 검사 통과 (2460/2512자).
 - npm run sync:public / npm run sitemap:generate: 정본에서 미러·사이트맵 재생성.
+- 최종 변경 후 basic-fortune/reading-house 재검사, 변경 대상 ESLint 0 errors (legacy warnings 유지), sitemap:check·build-sukuyo-reading-library --check·handoff-contract 통과. 커밋 후 verify:public-mirror-fresh도 통과했다.
 - 검증은 전부 mock 네트워크다. 실 LLM·결제·운영 DB·배포를 호출하지 않았다.
 - 실제 화면과 승인 시안의 독립 마감 검토: 차단 회귀 없음. Impeccable 정적 detector 결과 []는 기능 검증과 별도로 확인했다.
 - 증거: .impeccable/basic-fortune/house/house-report.json 및 스크린샷, .impeccable/sukuyo-check-fast.log (로컬 전용).
@@ -40,5 +42,5 @@ PR의 최신 검사 결과를 확인한다. 머지 및 스테이징·프로덕�
 
 ```powershell
 Set-Location 'D:\Development\worktree-sukuyo-reading-house'
-codex 'D:\Development\worktree-sukuyo-reading-house\docs\handoff\sukuyo-reading-house.md를 읽고 codex/sukuyo-reading-house 브랜치의 Ready PR 최신 검사 상태부터 확인하라. 머지는 명시적 승인 이후에만 진행하고 스테이징 SHA와 정상 응답을 검증하라.'
+codex 'D:\Development\worktree-sukuyo-reading-house\docs\handoff\sukuyo-reading-house.md를 읽고 codex/sukuyo-reading-house 브랜치와 https://github.com/rei1237/codedestiny/pull/1835 의 최신 검사 상태부터 확인하라. 머지는 명시적 승인 이후에만 진행하고 스테이징 SHA와 정상 응답을 검증하라.'
 ```
