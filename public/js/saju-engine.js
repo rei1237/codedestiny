@@ -26289,6 +26289,23 @@ function renderZiwei(p, natal, targetId) {
 
         var wrapper = document.getElementById(targetPanelId);
         if (!wrapper) return;
+        // Presentation-only snapshot. Reuse the existing heuristic; never write into pd
+        // or expose the paid decade's annual readings. Periods compare natal placements.
+        wrapper.__zwVisualMetrics = {
+          radar: { labels: labels.slice(), values: [r1, r2, r3, r4, r5] },
+          periods: (Array.isArray(pd.daHanList) ? pd.daHanList : []).filter(function(period) {
+            return Number.isInteger(period.idx) && period.idx >= 0 && period.idx < 12
+              && Number.isFinite(period.startAge) && Number.isFinite(period.endAge);
+          }).map(function(period) {
+            var signal = zwFlowPalaceSignal(period.idx, pd.yearGan);
+            return {
+              idx: period.idx, name: period.palaceName,
+              startAge: period.startAge, endAge: period.endAge,
+              scores: { overall: signal.score, career: zwFlowDomainScore(signal, 'career'), money: zwFlowDomainScore(signal, 'money'), love: zwFlowDomainScore(signal, 'love'), health: zwFlowDomainScore(signal, 'health') },
+              main: signal.main.slice(), aux: signal.aux.slice(), bad: signal.bad.slice()
+            };
+          }).sort(function(a, b) { return a.startAge - b.startAge; })
+        };
         wrapper.innerHTML = panelHtml;
         wrapper.querySelectorAll('.zw-reading-panel').forEach(function(panel) {
           var stateLabel = panel.querySelector('[data-zw-panel-state]');

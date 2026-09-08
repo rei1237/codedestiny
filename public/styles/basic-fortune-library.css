@@ -288,7 +288,39 @@ body:has(#ziweiModalOverlay[aria-hidden="false"]) #cdMobileBottomNav { display:n
 #ziweiModalOverlay #zwDeepAiPromptPanel :is(textarea,select) { width:100%; padding:12px; border:1px solid #657286; border-radius:6px; background:#0b121b; color:var(--fr-ink); font-size:16px !important; }
 #ziweiModalOverlay .fr-consult-example { display:block; padding:12px; text-align:left; border:1px solid var(--fr-rule); background:#202c38; color:var(--fr-ink); border-radius:6px; margin:10px 0; }
 #ziweiModalOverlay :is(.zw-detail-panel,.zw-report-section) { box-shadow:none !important; }
+#ziweiModalOverlay .fr-radar { max-width:380px; margin:24px auto; }
+#ziweiModalOverlay .fr-radar figcaption { font-size:18px; color:var(--fr-accent); text-align:center; }
+#ziweiModalOverlay .fr-radar svg { display:block; width:100%; height:auto; }
+#ziweiModalOverlay .fr-radar-grid { fill:none; stroke:#e0c58c; stroke-opacity:.24; }
+#ziweiModalOverlay .fr-graph-axis { stroke:#e0c58c; stroke-opacity:.2; }
+#ziweiModalOverlay .fr-radar-value { fill:#b3a0ee; fill-opacity:.3; stroke:#c7b7ff; stroke-width:2; }
+#ziweiModalOverlay .fr-radar-dot { fill:#e2d9ff; }
+#ziweiModalOverlay :is(.fr-radar-label,.fr-flow-scale,.fr-flow-age) { fill:var(--fr-muted); font-size:13px; }
+#ziweiModalOverlay .fr-radar-values { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:4px; text-align:center; }
+#ziweiModalOverlay .fr-radar-values dt { font-size:12px; color:var(--fr-muted); }
+#ziweiModalOverlay .fr-radar-values dd { margin:6px 0; color:#e2d9ff; font-size:18px; }
+#ziweiModalOverlay .fr-life-graph { padding:24px; background:var(--fr-surface); border:1px solid var(--fr-rule); border-radius:12px; min-width:0; }
+#ziweiModalOverlay .fr-life-graph h4 { font-family:'Gowun Batang',serif; font-size:24px; margin:0 0 12px; color:var(--fr-ink); }
+#ziweiModalOverlay .fr-flow-tabs { display:flex; flex-wrap:wrap; gap:8px; margin:20px 0; }
+#ziweiModalOverlay :is(.fr-flow-tabs button,.fr-flow-palace-link) { min-height:44px; padding:10px 14px; border:1px solid var(--fr-rule); border-radius:6px; background:transparent; color:var(--fr-ink); cursor:pointer; }
+#ziweiModalOverlay .fr-flow-tabs button[aria-pressed=true] { background:var(--fr-accent); color:#111923; border-color:var(--fr-accent); }
+#ziweiModalOverlay .fr-graph-legend { display:flex; gap:20px; font-size:14px; }
+#ziweiModalOverlay .fr-graph-scroll { overflow-x:auto; max-width:100%; overscroll-behavior-inline:contain; }
+#ziweiModalOverlay .fr-graph-scroll svg { display:block; width:100%; min-width:760px; height:auto; }
+#ziweiModalOverlay .fr-flow-curve { fill:none; stroke-width:2.5; }
+#ziweiModalOverlay .fr-series-primary { color:#86c8dd; stroke:#86c8dd; }
+#ziweiModalOverlay .fr-series-secondary { color:var(--fr-accent); stroke:var(--fr-accent); }
+#ziweiModalOverlay circle.fr-series-primary { fill:#86c8dd; }
+#ziweiModalOverlay circle.fr-series-secondary { fill:var(--fr-accent); }
+#ziweiModalOverlay .fr-point-hit { fill:transparent; }
+#ziweiModalOverlay .fr-point-ring { fill:none; stroke:transparent; stroke-width:2; pointer-events:none; }
+#ziweiModalOverlay .fr-flow-point { cursor:pointer; }
+#ziweiModalOverlay .fr-flow-point:is(.is-selected,:focus-visible) .fr-point-ring { stroke:#fff1cc; }
+#ziweiModalOverlay .fr-flow-readout { padding:16px 0 4px; border-top:1px solid var(--fr-rule); margin-top:16px; }
+#ziweiModalOverlay .fr-flow-readout strong { font-size:18px; color:var(--fr-accent); }
+#ziweiModalOverlay :is(.fr-radar,.fr-life-graph) .fr-caption { font-size:13px; line-height:1.7; color:var(--fr-muted); }
 @media(max-width:600px) {
+  #ziweiModalOverlay .fr-life-graph { padding:18px 12px; }
   #ziweiModalOverlay #ziweiModalSection.fr-report { padding:12px 10px 40px !important; }
   #ziweiModalOverlay .fr-profile .fr-brand { display:none; }
   #ziweiModalOverlay .fr-hero { padding:14px !important; }

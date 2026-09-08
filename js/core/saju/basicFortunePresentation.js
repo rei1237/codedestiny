@@ -256,7 +256,108 @@
     '복덕궁': ['마음이 쉬고 만족을 느끼는 방식', '겉으로 보이는 성취와 별개로 무엇에서 편안함과 의미를 느끼는지 살펴봅니다. 행복의 점수나 정신건강 진단은 아닙니다.', '성과와 상관없이 마음이 회복되는 활동을 찾아 일주일에 작은 시간을 남겨 보세요.'],
     '부모궁': ['보호와 권위를 대하는 방식', '부모·양육자 및 윗사람과의 관계에서 기대와 독립을 조율하는 태도를 살펴봅니다. 실제 가족의 성품이나 관계 전체를 판단하지 않습니다.', '받고 싶은 도움과 스스로 결정할 영역을 나누어 말해 보세요.']
   };
-  function ziweiEnergy(data, idx) {
+  function graphSvg(tag, attributes, text) {
+    var element = document.createElementNS('http://www.w3.org/2000/svg', tag);
+    Object.keys(attributes || {}).forEach(function(key) { element.setAttribute(key, attributes[key]); });
+    if (text != null) element.textContent = text;
+    return element;
+  }
+  function ziweiRadar(name, radar) {
+    var figure = node('figure', 'fr-radar');
+    figure.appendChild(node('figcaption', '', name + ' 에너지 스펙트럼'));
+    if (!radar || radar.values.length !== 5 || radar.values.some(function(value) { return !Number.isFinite(value); })) {
+      figure.appendChild(node('p', 'fr-caption', '스펙트럼 지표가 없습니다. 아래 궁별 설명을 참고해 주세요.')); return figure;
+    }
+    var svg = graphSvg('svg', { viewBox:'0 0 340 290', role:'img', 'aria-label':name + ' 에너지 스펙트럼 · 기존 해석기 보조지표' });
+    svg.appendChild(graphSvg('desc', {}, radar.labels.map(function(label,i) { return label + ' ' + radar.values[i]; }).join(', ') + '. 성격 검사나 성공 확률이 아닙니다.'));
+    function point(index, radius) { var angle = -Math.PI / 2 + index * Math.PI * 2 / 5; return [170 + Math.cos(angle) * radius, 146 + Math.sin(angle) * radius]; }
+    [25,50,75,100].forEach(function(level) {
+      svg.appendChild(graphSvg('polygon', {class:'fr-radar-grid', points:radar.labels.map(function(_,i) { return point(i,level).join(','); }).join(' ')}));
+    });
+    radar.labels.forEach(function(label,i) {
+      var edge = point(i,100), labelPoint = point(i,128);
+      svg.appendChild(graphSvg('line', {class:'fr-graph-axis', x1:170, y1:146, x2:edge[0], y2:edge[1]}));
+      svg.appendChild(graphSvg('text', {class:'fr-radar-label', x:labelPoint[0], y:labelPoint[1], 'text-anchor':'middle'}, label));
+    });
+    svg.appendChild(graphSvg('polygon', {class:'fr-radar-value', points:radar.values.map(function(value,i) { return point(i,Math.max(0,Math.min(100,value))).join(','); }).join(' ')}));
+    radar.values.forEach(function(value,i) { var position = point(i,value); svg.appendChild(graphSvg('circle',{class:'fr-radar-dot',cx:position[0],cy:position[1],r:4})); });
+    figure.appendChild(svg);
+    var values = node('dl', 'fr-radar-values');
+    radar.labels.forEach(function(label,i) { var item = node('div',''); item.appendChild(node('dt','',label)); item.appendChild(node('dd','',String(radar.values[i]))); values.appendChild(item); });
+    figure.appendChild(values);
+    figure.appendChild(node('p','fr-caption','0–100의 기존 해석기 보조지표입니다. 별의 개수와 궁의 역할을 단순화한 값이며, 성격·건강을 측정한 결과나 성공 확률이 아닙니다. 긴장·마찰 지표는 높다고 유리한 뜻이 아닙니다.'));
+    return figure;
+  }
+  function ziweiLifeGraph(periods, openPalace) {
+    var section = node('section','fr-life-graph');
+    section.appendChild(node('h4','', '인생 흐름 곡선'));
+    section.appendChild(node('p','fr-caption','대한이 지나는 궁의 원국 배치를 비교합니다. 곡선은 구간 사이를 읽기 쉽게 연결한 것으로, 중간 나이의 운을 계산하거나 사건을 예측한 선이 아닙니다.'));
+    if (!Array.isArray(periods) || !periods.length) { section.appendChild(node('p','', '대한 지표가 없어 곡선을 표시하지 않았습니다. 출생 정보를 확인해 주세요.')); return section; }
+    var tabs = node('div','fr-flow-tabs'); tabs.setAttribute('role','group'); tabs.setAttribute('aria-label','인생 흐름 영역');
+    var domains = [
+      {key:'overall',label:'전체 흐름',series:[['overall','전체']]},
+      {key:'work',label:'일과 재물',series:[['career','일'],['money','재물']]},
+      {key:'love',label:'관계',series:[['love','관계']]},
+      {key:'health',label:'회복',series:[['health','생활·회복']]}
+    ];
+    var chosen = domains[0], selected = 0;
+    var legend = node('div','fr-graph-legend');
+    var scroll = node('div','fr-graph-scroll');
+    var plot = graphSvg('svg',{viewBox:'0 0 840 280',role:'group','aria-label':'대한별 원국 배치 지표. 점을 선택하면 구간 설명이 표시됩니다.'});
+    var readout = node('div','fr-flow-readout'); readout.setAttribute('aria-live','polite'); readout.setAttribute('aria-atomic','true');
+    var detailLink = node('button','fr-flow-palace-link','선택한 궁 상세 읽기'); detailLink.type = 'button';
+    detailLink.addEventListener('click',function() { openPalace(periods[selected].idx); });
+    function coordinates(index, value) { return [50 + index * 740 / Math.max(1,periods.length - 1), 220 - value * 1.8]; }
+    function updateSelection() {
+      var period = periods[selected];
+      readout.replaceChildren(node('strong','', period.startAge + '–' + period.endAge + '세 · ' + period.name),node('p','',chosen.series.map(function(series) { return series[1] + ' 지표 ' + period.scores[series[0]]; }).join(' / ')),node('p','fr-caption','본궁 주성 ' + (period.main.join('·') || '없음(공궁)') + ' · 보조성 ' + period.aux.length + '개 · 주의성 ' + period.bad.length + '개'));
+      detailLink.textContent = period.name + ' 상세 읽기';
+      plot.querySelectorAll('[data-period]').forEach(function(point) { var active = Number(point.dataset.period) === selected; point.setAttribute('aria-pressed',String(active)); point.classList.toggle('is-selected',active); });
+    }
+    function draw() {
+      plot.replaceChildren(); legend.replaceChildren();
+      [0,25,50,75,100].forEach(function(value) {
+        var y = coordinates(0,value)[1];
+        plot.appendChild(graphSvg('line',{class:'fr-graph-axis',x1:50,x2:790,y1:y,y2:y}));
+        plot.appendChild(graphSvg('text',{class:'fr-flow-scale',x:35,y:y+4,'text-anchor':'end'},value));
+      });
+      chosen.series.forEach(function(series,seriesIndex) {
+        var colorClass = seriesIndex ? 'fr-series-secondary' : 'fr-series-primary';
+        legend.appendChild(node('span',colorClass,series[1] + ' · 원국 배치 지표'));
+        var positions = periods.map(function(period,index) { return coordinates(index,period.scores[series[0]]); });
+        var path = 'M' + positions[0].join(',');
+        for (var i=1;i<positions.length;i++) {
+          var previous=positions[i-1], current=positions[i], middle=(previous[0]+current[0])/2;
+          path += ' C' + middle + ',' + previous[1] + ' ' + middle + ',' + current[1] + ' ' + current.join(',');
+        }
+        plot.appendChild(graphSvg('path',{class:'fr-flow-curve '+colorClass,d:path}));
+        positions.forEach(function(position) { plot.appendChild(graphSvg('circle',{class:'fr-flow-mark '+colorClass,cx:position[0],cy:position[1],r:4})); });
+      });
+      periods.forEach(function(period,index) {
+        var position = coordinates(index,period.scores[chosen.series[0][0]]);
+        var target = graphSvg('g',{class:'fr-flow-point','data-period':index,role:'button',tabindex:0,'aria-label':period.startAge+'–'+period.endAge+'세 '+period.name+', '+chosen.series.map(function(series) { return series[1]+' '+period.scores[series[0]]; }).join(', ')});
+        target.appendChild(graphSvg('circle',{class:'fr-point-hit',cx:position[0],cy:position[1],r:25}));
+        target.appendChild(graphSvg('circle',{class:'fr-point-ring',cx:position[0],cy:position[1],r:8}));
+        target.addEventListener('click',function() { selected=index; updateSelection(); });
+        target.addEventListener('keydown',function(event) {
+          if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); selected=index; updateSelection(); }
+          if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') { event.preventDefault(); selected=(index+(event.key==='ArrowRight'?1:periods.length-1))%periods.length; updateSelection(); plot.querySelector('[data-period="'+selected+'"]').focus(); }
+        });
+        plot.appendChild(target);
+        plot.appendChild(graphSvg('text',{class:'fr-flow-age',x:position[0],y:249,'text-anchor':'middle'},period.startAge+'–'+period.endAge));
+      });
+      plot.appendChild(graphSvg('text',{class:'fr-flow-scale',x:790,y:270,'text-anchor':'end'},'나이(세)'));
+      tabs.querySelectorAll('button').forEach(function(button) { button.setAttribute('aria-pressed',String(button.dataset.domain === chosen.key)); });
+      updateSelection();
+    }
+    domains.forEach(function(domain) { var button=node('button','',domain.label); button.type='button'; button.dataset.domain=domain.key; button.addEventListener('click',function() { chosen=domain; draw(); }); tabs.appendChild(button); });
+    section.appendChild(tabs); section.appendChild(legend); scroll.appendChild(plot); section.appendChild(scroll);
+    section.appendChild(node('p','fr-caption fr-graph-hint','점을 눌러 시기를 선택하세요. 작은 화면에서는 그래프를 좌우로 넘길 수 있습니다.'));
+    section.appendChild(readout); section.appendChild(detailLink);
+    section.appendChild(node('p','fr-caption','기존 해석기의 가중 지표(0–100)이며 높낮이는 삶의 가치나 성취 등급이 아닙니다. 연도별 세운·대한 사화는 이 곡선에 반영하지 않으며, 회복 지표는 의학적 판단에 사용할 수 없습니다.'));
+    draw(); return section;
+  }
+  function ziweiEnergy(data, idx, radar) {
     var section = node('section', 'fr-energy');
     var name = data.palacesByIndex[idx];
     var guideName = name === '교우궁' ? '노복궁' : name;
@@ -265,6 +366,7 @@
     section.appendChild(node('h3', '', name + (palaceGuide ? ' · ' + palaceGuide[0] : ' 상세 해석')));
     if (palaceGuide) section.appendChild(node('p', 'fr-palace-intro', palaceGuide[1]));
     section.appendChild(node('p', 'fr-caption', '에너지는 운의 점수가 아니라, 이 영역에서 반복되기 쉬운 반응과 선택의 방향을 뜻합니다.'));
+    section.appendChild(ziweiRadar(name, radar));
     var stars = data.stars[idx] || {};
     var main = stars.main || [];
     function rawText(raw) { return typeof raw === 'object' && raw ? String(raw.name || raw.star || '') : String(raw); }
@@ -326,7 +428,8 @@
       choices.querySelectorAll('button').forEach(function (b) { b.setAttribute('aria-pressed', String(Number(b.dataset.palaceIndex) === idx)); });
       window._renderZwPanel(idx, pd.palacesByIndex[idx], pd.stars[idx], pd, { clickOnly: true, targetId: 'zwDetailPanel', showClose: true, showRadar: false, scroll: false });
       var old = reading.querySelector('.fr-energy'); if (old) old.remove();
-      reading.insertBefore(ziweiEnergy(pd, idx), reading.querySelector('#zwDetailPanel'));
+      var detailPanel = reading.querySelector('#zwDetailPanel');
+      reading.insertBefore(ziweiEnergy(pd, idx, detailPanel.__zwVisualMetrics && detailPanel.__zwVisualMetrics.radar), detailPanel);
       if (typeof window._zwDrawTriad === 'function') window._zwDrawTriad(idx);
       if (!initialSelection) reading.querySelector('.fr-energy').scrollIntoView({block:'start',behavior:'instant'});
     }
@@ -390,6 +493,9 @@
     if (full) {
       var flow = node('section', 'fr-flow-section'); flow.id = 'fr-ziwei-flow';
       flow.appendChild(heading(localized('flow')));
+      flow.appendChild(ziweiLifeGraph(full.__zwVisualMetrics && full.__zwVisualMetrics.periods, function(idx) {
+        var cell=cells.find(function(item) { return Number(item.className.match(/\bzw-cell-(\d+)\b/)[1]) === idx; }); if(cell) selectCell(cell);
+      }));
       flow.appendChild(node('h4', 'fr-flow-title', '인생 흐름표 · 대한의 흐름'));
       flow.appendChild(node('p', 'fr-caption', '대한은 약 10년 단위로 삶의 관심 영역을 살펴보는 틀입니다. 아래는 명반에서 계산된 나이 구간과 해당 궁이며, 좋고 나쁨을 매긴 점수표가 아닙니다.'));
       var timeline = node('ol', 'fr-life-timeline');

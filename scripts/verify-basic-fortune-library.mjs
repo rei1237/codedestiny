@@ -154,7 +154,21 @@ try {
           await cell.click();
           assert.equal(await cell.getAttribute('aria-pressed'), 'true');
           assert.ok((await page.locator('.fr-energy').innerText()).length > 300);
+          assert.equal(await page.locator('.fr-radar-value').count(), 1);
+          assert.equal(await page.locator('.fr-radar-values dd').count(), 5);
+          assert.deepEqual(await page.locator('.fr-radar-values dd').allTextContents(), await page.locator('#zwDetailPanel').evaluate(el => el.__zwVisualMetrics.radar.values.map(String)));
         }
+        assert.equal(await page.locator('.fr-flow-point').count(), 12);
+        assert.equal(await page.locator('.fr-flow-curve').count(), 1);
+        await page.locator('.fr-flow-tabs button').nth(1).click();
+        assert.equal(await page.locator('.fr-flow-curve').count(), 2);
+        await page.locator('.fr-flow-point').nth(2).click();
+        assert.equal(await page.locator('.fr-flow-point').nth(2).getAttribute('aria-pressed'), 'true');
+        await page.locator('.fr-flow-point').nth(2).focus();
+        await page.keyboard.press('ArrowRight');
+        assert.equal(await page.locator('.fr-flow-point').nth(3).getAttribute('aria-pressed'), 'true');
+        assert.ok((await page.locator('.fr-flow-readout').innerText()).length > 20);
+        assert.equal(await page.locator('.fr-flow-curve').evaluateAll(els => els.some(el => /NaN|undefined/.test(el.getAttribute('d')))), false);
         assert.equal(await page.locator('#zwDeepAiPromptDomain option').count(), 14);
         await page.locator('#zwDeepAiPromptDomain').selectOption('study');
         await page.locator('#zwDeepAiPromptExample').click();
@@ -178,6 +192,11 @@ try {
           await page.setViewportSize({width,height:width >= 768 ? 1000 : 844});
           await page.locator('.fr-energy').evaluate(el => el.scrollIntoView({block:'start',behavior:'instant'}));
           await page.screenshot({path:path.join(output,`ziwei-energy-${width}.png`)});
+          for (const [selector,label] of [['.fr-radar','radar'],['.fr-life-graph','curves']]) {
+            await page.locator(selector).evaluate(el => el.scrollIntoView({block:'start',behavior:'instant'}));
+            await page.waitForTimeout(300);
+            await page.screenshot({path:path.join(output,`ziwei-${label}-${width}.png`)});
+          }
         }
         await page.setViewportSize({width:390,height:844});
         for (const [selector,label] of [['#fr-ziwei-flow','flow'],['#zwDeepAiPromptPanel','consult']]) {
