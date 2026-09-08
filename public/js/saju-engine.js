@@ -28398,121 +28398,44 @@ function _relFlowFillScore(id, result) {
   return ok;
 }
 
-function renderRelFlowLite() {
-  var box = document.getElementById('relFlowLite');
-  if (!box) return;
-  var emptyEl = document.getElementById('relFlowLiteEmpty');
-  var bodyEl = document.getElementById('relFlowLiteBody');
-
-  // 내 원국이 없으면 Lite 두 함수가 돌지 않는다 — 블록 자체를 감춘다.
-  var meBirth = window._ziweiBirth;
-  if (!G_PILLARS || !meBirth || !(Number(meBirth.year) >= 1900)) {
-    box.style.display = 'none';
-    return;
-  }
-  box.style.display = '';
-
-  var nameEl = document.getElementById('compatName');
-  var name = String((nameEl && nameEl.value) || '').trim();
-  var bd = _cdReadBirthDateInput('compatBirthDate');
-  if (!name || !bd) {
-    if (emptyEl) emptyEl.style.display = '';
-    if (bodyEl) bodyEl.style.display = 'none';
-    return;
-  }
-  if (emptyEl) emptyEl.style.display = 'none';
-  if (bodyEl) bodyEl.style.display = '';
-
-  var dateParts = bd.split('-');
-  var time = _relFlowPartnerTime();
-  var partnerBirth = {
-    year: Number(dateParts[0]),
-    month: Number(dateParts[1]),
-    day: Number(dateParts[2]),
-    hour: time.hour,
-    minute: time.minute
-  };
-  var typeEl = document.getElementById('compatType');
-  var ctype = String((typeEl && typeEl.value) || 'love') || 'love';
-
-  _relFlowFillScore('relFlowLiteZiwei', typeof computeZiweiCompatLite === 'function' ? computeZiweiCompatLite(meBirth, partnerBirth) : null);
-  _relFlowFillScore('relFlowLiteAstro', typeof computeAstroCompatLite === 'function' ? computeAstroCompatLite(meBirth, partnerBirth) : null);
-
-  var relationScore = _relFlowScore((G_PILLARS.d || {}).gE, _relFlowElemByYear(partnerBirth.year));
-  var strengths = [];
-  var cautions = [];
-  var tips = [];
-
-  if (relationScore >= 1) {
-    strengths.push('기본 오행 흐름이 자연스럽게 맞물려 대화가 부드럽게 이어질 수 있습니다.');
-    strengths.push('의사결정 타이밍이 비슷해 함께 움직일 때 속도가 납니다.');
-  } else if (relationScore === 0) {
-    strengths.push('서로 역할이 달라 보완 시너지가 나기 좋은 조합입니다.');
-    cautions.push('속도감 차이가 있을 수 있어 중요한 결정은 템포 합의가 필요합니다.');
-  } else {
-    strengths.push('관점이 달라 아이디어 폭이 넓어지는 조합입니다.');
-    cautions.push('느끼는 속도가 다를 수 있으니 중간에 의도를 한 번 확인해 보세요.');
-  }
-
-  if (ctype === 'love') {
-    strengths.push('감정 표현이 부드럽게 이어질 때 친밀도가 빠르게 올라갑니다.');
-    cautions.push('서운함을 참아두면 한 번에 커질 수 있어 당일 대화가 좋습니다.');
-    tips.push('저녁 산책 20분 + 감사 한 문장 공유');
-    tips.push('연락 템포를 하루 1회만 명확히 합의');
-  } else if (ctype === 'friend') {
-    strengths.push('편한 대화에서 서로의 장점을 끌어내기 좋은 흐름입니다.');
-    cautions.push('농담 톤이 과해지면 피로도가 올라갈 수 있어 선을 맞춰주세요.');
-    tips.push('짧은 커피 약속으로 근황 점검 후 일정 확정');
-    tips.push('같이 할 작은 미션 1개를 오늘 바로 시작');
-  } else {
-    strengths.push('역할 분담이 명확할수록 결과물이 빠르게 정리됩니다.');
-    cautions.push('우선순위 기준이 다르면 일정 지연이 생길 수 있습니다.');
-    tips.push('회의 전 목표 3줄 공유 + 종료 전 액션 아이템 확정');
-    tips.push('피드백은 사실-대안-기한 순서로 짧게 전달');
-  }
-
-  var vibe = relationScore >= 1 ? '잘 맞는 흐름' : (relationScore === 0 ? '편안한 흐름' : '천천히 맞출 흐름');
-  var vibeEl = document.getElementById('relFlowLiteVibe');
-  if (vibeEl) {
-    vibeEl.textContent = '';
-    var who = document.createElement('b');
-    who.textContent = name;
-    var mood = document.createElement('b');
-    mood.textContent = vibe;
-    vibeEl.appendChild(who);
-    vibeEl.appendChild(document.createTextNode(' 님과는 '));
-    vibeEl.appendChild(mood);
-    vibeEl.appendChild(document.createTextNode('입니다. ' + strengths[0] + ' 중요한 대화는 저녁 시간대에 천천히 열어보면 잘 이어집니다.'));
-  }
-
-  _relFlowFillList('relFlowLiteStrengths', strengths);
-  _relFlowFillList('relFlowLiteCautions', cautions);
-  _relFlowFillList('relFlowLiteTips', tips);
-
-  var basisEl = document.getElementById('relFlowLiteBasis');
-  if (basisEl) {
-    var typeLabel = ctype === 'business' ? '비즈니스' : (ctype === 'friend' ? '친구' : '연애');
-    basisEl.textContent = '입력 기준: ' + bd + ' ' + z2(partnerBirth.hour) + ':' + z2(partnerBirth.minute) + ' · ' + typeLabel;
-  }
-}
+/* 관계 흐름 Lite는 다이어리 「함께 보기」로 옮겼다. 오래된 호출부와 유명인 프리필은
+   안전하게 무시해 유료 궁합 실행 흐름에 영향을 주지 않는다. */
+function renderRelFlowLite() {}
 window.renderRelFlowLite = renderRelFlowLite;
+window._cdInitRelFlowLite = function() {};
 
-/** 궁합 폼 입력이 바뀌면 그 자리에서 다시 그린다. 두 Lite 계산은 동기이고 캐시되므로 스피너를 두지 않는다. */
-function _cdInitRelFlowLite() {
-  var box = document.getElementById('relFlowLite');
-  if (!box) return;
-  if (!box.__cdRelFlowBound) {
-    box.__cdRelFlowBound = true;
-    ['compatName', 'compatBirthDate', 'compatBirthTimeText', 'compatType'].forEach(function(id) {
-      var el = document.getElementById(id);
-      if (!el) return;
-      el.addEventListener('input', renderRelFlowLite);
-      el.addEventListener('change', renderRelFlowLite);
-    });
+/* 구매 전 분석 항목 예시 라이트박스. 개인 결과를 만들지 않으며 네 가지 닫기 경로(Esc·배경·버튼·포커스 복귀)를 제공한다. */
+(function initCompatPreviewDialog() {
+  var lastTrigger = null;
+  function dialog() { return document.getElementById('compatPreviewDialog'); }
+  function close() {
+    var el = dialog();
+    if (el && el.open) el.close();
   }
-  renderRelFlowLite();
-}
-window._cdInitRelFlowLite = _cdInitRelFlowLite;
+  window.closeCompatPreview = close;
+  function open(trigger) {
+    var el = dialog();
+    if (!el || !trigger) return;
+    var image = document.getElementById('compatPreviewDialogImage');
+    var title = document.getElementById('compatPreviewDialogTitle');
+    var desc = document.getElementById('compatPreviewDialogDesc');
+    lastTrigger = trigger;
+    if (image) { image.src = trigger.getAttribute('data-compat-preview-src') || ''; image.alt = trigger.querySelector('img') ? trigger.querySelector('img').alt : ''; }
+    if (title) title.textContent = trigger.getAttribute('data-compat-preview-title') || '';
+    if (desc) desc.textContent = trigger.getAttribute('data-compat-preview-desc') || '';
+    if (!el.open) el.showModal();
+  }
+  function bind() {
+    var el = dialog();
+    if (!el || el.__compatPreviewBound) return;
+    el.__compatPreviewBound = true;
+    document.querySelectorAll('[data-compat-preview-src]').forEach(function(trigger) { trigger.addEventListener('click', function() { open(trigger); }); });
+    el.addEventListener('click', function(event) { if (event.target === el) close(); });
+    el.addEventListener('cancel', function(event) { event.preventDefault(); close(); });
+    el.addEventListener('close', function() { if (lastTrigger && document.contains(lastTrigger)) lastTrigger.focus(); lastTrigger = null; });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bind); else bind();
+})();
 
 async function runCompat(){
   if(!G_PILLARS||!G_NATAL||!G_POWER||!G_JOHU){
