@@ -72,6 +72,10 @@ export default function AnimalDestinyPage() {
 
   const handleHeaderBack = useCallback(() => {
     if (handleAnalysisBack()) return;
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      window.history.back();
+      return;
+    }
     const localeMatch = pathname.match(/^\/(en|ja|zh|en-us|ja-jp|zh-cn)(?=\/|$)/i);
     const fallbackPath = localeMatch ? `/${localeMatch[1]}/saju` : "/saju";
     if (typeof window !== "undefined") {

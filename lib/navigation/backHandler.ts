@@ -1,4 +1,4 @@
-export type BackPolicyKind = "none" | "main" | "analysis";
+export type BackPolicyKind = "none" | "main" | "analysis" | "transient";
 
 export type BackPolicy = {
   kind: BackPolicyKind;
