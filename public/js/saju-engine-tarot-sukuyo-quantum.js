@@ -8312,6 +8312,7 @@ function syYehwaMoonArt(cx, cy, r, lit, side, key, withBloom) {
         + '</g>'
       : '')
     + '</g>';
+}
 
 // 숙요점 세 핵심 화면의 달빛 아트는 의미별로 분리해 사용한다.
 // 장식 이미지이므로 계산 결과·텍스트·결제 흐름과 분리하고, 한 번 생성된 DOM은
@@ -10483,13 +10484,13 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         /* 결제 전 진입 카드의 상단 크레스트 밴드. 래퍼+SVG 구조는 결과 화면의
            .sy-compat-fate-wrap / .sy-compat-fate-svg 관례를 그대로 따른다. */
         /* 밴드 폭은 데스크탑에서 정확히 1080px 이 상한이라(.modal-content-inner-wide 1200px −
-           안쪽 패딩들) 캔버스를 1080×88 로 잡고 slice 를 쓴다. 폭이 줄면 세로는 그대로 두고
-           좌우만 잘리므로 아트의 코어 존이 항상 살아남는다. box-sizing 은 이 스타일시트에
-           전역 리셋이 없어서 직접 준다(안 주면 border 1px 때문에 90px 이 된다). */
-        .sy-crest-band { position:relative; box-sizing:border-box; width:100%; height:clamp(80px, 9vw, 104px); margin:0 0 13px; border-radius:14px; overflow:hidden; border:1px solid rgba(219,234,254,0.24); background:radial-gradient(circle at 50% 118%, rgba(196,181,253,0.16), transparent 58%), rgba(2,6,23,0.36); box-shadow:inset 0 1px 0 rgba(255,255,255,0.08), 0 10px 24px rgba(2,6,23,0.22); }
+           안쪽 패딩들) 원본 비율을 보존하는 반응형 프레임으로 표시한다. 폭이 줄어도
+           전체 아트가 유지되도록 contain 을 사용한다. box-sizing 은 이 스타일시트에
+           전역 리셋이 없어서 직접 준다. */
+        .sy-crest-band { position:relative; box-sizing:border-box; width:100%; height:auto; aspect-ratio:2.8 / 1; min-height:132px; max-height:214px; margin:0 0 13px; border-radius:14px; overflow:hidden; border:1px solid rgba(219,234,254,0.24); background:radial-gradient(circle at 50% 118%, rgba(196,181,253,0.16), transparent 58%), rgba(2,6,23,0.36); box-shadow:inset 0 1px 0 rgba(255,255,255,0.08), 0 10px 24px rgba(2,6,23,0.22); }
         .sy-crest-art { position:absolute; inset:0; isolation:isolate; background:#0b0a1a; }
         .sy-crest-art::after { content:''; position:absolute; inset:0; z-index:1; pointer-events:none; background:linear-gradient(90deg, rgba(5,7,19,0.48), transparent 18%, transparent 82%, rgba(5,7,19,0.48)), linear-gradient(180deg, rgba(5,7,19,0.18), transparent 38%, rgba(5,7,19,0.36)); }
-        .sy-crest-art img { display:block; width:100%; height:100%; object-fit:cover; object-position:center; opacity:0.94; transform:scale(1.015); }
+        .sy-crest-art img { display:block; width:100%; height:100%; object-fit:contain; object-position:center; opacity:0.94; }
         .sy-crest-art--compat img { object-position:center 54%; }
         .sy-crest-art--radar img { object-position:center 52%; }
         .sy-crest-art--dogam img { object-position:center 50%; }
@@ -10802,7 +10803,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           .sy-dogam-score-mini { grid-template-columns:1fr; }
           .sy-canon-moon-stage { min-height:116px; }
           .sy-canon-moon-core { width:58px; height:58px; }
-          .sy-crest-band { height:80px; margin-bottom:11px; }
+          .sy-crest-band { min-height:132px; max-height:174px; margin-bottom:11px; }
           .sy-lunar-year-grid { grid-template-columns:1fr; }
           .sy-lunar-score-orb { min-height:116px; }
           .sy-mini-grid { grid-template-columns:1fr; }
