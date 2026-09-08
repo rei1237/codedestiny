@@ -15,7 +15,6 @@
 //    expiresAt 을 now 로 당기고, 활성 판정이 전부 expiresAt 을 보므로 하위 게이트가 자동으로
 //    전부 닫힌다(passes.js applyBudgetExhaustionTermination 주석).
 import { User } from "./models.js";
-import { invalidateAccessStateCacheForUser } from "./access-state-cache.js";
 
 /* 🔴 정본은 **동적 임포트**로 가져온다. 이 파일을 부르는 nakshatra-paid-access.js 는 라우트 9곳이
    정적으로 물고 있어서, payments/* 를 정적으로 끌어오면 그 그래프(passes → orders → db)가
@@ -23,24 +22,6 @@ import { invalidateAccessStateCacheForUser } from "./access-state-cache.js";
    `await import("./payments/index.js")` 로 결제 모듈을 지연 로드하는 것과 같은 이유·같은 형태다. */
 function loadPassPolicy() {
   return import("../payments/passes.js");
-}
-
-function invalidatePassUsageReadCaches(userId) {
-  const uid = String(userId || "").trim();
-  if (!uid) return;
-  invalidateAccessStateCacheForUser(uid);
-  for (const cacheName of ["__billingBalanceCache", "__membershipPassCache", "__paidAccessDecisionCache"]) {
-    try {
-      const cache = globalThis[cacheName];
-      if (typeof cache?.invalidateForUser === "function") {
-        cache.invalidateForUser(uid);
-        continue;
-      }
-      for (const key of cache?.entries?.keys?.() || []) {
-        if (key === uid || key.startsWith(`${uid}|`) || key.startsWith(`${uid}::`)) cache.entries.delete(key);
-      }
-    } catch { /* 사용량 저장 성공을 캐시 정리가 막지 않는다. */ }
-  }
 }
 
 /* worker/payments/db.js 의 makeCountingDb 와 같은 모양의 최소 어댑터.
@@ -115,6 +96,5 @@ export async function consumePassForFeature({ user, entitlement, userId, feature
     // CAS 패배 = 그 사이 예산이 소진됐거나 이용권이 바뀌었다. 커버를 단정하지 않고 인계한다.
     return { covered: false, reason: "pass_access_conflict", replayed: false, coverage };
   }
-  invalidatePassUsageReadCaches(userId);
   return { covered: true, reason: "", replayed: false, coverage, user: updated };
 }

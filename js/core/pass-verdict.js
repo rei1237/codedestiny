@@ -572,30 +572,32 @@
     return storeMonthlyQuotaFromPayload(userId, { monthlySpendRemaining: remainingCoin });
   }
 
-  // coin-gate 성공 200 이 월 한도 잔여 0을 알리면 로컬 스냅샷의 예산만 즉시 갱신한다.
-  // 함수명은 기존 호출부 호환을 위해 유지한다. 구 passEnded 봉투도 같은 의미로 안전하게 흡수한다.
+  // coin-gate 성공 200 이 "이 건으로 월 한도를 다 써서 이용권이 종료됐다"고 알리면(서버 정본은
+  // worker/lib/profile-limits.js isPassBudgetExhausted → compat.js membershipPass.passEnded)
+  // 로컬 스냅샷을 즉시 미보유로 내린다. 안 내리면 다음 진입이 낙관 통과 → 402 → 결제창으로
+  // 한 왕복을 더 돈다.
+  //
+  // 🔴 storeStatus/buildSnapshotFromStatus 를 태우지 않는다 — 그 경로는 이용권 상태가 없는
+  // 응답으로 'none' 을 날조하지 못하게 막는 가드(isUntrustedNoneSource)를 품고 있고, 여기서는
+  // 서버가 "끝났다"고 명시한 것이라 그 가드를 통과시킬 이유가 없다. 전용 경로로 분리해 둔다.
   function markPassEndedFromPayload(userId, payload) {
     var uid = normalizeUserId(userId);
     if (!uid || !payload || typeof payload !== "object") return null;
     var data = payload.data && typeof payload.data === "object" ? payload.data : payload;
     var pass = data.membershipPass && typeof data.membershipPass === "object" ? data.membershipPass : {};
-    var exhausted = pass.passBudgetExhausted === true || data.passBudgetExhausted === true
-      || payload.passBudgetExhausted === true || pass.passEnded === true
-      || data.passEnded === true || payload.passEnded === true;
-    if (!exhausted) return null;
-    var current = readSnapshot(uid);
-    if (!current || current.state !== "active") return null;
-    var checkedAt = Date.now();
+    var ended = pass.passEnded === true || data.passEnded === true || payload.passEnded === true;
+    if (!ended) return null;
     return writeSnapshot(uid, {
-      ...current,
-      checkedAt: checkedAt,
-      purchaseVersion: text(pass.passBudgetExhaustedAt || data.passBudgetExhaustedAt
-        || payload.passBudgetExhaustedAt || pass.passEndedAt || data.passEndedAt || payload.passEndedAt),
+      state: "none",
+      tier: "free",
+      expiresAt: null,
+      checkedAt: Date.now(),
+      purchaseVersion: text(pass.passEndedAt || data.passEndedAt),
       source: "pass_budget_exhausted",
       completeness: "full",
       authority: "server",
       monthlySpendRemainingCoin: 0,
-      monthlyCheckedAt: checkedAt,
+      monthlyCheckedAt: Date.now(),
     });
   }
 

@@ -1,4 +1,8 @@
-import { MONTHLY_PASS_LIMITS_KRW, PASS_LIMITS_KRW } from "@/worker/lib/profile-limits";
+import {
+  MIN_PASS_COVERABLE_COIN,
+  MONTHLY_PASS_LIMITS_KRW,
+  PASS_LIMITS_KRW,
+} from "@/worker/lib/profile-limits";
 
 export type PassTier = "standard" | "premium" | "vvip" | "family";
 
@@ -89,10 +93,11 @@ export function describePassEligibility(
   const remainingKRW = passUsage?.remainingKRW == null
     ? Math.max(0, monthlyLimitKRW - usedKRW)
     : Math.max(0, Number(passUsage.remainingKRW));
+  const minimumCoverableKRW = Number(MIN_PASS_COVERABLE_COIN || 0) * 100;
   const monthlyExhausted = Boolean(
     currentTier
       && monthlyLimitKRW > 0
-      && remainingKRW <= 0,
+      && remainingKRW < minimumCoverableKRW,
   );
   const coveredByCurrentPass = Boolean(minimumTier && currentTier && currentRank >= minimumRank && !monthlyExhausted);
 

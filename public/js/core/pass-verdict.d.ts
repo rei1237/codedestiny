@@ -81,7 +81,7 @@ declare const passVerdict: {
   storeMonthlyQuotaFromPayload(userId: string, payload: unknown): PassVerdictSnapshot | null;
   /** access-state 의 entitlementSnapshot.passUsage.remainingKRW 를 월 잔여로 시드한다(원화→코인, 요청 추가 0건). */
   storeMonthlyQuotaFromAccessState(userId: string, accessData: unknown): PassVerdictSnapshot | null;
-  /** 200/402 봉투가 월 한도 소진을 알리면 활성 스냅샷의 잔여 예산만 0으로 갱신한다. */
+  /** 200/402 봉투가 membershipPass.passEnded 를 실으면(월 한도 소진 = 이용권 종료) 스냅샷을 미보유로 내린다. */
   markPassEndedFromPayload(userId: string, payload: unknown): PassVerdictSnapshot | null;
   /** coin-gate 402 의 decisionReason 이 MONTHLY_PASS_LIMIT_EXCEEDED 인지 — 이용권은 있으므로 상점으로 보내지 않는다. */
   isMonthlyLimitPayload(payload: unknown): boolean;

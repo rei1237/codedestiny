@@ -352,8 +352,10 @@ const PASS_FAILURE_CODES = Object.freeze({
   invalid_price: "MEMBERSHIP_PASS_NOT_COVERED",
 });
 
-/* 기간 안에서 월 한도는 리셋되지 않는다. 잔여가 0이거나 이번 상품 가격보다 적으면 추가 콘텐츠는
-   원화 단건 결제 또는 월정석으로 인계하되, 이용권 등급·만료일·프로필 상한은 유지한다. */
+/* 🔴 "다음 달에 다시 열린다"고 쓰지 말 것 — 사이클 키가 이용권 만료일이라 기간 안에서 리셋이
+   없고, 2026-09-04 정책은 한도를 다 쓰면 그 자리에서 이용권을 끝낸다(profile-limits.js
+   isPassBudgetExhausted). 이 문구가 나오는 남은 경우는 잔여가 최저가보다는 커서 아직 종료되지
+   않았지만 이번 건은 못 덮는 상태뿐이다. verify:pass-tier-policy 가 리셋 문구 0건을 단언한다. */
 const PASS_FAILURE_MESSAGES = Object.freeze({
   monthly_pass_limit_exceeded: "이번 이용권의 남은 한도로는 이 서비스를 열 수 없습니다. 원화 단건 결제 또는 월정석으로 이용해 주세요.",
   pass_access_conflict: "이용권 상태를 확인하지 못했습니다. 원화 단건 결제 또는 월정석으로 이용해 주세요.",
@@ -594,31 +596,6 @@ function presentOrder(order) {
   };
 }
 
-/** 카드 결제 확정 응답의 프리미엄 열람 증빙은 일반 confirm과 새 탭 recovery가 공유한다. */
-async function attachPremiumAccessToConfirmedOrder(env, envelope, {
-  userId, order, orderId, requestId = "", reason = "",
-}) {
-  const featureKey = String(order?.featureKey || "");
-  // 기존 /confirm 은 클라이언트가 보낸 report reason 을 우선했다. recovery 만 주문
-  // snapshot 을 정본으로 쓰고, 기존 티켓 경로의 호환 계약은 그대로 둔다.
-  const canonicalReason = String(reason || order?.pricingSnapshot?.reason || "");
-  const reportType = resolvePremiumAccessReportType(featureKey, canonicalReason);
-  if (!reportType) return "";
-  const premiumAccessToken = await createPremiumAccessToken(env, {
-    userId: String(userId || ""),
-    reportType,
-    featureKey,
-    reason: canonicalReason,
-    transactionId: orderId,
-    requestId: String(requestId || order?.requestId || ""),
-    purchaseId: orderId,
-    chargedCoins: Number(order?.chargedPoints || 0),
-  });
-  if (!premiumAccessToken) return "";
-  envelope.premiumAccessToken = premiumAccessToken;
-  return buildPremiumAccessCookie(premiumAccessToken, String(env?.NODE_ENV || "").trim().toLowerCase() === "production");
-}
-
 /**
  * 확정 1단계 — 이 주문을 확정해도 되는가. Mongo 를 쓰지 않는 순수 판정이라 호출부가 이미 읽어 둔
  * 주문을 그대로 넘길 수 있다(이용권 확정처럼 자기 검증 때문에 어차피 한 번 읽는 경로의 중복 방지).
@@ -791,7 +768,6 @@ async function grantOrderEntitlement(db, order) {
     const product = resolveProduct({
       productId: String(order.productId || ""),
       featureKey: String(order.featureKey || ""),
-      reason: String(snapshot.reason || ""),
     });
     /* 🔴 회당 결제(per_use)는 영구 해금을 남기지 않는다 — 남기면 다음 이용이 공짜가 된다.
        월정석(coin-gate/moonstone)·이용권(coin-gate/pass-check) 경로에는 있던 이 경계가 단건 KRW
@@ -896,61 +872,6 @@ const ROUTES = {
       ctx.paymentStatus = String(order.status || "");
       ctx.resumeEvent = context ? "RESUME_CONTEXT_FOUND" : "RESUME_CONTEXT_MISSING";
       return json({ ok: true, context }, { headers: { "Cache-Control": "no-store" } });
-    },
-  },
-
-  /**
-   * 모바일 PG가 새 탭으로 돌아오면 localStorage의 복귀 티켓이 없어질 수 있다.
-   * 이 경로는 주문 번호 하나를 서버 사실(주문 + PortOne)으로 다시 확인한 뒤에만
-   * 암호화된 resume context를 돌려준다. URL 성공 값은 권한 근거가 아니다.
-   */
-  "POST /orders/:id/recover": {
-    auth: "required",
-    async handle({ request, env, ctx, userId, params, withDb }) {
-      ctx.orderId = params.id;
-      const result = await confirmOrder(env, ctx, { orderId: params.id, actorUserId: userId }, { withDb });
-      ctx.paymentStatus = "PAID";
-      await purgeCredentialCache(request, CREDENTIAL_CACHE_PREFIXES);
-
-      // PAID와 entitlement 지급은 별개다. 지급 대기 중에는 context를 돌려주면 안 된다.
-      // 그렇지 않으면 복귀 클라이언트가 결과 생성을 먼저 실행할 수 있다.
-      let context = null;
-      if (result.granted) {
-        // 입력 복호화 실패가 이미 PAID인 주문의 권한 확인을 실패로 바꾸면 안 된다.
-        try {
-          context = await readOrderResumeContext(result.order, env);
-          ctx.resumeEvent = context ? "RECOVERY_CONTEXT_FOUND" : "RECOVERY_CONTEXT_MISSING";
-        } catch (error) {
-          ctx.resumeEvent = "RECOVERY_CONTEXT_UNAVAILABLE";
-          console.warn("[payments] paid resume context unavailable", {
-            orderId: String(result.order?.merchantUid || ""),
-            message: String(error?.message || error).slice(0, 160),
-          });
-        }
-      } else {
-        ctx.resumeEvent = "RECOVERY_ENTITLEMENT_PENDING";
-      }
-
-      const envelope = legacyConfirmEnvelope(result.order, {
-        granted: result.granted,
-        replayed: result.replayed,
-        unlock: !isPerUseFeatureKey(result.order?.featureKey),
-      });
-      envelope.order = presentOrder(result.order);
-      envelope.entitlementStatus = result.granted ? "granted" : "pending";
-      envelope.context = context;
-      if (!result.granted) envelope.pollUrl = `/api/payments/orders/${encodeURIComponent(params.id)}`;
-      const premiumCookie = result.granted
-        ? await attachPremiumAccessToConfirmedOrder(env, envelope, {
-          userId, order: result.order, orderId: params.id,
-        })
-        : "";
-      return json(envelope, {
-        headers: {
-          "Cache-Control": "no-store",
-          ...(premiumCookie ? { "Set-Cookie": premiumCookie } : {}),
-        },
-      });
     },
   },
 
@@ -1139,13 +1060,27 @@ const ROUTES = {
         replayed: result.replayed,
         unlock: !isPerUseFeatureKey(result.order?.featureKey),
       });
-      // 프리미엄 리포트류는 확정 응답의 token(+쿠키)이 열람 자격이다. 새 탭 recovery도 같은 계약을 쓴다.
-      const premiumCookie = result.granted
-        ? await attachPremiumAccessToConfirmedOrder(env, envelope, {
-          userId, order: result.order, orderId, requestId: body.requestId, reason: body.reason,
-        })
-        : "";
-      return json(envelope, premiumCookie ? { headers: { "Set-Cookie": premiumCookie } } : undefined);
+      // 🔴 프리미엄 리포트류는 확정 응답의 premiumAccessToken(+쿠키)이 열람 자격이다 — 구 confirm 의
+      // successWithPremiumAccess 승계. 빠지면 결제는 됐는데 콘텐츠 접근이 막힌다(2026-08-12 수정).
+      const featureKey = String(result.order?.featureKey || "");
+      const reason = String(body.reason || result.order?.pricingSnapshot?.reason || "");
+      const reportType = result.granted ? resolvePremiumAccessReportType(featureKey, reason) : "";
+      if (!reportType) return json(envelope);
+      const premiumAccessToken = await createPremiumAccessToken(env, {
+        userId: String(userId || ""),
+        reportType,
+        featureKey,
+        reason,
+        transactionId: orderId,
+        requestId: String(body.requestId || ""),
+        purchaseId: orderId,
+        chargedCoins: Number(result.order?.chargedPoints || 0),
+      });
+      if (!premiumAccessToken) return json(envelope);
+      envelope.premiumAccessToken = premiumAccessToken;
+      return json(envelope, {
+        headers: { "Set-Cookie": buildPremiumAccessCookie(premiumAccessToken, String(env?.NODE_ENV || "").trim().toLowerCase() === "production") },
+      });
     },
   },
 
@@ -1305,7 +1240,7 @@ const ROUTES = {
         const entitlement = resolveCanonicalEntitlement(user || {});
         const coverage = evaluatePassCoverage({ user, entitlement, coinCost: product.priceCoins });
 
-        // 이미 커버한 실행은 마지막 소비로 예산이 0이 됐어도 복구한다.
+        // 이미 커버한 실행은 마지막 소비로 이용권이 종료됐어도 복구한다.
         // 현재 잔여 한도는 새 실행에만 적용하고 동일 요청의 재열람에 적용하지 않는다.
         const markers = Array.isArray(user?.recentConsumeRequestIds) ? user.recentConsumeRequestIds : [];
         if (marker && markers.includes(marker)) {
@@ -1385,14 +1320,17 @@ const ROUTES = {
           freeBySubscription: true,
         })
         : "";
-      // 소진을 유발한 응답에서 잔여 0을 알려 로컬 스냅샷의 예산만 즉시 갱신한다.
-      const passBudgetExhausted = isPassBudgetExhausted(
+      /* 🔴 소진을 유발한 **이 요청**이 클라이언트에 종료를 알리는 유일한 기회다. 다음 요청은 이용권이
+         이미 없어 no_active_pass 로 떨어지는데, 그 전에 스냅샷이 "보유"라고 답하면 낙관 통과 →
+         402 → 결제창의 왕복이 한 번 더 돈다. 판정은 소비 후 누적액 하나로 파생한다(플래그 배선 없음).
+         멱등 재생·이미 해금 경로에서도 같은 답이 나온다 — 이용권이 끝난 것은 사실이기 때문이다. */
+      const passEnded = isPassBudgetExhausted(
         outcome.coverage.tier,
         outcome.user?.profileSubscription?.monthlySpendCoin,
         outcome.coverage.budgetCoin,
       );
       const envelope = legacyPassCheckEnvelope({
-        product, requestId, profileId, unlock, premiumAccessToken, passBudgetExhausted,
+        product, requestId, profileId, unlock, premiumAccessToken, passEnded,
         coverage: outcome.coverage,
         entitlement: outcome.entitlement,
         user: outcome.user,

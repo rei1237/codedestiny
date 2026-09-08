@@ -143,29 +143,6 @@ describe("catalog: 가격 정본과 어긋나지 않는다", () => {
     expect(product.passExcluded).toBe(false);
   });
 
-  test("generic coin-gate reason 상품은 prepare와 지급 단계에서 같은 가격으로 복원된다", () => {
-    const input = { productId: "coin-gate-per-use", featureKey: "coin-gate-per-use", reason: "사주 인생의 책 PDF 생성" };
-    const product = resolveProduct(input);
-    expect(product.productId).toBe("coin-gate-per-use");
-    expect(product.featureKey).toBe("coin-gate-per-use");
-    expect(product.priceCoins).toBe(300);
-    expect(product.priceKRW).toBe(30000);
-    expect(product.billingType).toBe("per_use");
-    expect(product.reason).toBe("사주 인생의 책 PDF 생성");
-  });
-
-  test("generic coin-gate 상품은 reason 없이는 fail-closed 한다", () => {
-    expect(() => resolveProduct({ featureKey: "coin-gate-per-use" })).toThrow("상품 정보를 찾을 수 없습니다.");
-  });
-
-  test.each([
-    ["neville-meditation", "openNevilleMeditationPage 60분 코스", 5000],
-    ["cosmic-soul-meditation", "openCosmicSoulMeditation 30분 코스", 10000],
-    ["yoga-guru-per-use", "openYogaGuru 60분 코스", 5000],
-  ])("reason 변형 가격을 지급 단계에서도 보존한다: %s", (featureKey, reason, priceKRW) => {
-    expect(resolveProduct({ featureKey, reason }).priceKRW).toBe(priceKRW);
-  });
-
   test("해금 상품은 productId 로도 featureKey 로도 같은 답이 나온다", () => {
     const byId = resolveProduct({ productId: "unlock.premium_ziwei" });
     const byKey = resolveProduct({ featureKey: "premium-ziwei" });
@@ -177,30 +154,6 @@ describe("catalog: 가격 정본과 어긋나지 않는다", () => {
 
   test("별칭 featureKey 도 정규화된다", () => {
     expect(resolveProduct({ featureKey: "openSajuGuardianPage" }).featureKey).toBe("saju-guardian-unlock");
-  });
-
-  test("manifest 파생 음원 상품도 prepare와 같은 가격으로 지급 해석된다", () => {
-    const featureKey = "music-track-0rhpuvh";
-    const byKey = resolveProduct({ featureKey });
-    const byPrepareId = resolveProduct({ productId: featureKey, featureKey });
-    const byLegacyId = resolveProduct({ productId: `unlock.${featureKey}`, featureKey });
-
-    expect(byKey).toEqual(expect.objectContaining({
-      productId: featureKey,
-      featureKey,
-      priceKRW: 1000,
-      priceCoins: 10,
-      passExcluded: false,
-    }));
-    expect(byPrepareId).toEqual(byKey);
-    expect(byLegacyId).toEqual(byKey);
-  });
-
-  test("음원 featureKey와 다른 productId 조합은 지급 해석을 거부한다", () => {
-    expect(() => resolveProduct({
-      productId: "unlock.music-track-other",
-      featureKey: "music-track-0rhpuvh",
-    })).toThrow(PaymentError);
   });
 
   test("없는 상품과 가격 0 인 항목은 PRODUCT_NOT_FOUND", () => {

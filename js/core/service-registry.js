@@ -692,7 +692,7 @@ window.__cdServiceRegistry = [
     name: "달빛 음악 플레이어",
     desc: "운세와 어울리는 음악으로 마음 달래기",
     href: "/music/",
-    price: "무료 재생 · 다운로드 1,000원",
+    price: "무료",
     purposes: ["etc"],
     methods: ["ai"],
     keys: "음악 뮤직 bgm 플레이리스트",

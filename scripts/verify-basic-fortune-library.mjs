@@ -123,7 +123,8 @@ try {
     await fs.writeFile(path.join(output, `${type}-data.json`), JSON.stringify(data, null, 2));
     if (phase === 'after') {
       const previous = JSON.parse(await fs.readFile(path.join(root, '.impeccable/basic-fortune/before', `${type}-data.json`), 'utf8'));
-      const stable = value => JSON.parse(JSON.stringify(value, (key, item) => key === 'generatedAt' ? undefined : item));
+      // The approved edit changes recovery/timing prose, not mansion or daily calculation.
+      const stable = value => JSON.parse(JSON.stringify(value, (key, item) => key === 'generatedAt' || (type === 'sukuyo' && ['health','timing'].includes(key)) ? undefined : item));
       assert.deepEqual(stable(data), stable(previous), type + ': calculation result changed');
     }
     if (type !== 'astro') await fs.writeFile(path.join(output, `${type}.html`), await page.locator('#' + ids[type]).innerHTML());
@@ -150,7 +151,7 @@ try {
         await page.locator('.zw-grid').evaluate(el => el.scrollIntoView({ block: 'start', behavior: 'instant' }));
         await page.screenshot({ path: path.join(output, 'ziwei-chart-390.png') });
       } else {
-        await page.locator('#fr-sukuyo-chart > summary').click();
+        assert.equal(await page.locator('#syWheelCardHost').evaluate(el => !!el.closest('details:not([open])')), false);
         await page.locator('#syWheelCardHost').evaluate(el => el.scrollIntoView({ block: 'start', behavior: 'instant' }));
         await page.screenshot({ path: path.join(output, 'sukuyo-chart-390.png') });
       }
@@ -169,13 +170,17 @@ try {
       assert.equal(await page.evaluate(id => document.activeElement?.closest(`#${id}`) !== null, modalIds[type]), true);
       await page.keyboard.press('Tab');
       assert.equal(await page.evaluate(id => document.activeElement?.matches(`#${id} .modal-top-nav button`), modalIds[type]), true);
-      await pressTabUntil(`#fr-${type}-chart > summary`);
-      await page.keyboard.press('Enter');
-      assert.equal(await page.locator(`#fr-${type}-chart`).evaluate(el => el.open), true);
-      assert.equal(await page.locator(`#fr-${type}-chart > summary`).getAttribute('aria-expanded'), 'true');
       if (type === 'sukuyo') {
+        await pressTabUntil('.sy-house-nav button:nth-child(2)');
+        await page.keyboard.press('Enter');
+        assert.equal(await page.evaluate(() => document.activeElement?.id), 'syHouseTools');
+        assert.equal(await page.locator('#syWheelCardHost').evaluate(el => !!el.closest('details:not([open])')), false);
         await page.keyboard.press('Escape');
       } else {
+        await pressTabUntil(`#fr-${type}-chart > summary`);
+        await page.keyboard.press('Enter');
+        assert.equal(await page.locator(`#fr-${type}-chart`).evaluate(el => el.open), true);
+        assert.equal(await page.locator(`#fr-${type}-chart > summary`).getAttribute('aria-expanded'), 'true');
         await pressTabUntil(`#${modalIds[type]} .modal-nav-close`, true);
         await page.keyboard.press('Enter');
       }
