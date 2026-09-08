@@ -3,7 +3,7 @@
 - cwd: `D:/Development/code-destiny/.codex-worktrees/past-life-webtoon`
 - branch: `codex/past-life-webtoon`
 - base: `357108ef0`
-- PR: 생성 전. 서비스 구현과 로컬 검증 완료, 커밋·push·PR 전달 단계.
+- PR: [#1848](https://github.com/rei1237/codedestiny/pull/1848). 구현·로컬 검증·push 완료. PR #1844 확인 전 머지 보류.
 - 요청 전체: 관상 기반 3~6장 웹툰, 기승전결/프로필/근거/현재 연결/공유, 비용·성능 최적화, 기존 기능 보존. 사용자는 최종 구현·검증까지 원하며 목업만으로 완료가 아니다.
 
 ## 완료한 작업
@@ -35,8 +35,8 @@
 
 1. 2026-09-09 사용자 요청으로 큰 디자인 변경은 방향과 성공 기준을 공유한 뒤 별도 승인 대기 없이 자율 구현한다. 사용자가 명시적으로 목업 승인을 요구한 경우에만 멈춘다.
 2. 새 worktree를 만들지 말고 현재 격리를 계속 사용. 편집 전 worktree:status로 관련 파일 중첩 재확인.
-3. 변경 파일만 커밋하고 push한 뒤 PR을 만들고 최신 CI 상태를 확인한다.
-4. 조율 중인 PR #1844가 머지되고 스테이징 SHA가 확인될 때까지 이 PR은 머지하지 않는다. 새 main 기준 의존성/충돌과 CI를 다시 확인한 뒤 후속 전달한다.
+3. PR #1848의 최신 CI 상태를 확인한다.
+4. 조율 중인 PR #1844가 머지되고 스테이징 SHA가 확인될 때까지 PR #1848은 머지하지 않는다. 새 main 기준 의존성/충돌과 CI를 다시 확인한 뒤 후속 전달한다.
 5. 실기기 카메라·실제 카카오 파일 공유·운영 네트워크/LCP는 배포 가능한 환경에서 별도 확인한다. 실제 결제·운영 DB·운영 배포는 승인 없이 실행하지 않는다.
 
 ## 남은 위험
@@ -46,5 +46,5 @@
 ## 복사할 재개 지시
 
 ```text
-cwd=D:\Development\code-destiny\.codex-worktrees\past-life-webtoon 에서 docs\handoff\2026-09-09-past-life-webtoon.md를 읽고 codex/past-life-webtoon 작업을 이어가라. 구현과 로컬 검증은 완료되었다. PR #1844의 머지·스테이징 SHA 확인 전에는 이 PR을 머지하지 말고, 그 뒤 새 main 기준 충돌·의존성·CI를 재확인해 전달하라. 운영 배포는 별도 승인 전 실행하지 마라.
+cwd=D:\Development\code-destiny\.codex-worktrees\past-life-webtoon 에서 docs\handoff\2026-09-09-past-life-webtoon.md를 읽고 codex/past-life-webtoon / PR #1848 작업을 이어가라. 구현과 로컬 검증은 완료되었다. PR #1844의 머지·스테이징 SHA 확인 전에는 PR #1848을 머지하지 말고, 그 뒤 새 main 기준 충돌·의존성·CI를 재확인해 전달하라. 운영 배포는 별도 승인 전 실행하지 마라.
 ```
