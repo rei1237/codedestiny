@@ -9770,28 +9770,43 @@ function _ensureTerms24Style(){
     '#terms24Card .terms24-intro{font-size:.86rem;line-height:1.72;color:#70445c;opacity:.94;margin:-2px 0 16px;word-break:keep-all;overflow-wrap:break-word}',
     '#terms24Card .terms24-intro b{color:#b31955;font-weight:800;opacity:1}',
     '#terms24Card #terms24Grid{display:flex;flex-direction:column;gap:14px}',
-    '#terms24Card .t24-rhythm{border-radius:18px;padding:16px;background:linear-gradient(160deg,#fffdfb,#fff7fa);border:1px solid rgba(179,25,85,.14);box-shadow:0 10px 24px rgba(150,72,104,.09),inset 0 1px 0 rgba(255,255,255,.82)}',
+    '#terms24Card .t24-rhythm{position:relative;border-radius:20px;padding:17px;background:linear-gradient(160deg,#fffdfb,#fff7fa);border:1px solid rgba(179,25,85,.14);box-shadow:0 10px 24px rgba(150,72,104,.09),inset 0 1px 0 rgba(255,255,255,.82);overflow:hidden}',
+    '#terms24Card .t24-rhythm::before{content:"";position:absolute;inset:0 0 auto;height:3px;background:linear-gradient(90deg,#b31955,#e9a3bc 52%,#e4c67a);opacity:.9}',
     '#terms24Card .t24-rhythm-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}',
     '#terms24Card .t24-kicker{font-size:.74rem;font-weight:800;color:#8b3c60;margin:0 0 5px;line-height:1.35}',
     '#terms24Card .t24-headline{margin:0;color:#3c1830;font-size:1.05rem;line-height:1.45;font-weight:900;letter-spacing:0}',
     '#terms24Card .t24-summary{margin:8px 0 0;color:#5f2c48;font-size:.88rem;line-height:1.7;word-break:keep-all;overflow-wrap:break-word}',
     '#terms24Card .t24-pill{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;min-height:34px;padding:6px 11px;border-radius:999px;background:rgba(179,25,85,.08);border:1px solid rgba(179,25,85,.17);color:#7f244b;font-size:.76rem;font-weight:900;white-space:nowrap}',
-    '#terms24Card .t24-meter{margin:12px 0 13px;padding:11px 12px;border-radius:14px;background:rgba(255,255,255,.62);border:1px solid rgba(179,25,85,.1)}',
+    '#terms24Card .t24-meter{margin:14px 0 13px;padding:12px;border-radius:15px;background:rgba(255,255,255,.62);border:1px solid rgba(179,25,85,.1)}',
     '#terms24Card .t24-meter-line{position:relative;height:8px;border-radius:999px;background:rgba(112,68,92,.16);overflow:hidden}',
-    '#terms24Card .t24-meter-fill{position:absolute;left:0;top:0;bottom:0;border-radius:inherit;background:#b31955;width:var(--t24-phase,50%)}',
-    '#terms24Card .t24-meter-meta{display:flex;justify-content:space-between;gap:8px;margin-top:8px;color:#70445c;font-size:.73rem;line-height:1.45}',
-    '#terms24Card .t24-basis{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0 0}',
+    '#terms24Card .t24-meter-fill{position:absolute;left:0;top:0;bottom:0;border-radius:inherit;background:linear-gradient(90deg,#b31955,#d84e7e);width:var(--t24-phase,50%)}',
+    '#terms24Card .t24-meter-phases{display:grid;grid-template-columns:28% 44% 28%;margin-top:8px;color:#8d6578;font-size:.65rem;font-weight:800;line-height:1.2}',
+    '#terms24Card .t24-meter-phases span:nth-child(2){text-align:center}',
+    '#terms24Card .t24-meter-phases span:last-child{text-align:right}',
+    '#terms24Card .t24-meter-phases .is-active{color:#b31955}',
+    '#terms24Card .t24-meter-meta{display:flex;justify-content:space-between;gap:8px;margin-top:9px;color:#70445c;font-size:.73rem;line-height:1.45}',
+    '#terms24Card .t24-meter-meta strong{color:#4d2039;font-weight:900}',
+    '#terms24Card .t24-basis-label{margin:0 0 7px;color:#8b3c60;font-size:.7rem;font-weight:900;letter-spacing:.02em}',
+    '#terms24Card .t24-basis{display:flex;flex-wrap:wrap;gap:7px;margin:0}',
     '#terms24Card .t24-basis span{display:inline-flex;align-items:center;min-height:30px;padding:5px 9px;border-radius:999px;background:#fff;border:1px solid rgba(179,25,85,.11);color:#63334e;font-size:.72rem;font-weight:800}',
     '#terms24Card .t24-caution{margin:11px 0 0;padding:10px 11px;border-radius:12px;background:#fff8dc;border:1px solid rgba(201,154,58,.22);color:#68431b;font-size:.78rem;line-height:1.6;word-break:keep-all}',
+    '#terms24Card .t24-caution strong{display:block;margin-bottom:2px;color:#80551d;font-size:.72rem;letter-spacing:.02em}',
+    '#terms24Card .t24-section-label{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:16px 2px 8px;color:#3c1830;font-size:.82rem;font-weight:900}',
+    '#terms24Card .t24-section-label span:last-child{color:#9a7182;font-size:.67rem;font-weight:700;white-space:nowrap}',
     '#terms24Card .t24-domain-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}',
-    '#terms24Card .t24-domain{border-radius:14px;padding:12px;background:rgba(255,255,255,.74);border:1px solid rgba(179,25,85,.11);box-shadow:inset 0 1px 0 rgba(255,255,255,.74)}',
+    '#terms24Card .t24-domain{position:relative;border-radius:14px;padding:13px 12px 12px;background:rgba(255,255,255,.74);border:1px solid rgba(179,25,85,.11);box-shadow:inset 0 1px 0 rgba(255,255,255,.74)}',
+    '#terms24Card .t24-domain::before{content:"";display:block;width:22px;height:3px;margin-bottom:9px;border-radius:99px;background:#d98aa6}',
+    '#terms24Card .t24-domain:nth-child(2)::before{background:#c98947}',
+    '#terms24Card .t24-domain:nth-child(3)::before{background:#8f78b4}',
+    '#terms24Card .t24-domain:nth-child(4)::before{background:#5d9a9b}',
     '#terms24Card .t24-domain h4{margin:0 0 6px;color:#3c1830;font-size:.87rem;line-height:1.35;font-weight:900;letter-spacing:0}',
     '#terms24Card .t24-domain p{margin:0;color:#5f2c48;font-size:.78rem;line-height:1.62;word-break:keep-all;overflow-wrap:break-word}',
     '#terms24Card .t24-domain .t24-action{display:block;margin-top:7px;color:#8b3c60;font-weight:900}',
     '#terms24Card .t24-table{border-radius:16px;border:1px solid rgba(179,25,85,.12);background:rgba(255,255,255,.52);overflow:hidden}',
-    '#terms24Card .t24-table summary{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:44px;padding:12px 14px;cursor:pointer;color:#3c1830;font-size:.85rem;font-weight:900;list-style:none}',
+    '#terms24Card .t24-table summary{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:48px;padding:12px 14px;cursor:pointer;color:#3c1830;font-size:.85rem;font-weight:900;list-style:none}',
+    '#terms24Card .t24-table summary .t24-summary-note{margin-left:auto;color:#9a7182;font-size:.68rem;font-weight:700;text-align:right}',
     '#terms24Card .t24-table summary::-webkit-details-marker{display:none}',
-    '#terms24Card .t24-table summary::after{content:"⌄";font-size:1rem;color:#8b3c60;transition:transform .18s ease}',
+    '#terms24Card .t24-table summary::after{content:"";flex:0 0 auto;width:7px;height:7px;border-right:1.5px solid #8b3c60;border-bottom:1.5px solid #8b3c60;transform:rotate(45deg) translateY(-2px);transition:transform .18s ease}',
     '#terms24Card .t24-table[open] summary::after{transform:rotate(180deg)}',
     '#terms24Card .t24-seasons{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:0 12px 12px}',
     '#terms24Card .t24-season{position:relative;border-radius:14px;padding:12px;background:rgba(255,255,255,.7);border:1px solid var(--sea-line,rgba(179,25,85,.14))}',
@@ -9811,7 +9826,7 @@ function _ensureTerms24Style(){
     '#terms24Card .t24-season--summer{--sea:#bd3e38;--sea-soft:rgba(224,86,78,.1);--sea-line:rgba(224,86,78,.24)}',
     '#terms24Card .t24-season--autumn{--sea:#956c1f;--sea-soft:rgba(201,154,58,.12);--sea-line:rgba(201,154,58,.26)}',
     '#terms24Card .t24-season--winter{--sea:#365fba;--sea-soft:rgba(79,120,201,.1);--sea-line:rgba(79,120,201,.24)}',
-    '@media (max-width:640px){#terms24Card .t24-rhythm{padding:14px}#terms24Card .t24-rhythm-head{flex-direction:column}#terms24Card .t24-pill{white-space:normal}#terms24Card .t24-domain-grid,#terms24Card .t24-seasons{grid-template-columns:1fr}#terms24Card .t24-grid{grid-template-columns:repeat(2,1fr)}#terms24Card .t24-meter-meta{flex-direction:column}}',
+    '@media (max-width:640px){#terms24Card .t24-rhythm{padding:15px}#terms24Card .t24-rhythm-head{flex-direction:column;gap:9px}#terms24Card .t24-pill{white-space:normal}#terms24Card .t24-domain-grid,#terms24Card .t24-seasons{grid-template-columns:1fr}#terms24Card .t24-grid{grid-template-columns:repeat(2,1fr)}#terms24Card .t24-meter-meta{flex-direction:column;gap:3px}#terms24Card .t24-section-label{align-items:flex-start;flex-direction:column;gap:3px}#terms24Card .t24-section-label span:last-child{white-space:normal}}',
     '@media (prefers-reduced-motion:reduce){#terms24Card .t24-item,#terms24Card .t24-table summary::after{transition:none}}',
     /* ── 네오(달빛 다크) 대비 오버라이드 — 배경·글자색 함께 전환 ── */
     'body.neo-mode #terms24Card .terms24-intro{color:#c9bce0;opacity:.92}',
@@ -9823,14 +9838,21 @@ function _ensureTerms24Style(){
     'body.neo-mode #terms24Card .t24-pill{background:rgba(232,213,163,.1);border-color:rgba(232,213,163,.24);color:#f5dea0}',
     'body.neo-mode #terms24Card .t24-meter{background:rgba(38,32,66,.56);border-color:rgba(196,181,253,.16)}',
     'body.neo-mode #terms24Card .t24-meter-line{background:rgba(244,238,255,.18)}',
-    'body.neo-mode #terms24Card .t24-meter-fill{background:#c4b5fd}',
+    'body.neo-mode #terms24Card .t24-meter-fill{background:linear-gradient(90deg,#9b8ce8,#e9c46a)}',
+    'body.neo-mode #terms24Card .t24-meter-phases{color:#b9acd4}',
+    'body.neo-mode #terms24Card .t24-meter-phases .is-active{color:#f5dea0}',
     'body.neo-mode #terms24Card .t24-meter-meta{color:#d5c8ef}',
+    'body.neo-mode #terms24Card .t24-meter-meta strong{color:#f5dea0}',
+    'body.neo-mode #terms24Card .t24-basis-label{color:#e8d5a3}',
     'body.neo-mode #terms24Card .t24-basis span{background:rgba(38,32,66,.68);border-color:rgba(196,181,253,.18);color:#efe8ff}',
     'body.neo-mode #terms24Card .t24-caution{background:rgba(232,213,163,.1);border-color:rgba(232,213,163,.24);color:#f0dfb8}',
+    'body.neo-mode #terms24Card .t24-caution strong{color:#f5dea0}',
     'body.neo-mode #terms24Card .t24-domain{background:rgba(38,32,66,.62);border-color:rgba(196,181,253,.16)}',
     'body.neo-mode #terms24Card .t24-domain h4{color:#f4eeff}',
     'body.neo-mode #terms24Card .t24-domain p{color:#d9cff1}',
     'body.neo-mode #terms24Card .t24-domain .t24-action{color:#f5dea0}',
+    'body.neo-mode #terms24Card .t24-section-label{color:#f4eeff}',
+    'body.neo-mode #terms24Card .t24-section-label span:last-child{color:#b9acd4}',
     'body.neo-mode #terms24Card .t24-table{background:rgba(38,32,66,.44);border-color:rgba(196,181,253,.18)}',
     'body.neo-mode #terms24Card .t24-table summary{color:#f4eeff}',
     'body.neo-mode #terms24Card .t24-table summary::after{color:#e8d5a3}',
@@ -10042,7 +10064,7 @@ function _t24RenderTermsTable(terms, currentTerm){
     { key:'autumn', label:'가을', el:'金', names:['입추','처서','백로','추분','한로','상강'] },
     { key:'winter', label:'겨울', el:'水', names:['입동','소설','대설','동지','소한','대한'] }
   ];
-  var html = '<details class="t24-table"><summary>24절기표 보기</summary><div class="t24-seasons">';
+  var html = '<details class="t24-table"><summary><span>24절기표</span><span class="t24-summary-note">출생 절입 위치를 강조해 표시</span></summary><div class="t24-seasons">';
   SEASONS.forEach(function(s){
     html += '<div class="t24-season t24-season--' + s.key + '">';
     html += '<div class="t24-season-head">' + _t24Escape(s.label) + '<span class="t24-el">' + _t24Escape(s.el) + '</span></div>';
@@ -10082,10 +10104,13 @@ function render24Terms(ctx, p){
   if(!seasonalFortuneContext){ card.style.display = 'none'; return; }
 
   var cautionLine = seasonalFortuneContext.nearBoundary
-    ? '<div class="t24-caution">절입 경계와 가까운 출생입니다. 출생 시각이 조금 달라지면 월주 판정이 민감해질 수 있어, 기록된 시간을 기준으로 보는 것이 좋습니다.</div>'
+    ? '<div class="t24-caution" role="note"><strong>절입 경계 출생</strong>출생 시각이 조금 달라지면 월주 판정이 민감해질 수 있어, 기록된 시간을 기준으로 해석합니다.</div>'
     : '';
   var chips = seasonalFortuneContext.basis.map(function(v){ return '<span>' + _t24Escape(v) + '</span>'; }).join('');
   var meterStyle = ' style="--t24-phase:' + _t24Escape(seasonalFortuneContext.phasePct) + '%"';
+  var phaseLabels = ['초입','중반','마무리'].map(function(label){
+    return '<span class="' + (seasonalFortuneContext.phase === label ? 'is-active' : '') + '">' + label + '</span>';
+  }).join('');
   grid.innerHTML =
     '<section class="t24-rhythm" aria-label="내 절기 리듬">'
       + '<div class="t24-rhythm-head">'
@@ -10096,13 +10121,16 @@ function render24Terms(ctx, p){
         + '</div>'
         + '<span class="t24-pill">' + _t24Escape(seasonalFortuneContext.phase) + ' 리듬</span>'
       + '</div>'
-      + '<div class="t24-meter"' + meterStyle + '>'
+      + '<div class="t24-meter" role="progressbar" aria-label="출생 절입 구간 진행률" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + _t24Escape(seasonalFortuneContext.phasePct) + '" aria-valuetext="' + _t24Escape(seasonalFortuneContext.phase + ' 구간, ' + seasonalFortuneContext.phasePct + '퍼센트') + '"' + meterStyle + '>'
         + '<div class="t24-meter-line" aria-hidden="true"><span class="t24-meter-fill"></span></div>'
-        + '<div class="t24-meter-meta"><span>' + _t24Escape(seasonalFortuneContext.termName) + '에서 시작</span><span>' + _t24Escape(seasonalFortuneContext.phaseMeta || '월령 구간 안의 흐름') + '</span></div>'
+        + '<div class="t24-meter-phases" aria-hidden="true">' + phaseLabels + '</div>'
+        + '<div class="t24-meter-meta"><span><strong>' + _t24Escape(seasonalFortuneContext.termName) + ' 절입</strong>에서 시작</span><span>' + _t24Escape(seasonalFortuneContext.phaseMeta || '월령 구간 안의 흐름') + '</span></div>'
       + '</div>'
+      + '<div class="t24-basis-label">이 해석을 만든 근거</div>'
       + '<div class="t24-basis">' + chips + '</div>'
       + cautionLine
     + '</section>'
+    + '<div class="t24-section-label"><span>계절의 생활 리듬</span><span>성향 · 일·돈 · 관계 · 컨디션</span></div>'
     + '<div class="t24-domain-grid">' + _t24RenderDomainCards(seasonalFortuneContext.domains) + '</div>'
     + _t24RenderTermsTable(terms, seasonalFortuneContext.termName);
   card.style.display = '';
