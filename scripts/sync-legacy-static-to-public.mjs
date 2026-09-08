@@ -947,6 +947,19 @@ if (existsSync(publicIndex) || existsSync(rootIndexPath)) {
     console.log(`[sync-legacy-static-to-public] Auto cache-busted static assets with ${buildTimestamp}`);
   }
 
+  // The home stylesheet is small and page-specific. Inline it only in deployable shells so
+  // first paint avoids a request and shares the shell's gzip dictionary; the root link and
+  // styles/home-funnel.css remain the readable development source of truth.
+  const homeStyleLink = '<link rel="stylesheet" href="/styles/home-funnel.css">';
+  if (baseIndexHtml.includes(homeStyleLink)) {
+    const homeCss = readFileSync(resolve(rootDir, "styles", "home-funnel.css"), "utf8");
+    baseIndexHtml = baseIndexHtml.replace(
+      homeStyleLink,
+      `<style data-cd-home-funnel-critical="1">${homeCss}</style>`,
+    );
+    console.log("[sync-legacy-static-to-public] Inlined home CSS into deployable shells");
+  }
+
   const inlineRuntimePath = resolve(publicDir, "js", "core", "index-inline-runtime.js");
   if (existsSync(inlineRuntimePath)) {
     let runtimeJs = readFileSync(inlineRuntimePath, "utf8");
@@ -1242,6 +1255,9 @@ function syncSearchIgnoreList() {
 syncRootAssetCacheKeys();
 
 sanitizePublicGoogleFontReferences(publicDir);
+
+// Generate policy documents after root assets are mirrored so their compiled stylesheet is not overwritten.
+await import("./design/build-static-policy-pages.mjs");
 
 // 🔴 반드시 마지막이다 — 위의 캐시키 재작성·폰트 정리가 사본 내용을 바꾸므로,
 //    그전에 돌면 방금 어긋난 파일을 "미러 아님"으로 잘못 판정한다.

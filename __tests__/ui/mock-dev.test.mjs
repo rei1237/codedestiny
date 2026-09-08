@@ -4,6 +4,7 @@ import { spawnSync } from 'node:child_process';
 import { resolve } from 'node:path';
 import { createMockApiServer } from '../../scripts/mock-dev-api.mjs';
 import { mockDevSettings } from '../../scripts/lib/mock-dev-settings.mjs';
+import { staticPolicyRewrites } from '../../lib/navigation/static-policy-routes.mjs';
 
 test('workspace ports are deterministic, isolated, and explicit overrides validated', () => {
   const one = mockDevSettings('/workspace/one', {});
@@ -72,7 +73,10 @@ test('mock Next rewrites intercept app API routes and CSP blocks remote browser 
   try {
     const { default: createConfig } = await import('../../next.config.mjs');
     const config = createConfig('phase-development-server');
-    assert.deepEqual((await config.rewrites()).beforeFiles, [{ source: '/api/:path*', destination: 'http://127.0.0.1:18790/api/:path*' }]);
+    assert.deepEqual((await config.rewrites()).beforeFiles, [
+      ...staticPolicyRewrites(),
+      { source: '/api/:path*', destination: 'http://127.0.0.1:18790/api/:path*' },
+    ]);
     const csp = (await config.headers())[0].headers[0].value;
     assert.match(csp, /connect-src 'self';/);
     assert.match(csp, /script-src 'self'/);

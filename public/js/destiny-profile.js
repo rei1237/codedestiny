@@ -10145,6 +10145,30 @@
   }
 
   var _dpListOpenedAt = 0;
+  /* 홈의 큰 카드는 상시 노출하지 않고 마이 시트 안에서만 보여 준다. DOM 을 복제하면
+     레벨 이벤트와 프로필 메뉴 바인딩이 두 벌로 갈라지므로, 폼과 같은 대여 패턴을 쓴다. */
+  var _dpMasterCardHomeAnchor = null;
+
+  function _dpBorrowMasterCardIntoSheet(sheet) {
+    if (_dpMasterCardHomeAnchor) return true;
+    var card = document.getElementById('dpMasterCard');
+    var host = sheet ? sheet.querySelector('#dpMasterCardHost') : null;
+    if (!card || !host || !card.parentNode) return false;
+    _dpMasterCardHomeAnchor = { parent: card.parentNode, next: card.nextSibling };
+    host.appendChild(card);
+    return true;
+  }
+
+  function _dpReturnMasterCardHome() {
+    var anchor = _dpMasterCardHomeAnchor;
+    if (!anchor) return;
+    _dpMasterCardHomeAnchor = null;
+    var card = document.getElementById('dpMasterCard');
+    if (!card || !anchor.parent) return;
+    var before = (anchor.next && anchor.next.parentNode === anchor.parent) ? anchor.next : null;
+    anchor.parent.insertBefore(card, before);
+  }
+
   /* ── 시트 ↔ 홈 폼 노드 대여 ──────────────────────────────────────────────
      시트의 "새로 만들기"/"수정"은 원래 시트를 닫고 홈의 #destinyCardForm 까지 스크롤했다.
      화면이 통째로 바뀌어 맥락이 끊기므로, 시트가 열려 있는 동안에는 그 폼 노드를 시트 안으로
@@ -10252,6 +10276,7 @@
       /* 🔴 시트는 닫히고 260ms 뒤 DOM 에서 제거된다. 폼을 빌려간 채로 지우면 홈의 입력 폼이
          통째로 사라지므로, 제거 전에 반드시 되돌린다(dpCloseList 가 이미 돌려놨으면 무동작). */
       _dpReturnFormHome();
+      _dpReturnMasterCardHome();
       if (currentSheet) currentSheet.remove();
       var currentOverlay = document.getElementById('dpListOverlay');
       if (currentOverlay && (!currentSheet || !currentSheet.classList.contains('dp-sheet--open'))) currentOverlay.remove();
@@ -10269,6 +10294,7 @@
       return;
     }
 
+    _dpBorrowMasterCardIntoSheet(sheet);
     sheet.classList.add('dp-sheet--open');
     overlay.classList.add('dp-sheet--open');
     sheet.setAttribute('aria-hidden', 'false');
@@ -10320,6 +10346,7 @@
 
   window.dpCloseList = function() {
     _dpReturnFormHome();
+    _dpReturnMasterCardHome();
     var sheet = document.getElementById('dpListSheet');
     var overlay = document.getElementById('dpListOverlay');
     if (sheet) {
