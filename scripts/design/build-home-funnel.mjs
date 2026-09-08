@@ -35,6 +35,8 @@ const nodes = {
   guide: byClass('cd-home-guide'),
   homeMore: byClass('cd-home-more'),
   finder: byId('cdFinder'),
+  diary: byId('cdDiaryPlannerEntry'),
+  experts: byId('cdAiFeatures'),
 };
 
 const vars = Object.fromEntries(Object.entries(nodes).map(([key, node]) => [key, htmlOf(node, key)]));

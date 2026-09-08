@@ -497,7 +497,8 @@
   function boot() {
     var home = document.getElementById("cdHomeFunnel");
     var finder = document.getElementById("cdFinder");
-    if (home && finder && !home.contains(finder) && !boot.requested) {
+    var disclosure = document.getElementById("cdhFinderDisclosure");
+    if (home && finder && (!home.contains(finder) || (disclosure && !disclosure.open)) && !boot.requested) {
       document.addEventListener("cd:home-finder-open", function () {
         boot.requested = true;
         boot();

@@ -7,6 +7,12 @@
   var form = document.getElementById('destinyCardForm');
   var doc = document.documentElement;
   var lastFilter = null;
+  var finderDisclosure = document.getElementById('cdhFinderDisclosure');
+  var collectionToggle = document.getElementById('cdHomeExpandToggle');
+  if (collectionToggle) collectionToggle.setAttribute('aria-controls', 'cdhCollections');
+  if (finderDisclosure) finderDisclosure.addEventListener('toggle', function () {
+    if (finderDisclosure.open) document.dispatchEvent(new Event('cd:home-finder-open'));
+  });
 
   function move(selector, slotId) {
     var node = document.querySelector(selector);
@@ -17,6 +23,15 @@
   }
 
   // Keep one authoritative instance of every established home surface.
+  // These start hidden, so relocating them preserves initial layout and script order.
+  move('#featureBegin', 'cdhCollections');
+  move('#inputPage > .feature-card-grid', 'cdhCollections');
+  // Fullscreen cards need their original top-level parent, outside home containment.
+  if (window.CodeDestinyNavigationStore) {
+    window.CodeDestinyNavigationStore.subscribe(function (state) {
+      move('.feature-card-grid', state.fullscreenPage === 'all-fortunes' ? 'inputPage' : 'cdhCollections');
+    });
+  }
   move('#cdCookieConsent', 'cdhCookieSlot');
   move('#authQuickLinks', 'cdhAccountSlot');
   move('#langWrap', 'cdhLanguageSlot');
@@ -50,6 +65,7 @@
     home.hidden = false;
     if (isFinder) {
       doc.classList.remove('cdh-input-open');
+      if (finderDisclosure) finderDisclosure.open = true;
       document.dispatchEvent(new Event('cd:home-finder-open'));
       var filter = hash.split('/')[1] || '';
       if (filter !== lastFilter) {
@@ -68,6 +84,7 @@
       });
     } else if (hash === 'home') {
       doc.classList.remove('cdh-input-open');
+      if (finderDisclosure) finderDisclosure.open = false;
       if (window.__cdCollapseHome) window.__cdCollapseHome();
       window.scrollTo(0, 0);
     } else if (hash === 'destinyCardForm') {
