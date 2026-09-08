@@ -1,0 +1,77 @@
+{
+  "mode": "local public shell, external requests blocked, API mocked; not field CWV or production evidence",
+  "results": [
+    {
+      "path": "/en/",
+      "width": 390,
+      "preference": "ko",
+      "lang": "en",
+      "title": "Start with today’s fortuneExplore six perspectives with Fusion Fortune",
+      "remainingKoreanLeaves": 10,
+      "formVisibleAfterLanguageSwitch": true
+    },
+    {
+      "path": "/en/",
+      "width": 1440,
+      "preference": null,
+      "lang": "en",
+      "title": "Start with today’s fortuneExplore six perspectives with Fusion Fortune",
+      "remainingKoreanLeaves": 10,
+      "formVisibleAfterLanguageSwitch": true
+    },
+    {
+      "path": "/ja/",
+      "width": 390,
+      "preference": "ko",
+      "lang": "ja",
+      "title": "今日の運勢から六つの視点を重ねる超融合運勢まで",
+      "remainingKoreanLeaves": 10,
+      "formVisibleAfterLanguageSwitch": true
+    },
+    {
+      "path": "/ja/",
+      "width": 1440,
+      "preference": null,
+      "lang": "ja",
+      "title": "今日の運勢から六つの視点を重ねる超融合運勢まで",
+      "remainingKoreanLeaves": 10,
+      "formVisibleAfterLanguageSwitch": true
+    },
+    {
+      "path": "/zh/",
+      "width": 390,
+      "preference": "ko",
+      "lang": "zh-CN",
+      "title": "从今日运势开始用六种视角探索融合运势",
+      "remainingKoreanLeaves": 10,
+      "formVisibleAfterLanguageSwitch": true
+    },
+    {
+      "path": "/zh/",
+      "width": 1440,
+      "preference": null,
+      "lang": "zh-CN",
+      "title": "从今日运势开始用六种视角探索融合运势",
+      "remainingKoreanLeaves": 10,
+      "formVisibleAfterLanguageSwitch": true
+    },
+    {
+      "path": "/zh-tw/",
+      "width": 390,
+      "preference": "ko",
+      "lang": "zh-TW",
+      "title": "從今日運勢開始用六種視角探索融合運勢",
+      "remainingKoreanLeaves": 10,
+      "formVisibleAfterLanguageSwitch": true
+    },
+    {
+      "path": "/zh-tw/",
+      "width": 1440,
+      "preference": null,
+      "lang": "zh-TW",
+      "title": "從今日運勢開始用六種視角探索融合運勢",
+      "remainingKoreanLeaves": 10,
+      "formVisibleAfterLanguageSwitch": true
+    }
+  ]
+}
