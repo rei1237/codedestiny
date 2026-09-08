@@ -478,6 +478,7 @@ h3{font-size:1.05rem; line-height:1.4}
   </div>
 </div>
 
+<script src="/js/core/standalone-ai-locale.js?v=20260909-1"></script>
 <script src="/js/core/pass-verdict.js?v=build-d2987b1ff23f"></script>
 <script src="/js/core/checkout-entry.js?v=build-d2987b1ff23f"></script>
 <script src="/js/core/payment-service.js?v=build-payment-service-v1"></script>
@@ -662,6 +663,7 @@ function apiFetch(path, options){
   if (premium) headers["x-premium-access-token"] = premium;
   if (init.headers) { for (var k in init.headers) { if (Object.prototype.hasOwnProperty.call(init.headers, k)) headers[k] = init.headers[k]; } }
 
+  headers["x-code-destiny-locale"] = window.cdStandaloneAiLocale.current();
   return fetch(API_BASE + path, {
     method: init.method || "GET",
     headers: headers,

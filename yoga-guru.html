@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <title>Divya Yoga — Sacred Practice Portal</title>
+<script src="/js/core/standalone-ai-locale.js?v=20260909-1"></script>
 <script src="/js/inline/api-base-init.js" defer></script>
 <script src="/js/core/pass-verdict.js?v=build-d2987b1ff23f"></script>
 <script src="/js/core/checkout-entry.js?v=build-d2987b1ff23f"></script>
@@ -2180,6 +2181,7 @@ async function postYogaGuruOnce(url, payload, timeoutMs) {
   try {
     var _yogaAuthToken='';try{_yogaAuthToken=localStorage.getItem('fortune_auth_token')||'';}catch(_e){}
     const _yogaHeaders={
+      'x-code-destiny-locale':window.cdStandaloneAiLocale.current(),
       'Content-Type': 'application/json',
       'Accept': 'application/json, text/plain;q=0.9, */*;q=0.8',
       'Cache-Control': 'no-store'

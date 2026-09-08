@@ -87,3 +87,67 @@ HTML은 script 본문만 AST로 읽고 원본 줄 위치를 유지한다. 테스
 - `worker/routes/vedic-ai.js`: startLocks가 userId + idempotencyKey로 묶이고 저장 조회도 같은 결제 요청 기준이다. 새 언어 생성과 기존 결제 결과 재열람의 구분을 추가 검증해야 한다.
 - `worker/routes/oracle.js`: 성공 JSON의 짧은 필드에 buildFallbackOracle의 한국어 문장이 붙을 수 있다. language instruction만으로 해결되지 않는 후처리 P0/P4 경로다.
 - 전체 사전검사 1차에서 lint/TypeScript/Next build와 주요 mock은 통과했지만, 정적 캐시 핀 2개와 기존 systemInstruction 정확 일치 검사·휴먼디자인 report 모듈 import 검사에서 실패했다. 해당 실패는 수정했고 최종 전체 재검사가 필요하다.
+
+
+## 2026-09-09 재개: 독립 화면의 기능별 경로
+
+아래 8개 경로는 URL → 입력 → 요청 → 생성/후처리 → 출력까지 소스로 연결했다. 기존 43개 소스/105개 근거의 집계를 기능 수로 바꾸지 않는다. `요청 수정`은 저장본·전체 렌더러의 현지화 완료를 뜻하지 않는다.
+
+| 기능·URL | 입력·요청·handler | prompt → provider → 후처리 | 저장·출력 및 판정 |
+|---|---|---|---|
+| 지오맨시 `/geomancy-oracle-v4.html` 및 `/static/geomancy-oracle-v4.html` | 질문·3형상·기존 결제 증빙 → `fetchOracle` → POST `/api/oracle/geomancy` → `handleOracleRoutes` | `buildGeomancyPrompt` → `callGeminiText`(공통 provider retry/fallback/cache) → `parseJsonCandidate` → `normalizeOraclePayload` | provider cache의 locale 분리 유지. `formatOraclePayload`·`typeOut` 출력. 요청·필드 제목·외국어 실패 안내 수정. 비한국어의 한국어 서버/브라우저 fallback 차단. 요청 중 언어 변경 시 응답 반영 중단. 카드 원문·인증 오류·타이핑 중 언어 변경은 별도 남음 |
+| 반려동물 리포트 `/pet-saju.html` | 프로필·날짜 → `apiFetch` → POST `/api/pet-saju-ai/report` → report handler | `buildReportPrompt(blueprint)` → `callGeminiJsonWithRetry` → `normalizeReport` 또는 `fallbackReport` | locale 헤더 수정. provider cache 유지. 한국어 결정론 fallback·필드 조립은 미해결 |
+| 반려동물 궁합 `/pet-saju.html` | 두 프로필·날짜 → `apiFetch` → POST `/api/pet-saju-ai/compat` → compat handler | `buildCompatPrompt` → 동일 structured provider → `normalizeCompat` 또는 `fallbackCompat` | locale 헤더 수정. 리포트와 별도 기능 경로. 한국어 fallback·렌더러 미해결 |
+| 천체의 선율 `/celestial-harmony.html` | 카드·기존 접근 증빙 → `buildAuthHeaders` → POST/GET `/api/celestial-harmony` | `buildCelestialHarmonyPrompt` → `callGeminiText` → `normalizeAiReadingCandidate`·`normalizeResultSchema` | `ServiceExecutionTransaction`에 보관·재조회. 생성·재조회 헤더 수정. 저장 결과 언어 재사용, base reading의 한국어 보완은 미해결 |
+| 베다 일반 상담 `/vedic-astrology.html` | 차트·질문·궁합·기존 requestId → POST `/api/fortune/vedic/ai-prompt` → `handleVedicAIPrompt` | fortune route 공통 생성기 → `callGeminiText` → completion repair | 초기 locale와 페이지 내 언어 선택을 URL에 정렬, 요청 헤더 수정. 기존 3회 재시도·멱등 키 유지. 저장 재사용·화면 결과/오류 미해결 |
+| 베다 프라슈나 `/vedic-astrology.html` | 질문 snapshot → `/api/fortune/vedic/prashna/snapshot` → 기존 주문/접근 증빙 → `/generate` → `handleVedicPrashnaGenerate` | 프라슈나 전용 prompt → fortune 공통 provider/repair | snapshot·generate auth headers 수정. snapshot 자체는 계산/주문 준비이며 독립 LLM 기능으로 중복 집계하지 않는다. `/result` 재열람·언어 변경/저장본 검증 남음 |
+| 요가 구루 `/yoga-guru.html` | 사용자 요청·접근 증빙 → `postYogaGuruOnce` → POST `/api/yoga-guru` | route prompt → `callGeminiText` → `normalizeCoursePayload` → sequence/instruction 보완 | 요청 헤더 수정. provider cache 유지. `fallbackCourse`·`buildFallbackInstructions` 한국어 조립 미해결 |
+| 오늘의 귀인 `/today` 등 기존 Guardian 진입 | `auth-client` → fortune guardian handler → `generateGuardianFortune` → context builder → configured generator | guardian prompt → provider retry → JSON parse → `validateAndNormalizeGuardianFortuneResult` | 입력 locale를 후처리에도 사용. 외국어 CTA label 현지화, 한국어 분량 확장·기본 공유문·목록 보완 차단. 분량·민감정보·체계 경계·CTA 목적지 검사를 유지. 외국어 결정론 fallback이 없으므로 품질 부족은 기존 미전달 경로로 반환. 완전한 12언어 fallback 제공은 미완료 |
+
+### LLM 기능에서 제외한 실제 경로
+
+- 이직 타로 `/tarot-ijik.html` → `callTarotApi('ijik-reading')` → `/api/tarot/ijik-reading` → dynamic import `worker/lib/tarot-ijik-reading.js` → `buildIjikReading(cards)`: 현재는 서버 결정론 해석이다. 이름에 AI가 있는 프롬프트 패널은 외부 상담용 문구이며 이 경로의 provider 호출 근거가 아니다. 요청 헤더는 정렬했으나 결정론 본문 현지화는 별도 작업이다.
+- 반려동물 catalog/blueprint와 프라슈나 snapshot은 입력/계산 준비이며 위 LLM 경로와 구분한다.
+- 공통 provider·transport·structured retry·캐시는 여러 기능이 공유하는 기반 계층이다. 기능 수로 합산하지 않는다.
+
+### 이번 검증의 범위
+
+- `verify-ai-locale-browser-contract.mjs`: 12개 locale, 지역 별칭, 명시적 ko, 저장소 차단, 실제 독립 페이지 request/header 함수의 fetch stub 실행. 실제 브라우저·모든 유료 복귀의 증거가 아니다.
+- `ai-locale-postprocessing.test.js`: 11개 비한국어 locale에서 제공된 산문 보존, CTA 경로 allowlist, 짧은 결과·누락 목록·민감정보·다른 체계 거절, 지오맨시 짧은 필드 거절. 영문 합성 fixture를 locale별로 반복한 구조 검증이므로 11언어 문체/번역 품질의 증거가 아니다.
+- 기존 한국어 guardian LLM mock 회귀를 함께 실행한다. 실제 모델·결제·DB 호출은 0회다.
+- 전체 소스별 조사표의 미확인 상태는 유지한다. 위 경로 외 전체 기능의 저장본·stream·후속 질문·PDF·모든 renderer 조사는 아직 완료되지 않았다.
+
+
+### 나머지 사용자 기능의 라우트 인벤토리
+
+기존 소스별 표의 프론트 파일·prompt import·저장 모델 열과 아래 경로를 함께 사용한다. 생성과 재열람·후속 상담을 별도 경로로 명시했으며, 아래 미검증 표시는 실제 연결 부재가 아니라 locale를 끝까지 보존하는지 아직 확인하지 않았다는 뜻이다. `/ensure-access`, `/basis`, `/plan`, `/prepare`는 같은 기능의 준비 단계로 묶으며 LLM 호출 수로 세지 않는다.
+
+| 기능·화면 소스 | API 경계와 하위 경로 | 남은 locale 점검 |
+|---|---|---|
+| 사주 상담·사주 질문: `js/saju-engine.js`, `app/fortune-chat/FortuneChatClient.tsx` | `/api/fortune/saju/ai-prompt`, `/saju/question-prompt`, `/saju-ai-consultation/create`, `/status`, `/result` → fortune 공통 section 생성/repair | section 후처리·저장/폴링·후속 입력 |
+| 정적 자미두수·숙요·점성술 상담: `js/core/index-inline-runtime.js`, `js/saju-engine-tarot-sukuyo-quantum.js` | `/api/fortune/ziwei/ai-prompt`, `/sukuyo/ai-prompt`, `/astrology/ai-prompt` → fortune 공통 생성/repair | 기능별 조립 문구·결과 저장/렌더러 |
+| 통합 운세: `app/fusion-fortune/FusionFortuneClient.tsx` | `/api/fusion-fortune/generate`, `/generate/stream`, `/status`, `/result` → `worker/lib/fusion-fortune.js` | 스트림 완료/오류·저장 결과 locale |
+| 동물 토템: `js/animal-totem-experience.js` | `/api/animal-totem/reading` → animal-totem route | 결정론 콘텐츠와 AI 덧붙임 구분·후처리 |
+| 꿈 분석·꿈 타로: `js/dream-ledger.js`, `js/psycho-dream-analyzer-freuds-study.js` | `/api/dream/psycho-analysis`, `/dream-tarot`, `/dream-prompt`, `/prompt-maker`, `/tarot-consult` | prompt-maker를 실제 생성과 구분·주입형 dreamGeminiCaller·fallback |
+| 운명의 찻집: `src/features/fortune-tea-house/FortuneTeaHousePage.tsx` | `/api/fortune-tea-house/consult`, `/results`, `/results/honey-letter`, tarot album unlock → fortune-tea-house route | 편지·결과 보관·앨범과 LLM 호출 구분·후속 대화 |
+| 운명 나침반: `app/destiny-compass/_hooks/useCompassReport.ts`, `CompassReport.tsx` | `/api/destiny-compass/narrate`, `/api/destiny-compass-ai/report`, `/report/continue`, `/result` | narrate와 장문 보고서 분리·continue/저장본 |
+| 휴먼디자인: `app/human-design/report` | `/api/human-design-report/start`, `/generate`, `/result` | 저장 locale/repair는 기존 mock 검증. PDF·도표·늦은 응답 미검증 |
+| 점성술 전문가: `app/astrology-ai` | `/api/astrology-ai/start`, `/result`, `/message` | 저장/후속 메시지·fallback |
+| 카르마: `app/karma-destiny-ai` | `/api/karma-destiny-ai/start`, `/generate-batch`, `/result`, `/message` | 배치·후속·기존 결제 결과 재사용 |
+| 인생 총운: `app/life-book-ai` | `/api/life-book-ai/start`, `/generate`, `/result` | 장문 후처리·저장/재열람·PDF |
+| 연애 비책: `app/love-secret-ai` | `/api/love-secret-ai/start`, `/generate`, `/result`, `/message` | 후속 대화·저장본·보완 호출 |
+| 연애 코드: `src/features/master-love-codex/MasterLoveCodexPage.tsx` | `/api/master-love-codex/session`, `/start`, `/generate` | 개인/궁합 prompt 구분·session 저장/재열람 |
+| 나크샤트라: `app/nakshatra/ai` | `/api/nakshatra-ai/start`, `/generate`, `/result` | 저장 결과와 request locale·후처리 |
+| 작명: `app/naming-ai` | `/api/naming-prompt/generate` (checkout/verify-payment는 접근 준비) | 고정 한자/이름 식별자와 번역 가능한 설명 구분 |
+| 네오 전략실: `src/features/neo-war-room` | `/api/neo-operation-room/start`, `/refine`, `/result` | refine 입력·저장본·캐릭터별 후처리 |
+| 신년운세: `app/new-year-ai-consultation` | `/api/new-year-ai/start`, `/message`, `/result` | 후속 대화·결정론 문구·재열람 |
+| 숙요 궁합 전문가: `app/sukuyo-compatibility-ai` | `/api/sukuyo-compatibility-ai/start`, `/generate`, `/message`, `/result` | 본문/후속·저장본·repair |
+| 베다 전문가: `app/vedic-ai` | `/api/vedic-ai/start`, `/result` | userId+idempotencyKey startLocks/저장 재사용의 locale 구분 |
+| 자미두수 전문가: `app/ziwei-ai` | `/api/ziwei-ai/start`, `/generate`, `/message`, `/result` | 후속 대화·보완 호출·저장본 |
+| 자미두수 심층 PDF: `app/components/ziwei/ZiweiDeepPdfPanel.tsx` | `/api/ziwei-deep-report/plan`, `/prepare`, `/generate`, `/result` | 저장 레코드·이어가기 token locale 누락 |
+| 자미두수 섬 상담: `app/island-consult` | `/api/ziwei-island-ai/start`, `/generate`, `/result` | 궁별 prompt·저장본·결과 후처리 |
+| 타로 공통: `worker/routes/tarot.js`와 기존 React/static 타로 입력 | `/api/tarot/mindscan`, `/oracle-consultation`; love-reading/oracle/mindscan library의 별도 provider 연결은 기존 소스표 참조 | `/reading`, `/love-reading`, `/crystal-soul`, `/ijik-reading`의 결정론/LLM 경계를 함수별로 추가 판정. 경로 이름만으로 생성 기능 수 확정 금지 |
+| 손금: `worker/lib/palm-vision.js` | vision image 분석과 텍스트 해석의 2개 호출 지점 | 손 이미지 입력 경로·vision JSON과 사용자 설명·한국어 보완 구분 필요 |
+| 관리자 prompt lab: `app/admin/prompts` | `/api/admin/prompt-lab/generate` → prompt registry → provider | 관리자 전용으로 사용자 기능 수에서 제외. 각 registry entry 언어/repair는 미검증 |
+
+이 표로 라우트 경계는 정리했으나 모든 행의 입력→저장→UI 전체 locale 증거가 채워진 것은 아니다. 남은 칸은 실제 코드 추적과 mock으로 채우며, 공통 헤더 검사 통과만으로 정상 판정하지 않는다.
