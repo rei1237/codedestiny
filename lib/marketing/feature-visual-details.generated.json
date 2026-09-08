@@ -7,13 +7,13 @@
       "featureKey": "master-love-codex",
       "featureKeyTo": "master-love-codex-compat",
       "accessType": "unknown",
-      "image": "",
+      "image": "/feature-details/assets/master-love-codex-960.webp",
       "aliases": [
         "master-love-codex",
         "/master-love-codex/",
         "/master-love-codex"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified"
     },
     {
       "slug": "fortune-tea-house",
@@ -114,19 +114,19 @@
     {
       "slug": "love-simulation",
       "title": "LOVE CODE 연애 시뮬레이션",
-      "href": "/index.html?action=openLoveSimulation",
+      "href": "/saju/love-simulation/",
       "featureKey": "love-code",
       "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "/fuctionassets/love code.webp",
+      "image": "/feature-details/assets/love-simulation-960.webp",
       "aliases": [
-        "love-code",
-        "openLoveSimulation",
         "love-simulation",
-        "/index.html?action=openLoveSimulation",
-        "/index.html?action=openLoveSimulation/"
+        "love-code",
+        "/saju/love-simulation/",
+        "/saju/love-simulation",
+        "openLoveSimulation"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified"
     },
     {
       "slug": "nakshatra-compat",
@@ -135,13 +135,13 @@
       "featureKey": "nakshatra-compat",
       "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "",
+      "image": "/feature-details/assets/nakshatra-compat-960.webp",
       "aliases": [
         "nakshatra-compat",
         "/nakshatra/compat/",
         "/nakshatra/compat"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified"
     },
     {
       "slug": "neo-operation-room",
@@ -618,7 +618,7 @@
       "featureKey": "",
       "featureKeyTo": "",
       "accessType": "free",
-      "image": "",
+      "image": "/feature-details/assets/animal-destiny-960.webp",
       "aliases": [
         "animal-destiny",
         "/saju/animal-destiny/",
@@ -1087,79 +1087,52 @@
       "featureKey": "master-love-codex",
       "featureKeyTo": "master-love-codex-compat",
       "accessType": "unknown",
-      "image": "",
+      "image": "/feature-details/assets/master-love-codex-960.webp",
       "aliases": [
         "master-love-codex",
         "/master-love-codex/",
         "/master-love-codex"
       ],
-      "headline": "당신의 연애를 스무 개의 장으로 나눠 한 권으로 정리합니다.",
-      "description": "일간의 기질과 명궁 주성을 근거로 타고난 연애 성향부터 시기별 전망까지 순서대로 쌓아 올리는 최상위 연애 해석서입니다.",
+      "headline": "나의 사랑과 두 사람의 관계를, 한 권의 전략서로 읽습니다.",
+      "description": "사주 명식과 자미두수 명반을 함께 놓고, 사랑에서 반복되는 기질과 관계의 흐름을 스무 장에 걸쳐 연결하는 프리미엄 리포트입니다.",
       "panels": [
         {
-          "title": "이런 질문에 도움이 됩니다",
+          "title": "두 체계가 만나는 자리에서, 관계의 맥락을 읽습니다.",
+          "text": "한 가지 해석으로 결론을 서두르지 않습니다. 사주가 보는 기질과 시기, 자미두수가 보는 관계의 자리를 대조해 같은 방향을 가리키는 지점과 더 살펴야 할 지점을 함께 정리합니다.",
+          "visualPreview": "master-codex"
+        },
+        {
+          "title": "책 안에서 확인하는 것.",
           "items": [
-            "왜 매번 같은 방식으로 끝날까요?",
-            "끌리는 사람과 맞는 사람이 왜 다를까요?",
-            "다음 연애에서는 뭘 바꿔야 할까요?"
+            "나의 연애 기질 — 일간·십성·오행과 명궁·부부궁에서 읽는 관계의 기본 리듬",
+            "두 사람의 궁합 — 상대 정보를 선택해 넣으면 두 명식과 명반이 만나는 방식",
+            "관계의 현실 — 끌림·갈등·회복·장기 동행의 조건을 장별로 연결",
+            "교차 검증 — 두 체계가 같은 말을 하는 지점과 해석이 갈리는 이유"
           ]
         },
         {
-          "title": "이 기능으로 살펴보는 것",
-          "items": [
-            "생년월일시로 사주 원국과 자미두수 명반을 함께 계산",
-            "스무 개 장을 순서대로 생성하며 앞 장을 뒷 장의 근거로 사용",
-            "일간·십성·부부궁·천이궁 등 장마다 근거를 명시",
-            "연애 DNA 지표와 앞으로 3년의 인연 흐름을 별도 장으로 정리"
-          ]
-        },
-        {
-          "title": "결과에서 받아보는 내용",
-          "items": [
-            "운명의 문 · 타고난 연애 기질 · 부부궁이 말하는 배우자상",
-            "끌림의 원리 · 애착과 표현 방식 · 마음의 방어기제",
-            "인연이 열리는 자리 · 썸에서 연애로 · 고백과 타이밍",
-            "관계의 온도 곡선 · 갈등의 뿌리 · 화해와 회복의 언어",
-            "질투와 거리두기 · 친밀감의 리듬 · 이별과 재회의 문",
-            "결혼운과 장기 동행 · 사주 × 자미두수 교차검증",
-            "연애 DNA 프로필 · 앞으로 3년 · 마지막 편지"
-          ]
-        },
-        {
-          "title": "어떻게 이용하나요?",
-          "steps": [
-            {
-              "label": "명식 계산",
-              "detail": "생년월일시로 사주 원국과 자미두수 명반을 함께 계산합니다."
-            },
-            {
-              "label": "연애 축 추출",
-              "detail": "일간·십성과 부부궁·복덕궁에서 연애의 큰 축 세 가지를 뽑습니다."
-            },
-            {
-              "label": "장별 전개",
-              "detail": "그 축을 스무 개 장으로 나눠 서로 겹치지 않게 배분합니다."
-            },
-            {
-              "label": "해석서 작성",
-              "detail": "앞 장이 뒷 장의 근거가 되도록 순서대로 써 내려갑니다."
-            }
-          ]
-        },
-        {
-          "title": "이런 분께 어울려요",
-          "items": [
-            "연애 패턴을 한 번 제대로 정리하고 싶은 분",
-            "요약이 아니라 한 권 분량을 원하는 분",
-            "근거까지 확인하며 읽고 싶은 분"
-          ]
+          "title": "나만의 책으로 읽을지, 두 사람의 책으로 읽을지 고르세요.",
+          "text": "생년월일·태어난 시각·성별·양력/음력 정보를 준비해 주세요. 상대 정보는 선택이며, 입력 여부에 따라 개인판 또는 궁합판으로 이어집니다."
         }
       ],
-      "ctaLabel": "연애 해석서 열람하기",
+      "ctaLabel": "마스터 인연의 서 열기",
       "evidence": [
-        "index.html:FEATURE_MARKETING_COPY:master_love_codex"
+        "app/master-love-codex/page.tsx",
+        "src/features/master-love-codex/data/value.ts",
+        "src/features/master-love-codex/data/acts.ts",
+        "src/features/master-love-codex/MasterLoveCodexPage.tsx"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/master-love-codex-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/master-love-codex-960.webp",
+          "width": 960
+        }
+      ]
     },
     "fortune-tea-house": {
       "slug": "fortune-tea-house",
@@ -1485,82 +1458,58 @@
     "love-simulation": {
       "slug": "love-simulation",
       "title": "LOVE CODE 연애 시뮬레이션",
-      "href": "/index.html?action=openLoveSimulation",
+      "href": "/saju/love-simulation/",
       "featureKey": "love-code",
       "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "/fuctionassets/love code.webp",
+      "image": "/feature-details/assets/love-simulation-960.webp",
       "aliases": [
-        "love-code",
-        "openLoveSimulation",
         "love-simulation",
-        "/index.html?action=openLoveSimulation",
-        "/index.html?action=openLoveSimulation/"
+        "love-code",
+        "/saju/love-simulation/",
+        "/saju/love-simulation",
+        "openLoveSimulation"
       ],
-      "headline": "궁합을 표가 아니라 장면으로 겪어 보는 연애 시뮬레이션입니다.",
-      "description": "상대 캐릭터 16명, 인물당 장면 20개를 고르며 호감·신뢰·케미·긴장·안정 다섯 수치를 움직입니다.",
+      "headline": "궁합을 점수표가 아니라, 선택하는 장면으로 만나 봅니다.",
+      "description": "상대의 생년 정보에서 만든 인물과 데이트 장면을 지나며, 선택마다 달라지는 관계의 리듬과 사주 궁합의 근거를 함께 살펴보는 시뮬레이션입니다.",
       "panels": [
         {
-          "title": "이런 질문에 도움이 됩니다",
+          "title": "장면을 고를 때마다, 관계를 보는 다섯 축이 움직입니다.",
+          "text": "상대의 반응을 단정하거나 실제 관계를 대신하지 않습니다. 선택 후 달라지는 호감·신뢰·케미·긴장·안정의 흐름을 통해, 내가 관계에서 자주 택하는 방식을 돌아보는 구성입니다.",
+          "visualPreview": "love-code"
+        },
+        {
+          "title": "시뮬레이션에서 확인하는 것.",
           "items": [
-            "이 사람과 있으면 왜 유독 긴장이 올라갈까요?",
-            "우리는 주로 어떤 상황에서 부딪히나요?",
-            "오래 이어질 수 있는 관계인가요?"
+            "상대 인물 선택 — 사주 일간의 성질을 바탕으로 만든 인물과 장면",
+            "선택의 변화 — 장면별 세 가지 선택에 따라 달라지는 다섯 관계 축",
+            "궁합의 근거 — 일간·지지 관계·오행·십성·신살에서 뽑는 관계 신호",
+            "결과 정리 — 끌림·안정성·소통·갈등 양상·장기 지속성의 다섯 방향"
           ]
         },
         {
-          "title": "이 기능으로 살펴보는 것",
-          "items": [
-            "상대 캐릭터 16명 · 인물당 장면 20개, 장면마다 선택지 3개",
-            "선택할 때마다 호감·신뢰·케미·긴장·안정 다섯 수치가 바뀝니다",
-            "궁합은 끌림·안정성·소통·갈등 양상·장기 지속성 5축을 0~100으로 냅니다",
-            "항목마다 일간 합·충, 지지 관계, 오행 용신·기신, 십성, 신살(도화·홍염) 근거와 확신도를 함께 표시합니다"
-          ]
-        },
-        {
-          "title": "결과에서 받아보는 내용",
-          "items": [
-            "상대 캐릭터 16명 전체 선택",
-            "인물당 장면 20개 진행",
-            "다섯 수치 변화가 반영된 궁합 결과",
-            "5축 점수와 항목별 사주 근거·확신도"
-          ]
-        },
-        {
-          "title": "어떻게 이용하나요?",
-          "steps": [
-            {
-              "label": "상대 선택",
-              "detail": "캐릭터 16명 중 한 명을 고르고 두 사람의 생년 정보를 넣습니다."
-            },
-            {
-              "label": "장면 진행",
-              "detail": "장면마다 선택지 3개 중 하나를 고르면 다섯 수치가 그 자리에서 바뀝니다."
-            },
-            {
-              "label": "신호 추출",
-              "detail": "두 사람의 일간 합·충, 지지 관계, 오행 용신·기신, 십성, 신살에서 궁합 신호를 뽑습니다."
-            },
-            {
-              "label": "결과 정리",
-              "detail": "끌림·안정성·소통·갈등 양상·장기 지속성 5축 점수와 각 신호의 근거·확신도를 함께 표시합니다."
-            }
-          ]
-        },
-        {
-          "title": "이런 분께 어울려요",
-          "items": [
-            "궁합을 장면으로 겪어 보고 싶은 분",
-            "상대 유형별 전개를 비교해 보고 싶은 분",
-            "궁합 점수의 근거까지 확인하고 싶은 분"
-          ]
+          "title": "상대의 생년 정보와, 나의 선택을 준비해 주세요.",
+          "text": "상대의 생년 정보를 입력한 뒤 인물을 고르고 장면을 진행합니다. 해석은 관계를 보장하지 않으며, 실제 대화와 서로의 경계를 함께 존중하는 참고 기준입니다."
         }
       ],
-      "ctaLabel": "LOVE CODE 열람하기",
+      "ctaLabel": "LOVE CODE 시작하기",
       "evidence": [
-        "index.html:FEATURE_MARKETING_COPY:openLoveSimulation"
+        "app/saju/love-simulation/page.tsx",
+        "app/saju/love-simulation/_components/LoveSimulationEngine.tsx",
+        "app/saju/love-simulation/_engine/compatibilityEngine.ts",
+        "js/core/service-registry.js"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/love-simulation-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/love-simulation-960.webp",
+          "width": 960
+        }
+      ]
     },
     "nakshatra-compat": {
       "slug": "nakshatra-compat",
@@ -1569,72 +1518,52 @@
       "featureKey": "nakshatra-compat",
       "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "",
+      "image": "/feature-details/assets/nakshatra-compat-960.webp",
       "aliases": [
         "nakshatra-compat",
         "/nakshatra/compat/",
         "/nakshatra/compat"
       ],
-      "headline": "인도 아쉬타쿠타 36점과 동양 숙요 격각을 한 화면에 겹쳐 봅니다.",
-      "description": "두 체계가 같은 말을 하는 지점과 갈라지는 지점을 먼저 짚고, 항목별 점수와 관계 유형 · 역할 행동 가이드까지 정리하는 궁합입니다.",
+      "headline": "두 사람의 출생 좌표를 겹쳐, 맞물리는 리듬을 읽습니다.",
+      "description": "인도 점성술의 아쉬타쿠타와 숙요의 관계 흐름을 함께 살피며, 한 줄의 궁합 판정 대신 두 사람이 조율할 지점을 정리하는 궁합 리포트입니다.",
       "panels": [
         {
-          "title": "이런 질문에 도움이 됩니다",
+          "title": "두 사람의 차트에서, 관계의 결을 나란히 봅니다.",
+          "text": "입력한 출생일·시간·도시를 바탕으로 두 사람의 좌표를 계산합니다. 시간 정보가 불확실한 경우에는 그 영향을 함께 고려하며, 결과를 단정적인 결론이 아니라 관계를 이해하는 참고 지도로 다룹니다.",
+          "visualPreview": "nakshatra-compat"
+        },
+        {
+          "title": "궁합 리포트에서 확인하는 것.",
           "items": [
-            "두 체계는 이 관계를 같게 보나요?",
-            "우리가 가장 부딪히는 지점은 어디인가요?",
-            "내 자리에서 무엇을 하면 좋아지나요?"
+            "두 사람의 출생 정보 — 날짜·시간·성별·도시를 각각 입력해 차트를 준비",
+            "아쉬타쿠타와 숙요 — 인도 점성술의 조합과 관계의 흐름을 함께 살피기",
+            "관계의 다섯 방향 — 끌림·안정·소통·지속성·갈등에서 드러나는 리듬",
+            "다시 받기 — 결제 뒤 결과 요청이 일시적으로 실패하면 재결제 없이 다시 요청"
           ]
         },
         {
-          "title": "이 기능으로 살펴보는 것",
-          "items": [
-            "인도 아쉬타쿠타 36점 항목별 계산",
-            "동양 숙요 격각의 관계 유형 판정",
-            "두 체계의 수렴점과 갈라지는 지점을 먼저 정리",
-            "상대에게 보내는 초대 링크로 정보 입력 받기"
-          ]
-        },
-        {
-          "title": "결과에서 받아보는 내용",
-          "items": [
-            "통합 총평과 통합 점수",
-            "아쉬타쿠타 항목별 점수와 도샤 표기",
-            "궁합력 · 안정도 · 충돌도 세 점수",
-            "서로의 자리에 맞춘 행동 가이드"
-          ]
-        },
-        {
-          "title": "어떻게 이용하나요?",
-          "steps": [
-            {
-              "label": "두 사람 정보",
-              "detail": "이름 · 생년월일 · 출생 시각 · 성별 · 출생 도시를 넣습니다. 초대 링크로도 받을 수 있습니다."
-            },
-            {
-              "label": "두 체계 계산",
-              "detail": "아쉬타쿠타 36점과 숙요 격각을 각각 셈합니다."
-            },
-            {
-              "label": "통합 정리",
-              "detail": "수렴점과 갈라지는 지점을 정리하고 역할별 행동 가이드로 마무리합니다."
-            }
-          ]
-        },
-        {
-          "title": "이런 분께 어울려요",
-          "items": [
-            "한 체계의 결과만으로는 확신이 서지 않는 분",
-            "점수보다 무엇을 조심할지 알고 싶은 분",
-            "상대의 정보를 직접 받고 싶은 분"
-          ]
+          "title": "두 사람의 출생 정보를 준비해 주세요.",
+          "text": "기본 계산에는 두 사람의 생년월일이 필요합니다. 출생 시간이 모를 때는 해당 상태를 선택할 수 있으며, 결과는 중요한 관계 결정을 대신하지 않습니다."
         }
       ],
-      "ctaLabel": "통합 궁합 보기",
+      "ctaLabel": "동서 통합 궁합 시작하기",
       "evidence": [
-        "index.html:FEATURE_MARKETING_COPY:nakshatra_compat"
+        "app/nakshatra/compat/page.tsx",
+        "app/nakshatra/compat/NakshatraCompatClient.tsx",
+        "app/nakshatra/compat/CompatResultView.tsx",
+        "js/core/service-registry.js"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/nakshatra-compat-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/nakshatra-compat-960.webp",
+          "width": 960
+        }
+      ]
     },
     "neo-operation-room": {
       "slug": "neo-operation-room",
@@ -3266,7 +3195,7 @@
       "featureKey": "",
       "featureKeyTo": "",
       "accessType": "free",
-      "image": "",
+      "image": "/feature-details/assets/animal-destiny-960.webp",
       "aliases": [
         "animal-destiny",
         "/saju/animal-destiny/",
@@ -3300,7 +3229,17 @@
         "app/saju/animal-destiny/components/TwelveAnimalShareCard.tsx",
         "scripts/test-mobile-platform-journeys.mjs"
       ],
-      "verification": "verified"
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/animal-destiny-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/animal-destiny-960.webp",
+          "width": 960
+        }
+      ]
     },
     "kemet-oracle": {
       "slug": "kemet-oracle",

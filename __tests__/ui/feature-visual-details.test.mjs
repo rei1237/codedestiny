@@ -35,6 +35,13 @@ test('published visual introductions have proven sources, real assets, and disti
     assert.equal(detail.panels[0].visualPreview, preview, `${slug}: 관계별 SVG/HTML 미리보기가 없다`);
     assert.doesNotMatch(renderFeatureDetailPanels(detail), /개발용 예시|개인 결과/, `${slug}: 내부 검증 문구가 노출됐다`);
   }
+  for (const [slug, preview] of Object.entries({ 'master-love-codex': 'master-codex', 'love-simulation': 'love-code', 'nakshatra-compat': 'nakshatra-compat' })) {
+    const detail = JSON.parse(fs.readFileSync(`public/feature-details/${slug}.json`, 'utf8'));
+    assert.equal(detail.panels[0].visualPreview, preview, `${slug}: 궁합 기능별 SVG/HTML 미리보기가 없다`);
+    assert.doesNotMatch(renderFeatureDetailPanels(detail), /개발용 예시|개인 결과/, `${slug}: 내부 검증 문구가 노출됐다`);
+  }
+  const animal = JSON.parse(fs.readFileSync('public/feature-details/animal-destiny.json', 'utf8'));
+  assert.ok(animal.image, '동물 도감의 독립 소개 OG 대표 이미지가 없다');
 });
 
 test('shared renderer escapes text and rejects unsafe image URLs and unverified content', () => {

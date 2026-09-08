@@ -6,15 +6,15 @@
 
 | 기능 ID | 기능명 | 기존 진입 | 상세 콘텐츠 | 남은 검증 |
 | --- | --- | --- | --- | --- |
-| master-love-codex | 마스터 인연의 서 | /master-love-codex/ | 미적용 | 구현 근거·시각 구성·전 동선 |
+| master-love-codex | 마스터 인연의 서 | /master-love-codex/ | 적용 13종 | 팝업·전체 상태·OG 재확인 |
 | fortune-tea-house | 운명의 찻집 | /fortune-tea-house/ | 적용 3종 | 팝업·전체 상태·OG 재확인 |
 | love-secret-ai | 연애 비책 | /love-secret-ai/ | 미적용 | 구현 근거·시각 구성·전 동선 |
 | fortune-chat | 대화형 운명 상담 | /fortune-chat/ | 미적용 | 구현 근거·시각 구성·전 동선 |
 | tarot-love-relationship | 우리는 무슨 사이? | /index.html?action=openTarotLoveModal | 적용 11종 | 팝업·전체 상태·OG 재확인 |
 | tarot-reunion | 재회운 타로 | /index.html?action=openTarotReunionModal | 적용 11종 | 팝업·전체 상태·OG 재확인 |
 | tarot-mindscan | 말과 행동 사이 타로 | /tarot/mindscan/ | 적용 12종 | 팝업·전체 상태·OG 재확인 |
-| love-simulation | LOVE CODE 연애 시뮬레이션 | /index.html?action=openLoveSimulation | 미적용 | 구현 근거·시각 구성·전 동선 |
-| nakshatra-compat | 동서 통합 궁합 | /nakshatra/compat/ | 미적용 | 구현 근거·시각 구성·전 동선 |
+| love-simulation | LOVE CODE 연애 시뮬레이션 | /index.html?action=openLoveSimulation | 적용 13종 | 팝업·전체 상태·OG 재확인 |
+| nakshatra-compat | 동서 통합 궁합 | /nakshatra/compat/ | 적용 13종 | 팝업·전체 상태·OG 재확인 |
 | neo-operation-room | 팩폭 전략소 | /neo-operation-room/ | 적용 4종 | 팝업·전체 상태·OG 재확인 |
 | destiny-compass | 운명의 나침반 | /destiny-compass/ | 미적용 | 구현 근거·시각 구성·전 동선 |
 | saju-sibyl | 사이빌 전문가 상담 | /saju/sibyl/ | 미적용 | 구현 근거·시각 구성·전 동선 |
