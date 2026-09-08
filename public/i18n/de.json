@@ -1432,6 +1432,16 @@
       "freeNavAria": "Meine kostenlose Deutung",
       "consultNav": "Beratung",
       "consultNavAria": "Empfohlene Deutungen ansehen"
+    },
+    "searchEntry": {
+      "title": "Beginne mit deiner Tagesdeutung",
+      "fusion": "Sechs Perspektiven mit Fusion Fortune",
+      "intro": "Ein sanfter Impuls für deinen Tag",
+      "lead": "Vergleiche Saju, Zi Wei Dou Shu, Sukuyo, vedische und westliche Astrologie sowie Tarot, um deine nächsten Entscheidungen zu überdenken.",
+      "start": "Meine Deutung kostenlos ansehen",
+      "question": "Welche Frage beschäftigt dich?",
+      "deeper": "Wenn du eine ausführlichere Antwort suchst",
+      "find": "Suchst du eine bestimmte Deutung?"
     }
   },
   "terms": {
