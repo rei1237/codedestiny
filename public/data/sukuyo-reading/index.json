@@ -4,7 +4,35 @@
     "title": "숙요점 궁합 보는 법 — 영친·업태·안괴 관계를 읽는 순서",
     "description": "숙요점 궁합은 좋고 나쁨을 가리는 도구가 아니라 관계의 성격과 방향을 이해하는 지도입니다. 영친·업태·안괴·명·성위·우쇠 6유형의 핵심 특징과 연애·결혼 궁합에서 진짜 중요한 것을 정리했습니다.",
     "href": "/insights/sukuyo-compatibility-guide/",
-    "body": "sukuyo-compatibility-guide-684daaf0bb1b.json"
+    "body": "sukuyo-compatibility-guide-a46329eadfba.json"
+  },
+  {
+    "slug": "sukuyo-27-mansions",
+    "title": "27숙 이름과 본명숙 계산: 날짜표와 달의 위치 구분하기",
+    "description": "27숙의 이름과 상징을 한눈에 보고, Code Destiny의 음력 날짜표로 본명숙을 구하는 방법을 확인합니다. 베다 나크샤트라와의 차이 및 해석의 한계도 설명합니다.",
+    "href": "/insights/sukuyo-27-mansions/",
+    "body": "sukuyo-27-mansions-bd1b4028088c.json"
+  },
+  {
+    "slug": "sukuyo-love",
+    "title": "숙요점 연애 궁합 완전 가이드 — 6유형으로 보는 연애의 전개와 대처법",
+    "description": "숙요점 연애 궁합은 좋고 나쁨을 가리는 점수가 아니라 이 연애가 어떤 방식으로 굴러가는지 보여주는 지도입니다. 영친·업태·안괴·명·성위·우쇠 6유형이 연애에서 각각 어떻게 드러나는지, 단계별 활용법과 함께 정리했습니다.",
+    "href": "/insights/sukuyo-love/",
+    "body": "sukuyo-love-25131f544fe7.json"
+  },
+  {
+    "slug": "sukuyo-bonmyeongsuk-vs-wolmyeongsuk",
+    "title": "본명숙과 월명숙: 이름보다 계산 기준을 먼저 확인하세요",
+    "description": "본명숙의 음력 날짜표 계산과 월명숙이라는 명칭을 구분합니다. 월명숙을 사회적 성격으로 단정하지 않고, 출처·계산법·궁합 기준을 확인하는 방법을 설명합니다.",
+    "href": "/insights/sukuyo-bonmyeongsuk-vs-wolmyeongsuk/",
+    "body": "sukuyo-bonmyeongsuk-vs-wolmyeongsuk-6b09c0c035d4.json"
+  },
+  {
+    "slug": "sukuyo-vs-saju-compatibility",
+    "title": "숙요점과 사주 궁합: 같은 질문을 다른 기준으로 읽는 법",
+    "description": "숙요의 본명숙 관계와 사주의 일간·오행 관계를 비교합니다. 두 결과를 점수로 합치지 않고 계산 설정, 갈등 상황, 실제 대화로 확인하는 방법을 정리했습니다.",
+    "href": "/insights/sukuyo-vs-saju-compatibility/",
+    "body": "sukuyo-vs-saju-compatibility-e2efb6d47cd4.json"
   },
   {
     "slug": "sukuyo-myeongseong",
@@ -140,39 +168,11 @@
     "body": "sukuyo-27-guardian-animals-origin-guide-89a157fcd696.json"
   },
   {
-    "slug": "sukuyo-27-mansions",
-    "title": "27숙 완전 정리 — 각 숙의 성격과 기질 한눈에 보기",
-    "description": "27숙은 달이 지나가는 하늘의 길을 27개 구역으로 나눈 숙요점의 기본 단위입니다. 각숙부터 진숙까지 27수 전체의 핵심 기질과 한 줄 성격을 요약표와 함께 정리했습니다.",
-    "href": "/insights/sukuyo-27-mansions/",
-    "body": "sukuyo-27-mansions-c6303164c73a.json"
-  },
-  {
-    "slug": "sukuyo-love",
-    "title": "숙요점 연애 궁합 완전 가이드 — 6유형으로 보는 연애의 전개와 대처법",
-    "description": "숙요점 연애 궁합은 좋고 나쁨을 가리는 점수가 아니라 이 연애가 어떤 방식으로 굴러가는지 보여주는 지도입니다. 영친·업태·안괴·명·성위·우쇠 6유형이 연애에서 각각 어떻게 드러나는지, 단계별 활용법과 함께 정리했습니다.",
-    "href": "/insights/sukuyo-love/",
-    "body": "sukuyo-love-d10e459e149d.json"
-  },
-  {
     "slug": "sukuyo-marriage",
     "title": "숙요점 결혼 궁합 완전 가이드 — 6유형으로 보는 결혼 생활의 패턴과 체크리스트",
     "description": "숙요점 결혼 궁합은 설렘이 아닌 장기 안정성을 봅니다. 영친·업태·안괴·명·성위·우쇠 6유형별 결혼 생활 패턴과 결혼 전 점검할 체크리스트를 정리했습니다.",
     "href": "/insights/sukuyo-marriage/",
     "body": "sukuyo-marriage-e56c9900f787.json"
-  },
-  {
-    "slug": "sukuyo-bonmyeongsuk-vs-wolmyeongsuk",
-    "title": "숙요점(宿曜占星術) 본명숙(本命宿) vs 월명숙(月命宿) — 궁합에서 무엇이 더 중요한가?",
-    "description": "본명숙은 태어난 날 기준의 근본 성향, 월명숙은 태어난 달 기준의 사회적·현실적 표현 방식입니다. 두 숙의 차이, 같을 때와 다를 때의 해석, 궁합에서의 우선순위를 정리했습니다.",
-    "href": "/insights/sukuyo-bonmyeongsuk-vs-wolmyeongsuk/",
-    "body": "sukuyo-bonmyeongsuk-vs-wolmyeongsuk-ba97b98c1eb1.json"
-  },
-  {
-    "slug": "sukuyo-vs-saju-compatibility",
-    "title": "숙요점과 사주의 차이는? 무엇이 다르고, 무엇이 같은가",
-    "description": "숙요점과 사주는 둘 다 생년월일로 보는 운세지만 방향이 다릅니다. 사주는 나를, 숙요점은 우리를 읽습니다. 각 체계가 강한 질문과 함께 보면 좋은 이유를 정리했습니다.",
-    "href": "/insights/sukuyo-vs-saju-compatibility/",
-    "body": "sukuyo-vs-saju-compatibility-b9ea2b3441d9.json"
   },
   {
     "slug": "nakshatra-what-is",

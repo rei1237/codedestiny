@@ -17,7 +17,7 @@
 
 - `lib/content/editorial-review.mjs`: 콘텐츠 형식과 검수 증거를 분리. 이름·실제 날짜·근거를 갖춘 확인 기록만 검수 표시 및 별도 광고 허용에 사용한다. 현재 확인 기록은 0건이다.
 - `ContentIntegrityNote`, About, Methodology, Editorial Policy: 운영 책임과 원고별 완료 검수를 구분했다.
-- 씨드 인사이트: 임의 날짜와 조회수 제거. 작성자가 없는 글을 운영자 실명으로 대체하지 않는다. Article schema의 조직/개인과 실제 날짜를 일치시킨다.
+- 씨드 인사이트: 임의 날짜와 조회수 제거. seo-growth 생성기의 일괄 과거 발행·수정일도 제거하고 원고별 명시 날짜만 유지했다. 작성자가 없는 글을 운영자 실명으로 대체하지 않는다. Article schema의 조직/개인과 실제 날짜를 일치시킨다.
 - 허브: 계산·해석·체계 비교·관계 기초의 20편 읽기 경로. 인기 조회수 대신 편집 추천. 실제 전문가 검수 완료 목록으로 표시하지 않는다.
 - 계산 방법론 3편: 자정 보정의 산술 오류, 가상의 상담 경험 표현, 다른 유파를 오류로 단정하는 문장 수정. 엔진의 민용일/23시 경계/시주 계산을 대조했다.
 - 홈 12개 언어: ‘제작·검수’ 대신 실제 운영자 소개. 공통 푸터는 주제별 펼침 메뉴로 정리하고 검색엔진용 설명 문구를 제거했다.
@@ -30,7 +30,7 @@
 
 ## 5. 개선 후 INDEX 페이지
 
-`how-we-calculate-saju`, `midnight-birth-day-pillar`, `why-saju-results-differ-between-services`의 본문 오류를 수정했다. 기존 index 상태를 유지하되 최종 전문가 검수는 남아 있다. 20편을 모두 품질 통과 A로 선언하지 않았다.
+20편의 AI 편집 검토를 수행해 8편의 본문을 재구성하고 12편의 오류·한계를 수정했다. 날짜 경계, 숙요 날짜표, 용신과 상신, 라그나·하우스, 재회 추론을 정정했다. [원고별 발견·수정·출처](review/AI-EDITORIAL-REVIEW.md)를 참고한다. 기존 index 상태는 유지하며, AI 검토를 박병하 검수 또는 20편의 최종 A 판정으로 바꾸지 않았다.
 
 ## 6. NOINDEX 페이지
 
@@ -44,7 +44,7 @@
 
 - 일반 씨드 인사이트 기존 113편 → 기존 index 설정 113편 유지.
 - 새 NOINDEX 0편, 새 삭제/통합 0편.
-- 우선 검수 원고 20편, 실제 전문가 검수 확인 0편.
+- AI 편집 검토·수정 20편, 실제 인간 전문가 검수 확인 0편.
 - 유명인·주제 허브·다국어 포함 `/insights/` URL 수와 113편은 서로 다른 집합이다.
 - [원고 전문과 체크리스트](review/index.html), [원고 해시·검수 대기 목록](review/manuscripts.json).
 
@@ -58,8 +58,8 @@
 
 - 프로덕션 공개 URL 599개, sitemap 488개, fetch 실패 0. 자동 원장: B 493(심사 대기, 저품질 확정 아님), C 86, D 18, robots/ads 텍스트 2개.
 - 이 검사에서 빈 indexable 본문·sitemap 충돌·서버 오류 후보는 0. 전체 기사 질적 검토와 동의어 중복 심사가 완료됐다는 뜻은 아니다.
-- 555 URL에서 React 스트리밍 표시 의존성을 식별했다. 서버 본문 존재와 JS 없는 가시성을 구분한다. 프로덕션 별 밝기 기사 본문은 실제 Chrome에서도 확인했다. Google URL 검사 결과를 대신하지 않는다.
-- 로컬 mock에서 360/390/430/1280px × 허브·계산 방법론·별 밝기 12개 조합의 가로 넘침 없음, 기사 본문 존재, 검수 대기 표시, 푸터 키보드 펼침, 광고 요청 0을 확인했다. [검증 결과](browser-verification.json).
+- 555 URL에서 React 스트리밍 표시 의존성을 식별했다. 서버 본문 존재와 JS 없는 가시성을 구분한다. 프로덕션 별 밝기 기사 본문은 실제 Chrome에서도 확인했다. 추가로 실제 GSC URL 검사에서 `/insights/ziwei-star-brightness/`의 등록 상태, 2026-09-07 18:34:35 KST Googlebot 스마트폰 크롤, 가져오기 성공·색인 허용·동일 canonical을 확인했다. “크롤링된 페이지 보기”의 HTML에도 실제 제목·본문·별 밝기 표가 있었다. 이는 그 URL의 해당 크롤 증거이며 전체 사이트의 렌더링을 인증하지 않는다.
+- 로컬 mock에서 360/390/430/1280px 대표 페이지와 390px 전체 20편을 포함한 30개 조합의 가로 넘침 없음, 기사 본문 존재, 검수 대기 표시, 푸터 키보드 펼침, 광고 요청 0을 확인했다. [검증 결과](browser-verification.json).
 - 렌더링된 로컬 문서와 소스 검증은 운영 배포 증거가 아니다. 모든 locale의 사람 번역 검토도 미완료다.
 
 ## 11. AdSense Policy 검사
@@ -82,7 +82,7 @@
 | Technical | 8/10 |
 | TOTAL | **67/100** |
 
-Critical blockers: **0 선언 불가**. 운영의 부정확한 일괄 검수 표시 수정은 배포 대기이며, 실제 전문가 검수와 계정 불일치 해소도 남았다.
+Critical blockers: **0 선언 불가**. 운영의 부정확한 일괄 검수 표시 수정은 배포 대기이며, 개별 실명 검수는 미확인이고 계정 불일치 해소도 남았다.
 
 ## 13. 현재 재심사 권장 여부
 
@@ -90,7 +90,7 @@ Critical blockers: **0 선언 불가**. 운영의 부정확한 일괄 검수 표
 
 ## 14. 남은 위험
 
-1. 박병하 님이 검수 묶음에서 원고별 사실·출처·독창성을 확인하고 수정 요청과 실제 검수일을 제공해야 한다. 확인 전 검수 완료/광고 허용 기록을 생성하지 않는다.
+1. 사용자 요청에 따른 20편 AI 편집 검토는 완료했다. 이를 박병하의 개인 검수로 전환하지 않는다. 실명 검수 표시를 사용하려면 해당 인물의 실제 확인이 필요하며, 현재는 그 표시와 광고 허용을 부여하지 않는다.
 2. ads.txt의 계정 인식 불일치 원인은 미확정이다. 정상 HTTP만으로 해결됐다고 하지 않는다.
 3. PR 필수 CI 및 충돌 확인, 승인된 머지/배포 후 운영 재감사와 Google 렌더링 확인이 필요하다.
 4. GSC 링크 보고서에서 외부 링크 2개(모두 홈, x.com·xploredomains.com), 내부 링크 2,479개를 추가 확인했다. 보고서에 없는 URL의 외부 링크를 0으로 단정하지 않는다. 원본 전체 페이지 내보내기와 모든 언어의 질적 심사는 남았다. [GSC 관찰 기록](search-console-observations.json).
@@ -103,3 +103,11 @@ Google의 승인 여부는 Google이 결정한다. 점수나 URL 수를 맞추�
 결제 가격·30일 이용권·월정석·단건 결제·환불 조건·인증·공개 API·DB 스키마는 변경하지 않았다. 생성 미러의 캐시 키 변경은 `sync:public` 산출물이다. LLM/결제/DB 실호출 없이 기존 mock 및 네트워크 차단 검사를 사용한다.
 
 실행 명령: `npm run check:fast -- --plan`, `npm run check:fast`, `npm run sync:public`, `npm run sitemap:generate`, `node --test __tests__/ui/publisher-integrity.test.mjs`, `node scripts/publisher-url-audit.mjs --output=docs/adsense/baseline`, `node scripts/build-editorial-review-packet.mjs`, `node scripts/verify-publisher-browser.mjs`. 최종 CI/검사 결과는 인수인계 문서에서 확인한다.
+
+### 20편 AI 편집 후 추가 검증
+
+- `node scripts/verify-editorial-manuscripts.mjs`: 20개 고정 원고 해시·제목, 인간 검수/광고 자동 승격 없음, 편집팀 Organization schema, 수정일 없는 14개 sitemap 항목의 lastmod 생략 확인.
+- `node --test __tests__/ui/publisher-integrity.test.mjs`: 11 PASS.
+- `node scripts/verify-publisher-browser.mjs`: 30 PASS, 외부 요청 차단.
+- `npm run check:fast`: PASS(편집 변경 후). 추가 schema·검사 파일은 별도 ESLint/원고 검사 통과. 최종 SHA 검사는 PR 상태를 기준으로 확인한다.
+- 공유 node_modules의 잠금 파일 불일치 발견 후 이 워크트리의 junction만 제거하고 `npm ci --ignore-scripts`로 자체 의존성을 설치했다. 공유 대상 파일·잠금 파일은 변경하지 않았다.
