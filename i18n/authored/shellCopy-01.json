@@ -1,5 +1,19 @@
 {
   "_comment": "정적 셸 마크업과 뜻이 어긋난 사전 값 교정 — 11키. 셸 마크업이 정본이고 ko 는 런타임에서 사전을 건너뛰므로(js/cd-lang-native.js), 아래 키들은 한국어 화면만 멀쩡하고 나머지 11개 로케일이 옛 뜻을 서빙하고 있었다. 특히 tarotPromptMaker* 3키는 '타로 프롬프트 라이브러리'(10,000원 해금)를 'AI 상담'으로 잘못 설명했고, passMini.chipShareReward 는 '범위 밖 단건결제' 자리에 '카카오톡 공유 보상'을 내고 있었다. 🔴 이 네임스페이스(shellCopy)를 따로 둔 이유: --namespace shell 로 병합하면 shell-01.json 의 낡은 kerryje 항목까지 함께 나가 마크업에 없는 키의 값이 뒤집힌다. ko 는 셸 마크업과 글자까지 일치시킨다.",
+  "home.passMini.terminationNote": {
+    "ko": "월 최대 한도가 0이 되어도 이용권의 만료일·등급·프로필 상한은 유지됩니다. 추가 유료 콘텐츠는 단건 결제 또는 월정석으로 이용할 수 있습니다.",
+    "en": "Even when the monthly allowance reaches zero, the pass expiry date, tier, and profile limit remain. Additional paid content is available by one-time payment or monthly pass.",
+    "ja": "月の利用上限が0になっても、利用券の有効期限・ランク・プロフィール上限は維持されます。追加の有料コンテンツは都度払いまたは月額パスで利用できます。",
+    "zh-CN": "即使每月额度变为0，通行证的到期日、等级和个人资料上限仍会保留。额外付费内容可通过单次付费或月度通行证使用。",
+    "zh-TW": "即使每月額度變為0，通行證的到期日、等級和個人資料上限仍會保留。額外付費內容可透過單次付費或月度通行證使用。",
+    "vi": "Ngay cả khi hạn mức tháng về 0, ngày hết hạn, hạng và giới hạn hồ sơ của vé vẫn được giữ nguyên. Nội dung trả phí bổ sung có thể dùng bằng thanh toán một lần hoặc vé tháng.",
+    "hi": "मासिक सीमा शून्य होने पर भी पास की समाप्ति तिथि, स्तर और प्रोफ़ाइल सीमा बनी रहती है। अतिरिक्त सशुल्क सामग्री एकमुश्त भुगतान या मासिक पास से उपलब्ध है।",
+    "es": "Aunque el límite mensual llegue a cero, se mantienen la fecha de vencimiento, el nivel y el límite de perfiles del pase. El contenido adicional de pago está disponible con un pago único o un pase mensual.",
+    "fr": "Même lorsque la limite mensuelle atteint zéro, la date d'expiration, le niveau et la limite de profils du pass sont conservés. Les contenus payants supplémentaires sont accessibles par paiement à l'unité ou pass mensuel.",
+    "de": "Auch wenn das Monatslimit null erreicht, bleiben Ablaufdatum, Stufe und Profilgrenze des Passes erhalten. Zusätzliche kostenpflichtige Inhalte sind per Einzelzahlung oder Monatspass verfügbar.",
+    "nl": "Ook wanneer de maandelijkse limiet nul bereikt, blijven de vervaldatum, het niveau en de profiellimiet van de pas behouden. Extra betaalde content is beschikbaar via eenmalige betaling of maandpas.",
+    "ms": "Walaupun had bulanan mencapai sifar, tarikh luput, peringkat dan had profil pas kekal. Kandungan berbayar tambahan boleh digunakan dengan bayaran sekali atau pas bulanan."
+  },
   "home.passMini.chipShareReward": {
     "ko": "범위 밖 단건결제",
     "en": "One-time payment outside the range",

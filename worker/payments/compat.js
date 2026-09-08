@@ -282,7 +282,7 @@ export function legacyMoonstoneEnvelope({
 export function legacyPassCheckEnvelope({
   product, requestId, profileId = "", unlock = false, premiumAccessToken = "",
   coverage = {}, entitlement = {}, user = null, replayed = false, alreadyUnlocked = false,
-  sessionId = "", reportId = "", passBudgetExhausted = false,
+  sessionId = "", reportId = "", passEnded = false,
 }) {
   const featureKey = String(product.featureKey || "");
   const isFamily = String(coverage.tier || "") === "family";
@@ -344,10 +344,9 @@ export function legacyPassCheckEnvelope({
           monthlySpendUsed: coverage.usedCoin,
           monthlySpendRemaining: coverage.remainingCoin,
         } : {}),
-        // 월 한도가 0이 된 사실만 알린다. 이용권 등급·만료일·프로필 상한은 원래 만료일까지 유지한다.
-        ...(passBudgetExhausted ? {
-          passBudgetExhausted: true, passBudgetExhaustedAt: new Date().toISOString(),
-        } : {}),
+        // 월 한도를 다 써서 이 건을 끝으로 이용권이 종료됐다(2026-09-04 정책). 클라이언트 판정기가
+        // 이 플래그로 로컬 스냅샷을 즉시 미보유로 내린다 — 없으면 다음 진입이 낙관 통과 후 402 를 받는다.
+        ...(passEnded ? { passEnded: true, passEndedAt: new Date().toISOString() } : {}),
       },
       user: {
         id: String(user?._id || ""),

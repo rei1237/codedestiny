@@ -3,8 +3,8 @@
  *
  * 음악실 결제 정책(재생 무료 · 다운로드 유료) 회귀 가드.
  * - 전곡 재생은 로그인 여부와 무관하게 free_full로 무료(hasFullAccess=true).
- * - MP3 다운로드는 단건결제·월정석·이용권 중 서버가 확인한 권한이 있을 때 허용된다(canDownload).
- * - 미보유 다운로드 요청은 402(DOWNLOAD_PURCHASE_REQUIRED), 권한 확인 후에만 파일이 나간다.
+ * - MP3 다운로드는 실제 구매(단건결제·월정석)한 곡만 허용된다(canDownload). 이용권/월정구독 커버는 다운로드 불가.
+ * - 미구매 다운로드 요청은 402(DOWNLOAD_PURCHASE_REQUIRED), 구매 완료 시에만 파일이 나간다.
  * - 다운로드 게이트가 걸린 트랙은 접근 판정(canAccessPaidFeaturesBatch)이 로그인 사용자에 대해 호출된다.
  */
 
@@ -115,7 +115,7 @@ describe("음악 접근 판정 (재생 무료 · 다운로드 유료)", () => {
     }
   });
 
-  test("이용권 커버(license): 재생과 다운로드가 함께 열린다", async () => {
+  test("이용권 커버(license): 재생은 열리지만 다운로드는 여전히 잠긴다", async () => {
     mockGetOptionalUserFromRequest.mockResolvedValue({ userId: "pass-user" });
     grantAll({ allowed: true, licenseType: "license", reason: "PASS" });
 
@@ -124,8 +124,8 @@ describe("음악 접근 판정 (재생 무료 · 다운로드 유료)", () => {
     expect(payload.passCoversAll).toBe(true);
     for (const track of payload.tracks) {
       expect(track.hasFullAccess).toBe(true);
-      expect(track.canDownload).toBe(true);
-      expect(track.downloadUrl).toContain("/api/music/download");
+      expect(track.canDownload).toBe(false);
+      expect(track.downloadUrl).toBe("");
     }
   });
 });
@@ -164,16 +164,5 @@ describe("다운로드 게이트 (유료)", () => {
     expect(res.status).toBe(206);
     expect(res.headers.get("Content-Disposition")).toContain("attachment");
     expect(res.headers.get("Cache-Control")).toContain("private");
-  });
-
-  test("이용권 커버 다운로드도 파일명을 붙여 통과한다", async () => {
-    mockGetOptionalUserFromRequest.mockResolvedValue({ userId: "pass-user" });
-    grantAll({ allowed: true, licenseType: "license", reason: "PASS" });
-
-    const url = `https://example.com/api/music/download?key=${encodeURIComponent(TRACK_KEYS[0])}`;
-    const res = await handleMusicRoutes(new Request(url), {});
-
-    expect(res.status).toBe(206);
-    expect(res.headers.get("Content-Disposition")).toContain("attachment");
   });
 });

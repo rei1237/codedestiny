@@ -98,9 +98,7 @@ for (const featureKey of ['saju_ai_prompt_generator', 'ziwei_ai_prompt_generator
     const input = { auth: { userId: USER }, featureKey, requestId: 'last-covered', cost: 200,
       body: { freeBySubscription: true }, env: {} };
     assert.equal((await f.run({ ...input, consume: true })).source, 'pass_payload');
-    assert.equal(f.db.rows[0].profileSubscription.tier, 'vvip');
-    assert.equal(f.db.rows[0].profileSubscription.passTier, 'vvip');
-    assert.equal(f.db.rows[0].profileSubscription.isActive, true);
+    assert.equal(f.db.rows[0].profileSubscription.tier, 'free');
     assert.equal((await f.run(input)).source, 'pass_payload');
     assert.equal((await f.run({ ...input, consume: true })).source, 'pass_payload');
     assert.equal(f.paymentLookups(), 0);

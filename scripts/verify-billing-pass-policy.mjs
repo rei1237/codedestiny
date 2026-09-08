@@ -797,11 +797,7 @@ assertContains(indexSource, "function _cdHandleDirectCheckoutAuthFailure(error)"
 assertContains(indexSource, "throw _cdHandleDirectCheckoutAuthFailure(_cdDirectCheckoutError);", "the single-flight wrapper must surface terminal 401s via the login prompt helper");
 assertContains(destinyProfileSource, "}, { retryOn401: true, refreshOn401: true });", "dp checkout must opt into the sanctioned 401 refresh recovery");
 assertContains(destinyProfileSource, "{ method: 'POST', body: dpConfirmBody }, { retryOn401: true, refreshOn401: true })", "dp confirm must opt into the sanctioned 401 refresh recovery");
-assertContains(
-  destinyProfileSource,
-  "dpRecoveryPath ? { method: 'POST' } : { method: 'POST', body: dpResumeBody },\n        { retryOn401: true, refreshOn401: true },",
-  "dp redirect-resume confirm/recovery must opt into the sanctioned 401 refresh recovery",
-);
+assertContains(destinyProfileSource, "{ method: 'POST', body: dpResumeBody }, { retryOn401: true, refreshOn401: true })", "dp redirect-resume confirm must opt into the sanctioned 401 refresh recovery");
 assertContains(destinyProfileSource, "retryTransient: requestMethod === 'GET' && opts.retryTransient === true", "React payment POST requests must not opt into transient retries");
 // 진단 로그는 콘솔에서 'Object' 로 접히면 쓸모가 없다 — 한 줄 문자열이어야 한다.
 assertContains(indexSource, "'[direct-checkout] PortOne requestPayment failed'\n            + ' code='", "PortOne failure must be logged as one flat line (an object collapses to 'Object' in the console)");

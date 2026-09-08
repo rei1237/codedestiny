@@ -207,8 +207,8 @@ function hasTrackFullAccess(track: Track, accessByTrackId: MusicAccessMap, passC
   return Boolean(track.id && accessByTrackId[track.id]?.hasFullAccess);
 }
 
-// downloadRequiresPurchase 트랙은 재생이 free_full로 무료여도, 다운로드는 서버가 확인한
-// 단건결제·월정석·이용권 권한(canDownload)이 있을 때만 허용한다.
+// 다운로드는 이용권 커버로 열리지 않는다 — 단건결제·월정석으로 실제 구매한 곡만 파일을 받을 수 있다.
+// downloadRequiresPurchase 트랙은 재생이 free_full로 무료여도 다운로드는 서버가 확인한 구매(canDownload)에만 허용한다.
 function canDownloadTrack(track: Track, accessByTrackId: MusicAccessMap) {
   if (track.accessTier === "free_full" && !track.downloadRequiresPurchase) return true;
   return Boolean(track.id && accessByTrackId[track.id]?.canDownload);
@@ -1422,6 +1422,11 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
     if (purchaseBusyRef.current) return;
     purchaseBusyRef.current = true;
 
+    // 이용권으로 이미 재생은 열려 있는데 다운로드만 남은 경우 = 다운로드 구매.
+    // 다운로드는 이용권 결제 대상이 아니므로(프로필 카드와 같은 pass 제외 유형) 이용권 선검사를 건너뛰고
+    // 곧바로 결제창을 연다 — 단, 단건결제와 월정석은 그대로 동등 노출한다.
+    const isDownloadOnlyPurchase = hasTrackFullAccess(track, accessByTrackId, passCoversAll);
+
     setPurchasingTrackId(track.id);
     setMusicAccessMessage("");
     try {
@@ -1436,6 +1441,14 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
         cost: track.coinCost || MUSIC_TRACK_UNLOCK_COIN_COST,
         amountKRW: track.priceKRW || MUSIC_TRACK_UNLOCK_PRICE_KRW,
         membershipCreditCost: (track.coinCost || MUSIC_TRACK_UNLOCK_COIN_COST) * 10,
+        ...(isDownloadOnlyPurchase
+          ? {
+            allowedPaymentModes: ["direct", "monthly"],
+            disablePassFirst: true,
+            disablePassChoice: true,
+            skipPassProbe: true,
+          }
+          : {}),
         requestId: purchaseRequestId,
         idempotencyKey: purchaseRequestId,
         resume: buildResume({ trackId: track.id }),
