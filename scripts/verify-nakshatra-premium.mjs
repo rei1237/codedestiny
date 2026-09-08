@@ -525,11 +525,12 @@ console.log("\n[9] 프론트 계약 — 결제·잠금 판정의 단일 정본")
     /status === 401 \? "LOGIN_REQUIRED"/.test(routeCodeAll));
 
   const resultClient = readFileSync(path.join(repoRoot, "app/nakshatra/result/NakshatraResultClient.tsx"), "utf8");
-  for (const href of ["/nakshatra/lord-report", "/nakshatra/dasha-map", "/nakshatra/muhurta", "/nakshatra/vvip"]) {
-    check(`결과 화면 업셀이 ${href} 로 연결된다`, resultClient.includes(`href: "${href}"`));
-  }
-  check("결과 화면에 '준비 중' 상품이 하나도 남지 않았다",
-    (resultClient.match(/\{ title: "[^"]+", price: "[^"]+", desc: "[^"]+" \}/g) || []).length === 0);
+  check("결과 화면의 신규 유료 진입은 두 별 통합 상담 하나다",
+    resultClient.includes('href: "/nakshatra/ai"')
+    && !resultClient.includes('href: "/nakshatra/lord-report"')
+    && !resultClient.includes('href: "/nakshatra/dasha-map"')
+    && !resultClient.includes('href: "/nakshatra/muhurta"')
+    && !resultClient.includes('href: "/nakshatra/vvip"'));
 }
 
 console.log("\n[10] 회당결제 서버 검증 — 결제 증빙을 DB 로 확인하는가");

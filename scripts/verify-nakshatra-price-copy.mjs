@@ -1,7 +1,8 @@
 // 나크샤트라 로케일 카피의 가격 문구가 **실제 결제 금액**과 **결제창 환산 정본**에 묶여 있는지 본다.
 //
 // 왜 필요한가:
-//   app/nakshatra/_lib/copy.ts 는 12로케일 × 8개 가격 라벨을 문자열로 들고 있고, 그 괄호 안에는
+//   app/nakshatra/_lib/copy.ts 는 공개 통합 상담과 과거 구매 이력 재열람용 레거시 화면의
+//   12로케일 가격 라벨을 문자열로 들고 있고, 그 괄호 안에는
 //   외화 개산가가 손으로 박혀 있었다. 두 가지가 실제로 터졌다(2026-08-28 실측):
 //
 //     ① dashaPriceLabel 이 12벌 전부 "15,000원" 이었다 — 다샤 인생지도의 실제 결제는 10,000원이다
@@ -108,18 +109,18 @@ const bind = (key, krw, where) => {
   expectedKrwByKey.set(key, krw);
 };
 
-// (a) 각 화면이 자기 금액으로 그리는 라벨.
+// (a) 이력 재열람을 보장하는 기존 화면이 자기 결제 금액으로 그리는 라벨.
 for (const { slug, rel } of clientFiles) {
   const krw = amountBySlug.get(slug);
   if (krw === undefined) continue;
   for (const m of read(rel).matchAll(/copy\.([A-Za-z0-9_]*(?:Price|PriceLabel))\b/g)) bind(m[1], krw, rel);
 }
 
-// (b) 결과 화면 카탈로그는 자기 금액이 없다 — href 로 그 화면의 금액에 묶인다.
+// (b) 결과 화면의 신규 판매 진입은 통합 상담 하나다. href 로 실제 결제 금액에 묶는다.
 const catalogue = [...read(RESULT_CLIENT).matchAll(/price:\s*copy\.([A-Za-z0-9_]+),[\s\S]{0,160}?href:\s*"\/nakshatra\/([a-z-]+)"/g)];
 assert.ok(
-  catalogue.length >= 6,
-  `${RESULT_CLIENT}: paidProducts 카탈로그에서 ${catalogue.length}건만 읽었습니다 — price/href 짝 파싱이 깨졌습니다.`,
+  catalogue.length === 1,
+  `${RESULT_CLIENT}: paidProducts 카탈로그는 통합 상담 1건이어야 합니다(현재 ${catalogue.length}건).`,
 );
 for (const [, key, slug] of catalogue) {
   const krw = amountBySlug.get(slug);
@@ -131,8 +132,8 @@ for (const [, key, slug] of catalogue) {
 }
 
 assert.ok(
-  expectedKrwByKey.size >= 8,
-  `가격 라벨을 ${expectedKrwByKey.size}개만 발견했습니다(바닥 8) — 바인딩 발견이 깨지면 이 가드는 아무것도 안 봅니다.`,
+  expectedKrwByKey.size >= 6,
+  `가격 라벨을 ${expectedKrwByKey.size}개만 발견했습니다(바닥 6) — 바인딩 발견이 깨지면 이 가드는 아무것도 안 봅니다.`,
 );
 
 // ── 3) copy.ts 를 로케일 블록으로 훑는다 ──────────────────────────────────────────────
@@ -254,9 +255,10 @@ assert.equal(
   expectedKrwByKey.size,
   `${COPY}: 바인딩된 가격 라벨 ${expectedKrwByKey.size}개 중 ${seenPerKey.size}개만 사전에 있습니다.`,
 );
+const minimumAssertions = expectedKrwByKey.size * (locales.size * 2 - 1);
 assert.ok(
-  assertions >= 180,
-  `단언이 ${assertions}건뿐입니다(바닥 180) — 대조가 통째로 건너뛰어졌을 수 있습니다.`,
+  assertions >= minimumAssertions,
+  `단언이 ${assertions}건뿐입니다(바닥 ${minimumAssertions}) — 대조가 통째로 건너뛰어졌을 수 있습니다.`,
 );
 
 // ── 6) copy.ts 는 환율표 사본을 들지 않는다 ───────────────────────────────────────────

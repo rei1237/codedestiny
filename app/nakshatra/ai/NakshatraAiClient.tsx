@@ -8,14 +8,14 @@ import { packPaidResumeArg, unpackPaidResumeArg, usePaidResume } from "@/app/hoo
 import { isRetriableResultPollFailure } from "@/app/_lib/consultationResultPolling";
 import { useServerPrice } from "@/app/hooks/useServerPrice";
 import { PriceBadge } from "@/app/components/PriceBadge";
-import { ExpertStickyCta, ExpertValueCards } from "@/app/components/expert-consulting/ExpertConsultationFrame";
+import { ExpertStickyCta } from "@/app/components/expert-consulting/ExpertConsultationFrame";
 import { PaidValueSection } from "@/app/components/PaidValueSection";
 import { type FeatureMarketingTarget } from "@/app/components/FeatureMarketingDetailModal";
 import NakshatraProfilePicker from "../_components/NakshatraProfilePicker";
 import { useNakshatraProfileContext } from "../_lib/nakshatra-context";
 import type { NakshatraBirthInput } from "../nakshatra-birth";
 import { useNakshatraCopy, type NakshatraCopy } from "../_lib/copy";
-import AiConsultDecks, { type Decks, type NatalIdentity, type TopInsight } from "./AiConsultDecks";
+import AiConsultDecks, { type Decks, type NatalIdentity } from "./AiConsultDecks";
 
 const FEATURE_KEY = "nakshatra-ai-consultation";
 const SERVICE_ID = "nakshatra-ai";
@@ -44,8 +44,8 @@ const API = {
 };
 const POLL_INTERVAL_MS = 3500;
 const POLL_MAX_ATTEMPTS = 45;
-// 21섹션 ÷ 배치 4 = 6웨이브. 재시도(섹션 하한 미달 시)까지 감안해 넉넉히 잡는다.
-const TOTAL_SECTIONS = 21;
+// 9개 통합 장 ÷ 배치 4 = 3웨이브. 재시도(섹션 하한 미달 시)까지 감안해 넉넉히 잡는다.
+const TOTAL_SECTIONS = 9;
 const GENERATE_MAX_ATTEMPTS = 24;
 const GENERATE_GAP_MS = 400;
 // 일시 장애(503 DB_DEGRADED · 세션 리프레시 지연)에만 쓰는 별도 한도.
@@ -53,7 +53,7 @@ const GENERATE_GAP_MS = 400;
 // 🔴 회복시키지 않는다 — 회복을 넣으면 최악의 경우 (진행예산 × 블립예산)회까지 돌 수 있다.
 const TRANSIENT_MAX_RETRIES = 40;
 // 두 카운터와 별개인 벽시계 상한. 카운터만으로는 상한이 곱해져 사실상 무한이 된다.
-// 21섹션 6웨이브 + 블립 재시도까지 담고도 사용자를 방치하지 않는 값.
+// 9개 통합 장 3웨이브 + 블립 재시도까지 담고도 사용자를 방치하지 않는 값.
 const GENERATION_DEADLINE_MS = 10 * 60 * 1000;
 
 type BirthInput = NakshatraBirthInput;
@@ -122,9 +122,8 @@ export default function NakshatraAiClient() {
   const [statusMsg, setStatusMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [decks, setDecks] = useState<Decks | null>(null);
-  const [topInsights, setTopInsights] = useState<TopInsight[]>([]);
   const [totalChars, setTotalChars] = useState(0);
-  const [progress, setProgress] = useState({ completed: 0, total: TOTAL_SECTIONS, phase: "decks" });
+  const [progress, setProgress] = useState({ completed: 0, total: TOTAL_SECTIONS, phase: "consultation" });
   const [askedQuestion, setAskedQuestion] = useState("");
   const busyRef = useRef(false);
   const exportRootRef = useRef<HTMLDivElement | null>(null);
@@ -144,15 +143,24 @@ export default function NakshatraAiClient() {
     resumeCompletedRef.current = true;
     const nextDecks = asRecord(session.decks);
     setDecks({
+      consultation: Array.isArray(nextDecks.consultation) ? (nextDecks.consultation as Decks["consultation"]) : [],
       sukuyo: Array.isArray(nextDecks.sukuyo) ? (nextDecks.sukuyo as Decks["sukuyo"]) : [],
       vedic: Array.isArray(nextDecks.vedic) ? (nextDecks.vedic as Decks["vedic"]) : [],
       fusion: Array.isArray(nextDecks.fusion) ? (nextDecks.fusion as Decks["fusion"]) : [],
     });
-    setTopInsights(Array.isArray(session.topInsights) ? (session.topInsights as TopInsight[]) : []);
     setTotalChars(Number(session.totalCharCount) || 0);
     const natal = asRecord(session.natal);
     if (natal.sukuyoKo || natal.nakshatraKo) {
-      setIdentity({ sukuyoKo: toText(natal.sukuyoKo), sukuyoHan: toText(natal.sukuyoHan), nakshatraKo: toText(natal.nakshatraKo), nakshatraEn: toText(natal.nakshatraEn) });
+      setIdentity({
+        sukuyoKo: toText(natal.sukuyoKo),
+        sukuyoHan: toText(natal.sukuyoHan),
+        sukuyoDirection: toText(natal.sukuyoDirection),
+        sukuyoGuardian: toText(natal.sukuyoGuardian),
+        nakshatraKo: toText(natal.nakshatraKo),
+        nakshatraEn: toText(natal.nakshatraEn),
+        pada: Number.isFinite(Number(natal.pada)) ? Number(natal.pada) : null,
+        lordKo: toText(natal.lordKo),
+      });
     }
     setPhase("done");
     busyRef.current = false;
@@ -170,7 +178,7 @@ export default function NakshatraAiClient() {
     setProgress({
       completed: Number(next.completed) || 0,
       total: Number(next.total) || TOTAL_SECTIONS,
-      phase: toText(next.phase) || "decks",
+      phase: toText(next.phase) || "consultation",
     });
   }, []);
 
@@ -208,11 +216,11 @@ export default function NakshatraAiClient() {
     fail(copy.aiErrorTimeout);
   }, [finish, fail, applyProgress, copy]);
 
-  // 21섹션은 한 요청에 다 굽지 못한다(엣지 100초 컷). 서버가 한 번에 4섹션씩 굽고 진행률을 돌려주므로
+  // 9개 통합 장은 한 요청에 다 굽지 못할 수 있다(엣지 100초 컷). 서버가 한 번에 4장씩 굽고 진행률을 돌려주므로
   // 완료될 때까지 /generate 를 이어 부른다. 진행 위치의 정본은 서버다 — 여기서 인덱스를 보내지 않는다.
   const driveGeneration = useCallback(async (sessionId: string, idempotencyKey: string, accessToken: string) => {
     // 🔴 일시 장애는 "진행"이 아니므로 웨이브 예산을 먹으면 안 된다. 블립이 조금만 길어도
-    //    24회를 503으로 다 써 버려 21섹션을 끝내지 못하고 죽었다. 별도 한도로 센다.
+    //    24회를 503으로 다 써 버려 통합 상담을 끝내지 못하고 죽었다. 별도 한도로 센다.
     let transientLeft = TRANSIENT_MAX_RETRIES;
     const deadline = Date.now() + GENERATION_DEADLINE_MS;
     for (let attempt = 0; attempt < GENERATE_MAX_ATTEMPTS && Date.now() < deadline; ) {
@@ -402,7 +410,6 @@ export default function NakshatraAiClient() {
             decks={decks}
             natal={identity}
             question={askedQuestion}
-            topInsights={topInsights}
             totalChars={totalChars}
           />
           {/* PDF 버튼 행 — 마커가 없어 캡처에 실리지 않는다. 무료 부가 기능이라 가격·결제 문구 금지. */}
@@ -431,7 +438,6 @@ export default function NakshatraAiClient() {
       ) : (
         <div className="mx-auto grid w-full max-w-lg gap-4">
           <NakshatraProfilePicker context={profilePicker} copy={copy} disabled={working || profilePicker.selecting} />
-          <ExpertValueCards theme="nakshatra" points={[{ title: "달이 머문 별자리", description: "나크샤트라가 보여주는 감정의 결과 본능적인 반응을 살핍니다." }, { title: "숙요와 다샤", description: "서로 다른 시기 언어가 지금의 질문에 어떤 신호를 보태는지 확인합니다." }, { title: "현실적인 다음 수", description: "결과를 단정하지 않고 관계와 선택에서 적용할 수 있는 방향을 남깁니다." }]} />
           <IntroView
             identity={identity}
             birth={birth}
@@ -441,7 +447,7 @@ export default function NakshatraAiClient() {
             errorMsg={phase === "error" ? errorMsg : ""}
             copy={copy}
            />
-           <ExpertStickyCta theme="nakshatra" targetId="nakshatra-ai-form" label="나크샤트라 상담 시작" price={<PriceBadge featureKey={FEATURE_KEY} />} />
+           <ExpertStickyCta theme="nakshatra" targetId="nakshatra-ai-form" label="두 별 통합 상담 시작" price={<PriceBadge featureKey={FEATURE_KEY} />} />
           {/* 결제 결정 전에 "무엇을 받는지" 를 같은 화면에서 보여 준다. 문구 정본은 정적 셸이다. */}
           <PaidValueSection target={MARKETING_TARGET} />
         </div>
@@ -514,9 +520,10 @@ function IntroView({
 
 function resolveStepIndex(progress: { completed: number; total: number; phase: string }) {
   if (progress.phase === "done") return 3;
-  if (progress.phase === "fusion") return progress.completed >= progress.total - 1 ? 3 : 2;
-  // 덱 페이즈: 베다 6편이 먼저 끝나야 숙요 쪽으로 넘어간 것으로 본다(11편 중 6편 기준).
-  return progress.completed >= 6 ? 1 : 0;
+  const ratio = progress.total > 0 ? progress.completed / progress.total : 0;
+  if (ratio >= 0.75) return 2;
+  if (ratio >= 0.35) return 1;
+  return 0;
 }
 
 function WaitingView({
@@ -534,7 +541,7 @@ function WaitingView({
   const ratio = progress.total > 0 ? Math.min(1, progress.completed / progress.total) : 0;
   return (
     <div className="mx-auto w-full max-w-md text-center motion-safe:animate-fade-in-up">
-      {/* Moon Glow 오브 — 두 대가가 별을 읽는 신비로운 대기(달빛 골드+바이올렛 글로우) */}
+      {/* Moon Glow 오브 — 두 별의 언어를 하나로 엮는 대기 */}
       <div className="relative mx-auto grid h-36 w-36 place-items-center">
         <span className="absolute left-2 top-3 text-sm text-amber-100/70 motion-safe:animate-twinkle" aria-hidden="true">✧</span>
         <span className="absolute right-4 top-9 text-xs text-blue-100/70 [animation-delay:1.4s] motion-safe:animate-twinkle" aria-hidden="true">✦</span>
