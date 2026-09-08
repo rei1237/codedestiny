@@ -12704,7 +12704,7 @@
               hit.classList.remove('is-loading');
               var passMonthlyNode = root.querySelector('[data-payment-status]');
               if (passMonthlyNode) {
-                passMonthlyNode.textContent = _dpCheckoutText('payment.directModal.passMonthlyExhausted', '이용권 한도를 모두 사용해 이용권이 종료되었어요. 새로 구매하면 30일이 다시 시작되고, 지금은 단건 결제나 월정석으로 열 수 있어요.');
+                passMonthlyNode.textContent = _dpCheckoutText('payment.directModal.passMonthlyExhausted', '이용권 월 한도를 모두 사용했어요. 만료일까지 등급과 프로필 상한은 유지되며, 추가 콘텐츠는 단건 결제나 월정석으로 이용할 수 있어요.');
                 passMonthlyNode.style.color = '#fca5a5';
               }
               return;
