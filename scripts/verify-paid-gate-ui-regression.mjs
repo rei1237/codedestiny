@@ -532,7 +532,8 @@ assertContains(yogaClientSource, "credentials: 'include'", "yoga client sends au
 for (const source of [indexSource, staticIndexSource]) {
   assertContains(source, 'id="cd-main-shell-critical-v20260604"', "critical CSS marker mirrored");
   assertContains(source, 'data-marker="moonstone-pass-ui-v20260605-starlight-cta"', "glass CSS marker mirrored");
-  assertContains(source, ".moon-hero{grid-template-columns", "desktop critical layout");
+  if (source.includes('id="cdHomeFunnel"')) assertContains(source, 'href="/styles/home-funnel.css', "replacement home critical stylesheet");
+  else assertContains(source, ".moon-hero{grid-template-columns", "desktop critical layout");
   assertContains(source, "@media (max-width:860px)", "mobile critical layout");
   assertContains(source, ".cd-fortune-pick__grid{grid-template-columns:1fr", "mobile card layout fallback");
   assertContains(source, '<link rel="stylesheet" href="/styles/core-ui.css', "core CSS blocking stylesheet");

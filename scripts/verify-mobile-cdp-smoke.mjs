@@ -315,7 +315,7 @@ try {
   // 🔴 주 CTA 의 목적지는 홈 개편마다 바뀐다(#cdConcernPick → #cdTodayHub, 6c605edd4).
   // 셀렉터에 목적지를 박아 두면 가드가 "존재하지 않음"으로 죽는다 — 실제 href 를 읽어서 잰다.
   const heroCtaTarget = await evaluate(cdp, `(() => {
-    const el = document.querySelector('.moon-hero__cta--primary');
+    const el = document.querySelector('.cdh-copy [data-cdh-free], .moon-hero__cta--primary');
     if (!el) return { exists: false, id: '' };
     const href = String(el.getAttribute('href') || '');
     return { exists: true, href, id: href.charAt(0) === '#' ? href.slice(1) : '' };
@@ -325,7 +325,7 @@ try {
     "the hero primary CTA points at an in-page anchor",
     heroCtaTarget,
   );
-  await tapSelector(cdp, ".moon-hero__cta--primary");
+  await tapSelector(cdp, ".cdh-copy [data-cdh-free], .moon-hero__cta--primary");
   // 단일 반응형 홈의 주 CTA는 같은 문서 안 블록으로 내려간다(문서 전환 없음). 히어로 스크립트가
   // preventDefault 후 스무스 스크롤하므로 해시가 아니라 **실제 위치**로 재야 한다 — 해시로 재면
   // 스크롤이 정상이어도 틀리게 실패한다. 스무스 스크롤 완료까지 짧은 폴링이 안정적이다.
@@ -1509,7 +1509,7 @@ function mobileStateExpression() {
     const nav = document.querySelector('#cdMobileBottomNav');
     // 🔴 목적지를 셀렉터에 박지 않는다 — 앵커가 바뀌면 cta 가 null 이 되어 이 단언이
     // "첫 화면에 없다"로 조용히 뒤집힌다(2026-09-01 실측: #cdConcernPick 하드코드 탓에 실패 중이었다).
-    const cta = document.querySelector('.moon-hero__cta--primary');
+    const cta = document.querySelector('.cdh-copy [data-cdh-free], .moon-hero__cta--primary');
     const quickRail = document.querySelector('#cdMobileBottomNav .cd-mobile-bottom-nav__quick');
     const mainNavItems = Array.from(document.querySelectorAll('#cdMobileBottomNav .cd-mobile-bottom-nav__main [data-nav-key]'));
     const langDropdown = document.querySelector('#langDropdown');
