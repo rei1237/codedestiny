@@ -147,6 +147,8 @@
 /public/js/services/sajuWorkerService.js
 /public/js/services/sajuWorkerServiceAdvanced.js
 /public/js/share-reward.js
+/public/js/share-service.d.mts
+/public/js/share-service.mjs
 /public/js/share.js
 /public/js/sibyl-system.js
 /public/js/swisseph-loader.js
