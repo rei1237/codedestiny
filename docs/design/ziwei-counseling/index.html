@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>심화 자미두수 · 디자인 목업</title>
+  <link rel="stylesheet" href="../../../styles/fonts-serif.css">
+  <link rel="stylesheet" href="mockup.css">
+  <script src="mockup.js" defer></script>
+</head>
+<body>
+  <div class="review-bar" aria-label="디자인 검토 도구">
+    <span>디자인 목업 <span class="review-note">· 샘플 명반 / 실제 상담 아님</span></span>
+    <div class="review-tabs" aria-label="목업 화면 선택">
+      <button data-view="result" aria-pressed="true">상담 결과</button>
+      <button data-view="input" aria-pressed="false">상담 시작</button>
+      <button data-view="pdf" aria-pressed="false">PDF 디자인</button>
+      <button data-view="states" aria-pressed="false">상태·색상</button>
+    </div>
+  </div>
+  <header class="masthead">
+    <a class="brand" href="#" data-action="home" aria-label="목업 처음으로">
+      <svg viewBox="0 0 40 40" width="32" height="32" aria-hidden="true"><circle cx="20" cy="20" r="15"/><path d="M20 1v8m0 22v8M1 20h8m22 0h8M10 10l5 5m10 10 5 5M10 30l5-5m10-10 5-5"/><circle cx="20" cy="20" r="4"/></svg>
+      <span>CODE DESTINY</span>
+    </a>
+    <span class="masthead-title">심화 자미두수 상담</span>
+    <button class="icon-button" data-action="input" aria-label="출생 정보 확인">
+      <svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 21v-2a7 7 0 0 1 14 0v2"/></svg>
+    </button>
+  </header>
+
+  <main id="result-view" class="view">
+    <nav class="reading-nav" aria-label="상담 리포트 목차">
+      <a href="#answer" aria-current="location">핵심 답변</a><a href="#questions">질문별 상담</a><a href="#chart">명반</a><a href="#today">오늘의 조언</a><a href="#personal">PDF</a>
+    </nav>
+    <section class="hero" id="answer" aria-labelledby="hero-title">
+      <picture class="hero-art" aria-hidden="true"><source media="(max-width:600px)" srcset="assets/celestial-atlas-mobile.webp"><img src="assets/celestial-atlas.webp" width="1280" height="853" alt="" fetchpriority="high"></picture>
+      <div class="hero-content">
+        <h1 id="hero-title">당신은 길이 막히면,<br>새 길을 만드는 사람입니다.</h1>
+        <p class="profile-line"><span class="profile-name">서윤</span>님의 인생 심층 상담서</p>
+        <p class="hero-lead" id="hero-lead">남들이 익숙하게 따르는 방식도, 스스로 납득되지 않으면 바꾸고 싶어지는 편입니다. 그 힘을 오래 쓰려면, 다시 시작할 것과 지켜갈 것을 나누는 일이 필요합니다.</p>
+        <ul class="keywords" id="hero-keywords" aria-label="핵심 성향"><li>새로 시작하는 힘</li><li>자기 기준</li><li>변화의 균형</li></ul>
+        <div class="hero-actions"><a class="button primary" href="#questions">내 질문의 답 읽기 <span aria-hidden="true">↓</span></a><button class="button quiet" data-action="share">요약 공유</button></div>
+      </div>
+      <dl class="chart-meta"><div><dt>명궁</dt><dd>자 · 파군</dd></div><div><dt>신궁</dt><dd>술 · 부부궁</dd></div><div><dt>오행국</dt><dd>화6국</dd></div></dl>
+    </section>
+
+    <div class="reading-layout">
+      <aside class="reading-aside"><p>명반이 건네는 이야기</p><a href="#questions">지금 궁금한 질문</a><a href="#chart">이 답을 읽은 근거</a><a href="#today">내 삶에 적용하기</a><span>별은 방향을 비추고,<br>선택은 당신에게 남습니다.</span></aside>
+      <div class="reading-body">
+        <section id="questions" class="chapter" aria-labelledby="questions-title">
+          <div class="section-heading"><h2 id="questions-title">지금, 무엇이 궁금한가요?</h2><p>마음에 닿는 질문부터 천천히 읽어보세요.</p></div>
+          <div class="question-list" id="question-list"></div>
+        </section>
+
+        <section id="chart" class="chapter chart-section" aria-labelledby="chart-title">
+          <div class="section-heading"><h2 id="chart-title">이 답은 어디에서 왔을까요?</h2><p>별의 이름 너머, 당신의 선택을 이해하는 단서입니다.</p></div>
+          <details id="chart-disclosure" class="chart-disclosure">
+            <summary><span><strong>명반 깊이 보기</strong><small>12궁 · 별의 세기 · 사화 · 대한</small></span><span class="plus" aria-hidden="true"></span></summary>
+            <div class="chart-content">
+              <p class="muted">궁을 선택하면 연결된 별과 해석을 함께 볼 수 있습니다.</p>
+              <div class="palace-grid" id="palace-grid" aria-label="12궁 명반"></div>
+              <article class="palace-detail" aria-live="polite"><h3 id="palace-title">명궁 · 나를 움직이는 힘</h3><p id="palace-reading">파군은 익숙한 틀을 바꿔 막힌 길을 여는 힘으로 읽습니다. 이 명반에서는 그 성향이 선명해, 유지할 가치가 있는 것까지 한꺼번에 바꾸지 않는 균형이 중요합니다.</p><p class="evidence-caption" id="palace-source">명궁 자 · 파군 ◎ · 대한 6–15세</p></article>
+              <div class="sihua-line"><strong>생년사화</strong><span>화록 · 태양</span><span>화권 · 무곡</span><span>화과 · 태음</span><span>화기 · 천동</span></div>
+              <p class="muted small">◎는 별의 성향이 선명하게 드러나는 자리입니다. X는 좋고 나쁨의 판정이 아니라, 그 별의 힘을 쓸 때 조율이 필요한 자리로 읽습니다.</p>
+            </div>
+          </details>
+        </section>
+
+        <section id="today" class="chapter advice-section" aria-labelledby="today-title">
+          <div class="section-heading"><h2 id="today-title">오늘은, 내 속도부터 확인해보세요.</h2></div>
+          <p class="advice-lead">결정을 내리기 전에,<br>지금 마음이 어떤지 먼저 물어보세요.</p>
+          <p>지금의 선택이 새로운 방향을 원해서인지, 지친 상황을 빨리 벗어나고 싶어서인지 짧게 적어보세요. 피로가 앞서 있다면 중요한 대답은 충분히 쉰 뒤로 남겨두어도 좋습니다.</p>
+          <div class="closing">서두르지 않아도, 당신의 선택은 앞으로 갑니다.</div>
+        </section>
+
+        <section id="personal" class="chapter personal-section" aria-labelledby="personal-title">
+          <div class="personal-intro"><div><h2 id="personal-title">이번에는,<br>당신의 질문을 들려주세요.</h2><p>지금의 고민을 명반과 함께 읽고,<br>열다섯 장의 심층 상담서로 정리합니다.</p></div><div class="book-cover" aria-hidden="true"><span>나의 인생<br>심층 상담서</span><small>紫微斗數</small></div></div>
+          <label for="personal-question">조금 더 깊이 나누고 싶은 이야기</label>
+          <textarea id="personal-question" rows="3" placeholder="새로운 일을 시작하고 싶은데, 지금의 안정도 놓치고 싶지 않아요."></textarea>
+          <div class="personal-actions"><button class="button primary" data-action="pdf">상담서 미리 보기</button><span class="muted small">이 목업에서는 결제·상담 생성이 실행되지 않습니다.</span></div>
+        </section>
+      </div>
+    </div>
+    <footer class="report-footer"><span>CODE DESTINY</span><p>당신의 이야기는, 당신의 선택으로 이어집니다.</p><button class="button quiet" data-action="input">출생 정보 확인</button></footer>
+  </main>
+
+  <main id="input-view" class="view" hidden>
+    <section class="entry-layout">
+      <div class="entry-story"><h1>별의 자리에서,<br>내 삶의 이유를 찾는 시간.</h1><p>내가 반복하는 선택, 잘 풀리는 일,<br>가까운 사람에게 보이는 마음.<br>지금 가장 궁금한 이야기부터 시작해요.</p><img src="assets/celestial-atlas.webp" width="1280" height="853" alt="" class="entry-art"><p class="muted small">동양 천문 명반으로 읽는 나의 인생 심층 상담서</p></div>
+      <form id="entry-form" class="entry-form">
+        <h2>어떤 이야기를 먼저 나눌까요?</h2>
+        <fieldset class="topic-picks"><legend class="sr-only">상담 주제 선택</legend><div id="topic-picks"></div></fieldset>
+        <div class="entry-profile"><h2>당신의 명반을 준비할게요.</h2><p class="muted">저장된 프로필의 출생 정보를 확인해 주세요.</p>
+          <div class="form-grid"><label>이름<input name="name" value="서윤" maxlength="60" autocomplete="off" required></label><label>성별<select name="gender"><option>여성</option><option>남성</option></select></label><label class="wide">생년월일<input name="birth" type="date" value="1990-05-15" required></label><label>달력<select><option>양력</option><option>음력</option></select></label><label>출생 시각<input type="time" value="10:00"></label></div>
+          <label class="checkbox"><input type="checkbox" id="unknown-time">출생 시각을 몰라요</label><p class="muted small" id="time-hint">출생 시각에 따라 명궁·신궁과 별의 자리가 달라집니다.</p>
+        </div>
+        <button type="submit" class="button primary full">나의 상담 시작하기 <span aria-hidden="true">→</span></button><p class="small muted">샘플 화면입니다. 입력 정보는 저장하거나 전송하지 않습니다.</p>
+      </form>
+    </section>
+  </main>
+
+  <main id="pdf-view" class="view pdf-view" hidden>
+    <div class="pdf-review-heading"><h1>간직하고 싶은 나의 상담서</h1><p>짙은 남색 표지, 밝은 종이색 본문. 아래는 표지·목차·본문의 A4 디자인 샘플입니다.</p><button class="button quiet" data-view="result">상담 화면으로 돌아가기</button></div>
+    <div class="pdf-pages">
+      <section class="paper pdf-cover" aria-label="PDF 표지 목업"><img src="assets/celestial-atlas.webp" width="1280" height="853" alt=""><div class="pdf-cover-inner"><p class="pdf-owner">서윤님을 위한</p><h2>나의 인생<br>심층 상담서</h2><p>당신은 길이 막히면,<br>새 길을 만드는 사람입니다.</p><div class="pdf-cover-bottom"><span>심화 자미두수 상담</span><span>CODE DESTINY</span></div></div></section>
+      <section class="paper pdf-contents" aria-label="PDF 목차 목업"><div class="paper-running">서윤님의 심화 자미두수 상담서</div><h2>당신의 이야기를<br>펼치는 순서</h2><p class="paper-intro">처음부터 읽어도, 지금 마음에 닿는 질문부터 읽어도 좋습니다.</p><ol id="pdf-contents-list"></ol><footer class="paper-footer"><span>CODE DESTINY · 샘플 목차</span><span>2</span></footer></section>
+      <section class="paper pdf-body" aria-label="PDF 본문 목업"><div class="paper-running">명궁 · 타고난 성향과 반복되는 선택</div><h2>나는 왜,<br>다시 시작하고 싶어질까요?</h2><p class="paper-answer">당신은 익숙함보다, 스스로 납득할 수 있는 방향을 원합니다.</p><p>잘 돌아가는 일인데도 답답해지는 순간이 있을 수 있습니다. 남들이 정해둔 순서를 그대로 따르기보다, 자신의 방식으로 다시 짜볼 때 마음이 움직이기 때문입니다.</p><p>새 출발이 잦았다고 끈기가 부족한 것은 아닙니다. 다만 바꾸려는 마음이 앞설 때에는, 지금까지 쌓은 것 중 여전히 도움이 되는 것을 돌아보세요.</p><h3>그 마음을 읽은 명반의 단서</h3><p>명궁에 놓인 파군은 익숙한 틀을 바꾸고 새 흐름을 여는 별입니다. 이 명반에서는 파군이 밝게 자리해, 막힌 상황을 그대로 두기보다 직접 바꾸려는 태도가 선명하게 드러납니다.</p><div class="paper-basis">명궁 자 · 파군 ◎<br><span>명궁은 삶을 대하는 기본 태도를 읽는 중심 자리입니다.</span></div><h3>이번 주에 해볼 작은 선택</h3><p>바꾸고 싶은 일 하나에 대해 ‘남겨둘 것 두 가지’와 ‘시험해볼 것 한 가지’를 적어보세요. 전부 내려놓기 전에 작은 변화가 어떤 결과를 만드는지 확인하는 겁니다.</p><p class="paper-ending">새 길을 만드는 힘이, 걸어온 길까지 지우지 않도록요.</p><footer class="paper-footer"><span>CODE DESTINY · 샘플 본문</span><span>3</span></footer></section>
+    </div>
+  </main>
+
+  <main id="states-view" class="view states-view" hidden>
+    <h1>상태와 색상 기준</h1><p class="muted">실제 화면에 사용하는 동일한 버튼·필드·문장으로 검토합니다.</p>
+    <section class="state-section"><h2>동작 상태</h2><div class="state-controls"><button class="button primary">기본 버튼</button><button class="button primary is-hover">호버</button><button class="button primary is-active">누르는 중</button><button class="button primary is-focus">키보드 포커스</button><button class="button primary" disabled>비활성</button></div><p class="small muted">전환 160ms · 포커스 2px · 터치 영역 최소 44px · 모션 감소 시 전환 없음</p></section>
+    <section class="state-section"><h2>상담 준비 중</h2><div class="notice" role="status"><strong>당신의 별자리를 차분히 읽고 있어요.</strong><p>타고난 성향과 선택한 질문을 함께 살피고 있습니다.</p><progress value="2" max="3" aria-label="상담 준비 진행"></progress></div></section>
+    <section class="state-section"><h2>프로필이 없을 때</h2><div class="notice"><strong>상담에 사용할 출생 정보를 알려주세요.</strong><p>이미 등록한 프로필이 있다면 선택해서 이어갈 수 있습니다.</p><button class="button quiet" data-action="input">출생 정보 입력하기</button></div></section>
+    <section class="state-section"><h2>오류와 부분 결과</h2><div class="notice error" role="alert"><strong>상담을 준비하지 못했어요.</strong><p>입력한 정보는 그대로 두었습니다. 잠시 후 다시 시도해 주세요.</p><button class="button quiet" data-action="result">다시 시도하기</button></div><div class="notice"><strong>일부 장의 상담을 마치지 못했어요.</strong><p>완료된 내용부터 읽을 수 있습니다. 이어서 확인할 때는 기존 상담 내역을 이용해 주세요.</p><button class="button quiet" data-action="pdf">완료된 내용 보기</button></div></section>
+    <section class="state-section"><h2>표면·본문·강조색</h2><div class="table-scroll"><table><thead><tr><th>토큰</th><th>색상</th><th>역할</th></tr></thead><tbody><tr><td>--zw-bg</td><td>#0B1420</td><td>전체 바탕</td></tr><tr><td>--zw-surface</td><td>#121E2C</td><td>펼친 답변·입력</td></tr><tr><td>--zw-text</td><td>#F1EDE4</td><td>본문·제목</td></tr><tr><td>--zw-muted</td><td>#B5BEC5</td><td>보조 문장</td></tr><tr><td>--zw-gold</td><td>#D4BB88</td><td>주요 행동·선택 상태</td></tr><tr><td>--zw-paper</td><td>#F6F3EC</td><td>PDF 본문 바탕</td></tr><tr><td>--zw-ink</td><td>#242B32</td><td>PDF 글자</td></tr></tbody></table></div></section>
+    <section class="state-section"><h2>구현 시 지킬 경계</h2><ul><li>출생년 간지와 궁 점수를 올해 예측으로 표시하지 않습니다.</li><li>실제 결제·API·캐시·PDF 생성은 이 목업에 연결하지 않았습니다.</li><li>공유 미리보기에는 이름·출생정보·개인 자유 질문을 넣지 않습니다.</li><li>배경 장식은 의미를 전달하지 않으며, 본문은 불투명한 바탕 위에 놓습니다.</li><li>PDF 목차 쪽번호는 실제 조판이 끝난 뒤 계산합니다. 이 목업은 세 장의 디자인 견본입니다.</li></ul></section>
+  </main>
+
+  <dialog id="share-dialog" aria-labelledby="share-title"><div class="share-inner"><button class="dialog-close icon-button" aria-label="공유 미리보기 닫기">×</button><h2 id="share-title">이 이야기만 나눠요.</h2><p class="muted">이름과 출생 정보는 포함하지 않습니다.</p><div class="share-preview"><strong id="share-question"></strong><p id="share-answer"></p><span>code-destiny.com/ziwei/chart</span></div><button class="button primary full" id="share-confirm">공유할 내용 복사하기</button><p class="small muted">목업에서는 실제 전송 없이 복사 내용만 확인합니다.</p><p id="share-status" role="status"></p></div></dialog>
+</body>
+</html>

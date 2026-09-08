@@ -82,6 +82,7 @@ export async function registerPdfFontsSafely(pdf: JsPDFInstance): Promise<{ titl
     }
     return { title: PDF_FONT_FILES.title.family, body: PDF_FONT_FILES.body.family };
   } catch (error) {
+    fontBase64Promise = null; // 실패한 요청을 캐시하지 않아 다음 저장에서 다시 시도할 수 있다.
     console.warn("[exportResultPdf] Korean font embedding failed, falling back to default font", error);
     return null;
   }

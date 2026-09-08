@@ -390,7 +390,7 @@ const ADVANCED_ZIWEI_COPY: Partial<Record<LoadingLocale, AdvancedZiweiCopy>> = {
       relationships: "인간관계",
       family: "가족·자녀",
       health: "건강·생활 리듬",
-      timing: "대운·세운·시기",
+      timing: "시기·앞으로의 방향",
     },
     trackPurpose: {
       life: "명궁과 신궁을 중심으로 삶의 방향, 선택 습관, 반복 패턴을 통합해서 봅니다.",
@@ -1131,3 +1131,21 @@ const ADVANCED_ZIWEI_COPY: Partial<Record<LoadingLocale, AdvancedZiweiCopy>> = {
 export function getAdvancedZiweiCopy(locale: LoadingLocale): AdvancedZiweiCopy {
   return { ...ADVANCED_ZIWEI_COPY_EN, ...(ADVANCED_ZIWEI_COPY[locale] || {}) };
 }
+
+// 상담 화면 조작 문구. 해석 본문은 한국어 정본을 유지한다.
+const PREMIUM_UI_EN = {
+  answer: 'Your answer', questions: 'Questions', chart: 'Chart', today: 'For today', pdf: 'PDF',
+  choose: 'What would you like to understand?', chooseHint: 'Choose a question to begin. You can explore the others after your reading.',
+  read: 'Read my answer', share: 'Share summary', evidence: 'Why this reading?', action: 'Try this',
+  deep: 'Explore your chart', deepHint: 'Palaces, stars, transformations and ten-year periods',
+  shareTitle: 'Preview your shared summary', sharePrivacy: 'Only this question, answer and a general entry link are included. Your name, birth details and private question stay out.',
+  deviceShare: 'Share', copy: 'Copy', close: 'Close', copied: 'Copied.', copyFailed: 'Could not copy. Select the preview text and copy it manually.', shareFailed: 'Could not share. You can copy the preview instead.',
+  todayTitle: 'Make room to notice your own pace', missing: 'Enter your birth details to begin your reading.', report: 'Your in-depth consultation', chapterOpen: 'Read chapter',
+};
+const PREMIUM_UI: Partial<Record<LoadingLocale, Partial<typeof PREMIUM_UI_EN>>> = {
+  ko: { answer:'핵심 답변', questions:'질문별 상담', chart:'명반', today:'오늘의 조언', pdf:'PDF', choose:'지금, 무엇이 궁금한가요?', chooseHint:'먼저 읽고 싶은 질문을 골라주세요. 결과에서 다른 질문도 이어 읽을 수 있습니다.', read:'내 질문의 답 읽기', share:'요약 공유', evidence:'이 해석의 근거 보기', action:'이렇게 해보세요', deep:'명반 깊이 보기', deepHint:'12궁 · 주성 · 보조성 · 사화 · 삼방사정 · 대한', shareTitle:'공유할 내용을 확인하세요', sharePrivacy:'선택한 질문·핵심 답변·일반 진입 링크만 공유합니다. 이름·출생정보·개인 질문은 포함하지 않습니다.', deviceShare:'기기로 공유', copy:'복사하기', close:'닫기', copied:'복사했습니다.', copyFailed:'복사하지 못했습니다. 미리보기의 글을 직접 선택해 복사해주세요.', shareFailed:'공유하지 못했습니다. 아래 복사하기로 내용을 옮길 수 있습니다.', todayTitle:'오늘은, 내 속도부터 확인해보세요.', missing:'출생정보를 입력하면 상담을 시작할 수 있습니다.', report:'인생 심층 상담서', chapterOpen:'이 장 펼치기' },
+  ja: { answer:'答えの要点', questions:'質問別の相談', chart:'命盤', today:'今日のヒント', choose:'今、何が気になりますか？', chooseHint:'最初に読む質問を選んでください。ほかの質問も結果で読めます。', read:'答えを読む', share:'要約を共有', evidence:'解釈の根拠を見る', action:'試してみましょう', deep:'命盤を詳しく見る', deepHint:'12宮・主星・補助星・四化・三方四正・大限', shareTitle:'共有内容を確認', sharePrivacy:'質問・答え・入口リンクのみ共有します。名前・出生情報・個人的な質問は含みません。', deviceShare:'共有する', copy:'コピー', close:'閉じる', copied:'コピーしました。', copyFailed:'コピーできませんでした。文章を選択してコピーしてください。', shareFailed:'共有できませんでした。コピーをご利用ください。', todayTitle:'今日は自分のペースを確かめて', missing:'出生情報を入力して相談を始めましょう。', report:'人生の深層相談書', chapterOpen:'章を読む' },
+  'zh-CN': { answer:'核心回答', questions:'按问题阅读', chart:'命盘', today:'今日建议', choose:'现在，您想了解什么？', chooseHint:'选择先读的问题，其他问题可在结果中继续阅读。', read:'阅读回答', share:'分享摘要', evidence:'查看解读依据', action:'可以这样做', deep:'深入查看命盘', deepHint:'十二宫 · 主星 · 辅星 · 四化 · 三方四正 · 大限', shareTitle:'确认分享内容', sharePrivacy:'仅分享问题、核心回答及入口链接，不包含姓名、出生信息和私人提问。', deviceShare:'分享', copy:'复制', close:'关闭', copied:'已复制。', copyFailed:'复制失败，请选中文字手动复制。', shareFailed:'分享失败，可复制内容。', todayTitle:'今天，先感受自己的节奏', missing:'填写出生信息即可开始咨询。', report:'人生深度咨询书', chapterOpen:'展开本章' },
+  'zh-TW': { answer:'核心回答', questions:'按問題閱讀', chart:'命盤', today:'今日建議', choose:'現在，您想了解什麼？', chooseHint:'選擇先讀的問題，其他問題可在結果中繼續閱讀。', read:'閱讀回答', share:'分享摘要', evidence:'查看解讀依據', action:'可以這樣做', deep:'深入查看命盤', deepHint:'十二宮 · 主星 · 輔星 · 四化 · 三方四正 · 大限', shareTitle:'確認分享內容', sharePrivacy:'僅分享問題、核心回答及入口連結，不包含姓名、出生資訊和私人提問。', deviceShare:'分享', copy:'複製', close:'關閉', copied:'已複製。', copyFailed:'複製失敗，請選取文字手動複製。', shareFailed:'分享失敗，可複製內容。', todayTitle:'今天，先感受自己的節奏', missing:'填寫出生資訊即可開始諮詢。', report:'人生深度諮詢書', chapterOpen:'展開本章' },
+};
+export function getPremiumZiweiCopy(locale: LoadingLocale) { return { ...PREMIUM_UI_EN, ...PREMIUM_UI[locale] }; }
