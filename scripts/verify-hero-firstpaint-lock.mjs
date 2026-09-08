@@ -77,8 +77,9 @@ if (raw.includes('id="cdHomeFunnel"')) {
   assert.equal((raw.match(/<link rel="preload" as="image"/g) || []).length, 1, 'Only the shared hero/payment art is preloaded');
   assert.doesNotMatch(raw, /class="moon-hero__(?:visual|zzz|ambient|copy)/);
   assert.doesNotMatch(css, /(?:min-)?height:\s*100(?:d|s)?vh/);
-  assert.match(css, /\.cdh-garden>img\{[^}]*width:116px;height:116px/);
-  assert.ok(css.includes('max-width:430px'), 'shared mobile canvas on desktop');
+  assert.match(css, /\.cdh-garden\s*>\s*img\s*\{[^}]*width:\s*min\(240px,\s*72%\)/);
+  assert.match(css, /\.cdh\s*\{[^}]*width:\s*min\(100%,\s*1280px\)/, 'responsive desktop canvas');
+  assert.ok(!css.includes('max-width:430px'), 'legacy fixed mobile canvas is removed');
   assert.match(raw, /class="cdh-trust"/);
   console.log('[hero-firstpaint-lock] PASS: single source compact hero, reserved image geometry, static trust');
   process.exit(0);
