@@ -852,7 +852,7 @@
       "step2Text": "Tarot, oracle, and saju readings inside your range open right away, with no payment window.",
       "step3Label": "Only deeper readings are paid per use",
       "step3Text": "Readings beyond your range continue to a one-time KRW payment only when you need them.",
-      "terminationNote": "If the monthly allowance is fully used, the pass ends regardless of the days left. Buying a new pass starts another 30 days from that day."
+      "terminationNote": "Even when the monthly allowance reaches zero, the pass expiry date, tier, and profile limit remain. Additional paid content is available by one-time payment or monthly pass."
     },
     "promptHub": {
       "aria": "Go to comprehensive fortune prompts",

@@ -852,7 +852,7 @@
       "step2Text": "Les lectures de tarot, d'oracle et de saju dans votre plage s'ouvrent aussitôt, sans fenêtre de paiement.",
       "step3Label": "Seules les lectures plus profondes sont payées à l'usage",
       "step3Text": "Les lectures hors de votre plage se poursuivent par un paiement unique en KRW uniquement quand vous en avez besoin.",
-      "terminationNote": "If the monthly allowance is fully used, the pass ends regardless of the days left. Buying a new pass starts another 30 days from that day."
+      "terminationNote": "Même lorsque la limite mensuelle atteint zéro, la date d'expiration, le niveau et la limite de profils du pass sont conservés. Les contenus payants supplémentaires sont accessibles par paiement à l'unité ou pass mensuel."
     },
     "promptHub": {
       "aria": "Accéder aux invites de fortune complètes",

@@ -852,7 +852,7 @@
       "step2Text": "Las lecturas de tarot, oráculo y saju dentro de tu rango se abren al instante, sin ventana de pago.",
       "step3Label": "Solo las lecturas más profundas se pagan por uso",
       "step3Text": "Las lecturas fuera de tu rango continúan con un pago único en KRW solo cuando lo necesitas.",
-      "terminationNote": "If the monthly allowance is fully used, the pass ends regardless of the days left. Buying a new pass starts another 30 days from that day."
+      "terminationNote": "Aunque el límite mensual llegue a cero, se mantienen la fecha de vencimiento, el nivel y el límite de perfiles del pase. El contenido adicional de pago está disponible con un pago único o un pase mensual."
     },
     "promptHub": {
       "aria": "Ir a indicaciones completas sobre la fortuna",

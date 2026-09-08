@@ -852,7 +852,7 @@
       "step2Text": "आपकी सीमा के भीतर टैरो, ऑरेकल और साजु रीडिंग बिना भुगतान विंडो के तुरंत खुल जाती हैं।",
       "step3Label": "केवल गहरी रीडिंग का प्रति उपयोग भुगतान",
       "step3Text": "आपकी सीमा से बाहर की गहरी रीडिंग ज़रूरत पड़ने पर ही एक बार KRW भुगतान से जारी रहती हैं।",
-      "terminationNote": "If the monthly allowance is fully used, the pass ends regardless of the days left. Buying a new pass starts another 30 days from that day."
+      "terminationNote": "मासिक सीमा शून्य होने पर भी पास की समाप्ति तिथि, स्तर और प्रोफ़ाइल सीमा बनी रहती है। अतिरिक्त सशुल्क सामग्री एकमुश्त भुगतान या मासिक पास से उपलब्ध है।"
     },
     "promptHub": {
       "aria": "व्यापक भाग्य संकेत पर जाएँ",

@@ -852,7 +852,7 @@
       "step2Text": "Các lượt đọc tarot, thần dụ và tứ trụ trong phạm vi của bạn mở ra ngay, không cần cửa sổ thanh toán.",
       "step3Label": "Chỉ lượt đọc sâu ngoài phạm vi mới trả từng lần",
       "step3Text": "Lượt đọc sâu ngoài phạm vi chỉ tiếp tục bằng một lần thanh toán KRW khi bạn cần.",
-      "terminationNote": "If the monthly allowance is fully used, the pass ends regardless of the days left. Buying a new pass starts another 30 days from that day."
+      "terminationNote": "Ngay cả khi hạn mức tháng về 0, ngày hết hạn, hạng và giới hạn hồ sơ của vé vẫn được giữ nguyên. Nội dung trả phí bổ sung có thể dùng bằng thanh toán một lần hoặc vé tháng."
     },
     "promptHub": {
       "aria": "Đến phần gợi ý bói toàn diện",
