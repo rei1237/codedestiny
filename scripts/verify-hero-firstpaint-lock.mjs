@@ -81,6 +81,10 @@ if (raw.includes('id="cdHomeFunnel"')) {
   assert.match(css, /\.cdh\s*\{[^}]*width:\s*min\(100%,\s*1280px\)/, 'responsive desktop canvas');
   assert.ok(!css.includes('max-width:430px'), 'legacy fixed mobile canvas is removed');
   assert.match(raw, /class="cdh-trust"/);
+  const homeRuntimeCacheKey = raw.match(/<script defer src="\/js\/core\/home-funnel\.js\?v=(build-[a-f0-9]{12})"><\/script>/)?.[1];
+  const shellCacheKey = raw.match(/\/js\/core\/home-service-finder\.js\?v=(build-[a-f0-9]{12})/)?.[1];
+  assert.ok(homeRuntimeCacheKey, 'Home funnel runtime must have a deploy build key');
+  assert.equal(homeRuntimeCacheKey, shellCacheKey, 'Home funnel runtime must rotate with the deploy shell');
   console.log('[hero-firstpaint-lock] PASS: single source compact hero, reserved image geometry, static trust');
   process.exit(0);
 }
