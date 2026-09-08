@@ -1,3 +1,9 @@
+---
+status: active
+updated: 2026-09-08
+next: PR #1834의 GitHub CI 전체 결과를 확인하고 통과 시 병합 순서를 다시 점검한다.
+---
+
 # 기본 자미두수 별 지도 · PR 1834
 
 ## 재개 위치
@@ -5,7 +11,7 @@
 - cwd: `D:\Development\worktree-ziwei-chart-experience`
 - branch: `codex/ziwei-chart-experience`
 - PR: https://github.com/rei1237/codedestiny/pull/1834
-- 구현 SHA: `88683b599bd0b249fa12c9156a7f3d1b1074c80d` (레이더·곡선 후속 포함)
+- 구현 SHA: `9cc6013ad7488111927c1360f13c8060500dd53e` (최신 main 재배치·미러 갱신 포함)
 - 이 문서는 위 구현 뒤 추가된 인수인계 커밋에 포함된다. 최신 푸시 SHA는 `git rev-parse HEAD`로 확인한다.
 
 ## 구현
