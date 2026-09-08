@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { hardNavigateToShellHome, isShellHomePath } from "@/lib/navigation/shellHome";
+import { isStaticPolicyPath } from "@/lib/navigation/static-policy-routes.mjs";
 
 /**
  * React 화면 안의 "홈으로" 링크(`href="/"`)를 문서 로드로 보낸다.
@@ -39,10 +40,12 @@ export default function ShellHomeHardNavGuard() {
         return;
       }
       if (url.origin !== window.location.origin) return;
-      if (!isShellHomePath(url.pathname)) return;
+      const isPolicy = isStaticPolicyPath(url.pathname);
+      if (!isShellHomePath(url.pathname) && !isPolicy) return;
 
       event.preventDefault();
-      hardNavigateToShellHome(url.search, url.hash);
+      if (isPolicy) window.location.assign(url.pathname + url.search + url.hash);
+      else hardNavigateToShellHome(url.search, url.hash);
     };
 
     document.addEventListener("click", onClickCapture, true);

@@ -1,4 +1,5 @@
 import createBundleAnalyzer from "@next/bundle-analyzer";
+import { staticPolicyRewrites } from "./lib/navigation/static-policy-routes.mjs";
 import { PHASE_DEVELOPMENT_SERVER } from "next/constants.js";
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
@@ -231,7 +232,9 @@ function createNextConfig(phase) {
         },
       ];
       // beforeFiles also intercepts existing app/api routes (which can use live DB).
-      return mockDev ? { beforeFiles: apiRewrites, afterFiles: [], fallback: [] } : apiRewrites;
+      return mockDev
+        ? { beforeFiles: [...staticPolicyRewrites(), ...apiRewrites], afterFiles: [], fallback: [] }
+        : { beforeFiles: staticPolicyRewrites(), afterFiles: apiRewrites, fallback: [] };
     };
   }
 

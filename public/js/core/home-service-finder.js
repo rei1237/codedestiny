@@ -387,6 +387,9 @@
 
     var input = config.inputId ? document.getElementById(config.inputId) : null;
     var progressive = config.filtersId ? document.getElementById(config.filtersId) : null;
+    var clearButton = root.querySelector('[data-cd-search-clear]');
+    var resetButton = root.querySelector('[data-cd-finder-reset]');
+    var summary = document.getElementById('fortuneGatewayResultSummary');
 
     function state() {
       return {
@@ -404,6 +407,19 @@
       var list = active || document.getElementById("cdHomeFunnel") ? filterServices(current) : DEFAULT_PICKS;
       if (config.layout === "rich") renderRichResults(panel, list, current);
       else renderCompactResults(panel, list);
+      if (clearButton) clearButton.hidden = !current.query;
+      if (resetButton) resetButton.hidden = !active;
+      if (summary) summary.textContent = active
+        ? '조건에 맞는 서비스 ' + list.length + '개'
+        : '전체 서비스 ' + list.length + '개';
+    }
+
+    function resetAll() {
+      if (input) input.value = '';
+      var pressed = root.querySelectorAll('[aria-pressed="true"]');
+      Array.prototype.forEach.call(pressed, function (chip) { chip.setAttribute('aria-pressed', 'false'); });
+      if (progressive) progressive.hidden = false;
+      render();
     }
 
     /* 고민 칩 — 단일 선택(다시 누르면 해제) */
@@ -450,6 +466,14 @@
          🔴 focus 안에서 동기로 만들지 말 것 — 비용이 focus 지연으로 옮겨갈 뿐이다. */
       input.addEventListener("focus", warmCatalogue, { once: true });
     }
+    if (clearButton && input) {
+      clearButton.addEventListener('click', function () {
+        input.value = '';
+        render();
+        input.focus({ preventScroll: true });
+      });
+    }
+    if (resetButton) resetButton.addEventListener('click', resetAll);
 
     /* 첫 렌더로 기본 목록을 깐다. 이건 사용자 행동의 결과가 아니므로 aria-live 를 잠깐 떼어,
        스크린리더가 페이지 로드 직후 6개를 읽어 내려가지 않게 한다. 이후 렌더는 그대로 알린다. */

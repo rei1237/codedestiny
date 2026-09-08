@@ -1,0 +1,54 @@
+/* Standalone policy chrome: no Next runtime, shared Yeoni/Neo color contract. */
+html { --policy-bg:#fffaf7; --policy-card:#fffdfc; --policy-surface:#fff2f5; --policy-ink:#3c1830; --policy-muted:#70445c; --policy-line:rgba(179,25,85,.2); --policy-accent:#b31955; --policy-gold:#9a6b2e; color-scheme:light; scroll-behavior:smooth; background:var(--policy-bg); color:var(--policy-ink); }
+html.neo-mode { --policy-bg:#0a0818; --policy-card:#211931; --policy-surface:#171126; --policy-ink:#f4eeff; --policy-muted:#d8c8ea; --policy-line:rgba(196,181,253,.28); --policy-accent:#c4b5fd; --policy-gold:#e8d5a3; color-scheme:dark; }
+* { box-sizing:border-box; }
+body.cd-policy-static { margin:0; background:var(--policy-bg); color:var(--policy-ink); font-family:'Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif; line-height:1.78; }
+.cd-policy-static a { color:var(--policy-accent); text-underline-offset:4px; }
+.cd-policy-static :is(a,button,summary,input,textarea):focus-visible { outline:3px solid var(--policy-accent); outline-offset:3px; }
+.policy-skip { position:absolute; top:0; left:12px; z-index:5; padding:8px; transform:translateY(-150%); background:var(--policy-bg); }
+.policy-skip:focus { transform:none; }
+.policy-site-header,.policy-site-footer,.policy-nojs { width:min(calc(100% - 32px),960px); margin-inline:auto; }
+.policy-site-header { display:flex; align-items:center; justify-content:space-between; gap:16px; min-height:72px; border-bottom:1px solid var(--policy-line); }
+.policy-site-header>a { display:inline-flex; align-items:center; min-height:44px; font-size:.82rem; text-decoration:none; }
+.policy-site-header .policy-brand { gap:10px; color:var(--policy-ink); font-size:1.2rem; font-weight:800; }
+.policy-brand>span { display:grid; place-items:center; width:36px; height:36px; border:1px solid var(--policy-gold); color:var(--policy-accent); font-family:serif; font-size:.9rem; }
+.cd-policy-static main { width:min(calc(100% - 32px),960px); margin:clamp(28px,5vw,64px) auto 0; color:var(--policy-ink); }
+.cd-policy-static main :is(.policy-doc__head,.cd-main-header) { max-width:760px; margin-bottom:36px; }
+.cd-policy-static main :is(.policy-doc__title,.cd-main-title,h1) { margin:0; color:var(--policy-ink); font-family:'CodeDestinySerifKR','Nanum Myeongjo','Gowun Batang',serif; font-weight:700; font-size:clamp(2rem,5vw,3.6rem); line-height:1.24; letter-spacing:-.04em; word-break:keep-all; }
+.cd-policy-static main :is(.policy-doc__meta) { margin-top:12px; color:var(--policy-gold); font-size:.8rem; font-weight:800; }
+.cd-policy-static main :is(.policy-doc__lede,.cd-main-intro) { max-width:65ch; margin-top:16px; color:var(--policy-muted); font-size:1rem; }
+.policy-doc__layout { display:grid; grid-template-columns:minmax(190px,240px) minmax(0,1fr); gap:clamp(28px,5vw,60px); align-items:start; }
+.policy-doc__single { max-width:760px; }
+.policy-doc__toc { position:sticky; top:20px; padding:18px; border:1px solid var(--policy-line); border-radius:18px; background:var(--policy-card); }
+.policy-doc__toc-title { margin:0 0 8px; color:var(--policy-ink); font-weight:800; }
+.policy-doc__toc-list { margin:0; padding-left:20px; }
+.policy-doc__toc-link { display:inline-flex; align-items:center; min-height:36px; }
+.policy-doc__body { min-width:0; }
+.policy-doc__section,.policy-embed-section,.cd-policy-static .cd-card { padding:24px; margin:0 0 18px; border:1px solid var(--policy-line); border-radius:20px; background:var(--policy-card); scroll-margin-top:24px; }
+.cd-policy-static main h2 { margin:0 0 12px; color:var(--policy-ink); font-family:'CodeDestinySerifKR','Nanum Myeongjo','Gowun Batang',serif; font-weight:700; font-size:1.22rem; line-height:1.45; word-break:keep-all; }
+.cd-policy-static main h3 { color:var(--policy-ink); font-size:1.02rem; line-height:1.55; }
+.cd-policy-static main :is(p,li) { overflow-wrap:anywhere; }
+.cd-policy-static main ul { padding-left:22px; }
+.policy-doc__related,.cd-chip-wrap { display:flex; flex-wrap:wrap; gap:8px 18px; margin-top:24px; }
+.policy-doc__related a,.cd-chip { display:inline-flex; align-items:center; min-height:44px; }
+.cd-card-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
+.cd-card-grid .cd-card { margin:0; }
+.cd-card details,.cd-card summary,details.cd-card summary { cursor:pointer; }
+.policy-doc__form-panel { padding:24px; margin-top:24px; border:1px solid var(--policy-line); border-radius:20px; background:var(--policy-card); }
+.policy-field { margin-bottom:18px; }
+.policy-label { display:block; margin-bottom:6px; font-size:.88rem; font-weight:700; }
+.policy-input { width:100%; min-height:48px; padding:10px 12px; border:1px solid var(--policy-line); border-radius:11px; background:var(--policy-bg); color:var(--policy-ink); font:inherit; }
+textarea.policy-input { min-height:150px; resize:vertical; }
+.policy-btn { min-height:48px; padding:12px 18px; border:0; border-radius:12px; background:var(--policy-accent); color:#fff; font:inherit; font-weight:800; cursor:pointer; }
+html.neo-mode .policy-btn { color:#171126; }
+.policy-doc__inline-btn { min-height:44px; border:0; background:transparent; color:var(--policy-accent); font:inherit; text-decoration:underline; cursor:pointer; }
+.policy-contact-status { color:var(--policy-muted); font-size:.84rem; }
+.policy-site-footer { position:relative; margin-top:64px; padding:34px 0 28px; border-top:1px solid var(--policy-line); color:var(--policy-muted); font-size:.78rem; }
+.policy-site-footer::before { content:''; position:absolute; top:-10px; left:50%; width:190px; height:20px; transform:translateX(-50%); background:var(--policy-gold); -webkit-mask:url('/icons/yehwa-branch.svg') center/contain no-repeat; mask:url('/icons/yehwa-branch.svg') center/contain no-repeat; }
+.policy-site-footer>.policy-brand { color:var(--policy-ink); font-family:Batang,Georgia,serif; font-size:1.18rem; text-decoration:none; }
+.policy-site-footer nav { display:flex; flex-wrap:wrap; gap:0 18px; margin:18px 0; padding:12px 0; border-block:1px solid var(--policy-line); }
+.policy-site-footer nav a,.policy-site-footer summary,.policy-home { display:inline-flex; align-items:center; min-height:44px; }
+.policy-site-footer summary { cursor:pointer; }
+.policy-home { margin-top:12px; }
+@media (max-width:720px) { .policy-doc__layout { display:block; } .policy-doc__toc { position:static; margin-bottom:24px; } .cd-card-grid { grid-template-columns:1fr; } .policy-doc__section,.policy-embed-section,.cd-policy-static .cd-card,.policy-doc__form-panel { padding:18px; border-radius:16px; } }
+@media (prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } }
