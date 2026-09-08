@@ -8,6 +8,10 @@
 
 브랜치: `codex/purchase-journey` · 시작 기준: `f90fe7fc5a41f77b2ce7438b27375361a1352948`
 
+초안 PR: https://github.com/rei1237/codedestiny/pull/1858
+
+조사 후 최신 main의 모바일 복귀 변경을 충돌 없이 통합했다. `MOBILE_JOURNEY_MATRIX.md`와 `scripts/verify-mobile-journeys.mjs`가 추가되어 있으므로 후속 실제 화면 감사는 이 기준선을 재사용한다. 이 문서 역시 개별 화면을 아직 미검증으로 표시한다.
+
 ```powershell
 Set-Location D:\Development\code-destiny-purchase-journey
 node scripts/build-purchase-journey-review.mjs
@@ -83,6 +87,8 @@ npm run check:fast
 ```
 
 목업 전용 검증은 360·390·430·1280px의 5개 화면, 가로 넘침, 44px 버튼, 고민→상세 이동, 검색, 비활성 결제 버튼, 외부 요청 부재를 검사한다. 캡처는 OS 임시 폴더 `code-destiny-purchase-journey`에 저장한다. **프로토타입 검증은 실제 서비스·결제·기기 검증을 대신하지 않는다.**
+
+실행 결과: 인벤토리 재생성 정합 및 목업 검사 통과. 최초 main 기준 `check:fast` 전체 통과(Jest 221 suites, 2,442 tests; lint 기존 경고 있음). 최신 main 통합 후에는 인벤토리 정합을 다시 확인했으며 최신 PR CI 결과는 별도로 확인한다.
 
 Impeccable 검사에서 목업의 개별 글자 크기에 디자인 타입 스케일 advisory가 나왔다. 제품 적용 시 기존 토큰에 연결한다. 이번 단계에서 전역 디자인 규칙을 바꾸지 않는다.
 
