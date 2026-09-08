@@ -31,6 +31,7 @@ describe("locale postprocessing without Korean padding (pure fixtures, no provid
     const privateInput = { ...input, nickname: "PRIVATE_PERSON" };
     expect(validateAndNormalizeGuardianFortuneResult({ parsed: { ...parsed, title: "PRIVATE_PERSON" }, input: privateInput, context }).errorCode).toBe("GUARDIAN_RESULT_SENSITIVE_LEAK");
     expect(validateAndNormalizeGuardianFortuneResult({ parsed: { ...parsed, title: "타로" }, input, context }).errorCode).toBe("GUARDIAN_RESULT_CATEGORY_BOUNDARY_FAILED");
+    expect(validateAndNormalizeGuardianFortuneResult({ parsed: { ...parsed, title: "100%" }, input, context }).errorCode).toBe("GUARDIAN_RESULT_UNSAFE_CONTENT");
   });
   it("rejects incomplete foreign oracle payloads and keeps valid fields intact", () => {
     const valid = Object.fromEntries(["answer", "keyJudgement", "energyFlow", "risk", "timing", "actionTip", "advice"].map(field => [field, "Consider your available options carefully. ".repeat(8)]));

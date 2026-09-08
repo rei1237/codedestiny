@@ -466,6 +466,14 @@ export function validateAndNormalizeGuardianFortuneResult({ parsed, input = {}, 
 
   const { topic } = getTopicAndMode(input, context);
   const locale = resultLocale(input, context);
+  const rawTexts = [...ALL_RESULT_TEXT_FIELDS.map(field => parsed[field]), parsed.premiumCta?.reason,
+    ...(Array.isArray(parsed.evidenceLines) ? parsed.evidenceLines : []),
+    ...(Array.isArray(parsed.followUpQuestions) ? parsed.followUpQuestions : [])];
+  // Existing replacements contain Korean copy. For another locale, reject the
+  // unsafe claim rather than translating it implicitly or bypassing the rule.
+  if (locale !== "ko" && rawTexts.some(hasForbiddenExpression)) {
+    return { ok: false, errorCode: "GUARDIAN_RESULT_UNSAFE_CONTENT", issues: ["forbidden_expression"] };
+  }
   const fallback = buildFallbackGuardianFortuneResult({ input, context, reason: "validation_fallback" });
   let candidate = sanitizeGuardianFortuneResult({ ...fallback, ...parsed });
   const issues = [];
@@ -476,6 +484,10 @@ export function validateAndNormalizeGuardianFortuneResult({ parsed, input = {}, 
 
   candidate.premiumCta = normalizeCta(parsed.premiumCta, topic, fallback.premiumCta.reason, locale);
   candidate.shareText = normalizeGuardianFortuneShareText({ candidate: parsed.shareText, input, context });
+  if (locale !== "ko" && [...ALL_RESULT_TEXT_FIELDS.map(field => candidate[field]), candidate.premiumCta.reason]
+    .some(value => applyUnsupportedClaimSafety(value, context) !== safeText(value, 2200))) {
+    return { ok: false, errorCode: "GUARDIAN_RESULT_UNSAFE_CONTENT", issues: ["unsupported_claim"] };
+  }
   candidate = applyContextualClaimSafety(candidate, context);
 
   try {
