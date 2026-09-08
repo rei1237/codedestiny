@@ -11,6 +11,7 @@ next: Ready PR의 최신 HEAD 검사 상태를 확인하고 명시적으로 승�
 - 상태: 사용자 승인 시안 적용 및 로컬 검증 완료. Ready PR 생성 완료, CI 확인 중.
 - PR: https://github.com/rei1237/codedestiny/pull/1835
 - 구현 푸시 SHA: 17f406301. 이 문서의 PR 기록 후속 커밋이 최신 HEAD이며 `git rev-parse HEAD`로 확인한다.
+- 추가 반영: PR #1832의 달빛 예화 SVG를 `js/saju-engine-tarot-sukuyo-quantum.js`에 통합했다. 궁합 밴드와 27숙 도감 밴드가 질감·림·광륜·꽃 선화가 있는 인스턴스별 SVG를 사용하며, public 미러도 재생성했다.
 
 ## 구현과 유지 경계
 
