@@ -23,11 +23,17 @@ if (phase === 'before') {
 try {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, serviceWorkers: 'block' });
   const requests = [];
+  const ziweiPosts = [];
+  let ziweiMockFailure = false;
   await context.route('**/*', async route => {
     const url = new URL(route.request().url());
     // Fail closed: no test traffic ever reaches a live API, analytics or asset host.
     if (url.pathname.startsWith('/api/')) {
       requests.push({ path: url.pathname, method: route.request().method() });
+      if (url.pathname === '/api/fortune/ziwei/ai-prompt') {
+        ziweiPosts.push(route.request().postDataJSON());
+        return route.fulfill({ status: ziweiMockFailure ? 422 : 200, contentType:'application/json', body:JSON.stringify(ziweiMockFailure ? { ok:false, code:'MOCK_GENERATION_FAILED', message:'mock generation failure', paymentRetainedForRetry:true, refundOk:false } : { ok:true, resultText:'명반의 실제 근거를 바탕으로 정리한 mock 상담입니다.', generatedPrompt:'mock prompt' }) });
+      }
       return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true, authenticated: false, profiles: [], unlocked: false, data: [] }) });
     }
     if (url.hostname !== '127.0.0.1') return route.abort();
@@ -140,14 +146,65 @@ try {
       await page.setViewportSize({ width: 390, height: 844 });
       assert.equal(await page.locator(`[data-fortune-library="${type}"]`).count(), 1);
       if (type === 'ziwei') {
-        assert.equal(await page.locator('.fr-palace-choice').count(), 5);
+        assert.equal(await page.locator('.fr-palace-choice').count(), 12);
+        assert.equal(await page.locator('#fr-ziwei-chart .zw-cell').count(), 12);
+        assert.equal(await page.locator('#fr-ziwei-chart').evaluate(el => el.closest('details') === null), true);
+        for (const cell of await page.locator('#fr-ziwei-chart .zw-cell').all()) {
+          assert.equal(await cell.evaluate(el => getComputedStyle(el).opacity), '1');
+          await cell.click();
+          assert.equal(await cell.getAttribute('aria-pressed'), 'true');
+          assert.ok((await page.locator('.fr-energy').innerText()).length > 300);
+          assert.equal(await page.locator('.fr-radar-value').count(), 1);
+          assert.equal(await page.locator('.fr-radar-values dd').count(), 5);
+          assert.deepEqual(await page.locator('.fr-radar-values dd').allTextContents(), await page.locator('#zwDetailPanel').evaluate(el => el.__zwVisualMetrics.radar.values.map(String)));
+        }
+        assert.equal(await page.locator('.fr-flow-point').count(), 12);
+        assert.equal(await page.locator('.fr-flow-curve').count(), 1);
+        await page.locator('.fr-flow-tabs button').nth(1).click();
+        assert.equal(await page.locator('.fr-flow-curve').count(), 2);
+        await page.locator('.fr-flow-point').nth(2).click();
+        assert.equal(await page.locator('.fr-flow-point').nth(2).getAttribute('aria-pressed'), 'true');
+        await page.locator('.fr-flow-point').nth(2).focus();
+        await page.keyboard.press('ArrowRight');
+        assert.equal(await page.locator('.fr-flow-point').nth(3).getAttribute('aria-pressed'), 'true');
+        assert.ok((await page.locator('.fr-flow-readout').innerText()).length > 20);
+        assert.equal(await page.locator('.fr-flow-curve').evaluateAll(els => els.some(el => /NaN|undefined/.test(el.getAttribute('d')))), false);
+        assert.equal(await page.locator('#zwDeepAiPromptDomain option').count(), 14);
+        await page.locator('#zwDeepAiPromptDomain').selectOption('study');
+        await page.locator('#zwDeepAiPromptExample').click();
+        assert.ok((await page.locator('#zwDeepAiPromptQuestion').inputValue()).includes('공부'));
+        ziweiMockFailure = true;
+        await page.evaluate(() => window._zwAiPromptResumeCore('가족 관계의 거리감을 조율하고 싶어요.', { requestId:'mock-ziwei-paid-resume', accessGrant:{ mock:true } }, 'family'));
+        assert.equal(ziweiPosts.at(-1).domain, 'family');
+        assert.equal(ziweiPosts.at(-1).requestId, 'mock-ziwei-paid-resume');
+        ziweiMockFailure = false;
+        await page.locator('#zwDeepAiPromptGenerateBtn').click();
+        await page.waitForFunction(() => document.querySelector('#zwDeepAiPromptStatus').textContent.includes('완성'));
+        assert.equal(ziweiPosts.at(-1).requestId, 'mock-ziwei-paid-resume', 'retry must retain paid request id');
+        assert.equal(ziweiPosts.at(-1).domain, 'family');
         await page.locator('.fr-palace-choice').first().click();
         assert.equal(await page.locator('.fr-palace-choice').first().getAttribute('aria-pressed'), 'true');
         assert.ok((await page.locator('#zwDetailPanel').innerText()).length > 150);
         await fs.writeFile(path.join(output, 'ziwei-selected.html'), await page.locator('#zwDetailPanel').innerHTML());
         await page.locator('#zwDetailPanel').evaluate(el => el.scrollIntoView({ block: 'start', behavior: 'instant' }));
         await page.screenshot({ path: path.join(output, 'ziwei-selection-390.png') });
-        await page.locator('#fr-ziwei-chart > summary').click();
+        for (const width of [360,390,430,1280]) {
+          await page.setViewportSize({width,height:width >= 768 ? 1000 : 844});
+          await page.locator('.fr-energy').evaluate(el => el.scrollIntoView({block:'start',behavior:'instant'}));
+          await page.screenshot({path:path.join(output,`ziwei-energy-${width}.png`)});
+          for (const [selector,label] of [['.fr-radar','radar'],['.fr-life-graph','curves']]) {
+            await page.locator(selector).evaluate(el => el.scrollIntoView({block:'start',behavior:'instant'}));
+            await page.waitForTimeout(300);
+            await page.screenshot({path:path.join(output,`ziwei-${label}-${width}.png`)});
+          }
+        }
+        await page.setViewportSize({width:390,height:844});
+        for (const [selector,label] of [['#fr-ziwei-flow','flow'],['#zwDeepAiPromptPanel','consult']]) {
+          await page.locator(selector).evaluate(el => el.scrollIntoView({block:'start',behavior:'instant'}));
+          await page.waitForTimeout(300);
+          if (label === 'consult') console.log('Consult render', await page.locator(selector).evaluate(el => Array.from(el.children).slice(0,5).map(child => ({text:child.textContent.slice(0,80),display:getComputedStyle(child).display,opacity:getComputedStyle(child).opacity,visibility:getComputedStyle(child).visibility,top:child.getBoundingClientRect().top,height:child.getBoundingClientRect().height,clip:getComputedStyle(child).clipPath}))));
+          await page.screenshot({path:path.join(output,`ziwei-${label}-390.png`)});
+        }
         await page.locator('.zw-grid').evaluate(el => el.scrollIntoView({ block: 'start', behavior: 'instant' }));
         await page.screenshot({ path: path.join(output, 'ziwei-chart-390.png') });
       } else {
@@ -171,16 +228,33 @@ try {
       await page.keyboard.press('Tab');
       assert.equal(await page.evaluate(id => document.activeElement?.matches(`#${id} .modal-top-nav button`), modalIds[type]), true);
       if (type === 'sukuyo') {
+        const legacyChartSummary = page.locator(`#fr-${type}-chart > summary`);
+        if (await legacyChartSummary.count()) {
+          await pressTabUntil(`#fr-${type}-chart > summary`);
+          await page.keyboard.press('Enter');
+          assert.equal(await page.locator(`#fr-${type}-chart`).evaluate(el => el.open), true);
+          await page.waitForFunction(selector => document.querySelector(selector)?.getAttribute('aria-expanded') === 'true', `#fr-${type}-chart > summary`);
+          assert.equal(await page.locator(`#fr-${type}-chart > summary`).getAttribute('aria-expanded'), 'true');
+        }
+      } else {
+        await pressTabUntil('#fr-ziwei-chart .zw-cell');
+        await page.keyboard.press('Enter');
+        assert.equal(await page.evaluate(() => document.activeElement.getAttribute('aria-pressed')), 'true');
+      }
+      if (type === 'sukuyo') {
         await pressTabUntil('.sy-house-nav button:nth-child(2)');
         await page.keyboard.press('Enter');
         assert.equal(await page.evaluate(() => document.activeElement?.id), 'syHouseTools');
         assert.equal(await page.locator('#syWheelCardHost').evaluate(el => !!el.closest('details:not([open])')), false);
         await page.keyboard.press('Escape');
       } else {
-        await pressTabUntil(`#fr-${type}-chart > summary`);
-        await page.keyboard.press('Enter');
-        assert.equal(await page.locator(`#fr-${type}-chart`).evaluate(el => el.open), true);
-        assert.equal(await page.locator(`#fr-${type}-chart > summary`).getAttribute('aria-expanded'), 'true');
+        const legacyChartSummary = page.locator(`#fr-${type}-chart > summary`);
+        if (await legacyChartSummary.count()) {
+          await pressTabUntil(`#fr-${type}-chart > summary`);
+          await page.keyboard.press('Enter');
+          assert.equal(await page.locator(`#fr-${type}-chart`).evaluate(el => el.open), true);
+          assert.equal(await page.locator(`#fr-${type}-chart > summary`).getAttribute('aria-expanded'), 'true');
+        }
         await pressTabUntil(`#${modalIds[type]} .modal-nav-close`, true);
         await page.keyboard.press('Enter');
       }
@@ -237,7 +311,7 @@ try {
         if (locale === 'ko' && type === 'astro') assert.equal(await report.locator('.fr-profile-notice').count(), 1);
         if (locale !== 'ko') {
           await report.locator('details').evaluateAll(nodes => nodes.forEach(node => { node.open = true; node.querySelector(':scope > summary')?.setAttribute('aria-expanded', 'true'); }));
-          const presentationText = await report.locator('.fr-heading, .fr-disclosure > summary, .fr-palace-choice strong, .fr-map-toggle').allTextContents();
+          const presentationText = await report.locator('.fr-heading, .fr-disclosure > summary, .fr-palace-choice strong, .fr-map-toggle').evaluateAll(nodes => nodes.filter(node => !node.closest('#zwDetailPanel, #zwComprehensiveReport')).map(node => node.textContent));
           assert.equal(presentationText.some(text => /[가-힣]/.test(text)), false, `${type}/${locale}: new presentation label contains Hangul`);
           localizationAudit.push(await report.evaluate((root, { locale, type }) => {
             const samples = [];
