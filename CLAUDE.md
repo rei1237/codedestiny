@@ -68,3 +68,5 @@ CI 선택 실행은 10개 PR 비교 전까지 shadow다. 기존 검사를 삭제
 이용권·월정석·단건 결제 용어와 정책을 유지한다. 동결 파일 변경은 payment-freeze 절차를 따른다.
 Claude 훅은 Codex 훅이 아니다. 도구별 규칙 적용을 구분한다.
 충돌은 [CONTEXT_AUDIT](docs/CONTEXT_AUDIT.md)에 기록한다. 현재 상태는 [CURRENT_DEV_BASELINE](docs/CURRENT_DEV_BASELINE.md).
+
+PR 전 `npm run ci:preflight` 통과는 필수다. 실패하면 PR을 생성하지 않는다. 검증 증거를 확인하는 `npm run pr:create`를 사용한다. 안전 조건 충족 시 순차 merge와 staging 확인까지 완료한다. 세부 규칙은 [PR preflight와 순차 전달](docs/context/delivery-and-ci.md#pr-preflight와-순차-전달)을 따른다. 이 규칙은 기존 PR 생성만으로 전달 완료/다음 세션 머지 규칙보다 우선한다.

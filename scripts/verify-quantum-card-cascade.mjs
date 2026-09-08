@@ -75,7 +75,20 @@ async function prepareRuntime(page, baseUrl) {
   await page.waitForFunction(() => typeof window.renderTodayDestinyCard === "function", null, { timeout: 30_000 });
 }
 
+async function prepareResultSurface(page) {
+  await page.evaluate(() => {
+    // The real calculation flow opens resultPage before rendering its cards.
+    // Without that setup, mobile idle cleanup can detach the hidden parent
+    // between renderTodayDestinyCard and this test's CSS assertions.
+    window.__cdMobileHomeLazyMount?.mount("resultPage");
+    const result = document.getElementById("resultPage");
+    if (!result) throw new Error("Result surface failed to mount");
+    result.style.display = "block";
+  });
+}
+
 async function renderZiweiThenCard(page) {
+  await prepareResultSurface(page);
   await page.evaluate(() => {
     if (typeof window.renderZiwei === "function") {
       window.renderZiwei(null, null, "ziweiModalSection");
@@ -89,6 +102,7 @@ async function renderZiweiThenCard(page) {
 }
 
 async function renderCardOnly(page) {
+  await prepareResultSurface(page);
   await page.evaluate(() => {
     window.renderTodayDestinyCard({ dayStem: "gap", dayBranch: "ja", element: "wood" });
   });
@@ -204,6 +218,7 @@ async function runScenario(browser, baseUrl, name, viewport, mode) {
     });
     await renderZiweiThenCard(page);
   } else if (mode === "spa") {
+    await prepareResultSurface(page);
     await page.evaluate(() => {
       history.pushState({}, "", "/ziwei/chart/");
       if (typeof window.renderZiwei === "function") {

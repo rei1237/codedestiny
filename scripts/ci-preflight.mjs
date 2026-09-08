@@ -1,0 +1,110 @@
+#!/usr/bin/env node
+import { spawnSync } from "node:child_process";
+import { existsSync, readFileSync, writeFileSync, unlinkSync, symlinkSync, mkdirSync, rmdirSync } from "node:fs";
+import { resolve, dirname } from "node:path";
+import { createRequire } from "node:module";
+import { randomUUID } from "node:crypto";
+import { ciPreflightPlan, validatedPrArguments } from "./lib/ci-preflight-plan.mjs";
+import { resolveTier } from "./resolve-ci-tier.mjs";
+
+const root = process.cwd();
+const require = createRequire(import.meta.url);
+const argv = process.argv.slice(2);
+function run(file, args, { cwd = root, env = process.env, capture = false } = {}) {
+  const result = spawnSync(file, args, { cwd, env, windowsHide: true, encoding: "utf8", timeout: 30 * 60 * 1000, maxBuffer: 32 * 1024 * 1024, stdio: capture ? "pipe" : "inherit" });
+  if (result.status !== 0) throw new Error(`${file} ${args.join(" ")} failed (${result.status ?? result.error?.code})${capture ? `: ${result.stderr}` : ""}`);
+  return (result.stdout || "").trim();
+}
+const git = (args, options = {}) => run("git", args, { capture: true, ...options });
+function tree() {
+  const index = resolve(git(["rev-parse", "--absolute-git-dir"]), `preflight-index-${randomUUID()}`);
+  const env = { ...process.env, GIT_INDEX_FILE: index };
+  try {
+    git(["read-tree", "HEAD"], { env });
+    git(["add", "-A", "--", "."], { env });
+    return git(["write-tree"], { env });
+  } finally { if (existsSync(index)) unlinkSync(index); }
+}
+async function main() {
+  const receiptPath = resolve(git(["rev-parse", "--absolute-git-dir"]), "ci-preflight.json");
+  const planOnly = argv.includes("--plan");
+  if (!planOnly) git(["fetch", "--quiet", "origin", "main"]);
+  const base = git(["rev-parse", "origin/main"]);
+  const head = git(["rev-parse", "HEAD"]);
+  const candidate = tree();
+  if (argv.includes("--verify-receipt") || argv.includes("--create-pr")) {
+    const receipt = JSON.parse(readFileSync(receiptPath, "utf8"));
+    if (receipt.tree !== candidate || receipt.base !== base || receipt.version !== 1) throw new Error("Preflight evidence is stale. Run npm run ci:preflight again.");
+    if (git(["status", "--porcelain"])) throw new Error("Commit verified changes before PR creation.");
+    git(["merge-base", "--is-ancestor", base, "HEAD"]);
+    if (argv.includes("--create-pr")) {
+      const branch = git(["branch", "--show-current"]);
+      const remote = git(["ls-remote", "origin", `refs/heads/${branch}`]).split(/\s/)[0];
+      if (remote !== head) throw new Error("Push the verified commit before PR creation.");
+      run("gh", validatedPrArguments(argv.filter(arg => arg !== "--create-pr"), branch));
+    } else console.log("[ci:preflight] receipt matches committed tree and latest main");
+    return;
+  }
+  if (!planOnly && existsSync(receiptPath)) unlinkSync(receiptPath);
+  git(["merge-base", "--is-ancestor", base, "HEAD"]);
+  const files = git(["diff", "--name-only", base, candidate]).split(/\r?\n/).filter(Boolean);
+  const tier = argv.includes("--full") ? "critical" : resolveTier(files);
+  const workflow = require("js-yaml").load(readFileSync(resolve(root, ".github/workflows/pr-ci.yml"), "utf8"));
+  const commands = ciPreflightPlan(workflow, tier);
+  // These cheap independent PR gates also read shared source outside their path filters.
+  commands.push("npm run verify:ai-locale-pipeline", "npm run verify:business-identity");
+  console.log(JSON.stringify({ base, tree: candidate, tier, files, commands }, null, 2));
+  if (planOnly) return;
+  const dependencies = resolve(root, "node_modules");
+  if (!existsSync(dependencies)) throw new Error("Run npm ci and npx playwright install chromium first.");
+  const installed = JSON.parse(readFileSync(resolve(dependencies, ".package-lock.json"), "utf8"));
+  const locked = JSON.parse(readFileSync(resolve(root, "package-lock.json"), "utf8"));
+  for (const [name, pkg] of Object.entries(installed.packages || {})) {
+    if (locked.packages?.[name]?.version !== pkg.version || locked.packages?.[name]?.integrity !== pkg.integrity) throw new Error(`Dependency drift: ${name}. Run npm ci.`);
+  }
+  const snapshot = resolve(dirname(root), `.preflight-${randomUUID().slice(0, 8)}`);
+  mkdirSync(dirname(snapshot), { recursive: true });
+  const commit = git(["commit-tree", candidate, "-p", head, "-m", "Local preflight snapshot (not published)"]);
+  let added = false;
+  try {
+    git(["-c", "core.longpaths=true", "worktree", "add", "--detach", snapshot, commit]);
+    added = true;
+    symlinkSync(dependencies, resolve(snapshot, "node_modules"), process.platform === "win32" ? "junction" : "dir");
+    const guard = resolve(snapshot, "scripts/lib/mock-network-guard.cjs").replaceAll("\\", "/");
+    // The UUID checkout has its own .next; unrelated dev servers cannot own it.
+    const env = { ...process.env, PR_BASE_SHA: base, PR_HEAD_SHA: commit, LLM_DRY_RUN: "true", WORKERS_AI_ENABLED: "false", NEXT_TELEMETRY_DISABLED: "1", WRANGLER_SEND_METRICS: "false", ALLOW_DEV_SERVER_DURING_BUILD: "1", NODE_OPTIONS: `${process.env.NODE_OPTIONS || ""} --require="${guard}"`.trim() };
+    const npm = process.env.npm_execpath;
+    if (!npm) throw new Error("Invoke through npm run ci:preflight");
+    // Mirror checks run before build generators; no branch commit is needed.
+    const mirror = commands.filter(c => c.startsWith("npm run verify:public-mirror-fresh"));
+    const ordered = [...mirror, ...commands.filter(c => !mirror.includes(c))];
+    for (const command of ordered) {
+      if (git(["rev-parse", "origin/main"]) !== base) throw new Error("main changed during validation; update the branch and run preflight again.");
+      console.log(`[ci:preflight] ${command}`);
+      const [binary, ...args] = command.split(/\s+/);
+      run(process.execPath, binary === "npm" ? [npm, ...args] : args, { cwd: snapshot, env });
+    }
+    // Scope uses the exact snapshot diff, including uncommitted shell payment edits.
+    const scope = run(process.execPath, ["scripts/resolve-paid-gate-scope.mjs", "--base", base, "--head", commit], { cwd: snapshot, env, capture: true });
+    console.log(scope);
+    if (!scope.includes("[paid-gate-scope] run=false")) {
+      // No base attribution waiver: every paid regression must pass locally.
+      run(process.execPath, ["scripts/run-paid-gate-suite.mjs"], { cwd: snapshot, env });
+    }
+    if (tree() !== candidate || git(["rev-parse", "origin/main"]) !== base) throw new Error("Source/main changed during validation; run preflight again.");
+    writeFileSync(receiptPath, JSON.stringify({ version: 1, tree: candidate, base, tier, completedAt: new Date().toISOString() }, null, 2));
+    console.log("[ci:preflight] PASS. Commit, push, then npm run pr:create -- --title ... --body-file ...");
+  } finally {
+    // Only this UUID snapshot is disposable. Never touch another worktree.
+    if (added && dirname(snapshot) === dirname(root) && /^\.preflight-[0-9a-f]{8}$/.test(snapshot.split(/[\\/]/).at(-1))) {
+      const link = resolve(snapshot, "node_modules");
+      if (existsSync(link)) {
+        if (process.platform === "win32") rmdirSync(link);
+        else unlinkSync(link);
+      }
+      try { git(["-c", "core.longpaths=true", "worktree", "remove", "--force", "--", snapshot]); }
+      catch (error) { console.error(`[ci:preflight] cleanup needs attention: ${snapshot}: ${error.message}`); }
+    }
+  }
+}
+main().catch(error => { console.error(`[ci:preflight] BLOCKED: ${error.message}`); process.exitCode = 1; });
