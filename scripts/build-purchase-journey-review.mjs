@@ -13,7 +13,7 @@ import { getBillingFeaturePricing } from '../worker/lib/billing-feature-registry
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const output = path.join(root, 'docs/purchase-journey');
-const read = file => fs.readFileSync(path.join(root, file), 'utf8');
+const read = file => fs.readFileSync(path.join(root, file), 'utf8').replace(/\r\n/g, '\n');
 const html = read('index.html');
 const book = buildFeatureMarketingCopy(html);
 const visual = buildVisualDetails(html, book);

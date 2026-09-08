@@ -1,5 +1,5 @@
 {
-  "sourceFingerprint": "c3d98b6741b8aca6ecf9c2c6222a3019cee2c4e8c1e433fef73f7f8c8a775d12",
+  "sourceFingerprint": "8c14180cf1422ce66956f6d87048f317b64553cb1b26acf4eb9acba365c45a90",
   "methodology": "소스 후보 목록이며 화면 감사 또는 서비스 개수 확정이 아님. 상품 별칭만 서버 정규화로 병합. 라우트·액션 중복은 증거 확인 전 유지. 기존 verified 메타데이터는 이번 작업의 검증을 뜻하지 않음.",
   "counts": {
     "registry": 57,
