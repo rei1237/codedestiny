@@ -1,5 +1,13 @@
 # 구현 검증
 
+## 2026-09-08 후속 조사 검증
+
+문서·근거 JSON 변경만 수행했다. `check:fast -- --plan`은 fast(whitespace/doc-freshness)를 선택했고 `check:fast` 통과, `verify:handoff-contract` 113개 통과, `git diff --check` 통과. 기존 SEO 회귀 테스트 5개 통과, `verify:sitemap-drift` 488 URL 일치. 전체 빌드·브라우저 smoke는 이번에 재실행하지 않았다.
+
+운영/스테이징 24개 공개 GET은 모두 200. 스테이징 Pages·Worker SHA와 HTML 9개 noindex를 확인했다. GSC 기간·색인·외부 링크는 로그인 화면에서 확인했으며 실제 URL 테스트 오류와 CSV 다운로드 차단은 성공으로 간주하지 않았다. [후속 실측](SEARCH_RECOVERY_FOLLOWUP.md) 참조.
+
+## 최초 구현 검증
+
 2026-09-08, 격리 브랜치 `codex/seo-search-recovery-20260908`.
 
 | 검사 | 결과 |
