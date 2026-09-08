@@ -70,14 +70,14 @@
       "featureKey": "tarot-love-relationship",
       "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "/fuctionassets/tarolove.webp",
+      "image": "/feature-details/assets/tarot-love-relationship-960.webp",
       "aliases": [
         "tarot-love-relationship",
         "openTarotLoveModal",
         "/index.html?action=openTarotLoveModal",
         "/index.html?action=openTarotLoveModal/"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified"
     },
     {
       "slug": "tarot-reunion",
@@ -86,7 +86,7 @@
       "featureKey": "tarot-reunion-reading",
       "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "/fuctionassets/reunion.webp",
+      "image": "/feature-details/assets/tarot-reunion-960.webp",
       "aliases": [
         "tarot-reunion-reading",
         "openTarotReunionModal",
@@ -94,7 +94,7 @@
         "/index.html?action=openTarotReunionModal",
         "/index.html?action=openTarotReunionModal/"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified"
     },
     {
       "slug": "tarot-mindscan",
@@ -1337,39 +1337,52 @@
       "featureKey": "tarot-love-relationship",
       "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "/fuctionassets/tarolove.webp",
+      "image": "/feature-details/assets/tarot-love-relationship-960.webp",
       "aliases": [
         "tarot-love-relationship",
         "openTarotLoveModal",
         "/index.html?action=openTarotLoveModal",
         "/index.html?action=openTarotLoveModal/"
       ],
-      "headline": "말과 행동 사이에 남은 관계의 온도를 카드로 펼쳐보세요.",
-      "description": "상대의 감정을 단정하기보다, 지금 두 사람 사이에 흐르는 분위기와 조심할 선을 나눠 읽습니다.",
+      "headline": "말과 행동 사이, 관계의 온도를 차분히 살핍니다.",
+      "description": "질문을 바탕으로 세 장의 카드를 펼쳐 지금의 관계, 말로 드러나지 않은 감정의 결, 다음 대화에서 살필 기준을 정리합니다.",
       "panels": [
         {
-          "title": "결과에서 받아보는 내용",
+          "title": "세 장의 상징으로, 지금의 관계를 펼칩니다.",
+          "text": "타로는 상대의 마음을 단정하는 답이 아닙니다. 카드가 비추는 관계의 흐름을 현재 상황과 함께 놓고, 내가 선택할 수 있는 다음 행동을 찾는 참고 도구입니다.",
+          "visualPreview": "tarot-love"
+        },
+        {
+          "title": "리딩에서 확인하는 것.",
           "items": [
-            "현재 관계의 분위기와 감정 온도",
-            "끌림과 망설임이 생기는 지점",
-            "지금 건네도 좋은 말과 지켜야 할 선",
-            "결제 후 기존 타로 리딩 화면으로 이동"
+            "지금의 관계 — 두 사람 사이에서 먼저 보이는 흐름",
+            "말과 행동 사이 — 감정이 어긋나 보이는 지점",
+            "관계의 다음 장면 — 서두르지 않고 살필 기준",
+            "현실적인 조언 — 대화 전 확인할 나의 태도"
           ]
         },
         {
-          "title": "이런 분께 어울려요",
-          "items": [
-            "상대의 말과 행동이 달라 혼란스러운 분",
-            "먼저 연락해도 될지 매번 망설이는 분",
-            "관계를 정의하기 전에 온도를 확인하고 싶은 분"
-          ]
+          "title": "관계를 설명하는 질문부터 적어 보세요.",
+          "text": "상황과 고민을 적은 뒤 카드를 펼칩니다. 결과는 관계를 확정하지 않으며, 실제 대화와 상대의 경계를 함께 존중하는 기준으로 참고해 주세요."
         }
       ],
-      "ctaLabel": "관계 흐름 확인하기",
+      "ctaLabel": "관계 리딩 시작하기",
       "evidence": [
-        "index.html:FEATURE_MARKETING_COPY:openTarotLoveModal"
+        "js/tarot-love-experience.js",
+        "js/core/uiBindings.js",
+        "js/core/service-registry.js"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/tarot-love-relationship-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/tarot-love-relationship-960.webp",
+          "width": 960
+        }
+      ]
     },
     "tarot-reunion": {
       "slug": "tarot-reunion",
@@ -1378,7 +1391,7 @@
       "featureKey": "tarot-reunion-reading",
       "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "/fuctionassets/reunion.webp",
+      "image": "/feature-details/assets/tarot-reunion-960.webp",
       "aliases": [
         "tarot-reunion-reading",
         "openTarotReunionModal",
@@ -1386,66 +1399,45 @@
         "/index.html?action=openTarotReunionModal",
         "/index.html?action=openTarotReunionModal/"
       ],
-      "headline": "멈춘 연락 앞에서, 다시 다가가도 되는지부터 확인하세요.",
-      "description": "다섯 자리 카드가 남은 감정의 온기부터 관계 회복의 조건까지 짚고, 부담을 낮춘 첫 문장과 7일 마음 회복 루틴으로 마무리하는 재회 리딩입니다.",
+      "headline": "다시 닿기 전, 마음과 현실 사이의 거리를 살핍니다.",
+      "description": "다섯 장의 카드가 비추는 관계의 흐름을 따라, 먼저 움직이기 전 확인할 기준과 부담을 낮춘 다음 행동을 정리합니다.",
       "panels": [
         {
-          "title": "이런 질문에 도움이 됩니다",
+          "title": "등대처럼, 다시 볼 방향부터 확인합니다.",
+          "text": "재회 가능성을 단정하지 않습니다. 다섯 장의 자리에서 관계의 흐름과 각자의 마음, 현실에서 조심할 지점을 살피며 행동의 속도를 조절합니다.",
+          "visualPreview": "tarot-reunion"
+        },
+        {
+          "title": "다섯 장 리딩에서 확인하는 것.",
           "items": [
-            "상대에게 아직 마음이 남아 있을까요?",
-            "지금 연락해도 괜찮을까요?",
-            "이 관계는 다시 이어질 수 있을까요?"
+            "등대 자리 — 관계가 향하는 현재 방향",
+            "각 카드의 흐름 — 마음과 현실이 만나는 장면",
+            "재회 흐름 해석 — 먼저 움직이기 전 점검할 기준",
+            "현실 조언과 7일 체크리스트 — 무리하지 않는 다음 행동"
           ]
         },
         {
-          "title": "이 기능으로 살펴보는 것",
-          "items": [
-            "남은 감정의 온기 · 상대의 지금 마음 · 연락이 멈춘 배경 · 말 너머 속마음 · 관계 회복의 조건, 다섯 자리 리딩",
-            "카드 한 장마다 여덟 갈래로 나눠 읽는 상세 해석",
-            "먼저 움직이기 전의 기준과 부담을 낮춘 첫 문장 제안",
-            "앞으로 7일 마음 회복 루틴과 재회 체크리스트"
-          ]
-        },
-        {
-          "title": "결과에서 받아보는 내용",
-          "items": [
-            "다섯 자리에 놓인 카드와 자리별 해석",
-            "다시 다가갈 때의 기준과 첫 문장",
-            "지금은 잠시 아껴둘 표현",
-            "7일 안에 지킬 재회 체크리스트"
-          ]
-        },
-        {
-          "title": "어떻게 이용하나요?",
-          "steps": [
-            {
-              "label": "마음 가라앉히기",
-              "detail": "짧은 호흡 안내와 함께 차분히 리딩을 시작합니다."
-            },
-            {
-              "label": "다섯 자리 카드 열기",
-              "detail": "남은 감정부터 회복의 조건까지 자리마다 카드를 폅니다."
-            },
-            {
-              "label": "회복 가이드 정리",
-              "detail": "첫 문장 · 아껴둘 표현 · 7일 루틴 · 체크리스트로 마무리합니다."
-            }
-          ]
-        },
-        {
-          "title": "이런 분께 어울려요",
-          "items": [
-            "헤어진 뒤에도 마음이 정리되지 않은 분",
-            "연락을 다시 시작할 타이밍을 재고 있는 분",
-            "붙잡을 이유가 남았는지 확인하고 싶은 분"
-          ]
+          "title": "나의 상황을 먼저 정리한 뒤 카드를 펼쳐 보세요.",
+          "text": "관계와 재회에 대한 질문을 입력하고 다섯 장을 순서대로 확인합니다. 결과는 미래를 보장하지 않으며, 상대의 선택과 실제 대화를 존중하는 참고 기준입니다."
         }
       ],
-      "ctaLabel": "재회 리딩 시작하기",
+      "ctaLabel": "재회 흐름 펼치기",
       "evidence": [
-        "index.html:FEATURE_MARKETING_COPY:openTarotReunionModal"
+        "js/tarot-reunion-experience.js",
+        "js/core/uiBindings.js",
+        "js/core/service-registry.js"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/tarot-reunion-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/tarot-reunion-960.webp",
+          "width": 960
+        }
+      ]
     },
     "tarot-mindscan": {
       "slug": "tarot-mindscan",

@@ -44,6 +44,16 @@
 .featureVisualDetail .featureEditorialCosmic dd,.featureVisualDetail .featureEditorialMoon dd{color:#d7ccf8}
 .featureVisualDetail .featureEditorialCosmic dl,.featureVisualDetail .featureEditorialMoon dl{border-color:rgba(196,181,253,.38)}
 .featureVisualDetail .featureEditorialCosmic dl>div,.featureVisualDetail .featureEditorialMoon dl>div{border-color:rgba(196,181,253,.24)}
+.featureVisualDetail .featureEditorialTarot{background:#f4e6db;color:#492c43}
+.featureVisualDetail .featureEditorialTarot .featureEditorialTitle,.featureVisualDetail .featureEditorialTarot dt{color:#492c43}
+.featureVisualDetail .featureEditorialTarot dd{color:#79566a}
+.featureVisualDetail .featureEditorialTarot dl{border-color:#cba5ac}
+.featureVisualDetail .featureEditorialTarot dl>div{border-color:#dec0c1}
+.featureVisualDetail .featureEditorialReunion{background:#362133;color:#fff2e9}
+.featureVisualDetail .featureEditorialReunion .featureEditorialTitle,.featureVisualDetail .featureEditorialReunion dt{color:#fff2e9}
+.featureVisualDetail .featureEditorialReunion dd{color:#efd6d6}
+.featureVisualDetail .featureEditorialReunion dl{border-color:rgba(230,201,121,.55)}
+.featureVisualDetail .featureEditorialReunion dl>div{border-color:rgba(230,201,121,.3)}
 @media(min-width:700px){.featureVisualDetail .featureEditorial{margin-top:0;padding:28px 24px 32px}}
 .featureDetailStandaloneLink{display:inline-flex;min-height:44px;align-items:center;padding:8px 0;margin-bottom:20px;color:#e7cc9f;font-size:14px;text-decoration:underline;text-underline-offset:5px}
 .tile-pvw-overlay.pvw-visual #tilePvwHero,.tile-pvw-overlay.pvw-visual #tilePvwTagline,.tile-pvw-overlay.pvw-visual .tile-pvw-divider,.tile-pvw-overlay.pvw-visual #tilePvwFeatsLabel,.tile-pvw-overlay.pvw-visual #tilePvwFeats,.tile-pvw-overlay.pvw-visual #tilePvwPremiumBlock,.tile-pvw-overlay.pvw-visual #tilePvwScaleSec,.tile-pvw-overlay.pvw-visual #tilePvwQuestSec,.tile-pvw-overlay.pvw-visual #tilePvwStepsSec,.tile-pvw-overlay.pvw-visual #tilePvwReqSec,.tile-pvw-overlay.pvw-visual #tilePvwAudSec,.tile-pvw-overlay.pvw-visual #tilePvwCompareSec,.tile-pvw-overlay.pvw-visual #tilePvwFaqSec{display:none}
