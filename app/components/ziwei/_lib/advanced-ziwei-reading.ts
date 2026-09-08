@@ -251,6 +251,21 @@ export interface ZiweiPalaceLinkInsight {
   summary: string;
 }
 
+export interface ZiweiFoundationSection {
+  key: "core-axis" | "power-balance" | "four-transformations" | "palace-network";
+  title: string;
+  headline: string;
+  paragraphs: string[];
+  evidence: string[];
+}
+
+export interface ZiweiFoundationReading {
+  headline: string;
+  introduction: string;
+  sections: ZiweiFoundationSection[];
+  actions: string[];
+}
+
 export const PALACE_DEFINITION_MAP_DEFAULT: Record<ZiweiPalaceId, { name: string; definition: string; focus: string }> = {
   ming: {
     name: "명궁",
@@ -494,7 +509,7 @@ export function palaceForceLabel(score: number): string {
 
 /** 궁의 힘을 문장으로(해석 본문용). */
 export function palaceForceSentence(score: number): string {
-  if (score >= 78) return "지금 이 궁은 힘이 왕성하게 실려 명반을 앞에서 이끕니다.";
+  if (score >= 78) return "이 명반에서 이 궁은 힘이 왕성하게 실려 전체 흐름을 앞에서 이끕니다.";
   if (score >= 62) return "이 궁은 힘이 안정적으로 실려 꾸준히 제 몫을 합니다.";
   if (score >= 46) return "이 궁은 힘이 오락가락해 상황에 따라 조율이 필요합니다.";
   return "이 궁은 힘이 눌려 있어 생활 습관으로 먼저 돌봐야 합니다.";
@@ -751,11 +766,10 @@ export function buildTrackAnalysis(
   rows: ZiweiPalaceCounselingItem[],
   labels: Pick<AdvancedZiweiCopy, "chapterTitles">,
 ): ZiweiTrackAnalysis {
-  const { primary, secondary, ranked } = rowsForTrack(track, rows);
+  const { ranked } = rowsForTrack(track, rows);
   const strongest = ranked[0] || rows[0];
   const second = ranked[1] || strongest;
   const third = ranked[2] || second;
-  const weakest = [...primary, ...secondary].sort((a, b) => a.energy - b.energy)[0] || [...rows].sort((a, b) => a.energy - b.energy)[0];
   const keyPalaces = uniqueList([...track.primaryPalaces, ...track.secondaryPalaces]).map((id) => rows.find((row) => row.palace.id === id)).filter(Boolean) as ZiweiPalaceCounselingItem[];
   const keyPatterns: ZiweiTrackPattern[] = [strongest, second, third].filter(Boolean).map((item, index) => ({
     title: index === 0 ? `${item.palace.name}이 여는 ${track.shortTitle}의 핵심 장점` : index === 1 ? `${item.palace.name}에서 확인되는 보완 조건` : `${item.palace.name}이 알려주는 반복 패턴`,
@@ -838,7 +852,7 @@ export function buildPalaceCounseling(chart: ZiweiDeepChart): ZiweiPalaceCounsel
       : "급격한 충돌 신호는 약한 편이라, 꾸준함이 성패를 가릅니다.";
 
     const transformLine = transformPairs.length
-      ? transformPairs.map(({ label, starName }) => `${label}이 걸린 ${josa(starName, "이가")} ${josa(TRANSFORMATION_RULES[label].tone, "을를")} 만듭니다.`)
+      ? transformPairs.map(({ label, starName }) => `${josa(label, "이가")} 걸린 ${josa(starName, "이가")} ${josa(TRANSFORMATION_RULES[label].tone, "을를")} 만듭니다.`)
       : [NO_TRANSFORMATION_LINE];
 
     const special = buildPalaceSpecialAdvice(palace, energy);
@@ -863,6 +877,116 @@ export function buildPalaceCounseling(chart: ZiweiDeepChart): ZiweiPalaceCounsel
       prescription: special.action,
     };
   });
+}
+
+/**
+ * 질문별 상담 앞에서 제공하는 명반 기본 총론.
+ *
+ * 주성 하나의 성격 문장으로 끝내지 않고 명궁·신궁, 별의 밝기, 사화,
+ * 대궁·삼방사정을 한 번씩 교차한다. 상세 근거는 UI에서 펼침 영역으로
+ * 보내되, 별과 궁 이름이 들어간 판독 문장은 기본 상태에서도 읽히게 한다.
+ */
+export function buildZiweiFoundationReading(
+  chart: ZiweiDeepChart,
+  rows: ZiweiPalaceCounselingItem[],
+): ZiweiFoundationReading {
+  const life = rows.find((row) => row.palace.id === "ming") || rows[0];
+  const body = rows.find((row) => row.palace.earthlyBranch === chart.shenGong) || life;
+  if (!life || !body) {
+    return { headline: "명반의 기본 흐름을 정리하고 있습니다.", introduction: "12궁의 연결을 다시 확인해 주세요.", sections: [], actions: [] };
+  }
+
+  const ranked = [...rows].sort((left, right) => right.energy - left.energy);
+  const strongest = ranked[0] || life;
+  const careFirst = ranked[ranked.length - 1] || life;
+  const lifeStars = starNamesWithSymbol(life.palace.mainStars);
+  const bodyStars = starNamesWithSymbol(body.palace.mainStars);
+  const borrowedLifeStars = starNamesWithSymbol(life.palace.oppositePalace?.mainStars || []);
+  const lifeStarLabel = lifeStars.join("·") || `${borrowedLifeStars.join("·") || "맞은편 별"}을 빌려 읽는 명궁`;
+  const bodyStarLabel = bodyStars.join("·") || "맞은편 별을 빌려 읽는 신궁";
+  const sameCorePalace = life.palace.id === body.palace.id;
+
+  const oppositeName = oppositePalaceName(life.palace);
+  const triadNames = triadPalaceNames(life.palace);
+  const connectedIds = uniqueList([life.palace.id, life.palace.oppositePalaceId, ...(life.palace.triadPalaceIds || [])]);
+  const connectedRows = connectedIds
+    .map((id) => rows.find((row) => row.palace.id === id))
+    .filter(Boolean) as ZiweiPalaceCounselingItem[];
+  const connectedLead = [...connectedRows]
+    .filter((row) => row.palace.id !== life.palace.id)
+    .sort((left, right) => right.energy - left.energy)[0] || life;
+
+  const sihuaRows = buildSihuaInsights(chart, rows);
+  const sihuaBasis = ([
+    ["화록", chart.sihua.hualu],
+    ["화권", chart.sihua.huaquan],
+    ["화과", chart.sihua.huake],
+    ["화기", chart.sihua.huaji],
+  ] as const).map(([label, starName]) => {
+    const placements = rows
+      .filter((row) => row.palace.allStars.some((star) => star.name === starName))
+      .map((row) => row.palace.name);
+    return `${josa(label, "은는")} 출생년 기준 ${starName || "해당 별"}에 걸리고, ${placements.length ? `${placements.join("·")}에 놓인 ${starName}` : "그 별이 놓인 궁"}을 중심으로 대궁과 삼방사정을 함께 봅니다.`;
+  });
+
+  const foundationSummary = sameCorePalace
+    ? `명궁과 신궁이 모두 ${life.palace.earthlyBranch} 자리의 ${life.palace.name}에 놓여, ${lifeStarLabel}의 판단 기준이 생각과 행동에 한 방향으로 실리기 쉽습니다.`
+    : `${life.palace.earthlyBranch} 자리에 놓인 명궁의 ${lifeStarLabel}이 타고난 판단 기준을 만들고, 신궁이 놓인 ${body.palace.name}(${body.palace.earthlyBranch})의 ${bodyStarLabel}이 그 기준을 현실의 행동으로 옮깁니다.`;
+
+  return {
+    headline: chart.summary.direction || palaceVoice(life.palace).headline,
+    introduction: `${foundationSummary} 이 기본축 위에 ${strongest.palace.name}의 추진력과 ${careFirst.palace.name}의 조율 과제가 함께 놓여 있습니다. 한 궁만으로 길흉을 정하지 않고 사화와 삼방사정까지 이어서 읽어야 당신의 선택 패턴이 선명해집니다.`,
+    sections: [
+      {
+        key: "core-axis",
+        title: "명궁과 신궁 · 타고난 기준과 실제 행동",
+        headline: foundationSummary,
+        paragraphs: [
+          `${life.starMechanics} ${life.brightness}`,
+          `${life.reality} ${life.strengths} 반대로 ${life.cautions}`,
+          sameCorePalace
+            ? `${life.palace.name}에 명궁과 신궁이 겹치면 마음속 기준과 행동이 빠르게 이어질 수 있습니다. 다만 한 번 정한 방향을 오래 밀기 쉬우므로, 중요한 선택에서는 다른 관점을 확인하는 여유가 필요합니다.`
+            : `신궁이 놓인 ${body.palace.name}에서는 ${body.reality} ${body.strengths} 마음의 기준과 행동이 어긋날 때에는 어느 쪽이 틀렸다고 보기보다, ${life.palace.name}이 원하는 방향과 ${body.palace.name}이 익숙하게 움직이는 방식을 따로 적어보는 편이 좋습니다.`,
+        ],
+        evidence: [
+          "별 뒤 기호는 밝기를 뜻합니다. ◎은 가장 힘이 잘 살아나는 자리, O는 안정적으로 힘을 쓰는 자리, ▲는 상황을 타지만 이로운 자리, △는 균형이 필요한 자리, X는 힘이 눌려 조율이 필요한 자리입니다.",
+          ...buildPalaceEvidenceLines(life),
+          ...(sameCorePalace ? [] : buildPalaceEvidenceLines(body).slice(0, 4)),
+        ],
+      },
+      {
+        key: "power-balance",
+        title: "강한 궁과 조율할 궁 · 어디에 힘을 먼저 쓸까",
+        headline: `${strongest.palace.name}은 명반에서 가장 자연스럽게 힘을 꺼내 쓰기 좋은 자리이고, ${careFirst.palace.name}은 약점으로 낙인찍기보다 기준과 습관을 먼저 세울 자리입니다.`,
+        paragraphs: [
+          `${strongest.palace.name}에는 ${starNamesWithSymbol(strongest.palace.mainStars).join("·") || "맞은편에서 빌려온 별"}의 결이 놓여 있습니다. ${strongest.starMechanics} ${strongest.strengths} ${strongest.assists}`,
+          `${careFirst.palace.name}에서는 ${starNamesWithSymbol(careFirst.palace.mainStars).join("·") || "맞은편에서 빌려온 별"}의 힘이 더 섬세한 관리 방식을 요구합니다. ${careFirst.brightness} ${careFirst.cautions} ${careFirst.malefics}`,
+          `두 궁의 차이는 성공과 실패를 가르는 판정이 아닙니다. ${strongest.palace.name}에서 먼저 성과를 만들고, ${careFirst.palace.name}에서는 말·일정·돈·관계의 경계를 구체적으로 정할 때 명반 전체의 균형이 좋아집니다.`,
+        ],
+        evidence: [...buildPalaceEvidenceLines(strongest), ...buildPalaceEvidenceLines(careFirst)],
+      },
+      {
+        key: "four-transformations",
+        title: "사화 · 기회와 책임, 평판과 반복 과제",
+        headline: `출생년 천간 ${chart.birthYearStem || chart.yearGan}을 기준으로 화록은 ${chart.sihua.hualu}, 화권은 ${chart.sihua.huaquan}, 화과는 ${chart.sihua.huake}, 화기는 ${chart.sihua.huaji}에 걸립니다.`,
+        paragraphs: sihuaRows.length
+          ? sihuaRows
+          : ["사화는 한 별의 좋고 나쁨을 정하는 표지가 아니라, 자원·책임·평판·집중 과제가 어느 궁을 통해 드러나는지 보는 기준입니다."],
+        evidence: sihuaBasis,
+      },
+      {
+        key: "palace-network",
+        title: "삼방사정 · 한 궁을 둘러싼 관계망",
+        headline: `명궁은 맞은편 ${oppositeName}과 삼방의 ${triadNames.join("·") || "연결 궁"}을 함께 볼 때 실제 삶의 장면으로 이어집니다.`,
+        paragraphs: [
+          `${life.palace.name}의 성향만 떼어 보면 마음속 기준은 알 수 있지만, 그 힘이 일·돈·관계·바깥 활동 중 어디에서 결과가 되는지는 놓치기 쉽습니다. 맞은편 궁은 균형을 잡고, 삼방의 궁들은 같은 주제가 다른 생활 영역에서 어떻게 반복되는지를 보여줍니다.`,
+          `이 연결축에서는 ${connectedLead.palace.name}의 힘이 가장 또렷합니다. ${connectedLead.reality} 그래서 ${life.palace.name}의 장점을 살릴 때에도 ${connectedLead.palace.name}의 생활 조건을 함께 맞추는 편이 안정적입니다.`,
+        ],
+        evidence: buildPalaceEvidenceLines(life),
+      },
+    ],
+    actions: uniqueList([life.advice, strongest.advice, careFirst.advice]).slice(0, 3),
+  };
 }
 
 export function buildOverallCounselingSummary(rows: ZiweiPalaceCounselingItem[], strongTop3: ZiweiPalaceCounselingItem[], weakTop3: ZiweiPalaceCounselingItem[]): string[] {
@@ -921,12 +1045,12 @@ export function buildSihuaInsights(chart: ZiweiDeepChart, rows: ZiweiPalaceCouns
 
   return byType.map((row) => {
     const affected = rows
-      .filter((item) => item.transformations.some((line) => line.includes(row.label)))
+      .filter((item) => item.palace.allStars.some((star) => star.name === row.star))
       .map((item) => item.palace.name)
       .slice(0, 3)
       .join("·");
     const rule = TRANSFORMATION_RULES[row.label];
-    return `${row.label}이 걸린 ${josa(row.star, "은는")} ${josa(rule.tone, "을를")} 만듭니다. ${affected ? `지금은 ${affected}에서 특히 체감되기 쉽습니다.` : "어느 궁에서 드러날지는 유동적이니, 관계나 일정이 바뀔 때 반응을 살펴보세요."} ${rule.caution}.`;
+    return `${josa(row.label, "이가")} 걸린 ${josa(row.star, "은는")} ${josa(rule.tone, "을를")} 만듭니다. ${affected ? `이 명반에서는 ${affected}에서 특히 체감되기 쉽습니다.` : "어느 궁에서 드러날지는 유동적이니, 관계나 일정이 바뀔 때 반응을 살펴보세요."} ${rule.caution}.`;
   });
 }
 

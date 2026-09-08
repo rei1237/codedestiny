@@ -115,6 +115,10 @@ for (const { variant, chart } of samples) {
   const rows = reading.buildPalaceCounseling(chart);
   check(rows.length === 12, `샘플${variant}: buildPalaceCounseling 이 12궁을 내지 않았다(${rows.length}).`);
   collectStrings(rows, collected);
+  const foundation = reading.buildZiweiFoundationReading(chart, rows);
+  check(foundation?.sections?.length === 4, `샘플${variant}: 기본 총론 판독층이 ${foundation?.sections?.length || 0}개다(기대 4).`);
+  check(foundation?.actions?.length >= 2, `샘플${variant}: 기본 총론 행동 조언이 부족하다.`);
+  collectStrings(foundation, collected);
   const strongTop3 = [...rows].sort((a, b) => b.energy - a.energy).slice(0, 3);
   const weakTop3 = [...rows].sort((a, b) => a.energy - b.energy).slice(0, 3);
   collectStrings(reading.buildOverallCounselingSummary(rows, strongTop3, weakTop3), collected);

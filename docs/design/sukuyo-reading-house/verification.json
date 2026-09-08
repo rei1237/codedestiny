@@ -1,0 +1,31 @@
+{
+  "scope": "prototype only",
+  "viewports": [
+    {
+      "width": 1040,
+      "overflow": false
+    },
+    {
+      "width": 360,
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "overflow": false
+    },
+    {
+      "width": 430,
+      "overflow": false
+    }
+  ],
+  "mansions": 27,
+  "articles": 3,
+  "contrast": {
+    "yeonBody": 15.06,
+    "yeonMuted": 8.84,
+    "neoBody": 16.31,
+    "neoMuted": 10.12,
+    "primary": 11.68
+  },
+  "errors": []
+}

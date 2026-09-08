@@ -852,7 +852,7 @@
       "step2Text": "Bacaan tarot, orakel dan saju dalam julat anda terbuka terus, tanpa tetingkap pembayaran.",
       "step3Label": "Hanya bacaan lebih mendalam dibayar setiap guna",
       "step3Text": "Bacaan di luar julat anda diteruskan dengan pembayaran KRW sekali sahaja apabila diperlukan.",
-      "terminationNote": "At zero monthly allowance, the pass expiration, tier, and profile limit remain unchanged. Additional paid content is available by single payment or moonstones."
+      "terminationNote": "Walaupun had bulanan mencapai sifar, tarikh luput, peringkat dan had profil pas kekal. Kandungan berbayar tambahan boleh digunakan dengan bayaran sekali atau pas bulanan."
     },
     "promptHub": {
       "aria": "Pergi ke gesaan nasib yang komprehensif",
@@ -1428,7 +1428,7 @@
       "cta": "Get the app"
     },
     "mobileFunnel": {
-      "lowPrice": "Julat ₩1,000",
+      "lowPrice": "Julat ₩3,000",
       "freeNav": "Percuma",
       "freeNavAria": "Lihat bacaan percuma",
       "consultNav": "Rundingan",
@@ -1867,7 +1867,7 @@
         "passSaveUnverified": "Kami tidak dapat menyimpan hasil penggunaan Pas anda. Semak semula dengan kad Pas di bawah, atau pilih kaedah pembayaran lain.",
         "passCheckFailed": "Kami tidak dapat menyemak Pas anda. Cuba semula dengan kad Pas di bawah, atau pilih kaedah pembayaran lain.",
         "passMiss": "Pas anda tidak membuka kandungan ini secara percuma, jadi ini pilihan pembayaran.",
-        "passMonthlyExhausted": "You have used the pass allowance. The pass remains active until its original expiration date, and you can choose a payment method for additional content."
+        "passMonthlyExhausted": "Your pass allowance is fully used, so the pass has ended. Here are the payment options."
       },
       "passBadge": "Pas Cahaya Bulan",
       "passStoreTitle": "Kedai Moonlight Pass",
@@ -1936,7 +1936,7 @@
         "comingSoon": "Akan datang",
         "back": "Kembali"
       },
-      "passMonthlyExhausted": "You have used the pass allowance. The tier and profile limit remain until expiration; additional content is available by single payment or moonstones.",
+      "passMonthlyExhausted": "Your pass allowance is fully used, so the pass has ended. Buying a new pass starts another 30 days; for now you can open this with a one-time payment or moonstones.",
       "passMonthlyRemaining": "Pass allowance left {remaining} / {limit}",
       "wait": {
         "card": "You'll return to this screen automatically once your card verification is complete.",
@@ -2160,7 +2160,7 @@
       "monthlyButton": "Bayar dengan {credits} kredit bulanan",
       "monthlyButtonBusy": "Mengaktifkan pas dengan kredit bulanan...",
       "monthlyButtonShort": "Perlu {credits} · baki tidak cukup",
-      "terminationNotice": "At zero monthly allowance, the pass expiration, tier, and profile limit remain unchanged. Additional paid content is available by single payment or moonstones."
+      "terminationNotice": "If the monthly allowance is fully used, the pass ends regardless of the days left. Buying a new pass starts another 30 days from that day."
     },
     "access": {
       "passAppliedContinue": "Dibuka dengan pas anda."

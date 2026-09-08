@@ -32,6 +32,7 @@ function facts(chart) {
 assert.deepEqual(charts.map(chart => createHash('sha256').update(JSON.stringify(facts(chart))).digest('hex')), BASELINE_FACT_HASHES, 'calculation and normalization must match baseline');
 assert.ok(charts.some(chart => chart.palaces.some(palace=>!palace.mainStars.length)), 'empty palace fixture');
 const { buildQuestionReading, CONSULTATION_QUESTIONS } = loadTsModule('app/_lib/ziwei-consultation-narrative.ts');
+const { buildPalaceCounseling, buildZiweiFoundationReading } = loadTsModule('app/components/ziwei/_lib/advanced-ziwei-reading.ts');
 const { generateZiweiDeepChapter } = loadTsModule('app/_lib/generate-ziwei-deep-chapter.ts');
 const { ziweiReportBlocks, ziweiChapterPreview } = loadTsModule('lib/pdf/ziwei-report-plan.ts');
 const { getPremiumZiweiCopy } = loadTsModule('app/components/ziwei/_lib/advanced-ziwei-copy.ts');
@@ -47,6 +48,21 @@ for(const id of Object.keys(CONSULTATION_QUESTIONS)) {
     assert.ok(row.evidence.length>=3);
     for(const ref of row.evidence) assert.ok(charts[index].palaces.some(p=>p.id===ref.palaceId));
   }
+}
+const foundationReadings = charts.map(chart => buildZiweiFoundationReading(chart, buildPalaceCounseling(chart)));
+assert.equal(new Set(foundationReadings.map(reading => reading.introduction)).size, charts.length, 'foundation reading varies by chart');
+for(const [index,reading] of foundationReadings.entries()) {
+  const chart = charts[index];
+  const text = [reading.headline, reading.introduction, ...reading.sections.flatMap(section => [section.title, section.headline, ...section.paragraphs, ...section.evidence]), ...reading.actions].join(' ');
+  assert.equal(reading.sections.length,4,'foundation reading has four interpretation layers');
+  assert.ok(reading.sections.every(section => section.paragraphs.length>=2 && section.evidence.length>=4),'each foundation layer has interpretation and chart basis');
+  assert.ok(reading.actions.length>=2,'foundation reading has practical actions');
+  assert.ok(text.length>=2600,'foundation reading is detailed enough to stand on its own');
+  assert.ok(text.includes(chart.sihua.hualu) && text.includes(chart.sihua.huaquan) && text.includes(chart.sihua.huake) && text.includes(chart.sihua.huaji),'foundation reading cites all four transformation stars');
+  const lifePalace = chart.palaces.find(palace => palace.id === 'ming');
+  const bodyPalace = chart.palaces.find(palace => palace.earthlyBranch === chart.shenGong) || lifePalace;
+  assert.ok(text.includes(lifePalace.earthlyBranch) && text.includes(bodyPalace.earthlyBranch),'foundation reading cites life and body palace branches');
+  assert.ok(!forbidden.test(text),'foundation reading does not expose internal or deterministic claims');
 }
 for(const chart of charts) {
   for(const id of ['overview','master']) {

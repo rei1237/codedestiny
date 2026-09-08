@@ -763,7 +763,7 @@ type PointsPageCopy = {
   defaultUserName: string;
   defaultMemberName: string;
   duration30: string;
-  /** 월 최대 한도 소진 후에도 만료일·등급·프로필 상한이 유지된다는 고지. */
+  /** 월 최대 한도 소진 시 잔여 기간과 무관하게 이용권이 종료된다는 고지(2026-09-04 정책). */
   passTerminationNote: string;
   heldPass: string;
   allPaidPdfPolicy: string;
@@ -815,7 +815,7 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
     defaultUserName: "사용자",
     defaultMemberName: "회원",
     duration30: "30일",
-    passTerminationNote: "월 최대 한도가 0이 되어도 이용권의 만료일·등급·프로필 상한은 유지됩니다. 추가 유료 콘텐츠는 단건 결제 또는 월정석으로 이용할 수 있습니다.",
+    passTerminationNote: "월 최대 한도를 모두 사용하면 남은 기간과 관계없이 이용권이 종료됩니다. 새로 구매하면 그날부터 30일이 다시 시작됩니다.",
     heldPass: "보유 이용권",
     allPaidPdfPolicy: "이용권 대상 전체 · 월 최대 50만원 상당",
     generalLimitPolicy: (value) => `일반 ${value} 이하 이용 가능`,
@@ -934,7 +934,7 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
     defaultUserName: "User",
     defaultMemberName: "Member",
     duration30: "30 days",
-    passTerminationNote: "At zero monthly allowance, the pass expiration, tier, and profile limit remain unchanged. Additional paid content is available by single payment or moonstones.",
+    passTerminationNote: "If the monthly allowance is fully used, the pass ends regardless of the days left. Buying a new pass starts another 30 days from that day.",
     heldPass: "Active pass",
     allPaidPdfPolicy: "All pass-eligible content · Up to KRW 500,000 worth per month",
     generalLimitPolicy: (value) => `General services up to ${value}`,

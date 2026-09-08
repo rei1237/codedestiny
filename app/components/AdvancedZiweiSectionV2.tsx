@@ -9,7 +9,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import "../../styles/fonts-serif.css";
 import styles from "./ziwei/ziwei-consultation.module.css";
-import { ZiweiConsultationHero, ZiweiQuestionSections } from "./ziwei/ZiweiConsultation";
+import { ZiweiConsultationHero, ZiweiFoundationReading, ZiweiQuestionSections } from "./ziwei/ZiweiConsultation";
 import { buildQuestionReading } from "../_lib/ziwei-consultation-narrative";
 // 심화 자미두수 PDF (ZIWEI_DEEP_PDF) — 회당 결제 LLM 15챕터 PDF 리포트 패널
 import ZiweiDeepPdfPanel, { type ZiweiDeepBirthInput } from "./ziwei/ZiweiDeepPdfPanel";
@@ -48,6 +48,7 @@ import { getAdvancedZiweiCopy, getPremiumZiweiCopy, type AdvancedZiweiCopy } fro
 import {
   buildBorrowedStarInsights,
   buildCounselingTracks,
+  buildZiweiFoundationReading,
   buildPalaceCounseling,
   buildPalaceLinks,
   buildSihuaInsights,
@@ -283,7 +284,7 @@ const ZIWEI_SIHUA_PILL: Record<string, string> = {
 
 /* 결과 화면 구역 이동 바. 이 배열 순서가 곧 DOM 순서이자 칩 순서이며, 스크롤 스파이가 그대로 관찰한다. */
 const ZIWEI_RESULT_NAV = [
-  { key: 'answer', id: 'ziwei-result-answer' }, { key: 'questions', id: 'ziwei-result-track' },
+  { key: 'answer', id: 'ziwei-result-answer' }, { key: 'foundation', id: 'ziwei-result-foundation' }, { key: 'questions', id: 'ziwei-result-track' },
   { key: 'chart', id: 'ziwei-result-deep' }, { key: 'today', id: 'ziwei-result-today' }, { key: 'pdf', id: 'ziwei-result-pdf' },
 ] as const;
 
@@ -399,6 +400,10 @@ export default function AdvancedZiweiSectionV2({
   }, []);
 
   const palaceCounseling = useMemo<ZiweiPalaceCounselingItem[]>(() => (chart ? buildPalaceCounseling(chart) : []), [chart]);
+  const foundationReading = useMemo(
+    () => (chart && palaceCounseling.length ? buildZiweiFoundationReading(chart, palaceCounseling) : null),
+    [chart, palaceCounseling],
+  );
 
   const trackAnalysis = useMemo(() => (chart && palaceCounseling.length ? buildTrackAnalysis(chart, activeTrack, palaceCounseling, copy) : null), [activeTrack, chart, copy, palaceCounseling]);
   const trackPalaceReadingById = useMemo(() => {
@@ -995,6 +1000,7 @@ export default function AdvancedZiweiSectionV2({
       </nav>
       <div className={styles.content}>
         {selectedReading ? <ZiweiConsultationHero key={activeTrackId} chart={chart} reading={selectedReading} locale={locale} /> : null}
+        {foundationReading ? <ZiweiFoundationReading reading={foundationReading} locale={locale} /> : null}
         <ZiweiQuestionSections readings={readings} selected={activeTrackId} onSelect={selectCounselingTrack} locale={locale} onPalace={id => { loadSection(id); if(deepRef.current) deepRef.current.open = true; requestAnimationFrame(() => document.getElementById('ziwei-result-palace')?.scrollIntoView({ block:'start' })); }} />
         <details ref={deepRef} id="ziwei-result-deep" className={styles.deep}>
           <summary>{ui.deep}<small>{ui.deepHint}</small></summary>

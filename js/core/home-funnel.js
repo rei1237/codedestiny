@@ -3,6 +3,7 @@
   'use strict';
   var home = document.getElementById('cdHomeFunnel');
   if (!home) return;
+  var services = document.getElementById('cdhServices');
   var formPanel = document.getElementById('dpDestinyPanel');
   var form = document.getElementById('destinyCardForm');
   var doc = document.documentElement;
@@ -44,6 +45,7 @@
 
   function revealInput() {
     doc.classList.add('cdh-input-open');
+    services.hidden = true;
     if (window.__cdOpenDestinyForm) window.__cdOpenDestinyForm();
     requestAnimationFrame(function () {
       if (form && form.getBoundingClientRect().height) form.scrollIntoView({ block: 'start' });
@@ -61,27 +63,24 @@
 
   function route() {
     var hash = location.hash.slice(1);
-    var isFinder = hash === 'services' || hash.indexOf('services/') === 0 || hash === 'cdServiceIndex' || hash === 'cdFinder';
-    home.hidden = false;
-    if (isFinder) {
+    var isServices = hash === 'services' || hash.indexOf('services/') === 0 || hash === 'cdServiceIndex' || hash === 'cdFinder';
+    home.hidden = isServices;
+    services.hidden = !isServices;
+    if (isServices) {
       doc.classList.remove('cdh-input-open');
       if (finderDisclosure) finderDisclosure.open = true;
       document.dispatchEvent(new Event('cd:home-finder-open'));
       var filter = hash.split('/')[1] || '';
       if (filter !== lastFilter) {
-        home.querySelectorAll('#cdFinder [aria-pressed="true"]').forEach(function (chip) { chip.click(); });
-        var chip = home.querySelector(filter === 'tarot'
+        services.querySelectorAll('[aria-pressed="true"]').forEach(function (chip) { chip.click(); });
+        var chip = services.querySelector(filter === 'tarot'
           ? '[data-method="tarot"]'
           : '[data-purpose="' + filter.replace(/[^a-z]/g, '') + '"]');
         if (chip) chip.click();
         lastFilter = filter;
       }
-      requestAnimationFrame(function () {
-        var finder = document.getElementById('cdFinder');
-        var input = document.getElementById('fortuneGatewaySearch');
-        if (finder) finder.scrollIntoView({ block: 'start' });
-        try { if (input) input.focus({ preventScroll: true }); } catch (_) {}
-      });
+      document.getElementById('cdhServicesTitle').focus({ preventScroll: true });
+      window.scrollTo(0, 0);
     } else if (hash === 'home') {
       doc.classList.remove('cdh-input-open');
       if (finderDisclosure) finderDisclosure.open = false;
@@ -108,11 +107,12 @@
     if (target.closest('#cdMobileBottomNav [data-nav-key="home"]')) {
       doc.classList.remove('cdh-input-open');
       home.hidden = false;
+      services.hidden = true;
       if (location.hash.indexOf('services') !== -1) history.replaceState(null, '', location.pathname + location.search);
     }
     if (target.closest('[data-cd-service-index-jump]')) {
       event.preventDefault();
-      location.hash = 'cdFinder';
+      location.hash = 'services';
     }
   }, true);
 

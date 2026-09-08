@@ -4,6 +4,7 @@ import { useRef, useState } from 'react';
 import { ArrowDown, Share2, X, Plus, Minus } from 'lucide-react';
 import type { ZiweiDeepChart, ZiweiPalaceId } from '../../_lib/ziwei-types';
 import type { ZiweiQuestionReading, ConsultationTopic } from '../../_lib/ziwei-consultation-narrative';
+import type { ZiweiFoundationReading as ZiweiFoundationReadingModel } from './_lib/advanced-ziwei-reading';
 import type { LoadingLocale } from '@/constants/loadingMessages';
 import { getAdvancedZiweiCopy, getPremiumZiweiCopy } from './_lib/advanced-ziwei-copy';
 import styles from './ziwei-consultation.module.css';
@@ -59,6 +60,32 @@ export function ZiweiConsultationHero({ chart, reading, locale }: { chart: Ziwei
       <p role="status">{status}</p>
     </dialog>
   </>;
+}
+
+export function ZiweiFoundationReading({ reading, locale }: { reading: ZiweiFoundationReadingModel; locale: LoadingLocale }) {
+  const ui = getPremiumZiweiCopy(locale);
+  return <section id="ziwei-result-foundation" className={styles.foundation}>
+    <header className={styles.foundationHeader}>
+      <h2>{ui.foundationTitle}</h2>
+      <p className={styles.foundationHeadline}>{reading.headline}</p>
+      <p>{reading.introduction}</p>
+    </header>
+    <div className={styles.foundationGrid}>
+      {reading.sections.map(section => <article key={section.key} className={styles.foundationSection}>
+        <h3>{section.title}</h3>
+        <p className={styles.foundationSectionLead}>{section.headline}</p>
+        {section.paragraphs.map((paragraph, index) => <p key={`${section.key}-${index}`}>{paragraph}</p>)}
+        <details className={styles.foundationEvidence}>
+          <summary>{ui.foundationEvidence}</summary>
+          <ul>{section.evidence.map(line => <li key={line}>{line}</li>)}</ul>
+        </details>
+      </article>)}
+    </div>
+    <section className={styles.foundationActions}>
+      <h3>{ui.foundationAction}</h3>
+      <ul>{reading.actions.map(action => <li key={action}>{action}</li>)}</ul>
+    </section>
+  </section>;
 }
 
 export function ZiweiQuestionSections({ readings, selected, onSelect, onPalace, locale }: {
