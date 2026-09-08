@@ -8,10 +8,11 @@ import { INSIGHT_SEO_DESCRIPTIONS } from "../seo-descriptions";
 import { buildSeoMetadata } from "../../../lib/seo";
 import { SEO_LANDING_PAGES } from "../../../lib/seo-landing-pages";
 import { buildArticleJsonLd, buildBreadcrumbJsonLd } from "../../../lib/structured-data";
-import { getPexelsInsightImage } from "../../../lib/server/pexels";
 import ContentIntegrityNote from "../../components/ContentIntegrityNote";
 import { FusionCrossSell } from "../../components/FusionCrossSell";
+import styles from "../insight-article.module.css";
 
+export const dynamic = "force-static";
 export const dynamicParams = false;
 
 const INSIGHT_FALLBACK_IMAGES = {
@@ -91,7 +92,8 @@ function articleDescription(article) {
 }
 
 export async function generateMetadata({ params }) {
-  const slug = String(params?.slug || "");
+  const resolvedParams = await params;
+  const slug = String(resolvedParams?.slug || "");
   const article = getInsightSeedBySlug(slug);
   const copy = INSIGHT_DETAIL_PAGE_TEXT_TRANSLATIONS.ko;
   if (!article) {
@@ -104,7 +106,7 @@ export async function generateMetadata({ params }) {
     });
   }
 
-  const image = await getPexelsInsightImage(article).catch(() => getStaticInsightImage(article));
+  const image = getStaticInsightImage(article);
   return buildSeoMetadata({
     path: `/insights/${article.slug}`,
     // 문서 제목은 화면 H1 과 다른 문구를 쓴다 — H1 은 설명적이어야 하고, 문서 제목은 SERP
@@ -183,7 +185,8 @@ function normalizeContentHtml(html) {
 }
 
 export default async function InsightArticlePage({ params }) {
-  const slug = String(params?.slug || "");
+  const resolvedParams = await params;
+  const slug = String(resolvedParams?.slug || "");
   const article = getInsightSeedBySlug(slug);
   if (!article) notFound();
 
@@ -191,7 +194,7 @@ export default async function InsightArticlePage({ params }) {
   const contentHtml = normalizeContentHtml(article.contentHtml);
   if (sections.length === 0 && !contentHtml) notFound();
 
-  const image = await getPexelsInsightImage(article).catch(() => getStaticInsightImage(article));
+  const image = getStaticInsightImage(article);
   const description = articleDescription(article);
   const related = relatedArticles(article);
   const neighbors = readingNeighbors(article);
@@ -212,100 +215,112 @@ export default async function InsightArticlePage({ params }) {
   ]);
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,#251745_0%,#10091f_46%,#07050e_100%)] text-slate-100">
-      <article className="mx-auto max-w-4xl px-5 py-10 md:py-14">
-        <Link href="/insights" className="text-sm font-semibold text-amber-100/80 hover:text-amber-50">
-          운세 인사이트 허브
-        </Link>
+    <main className={styles.page}>
+      <article className={styles.article}>
+        <nav className={styles.breadcrumb} aria-label="인사이트 위치">
+          <Link href="/insights" className={styles.backLink}>← 운세 인사이트</Link>
+          <span aria-hidden="true">·</span>
+          <span>자미두수 비교 읽기</span>
+        </nav>
 
-        <header className="mt-6 overflow-hidden rounded-3xl border border-white/10 bg-white/[0.045] shadow-2xl shadow-black/30">
-          <figure>
-            <img src={image.src} alt={image.alt || `${article.title} 대표 이미지`} className="h-64 w-full object-cover md:h-80" />
-          </figure>
-          <div className="p-6 md:p-8">
-            <p className="text-sm font-semibold text-amber-100/80">{article.category || "운세 인사이트"}</p>
-            <h1 className="mt-3 text-3xl font-bold leading-tight text-white md:text-5xl">{article.title}</h1>
-            {description ? <p className="mt-5 text-base leading-8 text-slate-300">{description}</p> : null}
-            <div className="mt-5 flex flex-wrap gap-2">
+        <header className={styles.hero}>
+          <div className={styles.heroCopy}>
+            <div className={styles.metaRow}>
+              <span>{article.category || "운세 인사이트"}</span>
+              <span aria-hidden="true">·</span>
+              <span>차분한 비교 읽기</span>
+            </div>
+            <h1>{article.title}</h1>
+            {description ? <p className={styles.description}>{description}</p> : null}
+            <div className={styles.tags} aria-label="관련 주제">
               {(article.tags || article.keywords || []).slice(0, 10).map((tag) => (
-                <span key={tag} className="rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs text-slate-200">
-                  #{tag}
-                </span>
+                <span key={tag}>#{tag}</span>
               ))}
             </div>
           </div>
+          <figure className={styles.heroVisual}>
+            <img src={image.src} alt={image.alt || `${article.title} 대표 이미지`} width="1600" height="900" />
+            <figcaption className={styles.pigNote}>
+              <img src="/icons/app-logo-512.webp" alt="" width="512" height="512" />
+              <span>꽃돼지가 비교 기준을 안내할게요.</span>
+            </figcaption>
+          </figure>
         </header>
 
+        <div className={styles.readingLead}>
+          <h2>이 글을 읽는 순서</h2>
+          <p>두 체계를 어느 쪽이 더 맞는지 겨루기보다, 어떤 질문에 어떤 지도가 도움이 되는지 차분히 비교해 보세요.</p>
+        </div>
+
         {contentHtml ? (
-          <section
-            className="mt-8 rounded-2xl border border-white/10 bg-[#10172b]/85 p-5 text-base leading-8 text-slate-300 md:p-7 [&_a]:text-amber-100 [&_h2]:mt-8 [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:text-amber-100 [&_h2:first-child]:mt-0 [&_h3]:mt-6 [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:text-slate-100 [&_li]:mt-2 [&_p]:mt-4 [&_strong]:text-slate-100 [&_ul]:mt-4 [&_ul]:list-disc [&_ul]:pl-6 [&_table]:mt-6 [&_table]:block [&_table]:w-full [&_table]:overflow-x-auto [&_table]:border-collapse [&_table]:text-sm [&_thead]:text-amber-100/90 [&_th]:border [&_th]:border-white/15 [&_th]:bg-white/[0.06] [&_th]:p-3 [&_th]:text-left [&_th]:font-semibold [&_td]:border [&_td]:border-white/10 [&_td]:p-3 [&_td]:align-top"
-            data-article-body="true"
-            dangerouslySetInnerHTML={{ __html: contentHtml }}
-          />
+          <section className={styles.prose} dangerouslySetInnerHTML={{ __html: contentHtml }} />
         ) : (
-          <section data-article-body="true" className="mt-8 space-y-5">
+          <section className={styles.sectionStack}>
             {sections.map((section, index) => (
-              <section key={`${section.heading}-${index}`} className="rounded-2xl border border-white/10 bg-[#10172b]/85 p-5 md:p-7">
-                {section.heading ? <h2 className="text-2xl font-semibold text-amber-100">{section.heading}</h2> : null}
-                {section.body ? <p className="mt-4 whitespace-pre-line text-base leading-8 text-slate-300">{section.body}</p> : null}
+              <section key={`${section.heading}-${index}`} className={styles.sectionCard}>
+                {section.heading ? <h2>{section.heading}</h2> : null}
+                {section.body ? <p>{section.body}</p> : null}
               </section>
             ))}
           </section>
         )}
 
         {neighbors.total ? (
-          <nav className="mt-8 rounded-3xl border border-amber-200/20 bg-amber-100/[0.05] p-5 md:p-7" aria-label="자미두수 인사이트 읽기 순서">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 className="text-xl font-semibold text-amber-100">자미두수 인사이트 읽기</h2>
-              <span className="text-xs text-slate-300">{neighbors.position} / {neighbors.total}</span>
+          <nav className={styles.readingNav} aria-label="자미두수 인사이트 읽기 순서">
+            <div className={styles.sectionHeading}>
+              <div>
+                <h2>자미두수 인사이트 읽기</h2>
+                <p>앞 글을 읽었다면 다음 주제로 이어가거나, 허브에서 전체 순서를 다시 볼 수 있습니다.</p>
+              </div>
+              <span>{neighbors.position} / {neighbors.total}</span>
             </div>
-            <p className="mt-2 text-sm leading-7 text-slate-300">앞 글을 읽었다면 다음 주제로 이어가거나, 허브에서 전체 순서를 다시 볼 수 있습니다.</p>
-            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            <div className={styles.neighborGrid}>
               {neighbors.previous ? (
-                <Link href={`/insights/${neighbors.previous.slug}`} className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 transition hover:border-amber-200/40 hover:bg-white/[0.08]">
-                  <span className="text-xs text-slate-400">이전 글</span>
-                  <span className="mt-2 block text-sm font-semibold leading-6 text-slate-100">{neighbors.previous.title}</span>
+                <Link href={`/insights/${neighbors.previous.slug}`} className={styles.neighborLink}>
+                  <span>이전 글</span>
+                  <strong>{neighbors.previous.title}</strong>
                 </Link>
-              ) : <span className="rounded-2xl border border-white/10 bg-white/[0.02] p-4 text-sm text-slate-500">첫 번째 읽기 글입니다.</span>}
+              ) : <span className={styles.neighborEmpty}>첫 번째 읽기 글입니다.</span>}
               {neighbors.next ? (
-                <Link href={`/insights/${neighbors.next.slug}`} className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-right transition hover:border-amber-200/40 hover:bg-white/[0.08]">
-                  <span className="text-xs text-slate-400">다음 글</span>
-                  <span className="mt-2 block text-sm font-semibold leading-6 text-slate-100">{neighbors.next.title}</span>
+                <Link href={`/insights/${neighbors.next.slug}`} className={`${styles.neighborLink} ${styles.nextLink}`}>
+                  <span>다음 글</span>
+                  <strong>{neighbors.next.title}</strong>
                 </Link>
-              ) : <span className="rounded-2xl border border-white/10 bg-white/[0.02] p-4 text-right text-sm text-slate-500">읽기 순서의 마지막 글입니다.</span>}
+              ) : <span className={`${styles.neighborEmpty} ${styles.nextLink}`}>읽기 순서의 마지막 글입니다.</span>}
             </div>
-            <Link href="/insights/ziwei" className="mt-4 inline-flex min-h-11 items-center rounded-full border border-amber-200/35 bg-amber-100/10 px-5 text-sm font-semibold text-amber-50 transition hover:bg-amber-100/20">
-              자미두수 인사이트 전체 보기
-            </Link>
+            <Link href="/insights/ziwei" className={styles.pillLink}>자미두수 인사이트 전체 보기</Link>
           </nav>
         ) : null}
 
-        <ContentIntegrityNote contentPath={`/insights/${slug}`} contentSource={article.contentSource} author={article.author} datePublished={article.publishedAt} dateModified={article.updatedAt} />
+        <ContentIntegrityNote
+          contentPath={`/insights/${slug}`}
+          contentSource={article.contentSource}
+          author={article.author}
+          datePublished={article.publishedAt}
+          dateModified={article.updatedAt}
+          tone="light"
+          className={styles.integrityNote}
+        />
 
-        <FusionCrossSell fromPath={`/insights/${slug}`} tone="neo" />
+        <FusionCrossSell fromPath={`/insights/${slug}`} tone="yeoni" />
 
         {hub ? (
-          <section className="mt-10 rounded-3xl border border-amber-200/25 bg-amber-100/[0.05] p-5 md:p-7">
-            <p className="text-xs font-semibold tracking-[0.18em] text-amber-100/80">이 주제의 기본 안내</p>
-            <h2 className="mt-2 text-xl font-semibold text-white">{hub.h1}</h2>
-            <Link
-              href={hub.path}
-              className="mt-4 inline-flex min-h-11 items-center rounded-full border border-amber-200/40 bg-amber-100/10 px-5 text-sm font-semibold text-amber-50 transition hover:border-amber-100/70 hover:bg-amber-100/20"
-            >
-              {hub.h1} 자세히 보기
-            </Link>
+          <section className={styles.hubCard}>
+            <h2>{hub.h1}</h2>
+            <p>이 주제의 기본 안내에서 핵심 개념과 해석 기준을 더 살펴보세요.</p>
+            <Link href={hub.path} className={styles.pillLink}>{hub.h1} 자세히 보기</Link>
           </section>
         ) : null}
 
         {related.length > 0 ? (
-          <section className="mt-10 rounded-3xl border border-white/10 bg-white/[0.04] p-5 md:p-7">
-            <h2 className="text-xl font-semibold text-white">함께 보면 좋은 인사이트</h2>
-            <div className="mt-5 grid gap-3 md:grid-cols-2">
+          <section className={styles.relatedSection}>
+            <h2>함께 보면 좋은 인사이트</h2>
+            <div className={styles.relatedGrid}>
               {related.map((item) => (
-                <Link key={item.slug} href={`/insights/${item.slug}`} className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 hover:border-amber-200/50">
-                  <p className="text-xs text-amber-100/70">{item.category}</p>
-                  <h3 className="mt-2 text-sm font-semibold leading-6 text-white">{item.title}</h3>
-                  <p className="mt-2 line-clamp-2 text-xs leading-6 text-slate-400">{articleDescription(item)}</p>
+                <Link key={item.slug} href={`/insights/${item.slug}`} className={styles.relatedLink}>
+                  <span>{item.category}</span>
+                  <h3>{item.title}</h3>
+                  <p>{articleDescription(item)}</p>
                 </Link>
               ))}
             </div>

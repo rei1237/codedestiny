@@ -197,10 +197,10 @@ export default function SiteFooterHub() {
               전자상거래법상 앱 안에 접근 경로가 있어야 한다. 같이 지우지 말 것. */}
           {!IS_APP_BUILD && (
             <>
-              <p className={styles.sfhKicker}>Constellation Navigation</p>
-              <p className={styles.sfhTitle}>주제별 서비스와 읽을거리</p>
+              <p className={styles.sfhKicker}>꿀꿀 운세 길잡이</p>
+              <p className={styles.sfhTitle}>서비스 링크 허브</p>
               <p className={styles.sfhSubtitle}>
-                관심 있는 주제를 펼쳐 관련 운세와 가이드를 찾아보세요.
+                사주·타로·자미두수부터 상담과 콘텐츠 안내까지, 꽃돼지가 필요한 길을 차분히 안내합니다.
               </p>
 
               <div className={styles.sfhGroupGrid}>
@@ -236,10 +236,10 @@ export default function SiteFooterHub() {
               <a href="/refund-policy/" className={styles.sfhLink}>환불 정책 전문</a>
               에서 확인하실 수 있습니다.
             </p>
-            <p style={{ fontSize: '0.95rem', color: '#666', lineHeight: 1.6, marginBottom: '0.5rem' }}>
+            <p style={{ fontSize: '0.95rem', color: 'var(--sfh-muted)', lineHeight: 1.6, marginBottom: '0.5rem' }}>
               본 안내는 이용약관 및 결제대행사 정책과 함께 적용되며, 강행규정과 충돌하는 경우 관계 법령을 우선합니다. 환불 접수는 문의하기 또는 고객지원 이메일을 통해 진행하시기 바랍니다.
             </p>
-            <p style={{ fontSize: '0.95rem', fontWeight: 600, color: '#333' }}>
+            <p style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--sfh-text)' }}>
               환불 처리는 결제 수단(카드)으로만 가능합니다.
             </p>
           </section>
