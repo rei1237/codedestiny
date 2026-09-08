@@ -3,9 +3,9 @@
   <header class="cdh-top" aria-label="공통 헤더">
     <a href="/" class="cdh-brand"><span aria-hidden="true">月花</span><span>꿀꿀운세<small>CODE DESTINY</small></span></a>
     <nav class="cdh-nav" aria-label="홈 주요 메뉴">
-      <a href="/points/">이용권</a>
-      <a class="cdh-login" href="/login/">로그인</a>
-      <details class="cdh-account"><summary>내 계정</summary><div id="cdhAccountSlot"></div></details>
+      <a href="/points/" data-cd-trans="home.funnelCopy.pass">이용권</a>
+      <a class="cdh-login" href="/login/" data-cd-trans="home.funnelCopy.login">로그인</a>
+      <details class="cdh-account"><summary data-cd-trans="home.funnelCopy.account">내 계정</summary><div id="cdhAccountSlot"></div></details>
       <a href="/?action=dpOpenList" data-action="dpOpenList" aria-label="마이 · 내 프로필 카드 열기">마이</a>
     </nav>
     <div class="cdh-tools"><div id="cdhLanguageSlot"></div><div id="cdhThemeSlot"></div></div>
@@ -17,15 +17,15 @@
       <p class="cdh-lead" data-cd-trans="home.searchEntry.lead">사주·자미두수·숙요점·베다점·점성술·타로를 한 번에 비교해, 지금 필요한 선택을 쉽게 정리해 드려요.</p>
       <div class="cdh-actions">
         <a class="cdh-primary" href="#destinyCardForm" data-cdh-free><span data-cd-trans="home.searchEntry.start">무료로 내 운세 보기</span> <span aria-hidden="true">↗</span></a>
-        <a class="cdh-secondary" href="#cdhConcern">내 고민으로 찾기</a>
+        <a class="cdh-secondary" href="#cdhConcern" data-cd-trans="home.funnelCopy.findConcern">내 고민으로 찾기</a>
       </div>
     </div>
     <div class="cdh-garden">
       <span class="cdh-moon" aria-hidden="true"></span><span class="cd-yehwa-spray" aria-hidden="true"></span><span class="cdh-peony" aria-hidden="true"></span>
       <img id="honeypigLogo" data-lcp-candidate="1" src="/icons/app-logo-512.webp" alt="연꽃을 머리에 얹고 웃는 꽃돼지" width="512" height="512" fetchpriority="high" decoding="async">
-      <p>당신의 이야기가<br>꽃피는 달빛 정원</p>
+      <p><span data-cd-trans="home.funnelCopy.gardenFirst">당신의 이야기가</span><br><span data-cd-trans="home.funnelCopy.gardenSecond">꽃피는 달빛 정원</span></p>
     </div>
-    <ul class="cdh-trust"><li>10년 경력 명리학자 제작·검수</li><li>여섯 운세 체계 교차검증</li><li>무료 시작 가능</li></ul>
+    <ul class="cdh-trust"><li data-cd-trans="home.funnelCopy.reviewed">10년 경력 명리학자 제작·검수</li><li data-cd-trans="home.funnelCopy.perspectives">여섯 운세 체계 교차검증</li><li data-cd-trans="home.funnelCopy.startFree">무료 시작 가능</li></ul>
   </section>
   <div id="cdhCookieSlot"></div>
   <div class="cdh-flow">
@@ -58,7 +58,7 @@
     </section>
     <div class="cdh-slot cdh-slot--pass" id="cdhPass"><div id="cdhPassSlot">{{pass}}</div></div>
     <section class="cdh-explore" aria-labelledby="cdhExploreTitle">
-      <div class="cdh-section-head"><p class="cdh-intro">MORE TO EXPLORE</p><h2 id="cdhExploreTitle">더 둘러보기</h2><p class="cdh-lead">이야기와 음악으로 운명의 여운을 이어가세요.</p></div>
+      <div class="cdh-section-head"><p class="cdh-intro">MORE TO EXPLORE</p><h2 id="cdhExploreTitle" data-cd-trans="home.funnelCopy.explore">더 둘러보기</h2><p class="cdh-lead" data-cd-trans="home.funnelCopy.exploreLead">이야기와 음악으로 운명의 여운을 이어가세요.</p></div>
       <div class="cdh-explore-grid"><div id="cdhStorySlot">{{story}}</div><div id="cdhMusicSlot">{{music}}</div></div>
     </section>
     <div class="cdh-slot" id="cdhReviewsSlot">{{reviews}}</div>

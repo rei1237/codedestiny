@@ -1,0 +1,244 @@
+{
+  "observedAt": "2026-09-08",
+  "observationNote": "2026-09-08 KST 로그인 UI 실측. 시각은 날짜 기준 기록이며 초 단위 측정 시각이 아님.",
+  "period": {
+    "start": "2026-06-07",
+    "end": "2026-09-06",
+    "searchType": "web",
+    "country": "all",
+    "device": "all"
+  },
+  "metrics": {
+    "organicClicks": 31,
+    "impressions": 391,
+    "ctr": 7.9,
+    "averagePosition": 24.5,
+    "indexedPages": 276,
+    "newReferringDomains": null,
+    "relevantReferringDomains": null
+  },
+  "gscRows": [
+    {
+      "query": "숙요점",
+      "clicks": 0,
+      "impressions": 7,
+      "position": 24.7
+    },
+    {
+      "query": "만세력",
+      "clicks": 0,
+      "impressions": 5,
+      "position": 19.6
+    },
+    {
+      "query": "숙요 궁합",
+      "clicks": 0,
+      "impressions": 4,
+      "position": 28.8
+    },
+    {
+      "query": "숙요점 업태",
+      "clicks": 0,
+      "impressions": 3,
+      "position": 8.0
+    },
+    {
+      "query": "숙요점 영친",
+      "clicks": 0,
+      "impressions": 3,
+      "position": 8.7
+    },
+    {
+      "page": "https://code-destiny.com/insights/astrology-synastry-compatibility-fun-guide/",
+      "clicks": 0,
+      "impressions": 13,
+      "position": 14.0
+    },
+    {
+      "page": "https://code-destiny.com/insights/sukuyo/",
+      "clicks": 1,
+      "impressions": 11,
+      "position": 14.9
+    },
+    {
+      "page": "https://code-destiny.com/insights/sukuyo-love/",
+      "clicks": 1,
+      "impressions": 8,
+      "position": 9.0
+    },
+    {
+      "page": "https://code-destiny.com/sukuyo/",
+      "clicks": 1,
+      "impressions": 8,
+      "position": 9.4
+    }
+  ],
+  "gscCoverage": "UI 상위 표본. Query와 Page 별도 집계이며 교차표가 아님. 익명 검색어 미포함.",
+  "countries": [
+    {
+      "country": "KR",
+      "clicks": 30,
+      "impressions": 306,
+      "position": 25.2
+    },
+    {
+      "country": "JP",
+      "clicks": 0,
+      "impressions": 15,
+      "position": 41.1
+    },
+    {
+      "country": "US",
+      "clicks": 0,
+      "impressions": 38,
+      "position": 11.3
+    },
+    {
+      "country": "GB",
+      "clicks": 1,
+      "impressions": 2,
+      "position": 4.0
+    }
+  ],
+  "devices": [
+    {
+      "device": "mobile",
+      "clicks": 22,
+      "impressions": 199,
+      "position": 21.4
+    },
+    {
+      "device": "desktop",
+      "clicks": 9,
+      "impressions": 191,
+      "position": 27.4
+    },
+    {
+      "device": "tablet",
+      "clicks": 0,
+      "impressions": 1,
+      "position": 99
+    }
+  ],
+  "indexing": {
+    "updatedAt": "2026-09-04",
+    "excluded": 1822,
+    "crawledNotIndexed": 382,
+    "discoveredNotIndexed": 229,
+    "differentGoogleCanonical": 4,
+    "notFound": 765,
+    "redirect": 280,
+    "noindex": 105,
+    "alternateCanonical": 24,
+    "robots": 18,
+    "forbidden": 5,
+    "duplicateWithoutCanonical": 5,
+    "other4xx": 2,
+    "serverError": 2,
+    "unauthorized": 1
+  },
+  "naver": {
+    "updatedAt": "2026-09-07",
+    "period": "UI 최근 30일",
+    "clicksDisplay": "7.3백",
+    "impressionsDisplay": "5.2만",
+    "ctrDisplay": "1.4%",
+    "indexedDisplay": "4.3백",
+    "duplicateTitles": 1748,
+    "duplicateDescriptions": 1734,
+    "missingDescriptions": 11,
+    "multipleTitles": 1,
+    "multipleH1": 41,
+    "missingAlt": 14,
+    "canonicalDuplicateSample": "https://code-destiny.com/about/?v=be05e84c8550",
+    "topPages": [
+      {
+        "page": "/vedic/",
+        "clicks": 61,
+        "impressions": 1428
+      },
+      {
+        "page": "/sukuyo/",
+        "clicks": 36,
+        "impressions": 1274
+      },
+      {
+        "page": "/astrology/",
+        "clicks": 25,
+        "impressions": 1518
+      }
+    ]
+  },
+  "acquiredLinks": [],
+  "existingGscLinkDomains": [
+    "x.com",
+    "xploredomains.com"
+  ],
+  "linkNote": "GSC가 보고한 외부 링크 2개. 전체 인터넷 링크 수 또는 이번 주 신규 획득이 아님.",
+  "keywords": [
+    "코드데스티니",
+    "CODE DESTINY",
+    "초융합운세",
+    "초융합 사주",
+    "꿀꿀운세",
+    "꿀꿀만세력",
+    "꽃돼지 사주",
+    "사주",
+    "무료 사주",
+    "만세력",
+    "자미두수",
+    "자미두수 무료",
+    "숙요점",
+    "숙요점 궁합",
+    "베다점",
+    "베다 점성술",
+    "나크샤트라",
+    "점성술",
+    "오늘의 운세",
+    "궁합",
+    "연애운",
+    "재물운"
+  ],
+  "improvements": [
+    "일일 검사에 meta/HTTP noindex, canonical, robots 및 sitemap 누락 검출 추가",
+    "전체 감사의 HTTP X-Robots-Tag 누락 수정과 요청 timeout 추가",
+    "숙요·베다 비교 글의 계산 기준 혼동 수정 및 결과 대조 절차 추가",
+    "정적 정책 생성기가 정본 모듈의 hreflang 반환 링크를 유지하도록 수정",
+    "일본어·영어·중국어 홈의 신규 문구 번역과 일본어·중국어 제목 줄바꿈 보정",
+    "일본어 베다 소개와 한국어 출생시각 FAQ의 입력 조건 설명 보완"
+  ],
+  "adsense": {
+    "status": "needs-attention",
+    "reason": "가치가 별로 없는 콘텐츠",
+    "accountUpdatedAt": "2026-08-29",
+    "accountAdsTxt": "찾을 수 없음",
+    "publicAdsTxt": "200; publisher record matches",
+    "risks": [
+      "실제 거절 사유는 low value content; 특정 URL을 Google이 지목한 것은 아님",
+      "다국어 전체 실행 상태와 광고 노출 상태의 모바일 UX 확인 필요",
+      "인증 CMP 게시 및 EEA/UK/CH 실제 동의 흐름 확인 필요",
+      "공개 ads.txt 정상과 계정 과거 미발견 상태가 다름"
+    ],
+    "readinessScore": {
+      "score": 63,
+      "max": 100,
+      "basis": "보수적 내부 평가; 승인 확률이 아님; 미배포 수정으로 가산하지 않음",
+      "details": "docs/seo/GROWTH_OPERATIONS.md"
+    }
+  },
+  "nextActions": [
+    "GSC 동일 기간 Query–Page 교차표와 최근 28일을 갱신하고 숙요·만세력 기회를 비교",
+    "네이버 버전 쿼리 URL 감소와 새 공개 콘텐츠의 재수집 확인",
+    "일본 후보를 다시 검수하고 현지어 자료가 준비된 후보만 연락 초안 확정"
+  ],
+  "lastMonthlyAudit": "2026-09-08",
+  "lastWeeklyCycle": "2026-09-08",
+  "outreachRegistry": "docs/seo/outreach/candidates.json",
+  "productionObservedSha": "06b0ad911b575abad74e049e4fdef36041fb376b",
+  "automation": {
+    "heartbeatId": "code-destiny-seo-growth",
+    "nextWeeklyKst": "2026-09-14 09:20",
+    "githubWorkflow": "seo-operations.yml",
+    "githubActivation": "default branch merge required"
+  }
+}

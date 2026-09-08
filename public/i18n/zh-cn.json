@@ -1443,6 +1443,19 @@
       "question": "现在，你想了解什么？",
       "deeper": "想要更深入的解读时",
       "find": "在找某一种占卜吗？"
+    },
+    "funnelCopy": {
+      "findConcern": "按烦恼查找",
+      "gardenFirst": "让你的故事",
+      "gardenSecond": "在月光花园里绽放",
+      "reviewed": "由拥有10年经验的命理师制作与审核",
+      "perspectives": "对照六种占术的解读",
+      "startFree": "可免费开始",
+      "explore": "继续探索",
+      "exploreLead": "用故事与音乐，延续解读后的余韵。",
+      "pass": "使用券",
+      "login": "登录",
+      "account": "我的账户"
     }
   },
   "terms": {
