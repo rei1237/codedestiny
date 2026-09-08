@@ -59,7 +59,6 @@ const sitemapPublicPath = resolve(rootDir, "public", "sitemap.xml");
 const highValueSourcePath = resolve(rootDir, "app", "guides", "content.js");
 const famousSajuSourcePath = resolve(rootDir, "lib", "famous-saju", "celebrity-data.ts");
 const fortuneSignSourcePath = resolve(rootDir, "lib", "fortune", "sign-profiles.ts");
-const featureIntroductionSourcePath = resolve(rootDir, "lib", "marketing", "feature-visual-details.generated.json");
 const siteBaseUrl = (process.env.SITE_URL || "https://code-destiny.com").replace(/\/$/, "");
 const insightsApiBase = (process.env.INSIGHTS_API_BASE_URL || process.env.SITE_URL || "https://code-destiny.com").replace(/\/$/, "");
 const useInsightsApi = String(process.env.SITEMAP_USE_INSIGHTS_API || "").toLowerCase() === "1";
@@ -467,23 +466,6 @@ function extractPsychotestRoutes() {
   return routes;
 }
 
-function extractFeatureIntroductionRoutes() {
-  const catalog = JSON.parse(readFileSync(featureIntroductionSourcePath, "utf8"));
-  const published = Array.isArray(catalog?.index)
-    ? catalog.index.filter((item) => item?.verification === "verified" && /^[a-z0-9-]+$/.test(String(item?.slug || "")))
-    : [];
-  const slugs = [...new Set(published.map((item) => item.slug))];
-
-  if (slugs.length === 0 || slugs.length !== published.length) {
-    throw new Error("[sitemap] 기능 소개 카탈로그가 비었거나 중복 슬러그를 포함합니다.");
-  }
-
-  return [
-    { path: "/features", changefreq: "weekly", priority: 0.82 },
-    ...slugs.map((slug) => ({ path: `/features/${slug}`, changefreq: "monthly", priority: 0.68 })),
-  ];
-}
-
 function extractFamousSajuRoutes() {
   const source = readFileSync(famousSajuSourcePath, "utf8");
   // 🔴 5번째 필드는 **생년월일**이다(RawCelebritySeed 튜플: slug, nameKo, category, country, birthDate).
@@ -734,7 +716,6 @@ async function main() {
     ...dynamicInsights,
     ...extractFamousSajuRoutes(),
     ...extractPsychotestRoutes(),
-    ...extractFeatureIntroductionRoutes(),
     ...extractHighValueRoutes(),
     ...extractFortuneSignRoutes(),
   ];

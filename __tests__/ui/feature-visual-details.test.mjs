@@ -10,7 +10,6 @@ test('published visual introductions have proven sources, real assets, and disti
   assert.equal(new Set(generated.index.map(item => item.slug)).size, generated.index.length);
   assert.equal(catalog.length, 62);
   assert.equal(new Set(catalog.map(item => item.slug)).size, catalog.length);
-  const sitemap = fs.readFileSync('sitemap.xml', 'utf8');
   for (const entry of catalog) {
     const detail = JSON.parse(fs.readFileSync(`public/feature-details/${entry.slug}.json`, 'utf8'));
     assert.equal(detail.verification, 'verified');
@@ -24,7 +23,6 @@ test('published visual introductions have proven sources, real assets, and disti
     }
     for (const variant of detail.heroVariants || []) assert.ok(fs.statSync(`public${variant.src}`).size <= 180000);
     assert.ok(renderFeatureDetailPanels(detail).includes(detail.headline));
-    assert.ok(sitemap.includes(`<loc>https://code-destiny.com/features/${entry.slug}/</loc>`), `${entry.slug}: 사이트맵에서 빠졌다`);
   }
   assert.ok(!catalog.find(item => item.slug === 'animal-destiny').aliases.includes('animal-destiny-unlock'), 'free route must not replace a separately locked feature');
   const neo = JSON.parse(fs.readFileSync('public/feature-details/neo-operation-room.json', 'utf8'));

@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const description = `${detail.title}에서는 ${detail.description} 결과에서 확인할 핵심 내용과 필요한 준비를 먼저 살펴보세요.`;
   return {
     title: `${detail.title} 상세 안내 | CODE DESTINY`, description,
-    alternates: { canonical: url },
+    alternates: { canonical: url }, robots: { index: false, follow: true },
     openGraph: { type: "website", title: detail.title, description, url, images: image ? [{ url: new URL(image, url).href }] : [] },
     twitter: { card: "summary_large_image", title: detail.title, description, images: image ? [new URL(image, url).href] : [] },
   };
