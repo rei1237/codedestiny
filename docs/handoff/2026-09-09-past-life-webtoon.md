@@ -1,3 +1,9 @@
+---
+status: active
+updated: 2026-09-09
+next: 최신 main 기준으로 PR #1848 required CI와 스테이징 SHA를 확인한다
+---
+
 # 전생 관상 웹툰 개편 이어하기
 
 - cwd: `D:/Development/code-destiny/.codex-worktrees/past-life-webtoon`
