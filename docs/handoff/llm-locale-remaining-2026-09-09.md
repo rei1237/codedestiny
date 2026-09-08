@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-09
-next: 기존 브랜치와 PR 1860의 최신 검사를 확인한 뒤 손금과 FortuneChat의 직접 요청 locale 누락부터 수정
+next: 반려동물·천체의 선율·요가·연애 타로의 한국어 후처리 fallback을 정상 외국어 결과를 거절하지 않도록 보강
 ---
 
 # LLM locale 전수 보강 — 기존 초안 PR 재개
@@ -11,7 +11,7 @@ next: 기존 브랜치와 PR 1860의 최신 검사를 확인한 뒤 손금과 Fo
 - 작업 디렉터리: `D:\Development\code-destiny-llm-locale-20260909`
 - 브랜치: `codex/llm-locale-completion-20260909`
 - PR: https://github.com/rei1237/codedestiny/pull/1860 — OPEN / draft 유지
-- 마지막 구현 커밋: `eb4de6ee00cdf2d2026523656bd0dae4e891f3c2`
+- 마지막 구현 커밋: `a7929f063851efcd0e85778d9fbdf8e26ac61bec`
 - 재배치 기준 main: `1f37e3634fa27c0fb7739f917af14e03eb643f9f`
 - 기존 브랜치에서 rebase했다. 충돌은 `config/sitemap-lastmod.json` 1곳이며 최신 main 원장으로 생성기를 재실행했다. locale 관련 소스는 rebase 전후 동일함을 별도 비교했다.
 - 이 문서는 구현 이후의 문서 커밋으로 전달한다. 원격 최신 HEAD/CI는 아래 명령으로 다시 조회한다. 구현과 인수인계는 원격에 푸시했다. 문서 변경 후 최신 HEAD 검사 결과는 별도 조회한다.
@@ -37,6 +37,7 @@ next: 기존 브랜치와 PR 1860의 최신 검사를 확인한 뒤 손금과 Fo
 5. `worker/lib/guardian-fortune-result.js`: 비한국어 산문을 한국어로 늘리지 않고, 한국어 CTA label/공유문/목록으로 보완하지 않는다. CTA label만 11언어로 추가했다. 금지 표현과 근거 없는 주장은 한국어 치환 대신 안전성 실패로 처리한다. 분량·필수 필드/목록·민감정보·체계 경계·CTA 목적지 검사는 유지한다.
 6. **비한국어 결정론 fallback은 아직 제공하지 않는다.** 짧거나 불완전한 결과는 기존 미전달 실패 경로로 반환한다. 이를 12언어 fallback 지원 완료로 보고하지 않는다. 결제 취소/환불을 새로 수행하거나 보장하지 않는다.
 7. 기능별 우선 경로 8개와 나머지 라우트/하위 경로 인벤토리를 확장했다. 소스 스캐너의 43파일/105근거는 기능 수가 아니며, 전체 end-to-end locale 조사가 완료된 것은 아니다.
+8. `app/palm-reading/PalmDestinyMain.tsx`의 `/api/palm/analyze` 최초 요청과 401 Bearer 재시도, `app/fortune-chat/FortuneChatClient.tsx`의 `/api/fortune/guardian/generate`에 현재 locale을 정규화해 body와 `x-code-destiny-locale` header로 전달했다. FortuneChat 재개·후속 질문은 호출마다 현재 locale을 다시 읽는다. `scripts/verify-palm-flow.mjs`와 `__tests__/ui/fortune-chat.static.test.js`로 계약을 고정했다.
 
 ## 로컬 검증
 
@@ -57,12 +58,11 @@ next: 기존 브랜치와 PR 1860의 최신 검사를 확인한 뒤 손금과 Fo
 
 ## 다음 작업: 확인된 누락부터
 
-1. **React 직접 요청 P1**: `app/palm-reading/PalmDestinyMain.tsx`의 `/api/palm/analyze` 최초 요청·401 토큰 재시도, `app/fortune-chat/FortuneChatClient.tsx`의 `/api/fortune/guardian/generate`에 locale body/header가 없다. 현재 언어 판별과 각 재시도/후속 입력을 연결하고 mock으로 검증한다.
-2. **한국어 후처리**: 반려동물 report/compat의 normalize/fallback, 천체의 선율의 base reading/저장본 normalize, 요가의 course/instruction fallback, 연애 타로의 결정론 원문 fallback. 정상 외국어 답변을 한국어 키워드 부재로 거절하거나 안전 검사를 우회하지 않는다. 지오맨시·귀인도 실제 현지화된 fallback/오류·공유/UI의 전체 지원은 남았다.
-3. **저장·배치 P2/P3**: ziwei-deep-report의 저장 레코드/이어가기 token locale, vedic-ai의 userId+idempotencyKey startLocks/저장 재사용. 결제 증빙 키를 언어별로 임의 변경하지 않고, 신규 저장 locale·legacy 무locale·다른 언어 재열람을 구분한다.
-4. **늦은 응답·후속 대화**: 전체 renderer·재생성·후속 질문·stream 완료/오류/reconnect. 지오맨시의 단일 요청 방어를 전체 기능 검증으로 확대 해석하지 않는다.
-5. **휴먼디자인 UI/PDF**: 본문/장 제목은 기존 12언어. report-plan 부가 라벨, 도표 용어(기존 5언어), PDF 표지·일본어/중국어/Hindi glyph는 미완료다.
-6. 인벤토리의 미확인 칸을 입력→locale→request→handler→prompt→provider→후처리→저장/캐시→UI 순서로 채운다. 준비·계산·관리자·예약 SNS·provider transport를 사용자 LLM 기능으로 중복 집계하지 않는다. 모든 Acceptance Criteria가 끝나기 전 초안을 Ready로 바꾸지 않는다.
+1. **한국어 후처리 P1**: 반려동물 report/compat의 normalize/fallback, 천체의 선율의 base reading/저장본 normalize, 요가의 course/instruction fallback, 연애 타로의 결정론 원문 fallback. 정상 외국어 답변을 한국어 키워드 부재로 거절하거나 안전 검사를 우회하지 않는다. 지오맨시·귀인도 실제 현지화된 fallback/오류·공유/UI의 전체 지원은 남았다.
+2. **저장·배치 P2/P3**: ziwei-deep-report의 저장 레코드/이어가기 token locale, vedic-ai의 userId+idempotencyKey startLocks/저장 재사용. 결제 증빙 키를 언어별로 임의 변경하지 않고, 신규 저장 locale·legacy 무locale·다른 언어 재열람을 구분한다.
+3. **늦은 응답·후속 대화**: 전체 renderer·재생성·후속 질문·stream 완료/오류/reconnect. 지오맨시의 단일 요청 방어를 전체 기능 검증으로 확대 해석하지 않는다.
+4. **휴먼디자인 UI/PDF**: 본문/장 제목은 기존 12언어. report-plan 부가 라벨, 도표 용어(기존 5언어), PDF 표지·일본어/중국어/Hindi glyph는 미완료다.
+5. 인벤토리의 미확인 칸을 입력→locale→request→handler→prompt→provider→후처리→저장/캐시→UI 순서로 채운다. 준비·계산·관리자·예약 SNS·provider transport를 사용자 LLM 기능으로 중복 집계하지 않는다. 모든 Acceptance Criteria가 끝나기 전 초안을 Ready로 바꾸지 않는다.
 
 ## 재개 명령
 
