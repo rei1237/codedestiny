@@ -16,6 +16,7 @@
  *    __tests__/worker/payments-v2.pass-check.test.js 가 이미 고정한다. 사본을 만들지 않는다.
  */
 import { consumePassForFeature } from "../../worker/lib/pass-consumption.js";
+import { readAccessStateCache, writeAccessStateCache } from "../../worker/lib/access-state-cache.js";
 import { MONTHLY_PASS_LIMITS, PASS_LIMITS } from "../../worker/lib/profile-limits.js";
 import { makeFakePaymentDb } from "../fixtures/fake-payment-db.mjs";
 
@@ -163,6 +164,42 @@ describe("멱등 — 같은 요청의 재시도가 예산을 두 번 깎지 않�
     expect(second.covered).toBe(true);
     expect(second.replayed).toBe(true);
     expect(db.rows[0].profileSubscription.monthlySpendCoin).toBe(cost);
+  });
+});
+
+describe("Family 이용권 — 차감 직후 잔여 한도 캐시 갱신", () => {
+  test("Family 사용량을 가격만큼 올리고 접근 상태 캐시를 즉시 무효화한다", async () => {
+    const db = makeFakePaymentDb();
+    const at = expiresAt();
+    const familyUser = {
+      _id: USER,
+      profileSubscription: {
+        tier: "family", passTier: "family", isActive: true, expiresAt: at,
+        premiumUseCycleKey: at.toISOString(), monthlySpendCoin: 0, monthlyLimitCoin: 0,
+      },
+      recentConsumeRequestIds: [],
+    };
+    db.rows.push(familyUser);
+    writeAccessStateCache(USER, { entitlementSnapshot: { passUsage: { remainingKRW: 500000 } } });
+    const paidAccessCache = globalThis.__paidAccessDecisionCache
+      || (globalThis.__paidAccessDecisionCache = { entries: new Map(), lastPruneAt: 0 });
+    const paidAccessCacheKey = `${USER}|pfa:fusion-fortune-consultation:300`;
+    paidAccessCache.entries.set(paidAccessCacheKey, { decision: { allowed: true }, expiresAt: Date.now() + 3000 });
+
+    const result = await consumePassForFeature({
+      db,
+      user: familyUser,
+      entitlement: { tier: "family", passTier: "family", isActive: true, expiresAt: at },
+      userId: USER,
+      featureKey: "fusion-fortune-consultation",
+      requestId: "family-cache-refresh",
+      coinCost: 300,
+    });
+
+    expect(result.covered).toBe(true);
+    expect(familyUser.profileSubscription.monthlySpendCoin).toBe(300);
+    expect(readAccessStateCache(USER)).toBeNull();
+    expect(paidAccessCache.entries.has(paidAccessCacheKey)).toBe(false);
   });
 });
 

@@ -10,6 +10,7 @@
  */
 
 let buildPassPaymentDecision;
+let buildMeteredPassBudgetFilter;
 let PASS_LIMITS;
 
 const EQUAL_METHODS = ["DIRECT_KRW", "MOONLIGHT_STONE"];
@@ -32,6 +33,7 @@ function pricing(coinPrice, featureKey = "tarot-year-fortune") {
 beforeAll(async () => {
   const billingMod = await import("../../worker/routes/billing.js");
   buildPassPaymentDecision = billingMod.__billingTestUtils.buildPassPaymentDecision;
+  buildMeteredPassBudgetFilter = billingMod.__billingTestUtils.buildMeteredPassBudgetFilter;
   // 🔴 상한 숫자를 여기 박지 않는다 — 적용 가격 범위가 바뀌면 이 테스트가 정책이 아니라
   //    옛 숫자를 지킨다(2026-08-24 상향에서 실제로 걸렸다).
   ({ PASS_LIMITS } = await import("../../worker/lib/profile-limits.js"));
@@ -84,6 +86,30 @@ describe("이용권 선검사 게이트", () => {
 
     expect(decision.canUseByPass).toBe(true);
     expect(decision.paymentPriority).toBe("PASS_FIRST");
+  });
+
+  test("레거시 소비 write도 DB의 최신 월 사용량을 원자적으로 재확인해야 한다", () => {
+    const cycleKey = new Date(Date.now() + 15 * 86400000).toISOString();
+    const filter = buildMeteredPassBudgetFilter({
+      applies: true,
+      cycleKey,
+      limitCoin: 5000,
+    }, 300);
+
+    expect(filter).toEqual({
+      $or: [
+        { "profileSubscription.premiumUseCycleKey": { $ne: cycleKey } },
+        {
+          "profileSubscription.premiumUseCycleKey": cycleKey,
+          $expr: {
+            $lte: [
+              { $ifNull: ["$profileSubscription.monthlySpendCoin", 0] },
+              4700,
+            ],
+          },
+        },
+      ],
+    });
   });
 
   test("월정석 잔액이 부족해도 결제수단 목록에서 월정석이 사라지면 안 된다", () => {
