@@ -1,10 +1,23 @@
 ---
 status: active
 updated: 2026-09-08
-next: 상세페이지 3종 시안 피드백을 반영하고 전체 인벤토리의 기능별 사실 확인과 동선 검증을 이어간다.
+next: RESUME.md의 기존 워크트리 재개 명령으로 상태를 확인하고 팝업 검증 결함 수정 후 나머지 66개 상세페이지 확장을 시작한다.
 ---
 
 # 모바일 플랫폼 UX와 비주얼 상세페이지
+
+**재개 명령·복사용 요청문:** [RESUME.md](../mobile-platform/RESUME.md)
+
+**69개 대상별 작업 원장:** [feature-detail-coverage.md](../mobile-platform/feature-detail-coverage.md)
+
+```powershell
+Set-Location -LiteralPath 'D:\Development\code-destiny-mobile-platform-ux'
+Get-Content -LiteralPath 'docs/mobile-platform/RESUME.md'
+npm run worktree:status
+npm run verify:handoff-contract
+```
+
+미머지 작업을 이어받을 때는 기존 워크트리를 보존한다. `session:start`는 최신 main·머지된 문서를 요구하므로 현재 재개용 명령이 아니다. 조건과 머지 후 정확한 명령은 RESUME.md에 구분했다.
 
 ## 왜
 
@@ -13,13 +26,18 @@ next: 상세페이지 3종 시안 피드백을 반영하고 전체 인벤토리�
 ## 지금 상태
 
 - `codex/mobile-platform-ux-20260908`, 격리 워크트리. 전체 계획은 미완료이며 머지하지 않았다.
-- 대기 화면 중첩 레이어 제거·질문 초안 복원·React 공유 fallback·240ms 강제 홈 타이머 제거. 상세페이지는 검토용 HTML 시안이며 운영 라우트에 미연결.
+- 상세페이지 구현 보존 커밋: `1ea226a1e`. 후속 문서 커밋은 `git log`로 확인한다. 코드·문서 모두 같은 브랜치에서 이어받는다.
+- 대기 화면 중첩 레이어 제거·질문 초안 복원·React 공유 fallback·240ms 강제 홈 타이머 제거.
+- 사용자가 3종 상세페이지 방향을 승인했다. 기존 정본에 검증 근거를 추가하고 공통 렌더러·지연 로더·React/정적 팝업 연결 및 `/features/[slug]/`를 구현 중이다. 69개 대상 중 찻집·인생의 책·동물 도감 3개만 검증 콘텐츠로 등록했다. 배포하지 않았다.
+- 추가 디자인 피드백에 따라 반복 카드·테두리를 제거하고 제목 위계·본문 서체·여백·내비게이션·CTA를 정돈했다. 3개 소개주소 × 8개 너비에서 overflow 없음. 모바일/데스크톱 캡처는 `test-results/mobile-platform/refined-*.png`에 있다.
+- 후속 피드백: 인생의 책·동물 도감의 결과 캡처와 개발용 안내를 공개 소개에서 제거하고 직접 그린 SVG + HTML 제공 항목 미리보기로 교체했다. 실제 개인 결과를 흉내내지 않고 기질/흐름/장별 해석, 성향/행동/성장 미션을 설명한다. 320/390/430/1280px, 캡처 요청 없음, 금지된 기존 문구 없음, 단위 3개 및 typecheck 통과. 이전 prototype HTML은 역사적 시안이며 최신 화면은 `/features/` 경로다. 동물 도감의 독립 OG 이미지 보강은 여전히 필요하다.
 - 검증과 제한은 `docs/mobile-platform/progress.md`가 정본이다.
 
 ## 남은 작업
 
 - [ ] 294 route 소스 행(React 242개·정적 52개), 155 마케팅 별칭, 145 action을 실제 기능 단위로 연결. 동적 경로 생성 대상과 전 기능 상태별 검증 필요. 인벤토리의 unverified는 통과가 아니다.
-- [ ] 3종 목업 검토 후 공통 패널·`/features/[slug]/`·팝업 적용. 찻집 실제 결과 예시 추가, 기능별 근거·가격·CTA 검증.
+- [ ] 승인된 공통 패널을 나머지 기능으로 확장. 찻집 실제 결과 예시 추가. 소개주소 3종의 direct/refresh/OG/CTA 검증은 통과했으나 실제 React 팝업 테스트는 `/app/`에 없는 인생의 책 링크를 찾아 실패했다. 실제 진입 링크로 테스트 수정 필요. 성공으로 기록하지 않는다.
+- [ ] 공통 파일 통합 전에 worktree 상태 재확인: 2026-09-08 재검사에서 index.html 및 생성 미러의 다른 작업 중첩이 발견됐다. 디자인 피드백은 전용 CSS/신규 features 경로에 한정했다.
 - [ ] 정적 `js/share.js`를 공통 서비스와 연결. 공개 요약 생성/조회·소유권·90일 만료·공유 전 확인은 아직 미구현. 개인 결과 공유를 켜지 말 것.
 - [ ] Kakao Developers 로그인/도메인/공개 JS Key 확인, 기능별 OG 및 실제 채널 확인. 새 Secret은 만들지 않았다.
 - [ ] 전체 내비게이션·결제 resume·모달/키보드·프로필 여정과 성능 측정. 현재 일부 여정의 mock 증거만 있다.
