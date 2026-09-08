@@ -13,7 +13,7 @@
 - `node scripts/verify-publisher-browser.mjs`: 12 viewport/page combinations PASS with external network blocked; no ad requests.
 - `impeccable detect` on hub/integrity/footer source: no findings.
 - `node scripts/ensure-ads-txt.mjs --check`: PASS.
-- `sync:public` and `sitemap:generate` completed. Mirror freshness requires a clean commit and is checked during delivery.
+- `sync:public` and `sitemap:generate` completed. `verify:public-mirror-fresh` PASS after rebase to `495afa4b7`; generation leaves tracked mirrors unchanged.
 - Frontend production build is deferred to required PR CI per project contract. This does not establish production behavior.
 
 ## Remaining gates

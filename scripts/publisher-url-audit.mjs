@@ -85,7 +85,8 @@ await Promise.all(Array.from({ length: 4 }, async () => {
 }));
 results.sort((a, b) => a.url.localeCompare(b.url));
 await mkdir(output, { recursive: true });
-await writeFile(resolve(output, "urls.json"), JSON.stringify({ observedAt, origin, mode: localDir ? "build-html" : "production-http", discovered: seen.size, inspected: results.length, truncated: cursor < queue.length, failures, results }, null, 2) + "\n");
+const audit = { observedAt, origin, mode: localDir ? "build-html" : "production-http", discovered: seen.size, inspected: results.length, truncated: cursor < queue.length, failures, results: [] };
+await writeFile(resolve(output, "urls.json"), JSON.stringify(audit, null, 2).replace('"results": []', `"results": [\n${results.map((row) => "    " + JSON.stringify(row)).join(",\n")}\n  ]`) + "\n");
 const keys = ["url", "initialStatus", "status", "indexable", "canonical", "title", "headings", "bodyChars", "noJsBodyChars", "streamingRequiresJs", "articlePresent", "author", "datePublished", "dateModified", "locale", "inSitemap", "classification", "classificationConfirmed", "risk", "action", "gscClicks", "gscImpressions", "gscPeriod", "backlinks"];
 const csv = (value) => '"' + String(value == null ? "미확인" : typeof value === "object" ? JSON.stringify(value) : value).replace(/"/g, '""') + '"';
 await writeFile(resolve(output, "urls.csv"), '\uFEFF' + keys.join(",") + "\n" + results.map((row) => keys.map((key) => csv(row[key])).join(",")).join("\n"));
