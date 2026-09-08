@@ -35,14 +35,17 @@ export function getShareUrl(path: string, options: { source?: string; withUtm?: 
 
 export function getShareMetadata(content: SeoV2Content & { contentId?: string }): ShareMetadataV2 {
   const canonicalUrl = getCanonicalUrl(content.path);
-  const shareable = !isPrivateRoute(content.path) && !content.noindex;
+  // Public feature introductions are deliberately noindex, but contain no personal
+  // result. Permit this one static public surface without opening private routes.
+  const publicIntroduction = content.contentType === "software" && /^\/features\/[a-z0-9-]+\/?$/.test(content.path);
+  const shareable = (publicIntroduction || !isPrivateRoute(content.path)) && !content.noindex;
   const title = String(content.title || "Code Destiny").trim();
   const text = String(content.description || "").trim();
 
   return {
     title,
     text,
-    url: getShareUrl(canonicalUrl),
+    url: getShareUrl(canonicalUrl, { withUtm: content.contentType === "software" || content.contentType === "website" }),
     canonicalUrl: stripTrackingParams(canonicalUrl),
     image: buildOpenGraphImageUrl(content),
     contentType: content.contentType || "website",

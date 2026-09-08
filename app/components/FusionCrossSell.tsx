@@ -40,17 +40,16 @@ export function FusionCrossSell({ fromPath, tone = "neo" }: { fromPath: string; 
   const skin = TONE[tone];
   return (
     <section className={skin.section} aria-labelledby="fusionCrossSellHeading" data-cd-cross-sell={fromPath}>
-      <p className={skin.kicker}>여러 해석이 서로 다를 때</p>
       <h2 id="fusionCrossSellHeading" className={skin.heading}>
-        여섯 체계를 교차 검증하는 초융합 심층 리딩
+        다른 체계에서도 같은 흐름이 보일까요?
       </h2>
       <p className={skin.body}>
-        사주·자미두수·베다점·숙요점·서양 점성술·타로를 각각 그 전통의 언어로 읽은 뒤, 여섯 해석이 겹치는
-        지점과 엇갈리는 지점을 갈라 하나의 결론으로 모읍니다. 어느 말을 따라야 할지 흐릴 때, 앞으로 열두 달의
-        시기와 지금 할 일까지 함께 정리합니다.
+        지금 읽은 이야기에서 더 궁금해진 점이 있다면, 초융합 심층 리딩의 구성을 살펴보세요.
+        사주·자미두수·베다점·숙요점·서양 점성술·타로의 해석을 나누어 읽고,
+        겹치는 흐름과 서로 다른 관점을 비교할 수 있습니다.
       </p>
       <Link href="/fusion-fortune/" className={skin.link}>
-        초융합 심층 리딩 살펴보기
+        초융합에서 무엇을 볼 수 있나요?
       </Link>
     </section>
   );

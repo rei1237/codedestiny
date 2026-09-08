@@ -136,6 +136,13 @@ export function buildVisualDetails(html, book) {
       ...verified[record.slug],
     };
     const final = items[record.slug];
+    // Keep the existing image panels, but carry the same product-specific decision
+    // information that the visual popup replaces. No new price or access policy.
+    final.journey = {
+    questions: final.journey?.questions || (copy.answersQuestions?.length ? copy.answersQuestions : final.panels.find(panel => panel.title === '이런 질문에 도움이 됩니다')?.items || []),
+      trustNotes: copy.trustNotes || book.trustNotes.free || [],
+      faq: copy.faq || [],
+    };
     if (final.verification === 'verified' && !final.image) final.image = fallbackImage(final.category || group);
   }
   const index = Object.values(items).map(final => ({

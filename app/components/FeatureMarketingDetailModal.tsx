@@ -411,6 +411,7 @@ export function FeatureMarketingDetailModal({
   onClose: () => void;
 }) {
   const closeRef = useRef<HTMLButtonElement>(null);
+  const conversionRef = useRef<HTMLDivElement>(null);
   const openedAtRef = useRef(0);
   const router = useRouter();
   const pathname = usePathname() || "/";
@@ -519,7 +520,10 @@ export function FeatureMarketingDetailModal({
           </button>
         </div>
 
-        <FeatureVisualDetail keys={marketingKeys(target)} enabled={open && getCurrentLoadingLocale() === "ko"} onReady={setHasVisualDetail} />
+        <FeatureVisualDetail keys={marketingKeys(target)} enabled={open && getCurrentLoadingLocale() === "ko"} onReady={setHasVisualDetail} onRequestConversion={() => {
+          conversionRef.current?.scrollIntoView({ block: "nearest" });
+          conversionRef.current?.querySelector("a")?.focus({ preventScroll: true });
+        }} />
         <div hidden={hasVisualDetail}>
         {copy ? (
           <>
@@ -651,7 +655,7 @@ export function FeatureMarketingDetailModal({
         )}
 
         </div>
-        <div className="sticky bottom-0 -mx-4 mt-4 border-t border-white/10 bg-[linear-gradient(to_top,#070b1d_76%,rgba(7,11,29,0))] px-4 pb-1 pt-4 sm:-mx-6 sm:px-6">
+        <div ref={conversionRef} data-purchase-stage="conversion" className="sticky bottom-0 -mx-4 mt-4 border-t border-white/10 bg-[linear-gradient(to_top,#070b1d_76%,rgba(7,11,29,0))] px-4 pb-1 pt-4 sm:-mx-6 sm:px-6">
           <div className="mb-2 flex items-center justify-between gap-3 text-xs font-bold text-slate-300">
             <span aria-live="polite">{priceText(target, priceState, t)}</span>
             <span>{t(target.accessType === "free" ? "preview.accessFree" : "preview.accessPaid")}</span>

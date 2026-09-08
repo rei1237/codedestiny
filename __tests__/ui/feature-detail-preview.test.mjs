@@ -36,7 +36,9 @@ test('static preview waits for CSS before replacing the existing detail sections
   stylesheet.dispatchEvent(new Event('load'));
   await mounting;
   assert.equal(overlay.classList.contains('pvw-visual'), true);
-  assert.match(overlay.textContent, /상세페이지 새 화면에서 보기/);
+  assert.match(overlay.textContent, /가격·이용 방법 확인하기/);
+  assert.ok(overlay.querySelector('[data-feature-share="native"]'));
+  assert.equal(overlay.querySelector('a'), null);
   dom.window.close();
 });
 
