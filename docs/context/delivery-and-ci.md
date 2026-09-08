@@ -197,3 +197,14 @@ Pages 와 Worker 가 서로 다른 코드를 가리키는 것이 이 저장소�
 PR 생성 후 필수 검사와 최신 base 충돌을 확인하고 에이전트가 안전하게 머지한다. **순차 머지 큐는 Ready PR 한 건만 처리한다.** 후보 워크트리에서 `npm run delivery:admit -- --pr=<number>`가 통과해야 하며, 이 검사는 후보 clean 상태, 최신 `origin/main` 포함, 같은 파일을 수정 중인 활성 워크트리 부재, GitHub 필수 CI 통과, 그리고 직전 main SHA의 스테이징 Pages·Worker 도달을 모두 확인한다. 하나라도 실패하면 그 PR을 건너뛰거나 다음 PR을 머지하지 않고 원인만 보고한다. 머지 뒤에는 해당 SHA의 스테이징 Pages·Worker 배포 SHA와 읽기 전용 핵심 응답을 확인한 뒤에만 다음 후보를 처리한다. 과거 사용자 수동 머지·머지 후 배포 미확인 조항보다 이 지시가 우선한다. 프로덕션 승격은 여전히 사용자의 명시적인 1회 승인 때만 진행한다. branch protection을 우회하지 않으며 실패·필수 승인 대기는 보고한다.
 
 2026-09-08 사용자 추가 지시: 수정 시작 시 워크트리를 자동 생성한다. PR 머지와 스테이징의 병합 SHA·정상 응답 확인 후 해당 작업의 clean 워크트리를 제거한다. 삭제 전 절대 경로와 미커밋 상태를 확인하고 의존성 정션은 대상이 아닌 링크만 먼저 제거한다. 다른 작업의 워크트리·공유 의존성은 보존한다. 운영 승격은 별도 명시적 승인 때만 수행한다.
+
+## PR preflight와 순차 전달
+
+- 작업 중 빠른 피드백은 `npm run check:fast`; PR 전 필수 검사는 `npm run ci:preflight`다. `--plan`은 검사 성공이 아니다. 실패한 상태에서는 Draft를 포함해 PR을 새로 만들지 않는다.
+- preflight는 별도 임시 index와 격리 체크아웃에서 현재 수정본을 검사한다. 사용자의 index·브랜치·미커밋 파일을 변경하지 않는다. CI YAML의 명령을 사용하며 tier에 필요한 Pages/Worker build와 산출물 검사까지 실행한다. LLM·PG·DB 외부 호출은 차단한다.
+- 통과 → 변경 파일만 commit → main 최신성 확인 → push → `npm run pr:create -- --title "..." --body-file ...`. 생성기는 검증한 tree/main SHA와 현재 상태가 다르면 거부한다. 직접 GitHub UI/CLI로 만드는 PR을 서버가 사전에 차단할 수는 없으므로 AI는 이 진입점을 사용한다. GitHub 필수 검사는 별도로 유지한다.
+- 여러 PR은 전체 파일 diff·공통 코드·선행 기능·migration·CI·main 기준을 먼저 조사해 순서를 정한다. 번호순 머지를 하지 않는다. 기반 공통 코드 → 소비자 순으로 통합하되 미완성 Draft는 보존한다.
+- 안전한 작업은 로컬·필수 CI·리뷰·충돌·선행 PR 조건을 모두 충족하면 `delivery:admit` 후 SHA를 지정해 merge하고 staging의 Pages/Worker SHA·정상 응답까지 확인한다. 프로덕션 승격은 별도 1회 승인이 필요하다. --admin·보호 해제·실패 무시·destructive force push는 금지한다.
+- 매 merge 후 fetch하고 남은 PR의 새 main 호환성을 확인한다. 겹치거나 기반이 필요한 브랜치만 merge-main/rebase 후 동일 preflight와 GitHub CI를 재실행한다. 타 작업의 미커밋/locked worktree를 수정하지 않는다.
+- CI 실패는 job/log → 원인 분류 → 로컬 재현·수정 → preflight → commit/push → 최신 head CI 확인까지 해결한다. 기존 실패를 성공으로 바꾸거나 rerun으로 숨기지 않는다.
+- 독립 기능은 독립 PR. 강한 의존 관계는 함께 묶고 UI·인프라는 가능한 분리한다. 범위 밖 수정·대규모 formatter·불필요한 lockfile 변경을 금지한다.

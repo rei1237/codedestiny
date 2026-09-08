@@ -92,8 +92,9 @@ function selectCiGuardSteps(workflow, scripts) {
       if (!supportedCondition || (step.env && !tokenOnly) || step.shell || step["working-directory"] || step["continue-on-error"]) throw new Error(`Unsupported CI guard execution settings: ${step.name}`);
       // Token-only workflow metadata is intentionally not inherited locally.
       for (const line of step.run.trim().split(/\r?\n/).map((line) => line.trim()).filter((line) => line && !line.startsWith("#"))) {
-        if (jobName === "critical" && line === "npm test") {
-          result.push({ kind: "npm", name: "test:jest", args: [] }, { kind: "npm", name: "test:node", args: [] });
+        if (jobName === "critical" && ["npm test", "npm run test:jest"].includes(line)) {
+          result.push({ kind: "npm", name: "test:jest", args: [] });
+          if (line === "npm test") result.push({ kind: "npm", name: "test:node", args: [] });
           continue;
         }
       const npm = /^npm run ([\w:-]+)(?: -- ([\w -]+))?$/.exec(line);
