@@ -1,5 +1,7 @@
 # CODE DESTINY 검색 회복 감사
 
+후속 실측: [SEARCH_RECOVERY_FOLLOWUP.md](SEARCH_RECOVERY_FOLLOWUP.md). 아래는 최초 감사 기록이다. PR #1817은 이후 머지됐고 스테이징 반영을 확인했다. 운영 미반영, GSC 날짜/나머지 색인 사유/외부 링크, 현행 authored 113개 확인 등 갱신 사항은 후속 문서를 우선한다.
+
 관찰일: 2026-09-08 KST. 기준 커밋: 90b36b7d. 운영 반영 전 로컬 변경이다. Search Console과 네이버 서치어드바이저의 로그인된 Chrome 화면을 읽었다. 전체 API export가 아닌 화면 집계/표본이며 누락값은 0으로 대체하지 않는다.
 
 ## 기준선
