@@ -219,4 +219,100 @@ body:has(#sukuyoModalOverlay.fr-sukuyo[aria-hidden="false"]) #cdMobileBottomNav 
   .fr-sukuyo .sy-house-mansions { grid-template-columns: repeat(9,minmax(0,1fr)); }
   .fr-sukuyo .sy-house-articles { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .fr-sukuyo .sy-canon-grid,.fr-sukuyo .sy-canon-rhythm-grid { grid-template-columns: repeat(2,minmax(0,1fr)) !important; }
+/* Ziwei star atlas: one chart, twelve visible palaces, no animation dependency. */
+#ziweiModalOverlay.fr-ziwei { --fr-bg:#0b121b; --fr-surface:#141e2b; --fr-ink:#f4efdf; --fr-muted:#bdc6cf; --fr-accent:#e0c58c; --fr-rule:#394351; }
+body:has(#ziweiModalOverlay[aria-hidden="false"]) #cdMobileBottomNav { display:none !important; }
+#ziweiModalOverlay #ziweiModalSection.fr-report { max-width:1100px !important; padding:20px 24px 64px !important; }
+#ziweiModalOverlay .fr-profile { margin-bottom:12px; }
+#ziweiModalOverlay .fr-profile > .fr-caption { display:none; }
+#ziweiModalOverlay .fr-profile-name { margin:4px 0; font-size:15px; }
+#ziweiModalOverlay .fr-hero { margin:0 !important; padding:24px !important; border:1px solid var(--fr-rule) !important; border-radius:12px !important; background:linear-gradient(90deg,rgba(11,18,27,.96),rgba(11,18,27,.4)),url('/images/ziwei/celestial-atlas.webp') center right/cover !important; }
+#ziweiModalOverlay .fr-title { font-size:32px !important; margin:8px 0 20px; }
+#ziweiModalOverlay .fr-facts { grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin:0; }
+#ziweiModalOverlay .fr-facts > div { display:block; }
+#ziweiModalOverlay .fr-facts :is(dt,dd) { font-size:14px; margin:0; }
+#ziweiModalOverlay .fr-facts p { display:none; }
+#ziweiModalOverlay .fr-ziwei-nav { display:flex; flex-wrap:wrap; gap:4px 24px; padding:12px 0; margin-bottom:20px; border-bottom:1px solid var(--fr-rule); }
+#ziweiModalOverlay .fr-ziwei-nav a { min-height:44px; display:flex; align-items:center; color:var(--fr-accent); font-size:14px; text-decoration:none; }
+#ziweiModalOverlay :is(.fr-chart-section,.fr-palace-reading,.fr-flow-section,#zwDeepAiPromptPanel) { scroll-margin-top:80px; margin-bottom:36px; }
+#ziweiModalOverlay .zw-grid-wrap { padding:10px !important; border:1px solid #6c5e42 !important; background:#101923 !important; box-shadow:none !important; border-radius:10px !important; overflow:visible !important; }
+#ziweiModalOverlay .zw-grid-wrap .zw-grid { display:grid !important; grid-template-columns:repeat(4,minmax(0,1fr)) !important; grid-template-rows:repeat(4,minmax(112px,auto)) !important; gap:4px !important; padding:0 !important; min-width:0 !important; height:auto !important; }
+#ziweiModalOverlay .zw-grid-wrap .zw-cell { opacity:1 !important; visibility:visible !important; transform:none !important; width:auto !important; min-width:0 !important; min-height:112px !important; height:auto !important; padding:10px 7px 24px !important; border:1px solid #414651 !important; border-radius:4px !important; background:#17212e !important; box-shadow:none !important; overflow-wrap:anywhere; }
+#ziweiModalOverlay .zw-cell.active { border-color:var(--fr-accent) !important; background:#2c2b27 !important; outline:1px solid var(--fr-accent); outline-offset:-2px; }
+#ziweiModalOverlay .zw-cell-meng .zw-palace-name { color:#f3d38b !important; }
+#ziweiModalOverlay .zw-grid-wrap .zw-palace-name { position:static !important; font-size:15px !important; margin:0 0 8px !important; line-height:1.3 !important; }
+#ziweiModalOverlay .zw-grid-wrap .zw-stars-wrap { display:flex !important; flex-direction:column; gap:2px; padding:0 !important; margin:0 !important; }
+#ziweiModalOverlay .zw-grid-wrap :is(.zw-star-main,.zw-star-aux,.zw-star-bad,.zw-empty) { writing-mode:horizontal-tb !important; font-size:12px !important; line-height:1.45 !important; padding:0 !important; margin:0 !important; }
+#ziweiModalOverlay .zw-star-main * { font-size:inherit !important; }
+#ziweiModalOverlay .fr-chart-stars { display:flex; flex-direction:column; gap:3px; color:#e0c58c; font-size:14px; line-height:1.45; }
+#ziweiModalOverlay .zw-dashboard[data-zw-view="simple"] .zw-stars-wrap { display:none !important; }
+#ziweiModalOverlay .zw-dashboard[data-zw-view="detail"] .fr-chart-stars { display:none; }
+#ziweiModalOverlay .zw-grid-wrap::before, #ziweiModalOverlay .zw-grid-wrap::after { display:none !important; }
+#ziweiModalOverlay .zw-grid-wrap .zw-star-main { display:block !important; width:auto !important; }
+#ziweiModalOverlay .zw-dahan { top:auto !important; bottom:5px !important; right:5px !important; font-size:10px !important; background:none !important; border:0 !important; padding:0 !important; }
+#ziweiModalOverlay .zw-branch-name { font-size:12px !important; bottom:5px !important; left:7px !important; right:auto !important; }
+#ziweiModalOverlay :is(.zw-palace-gan,.zw-tag-layer,.zw-center-orbit,.zw-center-legend,.zw-center-hint) { display:none !important; }
+#ziweiModalOverlay .zw-center-panel { grid-area:2/2/4/4 !important; min-width:0 !important; padding:12px !important; margin:0 !important; background:linear-gradient(rgba(11,18,27,.4),rgba(11,18,27,.7)),url('/images/ziwei/celestial-atlas.webp') center/cover !important; border:1px solid #665c43 !important; border-radius:6px !important; box-shadow:none !important; }
+#ziweiModalOverlay .zw-center-title { font-size:clamp(15px,2.5vw,26px) !important; letter-spacing:.08em !important; }
+#ziweiModalOverlay .zw-center-seal { width:44px !important; height:44px !important; font-size:10px !important; margin:0 auto 10px !important; }
+#ziweiModalOverlay .zw-center-chip { font-size:11px !important; white-space:normal !important; }
+#ziweiModalOverlay .zw-center-meta { gap:4px !important; }
+#ziweiModalOverlay .fr-palace-choices { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:6px; margin:16px 0; }
+#ziweiModalOverlay .fr-palace-choice { justify-content:center; gap:6px; border-radius:5px; padding:8px 4px; font-size:14px; min-width:0; }
+#ziweiModalOverlay .fr-palace-choice[aria-pressed=true] { background:var(--fr-accent); color:#101923; border-color:var(--fr-accent); }
+#ziweiModalOverlay .fr-energy { scroll-margin-top:76px; margin-top:24px; padding:24px; border:1px solid var(--fr-rule); border-radius:12px; background:var(--fr-surface); }
+#ziweiModalOverlay .fr-energy h3 { margin:8px 0 16px; font:600 25px/1.45 'Gowun Batang',serif; color:var(--fr-ink); }
+#ziweiModalOverlay .fr-energy h4 { color:var(--fr-accent); font-size:17px; margin:0 0 8px; }
+#ziweiModalOverlay .fr-energy p { margin:0 0 14px; color:var(--fr-ink); }
+#ziweiModalOverlay .fr-energy .fr-caption { font-size:14px; color:var(--fr-muted); }
+#ziweiModalOverlay .fr-energy-star { padding:20px 0; border-top:1px solid var(--fr-rule); }
+#ziweiModalOverlay .fr-energy-action { border-left:2px solid var(--fr-accent); padding-left:14px; }
+#ziweiModalOverlay .fr-energy-spectrum { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; border-block:1px solid var(--fr-rule); padding:16px 0; margin-bottom:14px; }
+#ziweiModalOverlay .fr-spectrum-row :is(strong,span) { display:block; font-size:14px; }
+#ziweiModalOverlay .fr-spectrum-row strong { color:var(--fr-accent); }
+#ziweiModalOverlay .fr-spectrum-row span { color:var(--fr-muted); }
+#ziweiModalOverlay .fr-palace-action { background:#202c38; padding:20px; margin:20px 0; border-radius:6px; }
+#ziweiModalOverlay .fr-energy-context summary { cursor:pointer; color:var(--fr-accent); padding-block:12px; }
+#ziweiModalOverlay .fr-life-timeline { list-style:none; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:0; padding:0; margin:24px 0; border-top:1px solid var(--fr-rule); }
+#ziweiModalOverlay .fr-life-timeline li { margin:0; padding:0; min-width:0; }
+#ziweiModalOverlay .fr-period { width:100%; height:100%; border:0; border-bottom:1px solid var(--fr-rule); border-radius:0; text-align:left; padding:18px 12px; background:none; color:var(--fr-ink); cursor:pointer; }
+#ziweiModalOverlay .fr-period:hover { background:var(--fr-surface); }
+#ziweiModalOverlay .fr-period :is(span,strong,small) { display:block; }
+#ziweiModalOverlay .fr-period span { font-size:13px; color:var(--fr-accent); }
+#ziweiModalOverlay .fr-period strong { font-size:18px; margin:6px 0; }
+#ziweiModalOverlay .fr-period small { font-size:13px; color:var(--fr-muted); }
+#ziweiModalOverlay .fr-flow-preview { border-left:2px solid var(--fr-accent); padding:4px 20px; margin:24px 0; }
+#ziweiModalOverlay .fr-flow-preview h4 { color:var(--fr-accent); font-size:18px; margin:0 0 12px; }
+#ziweiModalOverlay .fr-flow-link { display:inline-flex; align-items:center; min-height:44px; color:var(--fr-accent); text-underline-offset:5px; }
+#ziweiModalOverlay #zwDeepAiPromptPanel { padding:24px !important; border:1px solid var(--fr-rule) !important; background:var(--fr-surface) !important; box-shadow:none !important; }
+#ziweiModalOverlay #zwDeepAiPromptPanel :is(textarea,select) { width:100%; padding:12px; border:1px solid #657286; border-radius:6px; background:#0b121b; color:var(--fr-ink); font-size:16px !important; }
+#ziweiModalOverlay .fr-consult-example { display:block; padding:12px; text-align:left; border:1px solid var(--fr-rule); background:#202c38; color:var(--fr-ink); border-radius:6px; margin:10px 0; }
+#ziweiModalOverlay :is(.zw-detail-panel,.zw-report-section) { box-shadow:none !important; }
+@media(max-width:600px) {
+  #ziweiModalOverlay #ziweiModalSection.fr-report { padding:12px 10px 40px !important; }
+  #ziweiModalOverlay .fr-profile .fr-brand { display:none; }
+  #ziweiModalOverlay .fr-hero { padding:14px !important; }
+  #ziweiModalOverlay .fr-title { font-size:24px !important; margin:4px 0 12px; }
+  #ziweiModalOverlay .fr-ziwei-nav { gap:0 14px; margin-bottom:12px; padding:0; }
+  #ziweiModalOverlay .fr-ziwei-nav a { font-size:12px; }
+  #ziweiModalOverlay .fr-ziwei-nav a:nth-child(3) { max-width:88px; line-height:1.4; }
+  #ziweiModalOverlay .fr-ziwei-nav { flex-wrap:nowrap; justify-content:space-between; gap:8px; }
+  #ziweiModalOverlay .fr-chart-stars { font-size:12px; }
+  #ziweiModalOverlay .fr-chart-section .fr-heading { font-size:17px; margin-bottom:8px; }
+  #ziweiModalOverlay .zw-grid-wrap { padding:4px !important; }
+  #ziweiModalOverlay .zw-grid-wrap .zw-grid { grid-template-rows:repeat(4,minmax(94px,auto)) !important; gap:3px !important; }
+  #ziweiModalOverlay .zw-grid-wrap .zw-cell { min-height:94px !important; padding:6px 3px 18px !important; }
+  #ziweiModalOverlay .zw-grid-wrap .zw-palace-name { font-size:12px !important; margin-bottom:5px !important; }
+  #ziweiModalOverlay .zw-grid-wrap :is(.zw-star-main,.zw-star-aux,.zw-star-bad,.zw-empty) { font-size:10px !important; }
+  #ziweiModalOverlay .zw-center-panel { padding:7px !important; }
+  #ziweiModalOverlay .zw-center-chip { font-size:10px !important; padding:2px 4px !important; }
+  #ziweiModalOverlay .zw-center-desc { font-size:10px !important; }
+  #ziweiModalOverlay .fr-palace-choices { grid-template-columns:repeat(4,minmax(0,1fr)); }
+  #ziweiModalOverlay .fr-palace-choice { font-size:12px; }
+  #ziweiModalOverlay .fr-energy { padding:18px 14px; }
+  #ziweiModalOverlay .fr-energy h3 { font-size:22px; }
+  #ziweiModalOverlay .fr-life-timeline { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  #ziweiModalOverlay .fr-energy-spectrum { gap:8px; }
+  #ziweiModalOverlay .fr-spectrum-row :is(strong,span) { font-size:12px; }
+  #ziweiModalOverlay #zwDeepAiPromptPanel { padding:18px 14px !important; }
 }

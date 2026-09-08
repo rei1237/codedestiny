@@ -6055,7 +6055,7 @@ function _seRunZiweiAiPromptResume(descriptor, grant) {
     return typeof window._zwAiPromptResumeCore === 'function';
   }, _SE_RESUME_WAIT_MS).then(function(ready) {
     if (!ready) return false;
-    return Promise.resolve(window._zwAiPromptResumeCore(String(args.question), evidence)).then(function(completed) { return completed === true; });
+    return Promise.resolve(window._zwAiPromptResumeCore(String(args.question), evidence, args.domain)).then(function(completed) { return completed === true; });
   });
 }
 
@@ -21557,23 +21557,43 @@ function renderZiwei(p, natal, targetId) {
     });
   }
 
+  var zwConsultTopics = [
+    ['overall', '전체 흐름', '지금 제 명반에서 먼저 이해해야 할 강점과 조율할 점은 무엇인가요?'],
+    ['personality', '성향과 강점', '반복되는 선택 습관을 이해하고 제 강점을 더 잘 활용하고 싶어요.'],
+    ['love', '연애와 결혼', '가까운 관계에서 제가 기대하는 것과 조율해야 할 부분을 알고 싶어요.'],
+    ['career', '직업과 사업', '현재 일에서 강점을 살릴 역할과 이직 전에 확인할 조건이 궁금해요.'],
+    ['money', '돈과 재물', '돈을 벌고 관리하는 제 습관에서 유지할 점과 바꿀 점은 무엇인가요?'],
+    ['relationship', '인간관계', '동료와 협력할 때 반복되는 갈등을 어떻게 풀면 좋을까요?'],
+    ['health', '생활과 회복', '긴장이 쌓일 때 제 생활 리듬을 어떻게 점검하면 좋을까요?'],
+    ['study', '학업과 배움', '공부를 지속할 수 있는 방식과 집중을 방해하는 습관을 알고 싶어요.'],
+    ['move', '이사와 이동', '새로운 환경으로 옮기기 전에 제 성향상 어떤 조건을 살펴야 할까요?'],
+    ['property', '주거와 기반', '안정적인 생활 기반을 마련할 때 우선순위를 어떻게 잡으면 좋을까요?'],
+    ['children', '자녀와 돌봄', '돌봄 관계에서 제 기대와 상대의 자율성을 어떻게 조율할까요?'],
+    ['family', '가족관계', '가족에게 도움을 주면서도 제 경계를 지키는 방법이 궁금해요.'],
+    ['lawsuit', '갈등과 분쟁', '분쟁에서 감정적으로 반응하는 습관을 줄이고 무엇을 정리해야 할까요?'],
+    ['life_direction', '인생 방향', '지금의 선택을 제 기질과 장기적인 삶의 방향에 맞춰 점검하고 싶어요.']
+  ];
   function _zwBuildDeepAiPromptPanel() {
     return ''
       + '<div class="zw-detail-panel" id="zwDeepAiPromptPanel" style="border:1px solid rgba(192,132,252,0.32);background:radial-gradient(140% 130% at 8% 0%, rgba(168,85,247,0.2), transparent 44%), radial-gradient(130% 130% at 100% 100%, rgba(16,185,129,0.18), transparent 40%), linear-gradient(145deg,rgba(24,24,55,0.93),rgba(8,20,28,0.92));box-shadow:0 24px 50px rgba(88,28,135,0.34), inset 0 1px 0 rgba(255,255,255,0.07);border-radius:16px;">'
       + '  <div class="zw-dp-header">'
       + '    <div class="zw-dp-title" style="color:#f5d0fe">👑 자미두수 궁성 맞춤 AI 상담</div>'
-      + '    <div class="zw-dp-subtitle" style="color:#e9d5ff">기본 명반 데이터를 바탕으로 질문에 대한 맞춤 상담 답변을 바로 생성해 드립니다. (1회 10,000원)</div>'
+      + '    <div class="zw-dp-subtitle" style="color:#e9d5ff">명반의 근거를 짚고, 지금의 고민에 적용할 선택지를 함께 정리합니다.</div>'
       + '  </div>'
       + '  <div style="font-size:0.78rem;line-height:1.62;color:#e9d5ff;margin-bottom:10px">'
-      + '    연애, 소송, 직업, 돈, 인간관계, 건강, 인생 방향 질문을 입력하면 질문 분류+명반 핵심궁을 반영한 상담 답변을 드립니다.'
+      + '    주제를 고르고 현재 상황과 고민하는 선택을 적어 주세요. 질병 진단, 투자 수익이나 법적 결과는 예측하지 않습니다.'
       + '  </div>'
       + '  <div style="font-size:0.74rem;line-height:1.58;color:#fef3c7;background:rgba(120,53,15,0.3);border:1px solid rgba(251,191,36,0.32);border-radius:10px;padding:8px 10px;margin-bottom:10px">'
       + '    답변 생성에는 명반 요약이 사용됩니다. 답변과 함께 상담에 쓰인 프롬프트도 추가 비용 없이 아래에 제공됩니다.'
       + '  </div>'
+      + '  <label for="zwDeepAiPromptDomain">상담 주제</label>'
+      + '  <select id="zwDeepAiPromptDomain">' + zwConsultTopics.map(function(topic) { return '<option value="' + topic[0] + '">' + topic[1] + '</option>'; }).join('') + '</select>'
+      + '  <button class="fr-consult-example" id="zwDeepAiPromptExample" type="button" aria-controls="zwDeepAiPromptQuestion"></button>'
+      + '  <label for="zwDeepAiPromptQuestion">지금 궁금한 이야기</label>'
       + '  <textarea id="zwDeepAiPromptQuestion" maxlength="1000" placeholder="' + _sajuEngineText("se_17711_attr_placeholder") + '" style="width:100%;min-height:122px;border-radius:12px;border:1px solid rgba(196,181,253,0.48);background:rgba(10,15,30,0.72);color:#f5f3ff;padding:12px;font-size:0.8rem;line-height:1.65;resize:vertical;box-sizing:border-box;"></textarea>'
       + '  <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:8px;font-size:0.74rem;color:#ddd6fe">'
       + '    <span id="zwDeepAiPromptCount">0 / 1000</span>'
-      + '    <span>1회 10,000원</span>'
+      + '    <span>1회 ' + (_ZW_AI_PROMPT_COST * 100).toLocaleString('ko-KR') + '원</span>'
       + '  </div>'
       + '  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px">'
       + '    <button id="zwDeepAiPromptGenerateBtn" type="button" style="background:linear-gradient(135deg,#f59e0b,#fbbf24,#7dd3fc);color:#172554;border:1px solid rgba(251,191,36,0.76);padding:9px 13px;border-radius:10px;font-size:0.8rem;font-weight:900;cursor:pointer;box-shadow:0 10px 22px rgba(251,191,36,0.28);">10,000원으로 AI 상담 받기</button>'
@@ -21596,6 +21616,13 @@ function renderZiwei(p, natal, targetId) {
 
     var chartResult = _zwBuildPromptChartResult(pd);
     var questionEl = panel.querySelector('#zwDeepAiPromptQuestion');
+    var domainEl = panel.querySelector('#zwDeepAiPromptDomain');
+    var exampleEl = panel.querySelector('#zwDeepAiPromptExample');
+    function selectedTopic() { return zwConsultTopics.find(function(topic) { return domainEl && topic[0] === domainEl.value; }) || zwConsultTopics[0]; }
+    function updateExample() { if (exampleEl) exampleEl.textContent = '질문 예시 사용 · ' + selectedTopic()[2]; }
+    updateExample();
+    if (domainEl) domainEl.addEventListener('change', function() { updateExample(); questionEl.dispatchEvent(new Event('input')); });
+    if (exampleEl) exampleEl.addEventListener('click', function() { questionEl.value = selectedTopic()[2]; questionEl.dispatchEvent(new Event('input')); questionEl.focus(); });
     var countEl = panel.querySelector('#zwDeepAiPromptCount');
     var statusEl = panel.querySelector('#zwDeepAiPromptStatus');
     var outputEl = panel.querySelector('#zwDeepAiPromptText');
@@ -21629,6 +21656,8 @@ function renderZiwei(p, natal, targetId) {
       generateBtn.disabled = isLoading;
       regenerateBtn.disabled = isLoading;
       questionEl.disabled = isLoading;
+      if (domainEl) domainEl.disabled = isLoading;
+      if (exampleEl) exampleEl.disabled = isLoading;
       generateBtn.textContent = isLoading
         ? 'AI 상담 생성 중...'
         : (zwRetryFree
@@ -21660,6 +21689,7 @@ function renderZiwei(p, natal, targetId) {
          requestId 가 들어 있어야 한다 — 복귀 후 다시 계산한 zwRequestId 로는 서버가 결제 문서를 못 찾는다. */
       var paidEvidence = opts.paidEvidence && typeof opts.paidEvidence === 'object' ? opts.paidEvidence : null;
       var question = String(questionEl.value || '').trim();
+      var domain = selectedTopic()[0];
       if (!question || question.length < _ZW_AI_PROMPT_MIN_LENGTH) {
         setStatus('질문은 최소 ' + _ZW_AI_PROMPT_MIN_LENGTH + '자 이상 입력해 주세요.', 'error');
         return;
@@ -21673,6 +21703,7 @@ function renderZiwei(p, natal, targetId) {
       var zwRequestId = _cdAIPromptBuildRequestId('ziwei-ai-prompt', [
         _sajuPromptResolveProfileId(),
         question,
+        domain,
         chartResult,
         zwRequestEpoch
       ]);
@@ -21691,6 +21722,7 @@ function renderZiwei(p, natal, targetId) {
           cache: 'no-store',
           body: JSON.stringify({
             question: question,
+            domain: domain,
             chartResult: chartResult,
             requestId: evidence.requestId || zwRequestId,
             accessGrant: evidence.accessGrant,
@@ -21739,7 +21771,7 @@ function renderZiwei(p, natal, targetId) {
             requestId: zwRequestId,
             categoryKey: 'ziwei',
             action: 'openZiweiModal',
-            resume: { kind: _SE_ZIWEI_AI_RESUME_KIND, action: 'openZiweiModal', args: { question: question } }
+            resume: { kind: _SE_ZIWEI_AI_RESUME_KIND, action: 'openZiweiModal', args: { question: question, domain: domain } }
           }).then(function(gateResult) {
             if (!gateResult.ok) return _cdAIPromptFailureResult(gateResult);
             return postWithEvidence(_cdAIPromptGateEvidence(gateResult));
@@ -21833,9 +21865,11 @@ function renderZiwei(p, natal, targetId) {
 
     /* 결제 후 자동 재개 진입점 — 패널이 다시 그려질 때마다 최신 클로저로 덮어쓴다.
        🔴 여기서 화면을 열지 않는다. 표면은 runPaidResume 이 딥링크로 이미 열어 둔 상태다. */
-    window._zwAiPromptResumeCore = function(question, evidence) {
+    window._zwAiPromptResumeCore = function(question, evidence, domain) {
       if (!evidence) return false;
       questionEl.value = String(question || '');
+      if (domainEl) domainEl.value = zwConsultTopics.some(function(topic) { return topic[0] === domain; }) ? domain : 'overall';
+      updateExample();
       updateCount();
       return handleGenerate({ paidEvidence: evidence });
     };
@@ -23759,7 +23793,7 @@ function renderZiwei(p, natal, targetId) {
         var secStarLens = '<div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; margin-bottom: 20px;">' +
           '<h2 style="color: #D8B4FE; font-size: 1.2rem; margin-top: 0;">🔭' + themeTitle + '</h2>' +
           lensCards +
-          '<div style="font-size:0.74rem;color:#a5b4fc;line-height:1.6;">별 하나만 보고 단정하지 않도록, 위 별의 지도(강약·길흉성 분포)와 아래 대운·사화(四化) 흐름을 함께 읽어 주세요.</div>' +
+          '<div style="font-size:0.74rem;color:#a5b4fc;line-height:1.6;">별 하나로 결론 내리지 않고, 실제 주성·보조성과 함께 연결되는 궁을 살펴보세요. 타고난 성향과 대한·사화로 읽는 시기 변화는 구분해서 이해하는 것이 좋습니다.</div>' +
         '</div>';
 
         var sec2 = '<div data-cd-marker="ziwei-12-palace-folded-map-v20260614" style="margin-bottom:20px;background:#0f0f1a;border:1px solid rgba(139,92,246,0.35);border-radius:10px;overflow:hidden">'

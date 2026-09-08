@@ -63,11 +63,11 @@
   }
   function localized(key) {
     var labels = {
-      ko: { missing: '출생 정보가 일부 비어 있어요. 프로필에서 시간과 장소를 확인해 주세요.' },
-      en: { missing: 'Some birth details are missing. Check the time and place in your profile.' },
-      ja: { missing: '出生情報の一部が未入力です。プロフィールで時刻と場所をご確認ください。' },
-      zh: { missing: '部分出生资料尚未填写。请在个人资料中确认时间和地点。' },
-      'zh-TW': { missing: '部分出生資料尚未填寫。請在個人資料中確認時間和地點。' }
+      ko: { missing: '출생 정보가 일부 비어 있어요. 프로필에서 시간과 장소를 확인해 주세요.', flow:'인생 흐름', consult:'맞춤 상담' },
+      en: { missing: 'Some birth details are missing. Check the time and place in your profile.', flow:'Life periods', consult:'Consultation' },
+      ja: { missing: '出生情報の一部が未入力です。プロフィールで時刻と場所をご確認ください。', flow:'人生の流れ', consult:'個別相談' },
+      zh: { missing: '部分出生资料尚未填写。请在个人资料中确认时间和地点。', flow:'人生周期', consult:'专属咨询' },
+      'zh-TW': { missing: '部分出生資料尚未填寫。請在個人資料中確認時間和地點。', flow:'人生週期', consult:'專屬諮詢' }
     };
     var lang = document.documentElement.lang || 'ko';
     try { lang = localStorage.getItem('cd_lang') || lang; } catch (_) {}
@@ -225,12 +225,88 @@
     }
     input.addEventListener('input',renderList); retry.addEventListener('click',load); load(); return section;
   }
+  // Interpretive vocabulary, not a score or a prediction. Stars remain engine-owned.
+  var ziweiStarGuides = {
+    '자미': ['책임을 맡아 방향을 정하는 힘', '흩어진 의견을 정리하고 기준을 세우는 데 강점이 있습니다. 다만 혼자 책임지려 하면 도움을 청하기 어려워질 수 있습니다.', '결정할 일과 위임할 일을 먼저 나누어 보세요.'],
+    '천기': ['변화를 읽고 방법을 찾는 힘', '여러 가능성을 비교하고 상황에 맞게 계획을 바꾸는 데 능숙한 편입니다. 생각이 많아지면 실행 전에 지칠 수 있습니다.', '선택 기준을 세 가지로 좁히고 작은 실험부터 시작해 보세요.'],
+    '태양': ['먼저 나서서 기여하는 힘', '자신이 도움이 되는 역할에서 보람을 찾기 쉽습니다. 다른 사람의 기대를 모두 받아들이면 정작 자신의 필요는 뒤로 밀릴 수 있습니다.', '도울 수 있는 범위와 쉬어야 할 시간을 함께 정하세요.'],
+    '무곡': ['결과를 만들고 자원을 관리하는 힘', '말보다 실행과 성과로 신뢰를 쌓는 쪽에 가깝습니다. 효율을 앞세우다 보면 관계에서도 답을 너무 빨리 제시할 수 있습니다.', '해결책을 말하기 전에 상대가 원하는 도움부터 물어보세요.'],
+    '천동': ['편안한 관계와 여유를 만드는 힘', '긴장을 낮추고 서로 편안하게 지낼 방법을 찾는 데 강점이 있습니다. 갈등을 피하다 필요한 결정을 미룰 수도 있습니다.', '편안함을 지키기 위해서라도 작은 불편은 일찍 말해 보세요.'],
+    '염정': ['원칙과 몰입으로 깊이를 만드는 힘', '중요하게 여기는 기준이 분명하고 관계나 일에 깊게 몰입하는 편입니다. 기준이 강해지면 작은 차이도 크게 느껴질 수 있습니다.', '지켜야 할 원칙과 조율할 취향을 구분해 보세요.'],
+    '천부': ['기반을 지키고 안정적으로 운영하는 힘', '가진 자원과 사람을 살피며 오래 유지할 구조를 만드는 데 강점이 있습니다. 안정에 무게를 두다 변화의 시점을 놓칠 수 있습니다.', '지킬 기반은 남기고 새 시도에는 작은 예산과 기한을 정하세요.'],
+    '태음': ['세밀하게 살피고 내실을 쌓는 힘', '눈에 잘 띄지 않는 감정과 세부를 알아차리는 편입니다. 혼자 충분히 생각하려다 자신의 뜻을 늦게 전할 수 있습니다.', '완전히 정리된 답이 아니어도 현재의 생각을 나누어 보세요.'],
+    '탐랑': ['호기심으로 사람과 경험을 연결하는 힘', '새로운 자극과 만남에서 가능성을 발견하는 편입니다. 관심이 넓어질수록 에너지가 분산되기 쉽습니다.', '이번 달에 깊게 이어갈 한 가지를 골라 보세요.'],
+    '거문': ['질문하고 표현하며 본질을 찾는 힘', '모호한 부분을 짚고 논리를 확인하는 데 강점이 있습니다. 설명이 길어지거나 표현이 날카로워지면 의도와 다르게 전달될 수 있습니다.', '반론보다 확인 질문을 먼저 건네 보세요.'],
+    '천상': ['균형을 살피고 협력을 조율하는 힘', '상대의 입장과 공동의 기준을 함께 고려하는 편입니다. 모두를 배려하다 자신의 선택이 흐려질 수 있습니다.', '조율하기 전에 내가 지킬 조건 하나를 정해 보세요.'],
+    '천량': ['경험과 원칙으로 보호하는 힘', '문제를 넓게 보고 누군가의 안전판이 되는 역할에 강점이 있습니다. 조언이 앞서면 상대에게 간섭처럼 느껴질 수 있습니다.', '도움이 필요한지 먼저 확인하고 조언의 범위를 맞추세요.'],
+    '칠살': ['압박 속에서 결단하고 돌파하는 힘', '어려운 상황에서 판단을 내리고 책임지는 역할에 힘이 실리기 쉽습니다. 긴장이 길어지면 혼자 버티는 습관으로 이어질 수 있습니다.', '결정 전에 되돌릴 수 있는 범위와 도움받을 사람을 확인하세요.'],
+    '파군': ['낡은 방식을 정리하고 새로 만드는 힘', '맞지 않는 구조를 발견하면 바꾸려는 동기가 강한 편입니다. 전환 속도가 빠르면 유지할 가치까지 함께 놓칠 수 있습니다.', '없앨 것과 남길 것을 나누고 전환 비용부터 확인하세요.']
+  };
+  var ziweiPalaceGuides = {
+    '명궁': ['나를 움직이는 기준', '낯선 상황에서 무엇을 먼저 살피고 어떤 방식으로 결정하는지 읽습니다. 성격 전체를 고정하는 낙인이 아니라 익숙한 반응의 출발점입니다.', '중요한 결정을 앞두고 내가 지키려는 기준과 두려워하는 것을 따로 적어 보세요.'],
+    '형제궁': ['가까운 동료와 나누는 힘', '형제자매와 가까운 동년배 사이에서 도움을 주고받는 방식, 친밀함 속의 경쟁과 거리감을 살펴봅니다. 실제 가족의 수나 인품을 단정하지 않습니다.', '가깝다는 이유로 기대를 생략하지 말고, 부탁의 범위와 역할을 분명히 해 보세요.'],
+    '부부궁': ['친밀한 관계를 맺는 방식', '연인이나 배우자에게 기대하는 관계의 모습과 함께 생활할 때의 조율 방식을 읽습니다. 상대의 마음이나 결혼의 성패를 확정하는 자리는 아닙니다.', '연락 빈도, 돈, 혼자만의 시간 중 서로 기대가 다른 한 가지부터 대화해 보세요.'],
+    '자녀궁': ['돌보고 길러내는 관계', '자녀와의 관계에서 나타날 돌봄과 기대, 다음 세대를 대하는 태도를 살펴봅니다. 자녀의 유무·수나 임신 가능성을 예측하지 않습니다.', '내가 원하는 성장과 상대가 원하는 성장을 구분하고 선택할 여지를 남겨 보세요.'],
+    '재백궁': ['돈을 벌고 다루는 습관', '수입을 만드는 방식과 자원을 배분하는 태도를 읽습니다. 재산 규모나 투자 수익을 보장하지 않으며 일의 구조와 함께 살펴야 합니다.', '수입의 크기보다 반복되는 지출과 유지 가능한 수입 경로를 먼저 정리해 보세요.'],
+    '질액궁': ['몸과 마음의 부담을 돌보는 방식', '긴장이 쌓일 때의 생활 리듬과 돌봄의 필요를 상징적으로 살펴봅니다. 병명·수명·질병 발생 여부를 판단하는 의학적 자료는 아닙니다.', '수면과 휴식의 변화를 기록해 보세요. 지속되는 증상은 명반 해석보다 의료진의 평가가 우선입니다.'],
+    '천이궁': ['바깥세상에서 드러나는 나', '익숙한 환경을 벗어났을 때의 태도와 외부 사람·기회를 만나는 방식을 읽습니다. 이사나 해외 이동의 성공을 단정하지 않습니다.', '환경을 바꾸기 전에 실제 생활비, 지원망, 적응 기간을 함께 점검해 보세요.'],
+    '노복궁': ['사람들과 함께 일하는 방식', '친구·동료·협력자와 맺는 관계에서 신뢰와 역할이 어떻게 형성되는지 살펴봅니다. 특정인이 배신한다고 판단하지 않습니다.', '신뢰와 별개로 업무 범위, 기한, 보상을 확인하면 관계도 더 편안해집니다.'],
+    '관록궁': ['일에서 역량을 쓰는 방식', '직함보다 어떤 과제와 역할에서 힘을 발휘하는지, 책임과 성취를 다루는 방식을 읽습니다. 특정 직업이 유일한 정답이라는 뜻은 아닙니다.', '최근 잘 풀린 업무 하나를 골라 분석·조율·실행 중 무엇이 강점이었는지 찾아보세요.'],
+    '전택궁': ['머무를 기반을 만드는 방식', '집과 생활 기반을 꾸리고 유지하는 태도, 사적인 공간에서 원하는 안정감을 읽습니다. 부동산 가격이나 상속 여부를 확정하지 않습니다.', '소유 여부보다 생활 동선, 유지 비용, 함께 사는 사람의 필요를 먼저 비교해 보세요.'],
+    '복덕궁': ['마음이 쉬고 만족을 느끼는 방식', '겉으로 보이는 성취와 별개로 무엇에서 편안함과 의미를 느끼는지 살펴봅니다. 행복의 점수나 정신건강 진단은 아닙니다.', '성과와 상관없이 마음이 회복되는 활동을 찾아 일주일에 작은 시간을 남겨 보세요.'],
+    '부모궁': ['보호와 권위를 대하는 방식', '부모·양육자 및 윗사람과의 관계에서 기대와 독립을 조율하는 태도를 살펴봅니다. 실제 가족의 성품이나 관계 전체를 판단하지 않습니다.', '받고 싶은 도움과 스스로 결정할 영역을 나누어 말해 보세요.']
+  };
+  function ziweiEnergy(data, idx) {
+    var section = node('section', 'fr-energy');
+    var name = data.palacesByIndex[idx];
+    var guideName = name === '교우궁' ? '노복궁' : name;
+    var palaceGuide = ziweiPalaceGuides[guideName];
+    section.appendChild(node('p', 'fr-brand', 'PALACE READING / ' + String(idx + 1).padStart(2, '0')));
+    section.appendChild(node('h3', '', name + (palaceGuide ? ' · ' + palaceGuide[0] : ' 상세 해석')));
+    if (palaceGuide) section.appendChild(node('p', 'fr-palace-intro', palaceGuide[1]));
+    section.appendChild(node('p', 'fr-caption', '에너지는 운의 점수가 아니라, 이 영역에서 반복되기 쉬운 반응과 선택의 방향을 뜻합니다.'));
+    var stars = data.stars[idx] || {};
+    var main = stars.main || [];
+    function rawText(raw) { return typeof raw === 'object' && raw ? String(raw.name || raw.star || '') : String(raw); }
+    function borrowed(raw) { return !!(raw && typeof raw === 'object' && raw.borrowed) || rawText(raw).indexOf('차성') >= 0; }
+    var directMain = main.filter(function (raw) { return !borrowed(raw); });
+    if (!main.length) main = ((data.stars[(idx + 6) % 12] || {}).main || []).map(function (raw) { return { name:rawText(raw), borrowed:true }; });
+    if (!directMain.length) section.appendChild(node('p', '', '주성이 없는 공궁입니다. 성향이 없거나 약하다는 뜻은 아닙니다. 아래 차성은 맞은편 궁에서 참고하는 별로, 내 궁에 직접 놓인 주성과 구분합니다. 삼합 궁과 보조성까지 함께 살펴야 합니다.'));
+    main.forEach(function (raw) {
+      var key = Object.keys(ziweiStarGuides).find(function (k) { return rawText(raw).indexOf(k) !== -1; });
+      if (!key) return;
+      var guide = ziweiStarGuides[key];
+      var article = node('article', 'fr-energy-star');
+      article.appendChild(node('h4', '', key + (borrowed(raw) ? ' (대궁에서 참고하는 차성)' : '') + ' · ' + guide[0]));
+      article.appendChild(node('p', '', guide[1]));
+      article.appendChild(node('p', 'fr-energy-action', '생활에서 활용하기 · ' + guide[2]));
+      section.appendChild(article);
+    });
+    if (main.length > 1) section.appendChild(node('p', 'fr-caption', '두 주성은 성격을 반씩 나누는 것이 아닙니다. 같은 상황에서도 한 별의 추진 방식과 다른 별의 판단 기준이 함께 드러날 수 있어 조합으로 읽습니다.'));
+    var spectrum = node('div', 'fr-energy-spectrum'); spectrum.setAttribute('aria-label', name + ' 별 구성');
+    [['주성','main','기본 반응의 방향'],['보조성','aux','발휘를 돕는 조건'],['살성·주의성','bad','조율이 필요한 자극']].forEach(function (item) {
+      var count = item[1] === 'main' ? directMain.length : (stars[item[1]] || []).length;
+      var row = node('div', 'fr-spectrum-row');
+      row.appendChild(node('strong', '', item[0] + ' ' + count + '개'));
+      row.appendChild(node('span', '', item[2]));
+      spectrum.appendChild(row);
+    });
+    section.appendChild(spectrum);
+    if (main.length > directMain.length) section.appendChild(node('p', 'fr-caption', '차성 ' + (main.length - directMain.length) + '개는 본궁 주성 개수에 포함하지 않았습니다. 명반의 ↗ 표시는 차성을 뜻합니다.'));
+    section.appendChild(node('p', 'fr-caption', '별 구성 스펙트럼은 실제 배치의 개수입니다. 많다고 길하거나 적다고 불리한 점수가 아닙니다. 묘·왕·득·함은 별이 놓인 자리에서의 발휘 조건이며, 사람의 우열을 뜻하지 않습니다.'));
+    if (palaceGuide) { var action = node('aside', 'fr-palace-action'); action.appendChild(node('h4', '', '지금 생활에 적용하기')); action.appendChild(node('p', '', palaceGuide[2])); section.appendChild(action); }
+    var linked = [4, 8, 6].map(function (offset) { return data.palacesByIndex[(idx + offset) % 12]; }).filter(Boolean);
+    var detail = node('details', 'fr-energy-context'); detail.appendChild(node('summary', '', '함께 읽는 궁 · ' + linked.join(' · ')));
+    detail.appendChild(node('p', '', '이 궁과 삼합으로 연결되는 두 궁, 맞은편 대궁을 함께 읽는 것이 삼방사정입니다. ' + linked.join('·') + '의 실제 별 배치를 함께 살펴야 ' + name + '의 강점이 어떤 환경에서 발휘되고 무엇을 조율해야 할지 더 구체적으로 이해할 수 있습니다.'));
+    detail.appendChild(node('p', '', '화록은 자원이 모이는 경로, 화권은 주도권과 책임, 화과는 인정과 정리, 화기는 집착·마찰을 점검할 단서로 풀이합니다. 실제 별의 배치와 함께 읽으며, 화기 하나로 실패를 단정하지 않습니다. 타고난 구조와 시기의 변화인 대한·세운도 구분해야 합니다.'));
+    section.appendChild(detail);
+    return section;
+  }
   function ziwei(area, data) {
     if (!setUp('ziwei', area) || !data) return;
     var hero = node('section', 'fr-hero');
-    hero.appendChild(emblem('ziwei'));
-    hero.appendChild(node('p', 'fr-brand', t('lifePalace')));
-    hero.appendChild(node('h2', 'fr-title', data.meng || '—'));
+    hero.appendChild(node('p', 'fr-brand', '紫微斗數 / MY STAR ATLAS'));
+    hero.appendChild(node('h2', 'fr-title', t('myRecord')));
     var facts = node('dl', 'fr-facts');
     [[19, data.meng, 20], [21, data.shen, 22], [23, data.juInfo, 24]].forEach(function (item) {
       if (!item[1]) return;
@@ -242,20 +318,43 @@
     var choices = node('div', 'fr-palace-choices');
     var dashboard = area.querySelector('.zw-dashboard');
     var cells = Array.from(dashboard.querySelectorAll('.zw-cell[role="button"]'));
-    [['명궁', 'palaceLife'], ['재백궁', 'palaceWealth'], ['관록궁', 'palaceCareer'], ['부부궁', 'palaceSpouse'], ['복덕궁', 'palaceWellbeing']].forEach(function (palace) {
+    var initialSelection = true;
+    function selectCell(cell) {
+      var idx = Number(cell.className.match(/\bzw-cell-(\d+)\b/)[1]);
+      var pd = window._currentZiweiData;
+      cells.forEach(function (c) { c.classList.toggle('active', c === cell); c.setAttribute('aria-pressed', String(c === cell)); });
+      choices.querySelectorAll('button').forEach(function (b) { b.setAttribute('aria-pressed', String(Number(b.dataset.palaceIndex) === idx)); });
+      window._renderZwPanel(idx, pd.palacesByIndex[idx], pd.stars[idx], pd, { clickOnly: true, targetId: 'zwDetailPanel', showClose: true, showRadar: false, scroll: false });
+      var old = reading.querySelector('.fr-energy'); if (old) old.remove();
+      reading.insertBefore(ziweiEnergy(pd, idx), reading.querySelector('#zwDetailPanel'));
+      if (typeof window._zwDrawTriad === 'function') window._zwDrawTriad(idx);
+      if (!initialSelection) reading.querySelector('.fr-energy').scrollIntoView({block:'start',behavior:'instant'});
+    }
+    cells.forEach(function (cell) {
+      cell.removeAttribute('onclick');
+      cell.onclick = function () { selectCell(cell); };
+      cell.addEventListener('keydown', function (event) { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); event.stopPropagation(); selectCell(cell); } });
+      var compact = node('div', 'fr-chart-stars');
+      cell.querySelectorAll('.zw-star-main').forEach(function (star) {
+        var text = star.firstChild && star.firstChild.textContent.trim();
+        compact.appendChild(node('span', '', text + (star.textContent.indexOf('차성') >= 0 ? ' ↗' : '')));
+      });
+      if (!compact.children.length) compact.appendChild(node('span', '', '공궁'));
+      cell.querySelector('.zw-stars-wrap').before(compact);
+    });
+    cells.map(function (cell) { var name = cell.querySelector('.zw-palace-name').textContent.trim(); return [name, { '명궁':'palaceLife','재백궁':'palaceWealth','관록궁':'palaceCareer','부부궁':'palaceSpouse','복덕궁':'palaceWellbeing' }[name]]; }).forEach(function (palace) {
       var cell = cells.find(function (el) { var label = el.querySelector('.zw-palace-name'); return label && label.textContent.trim() === palace[0]; });
       if (!cell) return;
       var button = node('button', 'fr-palace-choice'); button.type = 'button';
       button.dataset.palaceIndex = cell.className.match(/\bzw-cell-(\d+)\b/)[1];
-      button.appendChild(node('strong', '', t(palace[1])));
+      var extraNames = { '형제궁':['Siblings','兄弟宮','兄弟宫','兄弟宮'], '자녀궁':['Children','子女宮','子女宫','子女宮'], '질액궁':['Wellness','疾厄宮','疾厄宫','疾厄宮'], '천이궁':['Travel','遷移宮','迁移宫','遷移宮'], '노복궁':['Friends','交友宮','交友宫','交友宮'], '전택궁':['Home','田宅宮','田宅宫','田宅宮'], '부모궁':['Parents','父母宮','父母宫','父母宮'] };
+      var lang = document.documentElement.lang || 'ko'; try { lang = localStorage.getItem('cd_lang') || lang; } catch (_) {}
+      var translated = extraNames[palace[0]];
+      button.appendChild(node('strong', '', palace[1] ? t(palace[1]) : translated && lang !== 'ko' ? translated[Math.max(0, ['en','ja','zh','zh-TW'].indexOf(lang))] : palace[0]));
       button.appendChild(node('span', '', cell.querySelector('.zw-branch-name').textContent));
       button.setAttribute('aria-pressed', 'false');
       button.addEventListener('click', function () {
-        choices.querySelectorAll('button').forEach(function (b) { b.setAttribute('aria-pressed', String(b === button)); });
-        var idx = Number(cell.className.match(/\bzw-cell-(\d+)\b/)[1]);
-        var pd = window._currentZiweiData;
-        cells.forEach(function (c) { c.classList.toggle('active', c === cell); });
-        window._renderZwPanel(idx, pd.palacesByIndex[idx], pd.stars[idx], pd, { clickOnly: true, targetId: 'zwDetailPanel', showClose: true, showRadar: false, scroll: false });
+        selectCell(cell);
       });
       choices.appendChild(button);
     });
@@ -266,24 +365,65 @@
       if (!selected && !closing) return;
       var index = selected ? selected.className.match(/\bzw-cell-(\d+)\b/)[1] : null;
       choices.querySelectorAll('button').forEach(function (button) { button.setAttribute('aria-pressed', String(button.dataset.palaceIndex === index)); });
+      if (closing) { var energy = reading.querySelector('.fr-energy'); if (energy) energy.remove(); cells.forEach(function (cell) { cell.setAttribute('aria-pressed','false'); }); }
     });
     var panel = dashboard.querySelector('#zwDetailPanel');
     if (panel) { panel.setAttribute('aria-live', 'polite'); reading.appendChild(panel); }
-    dashboard.prepend(reading);
+    reading.id = 'fr-ziwei-reading';
     var chart = dashboard.querySelector('.zw-grid-wrap');
-    var mapToggle = node('button', 'fr-map-toggle', t('chart'));
-    mapToggle.type = 'button'; mapToggle.setAttribute('aria-pressed', 'false');
-    mapToggle.addEventListener('click', function () {
-      var active = chart.classList.toggle('fr-ziwei-map');
-      mapToggle.setAttribute('aria-pressed', String(active));
-      window.dispatchEvent(new Event('resize'));
+    var chartSection = node('section', 'fr-chart-section'); chartSection.id = 'fr-ziwei-chart';
+    chartSection.appendChild(heading(t('allPalaces')));
+    chartSection.appendChild(chart);
+    dashboard.prepend(chartSection);
+    chartSection.after(reading);
+    var nav = node('nav', 'fr-ziwei-nav'); nav.setAttribute('aria-label', t('ziwei'));
+    [['fr-ziwei-chart',t('chart')],['fr-ziwei-reading',t('keyReading')],['fr-ziwei-flow',localized('flow')],['zwDeepAiPromptPanel',localized('consult')]].forEach(function (item) {
+      var link = node('a', '', item[1]); link.href = '#' + item[0]; nav.appendChild(link);
     });
-    chart.prepend(mapToggle);
-    fold(dashboard, t('allPalaces'), [chart, dashboard.querySelector('.zw-fact-tables')], 'fr-ziwei-chart');
-    var extra = Array.from(dashboard.children).filter(function (el) { return !el.matches('.fr-reading,.fr-disclosure'); });
+    hero.after(nav);
+    var consult = dashboard.querySelector('#zwDeepAiPromptPanel');
+    var factsTable = dashboard.querySelector('.zw-fact-tables');
+    if (factsTable) fold(dashboard, t('readMore'), [factsTable]);
+    var extra = Array.from(dashboard.children).filter(function (el) { return !el.matches('.fr-reading,.fr-disclosure,.fr-chart-section,#zwDeepAiPromptPanel'); });
     if (extra.length) fold(dashboard, t('explore'), extra, 'fr-ziwei-explore');
     var full = area.querySelector('#zwComprehensiveReport');
-    if (full) fold(area, t('fullReading'), [full]);
+    if (full) {
+      var flow = node('section', 'fr-flow-section'); flow.id = 'fr-ziwei-flow';
+      flow.appendChild(heading(localized('flow')));
+      flow.appendChild(node('h4', 'fr-flow-title', '인생 흐름표 · 대한의 흐름'));
+      flow.appendChild(node('p', 'fr-caption', '대한은 약 10년 단위로 삶의 관심 영역을 살펴보는 틀입니다. 아래는 명반에서 계산된 나이 구간과 해당 궁이며, 좋고 나쁨을 매긴 점수표가 아닙니다.'));
+      var timeline = node('ol', 'fr-life-timeline');
+      (data.daHanList || []).slice().sort(function (a,b) { return a.startAge - b.startAge; }).forEach(function (period) {
+        var item = node('li', '');
+        var button = node('button', 'fr-period'); button.type = 'button';
+        button.appendChild(node('span', '', period.startAge + '–' + period.endAge + '세'));
+        button.appendChild(node('strong', '', period.palaceName));
+        var guide = ziweiPalaceGuides[period.palaceName];
+        if (guide) button.appendChild(node('small', '', guide[0]));
+        button.addEventListener('click', function () { var cell = cells.find(function (c) { return Number(c.className.match(/\bzw-cell-(\d+)\b/)[1]) === Number(period.idx); }); if (cell) { selectCell(cell); reading.scrollIntoView({block:'start', behavior:'smooth'}); } });
+        item.appendChild(button); timeline.appendChild(item);
+      });
+      if (timeline.children.length) flow.appendChild(timeline);
+      else flow.appendChild(node('p', '', '대한 정보가 부족합니다. 출생 정보를 확인해 주세요.'));
+      var preview = node('aside', 'fr-flow-preview');
+      preview.appendChild(node('h4', '', '기본 흐름에서, 나의 선택으로'));
+      preview.appendChild(node('p', '', '위 흐름표와 각 궁의 기본 해석은 지금 읽을 수 있습니다. 대한의 궁은 그 시기에 살펴볼 삶의 주제이지, 특정 사건이 일어난다는 뜻은 아닙니다.'));
+      preview.appendChild(node('p', 'fr-caption', '연도별 기회와 주의점, 시기별 행동 해석은 아래 리포트의 「대한 10년운」에서 이어집니다. 잠긴 항목은 기존 이용권·결제 안내를 확인한 뒤 열 수 있습니다.'));
+      var continueLink = node('a', 'fr-flow-link', '대한 10년운 상세 안내'); continueLink.href = '#ziweiDecadeLuckGate'; preview.appendChild(continueLink);
+      flow.appendChild(preview);
+      fold(flow, t('fullReading'), [full]);
+      area.appendChild(flow);
+    }
+    if (consult) area.appendChild(consult);
+    // The atlas is the sole decorative artwork on this surface. Keep text/captions.
+    area.querySelectorAll('img').forEach(function (img) { img.hidden = true; });
+    cells.forEach(function (cell) {
+      cell.setAttribute('aria-label', cell.querySelector('.zw-palace-name').textContent + ' · ' + cell.querySelector('.zw-branch-name').textContent);
+    });
+    var mingCell = cells.find(function (cell) { return cell.querySelector('.zw-palace-name').textContent.trim() === '명궁'; });
+    var ming = mingCell && choices.querySelector('[data-palace-index="' + mingCell.className.match(/\bzw-cell-(\d+)\b/)[1] + '"]');
+    if (ming) ming.click();
+    initialSelection = false;
   }
   function init() {
     if (!document.getElementById('basicFortuneLibraryStyle')) {
