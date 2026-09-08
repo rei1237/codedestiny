@@ -1432,6 +1432,16 @@
       "freeNavAria": "Read my free fortune",
       "consultNav": "Readings",
       "consultNavAria": "Explore featured readings"
+    },
+    "searchEntry": {
+      "title": "Start with today’s fortune",
+      "fusion": "Explore six perspectives with Fusion Fortune",
+      "intro": "A little direction for what is on your mind",
+      "lead": "Explore Saju, Zi Wei Dou Shu, Sukuyo, Vedic astrology, Western astrology and tarot. Compare their perspectives on your question and consider your next step.",
+      "start": "Try my free reading",
+      "question": "What would you like to explore?",
+      "deeper": "When you want a deeper reading",
+      "find": "Looking for a particular reading?"
     }
   },
   "terms": {

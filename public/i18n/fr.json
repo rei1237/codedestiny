@@ -1432,6 +1432,16 @@
       "freeNavAria": "Voir ma lecture gratuite",
       "consultNav": "Conseils",
       "consultNavAria": "Voir les lectures proposées"
+    },
+    "searchEntry": {
+      "title": "Commencez par votre fortune du jour",
+      "fusion": "Six perspectives avec Fusion Fortune",
+      "intro": "Un repère bienveillant pour votre journée",
+      "lead": "Comparez le saju, le Zi Wei Dou Shu, le Sukuyo, les astrologies védique et occidentale et le tarot pour réfléchir à vos prochains choix.",
+      "start": "Voir ma lecture gratuite",
+      "question": "Quelle question vous préoccupe ?",
+      "deeper": "Pour une réponse plus approfondie",
+      "find": "Vous cherchez une lecture précise ?"
     }
   },
   "terms": {

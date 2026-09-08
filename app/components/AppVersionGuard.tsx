@@ -406,6 +406,15 @@ export default function AppVersionGuard() {
   const [pendingUpdate, setPendingUpdate] = useState<PendingUpdateState | null>(null);
 
   useEffect(() => {
+    // Keep the cache-busting request, but do not leave build URLs to be shared.
+    try {
+      const url = new URL(window.location.href);
+      const reloadVersion = window.sessionStorage.getItem(RELOAD_GUARD_KEY);
+      if (reloadVersion && url.searchParams.get("v") === reloadVersion) {
+        url.searchParams.delete("v");
+        window.history.replaceState(window.history.state, "", url.toString());
+      }
+    } catch { /* Storage/history can be unavailable in embedded browsers. */ }
     void retireLegacyServiceWorkersOnce();
     const restored = restorePaidAttemptFromUrlOrStorage();
     if (restored) {

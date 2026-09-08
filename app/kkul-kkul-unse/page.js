@@ -26,7 +26,7 @@ const FUSION_FORTUNE_SUMMARY =
 const SERVICES = [
   {
     href: "/manse",
-    title: "사주",
+    title: "꿀꿀만세력으로 내 사주 보기",
     description: "생년월일과 출생시간을 바탕으로 오행, 십성, 대운의 흐름을 살핍니다.",
   },
   {
