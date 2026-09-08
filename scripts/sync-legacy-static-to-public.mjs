@@ -4,6 +4,7 @@
  */
 import "./design/build-home-funnel.mjs";
 import "./design/gen-yehwa-motifs.mjs";
+import "./build-sukuyo-reading-library.mjs";
 import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync, statSync, readdirSync, rmSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { dirname, resolve, join } from "node:path";

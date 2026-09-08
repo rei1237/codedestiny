@@ -95,40 +95,135 @@
     if (!setUp('sukuyo', root) || !data) return;
     var oldHeading = root.querySelector('.sy-header');
     if (oldHeading) oldHeading.remove(); // Repeated service heading, not a result or action.
+    root.classList.add('sy-reading-house');
+    var labels = syReadingLabels();
+    var nav = node('nav', 'sy-house-nav'); nav.setAttribute('aria-label', labels[0]);
+    [['syHouseNatal',1],['syHouseTools',2],['syHouseDirectory',3],['syHouseJournal',4]].forEach(function (item) {
+      var button = node('button', '', labels[item[1]]); button.type = 'button';
+      button.addEventListener('click', function () { syReadingJump(document.getElementById(item[0])); });
+      nav.appendChild(button);
+    });
+    var banner = node('section', 'sy-house-banner');
+    var art = node('img'); art.src = '/images/sukuyo/moon-garden.webp'; art.alt = ''; art.width = 1440; art.height = 960; art.decoding = 'async';
+    var bannerCopy = node('div', 'sy-house-banner-copy');
+    bannerCopy.appendChild(node('h2', '', labels[5])); bannerCopy.appendChild(node('p', '', labels[6]));
+    var read = node('button', 'sy-house-primary', labels[7]); read.type = 'button'; read.addEventListener('click', function () { syReadingJump(document.getElementById('syHouseNatal')); });
+    bannerCopy.appendChild(read); banner.append(art, bannerCopy); root.prepend(nav, banner);
     var hero = root.querySelector('.sy-intro-card');
     if (hero) {
       hero.classList.add('fr-hero');
-      hero.prepend(emblem('sukuyo'));
       var title = hero.querySelector('.sy-intro-title');
       if (title) title.textContent = data.mansion;
-      var description = hero.querySelector('.sy-intro-archetype');
-      if (description && data.traits && data.traits.desc) description.textContent = data.traits.desc;
       var badges = node('div', 'fr-tags');
       if (data.displayIndex) badges.appendChild(node('span', '', data.displayIndex + ' / 27'));
       if (data.guardian && data.guardian.name) badges.appendChild(node('span', '', data.guardian.name));
       hero.appendChild(badges);
     }
-    var reading = node('section', 'fr-reading');
-    reading.appendChild(heading(t('keyReading')));
-    var traits = data.traits || {};
-    [[13, 'core'], [14, 'social'], [15, 'love'], [16, 'work'], [17, 'advice']].forEach(function (item, index) {
-      if (!traits[item[1]]) return;
-      var article = node('article', 'fr-reading-item');
-      article.appendChild(node('h4', '', t(item[0])));
-      article.appendChild(node('p', '', traits[item[1]]));
-      if (index < 2) reading.appendChild(article);
-      else fold(reading, t(item[0]), [article]);
-    });
+    var reading = syReadingBody(data.traits, labels); reading.id = 'syHouseNatal';
     if (hero) hero.after(reading); else root.appendChild(reading);
-    var chart = root.querySelector('#syWheelCardHost');
-    var calendar = root.querySelector('.sy-basic-calendar');
-    fold(root, t('mansionChart'), [chart, calendar], 'fr-sukuyo-chart');
-    var canonical = root.querySelector('#syCanonicalDashboard');
-    fold(root, t('mansionDetails'), [canonical, root.querySelector('.sy-guardian-card')]);
+    // Move original nodes, never clone/rebuild controls or move them behind disclosures.
     var extras = Array.from(root.children).filter(function (el) {
-      return !el.matches('.fr-profile,.fr-hero,.fr-reading,.fr-disclosure,.sy-lunar-rim');
+      return !el.matches('.fr-profile,.fr-hero,.fr-reading,.sy-house-nav,.sy-house-banner,.sy-lunar-rim,style,script');
     });
-    if (extras.length) fold(root, t('explore'), extras, 'fr-sukuyo-explore');
+    var toolsSection = node('section', 'sy-house-tools'); toolsSection.id = 'syHouseTools';
+    toolsSection.appendChild(heading(labels[2])); extras.forEach(function (el) { toolsSection.appendChild(el); }); root.appendChild(toolsSection);
+    root.appendChild(syMansionDirectory(data, labels));
+    root.appendChild(syArticleLibrary(root, labels));
+  }
+  function syReadingLabels() {
+    var lang = document.documentElement.lang || 'ko';
+    try { lang = localStorage.getItem('cd_lang') || lang; } catch (_) {}
+    var labels = {
+      ko: ['숙요점 메뉴','나의 숙','명반·상세','27숙 도감','숙요 읽을거리','달이 머문 자리, 나를 읽는 시간','타고난 마음의 결에서 관계의 리듬까지. 당신의 숙을 천천히 펼쳐보세요.','나의 숙 해석 읽기','성격과 내면','강점의 이면에 있는 마음','연애와 관계','인연을 이어가는 방식','일과 재물','능력이 살아나는 자리','돈을 대하는 습관','오늘의 작은 실천','스물일곱 숙의 이야기','숙 이름 찾기','예: 각, 角, 위','도감 해설 · 나의 본명숙과는 별도입니다.','내 본명숙 해설로 돌아가기','숙요를 더 깊이 읽는 시간','기존 숙요 글을 이 화면에서 이어 읽어보세요.','글 목록으로 돌아가기','원문 페이지 보기','불러오는 중입니다.','불러오지 못했어요. 다시 시도해 주세요.','다시 불러오기','찾는 항목이 없어요. 다른 검색어를 입력해 주세요.','글 제목 찾기','숙요점은 전통적인 상징을 통해 자신을 돌아보는 해석입니다. 같은 숙이라도 경험과 선택에 따라 삶의 모습은 달라집니다.','한국어 원문','회복과 생활 리듬','흐름을 활용하는 방법'],
+      en: ['Sukuyo navigation','My mansion','Chart & details','27 mansions','Reading room','Where the moon rests, a moment to understand yourself','Explore your temperament and the rhythms of your relationships.','Read my mansion','Temperament','The other side of a strength','Love & relationships','Building lasting connections','Work & money','Where your talents thrive','Money habits','A small step today','Stories of the 27 mansions','Find a mansion','Name or Chinese character','Reference reading — separate from your natal mansion.','Return to my natal reading','Read more about Sukuyo','Read existing Sukuyo articles here.','Back to articles','Open original article','Loading…','Unable to load. Please try again.','Retry','No matches. Try another search.','Find an article','A traditional symbolic reading for reflection. Experience and choices shape each person differently.','Korean original','Rest & daily rhythm','Working with your rhythm'],
+      ja: ['宿曜メニュー','本命宿','命盤・詳細','27宿図鑑','読みもの','月が宿る場所から、自分を知る時間へ','生まれ持つ気質から人間関係のリズムまで、ゆっくり読み解きます。','本命宿を読む','性格と内面','強みの裏にある心','恋愛と人間関係','縁を育てる方法','仕事とお金','才能を生かす場所','お金との付き合い方','今日の小さな一歩','二十七宿の物語','宿を検索','宿名・漢字','図鑑の解説です。本命宿の結果とは別です。','自分の本命宿に戻る','宿曜を深く読む','宿曜の記事をこの画面で読み続けられます。','記事一覧に戻る','元の記事を開く','読み込み中…','読み込めませんでした。もう一度お試しください。','再読み込み','見つかりません。別の語で検索してください。','記事を検索','伝統的な象徴を通じて自分を振り返る解釈です。同じ宿でも経験や選択によって異なります。','韓国語原文','休息と生活リズム','リズムの生かし方'],
+      zh: ['宿曜导航','我的本命宿','命盘与详情','二十七宿','宿曜阅读','月亮停留的地方，认识自己的时刻','从性情到关系节奏，慢慢读懂自己的本命宿。','阅读我的本命宿','性格与内心','优势背后的心情','恋爱与关系','维系关系的方式','工作与金钱','发挥才能的方向','金钱习惯','今天的小行动','二十七宿的故事','搜索宿名','宿名或汉字','图鉴解读，与您的本命宿结果分开。','返回我的本命宿','深入阅读宿曜','在这里继续阅读已有的宿曜文章。','返回文章列表','查看原文页面','正在加载…','加载失败，请重试。','重新加载','没有匹配项，请换个词搜索。','搜索文章标题','通过传统象征反思自身的解读。同一宿的人也会因经历和选择而不同。','韩语原文','休息与生活节奏','运用节奏的方法'],
+      'zh-TW': ['宿曜導覽','我的本命宿','命盤與詳情','二十七宿','宿曜閱讀','月亮停留的地方，認識自己的時刻','從性情到關係節奏，慢慢讀懂自己的本命宿。','閱讀我的本命宿','性格與內心','優勢背後的心情','戀愛與關係','維繫關係的方式','工作與金錢','發揮才能的方向','金錢習慣','今天的小行動','二十七宿的故事','搜尋宿名','宿名或漢字','圖鑑解讀，與您的本命宿結果分開。','返回我的本命宿','深入閱讀宿曜','在這裡繼續閱讀已有的宿曜文章。','返回文章列表','查看原文頁面','正在載入…','載入失敗，請重試。','重新載入','沒有符合項目，請換個詞搜尋。','搜尋文章標題','透過傳統象徵反思自身的解讀。同一宿的人也會因經歷和選擇而不同。','韓語原文','休息與生活節奏','運用節奏的方法']
+    };
+    return labels[lang] || labels[lang.split('-')[0]] || labels.ko;
+  }
+  function syReadingJump(target) {
+    if (!target) return;
+    target.tabIndex = -1; target.focus({ preventScroll: true }); target.scrollIntoView({ block: 'start', behavior: 'instant' });
+  }
+  function syReadingBody(traits, labels) {
+    var body = node('article', 'fr-reading sy-house-reading');
+    // Paid deep-dive fields (hidden/karma/mantra/health/timing) stay in their original gated renderer.
+    [[8,'core'],[10,'love',11,'social'],[12,'work',14,'wealth'],[15,'advice']].forEach(function (entry) {
+      if (!traits || !traits[entry[1]]) return;
+      var section = node('section', 'fr-reading-item'); section.appendChild(heading(labels[entry[0]]));
+      var text = node('p', '', traits[entry[1]]); text.lang = 'ko'; section.appendChild(text);
+      if (entry[3] && traits[entry[3]]) { section.appendChild(node('h4','',labels[entry[2]])); var extra = node('p','',traits[entry[3]]); extra.lang='ko'; section.appendChild(extra); }
+      body.appendChild(section);
+    });
+    body.appendChild(node('p','fr-caption',labels[30])); return body;
+  }
+  function syMansionDirectory(natal, labels) {
+    var section = node('section','sy-house-directory'); section.id='syHouseDirectory'; section.appendChild(heading(labels[16]));
+    var label = node('label','sy-house-search',labels[17]);
+    var input = node('input'); input.type='search'; input.placeholder=labels[18]; label.appendChild(input); section.appendChild(label);
+    var grid = node('div','sy-house-mansions'); grid.setAttribute('aria-label',labels[3]);
+    var status=node('p','fr-caption'); status.setAttribute('role','status');
+    var reader=node('div','sy-house-mansion-reader'); reader.hidden=true;
+    var records = window.SukuyoMansionReadings || [];
+    records.forEach(function (m) {
+      var button=node('button'); button.type='button'; button.dataset.mansionIndex=String(m.index); button.setAttribute('aria-pressed','false');
+      button.setAttribute('aria-label',m.name+'宿 '+m.han); button.append(node('span','sy-house-han',m.han),node('span','',m.name+'宿'));
+      button.addEventListener('click',function () {
+        grid.querySelectorAll('button').forEach(function (b) { b.setAttribute('aria-pressed',String(b===button)); });
+        reader.replaceChildren(node('p','sy-house-reference',labels[19]),heading(m.name+'宿 · '+m.han),syReadingBody(m.traits,labels));
+        var back=node('button','',labels[20]); back.type='button'; back.addEventListener('click',function () { syReadingJump(document.getElementById('syHouseNatal')); }); reader.appendChild(back);
+        reader.hidden=false; syReadingJump(reader);
+      }); grid.appendChild(button);
+    });
+    input.addEventListener('input',function () { var query=input.value.trim().replace(/[숙宿]/g,''); var count=0;
+      grid.querySelectorAll('button').forEach(function (b,i) { b.hidden=!(records[i].name.includes(query)||records[i].han.includes(query)); if(!b.hidden) count++; }); status.textContent=count?'':labels[28];
+    }); section.append(grid,status,reader); return section;
+  }
+  function syArticleLibrary(root, labels) {
+    var section=node('section','sy-house-journal'); section.id='syHouseJournal'; section.appendChild(heading(labels[21])); section.appendChild(node('p','fr-caption',labels[22]));
+    var label=node('label','sy-house-search',labels[29]); var input=node('input'); input.type='search'; label.appendChild(input); section.appendChild(label);
+    var list=node('div','sy-house-articles'); var status=node('p','fr-caption',labels[25]); status.setAttribute('role','status');
+    var retry=node('button','',labels[27]); retry.type='button'; retry.hidden=true;
+    var reader=node('article','sy-house-article-reader'); reader.hidden=true;
+    section.append(list,status,retry,reader);
+    var articles=[]; var activeRequest=0;
+    function renderList() {
+      list.replaceChildren(); var query=input.value.trim().toLocaleLowerCase();
+      articles.filter(function (a) { return (a.title+' '+a.description).toLocaleLowerCase().includes(query); }).forEach(function (a) {
+        var link=node('a','sy-house-story'); link.href=a.href; link.lang='ko'; link.append(node('h4','',a.title),node('p','',a.description));
+        link.addEventListener('click',function (event) {
+          if(event.ctrlKey||event.metaKey||event.shiftKey||event.altKey) return;
+          event.preventDefault(); openArticle(a,link);
+        }); list.appendChild(link);
+      }); status.textContent=list.childElementCount?'':labels[28];
+    }
+    function openArticle(a, origin) {
+      var request=++activeRequest; reader.hidden=false; reader.replaceChildren();
+      var back=node('button','',labels[23]); back.type='button'; back.addEventListener('click',function () { activeRequest++; reader.hidden=true; if(origin.isConnected) origin.focus(); });
+      var title=heading(a.title); title.lang='ko'; var original=node('a','sy-house-original',labels[24]); original.href=a.href;
+      var content=node('div','sy-house-article-body',labels[25]); content.lang='ko'; content.setAttribute('aria-live','polite');
+      reader.append(back,title,node('p','fr-caption',labels[31]),original,content); syReadingJump(reader);
+      fetch('/data/sukuyo-reading/'+a.body).then(function (response) { if(!response.ok) throw new Error('Article unavailable'); return response.json(); }).then(function (payload) {
+        if(request!==activeRequest||!root.isConnected) return;
+        // Authored local content still uses a DOM allowlist; no script, embedded media or inline handlers.
+        var parsed=new DOMParser().parseFromString(payload.contentHtml,'text/html');
+        parsed.querySelectorAll('script,style,iframe,object,embed,form,input,button,link,meta,img,svg').forEach(function(el){el.remove();});
+        parsed.body.querySelectorAll('*').forEach(function(el){
+          var href=el.tagName==='A'?el.getAttribute('href'):null;
+          Array.from(el.attributes).forEach(function(attr){el.removeAttribute(attr.name);});
+          if(href&&/^\/(?!\/)/.test(href)) el.setAttribute('href',href);
+        }); content.replaceChildren.apply(content,Array.from(parsed.body.childNodes));
+      }).catch(function () { if(request===activeRequest&&root.isConnected) content.textContent=labels[26]; });
+    }
+    function load() {
+      retry.hidden=true; status.textContent=labels[25];
+      fetch('/data/sukuyo-reading/index.json',{cache:'no-store'}).then(function(response){if(!response.ok)throw new Error('Catalogue unavailable');return response.json();}).then(function(items){
+        if(!root.isConnected) return;
+        articles=items.filter(function(a){return /^[a-z0-9-]+$/.test(a.slug)&&a.href==='/insights/'+a.slug+'/'&&/^[a-z0-9-]+\.json$/.test(a.body);}); renderList();
+      }).catch(function(){if(!root.isConnected)return;status.textContent=labels[26];retry.hidden=false;});
+    }
+    input.addEventListener('input',renderList); retry.addEventListener('click',load); load(); return section;
   }
   function ziwei(area, data) {
     if (!setUp('ziwei', area) || !data) return;
