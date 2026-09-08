@@ -1311,6 +1311,7 @@ export default function FortuneTeaHousePage() {
         <QuestionInputScene
           selectedCup={selectedCup}
           initialInput={questionInput}
+          onDraftChange={setQuestionInput}
           onBack={() => goToStage("teaSelect")}
           onSubmit={submitQuestion}
           isSubmitting={isSubmitting}

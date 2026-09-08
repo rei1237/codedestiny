@@ -1,11 +1,15 @@
 "use client";
 
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from "react";
 import { useBodyScrollLock } from "@/app/_lib/body-scroll-lock";
 import { useServerPrice } from "@/app/hooks/useServerPrice";
 import { useT, useTPick, type Translate, type TranslatePick } from "@/lib/i18n/useT";
+import { getCurrentLoadingLocale } from "@/constants/loadingMessages";
+
+const FeatureVisualDetail = dynamic(() => import("./FeatureVisualDetail"), { ssr: false });
 
 type FeatureMarketingBadge = {
   text?: string;
@@ -411,6 +415,7 @@ export function FeatureMarketingDetailModal({
   const router = useRouter();
   const pathname = usePathname() || "/";
   const [navPending, setNavPending] = useState(false);
+  const [hasVisualDetail, setHasVisualDetail] = useState(false);
   const t = useT();
   const copy = useFeatureMarketingCopy(target, open);
   // 🔴 호출부가 featureKey 를 안 넘기면 가격이 영영 빈칸이고 그러면 priceReady 가 false 라
@@ -427,18 +432,27 @@ export function FeatureMarketingDetailModal({
   // 묶으면 가드 기준 시각이 계속 밀려 백드롭 닫기가 영구히 무력화된다.
   useEffect(() => {
     if (open) openedAtRef.current = Date.now();
-    else setNavPending(false);
+    else { setNavPending(false); setHasVisualDetail(false); }
   }, [open]);
 
   useEffect(() => {
     if (!open) return;
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") onClose();
+      if (event.key !== "Tab") return;
+      const dialog = closeRef.current?.closest('[role="dialog"]');
+      const nodes = Array.from(dialog?.querySelectorAll<HTMLElement>('button:not(:disabled),a[href],input:not(:disabled),select:not(:disabled),textarea:not(:disabled),summary,[tabindex="0"]') || [])
+        .filter(node => node.offsetParent !== null && node.tabIndex >= 0);
+      const first = nodes[0], last = nodes[nodes.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
     };
     window.addEventListener("keydown", onKeyDown);
     closeRef.current?.focus();
     return () => {
       window.removeEventListener("keydown", onKeyDown);
+      if (previousFocus?.isConnected) previousFocus.focus();
     };
   }, [open, onClose]);
 
@@ -500,11 +514,13 @@ export function FeatureMarketingDetailModal({
             </div>
             <h2 id="featureMarketingTitle" className="m-0 text-xl font-black leading-tight text-[#fff3c4]">{target.title}</h2>
           </div>
-          <button ref={closeRef} type="button" onClick={onClose} className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-white/15 bg-white/8 text-lg font-black text-white" aria-label={t("common.close")}>
+          <button ref={closeRef} type="button" onClick={onClose} className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-white/15 bg-white/8 text-lg font-black text-white" aria-label={t("common.close")}>
             ×
           </button>
         </div>
 
+        <FeatureVisualDetail keys={marketingKeys(target)} enabled={open && getCurrentLoadingLocale() === "ko"} onReady={setHasVisualDetail} />
+        <div hidden={hasVisualDetail}>
         {copy ? (
           <>
             <p className="m-0 text-sm font-bold leading-6 text-slate-100">{copy.headline}</p>
@@ -634,6 +650,7 @@ export function FeatureMarketingDetailModal({
           </div>
         )}
 
+        </div>
         <div className="sticky bottom-0 -mx-4 mt-4 border-t border-white/10 bg-[linear-gradient(to_top,#070b1d_76%,rgba(7,11,29,0))] px-4 pb-1 pt-4 sm:-mx-6 sm:px-6">
           <div className="mb-2 flex items-center justify-between gap-3 text-xs font-bold text-slate-300">
             <span aria-live="polite">{priceText(target, priceState, t)}</span>

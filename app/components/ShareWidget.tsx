@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { getShareMetadata, trackShareEvent, type ShareMetadataV2 } from "../../lib/share.v2";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
+import { prepareKakao, shareThrough, type ShareChannel } from "@/js/share-service.mjs";
 
 type ShareWidgetProps = {
   title: string;
@@ -61,12 +62,19 @@ export default function ShareWidget({
   const pathname = usePathname() || "/";
   const [status, setStatus] = useState("");
   const [open, setOpen] = useState(false);
+  const [manualCopy, setManualCopy] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const sharingRef = useRef(false);
   const [locale, setLocale] = useState<LoadingLocale>("ko");
   const copy = SHARE_WIDGET_COPY[locale] || SHARE_WIDGET_COPY.ko;
 
   useEffect(() => {
     setLocale(getCurrentLoadingLocale());
   }, []);
+
+  useEffect(() => {
+    if (open) void prepareKakao(process.env.NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY);
+  }, [open]);
 
   const share = useMemo(
     () =>
@@ -85,42 +93,28 @@ export default function ShareWidget({
 
   const payload = {
     contentType: share.contentType,
-    contentId: share.contentId,
-    title: share.title,
-    url: share.canonicalUrl,
-    pagePath: path || pathname,
     source: "share_widget_v2",
-    timestamp: new Date().toISOString(),
   };
 
-  async function copyLink() {
-    trackShareEvent("copy_link_clicked", { ...payload, shareChannel: "copy" });
-    try {
-      await navigator.clipboard.writeText(share.url);
-      setStatus(copy.copied);
-      trackShareEvent("share_completed", { ...payload, shareChannel: "copy" });
-    } catch {
-      setStatus(copy.copyFailed);
-      trackShareEvent("share_failed", { ...payload, shareChannel: "copy" });
+  async function runShare(channel: ShareChannel) {
+    if (sharingRef.current) return;
+    sharingRef.current = true;
+    setBusy(true);
+    trackShareEvent("share_button_click", { ...payload, shareChannel: channel });
+    const outcome = await shareThrough(channel, share);
+    sharingRef.current = false;
+    setBusy(false);
+    setManualCopy(outcome.status === "manual");
+    if (outcome.status === "copied") setStatus(copy.copied);
+    else if (outcome.status === "shared") setStatus(copy.shareCompleted);
+    else if (outcome.status === "cancelled") setStatus(copy.shareCancelled);
+    else if (outcome.status === "opened") setStatus(locale === "ko" ? "카카오톡에서 받을 친구를 선택해 주세요." : "Choose a recipient in KakaoTalk.");
+    else {
+      setOpen(true);
+      setStatus(locale === "ko" ? "공유를 열지 못했어요. 다른 공유 방법을 선택하거나 아래 링크를 복사해 주세요." : "Choose another sharing option, or copy the link below.");
+      setManualCopy(true);
     }
-  }
-
-  async function nativeShare() {
-    trackShareEvent("share_clicked", { ...payload, shareChannel: "native" });
-    if (!navigator.share) {
-      setOpen((value) => !value);
-      return;
-    }
-
-    try {
-      trackShareEvent("native_share_opened", { ...payload, shareChannel: "native" });
-      await navigator.share({ title: share.title, text: share.text, url: share.url });
-      setStatus(copy.shareCompleted);
-      trackShareEvent("share_completed", { ...payload, shareChannel: "native" });
-    } catch {
-      setStatus(copy.shareCancelled);
-      trackShareEvent("share_failed", { ...payload, shareChannel: "native" });
-    }
+    trackShareEvent(`share_${channel === "copy" ? "copy_link" : channel}`, { ...payload, outcome: outcome.status });
   }
 
   function socialShare(channel: string) {
@@ -131,19 +125,18 @@ export default function ShareWidget({
   return (
     <section aria-label={copy.sectionLabel} style={{ marginTop: 24 }}>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center" }}>
-        <button type="button" onClick={nativeShare} aria-label={copy.sectionLabel} style={buttonStyle}>
+        <button type="button" onClick={() => setOpen(value => !value)} aria-expanded={open} aria-label={copy.sectionLabel} style={buttonStyle}>
           {copy.share}
         </button>
-        <button type="button" onClick={copyLink} aria-label={copy.copyLinkLabel} style={buttonStyle}>
+        <button type="button" disabled={busy} onClick={() => void runShare("copy")} aria-label={copy.copyLinkLabel} style={buttonStyle}>
           {copy.copyLink}
-        </button>
-        <button type="button" onClick={() => setOpen((value) => !value)} aria-expanded={open} style={buttonStyle}>
-          {copy.channels}
         </button>
       </div>
 
       {open ? (
         <div style={{ marginTop: 10, display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center" }}>
+          <button type="button" disabled={busy} onClick={() => void runShare("kakao")} style={channelButtonStyle}>{locale === "ko" ? "카카오톡" : "KakaoTalk"}</button>
+          <button type="button" disabled={busy} onClick={() => void runShare("native")} style={channelButtonStyle}>{locale === "ko" ? "기기 공유" : "Device share"}</button>
           {[
             ["x", "X"],
             ["facebook", "Facebook"],
@@ -156,6 +149,8 @@ export default function ShareWidget({
           ))}
         </div>
       ) : null}
+
+      {manualCopy ? <input readOnly aria-label={copy.copyLinkLabel} value={share.url} onFocus={event => event.currentTarget.select()} style={{ width: "100%", minHeight: 44, marginTop: 12, fontSize: 16, background: "#0f172a", color: "#f8fafc", border: "1px solid #94a3b8", borderRadius: 8, padding: 8 }} /> : null}
 
       {status ? (
         <p role="status" aria-live="polite" style={{ margin: "10px 0 0", textAlign: "center", fontSize: 12, color: "rgba(226,232,240,0.82)" }}>
@@ -175,6 +170,8 @@ const buttonStyle = {
   fontSize: 13,
   fontWeight: 800,
   cursor: "pointer",
+  minHeight: 44,
+  minWidth: 44,
 } as const;
 
 const channelButtonStyle = {
