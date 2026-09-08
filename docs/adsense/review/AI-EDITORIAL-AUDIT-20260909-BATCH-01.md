@@ -22,4 +22,3 @@
 1. 위 4편의 원전·계산/도상 근거를 기록한 뒤, 결과 보장·빈도·우열·전생 단정을 먼저 제거한다.
 2. 수정 뒤 원고별 해시와 AI 편집 기록을 갱신하되, `humanReview: "unconfirmed"`, `adsAllowed: false`를 유지한다.
 3. 이어서 같은 위험군인 `sukuyo-useo`, `vedic-retrograde-planets-practical-decoding`, `career-luck-interview-exam-prep-strategy`를 감사한다.
-
