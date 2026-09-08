@@ -20,11 +20,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!detail) return { title: "소개를 찾을 수 없습니다", robots: { index: false } };
   const url = `https://code-destiny.com/features/${detail.slug}/`;
   const image = detail.image || detail.panels.find(panel => panel.verifiedCapture)?.verifiedCapture?.src;
+  const description = `${detail.description} 결과에서 확인할 핵심 내용과 필요한 준비를 먼저 살펴보세요.`;
   return {
-    title: `${detail.title} | CODE DESTINY`, description: detail.description,
+    title: `${detail.title} | CODE DESTINY`, description,
     alternates: { canonical: url },
-    openGraph: { type: "website", title: detail.title, description: detail.description, url, images: image ? [{ url: new URL(image, url).href }] : [] },
-    twitter: { card: "summary_large_image", title: detail.title, description: detail.description, images: image ? [new URL(image, url).href] : [] },
+    openGraph: { type: "website", title: detail.title, description, url, images: image ? [{ url: new URL(image, url).href }] : [] },
+    twitter: { card: "summary_large_image", title: detail.title, description, images: image ? [new URL(image, url).href] : [] },
   };
 }
 export default async function FeatureIntroduction({ params }: { params: Promise<{ slug: string }> }) {

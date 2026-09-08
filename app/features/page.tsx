@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import catalog from "@/lib/marketing/feature-visual-details.generated.json";
 import FeatureIntroductionCatalog from "./FeatureIntroductionCatalog";
 import "@/styles/feature-visual-detail.css";
-export const metadata: Metadata = { title: "기능 소개 | CODE DESTINY", description: "기능별 제공 내용과 이용 방법을 살펴보고, 내 고민에 맞는 운세를 골라 보세요.", alternates: { canonical: "https://code-destiny.com/features/" } };
+export const metadata: Metadata = { title: "기능 소개 | CODE DESTINY", description: "사주·타로·자미두수·점성술 등 Code Destiny의 기능별 제공 내용과 준비 정보를 살펴보고, 지금의 고민에 맞는 상담을 골라 보세요.", alternates: { canonical: "https://code-destiny.com/features/" } };
 export default function FeatureIntroductions() {
   const items = [...new Map(catalog.index.filter(item => item.verification === "verified").map(item => [item.slug, item])).values()];
   return <main className="featureCatalogPage">
