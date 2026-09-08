@@ -262,6 +262,8 @@ export async function activatePassSubscription(db, {
     "profileSubscription.premiumUseCount": cycle.premiumUseCount,
     "profileSubscription.monthlySpendCoin": cycle.monthlySpendCoin,
     "profileSubscription.monthlyLimitCoin": cycle.monthlyLimitCoin,
+    "profileSubscription.passExhaustedAt": null,
+    "profileSubscription.passExhaustedFromExpiresAt": null,
     "profileSubscription.updatedAt": now,
   };
   const filter = { _id: uid };
@@ -485,11 +487,8 @@ export function describePassEligibility({ user, entitlement, product } = {}) {
 }
 
 /**
- * 월 한도 소진 → 이용권 조기 종료(2026-09-04 정책). **쓰기 1회**, 소진된 건에서만 돈다.
- *
- * 만료일을 now 로 당기는 것이 종료의 전부다 — 활성 판정이 전부 expiresAt 을 보므로
- * (profile-limits.js resolveHoneyPassEntitlement · canUseByPass · 위 evaluatePassCoverage)
- * "소진 상태" 플래그를 새로 만들어 곳곳에서 검사할 필요가 없다(코딩 원칙 6).
+ * 월 한도 소진 감사 마커 기록. **쓰기 1회**, 잔여가 정확히 0이 된 건에서만 돈다.
+ * 등급·만료일·프로필 상한은 건드리지 않는다.
  *
  * 🔴 필터가 CAS 다. 방금 소비한 그 이용권(premiumUseCycleKey 일치)이 아직 살아 있을 때만
  * 손대므로, 병렬 소비 2건이 동시에 소진에 걸려도 두 번째는 no-op 이고, 그 사이 새 이용권을
@@ -509,6 +508,7 @@ export async function terminatePassOnBudgetExhaustion(db, { userId, cycleKey, pr
     _id: uid,
     "profileSubscription.premiumUseCycleKey": cycleKey,
     "profileSubscription.expiresAt": { $gt: now },
+    "profileSubscription.passExhaustedAt": null,
   }, { $set });
   return Number(result?.matchedCount ?? 0) > 0;
 }
@@ -597,18 +597,17 @@ export async function consumePassCoverage(db, { userId, coverage, marker, existi
 }
 
 /**
- * 소비 직후 소진 판정 → 종료. **읽기 0회** — CAS 가 returnDocument:"after" 라 차감 후 누적액을
- * 이미 들고 있다. 종료했으면 반환 문서에도 반영해, 같은 요청의 응답 봉투가 종료를 알고 나간다.
+ * 소비 직후 소진 판정 → 감사 마커 기록. **읽기 0회** — CAS 반환값에 차감 후 누적액이 있다.
  */
 async function applyBudgetExhaustionTermination(db, { userId, coverage, updated, now }) {
   if (!coverage?.budgetApplies) return updated;
   const sub = updated?.profileSubscription && typeof updated.profileSubscription === "object" ? updated.profileSubscription : null;
   if (!sub) return updated;
   if (!isPassBudgetExhausted(coverage.tier, sub.monthlySpendCoin, coverage.budgetCoin)) return updated;
-  const terminated = await terminatePassOnBudgetExhaustion(db, {
+  const marked = await terminatePassOnBudgetExhaustion(db, {
     userId, cycleKey: coverage.cycleKey, previousExpiresAt: sub.expiresAt, now,
   });
-  if (!terminated) return updated;
+  if (!marked) return updated;
   return { ...updated, profileSubscription: { ...sub, ...buildPassTerminationFields({ now, previousExpiresAt: sub.expiresAt }) } };
 }
 

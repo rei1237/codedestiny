@@ -16,7 +16,8 @@
  *    __tests__/worker/payments-v2.pass-check.test.js 가 이미 고정한다. 사본을 만들지 않는다.
  */
 import { consumePassForFeature } from "../../worker/lib/pass-consumption.js";
-import { MIN_PASS_COVERABLE_COIN, MONTHLY_PASS_LIMITS, PASS_LIMITS } from "../../worker/lib/profile-limits.js";
+import { readAccessStateCache, writeAccessStateCache } from "../../worker/lib/access-state-cache.js";
+import { MONTHLY_PASS_LIMITS, PASS_LIMITS } from "../../worker/lib/profile-limits.js";
 import { makeFakePaymentDb } from "../fixtures/fake-payment-db.mjs";
 
 const USER = "64b000000000000000000001";
@@ -69,25 +70,39 @@ describe("한도 경계 — 도달 직전 · 도달 · 초과 이후", () => {
     expect(db.rows[0].profileSubscription.monthlySpendCoin).toBe(cost);
     expect(db.rows[0].recentConsumeRequestIds).toHaveLength(1);
   });
-  test("마지막 한도를 사용한 실행은 이용권 종료 후에도 재결제 없이 재개한다", async () => {
+  test("동시 두 콘텐츠는 남은 예산을 초과해 함께 통과하지 못한다", async () => {
+    const db = makeFakePaymentDb();
+    const at = expiresAt();
+    const cost = PASS_LIMITS[TIER];
+    const user = seed(db, { spent: BUDGET - cost, at });
+    const snapshot = structuredClone(user);
+    const [first, second] = await Promise.all([
+      consume(db, snapshot, at, { cost, requestId: "concurrent-track-a" }),
+      consume(db, snapshot, at, { cost, requestId: "concurrent-track-b" }),
+    ]);
+    expect([first.covered, second.covered].sort()).toEqual([false, true]);
+    expect(db.rows[0].profileSubscription.monthlySpendCoin).toBe(BUDGET);
+  });
+  test("마지막 한도를 사용한 실행은 예산 소진 후에도 재결제 없이 재개한다", async () => {
     const db = makeFakePaymentDb();
     const at = expiresAt();
     const cost = PASS_LIMITS[TIER];
     const user = seed(db, { spent: BUDGET - cost, at });
     expect((await consume(db, user, at, { cost, requestId: "last-covered" })).covered).toBe(true);
-    const ended = db.rows[0];
+    const exhausted = db.rows[0];
     const result = await consumePassForFeature({
-      db, user: ended, entitlement: { isActive: false, tier: "free" }, userId: USER,
+      db, user: exhausted, entitlement: entitlement(at), userId: USER,
       featureKey: FEATURE, requestId: "last-covered", coinCost: cost,
     });
     expect(result.covered).toBe(true);
     expect(result.replayed).toBe(true);
-    expect(ended.profileSubscription.monthlySpendCoin).toBe(BUDGET);
+    expect(exhausted.profileSubscription.monthlySpendCoin).toBe(BUDGET);
     const next = await consumePassForFeature({
-      db, user: ended, entitlement: { isActive: false, tier: "free" }, userId: USER,
+      db, user: exhausted, entitlement: entitlement(at), userId: USER,
       featureKey: FEATURE, requestId: "new-request", coinCost: cost,
     });
     expect(next.covered).toBe(false);
+    expect(next.reason).toBe("monthly_pass_limit_exceeded");
   });
   test("한도 안이면 통과하고 누적 사용액이 정확히 가격만큼 증가한다", async () => {
     const db = makeFakePaymentDb();
@@ -115,20 +130,19 @@ describe("한도 경계 — 도달 직전 · 도달 · 초과 이후", () => {
     expect(db.rows[0].profileSubscription.monthlySpendCoin).toBe(BUDGET - cost + 1);
   });
 
-  test("🔴 예산을 다 쓰면 그 자리에서 이용권이 종료된다 — 만료일이 남아 있어도 잠긴다", async () => {
+  test("🔴 예산을 정확히 다 써도 이용권 기간·등급은 유지되고 소진 시각만 기록된다", async () => {
     const db = makeFakePaymentDb();
     const at = expiresAt();
     const cost = PASS_LIMITS[TIER];
-    // 차감 뒤 남는 잔액이 최소 커버 가능 금액보다 작아야 소진 판정이 선다.
-    const user = seed(db, { spent: BUDGET - cost - (MIN_PASS_COVERABLE_COIN - 1), at });
+    const user = seed(db, { spent: BUDGET - cost, at });
 
     const result = await consume(db, user, at, { cost, requestId: "req-3" });
 
     expect(result.covered).toBe(true);
     const sub = db.rows[0].profileSubscription;
-    // 소진 종료는 만료일을 now 로 당기는 것이 전부다 — 새 '소진 플래그'를 만들지 않는다.
-    expect(new Date(sub.expiresAt).getTime()).toBeLessThanOrEqual(Date.now());
-    expect(sub.tier).toBe("free");
+    expect(new Date(sub.expiresAt).toISOString()).toBe(at.toISOString());
+    expect(sub.tier).toBe(TIER);
+    expect(sub.monthlySpendCoin).toBe(BUDGET);
     expect(sub.passExhaustedAt).toBeTruthy();
   });
 });
@@ -150,6 +164,42 @@ describe("멱등 — 같은 요청의 재시도가 예산을 두 번 깎지 않�
     expect(second.covered).toBe(true);
     expect(second.replayed).toBe(true);
     expect(db.rows[0].profileSubscription.monthlySpendCoin).toBe(cost);
+  });
+});
+
+describe("Family 이용권 — 차감 직후 잔여 한도 캐시 갱신", () => {
+  test("Family 사용량을 가격만큼 올리고 접근 상태 캐시를 즉시 무효화한다", async () => {
+    const db = makeFakePaymentDb();
+    const at = expiresAt();
+    const familyUser = {
+      _id: USER,
+      profileSubscription: {
+        tier: "family", passTier: "family", isActive: true, expiresAt: at,
+        premiumUseCycleKey: at.toISOString(), monthlySpendCoin: 0, monthlyLimitCoin: 0,
+      },
+      recentConsumeRequestIds: [],
+    };
+    db.rows.push(familyUser);
+    writeAccessStateCache(USER, { entitlementSnapshot: { passUsage: { remainingKRW: 500000 } } });
+    const paidAccessCache = globalThis.__paidAccessDecisionCache
+      || (globalThis.__paidAccessDecisionCache = { entries: new Map(), lastPruneAt: 0 });
+    const paidAccessCacheKey = `${USER}|pfa:fusion-fortune-consultation:300`;
+    paidAccessCache.entries.set(paidAccessCacheKey, { decision: { allowed: true }, expiresAt: Date.now() + 3000 });
+
+    const result = await consumePassForFeature({
+      db,
+      user: familyUser,
+      entitlement: { tier: "family", passTier: "family", isActive: true, expiresAt: at },
+      userId: USER,
+      featureKey: "fusion-fortune-consultation",
+      requestId: "family-cache-refresh",
+      coinCost: 300,
+    });
+
+    expect(result.covered).toBe(true);
+    expect(familyUser.profileSubscription.monthlySpendCoin).toBe(300);
+    expect(readAccessStateCache(USER)).toBeNull();
+    expect(paidAccessCache.entries.has(paidAccessCacheKey)).toBe(false);
   });
 });
 

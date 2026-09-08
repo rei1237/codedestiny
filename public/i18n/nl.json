@@ -852,7 +852,7 @@
       "step2Text": "Tarot-, orakel- en saju-readings binnen je bereik openen meteen, zonder betaalvenster.",
       "step3Label": "Alleen diepere readings betaal je per keer",
       "step3Text": "Readings buiten je bereik gaan alleen bij behoefte door met een eenmalige KRW-betaling.",
-      "terminationNote": "If the monthly allowance is fully used, the pass ends regardless of the days left. Buying a new pass starts another 30 days from that day."
+      "terminationNote": "At zero monthly allowance, the pass expiration, tier, and profile limit remain unchanged. Additional paid content is available by single payment or moonstones."
     },
     "promptHub": {
       "aria": "Ga naar uitgebreide fortuinprompts",
@@ -1428,6 +1428,7 @@
       "cta": "Get the app"
     },
     "mobileFunnel": {
+      "lowPrice": "Vanaf ₩1.000",
       "freeNav": "Gratis",
       "freeNavAria": "Bekijk mijn gratis reading",
       "consultNav": "Advies",
@@ -1866,7 +1867,7 @@
         "passSaveUnverified": "We konden het resultaat van het toepassen van je pas niet opslaan. Controleer het opnieuw met de paskaart hieronder of kies een andere betaalmethode.",
         "passCheckFailed": "We konden je pas niet controleren. Probeer het opnieuw met de paskaart hieronder of kies een andere betaalmethode.",
         "passMiss": "Je pas opent deze inhoud niet gratis; hier zijn de betaalopties.",
-        "passMonthlyExhausted": "Your pass allowance is fully used, so the pass has ended. Here are the payment options."
+        "passMonthlyExhausted": "You have used the pass allowance. The pass remains active until its original expiration date, and you can choose a payment method for additional content."
       },
       "passBadge": "Maanlichtpas",
       "passStoreTitle": "Moonlight Pass-winkel",
@@ -1935,7 +1936,7 @@
         "comingSoon": "Binnenkort beschikbaar",
         "back": "Terug"
       },
-      "passMonthlyExhausted": "Your pass allowance is fully used, so the pass has ended. Buying a new pass starts another 30 days; for now you can open this with a one-time payment or moonstones.",
+      "passMonthlyExhausted": "You have used the pass allowance. The tier and profile limit remain until expiration; additional content is available by single payment or moonstones.",
       "passMonthlyRemaining": "Pass allowance left {remaining} / {limit}",
       "wait": {
         "card": "You'll return to this screen automatically once your card verification is complete.",
@@ -2159,7 +2160,7 @@
       "monthlyButton": "Betalen met {credits} maandtegoed",
       "monthlyButtonBusy": "Pas wordt geactiveerd met maandtegoed...",
       "monthlyButtonShort": "{credits} nodig · saldo te laag",
-      "terminationNotice": "If the monthly allowance is fully used, the pass ends regardless of the days left. Buying a new pass starts another 30 days from that day."
+      "terminationNotice": "At zero monthly allowance, the pass expiration, tier, and profile limit remain unchanged. Additional paid content is available by single payment or moonstones."
     },
     "access": {
       "passAppliedContinue": "Geopend met je pas."

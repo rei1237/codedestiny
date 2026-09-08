@@ -54,14 +54,15 @@
         운명의 찻집(5,000원~20,000원)이 '1만원대' 에서 빠졌다. */
   function bucketsOf(price) {
     var text = String(price || "").replace(/,/g, "").replace(/\s/g, "");
-    if (/무료/.test(text)) return ["free"];
+    var isFree = /무료/.test(text);
     if (text === "이용권") return ["vvip"];
     var found = text.match(/\d{3,7}(?=원)/g);
-    if (!found) return ["vvip"];
+    if (!found) return isFree ? ["free"] : ["vvip"];
     var from = BUCKET_ORDER.indexOf(bucketOfWon(Number(found[0])));
     var to = BUCKET_ORDER.indexOf(bucketOfWon(Number(found[found.length - 1])));
     if (to < from) to = from;
-    return BUCKET_ORDER.slice(from, to + 1);
+    var paidBuckets = BUCKET_ORDER.slice(from, to + 1);
+    return isFree ? ["free"].concat(paidBuckets) : paidBuckets;
   }
 
   /* 진입 전 상세 시트(#tilePvwOverlay)용 유료 판정.
@@ -494,7 +495,10 @@
   }
 
   function boot() {
-    if (document.getElementById("cdHomeFunnel") && !boot.requested) {
+    var home = document.getElementById("cdHomeFunnel");
+    var finder = document.getElementById("cdFinder");
+    var disclosure = document.getElementById("cdhFinderDisclosure");
+    if (home && finder && (!home.contains(finder) || (disclosure && !disclosure.open)) && !boot.requested) {
       document.addEventListener("cd:home-finder-open", function () {
         boot.requested = true;
         boot();
@@ -527,7 +531,7 @@
       if (!jump) return;
       if (document.getElementById("cdHomeFunnel")) {
         event.preventDefault();
-        location.hash = "services";
+        location.hash = "cdFinder";
         return;
       }
       var target = document.getElementById("cdServiceIndex");

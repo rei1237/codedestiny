@@ -1,281 +1,210 @@
-// 나크샤트라 결정판 AI 심화 상담 — 프롬프트 라이브러리 (3덱: 숙요/베다/융합)
+// 나크샤트라 결정판 AI 상담 — 하나의 별, 두 개의 언어.
 //
-// 네오의 팩폭 작전실(neo-operation-room-prompt.js) 섹션 레지스트리 패턴을 본떠,
-// 덱A 숙요 대가 상담 + 덱B 베다 대가 상담 + 덱C 두 시선의 융합 해석을 섹션 단위로 생성한다.
-// 톤 = 권위 + 따뜻함(Phase 3 전문가톤 연속). 각 섹션 LLM은 { "keyInsight", "body" }를 반환.
-// 근거: assembleNatalCodex 계산값(숙요 본명수·칠요·사신·격각 / 나크샤트라·지배성·샥티·가나·나디·파다·다샤).
-//
-// 🔴 이 상품의 핵심은 "하나의 별을 두 개의 언어로 읽는다"이다. 덱A·덱B만 나열하면 상품이 아니다 —
-//    덱C(융합)가 두 결과를 실제로 대조해 공통점·차이·그 이유·현실 적용까지 끌고 가야 한다.
-//    그래서 덱C는 반드시 덱A·덱B가 끝난 뒤 그 본문 요약을 근거로 받아 생성한다(2페이즈).
+// 천문·역법 값은 assembleNatalCodex가 계산하고, 이 모듈은 그 결과를 숙요 27숙과
+// 베다 나크샤트라의 서로 다른 관점으로 통합해 읽는 역할만 한다. 두 체계를
+// 1:1로 대응하거나 LLM이 별자리를 추측하게 하지 않는다.
 
 import { getNakshatraAttributes } from "../../constants/nakshatra-attributes.js";
 
-// ── 페르소나(덱별) ────────────────────────────────────────────────────────────
 export const NAKSHATRA_PERSONA = Object.freeze({
-  sukuyo:
-    "너는 30년 경력의 숙요점(宿曜占) 대가다. 27수의 칠요(七曜)·사신(四神)·오행·격각(命業胎榮親友衰安危成壞)을 꿰뚫는다. " +
-    "권위 있게 단정하되, 다정한 존댓말로 짚어 준다. 위로만 늘어놓지 말고 계산 근거로 정확히 명명한다.",
-  vedic:
-    "너는 30년 경력의 베다 점성학(조티시) 대가다. 나크샤트라의 지배성·샥티(고유 힘)·주신·가나·나디·요니·파다(나바암샤)·비쇼타리 다샤를 근거로 읽는다. " +
-    "권위 있게 단정하되, 다정한 존댓말로 짚어 준다. 산스크리트 용어는 짧게 풀어 설명한다.",
-  fusion:
-    "너는 숙요점 대가와 베다 점성학 대가의 상담을 30년간 나란히 읽어 온 비교 점성 연구자다. " +
-    "두 대가가 같은 하늘을 각자의 언어로 읽은 기록을 받아, 어디서 같은 말을 하고 어디서 갈리는지, " +
-    "그 차이가 왜 생기는지, 그래서 이 사람의 삶에서 무엇이 달라지는지를 정리한다. " +
-    "두 전통을 뭉개 하나로 섞지 않는다 — 각각이 말한 바를 그대로 인용하고 그 위에서 결론을 세운다. " +
-    "권위 있게 단정하되 다정한 존댓말로 쓴다. 이미 나온 문장을 다른 말로 되풀이하지 않고 매 문단 새 정보를 얹는다.",
+  integrated:
+    "너는 숙요점(宿曜占)의 27숙과 베다 점성학(Jyotish)의 나크샤트라를 함께 연구해 온 프리미엄 상담가다. " +
+    "두 전통이 같은 체계이거나 서로 정확히 대응한다고 단정하지 않는다. 숙요는 본명숙·방위·사신·오행의 언어로, " +
+    "베다는 달의 나크샤트라·파다·지배성·샥티의 언어로 이 사람을 읽는다는 차이를 존중한다. " +
+    "계산된 사실을 근거로 하되, 전문용어를 바로 생활의 장면으로 번역하고 따뜻하면서도 현실적인 존댓말로 상담한다.",
 });
 
-// ── 섹션 레지스트리(2덱) ──────────────────────────────────────────────────────
-// 각 섹션: { id, deck, title, minChars, scope, rules[] }. LLM 반환 스키마는 { body } 고정.
-export const SUKUYO_SECTIONS = Object.freeze([
-  { id: "sukuyoOpening", deck: "sukuyo", title: "본명수 개시 — 첫 진단", minChars: 600,
-    scope: "사용자의 질문을 첫 두 문장에서 직접 짚고, 본명수(방위·사신·칠요)로 첫 인상을 단정한다.",
-    rules: ["질문과 무관한 일반론으로 시작하지 않는다.", "[근거]의 본명수·칠요·사신을 인용한다."] },
-  { id: "sukuyoNature", deck: "sukuyo", title: "타고난 결 — 칠요와 오행", minChars: 900,
-    scope: "본명수의 원형(archetype)·칠요·오행을 근거로 타고난 성향의 핵을 깊이 진단한다.",
-    rules: ["칠요(예: 목·화·토·금·수·일·월)와 원형을 인용해 근거를 남긴다.", "강점 3~5개를 계산 근거와 연결한다."] },
-  { id: "sukuyoRelation", deck: "sukuyo", title: "인연과 거리 — 격각의 결", minChars: 800,
-    scope: "격각(命業胎榮親友衰安危成壞) 관점에서 이 사람이 사람을 대하는 방식·인연의 거리·반복되는 관계 패턴을 짚는다.",
-    rules: ["격각의 관계 원리를 단순 길흉이 아니라 관계 심리로 풀어낸다."] },
-  { id: "sukuyoStrengthShadow", deck: "sukuyo", title: "강점과 그림자", minChars: 700,
-    scope: "타고난 강한 기운과 약한 기운(그림자)을 나눠, 밀 자리와 지킬 자리를 판단한다.",
-    rules: ["[근거]의 강점·그림자를 확장해 구체적 상황으로 풀어낸다."] },
-  { id: "sukuyoFlow", deck: "sukuyo", title: "흐름과 조언 — 오늘부터", minChars: 700,
-    scope: "본명수의 결에 맞춰 지금 흐름을 읽고, 오늘부터 실천할 조언을 준다.",
-    rules: ["결정론 금지('~할 것이다'→'~한 경향/~해 보세요'). 의료·투자 표현 금지.", "실천 조언은 오늘~이번 달에 할 수 있는 구체 행동으로."] },
+// 하나의 상담을 9개 의미 영역으로만 나눈다. 각 chapter는 앞선 insight를 바꿔
+// 말하지 않고 다음 삶의 장면으로 확장해야 한다.
+export const INTEGRATED_SECTIONS = Object.freeze([
+  {
+    id: "dualStarSummary", deck: "consultation", topic: "hero", title: "당신을 부르는 두 개의 별", minChars: 650,
+    scope: "베다의 달 나크샤트라·파다와 숙요의 본명숙을 한 사람의 첫인상으로 묶는다. 첫 문장에서 두 체계가 동시에 강조하는 핵심 결론을 말한다.",
+    rules: [
+      "‘베다에서는 당신을 …라고 부르고, 숙요에서는 …라고 부릅니다’의 구조를 자연스럽게 사용한다.",
+      "나크샤트라·파다·지배성 및 본명숙·방위·사신 중 실제 계산된 값만 언급한다.",
+      "두 전통이 같다는 말이나 1:1 대응 주장은 쓰지 않는다.",
+    ],
+  },
+  {
+    id: "coreIdentity", deck: "consultation", topic: "identity", title: "두 별이 동시에 말하는 당신의 본질", minChars: 1100,
+    scope: "두 전통에서 반복되는 신호를 먼저 찾고, 근거 → 교차 해석 → 현실의 모습 순으로 이 사람의 핵심 기질을 설명한다.",
+    rules: [
+      "공통점은 2~3개로 압축하고, 각각에 베다 근거와 숙요 근거를 모두 남긴다.",
+      "‘독립적이다’처럼 끝내지 말고 어떤 질서에서 순응하기 어렵고 무엇을 지키려 하는지까지 설명한다.",
+    ],
+  },
+  {
+    id: "outerVsInner", deck: "consultation", topic: "inner-life", title: "겉으로 보이는 나와 아무도 모르는 나", minChars: 900,
+    scope: "처음 만난 사람 앞, 친해진 뒤, 혼자 있을 때, 스트레스를 받을 때의 모습을 구분해 외부 인상과 내면 욕구의 간격을 상담한다.",
+    rules: [
+      "감정·행동·관계 반응을 실제 생활 장면으로 쓴다.",
+      "coreIdentity에서 이미 정의한 기질을 반복하지 말고, 그 기질이 압박에서 어떻게 달라지는지 다룬다.",
+    ],
+  },
+  {
+    id: "loveAndRelationships", deck: "consultation", topic: "relationship", title: "나는 어떤 사랑을 원하는 사람일까?", minChars: 1050,
+    scope: "끌리는 사람, 사랑할 때의 모습, 관계에서 원하는 안전감, 오해받기 쉬운 부분, 반복하기 쉬운 패턴과 건강한 관계의 조건을 답한다.",
+    rules: [
+      "상대의 마음이나 특정 궁합을 확정하지 않는다.",
+      "숙요의 관계·거리 관점과 베다의 본능·정서 관점을 각각 근거로 하되, 연애운 일반론으로 흐르지 않는다.",
+    ],
+  },
+  {
+    id: "talentAndWork", deck: "consultation", topic: "career", title: "내가 일을 잘할 수 있는 환경은 어디일까?", minChars: 1050,
+    scope: "사고방식·강점·경쟁력·돈을 만드는 방식·조직과 독립의 적성을 현실적으로 읽고, 맞는 환경과 소모되는 환경을 대비한다.",
+    rules: [
+      "직업 하나를 단정하지 않는다. 일하는 방식과 선택 기준을 말한다.",
+      "투자·수익 보장이나 구체 종목 권유를 하지 않는다.",
+      "identity의 장점을 업무에서 어떤 행동으로 쓰는지 새롭게 확장한다.",
+    ],
+  },
+  {
+    id: "shadowPattern", deck: "consultation", topic: "shadow", title: "왜 같은 문제를 반복할까?", minChars: 950,
+    scope: "과해진 강점, 불안할 때의 행동, 관계와 선택에서 되풀이될 수 있는 그림자를 겁주지 않고 현실적인 경향으로 다룬다.",
+    rules: [
+      "반복되는 실수와 회복 신호를 한 쌍으로 제시한다.",
+      "운명·전생·응보로 공포를 만들지 않는다.",
+    ],
+  },
+  {
+    id: "contrastBetweenSystems", deck: "consultation", topic: "contrast", title: "두 전통이 서로 다르게 보는 당신", minChars: 1050,
+    scope: "베다와 숙요의 결론이 갈리거나 강조점이 다른 2~3개 지점을 밝히고, 충돌처럼 보이는 두 특성이 삶에서 어떻게 함께 나타나는지 해석한다.",
+    rules: [
+      "반드시 ‘베다에서는 …, 숙요에서는 …’의 비교를 포함하되 두 전통을 승패로 가르지 않는다.",
+      "실제 계산값에서 나오는 차이만 쓴다. 임의 대응표·역사적 동일성·경계일 추측을 만들지 않는다.",
+      "이전 장의 공통점을 다시 요약하지 말고, 차이가 선택과 관계에 주는 정보를 설명한다.",
+    ],
+  },
+  {
+    id: "lifeManual", deck: "consultation", topic: "growth", title: "당신이라는 별의 사용 설명서", minChars: 900,
+    scope: "앞선 상담을 행동 기준으로 바꾼다. 잘될 때의 조건, 무너질 때의 신호, 사람·일을 선택하는 기준, 감정 소모를 줄이는 방법을 제시한다.",
+    rules: [
+      "실행 조언은 5개 안팎으로, 각각 언제·무엇을·어떻게 할지가 보이게 쓴다.",
+      "마지막에 ### 이번 주에 지킬 세 가지를 두고 정확히 3개의 - 목록을 쓴다.",
+      "앞 장의 분석을 다시 풀지 말고 ‘그래서 무엇을 할지’에 집중한다.",
+    ],
+  },
+  {
+    id: "closingMessage", deck: "consultation", topic: "closing", title: "마지막 별의 문장", minChars: 380,
+    scope: "상담 전체에서 나온 이 사람만의 결론을 짧고 강한 마지막 문장으로 남긴다.",
+    rules: [
+      "모든 사용자에게 통하는 감성 문구나 응원 문구를 쓰지 않는다.",
+      "새로운 분석을 추가하지 않고, 앞에서 확인된 두 별의 긴장을 한 문장으로 압축한다.",
+    ],
+  },
 ]);
 
-export const VEDIC_SECTIONS = Object.freeze([
-  { id: "vedicOpening", deck: "vedic", title: "나크샤트라 개시 — 지배성과 샥티", minChars: 600,
-    scope: "질문을 짚고, 나크샤트라의 지배성·샥티(고유 힘)·주신으로 첫 진단을 단정한다.",
-    rules: ["[근거]의 지배성·샥티·주신을 인용한다.", "산스크리트 용어는 짧게 풀이."] },
-  { id: "vedicNature", deck: "vedic", title: "원형과 기질 — 가나·나디·요니", minChars: 900,
-    scope: "가나(기질)·나디(체질)·요니(본능 원형)와 근원 동기(푸루샤르타)로 타고난 기질을 깊이 진단한다.",
-    rules: ["가나·나디·요니를 인용해 근거를 남긴다.", "지어낸 값을 쓰지 않는다."] },
-  { id: "vedicPada", deck: "vedic", title: "파다와 나바암샤", minChars: 700,
-    scope: "파다(나크샤트라 4분할)와 그 나바암샤 라시를 근거로 성향의 미세한 결을 읽는다.",
-    rules: ["[근거]에 파다가 '미상'이면 시각 미상으로 파다는 생략함을 밝히고 무리하게 만들지 않는다."] },
-  { id: "vedicDasha", deck: "vedic", title: "비쇼타리 다샤 — 시기의 흐름", minChars: 800,
-    scope: "현재 대운(마하다샤)/안타르다샤를 근거로 지금이 어떤 시기인지, 무엇이 열리고 닫히는지 판단한다.",
-    rules: ["[근거]의 현재 다샤 행성을 인용한다. 시기를 구체적으로 명시하되 단정하지 않는다."] },
-  { id: "vedicDirection", deck: "vedic", title: "삶의 방향 — 푸루샤르타", minChars: 700,
-    scope: "근원 동기(다르마·아르타·카마·목샤)를 축으로 이번 생에서 충만함을 얻는 방향을 짚는다.",
-    rules: ["동기를 인용해 삶의 축으로 연결한다."] },
-  { id: "vedicPractice", deck: "vedic", title: "실천 — 오늘의 처방", minChars: 700,
-    scope: "지배성·나디에 맞춘 생활·마음의 처방을 준다(전통 문헌 기반 라이프스타일·마음가짐).",
-    rules: ["결정론 금지. 의료·법률·투자 표현 금지(질병 진단·투자 권유 불가).", "실천 가능한 구체 행동으로."] },
-]);
+export const NAKSHATRA_SECTIONS = INTEGRATED_SECTIONS;
+export const NAKSHATRA_PHASE_CONSULTATION = INTEGRATED_SECTIONS;
+export const NAKSHATRA_TOTAL_MIN_CHARS = NAKSHATRA_SECTIONS.reduce((sum, section) => sum + section.minChars, 0);
 
-// ── 덱C: 융합 해석 ────────────────────────────────────────────────────────────
-// 이 덱만 `needsDeckDigest: true` — 덱A·덱B 본문 요약을 근거로 받아야 비교가 성립한다.
-// avoid[]: 앞뒤 섹션의 주제를 침범해 같은 말을 되풀이하는 것을 막는다(master-love-codex 패턴).
-export const FUSION_SECTIONS = Object.freeze([
-  { id: "fusionArchetype", deck: "fusion", title: "별의 원형 — 영혼의 본질", minChars: 1100, needsDeckDigest: true,
-    scope: "두 대가가 각자 그린 상(像)을 겹쳐, 이 사람이 어떤 원형으로 태어났는지 한 인격으로 세운다. 의식이 붙잡는 것과 무의식이 끌리는 것, 가장 깊은 욕망과 그 이면의 두려움을 짚는다.",
-    rules: [
-      "숙요의 원형(archetype)과 베다의 샥티·주신을 각각 인용해 '두 이름이 같은 얼굴을 가리킨다'를 실제로 보여 준다.",
-      "욕망과 두려움은 한 쌍으로 쓴다 — 무엇을 원하기 때문에 무엇을 두려워하는지 인과로 연결한다.",
-    ],
-    avoid: ["구체적 연애·직업 사례(뒤 섹션 담당)", "실천 조언(마지막 섹션 담당)"] },
-  { id: "fusionCompare", deck: "fusion", title: "두 시선의 대조 — 같은 자리를 다르게 읽다", minChars: 1300, needsDeckDigest: true,
-    scope: "숙요 대가와 베다 대가가 같은 항목을 두고 실제로 어떻게 다르게 말했는지 3~4개 축으로 나란히 놓고 비교한다.",
-    rules: [
-      "반드시 '숙요는 …라고 보고, 베다는 …라고 본다' 형태로 두 진술을 나란히 제시한 뒤 해석을 얹는다.",
-      "축마다 소제목(### )을 달고, 표면 대조에 그치지 말고 그 진술이 어느 계산값에서 나왔는지 근거를 밝힌다.",
-      "억지로 대립시키지 않는다 — 실제로 같은 말을 하는 축이면 그렇다고 쓴다.",
-    ],
-    avoid: ["차이가 생기는 원리 설명(다음 섹션 담당)", "공통 메시지 정리(다음 섹션 담당)"] },
-  { id: "fusionConvergence", deck: "fusion", title: "두 체계가 함께 말하는 것", minChars: 1000, needsDeckDigest: true,
-    scope: "두 전통이 서로 독립적으로 도달한 동일한 결론을 뽑아, 그것이 이 사람의 삶에서 어떤 장면으로 나타나는지 구체화한다.",
-    rules: [
-      "'두 체계가 각각 다른 계산으로 같은 결론에 닿았다'는 사실 자체가 신뢰의 근거임을 짚는다.",
-      "공통 메시지는 2~3개로 압축하고, 각각에 실제 생활 장면을 하나씩 붙인다.",
-    ],
-    avoid: ["대조 항목 재나열", "심리 구조 분석(뒤 섹션 담당)"] },
-  { id: "fusionDivergence", deck: "fusion", title: "갈라지는 이유 — 관측·상징·철학", minChars: 1200, needsDeckDigest: true,
-    scope: "두 체계가 다르게 읽는 지점의 원인을 계산 원리와 문화적 배경에서 설명한다.",
-    rules: [
-      "원인을 최소 세 층위로 나눠 쓴다 — ① 계산·관측 기준의 차이(항성 기준 시데리얼 대 27수 배당, 경계일 처리) ② 상징 체계의 차이(칠요·사신 대 지배성·샥티) ③ 철학의 차이(관계와 거리를 보는 눈 대 시기와 업을 보는 눈).",
-      "[근거]에 경계일 병기가 있으면 그것을 이 차이의 실물 사례로 인용한다.",
-      "어느 쪽이 옳다고 판정하지 않는다 — 서로 다른 질문에 답하는 도구임을 밝힌다.",
-    ],
-    avoid: ["공통 메시지 재정리", "실천 조언"] },
-  { id: "fusionPsyche", deck: "fusion", title: "내면의 지형 — 애착과 회복", minChars: 1300, needsDeckDigest: true,
-    scope: "두 해석을 심리 구조로 번역한다. 애착 방식, 자존감이 흔들리는 지점, 오래된 상처의 모양, 회복 경로, 에너지가 차는 환경과 빠지는 환경을 짚는다.",
-    rules: [
-      "혼자 있을 때와 사람들과 있을 때 각각 어떤 상태가 되는지 나눠 쓴다.",
-      "스트레스 반응을 신체·감정·행동 세 층위로 구분해 설명한다.",
-      "질병·진단·치료를 말하지 않는다. 심리 '경향'으로만 쓴다.",
-    ],
-    avoid: ["연애 관계의 구체 사례(다음 섹션 담당)", "직업·재물"] },
-  { id: "fusionLove", deck: "fusion", title: "사랑하는 방식", minChars: 1200, needsDeckDigest: true,
-    scope: "상대를 고르는 기준, 끌리는 사람과 멀어지는 사람, 애정 표현 방식, 집착과 질투가 나오는 조건, 갈등을 푸는 방식, 장기 관계에서 반복되는 국면, 이별 후 회복 경로를 짚는다.",
-    rules: [
-      "숙요의 격각(인연의 거리)과 베다의 요니·가나(본능 원형)를 각각 인용해 근거를 남긴다.",
-      "'좋은 궁합/나쁜 궁합'으로 사람을 재단하지 않는다 — 이 사람이 관계에서 취하는 자세를 설명한다.",
-    ],
-    avoid: ["심리 일반론 반복", "카르마·영성"] },
-  { id: "fusionWork", deck: "fusion", title: "재능과 재물", minChars: 1200, needsDeckDigest: true,
-    scope: "타고난 재능과 약점, 리더형·전문가형·창작형·사업형 중 어디에 가까운지, 돈이 들어오는 경로와 새는 경로, 결정을 내릴 때의 습관을 짚는다.",
-    rules: [
-      "유형은 단정하지 말고 '어느 쪽에 가깝다'로 쓰되, 근거가 되는 계산값을 반드시 밝힌다.",
-      "특정 종목·상품·투자 권유를 하지 않는다. 돈을 대하는 태도와 판단 습관만 다룬다.",
-    ],
-    avoid: ["연애", "실천 조언 목록(마지막 섹션 담당)"] },
-  { id: "fusionKarma", deck: "fusion", title: "반복되는 과제", minChars: 1000, needsDeckDigest: true,
-    scope: "이번 생에서 되풀이되는 주제, 반드시 마주치게 되는 벽, 그것을 넘었을 때 열리는 다음 국면을 짚는다.",
-    rules: [
-      "베다의 근원 동기(푸루샤르타)와 숙요의 그림자를 겹쳐 '이 사람의 숙제'를 한 문장으로 정의한 뒤 풀어 쓴다.",
-      "전생·응보로 겁주지 않는다. 성장 과제로 다룬다.",
-    ],
-    avoid: ["심리 분석 재서술", "영성 수행법"] },
-  { id: "fusionSpirit", deck: "fusion", title: "고요와 직관", minChars: 900, needsDeckDigest: true,
-    scope: "이 사람에게 맞는 고요의 형태, 직관이 열리는 조건, 내면의 평화를 회복하는 방식, 삶의 의미를 어디서 찾는지 짚는다.",
-    rules: [
-      "지배성·나디에 맞춘 구체적인 방식을 제안한다(앉아서 하는 쪽인지 움직이며 하는 쪽인지 등).",
-      "특정 종교·교단을 권하지 않는다.",
-    ],
-    avoid: ["카르마 과제 재서술", "실천 조언 목록"] },
-  { id: "fusionPractice", deck: "fusion", title: "오늘부터의 행동", minChars: 1300, needsDeckDigest: true,
-    scope: "상담 전체를 실행 가능한 행동으로 옮긴다. 마지막에 이 상담에서 가장 중요한 통찰 세 가지를 뽑아 정리한다.",
-    rules: [
-      "행동 조언은 6~8개, 각각 '언제·무엇을·어떻게'가 드러나게 한 문장으로 쓴다(예: 결정을 미루기보다 오늘 안에 가장 작은 한 가지부터 시작하세요).",
-      "마지막에 반드시 `### 가장 중요한 세 가지` 소제목을 달고 `- ` 목록으로 정확히 3개를 쓴다. 각 항목은 25자 이내 한 줄 결론으로 시작하고 ' — ' 뒤에 한 문장 설명을 붙인다.",
-      "결정론 금지. 의료·법률·투자 표현 금지.",
-    ],
-    avoid: ["앞 섹션의 해석을 다시 설명하는 것 — 여기서는 '그래서 무엇을 할 것인가'만 다룬다"] },
-]);
-
-export const NAKSHATRA_SECTIONS = Object.freeze([...SUKUYO_SECTIONS, ...VEDIC_SECTIONS, ...FUSION_SECTIONS]);
-
-/* 관리자 프롬프트 랩 전용(lib/admin/prompt-lab-registry.mjs 참고).
-   섹션별 사용자 프롬프트는 계산된 27수·나크샤트라 결과를 입력으로 받으므로 생년 정보만으로는 조립되지 않는다.
-   덱(숙요/베다/융합)마다 페르소나가 다르므로 섹션을 고르면 그 덱의 시스템 프롬프트를 보여준다. */
 export function buildAdminLabPrompt(body = {}, options = {}) {
   const section = NAKSHATRA_SECTIONS.find((item) => item.id === options.variant) || NAKSHATRA_SECTIONS[0];
-  const deck = section?.deck || "sukuyo";
-
   return {
-    systemPrompt: NAKSHATRA_PERSONA[deck] || NAKSHATRA_PERSONA.sukuyo,
+    systemPrompt: NAKSHATRA_PERSONA.integrated,
     prompt: "",
     partial: true,
-    partialReason: "섹션별 사용자 프롬프트는 계산된 27수·나크샤트라 결과를 입력으로 받습니다. 덱별 페르소나(시스템 프롬프트)만 표시합니다.",
+    partialReason: "상담 프롬프트는 계산된 숙요 본명숙과 베다 나크샤트라 근거를 입력으로 받습니다. 통합 상담가의 지시만 표시합니다.",
     variantKey: section?.id || "",
-    variants: NAKSHATRA_SECTIONS.map((item) => ({ key: item.id, label: `${item.deck} · ${item.title || item.id}` })),
-    notes: section?.scope ? [`${section.title} 범위: ${section.scope}`] : [],
+    variants: NAKSHATRA_SECTIONS.map((item) => ({ key: item.id, label: item.title || item.id })),
+    notes: section?.scope ? [section.scope] : [],
   };
 }
 
-// 생성 페이즈 — 융합 덱은 두 대가의 상담이 끝난 뒤에만 쓸 수 있다.
-export const NAKSHATRA_PHASE_DECKS = Object.freeze([...SUKUYO_SECTIONS, ...VEDIC_SECTIONS]);
-export const NAKSHATRA_PHASE_FUSION = FUSION_SECTIONS;
-export const NAKSHATRA_TOTAL_MIN_CHARS = NAKSHATRA_SECTIONS.reduce((sum, s) => sum + s.minChars, 0);
-
-// ── 근거(계산값) 컨텍스트 ─────────────────────────────────────────────────────
 function line(label, value) {
-  return value == null || value === "" ? "" : `- ${label}: ${value}`;
+  return value == null || value === "" ? "" : "- " + label + ": " + value;
 }
 
-// assembleNatalCodex(codex) → LLM 근거 텍스트 + 인용 토큰.
+// assembleNatalCodex 결과만 LLM에 전달한다. 별·숙을 만들어내는 입력은 이 모듈에 없다.
 export function buildFactContext(codex, question) {
-  const dy = codex?.dongyang || {};
-  const iv = codex?.india || {};
-  const attrs = getNakshatraAttributes(iv.index) || {};
-  const dasha = iv.dasha || {};
-  const pada = iv.pada != null ? `${iv.pada}${iv.padaDetail ? ` · 나바암샤 ${iv.padaDetail.navamsaSignKo}` : ""}` : "미상(시각 미상)";
+  const sukuyo = codex?.dongyang || {};
+  const vedic = codex?.india || {};
+  const attrs = getNakshatraAttributes(vedic.index) || {};
+  const dasha = vedic.dasha || {};
+  const pada = vedic.pada != null
+    ? String(vedic.pada) + (vedic.padaDetail ? " · 나바암샤 " + vedic.padaDetail.navamsaSignKo : "")
+    : "미상(출생 시각 미상)";
   const sukuyoLines = [
-    line("본명수", dy.nameKo ? `${dy.nameKo}수(${dy.nameHan})` : ""),
-    line("방위·사신", [dy.direction, dy.fourSymbol].filter(Boolean).join(" · ")),
-    line("칠요(七曜)", dy.sevenLuminary),
-    line("원형", dy.archetypeTitle),
-    line("키워드", (dy.keywords || []).join(" · ")),
-    line("강점", (dy.strengths || []).join(" · ")),
-    line("그림자", (dy.shadows || []).join(" · ")),
+    line("본명숙", sukuyo.nameKo ? sukuyo.nameKo + "수(" + sukuyo.nameHan + ")" : ""),
+    line("방위·사신", [sukuyo.direction, sukuyo.fourSymbol].filter(Boolean).join(" · ")),
+    line("칠요", sukuyo.sevenLuminary),
+    line("원형", sukuyo.archetypeTitle),
+    line("키워드", (sukuyo.keywords || []).join(" · ")),
+    line("강점", (sukuyo.strengths || []).join(" · ")),
+    line("그림자", (sukuyo.shadows || []).join(" · ")),
   ].filter(Boolean).join("\n");
   const vedicLines = [
-    line("나크샤트라", iv.nameKo ? `${iv.nameKo}(${iv.nameEn})` : ""),
-    line("지배성", iv.lordKo),
-    line("샥티(고유 힘)", attrs.shakti),
-    line("주신", iv.deity ? `${iv.deity} — ${iv.deityRole}` : ""),
-    line("가나·나디·요니", [iv.ganaKo, iv.nadiKo, iv.yoni].filter(Boolean).join(" · ")),
+    line("달의 나크샤트라", vedic.nameKo ? vedic.nameKo + "(" + vedic.nameEn + ")" : ""),
     line("파다", pada),
-    line("근원 동기(푸루샤르타)", iv.motiveKo),
-    line("현재 다샤", dasha.currentMahadashaKo ? `${dasha.currentMahadashaKo} / ${dasha.currentAntardashaKo}` : ""),
+    line("지배성", vedic.lordKo),
+    line("샥티(고유 힘)", attrs.shakti),
+    line("주신", vedic.deity ? vedic.deity + " — " + vedic.deityRole : ""),
+    line("가나·나디·요니", [vedic.ganaKo, vedic.nadiKo, vedic.yoni].filter(Boolean).join(" · ")),
+    line("근원 동기", vedic.motiveKo),
+    line("현재 다샤", dasha.currentMahadashaKo ? dasha.currentMahadashaKo + " / " + dasha.currentAntardashaKo : ""),
   ].filter(Boolean).join("\n");
-  const tokens = [dy.nameKo && `${dy.nameKo}수`, dy.nameHan, dy.sevenLuminary, dy.fourSymbol, iv.nameKo, iv.nameEn, iv.lordKo, attrs.shakti, iv.ganaKo, iv.nadiKo, dasha.currentMahadashaKo]
-    .map((t) => String(t || "").trim()).filter((t) => t.length >= 2);
-  const summaryText = `【숙요(宿曜) 계산 근거】\n${sukuyoLines}\n\n【베다(Jyotish) 계산 근거】\n${vedicLines}`;
-  return { summaryText, evidenceTokens: [...new Set(tokens)].slice(0, 20) };
+  const tokens = [
+    sukuyo.nameKo && sukuyo.nameKo + "수", sukuyo.nameHan, sukuyo.sevenLuminary, sukuyo.fourSymbol,
+    vedic.nameKo, vedic.nameEn, vedic.lordKo, attrs.shakti, vedic.ganaKo, vedic.nadiKo, dasha.currentMahadashaKo,
+  ].map((token) => String(token || "").trim()).filter((token) => token.length >= 2);
+  return {
+    summaryText: [
+      "【숙요 27숙의 계산 근거】", sukuyoLines,
+      "", "【베다 나크샤트라의 계산 근거】", vedicLines,
+      "", "【통합 원칙】",
+      "- 두 전통은 같은 체계도, 고정된 1:1 대응표도 아니다.",
+      "- 공통점·차이점·한 체계에서만 강한 신호를 나누어, 한 사람의 현실로 통합한다.",
+    ].join("\n"),
+    evidenceTokens: [...new Set(tokens)].slice(0, 20),
+  };
 }
 
-// ── 중복 억제용 컨텍스트 빌더 ─────────────────────────────────────────────────
-// master-love-codex 의 buildMemory 패턴: 이미 쓴 섹션들의 첫 문장만 넘겨
-// 같은 말을 다른 표현으로 되풀이하는 것을 막는다(요청: 절대 반복 금지).
-export function buildWrittenMemory(done, limit = 10) {
-  const rows = (Array.isArray(done) ? done : [])
+// 앞 장의 결론을 짧게 주입해 같은 문장을 새 표현으로 반복하는 분량 채우기를 막는다.
+export function buildWrittenMemory(done, limit = 8) {
+  return (Array.isArray(done) ? done : [])
+    .filter((entry) => entry?.body)
     .slice(-limit)
     .map((entry) => {
-      const first = String(entry?.body || "").split(/(?<=[.!?。])\s|\n/)[0] || "";
-      const line = first.trim().slice(0, 90);
-      return line ? `- ${entry.title || entry.id}: ${line}` : "";
+      const lead = String(entry.keyInsight || entry.body || "").split(/(?<=[.!?。])\s|\n/)[0].trim().slice(0, 110);
+      return lead ? "- " + (entry.title || entry.id) + ": " + lead : "";
     })
-    .filter(Boolean);
-  return rows.join("\n");
-}
-
-// 융합 덱 전용 — 덱A·덱B 본문을 압축해 "두 대가가 실제로 무엇이라 말했는지"를 근거로 넘긴다.
-// 이게 없으면 융합 섹션이 계산값만 보고 또 한 번 일반론을 쓰게 된다.
-export function buildDeckDigest(done, perSection = 420) {
-  const pick = (deck) => (Array.isArray(done) ? done : [])
-    .filter((entry) => entry?.deck === deck && entry?.body)
-    .map((entry) => `- [${entry.title}] ${String(entry.body).replace(/\s+/g, " ").trim().slice(0, perSection)}`)
+    .filter(Boolean)
     .join("\n");
-  const sukuyo = pick("sukuyo");
-  const vedic = pick("vedic");
-  if (!sukuyo && !vedic) return "";
-  return [
-    "【숙요 대가가 말한 것】",
-    sukuyo || "(없음)",
-    "",
-    "【베다 대가가 말한 것】",
-    vedic || "(없음)",
-  ].join("\n");
 }
 
-// ── 섹션 프롬프트 빌더 ────────────────────────────────────────────────────────
 export function buildSectionPrompt(section, ctx) {
-  const persona = NAKSHATRA_PERSONA[section.deck] || NAKSHATRA_PERSONA.sukuyo;
-  const q = String(ctx?.question || "").trim();
-  const digest = section.needsDeckDigest ? String(ctx?.deckDigest || "").trim() : "";
+  const question = String(ctx?.question || "").trim();
   const memory = String(ctx?.writtenMemory || "").trim();
   return [
-    persona,
+    NAKSHATRA_PERSONA.integrated,
     "",
-    "아래 [근거]는 이 사람의 사주에서 실제로 계산된 값이다. 반드시 이 값을 인용해 근거 있는 상담을 쓴다.",
+    "아래 [계산 근거]만 사실로 취급한다. 계산값에 없는 별·숙·성향·날짜를 지어내지 않는다.",
+    "응답을 쓰기 전에는 표시하지 말고, ① 베다에서 강한 신호 ② 숙요에서 강한 신호 ③ 공통점 ④ 차이점 ⑤ 현실 장면을 차례로 점검한다.",
+    "그 내부 점검을 설명하거나 단계별 사고 과정을 출력하지 않는다.",
     "",
-    "[근거]",
+    "[계산 근거]",
     ctx?.summaryText || "",
-    ...(digest ? ["", "[앞서 두 대가가 읽은 것]", digest] : []),
-    ...(memory ? ["", "[이미 말한 것 — 되풀이 금지]", memory] : []),
+    ...(memory ? ["", "[앞 장에서 이미 말한 결론 — 바꿔 말해 반복하지 말 것]", memory] : []),
     "",
-    q ? `[사용자 질문]\n${q}` : "[사용자 질문]\n(자유 상담 — 전반적인 흐름을 짚어 준다)",
+    question ? "[사용자 질문]\n" + question : "[사용자 질문]\n(자유 상담 — 이 사람의 전반적인 결을 읽는다)",
     "",
-    `[이 챕터: ${section.title}]`,
-    `- 목적: ${section.scope}`,
-    `- 최소 분량: 공백 포함 ${section.minChars}자 이상. 얕게 끝내지 말고 근거 → 해석 → 구체적 장면 → 의미 순으로 두텁게 쓴다.`,
-    "- 문단마다 새 정보를 얹는다. 앞에서 한 말을 다른 표현으로 바꿔 다시 쓰지 않는다.",
-    "- 가독성: 소제목은 `### `, 목록은 `- `, 강조는 `**굵게**`, 인용은 `> `로 쓴다(다른 마크다운 문법은 쓰지 않는다).",
-    ...(section.rules || []).map((r) => `- 규칙: ${r}`),
-    ...(section.avoid || []).map((a) => `- 이 챕터에서 다루지 않는 것: ${a}`),
+    "[이 장: " + section.title + "]",
+    "- 의미 주제: " + section.topic,
+    "- 목적: " + section.scope,
+    "- 최소 분량: 공백 포함 " + section.minChars + "자 이상.",
+    "- 첫 문단은 결론부터 말하고, 다음 문단에서 베다 근거 → 숙요 근거 → 두 시선의 통합 → 현실 장면 순으로 깊게 쓴다.",
+    "- 모든 문장은 이 사용자의 이야기처럼 쓴다. 백과사전식 신화·행성·상징 나열, ‘해석할 수 있습니다’ 같은 교과서 문체를 쓰지 않는다.",
+    "- 이전 장의 결론을 동의어로 반복해 분량을 채우지 않는다. 이번 장의 의미 주제에서만 새 정보를 더한다.",
+    "- 운명·관계·상대 마음을 확정하지 않는다. 의료·법률·투자 판단이나 적중·성공 보장을 하지 않는다.",
+    "- 가독성: 소제목은 ###, 목록은 -, 강조는 굵게 표기만 사용한다.",
+    ...(section.rules || []).map((rule) => "- 규칙: " + rule),
     "",
-    "출력은 반드시 아래 JSON 하나만. 마크다운 코드블록·설명·인사말 금지.",
-    '{ "keyInsight": "이 챕터의 결론 한 줄(40자 이내, 문장으로)", "body": "이 챕터 상담문(문단·줄바꿈 허용, 따뜻한 존댓말)" }',
+    "출력은 반드시 아래 JSON 하나만 쓴다. 코드블록·인사말·추가 설명은 금지한다.",
+    '{ "keyInsight": "이 장의 결론 한 줄(45자 이내)", "vedicEvidence": "계산값 기반 베다 근거 한 줄", "sukuyoEvidence": "계산값 기반 숙요 근거 한 줄", "body": "사용자에게 들려줄 통합 상담문" }',
   ].join("\n");
 }
 
-// ── 파싱/병합 ────────────────────────────────────────────────────────────────
 export function extractJsonObject(text) {
   const raw = String(text || "");
   const start = raw.indexOf("{");
@@ -289,48 +218,56 @@ export function extractJsonObject(text) {
 }
 
 export function parseSectionResponse(text) {
-  const obj = extractJsonObject(text);
-  const body = typeof obj.body === "string" ? obj.body : (typeof obj.text === "string" ? obj.text : "");
-  const keyInsight = typeof obj.keyInsight === "string" ? obj.keyInsight : "";
-  return { keyInsight: keyInsight.trim().slice(0, 120), body: body.trim() };
+  const value = extractJsonObject(text);
+  const toText = (item, max = 0) => {
+    const result = typeof item === "string" ? item.trim() : "";
+    return max > 0 ? result.slice(0, max) : result;
+  };
+  return {
+    keyInsight: toText(value.keyInsight, 120),
+    vedicEvidence: toText(value.vedicEvidence, 240),
+    sukuyoEvidence: toText(value.sukuyoEvidence, 240),
+    body: toText(value.body || value.text),
+  };
 }
 
-// `### 가장 중요한 세 가지` 블록에서 카드 3장을 뽑는다(fusionPractice 전용).
-// 없으면 빈 배열 — UI 는 그때 카드 영역을 렌더하지 않는다.
 export function extractTopInsights(body) {
   const text = String(body || "");
-  const at = text.indexOf("### 가장 중요한 세 가지");
-  if (at < 0) return [];
-  return text
-    .slice(at)
+  const marker = "### 이번 주에 지킬 세 가지";
+  const start = text.indexOf(marker);
+  if (start < 0) return [];
+  return text.slice(start)
     .split("\n")
     .filter((line) => /^\s*-\s+/.test(line))
     .slice(0, 3)
     .map((line) => {
-      const raw = line.replace(/^\s*-\s+/, "").replace(/\*\*/g, "").trim();
-      const [head, ...rest] = raw.split(/\s*—\s*/);
-      return { title: (head || "").trim().slice(0, 40), detail: rest.join(" — ").trim() };
+      const [title, ...detail] = line.replace(/^\s*-\s+/, "").replace(/\*\*/g, "").trim().split(/\s*—\s*/);
+      return { title: String(title || "").slice(0, 40), detail: detail.join(" — ").trim() };
     })
     .filter((item) => item.title);
 }
 
-// results: [{ id, keyInsight, body }] → { sukuyo, vedic, fusion } (섹션 순서 유지)
+// decks 필드는 이전 결제 결과 재열람 계약 때문에 유지한다. 신규 결과만 consultation 배열을 쓴다.
 export function mergeConsultationSections(results) {
-  const byId = new Map((Array.isArray(results) ? results : []).map((r) => [r.id, r]));
-  const pick = (sections) => sections
-    .map((s) => {
-      const hit = byId.get(s.id) || {};
-      return { id: s.id, title: s.title, keyInsight: hit.keyInsight || "", body: hit.body || "" };
-    })
-    .filter((s) => s.body && s.body.length > 0);
+  const byId = new Map((Array.isArray(results) ? results : []).map((result) => [result.id, result]));
   return {
-    sukuyo: pick(SUKUYO_SECTIONS),
-    vedic: pick(VEDIC_SECTIONS),
-    fusion: pick(FUSION_SECTIONS),
+    consultation: NAKSHATRA_SECTIONS
+      .map((section) => {
+        const result = byId.get(section.id) || {};
+        return {
+          id: section.id,
+          title: section.title,
+          topic: section.topic,
+          keyInsight: result.keyInsight || "",
+          vedicEvidence: result.vedicEvidence || "",
+          sukuyoEvidence: result.sukuyoEvidence || "",
+          body: result.body || "",
+        };
+      })
+      .filter((section) => section.body),
   };
 }
 
-// LLM 결과에 내부 구현 단어가 새면 걸러낸다(네오 hasForbiddenResultText 패턴).
 export function hasForbiddenResultText(value) {
   return /\b(mock|dry-run|provider|system prompt|assistant|JSON)\b/i.test(JSON.stringify(value || ""));
 }

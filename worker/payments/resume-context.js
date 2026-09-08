@@ -6,6 +6,21 @@ export const RESUME_APPROVED_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const MAX_CONTEXT_BYTES = 256 * 1024;
 const PAID_STATUSES = new Set(["paid", "success", "fulfilled"]);
 
+function resumeBinding(userId, requestId, featureKey) {
+  return `${String(userId || "").trim()}:${String(requestId || "").trim()}:${String(featureKey || "").trim()}`;
+}
+
+function assertResumeOrderBinding(order, stored) {
+  const pass = order.paymentType === "membership_pass";
+  const requestId = String(pass ? order.idempotencyKey || "" : order.requestId || "").trim();
+  // 이용권 재구매는 기존 키 뒤에 주문 세대를 붙인다. 암호문은 최초 준비 의도에 묶여 있다.
+  const requestIds = pass ? [requestId, requestId.replace(/#(?:[1-9]\d*|x[0-9a-f]{12})$/, "")] : [requestId];
+  const featureKey = pass ? order.productId : order.featureKey;
+  if (!order.userId || !featureKey || !requestIds.some(id => stored.binding === resumeBinding(order.userId, id, featureKey))) {
+    throw paymentError("INVALID_REQUEST", "복구 입력이 주문과 일치하지 않습니다.");
+  }
+}
+
 export function validateResumeContext(input) {
   if (!input) return null; // 배포 중 이전 클라이언트와 이미 시작한 주문 호환
   const descriptor = input.resume;
@@ -45,7 +60,7 @@ export function validateResumeContext(input) {
 export async function prepareResumeContext(input, { userId, requestId, featureKey, env, now = Date.now() }) {
   const context = validateResumeContext(input);
   if (!context) return null;
-  const binding = `${userId}:${requestId}:${featureKey}`;
+  const binding = resumeBinding(userId, requestId, featureKey);
   return {
     version: 1,
     binding,
@@ -65,6 +80,7 @@ export async function readOrderResumeContext(order, env, now = Date.now()) {
   const age = now - started;
   if (!Number.isFinite(age) || age < 0 || age > (paid ? RESUME_APPROVED_TTL_MS : RESUME_PENDING_TTL_MS)) return null;
   if (["cancelled", "refunded", "failed"].includes(order.status)) return null;
+  assertResumeOrderBinding(order, stored);
   const context = validateResumeContext(await decryptResumePayload(stored.payload, stored.binding, env));
   return {
     ...context,

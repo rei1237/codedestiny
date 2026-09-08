@@ -30,9 +30,23 @@
   <div id="cdhCookieSlot"></div>
   <div class="cdh-flow">
     <div class="cdh-slot" id="cdhQuickSlot">{{quick}}</div>
+    <div class="cdh-slot" id="cdhCollectionToggleSlot">{{homeMore}}
+      <div id="cdhCollections" data-cd-home-secondary></div>
+    </div>
+    <section class="cdh cdh-services cdh-services--inline" id="cdhServices" aria-labelledby="cdhServicesTitle">
+      <details id="cdhFinderDisclosure" class="cdh-finder-disclosure">
+        <summary><h2 id="cdhServicesTitle" data-cd-trans="home.heroTrust.search">전체 서비스 검색</h2><svg class="cdh-finder-disclosure__arrow" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <p class="cdh-lead">고민·방식·가격으로 지금 필요한 리딩을 찾아보세요.</p>
+      {{finder}}
+      <a href="/?action=cdOpenAllFortunes" data-action="cdOpenAllFortunes" class="cdh-catalog-link">컬렉션 전체 둘러보기 <span aria-hidden="true">↗</span></a>
+      </details>
+    </section>
     <div class="cdh-slot" id="cdhTodaySlot">{{today}}</div>
+    <div class="cdh-slot" id="cdhDiarySlot">{{diary}}</div>
     <div class="cdh-slot" id="cdhConcern" tabindex="-1"><div id="cdhConcernSlot">{{concern}}</div></div>
+    <div class="cdh-slot" id="cdhGatewaySlot">{{gateway}}</div>
     <div class="cdh-slot" id="cdhFeatured"><span class="cd-yehwa-peony cdh-featured-flower" aria-hidden="true"></span><div id="cdhSignatureSlot">{{signature}}</div></div>
+    <div class="cdh-slot" id="cdhExpertsSlot">{{experts}}</div>
     <section class="cdh-share" aria-labelledby="cdhShareTitle">
       <span class="cd-yehwa-spray cdh-share-flower" aria-hidden="true"></span>
       <div class="cdh-share__copy">
@@ -43,7 +57,6 @@
       <div class="cdh-share__controls" id="cdhShareControls"></div>
     </section>
     <div class="cdh-slot cdh-slot--pass" id="cdhPass"><div id="cdhPassSlot">{{pass}}</div></div>
-    <div class="cdh-slot" id="cdhGatewaySlot">{{gateway}}</div>
     <section class="cdh-explore" aria-labelledby="cdhExploreTitle">
       <div class="cdh-section-head"><p class="cdh-intro">MORE TO EXPLORE</p><h2 id="cdhExploreTitle">더 둘러보기</h2><p class="cdh-lead">이야기와 음악으로 운명의 여운을 이어가세요.</p></div>
       <div class="cdh-explore-grid"><div id="cdhStorySlot">{{story}}</div><div id="cdhMusicSlot">{{music}}</div></div>
@@ -52,12 +65,4 @@
     <div class="cdh-slot cdh-slot--guide" id="cdhGuideSlot">{{guide}}</div>
   </div>
 </div>
-<section class="cdh cdh-services" id="cdhServices" aria-labelledby="cdhServicesTitle" hidden>
-  <a href="#home" class="cdh-back">← 홈으로</a>
-  <p class="cdh-intro">ALL SERVICES</p>
-  <h1 id="cdhServicesTitle" tabindex="-1">전체 서비스</h1>
-  <p class="cdh-lead">고민·방식·가격으로 지금 필요한 리딩을 찾아보세요.</p>
-  {{finder}}
-  <a href="/?action=cdOpenAllFortunes" data-action="cdOpenAllFortunes" class="cdh-catalog-link">컬렉션 전체 둘러보기 <span aria-hidden="true">↗</span></a>
-</section>
 <!-- cd-home-funnel:end -->

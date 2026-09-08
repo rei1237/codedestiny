@@ -106,7 +106,8 @@ export async function grantEntitlement(db, {
 
   /* 이미 있으면 그대로 둔다. 재생 시 grantedAt·orderId 를 덮어쓰면 "언제 무엇으로 샀는가"라는
      회계 사실이 재생 때마다 바뀐다 — 환불 근거가 흔들린다. $setOnInsert 만 쓰는 이유다.
-     status 만은 $set 이다: 환불로 REFUNDED 가 된 권한을 **다시 사면** 되살아나야 한다. */
+     환불된 권한은 아래 CAS에서 새 주문으로 전환한다. 단순 활성화는 재구매를 기존 소유로
+     오인하고 이전 주문번호를 남겨 새 주문의 환불을 막는다. */
   const update = {
     $setOnInsert: {
       ...filter,
@@ -122,8 +123,9 @@ export async function grantEntitlement(db, {
       grantedAt: now,
       expiresAt: null,
       createdAt: now,
+      status: CONTENT_ENTITLEMENT_STATUSES.ACTIVE,
     },
-    $set: { status: CONTENT_ENTITLEMENT_STATUSES.ACTIVE, updatedAt: now },
+    $set: { updatedAt: now },
   };
 
   let doc;
@@ -141,6 +143,22 @@ export async function grantEntitlement(db, {
     if (Number(error?.code) !== 11000) throw error;
     doc = await db.findOne(ContentEntitlement, filter);
     created = false;
+  }
+
+  if (doc?.status === CONTENT_ENTITLEMENT_STATUSES.REFUNDED) {
+    if (doc.orderId === clean(orderId, 160)) {
+      throw paymentError("INVALID_REQUEST", "환불된 주문은 다시 지급할 수 없습니다.");
+    }
+    const { createdAt: _createdAt, ...newGrant } = update.$setOnInsert;
+    const restored = await db.findOneAndUpdate(ContentEntitlement, {
+      ...filter, status: CONTENT_ENTITLEMENT_STATUSES.REFUNDED, orderId: doc.orderId,
+    }, { $set: { ...newGrant, updatedAt: now } }, { returnDocument: "before" });
+    if (restored) return { alreadyOwned: false, identity, entitlement: restored };
+    // 같은 환불 권한의 재구매 경합: 승자가 만든 활성 권한만 기존 소유로 인정한다.
+    doc = await db.findOne(ContentEntitlement, filter);
+    if (doc?.status !== CONTENT_ENTITLEMENT_STATUSES.ACTIVE) {
+      throw paymentError("INVALID_REQUEST", "권한 상태가 변경되었습니다. 다시 확인해 주세요.");
+    }
   }
 
   return { alreadyOwned: !created, identity, entitlement: doc };

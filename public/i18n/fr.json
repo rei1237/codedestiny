@@ -852,7 +852,7 @@
       "step2Text": "Les lectures de tarot, d'oracle et de saju dans votre plage s'ouvrent aussitôt, sans fenêtre de paiement.",
       "step3Label": "Seules les lectures plus profondes sont payées à l'usage",
       "step3Text": "Les lectures hors de votre plage se poursuivent par un paiement unique en KRW uniquement quand vous en avez besoin.",
-      "terminationNote": "If the monthly allowance is fully used, the pass ends regardless of the days left. Buying a new pass starts another 30 days from that day."
+      "terminationNote": "At zero monthly allowance, the pass expiration, tier, and profile limit remain unchanged. Additional paid content is available by single payment or moonstones."
     },
     "promptHub": {
       "aria": "Accéder aux invites de fortune complètes",
@@ -1428,6 +1428,7 @@
       "cta": "Get the app"
     },
     "mobileFunnel": {
+      "lowPrice": "Dès 1 000 ₩",
       "freeNav": "Gratuit",
       "freeNavAria": "Voir ma lecture gratuite",
       "consultNav": "Conseils",
@@ -1866,7 +1867,7 @@
         "passSaveUnverified": "Nous n'avons pas pu enregistrer le résultat de l'application de votre pass. Vérifiez à nouveau avec la carte pass ci-dessous ou choisissez un autre moyen de paiement.",
         "passCheckFailed": "Nous n'avons pas pu vérifier votre pass. Réessayez avec la carte pass ci-dessous ou choisissez un autre moyen de paiement.",
         "passMiss": "Votre pass n'ouvre pas ce contenu gratuitement, voici les options de paiement.",
-        "passMonthlyExhausted": "Your pass allowance is fully used, so the pass has ended. Here are the payment options."
+        "passMonthlyExhausted": "You have used the pass allowance. The pass remains active until its original expiration date, and you can choose a payment method for additional content."
       },
       "passBadge": "Pass Clair de Lune",
       "passStoreTitle": "Boutique du Pass Moonlight",
@@ -1935,7 +1936,7 @@
         "comingSoon": "Bientôt disponible",
         "back": "Retour"
       },
-      "passMonthlyExhausted": "Your pass allowance is fully used, so the pass has ended. Buying a new pass starts another 30 days; for now you can open this with a one-time payment or moonstones.",
+      "passMonthlyExhausted": "You have used the pass allowance. The tier and profile limit remain until expiration; additional content is available by single payment or moonstones.",
       "passMonthlyRemaining": "Pass allowance left {remaining} / {limit}",
       "wait": {
         "card": "You'll return to this screen automatically once your card verification is complete.",
@@ -2159,7 +2160,7 @@
       "monthlyButton": "Payer avec {credits} crédits mensuels",
       "monthlyButtonBusy": "Activation du pass avec les crédits mensuels...",
       "monthlyButtonShort": "{credits} requis · solde insuffisant",
-      "terminationNotice": "If the monthly allowance is fully used, the pass ends regardless of the days left. Buying a new pass starts another 30 days from that day."
+      "terminationNotice": "At zero monthly allowance, the pass expiration, tier, and profile limit remain unchanged. Additional paid content is available by single payment or moonstones."
     },
     "access": {
       "passAppliedContinue": "Ouvert avec votre pass."

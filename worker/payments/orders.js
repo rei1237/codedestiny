@@ -139,6 +139,7 @@ export async function createOrder(db, {
             priceCoins: product.priceCoins,
             monthlyCost: product.monthlyCost,
             billingType: product.billingType,
+            reason: String(product.pricing?.reason || product.reason || ""),
             profileId, contentKey, scope, returnPath,
             createdAt: now.toISOString(),
           },

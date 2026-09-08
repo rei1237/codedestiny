@@ -3,11 +3,16 @@
   'use strict';
   var home = document.getElementById('cdHomeFunnel');
   if (!home) return;
-  var services = document.getElementById('cdhServices');
   var formPanel = document.getElementById('dpDestinyPanel');
   var form = document.getElementById('destinyCardForm');
   var doc = document.documentElement;
   var lastFilter = null;
+  var finderDisclosure = document.getElementById('cdhFinderDisclosure');
+  var collectionToggle = document.getElementById('cdHomeExpandToggle');
+  if (collectionToggle) collectionToggle.setAttribute('aria-controls', 'cdhCollections');
+  if (finderDisclosure) finderDisclosure.addEventListener('toggle', function () {
+    if (finderDisclosure.open) document.dispatchEvent(new Event('cd:home-finder-open'));
+  });
 
   function move(selector, slotId) {
     var node = document.querySelector(selector);
@@ -18,6 +23,15 @@
   }
 
   // Keep one authoritative instance of every established home surface.
+  // These start hidden, so relocating them preserves initial layout and script order.
+  move('#featureBegin', 'cdhCollections');
+  move('#inputPage > .feature-card-grid', 'cdhCollections');
+  // Fullscreen cards need their original top-level parent, outside home containment.
+  if (window.CodeDestinyNavigationStore) {
+    window.CodeDestinyNavigationStore.subscribe(function (state) {
+      move('.feature-card-grid', state.fullscreenPage === 'all-fortunes' ? 'inputPage' : 'cdhCollections');
+    });
+  }
   move('#cdCookieConsent', 'cdhCookieSlot');
   move('#authQuickLinks', 'cdhAccountSlot');
   move('#langWrap', 'cdhLanguageSlot');
@@ -30,7 +44,6 @@
 
   function revealInput() {
     doc.classList.add('cdh-input-open');
-    services.hidden = true;
     if (window.__cdOpenDestinyForm) window.__cdOpenDestinyForm();
     requestAnimationFrame(function () {
       if (form && form.getBoundingClientRect().height) form.scrollIntoView({ block: 'start' });
@@ -48,25 +61,30 @@
 
   function route() {
     var hash = location.hash.slice(1);
-    var isServices = hash === 'services' || hash.indexOf('services/') === 0 || hash === 'cdServiceIndex' || hash === 'cdFinder';
-    home.hidden = isServices;
-    services.hidden = !isServices;
-    if (isServices) {
+    var isFinder = hash === 'services' || hash.indexOf('services/') === 0 || hash === 'cdServiceIndex' || hash === 'cdFinder';
+    home.hidden = false;
+    if (isFinder) {
       doc.classList.remove('cdh-input-open');
+      if (finderDisclosure) finderDisclosure.open = true;
       document.dispatchEvent(new Event('cd:home-finder-open'));
       var filter = hash.split('/')[1] || '';
       if (filter !== lastFilter) {
-        services.querySelectorAll('[aria-pressed="true"]').forEach(function (chip) { chip.click(); });
-        var chip = services.querySelector(filter === 'tarot'
+        home.querySelectorAll('#cdFinder [aria-pressed="true"]').forEach(function (chip) { chip.click(); });
+        var chip = home.querySelector(filter === 'tarot'
           ? '[data-method="tarot"]'
           : '[data-purpose="' + filter.replace(/[^a-z]/g, '') + '"]');
         if (chip) chip.click();
         lastFilter = filter;
       }
-      document.getElementById('cdhServicesTitle').focus({ preventScroll: true });
-      window.scrollTo(0, 0);
+      requestAnimationFrame(function () {
+        var finder = document.getElementById('cdFinder');
+        var input = document.getElementById('fortuneGatewaySearch');
+        if (finder) finder.scrollIntoView({ block: 'start' });
+        try { if (input) input.focus({ preventScroll: true }); } catch (_) {}
+      });
     } else if (hash === 'home') {
       doc.classList.remove('cdh-input-open');
+      if (finderDisclosure) finderDisclosure.open = false;
       if (window.__cdCollapseHome) window.__cdCollapseHome();
       window.scrollTo(0, 0);
     } else if (hash === 'destinyCardForm') {
@@ -90,12 +108,11 @@
     if (target.closest('#cdMobileBottomNav [data-nav-key="home"]')) {
       doc.classList.remove('cdh-input-open');
       home.hidden = false;
-      services.hidden = true;
       if (location.hash.indexOf('services') !== -1) history.replaceState(null, '', location.pathname + location.search);
     }
     if (target.closest('[data-cd-service-index-jump]')) {
       event.preventDefault();
-      location.hash = 'services';
+      location.hash = 'cdFinder';
     }
   }, true);
 

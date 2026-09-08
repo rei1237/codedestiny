@@ -1,4 +1,4 @@
-// 나크샤트라 결정판 전문가 심화 상담 — 결제·생성 라우트 (3덱: 숙요/베다/융합, 21섹션)
+// 나크샤트라 결정판 통합 상담 — 결제·생성 라우트 (두 전통 교차 해석, 9개 장)
 //
 //   POST /api/nakshatra-ai/ensure-access : 이용권 선검사 → 커버 시 accessToken, 미커버 시 402(결제창)
 //   POST /api/nakshatra-ai/start         : 결제/이용권 확정 → 세션 개설 + 첫 웨이브 생성 → 진행률 반환
@@ -10,13 +10,13 @@
 // ⚠ 생성은 반드시 '동기'(waitUntil 금지). 비동기 전환은 Workers 요청 간 I/O 격리와 충돌해 결과가 'generating'에
 // 고착됐던 이력이 있다(네오와 동일 결론). 계산 검증은 포그라운드에서 먼저 끝낸다.
 //
-// 🔴 그런데 21섹션을 '한 요청에 전부' 동기 생성하면 엣지 응답 한도(100초)를 확실히 넘는다.
+// 🔴 9개 장도 한 요청에 전부 동기 생성하면 엣지 응답 한도(100초)를 넘을 수 있다.
 //    그래서 마스터 인연의 서(20장 5만자)가 프로덕션에서 완주시키는 배치 패턴을 이식했다 —
 //    **한 요청 = 1 동시성 웨이브(4섹션)**, 완료분은 매 배치 Mongo 에 누적, 진행 위치의 정본은 서버,
 //    중복 기동은 lockedAt/lockToken CAS 로 차단. waitUntil 은 여전히 쓰지 않는다.
 //
-// 🔴 융합 덱(10섹션)은 숙요·베다 11섹션이 끝난 뒤에만 생성한다(2페이즈). 두 대가가 실제로 무엇이라
-//    말했는지를 근거로 받아야 "비교"가 성립하기 때문이다 — 이게 이 상품의 존재 이유다.
+// 🔴 각 장은 처음부터 숙요·베다 계산 근거를 함께 받는다. 별도 덱을 이어 붙이지 않고,
+//    앞 장의 결론만 짧게 보존해 의미가 겹치지 않는 하나의 상담을 완성한다.
 
 import { createHash } from "node:crypto";
 import { solarToLunar } from "../../lib/korean-calendar/index.js";
@@ -46,12 +46,10 @@ import { assembleNatalCodex } from "../lib/nakshatra-codex.js";
 import { clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
 import {
   NAKSHATRA_SECTIONS,
-  NAKSHATRA_PHASE_DECKS,
-  NAKSHATRA_PHASE_FUSION,
+  NAKSHATRA_PHASE_CONSULTATION,
   NAKSHATRA_TOTAL_MIN_CHARS,
   buildSectionPrompt,
   buildFactContext,
-  buildDeckDigest,
   buildWrittenMemory,
   parseSectionResponse,
   mergeConsultationSections,
@@ -82,7 +80,7 @@ const SECTION_TIMEOUT_MS = 60000;
 // 배치 1회(생성 + 캐시우회 재시도 최악 시간)를 덮어야 병렬 폴링이 같은 배치를 중복 기동하지 않는다.
 const BATCH_LOCK_TTL_MS = 390000;
 // 섹션이 자기 목표의 이 비율에 못 미치면 '미완'으로 보고 다음 배치에서 다시 생성한다.
-// 이 하한이 곧 상품이 광고하는 분량의 근거다(21섹션 × 목표 합계 19,600자 × 0.75 ≈ 14,700자).
+// 이 하한은 9개 통합 장의 실제 상담 밀도를 지킨다. 장 수가 아닌 각 장의 의미 범위를 기준으로 둔다.
 const SECTION_MIN_RATIO = 0.75;
 const SECTION_MAX_ATTEMPTS = 2;
 // 총량 관문. 미달이어도 이미 결제된 결과를 파기하지 않고 전달하되(결제 후 결과 전달 보장), 경고를 남긴다.
@@ -600,7 +598,7 @@ function publicSession(doc) {
     progress: {
       completed: Number(raw?.generationProgress?.completed || 0),
       total: Number(raw?.generationProgress?.total || NAKSHATRA_SECTIONS.length),
-      phase: clean(raw?.generationProgress?.phase) || (raw?.status === "completed" ? "done" : "decks"),
+      phase: clean(raw?.generationProgress?.phase) || (raw?.status === "completed" ? "done" : "consultation"),
       chars: Number(raw?.totalCharCount || 0),
     },
     totalCharCount: Number(raw?.totalCharCount || 0),
@@ -649,13 +647,17 @@ async function computeNatalFacts(env, normalized, request) {
   const identity = {
     sukuyoKo: clean(codex?.dongyang?.nameKo),
     sukuyoHan: clean(codex?.dongyang?.nameHan),
+    sukuyoDirection: clean(codex?.dongyang?.direction),
+    sukuyoGuardian: clean(codex?.dongyang?.fourSymbol),
     nakshatraKo: clean(codex?.india?.nameKo),
     nakshatraEn: clean(codex?.india?.nameEn),
+    pada: codex?.india?.pada ?? null,
+    lordKo: clean(codex?.india?.lordKo),
   };
   return { summaryText, evidenceTokens, identity };
 }
 
-// ── 동기 생성 — 숙요+베다 두 덱(11챕터). ziwei-deep-report/네오 동시성 패턴 재사용 ──────────
+// ── 동기 생성 — 9개 통합 장. ziwei-deep-report/네오 동시성 패턴 재사용 ──────────
 async function runWithConcurrency(items, limit, worker) {
   const results = new Array(items.length);
   let cursor = 0;
@@ -682,7 +684,7 @@ function countTextChars(value) {
 // 🔴 fallbackMinChars: Workers AI 폴백(70B는 약 1,700자에서 스스로 멈춘다)이 짧은 응답을 완성본으로
 //    돌려주는 것을 막는다. 이게 없으면 2만자 상품이 8% 분량으로 '완료' 저장된다(CLAUDE.md 필수 규칙).
 async function generateSectionOnce(env, section, prompt, cacheConfig) {
-  const base = { id: section.id, deck: section.deck, title: section.title, keyInsight: "", body: "", chars: 0 };
+  const base = { id: section.id, deck: section.deck, title: section.title, keyInsight: "", vedicEvidence: "", sukuyoEvidence: "", body: "", chars: 0 };
   try {
     let ai = null;
     let parsed = { keyInsight: "", body: "" };
@@ -713,6 +715,8 @@ async function generateSectionOnce(env, section, prompt, cacheConfig) {
     return {
       ...base,
       keyInsight: parsed.keyInsight,
+      vedicEvidence: parsed.vedicEvidence,
+      sukuyoEvidence: parsed.sukuyoEvidence,
       body: parsed.body,
       chars: parsed.body.length,
       provider,
@@ -739,14 +743,12 @@ function readSections(doc) {
   return Array.isArray(doc?.sections) ? doc.sections.filter((entry) => entry && entry.id) : [];
 }
 
-// 다음에 생성할 섹션 묶음. 융합 덱은 숙요·베다가 전부 정착한 뒤에만 열린다(2페이즈).
+// 다음에 생성할 섹션 묶음. 모든 장은 이미 두 전통의 계산 근거를 함께 받아 하나의 상담으로 쓴다.
 function pickNextBatch(done) {
   const byId = new Map(done.map((entry) => [entry.id, entry]));
   const settled = (section) => isSectionSettled(byId.get(section.id));
-  const decksPending = NAKSHATRA_PHASE_DECKS.filter((section) => !settled(section));
-  const phase = decksPending.length ? "decks" : "fusion";
-  const pool = decksPending.length ? decksPending : NAKSHATRA_PHASE_FUSION.filter((section) => !settled(section));
-  return { phase, slice: pool.slice(0, SECTION_BATCH_SIZE), remaining: pool.length };
+  const pool = NAKSHATRA_PHASE_CONSULTATION.filter((section) => !settled(section));
+  return { phase: "consultation", slice: pool.slice(0, SECTION_BATCH_SIZE), remaining: pool.length };
 }
 
 function countSettled(done) {
@@ -767,8 +769,6 @@ async function runGenerationBatch(env, session, facts) {
   const ctx = {
     summaryText: facts.summaryText,
     question: clean(session?.question),
-    // 융합 섹션은 두 대가가 실제로 쓴 본문 요약을 근거로 받는다 — 없으면 또 한 번 일반론이 된다.
-    deckDigest: phase === "fusion" ? buildDeckDigest(done) : "",
     writtenMemory: buildWrittenMemory(done),
   };
   const cacheStore = createLlmCacheStore(env);
@@ -780,7 +780,7 @@ async function runGenerationBatch(env, session, facts) {
       store: cacheStore,
       deterministic: true,
       ttlSeconds: 30 * 24 * 60 * 60,
-      keyExtra: `nakshatra-ai-v2-${section.id}${priorAttempts ? `-r${priorAttempts}` : ""}`,
+      keyExtra: `nakshatra-ai-v3-${section.id}${priorAttempts ? `-r${priorAttempts}` : ""}`,
     };
     return generateSectionOnce(env, section, prompt, cacheConfig);
   });
@@ -802,10 +802,10 @@ async function runGenerationBatch(env, session, facts) {
   return { sections: merged, phase, generated: results.length };
 }
 
-// 완료 조립. 두 대가 덱이 통째로 비면 상품 계약(2관점 상담)이 깨진 것이므로 실패로 돌린다.
+// 완료 조립. 첫 장과 핵심 장이 비면 하나의 통합 상담 계약이 깨진 것이므로 실패로 돌린다.
 function buildCompletion(sections) {
   const decks = mergeConsultationSections(sections);
-  if (countTextChars(decks) < 400 || decks.sukuyo.length === 0 || decks.vedic.length === 0) {
+  if (countTextChars(decks) < 400 || decks.consultation.length < 2) {
     const error = new Error(LLM_ERROR_MESSAGE);
     error.code = "LLM_FAILED";
     error.status = 503;
@@ -818,7 +818,7 @@ function buildCompletion(sections) {
   }
   const provider = clean(sections.find((entry) => entry.provider)?.provider || "gemini");
   const model = clean(sections.find((entry) => entry.model)?.model || "");
-  const practice = decks.fusion.find((entry) => entry.id === "fusionPractice");
+  const practice = decks.consultation.find((entry) => entry.id === "lifeManual");
   return { decks, totalCharCount, provider, model, topInsights: extractTopInsights(practice?.body) };
 }
 
@@ -863,9 +863,7 @@ function progressPayload(sessionId, sections, phase) {
       phase,
       chars: sumSectionChars(sections),
     },
-    message: phase === "fusion"
-      ? "두 대가의 해석을 겹쳐 읽는 중이에요."
-      : "두 대가가 당신의 별을 읽는 중이에요.",
+    message: "두 개의 별 언어를 한 사람의 이야기로 엮는 중이에요.",
   };
 }
 
@@ -925,7 +923,7 @@ async function handleStart(request, env) {
   if (existing && clean(existing.inputHash) !== normalized.inputHash) return invalidInput(INVALID_INPUT_MESSAGE, 409);
   if (existing?.status === "completed") return json(publicSession(existing));
   if (existing?.status === "generating" && Date.now() - new Date(existing.updatedAt || existing.createdAt).getTime() < GENERATION_FRESHNESS_MS) {
-    return json({ ok: true, sessionId: existing.id, status: "generating", message: "두 대가가 당신의 별을 읽는 중이에요." }, { status: 202 });
+    return json({ ok: true, sessionId: existing.id, status: "generating", message: "두 개의 별 언어를 한 사람의 이야기로 엮는 중이에요." }, { status: 202 });
   }
 
   // 정찰 지도(계산)는 LLM이 아니므로 포그라운드에서 즉시 검증한다 — 출생정보/차트 오류는 여기서 422로 빠르게 반환.
@@ -954,7 +952,7 @@ async function handleStart(request, env) {
     factSummary: { identity: facts.identity, evidenceTokens: facts.evidenceTokens, summaryText: facts.summaryText },
     decks: null,
     sections: [],
-    generationProgress: { completed: 0, total: NAKSHATRA_SECTIONS.length, phase: "decks", lockedAt: null, lockToken: "" },
+    generationProgress: { completed: 0, total: NAKSHATRA_SECTIONS.length, phase: "consultation", lockedAt: null, lockToken: "" },
     totalCharCount: 0,
     accessType: access.accessType,
     accessSource: clean(access.source, 40),
@@ -972,7 +970,7 @@ async function handleStart(request, env) {
       if (error?.code === 11000) {
         const duplicate = await NakshatraAiConsultation.findOne({ userId: auth.userId, idempotencyKey }).lean();
         if (duplicate?.status === "completed") return json(publicSession(duplicate));
-        return json({ ok: true, sessionId: duplicate?.id || sessionId, status: "generating", message: "두 대가가 당신의 별을 읽는 중이에요." }, { status: 202 });
+        return json({ ok: true, sessionId: duplicate?.id || sessionId, status: "generating", message: "두 개의 별 언어를 한 사람의 이야기로 엮는 중이에요." }, { status: 202 });
       }
       throw error;
     }
@@ -1170,7 +1168,7 @@ async function handleResult(request, env, pathId = "") {
         sessionId: clean(consultation.id),
         status: "generating",
         natal: consultation.factSummary?.identity || null,
-        message: "두 대가가 당신의 별을 읽는 중이에요.",
+        message: "두 개의 별 언어를 한 사람의 이야기로 엮는 중이에요.",
       },
       { status: 202, headers: { "Retry-After": "3" } },
     );
