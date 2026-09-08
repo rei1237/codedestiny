@@ -54,6 +54,55 @@ try {
     storage.save([profile]); storage.setCurrent(profile.id);
     await window.__cdEnsureBirthModalDepsLoaded();
   }, profile);
+  const modalIds = { sukuyo: 'sukuyoModalOverlay', astro: 'astroModalOverlay', ziwei: 'ziweiModalOverlay' };
+  const closeNames = { sukuyo: 'closeSukuyoModal', astro: 'closeAstroModal', ziwei: 'closeZiweiModal' };
+  const closeModalAndWait = async type => {
+    await page.evaluate(({ type, closeNames }) => window[closeNames[type]](), { type, closeNames });
+    await page.waitForFunction(({ type, id }) => {
+      const overlay = document.getElementById(id);
+      const marker = history.state && history.state.cdBasicFortuneModal;
+      return overlay && getComputedStyle(overlay).display === 'none' && (type === 'astro' || marker !== type);
+    }, { type, id: modalIds[type] });
+  };
+  const pressTabUntil = async (selector, reverse = false, max = 120) => {
+    for (let i = 0; i < max; i += 1) {
+      if (await page.evaluate(selector => document.activeElement?.matches(selector), selector)) return;
+      await page.keyboard.press(reverse ? 'Shift+Tab' : 'Tab');
+    }
+    assert.fail(`Keyboard focus did not reach ${selector}`);
+  };
+  const openBasicFortuneWithKeyboard = async type => {
+    await page.evaluate(profile => {
+      localStorage.setItem('cd_lang', 'ko');
+      document.documentElement.lang = 'ko';
+      const storage = window.DestinyProfileManager.storage;
+      storage.save([profile]);
+      storage.setCurrent(profile.id);
+      window.dpEditProfile(profile.id);
+    }, profile);
+    const entry = page.locator('.dp-mc-load-btn:visible').first();
+    await entry.scrollIntoViewIfNeeded();
+    await entry.focus();
+    await page.keyboard.press('Enter');
+    const selector = page.locator('.dp-fsel-overlay');
+    await selector.waitFor({ state: 'visible' });
+    assert.equal(await selector.getAttribute('role'), 'dialog');
+    assert.equal(await selector.getAttribute('aria-modal'), 'true');
+    assert.equal(await selector.getAttribute('aria-hidden'), 'false');
+    assert.equal(await page.evaluate(() => document.activeElement?.matches('.dp-fsel-close-btn')), true);
+    await page.keyboard.press('Shift+Tab');
+    assert.equal(await page.evaluate(() => document.activeElement?.closest('.dp-fsel-overlay') !== null), true);
+    await page.keyboard.press('Tab');
+    assert.equal(await page.evaluate(() => document.activeElement?.matches('.dp-fsel-close-btn')), true);
+    await pressTabUntil(`.dp-fsel-btn--${type}`);
+    await page.keyboard.press('Enter');
+    await page.waitForFunction(({ type, id }) => {
+      const overlay = document.getElementById(id);
+      const rendered = type === 'sukuyo' ? overlay?.querySelector('#lunarNexusApp') : overlay?.querySelector('.zw-dashboard');
+      return rendered && getComputedStyle(overlay).display !== 'none' && overlay.getAttribute('aria-hidden') === 'false';
+    }, { type, id: modalIds[type] }, { timeout: 45000 });
+    assert.equal(await page.evaluate(id => document.activeElement?.matches(`#${id} .modal-top-nav button`), modalIds[type]), true);
+  };
   for (const type of ['sukuyo', 'astro', 'ziwei']) {
     const ids = { sukuyo: 'sukuyoSection', astro: 'astroResult', ziwei: 'ziweiModalSection' };
     const start = Date.now();
@@ -106,13 +155,64 @@ try {
         await page.screenshot({ path: path.join(output, 'sukuyo-chart-390.png') });
       }
     }
-    await page.evaluate(type => window[{ sukuyo: 'closeSukuyoModal', astro: 'closeAstroModal', ziwei: 'closeZiweiModal' }[type]](), type);
+    await closeModalAndWait(type);
   }
   const performance = await page.evaluate(() => window.__fortuneMetrics);
   const states = [];
+  const localizationAudit = [];
   if (phase === 'after') {
     const opens = { sukuyo: 'openSukuyoModal', ziwei: 'openZiweiModal' };
-    const closes = { sukuyo: 'closeSukuyoModal', ziwei: 'closeZiweiModal' };
+    for (const type of Object.keys(opens)) {
+      await page.setViewportSize({ width: 390, height: 844 });
+      await openBasicFortuneWithKeyboard(type);
+      await page.keyboard.press('Shift+Tab');
+      assert.equal(await page.evaluate(id => document.activeElement?.closest(`#${id}`) !== null, modalIds[type]), true);
+      await page.keyboard.press('Tab');
+      assert.equal(await page.evaluate(id => document.activeElement?.matches(`#${id} .modal-top-nav button`), modalIds[type]), true);
+      await pressTabUntil(`#fr-${type}-chart > summary`);
+      await page.keyboard.press('Enter');
+      assert.equal(await page.locator(`#fr-${type}-chart`).evaluate(el => el.open), true);
+      assert.equal(await page.locator(`#fr-${type}-chart > summary`).getAttribute('aria-expanded'), 'true');
+      if (type === 'sukuyo') {
+        await page.keyboard.press('Escape');
+      } else {
+        await pressTabUntil(`#${modalIds[type]} .modal-nav-close`, true);
+        await page.keyboard.press('Enter');
+      }
+      await page.waitForFunction(id => getComputedStyle(document.getElementById(id)).display === 'none', modalIds[type]);
+      await page.waitForFunction(() => document.activeElement?.matches('.dp-mc-load-btn'));
+      assert.equal(await page.evaluate(() => document.activeElement?.matches('.dp-mc-load-btn')), true);
+      states.push({ type, keyboardNavigation: true, disclosureKeyboard: true, focusReturn: true });
+
+      await openBasicFortuneWithKeyboard(type);
+      const beforeHistory = await page.evaluate(type => ({
+        href: location.href,
+        scrollY,
+        length: history.length,
+        marker: history.state && history.state.cdBasicFortuneModal,
+        type
+      }), type);
+      assert.equal(beforeHistory.marker, type);
+      await page.evaluate(({ type, opens }) => window[opens[type]](), { type, opens });
+      await page.waitForTimeout(100);
+      assert.equal(await page.evaluate(() => history.length), beforeHistory.length);
+      await page.goBack({ waitUntil: 'commit' }).catch(() => null);
+      await page.waitForFunction(id => getComputedStyle(document.getElementById(id)).display === 'none', modalIds[type]);
+      const afterBack = await page.evaluate(() => ({ href: location.href, scrollY, marker: history.state && history.state.cdBasicFortuneModal }));
+      assert.equal(afterBack.href, beforeHistory.href);
+      assert.equal(afterBack.marker == null, true);
+      assert.ok(Math.abs(afterBack.scrollY - beforeHistory.scrollY) <= 2, `${type}: scroll changed on Back`);
+      await page.waitForFunction(() => document.activeElement?.matches('.dp-mc-load-btn'));
+      assert.equal(await page.evaluate(() => document.activeElement?.matches('.dp-mc-load-btn')), true);
+      await page.goForward({ waitUntil: 'commit' }).catch(() => null);
+      await page.waitForFunction(({ type, id }) => {
+        const overlay = document.getElementById(id);
+        return getComputedStyle(overlay).display !== 'none' && history.state?.cdBasicFortuneModal === type;
+      }, { type, id: modalIds[type] });
+      assert.equal(await page.evaluate(() => history.length), beforeHistory.length);
+      await closeModalAndWait(type);
+      states.push({ type, historyBackCloses: true, historyForwardRestores: true, historyDeduplicated: true, urlPreserved: true, scrollPreserved: true });
+    }
     for (const locale of ['ko', 'en', 'ja', 'zh', 'zh-TW']) {
       for (const type of Object.keys(opens)) {
         await page.evaluate(({ profile, locale, type, opens }) => {
@@ -130,8 +230,30 @@ try {
         if (layout.scroll > layout.width + 1) { console.log(layout); await page.screenshot({ path: path.join(output, 'state-failure.png') }); }
         assert.ok(layout.scroll <= layout.width + 1, type + ': long name overflow');
         if (locale === 'ko' && type === 'astro') assert.equal(await report.locator('.fr-profile-notice').count(), 1);
+        if (locale !== 'ko') {
+          await report.locator('details').evaluateAll(nodes => nodes.forEach(node => { node.open = true; node.querySelector(':scope > summary')?.setAttribute('aria-expanded', 'true'); }));
+          const presentationText = await report.locator('.fr-heading, .fr-disclosure > summary, .fr-palace-choice strong, .fr-map-toggle').allTextContents();
+          assert.equal(presentationText.some(text => /[가-힣]/.test(text)), false, `${type}/${locale}: new presentation label contains Hangul`);
+          localizationAudit.push(await report.evaluate((root, { locale, type }) => {
+            const samples = [];
+            const owners = {};
+            const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+            let node;
+            while ((node = walker.nextNode())) {
+              const parent = node.parentElement;
+              const text = node.nodeValue.replace(/\s+/g, ' ').trim();
+              if (!text || !/[가-힣]/.test(text) || !parent || parent.closest('.fr-profile-name, script, style, noscript')) continue;
+              const owner = parent.closest('#lunarNexusApp') ? 'renderSukuyo' : parent.closest('.zw-dashboard, #ziweiModalSection') ? 'renderZiwei' : 'presentation';
+              owners[owner] = (owners[owner] || 0) + 1;
+              const anchor = parent.closest('[id], [class]');
+              const selector = anchor?.id ? `#${anchor.id}` : anchor?.classList?.length ? `.${Array.from(anchor.classList).slice(0, 2).join('.')}` : parent.tagName.toLowerCase();
+              if (samples.length < 8 && !samples.some(sample => sample.text === text)) samples.push({ owner, selector, text: text.slice(0, 160) });
+            }
+            return { locale, type, total: Object.values(owners).reduce((sum, count) => sum + count, 0), owners, samples };
+          }, { locale, type }));
+        }
         states.push({ type, locale, longName: true, partialProfile: locale === 'ko' });
-        await page.evaluate(({ type, closes }) => window[closes[type]](), { type, closes });
+        await closeModalAndWait(type);
       }
     }
     await page.evaluate(() => { localStorage.setItem('cd_lang', 'ko'); window.DestinyProfileManager.storage.save([]); window.DestinyProfileManager.storage.setCurrent(''); });
@@ -139,7 +261,7 @@ try {
       await page.evaluate(({ type, opens }) => window[opens[type]](), { type, opens });
       await page.locator(`#${type}NoProfile`).waitFor({ state: 'visible' });
       states.push({ type, emptyProfile: true });
-      await page.evaluate(({ type, closes }) => window[closes[type]](), { type, closes });
+      await closeModalAndWait(type);
     }
     await page.evaluate(profile => { const storage = window.DestinyProfileManager.storage; storage.save([profile]); storage.setCurrent(profile.id); }, profile);
     await page.reload({ waitUntil: 'domcontentloaded' });
@@ -148,10 +270,11 @@ try {
     states.push({ refreshProfile: true });
     await page.evaluate(() => { window.__savedZiweiRenderer = window.renderZiwei; window.renderZiwei = function () { throw new Error('Mock render failure'); }; window.openZiweiModal(); });
     await page.locator('#ziweiModalSection [role="alert"]').waitFor({ state: 'visible' });
-    await page.evaluate(() => { window.renderZiwei = window.__savedZiweiRenderer; window.closeZiweiModal(); });
+    await page.evaluate(() => { window.renderZiwei = window.__savedZiweiRenderer; });
+    await closeModalAndWait('ziwei');
     await page.evaluate(() => window.openZiweiModal());
     await page.locator('#ziweiModalSection .fr-profile').waitFor({ state: 'visible' });
-    await page.evaluate(() => window.closeZiweiModal());
+    await closeModalAndWait('ziwei');
     states.push({ errorRecovery: true });
     await page.evaluate(() => {
       window.__savedLunarResolver = window._resolveSukuyoLunarObj;
@@ -164,7 +287,7 @@ try {
       window.__finishMockLoading(await window._resolveSukuyoLunarObj(window.DestinyProfileManager.storage.current()));
     });
     await page.locator('#sukuyoSection .fr-profile').waitFor({ state: 'visible' });
-    await page.evaluate(() => window.closeSukuyoModal());
+    await closeModalAndWait('sukuyo');
     states.push({ loading: true });
     await page.evaluate(async () => {
       await window.__cdLoadScriptOnce('/js/share.js');
@@ -180,6 +303,6 @@ try {
     assert.ok(shares.every(share => share.url && share.text.includes(profile.name)));
     states.push({ mockSharePayloads: shares.length });
   }
-  await fs.writeFile(path.join(output, 'report.json'), JSON.stringify({ results, errors, requests, performance, states }, null, 2));
+  await fs.writeFile(path.join(output, 'report.json'), JSON.stringify({ results, errors, requests, performance, states, localizationAudit }, null, 2));
   console.log(JSON.stringify({ phase, results, errors }, null, 2));
 } finally { await browser.close(); }
