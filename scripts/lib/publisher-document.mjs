@@ -35,7 +35,16 @@ export function inspectPublisherDocument(html, url) {
   const streamedIds = new Set(all.filter((node) => /^S:/.test(attr(node, "id"))
     && all.some((boundary) => boundary.tagName === "template" && attr(boundary, "id") === attr(node, "id").replace(/^S:/, "B:"))
     && /\$RC\s*\(/.test(html)).map((node) => attr(node, "id")));
-  const text = scope.map((node) => publisherText(node, true, streamedIds)).join(" ");
+  const hiddenAncestor = (node) => {
+    for (let parent = node.parentNode; parent; parent = parent.parentNode) {
+      if (excluded.has(parent.tagName)
+        || parent.attrs?.some((item) => item.name === "hidden") && !streamedIds.has(attr(parent, "id"))
+        || attr(parent, "aria-hidden") === "true"
+        || /(?:display\s*:\s*none|visibility\s*:\s*hidden)/i.test(attr(parent, "style"))) return true;
+    }
+    return false;
+  };
+  const text = scope.map((node) => hiddenAncestor(node) ? "" : publisherText(node, true, streamedIds)).join(" ");
   const noJsBodyText = all.filter((node) => node.tagName === "body").map((node) => publisherText(node)).join(" ");
   const schema = [];
   for (const node of all.filter((item) => item.tagName === "script" && attr(item, "type") === "application/ld+json")) {

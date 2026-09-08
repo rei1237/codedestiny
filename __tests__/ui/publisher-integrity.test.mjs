@@ -54,6 +54,10 @@ test("footer, script and hidden fallback content cannot fill an empty article", 
   const doc = inspectPublisherDocument('<main><section data-article-body="true"><p hidden>숨긴 본문</p><script>"가짜 본문"</script></section></main><footer><p>긴 환불 문구</p></footer>', "https://code-destiny.com/insights/empty/");
   assert.equal(doc.bodyChars, 0);
 });
+test("an article marker cannot bypass a hidden ancestor", () => {
+  const doc = inspectPublisherDocument('<main hidden><section data-article-body="true">숨긴 원고</section></main><footer>안내</footer>', "https://code-destiny.com/insights/hidden/");
+  assert.equal(doc.bodyChars, 0);
+});
 test("a short complete article is measured, never rejected by a word-count threshold", () => {
   const doc = inspectPublisherDocument('<main><h1>날짜 기준</h1><section data-article-body="true"><p>일주는 민용일을 기준으로 구분합니다.</p></section></main>', "https://code-destiny.com/insights/short/");
   assert.equal(doc.bodyText, "일주는 민용일을 기준으로 구분합니다.");
