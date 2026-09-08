@@ -9,7 +9,7 @@ next: 로컬 전체 검사와 PR #1824 최신 CI를 확인한다. 필수 검사�
 ## 전달 상태
 
 - 브랜치: `codex/mobile-platform-ux-20260908`
-- 초안 PR: https://github.com/rei1237/codedestiny/pull/1824
+- PR: https://github.com/rei1237/codedestiny/pull/1824
 - 작업 경로: `D:\Development\code-destiny-mobile-platform-ux`
 - 운영 배포·실결제·실 LLM·운영 DB 쓰기 없음
 
@@ -18,6 +18,7 @@ next: 로컬 전체 검사와 PR #1824 최신 CI를 확인한다. 필수 검사�
 - 모바일 찻집 대기 화면 중첩 장식 제거, 질문 초안 보존, 240ms 강제 홈 이동 제거.
 - React 공유 fallback을 공통 서비스로 연결. 개인 결과 공개 공유 백엔드는 만들거나 활성화하지 않음.
 - 레지스트리 69개 목적지를 64개 고유 기능으로 정규화. 구현 근거를 확인한 62개에 독립 소개주소·canonical/OG·기존 CTA 제공.
+- 소개주소는 `noindex, follow`로 유지하고 sitemap에서 제외. 검색 유입은 기존 실제 서비스 랜딩이 담당한다.
 - 소개 목록 slug 중복 제거. 검색, 7개 분류 필터, 검색 빈 상태와 복구 추가.
 - 기능별 마케팅 정본을 SVG/HTML 편집형 핵심 흐름 미리보기로 재사용. 개인 결과를 가장하지 않음.
 - 정적 팝업은 CSS 로드 완료 후에만 기존 설명을 감춤. CSS 실패 시 기존 설명 유지와 재시도 제공. 비한국어 locale 전환 시 한국어 상세 패널 제거.
