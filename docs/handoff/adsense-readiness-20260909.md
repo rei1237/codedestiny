@@ -56,7 +56,7 @@ next: "기존 워크트리에서 PR #1862의 최신 CI와 활성 sitemap 중첩�
 
 ## 남은 일과 우선순위
 
-1. **병합 게이트:** 구현 SHA의 `delivery:admit -- --pr=1862`에서 최신 main·clean·receipt·필수 CI·직전 main 스테이징은 PASS, 활성 작업 중첩만 BLOCK이었다. 관찰 브랜치: `codex/사주분석화면css문제`의 `config/sitemap-lastmod.json`, `public/sitemap.xml`, `sitemap.xml`; `codex/ziwei-insights-pig-static`의 `config/sitemap-lastmod.json`. 현재 상태를 재조회한다. 다른 작업을 삭제/덮어쓰거나 게이트를 우회하지 않는다. 상대 작업 정리 후 최신 main 통합→생성기→검증을 순서대로 수행한다. GitHub 충돌 없음과 로컬 admission 통과는 별개다.
+1. **병합 게이트:** `delivery:admit -- --pr=1862`는 최신 preflight 영수증 stale 및 활성 작업 중첩으로 BLOCK이다. 2026-09-09 재조회에서 `origin/main`은 `feef3039345a`로 전진했고, `git merge-tree --name-only origin/main HEAD`는 `config/sitemap-lastmod.json`의 실제 병합 충돌을 확인했다. 관찰 브랜치 `codex/사주분석화면css문제`는 같은 lastmod와 `public/sitemap.xml`, `sitemap.xml`을 미커밋 변경 중이다. 다른 작업을 삭제/덮어쓰거나 게이트를 우회하지 않는다. 상대 작업 정리 후 최신 main 통합→생성기→검증을 순서대로 수행한다. GitHub 충돌 없음과 로컬 admission 통과는 별개다.
 2. **남은 콘텐츠 감사:** 113 씨드 중 직접 검토한 것은 20편. 나머지 93편과 유명인·가이드·도구·다국어 품질 심사는 미완료. 기존 원장의 미확인 B를 저품질 확정으로 해석하지 않는다. GSC 클릭·노출·외부 링크·내부 의존성을 확인한 뒤 A/B/C/D를 결정한다. 데이터 미확인은 0이 아니다. 본문 존재만으로 A 승격하지 않는다.
    - 2026-09-09 1차 선별 감사는 `docs/adsense/review/AI-EDITORIAL-AUDIT-20260909-BATCH-01.md`에 기록했다. 숙요 2편·베다 1편·타로 1편에서 결과 보장처럼 읽히는 전통 해석, 출처 없는 비교·빈도·도상 주장, 성별 일반화 위험을 발견했다. 수정·해시·AI 편집 완료는 아직 아니므로 직접 검토 완료 수는 **20편**, 남은 편집 감사 대상은 **93편**으로 유지한다.
 3. **광고 적합 심사:** 충분한 publisher content와 정책 적합성을 확인한 경로만 별도 판정. AI 편집·인간 검수·광고 허용은 각각 구분한다. 개인화·결제·입력·오류 화면에 광고를 자동 허용하지 않는다.
