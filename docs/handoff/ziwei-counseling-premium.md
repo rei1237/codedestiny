@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-08
-next: "최신 main을 반영하고 변경 파일을 커밋·푸시해 PR 검사 결과를 확인한다."
+next: "PR #1823의 최신 검사를 확인하고 사용자가 검토·머지한다. 실서비스 점검은 별도 승인 범위다."
 ---
 
 # 심화 자미두수 상담 경험 개편
@@ -12,7 +12,7 @@ next: "최신 main을 반영하고 변경 파일을 커밋·푸시해 PR 검사 
 
 ## 지금 상태
 
-- 격리 워크트리 D:/Development/code-destiny-worktrees/ziwei-counseling-premium, codex/ziwei-counseling-premium. PR 준비 중, 머지는 사용자에게 남긴다.
+- 격리 워크트리 D:/Development/code-destiny-worktrees/ziwei-counseling-premium, codex/ziwei-counseling-premium. 구현 bcd8e9eab, 사이트맵381b44891 커밋·푸시 완료. PR https://github.com/rei1237/codedestiny/pull/1823. 최신 main c0bc1b86e 반영, 머지는 사용자에게 남긴다.
 - 8개 질문 선택, 개인화 Hero, 질문별 답변·행동·근거, 접힌 명반·상세, 프로필 소유자별 캐시 복원과 실제 프로필 변경 이벤트 구현.
 - 해석 정본·요약·궁별 상담·15장 PDF 프롬프트 수정. 화면 문자열 임시 치환 없음. 캐시 v10/v4.
 - 공유 미리보기→기기 공유/복사. 이름·생일·자유 질문·토큰 제외, 취소는 오류 아님.
@@ -42,7 +42,7 @@ app/_lib/ziwei-consultation-narrative.ts → app/components/ziwei/ZiweiConsultat
 
 - [x] 독립 리뷰의 천문도 대비·펼침 아이콘 2건 resolved, disposition: ship(해당 수정 범위).
 - [x] check:fast 전체 PASS, handoff 계약113문서 PASS.
-- [ ] 변경 파일 커밋·푸시·PR 생성·CI 확인. 머지하지 않는다.
+- [x] 변경 파일 커밋·푸시·PR #1823 생성, CI 실행/검사 조회. 최신 커밋의 최종 결론은 PR Checks가 정본이다. 머지하지 않았다.
 - [ ] 실제 결제/LLM/실물 모바일 기기 검증은 이번 Mock 검증 범위 밖이며 미실행.
 
 ## 함정
@@ -55,4 +55,6 @@ app/_lib/ziwei-consultation-narrative.ts → app/components/ziwei/ZiweiConsultat
 
 ## 이어서 실행
 
-이 인수인계를 읽고 남은 회귀와 PR 검사를 완료해줘. 실제 LLM·결제·DB·배포·머지는 실행하지 마.
+D:/Development/code-destiny-worktrees/ziwei-counseling-premium의 docs/handoff/ziwei-counseling-premium.md를 읽고 PR #1823 최신 검사부터 확인해줘. 실제 LLM·결제·DB·배포·머지는 실행하지 마.
+
+최신 main 반영 후 sitemap:generate / verify:sitemap-drift / verify:public-mirror-fresh PASS. 로컬 최종 check:fast 재실행 로그는 implementation/check-fast-final.log(비추적), CI는 PR의 최신 커밋을 기준으로 읽는다. 기존 lint 경고는 유지하며 새 타입 오류는 없다.
