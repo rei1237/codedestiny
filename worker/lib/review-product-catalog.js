@@ -111,6 +111,15 @@ export const REVIEW_PRODUCTS = Object.freeze([
     ]),
   },
   {
+    productId: "relationship-boundary-test",
+    name: "그 사람의 바람끼는?",
+    summary: "대상자의 사주를 바탕으로 관계 경계와 외부 자극의 흐름을 웹툰형 리포트로 읽는 상담",
+    href: "/relationship-boundary-test",
+    featureKeys: Object.freeze([
+      "relationship-boundary-test",
+    ]),
+  },
+  {
     productId: "astrology",
     name: "점성술 전문가 상담",
     summary: "출생 차트의 행성 배치와 트랜짓으로 읽는 서양 점성술 상담",

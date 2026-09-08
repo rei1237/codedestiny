@@ -1889,6 +1889,33 @@ export const ZiweiAiConsultation = mongoose.models.ZiweiAiConsultation
   || mongoose.model("ZiweiAiConsultation", ziweiAiConsultationSchema);
 export const LoveSecretAiConsultation = mongoose.models.LoveSecretAiConsultation
   || mongoose.model("LoveSecretAiConsultation", loveSecretAiConsultationSchema);
+
+// 관계 경계 테스트는 출생 정보별 회당 결제 결과다. `idempotencyKey`가 같은 재시도는
+// 동일 세션을 재사용하며, 결과는 요청한 계정에서만 조회한다.
+const relationshipBoundaryTestSchema = new mongoose.Schema({
+  id: { type: String, required: true, unique: true, trim: true, maxlength: 120, index: true },
+  userId: { type: String, required: true, trim: true, index: true },
+  targetInfo: { type: loveSecretAiPersonInfoSchema, required: true },
+  idempotencyKey: { type: String, required: true, trim: true, maxlength: 180, index: true },
+  inputHash: { type: String, required: true, trim: true, maxlength: 80 },
+  accessType: { type: String, required: true, trim: true, maxlength: 40 },
+  paymentId: { type: String, default: "", trim: true, maxlength: 160 },
+  score: { type: Number, required: true, min: 0, max: 100 },
+  grade: { type: String, enum: ["low", "medium", "high"], required: true },
+  character: { type: { title: String, caption: String }, required: true },
+  scoreFactors: { type: [String], default: [] },
+  summary: { type: String, default: "", trim: true, maxlength: 1000 },
+  sections: { type: [{ title: String, body: String }], default: [] },
+  finalMessage: { type: String, default: "", trim: true, maxlength: 2000 },
+  sajuFacts: { type: mongoose.Schema.Types.Mixed, default: null },
+  status: { type: String, enum: ["generating", "completed", "generation_failed"], default: "generating", index: true },
+  generationError: { type: mongoose.Schema.Types.Mixed, default: null },
+}, { timestamps: true, collection: "relationshipBoundaryTests" });
+
+relationshipBoundaryTestSchema.index({ userId: 1, idempotencyKey: 1 }, { unique: true });
+relationshipBoundaryTestSchema.index({ userId: 1, createdAt: -1 });
+export const RelationshipBoundaryTest = mongoose.models.RelationshipBoundaryTest
+  || mongoose.model("RelationshipBoundaryTest", relationshipBoundaryTestSchema);
 export const DestinyCompassReport = mongoose.models.DestinyCompassReport
   || mongoose.model("DestinyCompassReport", destinyCompassReportSchema);
 
