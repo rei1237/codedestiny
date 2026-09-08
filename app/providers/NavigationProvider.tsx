@@ -18,7 +18,12 @@ import {
   type BackPolicy,
 } from "@/lib/navigation/backHandler";
 
-export type BackHandlerScope = "analysis";
+/**
+ * Back handlers are evaluated from the most local transient surface outward.
+ * A sheet must close before a wizard changes step, and a wizard must change
+ * step before an analysis route leaves the current document.
+ */
+export type BackHandlerScope = "overlay" | "wizard" | "analysis";
 
 export type BackHandlerRegistration = {
   id: string;
@@ -33,6 +38,7 @@ export type BackHandlerRegistration = {
 
 type BackNavigationContextValue = {
   registerBackHandler: (registration: BackHandlerRegistration) => () => void;
+  ensureTransientBackGuard: () => void;
 };
 
 export const BackNavigationContext = createContext<BackNavigationContextValue | null>(null);
@@ -51,17 +57,26 @@ function getAnalysisFallbackPath(pathname: string) {
   return `/${localeMatch[1]}/saju`;
 }
 
-function pickActiveAnalysisHandler(
+const SCOPE_PRIORITY: Record<BackHandlerScope, number> = {
+  overlay: 300,
+  wizard: 200,
+  analysis: 100,
+};
+
+function pickActiveBackHandler(
   handlers: Map<string, BackHandlerRegistration>,
 ) {
   const list: BackHandlerRegistration[] = [];
   handlers.forEach((handler) => {
-    if (handler.scope !== "analysis") return;
     if (!handler.enabled()) return;
     list.push(handler);
   });
   if (list.length === 0) return null;
-  list.sort((a, b) => (b.priority || 0) - (a.priority || 0));
+  list.sort((a, b) => {
+    const scopeDelta = SCOPE_PRIORITY[b.scope] - SCOPE_PRIORITY[a.scope];
+    if (scopeDelta !== 0) return scopeDelta;
+    return (b.priority || 0) - (a.priority || 0);
+  });
   return list[0];
 }
 
@@ -108,6 +123,10 @@ export default function NavigationProvider({ children }: { children: React.React
     return () => {
       handlersRef.current.delete(registration.id);
     };
+  }, []);
+
+  const ensureTransientBackGuard = useCallback(() => {
+    ensureGuardState(toPathKey(pathRef.current), "transient");
   }, []);
 
   const fallbackHistoryBack = useCallback(
@@ -195,7 +214,27 @@ export default function NavigationProvider({ children }: { children: React.React
 
     const handleAnalysisBack = (pathKey: string, policy: BackPolicy) => {
       const activeAttempt = getActivePaidAttemptSession();
-      const activeHandler = pickActiveAnalysisHandler(handlersRef.current);
+      const activeHandler = pickActiveBackHandler(handlersRef.current);
+      // overlay/wizard 는 실제 라우트가 바뀌지 않는 임시 표면이다. 분석 핸들러는
+      // 기존 결제 시도 보호와 내부 단계 규칙을 그대로 탄다.
+      if (activeHandler && activeHandler.scope !== "analysis") {
+        if (activeHandler.isLocked() || !activeHandler.canGoBack()) {
+          rearmGuardState(pathKey, "transient");
+          return;
+        }
+        const handled = activeHandler.onBack();
+        if (handled === false) {
+          rearmGuardState(pathKey, "transient");
+          return;
+        }
+        // overlay 는 이번 popstate 자체로 닫힌다. 다시 guard 를 넣으면 X/브라우저
+        // back 뒤에 불필요한 한 번의 back 이 생긴다. wizard 는 이전 단계가 남으므로
+        // 다음 back 도 같은 흐름으로 받는다.
+        if (activeHandler.scope === "wizard") {
+          rearmGuardState(pathKey, "transient");
+        }
+        return;
+      }
       if (!activeHandler) {
         if (activeAttempt && isPaidAttemptInProgress()) {
           logPaidAttemptEvent("PaidAttempt.RedirectBlocked", {
@@ -249,7 +288,10 @@ export default function NavigationProvider({ children }: { children: React.React
 
     const onPopState = () => {
       const pathKey = toPathKey(pathRef.current || "/");
-      const policy = resolveBackPolicy(pathKey);
+      const activeHandler = pickActiveBackHandler(handlersRef.current);
+      const policy = activeHandler && activeHandler.scope !== "analysis"
+        ? { kind: "transient" as const }
+        : resolveBackPolicy(pathKey);
       if (policy.kind === "none") return;
 
       if (!popDebounceRef.current()) {
@@ -268,7 +310,7 @@ export default function NavigationProvider({ children }: { children: React.React
         return;
       }
 
-      if (policy.kind === "analysis") {
+      if (policy.kind === "analysis" || policy.kind === "transient") {
         handleAnalysisBack(pathKey, policy);
       }
     };
@@ -288,8 +330,9 @@ export default function NavigationProvider({ children }: { children: React.React
   const contextValue = useMemo<BackNavigationContextValue>(() => {
     return {
       registerBackHandler,
+      ensureTransientBackGuard,
     };
-  }, [registerBackHandler]);
+  }, [ensureTransientBackGuard, registerBackHandler]);
 
   return (
     <BackNavigationContext.Provider value={contextValue}>

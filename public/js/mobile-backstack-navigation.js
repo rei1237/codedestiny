@@ -10,14 +10,12 @@
 
   var MAIN_DOUBLE_BACK_MS = 2000;
   var POP_DEBOUNCE_MS = 170;
-  var TRANSITION_LOCK_MS = 180;
 
   var state = {
     surface: 'main',
     feature: '',
     firstMainBackAt: 0,
     lastPopAt: 0,
-    lastTransitionAt: 0,
     allowNativeBackOnce: false,
     toastTimer: null
   };
@@ -269,27 +267,22 @@
     } catch (_) {}
   }
 
-  function replaceToMainUrl() {
-    try {
-      var next = new URL(window.location.href);
-      next.pathname = '/index.html';
-      next.search = '';
-      next.hash = '';
-      window.history.replaceState(buildHistoryState(false), '', next.toString());
-    } catch (_) {}
-  }
-
   function setSurface(nextSurface, feature) {
     if (!nextSurface) return;
     state.surface = nextSurface;
     state.feature = feature || '';
-    state.lastTransitionAt = now();
   }
 
   function resetToMain() {
     closeAllKnownOverlays();
     setSurface('main', '');
-    replaceToMainUrl();
+    // 인페이지 기능/오버레이를 닫는 동작은 URL 이동이 아니다. 여기서 /index.html 로
+    // 강제로 바꾸면 /, locale 경로, 외부에서 들어온 실제 이전 페이지가 모두 사라져
+    // "뒤로가면 홈으로 튄다"가 된다. 현재 문서의 history entry 는 그대로 두고 화면
+    // 상태만 원래 홈 표면으로 돌린다.
+    try {
+      window.history.replaceState(buildHistoryState(false), '', window.location.href);
+    } catch (_) {}
     state.firstMainBackAt = 0;
   }
 
@@ -549,11 +542,6 @@
       return;
     }
     state.lastPopAt = t;
-
-    if (t - state.lastTransitionAt < TRANSITION_LOCK_MS) {
-      rearmGuardState();
-      return;
-    }
 
     handleSurfaceBack();
   }
