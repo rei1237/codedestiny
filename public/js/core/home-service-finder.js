@@ -20,6 +20,7 @@
   "use strict";
 
   var REGISTRY = window.__cdServiceRegistry || [];
+  var DEFAULT_SERVICE_IMAGE = "/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp";
 
   var PURPOSE_LABEL = {
     love: { label: "연애", emoji: "❤️" },
@@ -92,6 +93,8 @@
       methods: item.methods || [],
       badge: item.badge || "",
       roles: item.roles || [],
+      image: item.image || DEFAULT_SERVICE_IMAGE,
+      imageAlt: item.imageAlt || (item.name ? item.name + " 대표 이미지" : "운세 서비스 대표 이미지"),
       tagged: true,
       hay: norm([item.name, item.desc, item.price, item.keys].join(" "))
     };
@@ -193,7 +196,15 @@
         paid: isPaidItem(featureKey, price),
         purposes: [],
         methods: [],
-        badge: "",
+      badge: "",
+        image: (function () {
+          var image = el.querySelector("img");
+          return image ? (image.getAttribute("data-lazy-src") || image.getAttribute("src") || "") : "";
+        })(),
+        imageAlt: (function () {
+          var image = el.querySelector("img");
+          return image && image.getAttribute("alt") || (name ? name + " 대표 이미지" : "운세 서비스 대표 이미지");
+        })(),
         tagged: false,
         hay: norm([name, desc, price, el.getAttribute("aria-label")].join(" "))
       });
@@ -268,6 +279,25 @@
     }
   }
 
+  function appendServiceImage(parent, item, className) {
+    var media = document.createElement("span");
+    media.className = className;
+    var image = document.createElement("img");
+    image.src = item.image || DEFAULT_SERVICE_IMAGE;
+    image.alt = item.imageAlt || (item.name ? item.name + " 대표 이미지" : "운세 서비스 대표 이미지");
+    image.loading = "lazy";
+    image.decoding = "async";
+    image.width = 320;
+    image.height = 180;
+    image.addEventListener("error", function () {
+      if (image.dataset.cdFallback === "1") return;
+      image.dataset.cdFallback = "1";
+      image.src = DEFAULT_SERVICE_IMAGE;
+    });
+    media.appendChild(image);
+    parent.appendChild(media);
+  }
+
   /* 운명의 문 디스커버용 — 이름/설명/가격 3단 카드 */
   function renderRichResults(panel, list, state) {
     panel.textContent = "";
@@ -285,8 +315,12 @@
 
     var grid = document.createElement("div");
     grid.className = "fortune-gateway__recs-grid";
-    list.forEach(function (item) {
+    var visibleList = state.query || (state.purposes || []).length || (state.methods || []).length || (state.buckets || []).length
+      ? list
+      : list.slice(0, 6);
+    visibleList.forEach(function (item) {
       var node = openerNode(item, "fortune-gateway__rec");
+      appendServiceImage(node, item, "fortune-gateway__rec-media");
       var name = document.createElement("span");
       name.className = "fortune-gateway__rec-name";
       /* 시트 제목은 _pvwTileText 가 [data-pvw-title] 의 textContent 로 읽는다. 배지(<b>)를
@@ -351,8 +385,9 @@
       return;
     }
     var frag = document.createDocumentFragment();
-    list.slice(0, 24).forEach(function (item) {
+    list.slice(0, 8).forEach(function (item) {
       var node = openerNode(item, "cd-svc-hit");
+      appendServiceImage(node, item, "cd-svc-hit__media");
       var name = document.createElement("strong");
       name.textContent = item.name;
       node.appendChild(name);

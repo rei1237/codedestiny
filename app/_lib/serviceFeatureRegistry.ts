@@ -50,6 +50,8 @@ export type ServiceFeature = {
   };
 };
 
+export type ServiceFeatureMedia = Pick<ServiceFeature, "image" | "heroImageAlt">;
+
 export const DEFAULT_SERVICE_IMAGE = "/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp";
 
 const stableServiceAsset = (publicPath: string) => getAssetUrlFromPublicPath(publicPath);
@@ -4133,6 +4135,27 @@ export const SERVICE_FEATURE_BY_SLUG: Record<string, ServiceFeature> = Object.fr
     return acc;
   }, {}),
 );
+
+/**
+ * 홈 탐색 카드와 네이티브 서비스 목록이 같은 대표 이미지를 사용하도록 미디어만 노출한다.
+ * 이미지가 없는 신규 서비스도 검색 UI에서 깨지지 않도록 공통 fallback을 정본으로 둔다.
+ */
+export const SERVICE_FEATURE_MEDIA_BY_SLUG: Readonly<Record<string, ServiceFeatureMedia>> = Object.freeze(
+  FEATURES.reduce<Record<string, ServiceFeatureMedia>>((acc, feature) => {
+    acc[feature.slug] = {
+      image: feature.image || DEFAULT_SERVICE_IMAGE,
+      heroImageAlt: feature.heroImageAlt || `${feature.title} 대표 이미지`,
+    };
+    return acc;
+  }, {}),
+);
+
+export function getServiceFeatureMediaBySlug(slug: string): ServiceFeatureMedia {
+  return SERVICE_FEATURE_MEDIA_BY_SLUG[slug] || {
+    image: DEFAULT_SERVICE_IMAGE,
+    heroImageAlt: "운세 서비스 대표 이미지",
+  };
+}
 
 export function listServiceFeatures(locale?: string | null): ServiceFeature[] {
   const activeLocale = normalizeServiceFeatureLocale(locale);
