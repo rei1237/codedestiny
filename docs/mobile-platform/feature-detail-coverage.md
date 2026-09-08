@@ -1,81 +1,42 @@
 # 기능별 상세페이지 확장 원장
 
-2026-09-08 기준 생성된 레지스트리 목적지 69개. 실제 고유 기능 수나 전체 경로 수가 아니다. 검증 콘텐츠 3개도 전체 기능 여정이 완료된 상태는 아니다.
+2026-09-08 완료 기준. 레지스트리 원본 69개 목적지를 slug 기준 64개 고유 기능으로 정규화했다. 실제 구현 근거를 확인한 62개는 독립 소개주소·OG·CTA·모바일 상세 콘텐츠를 공개한다. 2개는 아래 사유로 제외한다.
 
-정본: index.html의 FEATURE_VISUAL_DETAILS. 생성 데이터: lib/marketing/feature-visual-details.generated.json. 동적 경로와 모달 전용 누락은 inventory.json과 추가 대조한다.
+정본:
 
-| 기능 ID | 기능명 | 기존 진입 | 상세 콘텐츠 | 남은 검증 |
-| --- | --- | --- | --- | --- |
-| master-love-codex | 마스터 인연의 서 | /master-love-codex/ | 적용 13종 | 팝업·전체 상태·OG 재확인 |
-| fortune-tea-house | 운명의 찻집 | /fortune-tea-house/ | 적용 3종 | 팝업·전체 상태·OG 재확인 |
-| love-secret-ai | 연애 비책 | /love-secret-ai/ | 미적용 | 구현 근거·시각 구성·전 동선 |
-| fortune-chat | 대화형 운명 상담 | /fortune-chat/ | 미적용 | 구현 근거·시각 구성·전 동선 |
-| tarot-love-relationship | 우리는 무슨 사이? | /index.html?action=openTarotLoveModal | 적용 11종 | 팝업·전체 상태·OG 재확인 |
-| tarot-reunion | 재회운 타로 | /index.html?action=openTarotReunionModal | 적용 11종 | 팝업·전체 상태·OG 재확인 |
-| tarot-mindscan | 말과 행동 사이 타로 | /tarot/mindscan/ | 적용 12종 | 팝업·전체 상태·OG 재확인 |
-| love-simulation | LOVE CODE 연애 시뮬레이션 | /index.html?action=openLoveSimulation | 적용 13종 | 팝업·전체 상태·OG 재확인 |
-| nakshatra-compat | 동서 통합 궁합 | /nakshatra/compat/ | 적용 13종 | 팝업·전체 상태·OG 재확인 |
-| neo-operation-room | 팩폭 전략소 | /neo-operation-room/ | 적용 4종 | 팝업·전체 상태·OG 재확인 |
-| destiny-compass | 운명의 나침반 | /destiny-compass/ | 미적용 | 구현 근거·시각 구성·전 동선 |
-| saju-sibyl | 사이빌 전문가 상담 | /saju/sibyl/ | 미적용 | 구현 근거·시각 구성·전 동선 |
-| new-year-ai | 신년운세 | /new-year-ai-consultation/ | 미적용 | 구현 근거·시각 구성·전 동선 |
-| tarot-ijik | 이직 운명의 카드 | /tarot-ijik.html | 미적용 | 구현 근거·시각 구성·전 동선 |
-| life-book-ai | 인생의 책 | /life-book-ai/ | 적용 3종 | 팝업·전체 상태·OG 재확인 |
-| karma-destiny-ai | 운명의 업 | /karma-destiny-ai/ | 미적용 | 구현 근거·시각 구성·전 동선 |
-| saju-guardian | 사주 가디언 소환진 | /index.html?action=openSajuGuardianPage | 미적용 | 구현 근거·시각 구성·전 동선 |
-| naming-ai | 전문가 작명소 | /naming-ai/ | 미적용 | 구현 근거·시각 구성·전 동선 |
-| fusion-fortune | 초융합 심층 리딩 | /fusion-fortune/ | 미적용 | 구현 근거·시각 구성·전 동선 |
-| tarot-year-fortune | 십이지신 천운 타로 | /index.html?action=openTarotYearFortuneModal | 미적용 | 구현 근거·시각 구성·전 동선 |
-| tarot-celestial-harmony | 천체의 선율 | /celestial-harmony.html | 미적용 | 구현 근거·시각 구성·전 동선 |
-| nakshatra-muhurta | 택일 무후르타 | /nakshatra/muhurta/ | 미적용 | 구현 근거·시각 구성·전 동선 |
-| saju | 사주 | /saju/ | 적용 5종 | 팝업·전체 상태·OG 재확인 |
-| tarot | 타로 | /tarot/ | 미적용 | 구현 근거·시각 구성·전 동선 |
-| ziwei | 자미두수 | /ziwei/ | 적용 5종 | 팝업·전체 상태·OG 재확인 |
-| sukuyo | 숙요점 | /sukuyo/ | 적용 5종 | 팝업·전체 상태·OG 재확인 |
-| vedic | 베다점 | /vedic/ | 적용 5종 | 팝업·전체 상태·OG 재확인 |
-| astrology | 점성술 | /astrology/ | 적용 5종 | 팝업·전체 상태·OG 재확인 |
-| human-design | 휴먼 디자인 | /human-design/ | 미적용 | 구현 근거·시각 구성·전 동선 |
-| nakshatra | 나크샤트라 결정판 | /nakshatra/ | 미적용 | 구현 근거·시각 구성·전 동선 |
-| maya | 마야점 | /maya/ | 미적용 | 구현 근거·시각 구성·전 동선 |
-| daily-fortune | 오늘의 운세 | /daily-fortune/ | 미적용 | 구현 근거·시각 구성·전 동선 |
-| today-hub | 오늘의 운세 허브 | /today/ | 미적용 | 구현 근거·시각 구성·전 동선 |
-| palm-reading | 손금 | /palm-reading/ | 미적용 | 구현 근거·시각 구성·전 동선 |
-| physiognomy | 관상 | /physiognomy/ | 미적용 | 구현 근거·시각 구성·전 동선 |
-| dream | 꿈해몽 | /dream/ | 미적용 | 구현 근거·시각 구성·전 동선 |
-| psychotest | 심리테스트 | /psychotest/ | 미적용 | 구현 근거·시각 구성·전 동선 |
-| manse | 만세력 | /manse/ | 미적용 | 구현 근거·시각 구성·전 동선 |
-| famous-saju | 유명인 사주 | /insights/famous-saju/ | 미적용 | 구현 근거·시각 구성·전 동선 |
-| animal-destiny | 운명의 동물 도감 | /saju/animal-destiny/ | 적용 3종 | 팝업·전체 상태·OG 재확인 |
-| kemet-oracle | 이집트 신탁 | /index.html?action=openKemetModal | 미적용 | 구현 근거·시각 구성·전 동선 |
-| ifa-oracle | IFÀ 오라클 | /ifa-oracle.html | 미적용 | 구현 근거·시각 구성·전 동선 |
-| juyuk-turtle | 주역 거북점 | /oracle/juyuk/ | 미적용 | 구현 근거·시각 구성·전 동선 |
-| neville-meditation | 네빌 명상 실습 | /neville-meditation.html | 미적용 | 구현 근거·시각 구성·전 동선 |
-| yoga-guru | Divya Yoga | /yoga-guru.html | 미적용 | 구현 근거·시각 구성·전 동선 |
-| tarot-numerology | 수비학 타로 | /tarot/numerology/ | 미적용 | 구현 근거·시각 구성·전 동선 |
-| dream-psycho-analysis | 정신분석 해몽 | /index.html?action=openPsychoDreamModal | 미적용 | 구현 근거·시각 구성·전 동선 |
-| animal-totem | 애니멀 토템 | /index.html?action=openAnimalTotemModal | 미적용 | 구현 근거·시각 구성·전 동선 |
-| mbti-animal-compat | MBTI 동물 궁합 | /index.html?action=openMbtiModal | 미적용 | 구현 근거·시각 구성·전 동선 |
-| tarot-crystal-soul | 원석 소울 타로 | /tarot/crystal-soul/ | 미적용 | 구현 근거·시각 구성·전 동선 |
-| royal-tea-oracle | 영국 홍차점 | /index.html?action=openRoyalTeaOracle | 미적용 | 구현 근거·시각 구성·전 동선 |
-| geomancy-oracle | 지오맨시 흙점 | /index.html?action=openGeomancyOracle | 미적용 | 구현 근거·시각 구성·전 동선 |
-| stonehenge-runes | 스톤헨지 룬 | /index.html?action=openRuneOracle | 미적용 | 구현 근거·시각 구성·전 동선 |
-| luck-sync-diary | 운기 다이어리와 플래너 | /diary/ | 미적용 | 구현 근거·시각 구성·전 동선 |
-| music | 달빛 음악 플레이어 | /music/ | 미적용 | 구현 근거·시각 구성·전 동선 |
-| novel | 라이트 노벨 | /codedestiny-novel.html | 미적용 | 구현 근거·시각 구성·전 동선 |
-| points | 달빛 이용권 | /points/ | 미적용 | 구현 근거·시각 구성·전 동선 |
-| saju | 사주 정밀 분석 | /saju/basic/play | 미적용 | 구현 근거·시각 구성·전 동선 |
-| ziwei | 심화 자미두수 12궁 상담 | /ziwei/chart | 미적용 | 구현 근거·시각 구성·전 동선 |
-| sukyo | 숙요 인연 레이더 | /index.html?action=openSukuyoModal | 미적용 | 구현 근거·시각 구성·전 동선 |
-| vedic | 베다 점성술 분석 | /index.html?action=navigateToVedic | 미적용 | 구현 근거·시각 구성·전 동선 |
-| astrology | 서양 점성술 차트 분석 | /index.html?action=openAstroModal | 미적용 | 구현 근거·시각 구성·전 동선 |
-| tarot | 타로 리딩 | /index.html?action=openTarotModal | 미적용 | 구현 근거·시각 구성·전 동선 |
-| tarot-prompt-maker | 타로 오라클 상담 | /tarot/prompt-maker | 미적용 | 구현 근거·시각 구성·전 동선 |
-| face-reading | 전문가 관상 분석 | /saju-guardian | 미적용 | 구현 근거·시각 구성·전 동선 |
-| bias-destiny | 최애운명 | /saju/destiny-bias | 미적용 | 구현 근거·시각 구성·전 동선 |
-| omikuji | 이모이 오미쿠지 | /emoi_omikuji_v2.html | 미적용 | 구현 근거·시각 구성·전 동선 |
-| destiny-meeting-place | 사주로 보는 인연의 장소 | /saju/destiny-meeting-place | 미적용 | 구현 근거·시각 구성·전 동선 |
-| ziwei-ai | 자미두수 전문가 상담 | /ziwei-ai | 미적용 | 구현 근거·시각 구성·전 동선 |
+- 수기 상세 콘텐츠: `index.html`의 `FEATURE_VISUAL_DETAILS`
+- 기능 목록·마케팅 문구: `js/core/service-registry.js`, `app/_lib/serviceFeatureRegistry.ts`, `index.html`의 `FEATURE_MARKETING_COPY`
+- 검토 허용 목록·구현 근거 판정: `scripts/lib/build-visual-details.mjs`
+- 생성 결과: `lib/marketing/feature-visual-details.generated.json`, `public/feature-details/`
 
-## 각 행의 완료 조건
+## 완료 현황
 
-실제 입력/결과 렌더러 근거 → 제공 가치/조건 검증 → 기능별 SVG/HTML 미리보기 → 기존 가격/CTA 연결 → 팝업/독립주소 일치 → 8개 너비 → mock 진입/오류/뒤로가기/공유 → 근거와 검사 결과 기록. 이름만 바꾼 공통 문구나 검증 플래그 일괄 변경은 완료가 아니다.
+| 분류 | 수 | 공개 기능 ID |
+| --- | ---: | --- |
+| 관계·궁합 | 6 | master-love-codex, love-secret-ai, love-simulation, nakshatra-compat, mbti-animal-compat, destiny-meeting-place |
+| 사주·심층 상담 | 18 | fortune-tea-house, fortune-chat, neo-operation-room, destiny-compass, saju-sibyl, life-book-ai, karma-destiny-ai, saju-guardian, naming-ai, fusion-fortune, saju, ziwei, sukuyo, manse, famous-saju, sukyo, bias-destiny, ziwei-ai |
+| 타로·신탁 | 17 | tarot-love-relationship, tarot-reunion, tarot-mindscan, tarot-ijik, tarot-year-fortune, tarot-celestial-harmony, tarot, kemet-oracle, ifa-oracle, juyuk-turtle, tarot-numerology, tarot-crystal-soul, royal-tea-oracle, geomancy-oracle, stonehenge-runes, tarot-prompt-maker, omikuji |
+| 오늘·시기 | 4 | new-year-ai, daily-fortune, today-hub, luck-sync-diary |
+| 별자리·동양 점성 | 6 | nakshatra-muhurta, vedic, astrology, human-design, nakshatra, maya |
+| 상징·마음 | 7 | palm-reading, physiognomy, dream, psychotest, animal-destiny, dream-psycho-analysis, animal-totem |
+| 휴식·콘텐츠 | 4 | neville-meditation, yoga-guru, music, novel |
+| 합계 | 62 | `public/feature-details/catalog.json`과 일치 |
+
+## 의도적으로 제외한 항목
+
+| 기능 ID | 이유 | 다음 조건 |
+| --- | --- | --- |
+| points | 이용권 상점. 운세 결과 상세가 아니며 가격·정책 화면을 소개 콘텐츠로 재해석하지 않는다. | 결제 정책 전용 작업에서 별도 검토 |
+| face-reading | React 레지스트리의 `launchRoute`가 관상 화면이 아닌 `/saju-guardian`을 가리킨다. 잘못된 CTA를 공개하지 않는다. | 라우트 소유 작업에서 `/face-reading` 계약 확인 후 검토 목록 추가 |
+
+## 완료 조건과 증거
+
+- 62개 모두 실제 파일 근거가 존재하고, 새 레지스트리 항목은 명시적 검토 목록 없이는 공개되지 않는다.
+- 소개 목록은 slug 중복이 없고 검색·분류·빈 상태 복구를 제공한다.
+- 각 소개주소는 직접 진입·새로고침·canonical/OG·기존 CTA를 유지한다.
+- 320/360/375/390/412/430/768/1280px에서 가로 넘침을 검사한다.
+- 공통 SVG/HTML 미리보기는 결과를 가장하지 않고 기존 마케팅 정본의 제공 항목을 요약한다.
+- 정적 팝업은 CSS 로드 완료 후에만 기존 섹션을 감추며, 실패 시 기존 내용을 유지하고 재시도를 제공한다.
+- 가격 숫자·결제 조건은 새로 하드코딩하지 않고 기존 가격 hook과 feature key를 사용한다.
+
+미검증 경계: 실기기 iOS/Android, 운영 Kakao 설정, 실제 LLM·PG·운영 DB, 배포 후 CWV. 개발 검증은 mock localhost만 사용한다.

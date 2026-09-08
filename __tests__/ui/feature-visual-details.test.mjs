@@ -5,11 +5,15 @@ import { renderFeatureDetailPanels } from '../../js/feature-detail-panels.mjs';
 
 const catalog = JSON.parse(fs.readFileSync('public/feature-details/catalog.json', 'utf8'));
 test('published visual introductions have proven sources, real assets, and distinct destinations', () => {
-  assert.ok(catalog.length >= 4);
+  const generated = JSON.parse(fs.readFileSync('lib/marketing/feature-visual-details.generated.json', 'utf8'));
+  assert.equal(generated.index.length, 64);
+  assert.equal(new Set(generated.index.map(item => item.slug)).size, generated.index.length);
+  assert.equal(catalog.length, 62);
   assert.equal(new Set(catalog.map(item => item.slug)).size, catalog.length);
   for (const entry of catalog) {
     const detail = JSON.parse(fs.readFileSync(`public/feature-details/${entry.slug}.json`, 'utf8'));
     assert.equal(detail.verification, 'verified');
+    assert.ok(detail.image, `${entry.slug}: OG 대표 이미지가 없다`);
     assert.ok(detail.evidence.length);
     detail.evidence.forEach(source => assert.ok(fs.existsSync(source), source));
     for (const panel of detail.panels) if (panel.verifiedCapture) {
@@ -42,6 +46,7 @@ test('published visual introductions have proven sources, real assets, and disti
   }
   const animal = JSON.parse(fs.readFileSync('public/feature-details/animal-destiny.json', 'utf8'));
   assert.ok(animal.image, '동물 도감의 독립 소개 OG 대표 이미지가 없다');
+  assert.deepEqual(Object.values(generated.items).filter(item => item.verification !== 'verified').map(item => item.slug).sort(), ['face-reading', 'points']);
 });
 
 test('shared renderer escapes text and rejects unsafe image URLs and unverified content', () => {

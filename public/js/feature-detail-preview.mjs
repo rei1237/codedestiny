@@ -1,5 +1,25 @@
 import { loadFeatureDetail, renderFeatureDetailPanels } from './feature-detail-panels.mjs';
 const revisions = new WeakMap();
+let stylePromise;
+
+function ensureFeatureDetailStyles() {
+  if (stylePromise) return stylePromise;
+  stylePromise = new Promise((resolve, reject) => {
+    const existing = document.getElementById('featureVisualDetailStyles');
+    if (existing?.sheet) return resolve();
+    const style = existing || document.createElement('link');
+    style.id = 'featureVisualDetailStyles';
+    style.rel = 'stylesheet';
+    style.href = '/styles/feature-visual-detail.css';
+    style.addEventListener('load', resolve, { once: true });
+    style.addEventListener('error', () => {
+      stylePromise = undefined;
+      reject(new Error('DETAIL_STYLES_UNAVAILABLE'));
+    }, { once: true });
+    if (!existing) document.head.append(style);
+  });
+  return stylePromise;
+}
 
 export async function mountFeatureDetailPreview(overlay, keys) {
   const revision = (revisions.get(overlay) || 0) + 1;
@@ -15,13 +35,8 @@ export async function mountFeatureDetailPreview(overlay, keys) {
   try {
     const detail = await loadFeatureDetail(keys);
     if (!detail || revisions.get(overlay) !== revision || !overlay.classList.contains('pvw-open')) return;
-    if (!document.getElementById('featureVisualDetailStyles')) {
-      const style = document.createElement('link');
-      style.id = 'featureVisualDetailStyles';
-      style.rel = 'stylesheet';
-      style.href = '/styles/feature-visual-detail.css';
-      document.head.append(style);
-    }
+    await ensureFeatureDetailStyles();
+    if (revisions.get(overlay) !== revision || !overlay.classList.contains('pvw-open')) return;
     host.innerHTML = renderFeatureDetailPanels(detail);
     const link = document.createElement('a');
     link.href = `/features/${detail.slug}/`;
@@ -33,7 +48,7 @@ export async function mountFeatureDetailPreview(overlay, keys) {
     if (revisions.get(overlay) !== revision || !overlay.classList.contains('pvw-open')) return;
     const retry = document.createElement('button');
     retry.type = 'button';
-    retry.textContent = '상세 이미지 다시 불러오기';
+    retry.textContent = '상세 내용 다시 불러오기';
     retry.style.minHeight = '44px';
     retry.addEventListener('click', () => void mountFeatureDetailPreview(overlay, keys), { once: true });
     host.append(retry);

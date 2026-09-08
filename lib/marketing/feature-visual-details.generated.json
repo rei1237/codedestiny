@@ -5,7 +5,6 @@
       "title": "마스터 인연의 서",
       "href": "/master-love-codex/",
       "featureKey": "master-love-codex",
-      "featureKeyTo": "master-love-codex-compat",
       "accessType": "unknown",
       "image": "/feature-details/assets/master-love-codex-960.webp",
       "aliases": [
@@ -13,6 +12,8 @@
         "/master-love-codex/",
         "/master-love-codex"
       ],
+      "category": "관계·궁합",
+      "description": "사주 명식과 자미두수 명반을 함께 놓고, 사랑에서 반복되는 기질과 관계의 흐름을 스무 장에 걸쳐 연결하는 프리미엄 리포트입니다.",
       "verification": "verified"
     },
     {
@@ -20,7 +21,6 @@
       "title": "운명의 찻집",
       "href": "/fortune-tea-house/",
       "featureKey": "fortune-tea-house-tarot-consultation",
-      "featureKeyTo": "fortune-tea-house-sukuyo-compatibility-consultation",
       "accessType": "unknown",
       "image": "/feature-details/assets/fortune-tea-house-960.webp",
       "aliases": [
@@ -29,6 +29,8 @@
         "/fortune-tea-house/",
         "/fortune-tea-house"
       ],
+      "category": "사주·심층 상담",
+      "description": "연애와 재회, 일과 돈, 마음의 회복까지. 지금의 고민을 골라 연이에게 이야기를 건네 보세요.",
       "verification": "verified"
     },
     {
@@ -36,39 +38,40 @@
       "title": "연애 비책",
       "href": "/love-secret-ai/",
       "featureKey": "love-secret-ai-consultation",
-      "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "",
+      "image": "/feature-details/assets/love-secret-ai-960.webp",
       "aliases": [
         "love-secret-ai-consultation",
         "love-secret-ai",
         "/love-secret-ai/",
         "/love-secret-ai"
       ],
-      "verification": "source-inventory-only"
+      "category": "관계·궁합",
+      "description": "연애운과 성향부터 궁합·갈등·시기·실천까지, 항목을 나눠 각각 따로 씁니다. 상대 생년 정보를 넣으면 궁합 항목이 함께 계산됩니다.",
+      "verification": "verified"
     },
     {
       "slug": "fortune-chat",
       "title": "대화형 운명 상담",
       "href": "/fortune-chat/",
       "featureKey": "fortune-chat-consultation",
-      "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "",
+      "image": "/feature-details/assets/fortune-chat-960.webp",
       "aliases": [
         "fortune-chat-consultation",
         "fortune-chat",
         "/fortune-chat/",
         "/fortune-chat"
       ],
-      "verification": "source-inventory-only"
+      "category": "사주·심층 상담",
+      "description": "연이와 네오 두 화자가 같은 질문을 다른 결로 받아, 주고받는 대화 속에서 지금 상황의 초점을 좁혀 가는 상담입니다.",
+      "verification": "verified"
     },
     {
       "slug": "tarot-love-relationship",
       "title": "우리는 무슨 사이?",
       "href": "/index.html?action=openTarotLoveModal",
       "featureKey": "tarot-love-relationship",
-      "featureKeyTo": "",
       "accessType": "unknown",
       "image": "/feature-details/assets/tarot-love-relationship-960.webp",
       "aliases": [
@@ -77,6 +80,8 @@
         "/index.html?action=openTarotLoveModal",
         "/index.html?action=openTarotLoveModal/"
       ],
+      "category": "타로·신탁",
+      "description": "질문을 바탕으로 세 장의 카드를 펼쳐 지금의 관계, 말로 드러나지 않은 감정의 결, 다음 대화에서 살필 기준을 정리합니다.",
       "verification": "verified"
     },
     {
@@ -84,7 +89,6 @@
       "title": "재회운 타로",
       "href": "/index.html?action=openTarotReunionModal",
       "featureKey": "tarot-reunion-reading",
-      "featureKeyTo": "",
       "accessType": "unknown",
       "image": "/feature-details/assets/tarot-reunion-960.webp",
       "aliases": [
@@ -94,6 +98,8 @@
         "/index.html?action=openTarotReunionModal",
         "/index.html?action=openTarotReunionModal/"
       ],
+      "category": "타로·신탁",
+      "description": "다섯 장의 카드가 비추는 관계의 흐름을 따라, 먼저 움직이기 전 확인할 기준과 부담을 낮춘 다음 행동을 정리합니다.",
       "verification": "verified"
     },
     {
@@ -101,14 +107,15 @@
       "title": "말과 행동 사이 타로",
       "href": "/tarot/mindscan/",
       "featureKey": "tarot-mindscan",
-      "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "",
+      "image": "/feature-details/assets/tarot-mindscan-960.webp",
       "aliases": [
         "tarot-mindscan",
         "/tarot/mindscan/",
         "/tarot/mindscan"
       ],
+      "category": "타로·신탁",
+      "description": "메인 다섯 자리와 숨은 감정 보조 다섯 장을 함께 놓고, 지금 관계의 온도차와 다음 대화에서 부담을 낮출 기준을 정리합니다.",
       "verification": "verified"
     },
     {
@@ -116,7 +123,6 @@
       "title": "LOVE CODE 연애 시뮬레이션",
       "href": "/saju/love-simulation/",
       "featureKey": "love-code",
-      "featureKeyTo": "",
       "accessType": "unknown",
       "image": "/feature-details/assets/love-simulation-960.webp",
       "aliases": [
@@ -126,6 +132,8 @@
         "/saju/love-simulation",
         "openLoveSimulation"
       ],
+      "category": "관계·궁합",
+      "description": "상대의 생년 정보에서 만든 인물과 데이트 장면을 지나며, 선택마다 달라지는 관계의 리듬과 사주 궁합의 근거를 함께 살펴보는 시뮬레이션입니다.",
       "verification": "verified"
     },
     {
@@ -133,7 +141,6 @@
       "title": "동서 통합 궁합",
       "href": "/nakshatra/compat/",
       "featureKey": "nakshatra-compat",
-      "featureKeyTo": "",
       "accessType": "unknown",
       "image": "/feature-details/assets/nakshatra-compat-960.webp",
       "aliases": [
@@ -141,6 +148,8 @@
         "/nakshatra/compat/",
         "/nakshatra/compat"
       ],
+      "category": "관계·궁합",
+      "description": "인도 점성술의 아쉬타쿠타와 숙요의 관계 흐름을 함께 살피며, 한 줄의 궁합 판정 대신 두 사람이 조율할 지점을 정리하는 궁합 리포트입니다.",
       "verification": "verified"
     },
     {
@@ -148,7 +157,6 @@
       "title": "네오의 팩폭 작전실",
       "href": "/neo-operation-room/",
       "featureKey": "neo-operation-room-consultation",
-      "featureKeyTo": "",
       "accessType": "unknown",
       "image": "https://assets.code-destiny.com/DestinyWar/%EB%84%A4%EC%98%A4%EC%9D%98%20%ED%8C%A9%ED%8F%AD%20%EC%9A%B4%EB%AA%85%20%EC%9E%91%EC%A0%84%EC%8B%A4.webp",
       "aliases": [
@@ -157,6 +165,8 @@
         "/neo-operation-room/",
         "/neo-operation-room"
       ],
+      "category": "사주·심층 상담",
+      "description": "네오와 함께 지금 흔들리는 선택을 한 가지 분석 방식으로 짚고, 계산 근거와 현실적인 행동 기준까지 정리하는 전략 상담입니다.",
       "verification": "verified"
     },
     {
@@ -164,70 +174,73 @@
       "title": "운명의 나침반",
       "href": "/destiny-compass/",
       "featureKey": "destiny-compass-life-voyage",
-      "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "",
+      "image": "/feature-details/assets/destiny-compass-960.webp",
       "aliases": [
         "destiny-compass-life-voyage",
         "destiny-compass",
         "/destiny-compass/",
         "/destiny-compass"
       ],
-      "verification": "source-inventory-only"
+      "category": "사주·심층 상담",
+      "description": "사주 흐름과 지금의 선택지를 함께 놓고, 방향과 시점을 나눠 읽어 주는 리포트형 해석입니다.",
+      "verification": "verified"
     },
     {
       "slug": "saju-sibyl",
       "title": "사이빌 전문가 상담",
       "href": "/saju/sibyl/",
       "featureKey": "premium-sibyl-dominator",
-      "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "",
+      "image": "/feature-details/assets/saju-sibyl-960.webp",
       "aliases": [
         "premium-sibyl-dominator",
         "saju-sibyl",
         "/saju/sibyl/",
         "/saju/sibyl"
       ],
-      "verification": "source-inventory-only"
+      "category": "사주·심층 상담",
+      "description": "원국과 지금 지나는 운을 함께 놓고, 반복되는 패턴과 그 뿌리까지 짚어 주는 심층 상담형 해석입니다.",
+      "verification": "verified"
     },
     {
       "slug": "new-year-ai",
       "title": "신년운세",
       "href": "/new-year-ai-consultation/",
       "featureKey": "new-year-ai-consultation",
-      "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "",
+      "image": "/feature-details/assets/new-year-ai-960.webp",
       "aliases": [
         "new-year-ai-consultation",
         "new-year-ai",
         "/new-year-ai-consultation/",
         "/new-year-ai-consultation"
       ],
-      "verification": "source-inventory-only"
+      "category": "오늘·시기",
+      "description": "명식과 그 해 세운이 만나는 지점에서 총운·재물과 직업·애정과 대인관계·월별 흐름·건강과 개운법을 각각 따로 씁니다.",
+      "verification": "verified"
     },
     {
       "slug": "tarot-ijik",
       "title": "이직 운명의 카드",
       "href": "/tarot-ijik.html",
       "featureKey": "tarot-ijik",
-      "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "",
+      "image": "/feature-details/assets/tarot-ijik-960.webp",
       "aliases": [
         "tarot-ijik",
         "/tarot-ijik.html",
         "/tarot-ijik.html/"
       ],
-      "verification": "source-inventory-only"
+      "category": "타로·신탁",
+      "description": "일곱 자리 고정 스프레드로 남았을 때의 흐름과 이직의 문이 열리는 조건을 나눠 읽고, 움직일 시기와 결정 전 확인할 조건까지 정리합니다.",
+      "verification": "verified"
     },
     {
       "slug": "life-book-ai",
       "title": "인생의 책",
       "href": "/life-book-ai/",
       "featureKey": "life-book-ai-consultation",
-      "featureKeyTo": "",
       "accessType": "unknown",
       "image": "/feature-details/assets/life-book-ai-960.webp",
       "aliases": [
@@ -236,6 +249,8 @@
         "/life-book-ai/",
         "/life-book-ai"
       ],
+      "category": "사주·심층 상담",
+      "description": "타고난 사주와 시간의 흐름을 함께 읽으며, 나의 기질과 삶의 방향을 차분히 돌아보는 리포트입니다.",
       "verification": "verified"
     },
     {
@@ -243,25 +258,25 @@
       "title": "운명의 업",
       "href": "/karma-destiny-ai/",
       "featureKey": "karma-destiny-ai-consultation",
-      "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "",
+      "image": "/feature-details/assets/karma-destiny-ai-960.webp",
       "aliases": [
         "karma-destiny-ai-consultation",
         "karma-destiny-ai",
         "/karma-destiny-ai/",
         "/karma-destiny-ai"
       ],
-      "verification": "source-inventory-only"
+      "category": "사주·심층 상담",
+      "description": "명식에 새겨진 오래된 흐름과 지금의 관계·선택을 연결해, 반복의 원인과 끊어낼 지점을 정리하는 최상위 상담입니다.",
+      "verification": "verified"
     },
     {
       "slug": "saju-guardian",
       "title": "사주 가디언 소환진",
       "href": "/index.html?action=openSajuGuardianPage",
       "featureKey": "saju-guardian-unlock",
-      "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "/fuctionassets/saju-guardian-animal-v20260615.webp",
+      "image": "/feature-details/assets/saju-guardian-303.webp",
       "aliases": [
         "saju-guardian-unlock",
         "openSajuGuardianPage",
@@ -269,131 +284,147 @@
         "/index.html?action=openSajuGuardianPage",
         "/index.html?action=openSajuGuardianPage/"
       ],
-      "verification": "source-inventory-only"
+      "category": "사주·심층 상담",
+      "description": "태어난 날의 일주가 예순 갑자 가운데 당신의 가디언을 정하고, 같은 명식이면 늘 같은 모습으로 소환됩니다. 다섯 패널의 풀이와 부적 주머니가 함께 열립니다.",
+      "verification": "verified"
     },
     {
       "slug": "naming-ai",
       "title": "전문가 작명소",
       "href": "/naming-ai/",
       "featureKey": "premium-naming-prompt",
-      "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "",
+      "image": "/feature-details/assets/naming-ai-960.webp",
       "aliases": [
         "premium-naming-prompt",
         "naming-ai",
         "/naming-ai/",
         "/naming-ai"
       ],
-      "verification": "source-inventory-only"
+      "category": "사주·심층 상담",
+      "description": "8장 구성의 작명첩에 새 이름 5~7개를 제안하고, 그 작명첩을 만든 프롬프트 원문까지 함께 드립니다.",
+      "verification": "verified"
     },
     {
       "slug": "fusion-fortune",
       "title": "초융합 심층 리딩",
       "href": "/fusion-fortune/",
       "featureKey": "fusion-fortune-consultation",
-      "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "",
+      "image": "/feature-details/assets/fusion-fortune-960.webp",
       "aliases": [
         "fusion-fortune-consultation",
         "fusion-fortune",
         "/fusion-fortune/",
         "/fusion-fortune"
       ],
-      "verification": "source-inventory-only"
+      "category": "사주·심층 상담",
+      "description": "사주·자미두수·베다점·숙요점·점성술·타로를 각 전통의 언어로 따로 읽은 뒤, 겹치는 신호는 우선순위로 엇갈리는 신호는 상황별 선택지로 묶어 하나의 상담으로 잇습니다.",
+      "verification": "verified"
     },
     {
       "slug": "tarot-year-fortune",
       "title": "십이지신 천운 타로",
       "href": "/index.html?action=openTarotYearFortuneModal",
       "featureKey": "tarot-year-fortune",
-      "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "/fuctionassets/12animals.webp",
+      "image": "/feature-details/assets/tarot-year-fortune-960.webp",
       "aliases": [
         "tarot-year-fortune",
         "openTarotYearFortuneModal",
         "/index.html?action=openTarotYearFortuneModal",
         "/index.html?action=openTarotYearFortuneModal/"
       ],
-      "verification": "source-inventory-only"
+      "category": "타로·신탁",
+      "description": "메이저 카드 12장을 달마다 한 장씩 놓고, 태어난 해의 수호신 이야기와 함께 열두 분야의 흐름과 전환점 · 행운 행동까지 정리하는 연간 리딩입니다.",
+      "verification": "verified"
     },
     {
       "slug": "tarot-celestial-harmony",
       "title": "천체의 선율",
       "href": "/celestial-harmony.html",
       "featureKey": "tarot-celestial-harmony",
-      "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "",
+      "image": "/feature-details/assets/tarot-celestial-harmony-960.webp",
       "aliases": [
         "tarot-celestial-harmony",
         "/celestial-harmony.html",
         "/celestial-harmony.html/"
       ],
-      "verification": "source-inventory-only"
+      "category": "타로·신탁",
+      "description": "열한 행성 자리에 카드를 놓고 마지막 통합 카드로 묶어, 사랑 · 일 · 재물 · 건강의 축을 나눠 읽는 확장형 코즈믹 타로 리딩입니다.",
+      "verification": "verified"
     },
     {
       "slug": "nakshatra-muhurta",
       "title": "택일 무후르타",
       "href": "/nakshatra/muhurta/",
       "featureKey": "nakshatra-muhurta",
-      "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "",
+      "image": "/feature-details/assets/nakshatra-muhurta-960.webp",
       "aliases": [
         "nakshatra-muhurta",
         "/nakshatra/muhurta/",
         "/nakshatra/muhurta"
       ],
-      "verification": "source-inventory-only"
+      "category": "별자리·동양 점성",
+      "description": "앞으로 60일을 하루씩 셈해 목적에 맞는 가장 좋은 날과 옮길 수 있으면 피할 날을, 두 체계의 일치 여부까지 붙여 정리합니다.",
+      "verification": "verified"
     },
     {
       "slug": "saju",
       "title": "사주 정밀 분석",
       "href": "/saju/basic/play",
-      "featureKey": "saju",
-      "featureKeyTo": "",
+      "featureKey": "",
       "accessType": "free",
       "image": "/feature-details/assets/saju-960.webp",
       "aliases": [
         "saju",
         "/saju/",
-        "/saju"
+        "/saju",
+        "/saju/basic/play",
+        "/saju/basic/play/"
       ],
+      "category": "사주·심층 상담",
+      "description": "생년월일과 출생시간으로 사주 네 기둥을 세운 뒤, 오행과 십성의 균형을 바탕으로 성향과 생활의 리듬을 차분히 정리합니다.",
       "verification": "verified"
     },
     {
       "slug": "tarot",
-      "title": "타로",
-      "href": "/tarot/",
-      "featureKey": "tarot",
-      "featureKeyTo": "",
-      "accessType": "unknown",
-      "image": "/fuctionassets/ai%20tarrot.webp",
+      "title": "타로 리딩",
+      "href": "/index.html?action=openTarotModal",
+      "featureKey": "",
+      "accessType": "free",
+      "image": "/feature-details/assets/tarot-960.webp",
       "aliases": [
         "openTarotModal",
         "tarot",
         "/tarot/",
-        "/tarot"
+        "/tarot",
+        "/index.html?action=openTarotModal",
+        "/index.html?action=openTarotModal/"
       ],
-      "verification": "source-inventory-only"
+      "category": "타로·신탁",
+      "description": "타로 상징과 스프레드의 흐름 속에서 현재의 감정과 선택의 실마리가 강하게 떠오릅니다.",
+      "verification": "verified"
     },
     {
       "slug": "ziwei",
       "title": "심화 자미두수 12궁 상담",
       "href": "/ziwei/chart",
-      "featureKey": "ziwei-basic",
-      "featureKeyTo": "",
+      "featureKey": "",
       "accessType": "free",
       "image": "/feature-details/assets/ziwei-960.webp",
       "aliases": [
         "openZiweiModal",
         "ziwei",
         "/ziwei/",
-        "/ziwei"
+        "/ziwei",
+        "/ziwei/chart",
+        "/ziwei/chart/"
       ],
+      "category": "사주·심층 상담",
+      "description": "생년월일과 출생시간으로 명궁과 열두 궁을 세우고, 주요 별의 배치와 시기 흐름을 통해 삶의 주제를 더 세분해 살펴봅니다.",
       "verification": "verified"
     },
     {
@@ -401,46 +432,53 @@
       "title": "숙요점",
       "href": "/sukuyo/",
       "featureKey": "compat-sukuyo-compatibility",
-      "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "",
+      "image": "/feature-details/assets/sukuyo-960.webp",
       "aliases": [
         "openSukuyoModal",
         "sukuyo",
         "/sukuyo/",
         "/sukuyo"
       ],
-      "verification": "source-inventory-only"
+      "category": "사주·심층 상담",
+      "description": "27수 가운데 두 사람의 본명숙을 각각 계산해 관계 유형과 거리를 판정하고, 연애·결혼·재회·비밀연애·장거리·협업 여섯 주제로 나눠 읽습니다.",
+      "verification": "verified"
     },
     {
       "slug": "vedic",
       "title": "베다 점성술 분석",
       "href": "/index.html?action=navigateToVedic",
-      "featureKey": "vedic",
-      "featureKeyTo": "",
+      "featureKey": "",
       "accessType": "free",
       "image": "/feature-details/assets/vedic-960.webp",
       "aliases": [
         "vedic",
         "/vedic/",
-        "/vedic"
+        "/vedic",
+        "/index.html?action=navigateToVedic",
+        "/index.html?action=navigateToVedic/"
       ],
+      "category": "별자리·동양 점성",
+      "description": "인도 전통 조티쉬의 항성 기준 차트에서 라그나·나크샤트라·행성·하우스·다샤를 살피며, 삶의 어느 주제가 전면에 떠오르는지 정리합니다.",
       "verification": "verified"
     },
     {
       "slug": "astrology",
       "title": "서양 점성술 차트 분석",
       "href": "/index.html?action=openAstroModal",
-      "featureKey": "astro-basic",
-      "featureKeyTo": "",
+      "featureKey": "",
       "accessType": "free",
       "image": "/feature-details/assets/astrology-960.webp",
       "aliases": [
         "openAstroModal",
         "astrology",
         "/astrology/",
-        "/astrology"
+        "/astrology",
+        "/index.html?action=openAstroModal",
+        "/index.html?action=openAstroModal/"
       ],
+      "category": "별자리·동양 점성",
+      "description": "태어난 순간의 행성 위치와 하우스, 애스펙트를 통해 기질·관계·일에서 반복되는 반응과 선택의 리듬을 살펴봅니다.",
       "verification": "verified"
     },
     {
@@ -448,175 +486,185 @@
       "title": "휴먼 디자인",
       "href": "/human-design/",
       "featureKey": "human-design-chart",
-      "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "",
+      "image": "/feature-details/assets/human-design-960.webp",
       "aliases": [
         "human-design-chart",
         "human-design",
         "/human-design/",
         "/human-design"
       ],
-      "verification": "source-inventory-only"
+      "category": "별자리·동양 점성",
+      "description": "출생 데이터로 타입·전략·내적권위·센터 정의를 계산해, 결정과 소모의 방식이 어떻게 설계돼 있는지 보여 줍니다.",
+      "verification": "verified"
     },
     {
       "slug": "nakshatra",
       "title": "나크샤트라 결정판",
       "href": "/nakshatra/",
       "featureKey": "nakshatra",
-      "featureKeyTo": "",
       "accessType": "free",
-      "image": "",
+      "image": "/feature-details/assets/nakshatra-960.webp",
       "aliases": [
         "nakshatra",
         "/nakshatra/",
         "/nakshatra"
       ],
-      "verification": "source-inventory-only"
+      "category": "별자리·동양 점성",
+      "description": "출생 시 달의 위치로 27개 나크샤트라 가운데 하나를 계산해, 그 별자리가 가진 기질과 삶의 방향을 정리해 줍니다.",
+      "verification": "verified"
     },
     {
       "slug": "maya",
       "title": "마야점",
       "href": "/maya/",
       "featureKey": "maya",
-      "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "",
+      "image": "/feature-details/assets/maya-960.webp",
       "aliases": [
         "maya",
         "/maya/",
         "/maya"
       ],
-      "verification": "source-inventory-only"
+      "category": "별자리·동양 점성",
+      "description": "촐킨 달력으로 생년월일과 오늘의 날짜 기운을 계산해, 타고난 인장과 오늘의 흐름을 함께 보여 줍니다.",
+      "verification": "verified"
     },
     {
       "slug": "daily-fortune",
       "title": "오늘의 운세",
       "href": "/daily-fortune/",
       "featureKey": "daily-fortune",
-      "featureKeyTo": "",
       "accessType": "free",
-      "image": "",
+      "image": "/feature-details/assets/daily-fortune-960.webp",
       "aliases": [
         "daily-fortune",
         "/daily-fortune/",
         "/daily-fortune"
       ],
-      "verification": "source-inventory-only"
+      "category": "오늘·시기",
+      "description": "생년월일 기준으로 오늘 날짜의 기운을 대조해, 하루 동안 무엇을 밀고 무엇을 미룰지 짧게 정리해 줍니다.",
+      "verification": "verified"
     },
     {
       "slug": "today-hub",
       "title": "오늘의 운세 허브",
       "href": "/today/",
       "featureKey": "today-hub",
-      "featureKeyTo": "",
       "accessType": "free",
-      "image": "",
+      "image": "/feature-details/assets/today-hub-960.webp",
       "aliases": [
         "today-hub",
         "/today/",
         "/today"
       ],
-      "verification": "source-inventory-only"
+      "category": "오늘·시기",
+      "description": "한 화면에서 세 체계의 오늘 해석을 함께 놓고, 서로 겹치는 신호와 갈리는 지점을 비교해 볼 수 있는 허브입니다.",
+      "verification": "verified"
     },
     {
       "slug": "palm-reading",
       "title": "손금",
       "href": "/palm-reading/",
       "featureKey": "palm-reading-general",
-      "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "/fuctionassets/%EC%86%90%EA%B8%88.webp",
+      "image": "/feature-details/assets/palm-reading-960.webp",
       "aliases": [
         "palm-reading",
         "/palm-reading/",
         "/palm-reading"
       ],
-      "verification": "source-inventory-only"
+      "category": "상징·마음",
+      "description": "주요선 4개와 보조선 9종, 손바닥 언덕 7구, 특수 문양 6종을 확인하고 1,200자 이상의 해석을 씁니다.",
+      "verification": "verified"
     },
     {
       "slug": "physiognomy",
       "title": "관상",
       "href": "/physiognomy/",
       "featureKey": "physiognomy",
-      "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "/fuctionassets/ai%20animal.webp",
+      "image": "/feature-details/assets/physiognomy-960.webp",
       "aliases": [
         "openPhysiognomyApp",
         "physiognomy",
         "/physiognomy/",
         "/physiognomy"
       ],
-      "verification": "source-inventory-only"
+      "category": "상징·마음",
+      "description": "사진 속 이목구비의 형태와 균형을 분석해, 인상에서 드러나는 기질과 어울리는 길을 정리해 주는 관상 해석입니다.",
+      "verification": "verified"
     },
     {
       "slug": "dream",
       "title": "꿈해몽",
       "href": "/dream/",
       "featureKey": "dream",
-      "featureKeyTo": "",
       "accessType": "free",
-      "image": "/fuctionassets/heamong.webp",
+      "image": "/feature-details/assets/dream-960.webp",
       "aliases": [
         "openDreamModal",
         "dream",
         "/dream/",
         "/dream"
       ],
-      "verification": "source-inventory-only"
+      "category": "상징·마음",
+      "description": "꿈에 나온 소재와 상황을 풀어, 그 상징이 지금의 심리와 상황에 어떻게 닿는지 설명해 주는 해몽입니다.",
+      "verification": "verified"
     },
     {
       "slug": "psychotest",
       "title": "심리테스트",
       "href": "/psychotest/",
       "featureKey": "psychotest",
-      "featureKeyTo": "",
       "accessType": "free",
-      "image": "",
+      "image": "/feature-details/assets/psychotest-960.webp",
       "aliases": [
         "psychotest",
         "/psychotest/",
         "/psychotest"
       ],
-      "verification": "source-inventory-only"
+      "category": "상징·마음",
+      "description": "짧은 문항에 답하면 성향과 지금의 상태를 정리해 주는 심리 테스트 모음입니다. 생년월일 없이도 볼 수 있어요.",
+      "verification": "verified"
     },
     {
       "slug": "manse",
       "title": "만세력",
       "href": "/manse/",
       "featureKey": "manse",
-      "featureKeyTo": "",
       "accessType": "free",
-      "image": "",
+      "image": "/feature-details/assets/manse-960.webp",
       "aliases": [
         "manse",
         "/manse/",
         "/manse"
       ],
-      "verification": "source-inventory-only"
+      "category": "사주·심층 상담",
+      "description": "생년월일시를 넣으면 절기 기준으로 사주 원국과 대운을 계산해 표로 보여 주는 만세력 도구입니다.",
+      "verification": "verified"
     },
     {
       "slug": "famous-saju",
       "title": "유명인 사주",
       "href": "/insights/famous-saju/",
       "featureKey": "famous-saju",
-      "featureKeyTo": "",
       "accessType": "free",
-      "image": "",
+      "image": "/feature-details/assets/famous-saju-960.webp",
       "aliases": [
         "famous-saju",
         "/insights/famous-saju/",
         "/insights/famous-saju"
       ],
-      "verification": "source-inventory-only"
+      "category": "사주·심층 상담",
+      "description": "실존 인물의 명식을 예시로 놓고, 어떤 배치가 어떤 삶의 모양으로 나타났는지 사례로 풀어 주는 읽을거리입니다.",
+      "verification": "verified"
     },
     {
       "slug": "animal-destiny",
       "title": "운명의 동물 도감",
       "href": "/saju/animal-destiny/",
       "featureKey": "",
-      "featureKeyTo": "",
       "accessType": "free",
       "image": "/feature-details/assets/animal-destiny-960.webp",
       "aliases": [
@@ -625,6 +673,8 @@
         "/saju/animal-destiny",
         "openAnimalDestinyRoute"
       ],
+      "category": "상징·마음",
+      "description": "사주의 십이운성, 열두 성장 단계를 동물의 상징으로 만나 보세요. 이름을 붙이는 재미를 넘어 나의 성향과 성장 방향을 읽습니다.",
       "verification": "verified"
     },
     {
@@ -632,119 +682,125 @@
       "title": "이집트 신탁",
       "href": "/index.html?action=openKemetModal",
       "featureKey": "openKemetModal",
-      "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "/fuctionassets/egypt.webp",
+      "image": "/feature-details/assets/kemet-oracle-960.webp",
       "aliases": [
         "openKemetModal",
         "kemet-oracle",
         "/index.html?action=openKemetModal",
         "/index.html?action=openKemetModal/"
       ],
-      "verification": "source-inventory-only"
+      "category": "타로·신탁",
+      "description": "라 · 오시리스 · 이시스 · 호루스 등 열두 신의 카드에서 과거 · 현재 · 미래 세 장을 직접 고르면, 자리별 해석과 세 신의 합이 질문의 결을 따라 풀립니다.",
+      "verification": "verified"
     },
     {
       "slug": "ifa-oracle",
       "title": "IFÀ 오라클",
       "href": "/ifa-oracle.html",
       "featureKey": "ifa-oracle",
-      "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "",
+      "image": "/feature-details/assets/ifa-oracle-960.webp",
       "aliases": [
         "ifa-oracle",
         "/ifa-oracle.html",
         "/ifa-oracle.html/"
       ],
-      "verification": "source-inventory-only"
+      "category": "타로·신탁",
+      "description": "서아프리카 요루바 이파 점의 방식대로 기본 오두 16개가 짝을 이뤄 256가지 신탁을 만들고, 그 안의 이야기와 금기가 지금 상황에 대응하는 답이 됩니다.",
+      "verification": "verified"
     },
     {
       "slug": "juyuk-turtle",
       "title": "주역 거북점",
       "href": "/oracle/juyuk/",
       "featureKey": "openJuyukModal",
-      "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "/fuctionassets/juyuk.webp",
+      "image": "/feature-details/assets/juyuk-turtle-960.webp",
       "aliases": [
         "openJuyukModal",
         "juyuk-turtle",
         "/oracle/juyuk/",
         "/oracle/juyuk"
       ],
-      "verification": "source-inventory-only"
+      "category": "타로·신탁",
+      "description": "질문을 올리고 거북 등껍질 의식을 거치면 육십사괘 가운데 한 괘가 열리고, 연애 · 진로 · 재물 · 시험 · 계약 다섯 갈래로 형세를 풀어 읽는 동양 고전 점법입니다.",
+      "verification": "verified"
     },
     {
       "slug": "neville-meditation",
       "title": "네빌 명상 실습",
       "href": "/neville-meditation.html",
       "featureKey": "neville-meditation",
-      "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "",
+      "image": "/feature-details/assets/neville-meditation-960.webp",
       "aliases": [
         "neville-meditation",
         "/neville-meditation.html",
         "/neville-meditation.html/"
       ],
-      "verification": "source-inventory-only"
+      "category": "휴식·콘텐츠",
+      "description": "30분 4단계와 60분 5단계 코스 중 하나를 고르면, 초 단위 시간표에 맞춰 안내 문구가 순서대로 나옵니다.",
+      "verification": "verified"
     },
     {
       "slug": "yoga-guru",
       "title": "Divya Yoga",
       "href": "/yoga-guru.html",
       "featureKey": "yoga-guru-per-use",
-      "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "",
+      "image": "/feature-details/assets/yoga-guru-960.webp",
       "aliases": [
         "yoga-guru-per-use",
         "yoga-guru",
         "/yoga-guru.html",
         "/yoga-guru.html/"
       ],
-      "verification": "source-inventory-only"
+      "category": "휴식·콘텐츠",
+      "description": "30분 또는 60분을 고르면 워밍업부터 마무리 이완까지 동작 순서와 호흡 안내를 한 편으로 만들어 줍니다.",
+      "verification": "verified"
     },
     {
       "slug": "tarot-numerology",
       "title": "수비학 타로",
       "href": "/tarot/numerology/",
       "featureKey": "tarot-numerology-reading",
-      "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "",
+      "image": "/feature-details/assets/tarot-numerology-960.webp",
       "aliases": [
         "tarot-numerology-reading",
         "tarot-numerology",
         "/tarot/numerology/",
         "/tarot/numerology"
       ],
-      "verification": "source-inventory-only"
+      "category": "타로·신탁",
+      "description": "생명수와 오늘수를 계산해 그 수에 맞는 카드를 배치하고, 타고난 결과 오늘의 흐름을 다섯 장으로 나눠 읽는 리딩입니다.",
+      "verification": "verified"
     },
     {
       "slug": "dream-psycho-analysis",
       "title": "정신분석 해몽",
       "href": "/index.html?action=openPsychoDreamModal",
       "featureKey": "dream-psycho-analysis",
-      "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "/fuctionassets/phydream.webp",
+      "image": "/feature-details/assets/dream-psycho-analysis-960.webp",
       "aliases": [
         "dream-psycho-analysis",
         "openPsychoDreamModal",
         "/index.html?action=openPsychoDreamModal",
         "/index.html?action=openPsychoDreamModal/"
       ],
-      "verification": "source-inventory-only"
+      "category": "상징·마음",
+      "description": "꿈의 장면과 깨어난 뒤의 감정을 바탕으로 무의식의 반복 신호를 해석하는 해몽형 리딩입니다.",
+      "verification": "verified"
     },
     {
       "slug": "animal-totem",
       "title": "애니멀 토템",
       "href": "/index.html?action=openAnimalTotemModal",
       "featureKey": "animal-totem-basic",
-      "featureKeyTo": "animal-totem-deep",
       "accessType": "unknown",
-      "image": "/fuctionassets/animaltotem.webp",
+      "image": "/feature-details/assets/animal-totem-960.webp",
       "aliases": [
         "animal-totem-basic",
         "openAnimalTotemModal",
@@ -752,80 +808,85 @@
         "/index.html?action=openAnimalTotemModal",
         "/index.html?action=openAnimalTotemModal/"
       ],
-      "verification": "source-inventory-only"
+      "category": "상징·마음",
+      "description": "라 · 오시리스 · 이시스 · 호루스 등 열두 신의 카드에서 과거 · 현재 · 미래 세 장을 직접 고르면, 자리별 해석과 세 신의 합이 질문의 결을 따라 풀립니다.",
+      "verification": "verified"
     },
     {
       "slug": "mbti-animal-compat",
       "title": "MBTI 동물 궁합",
       "href": "/index.html?action=openMbtiModal",
       "featureKey": "mbti-animal-compat",
-      "featureKeyTo": "",
       "accessType": "free",
-      "image": "/fuctionassets/ai%20face.webp",
+      "image": "/feature-details/assets/mbti-animal-compat-960.webp",
       "aliases": [
         "openMbtiModal",
         "mbti-animal-compat",
         "/index.html?action=openMbtiModal",
         "/index.html?action=openMbtiModal/"
       ],
-      "verification": "source-inventory-only"
+      "category": "관계·궁합",
+      "description": "두 사람의 유형을 각각 동물 토템으로 옮기고, 그 조합이 어떤 방식으로 맞물리는지 관계 궁합으로 풀어 줍니다.",
+      "verification": "verified"
     },
     {
       "slug": "tarot-crystal-soul",
       "title": "원석 소울 타로",
       "href": "/tarot/crystal-soul/",
       "featureKey": "tarot-crystal-soul-reading",
-      "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "",
+      "image": "/feature-details/assets/tarot-crystal-soul-960.webp",
       "aliases": [
         "tarot-crystal-soul-reading",
         "tarot-crystal-soul",
         "/tarot/crystal-soul/",
         "/tarot/crystal-soul"
       ],
-      "verification": "source-inventory-only"
+      "category": "타로·신탁",
+      "description": "열두 가지 원석 가운데 마음이 머무는 하나를 문질러 깨운 뒤, 다섯 자리 스프레드로 지금의 빛과 가려진 면을 나눠 읽는 리딩입니다.",
+      "verification": "verified"
     },
     {
       "slug": "royal-tea-oracle",
       "title": "영국 홍차점",
       "href": "/index.html?action=openRoyalTeaOracle",
       "featureKey": "royal-tea-oracle",
-      "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "/fuctionassets/london.webp",
+      "image": "/feature-details/assets/royal-tea-oracle-960.webp",
       "aliases": [
         "royal-tea-oracle",
         "openRoyalTeaOracle",
         "/index.html?action=openRoyalTeaOracle",
         "/index.html?action=openRoyalTeaOracle/"
       ],
-      "verification": "source-inventory-only"
+      "category": "타로·신탁",
+      "description": "14가지 찻잎 형상이 다섯 물음 영역과 만나 일흔 갈래의 풀이를 이루고, 잔의 테두리 · 벽 · 바닥 세 자리가 시기를 나눠 주는 영국 홍차점 리딩입니다.",
+      "verification": "verified"
     },
     {
       "slug": "geomancy-oracle",
       "title": "지오맨시 흙점",
       "href": "/index.html?action=openGeomancyOracle",
       "featureKey": "openGeomancyOracle",
-      "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "/fuctionassets/geomancy.webp",
+      "image": "/feature-details/assets/geomancy-oracle-960.webp",
       "aliases": [
         "openGeomancyOracle",
         "geomancy-oracle",
         "/index.html?action=openGeomancyOracle",
         "/index.html?action=openGeomancyOracle/"
       ],
-      "verification": "source-inventory-only"
+      "category": "타로·신탁",
+      "description": "비아부터 포풀루스까지 16가지 도형이 어머니 · 딸 · 조카 · 증인을 거쳐 재판관에 이르는 15자리 방패 차트를 세우고, AI가 도형만을 근거로 원인 · 흐름 · 신탁을 풀어 읽습니다.",
+      "verification": "verified"
     },
     {
       "slug": "stonehenge-runes",
       "title": "스톤헨지 룬",
       "href": "/index.html?action=openRuneOracle",
       "featureKey": "stonehenge-runes-single",
-      "featureKeyTo": "stonehenge-runes-yearly",
       "accessType": "unknown",
-      "image": "/fuctionassets/rune.webp",
+      "image": "/feature-details/assets/stonehenge-runes-960.webp",
       "aliases": [
         "stonehenge-runes-single",
         "openRuneOracle",
@@ -833,60 +894,64 @@
         "/index.html?action=openRuneOracle",
         "/index.html?action=openRuneOracle/"
       ],
-      "verification": "source-inventory-only"
+      "category": "타로·신탁",
+      "description": "24룬에 공백 룬 위르드를 더한 25룬 체계로, 과거 우르드 · 현재 베르단디 · 미래 스쿨드 세 자리의 흐름을 정 · 역방향까지 갈라 읽는 룬 리딩입니다.",
+      "verification": "verified"
     },
     {
       "slug": "luck-sync-diary",
       "title": "운기 다이어리와 플래너",
       "href": "/diary/",
       "featureKey": "luck-sync-diary",
-      "featureKeyTo": "",
       "accessType": "free",
-      "image": "",
+      "image": "/feature-details/assets/luck-sync-diary-960.webp",
       "aliases": [
         "openLuckSyncDiary",
         "luck-sync-diary",
         "/diary/",
         "/diary"
       ],
-      "verification": "source-inventory-only"
+      "category": "오늘·시기",
+      "description": "오늘의 흐름을 기록하고 월간 플래너에서 지난 기록과 나란히 볼 수 있는 다이어리입니다.",
+      "verification": "verified"
     },
     {
       "slug": "music",
       "title": "달빛 음악 플레이어",
       "href": "/music/",
       "featureKey": "music",
-      "featureKeyTo": "",
       "accessType": "free",
-      "image": "",
+      "image": "/feature-details/assets/music-960.webp",
       "aliases": [
         "music",
         "/music/",
         "/music"
       ],
-      "verification": "source-inventory-only"
+      "category": "휴식·콘텐츠",
+      "description": "연이와 네오의 세계관에 맞춰 만든 곡을 모아 둔 플레이어입니다. 운세를 보는 동안 배경으로 틀어 둘 수 있어요.",
+      "verification": "verified"
     },
     {
       "slug": "novel",
       "title": "라이트 노벨",
       "href": "/codedestiny-novel.html",
       "featureKey": "novel",
-      "featureKeyTo": "",
       "accessType": "free",
-      "image": "",
+      "image": "/feature-details/assets/novel-960.webp",
       "aliases": [
         "novel",
         "/codedestiny-novel.html",
         "/codedestiny-novel.html/"
       ],
-      "verification": "source-inventory-only"
+      "category": "휴식·콘텐츠",
+      "description": "서비스 세계관을 배경으로 한 라이트 노벨 연재입니다. 운세와 별개로 읽을거리로 즐길 수 있어요.",
+      "verification": "verified"
     },
     {
       "slug": "points",
       "title": "달빛 이용권",
       "href": "/points/",
       "featureKey": "points",
-      "featureKeyTo": "",
       "accessType": "unknown",
       "image": "",
       "aliases": [
@@ -894,44 +959,15 @@
         "/points/",
         "/points"
       ],
+      "category": "사주·심층 상담",
+      "description": "달빛 이용권은 정해진 기간 동안 유료 기능을 이용할 수 있게 해 주는 이용권입니다. 보유 현황과 사용 내역을 여기서 확인할 수 있어요.",
       "verification": "source-inventory-only"
-    },
-    {
-      "slug": "saju",
-      "title": "사주 정밀 분석",
-      "href": "/saju/basic/play",
-      "featureKey": "",
-      "featureKeyTo": "",
-      "accessType": "free",
-      "image": "/fuctionassets/saju.webp",
-      "aliases": [
-        "saju",
-        "/saju/basic/play",
-        "/saju/basic/play/"
-      ],
-      "verification": "verified"
-    },
-    {
-      "slug": "ziwei",
-      "title": "심화 자미두수 12궁 상담",
-      "href": "/ziwei/chart",
-      "featureKey": "",
-      "featureKeyTo": "",
-      "accessType": "free",
-      "image": "/fuctionassets/jami.webp",
-      "aliases": [
-        "ziwei",
-        "/ziwei/chart",
-        "/ziwei/chart/"
-      ],
-      "verification": "verified"
     },
     {
       "slug": "sukyo",
       "title": "숙요 인연 레이더",
       "href": "/index.html?action=openSukuyoModal",
       "featureKey": "",
-      "featureKeyTo": "",
       "accessType": "free",
       "image": "/feature-details/assets/sukyo-960.webp",
       "aliases": [
@@ -939,74 +975,31 @@
         "/index.html?action=openSukuyoModal",
         "/index.html?action=openSukuyoModal/"
       ],
+      "category": "사주·심층 상담",
+      "description": "생년월일을 바탕으로 본명숙을 계산하고, 관계에서 느끼는 끌림·안정감·긴장을 한 줄의 운명 판정 대신 거리와 역할의 흐름으로 풀어냅니다.",
       "verification": "verified"
-    },
-    {
-      "slug": "vedic",
-      "title": "베다 점성술 분석",
-      "href": "/index.html?action=navigateToVedic",
-      "featureKey": "",
-      "featureKeyTo": "",
-      "accessType": "free",
-      "image": "/fuctionassets/veda.webp",
-      "aliases": [
-        "vedic",
-        "/index.html?action=navigateToVedic",
-        "/index.html?action=navigateToVedic/"
-      ],
-      "verification": "verified"
-    },
-    {
-      "slug": "astrology",
-      "title": "서양 점성술 차트 분석",
-      "href": "/index.html?action=openAstroModal",
-      "featureKey": "",
-      "featureKeyTo": "",
-      "accessType": "free",
-      "image": "/fuctionassets/jumsung.webp",
-      "aliases": [
-        "astrology",
-        "/index.html?action=openAstroModal",
-        "/index.html?action=openAstroModal/"
-      ],
-      "verification": "verified"
-    },
-    {
-      "slug": "tarot",
-      "title": "타로 리딩",
-      "href": "/index.html?action=openTarotModal",
-      "featureKey": "",
-      "featureKeyTo": "",
-      "accessType": "free",
-      "image": "/fuctionassets/ai%20tarrot.webp",
-      "aliases": [
-        "tarot",
-        "/index.html?action=openTarotModal",
-        "/index.html?action=openTarotModal/"
-      ],
-      "verification": "source-inventory-only"
     },
     {
       "slug": "tarot-prompt-maker",
       "title": "타로 오라클 상담",
       "href": "/tarot/prompt-maker",
       "featureKey": "tarot-prompt-maker",
-      "featureKeyTo": "",
       "accessType": "paid",
-      "image": "/fuctionassets/연애 재회 타로 프롬프트 메이커.webp",
+      "image": "/feature-details/assets/tarot-prompt-maker-960.webp",
       "aliases": [
         "tarot-prompt-maker",
         "/tarot/prompt-maker",
         "/tarot/prompt-maker/"
       ],
-      "verification": "source-inventory-only"
+      "category": "타로·신탁",
+      "description": "77종 스프레드에서 상황에 맞는 구조를 골라 카드를 직접 열면, AI가 그 배치로 상담 결과를 바로 작성하고 사용된 프롬프트 원문까지 보여 드립니다.",
+      "verification": "verified"
     },
     {
       "slug": "face-reading",
       "title": "전문가 관상 분석",
       "href": "/saju-guardian",
       "featureKey": "",
-      "featureKeyTo": "",
       "accessType": "free",
       "image": "/fuctionassets/ai%20animal.webp",
       "aliases": [
@@ -1014,6 +1007,8 @@
         "/saju-guardian",
         "/saju-guardian/"
       ],
+      "category": "사주·심층 상담",
+      "description": "얼굴 이미지를 바탕으로 인상, 기질, 관계 성향, 커뮤니케이션 특성을 분석하는 전문가 관상 서비스입니다.",
       "verification": "source-inventory-only"
     },
     {
@@ -1021,62 +1016,66 @@
       "title": "최애운명",
       "href": "/saju/destiny-bias",
       "featureKey": "destiny-bias-analyze",
-      "featureKeyTo": "",
       "accessType": "free",
-      "image": "/fuctionassets/%EC%B5%9C%EC%95%A0%EC%9A%B4%EB%AA%85.webp",
+      "image": "/feature-details/assets/bias-destiny-960.webp",
       "aliases": [
         "bias-destiny",
         "/saju/destiny-bias",
         "/saju/destiny-bias/"
       ],
-      "verification": "source-inventory-only"
+      "category": "사주·심층 상담",
+      "description": "로그인만 하면 열리며, 총점·감정·팬덤·장기·서포트 다섯 점수와 카드 이미지를 그 자리에서 만들어 줍니다.",
+      "verification": "verified"
     },
     {
       "slug": "omikuji",
       "title": "이모이 오미쿠지",
       "href": "/emoi_omikuji_v2.html",
       "featureKey": "",
-      "featureKeyTo": "",
       "accessType": "free",
-      "image": "/fuctionassets/%EC%98%A4%EB%AF%B8%EC%BF%A0%EC%A7%80.webp",
+      "image": "/feature-details/assets/omikuji-960.webp",
       "aliases": [
         "omikuji",
         "/emoi_omikuji_v2.html",
         "/emoi_omikuji_v2.html/"
       ],
-      "verification": "source-inventory-only"
+      "category": "타로·신탁",
+      "description": "오늘의 기분과 고민을 바탕으로 간단한 운세 메시지와 행동 힌트를 제공하는 감성형 오미쿠지 콘텐츠입니다.",
+      "verification": "verified"
     },
     {
       "slug": "destiny-meeting-place",
       "title": "사주로 보는 인연의 장소",
       "href": "/saju/destiny-meeting-place",
       "featureKey": "destiny_meeting_place",
-      "featureKeyTo": "",
       "accessType": "paid",
-      "image": "/fuctionassets/%EC%82%AC%EC%A3%BC%EB%A1%9C%EB%B3%B4%EB%8A%94%20%EC%9D%B8%EC%97%B0%EC%9D%98%20%EC%9E%A5%EC%86%8C.webp",
+      "image": "/feature-details/assets/destiny-meeting-place-960.webp",
       "aliases": [
         "destiny_meeting_place",
         "destiny-meeting-place",
         "/saju/destiny-meeting-place",
         "/saju/destiny-meeting-place/"
       ],
-      "verification": "source-inventory-only"
+      "category": "관계·궁합",
+      "description": "추천 장소 5곳, 국가 5곳, 만남 유형 4가지에 계절·월·시간대와 인연 아이템까지 함께 정리합니다.",
+      "verification": "verified"
     },
     {
       "slug": "ziwei-ai",
       "title": "자미두수 전문가 상담",
       "href": "/ziwei-ai",
       "featureKey": "ziwei-ai-consultation",
-      "featureKeyTo": "",
       "accessType": "paid",
-      "image": "/fuctionassets/jamipremiun.webp",
+      "image": "/feature-details/assets/ziwei-ai-960.webp",
       "aliases": [
         "ziwei-ai-consultation",
         "ziwei-ai",
         "/ziwei-ai",
         "/ziwei-ai/"
       ],
-      "verification": "source-inventory-only"
+      "category": "사주·심층 상담",
+      "description": "본문은 20,700자 이상으로 나오고, 결과를 받은 뒤 추가 질문은 요금 없이 이어서 할 수 있습니다.",
+      "verification": "verified"
     }
   ],
   "items": {
@@ -1093,6 +1092,7 @@
         "/master-love-codex/",
         "/master-love-codex"
       ],
+      "category": "관계·궁합",
       "headline": "나의 사랑과 두 사람의 관계를, 한 권의 전략서로 읽습니다.",
       "description": "사주 명식과 자미두수 명반을 함께 놓고, 사랑에서 반복되는 기질과 관계의 흐름을 스무 장에 걸쳐 연결하는 프리미엄 리포트입니다.",
       "panels": [
@@ -1148,6 +1148,7 @@
         "/fortune-tea-house/",
         "/fortune-tea-house"
       ],
+      "category": "사주·심층 상담",
       "headline": "말하지 못한 마음에도, 차 한 잔의 자리를.",
       "description": "연애와 재회, 일과 돈, 마음의 회복까지. 지금의 고민을 골라 연이에게 이야기를 건네 보세요.",
       "panels": [
@@ -1210,16 +1211,23 @@
       "featureKey": "love-secret-ai-consultation",
       "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "",
+      "image": "/feature-details/assets/love-secret-ai-960.webp",
       "aliases": [
         "love-secret-ai-consultation",
         "love-secret-ai",
         "/love-secret-ai/",
         "/love-secret-ai"
       ],
+      "category": "관계·궁합",
       "headline": "연애를 여섯 부, 스물여덟 개 섹션으로 나눠 사주 명식으로 읽습니다.",
       "description": "연애운과 성향부터 궁합·갈등·시기·실천까지, 항목을 나눠 각각 따로 씁니다. 상대 생년 정보를 넣으면 궁합 항목이 함께 계산됩니다.",
       "panels": [
+        {
+          "title": "연애 비책에서 확인하는 흐름",
+          "text": "연애 비책은 한 편의 총평이 아니라, 위 여섯 부를 스물여덟 개 섹션으로 나눠 각각 따로 씁니다.",
+          "visualPreview": "feature-map",
+          "previewTone": "관계·궁합"
+        },
         {
           "title": "이런 질문에 도움이 됩니다",
           "items": [
@@ -1259,9 +1267,21 @@
       ],
       "ctaLabel": "사랑의 속마음 열람하기",
       "evidence": [
-        "index.html:FEATURE_MARKETING_COPY:love_secret_ai"
+        "app/love-secret-ai/page.tsx",
+        "index.html",
+        "js/core/service-registry.js"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/love-secret-ai-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/love-secret-ai-960.webp",
+          "width": 960
+        }
+      ]
     },
     "fortune-chat": {
       "slug": "fortune-chat",
@@ -1270,16 +1290,23 @@
       "featureKey": "fortune-chat-consultation",
       "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "",
+      "image": "/feature-details/assets/fortune-chat-960.webp",
       "aliases": [
         "fortune-chat-consultation",
         "fortune-chat",
         "/fortune-chat/",
         "/fortune-chat"
       ],
+      "category": "사주·심층 상담",
       "headline": "질문 하나로 끝내지 말고, 오갈수록 좁혀지는 대화로 물어보세요.",
       "description": "연이와 네오 두 화자가 같은 질문을 다른 결로 받아, 주고받는 대화 속에서 지금 상황의 초점을 좁혀 가는 상담입니다.",
       "panels": [
+        {
+          "title": "대화형 운명 상담에서 확인하는 흐름",
+          "text": "정해진 문항이 아니라, 답을 보고 다시 묻는 방식으로 상황을 좁혀 갑니다.",
+          "visualPreview": "feature-map",
+          "previewTone": "사주·심층 상담"
+        },
         {
           "title": "이런 질문에 도움이 됩니다",
           "items": [
@@ -1299,9 +1326,21 @@
       ],
       "ctaLabel": "운명 상담 대화 시작하기",
       "evidence": [
-        "index.html:FEATURE_MARKETING_COPY:fortune_chat"
+        "app/fortune-chat/page.tsx",
+        "index.html",
+        "js/core/service-registry.js"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/fortune-chat-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/fortune-chat-960.webp",
+          "width": 960
+        }
+      ]
     },
     "tarot-love-relationship": {
       "slug": "tarot-love-relationship",
@@ -1317,6 +1356,7 @@
         "/index.html?action=openTarotLoveModal",
         "/index.html?action=openTarotLoveModal/"
       ],
+      "category": "타로·신탁",
       "headline": "말과 행동 사이, 관계의 온도를 차분히 살핍니다.",
       "description": "질문을 바탕으로 세 장의 카드를 펼쳐 지금의 관계, 말로 드러나지 않은 감정의 결, 다음 대화에서 살필 기준을 정리합니다.",
       "panels": [
@@ -1372,6 +1412,7 @@
         "/index.html?action=openTarotReunionModal",
         "/index.html?action=openTarotReunionModal/"
       ],
+      "category": "타로·신탁",
       "headline": "다시 닿기 전, 마음과 현실 사이의 거리를 살핍니다.",
       "description": "다섯 장의 카드가 비추는 관계의 흐름을 따라, 먼저 움직이기 전 확인할 기준과 부담을 낮춘 다음 행동을 정리합니다.",
       "panels": [
@@ -1419,12 +1460,13 @@
       "featureKey": "tarot-mindscan",
       "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "",
+      "image": "/feature-details/assets/tarot-mindscan-960.webp",
       "aliases": [
         "tarot-mindscan",
         "/tarot/mindscan/",
         "/tarot/mindscan"
       ],
+      "category": "타로·신탁",
       "headline": "겉으로 나온 말과 안에 남은 마음 사이의 간격을 살핍니다.",
       "description": "메인 다섯 자리와 숨은 감정 보조 다섯 장을 함께 놓고, 지금 관계의 온도차와 다음 대화에서 부담을 낮출 기준을 정리합니다.",
       "panels": [
@@ -1453,7 +1495,17 @@
         "app/components/MindScanTarot.tsx",
         "js/core/service-registry.js"
       ],
-      "verification": "verified"
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/tarot-mindscan-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/tarot-mindscan-960.webp",
+          "width": 960
+        }
+      ]
     },
     "love-simulation": {
       "slug": "love-simulation",
@@ -1470,6 +1522,7 @@
         "/saju/love-simulation",
         "openLoveSimulation"
       ],
+      "category": "관계·궁합",
       "headline": "궁합을 점수표가 아니라, 선택하는 장면으로 만나 봅니다.",
       "description": "상대의 생년 정보에서 만든 인물과 데이트 장면을 지나며, 선택마다 달라지는 관계의 리듬과 사주 궁합의 근거를 함께 살펴보는 시뮬레이션입니다.",
       "panels": [
@@ -1524,6 +1577,7 @@
         "/nakshatra/compat/",
         "/nakshatra/compat"
       ],
+      "category": "관계·궁합",
       "headline": "두 사람의 출생 좌표를 겹쳐, 맞물리는 리듬을 읽습니다.",
       "description": "인도 점성술의 아쉬타쿠타와 숙요의 관계 흐름을 함께 살피며, 한 줄의 궁합 판정 대신 두 사람이 조율할 지점을 정리하는 궁합 리포트입니다.",
       "panels": [
@@ -1579,6 +1633,7 @@
         "/neo-operation-room/",
         "/neo-operation-room"
       ],
+      "category": "사주·심층 상담",
       "headline": "감정의 안개를 걷고, 선택의 기준을 다시 세웁니다.",
       "description": "네오와 함께 지금 흔들리는 선택을 한 가지 분석 방식으로 짚고, 계산 근거와 현실적인 행동 기준까지 정리하는 전략 상담입니다.",
       "panels": [
@@ -1617,16 +1672,23 @@
       "featureKey": "destiny-compass-life-voyage",
       "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "",
+      "image": "/feature-details/assets/destiny-compass-960.webp",
       "aliases": [
         "destiny-compass-life-voyage",
         "destiny-compass",
         "/destiny-compass/",
         "/destiny-compass"
       ],
+      "category": "사주·심층 상담",
       "headline": "갈림길 앞에서 어느 쪽이 내 결과 맞는지부터 확인해보세요.",
       "description": "사주 흐름과 지금의 선택지를 함께 놓고, 방향과 시점을 나눠 읽어 주는 리포트형 해석입니다.",
       "panels": [
+        {
+          "title": "운명의 나침반에서 확인하는 흐름",
+          "text": "정답을 찍어 주기보다, 지금 흐름에서 어느 쪽이 덜 무리인지 기준을 세웁니다.",
+          "visualPreview": "feature-map",
+          "previewTone": "사주·심층 상담"
+        },
         {
           "title": "이런 질문에 도움이 됩니다",
           "items": [
@@ -1646,9 +1708,21 @@
       ],
       "ctaLabel": "나침반 리딩 열기",
       "evidence": [
-        "index.html:FEATURE_MARKETING_COPY:destiny_compass"
+        "app/destiny-compass/page.tsx",
+        "index.html",
+        "js/core/service-registry.js"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/destiny-compass-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/destiny-compass-960.webp",
+          "width": 960
+        }
+      ]
     },
     "saju-sibyl": {
       "slug": "saju-sibyl",
@@ -1657,16 +1731,23 @@
       "featureKey": "premium-sibyl-dominator",
       "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "",
+      "image": "/feature-details/assets/saju-sibyl-960.webp",
       "aliases": [
         "premium-sibyl-dominator",
         "saju-sibyl",
         "/saju/sibyl/",
         "/saju/sibyl"
       ],
+      "category": "사주·심층 상담",
       "headline": "요약 해석에서 멈추지 말고, 사주를 끝까지 파고들어 보세요.",
       "description": "원국과 지금 지나는 운을 함께 놓고, 반복되는 패턴과 그 뿌리까지 짚어 주는 심층 상담형 해석입니다.",
       "panels": [
+        {
+          "title": "사이빌 전문가 상담에서 확인하는 흐름",
+          "text": "짧은 성향 설명이 아니라, 왜 그렇게 흐르는지까지 이어서 읽습니다.",
+          "visualPreview": "feature-map",
+          "previewTone": "사주·심층 상담"
+        },
         {
           "title": "이런 질문에 도움이 됩니다",
           "items": [
@@ -1686,9 +1767,21 @@
       ],
       "ctaLabel": "사이빌 심층 상담 열기",
       "evidence": [
-        "index.html:FEATURE_MARKETING_COPY:saju_sibyl"
+        "app/saju/sibyl/page.tsx",
+        "index.html",
+        "js/core/service-registry.js"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/saju-sibyl-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/saju-sibyl-960.webp",
+          "width": 960
+        }
+      ]
     },
     "new-year-ai": {
       "slug": "new-year-ai",
@@ -1697,16 +1790,23 @@
       "featureKey": "new-year-ai-consultation",
       "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "",
+      "image": "/feature-details/assets/new-year-ai-960.webp",
       "aliases": [
         "new-year-ai-consultation",
         "new-year-ai",
         "/new-year-ai-consultation/",
         "/new-year-ai-consultation"
       ],
+      "category": "오늘·시기",
       "headline": "선택한 해의 세운을 다섯 개 섹션으로 나눠 명식과 함께 읽습니다.",
       "description": "명식과 그 해 세운이 만나는 지점에서 총운·재물과 직업·애정과 대인관계·월별 흐름·건강과 개운법을 각각 따로 씁니다.",
       "panels": [
+        {
+          "title": "신년운세에서 확인하는 흐름",
+          "text": "신년운세는 막연한 덕담이 아니라, 그 해 세운이 당신 명식을 어디서 누르는지 다섯 개 섹션으로 나눠 씁니다.",
+          "visualPreview": "feature-map",
+          "previewTone": "오늘·시기"
+        },
         {
           "title": "이런 질문에 도움이 됩니다",
           "items": [
@@ -1745,9 +1845,21 @@
       ],
       "ctaLabel": "신년운세 받기",
       "evidence": [
-        "index.html:FEATURE_MARKETING_COPY:new_year_ai_consultation"
+        "app/new-year-ai-consultation/page.tsx",
+        "index.html",
+        "js/core/service-registry.js"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/new-year-ai-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/new-year-ai-960.webp",
+          "width": 960
+        }
+      ]
     },
     "tarot-ijik": {
       "slug": "tarot-ijik",
@@ -1756,15 +1868,22 @@
       "featureKey": "tarot-ijik",
       "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "",
+      "image": "/feature-details/assets/tarot-ijik-960.webp",
       "aliases": [
         "tarot-ijik",
         "/tarot-ijik.html",
         "/tarot-ijik.html/"
       ],
+      "category": "타로·신탁",
       "headline": "남을지 옮길지, 일의 기준부터 카드로 세워 봅니다.",
       "description": "일곱 자리 고정 스프레드로 남았을 때의 흐름과 이직의 문이 열리는 조건을 나눠 읽고, 움직일 시기와 결정 전 확인할 조건까지 정리합니다.",
       "panels": [
+        {
+          "title": "이직 운명의 카드에서 확인하는 흐름",
+          "text": "이직은 마음만으로 정하기 어려운 결정입니다. 남는 쪽과 옮기는 쪽을 같은 무게로 펼쳐 놓고 비교합니다.",
+          "visualPreview": "feature-map",
+          "previewTone": "타로·신탁"
+        },
         {
           "title": "이런 질문에 도움이 됩니다",
           "items": [
@@ -1819,9 +1938,21 @@
       ],
       "ctaLabel": "이직 카드 열기",
       "evidence": [
-        "index.html:FEATURE_MARKETING_COPY:tarot_ijik"
+        "tarot-ijik.html",
+        "index.html",
+        "js/core/service-registry.js"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/tarot-ijik-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/tarot-ijik-960.webp",
+          "width": 960
+        }
+      ]
     },
     "life-book-ai": {
       "slug": "life-book-ai",
@@ -1837,6 +1968,7 @@
         "/life-book-ai/",
         "/life-book-ai"
       ],
+      "category": "사주·심층 상담",
       "headline": "흩어져 있던 삶의 장면을, 한 권의 흐름으로.",
       "description": "타고난 사주와 시간의 흐름을 함께 읽으며, 나의 기질과 삶의 방향을 차분히 돌아보는 리포트입니다.",
       "panels": [
@@ -1883,16 +2015,23 @@
       "featureKey": "karma-destiny-ai-consultation",
       "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "",
+      "image": "/feature-details/assets/karma-destiny-ai-960.webp",
       "aliases": [
         "karma-destiny-ai-consultation",
         "karma-destiny-ai",
         "/karma-destiny-ai/",
         "/karma-destiny-ai"
       ],
+      "category": "사주·심층 상담",
       "headline": "같은 인연과 같은 사건이 왜 반복되는지, 그 뿌리부터 되짚습니다.",
       "description": "명식에 새겨진 오래된 흐름과 지금의 관계·선택을 연결해, 반복의 원인과 끊어낼 지점을 정리하는 최상위 상담입니다.",
       "panels": [
+        {
+          "title": "운명의 업에서 확인하는 흐름",
+          "text": "운명의 업 상담은 전생 이야기로 끝내지 않고, 위 주제를 열다섯 개 장으로 나눠 지금 삶에서 무엇을 끊고 무엇을 남길지까지 정리합니다.",
+          "visualPreview": "feature-map",
+          "previewTone": "사주·심층 상담"
+        },
         {
           "title": "이런 질문에 도움이 됩니다",
           "items": [
@@ -1932,9 +2071,21 @@
       ],
       "ctaLabel": "운명의 업 열람하기",
       "evidence": [
-        "index.html:FEATURE_MARKETING_COPY:karma_destiny_ai_consultation"
+        "app/karma-destiny-ai/page.tsx",
+        "index.html",
+        "js/core/service-registry.js"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/karma-destiny-ai-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/karma-destiny-ai-960.webp",
+          "width": 960
+        }
+      ]
     },
     "saju-guardian": {
       "slug": "saju-guardian",
@@ -1943,7 +2094,7 @@
       "featureKey": "saju-guardian-unlock",
       "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "/fuctionassets/saju-guardian-animal-v20260615.webp",
+      "image": "/feature-details/assets/saju-guardian-303.webp",
       "aliases": [
         "saju-guardian-unlock",
         "openSajuGuardianPage",
@@ -1951,9 +2102,16 @@
         "/index.html?action=openSajuGuardianPage",
         "/index.html?action=openSajuGuardianPage/"
       ],
+      "category": "사주·심층 상담",
       "headline": "당신의 일주가 부르는 수호 가디언, 소환진 위에 나타납니다.",
       "description": "태어난 날의 일주가 예순 갑자 가운데 당신의 가디언을 정하고, 같은 명식이면 늘 같은 모습으로 소환됩니다. 다섯 패널의 풀이와 부적 주머니가 함께 열립니다.",
       "panels": [
+        {
+          "title": "사주 가디언 소환진에서 확인하는 흐름",
+          "text": "수호 가디언은 사주 용어를 캐릭터의 언어로 옮겨, 내 명식을 지키는 존재로 만나게 합니다.",
+          "visualPreview": "feature-map",
+          "previewTone": "사주·심층 상담"
+        },
         {
           "title": "이런 질문에 도움이 됩니다",
           "items": [
@@ -2008,9 +2166,17 @@
       ],
       "ctaLabel": "수호 가디언 소환하기",
       "evidence": [
-        "index.html:FEATURE_MARKETING_COPY:openSajuGuardianPage"
+        "index.html",
+        "index.html",
+        "js/core/service-registry.js"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/saju-guardian-303.webp",
+          "width": 303
+        }
+      ]
     },
     "naming-ai": {
       "slug": "naming-ai",
@@ -2019,16 +2185,23 @@
       "featureKey": "premium-naming-prompt",
       "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "",
+      "image": "/feature-details/assets/naming-ai-960.webp",
       "aliases": [
         "premium-naming-prompt",
         "naming-ai",
         "/naming-ai/",
         "/naming-ai"
       ],
+      "category": "사주·심층 상담",
       "headline": "사주 용신에 맞춘 이름 후보를 작명첩 한 권으로 만들어 드립니다.",
       "description": "8장 구성의 작명첩에 새 이름 5~7개를 제안하고, 그 작명첩을 만든 프롬프트 원문까지 함께 드립니다.",
       "panels": [
+        {
+          "title": "전문가 작명소에서 확인하는 흐름",
+          "text": "입력과 초안 추천은 무료로 열립니다. 결제는 8장짜리 작명첩과 프롬프트 원문을 받을 때 진행됩니다.",
+          "visualPreview": "feature-map",
+          "previewTone": "사주·심층 상담"
+        },
         {
           "title": "이런 질문에 도움이 됩니다",
           "items": [
@@ -2091,9 +2264,21 @@
       ],
       "ctaLabel": "작명 시작하기",
       "evidence": [
-        "index.html:FEATURE_MARKETING_COPY:openNamingPromptModal"
+        "app/naming-ai/page.tsx",
+        "index.html",
+        "js/core/service-registry.js"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/naming-ai-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/naming-ai-960.webp",
+          "width": 960
+        }
+      ]
     },
     "fusion-fortune": {
       "slug": "fusion-fortune",
@@ -2102,16 +2287,23 @@
       "featureKey": "fusion-fortune-consultation",
       "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "",
+      "image": "/feature-details/assets/fusion-fortune-960.webp",
       "aliases": [
         "fusion-fortune-consultation",
         "fusion-fortune",
         "/fusion-fortune/",
         "/fusion-fortune"
       ],
+      "category": "사주·심층 상담",
       "headline": "여섯 체계가 같은 곳을 가리키는 지점과, 서로 엇갈리는 지점을 함께 봅니다.",
       "description": "사주·자미두수·베다점·숙요점·점성술·타로를 각 전통의 언어로 따로 읽은 뒤, 겹치는 신호는 우선순위로 엇갈리는 신호는 상황별 선택지로 묶어 하나의 상담으로 잇습니다.",
       "panels": [
+        {
+          "title": "초융합 심층 리딩에서 확인하는 흐름",
+          "text": "초융합은 여섯 개의 운세를 나란히 늘어놓지 않습니다. 서로 무엇을 함께 말하고 어디서 갈라지는지를 먼저 정리한 뒤, 그 위에서 지금의 선택을 봅니다.",
+          "visualPreview": "feature-map",
+          "previewTone": "사주·심층 상담"
+        },
         {
           "title": "이런 질문에 도움이 됩니다",
           "items": [
@@ -2175,9 +2367,21 @@
       ],
       "ctaLabel": "초융합 리딩 열기",
       "evidence": [
-        "index.html:FEATURE_MARKETING_COPY:fusion_fortune"
+        "app/fusion-fortune/page.tsx",
+        "index.html",
+        "js/core/service-registry.js"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/fusion-fortune-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/fusion-fortune-960.webp",
+          "width": 960
+        }
+      ]
     },
     "tarot-year-fortune": {
       "slug": "tarot-year-fortune",
@@ -2186,16 +2390,23 @@
       "featureKey": "tarot-year-fortune",
       "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "/fuctionassets/12animals.webp",
+      "image": "/feature-details/assets/tarot-year-fortune-960.webp",
       "aliases": [
         "tarot-year-fortune",
         "openTarotYearFortuneModal",
         "/index.html?action=openTarotYearFortuneModal",
         "/index.html?action=openTarotYearFortuneModal/"
       ],
+      "category": "타로·신탁",
       "headline": "열두 수호신과 열두 장의 카드로 한 해를 미리 걸어봅니다.",
       "description": "메이저 카드 12장을 달마다 한 장씩 놓고, 태어난 해의 수호신 이야기와 함께 열두 분야의 흐름과 전환점 · 행운 행동까지 정리하는 연간 리딩입니다.",
       "panels": [
+        {
+          "title": "십이지신 천운 타로에서 확인하는 흐름",
+          "text": "한 해를 예언으로 못 박기보다, 달마다 놓치기 쉬운 흐름과 선택의 시점을 카드로 정리합니다.",
+          "visualPreview": "feature-map",
+          "previewTone": "타로·신탁"
+        },
         {
           "title": "이런 질문에 도움이 됩니다",
           "items": [
@@ -2251,9 +2462,21 @@
       ],
       "ctaLabel": "연간 리딩 시작하기",
       "evidence": [
-        "index.html:FEATURE_MARKETING_COPY:openTarotYearFortuneModal"
+        "index.html",
+        "index.html",
+        "js/core/service-registry.js"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/tarot-year-fortune-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/tarot-year-fortune-960.webp",
+          "width": 960
+        }
+      ]
     },
     "tarot-celestial-harmony": {
       "slug": "tarot-celestial-harmony",
@@ -2262,15 +2485,22 @@
       "featureKey": "tarot-celestial-harmony",
       "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "",
+      "image": "/feature-details/assets/tarot-celestial-harmony-960.webp",
       "aliases": [
         "tarot-celestial-harmony",
         "/celestial-harmony.html",
         "/celestial-harmony.html/"
       ],
+      "category": "타로·신탁",
       "headline": "카이론까지 아우르는 열한 행성의 자리에서 마음의 축을 나눠 읽습니다.",
       "description": "열한 행성 자리에 카드를 놓고 마지막 통합 카드로 묶어, 사랑 · 일 · 재물 · 건강의 축을 나눠 읽는 확장형 코즈믹 타로 리딩입니다.",
       "panels": [
+        {
+          "title": "천체의 선율에서 확인하는 흐름",
+          "text": "천체의 선율은 한 장의 답을 주기보다, 마음의 여러 축이 지금 어떻게 놓여 있는지를 행성 자리를 따라 펼쳐 보입니다.",
+          "visualPreview": "feature-map",
+          "previewTone": "타로·신탁"
+        },
         {
           "title": "이런 질문에 도움이 됩니다",
           "items": [
@@ -2325,9 +2555,21 @@
       ],
       "ctaLabel": "천체의 선율 시작하기",
       "evidence": [
-        "index.html:FEATURE_MARKETING_COPY:tarot_celestial_harmony"
+        "celestial-harmony.html",
+        "index.html",
+        "js/core/service-registry.js"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/tarot-celestial-harmony-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/tarot-celestial-harmony-960.webp",
+          "width": 960
+        }
+      ]
     },
     "nakshatra-muhurta": {
       "slug": "nakshatra-muhurta",
@@ -2336,15 +2578,22 @@
       "featureKey": "nakshatra-muhurta",
       "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "",
+      "image": "/feature-details/assets/nakshatra-muhurta-960.webp",
       "aliases": [
         "nakshatra-muhurta",
         "/nakshatra/muhurta/",
         "/nakshatra/muhurta"
       ],
+      "category": "별자리·동양 점성",
       "headline": "인도 무후르타와 동양 숙요가 함께 좋게 보는 날만 골라 드립니다.",
       "description": "앞으로 60일을 하루씩 셈해 목적에 맞는 가장 좋은 날과 옮길 수 있으면 피할 날을, 두 체계의 일치 여부까지 붙여 정리합니다.",
       "panels": [
+        {
+          "title": "택일 무후르타에서 확인하는 흐름",
+          "text": "좋은 날은 목적마다 다릅니다. 결혼과 계약과 이사는 각각 다른 기준으로 셈합니다.",
+          "visualPreview": "feature-map",
+          "previewTone": "별자리·동양 점성"
+        },
         {
           "title": "이런 질문에 도움이 됩니다",
           "items": [
@@ -2399,9 +2648,21 @@
       ],
       "ctaLabel": "좋은 날 찾기",
       "evidence": [
-        "index.html:FEATURE_MARKETING_COPY:nakshatra_muhurta"
+        "app/nakshatra/muhurta/page.tsx",
+        "index.html",
+        "js/core/service-registry.js"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/nakshatra-muhurta-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/nakshatra-muhurta-960.webp",
+          "width": 960
+        }
+      ]
     },
     "saju": {
       "slug": "saju",
@@ -2413,9 +2674,12 @@
       "image": "/feature-details/assets/saju-960.webp",
       "aliases": [
         "saju",
+        "/saju/",
+        "/saju",
         "/saju/basic/play",
         "/saju/basic/play/"
       ],
+      "category": "사주·심층 상담",
       "headline": "여덟 글자에 담긴 기질과, 지금의 흐름을 함께 읽습니다.",
       "description": "생년월일과 출생시간으로 사주 네 기둥을 세운 뒤, 오행과 십성의 균형을 바탕으로 성향과 생활의 리듬을 차분히 정리합니다.",
       "panels": [
@@ -2463,20 +2727,43 @@
       "featureKey": "",
       "featureKeyTo": "",
       "accessType": "free",
-      "image": "/fuctionassets/ai%20tarrot.webp",
+      "image": "/feature-details/assets/tarot-960.webp",
       "aliases": [
+        "openTarotModal",
         "tarot",
+        "/tarot/",
+        "/tarot",
         "/index.html?action=openTarotModal",
         "/index.html?action=openTarotModal/"
       ],
+      "category": "타로·신탁",
       "headline": "타로 리딩",
       "description": "타로 상징과 스프레드의 흐름 속에서 현재의 감정과 선택의 실마리가 강하게 떠오릅니다.",
-      "panels": [],
+      "panels": [
+        {
+          "title": "타로 리딩에서 확인하는 흐름",
+          "text": "타로 상징과 스프레드의 흐름 속에서 현재의 감정과 선택의 실마리가 강하게 떠오릅니다.",
+          "visualPreview": "feature-map",
+          "previewTone": "타로·신탁"
+        }
+      ],
       "ctaLabel": "이 기능 시작하기",
       "evidence": [
+        "index.html",
+        "index.html",
         "js/core/service-registry.js"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/tarot-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/tarot-960.webp",
+          "width": 960
+        }
+      ]
     },
     "ziwei": {
       "slug": "ziwei",
@@ -2487,10 +2774,14 @@
       "accessType": "free",
       "image": "/feature-details/assets/ziwei-960.webp",
       "aliases": [
+        "openZiweiModal",
         "ziwei",
+        "/ziwei/",
+        "/ziwei",
         "/ziwei/chart",
         "/ziwei/chart/"
       ],
+      "category": "사주·심층 상담",
       "headline": "명궁에서 시작해, 삶의 여러 자리를 한 장의 명반으로 읽습니다.",
       "description": "생년월일과 출생시간으로 명궁과 열두 궁을 세우고, 주요 별의 배치와 시기 흐름을 통해 삶의 주제를 더 세분해 살펴봅니다.",
       "panels": [
@@ -2537,16 +2828,23 @@
       "featureKey": "compat-sukuyo-compatibility",
       "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "",
+      "image": "/feature-details/assets/sukuyo-960.webp",
       "aliases": [
         "openSukuyoModal",
         "sukuyo",
         "/sukuyo/",
         "/sukuyo"
       ],
+      "category": "사주·심층 상담",
       "headline": "상대의 생년월일만 있으면 두 사람이 어떤 거리의 인연인지 바로 나옵니다.",
       "description": "27수 가운데 두 사람의 본명숙을 각각 계산해 관계 유형과 거리를 판정하고, 연애·결혼·재회·비밀연애·장거리·협업 여섯 주제로 나눠 읽습니다.",
       "panels": [
+        {
+          "title": "숙요점에서 확인하는 흐름",
+          "text": "이 궁합은 27수 계산 규칙으로 산출됩니다. 같은 두 사람이면 언제 열어도 같은 결과가 나오며, 문장을 매번 새로 쓰는 AI 상담은 30,000원 숙요점 궁합 전문가 상담 쪽입니다.",
+          "visualPreview": "feature-map",
+          "previewTone": "사주·심층 상담"
+        },
         {
           "title": "이런 질문에 도움이 됩니다",
           "items": [
@@ -2607,9 +2905,21 @@
       ],
       "ctaLabel": "숙요점 열기",
       "evidence": [
-        "index.html:FEATURE_MARKETING_COPY:openSukuyoModal"
+        "app/sukuyo/page.js",
+        "index.html",
+        "js/core/service-registry.js"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/sukuyo-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/sukuyo-960.webp",
+          "width": 960
+        }
+      ]
     },
     "vedic": {
       "slug": "vedic",
@@ -2621,9 +2931,12 @@
       "image": "/feature-details/assets/vedic-960.webp",
       "aliases": [
         "vedic",
+        "/vedic/",
+        "/vedic",
         "/index.html?action=navigateToVedic",
         "/index.html?action=navigateToVedic/"
       ],
+      "category": "별자리·동양 점성",
       "headline": "라그나와 달, 다샤의 흐름으로 삶의 리듬을 읽습니다.",
       "description": "인도 전통 조티쉬의 항성 기준 차트에서 라그나·나크샤트라·행성·하우스·다샤를 살피며, 삶의 어느 주제가 전면에 떠오르는지 정리합니다.",
       "panels": [
@@ -2672,10 +2985,14 @@
       "accessType": "free",
       "image": "/feature-details/assets/astrology-960.webp",
       "aliases": [
+        "openAstroModal",
         "astrology",
+        "/astrology/",
+        "/astrology",
         "/index.html?action=openAstroModal",
         "/index.html?action=openAstroModal/"
       ],
+      "category": "별자리·동양 점성",
       "headline": "태양·달·상승궁을 한 장의 차트로 연결해 읽습니다.",
       "description": "태어난 순간의 행성 위치와 하우스, 애스펙트를 통해 기질·관계·일에서 반복되는 반응과 선택의 리듬을 살펴봅니다.",
       "panels": [
@@ -2722,16 +3039,23 @@
       "featureKey": "human-design-chart",
       "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "",
+      "image": "/feature-details/assets/human-design-960.webp",
       "aliases": [
         "human-design-chart",
         "human-design",
         "/human-design/",
         "/human-design"
       ],
+      "category": "별자리·동양 점성",
       "headline": "내 에너지가 어떤 방식으로 작동하도록 설계됐는지 확인해보세요.",
       "description": "출생 데이터로 타입·전략·내적권위·센터 정의를 계산해, 결정과 소모의 방식이 어떻게 설계돼 있는지 보여 줍니다.",
       "panels": [
+        {
+          "title": "휴먼 디자인에서 확인하는 흐름",
+          "text": "성격 유형 분류가 아니라, 출생 데이터로 계산한 에너지 설계도를 그대로 보여 줍니다.",
+          "visualPreview": "feature-map",
+          "previewTone": "별자리·동양 점성"
+        },
         {
           "title": "이런 질문에 도움이 됩니다",
           "items": [
@@ -2751,9 +3075,21 @@
       ],
       "ctaLabel": "무료로 차트 계산하기",
       "evidence": [
-        "index.html:FEATURE_MARKETING_COPY:human_design"
+        "app/human-design/page.tsx",
+        "index.html",
+        "js/core/service-registry.js"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/human-design-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/human-design-960.webp",
+          "width": 960
+        }
+      ]
     },
     "nakshatra": {
       "slug": "nakshatra",
@@ -2762,15 +3098,22 @@
       "featureKey": "nakshatra",
       "featureKeyTo": "",
       "accessType": "free",
-      "image": "",
+      "image": "/feature-details/assets/nakshatra-960.webp",
       "aliases": [
         "nakshatra",
         "/nakshatra/",
         "/nakshatra"
       ],
+      "category": "별자리·동양 점성",
       "headline": "달이 머문 별자리 하나가 타고난 결을 가장 먼저 말해 줍니다.",
       "description": "출생 시 달의 위치로 27개 나크샤트라 가운데 하나를 계산해, 그 별자리가 가진 기질과 삶의 방향을 정리해 줍니다.",
       "panels": [
+        {
+          "title": "나크샤트라 결정판에서 확인하는 흐름",
+          "text": "복잡한 차트 전체가 아니라, 본질을 가리키는 한 자리에 집중합니다.",
+          "visualPreview": "feature-map",
+          "previewTone": "별자리·동양 점성"
+        },
         {
           "title": "이런 질문에 도움이 됩니다",
           "items": [
@@ -2790,9 +3133,21 @@
       ],
       "ctaLabel": "무료로 나크샤트라 보기",
       "evidence": [
-        "index.html:FEATURE_MARKETING_COPY:nakshatra"
+        "app/nakshatra/page.js",
+        "index.html",
+        "js/core/service-registry.js"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/nakshatra-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/nakshatra-960.webp",
+          "width": 960
+        }
+      ]
     },
     "maya": {
       "slug": "maya",
@@ -2801,15 +3156,22 @@
       "featureKey": "maya",
       "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "",
+      "image": "/feature-details/assets/maya-960.webp",
       "aliases": [
         "maya",
         "/maya/",
         "/maya"
       ],
+      "category": "별자리·동양 점성",
       "headline": "마야 달력의 하루하루에는 저마다 다른 기운이 붙어 있습니다.",
       "description": "촐킨 달력으로 생년월일과 오늘의 날짜 기운을 계산해, 타고난 인장과 오늘의 흐름을 함께 보여 줍니다.",
       "panels": [
+        {
+          "title": "마야점에서 확인하는 흐름",
+          "text": "날짜마다 다른 상징을 붙여, 오늘을 어떤 태도로 보낼지 짚어 줍니다.",
+          "visualPreview": "feature-map",
+          "previewTone": "별자리·동양 점성"
+        },
         {
           "title": "이런 질문에 도움이 됩니다",
           "items": [
@@ -2829,9 +3191,21 @@
       ],
       "ctaLabel": "무료로 마야점 보기",
       "evidence": [
-        "index.html:FEATURE_MARKETING_COPY:maya"
+        "app/maya/page.tsx",
+        "index.html",
+        "js/core/service-registry.js"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/maya-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/maya-960.webp",
+          "width": 960
+        }
+      ]
     },
     "daily-fortune": {
       "slug": "daily-fortune",
@@ -2840,15 +3214,22 @@
       "featureKey": "daily-fortune",
       "featureKeyTo": "",
       "accessType": "free",
-      "image": "",
+      "image": "/feature-details/assets/daily-fortune-960.webp",
       "aliases": [
         "daily-fortune",
         "/daily-fortune/",
         "/daily-fortune"
       ],
+      "category": "오늘·시기",
       "headline": "긴 해석은 나중에, 오늘 하루의 흐름부터 확인해보세요.",
       "description": "생년월일 기준으로 오늘 날짜의 기운을 대조해, 하루 동안 무엇을 밀고 무엇을 미룰지 짧게 정리해 줍니다.",
       "panels": [
+        {
+          "title": "오늘의 운세에서 확인하는 흐름",
+          "text": "길게 늘이지 않고 오늘 하루에 필요한 만큼만 짚습니다.",
+          "visualPreview": "feature-map",
+          "previewTone": "오늘·시기"
+        },
         {
           "title": "이런 질문에 도움이 됩니다",
           "items": [
@@ -2868,9 +3249,21 @@
       ],
       "ctaLabel": "오늘의 운세 보기",
       "evidence": [
-        "index.html:FEATURE_MARKETING_COPY:daily_fortune"
+        "index.html",
+        "index.html",
+        "js/core/service-registry.js"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/daily-fortune-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/daily-fortune-960.webp",
+          "width": 960
+        }
+      ]
     },
     "today-hub": {
       "slug": "today-hub",
@@ -2879,15 +3272,22 @@
       "featureKey": "today-hub",
       "featureKeyTo": "",
       "accessType": "free",
-      "image": "",
+      "image": "/feature-details/assets/today-hub-960.webp",
       "aliases": [
         "today-hub",
         "/today/",
         "/today"
       ],
+      "category": "오늘·시기",
       "headline": "오늘 하루를 사주·숙요점·베다점 세 갈래로 나란히 확인해보세요.",
       "description": "한 화면에서 세 체계의 오늘 해석을 함께 놓고, 서로 겹치는 신호와 갈리는 지점을 비교해 볼 수 있는 허브입니다.",
       "panels": [
+        {
+          "title": "오늘의 운세 허브에서 확인하는 흐름",
+          "text": "한 갈래의 결론만 주지 않고, 세 갈래를 나란히 놓아 비교할 수 있게 합니다.",
+          "visualPreview": "feature-map",
+          "previewTone": "오늘·시기"
+        },
         {
           "title": "이런 질문에 도움이 됩니다",
           "items": [
@@ -2907,9 +3307,21 @@
       ],
       "ctaLabel": "오늘의 운세 허브 열기",
       "evidence": [
-        "index.html:FEATURE_MARKETING_COPY:today"
+        "app/today/page.js",
+        "index.html",
+        "js/core/service-registry.js"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/today-hub-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/today-hub-960.webp",
+          "width": 960
+        }
+      ]
     },
     "palm-reading": {
       "slug": "palm-reading",
@@ -2918,15 +3330,22 @@
       "featureKey": "palm-reading-general",
       "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "/fuctionassets/%EC%86%90%EA%B8%88.webp",
+      "image": "/feature-details/assets/palm-reading-960.webp",
       "aliases": [
         "palm-reading",
         "/palm-reading/",
         "/palm-reading"
       ],
+      "category": "상징·마음",
       "headline": "양손 사진을 올리면 손금 선과 언덕을 읽어 상담문으로 정리합니다.",
       "description": "주요선 4개와 보조선 9종, 손바닥 언덕 7구, 특수 문양 6종을 확인하고 1,200자 이상의 해석을 씁니다.",
       "panels": [
+        {
+          "title": "손금에서 확인하는 흐름",
+          "text": "사진에서 확인된 선과 문양만 근거로 씁니다. 흐릿하거나 잡히지 않은 선은 있다고 적지 않습니다.",
+          "visualPreview": "feature-map",
+          "previewTone": "상징·마음"
+        },
         {
           "title": "이런 질문에 도움이 됩니다",
           "items": [
@@ -2987,9 +3406,21 @@
       ],
       "ctaLabel": "손금 분석 시작하기",
       "evidence": [
-        "index.html:FEATURE_MARKETING_COPY:palm_reading"
+        "app/palm-reading/page.tsx",
+        "index.html",
+        "js/core/service-registry.js"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/palm-reading-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/palm-reading-960.webp",
+          "width": 960
+        }
+      ]
     },
     "physiognomy": {
       "slug": "physiognomy",
@@ -2998,16 +3429,23 @@
       "featureKey": "physiognomy",
       "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "/fuctionassets/ai%20animal.webp",
+      "image": "/feature-details/assets/physiognomy-960.webp",
       "aliases": [
         "openPhysiognomyApp",
         "physiognomy",
         "/physiognomy/",
         "/physiognomy"
       ],
+      "category": "상징·마음",
       "headline": "얼굴에 남은 인상의 결로 지금의 나를 읽어보세요.",
       "description": "사진 속 이목구비의 형태와 균형을 분석해, 인상에서 드러나는 기질과 어울리는 길을 정리해 주는 관상 해석입니다.",
       "panels": [
+        {
+          "title": "관상에서 확인하는 흐름",
+          "text": "좋은 얼굴 나쁜 얼굴을 가르지 않고, 인상이 주는 인식과 강점을 설명합니다.",
+          "visualPreview": "feature-map",
+          "previewTone": "상징·마음"
+        },
         {
           "title": "이런 질문에 도움이 됩니다",
           "items": [
@@ -3027,9 +3465,21 @@
       ],
       "ctaLabel": "무료로 관상 보기",
       "evidence": [
-        "index.html:FEATURE_MARKETING_COPY:physiognomy"
+        "app/physiognomy/page.js",
+        "index.html",
+        "js/core/service-registry.js"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/physiognomy-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/physiognomy-960.webp",
+          "width": 960
+        }
+      ]
     },
     "dream": {
       "slug": "dream",
@@ -3038,16 +3488,23 @@
       "featureKey": "dream",
       "featureKeyTo": "",
       "accessType": "free",
-      "image": "/fuctionassets/heamong.webp",
+      "image": "/feature-details/assets/dream-960.webp",
       "aliases": [
         "openDreamModal",
         "dream",
         "/dream/",
         "/dream"
       ],
+      "category": "상징·마음",
       "headline": "간밤의 꿈이 남긴 장면을 그냥 넘기지 마세요.",
       "description": "꿈에 나온 소재와 상황을 풀어, 그 상징이 지금의 심리와 상황에 어떻게 닿는지 설명해 주는 해몽입니다.",
       "panels": [
+        {
+          "title": "꿈해몽에서 확인하는 흐름",
+          "text": "길몽·흉몽으로 가르기보다, 그 상징이 지금 무엇을 비추는지 읽습니다.",
+          "visualPreview": "feature-map",
+          "previewTone": "상징·마음"
+        },
         {
           "title": "이런 질문에 도움이 됩니다",
           "items": [
@@ -3067,9 +3524,21 @@
       ],
       "ctaLabel": "무료로 꿈 해몽하기",
       "evidence": [
-        "index.html:FEATURE_MARKETING_COPY:dream"
+        "app/dream/page.js",
+        "index.html",
+        "js/core/service-registry.js"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/dream-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/dream-960.webp",
+          "width": 960
+        }
+      ]
     },
     "psychotest": {
       "slug": "psychotest",
@@ -3078,15 +3547,22 @@
       "featureKey": "psychotest",
       "featureKeyTo": "",
       "accessType": "free",
-      "image": "",
+      "image": "/feature-details/assets/psychotest-960.webp",
       "aliases": [
         "psychotest",
         "/psychotest/",
         "/psychotest"
       ],
+      "category": "상징·마음",
       "headline": "가볍게 답하다 보면 나에 대해 몰랐던 문장이 남습니다.",
       "description": "짧은 문항에 답하면 성향과 지금의 상태를 정리해 주는 심리 테스트 모음입니다. 생년월일 없이도 볼 수 있어요.",
       "panels": [
+        {
+          "title": "심리테스트에서 확인하는 흐름",
+          "text": "맞다 틀리다를 가르지 않고, 답변에서 드러난 결을 문장으로 정리합니다.",
+          "visualPreview": "feature-map",
+          "previewTone": "상징·마음"
+        },
         {
           "title": "이런 질문에 도움이 됩니다",
           "items": [
@@ -3106,9 +3582,21 @@
       ],
       "ctaLabel": "무료 심리테스트 하기",
       "evidence": [
-        "index.html:FEATURE_MARKETING_COPY:psychotest"
+        "app/psychotest/page.tsx",
+        "index.html",
+        "js/core/service-registry.js"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/psychotest-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/psychotest-960.webp",
+          "width": 960
+        }
+      ]
     },
     "manse": {
       "slug": "manse",
@@ -3117,15 +3605,22 @@
       "featureKey": "manse",
       "featureKeyTo": "",
       "accessType": "free",
-      "image": "",
+      "image": "/feature-details/assets/manse-960.webp",
       "aliases": [
         "manse",
         "/manse/",
         "/manse"
       ],
+      "category": "사주·심층 상담",
       "headline": "해석을 받기 전에 원국을 직접 세워 볼 수 있습니다.",
       "description": "생년월일시를 넣으면 절기 기준으로 사주 원국과 대운을 계산해 표로 보여 주는 만세력 도구입니다.",
       "panels": [
+        {
+          "title": "만세력에서 확인하는 흐름",
+          "text": "해석을 덧붙이지 않고, 계산된 원국과 대운을 그대로 보여 줍니다.",
+          "visualPreview": "feature-map",
+          "previewTone": "사주·심층 상담"
+        },
         {
           "title": "이런 질문에 도움이 됩니다",
           "items": [
@@ -3145,9 +3640,21 @@
       ],
       "ctaLabel": "만세력 열기",
       "evidence": [
-        "index.html:FEATURE_MARKETING_COPY:manse"
+        "app/manse/page.js",
+        "index.html",
+        "js/core/service-registry.js"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/manse-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/manse-960.webp",
+          "width": 960
+        }
+      ]
     },
     "famous-saju": {
       "slug": "famous-saju",
@@ -3156,15 +3663,22 @@
       "featureKey": "famous-saju",
       "featureKeyTo": "",
       "accessType": "free",
-      "image": "",
+      "image": "/feature-details/assets/famous-saju-960.webp",
       "aliases": [
         "famous-saju",
         "/insights/famous-saju/",
         "/insights/famous-saju"
       ],
+      "category": "사주·심층 상담",
       "headline": "이름이 알려진 사람들의 사주로 원리를 눈으로 익혀보세요.",
       "description": "실존 인물의 명식을 예시로 놓고, 어떤 배치가 어떤 삶의 모양으로 나타났는지 사례로 풀어 주는 읽을거리입니다.",
       "panels": [
+        {
+          "title": "유명인 사주에서 확인하는 흐름",
+          "text": "개인 운세가 아니라, 공개된 정보를 바탕으로 원리를 설명하는 사례 모음입니다.",
+          "visualPreview": "feature-map",
+          "previewTone": "사주·심층 상담"
+        },
         {
           "title": "이런 질문에 도움이 됩니다",
           "items": [
@@ -3184,9 +3698,21 @@
       ],
       "ctaLabel": "유명인 사주 읽어보기",
       "evidence": [
-        "index.html:FEATURE_MARKETING_COPY:insights_famous_saju"
+        "app/insights/famous-saju/page.tsx",
+        "index.html",
+        "js/core/service-registry.js"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/famous-saju-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/famous-saju-960.webp",
+          "width": 960
+        }
+      ]
     },
     "animal-destiny": {
       "slug": "animal-destiny",
@@ -3202,6 +3728,7 @@
         "/saju/animal-destiny",
         "openAnimalDestinyRoute"
       ],
+      "category": "상징·마음",
       "headline": "나를 움직이는 힘은 어떤 동물을 닮았을까?",
       "description": "사주의 십이운성, 열두 성장 단계를 동물의 상징으로 만나 보세요. 이름을 붙이는 재미를 넘어 나의 성향과 성장 방향을 읽습니다.",
       "panels": [
@@ -3248,16 +3775,23 @@
       "featureKey": "openKemetModal",
       "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "/fuctionassets/egypt.webp",
+      "image": "/feature-details/assets/kemet-oracle-960.webp",
       "aliases": [
         "openKemetModal",
         "kemet-oracle",
         "/index.html?action=openKemetModal",
         "/index.html?action=openKemetModal/"
       ],
+      "category": "타로·신탁",
       "headline": "열두 신의 카드 가운데 세 장, 당신 손으로 직접 고릅니다.",
       "description": "라 · 오시리스 · 이시스 · 호루스 등 열두 신의 카드에서 과거 · 현재 · 미래 세 장을 직접 고르면, 자리별 해석과 세 신의 합이 질문의 결을 따라 풀립니다.",
       "panels": [
+        {
+          "title": "이집트 신탁에서 확인하는 흐름",
+          "text": "나일강의 신탁은 자동으로 뽑아 주지 않습니다. 열두 신의 카드 앞에서 당신이 직접 세 장을 고르는 의식입니다.",
+          "visualPreview": "feature-map",
+          "previewTone": "타로·신탁"
+        },
         {
           "title": "이런 질문에 도움이 됩니다",
           "items": [
@@ -3312,9 +3846,21 @@
       ],
       "ctaLabel": "세 신에게 묻기",
       "evidence": [
-        "index.html:FEATURE_MARKETING_COPY:openKemetModal"
+        "index.html",
+        "index.html",
+        "js/core/service-registry.js"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/kemet-oracle-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/kemet-oracle-960.webp",
+          "width": 960
+        }
+      ]
     },
     "ifa-oracle": {
       "slug": "ifa-oracle",
@@ -3323,15 +3869,22 @@
       "featureKey": "ifa-oracle",
       "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "",
+      "image": "/feature-details/assets/ifa-oracle-960.webp",
       "aliases": [
         "ifa-oracle",
         "/ifa-oracle.html",
         "/ifa-oracle.html/"
       ],
+      "category": "타로·신탁",
       "headline": "여덟 자리가 차례로 열리면, 256가지 신탁 가운데 하나가 당신의 답이 됩니다.",
       "description": "서아프리카 요루바 이파 점의 방식대로 기본 오두 16개가 짝을 이뤄 256가지 신탁을 만들고, 그 안의 이야기와 금기가 지금 상황에 대응하는 답이 됩니다.",
       "panels": [
+        {
+          "title": "IFÀ 오라클에서 확인하는 흐름",
+          "text": "이파 신탁은 예언을 늘어놓기보다, 지금 지켜야 할 것과 놓아야 할 것을 짚어줍니다.",
+          "visualPreview": "feature-map",
+          "previewTone": "타로·신탁"
+        },
         {
           "title": "이런 질문에 도움이 됩니다",
           "items": [
@@ -3387,9 +3940,21 @@
       ],
       "ctaLabel": "이파 신탁 열기",
       "evidence": [
-        "index.html:FEATURE_MARKETING_COPY:openIfaOracle"
+        "public/ifa-oracle.html",
+        "index.html",
+        "js/core/service-registry.js"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/ifa-oracle-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/ifa-oracle-960.webp",
+          "width": 960
+        }
+      ]
     },
     "juyuk-turtle": {
       "slug": "juyuk-turtle",
@@ -3398,16 +3963,23 @@
       "featureKey": "openJuyukModal",
       "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "/fuctionassets/juyuk.webp",
+      "image": "/feature-details/assets/juyuk-turtle-960.webp",
       "aliases": [
         "openJuyukModal",
         "juyuk-turtle",
         "/oracle/juyuk/",
         "/oracle/juyuk"
       ],
+      "category": "타로·신탁",
       "headline": "지금 밀어붙일 때인지 기다릴 때인지, 육십사괘가 형세를 가려 드립니다.",
       "description": "질문을 올리고 거북 등껍질 의식을 거치면 육십사괘 가운데 한 괘가 열리고, 연애 · 진로 · 재물 · 시험 · 계약 다섯 갈래로 형세를 풀어 읽는 동양 고전 점법입니다.",
       "panels": [
+        {
+          "title": "주역 거북점에서 확인하는 흐름",
+          "text": "거북점은 길흉을 통보하지 않고, 지금이 어느 국면인지와 그 국면에서 취할 태도를 일러줍니다.",
+          "visualPreview": "feature-map",
+          "previewTone": "타로·신탁"
+        },
         {
           "title": "이런 질문에 도움이 됩니다",
           "items": [
@@ -3462,9 +4034,21 @@
       ],
       "ctaLabel": "거북점 보기",
       "evidence": [
-        "index.html:FEATURE_MARKETING_COPY:openJuyukModal"
+        "index.html",
+        "index.html",
+        "js/core/service-registry.js"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/juyuk-turtle-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/juyuk-turtle-960.webp",
+          "width": 960
+        }
+      ]
     },
     "neville-meditation": {
       "slug": "neville-meditation",
@@ -3473,15 +4057,22 @@
       "featureKey": "neville-meditation",
       "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "",
+      "image": "/feature-details/assets/neville-meditation-960.webp",
       "aliases": [
         "neville-meditation",
         "/neville-meditation.html",
         "/neville-meditation.html/"
       ],
+      "category": "휴식·콘텐츠",
       "headline": "네빌 고다드의 SATS 를 시간에 맞춰 안내하는 유도 명상입니다.",
       "description": "30분 4단계와 60분 5단계 코스 중 하나를 고르면, 초 단위 시간표에 맞춰 안내 문구가 순서대로 나옵니다.",
       "panels": [
+        {
+          "title": "네빌 명상 실습에서 확인하는 흐름",
+          "text": "무엇을 상상하라고만 말하지 않고, 몇 분에 무엇을 하는지 초 단위로 안내합니다.",
+          "visualPreview": "feature-map",
+          "previewTone": "휴식·콘텐츠"
+        },
         {
           "title": "이런 질문에 도움이 됩니다",
           "items": [
@@ -3541,9 +4132,21 @@
       ],
       "ctaLabel": "명상 실습 열기",
       "evidence": [
-        "index.html:FEATURE_MARKETING_COPY:openNevilleMeditationPage"
+        "neville-meditation.html",
+        "index.html",
+        "js/core/service-registry.js"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/neville-meditation-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/neville-meditation-960.webp",
+          "width": 960
+        }
+      ]
     },
     "yoga-guru": {
       "slug": "yoga-guru",
@@ -3552,16 +4155,23 @@
       "featureKey": "yoga-guru-per-use",
       "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "",
+      "image": "/feature-details/assets/yoga-guru-960.webp",
       "aliases": [
         "yoga-guru-per-use",
         "yoga-guru",
         "/yoga-guru.html",
         "/yoga-guru.html/"
       ],
+      "category": "휴식·콘텐츠",
       "headline": "고른 조건에 맞춰 요가 시퀀스를 그때그때 새로 짜 줍니다.",
       "description": "30분 또는 60분을 고르면 워밍업부터 마무리 이완까지 동작 순서와 호흡 안내를 한 편으로 만들어 줍니다.",
       "panels": [
+        {
+          "title": "Divya Yoga에서 확인하는 흐름",
+          "text": "미리 만들어 둔 영상 목록이 아니라, 고른 조건으로 그 자리에서 시퀀스를 만들어 문서로 보여 줍니다.",
+          "visualPreview": "feature-map",
+          "previewTone": "휴식·콘텐츠"
+        },
         {
           "title": "이런 질문에 도움이 됩니다",
           "items": [
@@ -3624,9 +4234,21 @@
       ],
       "ctaLabel": "요가 가이드 열기",
       "evidence": [
-        "index.html:FEATURE_MARKETING_COPY:openYogaGuru"
+        "yoga-guru.html",
+        "index.html",
+        "js/core/service-registry.js"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/yoga-guru-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/yoga-guru-960.webp",
+          "width": 960
+        }
+      ]
     },
     "tarot-numerology": {
       "slug": "tarot-numerology",
@@ -3635,16 +4257,23 @@
       "featureKey": "tarot-numerology-reading",
       "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "",
+      "image": "/feature-details/assets/tarot-numerology-960.webp",
       "aliases": [
         "tarot-numerology-reading",
         "tarot-numerology",
         "/tarot/numerology/",
         "/tarot/numerology"
       ],
+      "category": "타로·신탁",
       "headline": "생년월일에서 나오는 수를 타로 다섯 장으로 이어 읽습니다.",
       "description": "생명수와 오늘수를 계산해 그 수에 맞는 카드를 배치하고, 타고난 결과 오늘의 흐름을 다섯 장으로 나눠 읽는 리딩입니다.",
       "panels": [
+        {
+          "title": "수비학 타로에서 확인하는 흐름",
+          "text": "무작위 한 장이 아니라, 계산된 수에 카드를 붙여 다섯 자리로 읽습니다.",
+          "visualPreview": "feature-map",
+          "previewTone": "타로·신탁"
+        },
         {
           "title": "이런 질문에 도움이 됩니다",
           "items": [
@@ -3664,9 +4293,21 @@
       ],
       "ctaLabel": "수비학 타로 5카드 열기",
       "evidence": [
-        "index.html:FEATURE_MARKETING_COPY:tarot_numerology"
+        "app/tarot/numerology/page.tsx",
+        "index.html",
+        "js/core/service-registry.js"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/tarot-numerology-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/tarot-numerology-960.webp",
+          "width": 960
+        }
+      ]
     },
     "dream-psycho-analysis": {
       "slug": "dream-psycho-analysis",
@@ -3675,16 +4316,23 @@
       "featureKey": "dream-psycho-analysis",
       "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "/fuctionassets/phydream.webp",
+      "image": "/feature-details/assets/dream-psycho-analysis-960.webp",
       "aliases": [
         "dream-psycho-analysis",
         "openPsychoDreamModal",
         "/index.html?action=openPsychoDreamModal",
         "/index.html?action=openPsychoDreamModal/"
       ],
+      "category": "상징·마음",
       "headline": "꿈이 남긴 감정의 잔향을 차분히 따라가 보세요.",
       "description": "꿈의 장면과 깨어난 뒤의 감정을 바탕으로 무의식의 반복 신호를 해석하는 해몽형 리딩입니다.",
       "panels": [
+        {
+          "title": "정신분석 해몽에서 확인하는 흐름",
+          "text": "정신분석 해몽은 꿈을 확정적으로 판단하지 않고, 지금 마음에 머무는 상징과 감정의 방향을 읽습니다.",
+          "visualPreview": "feature-map",
+          "previewTone": "상징·마음"
+        },
         {
           "title": "결과에서 받아보는 내용",
           "items": [
@@ -3705,9 +4353,21 @@
       ],
       "ctaLabel": "해몽 리딩 열람하기",
       "evidence": [
-        "index.html:FEATURE_MARKETING_COPY:openPsychoDreamModal"
+        "index.html",
+        "index.html",
+        "js/core/service-registry.js"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/dream-psycho-analysis-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/dream-psycho-analysis-960.webp",
+          "width": 960
+        }
+      ]
     },
     "animal-totem": {
       "slug": "animal-totem",
@@ -3716,7 +4376,7 @@
       "featureKey": "animal-totem-basic",
       "featureKeyTo": "animal-totem-deep",
       "accessType": "unknown",
-      "image": "/fuctionassets/animaltotem.webp",
+      "image": "/feature-details/assets/animal-totem-960.webp",
       "aliases": [
         "animal-totem-basic",
         "openAnimalTotemModal",
@@ -3724,9 +4384,16 @@
         "/index.html?action=openAnimalTotemModal",
         "/index.html?action=openAnimalTotemModal/"
       ],
+      "category": "상징·마음",
       "headline": "열두 신의 카드 가운데 세 장, 당신 손으로 직접 고릅니다.",
       "description": "라 · 오시리스 · 이시스 · 호루스 등 열두 신의 카드에서 과거 · 현재 · 미래 세 장을 직접 고르면, 자리별 해석과 세 신의 합이 질문의 결을 따라 풀립니다.",
       "panels": [
+        {
+          "title": "애니멀 토템에서 확인하는 흐름",
+          "text": "나일강의 신탁은 자동으로 뽑아 주지 않습니다. 열두 신의 카드 앞에서 당신이 직접 세 장을 고르는 의식입니다.",
+          "visualPreview": "feature-map",
+          "previewTone": "상징·마음"
+        },
         {
           "title": "이런 질문에 도움이 됩니다",
           "items": [
@@ -3781,9 +4448,21 @@
       ],
       "ctaLabel": "세 신에게 묻기",
       "evidence": [
-        "index.html:FEATURE_MARKETING_COPY:openKemetModal"
+        "index.html",
+        "index.html",
+        "js/core/service-registry.js"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/animal-totem-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/animal-totem-960.webp",
+          "width": 960
+        }
+      ]
     },
     "mbti-animal-compat": {
       "slug": "mbti-animal-compat",
@@ -3792,16 +4471,23 @@
       "featureKey": "mbti-animal-compat",
       "featureKeyTo": "",
       "accessType": "free",
-      "image": "/fuctionassets/ai%20face.webp",
+      "image": "/feature-details/assets/mbti-animal-compat-960.webp",
       "aliases": [
         "openMbtiModal",
         "mbti-animal-compat",
         "/index.html?action=openMbtiModal",
         "/index.html?action=openMbtiModal/"
       ],
+      "category": "관계·궁합",
       "headline": "MBTI 열여섯 유형을 동물 토템으로 바꿔 궁합을 봅니다.",
       "description": "두 사람의 유형을 각각 동물 토템으로 옮기고, 그 조합이 어떤 방식으로 맞물리는지 관계 궁합으로 풀어 줍니다.",
       "panels": [
+        {
+          "title": "MBTI 동물 궁합에서 확인하는 흐름",
+          "text": "궁합 점수만 주지 않고, 두 유형이 어디서 맞물리고 어디서 어긋나는지 나눠 설명합니다.",
+          "visualPreview": "feature-map",
+          "previewTone": "관계·궁합"
+        },
         {
           "title": "이런 질문에 도움이 됩니다",
           "items": [
@@ -3821,9 +4507,21 @@
       ],
       "ctaLabel": "MBTI 동물 궁합 보기",
       "evidence": [
-        "index.html:FEATURE_MARKETING_COPY:openMbtiModal"
+        "index.html",
+        "index.html",
+        "js/core/service-registry.js"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/mbti-animal-compat-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/mbti-animal-compat-960.webp",
+          "width": 960
+        }
+      ]
     },
     "tarot-crystal-soul": {
       "slug": "tarot-crystal-soul",
@@ -3832,16 +4530,23 @@
       "featureKey": "tarot-crystal-soul-reading",
       "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "",
+      "image": "/feature-details/assets/tarot-crystal-soul-960.webp",
       "aliases": [
         "tarot-crystal-soul-reading",
         "tarot-crystal-soul",
         "/tarot/crystal-soul/",
         "/tarot/crystal-soul"
       ],
+      "category": "타로·신탁",
       "headline": "손이 멈추는 원석 하나가 오늘의 기운을 먼저 말해 줍니다.",
       "description": "열두 가지 원석 가운데 마음이 머무는 하나를 문질러 깨운 뒤, 다섯 자리 스프레드로 지금의 빛과 가려진 면을 나눠 읽는 리딩입니다.",
       "panels": [
+        {
+          "title": "원석 소울 타로에서 확인하는 흐름",
+          "text": "고르는 원석이 달라지면 읽는 결도 달라집니다. 오늘 손이 멈추는 자리에서 리딩이 시작됩니다.",
+          "visualPreview": "feature-map",
+          "previewTone": "타로·신탁"
+        },
         {
           "title": "이런 질문에 도움이 됩니다",
           "items": [
@@ -3896,9 +4601,21 @@
       ],
       "ctaLabel": "원석 고르고 시작하기",
       "evidence": [
-        "index.html:FEATURE_MARKETING_COPY:tarot_crystal_soul_reading"
+        "app/tarot/crystal-soul/page.js",
+        "index.html",
+        "js/core/service-registry.js"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/tarot-crystal-soul-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/tarot-crystal-soul-960.webp",
+          "width": 960
+        }
+      ]
     },
     "royal-tea-oracle": {
       "slug": "royal-tea-oracle",
@@ -3907,16 +4624,23 @@
       "featureKey": "royal-tea-oracle",
       "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "/fuctionassets/london.webp",
+      "image": "/feature-details/assets/royal-tea-oracle-960.webp",
       "aliases": [
         "royal-tea-oracle",
         "openRoyalTeaOracle",
         "/index.html?action=openRoyalTeaOracle",
         "/index.html?action=openRoyalTeaOracle/"
       ],
+      "category": "타로·신탁",
       "headline": "잔에 남은 찻잎의 자리와 짙기가, 가까운 석 달의 결을 말해 줍니다.",
       "description": "14가지 찻잎 형상이 다섯 물음 영역과 만나 일흔 갈래의 풀이를 이루고, 잔의 테두리 · 벽 · 바닥 세 자리가 시기를 나눠 주는 영국 홍차점 리딩입니다.",
       "panels": [
+        {
+          "title": "영국 홍차점에서 확인하는 흐름",
+          "text": "홍차점은 마신 잔에 남은 찻잎의 흔적을 읽는 유럽의 전통 점법으로, 가까운 석 달의 결을 세 자리로 나눠 봅니다.",
+          "visualPreview": "feature-map",
+          "previewTone": "타로·신탁"
+        },
         {
           "title": "이런 질문에 도움이 됩니다",
           "items": [
@@ -3971,9 +4695,21 @@
       ],
       "ctaLabel": "오늘의 잔 열기",
       "evidence": [
-        "index.html:FEATURE_MARKETING_COPY:openRoyalTeaOracle"
+        "index.html",
+        "index.html",
+        "js/core/service-registry.js"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/royal-tea-oracle-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/royal-tea-oracle-960.webp",
+          "width": 960
+        }
+      ]
     },
     "geomancy-oracle": {
       "slug": "geomancy-oracle",
@@ -3982,16 +4718,23 @@
       "featureKey": "openGeomancyOracle",
       "featureKeyTo": "",
       "accessType": "unknown",
-      "image": "/fuctionassets/geomancy.webp",
+      "image": "/feature-details/assets/geomancy-oracle-960.webp",
       "aliases": [
         "openGeomancyOracle",
         "geomancy-oracle",
         "/index.html?action=openGeomancyOracle",
         "/index.html?action=openGeomancyOracle/"
       ],
+      "category": "타로·신탁",
       "headline": "찍힌 점들이 쌓아 올린 방패 차트로 조건의 유불리를 셈합니다.",
       "description": "비아부터 포풀루스까지 16가지 도형이 어머니 · 딸 · 조카 · 증인을 거쳐 재판관에 이르는 15자리 방패 차트를 세우고, AI가 도형만을 근거로 원인 · 흐름 · 신탁을 풀어 읽습니다.",
       "panels": [
+        {
+          "title": "지오맨시 흙점에서 확인하는 흐름",
+          "text": "지오맨시는 찍힌 점에서 도형을 세워, 질문의 유불리를 구조로 읽어내는 서양 전통 점법입니다.",
+          "visualPreview": "feature-map",
+          "previewTone": "타로·신탁"
+        },
         {
           "title": "이런 질문에 도움이 됩니다",
           "items": [
@@ -4046,9 +4789,21 @@
       ],
       "ctaLabel": "방패 차트 세우기",
       "evidence": [
-        "index.html:FEATURE_MARKETING_COPY:openGeomancyOracle"
+        "index.html",
+        "index.html",
+        "js/core/service-registry.js"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/geomancy-oracle-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/geomancy-oracle-960.webp",
+          "width": 960
+        }
+      ]
     },
     "stonehenge-runes": {
       "slug": "stonehenge-runes",
@@ -4057,7 +4812,7 @@
       "featureKey": "stonehenge-runes-single",
       "featureKeyTo": "stonehenge-runes-yearly",
       "accessType": "unknown",
-      "image": "/fuctionassets/rune.webp",
+      "image": "/feature-details/assets/stonehenge-runes-960.webp",
       "aliases": [
         "stonehenge-runes-single",
         "openRuneOracle",
@@ -4065,9 +4820,16 @@
         "/index.html?action=openRuneOracle",
         "/index.html?action=openRuneOracle/"
       ],
+      "category": "타로·신탁",
       "headline": "노른 세 여신의 자리에서 지나온 길 · 지금 · 다가올 길을 읽습니다.",
       "description": "24룬에 공백 룬 위르드를 더한 25룬 체계로, 과거 우르드 · 현재 베르단디 · 미래 스쿨드 세 자리의 흐름을 정 · 역방향까지 갈라 읽는 룬 리딩입니다.",
       "panels": [
+        {
+          "title": "스톤헨지 룬에서 확인하는 흐름",
+          "text": "룬 세 개 리딩은 답을 못 박기보다, 과거 · 현재 · 미래 세 자리의 흐름으로 지금의 선택을 비춥니다.",
+          "visualPreview": "feature-map",
+          "previewTone": "타로·신탁"
+        },
         {
           "title": "이런 질문에 도움이 됩니다",
           "items": [
@@ -4122,9 +4884,21 @@
       ],
       "ctaLabel": "룬 세 개 열기",
       "evidence": [
-        "index.html:FEATURE_MARKETING_COPY:openRuneOracle"
+        "index.html",
+        "index.html",
+        "js/core/service-registry.js"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/stonehenge-runes-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/stonehenge-runes-960.webp",
+          "width": 960
+        }
+      ]
     },
     "luck-sync-diary": {
       "slug": "luck-sync-diary",
@@ -4133,16 +4907,23 @@
       "featureKey": "luck-sync-diary",
       "featureKeyTo": "",
       "accessType": "free",
-      "image": "",
+      "image": "/feature-details/assets/luck-sync-diary-960.webp",
       "aliases": [
         "openLuckSyncDiary",
         "luck-sync-diary",
         "/diary/",
         "/diary"
       ],
+      "category": "오늘·시기",
       "headline": "운세를 보고 끝내지 말고, 실제로 어땠는지 남겨 보세요.",
       "description": "오늘의 흐름을 기록하고 월간 플래너에서 지난 기록과 나란히 볼 수 있는 다이어리입니다.",
       "panels": [
+        {
+          "title": "운기 다이어리와 플래너에서 확인하는 흐름",
+          "text": "예측을 덧붙이지 않고, 기록한 하루와 그날의 흐름을 나란히 놓아 줍니다.",
+          "visualPreview": "feature-map",
+          "previewTone": "오늘·시기"
+        },
         {
           "title": "이런 질문에 도움이 됩니다",
           "items": [
@@ -4162,9 +4943,21 @@
       ],
       "ctaLabel": "운기 다이어리 열기",
       "evidence": [
-        "index.html:FEATURE_MARKETING_COPY:openLuckSyncDiary"
+        "app/diary/page.tsx",
+        "index.html",
+        "js/core/service-registry.js"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/luck-sync-diary-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/luck-sync-diary-960.webp",
+          "width": 960
+        }
+      ]
     },
     "music": {
       "slug": "music",
@@ -4173,15 +4966,22 @@
       "featureKey": "music",
       "featureKeyTo": "",
       "accessType": "free",
-      "image": "",
+      "image": "/feature-details/assets/music-960.webp",
       "aliases": [
         "music",
         "/music/",
         "/music"
       ],
+      "category": "휴식·콘텐츠",
       "headline": "해석을 읽고 남은 마음을 음악으로 마저 가라앉혀 보세요.",
       "description": "연이와 네오의 세계관에 맞춰 만든 곡을 모아 둔 플레이어입니다. 운세를 보는 동안 배경으로 틀어 둘 수 있어요.",
       "panels": [
+        {
+          "title": "달빛 음악 플레이어에서 확인하는 흐름",
+          "text": "운세 해석이 아니라, 서비스의 분위기를 그대로 옮긴 음악 모음입니다.",
+          "visualPreview": "feature-map",
+          "previewTone": "휴식·콘텐츠"
+        },
         {
           "title": "이런 질문에 도움이 됩니다",
           "items": [
@@ -4201,9 +5001,21 @@
       ],
       "ctaLabel": "달빛 플레이어 열기",
       "evidence": [
-        "index.html:FEATURE_MARKETING_COPY:music"
+        "app/music/page.tsx",
+        "index.html",
+        "js/core/service-registry.js"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/music-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/music-960.webp",
+          "width": 960
+        }
+      ]
     },
     "novel": {
       "slug": "novel",
@@ -4212,15 +5024,22 @@
       "featureKey": "novel",
       "featureKeyTo": "",
       "accessType": "free",
-      "image": "",
+      "image": "/feature-details/assets/novel-960.webp",
       "aliases": [
         "novel",
         "/codedestiny-novel.html",
         "/codedestiny-novel.html/"
       ],
+      "category": "휴식·콘텐츠",
       "headline": "운명의 서재에서 연이와 네오의 이야기를 이어 읽어보세요.",
       "description": "서비스 세계관을 배경으로 한 라이트 노벨 연재입니다. 운세와 별개로 읽을거리로 즐길 수 있어요.",
       "panels": [
+        {
+          "title": "라이트 노벨에서 확인하는 흐름",
+          "text": "운세 해석이 아니라 창작 이야기입니다. 결과에 영향을 주지 않아요.",
+          "visualPreview": "feature-map",
+          "previewTone": "휴식·콘텐츠"
+        },
         {
           "title": "이런 질문에 도움이 됩니다",
           "items": [
@@ -4240,9 +5059,21 @@
       ],
       "ctaLabel": "운명의 서재 열기",
       "evidence": [
-        "index.html:FEATURE_MARKETING_COPY:codedestiny_novel_html"
+        "public/codedestiny-novel.html",
+        "index.html",
+        "js/core/service-registry.js"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/novel-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/novel-960.webp",
+          "width": 960
+        }
+      ]
     },
     "points": {
       "slug": "points",
@@ -4257,6 +5088,7 @@
         "/points/",
         "/points"
       ],
+      "category": "사주·심층 상담",
       "headline": "유료 기능을 자주 본다면 매번 결제하지 않아도 됩니다.",
       "description": "달빛 이용권은 정해진 기간 동안 유료 기능을 이용할 수 있게 해 주는 이용권입니다. 보유 현황과 사용 내역을 여기서 확인할 수 있어요.",
       "panels": [
@@ -4296,6 +5128,7 @@
         "/index.html?action=openSukuyoModal",
         "/index.html?action=openSukuyoModal/"
       ],
+      "category": "사주·심층 상담",
       "headline": "나의 본명숙과 두 사람의 거리에서, 관계의 리듬을 읽습니다.",
       "description": "생년월일을 바탕으로 본명숙을 계산하고, 관계에서 느끼는 끌림·안정감·긴장을 한 줄의 운명 판정 대신 거리와 역할의 흐름으로 풀어냅니다.",
       "panels": [
@@ -4343,15 +5176,22 @@
       "featureKey": "tarot-prompt-maker",
       "featureKeyTo": "",
       "accessType": "paid",
-      "image": "/fuctionassets/연애 재회 타로 프롬프트 메이커.webp",
+      "image": "/feature-details/assets/tarot-prompt-maker-960.webp",
       "aliases": [
         "tarot-prompt-maker",
         "/tarot/prompt-maker",
         "/tarot/prompt-maker/"
       ],
+      "category": "타로·신탁",
       "headline": "질문이 깊어야 카드도 깊게 답합니다.",
       "description": "77종 스프레드에서 상황에 맞는 구조를 골라 카드를 직접 열면, AI가 그 배치로 상담 결과를 바로 작성하고 사용된 프롬프트 원문까지 보여 드립니다.",
       "panels": [
+        {
+          "title": "타로 오라클 상담에서 확인하는 흐름",
+          "text": "타로 오라클 상담은 질문을 벼리는 데서 시작해, 내가 고른 카드 배치 그대로 AI 상담 결과로 이어 줍니다.",
+          "visualPreview": "feature-map",
+          "previewTone": "타로·신탁"
+        },
         {
           "title": "이런 질문에 도움이 됩니다",
           "items": [
@@ -4407,9 +5247,21 @@
       ],
       "ctaLabel": "AI 상담 시작하기",
       "evidence": [
-        "index.html:FEATURE_MARKETING_COPY:tarot_prompt_maker"
+        "app/tarot/prompt-maker/page.tsx",
+        "index.html",
+        "js/core/service-registry.js"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/tarot-prompt-maker-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/tarot-prompt-maker-960.webp",
+          "width": 960
+        }
+      ]
     },
     "face-reading": {
       "slug": "face-reading",
@@ -4424,6 +5276,7 @@
         "/saju-guardian",
         "/saju-guardian/"
       ],
+      "category": "사주·심층 상담",
       "headline": "전문가 관상 분석",
       "description": "얼굴 이미지를 바탕으로 인상, 기질, 관계 성향, 커뮤니케이션 특성을 분석하는 전문가 관상 서비스입니다.",
       "panels": [],
@@ -4440,15 +5293,22 @@
       "featureKey": "destiny-bias-analyze",
       "featureKeyTo": "",
       "accessType": "free",
-      "image": "/fuctionassets/%EC%B5%9C%EC%95%A0%EC%9A%B4%EB%AA%85.webp",
+      "image": "/feature-details/assets/bias-destiny-960.webp",
       "aliases": [
         "bias-destiny",
         "/saju/destiny-bias",
         "/saju/destiny-bias/"
       ],
+      "category": "사주·심층 상담",
       "headline": "최애와 나의 사주를 맞춰 포토카드 한 장으로 뽑아 주는 무료 리딩입니다.",
       "description": "로그인만 하면 열리며, 총점·감정·팬덤·장기·서포트 다섯 점수와 카드 이미지를 그 자리에서 만들어 줍니다.",
       "panels": [
+        {
+          "title": "최애운명에서 확인하는 흐름",
+          "text": "최애운명은 실제 관계를 단정하지 않고, 두 사람의 사주 신호를 점수와 카드 문장으로 정리합니다. 같은 정보를 넣으면 결과도 같게 나옵니다.",
+          "visualPreview": "feature-map",
+          "previewTone": "사주·심층 상담"
+        },
         {
           "title": "이런 질문에 도움이 됩니다",
           "items": [
@@ -4509,9 +5369,21 @@
       ],
       "ctaLabel": "최애운명 열람하기",
       "evidence": [
-        "index.html:FEATURE_MARKETING_COPY:openDestinyBias"
+        "app/saju/destiny-bias/page.tsx",
+        "index.html",
+        "js/core/service-registry.js"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/bias-destiny-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/bias-destiny-960.webp",
+          "width": 960
+        }
+      ]
     },
     "omikuji": {
       "slug": "omikuji",
@@ -4520,20 +5392,40 @@
       "featureKey": "",
       "featureKeyTo": "",
       "accessType": "free",
-      "image": "/fuctionassets/%EC%98%A4%EB%AF%B8%EC%BF%A0%EC%A7%80.webp",
+      "image": "/feature-details/assets/omikuji-960.webp",
       "aliases": [
         "omikuji",
         "/emoi_omikuji_v2.html",
         "/emoi_omikuji_v2.html/"
       ],
+      "category": "타로·신탁",
       "headline": "이모이 오미쿠지",
       "description": "오늘의 기분과 고민을 바탕으로 간단한 운세 메시지와 행동 힌트를 제공하는 감성형 오미쿠지 콘텐츠입니다.",
-      "panels": [],
+      "panels": [
+        {
+          "title": "이모이 오미쿠지에서 확인하는 흐름",
+          "text": "오늘의 기분과 고민을 바탕으로 간단한 운세 메시지와 행동 힌트를 제공하는 감성형 오미쿠지 콘텐츠입니다.",
+          "visualPreview": "feature-map",
+          "previewTone": "타로·신탁"
+        }
+      ],
       "ctaLabel": "이 기능 시작하기",
       "evidence": [
+        "emoi_omikuji_v2.html",
+        "index.html",
         "js/core/service-registry.js"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/omikuji-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/omikuji-960.webp",
+          "width": 960
+        }
+      ]
     },
     "destiny-meeting-place": {
       "slug": "destiny-meeting-place",
@@ -4542,16 +5434,23 @@
       "featureKey": "destiny_meeting_place",
       "featureKeyTo": "",
       "accessType": "paid",
-      "image": "/fuctionassets/%EC%82%AC%EC%A3%BC%EB%A1%9C%EB%B3%B4%EB%8A%94%20%EC%9D%B8%EC%97%B0%EC%9D%98%20%EC%9E%A5%EC%86%8C.webp",
+      "image": "/feature-details/assets/destiny-meeting-place-960.webp",
       "aliases": [
         "destiny_meeting_place",
         "destiny-meeting-place",
         "/saju/destiny-meeting-place",
         "/saju/destiny-meeting-place/"
       ],
+      "category": "관계·궁합",
       "headline": "인연이 열릴 만한 장소와 시기를 사주에서 뽑아 목록으로 줍니다.",
       "description": "추천 장소 5곳, 국가 5곳, 만남 유형 4가지에 계절·월·시간대와 인연 아이템까지 함께 정리합니다.",
       "panels": [
+        {
+          "title": "사주로 보는 인연의 장소에서 확인하는 흐름",
+          "text": "막연한 조언 대신 장소·국가·유형·시기를 목록으로 좁혀 줍니다. 결과는 입력한 생년 정보로 계산합니다.",
+          "visualPreview": "feature-map",
+          "previewTone": "관계·궁합"
+        },
         {
           "title": "이런 질문에 도움이 됩니다",
           "items": [
@@ -4613,9 +5512,21 @@
       ],
       "ctaLabel": "인연의 장소 열람하기",
       "evidence": [
-        "index.html:FEATURE_MARKETING_COPY:saju_destiny_meeting_place"
+        "app/saju/destiny-meeting-place/page.tsx",
+        "index.html",
+        "js/core/service-registry.js"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/destiny-meeting-place-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/destiny-meeting-place-960.webp",
+          "width": 960
+        }
+      ]
     },
     "ziwei-ai": {
       "slug": "ziwei-ai",
@@ -4624,16 +5535,23 @@
       "featureKey": "ziwei-ai-consultation",
       "featureKeyTo": "",
       "accessType": "paid",
-      "image": "/fuctionassets/jamipremiun.webp",
+      "image": "/feature-details/assets/ziwei-ai-960.webp",
       "aliases": [
         "ziwei-ai-consultation",
         "ziwei-ai",
         "/ziwei-ai",
         "/ziwei-ai/"
       ],
+      "category": "사주·심층 상담",
       "headline": "자미두수 명반을 세우고 14개 주제로 나눠 상담문을 씁니다.",
       "description": "본문은 20,700자 이상으로 나오고, 결과를 받은 뒤 추가 질문은 요금 없이 이어서 할 수 있습니다.",
       "panels": [
+        {
+          "title": "자미두수 전문가 상담에서 확인하는 흐름",
+          "text": "한 번에 끝나는 리포트가 아니라, 읽고 되물을 수 있는 상담 형태입니다.",
+          "visualPreview": "feature-map",
+          "previewTone": "사주·심층 상담"
+        },
         {
           "title": "이런 질문에 도움이 됩니다",
           "items": [
@@ -4694,9 +5612,21 @@
       ],
       "ctaLabel": "자미두수 상담 열기",
       "evidence": [
-        "index.html:FEATURE_MARKETING_COPY:gotoZiweiPremium"
+        "app/ziwei-ai/page.tsx",
+        "index.html",
+        "js/core/service-registry.js"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/ziwei-ai-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/ziwei-ai-960.webp",
+          "width": 960
+        }
+      ]
     }
   }
 }
