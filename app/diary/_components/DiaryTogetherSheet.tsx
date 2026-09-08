@@ -8,6 +8,7 @@ import {
   DIARY_COMPAT_TYPES,
   writeCompatType,
   writePartnerBirth,
+  writePartnerBirthTime,
   writePartnerName,
   type DiaryCompatType,
 } from "../_lib/entry-writes";
@@ -21,6 +22,7 @@ import {
   readDiaryPartner,
   type DiaryTogetherDay,
 } from "../_lib/partner";
+import { buildDiaryRelationshipLite, computeDiaryAstroLite } from "../_lib/relationship-lite";
 import { useDiaryDraft } from "../_lib/use-diary-draft";
 import { SAJU_TAB_ACTION } from "@/app/_lib/mobile-tabs";
 import { normalizeBirthDateInput } from "@/lib/birthDateInput";
@@ -30,9 +32,9 @@ import styles from "../_styles/diary.module.css";
 /**
  * 함께 보기 시트. 상대 한 명을 오늘과 나란히 놓는다.
  *
- * 🔴 **궁합 점수·등급·리포트를 만들지 않는다.** 사주 궁합은 유료 기능이고(js/saju-engine.js:28089),
- * 그것을 무료로 다시 지으면 안 된다. 여기서 하는 일은 상대의 하루도 내 달력과 **같은 함수**로 내서
- * (`../_lib/partner.ts`) 두 줄로 깔고, 겹치는 날을 짚어 주는 것까지다.
+ * 🔴 유료 사주 궁합의 결과·등급·전생 해석을 만들지 않는다. 여기서는 기존 무료 Lite 범위인
+ * 관계 흐름과 자미 배치 한 줄, 그리고 상대의 하루를 내 달력과 **같은 함수**로 내서
+ * (`../_lib/partner.ts`) 두 줄로 깐다.
  * 🔴 **금액을 적지 않는다** — 마지막 줄은 기존 궁합 화면으로 넘기기만 하고, 가격은 결제창이 정한다.
  * 🔴 상대는 한 명이고 저장 자리는 셸과 같은 v2 필드다(새 저장 키 0개). 메모만 셸에 대응 필드가
  * 없어 확장 하루치에 둔다(`../_lib/ext-snapshot.ts`).
@@ -46,6 +48,8 @@ const DIARY_TOGETHER_TEXT = {
     name: "상대 이름",
     namePlaceholder: "이름",
     birth: "상대 생년월일",
+    time: "상대 출생시간",
+    timeHint: "미입력 시 정오 기준으로 관계 흐름을 정리합니다.",
     types: { love: "가깝게", friend: "친구", business: "일" },
     mine: "나",
     partnerFallback: "상대",
@@ -128,7 +132,7 @@ function TogetherWeek({
 }
 
 export default function DiaryTogetherSheet({ onClose }: { onClose: () => void }) {
-  const { hydrated, ymd, entry, ext, store, chart } = useDiaryToday();
+  const { hydrated, ymd, entry, ext, store, birth, chart } = useDiaryToday();
   const { updateEntry, updateExtDay } = useDiaryWriter();
 
   useEffect(() => {
@@ -171,6 +175,28 @@ export default function DiaryTogetherSheet({ onClose }: { onClose: () => void })
 
   const compatType = String(entry?.compatType || partner?.compatType || "love");
   const partnerLabel = name.value.trim() || copy.partnerFallback;
+  const partnerTime = partner?.birth.hour != null && partner?.birth.minute != null
+    ? `${String(partner.birth.hour).padStart(2, "0")}:${String(partner.birth.minute).padStart(2, "0")}`
+    : "";
+  const [birthTime, setBirthTime] = useState(partnerTime);
+  useEffect(() => setBirthTime(partnerTime), [partnerTime]);
+  const relationshipLite = useMemo(
+    () => buildDiaryRelationshipLite(birth, chart, partnerLabel, partner?.birth || null, compatType),
+    [birth, chart, partner?.birth, partnerLabel, compatType],
+  );
+  const [astroLiteScore, setAstroLiteScore] = useState<number | null>(null);
+  useEffect(() => {
+    let alive = true;
+    if (!relationshipLite || !birth || !partner?.birth) {
+      setAstroLiteScore(null);
+      return () => { alive = false; };
+    }
+    setAstroLiteScore(null);
+    void computeDiaryAstroLite(birth, partner.birth).then((score) => {
+      if (alive) setAstroLiteScore(score);
+    });
+    return () => { alive = false; };
+  }, [relationshipLite, birth, partner?.birth]);
 
   return (
     <aside className={styles.sheet} aria-label={copy.title}>
@@ -205,6 +231,19 @@ export default function DiaryTogetherSheet({ onClose }: { onClose: () => void })
               className={styles.input}
               aria-label={copy.birth}
             />
+            <div className={styles.togetherTimeField}>
+              <input
+                type="time"
+                className={styles.input}
+                value={birthTime}
+                onChange={(event) => {
+                  setBirthTime(event.target.value);
+                  updateEntry(ymd, writePartnerBirthTime(event.target.value));
+                }}
+                aria-label={copy.time}
+              />
+              <p className={styles.fieldHint}>{copy.timeHint}</p>
+            </div>
           </div>
 
           <div className={styles.chipRow}>
@@ -238,6 +277,25 @@ export default function DiaryTogetherSheet({ onClose }: { onClose: () => void })
                     : copy.sharedNone}
                 </p>
               </div>
+
+              {relationshipLite ? (
+                <section className={styles.togetherLite} aria-label="관계 흐름 Lite">
+                  <div className={styles.togetherLiteHead}>
+                    <p className={styles.fieldLabel}>관계 흐름 Lite</p>
+                    <span className={styles.togetherLiteScores}>
+                      {relationshipLite.ziweiScore != null ? <span className={styles.togetherLiteScore}>자미 Lite {relationshipLite.ziweiScore}점</span> : null}
+                      {astroLiteScore != null ? <span className={styles.togetherLiteScore}>점성 Lite {astroLiteScore}점</span> : null}
+                    </span>
+                  </div>
+                  <p className={styles.togetherLiteSummary}>{relationshipLite.summary}</p>
+                  {relationshipLite.usesNoonForPartner ? <p className={styles.fieldHint}>상대 출생시간은 정오 기준으로 계산했어요.</p> : null}
+                  <div className={styles.togetherLiteGrid}>
+                    <div><h3>부드러운 흐름</h3><ul>{relationshipLite.strengths.slice(0, 2).map((line) => <li key={line}>{line}</li>)}</ul></div>
+                    <div><h3>조율할 점</h3><ul>{relationshipLite.cautions.slice(0, 2).map((line) => <li key={line}>{line}</li>)}</ul></div>
+                    <div><h3>작은 실천</h3><ul>{relationshipLite.tips.slice(0, 2).map((line) => <li key={line}>{line}</li>)}</ul></div>
+                  </div>
+                </section>
+              ) : null}
             </>
           ) : (
             <p className={styles.empty}>{copy.needName}</p>

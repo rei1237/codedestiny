@@ -19573,34 +19573,37 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
               <select class="inp" id="compatBirthMinute"></select>
             </div>
           </div>
-          <!-- 관계 흐름 미리보기 — 2026-09-07 셸 다이어리 모달(js/luck-sync-diary.js #lsdCompatResult)에서 이설(PR-J).
-               🔴 이 블록은 5,000원 게이트 **밖**이다. 셸에서 무료였던 것을 유료 뒤로 옮기지 않는다.
-                  게이트는 아래 #compatRunBtn → runCompat() 의 _cdCoinGatePerUse(50, …) 한 지점뿐이고,
-                  이 블록은 이용권·코인 판정을 전혀 하지 않는다(카드 주문 직전 재검사 금지 — CLAUDE.md 결제 게이팅 3).
-               채우는 쪽은 js/saju-engine.js 의 renderRelFlowLite() 이고, 입력은 위 궁합 폼을 그대로 재사용한다. -->
-          <div id="relFlowLite" class="relflow" style="display:none">
-            <div class="relflow__head">
-              <h4 class="relflow__title" data-cd-trans data-key="result.relFlow.title">관계 흐름 미리보기</h4>
-              <span class="relflow__free" data-cd-trans data-key="result.relFlow.freeBadge">무료</span>
+          <!-- 구매 전에는 실제 개인 결과를 노출하지 않고, 결제 뒤 생성되는 리포트의 구성만 예시로 안내한다.
+               runCompat()의 이용권·월정석·단건 결제·재개 경로와는 의도적으로 분리한다. -->
+          <section class="compat-preview" aria-labelledby="compatPreviewTitle">
+            <div class="compat-preview__head">
+              <span class="compat-preview__eyebrow">분석 항목 예시</span>
+              <h4 id="compatPreviewTitle">궁합 리포트에는 이런 흐름이 담겨요</h4>
+              <p>실제 결과는 두 사람의 입력을 바탕으로 분석 후 제공됩니다. 아래 이미지는 기능을 설명하기 위한 예시입니다.</p>
             </div>
-            <div class="relflow__empty" id="relFlowLiteEmpty" data-cd-trans data-key="result.relFlow.empty">상대 이름과 생년월일을 입력하면 관계 흐름을 정리합니다.</div>
-            <div class="relflow__body" id="relFlowLiteBody" style="display:none">
-              <div class="relflow__scores" id="relFlowLiteScores">
-                <div class="relflow__score" id="relFlowLiteZiwei" style="display:none"><span class="lab" data-cd-trans data-key="result.relFlow.ziweiLabel">자미두수 Lite</span><span class="val"></span></div>
-                <div class="relflow__score" id="relFlowLiteAstro" style="display:none"><span class="lab" data-cd-trans data-key="result.relFlow.astroLabel">점성 Lite</span><span class="val"></span></div>
-              </div>
-              <p class="relflow__vibe" id="relFlowLiteVibe"></p>
-              <div class="relflow__cols">
-                <div class="relflow__col"><h5 data-cd-trans data-key="result.relFlow.strengthsTitle">부드러운 흐름</h5><ul id="relFlowLiteStrengths"></ul></div>
-                <div class="relflow__col"><h5 data-cd-trans data-key="result.relFlow.cautionsTitle">조율할 점</h5><ul id="relFlowLiteCautions"></ul></div>
-                <div class="relflow__col"><h5 data-cd-trans data-key="result.relFlow.tipsTitle">작은 실천</h5><ul id="relFlowLiteTips"></ul></div>
-              </div>
-              <div class="relflow__foot">
-                <span id="relFlowLiteBasis"></span>
-                <a href="/diary/more/" data-cd-trans data-key="result.relFlow.diaryLink">좋은 날은 다이어리 함께 보기에서 →</a>
-              </div>
+            <div class="compat-preview__grid">
+              <button type="button" class="compat-preview__item" data-compat-preview-src="/fuctionassets/compat-preview-core.jpg" data-compat-preview-title="관계 핵심" data-compat-preview-desc="두 사람이 관계에서 중요하게 여기는 기준과 대화의 결을 살펴보는 분석 항목 예시입니다." aria-haspopup="dialog">
+                <img src="/fuctionassets/compat-preview-core.jpg" alt="관계 핵심 분석 항목 예시 일러스트" loading="lazy" decoding="async" onerror="this.style.display='none';this.parentNode.classList.add('is-image-fallback')">
+                <span>관계 핵심</span>
+              </button>
+              <button type="button" class="compat-preview__item" data-compat-preview-src="/fuctionassets/compat-preview-emotion.jpg" data-compat-preview-title="감정 리듬" data-compat-preview-desc="감정을 주고받는 속도와 친밀해지는 방식을 살펴보는 분석 항목 예시입니다." aria-haspopup="dialog">
+                <img src="/fuctionassets/compat-preview-emotion.jpg" alt="감정 리듬 분석 항목 예시 일러스트" loading="lazy" decoding="async" onerror="this.style.display='none';this.parentNode.classList.add('is-image-fallback')">
+                <span>감정 리듬</span>
+              </button>
+              <button type="button" class="compat-preview__item" data-compat-preview-src="/fuctionassets/compat-preview-adjust.jpg" data-compat-preview-title="갈등·조율" data-compat-preview-desc="엇갈릴 수 있는 지점과 서로의 속도를 맞추는 방법을 살펴보는 분석 항목 예시입니다." aria-haspopup="dialog">
+                <img src="/fuctionassets/compat-preview-adjust.jpg" alt="갈등과 조율 분석 항목 예시 일러스트" loading="lazy" decoding="async" onerror="this.style.display='none';this.parentNode.classList.add('is-image-fallback')">
+                <span>갈등·조율</span>
+              </button>
+              <button type="button" class="compat-preview__item" data-compat-preview-src="/fuctionassets/compat-preview-longterm.jpg" data-compat-preview-title="현실·장기 흐름" data-compat-preview-desc="일상, 목표, 함께 만들어 갈 방향을 살펴보는 분석 항목 예시입니다." aria-haspopup="dialog">
+                <img src="/fuctionassets/compat-preview-longterm.jpg" alt="현실과 장기 흐름 분석 항목 예시 일러스트" loading="lazy" decoding="async" onerror="this.style.display='none';this.parentNode.classList.add('is-image-fallback')">
+                <span>현실·장기 흐름</span>
+              </button>
+              <button type="button" class="compat-preview__item" data-compat-preview-src="/fuctionassets/compat-preview-pastlife.jpg" data-compat-preview-title="전생 인연" data-compat-preview-desc="관계에서 반복되는 익숙한 감정의 흐름을 상징적으로 살펴보는 분석 항목 예시입니다." aria-haspopup="dialog">
+                <img src="/fuctionassets/compat-preview-pastlife.jpg" alt="전생 인연 분석 항목 예시 일러스트" loading="lazy" decoding="async" onerror="this.style.display='none';this.parentNode.classList.add('is-image-fallback')">
+                <span>전생 인연</span>
+              </button>
             </div>
-          </div>
+          </section>
           <button id="compatRunBtn" class="btn-sub btn-sub-mt4" data-action="runCompat" data-cd-trans data-key="result.compat.runCta">💗 궁합 분석하기</button>
           <div id="compatResult" class="compat-result-wrap"></div>
           <div id="compatLlmHost" class="compat-llm-root"></div>
@@ -19609,6 +19612,18 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
               </div>
       </div>
     </section>
+
+    <dialog id="compatPreviewDialog" class="compat-preview-dialog" aria-labelledby="compatPreviewDialogTitle">
+      <div class="compat-preview-dialog__surface">
+        <button type="button" class="compat-preview-dialog__close" data-action="closeCompatPreview" aria-label="예시 이미지 닫기">닫기</button>
+        <img id="compatPreviewDialogImage" src="" alt="">
+        <div class="compat-preview-dialog__copy">
+          <p class="compat-preview__eyebrow">분석 항목 예시</p>
+          <h4 id="compatPreviewDialogTitle"></h4>
+          <p id="compatPreviewDialogDesc"></p>
+        </div>
+      </div>
+    </dialog>
 
     <!-- 2-2. 나와 비슷한 연예인 -->
     <section class="card" id="similarCelebCard" style="display:none" aria-labelledby="celebTitle">

@@ -2024,6 +2024,12 @@ html[data-cd-theme="neo"] .shell {
   min-width: 0;
 }
 
+.togetherTimeField {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
 /* 이름 칸 + 7일. 2주는 이 블록 둘이다 — 14칸을 한 줄에 깔면 한 칸이 손가락보다 좁아진다. */
 .togetherStrip {
   display: grid;
@@ -2080,6 +2086,27 @@ html[data-cd-theme="neo"] .shell {
   font-weight: 600;
   color: var(--dy-gold);
 }
+
+.togetherLite {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cd-sp-sm);
+  padding: var(--cd-sp-md);
+  border: 1px solid var(--dy-line-ui);
+  border-radius: var(--cd-r-card);
+  background: linear-gradient(135deg, var(--dy-surface-2), var(--dy-surface));
+}
+
+.togetherLiteHead { display: flex; align-items: center; justify-content: space-between; gap: var(--cd-sp-xs); }
+.togetherLiteHead .fieldLabel { margin: 0; }
+.togetherLiteScores { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; }
+.togetherLiteScore { padding: 4px 8px; border-radius: 999px; border: 1px solid var(--dy-gold); color: var(--dy-text); font-size: var(--cd-t-caption); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.togetherLiteSummary { margin: 0; color: var(--dy-text); font-size: var(--cd-t-body); line-height: 1.6; }
+.togetherLiteGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--cd-sp-xs); }
+.togetherLiteGrid > div { min-width: 0; padding: var(--cd-sp-xs); border-top: 1px solid var(--dy-line); }
+.togetherLiteGrid h3 { margin: 0 0 6px; color: var(--dy-text); font-size: var(--cd-t-caption); }
+.togetherLiteGrid ul { margin: 0; padding-left: 16px; color: var(--dy-muted); font-size: var(--cd-t-caption); line-height: 1.55; }
+@media (max-width: 440px) { .togetherLiteGrid { grid-template-columns: 1fr; } }
 
 /* 여기서 유료 화면으로 넘어간다. 🔴 금액을 적지 않는다 — 가격은 결제창이 정한다. */
 .togetherPaid {
