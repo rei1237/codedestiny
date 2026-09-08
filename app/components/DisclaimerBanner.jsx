@@ -11,7 +11,7 @@
 
 import { useState, useEffect } from "react";
 import styles from "./LegalUi.module.css";
-import { getCurrentLoadingLocale } from "@/constants/loadingMessages";
+import { useLocale } from "@/lib/i18n/useT";
 
 const STORAGE_KEY = "cd_disclaimer_dismissed";
 const DISMISS_TTL_MS = 7 * 24 * 60 * 60 * 1000;
@@ -104,11 +104,10 @@ const DISCLAIMER_COPY = {
 
 export default function DisclaimerBanner({ dismissible = true, className = "" }) {
   const [visible, setVisible] = useState(false);
-  const [locale, setLocale] = useState("ko");
+  const locale = useLocale();
   const copy = DISCLAIMER_COPY[locale] || DISCLAIMER_COPY.ko;
 
   useEffect(() => {
-    setLocale(getCurrentLoadingLocale());
     if (!dismissible) {
       setVisible(true);
       return;

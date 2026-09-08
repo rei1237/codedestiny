@@ -33,3 +33,24 @@ test("다국어 기능 소개는 꽃돼지 읽기 템플릿을 공유한다", ()
   assert.match(introduction, /className=\{styles\.content\}/);
   assert.match(introduction, /<details className=\{styles\.faq\}>/);
 });
+
+test("다국어 공통 크롬은 URL 로케일과 정책 정본 경로를 공유한다", () => {
+  const header = read("app/components/GlobalHeader.tsx");
+  const footer = read("app/components/LocaleFooterHub.jsx");
+  const disclaimer = read("app/components/DisclaimerBanner.jsx");
+  const routes = read("lib/i18n/routes.ts");
+
+  assert.match(header, /getLocalizedPublicHref/);
+  assert.match(header, /toPublicRouteLocale/);
+  assert.match(header, /brandTagline/);
+  assert.match(footer, /getLocalizedPublicHref/);
+  assert.doesNotMatch(footer, /function localizedPolicyHref/);
+
+  assert.match(disclaimer, /import \{ useLocale \}/);
+  assert.match(disclaimer, /const locale = useLocale\(\)/);
+  assert.doesNotMatch(disclaimer, /getCurrentLoadingLocale/);
+
+  assert.match(routes, /export function getLocalizedPublicHref/);
+  assert.match(routes, /I18N_POLICY_ROUTE_MAP\[policyKey\]\[locale\]/);
+  assert.match(routes, /TRUST_LOCALES\.includes\(locale\)/);
+});

@@ -1,4 +1,5 @@
 import { LOCALE_CONFIG, LOCALES, Locale, LOCALE_NAVIGATION_LOCALES } from "./locales";
+import { TRUST_LOCALES } from "./public-trust-copy.mjs";
 
 export const I18N_ROUTE_KEYS = [
   "home",
@@ -134,4 +135,32 @@ export function getLocaleLinksForRoute(routeKey: I18nRouteKey) {
     hrefLang: LOCALE_CONFIG[locale].hrefLang,
     label: LOCALE_CONFIG[locale].label,
   }));
+}
+
+const PUBLIC_POLICY_ROUTE_KEY_BY_PATH = {
+  "/privacy": "privacy",
+  "/privacy-policy": "privacy",
+  "/terms": "terms",
+  "/terms-of-service": "terms",
+  "/refund-policy": "refundPolicy",
+} as const;
+
+const PUBLIC_TRUST_PATHS = new Set(["/about", "/faq", "/contact", "/disclaimer"]);
+
+/** 공통 헤더·로케일 푸터의 링크를 실제로 존재하는 로케일 정본 URL에 맞춘다. */
+export function getLocalizedPublicHref(href: string, locale: Locale): string {
+  const trailingSlash = href.length > 1 && href.endsWith("/");
+  const path = href.endsWith("/") && href !== "/" ? href.slice(0, -1) : href;
+  let localized = path;
+
+  if (path === "/index.html") localized = locale === "ko" ? path : I18N_ROUTE_MAP.home[locale];
+  else if (path === "/insights") localized = I18N_ROUTE_MAP.insights[locale];
+  else {
+    const policyKey = PUBLIC_POLICY_ROUTE_KEY_BY_PATH[path as keyof typeof PUBLIC_POLICY_ROUTE_KEY_BY_PATH];
+    if (policyKey) localized = I18N_POLICY_ROUTE_MAP[policyKey][locale];
+    else if (PUBLIC_TRUST_PATHS.has(path) && TRUST_LOCALES.includes(locale)) localized = `/${locale}${path}`;
+  }
+
+  if (trailingSlash && localized !== "/" && !localized.endsWith("/")) return `${localized}/`;
+  return localized;
 }

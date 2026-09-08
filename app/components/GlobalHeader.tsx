@@ -5,6 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useLocale } from "@/lib/i18n/useT";
+import { getLocalizedPublicHref } from "@/lib/i18n/routes";
+import type { Locale } from "@/lib/i18n/locales";
 import styles from "./GlobalHeader.module.css";
 
 type LoadingLocale = "ko" | "en" | "ja" | "zh-CN" | "zh-TW" | "vi" | "hi" | "es" | "fr" | "de" | "nl" | "ms";
@@ -49,6 +51,7 @@ const GLOBAL_HEADER_COPY: Record<LoadingLocale, {
   menu: string;
   auth: string;
   policyLinks: string;
+  brandTagline: string;
 }> = {
   ko: {
     nav: { "/index.html": "홈", "/insights": "운세 인사이트", "/privacy": "개인정보", "/terms": "이용약관", "/contact": "문의", "/about": "소개", "/disclaimer": "면책", "/advertising-policy": "광고정책" },
@@ -58,6 +61,7 @@ const GLOBAL_HEADER_COPY: Record<LoadingLocale, {
     menu: "메뉴",
     auth: "인증",
     policyLinks: "정책 링크",
+    brandTagline: "꿀꿀 운세",
   },
   en: {
     nav: { "/index.html": "Home", "/insights": "Insights", "/privacy": "Privacy", "/terms": "Terms", "/contact": "Contact", "/about": "About", "/disclaimer": "Disclaimer", "/advertising-policy": "Advertising Policy" },
@@ -67,6 +71,7 @@ const GLOBAL_HEADER_COPY: Record<LoadingLocale, {
     menu: "Menu",
     auth: "Auth",
     policyLinks: "Policy Links",
+    brandTagline: "A gentler reading",
   },
   ja: {
     nav: { "/index.html": "ホーム", "/insights": "インサイト", "/privacy": "プライバシー", "/terms": "利用規約", "/contact": "お問い合わせ", "/about": "紹介", "/disclaimer": "免責事項", "/advertising-policy": "広告ポリシー" },
@@ -76,6 +81,7 @@ const GLOBAL_HEADER_COPY: Record<LoadingLocale, {
     menu: "メニュー",
     auth: "認証",
     policyLinks: "ポリシーリンク",
+    brandTagline: "心ほどける占い",
   },
   "zh-CN": {
     nav: { "/index.html": "首页", "/insights": "运势洞察", "/privacy": "隐私", "/terms": "使用条款", "/contact": "联系", "/about": "关于", "/disclaimer": "免责声明", "/advertising-policy": "广告政策" },
@@ -85,6 +91,7 @@ const GLOBAL_HEADER_COPY: Record<LoadingLocale, {
     menu: "菜单",
     auth: "认证",
     policyLinks: "政策链接",
+    brandTagline: "治愈心绪的占卜",
   },
   "zh-TW": {
     nav: { "/index.html": "首頁", "/insights": "運勢洞察", "/privacy": "隱私", "/terms": "使用條款", "/contact": "聯絡", "/about": "關於", "/disclaimer": "免責聲明", "/advertising-policy": "廣告政策" },
@@ -94,6 +101,7 @@ const GLOBAL_HEADER_COPY: Record<LoadingLocale, {
     menu: "選單",
     auth: "認證",
     policyLinks: "政策連結",
+    brandTagline: "療癒心緒的占卜",
   },
   vi: {
     nav: { "/index.html": "Trang chủ", "/insights": "Bài viết", "/privacy": "Quyền riêng tư", "/terms": "Điều khoản", "/contact": "Liên hệ", "/about": "Giới thiệu", "/disclaimer": "Miễn trừ", "/advertising-policy": "Chính sách quảng cáo" },
@@ -103,6 +111,7 @@ const GLOBAL_HEADER_COPY: Record<LoadingLocale, {
     menu: "Menu",
     auth: "Xác thực",
     policyLinks: "Liên kết chính sách",
+    brandTagline: "Lời giải dịu dàng",
   },
   hi: {
     nav: { "/index.html": "होम", "/insights": "लेख", "/privacy": "गोपनीयता", "/terms": "शर्तें", "/contact": "संपर्क", "/about": "परिचय", "/disclaimer": "अस्वीकरण", "/advertising-policy": "विज्ञापन नीति" },
@@ -112,6 +121,7 @@ const GLOBAL_HEADER_COPY: Record<LoadingLocale, {
     menu: "मेनू",
     auth: "प्रमाणन",
     policyLinks: "नीति लिंक",
+    brandTagline: "मन को सुकून देने वाला पठन",
   },
   es: {
     nav: { "/index.html": "Inicio", "/insights": "Artículos", "/privacy": "Privacidad", "/terms": "Términos", "/contact": "Contacto", "/about": "Acerca de", "/disclaimer": "Aviso legal", "/advertising-policy": "Política publicitaria" },
@@ -121,6 +131,7 @@ const GLOBAL_HEADER_COPY: Record<LoadingLocale, {
     menu: "Menú",
     auth: "Acceso",
     policyLinks: "Enlaces de políticas",
+    brandTagline: "Una lectura más amable",
   },
   fr: {
     nav: { "/index.html": "Accueil", "/insights": "Articles", "/privacy": "Confidentialité", "/terms": "Conditions", "/contact": "Contact", "/about": "À propos", "/disclaimer": "Avertissement", "/advertising-policy": "Politique publicitaire" },
@@ -130,6 +141,7 @@ const GLOBAL_HEADER_COPY: Record<LoadingLocale, {
     menu: "Menu",
     auth: "Compte",
     policyLinks: "Liens de politique",
+    brandTagline: "Une lecture apaisante",
   },
   de: {
     nav: { "/index.html": "Start", "/insights": "Artikel", "/privacy": "Datenschutz", "/terms": "Nutzungsbedingungen", "/contact": "Kontakt", "/about": "Über uns", "/disclaimer": "Haftungsausschluss", "/advertising-policy": "Werberichtlinie" },
@@ -139,6 +151,7 @@ const GLOBAL_HEADER_COPY: Record<LoadingLocale, {
     menu: "Menü",
     auth: "Auth",
     policyLinks: "Richtlinienlinks",
+    brandTagline: "Eine sanfte Deutung",
   },
   nl: {
     nav: { "/index.html": "Home", "/insights": "Artikelen", "/privacy": "Privacy", "/terms": "Voorwaarden", "/contact": "Contact", "/about": "Over", "/disclaimer": "Disclaimer", "/advertising-policy": "Advertentiebeleid" },
@@ -148,6 +161,7 @@ const GLOBAL_HEADER_COPY: Record<LoadingLocale, {
     menu: "Menu",
     auth: "Auth",
     policyLinks: "Beleidslinks",
+    brandTagline: "Een zachte duiding",
   },
   ms: {
     nav: { "/index.html": "Laman utama", "/insights": "Artikel", "/privacy": "Privasi", "/terms": "Terma", "/contact": "Hubungi", "/about": "Tentang", "/disclaimer": "Penafian", "/advertising-policy": "Dasar iklan" },
@@ -157,8 +171,15 @@ const GLOBAL_HEADER_COPY: Record<LoadingLocale, {
     menu: "Menu",
     auth: "Auth",
     policyLinks: "Pautan dasar",
+    brandTagline: "Tafsiran yang menenangkan",
   },
 };
+
+function toPublicRouteLocale(locale: LoadingLocale): Locale {
+  if (locale === "zh-CN") return "zh";
+  if (locale === "ko" || locale === "en" || locale === "ja" || locale === "zh-TW") return locale;
+  return "ko";
+}
 
 function isStaticShellHref(href: string) {
   return href === "/index.html" || href.startsWith("/index.html?");
@@ -192,6 +213,7 @@ export default function GlobalHeader() {
   const showDesktopControls = useDesktopHeaderControls();
   // 표가 12개 로케일을 다 갖췄고 useLocale 이 그중 하나로 수렴하므로 fallback 이 필요 없다.
   const copy = GLOBAL_HEADER_COPY[locale];
+  const publicRouteLocale = toPublicRouteLocale(locale);
 
   return (
     <>
@@ -200,26 +222,27 @@ export default function GlobalHeader() {
           {/* 정적 홈 셸로 문서 이동해야 React 홈이 한 프레임 노출되지 않는다. */}
           {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
           <a
-            href="/index.html"
+            href={getLocalizedPublicHref("/index.html", publicRouteLocale)}
             className={styles.brand}
             aria-label={copy.nav["/index.html"]}
           >
             <Image className={styles.brandImage} src="/icons/app-logo-512.webp" alt="" width={512} height={512} sizes="42px" />
             <span className={styles.brandText}>
               <strong>CODE DESTINY</strong>
-              <small>꿀꿀 운세</small>
+              <small>{copy.brandTagline}</small>
             </span>
           </a>
 
           <nav className={styles.mainNav} aria-label={copy.mainNav}>
             {headerNavItems.map((item) => {
               const label = copy.nav[item.href] || item.href;
+              const href = getLocalizedPublicHref(item.href, publicRouteLocale);
               return isStaticShellHref(item.href) ? (
-                <a key={item.href} href={item.href} className={styles.navLink}>
+                <a key={item.href} href={href} className={styles.navLink}>
                   {label}
                 </a>
               ) : (
-                <Link key={item.href} href={item.href} className={styles.navLink}>
+                <Link key={item.href} href={href} className={styles.navLink}>
                   {label}
                 </Link>
               );
@@ -252,10 +275,11 @@ export default function GlobalHeader() {
           <nav className={styles.policyNav} aria-label={copy.policyLinks}>
             {policyNavItems.map((item) => {
               const label = copy.nav[item.href] || item.href;
+              const href = getLocalizedPublicHref(item.href, publicRouteLocale);
               return (
                 <Link
                   key={`d-${item.href}`}
-                  href={item.href}
+                  href={href}
                   className={styles.policyLink}
                 >
                   {label}
@@ -278,12 +302,13 @@ export default function GlobalHeader() {
           <div className={styles.mobileLinks}>
             {headerNavItems.map((item) => {
               const label = copy.nav[item.href] || item.href;
+              const href = getLocalizedPublicHref(item.href, publicRouteLocale);
               return isStaticShellHref(item.href) ? (
-                <a key={`m-${item.href}`} href={item.href} onClick={() => setMenuOpen(false)} className={styles.navLink}>
+                <a key={`m-${item.href}`} href={href} onClick={() => setMenuOpen(false)} className={styles.navLink}>
                   {label}
                 </a>
               ) : (
-                <Link key={`m-${item.href}`} href={item.href} onClick={() => setMenuOpen(false)} className={styles.navLink}>
+                <Link key={`m-${item.href}`} href={href} onClick={() => setMenuOpen(false)} className={styles.navLink}>
                   {label}
                 </Link>
               );
@@ -294,10 +319,11 @@ export default function GlobalHeader() {
             <div className={styles.mobilePolicyLinks}>
               {policyNavItems.map((item) => {
                 const label = copy.nav[item.href] || item.href;
+                const href = getLocalizedPublicHref(item.href, publicRouteLocale);
                 return (
                   <Link
                     key={`m-policy-${item.href}`}
-                    href={item.href}
+                    href={href}
                     onClick={() => setMenuOpen(false)}
                     className={styles.policyLink}
                   >
