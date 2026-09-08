@@ -12,7 +12,7 @@
 // LLM 미사용 — 리딩은 전부 결정론적 규칙/테이블이다. 그래서 무료로 공개할 수 있다.
 //
 // 🔴 2026-08 리뉴얼의 핵심 불변식 — 되돌리지 말 것:
-//   동물상은 전생 신분·시대·사건을 결정하지 않는다. 신분은 얼굴 기하(얼굴형 × 삼정 × 코·입·귀
+//   동물상은 전생 신분·시대·사건을 결정하지 않는다. 신분은 얼굴 기하(얼굴형 × 삼정 × 세부 지표
 //   레인)가 결정하고, 동물은 마지막 장의 "전생 수호령"이라는 상징으로만 등장한다.
 //   예전에는 PLF_LIVES[animalId] 가 신분을 1:1로 정해서 "여우상이면 무조건 책략가"였고,
 //   그래서 결과가 동물상에 전생 포장지를 씌운 것으로 읽혔다(조합 81개).
@@ -24,9 +24,9 @@
 //       주령·곁령·그림자령 세 슬롯에 배치하고, 슬롯마다 다른 문장(origin/beside/shadow)을 쓴다.
 //       예전엔 1위 동물 하나만 읽고 나머지를 버려서 마지막 장이 "네 동물상은 여우야"의 재탕이었다.
 //       주령×곁령의 기질축 조합(6×6)이 "무리 칭호"가 된다 — 1위 동물 하나로는 못 만드는 문장이다.
-//   (2) 장면은 6개가 아니라 9개이고, 각 축의 테이블에 서사 필드가 붙어 있다
+//   (2) 상세 기록은 9개 장면이고, 각 축의 테이블에 서사 필드가 붙어 있다
 //       (신분 standing/day/epitaph · 시대 era/place/sense · 사건 aftermath · 첫인상 detail · 부적 ritual).
-//       분량을 줄이려고 장면을 도로 합치거나 필드를 떼면 verify 의 3,000자 하한에서 걸린다.
+//       2026-09 웹툰 개편은 핵심 3화 뒤 펼침 영역에 이 상세 기록을 보존한다.
 //   (3) 장면마다 "관상 근거" 각주가 붙는다(PLF_SHAPE_LORE / SAMJUNG / LANE / EYE / MOUTH / BROW / EVENT).
 //       근거가 없으면 이 결과는 "그럴듯한 소설"로 읽히고, 붙으면 "읽어낸 결과"가 된다.
 //       용어는 AnalysisEngine 이 이미 쓰는 관상 술어를 그대로 따른다 — 새 술어를 발명하지 말 것.
@@ -48,6 +48,50 @@
   const PLF_IMAGE_MAX_EDGE = 1280;
   const PLF_IMAGE_MAX_PIXELS = 1280 * 1280;
   const PLF_IMAGE_JPEG_QUALITY = 0.86;
+  const PLF_STORY_JSON_MAX_CHARS = 256 * 1024;
+  const PLF_STORY_ASSET_BASE = '/fuctionassets/past-life-webtoon/';
+  const PLF_STORY_ASSETS = {
+    clue: {
+      src: PLF_STORY_ASSET_BASE + 'clue-800.webp',
+      srcset: PLF_STORY_ASSET_BASE + 'clue-480.webp 480w, ' + PLF_STORY_ASSET_BASE + 'clue-800.webp 800w',
+      alt: '오래된 거울에 비친 눈매에서 전생의 단서를 발견하는 상징 장면'
+    },
+    choice: {
+      src: PLF_STORY_ASSET_BASE + 'choice-800.webp',
+      srcset: PLF_STORY_ASSET_BASE + 'choice-480.webp 480w, ' + PLF_STORY_ASSET_BASE + 'choice-800.webp 800w',
+      alt: '한 손은 매듭을 놓고 다른 손은 열린 문을 향하는 선택의 상징 장면'
+    },
+    threshold: {
+      src: PLF_STORY_ASSET_BASE + 'threshold-800.webp',
+      srcset: PLF_STORY_ASSET_BASE + 'threshold-480.webp 480w, ' + PLF_STORY_ASSET_BASE + 'threshold-800.webp 800w',
+      alt: '어두운 방을 나와 새벽의 갈림길로 걸어가는 현재 선택의 상징 장면'
+    }
+  };
+
+  // 실제 역사 재현이 아니라 역할군과 충돌하지 않는 창작 무대다. 기존 world.era 의 추상 문장은
+  // 상세 서사에 보존하고, 프로필에는 사용자가 한눈에 잡을 수 있는 시대·장소 한 줄을 쓴다.
+  const PLF_WORLD_PROFILE = {
+    round: {
+      upper: '18세기를 닮은 가상 왕조 · 사당 안채',
+      middle: '18세기를 닮은 가상 왕조 · 큰길의 갈림목',
+      lower: '18세기를 닮은 가상 왕조 · 마을 곳간'
+    },
+    square: {
+      upper: '17세기를 닮은 가상 왕조 · 돌로 지은 관아',
+      middle: '17세기를 닮은 가상 왕조 · 성문 밖 작업장',
+      lower: '17세기를 닮은 가상 왕조 · 물길 곁 공사터'
+    },
+    long: {
+      upper: '16세기를 닮은 가상 왕조 · 밤의 관측대',
+      middle: '16세기를 닮은 가상 왕조 · 기록관의 가장자리',
+      lower: '16세기를 닮은 가상 왕조 · 약재 향이 밴 공방'
+    },
+    triangle: {
+      upper: '19세기를 닮은 가상 도시 · 천막이 드리운 마당',
+      middle: '19세기를 닮은 가상 도시 · 떠돌이 무대 뒤편',
+      lower: '19세기를 닮은 가상 도시 · 불을 쓰는 공방'
+    }
+  };
 
   // 🔴 히어로에 사진을 쓰지 않는다 (2026-08 2차 개편). 예전엔 R2 의 DestinyAssets/관상 전생.webp 를
   //    깔았는데, alt 는 "달빛 아래 실루엣"인데 실제 그림은 동물이라 컨셉과 어긋났고
@@ -58,16 +102,17 @@
   // 정본은 worker/lib/paid-feature-registry.js 의 physiognomy-pastlife-compatibility (cost: 50 = 5,000원).
   // featureKey 는 결제 게이트 호출부에 리터럴로 둔다 — verify:paid-feature-billing-policy 가 리터럴을 찾는다.
   const PLF_COMPAT_COIN_COST = 50;
+  const PLF_SHARE_CONTENT_ID = 'pastlifeface';
 
   // 순차 공개의 긴장감은 이 티커가 맡는다 — 결과 화면은 공유 카드가 캡처 대상이라
   // 처음부터 전부 렌더되어야 하므로(빈 카드 캡처 사고 방지), 단서를 하나씩 여는 연출은 여기다.
   const PLF_SCAN_STEPS = [
-    '👁️ 눈매에서 이상한 흔적이 발견되었습니다',
-    '🕯️ 첫 번째 단서를 찾았습니다',
-    '🏯 당신은 어떤 건물 안에 있었습니다',
-    '🪶 당신의 손에 무언가 들려 있습니다',
-    '🐺 그리고 당신 곁에 무언가 있었습니다',
-    '⚡ 그날 밤, 사건이 하나 있었습니다'
+    '사진에서 얼굴의 위치를 찾고 있어요',
+    '눈매와 입매의 형태를 살피고 있어요',
+    '얼굴형과 삼정의 균형을 읽고 있어요',
+    '찾은 단서로 역할과 무대를 고르고 있어요',
+    '선택의 흐름을 세 장의 이야기로 엮고 있어요',
+    '현재와 이어지는 메시지를 정리하고 있어요'
   ];
 
   // ── 상태 ──
@@ -84,6 +129,7 @@
   let plfCompatMode = false;   // 결제 완료 후 상대 사진을 받는 중
   let plfImageEl = null;
   let plfMounted = false;
+  let plfReturnFocus = null;
 
   // ── 결제 후 자동 재개 ────────────────────────────────────────────────────
   // 🔴 모바일 PortOne 은 상위 프레임을 리다이렉트한다 — _cdCoinGatePerUse 의 onGranted 클로저가
@@ -1578,7 +1624,52 @@
     '.plf-status__sub{margin:6px 0 0;font-size:.84rem;line-height:1.65;color:var(--plf-muted);min-height:1.65em;}',
     '.plf-status--error .plf-status__step{color:#ffc9dd;}',
 
-    // ③ 개봉 — 전생 카드
+    // ③ 개봉 — 달빛 종이 위의 세로 웹툰. 분석/결제 레이어와 분리된 표시 전용 스코프다.
+    '.plf-storybook{margin:0 -16px;padding:0 16px 40px;--plf-text:#3c1830;--plf-muted:#70445c;',
+    '  --plf-accent:#b31955;--plf-accent-soft:#d66b95;--plf-gold:#8b6428;--plf-border:rgba(112,68,92,.24);',
+    '  --plf-border-strong:rgba(179,25,85,.4);--plf-surface:rgba(244,232,235,.72);--plf-surface-2:#f8edef;',
+    '  color:var(--plf-text);background:#fffaf7;}',
+    '.plf-story__intro{padding:36px 12px 28px;}',
+    '.plf-story__eyebrow{margin:0;font-size:.72rem;font-weight:800;letter-spacing:.14em;color:var(--plf-accent);}',
+    '.plf-story__title{margin:10px 0 0;font-family:var(--font-serif,var(--font-display,serif));',
+    '  font-size:clamp(25px,6.4vw,36px);font-weight:700;line-height:1.42;letter-spacing:-.025em;color:var(--plf-text);text-wrap:balance;}',
+    '.plf-story__notice{margin:16px 0 0;font-size:.8rem;line-height:1.7;color:var(--plf-muted);}',
+    '.plf-story__episode{padding:42px 12px 48px;}',
+    '.plf-story__episode-no{margin:0 0 10px;font-size:.72rem;font-weight:800;letter-spacing:.16em;color:var(--plf-accent);}',
+    '.plf-story__episode-title{margin:0 0 22px;font-family:var(--font-serif,var(--font-display,serif));',
+    '  font-size:clamp(24px,6vw,34px);font-weight:700;line-height:1.45;letter-spacing:-.025em;color:var(--plf-text);text-wrap:balance;}',
+    '.plf-story__copy{margin:0;font-size:1rem;line-height:1.92;color:var(--plf-text);text-wrap:pretty;}',
+    '.plf-story__copy + .plf-story__copy{margin-top:18px;}',
+    '.plf-story__figure{position:relative;margin:0 -16px;aspect-ratio:2/3;overflow:hidden;background:#eadfe0;}',
+    '.plf-story__figure img{display:block;width:100%;height:100%;object-fit:cover;background:#eadfe0;}',
+    '.plf-story__figure figcaption{position:absolute;left:0;right:0;bottom:0;padding:54px 24px 18px;',
+    '  font-size:.76rem;line-height:1.55;color:#fff1f7;background:linear-gradient(transparent,rgba(36,8,26,.84));}',
+    '.plf-story__figure-fallback{display:none;position:absolute;inset:0;place-items:center;padding:28px;text-align:center;',
+    '  font-size:.84rem;line-height:1.7;color:#70445c;background:linear-gradient(160deg,#f4e8eb,#fffaf7);}',
+    '.plf-story__figure.is-broken img{display:none;}.plf-story__figure.is-broken .plf-story__figure-fallback{display:grid;}',
+    '.plf-story__record{margin:0 12px 12px;padding:24px 0;border-top:1px solid var(--plf-border);border-bottom:1px solid var(--plf-border);}',
+    '.plf-story__record h3,.plf-story__clues h3{margin:0 0 16px;font-size:1rem;color:var(--plf-text);}',
+    '.plf-story__record dl{margin:0;display:grid;gap:11px;}',
+    '.plf-story__record dl div{display:grid;grid-template-columns:92px minmax(0,1fr);gap:12px;font-size:.86rem;line-height:1.65;}',
+    '.plf-story__record dt{color:var(--plf-muted);}.plf-story__record dd{margin:0;color:var(--plf-text);overflow-wrap:anywhere;}',
+    '.plf-story__clues{margin:0 12px 12px;padding:20px;background:#f4e8eb;}',
+    '.plf-story__clue + .plf-story__clue{margin-top:15px;}.plf-story__clue strong{display:block;font-size:.82rem;color:var(--plf-accent);}',
+    '.plf-story__clue p{margin:5px 0 0;font-size:.82rem;line-height:1.72;color:var(--plf-muted);}',
+    '.plf-story__present{padding:50px 12px 34px;}.plf-story__present-title{margin:0;font-family:var(--font-serif,var(--font-display,serif));',
+    '  font-size:clamp(25px,6.2vw,35px);line-height:1.45;letter-spacing:-.025em;color:var(--plf-text);}',
+    '.plf-story__echo{padding:20px 0;border-bottom:1px solid var(--plf-border);}',
+    '.plf-story__echo h3{margin:0 0 7px;font-size:.96rem;color:var(--plf-text);}.plf-story__echo p{margin:0;font-size:.88rem;line-height:1.76;color:var(--plf-muted);}',
+    '.plf-story__ending{margin:34px 0 0;font-family:var(--font-serif,var(--font-display,serif));font-size:1.28rem;',
+    '  line-height:1.78;text-align:center;color:var(--plf-text);text-wrap:balance;}',
+    '.plf-archive{margin:30px 0 0;border-top:1px solid var(--plf-border);border-bottom:1px solid var(--plf-border);}',
+    '.plf-archive summary{min-height:48px;display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;',
+    '  font-size:.88rem;font-weight:800;color:var(--plf-text);}.plf-archive summary::after{content:"＋";color:var(--plf-accent);}',
+    '.plf-archive[open] summary::after{content:"−";}.plf-archive__body{padding:0 0 26px;}',
+    '@media (min-width:700px){.plf-storybook{border-left:1px solid rgba(112,68,92,.12);border-right:1px solid rgba(112,68,92,.12);}',
+    '  .plf-story__episode,.plf-story__intro,.plf-story__present{padding-left:44px;padding-right:44px;}',
+    '  .plf-story__record,.plf-story__clues{margin-left:44px;margin-right:44px;}.plf-story__figure{margin-left:0;margin-right:0;}}',
+
+    // 기존 전생 카드 스타일은 궁합 결과에서도 사용하므로 유지한다.
     '.plf-card{position:relative;margin:18px 0 0;perspective:1400px;}',
     '.plf-card__inner{position:relative;border:1px solid var(--plf-border-strong);border-radius:22px;padding:26px 22px 24px;',
     '  background:linear-gradient(165deg,rgba(38,30,74,.94) 0%,rgba(16,12,36,.96) 100%);box-shadow:var(--plf-glow);',
@@ -1665,8 +1756,10 @@
     '.plf-talisman__v{display:block;font-size:.9rem;font-weight:700;color:var(--plf-text);}',
 
     // 공유 카드 — html2canvas 캡처 대상. 투명 배경으로 뜨면 안 되므로 자체 불투명 배경을 칠한다.
-    // 봉인 상태로 시작해 장면 2(신분 공개)에서 열린다. 내용은 처음부터 DOM 에 있고 CSS 로만 가린다.
+    // 핵심 3화 뒤 바로 공유할 수 있다. 캡처 안정성을 위해 불투명 배경과 seal DOM 계약은 보존한다.
     '.plf-sharecard{position:relative;margin:18px 0 0;border-radius:22px;padding:2px;',
+    '  --plf-text:#fff1f7;--plf-muted:#e7cbd8;--plf-accent:#f4bed1;--plf-gold:#ead089;',
+    '  --plf-border:rgba(244,190,209,.36);--plf-border-strong:rgba(234,208,137,.52);',
     '  background:linear-gradient(150deg,var(--plf-gold) 0%,rgba(196,181,253,.5) 44%,rgba(232,213,163,.28) 100%);}',
     '.plf-sharecard__seal{position:absolute;inset:2px;z-index:2;border-radius:20px;display:none;',
     '  flex-direction:column;align-items:center;justify-content:center;gap:12px;',
@@ -1683,6 +1776,8 @@
     '}',
     '.plf-sharecard__inner{border-radius:20px;padding:26px 22px 20px;text-align:center;',
     '  background:linear-gradient(168deg,#1b1440 0%,#120e2c 52%,#0a0818 100%);}',
+    '.plf-sharecard__art{display:block;width:calc(100% + 44px);height:auto;aspect-ratio:1/1;object-fit:cover;',
+    '  object-position:center 34%;margin:-26px -22px 22px;border-radius:20px 20px 0 0;}',
     '.plf-sharecard__kicker{margin:0;font-family:var(--font-serif,var(--font-display,serif));font-size:.72rem;',
     '  font-weight:700;letter-spacing:.28em;color:var(--plf-gold);}',
     '.plf-sharecard__emoji{margin:14px 0 0;font-size:2.6rem;line-height:1;}',
@@ -1880,8 +1975,34 @@
       plfShowStage('gate');
     });
     plfEl('plfShareBtn').addEventListener('click', plfShare);
+    app.addEventListener('keydown', plfHandleDialogKeydown);
 
     plfMounted = true;
+  }
+
+  function plfHandleDialogKeydown(event) {
+    const app = plfEl('pastlife-face-app');
+    if (!app || app.style.display === 'none') return;
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      window.closePastLifeFaceApp();
+      return;
+    }
+    if (event.key !== 'Tab') return;
+    const focusable = Array.prototype.filter.call(
+      app.querySelectorAll('button:not([disabled]),input:not([disabled]),a[href],summary,[tabindex]:not([tabindex="-1"])'),
+      function (node) { return node.offsetParent !== null; }
+    );
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
   }
 
   function plfShowStage(name) {
@@ -2543,6 +2664,9 @@
       tierLabel: tier.label,
       tierKo: tier.ko,
       tierColor: tier.color,
+      shapeType: shape.type,
+      dominantThird: dominant,
+      roleLane: lane,
       // 공통
       // 엔진의 relationEcho / wealthEcho 는 분기 없이 모두에게 같은 문장이 나가므로 쓰지 않는다.
       // 서사를 희석시키기만 한다. faceSeal 은 얼굴형별로 갈리므로 그대로 쓴다.
@@ -2555,6 +2679,80 @@
       talisman: plfTalismanFor(shape.element, mixSeed),
       memory: 46 + (plfHash(mixSeed + ':memory') % 50),   // 46~95
       progress: 38 + (plfHash(mixSeed + ':progress') % 52) // 38~89
+    };
+  }
+
+  function plfStoryInput(input) {
+    if (typeof input === 'string') {
+      if (!input || input.length > PLF_STORY_JSON_MAX_CHARS) return null;
+      try { input = JSON.parse(input); } catch (_plfStoryJsonError) { return null; }
+    }
+    return input && typeof input === 'object' && !Array.isArray(input) ? input : null;
+  }
+
+  function plfStoryText(value, fallback, max) {
+    const text = String(value == null ? '' : value).replace(/\s+/g, ' ').trim();
+    return (text || fallback || '').slice(0, max || 700);
+  }
+
+  /** 기존 결정론적 리딩을 3장 웹툰 표시 DTO로 정규화한다. 원본은 legacyReading에 그대로 둔다. */
+  function plfBuildStory(input) {
+    const reading = plfStoryInput(input);
+    if (!reading) return null;
+    const world = reading.world && typeof reading.world === 'object' ? reading.world : {};
+    const shapeWorld = PLF_WORLD_PROFILE[reading.shapeType] || PLF_WORLD_PROFILE.round;
+    const eraLocation = shapeWorld[reading.dominantThird] || shapeWorld.middle;
+    const roleName = plfStoryText(reading.roleName, '이름이 남지 않은 사람', 80);
+    const firstNick = plfStoryText(reading.firstNick, '오래 바라본 얼굴', 100);
+    const traits = Array.isArray(reading.roleTraits) ? reading.roleTraits.slice(0, 3).map(function (item) {
+      return plfStoryText(item, '', 24);
+    }).filter(Boolean) : [];
+    const clues = [
+      { id: 'first', label: '눈매와 입매', observation: firstNick, symbolicMeaning: plfStoryText(reading.firstBody, '', 260) },
+      { id: 'role', label: '얼굴형과 삼정', observation: plfStoryText(reading.shapeName, '얼굴의 균형', 80), symbolicMeaning: plfStoryText(reading.roleIntro, '', 260) },
+      { id: 'event', label: '인당과 입술의 흐름', observation: plfStoryText(reading.eventTitle, '남겨진 선택', 100), symbolicMeaning: plfStoryText(reading.eventEcho, '', 260) }
+    ];
+
+    return {
+      version: 1,
+      pastLifeSummary: firstNick + '에서 ' + roleName + '의 흔적이 열렸습니다.',
+      profile: {
+        era: eraLocation,
+        location: plfStoryText(world.place, '기억 속의 오래된 방', 320),
+        occupation: roleName,
+        personality: traits,
+        desire: plfStoryText(reading.unfinishedWhat, '미뤄 둔 선택을 자기 손으로 끝내는 것', 180),
+        event: plfStoryText(reading.eventTitle, '한 번의 선택', 120),
+        trace: plfStoryText(reading.roleEcho, '익숙한 선택 습관으로 흔적이 남아 있습니다.', 260)
+      },
+      facialClues: clues,
+      episodes: [
+        {
+          id: 'beginning', sceneType: 'discovery', sceneTitle: '이름이 생기기 전의 얼굴', assetKey: 'clue', clueIds: ['first', 'role'],
+          narration: [firstNick + '. ' + plfStoryText(reading.firstBody, '', 250), eraLocation + '에서 당신은 ' + roleName + '으로 살았습니다.', plfStoryText(reading.roleDay, reading.roleIntro, 430)]
+        },
+        {
+          id: 'choice', sceneType: 'turn', sceneTitle: plfStoryText(reading.eventTitle, '그날의 선택', 120), assetKey: 'choice', clueIds: ['event'],
+          narration: [plfStoryText(reading.omen, '', 260), plfStoryText(reading.eventBody, '', 420), plfStoryText(reading.eventAftermath, '', 360)]
+        },
+        {
+          id: 'return', sceneType: 'resolution', sceneTitle: '남겨진 기억이 가리키는 곳', assetKey: 'threshold', clueIds: ['role', 'event'],
+          narration: [plfStoryText(reading.roleEnd, '', 260), plfStoryText(reading.unfinishedWhy, '', 300), '그 흔적은 운명을 확정하는 답이 아니라, 지금 다른 선택을 해 볼 수 있다는 작은 단서에 가깝습니다.']
+        }
+      ],
+      finalMemory: {
+        narration: [plfStoryText(reading.relicItem, '손에 남은 작은 물건', 100), plfStoryText(reading.relicLine, '', 280)],
+        assetKey: 'threshold'
+      },
+      connectionToPresent: [
+        { title: '반복되는 역할', body: plfStoryText(reading.roleEcho, '', 300), clueIds: ['role'] },
+        { title: '선택 앞의 습관', body: plfStoryText(reading.eventEcho, '', 300), clueIds: ['event'] },
+        { title: '이번에는 다르게', body: plfStoryText(reading.recurrenceMean, reading.guardians && reading.guardians.main && reading.guardians.main.now, 300), clueIds: ['first', 'event'] }
+      ],
+      ending: '그 사람의 이야기는 여기서 끝납니다. 다음 장면을 고르는 건 지금의 당신입니다.',
+      shareSummary: roleName + ' · ' + plfStoryText(reading.eventTitle, '남겨진 선택', 100),
+      keywords: Array.isArray(reading.keywords) ? reading.keywords.slice(0, 3) : [],
+      legacyReading: reading
     };
   }
 
@@ -2671,6 +2869,146 @@
       cell('곁에 둘 것', talisman.item),
       '</div>'
     ].join('');
+  }
+
+  function plfStoryFigureHtml(episode, index) {
+    const asset = PLF_STORY_ASSETS[episode.assetKey] || PLF_STORY_ASSETS.clue;
+    const eager = index === 0;
+    const imageAttrs = eager
+      ? ' src="' + plfEscape(asset.src) + '" srcset="' + plfEscape(asset.srcset) + '" loading="eager" fetchpriority="high"'
+      : ' data-plf-src="' + plfEscape(asset.src) + '" data-plf-srcset="' + plfEscape(asset.srcset) + '" loading="lazy"';
+    return [
+      '<figure class="plf-story__figure" data-plf-figure="' + index + '">',
+      '  <img' + imageAttrs + ' sizes="(min-width:700px) 640px, 100vw" width="800" height="1200" decoding="async" alt="' + plfEscape(asset.alt) + '">',
+      '  <span class="plf-story__figure-fallback" aria-hidden="true">그림을 불러오지 못했지만 이야기는 계속됩니다.</span>',
+      '  <figcaption>' + plfEscape(episode.sceneTitle) + '</figcaption>',
+      '</figure>'
+    ].join('');
+  }
+
+  function plfStoryEpisodeHtml(episode, index) {
+    return plfStoryFigureHtml(episode, index) + [
+      '<section class="plf-story__episode" data-plf-episode="' + (index + 1) + '">',
+      '  <p class="plf-story__episode-no">EP.0' + (index + 1) + '</p>',
+      '  <h2 class="plf-story__episode-title">' + plfEscape(episode.sceneTitle) + '</h2>',
+      (episode.narration || []).map(function (line) {
+        return '<p class="plf-story__copy">' + plfEscape(line) + '</p>';
+      }).join(''),
+      '</section>'
+    ].join('');
+  }
+
+  function plfStoryProfileHtml(profile) {
+    const row = function (label, value) {
+      return '<div><dt>' + plfEscape(label) + '</dt><dd>' + plfEscape(value) + '</dd></div>';
+    };
+    return [
+      '<section class="plf-story__record" aria-labelledby="plfStoryProfileTitle">',
+      '  <h3 id="plfStoryProfileTitle">당신의 전생 기록</h3>',
+      '  <dl>',
+      row('시대와 장소', profile.era),
+      row('그때의 역할', profile.occupation),
+      row('성향', (profile.personality || []).join(' · ')),
+      row('마음속 미완', profile.desire),
+      row('남겨진 사건', profile.event),
+      '  </dl>',
+      '</section>'
+    ].join('');
+  }
+
+  function plfStoryCluesHtml(clues) {
+    return [
+      '<aside class="plf-story__clues">',
+      '  <h3>얼굴에서 시작된 세 가지 단서</h3>',
+      (clues || []).map(function (clue) {
+        return '<div class="plf-story__clue"><strong>' + plfEscape(clue.label) + ' → ' + plfEscape(clue.observation) +
+          '</strong><p>' + plfEscape(clue.symbolicMeaning) + '</p></div>';
+      }).join(''),
+      '  <div class="plf-story__clue"><p>얼굴만으로 실제 성격이나 전생을 확인할 수는 없습니다. 관상학의 상징을 이야기로 풀어낸 결과입니다.</p></div>',
+      '</aside>'
+    ].join('');
+  }
+
+  function plfStoryPresentHtml(story) {
+    return [
+      '<section class="plf-story__present">',
+      '  <h2 class="plf-story__present-title">그리고 지금,<br>당신에게 남은 것</h2>',
+      story.connectionToPresent.map(function (item) {
+        return '<article class="plf-story__echo"><h3>' + plfEscape(item.title) + '</h3><p>' + plfEscape(item.body) + '</p></article>';
+      }).join(''),
+      '  <p class="plf-story__ending">' + plfEscape(story.ending) + '</p>',
+      '</section>'
+    ].join('');
+  }
+
+  function plfStoryHtml(story) {
+    const reading = story.legacyReading;
+    return [
+      '<div class="plf-storybook">',
+      '  <header class="plf-story__intro">',
+      '    <p class="plf-story__eyebrow">얼굴에서 시작된 세 장의 기억</p>',
+      '    <h1 class="plf-story__title">' + plfEscape(story.pastLifeSummary) + '</h1>',
+      '    <p class="plf-story__notice">관상학의 상징을 바탕으로 만든 자기성찰용 이야기입니다. 사실을 단정하지 않고, 지금의 선택과 연결해 읽어 주세요.</p>',
+      '  </header>',
+      plfStoryEpisodeHtml(story.episodes[0], 0),
+      plfStoryProfileHtml(story.profile),
+      plfStoryEpisodeHtml(story.episodes[1], 1),
+      plfStoryCluesHtml(story.facialClues),
+      plfStoryEpisodeHtml(story.episodes[2], 2),
+      plfStoryPresentHtml(story),
+      plfShareCardHtml(reading),
+      '  <details class="plf-archive">',
+      '    <summary>수호령과 상세 전생 기록 보기</summary>',
+      '    <div class="plf-archive__body">' + plfScenesHtml(plfBuildScenes(reading)) + '</div>',
+      '  </details>',
+      '  <div class="plf-gauges">',
+      plfGaugeHtml('기억이 떠오르는 강도', reading.memory,
+        reading.memory >= 78 ? '기시감이 비교적 자주 떠오르는 상징으로 읽힙니다.' : '특정 순간에만 단서가 떠오르는 상징으로 읽힙니다.'),
+      plfGaugeHtml('현재와 닿는 정도', reading.progress,
+        reading.progress >= 70 ? '이미 익숙한 행동 안에서 이 패턴을 알아차리고 있습니다.' : '아직 이름 붙이지 않은 선택 습관이 남아 있습니다.'),
+      '  </div>',
+      plfDeeperHtml(),
+      '</div>'
+    ].join('');
+  }
+
+  function plfBindStoryImages() {
+    const host = plfEl('plfRevealBody');
+    if (!host) return;
+    const images = Array.prototype.slice.call(host.querySelectorAll('img[data-plf-src]'));
+    const load = function (img) {
+      if (!img || !img.getAttribute('data-plf-src')) return;
+      const srcset = img.getAttribute('data-plf-srcset');
+      if (srcset) img.setAttribute('srcset', srcset);
+      img.setAttribute('src', img.getAttribute('data-plf-src'));
+      img.removeAttribute('data-plf-src');
+      img.removeAttribute('data-plf-srcset');
+    };
+    Array.prototype.forEach.call(host.querySelectorAll('.plf-story__figure img'), function (img) {
+      img.addEventListener('error', function () {
+        const figure = img.closest && img.closest('.plf-story__figure');
+        if (figure) figure.classList.add('is-broken');
+      }, { once: true });
+    });
+    if (!images.length) return;
+    if (typeof window.IntersectionObserver !== 'function') {
+      images.forEach(load);
+      return;
+    }
+    let observer = null;
+    try {
+      observer = new window.IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (!entry.isIntersecting) return;
+          load(entry.target);
+          observer.unobserve(entry.target);
+        });
+      }, { rootMargin: '500px 0px', threshold: 0.01 });
+    } catch (_plfImageObserverError) {
+      images.forEach(load);
+      return;
+    }
+    images.forEach(function (img) { observer.observe(img); });
   }
 
   /**
@@ -2805,7 +3143,7 @@
    *      관찰자 미동작으로 콘텐츠가 영영 안 보이는 경로를 만들지 않는다.
    *   2) 숨김 상태는 CSS 에서 prefers-reduced-motion: no-preference 안에만 정의돼 있다.
    *      모션을 끈 사용자에게는 이 함수가 무엇을 하든 처음부터 전부 보인다.
-   * 장면 2(신분 공개)에 도달하면 상단 공유 카드의 봉인을 푼다.
+   * 기존 상세 장면의 점진 공개만 담당한다. 핵심 3화와 공유 카드는 처음부터 읽을 수 있다.
    */
   function plfBindSceneReveal() {
     const host = plfEl('plfRevealBody');
@@ -2846,8 +3184,7 @@
   }
 
   /**
-   * 공유 카드. 결과 최상단에 있고 **봉인 상태로 시작**한다 —
-   * 스크롤이 장면 2(전생 신분 공개)에 닿으면 `.is-unsealed` 가 붙어 내용이 드러난다.
+   * 공유 카드. 핵심 세 장과 현재 연결 뒤에 놓이므로 이미 이야기가 공개된 상태로 렌더한다.
    *
    * 🔴 내용은 처음부터 DOM 에 전부 들어 있다. 봉인은 CSS 로만 가린다.
    *    늦게 채우면 html2canvas 가 빈 카드를 찍는다(master-love-codex 의 CodexReveal 에 같은 사고 기록).
@@ -2855,7 +3192,7 @@
    */
   function plfShareCardHtml(reading) {
     return [
-      '<div class="plf-sharecard" id="plfShareCard">',
+      '<div class="plf-sharecard is-unsealed" id="plfShareCard">',
       '  <div class="plf-sharecard__seal" aria-hidden="true">',
       '    <span class="plf-sharecard__seal-mark">✦</span>',
       '    <span class="plf-sharecard__seal-text">스크롤해서 봉인을 여세요</span>',
@@ -2945,25 +3282,18 @@
   }
 
   function plfRenderReading(reading) {
-    const html = [
-      // 봉인된 공유 카드 → 장면 6개(스크롤로 열림) → 게이지 → 심화 CTA.
-      // 도시에 슬랩·칩 네비·아코디언은 2차 개편에서 걷어냈다(리포트가 아니라 영화).
-      plfShareCardHtml(reading),
-      plfScenesHtml(plfBuildScenes(reading)),
-
-      '<div class="plf-gauges">',
-      plfGaugeHtml('전생 기억의 선명도', reading.memory,
-        reading.memory >= 78 ? '흐릿한 기시감이 자주 올라오는 편입니다.' : '평소엔 잠잠하다가 특정 순간에만 열립니다.'),
-      plfGaugeHtml('이번 생 숙제 진행도', reading.progress,
-        reading.progress >= 70 ? '이미 절반 이상 풀어 놓았습니다.' : '아직 본격적으로 손대지 않은 구간이 남아 있습니다.'),
-      '</div>',
-
-      plfDeeperHtml()
-    ].join('');
+    const story = plfBuildStory(reading);
+    const html = story
+      ? plfStoryHtml(story)
+      : '<div class="plf-storybook"><section class="plf-story__intro"><h1 class="plf-story__title">이야기를 엮지 못했어요.</h1>' +
+        '<p class="plf-story__notice">사진에서 찾은 단서가 일부 누락되었습니다. 다른 밝은 정면 사진으로 다시 시도해 주세요.</p></section></div>';
 
     plfEl('plfRevealBody').innerHTML = html;
-    plfBindSceneReveal();
-    plfBindDeeperCtas();
+    if (story) {
+      plfBindStoryImages();
+      plfBindSceneReveal();
+      plfBindDeeperCtas();
+    }
     plfApplyStagger();
     plfShowStage('reveal');
   }
@@ -3333,8 +3663,9 @@
       try {
         window.cdShareResultCardImage({
           element: card,
+          contentId: PLF_SHARE_CONTENT_ID,
           title: '전생 관상',
-          caption: '내 얼굴에 남은 전생의 흔적 · ' + window.location.origin + '/?action=openPastLifeFaceApp'
+          caption: '내 얼굴에 남은 전생의 흔적 · ' + plfShareUrl()
         });
         return;
       } catch (error) {
@@ -3352,7 +3683,7 @@
       return;
     }
     const text = '[전생 관상]\n\n' + content.slice(0, 300) + (content.length > 300 ? '...' : '') +
-      '\n\n👉 내 전생 관상 보기: ' + window.location.origin + '/?action=openPastLifeFaceApp';
+      '\n\n👉 내 전생 관상 보기: ' + plfShareUrl();
 
     if (navigator.share && /mobile|android|iphone|ipad/i.test(navigator.userAgent)) {
       navigator.share({ title: '전생 관상', text: text }).catch(function () {});
@@ -3369,6 +3700,13 @@
     window.alert('이 브라우저에서는 자동 공유를 지원하지 않습니다.');
   }
 
+  function plfShareUrl() {
+    const origin = window.location && /^https?:/.test(window.location.origin || '')
+      ? window.location.origin
+      : 'https://code-destiny.com';
+    return origin + '/?action=openPastLifeFaceApp';
+  }
+
   // ============================================================
   // 공개 API
   // ============================================================
@@ -3378,9 +3716,15 @@
    *   관상(PhysiognomyUI)에서 이미 분석을 끝낸 사용자가 사진을 다시 올리지 않게 하는 경로다.
    */
   window.openPastLifeFaceApp = function openPastLifeFaceApp(options) {
+    const activeBeforeOpen = document.activeElement;
     plfMount();
     const app = plfEl('pastlife-face-app');
+    if (activeBeforeOpen && activeBeforeOpen !== document.body && !app.contains(activeBeforeOpen)) {
+      plfReturnFocus = activeBeforeOpen;
+    }
     if (app) app.style.display = 'flex';
+    const closeButton = plfEl('plfCloseBtn');
+    if (closeButton && typeof closeButton.focus === 'function') closeButton.focus();
 
     plfCompatMode = false;
     plfPartnerResult = null;
@@ -3411,5 +3755,9 @@
     plfBusy = false;
     const app = plfEl('pastlife-face-app');
     if (app) app.style.display = 'none';
+    if (plfReturnFocus && plfReturnFocus.isConnected && typeof plfReturnFocus.focus === 'function') {
+      plfReturnFocus.focus();
+    }
+    plfReturnFocus = null;
   };
 })();

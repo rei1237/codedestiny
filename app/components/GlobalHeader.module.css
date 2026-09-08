@@ -1,0 +1,254 @@
+.root {
+  --gh-bg: rgba(255, 250, 247, 0.94);
+  --gh-surface: #fffdfc;
+  --gh-ink: #3c1830;
+  --gh-muted: #70445c;
+  --gh-accent: #b31955;
+  --gh-gold: #81551e;
+  --gh-line: rgba(179, 25, 85, 0.2);
+  position: sticky;
+  top: 0;
+  z-index: 70;
+  border-bottom: 1px solid var(--gh-line);
+  background: var(--gh-bg);
+  color: var(--gh-ink);
+  box-shadow: 0 10px 30px rgba(119, 31, 68, 0.06);
+  backdrop-filter: blur(16px) saturate(1.08);
+}
+
+:global(html[data-cd-theme="neo"]) .root {
+  --gh-bg: rgba(10, 8, 24, 0.94);
+  --gh-surface: #171126;
+  --gh-ink: #f4eeff;
+  --gh-muted: #d8c8ea;
+  --gh-accent: #c4b5fd;
+  --gh-gold: #e8d5a3;
+  --gh-line: rgba(196, 181, 253, 0.25);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.24);
+}
+
+.shell {
+  display: flex;
+  width: min(1240px, calc(100% - 24px));
+  min-height: 66px;
+  margin-inline: auto;
+  align-items: center;
+  gap: 16px;
+}
+
+.brand {
+  display: inline-flex;
+  min-height: 48px;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 10px;
+  color: var(--gh-ink);
+  text-decoration: none;
+}
+
+.brandImage {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  filter: drop-shadow(0 7px 10px rgba(119, 31, 68, 0.14));
+}
+
+.brandText {
+  display: grid;
+  gap: 1px;
+}
+
+.brandText strong {
+  color: var(--gh-ink);
+  font-family: var(--font-serif), serif;
+  font-size: 1rem;
+  line-height: 1.1;
+  letter-spacing: 0.04em;
+}
+
+.brandText small {
+  color: var(--gh-accent);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.mainNav {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: center;
+  gap: 4px;
+  overflow-x: auto;
+}
+
+.navLink,
+.policyLink {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  border-radius: 999px;
+  color: var(--gh-muted);
+  font-size: 0.78rem;
+  font-weight: 750;
+  text-decoration: none;
+  transition: background-color 160ms ease, color 160ms ease;
+}
+
+.navLink {
+  padding: 0 14px;
+}
+
+.navLink:hover,
+.policyLink:hover {
+  background: color-mix(in srgb, var(--gh-accent) 10%, transparent);
+  color: var(--gh-accent);
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.menuButton {
+  display: none;
+  min-width: 76px;
+  min-height: 44px;
+  margin-left: auto;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--gh-line);
+  border-radius: 12px;
+  background: var(--gh-surface);
+  color: var(--gh-ink);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.menuButton svg {
+  width: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-width: 1.8;
+}
+
+.policyBar {
+  border-top: 1px solid color-mix(in srgb, var(--gh-line) 60%, transparent);
+}
+
+.policyNav {
+  display: flex;
+  width: min(1240px, calc(100% - 24px));
+  margin-inline: auto;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 2px 12px;
+}
+
+.policyLink {
+  min-height: 36px;
+  padding-inline: 4px;
+  font-size: 0.7rem;
+}
+
+.mobilePanel {
+  display: none;
+}
+
+.root :is(a, button):focus-visible,
+.mobilePanel :is(a, button):focus-visible {
+  outline: 3px solid var(--gh-accent);
+  outline-offset: 3px;
+}
+
+@media (max-width: 1279px) {
+  .mainNav,
+  .policyBar {
+    display: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .shell {
+    min-height: 60px;
+  }
+
+  .brandImage {
+    width: 38px;
+    height: 38px;
+  }
+
+  .controls {
+    display: none;
+  }
+
+  .menuButton {
+    display: inline-flex;
+  }
+
+  .mobilePanel {
+    position: sticky;
+    top: 60px;
+    z-index: 65;
+    display: grid;
+    gap: 14px;
+    padding: 14px max(12px, env(safe-area-inset-right)) 18px max(12px, env(safe-area-inset-left));
+    border-bottom: 1px solid var(--gh-line);
+    background: var(--gh-bg);
+    color: var(--gh-ink);
+    backdrop-filter: blur(16px);
+  }
+
+  .mobileTools {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 10px;
+    border: 1px solid var(--gh-line);
+    border-radius: 14px;
+    background: var(--gh-surface);
+  }
+
+  .mobileTools > span,
+  .mobilePolicyLabel {
+    color: var(--gh-muted);
+    font-size: 0.72rem;
+    font-weight: 800;
+  }
+
+  .mobileTools > div,
+  .mobileLinks,
+  .mobilePolicyLinks {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .mobileLinks {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mobileLinks .navLink {
+    border: 1px solid var(--gh-line);
+    background: var(--gh-surface);
+  }
+
+  .mobilePolicyLinks {
+    flex-wrap: wrap;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navLink,
+  .policyLink {
+    transition: none;
+  }
+}

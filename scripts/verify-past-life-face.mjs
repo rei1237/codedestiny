@@ -11,14 +11,14 @@
 //   4) 동물상 27종이 전부 서로 다른 리딩을 낸다(수호령·징후·부적·게이지가 갈린다).
 //   4-a) 🔴 수호령은 3령 무리다 (2026-08 3차 개편). 엔진이 주는 top3 를 주령/곁령/그림자령에 배치하고
 //        세 슬롯이 서로 다른 동물이어야 한다. 6-3a 가 이걸 강제한다 — top3 를 다시 버리면 걸린다.
-//   4-b) 분량 하한: 솔로 3,000자 / 궁합 1,800자. 서사 필드를 떼거나 장면을 합치면 걸린다.
+//   4-b) 핵심 웹툰은 3장·짧은 호흡이고, 기존 상세 원문은 펼침 영역에 보존한다.
 //   5) 전생 인연 궁합은 회당 5,000원(50코인) 유료로 남아 있고 공용 게이트를 경유한다.
 //      결제 후 뜨는 화면이므로 렌더까지 실제로 확인한다(6-6).
 //   6) 루트/public 사본이 동일하다.
 //
 // LLM 실호출 없음 — 전생 리딩은 전부 결정론적 테이블이라 mock 조차 필요 없다.
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, statSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import vm from 'node:vm';
@@ -33,6 +33,7 @@ assert.equal(read('PastLifeFaceUI.js'), read('public/PastLifeFaceUI.js'), 'PastL
 const source = read('PastLifeFaceUI.js');
 const physiognomy = read('PhysiognomyUI.js');
 const registry = read('worker/lib/paid-feature-registry.js');
+const shareSource = read('js/share.js');
 
 // ── 2. 격리 계약 ──
 assert.match(source, /\(function initPastLifeFaceApp\(\)\s*\{/, 'PastLifeFaceUI 는 IIFE 로 감싸야 한다 (PhysiognomyUI 와 최상위 식별자 충돌 방지)');
@@ -52,6 +53,8 @@ assert.doesNotMatch(source, /<details class="plf-chapter/, '결과는 아코디�
 assert.doesNotMatch(source, /class="plf-dossier/, '도시에 슬랩은 제거되어야 한다 — 리포트 잔재');
 assert.doesNotMatch(source, /class="plf-chip"/, '칩 네비는 제거되어야 한다 — 리포트 잔재');
 assert.match(source, /function plfBuildScenes\(reading\)/, '장면 빌더가 있어야 한다');
+assert.match(source, /function plfBuildStory\(input\)/, '기존 리딩을 웹툰 DTO로 정규화하는 빌더가 있어야 한다');
+assert.match(source, /function plfBindStoryImages\(\)/, '웹툰 이미지 지연 로더가 있어야 한다');
 assert.match(source, /data-plf-scene="/, '장면에 data-plf-scene 이 붙어야 한다');
 assert.match(source, /function plfBindSceneReveal\(\)/, '스크롤 공개 배선이 있어야 한다');
 
@@ -92,6 +95,16 @@ assert.match(
 );
 assert.match(source, /typeof window\.cdShareResultCardImage === 'function'/, '공유는 js/share.js 존재를 확인하고 써야 한다 (지연 로더라 보장되지 않는다)');
 assert.match(source, /function plfShareText\(\)/, '이미지 공유 실패 시 텍스트 공유 폴백이 있어야 한다');
+assert.match(source, /contentId:\s*PLF_SHARE_CONTENT_ID/, '이미지 공유는 전생 전용 contentId를 넘겨야 한다');
+assert.match(shareSource, /pastlifeface:\s*['"]openPastLifeFaceApp['"]/, '공유 helper의 전생 contentId가 실제 진입 action으로 매핑돼야 한다');
+
+for (const name of ['clue', 'choice', 'threshold']) {
+  for (const width of [480, 800]) {
+    const asset = resolve(root, `fuctionassets/past-life-webtoon/${name}-${width}.webp`);
+    const bytes = statSync(asset).size;
+    assert.ok(bytes <= 120 * 1024, `${name}-${width}.webp가 120KiB 상한을 넘음: ${bytes} bytes`);
+  }
+}
 
 assert.match(source, /function plfShowPreviewSkeleton\(show\)/, '사진 디코드 전 shimmer 스켈레톤이 있어야 한다');
 assert.match(source, /plfLongWaitTimer = setTimeout/, '30초 지연 안내가 있어야 한다');
@@ -136,7 +149,7 @@ runScript('PhysiognomyUI.js');
 // 유료 궁합 렌더러는 공개 API 로 도달할 수 없다(결제 게이트 → 파일 업로드 → MediaPipe 가 필요).
 // 검증 전용으로 IIFE 마지막에 내부 함수를 노출시켜 실렌더까지 확인한다.
 // 프로덕션 소스는 그대로 두고 이 스크립트 안에서만 변형한다.
-const TEST_HOOK = `window.__plfTestHooks = { buildReading: plfBuildReading, renderCompat: plfRenderCompatResult };\n})();`;
+const TEST_HOOK = `window.__plfTestHooks = { buildReading: plfBuildReading, buildStory: plfBuildStory, renderCompat: plfRenderCompatResult };\n})();`;
 const plfSource = source.replace(/\}\)\(\);\s*$/, TEST_HOOK);
 assert.notEqual(plfSource, source, '검증용 훅 주입에 실패했다 — PastLifeFaceUI.js 의 IIFE 종료 형태가 바뀌었는지 확인할 것');
 vm.runInContext(plfSource, context, { filename: 'PastLifeFaceUI.js' });
@@ -223,6 +236,13 @@ assert.ok(
 // 6-2. 리딩 구성 요소가 전부 렌더되는가
 const revealText = window.document.getElementById('plfRevealBody').textContent;
 for (const marker of [
+  '얼굴에서 시작된 세 장의 기억',
+  'EP.01',
+  'EP.02',
+  'EP.03',
+  '당신의 전생 기록',
+  '얼굴에서 시작된 세 가지 단서',
+  '그리고 지금,',
   'SCENE 01',
   '얼굴의 첫인상',
   '전생의 문 너머',
@@ -239,22 +259,52 @@ for (const marker of [
   '전생이 스치는 순간',
   '전생이 남긴 부적',
   '관상 근거',
-  '전생 기억의 선명도',
+  '기억이 떠오르는 강도',
+  '현재와 닿는 정도',
   '전생을 더 깊게 열어보기',
 ]) {
   assert.ok(revealText.includes(marker), `리딩 구성 누락: ${marker}`);
 }
 
-// 🔴 분량 회귀 방지 (2026-08 3차 개편). 개편 전 실측이 약 1,200자였고 개편 후가 3,400자대다.
-//    테이블에서 필드를 떼거나 장면을 도로 합치면 여기서 걸린다.
+// 핵심은 3장 웹툰으로 짧게 읽히고, 기존 9장 상세 원문은 접힌 기록 안에 보존한다.
 const revealLength = revealText.replace(/\s+/g, ' ').trim().length;
-// 2026-08-13 4차 개편에서 공통 서사 레이어 7종(전조·인연·유물·계절·미완·반복·평판, 94항목)을
-// 더해 3,365자 → 3,865자가 됐다. 신분 표에 필드를 더 쓰지 않고 신분과 독립인 축의 해시로 뽑으므로,
-// 같은 신분이 나와도 글이 갈린다("늘 같은 글"로 읽히던 문제).
+const coreNodes = window.document.querySelectorAll(
+  '.plf-story__intro,.plf-story__episode,.plf-story__record,.plf-story__clues,.plf-story__present',
+);
+const coreLength = Array.prototype.map.call(coreNodes, (node) => node.textContent).join(' ').replace(/\s+/g, ' ').trim().length;
+assert.ok(
+  coreLength >= 900 && coreLength <= 1800,
+  `핵심 웹툰 분량은 900~1,800자여야 한다 (실제 ${coreLength}자). 모바일에서 먼저 읽을 서사가 너무 짧거나 길다.`,
+);
 assert.ok(
   revealLength >= 3700,
-  `전생 리딩 분량이 3,700자 미만이다 (실제 ${revealLength}자). 서사 필드(standing/day/epitaph/aftermath/detail/origin)나 공통 레이어(omen/bond/relic/season/unfinished/recurrence/reputation)가 떨어져 나갔는지 확인할 것.`,
+  `상세 원문을 포함한 전체 리딩이 3,700자 미만이다 (실제 ${revealLength}자). 기존 역할·사건·3령·부적 기록이 누락됐는지 확인할 것.`,
 );
+
+const episodeNodes = window.document.querySelectorAll('[data-plf-episode]');
+assert.equal(episodeNodes.length, 3, `핵심 웹툰은 3장이어야 함 (실제 ${episodeNodes.length})`);
+const storyFigures = window.document.querySelectorAll('[data-plf-figure]');
+assert.equal(storyFigures.length, 3, `웹툰 그림은 3장이어야 함 (실제 ${storyFigures.length})`);
+assert.equal(storyFigures[0].querySelector('img').getAttribute('loading'), 'eager', '첫 그림은 즉시 보여야 함');
+assert.equal(
+  Array.prototype.filter.call(storyFigures, (figure) => figure.querySelector('img').getAttribute('loading') === 'lazy').length,
+  2,
+  '나머지 두 그림은 lazy여야 함',
+);
+for (const img of window.document.querySelectorAll('.plf-story__figure img')) {
+  assert.equal(img.getAttribute('width'), '800', '그림 width 예약값이 있어야 함');
+  assert.equal(img.getAttribute('height'), '1200', '그림 height 예약값이 있어야 함');
+  assert.ok(img.getAttribute('src'), 'IntersectionObserver가 없으면 지연 그림도 즉시 src를 받아야 함');
+}
+
+const sampleReading = window.__plfTestHooks.buildReading(seedFor(animals[0], FACE_CASES[0]));
+const sampleStory = window.__plfTestHooks.buildStory(sampleReading);
+assert.equal(sampleStory.episodes.length, 3, '표시 DTO는 3개 에피소드를 가져야 함');
+assert.equal(sampleStory.legacyReading, sampleReading, '표시 DTO가 기존 원문 객체를 보존해야 함');
+assert.equal(window.__plfTestHooks.buildStory('{broken'), null, '깨진 JSON은 안전하게 거절해야 함');
+assert.equal(window.__plfTestHooks.buildStory('x'.repeat(256 * 1024 + 1)), null, '과대 JSON은 파싱 전에 거절해야 함');
+const sparseStory = window.__plfTestHooks.buildStory('{}');
+assert.ok(sparseStory && sparseStory.episodes.length === 3, '누락 필드가 있는 JSON도 안전한 3장 fallback으로 내려가야 함');
 
 // 🔴 관상 근거는 서사가 아니라 신뢰 장치다 — 장면마다 한 번씩, 최소 5개 이상 붙어야 한다.
 assert.ok(
@@ -263,9 +313,10 @@ assert.ok(
 );
 assert.ok(window.document.getElementById('plfCompatBtn'), '전생 인연 궁합 CTA 가 렌더되어야 함');
 
-// 6-2a. 장면 6개 — 리포트 잔재(아코디언/칩/도시에)가 DOM 에 없어야 한다
+// 6-2a. 기존 상세 장면 9개는 접힌 기록 안에 보존한다.
 const sceneNodes = window.document.querySelectorAll('[data-plf-scene]');
 assert.equal(sceneNodes.length, 9, `장면은 9개여야 함 (실제 ${sceneNodes.length})`);
+assert.ok(window.document.querySelector('details.plf-archive'), '기존 상세 기록을 여는 펼침 영역이 있어야 함');
 for (const legacy of ['details.plf-chapter', '.plf-chip', '.plf-dossier']) {
   assert.equal(
     window.document.querySelectorAll(legacy).length,

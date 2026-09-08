@@ -1,6 +1,7 @@
+import Image from "next/image";
 import { INTRO_LOCALES, INTRO_TOPICS, FEATURE_INTRODUCTIONS } from "../../lib/i18n/feature-introductions.mjs";
 import { TRUST_LOCALES, TRUST_UI } from "../../lib/i18n/public-trust-copy.mjs";
-import { I18N_POLICY_ROUTE_MAP } from "../../lib/i18n/routes";
+import { getLocalizedPublicHref } from "../../lib/i18n/routes";
 import styles from "./SiteFooterHub.module.css";
 import SocialFooter from "../_components/SocialFooter";
 import {
@@ -83,13 +84,6 @@ function buildLocaleNavLinks(locale, labels) {
   return links;
 }
 
-function localizedPolicyHref(href, locale) {
-  const key = href.replace(/\//g, "");
-  if (TRUST_LOCALES.includes(locale) && ["about", "faq", "contact", "disclaimer"].includes(key)) return `/${locale}/${key}/`;
-  const policyKey = { privacy: "privacy", "privacy-policy": "privacy", terms: "terms", "terms-of-service": "terms", "refund-policy": "refundPolicy" }[key];
-  return policyKey ? `${I18N_POLICY_ROUTE_MAP[policyKey][locale]}/` : href;
-}
-
 export default function LocaleFooterHub({ locale }) {
   const copy = SITE_FOOTER_HUB_COPY[locale];
   const refundSection = getRefundSection(locale);
@@ -104,6 +98,13 @@ export default function LocaleFooterHub({ locale }) {
       <div className={`${styles.sfhStars} ${styles.sfhStarsFar}`} aria-hidden />
 
       <div className={styles.sfhShell}>
+        <a href={I18N_ROUTE_MAP.home[locale]} className={styles.sfhBrand} aria-label={copy.localeNavLabels.home}>
+          <Image src="/icons/app-logo-512.webp" alt="" width={512} height={512} sizes="56px" />
+          <span>
+            <strong>CODE DESTINY</strong>
+            <small>{copy.title}</small>
+          </span>
+        </a>
         <section aria-label={copy.hubAriaLabel}>
           {/* SEO 내부 링크 허브 — 앱 번들에서는 렌더하지 않는다(2026-09-03 사용자 결정).
               앱은 하단 탭바와 홈 IA 가 같은 진입을 이미 갖고 있어 중복이고, 색인 목적의 링크 격자는
@@ -133,7 +134,7 @@ export default function LocaleFooterHub({ locale }) {
                       <h2 className={styles.sfhGroupTitle}>{groupTitle}</h2>
                       <nav className={styles.sfhLinkNav} aria-label={`${groupTitle} ${copy.linkNavSuffix}`}>
                         {group.hrefs.map((href) => (
-                          <a key={href} href={localizedPolicyHref(href, locale)} className={styles.sfhLink}>
+                          <a key={href} href={getLocalizedPublicHref(href, locale)} className={styles.sfhLink}>
                             {copy.linkLabels[href]}
                           </a>
                         ))}
@@ -168,7 +169,7 @@ export default function LocaleFooterHub({ locale }) {
             <h2 style={{ fontSize: '1.25rem', marginTop: '2rem', marginBottom: '1rem', fontWeight: 600 }}>{copy.disclaimerTitle}</h2>
             <p style={{ marginBottom: '0.5rem', lineHeight: 1.6 }}>{copy.disclaimerBody}</p>
             <p style={{ fontSize: '0.95rem', lineHeight: 1.6 }}>
-              <a href={localizedPolicyHref("/disclaimer/", locale)} className={styles.sfhLink}>{copy.disclaimerLinkLabel}</a>
+              <a href={getLocalizedPublicHref("/disclaimer/", locale)} className={styles.sfhLink}>{copy.disclaimerLinkLabel}</a>
             </p>
           </section>
         </section>
@@ -196,7 +197,7 @@ export default function LocaleFooterHub({ locale }) {
             <a key={key} href={`/${locale}/${key}/`} className={styles.sfhPolicyLink}>{TRUST_UI[locale][key]}</a>
           ))}
           {FOOTER_POLICY_HREFS.map((href) => (
-            <a key={href} href={localizedPolicyHref(href, locale)} className={styles.sfhPolicyLink}>
+            <a key={href} href={getLocalizedPublicHref(href, locale)} className={styles.sfhPolicyLink}>
               {copy.policyLabels[href]}
             </a>
           ))}

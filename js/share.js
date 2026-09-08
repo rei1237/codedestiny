@@ -485,6 +485,7 @@ var CD_SHARE_ACTION_MAP = {
   astro: 'openAstroModal',
   sukuyo: 'openSukuyoModal',
   ziwei: 'openZiweiModal',
+  pastlifeface: 'openPastLifeFaceApp',
   lovesecret: '',
   lifebook: ''
 };

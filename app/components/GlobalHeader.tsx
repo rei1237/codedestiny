@@ -1,12 +1,15 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useLocale } from "@/lib/i18n/useT";
+import { getLocalizedPublicHref } from "@/lib/i18n/routes";
+import type { Locale } from "@/lib/i18n/locales";
+import styles from "./GlobalHeader.module.css";
 
-const LOCALE_CODES = ["ko", "en", "ja", "zh-CN", "zh-TW", "vi", "hi", "es", "fr", "de", "nl", "ms"] as const;
-type LoadingLocale = (typeof LOCALE_CODES)[number];
+type LoadingLocale = "ko" | "en" | "ja" | "zh-CN" | "zh-TW" | "vi" | "hi" | "es" | "fr" | "de" | "nl" | "ms";
 
 // 로케일 감지는 lib/i18n/useT 의 useLocale 이 담당한다(cd:locale-ready 구독 포함).
 // 여기 있던 normalizeChromeLocale/getCurrentChromeLocale 은 그 훅과 중복이라 제거했다.
@@ -48,6 +51,7 @@ const GLOBAL_HEADER_COPY: Record<LoadingLocale, {
   menu: string;
   auth: string;
   policyLinks: string;
+  brandTagline: string;
 }> = {
   ko: {
     nav: { "/index.html": "홈", "/insights": "운세 인사이트", "/privacy": "개인정보", "/terms": "이용약관", "/contact": "문의", "/about": "소개", "/disclaimer": "면책", "/advertising-policy": "광고정책" },
@@ -57,6 +61,7 @@ const GLOBAL_HEADER_COPY: Record<LoadingLocale, {
     menu: "메뉴",
     auth: "인증",
     policyLinks: "정책 링크",
+    brandTagline: "꿀꿀 운세",
   },
   en: {
     nav: { "/index.html": "Home", "/insights": "Insights", "/privacy": "Privacy", "/terms": "Terms", "/contact": "Contact", "/about": "About", "/disclaimer": "Disclaimer", "/advertising-policy": "Advertising Policy" },
@@ -66,6 +71,7 @@ const GLOBAL_HEADER_COPY: Record<LoadingLocale, {
     menu: "Menu",
     auth: "Auth",
     policyLinks: "Policy Links",
+    brandTagline: "A gentler reading",
   },
   ja: {
     nav: { "/index.html": "ホーム", "/insights": "インサイト", "/privacy": "プライバシー", "/terms": "利用規約", "/contact": "お問い合わせ", "/about": "紹介", "/disclaimer": "免責事項", "/advertising-policy": "広告ポリシー" },
@@ -75,6 +81,7 @@ const GLOBAL_HEADER_COPY: Record<LoadingLocale, {
     menu: "メニュー",
     auth: "認証",
     policyLinks: "ポリシーリンク",
+    brandTagline: "心ほどける占い",
   },
   "zh-CN": {
     nav: { "/index.html": "首页", "/insights": "运势洞察", "/privacy": "隐私", "/terms": "使用条款", "/contact": "联系", "/about": "关于", "/disclaimer": "免责声明", "/advertising-policy": "广告政策" },
@@ -84,6 +91,7 @@ const GLOBAL_HEADER_COPY: Record<LoadingLocale, {
     menu: "菜单",
     auth: "认证",
     policyLinks: "政策链接",
+    brandTagline: "治愈心绪的占卜",
   },
   "zh-TW": {
     nav: { "/index.html": "首頁", "/insights": "運勢洞察", "/privacy": "隱私", "/terms": "使用條款", "/contact": "聯絡", "/about": "關於", "/disclaimer": "免責聲明", "/advertising-policy": "廣告政策" },
@@ -93,6 +101,7 @@ const GLOBAL_HEADER_COPY: Record<LoadingLocale, {
     menu: "選單",
     auth: "認證",
     policyLinks: "政策連結",
+    brandTagline: "療癒心緒的占卜",
   },
   vi: {
     nav: { "/index.html": "Trang chủ", "/insights": "Bài viết", "/privacy": "Quyền riêng tư", "/terms": "Điều khoản", "/contact": "Liên hệ", "/about": "Giới thiệu", "/disclaimer": "Miễn trừ", "/advertising-policy": "Chính sách quảng cáo" },
@@ -102,6 +111,7 @@ const GLOBAL_HEADER_COPY: Record<LoadingLocale, {
     menu: "Menu",
     auth: "Xác thực",
     policyLinks: "Liên kết chính sách",
+    brandTagline: "Lời giải dịu dàng",
   },
   hi: {
     nav: { "/index.html": "होम", "/insights": "लेख", "/privacy": "गोपनीयता", "/terms": "शर्तें", "/contact": "संपर्क", "/about": "परिचय", "/disclaimer": "अस्वीकरण", "/advertising-policy": "विज्ञापन नीति" },
@@ -111,6 +121,7 @@ const GLOBAL_HEADER_COPY: Record<LoadingLocale, {
     menu: "मेनू",
     auth: "प्रमाणन",
     policyLinks: "नीति लिंक",
+    brandTagline: "मन को सुकून देने वाला पठन",
   },
   es: {
     nav: { "/index.html": "Inicio", "/insights": "Artículos", "/privacy": "Privacidad", "/terms": "Términos", "/contact": "Contacto", "/about": "Acerca de", "/disclaimer": "Aviso legal", "/advertising-policy": "Política publicitaria" },
@@ -120,6 +131,7 @@ const GLOBAL_HEADER_COPY: Record<LoadingLocale, {
     menu: "Menú",
     auth: "Acceso",
     policyLinks: "Enlaces de políticas",
+    brandTagline: "Una lectura más amable",
   },
   fr: {
     nav: { "/index.html": "Accueil", "/insights": "Articles", "/privacy": "Confidentialité", "/terms": "Conditions", "/contact": "Contact", "/about": "À propos", "/disclaimer": "Avertissement", "/advertising-policy": "Politique publicitaire" },
@@ -129,6 +141,7 @@ const GLOBAL_HEADER_COPY: Record<LoadingLocale, {
     menu: "Menu",
     auth: "Compte",
     policyLinks: "Liens de politique",
+    brandTagline: "Une lecture apaisante",
   },
   de: {
     nav: { "/index.html": "Start", "/insights": "Artikel", "/privacy": "Datenschutz", "/terms": "Nutzungsbedingungen", "/contact": "Kontakt", "/about": "Über uns", "/disclaimer": "Haftungsausschluss", "/advertising-policy": "Werberichtlinie" },
@@ -138,6 +151,7 @@ const GLOBAL_HEADER_COPY: Record<LoadingLocale, {
     menu: "Menü",
     auth: "Auth",
     policyLinks: "Richtlinienlinks",
+    brandTagline: "Eine sanfte Deutung",
   },
   nl: {
     nav: { "/index.html": "Home", "/insights": "Artikelen", "/privacy": "Privacy", "/terms": "Voorwaarden", "/contact": "Contact", "/about": "Over", "/disclaimer": "Disclaimer", "/advertising-policy": "Advertentiebeleid" },
@@ -147,6 +161,7 @@ const GLOBAL_HEADER_COPY: Record<LoadingLocale, {
     menu: "Menu",
     auth: "Auth",
     policyLinks: "Beleidslinks",
+    brandTagline: "Een zachte duiding",
   },
   ms: {
     nav: { "/index.html": "Laman utama", "/insights": "Artikel", "/privacy": "Privasi", "/terms": "Terma", "/contact": "Hubungi", "/about": "Tentang", "/disclaimer": "Penafian", "/advertising-policy": "Dasar iklan" },
@@ -156,8 +171,15 @@ const GLOBAL_HEADER_COPY: Record<LoadingLocale, {
     menu: "Menu",
     auth: "Auth",
     policyLinks: "Pautan dasar",
+    brandTagline: "Tafsiran yang menenangkan",
   },
 };
+
+function toPublicRouteLocale(locale: LoadingLocale): Locale {
+  if (locale === "zh-CN") return "zh";
+  if (locale === "ko" || locale === "en" || locale === "ja" || locale === "zh-TW") return locale;
+  return "ko";
+}
 
 function isStaticShellHref(href: string) {
   return href === "/index.html" || href.startsWith("/index.html?");
@@ -191,35 +213,43 @@ export default function GlobalHeader() {
   const showDesktopControls = useDesktopHeaderControls();
   // 표가 12개 로케일을 다 갖췄고 useLocale 이 그중 하나로 수렴하므로 fallback 이 필요 없다.
   const copy = GLOBAL_HEADER_COPY[locale];
+  const publicRouteLocale = toPublicRouteLocale(locale);
 
   return (
     <>
-      <header className="sticky top-0 z-[70] border-b border-violet-200/20 bg-[rgba(12,8,28,0.84)] backdrop-blur-xl">
-        <div className="mx-auto flex min-h-[58px] w-[min(1240px,100%-20px)] items-center gap-3 py-2">
+      <header className={styles.root}>
+        <div className={styles.shell}>
+          {/* 정적 홈 셸로 문서 이동해야 React 홈이 한 프레임 노출되지 않는다. */}
+          {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
           <a
-            href="/index.html"
-            className="inline-flex min-h-11 shrink-0 items-center bg-gradient-to-r from-violet-300 via-fuchsia-200 to-amber-100 bg-clip-text text-[17px] font-black text-transparent"
+            href={getLocalizedPublicHref("/index.html", publicRouteLocale)}
+            className={styles.brand}
+            aria-label={copy.nav["/index.html"]}
           >
-            Code Destiny
+            <Image className={styles.brandImage} src="/icons/app-logo-512.webp" alt="" width={512} height={512} sizes="42px" />
+            <span className={styles.brandText}>
+              <strong>CODE DESTINY</strong>
+              <small>{copy.brandTagline}</small>
+            </span>
           </a>
 
-          <nav className="hidden min-w-0 flex-1 items-center gap-1.5 overflow-x-auto xl:flex" aria-label={copy.mainNav}>
+          <nav className={styles.mainNav} aria-label={copy.mainNav}>
             {headerNavItems.map((item) => {
-              const className = "inline-flex shrink-0 items-center rounded-full border border-violet-200/25 bg-[rgba(33,18,64,0.56)] px-3 py-1.5 text-[12px] font-semibold text-violet-100 transition hover:border-violet-200/50 hover:bg-[rgba(65,39,120,0.55)]";
               const label = copy.nav[item.href] || item.href;
+              const href = getLocalizedPublicHref(item.href, publicRouteLocale);
               return isStaticShellHref(item.href) ? (
-                <a key={item.href} href={item.href} className={className}>
+                <a key={item.href} href={href} className={styles.navLink}>
                   {label}
                 </a>
               ) : (
-                <Link key={item.href} href={item.href} className={className}>
+                <Link key={item.href} href={href} className={styles.navLink}>
                   {label}
                 </Link>
               );
             })}
           </nav>
 
-          <div className="hidden items-center gap-2 md:flex">
+          <div className={styles.controls}>
             {showDesktopControls ? (
               <>
                 <LocaleSwitcher />
@@ -230,23 +260,27 @@ export default function GlobalHeader() {
 
           <button
             type="button"
-            className="ml-auto rounded-lg border border-violet-200/30 bg-[rgba(32,19,60,0.78)] px-3 py-1.5 text-sm font-semibold text-violet-100 md:hidden"
+            className={styles.menuButton}
             aria-label={menuOpen ? copy.closeMenu : copy.openMenu}
             aria-expanded={menuOpen}
             onClick={() => setMenuOpen((value) => !value)}
           >
-            {menuOpen ? copy.closeMenu : copy.menu}
+            <svg viewBox="0 0 20 20" aria-hidden="true">
+              {menuOpen ? <path d="m5 5 10 10M15 5 5 15" /> : <path d="M3 5h14M3 10h14M3 15h14" />}
+            </svg>
+            <span>{menuOpen ? copy.closeMenu : copy.menu}</span>
           </button>
         </div>
-        <div className="hidden border-t border-violet-200/15 xl:block">
-          <nav className="mx-auto flex w-[min(1240px,100%-20px)] flex-wrap items-center justify-end gap-2 py-2" aria-label={copy.policyLinks}>
+        <div className={styles.policyBar}>
+          <nav className={styles.policyNav} aria-label={copy.policyLinks}>
             {policyNavItems.map((item) => {
               const label = copy.nav[item.href] || item.href;
+              const href = getLocalizedPublicHref(item.href, publicRouteLocale);
               return (
                 <Link
                   key={`d-${item.href}`}
-                  href={item.href}
-                  className="rounded-full border border-violet-200/20 bg-[rgba(32,19,60,0.54)] px-2.5 py-1 text-[11px] font-semibold text-violet-100/90 transition hover:border-violet-200/45 hover:bg-[rgba(65,39,120,0.48)]"
+                  href={href}
+                  className={styles.policyLink}
                 >
                   {label}
                 </Link>
@@ -257,40 +291,41 @@ export default function GlobalHeader() {
       </header>
 
       {menuOpen ? (
-        <div className="sticky top-[58px] z-[65] border-b border-violet-200/20 bg-[rgba(11,8,26,0.95)] px-3 pb-4 pt-3 md:hidden">
-          <div className="mb-3 flex items-center justify-between gap-2 rounded-xl border border-violet-200/20 bg-[rgba(36,20,68,0.45)] p-2">
-            <span className="text-xs font-semibold tracking-[0.14em] text-violet-200/75">{copy.auth}</span>
-            <div className="flex items-center gap-2">
+        <div className={styles.mobilePanel}>
+          <div className={styles.mobileTools}>
+            <span>{copy.auth}</span>
+            <div>
               <LocaleSwitcher />
               <AuthWidget />
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-2">
+          <div className={styles.mobileLinks}>
             {headerNavItems.map((item) => {
-              const className = "rounded-xl border border-violet-200/25 bg-[rgba(32,19,60,0.8)] px-2.5 py-2 text-center text-[11px] font-semibold text-violet-100";
               const label = copy.nav[item.href] || item.href;
+              const href = getLocalizedPublicHref(item.href, publicRouteLocale);
               return isStaticShellHref(item.href) ? (
-                <a key={`m-${item.href}`} href={item.href} onClick={() => setMenuOpen(false)} className={className}>
+                <a key={`m-${item.href}`} href={href} onClick={() => setMenuOpen(false)} className={styles.navLink}>
                   {label}
                 </a>
               ) : (
-                <Link key={`m-${item.href}`} href={item.href} onClick={() => setMenuOpen(false)} className={className}>
+                <Link key={`m-${item.href}`} href={href} onClick={() => setMenuOpen(false)} className={styles.navLink}>
                   {label}
                 </Link>
               );
             })}
           </div>
-          <div className="mt-4 border-t border-violet-200/15 pt-3">
-            <p className="mb-2 text-[11px] font-semibold tracking-[0.12em] text-violet-200/70">{copy.policyLinks}</p>
-            <div className="flex flex-wrap gap-2">
+          <div>
+            <p className={styles.mobilePolicyLabel}>{copy.policyLinks}</p>
+            <div className={styles.mobilePolicyLinks}>
               {policyNavItems.map((item) => {
                 const label = copy.nav[item.href] || item.href;
+                const href = getLocalizedPublicHref(item.href, publicRouteLocale);
                 return (
                   <Link
                     key={`m-policy-${item.href}`}
-                    href={item.href}
+                    href={href}
                     onClick={() => setMenuOpen(false)}
-                    className="rounded-full border border-violet-200/25 bg-[rgba(32,19,60,0.8)] px-2.5 py-1 text-[11px] font-semibold text-violet-100"
+                    className={styles.policyLink}
                   >
                     {label}
                   </Link>

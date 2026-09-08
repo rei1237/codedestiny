@@ -1,3 +1,4 @@
+import PolicyGuide, { PolicyAccordion, policyPageClass } from "../components/PolicyGuide";
 import Link from "next/link";
 import { generatePageMetadata } from "../../lib/generate-page-metadata";
 import PrivacyPolicyContent, {
@@ -44,14 +45,18 @@ export function generateMetadata() {
 
 export default function PrivacyPolicyPage() {
   return (
-    <main className="policy-doc">
-      <header className="policy-doc__head">
-        <h1 className="policy-doc__title">개인정보처리방침</h1>
-        <p className="policy-doc__meta">시행일 {PRIVACY_POLICY_EFFECTIVE_DATE} · Privacy Policy</p>
-        <p className="policy-doc__lede">
-          Code Destiny가 어떤 정보를 왜 처리하고 얼마나 보관하는지, 이용자가 어떤 권리를 어떻게 행사할 수 있는지 정리한 문서입니다.
-        </p>
-      </header>
+    <main className={`policy-doc ${policyPageClass}`}>
+      <PolicyGuide
+        kind="privacy"
+        title="개인정보처리방침"
+        description="어떤 정보를 왜 사용하고, 얼마나 보관하며, 내 권리를 어떻게 행사할 수 있는지 안내합니다."
+        meta={`시행일 ${PRIVACY_POLICY_EFFECTIVE_DATE}`}
+      />
+
+      <PolicyAccordion id="privacy-at-a-glance" title="프로필 카드에 저장한 정보는 어떻게 되나요?">
+        <p>프로필 카드의 이름·생년 정보·출생지는 카드를 삭제하면 서버에서 즉시 삭제됩니다. 결제 기록처럼 별도 보관 기준이 있는 정보는 아래 보관 기간 항목을 확인해 주세요.</p>
+        <a href="#retention">보관 기간과 삭제 기준 보기</a> · <Link href="/contact">개인정보 문의하기</Link>
+      </PolicyAccordion>
 
       <div className="policy-doc__layout">
         <nav className="policy-doc__toc" aria-label="개인정보처리방침 목차">

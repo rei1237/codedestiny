@@ -60,6 +60,15 @@
 /public/fortune/index.html
 /public/fortune/tarot/tarot-data.json
 /public/fuctionassets/comprehensive-fortune-prompt.webp
+/public/fuctionassets/past-life-webtoon/choice-480.webp
+/public/fuctionassets/past-life-webtoon/choice-800.webp
+/public/fuctionassets/past-life-webtoon/clue-480.webp
+/public/fuctionassets/past-life-webtoon/clue-800.webp
+/public/fuctionassets/past-life-webtoon/threshold-480.webp
+/public/fuctionassets/past-life-webtoon/threshold-800.webp
+/public/fuctionassets/saju-relationship-temptation-1024.webp
+/public/fuctionassets/saju-relationship-temptation-480.webp
+/public/fuctionassets/saju-relationship-temptation-768.webp
 /public/fuctionassets/자는 연이.png
 /public/fuctionassets/자는 연이.webp
 /public/geomancy-oracle-v4.html
@@ -104,6 +113,7 @@
 /public/js/core/saju/dopamineResult.js
 /public/js/core/saju/extremeTResult.js
 /public/js/core/saju/modalProfileState.js
+/public/js/core/saju/relationshipTemptationAnalysis.js
 /public/js/core/saju/reportDashboard.js
 /public/js/core/service-registry.js
 /public/js/core/uiBindings.js
@@ -208,7 +218,6 @@
 /public/styles/mobile-lite.css
 /public/styles/mobile-totem-flower-fix.css
 /public/styles/sibyl-system.css
-/public/styles/static-policy.css
 /public/styles/tarot-healing-dawn.css
 /public/styles/tarot-love-mystic.css
 /public/styles/tarot-reunion-lighthouse.css
