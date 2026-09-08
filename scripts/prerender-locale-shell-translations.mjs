@@ -142,6 +142,11 @@ for (const baseDir of ["dist", "out", ".open-next/assets"]) {
     }
 
     const dictionary = flattenDictionary(JSON.parse(readFileSync(dictionaryPath, "utf8")));
+    for (const match of markupOnly.matchAll(/data-cd-trans="(home\.searchEntry\.[^"]+)"/g)) {
+      if (!dictionary[match[1]]?.trim()) {
+        throw new Error(`[locale-prerender] ${locale}: missing required translation ${match[1]}`);
+      }
+    }
     const { output, textReplaced, attrReplaced } = translateShell(html, dictionary);
     writeFileSync(shellPath, output, "utf8");
     touched += 1;
