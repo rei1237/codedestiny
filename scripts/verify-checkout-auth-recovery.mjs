@@ -62,8 +62,9 @@ for (const file of DP_FILES) {
     `${file}: dp confirm 이 401 복구 옵트인을 갖지 않는다`,
   );
   assert.ok(
-    src.includes("{ method: 'POST', body: dpResumeBody }, { retryOn401: true, refreshOn401: true })"),
-    `${file}: dp 리다이렉트 복귀 confirm 이 401 복구 옵트인을 갖지 않는다`,
+    src.includes("dpRecoveryPath ? { method: 'POST' } : { method: 'POST', body: dpResumeBody }")
+      && src.includes("{ retryOn401: true, refreshOn401: true },"),
+    `${file}: dp 리다이렉트 복귀 confirm/recovery가 401 복구 옵트인을 갖지 않는다`,
   );
 }
 

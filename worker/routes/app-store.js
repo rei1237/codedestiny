@@ -793,6 +793,8 @@ function buildEntitlementUpdate({ product, googlePurchase, now, priorSubscriptio
       "profileSubscription.premiumUseCount": cycle.premiumUseCount,
       "profileSubscription.monthlySpendCoin": cycle.monthlySpendCoin,
       "profileSubscription.monthlyLimitCoin": cycle.monthlyLimitCoin,
+      "profileSubscription.passExhaustedAt": null,
+      "profileSubscription.passExhaustedFromExpiresAt": null,
     };
     if (passOrderId) update.$set["profileSubscription.lastPassOrderId"] = String(passOrderId);
   }

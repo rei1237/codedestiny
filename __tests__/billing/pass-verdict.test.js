@@ -685,9 +685,7 @@ describe("isMonthlyLimitPayload", () => {
   });
 });
 
-describe("markPassEndedFromPayload — 월 한도 소진으로 이용권이 끝났다는 서버 통보", () => {
-  // 소진을 유발한 그 응답이 클라 스냅샷을 뒤집는 유일한 기회다. 놓치면 스냅샷이 잠시
-  // '보유'로 남아 낙관 통과 → 서버 402 → "됐다가 안 됨"으로 보인다.
+describe("markPassEndedFromPayload — 월 한도 소진 서버 통보", () => {
   const active = (extra = {}) => ({
     state: "active",
     tier: "premium",
@@ -697,26 +695,26 @@ describe("markPassEndedFromPayload — 월 한도 소진으로 이용권이 끝�
     ...extra,
   });
 
-  it("data.membershipPass.passEnded 를 보면 보유 스냅샷을 미보유로 뒤집는다", () => {
+  it("data.membershipPass.passBudgetExhausted 를 보면 잔여 예산만 0으로 갱신한다", () => {
     seed(storage, active({ monthlySpendRemainingCoin: 12 }));
     const endedAt = new Date().toISOString();
     const stored = passVerdict.markPassEndedFromPayload(USER_ID, {
       ok: true,
-      data: { membershipPass: { tier: "premium", passEnded: true, passEndedAt: endedAt } },
+      data: { membershipPass: { tier: "premium", passBudgetExhausted: true, passBudgetExhaustedAt: endedAt } },
     });
     expect(stored).not.toBeNull();
-    expect(stored.state).toBe("none");
-    expect(stored.tier).toBe("free");
-    expect(stored.expiresAt).toBeNull();
+    expect(stored.state).toBe("active");
+    expect(stored.tier).toBe("premium");
+    expect(stored.expiresAt).not.toBeNull();
     expect(stored.monthlySpendRemainingCoin).toBe(0);
-    expect(passVerdict.readSnapshot(USER_ID).state).toBe("none");
+    expect(passVerdict.readSnapshot(USER_ID).state).toBe("active");
   });
 
-  it("최상위·data 어디에 실려도 잡는다", () => {
+  it("새 플래그와 구 passEnded 봉투를 어느 위치에서도 잔여 0으로 흡수한다", () => {
     seed(storage, active());
-    expect(passVerdict.markPassEndedFromPayload(USER_ID, { passEnded: true }).state).toBe("none");
+    expect(passVerdict.markPassEndedFromPayload(USER_ID, { passBudgetExhausted: true }).monthlySpendRemainingCoin).toBe(0);
     seed(storage, active());
-    expect(passVerdict.markPassEndedFromPayload(USER_ID, { data: { passEnded: true } }).state).toBe("none");
+    expect(passVerdict.markPassEndedFromPayload(USER_ID, { data: { passEnded: true } }).state).toBe("active");
   });
 
   it("🔴 플래그가 없으면 보유 스냅샷을 건드리지 않는다", () => {
@@ -731,6 +729,11 @@ describe("markPassEndedFromPayload — 월 한도 소진으로 이용권이 끝�
   it("사용자 없음·비객체 페이로드는 아무것도 쓰지 않는다", () => {
     expect(passVerdict.markPassEndedFromPayload("", { passEnded: true })).toBeNull();
     expect(passVerdict.markPassEndedFromPayload(USER_ID, null)).toBeNull();
+    expect(storage.size()).toBe(0);
+  });
+
+  it("활성 스냅샷이 없으면 이용권 상태를 새로 만들지 않는다", () => {
+    expect(passVerdict.markPassEndedFromPayload(USER_ID, { passBudgetExhausted: true })).toBeNull();
     expect(storage.size()).toBe(0);
   });
 });

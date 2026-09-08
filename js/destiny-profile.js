@@ -4462,7 +4462,7 @@
     if ((!ticket || !ticket.confirmBody) && !queryPaymentId) return;
 
     var paymentId = String(queryPaymentId || (ticket && ticket.merchantUid) || '').trim();
-    if (paymentId && (isPassReturn || !ticket || !ticket.resume)) {
+    if (paymentId && isPassReturn) {
       try {
         var restored = await _dpPaymentFetchJson('/api/payments/orders/' + encodeURIComponent(paymentId) + '/resume', { method: 'GET' }, { retryOn401: true, refreshOn401: true });
         if (restored.ok && restored.payload && restored.payload.context) ticket = restored.payload.context;
@@ -4535,8 +4535,21 @@
         impUid: paymentId,
         paymentId: paymentId,
       }));
-      var confirmRes = await _dpPaymentFetchJson(isPassReturn ? '/api/payments/subscription/confirm' : '/api/billing/confirm', { method: 'POST', body: dpResumeBody }, { retryOn401: true, refreshOn401: true });
+      /* 새 탭 복귀에는 티켓이 없다. 이때 기존 GET resume은 아직 PENDING이라 입력을 못 돌려줬고,
+         뒤 confirm 성공 뒤에도 다시 읽지 않아 자동 재개가 사라졌다. recovery는 서버 검증·지급과
+         승인 뒤 context 반환을 한 번에 묶는다. 티켓이 있는 기존 경로와 이용권 전용 경로는 유지한다. */
+      var dpRecoveryPath = !isPassReturn && (!ticket || !ticket.confirmBody)
+        ? '/api/payments/orders/' + encodeURIComponent(paymentId) + '/recover'
+        : '';
+      var confirmRes = await _dpPaymentFetchJson(
+        dpRecoveryPath || (isPassReturn ? '/api/payments/subscription/confirm' : '/api/billing/confirm'),
+        dpRecoveryPath ? { method: 'POST' } : { method: 'POST', body: dpResumeBody },
+        { retryOn401: true, refreshOn401: true },
+      );
       var resumePayload = (confirmRes && confirmRes.payload && typeof confirmRes.payload === 'object') ? confirmRes.payload : {};
+      if ((!ticket || !ticket.resume) && resumePayload.context && typeof resumePayload.context === 'object') {
+        ticket = resumePayload.context;
+      }
       /* 🔴 PENDING 은 실패가 아니다(셸 index.html 의 confirm 판정 순서와 같다). 서버는 지급 지연을
          200 + code:'GRANT_PENDING' + recoveryRequired:true 로 준다(worker/payments/compat.js) —
          이걸 "결제 완료"로 표시하면 열람 권한이 없는데 완료 안내가 뜨고, 실패로 닫으면 사용자가
@@ -12704,7 +12717,7 @@
               hit.classList.remove('is-loading');
               var passMonthlyNode = root.querySelector('[data-payment-status]');
               if (passMonthlyNode) {
-                passMonthlyNode.textContent = _dpCheckoutText('payment.directModal.passMonthlyExhausted', '이용권 한도를 모두 사용해 이용권이 종료되었어요. 새로 구매하면 30일이 다시 시작되고, 지금은 단건 결제나 월정석으로 열 수 있어요.');
+                passMonthlyNode.textContent = _dpCheckoutText('payment.directModal.passMonthlyExhausted', '이용권 월 한도를 모두 사용했어요. 만료일까지 등급과 프로필 상한은 유지되며, 추가 콘텐츠는 단건 결제나 월정석으로 이용할 수 있어요.');
                 passMonthlyNode.style.color = '#fca5a5';
               }
               return;
