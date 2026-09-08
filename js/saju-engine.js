@@ -22068,6 +22068,7 @@ function renderZiwei(p, natal, targetId) {
     if (typeof refreshUnlockButtons === 'function') requestAnimationFrame(function() { refreshUnlockButtons(); });
     // 아래 정의부(_zwRestoreChartView)는 이 함수 본문이 끝나야 붙으므로 다음 프레임에 부른다.
     requestAnimationFrame(function() {
+      if (window.BasicFortunePresentation && targetId === 'ziweiModalSection') window.BasicFortunePresentation.ziwei(sec, palace);
       if (typeof window._zwRestoreChartView === 'function') window._zwRestoreChartView();
       if (window._zwTriadResizeObserver) {
         var grid = sec.querySelector('.zw-grid');
@@ -23676,7 +23677,7 @@ function renderZiwei(p, natal, targetId) {
         };
 
         var theme = 'psy';
-        var themeTitle = ' [타고난 심리/성향] 코어 엔진 해석';
+        var themeTitle = ' 나의 기질과 마음의 습관';
 
         if (['부부궁','형제궁','노복궁','자녀궁','부모궁'].includes(pName)) {
             theme = 'rel';
@@ -23737,7 +23738,7 @@ function renderZiwei(p, natal, targetId) {
         var palaceBrief = zwGungBrief(pName) || zwGungDef(pName) || '해당 궁의 흐름을 확인하세요.';
 
         var sec1 = '<div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; margin-bottom: 20px;">' +
-          '<h2 style="color: #D8B4FE; font-size: 1.2rem; margin-top: 0;">🗺️ [당신을 비추는 별의 지도]</h2>' +
+          '<h2 style="color: #D8B4FE; font-size: 1.2rem; margin-top: 0;">명반에서 읽은 해석의 근거</h2>' +
           '<ul style="line-height: 1.85; margin: 0; padding-left: 20px; font-size:0.9rem;">' +
             '<li><b>조회 궁위:</b> ' + dTitle + '</li>' +
             '<li><b>궁위 해석 초점:</b> ' + palaceBrief + '</li>' +
@@ -24774,7 +24775,7 @@ function renderZiwei(p, natal, targetId) {
         +'</div>';
 
         var sec3 = '<div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; margin-bottom: 20px;">' +
-          '<h2 style="color: #D8B4FE; font-size: 1.2rem; margin-top: 0;">🌊 [클릭한 궁의 대운 운기]</h2>' +
+          '<h2 style="color: #D8B4FE; font-size: 1.2rem; margin-top: 0;">이 궁과 이어지는 시기의 흐름</h2>' +
           '<div style="line-height: 1.7; margin: 0; font-size: 0.92rem; color:#e2e8f0;">' +
             '<div style="margin-bottom:8px;"><b>해당 궁의 대운 나이:</b> ' + curDaHan + '세 (' + pName + ' 운기)</div>' +
             '<div style="margin-bottom:8px;">' + coreLaw + '</div>' +
@@ -26195,7 +26196,15 @@ function renderZiwei(p, natal, targetId) {
         +'</section>';
 
         var contentHtml = '';
-        if (clickOnly) {
+        if (clickOnly && window.BasicFortunePresentation && targetPanelId === 'zwDetailPanel') {
+          contentHtml = '<section class="fr-palace-summary">'
+            + '<h3>' + dTitle + '</h3>'
+            + (showClose ? '<button type="button" class="zw-report-close-btn zw-summary-close-btn" onclick="window._closeZwDetailReport()">요약 닫기</button>' : '')
+            + secStarLens
+            + '<details class="fr-disclosure"><summary>해석의 근거와 출생 정보</summary><div class="fr-disclosure-body">' + ziweiPrecisionNotice + sec1 + '</div></details>'
+            + '<details class="fr-disclosure"><summary>시기의 흐름 더 읽기</summary><div class="fr-disclosure-body">' + sec3 + '</div></details>'
+            + '</section>';
+        } else if (clickOnly) {
           contentHtml = '<div style="font-family:\'Suit\',sans-serif; background:#121212; color:#E2E8F0; padding:20px; border-radius:12px; width:100%; box-sizing:border-box;">'
             + '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;border-bottom:2px solid #8B5CF6;padding-bottom:12px;margin-bottom:16px;">'
             + '<h1 style="margin:0;color:#C084FC;font-size:1.2rem;">궁(宮) 해석 요약</h1>'

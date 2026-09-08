@@ -11859,6 +11859,11 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
         pointer-events:auto;
       }
       .dp-fsel-close-btn:active { background:rgba(255,255,255,0.14); }
+      .dp-fsel-close-btn:focus-visible,
+      .dp-fsel-btn:focus-visible {
+        outline:3px solid #f5db9a;
+        outline-offset:3px;
+      }
       .dp-fsel-profile {
         text-align:center; margin-bottom:20px;
       }

@@ -100,6 +100,7 @@
 /public/js/core/payment-service.d.ts
 /public/js/core/payment-service.js
 /public/js/core/premium-chapter-orchestrator.js
+/public/js/core/saju/basicFortunePresentation.js
 /public/js/core/saju/dopamineResult.js
 /public/js/core/saju/extremeTResult.js
 /public/js/core/saju/modalProfileState.js
@@ -187,6 +188,7 @@
 /public/status.json
 /public/styles/README.md
 /public/styles/app-shell.css
+/public/styles/basic-fortune-library.css
 /public/styles/core-ui.css
 /public/styles/cosmic-main.css
 /public/styles/destiny-flower-cosmic.css
