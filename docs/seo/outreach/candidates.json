@@ -1,0 +1,45 @@
+[
+  {
+    "site": "大久保占い研究室", "url": "https://www.senjutsu.jp/labo/shukuyo-calc/aishou-love", "market": "ja", "checkedAt": "2026-09-08", "reviewed": false,
+    "contact": null, "contactMethod": "공식 문의 경로 재확인 후 사용", "status": "research-needed",
+    "relatedContent": "본명숙별 상세 설명·궁합 도구·JSON 내보내기 제공. 성인 해석도 포함되어 제안 문맥 제한 필요.",
+    "proposedPage": "https://code-destiny.com/ja/sukuyo/",
+    "ratings": { "relevance": 25, "searchVisibility": 7, "contentQuality": 12, "freshness": 8, "spamSafety": 10, "outboundQuality": null, "readership": null, "naturalFit": 6, "brandFit": 3 },
+    "draft": "宿曜の相性ツールを拝見しました。本命宿ごとの解説と、二人それぞれの視点を分ける構成が印象に残りました。CODE DESTINYでは韓国語圏の利用者向けにも宿曜の読み方を案内しています。日韓で使われる呼び名や入力条件を比較する際の参考として、日本語の案内ページをご紹介できればと思います。読者の方に必要な内容かどうか、編集方針に沿ってご判断いただければ幸いです。",
+    "evidence": ["https://www.senjutsu.jp/", "https://www.senjutsu.jp/labo/shukuyo-calc/aishou-love"]
+  },
+  {
+    "site": "占いおまじないスピリチュアル吉日風水", "url": "https://omajinai.co.jp/shukuyo/", "market": "ja", "checkedAt": "2026-09-08", "reviewed": false,
+    "contact": null, "contactMethod": "공식 편집 문의 경로 미확인", "status": "research-needed",
+    "relatedContent": "27숙과 28숙 구분, 음력 계산, 사이트별 결과 차이 설명. 2026-05-26 수정 표시.",
+    "proposedPage": "https://code-destiny.com/ja/vedic/",
+    "ratings": { "relevance": 25, "searchVisibility": 7, "contentQuality": 12, "freshness": 7, "spamSafety": 9, "outboundQuality": null, "readership": null, "naturalFit": 7, "brandFit": 4 },
+    "draft": "「宿曜占星術無料自動計算」の、旧暦換算や二十七宿・二十八宿によって結果が変わるという説明を拝見しました。関連して、宿曜とインド占星術のナクシャトラを同じ判定として扱わないための日本語案内をCODE DESTINYで公開しています。結果の違いを調べる読者向けの補足資料として、内容をご確認いただけますと幸いです。リンクの掲載や表記は編集上のご判断にお任せします。",
+    "evidence": ["https://omajinai.co.jp/shukuyo/"]
+  },
+  {
+    "site": "宿曜占星術 八雲院", "url": "https://yakumoin.net/support/how_to_use", "market": "ja", "checkedAt": "2026-09-08", "reviewed": false,
+    "contact": null, "contactMethod": "공식 지원 페이지에서 제안 접수 여부 재확인", "status": "research-needed",
+    "relatedContent": "성격·상성·운세 탭과 27숙 상세 해설 안내. 독립 트래픽 자료 미확인.",
+    "proposedPage": "https://code-destiny.com/ja/sukuyo/",
+    "ratings": { "relevance": 25, "searchVisibility": 7, "contentQuality": 11, "freshness": null, "spamSafety": 10, "outboundQuality": null, "readership": null, "naturalFit": 5, "brandFit": 4 },
+    "draft": "八雲院の使い方ページで、性格・相性・運勢を分けて案内されている点を拝見しました。韓国語圏の読者から宿曜の呼び名について質問を受ける場合に備え、CODE DESTINYの日本語・韓国語の公開案内を参考資料としてお伝えします。既存の案内と重複せず、読者に役立つ部分がありましたらご参照ください。",
+    "evidence": ["https://yakumoin.net/support/how_to_use"]
+  },
+  {
+    "site": "Disquiet", "url": "https://disquiet.io/products/%EC%82%AC%EC%A3%BC%EB%8B%A4%EC%9D%B4%EC%86%8C", "market": "ko", "checkedAt": "2026-09-08", "reviewed": false,
+    "contact": null, "contactMethod": "제품 등록 및 메이커 글 정책 확인; 댓글 홍보 금지", "status": "draft-only",
+    "relatedContent": "사주다이소·채운 제품 소개가 존재. UGC 제품 소개이며 편집자 획득 링크와 구분.",
+    "proposedPage": "https://code-destiny.com/compare/sukuyo-vs-vedic/",
+    "ratings": { "relevance": 18, "searchVisibility": 7, "contentQuality": 10, "freshness": 9, "spamSafety": 10, "outboundQuality": null, "readership": null, "naturalFit": 9, "brandFit": 5 },
+    "draft": "사주·자미두수·숙요·베다를 한 서비스에서 제공하면서도 계산 기준은 섞지 않는 방법을 정리했습니다. 같은 생일에 다른 숙 이름이 나올 때, 이름 대응표와 실제 계산을 분리해야 했던 사례를 공개 비교 가이드로 설명합니다. 서비스 소개보다는 다국어 점술 도구를 만들며 확인한 입력 조건과 검증 과정을 공유하려 합니다. 공개용 개발 사례는 재현 가능한 증거만 사용합니다.",
+    "evidence": ["https://disquiet.io/products/%EC%82%AC%EC%A3%BC%EB%8B%A4%EC%9D%B4%EC%86%8C", "https://disquiet.io/products/%EC%B1%84%EC%9A%B4"]
+  },
+  {
+    "site": "hwajin.co.kr", "url": "https://hwajin.co.kr/", "market": "ko", "checkedAt": "2026-09-08", "reviewed": false, "excluded": true,
+    "contact": null, "contactMethod": null, "status": "excluded",
+    "relatedContent": "kimsaju.com, freesaju.net 외부 링크 확인. 저자·편집 책임과 일반론의 근거 확인 부족으로 연락 제외. 링크팜으로 확정한 것은 아님.",
+    "proposedPage": "https://code-destiny.com/ziwei/", "ratings": { "relevance": 20, "searchVisibility": 5, "contentQuality": 3, "freshness": null, "spamSafety": null, "outboundQuality": null, "readership": null, "naturalFit": 4, "brandFit": 2 },
+    "draft": null, "evidence": ["https://hwajin.co.kr/"]
+  }
+]

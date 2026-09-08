@@ -32,3 +32,9 @@ html.neo-mode #cdHomeFunnel .cd-diary-planner-entry__action{color:#17102f}
   #cdHomeFunnel .cd-diary-planner-entry__visual{min-height:150px;margin-top:16px}
   #cdHomeFunnel .cd-diary-planner-entry__visual img{width:180px;margin:0 0 -12px auto}
 }
+
+/* Japanese and Chinese do not use Korean word-boundary wrapping. */
+html:is(:lang(ja), :lang(zh)) .cdh :is(h1, h2, h3, p) {
+  word-break: normal;
+  overflow-wrap: anywhere;
+}

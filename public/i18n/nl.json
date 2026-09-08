@@ -1444,6 +1444,19 @@
       "question": "Welke vraag houdt je bezig?",
       "deeper": "Als je een uitgebreider antwoord zoekt",
       "find": "Zoek je een bepaalde lezing?"
+    },
+    "funnelCopy": {
+      "findConcern": "Zoeken op vraag",
+      "gardenFirst": "Waar jouw verhaal tot bloei komt",
+      "gardenSecond": "Een tuin in het maanlicht",
+      "reviewed": "Gemaakt en beoordeeld door een Saju-deskundige met 10 jaar ervaring",
+      "perspectives": "Vergelijk duidingen uit zes tradities",
+      "startFree": "Gratis beginnen",
+      "explore": "Ontdek meer",
+      "exploreLead": "Geniet verder met verhalen en muziek.",
+      "pass": "Passen",
+      "login": "Inloggen",
+      "account": "Mijn account"
     }
   },
   "terms": {

@@ -1444,6 +1444,19 @@
       "question": "Welche Frage beschäftigt dich?",
       "deeper": "Wenn du eine ausführlichere Antwort suchst",
       "find": "Suchst du eine bestimmte Deutung?"
+    },
+    "funnelCopy": {
+      "findConcern": "Nach Anliegen suchen",
+      "gardenFirst": "Wo deine Geschichte aufblüht",
+      "gardenSecond": "Ein Garten im Mondlicht",
+      "reviewed": "Erstellt und geprüft von einem Saju-Experten mit 10 Jahren Erfahrung",
+      "perspectives": "Deutungen aus sechs Traditionen vergleichen",
+      "startFree": "Kostenlos beginnen",
+      "explore": "Mehr entdecken",
+      "exploreLead": "Mit Geschichten und Musik das Erlebnis ausklingen lassen.",
+      "pass": "Pässe",
+      "login": "Anmelden",
+      "account": "Mein Konto"
     }
   },
   "terms": {

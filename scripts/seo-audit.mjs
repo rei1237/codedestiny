@@ -244,7 +244,7 @@ async function readArtifact(url) {
 
 async function fetchText(url) {
   if (source === "out") return readArtifact(url);
-  const response = await fetch(url, { redirect: "follow" });
+  const response = await fetch(url, { redirect: "follow", signal: AbortSignal.timeout(15000) });
   const text = await response.text().catch(() => "");
   return { response, text };
 }
@@ -273,7 +273,7 @@ async function auditPath(inputPath, sitemapIndexablePaths = new Set()) {
       url,
       path: inputPath,
       httpStatus: response.status,
-      robots: hasNoindex(text) ? "noindex" : "index",
+      robots: hasNoindex(text) || /\b(noindex|none)\b/i.test(response.headers?.get("x-robots-tag") || "") ? "noindex" : "index",
       canonicalUrl: getCanonical(text),
       title: getTitle(text),
       metaDescription: getTagContent(text, "description"),
@@ -703,6 +703,11 @@ async function auditArtifacts(sitemapPathSet) {
     return [...merged.values()];
   };
   for (const [routePath, page] of pages) {
+    // Alias exports may copy their canonical page's alternates. They must not receive
+    // return links: only the canonical page belongs to that language cluster.
+    // Sitemap entries are never skipped; their canonical/noindex errors remain actionable.
+    if (!sitemapPathSet.has(routePath) && (page.metaNoindex || headerNoindex(page)
+      || (page.canonical && pathFromUrl(page.canonical) !== routePath))) continue;
     const alternates = declaredAlternates(routePath, page);
     if (alternates.length === 0) {
       const prefix = routePath.split("/")[1] || "";

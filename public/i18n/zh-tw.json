@@ -1444,6 +1444,19 @@
       "question": "現在，你想了解什麼？",
       "deeper": "想要更深入的解讀時",
       "find": "在找某一種占卜嗎？"
+    },
+    "funnelCopy": {
+      "findConcern": "依煩惱尋找",
+      "gardenFirst": "讓你的故事",
+      "gardenSecond": "在月光花園裡綻放",
+      "reviewed": "由擁有10年經驗的命理師製作與審核",
+      "perspectives": "對照六種占術的解讀",
+      "startFree": "可免費開始",
+      "explore": "繼續探索",
+      "exploreLead": "用故事與音樂，延續解讀後的餘韻。",
+      "pass": "使用券",
+      "login": "登入",
+      "account": "我的帳戶"
     }
   },
   "terms": {

@@ -1444,6 +1444,19 @@
       "question": "¿Qué te gustaría saber?",
       "deeper": "Cuando necesitas una respuesta más profunda",
       "find": "¿Buscas una lectura en particular?"
+    },
+    "funnelCopy": {
+      "findConcern": "Buscar por inquietud",
+      "gardenFirst": "Donde florece tu historia",
+      "gardenSecond": "Un jardín a la luz de la luna",
+      "reviewed": "Creado y revisado por un especialista en Saju con 10 años de experiencia",
+      "perspectives": "Compara lecturas de seis tradiciones",
+      "startFree": "Empieza gratis",
+      "explore": "Explora más",
+      "exploreLead": "Continúa la experiencia con historias y música.",
+      "pass": "Pases",
+      "login": "Iniciar sesión",
+      "account": "Mi cuenta"
     }
   },
   "terms": {

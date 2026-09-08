@@ -1444,6 +1444,19 @@
       "question": "Quelle question vous préoccupe ?",
       "deeper": "Pour une réponse plus approfondie",
       "find": "Vous cherchez une lecture précise ?"
+    },
+    "funnelCopy": {
+      "findConcern": "Chercher par préoccupation",
+      "gardenFirst": "Là où votre histoire s’épanouit",
+      "gardenSecond": "Un jardin au clair de lune",
+      "reviewed": "Créé et relu par un spécialiste du Saju avec 10 ans d’expérience",
+      "perspectives": "Comparer les lectures de six traditions",
+      "startFree": "Commencer gratuitement",
+      "explore": "Découvrir davantage",
+      "exploreLead": "Prolongez l’expérience avec des récits et de la musique.",
+      "pass": "Pass",
+      "login": "Se connecter",
+      "account": "Mon compte"
     }
   },
   "terms": {
