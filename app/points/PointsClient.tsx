@@ -2445,7 +2445,7 @@ function MoonlightActivePassCard({
   const benefits = [
     { icon: "👤", label: getMoonlightProfileLabel(subscription) },
     { icon: "✨", label: getMoonlightBenefitLabel(tier) },
-    { icon: "🌙", label: "월정석으로도 구매 가능" },
+    { icon: "🌙", label: copy.planFeatures.standard.notAutoBilling },
     { icon: "🗝️", label: tier === "family" ? "초융합 심층 리딩까지 이용권으로" : "한도 내 유료 리딩 혜택" },
   ];
 

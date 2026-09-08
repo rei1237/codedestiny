@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-09
-next: PR 1845 staging 완료 후 최신 main을 통합하고 PointsClient 구매 문구를 고친 뒤 ci:preflight와 PR 생성을 완료한다. PG 회신도 확인한다.
+next: 최신 main 기준 ci:preflight와 PR 생성을 완료하고 순차 머지 담당자와 통합 순서를 조율한다. PG 회신도 확인한다.
 ---
 
 # 해외결제 심사 진행 기록 — 2026-09-09
@@ -93,6 +93,7 @@ Atlas 설립 $500(첫해 등록대리인 포함), 이후 등록대리인 $100/�
 - #1844의 main `d397f13983b0a039e62f656f90d723507189015e`를 이 브랜치에 통합했다. 새 필수 `ci:preflight`의 공유 의존성 drift를 발견하여 이 작업의 node_modules만 독립 `npm ci`로 설치했다. 공용 설치본은 변경하지 않았다.
 - 최종 preflight 상태: 첫 실행은 위 의존성 drift, 다음 실행은 이 문서 frontmatter 누락에서 중단됐다. 두 원인은 수정했으며 `verify:handoff-contract` 123문서 통과. 재실행 중 #1845 담당자가 staging 후 상점 문구 수정을 이 작업에서 이어받도록 요청하여 중복 검증을 피하려고 검사를 취소했다. **최종 preflight PASS나 PR 생성 완료가 아니다.** 최초 check:fast의 218/2,422 통과를 최신 main 전체 검증으로 대체하지 않는다.
 - 현재 순차 열은 1845 → 1843 → 1846 → 1847 → 1848이다. 본 작업은 새 PR로 열에 끼어들지 않는다. #1845의 staging 이후 PointsClient를 통합·수정하고, PR 생성 전 최신 main 기반 preflight를 통과해야 한다. 운영 배포와 기기별 해외결제는 아직 미완료다.
+- 후속 진행: #1845의 `8422192d9b7f15dd9bd4e2118d3bbdde3a7a85fb` 및 staging 성공 전달을 받아 main을 통합했다. PointsClient 혜택 카드는 기존 다국어 `notAutoBilling` 문구를 재사용하도록 수정했다. 결제 방식과 가격 로직은 변경하지 않았다.
 - PG 회신으로 서류·수수료·업종승인 조건을 확정하고 필요한 본인정보만 그 화면에서 요청한다. 이미 신청한 이니시스 건을 이어가며 중복 신청하지 않는다.
 
 재개 위치: `D:\Development\code-destiny-global-payments`, 브랜치 `codex/global-payment-readiness-20260909`. 이 문서와 최신 PR 상태, 위 제목의 PG 회신을 먼저 확인하고 심사 보완 및 승인 채널 sandbox 검증을 이어간다. 외부 승인 전 작업 전체를 완료로 표시하지 않는다.
