@@ -113,6 +113,9 @@
 /public/js/entertain-engine.js
 /public/js/fate-scroll-reveal.js
 /public/js/fate-scroll-top.js
+/public/js/feature-detail-panels.d.mts
+/public/js/feature-detail-panels.mjs
+/public/js/feature-detail-preview.mjs
 /public/js/fortune-gateway.js
 /public/js/fsn-navbar.js
 /public/js/iching-engine.js
@@ -148,6 +151,8 @@
 /public/js/services/sajuWorkerService.js
 /public/js/services/sajuWorkerServiceAdvanced.js
 /public/js/share-reward.js
+/public/js/share-service.d.mts
+/public/js/share-service.mjs
 /public/js/share.js
 /public/js/sibyl-system.js
 /public/js/static-policy-contact.js
@@ -192,6 +197,7 @@
 /public/styles/core-ui.css
 /public/styles/cosmic-main.css
 /public/styles/destiny-flower-cosmic.css
+/public/styles/feature-visual-detail.css
 /public/styles/fonts-serif.css
 /public/styles/fortune-gateway.css
 /public/styles/fortune-ui-home.css

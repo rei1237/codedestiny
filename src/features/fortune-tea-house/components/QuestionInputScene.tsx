@@ -28,6 +28,7 @@ type QuestionInputSceneProps = {
   initialInput?: Partial<FortuneTeaHouseQuestionInput>;
   onSubmit: (input: FortuneTeaHouseQuestionInput) => void;
   onBack: () => void;
+  onDraftChange?: (input: Partial<FortuneTeaHouseQuestionInput>) => void;
   isSubmitting?: boolean;
   submitError?: string;
   priceLabels?: Partial<Record<FortuneTeaHouseConsultMode, string>>;
@@ -403,7 +404,7 @@ const KO = {
   topicSyncNotice: "{cup} 상담은 {topic}으로 고정되어 있어요.",
 };
 
-export default function QuestionInputScene({ selectedCup, initialInput, onSubmit, onBack, isSubmitting = false, submitError = "", priceLabels = {} }: QuestionInputSceneProps) {
+export default function QuestionInputScene({ selectedCup, initialInput, onSubmit, onBack, onDraftChange, isSubmitting = false, submitError = "", priceLabels = {} }: QuestionInputSceneProps) {
   const copy = useTeaHouseCopy("questionInput", KO);
   const [consultationMode, setConsultationMode] = useState<FortuneTeaHouseConsultMode>(initialInput?.consultationMode || "tarot");
   const priceLabelForMode = useCallback(
@@ -472,6 +473,17 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
   }));
   const [question, setQuestion] = useState(initialInput?.question || "");
   const [error, setError] = useState("");
+
+  // Keep the draft in this page's memory, never in a public URL or durable
+  // storage. Returning to cup selection must not discard an unsubmitted form.
+  useEffect(() => {
+    onDraftChange?.({ consultationMode, nickname, profileId, birthDate, birthTime,
+      birthTimeUnknown, birthPlace, timezone, gender, calendarType, tarotSpread,
+      sukuyo: sukuyoInput, sajuCompatibility: sajuCompatInput, question,
+      concernTopic: selectedCup.topic });
+  }, [onDraftChange, consultationMode, nickname, profileId, birthDate, birthTime,
+    birthTimeUnknown, birthPlace, timezone, gender, calendarType, tarotSpread,
+    sukuyoInput, sajuCompatInput, question, selectedCup.topic]);
 
   const applyProfileOption = useCallback((option: TeaHouseProfileOption, announce = true) => {
     setSelectedProfileOptionId(option.optionId);

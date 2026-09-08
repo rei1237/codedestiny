@@ -9183,6 +9183,45 @@
         "2": "The existing payment policy applies."
       }
     },
+    "openAnimalTotemModal": {
+      "tagline": "Schreibe eine Frage und wähle ein Ritual mit einer, drei oder fünf Karten, um Wesen, Schatten, Gabe und den nächsten praktischen Schritt jedes Tieres zu deuten.",
+      "premiumIntro": "Diese Deutung nennt nicht nur ein Tier. Sie verbindet die Karten mit deiner Frage und dem gewählten Ritual und übersetzt ihren Verlauf in konkrete Handlungen.",
+      "fallbackCta": "Deinem Schutztier begegnen",
+      "premiumChapters": {
+        "0": "Das Schutztier und die Kernbotschaft jeder Position",
+        "1": "Eine ausgewogene Deutung von Wesen, Schatten und Gabe",
+        "2": "Eine zusammenhängende Geschichte zu deiner Frage",
+        "3": "Eine kleine Handlung, die du heute ausprobieren kannst",
+        "4": "Ein Archiv zum erneuten Ansehen früherer Deutungen"
+      },
+      "premiumAudience": {
+        "0": "Menschen mit verworrenen Gedanken, die einen ersten Schritt brauchen",
+        "1": "Menschen, die Symbolik und konkrete Hinweise verbinden möchten",
+        "2": "Menschen, die zwischen einer Botschaft und einem tiefen Ablauf mit fünf Positionen wählen möchten"
+      },
+      "answersQuestions": {
+        "0": "Was sollte ich jetzt zuerst in meinem Inneren betrachten?",
+        "1": "Was kann ich heute tun, um dieses Anliegen zu lösen?",
+        "2": "Welchen Schatten und welche Stärke übersehe ich?"
+      },
+      "feats": {
+        "0": "Lies deinen aktuellen Zustand ohne Frage oder notiere ein Anliegen zu Liebe, Arbeit, Beziehungen, Geld oder Gesundheit",
+        "1": "Eine Karte vertieft die Botschaft eines Tieres; drei Karten deuten Vergangenheit, Gegenwart und Integration",
+        "2": "Fünf Karten verbinden Vernunft, Gefühl, Schatten, Gabe und Handlung",
+        "3": "Sieh die Botschaft jeder Karte, eine Gesamtdeutung und den praktischen Plan für heute"
+      },
+      "analysisSteps": {
+        "0": { "label": "Frage festlegen", "detail": "Notiere dein Anliegen oder beginne mit deinem aktuellen Gemütszustand." },
+        "1": { "label": "Ritual wählen", "detail": "Wähle je nach gewünschter Tiefe eine, drei oder fünf Karten." },
+        "2": { "label": "Karten aufdecken", "detail": "Decke sie der Reihe nach auf und folge dem Verlauf der Schutztiere." },
+        "3": { "label": "Handlung wählen", "detail": "Nutze Gesamtdeutung und Tagesplan, um deinen nächsten Schritt zu bestimmen." }
+      },
+      "premiumOutcomes": {
+        "0": "Kartendeutungen dienen nur als Orientierung.",
+        "1": "Die Deutung unterstützt gegenwärtige Entscheidungen, ohne die Zukunft festzulegen.",
+        "2": "Es gilt die bestehende Zahlungsrichtlinie."
+      }
+    },
     "openKemetModal": {
       "tagline": "Pick three cards yourself — past, present and future — from the twelve gods including Ra, Osiris, Isis and Horus, and the reading unfolds seat by seat and then as the union of the three gods, following the grain of your question.",
       "feats": {
@@ -13154,7 +13193,8 @@
     "humandesign": "Human Design",
     "physiognomy": "Face Reading",
     "article": "Reading",
-    "pass": "Pass"
+    "pass": "Pass",
+    "totem": "Totem-Deutung"
   },
   "featureMarketingTrust": {
     "paid": {

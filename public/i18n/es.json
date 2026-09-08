@@ -9183,6 +9183,45 @@
         "2": "The existing payment policy applies."
       }
     },
+    "openAnimalTotemModal": {
+      "tagline": "Escribe una pregunta y elige un ritual de una, tres o cinco cartas para leer la esencia, la sombra, el don y el siguiente paso práctico de cada animal.",
+      "premiumIntro": "La lectura no se limita a nombrar un animal. Conecta las cartas con tu pregunta y el ritual elegido, y convierte su recorrido en acciones concretas.",
+      "fallbackCta": "Conocer a tu animal guardián",
+      "premiumChapters": {
+        "0": "El animal guardián y el mensaje central de cada posición",
+        "1": "Una lectura equilibrada de esencia, sombra y don",
+        "2": "Un relato conectado alrededor de tu pregunta",
+        "3": "Una pequeña acción que puedes probar hoy",
+        "4": "Un archivo para revisar lecturas anteriores"
+      },
+      "premiumAudience": {
+        "0": "Personas con ideas enredadas que necesitan un primer paso",
+        "1": "Personas que quieren simbolismo y orientación práctica a la vez",
+        "2": "Personas que desean elegir entre un solo mensaje y un recorrido profundo de cinco posiciones"
+      },
+      "answersQuestions": {
+        "0": "¿Qué debería mirar primero en mi interior ahora mismo?",
+        "1": "¿Qué puedo hacer hoy para empezar a resolver esta inquietud?",
+        "2": "¿Qué sombra y qué fortaleza estoy pasando por alto?"
+      },
+      "feats": {
+        "0": "Lee tu estado actual sin pregunta o escribe una inquietud sobre amor, trabajo, relaciones, dinero o salud",
+        "1": "Una carta profundiza en un animal; tres cartas leen pasado, presente e integración",
+        "2": "Cinco cartas conectan razón, emoción, sombra, don y acción",
+        "3": "Consulta el mensaje de cada carta, una interpretación conjunta y el plan práctico de hoy"
+      },
+      "analysisSteps": {
+        "0": { "label": "Definir la pregunta", "detail": "Escribe tu inquietud o parte de tu estado emocional actual." },
+        "1": { "label": "Elegir un ritual", "detail": "Elige una, tres o cinco cartas según la profundidad que necesites." },
+        "2": { "label": "Revelar las cartas", "detail": "Dales la vuelta en orden y sigue el recorrido de los animales guardianes." },
+        "3": { "label": "Elegir una acción", "detail": "Usa la lectura conjunta y el plan de hoy para decidir tu siguiente paso." }
+      },
+      "premiumOutcomes": {
+        "0": "Las interpretaciones de las cartas son orientativas.",
+        "1": "La lectura apoya tus decisiones presentes sin afirmar el futuro.",
+        "2": "Se aplica la política de pago vigente."
+      }
+    },
     "openKemetModal": {
       "tagline": "Pick three cards yourself — past, present and future — from the twelve gods including Ra, Osiris, Isis and Horus, and the reading unfolds seat by seat and then as the union of the three gods, following the grain of your question.",
       "feats": {
@@ -13154,7 +13193,8 @@
     "humandesign": "Human Design",
     "physiognomy": "Face Reading",
     "article": "Reading",
-    "pass": "Pass"
+    "pass": "Pass",
+    "totem": "Lectura de tótem"
   },
   "featureMarketingTrust": {
     "paid": {

@@ -9183,6 +9183,45 @@
         "2": "The existing payment policy applies."
       }
     },
+    "openAnimalTotemModal": {
+      "tagline": "Schrijf een vraag en kies een ritueel met één, drie of vijf kaarten om de essentie, schaduw, gave en praktische volgende stap van elk dier te lezen.",
+      "premiumIntro": "Deze reading noemt niet alleen een dier. Ze verbindt de kaarten met je vraag en gekozen ritueel en vertaalt hun verloop naar concrete actie.",
+      "fallbackCta": "Ontmoet je beschermdier",
+      "premiumChapters": {
+        "0": "Het beschermdier en de kernboodschap van elke positie",
+        "1": "Een evenwichtige duiding van essentie, schaduw en gave",
+        "2": "Een samenhangend verhaal rond je vraag",
+        "3": "Een kleine actie die je vandaag kunt proberen",
+        "4": "Een archief om eerdere readings terug te kijken"
+      },
+      "premiumAudience": {
+        "0": "Mensen met verwarde gedachten die een eerste stap nodig hebben",
+        "1": "Mensen die symbolische kaarten en concreet advies willen combineren",
+        "2": "Mensen die willen kiezen tussen één boodschap en een diepere stroom van vijf posities"
+      },
+      "answersQuestions": {
+        "0": "Waar moet ik nu als eerste naar kijken in mijn hart?",
+        "1": "Wat kan ik vandaag doen om deze zorg te beginnen oplossen?",
+        "2": "Welke schaduw en kracht zie ik over het hoofd?"
+      },
+      "feats": {
+        "0": "Lees je huidige toestand zonder vraag, of schrijf een zorg op over liefde, werk, relaties, geld of gezondheid",
+        "1": "Eén kaart verdiept de boodschap van één dier; drie kaarten lezen verleden, heden en integratie",
+        "2": "Vijf kaarten verbinden verstand, emotie, schaduw, gave en actie",
+        "3": "Bekijk de boodschap per kaart, een gezamenlijke duiding en het praktische plan voor vandaag"
+      },
+      "analysisSteps": {
+        "0": { "label": "Bepaal je vraag", "detail": "Schrijf je zorg op of begin vanuit je huidige gemoedstoestand." },
+        "1": { "label": "Kies een ritueel", "detail": "Kies één, drie of vijf kaarten voor de diepgang die je nodig hebt." },
+        "2": { "label": "Open de kaarten", "detail": "Draai ze op volgorde om en volg de stroom van de beschermdieren." },
+        "3": { "label": "Kies een actie", "detail": "Gebruik de gezamenlijke duiding en het dagplan om je volgende stap te kiezen." }
+      },
+      "premiumOutcomes": {
+        "0": "Kaartinterpretaties zijn bedoeld als leidraad.",
+        "1": "De reading ondersteunt keuzes in het heden zonder de toekomst vast te leggen.",
+        "2": "Het bestaande betalingsbeleid is van toepassing."
+      }
+    },
     "openKemetModal": {
       "tagline": "Pick three cards yourself — past, present and future — from the twelve gods including Ra, Osiris, Isis and Horus, and the reading unfolds seat by seat and then as the union of the three gods, following the grain of your question.",
       "feats": {
@@ -13154,7 +13193,8 @@
     "humandesign": "Human Design",
     "physiognomy": "Face Reading",
     "article": "Reading",
-    "pass": "Pass"
+    "pass": "Pass",
+    "totem": "Totemreading"
   },
   "featureMarketingTrust": {
     "paid": {

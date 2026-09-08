@@ -9183,6 +9183,45 @@
         "2": "沿用现有付款政策。"
       }
     },
+    "openAnimalTotemModal": {
+      "tagline": "写下问题并选择一张、三张或五张牌的仪式，沿着牌阵解读每种动物的本质、阴影、馈赠与可执行的下一步。",
+      "premiumIntro": "结果不只告诉你动物名称，还会结合你的问题与所选仪式，串联牌面之间的脉络，并整理成现实可行的行动。",
+      "fallbackCta": "遇见你的守护动物",
+      "premiumChapters": {
+        "0": "每个位置对应的守护动物与核心讯息",
+        "1": "兼顾本质、阴影与馈赠的平衡解读",
+        "2": "围绕问题串联起来的完整故事",
+        "3": "今天就能尝试的小行动",
+        "4": "可回看过往解读的收藏记录"
+      },
+      "premiumAudience": {
+        "0": "思绪复杂、难以决定第一步的人",
+        "1": "希望同时获得象征牌意与具体建议的人",
+        "2": "想在单一讯息与五位置深度脉络间自由选择的人"
+      },
+      "answersQuestions": {
+        "0": "此刻我最该先看见内心的什么？",
+        "1": "为了解开这个困扰，我今天可以先做什么？",
+        "2": "我忽略了哪些阴影与优势？"
+      },
+      "feats": {
+        "0": "可不设问题直接查看当下心境，也可写下爱情、工作、关系、金钱或健康方面的困扰",
+        "1": "一张牌深入一只动物的讯息，三张牌解读过去、现在与整合",
+        "2": "五张牌连接理性、情绪、阴影、馈赠与行动五个位置",
+        "3": "同时查看单张讯息、综合解读与今日行动计划"
+      },
+      "analysisSteps": {
+        "0": { "label": "确定问题", "detail": "写下困扰，或直接从当下心境开始。" },
+        "1": { "label": "选择仪式", "detail": "按所需深度选择一张、三张或五张牌。" },
+        "2": { "label": "翻开卡牌", "detail": "依次翻牌，观察守护动物之间的脉络。" },
+        "3": { "label": "整理行动", "detail": "根据综合解读与今日计划决定下一步。" }
+      },
+      "premiumOutcomes": {
+        "0": "卡牌解读仅供参考。",
+        "1": "内容不会断言未来，而是帮助你做出当下的选择。",
+        "2": "适用现有支付政策。"
+      }
+    },
     "openKemetModal": {
       "tagline": "Pick three cards yourself — past, present and future — from the twelve gods including Ra, Osiris, Isis and Horus, and the reading unfolds seat by seat and then as the union of the three gods, following the grain of your question.",
       "feats": {
@@ -13154,7 +13193,8 @@
     "humandesign": "人类图",
     "physiognomy": "面相",
     "article": "读物",
-    "pass": "通行券"
+    "pass": "通行券",
+    "totem": "图腾解读"
   },
   "featureMarketingTrust": {
     "paid": {

@@ -6,6 +6,7 @@ import {
   stripTrackingParams,
   type SeoV2Content,
 } from "./seo.v2";
+import { publicShareUrl } from "../js/share-service.mjs";
 
 export type ShareMetadataV2 = {
   title: string;
@@ -27,7 +28,8 @@ export function buildUtmShareUrl(url: string, source = "share"): string {
 }
 
 export function getShareUrl(path: string, options: { source?: string; withUtm?: boolean } = {}) {
-  const canonicalUrl = getCanonicalUrl(path);
+  const rawCanonical = getCanonicalUrl(path);
+  const canonicalUrl = publicShareUrl(rawCanonical, new URL(rawCanonical).origin);
   return options.withUtm ? buildUtmShareUrl(canonicalUrl, options.source) : canonicalUrl;
 }
 
@@ -40,7 +42,7 @@ export function getShareMetadata(content: SeoV2Content & { contentId?: string })
   return {
     title,
     text,
-    url: getShareUrl(canonicalUrl, { withUtm: true }),
+    url: getShareUrl(canonicalUrl),
     canonicalUrl: stripTrackingParams(canonicalUrl),
     image: buildOpenGraphImageUrl(content),
     contentType: content.contentType || "website",
