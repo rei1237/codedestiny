@@ -9170,6 +9170,45 @@
         "2": "The existing payment policy applies."
       }
     },
+    "openAnimalTotemModal": {
+      "tagline": "Viết câu hỏi và chọn nghi thức một, ba hoặc năm lá để đọc bản chất, bóng tối, món quà và bước đi thực tế từ từng linh thú.",
+      "premiumIntro": "Bài đọc không chỉ nêu tên một con vật. Nó kết nối các lá bài với câu hỏi và nghi thức bạn chọn, rồi chuyển dòng chảy ấy thành hành động thực tế.",
+      "fallbackCta": "Gặp linh thú hộ mệnh",
+      "premiumChapters": {
+        "0": "Linh thú và thông điệp chính ở từng vị trí",
+        "1": "Cách đọc cân bằng giữa bản chất, bóng tối và món quà",
+        "2": "Câu chuyện tổng hợp theo câu hỏi của bạn",
+        "3": "Một hành động nhỏ có thể làm ngay hôm nay",
+        "4": "Kho lưu trữ để xem lại các bài đọc trước"
+      },
+      "premiumAudience": {
+        "0": "Người đang rối lòng và khó chọn bước đầu tiên",
+        "1": "Người muốn có cả biểu tượng lá bài lẫn lời khuyên cụ thể",
+        "2": "Người muốn chọn từ một thông điệp đến dòng chảy sâu năm vị trí"
+      },
+      "answersQuestions": {
+        "0": "Lúc này tôi nên nhìn vào điều gì trước tiên trong lòng mình?",
+        "1": "Hôm nay tôi nên bắt đầu từ đâu để tháo gỡ mối bận tâm này?",
+        "2": "Tôi đang bỏ sót bóng tối và điểm mạnh nào?"
+      },
+      "feats": {
+        "0": "Đọc trạng thái hiện tại không cần câu hỏi, hoặc viết điều bận tâm về tình yêu, công việc, quan hệ, tiền bạc hay sức khỏe",
+        "1": "Một lá đi sâu vào một linh thú; ba lá đọc quá khứ, hiện tại và sự tích hợp",
+        "2": "Năm lá nối lý trí, cảm xúc, bóng tối, món quà và hành động",
+        "3": "Xem thông điệp từng lá, phần giải tổng hợp và kế hoạch hành động hôm nay"
+      },
+      "analysisSteps": {
+        "0": { "label": "Đặt câu hỏi", "detail": "Viết điều bận tâm hoặc bắt đầu từ trạng thái tâm trí hiện tại." },
+        "1": { "label": "Chọn nghi thức", "detail": "Chọn một, ba hoặc năm lá theo độ sâu bạn cần." },
+        "2": { "label": "Mở các lá bài", "detail": "Lật theo thứ tự và theo dõi dòng chảy của các linh thú." },
+        "3": { "label": "Chọn hành động", "detail": "Dùng phần giải tổng hợp và kế hoạch hôm nay để quyết định bước tiếp theo." }
+      },
+      "premiumOutcomes": {
+        "0": "Diễn giải lá bài chỉ mang tính tham khảo.",
+        "1": "Bài đọc hỗ trợ lựa chọn hiện tại, không khẳng định tương lai.",
+        "2": "Áp dụng chính sách thanh toán hiện hành."
+      }
+    },
     "openKemetModal": {
       "tagline": "Pick three cards yourself — past, present and future — from the twelve gods including Ra, Osiris, Isis and Horus, and the reading unfolds seat by seat and then as the union of the three gods, following the grain of your question.",
       "feats": {
@@ -13141,7 +13180,8 @@
     "humandesign": "Human Design",
     "physiognomy": "Face Reading",
     "article": "Reading",
-    "pass": "Pass"
+    "pass": "Pass",
+    "totem": "Đọc linh thú"
   },
   "featureMarketingTrust": {
     "paid": {

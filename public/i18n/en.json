@@ -9170,6 +9170,45 @@
         "2": "The existing payment policy applies."
       }
     },
+    "openAnimalTotemModal": {
+      "tagline": "Write a question and choose a one-, three-, or five-card ritual to read each animal's essence, shadow, gift, and practical next step.",
+      "premiumIntro": "This reading does more than name an animal. It connects the cards to your question and chosen ritual, then turns their flow into practical action.",
+      "fallbackCta": "Meet your guardian animal",
+      "premiumChapters": {
+        "0": "The guardian animal and key message in each position",
+        "1": "A balanced reading of essence, shadow, and gift",
+        "2": "A connected story shaped around your question",
+        "3": "One small action you can take today",
+        "4": "An archive for revisiting past readings"
+      },
+      "premiumAudience": {
+        "0": "People whose thoughts feel tangled and need a first step",
+        "1": "People who want symbolic cards and practical guidance together",
+        "2": "People who want to choose between a single message and a deeper five-position flow"
+      },
+      "answersQuestions": {
+        "0": "What should I look at first in my heart right now?",
+        "1": "What can I do today to start resolving this concern?",
+        "2": "What shadow and strength am I overlooking?"
+      },
+      "feats": {
+        "0": "Read your present state without a question, or write a concern about love, work, relationships, money, or health",
+        "1": "One card goes deep into one animal; three cards read past, present, and integration",
+        "2": "Five cards connect reason, emotion, shadow, gift, and action",
+        "3": "See each card's message, a combined interpretation, and a practical plan for today"
+      },
+      "analysisSteps": {
+        "0": { "label": "Set your question", "detail": "Write your concern or read from your present state of mind." },
+        "1": { "label": "Choose a ritual", "detail": "Choose one, three, or five cards for the depth you need." },
+        "2": { "label": "Reveal the cards", "detail": "Turn them over in order and follow the guardian animals' flow." },
+        "3": { "label": "Choose an action", "detail": "Use the combined reading and today's plan to decide your next step." }
+      },
+      "premiumOutcomes": {
+        "0": "Card interpretations are for reference.",
+        "1": "The reading supports present choices without declaring the future.",
+        "2": "The existing payment policy applies."
+      }
+    },
     "openKemetModal": {
       "tagline": "Pick three cards yourself — past, present and future — from the twelve gods including Ra, Osiris, Isis and Horus, and the reading unfolds seat by seat and then as the union of the three gods, following the grain of your question.",
       "feats": {
@@ -13141,7 +13180,8 @@
     "humandesign": "Human Design",
     "physiognomy": "Face Reading",
     "article": "Reading",
-    "pass": "Pass"
+    "pass": "Pass",
+    "totem": "Totem Reading"
   },
   "featureMarketingTrust": {
     "paid": {
