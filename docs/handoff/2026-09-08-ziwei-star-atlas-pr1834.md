@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-08
-next: PR #1834의 GitHub CI 전체 결과를 확인하고 통과 시 병합 순서를 다시 점검한다.
+next: 스테이징이 최신 main을 따라잡은 뒤 delivery:admit를 재실행하고 병합한다.
 ---
 
 # 기본 자미두수 별 지도 · PR 1834
@@ -20,7 +20,7 @@ next: PR #1834의 GitHub CI 전체 결과를 확인하고 통과 시 병합 순�
 - 인생 흐름 곡선: 대한 구간에 해당하는 궁의 원국 배치 지표. 전체 / 일과 재물(2개 곡선) / 관계 / 회복 전환, 점 선택·좌우 키보드·궁 상세 연결. 모바일은 그래프 내부만 가로 스크롤.
 - 곡선 보간은 시각적 연결이며 중간 나이 예측이 아니다. 대한 사화·연도별 세운을 계산한 그래프가 아니며 성취 확률·의학 지표로 해석하지 않도록 설명한다. 기존 유료 시기 해석과 별도.
 - 후속 그래프 mock 검증: 모든 궁의 5축 표시값과 엔진 지표 일치, 12개 시기 점, 복수 곡선 전환, 클릭/방향키, 비정상 좌표 없음. 360/390/430/1280 레이더·곡선 캡처 추가.
-- 그래프 후속에서 check:fast 재통과: Jest 218 suites / 2417 tests. public-mirror-fresh, 상세 48, 차성 88, 상담 14 domains 재통과. 88683b599 푸시 후 delivery:admit는 아래 활성 중첩/main 충돌/CI 없음으로 차단됐으며 워크트리는 clean이다.
+- 그래프 후속에서 check:fast 재통과: Jest 218 suites / 2437 tests. public-mirror-fresh, 상세 48, 차성 88, 상담 14 domains 재통과. 최신 main 재배치와 handoff frontmatter 보완 후 GitHub CI required를 통과했다.
 - 기존 기본 자미두수 모달의 전체 12궁을 4×4 명반으로 초기 표시. animation:none 상태에서 opacity:0이 남던 결함 수정.
 - 모든 궁 클릭/Enter/Space 상세: 12궁별 역할, 14주성 풀이, 강점·조율점·생활 활용, 실제 삼합/대궁.
 - 공궁은 대궁 주성을 차성으로 명시하며 본궁 주성 개수와 분리. 입력 계산 결과 불변.
@@ -45,11 +45,11 @@ next: PR #1834의 GitHub CI 전체 결과를 확인하고 통과 시 병합 순�
 
 ## 병합 차단 (delivery:admit 실제 결과)
 
-- 그래프 후속 확인 시 origin/main: `ad63ac91fbd69ed72c5590d7a26472f79d9729d4`.
-- 활성 충돌: codex/home-diary-disclosures (홈/cache-bust 공통 파일). 다음 실행 때 worktree:status로 재확인한다.
-- 후보에 최신 main 미포함, PR mergeable=CONFLICTING / state=DIRTY.
-- PR HEAD CI check_runs=0. 통과로 보고하지 말 것.
-- 직전 main 스테이징 SHA는 Pages·Worker 모두 `ad63ac91fbd69ed72c5590d7a26472f79d9729d4`로 도달. 이 PR의 스테이징 배포 증거는 아니다.
+- 그래프 후속 확인 시 origin/main: `44a7b1b1d6cb5cc2ba8541e6c99bec575db3283a`.
+- 최신 main 재배치와 충돌 해소 완료. 활성 워크트리 파일 중첩도 delivery 게이트에서 통과했다.
+- 후보는 최신 main을 포함하며 PR mergeable=CLEAN 상태다.
+- PR HEAD의 필수 CI required가 통과했다.
+- Pages·Worker 스테이징 SHA는 `9bc28f696c549e04b9cc25a3e5161a4437876fb4`로 최신 main `44a7b1b1d`에 뒤처져 있다. 이 PR의 유일한 delivery 차단이다.
 - 현재 워크트리/브랜치 보존. 다른 작업 중첩을 우회해서 merge/force push/배포하지 않는다.
 
 ## 다음 행동
