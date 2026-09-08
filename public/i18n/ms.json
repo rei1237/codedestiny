@@ -9170,6 +9170,45 @@
         "2": "The existing payment policy applies."
       }
     },
+    "openAnimalTotemModal": {
+      "tagline": "Tulis soalan dan pilih ritual satu, tiga atau lima kad untuk membaca sifat, bayang, anugerah dan langkah praktikal seterusnya daripada setiap haiwan.",
+      "premiumIntro": "Bacaan ini bukan sekadar menamakan haiwan. Ia menghubungkan kad dengan soalan dan ritual pilihan anda, kemudian menukarkan alirannya kepada tindakan praktikal.",
+      "fallbackCta": "Temui haiwan pelindung anda",
+      "premiumChapters": {
+        "0": "Haiwan pelindung dan mesej utama pada setiap kedudukan",
+        "1": "Bacaan seimbang tentang sifat, bayang dan anugerah",
+        "2": "Kisah menyeluruh yang dibentuk mengikut soalan anda",
+        "3": "Satu tindakan kecil yang boleh dicuba hari ini",
+        "4": "Arkib untuk melihat semula bacaan terdahulu"
+      },
+      "premiumAudience": {
+        "0": "Mereka yang fikirannya berserabut dan memerlukan langkah pertama",
+        "1": "Mereka yang mahukan simbol kad bersama panduan praktikal",
+        "2": "Mereka yang mahu memilih antara satu mesej dan aliran mendalam lima kedudukan"
+      },
+      "answersQuestions": {
+        "0": "Apakah yang perlu saya lihat dahulu dalam hati saya sekarang?",
+        "1": "Apakah yang boleh saya lakukan hari ini untuk mula meleraikan kebimbangan ini?",
+        "2": "Bayang dan kekuatan apakah yang saya terlepas pandang?"
+      },
+      "feats": {
+        "0": "Baca keadaan semasa tanpa soalan, atau tulis kebimbangan tentang cinta, kerja, hubungan, wang atau kesihatan",
+        "1": "Satu kad mendalami mesej satu haiwan; tiga kad membaca masa lalu, masa kini dan penyatuan",
+        "2": "Lima kad menghubungkan akal, emosi, bayang, anugerah dan tindakan",
+        "3": "Lihat mesej setiap kad, tafsiran menyeluruh dan pelan praktikal untuk hari ini"
+      },
+      "analysisSteps": {
+        "0": { "label": "Tetapkan soalan", "detail": "Tulis kebimbangan anda atau mulakan daripada keadaan fikiran semasa." },
+        "1": { "label": "Pilih ritual", "detail": "Pilih satu, tiga atau lima kad mengikut kedalaman yang diperlukan." },
+        "2": { "label": "Buka kad", "detail": "Terbalikkan kad mengikut urutan dan ikuti aliran haiwan pelindung." },
+        "3": { "label": "Pilih tindakan", "detail": "Gunakan tafsiran menyeluruh dan pelan hari ini untuk menentukan langkah seterusnya." }
+      },
+      "premiumOutcomes": {
+        "0": "Tafsiran kad adalah untuk rujukan.",
+        "1": "Bacaan menyokong pilihan semasa tanpa menetapkan masa depan.",
+        "2": "Dasar pembayaran sedia ada terpakai."
+      }
+    },
     "openKemetModal": {
       "tagline": "Pick three cards yourself — past, present and future — from the twelve gods including Ra, Osiris, Isis and Horus, and the reading unfolds seat by seat and then as the union of the three gods, following the grain of your question.",
       "feats": {
@@ -13141,7 +13180,8 @@
     "humandesign": "Human Design",
     "physiognomy": "Face Reading",
     "article": "Reading",
-    "pass": "Pass"
+    "pass": "Pass",
+    "totem": "Bacaan totem"
   },
   "featureMarketingTrust": {
     "paid": {

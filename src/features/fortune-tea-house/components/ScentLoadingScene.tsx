@@ -5,7 +5,6 @@ import { useLazySpriteSource, useSpritePlaybackGate } from "@/src/hooks/useSprit
 import { fortuneTeaHouseAssets } from "../data/assets";
 import type { FortuneTeaHouseConsultMode } from "../data/consult";
 import { type TeaHouseCup } from "../data/teaCups";
-import AssetImage from "./AssetImage";
 import TeaCupVisual from "./TeaCupVisual";
 import styles from "../styles/fortune-tea-house.module.css";
 import { useTeaHouseCopy } from "../lib/teaHouseCopy";
@@ -117,12 +116,6 @@ export default function ScentLoadingScene({ selectedCup, consultationMode = "tar
   return (
     <section className={styles.emotionScene} data-accent={selectedCup?.accent || "pink"} aria-label={copy.sceneAria}>
       <div className={styles.emotionVisual}>
-        <AssetImage
-          className={styles.loadingSceneAsset}
-          src={fortuneTeaHouseAssets.backgrounds.loadingScene}
-          alt={copy.loadingAlt}
-          priority
-        />
         <div
           ref={teaChatGate.ref}
           className={styles.scentLoadingTeaChatStage}
