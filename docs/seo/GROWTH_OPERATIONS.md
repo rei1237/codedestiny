@@ -9,7 +9,7 @@ AdSense 계정의 실제 거절 사유는 **가치가 별로 없는 콘텐츠**(
 | 우선순위 | 근거 | 이번 조치 / 남은 일 |
 | --- | --- | --- |
 | P0 | 정적 정책 출력에서 한국어 반환 hreflang 누락, 해외 정책 22건 오류 | `/terms`, `/privacy`, `/contact` 정본 모듈을 정적 생성기에 연결. 같은 법률 본문 유지. 로컬 전수 검사 0건, 운영 배포 후 재확인 필요 |
-| P0 | 일본어 홈의 신규 버튼·정원·신뢰·탐색 문구가 한국어; 긴 일본어 제목 잘림 | 홈 템플릿을 기존 5개 사전에 연결. 일본어·중국어 줄바꿈 보정. 초대 보상 안내·동적 프로필·모달 전체는 미완료 |
+| P0 | 일본어 홈의 신규 버튼·정원·신뢰·탐색 문구가 한국어; 긴 일본어 제목 잘림 | 홈 템플릿을 기존 12개 지원 사전에 연결(검색 대상은 기존 5개 유지). 일본어·중국어 줄바꿈 보정. 초대 보상 안내·동적 프로필·모달 전체는 미완료 |
 | P0 | AdSense low value; GSC 382개 crawled / 229개 discovered not indexed | 콘텐츠별 독립 가치 검수 유지. 611개를 일괄 noindex하거나 색인 요청하지 않음. 과거 URL과 현재 정본을 분리 |
 | P0 | CMP 게시와 실제 지역별 동의 흐름 확인 안 됨 | 광고 활성화·재신청 전 확인. Consent Mode만으로 CMP가 마련됐다고 판단하지 않음 |
 | P1 | 숙요·만세력의 4–20위 작은 표본, 네이버 `/vedic/` 61클릭 | 기존 베다 FAQ와 일본어 소개 개선. 숙요/베다 비교 글에 계산 기준과 대조 절차·내부 링크 추가 |
@@ -146,6 +146,8 @@ node scripts/seo-public-smoke.mjs
 - [Google 인증 CMP 요구사항](https://support.google.com/adsense/answer/13554116?hl=en): EEA/UK/Switzerland 개인화 광고 조건 확인.
 - [공개 편집 정책](https://code-destiny.com/editorial-policy/): 운영 주체·AI 활용 범위.
 - [숙요 도구 표본](https://www.senjutsu.jp/labo/shukuyo-calc/aishou-love), [숙요 설명 표본](https://omajinai.co.jp/shukuyo/), [八雲院 사용 안내](https://yakumoin.net/support/how_to_use): 후보별 실제 콘텐츠 근거.
+
+추가로 기존 지원 언어 7개의 공통 홈 키도 번역해 12개 사전의 키·런타임 검증을 통과했다. 새 색인 언어는 추가하지 않았다.
 
 최종 통합 로컬 검증: check:fast의 Node 958개와 Jest 218 suites/2,422 tests, build:cf, 정적 HTML 805개·사이트맵 488개 감사, 48개 mock 브라우저 표본이 통과했다. Linux CI에서 발견한 검색 제외 목록 드리프트도 LF 정규화 후 재생성했다. CI의 최종 판정은 PR #1841 최신 HEAD를 확인한다.
 

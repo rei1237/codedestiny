@@ -20,7 +20,7 @@ next: PR 1841 최신 CI 확인 후 잔여 현지화와 CMP 증거 확인
 
 ## 검증
 
-최신 코드에서 build:cf, strict 감사(805 HTML/488 sitemap/오류0), 산출물 링크 그래프 감사0건, 48개 mock 브라우저 표본(360/390/430/1280px) 통과. 집중 테스트13개와 public mirror freshness 통과. 직전 c1 기반 check:fast는 Node958/Jest2422 통과. 최신 코드 CI의 빌드·타입·Critical·결제 가드는 통과했고 Static guards의 문서 frontmatter 누락을 후속 커밋으로 고쳤다. 최종 CI는 PR에서 다시 확인한다.
+최신 코드에서 build:cf, strict 감사(805 HTML/488 sitemap/오류0), 산출물 링크 그래프 감사0건, 48개 mock 브라우저 표본(360/390/430/1280px) 통과. 집중 테스트13개와 public mirror freshness 통과. 홈 공통 키는 비색인 지원 언어7개까지 번역했고, 12개 사전·공개 parity·런타임·마케팅 사전 검사가 통과했다. 직전 c1 기반 check:fast는 Node958/Jest2422 통과. 최신 코드 CI의 빌드·타입·Critical·결제 가드는 통과했고 Static guards의 문서 frontmatter 누락을 후속 커밋으로 고쳤다. 최종 CI는 PR에서 다시 확인한다.
 
 로그: `seo-qa/build.log`, `complete.log`, `artifacts.log`, `mobile-smoke.log`, `mirror-final.log`.
 
