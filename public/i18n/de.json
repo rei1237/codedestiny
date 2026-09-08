@@ -891,6 +891,7 @@
     "passFooter": {
       "aria": "Übergeben Sie die Fußzeilenanleitung",
       "eyebrow": "Mondscheinpass",
+      "savingsBadge": "Mit Pass bis zu einem Drittel des Preises",
       "title": "Zwei Readings zu 5.000 KRW kosten bereits mehr als der Pass für 9.900 KRW",
       "desc": "Readings innerhalb der gewählten Preisspanne öffnen sich 30 Tage lang im Rahmen Ihres monatlichen Nutzungslimits; nur teurere Readings zahlen Sie bei Bedarf einzeln. Die vier Stufen sind 5.000 KRW · 10.000 KRW · 20.000 KRW und alle im Pass enthaltenen Inhalte – wählen Sie die Preisklasse, die Sie am häufigsten nutzen.",
       "pointsAria": "Core-Pass-Anleitung",
