@@ -5061,7 +5061,8 @@ async function calculate(){
       var _rp = document.getElementById('resultPage');
       ['lottoCard','quantumCard','healthReportCard','skillTreeCard',
        'tTestCard','hormone-vibe-section','energyCoordCard',
-      'villainCard','sajuFourCutCard','aiPromptCard','sajuQuestionPromptGeneratorCard'].forEach(function(id) {
+      'villainCard','sajuFourCutCard','aiPromptCard','sajuQuestionPromptGeneratorCard',
+      'relationshipTemptationCard'].forEach(function(id) {
         var el = document.getElementById(id);
         if (!el) return;
         if ((_rc && _rc.contains(el)) || (_rz && _rz.contains(el))) {
@@ -5529,6 +5530,7 @@ async function calculate(){
       function() { try { renderVillain(p, G_POWER); } catch(e) { console.error('Villain 에러:', e); } },
       function() { try { renderHormoneVibe(p, G_POWER); } catch(e) { console.error('HormoneVibe 에러:', e, e.stack); } },
       function() { try { invokeOptionalGlobalRenderer('renderDopamineReport', [p, natal, G_POWER, johu]); } catch(e) { console.error('Dopamine 에러:', e); } },
+      function() { try { invokeOptionalGlobalRenderer('renderRelationshipTemptation', [p, natal, G_POWER, johu, GENDER]); } catch(e) { console.error('RelationshipTemptation 에러:', e); } },
       function() { try { renderReportDashboard(); } catch(e) { console.error('ReportDashboard 에러:', e); }
       }
     ]);
@@ -30889,28 +30891,32 @@ function _sajuVillainRotateList(items, ctx, salt) {
 function _sajuVillainBuildTenGodDistribution(p) {
   var dayGan = p && p.d && p.d.g;
   var slots = [
-    p && p.y && p.y.g,
-    p && p.y && p.y.j,
-    p && p.m && p.m.g,
-    p && p.m && p.m.j,
-    p && p.d && p.d.j,
-    p && p.h && p.h.g,
-    p && p.h && p.h.j
-  ].filter(Boolean);
+    { code:p && p.y && p.y.g, position:'year', kind:'stem' },
+    { code:p && p.y && p.y.j, position:'year', kind:'branch' },
+    { code:p && p.m && p.m.g, position:'month', kind:'stem' },
+    { code:p && p.m && p.m.j, position:'month', kind:'branch' },
+    { code:p && p.d && p.d.j, position:'day', kind:'branch' },
+    { code:p && p.h && p.h.g, position:'hour', kind:'stem' },
+    { code:p && p.h && p.h.j, position:'hour', kind:'branch' }
+  ].filter(function(slot) { return !!slot.code; });
   var groups = { 비겁:0, 식상:0, 재성:0, 관성:0, 인성:0 };
   var exact = { 비견:0, 겁재:0, 식신:0, 상관:0, 편재:0, 정재:0, 편관:0, 정관:0, 편인:0, 정인:0 };
+  var sources = {};
 
-  slots.forEach(function(code) {
-    var tenGod = getTenGod(dayGan, code);
+  slots.forEach(function(slot) {
+    var tenGod = getTenGod(dayGan, slot.code);
     if (!tenGod || tenGod === '?') return;
     if (exact[tenGod] == null) exact[tenGod] = 0;
     exact[tenGod] += 1;
+    if (!sources[tenGod]) sources[tenGod] = [];
+    sources[tenGod].push({ code:slot.code, position:slot.position, kind:slot.kind });
     var group = SAJU_VILLAIN_TEN_GOD_GROUP[tenGod];
     if (group) groups[group] += 1;
   });
 
-  return { groups: groups, exact: exact, total: slots.length };
+  return { groups: groups, exact: exact, sources: sources, total: slots.length };
 }
+if (typeof window !== 'undefined') window._sajuVillainBuildTenGodDistribution = _sajuVillainBuildTenGodDistribution;
 
 function _sajuVillainBuildBranchRelations(p) {
   var slots = [
