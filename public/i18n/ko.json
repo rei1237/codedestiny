@@ -1290,6 +1290,19 @@
       "question": "지금, 무엇이 궁금하세요?",
       "deeper": "조금 더 깊은 답이 필요할 때",
       "find": "찾는 운세가 따로 있나요?"
+    },
+    "funnelCopy": {
+      "findConcern": "내 고민으로 찾기",
+      "gardenFirst": "당신의 이야기가",
+      "gardenSecond": "꽃피는 달빛 정원",
+      "reviewed": "10년 경력 명리학자 제작·검수",
+      "perspectives": "여섯 운세 체계 교차검증",
+      "startFree": "무료 시작 가능",
+      "explore": "더 둘러보기",
+      "exploreLead": "이야기와 음악으로 운명의 여운을 이어가세요.",
+      "pass": "이용권",
+      "login": "로그인",
+      "account": "내 계정"
     }
   },
   "footer": {

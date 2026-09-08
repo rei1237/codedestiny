@@ -59,7 +59,7 @@ for (const file of files(directory)) {
     if (!row.canonical || normalize(new URL(row.canonical, origin).pathname) !== normalize(route)) row.issues.push("self canonical 불일치");
     if (/noindex/.test(row.robots)) row.issues.push("사이트맵/noindex 충돌");
     if (content.length < 800 && !/\/(about|contact|disclaimer|faq|privacy|privacy-policy|terms|terms-of-service|refund-policy)\/$/.test(route)) row.issues.push("본문 800자 미만: 편집 검토");
-    if (/^\/(ja|en|zh)\//.test(route) && row.koreanChars) row.issues.push(`본문 한국어 ${row.koreanChars}자: 문맥 확인`);
+    if (/^\/(ja|en|zh|zh-tw)\//.test(route) && row.koreanChars) row.issues.push(`본문 한국어 ${row.koreanChars}자: 문맥 확인`);
   }
   rows.push(row);
 }
@@ -94,21 +94,14 @@ mkdirSync("seo-qa", { recursive: true });
 writeFileSync("seo-qa/audit.json", JSON.stringify(report, null, 2) + "\n");
 const summary = [
   "# SEO · AdSense · i18n 감사", "", `검사 산출물: ${directory}`, `생성: ${report.generatedAt}`, "",
-  "GSC 계정 데이터와 AdSense 거절 사유는 미확인. 아래는 초기 HTML에서 관측한 기술·콘텐츠 위험이며 실제 거절 원인으로 단정하지 않는다.",
+  "아래는 초기 HTML 정적 검사이며 특정 URL이 AdSense 거절 원인이라는 판정이 아니다. 계정 실측·수동 검수·운영 우선순위는 [운영 기록](docs/seo/GROWTH_OPERATIONS.md)과 [상태 파일](docs/seo/SEO_STATE.json)을 별도로 확인한다.",
   "본문 수는 script/style/nav/footer/hidden을 제외한 body의 텍스트다. main 밖의 SSR 설명도 포함한다. 글자 수는 Google 승인 기준이 아니라 이번 작업의 편집 점검 기준이다. CSS와 hydration 후 상태는 별도 검증한다.",
   "", `페이지 템플릿 ${sourceRoutes.length}개, HTML ${rows.length}개, 사이트맵 ${indexed.size}개, 누락 산출물 ${missing.length}개.`,
   `메타·H1·canonical·hreflang·사이트맵/noindex 기술 오류 ${technicalIssues.length}건. 한국어 탐지는 언어 선택기의 한국어 표기와 등록 사업자명도 포함하므로 실제 혼입과 구분해 검토한다.`,
   "", "## 주요 관측과 조치", "",
-  "- P1: 일본어 About가 운영 사이트에서 404. ja/en/zh About·Contact·Disclaimer·FAQ 12페이지를 추가했다.",
-  "- P1: 외국어 푸터의 정책·신뢰 링크가 한국어 페이지로 이동. 존재하는 같은 언어 페이지로 연결했다.",
-  "- P1: 공통 푸터를 제외한 본문이 짧은 페이지가 존재. 아래 행별 분량과 잔여 위험을 기준으로 편집한다.",
-  "- P1: 운명의 나침반 설명이 opacity-35로 흐리게 표시됨. 설명을 기본 대비로 읽을 수 있게 수정했다.",
-  "- P2: locale별 사이트맵이 없음. 기존 canonical URL 목록과 lastmod 원장에서 5개 locale 파일을 파생했다.",
-  "- P2: 기존 i18n 검사 통과가 번역 완성을 뜻하지 않음. 한국어 키 커버리지 58.9%, 하드코딩 탐지 후보 12,390건(한국어 전용 글·관리자 포함).",
-  "- ja/en/zh 사주·베다·서양 점성술·타로 소개 12페이지 추가. 기존 자미두수·숙요·오늘 운세·insights 설명도 보강했다.",
-  "- 미완료: 초융합·찻집·귀인·나침반·심리 기능 전체 현지화, 홈 동적 프로필 문구, 모든 모달·토스트·오류의 전수 현지화. 번체의 짧은 기존 본문도 남아 있다.",
-  "- 언어 운영: 번역 사전 12개와 검색용 URL 5개 언어는 별개다. 추가 7개 언어 삭제·일괄 noindex는 실행하지 않았다. 한·일 우선, 추가 언어 확장 보류를 권고한다.",
-  "- 정책 정본·가격·결제·권한 로직은 유지. 짧은 정책 별칭은 기존 정본 canonical과 본문을 재사용한다.",
+  "- 아래 행별 메타·본문·언어 탐지를 검토한다. 글자 수나 한국어 포함만으로 삭제·noindex를 결정하지 않는다.",
+  "- 초기 HTML 통과는 hydration 이후 번역, 광고, 결제·상담 상태 또는 실제 HTTP 상태의 검증을 대신하지 않는다.",
+  "- 비교 기간과 완료 이력은 상태 파일에서 관리한다. 이 생성기는 과거 작업의 완료 문구나 오래된 계정 수치를 새 검사 결과처럼 복제하지 않는다.",
   "", "## 라우트별 초기 HTML", "",
   "| route | 색인/사이트맵 | title | description | H1 | 본문 문자 | canonical | hreflang | robots meta | 번역 | AdSense 위험/개선 |",
   "|---|---|---|---|---|---:|---|---|---|---|---|",
@@ -118,11 +111,11 @@ const summary = [
   "", "## 근거", "- https://developers.google.com/search/docs/crawling-indexing/javascript/javascript-seo-basics", "- https://developers.google.com/search/docs/specialty/international/localized-versions", "- https://support.google.com/adsense/answer/7299563", "",
 ];
 writeFileSync("SEO_ADSENSE_AUDIT.md", summary.join("\n"));
-const matrix = ["# 번역 상태 매트릭스", "", report.limitation, "정적 본문만 검사한다. 버튼/토스트/오류는 런타임 별도 검증이 없으면 미검증으로 표시한다.", "", "| route | ko | ja | en | zh | title/meta | 본문 | 버튼/토스트/오류 | 한국어 잔존 |", "|---|---|---|---|---|---|---|---|---|"];
+const matrix = ["# 번역 상태 매트릭스", "", report.limitation, "정적 본문만 검사한다. 버튼/토스트/오류는 런타임 별도 검증이 없으면 미검증으로 표시한다.", "", "| route | ko | ja | en | zh | zh-tw | title/meta | 본문 | 버튼/토스트/오류 | 한국어 잔존 |", "|---|---|---|---|---|---|---|---|---|---|"];
 for (const row of rows.filter(r => r.indexed)) {
-  const lang = row.route.match(/^\/(ja|en|zh)\//)?.[1] || "ko";
+  const lang = row.route.match(/^\/(ja|en|zh|zh-tw)\//)?.[1] || "ko";
   const status = l => l === lang ? "초기 HTML 존재" : "대응 페이지 별도 행/미확인";
-  matrix.push(`| ${[row.route, status("ko"), status("ja"), status("en"), status("zh"), row.title && row.description ? "존재; 문체 검수 별도" : "누락", `${row.mainChars}자`, "미검증", lang === "ko" ? "한국어 원문" : `${row.koreanChars}자(문맥 확인)`].map(cell).join(" | ")} |`);
+  matrix.push(`| ${[row.route, status("ko"), status("ja"), status("en"), status("zh"), status("zh-tw"), row.title && row.description ? "존재; 문체 검수 별도" : "누락", `${row.mainChars}자`, "미검증", lang === "ko" ? "한국어 원문" : `${row.koreanChars}자(문맥 확인)`].map(cell).join(" | ")} |`);
 }
 if (existsSync("reports/i18n-hardcoded-audit.json")) {
   const scan = JSON.parse(readFileSync("reports/i18n-hardcoded-audit.json", "utf8"));

@@ -1443,6 +1443,19 @@
       "question": "Bạn đang muốn biết điều gì?",
       "deeper": "Khi bạn cần một lời giải sâu hơn",
       "find": "Bạn đang tìm một kiểu luận giải cụ thể?"
+    },
+    "funnelCopy": {
+      "findConcern": "Tìm theo điều bạn quan tâm",
+      "gardenFirst": "Nơi câu chuyện của bạn nở hoa",
+      "gardenSecond": "Khu vườn dưới ánh trăng",
+      "reviewed": "Được biên soạn và kiểm duyệt bởi chuyên gia Tứ trụ có 10 năm kinh nghiệm",
+      "perspectives": "Đối chiếu luận giải từ sáu hệ thống",
+      "startFree": "Bắt đầu miễn phí",
+      "explore": "Khám phá thêm",
+      "exploreLead": "Tiếp nối trải nghiệm bằng những câu chuyện và âm nhạc.",
+      "pass": "Gói sử dụng",
+      "login": "Đăng nhập",
+      "account": "Tài khoản của tôi"
     }
   },
   "terms": {

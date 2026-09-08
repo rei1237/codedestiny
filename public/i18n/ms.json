@@ -1443,6 +1443,19 @@
       "question": "Apakah yang ingin anda ketahui?",
       "deeper": "Apabila anda perlukan jawapan lebih mendalam",
       "find": "Mencari bacaan tertentu?"
+    },
+    "funnelCopy": {
+      "findConcern": "Cari mengikut persoalan",
+      "gardenFirst": "Tempat kisah anda berkembang",
+      "gardenSecond": "Taman di bawah cahaya bulan",
+      "reviewed": "Dihasilkan dan disemak oleh pengamal Saju dengan pengalaman 10 tahun",
+      "perspectives": "Bandingkan tafsiran daripada enam tradisi",
+      "startFree": "Mula secara percuma",
+      "explore": "Terokai lagi",
+      "exploreLead": "Teruskan pengalaman melalui cerita dan muzik.",
+      "pass": "Pas",
+      "login": "Log masuk",
+      "account": "Akaun saya"
     }
   },
   "terms": {

@@ -1,0 +1,57 @@
+name: SEO Operations
+on:
+  schedule:
+    - cron: '43 22 * * *'
+    - cron: '19 23 * * 0'
+    - cron: '37 0 1 * *'
+  workflow_dispatch:
+    inputs:
+      cycle:
+        description: Audit scope
+        type: choice
+        options: [daily, weekly, monthly]
+        default: daily
+permissions:
+  contents: read
+concurrency:
+  group: seo-operations-${{ github.event.schedule || inputs.cycle }}
+  cancel-in-progress: false
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      SITE_URL: https://code-destiny.com
+      SEO_AUDIT_BASE_URL: https://code-destiny.com
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Test detector with mock inputs
+        run: node --test scripts/seo/*.test.mjs
+      - name: Daily public health
+        run: node scripts/check-seo-health.mjs
+      - name: Weekly evidence and outreach queue
+        if: always() && (github.event.schedule == '19 23 * * 0' || inputs.cycle == 'weekly' || inputs.cycle == 'monthly' || github.event.schedule == '37 0 1 * *')
+        run: node scripts/seo/growth-cycle.mjs
+      - name: Monthly full sitemap HTTP audit
+        if: always() && (inputs.cycle == 'monthly' || github.event.schedule == '37 0 1 * *')
+        run: node scripts/seo-audit.mjs --crawl-sitemap
+      - name: Preserve findings even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: seo-operations-${{ github.run_id }}
+          path: |
+            seo-qa/operations/
+            seo-audit-report.json
+            seo-audit-report.md
+          retention-days: 90
+      - name: Weekly summary
+        if: always()
+        shell: bash
+        run: |
+          if [ -f seo-qa/operations/weekly.md ]; then
+            cat seo-qa/operations/weekly.md >> "$GITHUB_STEP_SUMMARY"
+          fi

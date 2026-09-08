@@ -22,6 +22,7 @@ for (const route of STATIC_POLICY_ROUTES) test(`${route.canonical} is complete s
   const ids = new Set();
   const anchors = [];
   const scripts = [];
+  const languages = {};
   walk(parse(html), (node) => {
     const attrs = Object.fromEntries((node.attrs || []).map((attr) => [attr.name, attr.value]));
     if (attrs.id) {
@@ -31,7 +32,13 @@ for (const route of STATIC_POLICY_ROUTES) test(`${route.canonical} is complete s
     if (node.tagName === 'a' && attrs.href?.startsWith('#')) anchors.push(attrs.href.slice(1));
     if (node.tagName === 'script' && attrs.src) scripts.push(attrs.src);
     if (node.tagName === 'link' && attrs.rel === 'canonical') assert.equal(new URL(attrs.href).pathname, route.canonical + '/');
+    if (node.tagName === 'link' && attrs.hreflang) languages[attrs.hreflang] = attrs.href;
   });
+  if (['terms', 'privacy', 'contact'].includes(route.key)) {
+    assert.equal(languages.ko, `https://code-destiny.com${route.canonical}/`);
+    assert.equal(languages['x-default'], languages.ko);
+    for (const locale of ['ja', 'en', 'zh']) assert.ok(languages[locale]?.startsWith(`https://code-destiny.com/${locale}/`), `${route.key}: missing return link for ${locale}`);
+  }
   for (const anchor of anchors) assert.ok(ids.has(anchor), `broken section anchor: ${anchor}`);
   assert.equal(scripts.length, route.key === 'contact' ? 1 : 0);
 });

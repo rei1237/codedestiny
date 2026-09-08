@@ -1443,6 +1443,19 @@
       "question": "What would you like to explore?",
       "deeper": "When you want a deeper reading",
       "find": "Looking for a particular reading?"
+    },
+    "funnelCopy": {
+      "findConcern": "Find by concern",
+      "gardenFirst": "Where your story blooms",
+      "gardenSecond": "A garden in the moonlight",
+      "reviewed": "Created and reviewed by a Saju practitioner with 10 years of experience",
+      "perspectives": "Compare readings across six traditions",
+      "startFree": "Start for free",
+      "explore": "Explore more",
+      "exploreLead": "Continue the experience with stories and music.",
+      "pass": "Passes",
+      "login": "Log in",
+      "account": "My account"
     }
   },
   "terms": {

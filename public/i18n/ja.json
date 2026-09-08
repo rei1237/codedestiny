@@ -1443,6 +1443,19 @@
       "question": "今、何が気になりますか？",
       "deeper": "もう少し深く知りたいときに",
       "find": "探している占いはありますか？"
+    },
+    "funnelCopy": {
+      "findConcern": "悩みから探す",
+      "gardenFirst": "あなたの物語が花ひらく",
+      "gardenSecond": "月明かりの庭",
+      "reviewed": "命理歴10年の鑑定家が制作・監修",
+      "perspectives": "六つの占術の解釈を照合",
+      "startFree": "無料で始められます",
+      "explore": "もっと楽しむ",
+      "exploreLead": "物語と音楽で、鑑定の余韻を楽しみましょう。",
+      "pass": "利用券",
+      "login": "ログイン",
+      "account": "アカウント"
     }
   },
   "terms": {

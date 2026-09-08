@@ -36,7 +36,7 @@ try {
   const missingStatus = (await fetch(`${base}/seo-definitely-missing-page/`)).status;
   browser = await chromium.launch({ headless: true });
   const results = [];
-  const paths = ["/ja/", "/ja/about/", "/ja/faq/", "/ja/saju/", "/ja/sukuyo/", "/en/about/", "/zh/about/"];
+  const paths = ["/ja/", "/ja/about/", "/ja/faq/", "/ja/saju/", "/ja/sukuyo/", "/ja/vedic/", "/en/", "/zh/", "/zh-tw/", "/en/about/", "/zh/about/", "/compare/sukuyo-vs-vedic/"];
   for (const width of [360, 390, 430, 1280]) {
     for (const path of paths) {
       const context = await browser.newContext({ viewport: { width, height: 900 }, serviceWorkers: "block" });

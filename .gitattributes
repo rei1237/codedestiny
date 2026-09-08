@@ -43,3 +43,5 @@ public/js/core/init.js                   merge=cachebust
 public/js/core/bootstrapDestinyFlower.js merge=cachebust
 public/js/destiny-profile.js             merge=cachebust
 .ignore text eol=lf
+# The static-policy generator writes this SVG with LF on every platform.
+public/icons/yehwa-branch.svg text eol=lf

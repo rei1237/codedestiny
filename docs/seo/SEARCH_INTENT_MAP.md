@@ -1,5 +1,7 @@
 # 검색 의도와 URL 대응
 
+아래 기존 표는 최초 관측 표본이다. 2026-09-08 후속 로그인 관측의 기간·수치는 [SEO_STATE.json](SEO_STATE.json)과 [운영 기록](GROWTH_OPERATIONS.md)을 우선한다. 기간이 다른 작은 표본을 상승/하락으로 단정하지 않는다.
+
 2026-09-08. 전체 소스 목록: [57개 홈 서비스와 19개 랜딩](SERVICE_INVENTORY.md), [113개 인사이트](INSIGHT_INVENTORY.md), [156개 공개 유명인](CELEBRITY_CONTENT_AUDIT.md). 레지스트리 밖의 DOM 수집 서비스·정적 외부 경로는 추가 운영 크롤링 대상이다. 이 목록을 사이트의 모든 URL에 대한 수동 검수 완료로 읽지 않는다.
 
 | Cluster | Query | Intent | Target URL | Current Position | Action |
@@ -35,3 +37,30 @@
 | GSC export의 실제 값 | canonical URL | 원본 수치 | 원본 수치 | 원본 수치 | 원본 수치 | 동일 필터 고정 | 유지/본문/내부링크/제목/추가조사 |
 
 현재 표본은 대부분 1~9회 노출로 신뢰도가 낮다. 500회 이상 저CTR의 주요 근거는 이번에는 네이버에서 확인됐다. 검색어별 GSC 공개 데이터는 익명화되어 전체 합계와 같지 않다.
+
+## 전략 키워드 전체 의도 분류
+
+I=Informational, N=Navigational, C=Commercial, T=Transactional. 실제 검색량이나 Query–Page 매칭을 확인한 표가 아니라 기존 기능에 맞춘 편집 설계다. ‘무료’는 기존 기본 기능 범위만 설명하며 상담 전체의 무료화를 뜻하지 않는다.
+
+| 키워드 | 의도 | 기존 연결 / 첫 답 |
+| --- | --- | --- |
+| 코드데스티니, CODE DESTINY | N | `/`, `/about/`: 서비스와 운영 주체 |
+| 꿀꿀운세, 꽃돼지 사주 | N | `/kkul-kkul-unse/` → `/saju/`: 브랜드와 실제 시작 방법 |
+| 꿀꿀만세력 | N/T | `/manse/`: 기존 브랜드 사용자의 명식 확인 |
+| 초융합운세, 초융합 사주 | I/N | `/insights/fusion/`: 서로 다른 체계를 함께 읽는 방법과 한계 |
+| 사주 | I/C | `/saju/`, `/saju/guide/`: 풀이 원리와 이용 범위 |
+| 무료 사주 | T | `/saju/`: 실제 기본 계산부터, 유료 범위는 기존 CTA |
+| 만세력 | T/I | `/manse/`: 명식 계산과 읽는 순서 |
+| 자미두수 | I | `/ziwei/guide/` → `/ziwei/`: 12궁·주성의 의미 |
+| 자미두수 무료 | T | `/ziwei/`: 기본 명반과 입력 조건 |
+| 숙요점 | I/T | `/insights/sukuyo/` → `/sukuyo/`: 본명숙과 27숙 |
+| 숙요점 궁합 | T/I | `/sukuyo/compatibility/`, 기존 관계 가이드: 관계별 해석 |
+| 베다점, 베다 점성술 | I/T | `/vedic/`, `/vedic/guide/`: 출생시각·라그나·항성황도 |
+| 나크샤트라 | I/T | `/vedic/`: 달의 구분과 출생시각 미상 한계 |
+| 점성술 | I/C | `/astrology/`, `/astrology/guide/`: 차트 읽기와 상담 범위 |
+| 오늘의 운세 | T | `/today/`: 오늘 확인할 흐름과 기존 입력 |
+| 궁합 | I/C/T | `/compatibility/`: 체계 선택 → 기존 계산/상담 |
+| 연애운 | I/C | `/love/`, 기존 관계 가이드: 질문별 도구 선택 |
+| 재물운 | I/C | `/saju/`의 재물 해석 및 기존 재물 관련 글: 성향·패턴·행동 조언 |
+
+일본 별도 의도: 宿曜占星術/宿曜 相性 → `/ja/sukuyo/`, 紫微斗数 → `/ja/ziwei/`, 四柱推命 → `/ja/saju/`, インド占星術/ナクシャトラ → `/ja/vedic/`, 無料占い → `/ja/`, 恋愛占い → 기존 일본어 숙요·타로 소개. 일본어 글이 없는 한국어 유료 기능을 현지화 완료라고 안내하지 않는다. 키워드마다 새 URL을 생성하지 않는다.
