@@ -20,6 +20,8 @@ next: 언어 초기화 수정 PR의 검사·머지·스테이징 반영 확인 �
 - GSC 7일/28일/3개월 exact dates, 색인 제외 13개 사유, 표시된 외부 링크 2개 원본, 일본어 홈 과거 크롤링 성공 확인. 실제 URL 테스트는 GSC 오류, CSV 다운로드는 Chrome 차단.
 - `codex/seo-locale-init-20260908`: native 언어 초기화의 저장값 우선 결함 재현 및 수정. 초기 진입 query → path → acknowledged storage/cookie, 페이지 내 버튼 선택은 유지한다. 실제 원인은 `js/cd-lang-native.js`이며 Google Translate는 native 모드에서 억제되어 legacy helper는 수정하지 않았다.
 - 로컬 회귀 16개, 실제 정적 홈 브라우저 8건(4개 언어 × 390/1440px) 통과. `docs/seo/LOCALE_RUNTIME_VALIDATION.json`에 결과 보존. 전체 기능의 모달 번역 완료를 의미하지 않는다.
+- 전달 PR: [#1825](https://github.com/rei1237/codedestiny/pull/1825), 구현 커밋 `1cd7819a120d`. check:fast(Node 936, Jest 2,417), handoff-contract, 커밋 후 public-mirror-fresh, session:close 통과.
+- `delivery:admit -- --pr=1825`는 `codex/payment-recovery-pass-quota`의 활성 공통 파일 중첩으로 차단됐다. 직전 main의 스테이징 Pages·Worker `c0bc1b86eb16`은 일치한다. 해당 작업 변경을 보존하고, 그 작업이 clean해진 뒤 최신 main 통합·CI·입장 검사를 다시 확인한다. 이 수정의 머지/스테이징 반영을 완료로 취급하지 않는다.
 
 ## 남은 작업
 

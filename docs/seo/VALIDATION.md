@@ -59,5 +59,6 @@ npm run verify:sitemap-drift
 - `npm run check:fast`: lint/typecheck, Node 936개, Jest 218 suites / 2,417개, 결제·인증·AI 정책 가드, Worker dry-run, 인코딩 검사 통과. 로컬 Pages 빌드는 계획에 따라 CI에서 확인한다.
 - `node scripts/seo-locale-browser-check.mjs`: 4개 해외 경로 × 390/1440px, 총 8건 통과. 신규 방문/한국어 저장 사용자, 실제 입력 폼 진입, 한국어 전환/복귀 확인. 외부 리소스 차단·API mock인 public 정적 셸 실행이며 운영/CWV 증거가 아니다. [결과 JSON](LOCALE_RUNTIME_VALIDATION.json).
 - 엔진 실행 후에도 홈의 한국어 leaf는 각 67개 남는다. 번역 마커 없는 가격 비교·계정·카드·이용 조건이 포함된다. 이는 전체 모달 문장 품질 또는 번역 완료 판정이 아니다.
-- `npm run verify:handoff-contract` 통과. `verify:public-mirror-fresh`는 미커밋 상태에서 판정 불가를 반환하므로 커밋 후 실행해야 한다.
+- `npm run verify:handoff-contract` 통과. `verify:public-mirror-fresh`는 커밋 후 통과. Windows SVG 개행으로 Git stat이 변경으로 표시된 1건은 생성기 재실행·index 갱신 후 내용 변경 없이 해소했다.
+- [PR #1825](https://github.com/rei1237/codedestiny/pull/1825), `session:close` 통과. `delivery:admit`는 결제 복구 작업의 활성 공통 파일 중첩으로 차단되어 머지하지 않았다. CI/머지/배포의 최신 상태는 PR 및 입장 검사에서 확인한다.
 - 수정 전 스테이징 Pages·Worker `c0bc1b86eb16` 일치는 `verify-deployed-sha --attempts=1`로 재확인했다. 새 수정의 배포 확인과 운영 승격은 별도 상태다.
