@@ -4,13 +4,15 @@
   if (window.BasicFortunePresentation) return;
   var styleVersion = document.currentScript ? new URL(document.currentScript.src, location.href).search : '';
   var copy = {
-    ko: ['숙요점', '점성술', '자미두수', '핵심 해석', '차트', '자세히 읽기', '다음 이야기', '출생 프로필로 읽는 기본 분석', '나의 운명 기록', '먼저 읽어보세요', '전체 12궁과 명반', '나의 숙을 더 깊이 이해하기', '27숙 명반과 달력', '성향과 선택', '인간관계', '사랑', '일과 재능', '기억할 한 가지', '기본 분석', '명궁', '나의 성향을 읽는 중심', '신궁', '삶에서 힘을 쓰는 방향', '오행국', '명반의 흐름을 나누는 기준', '궁을 선택하면 아래에서 해석을 읽을 수 있어요.', '행성과 삶의 영역', '상담과 관계 탐색', '전체 해석과 참고 기록', '명궁', '재백궁', '관록궁', '부부궁', '복덕궁'],
-    en: ['Sukuyo', 'Astrology', 'Ziwei', 'Key reading', 'Chart', 'Read more', 'Explore next', 'A basic reading based on your birth profile', 'My celestial record', 'Start here', 'All 12 palaces and chart', 'Understanding your mansion', '27 mansions and calendar', 'Temperament and choices', 'Relationships', 'Love', 'Work and talents', 'Keep in mind', 'Basic reading', 'Life palace', 'The centre of your temperament', 'Body palace', 'Where you direct your energy', 'Element bureau', 'The cycle used by this chart', 'Select a palace to read its interpretation below.', 'Planets and life areas', 'Consultation and relationships', 'Full reading and reference', 'Life palace', 'Wealth palace', 'Career palace', 'Spouse palace', 'Wellbeing palace'],
-    ja: ['宿曜占', '西洋占星術', '紫微斗数', '基本の読み解き', '命盤', '詳しく読む', '次の物語へ', 'プロフィールの出生情報をもとにした基本分析', '私の星の記録', 'ここから読む', '全12宮と命盤', '本命宿を深く知る', '27宿の命盤と暦', '気質と選択', '人間関係', '恋愛', '仕事と才能', '心に留めたいこと', '基本分析', '命宮', '気質を読み解く中心', '身宮', '人生で力を注ぐ方向', '五行局', '命盤の流れを分ける基準', '宮を選ぶと下に解説が表示されます。', '惑星と人生の領域', '相談と相性を探る', '全体の解説と参考資料', '命宮', '財帛宮', '官禄宮', '夫妻宮', '福徳宮'],
-    zh: ['宿曜占', '西洋占星', '紫微斗数', '核心解读', '星盘', '详细阅读', '继续探索', '根据个人出生资料解读的基础分析', '我的星辰记录', '从这里开始', '完整十二宫与命盘', '深入了解本命宿', '二十七宿与日历', '性情与选择', '人际关系', '爱情', '工作与才能', '值得记住的事', '基础分析', '命宫', '了解性情的核心', '身宫', '人生投入力量的方向', '五行局', '命盘周期的划分依据', '选择宫位后，可在下方阅读解读。', '行星与生活领域', '咨询与关系探索', '完整解读与参考资料', '命宫', '财帛宫', '官禄宫', '夫妻宫', '福德宫'],
-    'zh-TW': ['宿曜占', '西洋占星', '紫微斗數', '核心解讀', '星盤', '詳細閱讀', '繼續探索', '根據個人出生資料解讀的基礎分析', '我的星辰記錄', '從這裡開始', '完整十二宮與命盤', '深入了解本命宿', '二十七宿與日曆', '性情與選擇', '人際關係', '愛情', '工作與才能', '值得記住的事', '基礎分析', '命宮', '了解性情的核心', '身宮', '人生投入力量的方向', '五行局', '命盤週期的劃分依據', '選擇宮位後，可在下方閱讀解讀。', '行星與生活領域', '諮詢與關係探索', '完整解讀與參考資料', '命宮', '財帛宮', '官祿宮', '夫妻宮', '福德宮']
+    ko: ['숙요점', '점성술', '자미두수', '핵심 해석', '차트', '자세히 읽기', '다음 이야기', '출생 프로필로 읽는 기본 분석', '나의 운명 기록', '먼저 읽어보세요', '전체 12궁과 명반', '나의 숙을 더 깊이 이해하기', '27숙 명반과 달력', '성향과 선택', '인간관계', '사랑', '일과 재능', '기억할 한 가지', '기본 분석', '명궁', '나의 성향을 읽는 중심', '신궁', '삶에서 힘을 쓰는 방향', '오행국', '명반의 흐름을 나누는 기준', '궁을 선택하면 아래에서 해석을 읽을 수 있어요.', '행성과 삶의 영역', '상담과 관계 탐색', '전체 해석과 참고 기록', '명궁', '재백궁', '관록궁', '부부궁', '복덕궁', '자미두수 읽을거리', '기본 명반에서 확인한 구조를 기존 인사이트 글로 이어서 읽어보세요.', '글 제목 찾기', '불러오는 중입니다.', '글 목록을 불러오지 못했어요. 다시 시도해 주세요.', '찾는 글이 없어요. 다른 검색어를 입력해 주세요.', '읽을거리 목록으로 돌아가기', '원문 페이지 보기', '전통 해석 체계를 바탕으로 한 참고용 읽을거리입니다.'],
+    en: ['Sukuyo', 'Astrology', 'Ziwei', 'Key reading', 'Chart', 'Read more', 'Explore next', 'A basic reading based on your birth profile', 'My celestial record', 'Start here', 'All 12 palaces and chart', 'Understanding your mansion', '27 mansions and calendar', 'Temperament and choices', 'Relationships', 'Love', 'Work and talents', 'Keep in mind', 'Basic reading', 'Life palace', 'The centre of your temperament', 'Body palace', 'Where you direct your energy', 'Element bureau', 'The cycle used by this chart', 'Select a palace to read its interpretation below.', 'Planets and life areas', 'Consultation and relationships', 'Full reading and reference', 'Life palace', 'Wealth palace', 'Career palace', 'Spouse palace', 'Wellbeing palace', 'Ziwei reading room', 'Continue from the chart into existing Ziwei insights.', 'Find an article', 'Loading articles…', 'Unable to load articles. Please try again.', 'No matching articles.', 'Back to the reading list', 'Open original article', 'Reference reading based on traditional interpretive frameworks.'],
+    ja: ['宿曜占', '西洋占星術', '紫微斗数', '基本の読み解き', '命盤', '詳しく読む', '次の物語へ', 'プロフィールの出生情報をもとにした基本分析', '私の星の記録', 'ここから読む', '全12宮と命盤', '本命宿を深く知る', '27宿の命盤と暦', '気質と選択', '人間関係', '恋愛', '仕事と才能', '心に留めたいこと', '基本分析', '命宮', '気質を読み解く中心', '身宮', '人生で力を注ぐ方向', '五行局', '命盤の流れを分ける基準', '宮を選ぶと下に解説が表示されます。', '惑星と人生の領域', '相談と相性を探る', '全体の解説と参考資料', '命宮', '財帛宮', '官禄宮', '夫妻宮', '福徳宮', '紫微斗数の読みもの', '命盤で確認した構造を、既存の紫微斗数インサイトへ続けて読めます。', '記事タイトルを検索', '読み込み中…', '記事を読み込めませんでした。もう一度お試しください。', '一致する記事がありません。', '読みもの一覧に戻る', '元の記事を開く', '伝統的な解釈体系にもとづく参考読みものです。'],
+    zh: ['宿曜占', '西洋占星', '紫微斗数', '核心解读', '星盘', '详细阅读', '继续探索', '根据个人出生资料解读的基础分析', '我的星辰记录', '从这里开始', '完整十二宫与命盘', '深入了解本命宿', '二十七宿与日历', '性情与选择', '人际关系', '爱情', '工作与才能', '值得记住的事', '基础分析', '命宫', '了解性情的核心', '身宫', '人生投入力量的方向', '五行局', '命盘周期的划分依据', '选择宫位后，可在下方阅读解读。', '行星与生活领域', '咨询与关系探索', '完整解读与参考资料', '命宫', '财帛宫', '官禄宫', '夫妻宫', '福德宫', '紫微斗数阅读', '从命盘中确认的结构继续阅读现有的紫微斗数文章。', '搜索文章标题', '正在加载…', '无法加载文章，请重试。', '没有匹配的文章。', '返回阅读列表', '查看原文页面', '基于传统解读体系的参考读物。'],
+    'zh-TW': ['宿曜占', '西洋占星', '紫微斗數', '核心解讀', '星盤', '詳細閱讀', '繼續探索', '根據個人出生資料解讀的基礎分析', '我的星辰記錄', '從這裡開始', '完整十二宮與命盤', '深入了解本命宿', '二十七宿與日曆', '性情與選擇', '人際關係', '愛情', '工作與才能', '值得記住的事', '基礎分析', '命宮', '了解性情的核心', '身宮', '人生投入力量的方向', '五行局', '命盤週期的劃分依據', '選擇宮位後，可在下方閱讀解讀。', '行星與生活領域', '諮詢與關係探索', '完整解讀與參考資料', '命宮', '財帛宮', '官祿宮', '夫妻宮', '福德宮', '紫微斗數閱讀', '從命盤中確認的結構繼續閱讀現有的紫微斗數文章。', '搜尋文章標題', '正在載入…', '無法載入文章，請重試。', '沒有符合的文章。', '返回閱讀列表', '查看原文頁面', '基於傳統解讀體系的參考讀物。']
   };
-  var labelKeys = ["sukuyo","astro","ziwei","keyReading","chart","readMore","explore","profileBasis","myRecord","startHere","allPalaces","mansionDetails","mansionChart","temperament","relationships","love","work","advice","basicReading","lifePalace","lifeMeaning","bodyPalace","bodyMeaning","bureau","bureauMeaning","selectPalace","planets","consultation","fullReading","palaceLife","palaceWealth","palaceCareer","palaceSpouse","palaceWellbeing"];
+  var articleRetryLabels = { ko: '다시 시도', en: 'Retry', ja: '再試行', zh: '重试', 'zh-TW': '重試' };
+  Object.keys(copy).forEach(function (lang) { copy[lang].splice(40, 0, articleRetryLabels[lang] || articleRetryLabels.en); });
+  var labelKeys = ["sukuyo","astro","ziwei","keyReading","chart","readMore","explore","profileBasis","myRecord","startHere","allPalaces","mansionDetails","mansionChart","temperament","relationships","love","work","advice","basicReading","lifePalace","lifeMeaning","bodyPalace","bodyMeaning","bureau","bureauMeaning","selectPalace","planets","consultation","fullReading","palaceLife","palaceWealth","palaceCareer","palaceSpouse","palaceWellbeing","articleLibrary","articleLibraryDesc","articleSearch","articleLoading","articleError","articleRetry","articleEmpty","articleBack","articleOriginal","articleNote"];
   function t(key) {
     var index = typeof key === 'number' ? key : labelKeys.indexOf(key);
     var lang = document.documentElement.lang || 'ko';
@@ -222,6 +224,58 @@
         if(!root.isConnected) return;
         articles=items.filter(function(a){return /^[a-z0-9-]+$/.test(a.slug)&&a.href==='/insights/'+a.slug+'/'&&/^[a-z0-9-]+\.json$/.test(a.body);}); renderList();
       }).catch(function(){if(!root.isConnected)return;status.textContent=labels[26];retry.hidden=false;});
+    }
+    input.addEventListener('input',renderList); retry.addEventListener('click',load); load(); return section;
+  }
+  function ziweiArticleLibrary(root) {
+    var section=node('section','zw-house-journal'); section.id='fr-ziwei-articles';
+    section.appendChild(heading(t('articleLibrary')));
+    section.appendChild(node('p','fr-caption',t('articleLibraryDesc')));
+    var label=node('label','zw-house-search',t('articleSearch')); var input=node('input'); input.type='search'; input.placeholder=t('articleSearch'); label.appendChild(input); section.appendChild(label);
+    var list=node('div','zw-house-articles'); var status=node('p','fr-caption',t('articleLoading')); status.setAttribute('role','status');
+    var retry=node('button','',t('articleRetry')); retry.type='button'; retry.hidden=true;
+    var reader=node('article','zw-house-article-reader'); reader.hidden=true;
+    section.append(list,status,retry,reader);
+    var articles=[]; var activeRequest=0;
+    function renderList() {
+      list.replaceChildren(); var query=input.value.trim().toLocaleLowerCase();
+      articles.filter(function (article) { return (article.title+' '+article.description).toLocaleLowerCase().includes(query); }).forEach(function (article) {
+        var link=node('a','zw-house-story'); link.href=article.href; link.lang='ko';
+        link.append(node('h4','',article.title),node('p','',article.description));
+        link.addEventListener('click',function (event) {
+          if(event.ctrlKey||event.metaKey||event.shiftKey||event.altKey) return;
+          event.preventDefault(); openArticle(article,link);
+        });
+        list.appendChild(link);
+      });
+      status.textContent=list.childElementCount?'':t('articleEmpty');
+    }
+    function openArticle(article, origin) {
+      var request=++activeRequest; reader.hidden=false; reader.replaceChildren();
+      var back=node('button','',t('articleBack')); back.type='button'; back.addEventListener('click',function () { activeRequest++; reader.hidden=true; if(origin.isConnected) origin.focus(); });
+      var title=heading(article.title); title.lang='ko'; var original=node('a','zw-house-original',t('articleOriginal')); original.href=article.href;
+      var content=node('div','zw-house-article-body',t('articleLoading')); content.lang='ko'; content.setAttribute('aria-live','polite');
+      reader.append(back,title,node('p','fr-caption',t('articleNote')),original,content); syReadingJump(reader);
+      fetch('/data/ziwei-reading/'+article.body).then(function (response) { if(!response.ok) throw new Error('Article unavailable'); return response.json(); }).then(function (payload) {
+        if(request!==activeRequest||!root.isConnected) return;
+        // Authored local content still uses a DOM allowlist; no script, embedded media or inline handlers.
+        var parsed=new DOMParser().parseFromString(payload.contentHtml,'text/html');
+        parsed.querySelectorAll('script,style,iframe,object,embed,form,input,button,link,meta,img,svg').forEach(function(el){el.remove();});
+        parsed.body.querySelectorAll('*').forEach(function(el){
+          var href=el.tagName==='A'?el.getAttribute('href'):null;
+          Array.from(el.attributes).forEach(function(attr){el.removeAttribute(attr.name);});
+          if(href&&/^\/(?!\/)/.test(href)) el.setAttribute('href',href);
+        });
+        content.replaceChildren.apply(content,Array.from(parsed.body.childNodes));
+      }).catch(function () { if(request===activeRequest&&root.isConnected) content.textContent=t('articleError'); });
+    }
+    function load() {
+      retry.hidden=true; status.textContent=t('articleLoading');
+      fetch('/data/ziwei-reading/index.json',{cache:'no-store'}).then(function(response){if(!response.ok)throw new Error('Catalogue unavailable');return response.json();}).then(function(items){
+        if(!root.isConnected) return;
+        articles=items.filter(function(article){return /^[a-z0-9-]+$/.test(article.slug)&&article.href==='/insights/'+article.slug+'/'&&/^[a-z0-9-]+\.json$/.test(article.body);});
+        renderList();
+      }).catch(function(){if(!root.isConnected)return;status.textContent=t('articleError');retry.hidden=false;});
     }
     input.addEventListener('input',renderList); retry.addEventListener('click',load); load(); return section;
   }
@@ -480,7 +534,7 @@
     dashboard.prepend(chartSection);
     chartSection.after(reading);
     var nav = node('nav', 'fr-ziwei-nav'); nav.setAttribute('aria-label', t('ziwei'));
-    [['fr-ziwei-chart',t('chart')],['fr-ziwei-reading',t('keyReading')],['fr-ziwei-flow',localized('flow')],['zwDeepAiPromptPanel',localized('consult')]].forEach(function (item) {
+    [['fr-ziwei-chart',t('chart')],['fr-ziwei-reading',t('keyReading')],['fr-ziwei-flow',localized('flow')],['zwDeepAiPromptPanel',localized('consult')],['fr-ziwei-articles',t('articleLibrary')]].forEach(function (item) {
       var link = node('a', '', item[1]); link.href = '#' + item[0]; nav.appendChild(link);
     });
     hero.after(nav);
@@ -521,6 +575,7 @@
       area.appendChild(flow);
     }
     if (consult) area.appendChild(consult);
+    area.appendChild(ziweiArticleLibrary(area));
     // The atlas is the sole decorative artwork on this surface. Keep text/captions.
     area.querySelectorAll('img').forEach(function (img) { img.hidden = true; });
     cells.forEach(function (cell) {

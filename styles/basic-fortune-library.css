@@ -351,3 +351,37 @@ body:has(#ziweiModalOverlay[aria-hidden="false"]) #cdMobileBottomNav { display:n
   #ziweiModalOverlay .fr-spectrum-row :is(strong,span) { font-size:12px; }
   #ziweiModalOverlay #zwDeepAiPromptPanel { padding:18px 14px !important; }
 }
+#ziweiModalOverlay .fr-ziwei-nav { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:8px; }
+#ziweiModalOverlay .fr-ziwei-nav a { justify-content:center; text-align:center; }
+#ziweiModalOverlay .zw-house-journal { border-top:1px solid var(--fr-rule); padding-top:30px; margin-top:40px; scroll-margin-top:24px; }
+#ziweiModalOverlay .zw-house-journal > .fr-caption { max-width:720px; }
+#ziweiModalOverlay .zw-house-search { display:block; max-width:380px; margin:20px 0; color:var(--fr-muted); font-size:14px; }
+#ziweiModalOverlay .zw-house-search input { display:block; width:100%; min-height:46px; margin-top:7px; padding:10px 12px; border:1px solid var(--fr-rule); border-radius:7px; color:var(--fr-ink); background:var(--fr-surface); font-size:16px; }
+#ziweiModalOverlay .zw-house-articles { display:grid; grid-template-columns:1fr; gap:0 32px; }
+#ziweiModalOverlay .zw-house-story { display:block; min-height:44px; padding:22px 0; border-bottom:1px solid var(--fr-rule); color:var(--fr-ink); text-decoration:none; overflow-wrap:anywhere; }
+#ziweiModalOverlay .zw-house-story h4 { margin:0 0 12px; color:var(--fr-ink); font:400 22px/1.6 var(--font-serif, Batang, serif); }
+#ziweiModalOverlay .zw-house-story p { margin:0; color:var(--fr-muted); font-size:14px; line-height:1.75; }
+#ziweiModalOverlay .zw-house-story:hover h4 { text-decoration:underline; text-underline-offset:6px; }
+#ziweiModalOverlay .zw-house-story:first-child::before { content:''; display:block; aspect-ratio:16 / 7; margin-bottom:18px; border-radius:8px; background:url('/images/ziwei/celestial-atlas.webp') center/cover; }
+#ziweiModalOverlay .zw-house-article-reader { margin-top:24px; padding:24px 0; border-top:1px solid var(--fr-rule); }
+#ziweiModalOverlay .zw-house-article-reader > .fr-heading { margin-top:24px; }
+#ziweiModalOverlay .zw-house-article-reader button,
+#ziweiModalOverlay .zw-house-original { display:inline-flex; align-items:center; min-height:44px; margin:10px 0 14px; padding:10px 16px; border:1px solid var(--fr-rule); border-radius:7px; color:var(--fr-ink); background:var(--fr-surface); cursor:pointer; }
+#ziweiModalOverlay .zw-house-original { margin:10px 0 24px; color:var(--fr-accent); text-decoration:underline; text-underline-offset:4px; }
+#ziweiModalOverlay .zw-house-article-body { max-width:720px; margin:auto; overflow-wrap:anywhere; }
+#ziweiModalOverlay .zw-house-article-body :is(h2,h3,h4) { margin:36px 0 16px; color:var(--fr-ink); line-height:1.5; }
+#ziweiModalOverlay .zw-house-article-body :is(h2,h3) { font-family:var(--font-serif, Batang, serif); font-weight:400; }
+#ziweiModalOverlay .zw-house-article-body :is(p,li) { color:var(--fr-ink); line-height:1.9; }
+#ziweiModalOverlay .zw-house-article-body ul,
+#ziweiModalOverlay .zw-house-article-body ol { padding-left:22px; }
+#ziweiModalOverlay .zw-house-article-body table { display:block; max-width:100%; overflow-x:auto; border-collapse:collapse; }
+#ziweiModalOverlay .zw-house-article-body :is(td,th) { min-width:90px; padding:12px; border-bottom:1px solid var(--fr-rule); }
+@media (min-width:768px) {
+  #ziweiModalOverlay .zw-house-articles { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@media (max-width:600px) {
+  #ziweiModalOverlay .fr-ziwei-nav { grid-template-columns:repeat(3,minmax(0,1fr)); gap:4px 8px; }
+  #ziweiModalOverlay .fr-ziwei-nav a { min-height:40px; font-size:12px; }
+  #ziweiModalOverlay .zw-house-story h4 { font-size:19px; line-height:1.5; }
+  #ziweiModalOverlay .zw-house-article-reader { padding-top:18px; }
+}
