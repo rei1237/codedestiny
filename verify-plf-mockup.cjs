@@ -24,7 +24,12 @@ const harness = `<!doctype html><html lang="ko"><head><meta charset="utf-8"><met
 <script src="/AnalysisEngine.js"></script><script src="/PastLifeFaceUI.js"></script>
 </body></html>`;
 
-const mime = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.webp': 'image/webp' };
+const mime = {
+  '.html': 'text/html; charset=utf-8',
+  '.js': 'text/javascript; charset=utf-8',
+  '.webp': 'image/webp',
+  '.jpg': 'image/jpeg',
+};
 const server = http.createServer((req, res) => {
   if (req.url === '/__plf_harness') {
     res.writeHead(200, { 'content-type': mime['.html'] });
@@ -111,7 +116,12 @@ async function openResult(browser, base, width, options = {}) {
   }
 
   const brokenPage = await browser.newPage({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
-  await brokenPage.route('**/choice-*.webp', (route) => route.abort());
+  let storyImageRequests = 0;
+  await brokenPage.route('**/fuctionassets/**', (route) => {
+    storyImageRequests += 1;
+    if (storyImageRequests === 2) return route.abort();
+    return route.continue();
+  });
   await brokenPage.goto(base + '/__plf_harness');
   await brokenPage.evaluate((value) => window.openPastLifeFaceApp({ seed: value }), seed);
   await brokenPage.locator('[data-plf-figure="1"]').scrollIntoViewIfNeeded();

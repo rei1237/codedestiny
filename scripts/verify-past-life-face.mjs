@@ -98,12 +98,17 @@ assert.match(source, /function plfShareText\(\)/, '이미지 공유 실패 시 �
 assert.match(source, /contentId:\s*PLF_SHARE_CONTENT_ID/, '이미지 공유는 전생 전용 contentId를 넘겨야 한다');
 assert.match(shareSource, /pastlifeface:\s*['"]openPastLifeFaceApp['"]/, '공유 helper의 전생 contentId가 실제 진입 action으로 매핑돼야 한다');
 
-for (const name of ['clue', 'choice', 'threshold']) {
+for (const name of ['clue', 'choice', 'threshold', 'role-harbor', 'role-choice', 'role-memory']) {
   for (const width of [480, 800]) {
     const asset = resolve(root, `fuctionassets/past-life-webtoon/${name}-${width}.webp`);
     const bytes = statSync(asset).size;
     assert.ok(bytes <= 120 * 1024, `${name}-${width}.webp가 120KiB 상한을 넘음: ${bytes} bytes`);
   }
+}
+
+for (const name of ['compat-preview-pastlife', 'compat-preview-adjust', 'compat-preview-emotion', 'compat-preview-longterm', 'compat-preview-core']) {
+  const asset = resolve(root, `fuctionassets/${name}.jpg`);
+  assert.ok(statSync(asset).size > 0, `${name}.jpg가 비어 있지 않아야 함`);
 }
 
 assert.match(source, /function plfShowPreviewSkeleton\(show\)/, '사진 디코드 전 shimmer 스켈레톤이 있어야 한다');
@@ -292,8 +297,8 @@ assert.equal(
   '나머지 두 그림은 lazy여야 함',
 );
 for (const img of window.document.querySelectorAll('.plf-story__figure img')) {
-  assert.equal(img.getAttribute('width'), '800', '그림 width 예약값이 있어야 함');
-  assert.equal(img.getAttribute('height'), '1200', '그림 height 예약값이 있어야 함');
+  assert.ok(['800', '1280'].includes(img.getAttribute('width')), '그림 width 예약값이 있어야 함');
+  assert.ok(['720', '1200'].includes(img.getAttribute('height')), '그림 height 예약값이 있어야 함');
   assert.ok(img.getAttribute('src'), 'IntersectionObserver가 없으면 지연 그림도 즉시 src를 받아야 함');
 }
 
@@ -301,6 +306,14 @@ const sampleReading = window.__plfTestHooks.buildReading(seedFor(animals[0], FAC
 const sampleStory = window.__plfTestHooks.buildStory(sampleReading);
 assert.equal(sampleStory.episodes.length, 3, '표시 DTO는 3개 에피소드를 가져야 함');
 assert.equal(sampleStory.legacyReading, sampleReading, '표시 DTO가 기존 원문 객체를 보존해야 함');
+assert.ok(sampleStory.assetPlan && sampleStory.assetPlan.beginning, '표시 DTO에 기존 이미지 배치 계획이 있어야 함');
+assert.ok(['pastlife', 'clue'].includes(sampleStory.episodes[0].assetKey), '일반 역할은 기존 전생 상징 이미지를 첫 장에 써야 함');
+const mapmakerStory = window.__plfTestHooks.buildStory({ ...sampleReading, roleName: '해도 제작자', eventTitle: '끝까지 남긴 지도' });
+assert.deepEqual(
+  Array.from(mapmakerStory.episodes, (episode) => episode.assetKey),
+  ['roleHarbor', 'roleChoice', 'roleMemory'],
+  '지도 제작자 역할만 기존 지도 제작자 3컷을 순서대로 써야 함',
+);
 assert.equal(window.__plfTestHooks.buildStory('{broken'), null, '깨진 JSON은 안전하게 거절해야 함');
 assert.equal(window.__plfTestHooks.buildStory('x'.repeat(256 * 1024 + 1)), null, '과대 JSON은 파싱 전에 거절해야 함');
 const sparseStory = window.__plfTestHooks.buildStory('{}');
