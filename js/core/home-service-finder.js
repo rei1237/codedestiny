@@ -495,7 +495,9 @@
   }
 
   function boot() {
-    if (document.getElementById("cdHomeFunnel") && !boot.requested) {
+    var home = document.getElementById("cdHomeFunnel");
+    var finder = document.getElementById("cdFinder");
+    if (home && finder && !home.contains(finder) && !boot.requested) {
       document.addEventListener("cd:home-finder-open", function () {
         boot.requested = true;
         boot();
@@ -528,7 +530,7 @@
       if (!jump) return;
       if (document.getElementById("cdHomeFunnel")) {
         event.preventDefault();
-        location.hash = "services";
+        location.hash = "cdFinder";
         return;
       }
       var target = document.getElementById("cdServiceIndex");

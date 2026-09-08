@@ -1212,8 +1212,15 @@ function syncSearchIgnoreList() {
   collectMirroredPublicPaths(publicDir, "", mirrors);
 
   // ② 루트 index.html 에서 파생한 셸 6벌 — applyLocaleSeoMeta 등으로 변형돼 ①에 안 걸린다.
-  const derivedShells = ["index.html", "static/index.html", ...localeLandingDirs.map((loc) => `${loc}/index.html`)];
-  for (const rel of derivedShells) {
+  const derivedMirrors = [
+    "index.html",
+    "static/index.html",
+    ...localeLandingDirs.map((loc) => `${loc}/index.html`),
+    // 홈 전용 스타일은 deploy shell에 인라인되어 환경마다 바이트 비교가 달라질 수 있다.
+    // public/ 사본은 여전히 생성 산출물이므로 검색 미러 목록에는 항상 넣는다.
+    "styles/home-funnel.css",
+  ];
+  for (const rel of derivedMirrors) {
     if (existsSync(resolve(publicDir, rel))) mirrors.add(`public/${rel}`);
   }
 
