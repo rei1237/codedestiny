@@ -62,3 +62,4 @@ npm run verify:sitemap-drift
 - `npm run verify:handoff-contract` 통과. `verify:public-mirror-fresh`는 커밋 후 통과. Windows SVG 개행으로 Git stat이 변경으로 표시된 1건은 생성기 재실행·index 갱신 후 내용 변경 없이 해소했다.
 - [PR #1825](https://github.com/rei1237/codedestiny/pull/1825), `session:close` 통과. `delivery:admit`는 결제 복구 작업의 활성 공통 파일 중첩으로 차단되어 머지하지 않았다. CI/머지/배포의 최신 상태는 PR 및 입장 검사에서 확인한다.
 - 수정 전 스테이징 Pages·Worker `c0bc1b86eb16` 일치는 `verify-deployed-sha --attempts=1`로 재확인했다. 새 수정의 배포 확인과 운영 승격은 별도 상태다.
+- 이후 홈 개편 main `638f2480a7fc`를 충돌 없이 통합하고 sync:public 및 관련 회귀 11개·브라우저 8건을 다시 통과했다. 새 홈은 기존 번역 영역을 재사용하므로 한국어 leaf는 각 10개다(이전 67개와 다른 본문). 최신 JSON은 이 통합본 결과이며, 원격 전체 CI는 새 head를 기준으로 확인한다. 활성 중첩 작업에는 모바일 UX·기본 운세 작업도 추가되어 최종 delivery:admit 재확인이 필요하다.
