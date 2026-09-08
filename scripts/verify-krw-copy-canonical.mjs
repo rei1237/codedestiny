@@ -13,7 +13,8 @@
 // 무엇을 강제하는가:
 //   문구에 적힌 원화 금액은 전부 **정본 집합**의 값이어야 한다. 정본은 표를 옮겨 적지 않고
 //   `worker/lib/paid-feature-registry.js` · `lib/payment/pass-pricing.js` ·
-//   `worker/lib/profile-limits.js` 를 **직접 import** 해서 계산한다(1코인 = 100원).
+//   `lib/music-access-policy.js` · `worker/lib/profile-limits.js` 를 **직접 import** 해서
+//   계산한다(1코인 = 100원).
 //
 // 검사 대상 (손으로 쓴 파일 목록 금지 — CLAUDE.md 원칙 10):
 //   A) `public/i18n/*.json` + `i18n/authored/*.json` + `i18n/pending/*.json` 전부
@@ -47,6 +48,7 @@ import {
   COIN_GATE_PER_USE_REASON_COSTS,
 } from "../worker/lib/paid-feature-registry.js";
 import { PASS_MONTHLY_WON } from "../lib/payment/pass-pricing.js";
+import { MUSIC_TRACK_UNLOCK_PRICE_KRW } from "../lib/music-access-policy.js";
 import { PASS_LIMITS_KRW, MONTHLY_PASS_LIMITS_KRW } from "../worker/lib/profile-limits.js";
 import { gateCovers as gateCoversAny, readGatePatterns } from "./lib/gate-trigger-coverage.mjs";
 
@@ -65,6 +67,7 @@ for (const entry of Object.values(FEATURE_KEY_PRICE_TABLE)) add(krwOf(entry));
 for (const entry of Object.values(PIG_COIN_UNLOCK_PRODUCTS)) add(krwOf(entry));
 for (const table of Object.values(FEATURE_KEY_REASON_COSTS)) for (const entry of Object.values(table)) add(krwOf(entry));
 for (const coins of Object.values(COIN_GATE_PER_USE_REASON_COSTS)) add(Number(coins) * COIN_TO_KRW);
+add(MUSIC_TRACK_UNLOCK_PRICE_KRW);
 for (const won of Object.values(PASS_MONTHLY_WON)) add(won);
 for (const won of Object.values(PASS_LIMITS_KRW)) add(won);
 for (const won of Object.values(MONTHLY_PASS_LIMITS_KRW)) add(won);
@@ -229,7 +232,7 @@ assert.ok(
       .map((v) => `  ${v.rel} (${v.where}) ${v.amount.toLocaleString()}원 → 가까운 정본: ${nearest(v.amount)}\n      ${v.sample}`)
       .join("\n")
     + (violations.length > 30 ? `\n  … 외 ${violations.length - 30}건` : "")
-    + "\n  정본: worker/lib/paid-feature-registry.js · lib/payment/pass-pricing.js · worker/lib/profile-limits.js",
+    + "\n  정본: worker/lib/paid-feature-registry.js · lib/payment/pass-pricing.js · lib/music-access-policy.js · worker/lib/profile-limits.js",
 );
 
 const staleAllowances = ALLOWED_NON_CANONICAL.filter(([rel, amount]) => !usedAllowances.has(allowanceKey(rel, amount)));
@@ -245,6 +248,7 @@ const gatePatterns = readGatePatterns(resolve(root, GATE_WORKFLOW));
 const READ_PATHS = [
   "worker/lib/paid-feature-registry.js",
   "lib/payment/pass-pricing.js",
+  "lib/music-access-policy.js",
   "worker/lib/profile-limits.js",
   "scripts/verify-krw-copy-canonical.mjs",
   ...readdirSync(resolve(root, "public/i18n")).filter((f) => f.endsWith(".json")).map((f) => `public/i18n/${f}`),

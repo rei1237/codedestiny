@@ -13,6 +13,7 @@
  * 내려갈 수 있는 이유가 이것이다.
  */
 import {
+  COIN_GATE_PER_USE_REASON_COSTS,
   FEATURE_KEY_PRICE_TABLE,
   LOVE_CODE_FEATURE_KEY,
   LOVE_CODE_PRODUCT_ID,
@@ -26,6 +27,7 @@ import {
   calculateMembershipCreditCost,
   normalizePaidFeaturePricingShape,
 } from "../lib/billing-policy.js";
+import { resolveMusicTrackUnlockPricing } from "../../lib/music-access-policy.js";
 import { paymentError } from "./errors.js";
 
 /* 🔴 이용권으로 **결제할 수 없는** 기능. 등급과 무관하다(family 포함).
@@ -46,7 +48,7 @@ const UNLOCK_PRODUCT_ID_BY_FEATURE_KEY = Object.freeze(
   }, Object.create(null)),
 );
 
-function lookupSpec(productId, featureKey) {
+function lookupSpec(productId, featureKey, reason = "") {
   if (productId && PIG_COIN_UNLOCK_PRODUCTS[productId]) {
     return { spec: PIG_COIN_UNLOCK_PRODUCTS[productId], productId };
   }
@@ -59,6 +61,23 @@ function lookupSpec(productId, featureKey) {
   }
   const unlockId = UNLOCK_PRODUCT_ID_BY_FEATURE_KEY[featureKey];
   if (unlockId) return { spec: PIG_COIN_UNLOCK_PRODUCTS[unlockId], productId: unlockId };
+
+  // 레거시 generic coin-gate 상품은 featureKey 하나에 reason별 가격을 둔다. 주문 스냅샷에
+  // reason을 보존해 지급·재조정에서도 같은 상품을 다시 해석한다.
+  const genericCost = Number(COIN_GATE_PER_USE_REASON_COSTS[String(reason || "").trim()]);
+  if (featureKey === "coin-gate-per-use" && genericCost > 0 && (!productId || productId === featureKey)) {
+    return { spec: { featureKey, cost: genericCost, reason }, productId: featureKey };
+  }
+
+  // 음원은 manifest에서 audioSourceKey별 featureKey를 파생하므로 정적 가격표 146행에
+  // 하나씩 복제하지 않는다. prepare도 같은 정책 함수로 가격을 해석한다. 지급 단계가
+  // 정적 catalog만 보던 탓에 PAID 주문 123종이 PRODUCT_NOT_FOUND로 남던 간극을 여기서 잇는다.
+  const musicSpec = resolveMusicTrackUnlockPricing(featureKey);
+  if (musicSpec) {
+    const acceptedIds = new Set(["", featureKey, `unlock.${featureKey}`]);
+    if (!acceptedIds.has(productId)) return null;
+    return { spec: musicSpec, productId: featureKey };
+  }
   return null;
 }
 
@@ -68,7 +87,7 @@ function lookupSpec(productId, featureKey) {
  * @param {{ productId?: string, featureKey?: string, reason?: string }} input
  * @returns {{
  *   productId: string, featureKey: string, billingType: string,
- *   priceKRW: number, priceCoins: number, monthlyCost: number,
+ *   priceKRW: number, priceCoins: number, monthlyCost: number, reason: string,
  *   label: string, passExcluded: boolean,
  * }}
  * @throws {PaymentError} PRODUCT_NOT_FOUND
@@ -76,7 +95,7 @@ function lookupSpec(productId, featureKey) {
 export function resolveProduct(input = {}) {
   const rawProductId = String(input.productId || "").trim();
   const featureKey = normalizePaidFeatureKey(input.featureKey || rawProductId);
-  const found = lookupSpec(rawProductId, featureKey);
+  const found = lookupSpec(rawProductId, featureKey, input.reason);
   if (!found) {
     throw paymentError("PRODUCT_NOT_FOUND", "상품 정보를 찾을 수 없습니다.", {
       productId: rawProductId,
@@ -88,7 +107,7 @@ export function resolveProduct(input = {}) {
   // reason 별 가격이 등록소에 있으면 그게 이긴다(같은 기능이 진입 경로마다 값이 다른 상품이 있다).
   const reasonCost = resolveFeatureReasonCost(canonicalFeatureKey, input.reason);
   const shaped = normalizePaidFeaturePricingShape(
-    reasonCost ? { ...found.spec, cost: reasonCost, amountKRW: 0 } : found.spec,
+    reasonCost ? { featureKey: canonicalFeatureKey, reason: input.reason, cost: reasonCost } : found.spec,
   );
 
   const priceCoins = Math.max(0, Math.floor(Number(shaped.coinPrice) || 0));
@@ -109,6 +128,7 @@ export function resolveProduct(input = {}) {
     priceCoins,
     monthlyCost: calculateMembershipCreditCost(priceCoins),
     label: String(found.spec.reason || "").trim(),
+    reason: String(input.reason || found.spec.reason || "").trim(),
     passExcluded: PASS_EXCLUDED_SET.has(canonicalFeatureKey),
   });
 }
