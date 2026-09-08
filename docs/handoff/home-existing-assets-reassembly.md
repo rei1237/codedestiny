@@ -25,9 +25,10 @@ next: 스테이징 홈의 실제 이미지 요청을 360·390·1280px 냉시작�
   통과했고 커스텀 도메인에서만 재현됐다.
 - 배포 파이프라인은 실패를 감지해 Worker를 이전 SHA
   `c0bc1b86eb1659caa966c79ba0fe66db37e356a2`로 자동 롤백했다. 다만 Pages 롤백의
-  커스텀 도메인 반영이 지연되어 확인 시점에 Pages `638f2480...`와 Worker `c0bc1b86...`가
+  커스텀 도메인 반영이 일관되지 않아 최종 확인 시점에 Pages `5229098a...`와 Worker `c0bc1b86...`가
   불일치한다. `robots.txt`의 전체 차단은 유지된다.
-- 후속 PR은 홈 런타임에 배포 빌드 키를 붙이고, 이 쿼리가 다시 빠지면
+- 후속 PR #1827(https://github.com/rei1237/codedestiny/pull/1827)은 홈 런타임에
+  배포 빌드 키를 붙이고, 이 쿼리가 다시 빠지면
   `verify:hero-firstpaint-lock`이 실패하도록 잠근다. 머지 후 Pages `/version.json`과
   Worker `/api/version`이 같은 SHA인지 다시 확인해야 한다.
 
