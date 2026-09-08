@@ -12,7 +12,7 @@ next: payment-inventory.json의 미검토 상품과 호출을 실제 route부터
 
 ## 지금 상태
 
-- 격리 브랜치 `codex/payment-recovery-pass-quota`. 서비스 코드 수정 없음, Phase 1 조사 도구만 구현. 머지하지 않음.
+- 격리 브랜치 `codex/payment-recovery-pass-quota`, draft PR #1820. 서비스 코드 수정 없음, Phase 1 조사 도구만 구현. 머지하지 않음.
 - `docs/payments/payment-stabilization.md`에 architecture·발견·정책·검토 형식. 전체 요청은 미완료.
 - 최신 main에는 서버 resume 저장과 동일 소비 재시도 수정이 이미 있다. 이를 덮어쓰지 않는다.
 
