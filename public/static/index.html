@@ -3079,6 +3079,8 @@ body.cd-mnav-collapsed .cd-mobile-bottom-nav__toggle{position:relative;width:88p
 body.cd-mnav-collapsed .cd-mobile-bottom-nav__chevron{margin-top:2px;transform:rotate(-135deg)}
 body.neo-mode.cd-mnav-collapsed .cd-mobile-bottom-nav__toggle{border-color:rgba(196,181,253,.24);background:#120c24;box-shadow:0 -2px 10px rgba(0,0,0,.34)}
 @media (max-width: 768px), (hover: none) and (pointer: coarse) {
+  /* The visual chevron is small, but its mobile control remains thumb-sized. */
+  .cd-mobile-bottom-nav__toggle{min-height:44px;height:44px}
   /* 🔴 모바일 pill 스킨(cd-mobile-shortcut-polish-v20260702)은 bottom 에서 이미 safe-area 를
      빼 두었다 — 여기서 padding 으로 또 더하면 두 번 센다. */
   body.cd-mnav-collapsed #cdMobileBottomNav#cdMobileBottomNav{padding-bottom:6px!important}
@@ -3098,7 +3100,7 @@ body.neo-mode.cd-mnav-collapsed .cd-mobile-bottom-nav__toggle{border-color:rgba(
      50% 가 **상대 이동량**이 되어 손잡이가 바 폭의 절반만큼 오른쪽으로 밀려 잘렸고(1280px
      접힘에서 26px 밖으로, 2026-09-04 실측) 그 상태에서는 다시 펼 수가 없었다. App Router 짝인
      styles/mobile-bottom-nav.css:334-345 는 같은 사유로 이미 left:auto·top:auto 를 쓴다. */
-  body.cd-mnav-collapsed .cd-mobile-bottom-nav__toggle{left:auto;top:auto;width:72px;height:22px;border-bottom:0;border-radius:10px 10px 0 0}
+  body.cd-mnav-collapsed .cd-mobile-bottom-nav__toggle{left:auto;top:auto;width:72px;height:44px;border-bottom:0;border-radius:10px 10px 0 0}
 }
 </style>
 
