@@ -73,7 +73,7 @@ function buildMusicRouteUrl(path, key, featureKey) {
   return `/api/music/${path}?${search.toString()}`;
 }
 
-// 이용권/월정구독처럼 "구매가 아닌 커버"로 열린 접근. 다운로드는 이 접근으로 허용하지 않는다.
+// 이용권/월정구독처럼 "구매가 아닌 커버"로 열린 접근. 전곡 커버 배지 판정에도 쓴다.
 const LICENSE_COVERED_TYPES = new Set(["license", "license_pass", "monthly_subscription"]);
 
 function buildInvalidTrackEntry(input = {}) {
@@ -151,11 +151,12 @@ function resolveTrackPlan(input = {}) {
 
 function buildLockedTrackEntry(plan, decision, authenticated) {
   const { trackId, key, featureKey, policy, freeFullPlayback } = plan;
-  // 이용권/월정구독 커버는 "기간형 재생권"이다 — MP3 다운로드는 실제 구매(단건결제·월정석)에만 허용한다.
-  const purchased = decision?.allowed === true && !LICENSE_COVERED_TYPES.has(String(decision?.licenseType || ""));
+  // 서버가 허용한 단건·월정석·이용권은 모두 같은 다운로드 권한이다. 이용권만 여기서 다시
+  // 제외하면 결제 게이트는 커버됐다고 답하면서 파일 라우트는 402를 내는 막다른 길이 된다.
+  const accessGranted = decision?.allowed === true;
   // 재생: freeFullPlayback 트랙은 구매와 무관하게 항상 전곡 재생 가능. 그 외 잠금곡은 구매/커버로 열린다.
-  const hasFullAccess = freeFullPlayback === true ? true : (decision?.allowed === true);
-  const canDownload = purchased;
+  const hasFullAccess = freeFullPlayback === true ? true : accessGranted;
+  const canDownload = accessGranted;
 
   return {
     trackId,

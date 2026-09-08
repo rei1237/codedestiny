@@ -2,9 +2,9 @@
 
 자동 추출 후보이며 전수 검증 완료 보고서가 아니다. 금액 해석 성공은 결제 성공·권한 지급 증거가 아니다.
 
-서버 정규 키 146개, manifest 123개, 고유 음원 상품 123개, 전체 상품/변형/SKU 행 306개. 최종 서비스 개수 미확정.
+서버 정규 키 146개, manifest 123개, 고유 음원 상품 123개, 전체 상품/변형/SKU 행 305개. 최종 서비스 개수 미확정.
 
-미검토 항목 10134개. 전체 근거 및 모든 요청 열은 payment-inventory.json에 보존한다.
+미검토 항목 1218개. 전체 근거 및 모든 요청 열은 payment-inventory.json에 보존한다.
 
 | 상품/변형 | 이름 | 가격 | 근거 route | Desktop | Android | iPhone | Reload Recovery | Result |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -24,7 +24,6 @@
 | feature:astro_yearly_transit | 점성술 연간 트랜짓 운세 | 5000 | UNVERIFIED | UNTESTED | UNTESTED | UNTESTED | UNTESTED | UNTESTED |
 | feature:astrology-ai-consultation | 점성술 전문가 상담 | 30000 | /, /en/, /ja/, /static/, /zh-tw/, /zh/ | UNTESTED | UNTESTED | UNTESTED | UNTESTED | UNTESTED |
 | feature:astrology_ai_prompt_generator | 점성술 AI 질문 프롬프트 생성 | 10000 | UNVERIFIED | UNTESTED | UNTESTED | UNTESTED | UNTESTED | UNTESTED |
-| feature:coin-gate-per-use | UNVERIFIED | UNVERIFIED | /, /en/, /ja/, /static/, /zh-tw/, /zh/ | UNTESTED | UNTESTED | UNTESTED | UNTESTED | UNTESTED |
 | feature:compat-astro-direct-synastry | 점성술 직접 입력 시나스트리 궁합 | 5000 | UNVERIFIED | UNTESTED | UNTESTED | UNTESTED | UNTESTED | UNTESTED |
 | feature:compat-astro-synastry | 점성술 셜럭 시나스트리 궁합 | 5000 | UNVERIFIED | UNTESTED | UNTESTED | UNTESTED | UNTESTED | UNTESTED |
 | feature:compat-saju-compatibility | 사주 궁합 분석 | 5000 | UNVERIFIED | UNTESTED | UNTESTED | UNTESTED | UNTESTED | UNTESTED |

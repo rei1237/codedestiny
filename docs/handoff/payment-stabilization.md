@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-08
-next: payment-inventory.json의 미검토 상품과 호출을 실제 route부터 추적해 Phase 1 게이트를 완료한다
+next: payment-inventory.json의 남은 1,218개 미검토 상품/source/call을 실제 route부터 추적해 Phase 1 게이트를 완료한다
 ---
 
 # 결제 안정화 구현 계속하기
@@ -12,20 +12,20 @@ next: payment-inventory.json의 미검토 상품과 호출을 실제 route부터
 
 ## 지금 상태
 
-- 격리 브랜치 `codex/payment-recovery-pass-quota`, draft PR #1820. 서비스 코드 수정 없음, Phase 1 조사 도구만 구현. 머지하지 않음.
+- 격리 브랜치 `codex/payment-recovery-pass-quota`, draft PR #1820. P0 서비스 코드와 회귀 테스트를 구현했으며 머지하지 않음.
 - `docs/payments/payment-stabilization.md`에 architecture·발견·정책·검토 형식. 전체 요청은 미완료.
 - 최신 main에는 서버 resume 저장과 동일 소비 재시도 수정이 이미 있다. 이를 덮어쓰지 않는다.
 
 ## 남은 작업
 
-- [ ] 306개 상품/변형/SKU 후보 및 JSON coverage.issues의 전체 호출·source 검토. 서버 키146 + 실제 음원123을 서비스 개수로 합산하지 않는다.
-- [ ] 미분류 0개 이후 P0: 음원123개와 generic reason7개 prepare→grant 해석 실패를 실제 호출 경로와 함께 수정.
-- [ ] 이용권 소진0원/기간·등급 보존, v2+레거시+snapshot+eligibility, 마지막 소비 지급, 동시 두 곡 한도 차감.
-- [ ] 음원 이용권·동일 곡 재다운로드, 1,000원 low 필터와 곡 선택 탐색 항목. Android 무료 정책 유지.
+- [ ] 305개 상품/변형/SKU 후보 및 JSON coverage.issues 1,218개의 전체 호출·source 검토. 서버 키146 + 실제 음원123을 서비스 개수로 합산하지 않는다.
+- [x] 음원123개와 generic reason7개 prepare→grant 해석 실패 및 reason 변형 가격 불일치 수정(Inventory 지급 실패/가격 차이 0).
+- [x] 이용권 잔여0원/기간·등급·프로필 상한 보존, v2+레거시+snapshot+eligibility, 마지막 소비 지급과 멱등 감사 마커.
+- [x] 음원 이용권·동일 곡 재다운로드, 1,000원 low 필터와 곡 선택 탐색 항목. Android 무료 정책 유지.
 - [ ] 전체 서버 resume/recover/멱등성/환불·재구매/TTL/결과 저장 연결.
 - [ ] 과거 조기 종료 복원은 read-only 후보 보고부터. 사용량 보존, 0원은 프로필 상한만 복원.
 - [ ] Mongo/Cloudflare/중복 호출 최적화, 전 기능 자동 E2E, 동일 staging SHA의 실제 기기·PG 시험 증거, 성능 비교.
-- [ ] 검증·커밋·푸시·PR 검사·사용자 머지. 미통과 게이트를 완료로 표시하지 않는다.
+- [ ] 커밋·푸시·PR 검사·사용자 머지. 로컬 critical `check:fast`는 통과했지만 미통과 Inventory 게이트를 완료로 표시하지 않는다.
 
 ## 정본 예시
 
@@ -33,7 +33,7 @@ next: payment-inventory.json의 미검토 상품과 호출을 실제 route부터
 
 ## 검증
 
-검증 명령과 상세 정책은 `docs/payments/payment-stabilization.md`. 결제 v2 26 suites/377 tests PASS, Inventory9개 PASS. check:fast는 Node934개 중933 PASS, 기존 yehwa SVG의 CRLF/LF 비교1개 FAIL로 중단. 뒤 검사 미실행. Inventory gate는 미검토10,134항목으로 FAIL. 전체 기능/실기기/staging 미검증.
+검증 명령과 상세 정책은 `docs/payments/payment-stabilization.md`. 결제 P0 대상 mock PASS, Inventory 10개 PASS. 지급 실패/가격 차이 0, 미검토 항목은 10,135→1,218개다. critical `npm run check:fast` PASS(Node 940/940, Jest 2,427/2,427, Worker dry-run 포함). 전체 기능/실기기/staging 미검증.
 
 ## 함정
 

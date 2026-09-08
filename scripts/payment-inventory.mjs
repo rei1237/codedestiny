@@ -23,7 +23,9 @@ const canonical = [...new Set(keys.map(registry.normalizePaidFeatureKey))].sort(
 const musicManifest = readMusicManifest(read('app/music/_data/musicManifest.ts'), music);
 const known = new Set([...keys, ...Object.keys(aliases), ...musicManifest.products.map(t => t.purchaseFeatureKey), ...Object.keys(registry.PIG_COIN_UNLOCK_PRODUCTS)]);
 const allSources = sourceCopies(tracked.filter(isInventorySource).sort().map(file => inspectSource(file, read(file), known)));
-const sources = allSources.filter(item => item.keywordLines.length || item.route || item.features.length);
+const PAYMENT_PATH = /(?:^|\/)(?:[^/]*(?:payment|billing|checkout|entitlement|subscription|pass|purchase|order)[^/]*)/i;
+const sources = allSources.filter(item => item.features.length || item.calls.length || item.apiPaths.length
+  || item.externalLinks.length || (item.keywordLines.length && PAYMENT_PATH.test(item.file)));
 const refsFor = key => sources.filter(s => !s.mirrorOf).flatMap(s => s.features.filter(f => registry.normalizePaidFeatureKey(f.key) === key)
   .map(f => ({ file: s.file, line: f.line, literal: f.key, route: s.route })));
 const unknown = 'UNVERIFIED';
@@ -39,18 +41,18 @@ function resolvePrices(input) {
   const shape = result => ({ productId: result.productId, featureKey: result.featureKey, priceKRW: result.priceKRW, priceCoins: result.priceCoins });
   try { resolution.prepare = shape(resolveLegacyProduct(input)); }
   catch (error) { resolution.prepare = { error: error.code || error.name }; }
-  // grantOrderEntitlement는 prepare가 정규화해 주문에 저장한 id/key를 받는다.
-  // reason이 지급 입력에서 빠지는 현재 동작도 그대로 기록한다.
+  // grantOrderEntitlement는 prepare가 주문 스냅샷에 저장한 id/key/reason을 받는다.
   if (resolution.prepare.error) resolution.grant = { skipped: 'PREPARE_REJECTED' };
   else {
-    try { resolution.grant = shape(resolveProduct({ productId: resolution.prepare.productId, featureKey: resolution.prepare.featureKey })); }
+    try { resolution.grant = shape(resolveProduct({ productId: resolution.prepare.productId, featureKey: resolution.prepare.featureKey, reason: input.reason })); }
     catch (error) { resolution.grant = { error: error.code || error.name }; }
   }
   resolution.matches = Boolean(resolution.prepare.priceKRW && resolution.prepare.priceKRW === resolution.grant.priceKRW
     && resolution.prepare.featureKey === resolution.grant.featureKey);
   return resolution;
 }
-const products = canonical.map(key => {
+// coin-gate-per-use는 reason별 실제 상품의 컨테이너 키라 기본 가격이 없다. 변형 행만 센다.
+const products = canonical.filter(key => key !== 'coin-gate-per-use').map(key => {
   const row = baseRow(`feature:${key}`, key, 'content', ['worker/lib/paid-feature-registry.js']);
   row.aliases = Object.entries(aliases).filter(([, value]) => registry.normalizePaidFeatureKey(value) === key).map(([alias]) => alias);
   row.references = refsFor(key);
@@ -104,7 +106,7 @@ const inventory = { version: 1,
     untrackedFilesScanned: false },
   counts: { canonicalPriceKeys: canonical.length, manifestEntries: musicManifest.manifestEntries,
     uniqueMusicProducts: musicManifest.products.length, productRows: products.length,
-    routeCandidates: allSources.filter(s => s.route && !s.mirrorOf).length,
+    routeCandidates: sources.filter(s => s.route && !s.mirrorOf).length,
     finalLivePaidFeatureCount: null }, products, sources };
 const reviewPath = 'docs/payments/payment-inventory-reviews.json';
 const reviews = existsSync(resolve(root, reviewPath)) ? JSON.parse(read(reviewPath)) : undefined;

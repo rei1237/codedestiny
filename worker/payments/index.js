@@ -352,10 +352,8 @@ const PASS_FAILURE_CODES = Object.freeze({
   invalid_price: "MEMBERSHIP_PASS_NOT_COVERED",
 });
 
-/* 🔴 "다음 달에 다시 열린다"고 쓰지 말 것 — 사이클 키가 이용권 만료일이라 기간 안에서 리셋이
-   없고, 2026-09-04 정책은 한도를 다 쓰면 그 자리에서 이용권을 끝낸다(profile-limits.js
-   isPassBudgetExhausted). 이 문구가 나오는 남은 경우는 잔여가 최저가보다는 커서 아직 종료되지
-   않았지만 이번 건은 못 덮는 상태뿐이다. verify:pass-tier-policy 가 리셋 문구 0건을 단언한다. */
+/* 기간 안에서 월 한도는 리셋되지 않는다. 잔여가 0이거나 이번 상품 가격보다 적으면 추가 콘텐츠는
+   원화 단건 결제 또는 월정석으로 인계하되, 이용권 등급·만료일·프로필 상한은 유지한다. */
 const PASS_FAILURE_MESSAGES = Object.freeze({
   monthly_pass_limit_exceeded: "이번 이용권의 남은 한도로는 이 서비스를 열 수 없습니다. 원화 단건 결제 또는 월정석으로 이용해 주세요.",
   pass_access_conflict: "이용권 상태를 확인하지 못했습니다. 원화 단건 결제 또는 월정석으로 이용해 주세요.",
@@ -768,6 +766,7 @@ async function grantOrderEntitlement(db, order) {
     const product = resolveProduct({
       productId: String(order.productId || ""),
       featureKey: String(order.featureKey || ""),
+      reason: String(snapshot.reason || ""),
     });
     /* 🔴 회당 결제(per_use)는 영구 해금을 남기지 않는다 — 남기면 다음 이용이 공짜가 된다.
        월정석(coin-gate/moonstone)·이용권(coin-gate/pass-check) 경로에는 있던 이 경계가 단건 KRW
@@ -1240,7 +1239,7 @@ const ROUTES = {
         const entitlement = resolveCanonicalEntitlement(user || {});
         const coverage = evaluatePassCoverage({ user, entitlement, coinCost: product.priceCoins });
 
-        // 이미 커버한 실행은 마지막 소비로 이용권이 종료됐어도 복구한다.
+        // 이미 커버한 실행은 마지막 소비로 예산이 0이 됐어도 복구한다.
         // 현재 잔여 한도는 새 실행에만 적용하고 동일 요청의 재열람에 적용하지 않는다.
         const markers = Array.isArray(user?.recentConsumeRequestIds) ? user.recentConsumeRequestIds : [];
         if (marker && markers.includes(marker)) {
@@ -1320,17 +1319,14 @@ const ROUTES = {
           freeBySubscription: true,
         })
         : "";
-      /* 🔴 소진을 유발한 **이 요청**이 클라이언트에 종료를 알리는 유일한 기회다. 다음 요청은 이용권이
-         이미 없어 no_active_pass 로 떨어지는데, 그 전에 스냅샷이 "보유"라고 답하면 낙관 통과 →
-         402 → 결제창의 왕복이 한 번 더 돈다. 판정은 소비 후 누적액 하나로 파생한다(플래그 배선 없음).
-         멱등 재생·이미 해금 경로에서도 같은 답이 나온다 — 이용권이 끝난 것은 사실이기 때문이다. */
-      const passEnded = isPassBudgetExhausted(
+      // 소진을 유발한 응답에서 잔여 0을 알려 로컬 스냅샷의 예산만 즉시 갱신한다.
+      const passBudgetExhausted = isPassBudgetExhausted(
         outcome.coverage.tier,
         outcome.user?.profileSubscription?.monthlySpendCoin,
         outcome.coverage.budgetCoin,
       );
       const envelope = legacyPassCheckEnvelope({
-        product, requestId, profileId, unlock, premiumAccessToken, passEnded,
+        product, requestId, profileId, unlock, premiumAccessToken, passBudgetExhausted,
         coverage: outcome.coverage,
         entitlement: outcome.entitlement,
         user: outcome.user,

@@ -17595,7 +17595,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
 
         <p class="honey-membership-mini__premium-note" data-cd-trans data-key="home.passMini.premiumNote">프리미엄 꿀은 1만원급 콘텐츠를 자주 보는 분께 가장 균형이 잘 맞습니다.</p>
         <p class="honey-membership-mini__footnote" data-cd-trans data-key="home.passMini.footnote">신규 판매 이용권은 30일권만 제공됩니다. 이 30일 이용권은 자동결제 상품이 아닙니다. 이용권 범위 밖 서비스는 상품별 원화 단건 결제로 이용할 수 있습니다.</p>
-        <p class="honey-membership-mini__footnote" data-cd-trans data-key="home.passMini.terminationNote">월 최대 한도를 모두 사용하면 남은 기간과 관계없이 이용권이 종료됩니다. 새로 구매하면 그날부터 30일이 다시 시작됩니다.</p>
+        <p class="honey-membership-mini__footnote" data-cd-trans data-key="home.passMini.terminationNote">월 최대 한도가 0이 되어도 이용권의 만료일·등급·프로필 상한은 유지됩니다. 추가 유료 콘텐츠는 단건 결제 또는 월정석으로 이용할 수 있습니다.</p>
         <p class="honey-membership-mini__status" id="honeyMembershipStatus" aria-live="polite"></p>
       </div>
     </section>
@@ -21848,7 +21848,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
             if (_cdPassMonthlyApi && _cdPassMonthlyApi.isMonthlyLimitPayload(_cdPassMonthlyPayload)) {
               node.disabled = false;
               node.classList.remove('is-loading');
-              status(_cdPaymentI18n('payment.directModal.passMonthlyExhausted', '이용권 한도를 모두 사용해 이용권이 종료되었어요. 새로 구매하면 30일이 다시 시작되고, 지금은 단건 결제나 월정석으로 열 수 있어요.'), true);
+              status(_cdPaymentI18n('payment.directModal.passMonthlyExhausted', '이용권 월 한도를 모두 사용했어요. 만료일까지 등급과 프로필 상한은 유지되며, 추가 콘텐츠는 단건 결제나 월정석으로 이용할 수 있어요.'), true);
               return;
             }
             status(_cdPaymentI18n('payment.directModal.passMissGoStore', '보유하신 이용권으로는 열리지 않아 이용권 상점으로 이동합니다.'), true);
@@ -23804,7 +23804,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
           _cdPassOutcomeNote = _cdPaymentI18n('payment.directModal.note.passUnknown', '이용권이 있으시면 아래 이용권 카드를 누르면 그 자리에서 확인됩니다.');
         } else if (_cdPassOutcomeStatus === 'payment_required' && _cdPassOutcomeReason === 'monthly_pass_limit_exceeded') {
           // 이용권은 있는데 이번 달 한도를 다 썼다 — '이용권으로는 안 열린다'가 아니라 '한도 소진'을 말한다.
-          _cdPassOutcomeNote = _cdPaymentI18n('payment.directModal.note.passMonthlyExhausted', '이용권 한도를 모두 사용해 이용권이 종료되었어요. 결제 방법을 고르는 창을 열었습니다.');
+          _cdPassOutcomeNote = _cdPaymentI18n('payment.directModal.note.passMonthlyExhausted', '이용권 월 한도를 모두 사용했어요. 이용권은 원래 만료일까지 유지되며, 추가 콘텐츠의 결제 방법을 고를 수 있습니다.');
         } else if (_cdPassOutcomeStatus === 'payment_required') {
           _cdPassOutcomeNote = _cdPaymentI18n('payment.directModal.note.passMiss', '보유하신 이용권으로는 이 콘텐츠가 무료로 열리지 않아 결제 방법을 고르는 창을 열었어요.');
         }
@@ -27584,7 +27584,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
             _cdRevokeOptimisticPassUnlock(item.featureKey, 'monthly-pass-limit');
             try { _cdClearPaidPrecheckCache('monthly-pass-limit'); } catch (_) {}
             try {
-              if (typeof toast === 'function') toast(_cdPaymentI18n('payment.directModal.passMonthlyExhausted', '이용권 한도를 모두 사용해 이용권이 종료되었어요. 새로 구매하면 30일이 다시 시작되고, 지금은 단건 결제나 월정석으로 열 수 있어요.'));
+              if (typeof toast === 'function') toast(_cdPaymentI18n('payment.directModal.passMonthlyExhausted', '이용권 월 한도를 모두 사용했어요. 만료일까지 등급과 프로필 상한은 유지되며, 추가 콘텐츠는 단건 결제나 월정석으로 이용할 수 있어요.'));
             } catch (_) {}
             return;
           }
@@ -28954,7 +28954,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
       '      <button type="button" class="golden-grain-modal__charge-btn" data-action="confirmGoldenCharge">' + chargeButtonLabel + '</button>',
       chargeNotice,
       '      <div class="golden-grain-modal__footer-copy">' + escapeHtml(_cdPaymentI18n('payment.passShop.footerNotice', '이 30일 이용권은 자동결제 상품이 아닙니다. 만료 후 다시 구매해야 합니다.')) + '</div>',
-      '      <div class="golden-grain-modal__footer-copy">' + escapeHtml(_cdPaymentI18n('payment.passShop.terminationNotice', '월 최대 한도를 모두 사용하면 남은 기간과 관계없이 이용권이 종료됩니다. 새로 구매하면 그날부터 30일이 다시 시작됩니다.')) + '</div>',
+      '      <div class="golden-grain-modal__footer-copy">' + escapeHtml(_cdPaymentI18n('payment.passShop.terminationNotice', '월 최대 한도가 0이 되어도 이용권의 만료일·등급·프로필 상한은 유지됩니다. 추가 유료 콘텐츠는 단건 결제 또는 월정석으로 이용할 수 있습니다.')) + '</div>',
       '      <div class="golden-grain-modal__footer-copy">' + escapeHtml(_cdPaymentI18n('payment.passShop.provisionNotice', '이용권은 결제 완료 즉시 활성화되어 바로 이용할 수 있으며, 활성화 이후에는 관련 법령에 따라 청약철회가 제한될 수 있습니다.')) + '</div>',
       overseasStoreNoticeHtml,
       '    </div>',

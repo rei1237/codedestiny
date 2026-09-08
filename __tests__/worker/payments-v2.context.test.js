@@ -11,6 +11,7 @@ import { __paymentsContextTestUtils, handlePaymentsContext } from "../../worker/
 import { PaymentError, classify } from "../../worker/payments/errors.js";
 import { createPaymentContext } from "../../worker/payments/db.js";
 import { createOrder, markOrderPaid, toOrderStatus } from "../../worker/payments/orders.js";
+import { resolveLegacyProduct } from "../../worker/payments/legacy-pricing.js";
 import { makeFakePaymentDb } from "../fixtures/fake-payment-db.mjs";
 
 const { ROUTES, matchRoute, presentOrder, confirmOrder } = __paymentsContextTestUtils;
@@ -125,6 +126,19 @@ describe("확정 오케스트레이션", () => {
     expect(result.replayed).toBe(false);
     expect(result.granted).toBe(true);
     expect(toOrderStatus(db.rows[0])).toBe("PAID");
+    expect(db.rows[0].entitlementGrantedAt).toBeInstanceOf(Date);
+  });
+
+  test("generic reason 주문은 reason 스냅샷으로 PAID 지급을 마무리한다", async () => {
+    const db = makeFakePaymentDb();
+    const product = resolveLegacyProduct({ featureKey: "coin-gate-per-use", reason: "사주 인생의 책 PDF 생성" });
+    const order = await createOrder(db, { userId: USER, product, idempotencyKey: "generic-reason-order" });
+    expect(order.pricingSnapshot.reason).toBe("사주 인생의 책 PDF 생성");
+
+    const result = await runConfirm(db, ctxOf(), { orderId: order.merchantUid, actorUserId: USER }, {
+      fetchPayment: async () => pgReply({ paymentId: order.merchantUid, amount: 30000 }),
+    });
+    expect(result.granted).toBe(true);
     expect(db.rows[0].entitlementGrantedAt).toBeInstanceOf(Date);
   });
 

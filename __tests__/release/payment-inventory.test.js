@@ -30,6 +30,11 @@ test('HTML comments and structured data cannot masquerade as executable gates', 
   assert.ok(row.features.some(ref => ref.key === 'track' && ref.line === 4));
 });
 
+test('helper text and predicates are not counted as payment boundary calls', () => {
+  const row = inspectSource('app/new/page.tsx', '_cdPaymentI18n("key"); isTileKeyUnlocked("x"); requestPayment({});', new Set());
+  assert.deepEqual(row.calls, [{ name: 'requestPayment', line: 1, review: 'UNREVIEWED' }]);
+});
+
 test('bad executable syntax remains a blocking diagnostic', () => {
   const row = inspectSource('app/new/page.tsx', 'purchaseFeature({', new Set());
   assert.ok(row.parseErrors.length);

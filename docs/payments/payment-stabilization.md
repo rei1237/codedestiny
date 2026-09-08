@@ -1,10 +1,10 @@
 # 결제 안정화 실행 기록
 
-2026-09-08. **Phase 1 진행 중. 서비스 정책 변경·전수 E2E 완료 보고가 아니다.**
+2026-09-08. **Phase 1 검토와 P0 안정화 진행 중. 전수 E2E 완료 보고가 아니다.**
 
 ## 1. 발견된 유료 기능 총 개수
 
-최종 서비스 개수는 미확정이다. `payment-inventory.json`은 Git 추적 실행 소스에서 추출한 상품·변형·진입 근거를 보존한다. 현재 서버 정규 가격 키 146개, 실제 manifest 확장 후 고유 음원 상품 123개다. 가격 변형·generic reason·이용권·Play SKU를 합하면 306행이다. 상품 행을 서비스 개수로 합산하지 않는다.
+최종 서비스 개수는 미확정이다. `payment-inventory.json`은 Git 추적 실행 소스에서 추출한 상품·변형·진입 근거를 보존한다. 현재 서버 정규 가격 키 146개, 실제 manifest 확장 후 고유 음원 상품 123개다. 기본 가격이 없는 `coin-gate-per-use` 컨테이너를 제외하고 가격 변형·generic reason·이용권·Play SKU를 합하면 305행이다. 상품 행을 서비스 개수로 합산하지 않는다.
 
 `payment-inventory.md`는 모든 상품 행의 검증표이며, JSON에는 요청된 상세 열과 source hash/행번호가 있다. `UNVERIFIED`는 조사 미완료, `UNTESTED`는 기기/결과 검증 미실행이다. 이름 일치·가격 해석 성공을 실행 경로 확인으로 간주하지 않는다.
 
@@ -29,18 +29,18 @@ flowchart TD
 
 최신 main에는 `worker/payments/resume-context.js`의 서버 암호화 저장, `GET /orders/:id/resume`, 동일 소비 marker 재시도 처리가 이미 있다. 기존 조사 기준 브랜치에 없었던 변경이므로 보존한다. 현재 저장은 주문 metadata에 붙고 원래 route 문자열의 형식만 검사한다. 별도 TTL 저장소·기능별 route 허용 목록·결과 저장 즉시 삭제·모든 입력 복원 계약은 추가 추적 대상이다.
 
-## 3. 발견된 P0 후보
+## 3. 발견된 P0와 이번 수정
 
-- **음원 지급 catalog 누락:** 실제 manifest의 123개 키 모두 `resolveLegacyProduct`에서 1,000원으로 준비되지만 `grantOrderEntitlement`가 호출하는 `resolveProduct`에서 `PRODUCT_NOT_FOUND`다. DB/PG 없는 순수 함수 재현이다. 실제 과금은 실행하지 않았다.
-- **generic reason 7개 지급 해석 실패:** 인생의 책 관련 3개, 숙요점 유명인 궁합, 신년운세 PDF, 신년운세 AI, 운명의 업은 generic key로 준비할 때 지급 해석이 실패한다. 실제 활성 프론트가 정규 키를 보내는지 호출부 대조가 필요하다. 7개의 운영 장애로 확정하지 않는다.
-- **금액 변형 3개:** 네빌 60분·코스믹 소울 30분·요가 60분의 준비가와 지급 catalog 기본가가 다르다. PG 검증은 주문 snapshot을 사용하므로 이 차이만으로 금액 검증 취약점이라고 단정하지 않는다.
-- **이용권 조기 종료:** `worker/lib/profile-limits.js:isPassBudgetExhausted`는 최저 30 내부 단위 미만을 소진으로 처리한다. `buildPassTerminationFields`가 등급과 만료일을 변경한다. 승인된 새 정책과 불일치하며 v2, 레거시, 프론트 snapshot을 함께 수정해야 한다.
+- **prepare→grant 해석 일치:** 음원 123개는 공용 music policy로 동적 catalog 해석을 추가했다. generic reason 7개는 주문 `pricingSnapshot.reason`을 저장·복원하도록 연결했다. 네빌·코스믹 소울·요가의 reason 변형 가격도 같은 reason으로 재해석한다. Inventory의 지급 실패와 가격 차이는 모두 0이다.
+- **이용권 잔여 0 정책:** `isPassBudgetExhausted`는 잔여 0에서만 true다. 소진 감사 필드는 등급·만료일·프로필 상한을 바꾸지 않으며, v2·레거시 응답은 `passBudgetExhausted`로 잔여 0만 알린다. 새 이용권 활성화 시 감사 마커를 지운다.
+- **음원 이용권 다운로드:** 서버가 허용한 단건·월정석·이용권 라이선스 모두 다운로드 가능하다. 클라이언트의 다운로드 전용 이용권 제외 옵션을 제거했고, 동일 곡 재다운로드는 기존 권한 판정을 재사용한다. Android 무료 정책은 바꾸지 않았다.
+- **1,000원 탐색 분류:** `무료 재생 · 다운로드 1,000원`을 무료 전용이 아니라 `free`와 `low` 양쪽 버킷으로 분류한다. 홈 레지스트리의 음원 표시 가격을 이 형식으로 명시했다.
 
 ## 4. 수정된 architecture
 
-이번 단계는 조사 도구·검증 자료만 추가했다. 서비스 실행 architecture는 아직 변경하지 않았다.
+결제 준비와 지급이 동일한 `productId`·`featureKey`·`reason`을 사용하도록 주문 스냅샷 계약을 확장했다. 음원 상품은 manifest 파생 키를 공용 policy로 해석하며, 이용권 소진은 계약 종료와 분리된 예산 상태가 됐다.
 
-다음 단계의 확정 목표:
+현재 목표 구조:
 
 ```mermaid
 flowchart LR
@@ -57,7 +57,7 @@ flowchart LR
 
 ## 5. 모바일 결제 개선
 
-미구현. `checkout-entry.js`, `billing-client.ts`, `usePaidResume.ts`, 현재 서버 resume, 이미지 입력 화면 및 정적 action의 호출 연결을 검토해야 한다. 원본 이미지 서버 보관 금지, 최소 입력 암호화 최대 7일, 완료 시 삭제, 재첨부 시 재결제 금지 정책을 유지한다.
+음원 다운로드 결제창은 이용권 선택을 다시 허용하고 서버 라이선스와 같은 판정을 사용한다. 그 밖의 `checkout-entry.js`, `billing-client.ts`, `usePaidResume.ts`, 이미지 입력 화면 및 정적 action의 durable resume 전수 연결은 계속 검토해야 한다. 원본 이미지 서버 보관 금지, 최소 입력 암호화 최대 7일, 완료 시 삭제, 재첨부 시 재결제 금지 정책을 유지한다.
 
 ## 6. RESUME 적용 기능
 
@@ -65,7 +65,7 @@ flowchart LR
 
 ## 7. MongoDB 최적화
 
-실제 DB 접속·인덱스 생성·운영 데이터 변경 없음. 모델 선언과 query pattern의 대조, 실제 index 확인, 과거 조기 종료 복원 dry-run 설계가 남아 있다. 0원 이용권은 원래 만료일까지 프로필 상한만 유지하며, 복원 시 사용량·한도를 새로 지급하지 않는다.
+실제 DB 접속·인덱스 생성·운영 데이터 변경 없음. 모델 선언과 query pattern의 대조, 실제 index 확인, 과거 조기 종료 복원 dry-run 설계가 남아 있다. 새 소진은 원래 만료일까지 등급·만료일·프로필 상한을 유지하며, 과거 복원 시 사용량·한도를 새로 지급하지 않는다.
 
 ## 8. Cloudflare 최적화
 
@@ -78,15 +78,16 @@ flowchart LR
 ## 10. 테스트 결과
 
 - 최신 main 기반 결제 v2 mock: 26 suites / 377 tests PASS.
-- Inventory 회귀: native/public 포함, HTML 주석/JSON-LD 분리, 파싱 실패, 미러 변조, 실제 manifest 확장, 외부 import 거부, 미검토 게이트, stale review 검사.
-- Inventory 테스트 9개 PASS. 실행 소스 2,164개, 근거/route가 있는 파일 1,080개, JS 파싱 오류 0개. 미검토 상품/source/call 항목 10,134개이며 호출/파일 중복을 포함한다.
-- `check:fast`: lint·typecheck를 거쳐 Node 테스트에서 중단. 934개 중 933 PASS / 1 FAIL. 변경하지 않은 `public/icons/yehwa-branch.svg`의 CRLF 체크아웃과 생성기의 LF 바이트 비교가 실패했다. 해당 소스/생성기는 HEAD 대비 diff가 없다. 뒤에 배치된 Worker build·전체 Jest 등은 이 실행에서 수행되지 않았다.
-- 전체 기능의 Desktop/Android/iPhone/Reload/Result 결과는 `payment-inventory.md`의 306행에 모두 UNTESTED로 기록한다.
+- Inventory 회귀: native/public 포함, HTML 주석/JSON-LD 분리, 파싱 실패, 미러 변조, 실제 manifest 확장, 외부 import 거부, 미검토 게이트, stale review 검사, UI 헬퍼의 요청 경계 오탐 제외.
+- Inventory 테스트 10개 PASS. 실행 소스 2,164개, 결제 신호가 있는 route 후보 30개, JS 파싱 오류 0개. 호출 후보를 실제 결제 action+domain 경계로 좁혀 미검토 상품/source/call 항목은 10,135개에서 1,218개로 줄었다. 검토를 자동 승인하지 않았다.
+- 결제 P0 mock: 음악·catalog·generic reason·이용권 잔여 0·클라이언트 snapshot 대상 테스트 PASS. 실제 결제는 실행하지 않았다.
+- critical `npm run check:fast` PASS: Node 940/940, Jest 2,427/2,427, 결제 정적 가드와 Worker dry-run 빌드 포함.
+- 전체 기능의 Desktop/Android/iPhone/Reload/Result 결과는 `payment-inventory.md`의 305행에 모두 UNTESTED로 기록한다.
 - 실제 결제·운영 DB·실 LLM·staging/실기기 검증 미실행. 성능 전후 비교는 미측정.
 
 ## 11. 남은 위험과 다음 단계
 
-Phase 1의 미분류 0개 조건이 아직 충족되지 않았다. 이에 따라 Phase 2 이후 정책·결제 코드는 수정하지 않았다. 특히 1,000원 필터·음원 이용권 사용·0원 소진 정책은 아직 서비스에 적용되지 않았다.
+Phase 1의 미분류 0개 조건은 아직 충족되지 않았다. 다만 순수 함수로 재현된 prepare→grant P0, 승인된 이용권 0원 정책, 음원 이용권 다운로드, 1,000원 탐색 분류는 회귀 테스트와 함께 적용했다.
 
 다음 검토는 Inventory의 source → import/호출자 → route → prepare → grant → 실제 entitlement reader → result 저장을 연결한다. 모든 keyword hit를 유료 진입점으로 세지 말고, core/consumer/supporting/non-payment 역할을 근거로 분류한다. source 검토에는 모든 후보 call의 행번호·이유가 필요하다. 상품 검토에는 모든 상세 열과 source hash/행 근거가 필요하다.
 
@@ -101,4 +102,4 @@ npm run check:fast
 
 추출 CLI 자체는 로컬 파일만 읽고 `--write`에서 문서만 쓴다. 현재 `--check` 실패는 조사 미완료를 드러내는 계약이다. CI 필수 게이트 연결은 아직 하지 않았으며, 연결 완료로 보고하지 않는다.
 
-운영 반영·데이터 복원 적용은 별도 명시 요청 이후다. 롤백 시 승인 주문·권한·소비 증빙을 삭제하지 않는다. PR은 조사 중 draft로 유지하고 사용자 머지 정책을 따른다.
+운영 반영·과거 데이터 복원 적용은 하지 않았다. 롤백 시 승인 주문·권한·소비 증빙을 삭제하지 않는다. Inventory 검토·durable resume·운영 환경 검증이 남아 있어 PR은 draft로 유지한다.

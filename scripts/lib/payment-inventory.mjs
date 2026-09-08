@@ -14,7 +14,13 @@ export function isInventorySource(file) {
 }
 
 export const PAYMENT_TERMS = /portone|inicis|kakaopay|\b(?:pay|payment|checkout|order|purchase|billing|transaction|merchantUid|impUid|paymentId|complete|success|fail|cancel|redirect|callback|webhook|resume|paidResume|unlock|entitlement|access|subscription|pass|ticket)\b|usePaidResume|markOptimisticallyUnlocked|이용권|월정석|잠금\s*해제|구매|결제|최근\s*주문|주문\s*상태|포트원|이니시스|카카오페이/i;
-const CALL_TERMS = /pay|checkout|billing|purchase|order|unlock|entitlement|subscription|coinGate|paidResume|passCoverage|consumePass|moonstone/i;
+const CALL_DOMAIN = /pay|checkout|billing|purchase|order|unlock|entitlement|subscription|coinGate|paidResume|passCoverage|consumePass|moonstone/i;
+const CALL_ACTION = /^(?:use|register|handle|start|open|run|request|prepare|confirm|create|submit|process|complete|settle|spend|consume|grant|revoke|refund|recover|resume|restore|retry|poll|fetch|activate|cancel|verify|purchase)(?=[A-Z_]|$)/i;
+
+function isPaymentBoundaryCall(rawName) {
+  const name = String(rawName || "").replace(/^_+(?:cd|dp)?/i, "");
+  return CALL_DOMAIN.test(name) && CALL_ACTION.test(name);
+}
 
 export function sourceRoute(file) {
   if (/^app\/.*\/(?:page|route)\.[jt]sx?$/.test(file)) {
@@ -72,7 +78,7 @@ export function inspectSource(file, source, knownKeys) {
         const name = ts.isIdentifier(expression) ? expression.text
           : ts.isPropertyAccessExpression(expression) ? expression.name.text
           : ts.isElementAccessExpression(expression) && ts.isStringLiteralLike(expression.argumentExpression) ? expression.argumentExpression.text : '';
-        if (CALL_TERMS.test(name)) {
+        if (isPaymentBoundaryCall(name)) {
           evidence.calls.push({ name: name.slice(0, 180), line: lineAt(offset + node.getStart(tree)),
             // 함수명 일치는 실제 호출 경로의 증명이 아니다. 확인 전 PASS로 표시하지 않는다.
             review: 'UNREVIEWED' });
