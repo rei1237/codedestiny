@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-09
-next: 전체 회귀와 PR CI 통과 후 머지, staging 동일 SHA 확인, 승인된 1회 production 승격
+next: PR 1844 staging 확인 및 재개 메시지 후 최신 main 통합, ci:preflight와 필수 CI 재검증, PR 1845 순차 배포
 ---
 
 # 유료 서비스 환경별 결제 검수
@@ -59,4 +59,11 @@ next: 전체 회귀와 PR CI 통과 후 머지, staging 동일 SHA 확인, 승�
 
 ## 전달 결과
 
-검사 및 배포 진행 중.
+- 구현 SHA `3080b0a02d8abbdbc0607ba6d4cb52689811edb6`, PR https://github.com/rei1237/codedestiny/pull/1845.
+- `npm run check:fast` exit 0: Node 972/972, Jest 219 suites / 2,425 tests, lint/typecheck, 정책 검사, Worker dry-run PASS.
+- 위 SHA의 PR CI required, Pages/Worker build, Critical checks, Paid Flow Gates 모두 PASS.
+- 이후 main에 `e3cd024ec0e74e9d343320d399b2c8601cee3c78`가 추가됐다. 기존 PASS를 최신 main 통합 증거로 사용하지 않는다.
+- 사용자 승인된 순서 조율: 작업 `01a08139-c35b-7ce3-bedf-e8b9f8d22009`가 PR #1844 인프라 → #1845 결제 → #1843 정책 UI 순서로 관리한다. #1844 staging 확인 및 재개 메시지 전까지 merge/production을 보류한다. 개발/검증은 계속 가능하다.
+- 읽기 전용 config 추가 확인: 양쪽 `configured`, `serverVerificationConfigured`, `kakaopayConfigured` true. `inicisConfigured`는 production true/staging false이며, 이는 별도 이니시스 직접 자격증명 집계다. PortOne V2의 configured 판정과 구분한다. 자격증명은 변경하지 않았다.
+- 배포는 아직 실행하지 않았다. 다음 작업은 재개 메시지 후 새 main 통합, 새 `ci:preflight` 계약 확인, 로컬 검증, push/CI, delivery:admit, SHA 지정 merge와 staging 확인이다.
+- #1844가 `d397f1398`로 main에 병합되어 이 브랜치에 충돌 없이 통합했다. 새 `ci:preflight -- --plan`으로 critical 검사·Pages/Worker 빌드·결제 게이트 계획을 확인하고 전체 preflight를 실행한다. 이번 PR의 머지/운영 승격은 선행 staging 확인 및 재개 신호까지 계속 보류한다.
