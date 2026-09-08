@@ -1,7 +1,7 @@
 # SEO · AdSense · i18n 감사
 
 검사 산출물: D:\Development\code-destiny-seo-growth\dist
-생성: 2026-09-08T14:19:37.094Z
+생성: 2026-09-08T14:30:23.903Z
 
 아래는 초기 HTML 정적 검사이며 특정 URL이 AdSense 거절 원인이라는 판정이 아니다. 계정 실측·수동 검수·운영 우선순위는 [운영 기록](docs/seo/GROWTH_OPERATIONS.md)과 [상태 파일](docs/seo/SEO_STATE.json)을 별도로 확인한다.
 본문 수는 script/style/nav/footer/hidden을 제외한 body의 텍스트다. main 밖의 SSR 설명도 포함한다. 글자 수는 Google 승인 기준이 아니라 이번 작업의 편집 점검 기준이다. CSS와 hydration 후 상태는 별도 검증한다.
