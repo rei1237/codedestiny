@@ -98,6 +98,26 @@ describe("정책 — 건당 상한 + 단일 월 예산 2규칙", () => {
     expect(family.covered).toBe(true);
   });
 
+  test("Family는 카탈로그의 모든 이용권 대상 서비스를 월 한도 안에서 커버한다", () => {
+    const products = listProducts().filter((product) => Number(product.priceCoins) > 0 && product.passExcluded !== true);
+    expect(products.length).toBeGreaterThan(0);
+
+    for (const product of products) {
+      const entitlement = ent("family");
+      const cycleKey = new Date(entitlement.expiresAt).toISOString();
+      const user = {
+        profileSubscription: {
+          ...activePass("family", { expiresAt: entitlement.expiresAt }),
+          premiumUseCycleKey: cycleKey,
+          monthlySpendCoin: 0,
+        },
+      };
+      const result = evaluatePassCoverage({ user, entitlement, coinCost: product.priceCoins });
+      expect(result).toEqual(expect.objectContaining({ covered: true, tier: "family" }));
+      expect(result.remainingCoin).toBe(MONTHLY_PASS_LIMITS.family - Number(product.priceCoins));
+    }
+  });
+
   test("건당 상한 경계 — 정확히 상한이면 커버, 1코인 넘으면 미커버", () => {
     for (const tier of ["standard", "premium", "vvip"]) {
       const limit = PASS_LIMITS[tier];

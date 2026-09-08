@@ -68,7 +68,6 @@ import {
   resolveMonthlySpendQuota,
   resolvePremiumQuota,
 } from "../lib/profile-limits.js";
-import { invalidateAccessStateCacheForUser } from "../lib/access-state-cache.js";
 import {
   getProfileCardMutationPolicy,
   PROFILE_CARD_DELETE_COST_MONTHLY_STONES,
@@ -662,6 +661,26 @@ function resolveActivePassPolicyWithProfileFallback(user = {}) {
   return resolveCanonicalEntitlement(user || {});
 }
 
+function buildMeteredPassBudgetFilter(monthlyQuota = {}, coinCost = 0) {
+  if (!monthlyQuota.applies || !monthlyQuota.cycleKey) return null;
+  const maxSpendBefore = Math.floor(Number(monthlyQuota.limitCoin || 0))
+    - Math.max(0, Math.floor(Number(coinCost || 0)));
+  return {
+    $or: [
+      { "profileSubscription.premiumUseCycleKey": { $ne: monthlyQuota.cycleKey } },
+      {
+        "profileSubscription.premiumUseCycleKey": monthlyQuota.cycleKey,
+        $expr: {
+          $lte: [
+            { $ifNull: ["$profileSubscription.monthlySpendCoin", 0] },
+            maxSpendBefore,
+          ],
+        },
+      },
+    ],
+  };
+}
+
 async function consumeTierPassIfAvailable(env, authUserId, pricing, requestId, body = {}, options = {}) {
   const featureKey = String(pricing?.featureKey || body?.featureKey || "").trim();
   const normalizedRequestId = String(requestId || "").trim();
@@ -815,6 +834,7 @@ async function consumeTierPassIfAvailable(env, authUserId, pricing, requestId, b
   const now = new Date();
   const coveredCoinLimit = usage.tier === "family" ? Number(PASS_LIMITS.family || 0) : Number(policy.maxCoinLimit || 0);
   const tierMatchValues = buildPassTierMatchValues(usage.tier);
+  const budgetFilter = buildMeteredPassBudgetFilter(monthlyQuota, coinCost);
   const updateQuery = {
     _id: authUserId,
     ...(idempotencyMarker ? { recentConsumeRequestIds: { $ne: idempotencyMarker } } : {}),
@@ -845,6 +865,7 @@ async function consumeTierPassIfAvailable(env, authUserId, pricing, requestId, b
           { expiresAt: { $exists: false } },
         ],
       },
+      ...(budgetFilter ? [budgetFilter] : []),
     ],
   };
   const updatedUser = await User.findOneAndUpdate(
@@ -954,11 +975,12 @@ async function consumeTierPassIfAvailable(env, authUserId, pricing, requestId, b
     passEnded = Number(terminated?.matchedCount ?? terminated?.n ?? 0) > 0;
     if (passEnded) {
       updatedUser.profileSubscription = { ...(updatedUser.profileSubscription || {}), ...fields };
-      // 종료도 구독을 바꾸는 쓰기다 — 45초 표시 캐시가 끝난 이용권을 계속 보여주면 안 된다.
-      try { globalThis.__billingBalanceCache?.invalidateForUser?.(String(authUserId || "")); } catch {}
-      try { invalidateAccessStateCacheForUser(String(authUserId || "")); } catch {}
     }
   }
+
+  // 월 사용량은 이용권 상태의 일부다. 매 소비 뒤 표시·판정 캐시를 지워 다음 조회가 감소한 잔여를 읽게 한다.
+  invalidateBillingBalanceCacheForUser(authUserId);
+  invalidatePaidAccessDecisionCacheForUser(authUserId);
 
   return {
     ok: true,
@@ -7142,6 +7164,7 @@ export const __billingTestUtils = {
   buildAccessDecision,
   buildPaidContentAccessDecision,
   buildPassPaymentDecision,
+  buildMeteredPassBudgetFilter,
   buildMembershipPassFromStatusSnapshot,
   buildRefundedSpendSourceId,
   isPassExcludedPricing,
