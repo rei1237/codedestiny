@@ -4,6 +4,8 @@ import { RUNTIME_LOCALES } from "../../lib/i18n/locale-normalize.js";
 import { normalizeOraclePayload } from "../../worker/routes/oracle.js";
 import { buildFallbackGuardianFortuneResult, validateAndNormalizeGuardianFortuneResult } from "../../worker/lib/guardian-fortune-result.js";
 import { GUARDIAN_FORTUNE_LIST_LIMITS } from "../../worker/lib/guardian-fortune-runtime-contract.js";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 
 const context = { inputSummary: { category: "saju", hasBirthTime: true, hasBirthPlace: true }, availableSystems: ["saju"] };
 function reading() {
@@ -38,5 +40,17 @@ describe("locale postprocessing without Korean padding (pure fixtures, no provid
     expect(normalizeOraclePayload(valid, null)).toEqual({ source: "gemini", ...Object.fromEntries(Object.entries(valid).map(([k,v]) => [k,v.trim()])) });
     expect(normalizeOraclePayload({ ...valid, timing: "Short" }, null)).toBeNull();
     expect(normalizeOraclePayload(null, null)).toBeNull();
+  });
+
+  it("does not pad foreign results with Korean deterministic fallbacks", () => {
+    const pet = readFileSync(resolve(process.cwd(), "worker/routes/pet-saju-ai.js"), "utf8");
+    const celestial = readFileSync(resolve(process.cwd(), "worker/routes/celestial-harmony.js"), "utf8");
+    const yoga = readFileSync(resolve(process.cwd(), "worker/routes/yoga-guru.js"), "utf8");
+    const tarot = readFileSync(resolve(process.cwd(), "worker/routes/tarot.js"), "utf8");
+    for (const source of [pet, celestial, yoga]) {
+      expect(source).toMatch(/AI_LOCALE_RESULT_INCOMPLETE/);
+      expect(source).toMatch(/getAmbientAiLocale/);
+    }
+    expect(tarot).toMatch(/normalizeLoveReadingPayload\(payload\?\.reading, payload\?\.cards \|\| \[\], loveLocale\)/);
   });
 });

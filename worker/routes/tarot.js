@@ -2014,10 +2014,11 @@ export async function handleTarotRoutes(request, env = {}) {
         userQuestion: asText(body?.userQuestion),
         userContext: body?.userContext,
       });
-      payload.reading = normalizeLoveReadingPayload(payload?.reading, payload?.cards || []);
+      const loveLocale = getAmbientAiLocale() || "ko";
+      payload.reading = normalizeLoveReadingPayload(payload?.reading, payload?.cards || [], loveLocale);
       // LLM 상담문 생성 — 실패 시 위에서 만든 로컬 리딩이 그대로 폴백으로 나간다(degrade-not-throw).
       const enhanced = await enhanceLoveReadingWithLlm(payload.reading, {
-        locale: getAmbientAiLocale() || "ko",
+        locale: loveLocale,
         env,
         userQuestion: asText(body?.userQuestion),
       });

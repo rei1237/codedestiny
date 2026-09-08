@@ -6,6 +6,7 @@ import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { connectDb } from "../lib/db.js";
 import { ServiceExecutionTransaction } from "../lib/models.js";
 import { withPdfFastDbEnv } from "../lib/pdf-runtime.js";
+import { getAmbientAiLocale } from "../lib/ai-locale-context.js";
 import {
   buildCelestialMelodyReading,
   CELESTIAL_MELODY_INTERPRETATION_ORDER,
@@ -793,6 +794,10 @@ async function handleGenerate(request, env) {
 
   const reading = local.reading;
   const ai = await enrichCelestialReading(env, reading, body?.goldenCard || null);
+  const locale = getAmbientAiLocale() || "ko";
+  if (locale !== "ko" && (!ai.used || (ai.result?.meta?.aiPartialFallbackFields || []).length)) {
+    return json({ ok: false, code: "AI_LOCALE_RESULT_INCOMPLETE", message: "Generated reading is incomplete for the selected language." }, { status: 502 });
+  }
   const enrichedReading = ai.used && ai.result ? ai.result : reading;
 
   const normalized = normalizeResultSchema(enrichedReading, {
