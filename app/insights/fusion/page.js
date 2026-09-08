@@ -7,11 +7,11 @@ import { FUSION_FORTUNE_PROFILE } from "../../../lib/seo/entity-registry.mjs";
 const path = "/insights/fusion";
 const INSIGHTS_FUSION_PAGE_TEXT_TRANSLATIONS = {
   ko: {
-    title: "초융합 인사이트 허브 · 여섯 체계 함께 읽기 | Code Destiny",
+    title: "초융합운세란? 여러 운세를 함께 읽는 법 | CODE DESTINY",
     description: `${FUSION_FORTUNE_PROFILE.topicSummary} 체계 간 비교 글 허브입니다.`,
     keywords: [FUSION_FORTUNE_PROFILE.primary, ...FUSION_FORTUNE_PROFILE.secondary, "사주 자미두수 비교", "여러 운세 함께 보기"],
     breadcrumbs: ["꿀꿀 운세 홈", "운세 인사이트", "초융합 인사이트"],
-    archiveTitle: "초융합 운세 인사이트 허브",
+    archiveTitle: "초융합운세란? 같은 질문을 여섯 관점에서 읽는 방법",
     intro: `${FUSION_FORTUNE_PROFILE.topicSummary} 이 허브는 여섯 체계가 같은 질문에 어떻게 다르게 답하는지 비교하며 초융합이 무엇을 보는 방식인지 설명하는 무료 콘텐츠입니다. 내 생년월일시로 여섯 체계를 한 번에 교차 분석하는 AI 리포트는 초융합 운세 서비스에서 이어볼 수 있습니다.`,
   },
   en: {

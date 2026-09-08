@@ -1,0 +1,1031 @@
+{
+  "observedAt": "2026-09-08T03:58:31.881Z",
+  "method": "Exact normalized raw/seed text comparison; repeated p paragraphs >=60 characters. Semantic near duplicates and editorial quality are not determined by this scan.",
+  "summary": {
+    "articles": 113,
+    "identicalToRaw": 113,
+    "changedFromRaw": 0,
+    "missingRaw": 0,
+    "sharedParagraphGroups": 0
+  },
+  "articles": [
+    {
+      "slug": "sukuyo-compatibility-guide",
+      "title": "숙요점 궁합 보는 법 — 영친·업태·안괴 관계를 읽는 순서",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 4128,
+      "longParagraphs": 21,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "sukuyo-love-communication-rules",
+      "title": "숙요점 연애 소통 규칙 — 사랑은 감정보다 전달 방식이 중요하다",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 2780,
+      "longParagraphs": 14,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "sukuyo-friendship-teamwork-guide",
+      "title": "숙요점 우정·팀워크 가이드 — 친구와 동료도 하나의 인연이다",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 2084,
+      "longParagraphs": 9,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "sukuyo-day-by-day-rhythm-usage",
+      "title": "숙요점 일상 리듬 활용법 — 관계는 특별한 순간보다 반복되는 습관이 만든다",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 1972,
+      "longParagraphs": 12,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "sukuyo-qa-most-asked-questions",
+      "title": "숙요점 자주 묻는 질문 Q&A — 처음 공부하는 사람들이 가장 많이 궁금해하는 내용",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 2554,
+      "longParagraphs": 14,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "sukuyo-conflict-repair-dialogue-templates",
+      "title": "숙요점 갈등 회복 가이드 — 갈등은 관계의 끝이 아니라 재조정하는 과정이다",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 2439,
+      "longParagraphs": 11,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "sukuyo-boundary-setting-practical-guide",
+      "title": "숙요점 경계 설정 실전 가이드 — 가까움과 건강한 거리는 함께 존재한다",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 2070,
+      "longParagraphs": 11,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "sukuyo-couple-finance-rhythm-guide",
+      "title": "숙요점 커플 재정 리듬 가이드 — 돈 문제는 사랑과 별개의 문제가 아니다",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 1994,
+      "longParagraphs": 10,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "relationship-luck-and-communication-rules",
+      "title": "숙요점 관계운과 소통 규칙 — 좋은 관계운은 기다리는 것이 아니라 만들어 가는 것이다",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 2008,
+      "longParagraphs": 9,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "sukuyo-what-is",
+      "title": "숙요점이란? 달이 머문 별자리로 읽는 나의 운명 — 입문 완전 가이드",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 2379,
+      "longParagraphs": 15,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "sukuyo-eishin",
+      "title": "영친관계(榮親關係) 완전 가이드 — 숙요점에서 가장 편안하고 오래가는 인연",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 4096,
+      "longParagraphs": 26,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "sukuyo-antai",
+      "title": "업태관계(業胎關係) 완전 가이드 — 함께 성장하며 완성해 가는 인연",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 6430,
+      "longParagraphs": 37,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "sukuyo-ankai",
+      "title": "안괴관계(安壞關係) 완전 가이드 — 숙요점에서 가장 강렬하고 운명적인 인연",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 12875,
+      "longParagraphs": 64,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "sukuyo-myeongseong",
+      "title": "명성관계(命成關係) 완전 가이드 — 운명을 함께 완성하는 인연의 구조",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 6253,
+      "longParagraphs": 28,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "sukuyo-wiseong",
+      "title": "위성관계(危成關係) 완전 가이드 — 위기를 넘어 성취를 이루는 운명의 동반자",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 6962,
+      "longParagraphs": 31,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "sukuyo-useo",
+      "title": "우쇠관계(友衰關係) 완전 가이드 — 시간이 증명하는 인연, 성장과 쇠퇴를 함께 건너는 관계",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 5887,
+      "longParagraphs": 28,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "ziwei-tanlang-star-desire-and-talent",
+      "title": "탐랑성(貪狼星) 완전 해설 — 자미두수의 욕망·재능·도화를 상징하는 별",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 2414,
+      "longParagraphs": 11,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "ziwei-jumen-star-speech-and-doubt",
+      "title": "거문성(巨門星) 완전 해설 — 자미두수의 말·분석·시비를 상징하는 암성(暗星)",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 2053,
+      "longParagraphs": 11,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "ziwei-qisha-star-decision-and-frontier",
+      "title": "칠살성(七殺星) 완전 해설 — 자미두수의 결단·개척·고독을 상징하는 장성(將星)",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 2059,
+      "longParagraphs": 10,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "ziwei-pojun-star-change-and-rebuild",
+      "title": "파군성(破軍星) 완전 해설 — 자미두수의 변혁·재창조를 상징하는 모성(耗星)",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 2081,
+      "longParagraphs": 11,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "ziwei-tianji-star-strategy-and-change",
+      "title": "천기성(天機星) 완전 해설 — 자미두수의 지혜·기획·변화를 상징하는 참모의 별",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 1982,
+      "longParagraphs": 9,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "ziwei-lianzhen-star-principle-and-passion",
+      "title": "염정성(廉貞星) 완전 해설 — 자미두수의 원칙·집념·감정의 진폭을 상징하는 수성(囚星)",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 1962,
+      "longParagraphs": 9,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "ziwei-tianxiang-star-coordination-and-trust",
+      "title": "천상성(天相星) 완전 해설 — 자미두수의 보좌·조정·신뢰를 상징하는 인성(印星)",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 1912,
+      "longParagraphs": 8,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "ziwei-tianliang-star-guardian-and-principle",
+      "title": "천량성(天梁星) 완전 해설 — 자미두수의 보호·원칙·해액을 상징하는 음성(蔭星)",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 1880,
+      "longParagraphs": 10,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "famous-saju-day-master-reading-practice",
+      "title": "유명인 사주로 배우는 일간(日干) 읽기 — 공개 생일로 명식 세워 보기",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 2521,
+      "longParagraphs": 11,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "saju-without-birth-time-three-pillars-guide",
+      "title": "출생시간을 모르면 사주를 못 보나? — 세 기둥으로 읽는 법",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 1920,
+      "longParagraphs": 10,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "how-we-calculate-saju",
+      "title": "명식은 어떻게 세워지는가 — Code Destiny의 사주 계산 기준 공개",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 2920,
+      "longParagraphs": 17,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "midnight-birth-day-pillar",
+      "title": "자정 무렵에 태어나면 일주가 갈리는 이유 — 야자시와 날짜 경계",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 2928,
+      "longParagraphs": 15,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "why-saju-results-differ-between-services",
+      "title": "같은 생년월일인데 사주가 다르게 나오는 네 가지 이유",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 2874,
+      "longParagraphs": 16,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "tarot-major-arcana-22-complete-meanings",
+      "title": "메이저 아르카나 22장 완전 해설 — 상징·이미지·의미의 통합 가이드",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 11109,
+      "longParagraphs": 78,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "tarot-reversed-card-framework",
+      "title": "타로 역방향 카드 해석 프레임워크 — 다섯 가지 패턴으로 정확하게 읽는 법",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 4314,
+      "longParagraphs": 18,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "tarot-spread-design-principles",
+      "title": "타로 스프레드(카드 배치법) 설계 원칙 — 질문에 맞는 그릇을 고르고 만드는 법",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 4394,
+      "longParagraphs": 19,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "astrology-vs-saju-differences",
+      "title": "서양 점성술과 사주명리학의 차이 완전 가이드",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 3923,
+      "longParagraphs": 11,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "vedic-astrology-navamsa-basics",
+      "title": "나밤샤(D9) 완전 가이드: 결혼과 행성의 진짜 힘 읽는 법",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 4534,
+      "longParagraphs": 17,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "tarot-compatibility-reading-game",
+      "title": "타로 궁합 리딩 게임 — 친구·연인과 재미로 즐기는 케미 확인법",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 2831,
+      "longParagraphs": 9,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "vedic-compatibility-synastry-basics",
+      "title": "베다 궁합 구나 밀라나 36점법 완전 기초 가이드",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 4228,
+      "longParagraphs": 13,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "astrology-synastry-compatibility-fun-guide",
+      "title": "시나스트리 궁합 차트 완전 가이드: 우리 둘의 별자리 궁합은?",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 3926,
+      "longParagraphs": 15,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "tarot-minor-arcana-four-suits-practical-guide",
+      "title": "마이너 아르카나 4수트(완드·컵·소드·펜타클) 실전 가이드",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 4286,
+      "longParagraphs": 16,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "tarot-court-cards-personality-and-relationship-guide",
+      "title": "타로 코트 카드(시종·기사·여왕·왕) 성격·관계 해석 완전 가이드",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 4573,
+      "longParagraphs": 17,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "tarot-practical-reading-casebook-by-question",
+      "title": "질문 유형별 실전 리딩 케이스북 — 카드를 하나의 이야기로 엮는 법",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 5035,
+      "longParagraphs": 14,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "vedic-dasha-transit-remedy-practical-guide",
+      "title": "다샤·고차르·우파야 완전정복: 베다점성술 실전 가이드",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 5687,
+      "longParagraphs": 20,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "world-strange-divination-guide-including-pig-oracle",
+      "title": "세계의 신기한 점술 완전 가이드 — 돼지점부터 주역까지",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 4492,
+      "longParagraphs": 17,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "asia-divination-traditions-deep-guide",
+      "title": "아시아 점복 전통 완전 가이드: 주역·사주·자미두수의 세계",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 5019,
+      "longParagraphs": 17,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "europe-divination-traditions-deep-guide",
+      "title": "유럽 점복 전통 심화 가이드: 타로·룬·찻잎점의 진짜 역사와 읽는 법",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 5721,
+      "longParagraphs": 20,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "middle-east-divination-traditions-deep-guide",
+      "title": "중동 점복 전통 심화 가이드: 지오맨시·커피점·해몽의 세계",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 5371,
+      "longParagraphs": 19,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "africa-divination-traditions-deep-guide",
+      "title": "아프리카 점복 전통 심화 가이드: 이파(Ifa)와 공동체의 지혜",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 5250,
+      "longParagraphs": 16,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "astrology-mercury-retrograde-practical-guide",
+      "title": "수성 역행 실전 대응 가이드: 흔들리지 않는 3주를 위한 체크리스트",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 3973,
+      "longParagraphs": 15,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "tarot-career-reading-7-question-framework",
+      "title": "직업운 리딩 7질문 프레임워크 — 막연한 불안을 구체적 행동으로 바꾸는 스프레드",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 4623,
+      "longParagraphs": 23,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "new-moon-full-moon-fortune-routine",
+      "title": "신월·보름달 운세 루틴 완전 가이드: 달의 흐름 따라 사는 법",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 4402,
+      "longParagraphs": 12,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "tarot-anxiety-safe-reading-method",
+      "title": "불안할 때 안전하게 타로 리딩하는 법",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 3528,
+      "longParagraphs": 16,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "vedic-retrograde-planets-practical-decoding",
+      "title": "베다점성술 역행 행성(바크리) 완전 해석: 약점 아닌 강함의 신호",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 4336,
+      "longParagraphs": 17,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "vedic-moon-sign-emotion-routine-guide",
+      "title": "문라시(찬드라 라시) 감정 관리 루틴: 하루 6분 실천법",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 4537,
+      "longParagraphs": 17,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "vedic-transit-journal-template-90days",
+      "title": "베다점성술 90일 트랜짓 저널 템플릿: 사실과 감정 분리법",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 3992,
+      "longParagraphs": 19,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "how-to-raise-luck-daily-routine-practical-guide",
+      "title": "매일 운을 높이는 루틴: 아침·점심·밤 15분 실전 가이드",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 4138,
+      "longParagraphs": 15,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "ten-gods-practical-map-love-work-money",
+      "title": "십성 실전 지도: 연애·일·돈을 읽는 5가지 사주 언어",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 4945,
+      "longParagraphs": 20,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "career-luck-interview-exam-prep-strategy",
+      "title": "커리어 운으로 면접·시험 합격률 높이는 준비 전략",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 4545,
+      "longParagraphs": 13,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "sleep-rhythm-energy-and-luck-connection",
+      "title": "수면 리듬과 에너지·운의 관계, 시진으로 보는 숙면 가이드",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 4682,
+      "longParagraphs": 19,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "saju-and-tarot-combined-reading-framework",
+      "title": "사주+타로 통합 리딩 완전 가이드 — 두 체계를 함께 쓰는 법",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 4392,
+      "longParagraphs": 14,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "vedic-astrology-12-rasi-complete-personality-guide",
+      "title": "베다 점성술 12라시 완전 가이드: 조티쉬 별자리 성격 총정리",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 6513,
+      "longParagraphs": 24,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "ten-gods-beginner-map",
+      "title": "십성(十星) 입문 지도 — 명리학 십성 완전 정복",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 3122,
+      "longParagraphs": 7,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "byeongo-year-reorder-signals",
+      "title": "2026 병오년(丙午年) 종합 운세 — 재물·연애 포함 완전 가이드",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 3544,
+      "longParagraphs": 21,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "sukuyo-bonmyeongsuk-how-to-find",
+      "title": "본명숙이란? 생년월일로 내 별자리 찾는 방법",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 4375,
+      "longParagraphs": 28,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "ziwei-tiandong-meaning-and-palaces",
+      "title": "천동성(天同星) 완전 해설 — 자미두수의 복(福)과 행복, 온화함을 상징하는 별",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 3228,
+      "longParagraphs": 17,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "ziwei-wugok-meaning-and-palaces",
+      "title": "무곡성(武曲星) 완전 해설 — 자미두수의 재물·결단·실행력을 상징하는 재성(財星)",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 3181,
+      "longParagraphs": 18,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "ziwei-ziwei-star-beginner-guide",
+      "title": "자미성(紫微星) 완전 해설 — 자미두수의 황제별, 제왕의 기운",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 2830,
+      "longParagraphs": 15,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "ziwei-tianfu-star-wealth-and-stability",
+      "title": "천부성(天府星) 완전 해설 — 자미두수의 재물창고, 안정과 신뢰의 별",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 2586,
+      "longParagraphs": 11,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "ziwei-sun-moon-balance",
+      "title": "태양(太陽)·태음(太陰) 균형 완전 가이드 — 자미두수에서 음양(陰陽)의 조화와 인생의 균형",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 3123,
+      "longParagraphs": 20,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "ziwei-star-combinations-for-beginners",
+      "title": "자미두수 별 조합 입문 완전 가이드 — 14주성은 왜 함께 읽어야 하는가?",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 3090,
+      "longParagraphs": 16,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "ziwei-14-main-stars-complete-guide",
+      "title": "자미두수 14주성(十四主星) 총론 — 명반을 움직이는 열네 개의 중심 별",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 2845,
+      "longParagraphs": 17,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "saju-12-unseong-complete-guide",
+      "title": "십이운성(十二運星) 완전 가이드 — 명리학에서 기운이 성장·쇠퇴하는 12단계",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 4085,
+      "longParagraphs": 23,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "ziwei-compatibility-palace-method",
+      "title": "자미두수 궁합(부처궁) 완전 가이드 — 부처궁(夫妻宮)으로 배우자 운과 궁합을 읽는 법",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 3600,
+      "longParagraphs": 21,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "sukuyo-three-group-types-guide",
+      "title": "숙요점의 근(近)·중(中)·원(遠) 관계 완전 해설",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 2885,
+      "longParagraphs": 17,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "sukuyo-beginner-terms-easy-dictionary",
+      "title": "숙요점 초심자 완벽 가이드 — 쉬운 용어 사전과 처음 공부하는 사람이 알아야 할 핵심",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 2266,
+      "longParagraphs": 14,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "sukuyo-27-guardian-animals-origin-guide",
+      "title": "27숙 수호동물 유래 가이드 — 왜 수호동물이 생겼는가, 역사적 근거는 무엇인가",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 1873,
+      "longParagraphs": 7,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "ziwei-four-transformations-lu-quan-ke-ji-guide",
+      "title": "사화(四化) 완전 가이드 — 화록(化祿)·화권(化權)·화과(化科)·화기(化忌)의 모든 것",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 3415,
+      "longParagraphs": 19,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "ziwei-decade-and-annual-flow-reading-guide",
+      "title": "자미두수 대한(大限)·유년(流年) 흐름 완전 가이드 — 인생의 큰 운과 매년의 변화를 읽는 핵심 원리",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 3361,
+      "longParagraphs": 21,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "saju-2026-monthly-planning-framework",
+      "title": "2026 병오년 월별 계획 프레임 — 일간별 실행 로드맵",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 2306,
+      "longParagraphs": 4,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "saju-2027-monthly-planning-framework",
+      "title": "2027 정미년(丁未年) 월별 계획 프레임 — 일간별 실행 로드맵",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 1949,
+      "longParagraphs": 4,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "saju-job-change-timing-checklist-2026",
+      "title": "이직 타이밍 체크리스트 — 명리학 전문가 관점 15단계",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 2085,
+      "longParagraphs": 10,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "saju-how-to-read-step-by-step-beginner-guide",
+      "title": "사주 입문: 사주팔자와 4기둥(사주)의 개념 완전 이해",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 2687,
+      "longParagraphs": 12,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "annual-fortune-reading-checklist-no-fear",
+      "title": "신년운세, 두려움 없이 읽는 법",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 2063,
+      "longParagraphs": 18,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "lucky-day-selection-without-superstition",
+      "title": "길일 택일 체크리스트(미신 없이) + 운이 막혔을 때 리셋 루틴",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 2437,
+      "longParagraphs": 20,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "money-luck-habits-and-saju-finance-rules",
+      "title": "재물운 습관·사주 재정 규칙 완전 가이드 — 돈이 모이는 사람의 사주와 재정 관리법",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 2759,
+      "longParagraphs": 7,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "five-elements-ohang-complete-guide",
+      "title": "오행 균형·성격 완전 가이드 — 명리학 오행(목·화·토·금·수) 완전 해설",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 3509,
+      "longParagraphs": 12,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "cheongan-jiji-complete-explanation",
+      "title": "천간·지지 완전 해설 — 십천간(十天干)·십이지(十二地支) 완벽 가이드",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 3410,
+      "longParagraphs": 8,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "singang-sinyak-judgment-complete-guide",
+      "title": "신강·신약 판단법 완전 가이드 — 일간의 강약을 올바르게 판단하는 법",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 3622,
+      "longParagraphs": 17,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "yongshin-finding-method-practical-guide",
+      "title": "용신(用神) 찾는 법 — 명리학의 핵심, 용신을 이해하면 사주가 보인다",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 3728,
+      "longParagraphs": 14,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "iljoo-personality-complete-guide-60-pillars",
+      "title": "일간·일주 성격 완전 해설 — 육십갑자(60갑자) 완벽 가이드",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 3640,
+      "longParagraphs": 15,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "daewoon-sewoon-reading-complete-guide",
+      "title": "대운·세운 읽는 법 — 명리학에서 운(運)을 해석하는 가장 중요한 원리",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 3818,
+      "longParagraphs": 21,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "ziwei-what-is",
+      "title": "자미두수란? 사주와 다른 12궁 운명 분석법",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 2056,
+      "longParagraphs": 8,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "ziwei-chart-guide",
+      "title": "자미두수 명반 보는 법 — 5단계 해석법",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 2513,
+      "longParagraphs": 15,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "ziwei-life-palaces",
+      "title": "자미두수 12궁 전체 해석 — 명궁부터 부모궁까지 완벽하게 이해하기",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 2870,
+      "longParagraphs": 22,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "ziwei-minggong",
+      "title": "자미두수 명궁(命宮) 해석 통합 — 명반의 중심을 읽는 최고의 방법",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 2904,
+      "longParagraphs": 14,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "ziwei-star-brightness",
+      "title": "별 밝기(廟·旺·利·平·陷) 완전 가이드 — 자미두수에서 별의 힘을 읽는 핵심 원리",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 3687,
+      "longParagraphs": 22,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "ziwei-career-palace-action",
+      "title": "자미두수 궁별 실천 체크(직업·승진) 완전 가이드 — 12궁으로 보는 직업운, 승진운, 커리어 성장 전략",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 3649,
+      "longParagraphs": 19,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "ziwei-vs-saju",
+      "title": "자미두수 vs 사주(명리학) 완전 비교 가이드 — 무엇이 다르고, 무엇을 함께 보면 좋은가?",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 3125,
+      "longParagraphs": 21,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "sukuyo-27-mansions",
+      "title": "27숙 완전 정리 — 각 숙의 성격과 기질 한눈에 보기",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 10526,
+      "longParagraphs": 68,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "sukuyo-love",
+      "title": "숙요점 연애 궁합 완전 가이드 — 6유형으로 보는 연애의 전개와 대처법",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 2203,
+      "longParagraphs": 9,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "sukuyo-marriage",
+      "title": "숙요점 결혼 궁합 완전 가이드 — 6유형으로 보는 결혼 생활의 패턴과 체크리스트",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 2246,
+      "longParagraphs": 10,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "sukuyo-bonmyeongsuk-vs-wolmyeongsuk",
+      "title": "숙요점(宿曜占星術) 본명숙(本命宿) vs 월명숙(月命宿) — 궁합에서 무엇이 더 중요한가?",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 3261,
+      "longParagraphs": 16,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "sukuyo-vs-saju-compatibility",
+      "title": "숙요점과 사주의 차이는? 무엇이 다르고, 무엇이 같은가",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 5909,
+      "longParagraphs": 42,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "manseoryeok-what-is",
+      "title": "사주 입문: 만세력(萬歲曆)이란 무엇인가? — 만세력 보는 법 완벽 가이드",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 3068,
+      "longParagraphs": 17,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "saju-compatibility-how-to",
+      "title": "사주 궁합 보는 법 완전 가이드: 일간·오행·십성 총정리",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 5382,
+      "longParagraphs": 18,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "new-year-fortune-framework",
+      "title": "신년운세 완전 가이드: 1년을 설계하는 전략 도구로 쓰는 법",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 4596,
+      "longParagraphs": 20,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "tarot-how-to-read",
+      "title": "타로 보는 법 & 질문 설계 완전 가이드 — 리딩의 기술·질문 잘하는 법·연애 질문 설계",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 6073,
+      "longParagraphs": 26,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "tarot-reunion-reading",
+      "title": "재회 리딩 완전 가이드 — 희망과 현실을 함께 읽는 법",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 3556,
+      "longParagraphs": 17,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "tarot-partner-mind-reading",
+      "title": "상대 속마음 리딩 완전 가이드 — 안전하게, 윤리적으로 읽는 법",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 4062,
+      "longParagraphs": 17,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "today-tarot-routine",
+      "title": "오늘의 타로 루틴 — 하루 한 장으로 배우는 카드와 나 자신",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 3059,
+      "longParagraphs": 13,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "astrology-birth-chart-guide",
+      "title": "네이탈 차트 완전 가이드: 태양·달·상승궁 3축 읽는 법",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 3645,
+      "longParagraphs": 17,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "astrology-houses-what-is",
+      "title": "점성술 하우스란? 12하우스 완벽 가이드와 해석법",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 4733,
+      "longParagraphs": 17,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "vedic-what-is",
+      "title": "베다점성술(조티쉬)이란? 초보자를 위한 완전 입문 가이드",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 4472,
+      "longParagraphs": 16,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "vedic-lagna-what-is",
+      "title": "라그나(Lagna)란? 베다점성술 상승점 완전 가이드",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 3714,
+      "longParagraphs": 13,
+      "sharedExactParagraphs": 0
+    },
+    {
+      "slug": "nakshatra-what-is",
+      "title": "나크샤트라란? 27수로 읽는 나만의 달 별자리",
+      "rawFound": true,
+      "identicalToRaw": true,
+      "renderedTextLength": 4250,
+      "longParagraphs": 15,
+      "sharedExactParagraphs": 0
+    }
+  ],
+  "shared": []
+}

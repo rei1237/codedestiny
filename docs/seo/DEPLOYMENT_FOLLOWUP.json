@@ -1,0 +1,902 @@
+{
+  "observedAt": "2026-09-08T03:58:31.774Z",
+  "mode": "GET only; JSDOM parses response HTML without scripts or subresources. Raw Korean text counts do not assert runtime visibility or translation quality. No payment, LLM, login or DB writes.",
+  "rows": [
+    {
+      "url": "https://code-destiny.com/version.json",
+      "finalUrl": "https://code-destiny.com/version.json",
+      "status": 200,
+      "robotsHeader": null,
+      "version": {
+        "ok": true,
+        "service": "code-destiny",
+        "appVersion": "0.1.0",
+        "gitSha": "a6082514bdd20696fc8b81b14369013732506100",
+        "buildTime": "2026-09-07T19:07:02.647Z",
+        "environment": "production",
+        "source": "pages",
+        "commit": "a6082514bdd20696fc8b81b14369013732506100",
+        "commitShort": "a6082514bdd2",
+        "branch": "main",
+        "builtAt": "2026-09-07T19:07:02.647Z",
+        "deploymentMode": "manual-pages-only",
+        "buildSource": "github-actions"
+      }
+    },
+    {
+      "url": "https://code-destiny.com/api/version",
+      "finalUrl": "https://code-destiny.com/api/version",
+      "status": 200,
+      "robotsHeader": null,
+      "version": {
+        "ok": true,
+        "appVersion": "a6082514bdd2",
+        "gitSha": "a6082514bdd20696fc8b81b14369013732506100",
+        "buildTime": null,
+        "environment": "production",
+        "source": "worker-native",
+        "commit": "a6082514bdd20696fc8b81b14369013732506100",
+        "commitShort": "a6082514bdd2",
+        "branch": "main",
+        "builtAt": null,
+        "deploymentMode": "manual-pages-only"
+      }
+    },
+    {
+      "url": "https://code-destiny.com/robots.txt",
+      "finalUrl": "https://code-destiny.com/robots.txt",
+      "status": 200,
+      "robotsHeader": null,
+      "body": "User-Agent: *\nAllow: /\nAllow: /api/og\nDisallow: /api/\nDisallow: /api-hello-test/\nDisallow: /admin/\nDisallow: /auth/\nDisallow: /debug/\nDisallow: /test/\nDisallow: /profile/\nDisallow: /payment/\nDisallow: /payments/\nDisallow: /checkout/\nDisallow: /success/\nDisallow: /fail/\nDisallow: /result/\nDisallow: /results/\nDisallow: /report/progress/\nDisallow: /my/\nDisallow: /me/\nDisallow: /mypage/private/\nDisallow: /*?session=\nDisallow: /*?token=\nDisallow: /*?auth=\n\nUser-Agent: Mediapartners-Google\nAllow: /\nAllow: /api/og\nDisallow: /api/\nDisallow: /api-hello-test/\nDisallow: /admin/\nDisallow: /auth/\nDisallow: /debug/\nDisallow: /test/\nDisallow: /profile/\nDisallow: /payment/\nDisallow: /payments/\nDisallow: /checkout/\nDisallow: /success/\nDisallow: /fail/\nDisallow: /result/\nDisallow: /results/\nDisallow: /report/progress/\nDisallow: /my/\nDisallow: /me/\nDisallow: /mypage/private/\nDisallow: /*?session=\nDisallow: /*?token=\nDisallow: /*?auth=\n\nUser-Agent: GPTBot\nAllow: /\nAllow: /api/og\nDisallow: /api/\nDisallow: /api-hello-test/\nDisallow: /admin/\nDisallow: /auth/\nDisallow: /debug/\nDisallow: /test/\nDisallow: /profile/\nDisallow: /payment/\nDisallow: /payments/\nDisallow: /checkout/\nDisallow: /success/\nDisallow: /fail/\nDisallow: /result/\nDisallow: /results/\nDisallow: /report/progress/\nDisallow: /my/\nDisallow: /me/\nDisallow: /mypage/private/\nDisallow: /*?session=\nDisallow: /*?token=\nDisallow: /*?auth=\n\nUser-Agent: ChatGPT-User\nAllow: /\nAllow: /api/og\nDisallow: /api/\nDisallow: /api-hello-test/\nDisallow: /admin/\nDisallow: /auth/\nDisallow: /debug/\nDisallow: /test/\nDisallow: /profile/\nDisallow: /payment/\nDisallow: /payments/\nDisallow: /checkout/\nDisallow: /success/\nDisallow: /fail/\nDisallow: /result/\nDisallow: /results/\nDisallow: /report/progress/\nDisallow: /my/\nDisallow: /me/\nDisallow: /mypage/private/\nDisallow: /*?session=\nDisallow: /*?token=\nDisallow: /*?auth=\n\nUser-Agent: OAI-SearchBot\nAllow: /\nAllow: /api/og\nDisallow: /api/\nDisallow: /api-hello-test/\nDisallow: /admin/\nDisallow: /auth/\nDisallow: /debug/\nDisallow: /test/\nDisallow: /profile/\nDisallow: /payment/\nDisallow: /payments/\nDisallow: /checkout/\nDisallow: /success/\nDisallow: /fail/\nDisallow: /result/\nDisallow: /results/\nDisallow: /report/progress/\nDisallow: /my/\nDisallow: /me/\nDisallow: /mypage/private/\nDisallow: /*?session=\nDisallow: /*?token=\nDisallow: /*?auth=\n\nUser-Agent: ClaudeBot\nAllow: /\nAllow: /api/og\nDisallow: /api/\nDisallow: /api-hello-test/\nDisallow: /admin/\nDisallow: /auth/\nDisallow: /debug/\nDisallow: /test/\nDisallow: /profile/\nDisallow: /payment/\nDisallow: /payments/\nDisallow: /checkout/\nDisallow: /success/\nDisallow: /fail/\nDisallow: /result/\nDisallow: /results/\nDisallow: /report/progress/\nDisallow: /my/\nDisallow: /me/\nDisallow: /mypage/private/\nDisallow: /*?session=\nDisallow: /*?token=\nDisallow: /*?auth=\n\nUser-Agent: anthropic-ai\nAllow: /\nAllow: /api/og\nDisallow: /api/\nDisallow: /api-hello-test/\nDisallow: /admin/\nDisallow: /auth/\nDisallow: /debug/\nDisallow: /test/\nDisallow: /profile/\nDisallow: /payment/\nDisallow: /payments/\nDisallow: /checkout/\nDisallow: /success/\nDisallow: /fail/\nDisallow: /result/\nDisallow: /results/\nDisallow: /report/progress/\nDisallow: /my/\nDisallow: /me/\nDisallow: /mypage/private/\nDisallow: /*?session=\nDisallow: /*?token=\nDisallow: /*?auth=\n\nUser-Agent: Claude-Web\nAllow: /\nAllow: /api/og\nDisallow: /api/\nDisallow: /api-hello-test/\nDisallow: /admin/\nDisallow: /auth/\nDisallow: /debug/\nDisallow: /test/\nDisallow: /profile/\nDisallow: /payment/\nDisallow: /payments/\nDisallow: /checkout/\nDisallow: /success/\nDisallow: /fail/\nDisallow: /result/\nDisallow: /results/\nDisallow: /report/progress/\nDisallow: /my/\nDisallow: /me/\nDisallow: /mypage/private/\nDisallow: /*?session=\nDisallow: /*?token=\nDisallow: /*?auth=\n\nUser-Agent: PerplexityBot\nAllow: /\nAllow: /api/og\nDisallow: /api/\nDisallow: /api-hello-test/\nDisallow: /admin/\nDisallow: /auth/\nDisallow: /debug/\nDisallow: /test/\nDisallow: /profile/\nDisallow: /payment/\nDisallow: /payments/\nDisallow: /checkout/\nDisallow: /success/\nDisallow: /fail/\nDisallow: /result/\nDisallow: /results/\nDisallow: /report/progress/\nDisallow: /my/\nDisallow: /me/\nDisallow: /mypage/private/\nDisallow: /*?session=\nDisallow: /*?token=\nDisallow: /*?auth=\n\nUser-Agent: Google-Extended\nAllow: /\nAllow: /api/og\nDisallow: /api/\nDisallow: /api-hello-test/\nDisallow: /admin/\nDisallow: /auth/\nDisallow: /debug/\nDisallow: /test/\nDisallow: /profile/\nDisallow: /payment/\nDisallow: /payments/\nDisallow: /checkout/\nDisallow: /success/\nDisallow: /fail/\nDisallow: /result/\nDisallow: /results/\nDisallow: /report/progress/\nDisallow: /my/\nDisallow: /me/\nDisallow: /mypage/private/\nDisallow: /*?session=\nDisallow: /*?token=\nDisallow: /*?auth=\n\nUser-Agent: CCBot\nDisallow: /\n\nHost: https://code-destiny.com\nSitemap: https://code-destiny.com/sitemap.xml\n"
+    },
+    {
+      "url": "https://code-destiny.com/",
+      "finalUrl": "https://code-destiny.com/",
+      "status": 200,
+      "robotsHeader": null,
+      "lang": "ko",
+      "title": "무료 사주·타로·궁합·자미두수 운세 | 꿀꿀운세 CODE DESTINY",
+      "canonical": "https://code-destiny.com/",
+      "metaRobots": [
+        "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+      ],
+      "h1": [
+        "오늘 운세는 무료로, 깊은 답은 여섯 체계 교차검증"
+      ],
+      "homeFunnelPresent": false,
+      "homeKoreanLeafCount": null,
+      "homeKoreanSamples": [],
+      "modalSourceKoreanLeafCount": 137
+    },
+    {
+      "url": "https://code-destiny.com/en/",
+      "finalUrl": "https://code-destiny.com/en/",
+      "status": 200,
+      "robotsHeader": null,
+      "lang": "en",
+      "title": "Free Korean Saju, Tarot & Zi Wei Dou Shu | CODE DESTINY",
+      "canonical": "https://code-destiny.com/en/",
+      "metaRobots": [
+        "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+      ],
+      "h1": [
+        "Today's reading is free — deep answers are cross-checked across six systems"
+      ],
+      "homeFunnelPresent": false,
+      "homeKoreanLeafCount": null,
+      "homeKoreanSamples": [],
+      "modalSourceKoreanLeafCount": 0
+    },
+    {
+      "url": "https://code-destiny.com/ja/",
+      "finalUrl": "https://code-destiny.com/ja/",
+      "status": 200,
+      "robotsHeader": null,
+      "lang": "ja",
+      "title": "無料 四柱推命・タロット・紫微斗数・相性占い | CODE DESTINY",
+      "canonical": "https://code-destiny.com/ja/",
+      "metaRobots": [
+        "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+      ],
+      "h1": [
+        "今日の運勢は無料で、深い答えは六体系のクロス検証で"
+      ],
+      "homeFunnelPresent": false,
+      "homeKoreanLeafCount": null,
+      "homeKoreanSamples": [],
+      "modalSourceKoreanLeafCount": 0
+    },
+    {
+      "url": "https://code-destiny.com/zh/",
+      "finalUrl": "https://code-destiny.com/zh/",
+      "status": 200,
+      "robotsHeader": null,
+      "lang": "zh-CN",
+      "title": "CODE DESTINY | 免费四柱八字·塔罗·紫微斗数·合婚 — 每日运势",
+      "canonical": "https://code-destiny.com/zh/",
+      "metaRobots": [
+        "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+      ],
+      "h1": [
+        "今日运势免费，深度答案由六大体系交叉验证"
+      ],
+      "homeFunnelPresent": false,
+      "homeKoreanLeafCount": null,
+      "homeKoreanSamples": [],
+      "modalSourceKoreanLeafCount": 0
+    },
+    {
+      "url": "https://code-destiny.com/zh-tw/",
+      "finalUrl": "https://code-destiny.com/zh-tw/",
+      "status": 200,
+      "robotsHeader": null,
+      "lang": "zh-TW",
+      "title": "CODE DESTINY | 免費四柱八字·塔羅·紫微斗數·合婚 — 運勢",
+      "canonical": "https://code-destiny.com/zh-tw/",
+      "metaRobots": [
+        "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+      ],
+      "h1": [
+        "今日運勢免費，深度答案由六大體系交叉驗證"
+      ],
+      "homeFunnelPresent": false,
+      "homeKoreanLeafCount": null,
+      "homeKoreanSamples": [],
+      "modalSourceKoreanLeafCount": 0
+    },
+    {
+      "url": "https://code-destiny.com/sukuyo/",
+      "finalUrl": "https://code-destiny.com/sukuyo/",
+      "status": 200,
+      "robotsHeader": null,
+      "lang": "ko",
+      "title": "숙요점 사이트 | 무료 27수 본명숙·숙요 궁합 보기",
+      "canonical": "https://code-destiny.com/sukuyo/",
+      "metaRobots": [
+        "index, follow"
+      ],
+      "h1": [
+        "숙요점 사이트 — 본명숙 27수와 숙요 궁합 무료"
+      ],
+      "homeFunnelPresent": false,
+      "homeKoreanLeafCount": null,
+      "homeKoreanSamples": [],
+      "modalSourceKoreanLeafCount": 0
+    },
+    {
+      "url": "https://code-destiny.com/insights/fusion/",
+      "finalUrl": "https://code-destiny.com/insights/fusion/",
+      "status": 200,
+      "robotsHeader": null,
+      "lang": "ko",
+      "title": "초융합 인사이트 허브 · 여섯 체계 함께 읽기 | Code Destiny",
+      "canonical": "https://code-destiny.com/insights/fusion/",
+      "metaRobots": [
+        "index, follow"
+      ],
+      "h1": [
+        "초융합 운세 인사이트 허브"
+      ],
+      "homeFunnelPresent": false,
+      "homeKoreanLeafCount": null,
+      "homeKoreanSamples": [],
+      "modalSourceKoreanLeafCount": 0
+    },
+    {
+      "url": "https://code-destiny.com/insights/sukuyo-compatibility-guide/",
+      "finalUrl": "https://code-destiny.com/insights/sukuyo-compatibility-guide/",
+      "status": 200,
+      "robotsHeader": null,
+      "lang": "ko",
+      "title": "숙요점 궁합 — 영친·업태·안괴 6유형 총정리",
+      "canonical": "https://code-destiny.com/insights/sukuyo-compatibility-guide/",
+      "metaRobots": [
+        "index, follow"
+      ],
+      "h1": [
+        "숙요점(宿曜占星術) 궁합 총정리 — 인간관계와 궁합의 모든 것"
+      ],
+      "homeFunnelPresent": false,
+      "homeKoreanLeafCount": null,
+      "homeKoreanSamples": [],
+      "modalSourceKoreanLeafCount": 0
+    },
+    {
+      "url": "https://code-destiny.com/kkul-kkul-unse/",
+      "finalUrl": "https://code-destiny.com/kkul-kkul-unse/",
+      "status": 200,
+      "robotsHeader": null,
+      "lang": "ko",
+      "title": "꿀꿀 운세는 어떤 서비스인가요 | Code Destiny 브랜드 안내",
+      "canonical": "https://code-destiny.com/kkul-kkul-unse/",
+      "metaRobots": [
+        "index, follow"
+      ],
+      "h1": [
+        "꿀꿀 운세 — 무료 사주·타로·궁합 통합 플랫폼"
+      ],
+      "homeFunnelPresent": false,
+      "homeKoreanLeafCount": null,
+      "homeKoreanSamples": [],
+      "modalSourceKoreanLeafCount": 0
+    },
+    {
+      "url": "https://staging.code-destiny.com/version.json",
+      "finalUrl": "https://staging.code-destiny.com/version.json",
+      "status": 200,
+      "robotsHeader": "noindex, nofollow",
+      "version": {
+        "ok": true,
+        "service": "code-destiny",
+        "appVersion": "0.1.0",
+        "gitSha": "62c72c3a4bf60ea6b8c64bb439c155b48606b234",
+        "buildTime": "2026-09-08T03:53:03.811Z",
+        "environment": "staging",
+        "source": "pages",
+        "commit": "62c72c3a4bf60ea6b8c64bb439c155b48606b234",
+        "commitShort": "62c72c3a4bf6",
+        "branch": "main",
+        "builtAt": "2026-09-08T03:53:03.811Z",
+        "deploymentMode": "manual-pages-only",
+        "buildSource": "github-actions"
+      }
+    },
+    {
+      "url": "https://staging.code-destiny.com/api/version",
+      "finalUrl": "https://staging.code-destiny.com/api/version",
+      "status": 200,
+      "robotsHeader": null,
+      "version": {
+        "ok": true,
+        "appVersion": "62c72c3a4bf6",
+        "gitSha": "62c72c3a4bf60ea6b8c64bb439c155b48606b234",
+        "buildTime": null,
+        "environment": "staging",
+        "source": "worker-native",
+        "commit": "62c72c3a4bf60ea6b8c64bb439c155b48606b234",
+        "commitShort": "62c72c3a4bf6",
+        "branch": "main",
+        "builtAt": null,
+        "deploymentMode": "manual-pages-only"
+      }
+    },
+    {
+      "url": "https://staging.code-destiny.com/robots.txt",
+      "finalUrl": "https://staging.code-destiny.com/robots.txt",
+      "status": 200,
+      "robotsHeader": "noindex, nofollow",
+      "body": "# 스테이징 배포본입니다. 색인 대상이 아닙니다.\n# 정본은 https://code-destiny.com 이며, 이 파일은 scripts/apply-staging-noindex.mjs 가 씁니다.\n\nUser-agent: *\nDisallow: /\n"
+    },
+    {
+      "url": "https://staging.code-destiny.com/",
+      "finalUrl": "https://staging.code-destiny.com/",
+      "status": 200,
+      "robotsHeader": "noindex, nofollow",
+      "lang": "ko",
+      "title": "무료 사주·타로·궁합·자미두수 운세 | 꿀꿀운세 CODE DESTINY",
+      "canonical": "https://code-destiny.com/",
+      "metaRobots": [
+        "noindex,nofollow"
+      ],
+      "h1": [
+        "오늘의 운세부터여섯 체계를 함께 읽는 초융합운세까지",
+        "전체 서비스"
+      ],
+      "homeFunnelPresent": true,
+      "homeKoreanLeafCount": 98,
+      "homeKoreanSamples": [
+        {
+          "tag": "A",
+          "key": null,
+          "text": "로그인"
+        },
+        {
+          "tag": "SUMMARY",
+          "key": null,
+          "text": "내 계정"
+        },
+        {
+          "tag": "A",
+          "key": null,
+          "text": "마이"
+        },
+        {
+          "tag": "P",
+          "key": "home.searchEntry.intro",
+          "text": "오늘의 마음에, 다정한 방향 하나"
+        },
+        {
+          "tag": "SPAN",
+          "key": "home.searchEntry.title",
+          "text": "오늘의 운세부터"
+        },
+        {
+          "tag": "EM",
+          "key": "home.searchEntry.fusion",
+          "text": "여섯 체계를 함께 읽는 초융합운세까지"
+        },
+        {
+          "tag": "P",
+          "key": "home.searchEntry.lead",
+          "text": "사주·자미두수·숙요점·베다점·점성술·타로를 한 번에 비교해, 지금 필요한 선택을 쉽게 정리해 드려요."
+        },
+        {
+          "tag": "SPAN",
+          "key": "home.searchEntry.start",
+          "text": "무료로 내 운세 보기"
+        },
+        {
+          "tag": "A",
+          "key": null,
+          "text": "이용권으로 1/3 가격에 보기"
+        },
+        {
+          "tag": "P",
+          "key": null,
+          "text": "스탠다드로 5,000원 리딩 6회 이용 시 비교"
+        },
+        {
+          "tag": "LI",
+          "key": null,
+          "text": "10년 경력 명리학자 제작·검수"
+        },
+        {
+          "tag": "LI",
+          "key": null,
+          "text": "사주·자미두수·베다·숙요·점성술 교차검증"
+        },
+        {
+          "tag": "LI",
+          "key": null,
+          "text": "무료 시작 가능"
+        },
+        {
+          "tag": "LI",
+          "key": null,
+          "text": "자동결제 없는 30일 이용권"
+        },
+        {
+          "tag": "H2",
+          "key": "home.searchEntry.question",
+          "text": "지금, 무엇이 궁금하세요?"
+        },
+        {
+          "tag": "P",
+          "key": null,
+          "text": "질문 하나만 골라보세요."
+        },
+        {
+          "tag": "STRONG",
+          "key": null,
+          "text": "오늘 운세"
+        },
+        {
+          "tag": "SPAN",
+          "key": null,
+          "text": "오늘 조심할 것과 잡아야 할 기회"
+        }
+      ],
+      "modalSourceKoreanLeafCount": 137
+    },
+    {
+      "url": "https://staging.code-destiny.com/en/",
+      "finalUrl": "https://staging.code-destiny.com/en/",
+      "status": 200,
+      "robotsHeader": "noindex, nofollow",
+      "lang": "en",
+      "title": "Free Korean Saju, Tarot & Zi Wei Dou Shu | CODE DESTINY",
+      "canonical": "https://code-destiny.com/en/",
+      "metaRobots": [
+        "noindex,nofollow"
+      ],
+      "h1": [
+        "Start with today’s fortuneExplore six perspectives with Fusion Fortune",
+        "전체 서비스"
+      ],
+      "homeFunnelPresent": true,
+      "homeKoreanLeafCount": 90,
+      "homeKoreanSamples": [
+        {
+          "tag": "A",
+          "key": null,
+          "text": "로그인"
+        },
+        {
+          "tag": "SUMMARY",
+          "key": null,
+          "text": "내 계정"
+        },
+        {
+          "tag": "A",
+          "key": null,
+          "text": "마이"
+        },
+        {
+          "tag": "A",
+          "key": null,
+          "text": "이용권으로 1/3 가격에 보기"
+        },
+        {
+          "tag": "P",
+          "key": null,
+          "text": "스탠다드로 5,000원 리딩 6회 이용 시 비교"
+        },
+        {
+          "tag": "LI",
+          "key": null,
+          "text": "10년 경력 명리학자 제작·검수"
+        },
+        {
+          "tag": "LI",
+          "key": null,
+          "text": "사주·자미두수·베다·숙요·점성술 교차검증"
+        },
+        {
+          "tag": "LI",
+          "key": null,
+          "text": "무료 시작 가능"
+        },
+        {
+          "tag": "LI",
+          "key": null,
+          "text": "자동결제 없는 30일 이용권"
+        },
+        {
+          "tag": "P",
+          "key": null,
+          "text": "질문 하나만 골라보세요."
+        },
+        {
+          "tag": "STRONG",
+          "key": null,
+          "text": "오늘 운세"
+        },
+        {
+          "tag": "SPAN",
+          "key": null,
+          "text": "오늘 조심할 것과 잡아야 할 기회"
+        },
+        {
+          "tag": "SPAN",
+          "key": null,
+          "text": "무료"
+        },
+        {
+          "tag": "SPAN",
+          "key": null,
+          "text": "보기 ›"
+        },
+        {
+          "tag": "STRONG",
+          "key": null,
+          "text": "재물·직업"
+        },
+        {
+          "tag": "SPAN",
+          "key": null,
+          "text": "돈, 이직, 사업 흐름"
+        },
+        {
+          "tag": "SPAN",
+          "key": null,
+          "text": "무료·유료"
+        },
+        {
+          "tag": "SPAN",
+          "key": null,
+          "text": "보기 ›"
+        }
+      ],
+      "modalSourceKoreanLeafCount": 0
+    },
+    {
+      "url": "https://staging.code-destiny.com/ja/",
+      "finalUrl": "https://staging.code-destiny.com/ja/",
+      "status": 200,
+      "robotsHeader": "noindex, nofollow",
+      "lang": "ja",
+      "title": "無料 四柱推命・タロット・紫微斗数・相性占い | CODE DESTINY",
+      "canonical": "https://code-destiny.com/ja/",
+      "metaRobots": [
+        "noindex,nofollow"
+      ],
+      "h1": [
+        "今日の運勢から六つの視点を重ねる超融合運勢まで",
+        "전체 서비스"
+      ],
+      "homeFunnelPresent": true,
+      "homeKoreanLeafCount": 90,
+      "homeKoreanSamples": [
+        {
+          "tag": "A",
+          "key": null,
+          "text": "로그인"
+        },
+        {
+          "tag": "SUMMARY",
+          "key": null,
+          "text": "내 계정"
+        },
+        {
+          "tag": "A",
+          "key": null,
+          "text": "마이"
+        },
+        {
+          "tag": "A",
+          "key": null,
+          "text": "이용권으로 1/3 가격에 보기"
+        },
+        {
+          "tag": "P",
+          "key": null,
+          "text": "스탠다드로 5,000원 리딩 6회 이용 시 비교"
+        },
+        {
+          "tag": "LI",
+          "key": null,
+          "text": "10년 경력 명리학자 제작·검수"
+        },
+        {
+          "tag": "LI",
+          "key": null,
+          "text": "사주·자미두수·베다·숙요·점성술 교차검증"
+        },
+        {
+          "tag": "LI",
+          "key": null,
+          "text": "무료 시작 가능"
+        },
+        {
+          "tag": "LI",
+          "key": null,
+          "text": "자동결제 없는 30일 이용권"
+        },
+        {
+          "tag": "P",
+          "key": null,
+          "text": "질문 하나만 골라보세요."
+        },
+        {
+          "tag": "STRONG",
+          "key": null,
+          "text": "오늘 운세"
+        },
+        {
+          "tag": "SPAN",
+          "key": null,
+          "text": "오늘 조심할 것과 잡아야 할 기회"
+        },
+        {
+          "tag": "SPAN",
+          "key": null,
+          "text": "무료"
+        },
+        {
+          "tag": "SPAN",
+          "key": null,
+          "text": "보기 ›"
+        },
+        {
+          "tag": "STRONG",
+          "key": null,
+          "text": "재물·직업"
+        },
+        {
+          "tag": "SPAN",
+          "key": null,
+          "text": "돈, 이직, 사업 흐름"
+        },
+        {
+          "tag": "SPAN",
+          "key": null,
+          "text": "무료·유료"
+        },
+        {
+          "tag": "SPAN",
+          "key": null,
+          "text": "보기 ›"
+        }
+      ],
+      "modalSourceKoreanLeafCount": 0
+    },
+    {
+      "url": "https://staging.code-destiny.com/zh/",
+      "finalUrl": "https://staging.code-destiny.com/zh/",
+      "status": 200,
+      "robotsHeader": "noindex, nofollow",
+      "lang": "zh-CN",
+      "title": "CODE DESTINY | 免费四柱八字·塔罗·紫微斗数·合婚 — 每日运势",
+      "canonical": "https://code-destiny.com/zh/",
+      "metaRobots": [
+        "noindex,nofollow"
+      ],
+      "h1": [
+        "从今日运势开始用六种视角探索融合运势",
+        "전체 서비스"
+      ],
+      "homeFunnelPresent": true,
+      "homeKoreanLeafCount": 90,
+      "homeKoreanSamples": [
+        {
+          "tag": "A",
+          "key": null,
+          "text": "로그인"
+        },
+        {
+          "tag": "SUMMARY",
+          "key": null,
+          "text": "내 계정"
+        },
+        {
+          "tag": "A",
+          "key": null,
+          "text": "마이"
+        },
+        {
+          "tag": "A",
+          "key": null,
+          "text": "이용권으로 1/3 가격에 보기"
+        },
+        {
+          "tag": "P",
+          "key": null,
+          "text": "스탠다드로 5,000원 리딩 6회 이용 시 비교"
+        },
+        {
+          "tag": "LI",
+          "key": null,
+          "text": "10년 경력 명리학자 제작·검수"
+        },
+        {
+          "tag": "LI",
+          "key": null,
+          "text": "사주·자미두수·베다·숙요·점성술 교차검증"
+        },
+        {
+          "tag": "LI",
+          "key": null,
+          "text": "무료 시작 가능"
+        },
+        {
+          "tag": "LI",
+          "key": null,
+          "text": "자동결제 없는 30일 이용권"
+        },
+        {
+          "tag": "P",
+          "key": null,
+          "text": "질문 하나만 골라보세요."
+        },
+        {
+          "tag": "STRONG",
+          "key": null,
+          "text": "오늘 운세"
+        },
+        {
+          "tag": "SPAN",
+          "key": null,
+          "text": "오늘 조심할 것과 잡아야 할 기회"
+        },
+        {
+          "tag": "SPAN",
+          "key": null,
+          "text": "무료"
+        },
+        {
+          "tag": "SPAN",
+          "key": null,
+          "text": "보기 ›"
+        },
+        {
+          "tag": "STRONG",
+          "key": null,
+          "text": "재물·직업"
+        },
+        {
+          "tag": "SPAN",
+          "key": null,
+          "text": "돈, 이직, 사업 흐름"
+        },
+        {
+          "tag": "SPAN",
+          "key": null,
+          "text": "무료·유료"
+        },
+        {
+          "tag": "SPAN",
+          "key": null,
+          "text": "보기 ›"
+        }
+      ],
+      "modalSourceKoreanLeafCount": 0
+    },
+    {
+      "url": "https://staging.code-destiny.com/zh-tw/",
+      "finalUrl": "https://staging.code-destiny.com/zh-tw/",
+      "status": 200,
+      "robotsHeader": "noindex, nofollow",
+      "lang": "zh-TW",
+      "title": "CODE DESTINY | 免費四柱八字·塔羅·紫微斗數·合婚 — 運勢",
+      "canonical": "https://code-destiny.com/zh-tw/",
+      "metaRobots": [
+        "noindex,nofollow"
+      ],
+      "h1": [
+        "從今日運勢開始用六種視角探索融合運勢",
+        "전체 서비스"
+      ],
+      "homeFunnelPresent": true,
+      "homeKoreanLeafCount": 90,
+      "homeKoreanSamples": [
+        {
+          "tag": "A",
+          "key": null,
+          "text": "로그인"
+        },
+        {
+          "tag": "SUMMARY",
+          "key": null,
+          "text": "내 계정"
+        },
+        {
+          "tag": "A",
+          "key": null,
+          "text": "마이"
+        },
+        {
+          "tag": "A",
+          "key": null,
+          "text": "이용권으로 1/3 가격에 보기"
+        },
+        {
+          "tag": "P",
+          "key": null,
+          "text": "스탠다드로 5,000원 리딩 6회 이용 시 비교"
+        },
+        {
+          "tag": "LI",
+          "key": null,
+          "text": "10년 경력 명리학자 제작·검수"
+        },
+        {
+          "tag": "LI",
+          "key": null,
+          "text": "사주·자미두수·베다·숙요·점성술 교차검증"
+        },
+        {
+          "tag": "LI",
+          "key": null,
+          "text": "무료 시작 가능"
+        },
+        {
+          "tag": "LI",
+          "key": null,
+          "text": "자동결제 없는 30일 이용권"
+        },
+        {
+          "tag": "P",
+          "key": null,
+          "text": "질문 하나만 골라보세요."
+        },
+        {
+          "tag": "STRONG",
+          "key": null,
+          "text": "오늘 운세"
+        },
+        {
+          "tag": "SPAN",
+          "key": null,
+          "text": "오늘 조심할 것과 잡아야 할 기회"
+        },
+        {
+          "tag": "SPAN",
+          "key": null,
+          "text": "무료"
+        },
+        {
+          "tag": "SPAN",
+          "key": null,
+          "text": "보기 ›"
+        },
+        {
+          "tag": "STRONG",
+          "key": null,
+          "text": "재물·직업"
+        },
+        {
+          "tag": "SPAN",
+          "key": null,
+          "text": "돈, 이직, 사업 흐름"
+        },
+        {
+          "tag": "SPAN",
+          "key": null,
+          "text": "무료·유료"
+        },
+        {
+          "tag": "SPAN",
+          "key": null,
+          "text": "보기 ›"
+        }
+      ],
+      "modalSourceKoreanLeafCount": 0
+    },
+    {
+      "url": "https://staging.code-destiny.com/sukuyo/",
+      "finalUrl": "https://staging.code-destiny.com/sukuyo/",
+      "status": 200,
+      "robotsHeader": "noindex, nofollow",
+      "lang": "ko",
+      "title": "숙요점 사이트 | 무료 27수 본명숙·숙요 궁합 보기",
+      "canonical": "https://code-destiny.com/sukuyo/",
+      "metaRobots": [
+        "noindex,nofollow"
+      ],
+      "h1": [
+        "숙요점 사이트 — 생년월일로 내 본명숙 찾기"
+      ],
+      "homeFunnelPresent": false,
+      "homeKoreanLeafCount": null,
+      "homeKoreanSamples": [],
+      "modalSourceKoreanLeafCount": 0
+    },
+    {
+      "url": "https://staging.code-destiny.com/insights/fusion/",
+      "finalUrl": "https://staging.code-destiny.com/insights/fusion/",
+      "status": 200,
+      "robotsHeader": "noindex, nofollow",
+      "lang": "ko",
+      "title": "초융합운세란? 여러 운세를 함께 읽는 법 | CODE DESTINY",
+      "canonical": "https://code-destiny.com/insights/fusion/",
+      "metaRobots": [
+        "noindex,nofollow"
+      ],
+      "h1": [
+        "초융합운세란? 같은 질문을 여섯 관점에서 읽는 방법"
+      ],
+      "homeFunnelPresent": false,
+      "homeKoreanLeafCount": null,
+      "homeKoreanSamples": [],
+      "modalSourceKoreanLeafCount": 0
+    },
+    {
+      "url": "https://staging.code-destiny.com/insights/sukuyo-compatibility-guide/",
+      "finalUrl": "https://staging.code-destiny.com/insights/sukuyo-compatibility-guide/",
+      "status": 200,
+      "robotsHeader": "noindex, nofollow",
+      "lang": "ko",
+      "title": "숙요점 궁합 — 영친·업태·안괴 6유형 총정리",
+      "canonical": "https://code-destiny.com/insights/sukuyo-compatibility-guide/",
+      "metaRobots": [
+        "noindex,nofollow"
+      ],
+      "h1": [
+        "숙요점 궁합 보는 법 — 영친·업태·안괴 관계를 읽는 순서"
+      ],
+      "homeFunnelPresent": false,
+      "homeKoreanLeafCount": null,
+      "homeKoreanSamples": [],
+      "modalSourceKoreanLeafCount": 0
+    },
+    {
+      "url": "https://staging.code-destiny.com/kkul-kkul-unse/",
+      "finalUrl": "https://staging.code-destiny.com/kkul-kkul-unse/",
+      "status": 200,
+      "robotsHeader": "noindex, nofollow",
+      "lang": "ko",
+      "title": "꿀꿀 운세는 어떤 서비스인가요 | Code Destiny 브랜드 안내",
+      "canonical": "https://code-destiny.com/kkul-kkul-unse/",
+      "metaRobots": [
+        "noindex,nofollow"
+      ],
+      "h1": [
+        "꿀꿀 운세 — 무료 사주·타로·궁합 통합 플랫폼"
+      ],
+      "homeFunnelPresent": false,
+      "homeKoreanLeafCount": null,
+      "homeKoreanSamples": [],
+      "modalSourceKoreanLeafCount": 0
+    }
+  ]
+}

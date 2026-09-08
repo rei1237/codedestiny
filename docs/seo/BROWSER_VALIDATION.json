@@ -1,0 +1,204 @@
+{
+  "mode": "local static build; external requests blocked and API mocked; no field CWV or edge status inference",
+  "screenshots": "C:\\Users\\user\\AppData\\Local\\Temp\\code-destiny-seo-20260908",
+  "results": [
+    {
+      "width": 264,
+      "text": "오늘의 운세부터여섯 체계를 함께 읽는 초융합운세까지",
+      "scroll": 264,
+      "viewport": 360,
+      "documentWidth": 330,
+      "keyboardEntryFormVisible": true
+    },
+    {
+      "width": 294,
+      "text": "오늘의 운세부터여섯 체계를 함께 읽는 초융합운세까지",
+      "scroll": 294,
+      "viewport": 390,
+      "documentWidth": 360,
+      "keyboardEntryFormVisible": true
+    },
+    {
+      "width": 334,
+      "text": "오늘의 운세부터여섯 체계를 함께 읽는 초융합운세까지",
+      "scroll": 334,
+      "viewport": 430,
+      "documentWidth": 400,
+      "keyboardEntryFormVisible": true
+    },
+    {
+      "width": 364,
+      "text": "오늘의 운세부터여섯 체계를 함께 읽는 초융합운세까지",
+      "scroll": 364,
+      "viewport": 1440,
+      "documentWidth": 1420,
+      "keyboardEntryFormVisible": true
+    },
+    {
+      "path": "/",
+      "status": 200,
+      "title": "무료 사주·타로·궁합·자미두수 운세 | 꿀꿀운세 CODE DESTINY",
+      "language": "ko",
+      "canonical": "https://code-destiny.com/",
+      "description": "10년 경력 명리학자 박병하가 감수하는 무료 사주, 꿀꿀운세입니다. 생년월일만 넣으면 사주팔자·만세력·오늘의 운세·타로·궁합에 자미두수·숙요점·베다점까지 봅니다.",
+      "robots": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
+      "h1": [
+        "오늘의 운세부터여섯 체계를 함께 읽는 초융합운세까지"
+      ],
+      "schemaTypes": [
+        "Organization",
+        "WebSite",
+        "WebPage",
+        "Person",
+        "ImageObject",
+        "ItemList"
+      ]
+    },
+    {
+      "path": "/en/",
+      "status": 200,
+      "title": "Free Korean Saju, Tarot & Zi Wei Dou Shu | CODE DESTINY",
+      "language": "en",
+      "canonical": "https://code-destiny.com/en/",
+      "description": "Explore Saju, tarot, Zi Wei Dou Shu and Sukuyo for self-reflection. Read public guides and understand AI readings, their limits and each feature’s access terms.",
+      "robots": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
+      "h1": [
+        "Start with today’s fortuneExplore six perspectives with Fusion Fortune"
+      ],
+      "schemaTypes": [
+        "Organization",
+        "WebSite",
+        "WebPage",
+        "Person",
+        "ImageObject",
+        "ItemList"
+      ]
+    },
+    {
+      "path": "/ja/",
+      "status": 200,
+      "title": "無料 四柱推命・タロット・紫微斗数・相性占い | CODE DESTINY",
+      "language": "ja",
+      "canonical": "https://code-destiny.com/ja/",
+      "description": "四柱推命、紫微斗数、宿曜占星術、タロットから自分の傾向と選択を見つめる占いサービス。公開解説とAI鑑定の違い、各機能の利用条件をご案内します。",
+      "robots": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
+      "h1": [
+        "今日の運勢から六つの視点を重ねる超融合運勢まで"
+      ],
+      "schemaTypes": [
+        "Organization",
+        "WebSite",
+        "WebPage",
+        "Person",
+        "ImageObject",
+        "ItemList"
+      ]
+    },
+    {
+      "path": "/zh/",
+      "status": 200,
+      "title": "CODE DESTINY | 免费四柱八字·塔罗·紫微斗数·合婚 — 每日运势",
+      "language": "zh-CN",
+      "canonical": "https://code-destiny.com/zh/",
+      "description": "通过四柱命理、紫微斗数、宿曜占星术与塔罗认识自己的行为和关系。阅读公开解说，了解AI解读的用途与局限，并在各功能页面确认使用条件。",
+      "robots": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
+      "h1": [
+        "从今日运势开始用六种视角探索融合运势"
+      ],
+      "schemaTypes": [
+        "Organization",
+        "WebSite",
+        "WebPage",
+        "Person",
+        "ImageObject",
+        "ItemList"
+      ]
+    },
+    {
+      "path": "/zh-tw/",
+      "status": 200,
+      "title": "CODE DESTINY | 免費四柱八字·塔羅·紫微斗數·合婚 — 運勢",
+      "language": "zh-TW",
+      "canonical": "https://code-destiny.com/zh-tw/",
+      "description": "透過四柱命理、紫微斗數、宿曜占星術與塔羅認識自己的行為和關係。閱讀公開解說，了解AI解讀的用途與局限，並在各功能頁面確認使用條件。",
+      "robots": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
+      "h1": [
+        "從今日運勢開始用六種視角探索融合運勢"
+      ],
+      "schemaTypes": [
+        "Organization",
+        "WebSite",
+        "WebPage",
+        "Person",
+        "ImageObject",
+        "ItemList"
+      ]
+    },
+    {
+      "path": "/sukuyo/",
+      "status": 200,
+      "title": "숙요점 사이트 | 무료 27수 본명숙·숙요 궁합 보기",
+      "language": "ko",
+      "canonical": "https://code-destiny.com/sukuyo/",
+      "description": "생년월일만 넣으면 본명숙 27수를 바로 뽑아 주는 무료 숙요점 사이트입니다. 내 숙의 성향부터 두 사람의 궁합, 인연의 거리와 갈등·회복 흐름까지 확인하세요.",
+      "robots": "index, follow",
+      "h1": [],
+      "schemaTypes": [
+        "Organization",
+        "WebSite",
+        "WebPage",
+        "Service",
+        "BreadcrumbList",
+        "FAQPage"
+      ]
+    },
+    {
+      "path": "/insights/fusion/",
+      "status": 200,
+      "title": "초융합운세란? 여러 운세를 함께 읽는 법 | CODE DESTINY",
+      "language": "ko",
+      "canonical": "https://code-destiny.com/insights/fusion/",
+      "description": "사주, 자미두수, 숙요점, 베다 점성술, 서양 점성술, 타로를 각 체계의 기준으로 읽고 AI가 공통점과 차이를 한 리포트로 정리합니다. 체계 간 비교 글 허브입니다.",
+      "robots": "index, follow",
+      "h1": [],
+      "schemaTypes": [
+        "Organization",
+        "WebSite",
+        "CollectionPage",
+        "BreadcrumbList"
+      ]
+    },
+    {
+      "path": "/insights/sukuyo-compatibility-guide/",
+      "status": 200,
+      "title": "숙요점 궁합 — 영친·업태·안괴 6유형 총정리",
+      "language": "ko",
+      "canonical": "https://code-destiny.com/insights/sukuyo-compatibility-guide/",
+      "description": "숙요점 궁합은 좋고 나쁨을 가리지 않고 관계의 성격과 방향을 보여 줍니다. 영친·업태·안괴·명성·위성·우쇠 6유형을 본명숙 거리로 읽는 법을 담았습니다.",
+      "robots": "index, follow",
+      "h1": [],
+      "schemaTypes": [
+        "Organization",
+        "WebSite",
+        "Article",
+        "BreadcrumbList"
+      ]
+    },
+    {
+      "path": "/kkul-kkul-unse/",
+      "status": 200,
+      "title": "꿀꿀 운세는 어떤 서비스인가요 | Code Destiny 브랜드 안내",
+      "language": "ko",
+      "canonical": "https://code-destiny.com/kkul-kkul-unse/",
+      "description": "꿀꿀운세와 꽃돼지 운세로 기억하는 Code Destiny를 소개합니다. 사주, 만세력, 자미두수, 숙요점, 베다 점성술, 타로와 AI 상담을 질문에 맞게 연결합니다.",
+      "robots": "index, follow",
+      "h1": [],
+      "schemaTypes": [
+        "Organization",
+        "WebSite",
+        "WebPage",
+        "FAQPage"
+      ]
+    }
+  ]
+}
