@@ -103,6 +103,14 @@ const route = read("worker/routes/vedic-ai.js");
   "divisionalCharts",
   "VedicChartResult",
 ].forEach((needle) => assertIncludes(route, needle, "worker route"));
+assertIncludes(route, "resolveAiLocaleFromRequest", "request locale boundary");
+assertIncludes(route, "doc.locale = existing?.locale || normalized.locale", "stored locale boundary");
+assertIncludes(route, "locale: options.locale", "provider locale boundary");
+assertIncludes(route, 'locale: clean(doc.locale, 10) || "ko"', "legacy reopen locale fallback");
+assertIncludes(route, '.select("id topic birthInfo vedicChart.chartSummary locale createdAt updatedAt")', "history locale projection");
+assertIncludes(client, "requestLocaleRef", "payment resume locale boundary");
+assertIncludes(client, "packPaidResumeArg({ form, locale: requestLocaleRef.current })", "payment resume locale persistence");
+assertIncludes(client, "buildPayload(source, requestId, requestLocale)", "start request fixed locale");
 
 // 토큰 상한은 요구 분량 상한 + 완충을 담을 수 있어야 한다. 특정 숫자를 고정하면 예산을 올릴 때마다
 // 이 가드가 먼저 깨져 낡은 값으로 되돌리게 만든다 — 최소 기준으로 단언한다(정본은 verify:llm-generation-resilience).

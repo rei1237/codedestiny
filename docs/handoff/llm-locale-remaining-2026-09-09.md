@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-09
-next: ziwei-deep-report와 vedic-ai의 locale 저장·재열람 경계를 조사하고 P2를 구현
+next: 늦은 응답·후속 대화·재생성 renderer의 locale 경계를 조사하고 P3를 구현
 ---
 
 # LLM locale 전수 보강 — 기존 초안 PR 재개
@@ -39,6 +39,7 @@ next: ziwei-deep-report와 vedic-ai의 locale 저장·재열람 경계를 조사
 7. 기능별 우선 경로 8개와 나머지 라우트/하위 경로 인벤토리를 확장했다. 소스 스캐너의 43파일/105근거는 기능 수가 아니며, 전체 end-to-end locale 조사가 완료된 것은 아니다.
 8. `app/palm-reading/PalmDestinyMain.tsx`의 `/api/palm/analyze` 최초 요청과 401 Bearer 재시도, `app/fortune-chat/FortuneChatClient.tsx`의 `/api/fortune/guardian/generate`에 현재 locale을 정규화해 body와 `x-code-destiny-locale` header로 전달했다. FortuneChat 재개·후속 질문은 호출마다 현재 locale을 다시 읽는다. `scripts/verify-palm-flow.mjs`와 `__tests__/ui/fortune-chat.static.test.js`로 계약을 고정했다.
 9. 반려동물 report/compat, 천체의 선율, 요가 구루는 비한국어 요청에서 LLM 실패·부분 결과를 한국어 결정론 텍스트로 채우지 않고 `AI_LOCALE_RESULT_INCOMPLETE` 502로 반환한다. 한국어 fallback과 정상 비한국어 모델 결과는 유지했다. 연애 타로의 결정론 normalizer에는 현재 ambient locale을 전달하고, 지원되는 비한국어 locale이 한국어 원문으로 되돌아가지 않게 했다. 현지화된 결정론 fallback을 새로 제공한 것은 아니다.
+10. **P2 저장·재열람 경계 완료**: ziwei-deep-report와 vedic-ai가 최초 생성 locale을 결과 레코드에 저장하고, 결과 목록·단건 재열람 응답에 노출한다. locale 없는 과거 저장본은 기존 실제 출력인 `ko`로 읽는다. ziwei의 배치 재개 JWT와 토큰 없는 부분 저장본 재개는 저장 locale을 우선해 장 사이 언어 혼합을 막는다. vedic은 provider 호출에 저장 locale을 명시하고, 결제 리다이렉트 resume payload에도 locale을 고정한다. **`userId + idempotencyKey` 결제/재열람 키와 기존 인덱스는 변경하지 않았다**; 같은 키의 다른 UI 언어 요청은 기존 결과를 재열람한다.
 
 ## 로컬 검증
 
@@ -59,8 +60,7 @@ next: ziwei-deep-report와 vedic-ai의 locale 저장·재열람 경계를 조사
 
 ## 다음 작업: 확인된 누락부터
 
-1. **저장·배치 P2/P3**: ziwei-deep-report의 저장 레코드/이어가기 token locale, vedic-ai의 userId+idempotencyKey startLocks/저장 재사용. 결제 증빙 키를 언어별로 임의 변경하지 않고, 신규 저장 locale·legacy 무locale·다른 언어 재열람을 구분한다.
-2. **늦은 응답·후속 대화**: 전체 renderer·재생성·후속 질문·stream 완료/오류/reconnect. 지오맨시의 단일 요청 방어를 전체 기능 검증으로 확대 해석하지 않는다.
+1. **늦은 응답·후속 대화 P3**: 전체 renderer·재생성·후속 질문·stream 완료/오류/reconnect. 지오맨시의 단일 요청 방어를 전체 기능 검증으로 확대 해석하지 않는다.
 3. **휴먼디자인 UI/PDF**: 본문/장 제목은 기존 12언어. report-plan 부가 라벨, 도표 용어(기존 5언어), PDF 표지·일본어/중국어/Hindi glyph는 미완료다.
 4. 인벤토리의 미확인 칸을 입력→locale→request→handler→prompt→provider→후처리→저장/캐시→UI 순서로 채운다. 준비·계산·관리자·예약 SNS·provider transport를 사용자 LLM 기능으로 중복 집계하지 않는다. 모든 Acceptance Criteria가 끝나기 전 초안을 Ready로 바꾸지 않는다.
 

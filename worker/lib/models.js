@@ -1095,6 +1095,8 @@ const ziweiDeepReportSchema = new mongoose.Schema({
   focusArea: { type: String, default: "", trim: true, maxlength: 40 },
   topic: { type: String, default: "", trim: true, maxlength: 80 },
   userQuestion: { type: String, default: "", trim: true, maxlength: 1200 },
+  // 저장본 재열람과 배치 이어쓰기는 최초 생성 언어를 보존한다. 과거 문서는 route에서 ko로 읽는다.
+  locale: { type: String, enum: AI_OUTPUT_LOCALES, default: "ko", trim: true, maxlength: 10 },
   ziweiChart: { type: ziweiAiChartSchema, default: () => ({}) },
   chapters: { type: [ziweiDeepChapterSchema], default: [] },
   // partial = 일부 배치만 도착. completed = 15장 전부. 재열람은 partial 도 보여준다.
@@ -1378,6 +1380,8 @@ const vedicAiConsultationSchema = new mongoose.Schema({
   accessType: { type: String, enum: ["pass", "paid", "subscription"], required: true, index: true },
   paymentId: { type: String, default: "", trim: true, maxlength: 160, index: true },
   messages: { type: [vedicAiMessageSchema], default: [] },
+  // 결제 멱등 키와 분리된 결과 메타데이터. 같은 결제 요청의 다른 UI 언어는 기존 결과를 재열람한다.
+  locale: { type: String, enum: AI_OUTPUT_LOCALES, default: "ko", trim: true, maxlength: 10 },
   idempotencyKey: { type: String, required: true, trim: true, maxlength: 180, index: true },
   inputHash: { type: String, required: true, trim: true, maxlength: 80, index: true },
   status: { type: String, enum: ["generating", "completed", "generation_failed"], default: "generating", index: true },
