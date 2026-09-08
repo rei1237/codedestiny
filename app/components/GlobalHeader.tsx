@@ -1,12 +1,13 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useLocale } from "@/lib/i18n/useT";
+import styles from "./GlobalHeader.module.css";
 
-const LOCALE_CODES = ["ko", "en", "ja", "zh-CN", "zh-TW", "vi", "hi", "es", "fr", "de", "nl", "ms"] as const;
-type LoadingLocale = (typeof LOCALE_CODES)[number];
+type LoadingLocale = "ko" | "en" | "ja" | "zh-CN" | "zh-TW" | "vi" | "hi" | "es" | "fr" | "de" | "nl" | "ms";
 
 // 로케일 감지는 lib/i18n/useT 의 useLocale 이 담당한다(cd:locale-ready 구독 포함).
 // 여기 있던 normalizeChromeLocale/getCurrentChromeLocale 은 그 훅과 중복이라 제거했다.
@@ -194,32 +195,38 @@ export default function GlobalHeader() {
 
   return (
     <>
-      <header className="sticky top-0 z-[70] border-b border-violet-200/20 bg-[rgba(12,8,28,0.84)] backdrop-blur-xl">
-        <div className="mx-auto flex min-h-[58px] w-[min(1240px,100%-20px)] items-center gap-3 py-2">
+      <header className={styles.root}>
+        <div className={styles.shell}>
+          {/* 정적 홈 셸로 문서 이동해야 React 홈이 한 프레임 노출되지 않는다. */}
+          {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
           <a
             href="/index.html"
-            className="inline-flex min-h-11 shrink-0 items-center bg-gradient-to-r from-violet-300 via-fuchsia-200 to-amber-100 bg-clip-text text-[17px] font-black text-transparent"
+            className={styles.brand}
+            aria-label={copy.nav["/index.html"]}
           >
-            Code Destiny
+            <Image className={styles.brandImage} src="/icons/app-logo-512.webp" alt="" width={512} height={512} sizes="42px" />
+            <span className={styles.brandText}>
+              <strong>CODE DESTINY</strong>
+              <small>꿀꿀 운세</small>
+            </span>
           </a>
 
-          <nav className="hidden min-w-0 flex-1 items-center gap-1.5 overflow-x-auto xl:flex" aria-label={copy.mainNav}>
+          <nav className={styles.mainNav} aria-label={copy.mainNav}>
             {headerNavItems.map((item) => {
-              const className = "inline-flex shrink-0 items-center rounded-full border border-violet-200/25 bg-[rgba(33,18,64,0.56)] px-3 py-1.5 text-[12px] font-semibold text-violet-100 transition hover:border-violet-200/50 hover:bg-[rgba(65,39,120,0.55)]";
               const label = copy.nav[item.href] || item.href;
               return isStaticShellHref(item.href) ? (
-                <a key={item.href} href={item.href} className={className}>
+                <a key={item.href} href={item.href} className={styles.navLink}>
                   {label}
                 </a>
               ) : (
-                <Link key={item.href} href={item.href} className={className}>
+                <Link key={item.href} href={item.href} className={styles.navLink}>
                   {label}
                 </Link>
               );
             })}
           </nav>
 
-          <div className="hidden items-center gap-2 md:flex">
+          <div className={styles.controls}>
             {showDesktopControls ? (
               <>
                 <LocaleSwitcher />
@@ -230,23 +237,26 @@ export default function GlobalHeader() {
 
           <button
             type="button"
-            className="ml-auto rounded-lg border border-violet-200/30 bg-[rgba(32,19,60,0.78)] px-3 py-1.5 text-sm font-semibold text-violet-100 md:hidden"
+            className={styles.menuButton}
             aria-label={menuOpen ? copy.closeMenu : copy.openMenu}
             aria-expanded={menuOpen}
             onClick={() => setMenuOpen((value) => !value)}
           >
-            {menuOpen ? copy.closeMenu : copy.menu}
+            <svg viewBox="0 0 20 20" aria-hidden="true">
+              {menuOpen ? <path d="m5 5 10 10M15 5 5 15" /> : <path d="M3 5h14M3 10h14M3 15h14" />}
+            </svg>
+            <span>{menuOpen ? copy.closeMenu : copy.menu}</span>
           </button>
         </div>
-        <div className="hidden border-t border-violet-200/15 xl:block">
-          <nav className="mx-auto flex w-[min(1240px,100%-20px)] flex-wrap items-center justify-end gap-2 py-2" aria-label={copy.policyLinks}>
+        <div className={styles.policyBar}>
+          <nav className={styles.policyNav} aria-label={copy.policyLinks}>
             {policyNavItems.map((item) => {
               const label = copy.nav[item.href] || item.href;
               return (
                 <Link
                   key={`d-${item.href}`}
                   href={item.href}
-                  className="rounded-full border border-violet-200/20 bg-[rgba(32,19,60,0.54)] px-2.5 py-1 text-[11px] font-semibold text-violet-100/90 transition hover:border-violet-200/45 hover:bg-[rgba(65,39,120,0.48)]"
+                  className={styles.policyLink}
                 >
                   {label}
                 </Link>
@@ -257,32 +267,31 @@ export default function GlobalHeader() {
       </header>
 
       {menuOpen ? (
-        <div className="sticky top-[58px] z-[65] border-b border-violet-200/20 bg-[rgba(11,8,26,0.95)] px-3 pb-4 pt-3 md:hidden">
-          <div className="mb-3 flex items-center justify-between gap-2 rounded-xl border border-violet-200/20 bg-[rgba(36,20,68,0.45)] p-2">
-            <span className="text-xs font-semibold tracking-[0.14em] text-violet-200/75">{copy.auth}</span>
-            <div className="flex items-center gap-2">
+        <div className={styles.mobilePanel}>
+          <div className={styles.mobileTools}>
+            <span>{copy.auth}</span>
+            <div>
               <LocaleSwitcher />
               <AuthWidget />
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-2">
+          <div className={styles.mobileLinks}>
             {headerNavItems.map((item) => {
-              const className = "rounded-xl border border-violet-200/25 bg-[rgba(32,19,60,0.8)] px-2.5 py-2 text-center text-[11px] font-semibold text-violet-100";
               const label = copy.nav[item.href] || item.href;
               return isStaticShellHref(item.href) ? (
-                <a key={`m-${item.href}`} href={item.href} onClick={() => setMenuOpen(false)} className={className}>
+                <a key={`m-${item.href}`} href={item.href} onClick={() => setMenuOpen(false)} className={styles.navLink}>
                   {label}
                 </a>
               ) : (
-                <Link key={`m-${item.href}`} href={item.href} onClick={() => setMenuOpen(false)} className={className}>
+                <Link key={`m-${item.href}`} href={item.href} onClick={() => setMenuOpen(false)} className={styles.navLink}>
                   {label}
                 </Link>
               );
             })}
           </div>
-          <div className="mt-4 border-t border-violet-200/15 pt-3">
-            <p className="mb-2 text-[11px] font-semibold tracking-[0.12em] text-violet-200/70">{copy.policyLinks}</p>
-            <div className="flex flex-wrap gap-2">
+          <div>
+            <p className={styles.mobilePolicyLabel}>{copy.policyLinks}</p>
+            <div className={styles.mobilePolicyLinks}>
               {policyNavItems.map((item) => {
                 const label = copy.nav[item.href] || item.href;
                 return (
@@ -290,7 +299,7 @@ export default function GlobalHeader() {
                     key={`m-policy-${item.href}`}
                     href={item.href}
                     onClick={() => setMenuOpen(false)}
-                    className="rounded-full border border-violet-200/25 bg-[rgba(32,19,60,0.8)] px-2.5 py-1 text-[11px] font-semibold text-violet-100"
+                    className={styles.policyLink}
                   >
                     {label}
                   </Link>

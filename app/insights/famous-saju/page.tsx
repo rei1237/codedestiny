@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { generatePageMetadata } from "../../../lib/generate-page-metadata";
 import { categoryToSlug, famousSajuCategories, publishedCelebritySajuSeeds } from "../../../lib/famous-saju/celebrity-saju-service";
@@ -214,19 +215,30 @@ export default function FamousSajuInsightIndexPage() {
   return (
     <main className="min-h-screen bg-[#090b18] text-slate-100" data-famous-saju-list>
       <section className="mx-auto max-w-6xl px-5 py-12 sm:py-16">
-        <div className="max-w-3xl">
-          <Link href="/insights" className="text-sm font-semibold text-amber-100/80 hover:text-amber-50">
-            {famousSajuInsightCopy.hubLink}
-          </Link>
-          <p className="mt-5 text-sm font-semibold text-amber-100/80">{famousSajuInsightCopy.kicker}</p>
-          <h1 className="mt-3 text-3xl font-bold tracking-normal text-white sm:text-5xl">{famousSajuInsightCopy.title}</h1>
-          <p className="mt-5 text-base leading-8 text-slate-300">
-            {famousSajuInsightCopy.intro}
-          </p>
-          <p className="mt-3 text-sm text-slate-400">
-            아래 태그와 검색으로 인물·분야를 좁혀 볼 수 있습니다. 출생 시간이 확인되지 않은
-            인물은 시주를 비운 삼주 기준으로 계산하며, 그 사실을 상세 페이지에 함께 적습니다.
-          </p>
+        <div className="grid max-w-4xl items-center gap-6 rounded-[28px] border border-rose-200/20 bg-gradient-to-br from-rose-300/10 via-violet-300/5 to-amber-200/10 p-6 shadow-2xl shadow-black/20 sm:p-8 md:grid-cols-[minmax(0,1fr)_160px]">
+          <div>
+            <Link href="/insights" className="text-sm font-semibold text-amber-100/80 hover:text-amber-50">
+              {famousSajuInsightCopy.hubLink}
+            </Link>
+            <p className="mt-5 text-sm font-semibold text-amber-100/80">{famousSajuInsightCopy.kicker}</p>
+            <h1 className="mt-3 text-3xl font-bold tracking-normal text-white sm:text-5xl">{famousSajuInsightCopy.title}</h1>
+            <p className="mt-5 text-base leading-8 text-slate-300">
+              {famousSajuInsightCopy.intro}
+            </p>
+            <p className="mt-3 text-sm text-slate-400">
+              아래 태그와 검색으로 인물·분야를 좁혀 볼 수 있습니다. 출생 시간이 확인되지 않은
+              인물은 시주를 비운 삼주 기준으로 계산하며, 그 사실을 상세 페이지에 함께 적습니다.
+            </p>
+          </div>
+          <div className="mx-auto hidden rounded-full border border-rose-100/20 bg-rose-50/10 p-3 md:block">
+            <Image
+              src="/icons/app-logo-512.webp"
+              alt="연꽃을 쓴 Code Destiny 꽃돼지"
+              width={136}
+              height={136}
+              priority
+            />
+          </div>
         </div>
 
         <section className="mt-10 max-w-3xl space-y-5 text-base leading-8 text-slate-300">

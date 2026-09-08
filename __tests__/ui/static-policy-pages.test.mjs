@@ -18,6 +18,10 @@ for (const route of STATIC_POLICY_ROUTES) test(`${route.canonical} is complete s
   assert.doesNotMatch(html, /\/_next\/|__next_f|data-action="cd/);
   assert.match(html, /class="policy-site-header"/);
   assert.match(html, /class="policy-site-footer"/);
+  assert.match(html, /class="policy-main-nav"/);
+  assert.match(html, /class="policy-footer-grid"/);
+  assert.match(html, /src="\/icons\/app-logo-512\.webp"/);
+  assert.match(html, /꽃돼지가 길을 안내할게요/);
   assert.match(html, /<meta name="robots" content="index, follow">/);
   const ids = new Set();
   const anchors = [];

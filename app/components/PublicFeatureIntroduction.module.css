@@ -1,0 +1,233 @@
+.page {
+  --fi-bg: #fffaf7;
+  --fi-surface: #fff0f4;
+  --fi-card: #fffdfc;
+  --fi-ink: #3c1830;
+  --fi-muted: #70445c;
+  --fi-accent: #b31955;
+  --fi-gold: #81551e;
+  --fi-line: rgba(179, 25, 85, 0.2);
+  width: min(100%, 1040px);
+  min-height: 100dvh;
+  margin-inline: auto;
+  padding: clamp(16px, 4vw, 42px);
+  background: var(--fi-bg);
+  color: var(--fi-ink);
+}
+
+.hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 132px;
+  align-items: center;
+  gap: clamp(18px, 4vw, 44px);
+  min-height: 248px;
+  padding: clamp(28px, 5vw, 56px);
+  overflow: hidden;
+  border: 1px solid var(--fi-line);
+  border-radius: 28px;
+  background: var(--fi-surface);
+}
+
+.hero::after {
+  content: "";
+  position: absolute;
+  right: -54px;
+  bottom: -86px;
+  width: 230px;
+  height: 230px;
+  border: 1px solid color-mix(in srgb, var(--fi-gold) 38%, transparent);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.heroCopy {
+  position: relative;
+  z-index: 1;
+}
+
+.hero h1 {
+  max-width: 19ch;
+  margin: 0;
+  color: var(--fi-ink);
+  font-family: var(--font-serif), "Noto Serif JP", serif;
+  font-size: clamp(2rem, 6vw, 3.8rem);
+  font-weight: 700;
+  line-height: 1.22;
+  letter-spacing: -0.04em;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+.updated {
+  margin: 18px 0 0;
+  color: var(--fi-gold);
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.pig {
+  position: relative;
+  z-index: 1;
+  width: 132px;
+  height: 132px;
+  object-fit: contain;
+  filter: drop-shadow(0 15px 22px rgba(119, 31, 68, 0.18));
+}
+
+.content {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 14px;
+  margin-top: 20px;
+}
+
+.section,
+.access,
+.faq {
+  padding: clamp(20px, 4vw, 30px);
+  border: 1px solid var(--fi-line);
+  border-radius: 20px;
+  background: var(--fi-card);
+}
+
+.section h2,
+.access h2,
+.faq summary {
+  margin: 0;
+  color: var(--fi-ink);
+  font-family: var(--font-serif), "Noto Serif JP", serif;
+  font-size: clamp(1.15rem, 3vw, 1.42rem);
+  font-weight: 700;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.section p,
+.access p,
+.faq p {
+  max-width: 70ch;
+  margin: 14px 0 0;
+  color: var(--fi-muted);
+  font-size: 0.98rem;
+  line-height: 1.9;
+  overflow-wrap: anywhere;
+}
+
+.access {
+  grid-column: 1 / -1;
+  background: color-mix(in srgb, var(--fi-surface) 70%, var(--fi-card));
+}
+
+.cta {
+  display: inline-flex;
+  min-height: 48px;
+  margin-top: 20px;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 22px;
+  border: 1px solid var(--fi-accent);
+  border-radius: 999px;
+  background: var(--fi-accent);
+  color: #fff !important;
+  font-size: 0.92rem;
+  font-weight: 800;
+  text-decoration: none;
+  transition: box-shadow 160ms ease, transform 160ms ease;
+}
+
+.cta:hover {
+  box-shadow: 0 12px 24px rgba(119, 31, 68, 0.16);
+  transform: translateY(-2px);
+}
+
+.faq {
+  grid-column: 1 / -1;
+  padding-block: 12px;
+}
+
+.faq summary {
+  display: flex;
+  min-height: 52px;
+  align-items: center;
+  cursor: pointer;
+}
+
+.faqBody {
+  padding: 0 0 18px;
+}
+
+.caution {
+  padding-top: 14px;
+  border-top: 1px solid var(--fi-line);
+  font-size: 0.86rem !important;
+}
+
+.related {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--fi-line);
+}
+
+.related a {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  color: var(--fi-accent);
+  font-size: 0.84rem;
+  font-weight: 700;
+  text-underline-offset: 4px;
+}
+
+.page :is(a, summary):focus-visible {
+  outline: 3px solid var(--fi-accent);
+  outline-offset: 3px;
+}
+
+@media (max-width: 720px) {
+  .page {
+    width: min(100%, 430px);
+    padding: 8px 8px 36px;
+  }
+
+  .hero {
+    grid-template-columns: minmax(0, 1fr) 88px;
+    min-height: 220px;
+    padding: 26px 18px 34px;
+    border-radius: 22px;
+  }
+
+  .hero h1 {
+    font-size: clamp(1.8rem, 9vw, 2.45rem);
+  }
+
+  .pig {
+    width: 88px;
+    height: 88px;
+  }
+
+  .content {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .access,
+  .faq {
+    grid-column: auto;
+  }
+
+  .section,
+  .access {
+    padding: 20px 18px;
+    border-radius: 18px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cta {
+    transition: none;
+  }
+}

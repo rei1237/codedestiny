@@ -1,3 +1,4 @@
+import PolicyGuide, { policyPageClass } from "../components/PolicyGuide";
 import { trustRoutes } from "../../lib/i18n/public-trust-copy.mjs";
 import Link from "next/link";
 import { buildSeoMetadata } from "../../lib/seo";
@@ -48,16 +49,11 @@ const jsonLd = JSON.stringify({
 
 export default function AboutPage() {
   return (
-    <main className="cd-main-shell">
+    <main className={`cd-main-shell ${policyPageClass}`}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
-      <header className="cd-main-header">
-        <h1 className="cd-main-title">{aboutPageText("title")}</h1>
-        <p className="cd-main-intro">
-          {aboutPageText("intro")}
-        </p>
-      </header>
+      <PolicyGuide kind="about" title={aboutPageText("title")} description={aboutPageText("intro")} />
 
-      <section className="cd-card">
+      <section className="cd-card" id="about-purpose">
         <h2>{aboutPageText("mission.title")}</h2>
         <p>
           {aboutPageText("mission.body")}
@@ -74,7 +70,7 @@ export default function AboutPage() {
         </ul>
       </section>
 
-      <section className="cd-card">
+      <section className="cd-card" id="about-methods">
         <h2>{aboutPageText("systems.title")}</h2>
         <ul>
           <li>{aboutPageText("systems.saju")}</li>

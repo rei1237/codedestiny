@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { INTRO_LOCALES, INTRO_TOPICS, FEATURE_INTRODUCTIONS } from "../../lib/i18n/feature-introductions.mjs";
 import { TRUST_LOCALES, TRUST_UI } from "../../lib/i18n/public-trust-copy.mjs";
 import { I18N_POLICY_ROUTE_MAP } from "../../lib/i18n/routes";
@@ -104,6 +105,13 @@ export default function LocaleFooterHub({ locale }) {
       <div className={`${styles.sfhStars} ${styles.sfhStarsFar}`} aria-hidden />
 
       <div className={styles.sfhShell}>
+        <a href={I18N_ROUTE_MAP.home[locale]} className={styles.sfhBrand} aria-label={copy.localeNavLabels.home}>
+          <Image src="/icons/app-logo-512.webp" alt="" width={512} height={512} sizes="56px" />
+          <span>
+            <strong>CODE DESTINY</strong>
+            <small>{copy.title}</small>
+          </span>
+        </a>
         <section aria-label={copy.hubAriaLabel}>
           {/* SEO 내부 링크 허브 — 앱 번들에서는 렌더하지 않는다(2026-09-03 사용자 결정).
               앱은 하단 탭바와 홈 IA 가 같은 진입을 이미 갖고 있어 중복이고, 색인 목적의 링크 격자는

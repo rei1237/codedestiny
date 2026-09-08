@@ -1,3 +1,4 @@
+import Image from "next/image";
 import styles from "./SiteFooterHub.module.css";
 import SocialFooter from "../_components/SocialFooter";
 import { BUSINESS_IDENTITY } from "../../lib/site-policy-config";
@@ -178,6 +179,15 @@ export default function SiteFooterHub() {
       <div className={`${styles.sfhStars} ${styles.sfhStarsFar}`} aria-hidden />
 
       <div className={styles.sfhShell}>
+        {/* 정적 홈 셸로 곧장 이동한다. */}
+        {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+        <a href="/index.html" className={styles.sfhBrand} aria-label="Code Destiny 홈">
+          <Image src="/icons/app-logo-512.webp" alt="" width={512} height={512} sizes="56px" />
+          <span>
+            <strong>CODE DESTINY</strong>
+            <small>오늘의 마음이 조금 가벼워지는 곳</small>
+          </span>
+        </a>
         <section aria-label={siteFooterHubText("siteFooter.012")}>
           {/* 🔴 링크 허브와 SNS 채널은 **검색 신호 전용**이라 앱 번들에서는 렌더하지 않는다
               (2026-09-03 사용자 결정). 앱에는 하단 탭바와 홈 IA 가 같은 진입을 이미 갖고 있고,
