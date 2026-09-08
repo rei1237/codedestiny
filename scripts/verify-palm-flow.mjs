@@ -25,6 +25,7 @@ const client = read('app/palm-reading/PalmDestinyMain.tsx');
 const clientCopy = read('app/palm-reading/_lib/copy.ts');
 const uiState = read('lib/palm/palm-ui-state.js');
 const landmarks = read('app/palm-reading/palm-hand-landmarks.ts');
+const aiLocale = read('lib/i18n/ai-locale.js');
 
 // ── 1. 워커 라우트가 실제로 LLM 을 호출한다 ──
 // (이게 깨지면 프로덕션 손금이 다시 "AI 없는 템플릿"으로 되돌아간다)
@@ -133,6 +134,15 @@ assert.doesNotMatch(
   '클라이언트: 레지스트리에 없는 purpose 별 하위키 매핑 금지',
 );
 assert.match(client, /PALM_BILLING_SUB_FEATURE_KEY = "general"/, '클라이언트: 결제 하위키는 general 단일');
+
+// ── 9b. 직접 손금 요청도 출력 언어를 보낸다 ──
+// 이 화면은 authFetch를 지나지 않으므로, locale header/body를 직접 붙이지 않으면 비한국어 UI에서
+// 한국어 손금 본문이 나갈 수 있다. 401 인증 재시도도 같은 언어 계약을 보존해야 한다.
+assert.match(aiLocale, /AI_LOCALE_HEADER/, 'AI locale 전송 헤더 정본이 있어야 함');
+assert.match(client, /AI_LOCALE_HEADER, toAiLocale/, '클라이언트: AI locale helper import 필요');
+assert.match(client, /const aiLocale = toAiLocale\(detectLocale\(\)\)/, '클라이언트: 요청 시점 locale 정규화 필요');
+assert.match(client, /locale: aiLocale/, '클라이언트: 요청 body에 locale 필요');
+assert.match(client, /\[AI_LOCALE_HEADER\]: aiLocale/, '클라이언트: 최초/재시도 요청 header에 locale 필요');
 
 // ── 10. 실제 손 검출: no-hand 와 unavailable 을 구분한다 ──
 // 둘을 합치면 CDN 이 막힌 사용자의 정상 손 사진을 "손이 아니다"라며 거부하게 된다.

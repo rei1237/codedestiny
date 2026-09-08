@@ -101,6 +101,10 @@ test("Yeoni chat sends everything the server requires to build a reading", () =>
 
   assert.match(client, /birthDate: birth\.birthDate/);
   assert.match(client, /category: activeCategory/);
+  assert.match(client, /AI_LOCALE_HEADER, toAiLocale/);
+  assert.match(client, /const aiLocale = toAiLocale\(detectLocale\(\)\)/);
+  assert.match(client, /\[AI_LOCALE_HEADER\]: aiLocale/);
+  assert.match(client, /locale: aiLocale/);
   assert.match(client, /calendarType: birth\.calendarType/);
   assert.match(client, /gender: birth\.gender/);
   // 고민 원문은 서버가 120자로 자른다. 넘겨 보내면 400 이다.

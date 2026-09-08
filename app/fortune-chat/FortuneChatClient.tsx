@@ -12,6 +12,8 @@ import type { PaidResumeDescriptor } from "@/js/core/checkout-entry.js";
 import styles from "./fortune-chat.module.css";
 import { getApiBaseUrl } from "../_lib/api-config";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
+import { AI_LOCALE_HEADER, toAiLocale } from "@/lib/i18n/ai-locale";
+import { detectLocale } from "@/lib/i18n/dictionary";
 
 type FortuneChatCopy = {
   backAria: string;
@@ -389,6 +391,9 @@ export default function FortuneChatClient() {
       .slice(-6)
       .map((message) => ({ speaker: message.speaker === "assistant" ? "assistant" : "user", text: message.detail ? `${message.text} ${message.detail}` : message.text }));
     const controller = new AbortController();
+    // 이 직접 fetch는 authFetch를 통과하지 않는다. 재개·후속 질문도 매 호출 시 현재 UI 언어를
+    // 새로 읽어, 서버의 locale prompt/cache 경계와 동기화한다.
+    const aiLocale = toAiLocale(detectLocale());
     // 서버 LLM 예산(worker/lib/guardian-fortune-llm-policy.js: timeoutMs 최대 45초 × maxRetries
     // 최대 1회)을 넉넉히 덮는 안전망. 이게 없으면 연결이 끊겨도 fetch 가 끝없이 대기해
     // "정리 중"에서 영영 빠져나오지 못한다(재시도 버튼도, 취소 버튼도 없어 새 상담 시작 외엔
@@ -399,7 +404,7 @@ export default function FortuneChatClient() {
         method: "POST",
         credentials: "include",
         signal: controller.signal,
-        headers: { "Content-Type": "application/json", "Idempotency-Key": requestId },
+        headers: { "Content-Type": "application/json", "Idempotency-Key": requestId, [AI_LOCALE_HEADER]: aiLocale },
         body: JSON.stringify({
           requestId,
           birthDate: ctx ? ctx.birthDate : birth.birthDate,
@@ -409,6 +414,7 @@ export default function FortuneChatClient() {
           category: ctx ? ctx.category : activeCategory,
           topic: ctx ? ctx.topic : topicKey,
           mode: (ctx ? ctx.mode : character) === "neo" ? "neo" : "yeoni",
+          locale: aiLocale,
           ...(concern ? { concern } : {}),
           ...(recentTurns.length ? { recentTurns } : {}),
         }),
