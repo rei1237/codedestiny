@@ -11,7 +11,7 @@
 | T05 | Love Code 영구 unlock | `codex/love-code-permanent-unlock-release` / `f064962ce18c` | #1808 | `b4d162b099b323817d4b28be572195641acc4ff9` | entitlement·결제 freeze·mock 회귀 | 포함·검증 |
 | T06 | 메인 화면 UI/UX 복구 | `codex/home-ui-recovery-20260908` / `5fb3e6246e48` | #1813 | `8e860dc042656291860c60385bb3d0b2c03f3c57` | 모바일 퍼널·홈 셸·12 locale·검색/프로필 | 포함·검증 |
 | T07 | 전문가 상담 UI 통합 | `codex/expert-consulting-recovery-20260908` / `ace6522b65fd` | #1814 | `958cc302fa81604caeabe4c10a2d59d9252a9895` | 공통 상담 frame·Karma/Vedic/Nakshatra·crawl link | 포함·검증 |
-| T08 | 세션 PR 적층·release audit·환경 metadata | `codex/session-delivery-guard` / PR head | 생성 예정 | 배포 후 최종 보고 | session start/close, handoff, staging environment, 감사 문서 | PR 배포 후 확정 |
+| T08 | 세션 PR 적층·release audit·환경 metadata | `codex/session-delivery-guard` / `7a8674ca16b5` | #1815 | 배포 후 최종 보고 | session start/close, handoff, staging environment, 감사 문서 | PR 배포 후 확정 |
 
 각 merge 직전 `delivery:admit`으로 최신 main, clean worktree, 파일 중첩, 필수 CI, 직전 Pages/Worker staging SHA를 검사했다. 각 merge 뒤 다음 PR을 머지하기 전에 `/version.json`과 `/api/version`이 동일 SHA인지 독립 확인했다.
 
