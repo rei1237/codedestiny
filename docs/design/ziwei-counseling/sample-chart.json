@@ -1,0 +1,182 @@
+{
+  "notice": "Synthetic profile, calculated chart. Editorial sample copy is handwritten, not an LLM result.",
+  "source": "app/_lib/ziwei-engine.ts",
+  "input": {
+    "name": "서윤",
+    "birthYear": 1990,
+    "birthMonth": 5,
+    "birthDay": 15,
+    "birthHour": 10,
+    "birthMinute": 0,
+    "unknownHour": false,
+    "gender": "F",
+    "calendarType": "solar",
+    "isLeapMonth": false,
+    "birthPlace": "서울",
+    "timezone": "Asia/Seoul"
+  },
+  "mingGong": "자",
+  "shenGong": "술",
+  "juInfo": "화6국",
+  "palaces": [
+    {
+      "id": "ming",
+      "name": "명궁",
+      "branch": "자",
+      "stars": [
+        {
+          "name": "파군",
+          "strength": "◎"
+        }
+      ],
+      "dahan": "6-15"
+    },
+    {
+      "id": "siblings",
+      "name": "형제궁",
+      "branch": "해",
+      "stars": [
+        {
+          "name": "태양",
+          "strength": "X"
+        }
+      ],
+      "dahan": "16-25"
+    },
+    {
+      "id": "spouse",
+      "name": "부부궁",
+      "branch": "술",
+      "stars": [
+        {
+          "name": "무곡",
+          "strength": "X"
+        }
+      ],
+      "dahan": "26-35"
+    },
+    {
+      "id": "children",
+      "name": "자녀궁",
+      "branch": "유",
+      "stars": [
+        {
+          "name": "천동",
+          "strength": "△"
+        }
+      ],
+      "dahan": "36-45"
+    },
+    {
+      "id": "wealth",
+      "name": "재백궁",
+      "branch": "신",
+      "stars": [
+        {
+          "name": "칠살",
+          "strength": "◎"
+        }
+      ],
+      "dahan": "46-55"
+    },
+    {
+      "id": "health",
+      "name": "질액궁",
+      "branch": "미",
+      "stars": [
+        {
+          "name": "천량",
+          "strength": "X"
+        }
+      ],
+      "dahan": "56-65"
+    },
+    {
+      "id": "travel",
+      "name": "천이궁",
+      "branch": "오",
+      "stars": [
+        {
+          "name": "염정",
+          "strength": "◎"
+        },
+        {
+          "name": "천상",
+          "strength": "◎"
+        }
+      ],
+      "dahan": "66-75"
+    },
+    {
+      "id": "friends",
+      "name": "교우궁",
+      "branch": "사",
+      "stars": [
+        {
+          "name": "거문",
+          "strength": "◎"
+        }
+      ],
+      "dahan": "76-85"
+    },
+    {
+      "id": "career",
+      "name": "관록궁",
+      "branch": "진",
+      "stars": [
+        {
+          "name": "탐랑",
+          "strength": "△"
+        }
+      ],
+      "dahan": "86-95"
+    },
+    {
+      "id": "property",
+      "name": "전택궁",
+      "branch": "묘",
+      "stars": [
+        {
+          "name": "태음",
+          "strength": "△"
+        }
+      ],
+      "dahan": "96-105"
+    },
+    {
+      "id": "fortune",
+      "name": "복덕궁",
+      "branch": "인",
+      "stars": [
+        {
+          "name": "자미",
+          "strength": "◎"
+        },
+        {
+          "name": "천부",
+          "strength": "◎"
+        }
+      ],
+      "dahan": "106-115"
+    },
+    {
+      "id": "parents",
+      "name": "부모궁",
+      "branch": "축",
+      "stars": [
+        {
+          "name": "천기",
+          "strength": "X"
+        }
+      ],
+      "dahan": "116-125"
+    }
+  ],
+  "sihua": {
+    "hualu": "태양",
+    "huaquan": "무곡",
+    "huake": "태음",
+    "huaji": "천동"
+  },
+  "sourceRevision": "90b36b7d009b"
+}

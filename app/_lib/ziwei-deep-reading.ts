@@ -1,5 +1,5 @@
+import { palaceVoice } from "./ziwei-consultation-narrative";
 import { transformationTypeToLabel } from "./ziwei-advanced-normalization";
-import { ZIWEI_PALACE_TEMPLATES } from "./ziwei-deep-templates";
 import {
   AUXILIARY_STAR_INTERPRETATIONS,
   MALEFIC_STAR_INTERPRETATIONS,
@@ -1058,8 +1058,6 @@ function buildZiweiFullScopeConsultation(
   const directSihua = palace.fourTransformations.map((item) => `${transformationTypeToLabel(item.type)} ${item.starName}`);
   const incomingSihua = palace.incomingFourTransformations.map((item) => `${transformationTypeToLabel(item.type)} ${item.starName}`);
   const period = chart.majorPeriods.find((item) => item.palaceId === palace.id) || chart.majorPeriods[0];
-  const annualHit = Boolean(chart.annualFlow?.keyPalaces?.includes(palace.id));
-  const annualLabel = chart.annualFlow?.yearLabel || `${chart.yearGan}${chart.yearZhi}`;
   const opposite = palace.oppositePalace?.name || ZIWEI_PALACE_NAME[palace.oppositePalaceId];
   const triad = signalSummary.triadNames.join(", ");
   const mainStars = signalSummary.mainStars.map((star) => star.name).join(", ") || `${opposite} 차성`;
@@ -1075,11 +1073,9 @@ function buildZiweiFullScopeConsultation(
         : "사화가 강하게 꽂히지 않아 평소 선택 습관이 결과를 더 크게 가릅니다.",
     `대궁 ${withJosa(opposite, "과")} 삼방 ${withJosa(triad, "이")} 현실 장면을 보정합니다.`,
     period
-      ? `대한 ${period.range} 구간의 ${ZIWEI_PALACE_NAME[period.palaceId]} 흐름과 맞물려, 지금의 선택이 장기 습관으로 굳어질 수 있습니다.`
+      ? `대한 ${period.range} 구간에는 ${ZIWEI_PALACE_NAME[period.palaceId]}의 주제를 돌아봅니다. 현재 나이와 같은 구간인지 먼저 확인하는 것이 좋습니다.`
       : "대한 흐름은 현재 궁의 반복 습관을 기준으로 보수적으로 읽습니다.",
-    annualHit
-      ? `${annualLabel} 유년에는 이 궁이 직접 건드려져 실제 사건으로 빨리 나타날 수 있습니다.`
-      : `${annualLabel} 유년에는 이 궁이 전면에 서기보다 연결된 궁과 대궁을 통해 간접적으로 움직입니다.`,
+    '대한은 명반에 표시된 나이 구간입니다. 출생년의 간지나 궁의 힘으로 올해의 사건을 예측하지 않습니다.',
   ].map((row) => sanitizeZiweiDeepText(row)).filter(Boolean);
 }
 
@@ -1462,8 +1458,8 @@ export function buildZiweiDeepPalaceReading(chart: ZiweiDeepChart, palace: Ziwei
       summary: `연결된 궁 ${signals.triadNames.join(", ")}과 마주 보는 궁 ${palace.oppositePalace?.name || ZIWEI_PALACE_NAME[palace.oppositePalaceId]}을 함께 볼 때 ${palace.name}의 실제 흐름이 선명해집니다.`,
     },
     categories,
-    summary: removeRepeatedZiweiDeepPhrases(`${ZIWEI_PALACE_TEMPLATES[palace.id].meaning} ${signals.brightnessSummary}`),
-    practicalAdvice: unique(categories.map((category) => category.action), 5),
+    summary: palaceVoice(palace).headline,
+    practicalAdvice: unique(categories.map((category) => category.action), 3),
   };
 }
 
@@ -1492,28 +1488,9 @@ function buildCounselingCategorySection(category: ZiweiPalaceCategoryReading, in
 }
 
 
-function buildCounselingOpening(chart: ZiweiDeepChart, palace: ZiweiPalace, reading: ZiweiDeepPalaceReading): string {
-  const lens = PALACE_COUNSELING_LENSES[palace.id];
-  const meaning = ZIWEI_PALACE_TEMPLATES[palace.id].meaning;
-  const starSummary = reading.mainStars.length
-    ? reading.mainStars.map((star) => starBadge(star)).join(", ")
-    : `${palace.oppositePalace?.name || ZIWEI_PALACE_NAME[palace.oppositePalaceId]}과 ${reading.sanFangSiZheng?.sourcePalaces.join(", ") || "연결궁"} 흐름`;
-  const sihuaLine = reading.transformations.length
-    ? `특히 ${reading.transformations.slice(0, 2).map((item) => `${item.type} ${item.starName}`).join(", ")}가 겹칠 때 체감 사건이 분명해집니다.`
-    : "직접 사화가 약한 만큼, 일상 선택 습관이 결과를 더 크게 좌우합니다.";
-  const emptyLine = palace.isEmptyMainStarPalace
-    ? `이 궁은 공궁이어서 타고난 고정값보다 환경과 상대에 따라 크게 달라집니다. 마주 보는 궁 ${reading.oppositePalace || "대궁"}이 이 영역을 대신 움직이고, 삼방 ${reading.sanFangSiZheng?.sourcePalaces.join(", ") || "연결궁"}을 어떤 사람과 연결하느냐가 결과 차이를 만듭니다.`
-    : "이 궁은 스스로 기준을 잡을수록 강점이 빠르게 현실 성과로 전환되는 편입니다.";
-
-  return removeRepeatedZiweiDeepPhrases([
-    `${reading.palaceName}은 당신의 삶에서 ${meaning}를 보여주는 자리입니다.`,
-    lens.opening,
-    `이 궁에 놓인 별의 조합을 보면 ${lens.role}이 강하게 작동합니다. 핵심 별 흐름은 ${starSummary}이고, ${sihuaLine}`,
-    emptyLine,
-    `성향으로 보면 ${lens.personalityLens.join(", ")}이 삶의 기본 톤을 만들고, 사람들과의 관계에서는 ${lens.relationshipLens.join(", ")}이 반복 패턴을 결정합니다.`,
-    `현실에서는 일·돈·사랑·가족 중 현재 압력이 큰 영역에서 신호가 먼저 드러나며, 주의할 점은 ${lens.cautionLens.join(", ")}입니다. 조언은 ${lens.lifeAdviceLens.join(", ")}을 당장 일정에 넣는 것입니다.`,
-    `올해 핵심 키워드 ${chart.summary.keywords.slice(0, 3).join(", ")}를 기준으로 읽으면 방향이 더 선명해집니다.`,
-  ].join("\n\n"));
+function buildCounselingOpening(palace: ZiweiPalace): string {
+  const voice = palaceVoice(palace);
+  return [voice.scene, voice.gift + '이 살아나는 순간을 알아두면, 힘을 써야 할 곳과 쉬어갈 곳을 나누기 편해집니다.'].join('\n\n');
 }
 
 /** 재생성 시 완전히 같은 줄을 걷어 낸다. 소제목·블록 라벨·짧은 줄은 건드리지 않는다. */
@@ -1537,7 +1514,7 @@ export function buildZiweiDeepCounselingText(
   reading: ZiweiDeepPalaceReading,
   retry = false,
 ): string {
-  const header = buildCounselingOpening(chart, palace, reading);
+  const header = buildCounselingOpening(palace);
   const sections = reading.categories.map((category, index) => buildCounselingCategorySection(category, index));
   const document = [header, ...sections].join("\n\n");
   return (retry ? dedupeDocumentLines(document) : document).trim();

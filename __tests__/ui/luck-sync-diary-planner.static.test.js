@@ -56,11 +56,12 @@ test("fortune planner entry cuts over to the /diary app", () => {
   assert.match(html, /html body \.cd-home-secondary-panel\{display:grid;grid-template-rows:1fr\}/);
   assert.doesNotMatch(html, /\.cd-home-secondary-panel\{[^}]*grid-template-rows:0fr/);
   assert.doesNotMatch(html, /html\.cd-home-expanded body \.cd-home-secondary-panel/);
-  // 2026-08-20(home-profile-card-form-panel-v20260820): 프로필 카드 + 폼 패널이 히어로 바로
-  // 아래·페이지 맨 위로 승격되며 대표 상담(cdSignatureConsult)보다도 앞으로 올라왔다.
-  // 2026-08-19(cd-finder-v20260819)에는 대표 상담이 통합 탐색기 바로 아래로 승격되며 폼보다
-  // 앞이었다 — 이번에 다시 뒤집힌 것은 회귀가 아니라 이 개편의 의도다. 폼 자체는 접힌 채 그대로 있다.
-  assert.ok(html.indexOf('id="destinyCardForm"') < html.indexOf('id="cdSignatureConsult"'));
+  // 2026-09-08(home-existing-assets-reassembly): 대표 상담은 홈 정보 구조 안으로 승격됐고,
+  // 프로필 마스터 카드는 홈에 중복 노출하지 않고 마이 시트의 호스트로 대여한다. 운세 입력 폼은
+  // 기존 단일 노드와 패널 계약을 그대로 유지한다.
+  assert.equal((html.match(/id="destinyCardForm"/g) || []).length, 1);
+  assert.equal((html.match(/id="cdSignatureConsult"/g) || []).length, 1);
+  assert.match(html, /<div id="dpMasterCardHost" class="dp-master-card-host"><\/div>/);
   // 2026-08-20(home-profile-card-form-panel-v20260820): 폼을 감추는 방식이 바뀌었다. 이제 폼은
   // 프로필 카드와 한 패널(#dpDestinyPanel) 안에 있고, 패널이 열리기 전까지 CSS 로 감춘다.
   // data-cd-home-secondary 를 쓰지 않는 이유는 그 속성이 프로필 시트로 노드째 대여될 때도
