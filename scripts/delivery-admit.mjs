@@ -52,6 +52,8 @@ async function collectAdmission({ cwd = process.cwd(), prNumber, stagingOrigin =
   if (!fetched.ok) return summarizeAdmission(findings);
   const [mainResult, worktree] = await Promise.all([git(["rev-parse", "origin/main"], { cwd: root, optional: true }), inspectWorktree(root, { untracked: true })]);
   const mainSha = mainResult.stdout;
+  const preflight = await command(process.execPath, ["scripts/ci-preflight.mjs", "--verify-receipt"], { cwd: root, optional: true });
+  append(findings, preflight.ok, "최신 tree/main 로컬 preflight", preflight.ok ? "검증 증거 일치" : preflight.stderr || "npm run ci:preflight 필요");
   append(findings, Boolean(mainSha), "main 기준 SHA", mainSha || "origin/main을 확인하지 못했습니다.");
   const conflicts = worktree.activeOverlaps;
   append(findings, conflicts.length === 0, "활성 워크트리 파일 충돌", conflicts.length === 0 ? "후보 변경 파일과 겹치는 다른 활성 워크트리가 없습니다." : conflicts.map((item) => `${item.branch || item.path}: ${item.files.join(", ")}`).join(" | "));

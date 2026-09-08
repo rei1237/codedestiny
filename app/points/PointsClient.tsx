@@ -1642,12 +1642,14 @@ function clearPendingOrder() {
   localStorage.removeItem("fortune_pending_order");
 }
 
-function readPendingSubscriptionOrder() {
+function readPendingSubscriptionOrder(expectedMerchantUid?: string) {
   if (typeof window === "undefined") return null;
   try {
     const raw = localStorage.getItem("fortune_pending_subscription_order");
     if (!raw) return null;
-    return JSON.parse(raw) as PendingSubscriptionOrder;
+    const order = JSON.parse(raw) as PendingSubscriptionOrder;
+    if (expectedMerchantUid && order?.merchantUid !== expectedMerchantUid) return null;
+    return order;
   } catch {
     return null;
   }
@@ -1658,10 +1660,13 @@ function savePendingSubscriptionOrder(order: PendingSubscriptionOrder) {
   localStorage.setItem("fortune_pending_subscription_order", JSON.stringify(order));
 }
 
-function clearPendingSubscriptionOrder() {
+function clearPendingSubscriptionOrder(expectedMerchantUid?: string) {
   if (typeof window === "undefined") return;
-  localStorage.removeItem("fortune_pending_subscription_order");
-  localStorage.removeItem("fortune_pending_subscription_pass");
+  if (expectedMerchantUid && !readPendingSubscriptionOrder(expectedMerchantUid)) return;
+  try {
+    localStorage.removeItem("fortune_pending_subscription_order");
+    localStorage.removeItem("fortune_pending_subscription_pass");
+  } catch { /* Storage may be unavailable after an external-app return. */ }
 }
 
 /** 주문에 기록된 결제수단(orderMethod)을 대기 화면 문구용 라벨로 푼다. 모르면 빈 문자열 → 종전 문구 그대로. */
@@ -3356,8 +3361,8 @@ export default function PointsPage() {
    * 낙관 이용권으로 이미 뒤집어 놓은 화면 상태까지 원래대로 되돌려야 한다.
    * 되돌리지 않으면 이용권이 적용된 것처럼 보이고, 티어 랭크 비교 때문에 재구매까지 막힌다.
    */
-  const discardPendingSubscriptionPass = useCallback(() => {
-    clearPendingSubscriptionOrder();
+  const discardPendingSubscriptionPass = useCallback((expectedMerchantUid?: string) => {
+    clearPendingSubscriptionOrder(expectedMerchantUid);
     const backup = optimisticPassBackupRef.current;
     if (!backup) return;
     optimisticPassBackupRef.current = null;
@@ -4092,13 +4097,13 @@ export default function PointsPage() {
 
     const merchantUidFromQuery = query.get("paymentId") || query.get("payment_id") || query.get("merchant_uid") || undefined;
     const pending = readPendingOrder();
-    const pendingSubscription = readPendingSubscriptionOrder();
+    const pendingSubscription = readPendingSubscriptionOrder(merchantUidFromQuery);
     const effectiveMerchantUid = merchantUidFromQuery || pendingSingleSession?.merchantUid;
     const redirectConfirmKey = `${isSubscriptionRedirect ? "subscription" : "point"}:${effectiveImpUid || "missing"}:${effectiveMerchantUid || (isSubscriptionRedirect ? pendingSubscription?.merchantUid : pending?.merchantUid) || ""}`;
 
     if (!effectiveImpUid || redirectFailed) {
       clearPendingOrder();
-      discardPendingSubscriptionPass();
+      discardPendingSubscriptionPass(merchantUidFromQuery);
       clearPendingSinglePaymentSession();
 
       const failMessage = mapPaymentErrorMessage(
@@ -4190,7 +4195,7 @@ export default function PointsPage() {
             persistSubscriptionCache(newSub);
           }
 
-          clearPendingSubscriptionOrder();
+          clearPendingSubscriptionOrder(merchantUid);
           optimisticPassBackupRef.current = null;
           pendingSubscriptionConfirmRef.current = null;
           await syncSubscriptionAppliedStage(data.subscription?.tier || pendingSub?.tier);
@@ -4207,7 +4212,7 @@ export default function PointsPage() {
             return;
           }
           pendingSubscriptionConfirmRef.current = null;
-          discardPendingSubscriptionPass();
+          discardPendingSubscriptionPass(merchantUid);
           reportPaymentFailureToServer({
             merchantUid,
             impUid: effectiveImpUid,
