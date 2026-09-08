@@ -25,7 +25,7 @@
 .art img{width:100%;height:100%;object-fit:cover;object-position:70% 50%;opacity:.72}
 .art:after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,#09131ef5 0%,#09131ece 45%,#09131e38 100%)}
 .heroContent{max-width:760px}
-.hero h1{font-size:var(--zw-title);font-weight:600;line-height:1.55;letter-spacing:-.025em;margin:0}
+.hero h2{font-size:var(--zw-title);font-weight:600;line-height:1.55;letter-spacing:-.025em;margin:0}
 .profile{margin:16px 0 0;color:var(--zw-muted);font-size:var(--zw-small)}
 .selectedQuestion{margin:20px 0 0;color:var(--zw-gold);font-size:var(--zw-small)}
 .lead{font-size:var(--zw-body);line-height:1.9;margin-top:12px;max-width:64ch;color:var(--zw-muted)}

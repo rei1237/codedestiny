@@ -75,7 +75,7 @@ try {
   for(const id of ['career','wealth','love','relationships','family','health','timing','life']) {
     if(id!=='life'||!(await page.locator('#ziwei-question-life').getAttribute('open')!==null))await page.locator(`#ziwei-question-${id}>summary`).click();
     await page.locator(`#ziwei-question-${id}[open]`).waitFor();
-    assert.ok((await page.locator('#ziwei-result-answer h1').innerText()).length>20);
+    assert.ok((await page.locator('#ziwei-result-answer h2').innerText()).length>20);
   }
   await page.locator('#ziwei-question-life').evaluate(el=>el.closest('section.fixed').scrollTop=0);
   await page.getByRole('button',{name:'요약 공유',exact:true}).click();

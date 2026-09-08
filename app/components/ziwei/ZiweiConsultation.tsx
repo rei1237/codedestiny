@@ -36,7 +36,7 @@ export function ZiweiConsultationHero({ chart, reading, locale }: { chart: Ziwei
         <img src="/images/ziwei/celestial-atlas.webp" alt="" width="1280" height="853" fetchPriority="high" />
       </picture>
       <div className={styles.heroContent}>
-        <h1>{reading.conclusion}</h1>
+        <h2>{reading.conclusion}</h2>
         <p className={styles.profile}>{chart.user.name || copy.resultTitleDefaultName} · {ui.report}</p>
         <p className={styles.selectedQuestion}>{reading.question}</p>
         <p className={styles.lead}>{reading.heroNote}</p>

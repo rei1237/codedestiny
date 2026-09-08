@@ -58,3 +58,5 @@ app/_lib/ziwei-consultation-narrative.ts → app/components/ziwei/ZiweiConsultat
 D:/Development/code-destiny-worktrees/ziwei-counseling-premium의 docs/handoff/ziwei-counseling-premium.md를 읽고 PR #1823 최신 검사부터 확인해줘. 실제 LLM·결제·DB·배포·머지는 실행하지 마.
 
 최신 main 반영 후 sitemap:generate / verify:sitemap-drift / verify:public-mirror-fresh PASS. 로컬 최종 check:fast 재실행 로그는 implementation/check-fast-final.log(비추적), CI는 PR의 최신 커밋을 기준으로 읽는다. 기존 lint 경고는 유지하며 새 타입 오류는 없다.
+
+CI의 hydrated-h1 검사에서 서버 H1과 결과 Hero H1 중복을 발견했다. Hero를 같은 시각 크기의 H2로 바꾸어 서버 단일 H1 계약을 유지한다. 수정 후 제목/브라우저 검증과 PR CI를 다시 실행한다.
