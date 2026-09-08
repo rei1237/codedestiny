@@ -12,7 +12,7 @@
 | fortune-chat | 대화형 운명 상담 | /fortune-chat/ | 미적용 | 구현 근거·시각 구성·전 동선 |
 | tarot-love-relationship | 우리는 무슨 사이? | /index.html?action=openTarotLoveModal | 적용 11종 | 팝업·전체 상태·OG 재확인 |
 | tarot-reunion | 재회운 타로 | /index.html?action=openTarotReunionModal | 적용 11종 | 팝업·전체 상태·OG 재확인 |
-| tarot-mindscan | 말과 행동 사이 타로 | /tarot/mindscan/ | 미적용 | 구현 근거·시각 구성·전 동선 |
+| tarot-mindscan | 말과 행동 사이 타로 | /tarot/mindscan/ | 적용 12종 | 팝업·전체 상태·OG 재확인 |
 | love-simulation | LOVE CODE 연애 시뮬레이션 | /index.html?action=openLoveSimulation | 미적용 | 구현 근거·시각 구성·전 동선 |
 | nakshatra-compat | 동서 통합 궁합 | /nakshatra/compat/ | 미적용 | 구현 근거·시각 구성·전 동선 |
 | neo-operation-room | 팩폭 전략소 | /neo-operation-room/ | 적용 4종 | 팝업·전체 상태·OG 재확인 |

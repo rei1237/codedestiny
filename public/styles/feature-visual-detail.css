@@ -54,6 +54,11 @@
 .featureVisualDetail .featureEditorialReunion dd{color:#efd6d6}
 .featureVisualDetail .featureEditorialReunion dl{border-color:rgba(230,201,121,.55)}
 .featureVisualDetail .featureEditorialReunion dl>div{border-color:rgba(230,201,121,.3)}
+.featureVisualDetail .featureEditorialMindscan{background:#eae1f0;color:#382a4d}
+.featureVisualDetail .featureEditorialMindscan .featureEditorialTitle,.featureVisualDetail .featureEditorialMindscan dt{color:#382a4d}
+.featureVisualDetail .featureEditorialMindscan dd{color:#685576}
+.featureVisualDetail .featureEditorialMindscan dl{border-color:#b9a3c7}
+.featureVisualDetail .featureEditorialMindscan dl>div{border-color:#d1c1da}
 @media(min-width:700px){.featureVisualDetail .featureEditorial{margin-top:0;padding:28px 24px 32px}}
 .featureDetailStandaloneLink{display:inline-flex;min-height:44px;align-items:center;padding:8px 0;margin-bottom:20px;color:#e7cc9f;font-size:14px;text-decoration:underline;text-underline-offset:5px}
 .tile-pvw-overlay.pvw-visual #tilePvwHero,.tile-pvw-overlay.pvw-visual #tilePvwTagline,.tile-pvw-overlay.pvw-visual .tile-pvw-divider,.tile-pvw-overlay.pvw-visual #tilePvwFeatsLabel,.tile-pvw-overlay.pvw-visual #tilePvwFeats,.tile-pvw-overlay.pvw-visual #tilePvwPremiumBlock,.tile-pvw-overlay.pvw-visual #tilePvwScaleSec,.tile-pvw-overlay.pvw-visual #tilePvwQuestSec,.tile-pvw-overlay.pvw-visual #tilePvwStepsSec,.tile-pvw-overlay.pvw-visual #tilePvwReqSec,.tile-pvw-overlay.pvw-visual #tilePvwAudSec,.tile-pvw-overlay.pvw-visual #tilePvwCompareSec,.tile-pvw-overlay.pvw-visual #tilePvwFaqSec{display:none}
