@@ -3,8 +3,8 @@
 - 작업 디렉터리: `D:\Development\code-destiny-seo-growth`
 - 브랜치: `codex/seo-growth-operations-20260908`
 - PR: https://github.com/rei1237/codedestiny/pull/1841 (병합하지 않음; Ready 여부는 최신 PR 메타데이터 확인)
-- 검증 코드/마지막 코드 푸시: `546cf9c9e6bd31246fe013cca75dec69f415bd55`. 이후 보고서·생성 RSS·검색 제외 목록 커밋은 `git log -1`과 PR HEAD로 확인한다.
-- 통합한 main: `c1c160b745150f758a7bea001abd69d0c14b8a82`. 충돌한 lastmod·정책 HTML은 현재 양쪽 소스를 유지한 생성기로 재생성했다.
+- 직전 검증/푸시 HEAD: `33db5631b6af377b43692e2522ea5f75a624903f`. 추가 main 통합 후 최신 푸시 SHA는 `git log -1`과 PR HEAD로 확인한다.
+- 추가 통합 main: `fc428f90f940910b776cd72178e8a371d4fc5d66` (#1834). 기존 검증 기반은 `c1c160b745150f758a7bea001abd69d0c14b8a82`. 충돌한 lastmod·정책 HTML은 현재 양쪽 소스를 유지한 생성기로 재생성했다.
 - 작업 정본: `docs/seo/GROWTH_OPERATIONS.md`, `docs/seo/SEO_STATE.json`, `docs/seo/outreach/candidates.json`.
 
 ## 전달된 변경
@@ -21,6 +21,8 @@
 - SEO 단위 테스트5, 정책 테스트8 통과. `verify:public-mirror-fresh` 최종 통과(처음 발견한 SVG 줄바꿈 오탐 수정 후).
 - 통합 HEAD에서 `check:fast`, `build:cf`, strict 정적 감사, 산출물 링크 그래프 감사, 48표본 smoke를 다시 실행해 모두 통과했다. 로그는 `seo-qa/check-fast.log`, `seo-qa/build.log`, `seo-qa/complete.log`, `seo-qa/mobile-smoke.log`에 있다. 로컬 통과를 PR CI 통과로 바꾸어 쓰지 않는다.
 - PR 통합 HEAD에서 mergeable=true, 빌드·타입·Critical checks 성공을 확인했다. Static guards는 `.ignore`의 home-funnel.css 목록 차이로 실패했다. Windows 작업 파일을 LF로 정규화해 생성 목록을 Linux와 맞추고 후속 푸시에 포함했다. 이 과거 실패와 최신 PR HEAD 결과를 구분해서 조회한다.
+
+추가 main 통합으로 재실행하는 최신 결과는 PR HEAD 및 로컬 로그를 확인한다. 이전 c1 기준의 통과 기록과 구분한다.
 
 ## 남은 확인
 

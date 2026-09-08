@@ -2,6 +2,7 @@ import { buildFortuneQuestionPromptPackage } from "./fortune-question-prompt.js"
 import {
   classifyQuestionToZiweiDomain,
   getZiweiPromptTemplate,
+  buildZiweiDomainBriefLines,
 } from "./ziwei-ai-prompt-templates.mjs";
 import { buildZiweiPersonalityContextLines } from "./ziwei-personality-context.js";
 
@@ -529,8 +530,11 @@ export function classifyZiweiPromptQuestionType(question) {
   return "general";
 }
 
-function buildRelatedPalaceLines(normalizedChart, questionType) {
-  const palaceIds = QUESTION_TYPE_PALACES[questionType] || QUESTION_TYPE_PALACES.general;
+function buildRelatedPalaceLines(normalizedChart, questionType, template) {
+  const primary = template?.primaryPalaces;
+  const palaceIds = primary
+    ? [...new Set([primary.main, ...(primary.triad || []), primary.opposite, ...(primary.support || [])].filter(Boolean))].map(name => PALACE_NAME_ALIASES[name] || Object.keys(PALACE_LABELS).find(id => PALACE_LABELS[id] === name) || name)
+    : QUESTION_TYPE_PALACES[questionType] || QUESTION_TYPE_PALACES.general;
   const lines = [];
   for (let i = 0; i < palaceIds.length; i += 1) {
     const palaceId = palaceIds[i];
@@ -642,8 +646,8 @@ function buildZiweiSpecificityGuardLines(normalizedChart, questionType) {
 
   return [
     `심화 출력 강제 규칙: 반드시 ${mustPalaces.slice(0, 3).join(", ")} 중 2개 이상을 근거 궁으로 명시`,
-    `심화 출력 강제 규칙: 반드시 seed에 있는 별 이름 2개 이상 직접 인용 (${evidence.starNames.slice(0, 6).join(", ") || "주성 2개 이상"})`,
-    "심화 출력 강제 규칙: 사화(화록/화권/화과/화기) 또는 대한·세운 타이밍 근거를 반드시 포함",
+    `근거 규칙: seed에 실제 있는 별만 인용 (${evidence.starNames.slice(0, 6).join(", ") || "별 근거 없음 — 보완 필요를 안내"}). 개수를 채우려고 별을 만들지 않는다.`,
+    "사화 또는 대한·세운은 제공된 경우에만 인용한다. 없는 시기 정보로 날짜·사건을 예측하지 않는다.",
     `심화 출력 강제 규칙: 액션 플랜은 ${ZIWEI_ACTION_TERMS.join("/")} 중 2개 이상 단어를 포함`,
     `모호표현 금지: ${ZIWEI_VAGUE_GUARD_TERMS.join(", ")}`,
     "답변 순서 고정: [근거 궁/별/사화] -> [해석] -> [단기 4주 행동] -> [중기 6개월 행동]",
@@ -690,15 +694,15 @@ export function buildZiweiAIPromptWithDomain({ question, chartResult, domain }) 
   const normalizedQuestion = ensureValidQuestion(question);
   ensureChartPresence(chartResult);
 
-  const questionType = classifyZiweiPromptQuestionType(normalizedQuestion);
   const resolvedDomain = String(domain || "").trim() || classifyQuestionToZiweiDomain(normalizedQuestion);
+  const questionType = QUESTION_TYPE_LABELS[resolvedDomain] ? resolvedDomain : 'general';
   const domainTemplate = getZiweiPromptTemplate(resolvedDomain);
   if (!domainTemplate) {
     throw new Error("UNKNOWN_ZIWEI_DOMAIN");
   }
   const normalizedChart = normalizeChart(chartResult);
-  const questionTypeLabel = QUESTION_TYPE_LABELS[questionType] || QUESTION_TYPE_LABELS.general;
-  const relatedPalaceLines = buildRelatedPalaceLines(normalizedChart, questionType);
+  const questionTypeLabel = domainTemplate.domainKo;
+  const relatedPalaceLines = buildRelatedPalaceLines(normalizedChart, questionType, domainTemplate);
   const evidence = collectZiweiPromptEvidence(normalizedChart);
   const specificityGuardLines = buildZiweiSpecificityGuardLines(normalizedChart, questionType);
 
@@ -719,7 +723,9 @@ export function buildZiweiAIPromptWithDomain({ question, chartResult, domain }) 
     `seed 사화 근거: ${evidence.sihuaTerms.join(", ") || DEFAULT_TEXT}`,
     `seed 타이밍 근거: ${evidence.timingTerms.join(" | ") || DEFAULT_TEXT}`,
     `상황별 후속 질문 템플릿: ${(domainTemplate.questionPatterns || []).join(" | ")}`,
-    ...specificityGuardLines,
+    ...specificityGuardLines.filter(line => !line.includes('중 2개 이상을 근거 궁')),
+    ...buildZiweiDomainBriefLines(domainTemplate),
+    '선택한 상담 주제가 우선이다. 질문의 단일 키워드 때문에 다른 주제로 바꾸지 않는다. 질문에 맞는 근거가 부족하면 확인 질문을 제시한다.',
     // 맨 끝에 둔다 — 이 배열의 앞 두 줄은 buildQuestionContextLine의 "참조 기류" 힌트에도 쓰이는데,
     // 성향 Context를 앞에 두면 그 힌트가 실제 명반 사실 대신 이 지침의 머리말을 인용하게 된다.
     ...buildZiweiPersonalityContextLines(chartResult),
@@ -729,11 +735,13 @@ export function buildZiweiAIPromptWithDomain({ question, chartResult, domain }) 
     Array.isArray(domainTemplate.analysisAngles) ? domainTemplate.analysisAngles : [],
     [
     "각 핵심 문단은 '① 한 줄 핵심(은유·이미지) → ② 근거(궁·별·강약·사화·삼방사정 회조) → ③ 지금 실행할 행동 조언' 3단으로 자연스럽게 이어 서술",
-    "별 하나로 단정하지 말고, 근거 궁 2개 이상·근거 별 2개 이상을 명시하며 삼방사정 회조를 반드시 포함",
+    "별 하나로 단정하지 말고, 선택 주제의 주궁·삼합궁·대궁을 실제 명반에서 확인한다. 근거가 없으면 부족한 정보를 밝히고 억지로 궁·별의 개수를 채우지 않는다",
     "별·용어는 한자를 한 번 병기(예: 자미(紫微), 화기(化忌))하고 그 자리에서 한 번은 쉬운 말로 풀이",
     "화기(化忌)가 앉은 궁은 공포 조장 없이 주의점과 대처법을 함께 제시",
-    "사화/대한/세운 근거를 행동 타이밍으로 변환해 단기·중기 전략으로 분리",
-    "모호 표현 없이 질문 주제에 대한 결론을 선택 단위(무엇을/언제/어떻게)로 제시",
+    "타고난 명반과 시기 운을 구분한다. 4주·6개월은 행동 계획의 기간이지 사건 발생 예언이 아니다",
+    "질문에 대한 요약, 실제 궁·별 근거, 생활에서 나타날 강점과 그림자, 비교 가능한 선택지, 작은 행동 순으로 읽기 쉽게 서술한다",
+    "명궁의 중심 에너지는 반응·판단 습관으로 번역하고 신궁 및 명궁의 재백궁·관록궁·천이궁 삼방사정과 연결한다. 공궁은 성격 부재가 아니며 대궁의 차용과 본궁 주성을 구분한다",
+    "묘왕득함은 발휘 조건이며 인격·행복의 등급이 아니다. 화기는 실패의 보장이 아니다. 질병·수명, 투자 수익, 소송 승패, 임신 가능성을 단정하지 않는다",
     ],
   );
 
