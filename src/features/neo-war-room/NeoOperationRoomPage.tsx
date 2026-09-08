@@ -17,6 +17,7 @@ import {
 import { useServerPrice } from "@/app/hooks/useServerPrice";
 import { packPaidResumeArg, unpackPaidResumeArg, usePaidResume } from "@/app/hooks/usePaidResume";
 import LlmParagraphs from "@/components/fortune/LlmParagraphs";
+import { ExpertStickyCta, ExpertValueCards } from "@/app/components/expert-consulting/ExpertConsultationFrame";
 import NeoFactPunch from "./components/NeoFactPunch";
 import NeoSpriteActor from "./components/NeoSpriteActor";
 import NeoWarRoomAssetImage from "./components/NeoWarRoomAssetImage";
@@ -2813,6 +2814,8 @@ export default function NeoOperationRoomPage() {
       ) : null}
 
       {showCommandDeck ? (
+      <>
+      <ExpertValueCards theme="neo" points={[{ title: "판세 정리", description: "지금 반복되는 선택과 관계의 패턴을 네오의 언어로 정리합니다." }, { title: "팩폭 근거", description: "허황된 위로 대신 입력한 정보와 선택에서 확인되는 신호를 짚습니다." }, { title: "실행 작전", description: "이번 주에 바로 적용할 수 있는 순서와 금지할 행동을 남깁니다." }]} />
       <form id="neo-operation-command-deck" className={styles.commandDeck} data-entered="true" onSubmit={handleSubmit}>
         <NeoWarRoomAssetImage
           asset={neoWarRoomAssets.decor.asset1}
@@ -3872,6 +3875,8 @@ export default function NeoOperationRoomPage() {
           ) : null}
         </div>
       </form>
+      <ExpertStickyCta theme="neo" targetId="neo-operation-command-deck" label={formCopy["launchConfirm.ctaStart"]} price={<span>{displayConsultPriceLabel || "상담 이용 가격 확인"}</span>} />
+      </>
       ) : null}
     </main>
   );

@@ -15,6 +15,7 @@ import {
   WalletCards,
 } from "lucide-react";
 import { PriceBadge } from "@/app/components/PriceBadge";
+import { ExpertStickyCta, ExpertValueCards } from "@/app/components/expert-consulting/ExpertConsultationFrame";
 import { toDisplayText } from "@/lib/llm-text";
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import {
@@ -1783,7 +1784,8 @@ export default function LifeBookAiClient() {
           </aside>
 
           <section className="grid content-start gap-4">
-            <form onSubmit={submit} className="rounded-3xl border border-amber-200/20 bg-amber-50/10 p-4 shadow-2xl shadow-black/25 backdrop-blur-xl sm:p-5">
+            <ExpertValueCards theme="lifeBook" points={[{ title: "타고난 기질", description: "생년월일과 질문을 바탕으로 반복되는 선택의 결을 정리합니다." }, { title: "삶의 장면", description: "일·관계·회복의 흐름을 한 권의 목차처럼 연결해 봅니다." }, { title: "다음 장면", description: "지금 할 수 있는 작고 현실적인 다음 선택을 남깁니다." }]} />
+            <form id="life-book-form" onSubmit={submit} className="rounded-3xl border border-amber-200/20 bg-amber-50/10 p-4 shadow-2xl shadow-black/25 backdrop-blur-xl sm:p-5">
               <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                 <div className="min-w-0 flex-1">
                   <p className="text-xs font-bold uppercase tracking-[0.18em] text-amber-200">Golden Life Book</p>
@@ -1922,6 +1924,7 @@ export default function LifeBookAiClient() {
                 </div>
               )}
             </form>
+            <ExpertStickyCta theme="lifeBook" targetId="life-book-form" label="인생의 책 펼치기" price={<PriceBadge featureKey={MODE_FEATURE_KEY[form.mode || "lifeBook"]} prefix="상담 이용 가격 " />} />
 
             {!isBusy && status !== "completed" && (
               <section className="rounded-3xl border border-amber-200/20 bg-white/[0.08] p-4 shadow-2xl shadow-black/20 backdrop-blur-xl sm:p-5">

@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { readAiProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { PriceBadge } from "@/app/components/PriceBadge";
+import { ExpertStickyCta, ExpertValueCards } from "@/app/components/expert-consulting/ExpertConsultationFrame";
 import { AlertCircle, CalendarDays, CheckCircle2, ExternalLink, Loader2, MapPin, Moon, RotateCcw, Sparkles, Stars, WalletCards } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
 import AnalysisBasisLoading from "@/components/fortune/AnalysisBasisLoading";
@@ -1927,6 +1928,7 @@ export default function AstrologyAiClient() {
               </div>
             </header>
 
+            <ExpertValueCards theme="astrology" points={[{ title: "차트의 중심", description: "태양·달·상승궁이 보여주는 기질과 감정의 리듬을 정리합니다." }, { title: "지금의 하늘", description: "행성과 하우스의 흐름을 현재의 질문과 맞물려 읽습니다." }, { title: "선택의 타이밍", description: "변화를 밀어붙일 때와 숨을 고를 때를 구체적으로 나눠 봅니다." }]} />
             <form id="astrology-ai-form" onSubmit={handleSubmit} className="space-y-5">
               <section className={PANEL_CLASS}>
                 <div className="mb-5 flex items-start gap-3">
@@ -2093,6 +2095,7 @@ export default function AstrologyAiClient() {
                 </button>
               </div>
             </form>
+            <ExpertStickyCta theme="astrology" targetId="astrology-ai-form" label="별빛 상담 시작" price={<PriceBadge featureKey="astrology-ai-consultation" prefix="상담 이용 가격 " />} />
           </div>
 
           <aside className="space-y-5 lg:sticky lg:top-6 lg:self-start">

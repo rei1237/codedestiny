@@ -8,6 +8,7 @@ import { isTeaHouseEntryStage } from "../data/entryStory";
 import type { TeaHouseStage } from "../data/story";
 import styles from "../styles/fortune-tea-house.module.css";
 import { useTeaHouseCopy } from "../lib/teaHouseCopy";
+import { ExpertStickyCta, ExpertValueCards } from "@/app/components/expert-consulting/ExpertConsultationFrame";
 
 type FortuneTeaHouseImmersiveShellProps = {
   stage: TeaHouseStage;
@@ -48,7 +49,13 @@ export default function FortuneTeaHouseImmersiveShell({ stage, notice = "", onBa
       <Link className={styles.homeButton} href="/" aria-label={copy.homeAria}>
         {copy.home}
       </Link>
-      <div className={styles.pageInner}>{children}</div>
+      <div className={styles.pageInner}>
+        {stage === "questionInput" ? (
+          <ExpertValueCards theme="yeoni" points={[{ title: "마음의 온도", description: "연이가 질문의 결을 먼저 살피고 지금 감정의 온도를 읽습니다." }, { title: "상징의 흐름", description: "찻잎과 카드가 보여주는 관계·선택의 신호를 부드럽게 엮습니다." }, { title: "다음 한 걸음", description: "겁을 주는 예언 대신 지금 덜 흔들릴 수 있는 선택을 남깁니다." }]} />
+        ) : null}
+        {children}
+        {stage === "questionInput" ? <ExpertStickyCta theme="yeoni" targetId="tea-question-form" label="연이에게 상담 건네기" price="상담 이용 가격 확인" /> : null}
+      </div>
       <div className={styles.shellMist} aria-hidden />
       {notice ? (
         <div className={styles.readyNotice} role="status">

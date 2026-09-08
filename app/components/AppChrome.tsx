@@ -60,6 +60,7 @@ const CHROMELESS_ROUTES = [
   "/astrology-ai",
   "/vedic-ai",
   "/sukuyo-compatibility-ai",
+  "/karma-destiny-ai",
   "/saju-guardian",
   "/premium-unlock",
   "/olympus",
@@ -118,6 +119,7 @@ const FEATURE_NAV_SELF_MANAGED_ROUTES = [
   "/admin",
   // 자체 상단바(뒤로·홈·검색) + 자체 하단바. 위 /admin 주석과 같은 이유로 두 배열에 함께 둔다.
   "/diary",
+  "/karma-destiny-ai",
 ];
 
 const LOCALE_CODES = ["ko", "en", "ja", "zh-CN", "zh-TW", "vi", "hi", "es", "fr", "de", "nl", "ms"] as const;

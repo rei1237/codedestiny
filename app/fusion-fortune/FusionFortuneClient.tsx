@@ -13,6 +13,7 @@ import { useAiProfileSeed } from "../hooks/useAiProfileSeed";
 import { useCoinGate } from "../hooks/useCoinGate";
 import { packPaidResumeArg, unpackPaidResumeArg, usePaidResume } from "../hooks/usePaidResume";
 import { PriceBadge } from "../components/PriceBadge";
+import { ExpertStickyCta, ExpertValueCards } from "../components/expert-consulting/ExpertConsultationFrame";
 import { FUSION_ORB_BY_KEY, FUSION_ORBS, type FusionSystemKey } from "./fusionOrbs";
 import { FusionRecentList, type FusionRecentItem } from "./FusionRecentList";
 import { FusionResultRail } from "./FusionResultRail";
@@ -2681,6 +2682,8 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
 
     {valuePreview}
 
+    <ExpertValueCards theme="fusion" points={[{ title: "여섯 체계", description: "사주·자미두수·베다점·숙요점·점성술·타로를 각 언어로 읽습니다." }, { title: "교차 신호", description: "서로 겹치는 흐름과 엇갈리는 지점을 한 질문 안에서 비교합니다." }, { title: "하나의 작전", description: "결론을 단정하지 않고 지금 선택할 우선순위와 다음 행동을 남깁니다." }]} />
+
     <section className={styles.panel}>
       <div className={styles.status}>
         <div><span>{copy.statusScopeLabel}</span><strong>{copy.statusScopeValue}</strong><small>{copy.statusScopeNote}</small></div>
@@ -2738,6 +2741,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
           {showSubmitPrice && <PriceBadge featureKey={PAID_FEATURE_KEY} fallbackLabel={copy.heroPriceFallback} prefix={copy.heroPricePrefix} className={styles.submitPrice} />}
         </button>
       </form>}
+      <ExpertStickyCta theme="fusion" targetId="fusion-form" label="초융합 상담 시작" price={<PriceBadge featureKey={PAID_FEATURE_KEY} fallbackLabel={copy.heroPriceFallback} prefix={copy.heroPricePrefix} />} />
     </section>
 
     {/* 생성과 결과는 끊기지 않는 하나의 대화다. 진행 표시는 서버가 실제로 보낸 stage/compose
