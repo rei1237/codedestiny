@@ -5409,7 +5409,14 @@ async function calculate(){
     var emailSubBoxEl = document.getElementById('emailSubBox');
     var btnNewSajuEl = document.getElementById('btnNewSaju');
     if (inputPageEl) inputPageEl.style.display = 'none';
-    if (resultPageEl) resultPageEl.style.display = 'block';
+    // 결과의 상단 카드가 순서대로 DOM을 채우는 동안 보이는 상태가 되면,
+    // #iljuCard가 뒤늦게 커지며 바로 아래 카드와 CTA가 밀린다. 공간은 먼저
+    // 계산하되 핵심 카드가 준비될 때까지 한 프레임만 감춘 뒤 공개한다.
+    if (resultPageEl) {
+      resultPageEl.style.visibility = 'hidden';
+      resultPageEl.setAttribute('aria-busy', 'true');
+      resultPageEl.style.display = 'block';
+    }
     /* 내 원국이 방금 생겼다 — 관계 흐름 미리보기의 '사주 미계산' 상태를 푼다. */
     try { _cdInitRelFlowLite(); } catch (eRelFlow) {}
     if (typeof window.cdTrack === 'function') {
@@ -5419,19 +5426,6 @@ async function calculate(){
     if (letterBoxEl) letterBoxEl.style.display = 'block';
     if (emailSubBoxEl) emailSubBoxEl.style.display = 'block';
     if (btnNewSajuEl) btnNewSajuEl.style.display = 'block';
-    requestAnimationFrame(function () {
-      setTimeout(function () {
-        /* 결과 영역을 화면에 보여준다. window.scrollTo(0)은 맨 위만 보여서
-           페이지가 길 경우 결과 영역이 보이지 않을 수 있다. */
-        if (resultPageEl && typeof resultPageEl.scrollIntoView === 'function') {
-          try { resultPageEl.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
-          catch (e) { window.scrollTo({ top: 0, behavior: 'smooth' }); }
-        } else {
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-      }, 50);
-    });
-
     var animal=(JI[yz]||{}).a||'';
     var dayAnimal=(JI[dz]||{}).a||'';
     document.getElementById('heroAnimal').textContent=(ANIMAL_EMOJI[dayAnimal]||ANIMAL_EMOJI[animal]||'🐷');
@@ -5482,6 +5476,22 @@ async function calculate(){
     try { renderUkbu(p); } catch(e) { console.error('Ukbu 에러:', e); }
     try { if (typeof window.renderAstroInsight === 'function') window.renderAstroInsight(); } catch(e) { console.error('AstroInsight 에러:', e); }
     try { renderSkillTree(p,natal); } catch(e) { console.error('SkillTree 에러:', e); }
+    if (resultPageEl) {
+      resultPageEl.style.visibility = 'visible';
+      resultPageEl.setAttribute('aria-busy', 'false');
+    }
+    requestAnimationFrame(function () {
+      setTimeout(function () {
+        /* 결과 영역을 화면에 보여준다. window.scrollTo(0)은 맨 위만 보여서
+           페이지가 길 경우 결과 영역이 보이지 않을 수 있다. */
+        if (resultPageEl && typeof resultPageEl.scrollIntoView === 'function') {
+          try { resultPageEl.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+          catch (e) { window.scrollTo({ top: 0, behavior: 'smooth' }); }
+        } else {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      }, 50);
+    });
     // 🔴 종합 풀이(section_summary)는 5,000원 유료다. 미해금이면 본문을 아예 만들지 않는다 —
     // 예전에는 결제 여부와 무관하게 #summaryArea 를 채우고 CSS blur 만 씌워서, 개발자도구로
     // 클래스 하나만 지우면 A4 20페이지 분량이 그대로 보였다. 해금 시 재렌더는 index.html 의
@@ -5551,7 +5561,11 @@ async function calculate(){
     try {
       var _rp = document.getElementById('resultPage');
       var _ip = document.getElementById('inputPage');
-      if (_rp) _rp.style.display = 'none';
+      if (_rp) {
+        _rp.style.display = 'none';
+        _rp.style.visibility = 'visible';
+        _rp.removeAttribute('aria-busy');
+      }
       if (_ip) _ip.style.display = 'block';
     } catch (_) {}
   }
