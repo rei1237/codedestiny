@@ -396,12 +396,7 @@ function TodayMoonCard({ sukuyoIndex }: { sukuyoIndex: number }) {
 
 function paidProducts(copy: NakshatraCopy): { title: string; price: string; desc: string; href?: string }[] {
   return [
-    { title: copy.resultPaidProductCompatTitle, price: copy.compatPriceLabel, desc: copy.resultPaidProductCompatDesc, href: "/nakshatra/compat" },
-    { title: copy.resultPaidProductLordTitle, price: copy.resultPaidProductLordPrice, desc: copy.resultPaidProductLordDesc, href: "/nakshatra/lord-report" },
-    { title: copy.resultPaidProductDashaTitle, price: copy.resultPaidProductDashaPrice, desc: copy.resultPaidProductDashaDesc, href: "/nakshatra/dasha-map" },
-    { title: copy.resultPaidProductMuhurtaTitle, price: copy.muhurtaPriceLabel, desc: copy.resultPaidProductMuhurtaDesc, href: "/nakshatra/muhurta" },
     { title: copy.resultPaidProductAiTitle, price: copy.resultPaidProductAiPrice, desc: copy.resultPaidProductAiDesc, href: "/nakshatra/ai" },
-    { title: copy.resultPaidProductVvipTitle, price: copy.vvipGatePrice, desc: copy.resultPaidProductVvipDesc, href: "/nakshatra/vvip" },
   ];
 }
 
@@ -411,7 +406,7 @@ function PaidUpsell() {
     <section className="mt-6 rounded-2xl border border-amber-200/20 bg-white/[0.02] p-5 md:p-6" aria-labelledby="paid-h">
       <h2 id="paid-h" className="text-base font-bold text-amber-100">{copy.resultPaidUpsellTitle}</h2>
       <p className="mt-1 text-xs leading-6 text-slate-300">{copy.resultPaidUpsellNote}</p>
-      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+      <div className="mt-4">
         {paidProducts(copy).map((p) => {
           const inner = (
             <>

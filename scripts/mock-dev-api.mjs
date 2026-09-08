@@ -1,6 +1,36 @@
 import http from 'node:http';
 import { pathToFileURL } from 'node:url';
-import { sajuResponse, ziweiResponse, tarotResponse } from './fixtures/mock-dev-responses.mjs';
+import { sajuResponse, ziweiResponse, tarotResponse, nakshatraAiResponse } from './fixtures/mock-dev-responses.mjs';
+
+function mockNakshatraResolve(body) {
+  const input = {
+    year: Number(body.year) || 1992,
+    month: Math.min(12, Math.max(1, Number(body.month) || 5)),
+    day: Math.min(28, Math.max(1, Number(body.day) || 17)),
+    hour: Math.min(23, Math.max(0, Number(body.hour) || 12)),
+    minute: Math.min(59, Math.max(0, Number(body.minute) || 0)),
+    timezone: Number(body.timezone) || 9,
+    lat: Number(body.lat) || 37.5665,
+    lon: Number(body.lon) || 126.978,
+    timeUnknown: Boolean(body.timeUnknown),
+  };
+  const variant = Math.abs(input.year * 31 + input.month * 7 + input.day) % 5;
+  const fixture = [
+    { sukuyoKo: "수성", sukuyoHan: "昴", nakshatraKo: "로히니", nakshatraEn: "Rohini" },
+    { sukuyoKo: "위수", sukuyoHan: "胃", nakshatraKo: "아슈비니", nakshatraEn: "Ashwini" },
+    { sukuyoKo: "심수", sukuyoHan: "心", nakshatraKo: "푸샤", nakshatraEn: "Pushya" },
+    { sukuyoKo: "기수", sukuyoHan: "箕", nakshatraKo: "푸르바 아샤다", nakshatraEn: "Purva Ashadha" },
+    { sukuyoKo: "벽수", sukuyoHan: "壁", nakshatraKo: "샤타비샤", nakshatraEn: "Shatabhisha" },
+  ][variant];
+  return {
+    ok: true,
+    input,
+    summary: { ...fixture, pada: input.timeUnknown ? null : 2 },
+    dongyang: { nameKo: fixture.sukuyoKo, nameHan: fixture.sukuyoHan },
+    india: { nameKo: fixture.nakshatraKo, nameEn: fixture.nakshatraEn, pada: input.timeUnknown ? null : 2 },
+    unified: { fusionTitle: "개발 검수 fixture" },
+  };
+}
 
 export function createMockApiServer() {
   // Process-local storage: restart clears sessions and profiles, never touches Mongo.
@@ -43,6 +73,9 @@ export function createMockApiServer() {
       if (route === 'POST /api/fortune/saju/ai-prompt') return send(200, sajuResponse);
       if (['POST /api/ziwei-ai/start', 'POST /api/ziwei-ai/generate', 'GET /api/ziwei-ai/result'].includes(route)) return send(200, ziweiResponse);
       if (route === 'POST /api/tarot/crystal-soul') return send(200, tarotResponse);
+      // UI 검수 fixture: production 계산·결제·LLM을 호출하지 않는 고정 응답이다.
+      if (route === 'POST /api/nakshatra/resolve') return send(200, mockNakshatraResolve(body));
+      if (route === 'POST /api/nakshatra-ai/ensure-access') return send(200, nakshatraAiResponse);
       // PG is an error fixture: no SDK, transaction or unlock is simulated as paid.
       if (path.startsWith('/api/billing/') || path.startsWith('/api/payments/')) {
         return send(402, { ok: false, reason: 'MOCK_PAYMENT_REQUIRED', message: '개발용 결제 대역입니다. 실제 결제는 실행하지 않습니다.' });

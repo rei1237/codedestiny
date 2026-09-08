@@ -1,150 +1,246 @@
-/* 나크샤트라 결정판 심화 상담 결과 — 2만자 장문을 피로 없이 읽히게 하는 레이아웃.
-   팔레트는 새로 만들지 않고 nakshatra.module.css 의 토큰을 그대로 가져온다
-   (동양=청록 / 인도=골드 / 통합=로즈). 이 3색이 곧 정보 분류 체계다. */
 .vars {
-  --ink-900: #04050c;
-  --ink-800: #080a16;
-  --ink-700: #0e1124;
-  --east: #74c7d6;
-  --east-soft: #a7dfe8;
-  --gold: #e5c789;
-  --gold-soft: #f4e4b6;
-  --rose: #e0517f;
-  --rose-soft: #f4a6c1;
-  --t-100: #f4f4fb;
-  --t-200: #d9ddf0;
-  --t-300: #aab2d4;
-  --hair: rgba(213, 197, 148, 0.16);
-  --line: rgba(180, 190, 240, 0.12);
-  --glass: rgba(255, 255, 255, 0.03);
-  --glass-2: rgba(255, 255, 255, 0.055);
+  --ink: #090817;
+  --ink-deep: #04040b;
+  --paper: #f4efff;
+  --muted: #c8c2df;
+  --muted-2: #9e96bb;
+  --vedic: #ead6a2;
+  --sukuyo: #a7dce1;
+  --rose: #e7a0ba;
+  --hair: rgba(234, 214, 162, 0.22);
+  --line: rgba(214, 204, 242, 0.16);
 }
 
-.wrap { max-width: 1180px; margin: 0 auto; padding: 0 20px 72px; }
+.vars ::selection { background: rgba(234, 214, 162, 0.35); color: var(--paper); }
+.vars { color-scheme: dark; }
 
-/* ── 상단 고정 요약 — 장문 어디를 읽든 내 명식이 보인다 ── */
-.summary {
-  position: sticky;
-  top: 0;
-  z-index: 5;
-  margin: 0 -20px 22px;
-  padding: 14px 20px 15px;
-  background: linear-gradient(180deg, rgba(8, 10, 22, 0.96), rgba(8, 10, 22, 0.82));
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+.wrap {
+  width: min(100%, 780px);
+  margin: 0 auto;
+  padding: max(24px, env(safe-area-inset-top)) 20px calc(72px + env(safe-area-inset-bottom));
+}
+
+.hero {
+  position: relative;
+  padding: 24px 0 38px;
   border-bottom: 1px solid var(--hair);
 }
-/* PDF 캡처 스위치 — sticky·backdrop-filter 는 html2canvas 캡처를 깨뜨린다(겹침·미지원 오염).
-   export 중에만 루트의 data-export 로 해제하고 반투명 그라디언트는 불투명 잉크로 바꾼다. */
-[data-export="true"] .summary {
-  position: static;
-  background: var(--ink-800);
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-}
-.summaryRow { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 14px; }
-.natal { margin: 0; font-size: 19px; font-weight: 800; letter-spacing: -0.01em; color: var(--t-100); }
-.natalHan { color: var(--east-soft); }
-.natalNak { color: var(--gold-soft); }
-.scale { font-size: 12px; font-weight: 700; color: var(--t-300); font-variant-numeric: tabular-nums; }
-/* 사용자 질문 인용 — 카드 사이드스트라이프가 아니라 고전적 인용 표기다.
-   DESIGN.md 가 명시한 예외이며, AiResultProse 의 .quote 와 같은 형태(currentColor 3px)를 쓴다. */
-.question {
-  margin: 8px 0 0;
-  padding: 2px 0 2px 12px;
-  border-left: 3px solid currentColor;
-  font-size: 13px;
-  line-height: 1.6;
-  color: var(--rose-soft);
+
+.hero::before {
+  position: absolute;
+  z-index: -1;
+  inset: -110px -80px auto;
+  height: 360px;
+  background: radial-gradient(ellipse at 50% 25%, rgba(216, 196, 244, 0.16), transparent 66%);
+  content: "";
+  pointer-events: none;
 }
 
-/* ── 섹션 공통 ── */
-.sectionHead { display: flex; align-items: center; gap: 9px; margin: 30px 0 12px; }
-.sectionGlyph { font-size: 17px; line-height: 1; }
-.sectionTitle { margin: 0; font-size: 15px; font-weight: 800; letter-spacing: 0.01em; color: var(--t-100); }
-.sectionRule { flex: 1; height: 1px; background: linear-gradient(90deg, var(--line), transparent); }
-
-/* ── Split View — 데스크톱 좌(인도)/우(동양), 모바일 세로 ── */
-.split { display: grid; grid-template-columns: 1fr; gap: 16px; }
-@media (min-width: 900px) { .split { grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; } }
-
-.column { border: 1px solid var(--line); border-radius: 18px; background: var(--glass); padding: 16px 16px 8px; }
-.columnVedic { border-color: rgba(229, 199, 137, 0.24); }
-.columnSukuyo { border-color: rgba(116, 199, 214, 0.22); }
-.columnHead { display: flex; align-items: baseline; gap: 8px; margin: 0 0 4px; }
-.columnName { margin: 0; font-size: 14.5px; font-weight: 800; color: var(--t-100); }
-.columnSub { font-size: 11.5px; font-weight: 700; letter-spacing: 0.04em; color: var(--t-300); }
-.columnVedic .columnName { color: var(--gold-soft); }
-.columnSukuyo .columnName { color: var(--east-soft); }
-
-.fusionList { display: grid; grid-template-columns: 1fr; gap: 12px; }
-
-/* ── 아코디언 — 접혀 있어도 한 줄 결론(keyInsight)은 항상 보인다 ── */
-.item { border-top: 1px solid var(--line); }
-.item:first-child { border-top: 0; }
-.itemCard {
-  border: 1px solid rgba(224, 81, 127, 0.2);
-  border-radius: 16px;
-  background: var(--glass);
-  padding: 0 15px;
+.heroTitle,
+.chapterLabel,
+.starLabel {
+  margin: 0;
+  color: var(--muted-2);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
 }
-.itemCard + .itemCard { margin-top: 0; }
-.head {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  padding: 14px 0;
-  cursor: pointer;
-  list-style: none;
-  min-height: 44px;
+
+.twoStars {
+  display: grid;
+  grid-template-columns: 126px minmax(0, 1fr);
+  align-items: center;
+  gap: 18px;
+  margin: 24px 0 28px;
 }
-.head::-webkit-details-marker { display: none; }
-.head:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; border-radius: 10px; }
-.headText { flex: 1; min-width: 0; }
-.headTitle { display: block; font-size: 13.5px; font-weight: 800; line-height: 1.4; color: var(--t-100); }
-.headInsight { display: block; margin-top: 4px; font-size: 12.5px; line-height: 1.62; color: var(--t-200); text-wrap: pretty; }
-.chevron {
-  flex: 0 0 auto;
-  width: 20px;
-  height: 20px;
-  margin-top: 2px;
+
+.orbit {
+  position: relative;
+  width: 126px;
+  height: 126px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 50%, rgba(244, 239, 255, 0.1) 0 4%, transparent 5% 100%);
+}
+
+.orbitRingOne,
+.orbitRingTwo {
+  position: absolute;
+  border: 1px solid;
+  border-radius: 50%;
+}
+
+.orbitRingOne {
+  inset: 7px 18px;
+  border-color: rgba(234, 214, 162, 0.58);
+  transform: rotate(57deg);
+}
+
+.orbitRingTwo {
+  inset: 18px 7px;
+  border-color: rgba(167, 220, 225, 0.54);
+  transform: rotate(-32deg);
+}
+
+.orbitVedic,
+.orbitSukuyo,
+.orbitCenter {
+  position: absolute;
   display: grid;
   place-items: center;
-  font-size: 11px;
-  color: var(--t-300);
-  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+  border-radius: 50%;
 }
-.item[open] .chevron, .itemCard[open] .chevron { transform: rotate(90deg); }
-.body { padding: 0 0 16px; font-size: 14px; line-height: 1.9; color: var(--t-200); }
 
-/* ── 핵심 3통찰 ── */
-/* 자체 숫자 배지(.insightNo)를 쓰므로 ol 기본 마커는 끈다 — 켜 두면 번호가 두 번 보인다. */
-.insights { display: grid; grid-template-columns: 1fr; gap: 12px; margin: 14px 0 0; padding: 0; list-style: none; }
-@media (min-width: 760px) { .insights { grid-template-columns: repeat(3, 1fr); } }
-.insight {
-  position: relative;
-  padding: 16px 16px 17px;
-  border: 1px solid rgba(229, 199, 137, 0.28);
-  border-radius: 16px;
-  background: linear-gradient(160deg, rgba(229, 199, 137, 0.08), rgba(255, 255, 255, 0.02));
+.orbitVedic {
+  top: 20px;
+  right: 18px;
+  width: 12px;
+  height: 12px;
+  background: var(--vedic);
+  box-shadow: 0 4px 15px rgba(234, 214, 162, 0.32);
 }
-.insightNo {
-  display: inline-grid;
-  place-items: center;
-  width: 24px;
-  height: 24px;
-  margin-bottom: 9px;
-  border-radius: 999px;
-  border: 1px solid rgba(229, 199, 137, 0.5);
-  font-size: 12px;
-  font-weight: 800;
-  color: var(--gold-soft);
-}
-.insightTitle { margin: 0; font-size: 14.5px; font-weight: 800; line-height: 1.4; color: var(--t-100); }
-.insightDetail { margin: 6px 0 0; font-size: 12.5px; line-height: 1.7; color: var(--t-200); text-wrap: pretty; }
 
-.note { margin: 26px 0 0; font-size: 11.5px; line-height: 1.7; color: var(--t-300); }
+.orbitSukuyo {
+  bottom: 24px;
+  left: 18px;
+  width: 11px;
+  height: 11px;
+  background: var(--sukuyo);
+  box-shadow: 0 4px 15px rgba(167, 220, 225, 0.25);
+}
+
+.orbitCenter {
+  top: calc(50% - 13px);
+  left: calc(50% - 13px);
+  width: 26px;
+  height: 26px;
+  border: 1px solid rgba(244, 239, 255, 0.52);
+  background: rgba(9, 8, 23, 0.84);
+  color: var(--paper);
+  font-family: var(--font-serif);
+  font-size: 17px;
+}
+
+.orbitCenter::before { content: "×"; }
+
+.starNames { min-width: 0; }
+.vedicName,
+.sukuyoName {
+  margin: 4px 0 0;
+  font-family: var(--font-serif);
+  font-size: clamp(20px, 6vw, 28px);
+  font-weight: 700;
+  line-height: 1.15;
+}
+.vedicName { color: var(--vedic); }
+.sukuyoName { color: var(--sukuyo); }
+.cross { display: block; margin: 5px 0; color: var(--muted-2); font-size: 15px; }
+.starDetails { margin: 13px 0 0; color: var(--muted); font-size: 12px; line-height: 1.7; }
+
+.headline {
+  max-width: 22ch;
+  margin: 0;
+  color: var(--paper);
+  font-family: var(--font-serif);
+  font-size: clamp(29px, 8vw, 47px);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.27;
+  text-wrap: balance;
+}
+
+.keyInsight {
+  max-width: 39ch;
+  margin: 22px 0 0;
+  color: var(--rose);
+  font-size: clamp(17px, 4.7vw, 21px);
+  font-weight: 700;
+  line-height: 1.62;
+}
+
+.question {
+  max-width: 56ch;
+  margin: 20px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.75;
+}
+
+.heroBody,
+.chapterBody {
+  max-width: 66ch;
+  color: var(--paper);
+  font-family: var(--font-serif);
+  font-size: 16px;
+  line-height: 1.95;
+}
+
+.heroBody { margin-top: 26px; }
+.readingMeta { margin: 24px 0 0; color: var(--muted-2); font-size: 12px; font-variant-numeric: tabular-nums; }
+
+.reading { margin-top: 3px; }
+
+.chapter,
+.closing {
+  padding: 42px 0 44px;
+  border-bottom: 1px solid var(--line);
+  scroll-margin-top: 24px;
+}
+
+.chapter h2,
+.closing h2 {
+  max-width: 22ch;
+  margin: 10px 0 0;
+  color: var(--paper);
+  font-family: var(--font-serif);
+  font-size: clamp(25px, 6.7vw, 35px);
+  font-weight: 700;
+  letter-spacing: -0.028em;
+  line-height: 1.3;
+  text-wrap: balance;
+}
+
+.chapterInsight {
+  max-width: 46ch;
+  margin: 17px 0 0;
+  color: var(--vedic);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.7;
+}
+
+.chapterBody { margin-top: 23px; }
+
+.closing {
+  padding-bottom: 50px;
+  border-bottom-color: var(--hair);
+}
+
+.closing h2 { color: var(--rose); }
+.closing .chapterBody { font-size: clamp(19px, 5.2vw, 25px); line-height: 1.72; }
+
+.note { margin-top: 23px; color: var(--muted-2); font-size: 12px; line-height: 1.75; }
+.note p { margin: 0; }
+.notePair { margin-bottom: 8px !important; color: var(--muted); font-family: var(--font-serif); font-size: 14px; }
+
+@media (min-width: 720px) {
+  .wrap { padding-top: 48px; }
+  .hero { padding: 42px 0 54px; }
+  .twoStars { grid-template-columns: 148px minmax(0, 1fr); gap: 26px; }
+  .orbit { width: 148px; height: 148px; }
+  .chapter,
+  .closing { padding: 58px 0 61px; }
+}
 
 @media (prefers-reduced-motion: reduce) {
-  .chevron { transition: none; }
+  .orbitRingOne,
+  .orbitRingTwo { transform: none; }
+}
+
+@media (max-width: 359px) {
+  .wrap { padding-right: 16px; padding-left: 16px; }
+  .twoStars { grid-template-columns: 108px minmax(0, 1fr); gap: 14px; }
+  .orbit { width: 108px; height: 108px; }
+  .headline { font-size: 28px; }
+  .heroBody,
+  .chapterBody { font-size: 15px; }
 }
