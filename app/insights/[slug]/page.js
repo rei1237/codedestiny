@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { INSIGHT_SEED_ARTICLES, getInsightSeedBySlug, getInsightSeedRelated } from "../seed-articles";
+import { getTopicKey } from "../articles";
+import { ZIWEI_READING_ORDER } from "../ziwei-reading-order";
 import { INSIGHT_SEO_TITLES } from "../seo-titles";
 import { INSIGHT_SEO_DESCRIPTIONS } from "../seo-descriptions";
 import { buildSeoMetadata } from "../../../lib/seo";
@@ -131,7 +133,28 @@ function normalizeSections(article) {
 }
 
 function relatedArticles(article) {
+  if (getTopicKey(article) === "ziwei") {
+    const neighborSlugs = readingNeighbors(article);
+    const orderedNeighbors = [neighborSlugs.previous, neighborSlugs.next].filter(Boolean);
+    const sameTopic = INSIGHT_SEED_ARTICLES.filter(
+      (item) => item.slug !== article.slug && getTopicKey(item) === "ziwei",
+    );
+    const relatedBySlug = new Map([...orderedNeighbors, ...sameTopic].map((item) => [item.slug, item]));
+    return Array.from(relatedBySlug.values()).slice(0, 6);
+  }
   return getInsightSeedRelated(article.slug, 6);
+}
+
+function readingNeighbors(article) {
+  if (getTopicKey(article) !== "ziwei") return { previous: null, next: null, position: null, total: null };
+  const index = ZIWEI_READING_ORDER.indexOf(article.slug);
+  if (index < 0) return { previous: null, next: null, position: null, total: null };
+  return {
+    previous: getInsightSeedBySlug(ZIWEI_READING_ORDER[index - 1]),
+    next: getInsightSeedBySlug(ZIWEI_READING_ORDER[index + 1]),
+    position: index + 1,
+    total: ZIWEI_READING_ORDER.length,
+  };
 }
 
 // 글 카테고리 → 정본 허브. 인사이트 글들은 서로만 링크하고 정작 해당 주제의
@@ -171,6 +194,7 @@ export default async function InsightArticlePage({ params }) {
   const image = await getPexelsInsightImage(article).catch(() => getStaticInsightImage(article));
   const description = articleDescription(article);
   const related = relatedArticles(article);
+  const neighbors = readingNeighbors(article);
   const hub = categoryHub(article.category);
   const articleJsonLd = buildArticleJsonLd({
     title: article.title,
@@ -226,6 +250,33 @@ export default async function InsightArticlePage({ params }) {
             ))}
           </section>
         )}
+
+        {neighbors.total ? (
+          <nav className="mt-8 rounded-3xl border border-amber-200/20 bg-amber-100/[0.05] p-5 md:p-7" aria-label="자미두수 인사이트 읽기 순서">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h2 className="text-xl font-semibold text-amber-100">자미두수 인사이트 읽기</h2>
+              <span className="text-xs text-slate-300">{neighbors.position} / {neighbors.total}</span>
+            </div>
+            <p className="mt-2 text-sm leading-7 text-slate-300">앞 글을 읽었다면 다음 주제로 이어가거나, 허브에서 전체 순서를 다시 볼 수 있습니다.</p>
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              {neighbors.previous ? (
+                <Link href={`/insights/${neighbors.previous.slug}`} className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 transition hover:border-amber-200/40 hover:bg-white/[0.08]">
+                  <span className="text-xs text-slate-400">이전 글</span>
+                  <span className="mt-2 block text-sm font-semibold leading-6 text-slate-100">{neighbors.previous.title}</span>
+                </Link>
+              ) : <span className="rounded-2xl border border-white/10 bg-white/[0.02] p-4 text-sm text-slate-500">첫 번째 읽기 글입니다.</span>}
+              {neighbors.next ? (
+                <Link href={`/insights/${neighbors.next.slug}`} className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-right transition hover:border-amber-200/40 hover:bg-white/[0.08]">
+                  <span className="text-xs text-slate-400">다음 글</span>
+                  <span className="mt-2 block text-sm font-semibold leading-6 text-slate-100">{neighbors.next.title}</span>
+                </Link>
+              ) : <span className="rounded-2xl border border-white/10 bg-white/[0.02] p-4 text-right text-sm text-slate-500">읽기 순서의 마지막 글입니다.</span>}
+            </div>
+            <Link href="/insights/ziwei" className="mt-4 inline-flex min-h-11 items-center rounded-full border border-amber-200/35 bg-amber-100/10 px-5 text-sm font-semibold text-amber-50 transition hover:bg-amber-100/20">
+              자미두수 인사이트 전체 보기
+            </Link>
+          </nav>
+        ) : null}
 
         <ContentIntegrityNote contentSource={article.contentSource} author={article.author} datePublished={article.publishedAt || article.updatedAt} dateModified={article.updatedAt || article.publishedAt} />
 

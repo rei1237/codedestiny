@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { INSIGHT_ARTICLES, getArticlesByTopic, getArticleBySlug } from "./articles";
+import { getTopicKey } from "./articles";
+import { INSIGHT_SEED_ARTICLES, getInsightSeedBySlug } from "./seed-articles";
 import { getFeatureGuidesByTopic } from "./feature-guides";
 import EditorNote from "../components/EditorNote";
 
@@ -163,12 +164,14 @@ export default function InsightTopicArchive({ topic, title, intro, serviceCtaPat
   const storyLink = TOPIC_STORY_LINKS[topicKey] || null;
   const featureGuides = getFeatureGuidesByTopic(topic);
   const curated = Array.isArray(curatedSlugs) && curatedSlugs.length > 0
-    ? curatedSlugs.map(getArticleBySlug).filter(Boolean)
+    ? curatedSlugs.map(getInsightSeedBySlug).filter(Boolean)
     : null;
   const matcher = topicMatcher(topic);
-  const topicItems = getArticlesByTopic(topic);
-  const matched = topicItems.length > 0 ? topicItems : INSIGHT_ARTICLES.filter(matcher);
-  const items = curated && curated.length > 0 ? curated : (matched.length > 0 ? matched : INSIGHT_ARTICLES.slice(0, 12));
+  // 상세 페이지와 같은 정본 풀을 사용해야 SEO 성장 글과 기존 인사이트 글이 허브에서 빠지지 않는다.
+  const topicItems = INSIGHT_SEED_ARTICLES.filter((item) => getTopicKey(item) === topicKey);
+  const matched = topicItems.length > 0 ? topicItems : INSIGHT_SEED_ARTICLES.filter(matcher);
+  const items = matched.length > 0 ? matched : INSIGHT_SEED_ARTICLES.slice(0, 12);
+  const recommendedItems = curated && curated.length > 0 ? curated : items.slice(0, 12);
   const representativeTags = Array.from(new Set(items.flatMap((item) => item.tags || item.keywords || []).filter(Boolean))).slice(0, 12);
   const beginnerGuides = items.filter((item) => /기초|입문|처음|보는 법|란\?/.test(`${item.title} ${item.excerpt || item.description}`)).slice(0, 6);
   const practicalGuides = items.filter((item) => /해석|실전|흐름|관계|재물|사랑|직업/.test(`${item.title} ${item.excerpt || item.description}`)).slice(0, 6);
@@ -258,18 +261,19 @@ export default function InsightTopicArchive({ topic, title, intro, serviceCtaPat
       <section className="mt-6 rounded-3xl border border-white/10 bg-[#0f1629] px-5 py-6 md:px-8 md:py-8">
         <h2 className="text-xl font-semibold text-amber-100">추천 글</h2>
         <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
-          {items.slice(0, 12).map((article) => (
+          {recommendedItems.map((article, index) => (
             <Link
               key={article.slug}
               href={`/insights/${article.slug}`}
-              className="rounded-xl border border-white/15 bg-white/5 px-4 py-3 hover:bg-white/10"
+              className="rounded-xl border border-white/15 bg-white/5 px-4 py-4 transition hover:border-amber-200/40 hover:bg-white/10"
             >
-              <p className="text-xs text-slate-400">
-                {article.category}
-                {formatDate(article.publishedAt) ? ` · ${formatDate(article.publishedAt)}` : ""}
-              </p>
+              <p className="text-xs text-amber-100/75">{topicKey === "ziwei" ? `읽기 ${index + 1}` : article.category}</p>
               <h3 className="mt-1 text-sm font-semibold leading-6 text-slate-100">{article.title}</h3>
               <p className="mt-2 text-xs leading-6 text-slate-300 line-clamp-3">{article.excerpt || article.description}</p>
+              <p className="mt-3 text-xs text-slate-400">
+                {article.readingTime ? `${article.readingTime}분 읽기` : ""}
+                {formatDate(article.publishedAt) ? ` · ${formatDate(article.publishedAt)}` : ""}
+              </p>
             </Link>
           ))}
         </div>
@@ -290,6 +294,15 @@ export default function InsightTopicArchive({ topic, title, intro, serviceCtaPat
 
       <section className="mt-6 rounded-3xl border border-white/10 bg-[#11182b] px-5 py-6 md:px-8 md:py-8">
         <h2 className="text-xl font-semibold text-amber-100">초보자 가이드</h2>
+        {topicKey === "ziwei" ? (
+          <div className="mt-4 rounded-2xl border border-amber-200/15 bg-amber-100/[0.05] px-4 py-4">
+            <p className="text-xs text-amber-100/75">별도 입문 문서</p>
+            <Link href="/insights/ziwei-basics" className="mt-1 block text-sm font-semibold leading-6 text-slate-100 hover:text-amber-100">
+              자미두수 기초: 명반을 처음 읽는 법
+            </Link>
+            <p className="mt-1 text-xs leading-6 text-slate-300">다국어로 제공되는 별도 입문 문서도 함께 읽어보세요.</p>
+          </div>
+        ) : null}
         <ul className="mt-4 space-y-2">
           {(beginnerGuides.length > 0 ? beginnerGuides : items.slice(0, 6)).map((article) => (
             <li key={`beginner-${article.slug}`} className="rounded-lg border border-white/10 bg-white/5 px-4 py-3">
@@ -313,6 +326,36 @@ export default function InsightTopicArchive({ topic, title, intro, serviceCtaPat
           ))}
         </ul>
       </section>
+
+      {topicKey === "ziwei" ? (
+        <section className="mt-6 rounded-3xl border border-amber-200/15 bg-[#0f1629] px-5 py-6 md:px-8 md:py-8" aria-labelledby="ziwei-all-articles-title">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h2 id="ziwei-all-articles-title" className="text-xl font-semibold text-amber-100">자미두수 인사이트 전체 글</h2>
+              <p className="mt-2 text-sm leading-7 text-slate-300">이미 작성된 자미두수 글을 주제별로 골라 읽어보세요. 제목을 누르면 본문 전체가 열립니다.</p>
+            </div>
+            <span className="rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs text-slate-300">{items.length}편</span>
+          </div>
+          <div className="mt-5 grid gap-3 md:grid-cols-2">
+            {items.map((article) => (
+              <Link
+                key={`all-${article.slug}`}
+                href={`/insights/${article.slug}`}
+                className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-4 transition hover:border-amber-200/40 hover:bg-white/[0.08]"
+              >
+                <h3 className="text-sm font-semibold leading-6 text-slate-100">{article.title}</h3>
+                <p className="mt-2 text-xs leading-6 text-slate-300 line-clamp-3">{article.excerpt || article.description}</p>
+                <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-400">
+                  {article.readingTime ? <span>{article.readingTime}분 읽기</span> : null}
+                  {(article.tags || article.keywords || []).slice(0, 3).map((tag) => (
+                    <span key={`${article.slug}-${tag}`} className="rounded-full border border-white/10 bg-white/5 px-2 py-1">#{tag}</span>
+                  ))}
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      ) : null}
     </main>
   );
 }
