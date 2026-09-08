@@ -50,21 +50,90 @@
   const PLF_IMAGE_JPEG_QUALITY = 0.86;
   const PLF_STORY_JSON_MAX_CHARS = 256 * 1024;
   const PLF_STORY_ASSET_BASE = '/fuctionassets/past-life-webtoon/';
+  const PLF_COMPAT_ASSET_BASE = '/fuctionassets/';
   const PLF_STORY_ASSETS = {
     clue: {
       src: PLF_STORY_ASSET_BASE + 'clue-800.webp',
       srcset: PLF_STORY_ASSET_BASE + 'clue-480.webp 480w, ' + PLF_STORY_ASSET_BASE + 'clue-800.webp 800w',
-      alt: '오래된 거울에 비친 눈매에서 전생의 단서를 발견하는 상징 장면'
+      alt: '오래된 거울에 비친 눈매에서 전생의 단서를 발견하는 상징 장면',
+      width: 800,
+      height: 1200,
+      orientation: 'portrait'
     },
     choice: {
       src: PLF_STORY_ASSET_BASE + 'choice-800.webp',
       srcset: PLF_STORY_ASSET_BASE + 'choice-480.webp 480w, ' + PLF_STORY_ASSET_BASE + 'choice-800.webp 800w',
-      alt: '한 손은 매듭을 놓고 다른 손은 열린 문을 향하는 선택의 상징 장면'
+      alt: '한 손은 매듭을 놓고 다른 손은 열린 문을 향하는 선택의 상징 장면',
+      width: 800,
+      height: 1200,
+      orientation: 'portrait'
     },
     threshold: {
       src: PLF_STORY_ASSET_BASE + 'threshold-800.webp',
       srcset: PLF_STORY_ASSET_BASE + 'threshold-480.webp 480w, ' + PLF_STORY_ASSET_BASE + 'threshold-800.webp 800w',
-      alt: '어두운 방을 나와 새벽의 갈림길로 걸어가는 현재 선택의 상징 장면'
+      alt: '어두운 방을 나와 새벽의 갈림길로 걸어가는 현재 선택의 상징 장면',
+      width: 800,
+      height: 1200,
+      orientation: 'portrait'
+    },
+    pastlife: {
+      src: PLF_COMPAT_ASSET_BASE + 'compat-preview-pastlife.jpg',
+      alt: '붉은 실로 이어진 두 개의 문과 초승달이 전생의 문턱을 상징하는 장면',
+      width: 1280,
+      height: 720,
+      orientation: 'landscape'
+    },
+    adjust: {
+      src: PLF_COMPAT_ASSET_BASE + 'compat-preview-adjust.jpg',
+      alt: '깊은 골짜기 위에서 두 갈래의 빛나는 길이 갈라지는 선택의 장면',
+      width: 1280,
+      height: 720,
+      orientation: 'landscape'
+    },
+    emotion: {
+      src: PLF_COMPAT_ASSET_BASE + 'compat-preview-emotion.jpg',
+      alt: '달빛 아래 서로 다른 색의 파도가 맞닿는 감정의 장면',
+      width: 1280,
+      height: 720,
+      orientation: 'landscape'
+    },
+    longterm: {
+      src: PLF_COMPAT_ASSET_BASE + 'compat-preview-longterm.jpg',
+      alt: '나침반과 펼쳐진 기록이 오래 남은 약속을 비추는 장면',
+      width: 1280,
+      height: 720,
+      orientation: 'landscape'
+    },
+    core: {
+      src: PLF_COMPAT_ASSET_BASE + 'compat-preview-core.jpg',
+      alt: '별빛과 산맥 사이 두 개의 궤적이 하나의 흐름으로 이어지는 장면',
+      width: 1280,
+      height: 720,
+      orientation: 'landscape'
+    },
+    roleHarbor: {
+      src: PLF_STORY_ASSET_BASE + 'role-harbor-800.webp',
+      srcset: PLF_STORY_ASSET_BASE + 'role-harbor-480.webp 480w, ' + PLF_STORY_ASSET_BASE + 'role-harbor-800.webp 800w',
+      alt: '새벽 항구에서 오래된 해도를 펼쳐 길을 읽는 사람의 장면',
+      width: 800,
+      height: 1200,
+      orientation: 'portrait'
+    },
+    roleChoice: {
+      src: PLF_STORY_ASSET_BASE + 'role-choice-800.webp',
+      srcset: PLF_STORY_ASSET_BASE + 'role-choice-480.webp 480w, ' + PLF_STORY_ASSET_BASE + 'role-choice-800.webp 800w',
+      alt: '해도를 완성할지 떠날지 결정하는 지도 제작자의 선택 장면',
+      width: 800,
+      height: 1200,
+      orientation: 'portrait'
+    },
+    roleMemory: {
+      src: PLF_STORY_ASSET_BASE + 'role-memory-800.webp',
+      srcset: PLF_STORY_ASSET_BASE + 'role-memory-480.webp 480w, ' + PLF_STORY_ASSET_BASE + 'role-memory-800.webp 800w',
+      alt: '완성된 해도를 남기고 다음 세대에 길을 건네는 사람의 장면',
+      width: 800,
+      height: 1200,
+      orientation: 'portrait'
     }
   };
 
@@ -1641,6 +1710,8 @@
     '.plf-story__copy{margin:0;font-size:1rem;line-height:1.92;color:var(--plf-text);text-wrap:pretty;}',
     '.plf-story__copy + .plf-story__copy{margin-top:18px;}',
     '.plf-story__figure{position:relative;margin:0 -16px;aspect-ratio:2/3;overflow:hidden;background:#eadfe0;}',
+    '.plf-story__figure--landscape{aspect-ratio:16/9;background:#171329;}',
+    '.plf-story__figure--portrait{aspect-ratio:2/3;}',
     '.plf-story__figure img{display:block;width:100%;height:100%;object-fit:cover;background:#eadfe0;}',
     '.plf-story__figure figcaption{position:absolute;left:0;right:0;bottom:0;padding:54px 24px 18px;',
     '  font-size:.76rem;line-height:1.55;color:#fff1f7;background:linear-gradient(transparent,rgba(36,8,26,.84));}',
@@ -2695,6 +2766,36 @@
     return (text || fallback || '').slice(0, max || 700);
   }
 
+  /**
+   * 기존 일러스트를 역할과 사건의 정서에 맞춰 고른다.
+   * 지도 제작자용 3컷은 해당 역할군에만 적용하고, 나머지는 공통 상징 컷을 사건의 결에 따라 배치한다.
+   */
+  function plfStoryAssetPlan(reading) {
+    const roleName = plfStoryText(reading && reading.roleName, '', 80);
+    const eventTitle = plfStoryText(reading && reading.eventTitle, '', 120);
+    if (/해도 제작자|항해사|바다 무역상/.test(roleName)) {
+      return { beginning: 'roleHarbor', choice: 'roleChoice', return: 'roleMemory', source: 'role-specific' };
+    }
+
+    if (/갈림|두 갈래|문|떠나|돌아|놓|결정|도망|길/.test(eventTitle)) {
+      return { beginning: 'pastlife', choice: 'adjust', return: 'threshold', source: 'existing-symbolic' };
+    }
+    if (/편지|배신|말|마음|약속|그리|사람|기다/.test(eventTitle)) {
+      return { beginning: 'pastlife', choice: 'emotion', return: 'threshold', source: 'existing-symbolic' };
+    }
+    if (/기록|이름|증언|책|기억|남겨|유품/.test(eventTitle)) {
+      return { beginning: 'clue', choice: 'longterm', return: 'threshold', source: 'existing-symbolic' };
+    }
+    if (/별|예언|하늘|비밀|관측|밤/.test(eventTitle)) {
+      return { beginning: 'pastlife', choice: 'core', return: 'threshold', source: 'existing-symbolic' };
+    }
+
+    // 사건명이 비어 있거나 새 역할이 추가되어도 같은 컷만 반복되지 않게 한다.
+    const fallbackKeys = ['choice', 'adjust', 'emotion', 'longterm', 'core'];
+    const fallbackIndex = plfHash(roleName + ':' + eventTitle) % fallbackKeys.length;
+    return { beginning: 'pastlife', choice: fallbackKeys[fallbackIndex], return: 'threshold', source: 'existing-symbolic' };
+  }
+
   /** 기존 결정론적 리딩을 3장 웹툰 표시 DTO로 정규화한다. 원본은 legacyReading에 그대로 둔다. */
   function plfBuildStory(input) {
     const reading = plfStoryInput(input);
@@ -2704,6 +2805,7 @@
     const eraLocation = shapeWorld[reading.dominantThird] || shapeWorld.middle;
     const roleName = plfStoryText(reading.roleName, '이름이 남지 않은 사람', 80);
     const firstNick = plfStoryText(reading.firstNick, '오래 바라본 얼굴', 100);
+    const assetPlan = plfStoryAssetPlan(reading);
     const traits = Array.isArray(reading.roleTraits) ? reading.roleTraits.slice(0, 3).map(function (item) {
       return plfStoryText(item, '', 24);
     }).filter(Boolean) : [];
@@ -2728,15 +2830,15 @@
       facialClues: clues,
       episodes: [
         {
-          id: 'beginning', sceneType: 'discovery', sceneTitle: '이름이 생기기 전의 얼굴', assetKey: 'clue', clueIds: ['first', 'role'],
+          id: 'beginning', sceneType: 'discovery', sceneTitle: '이름이 생기기 전의 얼굴', assetKey: assetPlan.beginning, clueIds: ['first', 'role'],
           narration: [firstNick + '. ' + plfStoryText(reading.firstBody, '', 250), eraLocation + '에서 당신은 ' + roleName + '으로 살았습니다.', plfStoryText(reading.roleDay, reading.roleIntro, 430)]
         },
         {
-          id: 'choice', sceneType: 'turn', sceneTitle: plfStoryText(reading.eventTitle, '그날의 선택', 120), assetKey: 'choice', clueIds: ['event'],
+          id: 'choice', sceneType: 'turn', sceneTitle: plfStoryText(reading.eventTitle, '그날의 선택', 120), assetKey: assetPlan.choice, clueIds: ['event'],
           narration: [plfStoryText(reading.omen, '', 260), plfStoryText(reading.eventBody, '', 420), plfStoryText(reading.eventAftermath, '', 360)]
         },
         {
-          id: 'return', sceneType: 'resolution', sceneTitle: '남겨진 기억이 가리키는 곳', assetKey: 'threshold', clueIds: ['role', 'event'],
+          id: 'return', sceneType: 'resolution', sceneTitle: '남겨진 기억이 가리키는 곳', assetKey: assetPlan.return, clueIds: ['role', 'event'],
           narration: [plfStoryText(reading.roleEnd, '', 260), plfStoryText(reading.unfinishedWhy, '', 300), '그 흔적은 운명을 확정하는 답이 아니라, 지금 다른 선택을 해 볼 수 있다는 작은 단서에 가깝습니다.']
         }
       ],
@@ -2752,6 +2854,7 @@
       ending: '그 사람의 이야기는 여기서 끝납니다. 다음 장면을 고르는 건 지금의 당신입니다.',
       shareSummary: roleName + ' · ' + plfStoryText(reading.eventTitle, '남겨진 선택', 100),
       keywords: Array.isArray(reading.keywords) ? reading.keywords.slice(0, 3) : [],
+      assetPlan: assetPlan,
       legacyReading: reading
     };
   }
@@ -2874,12 +2977,15 @@
   function plfStoryFigureHtml(episode, index) {
     const asset = PLF_STORY_ASSETS[episode.assetKey] || PLF_STORY_ASSETS.clue;
     const eager = index === 0;
+    const orientationClass = asset.orientation === 'landscape' ? ' plf-story__figure--landscape' : ' plf-story__figure--portrait';
+    const eagerSrcset = asset.srcset ? ' srcset="' + plfEscape(asset.srcset) + '"' : '';
+    const lazySrcset = asset.srcset ? ' data-plf-srcset="' + plfEscape(asset.srcset) + '"' : '';
     const imageAttrs = eager
-      ? ' src="' + plfEscape(asset.src) + '" srcset="' + plfEscape(asset.srcset) + '" loading="eager" fetchpriority="high"'
-      : ' data-plf-src="' + plfEscape(asset.src) + '" data-plf-srcset="' + plfEscape(asset.srcset) + '" loading="lazy"';
+      ? ' src="' + plfEscape(asset.src) + '"' + eagerSrcset + ' loading="eager" fetchpriority="high"'
+      : ' data-plf-src="' + plfEscape(asset.src) + '"' + lazySrcset + ' loading="lazy"';
     return [
-      '<figure class="plf-story__figure" data-plf-figure="' + index + '">',
-      '  <img' + imageAttrs + ' sizes="(min-width:700px) 640px, 100vw" width="800" height="1200" decoding="async" alt="' + plfEscape(asset.alt) + '">',
+      '<figure class="plf-story__figure' + orientationClass + '" data-plf-figure="' + index + '" data-plf-asset="' + plfEscape(episode.assetKey) + '">',
+      '  <img' + imageAttrs + ' sizes="(min-width:700px) 640px, 100vw" width="' + (asset.width || 800) + '" height="' + (asset.height || 1200) + '" decoding="async" alt="' + plfEscape(asset.alt) + '">',
       '  <span class="plf-story__figure-fallback" aria-hidden="true">그림을 불러오지 못했지만 이야기는 계속됩니다.</span>',
       '  <figcaption>' + plfEscape(episode.sceneTitle) + '</figcaption>',
       '</figure>'
