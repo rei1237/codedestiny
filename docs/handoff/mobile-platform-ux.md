@@ -26,6 +26,7 @@ npm run verify:handoff-contract
 ## 지금 상태
 
 - `codex/mobile-platform-ux-20260908`, 격리 워크트리. 전체 계획은 미완료이며 머지하지 않았다.
+- 원격 보존: 초안 PR [#1824](https://github.com/rei1237/codedestiny/pull/1824). 생성 시 main은 `c0bc1b86`로 진행됐고 API의 mergeable=false였다. 최신 main과 공통 파일 통합이 필요하며 자동 머지하지 않는다.
 - 상세페이지 구현 보존 커밋: `1ea226a1e`. 후속 문서 커밋은 `git log`로 확인한다. 코드·문서 모두 같은 브랜치에서 이어받는다.
 - 대기 화면 중첩 레이어 제거·질문 초안 복원·React 공유 fallback·240ms 강제 홈 타이머 제거.
 - 사용자가 3종 상세페이지 방향을 승인했다. 기존 정본에 검증 근거를 추가하고 공통 렌더러·지연 로더·React/정적 팝업 연결 및 `/features/[slug]/`를 구현 중이다. 69개 대상 중 찻집·인생의 책·동물 도감 3개만 검증 콘텐츠로 등록했다. 배포하지 않았다.

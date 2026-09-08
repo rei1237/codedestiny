@@ -1,5 +1,7 @@
 # 다음 세션 실행 가이드 — 모바일 플랫폼 / 기능별 비주얼 상세페이지
 
+원격 보존: 초안 PR https://github.com/rei1237/codedestiny/pull/1824 (미머지). 생성 시 GitHub가 mergeable=false를 보고했다. main은 작업 시작 이후 진행됐으므로 다른 작업 변경과 통합/충돌 확인을 먼저 수행한다. 기존 로컬 워크트리와 커밋은 보존한다.
+
 ## 복사해서 보낼 작업 지시
 
 > D:\Development\code-destiny-mobile-platform-ux의 docs/handoff/mobile-platform-ux.md와 docs/mobile-platform/RESUME.md를 읽고 미완료 작업을 이어서 구현해 주세요. 승인된 최신 디자인은 app/features 경로와 js/feature-detail-panels.mjs의 SVG/HTML 편집형 미리보기입니다. 예전 detail-prototype.html이나 결과 캡처형 디자인으로 되돌리지 마세요. feature-detail-coverage.md의 나머지 66개 대상을 실제 구현과 대조하고 기능군별로 확장한 뒤 전체 모바일·공유·뒤로가기 개선도 이어가세요. 기존 격리 워크트리의 변경을 보존하고 다른 세션과 공통 파일 중첩을 재확인하세요. 실제 LLM·PG·운영 DB·배포는 사용하지 마세요. 검사·커밋·푸시·PR까지 진행하되 머지는 별도 요청을 따르세요. 전체 완료가 아니면 이 인수인계 문서의 상태와 다음 작업을 갱신하세요.
@@ -112,6 +114,9 @@ npm run verify:public-mirror-fresh
 전체 build는 개발 서버 소유와 mock 환경 계약을 확인한 후 `npm run build`. 가드 실패를 빌드 성공으로 기록하지 않는다. lint/typecheck는 check:fast 실행 계획에 포함되는지 확인하고 빠진 경우 `npm run lint`, `npx tsc --noEmit --incremental`을 실행한다.
 
 ## 7. 검증 증거 해석
+
+- 인수인계 시 재실행한 `check:fast`는 sitemap drift를 생성기로 해결한 뒤 재실행했지만 마지막 확인 시 전체 종료되지 않았다. `test-results/mobile-platform/check-fast-handoff.log`의 최종 종료 결과를 확인하기 전 성공으로 보고하지 않는다. 기존 진행 중 검사와 같은 검사를 중복 실행하지 않는다. 초안 PR 생성 직후 조회한 head의 GitHub Actions 목록은 비어 있었으므로 CI 성공 증거도 없다.
+- 인수인계 계약과 clean 상태 생성 미러 검사는 통과했다. 전체 완료/배포 승인을 의미하지 않는다.
 
 - 초기 공통/찻집 단계: check:fast의 Node 929, Jest 218 suites/2417 tests 통과. 후속 상세페이지 변경 전체의 통과를 뜻하지 않는다.
 - 최신 국소 검증: 상세 단위 3개, 타입 검사 통과. SVG 미리보기 2종 × 320/390/430/1280px에서 넘침·기존 캡처·개발용 안내 없음 확인.
