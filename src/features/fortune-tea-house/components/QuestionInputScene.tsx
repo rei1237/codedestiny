@@ -815,6 +815,9 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
                   type="button"
                   role="radio"
                   aria-checked={selected}
+                  aria-label={`${copy[option.titleKey]}. ${copy[option.descriptionKey]}. ${copy[option.suitedForKey]}. ${option.id === "tarot"
+                    ? copy.tarotPriceLine.replace("{three}", getFortuneTeaHouseConsultPriceLabel("tarot", "three")).replace("{five}", getFortuneTeaHouseConsultPriceLabel("tarot", "five"))
+                    : priceLabelForMode(option.id)}`}
                   className={`${styles.consultModeCard} ${consultModeCardUi}`}
                   data-mode={option.id}
                   data-selected={selected ? "true" : "false"}
@@ -827,8 +830,8 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
                   <span className={styles.consultModeCopy}>
                     <span className={styles.consultModeEyebrow}>{copy[option.eyebrowKey]}</span>
                     <strong>{copy[option.titleKey]}</strong>
-                    <span>{copy[option.descriptionKey]}</span>
-                    <em>{copy[option.promiseKey]}</em>
+                    <span className={styles.consultModeDescription}>{copy[option.descriptionKey]}</span>
+                    <em className={styles.consultModePromise}>{copy[option.promiseKey]}</em>
                     <span className={styles.consultModeDetails}>
                       <span>
                         <b>{copy.k7dubap8}</b>
