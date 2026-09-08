@@ -1,6 +1,6 @@
-# 구매 여정 최적화 — 조사·목업 단계
+# 구매 여정 최적화 — 기존 이미지형 팝업과 공유
 
-전체 구현은 **미완료**다. 이 변경은 소스 후보 조사표와 클릭형 목업이며 서비스 런타임 변경을 포함하지 않는다. 목업 확인 후 제품 적용과 전체 화면 감사·결제 회귀 검증을 이어간다.
+사용자 피드백에 따라 별도 소개 화면을 추가하지 않고 기존 이미지형 팝업을 개선했다. 현재 구현 범위와 검증 결과는 [IMPLEMENTATION.md](IMPLEMENTATION.md)에 정리한다. 기존 `review.html`은 초기 구상 보관용이며 현재 제품 적용안이 아니다. 최초 요청의 전체 서비스 실제 구매 여정 감사는 아직 미완료다.
 
 ## 실행
 
@@ -18,7 +18,7 @@ node scripts/build-purchase-journey-review.mjs
 python -m http.server 4319 --bind 127.0.0.1 --directory docs/purchase-journey
 ```
 
-브라우저에서 `http://127.0.0.1:4319/review.html`을 연다. 이 서버는 검토 자료 폴더만 제공한다. 결제 안내 버튼은 의도적으로 비활성화했다. 홈의 고민 선택, 상세 보기, 화면 이동, 조사표 검색은 동작한다.
+브라우저에서 `http://127.0.0.1:4319/review.html`을 열면 초기 구상을 볼 수 있다. 현재 적용한 실제 팝업은 `node scripts/verify-feature-popup-journey.mjs`로 검증하며 캡처는 OS 임시 폴더 `code-destiny-popup-journey`에 저장한다.
 
 ## 현재 근거와 한계
 
@@ -53,7 +53,7 @@ python -m http.server 4319 --bind 127.0.0.1 --directory docs/purchase-journey
 1. 후보를 최종 사용자 서비스·하위 상품·별칭·비서비스 라우트로 확정하고 전체 화면을 mock으로 순회한다.
 2. 각 서비스의 소개·입력·결과·잠금·결제·복귀·저장·추천을 연결하고 근거 있는 6단계 점수표를 작성한다.
 3. 전 상품의 Hook 3~8개·가치·제공 결과·FAQ·추천 근거를 작성한다. 현재 목업의 세 상품만으로 완료 처리하지 않는다.
-4. 목업 방향 확인 후 홈 정본과 기존 상세 렌더러에 적용한다. 공통 파일의 다른 작업과 순차 통합한다.
+4. 기존 이미지형 팝업 방향으로 확정되어 62개 공개 상세에 적용했다. 나머지 미연결 기능은 전체 감사에서 추적한다.
 5. 이용권 상점·실제 결제 주변 설명·결과 추천·기존 공유·analytics 이벤트 연결을 구현한다.
 6. 다른 언어와 SEO 경계, A~E 사용자 여정 및 서비스별 결제·잠금·resume를 mock에서 검증한다.
 7. 생성 미러, 최신 main 정합과 필수 CI까지 통과시킨다. 머지·운영 승격은 별도 승인이다.
@@ -98,5 +98,5 @@ Impeccable 검사에서 목업의 개별 글자 크기에 디자인 타입 스�
 cwd=D:\Development\code-destiny-purchase-journey
 document=docs/purchase-journey/README.md
 branch=codex/purchase-journey
-next=목업 피드백 반영과 전체 후보의 실제 화면 감사 후 제품 적용. 현재 문서는 전체 구현 완료 보고가 아님.
+next=IMPLEMENTATION.md의 최신 검증 및 PR 상태 확인. 전체 후보의 실제 구매 여정 감사는 별도 잔여 항목이며 목업 승인을 다시 요청하지 않는다.
 ```

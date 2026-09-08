@@ -38,19 +38,30 @@ function renderVisualPreview(kind, panel, detail) {
   return '';
 }
 
-export function renderFeatureDetailPanels(detail, { headingLevel = 3 } = {}) {
+export function renderFeatureDetailPanels(detail, { headingLevel = 3, conversionPrompt = false } = {}) {
   if (!detail || detail.verification !== 'verified') return '';
   const heading = headingLevel === 2 ? 'h2' : 'h3';
   const hero = safeImage(detail.image);
   const variants = (detail.heroVariants || []).filter(item => safeImage(item.src) && Number.isInteger(item.width) && item.width > 0 && item.width <= 2048);
   const srcset = variants.map(item => `${escape(safeImage(item.src))} ${item.width}w`).join(', ');
-  const panels = (detail.panels || []).map(panel => {
+  const journey = detail.journey || {};
+  const questions = [...new Set((journey.questions || []).filter(Boolean))];
+  const hook = questions[0] || detail.headline;
+  const prompt = conversionPrompt ? '<button type="button" class="featureDetailConversion" data-feature-conversion-request>가격·이용 방법 확인하기</button>' : '';
+  // Visual previews earn curiosity first; retain every non-duplicate content panel.
+  const sourcePanels = (detail.panels || []).filter(panel => !panel.items?.length || !panel.items.every(item => questions.includes(item)));
+  const orderedPanels = [...sourcePanels.filter(panel => panel.visualPreview || panel.verifiedCapture), ...sourcePanels.filter(panel => !panel.visualPreview && !panel.verifiedCapture)];
+  const panels = orderedPanels.map((panel, index) => {
     const capture = panel.verifiedCapture;
     const illustration = renderVisualPreview(panel.visualPreview, panel, detail);
     const captureSrc = safeImage(capture?.src);
-    return `<section class="featureDetailPanel featureDetailBody${captureSrc || illustration ? ' featureDetailPreview' : ''}"><div><${heading}>${escape(panel.title)}</${heading}>${panel.text ? `<p>${escape(panel.text)}</p>` : ''}${panel.items?.length ? `<ul class="featureDetailItems">${panel.items.map(item => `<li>${escape(item)}</li>`).join('')}</ul>` : ''}${panel.steps?.length ? `<ol class="featureDetailSteps">${panel.steps.map(step => `<li><strong>${escape(step.label)}</strong><p>${escape(step.detail)}</p></li>`).join('')}</ol>` : ''}</div>${illustration || (captureSrc ? `<figure><img src="${escape(captureSrc)}" alt="${escape(capture.alt)}" loading="lazy" decoding="async" width="${Number(capture.width) || 380}" height="${Number(capture.height) || 480}"><figcaption>${escape(capture.label)}</figcaption></figure>` : '')}</section>`;
+    return `<section data-purchase-stage="${captureSrc || illustration ? 'interest' : panel.steps?.length ? 'trust' : 'consideration'}" class="featureDetailPanel featureDetailBody${captureSrc || illustration ? ' featureDetailPreview' : ''}"><div><${heading}>${escape(panel.title)}</${heading}>${panel.text ? `<p>${escape(panel.text)}</p>` : ''}${panel.items?.length ? `<ul class="featureDetailItems">${panel.items.map(item => `<li>${escape(item)}</li>`).join('')}</ul>` : ''}${panel.steps?.length ? `<ol class="featureDetailSteps">${panel.steps.map(step => `<li><strong>${escape(step.label)}</strong><p>${escape(step.detail)}</p></li>`).join('')}</ol>` : ''}</div>${illustration || (captureSrc ? `<figure><img src="${escape(captureSrc)}" alt="${escape(capture.alt)}" loading="lazy" decoding="async" width="${Number(capture.width) || 380}" height="${Number(capture.height) || 480}"><figcaption>${escape(capture.label)}</figcaption></figure>` : '')}${index === 0 ? prompt : ''}</section>`;
   }).join('');
-  return `<article class="featureVisualDetail"><header class="featureDetailPanel featureDetailHero">${hero ? `<img class="featureDetailArt" src="${escape(hero)}"${srcset ? ` srcset="${srcset}" sizes="(max-width: 699px) 100vw, 480px"` : ''} width="960" height="540" alt="${escape(detail.title)}" loading="eager" decoding="async">` : ''}<div class="featureDetailBody"><${heading}>${escape(detail.headline)}</${heading}><p>${escape(detail.description)}</p></div></header>${panels}</article>`;
+  const questionList = questions.length > 1 ? `<ul class="featureDetailQuestions">${questions.slice(1, 4).map(question => `<li>${escape(question)}</li>`).join('')}</ul>` : '';
+  const trust = journey.trustNotes?.length ? `<section class="featureDetailPanel featureDetailBody" data-purchase-stage="trust"><${heading}>해석을 읽기 전에</${heading}><ul class="featureDetailItems">${journey.trustNotes.map(note => `<li>${escape(note)}</li>`).join('')}</ul></section>` : '';
+  const share = conversionPrompt ? `<section class="featureDetailPanel featureDetailBody" data-purchase-stage="advocacy" data-feature-share-section><${heading}>이 이야기가 떠오르는 사람이 있나요?</${heading}><p>함께 궁금했던 질문이라면 이 기능을 소개해 보세요. 개인 결과 대신, 지금 보고 있는 기능 소개가 전달됩니다.</p><div class="featureDetailShareActions"><button type="button" data-feature-share="native">이 기능 소개 공유하기</button><button type="button" data-feature-share="copy">소개 링크 복사</button><button type="button" data-feature-share="site">CODE DESTINY 소개하기</button></div><input hidden readonly aria-label="공유할 소개 링크"><p role="status" aria-live="polite"></p></section>` : '';
+  const faq = journey.faq?.length ? `<section class="featureDetailPanel featureDetailBody" data-purchase-stage="consideration"><${heading}>시작 전에 궁금한 점</${heading}>${journey.faq.map(item => `<details class="featureDetailFaq"><summary>${escape(item.q)}</summary><p>${escape(item.a)}</p></details>`).join('')}</section>` : '';
+  return `<article class="featureVisualDetail"><header data-purchase-stage="awareness" class="featureDetailPanel featureDetailHero">${hero ? `<img class="featureDetailArt" src="${escape(hero)}"${srcset ? ` srcset="${srcset}" sizes="(max-width: 699px) 100vw, 480px"` : ''} width="960" height="540" alt="${escape(detail.title)}" loading="eager" decoding="async">` : ''}<div class="featureDetailBody"><${heading}>${escape(hook)}</${heading}><p>${escape(detail.description)}</p>${prompt}${questionList}</div></header>${panels}${trust}${faq}${share}</article>`;
 }
 
 let catalogPromise;

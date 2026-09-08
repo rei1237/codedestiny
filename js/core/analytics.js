@@ -180,8 +180,15 @@
   try {
     if (typeof global.URLSearchParams === "function") {
       var shareParams = new global.URLSearchParams(global.location.search || "");
-      if (shareParams.get("ref")) {
-        global.cdTrack("share_receive", { referral_channel: String(shareParams.get("via") || "unknown") });
+      var publicShare = shareParams.get("utm_medium") === "share" && shareParams.get("utm_campaign") === "public_share";
+      if (shareParams.get("ref") || publicShare) {
+        var publicChannel = shareParams.get("utm_source");
+        var knownChannel = /^(native|copy|kakao|x|facebook|linkedin|email|share)$/.test(publicChannel || "") ? publicChannel : "unknown";
+        var introduction = global.location.pathname.match(/^\/features\/([a-z0-9-]+)\/?$/);
+        global.cdTrack("share_receive", {
+          referral_channel: shareParams.get("ref") ? String(shareParams.get("via") || "unknown") : knownChannel,
+          ...(publicShare ? { content_id: introduction ? introduction[1] : global.location.pathname === "/" ? "site" : "public-content" } : {})
+        });
       }
     }
   } catch (_shareReceiveError) {

@@ -1123,6 +1123,32 @@
         "src/features/master-love-codex/MasterLoveCodexPage.tsx"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "왜 매번 같은 방식으로 끝날까요?",
+          "끌리는 사람과 맞는 사람이 왜 다를까요?",
+          "다음 연애에서는 뭘 바꿔야 할까요?"
+        ],
+        "trustNotes": [
+          "결제 전 구성과 분량을 먼저 확인할 수 있어요.",
+          "이용권·월정석·단건결제 정책은 기존 기준을 따릅니다.",
+          "관계 결과를 보장하지 않는 참고용 해석입니다."
+        ],
+        "faq": [
+          {
+            "q": "다른 연애 기능과 무엇이 다른가요?",
+            "a": "한 장면을 짚는 게 아니라 연애 전체를 스무 장으로 나눠 한 권으로 씁니다. 분량과 근거의 밀도가 가장 큽니다."
+          },
+          {
+            "q": "생성에 얼마나 걸리나요?",
+            "a": "분량이 커서 시간이 걸립니다. 화면을 닫지 말고 기다려 주세요."
+          },
+          {
+            "q": "상대 정보가 필요한가요?",
+            "a": "이 상품은 본인 분석입니다. 두 사람 궁합은 별도의 궁합편에서 다룹니다."
+          }
+        ]
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/master-love-codex-480.webp",
@@ -1193,6 +1219,17 @@
         "scripts/test-mobile-platform-journeys.mjs"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "이 마음을 어떻게 정리하면 좋을까요?",
+          "지금은 기다릴 때인가요, 움직일 때인가요?",
+          "이 관계를 계속 붙잡아도 될까요?"
+        ],
+        "trustNotes": [
+          "운세 결과는 참고용이며, 중요한 선택은 현실적인 판단과 함께 확인해 주세요."
+        ],
+        "faq": []
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/fortune-tea-house-480.webp",
@@ -1272,6 +1309,32 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "그 사람은 지금 어떤 마음일까요?",
+          "내가 반복하는 연애 패턴은 뭘까요?",
+          "이 관계를 이어가도 될까요?"
+        ],
+        "trustNotes": [
+          "상대의 마음이나 결과를 보장하지 않습니다.",
+          "전문가 상담 결과는 참고용입니다.",
+          "이용권·월정석·단건결제 정책은 기존 기준을 따릅니다."
+        ],
+        "faq": [
+          {
+            "q": "상대 정보가 필요한가요?",
+            "a": "상대 정보가 있으면 관계 해석이 훨씬 구체적으로 나옵니다. 없어도 내 연애 패턴 분석은 가능합니다."
+          },
+          {
+            "q": "상대 마음을 확정해 주나요?",
+            "a": "아니요. 지금 흐르는 분위기와 가까워지는 힘·멀어지는 힘을 함께 보여드립니다."
+          },
+          {
+            "q": "결과가 아프면 어떡하죠?",
+            "a": "듣기 좋은 말로 덮지 않습니다. 대신 무엇을 바꾸면 달라지는지까지 함께 적습니다."
+          }
+        ]
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/love-secret-ai-480.webp",
@@ -1331,6 +1394,17 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "제 상황에서는 어느 쪽이 나을까요?",
+          "이 선택의 위험은 무엇인가요?",
+          "지금 놓치고 있는 게 있을까요?"
+        ],
+        "trustNotes": [
+          "운세 결과는 참고용이며, 중요한 선택은 현실적인 판단과 함께 확인해 주세요."
+        ],
+        "faq": []
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/fortune-chat-480.webp",
@@ -1386,6 +1460,19 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "말과 행동이 다를 때, 관계를 어떻게 읽을까요?",
+          "지금 우리 사이에서 살펴볼 감정은 무엇일까요?",
+          "다음 대화는 어떤 질문에서 시작하면 좋을까요?"
+        ],
+        "trustNotes": [
+          "카드 해석은 참고용입니다.",
+          "결제와 권한 확인은 기존 정책을 따릅니다.",
+          "상대의 마음을 확정하거나 보장하지 않습니다."
+        ],
+        "faq": []
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/tarot-love-relationship-480.webp",
@@ -1442,6 +1529,28 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "상대에게 아직 마음이 남아 있을까요?",
+          "지금 연락해도 괜찮을까요?",
+          "이 관계는 다시 이어질 수 있을까요?"
+        ],
+        "trustNotes": [
+          "재회 결과를 보장하지 않습니다.",
+          "카드 해석은 참고용입니다.",
+          "기존 결제 정책을 따릅니다."
+        ],
+        "faq": [
+          {
+            "q": "질문이나 생년월일을 입력해야 하나요?",
+            "a": "아니요. 입력 없이 바로 다섯 자리 카드 리딩이 시작됩니다."
+          },
+          {
+            "q": "결과를 나중에 다시 볼 수 있나요?",
+            "a": "별도 저장 기능은 없어 그 자리에서 확인하는 리딩이며, 결과 화면에서 공유할 수 있습니다."
+          }
+        ]
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/tarot-reunion-480.webp",
@@ -1496,6 +1605,28 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "상대의 말과 마음은 얼마나 벌어져 있나요?",
+          "지금 관계가 멈춰 있는 이유는 무엇인가요?",
+          "어떤 말로 다시 말을 걸어야 하나요?"
+        ],
+        "trustNotes": [
+          "AI가 작성한 해석이며 미래를 확정하지 않습니다.",
+          "카드 해석은 참고용입니다.",
+          "기존 결제 정책을 따릅니다."
+        ],
+        "faq": [
+          {
+            "q": "질문을 꼭 적어야 하나요?",
+            "a": "네. 질문에 맞춰 다섯 자리의 해석이 달라지므로 입력이 필요합니다."
+          },
+          {
+            "q": "보조 카드는 무엇인가요?",
+            "a": "메인 다섯 장 위에 겹쳐 뽑는 다섯 장으로, 말로 나오지 않은 감정을 따로 읽는 자리입니다."
+          }
+        ]
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/tarot-mindscan-480.webp",
@@ -1553,6 +1684,32 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "이 사람과 있으면 왜 유독 긴장이 올라갈까요?",
+          "우리는 주로 어떤 상황에서 부딪히나요?",
+          "오래 이어질 수 있는 관계인가요?"
+        ],
+        "trustNotes": [
+          "궁합 계산은 입력한 생년 정보로 앱 안에서 바로 이뤄집니다.",
+          "실제 관계나 결과를 보장하지 않습니다.",
+          "운세 결과는 참고용이며, 중요한 선택은 현실적인 판단과 함께 확인해 주세요."
+        ],
+        "faq": [
+          {
+            "q": "궁합 점수는 무엇을 근거로 하나요?",
+            "a": "두 사람의 일간 합·충, 지지 관계, 오행 용신·기신, 십성, 신살(도화·홍염)을 신호로 뽑아 항목마다 근거와 확신도를 함께 표시합니다."
+          },
+          {
+            "q": "선택이 결과에 영향을 주나요?",
+            "a": "선택마다 호감·신뢰·케미·긴장·안정 다섯 수치가 바뀌고, 그 상태가 결과 화면에 반영됩니다."
+          },
+          {
+            "q": "상대는 몇 명까지 볼 수 있나요?",
+            "a": "캐릭터 16명이 준비돼 있고, 인물마다 장면 20개가 따로 있습니다."
+          }
+        ]
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/love-simulation-480.webp",
@@ -1608,6 +1765,28 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "두 체계는 이 관계를 같게 보나요?",
+          "우리가 가장 부딪히는 지점은 어디인가요?",
+          "내 자리에서 무엇을 하면 좋아지나요?"
+        ],
+        "trustNotes": [
+          "계산은 역법에 근거하며 해석은 참고용입니다.",
+          "좋은 날과 궁합은 결정을 대신하지 않습니다.",
+          "기존 결제 정책을 따릅니다."
+        ],
+        "faq": [
+          {
+            "q": "출생 시각을 모르면 어떻게 되나요?",
+            "a": "모름으로 두고 진행할 수 있습니다."
+          },
+          {
+            "q": "상대의 정보는 어떻게 받나요?",
+            "a": "초대 링크를 보내면 상대가 자기 정보를 직접 입력할 수 있습니다."
+          }
+        ]
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/nakshatra-compat-480.webp",
@@ -1663,7 +1842,33 @@
         "src/features/neo-war-room/NeoOperationRoomPage.tsx",
         "__tests__/ui/neo-method-card-detail.test.js"
       ],
-      "verification": "verified"
+      "verification": "verified",
+      "journey": {
+        "questions": [
+          "여러 고민 중 무엇부터 손대야 할까요?",
+          "지금 버틸 것과 바꿀 것은 무엇인가요?",
+          "왜 노력해도 한 영역만 계속 막힐까요?"
+        ],
+        "trustNotes": [
+          "실제 결과는 입력한 정보와 질문 흐름에 따라 달라집니다.",
+          "결제와 권한 확인은 기존 서비스 기준으로 처리됩니다.",
+          "운세 결과는 참고용입니다."
+        ],
+        "faq": [
+          {
+            "q": "위로해 주는 상담인가요?",
+            "a": "아니요. 지금 밀리는 지점을 냉정하게 짚고 무엇을 접을지까지 말합니다. 위로가 필요하면 다른 기능을 권합니다."
+          },
+          {
+            "q": "사주와 별자리를 왜 같이 보나요?",
+            "a": "한 체계에서 안 보이던 압박이 다른 체계에서 드러나는 경우가 많습니다. 겹치는 지점이 진짜 병목입니다."
+          },
+          {
+            "q": "생년월일시가 필요한가요?",
+            "a": "네. 두 체계 모두 출생 정보를 기준으로 계산합니다."
+          }
+        ]
+      }
     },
     "destiny-compass": {
       "slug": "destiny-compass",
@@ -1713,6 +1918,17 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "지금 방향을 바꿔도 될까요?",
+          "언제 움직이는 게 무리가 적을까요?",
+          "무엇부터 정리해야 할까요?"
+        ],
+        "trustNotes": [
+          "운세 결과는 참고용이며, 중요한 선택은 현실적인 판단과 함께 확인해 주세요."
+        ],
+        "faq": []
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/destiny-compass-480.webp",
@@ -1772,6 +1988,17 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "제 사주의 핵심은 결국 무엇인가요?",
+          "지금 시기는 어떤 국면인가요?",
+          "반복되는 패턴을 어디서 끊어야 하나요?"
+        ],
+        "trustNotes": [
+          "운세 결과는 참고용이며, 중요한 선택은 현실적인 판단과 함께 확인해 주세요."
+        ],
+        "faq": []
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/saju-sibyl-480.webp",
@@ -1850,6 +2077,32 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "올해 무엇부터 준비해야 할까요?",
+          "이직과 투자는 몇 월이 좋을까요?",
+          "올해 조심해야 할 시기는 언제인가요?"
+        ],
+        "trustNotes": [
+          "운세 결과는 참고용입니다.",
+          "중요한 결정은 현실 판단과 함께 하세요.",
+          "기존 결제 정책을 따릅니다."
+        ],
+        "faq": [
+          {
+            "q": "무료 신년운세와 무엇이 다른가요?",
+            "a": "무료는 한 해의 인상만 말합니다. 유료는 명식과 세운이 만나는 지점을 분야별·월별로 나눠 짚습니다."
+          },
+          {
+            "q": "월별 흐름도 나오나요?",
+            "a": "네. 1월부터 12월까지 각 달의 흐름과 주의점이 포함됩니다."
+          },
+          {
+            "q": "작년 결과와 겹치지 않나요?",
+            "a": "세운이 매년 바뀌므로 같은 명식이라도 해마다 다른 지점이 눌립니다."
+          }
+        ]
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/new-year-ai-480.webp",
@@ -1943,6 +2196,28 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "지금 옮기는 것이 맞나요?",
+          "움직이기 좋은 시기는 언제인가요?",
+          "결정 전에 무엇을 확인해야 하나요?"
+        ],
+        "trustNotes": [
+          "AI가 작성한 해석이며 미래를 확정하지 않습니다.",
+          "카드 해석은 참고용입니다.",
+          "기존 결제 정책을 따릅니다."
+        ],
+        "faq": [
+          {
+            "q": "카드는 직접 뽑나요?",
+            "a": "세 단계 화면을 거치며 일곱 장을 순서대로 뽑습니다."
+          },
+          {
+            "q": "리딩이 열리지 않으면 어떻게 되나요?",
+            "a": "리딩이 열리지 않으면 자동으로 환불됩니다."
+          }
+        ]
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/tarot-ijik-480.webp",
@@ -1997,6 +2272,32 @@
         "scripts/test-mobile-platform-journeys.mjs"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "내 인생의 큰 줄기는 어떻게 흘러가나요?",
+          "어느 시기에 무엇을 준비해야 할까요?",
+          "반복되는 이 패턴은 어디서 왔나요?"
+        ],
+        "trustNotes": [
+          "생년월일시 입력 후 이용권·월정석·단건결제를 확인합니다.",
+          "상담 결과는 참고용입니다.",
+          "서버 등록 가격을 따릅니다."
+        ],
+        "faq": [
+          {
+            "q": "왜 '책'인가요?",
+            "a": "한 번에 읽는 요약이 아니라 장을 나눠 순서대로 읽도록 구성했기 때문입니다. 앞 장을 알아야 뒷 장이 이해됩니다."
+          },
+          {
+            "q": "생성에 얼마나 걸리나요?",
+            "a": "분량이 커서 시간이 걸립니다. 화면을 닫지 말고 기다려 주세요."
+          },
+          {
+            "q": "PDF 로 저장되나요?",
+            "a": "결과 화면에서 PDF 로 저장할 수 있습니다."
+          }
+        ]
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/life-book-ai-480.webp",
@@ -2076,6 +2377,32 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "왜 비슷한 사람에게 계속 끌릴까요?",
+          "이 패턴은 언제부터 시작됐나요?",
+          "무엇을 끊어야 반복이 멈추나요?"
+        ],
+        "trustNotes": [
+          "전생·업에 대한 해석은 상징적 관점이며 사실 판정이 아닙니다.",
+          "상담 결과는 참고용이며 치료·법률 판단을 대신하지 않습니다.",
+          "이용권·월정석·단건결제 정책은 기존 기준을 따릅니다."
+        ],
+        "faq": [
+          {
+            "q": "전생 이야기인가요?",
+            "a": "전생은 상징으로만 다룹니다. 핵심은 지금 삶에서 무엇이 반복되고 무엇을 끊어야 하는지입니다."
+          },
+          {
+            "q": "치료나 상담을 대신하나요?",
+            "a": "아니요. 심리 치료나 법률 판단을 대신하지 않습니다. 참고 자료로만 봐 주세요."
+          },
+          {
+            "q": "다른 상담과 무엇이 다른가요?",
+            "a": "15개 장으로 나눠 패턴의 뿌리부터 되짚기 때문에 분량과 계산 범위가 가장 큽니다."
+          }
+        ]
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/karma-destiny-ai-480.webp",
@@ -2171,6 +2498,28 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "내 일주의 가디언은 어떤 모습인가요?",
+          "관계 · 일 · 재물은 어떻게 운용해야 하나요?",
+          "오늘 나를 지키는 의식은 무엇인가요?"
+        ],
+        "trustNotes": [
+          "풀이는 참고용입니다.",
+          "캐릭터 이미지는 AI가 생성합니다.",
+          "기존 결제 정책을 따릅니다."
+        ],
+        "faq": [
+          {
+            "q": "볼 때마다 가디언이 바뀌나요?",
+            "a": "아니요. 같은 명식이면 언제나 같은 가디언이 같은 모습으로 소환됩니다."
+          },
+          {
+            "q": "로그인해야 하나요?",
+            "a": "로그인 없이 이용할 수 있습니다."
+          }
+        ]
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/saju-guardian-303.webp",
@@ -2269,6 +2618,32 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "이 이름이 우리 아이 사주와 맞나요?",
+          "한자를 바꾸면 무엇이 달라지나요?",
+          "왜 이 이름을 추천했나요?"
+        ],
+        "trustNotes": [
+          "입력과 무료 초안 추천은 무료로 열립니다.",
+          "프리미엄 작명 시작 버튼을 누를 때 기존 결제 확인이 진행됩니다.",
+          "작명 결과는 참고용이며 실제 사용 전 현실적인 확인이 필요합니다."
+        ],
+        "faq": [
+          {
+            "q": "무료로 어디까지 볼 수 있나요?",
+            "a": "입력과 초안 추천까지는 무료로 열립니다."
+          },
+          {
+            "q": "제가 생각한 이름도 봐 주나요?",
+            "a": "후보를 넣으면 먼저 평가하고, 그 위에 3~5개를 더 제안합니다."
+          },
+          {
+            "q": "프롬프트 원문은 왜 주나요?",
+            "a": "어떤 기준으로 지었는지 그대로 확인하고 다시 쓸 수 있게 하기 위해서입니다."
+          }
+        ]
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/naming-ai-480.webp",
@@ -2372,6 +2747,37 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "여러 운세가 서로 다른 말을 하는데 무엇을 따라야 할까요?",
+          "올해 남은 기간에 무엇을 준비해야 할까요?",
+          "지금 이 결정을 밀어붙여도 될까요?"
+        ],
+        "trustNotes": [
+          "서버가 계산한 값에 없는 별·궁·카드·시기는 만들지 않습니다.",
+          "타인의 마음이나 결과를 확정하지 않습니다.",
+          "생성이 실패하면 같은 요청으로 다시 시도할 때 추가 결제가 없습니다.",
+          "이용권·월정석·단건결제 판단은 기존 결제 정책을 그대로 따릅니다."
+        ],
+        "faq": [
+          {
+            "q": "다른 운세를 이미 봤는데도 의미가 있나요?",
+            "a": "있습니다. 초융합의 값은 체계 하나하나가 아니라 그 사이의 관계에 있습니다. 어디가 겹치고 어디가 갈라지는지는 따로 본 해석에서는 나오지 않습니다."
+          },
+          {
+            "q": "태어난 시간을 모르면 어떻게 되나요?",
+            "a": "생시가 없으면 시주·라그나·상승궁·하우스처럼 시간에 의존하는 값은 단정하지 않고, 확인 가능한 범위와 해석의 한계를 결과에 먼저 밝힙니다."
+          },
+          {
+            "q": "이용권으로 볼 수 있나요?",
+            "a": "family 이용권은 커버됩니다. 그 외 등급은 금액 상한을 넘어 단건결제나 월정석으로 진행됩니다."
+          },
+          {
+            "q": "결과가 나오는 데 얼마나 걸리나요?",
+            "a": "여섯 체계 계산과 본문 작성이 순서대로 진행되며, 진행 상황이 화면에 단계별로 표시됩니다. 분량이 길어 잠시 기다리셔야 합니다."
+          }
+        ]
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/fusion-fortune-480.webp",
@@ -2467,6 +2873,28 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "올해 가장 조심해야 할 시기는 언제인가요?",
+          "금전운과 일·사업운은 어떻게 흘러가나요?",
+          "올해 나에게 오는 기회는 무엇인가요?"
+        ],
+        "trustNotes": [
+          "미래를 확정하지 않습니다.",
+          "카드 해석은 참고용입니다.",
+          "기존 결제 정책을 따릅니다."
+        ],
+        "faq": [
+          {
+            "q": "결과를 나중에 다시 볼 수 있나요?",
+            "a": "네. 결제한 결과는 저장되어 다시 접속해도 이어서 볼 수 있습니다."
+          },
+          {
+            "q": "월별 리딩은 어떻게 보나요?",
+            "a": "각 달의 카드를 열면 원인 · 과정 · 결과 세 장의 드릴다운과 분야별 해석이 열립니다."
+          }
+        ]
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/tarot-year-fortune-480.webp",
@@ -2560,6 +2988,28 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "지금 나를 가장 흔드는 축은 무엇인가요?",
+          "사랑과 일 중 어디에 힘을 실어야 하나요?",
+          "다음 일주일을 어떻게 보내야 하나요?"
+        ],
+        "trustNotes": [
+          "AI가 작성한 해석이며 미래를 확정하지 않습니다.",
+          "카드 해석은 참고용입니다.",
+          "기존 결제 정책을 따릅니다."
+        ],
+        "faq": [
+          {
+            "q": "해석은 어떻게 만들어지나요?",
+            "a": "AI가 카드 배치 전체를 묶어 해석을 작성하고, 생성이 원활하지 않으면 준비된 해석으로 대신합니다."
+          },
+          {
+            "q": "결과를 다시 볼 수 있나요?",
+            "a": "같은 기기에서는 최근 결과가 복원됩니다. 별도 계정 저장 기능은 없습니다."
+          }
+        ]
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/tarot-celestial-harmony-480.webp",
@@ -2653,6 +3103,28 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "이 일에 가장 좋은 날은 언제인가요?",
+          "피하는 편이 나은 날은 언제인가요?",
+          "왜 그 날이 좋은가요?"
+        ],
+        "trustNotes": [
+          "계산은 역법에 근거하며 해석은 참고용입니다.",
+          "좋은 날과 궁합은 결정을 대신하지 않습니다.",
+          "기존 결제 정책을 따릅니다."
+        ],
+        "faq": [
+          {
+            "q": "두 체계가 어긋나면 어떻게 되나요?",
+            "a": "일치 배지가 붙지 않고, 표에 각 체계의 등급과 사유가 그대로 나옵니다."
+          },
+          {
+            "q": "기간은 얼마나 보나요?",
+            "a": "조회 시점부터 60일 치를 계산합니다."
+          }
+        ]
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/nakshatra-muhurta-480.webp",
@@ -2709,6 +3181,17 @@
         "app/_lib/serviceFeatureRegistry.ts"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "나는 왜 비슷한 선택을 반복할까요?",
+          "내 기질의 강점과 주의점은 무엇일까요?",
+          "지금의 흐름을 어떤 관점에서 살펴볼까요?"
+        ],
+        "trustNotes": [
+          "운세 결과는 참고용이며, 중요한 선택은 현실적인 판단과 함께 확인해 주세요."
+        ],
+        "faq": []
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/saju-480.webp",
@@ -2754,6 +3237,17 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "지금 마음에 걸리는 질문이 있나요?",
+          "카드의 상징은 어떤 관점을 보여줄까요?",
+          "어떤 질문부터 정리해 보면 좋을까요?"
+        ],
+        "trustNotes": [
+          "운세 결과는 참고용이며, 중요한 선택은 현실적인 판단과 함께 확인해 주세요."
+        ],
+        "faq": []
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/tarot-480.webp",
@@ -2810,6 +3304,17 @@
         "app/_lib/serviceFeatureRegistry.ts"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "관계와 일에서 나는 왜 다른 모습일까요?",
+          "내 삶에서 눈여겨볼 주제는 무엇일까요?",
+          "열두 궁은 나의 성향을 어떻게 보여줄까요?"
+        ],
+        "trustNotes": [
+          "운세 결과는 참고용이며, 중요한 선택은 현실적인 판단과 함께 확인해 주세요."
+        ],
+        "faq": []
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/ziwei-480.webp",
@@ -2910,6 +3415,33 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "이 사람과는 어떤 거리의 인연인가요?",
+          "연애 말고 협업이나 장거리로는 어떤가요?",
+          "가까워질수록 부딪히는 이유가 무엇인가요?"
+        ],
+        "trustNotes": [
+          "상대의 생년월일이 없으면 내 본명숙 해석까지만 가능합니다.",
+          "출생시각을 모르면 낮 12시 기준으로 계산됩니다.",
+          "회당 결제이며 이용권·월정석으로도 열 수 있습니다.",
+          "관계 유형은 거리감의 성격을 알려줄 뿐 결말을 보장하지 않습니다."
+        ],
+        "faq": [
+          {
+            "q": "상대 생년월일이 꼭 필요한가요?",
+            "a": "네. 상대의 본명숙을 계산해야 관계 유형이 나옵니다. 없으면 내 본명숙 해석까지만 볼 수 있습니다."
+          },
+          {
+            "q": "30,000원 숙요점 궁합 전문가 상담과 무엇이 다른가요?",
+            "a": "이 궁합은 27수 계산 규칙으로 관계 유형과 여섯 주제를 산출합니다. 전문가 상담은 같은 계산 위에 상담문을 매번 새로 씁니다."
+          },
+          {
+            "q": "결제는 어떻게 되나요?",
+            "a": "회당 결제입니다. 다른 상대와 다시 보려면 그때 다시 결제하며, 이용권이나 월정석으로도 열 수 있습니다."
+          }
+        ]
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/sukuyo-480.webp",
@@ -2965,6 +3497,17 @@
         "app/_lib/serviceFeatureRegistry.ts"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "내 삶은 지금 어떤 리듬을 지나고 있을까요?",
+          "달과 라그나는 나의 어떤 모습을 보여줄까요?",
+          "다샤의 흐름은 어떻게 읽으면 좋을까요?"
+        ],
+        "trustNotes": [
+          "운세 결과는 참고용이며, 중요한 선택은 현실적인 판단과 함께 확인해 주세요."
+        ],
+        "faq": []
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/vedic-480.webp",
@@ -3021,6 +3564,17 @@
         "app/_lib/serviceFeatureRegistry.ts"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "겉으로 보이는 나와 속마음은 왜 다를까요?",
+          "태양·달·상승궁은 어떻게 연결될까요?",
+          "내가 반복하는 반응을 어떻게 이해할까요?"
+        ],
+        "trustNotes": [
+          "운세 결과는 참고용이며, 중요한 선택은 현실적인 판단과 함께 확인해 주세요."
+        ],
+        "faq": []
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/astrology-480.webp",
@@ -3080,6 +3634,17 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "저는 어떤 타입인가요?",
+          "결정은 어떻게 내리는 게 맞나요?",
+          "어디서 에너지가 새고 있나요?"
+        ],
+        "trustNotes": [
+          "운세 결과는 참고용이며, 중요한 선택은 현실적인 판단과 함께 확인해 주세요."
+        ],
+        "faq": []
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/human-design-480.webp",
@@ -3138,6 +3703,17 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "제 나크샤트라는 무엇인가요?",
+          "타고난 결은 어떤가요?",
+          "어떤 방향이 저와 맞나요?"
+        ],
+        "trustNotes": [
+          "운세 결과는 참고용이며, 중요한 선택은 현실적인 판단과 함께 확인해 주세요."
+        ],
+        "faq": []
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/nakshatra-480.webp",
@@ -3196,6 +3772,17 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "오늘은 어떤 기운의 날인가요?",
+          "제 마야 인장은 무엇인가요?",
+          "오늘 무엇에 집중하면 좋을까요?"
+        ],
+        "trustNotes": [
+          "운세 결과는 참고용이며, 중요한 선택은 현실적인 판단과 함께 확인해 주세요."
+        ],
+        "faq": []
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/maya-480.webp",
@@ -3254,6 +3841,17 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "오늘 하루는 어떤 흐름인가요?",
+          "오늘 조심할 것은 무엇인가요?",
+          "오늘 무엇을 하면 좋을까요?"
+        ],
+        "trustNotes": [
+          "운세 결과는 참고용이며, 중요한 선택은 현실적인 판단과 함께 확인해 주세요."
+        ],
+        "faq": []
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/daily-fortune-480.webp",
@@ -3312,6 +3910,17 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "세 체계가 오늘을 어떻게 보나요?",
+          "공통으로 짚는 신호는 무엇인가요?",
+          "오늘의 우선순위는 무엇인가요?"
+        ],
+        "trustNotes": [
+          "운세 결과는 참고용이며, 중요한 선택은 현실적인 판단과 함께 확인해 주세요."
+        ],
+        "faq": []
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/today-hub-480.webp",
@@ -3411,6 +4020,32 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "내 손금에서 가장 뚜렷한 선은 무엇인가요?",
+          "양손이 왜 다르게 보이나요?",
+          "지금 고민과 닿는 선은 어디인가요?"
+        ],
+        "trustNotes": [
+          "이미지 품질에 따라 분석 정확도가 달라집니다.",
+          "확인되지 않은 선은 결과에 적지 않습니다.",
+          "건강 판단을 대신하지 않습니다."
+        ],
+        "faq": [
+          {
+            "q": "양손을 다 올려야 하나요?",
+            "a": "양손을 함께 올리면 두 손을 각각 읽어 비교합니다."
+          },
+          {
+            "q": "사진이 흐리면 어떻게 되나요?",
+            "a": "확인되지 않은 선과 문양은 있다고 적지 않습니다. 밝은 곳에서 손바닥 전체가 나오게 찍어 주세요."
+          },
+          {
+            "q": "건강 상태를 알 수 있나요?",
+            "a": "의학적 진단은 하지 않습니다. 손금 해석은 참고용입니다."
+          }
+        ]
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/palm-reading-480.webp",
@@ -3470,6 +4105,17 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "제 인상은 어떻게 읽히나요?",
+          "어떤 강점이 드러나나요?",
+          "어떤 일이 저와 어울리나요?"
+        ],
+        "trustNotes": [
+          "운세 결과는 참고용이며, 중요한 선택은 현실적인 판단과 함께 확인해 주세요."
+        ],
+        "faq": []
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/physiognomy-480.webp",
@@ -3529,6 +4175,17 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "이 꿈은 무슨 의미인가요?",
+          "왜 이런 꿈을 반복해서 꾸나요?",
+          "지금 마음은 어떤 상태인가요?"
+        ],
+        "trustNotes": [
+          "운세 결과는 참고용이며, 중요한 선택은 현실적인 판단과 함께 확인해 주세요."
+        ],
+        "faq": []
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/dream-480.webp",
@@ -3587,6 +4244,17 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "저는 어떤 성향인가요?",
+          "지금 제 상태는 어떤가요?",
+          "어떤 관계가 저와 맞나요?"
+        ],
+        "trustNotes": [
+          "운세 결과는 참고용이며, 중요한 선택은 현실적인 판단과 함께 확인해 주세요."
+        ],
+        "faq": []
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/psychotest-480.webp",
@@ -3645,6 +4313,17 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "제 사주 여덟 글자는 무엇인가요?",
+          "대운은 언제 바뀌나요?",
+          "절기 경계에 걸리나요?"
+        ],
+        "trustNotes": [
+          "운세 결과는 참고용이며, 중요한 선택은 현실적인 판단과 함께 확인해 주세요."
+        ],
+        "faq": []
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/manse-480.webp",
@@ -3703,6 +4382,17 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "이 배치는 어떤 삶으로 나타나나요?",
+          "같은 글자라도 왜 결과가 다른가요?",
+          "제 명식과 무엇이 닮았나요?"
+        ],
+        "trustNotes": [
+          "운세 결과는 참고용이며, 중요한 선택은 현실적인 판단과 함께 확인해 주세요."
+        ],
+        "faq": []
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/famous-saju-480.webp",
@@ -3757,6 +4447,28 @@
         "scripts/test-mobile-platform-journeys.mjs"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "나의 수호 동물은 무엇인가요?",
+          "내 성향은 연애 · 일에서 어떻게 나타나나요?",
+          "그 사람과 나의 궁합 등급은 어떤가요?"
+        ],
+        "trustNotes": [
+          "풀이는 참고용입니다.",
+          "미래 · 성향을 확정하지 않습니다.",
+          "기존 결제 정책을 따릅니다."
+        ],
+        "faq": [
+          {
+            "q": "한 번 결제하면 계속 볼 수 있나요?",
+            "a": "네. 영구 해금이라 언제든 다시 열람할 수 있습니다."
+          },
+          {
+            "q": "결과를 간직할 수 있나요?",
+            "a": "결과 카드를 세로형 고화질 이미지로 저장할 수 있습니다."
+          }
+        ]
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/animal-destiny-480.webp",
@@ -3851,6 +4563,28 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "이 상황은 어디서 와서 어디로 가나요?",
+          "지금 내 질문에 신들은 무엇을 짚나요?",
+          "앞으로 나는 어떤 태도를 가져야 하나요?"
+        ],
+        "trustNotes": [
+          "신탁 해석은 참고용입니다.",
+          "신화 상징을 현대적으로 재구성한 콘텐츠입니다.",
+          "기존 결제 정책을 따릅니다."
+        ],
+        "faq": [
+          {
+            "q": "카드는 자동으로 뽑히나요?",
+            "a": "아니요. 열두 신의 카드 가운데 세 장을 직접 고르는 방식입니다."
+          },
+          {
+            "q": "결과를 다시 볼 수 있나요?",
+            "a": "별도 저장 기능은 없어 그 자리에서 확인하는 신탁입니다."
+          }
+        ]
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/kemet-oracle-480.webp",
@@ -3945,6 +4679,28 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "지금 이 일을 진행해도 될까요?",
+          "무엇을 조심해야 하나요?",
+          "어떤 갈래의 운을 먼저 봐야 하나요?"
+        ],
+        "trustNotes": [
+          "신탁 결과는 참고용입니다.",
+          "전통 해석을 현대적으로 재구성한 콘텐츠입니다.",
+          "기존 결제 정책을 따릅니다."
+        ],
+        "faq": [
+          {
+            "q": "256가지가 모두 다른 내용인가요?",
+            "a": "기본 오두 16개의 뜻이 짝을 이루며 조합되는 방식이라, 열린 짝에 따라 메시지가 달라집니다."
+          },
+          {
+            "q": "결과를 보관할 수 있나요?",
+            "a": "결과 화면에서 텍스트 파일로 내려받아 간직할 수 있습니다."
+          }
+        ]
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/ifa-oracle-480.webp",
@@ -4039,6 +4795,28 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "이 일은 지금 밀어붙여도 될까요?",
+          "이 계약 · 시험의 형세는 어떤가요?",
+          "지금은 나아갈 때인가요, 물러설 때인가요?"
+        ],
+        "trustNotes": [
+          "점괘는 참고용입니다.",
+          "중요한 선택은 현실 판단과 함께 확인해 주세요.",
+          "기존 결제 정책을 따릅니다."
+        ],
+        "faq": [
+          {
+            "q": "질문에 따라 괘가 달라지나요?",
+            "a": "괘는 의식의 순간에 정해지고, 적어 주신 질문은 풀이의 갈래를 맞추는 데 쓰입니다."
+          },
+          {
+            "q": "결과를 다시 볼 수 있나요?",
+            "a": "별도 저장 기능은 없어 그 자리에서 확인하는 점법입니다."
+          }
+        ]
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/juyuk-turtle-480.webp",
@@ -4137,6 +4915,32 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "SATS 는 어떤 순서로 하나요?",
+          "한 번에 얼마나 하면 되나요?",
+          "어느 단계에서 무엇에 집중해야 하나요?"
+        ],
+        "trustNotes": [
+          "명상 경험은 개인마다 다를 수 있습니다.",
+          "건강·심리 치료를 대체하지 않습니다.",
+          "30분 코스와 60분 코스의 가격이 다릅니다."
+        ],
+        "faq": [
+          {
+            "q": "30분과 60분은 무엇이 다른가요?",
+            "a": "30분은 4단계, 60분은 5단계입니다. 60분 코스는 이완 구간이 더 길고 결과 안에 머무는 단계가 따로 있습니다."
+          },
+          {
+            "q": "명상을 처음 해도 되나요?",
+            "a": "무엇을 할지 안내 문구가 시간에 맞춰 나오므로 따라가기만 하면 됩니다."
+          },
+          {
+            "q": "두 코스의 가격이 같나요?",
+            "a": "다릅니다. 60분 코스가 30분 코스보다 비쌉니다."
+          }
+        ]
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/neville-meditation-480.webp",
@@ -4239,6 +5043,32 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "오늘은 어떤 순서로 하면 좋을까요?",
+          "이 동작은 어떻게 호흡해야 하나요?",
+          "30분 안에 무엇까지 할 수 있나요?"
+        ],
+        "trustNotes": [
+          "의학적 조언이 아니며 무리한 동작은 피해주세요.",
+          "몸 상태에 맞춰 안전하게 확인해 주세요.",
+          "30분 세션과 60분 세션의 가격이 다릅니다."
+        ],
+        "faq": [
+          {
+            "q": "매번 같은 순서가 나오나요?",
+            "a": "고른 조건에 맞춰 그때그때 새로 구성합니다."
+          },
+          {
+            "q": "요가를 처음 해도 되나요?",
+            "a": "난이도는 초급·중급·고급으로 표시되고, 동작마다 주의사항이 함께 나옵니다."
+          },
+          {
+            "q": "생성이 실패하면 어떻게 되나요?",
+            "a": "코스를 만들지 못하면 사용한 금액을 자동으로 돌려드립니다."
+          }
+        ]
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/yoga-guru-480.webp",
@@ -4298,6 +5128,17 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "오늘 나에게 필요한 태도는 무엇인가요?",
+          "내 타고난 수는 무엇을 말하나요?",
+          "지금 흐름은 어디로 향하나요?"
+        ],
+        "trustNotes": [
+          "운세 결과는 참고용이며, 중요한 선택은 현실적인 판단과 함께 확인해 주세요."
+        ],
+        "faq": []
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/tarot-numerology-480.webp",
@@ -4358,6 +5199,19 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "그 꿈은 왜 오래 마음에 남을까요?",
+          "꿈에서 느낀 감정은 무엇과 닿아 있을까요?",
+          "반복되는 꿈을 어떤 관점으로 바라볼까요?"
+        ],
+        "trustNotes": [
+          "의학적 진단이나 치료가 아닙니다.",
+          "꿈 해석은 참고용입니다.",
+          "기존 결제 정책을 따릅니다."
+        ],
+        "faq": []
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/dream-psycho-analysis-480.webp",
@@ -4458,6 +5312,19 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "지금 내 마음에서 먼저 살펴야 할 것은 무엇인가요?",
+          "이 고민을 풀기 위해 오늘 무엇부터 해야 하나요?",
+          "내가 놓치고 있는 그림자와 강점은 무엇인가요?"
+        ],
+        "trustNotes": [
+          "카드 해석은 참고용입니다.",
+          "미래를 단정하지 않고 현재의 선택을 돕습니다.",
+          "기존 결제 정책을 따릅니다."
+        ],
+        "faq": []
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/animal-totem-480.webp",
@@ -4517,6 +5384,17 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "우리 조합은 어떤가요?",
+          "어디서 부딪히기 쉬운가요?",
+          "서로에게 무엇이 필요한가요?"
+        ],
+        "trustNotes": [
+          "운세 결과는 참고용이며, 중요한 선택은 현실적인 판단과 함께 확인해 주세요."
+        ],
+        "faq": []
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/mbti-animal-compat-480.webp",
@@ -4611,6 +5489,28 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "지금 나에게 흐르는 기운은 어떤 결인가요?",
+          "내가 못 보고 있는 면은 무엇인가요?",
+          "무엇을 조심하면 길이 열리나요?"
+        ],
+        "trustNotes": [
+          "AI가 작성한 해석이며 미래를 확정하지 않습니다.",
+          "카드 해석은 참고용입니다.",
+          "기존 결제 정책을 따릅니다."
+        ],
+        "faq": [
+          {
+            "q": "원석은 다시 고를 수 있나요?",
+            "a": "새 리딩을 시작하면 원석부터 다시 고를 수 있습니다."
+          },
+          {
+            "q": "꼭 질문을 적어야 하나요?",
+            "a": "질문 없이도 진행되며, 고른 원석과 카드 배치로 해석이 만들어집니다."
+          }
+        ]
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/tarot-crystal-soul-480.webp",
@@ -4705,6 +5605,28 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "앞으로 두어 주 사이에 무엇이 움직이나요?",
+          "이 물음의 답은 석 달 안에 올까요?",
+          "오늘의 나에게 필요한 조언은 무엇인가요?"
+        ],
+        "trustNotes": [
+          "찻잎 풀이는 참고용입니다.",
+          "미래를 확정하지 않습니다.",
+          "기존 결제 정책을 따릅니다."
+        ],
+        "faq": [
+          {
+            "q": "볼 때마다 결과가 달라지나요?",
+            "a": "입력이 같으면 같은 날에는 같은 잔이 나오고, 날이 바뀌면 새로 우려집니다."
+          },
+          {
+            "q": "결과를 다시 볼 수 있나요?",
+            "a": "별도 계정 저장 기능은 없지만, 같은 날 안에는 같은 입력으로 같은 잔을 다시 볼 수 있습니다."
+          }
+        ]
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/royal-tea-oracle-480.webp",
@@ -4799,6 +5721,28 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "이 일의 형세는 유리한가요, 불리한가요?",
+          "문제의 원인은 어디에 있나요?",
+          "언제쯤 흐름이 움직이나요?"
+        ],
+        "trustNotes": [
+          "AI가 작성한 풀이이며 참고용입니다.",
+          "투자 · 계약의 판단을 대신하지 않습니다.",
+          "기존 결제 정책을 따릅니다."
+        ],
+        "faq": [
+          {
+            "q": "풀이는 어떻게 만들어지나요?",
+            "a": "AI가 세워진 도형만을 근거로 풀이를 작성하고, 생성이 원활하지 않으면 준비된 해석으로 대신합니다."
+          },
+          {
+            "q": "결과를 다시 볼 수 있나요?",
+            "a": "별도 저장 기능은 없어 그 자리에서 확인하는 리딩입니다."
+          }
+        ]
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/geomancy-oracle-480.webp",
@@ -4894,6 +5838,28 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "이 흐름은 어디서 시작됐나요?",
+          "지금 나는 어느 지점에 서 있나요?",
+          "앞으로의 방향은 어느 쪽인가요?"
+        ],
+        "trustNotes": [
+          "룬 해석은 참고용입니다.",
+          "미래를 확정하지 않습니다.",
+          "기존 결제 정책을 따릅니다."
+        ],
+        "faq": [
+          {
+            "q": "역방향 해석도 있나요?",
+            "a": "네. 다만 모양이 대칭인 룬과 공백 룬 위르드는 정방향으로만 읽습니다."
+          },
+          {
+            "q": "결과를 다시 볼 수 있나요?",
+            "a": "별도 저장 기능은 없어 그 자리에서 확인하는 리딩입니다."
+          }
+        ]
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/stonehenge-runes-480.webp",
@@ -4953,6 +5919,17 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "이번 달 흐름은 어땠나요?",
+          "기록과 운세가 얼마나 맞았나요?",
+          "다음 달은 무엇을 준비할까요?"
+        ],
+        "trustNotes": [
+          "운세 결과는 참고용이며, 중요한 선택은 현실적인 판단과 함께 확인해 주세요."
+        ],
+        "faq": []
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/luck-sync-diary-480.webp",
@@ -5011,6 +5988,17 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "어떤 곡이 있나요?",
+          "운세를 보면서 틀어도 되나요?",
+          "세계관과 어떻게 이어지나요?"
+        ],
+        "trustNotes": [
+          "운세 결과는 참고용이며, 중요한 선택은 현실적인 판단과 함께 확인해 주세요."
+        ],
+        "faq": []
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/music-480.webp",
@@ -5069,6 +6057,17 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "어떤 이야기인가요?",
+          "운세와 관련이 있나요?",
+          "어디서부터 읽으면 되나요?"
+        ],
+        "trustNotes": [
+          "운세 결과는 참고용이며, 중요한 선택은 현실적인 판단과 함께 확인해 주세요."
+        ],
+        "faq": []
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/novel-480.webp",
@@ -5118,7 +6117,18 @@
       "evidence": [
         "index.html:FEATURE_MARKETING_COPY:points"
       ],
-      "verification": "source-inventory-only"
+      "verification": "source-inventory-only",
+      "journey": {
+        "questions": [
+          "이용권은 어디에 쓸 수 있나요?",
+          "지금 얼마나 남았나요?",
+          "단건결제와 무엇이 다른가요?"
+        ],
+        "trustNotes": [
+          "운세 결과는 참고용이며, 중요한 선택은 현실적인 판단과 함께 확인해 주세요."
+        ],
+        "faq": []
+      }
     },
     "sukyo": {
       "slug": "sukyo",
@@ -5163,6 +6173,17 @@
         "app/_lib/serviceFeatureRegistry.ts"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "우리는 왜 끌리고, 왜 자꾸 엇갈릴까요?",
+          "서로에게 편안한 거리는 어느 정도일까요?",
+          "두 사람의 다른 속도를 어떻게 이해할까요?"
+        ],
+        "trustNotes": [
+          "운세 결과는 참고용이며, 중요한 선택은 현실적인 판단과 함께 확인해 주세요."
+        ],
+        "faq": []
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/sukyo-480.webp",
@@ -5257,6 +6278,28 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "이 상황에는 어떤 스프레드가 맞나요?",
+          "내가 뽑은 카드 배치는 무슨 뜻인가요?",
+          "이 고민은 카드로 어떻게 물어야 하나요?"
+        ],
+        "trustNotes": [
+          "AI가 작성한 상담 결과이며 결과를 보장하지 않습니다.",
+          "카드 해석은 참고용입니다.",
+          "기존 결제 정책을 따릅니다."
+        ],
+        "faq": [
+          {
+            "q": "가격은 어떻게 정해지나요?",
+            "a": "선택한 스프레드의 카드 수에 따라 결제 금액이 정해지고, 결제 화면에서 먼저 확인할 수 있습니다."
+          },
+          {
+            "q": "생성이 실패하면 어떻게 되나요?",
+            "a": "같은 결제 안에서 정해진 횟수까지 다시 시도할 수 있고, 그래도 어려우면 완성된 프롬프트를 대신 제공합니다."
+          }
+        ]
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/tarot-prompt-maker-480.webp",
@@ -5289,7 +6332,14 @@
       "evidence": [
         "js/core/service-registry.js"
       ],
-      "verification": "source-inventory-only"
+      "verification": "source-inventory-only",
+      "journey": {
+        "questions": [],
+        "trustNotes": [
+          "운세 결과는 참고용이며, 중요한 선택은 현실적인 판단과 함께 확인해 주세요."
+        ],
+        "faq": []
+      }
     },
     "bias-destiny": {
       "slug": "bias-destiny",
@@ -5379,6 +6429,32 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "최애와 나는 어떤 결로 닮았나요?",
+          "내 응원 방식은 어떤 유형인가요?",
+          "우리 사이의 케미는 어디서 나오나요?"
+        ],
+        "trustNotes": [
+          "로그인 외에 결제 절차가 없는 무료 기능입니다.",
+          "실제 관계나 결과를 보장하지 않습니다.",
+          "리딩은 참고와 재미의 범위에서 확인해 주세요."
+        ],
+        "faq": [
+          {
+            "q": "유료인가요?",
+            "a": "아니요. 로그인만 하면 열리는 무료 기능입니다."
+          },
+          {
+            "q": "같은 정보를 다시 넣으면 결과가 달라지나요?",
+            "a": "같은 입력에는 같은 결과가 나옵니다."
+          },
+          {
+            "q": "점수는 무엇을 근거로 하나요?",
+            "a": "두 사람의 일간 관계, 일지 관계, 오행 균형, 십성 관계에서 신호를 뽑아 다섯 점수로 환산합니다."
+          }
+        ]
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/bias-destiny-480.webp",
@@ -5421,6 +6497,17 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "오늘 마음에 담아둘 한마디가 궁금한가요?",
+          "잠깐 멈춰 나의 하루를 돌아볼까요?",
+          "어떤 조언을 오늘의 질문으로 삼을까요?"
+        ],
+        "trustNotes": [
+          "운세 결과는 참고용이며, 중요한 선택은 현실적인 판단과 함께 확인해 주세요."
+        ],
+        "faq": []
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/omikuji-480.webp",
@@ -5522,6 +6609,32 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "나는 어떤 자리에서 인연이 열리나요?",
+          "언제 움직이는 게 좋을까요?",
+          "만남 자리에 무엇을 지니면 좋을까요?"
+        ],
+        "trustNotes": [
+          "실제 만남이나 결과를 보장하지 않습니다.",
+          "결과는 입력한 생년 정보로 계산합니다.",
+          "운세 결과는 참고용입니다."
+        ],
+        "faq": [
+          {
+            "q": "결과가 나오기까지 오래 걸리나요?",
+            "a": "별도 생성 대기 없이 입력한 생년 정보로 바로 계산해 보여 줍니다."
+          },
+          {
+            "q": "해외 장소도 나오나요?",
+            "a": "추천 국가 5곳이 함께 나옵니다."
+          },
+          {
+            "q": "프롬프트는 무엇에 쓰나요?",
+            "a": "추천받은 장면을 이미지로 만들 때 쓰라고 준비한 문장 7종입니다."
+          }
+        ]
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/destiny-meeting-place-480.webp",
@@ -5622,6 +6735,32 @@
         "js/core/service-registry.js"
       ],
       "verification": "verified",
+      "journey": {
+        "questions": [
+          "지금 이직해도 괜찮을까요?",
+          "돈과 일 중 어디에 무게를 둬야 할까요?",
+          "올해 큰 결정을 내려도 될까요?"
+        ],
+        "trustNotes": [
+          "결제 전 기능 내용을 먼저 확인할 수 있어요.",
+          "이용권·월정석·단건결제 판단은 기존 결제 정책을 그대로 따릅니다.",
+          "운세 결과는 참고용이며 중요한 선택은 현실적인 판단과 함께 확인해 주세요."
+        ],
+        "faq": [
+          {
+            "q": "추가 질문은 따로 결제해야 하나요?",
+            "a": "아니요. 결과를 받은 뒤 이어지는 질문에는 추가 요금이 없습니다."
+          },
+          {
+            "q": "결과를 나중에 다시 볼 수 있나요?",
+            "a": "상담 내용이 저장되어 다시 열어볼 수 있습니다."
+          },
+          {
+            "q": "얼마나 긴가요?",
+            "a": "본문 기준 20,700자 이상으로 나옵니다."
+          }
+        ]
+      },
       "heroVariants": [
         {
           "src": "/feature-details/assets/ziwei-ai-480.webp",

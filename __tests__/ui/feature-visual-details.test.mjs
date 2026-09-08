@@ -22,7 +22,7 @@ test('published visual introductions have proven sources, real assets, and disti
       assert.ok(panel.verifiedCapture.width > 0 && panel.verifiedCapture.height > 0);
     }
     for (const variant of detail.heroVariants || []) assert.ok(fs.statSync(`public${variant.src}`).size <= 180000);
-    assert.ok(renderFeatureDetailPanels(detail).includes(detail.headline));
+    assert.ok(renderFeatureDetailPanels(detail).includes(detail.journey?.questions?.[0] || detail.headline));
   }
   assert.ok(!catalog.find(item => item.slug === 'animal-destiny').aliases.includes('animal-destiny-unlock'), 'free route must not replace a separately locked feature');
   const neo = JSON.parse(fs.readFileSync('public/feature-details/neo-operation-room.json', 'utf8'));
@@ -55,6 +55,23 @@ test('shared renderer escapes text and rejects unsafe image URLs and unverified 
   assert.ok(html.includes('&lt;img onerror=x&gt;'));
   assert.ok(!html.includes('<script') && !html.includes('<iframe') && !html.includes('javascript:') && !html.includes('evil.example'));
   assert.equal(renderFeatureDetailPanels({ ...detail, verification: 'source-inventory-only' }), '');
+});
+
+test('popup journey preserves image previews and escapes FAQ without adding checkout links', () => {
+  for (const entry of catalog) {
+    const detail = JSON.parse(fs.readFileSync(`public/feature-details/${entry.slug}.json`, 'utf8'));
+    const html = renderFeatureDetailPanels(detail, { conversionPrompt: true });
+    assert.match(html, /data-purchase-stage="awareness"/);
+    assert.match(html, /data-feature-conversion-request/);
+    assert.doesNotMatch(html, /상세페이지 새 화면에서 보기|href=|onclick=/);
+    assert.doesNotMatch(renderFeatureDetailPanels(detail), /data-feature-conversion-request/);
+    for (const panel of detail.panels) {
+      if (panel.visualPreview) assert.match(html, /featureEditorial/);
+    }
+  }
+  const html = renderFeatureDetailPanels({ verification: 'verified', journey: { questions: ['<img src=x onerror=x>'], trustNotes: ['<script>'], faq: [{ q: '<iframe>', a: '<svg onload=x>' }] }, panels: [] }, { conversionPrompt: true });
+  assert.doesNotMatch(html, /<img|<script|<iframe|<svg/);
+  assert.match(html, /&lt;svg onload=x&gt;/);
 });
 
 test('detail loader deduplicates per feature and retries failed fetches', async () => {

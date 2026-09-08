@@ -157,6 +157,14 @@ const eventNames = (calls) => events(calls).map((c) => c[1]);
   const received = boot({ url: "https://code-destiny.com/?ref=abc123&via=kakao_reward" });
   const shareEvent = events(received.calls).find((c) => c[1] === "share_receive");
   assert.ok(shareEvent, "ref 파라미터가 있는데 share_receive 가 없다");
+  for (const [path, id] of [["/features/ziwei/", "ziwei"], ["/", "site"]]) {
+    const shared = boot({ url: `https://code-destiny.com${path}?utm_source=copy&utm_medium=share&utm_campaign=public_share` });
+    const arrivals = events(shared.calls).filter(c => c[1] === "share_receive");
+    assert.equal(arrivals.length, 1, "공개 소개 공유 유입은 한 번만 기록");
+    assert.equal(arrivals[0][2].content_id, id);
+    assert.equal(arrivals[0][2].referral_channel, "copy");
+  }
+  assert.ok(!eventNames(boot({ url: "https://code-destiny.com/?utm_medium=share" }).calls).includes("share_receive"), "공유 캠페인이 아닌 방문을 공유로 집계하지 않음");
   assert.equal(shareEvent[2].referral_channel, "kakao_reward");
 
   assert.ok(!eventNames(boot().calls).includes("retention_visit"), "첫 방문에 retention_visit 이 나갔다 — 리텐션이 신규 유입만큼 부풀어 오른다");
