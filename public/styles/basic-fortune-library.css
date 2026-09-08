@@ -219,6 +219,7 @@ body:has(#sukuyoModalOverlay.fr-sukuyo[aria-hidden="false"]) #cdMobileBottomNav 
   .fr-sukuyo .sy-house-mansions { grid-template-columns: repeat(9,minmax(0,1fr)); }
   .fr-sukuyo .sy-house-articles { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .fr-sukuyo .sy-canon-grid,.fr-sukuyo .sy-canon-rhythm-grid { grid-template-columns: repeat(2,minmax(0,1fr)) !important; }
+}
 /* Ziwei star atlas: one chart, twelve visible palaces, no animation dependency. */
 #ziweiModalOverlay.fr-ziwei { --fr-bg:#0b121b; --fr-surface:#141e2b; --fr-ink:#f4efdf; --fr-muted:#bdc6cf; --fr-accent:#e0c58c; --fr-rule:#394351; }
 body:has(#ziweiModalOverlay[aria-hidden="false"]) #cdMobileBottomNav { display:none !important; }
@@ -237,7 +238,9 @@ body:has(#ziweiModalOverlay[aria-hidden="false"]) #cdMobileBottomNav { display:n
 #ziweiModalOverlay :is(.fr-chart-section,.fr-palace-reading,.fr-flow-section,#zwDeepAiPromptPanel) { scroll-margin-top:80px; margin-bottom:36px; }
 #ziweiModalOverlay .zw-grid-wrap { padding:10px !important; border:1px solid #6c5e42 !important; background:#101923 !important; box-shadow:none !important; border-radius:10px !important; overflow:visible !important; }
 #ziweiModalOverlay .zw-grid-wrap .zw-grid { display:grid !important; grid-template-columns:repeat(4,minmax(0,1fr)) !important; grid-template-rows:repeat(4,minmax(112px,auto)) !important; gap:4px !important; padding:0 !important; min-width:0 !important; height:auto !important; }
-#ziweiModalOverlay .zw-grid-wrap .zw-cell { opacity:1 !important; visibility:visible !important; transform:none !important; width:auto !important; min-width:0 !important; min-height:112px !important; height:auto !important; padding:10px 7px 24px !important; border:1px solid #414651 !important; border-radius:4px !important; background:#17212e !important; box-shadow:none !important; overflow-wrap:anywhere; }
+#fr-ziwei-chart .zw-grid-wrap .zw-cell { opacity:1 !important; visibility:visible !important; transform:none !important; animation:none !important; }
+#fr-ziwei-chart .zw-grid-wrap .zw-cell.active { opacity:1 !important; }
+#ziweiModalOverlay .zw-grid-wrap .zw-cell { opacity:1 !important; visibility:visible !important; transform:none !important; animation:none !important; width:auto !important; min-width:0 !important; min-height:112px !important; height:auto !important; padding:10px 7px 24px !important; border:1px solid #414651 !important; border-radius:4px !important; background:#17212e !important; box-shadow:none !important; overflow-wrap:anywhere; }
 #ziweiModalOverlay .zw-cell.active { border-color:var(--fr-accent) !important; background:#2c2b27 !important; outline:1px solid var(--fr-accent); outline-offset:-2px; }
 #ziweiModalOverlay .zw-cell-meng .zw-palace-name { color:#f3d38b !important; }
 #ziweiModalOverlay .zw-grid-wrap .zw-palace-name { position:static !important; font-size:15px !important; margin:0 0 8px !important; line-height:1.3 !important; }

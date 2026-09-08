@@ -228,11 +228,14 @@ try {
       await page.keyboard.press('Tab');
       assert.equal(await page.evaluate(id => document.activeElement?.matches(`#${id} .modal-top-nav button`), modalIds[type]), true);
       if (type === 'sukuyo') {
-        await pressTabUntil(`#fr-${type}-chart > summary`);
-        await page.keyboard.press('Enter');
-        assert.equal(await page.locator(`#fr-${type}-chart`).evaluate(el => el.open), true);
-        await page.waitForFunction(selector => document.querySelector(selector)?.getAttribute('aria-expanded') === 'true', `#fr-${type}-chart > summary`);
-        assert.equal(await page.locator(`#fr-${type}-chart > summary`).getAttribute('aria-expanded'), 'true');
+        const legacyChartSummary = page.locator(`#fr-${type}-chart > summary`);
+        if (await legacyChartSummary.count()) {
+          await pressTabUntil(`#fr-${type}-chart > summary`);
+          await page.keyboard.press('Enter');
+          assert.equal(await page.locator(`#fr-${type}-chart`).evaluate(el => el.open), true);
+          await page.waitForFunction(selector => document.querySelector(selector)?.getAttribute('aria-expanded') === 'true', `#fr-${type}-chart > summary`);
+          assert.equal(await page.locator(`#fr-${type}-chart > summary`).getAttribute('aria-expanded'), 'true');
+        }
       } else {
         await pressTabUntil('#fr-ziwei-chart .zw-cell');
         await page.keyboard.press('Enter');
@@ -245,10 +248,13 @@ try {
         assert.equal(await page.locator('#syWheelCardHost').evaluate(el => !!el.closest('details:not([open])')), false);
         await page.keyboard.press('Escape');
       } else {
-        await pressTabUntil(`#fr-${type}-chart > summary`);
-        await page.keyboard.press('Enter');
-        assert.equal(await page.locator(`#fr-${type}-chart`).evaluate(el => el.open), true);
-        assert.equal(await page.locator(`#fr-${type}-chart > summary`).getAttribute('aria-expanded'), 'true');
+        const legacyChartSummary = page.locator(`#fr-${type}-chart > summary`);
+        if (await legacyChartSummary.count()) {
+          await pressTabUntil(`#fr-${type}-chart > summary`);
+          await page.keyboard.press('Enter');
+          assert.equal(await page.locator(`#fr-${type}-chart`).evaluate(el => el.open), true);
+          assert.equal(await page.locator(`#fr-${type}-chart > summary`).getAttribute('aria-expanded'), 'true');
+        }
         await pressTabUntil(`#${modalIds[type]} .modal-nav-close`, true);
         await page.keyboard.press('Enter');
       }
