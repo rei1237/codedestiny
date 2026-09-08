@@ -586,6 +586,12 @@ jobs:
       - name: Verify mobile lazy-mount overlays have an opening path
         run: npm run verify:mobile-lazy-mount-openers
 
+      # 🔴 모바일 back-stack·세션 초안·하단 탭바 여정은 정적 계약만으로는 실제
+      # 터치 경로 회귀를 잡을 수 없다. PR 에서도 Playwright 여정 검증을 실행해
+      # 새 검증기가 가드 배선에서 빠지지 않도록 한다.
+      - name: Verify mobile journeys
+        run: npm run verify:mobile-journeys
+
       # 🔴 이것도 **fast 잡**이어야 한다. `fortune/index.html` 단독 수정은 티어가 low/fast 라
       # build 잡이 통째로 스킵된다 — 그런데 이 가드가 잡으려는 것이 바로 "정적 셸을 손으로 고쳐
       # sign-profiles·periods 와 어긋나게 만든" 경우다. build 잡에 두면 지키려던 경로에서만 잠든다.

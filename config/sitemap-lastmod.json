@@ -3,7 +3,7 @@
   "note": "사이트맵 lastmod 원장. scripts/lib/sitemap-lastmod.mjs 가 라우트별 소스 서명을 계산해 다시 쓴다. 손으로 고치지 말고 npm run sitemap:generate 로 갱신할 것.",
   "routes": {
     "/": {
-      "signature": "12f79429f6649af3",
+      "signature": "f651b523cf142837",
       "lastmod": "2026-09-08"
     },
     "/about/": {
@@ -83,7 +83,7 @@
       "lastmod": "2026-09-07"
     },
     "/en/": {
-      "signature": "cc5d30e13d79bde0",
+      "signature": "0cdcd96ee01494f4",
       "lastmod": "2026-09-08"
     },
     "/en/about/": {
@@ -651,7 +651,7 @@
       "lastmod": "2026-09-08"
     },
     "/ja/": {
-      "signature": "cc5d30e13d79bde0",
+      "signature": "0cdcd96ee01494f4",
       "lastmod": "2026-09-08"
     },
     "/ja/about/": {
@@ -951,8 +951,8 @@
       "lastmod": "2026-09-08"
     },
     "/saju/animal-destiny/": {
-      "signature": "9cc67ab4cc0f0250",
-      "lastmod": "2026-09-04"
+      "signature": "acec2f9fe7a30ded",
+      "lastmod": "2026-09-08"
     },
     "/saju/basic/": {
       "signature": "238d94fd2e604c20",
@@ -963,7 +963,7 @@
       "lastmod": "2026-09-08"
     },
     "/saju/destiny-bias/": {
-      "signature": "b6c63db0c00643ae",
+      "signature": "7840be9ffa87937c",
       "lastmod": "2026-09-08"
     },
     "/saju/destiny-meeting-place/": {
@@ -1267,7 +1267,7 @@
       "lastmod": "2026-09-08"
     },
     "/zh-tw/": {
-      "signature": "cc5d30e13d79bde0",
+      "signature": "0cdcd96ee01494f4",
       "lastmod": "2026-09-08"
     },
     "/zh-tw/insights/": {
@@ -1307,7 +1307,7 @@
       "lastmod": "2026-09-08"
     },
     "/zh/": {
-      "signature": "cc5d30e13d79bde0",
+      "signature": "0cdcd96ee01494f4",
       "lastmod": "2026-09-08"
     },
     "/zh/about/": {
