@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-08T04:19:32.3376624+00:00",
+  "title": "Design System: Code Destiny Ziwei Consultation",
+  "extensions": {
+    "shadows": [],
+    "motion": [
+      {
+        "name": "reduced-motion",
+        "value": "animation:none!important;transition:none!important;scroll-behavior:auto!important",
+        "purpose": "prefers-reduced-motion:reduce에서 상담 읽기 영역에 적용"
+      }
+    ],
+    "breakpoints": [
+      { "name": "wide-layout", "value": "768px" },
+      { "name": "mobile-art-max", "value": "600px" }
+    ],
+    "focus": {
+      "outline": "2px solid var(--zw-gold)",
+      "outlineOffset": "4px"
+    },
+    "imagery": {
+      "desktopAsset": "/images/ziwei/celestial-atlas.webp",
+      "mobileAsset": "/images/ziwei/celestial-atlas-mobile.webp",
+      "opacity": 0.72,
+      "objectFit": "cover",
+      "objectPosition": "70% 50%",
+      "overlay": "linear-gradient(90deg,#09131ef5 0%,#09131ece 45%,#09131e38 100%)",
+      "purpose": "결론을 읽을 수 있는 대비를 유지하면서 천체 지도 질감을 남기는 표지 배경"
+    },
+    "controls": {
+      "minimumTargetHeight": "44px",
+      "primaryActionMinimumHeight": "48px",
+      "actionHover": "filter:brightness(1.12)",
+      "disabled": "opacity:.55;cursor:not-allowed"
+    },
+    "pdf": {
+      "metricsSource": "lib/pdf/typeset-metrics.js",
+      "writerSource": "lib/pdf/typeset-writer.ts",
+      "fontRule": "표지 제목을 포함해 등록된 한글 본문 글꼴을 사용한다.",
+      "pageRule": "남색 표지 다음에는 공용 writer의 밝은 종이와 검색 가능한 텍스트를 사용한다."
+    }
+  },
+  "components": [],
+  "narrative": {
+    "northStar": "별 지도로 읽는 상담서",
+    "overview": "자미두수 상담에 한정한 남색과 금색의 차분한 읽기 표면. 질문과 해석을 먼저 보여주고 근거와 명반을 펼쳐 확인한다.",
+    "keyCharacteristics": ["명조 제목과 산세리프 본문", "천체 지도 표지", "선으로 구분한 질문 목록", "밝은 종이의 PDF 본문"],
+    "rules": [
+      { "name": "표면과 글자 동행 규칙", "body": "배경과 본문, 설명, 선택 상태를 한 세트로 확인한다.", "section": "colors" },
+      { "name": "오래 읽는 본문 규칙", "body": "짧은 문단과 넉넉한 행간을 유지한다.", "section": "typography" },
+      { "name": "별 지도의 재료감 규칙", "body": "표지 질감의 가시성과 글자 대비를 함께 확인한다.", "section": "elevation" }
+    ],
+    "dos": ["Do 질문에서 해석과 근거로 이어지는 순서를 보존한다.", "Do 키보드 포커스와 충분한 조작 영역을 유지한다."],
+    "donts": ["Don't 기존 기술 명반의 색상을 신규 상담 팔레트로 일반화한다.", "Don't 개발 도구 표시를 서비스 디자인으로 기록한다."]
+  }
+}
