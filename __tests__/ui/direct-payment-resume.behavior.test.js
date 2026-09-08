@@ -287,9 +287,16 @@ test("승인 복귀(재개 서술자 없음): 미완료 티켓·URL 보존 → �
 });
 
 test("GRANT_PENDING(200+code): 실패도 완료도 아니다 — 티켓·URL 유지, access 갱신 0회, alert 0회", async () => {
+  let resumed = 0;
   const { window, calls } = boot({
     url: "https://code-destiny.com/?portone_redirect=1&paymentId=ord_1",
-    confirmResponse: () => jsonResponse({ code: "GRANT_PENDING", recoveryRequired: true, message: "결제는 승인되었고 반영을 기다리고 있어요.", pollUrl: "/api/billing/orders/ord_1" }),
+    confirmResponse: () => jsonResponse({
+      code: "GRANT_PENDING", recoveryRequired: true, message: "결제는 승인되었고 반영을 기다리고 있어요.", pollUrl: "/api/billing/orders/ord_1",
+      context: { resume: { kind: "must-not-run-before-entitlement", action: "", args: {} } },
+    }),
+    beforeProfile(win) {
+      win.__cdCheckoutEntry.registerPaidResumeHandler("must-not-run-before-entitlement", () => { resumed++; return true; });
+    },
   });
   try {
     await waitFor(() => calls.overlay.filter((c) => c.open && c.mode === "unlock-saving").length >= 2, "PENDING 안내 오버레이");
@@ -298,6 +305,7 @@ test("GRANT_PENDING(200+code): 실패도 완료도 아니다 — 티켓·URL 유
     assert.equal(calls.refresh, 0, "열람 권한이 아직 없으니 access 갱신을 부르지 않는다");
     assert.equal(calls.alert.length, 0, "PENDING 은 alert 로 닫지 않는다");
     assert.equal(calls.events.length, 0, "성공 이벤트 없음");
+    assert.equal(resumed, 0, "지급 대기 context는 결과 생성을 시작하지 않는다");
     assert.ok(window.localStorage.getItem(RESUME_KEY), "티켓을 남겨 새로고침이 멱등 재시도가 되게 한다");
     assert.match(window.location.search, /portone_redirect=1/, "URL 도 그대로 둔다");
     const pendingNotice = calls.overlay.filter((c) => c.open && c.mode === "unlock-saving").pop();

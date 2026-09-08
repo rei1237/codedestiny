@@ -912,17 +912,23 @@ const ROUTES = {
       ctx.paymentStatus = "PAID";
       await purgeCredentialCache(request, CREDENTIAL_CACHE_PREFIXES);
 
-      // 입력 복호화 실패가 이미 PAID인 주문의 권한 확인을 실패로 바꾸면 안 된다.
+      // PAID와 entitlement 지급은 별개다. 지급 대기 중에는 context를 돌려주면 안 된다.
+      // 그렇지 않으면 복귀 클라이언트가 결과 생성을 먼저 실행할 수 있다.
       let context = null;
-      try {
-        context = await readOrderResumeContext(result.order, env);
-        ctx.resumeEvent = context ? "RECOVERY_CONTEXT_FOUND" : "RECOVERY_CONTEXT_MISSING";
-      } catch (error) {
-        ctx.resumeEvent = "RECOVERY_CONTEXT_UNAVAILABLE";
-        console.warn("[payments] paid resume context unavailable", {
-          orderId: String(result.order?.merchantUid || ""),
-          message: String(error?.message || error).slice(0, 160),
-        });
+      if (result.granted) {
+        // 입력 복호화 실패가 이미 PAID인 주문의 권한 확인을 실패로 바꾸면 안 된다.
+        try {
+          context = await readOrderResumeContext(result.order, env);
+          ctx.resumeEvent = context ? "RECOVERY_CONTEXT_FOUND" : "RECOVERY_CONTEXT_MISSING";
+        } catch (error) {
+          ctx.resumeEvent = "RECOVERY_CONTEXT_UNAVAILABLE";
+          console.warn("[payments] paid resume context unavailable", {
+            orderId: String(result.order?.merchantUid || ""),
+            message: String(error?.message || error).slice(0, 160),
+          });
+        }
+      } else {
+        ctx.resumeEvent = "RECOVERY_ENTITLEMENT_PENDING";
       }
 
       const envelope = legacyConfirmEnvelope(result.order, {
@@ -934,9 +940,11 @@ const ROUTES = {
       envelope.entitlementStatus = result.granted ? "granted" : "pending";
       envelope.context = context;
       if (!result.granted) envelope.pollUrl = `/api/payments/orders/${encodeURIComponent(params.id)}`;
-      const premiumCookie = await attachPremiumAccessToConfirmedOrder(env, envelope, {
-        userId, order: result.order, orderId: params.id,
-      });
+      const premiumCookie = result.granted
+        ? await attachPremiumAccessToConfirmedOrder(env, envelope, {
+          userId, order: result.order, orderId: params.id,
+        })
+        : "";
       return json(envelope, {
         headers: {
           "Cache-Control": "no-store",
