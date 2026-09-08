@@ -11142,6 +11142,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     if (typeof window.__cdRefreshSukuyoCalendarPanel === 'function') {
       window.__cdRefreshSukuyoCalendarPanel(true);
     }
+    if (window.BasicFortunePresentation) window.BasicFortunePresentation.sukuyo(area, window._syLastSukuyoBasicResult);
 
     // 게이지 + 유명인 UI 초기화 (DOM 삽입 후 실행)
     const _renderMIdx = sData ? sData.mansionIdx : 0;

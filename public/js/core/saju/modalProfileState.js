@@ -175,7 +175,7 @@ function _renderSukuyoSection(profile) {
   if (noP) noP.style.display = 'none';
   card.style.display = 'block';
   area.innerHTML =
-    '<div style="text-align:center;padding:50px 20px;color:#a78bfa;font-family:\"Gowun Dodum\",serif;letter-spacing:1px;animation:syPulse 1.5s infinite;">✦ 운명의 별을 계산하는 중...</div>';
+    '<div class="fr-state" role="status" aria-live="polite">태어난 날의 숙을 읽고 있어요.</div>';
   if (sheet) sheet.scrollTop = 0;
   _cdModalHardResetTop('sukuyoModalOverlay', 'sukuyoModalSheet', 'sukuyoSection');
   setTimeout(function () {
@@ -202,16 +202,16 @@ function _renderZiweiSection() {
   if (noP) noP.style.display = 'none';
   card.style.display = 'block';
   area.innerHTML =
-    '<div style="text-align:center;padding:50px 20px;color:#e879f9;font-family:\"Gowun Dodum\",serif;letter-spacing:1px;">✦ 자미두수 명반을 계산하는 중...</div>';
+    '<div class="fr-state" role="status" aria-live="polite">당신의 명반을 펼치고 있어요.</div>';
   if (sheet) sheet.scrollTop = 0;
   _cdModalHardResetTop('ziweiModalOverlay', 'ziweiModalSheet', 'ziweiModalSection');
 
   function showZiweiFallback(message) {
     if (!area) return;
     area.innerHTML = ''
-      + '<div style="text-align:center;padding:28px 16px;border:1px solid rgba(244,114,182,0.35);border-radius:14px;background:rgba(88,28,135,0.18)">'
-      + '  <div style="font-size:1rem;color:#f9a8d4;font-family:\"Gowun Dodum\",serif;letter-spacing:0.5px">자미두수 화면을 불러오지 못했습니다.</div>'
-      + '  <div style="margin-top:8px;font-size:0.82rem;color:#fbcfe8;line-height:1.6">' + String(message || '필수 스크립트 로딩 중 오류가 발생했습니다.') + '</div>'
+      + '<div class="fr-state" role="alert">'
+      + '  <h3>명반을 펼치지 못했어요.</h3>'
+      + '  <p>잠시 후 다시 시도해 주세요. 입력한 프로필은 그대로 유지됩니다.</p>'
       + '  <div style="margin-top:12px">'
       + '    <button type="button" onclick="openZiweiModal()" style="background:rgba(236,72,153,0.22);color:#fce7f3;border:1px solid rgba(244,114,182,0.55);border-radius:10px;padding:8px 12px;font-size:0.8rem;cursor:pointer">다시 시도</button>'
       + '  </div>'
