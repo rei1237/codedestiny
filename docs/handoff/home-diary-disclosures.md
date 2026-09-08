@@ -8,7 +8,8 @@ next: PR 최신 CI와 main 충돌을 확인하고 사용자 승인 및 delivery 
 
 - cwd: D:/Development/worktrees/home-diary-disclosures
 - branch: codex/home-diary-disclosures
-- base: ad63ac91fbd69ed72c5590d7a26472f79d9729d4
+- base: 978b037ce2b50610e781be86fbed5914832fbc53 (최신 main 통합)
+- PR: https://github.com/rei1237/codedestiny/pull/1838 (Draft; CI 진행 중)
 - 구현: 다이어리·전문가 상담을 홈으로 복원, 대화형 상담 위치 상향, 전체 검색 기본 접힘, 컬렉션은 펼치기 바로 아래, 하단 모든 운세 원래 액션 복원, 음악 1천원대 필터와 12개 언어 라벨.
 - 기존 가격·결제·인증·API·DB 계약 유지. 이미지 바이트 변경 없음. sync:public 캐시 키/미러와 sitemap 원장은 생성 결과다.
 - 전체 화면 컬렉션은 navigation store 구독으로 원래 inputPage 부모에 잠시 옮기고 닫으면 홈 슬롯으로 복원한다. 홈 내부 paint containment가 fullscreen을 가두지 않도록 한다.
@@ -28,9 +29,10 @@ next: PR 최신 CI와 main 충돌을 확인하고 사용자 승인 및 delivery 
 
 ## 남은 확인
 
-PR CI/build 및 최신 main 충돌 확인. 다른 홈 작업과 공통 파일 중첩이 있으므로 순차 통합한다. 병합/스테이징/운영 배포는 수행하지 않았다. 커밋 후 public mirror freshness 확인이 필요하다.
+PR CI/build 및 최신 main 충돌 확인. 다른 홈 작업과 공통 파일 중첩이 있으므로 순차 통합한다. 병합/스테이징/운영 배포는 수행하지 않았다. 커밋 후 verify:public-mirror-fresh 통과. PR CI는 진행 중이다.
 
 ```powershell
 Set-Location 'D:/Development/worktrees/home-diary-disclosures'
 codex 'docs/handoff/home-diary-disclosures.md를 읽고 codex/home-diary-disclosures PR 최신 CI와 충돌을 확인하라. 승인 없이 병합하거나 운영 배포하지 말 것.'
 ```
+

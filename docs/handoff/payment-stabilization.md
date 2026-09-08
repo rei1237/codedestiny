@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-08
-next: 자동 staging release #34219474242가 최신 main 8cc8d24b7을 Pages·Worker 양쪽에 반영한 것을 확인한 뒤, payment-inventory.json의 남은 1,218개 미검토 상품/source/call을 실제 route부터 추적해 Phase 1 게이트를 완료한다
+next: 후속 PR의 최신 검사와 staging SHA를 확인하고, 미검토 1,091개 source/product/call 및 결과 저장 완료 시 복구 입력 삭제 연결부터 계속한다
 ---
 
 # 결제 안정화 구현 계속하기
@@ -28,7 +28,7 @@ next: 자동 staging release #34219474242가 최신 main 8cc8d24b7을 Pages·Wor
 - [ ] 전체 서버 resume/recover/멱등성/환불·재구매/TTL/결과 저장 연결.
 - [ ] 과거 조기 종료 복원은 read-only 후보 보고부터. 사용량 보존, 0원은 프로필 상한만 복원.
 - [ ] Mongo/Cloudflare/중복 호출 최적화, 전 기능 자동 E2E, 동일 staging SHA의 실제 기기·PG 시험 증거, 성능 비교.
-- [ ] staging이 최신 main `8cc8d24b7`에 수렴했는지 확인. Pages `/version.json`과 Worker `/api/version`가 같은 SHA인지, `robots.txt`·`X-Robots-Tag`가 staging 차단 상태인지 확인한다. release가 실패하면 run log만 확인하고 임의 재배포하지 않는다.
+- [x] staging이 최신 main `8cc8d24b7`에 수렴했는지 확인. Pages `/version.json`과 Worker `/api/version`가 같은 SHA인지, `robots.txt`·`X-Robots-Tag`가 staging 차단 상태인지 확인한다. release가 실패하면 run log만 확인하고 임의 재배포하지 않는다.
 
 ## 정본 예시
 
@@ -45,3 +45,20 @@ next: 자동 staging release #34219474242가 최신 main 8cc8d24b7을 Pages·Wor
 ## 모르는 것
 
 실제 PG 앱 전환·운영 index·과거 복원 대상 수는 미확인. 근거가 없으면 추측해서 채우지 말고 필요한 환경 정보를 확인한다. production은 명시적인 별도 승격 요청 전까지 `174c363ee`를 유지한다.
+
+
+## 후속 세션 2026-09-08
+
+- 작업 위치: `D:\Development\codedestiny-worktrees\payment-stabilization-review`
+- 브랜치: `codex/payment-stabilization-review`, base `8cc8d24b7`.
+- 기존 작업 브랜치의 `1a409e7b6` 인계 커밋은 보존했다. 새 linked worktree의 `session:start` PASS.
+- 회당 결제/프로필 접근 캐시 범위, 서버 복구 binding, 환불 후 재구매 CAS를 수정했다. 각각 재현 테스트와 대조군이 있다.
+- 음원 123개와 4개 source/2개 call 검토를 `payment-inventory-reviews.json`에 기록했다. 현재 잔여는 1,091개이며 `--check`는 의도대로 exit 1이다.
+- 결제 v2 26 suites / 389 tests, 접근 캐시 10 tests, 복구 7 tests PASS. 전체 check:fast는 실행 중이며 PR 및 최종 결과를 이어 기록한다.
+- staging #34219474242 성공. `verify-deployed-sha --origin=https://staging.code-destiny.com --sha=8cc8d24b7f6a60b715e58750a30bf3e9738c1699 --attempts=1` PASS. Pages·Worker 모두 `8cc8d24b7`, 홈/robots HTTP 200 및 noindex/Disallow 확인. 이번 수정 SHA의 배포 증거와는 구분한다. 배포나 운영 승격을 직접 실행하지 않았다.
+- 정정: `reconcile.js`의 7일 초과 복구 payload 정리는 이미 있다. 결과 완료 시 즉시 삭제·route allowlist·원본 이미지 저장 차단 전수 검토는 남아 있다.
+- 기존 문서의 1,218개는 이전 추출치다. 위 최신 수치와 검토 파일을 사용한다.
+
+재개: 이 작업 위치에서 본 문서를 읽고 `codex/payment-stabilization-review` PR 상태를 확인한 뒤, `node --require ./scripts/lib/mock-network-guard.cjs scripts/payment-inventory.mjs --check`의 남은 항목부터 추적한다. 실결제·실 LLM·운영 DB 접근을 mock 검증에 섞지 않는다.
+
+로컬 Windows의 `public/icons/yehwa-branch.svg` CRLF 때문에 첫 check:fast가 Node 956/957에서 실패했다. 변경 전 워크트리에서도 동일 실패를 확인했고, 현재 격리 워크트리만 Git 원본 LF 바이트로 복원했다(Git 내용 변경 없음). 생성물 검사 PASS 후 전체 검사를 재실행했다.

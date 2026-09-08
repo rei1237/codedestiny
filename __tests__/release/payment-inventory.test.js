@@ -81,4 +81,17 @@ test('source changes invalidate previous review and cannot hide newly added call
   assert.deepEqual(result, ['INVALID_SOURCE_REVIEW:app/new/page.tsx']);
   assert.equal(row.calls[0].review, 'UNREVIEWED');
 });
+
+test('review hashes survive Windows checkout line endings without merging different bytes', () => {
+  const lf = inspectSource('app/example.ts', 'requestPayment({});\n', new Set());
+  const crlf = inspectSource('app/example.ts', 'requestPayment({});\r\n', new Set());
+  assert.notEqual(lf.sha256, crlf.sha256);
+  assert.equal(lf.reviewSha256, crlf.reviewSha256);
+  const review = { sha256: crlf.reviewSha256, role: 'entry', rationale: 'explicitly reviewed payment call',
+    calls: [{ name: 'requestPayment', line: 1, rationale: 'opens checkout' }] };
+  assert.deepEqual(applyInventoryReviews({ products: [], sources: [lf] }, { sources: { [lf.file]: review } }), []);
+  assert.equal(lf.calls[0].review, 'VERIFIED');
+  const changed = inspectSource(lf.file, 'requestPayment({amount: 2});\n', new Set());
+  assert.deepEqual(applyInventoryReviews({ products: [], sources: [changed] }, { sources: { [lf.file]: review } }), [`INVALID_SOURCE_REVIEW:${lf.file}`]);
+});
 })().catch(error => { console.error(error); process.exitCode = 1; });
