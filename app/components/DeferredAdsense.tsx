@@ -1,6 +1,7 @@
 "use client";
 
 import Script from "next/script";
+import { hasAdvertisingReview } from "../../lib/content/editorial-review.mjs";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { isMobileAppRuntime } from "../_lib/auth-client";
@@ -46,6 +47,7 @@ function currentDocumentAllowsAdsense(pathname: string | null) {
 
   return (
     canLoadAdsenseForCanonicalUrl(pathname || window.location.pathname, canonicalHref, window.location.href) &&
+    hasAdvertisingReview(window.location.pathname) &&
     !robotsText.includes("noindex") &&
     !robotsText.includes("nofollow")
   );

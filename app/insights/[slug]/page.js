@@ -177,8 +177,9 @@ export default async function InsightArticlePage({ params }) {
     description,
     path: `/insights/${article.slug}`,
     image: image.src,
-    datePublished: article.publishedAt || article.updatedAt,
-    dateModified: article.updatedAt || article.publishedAt,
+    author: article.author,
+    datePublished: article.publishedAt || undefined,
+    dateModified: article.updatedAt || undefined,
   });
   const breadcrumb = buildBreadcrumbJsonLd([
     { name: "꿀꿀 운세 홈", path: "/" },
@@ -214,10 +215,11 @@ export default async function InsightArticlePage({ params }) {
         {contentHtml ? (
           <section
             className="mt-8 rounded-2xl border border-white/10 bg-[#10172b]/85 p-5 text-base leading-8 text-slate-300 md:p-7 [&_a]:text-amber-100 [&_h2]:mt-8 [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:text-amber-100 [&_h2:first-child]:mt-0 [&_h3]:mt-6 [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:text-slate-100 [&_li]:mt-2 [&_p]:mt-4 [&_strong]:text-slate-100 [&_ul]:mt-4 [&_ul]:list-disc [&_ul]:pl-6 [&_table]:mt-6 [&_table]:block [&_table]:w-full [&_table]:overflow-x-auto [&_table]:border-collapse [&_table]:text-sm [&_thead]:text-amber-100/90 [&_th]:border [&_th]:border-white/15 [&_th]:bg-white/[0.06] [&_th]:p-3 [&_th]:text-left [&_th]:font-semibold [&_td]:border [&_td]:border-white/10 [&_td]:p-3 [&_td]:align-top"
+            data-article-body="true"
             dangerouslySetInnerHTML={{ __html: contentHtml }}
           />
         ) : (
-          <section className="mt-8 space-y-5">
+          <section data-article-body="true" className="mt-8 space-y-5">
             {sections.map((section, index) => (
               <section key={`${section.heading}-${index}`} className="rounded-2xl border border-white/10 bg-[#10172b]/85 p-5 md:p-7">
                 {section.heading ? <h2 className="text-2xl font-semibold text-amber-100">{section.heading}</h2> : null}
@@ -227,7 +229,7 @@ export default async function InsightArticlePage({ params }) {
           </section>
         )}
 
-        <ContentIntegrityNote contentSource={article.contentSource} author={article.author} datePublished={article.publishedAt || article.updatedAt} dateModified={article.updatedAt || article.publishedAt} />
+        <ContentIntegrityNote contentPath={`/insights/${slug}`} contentSource={article.contentSource} author={article.author} datePublished={article.publishedAt} dateModified={article.updatedAt} />
 
         <FusionCrossSell fromPath={`/insights/${slug}`} tone="neo" />
 

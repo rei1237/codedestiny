@@ -198,15 +198,15 @@ export default function SiteFooterHub() {
           {!IS_APP_BUILD && (
             <>
               <p className={styles.sfhKicker}>Constellation Navigation</p>
-              <p className={styles.sfhTitle}>서비스 링크 허브</p>
+              <p className={styles.sfhTitle}>주제별 서비스와 읽을거리</p>
               <p className={styles.sfhSubtitle}>
-                주요 운세와 랜딩 페이지를 성좌 지도로 재배열해 탐색 흐름과 검색 신호를 함께 강화했습니다.
+                관심 있는 주제를 펼쳐 관련 운세와 가이드를 찾아보세요.
               </p>
 
               <div className={styles.sfhGroupGrid}>
                 {SEO_LINK_GROUPS.map((group) => (
-                  <section key={group.title} className={styles.sfhCard} aria-label={group.title}>
-                    <h2 className={styles.sfhGroupTitle}>{group.title}</h2>
+                  <details key={group.title} className={styles.sfhCard}>
+                    <summary className={styles.sfhGroupTitle} style={{ cursor: "pointer", paddingBlock: "0.75rem" }}>{group.title}</summary>
                     <nav className={styles.sfhLinkNav} aria-label={`${group.title} 링크`}>
                       {group.links.map((link) => (
                         <a key={link.href} href={link.href} className={styles.sfhLink}>
@@ -214,7 +214,7 @@ export default function SiteFooterHub() {
                         </a>
                       ))}
                     </nav>
-                  </section>
+                  </details>
                 ))}
               </div>
             </>
