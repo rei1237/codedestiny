@@ -201,28 +201,29 @@ async function requestJson(url, options, errorPrefix) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
   const { env: _env, signal: _signal, ...fetchOptions } = options || {};
-  let response;
   try {
-    response = await fetch(url, {
+    const response = await fetch(url, {
       ...fetchOptions,
       signal: controller.signal,
     });
+    // fetch resolves at headers; keep the same deadline while consuming the body.
+    const payload = await response.json().catch((error) => {
+      if (controller.signal.aborted || error?.name === "AbortError") throw error;
+      return null;
+    });
+    if (!response.ok) {
+      const remoteMessage = payload?.message || payload?.code || payload?.type || response.statusText;
+      throw new Error(`${errorPrefix}: ${remoteMessage}`);
+    }
+    return payload;
   } catch (error) {
-    if (error?.name === "AbortError") {
+    if (controller.signal.aborted || error?.name === "AbortError") {
       throw new Error(`${errorPrefix}: request timed out after ${timeoutMs}ms`);
     }
     throw error;
   } finally {
     clearTimeout(timeout);
   }
-  const payload = await response.json().catch(() => null);
-
-  if (!response.ok) {
-    const remoteMessage = payload?.message || payload?.code || payload?.type || response.statusText;
-    throw new Error(`${errorPrefix}: ${remoteMessage}`);
-  }
-
-  return payload;
 }
 
 function firstFiniteNumber(...values) {
