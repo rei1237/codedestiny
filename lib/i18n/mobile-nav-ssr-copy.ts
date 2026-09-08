@@ -2,8 +2,8 @@
 export const MOBILE_NAV_SSR_COPY: Record<string, Record<string, string>> = {
   "ja": {
     "home.nav.home": "ホーム",
-    "shell.cdMobileBottomNav.cdMobileBottomNavMain.kxvio": "四柱推命",
-    "shell.cdMobileBottomNav.cdMobileBottomNavMain.kb86wy0.ariaLabel": "自分のプロフィールで四柱推命を見る",
+    "home.mobileFunnel.freeNav": "無料",
+    "home.mobileFunnel.freeNavAria": "無料で運勢を見る",
     "shell.cdMobileBottomNav.cdMobileBottomNavMain.k16cq4to": "占い一覧",
     "shell.cdMobileBottomNav.cdMobileBottomNavMain.k1mpcz5w.ariaLabel": "すべての占いを見る",
     "shell.cdMobileBottomNav.cdMobileBottomNavMain.ku6gdz": "パス",
@@ -14,8 +14,8 @@ export const MOBILE_NAV_SSR_COPY: Record<string, Record<string, string>> = {
   },
   "en": {
     "home.nav.home": "Home",
-    "shell.cdMobileBottomNav.cdMobileBottomNavMain.kxvio": "Four Pillars",
-    "shell.cdMobileBottomNav.cdMobileBottomNavMain.kb86wy0.ariaLabel": "Read my Four Pillars with my profile",
+    "home.mobileFunnel.freeNav": "Free",
+    "home.mobileFunnel.freeNavAria": "Read my free fortune",
     "shell.cdMobileBottomNav.cdMobileBottomNavMain.k16cq4to": "Readings",
     "shell.cdMobileBottomNav.cdMobileBottomNavMain.k1mpcz5w.ariaLabel": "Browse all readings",
     "shell.cdMobileBottomNav.cdMobileBottomNavMain.ku6gdz": "Pass",
@@ -26,8 +26,8 @@ export const MOBILE_NAV_SSR_COPY: Record<string, Record<string, string>> = {
   },
   "zh": {
     "home.nav.home": "首页",
-    "shell.cdMobileBottomNav.cdMobileBottomNavMain.kxvio": "四柱八字",
-    "shell.cdMobileBottomNav.cdMobileBottomNavMain.kb86wy0.ariaLabel": "以我的资料查看四柱八字",
+    "home.mobileFunnel.freeNav": "免费",
+    "home.mobileFunnel.freeNavAria": "查看免费运势",
     "shell.cdMobileBottomNav.cdMobileBottomNavMain.k16cq4to": "全部运势",
     "shell.cdMobileBottomNav.cdMobileBottomNavMain.k1mpcz5w.ariaLabel": "浏览全部运势",
     "shell.cdMobileBottomNav.cdMobileBottomNavMain.ku6gdz": "通行证",
@@ -38,8 +38,8 @@ export const MOBILE_NAV_SSR_COPY: Record<string, Record<string, string>> = {
   },
   "zh-TW": {
     "home.nav.home": "首頁",
-    "shell.cdMobileBottomNav.cdMobileBottomNavMain.kxvio": "四柱八字",
-    "shell.cdMobileBottomNav.cdMobileBottomNavMain.kb86wy0.ariaLabel": "以我的資料查看四柱八字",
+    "home.mobileFunnel.freeNav": "免費",
+    "home.mobileFunnel.freeNavAria": "查看免費運勢",
     "shell.cdMobileBottomNav.cdMobileBottomNavMain.k16cq4to": "全部運勢",
     "shell.cdMobileBottomNav.cdMobileBottomNavMain.k1mpcz5w.ariaLabel": "瀏覽全部運勢",
     "shell.cdMobileBottomNav.cdMobileBottomNavMain.ku6gdz": "通行證",

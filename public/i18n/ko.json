@@ -755,6 +755,7 @@
     "passFooter": {
       "aria": "이용권 하단 안내",
       "eyebrow": "Moonlight Pass",
+      "savingsBadge": "이용권 사용 시 최대 3분의 1 수준",
       "title": "5,000원 리딩 두 번이면, 9,900원 이용권이 더 쌉니다",
       "desc": "고른 가격대 안의 리딩은 30일 동안 월 이용 한도까지 열리고, 그보다 비싼 리딩만 필요할 때 단건으로 결제해요. 범위는 5천원급·1만원급·2만원급·이용권 대상 전체 네 단계라 자주 보는 가격대로 고르면 됩니다.",
       "pointsAria": "이용권 핵심 안내",
@@ -1276,8 +1277,8 @@
     },
     "mobileFunnel": {
       "lowPrice": "3천원대",
-      "freeNav": "무료",
-      "freeNavAria": "무료로 내 운세 보기",
+      "freeNav": "사주",
+      "freeNavAria": "사주",
       "consultNav": "상담",
       "consultNavAria": "추천 상담 살펴보기"
     },
