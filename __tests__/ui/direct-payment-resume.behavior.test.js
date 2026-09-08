@@ -54,7 +54,7 @@ function boot(options) {
   if (typeof window.AbortController === "undefined") window.AbortController = AbortController;
   if (typeof window.CSS === "undefined") window.CSS = { escape: (s) => String(s) };
 
-  const calls = { confirm: [], pass: [], report: [], alert: [], overlay: [], refresh: 0, scroll: 0, events: [] };
+  const calls = { confirm: [], recover: [], pass: [], report: [], alert: [], overlay: [], refresh: 0, scroll: 0, events: [] };
   window.Element.prototype.scrollIntoView = function () { calls.scroll += 1; };
   window.alert = (msg) => { calls.alert.push(String(msg)); };
   window._cdSetCoinGateOverlay = (open, message, mode) => { calls.overlay.push({ open: !!open, message: String(message || ""), mode: String(mode || "") }); };
@@ -66,6 +66,10 @@ function boot(options) {
     const target = String(url);
     if (/\/api\/payments\/orders\/[^/]+\/resume/.test(target)) {
       return Promise.resolve(jsonResponse({ ok: true, context: opts.serverContext || null }));
+    }
+    if (/\/api\/payments\/orders\/[^/]+\/recover/.test(target)) {
+      calls.recover.push({ url: target, body: init && init.body ? JSON.parse(String(init.body)) : null });
+      return Promise.resolve(opts.recoveryResponse ? opts.recoveryResponse() : jsonResponse({ ok: true, context: opts.serverContext || null }));
     }
     if (target.indexOf('/api/billing/coin-gate') >= 0) {
       calls.pass.push(JSON.parse(String(init.body)));
@@ -147,8 +151,8 @@ test('다른 탭 주문의 입력을 현재 승인에 붙이지 않는다', asyn
   });
   try {
     await waitFor(() => calls.events.length === 1, 'different order');
-    assert.equal(calls.confirm[0].body.merchantUid, 'ord_2');
-    assert.equal(calls.confirm[0].body.requestId, undefined);
+    assert.equal(calls.recover[0].url.endsWith('/orders/ord_2/recover'), true);
+    assert.equal(calls.recover[0].body, null);
     assert.ok(window.localStorage.getItem(RESUME_KEY), '다른 주문의 context를 지우지 않는다');
   } finally { window.close(); }
 });
@@ -172,7 +176,7 @@ test("local/sessionStorage 없는 모바일 복귀는 서버 context 입력과 �
     url: "https://code-destiny.com/fortune-tea-house?portone_redirect=1&paymentId=ord_2",
     ticket: null,
     serverContext: { merchantUid: 'ord_2', resume: { kind: 'tea-fixture', action: '', args: { cards: '[1,2,3]', question: 'saved question' } }, confirmBody: { featureKey: 'tea', requestId: 'same-attempt', merchantUid: 'ord_2' } },
-    confirmResponse: () => jsonResponse({ ok: true, unlocked: true, featureKey: 'tea' }),
+    recoveryResponse: () => jsonResponse({ ok: true, unlocked: true, featureKey: 'tea', context: { merchantUid: 'ord_2', resume: { kind: 'tea-fixture', action: '', args: { cards: '[1,2,3]', question: 'saved question' } }, confirmBody: { featureKey: 'tea', requestId: 'same-attempt', merchantUid: 'ord_2' } } }),
     beforeProfile(win) {
       win.__cdCheckoutEntry.registerPaidResumeHandler('tea-fixture', (descriptor, grant) => { received = { descriptor, grant }; return true; });
     },
@@ -181,7 +185,7 @@ test("local/sessionStorage 없는 모바일 복귀는 서버 context 입력과 �
     await waitFor(() => calls.events.length === 1, 'server resume');
     assert.equal(received.descriptor.args.question, 'saved question');
     assert.equal(received.grant.requestId, 'same-attempt');
-    assert.equal(calls.confirm[0].body.merchantUid, 'ord_2');
+    assert.equal(calls.recover[0].url.endsWith('/orders/ord_2/recover'), true);
     assert.equal(calls.events[0].resumed, true);
   } finally { window.close(); }
 });
@@ -283,9 +287,16 @@ test("승인 복귀(재개 서술자 없음): 미완료 티켓·URL 보존 → �
 });
 
 test("GRANT_PENDING(200+code): 실패도 완료도 아니다 — 티켓·URL 유지, access 갱신 0회, alert 0회", async () => {
+  let resumed = 0;
   const { window, calls } = boot({
     url: "https://code-destiny.com/?portone_redirect=1&paymentId=ord_1",
-    confirmResponse: () => jsonResponse({ code: "GRANT_PENDING", recoveryRequired: true, message: "결제는 승인되었고 반영을 기다리고 있어요.", pollUrl: "/api/billing/orders/ord_1" }),
+    confirmResponse: () => jsonResponse({
+      code: "GRANT_PENDING", recoveryRequired: true, message: "결제는 승인되었고 반영을 기다리고 있어요.", pollUrl: "/api/billing/orders/ord_1",
+      context: { resume: { kind: "must-not-run-before-entitlement", action: "", args: {} } },
+    }),
+    beforeProfile(win) {
+      win.__cdCheckoutEntry.registerPaidResumeHandler("must-not-run-before-entitlement", () => { resumed++; return true; });
+    },
   });
   try {
     await waitFor(() => calls.overlay.filter((c) => c.open && c.mode === "unlock-saving").length >= 2, "PENDING 안내 오버레이");
@@ -294,6 +305,7 @@ test("GRANT_PENDING(200+code): 실패도 완료도 아니다 — 티켓·URL 유
     assert.equal(calls.refresh, 0, "열람 권한이 아직 없으니 access 갱신을 부르지 않는다");
     assert.equal(calls.alert.length, 0, "PENDING 은 alert 로 닫지 않는다");
     assert.equal(calls.events.length, 0, "성공 이벤트 없음");
+    assert.equal(resumed, 0, "지급 대기 context는 결과 생성을 시작하지 않는다");
     assert.ok(window.localStorage.getItem(RESUME_KEY), "티켓을 남겨 새로고침이 멱등 재시도가 되게 한다");
     assert.match(window.location.search, /portone_redirect=1/, "URL 도 그대로 둔다");
     const pendingNotice = calls.overlay.filter((c) => c.open && c.mode === "unlock-saving").pop();
@@ -325,16 +337,16 @@ test("PG 거절 복귀(code 있음): confirm 0회, 수단 이름+코드가 든 a
   }
 });
 
-test("티켓 없는 새 탭 복귀: 쿼리 paymentId 만으로 confirm 하고 Generic 문구를 쓴다", async () => {
+test("티켓 없는 새 탭 복귀: 쿼리 paymentId로 서버 recovery를 호출하고 Generic 문구를 쓴다", async () => {
   const { window, calls } = boot({
     url: "https://code-destiny.com/?portone_redirect=1&paymentId=ord_9",
     ticket: null,
-    confirmResponse: () => jsonResponse({ ok: true, unlocked: true }),
+    recoveryResponse: () => jsonResponse({ ok: true, unlocked: true }),
   });
   try {
     await waitFor(() => calls.events.length === 1, "복귀 성공 이벤트");
-    assert.equal(calls.confirm.length, 1);
-    assert.equal(calls.confirm[0].body.merchantUid, "ord_9");
+    assert.equal(calls.recover.length, 1);
+    assert.equal(calls.recover[0].url.endsWith('/orders/ord_9/recover'), true);
     assert.equal(calls.refresh, 1);
     const card = resumeCard(window);
     assert.ok(card, "티켓이 없어도 완료 카드는 남는다");
