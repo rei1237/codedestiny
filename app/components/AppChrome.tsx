@@ -169,11 +169,9 @@ function FeatureBackHomeNav() {
     }
     const canUseHistory = window.history.length > 1 && !isUnsafePaymentReferrer(document.referrer);
     if (canUseHistory) {
-      const startPath = `${window.location.pathname}${window.location.search}`;
       window.history.back();
-      window.setTimeout(() => {
-        if (`${window.location.pathname}${window.location.search}` === startPath) hardNavigateToShellHome();
-      }, 240);
+      // History traversal is asynchronous. A timer cannot distinguish slow
+      // navigation from failure (or a same-URL modal history entry).
       return;
     }
     hardNavigateToShellHome();
