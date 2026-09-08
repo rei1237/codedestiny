@@ -217,8 +217,8 @@ export function toggleCardDecoration(kind: "sticker" | "badge"): DiaryEntryMutat
 /* ── 더보기 · 함께 보기 ─────────────────────────────────────────────────
  * 🔴 상대는 한 명이고, 셸 `:4735-4753` 이 쓰던 필드를 그대로 쓴다. 새 저장 자리를 만들지
  * 않으므로 셸에 적어 둔 상대가 앱에서 그대로 보인다.
- * 🔴 생시·도시(`partnerBirthTime`·`partnerBirthCity`)는 앱에 입력 칸이 없어 건드리지 않는다 —
- * 셸이 적어 둔 값이 있으면 그대로 남고, 읽기만 한다. */
+ * 🔴 도시는 앱에 입력 칸이 없어 건드리지 않는다. 생시는 같은 `partnerBirthTime` 필드만 갱신해
+ * 셸과 앱에서 상대 한 명의 입력이 갈리지 않게 한다. */
 
 /** 관계 종류. 셸 셀렉트(`:1132-1133`)와 같은 값이다. */
 export const DIARY_COMPAT_TYPES = ["love", "friend", "business"] as const;
@@ -238,6 +238,13 @@ export function writePartnerBirth(ymd: string): DiaryEntryMutate {
   return (entry) => {
     entry.partnerBirthDate = ymd;
     entry.partnerBirthYear = ymd ? ymd.slice(0, 4) : "";
+  };
+}
+
+/** 상대 생시. 빈 값은 "미입력"으로 남겨 Lite가 정오 기준 안내를 할 수 있게 한다. */
+export function writePartnerBirthTime(time: string): DiaryEntryMutate {
+  return (entry) => {
+    entry.partnerBirthTime = /^([01]\d|2[0-3]):[0-5]\d$/.test(time) ? time : "";
   };
 }
 

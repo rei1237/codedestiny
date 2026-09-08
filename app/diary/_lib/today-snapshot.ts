@@ -91,6 +91,8 @@ export interface DiaryTodaySnapshot {
    * 계약 우회 지점이 된다(원칙 6).
    */
   store: DiaryLegacyStore;
+  /** 활성 프로필에서 한 번 해석한 출생정보. 함께 보기 Lite도 같은 입력을 재사용한다. */
+  birth: DiaryBirthInput | null;
   chart: DiaryNatalChart | null;
   fortune: DiaryDayFortune | null;
 }
@@ -99,6 +101,7 @@ export const EMPTY_DIARY_TODAY_SNAPSHOT: DiaryTodaySnapshot = {
   ymd: "",
   entry: null,
   store: {},
+  birth: null,
   chart: null,
   fortune: null,
 };
@@ -149,10 +152,11 @@ export function readDiaryTodaySnapshot(ymd: string): DiaryTodaySnapshot {
     entry = null;
   }
 
+  let birth: DiaryBirthInput | null = null;
   let chart: DiaryNatalChart | null = null;
   let fortune: DiaryDayFortune | null = null;
   try {
-    const birth = resolveDiaryBirthInput(readCurrentDestinyProfile());
+    birth = resolveDiaryBirthInput(readCurrentDestinyProfile());
     chart = birth ? buildDiaryNatalChart(birth, ymd) : null;
     fortune = classifyDiaryDay(chart, ymd);
   } catch {
@@ -160,7 +164,7 @@ export function readDiaryTodaySnapshot(ymd: string): DiaryTodaySnapshot {
     fortune = null;
   }
 
-  return { ymd, entry, store, chart, fortune };
+  return { ymd, entry, store, birth, chart, fortune };
 }
 
 /**

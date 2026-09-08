@@ -945,29 +945,25 @@ body:not(.neo-mode) #compatCard .inp::placeholder{color:#9a7d8c}
 .compat-result-wrap{margin-top:14px}
 .compat-test-results{margin-top:12px;font-size:.9rem;color:#333}
 
-/* 관계 흐름 미리보기(#relFlowLite) — 2026-09-07 셸 다이어리 모달에서 이설(PR-J).
-   🔴 색은 전부 --cd-* 토큰으로만 쓴다. 리터럴을 섞으면 네오(다크)에서 한쪽 모드의
-      글자색이 반대 모드 바탕에 얹힌다(styles/theme-tokens.css 가 두 모드를 함께 공급한다). */
-.relflow{border:1px solid var(--cd-border);border-radius:12px;background:var(--cd-surface);padding:16px 18px 18px;display:flex;flex-direction:column;gap:12px}
-.relflow__head{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
-.relflow__title{margin:0;font-size:1rem;font-weight:700;color:var(--cd-text)}
-.relflow__free{font-size:.68rem;letter-spacing:.08em;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--cd-gold);color:#5a3a10}
-.relflow__empty{font-size:.9rem;color:var(--cd-text-muted)}
-.relflow__body{display:flex;flex-direction:column;gap:12px}
-.relflow__scores{display:flex;gap:10px;flex-wrap:wrap}
-.relflow__score{flex:1 1 200px;display:flex;align-items:baseline;gap:8px;padding:10px 13px;border-radius:9px;background:var(--cd-bg);border:1px solid var(--cd-border)}
-.relflow__score .lab{font-size:.82rem;color:var(--cd-text-muted)}
-.relflow__score .val{margin-left:auto;font-weight:700;font-size:1.12rem;color:var(--cd-accent);font-variant-numeric:tabular-nums}
-.relflow__vibe{margin:0;font-size:.94rem;color:var(--cd-text);padding:10px 13px;border-radius:9px;background:var(--cd-bg);border:1px solid var(--cd-gold)}
-.relflow__cols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-.relflow__col{display:flex;flex-direction:column;gap:5px}
-.relflow__col h5{margin:0;font-size:.8rem;font-weight:700;color:var(--cd-accent);padding-bottom:5px;border-bottom:1px solid var(--cd-border)}
-.relflow__col ul{margin:0;padding-left:16px;display:flex;flex-direction:column;gap:4px}
-.relflow__col li{font-size:.86rem;color:var(--cd-text-muted);line-height:1.62}
-.relflow__foot{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center;font-size:.76rem;color:var(--cd-text-muted)}
-.relflow__foot a{color:var(--cd-accent);font-weight:600;text-decoration:none;border-bottom:1px solid currentColor}
-.relflow__foot a:focus-visible{outline:2px solid var(--cd-accent);outline-offset:2px}
-@media (max-width:560px){.relflow__cols{grid-template-columns:1fr}}
+/* 구매 전 궁합 리포트 구성 안내. 개인 결과·점수·가격은 이 표면에 넣지 않는다. */
+.compat-preview{display:flex;flex-direction:column;gap:12px;padding:15px;border:1px solid var(--cd-border);border-radius:14px;background:var(--cd-surface)}
+.compat-preview__head h4{margin:3px 0 5px;color:var(--cd-text);font-size:1rem}
+.compat-preview__head p{margin:0;color:var(--cd-text-muted);font-size:.86rem;line-height:1.55}
+.compat-preview__eyebrow{display:inline-block;margin:0;color:var(--cd-accent);font-size:.7rem;font-weight:800;letter-spacing:.07em}
+.compat-preview__grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.compat-preview__item{min-width:0;padding:0;border:1px solid var(--cd-border);border-radius:10px;overflow:hidden;background:var(--cd-bg);color:var(--cd-text);cursor:zoom-in;text-align:left;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}
+.compat-preview__item img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;background:var(--cd-surface)}
+.compat-preview__item.is-image-fallback::before{content:'예시 이미지를 준비 중이에요';display:flex;align-items:center;justify-content:center;min-height:92px;padding:10px;color:var(--cd-text-muted);font-size:.75rem;line-height:1.45;text-align:center}
+.compat-preview__item span{display:block;padding:8px 9px;font-size:.75rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.compat-preview__item:hover{transform:translateY(-2px);border-color:var(--cd-accent);box-shadow:0 8px 18px color-mix(in srgb,var(--cd-accent) 18%,transparent)}
+.compat-preview__item:focus-visible,.compat-preview-dialog__close:focus-visible{outline:3px solid var(--cd-accent);outline-offset:3px}
+.compat-preview-dialog{max-width:min(760px,calc(100vw - 28px));max-height:calc(100dvh - 28px);padding:0;border:0;border-radius:16px;background:transparent;color:var(--cd-text)}
+.compat-preview-dialog::backdrop{background:rgba(15,23,42,.72);backdrop-filter:blur(3px)}
+.compat-preview-dialog__surface{position:relative;overflow:auto;border:1px solid var(--cd-border);border-radius:16px;background:var(--cd-surface);box-shadow:0 24px 70px rgba(0,0,0,.35)}
+.compat-preview-dialog img{display:block;width:100%;height:auto;max-height:min(66dvh,540px);object-fit:contain;background:var(--cd-bg)}
+.compat-preview-dialog__copy{padding:14px 16px 18px}.compat-preview-dialog__copy h4{margin:3px 0 5px;font-size:1.08rem}.compat-preview-dialog__copy p:last-child{margin:0;color:var(--cd-text-muted);font-size:.9rem;line-height:1.55}
+.compat-preview-dialog__close{position:absolute;top:10px;right:10px;z-index:1;min-width:44px;min-height:44px;border:1px solid rgba(255,255,255,.5);border-radius:999px;background:rgba(15,23,42,.76);color:#fff;font-size:.8rem;font-weight:700;cursor:pointer}
+@media (max-width:720px){.compat-preview__grid{grid-template-columns:repeat(2,minmax(0,1fr))}.compat-preview__item:last-child{grid-column:span 2}.compat-preview__item span{font-size:.82rem}}
 
 .modal-overlay-shell{display:none;width:100%}
 /* 전체화면 미스틱 모달: 오버레이는 고정·비스크롤, #*ModalSheet만 세로 스크롤 (iOS fixed+overflow 간섭 방지).
@@ -6409,6 +6405,7 @@ body.neo-mode .fortune-section {
   border: 1px solid rgba(148,163,184,0.28);
   box-shadow: 0 10px 40px rgba(15,23,42,0.16);
 }
+#reportDashboardCard .rpt-v2-block.open{grid-column:1 / -1}
 body.neo-mode #reportDashboardCard .rpt-v2-block.fortune-section{
   background: rgba(15, 23, 42, 0.55);
   border-color: rgba(255,255,255,0.12);
@@ -6432,6 +6429,9 @@ body.neo-mode #reportDashboardCard .rpt-v2-block.fortune-section{
   align-items: center;
   justify-content: center;
   line-height: 0;
+  padding: 0;
+  border: 0;
+  cursor: zoom-in;
 }
 body.neo-mode #reportDashboardCard .rpt-v2-img-wrap{
   background: transparent;
@@ -6446,6 +6446,7 @@ body.neo-mode #reportDashboardCard .rpt-v2-img-wrap{
   object-position: center;
   display: block;
 }
+#reportDashboardCard .rpt-v2-img-wrap:focus-visible{outline:3px solid #7c3aed;outline-offset:-3px}
 
 /* 텍스트: 카드 내부 요소만 가독성 개선 */
 #reportDashboardCard .rpt-v2-head{
@@ -6530,9 +6531,14 @@ body.neo-mode #reportDashboardCard{
 body.neo-mode #reportDashboardCard .report-dashboard-title{color:#fff1f2}
 #reportDashboardCard .rpt-v2-grid{
   display:grid;
-  grid-template-columns:minmax(0,1fr);
-  gap:22px;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:16px;
 }
+#reportDashboardCard .rpt-v2-filters{display:flex;gap:8px;overflow-x:auto;margin:0 0 14px;padding-bottom:2px;scrollbar-width:thin}
+#reportDashboardCard .rpt-v2-filter{flex:0 0 auto;min-height:40px;padding:8px 12px;border:1px solid rgba(124,58,237,.22);border-radius:999px;background:rgba(255,255,255,.72);color:#475569;font-size:.82rem;font-weight:700;cursor:pointer}
+#reportDashboardCard .rpt-v2-filter[aria-selected="true"]{border-color:#7c3aed;background:#7c3aed;color:#fff;box-shadow:0 6px 14px rgba(124,58,237,.22)}
+body.neo-mode #reportDashboardCard .rpt-v2-filter{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.18);color:#e2e8f0}
+body.neo-mode #reportDashboardCard .rpt-v2-filter[aria-selected="true"]{background:#a78bfa;color:#160d2b}
 #reportDashboardCard .rpt-v2-block.fortune-section{
   display:flex;
   flex-direction:column;
@@ -6552,8 +6558,21 @@ body.neo-mode #reportDashboardCard .report-dashboard-title{color:#fff1f2}
 @media (max-width: 768px){
   #reportDashboardCard{padding:16px 14px}
   #reportDashboardCard .report-dashboard-head{margin-bottom:14px}
-  #reportDashboardCard .rpt-v2-grid{grid-template-columns:1fr;gap:16px}
+  #reportDashboardCard .rpt-v2-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  #reportDashboardCard .rpt-v2-img-wrap{min-height:0}
+  #reportDashboardCard .rpt-v2-head{padding:11px 10px}
+  #reportDashboardCard .rpt-v2-title{font-size:.92rem}
+  #reportDashboardCard .rpt-v2-preview,#reportDashboardCard .rpt-v2-note{font-size:.75rem;line-height:1.45}
+  #reportDashboardCard .rpt-v2-toggle-btn{min-height:40px;padding:9px}
 }
+
+.rpt-thumb-preview-dialog{max-width:min(760px,calc(100vw - 28px));max-height:calc(100dvh - 28px);padding:0;border:0;border-radius:16px;background:transparent}
+.rpt-thumb-preview-dialog::backdrop{background:rgba(15,23,42,.72);backdrop-filter:blur(3px)}
+.rpt-thumb-preview-dialog__surface{position:relative;overflow:hidden;border-radius:16px;background:#fff;box-shadow:0 24px 70px rgba(0,0,0,.4)}
+.rpt-thumb-preview-dialog img{display:block;width:100%;max-height:min(76dvh,640px);object-fit:contain;background:#0f172a}
+.rpt-thumb-preview-dialog p{margin:0;padding:12px 16px;color:#334155;font-size:.9rem;font-weight:700}
+.rpt-thumb-preview-dialog__close{position:absolute;top:10px;right:10px;z-index:1;min-width:44px;min-height:44px;border:1px solid rgba(255,255,255,.6);border-radius:999px;background:rgba(15,23,42,.74);color:#fff;font-weight:700;cursor:pointer}
+.rpt-thumb-preview-dialog__close:focus-visible{outline:3px solid #a78bfa;outline-offset:3px}
 
 /* 빌런 블랙리스트 */
 body:not(.neo-mode) #reportDashboardCard .villain-grade,

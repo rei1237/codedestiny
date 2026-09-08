@@ -288,6 +288,21 @@ var REPORT_CARDS = [
   REPORT_CARDS = normalized;
 })();
 
+/* 카드마다 명시적으로 한 카테고리를 갖는다. 기존 id/CTA/잠금 계약은 바꾸지 않는다. */
+var REPORT_CARD_CATEGORIES = {
+  all: '전체', self: '나를 알아보기', relation: '관계·연애', life: '생활·실천', fun: '가볍게 즐기기'
+};
+var REPORT_CARD_CATEGORY_BY_ID = {
+  meryok:'self', quantum:'self', sajuhealth:'life', sajuprompt:'self', sajurpg:'self',
+  tbal:'fun', tetoegen:'relation', trip:'life', vilun:'relation', lotto:'fun',
+  fortunePlanner:'life', legacyLuckSyncDiary:'life', '4CUT':'fun', dopamine:'fun',
+  secretHouse:'relation', 'saju-animal-test':'fun', 'destiny-meeting-place':'relation', 'love-code':'relation'
+};
+function _rptCategoryOf(card) {
+  return (card && card.category) || REPORT_CARD_CATEGORY_BY_ID[card && card.id] || 'fun';
+}
+REPORT_CARDS.forEach(function(card) { if (card && !card.category) card.category = _rptCategoryOf(card); });
+
 (function ensureSajuAnimalCardRegistered() {
   var isLocalDebug = false;
   try {
@@ -1140,6 +1155,36 @@ function handleReportThumbError(imgEl) {
 
 window.handleReportThumbError = handleReportThumbError;
 
+/* 썸네일 확대는 카드 CTA와 별도다. Esc·배경·닫기와 원래 버튼으로의 포커스 복귀를 지원한다. */
+(function initReportThumbPreview() {
+  var trigger = null;
+  function getDialog() {
+    var existing = document.getElementById('rptThumbPreviewDialog');
+    if (existing) return existing;
+    var dialog = document.createElement('dialog');
+    dialog.id = 'rptThumbPreviewDialog';
+    dialog.className = 'rpt-thumb-preview-dialog';
+    dialog.innerHTML = '<div class="rpt-thumb-preview-dialog__surface"><button type="button" class="rpt-thumb-preview-dialog__close" aria-label="이미지 닫기">닫기</button><img alt=""><p></p></div>';
+    dialog.addEventListener('click', function(event) { if (event.target === dialog) dialog.close(); });
+    dialog.addEventListener('cancel', function(event) { event.preventDefault(); dialog.close(); });
+    dialog.querySelector('button').addEventListener('click', function() { dialog.close(); });
+    dialog.addEventListener('close', function() { if (trigger && document.contains(trigger)) trigger.focus(); trigger = null; });
+    document.body.appendChild(dialog);
+    return dialog;
+  }
+  window.openReportThumbPreview = function(button) {
+    if (!button) return;
+    var dialog = getDialog();
+    var image = dialog.querySelector('img');
+    var caption = dialog.querySelector('p');
+    trigger = button;
+    image.src = button.getAttribute('data-rpt-preview-src') || '';
+    image.alt = button.getAttribute('data-rpt-preview-title') || '';
+    caption.textContent = image.alt;
+    if (!dialog.open) dialog.showModal();
+  };
+})();
+
 function _sajuFunTryRecoverTargetCard(targetId) {
   if (!targetId) return false;
 
@@ -1332,7 +1377,8 @@ function renderReportDashboard() {
         lockKey: c.lockKey || (c.target ? ('rpt_' + c.target) : ''),
         coinCost: Number(c.coinCost || 0),
         mainLock: c.mainLock !== false,
-        selfGated: c.selfGated === true
+        selfGated: c.selfGated === true,
+        category: _rptCategoryOf(c)
       };
       blocks.push(seenTargets[c.target]);
     }
@@ -1340,11 +1386,15 @@ function renderReportDashboard() {
   });
 
   /* ── 그리드 HTML 생성 ── */
-  var gridHtml = '<div class="rpt-v2-grid">';
+  var gridHtml = '<div class="rpt-v2-filters" role="tablist" aria-label="재미있는 사주 콘텐츠 카테고리">';
+  Object.keys(REPORT_CARD_CATEGORIES).forEach(function(category) {
+    gridHtml += '<button type="button" class="rpt-v2-filter" role="tab" data-rpt-category="' + category + '" aria-selected="' + (category === 'all' ? 'true' : 'false') + '">' + REPORT_CARD_CATEGORIES[category] + '</button>';
+  });
+  gridHtml += '</div><div class="rpt-v2-grid">';
   blocks.forEach(function(b) {
     var sectionId = 'rpt-v2-section-' + b.target;
     var titleId = 'rpt-v2-title-' + b.target;
-    gridHtml += '<section class="rpt-v2-block fortune-section" id="' + sectionId + '" aria-labelledby="' + titleId + '" style="border-color:' + b.accent + '44;">';
+    gridHtml += '<section class="rpt-v2-block fortune-section" data-rpt-category="' + b.category + '" id="' + sectionId + '" aria-labelledby="' + titleId + '" style="border-color:' + b.accent + '44;">';
 
     /* 이미지 영역 — 이미지 짤림 없이 전체 표시 */
     gridHtml += '<div class="rpt-v2-img-row">';
@@ -1354,11 +1404,10 @@ function renderReportDashboard() {
       var tileWonPrice = (Number(b.coinCost || 0) * 100).toLocaleString('ko-KR') + '원';
       var tilePriceText = (b.coinCost > 0) ? (b.mainLock === false ? ('1회 ' + tileWonPrice) : ('🔒 ' + tileWonPrice + ' · 잠금 콘텐츠')) : '무료';
       var tilePriceClass = (b.coinCost > 0) ? (b.mainLock === false ? 'rpt-v2-price-badge is-per-use' : 'rpt-v2-price-badge') : 'rpt-v2-price-badge is-free';
-      gridHtml += '<div class="rpt-v2-img-wrap">';
-      gridHtml += '<img class="rpt-v2-img" src="' + thumbSrc + '" alt="' + img.label + '" loading="lazy" '
-        + 'decoding="async" onerror="handleReportThumbError(this)">';
+      gridHtml += '<button type="button" class="rpt-v2-img-wrap" data-rpt-preview-src="' + thumbSrc + '" data-rpt-preview-title="' + img.label + '" aria-label="' + img.label + ' 이미지 크게 보기">';
+      gridHtml += '<img class="rpt-v2-img" src="' + thumbSrc + '" alt="' + img.label + '" loading="lazy" decoding="async" onerror="handleReportThumbError(this)">';
       gridHtml += '<span class="' + tilePriceClass + '">' + tilePriceText + '</span>';
-      gridHtml += '</div>';
+      gridHtml += '</button>';
     });
     gridHtml += '</div>';
 
@@ -1412,6 +1461,18 @@ function renderReportDashboard() {
   });
   gridHtml += '</div>';
   container.innerHTML = gridHtml;
+  container.querySelectorAll('.rpt-v2-filter').forEach(function(button) {
+    button.addEventListener('click', function() {
+      var category = button.getAttribute('data-rpt-category') || 'all';
+      container.querySelectorAll('.rpt-v2-filter').forEach(function(tab) { tab.setAttribute('aria-selected', String(tab === button)); });
+      container.querySelectorAll('.rpt-v2-block[data-rpt-category]').forEach(function(block) {
+        block.hidden = category !== 'all' && block.getAttribute('data-rpt-category') !== category;
+      });
+    });
+  });
+  container.querySelectorAll('[data-rpt-preview-src]').forEach(function(button) {
+    button.addEventListener('click', function() { if (typeof window.openReportThumbPreview === 'function') window.openReportThumbPreview(button); });
+  });
   if (typeof window.applyTileLockVisuals === 'function') {
     try { window.applyTileLockVisuals(); } catch (lockVisualErr) {}
   }
