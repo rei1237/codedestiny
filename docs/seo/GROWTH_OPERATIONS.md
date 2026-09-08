@@ -147,4 +147,6 @@ node scripts/seo-public-smoke.mjs
 - [공개 편집 정책](https://code-destiny.com/editorial-policy/): 운영 주체·AI 활용 범위.
 - [숙요 도구 표본](https://www.senjutsu.jp/labo/shukuyo-calc/aishou-love), [숙요 설명 표본](https://omajinai.co.jp/shukuyo/), [八雲院 사용 안내](https://yakumoin.net/support/how_to_use): 후보별 실제 콘텐츠 근거.
 
+최종 통합 로컬 검증: check:fast의 Node 958개와 Jest 218 suites/2,422 tests, build:cf, 정적 HTML 805개·사이트맵 488개 감사, 48개 mock 브라우저 표본이 통과했다. Linux CI에서 발견한 검색 제외 목록 드리프트도 LF 정규화 후 재생성했다. CI의 최종 판정은 PR #1841 최신 HEAD를 확인한다.
+
 계정 원본과 산출물은 관측 시점의 증거이며 이후 수치·정책·운영 상태가 바뀔 수 있다.
