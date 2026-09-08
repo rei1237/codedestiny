@@ -33,6 +33,8 @@ npm run verify:sitemap-drift
 
 - [BROWSER_VALIDATION.json](BROWSER_VALIDATION.json): 실제 빌드의 title, description, canonical, lang, H1, JSON-LD 파싱 결과 및 화면 너비. 로컬 서버 200은 운영 edge의 status/redirect를 보장하지 않는다.
 - 전체 빌드의 기존 SEO 가드에서 title 폭, 구조화 데이터, hreflang, 공개 미러, 정적 색인 정책을 확인한다. `i18n:check`는 저장소에서 optional인 광범위 커버리지 검사이므로 이것을 모든 번역 완료로 보고하지 않는다.
+- 추가 `node scripts/seo-build-inventory.mjs`로 777개 HTML을 파싱했다. React 랜딩의 JS 비활성 H1 가시성은 스트리밍 컨테이너 때문에 0으로 기록될 수 있다. 전달된 원본 H1은 PAGE_INVENTORY.md에서 확인한다. 전체 777개 모바일 상호작용을 테스트한 것은 아니다.
+- 커밋 후 `verify:public-mirror-fresh` 통과. staging noindex self-test 6개 변이·오리진·잡 경계 검사 통과. 이는 운영 응답 검증과 별개다.
 - 새 홈 핵심 번역 키는 누락 때 실패한다. 전체 상담/모달의 번역, 모든 언어의 문장 품질까지 검증한 것은 아니다.
 - 사이트맵 원장은 공유 파일 의존성만으로 수정하지 않은 페이지 날짜도 올릴 수 있었다. 이번에는 실제 본문/안내를 바꾼 홈·숙요·인사이트·브랜드 경로를 제외한 105개 날짜를 기존 값으로 보존한 후 생성기 재실행과 drift 검사를 통과시켰다. 서명은 최신 소스값이다. 향후 생성기의 페이지별 의미 비교는 별도 개선 과제다.
 - 실제 LCP/CLS 전후 동일 조건 실험과 INP 필드값은 미측정. 이미지 크기/우선순위·기존 WebP를 유지했으며 CWV 개선 수치를 주장하지 않는다.

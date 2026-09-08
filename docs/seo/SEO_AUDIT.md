@@ -74,6 +74,8 @@ Google은 페이지 언어 판단에 실제 콘텐츠를 사용하며 hreflang�
 
 ## 구현·유지 경계
 
+[빌드 HTML 전수 목록](PAGE_INVENTORY.md)은 777개 index.html의 title·H1·canonical·meta robots·hreflang·JSON-LD·alt를 대조한다. React의 S:* 스트리밍 컨테이너 안에 전달된 H1과 실제 hidden UI를 구분한다. JS 비활성 상태에서 React 스트리밍 영역이 아직 숨겨진 점은 일반 정적 셸과 다르며, 원본 HTML이 비어 있다는 뜻은 아니다.
+
 홈 디자인/캐릭터/입력 UI 유지. 핵심 안내만 초융합운세의 여섯 관점과 오늘 운세로 정리했다. 숙요점 랜딩은 개인 본명숙, 궁합 서비스는 두 사람, 가이드는 해석 방법으로 구분했다. `/insights/fusion/`은 방법론 설명, `/fusion-fortune/`는 기존 서비스 및 noindex 정책 유지. 꿀꿀운세에서 만세력 명칭을 명확히 연결했다.
 
 신규 콘텐츠 URL, 색인 정책, 가격, 이용권, 월정석, 단건 결제, 공개 API, DB 변경 없음. 검증 결과는 VALIDATION.md에 기록한다. 운영 배포/URL 검사/필드 CWV는 PR 이후 별도 단계다.
