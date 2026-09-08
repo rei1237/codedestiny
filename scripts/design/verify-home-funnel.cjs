@@ -23,6 +23,24 @@ function contrast(foreground, background) {
 
 (async () => {
   const browser = await chromium.launch({ headless: true });
+  // Never let UI fixtures reach external services, even when the shell loads SDKs.
+  const originalNewPage = browser.newPage.bind(browser);
+  browser.newPage = async function (options) {
+    const page = await originalNewPage(options);
+    await page.route('**/*', (route) => {
+      const url = new URL(route.request().url());
+      if (url.hostname !== '127.0.0.1') return route.abort();
+      // Emulate the CDN resize path with the same local asset; no CDN network calls.
+      const resized = url.pathname.match(/^\/cdn-cgi\/image\/[^/]+\/(.+)$/);
+      if (resized) {
+        const root = path.resolve('public');
+        const asset = path.resolve(root, decodeURIComponent(resized[1]));
+        if (asset.startsWith(root + path.sep) && fs.existsSync(asset)) return route.fulfill({ path: asset });
+      }
+      return route.continue();
+    });
+    return page;
+  };
   const results = [];
   try {
     for (const [width, height] of [[360, 760], [390, 844], [430, 932], [768, 960], [1280, 900], [1440, 960]]) {
@@ -32,6 +50,29 @@ function contrast(foreground, background) {
       await page.goto(origin + '/static/index.html', { waitUntil: 'domcontentloaded' });
       await page.locator('#cdhConcernSlot #cdConcernPick').waitFor({ state: 'attached', timeout: 10000 });
       await page.waitForTimeout(250);
+      assert.equal(await page.locator('#fortuneGatewaySearch').isVisible(), false, 'search starts folded');
+      assert.equal(await page.locator('#cdhCollections').isVisible(), false, 'collections start folded');
+      assert.ok(await page.locator('#cdhDiarySlot #cdDiaryPlannerEntry').isVisible(), 'diary restored');
+      assert.ok(await page.locator('#cdhExpertsSlot #cdAiFeatures').isVisible(), 'experts restored');
+      await page.locator('#cdHomeExpandToggle').click();
+      assert.ok(await page.locator('#cdhCollections').isVisible(), 'collections expand inline');
+      assert.ok(await page.locator('#cdhCollections > .feature-card-grid').count(), 'existing cards live below trigger');
+      assert.equal(await page.locator('#fortuneGatewaySearch').isVisible(), false, 'collections do not open search');
+      await page.locator('#cdHomeExpandToggle').click();
+      await page.locator('#cdhFinderDisclosure summary').click();
+      assert.ok(await page.locator('#fortuneGatewaySearch').isVisible(), 'search opens on request');
+      await page.locator('#cdhFinderDisclosure summary').click();
+      assert.equal(await page.locator('#fortuneGatewaySearch').isVisible(), false, 'search closes again');
+      if (width <= 430) {
+        await page.locator('#cdMobileBottomNav [data-nav-key="fortunes"]').click();
+        await page.locator('#cdMobileFortuneOverview.is-open').waitFor();
+        assert.ok(await page.locator('#cdMobileFortuneOverview .cd-fov__cat').count() >= 8, 'bottom nav restores all categories');
+        await page.locator('#cdMobileFortuneOverview .cd-fov__cat').filter({ hasText: '타로' }).click();
+        assert.ok(await page.locator('#tarotCollection.cd-mobile-collection-fullscreen').isVisible(), 'fullscreen collection remains visible outside home containment');
+        await page.keyboard.press('Escape');
+        assert.ok(await page.locator('#cdhCollections > .feature-card-grid').count(), 'closing restores inline collection parent');
+        assert.equal(await page.locator('#cdhCollections').isVisible(), false, 'closing overlay restores folded home');
+      }
       const layout = await page.evaluate(() => ({
         overflow: document.documentElement.scrollWidth > innerWidth,
         width: document.getElementById('cdHomeFunnel').getBoundingClientRect().width,
@@ -74,10 +115,12 @@ function contrast(foreground, background) {
       }
 
       if (width === 390) {
+        await page.locator('#cdSignatureConsult').scrollIntoViewIfNeeded();
+        await page.waitForTimeout(250);
         const fusionImage = page.locator('.cd-sig-card--fusion .cd-sig-card__img');
         await fusionImage.scrollIntoViewIfNeeded();
         await page.waitForFunction(() => document.querySelector('.cd-sig-card--fusion .cd-sig-card__img')?.naturalWidth > 0);
-        assert.ok(await fusionImage.evaluate((image) => image.naturalWidth > 0), 'fusion consultation image loads through its local fallback');
+        assert.ok(await fusionImage.evaluate((image) => image.naturalWidth > 0), 'fusion consultation image loads from the local CDN fixture');
       }
 
       await page.evaluate(() => { document.documentElement.classList.remove('neo-mode'); document.body.classList.remove('neo-mode'); location.hash = 'services'; });
@@ -95,6 +138,21 @@ function contrast(foreground, background) {
       assert.ok(await page.locator('[data-cd-finder-reset]').isVisible(), 'reset appears for active filters');
       await page.locator('[data-cd-finder-reset]').click();
       assert.equal(await page.locator('#fortuneGatewaySearch').inputValue(), '', 'reset clears search');
+      await page.locator('[data-price="low"]').click();
+      assert.ok(await page.locator('#fortuneGatewayRecs .fortune-gateway__rec').filter({ hasText: '음악' }).count(), '1000 won filter includes music');
+      await page.locator('#cdhServices').screenshot({ path: path.join(out, `finder-${width}.png`) });
+      await page.locator('[data-cd-finder-reset]').click();
+      if (width === 390 || width === 1440) {
+        await page.locator('#cdhDiarySlot').scrollIntoViewIfNeeded();
+        await page.waitForTimeout(250);
+        await page.locator('#cdhDiarySlot').screenshot({ path: path.join(out, `diary-${width}.png`) });
+        await page.locator('#cdhExpertsSlot').scrollIntoViewIfNeeded();
+        await page.waitForTimeout(250);
+        await page.locator('#cdhExpertsSlot').screenshot({ path: path.join(out, `experts-${width}.png`) });
+        await page.locator('#cdhGatewaySlot').scrollIntoViewIfNeeded();
+        await page.waitForTimeout(250);
+        await page.locator('#cdhGatewaySlot').screenshot({ path: path.join(out, `chat-${width}.png`) });
+      }
       await page.screenshot({ path: path.join(out, `search-${width}.png`), fullPage: true });
       results.push({ width, layout, search: true, contrast: true, errors });
       await page.close();

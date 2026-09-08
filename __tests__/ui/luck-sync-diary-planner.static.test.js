@@ -52,7 +52,8 @@ test("fortune planner entry cuts over to the /diary app", () => {
   // 🔴 아래 doesNotMatch 2건이 이 가드가 무는 지점이다 — 초기값 0fr 이나 .cd-home-expanded
   // 오버라이드가 되살아나면 여기서 잡힌다(match 만 두면 규칙을 덧붙여 되접어도 통과한다).
   assert.match(html, /<section class="cd-diary-planner-entry" id="cdDiaryPlannerEntry"/);
-  assert.ok(html.indexOf('id="cdHomeSecondaryPanel"') < html.indexOf('id="cdDiaryPlannerEntry"'));
+  assert.ok(html.indexOf('id="cdhDiarySlot"') < html.indexOf('id="cdDiaryPlannerEntry"'));
+  assert.ok(html.indexOf('id="cdDiaryPlannerEntry"') < html.indexOf('id="cdHomeSecondaryPanel"'));
   assert.match(html, /html body \.cd-home-secondary-panel\{display:grid;grid-template-rows:1fr\}/);
   assert.doesNotMatch(html, /\.cd-home-secondary-panel\{[^}]*grid-template-rows:0fr/);
   assert.doesNotMatch(html, /html\.cd-home-expanded body \.cd-home-secondary-panel/);
@@ -69,11 +70,8 @@ test("fortune planner entry cuts over to the /diary app", () => {
   assert.ok(html.indexOf('id="dpDestinyPanel"') < html.indexOf('id="destinyCardForm"'));
   assert.match(html, /\.dp-destiny-panel:not\(\.is-form-open\) > #destinyCardForm\{display:none!important\}/);
   assert.doesNotMatch(html, /<section class="card input-section moon-destiny-form" id="destinyCardForm"[^>]*data-cd-home-secondary/);
-  // 2026-08-21: "ALL SERVICES 펼치기" 버튼이 숨은 섹션보다 DOM 상 위에 있어(cdServiceIndex가
-  // cdDiaryPlannerEntry보다 아래) 펼칠 때 콘텐츠가 버튼 위쪽에 나타나던 문제를 고치며
-  // cdDiaryPlannerEntry를 cdServiceIndex 뒤로 옮겼다 — 회귀가 아니라 이 개편의 의도다.
-  // (기존 "cdDiaryPlannerEntry < fortuneGatewayEntry" 단언은 이 재배치로 더는 성립하지 않아 대체한다.)
-  assert.ok(html.indexOf('id="cdServiceIndex"') < html.indexOf('id="cdDiaryPlannerEntry"'));
+  // 다이어리는 접힌 보조 영역 밖, 오늘의 운세 다음에 항상 노출한다.
+  assert.ok(html.indexOf('id="cdhTodaySlot"') < html.indexOf('id="cdDiaryPlannerEntry"'));
   /* 2026-08-21: 온보딩 레일 앵커(__cdRailAnchor)를 요구하던 단언을 걷어냈다.
      b44bd7862 'remove empty onboarding rail' 이 그 줄을 통째로 지웠는데 이 단언은 남아
      **main 이 빨간 채로** 머지됐다(PR #869 가 그 실패를 상속해 막혔다).
