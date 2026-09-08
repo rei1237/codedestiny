@@ -96,7 +96,8 @@ export async function writeVisualDetails(html, book) {
     }
     else if (fs.existsSync(destination)) fs.unlinkSync(destination);
   }
-  fs.writeFileSync(path.join(directory, 'catalog.json'), JSON.stringify(data.index.filter(item => item.verification === 'verified')) + '\n');
+  const published = [...new Map(data.index.filter(item => item.verification === 'verified').map(item => [item.slug, item])).values()];
+  fs.writeFileSync(path.join(directory, 'catalog.json'), JSON.stringify(published) + '\n');
   fs.writeFileSync(path.join(root, 'lib/marketing/feature-visual-details.generated.json'), JSON.stringify(data, null, 2) + '\n');
   console.log(`[sync:visual-details] ${data.index.length} registry destinations; runtime facts remain explicitly unverified`);
 }

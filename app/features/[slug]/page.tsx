@@ -9,7 +9,7 @@ import "@/styles/feature-visual-detail.css";
 const items = catalog.items as unknown as Record<string, VisualDetail>;
 export const dynamicParams = false;
 export function generateStaticParams() {
-  return catalog.index.filter(item => item.verification === "verified").map(item => ({ slug: item.slug }));
+  return [...new Set(catalog.index.filter(item => item.verification === "verified").map(item => item.slug))].map(slug => ({ slug }));
 }
 function find(slug: string) {
   const detail = Object.hasOwn(items, slug) ? items[slug] : null;

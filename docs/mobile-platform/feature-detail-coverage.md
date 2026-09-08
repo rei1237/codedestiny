@@ -28,12 +28,12 @@
 | tarot-year-fortune | 십이지신 천운 타로 | /index.html?action=openTarotYearFortuneModal | 미적용 | 구현 근거·시각 구성·전 동선 |
 | tarot-celestial-harmony | 천체의 선율 | /celestial-harmony.html | 미적용 | 구현 근거·시각 구성·전 동선 |
 | nakshatra-muhurta | 택일 무후르타 | /nakshatra/muhurta/ | 미적용 | 구현 근거·시각 구성·전 동선 |
-| saju | 사주 | /saju/ | 미적용 | 구현 근거·시각 구성·전 동선 |
+| saju | 사주 | /saju/ | 적용 5종 | 팝업·전체 상태·OG 재확인 |
 | tarot | 타로 | /tarot/ | 미적용 | 구현 근거·시각 구성·전 동선 |
-| ziwei | 자미두수 | /ziwei/ | 미적용 | 구현 근거·시각 구성·전 동선 |
-| sukuyo | 숙요점 | /sukuyo/ | 미적용 | 구현 근거·시각 구성·전 동선 |
-| vedic | 베다점 | /vedic/ | 미적용 | 구현 근거·시각 구성·전 동선 |
-| astrology | 점성술 | /astrology/ | 미적용 | 구현 근거·시각 구성·전 동선 |
+| ziwei | 자미두수 | /ziwei/ | 적용 5종 | 팝업·전체 상태·OG 재확인 |
+| sukuyo | 숙요점 | /sukuyo/ | 적용 5종 | 팝업·전체 상태·OG 재확인 |
+| vedic | 베다점 | /vedic/ | 적용 5종 | 팝업·전체 상태·OG 재확인 |
+| astrology | 점성술 | /astrology/ | 적용 5종 | 팝업·전체 상태·OG 재확인 |
 | human-design | 휴먼 디자인 | /human-design/ | 미적용 | 구현 근거·시각 구성·전 동선 |
 | nakshatra | 나크샤트라 결정판 | /nakshatra/ | 미적용 | 구현 근거·시각 구성·전 동선 |
 | maya | 마야점 | /maya/ | 미적용 | 구현 근거·시각 구성·전 동선 |

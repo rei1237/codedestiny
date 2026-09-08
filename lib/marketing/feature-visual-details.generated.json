@@ -351,18 +351,18 @@
     },
     {
       "slug": "saju",
-      "title": "사주",
-      "href": "/saju/",
+      "title": "사주 정밀 분석",
+      "href": "/saju/basic/play",
       "featureKey": "saju",
       "featureKeyTo": "",
-      "accessType": "unknown",
-      "image": "",
+      "accessType": "free",
+      "image": "/feature-details/assets/saju-960.webp",
       "aliases": [
         "saju",
         "/saju/",
         "/saju"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified"
     },
     {
       "slug": "tarot",
@@ -382,19 +382,19 @@
     },
     {
       "slug": "ziwei",
-      "title": "자미두수",
-      "href": "/ziwei/",
+      "title": "심화 자미두수 12궁 상담",
+      "href": "/ziwei/chart",
       "featureKey": "ziwei-basic",
       "featureKeyTo": "",
-      "accessType": "unknown",
-      "image": "/fuctionassets/jami.webp",
+      "accessType": "free",
+      "image": "/feature-details/assets/ziwei-960.webp",
       "aliases": [
         "openZiweiModal",
         "ziwei",
         "/ziwei/",
         "/ziwei"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified"
     },
     {
       "slug": "sukuyo",
@@ -414,34 +414,34 @@
     },
     {
       "slug": "vedic",
-      "title": "베다점",
-      "href": "/vedic/",
+      "title": "베다 점성술 분석",
+      "href": "/index.html?action=navigateToVedic",
       "featureKey": "vedic",
       "featureKeyTo": "",
-      "accessType": "unknown",
-      "image": "",
+      "accessType": "free",
+      "image": "/feature-details/assets/vedic-960.webp",
       "aliases": [
         "vedic",
         "/vedic/",
         "/vedic"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified"
     },
     {
       "slug": "astrology",
-      "title": "점성술",
-      "href": "/astrology/",
+      "title": "서양 점성술 차트 분석",
+      "href": "/index.html?action=openAstroModal",
       "featureKey": "astro-basic",
       "featureKeyTo": "",
-      "accessType": "unknown",
-      "image": "/fuctionassets/jumsung.webp",
+      "accessType": "free",
+      "image": "/feature-details/assets/astrology-960.webp",
       "aliases": [
         "openAstroModal",
         "astrology",
         "/astrology/",
         "/astrology"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified"
     },
     {
       "slug": "human-design",
@@ -909,7 +909,7 @@
         "/saju/basic/play",
         "/saju/basic/play/"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified"
     },
     {
       "slug": "ziwei",
@@ -924,7 +924,7 @@
         "/ziwei/chart",
         "/ziwei/chart/"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified"
     },
     {
       "slug": "sukyo",
@@ -933,13 +933,13 @@
       "featureKey": "",
       "featureKeyTo": "",
       "accessType": "free",
-      "image": "/fuctionassets/sukyo.webp",
+      "image": "/feature-details/assets/sukyo-960.webp",
       "aliases": [
         "sukyo",
         "/index.html?action=openSukuyoModal",
         "/index.html?action=openSukuyoModal/"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified"
     },
     {
       "slug": "vedic",
@@ -954,7 +954,7 @@
         "/index.html?action=navigateToVedic",
         "/index.html?action=navigateToVedic/"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified"
     },
     {
       "slug": "astrology",
@@ -969,7 +969,7 @@
         "/index.html?action=openAstroModal",
         "/index.html?action=openAstroModal/"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified"
     },
     {
       "slug": "tarot",
@@ -2520,20 +2520,51 @@
       "featureKey": "",
       "featureKeyTo": "",
       "accessType": "free",
-      "image": "/fuctionassets/saju.webp",
+      "image": "/feature-details/assets/saju-960.webp",
       "aliases": [
         "saju",
         "/saju/basic/play",
         "/saju/basic/play/"
       ],
-      "headline": "사주 정밀 분석",
-      "description": "생년월일과 태어난 시간을 기반으로 사주팔자 구조를 계산하고, 성격/연애/진로/재물 흐름을 이해하기 쉽게 정리합니다.",
-      "panels": [],
-      "ctaLabel": "이 기능 시작하기",
-      "evidence": [
-        "js/core/service-registry.js"
+      "headline": "여덟 글자에 담긴 기질과, 지금의 흐름을 함께 읽습니다.",
+      "description": "생년월일과 출생시간으로 사주 네 기둥을 세운 뒤, 오행과 십성의 균형을 바탕으로 성향과 생활의 리듬을 차분히 정리합니다.",
+      "panels": [
+        {
+          "title": "네 기둥과 오행에서, 나의 균형을 살핍니다.",
+          "text": "오행의 많고 적음만으로 좋고 나쁨을 단정하지 않습니다. 계절과 일간의 힘, 천간과 지지의 연결을 함께 살피며 어떤 힘을 잘 쓰고 어디를 조율하면 좋은지 읽습니다.",
+          "visualPreview": "saju"
+        },
+        {
+          "title": "결과에서 확인하는 것.",
+          "items": [
+            "사주 팔자와 일간 — 타고난 기질을 읽는 기본 좌표",
+            "목·화·토·금·수 — 삶에서 쉽게 쓰는 힘과 조율이 필요한 리듬",
+            "십성 — 관계와 일에서 반복되는 반응의 구조",
+            "대운·세운 — 특정 사건의 확정이 아닌 시기별 관심사의 흐름"
+          ]
+        },
+        {
+          "title": "나의 흐름을 먼저 펼쳐 보세요.",
+          "text": "생년월일과 태어난 시간을 준비해 주세요. 출생시간이 불확실하면 세부 해석보다 큰 기질과 생활의 흐름을 중심으로 참고할 수 있습니다."
+        }
       ],
-      "verification": "source-inventory-only"
+      "ctaLabel": "무료로 사주 펼치기",
+      "evidence": [
+        "app/saju/five-elements/page.js",
+        "app/saju/ten-gods/page.js",
+        "app/_lib/serviceFeatureRegistry.ts"
+      ],
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/saju-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/saju-960.webp",
+          "width": 960
+        }
+      ]
     },
     "tarot": {
       "slug": "tarot",
@@ -2564,20 +2595,50 @@
       "featureKey": "",
       "featureKeyTo": "",
       "accessType": "free",
-      "image": "/fuctionassets/jami.webp",
+      "image": "/feature-details/assets/ziwei-960.webp",
       "aliases": [
         "ziwei",
         "/ziwei/chart",
         "/ziwei/chart/"
       ],
-      "headline": "심화 자미두수 12궁 상담",
-      "description": "자미두수의 12궁 구조와 주요 성요 조합을 기반으로 인생 테마, 관계 패턴, 진로 흐름을 입체적으로 분석합니다.",
-      "panels": [],
-      "ctaLabel": "이 기능 시작하기",
-      "evidence": [
-        "js/core/service-registry.js"
+      "headline": "명궁에서 시작해, 삶의 여러 자리를 한 장의 명반으로 읽습니다.",
+      "description": "생년월일과 출생시간으로 명궁과 열두 궁을 세우고, 주요 별의 배치와 시기 흐름을 통해 삶의 주제를 더 세분해 살펴봅니다.",
+      "panels": [
+        {
+          "title": "한 궁의 별이 아니라, 연결된 삶의 자리를 봅니다.",
+          "text": "명궁 하나만으로 결론을 내리지 않습니다. 재물·직업·관계·내면처럼 서로 이어진 궁과 주요 별의 배치를 함께 보며 반복되는 주제를 정리합니다.",
+          "visualPreview": "ziwei"
+        },
+        {
+          "title": "명반에서 확인하는 것.",
+          "items": [
+            "명궁과 신궁 — 나와 삶의 중심축",
+            "열두 궁 — 일·관계·재물·내면이 드러나는 자리",
+            "주요 별 — 각 궁에서 강하게 드러나는 기질의 결",
+            "대운·세운 — 시기마다 강해지는 관심사와 책임의 방향"
+          ]
+        },
+        {
+          "title": "출생시간이 알수록 명반의 초점이 또렷해집니다.",
+          "text": "생년월일·출생시간·성별·양력/음력 여부를 준비해 주세요. 시간이 불확실하면 세부 궁 해석보다 큰 성향과 현재 상황에 맞는 조언을 중심으로 읽습니다."
+        }
       ],
-      "verification": "source-inventory-only"
+      "ctaLabel": "무료로 명반 보기",
+      "evidence": [
+        "app/ziwei/guide/page.js",
+        "app/_lib/serviceFeatureRegistry.ts"
+      ],
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/ziwei-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/ziwei-960.webp",
+          "width": 960
+        }
+      ]
     },
     "sukuyo": {
       "slug": "sukuyo",
@@ -2667,20 +2728,50 @@
       "featureKey": "",
       "featureKeyTo": "",
       "accessType": "free",
-      "image": "/fuctionassets/veda.webp",
+      "image": "/feature-details/assets/vedic-960.webp",
       "aliases": [
         "vedic",
         "/index.html?action=navigateToVedic",
         "/index.html?action=navigateToVedic/"
       ],
-      "headline": "베다 점성술 분석",
-      "description": "인도 전통 조티쉬(Jyotish)의 라그나와 나크샤트라, 다샤 위로 인생의 장기 흐름이 드러납니다.",
-      "panels": [],
-      "ctaLabel": "이 기능 시작하기",
-      "evidence": [
-        "js/core/service-registry.js"
+      "headline": "라그나와 달, 다샤의 흐름으로 삶의 리듬을 읽습니다.",
+      "description": "인도 전통 조티쉬의 항성 기준 차트에서 라그나·나크샤트라·행성·하우스·다샤를 살피며, 삶의 어느 주제가 전면에 떠오르는지 정리합니다.",
+      "panels": [
+        {
+          "title": "같은 하늘을 다른 언어로 읽는, 베다의 시간 지도.",
+          "text": "베다 점성술은 항성 기준의 조디악과 라그나·나크샤트라·다샤를 중요하게 다룹니다. 한 행성으로 결론을 내리지 않고 행성·하우스·시간 흐름이 서로 주고받는 힘을 봅니다.",
+          "visualPreview": "vedic"
+        },
+        {
+          "title": "차트에서 확인하는 것.",
+          "items": [
+            "라그나와 라시 차트 — 삶의 무대와 행성 배치",
+            "달과 나크샤트라 — 마음과 관계의 섬세한 반응",
+            "하우스 — 일·재물·배움·휴식이 드러나는 방향",
+            "다샤 — 특정 사건의 확정이 아닌 시간의 주제"
+          ]
+        },
+        {
+          "title": "정확한 출생 좌표가 차트의 초점을 만듭니다.",
+          "text": "생년월일·출생시간·출생지를 준비해 주세요. 시간이 불확실하면 세부 시기 판단보다 큰 성향과 반복되는 삶의 주제를 중심으로 참고합니다."
+        }
       ],
-      "verification": "source-inventory-only"
+      "ctaLabel": "베다 차트 계산하기",
+      "evidence": [
+        "app/vedic/guide/page.js",
+        "app/_lib/serviceFeatureRegistry.ts"
+      ],
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/vedic-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/vedic-960.webp",
+          "width": 960
+        }
+      ]
     },
     "astrology": {
       "slug": "astrology",
@@ -2689,20 +2780,50 @@
       "featureKey": "",
       "featureKeyTo": "",
       "accessType": "free",
-      "image": "/fuctionassets/jumsung.webp",
+      "image": "/feature-details/assets/astrology-960.webp",
       "aliases": [
         "astrology",
         "/index.html?action=openAstroModal",
         "/index.html?action=openAstroModal/"
       ],
-      "headline": "서양 점성술 차트 분석",
-      "description": "태양궁, 달궁, 상승궁과 하우스 구조를 중심으로 성향과 시기 흐름을 읽는 서양 점성술 분석 서비스입니다.",
-      "panels": [],
-      "ctaLabel": "이 기능 시작하기",
-      "evidence": [
-        "js/core/service-registry.js"
+      "headline": "태양·달·상승궁을 한 장의 차트로 연결해 읽습니다.",
+      "description": "태어난 순간의 행성 위치와 하우스, 애스펙트를 통해 기질·관계·일에서 반복되는 반응과 선택의 리듬을 살펴봅니다.",
+      "panels": [
+        {
+          "title": "별자리 하나가 아니라, 차트 전체의 연결을 봅니다.",
+          "text": "태양은 삶의 중심 의지, 달은 감정과 안정감, 상승궁은 세상과 만나는 방식을 비춥니다. 행성과 하우스, 서로의 각도를 함께 볼 때 더 입체적인 흐름이 드러납니다.",
+          "visualPreview": "astrology"
+        },
+        {
+          "title": "출생 차트에서 확인하는 것.",
+          "items": [
+            "태양·달·상승궁 — 기질과 감정, 바깥으로 드러나는 태도",
+            "행성의 별자리와 하우스 — 삶의 무대와 관심사",
+            "애스펙트 — 조화·긴장·반복되는 선택의 패턴",
+            "시기 흐름 — 현실 판단과 함께 살필 리듬"
+          ]
+        },
+        {
+          "title": "내가 반응하는 방식을 차트로 만나 보세요.",
+          "text": "생년월일·출생시간·출생지를 준비해 주세요. 시간이 불확실하면 상승궁과 하우스보다 성향의 큰 흐름을 중심으로 읽는 편이 안전합니다."
+        }
       ],
-      "verification": "source-inventory-only"
+      "ctaLabel": "무료로 차트 보기",
+      "evidence": [
+        "app/astrology/guide/page.js",
+        "app/_lib/serviceFeatureRegistry.ts"
+      ],
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/astrology-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/astrology-960.webp",
+          "width": 960
+        }
+      ]
     },
     "human-design": {
       "slug": "human-design",
@@ -4269,20 +4390,51 @@
       "featureKey": "",
       "featureKeyTo": "",
       "accessType": "free",
-      "image": "/fuctionassets/sukyo.webp",
+      "image": "/feature-details/assets/sukyo-960.webp",
       "aliases": [
         "sukyo",
         "/index.html?action=openSukuyoModal",
         "/index.html?action=openSukuyoModal/"
       ],
-      "headline": "숙요 인연 레이더",
-      "description": "내 본명숙과 상대 본명숙을 바탕으로 관계 타입, 거리, 레이더 지수, 관계 목적별 조언을 엽니다.",
-      "panels": [],
-      "ctaLabel": "이 기능 시작하기",
-      "evidence": [
-        "js/core/service-registry.js"
+      "headline": "나의 본명숙과 두 사람의 거리에서, 관계의 리듬을 읽습니다.",
+      "description": "생년월일을 바탕으로 본명숙을 계산하고, 관계에서 느끼는 끌림·안정감·긴장을 한 줄의 운명 판정 대신 거리와 역할의 흐름으로 풀어냅니다.",
+      "panels": [
+        {
+          "title": "달의 27자리에서, 두 사람의 속도를 살핍니다.",
+          "text": "숙요점은 관계를 좋고 나쁨으로 고정하지 않습니다. 각자의 본명숙과 사이의 거리를 통해 가까워지는 속도, 편안한 간격, 부딪히기 쉬운 지점을 함께 봅니다.",
+          "visualPreview": "sukuyo"
+        },
+        {
+          "title": "관계에서 확인하는 것.",
+          "items": [
+            "나의 본명숙과 기본 기질",
+            "상대와의 끌림·안정감·긴장이 나타나는 거리",
+            "연애·협업·친구 관계에서 달라지는 분위기",
+            "반복되는 역할과 대화에서 조율할 지점"
+          ]
+        },
+        {
+          "title": "나의 리듬부터 가볍게 확인해 보세요.",
+          "text": "기본 계산에는 생년월일이 필요합니다. 궁합을 볼 때는 두 사람의 생년월일을 입력하며, 결과는 실제 대화와 존중을 함께 확인하는 참고 지도입니다."
+        }
       ],
-      "verification": "source-inventory-only"
+      "ctaLabel": "무료로 숙요점 보기",
+      "evidence": [
+        "app/sukuyo/guide/page.js",
+        "app/sukuyo/compatibility/page.js",
+        "app/_lib/serviceFeatureRegistry.ts"
+      ],
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/sukyo-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/sukyo-960.webp",
+          "width": 960
+        }
+      ]
     },
     "tarot-prompt-maker": {
       "slug": "tarot-prompt-maker",

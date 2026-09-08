@@ -25,6 +25,11 @@ test('published visual introductions have proven sources, real assets, and disti
   assert.equal(neo.panels[0].visualPreview, 'neo');
   assert.match(renderFeatureDetailPanels(neo), /한 가지 지도로/);
   assert.doesNotMatch(renderFeatureDetailPanels(neo), /개발용 예시|개인 결과/);
+  for (const [slug, preview] of Object.entries({ saju: 'saju', ziwei: 'ziwei', sukyo: 'sukuyo', vedic: 'vedic', astrology: 'astrology' })) {
+    const detail = JSON.parse(fs.readFileSync(`public/feature-details/${slug}.json`, 'utf8'));
+    assert.equal(detail.panels[0].visualPreview, preview, `${slug}: 체계별 SVG/HTML 미리보기가 없다`);
+    assert.doesNotMatch(renderFeatureDetailPanels(detail), /개발용 예시|개인 결과/, `${slug}: 내부 검증 문구가 노출됐다`);
+  }
 });
 
 test('shared renderer escapes text and rejects unsafe image URLs and unverified content', () => {
