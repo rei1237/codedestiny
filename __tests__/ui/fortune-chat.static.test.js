@@ -113,6 +113,19 @@ test("Yeoni chat sends everything the server requires to build a reading", () =>
   assert.match(client, /useAiProfileSeed/);
 });
 
+test("a locale switch cancels an in-flight answer and rejects any late payload", () => {
+  const client = read("app/fortune-chat/FortuneChatClient.tsx");
+
+  // Abort alone cannot stop a response whose JSON decoding has already begun. The epoch check
+  // is the second boundary before the assistant message reaches the conversation.
+  assert.match(client, /localeRequestEpochRef/);
+  assert.match(client, /activeReadingRef\.current\?\.controller\.abort\(\)/);
+  assert.match(client, /localeRequestEpochRef\.current !== localeEpoch/);
+  assert.match(client, /toAiLocale\(detectLocale\(\)\) !== aiLocale/);
+  assert.match(client, /if \(attempt\.stale\)/);
+  assert.match(client, /getFortuneChatCopy\(getCurrentLoadingLocale\(\)\)\.localeChanged/);
+});
+
 test("Yeoni chat charges through the shared coin gate with a matching request id", () => {
   const client = read("app/fortune-chat/FortuneChatClient.tsx");
 

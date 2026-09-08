@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-09
-next: 늦은 응답·후속 대화·재생성 renderer의 locale 경계를 조사하고 P3를 구현
+next: 휴먼디자인 PDF의 다중 문자권 글꼴 자산을 확정하고 P4를 구현
 ---
 
 # LLM locale 전수 보강 — 기존 초안 PR 재개
@@ -60,8 +60,8 @@ next: 늦은 응답·후속 대화·재생성 renderer의 locale 경계를 조�
 
 ## 다음 작업: 확인된 누락부터
 
-1. **늦은 응답·후속 대화 P3**: 전체 renderer·재생성·후속 질문·stream 완료/오류/reconnect. 지오맨시의 단일 요청 방어를 전체 기능 검증으로 확대 해석하지 않는다.
-3. **휴먼디자인 UI/PDF**: 본문/장 제목은 기존 12언어. report-plan 부가 라벨, 도표 용어(기존 5언어), PDF 표지·일본어/중국어/Hindi glyph는 미완료다.
+1. **늦은 응답·후속 대화 P3 (부분 완료)**: FortuneChat의 최초·결제 복귀·후속 질문은 같은 `requestReading` 경로를 지나며, 언어 전환 이벤트에서 진행 요청을 abort하고 세대 번호와 현재 locale을 응답 직전에 다시 대조한다. 이미 JSON 처리가 시작된 늦은 응답도 화면·저장 대화에 반영하지 않으며, 현재 언어의 재질문 안내를 표시한다. `__tests__/ui/fortune-chat.static.test.js`로 이 경계를 고정했다. 다른 renderer의 stream/reconnect 전수 확인은 별도 기능별 조사 없이는 완료로 보지 않는다.
+2. **휴먼디자인 UI/PDF P4**: 본문/장 제목은 기존 12언어이며 플랜·조판 fixture도 12언어로 실행된다. 다만 report-plan 부가 라벨과 도표 용어는 기존 5언어/영문 fallback이고, PDF는 R2의 `Mulmaru.ttf`·`Paperlogy-5Medium.ttf` 두 파일만 임베드한다. 일본어·중국어·Hindi glyph를 실제로 보장할 다중 문자권 폰트 자산·용량·라이선스가 정해지기 전에는 PDF 지원 완료로 주장하지 않는다.
 4. 인벤토리의 미확인 칸을 입력→locale→request→handler→prompt→provider→후처리→저장/캐시→UI 순서로 채운다. 준비·계산·관리자·예약 SNS·provider transport를 사용자 LLM 기능으로 중복 집계하지 않는다. 모든 Acceptance Criteria가 끝나기 전 초안을 Ready로 바꾸지 않는다.
 
 ## 재개 명령
