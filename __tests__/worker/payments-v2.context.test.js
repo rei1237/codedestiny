@@ -63,6 +63,7 @@ describe("라우트 표", () => {
       "POST /moonstone/spend",
       "POST /orders",
       "POST /orders/:id/confirm",
+      "POST /orders/:id/recover",
       // 주문 발급 컷오버 어댑터 — 구 /api/payments/prepare · /api/billing/checkout(재작성)이 여기로 온다.
       "POST /prepare",
       // 이용권(구독) 컷오버 — 구 /api/payments/subscription/prepare|confirm(재작성)이 여기로 온다.
@@ -76,6 +77,7 @@ describe("라우트 표", () => {
     expect(matchRoute("GET", "/orders/cd123/resume")).toMatchObject({ params: { id: "cd123" } });
     expect(matchRoute("GET", "/orders/cd123")).toMatchObject({ params: { id: "cd123" } });
     expect(matchRoute("POST", "/orders/cd123/confirm")).toMatchObject({ params: { id: "cd123" } });
+    expect(matchRoute("POST", "/orders/cd123/recover")).toMatchObject({ params: { id: "cd123" } });
     expect(matchRoute("GET", "/orders")).toBeNull();
     expect(matchRoute("DELETE", "/orders/cd123")).toBeNull();
   });
@@ -336,6 +338,31 @@ describe("전 경로 — 실행기를 주입해 Mongo 없이 돌린다", () => {
     const order = await seedPending(db);
     const response = await call(`/orders/${order.merchantUid}`, { token: await tokenFor(OTHER), db });
     expect(response.status).toBe(403);
+  });
+
+  test("새 탭 recovery는 이미 확정된 자기 주문만 확인하고 no-store로 응답한다", async () => {
+    const db = makeFakePaymentDb();
+    const order = await seedPending(db, "recover-paid");
+    db.rows[0].status = "paid";
+    db.rows[0].entitlementGrantedAt = new Date();
+    const response = await call(`/orders/${order.merchantUid}/recover`, {
+      method: "POST", token: await tokenFor(USER), body: {}, db,
+    });
+    expect(response.status).toBe(200);
+    const payload = await response.json();
+    expect(payload).toMatchObject({ ok: true, entitlementStatus: "granted", context: null });
+    expect(payload.order).toMatchObject({ orderId: order.merchantUid, status: "PAID" });
+    expect(response.headers.get("Cache-Control")).toMatch(/no-store/);
+  });
+
+  test("새 탭 recovery는 다른 사용자의 주문을 확정하지 못한다", async () => {
+    const db = makeFakePaymentDb();
+    const order = await seedPending(db, "recover-owner");
+    const response = await call(`/orders/${order.merchantUid}/recover`, {
+      method: "POST", token: await tokenFor(OTHER), body: {}, db,
+    });
+    expect(response.status).toBe(403);
+    expect(db.rows[0].status).toBe("pending");
   });
 
   test("없는 라우트는 404, 알 수 없는 상품은 404", async () => {

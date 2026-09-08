@@ -594,6 +594,31 @@ function presentOrder(order) {
   };
 }
 
+/** 카드 결제 확정 응답의 프리미엄 열람 증빙은 일반 confirm과 새 탭 recovery가 공유한다. */
+async function attachPremiumAccessToConfirmedOrder(env, envelope, {
+  userId, order, orderId, requestId = "", reason = "",
+}) {
+  const featureKey = String(order?.featureKey || "");
+  // 기존 /confirm 은 클라이언트가 보낸 report reason 을 우선했다. recovery 만 주문
+  // snapshot 을 정본으로 쓰고, 기존 티켓 경로의 호환 계약은 그대로 둔다.
+  const canonicalReason = String(reason || order?.pricingSnapshot?.reason || "");
+  const reportType = resolvePremiumAccessReportType(featureKey, canonicalReason);
+  if (!reportType) return "";
+  const premiumAccessToken = await createPremiumAccessToken(env, {
+    userId: String(userId || ""),
+    reportType,
+    featureKey,
+    reason: canonicalReason,
+    transactionId: orderId,
+    requestId: String(requestId || order?.requestId || ""),
+    purchaseId: orderId,
+    chargedCoins: Number(order?.chargedPoints || 0),
+  });
+  if (!premiumAccessToken) return "";
+  envelope.premiumAccessToken = premiumAccessToken;
+  return buildPremiumAccessCookie(premiumAccessToken, String(env?.NODE_ENV || "").trim().toLowerCase() === "production");
+}
+
 /**
  * 확정 1단계 — 이 주문을 확정해도 되는가. Mongo 를 쓰지 않는 순수 판정이라 호출부가 이미 읽어 둔
  * 주문을 그대로 넘길 수 있다(이용권 확정처럼 자기 검증 때문에 어차피 한 번 읽는 경로의 중복 방지).
@@ -874,6 +899,61 @@ const ROUTES = {
     },
   },
 
+  /**
+   * 모바일 PG가 새 탭으로 돌아오면 localStorage의 복귀 티켓이 없어질 수 있다.
+   * 이 경로는 주문 번호 하나를 서버 사실(주문 + PortOne)으로 다시 확인한 뒤에만
+   * 암호화된 resume context를 돌려준다. URL 성공 값은 권한 근거가 아니다.
+   */
+  "POST /orders/:id/recover": {
+    auth: "required",
+    async handle({ request, env, ctx, userId, params, withDb }) {
+      ctx.orderId = params.id;
+      const result = await confirmOrder(env, ctx, { orderId: params.id, actorUserId: userId }, { withDb });
+      ctx.paymentStatus = "PAID";
+      await purgeCredentialCache(request, CREDENTIAL_CACHE_PREFIXES);
+
+      // PAID와 entitlement 지급은 별개다. 지급 대기 중에는 context를 돌려주면 안 된다.
+      // 그렇지 않으면 복귀 클라이언트가 결과 생성을 먼저 실행할 수 있다.
+      let context = null;
+      if (result.granted) {
+        // 입력 복호화 실패가 이미 PAID인 주문의 권한 확인을 실패로 바꾸면 안 된다.
+        try {
+          context = await readOrderResumeContext(result.order, env);
+          ctx.resumeEvent = context ? "RECOVERY_CONTEXT_FOUND" : "RECOVERY_CONTEXT_MISSING";
+        } catch (error) {
+          ctx.resumeEvent = "RECOVERY_CONTEXT_UNAVAILABLE";
+          console.warn("[payments] paid resume context unavailable", {
+            orderId: String(result.order?.merchantUid || ""),
+            message: String(error?.message || error).slice(0, 160),
+          });
+        }
+      } else {
+        ctx.resumeEvent = "RECOVERY_ENTITLEMENT_PENDING";
+      }
+
+      const envelope = legacyConfirmEnvelope(result.order, {
+        granted: result.granted,
+        replayed: result.replayed,
+        unlock: !isPerUseFeatureKey(result.order?.featureKey),
+      });
+      envelope.order = presentOrder(result.order);
+      envelope.entitlementStatus = result.granted ? "granted" : "pending";
+      envelope.context = context;
+      if (!result.granted) envelope.pollUrl = `/api/payments/orders/${encodeURIComponent(params.id)}`;
+      const premiumCookie = result.granted
+        ? await attachPremiumAccessToConfirmedOrder(env, envelope, {
+          userId, order: result.order, orderId: params.id,
+        })
+        : "";
+      return json(envelope, {
+        headers: {
+          "Cache-Control": "no-store",
+          ...(premiumCookie ? { "Set-Cookie": premiumCookie } : {}),
+        },
+      });
+    },
+  },
+
   "GET /orders/:id": {
     auth: "required",
     async handle({ env, ctx, userId, params, withDb, legacyShape }) {
@@ -1059,27 +1139,13 @@ const ROUTES = {
         replayed: result.replayed,
         unlock: !isPerUseFeatureKey(result.order?.featureKey),
       });
-      // 🔴 프리미엄 리포트류는 확정 응답의 premiumAccessToken(+쿠키)이 열람 자격이다 — 구 confirm 의
-      // successWithPremiumAccess 승계. 빠지면 결제는 됐는데 콘텐츠 접근이 막힌다(2026-08-12 수정).
-      const featureKey = String(result.order?.featureKey || "");
-      const reason = String(body.reason || result.order?.pricingSnapshot?.reason || "");
-      const reportType = result.granted ? resolvePremiumAccessReportType(featureKey, reason) : "";
-      if (!reportType) return json(envelope);
-      const premiumAccessToken = await createPremiumAccessToken(env, {
-        userId: String(userId || ""),
-        reportType,
-        featureKey,
-        reason,
-        transactionId: orderId,
-        requestId: String(body.requestId || ""),
-        purchaseId: orderId,
-        chargedCoins: Number(result.order?.chargedPoints || 0),
-      });
-      if (!premiumAccessToken) return json(envelope);
-      envelope.premiumAccessToken = premiumAccessToken;
-      return json(envelope, {
-        headers: { "Set-Cookie": buildPremiumAccessCookie(premiumAccessToken, String(env?.NODE_ENV || "").trim().toLowerCase() === "production") },
-      });
+      // 프리미엄 리포트류는 확정 응답의 token(+쿠키)이 열람 자격이다. 새 탭 recovery도 같은 계약을 쓴다.
+      const premiumCookie = result.granted
+        ? await attachPremiumAccessToConfirmedOrder(env, envelope, {
+          userId, order: result.order, orderId, requestId: body.requestId, reason: body.reason,
+        })
+        : "";
+      return json(envelope, premiumCookie ? { headers: { "Set-Cookie": premiumCookie } } : undefined);
     },
   },
 
