@@ -276,6 +276,7 @@ function emitProviderCallLog(provider: LLMResponse["provider"], model: string, r
   const context = request.logContext || {};
   console.info("[llm provider_call]", {
     action: "provider_call",
+    locale: toAiLocale(request.locale),
     provider,
     model: cleanLogValue(model, 120),
     taskType: cleanLogValue(request.taskType || "general", 40),
@@ -336,6 +337,7 @@ function emitTokenUsageLog(
   const context = request.logContext || {};
   console.info("[llm token_usage]", {
     action: "token_usage",
+    locale: toAiLocale(request.locale),
     provider,
     model: cleanLogValue(model, 120),
     taskType: cleanLogValue(request.taskType || "general", 40),

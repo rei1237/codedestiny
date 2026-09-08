@@ -15,6 +15,7 @@
  *  - 조립본이 기존 품질 게이트(챕터 수·분량 하한)를 통과한다
  */
 import assert from "node:assert/strict";
+import { buildOutputLanguageDirective } from "../lib/i18n/ai-locale.js";
 
 const LABEL = "[verify:saju-ai-section-plan]";
 let checks = 0;
@@ -348,7 +349,7 @@ const bigPrefix = buildSajuAISectionPromptPrefix(bigBuiltPrompt);
     "캐시에 담긴 텍스트가 불변 접두사와 다르다 — 참조 시 접두사 검사에 걸려 캐시가 무시된다",
   );
   check(
-    creates[0]?.body?.systemInstruction?.parts?.[0]?.text === baseArgs.systemPrompt,
+    creates[0]?.body?.systemInstruction?.parts?.[0]?.text === `${baseArgs.systemPrompt}\n\n${buildOutputLanguageDirective("ko")}`,
     "systemInstruction 이 캐시에 구워지지 않았다 — 호출 쪽에서 빠지므로 시스템 지시가 통째로 사라진다",
   );
   check(/^\d+s$/.test(String(creates[0]?.body?.ttl || "")), `캐시 ttl 형식이 잘못됐다 (${creates[0]?.body?.ttl})`);
@@ -386,7 +387,7 @@ const bigPrefix = buildSajuAISectionPromptPrefix(bigBuiltPrompt);
   for (const call of calls) {
     check(call.body?.cachedContent === undefined, "캐시 생성이 실패했는데 cachedContent 를 가리켰다");
     check(call.prompt.includes(bigPrefix), "캐시 없이 보내면서 접두사를 빠뜨렸다 — 모델이 명식을 못 본다");
-    check(call.body?.systemInstruction?.parts?.[0]?.text === baseArgs.systemPrompt, "캐시 없이 보내면서 systemInstruction 도 빠졌다");
+    check(call.body?.systemInstruction?.parts?.[0]?.text === `${baseArgs.systemPrompt}\n\n${buildOutputLanguageDirective("ko")}`, "캐시 없이 보내면서 systemInstruction 도 빠졌다");
   }
   check(cacheCalls.filter((call) => call.method === "DELETE").length === 0, "만들어지지도 않은 캐시를 지우려 했다");
 }

@@ -18,12 +18,12 @@
         "symbol": "direct REST"
       },
       {
-        "line": 705,
+        "line": 707,
         "kind": "provider-url",
         "symbol": "direct REST"
       },
       {
-        "line": 822,
+        "line": 824,
         "kind": "call",
         "symbol": "env.AI.run"
       }
@@ -56,6 +56,51 @@
         "line": 299,
         "kind": "provider-url",
         "symbol": "direct REST"
+      }
+    ]
+  },
+  {
+    "file": "scripts/build-serif-font-assets.mjs",
+    "matches": [
+      {
+        "line": 205,
+        "kind": "provider-url",
+        "symbol": "direct REST"
+      }
+    ]
+  },
+  {
+    "file": "scripts/i18n-translate-pending.mjs",
+    "matches": [
+      {
+        "line": 33,
+        "kind": "import-or-injected-call",
+        "symbol": "./lib/workers-ai-rest.mjs"
+      },
+      {
+        "line": 46,
+        "kind": "provider-url",
+        "symbol": "direct REST"
+      }
+    ]
+  },
+  {
+    "file": "scripts/lib/workers-ai-rest.mjs",
+    "matches": [
+      {
+        "line": 167,
+        "kind": "provider-url",
+        "symbol": "direct REST"
+      }
+    ]
+  },
+  {
+    "file": "scripts/local-dev-auth-api.mjs",
+    "matches": [
+      {
+        "line": 3,
+        "kind": "import-or-injected-call",
+        "symbol": "./lib/workers-ai-rest.mjs"
       }
     ]
   },
@@ -118,7 +163,7 @@
         "symbol": "./gemini.js"
       },
       {
-        "line": 72,
+        "line": 73,
         "kind": "call",
         "symbol": "providerCall"
       }

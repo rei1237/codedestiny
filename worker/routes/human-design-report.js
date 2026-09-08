@@ -309,6 +309,8 @@ async function generateSection(env, context, spec, attemptState) {
   });
 
   const ai = await callGeminiJsonWithRetry(env, built.prompt, {
+    // Continue the report in its saved language even if the UI changed between waves.
+    locale,
     systemPrompt: built.systemPrompt,
     baseTokens: HD_REPORT_SECTION_MAX_OUTPUT_TOKENS,
     capTokens: HD_REPORT_SECTION_MAX_OUTPUT_TOKENS,
