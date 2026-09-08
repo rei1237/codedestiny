@@ -2,6 +2,7 @@ import PublicReadingGuide from "../components/PublicReadingGuide";
 import InsightsCosmicRouteClient from "./InsightsCosmicRouteClient";
 import { FEATURE_GUIDES } from "./feature-guides";
 import { INSIGHT_SEED_ARTICLES } from "./seed-articles";
+import { EDITORIAL_READING_PATHS, EDITORIAL_READING_SLUGS } from "./editorial-reading-paths.mjs";
 import { buildSeoMetadata } from "../../lib/seo";
 import { createHreflangFromRoutes } from "../../lib/seo/createHreflang";
 import { getAlternatesByRouteKey } from "../../lib/i18n/routes";
@@ -64,7 +65,7 @@ function toClientInsightItem(item) {
     isFeatured: Boolean(item?.isFeatured),
     publishedAt: String(item?.publishedAt || "").trim(),
     updatedAt: String(item?.updatedAt || "").trim(),
-    viewCount: Math.max(0, Number(item?.viewCount || 0) || 0),
+    viewCount: null,
     readingTime: Math.max(1, Number(item?.readingTime || 0) || 1),
   };
 }
@@ -107,9 +108,9 @@ function buildFamousSajuInsightItems() {
     ctaLabel: "유명인 사주 글 보기",
     isPublished: person.published,
     isFeatured: index < featured.length,
-    publishedAt: "2026-06-04T00:00:00+09:00",
-    updatedAt: "2026-06-04T00:00:00+09:00",
-    viewCount: Math.max(0, 900 - index * 7),
+    publishedAt: null,
+    updatedAt: null,
+    viewCount: null,
     readingTime: person.isBirthTimeKnown ? 7 : 6,
   }));
 }
@@ -147,9 +148,9 @@ async function enrichInsightImageItems(items) {
 export default async function InsightsPage() {
   const initialFamousSajuItems = (await enrichInsightImageItems(buildFamousSajuInsightItems())).map(toClientInsightItem);
   const initialInsightItems = (await enrichInsightImageItems(INSIGHT_SEED_ARTICLES)).map(toClientInsightItem);
-  const initialAllItems = [...initialFamousSajuItems, ...initialInsightItems];
+  const initialAllItems = [...initialInsightItems, ...initialFamousSajuItems];
   const initialItems = initialAllItems.slice(0, 12);
-  const initialRecommended = initialInsightItems.filter((article) => article.isFeatured).slice(0, 6);
+  const initialRecommended = EDITORIAL_READING_SLUGS.map((slug) => initialInsightItems.find((article) => article.slug === slug)).filter(Boolean).slice(0, 6);
   const { categories, tags } = getInsightFilters(initialAllItems);
   const webPage = buildWebPageJsonLd({
     title: pageTitle,
@@ -203,6 +204,25 @@ export default async function InsightsPage() {
             점성술까지 — 처음 접하는 사람도 흐름을 읽을 수 있도록 정리한 운세 지식 아카이브입니다.
             주제별 허브에서 원하는 분야의 글을 모아 볼 수 있습니다.
           </p>
+        </div>
+      </section>
+      <section className="mx-auto w-full max-w-6xl px-4 pb-6 md:px-6" aria-labelledby="insight-reading-paths">
+        <div className="cd-guide-index">
+          <h2 id="insight-reading-paths" className="cd-guide-index__title">어디서부터 읽을까요?</h2>
+          <p className="cd-guide-index__lede">계산 기준, 해석 순서, 체계 간 차이를 중심으로 읽는 길을 안내합니다. 글별 제작·검수 안내와 <a href="/methodology/">방법론</a>도 함께 확인해 주세요.</p>
+          <div className="grid gap-6 sm:grid-cols-2">
+            {EDITORIAL_READING_PATHS.map((path) => (
+              <div key={path.title}>
+                <h3 className="mb-3 font-semibold">{path.title}</h3>
+                <ul className="space-y-3">
+                  {path.slugs.map((slug) => {
+                    const article = INSIGHT_SEED_ARTICLES.find((item) => item.slug === slug);
+                    return article ? <li key={slug}><a className="underline underline-offset-4" href={`/insights/${slug}/`}>{article.title}</a></li> : null;
+                  })}
+                </ul>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
       <InsightsCosmicRouteClient

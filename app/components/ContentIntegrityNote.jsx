@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { SITE_AUTHOR } from "../../lib/structured-data";
+import { getContentReview } from "../../lib/content/editorial-review.mjs";
 
 // AI 생성 콘텐츠 페이지(운세 인사이트·유명인 사주 등) 하단에 붙이는 제작·검수 고지.
 // Google "scaled content abuse" 정책 대응 — 사람 검수·AI 활용 범위·제작 기준을 투명하게 밝히고
@@ -33,8 +33,8 @@ const TONES = {
 };
 
 /**
- * @param {{ contentSource?: string; datePublished?: string | null; dateModified?: string | null; tone?: string; className?: string; author?: string | null }} props
- *   author — 글을 쓴 주체(기사 메타의 저자명). 검수자는 항상 SITE_AUTHOR 라서 prop 으로 받지 않는다.
+ * @param {{ contentSource?: string; datePublished?: string | null; dateModified?: string | null; tone?: string; className?: string; author?: string | null; contentPath?: string }} props
+ *   author — 기사 메타의 작성 책임. 검수자는 원고별 확인 기록에서만 읽는다.
  */
 export default function ContentIntegrityNote({
   contentSource = "template",
@@ -43,16 +43,15 @@ export default function ContentIntegrityNote({
   tone = "dark",
   className = "",
   author = null,
+  contentPath = "",
 }) {
   const palette = TONES[tone] || TONES.dark;
   const published = formatKoreanDate(datePublished);
   const modified = formatKoreanDate(dateModified);
   const showDates = Boolean(published || modified);
   const isAssembled = contentSource === "template";
-  // 저자 줄은 사람이 검토한 지면에만 붙는다. 템플릿 지면에 실명을 달면 "사람이 검수했다"는 주장이 된다.
-  // 검수자 실명·직함·경력은 lib/structured-data 의 SITE_AUTHOR(JSON-LD Person 노드)와 같은 정본을 쓰고,
-  // /about#author 로 보내 구글이 화면의 이름과 Person @id 를 한 사람으로 잇게 한다(E-E-A-T, F-04).
-  const writer = author && author !== SITE_AUTHOR.name ? String(author) : "";
+  const review = getContentReview(contentPath);
+  const writer = author ? String(author) : "Code Destiny 편집팀";
 
   return (
     <aside
@@ -62,24 +61,18 @@ export default function ContentIntegrityNote({
       <p className={`font-semibold ${palette.heading}`}>제작·검수 안내</p>
       {isAssembled ? (
         <p className="mt-2">
-          이 페이지는 편집팀이 정한 해석 규칙과 문장 틀에 공개된 정보를 대입해 자동으로 구성했습니다. 문장 틀과 금지 표현 기준은 사람이 정하지만, 완성된 페이지를 한 건씩 사람이 검토하지는 않습니다. 그래서 이 페이지는 검색 색인 대상에서 제외해 두었습니다. 운세 해석은 미래를 단정하는 예언이 아니라 자기 성찰과 선택 정돈을 돕는 참고 자료입니다.
+          이 페이지는 편집팀이 정한 해석 규칙과 문장 틀에 공개된 정보를 대입해 자동으로 구성했습니다. 문장 틀과 금지 표현 기준은 사람이 정하지만, 완성된 페이지를 한 건씩 사람이 검토하지는 않습니다. 운세 해석은 미래를 단정하는 예언이 아니라 자기 성찰과 선택 정돈을 돕는 참고 자료입니다.
         </p>
       ) : (
         <p className="mt-2">
-          이 글은 사주·자미두수·점성술·타로 같은 전통 상징 체계의 해석 규칙과 공개된 정보를 바탕으로 편집팀이 직접 작성했으며, 게시 전 표현과 사실 관계, 과장·불안 조장 여부를 검토했습니다. 계산 결과를 읽기 쉬운 해설로 옮기는 과정에는 인공지능의 도움을 받되, 방향과 문장은 사람이 다듬습니다. 운세 해석은 미래를 단정하는 예언이 아니라 자기 성찰과 선택 정돈을 돕는 참고 자료입니다.
+          이 글은 전통 상징 체계와 공개 정보를 바탕으로 구성한 해설입니다. 설명을 정리하는 과정에 인공지능이 활용될 수 있습니다. 원고의 제작 방식과 전문가의 개별 검수 여부는 구분하여 안내합니다. 운세 해석은 미래를 단정하는 예언이 아니라 자기 성찰과 선택 정돈을 돕는 참고 자료입니다.
         </p>
       )}
-      {!isAssembled ? (
-        <p className={`mt-2 text-xs ${palette.meta}`}>
-          {writer ? (
-            <>
-              글 <span data-cd-no-trans>{writer}</span> ·{" "}
-            </>
-          ) : null}
-          검수 <span data-cd-no-trans>{SITE_AUTHOR.name}</span> · <span>{`${SITE_AUTHOR.jobTitle}(명리 10년)`}</span> ·{" "}
-          <Link href="/about#author" className={palette.link}>저자 소개</Link>
-        </p>
-      ) : null}
+      <p className={`mt-2 text-xs ${palette.meta}`} data-editorial-review={review ? "verified" : "pending"}>
+        작성 책임 <span data-cd-no-trans>{writer}</span> ·{" "}
+        {review ? <>검수 <span data-cd-no-trans>{review.reviewer}</span> · 검수일 {review.reviewedAt}</> : "전문가 개별 검수 확인 전"}
+        {" · "}<Link href="/about#author" className={palette.link}>운영자와 검수 기준</Link>
+      </p>
       {showDates ? (
         <p className={`mt-2 text-xs ${palette.meta}`}>
           {published ? `발행 ${published}` : ""}

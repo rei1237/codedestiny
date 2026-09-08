@@ -18,7 +18,7 @@ const INSIGHTS_COSMIC_CLIENT_TEXT_TRANSLATIONS = {
     "insightsCosmic.009": "전체 카테고리",
     "insightsCosmic.010": "전체 태그",
     "insightsCosmic.011": "최신순",
-    "insightsCosmic.012": "인기순",
+    "insightsCosmic.012": "편집 추천순",
     "insightsCosmic.013": "조건에 맞는 인사이트가 없습니다.",
   },
   en: {
@@ -33,7 +33,7 @@ const INSIGHTS_COSMIC_CLIENT_TEXT_TRANSLATIONS = {
     "insightsCosmic.009": "All categories",
     "insightsCosmic.010": "All tags",
     "insightsCosmic.011": "Latest",
-    "insightsCosmic.012": "Popular",
+    "insightsCosmic.012": "Editor's picks",
     "insightsCosmic.013": "No insights match these filters.",
   },
   ja: {
@@ -48,7 +48,7 @@ const INSIGHTS_COSMIC_CLIENT_TEXT_TRANSLATIONS = {
     "insightsCosmic.009": "すべてのカテゴリー",
     "insightsCosmic.010": "すべてのタグ",
     "insightsCosmic.011": "新着順",
-    "insightsCosmic.012": "人気順",
+    "insightsCosmic.012": "編集部のおすすめ順",
     "insightsCosmic.013": "条件に合うインサイトがありません。",
   },
 };
@@ -167,7 +167,7 @@ function normalizePost(raw) {
     isFeatured: Boolean(raw?.isFeatured),
     publishedAt,
     updatedAt,
-    viewCount: Math.max(0, Number(raw?.viewCount || 0) || 0),
+    viewCount: null,
     readingTime: Math.max(1, Number(raw?.readingTime || 0) || estimateReadingTime(body, 1)),
   };
 }
@@ -176,7 +176,7 @@ function sortPosts(items, sort) {
   const cloned = [...items];
   cloned.sort((a, b) => {
     if (sort === "popular") {
-      if ((b.viewCount || 0) !== (a.viewCount || 0)) return (b.viewCount || 0) - (a.viewCount || 0);
+      if (a.isFeatured !== b.isFeatured) return Number(b.isFeatured) - Number(a.isFeatured);
     }
 
     const timeA = new Date(a.publishedAt || a.updatedAt || 0).getTime();
@@ -229,9 +229,9 @@ function buildDynamicTags(items) {
 }
 
 function formatDate(value) {
-  if (!value) return "-";
+  if (!value) return "";
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "-";
+  if (Number.isNaN(date.getTime())) return "";
   return date.toLocaleDateString("ko-KR", {
     year: "numeric",
     month: "2-digit",
@@ -279,7 +279,7 @@ function handleCardImageError(event) {
 }
 
 function sortTagLabel(sort) {
-  return sort === "popular" ? "인기 글" : "최신 글";
+  return sort === "popular" ? "편집 추천 글" : "최신 글";
 }
 
 export default function InsightsCosmicClient({
@@ -384,6 +384,12 @@ export default function InsightsCosmicClient({
   }, [initialFamousSajuItems]);
 
   async function fetchList(nextPage, append) {
+    // Editorial order comes from the local publication catalog, never API views.
+    if (sort === "popular") {
+      setApiMode(false);
+      setPage(nextPage);
+      return;
+    }
     const endpoint = `${apiBase || ""}/api/insights`;
     const url = new URL(endpoint, window.location.origin);
 
@@ -746,7 +752,7 @@ export default function InsightsCosmicClient({
                         <div className="h-44 w-full bg-gradient-to-br from-indigo-300/10 to-sky-300/10" />
                       )}
                       <div className="p-4">
-                        <p className="text-[11px] text-slate-400">{item.categoryLabel || item.category || "인사이트"} · 조회 {Number(item.viewCount || 0).toLocaleString("ko-KR")}</p>
+                        <p className="text-[11px] text-slate-400">{item.categoryLabel || item.category || "인사이트"}</p>
                         <h3 className="mt-2 text-base font-semibold leading-6 text-slate-100 group-hover:text-amber-100">{item.title}</h3>
                         {item.subtitle ? <p className="mt-2 text-sm text-slate-300 line-clamp-2">{item.subtitle}</p> : null}
                         <p className="mt-3 text-sm text-slate-300 line-clamp-3 leading-6">{item.excerpt}</p>

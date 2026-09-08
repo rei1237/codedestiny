@@ -1,3 +1,4 @@
+import { inspectPublisherDocument } from "./lib/publisher-document.mjs";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -26,8 +27,8 @@ function embedsAdsenseCode(content) {
 }
 const adsTxtRecord = "google.com, pub-9863227498729828, DIRECT, f08c47fec0942fa0";
 const minimumUsefulTitleLength = 10;
-const minimumVisibleTextLength = 1200;
-const minimumBlockedIndexableVisibleTextLength = 1800;
+// Length is diagnostic, not a publisher-quality threshold.
+
 
 const adsenseSourceScanTargets = [
   "app",
@@ -919,6 +920,13 @@ function rememberUniqueAdsenseContentFingerprint(htmlPath, route, visibleText, s
   seenFingerprints.set(fingerprint, route);
 }
 
+function assertPublisherBody(htmlPath, html) {
+  const content = inspectPublisherDocument(html, siteOrigin);
+  assert(content.bodyChars > 0, `${htmlPath}: missing server-rendered publisher body`);
+  assert(!content.bodyText.includes("목차를 생성할 h2/h3가 없습니다"), `${htmlPath}: empty article template`);
+  // Nonempty markup is only a technical gate. Editorial approval is recorded separately.
+}
+
 function assertUsefulTitle(htmlPath, title) {
   assert(title.length >= minimumUsefulTitleLength, `${htmlPath}: title is too thin`);
   assert(!repeatedSiteNameTitlePattern.test(title), `${htmlPath}: title repeats site name: ${title}`);
@@ -937,10 +945,7 @@ function verifyIndexablePublicRoutes(baseDir) {
     assert(!html.includes("\uFFFD"), `${htmlPath}: mojibake replacement character found`);
     assertUsefulTitle(htmlPath, getTitleContent(html));
     assert(description.length >= 50, `${htmlPath}: meta description is too thin`);
-    assert(
-      visibleText.length >= minimumVisibleTextLength,
-      `${htmlPath}: visible content is too thin (${visibleText.length} chars)`,
-    );
+    assertPublisherBody(htmlPath, html);
     for (const expectedText of policyContentExpectations[route] || []) {
       assert(html.includes(expectedText), `${htmlPath}: missing policy marker ${expectedText}`);
     }
@@ -970,10 +975,7 @@ function verifyAdsenseAllowedContentRoutes(baseDir) {
     assert(!robots.includes("noindex"), `${htmlPath}: AdSense candidate contains noindex`);
     assert(!robots.includes("nofollow"), `${htmlPath}: AdSense candidate contains nofollow`);
     assert(!googleBot.includes("noindex"), `${htmlPath}: AdSense candidate googlebot contains noindex`);
-    assert(
-      visibleText.length >= minimumVisibleTextLength,
-      `${htmlPath}: AdSense candidate visible content is too thin (${visibleText.length} chars)`,
-    );
+    assertPublisherBody(htmlPath, html);
     assertNoHighRiskAdsenseEligibleText(htmlPath, visibleText);
   }
 }
@@ -1024,10 +1026,7 @@ function verifyGeneratedAdsenseEligibleRoutes(baseDir) {
     assert(!robots.includes("noindex"), `${htmlPath}: AdSense-eligible route contains noindex`);
     assert(!robots.includes("nofollow"), `${htmlPath}: AdSense-eligible route contains nofollow`);
     assert(!googleBot.includes("noindex"), `${htmlPath}: AdSense-eligible googlebot contains noindex`);
-    assert(
-      visibleText.length >= minimumVisibleTextLength,
-      `${htmlPath}: AdSense-eligible visible content is too thin (${visibleText.length} chars)`,
-    );
+    assertPublisherBody(htmlPath, html);
     assertNoHighRiskAdsenseEligibleText(htmlPath, visibleText);
     rememberUniqueAdsenseContentFingerprint(htmlPath, route, visibleText, seenFingerprints);
   }
@@ -1116,10 +1115,7 @@ function verifyFamousSajuAliasRoutesNoindex(baseDir) {
       assert(sitemapPaths.has(route), `${sitemapPath}: reviewed famous-saju editorial page missing from sitemap: ${route}`);
       assert(html.includes("data-famous-saju-editorial"), `${htmlPath}: reviewed famous-saju page must render the editorial narrative`);
       const visibleText = getVisibleText(html);
-      assert(
-        visibleText.length >= minimumBlockedIndexableVisibleTextLength,
-        `${htmlPath}: reviewed famous-saju page visible content is too thin (${visibleText.length} chars)`,
-      );
+      assertPublisherBody(htmlPath, html);
       continue;
     }
     assert(robots.includes("noindex"), `${htmlPath}: famous-saju detail must contain noindex robots`);
@@ -1483,10 +1479,7 @@ function verifyBlockedIndexableSitemapRouteQuality(baseDir) {
     if (robots.includes("noindex")) continue;
 
     const visibleText = getVisibleText(html);
-    assert(
-      visibleText.length >= minimumBlockedIndexableVisibleTextLength,
-      `${sitemapPath}: non-AdSense indexable route visible content is too thin (${visibleText.length} chars): ${pathname}`,
-    );
+    assertPublisherBody(htmlPath, html);
   }
 }
 

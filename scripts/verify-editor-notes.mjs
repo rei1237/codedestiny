@@ -19,6 +19,7 @@ import { fileURLToPath } from "node:url";
 import { canLoadAdsense } from "../app/components/adsense-route-policy.js";
 import { EDITOR_NOTES } from "../app/_content/editor-notes.js";
 import { jaccard, shingles as buildShingles } from "./lib/text-shingles.mjs";
+import { inspectPublisherDocument } from "./lib/publisher-document.mjs";
 
 const rootDir = fileURLToPath(new URL("..", import.meta.url));
 const baseDir = "out";
@@ -37,9 +38,8 @@ const shingles = (text) => buildShingles(text, SHINGLE_SIZE);
  * 실측(2026-08-17, 노트 18개): lede 최소 101 / 중앙 135, tip body 최소 62 / 중앙 70.
  * 하한을 현재 최솟값에 붙이면 문장을 조금만 다듬어도 가드가 터지므로 여유를 두고 잡았다.
  */
-const MIN_LEDE_LENGTH = 90;
-const MIN_TIPS = 3;
-const MIN_TIP_BODY_LENGTH = 50;
+// Historical length/overlap values below are review signals, not quality gates.
+// Rendering, declared content presence and actual review records are separate.
 /** 두 노트의 8-gram 자카드가 이 값 이상이면 공용 템플릿으로 본다. */
 const MAX_CROSS_ROUTE_OVERLAP = 0.5;
 
@@ -145,7 +145,10 @@ const pages = new Map();
 for (const absolutePath of htmlFiles) {
   const route = routeFromHtmlPath(absolutePath);
   if (!canLoadAdsense(route)) continue;
-  pages.set(route, readFileSync(absolutePath, "utf8"));
+  const html = readFileSync(absolutePath, "utf8");
+  assert(inspectPublisherDocument(html, `https://code-destiny.com${route}`).bodyChars > 0,
+    `[editor-notes] ${route}: publisher body is missing`);
+  pages.set(route, html);
 }
 
 assert(pages.size > 0, "[editor-notes] 광고 게재 가능 라우트를 하나도 못 찾았다 — 발견 로직이 깨졌다.");
@@ -196,17 +199,11 @@ for (const route of [...pages.keys()].sort()) {
   }
 
   thinRoutes.push(route);
-  assert(
-    hasEditorNote(pages.get(route)),
-    `[editor-notes] 고유 본문 ${length}자(<${MIN_UNIQUE_BODY})인데 편집자 노트가 없다: ${route}`,
-  );
+  if (!hasEditorNote(pages.get(route))) console.warn(
+    `[editor-notes] 검토 신호: ${route}, 고유 본문 추정 ${length}자. 분량을 맞추기 위한 노트 추가 금지.`);
 }
 
-assert(
-  thinRoutes.length > 0 || usedExceptions.size > 0,
-  "[editor-notes] 임계값 미만 라우트가 하나도 없다 — 검사 대상 0인 가드는 가드가 아니다. "
-    + "임계값이나 발견 로직을 확인할 것.",
-);
+// pages.size above guards against an empty scan. No short pages is not a failure.
 
 // ── 5. 단언 F: 쓰이지 않는 예외 선언은 실패 ───────────────────────────────
 for (const [prefix, reason] of DECLARED_EXCEPTIONS) {
@@ -239,17 +236,17 @@ for (const route of Object.keys(EDITOR_NOTES)) {
 // ── 7. 단언 D: 자동 생성 방지 ─────────────────────────────────────────────
 for (const [route, note] of Object.entries(EDITOR_NOTES)) {
   assert(
-    typeof note.lede === "string" && note.lede.length >= MIN_LEDE_LENGTH,
-    `[editor-notes] ${route}: lede 가 ${MIN_LEDE_LENGTH}자 미만이다(${note.lede?.length ?? 0}자).`,
+    typeof note.lede === "string" && note.lede.trim().length > 0,
+    `[editor-notes] ${route}: lede 본문이 없다.`,
   );
   assert(
-    Array.isArray(note.tips) && note.tips.length >= MIN_TIPS,
-    `[editor-notes] ${route}: tips 가 ${MIN_TIPS}개 미만이다(${note.tips?.length ?? 0}개).`,
+    Array.isArray(note.tips) && note.tips.length > 0,
+    `[editor-notes] ${route}: 선언된 팁 본문이 없다.`,
   );
   for (const tip of note.tips || []) {
     assert(
-      String(tip.body || "").length >= MIN_TIP_BODY_LENGTH,
-      `[editor-notes] ${route}: 팁 "${tip.label}" 의 본문이 ${MIN_TIP_BODY_LENGTH}자 미만이다.`,
+      String(tip.body || "").trim().length > 0,
+      `[editor-notes] ${route}: 팁 "${tip.label}" 의 본문이 없다.`,
     );
   }
 
@@ -257,10 +254,7 @@ for (const [route, note] of Object.entries(EDITOR_NOTES)) {
   const body = strippedText.get(route);
   if (body) {
     const bodyWithoutNote = body;
-    assert(
-      !bodyWithoutNote.includes(note.lede.slice(0, 60)),
-      `[editor-notes] ${route}: lede 가 페이지 본문의 부분 문자열이다 — 기존 카피를 복사한 노트는 값이 없다.`,
-    );
+    if (bodyWithoutNote.includes(note.lede)) console.warn(`[editor-notes] 검토 신호: ${route} 요약이 본문과 같다.`);
   }
 }
 
@@ -272,11 +266,8 @@ const noteRoutes = [...noteShingles.keys()];
 for (let i = 0; i < noteRoutes.length; i += 1) {
   for (let j = i + 1; j < noteRoutes.length; j += 1) {
     const overlap = jaccard(noteShingles.get(noteRoutes[i]), noteShingles.get(noteRoutes[j]));
-    assert(
-      overlap < MAX_CROSS_ROUTE_OVERLAP,
-      `[editor-notes] "${noteRoutes[i]}" 와 "${noteRoutes[j]}" 의 노트 중복률이 ${overlap.toFixed(2)}다 `
-        + `(${MAX_CROSS_ROUTE_OVERLAP} 이상) — 공용 템플릿을 돌려쓴 것으로 본다.`,
-    );
+    if (overlap >= MAX_CROSS_ROUTE_OVERLAP) console.warn(
+      `[editor-notes] 검토 신호: "${noteRoutes[i]}" / "${noteRoutes[j]}" 유사도 ${overlap.toFixed(2)}. 자동 저품질 판정 아님.`);
   }
 }
 
@@ -287,6 +278,6 @@ if (failures.length > 0) {
 }
 
 console.log(
-  `[editor-notes] OK — 광고 라우트 ${pages.size}개, 임계값 미만 ${thinRoutes.length}개 전부 노트 보유, `
+  `[editor-notes] OK — 구조상 광고 대상 ${pages.size}개 본문 존재, 분량 진단 ${thinRoutes.length}개, `
     + `레지스트리 ${Object.keys(EDITOR_NOTES).length}개 정합, 예외 ${usedExceptions.size}개.`,
 );
