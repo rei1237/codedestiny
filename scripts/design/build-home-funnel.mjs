@@ -33,11 +33,11 @@ const nodes = {
   music: byId('moonMusicEntry'),
   reviews: byId('cdReviews'),
   guide: byClass('cd-home-guide'),
+  homeMore: byClass('cd-home-more'),
+  finder: byId('cdFinder'),
 };
-const finder = byId('cdFinder');
 
 const vars = Object.fromEntries(Object.entries(nodes).map(([key, node]) => [key, htmlOf(node, key)]));
-vars.finder = htmlOf(finder, 'finder');
 const template = readFileSync('templates/home-funnel.html', 'utf8');
 const homeHtml = template.replace(/\{\{(\w+)\}\}/g, (_token, key) => {
   if (!(key in vars)) throw new Error(`Unknown home funnel template token: ${key}`);
