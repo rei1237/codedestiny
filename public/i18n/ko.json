@@ -1276,8 +1276,8 @@
     },
     "mobileFunnel": {
       "lowPrice": "3천원대",
-      "freeNav": "무료",
-      "freeNavAria": "무료로 내 운세 보기",
+      "freeNav": "사주",
+      "freeNavAria": "사주 보기",
       "consultNav": "상담",
       "consultNavAria": "추천 상담 살펴보기"
     },
