@@ -1,0 +1,64 @@
+{
+  "metrics": [
+    {
+      "width": 360,
+      "overflow": 0,
+      "scrollHeight": 3565,
+      "heroActionBottom": 511.625
+    },
+    {
+      "width": 390,
+      "overflow": 0,
+      "scrollHeight": 3239,
+      "heroActionBottom": 511.625
+    },
+    {
+      "width": 430,
+      "overflow": 0,
+      "scrollHeight": 3210,
+      "heroActionBottom": 511.625
+    },
+    {
+      "width": 768,
+      "overflow": 0,
+      "scrollHeight": 2750,
+      "heroActionBottom": 416.53125
+    },
+    {
+      "width": 1440,
+      "overflow": 0,
+      "scrollHeight": 2841,
+      "heroActionBottom": 517.703125
+    }
+  ],
+  "errors": [],
+  "requests": [
+    "/api/ziwei-deep-report/result",
+    "/api/ziwei-deep-report/result",
+    "/api/ziwei-deep-report/result",
+    "/api/ziwei-deep-report/result",
+    "/api/ziwei-deep-report/result",
+    "/api/ziwei-deep-report/result"
+  ],
+  "checks": [
+    "input validation",
+    "5 widths",
+    "8 questions",
+    "chart links",
+    "share success/cancel/copy failure",
+    "refresh topic",
+    "legacy 15 chapters",
+    "collapsed export",
+    "font failure and retry",
+    "profile switch and in-flight cancellation",
+    "long name",
+    "unknown hour",
+    "real profile event",
+    "partial and failed history",
+    "keyboard focus",
+    "44px CTA",
+    "reduced motion",
+    "share unsupported fallback",
+    "legacy chart anchor"
+  ]
+}

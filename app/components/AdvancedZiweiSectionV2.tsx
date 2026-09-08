@@ -7,7 +7,10 @@
 // │ 사주·자미 모달). 12궁 4×4 격자·팔레트는 기본 명반과 디자인 레퍼런스를 공유.  │
 // └───────────────────────────────────────────────────────────────────────────┘
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { m } from "framer-motion";
+import "../../styles/fonts-serif.css";
+import styles from "./ziwei/ziwei-consultation.module.css";
+import { ZiweiConsultationHero, ZiweiQuestionSections } from "./ziwei/ZiweiConsultation";
+import { buildQuestionReading } from "../_lib/ziwei-consultation-narrative";
 // 심화 자미두수 PDF (ZIWEI_DEEP_PDF) — 회당 결제 LLM 15챕터 PDF 리포트 패널
 import ZiweiDeepPdfPanel, { type ZiweiDeepBirthInput } from "./ziwei/ZiweiDeepPdfPanel";
 import {
@@ -40,12 +43,11 @@ import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loading
 import AiResultProse from "@/components/fortune/AiResultProse";
 import GlossaryTerm from "@/components/fortune/GlossaryTerm";
 import { listGlossaryTerms, lookupTerm } from "@/worker/lib/fortune-glossary.js";
-import { getAdvancedZiweiCopy, type AdvancedZiweiCopy } from "./ziwei/_lib/advanced-ziwei-copy";
+import { getAdvancedZiweiCopy, getPremiumZiweiCopy, type AdvancedZiweiCopy } from "./ziwei/_lib/advanced-ziwei-copy";
 // 해석 문장·트랙·궁/별 정의는 순수 모듈로 분리했다(가드 verify:ziwei-chart-customer-copy 가 출력 문장을 검사한다).
 import {
   buildBorrowedStarInsights,
   buildCounselingTracks,
-  buildOverallCounselingSummary,
   buildPalaceCounseling,
   buildPalaceLinks,
   buildSihuaInsights,
@@ -94,7 +96,7 @@ interface FormState {
   timezone: string;
 }
 
-const RESULT_CACHE_KEY = "premium:ziwei:result:v9";
+const RESULT_CACHE_KEY = "premium:ziwei:result:v10";
 const BASIC_ZIWEI_ENTRY_URL = "/?action=openZiweiModal";
 
 type ZiweiProfileTimeSeed = {
@@ -215,6 +217,9 @@ function buildZiweiProfileSeed(eventProfile?: unknown): ZiweiProfileSeed | null 
     unknownHour: time.unknownHour,
     gender,
     calendarType,
+    isLeapMonth: false,
+    birthPlace: birthPlace || getAdvancedZiweiCopy(getCurrentLoadingLocale()).defaultBirthPlaceValue,
+    timezone: timezone || "Asia/Seoul",
   };
 
   if (birthPlace) form.birthPlace = birthPlace;
@@ -229,6 +234,8 @@ function buildZiweiProfileSeed(eventProfile?: unknown): ZiweiProfileSeed | null 
       time.hasProfileHour ? pad2(Number(time.birthMinute)) : "",
       gender,
       calendarType,
+      birthPlace,
+      timezone,
       time.unknownHour ? "unknown" : "known",
     ].join("|"),
     form,
@@ -276,27 +283,13 @@ const ZIWEI_SIHUA_PILL: Record<string, string> = {
 
 /* 결과 화면 구역 이동 바. 이 배열 순서가 곧 DOM 순서이자 칩 순서이며, 스크롤 스파이가 그대로 관찰한다. */
 const ZIWEI_RESULT_NAV = [
-  { key: "chart", id: "ziwei-result-chart" },
-  { key: "palace", id: "ziwei-result-palace" },
-  { key: "track", id: "ziwei-result-track" },
-  { key: "deep", id: "ziwei-result-deep" },
-  { key: "today", id: "ziwei-result-today" },
+  { key: 'answer', id: 'ziwei-result-answer' }, { key: 'questions', id: 'ziwei-result-track' },
+  { key: 'chart', id: 'ziwei-result-deep' }, { key: 'today', id: 'ziwei-result-today' }, { key: 'pdf', id: 'ziwei-result-pdf' },
 ] as const;
-
-const COUNSELING_TRACK_ICON_MAP: Record<ZiweiConsultationTrackId, string> = {
-  life: "總",
-  career: "官",
-  wealth: "財",
-  love: "緣",
-  relationships: "朋",
-  family: "家",
-  health: "息",
-  timing: "限",
-};
 
 function palaceForceToneClass(score: number): string {
   if (score >= 78) return "border border-emerald-300/35 bg-emerald-200/15 text-emerald-100";
-  if (score >= 62) return "border border-cyan-300/35 bg-cyan-200/15 text-cyan-100";
+  if (score >= 62) return "border border-cyan-300/35 bg-cyan-200/15 text-[var(--zw-muted)]";
   if (score >= 46) return "border border-amber-300/35 bg-amber-200/15 text-amber-100";
   return "border border-rose-300/35 bg-rose-200/15 text-rose-100";
 }
@@ -313,72 +306,7 @@ function zPatternStrengthDescription(symbol: string, copy: AdvancedZiweiCopy): s
 }
 
 function StagePanel({ className, children }: { className?: string; children: ReactNode }) {
-  return (
-    <div className={`relative overflow-hidden rounded-[1.75rem] border border-white/12 bg-white/6 shadow-[0_20px_70px_rgba(2,6,23,0.45)] backdrop-blur-2xl before:pointer-events-none before:absolute before:inset-[1px] before:rounded-[1.6rem] before:border before:border-white/10 before:opacity-40 ${className || ""}`}>
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(250,204,21,0.08),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(56,189,248,0.08),transparent_28%)]" />
-      <div className="relative z-10">{children}</div>
-    </div>
-  );
-}
-
-function GalaxyBackdrop() {
-  return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(74,144,226,0.18),transparent_35%),radial-gradient(circle_at_20%_20%,rgba(250,204,21,0.14),transparent_24%),radial-gradient(circle_at_80%_15%,rgba(103,80,164,0.3),transparent_30%),linear-gradient(180deg,#02050f_0%,#050816_45%,#02030a_100%)]" />
-      <m.div
-        className="absolute -left-10 top-16 h-72 w-72 rounded-full bg-cyan-300/12 blur-3xl"
-        animate={{ x: [0, 18, 0], y: [0, -12, 0], opacity: [0.3, 0.55, 0.3] }}
-        transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
-      />
-      <m.div
-        className="absolute right-0 top-0 h-80 w-80 rounded-full bg-amber-300/10 blur-3xl"
-        animate={{ x: [0, -12, 0], y: [0, 20, 0], opacity: [0.28, 0.45, 0.28] }}
-        transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }}
-      />
-      <m.div
-        className="absolute bottom-0 left-1/3 h-[28rem] w-[28rem] rounded-full bg-fuchsia-400/10 blur-3xl"
-        animate={{ scale: [1, 1.08, 1], opacity: [0.18, 0.4, 0.18] }}
-        transition={{ duration: 16, repeat: Infinity, ease: "easeInOut" }}
-      />
-      <div className="absolute inset-0 opacity-60 [background-image:radial-gradient(rgba(255,255,255,0.38)_1px,transparent_1px),radial-gradient(rgba(255,255,255,0.24)_1px,transparent_1px)] [background-size:140px_140px,180px_180px] [background-position:0_0,70px_45px]" />
-      <m.div
-        className="absolute inset-x-1/4 top-8 h-px bg-gradient-to-r from-transparent via-amber-200/40 to-transparent"
-        animate={{ opacity: [0.15, 0.6, 0.15], scaleX: [0.9, 1, 0.9] }}
-        transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
-      />
-      <m.div
-        className="absolute bottom-16 left-1/2 h-40 w-[34rem] -translate-x-1/2 rounded-full bg-gradient-to-r from-cyan-300/10 via-amber-200/12 to-fuchsia-300/10 blur-3xl"
-        animate={{ y: [0, -12, 0], opacity: [0.3, 0.5, 0.3] }}
-        transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
-      />
-      <m.div
-        className="absolute inset-x-0 top-1/4 h-px bg-gradient-to-r from-transparent via-cyan-200/50 to-transparent"
-        animate={{ opacity: [0.2, 0.65, 0.2], scaleX: [0.96, 1, 0.96] }}
-        transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
-      />
-    </div>
-  );
-}
-
-function StarToneBadge({ symbol, copy }: { symbol: string; copy: AdvancedZiweiCopy }) {
-  const text = zPatternStrengthDescription(symbol, copy);
-  const toneClass =
-    symbol === "◎"
-      ? "border-emerald-300/40 bg-emerald-200/12 text-emerald-50 shadow-[0_0_28px_rgba(52,211,153,0.15)]"
-      : symbol === "O"
-        ? "border-cyan-300/40 bg-cyan-200/12 text-cyan-50 shadow-[0_0_28px_rgba(103,232,249,0.12)]"
-        : symbol === "▲"
-          ? "border-amber-300/40 bg-amber-200/12 text-amber-50 shadow-[0_0_28px_rgba(251,191,36,0.12)]"
-          : symbol === "△"
-            ? "border-slate-300/40 bg-slate-200/12 text-slate-50 shadow-[0_0_24px_rgba(148,163,184,0.1)]"
-            : "border-rose-300/40 bg-rose-200/12 text-rose-50 shadow-[0_0_24px_rgba(251,113,133,0.12)]";
-
-  return (
-    <span className={`group relative inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold shadow-[0_0_20px_rgba(255,255,255,0.08)] ${toneClass}`}>
-      <span>{symbol}</span>
-      <span>{text}</span>
-    </span>
-  );
+  return <div className={`relative rounded-xl border border-[var(--zw-rule)] bg-[var(--zw-surface)] ${className || ''}`}>{children}</div>;
 }
 
 export default function AdvancedZiweiSectionV2({
@@ -388,6 +316,10 @@ export default function AdvancedZiweiSectionV2({
 }: AdvancedZiweiSectionProps) {
   const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
   const copy = useMemo(() => getAdvancedZiweiCopy(locale), [locale]);
+  const ui = useMemo(() => getPremiumZiweiCopy(locale), [locale]);
+  const [inputError, setInputError] = useState("");
+  const computationEpoch = useRef(0);
+  const deepRef = useRef<HTMLDetailsElement>(null);
   const counselingTracks = useMemo(() => buildCounselingTracks(copy), [copy]);
 
   useEffect(() => {
@@ -426,7 +358,6 @@ export default function AdvancedZiweiSectionV2({
     timezone: "Asia/Seoul",
   }));
 
-  const autoComputeRef = useRef(false);
   const currentProfileFingerprintRef = useRef("");
 
   // 심화 자미두수 명반은 무료 열람 — 영구 해금 잠금 모델 제거. 유료 요소는 전문가 상담/PDF의 회당 결제로 통일.
@@ -442,6 +373,8 @@ export default function AdvancedZiweiSectionV2({
     isLeapMonth: form.calendarType === "lunar" ? form.isLeapMonth : false,
   }), [form]);
 
+  const readings = useMemo(() => chart ? ZIWEI_TRACK_KEYS.map(id => buildQuestionReading(chart, id)) : [], [chart]);
+  const selectedReading = readings.find(reading => reading.id === activeTrackId);
   const activeChapter = chapters[activeSection];
   const activeTrack = useMemo(() => counselingTracks.find((track) => track.key === activeTrackId) || counselingTracks[0], [activeTrackId, counselingTracks]);
 
@@ -467,8 +400,6 @@ export default function AdvancedZiweiSectionV2({
 
   const palaceCounseling = useMemo<ZiweiPalaceCounselingItem[]>(() => (chart ? buildPalaceCounseling(chart) : []), [chart]);
 
-  const strongTop3 = useMemo(() => [...palaceCounseling].sort((a, b) => b.energy - a.energy).slice(0, 3), [palaceCounseling]);
-  const weakTop3 = useMemo(() => [...palaceCounseling].sort((a, b) => a.energy - b.energy).slice(0, 3), [palaceCounseling]);
   const trackAnalysis = useMemo(() => (chart && palaceCounseling.length ? buildTrackAnalysis(chart, activeTrack, palaceCounseling, copy) : null), [activeTrack, chart, copy, palaceCounseling]);
   const trackPalaceReadingById = useMemo(() => {
     if (!trackAnalysis) return {} as Partial<Record<ZiweiPalaceId, ZiweiTrackPalaceReading>>;
@@ -484,12 +415,6 @@ export default function AdvancedZiweiSectionV2({
     });
   }, [palaceCounseling, trackPalaceReadingById]);
 
-  const overallCounselingSummary = useMemo(() => {
-    if (!palaceCounseling.length) {
-      return [copy.overallSummaryLoadingLine1, copy.overallSummaryLoadingLine2];
-    }
-    return buildOverallCounselingSummary(palaceCounseling, strongTop3, weakTop3);
-  }, [copy, palaceCounseling, strongTop3, weakTop3]);
 
   const palaceLinks = useMemo(() => buildPalaceLinks(palaceCounseling, copy.palaceLinkTitles), [copy, palaceCounseling]);
 
@@ -552,10 +477,11 @@ export default function AdvancedZiweiSectionV2({
   );
 
   const handleCompute = useCallback(() => {
-    void enterImmersiveMode();
+    setInputError("");
+    const epoch = ++computationEpoch.current;
 
     if (!form.unknownHour && String(form.birthHour).trim() === "") {
-      alert(copy.alertMissingBirthHour);
+      setInputError(copy.alertMissingBirthHour);
       return;
     }
 
@@ -575,7 +501,7 @@ export default function AdvancedZiweiSectionV2({
     });
 
     if (normalized.errors.length || !normalized.input) {
-      alert(normalized.errors.map((e) => e.message).join("\n") || copy.alertCheckInput);
+      setInputError(normalized.errors.map((e) => e.message).join("\n") || copy.alertCheckInput);
       return;
     }
 
@@ -586,6 +512,7 @@ export default function AdvancedZiweiSectionV2({
 
     let p = 0;
     const timer = setInterval(() => {
+      if (epoch !== computationEpoch.current) { clearInterval(timer); return; }
       p += 4;
       if (p >= 100) {
         p = 100;
@@ -596,12 +523,13 @@ export default function AdvancedZiweiSectionV2({
     }, 120);
 
     setTimeout(() => {
+      if (epoch !== computationEpoch.current) { clearInterval(timer); return; }
       try {
         const nextChart = normalizeZiweiForAdvancedReport(calculateZiweiChart(normalized.input!));
         const advancedValidation = validateAdvancedZiweiResult(nextChart);
         if (!advancedValidation.valid) {
           clearInterval(timer);
-          alert(copy.alertChartError);
+          setInputError(copy.alertChartError);
           setStep("form");
           return;
         }
@@ -611,7 +539,7 @@ export default function AdvancedZiweiSectionV2({
         const validation = validateZiweiChart(nextChart);
         if (!validation.valid) {
           clearInterval(timer);
-          alert(validation.errors.join("\n"));
+          setInputError(copy.alertChartError);
           setStep("form");
           return;
         }
@@ -631,6 +559,7 @@ export default function AdvancedZiweiSectionV2({
             RESULT_CACHE_KEY,
             JSON.stringify({
               chart: nextChart,
+              form,
               chapters: { overview, ming },
               activeSection: "ming",
               activeTrackId,
@@ -643,18 +572,17 @@ export default function AdvancedZiweiSectionV2({
 
         clearInterval(timer);
         setProgress(100);
-        setTimeout(() => setStep("result"), 320);
+        setTimeout(() => { if (epoch === computationEpoch.current) setStep("result"); }, 320);
       } catch (err) {
         clearInterval(timer);
         console.error("[AdvancedZiweiV2] compute error:", err);
-        alert(copy.alertComputeError);
+        setInputError(copy.alertComputeError);
         setStep("form");
       }
     }, 1600);
   }, [activeTrackId, copy, enterImmersiveMode, form]);
 
   const restoreCachedResult = useCallback((expectedFingerprint: string): boolean => {
-    if (!expectedFingerprint) return false;
     try {
       const cached = sessionStorage.getItem(RESULT_CACHE_KEY);
       if (!cached) return false;
@@ -676,6 +604,7 @@ export default function AdvancedZiweiSectionV2({
       primeZiweiDeepRuntime(migratedChart, ["overview", "ming"]);
       const overview = parsed.chapters?.overview || getZiweiDeepChapter(migratedChart, "overview");
       const ming = parsed.chapters?.ming || getZiweiDeepChapter(migratedChart, "ming");
+      if (parsed.form) setForm(parsed.form);
       setChart(migratedChart);
       setChapters({ ...parsed.chapters, overview, ming });
       setActiveSection(parsed.activeSection || "overview");
@@ -693,12 +622,13 @@ export default function AdvancedZiweiSectionV2({
   }, []);
 
   const applyCurrentProfileSeed = useCallback((eventProfile?: unknown) => {
+    computationEpoch.current += 1;
+    setInputError("");
     const seed = buildZiweiProfileSeed(eventProfile);
     const nextFingerprint = seed?.fingerprint || "";
     currentProfileFingerprintRef.current = nextFingerprint;
 
-    if (nextFingerprint && restoreCachedResult(nextFingerprint)) {
-      autoComputeRef.current = false;
+    if (restoreCachedResult(nextFingerprint)) {
       return;
     }
 
@@ -713,11 +643,9 @@ export default function AdvancedZiweiSectionV2({
     setStep("form");
 
     if (!seed) {
-      autoComputeRef.current = false;
+      setForm(prev => ({ ...prev, name: "", birthYear: "", birthMonth: "1", birthDay: "1", birthHour: "", birthMinute: "0", unknownHour: false }));
       return;
     }
-
-    autoComputeRef.current = seed.hasProfileHour;
     setForm((prev) => ({
       ...prev,
       ...seed.form,
@@ -748,28 +676,35 @@ export default function AdvancedZiweiSectionV2({
     };
 
     window.addEventListener("cd:destiny-profile-updated", handleProfileUpdated);
+    document.addEventListener("destinyProfileChanged", handleProfileUpdated);
     window.addEventListener("storage", handleProfileStorage);
     return () => {
       window.removeEventListener("cd:destiny-profile-updated", handleProfileUpdated);
+      document.removeEventListener("destinyProfileChanged", handleProfileUpdated);
       window.removeEventListener("storage", handleProfileStorage);
     };
   }, [applyCurrentProfileSeed]);
 
+
+  useEffect(() => () => { computationEpoch.current += 1; }, []);
   useEffect(() => {
-    if (!autoComputeRef.current || !form.birthYear) return;
-    autoComputeRef.current = false;
-    handleCompute();
-  }, [
-    form.birthYear,
-    form.birthMonth,
-    form.birthDay,
-    form.birthHour,
-    form.birthMinute,
-    form.gender,
-    form.calendarType,
-    form.unknownHour,
-    handleCompute,
-  ]);
+    if (step !== 'result' || !chart) return;
+    try { sessionStorage.setItem(RESULT_CACHE_KEY, JSON.stringify({ chart, form, chapters, activeSection, activeTrackId, profileFingerprint: currentProfileFingerprintRef.current })); } catch {}
+  }, [step, chart, form, chapters, activeSection, activeTrackId]);
+
+  useEffect(() => {
+    if (step !== 'result') return;
+    const revealAnchor = () => {
+      const id = window.location.hash.slice(1);
+      if (['ziwei-result-chart', 'ziwei-result-palace'].includes(id) && deepRef.current) {
+        deepRef.current.open = true;
+        requestAnimationFrame(() => document.getElementById(id)?.scrollIntoView({ block: 'start' }));
+      }
+    };
+    revealAnchor();
+    window.addEventListener('hashchange', revealAnchor);
+    return () => window.removeEventListener('hashchange', revealAnchor);
+  }, [step]);
 
   // 구역 이동 바의 활성 칩 — 상단 바(약 72px) 아래로 들어온 구역 중 가장 위를 활성으로 둔다.
   const [activeNavId, setActiveNavId] = useState<string>(ZIWEI_RESULT_NAV[0].id);
@@ -794,10 +729,9 @@ export default function AdvancedZiweiSectionV2({
 
   if (showIntro) {
     return (
-      <section className="font-premium relative overflow-hidden rounded-[2rem] border border-white/10 bg-[#020510] p-6 text-slate-100 md:p-8">
-        <GalaxyBackdrop />
+      <section className={`${styles.surface} font-premium relative overflow-hidden rounded-[2rem] border border-white/10 bg-[#020510] p-6 text-slate-100 md:p-8`}>
+
         <div className="relative z-10">
-          <p className="text-[11px] font-semibold tracking-[0.32em] text-cyan-100/80">{copy.heroEyebrow}</p>
           <h3 className="font-display mt-3 text-2xl font-black leading-tight text-white md:text-3xl">{copy.introTitle}</h3>
           <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-200/90">
             {copy.introDesc}
@@ -809,7 +743,7 @@ export default function AdvancedZiweiSectionV2({
                 onStartGeneration?.();
               }}
               disabled={generationLoading}
-              className="rounded-2xl bg-gradient-to-r from-cyan-200 via-sky-300 to-amber-200 px-4 py-4 text-sm font-black text-slate-950"
+              className="rounded-2xl bg-[var(--zw-gold)] px-4 py-4 text-sm font-black text-slate-950"
             >
               {copy.introStartButton}
             </button>
@@ -829,13 +763,12 @@ export default function AdvancedZiweiSectionV2({
 
   if (step === "form") {
     return (
-      <section className="font-body relative min-h-[100dvh] overflow-hidden px-4 py-6 text-slate-100 sm:px-6 lg:px-8">
-        <GalaxyBackdrop />
+      <section className={`${styles.surface} font-body relative min-h-[100dvh] overflow-hidden px-4 py-6 text-slate-100 sm:px-6 lg:px-8`}>
+
         <div className="relative mx-auto flex min-h-[100dvh] max-w-5xl items-center py-[calc(1rem+env(safe-area-inset-top))]">
           <StagePanel className="relative z-10 w-full p-5 sm:p-7 lg:p-8">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <p className="text-[11px] font-semibold tracking-[0.3em] text-cyan-100/80">{copy.inputEyebrow}</p>
                 <h2 className="font-display mt-3 text-3xl font-black text-white md:text-4xl">{copy.formTitle}</h2>
                 <p className="font-premium mt-3 max-w-2xl text-sm leading-7 text-slate-200/85">
                   {copy.formDesc}
@@ -861,9 +794,11 @@ export default function AdvancedZiweiSectionV2({
               </div>
             </div>
 
+            <fieldset className={styles.inputTopics}><legend>{ui.choose}</legend><p>{ui.chooseHint}</p><div className={styles.topicOptions}>{counselingTracks.map(track => <label key={track.key}><input type="radio" name="ziwei-topic" value={track.key} checked={activeTrackId === track.key} onChange={() => setActiveTrackId(track.key)} />{track.title}</label>)}</div></fieldset>
+            {inputError ? <p role="alert" className={styles.error}>{inputError}</p> : null}
             <div className="mt-6 grid gap-4 md:grid-cols-2">
               <label className="space-y-2">
-                <span className="text-xs font-semibold text-cyan-100">{copy.fieldNameLabel}</span>
+                <span className="text-xs font-semibold text-[var(--zw-muted)]">{copy.fieldNameLabel}</span>
                 <input
                   value={form.name}
                   onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
@@ -872,7 +807,7 @@ export default function AdvancedZiweiSectionV2({
                 />
               </label>
               <label className="space-y-2">
-                <span className="text-xs font-semibold text-cyan-100">{copy.fieldGenderLabel}</span>
+                <span className="text-xs font-semibold text-[var(--zw-muted)]">{copy.fieldGenderLabel}</span>
                 <select
                   value={form.gender}
                   onChange={(e) => setForm((prev) => ({ ...prev, gender: e.target.value as ZiweiGender }))}
@@ -883,7 +818,7 @@ export default function AdvancedZiweiSectionV2({
                 </select>
               </label>
               <label className="space-y-2">
-                <span className="text-xs font-semibold text-cyan-100">{copy.fieldBirthYearLabel}</span>
+                <span className="text-xs font-semibold text-[var(--zw-muted)]">{copy.fieldBirthYearLabel}</span>
                 <input
                   type="number"
                   value={form.birthYear}
@@ -892,7 +827,7 @@ export default function AdvancedZiweiSectionV2({
                 />
               </label>
               <label className="space-y-2">
-                <span className="text-xs font-semibold text-cyan-100">{copy.fieldBirthMonthLabel}</span>
+                <span className="text-xs font-semibold text-[var(--zw-muted)]">{copy.fieldBirthMonthLabel}</span>
                 <input
                   type="text"
                   inputMode="numeric"
@@ -904,7 +839,7 @@ export default function AdvancedZiweiSectionV2({
                 />
               </label>
               <label className="space-y-2">
-                <span className="text-xs font-semibold text-cyan-100">{copy.fieldBirthDayLabel}</span>
+                <span className="text-xs font-semibold text-[var(--zw-muted)]">{copy.fieldBirthDayLabel}</span>
                 <input
                   type="text"
                   inputMode="numeric"
@@ -916,7 +851,7 @@ export default function AdvancedZiweiSectionV2({
                 />
               </label>
               <label className="space-y-2">
-                <span className="text-xs font-semibold text-cyan-100">{copy.fieldBirthHourLabel}</span>
+                <span className="text-xs font-semibold text-[var(--zw-muted)]">{copy.fieldBirthHourLabel}</span>
                 <input
                   type="text"
                   inputMode="numeric"
@@ -929,7 +864,7 @@ export default function AdvancedZiweiSectionV2({
                 />
               </label>
               <label className="space-y-2">
-                <span className="text-xs font-semibold text-cyan-100">{copy.fieldCalendarLabel}</span>
+                <span className="text-xs font-semibold text-[var(--zw-muted)]">{copy.fieldCalendarLabel}</span>
                 <select
                   value={form.calendarType}
                   onChange={(e) => setForm((prev) => ({ ...prev, calendarType: e.target.value as "solar" | "lunar" }))}
@@ -940,7 +875,7 @@ export default function AdvancedZiweiSectionV2({
                 </select>
               </label>
               <label className="space-y-2">
-                <span className="text-xs font-semibold text-cyan-100">{copy.fieldBirthPlaceLabel}</span>
+                <span className="text-xs font-semibold text-[var(--zw-muted)]">{copy.fieldBirthPlaceLabel}</span>
                 <input
                   value={form.birthPlace}
                   onChange={(e) => setForm((prev) => ({ ...prev, birthPlace: e.target.value }))}
@@ -949,7 +884,7 @@ export default function AdvancedZiweiSectionV2({
                 />
               </label>
               <label className="space-y-2 md:col-span-2">
-                <span className="text-xs font-semibold text-cyan-100">{copy.fieldTimezoneLabel}</span>
+                <span className="text-xs font-semibold text-[var(--zw-muted)]">{copy.fieldTimezoneLabel}</span>
                 <input
                   value={form.timezone}
                   onChange={(e) => setForm((prev) => ({ ...prev, timezone: e.target.value }))}
@@ -987,7 +922,7 @@ export default function AdvancedZiweiSectionV2({
             <button
               type="button"
               onClick={handleCompute}
-              className="mt-6 w-full rounded-2xl bg-gradient-to-r from-cyan-200 via-sky-300 to-amber-200 px-5 py-4 text-sm font-black text-slate-950"
+              className="mt-6 w-full rounded-2xl bg-[var(--zw-gold)] px-5 py-4 text-sm font-black text-slate-950"
             >
               {copy.computeButton}
             </button>
@@ -999,17 +934,16 @@ export default function AdvancedZiweiSectionV2({
 
   if (step === "computing") {
     return (
-      <section className="font-body relative flex min-h-[100dvh] items-center justify-center overflow-hidden px-6 text-center text-slate-100">
-        <GalaxyBackdrop />
+      <section className={`${styles.surface} font-body relative flex min-h-[100dvh] items-center justify-center overflow-hidden px-6 text-center text-slate-100`}>
+
         <div className="relative z-10 w-full max-w-xl">
           <StagePanel className="p-8 sm:p-10">
-            <p className="text-[11px] font-semibold tracking-[0.3em] text-cyan-100/80">{copy.computingEyebrow}</p>
             <h2 className="font-display mt-4 text-3xl font-black leading-tight text-white sm:text-4xl">{loadingText}</h2>
             <p className="mt-3 text-sm font-semibold text-amber-100">{copy.computingTrackLabelPrefix}{activeTrack.title}</p>
-            <div className="mt-7 overflow-hidden rounded-full border border-white/12 bg-white/10">
-              <div className="h-2 bg-gradient-to-r from-cyan-200 via-sky-300 to-amber-200" style={{ width: `${progress}%` }} />
+            <div role="progressbar" aria-label={loadingText} aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress} className="mt-7 overflow-hidden rounded-full border border-white/12 bg-white/10">
+              <div className="h-2 bg-[var(--zw-gold)]" style={{ width: `${progress}%` }} />
             </div>
-            <p className="mt-3 text-xs text-cyan-100">{progress}%</p>
+            <p className="mt-3 text-xs text-[var(--zw-muted)]">{progress}%</p>
           </StagePanel>
         </div>
       </section>
@@ -1054,145 +988,24 @@ export default function AdvancedZiweiSectionV2({
     : [];
 
   return (
-    <section className="font-body fixed inset-0 z-50 h-[100dvh] overflow-y-auto overscroll-none px-4 bg-[#02030a] pb-[calc(1.25rem+env(safe-area-inset-bottom))] text-slate-100 motion-safe:scroll-smooth sm:px-6 lg:px-8">
-      {/* 🔴 위 bg-[#02030a] 는 장식이 아니라 차폐다 — GalaxyBackdrop 은 absolute inset-0 이라 스크롤 컨테이너의
-          첫 화면(812px)만 덮고 내용과 함께 스크롤되어 사라진다. 배경이 없으면 그 아래부터 오버레이 뒤 페이지의
-          "이어서 볼 만한 운세" 내비가 카드 사이 틈으로 비친다(2026-09-05 스테이징 375px 실측: 스크롤 위치가
-          다른 두 구역의 y 56~79 밴드가 픽셀 동일). 색은 배경 그라디언트의 끝값과 같다. 검사 4가 잠근다. */}
-      <GalaxyBackdrop />
-      {/* 구역 이동 바 — m.div 안에 두면 진입 애니메이션의 transform 이 sticky 의 컨테이닝 블록이 되어
-          바가 따라오지 않는다. 스크롤 컨테이너 직계로 두고 루트 좌우 패딩만 음수 마진으로 되돌린다.
-          🔴 pl-36 은 AppChrome 의 .cd-feature-nav(좌상단 고정 뒤로·홈, z 2147481200) 자리다 — 이 결과 화면에는
-          자체 닫기 버튼이 없어 그 나브가 유일한 탈출구라 숨길 수 없고, 자리를 비워 두지 않으면 칩 1·2번이
-          덮여 탭이 안 된다(2026-09-05 스테이징 375px 실측: elementFromPoint 가 뒤로/홈 버튼을 돌려줬다).
-          verify:ziwei-chart-customer-copy 검사 4가 잠근다. */}
-      <nav
-        aria-label={copy.resultNavAriaLabel}
-        className="sticky top-0 z-30 -mx-4 border-b border-white/10 bg-[#050816]/92 pb-2 pl-36 pr-4 pt-[calc(0.5rem+env(safe-area-inset-top))] backdrop-blur-xl sm:-mx-6 sm:pr-6 lg:-mx-8 lg:pr-8"
-      >
-        <ul className="mx-auto flex w-full max-w-7xl snap-x snap-proximity gap-1.5 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {ZIWEI_RESULT_NAV.map((item) => {
-            const current = item.id === activeNavId;
-            return (
-              <li key={item.id}>
-                <a
-                  href={`#${item.id}`}
-                  aria-current={current ? "true" : undefined}
-                  className={`flex min-h-[48px] snap-start items-center whitespace-nowrap rounded-full border px-4 text-[13px] font-semibold transition ${current ? "border-cyan-200/60 bg-cyan-200/16 font-bold text-cyan-50 shadow-[0_0_22px_rgba(56,189,248,0.22)]" : "border-white/12 bg-white/6 text-slate-200 hover:border-cyan-200/30 hover:bg-white/10 hover:text-white"}`}
-                >
-                  {copy.resultNavLabels[item.key]}
-                </a>
-              </li>
-            );
-          })}
-        </ul>
+    <section className={`${styles.surface} fixed inset-0 z-50 h-[100dvh] overflow-y-auto overscroll-none px-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))]`}>
+      <nav aria-label={copy.resultNavAriaLabel} className={styles.topbar}>
+        <button type="button" className={styles.fullscreen} onClick={() => void toggleImmersiveMode()}>{isFullscreen ? copy.fullscreenExitLabel : copy.fullscreenEnterLabel}</button>
+        <ul>{ZIWEI_RESULT_NAV.map(item => <li key={item.id}><a href={`#${item.id}`} aria-current={activeNavId === item.id ? 'true' : undefined} onClick={() => { if(item.key === 'chart' && deepRef.current) deepRef.current.open = true; }}>{ui[item.key]}</a></li>)}</ul>
       </nav>
-      <m.div
-        className="relative z-10 mx-auto mt-3 flex w-full max-w-7xl flex-col gap-4"
-        initial={{ opacity: 0, y: 18 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.55, ease: "easeOut" }}
-      >
-        <div className="flex justify-end">
-          <button
-            type="button"
-            onClick={() => void toggleImmersiveMode()}
-            className="rounded-full border border-white/12 bg-white/8 px-4 py-2 text-xs font-semibold text-slate-100 backdrop-blur-xl"
-          >
-            {isFullscreen ? copy.fullscreenExitLabel : copy.fullscreenEnterLabel}
-          </button>
-        </div>
-
-        <StagePanel className="p-5 sm:p-7 lg:p-8">
-          <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
-            <div className="space-y-5">
-              <p className="text-[11px] font-semibold tracking-[0.32em] text-amber-100/80">{copy.readingEyebrow}</p>
-              <h2 className="font-display max-w-3xl text-3xl font-black leading-tight text-white md:text-5xl">{copy.resultTitleTemplate(chart.user.name || copy.resultTitleDefaultName)}</h2>
-              <p className="font-premium max-w-3xl text-sm leading-7 text-slate-200/90 md:text-base">
-                {copy.resultDesc}
-              </p>
-
-              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                <div className="rounded-2xl border border-amber-200/20 bg-black/20 px-4 py-3">
-                  <p className="text-[11px] text-slate-300">{copy.statMingLabel}</p>
-                  <p className="mt-1 text-lg font-black text-amber-100">{chart.mingGong}</p>
-                  <p className="mt-1 text-[11px] leading-5 text-slate-400">{copy.statMingHint}</p>
-                </div>
-                <div className="rounded-2xl border border-sky-200/20 bg-black/20 px-4 py-3">
-                  <p className="text-[11px] text-slate-300">{copy.statShenLabel}</p>
-                  <p className="mt-1 text-lg font-black text-sky-100">{chart.shenGong}</p>
-                  <p className="mt-1 text-[11px] leading-5 text-slate-400">{copy.statShenHint}</p>
-                </div>
-                <div className="rounded-2xl border border-violet-200/20 bg-black/20 px-4 py-3">
-                  <p className="text-[11px] text-slate-300">{copy.statJuLabel}</p>
-                  <p className="mt-1 text-lg font-black text-violet-100">{chart.juInfo}</p>
-                  <p className="mt-1 text-[11px] leading-5 text-slate-400">{copy.statJuHint}</p>
-                </div>
-                <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
-                  <p className="text-[11px] text-slate-300">{copy.statYearFlowLabel}</p>
-                  <p className="mt-1 text-lg font-black text-amber-50">{chart.yearGan}{chart.yearZhi}</p>
-                  <p className="mt-1 text-[11px] leading-5 text-slate-400">{copy.statYearFlowHint}</p>
-                </div>
-              </div>
-
-              <div className="flex flex-wrap gap-2">
-                {chart.summary.keywords.map((keyword) => (
-                  <span key={keyword} className="rounded-full border border-cyan-200/25 bg-cyan-200/10 px-3 py-1 text-xs text-cyan-100">
-                    {keyword}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              <div className="rounded-3xl border border-amber-200/15 bg-gradient-to-br from-amber-200/10 via-white/6 to-cyan-200/10 p-5">
-                <p className="text-xs font-semibold tracking-[0.28em] text-amber-100/80">{copy.masterAdviceLabel}</p>
-                <p className="mt-3 text-sm leading-7 text-slate-100/95">{chart.summary.direction}</p>
-                <p className="mt-3 text-xs leading-6 text-slate-300">{chart.summary.openingCondition}</p>
-              </div>
-
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                  <p className="text-xs font-semibold text-slate-300">{copy.starStrengthSectionLabel}</p>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <StarToneBadge symbol="◎" copy={copy} />
-                    <StarToneBadge symbol="O" copy={copy} />
-                    <StarToneBadge symbol="▲" copy={copy} />
-                    <StarToneBadge symbol="△" copy={copy} />
-                    <StarToneBadge symbol="X" copy={copy} />
-                  </div>
-                </div>
-                <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                  <p className="text-xs font-semibold text-slate-300">{copy.sihuaTextureLabel}</p>
-                  <div className="mt-3 flex flex-wrap gap-2 text-[11px] font-semibold">
-                    {chart.sihua.hualu ? <span className="rounded-full border border-lime-300/30 bg-lime-200/10 px-3 py-1 text-lime-100">{copy.sihuaLabels.hualu} {chart.sihua.hualu}</span> : null}
-                    {chart.sihua.huaquan ? <span className="rounded-full border border-orange-300/30 bg-orange-200/10 px-3 py-1 text-orange-100">{copy.sihuaLabels.huaquan} {chart.sihua.huaquan}</span> : null}
-                    {chart.sihua.huake ? <span className="rounded-full border border-sky-300/30 bg-sky-200/10 px-3 py-1 text-sky-100">{copy.sihuaLabels.huake} {chart.sihua.huake}</span> : null}
-                    {chart.sihua.huaji ? <span className="rounded-full border border-rose-300/30 bg-rose-200/10 px-3 py-1 text-rose-100">{copy.sihuaLabels.huaji} {chart.sihua.huaji}</span> : null}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </StagePanel>
-
-        {chart.warnings.length ? (
-          <StagePanel className="p-4 sm:p-5">
-            <p className="text-xs font-semibold tracking-[0.24em] text-amber-100/80">{copy.precisionNoteLabel}</p>
-            <div className="mt-3 space-y-2 text-sm leading-7 text-amber-50/90">
-              {chart.warnings.map((warning, idx) => (
-                <p key={`${warning.code}-${idx}`}>• {warning.message}</p>
-              ))}
-            </div>
-          </StagePanel>
-        ) : null}
-
+      <div className={styles.content}>
+        {selectedReading ? <ZiweiConsultationHero key={activeTrackId} chart={chart} reading={selectedReading} locale={locale} /> : null}
+        <ZiweiQuestionSections readings={readings} selected={activeTrackId} onSelect={selectCounselingTrack} locale={locale} onPalace={id => { loadSection(id); if(deepRef.current) deepRef.current.open = true; requestAnimationFrame(() => document.getElementById('ziwei-result-palace')?.scrollIntoView({ block:'start' })); }} />
+        <details ref={deepRef} id="ziwei-result-deep" className={styles.deep}>
+          <summary>{ui.deep}<small>{ui.deepHint}</small></summary>
+          <div className={styles.deepBody}>
+            {chart.warnings.length ? <div className={styles.error}>{chart.warnings.map((warning,index) => <p key={index}>{warning.message}</p>)}</div> : null}
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_1.1fr]">
           <section id="ziwei-result-chart" className="scroll-mt-[calc(4.5rem+env(safe-area-inset-top))]">
           <StagePanel className="p-4 sm:p-5">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-xs font-semibold tracking-[0.24em] text-cyan-100/80">{copy.gridSectionEyebrow}</p>
+                <p className="text-xs font-semibold tracking-[0.24em] text-[var(--zw-muted)]/80">{copy.gridSectionEyebrow}</p>
                 <h2 className="mt-2 text-lg font-black text-white">{copy.gridSectionTitle}</h2>
               </div>
               <p className="text-xs text-slate-300">{copy.selectedPalaceLabelPrefix}{sectionTitle(activeSection)}</p>
@@ -1278,7 +1091,7 @@ export default function AdvancedZiweiSectionV2({
           <StagePanel className="p-4 sm:p-5">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <p className="text-xs font-semibold tracking-[0.24em] text-cyan-100/80">{activeTrack.title}</p>
+                <p className="text-xs font-semibold tracking-[0.24em] text-[var(--zw-muted)]/80">{activeTrack.title}</p>
                 <h2 className="mt-2 text-2xl font-black text-white">{activeChapter.title}</h2>
                 {activeChapter.subtitle ? <p className="mt-2 text-sm text-slate-300">{activeChapter.subtitle}</p> : null}
               </div>
@@ -1306,7 +1119,7 @@ export default function AdvancedZiweiSectionV2({
                     <div className="absolute left-[43%] top-[25%] h-px w-[29%] rotate-[36deg] bg-amber-100/40" />
                     <div className="absolute left-[54%] top-[57%] h-px w-[25%] rotate-[104deg] bg-fuchsia-100/40" />
                     <div className="absolute inset-x-5 bottom-5 rounded-2xl border border-white/10 bg-black/42 px-4 py-3 backdrop-blur-xl">
-                      <p className="text-[10px] font-semibold tracking-[0.26em] text-cyan-100/80">{copy.palaceMapEyebrow}</p>
+                      <p className="text-[10px] font-semibold tracking-[0.26em] text-[var(--zw-muted)]/80">{copy.palaceMapEyebrow}</p>
                       <p className="mt-1 text-sm font-black text-white">{activePalace.name} · {activePalace.earthlyBranch}</p>
                     </div>
                   </div>
@@ -1327,7 +1140,7 @@ export default function AdvancedZiweiSectionV2({
                           : `${activePalace.name}은 ${PALACE_DEFINITION_MAP[activePalace.id].definition}입니다.`}
                     </p>
                     <div className="mt-4 rounded-2xl border border-white/10 bg-black/24 p-4">
-                      <p className="text-xs font-semibold tracking-[0.24em] text-cyan-100/85">{copy.detailCard.evidenceSummaryTitle}</p>
+                      <p className="text-xs font-semibold tracking-[0.24em] text-[var(--zw-muted)]/85">{copy.detailCard.evidenceSummaryTitle}</p>
                       <dl className="mt-3 grid gap-2 text-xs leading-6 text-slate-200 sm:grid-cols-2">
                         <div>
                           <dt className="font-semibold text-white">{copy.detailCard.mainStarLabel}</dt>
@@ -1370,7 +1183,7 @@ export default function AdvancedZiweiSectionV2({
                 <div key={`lead-${index}`} className={`rounded-2xl border px-4 py-3 ${index === 0 ? "border-amber-200/24 bg-amber-200/8" : "border-white/10 bg-black/20"}`}>
                   {item.label ? (
                     <>
-                      <p className="text-[11px] font-semibold text-cyan-100/85">{item.label}</p>
+                      <p className="text-[11px] font-semibold text-[var(--zw-muted)]/85">{item.label}</p>
                       <p className="mt-1 text-sm leading-7 text-slate-200">{item.value}</p>
                     </>
                   ) : (
@@ -1384,7 +1197,7 @@ export default function AdvancedZiweiSectionV2({
                 궁 챕터는 palaceReading.categories 를 그대로 쓰고, palaceReading 이 없는 개관·마스터플랜만
                 splitZiweiDeepCategories 산문 경로로 떨어진다(절 분리 정규식은 여전히 그 함수 한 곳뿐이다). */}
             <div className="mt-5">
-              <p className="text-[11px] font-semibold tracking-[0.28em] text-cyan-100/85">{copy.chapterSectionsHeading}</p>
+              <p className="text-[11px] font-semibold tracking-[0.28em] text-[var(--zw-muted)]/85">{copy.chapterSectionsHeading}</p>
               <div className="mt-3 grid gap-2">
                 {categoryCards.length ? (
                   categoryCards.map((card, index) => {
@@ -1399,7 +1212,7 @@ export default function AdvancedZiweiSectionV2({
                           className="flex min-h-[48px] w-full items-center justify-between gap-3 px-4 py-3 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-200/70"
                         >
                           <span className="text-sm font-black leading-6 text-white">{card.categoryTitle}</span>
-                          <span aria-hidden="true" className="shrink-0 text-base font-black text-cyan-100/85">{open ? "−" : "+"}</span>
+                          <span aria-hidden="true" className="shrink-0 text-base font-black text-[var(--zw-muted)]/85">{open ? "−" : "+"}</span>
                         </button>
                         {open ? (
                           <div className="border-t border-white/10 px-4 pb-4 pt-3">
@@ -1444,7 +1257,7 @@ export default function AdvancedZiweiSectionV2({
                               <div className="mt-3 flex flex-wrap gap-1.5">
                                 {card.basisChips.map((chip) => (
                                   <span key={`${chip.label}-${chip.value}`} className="rounded-full border border-white/12 bg-white/6 px-3 py-1 text-xs text-slate-200">
-                                    <span className="font-semibold text-cyan-100">{chip.label}</span> {chip.value}
+                                    <span className="font-semibold text-[var(--zw-muted)]">{chip.label}</span> {chip.value}
                                   </span>
                                 ))}
                               </div>
@@ -1459,7 +1272,7 @@ export default function AdvancedZiweiSectionV2({
                                   className="flex min-h-[48px] w-full items-center justify-between gap-3 px-4 py-2 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-200/70"
                                 >
                                   <span className="text-xs font-semibold text-cyan-50">{copy.evidenceToggleLabel}</span>
-                                  <span aria-hidden="true" className="shrink-0 text-sm font-black text-cyan-100/85">{evidenceOpen ? "−" : "+"}</span>
+                                  <span aria-hidden="true" className="shrink-0 text-sm font-black text-[var(--zw-muted)]/85">{evidenceOpen ? "−" : "+"}</span>
                                 </button>
                                 {evidenceOpen ? (
                                   <div className="border-t border-white/10 px-4 pb-4 pt-3">
@@ -1489,7 +1302,7 @@ export default function AdvancedZiweiSectionV2({
                           className="flex min-h-[48px] w-full items-center justify-between gap-3 px-4 py-3 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-200/70"
                         >
                           <span className="text-sm font-black leading-6 text-white">{section.title}</span>
-                          <span aria-hidden="true" className="shrink-0 text-base font-black text-cyan-100/85">{open ? "−" : "+"}</span>
+                          <span aria-hidden="true" className="shrink-0 text-base font-black text-[var(--zw-muted)]/85">{open ? "−" : "+"}</span>
                         </button>
                         {open ? (
                           <div className="border-t border-white/10 px-4 pb-4">
@@ -1550,120 +1363,10 @@ export default function AdvancedZiweiSectionV2({
           </section>
         </div>
 
-        <section id="ziwei-result-track" className="flex scroll-mt-[calc(4.5rem+env(safe-area-inset-top))] flex-col gap-4">
+
+            <details className={styles.deep}><summary>{copy.detailHeading}</summary>
         <StagePanel className="p-4 sm:p-5">
-          <p className="text-xs font-semibold text-cyan-100/80">{copy.counselingTrackSectionLabel}</p>
-          <div className="-mx-1 mt-3 flex snap-x snap-proximity gap-1.5 overflow-x-auto px-1 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] md:flex-wrap md:overflow-visible [&::-webkit-scrollbar]:hidden">
-            {counselingTracks.map((track) => {
-              const active = track.key === activeTrackId;
-              const icon = COUNSELING_TRACK_ICON_MAP[track.key];
-              return (
-                <button
-                  key={track.key}
-                  type="button"
-                  onClick={() => selectCounselingTrack(track.key)}
-                  aria-pressed={active}
-                  className={`flex min-h-[48px] shrink-0 snap-start items-center whitespace-nowrap rounded-full border px-4 text-[13px] font-semibold transition ${active ? "border-cyan-200/60 bg-cyan-200/16 font-bold text-cyan-50 shadow-[0_0_22px_rgba(56,189,248,0.22)]" : "border-white/10 bg-black/20 text-slate-200 hover:border-cyan-200/25 hover:bg-black/30 hover:text-white"}`}
-                >
-                  {icon} {track.title}
-                </button>
-              );
-            })}
-          </div>
-          <p className="mt-3 rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm leading-7 text-slate-200">{activeTrack.purpose}</p>
-          <p className="mt-2 text-xs leading-6 text-cyan-100/80">
-            {copy.corePalaceLabelPrefix}{activeTrack.primaryPalaces.map((id) => PALACE_DEFINITION_MAP[id].name).join(" · ")}
-          </p>
-        </StagePanel>
-
-        {trackAnalysis ? (
-          <StagePanel className="p-4 sm:p-5 lg:p-6">
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div className="max-w-3xl">
-                <p className="text-xs font-semibold text-cyan-100/80">{copy.selectedTrackPrefix}{trackAnalysis.selectedTrack.title}</p>
-                <h2 className="font-display mt-2 text-2xl font-black leading-tight text-white md:text-3xl">
-                  {trackAnalysis.executiveSummary.headline}
-                </h2>
-                <p className="font-premium mt-3 text-sm leading-7 text-slate-200/90 md:text-base">
-                  {trackAnalysis.executiveSummary.summary}
-                </p>
-              </div>
-              <div className="rounded-2xl border border-white/10 bg-black/24 px-4 py-3 text-xs leading-6 text-slate-200">
-                <p className="font-semibold text-amber-100">{copy.primaryPalaceLabel}</p>
-                <p className="mt-1">{trackAnalysis.selectedTrack.primaryPalaces.map((id) => trackPalaceReadingById[id]?.palaceName || id).join(" · ")}</p>
-              </div>
-            </div>
-
-            <div className="mt-5 grid gap-3 lg:grid-cols-3">
-              {trackAnalysis.executiveSummary.keyPatterns.map((pattern) => (
-                <article key={pattern.title} className="rounded-2xl border border-white/10 bg-black/24 p-4">
-                  <p className="text-sm font-black text-white">{pattern.title}</p>
-                  <p className="mt-2 text-sm leading-7 text-slate-200">{pattern.interpretation}</p>
-                  <details className="mt-3 rounded-xl border border-cyan-200/15 bg-cyan-200/8 px-3 py-2 text-xs leading-6 text-cyan-50">
-                    <summary className="cursor-pointer font-semibold">{copy.evidenceToggleLabel}</summary>
-                    <ul className="mt-2 space-y-1">
-                      {pattern.evidence.map((line) => (
-                        <li key={line}>{line}</li>
-                      ))}
-                    </ul>
-                  </details>
-                </article>
-              ))}
-            </div>
-
-            {trackAnalysis.dataWarnings.length ? (
-              <div className="mt-4 rounded-2xl border border-amber-200/20 bg-amber-200/8 px-4 py-3 text-xs leading-6 text-amber-50">
-                {trackAnalysis.dataWarnings.map((warning) => (
-                  <p key={warning}>{warning}</p>
-                ))}
-              </div>
-            ) : null}
-          </StagePanel>
-        ) : null}
-        </section>
-
-        <section id="ziwei-result-deep" className="flex scroll-mt-[calc(4.5rem+env(safe-area-inset-top))] flex-col gap-4">
-        <StagePanel className="p-4 sm:p-5">
-          <p className="text-xs font-semibold tracking-[0.28em] text-cyan-100/80">{copy.overallSummaryHeading}</p>
-          <div className="mt-4 grid gap-3">
-            {overallCounselingSummary.map((line, index) => (
-              <p key={`overall-${index}`} className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm leading-7 text-slate-200">
-                {line}
-              </p>
-            ))}
-          </div>
-        </StagePanel>
-
-        <div className="grid gap-4 lg:grid-cols-2">
-          <StagePanel className="p-4 sm:p-5">
-            <p className="text-xs font-semibold tracking-[0.28em] text-cyan-100/80">{copy.strongTop3Heading}</p>
-            <div className="mt-4 space-y-3">
-              {strongTop3.map((item, index) => (
-                <div key={`strong-${item.palace.id}`} className="rounded-2xl border border-emerald-300/25 bg-emerald-200/10 p-4">
-                  <p className="text-sm font-black text-emerald-50">{copy.rankTemplate(index + 1)} · {item.palace.name} · {palaceForceLabel(item.energy)}</p>
-                  <p className="mt-2 text-xs leading-6 text-emerald-100/90">{copy.keywordLabelPrefix}{item.keywords.join(" · ") || "흐름을 고르게 세우는 힘"}</p>
-                  <p className="mt-2 text-sm leading-7 text-slate-100/95">{item.strengths}</p>
-                </div>
-              ))}
-            </div>
-          </StagePanel>
-
-          <StagePanel className="p-4 sm:p-5">
-            <p className="text-xs font-semibold tracking-[0.28em] text-cyan-100/80">{copy.weakTop3Heading}</p>
-            <div className="mt-4 space-y-3">
-              {weakTop3.map((item, index) => (
-                <div key={`weak-${item.palace.id}`} className="rounded-2xl border border-rose-300/25 bg-rose-200/10 p-4">
-                  <p className="text-sm font-black text-rose-50">{copy.rankTemplate(index + 1)} · {item.palace.name} · {palaceForceLabel(item.energy)}</p>
-                  <p className="mt-2 text-xs leading-6 text-rose-100/90">{copy.keywordLabelPrefix}{item.keywords.join(" · ") || "속도를 늦춰 리듬을 되찾을 지점"}</p>
-                  <p className="mt-2 text-sm leading-7 text-slate-100/95">{item.cautions}</p>
-                </div>
-              ))}
-            </div>
-          </StagePanel>
-        </div>
-
-        <StagePanel className="p-4 sm:p-5">
-          <p className="text-xs font-semibold tracking-[0.28em] text-cyan-100/80">{copy.detailHeading}</p>
+          <p className="text-xs font-semibold tracking-[0.28em] text-[var(--zw-muted)]/80">{copy.detailHeading}</p>
           <div className="mt-4 grid gap-4 xl:grid-cols-2">
             {orderedPalaceCounseling.map((item) => {
               const reading = trackPalaceReadingById[item.palace.id];
@@ -1688,7 +1391,7 @@ export default function AdvancedZiweiSectionV2({
 
                     <div className="mt-4 grid gap-3">
                       <section className="rounded-2xl border border-cyan-200/15 bg-black/24 p-4">
-                        <p className="text-xs font-semibold text-cyan-100">{copy.detailCard.evidenceSummaryTitle}</p>
+                        <p className="text-xs font-semibold text-[var(--zw-muted)]">{copy.detailCard.evidenceSummaryTitle}</p>
                         <div className="mt-3 grid gap-2 text-xs leading-6 text-slate-200 sm:grid-cols-2">
                           <p><span className="font-semibold text-white">{copy.detailCard.mainStarLabel}</span>: {reading.evidence.mainStars.join(" · ") || copy.noMainStarShort}</p>
                           <p><span className="font-semibold text-white">{copy.detailCard.auxLabel}</span>: {reading.evidence.auxiliaryStars.join(" · ") || copy.noAuxStarCell}</p>
@@ -1698,7 +1401,7 @@ export default function AdvancedZiweiSectionV2({
                       </section>
 
                       <section className="rounded-2xl border border-cyan-200/16 bg-cyan-200/8 p-4">
-                        <p className="text-xs font-semibold text-cyan-100">{copy.detailCard.customerReadingTitle}</p>
+                        <p className="text-xs font-semibold text-[var(--zw-muted)]">{copy.detailCard.customerReadingTitle}</p>
                         <div className="font-premium mt-3 space-y-2 text-sm leading-7 text-slate-100/92">
                           <p><span className="font-semibold text-white">{copy.detailCard.meaningLabel}</span>: {reading.customerMeaning}</p>
                           <p><span className="font-semibold text-white">{copy.detailCard.corePatternLabel}</span>: {reading.corePattern}</p>
@@ -1726,7 +1429,7 @@ export default function AdvancedZiweiSectionV2({
                       </div>
 
                       <section className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                        <p className="text-xs font-semibold text-cyan-100">{copy.detailCard.realLifeSceneTitle}</p>
+                        <p className="text-xs font-semibold text-[var(--zw-muted)]">{copy.detailCard.realLifeSceneTitle}</p>
                         <ul className="font-premium mt-3 space-y-2 text-sm leading-7 text-slate-200">
                           {reading.realLifeManifestations.map((line) => (
                             <li key={line}>• {line}</li>
@@ -1735,7 +1438,7 @@ export default function AdvancedZiweiSectionV2({
                       </section>
 
                       <section className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                        <p className="text-xs font-semibold text-cyan-100">{copy.detailCard.crossPalaceTitle}</p>
+                        <p className="text-xs font-semibold text-[var(--zw-muted)]">{copy.detailCard.crossPalaceTitle}</p>
                         <p className="font-premium mt-3 text-sm leading-7 text-slate-200">{reading.crossPalaceInterpretation}</p>
                         <p className="font-premium mt-3 text-sm leading-7 text-slate-200">{reading.selectedTrackRelevance}</p>
                       </section>
@@ -1780,12 +1483,12 @@ export default function AdvancedZiweiSectionV2({
         </StagePanel>
 
         <StagePanel className="p-4 sm:p-5">
-          <p className="text-xs font-semibold tracking-[0.28em] text-cyan-100/80">{copy.palaceLinkHeading}</p>
+          <p className="text-xs font-semibold tracking-[0.28em] text-[var(--zw-muted)]/80">{copy.palaceLinkHeading}</p>
           <div className="mt-4 grid gap-3 lg:grid-cols-2">
             {palaceLinks.map((link) => (
               <div key={link.title} className="rounded-2xl border border-white/10 bg-black/20 p-4">
                 <p className="text-sm font-black text-white">{link.title}</p>
-                <p className="mt-2 text-xs text-cyan-100">{link.lens} · {link.state}</p>
+                <p className="mt-2 text-xs text-[var(--zw-muted)]">{link.lens} · {link.state}</p>
                 <p className="mt-2 text-sm leading-7 text-slate-200">{link.summary}</p>
               </div>
             ))}
@@ -1794,7 +1497,7 @@ export default function AdvancedZiweiSectionV2({
 
         <div className="grid gap-4 lg:grid-cols-2">
           <StagePanel className="p-4 sm:p-5">
-            <p className="text-xs font-semibold tracking-[0.28em] text-cyan-100/80">{copy.sihuaHeading}</p>
+            <p className="text-xs font-semibold tracking-[0.28em] text-[var(--zw-muted)]/80">{copy.sihuaHeading}</p>
             <div className="mt-4 grid gap-3">
               {sihuaInsights.map((line, index) => (
                 <p key={`sihua-${index}`} className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm leading-7 text-slate-200">
@@ -1805,7 +1508,7 @@ export default function AdvancedZiweiSectionV2({
           </StagePanel>
 
           <StagePanel className="p-4 sm:p-5">
-            <p className="text-xs font-semibold tracking-[0.28em] text-cyan-100/80">{copy.borrowedStarHeading}</p>
+            <p className="text-xs font-semibold tracking-[0.28em] text-[var(--zw-muted)]/80">{copy.borrowedStarHeading}</p>
             <div className="mt-4 grid gap-3">
               {borrowedStarInsights.length ? borrowedStarInsights.map((line, index) => (
                 <p key={`borrow-${index}`} className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm leading-7 text-slate-200">
@@ -1821,7 +1524,7 @@ export default function AdvancedZiweiSectionV2({
         </div>
 
         <StagePanel className="p-4 sm:p-5">
-          <p className="text-xs font-semibold tracking-[0.28em] text-cyan-100/80">{copy.summaryTableHeading}</p>
+          <p className="text-xs font-semibold tracking-[0.28em] text-[var(--zw-muted)]/80">{copy.summaryTableHeading}</p>
           <dl className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
             {palaceCounseling.map((item) => {
               const reading = trackPalaceReadingById[item.palace.id];
@@ -1856,137 +1559,14 @@ export default function AdvancedZiweiSectionV2({
             })}
           </dl>
         </StagePanel>
-        </section>
-
-        <section id="ziwei-result-today" className="flex scroll-mt-[calc(4.5rem+env(safe-area-inset-top))] flex-col gap-4">
-        {trackAnalysis ? (
-          <StagePanel className="p-4 sm:p-5">
-            <p className="text-xs font-semibold tracking-[0.28em] text-cyan-100/80">{copy.actionGuideHeadingPrefix}{activeTrack.title}</p>
-            <div className="mt-4 grid gap-3 lg:grid-cols-3">
-              {[
-                { title: copy.actionPlanTitles.start, lines: trackAnalysis.actionPlan.start },
-                { title: copy.actionPlanTitles.reduce, lines: trackAnalysis.actionPlan.reduce },
-                { title: copy.actionPlanTitles.maintain, lines: trackAnalysis.actionPlan.maintain },
-              ].map((group) => (
-                <section key={group.title} className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                  <p className="text-sm font-black text-white">{group.title}</p>
-                  <ul className="font-premium mt-3 space-y-2 text-sm leading-7 text-slate-200">
-                    {group.lines.map((line) => (
-                      <li key={line}>• {line}</li>
-                    ))}
-                  </ul>
-                </section>
-              ))}
-            </div>
-            <div className="mt-4 rounded-2xl border border-amber-200/20 bg-amber-200/8 p-4">
-              <p className="text-sm font-black text-amber-50">{copy.selfCheckLabel}</p>
-              <ul className="font-premium mt-3 space-y-2 text-sm leading-7 text-slate-100/92">
-                {trackAnalysis.actionPlan.reflectionQuestions.map((question) => (
-                  <li key={question}>• {question}</li>
-                ))}
-              </ul>
-            </div>
-          </StagePanel>
-        ) : null}
-
-        <StagePanel className="p-4 sm:p-5">
-          <p className="text-xs font-semibold text-cyan-100/80">{copy.flowSectionLabelPrefix}{activeTrack.title}</p>
-          <div className="mt-4 grid gap-4">
-            {(trackAnalysis?.consultationFlow || []).map((stage, index) => (
-              <m.article
-                key={`${activeTrack.key}-${stage.stage}`}
-                className={`rounded-2xl border px-4 py-4 text-sm leading-7 md:text-[15px] ${index === 0 ? "border-amber-200/25 bg-amber-200/10 text-amber-50 [text-shadow:0_0_16px_rgba(251,191,36,0.18)]" : "border-white/10 bg-black/20 text-slate-200/92"}`}
-                initial={{ opacity: 0, y: 12 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.4 }}
-                transition={{ duration: 0.45, delay: index * 0.03 }}
-              >
-                <p className="text-xs font-semibold text-cyan-100">{copy.stepLabel} {stage.stage}</p>
-                <h3 className="mt-1 text-base font-black text-white">{stage.title}</h3>
-                <p className="mt-2">{stage.content}</p>
-                {stage.actions.length ? (
-                  <ul className="mt-3 space-y-1 text-xs leading-6 text-slate-200">
-                    {stage.actions.map((action) => (
-                      <li key={action}>• {action}</li>
-                    ))}
-                  </ul>
-                ) : null}
-                {stage.evidence.length ? (
-                  <details className="mt-3 rounded-xl border border-cyan-200/15 bg-cyan-200/8 px-3 py-2 text-xs leading-6 text-cyan-50">
-                    <summary className="cursor-pointer font-semibold">{copy.evidenceToggleLabel}</summary>
-                    <ul className="mt-2 space-y-1">
-                      {stage.evidence.map((line) => (
-                        <li key={line}>{line}</li>
-                      ))}
-                    </ul>
-                  </details>
-                ) : null}
-              </m.article>
-            ))}
+            </details>
           </div>
-        </StagePanel>
-
-        {trackAnalysis ? (
-          <div className="grid gap-4 lg:grid-cols-2">
-            <StagePanel className="p-4 sm:p-5">
-              <p className="text-xs font-semibold tracking-[0.28em] text-cyan-100/80">{copy.currentTimingHeading}</p>
-              <p className="font-premium mt-4 text-sm leading-7 text-slate-200">{trackAnalysis.timing.currentTheme}</p>
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                <section className="rounded-2xl border border-emerald-300/20 bg-emerald-200/8 p-4">
-                  <p className="text-sm font-black text-emerald-50">{copy.opportunityHeading}</p>
-                  <ul className="font-premium mt-3 space-y-2 text-sm leading-7 text-slate-200">
-                    {trackAnalysis.timing.opportunities.map((line) => (
-                      <li key={line}>• {line}</li>
-                    ))}
-                  </ul>
-                </section>
-                <section className="rounded-2xl border border-rose-300/20 bg-rose-200/8 p-4">
-                  <p className="text-sm font-black text-rose-50">{copy.timingCautionHeading}</p>
-                  <ul className="font-premium mt-3 space-y-2 text-sm leading-7 text-slate-200">
-                    {trackAnalysis.timing.cautions.map((line) => (
-                      <li key={line}>• {line}</li>
-                    ))}
-                  </ul>
-                </section>
-              </div>
-              <details className="mt-4 rounded-2xl border border-cyan-200/15 bg-cyan-200/8 px-4 py-3 text-xs leading-6 text-cyan-50">
-                <summary className="cursor-pointer font-semibold">{copy.timingEvidenceToggleLabel}</summary>
-                <ul className="mt-3 space-y-1">
-                  {trackAnalysis.timing.evidence.map((line) => (
-                    <li key={line}>• {line}</li>
-                  ))}
-                </ul>
-              </details>
-            </StagePanel>
-
-            <StagePanel className="p-4 sm:p-5">
-              <p className="text-xs font-semibold tracking-[0.28em] text-cyan-100/80">{copy.closingHeading}</p>
-              <p className="font-premium mt-4 text-sm leading-7 text-slate-200">
-                {copy.closingBodyTemplate(activeTrack.title)}
-              </p>
-              <div className="mt-4 grid gap-3">
-                {trackAnalysis.timing.recommendedActions.map((item) => (
-                  <div key={item} className="rounded-2xl border border-white/10 bg-black/20 p-4 text-sm leading-7 text-slate-200">
-                    {item}
-                  </div>
-                ))}
-              </div>
-            </StagePanel>
-          </div>
-        ) : null}
-
-        {/* 심화 자미두수 전문가 상담 리포트 (ZIWEI_DEEP_PDF) — 회당 결제 LLM 15챕터 심층 리포트.
-            2026-08-13 통합: 같은 가격(30,000원)으로 나란히 있던 인라인 상담 패널
-            (ziwei-ai-consultation)을 이 패널이 흡수했다 — 관심분야·자유질문을 15챕터
-            프롬프트에 주입한다. 독립 페이지 /ziwei-ai 는 별도 상품으로 그대로 살아 있다. */}
-        <div className="relative z-10 mt-6">
-          <ZiweiDeepPdfPanel birth={deepPdfBirth} disabled={!chart} />
-        </div>
-        </section>
-      </m.div>
+        </details>
+        <section id="ziwei-result-today" className={styles.today}><h2>{ui.todayTitle}</h2><p>{selectedReading?.today}</p></section>
+        <div id="ziwei-result-pdf" className={styles.pdf}><ZiweiDeepPdfPanel key={JSON.stringify(chart.user)} birth={deepPdfBirth} disabled={!chart} /></div>
+      </div>
     </section>
   );
 }
 
-/* 관리자 CMS 기본값 노출용 — app/admin/cms/_lib/base-values.ts 가 이 경로로 읽으므로 재수출을 유지한다. */
 export { __cmsZiweiDeepDefaults } from "./ziwei/_lib/advanced-ziwei-reading";

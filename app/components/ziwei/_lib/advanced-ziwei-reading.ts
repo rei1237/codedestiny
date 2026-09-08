@@ -12,6 +12,7 @@
 // PALACE_DEFINITION_MAP_DEFAULT / STAR_MEANING_MAP_DEFAULT 의 키·필드는 관리자 CMS(app/admin/cms/_lib/base-values.ts)가
 // __cmsZiweiDeepDefaults 로 읽으므로 형태를 바꾸지 않는다. focus 값도 그대로 두고 describePalaceFocus() 가 문장으로 감싼다.
 
+import { buildQuestionReading, palaceVoice } from "../../../_lib/ziwei-consultation-narrative";
 import { cmsRecord } from "@/lib/cms/build-text";
 import type { ZiweiDeepChart, ZiweiPalace, ZiweiPalaceId, ZiweiStarMeta } from "../../../_lib/ziwei-types";
 import { transformationTypeToLabel } from "../../../_lib/ziwei-advanced-normalization";
@@ -656,34 +657,11 @@ export function trackPriorityLabel(priority: ZiweiTrackPriority): string {
 }
 
 function buildTrackRelevance(track: ZiweiCounselingTrackConfig, item: ZiweiPalaceCounselingItem): string {
-  const priority = trackPalacePriority(track, item.palace.id);
-  if (priority === "primary") {
-    return `${item.palace.name}은 ${track.title} 주제에서 중심이 되는 궁입니다. 이 궁에 앉은 별과 사화, 궁의 힘이 결론의 순서를 직접 정합니다.`;
-  }
-  if (priority === "secondary") {
-    return `${item.palace.name}은 ${track.title} 주제를 보완하는 궁입니다. 중심 궁의 결론이 현실에서 어떻게 작동하는지 확인하는 보조 시선으로 봅니다.`;
-  }
-  return `${item.palace.name}은 이번 주제의 중심은 아니지만, 명반 전체의 균형을 확인할 때 참고하는 배경 궁입니다.`;
+  return item.reality;
 }
 
 function buildTrackManifestation(track: ZiweiCounselingTrackConfig, item: ZiweiPalaceCounselingItem): string[] {
-  const palaceFocus = palaceFocusPhrase(item.palace.id);
-  const mainStars = item.palace.mainStars.map((star) => star.name).slice(0, 2).join("·") || "맞은편 궁에서 빌려온 별";
-  const base = `${track.shortTitle} 주제에서는 ${item.palace.name}이 비추는 ${josa(palaceFocus, "이가")} ${mainStars}의 결을 통해 현실의 행동으로 드러납니다.`;
-  const pressure = item.energy >= 62
-    ? `잘 작동할 때는 ${palaceFocus}에서 결정이 빨라지고, 주변이 신뢰할 수 있는 기준을 만들기 쉽습니다.`
-    : `흔들릴 때는 ${palaceFocus}에서 판단이 늦어지거나 같은 문제를 반복 점검하느라 에너지가 소모될 수 있습니다.`;
-  const contextByTrack: Record<ZiweiConsultationTrackId, string> = {
-    life: "삶의 큰 선택에서는 빠른 결론보다 당신이 반복해서 고르는 기준을 확인할수록 명반의 장점이 안정적으로 살아납니다.",
-    career: "업무에서는 역할·권한·평가 기준이 명확할수록 장점이 선명해지고, 모호한 책임 구조에서는 피로가 빨리 쌓일 수 있습니다.",
-    wealth: "돈 문제에서는 수입의 크기보다 관리 규칙, 계약 검토, 손실 한도를 먼저 정할 때 체감 안정감이 올라갑니다.",
-    love: "관계에서는 감정의 크기보다 회복 방식과 경계 합의가 오래 가는 힘을 만들며, 침묵이나 압박이 반복될 때 소모가 커집니다.",
-    relationships: "사람 사이에서는 친밀감보다 역할과 기대치를 먼저 맞출 때 신뢰가 쌓이고, 애매한 약속은 관계 피로로 번지기 쉽습니다.",
-    family: "가족 안에서는 책임을 떠안는 속도와 정서적 거리를 함께 보아야 하며, 돌봄과 독립의 기준을 나누면 부담이 줄어듭니다.",
-    health: "생활에서는 몸의 신호를 성과보다 먼저 확인할 때 리듬이 무너지지 않습니다. 이 해석은 의학적 진단이 아니라 생활 패턴 조언입니다.",
-    timing: "시기 판단에서는 넓힐 일과 보수적으로 다룰 일을 분리해야 합니다. 아직 흐름이 잡히지 않은 영역은 타고난 명반의 선택 기준까지만 봅니다.",
-  };
-  return [base, pressure, contextByTrack[track.key]];
+  return [palaceVoice(item.palace).scene, item.cautions];
 }
 
 function buildTrackSpecificAdvice(track: ZiweiCounselingTrackConfig, item: ZiweiPalaceCounselingItem): string[] {
@@ -719,7 +697,7 @@ function buildTrackSpecificAdvice(track: ZiweiCounselingTrackConfig, item: Ziwei
       "불편함이 지속되거나 강해지면 생활 조언에 머물지 말고 전문가 상담을 함께 고려하세요.",
     ],
     timing: [
-      `${palaceName}이 올해 흐름에서 강조될 때는 새로 벌릴 일과 정리할 일을 한 목록에 섞지 않는 편이 안전합니다.`,
+      "새로 시도할 일과 계속 지킬 일을 다른 칸에 적고, 다음 달 돌아볼 날짜를 정해보세요.",
       "지금 잡힌 흐름의 범위 안에서만 기회와 부담을 나누고, 특정 사건은 단정하지 마세요.",
     ],
   };
@@ -727,14 +705,7 @@ function buildTrackSpecificAdvice(track: ZiweiCounselingTrackConfig, item: Ziwei
 }
 
 function buildPalaceTimingInterpretation(chart: ZiweiDeepChart, track: ZiweiCounselingTrackConfig, item: ZiweiPalaceCounselingItem): string {
-  const annual = chart.annualFlow;
-  if (annual?.keyPalaces?.includes(item.palace.id)) {
-    return `${annual.yearLabel}년 흐름에서 ${item.palace.name}이 핵심 궁으로 잡혀, ${track.shortTitle} 주제에서 이 궁의 선택 기준이 더 자주 시험될 수 있습니다.`;
-  }
-  if (track.key === "timing" && !annual) {
-    return "올해 흐름은 생년월일시만으로는 단정하기 어려워 특정 연도의 사건을 말하지 않습니다. 타고난 명반의 강한 궁과 돌봐야 할 궁을 기준으로 선택의 순서만 제시합니다.";
-  }
-  return "올해 흐름에서 이 궁이 따로 강조되지는 않아, 타고난 명반을 기준으로 읽습니다.";
+  return item.palace.dahan ? `대한은 ${item.palace.dahan} 구간에 이 자리의 주제를 살핍니다. 올해의 사건을 뜻하지 않으며 타고난 선택 패턴과 나누어 읽습니다.` : '이 자리에서는 특정 연도의 사건 대신 평소 반복되는 선택을 살핍니다.';
 }
 
 export function buildPalaceReading(chart: ZiweiDeepChart, track: ZiweiCounselingTrackConfig, item: ZiweiPalaceCounselingItem): ZiweiTrackPalaceReading {
@@ -742,15 +713,14 @@ export function buildPalaceReading(chart: ZiweiDeepChart, track: ZiweiCounseling
   const evidence = buildPalaceEvidence(item);
   const limitations: string[] = [];
   if (item.isBorrowed) limitations.push("이 궁에는 중심 별이 앉지 않아 맞은편 궁의 별을 빌려 읽었습니다.");
-  if (!item.palace.fourTransformations.length && !item.palace.incomingFourTransformations.length) limitations.push("이 궁에는 사화가 직접 걸리지 않아 차분히 흐르는 궁으로 읽었습니다.");
-  if (!chart.annualFlow) limitations.push("올해 흐름은 대한(10년 단위) 기준으로 읽었고, 특정 시기의 사건은 단정하지 않았습니다.");
+  if (!item.palace.fourTransformations.length && !item.palace.incomingFourTransformations.length) limitations.push("이 궁에 직접 표시된 사화는 없습니다. 이것만으로 삶이 조용하거나 순탄하다고 정하지 않습니다.");
+  if (!chart.annualFlow) limitations.push("타고난 명반과 대한의 나이 구간을 읽습니다. 특정 연도의 사건 예측은 포함하지 않습니다.");
 
-  const definition = PALACE_DEFINITION_MAP[item.palace.id]?.definition || item.definition;
   return {
     palaceId: item.palace.id,
     palaceName: item.palace.name,
-    headline: `${item.palace.name}은 ${track.shortTitle} 주제에서 ${priority === "primary" ? "가장 먼저 볼 축" : priority === "secondary" ? "현실 적용을 보완하는 축" : "전체 균형을 확인하는 축"}입니다.`,
-    customerMeaning: `${item.palace.name}은 ${definition}입니다. ${track.title} 주제에서는 ${josa(palaceFocusPhrase(item.palace.id), "이가")} 실제 선택 기준으로 어떻게 드러나는지 봅니다.`,
+    headline: palaceVoice(item.palace).headline,
+    customerMeaning: item.reality,
     corePattern: `${item.starMechanics} ${item.brightness}`,
     strengths: [item.strengths, item.assists],
     challenges: [item.cautions, item.malefics],
@@ -758,7 +728,7 @@ export function buildPalaceReading(chart: ZiweiDeepChart, track: ZiweiCounseling
     crossPalaceInterpretation: `맞은편의 ${oppositePalaceName(item.palace)}과 삼방사정의 ${josa(triadPalaceNames(item.palace).join("·") || "이웃한 궁들", "을를")} 함께 보면, 이 궁은 단독 결론보다 관계망 속에서 더 정확하게 읽힙니다.`,
     selectedTrackRelevance: buildTrackRelevance(track, item),
     timingInterpretation: buildPalaceTimingInterpretation(chart, track, item),
-    practicalAdvice: [item.advice, ...buildTrackSpecificAdvice(track, item), item.prescription],
+    practicalAdvice: uniqueList([item.advice, ...buildTrackSpecificAdvice(track, item)]).slice(0, 3),
     evidence,
     dataLimitations: limitations,
     priority,
@@ -772,7 +742,7 @@ function describeMajorPeriods(chart: ZiweiDeepChart): string {
   if (!periods.length) return `대한(10년 단위)의 구간은 ${UNCERTAIN_LINE}`.replace("은 이 부분은", "은");
   const first = palaceNameById(periods[0].palaceId);
   const last = palaceNameById(periods[periods.length - 1].palaceId);
-  return `대한(10년 단위)은 ${first}에서 시작해 ${last}까지 열두 궁을 차례로 지나며, 지금 나이 구간의 대한이 올해 흐름의 큰 배경이 됩니다.`;
+  return `대한(10년 단위)은 ${first}에서 시작해 ${last}까지 열두 궁을 차례로 지나며, 각 나이 구간에 돌아볼 삶의 주제가 달라집니다.`;
 }
 
 export function buildTrackAnalysis(
@@ -789,103 +759,41 @@ export function buildTrackAnalysis(
   const keyPalaces = uniqueList([...track.primaryPalaces, ...track.secondaryPalaces]).map((id) => rows.find((row) => row.palace.id === id)).filter(Boolean) as ZiweiPalaceCounselingItem[];
   const keyPatterns: ZiweiTrackPattern[] = [strongest, second, third].filter(Boolean).map((item, index) => ({
     title: index === 0 ? `${item.palace.name}이 여는 ${track.shortTitle}의 핵심 장점` : index === 1 ? `${item.palace.name}에서 확인되는 보완 조건` : `${item.palace.name}이 알려주는 반복 패턴`,
-    interpretation: `${item.palace.name}은 ${palaceForceLabel(item.energy)}입니다. ${buildTrackRelevance(track, item)} ${item.reality}`,
+    interpretation: item.reality,
     evidence: buildPalaceEvidenceLines(item),
     palaceIds: [item.palace.id],
   }));
 
   const palaceReadings = rows.map((item) => buildPalaceReading(chart, track, item));
-  const trackPalaceNames = keyPalaces.map((item) => item.palace.name).join("·");
-  const summary = `${track.title} 주제에서는 ${josa(trackPalaceNames || "명반 전체", "을를")} 우선 봅니다. 당신의 명반은 ${strongest?.palace.name || "강한 궁"}의 장점을 살리되, ${weakest?.palace.name || "돌봐야 할 궁"}의 피로 신호를 생활 규칙으로 조절할 때 안정적으로 읽힙니다.`;
-  const annual = chart.annualFlow;
+  const summary = buildQuestionReading(chart, track.key).scenes[0];
+  const annual = null; // 브라우저 annualFlow는 출생년 기반 정적 값이며 세운이 아니다.
   const hasReadingGap = palaceReadings.length !== 12 || !keyPatterns.every((pattern) => pattern.evidence.length) || !keyPalaces.length;
   const qualityWarnings = hasReadingGap ? [UNCERTAIN_LINE] : [];
-  const annualPalaceNames = annual ? annual.keyPalaces.map((id) => rows.find((row) => row.palace.id === id)?.palace.name || palaceNameById(id)).join("·") : "";
-  const timingEvidence = annual
-    ? [
-        `${annual.yearLabel}년 흐름을 기준으로 읽었습니다.`,
-        `올해는 ${josa(annualPalaceNames, "이가")} 특히 강조되는 궁입니다.`,
-        ...annual.notes.slice(0, 3),
-      ]
-    : [];
+  const questionReading = buildQuestionReading(chart, track.key);
+  const timing = {
+    available: false,
+    currentTheme: '지금의 선택은 타고난 기질을 바탕으로 살펴봅니다. 특정 연도의 기회나 사건은 이 명반만으로 정하지 않습니다.',
+    opportunities: [questionReading.conclusion],
+    cautions: [questionReading.scenes[1]],
+    recommendedActions: questionReading.actions,
+    evidence: [describeMajorPeriods(chart), ...questionReading.evidence.flatMap(row => row.lines)],
+  };
 
-  const timing = annual
-    ? {
-        available: true,
-        currentTheme: `${annual.yearLabel}년에는 ${annualPalaceNames}의 흐름이 강조됩니다.`,
-        opportunities: annual.keyPalaces.map((id) => rows.find((row) => row.palace.id === id)).filter(Boolean).slice(0, 3).map((item) => `${item!.palace.name}에서는 ${item!.strengths}`),
-        cautions: annual.keyPalaces.map((id) => rows.find((row) => row.palace.id === id)).filter(Boolean).slice(0, 3).map((item) => `${item!.palace.name}에서는 ${item!.cautions}`),
-        recommendedActions: annual.keyPalaces.map((id) => rows.find((row) => row.palace.id === id)).filter(Boolean).slice(0, 3).map((item) => item!.advice),
-        evidence: timingEvidence,
-      }
-    : {
-        available: false,
-        currentTheme: "올해 흐름은 생년월일시만으로는 단정하기 어려워, 대한(10년 단위)과 타고난 명반을 기준으로 읽었습니다.",
-        opportunities: ["타고난 명반에서 강한 궁을 먼저 활용하고, 돌봐야 할 궁은 생활 규칙으로 받쳐 주는 방식이 안전합니다."],
-        cautions: ["현재 연도의 특정 사건이나 확정적인 결과는 말하지 않습니다."],
-        recommendedActions: [track.timingFocus],
-        evidence: ["올해 흐름은 대한(10년 단위) 기준으로 읽었습니다.", describeMajorPeriods(chart)],
-      };
-  const strongestTrackAdvice = strongest ? buildTrackSpecificAdvice(track, strongest) : [];
-  const weakestTrackAdvice = weakest ? buildTrackSpecificAdvice(track, weakest) : [];
-  const primaryPalaceNames = track.primaryPalaces.map((id) => rows.find((row) => row.palace.id === id)?.palace.name || palaceNameById(id)).join("·");
-
+  const flowEvidence = questionReading.evidence.flatMap(row => row.lines);
   const consultationFlow: ZiweiTrackFlowStage[] = [
-    {
-      stage: "1",
-      title: labels.chapterTitles.conclusion,
-      content: `${track.title} 주제의 결론은 ${strongest?.palace.name || "핵심 궁"}의 힘을 먼저 쓰고 ${weakest?.palace.name || "돌봐야 할 궁"}의 반복 피로를 줄이는 것입니다. ${summary}`,
-      evidence: strongest ? buildPalaceEvidenceLines(strongest) : [],
-      actions: [`${strongest?.palace.name || "강한 궁"}과 관련된 선택을 이번 주 우선순위로 올리세요.`, `${weakest?.palace.name || "돌봐야 할 궁"}의 과부하 신호를 하루 한 번 기록하세요.`],
-    },
-    {
-      stage: "2",
-      title: labels.chapterTitles.whyChart,
-      content: `${track.interpretationPriorities.join(" → ")} 순서로 읽으면 이번 주제의 초점이 흐려지지 않습니다. 별과 궁의 이름은 이유를 설명하기 위해 남기고, 실제 판단은 행동 기준으로 옮겨 드립니다.`,
-      evidence: keyPalaces.flatMap((item) => buildPalaceEvidenceLines(item)).slice(0, 8),
-      actions: track.keyQuestions.slice(0, 2),
-    },
-    {
-      stage: "3",
-      title: labels.chapterTitles.realLife,
-      content: `${strongest?.reality || "핵심 궁의 현실 반응을 확인합니다."} ${second?.reality || ""}`,
-      evidence: [strongest?.palace.name, second?.palace.name].filter(Boolean) as string[],
-      actions: [track.actionGuideType, ...strongestTrackAdvice.slice(0, 1), weakest?.advice || "돌봐야 할 궁의 루틴을 먼저 세우세요."],
-    },
-    {
-      stage: "4",
-      title: labels.chapterTitles.repeatedPattern,
-      content: `${strongest?.palace.name || "강한 궁"}이 빠르게 앞서가고 ${weakest?.palace.name || "돌봐야 할 궁"}이 뒤에서 피로를 만드는 구도가 반복될 수 있습니다. 이 차이는 좋고 나쁨보다 속도 차이로 읽어야 합니다.`,
-      evidence: [strongest ? `${strongest.palace.name}은 ${palaceForceLabel(strongest.energy)}` : "", weakest ? `${weakest.palace.name}은 ${palaceForceLabel(weakest.energy)}` : ""].filter(Boolean),
-      actions: ["강한 궁은 넓힐 기준으로, 약한 궁은 점검표로 분리하세요."],
-    },
-    {
-      stage: "5",
-      title: labels.chapterTitles.currentTiming,
-      content: timing.currentTheme,
-      evidence: timing.evidence,
-      actions: [...timing.opportunities.slice(0, 1), ...timing.cautions.slice(0, 1)],
-    },
-    {
-      stage: "6",
-      title: labels.chapterTitles.actionAdvice,
-      content: `${track.actionGuideType} 이 조언은 명반의 중심 궁과 돌봐야 할 궁을 연결해 현실에서 바로 점검할 수 있게 정리했습니다.`,
-      evidence: keyPalaces.slice(0, 3).map((item) => (item.keywords.length ? `${item.palace.name}에서는 ${item.keywords.join(", ")} 키워드가 반복됩니다.` : `${item.palace.name}의 키워드는 생년월일시만으로는 뚜렷하게 잡히지 않습니다.`)),
-      actions: [strongest?.advice, ...strongestTrackAdvice.slice(0, 2), ...weakestTrackAdvice.slice(0, 1)].filter(Boolean) as string[],
-    },
-    {
-      stage: "7",
-      title: labels.chapterTitles.closing,
-      content: `${track.title} 주제의 흐름은 당신을 규정하기보다, 강한 축을 어떻게 쓰고 약한 축을 어떻게 돌볼지 알려줍니다. 지금은 ${strongest?.palace.name || "강점"}을 믿되 ${weakest?.palace.name || "조절점"}을 방치하지 않는 태도가 중요합니다.`,
-      evidence: track.keyQuestions,
-      actions: track.keyQuestions.slice(0, 3),
-    },
+    { stage:'1', title:labels.chapterTitles.conclusion, content:questionReading.conclusion, evidence:flowEvidence, actions:[] },
+    { stage:'2', title:labels.chapterTitles.whyChart, content:questionReading.heroNote, evidence:flowEvidence, actions:[] },
+    { stage:'3', title:labels.chapterTitles.realLife, content:questionReading.scenes[0], evidence:flowEvidence, actions:[] },
+    { stage:'4', title:labels.chapterTitles.repeatedPattern, content:questionReading.scenes[1], evidence:flowEvidence, actions:[] },
+    { stage:'5', title:labels.chapterTitles.currentTiming, content:timing.currentTheme, evidence:timing.evidence, actions:[] },
+    { stage:'6', title:labels.chapterTitles.actionAdvice, content:questionReading.actions[0], evidence:flowEvidence, actions:[] },
+    { stage:'7', title:labels.chapterTitles.closing, content:questionReading.today, evidence:flowEvidence, actions:[] },
   ];
 
   return {
     selectedTrack: track,
     executiveSummary: {
-      headline: `${track.shortTitle} 주제의 핵심은 ${strongest?.palace.name || "중심 궁"} 활용과 ${weakest?.palace.name || "돌봐야 할 궁"} 조율입니다.`,
+      headline: questionReading.conclusion,
       summary,
       keyPatterns,
     },
@@ -893,14 +801,14 @@ export function buildTrackAnalysis(
     palaceReadings,
     timing,
     actionPlan: {
-      start: [strongest?.advice || "강한 궁의 장점을 한 가지 행동으로 옮기세요.", ...strongestTrackAdvice.slice(0, 1), `${primaryPalaceNames} 관련 선택을 먼저 정리하세요.`],
-      reduce: [weakest?.cautions || "피로가 누적되는 궁의 반복 반응을 줄이세요.", ...weakestTrackAdvice.slice(0, 1), ...track.cautionRules.slice(0, 1)],
-      maintain: [strongest?.prescription || "강점을 유지할 작은 루틴을 고정하세요.", "명반이 말하는 이유와 실제 행동을 나눠서 점검하세요.", "앞으로 3개월 동안 같은 기준을 반복 점검하세요."],
+      start: questionReading.actions,
+      reduce: [questionReading.scenes[1]],
+      maintain: [questionReading.today],
       reflectionQuestions: track.keyQuestions.slice(0, 3),
     },
     dataWarnings: [
       ...qualityWarnings,
-      ...(annual ? [] : ["올해 흐름은 대한(10년 단위) 기준으로 읽었고, 특정 시기의 사건은 단정하지 않았습니다."]),
+      ...(annual ? [] : ["타고난 명반과 대한의 나이 구간을 읽습니다. 특정 연도의 사건 예측은 포함하지 않습니다."]),
       ...keyPalaces.filter((item) => item.isBorrowed).map((item) => `${item.palace.name}은 중심 별이 앉지 않아 맞은편 궁의 별을 빌려 읽었습니다.`),
     ],
   };
@@ -934,13 +842,8 @@ export function buildPalaceCounseling(chart: ZiweiDeepChart): ZiweiPalaceCounsel
       : [NO_TRANSFORMATION_LINE];
 
     const special = buildPalaceSpecialAdvice(palace, energy);
-    const strongestStar = palace.strengthSummary.strongestStars[0]?.name || mainNames[0] || "";
-    const weakestStar = palace.strengthSummary.weakStars[0]?.name || "";
     const borrowed = palace.isEmptyMainStarPalace || palace.isEmpty;
-    const focus = palaceFocusPhrase(palace.id);
     const definition = PALACE_DEFINITION_MAP[palace.id]?.definition || "";
-    const name = PALACE_DEFINITION_MAP[palace.id]?.name || palace.name;
-    const stance = energy >= 70 ? "지금 밀어붙여도 좋은 궁" : energy <= 45 ? "속도를 늦추고 다시 정비할 궁" : "균형을 맞추며 조율할 궁";
 
     return {
       palace,
@@ -953,15 +856,11 @@ export function buildPalaceCounseling(chart: ZiweiDeepChart): ZiweiPalaceCounsel
       malefics: maleficLine,
       transformations: transformLine,
       isBorrowed: borrowed,
-      reality: special.reality,
-      strengths: strongestStar
-        ? `${strongestStar}의 장점이 살아날 때 ${focus}에서 안정적인 성과와 신뢰를 만듭니다.`
-        : `빌려온 별의 장점이 살아날 때 ${focus}에서 안정적인 성과와 신뢰를 만듭니다.`,
-      cautions: weakestStar
-        ? `${weakestStar}이 눌린 쪽의 피로 신호를 방치하면 작은 오해가 쌓여 방향을 잃기 쉽습니다. ${special.caution}`
-        : `약하게 앉은 별은 없지만, 피로 신호를 방치하면 작은 오해가 쌓여 방향을 잃기 쉽습니다. ${special.caution}`,
-      advice: special.action,
-      prescription: `${name}은 ${stance}입니다.`,
+      reality: palaceVoice(palace).scene,
+      strengths: palaceVoice(palace).gift + '이 당신의 장점입니다.',
+      cautions: palaceVoice(palace).burden + '이 되풀이될 때에는 잠시 멈춰도 괜찮습니다.',
+      advice: palaceVoice(palace).action,
+      prescription: special.action,
     };
   });
 }
