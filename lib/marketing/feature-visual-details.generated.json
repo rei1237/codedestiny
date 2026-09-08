@@ -997,19 +997,19 @@
     },
     {
       "slug": "face-reading",
-      "title": "전문가 관상 분석",
-      "href": "/saju-guardian",
+      "title": "전문가 동물 관상",
+      "href": "/animal/physio",
       "featureKey": "",
       "accessType": "free",
-      "image": "/fuctionassets/ai%20animal.webp",
+      "image": "/feature-details/assets/face-reading-960.webp",
       "aliases": [
         "face-reading",
-        "/saju-guardian",
-        "/saju-guardian/"
+        "/animal/physio",
+        "/animal/physio/"
       ],
-      "category": "사주·심층 상담",
-      "description": "얼굴 이미지를 바탕으로 인상, 기질, 관계 성향, 커뮤니케이션 특성을 분석하는 전문가 관상 서비스입니다.",
-      "verification": "source-inventory-only"
+      "category": "상징·마음",
+      "description": "얼굴형·표정·분위기 신호를 동물 비유로 풀어, 자기표현과 관계 소통에 활용할 힌트를 정리합니다.",
+      "verification": "verified"
     },
     {
       "slug": "bias-destiny",
@@ -1042,6 +1042,22 @@
       "category": "타로·신탁",
       "description": "오늘의 기분과 고민을 바탕으로 간단한 운세 메시지와 행동 힌트를 제공하는 감성형 오미쿠지 콘텐츠입니다.",
       "verification": "verified"
+    },
+    {
+      "slug": "saju-animal",
+      "title": "사주 가디언 아트",
+      "href": "/saju-guardian",
+      "featureKey": "",
+      "accessType": "free",
+      "image": "/fuctionassets/Who%20am%20I%20with%20saju.webp",
+      "aliases": [
+        "saju-animal",
+        "/saju-guardian",
+        "/saju-guardian/"
+      ],
+      "category": "상징·마음",
+      "description": "십이운성 동물점이 아닌, 생년월일의 일주와 오행 기운으로 지금 나를 지키는 가디언 상징을 카드형으로 안내합니다.",
+      "verification": "source-inventory-only"
     },
     {
       "slug": "destiny-meeting-place",
@@ -5270,26 +5286,91 @@
     },
     "face-reading": {
       "slug": "face-reading",
-      "title": "전문가 관상 분석",
-      "href": "/saju-guardian",
+      "title": "전문가 동물 관상",
+      "href": "/animal/physio",
       "featureKey": "",
       "featureKeyTo": "",
       "accessType": "free",
-      "image": "/fuctionassets/ai%20animal.webp",
+      "image": "/feature-details/assets/face-reading-960.webp",
       "aliases": [
         "face-reading",
-        "/saju-guardian",
-        "/saju-guardian/"
+        "/animal/physio",
+        "/animal/physio/"
       ],
-      "category": "사주·심층 상담",
-      "headline": "전문가 관상 분석",
-      "description": "얼굴 이미지를 바탕으로 인상, 기질, 관계 성향, 커뮤니케이션 특성을 분석하는 전문가 관상 서비스입니다.",
-      "panels": [],
-      "ctaLabel": "이 기능 시작하기",
+      "category": "상징·마음",
+      "headline": "셀카 한 장에 남은 인상과 동물 이미지를 현실적인 언어로 읽어보세요.",
+      "description": "얼굴형·표정·분위기 신호를 동물 비유로 풀어, 자기표현과 관계 소통에 활용할 힌트를 정리합니다.",
+      "panels": [
+        {
+          "title": "관상에서 확인하는 흐름",
+          "text": "동물 유형을 우열로 나누지 않고, 첫인상과 소통에서 드러나는 강점·오해 포인트를 함께 살핍니다.",
+          "visualPreview": "feature-map",
+          "previewTone": "상징·마음"
+        },
+        {
+          "title": "이런 질문에 도움이 됩니다",
+          "items": [
+            "사람들은 내 인상을 어떻게 받아들일까요?",
+            "내 인상에서 드러나는 강점은 무엇인가요?",
+            "관계에서 어떤 소통 방식을 조정하면 좋을까요?"
+          ]
+        },
+        {
+          "title": "이 기능으로 살펴보는 것",
+          "items": [
+            "셀카의 얼굴형·표정·분위기 신호",
+            "인상을 동물 비유로 풀어낸 성향 키워드",
+            "강점과 과하게 드러날 때의 오해 포인트",
+            "첫 만남·프로필·협업에서 써볼 소통 힌트"
+          ]
+        },
+        {
+          "title": "어떻게 이용하나요?",
+          "steps": [
+            {
+              "label": "사진 준비",
+              "detail": "정면에 가까운 셀카를 자연광에서 준비합니다."
+            },
+            {
+              "label": "얼굴 신호 분석",
+              "detail": "얼굴형과 표정, 분위기 신호를 조합해 읽습니다."
+            },
+            {
+              "label": "동물 비유 확인",
+              "detail": "나를 설명하는 동물 이미지와 강점·주의점을 살핍니다."
+            },
+            {
+              "label": "소통에 적용",
+              "detail": "결과를 자기비난이 아닌 소개·대화 전략에 연결합니다."
+            }
+          ]
+        },
+        {
+          "title": "이런 분께 어울려요",
+          "items": [
+            "첫인상이 궁금한 분",
+            "생년월일 없이 가볍게 보고 싶은 분",
+            "자기표현과 관계 소통의 힌트를 찾는 분"
+          ]
+        }
+      ],
+      "ctaLabel": "무료로 동물 관상 보기",
       "evidence": [
+        "app/animal/physio/page.tsx",
+        "index.html",
         "js/core/service-registry.js"
       ],
-      "verification": "source-inventory-only"
+      "verification": "verified",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/face-reading-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/face-reading-960.webp",
+          "width": 960
+        }
+      ]
     },
     "bias-destiny": {
       "slug": "bias-destiny",
@@ -5431,6 +5512,29 @@
           "width": 960
         }
       ]
+    },
+    "saju-animal": {
+      "slug": "saju-animal",
+      "title": "사주 가디언 아트",
+      "href": "/saju-guardian",
+      "featureKey": "",
+      "featureKeyTo": "",
+      "accessType": "free",
+      "image": "/fuctionassets/Who%20am%20I%20with%20saju.webp",
+      "aliases": [
+        "saju-animal",
+        "/saju-guardian",
+        "/saju-guardian/"
+      ],
+      "category": "상징·마음",
+      "headline": "사주 가디언 아트",
+      "description": "십이운성 동물점이 아닌, 생년월일의 일주와 오행 기운으로 지금 나를 지키는 가디언 상징을 카드형으로 안내합니다.",
+      "panels": [],
+      "ctaLabel": "이 기능 시작하기",
+      "evidence": [
+        "js/core/service-registry.js"
+      ],
+      "verification": "source-inventory-only"
     },
     "destiny-meeting-place": {
       "slug": "destiny-meeting-place",
