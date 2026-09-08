@@ -277,14 +277,14 @@ export function buildArticleJsonLd(input: {
     headline: input.title,
     description: input.description,
     image: toAbsoluteUrl(input.image || siteSeo.defaultOgImage),
-    // 저자는 실명 Person 노드(SITE_AUTHOR, 2026-08-30). 예전에는 조직명으로 폴백돼
-    // 모든 기사가 "Code Destiny" 를 저자로 선언했고, 그건 저자 신호가 아니라 발행처 신호였다.
-    // 호출부가 다른 저자 문자열을 넘기면(가이드의 "Code Destiny 편집팀") 이름만 선언한다 —
-    // 그 표기에 사람의 경력을 붙이면 안 된다.
+    // Missing authorship never implies the operator personally wrote/reviewed it.
+    // Editorial organizations are not typed as a Person.
     author:
-      !input.author || input.author === SITE_AUTHOR.name
+      input.author === SITE_AUTHOR.name
         ? buildAuthorPersonJsonLd()
-        : { "@type": "Person", name: input.author },
+        : !input.author || input.author.includes("편집팀") || input.author === "Code Destiny"
+          ? { "@type": "Organization", "@id": `${siteSeo.siteUrl}/#organization`, name: input.author || siteSeo.organization.name }
+          : { "@type": "Person", name: input.author },
     publisher: {
       "@type": "Organization",
       "@id": `${siteSeo.siteUrl}/#organization`,
@@ -303,7 +303,7 @@ export function buildArticleJsonLd(input: {
     keywords: (input.keywords || []).join(", "),
     mainEntityOfPage: url,
     datePublished: input.datePublished,
-    dateModified: input.dateModified || input.datePublished,
+    dateModified: input.dateModified,
     inLanguage: "ko-KR",
   };
 }

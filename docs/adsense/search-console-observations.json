@@ -1,0 +1,29 @@
+{
+  "source": "Authenticated Search Console UI, initial audit; partial page table, not a complete export",
+  "property": "sc-domain:code-destiny.com",
+  "period": { "from": "2026-06-07", "to": "2026-09-06" },
+  "clicks": 31,
+  "impressions": 391,
+  "indexed": 276,
+  "notIndexed": 1822,
+  "linkReport": {
+    "observedAtKst": "2026-09-09",
+    "externalLinks": 2,
+    "externalTarget": "https://code-destiny.com/",
+    "linkingDomains": ["x.com", "xploredomains.com"],
+    "internalLinks": 2479,
+    "note": "Search Console observed links only; absence from this report is not proof that no backlinks exist"
+  },
+  "pages": [
+    { "path": "/", "clicks": 21, "impressions": 194, "backlinks": 2 },
+    { "path": "/manse/", "clicks": 5, "impressions": 21 },
+    { "path": "/insights/sukuyo/", "clicks": 1, "impressions": 11 },
+    { "path": "/insights/sukuyo-love/", "clicks": 1, "impressions": 8 },
+    { "path": "/insights/sukuyo-compatibility-simple-checklist/", "clicks": 1, "impressions": 8 },
+    { "path": "/sukuyo/", "clicks": 1, "impressions": 8 },
+    { "path": "/insights/sukuyo-27-mansions/", "clicks": 1, "impressions": 1 },
+    { "path": "/about/", "clicks": 0, "impressions": 13 },
+    { "path": "/insights/astrology-synastry-compatibility-fun-guide/", "clicks": 0, "impressions": 13 },
+    { "path": "/ja/", "clicks": 0, "impressions": 13 }
+  ]
+}

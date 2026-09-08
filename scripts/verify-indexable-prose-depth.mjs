@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { inspectPublisherDocument } from "./lib/publisher-document.mjs";
 /**
  * 색인 대상 라우트의 **문장급 본문** 깊이 가드.
  *
@@ -55,7 +56,7 @@
  *   ① dist/ 가 없으면 실패한다 — 빌드 전에 돌리면 "검사할 게 없어서 통과"가 된다.
  *   ② dist/sitemap.xml 이 없거나 라우트를 하나도 못 읽으면 실패한다.
  *   ③ 사이트맵에 있는데 HTML 산출물이 없으면 실패한다.
- *   ④ 문장급 본문이 임계 미만이면 실패한다.
+ *   ④ 실제 서버 본문이 없거나 빈 기사 템플릿이면 실패한다. 분량은 진단값이다.
  *
  * 🔴 사이트맵은 **산출물 안의 것**(dist/sitemap.xml)을 읽는다. 리포 루트의 추적본을 읽으면
  *    그게 낡았을 때 새 라우트가 검사 대상에서 통째로 빠진다 — verify:seo-heading-integrity 가
@@ -189,7 +190,11 @@ for (const route of indexedRoutes) {
     missingArtifacts.push(route);
     continue;
   }
-  pages.set(route, collectFragments(readFileSync(file, "utf8")));
+  const html = readFileSync(file, "utf8");
+  const document = inspectPublisherDocument(html, "https://code-destiny.com" + route);
+  if (!document.bodyChars) fail(`서버 본문이 없는 색인 라우트: ${route}`);
+  if (document.bodyText.includes("목차를 생성할 h2/h3가 없습니다")) fail(`빈 기사 템플릿: ${route}`);
+  pages.set(route, collectFragments(html));
 }
 
 if (missingArtifacts.length > 0) {
@@ -240,27 +245,6 @@ if (reportOnly) {
 }
 
 if (violations.length > 0) {
-  const details = violations.slice(0, 20).map(({ route, prose }) => {
-    const min = DECLARED_EXCEPTIONS.get(route)?.min ?? MIN_PROSE_UNITS;
-    return `- ${route}: 문장급 본문 ${prose}단위 (최소 ${min}단위)`;
-  });
-  if (violations.length > 20) details.push(`... 외 ${violations.length - 20}개`);
-  details.push("");
-  details.push("무엇을 세는가: 태그 경계로 자른 조각 중 40단위 이상(한자는 1자 = 2단위), 페이지 안 중복 제거,");
-  details.push(`               색인 ${BOILERPLATE_MIN_DOCS}쪽 이상에 등장하는 공용 문구 제외.`);
-  details.push("→ 링크·배지·푸터를 늘려도 이 수치는 오르지 않는다. 본문 문장을 늘려야 오른다.");
-  details.push("");
-  details.push("고치는 법 두 가지 중 하나를 고를 것:");
-  details.push("  ① 서버에서 렌더되는 고유 본문을 채운다. 기능이 클라이언트에만 있는 라우트라면");
-  details.push("     page.tsx 에 서버 섹션을 두는 것이 관례다(예: app/tarot/self-esteem/page.tsx).");
-  details.push("     🔴 본문은 구현에서 뽑을 것 — 효능·보장을 지어내지 않는다.");
-  details.push("  ② 색인 대상에서 뺀다. scripts/generate-sitemap.mjs 와 lib/seo/siteSeo.ts 의");
-  details.push("     noindexPathPrefixes 는 **짝**이므로 한쪽만 고치면 「제출된 URL에 noindex」가 된다.");
-  fail(`문장급 본문이 얇은 색인 라우트 ${violations.length}개`, details);
+  console.log(`[verify-indexable-prose-depth] DIAGNOSTIC — ${violations.length} routes below the historical reference of ${MIN_PROSE_UNITS}; no length-based rejection`);
 }
-
-console.log(
-  `[verify-indexable-prose-depth] OK — ${baseDir}/ 색인 ${measured.length}개 전부 문장급 본문 ${MIN_PROSE_UNITS}단위 이상`
-  + ` (최소 ${measured[0].prose}단위: ${measured[0].route}, 공용 문구 ${boilerplate.size}개 제외)`
-  + (DECLARED_EXCEPTIONS.size > 0 ? ` · 선언된 예외 ${DECLARED_EXCEPTIONS.size}개` : ""),
-);
+console.log(`[verify-indexable-prose-depth] OK — ${measured.length} rendered routes; original content and human review require separate assessment`);

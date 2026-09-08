@@ -1,9 +1,9 @@
+import { actualContentDate } from "../../lib/content/editorial-review.mjs";
 import { INSIGHT_ARTICLES } from "./articles";
 import { SEO_GROWTH_ARTICLES } from "./seo-growth-articles";
 
-// 🔴 lib/structured-data.ts 의 SITE_AUTHOR.name 과 같은 값이어야 한다(실명, 2026-08-30).
-//    여기에 경력·자격을 덧붙이지 말 것 — 가짜 저자·가짜 자격 금지.
-const DEFAULT_AUTHOR = "박병하";
+// Explicit authorship is preserved; an absent byline must not imply expert review.
+const DEFAULT_AUTHOR = "Code Destiny 편집팀";
 const SITE_ORIGIN = "https://code-destiny.com";
 // 화면에 보이는 대표 이미지는 연이(꽃돼지) 자산, 소셜 공유 썸네일은 기존 브랜드 배지를 유지한다.
 // 둘은 의도적으로 분리되어 있으니 한쪽만 바꾸지 말 것.
@@ -196,18 +196,6 @@ function escapeHtml(value) {
     .replace(/'/g, "&#39;");
 }
 
-function normalizeIsoDate(rawDate, fallbackOffsetDays = 0) {
-  const candidate = String(rawDate || "").trim();
-  if (candidate) {
-    const parsed = new Date(candidate);
-    if (!Number.isNaN(parsed.getTime())) {
-      return parsed.toISOString();
-    }
-  }
-
-  const fallback = new Date(Date.now() - fallbackOffsetDays * 86400000);
-  return fallback.toISOString();
-}
 
 function renderSectionsToHtml(sections) {
   if (!Array.isArray(sections) || sections.length === 0) return "";
@@ -874,10 +862,10 @@ function buildSeedArticle(article, index) {
   const author =
     typeof article?.author === "object" && article?.author
       ? String(article.author.name || DEFAULT_AUTHOR)
-      : DEFAULT_AUTHOR;
+      : String(article?.author || DEFAULT_AUTHOR);
 
-  const publishedAt = normalizeIsoDate(article?.updatedAt, 120 + index);
-  const updatedAt = normalizeIsoDate(article?.updatedAt || article?.publishedAt, 30 + index);
+  const publishedAt = actualContentDate(article?.publishedAt);
+  const updatedAt = actualContentDate(article?.updatedAt);
   const internalLinks = normalizeLinkItems(article?.internalLinks);
   const faq = normalizeFaqItems(article?.faq);
   const ctaLinks = normalizeLinkItems(article?.cta?.links);
@@ -920,8 +908,8 @@ function buildSeedArticle(article, index) {
     publishedAt,
     updatedAt,
     createdAt: publishedAt,
-    viewCount: Math.max(0, 1200 - index * 7),
-    readingTime: Math.max(4, Math.ceil(contentHtml.replace(/<[^>]+>/g, " ").length / 520)),
+    viewCount: null,
+    readingTime: Math.max(1, Math.ceil(contentHtml.replace(/<[^>]+>/g, " ").length / 520)),
     noIndex: false,
     isFeatured: index < 12,
     canonicalUrl: `https://code-destiny.com/insights/${encodeURIComponent(slug)}`,
