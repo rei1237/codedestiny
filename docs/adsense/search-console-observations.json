@@ -6,9 +6,16 @@
   "impressions": 391,
   "indexed": 276,
   "notIndexed": 1822,
-  "backlinks": null,
+  "linkReport": {
+    "observedAtKst": "2026-09-09",
+    "externalLinks": 2,
+    "externalTarget": "https://code-destiny.com/",
+    "linkingDomains": ["x.com", "xploredomains.com"],
+    "internalLinks": 2479,
+    "note": "Search Console observed links only; absence from this report is not proof that no backlinks exist"
+  },
   "pages": [
-    { "path": "/", "clicks": 21, "impressions": 194 },
+    { "path": "/", "clicks": 21, "impressions": 194, "backlinks": 2 },
     { "path": "/manse/", "clicks": 5, "impressions": 21 },
     { "path": "/insights/sukuyo/", "clicks": 1, "impressions": 11 },
     { "path": "/insights/sukuyo-love/", "clicks": 1, "impressions": 8 },

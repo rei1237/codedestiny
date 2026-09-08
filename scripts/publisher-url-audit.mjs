@@ -69,7 +69,7 @@ await Promise.all(Array.from({ length: 4 }, async () => {
         inSitemap: inSitemap.has(url), classification, classificationConfirmed: classification !== "B", risk,
         adsEligibleByRoute: canLoadAdsense(new URL(url).pathname), adsApproved: hasAdvertisingReview(url),
         gscClicks: gscPage?.clicks ?? null, gscImpressions: gscPage?.impressions ?? null,
-        gscPeriod: gscPage ? gsc.period : null, backlinks: null,
+        gscPeriod: gscPage ? gsc.period : null, backlinks: gscPage?.backlinks ?? null,
         action: gscPage?.clicks > 0 ? "protect observed traffic; improve before any indexing change" : classification === "B" ? "retain pending evidence review; no automatic deletion" : "verify existing disposition",
         bodySample: bodyText.slice(0, 500),
       });

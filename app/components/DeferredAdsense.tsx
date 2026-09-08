@@ -1,11 +1,10 @@
 "use client";
 
 import Script from "next/script";
-import { hasAdvertisingReview } from "../../lib/content/editorial-review.mjs";
+import { canServeReviewedAdsense } from "../../lib/content/advertising-review.mjs";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { isMobileAppRuntime } from "../_lib/auth-client";
-import { canLoadAdsenseForCanonicalUrl } from "./adsense-route-policy";
 
 export { canLoadAdsense, canLoadAdsenseForCanonicalPath, canLoadAdsenseForCanonicalUrl } from "./adsense-route-policy";
 
@@ -46,8 +45,7 @@ function currentDocumentAllowsAdsense(pathname: string | null) {
   const canonicalHref = document.querySelector('link[rel="canonical"]')?.getAttribute("href") || "";
 
   return (
-    canLoadAdsenseForCanonicalUrl(pathname || window.location.pathname, canonicalHref, window.location.href) &&
-    hasAdvertisingReview(window.location.pathname) &&
+    canServeReviewedAdsense(pathname || window.location.pathname, canonicalHref, window.location.href) &&
     !robotsText.includes("noindex") &&
     !robotsText.includes("nofollow")
   );
