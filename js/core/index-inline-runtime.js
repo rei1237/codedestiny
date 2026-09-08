@@ -2203,6 +2203,7 @@ function __cdEnsureSajuCoreLoaded() {
     '/js/saju-engine.js?v=build-4639bafc47c5',
       '/js/core/saju/extremeTResult.js?v=build-4639bafc47c5',
       '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-4639bafc47c5',
+    '/js/core/saju/basicFortunePresentation.js?v=build-724d5a34c99d',
     '/js/core/saju/modalProfileState.js?v=build-4639bafc47c5',
     '/js/core/saju/reportDashboard.js?v=build-4639bafc47c5',
     '/js/saju-engine-continuation.js?v=build-4639bafc47c5',
@@ -8057,6 +8058,7 @@ function __cdForceUnlockBodyScroll() {
  * 근거: docs/handoff/korean-calendar-migration-2026-08-27.md */
 function __cdBirthModalDepsMissing() {
   return (
+    typeof window.BasicFortunePresentation === 'undefined' ||
     typeof _ModalProfileState === 'undefined' ||
     typeof _renderSukuyoSection !== 'function' ||
     typeof _renderZiweiSection !== 'function' ||
@@ -8104,18 +8106,156 @@ function __cdEnsureSukuyoZiweiCoreLoaded() {
 }
 
 function __cdEnsureBirthModalDepsLoaded() {
-  var tasks = [];
+  var presentationReady = window.BasicFortunePresentation
+    ? Promise.resolve()
+    : __cdLoadScriptOnce('/js/core/saju/basicFortunePresentation.js?v=build-724d5a34c99d');
+  var tasks = [presentationReady];
   if (
     typeof _ModalProfileState === 'undefined' ||
     typeof _renderSukuyoSection !== 'function' ||
     typeof _renderZiweiSection !== 'function' ||
     typeof _renderAstroSection !== 'function'
   ) {
-    tasks.push(__cdLoadScriptOnce('/js/core/saju/modalProfileState.js?v=build-4639bafc47c5'));
+    tasks.push(presentationReady.then(function () {
+      return __cdLoadScriptOnce('/js/core/saju/modalProfileState.js?v=build-724d5a34c99d');
+    }));
   }
   tasks.push(__cdEnsureSukuyoZiweiCoreLoaded());
   if (!tasks.length) return Promise.resolve(true);
   return Promise.all(tasks).then(function() { return true; });
+}
+
+var _cdBasicFortuneModalState = window.__cdBasicFortuneModalState || {
+  type: null,
+  overlay: null,
+  returnFocus: null,
+  scrollY: 0
+};
+window.__cdBasicFortuneModalState = _cdBasicFortuneModalState;
+
+function _cdBasicFortuneHistoryType(state) {
+  var type = state && typeof state === 'object' ? state.cdBasicFortuneModal : '';
+  return type === 'sukuyo' || type === 'ziwei' ? type : '';
+}
+
+function _cdBasicFortuneFocusables(overlay) {
+  if (!overlay) return [];
+  return Array.prototype.slice.call(overlay.querySelectorAll('button,[href],input,select,textarea,summary,[tabindex]:not([tabindex="-1"])'))
+    .filter(function(el) {
+      return !el.disabled && el.getAttribute('aria-hidden') !== 'true' && el.offsetParent !== null;
+    });
+}
+
+function _cdBasicFortuneRestoreFocus(target, scrollY) {
+  requestAnimationFrame(function() {
+    requestAnimationFrame(function() {
+      try { window.scrollTo(0, scrollY); } catch (_) {}
+      var focusTarget = target && document.documentElement.contains(target) ? target : null;
+      if (!focusTarget) {
+        var candidates = document.querySelectorAll('.dp-mc-load-btn');
+        for (var i = 0; i < candidates.length; i += 1) {
+          if (candidates[i].offsetParent !== null) { focusTarget = candidates[i]; break; }
+        }
+      }
+      if (focusTarget && typeof focusTarget.focus === 'function') {
+        try { focusTarget.focus({ preventScroll: true }); } catch (_) { focusTarget.focus(); }
+      }
+    });
+  });
+}
+
+function _cdBasicFortuneModalOpened(type, overlay) {
+  if (!overlay) return;
+  if (_cdBasicFortuneModalState.type !== type) {
+    var carriedFocus = window.__cdBasicFortuneReturnFocus;
+    window.__cdBasicFortuneReturnFocus = null;
+    var activeFocus = document.activeElement && document.activeElement !== document.body ? document.activeElement : null;
+    _cdBasicFortuneModalState.returnFocus = carriedFocus || (activeFocus && !overlay.contains(activeFocus) ? activeFocus : null);
+    _cdBasicFortuneModalState.scrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
+  }
+  _cdBasicFortuneModalState.type = type;
+  _cdBasicFortuneModalState.overlay = overlay;
+  overlay.setAttribute('role', 'dialog');
+  overlay.setAttribute('aria-modal', 'true');
+  overlay.setAttribute('aria-hidden', 'false');
+  overlay.tabIndex = -1;
+
+  if (_cdBasicFortuneHistoryType(window.history && window.history.state) !== type) {
+    try {
+      var currentState = window.history && window.history.state;
+      var nextState = currentState && typeof currentState === 'object' ? Object.assign({}, currentState) : {};
+      nextState.cdBasicFortuneModal = type;
+      window.history.pushState(nextState, '', window.location.href);
+    } catch (_) {}
+  }
+
+  requestAnimationFrame(function() {
+    if (_cdBasicFortuneModalState.type !== type) return;
+    var initialFocus = overlay.querySelector('.modal-top-nav button');
+    if (!initialFocus) initialFocus = _cdBasicFortuneFocusables(overlay)[0] || overlay;
+    if (initialFocus && typeof initialFocus.focus === 'function') initialFocus.focus();
+  });
+}
+
+function _cdBasicFortuneModalClosed(type, overlay, options) {
+  if (overlay) {
+    overlay.setAttribute('aria-hidden', 'true');
+    overlay.setAttribute('aria-modal', 'false');
+  }
+  if (_cdBasicFortuneModalState.type !== type) return;
+  var returnFocus = _cdBasicFortuneModalState.returnFocus;
+  var returnScrollY = _cdBasicFortuneModalState.scrollY;
+  _cdBasicFortuneModalState.type = null;
+  _cdBasicFortuneModalState.overlay = null;
+  _cdBasicFortuneModalState.returnFocus = null;
+  if (!(options && options.fromHistory) && _cdBasicFortuneHistoryType(window.history && window.history.state) === type) {
+    try { window.history.back(); } catch (_) {}
+  }
+  _cdBasicFortuneRestoreFocus(returnFocus, returnScrollY);
+}
+
+if (!window.__cdBasicFortuneModalKeysBound) {
+  window.__cdBasicFortuneModalKeysBound = true;
+  document.addEventListener('keydown', function(event) {
+    var type = _cdBasicFortuneModalState.type;
+    var overlay = _cdBasicFortuneModalState.overlay;
+    if (!type || !overlay || overlay.style.display === 'none') return;
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      event.stopPropagation();
+      var closeFn = type === 'sukuyo' ? window.closeSukuyoModal : window.closeZiweiModal;
+      if (typeof closeFn === 'function') closeFn();
+      return;
+    }
+    if (event.key !== 'Tab') return;
+    var focusable = _cdBasicFortuneFocusables(overlay);
+    if (!focusable.length) {
+      event.preventDefault();
+      overlay.focus();
+      return;
+    }
+    var first = focusable[0];
+    var last = focusable[focusable.length - 1];
+    if (event.shiftKey && (document.activeElement === first || !overlay.contains(document.activeElement))) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && (document.activeElement === last || !overlay.contains(document.activeElement))) {
+      event.preventDefault();
+      first.focus();
+    }
+  }, true);
+  window.addEventListener('popstate', function(event) {
+    var targetType = _cdBasicFortuneHistoryType(event.state);
+    var activeType = _cdBasicFortuneModalState.type;
+    if (activeType && activeType !== targetType) {
+      var closeFn = activeType === 'sukuyo' ? window.closeSukuyoModal : window.closeZiweiModal;
+      if (typeof closeFn === 'function') closeFn({ fromHistory: true });
+    }
+    if (targetType && _cdBasicFortuneModalState.type !== targetType) {
+      var openFn = targetType === 'sukuyo' ? window.openSukuyoModal : window.openZiweiModal;
+      if (typeof openFn === 'function') openFn();
+    }
+  });
 }
 
 function openSukuyoModal(_retried) {
@@ -8135,6 +8275,7 @@ function openSukuyoModal(_retried) {
   overlay.style.overflow = 'hidden';
   var sh = document.getElementById('sukuyoModalSheet');
   if (sh) { sh.scrollTop = 0; sh.style.overflowY = 'auto'; }
+  _cdBasicFortuneModalOpened('sukuyo', overlay);
   var noProfile = document.getElementById('sukuyoNoProfile');
   var card = document.getElementById('sukuyoCard');
   var theme = { icon: '💫', ac: '#c4b5fd', br: '167,139,250', bb: 'linear-gradient(135deg,#1a0e3b,#2d1b6b)', title: '💫 宿曜占 · 숙요점', desc: '숙요점을 보려면 메인 화면에서<br>나의 운명 카드를 먼저 설정해주세요' };
@@ -8152,10 +8293,10 @@ function openSukuyoModal(_retried) {
   }
   _ModalProfileState.dispatch(profile, 'sukuyo');
 }
-function closeSukuyoModal() {
+function closeSukuyoModal(options) {
   var o = document.getElementById('sukuyoModalOverlay'); if (o) o.style.display = 'none';
   _ModalProfileState.unsubscribe('sukuyo');
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  _cdBasicFortuneModalClosed('sukuyo', o, options);
 }
 
 function navigateToVedic() {
@@ -8434,6 +8575,7 @@ function openZiweiModal(_retried) {
   overlay.style.overflow = 'hidden';
   var sh = document.getElementById('ziweiModalSheet');
   if (sh) { sh.scrollTop = 0; sh.style.overflowY = 'auto'; }
+  _cdBasicFortuneModalOpened('ziwei', overlay);
   var noProfile = document.getElementById('ziweiNoProfile');
   var card = document.getElementById('ziweiModalCard');
   var theme = { icon: '🌌', ac: '#e879f9', br: '232,121,249', bb: 'linear-gradient(135deg,#2b0545,#4a0a7a)', title: '🌌 紫微斗數 · 자미두수', desc: '자미두수 명반을 보려면<br>메인 화면에서 나의 운명 카드를 먼저 설정해주세요' };
@@ -8451,10 +8593,10 @@ function openZiweiModal(_retried) {
   }
   _ModalProfileState.dispatch(profile, 'ziwei');
 }
-function closeZiweiModal() {
+function closeZiweiModal(options) {
   var o = document.getElementById('ziweiModalOverlay'); if (o) o.style.display = 'none';
   _ModalProfileState.unsubscribe('ziwei');
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  _cdBasicFortuneModalClosed('ziwei', o, options);
 }
 
 function openAstroModal(_retried) {

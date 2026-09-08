@@ -208,17 +208,18 @@ check(
 const NAV_START = "aria-label={copy.resultNavAriaLabel}";
 const NAV_END = "</nav>";
 const navBlock = sliceBlock(componentSource, NAV_START, NAV_END);
+const surfaceCss = fs.readFileSync(path.join(root, "app/components/ziwei/ziwei-consultation.module.css"), "utf8");
 check(
   navBlock.length >= 400,
   `정적 검사(${COMPONENT_PATH}): 구역 이동 바 블록을 못 찾았다(${navBlock.length}자) — 마커("${NAV_START}" … "${NAV_END}")가 사라졌으면 이 가드를 함께 고칠 것(fail-closed).`,
 );
 check(
-  /\bpl-36\b/.test(navBlock),
+  /className=\{styles.topbar\}/.test(navBlock) && /padding-top:calc\(48px \+ env\(safe-area-inset-top\)\)/.test(surfaceCss) && /padding:0 180px 0 150px/.test(surfaceCss),
   `정적 검사(${COMPONENT_PATH}): 구역 이동 바에 pl-36 이 없다 — AppChrome 의 .cd-feature-nav(좌상단 고정 뒤로·홈)가 칩 1·2번을 덮어 탭이 안 된다. 결과 화면에는 자체 닫기 버튼이 없어 그 나브를 숨길 수도 없다.`,
 );
 const overlayLine = componentSource.split("\n").find((line) => line.includes("fixed inset-0 z-50 h-[100dvh]")) || "";
 check(
-  /\bbg-\[#[0-9a-fA-F]{6}\]/.test(overlayLine),
+  overlayLine.includes("styles.surface") && /--zw-bg:#09131e/.test(surfaceCss) && /background:var\(--zw-bg\)/.test(surfaceCss),
   `정적 검사(${COMPONENT_PATH}): 결과 오버레이 section 에 불투명 배경이 없다 — GalaxyBackdrop 은 absolute inset-0 이라 첫 화면만 덮고 스크롤되어 사라지므로, 그 아래부터 오버레이 뒤 페이지가 카드 사이 틈으로 비친다.`,
 );
 const gridShellLine = componentSource.split("\n").find((line) => line.includes("max-w-[38rem]")) || "";
@@ -241,5 +242,5 @@ if (failures.length) {
   console.log(`  - runtime strings: ${collected.length} (track analyses ${trackAnalysisCount}, palace readings ${palaceReadingCount}, forbidden phrases ${forbiddenAll.length})`);
   console.log(`  - static: component literals ${componentStrings.length}, copy blocks en/ko ${enBlock.split("\n").length}/${koBlock.split("\n").length} lines`);
   console.log(`  - grid fonts: block ${gridBlock.length} chars, sub-12px classes ${gridTinyFonts.length}`);
-  console.log(`  - mobile overlap: nav block ${navBlock.length} chars, pl-36 ok, grid rows min-content ok, overlay bg ok`);
+  console.log(`  - mobile overlap: nav block ${navBlock.length} chars, scoped nav clearance ok, grid rows min-content ok, overlay bg ok`);
 }

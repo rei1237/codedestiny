@@ -49,6 +49,7 @@
   var activeDictionaryLang = 'ko';
   var missingKeyLog = {};
   var applying = false;
+  var selectedPageLang = '';
   var nativeScriptCacheKey = detectNativeScriptCacheKey();
 
   function isSupportedLang(lang) {
@@ -131,16 +132,18 @@
   }
 
   function getSavedLang() {
+    // 현재 페이지에서 누른 언어는 유지하고, 첫 진입은 React와 같은 URL 우선순위를 쓴다.
+    if (selectedPageLang) return selectedPageLang;
     var urlLang = getUrlLang();
     if (urlLang) return urlLang;
+    var pathLang = getPathPrefixLang();
+    if (pathLang) return pathLang;
     if (hasSavedLangAck()) {
       var stored = readStoredValue('cd_lang');
       if (stored) return normalizeLang(stored);
       var cookieLang = readCookie('cd_locale');
       if (cookieLang) return normalizeLang(cookieLang);
     }
-    var pathLang = getPathPrefixLang();
-    if (pathLang) return pathLang;
     return 'ko';
   }
 
@@ -531,6 +534,7 @@
     var lang = normalizeLang(langCode || (btn && btn.getAttribute && btn.getAttribute('data-lang')));
     if (applying) return;
     applying = true;
+    selectedPageLang = lang;
     setNativeOnlyLanguageMode();
     clearLegacyTranslateCookie();
     setSavedLang(lang);

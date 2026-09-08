@@ -19,6 +19,9 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import styles from "./ziwei-consultation.module.css";
+import { ziweiChapterPreview } from "@/lib/pdf/ziwei-report-plan";
+import { getPremiumZiweiCopy } from "./_lib/advanced-ziwei-copy";
 import { Download, History, Loader2, Sparkles } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
 import { PriceBadge } from "@/app/components/PriceBadge";
@@ -143,10 +146,6 @@ function buildBillingGateInput(paymentPayload: Record<string, unknown>, idempote
   };
 }
 
-function safePdfName(value: string, fallback: string) {
-  return String(value || fallback).replace(/[^\p{L}\p{N}_-]+/gu, "").slice(0, 24) || fallback;
-}
-
 type ApiResult = {
   ok?: boolean; reason?: string; message?: string;
   accessToken?: string; accessType?: string;
@@ -171,6 +170,7 @@ interface Props { birth: ZiweiDeepBirthInput; disabled?: boolean }
 export default function ZiweiDeepPdfPanel({ birth, disabled = false }: Props) {
   const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
   const copy = getZiweiDeepPdfCopy(locale);
+  const ui = getPremiumZiweiCopy(locale);
   const FOCUS_OPTIONS: Array<{ value: FocusArea; label: string }> = [
     { value: "overall", label: copy.focusOptions.overall },
     { value: "personality", label: copy.focusOptions.personality },
@@ -407,21 +407,14 @@ export default function ZiweiDeepPdfPanel({ birth, disabled = false }: Props) {
   }
 
   async function handlePdfDownload() {
-    const element = reportRef.current;
-    if (!element || pdfLoading) return;
+    if (!report || pdfLoading) return;
     setPdfLoading(true);
     setError("");
     try {
-      const { exportResultPdf } = await import("@/lib/pdf/export-result-pdf");
-      const date = new Date().toLocaleDateString("ko-KR").replace(/\./g, "").replace(/\s/g, "");
-      await exportResultPdf({
-        captureTargets: ["#ziwei-deep-pdf-report [data-ziwei-pdf-section]"],
-        fileName: `${copy.pdfFileNameStem}_${safePdfName(birth.name, copy.pdfNameFallback)}_${date}.pdf`,
-        backgroundColor: "#0b1020",
-        cover: {
-          title: copy.pdfCoverTitle(safePdfName(birth.name, copy.pdfNameFallback)),
-          date: new Date().toISOString().slice(0, 10),
-        },
+      const { exportZiweiReportPdf } = await import("@/lib/pdf/export-ziwei-report-pdf");
+      await exportZiweiReportPdf({
+        chapters: report.chapters, title: report.label, date: report.generatedAt.slice(0, 10),
+        fileName: `${copy.pdfFileNameStem}_${report.generatedAt.slice(0,10)}.pdf`,
       });
     } catch {
       setError(copy.pdfDownloadError);
@@ -429,10 +422,8 @@ export default function ZiweiDeepPdfPanel({ birth, disabled = false }: Props) {
   }
 
   return (
-    <section className="font-premium relative overflow-hidden rounded-[1.6rem] border border-amber-200/25 bg-gradient-to-br from-[#140f2e]/85 via-[#0c1230]/85 to-[#101a34]/85 p-5 text-slate-100 md:p-7">
-      <div className="pointer-events-none absolute inset-0 opacity-40 [background:radial-gradient(circle_at_18%_12%,rgba(250,204,21,.14),transparent_42%),radial-gradient(circle_at_82%_80%,rgba(125,211,252,.14),transparent_46%)]" aria-hidden="true" />
+    <section className={`${styles.surface} rounded-xl border border-white/20 p-5 md:p-7`}>
       <div className="relative z-10">
-        <p className="text-[11px] font-semibold tracking-[0.3em] text-amber-100/80">{copy.eyebrow}</p>
         <h3 className="font-display mt-2 text-xl font-black text-white md:text-2xl">{copy.title}</h3>
         <p className="mt-2 max-w-2xl text-sm leading-7 text-slate-200/85">
           {copy.introPrefix}<b className="text-amber-100">{copy.introBold}</b>{copy.introSuffix}
@@ -462,6 +453,7 @@ export default function ZiweiDeepPdfPanel({ birth, disabled = false }: Props) {
               value={question}
               onChange={(event) => setQuestion(event.target.value)}
               disabled={busy || disabled}
+              aria-label={copy.questionPlaceholder}
               rows={3}
               placeholder={copy.questionPlaceholder}
               className="w-full resize-none rounded-2xl border border-white/12 bg-black/25 px-4 py-3 text-sm leading-7 text-slate-100 placeholder:text-slate-400/70 focus:border-amber-200/50 focus:outline-none"
@@ -530,7 +522,7 @@ export default function ZiweiDeepPdfPanel({ birth, disabled = false }: Props) {
         )}
 
         {error && (
-          <p className="mt-4 rounded-xl border border-rose-400/35 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">{error}</p>
+          <p role="alert" className="mt-4 rounded-xl border border-rose-400/35 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">{error}</p>
         )}
 
         {phase === "ready" && report && (
@@ -538,10 +530,10 @@ export default function ZiweiDeepPdfPanel({ birth, disabled = false }: Props) {
             <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-200/25 bg-amber-200/10 px-4 py-3">
               <div>
                 <p className="text-xs font-semibold text-amber-100/80">
-                  {report.restored ? copy.readyStatusRestored : copy.readyStatusComplete} · {copy.readyChapterCountTemplate(report.chapters.length, report.totalChars.toLocaleString("ko-KR"))}
+                  {report.chapters.length < TOTAL_CHAPTERS ? copy.historyPartialSuffix : report.restored ? copy.readyStatusRestored : copy.readyStatusComplete} · {copy.readyChapterCountTemplate(report.chapters.length, report.totalChars.toLocaleString("ko-KR"))}
                 </p>
                 <p className="text-sm font-bold text-white">
-                  {report.restored ? copy.readyMessageRestored : copy.readyMessageComplete}
+                  {report.chapters.length < TOTAL_CHAPTERS ? copy.historyPartialSuffix : report.restored ? copy.readyMessageRestored : copy.readyMessageComplete}
                 </p>
               </div>
               <button
@@ -564,15 +556,13 @@ export default function ZiweiDeepPdfPanel({ birth, disabled = false }: Props) {
             </button>
 
             <div ref={reportRef} id="ziwei-deep-pdf-report" className="mt-4 grid gap-4">
-              <section data-ziwei-pdf-section className="rounded-2xl border border-amber-200/20 bg-[#0b1020] p-6">
-                <p className="text-xs font-semibold tracking-[0.3em] text-amber-100/70">{copy.reportCoverEyebrow}</p>
-                <h4 className="font-display mt-2 text-2xl font-black text-white">{copy.reportCoverNameTemplate(birth.name || copy.reportCoverDefaultName)}</h4>
-                <p className="mt-1 text-sm text-slate-300">{birth.calendarType === "lunar" ? copy.calendarLunarLabel : copy.calendarSolarLabel} {birth.birthDate} · {birth.birthTimeUnknown ? copy.timeUnknownLabel : birth.birthTime} · {birth.gender === "male" ? copy.genderMaleLabel : copy.genderFemaleLabel}</p>
+              <section data-ziwei-pdf-section className={styles.pdfCover}>
+                <h4>{report.label}</h4><p>{report.generatedAt.slice(0,10)}</p>
               </section>
-              {report.chapters.map((ch) => (
-                <article key={ch.id} data-ziwei-pdf-section className="rounded-2xl border border-white/10 bg-[#0b1020] p-6">
-                  <h4 className="font-display text-lg font-black text-amber-100">{ch.title}</h4>
-                  <p className="mt-3 whitespace-pre-wrap text-[15px] leading-8 text-slate-100/95">{ch.body}</p>
+              {report.chapters.map((ch, index) => (
+                <article key={ch.id} data-ziwei-pdf-section className={styles.pdfChapter}>
+                  <h4>{ch.title}</h4><p>{ziweiChapterPreview(ch)}</p>
+                  <details open={index === 0}><summary>{ui.chapterOpen}</summary><p>{ch.body}</p></details>
                 </article>
               ))}
             </div>

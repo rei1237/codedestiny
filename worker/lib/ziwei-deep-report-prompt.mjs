@@ -41,10 +41,10 @@ export const ZIWEI_DEEP_PDF_META = Object.freeze({
 export const ZIWEI_DEEP_CHAPTERS = Object.freeze([
   {
     id: "overview",
-    title: "제1장 · 명반 총론 — 당신이라는 별의 지도",
+    title: "제1장 · 내 질문에 명반은 어떤 답을 줄까요?",
     palaceKey: null,
     scope:
-      "타고난 성향 총론을 가장 먼저 짚는다. 명궁 주성과 별 세기(묘·왕·득·리·평·함)를 근거로 이 사람의 타고난 기질과 성향을 전반적으로 소개해, 상담자가 '나를 정확히 봤다'고 느끼도록 신뢰를 먼저 세운다. " +
+      "개인 질문이 있으면 첫 문장에서 그 질문에 직접 답하고, 이어서 타고난 성향과 반복 패턴을 짚는다. 명궁 주성과 별 세기(묘·왕·득·리·평·함)를 근거로 이 사람의 타고난 기질과 성향을 전반적으로 소개해, 상담자가 '나를 정확히 봤다'고 느끼도록 신뢰를 먼저 세운다. " +
       "그 위에 명궁·신궁의 위치와 오행국(五行局), 명반 전체의 격국(格局) 성향, 12궁 세력의 균형을 개관한다. " +
       "이 리포트 전체를 여는 서장으로, 이 사람의 인생을 관통하는 큰 축과 테마를 제시한다.",
     minChars: 2600,
@@ -52,7 +52,7 @@ export const ZIWEI_DEEP_CHAPTERS = Object.freeze([
   },
   {
     id: "ming",
-    title: "제2장 · 명궁 — 타고난 기질과 자아의 핵",
+    title: "제2장 · 나는 어떤 사람인가요?",
     palaceKey: "명궁",
     scope: "타고난 성향·자아상·세상을 대하는 기본 태도·핵심 동기. 명궁 주성/보좌성/사화의 조합으로 읽는다.",
     minChars: 2400,
@@ -60,7 +60,7 @@ export const ZIWEI_DEEP_CHAPTERS = Object.freeze([
   },
   {
     id: "siblings",
-    title: "제3장 · 형제궁 — 형제·동료와 협력의 결",
+    title: "제3장 · 함께할 때 왜 마음이 엇갈릴까요?",
     palaceKey: "형제궁",
     scope: "형제·또래·동료·협업 관계의 패턴, 지지받는 방식과 마찰 지점.",
     minChars: 2200,
@@ -68,7 +68,7 @@ export const ZIWEI_DEEP_CHAPTERS = Object.freeze([
   },
   {
     id: "spouse",
-    title: "제4장 · 부부궁 — 배우자·연애·결혼의 흐름",
+    title: "제4장 · 사랑에서 반복하는 패턴은 무엇일까요?",
     palaceKey: "부부궁",
     scope: "연애 성향, 배우자상, 결혼의 시기적 흐름과 관계 운영 방식, 약속과 갈등의 결.",
     minChars: 2600,
@@ -76,7 +76,7 @@ export const ZIWEI_DEEP_CHAPTERS = Object.freeze([
   },
   {
     id: "children",
-    title: "제5장 · 자녀궁 — 자녀·창작·후배와 확장",
+    title: "제5장 · 돌보고 만들어내는 힘은 어디에 있나요?",
     palaceKey: "자녀궁",
     scope: "자녀 인연, 창작·프로젝트를 낳는 힘, 후배·제자와의 관계, 성적(性的)·생산적 에너지.",
     minChars: 2200,
@@ -84,7 +84,7 @@ export const ZIWEI_DEEP_CHAPTERS = Object.freeze([
   },
   {
     id: "wealth",
-    title: "제6장 · 재백궁 — 재물의 구조와 돈의 길",
+    title: "제6장 · 돈을 어떻게 벌고 지켜야 할까요?",
     palaceKey: "재백궁",
     scope: "돈이 들어오고 머무는 방식, 수입 구조, 재물 관리 스타일, 재물운의 강약과 리스크.",
     minChars: 2500,
@@ -92,7 +92,7 @@ export const ZIWEI_DEEP_CHAPTERS = Object.freeze([
   },
   {
     id: "health",
-    title: "제7장 · 질액궁 — 건강·체질·마음의 리듬",
+    title: "제7장 · 덜 지치려면 어떤 리듬이 필요할까요?",
     palaceKey: "질액궁",
     scope: "타고난 체질과 취약 지점, 스트레스 반응, 정신 건강의 리듬, 회복을 위한 생활 조율.",
     minChars: 2200,
@@ -100,7 +100,7 @@ export const ZIWEI_DEEP_CHAPTERS = Object.freeze([
   },
   {
     id: "travel",
-    title: "제8장 · 천이궁 — 이동·해외·바깥세상의 운",
+    title: "제8장 · 새로운 환경에서 무엇이 달라질까요?",
     palaceKey: "천이궁",
     scope: "이동·이사·해외·사회활동에서 운이 넓어지는 방식, 바깥에서 만나는 기회와 인상.",
     minChars: 2200,
@@ -108,7 +108,7 @@ export const ZIWEI_DEEP_CHAPTERS = Object.freeze([
   },
   {
     id: "friends",
-    title: "제9장 · 노복궁 — 대인관계와 인맥의 지형",
+    title: "제9장 · 어떤 관계에서 마음이 편안할까요?",
     palaceKey: "노복궁",
     scope: "친구·동료·아랫사람·인맥의 질, 곁에 둘 사람과 거리를 둘 인연, 사람으로 얻고 잃는 결.",
     minChars: 2200,
@@ -116,7 +116,7 @@ export const ZIWEI_DEEP_CHAPTERS = Object.freeze([
   },
   {
     id: "career",
-    title: "제10장 · 관록궁 — 직업·커리어·사회적 자리",
+    title: "제10장 · 어떤 일을 할 때 내 힘이 살아날까요?",
     palaceKey: "관록궁",
     scope: "직업 적성, 커리어의 궤도, 사회적 지위와 성취 방식, 일에서 빛나는 역할과 조심할 지점.",
     minChars: 2600,
@@ -124,7 +124,7 @@ export const ZIWEI_DEEP_CHAPTERS = Object.freeze([
   },
   {
     id: "property",
-    title: "제11장 · 전택궁 — 부동산·가정환경·삶의 기반",
+    title: "제11장 · 오래 머물 기반을 어떻게 만들까요?",
     palaceKey: "전택궁",
     scope: "부동산·거주환경·가정의 기반, 재산이 쌓이는 자리, 안정과 확장의 리듬.",
     minChars: 2200,
@@ -132,7 +132,7 @@ export const ZIWEI_DEEP_CHAPTERS = Object.freeze([
   },
   {
     id: "fortune",
-    title: "제12장 · 복덕궁 — 내면·복(福)·취향과 정신세계",
+    title: "제12장 · 내 마음은 무엇으로 회복될까요?",
     palaceKey: "복덕궁",
     scope: "정신적 만족·취향·여가·복의 결, 내면의 평온과 소진, 즐거움을 얻는 방식.",
     minChars: 2400,
@@ -140,7 +140,7 @@ export const ZIWEI_DEEP_CHAPTERS = Object.freeze([
   },
   {
     id: "parents",
-    title: "제13장 · 부모궁 — 부모·윗사람·귀인의 결",
+    title: "제13장 · 가족의 기대와 내 선택을 어떻게 나눌까요?",
     palaceKey: "부모궁",
     scope: "부모·윗사람·귀인과의 인연, 뿌리에서 이어진 지원과 과제, 권위와의 관계.",
     minChars: 2200,
@@ -148,7 +148,7 @@ export const ZIWEI_DEEP_CHAPTERS = Object.freeze([
   },
   {
     id: "sihua",
-    title: "제14장 · 사화·삼방사정 심층 — 별들이 주고받는 대화",
+    title: "제14장 · 내 삶의 기회와 부담은 어떻게 이어질까요?",
     palaceKey: null,
     scope:
       "생년사화(록·권·과·기)가 어느 궁을 밝히고 어느 궁에 부담을 주는지, 명궁 기준 삼방사정(三方四正)의 호응 구조를 심층 해석한다. " +
@@ -158,7 +158,7 @@ export const ZIWEI_DEEP_CHAPTERS = Object.freeze([
   },
   {
     id: "masterplan",
-    title: "제15장 · 대한·유년 마스터플랜 — 시간축 위의 인생 전략",
+    title: "제15장 · 앞으로 어떤 방향을 선택하면 좋을까요?",
     palaceKey: null,
     scope:
       "10년 단위 대한(大限)의 흐름과 변곡점, 올해 유년(流年)의 테마, 그리고 지금 붙잡을 것과 기다릴 것을 " +
@@ -277,9 +277,14 @@ export function buildZiweiDeepChapterPrompt(chart, birthInfo, chapter, consultat
     ...(consultationLines.length ? ["", ...consultationLines] : []),
     "",
     "[작성 지시]",
+    chapter.id === 'overview' && String(consultation?.question || '').trim() ? '- 첫 문단의 첫 두 문장은 개인 질문에 직접 답하라. 일반 성격 소개로 답을 미루지 마라.' : '- 첫 문단은 이 장 제목의 질문에 직접 답하라. 궁의 사전 정의로 시작하지 마라.',
+    '- 당신의 반응과 반복되는 장면, 강점과 부담을 구분하라. 같은 조언을 다른 말로 늘려 분량을 채우지 마라. 행동 제안은 최대 3개이며 무엇을 적거나 조정할지 구체적으로 써라.',
+    '- 다음과 같은 관점, 이 항목은 분석, 이를 기반으로, 종합해보면 같은 내부 분석 절차를 결과 문장에 쓰지 마라.',
+    '- 무주성은 결핍이나 불행으로 해석하지 마라. 밝기가 약한 별은 환경에 따라 쓰기 까다로운 힘으로 풀고 개선 방향을 제시하라.',
+    '- 출생년 간지와 생년사화는 타고난 패턴이다. 실제 연도와 산출 출처가 제공되지 않은 세운·대한의 연도, 나이 구간, 사건은 생성하지 마라.',
     `- 이 장 하나만 작성한다. 다른 장의 내용은 쓰지 않는다.`,
-    `- 분량: 공백 포함 최소 ${min}자 이상. 얕게 끝내지 말고 근거→해석→구체적 장면→실행 조언 순으로 충분히 전개하라.`,
-    "- 다음 소제목 흐름을 참고해 4~6개 단락으로 구성하라: ● 핵심 요약 / ● 성요 근거 / ● 강점과 기회 / ● 주의와 조율 / ● 현실 장면 / ● 실행 제안.",
+    `- 분량: 공백 포함 최소 ${min}자 이상. 얕게 끝내지 말고 질문에 대한 답변→구체적 생활 장면→명반 근거→실행 조언 순으로 충분히 전개하라.`,
+    "- 다음 소제목 흐름을 참고해 4~6개 단락으로 구성하라: ● 질문에 대한 답 / ● 이런 순간이 있었을 수 있어요 / ● 명반이 보여주는 이유 / ● 강점과 부담 / ● 지금 해볼 일.",
     "- 명반 근거를 인용할 때 실제 배치된 성요 이름을 명시하라(예: '명궁의 자미·천부가…').",
     "- 마크다운 표/코드블록 없이, 소제목(●)과 문단만으로 작성하라.",
     "",

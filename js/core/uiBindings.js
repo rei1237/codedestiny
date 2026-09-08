@@ -115,6 +115,7 @@ const __lazyActionLoaders = {
 function __ensureSajuCoreScripts() {
   return __loadScriptOnce('/js/destiny-profile.js?v=build-4639bafc47c5')
     .then(() => __loadScriptOnce('/js/services/sajuService.js'))
+    .then(() => __loadScriptOnce('/js/core/saju/basicFortunePresentation.js?v=build-724d5a34c99d'))
     .then(() => __loadScriptOnce('/js/core/saju/modalProfileState.js'))
     .then(() => __loadScriptOnce('/js/admin-flower.js'));
 }

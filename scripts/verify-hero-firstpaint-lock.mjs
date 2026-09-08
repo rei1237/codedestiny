@@ -77,9 +77,14 @@ if (raw.includes('id="cdHomeFunnel"')) {
   assert.equal((raw.match(/<link rel="preload" as="image"/g) || []).length, 1, 'Only the shared hero/payment art is preloaded');
   assert.doesNotMatch(raw, /class="moon-hero__(?:visual|zzz|ambient|copy)/);
   assert.doesNotMatch(css, /(?:min-)?height:\s*100(?:d|s)?vh/);
-  assert.match(css, /\.cdh-garden>img\{[^}]*width:116px;height:116px/);
-  assert.ok(css.includes('max-width:430px'), 'shared mobile canvas on desktop');
+  assert.match(css, /\.cdh-garden\s*>\s*img\s*\{[^}]*width:\s*min\(240px,\s*72%\)/);
+  assert.match(css, /\.cdh\s*\{[^}]*width:\s*min\(100%,\s*1280px\)/, 'responsive desktop canvas');
+  assert.ok(!css.includes('max-width:430px'), 'legacy fixed mobile canvas is removed');
   assert.match(raw, /class="cdh-trust"/);
+  const homeRuntimeCacheKey = raw.match(/<script defer src="\/js\/core\/home-funnel\.js\?v=(build-[a-f0-9]{12})"><\/script>/)?.[1];
+  const shellCacheKey = raw.match(/\/js\/core\/home-service-finder\.js\?v=(build-[a-f0-9]{12})/)?.[1];
+  assert.ok(homeRuntimeCacheKey, 'Home funnel runtime must have a deploy build key');
+  assert.equal(homeRuntimeCacheKey, shellCacheKey, 'Home funnel runtime must rotate with the deploy shell');
   console.log('[hero-firstpaint-lock] PASS: single source compact hero, reserved image geometry, static trust');
   process.exit(0);
 }

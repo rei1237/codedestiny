@@ -30,6 +30,17 @@ var APP_VERSION = 'dev';
 var APP_VERSION_KEY = 'app_version';
 var APP_VERSION_RELOAD_GUARD = 'app_version_reload_guard';  // 무한 reload 방지
 var APP_VERSION_DEFER_GUARD = 'app_version_defer_guard';
+// The refresh request has already bypassed the cache. Keep copied links stable.
+(function removeCompletedVersionQuery() {
+  try {
+    var url = new URL(window.location.href);
+    var reloadVersion = window.sessionStorage.getItem(APP_VERSION_RELOAD_GUARD);
+    if (reloadVersion && url.searchParams.get('v') === reloadVersion) {
+      url.searchParams.delete('v');
+      window.history.replaceState(window.history.state, '', url.toString());
+    }
+  } catch (e) { /* Preserve navigation when storage/history is unavailable. */ }
+})();
 var SW_PURGED_VERSION_KEY = 'app_sw_purged_version';
 var SW_RETIRE_ONCE_KEY = 'app_sw_retire_once';
 var VERSION_GUARD_BANNER_ID = 'cd-version-update-banner';
