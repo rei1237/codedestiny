@@ -5275,6 +5275,61 @@ body.neo-mode.cd-mnav-collapsed .cd-mobile-bottom-nav__toggle{border-color:rgba(
   /* ── 앱바 리디자인: 정확한 비율(52px 바 · 30px 마크 · 34px 컨트롤) + 브랜드 잘림 방지 ── */
 }
 </style>
+<style id="cd-kakao-share-ui-v20260909" data-marker="cd-kakao-share-ui-v20260909">
+/* 카카오 공유 이벤트 — 카카오톡 스타일과 좁은 화면 줄바꿈을 함께 고정한다. */
+#destinyCardForm #dpKakaoReferralShareBtn{
+  box-sizing:border-box!important;
+  display:grid!important;
+  grid-template-columns:40px minmax(0,1fr)!important;
+  grid-template-rows:auto auto!important;
+  align-items:center!important;
+  column-gap:12px!important;
+  row-gap:2px!important;
+  width:100%!important;
+  min-width:0!important;
+  min-height:68px!important;
+  margin:12px auto 0!important;
+  padding:12px 16px!important;
+  overflow:hidden!important;
+  border:1px solid rgba(91,67,0,.18)!important;
+  border-radius:16px!important;
+  background:#FEE500!important;
+  color:#191600!important;
+  box-shadow:0 8px 20px rgba(230,190,0,.24),inset 0 1px 0 rgba(255,255,255,.48)!important;
+  text-align:left!important;
+  text-shadow:none!important;
+  transition:transform .18s ease,box-shadow .18s ease,background-color .18s ease!important;
+}
+#destinyCardForm #dpKakaoReferralShareBtn:hover,
+#destinyCardForm #dpKakaoReferralShareBtn:focus-visible{background:#FFDF00!important;box-shadow:0 10px 24px rgba(230,190,0,.3),inset 0 1px 0 rgba(255,255,255,.58)!important;transform:translateY(-1px)!important;outline:none!important}
+#destinyCardForm #dpKakaoReferralShareBtn:active{transform:translateY(1px) scale(.99)!important}
+#destinyCardForm #dpKakaoReferralShareBtn .moon-icon{display:flex!important;grid-column:1!important;grid-row:1 / span 2!important;align-items:center!important;justify-content:center!important;width:40px!important;height:40px!important;margin:0!important;color:#191600!important;font-size:0!important;line-height:0!important}
+#destinyCardForm #dpKakaoReferralShareBtn .moon-icon svg{display:block!important;width:28px!important;height:28px!important}
+#destinyCardForm #dpKakaoReferralShareBtn .main-txt,
+#destinyCardForm #dpKakaoReferralShareBtn .sub-txt{grid-column:2!important;justify-self:stretch!important;min-width:0!important;max-width:100%!important;margin:0!important;overflow-wrap:anywhere!important;word-break:keep-all!important;white-space:normal!important;text-align:left!important}
+#destinyCardForm #dpKakaoReferralShareBtn .main-txt{display:block!important;color:#191600!important;font-size:15px!important;font-weight:800!important;line-height:1.3!important;letter-spacing:-.01em!important}
+#destinyCardForm #dpKakaoReferralShareBtn .sub-txt{display:block!important;padding:0!important;border:0!important;background:transparent!important;color:rgba(25,22,0,.72)!important;font-size:12px!important;font-weight:600!important;line-height:1.35!important}
+#destinyCardForm .dp-kakao-referral-note.dp-kakao-referral-note--ready{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:10px!important;box-sizing:border-box!important;width:100%!important;min-width:0!important;margin:10px 0 0!important;padding:14px!important;overflow:hidden!important;border:1px solid rgba(214,166,34,.3)!important;border-radius:14px!important;background:#fff9e5!important;color:#4a2306!important;font-size:12px!important;font-weight:500!important;line-height:1.55!important;text-align:left!important;text-shadow:none!important;word-break:keep-all!important}
+#destinyCardForm .dp-kakao-referral-message{display:block!important;min-width:0!important;overflow-wrap:anywhere!important}
+#destinyCardForm .dp-kakao-referral-actions{display:flex!important;flex-wrap:wrap!important;gap:8px!important;min-width:0!important}
+#destinyCardForm .dp-kakao-referral-link,
+#destinyCardForm .dp-kakao-referral-copy{box-sizing:border-box!important;display:inline-flex!important;flex:1 1 120px!important;align-items:center!important;justify-content:center!important;min-width:0!important;min-height:44px!important;margin:0!important;padding:8px 12px!important;border-radius:10px!important;font-size:12px!important;font-weight:800!important;line-height:1.2!important;text-align:center!important;text-decoration:none!important;white-space:normal!important;overflow-wrap:anywhere!important;cursor:pointer!important;transition:background-color .18s ease,border-color .18s ease,transform .18s ease!important}
+#destinyCardForm .dp-kakao-referral-link{border:1px solid rgba(74,35,6,.2)!important;background:rgba(255,255,255,.76)!important;color:#4a2306!important}
+#destinyCardForm .dp-kakao-referral-copy{border:1px solid #3b1e08!important;background:#3b1e08!important;color:#fffaf0!important}
+#destinyCardForm :is(.dp-kakao-referral-link,.dp-kakao-referral-copy):hover,
+#destinyCardForm :is(.dp-kakao-referral-link,.dp-kakao-referral-copy):focus-visible{transform:translateY(-1px)!important;outline:3px solid rgba(59,30,8,.22)!important;outline-offset:2px!important}
+#destinyCardForm .dp-kakao-referral-link:hover{background:#fff!important}
+#destinyCardForm .dp-kakao-referral-copy:hover{background:#512a0e!important}
+#destinyCardForm .dp-kakao-referral-url{display:block!important;box-sizing:border-box!important;max-width:100%!important;min-width:0!important;margin:0!important;padding:8px 10px!important;overflow-wrap:anywhere!important;word-break:break-word!important;border-radius:8px!important;background:rgba(74,35,6,.07)!important;color:#68401f!important;font-family:ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace!important;font-size:11px!important;line-height:1.5!important;text-align:left!important}
+html.cd-mobile-runtime body.neo-mode #destinyCardForm .dp-kakao-referral-note.dp-kakao-referral-note--ready{border-color:rgba(196,181,253,.28)!important;background:rgba(196,181,253,.08)!important;color:#f4eeff!important}
+html.cd-mobile-runtime body.neo-mode #destinyCardForm .dp-kakao-referral-link{border-color:rgba(232,213,163,.34)!important;background:rgba(232,213,163,.1)!important;color:#f7e7b4!important}
+html.cd-mobile-runtime body.neo-mode #destinyCardForm .dp-kakao-referral-url{background:rgba(196,181,253,.1)!important;color:#d9ccff!important}
+@media (max-width:360px){#destinyCardForm #dpKakaoReferralShareBtn{grid-template-columns:34px minmax(0,1fr)!important;column-gap:9px!important;padding:11px 12px!important}#destinyCardForm #dpKakaoReferralShareBtn .moon-icon{width:34px!important;height:34px!important}#destinyCardForm #dpKakaoReferralShareBtn .moon-icon svg{width:24px!important;height:24px!important}#destinyCardForm .dp-kakao-referral-actions{display:grid!important;grid-template-columns:minmax(0,1fr)!important}}
+@media (prefers-reduced-motion:reduce){#destinyCardForm #dpKakaoReferralShareBtn,#destinyCardForm :is(.dp-kakao-referral-link,.dp-kakao-referral-copy){transition:none!important}}
+.dp-form-host #destinyCardForm #dpKakaoReferralShareBtn{display:none!important}
+.dp-form-host #destinyCardForm .dp-kakao-referral-note.dp-kakao-referral-note--ready{display:none!important}
+</style>
+
 <style id="cd-desktop-topbar-luxe-v20260707" data-marker="cd-desktop-topbar-luxe-v20260707">
 /* 데스크톱 상단 네비게이션 — 넓이 확장(.wrap 1180px). 연이/네오 토글은 8ade0010 원형과 동일하게
    body 직하위에 배치된 화면 우하단 고정(position:fixed) 버튼으로 복원한다(별개 인스턴스 themeCheckboxDesktop,
@@ -10171,7 +10226,7 @@ html body .dp-destiny-panel__toggle[aria-expanded="true"] .dp-destiny-panel__che
         <span class="moon-submit-btn__coin coin-pill" data-cd-trans="home.input.saveOptional">선택</span>
       </button>
       <button type="button" id="dpKakaoReferralShareBtn" class="dp-kakao-referral-btn btn-kakao" onclick="dpShareKakaoReferral()" aria-describedby="dpKakaoReferralNote" aria-label="카카오 공유 이벤트 링크 만들기" data-cd-trans-attr="aria-label:home.input.kakaoEventAria">
-        <span class="moon-icon" aria-hidden="true"><svg width="14" height="16" viewBox="0 0 12 16"><ellipse cx="6" cy="8" rx="4" ry="7" fill="currentColor" opacity="0.78" transform="rotate(-20 6 8)"></ellipse></svg></span>
+        <span class="moon-icon" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" focusable="false"><path d="M12 3.5c-4.97 0-9 2.86-9 6.39 0 2.16 1.52 4.1 3.9 5.3l-.75 2.72 3.1-1.93c.87.2 1.79.3 2.75.3 4.97 0 9-2.86 9-6.39S16.97 3.5 12 3.5Z" fill="currentColor"></path><circle cx="8.3" cy="10" r="1" fill="#FEE500"></circle><circle cx="12" cy="10" r="1" fill="#FEE500"></circle><circle cx="15.7" cy="10" r="1" fill="#FEE500"></circle></svg></span>
         <span class="main-txt" data-cd-trans="home.input.kakaoEvent">카카오 공유 이벤트</span>
         <span class="sub-txt" data-cd-trans="home.input.kakaoEventSub">친구 초대 링크 만들기</span>
       </button>
@@ -20365,9 +20420,12 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
     if (typeof window.cdTranslate === 'function') return window.cdTranslate(key, null, fallback);
     return fallback;
   }
+  function kakaoIconHtml(){
+    return '<span class="moon-icon" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" focusable="false"><path d="M12 3.5c-4.97 0-9 2.86-9 6.39 0 2.16 1.52 4.1 3.9 5.3l-.75 2.72 3.1-1.93c.87.2 1.79.3 2.75.3 4.97 0 9-2.86 9-6.39S16.97 3.5 12 3.5Z" fill="currentColor"></path><circle cx="8.3" cy="10" r="1" fill="#FEE500"></circle><circle cx="12" cy="10" r="1" fill="#FEE500"></circle><circle cx="15.7" cy="10" r="1" fill="#FEE500"></circle></svg></span>';
+  }
   function referralButtonHtml(mode){
     var isPreparing = mode === 'preparing';
-    return '<span class="moon-icon" aria-hidden="true">💬</span>'
+    return kakaoIconHtml()
       + '<span class="main-txt">' + escapeHtml(tr(isPreparing ? 'kakaoReferral.preparingTitle' : 'home.input.kakaoEvent', isPreparing ? '별빛 초대 링크 준비 중...' : '카카오 공유 이벤트')) + '</span>'
       + '<span class="sub-txt">' + escapeHtml(tr(isPreparing ? 'kakaoReferral.preparingSubtitle' : 'home.input.kakaoEventSub', isPreparing ? '잠시만 기다려 주세요' : '친구 초대 링크 만들기')) + '</span>';
   }
@@ -20401,9 +20459,12 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
     var note = document.getElementById('dpKakaoReferralNote');
     if (!note) return;
     var safeUrl = escapeHtml(shareUrl);
-    note.innerHTML = escapeHtml(message || tr('kakaoReferral.readyCopyFallback', '초대 링크가 준비됐어요. 카카오톡 공유가 열리지 않으면 링크를 복사해 주세요.'))
-      + ' <a class="dp-kakao-referral-link" href="' + safeUrl + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(tr('kakaoReferral.openLink', '초대 링크 열기')) + '</a>'
+    note.classList.add('dp-kakao-referral-note--ready');
+    note.innerHTML = '<span class="dp-kakao-referral-message">' + escapeHtml(message || tr('kakaoReferral.readyCopyFallback', '초대 링크가 준비됐어요. 카카오톡 공유가 열리지 않으면 링크를 복사해 주세요.')) + '</span>'
+      + '<span class="dp-kakao-referral-actions">'
+      + '<a class="dp-kakao-referral-link" href="' + safeUrl + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(tr('kakaoReferral.openLink', '초대 링크 열기')) + '</a>'
       + '<button type="button" class="dp-kakao-referral-copy" onclick="dpCopyKakaoReferralLink()">' + escapeHtml(tr('kakaoReferral.copyLink', '링크 복사')) + '</button>'
+      + '</span>'
       + '<span class="dp-kakao-referral-url">' + safeUrl + '</span>';
   }
   function copyShareUrl(url, preferNativeShare){
