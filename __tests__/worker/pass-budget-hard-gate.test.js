@@ -16,6 +16,8 @@
  *    __tests__/worker/payments-v2.pass-check.test.js 가 이미 고정한다. 사본을 만들지 않는다.
  */
 import { consumePassForFeature } from "../../worker/lib/pass-consumption.js";
+import { readAccessStateCache, writeAccessStateCache } from "../../worker/lib/access-state-cache.js";
+import { getBillingFeaturePricing } from "../../worker/lib/billing-feature-registry.js";
 import { MIN_PASS_COVERABLE_COIN, MONTHLY_PASS_LIMITS, PASS_LIMITS } from "../../worker/lib/profile-limits.js";
 import { makeFakePaymentDb } from "../fixtures/fake-payment-db.mjs";
 
@@ -164,5 +166,92 @@ describe("건당 상한 — 예산과 별개의 AND 게이트", () => {
     expect(result.covered).toBe(false);
     expect(result.reason).toBe("price_exceeds_pass_limit");
     expect(db.rows[0].profileSubscription.monthlySpendCoin).toBe(0);
+  });
+});
+
+describe("Family 회귀 — 실제 문제 기능·캐시·동시성", () => {
+  const familyEntitlement = (at) => ({ tier: "family", passTier: "family", isActive: true, expiresAt: at });
+
+  function seedFamily(db, { spent = 0, at = expiresAt() } = {}) {
+    const user = {
+      _id: USER,
+      profileSubscription: {
+        tier: "family", passTier: "family", isActive: true, expiresAt: at,
+        premiumUseCycleKey: at.toISOString(), monthlySpendCoin: spent, monthlyLimitCoin: 0,
+      },
+      recentConsumeRequestIds: [],
+    };
+    db.rows.push(user);
+    return { user, at };
+  }
+
+  test.each(["master-love-codex", "ziwei_ai_prompt_generator", "saju_ai_prompt_generator"])(
+    "%s: 정본 가격만큼 한 번 차감하고 동일 요청은 결과 재개로 처리한다",
+    async (requestedFeatureKey) => {
+      const db = makeFakePaymentDb();
+      const { user, at } = seedFamily(db);
+      const resolved = getBillingFeaturePricing({ featureKey: requestedFeatureKey });
+      expect(resolved.ok).toBe(true);
+      const cost = Number(resolved.pricing.cost);
+      const featureKey = resolved.pricing.featureKey;
+
+      const first = await consumePassForFeature({
+        db, user, entitlement: familyEntitlement(at), userId: USER,
+        featureKey, requestId: `family-${requestedFeatureKey}`, coinCost: cost,
+      });
+      const retry = await consumePassForFeature({
+        db, user: db.rows[0], entitlement: familyEntitlement(at), userId: USER,
+        featureKey, requestId: `family-${requestedFeatureKey}`, coinCost: cost,
+      });
+
+      expect(first.covered).toBe(true);
+      expect(retry).toMatchObject({ covered: true, replayed: true });
+      expect(db.rows[0].profileSubscription.monthlySpendCoin).toBe(cost);
+      expect(db.rows[0].recentConsumeRequestIds).toHaveLength(1);
+    },
+  );
+
+  test("서로 다른 동시 요청은 Family 잔여 한도를 합산 초과하지 못한다", async () => {
+    const db = makeFakePaymentDb();
+    const cost = 200;
+    const { user, at } = seedFamily(db, { spent: MONTHLY_PASS_LIMITS.family - cost });
+    const snapshot = structuredClone(user);
+
+    const results = await Promise.all([
+      consumePassForFeature({ db, user: snapshot, entitlement: familyEntitlement(at), userId: USER, featureKey: "master-love-codex", requestId: "parallel-a", coinCost: cost }),
+      consumePassForFeature({ db, user: snapshot, entitlement: familyEntitlement(at), userId: USER, featureKey: "saju_ai_question_prompt", requestId: "parallel-b", coinCost: cost }),
+    ]);
+
+    expect(results.filter((result) => result.covered)).toHaveLength(1);
+    expect(db.rows[0].profileSubscription.monthlySpendCoin).toBe(MONTHLY_PASS_LIMITS.family);
+  });
+
+  test("차감 성공 직후 access-state·billing·membership·paid decision 캐시를 비운다", async () => {
+    const db = makeFakePaymentDb();
+    const { user, at } = seedFamily(db);
+    const previousCaches = Object.fromEntries(
+      ["__billingBalanceCache", "__membershipPassCache", "__paidAccessDecisionCache"].map((name) => [name, globalThis[name]]),
+    );
+    const cacheNames = Object.keys(previousCaches);
+    try {
+      writeAccessStateCache(USER, { currentProfileId: "profile-1", monthlySpendCoin: 0 });
+      for (const name of cacheNames) {
+        globalThis[name] = new Map([[`${USER}::profile-1`, { monthlySpendCoin: 0 }]]);
+      }
+
+      const result = await consumePassForFeature({
+        db, user, entitlement: familyEntitlement(at), userId: USER,
+        featureKey: "master-love-codex", requestId: "invalidate-caches", coinCost: 200,
+      });
+
+      expect(result.covered).toBe(true);
+      expect(readAccessStateCache(USER, { profileId: "profile-1" })).toBeNull();
+      for (const name of cacheNames) expect(globalThis[name].size).toBe(0);
+    } finally {
+      for (const [name, value] of Object.entries(previousCaches)) {
+        if (value === undefined) delete globalThis[name];
+        else globalThis[name] = value;
+      }
+    }
   });
 });

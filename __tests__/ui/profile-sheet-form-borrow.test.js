@@ -128,6 +128,19 @@ test("시트가 열려 있으면 '새로 만들기' 가 폼을 시트 안으로 
   assert.equal(form.closest("#dpDestinyPanel"), null, "폼이 아직 패널 안이라 감추기 규칙이 계속 먹는다");
 });
 
+test("초기 pageshow가 딥링크로 연 마이 시트를 닫지 않는다", async () => {
+  const { window, doc } = await boot();
+  window.dpOpenList();
+  const initialPageShow = new window.Event("pageshow");
+
+  window.dispatchEvent(initialPageShow);
+
+  assert.ok(
+    doc.getElementById("dpListSheet")?.classList.contains("dp-sheet--open"),
+    "초기 pageshow가 ?action=dpOpenList 시트를 닫았다",
+  );
+});
+
 test("폼은 정확히 한 벌만 존재한다", async () => {
   const { window, doc } = await boot();
   window.dpOpenList();

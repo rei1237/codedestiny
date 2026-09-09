@@ -11836,7 +11836,10 @@
       });
     });
 
-    window.addEventListener('pageshow', function() {
+    window.addEventListener('pageshow', function(event) {
+      /* 초기 진입의 pageshow 는 ?action=dpOpenList 딥링크를 연 직후에도 발생한다.
+         BFCache 복원 때만 닫아야 마이 시트가 잠깐 보였다가 튕기지 않는다. */
+      if (!event || event.persisted !== true) return;
       dpCloseList();
     }, { passive: true });
 
