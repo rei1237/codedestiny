@@ -1,8 +1,13 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import { getContentReview, actualContentDate, hasAdvertisingReview } from "../../lib/content/editorial-review.mjs";
 import { inspectPublisherDocument } from "../../scripts/lib/publisher-document.mjs";
 import { canServeReviewedAdsense } from "../../lib/content/advertising-review.mjs";
+
+test("reviewed manuscripts retain evidence without inventing human review, person authors or dates", () => {
+  execFileSync(process.execPath, ["scripts/verify-editorial-manuscripts.mjs"], { cwd: process.cwd(), stdio: "pipe", windowsHide: true });
+});
 
 test("HTML authorship and unknown routes never imply expert review or ad approval", () => {
   for (const path of ["/insights/ziwei-star-brightness/", "/guides/new-article", "/login", "/insights/unknown"]) {

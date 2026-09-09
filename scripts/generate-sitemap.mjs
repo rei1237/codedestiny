@@ -1,3 +1,4 @@
+import { actualContentDate } from "../lib/content/editorial-review.mjs";
 import { INTRO_TOPICS, introductionRoutes } from "../lib/i18n/feature-introductions.mjs";
 import { TRUST_KEYS, trustRoutes } from "../lib/i18n/public-trust-copy.mjs";
 import { splitLocaleSitemaps } from "./lib/locale-sitemaps.mjs";
@@ -18,27 +19,10 @@ const { INSIGHT_SEED_ARTICLES } = await import(
   pathToFileURL(resolve(process.cwd(), "app", "insights", "seed-articles.js")).href
 );
 
-// 🔴 **가공 전** 원본도 함께 읽는다. seed-articles.js 의 normalizeIsoDate 는 날짜가 없는 글에
-// `Date.now() - (30 + index)일` 을 채워 주므로(seed-articles.js:208), 가공본만 보면 "날짜가 있다"로
-// 보이지만 그 값은 **매일 하루씩 미끄러진다.** 그러면 사이트맵의 lastmod 가 날마다 바뀌고,
-// verify:sitemap-drift 가 사이트맵과 무관한 PR 을 자정마다 전부 빨간불로 만든다
-// (2026-08-25 실측: /insights/ziwei-star-combinations-for-beginners/ 한 건이 그랬다).
-// 구글 입장에서도 "영원히 30일 전에 갱신됨"은 거짓 신선도 신호다.
-const [{ INSIGHT_ARTICLES }, { SEO_GROWTH_ARTICLES }] = await Promise.all([
-  import(pathToFileURL(resolve(process.cwd(), "app", "insights", "articles.js")).href),
-  import(pathToFileURL(resolve(process.cwd(), "app", "insights", "seo-growth-articles.js")).href),
-]);
 // 유명인 고유 원고. reviewedAt 이 있는 인물만 상세 라우트가 사이트맵에 오른다(extractFamousSajuRoutes).
 const { CELEBRITY_EDITORIAL } = await import(
   pathToFileURL(resolve(process.cwd(), "lib", "famous-saju", "celebrity-editorial.js")).href
 );
-const EXPLICITLY_DATED_INSIGHT_SLUGS = new Set(
-  [...(INSIGHT_ARTICLES || []), ...(SEO_GROWTH_ARTICLES || [])]
-    .filter((article) => String(article?.updatedAt || article?.publishedAt || "").trim())
-    .map((article) => String(article?.slug || "").trim())
-    .filter(Boolean),
-);
-
 const rootDir = process.cwd();
 
 // 🔴 루트 정적 셸 라우트는 후행 슬래시를 붙이면 안 된다.
@@ -435,22 +419,9 @@ function extractInsightRoutes() {
       path: `/insights/${slug}`,
       changefreq: "monthly",
       priority: 0.74,
-      lastmod: normalizeDate(article?.updatedAt) || today,
+      // null explicitly omits an unproven date instead of using today or a shared default.
+      lastmod: actualContentDate(article?.updatedAt)?.slice(0, 10) || null,
     });
-  }
-
-  // fail-closed: 날짜 없는 글이 사이트맵에 올라가면 그 lastmod 는 매일 바뀐다(위 상단 주석).
-  const undated = routes
-    .map((route) => route.path.slice("/insights/".length))
-    .filter((slug) => !EXPLICITLY_DATED_INSIGHT_SLUGS.has(slug));
-  if (undated.length > 0) {
-    throw new Error(
-      "[sitemap] updatedAt 이 없는 인사이트 글이 사이트맵에 있습니다:\n" +
-        undated.sort().map((slug) => `  - ${slug}`).join("\n") +
-        "\napp/insights/articles.js 의 해당 레코드에 updatedAt 을 적으세요(그 글을 마지막으로 고친 " +
-        "커밋 날짜). 비워 두면 seed-articles 의 폴백이 '오늘 - N일' 을 채워 lastmod 가 매일 바뀌고, " +
-        "verify:sitemap-drift 가 무관한 PR 을 자정마다 전부 실패시킵니다.",
-    );
   }
 
   return routes;
@@ -738,7 +709,7 @@ async function main() {
     const loc = toUrl(normalizedPath);
     const next = {
       loc,
-      lastmod: route.lastmod || lastmodLedger.lastmodFor(normalizedPath),
+      lastmod: Object.hasOwn(route, "lastmod") ? route.lastmod : lastmodLedger.lastmodFor(normalizedPath),
       changefreq: route.changefreq || "weekly",
       priority: Number(route.priority ?? 0.7).toFixed(2),
       alternates: Array.isArray(route.alternates) ? route.alternates : [],
@@ -774,7 +745,7 @@ async function main() {
           "  <url>",
           `    <loc>${escapeXml(entry.loc)}</loc>`,
           ...alternateLines,
-          `    <lastmod>${entry.lastmod}</lastmod>`,
+          ...(entry.lastmod ? [`    <lastmod>${entry.lastmod}</lastmod>`] : []),
           `    <changefreq>${entry.changefreq}</changefreq>`,
           `    <priority>${entry.priority}</priority>`,
           "  </url>",

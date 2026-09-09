@@ -1,6 +1,7 @@
 import { chromium } from "playwright";
 import { mkdir, writeFile } from "node:fs/promises";
 import assert from "node:assert/strict";
+import { EDITORIAL_READING_PATHS } from "../app/insights/editorial-reading-paths.mjs";
 
 const origin = process.env.PUBLISHER_TEST_ORIGIN || "http://127.0.0.1:24930";
 assert.equal(new URL(origin).hostname, "127.0.0.1", "Browser verification must use the mock server");
@@ -16,7 +17,10 @@ try {
       return url.hostname === "127.0.0.1" ? route.continue() : route.abort();
     });
     const page = await context.newPage();
-    for (const path of ["/insights/", "/insights/how-we-calculate-saju/", "/insights/ziwei-star-brightness/"]) {
+    const paths = width === 390
+      ? ["/insights/", ...EDITORIAL_READING_PATHS.flatMap((group) => group.slugs.map((slug) => `/insights/${slug}/`))]
+      : ["/insights/", "/insights/how-we-calculate-saju/", "/insights/ziwei-star-brightness/"];
+    for (const path of paths) {
       const response = await page.goto(origin + path, { waitUntil: "domcontentloaded", timeout: 90000 });
       assert.equal(response.status(), 200);
       await page.locator("h1").first().waitFor();

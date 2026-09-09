@@ -282,7 +282,7 @@ export function buildArticleJsonLd(input: {
     author:
       input.author === SITE_AUTHOR.name
         ? buildAuthorPersonJsonLd()
-        : !input.author || input.author.includes("편집팀") || input.author === "Code Destiny"
+        : !input.author || input.author.includes("편집팀") || input.author === "Code Destiny" || input.author === "Code Destiny Editorial Team"
           ? { "@type": "Organization", "@id": `${siteSeo.siteUrl}/#organization`, name: input.author || siteSeo.organization.name }
           : { "@type": "Person", name: input.author },
     publisher: {
