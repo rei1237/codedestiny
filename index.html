@@ -9215,32 +9215,32 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
         </div>
 
         <div class="cd-quick__grid">
-          <a class="cd-quick-card" href="/daily-fortune/" data-cd-service-id="daily-fortune">
+          <a class="cd-quick-card" href="/today/" data-cd-service-id="daily-fortune">
             <span class="cd-quick-card__sigil" aria-hidden="true">🌙</span>
             <span class="cd-quick-card__name" data-cd-trans data-key="footer.svc.daily">오늘의 운세</span>
             <span class="cd-quick-card__price" data-cd-trans data-key="home.tiles.freeBadge">무료</span>
           </a>
-          <a class="cd-quick-card" href="/saju/" data-cd-service-id="saju">
+          <a class="cd-quick-card" href="/saju/basic/play" data-cd-service-id="saju">
             <span class="cd-quick-card__sigil" aria-hidden="true">☯</span>
             <span class="cd-quick-card__name" data-cd-trans data-key="home.nav.saju">사주</span>
             <span class="cd-quick-card__price" data-cd-trans data-key="home.quickServices.freeStart">무료 시작</span>
           </a>
-          <a class="cd-quick-card" href="/tarot/" data-action="openTarotModal" data-cd-service-id="tarot">
+          <a class="cd-quick-card" href="/index.html?action=openTarotModal" data-action="openTarotModal" data-cd-service-id="tarot">
             <span class="cd-quick-card__sigil" aria-hidden="true">🔮</span>
             <span class="cd-quick-card__name" data-cd-trans data-key="home.previewCards.tarotName">타로</span>
             <span class="cd-quick-card__price" data-cd-trans data-key="home.quickServices.freeStart">무료 시작</span>
           </a>
-          <a class="cd-quick-card" href="/ziwei/" data-action="openZiweiModal" data-cd-service-id="ziwei">
+          <a class="cd-quick-card" href="/ziwei/chart" data-cd-service-id="ziwei">
             <span class="cd-quick-card__sigil" aria-hidden="true">✺</span>
             <span class="cd-quick-card__name" data-cd-trans data-key="home.previewCards.ziweiName">자미두수</span>
             <span class="cd-quick-card__price" data-cd-trans data-key="home.quickServices.freeStart">무료 시작</span>
           </a>
-          <a class="cd-quick-card" href="/sukuyo/" data-action="openSukuyoModal" data-cd-service-id="sukuyo">
+          <a class="cd-quick-card" href="/index.html?action=openSukuyoModal" data-action="openSukuyoModal" data-cd-service-id="sukuyo">
             <span class="cd-quick-card__sigil" aria-hidden="true">宿</span>
             <span class="cd-quick-card__name" data-cd-trans data-key="home.startCards.sukuyoTitle">숙요점</span>
             <span class="cd-quick-card__price" data-cd-trans data-key="home.quickServices.freeStart">무료 시작</span>
           </a>
-          <a class="cd-quick-card" href="/astrology/" data-action="openAstroModal" data-cd-service-id="astrology">
+          <a class="cd-quick-card" href="/index.html?action=openAstroModal" data-action="openAstroModal" data-cd-service-id="astrology">
             <span class="cd-quick-card__sigil" aria-hidden="true">✦</span>
             <span class="cd-quick-card__name" data-cd-trans data-key="home.previewCards.astrologyName">점성술</span>
             <span class="cd-quick-card__price" data-cd-trans data-key="home.quickServices.freeStart">무료 시작</span>
@@ -20296,7 +20296,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
         <a class="cd-footer-link" href="/tarot/mingri/" data-cd-trans="footer.svc.tarot">타로</a>
         <a class="cd-footer-link" href="/ziwei/chart/" data-cd-trans="footer.svc.ziwei">자미두수</a>
         <a class="cd-footer-link" href="/astrology/cosmic/" data-cd-trans="footer.svc.astrology">점성술·숙요·베다</a>
-        <a class="cd-footer-link" href="/daily-fortune/" data-cd-trans="footer.svc.daily">오늘의 운세</a>
+        <a class="cd-footer-link" href="/today/" data-cd-trans="footer.svc.daily">오늘의 운세</a>
       </nav>
       <nav class="cd-footer-col" aria-label="전문가 상담 링크" data-cd-trans-attr="aria-label:shell.wrap.cdFooterShell.k1lyzj38.ariaLabel">
         <strong class="cd-footer-col__title" data-cd-trans="home.nav.aiConsult">전문가 상담</strong>
@@ -33935,10 +33935,16 @@ function updateBadge() {
     'tarot-numerology-reading':{inherit:'/tarot/numerology/'},
     '/compatibility/':{featureId:'compatibility',category:'사주',badge:'무료 궁합',headline:'두 사람의 사주를 겹쳐 놓으면 관계의 결이 먼저 보입니다.',subheadline:'각자의 명식을 계산해 서로의 기운이 어디서 맞물리고 어디서 부딪히는지 나눠 보여 주는 무료 궁합입니다.',painPoints:['잘 맞는지 아닌지만 듣고 끝날 때','자꾸 같은 지점에서 부딪힐 때','상대를 이해할 단서가 필요할 때'],previewText:'점수만 매기지 않고, 어느 지점이 강하고 어느 지점이 조심스러운지 나눠 설명합니다.',recommendedFor:['연인·배우자와의 결을 보고 싶은 분','관계의 반복되는 마찰을 이해하고 싶은 분','상대 생년월일을 아는 분'],answersQuestions:['우리는 어디가 잘 맞나요?','부딪히는 지점은 무엇인가요?','관계에서 무엇을 조심해야 하나요?'],ctaLabel:'무료 궁합 보기',analysisSteps:[],unlockBenefits:[],faq:[]},
     '/saju/':{featureId:'saju',category:'사주',badge:'무료 시작',headline:'생년월일시 하나로 삶의 큰 흐름부터 펼쳐 보세요.',subheadline:'사주팔자 여덟 글자를 계산해 타고난 기질과 인생의 큰 굴곡을 정리해 주는 기본 해석입니다. 무료로 시작할 수 있어요.',painPoints:['내 성향을 말로 정리하기 어려울 때','인생의 큰 흐름을 한번 보고 싶을 때','사주가 처음이라 어디서 시작할지 모를 때'],previewText:'겁주는 길흉 대신, 타고난 결과 지금의 흐름을 차분히 설명합니다.',recommendedFor:['사주를 처음 보는 분','자기 기질을 정리하고 싶은 분','큰 흐름부터 확인하고 싶은 분'],answersQuestions:['제 타고난 성향은 어떤가요?','인생의 큰 흐름은 어떻게 흐르나요?','지금은 어떤 시기인가요?'],ctaLabel:'무료로 사주 보기'},
+    '/saju/basic/play':{inherit:'/saju/'},
     '/tarot/':{featureId:'tarot',category:'타로',badge:'무료 시작',headline:'지금 마음에 걸린 질문을 카드 한 장으로 꺼내 보세요.',subheadline:'질문을 정하고 카드를 뽑으면 그 상징이 지금의 감정과 선택을 어떻게 비추는지 풀어 주는 기본 타로입니다.',painPoints:['생각이 정리되지 않아 답답할 때','오늘의 마음을 확인하고 싶을 때','타로가 처음이라 어렵게 느껴질 때'],previewText:'점괘를 단정하지 않고, 카드의 상징을 지금 상황에 붙여 읽어 줍니다.',recommendedFor:['타로를 처음 보는 분','오늘의 마음을 짚고 싶은 분','가볍게 질문을 던져 보고 싶은 분'],answersQuestions:['지금 제 마음은 어떤 상태인가요?','이 선택은 어떤 결과로 이어질까요?','무엇을 놓치고 있나요?'],ctaLabel:'무료로 타로 뽑기'},
+    '/index.html?action=openTarotModal':{inherit:'openTarotModal'},
     '/ziwei/':{featureId:'ziwei',category:'자미두수',badge:'무료 시작',headline:'명반 열두 궁 가운데 재물과 직업의 자리를 먼저 열어보세요.',subheadline:'생년월일시로 명반을 세우고, 궁위에 놓인 별의 배치에서 재물·직업 흐름을 읽어 주는 자미두수 기본 해석입니다.',painPoints:['일과 돈의 흐름을 구조적으로 보고 싶을 때','사주와 다른 각도의 해석이 궁금할 때','명반이라는 말부터 낯설 때'],previewText:'별 이름을 늘어놓는 대신, 그 배치가 어떤 생활의 모양으로 나타나는지 설명합니다.',recommendedFor:['재물·직업 흐름이 궁금한 분','자미두수를 처음 보는 분','사주 외의 체계를 비교해 보고 싶은 분'],answersQuestions:['제 재물 흐름은 어떤가요?','어떤 일이 저와 맞나요?','지금 직업운은 어떤 국면인가요?'],ctaLabel:'무료로 명반 보기'},
+    '/ziwei/chart':{inherit:'openZiweiModal'},
     '/sukuyo/':{featureId:'sukuyo',category:'숙요점',badge:'무료 시작',headline:'달이 지나는 27수로 내 삶의 리듬을 확인해보세요.',subheadline:'생년월일로 본명숙을 계산해 타고난 리듬과 관계의 거리감을 읽어 주는 숙요점 기본 해석입니다.',painPoints:['나만의 속도를 잘 모르겠을 때','관계에서 거리 조절이 어려울 때','동양 점성술을 가볍게 시작하고 싶을 때'],previewText:'좋고 나쁨을 가르기보다, 어떤 리듬으로 움직이는 사람인지 짚어 줍니다.',recommendedFor:['자기 리듬을 알고 싶은 분','관계의 거리감이 고민인 분','숙요점이 처음인 분'],answersQuestions:['제 본명숙은 무엇인가요?','저는 어떤 리듬으로 움직이나요?','관계에서 어떤 거리가 편한가요?'],ctaLabel:'무료로 숙요점 보기'},
+    '/index.html?action=openSukuyoModal':{inherit:'openSukuyoModal'},
+    '/index.html?action=navigateToVedic':{inherit:'navigateToVedic'},
     '/vedic/':{featureId:'vedic',category:'베다점',badge:'차트 무료',headline:'인도 점성술의 시간 지도 위에 지금 자리를 찍어 보세요.',subheadline:'라그나와 달의 자리, 나크샤트라를 계산해 타고난 성향과 지금 지나는 시기를 함께 보여 주는 베다 점성술 기본 해석입니다.',painPoints:['서양 별자리와 결과가 달라 헷갈릴 때','지금이 어떤 시기인지 알고 싶을 때','베다 점성술이 낯설 때'],previewText:'별자리 성격 설명에서 그치지 않고, 시간의 흐름을 함께 놓고 읽습니다.',recommendedFor:['서양 점성술과 비교해 보고 싶은 분','시기 판단이 필요한 분','인도 점성술이 궁금한 분'],answersQuestions:['제 라그나는 무엇인가요?','지금은 어떤 시기를 지나고 있나요?','타고난 기질은 어떤가요?'],ctaLabel:'베다 차트 계산하기'},
+    '/index.html?action=openAstroModal':{inherit:'openAstroModal'},
     '/astrology/':{featureId:'astrology',category:'점성술',badge:'무료 시작',headline:'태양·달·상승궁 세 자리만 알아도 나를 설명하는 말이 늘어납니다.',subheadline:'출생 차트를 계산해 성향과 관계의 흐름을 별자리 배치로 풀어 주는 점성술 기본 해석입니다.',painPoints:['별자리 성격 글이 다 비슷해 보일 때','관계에서 반복되는 패턴이 궁금할 때','차트를 어떻게 읽는지 모를 때'],previewText:'태양 별자리 하나가 아니라, 세 자리의 조합으로 결을 나눠 설명합니다.',recommendedFor:['별자리를 조금 더 깊게 보고 싶은 분','관계 성향이 궁금한 분','출생 시간을 아는 분'],answersQuestions:['제 성향은 어떤 조합인가요?','관계에서 어떤 패턴이 반복되나요?','지금 흐름은 어떤가요?'],ctaLabel:'무료로 출생 차트 보기'},
     '/human-design/':{featureId:'human-design-chart',category:'휴먼 디자인',badge:'무료 계산',headline:'내 에너지가 어떤 방식으로 작동하도록 설계됐는지 확인해보세요.',subheadline:'출생 데이터로 타입·전략·내적권위·센터 정의를 계산해, 결정과 소모의 방식이 어떻게 설계돼 있는지 보여 줍니다.',painPoints:['늘 애쓰는데 자꾸 지칠 때','결정을 어떻게 내려야 할지 모를 때','성격 검사 결과가 잘 안 맞을 때'],previewText:'성격 유형 분류가 아니라, 출생 데이터로 계산한 에너지 설계도를 그대로 보여 줍니다.',recommendedFor:['자기 결정 방식을 알고 싶은 분','소모되는 패턴을 줄이고 싶은 분','MBTI 외의 자기 이해 도구를 찾는 분'],answersQuestions:['저는 어떤 타입인가요?','결정은 어떻게 내리는 게 맞나요?','어디서 에너지가 새고 있나요?'],ctaLabel:'무료로 차트 계산하기',analysisSteps:[],unlockBenefits:[],faq:[]},
     'human-design-chart':{inherit:'/human-design/'},
