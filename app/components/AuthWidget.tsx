@@ -224,14 +224,14 @@ export default function AuthWidget() {
       ? ""
       : copy.passRemaining(formatKrwAmount(passRemainingKRW, locale));
     const subscriptionCls = subscriptionTier === "family"
-      ? "border-emerald-300/50 bg-emerald-500/15 text-emerald-100"
+      ? "cd-auth-tier cd-auth-tier-family"
       : subscriptionTier === "vvip"
-      ? "border-purple-300/50 bg-purple-500/15 text-purple-100"
+      ? "cd-auth-tier cd-auth-tier-vvip"
       : subscriptionTier === "premium"
-        ? "border-rose-300/50 bg-rose-500/15 text-rose-100"
+        ? "cd-auth-tier cd-auth-tier-premium"
         : subscriptionTier === "standard"
-          ? "border-amber-300/50 bg-amber-500/15 text-amber-100"
-          : "border-slate-400/30 bg-slate-700/40 text-slate-300";
+          ? "cd-auth-tier cd-auth-tier-standard"
+          : "cd-auth-tier cd-auth-tier-free";
     return (
       <div className="flex items-center gap-2">
         {displayImage ? (
@@ -249,33 +249,33 @@ export default function AuthWidget() {
           </span>
         )}
         <span className="flex max-w-[180px] flex-col leading-tight">
-          <span className="truncate text-sm text-violet-200/90">{copy.nameLabel(displayName)}</span>
+          <span className="cd-auth-name truncate text-sm font-semibold">{copy.nameLabel(displayName)}</span>
           {displayEmail ? (
-            <span className="truncate text-[11px] text-violet-200/60">{displayEmail}</span>
+            <span className="cd-auth-email truncate text-[11px]">{displayEmail}</span>
           ) : null}
         </span>
         {user.role === "admin" && (
           <Link
             href="/admin"
-            className="rounded-lg border border-violet-400/40 bg-violet-500/20 px-2.5 py-1 text-xs font-semibold text-violet-200 transition hover:bg-violet-500/35"
+            className="cd-auth-admin inline-flex min-h-9 items-center rounded-lg px-2.5 py-1 text-xs font-semibold transition"
           >
             {copy.admin}
           </Link>
         )}
         <Link
           href="/points"
-          className={`rounded-lg border px-2.5 py-1 text-xs font-semibold transition ${subscriptionCls}`}
+          className={`${subscriptionCls} rounded-lg border px-2.5 py-1 text-xs font-semibold transition`}
           title={passRemainingLabel ? `${copy.subscriptionTitle} · ${passRemainingLabel}` : copy.subscriptionTitle}
         >
           {subscriptionLabel}
           {passRemainingLabel ? (
-            <span className="ml-1 font-normal opacity-80">· {passRemainingLabel}</span>
+            <span className="ml-1 font-medium text-current">· {passRemainingLabel}</span>
           ) : null}
         </Link>
         <button
           type="button"
           onClick={handleLogout}
-          className="rounded-lg border border-slate-400/30 bg-slate-700/40 px-2.5 py-1 text-xs font-semibold text-slate-300 transition hover:bg-slate-600/50"
+          className="cd-auth-logout inline-flex min-h-9 items-center rounded-lg px-2.5 py-1 text-xs font-semibold transition"
         >
           {copy.logout}
         </button>

@@ -112,6 +112,56 @@
   gap: 8px;
 }
 
+/* AuthWidget lives in the shared header, so its text must follow the header's
+   light/neo surface tokens instead of inheriting a one-theme violet palette. */
+.root :global(.cd-auth-name) {
+  color: var(--gh-ink);
+}
+
+.root :global(.cd-auth-email) {
+  color: var(--gh-muted);
+}
+
+.root :global(.cd-auth-admin),
+.root :global(.cd-auth-logout) {
+  border: 1px solid var(--gh-line);
+  background: var(--gh-surface);
+  color: var(--gh-ink);
+}
+
+.root :global(.cd-auth-admin:hover),
+.root :global(.cd-auth-logout:hover) {
+  border-color: var(--gh-accent);
+  background: color-mix(in srgb, var(--gh-accent) 10%, var(--gh-surface));
+}
+
+.root :global(.cd-auth-tier) {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  border-radius: 8px;
+  padding: 0 10px;
+  text-decoration: none;
+}
+
+.root :global(.cd-auth-tier-family) { border-color: rgba(4, 120, 87, 0.42); background: #ecfdf5; color: #065f46; }
+.root :global(.cd-auth-tier-vvip) { border-color: rgba(109, 40, 217, 0.42); background: #f5f3ff; color: #5b21b6; }
+.root :global(.cd-auth-tier-premium) { border-color: rgba(190, 24, 93, 0.42); background: #fff1f2; color: #9f1239; }
+.root :global(.cd-auth-tier-standard) { border-color: rgba(146, 64, 14, 0.42); background: #fffbeb; color: #78350f; }
+.root :global(.cd-auth-tier-free) { border-color: rgba(71, 85, 105, 0.42); background: #f1f5f9; color: #334155; }
+
+:global(html[data-cd-theme="neo"]) .root :global(.cd-auth-name) { color: var(--gh-ink); }
+:global(html[data-cd-theme="neo"]) .root :global(.cd-auth-email) { color: var(--gh-muted); }
+:global(html[data-cd-theme="neo"]) .root :global(.cd-auth-admin),
+:global(html[data-cd-theme="neo"]) .root :global(.cd-auth-logout) { border-color: rgba(196, 181, 253, 0.42); background: #171126; color: #f4eeff; }
+:global(html[data-cd-theme="neo"]) .root :global(.cd-auth-admin:hover),
+:global(html[data-cd-theme="neo"]) .root :global(.cd-auth-logout:hover) { border-color: #c4b5fd; background: #241b3e; }
+:global(html[data-cd-theme="neo"]) .root :global(.cd-auth-tier-family) { border-color: rgba(110, 231, 183, 0.62); background: #12352f; color: #d1fae5; }
+:global(html[data-cd-theme="neo"]) .root :global(.cd-auth-tier-vvip) { border-color: rgba(196, 181, 253, 0.62); background: #2b1b4b; color: #ede9fe; }
+:global(html[data-cd-theme="neo"]) .root :global(.cd-auth-tier-premium) { border-color: rgba(253, 164, 175, 0.62); background: #461b31; color: #ffe4e6; }
+:global(html[data-cd-theme="neo"]) .root :global(.cd-auth-tier-standard) { border-color: rgba(253, 211, 77, 0.62); background: #3f2a12; color: #fef3c7; }
+:global(html[data-cd-theme="neo"]) .root :global(.cd-auth-tier-free) { border-color: rgba(203, 213, 225, 0.52); background: #273044; color: #f1f5f9; }
+
 .menuButton {
   display: none;
   min-width: 76px;
