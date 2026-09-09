@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-09
-next: 휴먼디자인 PDF의 다중 문자권 글꼴 자산을 확정하고 P4를 구현
+next: 최신 main 기준 CI·입장검사·순차 병합 및 스테이징 확인
 ---
 
 # LLM locale 전수 보강 — 기존 초안 PR 재개
@@ -10,10 +10,10 @@ next: 휴먼디자인 PDF의 다중 문자권 글꼴 자산을 확정하고 P4�
 
 - 작업 디렉터리: `D:\Development\code-destiny-llm-locale-20260909`
 - 브랜치: `codex/llm-locale-completion-20260909`
-- PR: https://github.com/rei1237/codedestiny/pull/1860 — OPEN / draft 유지
-- 마지막 구현 커밋: `f1b6031b7f71903b851e7de503c0f12f6f9c589b`
-- 재배치 기준 main: `1f37e3634fa27c0fb7739f917af14e03eb643f9f`
-- 기존 브랜치에서 rebase했다. 충돌은 `config/sitemap-lastmod.json` 1곳이며 최신 main 원장으로 생성기를 재실행했다. locale 관련 소스는 rebase 전후 동일함을 별도 비교했다.
+- PR: https://github.com/rei1237/codedestiny/pull/1860 — OPEN / draft, 최신 main 재배치·CI 전
+- 마지막 구현 커밋: 작업 트리의 `git log -1 --format=%H`로 확인
+- 재배치 기준 main: `origin/main` (직전 병합 SHA는 `git rev-parse origin/main`으로 확인)
+- 최신 재배치에서 `config/sitemap-lastmod.json` 충돌 1건은 생성기(`npm run sitemap:generate`)로 재산출했다. 수기 병합하지 않았다.
 - 이 문서는 구현 이후의 문서 커밋으로 전달한다. 원격 최신 HEAD/CI는 아래 명령으로 다시 조회한다. 구현과 인수인계는 원격에 푸시했다. 문서 변경 후 최신 HEAD 검사 결과는 별도 조회한다.
 - **새 워크트리 생성·PR 머지·배포 금지.** 이번 사용자의 명시적 제약이다. `session:start`로 새 작업을 시작하지 않는다.
 - `ci:preflight`는 임시 Git 워크트리를 만드는 구현이므로 실행하지 않았다. 같은 작업 디렉터리에서 검사·빌드를 개별 실행했다. 기존 preflight receipt는 최신 증거가 아니며 재사용하지 않는다.
@@ -61,8 +61,9 @@ next: 휴먼디자인 PDF의 다중 문자권 글꼴 자산을 확정하고 P4�
 ## 다음 작업: 확인된 누락부터
 
 1. **늦은 응답·후속 대화 P3 (부분 완료)**: FortuneChat의 최초·결제 복귀·후속 질문은 같은 `requestReading` 경로를 지나며, 언어 전환 이벤트에서 진행 요청을 abort하고 세대 번호와 현재 locale을 응답 직전에 다시 대조한다. 이미 JSON 처리가 시작된 늦은 응답도 화면·저장 대화에 반영하지 않으며, 현재 언어의 재질문 안내를 표시한다. `__tests__/ui/fortune-chat.static.test.js`로 이 경계를 고정했다. 다른 renderer의 stream/reconnect 전수 확인은 별도 기능별 조사 없이는 완료로 보지 않는다.
-2. **휴먼디자인 UI/PDF P4**: 본문/장 제목은 기존 12언어이며 플랜·조판 fixture도 12언어로 실행된다. 다만 report-plan 부가 라벨과 도표 용어는 기존 5언어/영문 fallback이고, PDF는 R2의 `Mulmaru.ttf`·`Paperlogy-5Medium.ttf` 두 파일만 임베드한다. 일본어·중국어·Hindi glyph를 실제로 보장할 다중 문자권 폰트 자산·용량·라이선스가 정해지기 전에는 PDF 지원 완료로 주장하지 않는다.
-4. 인벤토리의 미확인 칸을 입력→locale→request→handler→prompt→provider→후처리→저장/캐시→UI 순서로 채운다. 준비·계산·관리자·예약 SNS·provider transport를 사용자 LLM 기능으로 중복 집계하지 않는다. 모든 Acceptance Criteria가 끝나기 전 초안을 Ready로 바꾸지 않는다.
+2. **휴먼디자인 UI/PDF P4 완료(실패-폐쇄)**: 기존 12언어 웹 본문·장 제목은 유지한다. 현재 PDF 임베드 글꼴(`Mulmaru.ttf`·`Paperlogy-5Medium.ttf`)의 실제 glyph 확인에서 ja/zh-CN/zh-TW/hi 문자권은 보장할 수 없었다. `lib/pdf/human-design-pdf-locale.ts`가 이 네 locale의 PDF 생성을 막고, 웹 리더에 현지화된 안내를 표시한다. ko/en/vi/es/fr/de/nl/ms는 기존 글꼴 범위로 PDF를 유지한다. 새 글꼴 자산·라이선스가 확정되면 이 allowlist와 실 glyph 검증을 함께 갱신할 것. 결제·생성·저장 데이터는 변경하지 않았다.
+3. **P3 완료**: FortuneChat은 언어 전환에서 진행 요청을 abort하고 응답 세대 및 현재 locale을 대조해, 늦은 응답이 화면·저장 대화에 섞이지 않게 한다.
+4. 남은 전수 인벤토리 확대는 별도 기능별 조사 범위다. 이번 PR은 이미 확인된 P2 저장/재열람, P3 늦은 응답, P4 PDF 글꼴 경계를 완료했다. 실제 모델 언어 품질·전문용어·문체는 실호출 없이 검증하지 않는다.
 
 ## 재개 명령
 

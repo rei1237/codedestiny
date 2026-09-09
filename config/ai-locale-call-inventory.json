@@ -308,7 +308,7 @@
         "symbol": "../lib/gemini.js"
       },
       {
-        "line": 653,
+        "line": 654,
         "kind": "call",
         "symbol": "callGeminiText"
       }
@@ -593,7 +593,7 @@
         "symbol": "../lib/gemini.js"
       },
       {
-        "line": 164,
+        "line": 172,
         "kind": "call",
         "symbol": "callGeminiText"
       }
@@ -608,7 +608,22 @@
         "symbol": "../lib/structured-consultation.js"
       },
       {
-        "line": 306,
+        "line": 315,
+        "kind": "call",
+        "symbol": "callGeminiJsonWithRetry"
+      }
+    ]
+  },
+  {
+    "file": "worker/routes/relationship-boundary-test.js",
+    "matches": [
+      {
+        "line": 9,
+        "kind": "import-or-injected-call",
+        "symbol": "../lib/structured-consultation.js"
+      },
+      {
+        "line": 121,
         "kind": "call",
         "symbol": "callGeminiJsonWithRetry"
       }
@@ -658,7 +673,7 @@
         "symbol": "../lib/structured-consultation.js"
       },
       {
-        "line": 1312,
+        "line": 1316,
         "kind": "call",
         "symbol": "callGeminiJsonWithRetry"
       }
@@ -673,7 +688,7 @@
         "symbol": "../lib/gemini.js"
       },
       {
-        "line": 354,
+        "line": 355,
         "kind": "call",
         "symbol": "callGeminiText"
       }
@@ -718,7 +733,7 @@
         "symbol": "../lib/gemini.js"
       },
       {
-        "line": 246,
+        "line": 247,
         "kind": "call",
         "symbol": "callGeminiText"
       }
