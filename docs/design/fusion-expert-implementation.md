@@ -14,7 +14,7 @@
 
 - `npm ci --ignore-scripts --no-audit --no-fund`: 성공. lockfile 변경 없음.
 - `npm run worktree:status`: 격리 워크트리, active uncommitted overlap 0. 다른 완료 브랜치의 Fusion client 중첩은 존재하므로 main과 순서 통합한다.
-- `npm run check:fast -- --plan`: critical 승격. `npm run check:fast`: exit 0, Node 1,008/1,008, Jest 222 suites / 2,456 tests 통과. lint는 기존 경고 포함, typecheck·결제 정책·Worker build 통과.
+- `npm run check:fast -- --plan`: critical 승격. `npm run check:fast`: exit 0, 최초 기준 Node 1,008/1,008, Jest 222 suites / 2,456 tests 통과. lint는 기존 경고 포함, typecheck·결제 정책·Worker build 통과.
 - `node scripts/verify-fusion-expert.mjs`: PASS. 실제 로컬 사주/자미/숙요 계산, mock 천문 경로, 6개 병렬 진입, 입력 격리, 근거 참조 거절, 영역별 우선순위, 실패 그룹만 재시도, 2단계 완료 메타, 동일 카드/동일 언어 요청 보존 검사.
 - Fusion quality / stage-flow / retry-payload / reopen / PDF / delivery-floor 스크립트: PASS. delivery-floor의 캐시 요청까지 fetch 차단을 추가했다.
 - `node scripts/verify-app-no-portone.mjs`: 앱 환경 SDK 무력화·Play 상점 인계·복귀 의도·연타/타임아웃 mock 검사 통과. 실제 Android 기기 검증은 미실행.
@@ -70,3 +70,5 @@
 - `worker/lib/life-book-ai-saju.js`
 - `worker/lib/saju-expert-factors.js`
 - `worker/routes/fusion-fortune.js`
+
+- `__tests__/ui/locale-request-boundaries.behavior.test.js`: 최신 main 통합 후 새 복구 단계 ref를 실행 fixture에 연결. 로케일 요청 경계 20/20 통과.
