@@ -19,6 +19,7 @@
  */
 
 import { formatZiweiChartForPrompt } from "./ziwei-deep-report-prompt.mjs";
+import { buildCodexEditorialContract } from "./master-love-codex-quality.js";
 
 export const MASTER_LOVE_CODEX_META = Object.freeze({
   featureKey: "master-love-codex",
@@ -438,8 +439,10 @@ export function buildMasterLoveCodexChapterPrompt({ saju, ziweiChart, birthInfo,
 
   const body = [
     buildMasterLoveCodexSystemGuide(),
+    buildCodexEditorialContract(chapter),
     "",
     `[상담자] ${formatBirthLine(birthInfo)}`,
+    birthInfo?.birthTimeUnknown ? "[해석 한계] 출생시각이 미상이므로 시주를 추정하지 마라. 자미두수는 정오의 가정 명반이며 궁·주성에 의존한 해석은 잠정적이다. 해당 근거를 쓰는 장에서 이 한계를 알리고 정확한 사건 시점이나 배우자 성향을 확정하지 마라." : "",
     toneNote ? `[상담자가 처음 밝힌 마음] ${toneNote}` : "",
     "",
     "[사주 명식]",

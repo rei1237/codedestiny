@@ -41,6 +41,17 @@ async function seed(db, rows) {
 }
 
 describe("PAID 인데 권한이 없는 주문", () => {
+  test("실패 주문은 다음 재시각까지 양보하여 다른 주문을 복구한다", async () => {
+    const db = makeFakePaymentDb();
+    await seed(db, [
+      { merchantUid: "old-failure", status: "paid", entitlementGrantedAt: null, updatedAt: ago(600_000) },
+      { merchantUid: "waiting", status: "paid", entitlementGrantedAt: null, updatedAt: ago(300_000) },
+    ]);
+    await regrantUnfulfilledOrders(db, { now: NOW, limit: 1, grant: async () => { throw new Error("DB timeout"); } });
+    const granted = [];
+    await regrantUnfulfilledOrders(db, { now: NOW, limit: 1, grant: async order => granted.push(order.merchantUid) });
+    expect(granted).toEqual(["waiting"]);
+  });
   test("🔴 다시 지급한다 — 돈은 받았는데 안 열리는 상태를 사람이 찾지 않아도 된다", async () => {
     const db = makeFakePaymentDb();
     await seed(db, [
@@ -121,7 +132,7 @@ describe("PAID 인데 권한이 없는 주문", () => {
     const granted = [];
     const report = await regrantUnfulfilledOrders(db, { grant: async (o) => granted.push(o.merchantUid), now: NOW, limit: 2 });
     expect(report).toMatchObject({ scanned: 2, repaired: 2 });
-    expect(granted).toEqual(["cd-new", "cd-mid"]);
+    expect(granted).toEqual(["cd-old", "cd-mid"]);
   });
 });
 

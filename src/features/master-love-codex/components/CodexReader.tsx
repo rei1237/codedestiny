@@ -34,7 +34,7 @@ import CodexReportStamp from "./CodexReportStamp";
 import CodexSeal from "./CodexSeal";
 import CodexReveal from "./CodexReveal";
 import { getNarratorAsset } from "../data/assets";
-import { groupByAct, type CodexActMode } from "../data/acts";
+import { CODEX_CHAPTER_ANCHOR_PREFIX, groupByAct, type CodexActMode } from "../data/acts";
 import { masterLoveCodexBilling } from "../constants";
 import { useMasterLoveCodexCopy, useMasterLoveCodexLocale } from "../_lib/copy";
 import styles from "../styles/codex.module.css";
@@ -98,15 +98,20 @@ export default function CodexReader({
   useEffect(() => {
     if (typeof window === "undefined") return undefined;
     const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    const savedTop = Number(window.sessionStorage.getItem(readingKey) || 0);
+    let savedTop = 0;
+    let opened = false;
+    try {
+      savedTop = Number(window.sessionStorage.getItem(readingKey) || 0);
+      opened = window.sessionStorage.getItem(`${readingKey}:opened`) === "true";
+    } catch { /* Browser storage is optional reading-position convenience. */ }
     if (savedTop > 80) {
       setResumeTop(savedTop);
       setShowResume(true);
       setDecrypted(true);
       return undefined;
     }
-    if (reduce || window.sessionStorage.getItem(`${readingKey}:opened`) === "true") { setDecrypted(true); return undefined; }
-    window.sessionStorage.setItem(`${readingKey}:opened`, "true");
+    if (reduce || opened) { setDecrypted(true); return undefined; }
+    try { window.sessionStorage.setItem(`${readingKey}:opened`, "true"); } catch {}
     const stepTimer = window.setInterval(
       () => setDecryptStep((current) => (current + 1) % DECRYPT_LINES.length),
       DECRYPT_MS / DECRYPT_LINES.length,
@@ -121,7 +126,7 @@ export default function CodexReader({
     const savePosition = () => {
       if (frame) return;
       frame = window.requestAnimationFrame(() => {
-        window.sessionStorage.setItem(readingKey, String(Math.round(window.scrollY)));
+        try { window.sessionStorage.setItem(readingKey, String(Math.round(window.scrollY))); } catch {}
         frame = 0;
       });
     };
@@ -135,7 +140,7 @@ export default function CodexReader({
   }, [resumeTop]);
 
   const startOver = useCallback(() => {
-    window.sessionStorage.removeItem(readingKey);
+    try { window.sessionStorage.removeItem(readingKey); } catch {}
     window.scrollTo({ top: 0, behavior: "smooth" });
     setShowResume(false);
   }, [readingKey]);
@@ -219,7 +224,7 @@ export default function CodexReader({
 
   return (
     <CodexShell motes={false} ariaLabel={copy.readerAriaLabel(bookTitle)}>
-      <CodexSpine activeOrder={activeAct} availableOrders={availableActs} mode={mode} />
+      <CodexSpine activeOrder={activeAct} availableOrders={availableActs} mode={mode} chapters={ordered} />
 
       {showResume ? (
         <aside className={styles.resumePrompt} aria-label={copy.resumePromptAriaLabel}>
@@ -237,11 +242,11 @@ export default function CodexReader({
         data-codex-exporting={isExporting ? "true" : undefined}
       >
         {/* 표지 */}
-        <header data-codex-pdf-page className="flex min-h-[86svh] flex-col items-center justify-center text-center">
+        <header data-codex-pdf-page className={styles.readerCover}>
           <div className={styles.measure}>
             <CodexReveal forceVisible={isExporting}>
               {/* 표식은 표지 헤더 '안'에 둔다 — 밖으로 빼면 캡처 대상에서 빠진다 */}
-              <CodexReportStamp mode={mode} accessType={accessType} className="mb-10" />
+              <CodexReportStamp mode={mode} accessType={accessType} className="mb-6" />
               <Image
                 src={getNarratorAsset("calm")}
                 alt={copy.narratorClosingAlt}
@@ -249,17 +254,18 @@ export default function CodexReader({
                 height={410}
                 unoptimized
                 priority
-                className="mx-auto h-[24svh] w-auto object-contain"
+                className={styles.readerPortrait}
                 style={{ filter: "drop-shadow(0 24px 48px rgba(0,0,0,.66))" }}
               />
-              <h2 className={`${styles.hero} mt-10`}>Master Love Codex</h2>
-              <p className={`${styles.actTitle} mt-5`} style={{ color: "var(--codex-ink-text)" }}>
+              <p className={styles.readerBrand}>Master Love Codex</p>
+              <h2 className={styles.readerTitle}>
                 {copy.possessiveBookTitle(name, bookTitle)}
-              </p>
-              <hr className={`${styles.rule} ${styles.ruleShort} mt-9`} />
-              <p className="mt-8 text-[0.8125rem] leading-7" style={{ color: "var(--codex-ink-text-muted)" }}>
+              </h2>
+              <hr className={`${styles.rule} ${styles.ruleShort} mt-6`} />
+              <p className="mt-5 text-[0.9375rem] leading-7" style={{ color: "var(--codex-ink-text-muted)" }}>
                 {birthLine}
               </p>
+              {ordered[0] ? <a className={`${styles.cta} mt-6`} href={`#${CODEX_CHAPTER_ANCHOR_PREFIX}${ordered[0].order}`}>{copy.readerBeginButton}</a> : null}
               <p className={`${styles.numeral} mt-2 text-[0.8125rem]`} style={{ color: "var(--codex-ink-text-muted)" }}>
                 {copy.coverChapterCountSuffix(ordered.length, totalCharCount)}
               </p>

@@ -24,8 +24,11 @@ import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFrom
 import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
 import { EDGE_RESPONSE_DEADLINE_MS } from "../lib/sync-llm-timeout.js";
-import { MasterLoveCodexSession, Payment, PointHistory, User } from "../lib/models.js";
+import { MasterLoveCodexSession, PaidExecutionRecord, Payment, PointHistory, User } from "../lib/models.js";
 import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
+import { recoverCodexSession } from "../lib/master-love-codex-session-access.js";
+import { assertCodexChapterQuality, qualityCheckedCodexCache, generateCodexChapterResponse, buildCodexChapterMemory, buildCodexStagingChapter } from "../lib/master-love-codex-quality.js";
+import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { canUseByPass, normalizeHoneyPassEntitlement, resolvePremiumQuota } from "../lib/profile-limits.js";
@@ -208,6 +211,9 @@ function normalizeInput(body = {}) {
   }
 
   const partnerSrc = asObject(body.partnerInfo || body.partner || src.partnerInfo);
+  if (clean(partnerSrc.birthDate) && !hasPartnerSignal(partnerSrc)) {
+    return { ok: false, message: "상대의 생년월일을 확인해 주세요." };
+  }
   const wantsCompat = hasPartnerSignal(partnerSrc);
   let partnerInfo = null;
   if (wantsCompat) {
@@ -481,11 +487,14 @@ async function runWithConcurrency(items, limit, worker) {
   return results;
 }
 
-function chapterCache(env, modeKey = "solo") {
+function chapterCache(env, modeKey, chapter) {
   // 명식·명반 기반 결정론(자유질문 없음)이라 응답 캐시 + in-flight dedup 이 안전하다.
   // 캐시 키는 프롬프트 전문까지 해시하므로(lib/llm-cache.ts) keyExtra 는 모드 구분용 명시적 가드다.
   return {
-    store: createLlmCacheStore(env),
+    store: qualityCheckedCodexCache(createLlmCacheStore(env), value => {
+      if (value?.truncated) throw new Error("LLM_OUTPUT_TRUNCATED");
+      assertCodexChapterQuality(chapter.structured === false ? value?.text : parseChapterJson(value?.text), chapter, resolveMode(modeKey).dnaMetrics);
+    }),
     deterministic: true,
     ttlSeconds: 30 * 24 * 60 * 60,
     keyExtra: resolveMode(modeKey).cacheKeyExtra,
@@ -527,7 +536,7 @@ async function withDeadline(promise, deadlineAt) {
 function planBatchCommit(results = []) {
   const committed = [];
   for (const result of results) {
-    if (!result || result.status === "deferred") break;
+    if (!result || result.status !== "ok") break;
     committed.push(result);
   }
   return committed;
@@ -645,31 +654,35 @@ async function generateChapter(env, {
   const timeoutMs = Math.min(CHAPTER_TIMEOUT_MS, remainingMs);
 
   const modeDef = resolveMode(mode);
+  if (isStagingLlmMockEnabled(env)) {
+    const parsed = buildCodexStagingChapter(chapter, modeDef.dnaMetrics);
+    assertCodexChapterQuality(parsed, chapter, modeDef.dnaMetrics);
+    const content = normalizeChapterContent(parsed);
+    return { status: "ok",
+      chapter: { id: chapter.id, order: chapter.order, symbol: chapter.symbol, title: chapter.title, body: content.body,
+        content, chars: content.body.length, provider: "staging-mock", ok: true },
+      loveDna: chapter.jsonMode ? normalizeLoveDna(parsed, modeDef.dnaMetrics) : null };
+  }
   const prompt = modeDef.mode === "compat"
     ? buildMasterLoveCodexCompatChapterPrompt({
       selfSaju: saju, selfZiwei: ziweiChart, partnerSaju, partnerZiwei: partnerZiweiChart,
       compatibility, birthInfo, partnerInfo, chapter, memory,
     })
     : buildMasterLoveCodexChapterPrompt({ saju, ziweiChart, birthInfo, chapter, prologueChoice, memory });
-  const cache = chapterCache(env, modeDef.mode);
+  const cache = chapterCache(env, modeDef.mode, chapter);
   try {
     if (chapter.structured !== false) {
       // 🔴 시간 예산은 timeoutMs 가 아니라 timeoutMs × attempts 다. 3시도는 예산을 혼자 다 먹는다.
-      const raced = await withDeadline(callGeminiJsonWithRetry(env, prompt, {
-        attempts: 2,
-        baseTokens: 6000,
-        capTokens: 14000,
-        temperature: 0.6,
-        timeoutMs,
-        cache,
-      }), deadlineAt);
+      const raced = await withDeadline(generateCodexChapterResponse(
+        (text, options) => callGeminiJsonWithRetry(env, text, options), prompt,
+        { chapter, metricDefs: modeDef.dnaMetrics, deadlineAt, minBudgetMs: CHAPTER_MIN_BUDGET_MS,
+          options: { temperature: 0.6, timeoutMs, cache } },
+      ), deadlineAt);
       if (raced.deferred) return { status: "deferred", chapter: null, loveDna: null };
       if (raced.error) throw raced.error;
-      const ai = raced.value;
-      const parsed = parseChapterJson(ai?.text);
+      const { ai, parsed } = raced.value;
       const content = normalizeChapterContent(parsed);
       const body = content.body;
-      if (body.length < 200) throw new Error("LLM_OUTPUT_TOO_SHORT");
       return {
         status: "ok",
         chapter: { id: chapter.id, order: chapter.order, symbol: chapter.symbol, title: chapter.title, body, content, chars: body.length, provider: clean(ai?.provider || "gemini", 40), ok: true },
@@ -677,11 +690,7 @@ async function generateChapter(env, {
       };
     }
 
-    // Workers AI 폴백을 끄지 않는다(옵션 미지정 = 켜짐).
-    // 과거에는 "Workers AI 는 장문이 잘린다"고 껐지만, 그때의 폴백 모델 @cf/meta/llama-3.1-8b-instruct
-    // 는 2026-05-30 폐기되고 지금 기본값은 llama-3.3-70b-instruct-fp8-fast 다(lib/llm-client.ts).
-    // 더 중요한 건 비교 대상이다 — 끄면 Gemini 실패 시 독자가 받는 것은 짧은 장이 아니라
-    // fallbackChapterBody() 사과 문구다. 결제한 책에는 짧은 실제 해석이 사과문보다 낫다.
+    // 기존 공급자 폴백은 유지하되 어느 공급자든 같은 분량·완결 기준을 적용한다.
     const raced = await withDeadline(callGeminiText(env, prompt, {
       maxOutputTokens: 8000,
       temperature: 0.72,
@@ -692,15 +701,15 @@ async function generateChapter(env, {
     if (raced.error) throw raced.error;
     const ai = raced.value;
     const body = clean(ai?.text || "");
-    if (body.length < 200) throw new Error("LLM_OUTPUT_TOO_SHORT");
+    if (ai?.truncated) throw new Error("LLM_OUTPUT_TRUNCATED");
+    assertCodexChapterQuality(body, chapter, modeDef.dnaMetrics);
     return {
       status: "ok",
       chapter: { id: chapter.id, order: chapter.order, symbol: chapter.symbol, title: chapter.title, body, chars: body.length, provider: clean(ai?.provider || "gemini", 40), ok: true },
       loveDna: null,
     };
   } catch (error) {
-    // 결제 후 결과는 반드시 전달한다 — 한 장이 예산 안에서 실패해도 책 전체를 실패시키지 않는다.
-    // (예산 초과로 못 쓴 장은 여기 오지 않는다 — 위에서 deferred 로 빠져 저장 자체를 건너뛴다.)
+    // 오류 안내를 구매한 분석 결과로 완료 처리하지 않는다. 같은 회차로 재시도한다.
     console.error("[master-love-codex] chapter", chapter.id, clean(error?.message, 200));
     const body = fallbackChapterBody(chapter, birthInfo);
     return {
@@ -713,13 +722,7 @@ async function generateChapter(env, {
 
 /** 앞 장의 요약(첫 소제목 문장)만 모아 중복 서술을 줄인다. */
 function buildMemory(chapters = []) {
-  return chapters
-    .slice(-8)
-    .map((entry) => {
-      const firstLine = clean(entry?.body, 4000).split("\n").map((line) => clean(line)).find((line) => line && !line.startsWith("●"));
-      return firstLine ? `${clean(entry.title)}: ${clean(firstLine, 160)}` : "";
-    })
-    .filter(Boolean);
+  return buildCodexChapterMemory(chapters);
 }
 
 // ─── 세션 저장 ───────────────────────────────────────────────────────────────
@@ -762,6 +765,27 @@ function publicSession(doc) {
 }
 
 // ─── 핸들러 ──────────────────────────────────────────────────────────────────
+
+async function sessionWithAccessToken(env, doc) {
+  // Recheck after generation too: a cancellation may arrive while the LLM is running.
+  const current = await recoverCodexSession({ userId: doc.userId, sessionId: doc.id });
+  if (!current || current.denied) return paymentVerifyFailed();
+  doc = current.session;
+  await PaidExecutionRecord.updateOne({
+      userId: String(doc.userId), featureId: resolveMode(doc.mode).featureKey, requestId: doc.billingRequestId || doc.idempotencyKey,
+    status: { $in: ["paid_pending_generation", "generating", "generation_failed", "completed"] },
+  }, { $set: {
+    resultId: doc.id, status: doc.status === "completed" ? "completed" : "generating",
+    ...(doc.status === "completed" ? { completedAt: doc.updatedAt, consumedAt: doc.updatedAt } : {}),
+  } });
+  return json({
+    ...publicSession(doc),
+    done: doc.status === "completed",
+    accessToken: await createAccessToken(env, {
+      userId: doc.userId, accessType: doc.accessType, sessionId: doc.id,
+    }, sessionMode(doc)),
+  });
+}
 
 function handlePlan(request) {
   const mode = clean(new URL(request.url).searchParams.get("mode"));
@@ -911,6 +935,14 @@ async function handleStart(request, env) {
   const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
   if (!auth) return loginRequired();
 
+  await connectDb(env);
+  const recovered = await recoverCodexSession({
+    userId: auth.userId, requestId: idempotencyKey,
+    inputHash: normalized.inputHash, mode: normalized.mode,
+  });
+  if (recovered?.denied) return json({ ok: false, reason: recovered.reason, message: "구매한 회차의 입력 또는 구매 상태를 확인해 주세요." }, { status: 409 });
+  if (recovered?.session) return sessionWithAccessToken(env, recovered.session);
+
   let charts;
   try {
     charts = buildCharts(normalized);
@@ -921,22 +953,21 @@ async function handleStart(request, env) {
   const access = await resolveStartAccess(request, env, auth, body, normalized, idempotencyKey);
   if (!access.ok) return paymentVerifyFailed();
 
-  await connectDb(env);
-  // 같은 결제 건(idempotencyKey)으로 이미 시작했다면 그 세션을 그대로 돌려준다(재결제·중복생성 방지).
-  const existing = await MasterLoveCodexSession.findOne({ userId: clean(auth.userId), idempotencyKey }).lean();
-  if (existing) {
-    return json({
-      ...publicSession(existing),
-      accessToken: await createAccessToken(
-        env,
-        { userId: auth.userId, accessType: clean(existing.accessType), sessionId: clean(existing.id) },
-        sessionMode(existing),
-      ),
-    });
+  if (access.paymentId) {
+    const funded = await recoverCodexSession({ userId: auth.userId, paymentId: access.paymentId,
+      accessType: access.accessType, inputHash: normalized.inputHash, mode: normalized.mode });
+    if (funded?.denied) return json({ ok: false, reason: funded.reason, message: "구매한 회차와 입력이 일치하지 않습니다." }, { status: 409 });
+    if (funded?.session) return sessionWithAccessToken(env, funded.session);
   }
 
-  const sessionId = createSessionId(auth.userId);
-  const doc = await MasterLoveCodexSession.create({
+  // Mongo's built-in _id uniqueness also protects deployments where optional indexes lag.
+  // A new browser request key must not turn the same payment into another analysis.
+  const sessionIdentity = sha256(JSON.stringify([clean(auth.userId), normalized.mode,
+    access.accessType, access.paymentId || idempotencyKey]));
+  const sessionId = `mlc-${sessionIdentity}`;
+  const doc = await MasterLoveCodexSession.findOneAndUpdate({
+    _id: new mongoose.Types.ObjectId(sessionIdentity.slice(0, 24)),
+  }, { $setOnInsert: {
     id: sessionId,
     userId: clean(auth.userId),
     mode: normalized.mode,
@@ -955,7 +986,11 @@ async function handleStart(request, env) {
     idempotencyKey,
     inputHash: normalized.inputHash,
     status: "generating",
-  });
+  } }, { upsert: true, new: true }).lean();
+
+  if (doc.inputHash !== normalized.inputHash || sessionMode(doc) !== normalized.mode) {
+    return json({ ok: false, reason: "PURCHASE_RUN_MISMATCH", message: "구매한 회차와 입력이 일치하지 않습니다." }, { status: 409 });
+  }
 
   return json({
     ...publicSession(doc.toObject ? doc.toObject() : doc),
@@ -975,20 +1010,22 @@ async function acquireBatchLock(sessionId, userId) {
     {
       id: sessionId,
       userId,
-      status: "generating",
+      status: { $in: ["generating", "generation_failed"] },
       $or: [
         { "generationProgress.lockedAt": { $exists: false } },
         { "generationProgress.lockedAt": null },
         { "generationProgress.lockedAt": { $lt: new Date(now - BATCH_LOCK_TTL_MS) } },
       ],
     },
-    { $set: { "generationProgress.lockedAt": new Date(now), "generationProgress.lockToken": lockToken } },
+    // Legacy sessions store generationProgress:null. A dotted $set cannot create
+    // a child of null (Mongo code 28), so initialize the lock object atomically.
+    { $set: { status: "generating", generationProgress: { lockedAt: new Date(now), lockToken } } },
     { new: true },
   ).lean();
   return updated ? { ok: true, lockToken, doc: updated } : { ok: false };
 }
 
-async function handleGenerate(request, env) {
+async function handleGenerate(request, env, dependencies = {}) {
   // 예산 시계는 핸들러 진입 시점부터 돈다 — 앞단의 인증·DB 왕복·락 획득이 자동으로 예산에서 빠진다.
   const deadlineAt = Date.now() + BATCH_BUDGET_MS;
   const body = await readJson(request);
@@ -1006,23 +1043,27 @@ async function handleGenerate(request, env) {
       if (clean(payload.userId) === clean(auth.userId) && clean(payload.sessionId) === sessionId) tokenPayload = payload;
     } catch (_) { tokenPayload = null; }
   }
-  if (!tokenPayload && !isAdmin(auth)) return paymentVerifyFailed();
-
   await connectDb(env);
+  const recovered = await recoverCodexSession({ userId: auth.userId, sessionId });
+  if (!recovered) return json({ ok: false, reason: "NOT_FOUND", message: MESSAGES.notFound }, { status: 404 });
+  if (recovered.denied) return paymentVerifyFailed();
+  if (tokenPayload && !tokenMatchesMode(tokenPayload, sessionMode(recovered.session))) return paymentVerifyFailed();
+  if (recovered.session.status === "completed") return sessionWithAccessToken(env, recovered.session);
   const lock = await acquireBatchLock(sessionId, clean(auth.userId));
   if (!lock.ok) {
     const current = await MasterLoveCodexSession.findOne({ id: sessionId, userId: clean(auth.userId) }).lean();
     if (!current) return json({ ok: false, reason: "NOT_FOUND", message: MESSAGES.notFound }, { status: 404 });
-    if (clean(current.status) === "completed") return json({ ...publicSession(current), done: true });
+    if (clean(current.status) === "completed") return sessionWithAccessToken(env, current);
     return json({ ok: false, reason: "GENERATION_IN_PROGRESS", message: MESSAGES.busy, retryable: true }, { status: 409 });
   }
 
   const doc = lock.doc;
+  const lockFilter = { id: sessionId, userId: clean(auth.userId), "generationProgress.lockToken": lock.lockToken };
   const modeDef = resolveMode(doc.mode);
   // 🔴 토큰이 이 세션의 모드용으로 발급된 것인지 여기서 확인한다(토큰 검증 시점엔 세션을 아직 못 읽는다).
   if (tokenPayload && !tokenMatchesMode(tokenPayload, modeDef.mode)) {
     await MasterLoveCodexSession.updateOne(
-      { id: sessionId },
+      lockFilter,
       { $set: { "generationProgress.lockedAt": null, "generationProgress.lockToken": "" } },
     ).catch(() => {});
     return paymentVerifyFailed();
@@ -1034,16 +1075,16 @@ async function handleGenerate(request, env) {
 
   if (!slice.length) {
     await MasterLoveCodexSession.updateOne(
-      { id: sessionId },
+      lockFilter,
       { $set: { status: "completed", "generationProgress.lockedAt": null, "generationProgress.lockToken": "" } },
     );
     const finished = await MasterLoveCodexSession.findOne({ id: sessionId }).lean();
-    return json({ ...publicSession(finished), done: true });
+    return sessionWithAccessToken(env, finished);
   }
 
   try {
     const memory = buildMemory(existingChapters);
-    const results = await runWithConcurrency(slice, CHAPTER_CONCURRENCY, (chapter) => generateChapter(env, {
+    const results = await runWithConcurrency(slice, CHAPTER_CONCURRENCY, (chapter) => (dependencies.generateChapter || generateChapter)(env, {
       mode: modeDef.mode,
       saju: doc.sajuResult,
       ziweiChart: doc.ziweiChart,
@@ -1058,17 +1099,23 @@ async function handleGenerate(request, env) {
       deadlineAt,
     }));
 
+    const stillAuthorized = await recoverCodexSession({ userId: auth.userId, sessionId });
+    if (!stillAuthorized || stillAuthorized.denied) {
+      await MasterLoveCodexSession.updateOne(lockFilter, { $set: { "generationProgress.lockedAt": null, "generationProgress.lockToken": "" } });
+      return paymentVerifyFailed();
+    }
     // 예산 초과로 못 쓴 장이 나오면 그 앞까지만 커밋한다(챕터는 연속이어야 한다).
     const committed = planBatchCommit(results);
     if (!committed.length) {
+      const reason = results.some(result => result?.status === "fallback") ? "SERVICE_GENERATION_FAILED" : "GENERATION_BUDGET_EXCEEDED";
       await MasterLoveCodexSession.updateOne(
-        { id: sessionId },
-        { $set: { "generationProgress.lockedAt": null, "generationProgress.lockToken": "" } },
+        lockFilter,
+        { $set: { status: "generation_failed", generationError: { code: reason, at: new Date() }, "generationProgress.lockedAt": null, "generationProgress.lockToken": "" } },
       ).catch(() => {});
-      console.warn("[master-love-codex] batch budget exceeded", sessionId, `startIndex=${startIndex}`);
+      console.warn("[master-love-codex] generation retry", { sessionId, reason, startIndex });
       return json({
         ok: false,
-        reason: "GENERATION_BUDGET_EXCEEDED",
+        reason,
         retryable: true,
         message: "생성이 지연되고 있습니다. 지금까지 쓰인 장은 그대로 보관되니 잠시 후 이어서 쓰면 됩니다.",
       }, { status: 503 });
@@ -1080,23 +1127,26 @@ async function handleGenerate(request, env) {
     const totalCharCount = merged.reduce((sum, chapter) => sum + Number(chapter.chars || 0), 0);
     const done = merged.length >= modeDef.chapters.length;
 
-    await MasterLoveCodexSession.updateOne({ id: sessionId }, {
+    const saved = await MasterLoveCodexSession.updateOne(lockFilter, {
       $set: {
         chapters: merged,
         totalCharCount,
+        generationError: null,
         status: done ? "completed" : "generating",
         ...(loveDna ? { loveDna } : {}),
         generationProgress: { completed: merged.length, total: modeDef.chapters.length, lockedAt: null, lockToken: "" },
       },
     });
 
+    if (!saved.matchedCount) return json({ ok: false, reason: "GENERATION_IN_PROGRESS", retryable: true, message: MESSAGES.busy }, { status: 409 });
+
     const updated = await MasterLoveCodexSession.findOne({ id: sessionId }).lean();
-    return json({ ...publicSession(updated), done, batchStartIndex: startIndex, batchSize: newChapters.length });
+    return sessionWithAccessToken(env, updated);
   } catch (error) {
     console.error("[master-love-codex] generate", clean(error?.message, 300));
     await MasterLoveCodexSession.updateOne(
-      { id: sessionId },
-      { $set: { "generationProgress.lockedAt": null, "generationProgress.lockToken": "" } },
+      lockFilter,
+      { $set: { status: "generation_failed", "generationProgress.lockedAt": null, "generationProgress.lockToken": "" } },
     ).catch(() => {});
     return serverError("이야기를 이어 쓰는 중 문제가 생겼습니다. 결제와 지금까지 쓰인 장은 보존되니 잠시 후 다시 시도해 주세요.", 503);
   }
@@ -1111,20 +1161,31 @@ async function handleSession(request, env) {
   if (!auth) return loginRequired();
 
   await connectDb(env);
-  const doc = await withMongoRetry(env, () => MasterLoveCodexSession.findOne({ id: sessionId, userId: clean(auth.userId) }).lean());
-  if (!doc) return json({ ok: false, reason: "NOT_FOUND", message: MESSAGES.notFound }, { status: 404 });
-  return json(publicSession(doc));
+  const recovered = await recoverCodexSession({ userId: auth.userId, sessionId });
+  if (!recovered) return json({ ok: false, reason: "NOT_FOUND", message: MESSAGES.notFound }, { status: 404 });
+  if (recovered.denied) return paymentVerifyFailed();
+  return sessionWithAccessToken(env, recovered.session);
 }
 
-export async function handleMasterLoveCodexRoutes(request, env = {}) {
+async function handleSessions(request, env) {
+  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+  if (!auth) return loginRequired();
+  await connectDb(env);
+  const docs = await MasterLoveCodexSession.find({ userId: clean(auth.userId), status: { $in: ["generating", "generation_failed", "completed"] } })
+    .sort({ createdAt: -1 }).limit(20).select("id mode status createdAt").lean();
+  return json({ ok: true, sessions: docs.map(doc => ({ sessionId: doc.id, mode: sessionMode(doc), status: doc.status, createdAt: doc.createdAt })) });
+}
+
+export async function handleMasterLoveCodexRoutes(request, env = {}, dependencies = {}) {
   const method = request.method.toUpperCase();
   const path = getRoutePath(request, "/api/master-love-codex");
   try {
     if (method === "GET" && (path === "/plan" || path === "")) return await handlePlan(request);
     if (method === "GET" && path === "/session") return await handleSession(request, env);
+    if (method === "GET" && path === "/sessions") return await handleSessions(request, env);
     if (method === "POST" && (path === "/ensure-access" || path === "/prepare")) return await handleEnsureAccess(request, env);
     if (method === "POST" && path === "/start") return await handleStart(request, env);
-    if (method === "POST" && path === "/generate") return await handleGenerate(request, env);
+    if (method === "POST" && path === "/generate") return await handleGenerate(request, env, dependencies);
     if (["GET", "POST"].includes(method)) return notFound();
     return methodNotAllowed();
   } catch (error) {
@@ -1149,6 +1210,6 @@ export const __masterLoveCodexTestUtils = {
   normalizeInput, getPricing, buildBillingGatePayload, normalizeLoveDna,
   resolveMode, tokenMatchesMode, buildCharts,
   // 배치 시간 예산 — 검증 스크립트가 LLM 호출 없이 순수 함수로 확인한다.
-  withDeadline, planBatchCommit,
+  withDeadline, planBatchCommit, acquireBatchLock,
   BATCH_BUDGET_MS, BATCH_LOCK_TTL_MS, CHAPTER_MIN_BUDGET_MS, EDGE_RESPONSE_DEADLINE_MS,
 };

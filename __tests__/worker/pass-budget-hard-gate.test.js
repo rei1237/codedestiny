@@ -136,6 +136,31 @@ describe("한도 경계 — 도달 직전 · 도달 · 초과 이후", () => {
 });
 
 describe("멱등 — 같은 요청의 재시도가 예산을 두 번 깎지 않는다", () => {
+  test("40개 최근 마커가 교체돼도 영속 증빙으로 기존 회차를 복구한다", async () => {
+    const db = makeFakePaymentDb();
+    const at = expiresAt();
+    const user = seed(db, { spent: 0, at });
+    await consume(db, user, at, { cost: 10, requestId: "durable-run" });
+    db.rows[0].recentConsumeRequestIds = [];
+    const result = await consumePassForFeature({ db, user: db.rows[0], userId: USER,
+      entitlement: { isActive: false, tier: "free" }, featureKey: FEATURE, requestId: "durable-run", coinCost: 10 });
+    expect(result.covered).toBe(true);
+    expect(result.replayed).toBe(true);
+    expect(db.rows[0].profileSubscription.monthlySpendCoin).toBe(10);
+  });
+  test("증빙 DB 쓰기 실패는 이용권 차감도 롤백한다", async () => {
+    const db = makeFakePaymentDb();
+    const at = expiresAt();
+    const user = seed(db, { spent: 0, at });
+    const update = db.findOneAndUpdate.bind(db);
+    db.findOneAndUpdate = async (...args) => {
+      if (args[2].$setOnInsert?.kind === "deduct") throw new Error("evidence timeout");
+      return update(...args);
+    };
+    await expect(consume(db, user, at, { cost: 10, requestId: "db-failure" })).rejects.toThrow("evidence timeout");
+    expect(db.rows[0].profileSubscription.monthlySpendCoin).toBe(0);
+    expect(db.rows[0].recentConsumeRequestIds).toEqual([]);
+  });
   test("같은 (기능, requestId) 로 다시 부르면 차감 없이 통과한다", async () => {
     const db = makeFakePaymentDb();
     const at = expiresAt();

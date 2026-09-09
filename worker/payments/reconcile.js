@@ -16,6 +16,7 @@
 import { Payment } from "../lib/models.js";
 import { REFUND_LOCK_TTL_MS, markOrderCancelled } from "./orders.js";
 import { RESUME_APPROVED_TTL_MS } from "./resume-context.js";
+import { listProducts } from "./catalog.js";
 
 const PAID_RAW_STATUSES = Object.freeze(["paid", "success", "fulfilled"]);
 
@@ -41,13 +42,18 @@ export async function regrantUnfulfilledOrders(db, { grant, now = new Date(), li
     Payment,
     {
       status: "paid",
-      entitlementGrantedAt: null,
+      $and: [
+        { $or: [
+          { entitlementGrantedAt: null },
+          { paymentType: "digital_content", featureKey: { $in: listProducts().filter(p => p.billingType === "per_use").map(p => p.featureKey) }, "metadata.purchaseGrantVersion": { $ne: 1 } },
+        ] },
+        { $or: [{ "metadata.fulfillmentRetryAt": { $exists: false } }, { "metadata.fulfillmentRetryAt": { $lte: now } }] },
+      ],
       // 방금 확정된 주문은 건드리지 않는다 — 정상 흐름이 지급을 마무리하는 중일 수 있다.
       updatedAt: { $lt: cutoff },
     },
-    // 🔴 최신 우선. 정렬이 없으면 지급이 영구히 실패하는 옛 주문(DOWNGRADE_BLOCKED 등)이 상한 50건을
-    // 독점해 방금 결제된 건이 영영 스캔되지 않는다 — 구 크론(payment-reconcile-task)과 같은 근거다.
-    { limit, sort: { updatedAt: -1 } },
+    // 오래 기다린 주문부터 처리하고 실패한 주문은 다음 재시도 시각까지 양보한다.
+    { limit, sort: { updatedAt: 1 } },
   );
 
   let repaired = 0;
@@ -64,6 +70,9 @@ export async function regrantUnfulfilledOrders(db, { grant, now = new Date(), li
         message: String(error?.message || error).slice(0, 200),
       });
       failed += 1;
+      await db.updateOne(Payment, { merchantUid: order.merchantUid, status: "paid" }, {
+        $set: { "metadata.fulfillmentRetryAt": new Date(now.getTime() + 5 * 60_000), "metadata.fulfillmentLastError": String(error?.code || "GRANT_FAILED") },
+      }).catch(() => { console.error("[payments] regrant retry state unavailable", { orderId: String(order.merchantUid || "") }); });
     }
   }
   return { scanned: orders.length, repaired, failed };
