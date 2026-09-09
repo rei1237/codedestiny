@@ -11,7 +11,7 @@ export function validFusionSignals(section, system, context) {
   if (!Array.isArray(signals) || !signals.length || signals.length > 8) return false;
   return signals.every((signal) => FUSION_DOMAINS.includes(signal.domain)
     && ["advance", "pause", "adapt"].includes(signal.stance)
-    && /^(current|\d{4}-\d{2})$/.test(signal.period || "")
+    && /^(current|\d{4}-(0[1-9]|1[0-2]))$/.test(signal.period || "")
     && typeof signal.summary === "string" && signal.summary.trim().length > 0
     && Array.isArray(signal.evidenceKeys) && signal.evidenceKeys.length > 0
     && signal.evidenceKeys.every((key) => {
