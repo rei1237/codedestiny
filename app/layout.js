@@ -1,5 +1,6 @@
 import "../styles/globals.css";
 import "../styles/theme-tokens.css";
+import "../styles/feature-marketing-detail.css";
 import "../styles/mobile-bottom-nav.css";
 import "../styles/yehwa-motifs-nav.css";
 import { ToastProvider } from "./components/Toast";

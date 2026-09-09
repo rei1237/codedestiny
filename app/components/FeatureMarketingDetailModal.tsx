@@ -3,7 +3,8 @@
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { usePathname, useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from "react";
+import { createPortal } from "react-dom";
+import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent, type ReactNode } from "react";
 import { useBodyScrollLock } from "@/app/_lib/body-scroll-lock";
 import { useServerPrice } from "@/app/hooks/useServerPrice";
 import { useT, useTPick, type Translate, type TranslatePick } from "@/lib/i18n/useT";
@@ -20,6 +21,7 @@ export type FeatureMarketingTarget = {
   title: string;
   description?: string;
   subtitle?: string;
+  image?: string;
   href: string;
   slug?: string;
   featureKey?: string;
@@ -376,12 +378,6 @@ function priceText(target: FeatureMarketingTarget, price: { label: string; loadi
   return price.label || t("preview.priceUnknown");
 }
 
-const modalSheetScrollStyle: CSSProperties = {
-  maxHeight: "calc(100dvh - max(16px, env(safe-area-inset-top)) - max(16px, env(safe-area-inset-bottom)))",
-  overscrollBehaviorY: "contain",
-  WebkitOverflowScrolling: "touch",
-};
-
 // 카드를 탭해 모달이 열린 직후, 같은 좌표로 떨어지는 유령 탭·연타가 백드롭에 맞아
 // 모달을 즉시 닫아 버리던 문제를 막는다. 모바일에서 시트는 하단 정렬이라 화면 상단이
 // 전부 백드롭이고, 카드가 상단에 있으면 두 번째 탭이 정확히 백드롭에 떨어진다.
@@ -411,6 +407,7 @@ export function FeatureMarketingDetailModal({
   onClose: () => void;
 }) {
   const closeRef = useRef<HTMLButtonElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
   const conversionRef = useRef<HTMLDivElement>(null);
   const openedAtRef = useRef(0);
   const router = useRouter();
@@ -433,7 +430,10 @@ export function FeatureMarketingDetailModal({
   // 묶으면 가드 기준 시각이 계속 밀려 백드롭 닫기가 영구히 무력화된다.
   useEffect(() => {
     if (open) openedAtRef.current = Date.now();
-    else { setNavPending(false); setHasVisualDetail(false); }
+    else {
+      setNavPending(false);
+      setHasVisualDetail(false);
+    }
   }, [open]);
 
   useEffect(() => {
@@ -442,17 +442,45 @@ export function FeatureMarketingDetailModal({
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") onClose();
       if (event.key !== "Tab") return;
-      const dialog = closeRef.current?.closest('[role="dialog"]');
-      const nodes = Array.from(dialog?.querySelectorAll<HTMLElement>('button:not(:disabled),a[href],input:not(:disabled),select:not(:disabled),textarea:not(:disabled),summary,[tabindex="0"]') || [])
-        .filter(node => node.offsetParent !== null && node.tabIndex >= 0);
-      const first = nodes[0], last = nodes[nodes.length - 1];
-      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
-      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+      const overlay = overlayRef.current;
+      if (!overlay) return;
+      const focusable = Array.from(
+        overlay.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])',
+        ),
+      ).filter((element) => !element.hidden && element.getClientRects().length > 0);
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
     };
+    const inerted: { element: HTMLElement; inert: boolean; ariaHidden: string | null }[] = [];
+    const overlay = overlayRef.current;
+    if (overlay) {
+      for (const child of Array.from(document.body.children)) {
+        if (child === overlay) continue;
+        const element = child as HTMLElement & { inert?: boolean };
+        inerted.push({ element, inert: Boolean(element.inert), ariaHidden: element.getAttribute("aria-hidden") });
+        element.inert = true;
+        element.setAttribute("aria-hidden", "true");
+      }
+    }
     window.addEventListener("keydown", onKeyDown);
     closeRef.current?.focus();
     return () => {
       window.removeEventListener("keydown", onKeyDown);
+      for (const item of inerted) {
+        const element = item.element as HTMLElement & { inert?: boolean };
+        element.inert = item.inert;
+        if (item.ariaHidden === null) element.removeAttribute("aria-hidden");
+        else element.setAttribute("aria-hidden", item.ariaHidden);
+      }
       if (previousFocus?.isConnected) previousFocus.focus();
     };
   }, [open, onClose]);
@@ -497,191 +525,193 @@ export function FeatureMarketingDetailModal({
 
   if (!open) return null;
 
-  return (
-    <div className="fixed inset-0 z-[1000] flex items-end justify-center bg-slate-950/72 px-0 sm:items-center sm:px-4" role="presentation" onClick={closeFromBackdrop}>
+  const modal = (
+    <div ref={overlayRef} className="cd-detail-overlay" data-cd-detail-overlay="open" role="presentation">
+      <div className="cd-detail-backdrop" aria-hidden="true" onClick={closeFromBackdrop} />
       <section
         role="dialog"
         aria-modal="true"
         aria-labelledby="featureMarketingTitle"
-        className="max-h-[92svh] w-full overflow-y-auto rounded-t-2xl border border-white/12 bg-[linear-gradient(180deg,#081427,#111a34_56%,#070b1d)] p-4 pb-[calc(16px+env(safe-area-inset-bottom))] text-slate-50 shadow-[0_24px_80px_rgba(0,0,0,0.5)] sm:max-w-[620px] sm:rounded-2xl sm:p-6"
-        style={modalSheetScrollStyle}
+        className="cd-detail-panel"
+        data-cd-detail-panel
+        data-cd-detail-no-media={target.image ? "false" : "true"}
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="mb-3 flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <div className="mb-2 flex flex-wrap gap-1.5">
-              {copy?.category && <span className="rounded-full border border-sky-200/25 bg-sky-300/10 px-2.5 py-1 text-[11px] font-black text-sky-100">{copy.category}</span>}
-              {copy?.badge && <span className="rounded-full border border-amber-200/25 bg-amber-300/10 px-2.5 py-1 text-[11px] font-black text-amber-100">{copy.badge}</span>}
+        {target.image ? (
+          <div className="cd-detail-visual" data-cd-detail-visual>
+            <img src={target.image} alt="" loading="eager" decoding="async" />
+          </div>
+        ) : null}
+        <div className="cd-detail-column">
+          <div className="cd-detail-scroll" data-cd-detail-scroll>
+            <div className="cd-detail-content" data-cd-detail-content>
+              <header className="cd-detail-header">
+                <div className="cd-detail-header-main">
+                  <div>
+                    {copy?.category && <span className="cd-detail-eyebrow">{copy.category}</span>}
+                    {copy?.badge && <span className="cd-detail-badge">{copy.badge}</span>}
+                  </div>
+                  <h2 id="featureMarketingTitle" className="cd-detail-title">{target.title}</h2>
+                </div>
+                <button ref={closeRef} type="button" onClick={onClose} className="cd-detail-close" aria-label={t("common.close")}>
+                  ×
+                </button>
+              </header>
+
+              <FeatureVisualDetail
+                keys={marketingKeys(target)}
+                enabled={open && getCurrentLoadingLocale() === "ko"}
+                onReady={setHasVisualDetail}
+                onRequestConversion={() => {
+                  conversionRef.current?.scrollIntoView({ block: "nearest" });
+                  conversionRef.current?.querySelector("a")?.focus({ preventScroll: true });
+                }}
+              />
+              <div hidden={hasVisualDetail}>
+              {copy ? (
+                <div className="cd-detail-body">
+                  <p className="cd-detail-headline">{copy.headline}</p>
+                  <p className="cd-detail-subheadline">{copy.subheadline}</p>
+                  <div className="cd-detail-divider" aria-hidden="true" />
+                  <div className="cd-detail-sections">
+                    {copy.feats.length > 0 && (
+                      <section className="cd-detail-section">
+                        <h3 className="cd-detail-section-title">{t(copy.featsAreFeatures ? "preview.featuresLabel" : "preview.painPointsLabel")}</h3>
+                        <ul className="cd-detail-list">
+                          {copy.feats.map((item) => <li key={item}>{item}</li>)}
+                        </ul>
+                      </section>
+                    )}
+                    {copy.previewText && <p className="cd-detail-highlight cd-detail-section">{copy.previewText}</p>}
+                    {copy.unlockBenefits.length > 0 && (
+                      <section className="cd-detail-section">
+                        <h3 className="cd-detail-section-title">{t("preview.deliverablesLabel")}</h3>
+                        <ul className="cd-detail-list">
+                          {copy.unlockBenefits.map((item) => <li key={item}>{item}</li>)}
+                        </ul>
+                      </section>
+                    )}
+                    {scaleChips(copy.reportScale, t).length > 0 && (
+                      <section className="cd-detail-section">
+                        <h3 className="cd-detail-section-title">{t("preview.scaleLabel")}</h3>
+                        <div className="cd-detail-scale">
+                          {scaleChips(copy.reportScale, t).map((chip) => <span key={chip} className="cd-detail-chip">{chip}</span>)}
+                        </div>
+                      </section>
+                    )}
+                    {copy.answersQuestions && copy.answersQuestions.length > 0 && (
+                      <section className="cd-detail-section">
+                        <h3 className="cd-detail-section-title">{t("preview.questionsLabel")}</h3>
+                        <ul className="cd-detail-list">
+                          {copy.answersQuestions.map((item) => <li key={item}>{item}</li>)}
+                        </ul>
+                      </section>
+                    )}
+                    {copy.analysisSteps && copy.analysisSteps.length > 0 && (
+                      <section className="cd-detail-section">
+                        <h3 className="cd-detail-section-title">{t("preview.stepsLabel")}</h3>
+                        <ol className="cd-detail-steps">
+                          {copy.analysisSteps.map((step, index) => (
+                            <li key={step.label} className="cd-detail-step">
+                              <span className="cd-detail-step-number">{index + 1}</span>
+                              <span>
+                                <b className="cd-detail-step-title">{step.label}</b>
+                                {step.detail && <span className="cd-detail-step-detail">{step.detail}</span>}
+                              </span>
+                            </li>
+                          ))}
+                        </ol>
+                      </section>
+                    )}
+                    {copy.recommendedFor && copy.recommendedFor.length > 0 && (
+                      <section className="cd-detail-section">
+                        <h3 className="cd-detail-section-title">{t("preview.recommendedLabel")}</h3>
+                        <ul className="cd-detail-list">
+                          {copy.recommendedFor.map((item) => <li key={item}>{item}</li>)}
+                        </ul>
+                      </section>
+                    )}
+                    {copy.valueCompare && copy.valueCompare.rows.length > 0 && (
+                      <section className="cd-detail-section">
+                        <h3 className="cd-detail-section-title">{t("preview.compareLabel")}</h3>
+                        <div role="table" className="cd-detail-table">
+                          <div role="row" className="cd-detail-table-row">
+                            {["", t("preview.compareFree"), t("preview.comparePremium")].map((head, index) => (
+                              <span key={head || "axis"} role="columnheader" className="cd-detail-table-cell">{head}</span>
+                            ))}
+                          </div>
+                          {copy.valueCompare.rows.slice(0, 5).map((row) => (
+                            <div key={row.axis} role="row" className="cd-detail-table-row">
+                              <span role="cell" className="cd-detail-table-cell cd-detail-table-cell--axis">{row.axis}</span>
+                              <span role="cell" className="cd-detail-table-cell cd-detail-table-cell--free">{row.free?.trim() || "—"}</span>
+                              <span role="cell" className="cd-detail-table-cell cd-detail-table-cell--premium">{row.premium}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </section>
+                    )}
+                    {copy.trustNotes.length > 0 && (
+                      <section className="cd-detail-section">
+                        <h3 className="cd-detail-section-title">{t("preview.outcomesLabel")}</h3>
+                        <ul className="cd-detail-list">
+                          {copy.trustNotes.map((item) => <li key={item}>{item}</li>)}
+                        </ul>
+                      </section>
+                    )}
+                    {copy.faq && copy.faq.length > 0 && (
+                      <section className="cd-detail-section">
+                        <h3 className="cd-detail-section-title">{t("preview.faqLabel")}</h3>
+                        <div className="cd-detail-faq">
+                          {copy.faq.slice(0, 5).map((item) => (
+                            <details key={item.q}>
+                              <summary>{item.q}</summary>
+                              <div className="cd-detail-faq-answer">{item.a}</div>
+                            </details>
+                          ))}
+                        </div>
+                      </section>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="cd-detail-body" aria-hidden>
+                  {[0, 1, 2].map((row) => <div key={row} className="cd-detail-skeleton" />)}
+                </div>
+              )}
+              </div>
             </div>
-            <h2 id="featureMarketingTitle" className="m-0 text-xl font-black leading-tight text-[#fff3c4]">{target.title}</h2>
           </div>
-          <button ref={closeRef} type="button" onClick={onClose} className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-white/15 bg-white/8 text-lg font-black text-white" aria-label={t("common.close")}>
-            ×
-          </button>
-        </div>
 
-        <FeatureVisualDetail keys={marketingKeys(target)} enabled={open && getCurrentLoadingLocale() === "ko"} onReady={setHasVisualDetail} onRequestConversion={() => {
-          conversionRef.current?.scrollIntoView({ block: "nearest" });
-          conversionRef.current?.querySelector("a")?.focus({ preventScroll: true });
-        }} />
-        <div hidden={hasVisualDetail}>
-        {copy ? (
-          <>
-            <p className="m-0 text-sm font-bold leading-6 text-slate-100">{copy.headline}</p>
-            <p className="mt-2 text-sm leading-6 text-slate-300">{copy.subheadline}</p>
-
-            {/* 순서 계약 — 정적 셸(index.html)의 팝업과 같다:
-                무엇을 얻는가 → 어떻게 분석하는가 → 실제 리포트 예시 → 누구에게 맞는가 → 가격 → CTA */}
-            <div className="mt-4 grid gap-3">
-              {/* ① 무엇을 얻는가 */}
-              {copy.feats.length > 0 && (
-                <section className="rounded-lg border border-white/10 bg-white/[0.045] p-3">
-                  <h3 className="m-0 mb-2 text-xs font-black text-sky-100">{t(copy.featsAreFeatures ? "preview.featuresLabel" : "preview.painPointsLabel")}</h3>
-                  <ul className="m-0 grid gap-1.5 p-0 text-sm leading-6 text-slate-200">
-                    {copy.feats.map((item) => <li key={item} className="list-none">• {item}</li>)}
-                  </ul>
-                </section>
-              )}
-              {copy.previewText && <p className="m-0 rounded-lg border border-amber-200/18 bg-amber-200/[0.075] p-3 text-sm font-semibold leading-6 text-amber-50">{copy.previewText}</p>}
-              {copy.unlockBenefits.length > 0 && (
-                <section className="rounded-lg border border-white/10 bg-white/[0.045] p-3">
-                  <h3 className="m-0 mb-2 text-xs font-black text-amber-100">{t("preview.deliverablesLabel")}</h3>
-                  <ul className="m-0 grid gap-1.5 p-0 text-sm leading-6 text-slate-200">
-                    {copy.unlockBenefits.map((item) => (
-                      <li key={item} className="list-none pl-5 -indent-5"><span className="pr-2 font-black text-amber-200">✓</span>{item}</li>
-                    ))}
-                  </ul>
-                </section>
-              )}
-              {scaleChips(copy.reportScale, t).length > 0 && (
-                <section>
-                  <h3 className="m-0 mb-2 text-xs font-black text-slate-300">{t("preview.scaleLabel")}</h3>
-                  <div className="flex flex-wrap gap-1.5">
-                    {scaleChips(copy.reportScale, t).map((chip) => (
-                      <span key={chip} className="rounded-full border border-white/12 bg-white/[0.06] px-2.5 py-1.5 text-xs font-black text-slate-100">{chip}</span>
-                    ))}
-                  </div>
-                </section>
-              )}
-              {copy.answersQuestions && copy.answersQuestions.length > 0 && (
-                <section className="rounded-lg border border-white/10 bg-white/[0.045] p-3">
-                  <h3 className="m-0 mb-2 text-xs font-black text-sky-100">{t("preview.questionsLabel")}</h3>
-                  <ul className="m-0 grid gap-1.5 p-0 text-sm leading-6 text-slate-200">
-                    {copy.answersQuestions.map((item) => <li key={item} className="list-none">• {item}</li>)}
-                  </ul>
-                </section>
-              )}
-
-              {/* ② 어떻게 분석하는가 — 사용자가 이해하는 단계까지만(내부 로직·모델은 쓰지 않는다) */}
-              {copy.analysisSteps && copy.analysisSteps.length > 0 && (
-                <section className="rounded-lg border border-white/10 bg-white/[0.045] p-3">
-                  <h3 className="m-0 mb-2 text-xs font-black text-slate-300">{t("preview.stepsLabel")}</h3>
-                  <ol className="m-0 grid list-none gap-2.5 p-0">
-                    {copy.analysisSteps.map((step, index) => (
-                      <li key={step.label} className="grid grid-cols-[20px_1fr] gap-2.5">
-                        <span className="mt-0.5 grid h-5 w-5 place-items-center rounded-full border border-amber-200/60 text-[10px] font-black text-amber-200">{index + 1}</span>
-                        <span>
-                          <b className="block text-sm font-black text-slate-100">{step.label}</b>
-                          {step.detail && <span className="mt-0.5 block text-xs leading-5 text-slate-300">{step.detail}</span>}
-                        </span>
-                      </li>
-                    ))}
-                  </ol>
-                </section>
-              )}
-
-              {/* ④ 누구에게 맞는가 */}
-              {copy.recommendedFor && copy.recommendedFor.length > 0 && (
-                <section className="rounded-lg border border-white/10 bg-white/[0.045] p-3">
-                  <h3 className="m-0 mb-2 text-xs font-black text-violet-100">{t("preview.recommendedLabel")}</h3>
-                  <ul className="m-0 grid gap-1.5 p-0 text-sm leading-6 text-slate-200">
-                    {copy.recommendedFor.map((item) => <li key={item} className="list-none">• {item}</li>)}
-                  </ul>
-                </section>
-              )}
-
-              {/* ⑤ 가격 — 무료와 무엇이 다른지 먼저 납득시키고 신뢰 요소를 붙인다 */}
-              {copy.valueCompare && copy.valueCompare.rows.length > 0 && (
-                <section>
-                  <h3 className="m-0 mb-2 text-xs font-black text-slate-300">{t("preview.compareLabel")}</h3>
-                  <div role="table" className="overflow-hidden rounded-lg border border-white/10">
-                    <div role="row" className="grid grid-cols-[1.1fr_1fr_1.2fr] border-b border-white/10 bg-white/[0.06]">
-                      {["", t("preview.compareFree"), t("preview.comparePremium")].map((head, i) => (
-                        <span key={head || "axis"} role="columnheader" className={`px-2.5 py-2 text-xs font-black text-slate-100${i === 2 ? " bg-white/[0.05]" : ""}`}>{head}</span>
-                      ))}
-                    </div>
-                    {copy.valueCompare.rows.slice(0, 5).map((row) => (
-                      <div key={row.axis} role="row" className="grid grid-cols-[1.1fr_1fr_1.2fr] border-b border-white/10 last:border-b-0">
-                        <span role="cell" className="px-2.5 py-2 text-xs leading-5 text-slate-300">{row.axis}</span>
-                        <span role="cell" className="px-2.5 py-2 text-xs leading-5 text-slate-400">{row.free?.trim() || "—"}</span>
-                        <span role="cell" className="bg-white/[0.05] px-2.5 py-2 text-xs font-bold leading-5 text-slate-100">{row.premium}</span>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-              )}
-              {copy.trustNotes.length > 0 && (
-                <section className="rounded-lg border border-emerald-200/16 bg-emerald-200/[0.055] p-3">
-                  <h3 className="m-0 mb-2 text-xs font-black text-emerald-100">{t("preview.outcomesLabel")}</h3>
-                  <ul className="m-0 grid gap-1.5 p-0 text-xs leading-5 text-emerald-50/86">
-                    {copy.trustNotes.map((item) => <li key={item} className="list-none">• {item}</li>)}
-                  </ul>
-                </section>
-              )}
-
-              {/* ⑥ FAQ — 기본 접힘. 펼쳐 두면 스크롤이 길어져 CTA 도달이 늦어진다. */}
-              {copy.faq && copy.faq.length > 0 && (
-                <section>
-                  <h3 className="m-0 mb-1 text-xs font-black text-slate-300">{t("preview.faqLabel")}</h3>
-                  <div className="rounded-lg border border-white/10">
-                    {copy.faq.slice(0, 5).map((item) => (
-                      <details key={item.q} className="border-b border-white/10 last:border-b-0">
-                        <summary className="cursor-pointer list-none px-3 py-2.5 text-sm font-bold text-slate-100">{item.q}</summary>
-                        <div className="px-3 pb-3 text-xs leading-6 text-slate-300">{item.a}</div>
-                      </details>
-                    ))}
-                  </div>
-                </section>
-              )}
+          <div ref={conversionRef} data-purchase-stage="conversion" className="cd-detail-cta">
+            <div className="cd-detail-price-row">
+              <span aria-live="polite">{priceText(target, priceState, t)}</span>
+              <span>{t(target.accessType === "free" ? "preview.accessFree" : "preview.accessPaid")}</span>
             </div>
-          </>
-        ) : (
-          // 카피 청크(400KB)를 받는 동안 — 제목·가격·CTA 는 이미 위아래에 있으므로 본문만 자리를 잡는다.
-          <div className="mt-4 grid gap-3" aria-hidden>
-            {[0, 1, 2].map((row) => (
-              <div key={row} className="h-20 animate-pulse rounded-lg border border-white/10 bg-white/[0.045]" />
-            ))}
+            <Link
+              href={target.href}
+              onClick={handleCtaClick}
+              aria-busy={navPending}
+              aria-disabled={!priceReady}
+              tabIndex={priceReady ? undefined : -1}
+              className={`cd-detail-cta-button ${navPending || !priceReady ? "pointer-events-none opacity-55" : ""}`}
+            >
+              {navPending ? (
+                <>
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-transparent border-t-current" aria-hidden />
+                  {t("preview.navPending")}
+                </>
+              ) : (copy?.ctaLabel || t(target.accessType === "premium_report" ? "preview.ctaReport" : "preview.ctaPaid"))}
+            </Link>
+            <p className="cd-detail-cta-note">
+              {copy?.ctaNote || t(target.accessType === "free" ? "preview.ctaNoteFree" : "preview.ctaNoteDefault")}
+            </p>
           </div>
-        )}
-
-        </div>
-        <div ref={conversionRef} data-purchase-stage="conversion" className="sticky bottom-0 -mx-4 mt-4 border-t border-white/10 bg-[linear-gradient(to_top,#070b1d_76%,rgba(7,11,29,0))] px-4 pb-1 pt-4 sm:-mx-6 sm:px-6">
-          <div className="mb-2 flex items-center justify-between gap-3 text-xs font-bold text-slate-300">
-            <span aria-live="polite">{priceText(target, priceState, t)}</span>
-            <span>{t(target.accessType === "free" ? "preview.accessFree" : "preview.accessPaid")}</span>
-          </div>
-          <Link
-            href={target.href}
-            onClick={handleCtaClick}
-            aria-busy={navPending}
-            aria-disabled={!priceReady}
-            tabIndex={priceReady ? undefined : -1}
-            className={`flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#f3d680] px-4 text-sm font-black text-[#111827] no-underline transition-opacity ${navPending || !priceReady ? "pointer-events-none opacity-55" : ""}`}
-          >
-            {navPending ? (
-              <>
-                <span className="h-4 w-4 animate-spin rounded-full border-2 border-transparent border-t-[#111827]" aria-hidden />
-                {t("preview.navPending")}
-              </>
-            ) : (copy?.ctaLabel || t(target.accessType === "premium_report" ? "preview.ctaReport" : "preview.ctaPaid"))}
-          </Link>
-          <p className="mb-1 mt-2 text-center text-xs leading-5 text-slate-400">
-            {copy?.ctaNote || t(target.accessType === "free" ? "preview.ctaNoteFree" : "preview.ctaNoteDefault")}
-          </p>
         </div>
       </section>
     </div>
   );
+
+  return typeof document === "undefined" ? null : createPortal(modal, document.body);
 }
 
 export function FeatureMarketingLink({ target, href, className, children, onClick, "aria-label": ariaLabel }: FeatureMarketingLinkProps) {
