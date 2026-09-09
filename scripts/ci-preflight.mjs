@@ -5,7 +5,7 @@ import { resolve, dirname } from "node:path";
 import { createRequire } from "node:module";
 import { randomUUID } from "node:crypto";
 import { ciPreflightPlan, validatedPrArguments } from "./lib/ci-preflight-plan.mjs";
-import { resolveTier } from "./resolve-ci-tier.mjs";
+import { resolveTier, shouldRunFastChecks, shouldRunStaticGuards } from "./resolve-ci-tier.mjs";
 
 const root = process.cwd();
 const require = createRequire(import.meta.url);
@@ -50,7 +50,10 @@ async function main() {
   const files = git(["diff", "--name-only", base, candidate]).split(/\r?\n/).filter(Boolean);
   const tier = argv.includes("--full") ? "critical" : resolveTier(files);
   const workflow = require("js-yaml").load(readFileSync(resolve(root, ".github/workflows/pr-ci.yml"), "utf8"));
-  const commands = ciPreflightPlan(workflow, tier);
+  const runFast = argv.includes("--full") || shouldRunFastChecks(files);
+  const runGuards = shouldRunStaticGuards(files);
+  const commands = ciPreflightPlan(workflow, tier, { runFast, runGuards });
+  if (!runFast) commands.unshift("npm run verify:doc-freshness");
   // These cheap independent PR gates also read shared source outside their path filters.
   commands.push("npm run verify:ai-locale-pipeline", "npm run verify:business-identity");
   console.log(JSON.stringify({ base, tree: candidate, tier, files, commands }, null, 2));

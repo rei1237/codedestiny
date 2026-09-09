@@ -5,7 +5,7 @@ const yaml = require('js-yaml');
 
 test('preflight preserves every CI lane and selects builds/tests by risk', async () => {
   const { ciPreflightPlan } = await import('../../scripts/lib/ci-preflight-plan.mjs');
-  const { resolveTier } = await import('../../scripts/resolve-ci-tier.mjs');
+  const { resolveTier, shouldRunFastChecks } = await import('../../scripts/resolve-ci-tier.mjs');
   const workflow = yaml.load(fs.readFileSync('.github/workflows/pr-ci.yml', 'utf8'));
   for (const [file, build, full] of [
     ['components/Card.tsx', true, false], ['styles/site.css', false, false],
@@ -13,14 +13,29 @@ test('preflight preserves every CI lane and selects builds/tests by risk', async
     ['app/hooks/useCoinGate.ts', true, true], ['app/api/example/route.ts', true, false],
     ['.github/workflows/cloudflare-pages-deploy.yml', true, true],
   ]) {
-    const plan = ciPreflightPlan(workflow, resolveTier([file]));
+    const docsOnly = file === 'docs/guide.md';
+    const plan = ciPreflightPlan(workflow, resolveTier([file]), { runFast: !docsOnly, runGuards: !docsOnly });
     assert.equal(plan.includes('npm run build:cf'), build, file);
     assert.equal(plan.includes('npm run test:jest'), full, file);
-    assert.equal(plan.filter(command => command === 'npm run test:node').length, 1, file);
-    assert.ok(plan.includes('npm run verify:public-mirror-fresh'), file);
-    assert.ok(plan.includes('npm run verify:sitemap-drift'), file);
+    assert.equal(plan.filter(command => command === 'npm run test:node').length, docsOnly ? 0 : 1, file);
+    assert.equal(plan.includes('npm run verify:public-mirror-fresh'), !docsOnly, file);
+    assert.equal(plan.includes('npm run verify:sitemap-drift'), !docsOnly, file);
     if (build) assert.ok(plan.includes('npm run verify:indexable-prose-depth'), file);
   }
+});
+
+test('plain documentation skips static guards while contract docs remain covered', async () => {
+  const { ciPreflightPlan } = await import('../../scripts/lib/ci-preflight-plan.mjs');
+  const { shouldRunFastChecks, shouldRunStaticGuards } = await import('../../scripts/resolve-ci-tier.mjs');
+  const workflow = yaml.load(fs.readFileSync('.github/workflows/pr-ci.yml', 'utf8'));
+  assert.equal(shouldRunFastChecks(['docs/guide.md']), false);
+  assert.equal(shouldRunFastChecks(['docs/context/delivery-and-ci.md']), false);
+  assert.equal(shouldRunFastChecks(['docs/guide.md', 'components/Card.tsx']), true);
+  assert.equal(shouldRunStaticGuards(['docs/guide.md']), false);
+  assert.equal(shouldRunStaticGuards(['docs/context/delivery-and-ci.md']), true);
+  const docsPlan = ciPreflightPlan(workflow, 'fast', { runFast: false, runGuards: false });
+  assert.equal(docsPlan.includes('npm run ci:fast'), false);
+  assert.equal(docsPlan.includes('npm run test:node'), false);
 });
 
 test('new unsupported CI commands, conditions and environments block preflight', async () => {

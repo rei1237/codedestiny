@@ -204,6 +204,10 @@ PR 생성 후 필수 검사와 최신 base 충돌을 확인하고 에이전트�
 - preflight는 별도 임시 index와 격리 체크아웃에서 현재 수정본을 검사한다. 사용자의 index·브랜치·미커밋 파일을 변경하지 않는다. CI YAML의 명령을 사용하며 tier에 필요한 Pages/Worker build와 산출물 검사까지 실행한다. LLM·PG·DB 외부 호출은 차단한다.
 - 통과 → 변경 파일만 commit → main 최신성 확인 → push → `npm run pr:create -- --title "..." --body-file ...`. 생성기는 검증한 tree/main SHA와 현재 상태가 다르면 거부한다. 직접 GitHub UI/CLI로 만드는 PR을 서버가 사전에 차단할 수는 없으므로 AI는 이 진입점을 사용한다. GitHub 필수 검사는 별도로 유지한다.
 - 여러 PR은 전체 파일 diff·공통 코드·선행 기능·migration·CI·main 기준을 먼저 조사해 순서를 정한다. 번호순 머지를 하지 않는다. 기반 공통 코드 → 소비자 순으로 통합하되 미완성 Draft는 보존한다.
+- 저위험·비중첩 PR은 최대 4개까지 `npm run delivery:batch-plan -- --prs=123,124`로 배치 계획을 만든 뒤 연속 머지할 수 있다. 배치 계획은 최신 `origin/main`의 깨끗한 제어용 linked worktree에서 실행하며 PR 상태·필수 CI·파일 중첩을 확인한다. Worker·결제·인증·라우팅·테스트·공통 정적 셸·생성 미러·사이트맵 ledger 변경은 단독 배치로 판정한다.
+- `delivery:batch-plan`이 통과한 다중 PR은 배치 입장 증거로 사용하고, 고위험 또는 단독 판정 PR은 기존 `delivery:admit -- --pr=<number>`를 사용한다. 두 명령 모두 merge/push/checkout을 수행하지 않는다.
+- 배치 머지 중에도 `main` push마다 스테이징 배포가 발생한다. 배치 계획을 통과한 경우에는 배치의 마지막 merge SHA를 기준으로 Pages·Worker 도달과 정상 응답을 확인한다. 릴리스 실패·취소·SHA 불일치가 보이면 배치를 즉시 중단하고 각 merge SHA를 개별 조사한다.
+- PR CI는 변경 경로 기반으로 불필요한 러너를 줄인다. Markdown-only PR은 classify에서 문서 신선도만 실행하고 fast(typecheck·lint)를 skip하며, `docs/context`, `docs/handoff`, `docs/dev` 계약 문서는 정적 가드를 추가로 실행한다. 코드·설정·생성물·테스트가 섞이면 기존 fast/build/critical 티어 판정을 유지한다. `CI required` aggregate는 실행된 lane의 성공과 판정된 skip만 허용하고 실패·취소는 차단한다.
 - 안전한 작업은 로컬·필수 CI·리뷰·충돌·선행 PR 조건을 모두 충족하면 `delivery:admit` 후 SHA를 지정해 merge하고 staging의 Pages/Worker SHA·정상 응답까지 확인한다. 프로덕션 승격은 별도 1회 승인이 필요하다. --admin·보호 해제·실패 무시·destructive force push는 금지한다.
 - 매 merge 후 fetch하고 남은 PR의 새 main 호환성을 확인한다. 겹치거나 기반이 필요한 브랜치만 merge-main/rebase 후 동일 preflight와 GitHub CI를 재실행한다. 타 작업의 미커밋/locked worktree를 수정하지 않는다.
 - CI 실패는 job/log → 원인 분류 → 로컬 재현·수정 → preflight → commit/push → 최신 head CI 확인까지 해결한다. 기존 실패를 성공으로 바꾸거나 rerun으로 숨기지 않는다.
