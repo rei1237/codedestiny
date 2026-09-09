@@ -5,7 +5,9 @@
     "/rss.xml",
     "/insights/rss.xml",
     "/fortune/*",
-    "/insights/famous-saju/*"
+    "/insights/famous-saju/*",
+    "/de-de/high-value*",
+    "/es-es/high-value*"
   ],
   "exclude": []
 }

@@ -101,9 +101,11 @@ const resultOf = (status, order) => ({ status, chapter: status === "deferred" ? 
   );
 }
 {
-  // 예산 안에서 실패한 장(사과문)은 저장한다 — 결제 후 결과는 반드시 전달한다는 기존 계약.
+  // 오류 안내문은 구매한 분석 결과가 아니다. 실패한 장부터 같은 회차로 재시도한다.
   const committed = planBatchCommit([resultOf("ok", 1), resultOf("fallback", 2), resultOf("ok", 3)]);
-  assert(committed.length === 3, `fallback 은 저장 대상입니다 (현재 ${committed.length})`);
+  assert(committed.length === 1, `실패한 장 앞의 정상 결과만 보존해야 합니다 (현재 ${committed.length})`);
+  assert(committed.every(entry => entry.status === "ok"), "오류 안내문을 결과 완료로 계산하면 안 됩니다");
+  assert(planBatchCommit([resultOf("fallback", 1)]).length === 0, "첫 장 생성 실패는 재시도 대상이며 소비 완료가 아닙니다");
 }
 {
   const committed = planBatchCommit([resultOf("deferred"), resultOf("ok", 2)]);

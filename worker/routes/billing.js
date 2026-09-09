@@ -2274,9 +2274,11 @@ async function createDeferredUsageGrant(env, authUserId, pricing, requestId, opt
   const accessType = options.accessType || deferredAccessType(paymentMethod);
   const executionId = deferredExecutionId(featureKey, authUserId, normalizedRequestId);
   const user = await User.findById(authUserId).select("points profileSubscription").lean();
+  const { resolveExecutionRegistration } = await import("../payments/executions.js");
+  const existingRecord = await resolveExecutionRegistration({ executionId, userId: authUserId, featureKey, requestId: normalizedRequestId, paymentId: options.paymentId });
   const now = new Date();
   const record = await PaidExecutionRecord.findOneAndUpdate(
-    { executionId },
+    { _id: existingRecord._id },
     {
       $setOnInsert: {
         executionId,
@@ -2289,8 +2291,6 @@ async function createDeferredUsageGrant(env, authUserId, pricing, requestId, opt
         amountCoins: paymentMethod === "COIN" ? resolvePricingCoinCost(pricing) : 0,
         amountKRW: paymentMethod === "DIRECT_KRW" ? resolvePricingAmountKRW(pricing, resolvePricingCoinCost(pricing)) : 0,
         monthlyDeductedAmount: paymentMethod === "MONTHLY" ? resolveMonthlyCreditCostForBilling(pricing, options.body || {}) : 0,
-        paymentId: String(options.paymentId || ""),
-        orderId: String(options.orderId || normalizedRequestId),
         status: "paid_pending_generation",
         resultId: "",
         result: {
@@ -2309,8 +2309,8 @@ async function createDeferredUsageGrant(env, authUserId, pricing, requestId, opt
         idempotencyKey: executionId,
       },
       $set: {
-        paymentId: String(options.paymentId || ""),
-        orderId: String(options.orderId || normalizedRequestId),
+        paymentId: String(existingRecord?.paymentId || options.paymentId || ""),
+        orderId: String(existingRecord?.orderId || options.orderId || normalizedRequestId),
       },
     },
     { upsert: true, new: true },
