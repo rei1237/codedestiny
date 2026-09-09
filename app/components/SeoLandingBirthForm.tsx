@@ -106,6 +106,10 @@ const EMPTY_FORM: FormState = {
   calendarType: "solar",
 };
 
+// 정적 셸 딥링크가 홈에 도착한 뒤에도 입력값을 잃지 않도록 한 번만 소비하는 인계 키.
+// 생년 정보는 URL에 넣지 않고 sessionStorage에만 둔다.
+const SEO_LANDING_ENTRY_HANDOFF_KEY = "cd:seo-landing-entry:v1";
+
 const INPUT_CLASS =
   "min-h-12 w-full rounded-xl border border-[rgba(232,213,163,0.28)] bg-[#13102a] px-4 text-[1rem] text-[#f4eeff] placeholder:text-[rgba(244,238,255,0.4)] focus:border-[rgba(196,181,253,0.7)] focus:outline-none focus:ring-2 focus:ring-[rgba(196,181,253,0.35)]";
 const LABEL_CLASS = "block text-[0.82rem] font-semibold text-[rgba(232,213,163,0.9)]";
@@ -187,8 +191,21 @@ export default function SeoLandingBirthForm({ heading, submitLabel, submitHref, 
     };
     publishDestinyProfileBridge(card);
 
-    // 문서 이동으로 보낸다. 목적지가 정적 셸이면 `?action=` 을 셸 런타임이 해석해야 하고,
-    // Next 라우트면 마운트 시 프로필 카드를 다시 읽는다. 어느 쪽이든 방금 쓴 값이 보인다.
+    const target = new URL(submitHref, window.location.origin);
+    const action = target.searchParams.get("action");
+    if (action && (target.pathname === "/" || target.pathname === "/index.html")) {
+      try {
+        window.sessionStorage.setItem(
+          SEO_LANDING_ENTRY_HANDOFF_KEY,
+          JSON.stringify({ action, profile: card, createdAt: Date.now() }),
+        );
+      } catch {
+        // 세션 저장이 막힌 환경에서도 기존 이동 경로는 유지한다.
+      }
+    }
+
+    // 문서 이동으로 보낸다. 정적 셸 딥링크는 위 인계값을 먼저 홈 입력에 복원한 뒤 액션을
+    // 실행하고, Next 라우트는 마운트 시 프로필 카드를 다시 읽는다.
     window.location.assign(submitHref);
   }
 
