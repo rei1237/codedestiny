@@ -98,8 +98,9 @@ export interface LLMUsage {
 
 export interface LLMResponse {
   text: string;
-  provider: "gemini" | "cloudflare";
+  provider: "gemini" | "cloudflare" | "staging-mock";
   model: string;
+  isMock?: boolean;
   /** finishReason이 MAX_TOKENS면 true — 응답이 중간에 잘렸음을 의미. 호출부에서 재시도 판단. */
   truncated?: boolean;
   finishReason?: string;
@@ -108,6 +109,9 @@ export interface LLMResponse {
 
 export interface CloudflareEnv {
   GEMINIF_API_KEY?: string;
+  APP_ENV?: string;
+  STAGING_LLM_MOCK_ENABLED?: string;
+  WORKERS_AI_ENABLED?: string;
   AI?: {
     run: (model: string, options: object) => Promise<unknown>;
   };
@@ -117,6 +121,22 @@ const GEMINI_MODEL = "gemini-2.5-flash";
 // cachedContents CRUD 가 같은 베이스를 쓰므로 상수를 나눠 두 곳이 어긋나지 않게 한다.
 const GEMINI_API_BASE = "https://generativelanguage.googleapis.com/v1beta";
 const DEFAULT_TIMEOUT_MS = 30_000;
+
+/**
+ * 스테이징의 유료 결과 파이프라인을 실제 공급자 호출 없이 검증하는 잠금.
+ *
+ * 세 조건을 모두 요구한다. 플래그만 복사되거나 APP_ENV가 운영으로 바뀌면
+ * mock이 켜지지 않아야 하며, Workers AI도 동시에 켜져 있으면 안 된다.
+ */
+export function isStagingLlmMockEnabled(env?: CloudflareEnv): boolean {
+  const record = env as Record<string, unknown> | undefined;
+  const appEnv = String(record?.APP_ENV || "").trim().toLowerCase();
+  const flag = String(record?.STAGING_LLM_MOCK_ENABLED || "").trim().toLowerCase();
+  const workersAi = String(record?.WORKERS_AI_ENABLED || "").trim().toLowerCase();
+  return appEnv === "staging"
+    && ["1", "true", "on", "yes"].includes(flag)
+    && ["0", "false", "off", "no"].includes(workersAi);
+}
 
 type GeminiPayload = {
   candidates?: Array<{
@@ -171,6 +191,122 @@ function normalizeRequest(request: LLMRequest): Required<Pick<LLMRequest, "promp
     ...request,
     prompt: String(request.prompt || "").trim(),
     taskType: request.taskType || "general",
+  };
+}
+
+type MockJsonCandidate = { value: Record<string, unknown>; start: number; end: number; score: number };
+
+function parsePromptJsonCandidates(prompt: string): MockJsonCandidate[] {
+  const source = String(prompt || "");
+  const candidates: MockJsonCandidate[] = [];
+  for (let start = 0; start < source.length; start += 1) {
+    if (source[start] !== "{") continue;
+    let depth = 0;
+    let inString = false;
+    let escaped = false;
+    for (let index = start; index < source.length; index += 1) {
+      const ch = source[index];
+      if (inString) {
+        if (escaped) escaped = false;
+        else if (ch === "\\") escaped = true;
+        else if (ch === '"') inString = false;
+        continue;
+      }
+      if (ch === '"') {
+        inString = true;
+        continue;
+      }
+      if (ch === "{") depth += 1;
+      else if (ch === "}") {
+        depth -= 1;
+        if (depth !== 0) continue;
+        try {
+          const parsed = JSON.parse(source.slice(start, index + 1));
+          if (!parsed || Array.isArray(parsed) || typeof parsed !== "object") break;
+          const before = source.slice(Math.max(0, start - 320), start).toLowerCase();
+          const keys = Object.keys(parsed);
+          const score = keys.length * 8
+            + (/(출력\s*형식|리딩\s*작성\s*형식|output|schema|반환)/i.test(before) ? 1000 : 0)
+            + Math.min(keys.length, 20);
+          candidates.push({ value: parsed as Record<string, unknown>, start, end: index + 1, score });
+        } catch (_) {
+          // The prompt also contains calculation/input objects. Ignore non-JSON braces.
+        }
+        break;
+      }
+    }
+  }
+  return candidates;
+}
+
+function isMockPreservedValue(key: string, value: unknown): boolean {
+  const normalized = String(key || "").toLowerCase();
+  if (typeof value !== "string" || !value.trim()) return false;
+  return /(^|_)(id|key|code|type|category|status|order|index|count|number|year|month|day|slot|positionorder|orientation|role|level|score|temperature|risklevel)(_|$)/i.test(normalized)
+    || /^(id|key|code|type|status|order|index|year|month|day|slot|orientation)$/i.test(normalized);
+}
+
+function mockTextForKey(key: string, original = ""): string {
+  if (isMockPreservedValue(key, original)) return original;
+  const label = String(key || "상담 내용").replace(/([a-z])([A-Z])/g, "$1 $2").replace(/[_-]+/g, " ").trim();
+  return `스테이징 검증용 ${label || "상담 내용"}입니다. 현재 계산된 흐름을 바탕으로 핵심 신호와 현실적인 선택지를 함께 확인합니다. 감정을 서두르기보다 지금 가능한 작은 행동을 정리하면 다음 흐름을 더 안정적으로 살필 수 있습니다.`;
+}
+
+function fillMockJson(value: unknown, key = ""): unknown {
+  if (Array.isArray(value)) {
+    if (value.length > 0) return value.map((item) => fillMockJson(item, key));
+    if (/checklist|actions|bullets|keywords|tips|items|messages/i.test(key)) {
+      return [1, 2, 3].map((index) => `스테이징 검증 항목 ${index}: 결과와 저장 상태를 확인합니다.`);
+    }
+    return [];
+  }
+  if (value && typeof value === "object") {
+    return Object.fromEntries(Object.entries(value as Record<string, unknown>).map(([childKey, childValue]) => [
+      childKey,
+      fillMockJson(childValue, childKey),
+    ]));
+  }
+  if (typeof value === "string") return mockTextForKey(key, value);
+  return value;
+}
+
+function buildStagingMockJson(prompt: string): string {
+  const candidates = parsePromptJsonCandidates(prompt);
+  const selected = candidates
+    .slice()
+    .sort((left, right) => right.score - left.score || right.end - left.end)[0]?.value;
+  const payload = selected || {
+    title: "스테이징 검증 결과",
+    summary: "결제 이후 결과 생성과 저장 흐름을 확인하는 mock 상담입니다.",
+    content: "계산된 결과를 바탕으로 상담 본문을 표시합니다.",
+    advice: "결과 화면과 재조회 흐름을 확인해 주세요.",
+  };
+  return JSON.stringify(fillMockJson(payload));
+}
+
+function buildStagingMockText(request: LLMRequest): string {
+  const prompt = String(request.prompt || "");
+  if (/(압축|줄여|condense|compress|shorten)/i.test(prompt)) {
+    return "스테이징 검증용 요약입니다. 현재 흐름의 핵심은 계산 결과를 확인하고, 무리한 결론보다 다음 행동을 차분히 정리하는 데 있습니다. 결과 저장과 재조회가 정상인지 확인할 수 있습니다.";
+  }
+  const tokenHint = Number(request.maxTokens) || 1800;
+  const target = Math.min(9000, Math.max(1800, Math.round(tokenHint * 2.1)));
+  const paragraph = "스테이징 검증용 상담입니다. 입력된 계산 결과를 바탕으로 현재의 흐름과 반복되는 패턴을 설명하고, 강점과 주의할 점을 함께 정리합니다. 단정적인 결론보다 실제 생활에서 확인할 수 있는 신호와 선택지를 중심으로 안내합니다. 결제 이후 결과가 표시되고 저장되며 다시 조회되는지 확인하기 위한 결정론적 fixture입니다.\n\n";
+  let output = "";
+  while (output.length < target) output += paragraph;
+  return output.slice(0, target);
+}
+
+function buildStagingMockResponse(request: LLMRequest): LLMResponse {
+  const wantsJson = String(request.responseMimeType || "").toLowerCase() === "application/json"
+    || /(?:json|JSON|JSON 형식|JSON 하나)/.test(request.prompt || "");
+  return {
+    text: wantsJson ? buildStagingMockJson(request.prompt) : buildStagingMockText(request),
+    provider: "staging-mock",
+    model: "staging-llm-mock",
+    isMock: true,
+    truncated: false,
+    finishReason: "STOP",
   };
 }
 
@@ -985,6 +1121,9 @@ export async function callLLM(
   env?: CloudflareEnv,
 ): Promise<LLMResponse> {
   const localized = applyOutputLocale(request);
+  if (isStagingLlmMockEnabled(env)) {
+    return buildStagingMockResponse(localized);
+  }
   if (localized.cache?.store) {
     return withLLMCache(localized, (req) => callLLMUncached(req, env), localized.cache);
   }

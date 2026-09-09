@@ -15,6 +15,7 @@ import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { cmsPromptModelConfig, cmsPromptText } from "../lib/cms-prompts.js";
 import { tokensRequiredForChars } from "../lib/llm-budget.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
@@ -1152,7 +1153,7 @@ async function generateSectionedConsultation(env, input, chart, options = {}) {
     });
     const provider = clean(ai?.provider || "");
     const model = clean(ai?.model || "");
-    if (/mock/i.test(provider) || /mock/i.test(model) || ai?.isMock === true) {
+    if ((/mock/i.test(provider) || /mock/i.test(model) || ai?.isMock === true) && !isStagingLlmMockEnabled(env)) {
       const error = new Error(LLM_ERROR_MESSAGE);
       error.code = "MOCK_PROVIDER_BLOCKED";
       error.status = 503;
@@ -1252,7 +1253,7 @@ async function generateConsultation(env, prompt, options = {}) {
   const provider = clean(ai?.provider || "");
   const model = clean(ai?.model || "");
   console.info("[AstrologyAI] provider selected", { provider, model });
-  const isMock = /mock/i.test(provider) || /mock/i.test(model) || ai?.isMock === true;
+  const isMock = (/mock/i.test(provider) || /mock/i.test(model) || ai?.isMock === true) && !isStagingLlmMockEnabled(env);
   let content = sanitizeConsultationText(ai?.text || "");
   let finalProvider = provider;
   let finalModel = model;
@@ -1281,7 +1282,7 @@ async function generateConsultation(env, prompt, options = {}) {
     });
     const repairProvider = clean(repair?.provider || finalProvider);
     const repairModel = clean(repair?.model || finalModel);
-    const repairIsMock = /mock/i.test(repairProvider) || /mock/i.test(repairModel) || repair?.isMock === true;
+    const repairIsMock = (/mock/i.test(repairProvider) || /mock/i.test(repairModel) || repair?.isMock === true) && !isStagingLlmMockEnabled(env);
     if (repairIsMock) {
       const error = new Error(LLM_ERROR_MESSAGE);
       error.code = "MOCK_PROVIDER_BLOCKED";
@@ -1309,7 +1310,7 @@ async function generateConsultation(env, prompt, options = {}) {
     });
     const repairProvider = clean(repair?.provider || finalProvider);
     const repairModel = clean(repair?.model || finalModel);
-    const repairIsMock = /mock/i.test(repairProvider) || /mock/i.test(repairModel) || repair?.isMock === true;
+    const repairIsMock = (/mock/i.test(repairProvider) || /mock/i.test(repairModel) || repair?.isMock === true) && !isStagingLlmMockEnabled(env);
     if (repairIsMock) {
       const error = new Error(LLM_ERROR_MESSAGE);
       error.code = "MOCK_PROVIDER_BLOCKED";

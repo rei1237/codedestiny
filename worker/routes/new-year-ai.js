@@ -11,6 +11,7 @@ import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { handleBillingRoutes, BILLING_SNAPSHOT_USER_PROJECTION } from "./billing.js";
@@ -1854,7 +1855,7 @@ async function generateConsultationSection(env, options) {
       logContext,
     });
     const provider = clean(ai?.provider || ai?.model || "gemini");
-    const isMock = /mock/i.test(provider) || ai?.isMock === true;
+    const isMock = (/mock/i.test(provider) || ai?.isMock === true) && !isStagingLlmMockEnabled(env);
     const text = clean(ai?.text);
     if (!ai?.ok || isMock || text.length < NEW_YEAR_AI_SECTION_MIN_LENGTH) {
       return { ...base, text: previousText, ok: false, isMock, reason: clean(ai?.error || ai?.message || "SECTION_FAILED", 120) };

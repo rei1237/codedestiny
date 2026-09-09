@@ -160,6 +160,7 @@ const __CD_DEFER_INP_ACTIONS = new Set([
 ]);
 
 function __loadScriptOnce(src) {
+  if (typeof window.__cdLoadScriptOnce === 'function') return window.__cdLoadScriptOnce(src);
   if (!src) return Promise.reject(new Error('missing src'));
   const normSrcRaw = src.replace(/^\.\//, '');
   const normSrc =

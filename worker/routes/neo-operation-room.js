@@ -14,6 +14,7 @@ import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { SYNC_LLM_TIMEOUT_CEILING_MS } from "../lib/sync-llm-timeout.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { calculateLifeBookAiSaju } from "../lib/life-book-ai-saju.js";
@@ -1024,7 +1025,7 @@ async function generateNeoSectionOnce(env, section, prompt, cacheConfig, deadlin
     }
     const provider = clean(ai?.provider || "");
     const model = clean(ai?.model || "");
-    const isMock = /mock/i.test(provider) || /mock/i.test(model) || ai?.isMock === true;
+    const isMock = (/mock/i.test(provider) || /mock/i.test(model) || ai?.isMock === true) && !isStagingLlmMockEnabled(env);
     if (!ai?.ok || isMock || clean(ai?.text).length < 40) {
       return { id: section.id, parsed: {}, provider, model, ok: false };
     }

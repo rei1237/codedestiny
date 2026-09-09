@@ -48,6 +48,7 @@ function buildSpotlightFeatures(copy: AppShellCopy): Array<FeatureMarketingTarge
 
 function normalizeLaunchRoute(route: string) {
   if (!route) return "/";
+  if (route.includes("action=cdOneStepFreeSajuEntry")) return "/?action=cdOneStepFreeSajuEntry";
   if (route.includes("action=openTarotModal")) return "/tarot/mingri";
   if (route.includes("action=openSukuyoModal")) return "/oracle/sukuyo";
   if (route.includes("action=navigateToVedic")) return "/vedic/jyotish";
@@ -100,7 +101,7 @@ export default function AppHomeClient() {
         <p className="cd-app-body mt-2">{copy.heroBody}</p>
         <div className="mt-4 grid grid-cols-2 gap-2">
           <Link
-            href="/saju/basic"
+            href="/?action=cdOneStepFreeSajuEntry"
             className="cd-app-tap cd-app-press flex items-center justify-center gap-2 rounded-[var(--cd-app-radius-md)] px-3 text-center text-sm font-black no-underline"
             style={{ background: "var(--cd-app-gold)", color: "var(--cd-app-on-gold)" }}
           >

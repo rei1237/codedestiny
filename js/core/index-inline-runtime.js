@@ -2067,54 +2067,84 @@ function __cdNormalizeScriptSrc(src) {
   return '/' + raw;
 }
 
-function __cdLoadScriptOnce(src) {
-  return new Promise(function(resolve, reject) {
+var __cdSharedScriptLoader = window.__cdSharedScriptLoader || (function() {
+  var records = Object.create(null);
+
+  function keyFor(src) {
+    var normalized = __cdNormalizeScriptSrc(src);
+    if (!normalized) return '';
+    try {
+      return new URL(normalized, document.baseURI || window.location.href).href.split(/[?#]/)[0];
+    } catch (_) {
+      return normalized.split(/[?#]/)[0];
+    }
+  }
+
+  function findExisting(key) {
+    var scripts = document.querySelectorAll('script[src]');
+    for (var i = 0; i < scripts.length; i += 1) {
+      if (keyFor(scripts[i].getAttribute('src') || '') === key) return scripts[i];
+    }
+    return null;
+  }
+
+  function load(src) {
     var norm = __cdNormalizeScriptSrc(src);
-    if (!norm) {
-      reject(new Error('missing src'));
-      return;
-    }
+    var key = keyFor(norm);
+    if (!key) return Promise.reject(new Error('missing src'));
+    if (records[key]) return records[key];
 
-    var all = document.querySelectorAll('script[src]');
-    var fileName = norm.split('?')[0].split('/').pop();
-    var existing = null;
-    for (var i = 0; i < all.length; i += 1) {
-      var cur = all[i].getAttribute('src') || '';
-      var curBase = cur.split('?')[0];
-      if (cur === norm || curBase === norm.split('?')[0] || (fileName && curBase.indexOf('/' + fileName) !== -1)) {
-        existing = all[i];
-        break;
-      }
-    }
-
+    var existing = findExisting(key);
+    var task;
     if (existing) {
       if (existing.dataset.loaded === '1' || existing.readyState === 'complete' || existing.readyState === 'loaded') {
-        resolve();
-        return;
+        task = Promise.resolve();
+      } else if (existing.dataset.loading !== '1' && !existing.dataset.dynSrc) {
+        task = Promise.resolve();
+      } else {
+        task = new Promise(function(resolve, reject) {
+          existing.addEventListener('load', function() { resolve(); }, { once: true });
+          existing.addEventListener('error', function() { reject(new Error('load failed: ' + src)); }, { once: true });
+        });
       }
-      if (existing.dataset.loading !== '1') {
-        resolve();
-        return;
-      }
-      existing.addEventListener('load', function() { resolve(); }, { once: true });
-      existing.addEventListener('error', function() { reject(new Error('load failed: ' + src)); }, { once: true });
-      return;
+    } else {
+      task = new Promise(function(resolve, reject) {
+        var script = document.createElement('script');
+        script.src = norm;
+        script.defer = true;
+        script.async = true;
+        script.dataset.loading = '1';
+        script.dataset.dynSrc = '1';
+        script.onload = function() {
+          script.dataset.loading = '0';
+          script.dataset.loaded = '1';
+          resolve();
+        };
+        script.onerror = function() {
+          script.dataset.loading = '0';
+          script.dataset.loaded = '0';
+          script.remove();
+          reject(new Error('load failed: ' + src));
+        };
+        document.head.appendChild(script);
+      });
     }
 
-    var s = document.createElement('script');
-    s.src = norm;
-    s.defer = true;
-    s.async = true;
-    s.dataset.loading = '1';
-    s.onload = function() {
-      s.dataset.loading = '0';
-      s.dataset.loaded = '1';
-      resolve();
-    };
-    s.onerror = function() { reject(new Error('load failed: ' + src)); };
-    document.head.appendChild(s);
-  });
+    records[key] = task.catch(function(error) {
+      delete records[key];
+      throw error;
+    });
+    return records[key];
+  }
+
+  return { keyFor: keyFor, load: load };
+})();
+
+function __cdLoadScriptOnce(src) {
+  return __cdSharedScriptLoader.load(src);
 }
+
+window.__cdLoadScriptOnce = __cdLoadScriptOnce;
 
 function __cdOpenZiweiPremiumFromCard(event) {
   var target = __cdResolveEventElement(event);
@@ -2142,6 +2172,7 @@ if (document.readyState === 'loading') {
 var __cdSajuCoreLoadPromise = null;
 var __cdSwissEphLoadPromise = null;
 var __cdDestinyProfileLoadPromise = null;
+var __cdBirthModalDepsLoadPromise = null;
 var __cdPreloadedScriptHrefs = null;
 
 /* 스크립트 목록의 **다운로드만** 앞당긴다. 실행은 부르는 쪽이 하던 그대로 한다.
@@ -8198,6 +8229,7 @@ function __cdEnsureSukuyoZiweiCoreLoaded() {
 }
 
 function __cdEnsureBirthModalDepsLoaded() {
+  if (__cdBirthModalDepsLoadPromise) return __cdBirthModalDepsLoadPromise;
   var presentationReady = window.BasicFortunePresentation
     ? Promise.resolve()
     : __cdLoadScriptOnce('/js/core/saju/basicFortunePresentation.js?v=build-3d64b8d0076a');
@@ -8213,8 +8245,11 @@ function __cdEnsureBirthModalDepsLoaded() {
     }));
   }
   tasks.push(__cdEnsureSukuyoZiweiCoreLoaded());
-  if (!tasks.length) return Promise.resolve(true);
-  return Promise.all(tasks).then(function() { return true; });
+  __cdBirthModalDepsLoadPromise = Promise.all(tasks).then(function() { return true; }).catch(function(err) {
+    __cdBirthModalDepsLoadPromise = null;
+    throw err;
+  });
+  return __cdBirthModalDepsLoadPromise;
 }
 
 var _cdBasicFortuneModalState = window.__cdBasicFortuneModalState || {
@@ -8350,15 +8385,36 @@ if (!window.__cdBasicFortuneModalKeysBound) {
   });
 }
 
+var __cdSukuyoModalState = window.__cdSukuyoModalState || { open: false, generation: 0, pending: null };
+window.__cdSukuyoModalState = __cdSukuyoModalState;
+
 function openSukuyoModal(_retried) {
-  if (!_retried && __cdBirthModalDepsMissing()) {
-    __cdEnsureBirthModalDepsLoaded()
-      .then(function() { openSukuyoModal(true); })
-      .catch(function(err) { console.error('[openSukuyoModal] dependency load failed:', err); });
-    return;
-  }
   var overlay = document.getElementById('sukuyoModalOverlay');
   if (!overlay) return;
+  if (!_retried) {
+    if (__cdSukuyoModalState.open) return __cdSukuyoModalState.pending || true;
+    __cdSukuyoModalState.open = true;
+    __cdSukuyoModalState.generation += 1;
+    var generation = __cdSukuyoModalState.generation;
+    if (__cdBirthModalDepsMissing()) {
+      __cdSukuyoModalState.pending = __cdEnsureBirthModalDepsLoaded()
+        .then(function() {
+          if (!__cdSukuyoModalState.open || __cdSukuyoModalState.generation !== generation) return false;
+          return openSukuyoModal(true);
+        })
+        .catch(function(err) {
+          if (__cdSukuyoModalState.generation === generation) {
+            __cdSukuyoModalState.open = false;
+            __cdSukuyoModalState.pending = null;
+          }
+          console.error('[openSukuyoModal] dependency load failed:', err);
+          return false;
+        });
+      return __cdSukuyoModalState.pending;
+    }
+  }
+  if (!__cdSukuyoModalState.open) return false;
+  __cdSukuyoModalState.pending = null;
   __cdForceUnlockBodyScroll();
   var s = _dpStorage();
   var profiles = _dpNormalizeProfileListForFeature(s ? s.list() : []);
@@ -8387,7 +8443,12 @@ function openSukuyoModal(_retried) {
 }
 function closeSukuyoModal(options) {
   var o = document.getElementById('sukuyoModalOverlay'); if (o) o.style.display = 'none';
-  _ModalProfileState.unsubscribe('sukuyo');
+  __cdSukuyoModalState.open = false;
+  __cdSukuyoModalState.generation += 1;
+  __cdSukuyoModalState.pending = null;
+  if (typeof _ModalProfileState !== 'undefined' && _ModalProfileState && typeof _ModalProfileState.unsubscribe === 'function') {
+    _ModalProfileState.unsubscribe('sukuyo');
+  }
   _cdBasicFortuneModalClosed('sukuyo', o, options);
 }
 
@@ -9187,12 +9248,14 @@ window.resetTarotForCategorySelection = resetTarotForCategorySelection;
 function openTarotModal() {
   var overlay = document.getElementById('tarotModalOverlay');
   if (!overlay) return;
-  var didShow = false;
+  var state = window.__cdTarotModalState || { open: false, generation: 0, pending: null };
+  window.__cdTarotModalState = state;
+  if (state.open) return state.pending || true;
+  state.open = true;
+  state.generation += 1;
+  var generation = state.generation;
+  overlay.style.display = 'block';
   var showOverlay = function() {
-    if (didShow) return;
-    didShow = true;
-    overlay.style.display = 'block';
-    if (typeof window.setTarotMode === 'function') window.setTarotMode(window.tarotSpreadMode || 'one');
     if (window._perf && window._perf.lockBody) window._perf.lockBody();
     else document.body.style.overflow = 'hidden';
     var w = window.innerWidth || document.documentElement.clientWidth;
@@ -9201,23 +9264,32 @@ function openTarotModal() {
       req.call(overlay).catch(function() {});
     }
   };
+  showOverlay();
 
   // 타로 엔진이 늦게 로드되면 카테고리/카드 클릭이 무반응이 될 수 있어 모달 오픈 전에 보장한다.
   if (typeof __cdEnsureSajuCoreLoaded === 'function') {
-    __cdEnsureSajuCoreLoaded()
+    state.pending = __cdEnsureSajuCoreLoaded()
       .then(function() {
-        if (overlay.style.display !== 'none' && typeof window.setTarotMode === 'function') {
+        if (state.open && state.generation === generation && overlay.style.display !== 'none' && typeof window.setTarotMode === 'function') {
           window.setTarotMode(window.tarotSpreadMode || 'one');
         }
       })
       .catch(function(err) {
         console.error('[tarot] core preload failed:', err);
+      })
+      .finally(function() {
+        if (state.generation === generation) state.pending = null;
       });
+  } else if (typeof window.setTarotMode === 'function') {
+    window.setTarotMode(window.tarotSpreadMode || 'one');
   }
-
-  showOverlay();
 }
 function closeTarotModal() {
+  var state = window.__cdTarotModalState || { open: false, generation: 0, pending: null };
+  window.__cdTarotModalState = state;
+  state.open = false;
+  state.generation += 1;
+  state.pending = null;
   var isFs = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
   if (isFs) {
     var exit = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;

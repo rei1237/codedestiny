@@ -3925,7 +3925,7 @@ const FEATURE_DEFINITIONS: ServiceFeatureDefinition[] = ([
     category: "saju",
     image: stableServiceAsset("/fuctionassets/saju.webp"),
     detailRoute: "/services/saju",
-    launchRoute: "/saju/basic/play",
+    launchRoute: "/?action=cdOneStepFreeSajuEntry",
     accessType: "free",
   },
   {

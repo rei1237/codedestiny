@@ -12,6 +12,7 @@ import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
 import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { calculateLifeBookAiSaju } from "../lib/life-book-ai-saju.js";
@@ -1435,7 +1436,7 @@ async function generateSectionOnce(env, section, prompt, options = {}) {
     });
     base.durationMs = Date.now() - startedAt;
     const provider = clean(ai?.provider || ai?.model || "gemini");
-    const isMock = /mock/i.test(provider) || ai?.isMock === true;
+    const isMock = (/mock/i.test(provider) || ai?.isMock === true) && !isStagingLlmMockEnabled(env);
     const text = clean(ai?.text);
     base.provider = provider;
     base.model = clean(ai?.model);

@@ -24,15 +24,32 @@
     );
   }
 
+  function sourceKey(src) {
+    try {
+      return new URL(src, window.location.href).href.split(/[?#]/)[0];
+    } catch (_) {
+      return String(src || '').split(/[?#]/)[0];
+    }
+  }
+
+  function loadOne(src) {
+    if (typeof window.__cdLoadScriptOnce === 'function') return window.__cdLoadScriptOnce(src);
+    return new Promise(function (resolve, reject) {
+      var s = document.createElement('script');
+      s.src = src;
+      s.defer = true;
+      s.async = false;
+      s.onload = function () { resolve(); };
+      s.onerror = function () { reject(new Error('load failed: ' + src)); };
+      document.body.appendChild(s);
+    });
+  }
+
   function loadSeq(srcList, idx) {
-    if (idx >= srcList.length) return;
-    var s = document.createElement('script');
-    s.src = srcList[idx];
-    s.defer = true;
-    s.async = false;
-    s.onload = function () { loadSeq(srcList, idx + 1); };
-    s.onerror = function () { loadSeq(srcList, idx + 1); };
-    document.body.appendChild(s);
+    if (idx >= srcList.length) return Promise.resolve();
+    return loadOne(srcList[idx])
+      .catch(function () {})
+      .then(function () { return loadSeq(srcList, idx + 1); });
   }
 
   function preconnectOrigins(srcList) {
@@ -68,7 +85,7 @@
       var delayLevel = Number(node.getAttribute('data-cd-mobile-delay') || '0');
       if (isMobile() && delayLevel > interactionCount) continue;
       var src = node.getAttribute('data-cd-lazy-src');
-      if (!src || loadedSrcMap[src]) continue;
+      if (!src || loadedSrcMap[sourceKey(src)]) continue;
       srcList.push(src);
     }
     if (!srcList.length) return;
@@ -78,11 +95,10 @@
     preconnectOrigins(srcList);
 
     var start = function () {
-      loadSeq(srcList, 0);
+      loadSeq(srcList, 0).finally(function () { loading = false; });
       for (var i = 0; i < srcList.length; i += 1) {
-        loadedSrcMap[srcList[i]] = 1;
+        loadedSrcMap[sourceKey(srcList[i])] = 1;
       }
-      loading = false;
     };
     if (typeof window.requestIdleCallback === 'function') {
       requestIdleCallback(start, { timeout: 1200 });
@@ -133,4 +149,3 @@
 
   boot();
 })();
-

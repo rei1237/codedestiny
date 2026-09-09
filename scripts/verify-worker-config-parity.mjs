@@ -75,6 +75,7 @@ const MUST_DIFFER_KEYS = new Set([
 /** 스테이징에만 있어야 하는 키. 프로덕션에 나타나면 실패한다. */
 const STAGING_ONLY_KEYS = new Set([
   "vars.APP_ENV",
+  "vars.STAGING_LLM_MOCK_ENABLED",
   "vars.CORS_ORIGIN",
   // 🔴 스테이징 1,000원 결제 테스트 모드의 두 스위치 중 하나. APP_ENV 와 **둘 다** 있어야 켜지고
   //    (worker/lib/portone.js resolveTestChargeAmountKRW), 둘 다 여기 선언돼 프로덕션 유입이 막힌다.

@@ -162,6 +162,7 @@ export async function callGeminiText(env, prompt, options = {}) {
       text: result.text,
       model: result.model,
       provider: normalizeProvider(result.provider),
+      isMock: result.isMock === true,
       truncated: result.truncated === true,
       finishReason: clean(result.finishReason, 40),
     };

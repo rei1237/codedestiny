@@ -13,7 +13,7 @@ assert.ok(quickSection, "홈 무료 바로 시작 섹션을 찾지 못했습니�
 
 const expectedQuickLinks = [
   'href="/today/" data-cd-service-id="daily-fortune"',
-  'href="/saju/basic/play/" data-cd-service-id="saju"',
+  'href="/?action=cdOneStepFreeSajuEntry" data-action="cdOneStepFreeSajuEntry" data-cd-service-id="saju"',
   'href="/index.html?action=openTarotModal" data-action="openTarotModal" data-cd-service-id="tarot"',
   'href="/ziwei/chart/" data-cd-service-id="ziwei"',
   'href="/index.html?action=openSukuyoModal" data-action="openSukuyoModal" data-cd-service-id="sukuyo"',
@@ -33,7 +33,7 @@ for (const seoRoot of [
 
 for (const entry of [
   ['daily-fortune', '/today/', null],
-  ['saju', '/saju/basic/play/', null],
+  ['saju', '/?action=cdOneStepFreeSajuEntry', 'cdOneStepFreeSajuEntry'],
   ['tarot', '/index.html?action=openTarotModal', 'openTarotModal'],
   ['ziwei', '/ziwei/chart/', null],
   ['sukuyo', '/index.html?action=openSukuyoModal', 'openSukuyoModal'],
