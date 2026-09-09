@@ -942,8 +942,31 @@
       "dictNs": "openSukuyoModal"
     },
     "/index.html?action=openTarotModal": {
-      "copy": {},
-      "dictNs": "openTarotModal"
+      "copy": {
+        "answersQuestions": [
+          "지금 제 마음은 어떤 상태인가요?",
+          "이 선택은 어떤 결과로 이어질까요?",
+          "무엇을 놓치고 있나요?"
+        ],
+        "badge": "무료 시작",
+        "category": "타로",
+        "ctaLabel": "무료로 타로 뽑기",
+        "featureId": "tarot",
+        "headline": "지금 마음에 걸린 질문을 카드 한 장으로 꺼내 보세요.",
+        "painPoints": [
+          "생각이 정리되지 않아 답답할 때",
+          "오늘의 마음을 확인하고 싶을 때",
+          "타로가 처음이라 어렵게 느껴질 때"
+        ],
+        "previewText": "점괘를 단정하지 않고, 카드의 상징을 지금 상황에 붙여 읽어 줍니다.",
+        "recommendedFor": [
+          "타로를 처음 보는 분",
+          "오늘의 마음을 짚고 싶은 분",
+          "가볍게 질문을 던져 보고 싶은 분"
+        ],
+        "subheadline": "질문을 정하고 카드를 뽑으면 그 상징이 지금의 감정과 선택을 어떻게 비추는지 풀어 주는 기본 타로입니다."
+      },
+      "dictNs": "tarot"
     },
     "/insights/famous-saju": {
       "copy": {
@@ -2220,7 +2243,7 @@
       },
       "dictNs": "saju"
     },
-    "/saju/basic/play": {
+    "/saju/basic/play/": {
       "copy": {
         "answersQuestions": [
           "제 타고난 성향은 어떤가요?",
@@ -3308,7 +3331,7 @@
       },
       "dictNs": "ziwei"
     },
-    "/ziwei/chart": {
+    "/ziwei/chart/": {
       "copy": {
         "badge": "명반 리딩",
         "category": "자미두수",
