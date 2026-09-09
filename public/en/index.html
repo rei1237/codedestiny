@@ -33248,15 +33248,13 @@ function updateBadge() {
 <script type="module" src="/js/app.js?v=build-65e98bde3f18"></script>
 <!-- Feature Preview Panel v2 -->
 <template id="tilePvwOverlayTemplate" data-component="MobileFeatureBottomSheetTemplate">
-<div id="tilePvwOverlay" class="tile-pvw-overlay MobileFeatureBottomSheet" data-component="MobileFeatureBottomSheet" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="tilePvwTitle" data-marker="main-overlay-dedupe-v20260625 mobile-feature-bottom-sheet-v20260701 feature-marketing-detail-v20260702">
+<div id="tilePvwOverlay" class="tile-pvw-overlay cd-detail-overlay MobileFeatureBottomSheet" data-cd-detail-overlay="" data-component="MobileFeatureBottomSheet" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="tilePvwTitle" data-marker="main-overlay-dedupe-v20260625 mobile-feature-bottom-sheet-v20260701 feature-marketing-detail-v20260702">
   <div class="tile-pvw-bd" id="tilePvwBd"></div>
-  <div class="tile-pvw-sheet" id="tilePvwSheet">
+  <div class="tile-pvw-sheet cd-detail-panel" id="tilePvwSheet" data-cd-detail-panel data-cd-detail-no-media="false">
     <div class="tile-pvw-handle" aria-hidden="true"></div>
     <button class="tile-pvw-close" id="tilePvwClose" aria-label="닫기" data-cd-trans-attr="aria-label:common.close">✕</button>
-    <!-- 스크롤 영역: 히어로 + 본문. CTA 만 이 밖(시트 바닥)에 남는다. -->
-    <div class="tile-pvw-scroll" id="tilePvwScroll">
-    <!-- 히어로 이미지 섹션 -->
-    <div class="tile-pvw-hero" id="tilePvwHero">
+    <!-- 데스크톱에서는 이미지와 본문이 나란히, 모바일에서는 이미지가 먼저 온다. -->
+    <div class="tile-pvw-hero cd-detail-visual" id="tilePvwHero" data-cd-detail-visual>
       <img class="tile-pvw-hero-img" id="tilePvwHeroImg" alt="" loading="lazy" decoding="async" width="800" height="450">
       <div class="tile-pvw-hero-gradient" aria-hidden="true"></div>
       <div class="tile-pvw-hero-badges">
@@ -33264,8 +33262,11 @@ function updateBadge() {
         <span class="tile-pvw-hero-cost" id="tilePvwCost"></span>
       </div>
     </div>
+    <div class="tile-pvw-column cd-detail-column">
+    <!-- 스크롤 영역: 본문만 스크롤하고 CTA는 시트 바닥에 남는다. -->
+    <div class="tile-pvw-scroll" id="tilePvwScroll">
     <!-- 콘텐츠 영역 -->
-    <div class="tile-pvw-content">
+    <div class="tile-pvw-content cd-detail-content" data-cd-detail-content>
       <h2 class="tile-pvw-title" id="tilePvwTitle"></h2>
       <p class="tile-pvw-tagline" id="tilePvwTagline"></p>
       <div class="tile-pvw-divider" aria-hidden="true"></div>
@@ -33342,6 +33343,7 @@ function updateBadge() {
       <p class="tile-pvw-cta-note" id="tilePvwCtaNote" hidden></p>
       <div class="tile-pvw-cta-meta" id="tilePvwCtaMeta" aria-live="polite"></div>
     </div>
+    </div><!-- /.tile-pvw-column -->
   </div>
 </div>
 </template>
@@ -34828,6 +34830,7 @@ function updateBadge() {
     _lastFocusFallback=(tile&&tile.closest)?(tile.closest('.feat-collection,.tarot-collection')||tile.parentElement):null;
     _setBackgroundInert(true);
     _ov.setAttribute('aria-hidden','false');
+    _ov.setAttribute('data-cd-detail-overlay','open');
     _ov.setAttribute('aria-modal','true');
     _ov.classList.toggle('pvw-prem',!!tile.classList.contains('prem-card'));
     var action=tile.getAttribute('data-action')||'';
@@ -34873,6 +34876,7 @@ function updateBadge() {
     var imgWrap=tile.querySelector('[data-img-src]');
     var imgSrc=(imgWrap&&imgWrap.getAttribute('data-img-src'))||(tile.querySelector('img[src]')&&tile.querySelector('img[src]').getAttribute('src'))||d.img||'';
     var _heroEl=document.getElementById('tilePvwHero');
+    if(_sheet)_sheet.setAttribute('data-cd-detail-no-media',imgSrc?'false':'true');
     if(_heroImg&&imgSrc){
       _heroImg.classList.remove('pvw-img-enter','img-fallback-broken');
       _heroImg.style.removeProperty('object-fit');
@@ -34884,6 +34888,7 @@ function updateBadge() {
         _heroImg.onerror=null;
         _heroImg.onload=null;
         if(_heroEl)_heroEl.style.display='none';
+        if(_sheet)_sheet.setAttribute('data-cd-detail-no-media','true');
       };
       _heroImg.src=imgSrc;
       _heroImg.alt=_titleEl.textContent || d.fallbackTitle || '';
@@ -34902,6 +34907,7 @@ function updateBadge() {
       }
     } else if(_heroEl){
       _heroEl.style.display='none';
+      if(_sheet)_sheet.setAttribute('data-cd-detail-no-media','true');
     }
 
     // 결제/해금 paywall 정보
@@ -35035,7 +35041,7 @@ function updateBadge() {
   function _close(){
     var closingOverlay=_ov;
     var returnTarget=_lastTrigger;
-    if(_ov){_ov.classList.remove('pvw-open');_ov.classList.remove('pvw-prem');_ov.setAttribute('aria-hidden','true');}
+    if(_ov){_ov.classList.remove('pvw-open');_ov.classList.remove('pvw-prem');_ov.setAttribute('aria-hidden','true');_ov.setAttribute('data-cd-detail-overlay','');}
     _setBackgroundInert(false);
     try {
       if (typeof window.__cdUnlockBodyScroll === 'function') window.__cdUnlockBodyScroll('tile-preview');
@@ -36282,7 +36288,8 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 .tile-pvw-premium-block.is-marketing-detail .tile-pvw-premium-list li{position:relative;padding-left:18px;color:rgba(226,239,255,.9)}
 .tile-pvw-premium-block.is-marketing-detail .tile-pvw-premium-list li::before{content:'•';position:absolute;left:3px;color:#f6d76b}
 </style>
-<style id="tile-preview-styles">
+<!-- Legacy detail rules are retained for source history but disabled; the shared contract owns this surface. -->
+<style id="tile-preview-styles" media="not all" data-legacy-disabled="feature-marketing-detail-shared-style-v1">
 /* === Feature Preview Panel v2 (이미지 포함 상세 페이지) === */
 .tile-pvw-overlay{position:fixed;inset:0;z-index:99990;display:flex;align-items:flex-end;justify-content:center;visibility:hidden;pointer-events:none;opacity:0;transition:opacity .28s ease,visibility 0s linear .28s}
 .tile-pvw-overlay.pvw-open{visibility:visible;pointer-events:all;opacity:1;transition:opacity .28s ease}
@@ -36361,7 +36368,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 .tile-pvw-cta-meta{min-height:20px;margin-top:10px;font-size:.76rem;color:rgba(216,206,255,.82);text-align:center;letter-spacing:.01em}
 @keyframes tilePvwSpin{to{transform:rotate(360deg)}}
 </style>
-<style id="tile-pvw-premium-clean-detail-v20260616">
+<style id="tile-pvw-premium-clean-detail-v20260616" media="not all" data-legacy-disabled="feature-marketing-detail-shared-style-v1">
 .tile-pvw-overlay.pvw-prem{align-items:center;justify-content:center;box-sizing:border-box;padding:clamp(16px,3vw,42px);overflow:auto}
 .tile-pvw-overlay.pvw-prem .tile-pvw-sheet{display:grid;grid-template-columns:minmax(340px,.95fr) minmax(360px,1.05fr);width:min(1120px,100%);max-height:min(92dvh,840px);min-height:0;border:1px solid rgba(148,163,184,.32);border-radius:18px;overflow:hidden;transform:translateY(24px) scale(.985)}
 .tile-pvw-overlay.pvw-prem.pvw-open .tile-pvw-sheet{transform:translateY(0) scale(1)}
@@ -36397,7 +36404,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   .tile-pvw-overlay.pvw-prem .tile-pvw-tagline{font-size:.9rem}
 }
 </style>
-<style id="tile-pvw-theme-materials-v20260721">
+<style id="tile-pvw-theme-materials-v20260721" media="not all" data-legacy-disabled="feature-marketing-detail-shared-style-v1">
 /* === 기능 상세 시트: 연이/네오 재질 ===
    이 시트는 두 테마 어디에도 없는 제3의 팔레트(다크 네이비 + 틸/시안 글로우 + 오렌지 CTA)로
    칠해져 있었다. 연이(밝은 꽃) 모드에서도 다크 시트가 떠서 뒤 화면과 인격이 갈렸다.
@@ -36693,7 +36700,7 @@ html.neo-mode .tile-pvw-overlay.pvw-prem .tile-pvw-cta-sticky,body.neo-mode .til
   .tile-pvw-overlay.pvw-prem .tile-pvw-hero-badges{top:auto;bottom:12px;left:14px;right:14px}
 }
 </style>
-<style id="tile-pvw-yeon-dark-v20260722">
+<style id="tile-pvw-yeon-dark-v20260722" media="not all" data-legacy-disabled="feature-marketing-detail-shared-style-v1">
 /* === 프리뷰 시트: 연이 Dark(핑크 다크) + 금박 헤어라인 — 모바일 전용 ===
    앞 블록(v20260721)은 연이를 밝은 크림으로 확정했다. 모바일에서는 이 시트가 카드 아트를
    전면에 세우는 화면이라, 크림 바탕이 아트의 채도를 죽이고 배지·가격이 떠 보였다.
@@ -36796,6 +36803,7 @@ html.neo-mode .tile-pvw-overlay.pvw-prem .tile-pvw-cta-sticky,body.neo-mode .til
   html:not(.neo-mode) .tile-pvw-cta-meta{color:rgba(255,214,232,.78)!important}
 }
 </style>
+<link rel="stylesheet" href="/styles/feature-marketing-detail.css?v=build-d151ee62cf78" data-marker="feature-marketing-detail-shared-style-v1">
 <style id="saju-newyear-premium-image-card">
   .lifebook-tile.saju-newyear-tile {
     background:
