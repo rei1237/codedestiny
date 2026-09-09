@@ -1021,7 +1021,7 @@ export async function generateFusionFortuneWithRealLLM({
     //    한도(~100s)를 넘겨 요청이 도중에 죽고 SSE 스트림이 끊긴다. 남은 예산으로 호출 상한을
     //    조여 요청이 끝까지 완주하게 한다.
     const saved = pickKeys(prior, group.keys);
-    if (!extraInstruction && validateFusionFortuneGroup(saved, group, validationOptions).ok
+    if ((!extraInstruction || (context.version === FUSION_EXPERT_VERSION && group.stage === 1)) && validateFusionFortuneGroup(saved, group, validationOptions).ok
       && (context.version !== FUSION_EXPERT_VERSION || group.stage !== 1 || group.systems.every((system) => validFusionSignals(saved[`${system}Section`], system, context)))) {
       Object.assign(merged, saved);
       if (group.stage === 1) await emitFusionFortuneStage(onStage, group.id, { phase: "analysis" });
