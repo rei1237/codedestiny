@@ -157,5 +157,9 @@ export async function runPaymentReconcile(db, { grant, now = new Date(), limit =
   const expired = await expireStalePendingOrders(db, { now, limit });
   const locks = await releaseStaleRefundLocks(db, { now, limit });
   const resumePrivacy = await purgeExpiredResumePayloads(db, { now, limit });
-  return { regrant, expired, locks, resumePrivacy };
+  // Cold cron only; no gift queries on balance/home requests.
+  const { Gift } = await import("../lib/gift-models.js");
+  const gifts = await db.find(Gift, { status: "PAID", expiresAt: { $lte: now } }, { limit });
+  for (const gift of gifts) await db.updateOne(Gift, { _id: gift._id, status: "PAID", expiresAt: { $lte: now } }, { $set: { status: "EXPIRED", updatedAt: now } });
+  return { regrant, expired, locks, resumePrivacy, expiredGifts: gifts.length };
 }

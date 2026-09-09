@@ -112,7 +112,7 @@ function requireUser(userId) {
  * 🔴 새 무효화 초크포인트를 따로 만들지 말 것 — 이 함수가 클라이언트 확정·PG 웹훅·크론 정산을
  * 모두 덮는 유일한 지점이고, 갈라 놓으면 그중 하나가 조용히 죽는다(코딩 원칙 6).
  */
-function invalidateBalanceSnapshot(userId) {
+export function invalidateBalanceSnapshot(userId) {
   const normalizedUserId = String(userId || "");
   try {
     globalThis.__billingBalanceCache?.invalidateForUser?.(normalizedUserId);
@@ -152,6 +152,18 @@ async function applyNonPaidPgEvent(db, { eventType, orderId }) {
   const order = await findOrder(db, { orderId });
   if (!order) return { ignored: true, reason: "ORDER_NOT_FOUND" };
 
+  if (order.purchaseType === "GIFT") {
+    const { settleGiftCancellation } = await import("./gifts.js");
+    return db.transaction(async tx => {
+      const result = await settleGiftCancellation(tx, order, { partial });
+      if (!partial) {
+        await markOrderCancelled(tx, { orderId, reason: "PG_CANCELLED" });
+        await settleRefund(tx, { orderId });
+      }
+      await recordPgCancellationMarkers(tx, { orderId, partial, reviewRequired: result.reviewRequired });
+      return { event: partial ? "partial-cancelled" : "cancelled", ...result };
+    });
+  }
   if (partial) {
     // 부분취소는 금액 사실이 주문 문서와 어긋난 상태다 — 자동으로 상태·권한을 건드리지 않고
     // 사람이 판단한다(미결제 건의 부분취소는 PG 상 존재하지 않으므로 상태 전이 자체가 없다).
@@ -417,6 +429,15 @@ function presentMembershipPass(entitlement, coverage = {}) {
 
 async function handlePassPrepare({ request, env, ctx, userId, body, withDb }) {
   const { plan, paymentMethod, chargeKRW } = resolvePassRequest(env, body);
+  const purchaseType = body.purchaseType ?? "SELF";
+  if (!["SELF", "GIFT"].includes(purchaseType)) throw paymentError("INVALID_REQUEST", "구매 방식이 올바르지 않습니다.");
+  const gifts = purchaseType === "GIFT" ? await import("./gifts.js") : null;
+  if (gifts) {
+    gifts.assertGiftPurchasesEnabled(env, request);
+    const { assertGiftOrigin } = await import("./gift-routes.js");
+    assertGiftOrigin(request, env);
+  }
+  const giftDraft = gifts ? gifts.giftDraftFor(body.gift, plan) : null;
   ctx.productId = plan.planId;
 
   const headerKey = String(request.headers.get("Idempotency-Key") || request.headers.get("X-Idempotency-Key") || "").trim();
@@ -428,9 +449,10 @@ async function handlePassPrepare({ request, env, ctx, userId, body, withDb }) {
 
   const { order, user } = await withDb(env, ctx, async (db) => {
     const userDoc = await db.findOne(User, { _id: toObjectId(userId) });
-    await enforcePassPurchasePolicy(env, request, { userId, plan, paymentMethod, body, userDoc, route: "subscription_prepare" });
+    if (gifts) await gifts.assertGiftIndexes(db);
+    await enforcePassPurchasePolicy(env, request, { userId, plan, paymentMethod, body, userDoc: gifts ? null : userDoc, route: "subscription_prepare" });
     const transition = evaluatePassTierTransition(userDoc?.profileSubscription, plan.tier);
-    if (transition.code === "DOWNGRADE_BLOCKED") {
+    if (!gifts && transition.code === "DOWNGRADE_BLOCKED") {
       throw paymentError("SUBSCRIPTION_DOWNGRADE_BLOCKED", "이미 더 높은 등급의 이용권이 활성화되어 있습니다.", { activeTier: transition.activeTier });
     }
     /* 🔴 재사용할 수 없는 주문(다른 플랜·이미 결제됨·취소됨)은 409 가 아니라 **새 세대 주문**으로 답한다
@@ -440,7 +462,8 @@ async function handlePassPrepare({ request, env, ctx, userId, body, withDb }) {
        구매 차단처럼 구매 정책은 상품 가치 기준이어야 하고, 청구가로 판정하면 스테이징에서만
        정책이 달라진다. 주문에 실리는 금액만 청구가로 바꾼다. */
     const chargePlan = chargeKRW === Number(plan.wonPrice) ? plan : { ...plan, wonPrice: chargeKRW };
-    const created = await createPayablePassOrder(db, { userId, plan: chargePlan, idempotencyKey, paymentMethod, paidResume });
+    const created = await createPayablePassOrder(db, { userId, plan: chargePlan, idempotencyKey, paymentMethod, paidResume, purchaseType, giftDraft });
+    if (gifts) await gifts.ensureGiftForOrder(db, created);
     return { order: created, user: userDoc };
   });
   ctx.orderId = String(order.merchantUid || "");
@@ -465,6 +488,8 @@ async function handlePassPrepare({ request, env, ctx, userId, body, withDb }) {
       profileLimit: plan.profileLimit,
       durationDays: plan.durationDays,
       recurring: false,
+      purchaseType,
+      status: order.status,
     },
   }, { status: idempotent ? 200 : 201 });
 }
@@ -478,6 +503,7 @@ async function handlePassConfirm({ request, env, ctx, userId, body, withDb }) {
   const customerUid = String(body.customerUid || "").trim() || buildPassCustomerUid(userId);
   const tierFromBody = String(body.tier || body.passTier || body.subscriptionTier || "").trim();
   let plan = null;
+  let giftPurchase = false;
   let paymentMethod = "";
   /* 🔴 등급이 실려 오면 예전처럼 **주문을 읽기 전에** 전부 검증한다 — 월정석 결제수단 차단·기간·가격
      오류는 주문 조회 한 왕복도 쓰지 않고 400 이어야 한다(구 계약, payments-v2.subscription.test.js
@@ -493,6 +519,9 @@ async function handlePassConfirm({ request, env, ctx, userId, body, withDb }) {
     const order = await findOrder(db, { orderId });
     if (!order) throw paymentError("ORDER_NOT_FOUND", "이용권 주문을 찾을 수 없습니다.", { orderId });
     assertOrderOwner(order, userId);
+    giftPurchase = order.purchaseType === "GIFT";
+    if (order.purchaseType != null && !["SELF", "GIFT"].includes(order.purchaseType)) throw paymentError("INVALID_REQUEST", "구매 방식이 올바르지 않습니다.");
+    if (body.purchaseType !== undefined && body.purchaseType !== (order.purchaseType || "SELF")) throw paymentError("INVALID_REQUEST", "주문 구매 방식이 다릅니다.");
     /* 🔴 등급은 body 가 없어도 **주문에서 복원**한다. 모바일은 PG 가 상위 프레임을 리다이렉트하는데
        카카오페이처럼 다른 앱을 거쳐 돌아오면 안드로이드가 새 탭을 여는 일이 흔하고, 그러면 /points 가
        남긴 대기 정보(localStorage)를 못 읽는 문서가 복귀를 처리하게 된다. 예전에는 그 상태에서
@@ -516,8 +545,8 @@ async function handlePassConfirm({ request, env, ctx, userId, body, withDb }) {
       throw paymentError("SUBSCRIPTION_PLAN_MISMATCH", "이용권 주문의 등급이 일치하지 않습니다.");
     }
     const userDoc = await db.findOne(User, { _id: toObjectId(userId) });
-    await enforcePassPurchasePolicy(env, request, { userId, plan, paymentMethod, body, userDoc, route: "subscription_confirm" });
-    if (toOrderStatus(order) === "PENDING") {
+    await enforcePassPurchasePolicy(env, request, { userId, plan, paymentMethod, body, userDoc: giftPurchase ? null : userDoc, route: "subscription_confirm" });
+    if (!giftPurchase && toOrderStatus(order) === "PENDING") {
       // 활성화 전 하위등급 차단(구 계약). 이미 PAID 인 재생은 통과한다 — 구 confirm 도 재생을
       // 멱등 응답으로 흘려보냈고, 여기서 막으면 정상 결제의 재확인이 409 로 오탐된다.
       const transition = evaluatePassTierTransition(userDoc?.profileSubscription, plan.tier);
@@ -548,6 +577,11 @@ async function handlePassConfirm({ request, env, ctx, userId, body, withDb }) {
   const idempotent = result.replayed;
   ctx.paymentStatus = "PAID";
 
+  if (giftPurchase) return json({
+    ok: true, purchaseType: "GIFT", giftId: `gift_${orderId}`, orderId,
+    activationPending, idempotent, payment: { merchantUid: orderId, status: "paid" },
+    message: activationPending ? "결제가 확인됐어요. 선물을 준비 중이니 다시 결제하지 마세요." : "선물이 준비되었습니다.",
+  });
   const subscription = presentPassSubscription(user?.profileSubscription, plan, { customerUid, paymentMethod });
   // 응답 에코는 **실제 청구된 주문 금액**이다(정가가 아니다) — 영수증·내역 표시가 승인액과 어긋나지 않게 한다.
   const payment = { merchantUid: orderId, impUid, paymentAmount: Number(begun?.order?.paymentAmount || plan.wonPrice), paymentType: "membership_pass", status: "paid" };
@@ -730,7 +764,7 @@ async function grantPassOrderEntitlement(db, order) {
   // 내려 종전 동작으로 지급을 보장한다(돈은 이미 받았고, 지급 실패는 사용자가 재결제하게 만든다).
   let userDoc = await db.findOne(User, { _id: toObjectId(userId) });
   for (let attempt = 0; attempt < 3; attempt += 1) {
-    const replay = String(userDoc?.profileSubscription?.lastPassOrderId || "") === orderId;
+    const replay = String(userDoc?.profileSubscription?.lastPassOrderId || "") === orderId || userDoc?.passGrantOrderIds?.includes(orderId);
     const transition = evaluatePassTierTransition(userDoc?.profileSubscription, plan.tier);
     if (transition.code === "DOWNGRADE_BLOCKED" && !replay) {
       console.error("[payments] pass grant skipped", { orderId, code: "DOWNGRADE_BLOCKED", userId });
@@ -746,9 +780,10 @@ async function grantPassOrderEntitlement(db, order) {
       expiresAt: computePassExpiry({ transition, paidAt }),
       // 위에서 읽은 문서를 그대로 넘겨 활성화 함수의 재조회를 없앤다(왕복 6→5).
       existing: userDoc,
-      casGuard: attempt < 2,
+      casGuard: true,
     });
     if (!activation?.conflict) break;
+    if (attempt === 2) return false;
     userDoc = await db.findOne(User, { _id: toObjectId(userId) });
   }
   await markEntitlementGranted(db, { orderId });
@@ -758,6 +793,13 @@ async function grantPassOrderEntitlement(db, order) {
 /** 지급. 실패해도 던지지 않는다 — 돈은 이미 받았고, 실패를 오류로 올리면 사용자가 다시 결제한다. */
 async function grantOrderEntitlement(db, order) {
   try {
+    if (order.purchaseType === "GIFT") {
+      const { ensureGiftForOrder } = await import("./gifts.js");
+      await ensureGiftForOrder(db, order);
+      await markEntitlementGranted(db, { orderId: String(order.merchantUid) });
+      return true;
+    }
+    if (order.purchaseType != null && order.purchaseType !== "SELF") throw paymentError("INVALID_REQUEST", "Unknown purchase type");
     if (String(order?.paymentType || "") === "membership_pass") {
       const granted = await grantPassOrderEntitlement(db, order);
       // 구독 활성화는 잔액 스냅샷의 subscription/membership 블록을 바꾼다 — 45s TTL 이라 필수.
@@ -1490,6 +1532,10 @@ export async function handlePaymentsContext(request, env, options = {}) {
   const meta = getRequestMeta(request);
   const ctx = createPaymentContext({ requestId: meta.requestId, route: `${method} ${prefix}${path}` });
 
+  if (path.startsWith("/gifts/")) {
+    const { handleGiftRoute } = await import("./gift-routes.js");
+    return handleGiftRoute({ request, env, ctx, path: path.slice(6), withDb });
+  }
   const matched = matchRoute(method, path);
   if (!matched) return json({ ok: false, code: "NOT_FOUND", message: "Not found." }, { status: 404 });
 
@@ -1689,7 +1735,14 @@ export async function runPaymentsV2Reconcile(env) {
     } catch (error) {
       console.error("[payments-v2-reconcile] webhook replay failed:", String(error?.message || error));
     }
-    return { ...report, webhookReplay };
+    let giftRefunds = null;
+    try {
+      const { reconcileGiftRefunds } = await import("./gift-refund.js");
+      giftRefunds = await reconcileGiftRefunds(env);
+    } catch {
+      console.error("[GIFT_REFUND_RECONCILE_FAILED]", { requestId: ctx.requestId });
+    }
+    return { ...report, webhookReplay, giftRefunds };
   } catch (error) {
     const contract = classify(error);
     status = contract.status;
@@ -1708,5 +1761,5 @@ export async function runPaymentsV2Reconcile(env) {
 }
 
 export const __paymentsContextTestUtils = {
-  ROUTES, matchRoute, presentOrder, confirmOrder, evaluateConfirmable, settleVerifiedOrder, contractFor,
+  ROUTES, matchRoute, presentOrder, confirmOrder, evaluateConfirmable, settleVerifiedOrder, contractFor, applyNonPaidPgEvent,
 };

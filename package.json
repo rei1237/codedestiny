@@ -507,6 +507,8 @@
     "lint:changed": "node scripts/lint-changed-files.mjs",
     "typecheck": "tsc --noEmit",
     "test:node": "node scripts/run-mock-tests.mjs node",
+    "test:gifts:ui": "node scripts/verify-gift-ui.mjs",
+    "test:gifts:replica": "node scripts/run-mock-tests.mjs jest --runInBand --roots tests/integration --testMatch **/gifts.replica.integration.js",
     "test:jest": "node scripts/run-mock-tests.mjs jest",
     "test": "npm run test:jest && npm run test:node",
     "story:generate": "node scripts/build-story-text.mjs",

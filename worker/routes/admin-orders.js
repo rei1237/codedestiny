@@ -281,6 +281,23 @@ async function handleReconcile(request, env) {
 export async function handleAdminOrderRoutes(path, request, env, adminContext) {
   try {
     const method = request.method.toUpperCase();
+    if (path === "/gifts" && request.method === "GET") {
+      const { Gift } = await import("../lib/gift-models.js");
+      const url = new URL(request.url);
+      const q = (url.searchParams.get("q") || "").trim().slice(0, 160);
+      const cursor = url.searchParams.get("cursor") || "";
+      const filter = {};
+      if (q) {
+        filter.$or = ["giftId", "orderId", "paymentId", "productId", "status"].map(key => ({ [key]: q }));
+        if (OBJECT_ID_PATTERN.test(q)) filter.$or.push({ purchaserUserId: new mongoose.Types.ObjectId(q) }, { recipientUserId: new mongoose.Types.ObjectId(q) });
+      }
+      if (cursor) {
+        if (!OBJECT_ID_PATTERN.test(cursor)) throw createHttpError(400, "잘못된 페이지 ID 입니다.");
+        filter._id = { $lt: new mongoose.Types.ObjectId(cursor) };
+      }
+      const rows = await adminMongoRead(env, () => Gift.find(filter).select("giftId orderId paymentId purchaserUserId recipientUserId productId status purchasedAt claimedAt reviewRequired").sort({ _id: -1 }).limit(51).lean());
+      return json({ items: rows.slice(0, 50), nextCursor: rows.length > 50 ? String(rows[49]._id) : null }, { headers: { "Cache-Control": "no-store" } });
+    }
 
     if (path === "/" || path === "") {
       if (method === "GET") return await handleList(request, env);

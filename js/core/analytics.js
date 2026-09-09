@@ -17,6 +17,7 @@
  */
 (function () {
   "use strict";
+  if (typeof location !== "undefined" && /^\/gift(?:\/|$)/.test(location.pathname)) return;
 
   var global = typeof window !== "undefined" ? window : null;
   if (!global) return;

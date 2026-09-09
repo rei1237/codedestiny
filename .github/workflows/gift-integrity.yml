@@ -1,0 +1,42 @@
+name: Gift transaction integrity
+on:
+  pull_request:
+    paths:
+      - 'worker/payments/**'
+      - 'worker/lib/models.js'
+      - 'worker/lib/gift-models.js'
+      - 'worker/lib/payment-refund.js'
+      - 'worker/lib/profile-limits.js'
+      - 'worker/lib/db.js'
+      - 'lib/payment/**'
+      - 'tests/integration/gifts.replica.integration.js'
+      - '.github/workflows/gift-integrity.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  replica-transactions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Start isolated local replica set
+        run: |
+          docker run -d --name gift-test-mongo -p 127.0.0.1:27029:27029 mongo:8.0 --port 27029 --replSet gift-test --bind_ip_all --setParameter enableTestCommands=1
+          node <<'NODE'
+          const { MongoClient } = require('mongodb');
+          (async () => {
+            const c = await MongoClient.connect('mongodb://127.0.0.1:27029/?directConnection=true', { serverSelectionTimeoutMS: 30000 });
+            await c.db('admin').command({ replSetInitiate: { _id: 'gift-test', members: [{ _id: 0, host: '127.0.0.1:27029' }] } });
+            await c.close();
+          })().catch(e => { console.error(e.message); process.exit(1); });
+          NODE
+      - run: npm run test:gifts:replica
+      - name: Stop local test database
+        if: always()
+        run: docker rm -f gift-test-mongo

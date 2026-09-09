@@ -26,6 +26,7 @@ const loadFramerFeatures = () => import("@/lib/framer-features").then((mod) => m
 
 
 const CHROMELESS_ROUTES = [
+  "/gift",
   "/app",
   "/points/history",
   // 운기 다이어리는 자체 하단바(app/diary/_components/DiaryBottomNav.tsx)를 갖는다.
@@ -100,6 +101,7 @@ const IMMERSIVE_FORTUNE_ROUTES = [
 // Routes that render their own in-experience back/home controls, so the global
 // floating nav would duplicate and overlap them.
 const FEATURE_NAV_SELF_MANAGED_ROUTES = [
+  "/gift",
   "/points/history",
   "/fortune-tea-house",
   "/master-love-codex",
