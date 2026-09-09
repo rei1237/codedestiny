@@ -5,8 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <title>Geomancy Oracle — Codex Alchemicus</title>
-<script src="/js/core/pass-verdict.js?v=build-b3dfd5178fe3"></script>
-<script src="/js/core/checkout-entry.js?v=build-b3dfd5178fe3"></script>
+<script src="/js/core/standalone-ai-locale.js?v=20260909-1"></script>
+<script src="/js/core/pass-verdict.js?v=build-d2987b1ff23f"></script>
+<script src="/js/core/checkout-entry.js?v=build-d2987b1ff23f"></script>
 <script src="/js/core/payment-service.js?v=build-payment-service-v1"></script>
 <script src="/js/destiny-profile.js?v=build-41ca373a6995"></script>
 <style>
@@ -1300,9 +1301,11 @@ async function showResult(chart){
   ));
 
   // Set AI advice from judge
-  if(judgeData){
+  if(judgeData&&window.cdStandaloneAiLocale.current()==='ko'){
     document.getElementById('rs-advice').style.display='block';
     document.getElementById('rs-advice-txt').textContent=interp(judgeData).a;
+  }else{
+    document.getElementById('rs-advice').style.display='none';
   }
 
   // Show result screen
@@ -1321,9 +1324,11 @@ async function showResult(chart){
   document.getElementById('rs-ai-loading').classList.add('show');
   document.getElementById('rs-ai-txt').style.opacity='0';
 
+  const requestLocale=window.cdStandaloneAiLocale.current();
   const oracleResult=await fetchOracle(question,{cause:causeData,flow:flowData,judge:judgeData},t);
   document.getElementById('rs-ai-loading').classList.remove('show');
   document.getElementById('rs-ai-txt').style.opacity='1';
+  if(requestLocale!==window.cdStandaloneAiLocale.current())return;
 
   if(oracleResult?.advice){
     document.getElementById('rs-advice').style.display='block';
@@ -1333,7 +1338,9 @@ async function showResult(chart){
   if(oracleResult?.text){
     await typeOut(document.getElementById('rs-ai-txt'),oracleResult.text);
   } else {
-    document.getElementById('rs-ai-txt').textContent=buildLocalCombinedOracle(causeData,flowData,judgeData,t);
+    document.getElementById('rs-ai-txt').textContent=requestLocale==='ko'
+      ? buildLocalCombinedOracle(causeData,flowData,judgeData,t)
+      : geomancyLocaleCopy(requestLocale)[6];
   }
 }
 
@@ -1372,7 +1379,7 @@ async function fetchOracle(q,cards,t){
   if(!cards||!cards.judge)return null;
   try{
     var _authToken='';try{_authToken=localStorage.getItem('fortune_auth_token')||'';}catch(_e){}
-    const _headers={'Content-Type':'application/json'};
+    const _headers={'Content-Type':'application/json', 'x-code-destiny-locale':window.cdStandaloneAiLocale.current()};
     if(_authToken)_headers['Authorization']='Bearer '+_authToken;
     const r=await fetch('/api/oracle/geomancy',{
       method:'POST',
@@ -1390,22 +1397,41 @@ async function fetchOracle(q,cards,t){
     });
     if(!r.ok)return null;
     const data=await r.json();
-    const txt=formatOraclePayload(data);
+    const txt=formatOraclePayload(data,_headers['x-code-destiny-locale']);
     if(!txt)return null;
     return {text:txt,advice:data?.advice||data?.actionTip||null};
   }catch (e) {return null;}
 }
 
-function formatOraclePayload(data){
+function geomancyLocaleCopy(locale){
+  const copy={
+    ko:['핵심 판결','에너지 흐름','주의 신호','타이밍','실천 제안','현자의 경구','상담을 준비하지 못했어요. 잠시 후 다시 시도해 주세요.'],
+    en:['Key insight','Energy flow','Caution','Timing','Next steps','Closing advice','We could not prepare your reading. Please try again later.'],
+    ja:['大切な気づき','エネルギーの流れ','注意点','タイミング','次の行動','最後の助言','鑑定を準備できませんでした。しばらくしてから再度お試しください。'],
+    'zh-CN':['核心启示','能量流动','注意事项','时机','行动建议','最后的建议','暂时无法生成解读，请稍后重试。'],
+    'zh-TW':['核心啟示','能量流動','注意事項','時機','行動建議','最後的建議','暫時無法產生解讀，請稍後重試。'],
+    vi:['Điểm chính','Dòng năng lượng','Điều cần lưu ý','Thời điểm','Bước tiếp theo','Lời khuyên cuối','Chưa thể tạo bài luận giải. Vui lòng thử lại sau.'],
+    hi:['मुख्य संकेत','ऊर्जा का प्रवाह','सावधानी','समय','अगले कदम','अंतिम सलाह','आपका विश्लेषण तैयार नहीं हो सका। कृपया थोड़ी देर बाद फिर कोशिश करें।'],
+    es:['Idea principal','Flujo de energía','Precaución','Momento oportuno','Próximos pasos','Consejo final','No pudimos preparar tu lectura. Inténtalo de nuevo más tarde.'],
+    fr:['Éclairage principal','Flux d’énergie','Vigilance','Moment propice','Prochaines étapes','Dernier conseil','Votre lecture n’a pas pu être préparée. Veuillez réessayer plus tard.'],
+    de:['Zentrale Einsicht','Energiefluss','Hinweise','Zeitpunkt','Nächste Schritte','Abschließender Rat','Deine Deutung konnte nicht erstellt werden. Bitte versuche es später erneut.'],
+    nl:['Kerninzicht','Energiestroom','Aandachtspunten','Timing','Volgende stappen','Afsluitend advies','Je duiding kon niet worden opgesteld. Probeer het later opnieuw.'],
+    ms:['Pandangan utama','Aliran tenaga','Perhatian','Masa yang sesuai','Langkah seterusnya','Nasihat akhir','Bacaan anda belum dapat disediakan. Sila cuba lagi kemudian.']
+  };
+  return copy[locale]||copy.ko;
+}
+
+function formatOraclePayload(data,locale){
   if(!data||typeof data!=='object')return '';
+  const labels=geomancyLocaleCopy(locale||window.cdStandaloneAiLocale.current());
   const sections=[];
   if(data.answer)sections.push(String(data.answer).trim());
-  if(data.keyJudgement)sections.push('[핵심 판결]\n'+String(data.keyJudgement).trim());
-  if(data.energyFlow)sections.push('[에너지 흐름]\n'+String(data.energyFlow).trim());
-  if(data.risk)sections.push('[주의 신호]\n'+String(data.risk).trim());
-  if(data.timing)sections.push('[타이밍]\n'+String(data.timing).trim());
-  if(data.actionTip)sections.push('[실천 제안]\n'+String(data.actionTip).trim());
-  if(data.advice&&String(data.advice).trim()!==String(data.actionTip||'').trim())sections.push('[현자의 경구]\n'+String(data.advice).trim());
+  if(data.keyJudgement)sections.push('['+labels[0]+']\n'+String(data.keyJudgement).trim());
+  if(data.energyFlow)sections.push('['+labels[1]+']\n'+String(data.energyFlow).trim());
+  if(data.risk)sections.push('['+labels[2]+']\n'+String(data.risk).trim());
+  if(data.timing)sections.push('['+labels[3]+']\n'+String(data.timing).trim());
+  if(data.actionTip)sections.push('['+labels[4]+']\n'+String(data.actionTip).trim());
+  if(data.advice&&String(data.advice).trim()!==String(data.actionTip||'').trim())sections.push('['+labels[5]+']\n'+String(data.advice).trim());
   return sections.filter(Boolean).join('\n\n');
 }
 
@@ -1448,29 +1474,11 @@ window.addEventListener('DOMContentLoaded',()=>initRows());
 (function(){
   var GT_ID = 'cdStandaloneGtHost';
   var MAP = {
-    ko:'ko', en:'en', ja:'ja', 'zh-CN':'zh-CN', zh:'zh-CN',
+    ko:'ko', en:'en', ja:'ja', 'zh-CN':'zh-CN', 'zh-TW':'zh-TW', vi:'vi', zh:'zh-CN',
     hi:'hi', es:'es', fr:'fr', de:'de', nl:'nl', ms:'ms'
   };
-  function normalizeLang(v){
-    var l = String(v || 'ko').trim();
-    if (!l) return 'ko';
-    var low = l.toLowerCase();
-    if (low === 'zh' || low === 'zh-cn') return 'zh-CN';
-    if (low === 'jp') return 'ja';
-    return MAP[low] ? low : 'ko';
-  }
-  function resolveLang(){
-    try {
-      var q = new URLSearchParams(window.location.search || '');
-      var fromQuery = q.get('lang');
-      if (fromQuery) return normalizeLang(fromQuery);
-    } catch (_) {}
-    try {
-      var saved = localStorage.getItem('cd_lang');
-      if (saved) return normalizeLang(saved);
-    } catch (_) {}
-    return 'ko';
-  }
+  function normalizeLang(v){ return window.cdStandaloneAiLocale.normalize(v); }
+  function resolveLang(){ return window.cdStandaloneAiLocale.current(); }
   function writeGoogTransCookie(target){
     var value = '/ko/' + target;
     var host = (window.location.hostname || '').replace(/^www\./, '');

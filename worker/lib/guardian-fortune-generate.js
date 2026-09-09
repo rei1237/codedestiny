@@ -1,6 +1,8 @@
 import { buildGuardianFortuneContext, normalizeGuardianFortuneInput } from "./guardian-fortune-context.js";
 import { isDbUnavailableError } from "./http.js";
 import { generateGuardianFortuneWithConfiguredLLM } from "./guardian-fortune-llm.js";
+import { getAmbientAiLocale } from "./ai-locale-context.js";
+import { toAiLocale } from "../../lib/i18n/ai-locale.js";
 import {
   createGuardianFortuneShareDraftToken,
   isGuardianFortuneShareEnabled,
@@ -114,9 +116,10 @@ export async function generateGuardianFortuneRequest({
   const normalizedUserId = String(userId || "").trim();
   const isLoggedIn = Boolean(normalizedUserId);
   const effectiveDateKey = dateKey || getGuardianFortuneDateKey(now);
+  const safeInput = { ...input, locale: toAiLocale(getAmbientAiLocale() || input.locale), targetDate: effectiveDateKey };
   let normalizedInput;
   try {
-    normalizedInput = normalizeGuardianFortuneInput(input, { now });
+    normalizedInput = normalizeGuardianFortuneInput(safeInput, { now });
   } catch {
     const usage = await buildGuardianFortuneUsageStatus({ userId: normalizedUserId, guestIdHash, dateKey: effectiveDateKey, store, now });
     return errorResponse({
@@ -128,7 +131,6 @@ export async function generateGuardianFortuneRequest({
     });
   }
 
-  const safeInput = { ...input, targetDate: effectiveDateKey };
 
   let reservation;
   try {

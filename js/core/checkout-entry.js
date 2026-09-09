@@ -1346,7 +1346,14 @@
       if (value === null || type === "string" || type === "boolean") args[keys[i]] = value;
       else if (type === "number" && isFinite(value)) args[keys[i]] = value;
     }
-    return { kind: kind, action: text(input.action), args: args };
+    var locale = text(input.locale);
+    if (!locale) {
+      var win = runtimeWindow();
+      try { locale = win && typeof win.cdGetCurrentLanguage === "function" ? text(win.cdGetCurrentLanguage()) : ""; } catch (_) {}
+    }
+    var descriptor = { kind: kind, action: text(input.action), args: args };
+    if (DISPLAY_LOCALE_BY_LANG[locale]) descriptor.locale = locale;
+    return descriptor;
   }
 
   /* ── 재개 핸들러 레지스트리 ────────────────────────────────────────────────
@@ -1421,6 +1428,19 @@
   function invokePaidResumeHandler(handler, resume, grant) {
     var result;
     try {
+      var win = runtimeWindow();
+      // Restore the existing locale sources before the first resumed request.
+      // Locale is display context only; the grant and operation key stay intact.
+      if (win && resume.locale) {
+        if (win.__cdNativeLangBound && typeof win.changeLanguage === "function") {
+          win.changeLanguage(resume.locale);
+        } else if (win.history && win.location) {
+          var url = new URL(win.location.href);
+          url.searchParams.set("lang", resume.locale);
+          win.history.replaceState(win.history.state, "", url.toString());
+          win.dispatchEvent(new CustomEvent("cd:locale-ready", { detail: { lang: resume.locale } }));
+        }
+      }
       result = handler(resume, grant);
     } catch (_handlerError) {
       return Promise.resolve(false);

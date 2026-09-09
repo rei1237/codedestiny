@@ -125,7 +125,7 @@ function factBlock(snapshot, locale) {
 function subsectionBrief(id, locale) {
   if (id.startsWith("topic:")) {
     const topic = TOPIC_TITLES[id.slice("topic:".length)];
-    return `${id} (${topic ? topic[locale] : id})`;
+    return `${id} (${topic ? (topic[locale] || topic.en) : id})`;
   }
   if (id.startsWith("center:")) {
     const key = id.slice("center:".length);
@@ -164,7 +164,7 @@ export function buildHumanDesignReportSectionPrompt(input) {
     "",
     factBlock(snapshot, locale),
     "",
-    RULES[locale],
+    RULES[locale] || RULES.en,
   ].join("\n");
 
   // ── 가변 접미 ──────────────────────────────────────────────────────────────
@@ -221,7 +221,7 @@ export function buildHumanDesignReportSectionPrompt(input) {
 
   return {
     prompt: `${head}\n${tail.join("\n")}`,
-    systemPrompt: SYSTEM_PROMPT[locale],
+    systemPrompt: SYSTEM_PROMPT[locale] || SYSTEM_PROMPT.en,
     targetMinChars,
   };
 }
@@ -237,14 +237,14 @@ export function sectionDigest(section, locale) {
  * (human-design-ai-prompt.js 의 buildAdminLabPrompt 와 같은 계약).
  */
 export function buildAdminLabPrompt(body = {}, options = {}) {
-  const locale = HD_REPORT_SECTION_TITLES[body?.sectionKey] && body?.locale === "en" ? "en" : "ko";
+  const locale = toAiLocale(body?.locale);
   const spec = HD_REPORT_SECTIONS.find((section) => section.key === body?.sectionKey) || HD_REPORT_SECTIONS[0];
   const calculation = body?.calculation || options?.calculation || null;
   if (!calculation) {
     return {
       partial: true,
       partialReason: "계산 결과가 없어 확정표를 만들 수 없다 — 출생 데이터로 차트를 먼저 계산할 것.",
-      systemPrompt: SYSTEM_PROMPT[locale],
+      systemPrompt: SYSTEM_PROMPT[locale] || SYSTEM_PROMPT.en,
       promptVersion: HD_REPORT_VERSION,
     };
   }
@@ -255,3 +255,4 @@ export function buildAdminLabPrompt(body = {}, options = {}) {
   });
   return { partial: false, ...built, promptVersion: HD_REPORT_VERSION };
 }
+import { toAiLocale } from "../../lib/i18n/ai-locale.js";

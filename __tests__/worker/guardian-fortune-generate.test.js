@@ -3,6 +3,8 @@
 import { describe, expect, it, jest } from "@jest/globals";
 import { generateGuardianFortuneRequest } from "../../worker/lib/guardian-fortune-generate.js";
 import { createMemoryGuardianFortuneStore } from "../../worker/lib/guardian-fortune-usage.js";
+import { runWithAiLocale } from "../../worker/lib/ai-locale-context.js";
+import { AI_OUTPUT_LOCALES } from "../../lib/i18n/ai-locale.js";
 
 const NOW = new Date("2026-08-02T03:00:00.000Z");
 const input = {
@@ -51,6 +53,17 @@ function successfulContextBuilder() {
 }
 
 describe("Guardian Fortune mock generate controller", () => {
+  it.each(AI_OUTPUT_LOCALES)("preserves request locale %s through context and generation", async (locale) => {
+    const contextBuilder = jest.fn(successfulContextBuilder);
+    const generator = jest.fn(async () => ({ result, usedFallback: false }));
+    const response = await runWithAiLocale(locale, () => generateGuardianFortuneRequest({
+      input, userId: "locale-fixture", requestId: `locale-${locale}`, dateKey: "2026-08-02",
+      store: createMemoryGuardianFortuneStore(), now: NOW, contextBuilder, generator,
+    }));
+    expect(response.ok).toBe(true);
+    expect(contextBuilder.mock.calls[0][0].locale).toBe(locale);
+    expect(generator.mock.calls[0][0].input.locale).toBe(locale);
+  });
   it.each([undefined, "fusion", "unknown"])("rejects category %s before reserving usage", async (category) => {
     const store = createMemoryGuardianFortuneStore();
     const contextBuilder = jest.fn(successfulContextBuilder);

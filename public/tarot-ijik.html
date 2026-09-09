@@ -6,8 +6,9 @@
 <meta name="robots" content="noindex, nofollow">
 <title>이직 운명의 카드 — 일의 기준을 읽는 7카드 타로</title>
 <meta name="description" content="지금 일에서 남길 기준, 옮길 방향, 다음 한 걸음을 7장의 카드로 차분히 읽는 커리어 전환 타로 리딩입니다.">
-<script src="/js/core/pass-verdict.js?v=build-b3dfd5178fe3"></script>
-<script src="/js/core/checkout-entry.js?v=build-b3dfd5178fe3"></script>
+<script src="/js/core/standalone-ai-locale.js?v=20260909-1"></script>
+<script src="/js/core/pass-verdict.js?v=build-d2987b1ff23f"></script>
+<script src="/js/core/checkout-entry.js?v=build-d2987b1ff23f"></script>
 <script src="/js/core/payment-service.js?v=build-payment-service-v1"></script>
 <script src="/js/destiny-profile.js?v=build-41ca373a6995"></script>
 <script>
@@ -1644,7 +1645,7 @@ function postJsonWithTimeout(url, body) {
     return Promise.race([
       fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-code-destiny-locale':window.cdStandaloneAiLocale.current() },
         body,
         cache: 'no-store',
       }),
@@ -1658,7 +1659,7 @@ function postJsonWithTimeout(url, body) {
   const timeoutId = setTimeout(() => controller.abort(), TAROT_API_TIMEOUT_MS);
   return fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'x-code-destiny-locale':window.cdStandaloneAiLocale.current() },
     body,
     cache: 'no-store',
     signal: controller.signal,

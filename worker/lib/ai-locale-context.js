@@ -37,11 +37,12 @@ export function getAmbientAiLocale() {
  * Accept-Language 도 정본이 아니다 — OS 선호이지 사용자가 고른 사이트 언어가 아니라서,
  * 한국어 OS 로 /en 을 보는 사용자에게 ko 를 돌려주게 된다. 둘 다 최후 폴백으로만 쓴다.
  */
-export function resolveAiLocaleFromRequest(request) {
+export function resolveAiLocaleFromRequest(request, body) {
   if (!request || !request.headers) return toAiLocale("");
 
   const header = request.headers.get(AI_LOCALE_HEADER);
   if (header) return toAiLocale(header);
+  if (body && typeof body.locale === "string" && body.locale) return toAiLocale(body.locale);
 
   try {
     const cookie = cookieValue(request, "cd_locale");
@@ -57,4 +58,14 @@ export function resolveAiLocaleFromRequest(request) {
   }
 
   return toAiLocale("");
+}
+
+/** Legacy JSON callers may only carry body.locale. Leave the route's body unread. */
+export async function resolveAiLocaleForRequest(request) {
+  if (!request?.headers || request.headers.get(AI_LOCALE_HEADER)) return resolveAiLocaleFromRequest(request);
+  let body;
+  if (/application\/json/i.test(request.headers.get("content-type") || "") && typeof request.clone === "function") {
+    try { body = await request.clone().json(); } catch { /* The route owns input errors. */ }
+  }
+  return resolveAiLocaleFromRequest(request, body);
 }

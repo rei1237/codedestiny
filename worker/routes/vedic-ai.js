@@ -24,6 +24,7 @@ import {
 } from "../lib/fortune-reasoning-contract.js";
 import { buildVedicKnowledgeContext } from "../lib/vedic-ai-knowledge.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
+import { resolveAiLocaleFromRequest } from "../lib/ai-locale-context.js";
 
 const SERVICE_KEY = "vedic-ai";
 const FEATURE_KEY = "vedic-ai-consultation";
@@ -1175,6 +1176,8 @@ function consultationPayload(doc) {
   return {
     id: doc.id,
     status: doc.status,
+    // locale 필드가 없던 상담은 기존 한국어 결과로 취급한다. 재열람이 현재 UI 언어를 과거 본문에 덮지 않는다.
+    locale: clean(doc.locale, 10) || "ko",
     birthInfo: doc.birthInfo,
     topic: doc.topic,
     userQuestion: doc.userQuestion || "",
@@ -1194,6 +1197,7 @@ async function handleEnsureAccess(request, env) {
   if (request.method !== "POST") return methodNotAllowed();
   const body = await readJson(request);
   const normalized = normalizeConsultationInput(body);
+  normalized.locale = resolveAiLocaleFromRequest(request, body);
   const idempotencyKey = readIdempotencyKey(request, body);
   const context = routeLogContext(request, body, normalized, idempotencyKey);
   logVedicAi("LLM Prepare Start", context);
@@ -1337,6 +1341,7 @@ async function generateVedicGroup(env, input, chart, group, context, repairLines
         minChars: group.minChars,
         skipRead: options.skipCacheRead || undefined,
       },
+      locale: options.locale,
       logContext: { ...context, group: group.key },
     });
     const provider = clean(result?.provider || result?.model || "gemini");
@@ -1477,6 +1482,8 @@ async function generateConsultation({ request, env, auth, body, normalized, idem
     idempotencyKey,
     inputHash: normalized.inputHash,
   });
+  // idempotencyKey는 결제/재열람 경계다. locale은 결과 메타데이터일 뿐 키에 넣지 않는다.
+  doc.locale = existing?.locale || normalized.locale;
   doc.birthInfo = normalized.input.birthInfo;
   doc.topic = normalized.input.topic;
   doc.userQuestion = normalized.input.userQuestion;
@@ -1510,7 +1517,7 @@ async function generateConsultation({ request, env, auth, body, normalized, idem
 
   try {
     logVedicAi("LLM Generate Start", context);
-    const { content, meta } = await generateInitialReading(env, normalized.input, chart, context, { skipCacheRead });
+    const { content, meta } = await generateInitialReading(env, normalized.input, chart, context, { skipCacheRead, locale: doc.locale });
     doc.vedicChart = chart;
     doc.messages = [
       ...(normalized.input.userQuestion ? [{ role: "user", content: normalized.input.userQuestion, createdAt: new Date() }] : []),
@@ -1544,6 +1551,7 @@ async function handleStart(request, env) {
   if (request.method !== "POST") return methodNotAllowed();
   const body = await readJson(request);
   const normalized = normalizeConsultationInput(body);
+  normalized.locale = resolveAiLocaleFromRequest(request, body);
   const idempotencyKey = readIdempotencyKey(request, body);
   const context = routeLogContext(request, body, normalized, idempotencyKey);
   logVedicAi("Submit Start", context);
@@ -1584,7 +1592,7 @@ async function handleResult(request, env) {
       // 없어 해당 사용자의 문서를 전부 FETCH 한 뒤 메모리 정렬하므로 아래 select 가 무력화된다.
       .sort({ createdAt: -1 })
       .limit(10)
-      .select("id topic birthInfo vedicChart.chartSummary createdAt updatedAt")
+      .select("id topic birthInfo vedicChart.chartSummary locale createdAt updatedAt")
       .lean();
     return json({
       ok: true,
@@ -1593,6 +1601,7 @@ async function handleResult(request, env) {
         topic: row.topic || "",
         name: clean(row.birthInfo?.name, 80),
         chartSummary: clean(row.vedicChart?.chartSummary, 200),
+        locale: clean(row.locale, 10) || "ko",
         createdAt: row.createdAt,
         updatedAt: row.updatedAt,
       })),

@@ -55,6 +55,7 @@ describe("Guardian Fortune guarded LLM", () => {
       metricSink,
     });
     expect(provider).toHaveBeenCalledTimes(1);
+    expect(provider.mock.calls[0][2].locale).toBe("ko");
     expect(result).toMatchObject({ deliverable: true, usedFallback: false });
     expect(countGuardianFortuneVisibleTextLength(result.result)).toBeGreaterThanOrEqual(GUARDIAN_FORTUNE_RESULT_LENGTH.min);
     expect(metricSink).toHaveBeenCalledWith(expect.objectContaining({ provider: "gemini", success: true, fallbackUsed: false }));

@@ -20,6 +20,8 @@ import { holdPaidFeatureGateOpen, openPaidFeatureGate, releasePaidFeatureGate, r
 import { resolveServerFeaturePricing } from "@/lib/payment/server-feature-pricing";
 import { usePalmDestinyCopy, type PalmDestinyCopy } from "./_lib/copy";
 import { usePaidResume, packPaidResumeArg, unpackPaidResumeArg } from "@/app/hooks/usePaidResume";
+import { AI_LOCALE_HEADER, toAiLocale } from "@/lib/i18n/ai-locale";
+import { detectLocale } from "@/lib/i18n/dictionary";
 
 type HandSide = "left" | "right";
 type DominantHand = PalmDominantHand;
@@ -2250,6 +2252,9 @@ export default function PalmDestinyMain() {
           : Promise.resolve(null),
       ]);
 
+      // 직접 fetch 경로는 authFetch의 locale 헤더 주입을 타지 않는다. 최초 요청과 401 재시도가
+      // 같은 출력 언어를 서버 prompt/cache 경계까지 전달하도록 여기서 한 번 정규화한다.
+      const aiLocale = toAiLocale(detectLocale());
       const requestBody = JSON.stringify({
         leftPalmImage,
         rightPalmImage,
@@ -2262,6 +2267,7 @@ export default function PalmDestinyMain() {
         uploadedHandSide: leftHand.file && rightHand.file ? "both" : leftHand.file ? "left" : rightHand.file ? "right" : "",
         dominantHand,
         analysisPurpose: activeAnalysisPurpose,
+        locale: aiLocale,
       });
 
       setSubmitMessage(copy.readingGoldenLinesMessage);
@@ -2269,7 +2275,7 @@ export default function PalmDestinyMain() {
       let response = await fetch("/api/palm/analyze", {
         method: "POST",
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", [AI_LOCALE_HEADER]: aiLocale },
         signal: controller.signal,
         body: requestBody,
       });
@@ -2283,6 +2289,7 @@ export default function PalmDestinyMain() {
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${authToken}`,
+              [AI_LOCALE_HEADER]: aiLocale,
             },
             signal: controller.signal,
             body: requestBody,

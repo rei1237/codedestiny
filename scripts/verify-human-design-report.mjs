@@ -19,6 +19,7 @@
  */
 
 import { readFileSync } from "node:fs";
+import { reportLocaleFixture } from "../__tests__/fixtures/human-design/report-locale-fixtures.mjs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -429,7 +430,7 @@ check("블록 종류가 11종 이상 선언돼 있다",
 
 if (chart) {
   for (const locale of contract.HD_REPORT_LOCALES) {
-    const fixture = JSON.parse(readRepoFile(`__tests__/fixtures/human-design/report-sample.${locale}.json`) || "{}");
+    const fixture = (["ko", "en"].includes(locale) ? JSON.parse(readRepoFile(`__tests__/fixtures/human-design/report-sample.${locale}.json`) || "{}") : reportLocaleFixture(locale));
     if (!fixture.sections?.length) {
       check(`[${locale}] 리포트 픽스처가 있다`, false, "sections 가 비었다");
       continue;
@@ -546,7 +547,7 @@ check("🔴 heading 의 keepMm 이 추출 전 need(16) 그대로다", metrics.BL
 
 if (chart) {
   for (const locale of contract.HD_REPORT_LOCALES) {
-    const fixture = JSON.parse(readRepoFile(`__tests__/fixtures/human-design/report-sample.${locale}.json`) || "{}");
+    const fixture = (["ko", "en"].includes(locale) ? JSON.parse(readRepoFile(`__tests__/fixtures/human-design/report-sample.${locale}.json`) || "{}") : reportLocaleFixture(locale));
     if (!fixture.sections?.length) continue;
 
     const plan = planModule.buildHumanDesignReportPlan(fixture, chart);
@@ -623,7 +624,7 @@ if (chart) {
   //    모델이 이모지를 뱉는 경우를 여기서 잡는다.
   const forbidden = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/u;
   for (const locale of contract.HD_REPORT_LOCALES) {
-    const fixture = JSON.parse(readRepoFile(`__tests__/fixtures/human-design/report-sample.${locale}.json`) || "{}");
+    const fixture = (["ko", "en"].includes(locale) ? JSON.parse(readRepoFile(`__tests__/fixtures/human-design/report-sample.${locale}.json`) || "{}") : reportLocaleFixture(locale));
     if (!fixture.sections?.length) continue;
     const plan = planModule.buildHumanDesignReportPlan(fixture, chart);
     const chapters = pdfChapters.buildHumanDesignPdfChapters(plan, new Map());

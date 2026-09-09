@@ -7,7 +7,7 @@
 
 import type { HdChart, HdSelection } from "../../_lib/types";
 
-export type ReportLocale = "ko" | "en";
+export type ReportLocale = import("@/lib/i18n/locale-normalize.js").RuntimeLocale;
 
 export type ReportBlockKind =
   | "lead"

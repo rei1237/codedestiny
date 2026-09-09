@@ -4,6 +4,7 @@ import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { requireAuth } from "../lib/auth.js";
 import { requirePremiumReportAccess } from "../lib/access-control.js";
 import { withPdfFastDbEnv } from "../lib/pdf-runtime.js";
+import { getAmbientAiLocale } from "../lib/ai-locale-context.js";
 
 function clean(value) {
   return String(value || "").trim();
@@ -370,6 +371,11 @@ async function handleGenerateYogaCourse(request, env) {
   });
 
   const parsed = ai.ok ? parseJsonCandidate(ai.text) : null;
+  // 비한국어 요청에 한국어 로컬 코스를 섞지 않는다. 현지화된 결정론 fallback은 아직 제공하지
+  // 않으므로, 모델 결과가 없으면 결과를 전달하지 않는 기존 품질 실패 경로를 쓴다.
+  if (!parsed && (getAmbientAiLocale() || "ko") !== "ko") {
+    return json({ ok: false, code: "AI_LOCALE_RESULT_INCOMPLETE", message: "Generated course is incomplete for the selected language." }, { status: 502 });
+  }
   const normalized = normalizeCoursePayload(parsed, userPrompt);
 
   return json({

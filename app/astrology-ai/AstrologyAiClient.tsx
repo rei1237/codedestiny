@@ -1,5 +1,8 @@
 "use client";
 
+import { useLocaleRequestScope, type LocaleRequestScope } from "@/app/hooks/useLocaleRequestScope";
+import { AI_LOCALE_HEADER } from "@/lib/i18n/ai-locale";
+
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { readAiProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
@@ -1504,12 +1507,13 @@ function extractPaymentContext(result: unknown, fallbackRequestId: string) {
   };
 }
 
-async function postJson<T>(path: string, body: Record<string, unknown>, idempotencyKey?: string) {
+async function postJson<T>(path: string, body: Record<string, unknown>, idempotencyKey?: string, locale?: string) {
   const response = await authFetch(path, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       ...(idempotencyKey ? { "Idempotency-Key": idempotencyKey } : {}),
+      ...(locale ? { [AI_LOCALE_HEADER]: locale } : {}),
     },
     body: JSON.stringify({ ...body, ...(idempotencyKey ? { idempotencyKey } : {}) }),
   }, { retryOn401: false });
@@ -1527,21 +1531,23 @@ function sleep(ms: number) {
 const RESULT_POLL_BACKOFF_MS = [700, 3000, 5000, 8000];
 const RESULT_POLL_MAX_ATTEMPTS = 40;
 
-async function pollAstrologyResult(sessionId: string): Promise<Consultation> {
+async function pollAstrologyResult(sessionId: string, scope: LocaleRequestScope): Promise<Consultation | null> {
   for (let attempt = 0; attempt < RESULT_POLL_MAX_ATTEMPTS; attempt += 1) {
     await sleep(RESULT_POLL_BACKOFF_MS[Math.min(attempt, RESULT_POLL_BACKOFF_MS.length - 1)]);
+    if (!scope.isCurrent()) return null;
     let response: Response;
     try {
       response = await authFetch(`/api/astrology-ai/result/${encodeURIComponent(sessionId)}`, { method: "GET" }, { retryOn401: false });
     } catch {
       continue;
     }
+    if (!scope.isCurrent()) return null;
     if (response.status === 202) continue;
     if (response.status === 429) throw new Error("RATE_LIMITED");
     if (response.status === 404 || response.status === 409) throw new Error("LLM_ERROR");
     if (!response.ok) throw new Error("SERVER_ERROR");
     const data = await response.json().catch(() => ({}));
-    return data as Consultation;
+    return scope.isCurrent() ? data as Consultation : null;
   }
   throw new Error("GENERATION_TIMEOUT");
 }
@@ -1567,6 +1573,12 @@ export default function AstrologyAiClient() {
   const lockRef = useRef(false);
   const idempotencyKeyRef = useRef(makeIdempotencyKey());
   const progressTimersRef = useRef<number[]>([]);
+  const captureLocaleScope = useLocaleRequestScope(() => {
+    clearProgressTimers();
+    if (phase === "reading") setPhase("idle");
+    setError("");
+    setNotice("");
+  });
   const { seed: profileSeed, seedVersion, reload: reloadProfileSeed } = useAiProfileSeed();
   const formTouchedRef = useRef(false);
 
@@ -1683,51 +1695,62 @@ export default function AstrologyAiClient() {
   /* payloadOverride 는 결제 후 재개 전용이다 — 리다이렉트로 돌아오면 form 이 초기값이라
      buildPayload() 가 빈 입력을 보낸다. 그때 결제 직전에 실어 보낸 입력을 그대로 쓴다. */
   async function startConsultation(idempotencyKey: string, access: Record<string, unknown>, payloadOverride?: Record<string, unknown>) {
-    setPhase("reading");
-    // 다음 화면(생성 로딩)이 마운트되는 시점 — 게이트 오버레이 hold를 해제한다.
-    releasePaidFeatureGate(idempotencyKey);
-    setProgressIndex(2);
-    scheduleReadingProgress();
-    console.info("[AstrologyAI] generation started", { requestId: idempotencyKey });
-    type StartResponse = Consultation | { ok?: boolean; reason?: string; message?: string; sessionId?: string; status?: string };
-    let response: Response;
-    let data: StartResponse;
-    const startBody = { ...(payloadOverride || buildPayload()), ...access };
+    const scope = captureLocaleScope();
     try {
-      ({ response, data } = await postJson<StartResponse>(API_ENDPOINTS.start, startBody, idempotencyKey));
-    } catch {
-      // 네트워크 순단 시 같은 idempotencyKey로 1회 재시도 — 서버가 이미 생성 중이면 202로 수렴한다.
-      ({ response, data } = await postJson<StartResponse>(API_ENDPOINTS.start, startBody, idempotencyKey));
-    }
-    let next: Consultation;
-    if (response.status === 202) {
-      const pendingSessionId = toText(asRecord(data).sessionId);
-      if (!pendingSessionId) throw new Error("SERVER_ERROR");
-      console.info("[AstrologyAI] generation pending, polling result", { sessionId: pendingSessionId });
-      next = await pollAstrologyResult(pendingSessionId);
-    } else {
-      if ("ok" in data && data.ok === false) {
-        const reason = toText(data.reason || "SERVER_ERROR");
-        throw new Error(reason || "SERVER_ERROR");
+      setPhase("reading");
+      // 다음 화면(생성 로딩)이 마운트되는 시점 — 게이트 오버레이 hold를 해제한다.
+      releasePaidFeatureGate(idempotencyKey);
+      setProgressIndex(2);
+      scheduleReadingProgress();
+      console.info("[AstrologyAI] generation started", { requestId: idempotencyKey });
+      type StartResponse = Consultation | { ok?: boolean; reason?: string; message?: string; sessionId?: string; status?: string };
+      let response: Response;
+      let data: StartResponse;
+      const startBody = { ...(payloadOverride || buildPayload()), ...access, locale: scope.locale };
+      try {
+        ({ response, data } = await postJson<StartResponse>(API_ENDPOINTS.start, startBody, idempotencyKey, scope.locale));
+      } catch {
+        if (!scope.isCurrent()) return false;
+        // 네트워크 순단 시 같은 idempotencyKey로 1회 재시도 — 서버가 이미 생성 중이면 202로 수렴한다.
+        ({ response, data } = await postJson<StartResponse>(API_ENDPOINTS.start, startBody, idempotencyKey, scope.locale));
       }
-      next = data as Consultation;
+      if (!scope.isCurrent()) return false;
+      let next: Consultation;
+      if (response.status === 202) {
+        const pendingSessionId = toText(asRecord(data).sessionId);
+        if (!pendingSessionId) throw new Error("SERVER_ERROR");
+        console.info("[AstrologyAI] generation pending, polling result", { sessionId: pendingSessionId });
+        const polled = await pollAstrologyResult(pendingSessionId, scope);
+        if (!polled || !scope.isCurrent()) return false;
+        next = polled;
+      } else {
+        if ("ok" in data && data.ok === false) {
+          const reason = toText(data.reason || "SERVER_ERROR");
+          throw new Error(reason || "SERVER_ERROR");
+        }
+        next = data as Consultation;
+      }
+      if (!next?.sessionId || !Array.isArray(next.messages)) throw new Error("SERVER_ERROR");
+      const assistantContent = next.messages.find((message) => message.role === "assistant")?.content?.trim() || "";
+      if (!assistantContent) {
+        console.error("[AstrologyAI] generation empty result", { sessionId: next.sessionId, status: next.status });
+        throw new Error("LLM_ERROR");
+      }
+      const url = resultPath(next.sessionId);
+      setConsultation(next);
+      setResultUrl(url);
+      setProgressIndex(5);
+      setPhase("ready");
+      setNotice("");
+      setError("");
+      clearProgressTimers();
+      console.info("[AstrologyAI] generation success", { sessionId: next.sessionId });
+      openResultPage(url);
+      return true;
+    } catch (cause) {
+      if (scope.isCurrent()) throw cause;
+      return false;
     }
-    if (!next?.sessionId || !Array.isArray(next.messages)) throw new Error("SERVER_ERROR");
-    const assistantContent = next.messages.find((message) => message.role === "assistant")?.content?.trim() || "";
-    if (!assistantContent) {
-      console.error("[AstrologyAI] generation empty result", { sessionId: next.sessionId, status: next.status });
-      throw new Error("LLM_ERROR");
-    }
-    const url = resultPath(next.sessionId);
-    setConsultation(next);
-    setResultUrl(url);
-    setProgressIndex(5);
-    setPhase("ready");
-    setNotice("");
-    setError("");
-    clearProgressTimers();
-    console.info("[AstrologyAI] generation success", { sessionId: next.sessionId });
-    openResultPage(url);
   }
 
   /* 모바일 PortOne 은 상단 프레임을 리다이렉트해 runBillingCoinGate 의 await 가 페이지와 함께
@@ -1742,8 +1765,7 @@ export default function AstrologyAiClient() {
     setError("");
     setNotice("");
     try {
-      await startConsultation(idempotencyKey, extractPaymentContext(grant?.payload, idempotencyKey), payload);
-      return true;
+      return await startConsultation(idempotencyKey, extractPaymentContext(grant?.payload, idempotencyKey), payload);
     } catch (caught) {
       const code = caught instanceof Error ? caught.message : "SERVER_ERROR";
       console.error("[AstrologyAI] resume generation failed", { requestId: idempotencyKey, code });

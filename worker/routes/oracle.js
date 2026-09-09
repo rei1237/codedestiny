@@ -1,5 +1,6 @@
 import { callGeminiText } from "../lib/gemini.js";
 import { getAmbientAiLocale } from "../lib/ai-locale-context.js";
+import { toAiLocale } from "../../lib/i18n/ai-locale.js";
 import { REASONING_OUTPUT_RULE_LINES } from "../lib/fortune-reasoning-contract.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson, cookieValue } from "../lib/http.js";
@@ -63,7 +64,9 @@ function parseJsonCandidate(text) {
   return null;
 }
 
-function buildFallbackOracle({ question, theme, cause, flow, judge }) {
+function buildFallbackOracle({ question, theme, cause, flow, judge, locale = "ko" }) {
+  // The deterministic copy below is Korean. Never use it as another locale's result.
+  if (toAiLocale(locale) !== "ko") return null;
   const isAlchemist = theme === "alchemist";
   const tone = isAlchemist
     ? "연금 도가니의 불꽃"
@@ -110,8 +113,14 @@ function fillRichText(value, fallback, minChars) {
   return fallback;
 }
 
-function normalizeOraclePayload(parsed, fallback) {
+export function normalizeOraclePayload(parsed, fallback) {
   const raw = parsed && typeof parsed === "object" ? parsed : {};
+
+  if (!fallback) {
+    const minimums = { answer: 220, keyJudgement: 70, energyFlow: 90, risk: 70, timing: 50, actionTip: 45, advice: 40 };
+    if (Object.entries(minimums).some(([field, min]) => clean(raw[field]).length < min)) return null;
+    return { source: "gemini", ...Object.fromEntries(Object.keys(minimums).map((field) => [field, clean(raw[field])])) };
+  }
 
   return {
     source: parsed ? "gemini" : "fallback",
@@ -125,7 +134,7 @@ function normalizeOraclePayload(parsed, fallback) {
   };
 }
 
-function buildGeomancyPrompt({ question, theme, cause, flow, judge }) {
+function buildGeomancyPrompt({ question, theme, cause, flow, judge, locale }) {
   const styleGuide = theme === "sultan"
     ? "당신은 중동 사막의 궁정 지오맨시 대가입니다. 품위 있고 단정한 존댓말로, 별·사막·오아시스의 은유를 사용합니다."
     : "당신은 최고의 연금술 지오맨시 달인입니다. 존댓말로, 도가니·정련·원소 변환의 은유를 사용합니다.";
@@ -147,9 +156,8 @@ function buildGeomancyPrompt({ question, theme, cause, flow, judge }) {
     "- timing: 7일/21일/40일의 시간축 조언",
     "- actionTip: 오늘 바로 실행할 행동 2~3개를 문장으로 제시",
     "- advice: 현자의 한 줄 경구(1~2문장)",
-    // 출력 언어는 llm-client 의 applyOutputLocale 이 붙이는 지시문이 정본이다.
-    // ko 는 지시문이 붙지 않으므로 기존 문구를 그대로 남긴다 — 스프레드라 ko 프롬프트는 바이트 동일.
-    ...((getAmbientAiLocale() || "ko") === "ko" ? ["- 한국어만 사용"] : []),
+    // 출력 언어 지시의 정본은 llm-client의 applyOutputLocale이다.
+    ...(toAiLocale(locale) === "ko" ? ["- 한국어만 사용"] : []),
     "질문:",
     question,
     "카드 데이터(JSON):",
@@ -162,6 +170,7 @@ async function buildGeomancyOracle(env, payload) {
   const prompt = buildGeomancyPrompt(payload);
 
   const ai = await callGeminiText(env, prompt, {
+    locale: payload.locale,
     // modelEnvKeys/topP/maxAttemptsPerPair 는 callGeminiText 가 읽지 않는 옵션이었다
     // (지정해도 적용된 적이 없다). 모델 오버라이드 의도만 살아있는 `model` 로 옮긴다.
     model: clean(env.GEOMANCY_GEMINI_MODEL),
@@ -180,6 +189,7 @@ async function buildGeomancyOracle(env, payload) {
   });
 
   if (!ai.ok) {
+    if (!fallback) return { ok: false, code: "ORACLE_RESULT_QUALITY_FAILED" };
     return {
       ok: true,
       ...fallback,
@@ -189,6 +199,7 @@ async function buildGeomancyOracle(env, payload) {
 
   const parsed = parseJsonCandidate(ai.text);
   const normalized = normalizeOraclePayload(parsed, fallback);
+  if (!normalized) return { ok: false, code: "ORACLE_RESULT_QUALITY_FAILED" };
   return {
     ok: true,
     ...normalized,
@@ -219,6 +230,7 @@ export async function handleOracleRoutes(request, env = {}) {
     const flowRaw = body?.flow || body?.cards?.flow || judgeRaw;
 
     const payload = {
+      locale: toAiLocale(getAmbientAiLocale() || body?.locale),
       question,
       theme,
       cause: normalizeCard(causeRaw, "원인"),
@@ -263,7 +275,7 @@ export async function handleOracleRoutes(request, env = {}) {
     }
 
     const result = await buildGeomancyOracle(env, payload);
-    return json(result);
+    return json(result, result.ok ? {} : { status: 502 });
   } catch (error) {
     return handleRouteError(error);
   }

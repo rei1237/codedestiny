@@ -231,6 +231,11 @@ const { __ziweiDeepReportTestUtils: utils } = await import("../worker/routes/ziw
   assert(envelope.chapters[0].order === 0, "저장본 챕터는 order 순으로 나가야 한다");
   assert(envelope.totalChars === 5000, `저장본 총 글자수가 틀렸다 (got ${envelope.totalChars})`);
   assert(utils.publicStoredReport({ ...doc, status: "completed" }).done === true, "completed 저장본은 done 이어야 한다");
+  assert(utils.publicStoredReport({ ...doc, locale: "ja" }).locale === "ja", "저장된 locale은 재열람 응답에 그대로 나가야 한다");
+  assert(utils.publicStoredReport(doc).locale === "ko", "locale 없는 과거 저장본은 기존 한국어 결과로 명시해야 한다");
+  assert(route.includes("locale: outputLocale"), "배치 재개 토큰은 최초 생성 locale을 이어가야 한다");
+  assert(route.includes("generateReportBatch(env, chart, normalized.birthInfo, normalized.consultation, startIndex, outputLocale)"), "후속 배치는 현재 탭이 아닌 고정 locale로 생성해야 한다");
+  assert(/index\(\{ userId: 1, idempotencyKey: 1 \}, \{ unique: true \}\)/.test(models), "locale을 결제 멱등 키에 넣어서는 안 된다");
   pass("멱등 재요청이 재과금 없이 저장본을 돌려주고, 미완성이면 이어받는다");
 }
 

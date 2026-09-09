@@ -56,8 +56,8 @@ describe("toAiLocale", () => {
 });
 
 describe("buildOutputLanguageDirective", () => {
-  test("ko 는 빈 문자열 — 프롬프트를 건드리지 않는다", () => {
-    expect(aiLocale.buildOutputLanguageDirective("ko")).toBe("");
+  test("ko 도 질문 언어와 무관하게 한국어 출력을 명시한다", () => {
+    expect(aiLocale.buildOutputLanguageDirective("ko")).toContain("Korean only");
   });
 
   test("비-ko 는 대상 언어와 영어를 함께 담고, 한국어 지시를 무효화한다고 명시한다", () => {

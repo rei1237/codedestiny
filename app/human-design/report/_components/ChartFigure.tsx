@@ -60,7 +60,7 @@ export default function ChartFigure({ slotId, chapterKey, chart, selection, capt
         {mounted ? (
           <BodyGraph
             chart={chart}
-            locale={locale}
+            locale={locale === "ko" || locale === "ja" || locale === "zh-CN" || locale === "zh-TW" ? locale : "en"}
             selection={selection}
             onSelect={NOOP}
             interactive={false}

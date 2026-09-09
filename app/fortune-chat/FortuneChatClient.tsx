@@ -12,6 +12,8 @@ import type { PaidResumeDescriptor } from "@/js/core/checkout-entry.js";
 import styles from "./fortune-chat.module.css";
 import { getApiBaseUrl } from "../_lib/api-config";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
+import { AI_LOCALE_HEADER, toAiLocale } from "@/lib/i18n/ai-locale";
+import { detectLocale } from "@/lib/i18n/dictionary";
 
 type FortuneChatCopy = {
   backAria: string;
@@ -22,6 +24,7 @@ type FortuneChatCopy = {
   topicChipsAria: string;
   categoryChipsAria: string;
   questionInputAria: string;
+  localeChanged: string;
 };
 
 const FORTUNE_CHAT_EN: FortuneChatCopy = {
@@ -33,6 +36,7 @@ const FORTUNE_CHAT_EN: FortuneChatCopy = {
   topicChipsAria: "Suggested question topics",
   categoryChipsAria: "Choose a consultation system",
   questionInputAria: "Type your consultation question",
+  localeChanged: "The language changed while the response was being prepared. Please send your question again.",
 };
 
 const FORTUNE_CHAT_COPY: Partial<Record<LoadingLocale, FortuneChatCopy>> = {
@@ -45,6 +49,7 @@ const FORTUNE_CHAT_COPY: Partial<Record<LoadingLocale, FortuneChatCopy>> = {
     topicChipsAria: "추천 질문 분야",
     categoryChipsAria: "상담 체계 선택",
     questionInputAria: "상담 질문 입력",
+    localeChanged: "응답을 준비하는 동안 언어가 바뀌었어요. 현재 언어로 다시 질문해 주세요.",
   },
   en: FORTUNE_CHAT_EN,
   ja: {
@@ -56,6 +61,7 @@ const FORTUNE_CHAT_COPY: Partial<Record<LoadingLocale, FortuneChatCopy>> = {
     topicChipsAria: "おすすめの質問分野",
     categoryChipsAria: "相談体系を選択",
     questionInputAria: "相談の質問を入力",
+    localeChanged: "回答の準備中に言語が変わりました。現在の言語でもう一度質問してください。",
   },
   "zh-CN": {
     backAria: "返回上一页",
@@ -66,6 +72,7 @@ const FORTUNE_CHAT_COPY: Partial<Record<LoadingLocale, FortuneChatCopy>> = {
     topicChipsAria: "推荐问题领域",
     categoryChipsAria: "选择咨询体系",
     questionInputAria: "输入咨询问题",
+    localeChanged: "准备回复时语言已更改。请用当前语言重新提问。",
   },
   "zh-TW": {
     backAria: "返回上一頁",
@@ -76,6 +83,7 @@ const FORTUNE_CHAT_COPY: Partial<Record<LoadingLocale, FortuneChatCopy>> = {
     topicChipsAria: "推薦問題領域",
     categoryChipsAria: "選擇諮詢體系",
     questionInputAria: "輸入諮詢問題",
+    localeChanged: "準備回覆時語言已變更。請以目前語言重新提問。",
   },
   vi: {
     backAria: "Về trang trước",
@@ -86,6 +94,7 @@ const FORTUNE_CHAT_COPY: Partial<Record<LoadingLocale, FortuneChatCopy>> = {
     topicChipsAria: "Lĩnh vực câu hỏi gợi ý",
     categoryChipsAria: "Chọn hệ thống tư vấn",
     questionInputAria: "Nhập câu hỏi tư vấn",
+    localeChanged: "Ngôn ngữ đã thay đổi khi câu trả lời đang được chuẩn bị. Vui lòng hỏi lại bằng ngôn ngữ hiện tại.",
   },
   hi: {
     backAria: "पिछले पृष्ठ पर जाएं",
@@ -96,6 +105,7 @@ const FORTUNE_CHAT_COPY: Partial<Record<LoadingLocale, FortuneChatCopy>> = {
     topicChipsAria: "सुझाए गए प्रश्न क्षेत्र",
     categoryChipsAria: "परामर्श प्रणाली चुनें",
     questionInputAria: "अपना परामर्श प्रश्न लिखें",
+    localeChanged: "जवाब तैयार करते समय भाषा बदल गई। कृपया वर्तमान भाषा में फिर से पूछें।",
   },
   es: {
     backAria: "Ir a la página anterior",
@@ -106,6 +116,7 @@ const FORTUNE_CHAT_COPY: Partial<Record<LoadingLocale, FortuneChatCopy>> = {
     topicChipsAria: "Temas de preguntas sugeridas",
     categoryChipsAria: "Elegir un sistema de consulta",
     questionInputAria: "Escribe tu pregunta de consulta",
+    localeChanged: "El idioma cambió mientras se preparaba la respuesta. Vuelve a enviar tu pregunta en el idioma actual.",
   },
   fr: {
     backAria: "Retour à la page précédente",
@@ -116,6 +127,7 @@ const FORTUNE_CHAT_COPY: Partial<Record<LoadingLocale, FortuneChatCopy>> = {
     topicChipsAria: "Domaines de questions suggérées",
     categoryChipsAria: "Choisir un système de consultation",
     questionInputAria: "Saisissez votre question de consultation",
+    localeChanged: "La langue a changé pendant la préparation de la réponse. Envoyez à nouveau votre question dans la langue actuelle.",
   },
   de: {
     backAria: "Zur vorherigen Seite",
@@ -126,6 +138,7 @@ const FORTUNE_CHAT_COPY: Partial<Record<LoadingLocale, FortuneChatCopy>> = {
     topicChipsAria: "Empfohlene Fragebereiche",
     categoryChipsAria: "Beratungssystem auswählen",
     questionInputAria: "Ihre Beratungsfrage eingeben",
+    localeChanged: "Die Sprache wurde geändert, während die Antwort vorbereitet wurde. Bitte stellen Sie Ihre Frage in der aktuellen Sprache erneut.",
   },
   nl: {
     backAria: "Naar vorige pagina",
@@ -136,6 +149,7 @@ const FORTUNE_CHAT_COPY: Partial<Record<LoadingLocale, FortuneChatCopy>> = {
     topicChipsAria: "Voorgestelde vraaggebieden",
     categoryChipsAria: "Kies een consultsysteem",
     questionInputAria: "Typ je consultvraag",
+    localeChanged: "De taal veranderde terwijl het antwoord werd voorbereid. Stel je vraag opnieuw in de huidige taal.",
   },
   ms: {
     backAria: "Kembali ke halaman sebelumnya",
@@ -146,6 +160,7 @@ const FORTUNE_CHAT_COPY: Partial<Record<LoadingLocale, FortuneChatCopy>> = {
     topicChipsAria: "Bidang soalan dicadangkan",
     categoryChipsAria: "Pilih sistem perundingan",
     questionInputAria: "Taip soalan perundingan anda",
+    localeChanged: "Bahasa berubah semasa jawapan sedang disediakan. Sila hantar semula soalan anda dalam bahasa semasa.",
   },
 };
 
@@ -295,6 +310,10 @@ export default function FortuneChatClient() {
   const timelineRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const persistTimerRef = useRef<number | null>(null);
+  // 언어 전환 뒤 도착한 응답은 새 화면에 섞이지 않게 한다. Abort만으로는 이미 resolve 된
+  // fetch/json 처리까지 막지 못하므로, 세대 번호도 함께 확인한다.
+  const localeRequestEpochRef = useRef(0);
+  const activeReadingRef = useRef<{ controller: AbortController; epoch: number } | null>(null);
   // 요청 시점의 최신 대화를 읽되 requestReading 을 매 메시지마다 새로 만들지 않기 위한 참조.
   const messagesRef = useRef<Message[]>(messages);
   messagesRef.current = messages;
@@ -319,6 +338,18 @@ export default function FortuneChatClient() {
   useEffect(() => { void bootstrap().catch((reason) => setError(reason instanceof Error ? reason.message : "상담방을 열지 못했어요.")); }, [bootstrap]);
   useEffect(() => { timelineRef.current?.scrollTo({ top: timelineRef.current.scrollHeight, behavior: "smooth" }); }, [messages, busy]);
   useEffect(() => () => { if (persistTimerRef.current) window.clearTimeout(persistTimerRef.current); }, []);
+  useEffect(() => {
+    const discardForLocaleChange = () => {
+      localeRequestEpochRef.current += 1;
+      activeReadingRef.current?.controller.abort();
+    };
+    window.addEventListener("languagechange", discardForLocaleChange);
+    window.addEventListener("cd:locale-ready", discardForLocaleChange);
+    return () => {
+      window.removeEventListener("languagechange", discardForLocaleChange);
+      window.removeEventListener("cd:locale-ready", discardForLocaleChange);
+    };
+  }, []);
 
   // 프로필 카드에서 생년 정보를 채운다(공용 훅 재사용). 사용자가 직접 건드린 뒤에는 덮지 않는다.
   useEffect(() => {
@@ -389,6 +420,11 @@ export default function FortuneChatClient() {
       .slice(-6)
       .map((message) => ({ speaker: message.speaker === "assistant" ? "assistant" : "user", text: message.detail ? `${message.text} ${message.detail}` : message.text }));
     const controller = new AbortController();
+    const localeEpoch = localeRequestEpochRef.current;
+    activeReadingRef.current = { controller, epoch: localeEpoch };
+    // 이 직접 fetch는 authFetch를 통과하지 않는다. 재개·후속 질문도 매 호출 시 현재 UI 언어를
+    // 새로 읽어, 서버의 locale prompt/cache 경계와 동기화한다.
+    const aiLocale = toAiLocale(detectLocale());
     // 서버 LLM 예산(worker/lib/guardian-fortune-llm-policy.js: timeoutMs 최대 45초 × maxRetries
     // 최대 1회)을 넉넉히 덮는 안전망. 이게 없으면 연결이 끊겨도 fetch 가 끝없이 대기해
     // "정리 중"에서 영영 빠져나오지 못한다(재시도 버튼도, 취소 버튼도 없어 새 상담 시작 외엔
@@ -399,7 +435,7 @@ export default function FortuneChatClient() {
         method: "POST",
         credentials: "include",
         signal: controller.signal,
-        headers: { "Content-Type": "application/json", "Idempotency-Key": requestId },
+        headers: { "Content-Type": "application/json", "Idempotency-Key": requestId, [AI_LOCALE_HEADER]: aiLocale },
         body: JSON.stringify({
           requestId,
           birthDate: ctx ? ctx.birthDate : birth.birthDate,
@@ -409,20 +445,34 @@ export default function FortuneChatClient() {
           category: ctx ? ctx.category : activeCategory,
           topic: ctx ? ctx.topic : topicKey,
           mode: (ctx ? ctx.mode : character) === "neo" ? "neo" : "yeoni",
+          locale: aiLocale,
           ...(concern ? { concern } : {}),
           ...(recentTurns.length ? { recentTurns } : {}),
         }),
       });
       const payload = await response.json().catch(() => null);
-      return { status: response.status, ok: response.ok, payload };
+      const stale = localeRequestEpochRef.current !== localeEpoch || toAiLocale(detectLocale()) !== aiLocale;
+      return { status: response.status, ok: response.ok, payload, stale };
+    } catch (reason) {
+      if (localeRequestEpochRef.current !== localeEpoch) {
+        return { status: 0, ok: false, payload: null, stale: true };
+      }
+      throw reason;
     } finally {
       window.clearTimeout(timer);
+      if (activeReadingRef.current?.controller === controller) activeReadingRef.current = null;
     }
   }, [apiBase, birth, activeCategory, topicKey, character]);
 
   /* 응답을 화면에 푸는 부분만 떼어낸다 — 결제 후 자동 재개(리다이렉트 복귀)가 게이트를 다시 타지
      않고 이 코어만 부를 수 있어야 한다. 판정·문구는 손대지 않고 위치만 옮겼다. */
   const presentAttempt = useCallback((attempt: Awaited<ReturnType<typeof requestReading>>) => {
+    if (attempt.stale) {
+      // send/resume 콜백은 전환 전 렌더의 closure일 수 있다. 렌더에 잡힌 copy 대신 지금
+      // 확정된 locale을 다시 읽어 안내도 결과 화면 언어와 맞춘다.
+      setError(getFortuneChatCopy(getCurrentLoadingLocale()).localeChanged);
+      return false;
+    }
     // 재시도 신호는 공용 DB 핸들러에서 error 안에 중첩돼 오기도 한다 — 그때 이 분기를
     // 놓치면 아래에서 영문 원문이 그대로 화면에 박힌다.
     const retryable = attempt.payload?.retryable === true || attempt.payload?.error?.retryable === true;

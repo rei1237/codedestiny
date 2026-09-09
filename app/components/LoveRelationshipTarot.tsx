@@ -9,6 +9,7 @@ import { usePaidResume, packPaidResumeArg, unpackPaidResumeArg } from "../hooks/
 import { lookupServerCoinPrice } from "@/app/_lib/serviceCoinPrice";
 import { hardNavigateToShellHome } from "@/lib/navigation/shellHome";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
+import { AI_LOCALE_HEADER } from "@/lib/i18n/ai-locale";
 
 type DrawnCard = {
   cardId: string;
@@ -417,7 +418,7 @@ export default function LoveRelationshipTarot() {
       res = await fetch("/api/tarot/love-reading", {
         method: "POST",
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", [AI_LOCALE_HEADER]: readingLocale },
         body: JSON.stringify({
           cards: payloadCards,
           locale: readingLocale,
