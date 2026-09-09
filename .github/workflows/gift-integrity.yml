@@ -10,7 +10,7 @@ on:
       - 'worker/lib/db.js'
       - 'worker/routes/app-store.js'
       - 'lib/payment/**'
-      - 'tests/integration/gifts.replica.integration.js'
+      - 'tests/integration/**'
       - '.github/workflows/gift-integrity.yml'
   workflow_dispatch:
 permissions:
@@ -23,7 +23,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '24'
           cache: npm
       - run: npm ci --ignore-scripts
       - name: Start isolated local replica set
