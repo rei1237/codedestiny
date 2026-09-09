@@ -1,3 +1,4 @@
+import { pickExpertFields } from "../expert-evidence.js";
 import { calculateZiweiAiChart } from "../../ziwei-ai-chart.js";
 import { arrayText, nonEmptyText, text } from "../../guardian-fortune-adapter-utils.js";
 
@@ -63,6 +64,8 @@ export async function buildZiweiAdapter(input, options = {}) {
   }
 
   return {
+    ...(options.fusionExpert ? { expertEvidence: pickExpertFields(raw,
+      ["palaces", "lifePalace", "bodyPalace", "fourTransformations", "majorLuck", "minorLuck", "yearlyLuck", "sanFangSiZheng", "bureau"]) } : {}),
     lifePalaceSummary,
     topicPalaceSummary,
     keyStarsSummary: keyStars.length ? `주요 별은 ${keyStars.join(", ")}의 결로 나타납니다.` : undefined,

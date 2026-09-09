@@ -72,6 +72,7 @@ export default function CodexChapter({ chapter, forceVisible = false }: CodexCha
       id={`${CODEX_CHAPTER_ANCHOR_PREFIX}${chapter.order}`}
       data-codex-pdf-page
       data-codex-chapter={chapter.order}
+      tabIndex={-1}
       className={styles.section}
     >
       <div className={styles.measure}>

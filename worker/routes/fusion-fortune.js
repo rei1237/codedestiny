@@ -247,7 +247,7 @@ async function handleFusionFortuneStreamRoute(request, env, ctx) {
   // 2단계 생성. stage 2 는 같은 requestId 의 1단계 보관본(status partial 또는 completed)을
   // 앞 결과로 넘긴다. 없으면 생성기가 STAGE_ONE_MISSING(409, retryable) 로 1단계부터 다시 하게 한다.
   const streamStage = Number(body?.stage) === 2 ? 2 : 1;
-  const priorConsultation = streamStage === 2 ? await loadFusionPriorConsultation({ userId: String(auth.userId), requestId: streamRequestId }) : null;
+  const priorConsultation = await loadFusionPriorConsultation({ userId: String(auth.userId), requestId: streamRequestId });
   // 🔴 스트림의 **종료 주체**. 이 자리가 비어 있어서 2026-09-03 에 결제한 사용자의 화면이
   //    영원히 돌았다(원칙 6 확인: 추가가 아니라 없던 주체를 만드는 것 — 종료를 담당하던
   //    코드는 run 의 finally 뿐이었고, run 이 pending 이면 그 finally 는 영원히 안 돈다).
@@ -300,6 +300,11 @@ async function handleFusionFortuneStreamRoute(request, env, ctx) {
 
         // 저장을 배달보다 **먼저** 한다. 마지막 write 직전 연결이 끊겨도 결과는 남아
         // 재열람이 복구 경로가 된다(예전에는 그 순간 3만원짜리 결과가 그대로 사라졌다).
+        onCheckpoint: async (delivery) => {
+          const id = await persistFusionDelivery({ userId: String(auth.userId), input: body, delivery });
+          if (!id) throw new Error("FUSION_CHECKPOINT_SAVE_FAILED");
+          await writeFusionFortuneSse(writer, "checkpoint", { result: delivery.result });
+        },
         onDelivery: async (delivery) => {
           consultationId = await persistFusionDelivery({ userId: String(auth.userId), input: body, delivery });
           await writeFusionFortuneSse(writer, "result", { ...delivery, consultationId });
@@ -377,7 +382,7 @@ export async function handleFusionFortuneRoutes(request, env, ctx = null) {
       // 2단계 생성. stage 를 지정하면 그 단계만, 없으면 1→2 를 이어서 돈다(스트림과 같은 계약).
       const requestedStage = Number(body?.stage);
       const stages = requestedStage === 1 || requestedStage === 2 ? [requestedStage] : [1, 2];
-      let prior = stages[0] === 2 ? await loadFusionPriorConsultation({ userId: String(auth.userId), requestId }) : null;
+      let prior = await loadFusionPriorConsultation({ userId: String(auth.userId), requestId });
       let result = null;
       let consultationId = "";
       for (const stage of stages) {
@@ -393,6 +398,10 @@ export async function handleFusionFortuneRoutes(request, env, ctx = null) {
           stage,
           priorResult: prior?.result || null,
           priorGenerationSource: prior?.generationSource || "",
+          onCheckpoint: async (delivery) => {
+            const id = await persistFusionDelivery({ userId: String(auth.userId), input: body, delivery });
+            if (!id) throw new Error("FUSION_CHECKPOINT_SAVE_FAILED");
+          },
         });
         if (!result?.ok) return respond(result);
         consultationId = await persistFusionDelivery({

@@ -1173,7 +1173,19 @@ async function verifyNamingAccess(env, auth, body = {}, inputHash = "") {
   };
 }
 
-function buildExecutionId(auth, inputHash, access = {}) {
+async function buildExecutionId(auth, inputHash, access = {}) {
+  if (access.paymentId) {
+    const granted = await PaidExecutionRecord.findOne({ userId: String(auth.userId),
+      featureId: FEATURE_KEY, paymentId: String(access.paymentId),
+    }).lean();
+    if (granted) {
+      if (["refunded", "cancelled"].includes(granted.status)
+          || (granted.result?.namingPrompt?.inputHash && granted.result.namingPrompt.inputHash !== inputHash)) {
+        throw createHttpError(409, "구매한 작명 회차와 입력이 일치하지 않습니다.", { code: "PURCHASE_RUN_MISMATCH" });
+      }
+      return granted.executionId;
+    }
+  }
   const seed = firstClean(access.paymentId, access.evidenceId, access.requestId, inputHash);
   return `naming-prompt:${auth.userId}:${inputHash.slice(0, 16)}:${seed}`.replace(/[^a-zA-Z0-9:_-]/g, "").slice(0, 160);
 }
@@ -1269,14 +1281,16 @@ function buildExecutionBaseFields(auth, access, inputHash, executionId) {
 // love-secret-ai.js와 동일한 "동기 우선 실행 + 재진입만 202" 패턴.
 async function beginNamingGeneration(env, auth, access, inputHash, input, sajuSnapshot, generatedPrompt, now) {
   await connectDb(env);
-  const executionId = buildExecutionId(auth, inputHash, access);
+  const executionId = await buildExecutionId(auth, inputHash, access);
   const base = buildExecutionBaseFields(auth, access, inputHash, executionId);
   const before = await PaidExecutionRecord.findOneAndUpdate(
     { executionId },
     {
       $setOnInsert: {
         ...base,
-        consumedAt: now,
+        createdAt: now,
+        updatedAt: now,
+        consumedAt: null,
         status: "generating",
         result: {
           namingPrompt: {
@@ -1294,11 +1308,11 @@ async function beginNamingGeneration(env, auth, access, inputHash, input, sajuSn
         },
       },
     },
-    { upsert: true, returnDocument: "before" },
+    { upsert: true, returnDocument: "before", timestamps: false },
   ).lean();
 
   if (!before) return { state: "claimed", executionId };
-  if (before.status === "completed" && before.result?.namingPrompt?.generatedResult) {
+  if (before.status === "completed" && (before.result?.namingPrompt?.generatedResult || before.result?.namingPrompt?.generatedPrompt)) {
     return { state: "completed", result: serializeExecutionResult(before) };
   }
   const updatedAtMs = new Date(before.updatedAt || before.createdAt || 0).getTime();
@@ -1307,17 +1321,20 @@ async function beginNamingGeneration(env, auth, access, inputHash, input, sajuSn
     return { state: "in_flight", executionId };
   }
   // 실패했거나 오래된 generating 잔재 → 소유권을 되찾아 재생성.
-  await PaidExecutionRecord.updateOne(
-    { executionId },
+  const claimed = await PaidExecutionRecord.findOneAndUpdate(
+    { _id: before._id, status: before.status, updatedAt: before.updatedAt || null },
     {
       $set: {
         status: "generating",
         error: null,
-        "result.namingPrompt.generatedPrompt": generatedPrompt,
-        "result.namingPrompt.generatedResult": "",
+        "result.namingPrompt": { version: RESULT_VERSION, productType: PRODUCT_TYPE,
+          inputHash, inputSnapshot: input, sajuSnapshot, generatedPrompt, generatedResult: "",
+          generatedAt: null, accessMethod: access.accessMethod, evidenceId: access.evidenceId },
       },
     },
-  );
+    { returnDocument: "after" },
+  ).lean();
+  if (!claimed) return { state: "in_flight", executionId };
   return { state: "claimed", executionId };
 }
 
@@ -1512,7 +1529,7 @@ async function mirrorNamingResultToPayment(paymentId, snapshot) {
 
 async function upsertExecutionRecord(env, auth, access, inputHash, input, sajuSnapshot, generatedPrompt, generatedResult, generatedAt, llmMeta = {}) {
   await connectDb(env);
-  const executionId = buildExecutionId(auth, inputHash, access);
+  const executionId = await buildExecutionId(auth, inputHash, access);
   const base = buildExecutionBaseFields(auth, access, inputHash, executionId);
   const result = {
     namingPrompt: {
@@ -1536,9 +1553,10 @@ async function upsertExecutionRecord(env, auth, access, inputHash, input, sajuSn
   const record = await PaidExecutionRecord.findOneAndUpdate(
     { executionId },
     {
-      $setOnInsert: { ...base, consumedAt: generatedAt },
+      $setOnInsert: base,
       $set: {
         status: "completed",
+        consumedAt: generatedAt,
         completedAt: generatedAt,
         error: null,
         result,
@@ -1616,7 +1634,7 @@ async function handleGenerate(request, env, ctx = null) {
     return json({ ok: true, idempotent: true, result: existing });
   }
 
-  const executionId = buildExecutionId(auth, inputHash, access);
+  const executionId = await buildExecutionId(auth, inputHash, access);
   const existingExecution = await findExecutionResultForUser(env, auth, executionId);
   if (existingExecution) {
     if (existingExecution.inputHash !== inputHash) {
@@ -1771,3 +1789,5 @@ export async function handleNamingPromptRoutes(request, env, ctx = null) {
     });
   }
 }
+
+export const __namingPromptExecutionTestUtils = { beginNamingGeneration, upsertExecutionRecord };

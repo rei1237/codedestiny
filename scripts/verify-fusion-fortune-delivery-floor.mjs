@@ -1,32 +1,9 @@
 #!/usr/bin/env node
 /**
- * 초융합 "배달 바닥" 계약 검증 — **mock 기본, LLM 실호출 없음**.
- *
- * 왜 있는가: 결제는 생성 **전에** 끝난다. 그런데 예전에는 결과 검증에 실패하면 최후 폴백까지
- * **같은 검증기**를 통과해야 배달됐다(`buildValidatedFusionFallback`). 검증기에는 입력에 종속적인
- * 판정(분량 밴드·문장 반복·섹션 깊이)이 섞여 있어서, 그중 하나가 그 사용자의 컨텍스트에서 걸리면
- * **본 결과도 폴백도 같은 이유로 탈락**하고 같은 requestId 재시도가 영원히 같은 자리에서 죽었다.
- * 사용자 화면에는 "결과를 준비하지 못했어요"만 남고 30,000원은 이미 결제된 뒤였다.
- *
- * 이 스크립트가 고정하는 계약은 넷이다:
- *   ① 품질만 미달한 결과는 `tier:"degraded"` 로 **배달된다**(0을 받는 경로가 없다)
- *   ② 안전 위반(개인정보 노출·타로 환각·필수 키 누락)은 **여전히 반려된다**
- *   ③ 첫 위반만 돌려주는 기존 `validateFusionFortuneResult` 계약은 그대로다(가드 단언이 이 모양을 본다)
- *   ④ 🔴 **입력 조합 전수** — 생시 유무 × 출생지 유무 4조합 모두에서 배달된다
- *
- * ④ 를 뒤늦게 넣은 이유(2026-09-03 실사고): 이 스크립트의 유일한 입력 `BASE_INPUT` 이 생시와
- * 출생지를 **항상** 채우고 있었고 `OPTIONS` 도 `birthTimeKnown/birthPlaceKnown` 을 손으로 `true` 로
- * 박아 둬서, 나머지 세 조합을 한 번도 밟지 않았다. 그 사이 과장 탐지 정규식이 우리 시스템 자신의
- * 면책 문장("상승궁·하우스는 단정하지 않고…")을 과장으로 오인해 **생시/출생지 미상 입력 3조합이
- * 전부 영구 실패**하고 있었다 — 결정론 폴백까지 같은 게이트에 걸려 재시도해도 같은 자리에서 죽었다.
- * 그래서 조합 목록은 손으로 쓴 배열이 아니라 `[true,false] × [true,false]` 전개로 만든다.
- * 그리고 검사가 통째로 무력화되지 않았음을 **양방향**으로 고정한다 — 진짜 과장 문장을 주입하면
- * 해당 조합에서 `birth_*_overclaim` 이 여전히 나와야 한다.
- *
- * 🔴 실제 모델 호출은 하지 않는다. providerCall 을 주입해 가짜 응답만 흘린다
- *    (정본 패턴: scripts/verify-fusion-fortune-quality.mjs).
- *
- * 사용: node scripts/verify-fusion-fortune-delivery-floor.mjs
+ * Earlier stored-result quality classification remains compatible. New generation
+ * must pass the full contract and preserves partial results for the same paid request.
+ * Mock provider responses only; fetch is disabled including context-cache requests.
+ * Run: node scripts/verify-fusion-fortune-delivery-floor.mjs
  */
 import {
   buildFusionFortuneContext,
@@ -45,6 +22,7 @@ if (process.argv.includes("--live")) {
   process.exit(2);
 }
 
+globalThis.fetch = async () => { throw new Error("Network disabled in delivery-floor verification"); };
 const failures = [];
 function check(label, condition, detail = "") {
   if (condition) return;
@@ -252,21 +230,23 @@ async function runShortGeneration(shape) {
     },
   };
   const first = await generateFusionFortuneWithRealLLM({ ...common, stage: 1 });
+  if (!first.deliverable) return { generated: first, stageOne: first, stageEvents: events };
   const outcome = await generateFusionFortuneWithRealLLM({ ...common, stage: 2, priorResult: first.result, priorGenerationSource: first.generationSource });
   return { generated: outcome, stageOne: first, stageEvents: events };
 }
 
 const { generated, stageEvents } = await runShortGeneration(baseShape);
 
-check("아홉 묶음이 모두 분량 미달이어도 결과가 배달된다", generated.deliverable === true && Boolean(generated.result),
+check("모든 전문가가 검증 미달이면 완성본으로 표시하지 않는다", generated.deliverable === false && Boolean(generated.result),
   `deliverable=${generated.deliverable}`);
-check("강등 배달은 모델 본문을 유지한다(폴백으로 갈아타지 않는다)", generated.generationSource !== "context_fallback",
+check("검증 미달을 컨텍스트 폴백으로 채우지 않는다", generated.generationSource !== "context_fallback",
   `generationSource=${generated.generationSource}`);
-check("강등 등급과 사유가 호출자에게 전달된다", generated.qualityTier === "degraded" && (generated.qualityIssues || []).length > 0,
+check("미완료 사유가 호출자에게 전달된다", generated.deliverable === false && (generated.qualityIssues || []).length > 0,
   `tier=${generated.qualityTier} issues=${(generated.qualityIssues || []).join(",")}`);
 
 // ── 진행 이벤트: 총량을 넘는 카운터가 없어야 한다("6 / 4" 재발 방지) ──
 const composeEvents = stageEvents.filter((event) => event.stage === "compose");
+check("검증을 통과한 그룹만 완료 카운터를 올린다", composeEvents.length > 0 && composeEvents.every((event) => Number(event.completedGroups) > 0));
 check("진행 카운터가 총량을 넘지 않는다",
   composeEvents.every((event) => Number(event.completedGroups) <= Number(event.totalGroups)),
   composeEvents.map((event) => `${event.phase}:${event.completedGroups}/${event.totalGroups}`).join(" "));
@@ -303,8 +283,8 @@ for (const axes of SHAPES) {
 
   // (2) 생성기 전 경로 — 네 묶음이 전부 미달이어도 이 조합에서 0이 나오면 안 된다.
   const { generated: shapeGenerated } = await runShortGeneration(shape);
-  check(`[${shape.label}] 아홉 묶음 미달에도 결과가 배달된다`,
-    shapeGenerated.deliverable === true && Boolean(shapeGenerated.result),
+  check(`[${shape.label}] 검증 미달 결과는 완성본으로 배달하지 않는다`,
+    shapeGenerated.deliverable === false && Boolean(shapeGenerated.result),
     `deliverable=${shapeGenerated.deliverable} issues=${(shapeGenerated.qualityIssues || []).join(",")}`);
 
   // (3) 반대 방향 — 진짜 과장은 여전히 잡힌다. 미상인 축에 대해서만 성립하는 검사다.

@@ -96,7 +96,7 @@ beforeAll(async () => {
        존재하지 않으므로 빈 컬렉션이다(월정석만으로 증빙돼야 한다는 것이 이 테스트의 요지다). */
     jest.unstable_mockModule("../../worker/lib/models.js", () => ({
       Payment: { findOne: findOneOver(() => []) },
-      PointHistory: { findOne: findOneOver(() => []) },
+      PointHistory: { findOne: findOneOver(() => []), collection: { findOne: async () => null } },
       MonthlyCreditLedger: { findOne: findOneOver(() => ledgerRows), find: findManyOver(() => ledgerRows) },
       User: { findById: () => ({ select: () => ({ lean: async () => userDoc }) }) },
       // monthly-credit-store.js 가 모듈 최상단에서 읽는다(lot CAS 는 주입으로 대체하지만 import 는 산다).
