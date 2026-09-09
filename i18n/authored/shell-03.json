@@ -308,20 +308,6 @@
     "nl": "Visual novel inbegrepen",
     "ms": "Termasuk novel visual"
   },
-  "shell.cdFeedbackCard.cdFeedbackCopy.k1qqtskq": {
-    "ko": "서비스를 함께 만들어 주세요.",
-    "en": "Help us build this service.",
-    "ja": "サービスを一緒に育ててください。",
-    "zh-CN": "邀你一起打造这项服务。",
-    "zh-TW": "邀你一起打造這項服務。",
-    "vi": "Cùng chúng tôi xây dựng dịch vụ này.",
-    "hi": "इस सेवा को साथ मिलकर बनाएँ।",
-    "es": "Ayúdanos a construir este servicio.",
-    "fr": "Aidez-nous à bâtir ce service.",
-    "de": "Gestalten Sie diesen Dienst mit.",
-    "nl": "Help ons deze dienst te bouwen.",
-    "ms": "Bantu kami membina perkhidmatan ini."
-  },
   "shell.cdFeedbackCopy.cdFeedbackReward.k1ubfgod": {
     "ko": "월정석 300개",
     "en": "300 Moonlight Stones",
@@ -335,20 +321,6 @@
     "de": "300 Mondlichtsteine",
     "nl": "300 Maanlichtstenen",
     "ms": "300 Batu Cahaya Bulan"
-  },
-  "shell.cdFeedbackGate.cdFeedbackCard.k1chb9k4": {
-    "ko": "의견 보내기",
-    "en": "Send Feedback",
-    "ja": "意見を送る",
-    "zh-CN": "发送反馈",
-    "zh-TW": "傳送意見",
-    "vi": "Gửi góp ý",
-    "hi": "प्रतिक्रिया भेजें",
-    "es": "Enviar comentarios",
-    "fr": "Envoyer un avis",
-    "de": "Feedback senden",
-    "nl": "Feedback sturen",
-    "ms": "Hantar Maklum Balas"
   },
   "shell.tarotYearFortuneIntroStage.tyHero.k1qxj83w": {
     "ko": "올해의 핵심 카드 · 12개월 월별 리딩 · 금전·일·관계·건강·성장운 · 전환점과 행운 행동",

@@ -1347,7 +1347,7 @@
       "suffix": "paling sesuai untuk anda."
     },
     "feedback": {
-      "rewardPrefix": "Bagi setiap laporan pepijat yang diterima"
+      "rewardPrefix": "Bagi setiap laporan yang disahkan sebagai pepijat sebenar"
     },
     "whyUs": {
       "proof": {
@@ -6550,7 +6550,7 @@
     },
     "cdFeedbackCard": {
       "cdFeedbackCopy": {
-        "k1qqtskq": "Bantu kami membina perkhidmatan ini."
+        "k1qqtskq": "Ruang Laporan Pepijat"
       }
     },
     "cdFeedbackCopy": {
@@ -6564,7 +6564,7 @@
     },
     "cdFeedbackGate": {
       "cdFeedbackCard": {
-        "k1chb9k4": "Hantar Maklum Balas"
+        "k1chb9k4": "Laporkan Pepijat"
       }
     },
     "tarotYearFortuneIntroStage": {
@@ -9212,10 +9212,22 @@
         "3": "Lihat mesej setiap kad, tafsiran menyeluruh dan pelan praktikal untuk hari ini"
       },
       "analysisSteps": {
-        "0": { "label": "Tetapkan soalan", "detail": "Tulis kebimbangan anda atau mulakan daripada keadaan fikiran semasa." },
-        "1": { "label": "Pilih ritual", "detail": "Pilih satu, tiga atau lima kad mengikut kedalaman yang diperlukan." },
-        "2": { "label": "Buka kad", "detail": "Terbalikkan kad mengikut urutan dan ikuti aliran haiwan pelindung." },
-        "3": { "label": "Pilih tindakan", "detail": "Gunakan tafsiran menyeluruh dan pelan hari ini untuk menentukan langkah seterusnya." }
+        "0": {
+          "label": "Tetapkan soalan",
+          "detail": "Tulis kebimbangan anda atau mulakan daripada keadaan fikiran semasa."
+        },
+        "1": {
+          "label": "Pilih ritual",
+          "detail": "Pilih satu, tiga atau lima kad mengikut kedalaman yang diperlukan."
+        },
+        "2": {
+          "label": "Buka kad",
+          "detail": "Terbalikkan kad mengikut urutan dan ikuti aliran haiwan pelindung."
+        },
+        "3": {
+          "label": "Pilih tindakan",
+          "detail": "Gunakan tafsiran menyeluruh dan pelan hari ini untuk menentukan langkah seterusnya."
+        }
       },
       "premiumOutcomes": {
         "0": "Tafsiran kad adalah untuk rujukan.",

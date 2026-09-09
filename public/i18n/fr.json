@@ -1347,7 +1347,7 @@
       "suffix": "vous convient le mieux."
     },
     "feedback": {
-      "rewardPrefix": "Par rapport de bogue accepté"
+      "rewardPrefix": "Par rapport confirmé comme un vrai bug"
     },
     "whyUs": {
       "proof": {
@@ -6550,7 +6550,7 @@
     },
     "cdFeedbackCard": {
       "cdFeedbackCopy": {
-        "k1qqtskq": "Aidez-nous à bâtir ce service."
+        "k1qqtskq": "Espace de signalement des bugs"
       }
     },
     "cdFeedbackCopy": {
@@ -6564,7 +6564,7 @@
     },
     "cdFeedbackGate": {
       "cdFeedbackCard": {
-        "k1chb9k4": "Envoyer un avis"
+        "k1chb9k4": "Signaler un bug"
       }
     },
     "tarotYearFortuneIntroStage": {
@@ -9212,10 +9212,22 @@
         "3": "Découvrez le message de chaque carte, une interprétation d'ensemble et le plan concret du jour"
       },
       "analysisSteps": {
-        "0": { "label": "Définir la question", "detail": "Écrivez votre préoccupation ou partez de votre état d'esprit actuel." },
-        "1": { "label": "Choisir un rituel", "detail": "Choisissez une, trois ou cinq cartes selon la profondeur souhaitée." },
-        "2": { "label": "Révéler les cartes", "detail": "Retournez-les dans l'ordre et suivez le cheminement des animaux gardiens." },
-        "3": { "label": "Choisir une action", "detail": "Appuyez-vous sur la lecture d'ensemble et le plan du jour pour décider de la suite." }
+        "0": {
+          "label": "Définir la question",
+          "detail": "Écrivez votre préoccupation ou partez de votre état d'esprit actuel."
+        },
+        "1": {
+          "label": "Choisir un rituel",
+          "detail": "Choisissez une, trois ou cinq cartes selon la profondeur souhaitée."
+        },
+        "2": {
+          "label": "Révéler les cartes",
+          "detail": "Retournez-les dans l'ordre et suivez le cheminement des animaux gardiens."
+        },
+        "3": {
+          "label": "Choisir une action",
+          "detail": "Appuyez-vous sur la lecture d'ensemble et le plan du jour pour décider de la suite."
+        }
       },
       "premiumOutcomes": {
         "0": "Les interprétations des cartes sont fournies à titre indicatif.",

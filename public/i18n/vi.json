@@ -1347,7 +1347,7 @@
       "suffix": "hợp với bạn nhất."
     },
     "feedback": {
-      "rewardPrefix": "Mỗi báo lỗi được chấp nhận"
+      "rewardPrefix": "Mỗi báo lỗi được xác nhận là lỗi thật"
     },
     "whyUs": {
       "proof": {
@@ -6550,7 +6550,7 @@
     },
     "cdFeedbackCard": {
       "cdFeedbackCopy": {
-        "k1qqtskq": "Cùng chúng tôi xây dựng dịch vụ này."
+        "k1qqtskq": "Góc báo lỗi"
       }
     },
     "cdFeedbackCopy": {
@@ -6564,7 +6564,7 @@
     },
     "cdFeedbackGate": {
       "cdFeedbackCard": {
-        "k1chb9k4": "Gửi góp ý"
+        "k1chb9k4": "Báo lỗi"
       }
     },
     "tarotYearFortuneIntroStage": {
@@ -9212,10 +9212,22 @@
         "3": "Xem thông điệp từng lá, phần giải tổng hợp và kế hoạch hành động hôm nay"
       },
       "analysisSteps": {
-        "0": { "label": "Đặt câu hỏi", "detail": "Viết điều bận tâm hoặc bắt đầu từ trạng thái tâm trí hiện tại." },
-        "1": { "label": "Chọn nghi thức", "detail": "Chọn một, ba hoặc năm lá theo độ sâu bạn cần." },
-        "2": { "label": "Mở các lá bài", "detail": "Lật theo thứ tự và theo dõi dòng chảy của các linh thú." },
-        "3": { "label": "Chọn hành động", "detail": "Dùng phần giải tổng hợp và kế hoạch hôm nay để quyết định bước tiếp theo." }
+        "0": {
+          "label": "Đặt câu hỏi",
+          "detail": "Viết điều bận tâm hoặc bắt đầu từ trạng thái tâm trí hiện tại."
+        },
+        "1": {
+          "label": "Chọn nghi thức",
+          "detail": "Chọn một, ba hoặc năm lá theo độ sâu bạn cần."
+        },
+        "2": {
+          "label": "Mở các lá bài",
+          "detail": "Lật theo thứ tự và theo dõi dòng chảy của các linh thú."
+        },
+        "3": {
+          "label": "Chọn hành động",
+          "detail": "Dùng phần giải tổng hợp và kế hoạch hôm nay để quyết định bước tiếp theo."
+        }
       },
       "premiumOutcomes": {
         "0": "Diễn giải lá bài chỉ mang tính tham khảo.",

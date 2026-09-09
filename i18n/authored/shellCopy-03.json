@@ -43,17 +43,45 @@
     "ms": "Belum ada ulasan. Cuba satu sesi bacaan dan tinggalkan yang pertama."
   },
   "home.feedback.rewardPrefix": {
-    "ko": "채택된 버그 제보 1건당",
-    "en": "Per accepted bug report",
-    "ja": "採用されたバグ報告1件につき",
-    "zh-CN": "每一则被采纳的错误回报",
-    "zh-TW": "每一則被採納的錯誤回報",
-    "vi": "Mỗi báo lỗi được chấp nhận",
-    "hi": "स्वीकृत प्रत्येक बग रिपोर्ट पर",
-    "es": "Por cada informe de error aceptado",
-    "fr": "Par rapport de bogue accepté",
-    "de": "Pro angenommenem Fehlerbericht",
-    "nl": "Per geaccepteerde bugmelding",
-    "ms": "Bagi setiap laporan pepijat yang diterima"
+    "ko": "실제 버그로 확인된 제보 1건당",
+    "en": "Per bug report confirmed as genuine",
+    "ja": "実際のバグと確認された報告1件につき",
+    "zh-CN": "每个确认属实的问题反馈",
+    "zh-TW": "每個確認屬實的問題回報",
+    "vi": "Mỗi báo lỗi được xác nhận là lỗi thật",
+    "hi": "वास्तविक बग के रूप में पुष्टि की गई प्रत्येक रिपोर्ट पर",
+    "es": "Por cada informe confirmado como un error real",
+    "fr": "Par rapport confirmé comme un vrai bug",
+    "de": "Pro Fehlerbericht, der als echter Fehler bestätigt wird",
+    "nl": "Per bugmelding die als echte bug is bevestigd",
+    "ms": "Bagi setiap laporan yang disahkan sebagai pepijat sebenar"
+  },
+  "shell.cdFeedbackCard.cdFeedbackCopy.k1qqtskq": {
+    "ko": "버그 제보실",
+    "en": "Bug Report Desk",
+    "ja": "バグ報告室",
+    "zh-CN": "问题反馈室",
+    "zh-TW": "問題回報室",
+    "vi": "Góc báo lỗi",
+    "hi": "बग रिपोर्ट डेस्क",
+    "es": "Centro de informes de errores",
+    "fr": "Espace de signalement des bugs",
+    "de": "Fehler melden",
+    "nl": "Bugmeldpunt",
+    "ms": "Ruang Laporan Pepijat"
+  },
+  "shell.cdFeedbackGate.cdFeedbackCard.k1chb9k4": {
+    "ko": "버그 제보하기",
+    "en": "Report a Bug",
+    "ja": "バグを報告する",
+    "zh-CN": "提交问题",
+    "zh-TW": "回報問題",
+    "vi": "Báo lỗi",
+    "hi": "बग रिपोर्ट करें",
+    "es": "Informar de un error",
+    "fr": "Signaler un bug",
+    "de": "Fehler melden",
+    "nl": "Bug melden",
+    "ms": "Laporkan Pepijat"
   }
 }
