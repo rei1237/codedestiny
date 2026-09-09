@@ -808,12 +808,12 @@ export async function applyEntitlementUpdate({ userId, product, googlePurchase, 
       const existing = await User.findById(userId, { profileSubscription: 1, passGrantOrderIds: 1 }).lean();
       if (passOrderId && existing?.passGrantOrderIds?.includes(String(passOrderId))) return User.findById(userId, USER_ENTITLEMENT_PROJECTION).lean();
       const prior = existing?.profileSubscription || {};
-      const update = buildEntitlementUpdate({ product, googlePurchase, now, priorSubscription: prior, passOrderId });
-      if (passOrderId) update.$addToSet.passGrantOrderIds = String(passOrderId);
+      const passActivationUpdate = { ...buildEntitlementUpdate({ product, googlePurchase, now, priorSubscription: prior, passOrderId }) };
+      if (passOrderId) passActivationUpdate.$addToSet.passGrantOrderIds = String(passOrderId);
       const filter = { _id: userId };
       for (const key of ["expiresAt", "monthlySpendCoin", "monthlyLimitCoin", "premiumUseCount", "lastPassOrderId"]) filter[`profileSubscription.${key}`] = prior[key] ?? null;
       if (passOrderId) filter.passGrantOrderIds = { $ne: String(passOrderId) };
-      const user = await User.findOneAndUpdate(filter, update, { returnDocument: "after", projection: USER_ENTITLEMENT_PROJECTION }).lean();
+      const user = await User.findOneAndUpdate(filter, passActivationUpdate, { returnDocument: "after", projection: USER_ENTITLEMENT_PROJECTION }).lean();
       if (user) return user;
     }
     throw Object.assign(new Error("이용권이 변경되었습니다. 구매 복원으로 다시 확인해 주세요."), { status: 409, code: "APP_PASS_GRANT_CONFLICT" });
