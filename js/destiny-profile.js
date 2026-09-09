@@ -7056,7 +7056,8 @@
   /* ──────────────────────────────────────────
      4. 입력 폼 → 프로필 오브젝트 변환
   ────────────────────────────────────────── */
-  function readFormData() {
+  function readFormData(options) {
+    var allowAnonymous = !!(options && options.allowAnonymous);
     var name    = (document.getElementById('nameInput') || {}).value || '';
     var bdEl    = document.getElementById('birthDate');
     var bd      = bdEl ? _dpNormalizeBirthDateInputValue(bdEl.value) : '';
@@ -7095,7 +7096,7 @@
     var baseTzOff = opt ? parseFloat(opt.getAttribute('data-base-tz') || String(tzOff)) : tzOff;
     var locationLabel = opt ? opt.text : '대한민국 (서울)';
 
-    if (!name || !bd) return null;
+    if ((!name && !allowAnonymous) || !bd) return null;
     if (bdEl && bd !== bdEl.value) bdEl.value = bd;
 
     var parts = String(bd || '').split('-');
@@ -7111,7 +7112,7 @@
     );
 
     return {
-      name: name,
+      name: name || '사용자',
       gender: gender,
       birth: { year: year, month: month, day: day, hour: hour, minute: minute, calType: calType },
       location: {
@@ -11322,12 +11323,27 @@
 
   /* '오늘의 한 걸음' → '무료 사주 원국' 카드 진입점. cdSajuTabEntry와 달리 로그인 게이트가 없다
      — 게스트가 로컬에만 저장한 프로필 카드도 커버해야 하기 때문. */
+  var __cdDirectSajuEntryState = window.__cdDirectSajuEntryState || { inFlight: false };
+  window.__cdDirectSajuEntryState = __cdDirectSajuEntryState;
+
   window.cdOneStepFreeSajuEntry = function() {
     var cached = _dpResolveCurrentProfileForSaju('');
-    if (cached && cached.birth && cached.birth.year) {
+    if (cached && cached.birth && _dpHasValidProfileDate(cached.birth.year, cached.birth.month, cached.birth.day)) {
+      if (__cdDirectSajuEntryState.inFlight) return;
+      __cdDirectSajuEntryState.inFlight = true;
       _injectAndRun(cached, 'saju');
       return;
     }
+
+    var formProfile = null;
+    try { formProfile = readFormData({ allowAnonymous: true }); } catch (_) {}
+    if (formProfile) {
+      if (__cdDirectSajuEntryState.inFlight) return;
+      __cdDirectSajuEntryState.inFlight = true;
+      _injectAndRun(formProfile, 'saju');
+      return;
+    }
+
     if (typeof window.dpStartProfileCreate === 'function') window.dpStartProfileCreate();
   };
 

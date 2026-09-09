@@ -3530,6 +3530,33 @@
       },
       "dictNs": "astrology_ai_consultation"
     },
+    "cdOneStepFreeSajuEntry": {
+      "copy": {
+        "answersQuestions": [
+          "제 타고난 성향은 어떤가요?",
+          "인생의 큰 흐름은 어떻게 흐르나요?",
+          "지금은 어떤 시기인가요?"
+        ],
+        "badge": "무료 시작",
+        "category": "사주",
+        "ctaLabel": "무료로 사주 보기",
+        "featureId": "saju",
+        "headline": "생년월일시 하나로 삶의 큰 흐름부터 펼쳐 보세요.",
+        "painPoints": [
+          "내 성향을 말로 정리하기 어려울 때",
+          "인생의 큰 흐름을 한번 보고 싶을 때",
+          "사주가 처음이라 어디서 시작할지 모를 때"
+        ],
+        "previewText": "겁주는 길흉 대신, 타고난 결과 지금의 흐름을 차분히 설명합니다.",
+        "recommendedFor": [
+          "사주를 처음 보는 분",
+          "자기 기질을 정리하고 싶은 분",
+          "큰 흐름부터 확인하고 싶은 분"
+        ],
+        "subheadline": "사주팔자 여덟 글자를 계산해 타고난 기질과 인생의 큰 굴곡을 정리해 주는 기본 해석입니다. 무료로 시작할 수 있어요."
+      },
+      "dictNs": "saju"
+    },
     "cosmic-soul-meditation": {
       "copy": {
         "analysisSteps": [],
