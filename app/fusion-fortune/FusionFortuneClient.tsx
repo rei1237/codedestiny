@@ -1,7 +1,7 @@
 "use client";
 
 import { useLocaleRequestScope, type LocaleRequestScope } from "@/app/hooks/useLocaleRequestScope";
-import { AI_LOCALE_HEADER } from "@/lib/i18n/ai-locale";
+import { AI_LOCALE_HEADER, toAiLocale } from "@/lib/i18n/ai-locale";
 
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { readDevPreviewState } from "@/lib/dev-preview/core";
@@ -86,6 +86,7 @@ const FUSION_HANDOFF_KEY = "cdGuardianFusionHandoffV1";
  * 재시도가 "같은 결제 · 다른 질문"으로 나간다(2026-09-03: birthPlace 가 조용히 빠졌다).
  */
 type FusionRequestBody = {
+  locale?: string;
   birthDate?: string;
   birthTime?: string;
   birthTimeUnknown?: boolean;
@@ -2391,6 +2392,8 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
     const controller = new AbortController();
     requestAbortRef.current = controller;
     const scope = captureLocaleScope();
+    // 두 단계와 새로고침 재개는 같은 결제 입력의 최초 생성 언어를 유지한다.
+    requestBody = { ...requestBody, locale: toAiLocale(requestBody.locale || scope.locale) };
     const isCurrent = () => scope.isCurrent() && requestAbortRef.current === controller;
     capAbortedRef.current = false;
     setStageTwoFailed(false);
@@ -2485,7 +2488,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
   const runStage = async (stage: 1 | 2, requestId: string, requestBody: FusionRequestBody, controller: AbortController, fortuneChatSessionId: string, scope: LocaleRequestScope) => {
       const response = await authFetch(`${apiBase}/api/fusion-fortune/generate/stream`, {
         method: "POST", credentials: "include", signal: controller.signal,
-        headers: { "Content-Type": "application/json", Accept: "text/event-stream", "Idempotency-Key": requestId, [AI_LOCALE_HEADER]: scope.locale },
+        headers: { "Content-Type": "application/json", Accept: "text/event-stream", "Idempotency-Key": requestId, [AI_LOCALE_HEADER]: requestBody.locale || scope.locale },
         body: JSON.stringify({ ...requestBody, requestId, stage }),
       }, { retryOn401: true, apiBase });
       return consumeFusionStream(response, copy, (streamEvent, streamPayload) => {

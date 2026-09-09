@@ -11,13 +11,13 @@ next: #1860 최신 HEAD CI를 확인하고, 추가 renderer 전수 조사는 별
 사용자가 “수정 진행해서 #1860에 올려서 마무리”를 승인했다. 아래 조사 당시의 구현·CI 보류는 이 범위에서 해제했다. PR 머지·배포 보류, 기존 워크트리 사용, 실 LLM·결제·운영 DB 금지는 유지한다.
 
 - `app/hooks/useLocaleRequestScope.ts`: 정규화한 locale와 이벤트 세대를 함께 대조한다. ko→en→ko 전환, 언마운트 이후 응답을 차단하고 같은 locale의 중복 이벤트는 무시한다.
-- `app/fusion-fortune/FusionFortuneClient.tsx`: SSE 단계/결과, 복구 GET, 재열람 GET, 완료 후 이동을 보호한다. 새 controller와 이전 복구 GET의 경합도 차단한다. locale 전환은 결제 requestId/저장 body를 지우지 않는다.
+- `app/fusion-fortune/FusionFortuneClient.tsx`: SSE 단계/결과, 복구 GET, 재열람 GET, 완료 후 이동을 보호한다. 새 controller와 이전 복구 GET의 경합도 차단한다. locale 전환은 결제 requestId/저장 body를 지우지 않는다. 새 재시도 body에는 최초 생성 locale도 보존하여 새로고침·2단계 재개가 다른 언어의 장을 섞지 않도록 한다. locale 없는 과거 body는 일괄 변환하지 않는다.
 - `app/destiny-compass/_hooks/useCompassReport.ts`: 웨이브 A/B 요청 언어를 고정하고 새 캐시에 locale을 기록한다. 이미 시작한 유료 작업은 원래 언어로 완료·보관하되 전환된 화면을 덮지 않는다. 기존 locale 없는 캐시는 언어를 추측하지 않고 기존 보관본 복원으로만 읽으며 삭제하지 않는다. 캐시 재열람 시 새 결제를 열지 않는다.
 - `app/astrology-ai/AstrologyAiClient.tsx`: start 재시도, 202 폴링 sleep/fetch/body, 결과 창 열기 전에 응답 수명을 검사한다. 멱등 키를 유지한다.
 - `js/saju-engine.js`: 폴링 세대·언어·DOM 연결 상태를 대조한다. 진행 중 결과 GET·직접 생성·오류 반영도 보호하고 pending job/결제 증빙을 유지한다. public 미러는 생성기로 동기화한다.
 - `__tests__/ui/locale-request-boundaries.behavior.test.js`: 실제 소스 함수와 훅을 추출해 실행하는 deferred mock 회귀. 실제 네트워크가 필요하면 실패하는 network guard로 실행한다.
 
-승인된 4곳의 구현과 직접 회귀는 완료했다. Node 1,018 tests, Jest 223 suites / 2,475 tests, lint·TypeScript, Pages 843개 정적 페이지 및 Worker 빌드, 12언어 browser/provider mock, 인벤토리 44 files / 107 evidencePoints가 통과했다. P3 전용 회귀는 18개다. 실 LLM·실결제·운영 DB·배포·실기기 검증은 실행하지 않았다.
+승인된 4곳의 구현과 직접 회귀는 완료했다. 앞선 전체 검증에서 Node 1,018 tests, Jest 223 suites / 2,475 tests, lint·TypeScript, Pages 843개 정적 페이지 및 Worker 빌드, 12언어 browser/provider mock, 인벤토리 44 files / 107 evidencePoints가 통과했다. P3 전용 회귀 20개가 통과했다. 늦은 응답·paid resume 완료 판정·통합 운세 재시도 언어 고정이 포함된다. 최종 전체 검사 개수는 실행 출력으로 확인한다. 실 LLM·실결제·운영 DB·배포·실기기 검증은 실행하지 않았다.
 
 preflight에서 발견한 검증기 문제도 함께 수정했다: 원본 followup의 허용되지 않는 `status: paused`를 `done`으로 정리했고, 통합 운세 단계 흐름 검사가 새 `stale` 반환 타입과 다음 단계 차단을 검증하도록 갱신했다. `verify:fusion-fortune-stage-flow`는 1단계 partial→2단계 completed 병합 36,687자·예약·옛 보관본 계약을 모두 통과했다. 최종 preflight 전체 실행 기록은 `.codex-tmp/locale-p3-preflight-delivery.log`에 남긴다(로컬 전용). 이 문서 작성 이후의 원격 최신 HEAD·검사 결과는 아래 명령으로 조회한다.
 

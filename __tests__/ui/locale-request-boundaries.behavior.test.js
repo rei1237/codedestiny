@@ -136,6 +136,24 @@ test('fusion suppresses late SSE progress and chat append', async () => {
   f.change('en'); onEvent('stage', { stage: 'compose', completedGroups: 1 });
   assert.equal(updates, 0);
 });
+test('fusion retains the first generation locale when resuming the same paid body', async () => {
+  const f = fusionFixture(), first = deferred(), bodies = [];
+  f.ctx.runStage = (_stage, _id, body) => { bodies.push(body); return bodies.length === 1 ? first.promise : Promise.resolve({ result: { text: 'same report' }, fusionStatus: {} }); };
+  const pending = f.run('paid-1', { birthDate: '2000-01-01' }, 1, '');
+  f.change('en'); first.resolve({ result: { text: 'partial' }, status: 'partial' }); await pending;
+  const storedBody = f.receipts[0][1]; assert.equal(storedBody.locale, 'ko');
+  await f.run('paid-1', storedBody, 2, '');
+  assert.deepEqual(bodies.map(body => body.locale), ['ko', 'ko']);
+  assert.equal(f.receipts[1][0], 'paid-1');
+});
+test('fusion stage transport uses the saved language when viewer language differs', async () => {
+  let headers;
+  const f = fixture({ apiBase: '', copy: {}, AI_LOCALE_HEADER: 'x-code-destiny-locale',
+    authFetch: async (_path, init) => { headers = init.headers; return {}; }, consumeFusionStream: async () => ({}) });
+  load(f.ctx, fusionFile, ['runStage']);
+  await vm.runInContext('runStage', f.ctx)(2, 'paid-1', { locale: 'ko' }, new AbortController(), '', { locale: 'en', isCurrent: () => true });
+  assert.equal(headers['x-code-destiny-locale'], 'ko'); assert.equal(headers['Idempotency-Key'], 'paid-1');
+});
 
 const astroFile = 'app/astrology-ai/AstrologyAiClient.tsx';
 for (const when of ['sleep', 'fetch', 'body']) {
