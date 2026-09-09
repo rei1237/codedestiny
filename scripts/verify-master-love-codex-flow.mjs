@@ -99,6 +99,18 @@ assert(
 // 회당 결제인데 과거 결제 이력만으로 통과시키면 무한 재생성이 된다 — requestId 바인딩 확인
 assertIncludes(routeFile, routeSource, "collectBillingTokens");
 assertIncludes(routeFile, routeSource, "metadata.requestId");
+// 이용권 확인에서 소비한 동일 요청이 /start 에 도달하면 기존 마커를 증빙으로 인정해야 한다.
+// 이 연결이 끊기면 차감은 됐는데 결과 생성 전에 결제창이 다시 열린다.
+assertIncludes(routeFile, routeSource, "consumePassForFeature");
+assertIncludes(routeFile, routeSource, "hasConsumedPassFeature");
+assert(
+  /consumePassForFeature\([\s\S]{0,300}?featureKey:\s*resolveMode\(normalized\.mode\)\.featureKey[\s\S]{0,160}?requestId:\s*idempotencyKey/.test(routeSource),
+  `${routeFile}: ensure-access 소비는 모드 featureKey 와 idempotencyKey 를 함께 전달해야 합니다`,
+);
+assert(
+  /hasConsumedPassFeature\([\s\S]{0,160}?resolveMode\(normalized\.mode\)\.featureKey[\s\S]{0,120}?idempotencyKey/.test(routeSource),
+  `${routeFile}: /start 는 동일 featureKey·idempotencyKey 소비 마커를 결과 생성 증빙으로 인정해야 합니다`,
+);
 
 // 🔴 결제 증빙 조회는 이 요청의 모드 featureKey 로 해야 한다. 상수(개인판)로 박으면 궁합판
 //    (300코인) 결제가 `master-love-codex-compat` 로 기록되는데 개인판 키로 찾게 되어,

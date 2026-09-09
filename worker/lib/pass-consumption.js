@@ -15,6 +15,30 @@
 //    expiresAt 을 now 로 당기고, 활성 판정이 전부 expiresAt 을 보므로 하위 게이트가 자동으로
 //    전부 닫힌다(passes.js applyBudgetExhaustionTermination 주석).
 import { User } from "./models.js";
+import { invalidateAccessStateCacheForUser } from "./access-state-cache.js";
+
+function invalidatePassUsageReadCaches(userId) {
+  const uid = String(userId || "").trim();
+  if (!uid) return;
+
+  try { invalidateAccessStateCacheForUser(uid); } catch {}
+  for (const cacheName of ["__billingBalanceCache", "__membershipPassCache", "__paidAccessDecisionCache"]) {
+    try {
+      const cache = globalThis[cacheName];
+      if (typeof cache?.invalidateForUser === "function") {
+        cache.invalidateForUser(uid);
+        continue;
+      }
+      if (typeof cache?.keys !== "function" || typeof cache?.delete !== "function") continue;
+      for (const key of cache.keys()) {
+        const normalized = String(key || "");
+        if (normalized === uid || normalized.startsWith(`${uid}|`) || normalized.startsWith(`${uid}::`)) {
+          cache.delete(key);
+        }
+      }
+    } catch {}
+  }
+}
 
 /* 🔴 정본은 **동적 임포트**로 가져온다. 이 파일을 부르는 nakshatra-paid-access.js 는 라우트 9곳이
    정적으로 물고 있어서, payments/* 를 정적으로 끌어오면 그 그래프(passes → orders → db)가
@@ -96,5 +120,8 @@ export async function consumePassForFeature({ user, entitlement, userId, feature
     // CAS 패배 = 그 사이 예산이 소진됐거나 이용권이 바뀌었다. 커버를 단정하지 않고 인계한다.
     return { covered: false, reason: "pass_access_conflict", replayed: false, coverage };
   }
+  // 차감은 성공했는데 60초 읽기 캐시가 예전 사용액을 되돌리면 화면에는 계속 0원으로 보인다.
+  // 쓰기 성공 뒤에만 사용자 단위 캐시를 비우며, 캐시 장애가 소비 성공을 뒤집지는 않는다.
+  invalidatePassUsageReadCaches(userId);
   return { covered: true, reason: "", replayed: false, coverage, user: updated };
 }

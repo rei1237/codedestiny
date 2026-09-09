@@ -815,6 +815,7 @@ async function consumeTierPassIfAvailable(env, authUserId, pricing, requestId, b
   const now = new Date();
   const coveredCoinLimit = usage.tier === "family" ? Number(PASS_LIMITS.family || 0) : Number(policy.maxCoinLimit || 0);
   const tierMatchValues = buildPassTierMatchValues(usage.tier);
+  const budgetFilter = buildMeteredPassBudgetFilter(monthlyQuota, coinCost);
   const updateQuery = {
     _id: authUserId,
     ...(idempotencyMarker ? { recentConsumeRequestIds: { $ne: idempotencyMarker } } : {}),
@@ -845,6 +846,7 @@ async function consumeTierPassIfAvailable(env, authUserId, pricing, requestId, b
           { expiresAt: { $exists: false } },
         ],
       },
+      ...(budgetFilter ? [budgetFilter] : []),
     ],
   };
   const updatedUser = await User.findOneAndUpdate(
@@ -954,11 +956,14 @@ async function consumeTierPassIfAvailable(env, authUserId, pricing, requestId, b
     passEnded = Number(terminated?.matchedCount ?? terminated?.n ?? 0) > 0;
     if (passEnded) {
       updatedUser.profileSubscription = { ...(updatedUser.profileSubscription || {}), ...fields };
-      // 종료도 구독을 바꾸는 쓰기다 — 45초 표시 캐시가 끝난 이용권을 계속 보여주면 안 된다.
-      try { globalThis.__billingBalanceCache?.invalidateForUser?.(String(authUserId || "")); } catch {}
-      try { invalidateAccessStateCacheForUser(String(authUserId || "")); } catch {}
     }
   }
+
+  // 차감 직후 모든 읽기 경로가 DB 최신 사용액을 보도록 사용자 단위로 무효화한다.
+  // 종료 여부와 무관하게 실행해야 Family 사용액이 60초 동안 0원으로 남지 않는다.
+  invalidateBillingBalanceCacheForUser(authUserId);
+  invalidatePaidAccessDecisionCacheForUser(authUserId);
+  try { invalidateAccessStateCacheForUser(String(authUserId || "")); } catch {}
 
   return {
     ok: true,
@@ -2876,6 +2881,27 @@ function requiresMeteredPassWrite(tier) {
   // 무관하게 항상 원자적 write 를 거친다(과거엔 family 만 카운터가 있어 나머지 등급은
   // read-only 로 조기 반환했다).
   return Boolean(normalizePassTier(tier));
+}
+
+function buildMeteredPassBudgetFilter(monthlyQuota = {}, coinCost = 0) {
+  if (!monthlyQuota?.applies || !monthlyQuota?.cycleKey) return null;
+  const limitCoin = Math.max(0, Math.floor(Number(monthlyQuota.limitCoin) || 0));
+  const cost = Math.max(0, Math.floor(Number(coinCost) || 0));
+  const maxSpendBefore = limitCoin - cost;
+  return {
+    $or: [
+      { "profileSubscription.premiumUseCycleKey": { $ne: monthlyQuota.cycleKey } },
+      {
+        "profileSubscription.premiumUseCycleKey": monthlyQuota.cycleKey,
+        $expr: {
+          $lte: [
+            { $ifNull: ["$profileSubscription.monthlySpendCoin", 0] },
+            maxSpendBefore,
+          ],
+        },
+      },
+    ],
+  };
 }
 
 function isSajuPdfGenerationFeatureKey(featureKey) {
@@ -7154,6 +7180,7 @@ export const __billingTestUtils = {
   shouldCreateDirectPortOneOrder,
   shouldApplyMembershipPassBeforeCard,
   requiresMeteredPassWrite,
+  buildMeteredPassBudgetFilter,
   requireBillingAuth,
   resolvePaidContentAccess,
 };
