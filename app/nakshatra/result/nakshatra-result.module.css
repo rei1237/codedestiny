@@ -1,0 +1,271 @@
+.featuredCard {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 0;
+  margin-top: 1.25rem;
+  overflow: hidden;
+  border: 1px solid rgba(229, 199, 137, 0.55);
+  border-radius: 1.25rem;
+  background: linear-gradient(145deg, rgba(34, 24, 42, 0.98), rgba(8, 10, 22, 0.98));
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.28), 0 0 34px rgba(224, 81, 127, 0.12);
+}
+
+.featuredCard::before {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  content: "";
+  background: radial-gradient(circle at 18% 12%, rgba(116, 199, 214, 0.16), transparent 34%),
+    radial-gradient(circle at 90% 80%, rgba(224, 81, 127, 0.14), transparent 38%);
+}
+
+.featuredVisual,
+.featuredBody {
+  position: relative;
+  z-index: 1;
+}
+
+.featuredVisual {
+  min-height: 18rem;
+  overflow: hidden;
+  background: #080a16;
+}
+
+.featuredImage {
+  object-fit: cover;
+  object-position: 72% center;
+  opacity: 0.9;
+}
+
+.visualVeil {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(4, 5, 12, 0.05), rgba(4, 5, 12, 0.72)),
+    linear-gradient(180deg, rgba(4, 5, 12, 0.08), rgba(4, 5, 12, 0.65));
+}
+
+.visualSymbols {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  padding: 1.5rem;
+}
+
+.symbol {
+  display: grid;
+  width: clamp(3.9rem, 8vw, 5rem);
+  height: clamp(3.9rem, 8vw, 5rem);
+  place-items: center;
+  border: 1px solid rgba(229, 199, 137, 0.38);
+  border-radius: 999px;
+  background: rgba(8, 10, 22, 0.54);
+  box-shadow: 0 0 26px rgba(229, 199, 137, 0.14);
+  backdrop-filter: blur(6px);
+}
+
+.symbolArt {
+  width: 70%;
+  height: 70%;
+}
+
+.symbolEast {
+  color: #a7dfe8;
+}
+
+.symbolWest {
+  color: #f4e4b6;
+}
+
+.symbolJoin {
+  width: 1rem;
+  height: 1rem;
+  color: #f4a6c1;
+  filter: drop-shadow(0 0 8px rgba(224, 81, 127, 0.6));
+}
+
+.featuredBody {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(1.25rem, 3vw, 2rem);
+}
+
+.featuredBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  width: fit-content;
+  margin: 0.55rem 0 0;
+  padding: 0.25rem 0.55rem;
+  border: 1px solid rgba(229, 199, 137, 0.28);
+  border-radius: 999px;
+  background: rgba(229, 199, 137, 0.06);
+  color: #f4e4b6;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.eyebrowSpark {
+  width: 0.8rem;
+  height: 0.8rem;
+  flex: 0 0 auto;
+  color: #e0517f;
+}
+
+.featuredHeadingRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 0.65rem;
+}
+
+.featuredTitle {
+  min-width: 0;
+  margin: 0;
+  color: #f4f4fb;
+  font-size: clamp(1.15rem, 2vw, 1.45rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.featuredPrice {
+  flex: 0 0 auto;
+  color: #f4e4b6;
+  font-size: 0.82rem;
+  font-weight: 800;
+  line-height: 1.5;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.featuredDescription {
+  max-width: 42ch;
+  margin: 0.7rem 0 0;
+  color: #d9ddf0;
+  font-size: 0.88rem;
+  line-height: 1.75;
+  overflow-wrap: anywhere;
+}
+
+.featuredSteps {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.45rem 0.75rem;
+  margin: 1rem 0 0;
+  padding: 0;
+  color: #aab2d4;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  list-style: none;
+}
+
+.featuredSteps li {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  gap: 0.4rem;
+}
+
+.stepSpark {
+  width: 0.65rem;
+  height: 0.65rem;
+  margin-top: 0.25rem;
+  flex: 0 0 auto;
+  color: #74c7d6;
+}
+
+.featuredCta {
+  display: inline-flex;
+  min-height: 3rem;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1.25rem;
+  padding: 0.75rem 1.25rem;
+  border: 1px solid rgba(229, 199, 137, 0.7);
+  border-radius: 0.75rem;
+  background: linear-gradient(100deg, #f4e4b6, #e5c789 48%, #f4a6c1);
+  color: #1a0f16;
+  font-size: 0.9rem;
+  font-weight: 800;
+  line-height: 1.3;
+  text-decoration: none;
+  transition: transform 180ms ease, filter 180ms ease, box-shadow 180ms ease;
+}
+
+.featuredCta:hover {
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(224, 81, 127, 0.22);
+}
+
+.featuredCta:focus-visible {
+  outline: 2px solid #f4e4b6;
+  outline-offset: 3px;
+}
+
+@media (max-width: 639px) {
+  .featuredCard {
+    grid-template-columns: 1fr;
+  }
+
+  .featuredVisual {
+    min-height: 10.5rem;
+  }
+
+  .featuredImage {
+    object-position: 72% 58%;
+  }
+
+  .featuredBody {
+    padding: 1.15rem;
+  }
+
+  .featuredBadge {
+    font-size: 0.64rem;
+    letter-spacing: 0.05em;
+  }
+
+  .featuredHeadingRow {
+    align-items: flex-end;
+  }
+
+  .featuredTitle {
+    font-size: 1.12rem;
+  }
+
+  .featuredPrice {
+    font-size: 0.76rem;
+  }
+
+  .featuredSteps {
+    gap: 0.5rem;
+  }
+
+  .featuredCta {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .featuredCta,
+  .featuredCard {
+    transition: none;
+  }
+
+  .featuredCta:hover,
+  .featuredCard:hover {
+    transform: none;
+  }
+}
