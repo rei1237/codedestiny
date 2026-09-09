@@ -17,6 +17,7 @@ import { isAllowedConsultTokenAccessType, normalizeConsultAccessType, resolveCan
 import { consumePassForFeature, passDenialCode } from "../lib/pass-consumption.js";
 import { fetchPortOnePayment, getPortOnePublicConfig } from "../lib/portone.js";
 import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
+import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { calculateZiweiAiChart } from "../lib/ziwei-ai-chart.js";
@@ -538,7 +539,7 @@ async function generatePalaceText(env, prompt, options = {}) {
     baseTokens, capTokens: Math.round(baseTokens * 1.3), responseMimeType: "application/json", fallbackMinChars: 600,
   });
   const provider = clean(ai?.provider || ai?.model || "gemini");
-  const isMock = /mock/i.test(provider) || ai?.isMock === true;
+  const isMock = (/mock/i.test(provider) || ai?.isMock === true) && !isStagingLlmMockEnabled(env);
   const text = clean(ai?.text);
   if (!ai?.ok || isMock || !hasRenderableLlmText(text, { minChars: options.minLength || 300 })) {
     const error = new Error(clean(ai?.message || ai?.error || "LLM generation failed."));

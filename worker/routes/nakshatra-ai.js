@@ -35,6 +35,7 @@ import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import {
   completeServiceExecution,
@@ -705,7 +706,7 @@ async function generateSectionOnce(env, section, prompt, cacheConfig) {
     }
     const provider = clean(ai?.provider || "");
     const model = clean(ai?.model || "");
-    const isMock = /mock/i.test(provider) || /mock/i.test(model) || ai?.isMock === true;
+    const isMock = (/mock/i.test(provider) || /mock/i.test(model) || ai?.isMock === true) && !isStagingLlmMockEnabled(env);
     if (!ai?.ok || isMock || clean(ai?.text).length < 40) {
       return { ...base, provider, model, ok: false };
     }
