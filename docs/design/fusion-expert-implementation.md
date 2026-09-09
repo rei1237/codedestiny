@@ -30,4 +30,43 @@
 
 ## 전달 상태
 
-격리 브랜치 `codex/fusion-expert-upgrade-20260909`. 최신 main의 로케일 변경과 통합 후 PR 및 CI 상태를 갱신한다. 로컬 결과는 배포 완료 증거가 아니다.
+격리 브랜치 `codex/fusion-expert-upgrade-20260909`. main `71741d436`의 로케일 요청 보호와 통합했다. 원격 CI는 PR의 최신 커밋 상태를 기준으로 확인한다. 로컬 결과는 배포 완료 증거가 아니다.
+
+## 수정 파일
+
+- `__tests__/ui/fusion-value-preview.static.test.js`
+- `__tests__/worker/fusion-fortune.test.js`
+- `app/fusion-fortune/ExpertEvidence.tsx`
+- `app/fusion-fortune/ExpertGuide.tsx`
+- `app/fusion-fortune/FusionFortuneClient.tsx`
+- `app/fusion-fortune/FusionFortuneSeoContent.tsx`
+- `app/fusion-fortune/FusionResultThread.tsx`
+- `app/fusion-fortune/FusionValuePreview.tsx`
+- `app/fusion-fortune/_lib/expert-labels.ts`
+- `app/fusion-fortune/fusion-fortune.module.css`
+- `app/fusion-fortune/fusion-thread.tsx`
+- `app/fusion-fortune/page.tsx`
+- `docs/design/fusion-expert-implementation.md`
+- `docs/design/fusion-expert-mockup.html`
+- `lib/dev-preview/fixtures/fusion-fortune.ts`
+- `lib/pdf/fusion-report-plan.js`
+- `lib/tarot/spreads.mjs`
+- `scripts/verify-fusion-expert.mjs`
+- `scripts/verify-fusion-fortune-delivery-floor.mjs`
+- `scripts/verify-fusion-fortune-quality.mjs`
+- `worker/lib/fusion-expert-contract.js`
+- `worker/lib/fusion-fortune-consultation.js`
+- `worker/lib/fusion-fortune-prompt.js`
+- `worker/lib/fusion-fortune-visual.js`
+- `worker/lib/fusion-fortune.js`
+- `worker/lib/guardian-fortune-context.js`
+- `worker/lib/guardian-fortune/adapters/astrology.js`
+- `worker/lib/guardian-fortune/adapters/saju.js`
+- `worker/lib/guardian-fortune/adapters/sukuyo.js`
+- `worker/lib/guardian-fortune/adapters/tarot.js`
+- `worker/lib/guardian-fortune/adapters/vedic.js`
+- `worker/lib/guardian-fortune/adapters/ziwei.js`
+- `worker/lib/guardian-fortune/expert-evidence.js`
+- `worker/lib/life-book-ai-saju.js`
+- `worker/lib/saju-expert-factors.js`
+- `worker/routes/fusion-fortune.js`
