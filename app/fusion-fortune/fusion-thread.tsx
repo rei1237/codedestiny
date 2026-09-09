@@ -8,6 +8,7 @@
  */
 
 import Image from "next/image";
+import type { FusionTarotCard, FusionCrossCheck } from "./ExpertEvidence";
 import type { CSSProperties, ReactNode } from "react";
 import { FUSION_CORE_ORB, FUSION_ORB_BY_KEY, type FusionSystemKey } from "./fusionOrbs";
 import type { FusionVisualizationData } from "./FusionVisualization";
@@ -25,6 +26,9 @@ export type FinalVerdict = {
   avoid: string[];
 };
 export type Result = Record<"sajuSection" | "ziweiSection" | "vedicSection" | "sukuyoSection" | "astrologySection" | "tarotSection" | "integratedReading", Section> & {
+  expertMeta?: { version: string; locale: string; complete: boolean; pendingStage: 1 | 2 };
+  tarotCards?: FusionTarotCard[];
+  evidenceCrossCheck?: FusionCrossCheck;
   title: string;
   openingMessage: string;
   executiveSummary: string;

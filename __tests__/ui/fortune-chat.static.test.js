@@ -101,12 +101,29 @@ test("Yeoni chat sends everything the server requires to build a reading", () =>
 
   assert.match(client, /birthDate: birth\.birthDate/);
   assert.match(client, /category: activeCategory/);
+  assert.match(client, /AI_LOCALE_HEADER, toAiLocale/);
+  assert.match(client, /const aiLocale = toAiLocale\(detectLocale\(\)\)/);
+  assert.match(client, /\[AI_LOCALE_HEADER\]: aiLocale/);
+  assert.match(client, /locale: aiLocale/);
   assert.match(client, /calendarType: birth\.calendarType/);
   assert.match(client, /gender: birth\.gender/);
   // 고민 원문은 서버가 120자로 자른다. 넘겨 보내면 400 이다.
   assert.match(client, /CONCERN_MAX_LENGTH = 120/);
   // 생년 정보는 공용 훅으로만 채운다 — 조회 로직을 새로 만들지 않는다.
   assert.match(client, /useAiProfileSeed/);
+});
+
+test("a locale switch cancels an in-flight answer and rejects any late payload", () => {
+  const client = read("app/fortune-chat/FortuneChatClient.tsx");
+
+  // Abort alone cannot stop a response whose JSON decoding has already begun. The epoch check
+  // is the second boundary before the assistant message reaches the conversation.
+  assert.match(client, /localeRequestEpochRef/);
+  assert.match(client, /activeReadingRef\.current\?\.controller\.abort\(\)/);
+  assert.match(client, /localeRequestEpochRef\.current !== localeEpoch/);
+  assert.match(client, /toAiLocale\(detectLocale\(\)\) !== aiLocale/);
+  assert.match(client, /if \(attempt\.stale\)/);
+  assert.match(client, /getFortuneChatCopy\(getCurrentLoadingLocale\(\)\)\.localeChanged/);
 });
 
 test("Yeoni chat charges through the shared coin gate with a matching request id", () => {

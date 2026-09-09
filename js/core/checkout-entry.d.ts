@@ -68,6 +68,8 @@ export type PaidResumeContext = {
  * **직렬화 가능한 값만** 남기고 실제 동작은 registerPaidResumeHandler 로 등록된 핸들러가 한다.
  */
 export type PaidResumeDescriptor = {
+  /** Generation language saved before leaving for payment; absent on legacy tickets. */
+  locale?: string;
   /** 핸들러 식별자(예: "sukuyo-compat"). */
   kind: string;
   /** 셸 딥링크 `?action=` 값. 지속 카드의 '지금 열기' 버튼이 쓴다. */

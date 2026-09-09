@@ -1,4 +1,5 @@
 import { callGeminiText } from "./gemini.js";
+import { toAiLocale } from "../../lib/i18n/ai-locale.js";
 import { buildGuardianFortunePrompt } from "./guardian-fortune-prompt.js";
 import {
   buildFallbackGuardianFortuneResult,
@@ -102,6 +103,7 @@ export async function generateGuardianFortuneWithRealLLM({
     prompt,
     maxRetries: config.maxRetries,
     options: {
+      locale: toAiLocale(input.locale),
       systemPrompt: prompt.systemPrompt,
       responseMimeType: config.responseMimeType,
       maxOutputTokens: config.maxOutputTokens,

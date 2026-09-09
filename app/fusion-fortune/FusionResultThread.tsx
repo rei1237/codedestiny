@@ -9,6 +9,7 @@
  * (둘 다 html2canvas 클론에서 빈 페이지를 만든다).
  */
 
+import { ExpertEvidence, useFusionExpertCopy } from "./ExpertEvidence";
 import { FusionVisualization } from "./FusionVisualization";
 import {
   SECTION_KEYS,
@@ -34,18 +35,19 @@ export function FusionResultThread({ result, openSection, onToggleSection, expor
   stageTwoGenerating?: boolean;
 }) {
   const copy = useFusionSharedCopy();
+  const expertCopy = useFusionExpertCopy();
   const sectionMeta = (chars: number) => `${copy.charsCount(chars.toLocaleString())} · ${copy.minutesAbout(readingMinutes(chars, copy.readingCharsPerMinute))}`;
   // 캡처 중에는 "무엇을 펼쳐 뒀는지"와 무관하게 전부 보여야 한다 — 접힌 섹션은
   // display:none 이 아니라 아예 렌더되지 않으므로 캡처에서 통째로 빠진다.
   const isOpen = (key: string, fallbackOpen = false) => exporting || openSection === key || (!openSection && fallbackOpen);
 
   return <>
-    <ThreadRow systemKey="fusion" index={0} exporting={exporting} pdfSection tocKey="opening">
+    {result.openingMessage && <ThreadRow systemKey="fusion" index={0} exporting={exporting} pdfSection tocKey="opening">
       <ThreadBubble systemKey="fusion" exporting={exporting}>
-        <ThreadSpeaker label="Fusion Core" note={<span className="rounded-full bg-[var(--tint-veil)] px-2.5 py-0.5 text-[0.7rem] text-white/80">{copy.analysisCompleteBadge}</span>} />
+        <ThreadSpeaker label={expertCopy.narrator} note={<span className="rounded-full bg-[var(--tint-veil)] px-2.5 py-0.5 text-[0.7rem] text-white/80">{result.expertMeta?.complete === false ? expertCopy.review : copy.analysisCompleteBadge}</span>} />
         <p className={`m-0 max-w-[72ch] whitespace-pre-wrap ${styles.reading} text-[var(--fx-ink-2)] [text-wrap:pretty]`}>{result.openingMessage}</p>
       </ThreadBubble>
-    </ThreadRow>
+    </ThreadRow>}
 
     {/* 2단계 생성의 1단계 결과에는 요약·종합·시기·총평이 아직 없다 — 있는 것만 그린다. */}
     {result.executiveSummary && <ThreadRow systemKey="fusion" index={1} exporting={exporting} pdfSection tocKey="summary">
@@ -55,7 +57,7 @@ export function FusionResultThread({ result, openSection, onToggleSection, expor
       </ThreadBubble>
     </ThreadRow>}
 
-    {result.visualization && <ThreadRow systemKey="fusion" index={2} exporting={exporting} pdfSection tocKey="visual">
+    {!result.expertMeta && result.visualization && <ThreadRow systemKey="fusion" index={2} exporting={exporting} pdfSection tocKey="visual">
       <ThreadBubble systemKey="fusion" exporting={exporting}>
         <ThreadSpeaker label={copy.sixSystemsDirectionSpeaker} />
         {/* 텍스트 PDF 는 본문을 직접 조판하지만 이 도표만은 그림이라 여기만 캡처한다. */}
@@ -65,13 +67,13 @@ export function FusionResultThread({ result, openSection, onToggleSection, expor
 
     {SECTION_KEYS.filter((key) => result[key]?.content).map((key, index) => {
       const expanded = isOpen(key, index === 0);
-      const systemKey = SECTION_SYSTEM_KEYS[index];
+      const systemKey = SECTION_SYSTEM_KEYS[SECTION_KEYS.indexOf(key)];
       // 첫 근거를 "핵심 한 문장"으로 올린다 — 접힌 상태에서도 이 섹션이 무엇을 말하는지 한 줄로 안다.
       // 근거 목록에서는 뺀다(같은 문장을 두 번 보이지 않게). PDF 조판은 결과 JSON 을 직접 읽으므로 무관하다.
       const [keySentence, ...restPoints] = result[key].keyPoints || [];
       return <ThreadRow key={key} systemKey={systemKey} index={index + 3} exporting={exporting} pdfSection tocKey={key}>
         <ThreadBubble systemKey={systemKey} deferRender exporting={exporting}>
-          <ThreadSpeaker label={systemKey === "fusion" ? "Fusion Core" : copy.systemLabels[systemKey]} meta={sectionMeta(countSectionChars(result[key]))} />
+          <ThreadSpeaker label={systemKey === "fusion" ? expertCopy.narrator : copy.systemLabels[systemKey]} meta={sectionMeta(countSectionChars(result[key]))} />
           <h3 className="m-0">
             <button
               type="button"
@@ -140,7 +142,7 @@ export function FusionResultThread({ result, openSection, onToggleSection, expor
     {stageTwoGenerating && !exporting && !result.finalVerdict && <ThreadRow systemKey="fusion" dimmed index={11}>
       <ThreadBubble systemKey="fusion" className="border-dashed border-white/[0.16] bg-transparent">
         <ThreadSpeaker
-          label="Fusion Core"
+          label={expertCopy.narrator}
           note={<span role="status" className="inline-flex items-center gap-2 rounded-full bg-[var(--tint-veil)] px-2.5 py-0.5 text-[0.7rem] text-white/80"><TypingDots />{copy.stageTwoPendingBadge}</span>}
         />
         <p className={`m-0 max-w-[72ch] ${styles.reading} text-[1rem] text-[var(--fx-ink-3)] [text-wrap:pretty]`}>{copy.stageTwoPendingMessage}</p>
@@ -153,7 +155,8 @@ export function FusionResultThread({ result, openSection, onToggleSection, expor
     </ThreadRow>}
 
     {/* 이 상품이 파는 것은 여섯 해석이 아니라 그들이 만나 남긴 답 하나다 — 대화의 폭을 다 쓴다. */}
-    {result.finalVerdict && <li
+    <ExpertEvidence cards={result.tarotCards} crossCheck={result.evidenceCrossCheck} exporting={exporting} />
+    {result.finalVerdict && result.expertMeta?.complete !== false && <li
       id="fusion-toc-verdict"
       data-fusion-toc="verdict"
       data-fusion-pdf-section="true"
@@ -162,15 +165,15 @@ export function FusionResultThread({ result, openSection, onToggleSection, expor
     >
       <section aria-labelledby="fusion-final-verdict-heading" className="relative overflow-hidden rounded-[1.5rem] border border-[rgba(232,213,163,0.34)] bg-[linear-gradient(160deg,rgba(48,34,80,0.86),rgba(16,12,32,0.95))] px-5 py-6 sm:px-8 sm:py-8">
         <span aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,var(--fx-gold-2),transparent)]" />
-        <p className="m-0 font-display text-[0.72rem] uppercase tracking-[0.3em] text-[var(--fx-gold-2)]">{copy.finalVerdictEyebrow}</p>
+        <p className="m-0 font-display text-[0.72rem] uppercase tracking-[0.3em] text-[var(--fx-gold-2)]">{expertCopy.final}</p>
         <h3 id="fusion-final-verdict-heading" className={`m-0 mt-3.5 max-w-[28ch] ${styles.readingTitle} text-[clamp(1.5rem,4.4vw,2.25rem)] leading-[1.3] text-[var(--fx-ink-1)]`}>{result.finalVerdict.headline}</h3>
-        <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2.5">
+        {!result.expertMeta && <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2.5">
           <span className="text-[0.85rem] text-[var(--fx-ink-3)]">{copy.crossCheckGaugeCaption}</span>
           <span aria-hidden className="h-1.5 min-w-[8rem] flex-1 overflow-hidden rounded-full bg-white/[0.09]">
             <em className="block h-full origin-left rounded-full bg-[linear-gradient(90deg,var(--fx-violet),var(--fx-gold-2))] transition-transform duration-700 ease-out motion-reduce:transition-none" style={{ transform: `scaleX(${Math.min(1, Math.max(0, result.finalVerdict.confidence / 100))})` }} />
           </span>
           <b className="font-display text-[1.05rem] text-[var(--fx-gold)]">{result.finalVerdict.confidence}%</b>
-        </div>
+        </div>}
         <ul className="mt-6 grid list-none gap-3 p-0 sm:grid-cols-2 lg:grid-cols-3">
           {result.finalVerdict.systemVerdicts.map((item) => (
             <li key={item.key} data-stance={item.stance} style={tintVars(item.key)} className="relative overflow-hidden rounded-xl border border-white/[0.1] bg-black/25 p-4">
@@ -199,7 +202,7 @@ export function FusionResultThread({ result, openSection, onToggleSection, expor
 
     {result.closingMessage && <ThreadRow systemKey="fusion" index={12} exporting={exporting} pdfSection tocKey="closing">
       <ThreadBubble systemKey="fusion" exporting={exporting}>
-        <ThreadSpeaker label="Fusion Core" />
+        <ThreadSpeaker label={expertCopy.narrator} />
         <p id="fusion-closing-message" className={`m-0 max-w-[72ch] whitespace-pre-wrap ${styles.reading} text-[var(--fx-ink-2)] [text-wrap:pretty]`}>{result.closingMessage}</p>
       </ThreadBubble>
     </ThreadRow>}

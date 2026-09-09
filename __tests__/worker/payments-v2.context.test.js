@@ -53,6 +53,8 @@ describe("라우트 표", () => {
       "GET /features",
       "GET /orders/:id",
       "GET /orders/:id/resume",
+      "GET /orders/:id/status",
+      "GET /recoveries",
       // 월정석 컷오버 어댑터 — 구 coin-gate 의 MOONLIGHT_STONE 분기(재작성)가 여기로 온다.
       "POST /coin-gate/moonstone",
       // 이용권 검사 컷오버 — 구 coin-gate 의 MEMBERSHIP_PASS 분기(재작성)가 여기로 온다.
@@ -106,7 +108,7 @@ describe("주문 표현", () => {
     order.rawPortOne = { secret: "x" };
     const view = presentOrder(order);
     expect(Object.keys(view).sort()).toEqual(
-      ["amountKRW", "createdAt", "entitlementGranted", "featureKey", "orderId", "paidAt", "productId", "status"],
+      ["amountKRW", "createdAt", "entitlementGranted", "featureKey", "orderId", "paidAt", "productId", "requestId", "status"],
     );
     expect(JSON.stringify(view)).not.toMatch(/rawPortOne|pricingSnapshot|idempotencyKey/);
   });
@@ -269,6 +271,7 @@ describe("전 경로 — 실행기를 주입해 Mongo 없이 돌린다", () => {
     const db = makeFakePaymentDb();
     const order = await seedPending(db);
     db.rows[0].status = "paid"; // 이미 확정, 지급만 남은 상태
+    db.findOneAndUpdate = async () => { throw new Error("grant DB timeout"); };
     const response = await call(`/orders/${order.merchantUid}/confirm`, {
       method: "POST", token: await tokenFor(USER), body: {}, db,
     });
@@ -322,6 +325,25 @@ describe("전 경로 — 실행기를 주입해 Mongo 없이 돌린다", () => {
     const order = await seedPending(db);
     const response = await call(`/orders/${order.merchantUid}`, { token: await tokenFor(OTHER), db });
     expect(response.status).toBe(403);
+  });
+
+  test("status separates paid marker from durable right and denies another owner", async () => {
+    const db = makeFakePaymentDb();
+    const order = await seedPending(db);
+    await markOrderPaid(db, { orderId: order.merchantUid, pg: pgReply({ paymentId: order.merchantUid }) });
+    const stored = db.rows.find(row => row.merchantUid === order.merchantUid);
+    stored.entitlementGrantedAt = new Date();
+    const token = await tokenFor(USER);
+    const before = await call(`/orders/${order.merchantUid}/status`, { token, db });
+    expect(before.headers.get("Cache-Control")).toContain("no-store");
+    expect(await before.json()).toMatchObject({ verified: true, entitlementGranted: false, serviceReady: false, recoveryRequired: true });
+    const { grantPurchaseEntitlement } = await import("../../worker/payments/executions.js");
+    await grantPurchaseEntitlement(db, stored, PRODUCT);
+    const after = await call(`/orders/${order.merchantUid}/status`, { token, db });
+    expect(await after.json()).toMatchObject({ serviceReady: true, recoveryRequired: false });
+    expect((await call(`/orders/${order.merchantUid}/status`, { token: await tokenFor(OTHER), db })).status).toBe(403);
+    stored.status = "refunded";
+    expect(await (await call(`/orders/${order.merchantUid}/status`, { token, db })).json()).toMatchObject({ verified: false, serviceReady: false });
   });
 
   test("없는 라우트는 404, 알 수 없는 상품은 404", async () => {

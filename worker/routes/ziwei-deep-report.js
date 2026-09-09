@@ -32,6 +32,7 @@ import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
+import { resolveAiLocaleFromRequest } from "../lib/ai-locale-context.js";
 import { calculateZiweiAiChart } from "../lib/ziwei-ai-chart.js";
 import { startServiceExecution, completeServiceExecution, failServiceExecution } from "../lib/service-execution-task.js";
 import {
@@ -233,7 +234,7 @@ async function runWithConcurrency(items, limit, worker) {
   return results;
 }
 
-async function generateChapter(env, chart, birthInfo, chapter, consultation) {
+async function generateChapter(env, chart, birthInfo, chapter, consultation, locale) {
   const prompt = buildZiweiDeepChapterPrompt(chart, birthInfo, chapter, consultation);
   // 결정적(명반+생년월일 기반, 자유질문 없음) 챕터 해석 → LLM 응답 캐시 + in-flight dedup.
   const chapterLlmCache = {
@@ -244,6 +245,8 @@ async function generateChapter(env, chart, birthInfo, chapter, consultation) {
   };
   try {
     const ai = await callGeminiText(env, prompt, {
+      // 이어쓰기에서는 최초 생성 언어를 명시한다. 현재 탭의 언어가 바뀌어도 한 리포트의 장이 섞이면 안 된다.
+      locale,
       maxOutputTokens: 4096,
       temperature: 0.72,
       timeoutMs: 60000,
@@ -274,14 +277,14 @@ async function generateChapter(env, chart, birthInfo, chapter, consultation) {
  * startIndex 를 보낸다), 두 경로를 남기면 아래 전달 게이트와 누적 저장을 이중으로 구현해야
  * 해서 한쪽에만 게이트가 걸리는 구멍이 생긴다.
  */
-async function generateReportBatch(env, chart, birthInfo, consultation, startIndex) {
+async function generateReportBatch(env, chart, birthInfo, consultation, startIndex, locale) {
   const totalChapters = ZIWEI_DEEP_CHAPTERS.length;
   const start = Math.max(0, Math.min(Math.trunc(startIndex) || 0, totalChapters));
   const slice = ZIWEI_DEEP_CHAPTERS.slice(start, start + CHAPTER_BATCH_SIZE);
   const chapters = await runWithConcurrency(
     slice,
     CHAPTER_CONCURRENCY,
-    (chapter) => generateChapter(env, chart, birthInfo, chapter, consultation),
+    (chapter) => generateChapter(env, chart, birthInfo, chapter, consultation, locale),
   );
   const nextIndex = start + slice.length;
   return {
@@ -410,6 +413,7 @@ async function persistFirstBatch(env, userId, normalized, reportId, chart, chapt
           userId: clean(userId),
           idempotencyKey: normalized.idempotencyKey,
           inputHash: normalized.inputHash,
+          locale: normalized.locale,
           birthInfo: normalized.birthInfo,
           focusArea: normalized.consultation.focusArea,
           topic: normalized.consultation.topic,
@@ -464,6 +468,7 @@ async function markReportFailed(env, userId, normalized, reportId, reason) {
           userId: clean(userId),
           idempotencyKey: normalized.idempotencyKey,
           inputHash: normalized.inputHash,
+          locale: normalized.locale,
           status: "generation_failed",
           generationError: { reason: clean(reason, 200), at: new Date().toISOString() },
         },
@@ -482,6 +487,8 @@ function publicStoredReport(doc) {
     ok: true,
     restored: true,
     reportId: doc.id,
+    // locale 필드가 없던 과거 저장본은 기존 실제 출력 언어인 한국어로 명시한다.
+    locale: clean(doc.locale, 10) || "ko",
     accessType: clean(doc.accessType, 40),
     status: doc.status,
     done: doc.status === "completed",
@@ -530,6 +537,7 @@ async function handlePrepare(request, env) {
   const idempotencyKey = clean(body?.idempotencyKey || body?.requestId, 120) || sha256(String(Date.now()));
   const normalized = normalizeInput(body);
   if (!normalized.ok) return invalidInput(normalized.message);
+  normalized.locale = resolveAiLocaleFromRequest(request, body);
 
   // 명반 계산 가능 여부 사전 검증
   try {
@@ -546,7 +554,7 @@ async function handlePrepare(request, env) {
     return json({
       ok: true,
       accessType: "admin",
-      accessToken: await createAccessToken(env, { userId: auth.userId, accessType: "admin", idempotencyKey, inputHash: normalized.inputHash }),
+      accessToken: await createAccessToken(env, { userId: auth.userId, accessType: "admin", idempotencyKey, inputHash: normalized.inputHash, locale: normalized.locale }),
     });
   }
 
@@ -558,7 +566,7 @@ async function handlePrepare(request, env) {
     return json({
       ok: true,
       accessType: "paid",
-      accessToken: await createAccessToken(env, { userId: auth.userId, accessType: "paid", idempotencyKey, inputHash: normalized.inputHash }),
+      accessToken: await createAccessToken(env, { userId: auth.userId, accessType: "paid", idempotencyKey, inputHash: normalized.inputHash, locale: normalized.locale }),
     });
   }
   return paymentRequired(pricing, idempotencyKey);
@@ -580,16 +588,17 @@ async function resolveGenerateAccess(request, env, auth, body, normalized, idemp
             accessType,
             charsSoFar: Math.max(0, Number(payload.charsSoFar) || 0),
             okChaptersSoFar: Math.max(0, Number(payload.okChaptersSoFar) || 0),
+            locale: clean(payload.locale, 10) || normalized.locale,
           };
         }
       }
     } catch (_) { /* fall through */ }
   }
-  if (isAdmin(auth)) return { ok: true, accessType: "admin", charsSoFar: 0, okChaptersSoFar: 0 };
+  if (isAdmin(auth)) return { ok: true, accessType: "admin", charsSoFar: 0, okChaptersSoFar: 0, locale: normalized.locale };
   // 2) 엔타이틀먼트/이용권/방금 완료된 회당 결제 확인
   await connectDb(env);
   const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env, reason: TITLE, userDoc: auth.authUserDoc, requestId: idempotencyKey });
-  if (decision?.allowed) return { ok: true, accessType: "paid", charsSoFar: 0, okChaptersSoFar: 0 };
+  if (decision?.allowed) return { ok: true, accessType: "paid", charsSoFar: 0, okChaptersSoFar: 0, locale: normalized.locale };
   return { ok: false, reason: "PAYMENT_REQUIRED" };
 }
 
@@ -610,6 +619,7 @@ async function handleGenerate(request, env) {
   const idempotencyKey = clean(body?.idempotencyKey || body?.requestId, 120) || sha256(String(Date.now()));
   const normalized = normalizeInput(body);
   if (!normalized.ok) return invalidInput(normalized.message);
+  normalized.locale = resolveAiLocaleFromRequest(request, body);
   normalized.idempotencyKey = idempotencyKey;
 
   const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true, userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
@@ -645,6 +655,14 @@ async function handleGenerate(request, env) {
     }
   }
 
+  // 재개 JWT가 없더라도 저장된 부분 리포트의 언어를 이어받는다. 결제 키와 조회 조건은 바꾸지 않는다.
+  let outputLocale = access.locale || normalized.locale;
+  if (!isFirstBatch) {
+    const stored = await loadStoredReport(env, auth.userId, { reportId });
+    if (stored) outputLocale = clean(stored.locale, 10) || "ko";
+  }
+  normalized.locale = outputLocale;
+
   let chart;
   try {
     chart = calculateZiweiAiChart(normalized.input, { year: new Date().getFullYear() });
@@ -659,7 +677,7 @@ async function handleGenerate(request, env) {
   }
 
   try {
-    const batch = await generateReportBatch(env, chart, normalized.birthInfo, normalized.consultation, startIndex);
+    const batch = await generateReportBatch(env, chart, normalized.birthInfo, normalized.consultation, startIndex, outputLocale);
 
     // 누적 집계 — 토큰에 실린 값을 1차 소스로 쓴다(서명돼 있고 DB 저장 실패와 무관하다).
     let priorChars = Number(access.charsSoFar) || 0;
@@ -707,6 +725,7 @@ async function handleGenerate(request, env) {
       inputHash: normalized.inputHash,
       charsSoFar,
       okChaptersSoFar,
+      locale: outputLocale,
     });
     return json({
       ok: true,
@@ -757,7 +776,7 @@ async function handleResult(request, env) {
     await connectDb(env);
     if (!reportId) {
       const rows = await ZiweiDeepReport
-        .find({ userId: clean(auth.userId) }, { id: 1, birthInfo: 1, topic: 1, userQuestion: 1, status: 1, createdAt: 1, updatedAt: 1 })
+        .find({ userId: clean(auth.userId) }, { id: 1, birthInfo: 1, topic: 1, userQuestion: 1, locale: 1, status: 1, createdAt: 1, updatedAt: 1 })
         .sort({ createdAt: -1 })
         .limit(20)
         .lean();
@@ -768,6 +787,7 @@ async function handleResult(request, env) {
           name: clean(row.birthInfo?.name, 80),
           topic: clean(row.topic, 80),
           question: clean(row.userQuestion, 200),
+          locale: clean(row.locale, 10) || "ko",
           status: clean(row.status, 30),
           createdAt: row.createdAt,
           updatedAt: row.updatedAt,

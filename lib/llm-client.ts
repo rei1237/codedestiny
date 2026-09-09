@@ -298,8 +298,10 @@ function buildStagingMockText(request: LLMRequest): string {
 }
 
 function buildStagingMockResponse(request: LLMRequest): LLMResponse {
+  // The locale directive itself mentions JSON keys, so do not treat that
+  // appended instruction as a request for JSON output.
   const wantsJson = String(request.responseMimeType || "").toLowerCase() === "application/json"
-    || /(?:json|JSON|JSON 형식|JSON 하나)/.test(request.prompt || "");
+    || /출력 형식은 JSON 하나입니다/.test(request.prompt || "");
   return {
     text: wantsJson ? buildStagingMockJson(request.prompt) : buildStagingMockText(request),
     provider: "staging-mock",
@@ -412,6 +414,7 @@ function emitProviderCallLog(provider: LLMResponse["provider"], model: string, r
   const context = request.logContext || {};
   console.info("[llm provider_call]", {
     action: "provider_call",
+    locale: toAiLocale(request.locale),
     provider,
     model: cleanLogValue(model, 120),
     taskType: cleanLogValue(request.taskType || "general", 40),
@@ -472,6 +475,7 @@ function emitTokenUsageLog(
   const context = request.logContext || {};
   console.info("[llm token_usage]", {
     action: "token_usage",
+    locale: toAiLocale(request.locale),
     provider,
     model: cleanLogValue(model, 120),
     taskType: cleanLogValue(request.taskType || "general", 40),
@@ -1106,7 +1110,7 @@ async function callLLMUncached(
  */
 function applyOutputLocale(request: LLMRequest): LLMRequest {
   const directive = buildOutputLanguageDirective(toAiLocale(request.locale));
-  if (!directive) return request; // ko — 기존 트래픽 100% 보존
+  if (!directive) return request;
   return {
     ...request,
     systemPrompt: [request.systemPrompt || "", directive].filter(Boolean).join("\n\n"),

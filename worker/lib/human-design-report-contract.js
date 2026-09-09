@@ -13,6 +13,7 @@
 //    바꾸면 락·진행률·캐시 키·검증 규칙이 전부 차트 의존이 되어 재현이 불가능해진다.
 
 import { CENTER_ORDER } from "../../lib/human-design/centers.js";
+import { AI_OUTPUT_LOCALES } from "../../lib/i18n/ai-locale.js";
 import { CENTER_LABEL } from "../../lib/human-design/labels.js";
 import {
   buildHumanDesignFactSnapshot,
@@ -24,7 +25,7 @@ export { buildHumanDesignFactSnapshot, ensureHumanDesignCalculationPresence };
 /** 프롬프트·검증 규칙이 바뀌면 올린다. 저장 문서의 재생성 판정 키에 들어간다. */
 export const HD_REPORT_VERSION = "human-design-report-v1";
 
-export const HD_REPORT_LOCALES = Object.freeze(["ko", "en"]);
+export const HD_REPORT_LOCALES = Object.freeze([...AI_OUTPUT_LOCALES]);
 
 /** 상품이 광고하는 분량. 섹션 minChars 합이 이 값을 넘어야 한다(아래 자체 검사). */
 export const HD_REPORT_TARGET_CHARS = 25000;

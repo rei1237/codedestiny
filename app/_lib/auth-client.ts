@@ -311,8 +311,20 @@ function buildAuthRequest(targetUrl: string, init: RequestInit = {}, clientSourc
     headers.set(AI_LOCALE_HEADER, detectLocale());
   }
 
+  // Keep legacy body locale aligned with the explicit request language.
+  let body = init.body;
+  if (typeof body === "string" && /application\/json/i.test(headers.get("content-type") || "")) {
+    try {
+      const payload = JSON.parse(body);
+      if (payload && typeof payload === "object" && !Array.isArray(payload) && "locale" in payload) {
+        body = JSON.stringify({ ...payload, locale: headers.get(AI_LOCALE_HEADER) });
+      }
+    } catch { /* Preserve the existing route's invalid-input handling. */ }
+  }
+
   return new Request(targetUrl, {
     ...init,
+    body,
     headers,
     credentials: "include",
     cache: init.cache || "no-store",

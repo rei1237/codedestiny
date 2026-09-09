@@ -1,9 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { NAKSHATRA_RESULT_STORAGE_KEY } from "../NakshatraFormClient";
 import { useNakshatraCopy, type NakshatraCopy } from "../_lib/copy";
+import { Spark, Taegeuk, Yantra } from "../NakshatraSymbols";
+import styles from "./nakshatra-result.module.css";
 
 interface CrosswalkMatch {
   sukuyoIdx: number;
@@ -400,37 +403,76 @@ function paidProducts(copy: NakshatraCopy): { title: string; price: string; desc
   ];
 }
 
+function FeaturedAiConsultation({
+  copy,
+  product,
+}: {
+  copy: NakshatraCopy;
+  product: { title: string; price: string; desc: string; href?: string };
+}) {
+  return (
+    <article className={styles.featuredCard} data-featured-product="nakshatra-ai-consultation">
+      <div className={styles.featuredVisual} aria-hidden="true">
+        <Image
+          src="/images/fusion-fortune/fusion-guardian-celestial-hero.webp"
+          alt=""
+          fill
+          sizes="(max-width: 639px) 100vw, 42vw"
+          className={styles.featuredImage}
+          loading="lazy"
+        />
+        <div className={styles.visualVeil} />
+        <div className={styles.visualSymbols}>
+          <span className={`${styles.symbol} ${styles.symbolEast}`}>
+            <Taegeuk className={styles.symbolArt} />
+          </span>
+          <Spark className={styles.symbolJoin} />
+          <span className={`${styles.symbol} ${styles.symbolWest}`}>
+            <Yantra className={styles.symbolArt} />
+          </span>
+        </div>
+      </div>
+
+      <div className={styles.featuredBody}>
+        <div className={styles.featuredHeadingRow}>
+          <h3 className={styles.featuredTitle}>{product.title}</h3>
+          <span className={styles.featuredPrice}>{product.price}</span>
+        </div>
+        <p className={styles.featuredBadge}>
+          <Spark className={styles.eyebrowSpark} />
+          {copy.aiIntroEyebrow}
+        </p>
+        <p className={styles.featuredDescription}>{product.desc}</p>
+
+        <ul className={styles.featuredSteps}>
+          {copy.aiStepLabels.slice(0, 4).map((step) => (
+            <li key={step}>
+              <Spark className={styles.stepSpark} />
+              <span>{step}</span>
+            </li>
+          ))}
+        </ul>
+
+        <Link
+          href={product.href ?? "/nakshatra/ai"}
+          className={styles.featuredCta}
+          aria-label={`${product.title} · ${product.price}`}
+        >
+          {copy.resultViewNowText}
+        </Link>
+      </div>
+    </article>
+  );
+}
+
 function PaidUpsell() {
   const copy = useNakshatraCopy();
+  const [aiProduct] = paidProducts(copy);
   return (
     <section className="mt-6 rounded-2xl border border-amber-200/20 bg-white/[0.02] p-5 md:p-6" aria-labelledby="paid-h">
       <h2 id="paid-h" className="text-base font-bold text-amber-100">{copy.resultPaidUpsellTitle}</h2>
       <p className="mt-1 text-xs leading-6 text-slate-300">{copy.resultPaidUpsellNote}</p>
-      <div className="mt-4">
-        {paidProducts(copy).map((p) => {
-          const inner = (
-            <>
-              <div className="flex items-baseline justify-between gap-2">
-                <span className="break-keep text-sm font-bold text-slate-50">{p.title}</span>
-                <span className="shrink-0 text-xs font-semibold text-amber-100">{p.price}</span>
-              </div>
-              <p className="mt-1.5 break-keep text-xs leading-6 text-slate-300">{p.desc}</p>
-              <span className={`mt-2 inline-block text-xs font-semibold ${p.href ? "text-amber-100" : "text-slate-400"}`}>
-                {p.href ? copy.resultViewNowText : copy.resultComingSoonText}
-              </span>
-            </>
-          );
-          return p.href ? (
-            <Link key={p.title} href={p.href} className="rounded-xl border border-amber-200/25 bg-amber-500/[0.05] p-4 transition hover:border-amber-200/50">
-              {inner}
-            </Link>
-          ) : (
-            <div key={p.title} className="rounded-xl border border-white/10 bg-white/[0.03] p-4 opacity-80">
-              {inner}
-            </div>
-          );
-        })}
-      </div>
+      <FeaturedAiConsultation copy={copy} product={aiProduct} />
     </section>
   );
 }

@@ -14,6 +14,7 @@ import { useCallback, useState } from "react";
 import { say } from "../_lib/copy";
 import type { HdChart } from "../../_lib/types";
 import type { ReportPlan } from "../_lib/types";
+import { isHumanDesignPdfLocaleSupported } from "@/lib/pdf/human-design-pdf-locale";
 import styles from "../report.module.css";
 
 type Props = {
@@ -27,6 +28,7 @@ export default function ReportDownload({ plan, chart, locale }: Props) {
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState({ done: 0, total: 0 });
   const [error, setError] = useState("");
+  const pdfSupported = isHumanDesignPdfLocaleSupported(plan.locale);
 
   const download = useCallback(() => {
     if (busy) return;
@@ -36,7 +38,7 @@ export default function ReportDownload({ plan, chart, locale }: Props) {
 
     void (async () => {
       try {
-        const [{ captureChartSlots }, { exportHumanDesignReportPdf, HumanDesignPdfFontError }] = await Promise.all([
+        const [{ captureChartSlots }, { exportHumanDesignReportPdf, HumanDesignPdfFontError, HumanDesignPdfLocaleError }] = await Promise.all([
           import("../_lib/capture-chart-slots"),
           import("@/lib/pdf/export-human-design-report-pdf"),
         ]);
@@ -57,6 +59,10 @@ export default function ReportDownload({ plan, chart, locale }: Props) {
             date: new Date().toLocaleDateString(plan.locale === "en" ? "en-US" : "ko-KR"),
           });
         } catch (cause) {
+          if (cause instanceof HumanDesignPdfLocaleError) {
+            setError(say("pdfLocaleUnsupported", locale));
+            return;
+          }
           if (cause instanceof HumanDesignPdfFontError) {
             setError(say("pdfFontFailed", locale));
             return;
@@ -73,7 +79,7 @@ export default function ReportDownload({ plan, chart, locale }: Props) {
 
   return (
     <div className={styles.download}>
-      <button type="button" className={styles.downloadButton} onClick={download} disabled={busy}>
+      <button type="button" className={styles.downloadButton} onClick={download} disabled={busy || !pdfSupported}>
         {busy ? say("pdfBuilding", locale) : say("pdfDownload", locale)}
       </button>
       {busy && progress.total > 0 && (
@@ -81,7 +87,7 @@ export default function ReportDownload({ plan, chart, locale }: Props) {
           {say("pdfCharts", locale)} {progress.done} / {progress.total}
         </p>
       )}
-      {!busy && !error && <p className={styles.downloadNote}>{say("pdfNote", locale)}</p>}
+      {!busy && !error && <p className={styles.downloadNote}>{pdfSupported ? say("pdfNote", locale) : say("pdfLocaleUnsupported", locale)}</p>}
       {error && <p className={styles.error} role="alert">{error}</p>}
     </div>
   );

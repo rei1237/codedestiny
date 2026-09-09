@@ -5,8 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
   <title>천체의 선율 타로 | Celestial Harmony Tarot</title>
-  <script src="/js/core/pass-verdict.js?v=build-b3dfd5178fe3"></script>
-  <script src="/js/core/checkout-entry.js?v=build-b3dfd5178fe3"></script>
+  <script src="/js/core/standalone-ai-locale.js?v=20260909-1"></script>
+  <script src="/js/core/pass-verdict.js?v=build-d2987b1ff23f"></script>
+  <script src="/js/core/checkout-entry.js?v=build-d2987b1ff23f"></script>
   <script src="/js/core/payment-service.js?v=build-payment-service-v1"></script>
   <script src="/js/destiny-profile.js?v=build-41ca373a6995"></script>
 <style>
@@ -1098,6 +1099,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
       for(var k in extra){
         if(Object.prototype.hasOwnProperty.call(extra, k)) headers[k] = extra[k];
       }
+      headers['x-code-destiny-locale'] = window.cdStandaloneAiLocale.current();
       return headers;
     }
 

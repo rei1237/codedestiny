@@ -33,6 +33,7 @@ import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { runWithConcurrency } from "../lib/concurrency.js";
 import { getAmbientAiLocale } from "../lib/ai-locale-context.js";
+import { toAiLocale } from "../../lib/i18n/ai-locale.js";
 import { completeServiceExecution, failServiceExecution, startServiceExecution } from "../lib/service-execution-task.js";
 import { CALCULATION_VERSION } from "../../lib/human-design/version.js";
 import { clean, computeInputHash, isValidBirth, normalizeBirthBody } from "../lib/human-design-birth-input.js";
@@ -93,8 +94,7 @@ function degraded() {
 const noStore = { "Cache-Control": "no-store" };
 
 function resolveLocale(body) {
-  const asked = clean(body?.locale || getAmbientAiLocale() || "ko", 10).toLowerCase();
-  return HD_REPORT_LOCALES.includes(asked) ? asked : "ko";
+  return toAiLocale(getAmbientAiLocale() || body?.locale);
 }
 
 function reportKeyOf(inputHash, locale) {
@@ -309,6 +309,8 @@ async function generateSection(env, context, spec, attemptState) {
   });
 
   const ai = await callGeminiJsonWithRetry(env, built.prompt, {
+    // Continue the report in its saved language even if the UI changed between waves.
+    locale,
     systemPrompt: built.systemPrompt,
     baseTokens: HD_REPORT_SECTION_MAX_OUTPUT_TOKENS,
     capTokens: HD_REPORT_SECTION_MAX_OUTPUT_TOKENS,

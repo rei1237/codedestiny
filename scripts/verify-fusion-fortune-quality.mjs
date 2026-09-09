@@ -186,6 +186,7 @@ const STAGE_TWO_GROUPS = fusionGroupsForStage(2);
 /** 실제 라우트가 하는 대로 1단계 → 2단계(1단계 결과를 priorResult 로)를 순서대로 돌린다. */
 async function runTwoStages({ requestId, providerCall }) {
   const first = await generateFusionFortuneWithRealLLM({ input: BASE_INPUT, context, env: ENV, requestId, stage: 1, providerCall });
+  if (!first.deliverable) return { first, second: first };
   const second = await generateFusionFortuneWithRealLLM({
     input: BASE_INPUT, context, env: ENV, requestId, stage: 2, providerCall,
     priorResult: first.result, priorGenerationSource: first.generationSource,
@@ -383,12 +384,12 @@ const validationOptions = {
     },
   });
   check("1단계 부분 실패는 gemini_partial", first.generationSource === "gemini_partial", first.generationSource);
-  check("1단계 폴백이 섞이면 최종도 gemini_partial", second.generationSource === "gemini_partial", second.generationSource);
+  check("미완료 1단계는 통합을 시작하지 않음", second.generationSource === "gemini_partial", second.generationSource);
   check("살아남은 그룹은 LLM 본문 유지", String(second.result?.sajuSection?.content || "").includes("sajuSection"));
-  check("죽은 그룹만 폴백으로 대체", !String(second.result?.vedicSection?.content || "").includes("vedicSection") && String(second.result?.vedicSection?.content || "").length >= 3600);
+  check("실패 그룹을 임의 본문으로 채우지 않음", !second.result?.vedicSection && second.deliverable === false);
   const validated = validateFusionFortuneResult(second.result || {}, validationOptions);
-  check("부분 실패 결과도 계약을 통과", validated.ok, (validated.issues || []).join(","));
-  console.log("[partial] vedic 그룹만 폴백으로 대체 · 나머지 8그룹 보존");
+  check("부분 실패 결과는 완성 계약을 통과하지 않음", !validated.ok, (validated.issues || []).join(","));
+  console.log("[partial] vedic 재시도 대기 · 완료된 전문가 분석 보존");
 }
 
 // ── 6. 타로 환각이 그룹 경계에서 걸리는가 ───────────────────────────────────
@@ -585,12 +586,12 @@ const validationOptions = {
     },
   });
   check("1단계는 정상", first.generationSource === "gemini", first.generationSource);
-  check("2단계 전멸도 배달한다", second.deliverable === true, String(second.deliverable));
+  check("2단계 전멸은 완료 배달하지 않음", second.deliverable === false, String(second.deliverable));
   check("2단계 전멸은 gemini_partial", second.generationSource === "gemini_partial", second.generationSource);
   check("1단계 본문은 보존", String(second.result?.tarotSection?.content || "").includes("tarotSection"));
-  check("2단계 키는 폴백으로 채움", String(second.result?.executiveSummary || "").length >= FUSION_FORTUNE_LENGTH.executiveSummary && (second.result?.visualization?.monthlyTimeline || []).length === FUSION_TIMELINE_MONTHS);
-  check("2단계 전멸 결과도 계약을 통과", validateFusionFortuneResult(second.result || {}, validationOptions).ok);
-  console.log("[stage] #s2 예약 키 · 1단계 결과 조건 · 2단계 전멸 시 폴백 배달 확인");
+  check("2단계 키는 임의로 채우지 않음", !second.result?.executiveSummary && !second.result?.finalVerdict);
+  check("2단계 전멸 결과는 완성 계약 반려", !validateFusionFortuneResult(second.result || {}, validationOptions).ok);
+  console.log("[stage] #s2 예약 키 · 1단계 결과 조건 · 2단계 전멸 시 부분 분석 보존 확인");
 }
 
 // ── 13. 한 필드 안 문장 반복이 그룹 경계에서 걸리는가 ───────────────────────

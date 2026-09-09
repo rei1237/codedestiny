@@ -11,6 +11,17 @@ import {
 import { GUARDIAN_TOPIC_ADAPTER_PRIORITY } from "./guardian-fortune-adapter-utils.js";
 import { buildContextDrivenGuardianFallback } from "./guardian-fortune-fallback.js";
 import { escapeRawControlCharsInJsonStrings } from "./json-text-repair.js";
+import { toAiLocale } from "../../lib/i18n/ai-locale.js";
+
+function resultLocale(input = {}, context = {}) {
+  return toAiLocale(input.locale || context?.inputSummary?.locale);
+}
+
+const LOCALIZED_CTA_LABEL = Object.freeze({
+  en: "Continue consultation", ja: "相談を続ける", "zh-CN": "继续咨询", "zh-TW": "繼續諮詢",
+  vi: "Tiếp tục tư vấn", hi: "परामर्श जारी रखें", es: "Continuar la consulta", fr: "Poursuivre la consultation",
+  de: "Beratung fortsetzen", nl: "Consult voortzetten", ms: "Teruskan konsultasi",
+});
 
 const VISIBLE_RESULT_FIELDS = Object.freeze([
   "openingLine",
@@ -325,6 +336,7 @@ function appendUnique(result, field, value) {
 
 export function enrichShortGuardianFortuneResult(result = {}, { context = {}, input = {} } = {}) {
   const next = sanitizeGuardianFortuneResult(result);
+  if (resultLocale(input, context) !== "ko") return next;
   const { topic } = getTopicAndMode(input, context);
   const insight = contextInsight(context);
   const additions = [
@@ -401,7 +413,8 @@ export function trimLongGuardianFortuneResult(result = {}) {
 export function normalizeGuardianFortuneShareText({ candidate, input = {}, context = {} } = {}) {
   const { topic, mode } = getTopicAndMode(input, context);
   const normalized = applyForbiddenReplacements(candidate);
-  const fallback = `${GUARDIAN_FORTUNE_MODE_SHARE_HINTS[mode]} ${getTopicContract(topic).shareHint}`;
+  const fallback = resultLocale(input, context) === "ko"
+    ? `${GUARDIAN_FORTUNE_MODE_SHARE_HINTS[mode]} ${getTopicContract(topic).shareHint}` : "";
   const chosen = normalized && normalized.length <= 180 ? normalized : fallback;
   const result = { title: "", openingLine: "", shareText: chosen };
   try {
@@ -412,19 +425,22 @@ export function normalizeGuardianFortuneShareText({ candidate, input = {}, conte
   }
 }
 
-function normalizeCta(rawCta, topic, fallbackReason) {
+function normalizeCta(rawCta, topic, fallbackReason, locale = "ko") {
   const ctaCandidates = getTopicCtas(topic);
   const candidate = ctaCandidates.find((item) => item.ctaKey === safeText(rawCta?.ctaKey, 100)) || getDefaultCta(topic);
   const reason = applyForbiddenReplacements(rawCta?.reason) || fallbackReason;
   return {
     ctaKey: candidate.ctaKey,
-    label: candidate.label,
+    label: LOCALIZED_CTA_LABEL[locale] || candidate.label,
     targetPath: candidate.targetPath,
     reason: safeText(reason, 420),
   };
 }
 
 export function buildFallbackGuardianFortuneResult({ input = {}, context = {}, reason = "" } = {}) {
+  // No translated deterministic report exists yet. An empty candidate fails the
+  // unchanged quality gate and cannot commit usage as a Korean fallback delivery.
+  if (resultLocale(input, context) !== "ko") return { premiumCta: { reason: "" } };
   let fallback = buildBaseFallback({ input, context, reason });
   delete fallback._reason;
   fallback = enrichShortGuardianFortuneResult(fallback, { input, context });
@@ -449,6 +465,15 @@ export function validateAndNormalizeGuardianFortuneResult({ parsed, input = {}, 
   }
 
   const { topic } = getTopicAndMode(input, context);
+  const locale = resultLocale(input, context);
+  const rawTexts = [...ALL_RESULT_TEXT_FIELDS.map(field => parsed[field]), parsed.premiumCta?.reason,
+    ...(Array.isArray(parsed.evidenceLines) ? parsed.evidenceLines : []),
+    ...(Array.isArray(parsed.followUpQuestions) ? parsed.followUpQuestions : [])];
+  // Existing replacements contain Korean copy. For another locale, reject the
+  // unsafe claim rather than translating it implicitly or bypassing the rule.
+  if (locale !== "ko" && rawTexts.some(hasForbiddenExpression)) {
+    return { ok: false, errorCode: "GUARDIAN_RESULT_UNSAFE_CONTENT", issues: ["forbidden_expression"] };
+  }
   const fallback = buildFallbackGuardianFortuneResult({ input, context, reason: "validation_fallback" });
   let candidate = sanitizeGuardianFortuneResult({ ...fallback, ...parsed });
   const issues = [];
@@ -457,8 +482,12 @@ export function validateAndNormalizeGuardianFortuneResult({ parsed, input = {}, 
     if (!safeText(candidate[field])) candidate[field] = fallback[field];
   }
 
-  candidate.premiumCta = normalizeCta(parsed.premiumCta, topic, fallback.premiumCta.reason);
+  candidate.premiumCta = normalizeCta(parsed.premiumCta, topic, fallback.premiumCta.reason, locale);
   candidate.shareText = normalizeGuardianFortuneShareText({ candidate: parsed.shareText, input, context });
+  if (locale !== "ko" && [...ALL_RESULT_TEXT_FIELDS.map(field => candidate[field]), candidate.premiumCta.reason]
+    .some(value => applyUnsupportedClaimSafety(value, context) !== safeText(value, 2200))) {
+    return { ok: false, errorCode: "GUARDIAN_RESULT_UNSAFE_CONTENT", issues: ["unsupported_claim"] };
+  }
   candidate = applyContextualClaimSafety(candidate, context);
 
   try {
@@ -478,7 +507,7 @@ export function validateAndNormalizeGuardianFortuneResult({ parsed, input = {}, 
   }
 
   normalized = sanitizeGuardianFortuneResult(normalized);
-  normalized.premiumCta = normalizeCta(normalized.premiumCta, topic, fallback.premiumCta.reason);
+  normalized.premiumCta = normalizeCta(normalized.premiumCta, topic, fallback.premiumCta.reason, locale);
   normalized.shareText = normalizeGuardianFortuneShareText({ candidate: normalized.shareText, input, context });
   normalized = applyContextualClaimSafety(normalized, context);
   // 목록이 모자라면 폴백의 목록으로 채운다. 목록 부재로 전체 상담을 버리면 결제한
@@ -493,11 +522,13 @@ export function validateAndNormalizeGuardianFortuneResult({ parsed, input = {}, 
   const hasForbidden = ALL_RESULT_TEXT_FIELDS.some((field) => hasForbiddenExpression(normalized[field]))
     || hasForbiddenExpression(normalized.premiumCta.reason);
   const length = countGuardianFortuneVisibleTextLength(normalized);
-  if (hasMissingRequired || hasForbidden || length < GUARDIAN_FORTUNE_RESULT_LENGTH.min || length > GUARDIAN_FORTUNE_RESULT_LENGTH.max) {
+  const hasMissingLists = locale !== "ko" && Object.entries(GUARDIAN_FORTUNE_LIST_LIMITS)
+    .some(([field, limits]) => (normalized[field] || []).length < limits.min);
+  if (hasMissingRequired || hasMissingLists || hasForbidden || length < GUARDIAN_FORTUNE_RESULT_LENGTH.min || length > GUARDIAN_FORTUNE_RESULT_LENGTH.max) {
     return {
       ok: false,
       errorCode: hasForbidden ? "GUARDIAN_RESULT_UNSAFE_CONTENT" : "GUARDIAN_RESULT_QUALITY_FAILED",
-      issues: [...issues, hasMissingRequired ? "required_field" : "", hasForbidden ? "forbidden_expression" : "", `length_${length}`].filter(Boolean),
+      issues: [...issues, hasMissingRequired ? "required_field" : "", hasMissingLists ? "required_list" : "", hasForbidden ? "forbidden_expression" : "", `length_${length}`].filter(Boolean),
     };
   }
   return { ok: true, value: normalized, issues, length };

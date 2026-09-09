@@ -839,7 +839,8 @@ async function acquireBatchLock(env, sessionId, userId) {
         { "generationProgress.lockedAt": { $lt: new Date(now - BATCH_LOCK_TTL_MS) } },
       ],
     },
-    { $set: { "generationProgress.lockedAt": new Date(now), "generationProgress.lockToken": lockToken } },
+    // Legacy rows can have generationProgress:null; dotted writes fail with Mongo code 28.
+    { $set: { generationProgress: { lockedAt: new Date(now), lockToken } } },
     { new: true },
   ).lean());
   return updated ? { ok: true, lockToken, doc: updated } : { ok: false };

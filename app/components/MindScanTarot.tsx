@@ -10,6 +10,8 @@ import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 import { lookupServerCoinPrice } from "@/app/_lib/serviceCoinPrice";
 import { formatKrwFromMonthlyCredits } from "@/lib/payment/coin-pricing";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
+import { detectLocale } from "@/lib/i18n/dictionary";
+import { AI_LOCALE_HEADER } from "@/lib/i18n/ai-locale";
 import { getMindScanTarotCopy, type MindScanTarotCopy } from "./_lib/mind-scan-tarot-copy";
 
 // ── TYPES ──────────────────────────────────────────────────────────────────────
@@ -1554,7 +1556,7 @@ export default function MindScanTarot() {
     const res = await fetch("/api/tarot/mindscan", {
       method: "POST",
       credentials: "include",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", [AI_LOCALE_HEADER]: detectLocale() },
       body: JSON.stringify({ pairs, question: askedQuestion, requestId }),
     });
     const data = await res.json().catch(() => ({}));

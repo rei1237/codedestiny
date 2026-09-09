@@ -73,7 +73,7 @@ export async function captureChartSlots(
       const slot = slots[index];
       root.render(createElement(BodyGraph, {
         chart,
-        locale,
+        locale: locale === "ko" || locale === "ja" || locale === "zh-CN" || locale === "zh-TW" ? locale : "en",
         selection: slot.selection,
         onSelect: () => {},
         interactive: false,

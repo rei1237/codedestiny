@@ -72,14 +72,15 @@ test("컴포넌트가 ko 이분 삼항으로 로케일을 가르지 않는다", 
   }
 });
 
-test("🔴 본문·생성 로케일이 뷰어 언어를 따라가지 않는다 (결제 정체성)", () => {
+test("신규 생성은 서비스 언어를 받고 기존 결제 ID 생성 계약은 유지한다", () => {
   const source = read("app/human-design/report/HumanDesignReportClient.tsx");
-  // stableRequestId(inputHash, locale) 가 결제 요청 식별자를 만든다. 뷰어 언어가 거기 새면
-  // 지금까지 ":ko" 로 만들던 사용자가 다른 id 를 받아 재청구 위험이 생긴다.
+  // 기존 한국어 키는 바꾸지 않는다. 새로운 언어의 보고서는 기존 언어별 ID 계약을 쓴다.
   assert.ok(
-    /const bodyRequestLocale: ReportLocale = "ko";/.test(source),
-    "본문·생성 로케일이 고정되어 있지 않다 — 뷰어 언어가 요청 식별자로 새면 재청구 위험이다",
+    /const bodyRequestLocale: ReportLocale = useLocale\(\);/.test(source),
+    "신규 생성 언어가 현재 서비스 locale을 따르지 않는다",
   );
-  assert.ok(source.includes("locale: bodyRequestLocale,"), "생성 훅에 뷰어 언어가 넘어가고 있다");
+  assert.ok(source.includes("locale: bodyRequestLocale,"), "생성 훅에 서비스 언어가 전달되지 않는다");
+  const hook = read("app/human-design/report/_lib/useReportGeneration.ts");
+  assert.ok(hook.includes("const key = `${REQUEST_ID_STORAGE_PREFIX}:${inputHash}:${locale}`;"));
   assert.ok(source.includes("uiLocale: locale,"), "화면 문구가 뷰어 언어를 받지 않는다");
 });

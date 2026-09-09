@@ -470,7 +470,10 @@ function __cdInitGlobalPaymentLoading() {
     // Keep legacy premium frontends working by forwarding auth/premium tokens to same-origin API calls.
     if (reqUrl && __cdIsOwnApiOrigin(reqUrl) && pathname.indexOf('/api/') === 0) {
       patchedInit = (init && typeof init === 'object') ? Object.assign({}, init) : {};
-      var headers = new Headers((patchedInit && patchedInit.headers) || undefined);
+      var headers = new Headers((patchedInit && patchedInit.headers) || (input && input.headers) || undefined);
+      if (!headers.has('x-code-destiny-locale') && typeof window.cdGetCurrentLanguage === 'function') {
+        headers.set('x-code-destiny-locale', window.cdGetCurrentLanguage());
+      }
 
       if (!headers.has('Authorization')) {
         var authToken = '';

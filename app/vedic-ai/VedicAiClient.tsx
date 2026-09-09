@@ -27,6 +27,7 @@ import { ExpertStickyCta, ExpertValueCards } from "@/app/components/expert-consu
 import { DashaProgressRing, DashaTimeline, getGrahaMeta, GrahaNatureDot, NorthIndianChart } from "./VedicChartVisuals";
 import styles from "./VedicAiClient.module.css";
 import { detectLocale } from "@/lib/i18n/dictionary";
+import { normalizeLocale, type RuntimeLocale } from "@/lib/i18n/locale-normalize.js";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 
 type Gender = "male" | "female" | "unknown" | "";
@@ -2264,7 +2265,7 @@ function validateForm(form: FormState, copy: VedicAiCopy) {
   return "";
 }
 
-function buildPayload(form: FormState, requestId: string) {
+function buildPayload(form: FormState, requestId: string, locale = detectLocale()) {
   return {
     serviceType: FEATURE_KEY,
     consultationType: CONSULTATION_TYPE,
@@ -2280,7 +2281,7 @@ function buildPayload(form: FormState, requestId: string) {
     timezone: form.timezone.trim(),
     focusArea: form.focusArea,
     question: form.question.trim(),
-    locale: detectLocale(),
+    locale,
     requestId,
   };
 }
@@ -2940,6 +2941,8 @@ export default function VedicAiClient() {
     };
   });
   const requestIdRef = useRef("");
+  // 결제 리다이렉트·폴링 중 현재 UI 언어가 바뀌어도 같은 요청의 생성 언어는 고정한다.
+  const requestLocaleRef = useRef<RuntimeLocale | "">("");
   const pendingAccessRef = useRef<PendingAccess | null>(null);
   const submitBusyRef = useRef(false);
   const { seed: profileSeed, seedVersion, reload: reloadProfileSeed } = useAiProfileSeed();
@@ -3054,18 +3057,20 @@ export default function VedicAiClient() {
     access: Record<string, unknown>,
     paymentWasRequired = false,
     formOverride?: FormState,
+    localeOverride?: RuntimeLocale,
   ) {
     const source = formOverride || form;
+    const requestLocale = normalizeLocale(localeOverride || requestLocaleRef.current || detectLocale());
     setPhase("start");
     // 다음 화면(생성 로딩)이 마운트되는 시점 — 게이트 오버레이 hold를 해제한다.
     releasePaidFeatureGate(requestId);
     // 근거 계산은 이용권 확인·결제를 통과한 뒤에만 시작한다 — 확인 단계에서 라그나·나크샤트라가
     // 먼저 노출되면 "확인도 전에 결과를 만든다"로 읽히고, 결제 전 계산값이 새어 나간다.
     // 순수 계산이라 기다리지 않고 병렬로 받는다(실패하면 null이라 생성 흐름을 막지 않는다).
-    void fetchAnalysisBasis("/api/vedic-ai/basis", buildPayload(source, requestId)).then(setBasis);
+    void fetchAnalysisBasis("/api/vedic-ai/basis", buildPayload(source, requestId, requestLocale)).then(setBasis);
     const { status, data } = await postJson<StartResult>(
       "/api/vedic-ai/start",
-      { ...buildPayload(source, requestId), ...access, idempotencyKey: requestId },
+      { ...buildPayload(source, requestId, requestLocale), ...access, idempotencyKey: requestId },
       requestId,
     );
     if (data.ok && data.consultation) {
@@ -3100,17 +3105,20 @@ export default function VedicAiClient() {
   // 🔴 게이트를 다시 타지 않고 게이트 없는 코어(startConsultation)를 원래 requestId 로 부른다.
   const buildResume = usePaidResume(FEATURE_KEY, async (args, grant) => {
     const requestId = typeof args.requestId === "string" ? args.requestId : "";
-    const restoredForm = unpackPaidResumeArg<FormState>(args.form);
+    const restored = unpackPaidResumeArg<{ form?: FormState; locale?: string }>(args.form);
+    const restoredForm = restored?.form;
+    const restoredLocale = normalizeLocale(toText(restored?.locale));
     if (!requestId || !restoredForm || !restoredForm.birthDate) return false;
     submitBusyRef.current = true;
     requestIdRef.current = requestId;
+    requestLocaleRef.current = restoredLocale;
     setForm(restoredForm);
     setError("");
     setNotice("");
     try {
       const access = extractPayment(grant?.payload, requestId);
       pendingAccessRef.current = { requestId, access, paymentWasRequired: true };
-      await startConsultation(requestId, access, true, restoredForm);
+      await startConsultation(requestId, access, true, restoredForm, restoredLocale);
       return true;
     } catch (caught) {
       const code = caught instanceof Error ? caught.message : "SERVER_ERROR";
@@ -3132,6 +3140,7 @@ export default function VedicAiClient() {
 
     const requestId = requestIdRef.current || makeRequestId();
     requestIdRef.current = requestId;
+    if (!requestLocaleRef.current) requestLocaleRef.current = detectLocale();
     submitBusyRef.current = true;
     setError("");
     setNotice("");
@@ -3162,7 +3171,7 @@ export default function VedicAiClient() {
       const { status, data } = await runAccessCheckWithTransientRetry(
         () => postJson<EnsureAccessResult>(
           "/api/vedic-ai/ensure-access",
-          { ...buildPayload(form, requestId), idempotencyKey: requestId },
+          { ...buildPayload(form, requestId, normalizeLocale(requestLocaleRef.current)), idempotencyKey: requestId },
           requestId,
         ),
         { onRetry: () => setNotice(copy.retryAccessNotice) },
@@ -3204,7 +3213,7 @@ export default function VedicAiClient() {
       const paymentPayload = asRecord(data.paymentPayload);
       const gate = await runBillingCoinGate({
         ...buildBillingGateInput(paymentPayload, requestId, copy),
-        resume: buildResume({ requestId, form: packPaidResumeArg(form) }),
+        resume: buildResume({ requestId, form: packPaidResumeArg({ form, locale: requestLocaleRef.current }) }),
       });
       if (!isPaymentGranted(gate)) {
         const code = String(gate.error?.code || "").toUpperCase();

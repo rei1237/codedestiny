@@ -36,6 +36,8 @@ const DYNAMIC_FEED_PATHS = new Set(["/rss.xml", "/insights/rss.xml"]);
 // 다루려면 마커를 한 줄 추가해야 하고, 안 하면 가드가 실패한다.
 // @routes-include: /fortune/*
 // @routes-include: /insights/famous-saju/*
+// @routes-include: /de-de/high-value*
+// @routes-include: /es-es/high-value*
 //
 // 🔴 살아 있는 라우트를 삼키면 안 된다. `/fortune/`, `/fortune/{period}/`,
 //    `/fortune/{period}/{sign}/` 96개는 사이트맵에 있는 200 페이지다. 아래 두 분기는
@@ -48,6 +50,20 @@ const FORTUNE_LEGACY_SYSTEMS = new Map([
   ["vedic", "/vedic/"],
   ["ziwei", "/ziwei/"],
 ]);
+
+// GSC 에 남은 비색인 로케일의 마지막 고가치 404 회수 경로.
+// `high-value` 는 2026-08-30 에 `/guides/` 로 이름을 바꿨지만, 이미 색인된
+// `/de-de/high-value`·`/es-es/high-value` 는 일반 locale fallback 으로 보내면
+// `/high-value` → `/guides/` 2홉 체인이 된다. 확인된 두 URL만 직접 정본으로 보낸다.
+const LEGACY_LOCALE_TARGETS = new Map([
+  ["/de-de/high-value", "/guides/"],
+  ["/es-es/high-value", "/guides/"],
+]);
+
+function legacyLocaleTarget(pathname) {
+  const normalized = String(pathname || "").replace(/\/+$/, "") || "/";
+  return LEGACY_LOCALE_TARGETS.get(normalized) || null;
+}
 
 // 유명인 사주 별칭 → 정본 리다이렉트.
 //
@@ -311,6 +327,13 @@ export default {
 
     if (DYNAMIC_FEED_PATHS.has(url.pathname)) {
       return serveDynamicFeed(request, env);
+    }
+
+    const legacyLocaleRedirect = legacyLocaleTarget(url.pathname);
+    if (legacyLocaleRedirect) {
+      const target = new URL(legacyLocaleRedirect, url);
+      target.search = url.search;
+      return Response.redirect(target.toString(), 301);
     }
 
     const legacyFortuneTarget = fortuneLegacyTarget(url.pathname);

@@ -13,6 +13,7 @@ import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { computePetBlueprint } from "./pet-saju.js";
 import { buildPetCompat } from "../lib/pet/pet-compat.js";
 import { normalizeRequestDate } from "../lib/pet/pet-input.js";
+import { getAmbientAiLocale } from "../lib/ai-locale-context.js";
 
 const REPORT_FEATURE_KEY = "pet-saju-ai-consultation";
 const REPORT_TYPE = "petSajuReport";
@@ -159,8 +160,9 @@ function fallbackReport(blueprint) {
   };
 }
 
-function normalizeReport(parsed, blueprint) {
+function normalizeReport(parsed, blueprint, locale = "ko") {
   if (!parsed || typeof parsed !== "object") return null;
+  const isKorean = locale === "ko";
   const personality = Array.isArray(parsed.personality) ? parsed.personality.map(clean).filter(Boolean) : [];
   if (personality.length < 2) return null;
 
@@ -171,16 +173,19 @@ function normalizeReport(parsed, blueprint) {
     if (id && reading) readingById.set(id, reading);
   }
 
+  const habitats = blueprint.deep.habitats.map((item) => ({
+    id: item.id,
+    reading: readingById.get(item.id) || (isKorean ? `${item.labelKo}은(는) ${item.supplies.join("·")}기운을 채워 주는 자리입니다.` : ""),
+  }));
+  const plays = (Array.isArray(parsed.plays) ? parsed.plays.map(clean).filter(Boolean) : []).slice(0, 5);
+  const coach = clean(parsed.coach) || (isKorean ? blueprint.deep.coach?.action || "" : "");
+  const care = clean(parsed.care);
+  const closing = clean(parsed.closing);
+  if (!isKorean && (!habitats.every((item) => item.reading) || !plays.length || !coach || !care || !closing)) return null;
+
   return {
     personality,
-    habitats: blueprint.deep.habitats.map((item) => ({
-      id: item.id,
-      reading: readingById.get(item.id) || `${item.labelKo}은(는) ${item.supplies.join("·")}기운을 채워 주는 자리입니다.`,
-    })),
-    plays: (Array.isArray(parsed.plays) ? parsed.plays.map(clean).filter(Boolean) : []).slice(0, 5),
-    coach: clean(parsed.coach) || blueprint.deep.coach?.action || "",
-    care: clean(parsed.care),
-    closing: clean(parsed.closing),
+    habitats, plays, coach, care, closing,
     degraded: false,
   };
 }
@@ -248,8 +253,9 @@ function fallbackCompat(compat) {
   };
 }
 
-function normalizeCompat(parsed, compat) {
+function normalizeCompat(parsed, compat, locale = "ko") {
   if (!parsed || typeof parsed !== "object") return null;
+  const isKorean = locale === "ko";
   const overview = Array.isArray(parsed.overview) ? parsed.overview.map(clean).filter(Boolean) : [];
   if (!clean(parsed.verdict) || overview.length < 1) return null;
 
@@ -266,19 +272,22 @@ function normalizeCompat(parsed, compat) {
     if (id && reading) placeById.set(id, reading);
   }
 
+  const dimensions = compat.dimensions.map((item) => ({
+    key: item.key,
+    reading: dimById.get(item.key) || (isKorean ? `${item.labelKo}은(는) ${item.value}점입니다.` : ""),
+  }));
+  const places = compat.sharedPlaces.map((item) => ({
+    id: item.id,
+    reading: placeById.get(item.id) || (isKorean ? `${item.labelKo}은(는) 두 아이가 함께 머물기 좋은 자리입니다.` : ""),
+  }));
+  const cautions = (Array.isArray(parsed.cautions) ? parsed.cautions.map(clean).filter(Boolean) : []).slice(0, 4);
+  const routine = clean(parsed.routine);
+  if (!isKorean && (!dimensions.every((item) => item.reading) || !places.every((item) => item.reading) || !cautions.length || !routine)) return null;
+
   return {
     verdict: clean(parsed.verdict),
     overview,
-    dimensions: compat.dimensions.map((item) => ({
-      key: item.key,
-      reading: dimById.get(item.key) || `${item.labelKo}은(는) ${item.value}점입니다.`,
-    })),
-    places: compat.sharedPlaces.map((item) => ({
-      id: item.id,
-      reading: placeById.get(item.id) || `${item.labelKo}은(는) 두 아이가 함께 머물기 좋은 자리입니다.`,
-    })),
-    cautions: (Array.isArray(parsed.cautions) ? parsed.cautions.map(clean).filter(Boolean) : []).slice(0, 4),
-    routine: clean(parsed.routine),
+    dimensions, places, cautions, routine,
     degraded: false,
   };
 }
@@ -346,9 +355,13 @@ async function handleReport(request, env) {
     3400,
     1400, // 리포트 문장 스펙 합산(성격 문단 + 명당 5곳 + 코칭/케어/맺음) 최소치
   );
-  const report = normalizeReport(parsed, blueprint) || fallbackReport(blueprint);
+  const locale = getAmbientAiLocale() || "ko";
+  const report = normalizeReport(parsed, blueprint, locale);
+  if (!report && locale !== "ko") {
+    return json({ ok: false, code: "AI_LOCALE_RESULT_INCOMPLETE", message: "Generated reading is incomplete for the selected language." }, { status: 502 });
+  }
 
-  return json({ ok: true, title: REPORT_TITLE, blueprint, report });
+  return json({ ok: true, title: REPORT_TITLE, blueprint, report: report || fallbackReport(blueprint) });
 }
 
 async function handleCompat(request, env) {
@@ -371,9 +384,13 @@ async function handleCompat(request, env) {
     3000,
     1200, // 궁합 문장 스펙 합산(차원 리딩 + 공유 명당 + 주의/루틴) 최소치
   );
-  const reading = normalizeCompat(parsed, compat) || fallbackCompat(compat);
+  const locale = getAmbientAiLocale() || "ko";
+  const reading = normalizeCompat(parsed, compat, locale);
+  if (!reading && locale !== "ko") {
+    return json({ ok: false, code: "AI_LOCALE_RESULT_INCOMPLETE", message: "Generated reading is incomplete for the selected language." }, { status: 502 });
+  }
 
-  return json({ ok: true, title: COMPAT_TITLE, compat, reading, pets: [blueprintA, blueprintB] });
+  return json({ ok: true, title: COMPAT_TITLE, compat, reading: reading || fallbackCompat(compat), pets: [blueprintA, blueprintB] });
 }
 
 function routeError(error) {

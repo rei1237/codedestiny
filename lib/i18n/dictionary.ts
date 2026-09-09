@@ -255,13 +255,21 @@ export async function repairUnmarkedKoreanText(locale: RuntimeLocale): Promise<n
 /** 쿼리 → 경로 → localStorage → 쿠키 순으로 현재 로케일을 정한다. */
 export function detectLocale(): RuntimeLocale {
   if (typeof window === "undefined") return "ko";
+  // The static language selector already owns the current page selection.
+  try {
+    const runtime = window as unknown as { __cdNativeLangBound?: boolean; cdGetCurrentLanguage?: () => string };
+    // The React bridge's getter delegates back to detectLocale. Only the native
+    // runtime has its own current-page selection; calling the bridge recurses.
+    if (runtime.__cdNativeLangBound && typeof runtime.cdGetCurrentLanguage === "function") return normalizeLocale(runtime.cdGetCurrentLanguage());
+  } catch {}
   try {
     const queryLang = new URLSearchParams(window.location.search || "").get("lang");
     if (queryLang) return normalizeLocale(queryLang);
   } catch {}
   try {
     const segment = window.location.pathname.split("/").filter(Boolean)[0];
-    if (segment && segment.toLowerCase() !== "ko") {
+    if (segment && segment.toLowerCase() === "ko") return "ko";
+    if (segment) {
       const fromPath = normalizeLocale(segment);
       if (fromPath !== "ko") return fromPath;
     }

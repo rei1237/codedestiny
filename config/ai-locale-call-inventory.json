@@ -1,0 +1,757 @@
+[
+  {
+    "file": "lib/llm-cache.ts",
+    "matches": [
+      {
+        "line": 1,
+        "kind": "import-or-injected-call",
+        "symbol": "./llm-client"
+      }
+    ]
+  },
+  {
+    "file": "lib/llm-client.ts",
+    "matches": [
+      {
+        "line": 118,
+        "kind": "provider-url",
+        "symbol": "direct REST"
+      },
+      {
+        "line": 707,
+        "kind": "provider-url",
+        "symbol": "direct REST"
+      },
+      {
+        "line": 824,
+        "kind": "call",
+        "symbol": "env.AI.run"
+      }
+    ]
+  },
+  {
+    "file": "lib/tarot/love-reading-llm.mjs",
+    "matches": [
+      {
+        "line": 158,
+        "kind": "provider-url",
+        "symbol": "direct REST"
+      }
+    ]
+  },
+  {
+    "file": "lib/tarot/mindscan-reading.mjs",
+    "matches": [
+      {
+        "line": 832,
+        "kind": "provider-url",
+        "symbol": "direct REST"
+      }
+    ]
+  },
+  {
+    "file": "lib/tarot/oracle-consultation.mjs",
+    "matches": [
+      {
+        "line": 299,
+        "kind": "provider-url",
+        "symbol": "direct REST"
+      }
+    ]
+  },
+  {
+    "file": "scripts/build-serif-font-assets.mjs",
+    "matches": [
+      {
+        "line": 205,
+        "kind": "provider-url",
+        "symbol": "direct REST"
+      }
+    ]
+  },
+  {
+    "file": "scripts/i18n-translate-pending.mjs",
+    "matches": [
+      {
+        "line": 33,
+        "kind": "import-or-injected-call",
+        "symbol": "./lib/workers-ai-rest.mjs"
+      },
+      {
+        "line": 46,
+        "kind": "provider-url",
+        "symbol": "direct REST"
+      }
+    ]
+  },
+  {
+    "file": "scripts/lib/workers-ai-rest.mjs",
+    "matches": [
+      {
+        "line": 167,
+        "kind": "provider-url",
+        "symbol": "direct REST"
+      }
+    ]
+  },
+  {
+    "file": "scripts/local-dev-auth-api.mjs",
+    "matches": [
+      {
+        "line": 3,
+        "kind": "import-or-injected-call",
+        "symbol": "./lib/workers-ai-rest.mjs"
+      }
+    ]
+  },
+  {
+    "file": "worker/lib/fusion-fortune.js",
+    "matches": [
+      {
+        "line": 20,
+        "kind": "import-or-injected-call",
+        "symbol": "./gemini.js"
+      },
+      {
+        "line": 21,
+        "kind": "import-or-injected-call",
+        "symbol": "./structured-consultation.js"
+      },
+      {
+        "line": 784,
+        "kind": "call",
+        "symbol": "callGeminiJsonWithRetry"
+      }
+    ]
+  },
+  {
+    "file": "worker/lib/gemini-client.js",
+    "matches": [
+      {
+        "line": 1,
+        "kind": "import-or-injected-call",
+        "symbol": "../../lib/llm-client.ts"
+      },
+      {
+        "line": 16,
+        "kind": "call",
+        "symbol": "callLLM"
+      }
+    ]
+  },
+  {
+    "file": "worker/lib/gemini.js",
+    "matches": [
+      {
+        "line": 1,
+        "kind": "import-or-injected-call",
+        "symbol": "../../lib/llm-client.ts"
+      },
+      {
+        "line": 116,
+        "kind": "call",
+        "symbol": "callLLM"
+      }
+    ]
+  },
+  {
+    "file": "worker/lib/guardian-fortune-llm.js",
+    "matches": [
+      {
+        "line": 1,
+        "kind": "import-or-injected-call",
+        "symbol": "./gemini.js"
+      },
+      {
+        "line": 73,
+        "kind": "call",
+        "symbol": "providerCall"
+      }
+    ]
+  },
+  {
+    "file": "worker/lib/palm-vision.js",
+    "matches": [
+      {
+        "line": 17,
+        "kind": "import-or-injected-call",
+        "symbol": "./structured-consultation.js"
+      },
+      {
+        "line": 18,
+        "kind": "import-or-injected-call",
+        "symbol": "./gemini.js"
+      },
+      {
+        "line": 469,
+        "kind": "call",
+        "symbol": "callGeminiJsonWithRetry"
+      },
+      {
+        "line": 634,
+        "kind": "call",
+        "symbol": "callGeminiText"
+      }
+    ]
+  },
+  {
+    "file": "worker/lib/structured-consultation.js",
+    "matches": [
+      {
+        "line": 10,
+        "kind": "import-or-injected-call",
+        "symbol": "./gemini.js"
+      },
+      {
+        "line": 77,
+        "kind": "call",
+        "symbol": "callGeminiText"
+      }
+    ]
+  },
+  {
+    "file": "worker/lib/tarot-oracle-llm.js",
+    "matches": [
+      {
+        "line": 14,
+        "kind": "import-or-injected-call",
+        "symbol": "./structured-consultation.js"
+      },
+      {
+        "line": 37,
+        "kind": "call",
+        "symbol": "callGeminiJsonWithRetry"
+      }
+    ]
+  },
+  {
+    "file": "worker/lib/threads-ai-writer.js",
+    "matches": [
+      {
+        "line": 18,
+        "kind": "import-or-injected-call",
+        "symbol": "./gemini.js"
+      },
+      {
+        "line": 163,
+        "kind": "call",
+        "symbol": "generate"
+      }
+    ]
+  },
+  {
+    "file": "worker/routes/admin.js",
+    "matches": [
+      {
+        "line": 9,
+        "kind": "import-or-injected-call",
+        "symbol": "../lib/gemini.js"
+      },
+      {
+        "line": 4304,
+        "kind": "call",
+        "symbol": "callGeminiText"
+      }
+    ]
+  },
+  {
+    "file": "worker/routes/animal-totem.js",
+    "matches": [
+      {
+        "line": 28,
+        "kind": "import-or-injected-call",
+        "symbol": "../lib/structured-consultation.js"
+      },
+      {
+        "line": 619,
+        "kind": "call",
+        "symbol": "callGeminiJsonWithRetry"
+      }
+    ]
+  },
+  {
+    "file": "worker/routes/astrology-ai.js",
+    "matches": [
+      {
+        "line": 17,
+        "kind": "import-or-injected-call",
+        "symbol": "../lib/gemini.js"
+      },
+      {
+        "line": 1142,
+        "kind": "call",
+        "symbol": "callGeminiText"
+      },
+      {
+        "line": 1243,
+        "kind": "call",
+        "symbol": "callGeminiText"
+      },
+      {
+        "line": 1272,
+        "kind": "call",
+        "symbol": "callGeminiText"
+      },
+      {
+        "line": 1301,
+        "kind": "call",
+        "symbol": "callGeminiText"
+      }
+    ]
+  },
+  {
+    "file": "worker/routes/celestial-harmony.js",
+    "matches": [
+      {
+        "line": 4,
+        "kind": "import-or-injected-call",
+        "symbol": "../lib/gemini.js"
+      },
+      {
+        "line": 654,
+        "kind": "call",
+        "symbol": "callGeminiText"
+      }
+    ]
+  },
+  {
+    "file": "worker/routes/destiny-compass-ai.js",
+    "matches": [
+      {
+        "line": 23,
+        "kind": "import-or-injected-call",
+        "symbol": "../lib/gemini.js"
+      },
+      {
+        "line": 419,
+        "kind": "call",
+        "symbol": "callGeminiText"
+      }
+    ]
+  },
+  {
+    "file": "worker/routes/destiny-compass.js",
+    "matches": [
+      {
+        "line": 10,
+        "kind": "import-or-injected-call",
+        "symbol": "../lib/structured-consultation.js"
+      },
+      {
+        "line": 225,
+        "kind": "call",
+        "symbol": "callGeminiJsonWithRetry"
+      }
+    ]
+  },
+  {
+    "file": "worker/routes/dream.js",
+    "matches": [
+      {
+        "line": 3,
+        "kind": "import-or-injected-call",
+        "symbol": "../lib/gemini.js"
+      },
+      {
+        "line": 1289,
+        "kind": "call",
+        "symbol": "dreamGeminiCaller"
+      }
+    ]
+  },
+  {
+    "file": "worker/routes/fortune-tea-house.js",
+    "matches": [
+      {
+        "line": 2,
+        "kind": "import-or-injected-call",
+        "symbol": "../lib/gemini.js"
+      },
+      {
+        "line": 4024,
+        "kind": "call",
+        "symbol": "callGeminiText"
+      },
+      {
+        "line": 4870,
+        "kind": "call",
+        "symbol": "callGeminiText"
+      }
+    ]
+  },
+  {
+    "file": "worker/routes/fortune.js",
+    "matches": [
+      {
+        "line": 98,
+        "kind": "import-or-injected-call",
+        "symbol": "../lib/gemini.js"
+      },
+      {
+        "line": 477,
+        "kind": "call",
+        "symbol": "callGeminiText"
+      },
+      {
+        "line": 5159,
+        "kind": "call",
+        "symbol": "callGeminiText"
+      },
+      {
+        "line": 5184,
+        "kind": "call",
+        "symbol": "callGeminiText"
+      }
+    ]
+  },
+  {
+    "file": "worker/routes/human-design-report.js",
+    "matches": [
+      {
+        "line": 30,
+        "kind": "import-or-injected-call",
+        "symbol": "../lib/structured-consultation.js"
+      },
+      {
+        "line": 311,
+        "kind": "call",
+        "symbol": "callGeminiJsonWithRetry"
+      }
+    ]
+  },
+  {
+    "file": "worker/routes/karma-destiny-ai.js",
+    "matches": [
+      {
+        "line": 12,
+        "kind": "import-or-injected-call",
+        "symbol": "../lib/gemini.js"
+      },
+      {
+        "line": 1497,
+        "kind": "call",
+        "symbol": "callGeminiText"
+      },
+      {
+        "line": 1524,
+        "kind": "call",
+        "symbol": "callGeminiText"
+      },
+      {
+        "line": 1612,
+        "kind": "call",
+        "symbol": "callGeminiText"
+      },
+      {
+        "line": 1648,
+        "kind": "call",
+        "symbol": "callGeminiText"
+      },
+      {
+        "line": 1975,
+        "kind": "call",
+        "symbol": "callGeminiText"
+      }
+    ]
+  },
+  {
+    "file": "worker/routes/life-book-ai.js",
+    "matches": [
+      {
+        "line": 14,
+        "kind": "import-or-injected-call",
+        "symbol": "../lib/gemini.js"
+      },
+      {
+        "line": 1424,
+        "kind": "call",
+        "symbol": "callGeminiText"
+      }
+    ]
+  },
+  {
+    "file": "worker/routes/love-secret-ai.js",
+    "matches": [
+      {
+        "line": 13,
+        "kind": "import-or-injected-call",
+        "symbol": "../lib/gemini.js"
+      },
+      {
+        "line": 14,
+        "kind": "import-or-injected-call",
+        "symbol": "../lib/structured-consultation.js"
+      },
+      {
+        "line": 783,
+        "kind": "call",
+        "symbol": "callGeminiJsonWithRetry"
+      },
+      {
+        "line": 930,
+        "kind": "call",
+        "symbol": "callGeminiText"
+      }
+    ]
+  },
+  {
+    "file": "worker/routes/master-love-codex.js",
+    "matches": [
+      {
+        "line": 39,
+        "kind": "import-or-injected-call",
+        "symbol": "../lib/gemini.js"
+      },
+      {
+        "line": 40,
+        "kind": "import-or-injected-call",
+        "symbol": "../lib/structured-consultation.js"
+      },
+      {
+        "line": 658,
+        "kind": "call",
+        "symbol": "callGeminiJsonWithRetry"
+      },
+      {
+        "line": 685,
+        "kind": "call",
+        "symbol": "callGeminiText"
+      }
+    ]
+  },
+  {
+    "file": "worker/routes/nakshatra-ai.js",
+    "matches": [
+      {
+        "line": 37,
+        "kind": "import-or-injected-call",
+        "symbol": "../lib/gemini.js"
+      },
+      {
+        "line": 693,
+        "kind": "call",
+        "symbol": "callGeminiText"
+      }
+    ]
+  },
+  {
+    "file": "worker/routes/naming-prompt.js",
+    "matches": [
+      {
+        "line": 9,
+        "kind": "import-or-injected-call",
+        "symbol": "../lib/gemini.js"
+      },
+      {
+        "line": 1360,
+        "kind": "call",
+        "symbol": "callGeminiText"
+      }
+    ]
+  },
+  {
+    "file": "worker/routes/neo-operation-room.js",
+    "matches": [
+      {
+        "line": 16,
+        "kind": "import-or-injected-call",
+        "symbol": "../lib/gemini.js"
+      },
+      {
+        "line": 1005,
+        "kind": "call",
+        "symbol": "callGeminiText"
+      }
+    ]
+  },
+  {
+    "file": "worker/routes/new-year-ai.js",
+    "matches": [
+      {
+        "line": 13,
+        "kind": "import-or-injected-call",
+        "symbol": "../lib/gemini.js"
+      },
+      {
+        "line": 1842,
+        "kind": "call",
+        "symbol": "callGeminiText"
+      },
+      {
+        "line": 1980,
+        "kind": "call",
+        "symbol": "callGeminiText"
+      }
+    ]
+  },
+  {
+    "file": "worker/routes/oracle.js",
+    "matches": [
+      {
+        "line": 1,
+        "kind": "import-or-injected-call",
+        "symbol": "../lib/gemini.js"
+      },
+      {
+        "line": 172,
+        "kind": "call",
+        "symbol": "callGeminiText"
+      }
+    ]
+  },
+  {
+    "file": "worker/routes/pet-saju-ai.js",
+    "matches": [
+      {
+        "line": 11,
+        "kind": "import-or-injected-call",
+        "symbol": "../lib/structured-consultation.js"
+      },
+      {
+        "line": 315,
+        "kind": "call",
+        "symbol": "callGeminiJsonWithRetry"
+      }
+    ]
+  },
+  {
+    "file": "worker/routes/relationship-boundary-test.js",
+    "matches": [
+      {
+        "line": 9,
+        "kind": "import-or-injected-call",
+        "symbol": "../lib/structured-consultation.js"
+      },
+      {
+        "line": 121,
+        "kind": "call",
+        "symbol": "callGeminiJsonWithRetry"
+      }
+    ]
+  },
+  {
+    "file": "worker/routes/sukuyo-compatibility-ai.js",
+    "matches": [
+      {
+        "line": 14,
+        "kind": "import-or-injected-call",
+        "symbol": "../lib/gemini.js"
+      },
+      {
+        "line": 16,
+        "kind": "import-or-injected-call",
+        "symbol": "../lib/structured-consultation.js"
+      },
+      {
+        "line": 1431,
+        "kind": "call",
+        "symbol": "callGeminiJsonWithRetry"
+      },
+      {
+        "line": 1480,
+        "kind": "call",
+        "symbol": "callGeminiJsonWithRetry"
+      },
+      {
+        "line": 1568,
+        "kind": "call",
+        "symbol": "callGeminiText"
+      },
+      {
+        "line": 2102,
+        "kind": "call",
+        "symbol": "callGeminiText"
+      }
+    ]
+  },
+  {
+    "file": "worker/routes/vedic-ai.js",
+    "matches": [
+      {
+        "line": 15,
+        "kind": "import-or-injected-call",
+        "symbol": "../lib/structured-consultation.js"
+      },
+      {
+        "line": 1316,
+        "kind": "call",
+        "symbol": "callGeminiJsonWithRetry"
+      }
+    ]
+  },
+  {
+    "file": "worker/routes/yoga-guru.js",
+    "matches": [
+      {
+        "line": 2,
+        "kind": "import-or-injected-call",
+        "symbol": "../lib/gemini.js"
+      },
+      {
+        "line": 355,
+        "kind": "call",
+        "symbol": "callGeminiText"
+      }
+    ]
+  },
+  {
+    "file": "worker/routes/ziwei-ai.js",
+    "matches": [
+      {
+        "line": 19,
+        "kind": "import-or-injected-call",
+        "symbol": "../lib/gemini.js"
+      },
+      {
+        "line": 20,
+        "kind": "import-or-injected-call",
+        "symbol": "../lib/structured-consultation.js"
+      },
+      {
+        "line": 1647,
+        "kind": "call",
+        "symbol": "callGeminiJsonWithRetry"
+      },
+      {
+        "line": 1657,
+        "kind": "call",
+        "symbol": "callGeminiText"
+      },
+      {
+        "line": 1691,
+        "kind": "call",
+        "symbol": "callGeminiText"
+      }
+    ]
+  },
+  {
+    "file": "worker/routes/ziwei-deep-report.js",
+    "matches": [
+      {
+        "line": 33,
+        "kind": "import-or-injected-call",
+        "symbol": "../lib/gemini.js"
+      },
+      {
+        "line": 247,
+        "kind": "call",
+        "symbol": "callGeminiText"
+      }
+    ]
+  },
+  {
+    "file": "worker/routes/ziwei-island-ai.js",
+    "matches": [
+      {
+        "line": 19,
+        "kind": "import-or-injected-call",
+        "symbol": "../lib/structured-consultation.js"
+      },
+      {
+        "line": 536,
+        "kind": "call",
+        "symbol": "callGeminiJsonWithRetry"
+      }
+    ]
+  }
+]

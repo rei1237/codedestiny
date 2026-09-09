@@ -1,3 +1,4 @@
+import { expertSolarBirthDate, pickExpertFields, westernTransitAspects } from "../expert-evidence.js";
 import { getSwissWesternChart } from "../../swiss-ephemeris.js";
 import { nonEmptyText, text } from "../../guardian-fortune-adapter-utils.js";
 
@@ -40,7 +41,7 @@ export async function buildAstrologyAdapter(input, options = {}) {
     throw error;
   }
 
-  const [year, month, day] = input.birthDate.split("-").map(Number);
+  const [year, month, day] = (options.fusionExpert ? expertSolarBirthDate(input) : input.birthDate).split("-").map(Number);
   const [hour, minute] = (input.birthTime || "12:00").split(":").map(Number);
   const payload = {
     year,
@@ -69,7 +70,17 @@ export async function buildAstrologyAdapter(input, options = {}) {
     throw error;
   }
 
+  const now = options.now instanceof Date ? options.now : new Date();
+  const transit = options.fusionExpert ? await calculate(options.env, {
+    year: now.getUTCFullYear(), month: now.getUTCMonth() + 1, day: now.getUTCDate(),
+    hour: now.getUTCHours(), minute: now.getUTCMinutes(), timezone: 0,
+    lat: input.birthPlace.latitude, lon: input.birthPlace.longitude,
+  }, { requestUrl: options.requestUrl }) : null;
   return {
+    ...(options.fusionExpert ? { expertEvidence: {
+      ...pickExpertFields(raw, ["planets", "houseCusps", "houseSystem", "aspects", "ascendant", "midheaven"]),
+      transits: westernTransitAspects(raw, transit, now.toISOString().slice(0, 10)),
+    } } : {}),
     sunSummary: sun ? `태양은 ${sun}의 방식으로 목표와 행동 기준을 드러냅니다.` : undefined,
     moonSummary: moon ? `달은 ${moon}의 결로 감정 반응과 안정감을 찾는 방식을 보여줍니다.` : undefined,
     ascendantSummary: ascendant ? `상승궁은 ${ascendant}의 인상과 첫 대응 방식을 살펴보는 단서입니다.` : undefined,

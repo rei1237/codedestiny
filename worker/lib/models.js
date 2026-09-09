@@ -1,4 +1,5 @@
 import { mongoose } from "./db.js";
+import { AI_OUTPUT_LOCALES } from "../../lib/i18n/ai-locale.js";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const birthDateRegex = /^\d{4}-\d{2}-\d{2}$/;
@@ -1096,6 +1097,8 @@ const ziweiDeepReportSchema = new mongoose.Schema({
   focusArea: { type: String, default: "", trim: true, maxlength: 40 },
   topic: { type: String, default: "", trim: true, maxlength: 80 },
   userQuestion: { type: String, default: "", trim: true, maxlength: 1200 },
+  // 저장본 재열람과 배치 이어쓰기는 최초 생성 언어를 보존한다. 과거 문서는 route에서 ko로 읽는다.
+  locale: { type: String, enum: AI_OUTPUT_LOCALES, default: "ko", trim: true, maxlength: 10 },
   ziweiChart: { type: ziweiAiChartSchema, default: () => ({}) },
   chapters: { type: [ziweiDeepChapterSchema], default: [] },
   // partial = 일부 배치만 도착. completed = 15장 전부. 재열람은 partial 도 보여준다.
@@ -1379,6 +1382,8 @@ const vedicAiConsultationSchema = new mongoose.Schema({
   accessType: { type: String, enum: ["pass", "paid", "subscription"], required: true, index: true },
   paymentId: { type: String, default: "", trim: true, maxlength: 160, index: true },
   messages: { type: [vedicAiMessageSchema], default: [] },
+  // 결제 멱등 키와 분리된 결과 메타데이터. 같은 결제 요청의 다른 UI 언어는 기존 결과를 재열람한다.
+  locale: { type: String, enum: AI_OUTPUT_LOCALES, default: "ko", trim: true, maxlength: 10 },
   idempotencyKey: { type: String, required: true, trim: true, maxlength: 180, index: true },
   inputHash: { type: String, required: true, trim: true, maxlength: 80, index: true },
   status: { type: String, enum: ["generating", "completed", "generation_failed"], default: "generating", index: true },
@@ -1646,7 +1651,7 @@ const humanDesignReportSchema = new mongoose.Schema({
   inputHash: { type: String, required: true, trim: true, maxlength: 80 },
   calculationVersion: { type: String, default: "", trim: true, maxlength: 40 },
   contractVersion: { type: String, required: true, trim: true, maxlength: 60 },
-  locale: { type: String, enum: ["ko", "en"], required: true },
+  locale: { type: String, enum: AI_OUTPUT_LOCALES, required: true },
 
   // 🔴 확정표와 허용 id 를 문서에 담는다. 웨이브마다 계산 문서를 다시 읽으면 LAX↔서울
   //    왕복(1.3초)이 웨이브 수만큼 붙는다. 락 클레임 한 번이 문서 전체를 돌려주므로

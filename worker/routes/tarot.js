@@ -1849,7 +1849,7 @@ export async function handleTarotRoutes(request, env = {}) {
       // 🔴 지연 import — 정적으로 걸면 이 라우트 모듈 그래프에 llm-client 체인과 models.js 가
       // 딸려와, models.js 를 부분 mock 하는 다른 타로 라우트 테스트들이 통째로 죽는다
       // (rate-limit.js 를 정적으로 걸었다가 같은 일을 겪고 되돌렸다).
-      const consultationLocale = asText(body?.locale) || "ko";
+      const consultationLocale = getAmbientAiLocale() || asText(body?.locale) || "ko";
       const { createOracleConsultationLlm } = await import("../lib/tarot-oracle-llm.js");
       const result = await generateOracleConsultation(body, {
         env,
@@ -2014,10 +2014,11 @@ export async function handleTarotRoutes(request, env = {}) {
         userQuestion: asText(body?.userQuestion),
         userContext: body?.userContext,
       });
-      payload.reading = normalizeLoveReadingPayload(payload?.reading, payload?.cards || []);
+      const loveLocale = getAmbientAiLocale() || "ko";
+      payload.reading = normalizeLoveReadingPayload(payload?.reading, payload?.cards || [], loveLocale);
       // LLM 상담문 생성 — 실패 시 위에서 만든 로컬 리딩이 그대로 폴백으로 나간다(degrade-not-throw).
       const enhanced = await enhanceLoveReadingWithLlm(payload.reading, {
-        locale: getAmbientAiLocale() || "ko",
+        locale: loveLocale,
         env,
         userQuestion: asText(body?.userQuestion),
       });

@@ -164,7 +164,8 @@ check("병합 가시 텍스트 ≤ 상한", visible <= FUSION_FORTUNE_LENGTH.tot
   check("클라이언트: stage 를 보낸다", /\{\s*\.\.\.requestBody,\s*requestId,\s*stage\s*\}/.test(client));
   check("클라이언트: partial 을 받으면 이어간다", /payload\.status\s*===\s*"partial"/.test(client));
   check("클라이언트: 2단계 실패는 이어서 생성 카드", /stageTwoFailed/.test(client) && /continueGenerationButton/.test(client));
-  check("클라이언트: 복구 결과 partial/completed 구분", /Promise<false \| "partial" \| "completed">/.test(client));
+  check("클라이언트: 복구 결과 partial/completed와 폐기된 응답 구분", /Promise<false \| "partial" \| "completed" \| "stale">/.test(client));
+  check("클라이언트: 폐기된 복구 응답으로 다음 단계를 시작하지 않는다", /if \(recovered === "stale"\) return;/.test(client));
   for (const key of ["stageOnePartialNotice", "continueGenerationButton", "stageTwoFailedMessage"]) {
     const n = (client.match(new RegExp(`\\b${key}:\\s*"`, "g")) || []).length;
     check(`클라이언트 카피 ${key} 12개 로케일`, n === 12, `${n}개`);

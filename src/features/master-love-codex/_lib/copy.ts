@@ -222,6 +222,10 @@ export interface MasterLoveCodexCopy {
   bgmOffAriaLabel: string;
   actNotReadySuffix: string;
   actNavAriaLabel: string;
+  readerContentsTitle: string;
+  readerBeginButton: string;
+  readerSummaryTitle: string;
+  readerMetricsNote: string;
 }
 
 const MASTER_LOVE_CODEX_COPY_EN: MasterLoveCodexCopy = {
@@ -427,6 +431,10 @@ const MASTER_LOVE_CODEX_COPY_EN: MasterLoveCodexCopy = {
   bgmOffAriaLabel: "Turn on Codex background music",
   actNotReadySuffix: " (not yet written)",
   actNavAriaLabel: "Jump to act",
+  readerContentsTitle: "Contents",
+  readerBeginButton: "Start reading",
+  readerSummaryTitle: "Your reading at a glance",
+  readerMetricsNote: "The indicators describe different tendencies. They are not a compatibility grade, a prediction of success, or a psychological test.",
 };
 
 const MASTER_LOVE_CODEX_COPY: Partial<Record<LoadingLocale, MasterLoveCodexCopy>> = {
@@ -633,6 +641,10 @@ const MASTER_LOVE_CODEX_COPY: Partial<Record<LoadingLocale, MasterLoveCodexCopy>
     bgmOffAriaLabel: "인연의 서 배경 음악 켜기",
     actNotReadySuffix: " (아직 쓰이지 않음)",
     actNavAriaLabel: "막 이동",
+    readerContentsTitle: "목차",
+    readerBeginButton: "상담 읽기",
+    readerSummaryTitle: "한눈에 보는 상담",
+    readerMetricsNote: "각 지표는 서로 다른 성향을 설명합니다. 궁합의 우열이나 성공 확률, 심리검사 결과를 뜻하지 않습니다.",
   },
   ja: {
     errorText: {
@@ -837,6 +849,10 @@ const MASTER_LOVE_CODEX_COPY: Partial<Record<LoadingLocale, MasterLoveCodexCopy>
     bgmOffAriaLabel: "縁の書のBGMをオンにする",
     actNotReadySuffix: "（まだ書かれていません）",
     actNavAriaLabel: "幕へ移動",
+    readerContentsTitle: "目次",
+    readerBeginButton: "相談を読む",
+    readerSummaryTitle: "相談の要点",
+    readerMetricsNote: "各指標は異なる傾向を表します。相性の優劣、成功確率、心理検査の結果ではありません。",
   },
   "zh-CN": {
     errorText: {
@@ -1041,6 +1057,10 @@ const MASTER_LOVE_CODEX_COPY: Partial<Record<LoadingLocale, MasterLoveCodexCopy>
     bgmOffAriaLabel: "开启情缘之书背景音乐",
     actNotReadySuffix: "（尚未写成）",
     actNavAriaLabel: "跳转到幕",
+    readerContentsTitle: "目录",
+    readerBeginButton: "开始阅读",
+    readerSummaryTitle: "咨询要点",
+    readerMetricsNote: "各项指标描述不同倾向，并非缘分优劣、成功概率或心理测试结果。",
   },
   "zh-TW": {
     errorText: {
@@ -1245,6 +1265,10 @@ const MASTER_LOVE_CODEX_COPY: Partial<Record<LoadingLocale, MasterLoveCodexCopy>
     bgmOffAriaLabel: "開啟情緣之書背景音樂",
     actNotReadySuffix: "（尚未寫成）",
     actNavAriaLabel: "跳轉到幕",
+    readerContentsTitle: "目錄",
+    readerBeginButton: "開始閱讀",
+    readerSummaryTitle: "諮詢重點",
+    readerMetricsNote: "各項指標描述不同傾向，並非緣分優劣、成功機率或心理測驗結果。",
   },
   en: MASTER_LOVE_CODEX_COPY_EN,
 };

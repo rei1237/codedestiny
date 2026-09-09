@@ -18,6 +18,7 @@ import CodexShell from "@/src/features/master-love-codex/components/CodexShell";
 import { masterLoveCodexBgmTracks } from "@/src/features/master-love-codex/data/assets";
 import { getMasterLoveCodexCopy, useMasterLoveCodexLocale, type MasterLoveCodexCopy } from "@/src/features/master-love-codex/_lib/copy";
 import styles from "@/src/features/master-love-codex/styles/codex.module.css";
+import { masterLoveCodexBilling } from "@/src/features/master-love-codex/constants";
 
 type SessionState = {
   sessionId: string;
@@ -147,7 +148,7 @@ export default function MasterLoveCodexResultClient() {
 
   return (
     <>
-      {ambience}
+      <h1 className="sr-only">{masterLoveCodexBilling(session.mode === "compat" ? "compat" : "solo", locale).title}</h1>
       {session.status !== "completed" ? (
         <div className="bg-[#0a0818] pt-6">
           <p className={`${styles.measure} text-center text-[0.8125rem] leading-7`} style={{ color: "#b9ad99" }}>

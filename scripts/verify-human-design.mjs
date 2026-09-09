@@ -296,7 +296,11 @@ for (const file of engineFiles) {
   const text = readFileSync(file, "utf8");
   for (const match of text.matchAll(/^\s*import\s[^;]*?from\s+["']([^"']+)["']/gm)) {
     const specifier = match[1];
-    if (!specifier.startsWith("./")) {
+    // Report composition is display code; allow only the shared pure locale enum
+    // normalizer here. Calculation modules still cannot import outside the engine.
+    const reportLocaleImport = ["report-plan.js", "report-sections.js"].includes(path.basename(file))
+      && specifier === "../i18n/locale-normalize.js";
+    if (!specifier.startsWith("./") && !reportLocaleImport) {
       impureImports.push(`${path.relative(repoRoot, file)} → ${specifier}`);
     }
   }

@@ -63,7 +63,7 @@ async function fixture({ spent = 0, tier = 'vvip' } = {}) {
     resolvePremiumQuota: policy.resolvePremiumQuota,
     resolveMonthlySpendQuota: policy.resolveMonthlySpendQuota,
     resolveCanonicalEntitlement: entitlement.resolveCanonicalEntitlement,
-    hasConsumedPassFeature: pass.hasConsumedPassFeature,
+    hasConsumedPassFeature: (user, featureKey, requestId) => pass.hasConsumedPassFeature(user, featureKey, requestId, db),
     passDenialCode: pass.passDenialCode,
     consumePassForFeature: input => pass.consumePassForFeature({ ...input, db }),
     connectDb: async () => {},

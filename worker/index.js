@@ -3,7 +3,7 @@ import { getEnv } from "./lib/env.js";
 // (라우터에 별칭 목록을 복제하지 않는다 — 그 복제가 신·구 구현이 갈리던 원인이었다).
 import { PAYMENT_METHODS, resolvePaymentCommandFromBody } from "./lib/payment-service.js";
 import { enforceAiRouteSecurity } from "./lib/security/index.js";
-import { resolveAiLocaleFromRequest, runWithAiLocale } from "./lib/ai-locale-context.js";
+import { resolveAiLocaleForRequest, runWithAiLocale } from "./lib/ai-locale-context.js";
 // 지오코딩 좌표의 시간대 판정. 경도만 보면 서울이 "UTC+8" 로 나와 차트가 1시간 어긋난다.
 import { resolveGeoTimezone } from "./lib/geo-timezone.js";
 
@@ -476,7 +476,7 @@ function createLazyRouteHandler(modulePath, loadModule, exportName, routeNameOve
 
     // 46개 라우트가 전부 이 팩토리를 통과하므로, AI 출력 로케일은 여기 한 곳에서만 잡으면 된다.
     // 컨텍스트가 없으면(cron 등) 하위에서 ko 로 떨어진다 — fail-safe.
-    return runWithAiLocale(resolveAiLocaleFromRequest(args[0]), runRoute);
+    return runWithAiLocale(await resolveAiLocaleForRequest(args[0]), runRoute);
   };
 }
 

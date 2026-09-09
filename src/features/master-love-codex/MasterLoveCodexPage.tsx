@@ -79,6 +79,7 @@ type SessionPayload = {
   totalCharCount?: number;
   totalChapters?: number;
   birthInfo?: Partial<CodexBirthInput> | null;
+  partnerInfo?: CodexBirthInput["partner"];
   done?: boolean;
   paymentPayload?: Record<string, unknown>;
 };
@@ -241,6 +242,43 @@ export default function MasterLoveCodexPage() {
   const lastTokenRef = useRef("");
   const lastSessionRef = useRef<SessionPayload>({});
   const [generationError, setGenerationError] = useState("");
+  const [storedSessions, setStoredSessions] = useState<Array<{ sessionId: string; mode: MasterLoveCodexMode; status: string }>>([]);
+  type RecoverablePurchase = { orderId: string; featureKey: string; requestId: string; status: string };
+  const [storedPurchases, setStoredPurchases] = useState<RecoverablePurchase[]>([]);
+  const recoveredPurchaseRef = useRef<RecoverablePurchase | null>(null);
+  const [recovering, setRecovering] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    let generation = 0;
+    const loadHistory = () => {
+      const current = ++generation;
+      void authFetch("/api/master-love-codex/sessions", { cache: "no-store" })
+        .then(async response => {
+          if (!response.ok) return;
+          const data = await response.json();
+          if (active && current === generation && Array.isArray(data.sessions)) setStoredSessions(data.sessions);
+        }).catch(() => { /* Existing purchase is checked again on explicit recovery. */ });
+      void authFetch("/api/payments/recoveries?featureKeys=master-love-codex,master-love-codex-compat", { cache: "no-store" })
+        .then(async response => {
+          if (!response.ok) return;
+          const data = await response.json();
+          if (active && current === generation && Array.isArray(data.orders)) setStoredPurchases(data.orders);
+        }).catch(() => { /* Never turn a failed history request into an unpaid verdict. */ });
+    };
+    const onAuthChanged = () => {
+      setStoredSessions([]);
+      setStoredPurchases([]);
+      if (!busyRef.current) {
+        recoveredPurchaseRef.current = null;
+        chargedRef.current = false;
+      }
+      loadHistory();
+    };
+    loadHistory();
+    window.addEventListener("cd:auth-changed", onAuthChanged);
+    return () => { active = false; window.removeEventListener("cd:auth-changed", onAuthChanged); };
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -396,6 +434,66 @@ export default function MasterLoveCodexPage() {
       .finally(() => { busyRef.current = false; });
   }, [runBatches, errorText]);
 
+  const recoverStoredSession = async (sessionId: string) => {
+    if (busyRef.current) return;
+    busyRef.current = true;
+    setRecovering(true);
+    setError("");
+    try {
+      const response = await authFetch(`/api/master-love-codex/session?sessionId=${encodeURIComponent(sessionId)}`, { cache: "no-store" });
+      const data: SessionPayload = await response.json();
+      if (!response.ok || !data.ok) throw new Error(mapError(data, response.status, errorText));
+      if (data.status === "completed") {
+        router.push(`/master-love-codex/result?sessionId=${encodeURIComponent(sessionId)}`);
+        return;
+      }
+      setBirth({ ...EMPTY_CODEX_BIRTH, ...data.birthInfo, partner: data.partnerInfo || null });
+      setAccessType(data.accessType || "");
+      await runBatches(sessionId, data.accessToken || "", data);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : errorText.SERVER_ERROR);
+    } finally {
+      busyRef.current = false;
+      setRecovering(false);
+    }
+  };
+
+  const recoverStoredPurchase = async (purchase: RecoverablePurchase) => {
+    if (busyRef.current) return;
+    busyRef.current = true;
+    setRecovering(true);
+    setError("");
+    try {
+      const confirmed = await postJson("/api/payments/confirm", { merchantUid: purchase.orderId });
+      if (confirmed.status >= 400) throw new Error(mapError(confirmed.data, confirmed.status, errorText));
+      const statusResponse = await authFetch(`/api/payments/orders/${encodeURIComponent(purchase.orderId)}/status`, { cache: "no-store" });
+      const status = await statusResponse.json();
+      if (!statusResponse.ok || !status.verified || !status.serviceReady) throw new Error(copy.gateAlreadyPaidMessage);
+      recoveredPurchaseRef.current = purchase;
+      chargedRef.current = true;
+      idempotencyRef.current = purchase.requestId || purchase.orderId;
+      const response = await authFetch(`/api/payments/orders/${encodeURIComponent(purchase.orderId)}/resume`, { cache: "no-store" });
+      if (!response.ok) throw new Error(errorText.SERVER_ERROR);
+      const resume = await response.json();
+      const args = asRecord(asRecord(asRecord(resume.context).resume).args);
+      const input = unpackPaidResumeArg<Record<string, unknown>>(args.payload);
+      if (!input) {
+        // Input retention can expire; the purchased run remains available.
+        setBirth(current => ({ ...current, partner: purchase.featureKey.endsWith("-compat") ? current.partner || { ...EMPTY_CODEX_PARTNER } : null }));
+        setPhase("birth");
+        return;
+      }
+      const started = await postJson("/api/master-love-codex/start", { ...input, paymentId: purchase.orderId }, idempotencyRef.current);
+      if (!started.data?.ok || !started.data.sessionId) throw new Error(mapError(started.data, started.status, errorText));
+      await runBatches(started.data.sessionId, toText(started.data.accessToken), started.data);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : errorText.SERVER_ERROR);
+    } finally {
+      busyRef.current = false;
+      setRecovering(false);
+    }
+  };
+
   const openStoredCodex = useCallback(() => {
     if (!sessionIdRef.current) return;
     router.replace(`/master-love-codex/result?sessionId=${encodeURIComponent(sessionIdRef.current)}`);
@@ -450,6 +548,14 @@ export default function MasterLoveCodexPage() {
 
     let gateStarted = false;
     try {
+      if (recoveredPurchaseRef.current) {
+        const purchase = recoveredPurchaseRef.current;
+        if (purchase.featureKey !== gateBilling.featureKey) throw new Error(errorText.INVALID_INPUT);
+        const started = await postJson("/api/master-love-codex/start", { ...payload, paymentId: purchase.orderId }, idempotencyKey);
+        if (!started.data?.ok || !started.data.sessionId) throw new Error(mapError(started.data, started.status, errorText));
+        await runBatches(started.data.sessionId, toText(started.data.accessToken), started.data);
+        return;
+      }
       beginPaidFeatureGateCheck({
         featureKey: gateBilling.featureKey,
         requestId: idempotencyKey,
@@ -557,6 +663,17 @@ export default function MasterLoveCodexPage() {
     return (
       <>
         {ambience}
+        {(storedSessions.length > 0 || storedPurchases.length > 0) && <nav className={codexStyles.purchaseRecovery} aria-label={copy.resumeButton}>
+          {storedPurchases.map(item => <button key={item.orderId} type="button" disabled={recovering}
+            onClick={() => { void recoverStoredPurchase(item); }}>
+            {masterLoveCodexBilling(item.featureKey.endsWith("-compat") ? "compat" : "solo", locale).title} · {copy.resumeButton}
+          </button>)}
+          {storedSessions.map(item => <button key={item.sessionId} type="button" disabled={recovering}
+            onClick={() => { void recoverStoredSession(item.sessionId); }}>
+            {masterLoveCodexBilling(item.mode, locale).title} · {item.status === "completed" ? copy.resumeButton : copy.retryButton}
+          </button>)}
+          {error && <p role="alert">{error}</p>}
+        </nav>}
         <CodexLanding
           hasSeenPrologue={hasSeenPrologue}
           chapterCount={MASTER_LOVE_CODEX_TOTAL_CHAPTERS}

@@ -215,6 +215,11 @@ jobs:
       # `verify:quantum-card-cascade`는 실제 브라우저에서 초기 렌더·새로고침·SPA 이동과
       # 모바일 레이아웃을 확인한다. ubuntu-latest 러너에는 Playwright 패키지만 있고
       # 브라우저 바이너리는 기본 제공되지 않으므로, 가드 실행 전에 Chromium을 설치한다.
+      # 제3자 Chrome 저장소의 stale index가 --with-deps를 막지 않도록 ephemeral
+      # runner에서만 해당 source를 비활성화한 뒤, Playwright OS 의존성 설치는 유지한다.
+      - name: Verify Playwright APT source is safe for browser guards
+        run: node scripts/verify-playwright-apt-source.mjs
+
       - name: Install Playwright Chromium for browser guards
         run: npx playwright install --with-deps chromium
 
