@@ -7736,6 +7736,36 @@ function _bindSajuQuestionPromptCard(rootEl) {
   var activePendingJob = null;
   var currentResultPayload = null;
   var paidResumeDone = null;
+  var localeEpoch = 0;
+  var pollingEpoch = 0;
+  var requestInFlight = false;
+  var requestLocale = _sajuEngineCurrentLang();
+  function captureLocaleScope() {
+    var epoch = localeEpoch;
+    var locale = _sajuEngineCurrentLang();
+    return function() { return epoch === localeEpoch && locale === _sajuEngineCurrentLang() && rootEl.isConnected !== false; };
+  }
+  function discardForLocaleChange() {
+    var next = _sajuEngineCurrentLang();
+    if (next === requestLocale) return;
+    requestLocale = next;
+    localeEpoch += 1;
+    stopPolling();
+    stopProgress();
+    if (!requestInFlight) setLoading(false);
+    if (resumeBtn && activePendingJob) resumeBtn.style.display = 'inline-flex';
+  }
+  // 카드 재마운트 시 이전 DOM의 listener와 진행 중 응답을 해제한다.
+  if (window._sajuPromptLocaleCleanup) window._sajuPromptLocaleCleanup();
+  window.addEventListener('languagechange', discardForLocaleChange);
+  window.addEventListener('cd:locale-ready', discardForLocaleChange);
+  window._sajuPromptLocaleCleanup = function() {
+    localeEpoch += 1;
+    stopPolling();
+    stopProgress();
+    window.removeEventListener('languagechange', discardForLocaleChange);
+    window.removeEventListener('cd:locale-ready', discardForLocaleChange);
+  };
 
   function requestKey(question, domain) {
     return String(question || '').trim() + '::' + String(domain || '').trim();
@@ -7843,6 +7873,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
     progressTimer = null;
   }
   function stopPolling() {
+    pollingEpoch += 1;
     clearTimeout(pollTimer);
     pollTimer = null;
     pollAttempts = 0;
@@ -7961,6 +7992,10 @@ function _bindSajuQuestionPromptCard(rootEl) {
     var pending = job && typeof job === 'object' ? job : activePendingJob;
     if (!pending || (!pending.requestId && !pending.jobId && !pending.executionId)) return;
     activePendingJob = pending;
+    if (immediate) pollingEpoch += 1;
+    var cycle = pollingEpoch;
+    var localeIsCurrent = captureLocaleScope();
+    var isCurrent = function() { return cycle === pollingEpoch && localeIsCurrent(); };
     // 폴링 사이클 시작(immediate)에서만 카운터를 초기화한다. 재폴링에서는 stopPolling을
     // 호출하면 카운터가 리셋되어 상한이 무력화되므로 여기서는 타이머만 정리한다.
     if (immediate) {
@@ -7981,7 +8016,9 @@ function _bindSajuQuestionPromptCard(rootEl) {
       delay = Math.min(30000, 1500 * Math.pow(2, pollErrorStreak));
     }
     pollTimer = setTimeout(function() {
-      _sajuPromptFetchStatus(activePendingJob).then(function(result) {
+      if (!isCurrent()) return;
+      _sajuPromptFetchStatus(pending).then(function(result) {
+        if (!isCurrent()) return;
         pollErrorStreak = 0;
         var payload = result && result.payload ? result.payload : {};
         if (Number(result && result.status) === 404) {
@@ -8006,11 +8043,13 @@ function _bindSajuQuestionPromptCard(rootEl) {
         var stepMessage = String(payload.stepMessage || (payload.progressState && payload.progressState.stepMessage) || '명식의 흐름을 읽고 있어요');
         if (status === 'completed') {
           _sajuPromptFetchResult(activePendingJob).then(function(res) {
+            if (!isCurrent()) return;
             var resultPayload = res && res.payload ? res.payload : {};
             if (!handleCompletedPayload(resultPayload, activePendingJob)) {
               markFailedForRetry(activePendingJob, '결과 저장은 확인했지만 상담문을 불러오지 못했어요. 다시 조회해 주세요.', 'RESULT_EMPTY');
             }
           }).catch(function() {
+            if (!isCurrent()) return;
             markFailedForRetry(activePendingJob, '결과 저장은 확인했지만 상담문 조회에 실패했어요. 다시 시도해 주세요.', 'RESULT_FETCH_FAILED');
           });
           return;
@@ -8028,6 +8067,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
         if (percent > 0) setProgress(percent, stepMessage, false);
         pollPendingJob(activePendingJob, false);
       }).catch(function() {
+        if (!isCurrent()) return;
         pollErrorStreak += 1;
         pollPendingJob(activePendingJob, false);
       });
@@ -8053,6 +8093,8 @@ function _bindSajuQuestionPromptCard(rootEl) {
       return;
     }
     accessConfirmed = false;
+    var isCurrent = captureLocaleScope();
+    requestInFlight = true;
     setLoading(true);
     setProgress(0, '결제/이용권 확인 중', false);
     var keepWaiting = false;
@@ -8073,15 +8115,18 @@ function _bindSajuQuestionPromptCard(rootEl) {
         // 게이트(이용권/결제) 통과 후에만 생성 단계로 진입한다.
         accessConfirmed = true;
         rememberPendingJob(job);
+        if (!isCurrent()) return;
         setProgress(15, '사주 명식 불러오는 중', false);
         // 서버는 동기 응답이라, /status 폴링은 서버가 실제로 pending(202)을 돌려줄 때만 시작한다(아래 .then).
         // 여기서 미리 폴링하면 서버에 없는 /status를 404치다 POLL_TIMEOUT 거짓 실패를 내므로 시작하지 않는다.
       },
       onRetry: function() {
+        if (!isCurrent()) return;
         setProgress(65, 'AI 상담문을 다시 가다듬는 중', false);
         _sajuPromptSetStatus(statusEl, '결제는 확인되었고, 명식의 문을 다시 여는 중입니다.', 'info');
       }
     }).then(function(result) {
+      if (!isCurrent()) return;
       var payload = result && result.payload ? result.payload : {};
       var resultText = String(payload.resultText || '').trim();
       if (result && result.ok && payload.ok === true && resultText) {
@@ -8187,12 +8232,14 @@ function _bindSajuQuestionPromptCard(rootEl) {
       }
       _sajuPromptSetStatus(statusEl, message, 'error');
     }).catch(function() {
+      if (!isCurrent()) return;
       if (activePendingJob && activePendingJob.paidEvidence) {
         markFailedForRetry(activePendingJob, '네트워크 오류가 발생했어요. 결제가 확인된 경우 추가 결제 없이 다시 생성할 수 있습니다.', 'NETWORK_ERROR');
         return;
       }
       _sajuPromptSetStatus(statusEl, '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.', 'error');
     }).finally(function() {
+      requestInFlight = false;
       if (!keepWaiting) setLoading(false);
     });
   }

@@ -1,5 +1,8 @@
 "use client";
 
+import { useLocaleRequestScope, type LocaleRequestScope } from "@/app/hooks/useLocaleRequestScope";
+import { AI_LOCALE_HEADER } from "@/lib/i18n/ai-locale";
+
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { readDevPreviewState } from "@/lib/dev-preview/core";
 import { buildFusionPreviewResult } from "@/lib/dev-preview/fixtures/fusion-fortune";
@@ -2014,7 +2017,21 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
   // 실패 카드가 아니라 "이어서 생성" 버튼을 띄운다 — 결제 증빙은 그대로 남는다.
   const [stageTwoFailed, setStageTwoFailed] = useState(false);
   const autoResumeRef = useRef(false);
-  const runGenerationRef = useRef<((requestId: string, requestBody: FusionRequestBody, startStage: 1 | 2, fortuneChatSessionId: string) => Promise<void>) | null>(null);
+  const captureLocaleScope = useLocaleRequestScope(() => {
+    autoResumeRef.current = true;
+    if (requestAbortRef.current) {
+      requestAbortRef.current.abort();
+      requestAbortRef.current = null;
+      setResultState(null);
+      setComposeProgress(null);
+      setStageTwoFailed(false);
+    }
+    setLoading(false);
+    setReopeningId("");
+    setNotice("");
+    setFailure(null);
+  });
+  const runGenerationRef = useRef<((requestId: string, requestBody: FusionRequestBody, startStage: 1 | 2, fortuneChatSessionId: string) => Promise<boolean>) | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const threadRef = useRef<HTMLElement>(null);
   const heroRef = useRef<HTMLElement>(null);
@@ -2098,8 +2115,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
     autoResumeRef.current = true;
     rememberPaidRequest(requestId, body);
     restoreFormFromBody(body);
-    await run(requestId, body, 1, "");
-    return true;
+    return await run(requestId, body, 1, "");
   });
 
   // 스트림 무음 감시. 서버가 15초마다 심박을 보내므로 45초 침묵은 연결이 끊겼다는 뜻이다.
@@ -2153,20 +2169,22 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
    * 그래서 스트림이 끊겨도 완성된 결과가 계정에 이미 있을 수 있다. 이 조회를 건너뛰면 3만원짜리
    * 완성품을 실패 화면으로 덮게 된다. 실패는 조용히 삼킨다 — 회수는 부가 시도지 새 실패 원인이 아니다.
    */
-  const recoverPaidResult = useCallback(async (requestId: string): Promise<false | "partial" | "completed"> => {
+  const recoverPaidResult = useCallback(async (requestId: string, scope: LocaleRequestScope = captureLocaleScope()): Promise<false | "partial" | "completed" | "stale"> => {
     if (!requestId) return false;
     try {
       const response = await authFetch(`${apiBase}/api/fusion-fortune/result?requestId=${encodeURIComponent(requestId)}`, { credentials: "include" }, { retryOn401: true, apiBase });
+      if (!scope.isCurrent()) return "stale";
       if (!response.ok) return false;
       const payload = await parseJson<{ ok?: boolean; consultation?: OpenedConsultation }>(response, copy);
+      if (!scope.isCurrent()) return "stale";
       if (!payload.ok || !payload.consultation?.result) return false;
       applyOpenedConsultation(payload.consultation);
       // 1단계만 저장된 보관본이면 화면에는 올리되 완성으로 치지 않는다 — 호출자가 2단계를 이어 간다.
       return payload.consultation.status === "partial" ? "partial" : "completed";
     } catch {
-      return false;
+      return scope.isCurrent() ? false : "stale";
     }
-  }, [apiBase, copy, applyOpenedConsultation]);
+  }, [apiBase, copy, applyOpenedConsultation, captureLocaleScope]);
 
   // 새로고침으로 돌아온 결제 요청은 서버에 남은 것부터 본다 — 완성본이면 열고 영수증을 소진,
   // 1단계만 있으면 2단계를 자동으로 이어 간다. 없으면(404) 기존 "이어서 받기" 흐름 그대로다.
@@ -2178,6 +2196,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
     const body = stored.body;
     void (async () => {
       const recovered = await recoverPaidResult(stored.requestId);
+      if (recovered === "stale") return;
       if (recovered === "completed") {
         setNotice(copy.resultCompletedNotice);
         void loadRecentList();
@@ -2191,20 +2210,23 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
   /** 저장된 결과를 연다. 이미 결제한 본인 결과라 추가 결제가 없다. */
   const openConsultation = useCallback(async (id: string) => {
     if (!id) return;
+    const scope = captureLocaleScope();
     setReopeningId(id);
     setError("");
     try {
       const response = await authFetch(`${apiBase}/api/fusion-fortune/result?id=${encodeURIComponent(id)}`, { credentials: "include" }, { retryOn401: true, apiBase });
       const payload = await parseJson<{ ok?: boolean; consultation?: OpenedConsultation; message?: string }>(response, copy);
+      if (!scope.isCurrent()) return;
       if (!response.ok || !payload.ok || !payload.consultation?.result) throw new Error(payload.message || copy.storedResultLoadFailedMessage);
       applyOpenedConsultation(payload.consultation);
       threadRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     } catch (cause) {
+      if (!scope.isCurrent()) return;
       setError(cause instanceof Error ? cause.message : copy.storedResultLoadFailedMessage);
     } finally {
-      setReopeningId("");
+      if (scope.isCurrent()) setReopeningId("");
     }
-  }, [apiBase, copy, applyOpenedConsultation]);
+  }, [apiBase, copy, applyOpenedConsultation, captureLocaleScope]);
 
   // 첫 진입: ?cid= 가 있으면 그 보관본을 열고, 이어서 목록을 채운다.
   // useSearchParams 를 쓰면 정적 내보내기에서 이 페이지가 통째로 CSR 로 떨어지므로 URL 을 직접 읽는다.
@@ -2346,6 +2368,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
       let startStage: 1 | 2 = 1;
       if (resumed) {
         const recovered = await recoverPaidResult(requestId);
+        if (recovered === "stale") return;
         if (recovered === "completed") {
           setNotice(copy.resultCompletedNotice);
           void loadRecentList();
@@ -2367,6 +2390,8 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
     requestAbortRef.current?.abort();
     const controller = new AbortController();
     requestAbortRef.current = controller;
+    const scope = captureLocaleScope();
+    const isCurrent = () => scope.isCurrent() && requestAbortRef.current === controller;
     capAbortedRef.current = false;
     setStageTwoFailed(false);
     if (startStage === 1) setStageStates(initialStageStates());
@@ -2384,7 +2409,8 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
         if (stage === 2) { setComposeProgress(null); setStageStates((current) => ({ ...current, fusion: "active" })); }
         lastEventAtRef.current = Date.now();
         startedAtRef.current = Date.now();
-        payload = await runStage(stage as 1 | 2, requestId, requestBody, controller, fortuneChatSessionId);
+        payload = await runStage(stage as 1 | 2, requestId, requestBody, controller, fortuneChatSessionId, { ...scope, isCurrent });
+        if (!isCurrent()) return false;
         const stageResult = payload.result as Result | undefined;
         if (!stageResult) throw new Error(String(payload.message || copy.resultGenerationFailedMessage));
         if (stage === 1 && payload.status === "partial") {
@@ -2411,23 +2437,27 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
           method: "POST", credentials: "include", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ append: true, mode: "fusion_deep_reading", paymentStatus: "completed", generationStatus: "completed", messages: [{ id: `fusion-${payload.requestId || Date.now()}`, speaker: "assistant", kind: "fusion_result", text: streamResult.openingMessage, detail: streamResult.executiveSummary, result: streamResult }] }),
         }, { retryOn401: true, apiBase });
-        window.setTimeout(() => window.location.assign(`/fortune-chat?session=${encodeURIComponent(fortuneChatSessionId)}`), 300);
+        window.setTimeout(() => { if (scope.isCurrent()) window.location.assign(`/fortune-chat?session=${encodeURIComponent(fortuneChatSessionId)}`); }, 300);
       }
       // 결과를 받았으면 이 결제는 소진됐다. 다음 상담은 새로 결제한다.
       rememberPaidRequest("");
+      return true;
     } catch (cause) {
+      if (!isCurrent()) return false;
       // 결제는 생성 전에 끝났다. "차감되지 않았다"고 말하면 거짓이므로, 실제로 안전한 것
       // (같은 requestId 재시도에 추가 결제가 없다는 점)만 안내한다.
       const aborted = (cause as Error)?.name === "AbortError";
       // 🔴 실패로 단정하기 전에 결제 키로 보관본을 한 번 조회한다 — 저장이 배달보다 먼저라
       //    스트림이 끊긴 요청의 완성품이 이미 계정에 있을 수 있다.
-      const recovered = await recoverPaidResult(paidRequestIdRef.current || readFusionPaidRequest()?.requestId || "");
+      const recovered = await recoverPaidResult(requestId, { ...scope, isCurrent });
+      if (!isCurrent() || recovered === "stale") return false;
       const cancelled = aborted && !capAbortedRef.current;
       if (recovered === "completed") {
         setNotice(copy.resultCompletedNotice);
         void loadRecentList();
         // 결과를 실제로 받았으므로 이 결제는 소진됐다.
         rememberPaidRequest("");
+        return true;
       } else if (recovered === "partial" || reachedStage === 2) {
         // 1단계는 서버에 있다. 결제 증빙을 지우지 않고 2단계만 다시 요청할 수 있게 한다.
         if (cancelled) setNotice(copy.analysisCancelledNotice);
@@ -2441,21 +2471,25 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
           .filter(Boolean).join(" · "),
       });
     } finally {
-      capAbortedRef.current = false;
-      if (requestAbortRef.current === controller) requestAbortRef.current = null;
-      setLoading(false);
+      if (isCurrent()) {
+        capAbortedRef.current = false;
+        requestAbortRef.current = null;
+        setLoading(false);
+      }
     }
+    return false;
   };
   useEffect(() => { runGenerationRef.current = runGeneration; });
 
   /** 한 단계의 스트림 요청. 서버는 stage 1 이면 여섯 체계 섹션(partial), stage 2 면 종합·판정까지 합친 완성본을 준다. */
-  const runStage = async (stage: 1 | 2, requestId: string, requestBody: FusionRequestBody, controller: AbortController, fortuneChatSessionId: string) => {
+  const runStage = async (stage: 1 | 2, requestId: string, requestBody: FusionRequestBody, controller: AbortController, fortuneChatSessionId: string, scope: LocaleRequestScope) => {
       const response = await authFetch(`${apiBase}/api/fusion-fortune/generate/stream`, {
         method: "POST", credentials: "include", signal: controller.signal,
-        headers: { "Content-Type": "application/json", Accept: "text/event-stream", "Idempotency-Key": requestId },
+        headers: { "Content-Type": "application/json", Accept: "text/event-stream", "Idempotency-Key": requestId, [AI_LOCALE_HEADER]: scope.locale },
         body: JSON.stringify({ ...requestBody, requestId, stage }),
       }, { retryOn401: true, apiBase });
       return consumeFusionStream(response, copy, (streamEvent, streamPayload) => {
+        if (!scope.isCurrent()) return;
         // 심박(ping)을 포함한 **모든** 이벤트가 무음 감시를 되돌린다.
         lastEventAtRef.current = Date.now();
         if (streamEvent !== "stage" || typeof streamPayload.stage !== "string") return;
