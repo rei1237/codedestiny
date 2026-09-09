@@ -72,6 +72,7 @@ jest.unstable_mockModule("../../worker/lib/models.js", () => ({
   User: {
     findById: mockUserFindById,
     findByIdAndUpdate: mockUserFindByIdAndUpdate,
+    findOneAndUpdate: (filter, update, options) => mockUserFindByIdAndUpdate(filter._id, update, options),
   },
 }));
 

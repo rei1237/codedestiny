@@ -1379,6 +1379,10 @@ export default {
           const { handlePaymentsContext } = await import("./payments/index.js");
           return withCorsHeaders(request, env, await handlePaymentsContext(request, env, { prefix: "/api/payments" }));
         }
+        if (url.pathname.startsWith("/api/payments/gifts/")) {
+          const { handlePaymentsContext } = await import("./payments/index.js");
+          return withCorsHeaders(request, env, await handlePaymentsContext(request, env, { prefix: "/api/payments" }));
+        }
         return withCorsHeaders(request, env, await handlePaymentRoutes(request, env, ctx));
       }
 

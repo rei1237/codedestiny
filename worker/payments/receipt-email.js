@@ -96,6 +96,7 @@ export function formatKstDateTime(value) {
  * 못 풀면 featureKey 를 그대로 쓴다 — 영수증을 안 보내는 것보다 낫다.
  */
 export function resolveOrderProductName(order) {
+  if (order?.purchaseType === "GIFT") return `${order.metadata?.giftDraft?.productSnapshot?.name || "이용권"} 선물`;
   if (String(order?.paymentType || "") === "membership_pass") {
     const plan = resolvePassPlan(order?.subscriptionTier, Number(order?.metadata?.durationMonths || 1));
     if (plan?.name) return plan.name;

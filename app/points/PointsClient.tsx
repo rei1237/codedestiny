@@ -1,5 +1,7 @@
 ﻿"use client";
 
+import { GIFT_GUIDANCE } from "@/lib/payment/gift-policy.js";
+
 import Link from "next/link";
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -68,6 +70,8 @@ type PrepareSubscriptionOrderResponse = {
   // SUBSCRIPTION_DOWNGRADE_BLOCKED 는 정책상 확정 거절이다 — 둘을 같은 토스트로 접으면 안 된다.
   code?: string;
   order?: {
+    status?: string;
+    purchaseType?: "SELF" | "GIFT";
     merchantUid: string;
     customerUid: string;
     // 서버가 결제창용 구매자 정보를 주문 응답에 실어 보낸다(worker/routes/payments.js buildSinglePaymentCustomer).
@@ -143,6 +147,8 @@ type MonthlyCreditLedgerItem = {
 };
 
 type ConfirmSubscriptionResponse = {
+  purchaseType?: "SELF" | "GIFT";
+  giftId?: string;
   message?: string;
   idempotent?: boolean;
   user?: {
@@ -163,6 +169,7 @@ type ConfirmSubscriptionResponse = {
 };
 
 type SubscriptionConfirmPayload = {
+  purchaseType?: "SELF" | "GIFT";
   impUid?: string;
   merchantUid?: string;
   tier: string;
@@ -1792,6 +1799,7 @@ function readPendingSubscriptionPass() {
 function SubscriptionSection({
   subscription,
   onSubscribe,
+  onGift,
   onCancelSubscription,
   isProcessing,
   highlightedPlan,
@@ -1800,6 +1808,7 @@ function SubscriptionSection({
 }: {
   subscription:  SubscriptionStatus;
   onSubscribe:   (plan: SubscriptionPlan) => void;
+  onGift: (plan: SubscriptionPlan) => void;
   onCancelSubscription: (resume: boolean) => void;
   isProcessing:  boolean;
   highlightedPlan: "standard" | "premium" | "vvip" | "family" | null;
@@ -2107,6 +2116,7 @@ function SubscriptionSection({
                     ? copy.purchasePass(theme.icon)
                     : copy.purchasePass(theme.icon)}
               </button>
+              <button type="button" onClick={() => onGift(plan)} disabled={isProcessing} className="mt-2 min-h-11 w-full rounded-xl border border-current px-3 py-2 text-sm font-bold disabled:opacity-50">선물하기</button>
 
               {lowerTierBlocked && (
                 <p className="mt-2 text-[11px] font-semibold text-violet-700">
@@ -2691,6 +2701,7 @@ function useOverseasCharge(): OverseasCharge | null {
 function MoonlightShopPlans({
   subscription,
   onSubscribe,
+  onGift,
   onCancelSubscription,
   isProcessing,
   highlightedPlan,
@@ -2699,6 +2710,7 @@ function MoonlightShopPlans({
 }: {
   subscription: SubscriptionStatus;
   onSubscribe: (plan: SubscriptionPlan) => void;
+  onGift: (plan: SubscriptionPlan) => void;
   onCancelSubscription: (resume: boolean) => void;
   isProcessing: boolean;
   highlightedPlan: "standard" | "premium" | "vvip" | "family" | null;
@@ -2781,6 +2793,7 @@ function MoonlightShopPlans({
                   >
                     {isCurrentActive ? "연장하기 →" : lowerTierBlocked ? copy.lowerTierBlocked : "구매하기 →"}
                   </button>
+              <button type="button" onClick={() => onGift(plan)} disabled={isProcessing} className="mt-2 min-h-11 w-full rounded-xl border border-current px-3 py-2 text-sm font-bold disabled:opacity-50">선물하기</button>
                   {lowerTierBlocked ? (
                     <p className="text-right text-xs font-bold text-[color:var(--moon-mist)]">{copy.lowerTierBlockedHelp}</p>
                   ) : null}
@@ -3086,6 +3099,16 @@ export default function PointsPage() {
      동일 Idempotency-Key는 서버의 멱등 분기와 함께 사용해 연속 클릭 중복을 막는다. */
   const subscriptionPrepareRef = useRef<SubscriptionPrepareEntry | null>(null);
 
+  const [giftDraft, setGiftDraft] = useState<null | { senderName: string; recipientName: string; giftMessage: string }>(null);
+  const openSelfPurchase = (plan: SubscriptionPlan) => { setGiftDraft(null); subscriptionPrepareRef.current = null; setPendingSubscriptionPaymentPlan(plan); };
+  const openGiftPurchase = (plan: SubscriptionPlan) => {
+    if (!authUser) { router.replace("/login?next=%2Fpoints"); return; }
+    if (checkoutEntry.shouldUseAppStoreEntry()) { pushToast("info", "선물 구매는 웹 이용권 상점에서 이용할 수 있습니다."); return; }
+    setGiftDraft({ senderName: "", recipientName: "", giftMessage: "" });
+    subscriptionPrepareRef.current = null;
+    setPendingSubscriptionPaymentPlan(plan);
+  };
+
   const requestSubscriptionPrepare = useCallback(async (
     plan: SubscriptionPlan,
     idempotencyKey: string,
@@ -3109,7 +3132,9 @@ export default function PointsPage() {
         currency: "KRW",
         productType: plan.productType,
         paymentMethod: method,
-        paidResume: checkoutEntry.peekCheckoutReturn()?.paidResume || undefined,
+        purchaseType: giftDraft ? "GIFT" : "SELF",
+        gift: giftDraft || undefined,
+        paidResume: giftDraft ? undefined : checkoutEntry.peekCheckoutReturn()?.paidResume || undefined,
       }),
     }, {
       retryOn401: true,
@@ -3117,7 +3142,7 @@ export default function PointsPage() {
     });
     const data = await safeParseJson<PrepareSubscriptionOrderResponse>(response);
     return { status: response.status, data: { ...data, ok: response.ok && Boolean(data.order) } };
-  }, [apiBase]);
+  }, [apiBase, giftDraft]);
 
   // 🔴 method 는 인자로 받는다. 예전에는 카드 고정 state 를 읽었지만, 이제 사용자가 결제 확인 모달에서
   // 수단을 고르고 같은 클릭에서 바로 여기까지 오므로 state 로 넘기면 그 tick 에서 옛 값을 읽는다.
@@ -4346,6 +4371,7 @@ export default function PointsPage() {
 
   /* ── 이용권(30일) 결제 핸들러 — PortOne V2 · KG이니시스 ─────────── */
   const handleSubscribe = async (plan: SubscriptionPlan) => {
+    const isGift = Boolean(giftDraft);
     if (pendingSubscriptionConfirmRef.current) return;
 
     const activeTierRank = subscription.isActive ? getSubscriptionTierRank(subscription.tier) : 0;
@@ -4361,7 +4387,7 @@ export default function PointsPage() {
       return;
     }
 
-    if (activeTierRank > requestedTierRank) {
+    if (!isGift && activeTierRank > requestedTierRank) {
       pushToast("info", "현재 상위 티어 이용권이 활성화되어 하위 플랜은 신청할 수 없습니다.");
       return;
     }
@@ -4408,7 +4434,7 @@ export default function PointsPage() {
            사용자는 틀린 이유를 보고 스스로 다시 눌러야 했다(서버는 이제 이 코드를 거의 내지 않지만,
            세대 발급이 실패하는 fail-closed 경로가 남아 있어 이 안전망도 함께 살아 있어야 한다).
            SUBSCRIPTION_DOWNGRADE_BLOCKED 같은 정책 거절은 종전대로 확정 실패다. */
-        if (prepareStatus === 409 && prepareData.code === "IDEMPOTENCY_CONFLICT") {
+        if (!isGift && prepareStatus === 409 && prepareData.code === "IDEMPOTENCY_CONFLICT") {
           const retryAttempt = await requestSubscriptionPrepare(
             plan,
             `membership-retry-${plan.planId}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
@@ -4441,8 +4467,13 @@ export default function PointsPage() {
         return;
       }
 
-      const redirectUrl = new URL(PORTONE_MOBILE_REDIRECT_PATH, window.location.origin);
-      redirectUrl.searchParams.set("portone_subscription_redirect", "1");
+      if (isGift && order.status && order.status !== "pending") {
+        window.location.assign(`/gift/complete?orderId=${encodeURIComponent(order.merchantUid)}`);
+        return;
+      }
+      const redirectUrl = new URL(isGift ? "/gift/complete" : PORTONE_MOBILE_REDIRECT_PATH, window.location.origin);
+      if (isGift) redirectUrl.searchParams.set("orderId", order.merchantUid);
+      else redirectUrl.searchParams.set("portone_subscription_redirect", "1");
 
       // prepare 응답이 이미 구매자 번호를 실어 왔으면 그걸 쓴다 — 결제창 직전의 왕복 1회가 통째로 사라진다.
       // 못 준 경우에도 customer.email 이 채워져 있으면 서버가 User 문서를 읽고 답한 것이므로
@@ -4508,7 +4539,7 @@ export default function PointsPage() {
       const passBypass = directPayFields.channelKeyName ? null : checkoutEntry.portoneBypass();
       if (passBypass) requestData.bypass = passBypass;
 
-      savePendingSubscriptionOrder({
+      if (!isGift) savePendingSubscriptionOrder({
         merchantUid: order.merchantUid,
         customerUid: order.customerUid,
         tier: plan.tier,
@@ -4516,7 +4547,7 @@ export default function PointsPage() {
         durationMonths: plan.durationMonths,
         paymentMethod: orderMethod,
       });
-      savePendingSubscriptionPass(plan.tier, order.merchantUid);
+      if (!isGift) savePendingSubscriptionPass(plan.tier, order.merchantUid);
 
       closeProcessingOverlayBeforeExternalCheckout();
       // 이 주문은 결제창으로 넘어갔다. 성공하든 취소되든 재사용하지 않는다 —
@@ -4526,7 +4557,7 @@ export default function PointsPage() {
       const paymentId = String(rsp?.paymentId || order.merchantUid || "").trim();
 
       if (!rsp || rsp.code || !paymentId) {
-        discardPendingSubscriptionPass();
+        if (!isGift) discardPendingSubscriptionPass();
         const raw = describePortOneSdkFailure(rsp);
         const message = mapPaymentErrorMessage(raw.message || "이용권 결제를 완료하지 못했습니다.");
         reportPaymentFailureToServer({
@@ -4564,6 +4595,11 @@ export default function PointsPage() {
           payload: confirmPayload,
           fromRedirect: false,
         };
+        if (isGift) {
+          pendingSubscriptionConfirmRef.current = null;
+          window.location.assign(`/gift/complete?orderId=${encodeURIComponent(order.merchantUid)}`);
+          return;
+        }
         const confirmData = await confirmSubscriptionWithServer(confirmPayload);
 
         if (confirmData.subscription) {
@@ -4599,7 +4635,7 @@ export default function PointsPage() {
           return;
         }
         pendingSubscriptionConfirmRef.current = null;
-        discardPendingSubscriptionPass();
+        if (!isGift) discardPendingSubscriptionPass();
         reportPaymentFailureToServer({
           merchantUid: order.merchantUid,
           impUid: paymentId,
@@ -4611,7 +4647,7 @@ export default function PointsPage() {
       }
     } catch (error: unknown) {
       const message = getErrorMessage(error, "이용권 처리 중 오류가 발생했습니다.");
-      discardPendingSubscriptionPass();
+      if (!isGift) discardPendingSubscriptionPass();
       if (message.includes("SUBSCRIPTION_CONFLICT") || message.includes("중복 이용권") || message.includes("중복 구매")) {
         pushToast("error", "이미 활성 이용권이 있어 중복 구매를 신청할 수 없습니다.");
         return;
@@ -4748,6 +4784,7 @@ export default function PointsPage() {
   /* ── 메인 렌더 ─────────────────────────────────────────────────── */
   return (
     <MoonShopMain>
+      <a href="/gift/box/" className="mb-4 inline-flex min-h-11 items-center rounded-xl border border-current px-4 font-bold">보낸 선물 · 받은 선물</a>
       {/* ── 결제 성공 StarBurst 이펙트 ───────────────────────────── */}
       {showStarBurst && (
         <div className="pointer-events-none fixed inset-0 z-[90]" aria-hidden="true">
@@ -4783,14 +4820,25 @@ export default function PointsPage() {
             </p>
             <div className="mt-4 rounded-[14px] border border-white/12 bg-white/[0.07] px-3.5 py-3 text-[12px] leading-relaxed text-slate-200">
               <p className="font-black text-white">30일 이용권 조건</p>
-              <p className="mt-1">결제 완료 즉시 계정에 활성화되며, 서버 결제 검증 성공 시각부터 30일간 유지됩니다.</p>
+              <p className="mt-1">{giftDraft ? "서버 결제 확인 후 선물 링크를 만들 수 있으며, 받는 사람이 로그인하여 수령한 날부터 이용 기간이 시작됩니다." : "결제 완료 즉시 계정에 활성화되며, 서버 결제 검증 성공 시각부터 30일간 유지됩니다."}</p>
               <p className="mt-1 font-bold text-[#f3dd9a]">이용권은 원화 단건 결제로만 활성화할 수 있으며, 월정석으로는 구매할 수 없습니다.</p>
               <p className="mt-1 font-bold text-[#cab8ff]">보유한 월정석은 이용권 구매에 사용할 수 없습니다. 월정석 자체는 구매·충전하거나 현금 환불할 수 없으며, 각 지급분은 지급일로부터 30일간만 유효하고 미사용분은 소멸합니다.</p>
-              <p className="mt-1">원화 결제된 30일 이용권은 유료 기능 이용 전 결제일로부터 7일 이내 환불 요청이 가능하며, 이용권 혜택 사용이 시작된 부분은 환불이 제한될 수 있습니다.</p>
+              <p className="mt-1">{giftDraft ? "미수령 선물은 기존 환불 규정에 따라 환불 검토를 요청할 수 있습니다. 수령한 선물은 운영 확인이 필요합니다." : "원화 결제된 30일 이용권은 유료 기능 이용 전 결제일로부터 7일 이내 환불 요청이 가능하며, 이용권 혜택 사용이 시작된 부분은 환불이 제한될 수 있습니다."}</p>
               <a href="/terms/#refund-policy" target="_blank" rel="noreferrer" className="mt-2 inline-flex min-h-11 items-center font-black text-[#cab8ff] underline">
                 자세한 환불 규정 보기
               </a>
             </div>
+            {giftDraft && (
+              <fieldset className="mt-4 space-y-3 text-white">
+                <legend className="text-lg font-bold">운명의 선물 준비하기</legend>
+                <p className="text-sm">받는 사람의 계정 정보 없이 선물 링크로 보낼 수 있어요.</p>
+                {([['senderName', '보내는 이름 (선택)'], ['recipientName', '받는 이름 (선택)']] as const).map(([key, label]) => (
+                  <label key={key} className="block text-sm">{label}<input maxLength={40} value={giftDraft[key]} onChange={e => { setGiftDraft({ ...giftDraft, [key]: e.target.value }); subscriptionPrepareRef.current = null; }} className="mt-1 block min-h-11 w-full rounded-lg border border-white/30 bg-slate-900 p-3 text-base text-white" /></label>
+                ))}
+                <label className="block text-sm">선물 메시지 (선택)<textarea maxLength={500} rows={3} value={giftDraft.giftMessage} onChange={e => { setGiftDraft({ ...giftDraft, giftMessage: e.target.value }); subscriptionPrepareRef.current = null; }} className="mt-1 block w-full rounded-lg border border-white/30 bg-slate-900 p-3 text-base text-white" /></label>
+                <details className="text-sm leading-relaxed"><summary className="min-h-11 cursor-pointer py-3">선물 수령·이용·환불 안내</summary><p>{GIFT_GUIDANCE}</p></details>
+              </fieldset>
+            )}
             <label className="mt-3 flex items-start gap-2 rounded-[14px] border border-amber-200/35 bg-amber-200/10 px-3.5 py-3 text-[12px] font-bold text-amber-100">
               <input
                 type="checkbox"
@@ -4913,7 +4961,8 @@ export default function PointsPage() {
         />
         <MoonlightShopPlans
           subscription={subscription}
-          onSubscribe={setPendingSubscriptionPaymentPlan}
+          onSubscribe={openSelfPurchase}
+          onGift={openGiftPurchase}
           onCancelSubscription={handleSubscriptionCancel}
           isProcessing={isProcessing}
           highlightedPlan={landingPlanPreset}
@@ -5023,7 +5072,8 @@ export default function PointsPage() {
         {/* ②-3 이용권 상품 카드 */}
         <SubscriptionSection
           subscription={subscription}
-          onSubscribe={setPendingSubscriptionPaymentPlan}
+          onSubscribe={openSelfPurchase}
+          onGift={openGiftPurchase}
           onCancelSubscription={handleSubscriptionCancel}
           isProcessing={isProcessing}
           highlightedPlan={landingPlanPreset}

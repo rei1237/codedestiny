@@ -126,6 +126,7 @@ const userSchema = new mongoose.Schema({
   },
   adminRefreshTokenHash: { type: String, default: "" },
   adminLastActivityAt: { type: Date, default: null },
+  passGrantOrderIds: { type: [String], default: [] },
   profileSubscription: {
     tier: { type: String, enum: ["free", "standard", "premium", "vvip", "family"], default: "free" },
     source: { type: String, enum: ["coin", "card", "pass", "event"], default: "coin" },
@@ -292,6 +293,7 @@ profileCardSchema.index({ userId: 1, profileId: 1 }, { unique: true });
 profileCardSchema.index({ userId: 1, createdAt: 1 });
 
 const paymentSchema = new mongoose.Schema({
+  purchaseType: { type: String, enum: ["SELF", "GIFT"] },
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   impUid: { type: String, unique: true, sparse: true, index: true, trim: true },
   merchantUid: { type: String, unique: true, sparse: true, index: true, trim: true },

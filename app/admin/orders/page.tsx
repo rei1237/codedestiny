@@ -1,4 +1,5 @@
 "use client";
+import GiftOrders from "./GiftOrders";
 
 // 관리자 주문 조회·환불 화면.
 // 인증/fetch 는 기존 관리자 헬퍼(adminFetch)를 그대로 쓴다 — 토큰 로직을 다시 복제하지 않는다.
@@ -233,6 +234,7 @@ export default function AdminOrdersPage() {
 
   return (
     <main className="min-h-screen">
+      <GiftOrders />
       <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[420px_1fr]">
         <aside className="border-b border-slate-800 bg-[#10121b] lg:border-b-0 lg:border-r">
           <div className={ADMIN_TOOLBAR}>

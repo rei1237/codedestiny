@@ -35,6 +35,13 @@ import { isDbUnavailableError } from "../lib/http.js";
 export const PAYMENT_ERROR_TABLE = Object.freeze({
   // 400 — 요청 자체가 틀렸다. 재시도해도 같다.
   INVALID_REQUEST: { status: 400 },
+  GIFT_UNAVAILABLE: { status: 409 },
+  GIFT_NOT_FOUND: { status: 404 },
+  GIFT_CONFLICT: { status: 409 },
+  GIFT_CLAIMED: { status: 409 },
+  GIFT_UNCLAIMABLE: { status: 409 },
+  GIFT_TIER_CONFLICT: { status: 409 },
+  GIFT_RATE_LIMITED: { status: 429 },
   IDEMPOTENCY_KEY_REQUIRED: { status: 400 },
 
   // 401 — 신원이 없다.

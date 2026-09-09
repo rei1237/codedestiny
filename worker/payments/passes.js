@@ -88,7 +88,7 @@ export async function derivePassOrderId(userId, idempotencyKey, tier) {
  * 같은 키의 기존 주문이 다른 금액·등급이면 IDEMPOTENCY_CONFLICT — 옛 가격 주문을 조용히
  * 돌려주지 않는다. 그 409 를 흡수하는 것은 아래 createPayablePassOrder 다(호출부는 그쪽을 쓴다).
  */
-export async function createPassOrder(db, { userId, plan, idempotencyKey, paymentMethod = "card_general", paidResume = null }) {
+export async function createPassOrder(db, { userId, plan, idempotencyKey, paymentMethod = "card_general", paidResume = null, purchaseType = "SELF", giftDraft = null }) {
   const uid = toObjectId(userId);
   if (!uid) throw paymentError("UNAUTHORIZED", "로그인이 필요합니다.");
   const orderId = await derivePassOrderId(userId, idempotencyKey, plan.tier);
@@ -105,6 +105,7 @@ export async function createPassOrder(db, { userId, plan, idempotencyKey, paymen
           merchantUid: orderId,
           idempotencyKey: String(idempotencyKey).trim(),
           paymentType: PASS_PRODUCT_TYPE,
+          purchaseType,
           paymentAmount: plan.wonPrice,
           expectedChargedPoints: 0,
           chargedPoints: 0,
@@ -117,6 +118,7 @@ export async function createPassOrder(db, { userId, plan, idempotencyKey, paymen
           confirmAttempts: 0,
           metadata: {
             ...(paidResume ? { paidResume } : {}),
+            ...(giftDraft ? { giftDraft } : {}),
             planId: plan.planId,
             durationMonths: plan.durationMonths,
             durationDays: plan.durationDays,
@@ -149,6 +151,10 @@ export async function createPassOrder(db, { userId, plan, idempotencyKey, paymen
     });
   }
   if (!order) throw paymentError("INTERNAL_ERROR", "이용권 주문을 생성하지 못했습니다.", { orderId });
+  if ((order.purchaseType || "SELF") !== purchaseType
+      || (purchaseType === "GIFT" && JSON.stringify(order.metadata?.giftDraft) !== JSON.stringify(giftDraft))) {
+    throw paymentError("IDEMPOTENCY_CONFLICT", "같은 요청으로 다른 선물을 준비할 수 없습니다.");
+  }
   return order;
 }
 
@@ -187,6 +193,10 @@ export async function createPayablePassOrder(db, input) {
   for (let generation = 0; generation < MAX_ORDER_GENERATIONS; generation += 1) {
     const order = await createPassOrder(db, { ...input, idempotencyKey: generationKey(baseKey, generation) });
     lastOrderId = String(order.merchantUid || "");
+    if (input.purchaseType === "GIFT") {
+      if (hasPassDrift(order, plan)) throw paymentError("IDEMPOTENCY_CONFLICT", "선물 상품이 기존 주문과 다릅니다.");
+      return order; // 승인된 선물의 재전송으로 새 결제를 만들지 않는다.
+    }
     if (isPayablePassOrder(order) && !hasPassDrift(order, plan)) return order;
   }
 
@@ -219,8 +229,7 @@ export async function activatePassSubscription(db, {
   // 6→5, M10 Phase 2 #2). 두 읽기가 원래도 순차·비트랜잭션이라 동시성 창은 줄어들 뿐 넓어지지 않는다.
   // 🔴 프로젝션으로 잘린 문서를 넘기지 말 것 — 재생 가드·사이클 계산이 profileSubscription 전체를 본다.
   existing = undefined,
-  // 마지막 시도에서만 false 로 내린다 — 필터가 구조적으로 못 맞는 문서(만료일이 문자열로 저장된
-  // 옛 문서 등)에서 정상 결제가 지급되지 않는 쪽이 더 큰 사고다. 종전 동작으로 되돌아간다.
+  // 충돌한 지급은 현재 문서를 다시 읽어 재계산한다. 재처리에서도 CAS를 해제하지 않는다.
   casGuard = true,
 }) {
   const uid = toObjectId(userId);
@@ -229,7 +238,7 @@ export async function activatePassSubscription(db, {
     ? existing.profileSubscription
     : {};
   // 🔴 재실행 가드: 이 주문이 이미 반영됐다면(연장 스택 이중 적용 방지) 현재 상태를 그대로 돌려준다.
-  if (String(prior.lastPassOrderId || "") === String(orderId)) {
+  if (String(prior.lastPassOrderId || "") === String(orderId) || existing?.passGrantOrderIds?.includes(String(orderId))) {
     return { user: existing, replayed: true };
   }
   // 사이클 3필드(키·사용액·한도). 같은 등급 연장이면 한도가 이전 한도 + 30일치로 쌓이고
@@ -264,15 +273,14 @@ export async function activatePassSubscription(db, {
     "profileSubscription.monthlyLimitCoin": cycle.monthlyLimitCoin,
     "profileSubscription.updatedAt": now,
   };
-  const filter = { _id: uid };
+  const filter = { _id: uid, passGrantOrderIds: { $ne: String(orderId) } };
   if (casGuard) {
     // Mongo 에서 `{ field: null }` 은 null 과 미존재를 함께 매칭한다 — 이용권을 처음 사는 문서가 여기 온다.
-    const priorExpiresAt = prior.expiresAt ? new Date(prior.expiresAt) : null;
-    filter["profileSubscription.expiresAt"] = priorExpiresAt && Number.isFinite(priorExpiresAt.getTime())
-      ? priorExpiresAt
-      : null;
+    for (const key of ["expiresAt", "monthlySpendCoin", "monthlyLimitCoin", "premiumUseCount", "lastPassOrderId"]) {
+      filter[`profileSubscription.${key}`] = prior[key] ?? null;
+    }
   }
-  const updated = await db.findOneAndUpdate(User, filter, { $set: update }, { returnDocument: "after" });
+  const updated = await db.findOneAndUpdate(User, filter, { $set: update, $addToSet: { passGrantOrderIds: String(orderId) } }, { returnDocument: "after" });
   const user = updated && typeof updated === "object" && "value" in updated && !("_id" in updated) ? updated.value : updated;
   if (!user && casGuard) return { user: null, replayed: false, conflict: true };
   if (!user) throw paymentError("DB_UNAVAILABLE", "이용권 활성화를 반영하지 못했습니다. 잠시 후 '결제 상태 다시 확인'으로 재시도해 주세요.", { orderId });

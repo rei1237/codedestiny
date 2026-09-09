@@ -234,6 +234,11 @@ export async function refundPaymentAsOperator({
     return { ok: false, status: 404, code: "ORDER_NOT_FOUND", message: "Payment order was not found." };
   }
 
+  if (payment.purchaseType === "GIFT") {
+    const { refundGiftAsOperator } = await import("../payments/gift-refund.js");
+    return refundGiftAsOperator({ env, payment, reason, amount, actorId });
+  }
+
   const normalizedReason = String(reason || "Operator refund").trim().slice(0, 120);
   const paidAmount = Math.max(0, Number(payment.paymentAmount || 0));
   const requestedAmount = Number.isInteger(amount) && amount > 0 ? amount : undefined;

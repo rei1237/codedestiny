@@ -85,6 +85,7 @@ beforeAll(async () => {
       // 직접 넘기므로 실제로 호출되지는 않지만, import 가 살아 있어야 그래프가 뜬다.
       connectPaymentDb: async () => {},
       resetPaymentConnection: () => {},
+      mongoTransactionOptions: () => { throw new Error("Transactions are not expected in moonstone proof tests"); },
       mongoose: mongooseModule.default || mongooseModule,
     })),
     jest.unstable_mockModule("../../worker/lib/auth.js", () => ({
