@@ -8,13 +8,13 @@ name: PR CI
 #    결제·인증이 무방비가 된다. 판정은 scripts/resolve-ci-tier.mjs 가 하고, 그 정본은
 #    scripts/lib/change-risk.mjs 하나다(배포 파이프라인도 같은 모듈을 쓴다).
 #
-#      fast     — 문구·CSS·이미지·문서            → typecheck · lint
+#      fast     — 문구·CSS·이미지                  → typecheck · lint
+#      docs-only — 평문/계약 문서                  → 문서 신선도 (+ 계약 문서 정적 가드)
 #      standard — 일반 프론트엔드(app/components/js) → + build
 #      critical — 결제·인증·Worker·DB·배포설정      → + 전체 테스트 · 배포 가드 · 자동 Preview
 #
-# 🔴 세 잡 모두 **항상 실행**된다. 티어에 따라 건너뛰는 것은 잡이 아니라 그 안의 스텝이다.
-#    잡 자체를 if 로 막으면 브랜치 룰셋의 필수 체크가 보고를 받지 못해 머지가 영영 막힌다.
-#    건너뛴 잡은 30초 안에 끝나므로 비용은 사실상 러너 기동 시간뿐이다.
+# 🔴 CI required aggregate 는 항상 실행된다. 각 검증 lane은 변경 범위에 따라 실제로 skip할 수
+#    있으며, aggregate 는 성공한 lane과 판정상 skip된 lane을 모두 정상으로 취급한다.
 on:
   pull_request:
     branches: [main]
@@ -44,8 +44,10 @@ jobs:
     timeout-minutes: 5
     outputs:
       tier: ${{ steps.tier.outputs.tier }}
+      runs_fast: ${{ steps.tier.outputs.runs_fast }}
       runs_build: ${{ steps.tier.outputs.runs_build }}
       runs_critical: ${{ steps.tier.outputs.runs_critical }}
+      runs_guards: ${{ steps.tier.outputs.runs_guards }}
     steps:
       - name: Checkout PR head
         uses: actions/checkout@v4
@@ -82,6 +84,10 @@ jobs:
           node scripts/lib/change-risk.mjs --self-test
           node scripts/resolve-ci-tier.mjs --self-test
           node scripts/resolve-ci-tier.mjs
+
+      - name: Verify plain documentation freshness
+        if: steps.tier.outputs.runs_fast != 'true'
+        run: npm run verify:doc-freshness
 
       - name: Compare proposed verification plan (shadow only)
         env:
@@ -139,8 +145,10 @@ jobs:
   fast:
     name: Typecheck and lint
     needs: classify
+    if: needs.classify.outputs.runs_fast == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    # Markdown-only PR은 classify의 문서 검증만 실행한다. 코드가 섞이면 기존 fast lane을 유지한다.
     steps:
       # fetch-depth: 0 은 아래 `lint:changed` 가 base...head 를 계산하기 위해 필요하다.
       # 얕은 체크아웃에서는 base 커밋이 없어 diff 가 통째로 비고, 그러면 이 게이트가
@@ -185,10 +193,10 @@ jobs:
   guards:
     name: Static guards
     needs: classify
+    if: needs.classify.outputs.runs_guards == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    # 🔴 이 잡도 `if:` 없이 항상 돈다 — 위 15-17행과 같은 이유다. 티어에 따라 건너뛰는 것은
-    #    스텝이지 잡이 아니며, 잡이 통째로 안 돌면 브랜치 룰셋의 필수 체크가 영영 보고를 못 받는다.
+    # 평문 문서만 바뀐 PR은 fast lane의 문서 신선도 검사만 실행하고 이 무거운 lane은 skip한다.
     #
     # fast 잡에서 갈라져 나왔다(2026-09-06). 근거: run 34010746934 실측에서 fast 잡 3m27s 중
     # typecheck 44s + lint 22s 와 이 가드들 102s 가 **직렬**이었다. 둘은 서로를 필요로 하지
@@ -740,17 +748,11 @@ jobs:
   build:
     name: Build Pages and Worker
     needs: classify
+    if: needs.classify.outputs.runs_build == 'true' && github.event.pull_request.draft != true
     runs-on: ubuntu-latest
     timeout-minutes: 45
-    # 🔴 draft PR 은 build:cf·build:worker 를 건너뛴다(2026-08-21) — 티어 스킵과 같은 이유로
-    # **스텝**에서만 건너뛴다, 잡 자체를 막지 않는다(브랜치 룰셋 필수 체크는 계속 보고돼야 함).
-    # ready_for_review 로 전환되면 그 이벤트가 트리거 목록에 있어 전체 빌드가 자동으로 돈다.
-    # lint·typecheck(fast 잡)·critical(결제·보안 테스트)은 draft 여도 그대로 돈다 — 안전 우선.
+    # build가 필요한 Ready PR만 러너를 점유한다. ready_for_review 전환 시 다시 평가된다.
     steps:
-      - name: Skip notice
-        if: needs.classify.outputs.runs_build != 'true' || github.event.pull_request.draft == true
-        run: echo "::notice::tier=${{ needs.classify.outputs.tier }} draft=${{ github.event.pull_request.draft }} — 빌드를 건너뜁니다(문구·CSS·이미지·문서 변경, 또는 draft PR)."
-
       - name: Checkout PR head
         if: needs.classify.outputs.runs_build == 'true' && github.event.pull_request.draft != true
         uses: actions/checkout@v4
@@ -865,13 +867,10 @@ jobs:
   critical:
     name: Critical checks
     needs: classify
+    if: needs.classify.outputs.runs_critical == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - name: Skip notice
-        if: needs.classify.outputs.runs_critical != 'true'
-        run: echo "::notice::tier=${{ needs.classify.outputs.tier }} — 결제·인증·Worker·DB·배포설정 경로가 걸리지 않아 전체 테스트와 배포 가드를 건너뜁니다."
-
       # 블롭 지연 로딩 (PR #1650 과 같은 근거). 이 잡의 검사는 전부 워킹트리 대상이다 —
       # `npm test` 와 배포 게이트들은 체크아웃된 HEAD 만 읽고, git 을 부르는 것들도
       # `cat-file -e <sha>^{commit}`(커밋 존재 확인, blob:none 에서도 있음)까지다.
@@ -993,7 +992,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Require every CI lane to succeed
+      - name: Require every executed CI lane to succeed
         env:
           CLASSIFY_RESULT: ${{ needs.classify.result }}
           LANDING_ORDER_RESULT: ${{ needs.landing-order.result }}
@@ -1004,8 +1003,8 @@ jobs:
         run: |
           set -euo pipefail
           for result in "$CLASSIFY_RESULT" "$LANDING_ORDER_RESULT" "$FAST_RESULT" "$GUARDS_RESULT" "$BUILD_RESULT" "$CRITICAL_RESULT"; do
-            if [ "$result" != "success" ]; then
-              echo "::error::필수 CI lane 이 성공하지 못했습니다: $result"
+            if [ "$result" != "success" ] && [ "$result" != "skipped" ]; then
+              echo "::error::필수 CI lane 이 성공 또는 정상 skip 상태가 아닙니다: $result"
               exit 1
             fi
           done

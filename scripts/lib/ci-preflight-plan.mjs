@@ -1,12 +1,22 @@
 // CI YAML remains the command registry. Unknown execution settings fail closed.
-export function ciPreflightPlan(workflow, tier) {
+export function ciPreflightPlan(workflow, tier, { runFast = true, runGuards = true } = {}) {
   if (!["fast", "standard", "critical"].includes(tier)) throw new Error("Unknown CI tier");
   const lanes = new Set(["classify", "landing-order", "fast", "guards", "critical", "build"]);
   if (workflow.jobs?.["ci-required"]?.needs?.some(lane => !lanes.has(lane))) throw new Error("Unsupported required CI lane");
   const commands = [];
   for (const lane of ["fast", "guards", "critical", "build"]) {
     const job = workflow.jobs?.[lane];
-    if (!job?.steps || job.if || job.env) throw new Error(`Unsupported CI lane: ${lane}`);
+    const expectedJobIf = lane === "fast"
+      ? "needs.classify.outputs.runs_fast == 'true'"
+      : lane === "guards"
+      ? "needs.classify.outputs.runs_guards == 'true'"
+      : lane === "build"
+        ? "needs.classify.outputs.runs_build == 'true' && github.event.pull_request.draft != true"
+        : lane === "critical"
+          ? "needs.classify.outputs.runs_critical == 'true'"
+          : undefined;
+    if (!job?.steps || job.env || job.if !== expectedJobIf) throw new Error(`Unsupported CI lane: ${lane}`);
+    if (lane === "fast" && !runFast || lane === "guards" && !runGuards) continue;
     for (const step of job.steps) {
       if (!step.run) {
         if (!/^actions\/(?:checkout|setup-node|cache)@/.test(step.uses || "")) throw new Error(`Unsupported CI action: ${step.uses}`);

@@ -121,7 +121,6 @@ const UNWIRED_BY_DESIGN = [
   //    scripts/run-paid-gate-suite.mjs 에 배선했다. 이 자리에 다시 넣지 말 것.
 
   // ── 리포트·감사 도구. 사람이 읽으라고 만든 것이지 통과/실패를 가르지 않는다.
-  ["verify:doc-freshness", "문서 신선도 리포트 — 판정이 아니라 참고 지표"],
   ["verify:mobile-final-audit", "감사 리포트가 갱신됐는지만 본다 — 코드 계약이 아니다"],
   ["verify:mobile-feature-coverage", "모바일 기능 커버리지 리포트 — 수동"],
   ["verify:mobile-runtime-readiness", "모바일 런타임 준비도 리포트 — 수동"],
@@ -130,6 +129,7 @@ const UNWIRED_BY_DESIGN = [
   ["verify:style-sync", "스타일 미러 수동 점검 도구"],
   ["verify:cachebust-merge", "캐시버스트 병합 수동 점검 도구"],
   ["verify:delivery-admit", "순차 머지 직전 수동 입장 검사 — 후보 워크트리·GitHub PR·스테이징 현재 상태가 필요"],
+  ["verify:delivery-batch-plan", "배치 PR 계획 수동 점검 — merge/push/checkout 없이 후보를 판정"],
 
   // ── 배선 후보이나 미승인. 게이트 추가는 사용자 승인 사항이라 임의로 넣지 않는다.
   //    🔴 이 버킷은 "지금은 아무것도 지키지 않는다"는 뜻이다. 문서가 이들을 "차단한다"고
