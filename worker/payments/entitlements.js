@@ -31,6 +31,7 @@ import {
 import { USER_SCOPE_PROFILE_ID, resolvePaidContentServiceKey } from "../lib/content-unlocks.js";
 import { paymentError } from "./errors.js";
 import { toObjectId, toUserIdString } from "./db.js";
+import { revokePurchaseEntitlement } from "./executions.js";
 
 function clean(value, max) {
   return String(value ?? "").trim().slice(0, max);
@@ -214,12 +215,13 @@ export async function dropEntitlementByIdentity(db, { userId, identity, orderId 
  * 사용자가 무엇을 언제 샀다가 환불했는지는 남아야 하고, 다시 사면 같은 문서가 되살아난다.
  */
 export async function revokeEntitlementForOrder(db, { orderId, now = new Date() }) {
+  const executionResult = await revokePurchaseEntitlement(db, clean(orderId, 160), now);
   const result = await db.updateOne(
     ContentEntitlement,
     { orderId: clean(orderId, 160), status: CONTENT_ENTITLEMENT_STATUSES.ACTIVE },
     { $set: { status: CONTENT_ENTITLEMENT_STATUSES.REFUNDED, updatedAt: now } },
   );
-  return Number(result?.modifiedCount || 0) === 1;
+  return Number(result?.modifiedCount || 0) === 1 || Number(executionResult?.matchedCount || 0) > 0;
 }
 
 export const __entitlementTestUtils = { clean };

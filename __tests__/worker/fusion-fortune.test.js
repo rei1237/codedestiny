@@ -99,6 +99,7 @@ function buildFusionGroupPayload(group, cards = []) {
 /** 라우트가 하는 대로 1단계 → 2단계(1단계 결과를 priorResult 로)를 순서대로 돌린다. */
 async function runFusionStages(args) {
   const first = await generateFusionFortuneWithRealLLM({ ...args, stage: 1 });
+  if (!first.deliverable) return { first, second: first };
   const second = await generateFusionFortuneWithRealLLM({ ...args, stage: 2, priorResult: first.result, priorGenerationSource: first.generationSource });
   return { first, second };
 }
@@ -245,10 +246,10 @@ describe("Fusion Fortune per-use billing and mock generation", () => {
     }, { adapters });
 
     expect(built).toMatchObject({ ok: false, errorCode: "FUSION_FORTUNE_CONTEXT_FAILED", failedSystem: "saju" });
-    expect(calls).toEqual({ saju: 1, ziwei: 0, vedic: 0, sukuyo: 0, astrology: 0, tarot: 0 });
+    expect(calls).toEqual({ saju: 1, ziwei: 1, vedic: 1, sukuyo: 1, astrology: 1, tarot: 1 });
   });
 
-  it("runs six stage-one groups then three stage-two groups and retries each once before a context fallback", async () => {
+  it("retries six failed experts once and stops before integration without invented results", async () => {
     const calls = Object.fromEntries(["saju", "ziwei", "vedic", "sukuyo", "astrology", "tarot"].map((name) => [name, 0]));
     const built = await buildFusionFortuneContext({
       ...input,
@@ -264,17 +265,17 @@ describe("Fusion Fortune per-use billing and mock generation", () => {
     });
 
     // 그룹 9개(1단계 6 + 2단계 3) × (1차 + 미달 재생성 1회). 단일 호출로는 30,000자 계약을 채울 수 없다.
-    expect(providerCall).toHaveBeenCalledTimes(FUSION_SECTION_GROUP_SPECS.length * 2);
+    expect(providerCall).toHaveBeenCalledTimes(12);
     expect(new Set(providerCall.mock.calls.map(([, , options]) => options.logContext.sectionGroup)))
-      .toEqual(new Set(FUSION_SECTION_GROUP_SPECS.map((group) => group.id)));
+      .toEqual(new Set(FUSION_SECTION_GROUP_SPECS.filter((group) => group.stage === 1).map((group) => group.id)));
     // 1단계는 전체 계약을 평가하지 않고 partial 로 넘기며 2단계 키를 갖지 않는다.
-    expect(first).toMatchObject({ deliverable: true, generationSource: "context_fallback", providerCalls: 12, qualityTier: "partial", stage: 1 });
+    expect(first).toMatchObject({ deliverable: false, generationSource: "gemini_partial", providerCalls: 12, stage: 1 });
     expect(first.result).not.toHaveProperty("executiveSummary");
-    expect(generated).toMatchObject({ deliverable: true, generationSource: "context_fallback", providerCalls: 6, stage: 2 });
-    expect(validateFusionFortuneResult(generated.result, { birthTimeKnown: true, birthPlaceKnown: true, selectedTarotCards: built.context.tarotSpread.cards }).ok).toBe(true);
+    expect(generated).toMatchObject({ deliverable: false, generationSource: "gemini_partial", providerCalls: 12, stage: 1 });
+    expect(validateFusionFortuneResult(generated.result, { birthTimeKnown: true, birthPlaceKnown: true, selectedTarotCards: built.context.tarotSpread.cards }).ok).toBe(false);
   });
 
-  it("keeps eight good groups when one group fails and fills only that group from the fallback", async () => {
+  it("preserves completed expert groups and leaves failed groups pending", async () => {
     const calls = Object.fromEntries(["saju", "ziwei", "vedic", "sukuyo", "astrology", "tarot"].map((name) => [name, 0]));
     const built = await buildFusionFortuneContext({
       ...input,
@@ -295,12 +296,12 @@ describe("Fusion Fortune per-use billing and mock generation", () => {
       providerCall,
     });
 
-    expect(generated).toMatchObject({ deliverable: true, generationSource: "gemini_partial" });
-    // 살아남은 그룹은 LLM 본문 그대로, 실패한 그룹만 결정론 폴백으로 채워진다.
+    expect(generated).toMatchObject({ deliverable: false, generationSource: "gemini_partial" });
+    // 완료된 독립 분석은 보존하고, 실패 그룹은 같은 요청으로 재시도한다.
     expect(generated.result.sajuSection.content).toContain("sajuSection");
     expect(generated.result.tarotSection.content).toContain("tarotSection");
-    expect(generated.result.vedicSection.content).not.toContain("vedicSection");
-    expect(validateFusionFortuneResult(generated.result, { birthTimeKnown: true, birthPlaceKnown: true, selectedTarotCards: cards }).ok).toBe(true);
+    expect(generated.result.vedicSection).toBeUndefined();
+    expect(validateFusionFortuneResult(generated.result, { birthTimeKnown: true, birthPlaceKnown: true, selectedTarotCards: cards }).ok).toBe(false);
   });
 
   it("🔴 counts finalVerdict.rationale so a verdict group that already met the contract is not re-called", async () => {

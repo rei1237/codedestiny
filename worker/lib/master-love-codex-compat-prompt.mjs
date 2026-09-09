@@ -1,3 +1,5 @@
+import { buildCodexEditorialContract } from "./master-love-codex-quality.js";
+
 /**
  * ═══════════════════════════════════════════════════════════════════════════
  *  마스터 인연의 서 · 궁합  (MASTER_LOVE_CODEX_COMPAT)  —  챕터/프롬프트 정의
@@ -514,6 +516,7 @@ export function buildMasterLoveCodexCompatChapterPrompt({
 
   const body = [
     buildMasterLoveCodexCompatSystemGuide(),
+    buildCodexEditorialContract(chapter, compatibility),
     "",
     `[상담자] ${formatPersonLine(birthInfo, "상담자")}`,
     `[상대] ${formatPersonLine(partnerInfo, "상대")}`,

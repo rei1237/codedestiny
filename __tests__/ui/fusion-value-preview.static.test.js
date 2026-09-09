@@ -55,16 +55,15 @@ test("셸 카피 항목이 화면이 읽는 네 필드를 모두 채우고 있�
   );
 });
 
-test("가치 섹션이 생성 JSON 을 읽는다", () => {
-  assert.match(
-    source,
-    /import\s+\w+\s+from\s+"@\/lib\/marketing\/feature-marketing-copy\.generated\.json"/,
-    `${SOURCE_REL} 가 생성 카피 JSON 을 import 하지 않습니다 — 문구 정본은 셸입니다.`,
-  );
-  assert.ok(
-    source.includes(`items["${COPY_KEY}"]`),
-    `${SOURCE_REL} 가 items["${COPY_KEY}"] 를 읽지 않습니다 — 카피 키가 바뀌었다면 셸과 함께 고치세요.`,
-  );
+test("승인된 v2 가치 섹션은 로케일 키를 공유하고 한국어 마케팅 번들을 클라이언트에 복제하지 않는다", () => {
+  assert.match(source, /<ExpertGuide mode="value"/);
+  const guide = readFileSync(path.resolve(ROOT, "app/fusion-fortune/ExpertGuide.tsx"), "utf8");
+  assert.match(guide, /useFusionExpertCopy/);
+  assert.match(guide, /shared.systemLabels/);
+  assert.doesNotMatch(guide, /feature-marketing-copy.generated/);
+  const labels = readFileSync(path.resolve(ROOT, "app/fusion-fortune/_lib/expert-labels.ts"), "utf8");
+  assert.match(labels, /30,000~60,000/);
+  assert.match(labels, /실제 경력 10년차 명리학자 설계·자문/);
 });
 
 test("서버 컴포넌트로 남아 있다", () => {

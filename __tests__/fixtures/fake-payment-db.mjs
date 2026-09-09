@@ -142,6 +142,7 @@ export function makeFakePaymentDb(options = {}) {
   const ctx = { ops: 0 };
   const uniqueKeys = options.uniqueKeys || [];
   let nextId = 1;
+  let transactionTail = Promise.resolve();
 
   function violatesUnique(doc) {
     return uniqueKeys.some((keys) => {
@@ -151,6 +152,16 @@ export function makeFakePaymentDb(options = {}) {
   }
 
   return {
+    async transaction(run) {
+      const prior = transactionTail;
+      let release;
+      transactionTail = new Promise(resolve => { release = resolve; });
+      await prior;
+      const snapshot = rows.map(row => structuredClone(row));
+      try { return await run(this); }
+      catch (error) { rows.splice(0, rows.length, ...snapshot); throw error; }
+      finally { release(); }
+    },
     rows,
     ctx,
     async findOne(_Model, filter) { ctx.ops += 1; return rows.find((r) => matches(r, filter)) || null; },

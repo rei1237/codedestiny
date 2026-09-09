@@ -152,7 +152,8 @@ describe("라우트 — 왕복 예산·소비·봉투", () => {
     expect(payload.data.membershipPass.tier).toBe("premium");
     // 왕복 예산: 신원은 JWT 라 Mongo 0회 · 판정 1읽기 + 소비 CAS 1쓰기 + 증빙 1쓰기 = 3
     // (구 경로는 인증·이용권·프로필·소비로 4회 이상을 공유 풀에서 썼다)
-    expect(ops).toBe(3);
+    // Durable evidence lookup prevents recharging after the 40 recent markers rotate.
+    expect(ops).toBe(4);
     // 월 예산에 이번 건이 가산됐다
     expect(user.profileSubscription.monthlySpendCoin).toBe(Number(CHEAP.priceCoins));
   });

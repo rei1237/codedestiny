@@ -1,3 +1,5 @@
+import { judgeDayFortune } from "../../sukuyo-relation-core.js";
+import { pickExpertFields } from "../expert-evidence.js";
 // 🔴 음력일은 한국 음양력 코어에서만 나온다. lunar-javascript 는 **중국 표준시(CST) 기준 중국 음력**이라
 // 삭이 CST 23시대에 들면 그 달 전체의 음력일이 하루 밀린다 — 실측 2026-08-27 기준 1900~2100 전수
 // 73,414일 중 2,997일(4.08%)이 갈린다. 27수는 음력 월·일로 직접 결정되므로 그 하루가 곧 다른 수(宿)다.
@@ -57,6 +59,12 @@ export function buildSukuyoAdapter(input, options = {}) {
   const keywordHint = keywords.length ? ` ${keywords.join(", ")}의 결이 함께 보입니다.` : "";
 
   return {
+    ...(options.fusionExpert ? { expertEvidence: {
+      birth: pickExpertFields(birthMansion, ["nameKo", "nameHan", "index", "direction", "element", "keywords", "strengths", "shadows"]),
+      target: pickExpertFields(todayMansion, ["nameKo", "nameHan", "index", "direction", "element", "keywords", "strengths", "shadows"]),
+      targetDate: input.targetDate,
+      dayFortune: pickExpertFields(judgeDayFortune(birthMansion.index, todayMansion.index), ["relationType", "aRole", "bRole", "forwardDistance", "tier", "tierLabel", "advice"]),
+    } } : {}),
     birthMansion: birthLabel,
     todayMansion: todayLabel,
     emotionalPattern: `감정이 움직일 때 표정이나 말투로 분위기를 먼저 조절하려는 흐름${keywordHint}`,

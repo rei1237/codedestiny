@@ -70,6 +70,7 @@ function fusionFixture() {
   const applied = [], receipts = [], loading = [];
   const f = fixture({
     apiBase: '', copy: {}, initialStageStates: () => ({}),
+    recoveredStageRef: { current: 1 },
     requestAbortRef: { current: null }, capAbortedRef: { current: false }, autoResumeRef: { current: false },
     lastEventAtRef: { current: 0 }, startedAtRef: { current: 0 }, paidRequestIdRef: { current: 'paid-1' },
     setResult: value => applied.push(value), setResultState: () => {},

@@ -65,6 +65,45 @@
 /* 섹션 리듬 — 텍스트가 숨을 쉬도록 */
 .section {
   padding-block: clamp(80px, 12vh, 140px);
+  scroll-margin-top: 132px;
+}
+
+/* Reading navigation stays useful across a long book, including small phones. */
+.readerNav {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  padding-top: env(safe-area-inset-top, 0px);
+  border-bottom: 1px solid var(--codex-rule);
+  background: var(--codex-ink);
+}
+.actRail { display: flex; max-width: 680px; margin: 0 auto; gap: 4px; padding: 8px var(--codex-gutter) 0; list-style: none; }
+.actButton { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; min-height: 64px; gap: 5px; padding: 5px 0; }
+.actButton:disabled { cursor: not-allowed; }
+.actButtonLabel { min-height: 2.8em; font-size: .75rem; line-height: 1.4; word-break: keep-all; }
+.readerNavTools { display: flex; align-items: flex-start; gap: 12px; max-width: 680px; margin-inline: auto; padding-inline: var(--codex-gutter); }
+.readerContents { flex: 1; min-width: 0; }
+.readerContents > summary { display: flex; align-items: center; justify-content: space-between; min-height: 44px; gap: 12px; cursor: pointer; list-style: none; color: var(--codex-ink-text); font-size: .875rem; }
+.readerContents > summary::-webkit-details-marker { display: none; }
+.readerContents > summary > span:last-child { display: flex; align-items: center; gap: 10px; color: var(--codex-ink-text-muted); font-variant-numeric: tabular-nums; }
+.readerContents[open] > summary svg { transform: rotate(180deg); }
+.readerContents > ol { list-style: none; margin: 0; padding: 0 0 12px; max-height: 55svh; overflow-y: auto; overscroll-behavior: contain; scrollbar-color: var(--codex-gold-dim) var(--codex-ink); }
+.readerContents a { display: flex; align-items: center; min-height: 48px; gap: 14px; padding: 10px 4px; border-top: 1px solid var(--codex-rule); color: var(--codex-ink-text); font-size: .9375rem; line-height: 1.6; word-break: keep-all; overflow-wrap: anywhere; }
+.readerContents a > span { color: var(--codex-gold); font-variant-numeric: tabular-nums; flex-shrink: 0; }
+.readerContents a:hover, .actButton:hover:not(:disabled) { background: var(--codex-ink-2); }
+.readerNav :is(button, summary, a):focus-visible, .evidenceChip summary:focus-visible, .detailProse summary:focus-visible { outline: 2px solid var(--codex-gold); outline-offset: 2px; border-radius: 4px; }
+.readerCover { display: flex; align-items: center; justify-content: center; padding-block: 36px 56px; text-align: center; }
+.readerPortrait { height: 140px; width: auto; margin: 0 auto; object-fit: contain; }
+.readerBrand { margin-top: 22px; font-family: var(--font-serif); font-size: 1rem; line-height: 1.6; color: var(--codex-gold); }
+.readerTitle { margin: 12px auto 0; max-width: 18ch; font-family: var(--font-serif); font-size: clamp(1.875rem, 5vw, 2.625rem); line-height: 1.4; text-wrap: balance; word-break: keep-all; overflow-wrap: anywhere; }
+.document ::selection { color: var(--codex-ink); background: var(--codex-gold); }
+.document .section { padding-block: 56px 72px; }
+.bgmToggle.bgmInline { position: static; z-index: auto; min-width: 44px; padding-inline: 12px; border: 0; background: transparent; backdrop-filter: none; }
+.bgmInline em { display: none; }
+@media (min-width: 768px) {
+  .readerCover { padding-block: 48px 72px; }
+  .readerPortrait { height: 180px; }
+  .actButtonLabel { font-size: .8125rem; }
 }
 
 /* 금박 헤어라인 — 유니코드 괘선(━) 대신 CSS로. 폰트 폴백/줄바꿈 문제가 없다. */
@@ -181,7 +220,7 @@
   display: inline-flex;
   align-items: center;
   gap: .45rem;
-  min-height: 38px;
+  min-height: 44px;
   padding: .45rem .75rem;
   border: 1px solid var(--codex-rule);
   border-radius: 999px;
@@ -232,7 +271,7 @@
 .actions ol { display: grid; gap: .8rem; margin: 0; padding-left: 1.5rem; }
 .actions li { padding-left: .35rem; line-height: 1.75; }
 .detailProse { margin-top: 2.75rem; }
-.detailProse summary { color: var(--codex-gold); cursor: pointer; font-weight: 700; }
+.detailProse summary { min-height: 48px; padding-block: 12px; border-block: 1px solid var(--codex-rule); color: var(--codex-gold); cursor: pointer; font-weight: 700; line-height: 1.6; }
 .detailProse .prose { margin-top: 1.5rem; }
 .bridge { margin-top: 3rem; color: var(--codex-ink-text-muted); font-size: .95rem; line-height: 1.75; }
 
@@ -253,11 +292,12 @@
   box-shadow: 0 16px 40px rgba(0,0,0,.36);
 }
 .resumePrompt p { width: 100%; margin: 0 .15rem .1rem; color: var(--codex-ink-text); font-size: .875rem; }
-.resumePrompt button { min-height: 38px; padding: .35rem .7rem; border: 1px solid var(--codex-gold-dim); border-radius: 999px; color: var(--codex-gold); font-size: .8125rem; }
+.resumePrompt button { min-height: 44px; padding: .35rem .7rem; border: 1px solid var(--codex-gold-dim); border-radius: 999px; color: var(--codex-gold); font-size: .875rem; }
 
 @media (max-width: 767px) {
   .narration { padding: 1.15rem; }
-  .evidenceChip p { position: fixed; left: 1rem; right: 1rem; bottom: max(1rem, env(safe-area-inset-bottom)); width: auto; }
+  .evidenceChip[open] { flex-basis: 100%; }
+  .evidenceChip p { position: static; width: 100%; margin-top: .5rem; }
 }
 
 /* 버튼 — 잉크 위 금테. 글래스는 여기 한 곳에서만 쓴다. */
@@ -677,3 +717,21 @@
   .gaugeRing,
   .metricFill { transition: none; transform: none; }
 }
+.purchaseRecovery {
+  display: grid;
+  gap: 0.75rem;
+  max-width: 48rem;
+  margin: 1rem auto;
+  padding: 1rem;
+}
+.purchaseRecovery button {
+  min-height: 44px;
+  padding: 0.75rem 1rem;
+  border: 1px solid currentColor;
+  border-radius: 0.75rem;
+  color: inherit;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+.purchaseRecovery button:disabled { opacity: 0.6; cursor: wait; }

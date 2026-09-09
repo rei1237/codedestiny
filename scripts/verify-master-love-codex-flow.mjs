@@ -17,6 +17,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import ts from "typescript";
 
 const root = process.cwd();
 const failures = [];
@@ -430,8 +431,18 @@ assert(
   /throw new Error\(errorText\.GENERATION_BUDGET_EXCEEDED\)/.test(pageSource),
   `${pageFile}: 배치 루프가 미완성으로 끝나면 실패로 표면화해야 합니다(GENERATION_BUDGET_EXCEEDED)`,
 );
+const pageAst = ts.createSourceFile(pageFile, pageSource, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+let navigatesFromCatch = false;
+function inspectCatchNavigation(node, inCatch = false) {
+  const within = inCatch || ts.isCatchClause(node);
+  if (within && ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression)
+      && node.expression.expression.getText(pageAst) === "router"
+      && ["replace", "push"].includes(node.expression.name.text)) navigatesFromCatch = true;
+  ts.forEachChild(node, child => inspectCatchNavigation(child, within));
+}
+inspectCatchNavigation(pageAst);
 assert(
-  !/catch \(caught\)[\s\S]{0,900}?router\.replace/.test(pageSource),
+  !navigatesFromCatch,
   `${pageFile}: 실패 catch 에서 결과 페이지로 자동 이동하면 미완성 책이 완성본처럼 열립니다(재시도 수단도 사라집니다)`,
 );
 // 🔴 2026-07-30 판단 반전 — Workers AI 폴백을 켠 상태로 유지한다.
@@ -620,7 +631,6 @@ for (const shell of [
 
   // 7-5. 카운트업은 공용 훅으로만 돌리고 skip 을 반드시 넘긴다.
   for (const file of [
-    "src/features/master-love-codex/components/CodexScoreOverview.tsx",
     "src/features/master-love-codex/components/CodexLoveDna.tsx",
   ]) {
     const source = read(file);

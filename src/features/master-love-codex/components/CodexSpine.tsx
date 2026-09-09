@@ -7,7 +7,11 @@
  * 로마숫자는 ASCII(I~V) — Cinzel 이 커버하는 문자만 쓴다.
  */
 
-import { CODEX_ACT_ANCHOR_PREFIX, actsForMode, type CodexActMode } from "../data/acts";
+import { CODEX_ACT_ANCHOR_PREFIX, CODEX_CHAPTER_ANCHOR_PREFIX, actsForMode, type CodexActMode } from "../data/acts";
+import { useRef } from "react";
+import { ChevronDown } from "lucide-react";
+import CodexAmbience from "./CodexAmbience";
+import { masterLoveCodexBgmTracks } from "../data/assets";
 import { useMasterLoveCodexCopy } from "../_lib/copy";
 import styles from "../styles/codex.module.css";
 
@@ -18,12 +22,14 @@ interface CodexSpineProps {
   availableOrders: number[];
   /** 막 제목 세트 — 궁합판은 관계 축 제목을 쓴다 */
   mode?: CodexActMode;
+  chapters: Array<{ order: number; title: string }>;
 }
 
-export default function CodexSpine({ activeOrder, availableOrders, mode = "solo" }: CodexSpineProps) {
+export default function CodexSpine({ activeOrder, availableOrders, mode = "solo", chapters }: CodexSpineProps) {
   const copy = useMasterLoveCodexCopy();
   const available = new Set(availableOrders);
   const acts = actsForMode(mode);
+  const contentsRef = useRef<HTMLDetailsElement | null>(null);
 
   function goToAct(order: number) {
     const target = document.getElementById(`${CODEX_ACT_ANCHOR_PREFIX}${order}`);
@@ -34,10 +40,10 @@ export default function CodexSpine({ activeOrder, availableOrders, mode = "solo"
 
   return (
     <nav
-      className="sticky top-0 z-20 border-b border-[color:var(--codex-rule)] bg-[rgba(10,8,24,.82)] backdrop-blur-md"
+      className={styles.readerNav}
       aria-label={copy.actNavAriaLabel}
     >
-      <ol className="mx-auto flex max-w-[680px] items-center justify-center gap-1 px-[var(--codex-gutter)] py-3">
+      <ol className={styles.actRail}>
         {acts.map((act) => {
           const isActive = act.order === activeOrder;
           const isReady = available.has(act.order);
@@ -49,7 +55,7 @@ export default function CodexSpine({ activeOrder, availableOrders, mode = "solo"
                 disabled={!isReady}
                 aria-current={isActive ? "step" : undefined}
                 aria-label={`${copy.actAriaLabel(act.numeral, act.title)}${isReady ? "" : copy.actNotReadySuffix}`}
-                className={`${styles.numeral} group flex w-full flex-col items-center gap-1.5 py-1 transition-colors disabled:cursor-not-allowed`}
+                className={styles.actButton}
                 style={{
                   color: isActive
                     ? "var(--codex-gold)"
@@ -59,6 +65,7 @@ export default function CodexSpine({ activeOrder, availableOrders, mode = "solo"
                 }}
               >
                 <span className="text-[0.9375rem] leading-none">{act.numeral}</span>
+                <span className={styles.actButtonLabel}>{act.title}</span>
                 <span
                   className="h-px w-full rounded-full transition-colors"
                   style={{
@@ -74,6 +81,34 @@ export default function CodexSpine({ activeOrder, availableOrders, mode = "solo"
           );
         })}
       </ol>
+      <div className={styles.readerNavTools}>
+      <details ref={contentsRef} className={styles.readerContents} onKeyDown={event => {
+        if (event.key === "Escape" && contentsRef.current?.open) {
+          contentsRef.current.open = false;
+          contentsRef.current.querySelector("summary")?.focus();
+        }
+      }}>
+        <summary><span>{copy.readerContentsTitle}</span><span>{chapters.length}<ChevronDown size={16} aria-hidden="true" /></span></summary>
+        <ol>
+          {chapters.map(chapter => (
+            <li key={chapter.order}>
+              <a href={`#${CODEX_CHAPTER_ANCHOR_PREFIX}${chapter.order}`} onClick={event => {
+                const target = document.getElementById(`${CODEX_CHAPTER_ANCHOR_PREFIX}${chapter.order}`);
+                if (!target) return;
+                event.preventDefault();
+                if (contentsRef.current) contentsRef.current.open = false;
+                target.focus({ preventScroll: true });
+                target.scrollIntoView({ block: "start", behavior: window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+              }}>
+                <span>{String(chapter.order).padStart(2, "0")}</span>
+                {chapter.title.replace(/^제\s*\d+\s*장\s*·\s*/, "")}
+              </a>
+            </li>
+          ))}
+        </ol>
+      </details>
+      <CodexAmbience track={masterLoveCodexBgmTracks.reading} inline />
+      </div>
     </nav>
   );
 }

@@ -44,6 +44,8 @@ beforeAll(async () => {
       COMPATIBILITY: "saju.compatibility",
     },
     User: {},
+    Payment: {},
+    PaidExecutionRecord: {},
   }));
   ({ grantEntitlement } = await import("../../worker/payments/entitlements.js"));
   ({ findActivePaidContentUnlockByServiceKeys } = await import("../../worker/lib/content-unlocks.js"));
