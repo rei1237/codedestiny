@@ -379,9 +379,10 @@
       "accessType": "free",
       "image": "/feature-details/assets/saju-960.webp",
       "aliases": [
+        "cdOneStepFreeSajuEntry",
         "saju",
-        "/saju/basic/play/",
-        "/saju/basic/play"
+        "/?action=cdOneStepFreeSajuEntry",
+        "/?action=cdOneStepFreeSajuEntry/"
       ],
       "category": "사주·심층 상담",
       "description": "생년월일과 출생시간으로 사주 네 기둥을 세운 뒤, 오행과 십성의 균형을 바탕으로 성향과 생활의 리듬을 차분히 정리합니다.",
@@ -3150,9 +3151,10 @@
       "accessType": "free",
       "image": "/feature-details/assets/saju-960.webp",
       "aliases": [
+        "cdOneStepFreeSajuEntry",
         "saju",
-        "/saju/basic/play/",
-        "/saju/basic/play"
+        "/?action=cdOneStepFreeSajuEntry",
+        "/?action=cdOneStepFreeSajuEntry/"
       ],
       "category": "사주·심층 상담",
       "headline": "여덟 글자에 담긴 기질과, 지금의 흐름을 함께 읽습니다.",
@@ -3195,6 +3197,7 @@
         ],
         "faq": []
       },
+      "action": "cdOneStepFreeSajuEntry",
       "heroVariants": [
         {
           "src": "/feature-details/assets/saju-480.webp",
