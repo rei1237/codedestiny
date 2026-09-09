@@ -9,6 +9,7 @@ import { pathToFileURL } from "node:url";
 import { STATIC_CANONICAL_ROUTES } from "./static-canonical-route-map.mjs";
 import { createSitemapLastmodLedger } from "./lib/sitemap-lastmod.mjs";
 import { kstYmdToday } from "./lib/fortune-date.mjs";
+import { createLiveRouteMatcher } from "./lib/live-route-matcher.mjs";
 import { createRequire } from "node:module";
 const requireJson = createRequire(import.meta.url);
 const STORY_EPISODE_SLUGS = requireJson("../lib/stories/vn/episodes.generated.json").episodes.map((e) => e.slug);
@@ -43,7 +44,12 @@ const sitemapPublicPath = resolve(rootDir, "public", "sitemap.xml");
 const highValueSourcePath = resolve(rootDir, "app", "guides", "content.js");
 const famousSajuSourcePath = resolve(rootDir, "lib", "famous-saju", "celebrity-data.ts");
 const fortuneSignSourcePath = resolve(rootDir, "lib", "fortune", "sign-profiles.ts");
-const siteBaseUrl = (process.env.SITE_URL || "https://code-destiny.com").replace(/\/$/, "");
+const siteBaseUrl = (
+  process.env.NEXT_PUBLIC_SITE_URL
+  || process.env.PUBLIC_SITE_URL
+  || process.env.SITE_URL
+  || "https://code-destiny.com"
+).replace(/\/$/, "");
 const insightsApiBase = (process.env.INSIGHTS_API_BASE_URL || process.env.SITE_URL || "https://code-destiny.com").replace(/\/$/, "");
 const useInsightsApi = String(process.env.SITEMAP_USE_INSIGHTS_API || "").toLowerCase() === "1";
 const today = new Date().toISOString().slice(0, 10);
@@ -142,6 +148,7 @@ const privateRoutePatterns = [
   /\/start(?:\/|$)/,
   /\/callback(?:\/|$)/,
 ];
+const isLiveRoute = createLiveRouteMatcher(rootDir);
 const excludedInsightCategories = new Set([
   "상담 윤리",
   "콘텐츠 운영",
@@ -583,7 +590,8 @@ function isPublicSitemapPath(pathname) {
   if (staticCanonicalAliasPaths.has(normalized.replace(/\/+$/, ""))) return false;
   if (excludedExactSitemapPaths.has(normalized)) return false;
   if (noindexPathPrefixes.some((prefix) => normalized === `${prefix}/` || normalized.startsWith(`${prefix}/`))) return false;
-  return !privateRoutePatterns.some((pattern) => pattern.test(normalized));
+  if (privateRoutePatterns.some((pattern) => pattern.test(normalized))) return false;
+  return isLiveRoute(normalized);
 }
 
 function escapeXml(value) {
