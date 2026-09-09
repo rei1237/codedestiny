@@ -28,6 +28,7 @@ import {
   connectPaymentDb,
   isTransientMongoError,
   mongoose,
+  mongoTransactionOptions,
   resetPaymentConnection,
   withMongoRetry,
 } from "../lib/db.js";
@@ -75,37 +76,47 @@ function resolveCollection(Model, paymentConn) {
 
 /* 왕복 카운터. 예산(계획서: orders 1회 · confirm cold 3회)이 지켜지는지 **실측으로** 보기 위한 것이지
    장식이 아니다. 회귀는 코드 리뷰가 아니라 이 숫자가 잡는다. */
-function makeCountingDb(ctx, paymentConn = null) {
+function makeCountingDb(ctx, paymentConn = null, session = null) {
   const count = () => { ctx.mongoOps += 1; };
   const col = (Model) => resolveCollection(Model, paymentConn);
+  const opts = (options) => session ? { ...options, session } : options;
   return {
+    async transaction(fn) {
+      if (session) throw new Error("Nested payment transaction");
+      const connection = paymentConn || mongoose.connection;
+      const txn = await connection.startSession();
+      try {
+        return await txn.withTransaction(() => fn(makeCountingDb(ctx, paymentConn, txn)), mongoTransactionOptions());
+      } finally { await txn.endSession(); }
+    },
+    async indexes(Model) { return col(Model).listIndexes().toArray(); },
     findOne(Model, filter, options) {
       count();
-      return col(Model).findOne(filter, options);
+      return col(Model).findOne(filter, opts(options));
     },
     find(Model, filter, options) {
       count();
-      return col(Model).find(filter, options).toArray();
+      return col(Model).find(filter, opts(options)).toArray();
     },
     insertOne(Model, doc) {
       count();
-      return col(Model).insertOne(doc);
+      return col(Model).insertOne(doc, opts());
     },
     updateOne(Model, filter, update, options) {
       count();
-      return col(Model).updateOne(filter, update, options);
+      return col(Model).updateOne(filter, update, opts(options));
     },
     findOneAndUpdate(Model, filter, update, options) {
       count();
-      return col(Model).findOneAndUpdate(filter, update, options);
+      return col(Model).findOneAndUpdate(filter, update, opts(options));
     },
     deleteOne(Model, filter) {
       count();
-      return col(Model).deleteOne(filter);
+      return col(Model).deleteOne(filter, opts());
     },
     countDocuments(Model, filter, options) {
       count();
-      return col(Model).countDocuments(filter, options);
+      return col(Model).countDocuments(filter, opts(options));
     },
   };
 }

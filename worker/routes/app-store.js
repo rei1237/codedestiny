@@ -799,14 +799,26 @@ function buildEntitlementUpdate({ product, googlePurchase, now, priorSubscriptio
   return update;
 }
 
-async function applyEntitlementUpdate({ userId, product, googlePurchase, now, passOrderId = "" }) {
+export async function applyEntitlementUpdate({ userId, product, googlePurchase, now, passOrderId = "" }) {
   // 이용권만 직전 사이클을 먼저 읽는다 — 기간·한도를 쌓으려면 이전 만료일과 누적 사용액이
   // 필요하다. 회당/해금 상품은 왕복 수가 종전대로 1회다.
   const isPass = product?.kind === "pass" && Boolean(cleanText(product.passTier || product.subscriptionTier));
-  const prior = isPass
-    ? (await User.findById(userId, { profileSubscription: 1 }).lean())?.profileSubscription || {}
-    : {};
-  const update = buildEntitlementUpdate({ product, googlePurchase, now, priorSubscription: prior, passOrderId });
+  if (isPass) {
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const existing = await User.findById(userId, { profileSubscription: 1, passGrantOrderIds: 1 }).lean();
+      if (passOrderId && existing?.passGrantOrderIds?.includes(String(passOrderId))) return User.findById(userId, USER_ENTITLEMENT_PROJECTION).lean();
+      const prior = existing?.profileSubscription || {};
+      const passActivationUpdate = { ...buildEntitlementUpdate({ product, googlePurchase, now, priorSubscription: prior, passOrderId }) };
+      if (passOrderId) passActivationUpdate.$addToSet.passGrantOrderIds = String(passOrderId);
+      const filter = { _id: userId };
+      for (const key of ["expiresAt", "monthlySpendCoin", "monthlyLimitCoin", "premiumUseCount", "lastPassOrderId"]) filter[`profileSubscription.${key}`] = prior[key] ?? null;
+      if (passOrderId) filter.passGrantOrderIds = { $ne: String(passOrderId) };
+      const user = await User.findOneAndUpdate(filter, passActivationUpdate, { returnDocument: "after", projection: USER_ENTITLEMENT_PROJECTION }).lean();
+      if (user) return user;
+    }
+    throw Object.assign(new Error("이용권이 변경되었습니다. 구매 복원으로 다시 확인해 주세요."), { status: 409, code: "APP_PASS_GRANT_CONFLICT" });
+  }
+  const update = buildEntitlementUpdate({ product, googlePurchase, now, passOrderId });
   if (!update) {
     return User.findById(userId, USER_ENTITLEMENT_PROJECTION).lean();
   }
