@@ -10,6 +10,7 @@ import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { runWithConcurrency } from "../lib/concurrency.js";
@@ -1621,7 +1622,7 @@ async function generateConsultationText(env, prompt, options = {}) {
     cache: buildKarmaLlmCache(env, mode),
   });
   const provider = clean(ai?.provider || ai?.model || "gemini");
-  const isMock = /mock/i.test(provider) || ai?.isMock === true;
+  const isMock = (/mock/i.test(provider) || ai?.isMock === true) && !isStagingLlmMockEnabled(env);
   let text = clean(ai?.text);
   if (!ai?.ok || isMock) {
     const error = new Error(clean(ai?.message || ai?.error || "LLM generation failed."));
@@ -1985,7 +1986,7 @@ async function callRealGeminiText(env, prompt, options = {}) {
     cache: buildKarmaLlmCache(env, clean(options.cacheStage) || "chapter-batch"),
   });
   const provider = clean(ai?.provider || ai?.model || "gemini");
-  const isMock = /mock/i.test(provider) || ai?.isMock === true;
+  const isMock = (/mock/i.test(provider) || ai?.isMock === true) && !isStagingLlmMockEnabled(env);
   if (!ai?.ok || isMock || !clean(ai?.text)) {
     const error = new Error(clean(ai?.message || ai?.error || "LLM generation failed.", 500));
     error.code = isMock ? "MOCK_PROVIDER_BLOCKED" : "LLM_GENERATION_FAILED";

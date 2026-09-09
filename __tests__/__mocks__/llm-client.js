@@ -21,4 +21,13 @@ async function deleteGeminiContextCache() {
   // no-op
 }
 
-module.exports = { callLLM, createGeminiContextCache, deleteGeminiContextCache };
+function isStagingLlmMockEnabled(env = {}) {
+  const appEnv = String(env?.APP_ENV || "").trim().toLowerCase();
+  const flag = String(env?.STAGING_LLM_MOCK_ENABLED || "").trim().toLowerCase();
+  const workersAi = String(env?.WORKERS_AI_ENABLED || "").trim().toLowerCase();
+  return appEnv === "staging"
+    && ["1", "true", "on", "yes"].includes(flag)
+    && ["0", "false", "off", "no"].includes(workersAi);
+}
+
+module.exports = { callLLM, createGeminiContextCache, deleteGeminiContextCache, isStagingLlmMockEnabled };

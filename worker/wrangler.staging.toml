@@ -112,6 +112,10 @@ NODE_ENV = "production"
 # "production" 이라 그 값이 이겨서 /dev-payment-tester(이용권·월정석 무제한 지급구)가 403 으로
 # 닫혀 있다. NODE_ENV 를 "staging" 으로 바꾸면 공개 URL 에서 그 지급구가 열린다.
 APP_ENV = "staging"
+# 실결제 이후 결과 저장·재조회 파이프라인을 검증할 때 사용하는 스테이징 전용 mock.
+# APP_ENV=staging 및 WORKERS_AI_ENABLED=false와 함께일 때만 lib/llm-client.ts가 읽는다.
+# 프로덕션 wrangler.toml에는 절대 추가하지 않는다.
+STAGING_LLM_MOCK_ENABLED = "true"
 # 프론트와 워커가 같은 오리진(staging.code-destiny.com)이라 평소엔 쓰이지 않지만,
 # staging-api. 직접 호출 경로를 위해 명시한다. worker/index.js 가 CSV 로 읽어 허용목록에 병합한다.
 CORS_ORIGIN = "https://staging.code-destiny.com"

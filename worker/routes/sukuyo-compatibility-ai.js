@@ -12,6 +12,7 @@ import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import { buildSukuyoAiCompatibility, buildSukuyoFromLunar, describeSukuyoDirectionalRelation } from "../lib/sukuyo-ai-calculation.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { cmsPromptText } from "../lib/cms-prompts.js";
 import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
@@ -1444,7 +1445,7 @@ async function generateSectionGroup(env, input, calculation, group, systemPrompt
     });
     const provider = clean(ai?.provider || "");
     const model = clean(ai?.model || "");
-    if (!ai?.ok || /mock/i.test(provider) || /mock/i.test(model) || ai?.isMock === true) return { sections: {}, provider: "", model: "" };
+    if (!ai?.ok || ((/mock/i.test(provider) || /mock/i.test(model) || ai?.isMock === true) && !isStagingLlmMockEnabled(env))) return { sections: {}, provider: "", model: "" };
     const raw = sanitizeConsultationText(ai?.text || "");
     const parsed = parseJsonObjectFromText(raw) || {};
     const sections = {};
@@ -1575,7 +1576,7 @@ async function createPersonalAnswer(env, input, calculation) {
   });
   const provider = clean(ai?.provider || "");
   const model = clean(ai?.model || "");
-  const isMock = /mock/i.test(provider) || /mock/i.test(model) || ai?.isMock === true;
+  const isMock = (/mock/i.test(provider) || /mock/i.test(model) || ai?.isMock === true) && !isStagingLlmMockEnabled(env);
   const content = sanitizeConsultationText(ai?.text || "");
   if (!ai?.ok || isMock || content.length < 240) {
     const llmError = Object.assign(new Error(MESSAGES.llmFailed), { code: "LLM_FAILED", status: 503 });
@@ -2109,7 +2110,7 @@ async function handleMessage(request, env) {
   });
   const provider = clean(ai?.provider || "");
   const model = clean(ai?.model || "");
-  const isMock = /mock/i.test(provider) || /mock/i.test(model) || ai?.isMock === true;
+  const isMock = (/mock/i.test(provider) || /mock/i.test(model) || ai?.isMock === true) && !isStagingLlmMockEnabled(env);
   const answer = sanitizeConsultationText(ai?.text || "");
   if (!ai?.ok || isMock || answer.length < 80) {
     logSukyoAi("[Sukyo AI LLM Error]", {

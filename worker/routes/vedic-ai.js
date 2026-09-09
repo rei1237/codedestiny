@@ -13,6 +13,7 @@ import { resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
 import { cmsPromptModelConfig, cmsPromptText } from "../lib/cms-prompts.js";
 import { tokensRequiredForChars } from "../lib/llm-budget.js";
 import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
+import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { calculateVedicAiChart } from "../lib/vedic-ai-chart.js";
 import { basisGroup, basisItem, basisStage, buildAnalysisBasisPayload } from "../lib/analysis-basis-contract.js";
@@ -1339,7 +1340,7 @@ async function generateVedicGroup(env, input, chart, group, context, repairLines
       logContext: { ...context, group: group.key },
     });
     const provider = clean(result?.provider || result?.model || "gemini");
-    if (!result?.ok || /mock/i.test(provider) || result?.isMock === true) return { group, text: "", provider: "", model: "" };
+    if (!result?.ok || ((/mock/i.test(provider) || result?.isMock === true) && !isStagingLlmMockEnabled(env))) return { group, text: "", provider: "", model: "" };
     return { group, text: sanitizeAssistantText(result?.text || ""), provider, model: clean(result?.model || "") };
   } catch (error) {
     logVedicAi("Group Generation Failed", { ...context, group: group.key, message: clean(error?.message, 200) }, "warn");
