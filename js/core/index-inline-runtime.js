@@ -2361,6 +2361,7 @@ function __cdInstallSajuActionStub(actionName) {
     return __cdEnsureSajuCoreLoaded().then(function() {
       var fn = window[actionName];
       if (typeof fn === 'function' && fn !== stub) {
+        __cdApplySeoLandingPendingGender();
         return fn.apply(window, args);
       }
       return undefined;
@@ -2370,6 +2371,16 @@ function __cdInstallSajuActionStub(actionName) {
     });
   };
   window[actionName] = stub;
+}
+
+function __cdApplySeoLandingPendingGender() {
+  var gender = String(window.__cdSeoLandingPendingGender || '').trim().toUpperCase();
+  if (gender !== 'M' && gender !== 'F') return;
+  if (typeof window.setGender !== 'function') return;
+  try {
+    window.setGender(gender);
+    delete window.__cdSeoLandingPendingGender;
+  } catch (_) {}
 }
 
 function __cdBindSajuIntentPrefetch() {
@@ -3227,6 +3238,82 @@ function __cdFindRouteActionElement(action) {
   return fallback;
 }
 
+function __cdApplySeoLandingEntryHandoff(action) {
+  var key = 'cd:seo-landing-entry:v1';
+  var raw = '';
+  try { raw = window.sessionStorage.getItem(key) || ''; } catch (_) { return; }
+  if (!raw) return;
+
+  var handoff = null;
+  try { handoff = JSON.parse(raw); } catch (_) { handoff = null; }
+  if (!handoff || !handoff.profile || !handoff.action || String(handoff.action) !== String(action)) return;
+  if (handoff.createdAt && Date.now() - Number(handoff.createdAt) > 10 * 60 * 1000) {
+    try { window.sessionStorage.removeItem(key); } catch (_) {}
+    return;
+  }
+
+  var profile = handoff.profile;
+  var birth = profile.birth || {};
+  var birthDate = String(profile.birthDate || '').trim();
+  if (!birthDate && birth.year != null && birth.month != null && birth.day != null) {
+    birthDate = String(birth.year).padStart(4, '0') + '-' + String(birth.month).padStart(2, '0') + '-' + String(birth.day).padStart(2, '0');
+  }
+
+  var birthDateEl = document.getElementById('birthDate');
+  if (birthDateEl && birthDate) birthDateEl.value = birthDate;
+
+  var nameEl = document.getElementById('nameInput');
+  if (nameEl && profile.name) nameEl.value = String(profile.name);
+
+  var calType = String(profile.calType || profile.calendarType || birth.calType || 'solar').trim().toLowerCase();
+  if (calType !== 'lunar' && calType !== 'lunar_leap') calType = 'solar';
+  var calInputs = document.querySelectorAll('input[name="calType"]');
+  for (var i = 0; i < calInputs.length; i += 1) {
+    calInputs[i].checked = calInputs[i].value === calType;
+  }
+
+  var rawBirthTime = String(profile.birthTime || '').trim();
+  if (!rawBirthTime && profile.birthIso) {
+    var isoTime = String(profile.birthIso).match(/(?:T|\s)(\d{1,2}):(\d{1,2})/);
+    if (isoTime) rawBirthTime = isoTime[1] + ':' + isoTime[2];
+  }
+  var timeParts = rawBirthTime.match(/^(\d{1,2}):?(\d{1,2})$/);
+  var timeUnknown = Boolean(profile.timeUnknown || profile.birthTimeUnknown || profile.noBirthTime || !timeParts);
+  var hourEl = document.getElementById('birthHour');
+  var minuteEl = document.getElementById('birthMinute');
+  var timeTextEl = document.getElementById('birthTimeText');
+  var hour = timeUnknown ? 12 : Math.min(23, Math.max(0, parseInt(timeParts[1], 10)));
+  var minute = timeUnknown ? 0 : Math.min(59, Math.max(0, parseInt(timeParts[2], 10)));
+  if (hourEl) hourEl.value = String(hour);
+  if (minuteEl) minuteEl.value = String(minute);
+  if (timeTextEl) timeTextEl.value = ('0' + hour).slice(-2) + ':' + ('0' + minute).slice(-2);
+  if (hourEl && minuteEl) {
+    if (timeUnknown) {
+      hourEl.setAttribute('data-cd-time-unknown', '1');
+      minuteEl.setAttribute('data-cd-time-unknown', '1');
+    } else {
+      hourEl.removeAttribute('data-cd-time-unknown');
+      minuteEl.removeAttribute('data-cd-time-unknown');
+    }
+  }
+  window.__cdBirthTimeUnknown = timeUnknown;
+
+  var gender = String(profile.gender || birth.gender || '').trim().toUpperCase();
+  if (gender === 'MALE') gender = 'M';
+  if (gender === 'FEMALE') gender = 'F';
+  if (gender === 'M' || gender === 'F') {
+    window.__cdSeoLandingPendingGender = gender;
+    window._gender = gender;
+    var femaleBtn = document.getElementById('btnF');
+    var maleBtn = document.getElementById('btnM');
+    if (femaleBtn) femaleBtn.classList.toggle('on', gender === 'F');
+    if (maleBtn) maleBtn.classList.toggle('on', gender === 'M');
+    __cdApplySeoLandingPendingGender();
+  }
+
+  try { window.sessionStorage.removeItem(key); } catch (_) {}
+}
+
 // 딥링크 진입 커버(html.cd-deeplink-boot, 셸 head 에서 첫 프레임부터 깔린다)를 걷는다.
 // 모달이 실제로 열린 뒤에 걷어야 홈이 잠깐 보이는 전환이 사라진다. 열리지 않는 경우를 대비해 상한을 둔다.
 var CD_DEEPLINK_COVER_MAX_MS = 4000;
@@ -3277,6 +3364,7 @@ function __cdRunRouteActionOnce() {
     return;
   }
   window.__cdRouteActionHandled = action;
+  __cdApplySeoLandingEntryHandoff(action);
   __cdInvokeAction(action, actionEl, null);
   __cdReleaseDeepLinkCoverWhenModalVisible();
 }
