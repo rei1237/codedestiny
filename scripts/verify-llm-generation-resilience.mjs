@@ -927,8 +927,8 @@ const GATE_EXEMPT = [
   ],
   [
     "worker/routes/master-love-codex.js",
-    "짧은 장이",
-    "짧은 장이 사과문보다 낫다는 의도적 결정(라우트 주석). 정책 재검토 전에는 게이트를 넣지 않는다",
+    "assertCodexChapterQuality",
+    "인연의 서는 장별 최소 분량·상담 구조·DNA를 전용 검사하고 실패 회차를 재시도한다 — 공통 폴백 게이트 대신 더 강한 장 계약을 적용한다",
   ],
 ];
 
@@ -964,6 +964,17 @@ for (const [path, anchor, reason] of GATE_EXEMPT) {
     read(path).includes(anchor),
     `${path}: 게이트 면제 근거("${anchor}")가 사라졌다 — ${reason}`,
   );
+}
+
+// The former short-chapter exemption was replaced by a dedicated delivery floor.
+// Both live responses and cached responses must pass it before chapters are saved.
+for (const anchor of ["generateCodexChapterResponse", "qualityCheckedCodexCache"]) {
+  checks += 1;
+  assert(read("worker/routes/master-love-codex.js").includes(anchor), `인연의 서 전용 품질 경로 누락: ${anchor}`);
+}
+for (const anchor of ["chapter.minChars", "LLM_OUTPUT_INCOMPLETE", "LLM_DNA_INCOMPLETE"]) {
+  checks += 1;
+  assert(read("worker/lib/master-love-codex-quality.js").includes(anchor), `인연의 서 장 계약 누락: ${anchor}`);
 }
 
 // 새 LLM 호출부 트립와이어. 호출이 늘거나 줄면 실패한다 — 새로 추가한 호출이 게이트가 필요한지

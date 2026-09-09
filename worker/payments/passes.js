@@ -16,6 +16,7 @@
  * 인라인(`index.html` goldenPackages)이고, payments.subscription-purchase.test.js 가 셸과 대조한다.
  */
 import { Payment, PointHistory, User } from "../lib/models.js";
+import { createHash } from "node:crypto";
 import {
   FAMILY_PASS_MAX_COVERED_COIN,
   HONEY_PASS_POLICY,
@@ -636,8 +637,9 @@ export async function recordPassUsageEvidence(db, { userId, product, requestId, 
   if (!uid || !requestId) return null;
   const isFamily = String(coverage.tier || "") === "family";
   const now = new Date();
-  try {
-    await db.insertOne(PointHistory, {
+  const _id = passUsageEvidenceId(userId, product?.featureKey, requestId);
+  await db.findOneAndUpdate(PointHistory, { _id }, { $setOnInsert: {
+      _id,
       userId: uid,
       kind: "deduct",
       delta: 0,
@@ -660,13 +662,20 @@ export async function recordPassUsageEvidence(db, { userId, product, requestId, 
       },
       createdAt: now,
       updatedAt: now,
-    });
-  } catch {
-    // 증빙 기록 실패가 이미 소비된 이용권 접근을 막지 않는다. 지연차감 연결은 못 하지만
-    // 그 경우 register 가 402 를 주고 클라이언트가 다른 결제수단으로 인계한다(무료 누수 없음).
-    return null;
-  }
+    } }, { upsert: true, returnDocument: "after" });
   return true;
+}
+
+export function passUsageEvidenceId(userId, featureKey, requestId) {
+  return toObjectId(createHash("sha256").update(JSON.stringify(["pass-use", String(userId), String(featureKey), String(requestId)])).digest("hex").slice(0, 24));
+}
+
+export async function findPassUsageEvidence(db, userId, featureKey, requestId) {
+  if (!userId || !featureKey || !requestId) return null;
+  return db.findOne(PointHistory, {
+    _id: passUsageEvidenceId(userId, featureKey, requestId), userId: toObjectId(userId), featureKey,
+    "metadata.refundedForServiceExecution": { $ne: true },
+  });
 }
 
 function mergeUpdate(base, extra) {
