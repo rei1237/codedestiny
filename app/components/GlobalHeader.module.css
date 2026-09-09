@@ -114,28 +114,28 @@
 
 /* AuthWidget lives in the shared header, so its text must follow the header's
    light/neo surface tokens instead of inheriting a one-theme violet palette. */
-:global(.cd-auth-name) {
+.root :global(.cd-auth-name) {
   color: var(--gh-ink);
 }
 
-:global(.cd-auth-email) {
+.root :global(.cd-auth-email) {
   color: var(--gh-muted);
 }
 
-:global(.cd-auth-admin),
-:global(.cd-auth-logout) {
+.root :global(.cd-auth-admin),
+.root :global(.cd-auth-logout) {
   border: 1px solid var(--gh-line);
   background: var(--gh-surface);
   color: var(--gh-ink);
 }
 
-:global(.cd-auth-admin:hover),
-:global(.cd-auth-logout:hover) {
+.root :global(.cd-auth-admin:hover),
+.root :global(.cd-auth-logout:hover) {
   border-color: var(--gh-accent);
   background: color-mix(in srgb, var(--gh-accent) 10%, var(--gh-surface));
 }
 
-:global(.cd-auth-tier) {
+.root :global(.cd-auth-tier) {
   display: inline-flex;
   min-height: 36px;
   align-items: center;
@@ -144,11 +144,11 @@
   text-decoration: none;
 }
 
-:global(.cd-auth-tier-family) { border-color: rgba(4, 120, 87, 0.42); background: #ecfdf5; color: #065f46; }
-:global(.cd-auth-tier-vvip) { border-color: rgba(109, 40, 217, 0.42); background: #f5f3ff; color: #5b21b6; }
-:global(.cd-auth-tier-premium) { border-color: rgba(190, 24, 93, 0.42); background: #fff1f2; color: #9f1239; }
-:global(.cd-auth-tier-standard) { border-color: rgba(146, 64, 14, 0.42); background: #fffbeb; color: #78350f; }
-:global(.cd-auth-tier-free) { border-color: rgba(71, 85, 105, 0.42); background: #f1f5f9; color: #334155; }
+.root :global(.cd-auth-tier-family) { border-color: rgba(4, 120, 87, 0.42); background: #ecfdf5; color: #065f46; }
+.root :global(.cd-auth-tier-vvip) { border-color: rgba(109, 40, 217, 0.42); background: #f5f3ff; color: #5b21b6; }
+.root :global(.cd-auth-tier-premium) { border-color: rgba(190, 24, 93, 0.42); background: #fff1f2; color: #9f1239; }
+.root :global(.cd-auth-tier-standard) { border-color: rgba(146, 64, 14, 0.42); background: #fffbeb; color: #78350f; }
+.root :global(.cd-auth-tier-free) { border-color: rgba(71, 85, 105, 0.42); background: #f1f5f9; color: #334155; }
 
 :global(html[data-cd-theme="neo"]) .root :global(.cd-auth-name) { color: var(--gh-ink); }
 :global(html[data-cd-theme="neo"]) .root :global(.cd-auth-email) { color: var(--gh-muted); }
