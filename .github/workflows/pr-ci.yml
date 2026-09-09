@@ -924,6 +924,7 @@ jobs:
           npm run verify:pass-snapshot
           npm run verify:phone-encryption
           npm run verify:signup-phone-required
+          npm run verify:staging-llm-mock
 
       # 배포 파이프라인 자체의 회귀. 이 가드가 죽으면 증상이 "배포가 그냥 잘 됨"이라
       # 아무도 모르고, 다음 사고는 프로덕션에서 코드가 사라지는 형태로 온다.
