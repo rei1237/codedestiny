@@ -1,14 +1,14 @@
 ---
-status: active
+status: done
 updated: 2026-09-09
-next: #1860 최신 HEAD CI를 확인하고, 추가 renderer 전수 조사는 별도 범위로 진행. 머지·배포는 보류.
+next: #1860 머지 후 스테이징 SHA·정상 응답을 확인하고, 추가 renderer 전수 조사는 별도 범위로 진행.
 ---
 
 # P3 후속 locale 경계 조사
 
 ## 조사 이후 승인된 구현
 
-사용자가 “수정 진행해서 #1860에 올려서 마무리”를 승인했다. 아래 조사 당시의 구현·CI 보류는 이 범위에서 해제했다. PR 머지·배포 보류, 기존 워크트리 사용, 실 LLM·결제·운영 DB 금지는 유지한다.
+사용자가 “수정 진행해서 #1860에 올려서 마무리”를 승인했고, 현재 후속 요청으로 PR 머지까지 진행한다. 기존 워크트리 사용, 프로덕션 승격 별도 승인, 실 LLM·결제·운영 DB 금지는 유지한다.
 
 - `app/hooks/useLocaleRequestScope.ts`: 정규화한 locale와 이벤트 세대를 함께 대조한다. ko→en→ko 전환, 언마운트 이후 응답을 차단하고 같은 locale의 중복 이벤트는 무시한다.
 - `app/fusion-fortune/FusionFortuneClient.tsx`: SSE 단계/결과, 복구 GET, 재열람 GET, 완료 후 이동을 보호한다. 새 controller와 이전 복구 GET의 경합도 차단한다. locale 전환은 결제 requestId/저장 body를 지우지 않는다. 새 재시도 body에는 최초 생성 locale도 보존하여 새로고침·2단계 재개가 다른 언어의 장을 섞지 않도록 한다. locale 없는 과거 body는 일괄 변환하지 않는다.
