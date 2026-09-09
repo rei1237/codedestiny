@@ -67,6 +67,22 @@ export function explainTier(files) {
   return risk.rows.filter((row) => row.level === risk.level).map((row) => ({ file: row.file, reason: row.reason }));
 }
 
+// 평문 문서는 fast lane의 문서 신선도 검사만으로 충분하다. 컨텍스트·handoff·개발
+// 계약 문서는 정적 가드가 읽으므로 예외로 남긴다. 파일을 못 찾으면 fail-closed 한다.
+export function shouldRunStaticGuards(files) {
+  const list = (files || []).map((file) => String(file || "").replace(/\\/g, "/")).filter(Boolean);
+  if (!list.length) return true;
+  return list.some((file) => !/^(?:docs\/(?!context\/|handoff\/|dev\/).+|[^/]+\.mdx?)$/i.test(file));
+}
+
+// Markdown-only PR은 코드 타입체크·lint가 결과를 바꾸지 않는다. 계약 문서는 정적 가드,
+// 평문 문서는 신선도 검사로 각각 필요한 문서 검증을 유지한다. 파일을 못 찾으면 fail-closed 한다.
+export function shouldRunFastChecks(files) {
+  const list = (files || []).map((file) => String(file || "").replace(/\\/g, "/")).filter(Boolean);
+  if (!list.length) return true;
+  return list.some((file) => !/\.mdx?$/i.test(file));
+}
+
 function changedFiles() {
   const base = argValue("base") || process.env.PR_BASE_SHA || "";
   const head = argValue("head") || process.env.PR_HEAD_SHA || "HEAD";
@@ -115,6 +131,15 @@ function selfTest() {
   }
   if (!explainTier(["worker/routes/payments.js"])[0].reason) throw new Error("explainTier must give a reason");
   if (!explainTier([])[0].reason.includes("fail closed")) throw new Error("empty change set must explain the fail-closed default");
+  if (shouldRunFastChecks(["docs/guide.md"])) {
+    throw new Error("markdown-only changes should skip fast checks");
+  }
+  if (!shouldRunFastChecks([]) || !shouldRunFastChecks(["docs/guide.md", "app/page.tsx"]) || !shouldRunFastChecks(["docs/guide.md", "styles/site.css"])) {
+    throw new Error("unknown or code changes must keep fast checks");
+  }
+  if (shouldRunStaticGuards(["docs/guide.md"]) || !shouldRunStaticGuards(["docs/context/delivery-and-ci.md"])) {
+    throw new Error("plain and contract documentation guard routing drifted");
+  }
   console.log(`[resolve-ci-tier] self-test passed (${cases.length} cases)`);
 }
 
@@ -125,6 +150,8 @@ function main() {
   // `full-ci` 라벨은 티어를 올리기만 한다. 내리는 길은 두지 않는다 — 그건 게이트를 끄는 버튼이다.
   const forced = String(process.env.CD_FORCE_CRITICAL || "").trim().toLowerCase() === "true";
   const tier = forced ? "critical" : resolveTier(files);
+  const runsFast = forced || shouldRunFastChecks(files);
+  const runsGuards = shouldRunStaticGuards(files);
   const config = TIERS[tier];
   const reasons = forced
     ? [{ file: "(full-ci 라벨)", reason: "사람이 티어를 critical 로 올렸습니다" }]
@@ -140,15 +167,19 @@ function main() {
       process.env.GITHUB_OUTPUT,
       [
         `tier=${tier}`,
+        `runs_fast=${runsFast}`,
         `runs_build=${config.runsBuild}`,
         `runs_critical=${config.runsCritical}`,
+        `runs_guards=${runsGuards}`,
         `file_count=${files.length}`,
       ].join("\n") + "\n",
     );
   }
 
   if (process.env.GITHUB_STEP_SUMMARY) {
-    const what = tier === "critical"
+    const what = !runsFast
+      ? (runsGuards ? "문서 신선도 · 정적 가드" : "문서 신선도")
+      : tier === "critical"
       ? "typecheck · lint · build · 전체 테스트 · 배포 설정 가드 · 자동 Preview"
       : tier === "standard"
         ? "typecheck · lint · build"
