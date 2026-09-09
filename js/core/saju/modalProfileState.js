@@ -118,10 +118,17 @@ function _resolveSukuyoLunarObj(profile) {
   var l = profile.location || {};
 
   try {
-    if (typeof KasiEngine !== 'undefined' && KasiEngine.solarToLunarFromParts) {
+    if ((b.calType || 'solar') === 'solar' && typeof KasiEngine !== 'undefined' && KasiEngine.solarToLunarFromParts) {
       var direct = KasiEngine.solarToLunarFromParts(KasiEngine.partsOf(b.year, b.month, b.day, b.hour || 12, b.minute || 0, 0));
       if (direct && direct.year && direct.month && direct.day) {
-        return Promise.resolve(direct);
+        return Promise.resolve(Object.assign({}, direct, {
+          solarYear: Number(b.year), solarMonth: Number(b.month), solarDay: Number(b.day),
+          hour: b.hour != null ? Number(b.hour) : 12,
+          minute: b.minute != null ? Number(b.minute) : 0,
+          timezoneOffset: l.tzOffset != null ? Number(l.tzOffset) : 9,
+          latitude: l.lat != null ? Number(l.lat) : 37.5665,
+          longitude: l.lng != null ? Number(l.lng) : 126.978
+        }));
       }
     }
   } catch (e) {
@@ -142,13 +149,20 @@ function _resolveSukuyoLunarObj(profile) {
       tzOffsetHours: l.tzOffset != null ? l.tzOffset : 9
     }, { setCurrent: false, localOnly: false })
       .then(function (ctx) {
-        if (ctx && ctx.lunar && ctx.lunar.year && ctx.lunar.month && ctx.lunar.day) {
-          return {
+        if (ctx && ctx.lunar && ctx.lunar.year && ctx.lunar.month && ctx.lunar.day && ctx.solar && ctx.solar.year && ctx.solar.month && ctx.solar.day) {
+          return Object.assign({}, {
             year: ctx.lunar.year,
             month: ctx.lunar.month,
             day: ctx.lunar.day,
             isLeap: !!ctx.lunar.isLeap
-          };
+          }, {
+            solarYear: Number(ctx.solar.year), solarMonth: Number(ctx.solar.month), solarDay: Number(ctx.solar.day),
+            hour: b.hour != null ? Number(b.hour) : 12,
+            minute: b.minute != null ? Number(b.minute) : 0,
+            timezoneOffset: l.tzOffset != null ? Number(l.tzOffset) : 9,
+            latitude: l.lat != null ? Number(l.lat) : 37.5665,
+            longitude: l.lng != null ? Number(l.lng) : 126.978
+          });
         }
         return null;
       })
@@ -181,7 +195,22 @@ function _renderSukuyoSection(profile) {
   setTimeout(function () {
     _resolveSukuyoLunarObj(profile)
       .then(function (lunarObj) {
-        if (typeof renderSukuyo === 'function') renderSukuyo(null, null, null, lunarObj, null, profile);
+        if (!lunarObj || typeof window.__cdCalculateSukuyoAstronomy !== 'function') {
+          if (typeof renderSukuyo === 'function') renderSukuyo(null, null, null, null, null, profile);
+          return;
+        }
+        return window.__cdCalculateSukuyoAstronomy({
+          year: lunarObj.solarYear != null ? lunarObj.solarYear : profile.birth.year,
+          month: lunarObj.solarMonth != null ? lunarObj.solarMonth : profile.birth.month,
+          day: lunarObj.solarDay != null ? lunarObj.solarDay : profile.birth.day,
+          hour: lunarObj.hour != null ? lunarObj.hour : 12,
+          minute: lunarObj.minute != null ? lunarObj.minute : 0,
+          timezoneOffset: lunarObj.timezoneOffset != null ? lunarObj.timezoneOffset : 9,
+          latitude: lunarObj.latitude != null ? lunarObj.latitude : 37.5665,
+          longitude: lunarObj.longitude != null ? lunarObj.longitude : 126.978
+        }).then(function (astronomy) {
+          if (typeof renderSukuyo === 'function') renderSukuyo(null, null, null, Object.assign({}, lunarObj, astronomy), null, profile);
+        });
       })
       .catch(function (e) {
         console.warn('[Sukuyo] 렌더 준비 실패:', e);

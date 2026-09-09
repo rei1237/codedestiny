@@ -8,11 +8,17 @@
 import { buildAstrologyPromptFacts, buildVedicPromptFacts, type AstroFactsInput } from "./astro-prompt-facts";
 import { buildSajuPromptFacts } from "./saju-prompt-facts";
 import { buildSukuyoPromptFacts } from "./sukuyo-prompt-facts";
+import type { SukuyoPromptAstronomy } from "./sukuyo-prompt-astronomy";
 import { buildZiweiPromptFacts } from "./ziwei-prompt-facts";
 
 export type ComprehensiveFactsInput = AstroFactsInput & {
   gender?: string;
   systems?: string[];
+  moonLongitude?: number;
+  partnerMoonLongitude?: number;
+  partnerLeapMonth?: boolean;
+  astronomy?: SukuyoPromptAstronomy | null;
+  partnerAstronomy?: SukuyoPromptAstronomy | null;
 };
 
 /** 도구의 "활용할 운세 체계" 선택지 → 내부 키. 표에 없는 값은 무시한다. */
@@ -74,7 +80,19 @@ export async function buildComprehensivePromptFacts(input: ComprehensiveFactsInp
     if (astrologyBlock) blocks.push(headerAndData(astrologyBlock));
     if (vedicBlock) blocks.push(headerAndData(vedicBlock));
     if (selected.has("sukuyo")) {
-      blocks.push(headerAndData(buildSukuyoPromptFacts({ birthDate: input.birthDate, calendarType: input.calendarType })));
+      blocks.push(headerAndData(buildSukuyoPromptFacts({
+        birthDate: input.birthDate,
+        calendarType: input.calendarType,
+        birthTime: input.birthTime,
+        birthTimeUnknown: input.birthTimeUnknown,
+        birthPlace: input.birthPlace,
+        birthTimezone: input.birthTimezone,
+        moonLongitude: input.moonLongitude,
+        partnerMoonLongitude: input.partnerMoonLongitude,
+        partnerLeapMonth: input.partnerLeapMonth,
+        astronomy: input.astronomy,
+        partnerAstronomy: input.partnerAstronomy,
+      })));
     }
 
     // 사주·자미두수 엔진은 한국 표준시 벽시계만 받는다. 해외 표준시를 고른 사용자에게

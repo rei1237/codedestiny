@@ -1,7 +1,8 @@
 import { solarToLunar } from "../../lib/korean-calendar/index.js";
 import { buildAstroLocalChartJson, normalizeAstroPremiumBirthInput, toSwissChartInputFromBirthInput } from "./astro-premium-generator.js";
 import { calculateLifeBookAiSaju } from "./life-book-ai-saju.js";
-import { buildSukuyoFromLunar, getSukuyoByIndex, relationFromForwardDistance } from "./sukuyo-premium.js";
+import { getSukuyoByIndex, relationFromForwardDistance } from "./sukuyo-premium.js";
+import { calculateSukuyoForMoment } from "./sukuyo-astronomy.js";
 import { getSwissVedicPlanets, getSwissWesternChart } from "./swiss-ephemeris.js";
 import { buildVimshottariDasha } from "./vedic-derived-calculations.js";
 import { buildVedicLocalChartJson } from "./vedic-premium-generator.js";
@@ -264,7 +265,7 @@ function toLunarParts(birthInfo = {}) {
 
   // 🔴 음력은 한국 음양력 코어(KST 삭 기준)가 낸다. 중국 음력(lunar-javascript)은 삭이 CST 23시대에
   //    들면 그 달 전체가 하루 밀린다 — 실측(2026-08-27, 1950~2035 28,896일) 3.67% 가 갈리고
-  //    27수 본명숙이 그대로 옆 칸으로 간다. 생시는 음력일을 바꾸지 않으므로 코어는 날짜만 받는다.
+  //    27수 본명숙은 출생 시각을 포함한 공통 Swiss 황경 계산 결과를 그대로 옆 칸으로 전달한다.
   const lunar = solarToLunar(date.year, date.month, date.day);
   if (!lunar) return null; // 코어 지원 범위(1900~2100) 밖 — 숙요 렌즈가 통째로 빠진다.
   return {
@@ -804,14 +805,22 @@ export async function buildKarmaDestinyIntegratedResult(env, birthInfo = {}, opt
     lenses.saju = lensBlock("saju", { confidence: "none", omittedFields: ["all"] });
   }
 
-  // ── 숙요 — 출생시간·출생지와 완전 무관하므로 항상 온전하다 ──────────────
+  // ── 숙요 — 입력 순간을 UTC/JD로 고정하고 Swiss 달 황경에서 산출한다 ────────
   try {
-    const lunarParts = toLunarParts(birthInfo);
-    const natal = lunarParts
-      ? buildSukuyoFromLunar(lunarParts.lunarMonth, lunarParts.lunarDay, {
-        isLeapMonth: lunarParts.isLeapMonth,
-        source: lunarParts.source,
-      })
+    const birthDate = parseBirthDate(birthInfo.birthDate);
+    const birthTime = parseBirthTime(birthInfo.birthTime);
+    const birthPlace = asObject(birthInfo.birthPlace);
+    const timezone = birthPlace.timezone || birthInfo.timezone || "Asia/Seoul";
+    const natal = birthDate
+      ? await calculateSukuyoForMoment(env, {
+        calendarType: clean(birthInfo.calendarType).toLowerCase() === "lunar" ? "lunar" : "solar",
+        year: birthDate.year, month: birthDate.month, day: birthDate.day,
+        hour: birthTime.hour, minute: birthTime.minute,
+        timezone,
+        timezoneOffset: Number.isFinite(Number(birthPlace.timezoneOffset)) ? Number(birthPlace.timezoneOffset) : undefined,
+        latitude: birthPlace.latitude, longitude: birthPlace.longitude,
+        birthTimeKnown: !birthTimeUnknown,
+      }, options)
       : null;
     if (natal) {
       lenses.sukuyo = lensBlock("sukuyo", {
@@ -820,7 +829,7 @@ export async function buildKarmaDestinyIntegratedResult(env, birthInfo = {}, opt
         patternSummary: summarizeSukuyo(natal),
       });
     } else {
-      limitations.push({ system: "sukuyo", code: "SUKUYO_LUNAR_UNAVAILABLE", message: "생년월일에서 음력 일자를 구하지 못해 본명숙을 확정하지 못했습니다." });
+      limitations.push({ system: "sukuyo", code: "SUKUYO_ASTRONOMY_UNAVAILABLE", message: "입력 시각을 UTC/JD로 변환하거나 달 황경을 계산하지 못해 본명숙을 확정하지 못했습니다." });
       lenses.sukuyo = lensBlock("sukuyo", { confidence: "none", omittedFields: ["all"] });
     }
   } catch (error) {

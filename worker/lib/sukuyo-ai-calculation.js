@@ -4,7 +4,6 @@ import {
   relationFromForwardDistance,
 } from "./sukuyo-relation-core.js";
 
-const SUKUYO_MONTH_START = [11, 13, 15, 17, 19, 21, 23, 25, 0, 2, 4, 7];
 
 const SUKUYO_MANSIONS = [
   { nameKo: "각", nameHan: "角", direction: "동방", element: "목", keywords: ["개척", "시작", "비전"], strengths: ["시작 추진력", "선도 감각"], shadows: ["조급함", "과속"] },
@@ -137,23 +136,6 @@ function buildRoleGuide(relationType, aRole, bRole, shortestDistance) {
   return { meAction: "닮은 리듬이 강하므로 편안함 속에서도 감정 표현을 미루지 않는 것이 좋습니다.", otherAction: "익숙함 때문에 상대의 변화를 놓치지 않도록 주기적으로 마음을 확인하세요." };
 }
 
-function buildSukuyoFromLunar(lunarMonthRaw, lunarDayRaw, options = {}) {
-  const lunarMonth = Math.max(1, Math.min(12, Math.abs(Number(lunarMonthRaw) || 1)));
-  const lunarDay = Math.max(1, Math.min(30, Math.abs(Number(lunarDayRaw) || 1)));
-  const start = SUKUYO_MONTH_START[lunarMonth - 1] ?? 11;
-  const index = (start + lunarDay - 1) % 27;
-  const item = getSukuyoByIndex(index);
-  if (!item) return null;
-  return {
-    index,
-    ...item,
-    lunarMonth,
-    lunarDay,
-    isLeapMonth: Boolean(options.isLeapMonth),
-    source: String(options.source || "korean-calendar-core"),
-  };
-}
-
 function buildSukuyoAiCompatibility(personASukuyo, personBSukuyo) {
   const aIndex = normalizeIndex(personASukuyo?.index);
   const bIndex = normalizeIndex(personBSukuyo?.index);
@@ -189,6 +171,5 @@ function buildSukuyoAiCompatibility(personASukuyo, personBSukuyo) {
 
 export {
   buildSukuyoAiCompatibility,
-  buildSukuyoFromLunar,
   describeSukuyoDirectionalRelation,
 };

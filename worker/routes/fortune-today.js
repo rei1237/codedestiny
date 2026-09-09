@@ -4,7 +4,7 @@
 // 오늘의 길흉을 낸다. 이 파일에는 점술 로직이 없다 — 배선만 한다.
 //
 //   사주   calculateLifeBookAiSaju(명식 정본) + judgeSajuDayFortune(일진 길흉)
-//   숙요점 solarToLunar()(기본 숙요점과 같은 음력 변환) + buildSukuyoFromLunar + judgeDayFortune
+//   숙요점 Swiss 항성 달 황경 + buildSukuyoFromMoonLongitude + judgeDayFortune
 //   베다점 Swiss Ephemeris 시데리얼 달 + assembleTodayMoon(= /api/nakshatra/today 와 동일 경로)
 //
 // 무료·무인증이다. 결제 게이트도 로그인 요구도 걸지 않는다(홈 퍼널 최상단).
@@ -19,15 +19,14 @@
 //   detail=1     각 점술의 sections(전문 상세)를 함께 싣는다. 플래그가 없으면 홈 카드용
 //                highlights(≤3)까지만 실어 홈 payload 를 가볍게 유지한다.
 
-// 🔴 음력일도 한국 음양력 코어에서 나온다(1900~2100 전수 73,414일 중 2,997일 4.08% 가
-// 중국 음력과 갈린다 — 실측 2026-08-27). 27수는 음력 월·일로 직접 결정되므로 그 하루가 다른 수다.
+// 🔴 음력일은 화면 표시 메타데이터에만 사용한다. 27수는 공통 Swiss 항성 달 황경으로 직접 결정한다.
 // 🔴 일주는 한국 음양력 코어에서 잡는다. 값은 안 움직인다 — 정오 일주는 lunar-javascript 와
 // 코어가 표본 7,224건(1950~2035)에서 전건 일치한다(실측 2026-08-27). 달력 축을 하나로 두는 것이 목적이다.
 import { BRANCH_HANJA, STEM_HANJA, ganji, solarToLunar } from "../../lib/korean-calendar/index.js";
 import { getRoutePath, json, methodNotAllowed, notFound } from "../lib/http.js";
 import { calculateLifeBookAiSaju } from "../lib/life-book-ai-saju.js";
 import { judgeSajuDayFortune } from "../lib/saju-day-fortune.js";
-import { buildSukuyoFromLunar } from "../lib/sukuyo-premium.js";
+import { buildSukuyoFromMoonLongitude, calculateSukuyoForMoment } from "../lib/sukuyo-astronomy.js";
 import { judgeDayFortune } from "../lib/sukuyo-relation-core.js";
 import { assembleTodayMoon } from "../lib/nakshatra-codex.js";
 import { getSwissVedicPlanets } from "../lib/swiss-ephemeris.js";
@@ -136,7 +135,7 @@ function parseBirthQuery(query) {
   };
 }
 
-// 기본 숙요점(worker/routes/sukuyo.js resolveSukuyoLunarFromProfile)과 같은 음력 변환.
+// 화면 표시용 음력 변환. 숙요 판정 자체는 공통 Swiss 황경 계산 결과를 사용한다.
 // 프로필이 음력으로 입력됐으면 변환하지 않고 그대로 쓴다.
 function toLunarParts(input) {
   if (input.calendarType === "lunar" || input.calendarType === "lunar_leap") {
@@ -210,8 +209,7 @@ function buildSaju(input, today, wantDetail) {
   }, buildTodaySajuDetail({ verdict, natal }), wantDetail);
 }
 
-function buildSukuyo(natalIndex, natalSukuyo, todayLunar, wantDetail) {
-  const todaySukuyo = buildSukuyoFromLunar(todayLunar.month, todayLunar.day, { isLeapMonth: todayLunar.isLeap, source: "korean-calendar-core" });
+function buildSukuyo(natalIndex, natalSukuyo, todaySukuyo, wantDetail) {
   if (!todaySukuyo) return null;
 
   if (natalIndex == null) {
@@ -335,9 +333,12 @@ async function buildTodayHubPayload(request, env, input, wantDetail) {
 
   const today = kstParts(new Date());
   const todayLunar = toLunarParts({ ...today, hour: 12, minute: 0, calendarType: "solar" });
-  const natalLunar = input ? toLunarParts(input) : null;
-  const natalSukuyo = natalLunar
-    ? buildSukuyoFromLunar(natalLunar.month, natalLunar.day, { isLeapMonth: natalLunar.isLeap, source: "korean-calendar-core" })
+  const natalSukuyo = input
+    ? await calculateSukuyoForMoment(env, {
+      ...input,
+      timezoneOffset: 9,
+      birthTimeKnown: !input.timeUnknown,
+    }, { requestUrl: request.url })
     : null;
   const natalIndex = Number.isInteger(Number(natalSukuyo?.index)) ? Number(natalSukuyo.index) : null;
 
@@ -348,8 +349,11 @@ async function buildTodayHubPayload(request, env, input, wantDetail) {
     console.warn("[today-hub-saju-skip]", String(error?.message || error).slice(0, 200));
   }
 
-  const sukuyo = buildSukuyo(natalIndex, natalSukuyo, todayLunar, wantDetail);
   const sky = await resolveTodaySky(env, today, natalIndex, request.url);
+  const todaySukuyo = sky?.moonLon != null
+    ? buildSukuyoFromMoonLongitude(sky.moonLon, { lunarMonth: todayLunar.month, lunarDay: todayLunar.day, isLeapMonth: todayLunar.isLeap })
+    : null;
+  const sukuyo = buildSukuyo(natalIndex, natalSukuyo, todaySukuyo, wantDetail);
   const vedic = buildVedic(sky, natalSukuyo?.nameKo ? `${natalSukuyo.nameKo}수` : "", wantDetail);
 
   if (!saju && !sukuyo && !vedic) return null;

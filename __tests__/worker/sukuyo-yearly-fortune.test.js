@@ -11,14 +11,31 @@ function runSukuyoProbe(body) {
   const unlockModuleUrl = pathToFileURL(path.resolve(__dirname, "../../worker/lib/content-unlocks.js")).href;
   const script = `
     (async function() {
+      const http = require("http");
+      const fs = require("fs");
+      const path = require("path");
+      const epheDir = path.resolve(process.cwd(), "public/js/vendor/sweph-wasm/ephe");
+      const server = http.createServer(function(req, res) {
+        const name = path.basename(new URL(req.url, "http://127.0.0.1").pathname);
+        const file = path.join(epheDir, name);
+        if (!file.startsWith(epheDir + path.sep) || !fs.existsSync(file)) { res.statusCode = 404; res.end(); return; }
+        res.end(fs.readFileSync(file));
+      });
+      await new Promise(function(resolve) { server.listen(0, "127.0.0.1", resolve); });
+      process.env.SWISS_EPHEMERIS_FILES_BASE_URL = "http://127.0.0.1:" + server.address().port + "/";
+      console.log = function() {};
+      try {
       const mod = await import(${JSON.stringify(moduleUrl)});
       const unlockUtils = await import(${JSON.stringify(unlockModuleUrl)});
       const utils = mod.__sukuyoYearlyTestUtils;
       const buildProfile = ${buildProfile.toString()};
-      const result = (function() {
+      const result = await (async function() {
         ${body}
       })();
       process.stdout.write(JSON.stringify(result));
+      } finally {
+        server.close();
+      }
     })().catch(function(error) {
       console.error(error && error.stack ? error.stack : error);
       process.exit(1);
@@ -101,7 +118,7 @@ describe("sukuyo yearly fortune", () => {
 
   test("locked preview omits full result but keeps paid teaser", () => {
     const preview = runSukuyoProbe(`
-      const full = utils.buildSukuyoYearlyFortuneResult({
+      const full = await utils.buildSukuyoYearlyFortuneResult({
         auth: { userId: "user-yearly-1" },
         profile: buildProfile(),
         targetYear: 2026,
@@ -206,9 +223,9 @@ describe("sukuyo yearly fortune", () => {
   // 500 을 '서버 혼잡'으로 표시했으므로 원인 추적이 막힌 채 결제 경로까지 죽었다.
   test("out-of-range birth date fails as 422, never as a status-less throw", () => {
     const result = runSukuyoProbe(`
-      function attempt(birth) {
+      async function attempt(birth) {
         try {
-          utils.buildSukuyoYearlyFortuneResult({
+          await utils.buildSukuyoYearlyFortuneResult({
             auth: { userId: "user-yearly-1" },
             profile: buildProfile({ birth }),
             targetYear: 2026,
@@ -220,12 +237,12 @@ describe("sukuyo yearly fortune", () => {
       }
       const base = { year: 1992, month: 7, day: 14, hour: 12, minute: 0, calType: "solar" };
       return {
-        monthZero: attempt({ ...base, month: 0 }),
-        monthNull: attempt({ ...base, month: null }),
-        dayZero: attempt({ ...base, day: 0 }),
-        monthThirteen: attempt({ ...base, month: 13 }),
-        lunarMonthZero: attempt({ ...base, month: 0, calType: "lunar" }),
-        missing: attempt({}),
+        monthZero: await attempt({ ...base, month: 0 }),
+        monthNull: await attempt({ ...base, month: null }),
+        dayZero: await attempt({ ...base, day: 0 }),
+        monthThirteen: await attempt({ ...base, month: 13 }),
+        lunarMonthZero: await attempt({ ...base, month: 0, calType: "lunar" }),
+        missing: await attempt({}),
       };
     `);
 
@@ -241,9 +258,9 @@ describe("sukuyo yearly fortune", () => {
   test("out-of-range birth clock is clamped, not rejected", () => {
     // 시·분은 본명숙 판정의 신원 값이 아니다. 거부하면 정상 프로필까지 막히므로 정오로 접는다.
     const result = runSukuyoProbe(`
-      function attempt(birth) {
+      async function attempt(birth) {
         try {
-          const full = utils.buildSukuyoYearlyFortuneResult({
+          const full = await utils.buildSukuyoYearlyFortuneResult({
             auth: { userId: "user-yearly-1" },
             profile: buildProfile({ birth }),
             targetYear: 2026,
@@ -255,10 +272,10 @@ describe("sukuyo yearly fortune", () => {
       }
       const base = { year: 1992, month: 7, day: 14, hour: 12, minute: 0, calType: "solar" };
       return {
-        negativeHour: attempt({ ...base, hour: -1 }),
-        hour24: attempt({ ...base, hour: 24 }),
-        minute99: attempt({ ...base, minute: 99 }),
-        noon: attempt(base),
+        negativeHour: await attempt({ ...base, hour: -1 }),
+        hour24: await attempt({ ...base, hour: 24 }),
+        minute99: await attempt({ ...base, minute: 99 }),
+        noon: await attempt(base),
       };
     `);
 

@@ -334,6 +334,13 @@ export interface AnimalDestinyInput {
   gender: "male" | "female" | "unknown";
   calendarType?: "solar" | "lunar";
   lunarLeap?: boolean;
+  /** 출생지·시간대가 있으면 시주/지역 태양시 계산에 함께 사용한다. */
+  timezone?: string;
+  timezoneOffset?: number;
+  timezoneOffsetMinutes?: number;
+  latitude?: number;
+  longitude?: number;
+  standardMeridian?: number;
 }
 
 export interface TwelveStagePillars {

@@ -2,7 +2,8 @@
 // 삭이 CST 23시대에 들면 그 달 전체의 음력일이 하루 밀린다 — 실측 2026-08-27 기준 1900~2100 전수
 // 73,414일 중 2,997일(4.08%)이 갈린다. 27수는 음력 월·일로 직접 결정되므로 그 하루가 곧 다른 수(宿)다.
 import { lunarToSolar, solarToLunar } from "@/lib/korean-calendar";
-import { buildSukuyoAiCompatibility, buildSukuyoFromLunar, describeSukuyoDirectionalRelation } from "@/worker/lib/sukuyo-ai-calculation.js";
+import { buildSukuyoAiCompatibility, describeSukuyoDirectionalRelation } from "@/worker/lib/sukuyo-ai-calculation.js";
+import { buildSukuyoFromMoonLongitude } from "@/worker/lib/sukuyo-astronomy.js";
 import type {
   FortuneTeaHouseCalendarType,
   FortuneTeaHouseConsultRequest,
@@ -125,11 +126,13 @@ function lunarForPerson(person: FortuneTeaHouseSukuyoPersonInput): LunarBirth {
   };
 }
 
-function calculatePersonSukuyo(person: FortuneTeaHouseSukuyoPersonInput) {
+function calculatePersonSukuyo(person: FortuneTeaHouseSukuyoPersonInput, moonLongitude?: number) {
   const lunar = lunarForPerson(person);
-  const sukuyo = buildSukuyoFromLunar(lunar.lunarMonth, lunar.lunarDay, {
+  const sukuyo: any = buildSukuyoFromMoonLongitude(moonLongitude, {
+    lunarMonth: lunar.lunarMonth,
+    lunarDay: lunar.lunarDay,
     isLeapMonth: lunar.isLeapMonth,
-    source: lunar.source,
+    source: "swiss-ephemeris-lahiri",
   });
   if (!sukuyo) throw new Error("SUKUYO_EMPTY");
   return { ...sukuyo, lunarYear: lunar.lunarYear };
@@ -319,15 +322,15 @@ function buildUnavailableSukuyo(request: FortuneTeaHouseConsultRequest, reason: 
   };
 }
 
-export function buildFortuneTeaSukuyoCompatibility(request: FortuneTeaHouseConsultRequest): FortuneTeaSukuyoCompatibilitySnapshot {
+export function buildFortuneTeaSukuyoCompatibility(request: FortuneTeaHouseConsultRequest, options: { userMoonLongitude?: number; partnerMoonLongitude?: number } = {}): FortuneTeaSukuyoCompatibilitySnapshot {
   const input = request.sukuyo;
   if (!input?.user?.birthDate || !input?.partner?.birthDate || !input.user.calendarType || !input.partner.calendarType) {
     return buildUnavailableSukuyo(request, "두 사람의 생년월일과 달력 기준이 모두 놓여야 27숙 인연의 흐름을 열 수 있습니다.");
   }
 
   try {
-    const userSukuyo = calculatePersonSukuyo(input.user);
-    const partnerSukuyo = calculatePersonSukuyo(input.partner);
+    const userSukuyo = calculatePersonSukuyo(input.user, options.userMoonLongitude);
+    const partnerSukuyo = calculatePersonSukuyo(input.partner, options.partnerMoonLongitude);
     const compatibility = buildSukuyoAiCompatibility(userSukuyo, partnerSukuyo);
     const guide = relationGuide(compatibility?.relationType);
     const user = buildPersonSnapshot(input.user, "나", userSukuyo);

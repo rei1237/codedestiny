@@ -256,8 +256,8 @@ describe("individual guardian adapters", () => {
     expect(result.lagnaSummary).toBeUndefined();
   });
 
-  it("projects sukuyo relationship material from the existing lunar adapter", () => {
-    const result = adapterModules.sukuyo.buildSukuyoAdapter(fixtures.baseInput, {
+  it("projects sukuyo relationship material from the common astronomy adapter", async () => {
+    const result = await adapterModules.sukuyo.buildSukuyoAdapter(fixtures.baseInput, {
       calculator: () => ({ nameKo: "synthetic mansion", keywords: ["거리"] }),
     });
     expect(result.birthMansion).toBe("synthetic mansion");

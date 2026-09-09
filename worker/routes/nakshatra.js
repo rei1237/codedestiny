@@ -6,7 +6,7 @@
 //
 // 위 두 무료 라우트는 결제 게이팅·인증이 없다. compat 만 인증 + 결제 증빙 확인을 거친다.
 // 순수 조립 로직은 worker/lib/nakshatra-codex.js(WASM 비의존)에 있고, 이 파일은
-// Swiss WASM(시데리얼 Lahiri) + 한국 음양력 코어(음력) I/O만 배선한다.
+// Swiss WASM(시데리얼 Lahiri) + 한국 음양력 코어(표시용 음력) I/O만 배선한다.
 
 import { solarToLunar } from "../../lib/korean-calendar/index.js";
 import { handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
@@ -14,7 +14,7 @@ import { requireAuth } from "../lib/auth.js";
 import { getSwissVedicPlanets } from "../lib/swiss-ephemeris.js";
 import { assembleNatalCodex, assembleTodayMoon } from "../lib/nakshatra-codex.js";
 import { assembleNakshatraCompat } from "../lib/nakshatra-compat.js";
-import { buildSukuyoFromLunar } from "../lib/sukuyo-premium.js";
+import { buildSukuyoFromMoonLongitude } from "../lib/sukuyo-astronomy.js";
 import { verifyPerUsePayment, logPerUsePaymentProof } from "../lib/nakshatra-paid-access.js";
 
 // 레지스트리(worker/lib/paid-feature-registry.js) 등록값과 일치해야 한다.
@@ -40,13 +40,16 @@ function normalizeBirthBody(body) {
   };
 }
 
-// 한 사람의 달 시데리얼 황경 + 숙요 객체를 구한다(Swiss + 음력).
+// 한 사람의 달 시데리얼 황경 + 숙요 객체를 구한다(Swiss 공통 황경 좌표).
 async function resolvePersonMoonAndSukuyo(env, input, requestUrl) {
   const swiss = await getSwissVedicPlanets(env, input, { requestUrl });
   const moonLon = Number(swiss?.planets?.Moon);
   if (!Number.isFinite(moonLon)) return null;
   const lunar = lunarFromInput(input);
-  const sukuyo = buildSukuyoFromLunar(lunar.month, lunar.day, { isLeapMonth: lunar.isLeap, source: "korean-calendar-core" });
+  const sukuyo = buildSukuyoFromMoonLongitude(moonLon, {
+    lunarMonth: lunar.month, lunarDay: lunar.day, isLeapMonth: lunar.isLeap,
+    source: "swiss-ephemeris-lahiri",
+  });
   return { moonLon, sukuyo, gender: input.gender };
 }
 

@@ -6694,7 +6694,7 @@ function renderLottoNumbers(natal, bazi){
  * LUNAR-SOLAR HYBRID ENGINE: SUKUYO & QUANTUM SAJU
  * ───────────────────────────────────────────────────────── */
 function calcSukuyoData(lunarObj, opt = { leapRule: 'current' }) {
-    if (!lunarObj || !lunarObj.month || !lunarObj.day) return null;
+    if (!lunarObj || (!lunarObj.month || !lunarObj.day) && !Number.isFinite(Number(lunarObj.moonEclipticLongitude))) return null;
 
     const mansions27 = [
         { name: "각", ch_name: "角" }, { name: "항", ch_name: "亢" }, { name: "저", ch_name: "氐" },
@@ -6714,6 +6714,12 @@ function calcSukuyoData(lunarObj, opt = { leapRule: 'current' }) {
     let m_day = parseInt(lunarObj.day, 10);
     let isLeap = !!lunarObj.isLeap;
 
+    if (Number.isFinite(Number(lunarObj.moonEclipticLongitude)) && typeof window.__cdBuildSukuyoFromMoonLongitude === 'function') {
+        const astronomy = window.__cdBuildSukuyoFromMoonLongitude(lunarObj.moonEclipticLongitude);
+        if (!astronomy) return null;
+        lunarObj.lunarMansion = astronomy.mansionIdx;
+    }
+
     if (isLeap && opt.leapRule === 'previous') {
         m_month = m_month === 1 ? 12 : m_month - 1;
     }
@@ -6721,7 +6727,9 @@ function calcSukuyoData(lunarObj, opt = { leapRule: 'current' }) {
     let startIdx = monthStartOffsets[m_month - 1];
     if (startIdx === undefined) startIdx = 11;
 
-    let finalIdx = (startIdx + m_day - 1) % 27;
+    let finalIdx = Number.isFinite(Number(lunarObj.moonEclipticLongitude))
+      ? Number(lunarObj.lunarMansion)
+      : (startIdx + m_day - 1) % 27;
     let m_data = mansions27[finalIdx];
     let m = m_data.name;
 
@@ -9963,7 +9971,7 @@ function syRenderCanonicalDashboard(canonicalPayload, reading) {
       : '')
     + '<div class="sy-canon-chip-row">' + renderTagList(temperament) + '</div>'
     + '<div class="sy-canon-chip-row">' + renderTagList(keywords) + '</div>'
-    + '<p class="sy-canon-footnote">계산 기준: 음력 생일 기반 27숙 · 윤달은 현재 음력 월 기준 · 생시는 기본 숙 산출에 미반영 · 오늘 리듬은 날짜 기반 상징 참고</p>'
+    + '<p class="sy-canon-footnote">계산 기준: 출생 장소·시각을 UTC/JD로 정규화한 항성 달 황경 기반 27숙 · 음력은 표시용 · 오늘 리듬은 12:00 KST 대표 시각 참고</p>'
     + '</div>'
     + '<div class="sy-canon-panel" id="syCanonPanelRhythm" role="tabpanel" aria-labelledby="syCanonTabRhythm" data-sycanon-panel="rhythm">'
     + '<div class="sy-canon-rhythm-grid">'

@@ -1,6 +1,8 @@
 import { lunarToSolar } from "@/lib/korean-calendar";
 import { nodeTerms } from "@/lib/korean-calendar";
 import { cmsRecord } from "@/lib/cms/build-text";
+import { standardMeridianForTimezone } from "@/worker/lib/birth-time-context.js";
+import { wallClockToUtcMillis } from "@/worker/lib/iana-offset.js";
 
 const LOCAL_SAJU_CALCULATOR_TEXT_TRANSLATIONS = {
   ko: {
@@ -493,7 +495,19 @@ function normalizeTimezone(input: LocalSajuInput) {
       ? Number(input.timezoneOffset)
       : undefined;
   const offsetMinutes = explicitOffset == null
-    ? (TIMEZONE_OFFSETS[timezone] ?? TIMEZONE_OFFSETS[DEFAULT_TIMEZONE])
+    ? (() => {
+      try {
+        return wallClockToUtcMillis({
+          year: input.year,
+          month: input.month,
+          day: input.day,
+          hour: input.hasTime && Number.isFinite(input.hour) ? Number(input.hour) : 12,
+          minute: input.hasTime && Number.isFinite(input.minute) ? Number(input.minute) : 0,
+        }, timezone).offsetHours * 60;
+      } catch {
+        return TIMEZONE_OFFSETS[timezone] ?? TIMEZONE_OFFSETS[DEFAULT_TIMEZONE];
+      }
+    })()
     : Math.abs(explicitOffset) <= 16
       ? explicitOffset * 60
       : explicitOffset;
@@ -570,7 +584,9 @@ function applyHourPillarTimeCorrection(
   if (policy === "KST_CLOCK_TIME") return null;
   const longitude = resolveHourPillarLongitude(input, timezoneOffsetMinutes);
   if (longitude == null) return null;
-  const standardMeridian = Number.isFinite(input.standardMeridian) ? Number(input.standardMeridian) : (timezoneOffsetMinutes / 60) * 15;
+  const standardMeridian = Number.isFinite(input.standardMeridian)
+    ? Number(input.standardMeridian)
+    : standardMeridianForTimezone(input.timezone || DEFAULT_TIMEZONE, timezoneOffsetMinutes / 60, year, month, day, hour, minute);
   const equationOfTime = policy === "TRUE_SOLAR_TIME" ? equationOfTimeMinutes(year, month, day) : 0;
   const correctedTotal = hour * 60 + minute + (longitude - standardMeridian) * 4 + equationOfTime;
   const roundedTotal = Math.round(correctedTotal);
@@ -5408,7 +5424,9 @@ export function calculateLocalSaju(input: LocalSajuInput): LocalSajuResult {
           policy: hourPillarTimePolicy,
           status: "applied",
           longitude: resolveHourPillarLongitude(input, timezoneInfo.offsetMinutes),
-          standardMeridian: Number.isFinite(input.standardMeridian) ? Number(input.standardMeridian) : (timezoneInfo.offsetMinutes / 60) * 15,
+          standardMeridian: Number.isFinite(input.standardMeridian)
+            ? Number(input.standardMeridian)
+            : standardMeridianForTimezone(input.timezone || DEFAULT_TIMEZONE, timezoneInfo.offsetMinutes / 60, standardClock.year, standardClock.month, standardClock.day, standardClock.hour, standardClock.minute),
           // 균시차는 TRUE_SOLAR_TIME 일 때만 실제로 더해진다. LOCAL_MEAN_TIME 은 경도 보정만 쓴다.
           equationOfTimeMinutes: hourPillarTimePolicy === "TRUE_SOLAR_TIME"
             ? equationOfTimeMinutes(standardClock.year, standardClock.month, standardClock.day)

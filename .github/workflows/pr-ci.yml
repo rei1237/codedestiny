@@ -244,6 +244,11 @@ jobs:
           npm run test:node
           npm run verify:quantum-card-cascade
 
+      # 숙요는 음력 일자표가 아니라 UTC/JD와 연속적인 Swiss 달 황경을 정본으로
+      # 사용한다. 시간 경계·27숙 매핑·공개 astronomy 경로를 실제 파일로 확인한다.
+      - name: Verify continuous Sukuyo astronomy core
+        run: npm run verify:sukuyo-astronomy
+
       # 🔴 이것은 **fast 잡**이어야 한다. 사이트맵을 어긋나게 만드는 것은 라우트 추가만이
       # 아니라 글 한 편, 공용 컴포넌트 한 줄이다(lastmod 서명이 소스 파일에서 나온다).
       # build 잡에 두면 티어가 fast 로 잡히는 문구·콘텐츠 변경에서 깨어나지 않는데, 그게 정확히

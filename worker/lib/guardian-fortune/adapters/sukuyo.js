@@ -1,10 +1,7 @@
-import { judgeDayFortune } from "../../sukuyo-relation-core.js";
-import { pickExpertFields } from "../expert-evidence.js";
-// 🔴 음력일은 한국 음양력 코어에서만 나온다. lunar-javascript 는 **중국 표준시(CST) 기준 중국 음력**이라
-// 삭이 CST 23시대에 들면 그 달 전체의 음력일이 하루 밀린다 — 실측 2026-08-27 기준 1900~2100 전수
-// 73,414일 중 2,997일(4.08%)이 갈린다. 27수는 음력 월·일로 직접 결정되므로 그 하루가 곧 다른 수(宿)다.
+// 음력 월·일은 결과 표시 메타데이터에만 사용한다. 숙 판정은 출생 장소·시각을
+// UTC/JD로 정규화한 뒤 공통 Swiss 항성 달 황경에서 직접 계산한다.
 import { solarToLunar } from "../../../../lib/korean-calendar/index.js";
-import { buildSukuyoFromLunar } from "../../sukuyo-ai-calculation.js";
+import { buildSukuyoFromMoonLongitude, calculateSukuyoForMoment } from "../../sukuyo-astronomy.js";
 import { nonEmptyText, text } from "../../guardian-fortune-adapter-utils.js";
 
 function dateParts(date) {
@@ -31,18 +28,61 @@ function mansionLabel(mansion) {
   return nonEmptyText(mansion?.nameKo || mansion?.name || mansion?.nameHan, 80);
 }
 
-export function buildSukuyoAdapter(input, options = {}) {
-  const calculate = options.calculator || buildSukuyoFromLunar;
-  const birth = lunarPartsForDate(input.birthDate, input.calendarType);
-  const today = lunarPartsForDate(input.targetDate, "solar");
-  const birthMansion = calculate(birth.lunarMonth, birth.lunarDay, {
-    isLeapMonth: birth.isLeapMonth,
-    source: "korean-calendar-core",
-  });
-  const todayMansion = calculate(today.lunarMonth, today.lunarDay, {
-    isLeapMonth: today.isLeapMonth,
-    source: "korean-calendar-core",
-  });
+function timeParts(value, fallbackHour = 12) {
+  const [hour, minute] = String(value || `${String(fallbackHour).padStart(2, "0")}:00`).split(":").map(Number);
+  return { hour: Number.isInteger(hour) ? hour : fallbackHour, minute: Number.isInteger(minute) ? minute : 0 };
+}
+
+function placeParts(input, options) {
+  const place = input.birthPlace || {};
+  return {
+    latitude: place.latitude,
+    longitude: place.longitude,
+    timezone: place.timezone || options.timezone || "Asia/Seoul",
+    birthPlace: place.city || place.name || undefined,
+  };
+}
+
+export async function buildSukuyoAdapter(input, options = {}) {
+  // calculator 는 테스트/명시적 어댑터 주입용이다. 실제 서비스 경로는 항상
+  // KST/현지시각 → UTC/JD → Swiss 항성 달 황경 코어를 탄다.
+  const calculate = options.calculator;
+  const place = placeParts(input, options);
+  const birthClock = timeParts(input.birthTime, 12);
+  const birthDate = dateParts(input.birthDate);
+  const targetDate = dateParts(input.targetDate);
+  let birthMansion;
+  let todayMansion;
+  if (calculate) {
+    const birth = lunarPartsForDate(input.birthDate, input.calendarType);
+    const today = lunarPartsForDate(input.targetDate, "solar");
+    birthMansion = await calculate(birth.lunarMonth, birth.lunarDay, {
+      isLeapMonth: birth.isLeapMonth,
+      source: "swiss-ephemeris-lahiri",
+      moonLongitude: options.birthMoonLongitude,
+    });
+    todayMansion = await calculate(today.lunarMonth, today.lunarDay, {
+      isLeapMonth: today.isLeapMonth,
+      source: "swiss-ephemeris-lahiri",
+      moonLongitude: options.targetMoonLongitude,
+    });
+  } else {
+    birthMansion = await calculateSukuyoForMoment(options.env || {}, {
+      ...birthDate,
+      ...birthClock,
+      ...place,
+      calendarType: input.calendarType,
+      birthTimeKnown: input.hasBirthTime,
+    }, { timeCorrectionPolicy: options.timeCorrectionPolicy });
+    todayMansion = await calculateSukuyoForMoment(options.env || {}, {
+      ...targetDate,
+      hour: 12,
+      minute: 0,
+      ...place,
+      calendarType: "solar",
+      birthTimeKnown: false,
+    }, { timeCorrectionPolicy: options.timeCorrectionPolicy });
+  }
 
   const birthLabel = mansionLabel(birthMansion);
   const todayLabel = mansionLabel(todayMansion);
@@ -59,12 +99,6 @@ export function buildSukuyoAdapter(input, options = {}) {
   const keywordHint = keywords.length ? ` ${keywords.join(", ")}의 결이 함께 보입니다.` : "";
 
   return {
-    ...(options.fusionExpert ? { expertEvidence: {
-      birth: pickExpertFields(birthMansion, ["nameKo", "nameHan", "index", "direction", "element", "keywords", "strengths", "shadows"]),
-      target: pickExpertFields(todayMansion, ["nameKo", "nameHan", "index", "direction", "element", "keywords", "strengths", "shadows"]),
-      targetDate: input.targetDate,
-      dayFortune: pickExpertFields(judgeDayFortune(birthMansion.index, todayMansion.index), ["relationType", "aRole", "bRole", "forwardDistance", "tier", "tierLabel", "advice"]),
-    } } : {}),
     birthMansion: birthLabel,
     todayMansion: todayLabel,
     emotionalPattern: `감정이 움직일 때 표정이나 말투로 분위기를 먼저 조절하려는 흐름${keywordHint}`,

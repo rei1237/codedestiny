@@ -95,6 +95,15 @@ async function loadEphemerisFiles(swe) {
 			SE_PLUTO: swe.SE_PLUTO,
 			SEFLG_SWIEPH: swe.SEFLG_SWIEPH,
 			SEFLG_SPEED: swe.SEFLG_SPEED,
+			SEFLG_SIDEREAL: swe.SEFLG_SIDEREAL,
+			SE_SIDM_LAHIRI: swe.SE_SIDM_LAHIRI,
+			SE_GREG_CAL: swe.SE_GREG_CAL,
+			swe_set_sid_mode: (typeof swe.swe_set_sid_mode === 'function')
+				? swe.swe_set_sid_mode.bind(swe)
+				: swe.set_sid_mode.bind(swe),
+			swe_julday: (typeof swe.swe_julday === 'function')
+				? swe.swe_julday.bind(swe)
+				: swe.julday.bind(swe),
 			swe_calc_ut: sweCalcUt,
 			calc_ut: sweCalcUt,
 			swe_get_ayanamsa_ut: sweGetAyanamsaUt,

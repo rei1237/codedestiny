@@ -21,6 +21,7 @@ import {
   type PromptHubResumeIntent,
   type PromptLibraryItem,
 } from "./prompt-hub-storage";
+import { fetchSukuyoPromptAstronomy } from "./sukuyo-prompt-astronomy";
 import { buildSukuyoPromptFacts } from "./sukuyo-prompt-facts";
 
 const AI_TARGETS: { id: string; label: string; url: string }[] = [
@@ -704,10 +705,16 @@ const TOOL_REGISTRY_COPY: ToolConfig[] = [
       ...COMMON_FIELDS_COPY,
       { id: "calendarType", label: "내 양력/음력", type: "select", options: ["양력", "음력"] },
       { id: "birthDate", label: "내 생년월일", type: "date", required: true, privacyHint: BIRTH_PRIVACY_HINT },
+      { id: "leapMonth", label: "내 윤달 여부", type: "checkbox", advanced: true },
       { id: "birthTime", label: "내 출생 시각", type: "time", advanced: true, privacyHint: BIRTH_PRIVACY_HINT },
+      { id: "birthPlace", label: "내 출생 지역", type: "text", placeholder: "예: 서울", advanced: true, privacyHint: BIRTH_PRIVACY_HINT },
+      { ...BIRTH_TIMEZONE_FIELD_COPY, id: "birthTimezone", label: "내 출생지 표준시", advanced: true },
       { id: "partnerCalendarType", label: "상대 양력/음력", type: "select", options: ["양력", "음력"] },
       { id: "partnerBirthDate", label: "상대 생년월일", type: "date", privacyHint: BIRTH_PRIVACY_HINT },
       { id: "partnerBirthTime", label: "상대 출생 시각", type: "time", advanced: true, privacyHint: BIRTH_PRIVACY_HINT },
+      { id: "partnerBirthPlace", label: "상대 출생 지역", type: "text", placeholder: "예: 부산", advanced: true, privacyHint: BIRTH_PRIVACY_HINT },
+      { ...BIRTH_TIMEZONE_FIELD_COPY, id: "partnerBirthTimezone", label: "상대 출생지 표준시", advanced: true },
+      { id: "partnerLeapMonth", label: "상대 윤달 여부", type: "checkbox", advanced: true },
       { id: "relationshipType", label: "관계 유형", type: "select", options: ["연애", "부부", "썸", "친구", "동료", "가족"] },
     ],
     exampleValues: {
@@ -1636,10 +1643,36 @@ async function buildComputedFactsFor(toolId: ToolId, draft: ToolDraft): Promise<
     gender: formatDraftValue(draft.gender),
     birthTimezone: BIRTH_TIMEZONE_BY_LABEL[formatDraftValue(draft.birthTimezone)] || "Asia/Seoul",
   };
+  const systems = Array.isArray(draft.systems) ? draft.systems : [];
+  const needsSukuyoAstronomy = toolId === "sukuyo" || (toolId === "comprehensive" && systems.includes("숙요점"));
+  const [sukuyoAstronomy, partnerSukuyoAstronomy] = needsSukuyoAstronomy
+    ? await Promise.all([
+      fetchSukuyoPromptAstronomy(birth),
+      draft.partnerBirthDate
+        ? fetchSukuyoPromptAstronomy({
+          birthDate: formatDraftValue(draft.partnerBirthDate),
+          calendarType: formatDraftValue(draft.partnerCalendarType),
+          leapMonth: draft.partnerLeapMonth === true,
+          birthTime: formatDraftValue(draft.partnerBirthTime),
+          birthTimeUnknown: !formatDraftValue(draft.partnerBirthTime),
+          birthPlace: formatDraftValue(draft.partnerBirthPlace),
+          birthTimezone: BIRTH_TIMEZONE_BY_LABEL[formatDraftValue(draft.partnerBirthTimezone)] || "Asia/Seoul",
+        })
+        : Promise.resolve(null),
+    ])
+    : [null, null];
   switch (toolId) {
     case "comprehensive": {
       const { buildComprehensivePromptFacts } = await import("./comprehensive-prompt-facts");
-      return buildComprehensivePromptFacts({ ...birth, systems: Array.isArray(draft.systems) ? draft.systems : [] });
+      return buildComprehensivePromptFacts({
+        ...birth,
+        systems,
+        moonLongitude: Number(sukuyoAstronomy?.moonSiderealLongitude),
+        partnerMoonLongitude: Number(partnerSukuyoAstronomy?.moonSiderealLongitude),
+        partnerLeapMonth: draft.partnerLeapMonth === true,
+        astronomy: sukuyoAstronomy,
+        partnerAstronomy: partnerSukuyoAstronomy,
+      });
     }
     case "saju": {
       const { buildSajuPromptFacts } = await import("./saju-prompt-facts");
@@ -1661,8 +1694,18 @@ async function buildComputedFactsFor(toolId: ToolId, draft: ToolDraft): Promise<
       return buildSukuyoPromptFacts({
         birthDate: birth.birthDate,
         calendarType: birth.calendarType,
+        leapMonth: birth.leapMonth,
+        birthTime: birth.birthTime,
+        birthTimeUnknown: birth.birthTimeUnknown,
+        birthPlace: birth.birthPlace,
+        birthTimezone: birth.birthTimezone,
+        moonLongitude: Number(sukuyoAstronomy?.moonSiderealLongitude),
+        astronomy: sukuyoAstronomy,
         partnerBirthDate: formatDraftValue(draft.partnerBirthDate),
         partnerCalendarType: formatDraftValue(draft.partnerCalendarType),
+        partnerLeapMonth: draft.partnerLeapMonth === true,
+        partnerMoonLongitude: Number(partnerSukuyoAstronomy?.moonSiderealLongitude),
+        partnerAstronomy: partnerSukuyoAstronomy,
         relationshipType: formatDraftValue(draft.relationshipType),
       });
     case "dangsaju": {

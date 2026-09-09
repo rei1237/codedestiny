@@ -66,7 +66,7 @@ function parseBirthTime(value: string | null | undefined) {
   return { hour, minute };
 }
 
-export function buildSukuyoRow(birthDate: string): { row: MultiSystemRow; result: SukuyoCalcResult | null } {
+export async function buildSukuyoRow(birthDate: string, birthTime?: string | null): Promise<{ row: MultiSystemRow; result: SukuyoCalcResult | null }> {
   const label = "숙요 27수";
   const date = parseBirthDate(birthDate);
   if (!date) {
@@ -85,8 +85,13 @@ export function buildSukuyoRow(birthDate: string): { row: MultiSystemRow; result
       result: null,
     };
   }
-  // 🔴 시각을 넘기지 않는다 — 27수는 음력 날짜만으로 정해지므로 생시 미상이어도 확정값이다.
-  const result = calcSukuyoForServer(date.year, date.month, date.day);
+  const time = parseBirthTime(birthTime);
+  const result = await calcSukuyoForServer(date.year, date.month, date.day, time?.hour ?? 12, time?.minute ?? 0, {
+    timezoneOffset: SEOUL.tzOffset,
+    latitude: SEOUL.latitude,
+    longitude: SEOUL.longitude,
+    birthTimeKnown: Boolean(time),
+  });
   return {
     row: {
       system: "sukuyo",
@@ -94,7 +99,9 @@ export function buildSukuyoRow(birthDate: string): { row: MultiSystemRow; result
       status: "confirmed",
       value: `${result.mansion} · ${result.element} · ${result.direction}`,
       detail: result.traits.core,
-      basis: `한국 음양력(KST) 기준 음력 ${result.lunarMonth}월 ${result.lunarDay}일${result.isLeap ? "(윤달)" : ""}에서 정한 수(宿). 생시와 무관하게 확정된다.`,
+      basis: time
+        ? `생시 ${birthTime} KST와 서울 위치를 UTC·JD로 환산한 지심 항성 달 황경(라히리)에서 정한 수(宿).`
+        : `생시 미상이라 12:00 KST 대표값과 서울 위치를 사용해 UTC·JD로 환산한 지심 항성 달 황경(라히리)에서 정한 수(宿).`,
     },
     result,
   };
@@ -199,9 +206,9 @@ export function buildSajuRow(magazine: MultiSystemInput["magazine"], birthTimeKn
   };
 }
 
-export function buildCelebrityMultiSystem(input: MultiSystemInput): CelebrityMultiSystem {
+export async function buildCelebrityMultiSystem(input: MultiSystemInput): Promise<CelebrityMultiSystem> {
   const birthTimeKnown = Boolean(parseBirthTime(input.birthTime));
-  const sukuyo = buildSukuyoRow(input.birthDate);
+  const sukuyo = await buildSukuyoRow(input.birthDate, input.birthTime);
   const vedic = buildVedicRow(input);
   return {
     rows: [buildSajuRow(input.magazine, birthTimeKnown), sukuyo.row, vedic.row],

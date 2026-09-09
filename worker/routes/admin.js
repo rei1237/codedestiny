@@ -42,12 +42,12 @@ import { resolveAdminBirthCoordinates } from "../lib/admin-geocode.js";
 import { wallClockToUtcMillis } from "../lib/iana-offset.js";
 import { buildSajuProfile } from "../lib/destiny-bias-engine.js";
 import { buildSajuQuantumDaewunRows, buildSajuQuantumElementMap, normalizeElementKeys } from "../lib/saju-quantum-myeongri.js";
-import { buildCompatibilityFromIndices, buildSukuyoFromLunar } from "../lib/sukuyo-premium.js";
+import { buildCompatibilityFromIndices } from "../lib/sukuyo-premium.js";
+import { calculateSukuyoForMoment } from "../lib/sukuyo-astronomy.js";
 import { getSwissWesternChart, getSwissVedicPlanets } from "../lib/swiss-ephemeris.js";
 import { buildAstroLocalChartJson, normalizeAstroPremiumBirthInput } from "../lib/astro-premium-generator.js";
 import { buildVedicLocalChartJson } from "../lib/vedic-premium-generator.js";
 import { requestKasiLegacyCalendarMethod } from "./kasi.js";
-import { solarToLunar } from "../../lib/korean-calendar/index.js";
 
 // 관리자 READ 전용 Mongo 재시도 래퍼. 쓰기에는 사용하지 않는다.
 //
@@ -1114,42 +1114,27 @@ export function buildAdminSajuResultFromEngine(profile, options = {}) {
   };
 }
 
-// 라이브 숙요 궁합(worker/routes/sukuyo-compatibility-ai.js lunarForPerson)과 같은 규칙:
-// 음력 입력은 그 값을 그대로 음력으로 쓰고, 양력 입력만 변환한다.
-function resolveAdminSukuyoStar(person) {
-  if (person.calendarType === "lunar" || person.calendarType === "lunar_leap") {
-    const isLeapMonth = person.calendarType === "lunar_leap";
-    const lunarMonth = Math.abs(person.month);
-    return {
-      lunarMonth,
-      lunarDay: person.day,
-      sukuyo: buildSukuyoFromLunar(lunarMonth, person.day, {
-        isLeapMonth,
-        source: "admin-prompt-lab-user-lunar",
-      }),
-    };
-  }
-
-  // 🔴 음력은 한국 음양력 코어(KST 삭 기준)가 낸다. 중국 음력(lunar-javascript)은 삭이 CST 23시대에
-  //    들면 그 달 전체가 하루 밀려 27수 본명숙이 옆 칸으로 간다(실측 2026-08-27 3.67%).
-  //    생시는 음력일을 바꾸지 않으므로 코어는 날짜만 받는다.
-  const lunar = solarToLunar(person.year, person.month, person.day);
-  const lunarMonth = Math.max(1, lunar ? lunar.lunarMonth : Math.abs(person.month));
-  const lunarDay = Math.max(1, lunar ? lunar.lunarDay : person.day);
-  return {
-    lunarMonth,
-    lunarDay,
-    sukuyo: buildSukuyoFromLunar(lunarMonth, lunarDay, {
-      isLeapMonth: Boolean(lunar?.isLeapMonth),
-      source: "admin-prompt-lab-lunar",
-    }),
-  };
+// 라이브 숙요 궁합과 같은 공통 천문 코어를 사용한다.
+async function resolveAdminSukuyoStar(person, env = {}, requestUrl = "") {
+  const sukuyo = await calculateSukuyoForMoment(env, {
+    calendarType: person.calendarType,
+    year: person.year,
+    month: person.month,
+    day: person.day,
+    hour: person.hour,
+    minute: person.minute,
+    timezoneOffset: person.timezoneOffsetHours,
+    latitude: person.latitude,
+    longitude: person.longitude,
+    birthTimeKnown: !person.timeUnknown,
+  }, { requestUrl });
+  return { sukuyo };
 }
 
-function buildAdminSukuyoCompatibilityResult(selfStar, partnerProfile) {
+async function buildAdminSukuyoCompatibilityResult(selfStar, partnerProfile, env = {}, requestUrl = "") {
   if (!partnerProfile) return null;
 
-  const partnerStar = resolveAdminSukuyoStar(partnerProfile);
+  const partnerStar = await resolveAdminSukuyoStar(partnerProfile, env, requestUrl);
   const myIdx = Number(selfStar.sukuyo?.index);
   const partnerIdx = Number(partnerStar.sukuyo?.index);
   if (!Number.isFinite(myIdx) || !Number.isFinite(partnerIdx)) return null;
@@ -1203,9 +1188,9 @@ function buildAdminSukuyoCompatibilityResult(selfStar, partnerProfile) {
   };
 }
 
-export function buildAdminSukuyoContext(profile, partnerProfile) {
-  const selfStar = resolveAdminSukuyoStar(profile);
-  const { sukuyo, lunarMonth, lunarDay } = selfStar;
+export async function buildAdminSukuyoContext(profile, partnerProfile, env = {}, requestUrl = "") {
+  const selfStar = await resolveAdminSukuyoStar(profile, env, requestUrl);
+  const { sukuyo } = selfStar;
   const mansionIdx = Number(sukuyo?.index);
   const mansion = sukuyo?.nameKo ? `${sukuyo.nameKo}숙` : "";
   const strengths = Array.isArray(sukuyo?.strengths) ? sukuyo.strengths : [];
@@ -1234,14 +1219,21 @@ export function buildAdminSukuyoContext(profile, partnerProfile) {
         insight: `${mansion}의 달빛이 관계의 거리와 마음의 밀도를 함께 비춥니다.`,
       },
       summaryTone: sukuyo?.archetypeTitle || "차분한 집중과 회복의 리듬",
-      lunarBasis: {
-        lunarMonth,
-        lunarDay,
-        isLeapMonth: Boolean(sukuyo?.isLeapMonth),
-        source: sukuyo?.source || "admin-prompt-lab-lunar",
+      astronomyBasis: {
+        utc: sukuyo?.utc || null,
+        julianDate: sukuyo?.julianDate ?? null,
+        moonEclipticLongitude: sukuyo?.moonEclipticLongitude ?? null,
+        birthTimeContext: sukuyo?.birthTimeContext || null,
+        lunarDisplay: {
+          year: sukuyo?.lunarYear ?? null,
+          month: sukuyo?.lunarMonth ?? null,
+          day: sukuyo?.lunarDay ?? null,
+          isLeapMonth: Boolean(sukuyo?.isLeapMonth),
+        },
+        source: sukuyo?.source || "swiss-ephemeris-lahiri",
       },
     },
-    compatibilityResult: buildAdminSukuyoCompatibilityResult(selfStar, partnerProfile),
+    compatibilityResult: await buildAdminSukuyoCompatibilityResult(selfStar, partnerProfile, env, requestUrl),
   };
 }
 
@@ -1734,7 +1726,7 @@ async function buildAdminPromptByService({ service, question, profile, partnerPr
   }
 
   if (service === "sukuyo") {
-    const context = buildAdminSukuyoContext(profile, partnerProfile);
+    const context = await buildAdminSukuyoContext(profile, partnerProfile, env, requestUrl);
     return buildSukuyoAIPromptWithDomain({
       question,
       basicResult: context.basicResult,

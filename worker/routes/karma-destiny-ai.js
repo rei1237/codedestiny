@@ -997,7 +997,7 @@ export async function buildAdminLabPrompt(body = {}, options = {}) {
   const integratedResult = await buildKarmaDestinyIntegratedResult(
     options.env || {},
     normalized.input.birthInfo,
-    { lensUsageWeights: LENS_USAGE_WEIGHTS },
+    { lensUsageWeights: LENS_USAGE_WEIGHTS, requestUrl: options.requestUrl || "" },
   );
 
   return {
@@ -2556,7 +2556,7 @@ async function handleStart(request, env) {
 
     logKarmaAi("LLM Fortune Data Start", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
     const integratedResult = (resumable && existing?.integratedResult)
-      || await buildKarmaDestinyIntegratedResult(env, normalized.input.birthInfo, { lensUsageWeights: LENS_USAGE_WEIGHTS });
+      || await buildKarmaDestinyIntegratedResult(env, normalized.input.birthInfo, { lensUsageWeights: LENS_USAGE_WEIGHTS, requestUrl: request.url });
     // 다섯 렌즈가 모두 계산되지 않았을 때만 실패다. 구 검사는 사주·서양·베다 세 개만 봐서
     // 좌표 미상으로 자미·숙요만 살아남은 정상 케이스를 실패로 오판했다.
     const usableLens = LENS_IDS.some((id) => clean(integratedResult?.lenses?.[id]?.confidence) !== "none");

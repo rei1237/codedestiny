@@ -1,6 +1,5 @@
-// 🔴 음력일은 한국 음양력 코어에서만 나온다. lunar-javascript 는 **중국 표준시(CST) 기준 중국 음력**이라
-// 삭이 CST 23시대에 들면 그 달 전체의 음력일이 하루 밀린다 — 실측 2026-08-27 기준 1900~2100 전수
-// 73,414일 중 2,997일(4.08%)이 갈린다. 27수는 음력 월·일로 직접 결정되므로 그 하루가 곧 다른 수(宿)다.
+// 음력 월·일은 화면 표시 메타데이터에만 사용한다. 숙 판정은 출생 장소·시각을
+// UTC/JD로 정규화한 뒤 공통 Swiss 항성 달 황경에서 직접 계산한다.
 import { lunarToSolar, solarToLunar } from "../../lib/korean-calendar/index.js";
 import { requireAuth, isAuthDbInfraError, peekAccessTokenUserId } from "../lib/auth.js";
 import { connectDb, isTransientMongoError, withMongoRetry } from "../lib/db.js";
@@ -10,7 +9,8 @@ import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../li
 import { MonthlyCreditLedger, PaidExecutionRecord, Payment, PointHistory, SukuyoCompatibilityAiConsultation, User } from "../lib/models.js";
 import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
-import { buildSukuyoAiCompatibility, buildSukuyoFromLunar, describeSukuyoDirectionalRelation } from "../lib/sukuyo-ai-calculation.js";
+import { buildSukuyoAiCompatibility, describeSukuyoDirectionalRelation } from "../lib/sukuyo-ai-calculation.js";
+import { calculateSukuyoForMoment } from "../lib/sukuyo-astronomy.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { cmsPromptText } from "../lib/cms-prompts.js";
@@ -289,17 +289,22 @@ function normalizeBirthTime(value) {
 
 function normalizePerson(value = {}, fallbackName) {
   const source = value && typeof value === "object" ? value : {};
-  const rawCalendarType = clean(source.calendarType);
-  const birthDate = parseBirthDate(source.birthDate);
+  const location = source.location && typeof source.location === "object" ? source.location : {};
+  const rawCalendarType = clean(source.calendarType || source.calType);
+  const birthDate = parseBirthDate(source.birthDate || source.date);
   return {
     name: clean(source.name || source.nickname || fallbackName, 80),
     gender: normalizeGender(source.gender),
     birthDate: birthDate?.raw || "",
     birthParts: birthDate,
-    birthTime: normalizeBirthTime(source.birthTime),
+    birthTime: normalizeBirthTime(source.birthTime || source.time),
     calendarType: normalizeCalendarType(rawCalendarType),
     hasCalendarType: Boolean(rawCalendarType),
     isLeapMonth: source.isLeapMonth === true || clean(source.calendarType).toLowerCase().includes("leap") || clean(source.calendarType).includes("윤달"),
+    timezone: clean(source.timezone || location.timezone || "Asia/Seoul") || "Asia/Seoul",
+    timezoneOffset: source.timezoneOffset ?? source.tzOffset ?? null,
+    latitude: Number.isFinite(Number(source.latitude ?? source.lat ?? location.latitude ?? location.lat)) ? Number(source.latitude ?? source.lat ?? location.latitude ?? location.lat) : null,
+    longitude: Number.isFinite(Number(source.longitude ?? source.lon ?? source.lng ?? location.longitude ?? location.lon ?? location.lng)) ? Number(source.longitude ?? source.lon ?? source.lng ?? location.longitude ?? location.lon ?? location.lng) : null,
   };
 }
 
@@ -317,6 +322,11 @@ function normalizeInput(body = {}) {
     birthTime: body.birthTime,
     calendarType: body.calendarType,
     isLeapMonth: body.isLeapMonth,
+    timezone: body.timezone,
+    timezoneOffset: body.timezoneOffset,
+    latitude: body.latitude,
+    longitude: body.longitude,
+    location: body.location,
   };
   const flatPersonB = {
     name: body.partnerName,
@@ -325,6 +335,11 @@ function normalizeInput(body = {}) {
     birthTime: body.partnerBirthTime,
     calendarType: body.partnerCalendarType,
     isLeapMonth: body.partnerIsLeapMonth,
+    timezone: body.partnerTimezone || body.timezone,
+    timezoneOffset: body.partnerTimezoneOffset,
+    latitude: body.partnerLatitude,
+    longitude: body.partnerLongitude,
+    location: body.partnerLocation,
   };
   const personA = normalizePerson(body.personA || body.self || body.user || flatPersonA, "나");
   const personB = normalizePerson(body.personB || body.partner || flatPersonB, "상대");
@@ -370,15 +385,26 @@ function lunarForPerson(person) {
   };
 }
 
-function calculatePersonSukuyo(person, label) {
+async function calculatePersonSukuyo(person, label, env = {}, requestUrl = "") {
   try {
-    const lunar = lunarForPerson(person);
-    const sukuyo = buildSukuyoFromLunar(lunar.lunarMonth, lunar.lunarDay, {
-      isLeapMonth: lunar.isLeapMonth,
-      source: lunar.source,
-    });
+    const parts = person.birthParts;
+    if (!parts) throw Object.assign(new Error("INVALID_BIRTH_DATE"), { code: "INVALID_INPUT" });
+    const timeMatch = person.birthTime.match(/^([01]\d|2[0-3]):([0-5]\d)$/);
+    const sukuyo = await calculateSukuyoForMoment(env, {
+      calendarType: person.calendarType,
+      year: parts.year,
+      month: parts.month,
+      day: parts.day,
+      hour: timeMatch ? Number(timeMatch[1]) : 12,
+      minute: timeMatch ? Number(timeMatch[2]) : 0,
+      timezone: person.timezone,
+      timezoneOffset: person.timezoneOffset,
+      latitude: person.latitude,
+      longitude: person.longitude,
+      birthTimeKnown: Boolean(timeMatch),
+    }, { requestUrl });
     if (!sukuyo) throw new Error("SUKUYO_EMPTY");
-    return { ...sukuyo, lunarYear: lunar.lunarYear };
+    return { ...sukuyo, lunarYear: sukuyo.lunarYear };
   } catch (error) {
     console.warn("[sukuyo-compatibility-ai] calculation failed", {
       label,
@@ -810,8 +836,8 @@ function buildSukuyoCompatibilityPromptContext(input, calculation) {
   };
 }
 
-function calculateSukuyo(input) {
-  const personASukuyo = calculatePersonSukuyo(input.personA, "personA");
+async function calculateSukuyo(input, env = {}, requestUrl = "") {
+  const personASukuyo = await calculatePersonSukuyo(input.personA, "personA", env, requestUrl);
   if (input.consultationType === "personal") {
     return {
       personASukuyo,
@@ -829,7 +855,7 @@ function calculateSukuyo(input) {
       },
     };
   }
-  const personBSukuyo = calculatePersonSukuyo(input.personB, "personB");
+  const personBSukuyo = await calculatePersonSukuyo(input.personB, "personB", env, requestUrl);
   const compatibility = buildSukuyoAiCompatibility(personASukuyo, personBSukuyo);
   const relationType = clean(compatibility.relationType || "명");
   return {
@@ -1133,7 +1159,7 @@ async function handleBasis(request, env) {
   if (normalized.consultationType === "personal") return json({ ok: false, reason: "NOT_APPLICABLE" }, { status: 404 });
 
   try {
-    return json(buildSukuyoAnalysisBasis(normalized, calculateSukuyo(normalized)));
+    return json(buildSukuyoAnalysisBasis(normalized, await calculateSukuyo(normalized, env, request.url)));
   } catch (error) {
     logSukyoAi("[Sukyo AI Basis Error]", { route: "/api/sukuyo-compatibility-ai/basis", errorMessage: clean(error?.message || error, 300) }, error, env);
     return json({ ok: false, reason: "CALCULATION_FAILED" }, { status: 503 });
@@ -1594,7 +1620,7 @@ async function createPersonalAnswer(env, input, calculation) {
 
 // 저장된 상담 문서에서 근거를 다시 계산한다. 궁합 상담(두 사람)만 대상이며,
 // 옛 문서에 생년월일이 빠져 있는 등의 이유로 계산이 안 되면 근거 없이 넘어간다(결과 조회 자체는 막지 않는다).
-function safeSukuyoAnalysisBasis(raw) {
+async function safeSukuyoAnalysisBasis(raw) {
   try {
     if (!raw?.personA?.birthDate || !raw?.personB?.birthDate) return null;
     // 저장된 사람 정보에는 birthParts가 없으므로 normalizeInput을 다시 태워 계산 가능한 형태로 되돌린다.
@@ -1606,7 +1632,7 @@ function safeSukuyoAnalysisBasis(raw) {
       topic: raw.topic,
     });
     if (!input.ok) return null;
-    return buildSukuyoAnalysisBasis(input, calculateSukuyo(input));
+    return buildSukuyoAnalysisBasis(input, await calculateSukuyo(input));
   } catch {
     return null;
   }
@@ -1631,7 +1657,7 @@ function isStaleGenerating(doc) {
   return Date.now() - stampedMs >= SUKUYO_COMPAT_AI_GENERATING_FRESH_MS;
 }
 
-function serializeConsultation(doc) {
+async function serializeConsultation(doc) {
   const raw = typeof doc.toObject === "function" ? doc.toObject() : doc;
   return {
     id: String(raw._id || raw.id || ""),
@@ -1641,7 +1667,7 @@ function serializeConsultation(doc) {
     sukuyoResult: raw.sukuyoResult,
     // 두 사람의 생년월일은 예전부터 저장돼 있으므로 근거를 다시 계산해 붙인다
     // (이 변경 이전에 만들어진 상담도 근거 패널을 그대로 얻는다). 순수 계산이라 실패는 조용히 넘긴다.
-    analysisBasis: safeSukuyoAnalysisBasis(raw),
+    analysisBasis: await safeSukuyoAnalysisBasis(raw),
     relationshipType: raw.relationshipType,
     topic: raw.topic,
     accessType: raw.accessType,
@@ -1824,7 +1850,7 @@ async function handleStart(request, env) {
     const existingStatus = existing ? consultationStatus(existing) : "";
     // 완료본(그리고 status 가 없던 옛 문서)은 지금까지처럼 그대로 재사용한다.
     if (existingStatus === "completed") {
-      return json({ ok: true, consultation: serializeConsultation(existing), reused: true });
+      return json({ ok: true, consultation: await serializeConsultation(existing), reused: true });
     }
     // 진행 중 생성에 대한 재-POST 는 재생성하지 않고 202 로 안내한다(클라가 /result 를 폴링한다).
     // 클라 authFetch 가 22초에 요청을 끊으므로(app/_lib/auth-client.ts) 이 분기는 예외가 아니라
@@ -1861,7 +1887,7 @@ async function handleStart(request, env) {
     });
     let calculation;
     try {
-      calculation = calculateSukuyo(normalized);
+      calculation = await calculateSukuyo(normalized, env, request.url);
     } catch (calcError) {
       // 아직 시드가 없다 — 뒤집을 문서가 없으므로 기존과 동일하게 환급 후 전파한다.
       const restored = await restorePrepaidAccessOnFailure(env, auth, access, calcError).catch(() => false);
@@ -1953,7 +1979,7 @@ async function handleStart(request, env) {
         // LLM 6회가 실제로 절약되는 지점이다(예전에는 생성이 끝난 뒤에야 이 에러를 만났다).
         const duplicate = await SukuyoCompatibilityAiConsultation.findOne({ userId: auth.userId, idempotencyKey }).lean();
         if (duplicate && consultationStatus(duplicate) === "completed") {
-          return json({ ok: true, consultation: serializeConsultation(duplicate), reused: true });
+          return json({ ok: true, consultation: await serializeConsultation(duplicate), reused: true });
         }
         return json(
           { ok: true, sessionId: String(duplicate?._id || ""), status: "generating", message: MESSAGES.generating },
@@ -2017,7 +2043,7 @@ async function handleStart(request, env) {
     // 문서가 그 사이 사라졌더라도(수동 삭제 등) 이미 만든 결과물은 그대로 배달한다.
     return json({
       ok: true,
-      consultation: serializeConsultation(completed || {
+      consultation: await serializeConsultation(completed || {
         ...seedFields,
         _id: sessionId,
         status: "completed",
@@ -2128,7 +2154,7 @@ async function handleMessage(request, env) {
   consultation.provider = provider || consultation.provider;
   consultation.model = model || consultation.model;
   await consultation.save();
-  return json({ ok: true, consultation: serializeConsultation(consultation), message: { role: "assistant", content: answer, createdAt: now } });
+  return json({ ok: true, consultation: await serializeConsultation(consultation), message: { role: "assistant", content: answer, createdAt: now } });
 }
 
 async function handleResult(request, env) {
@@ -2202,7 +2228,7 @@ async function handleResult(request, env) {
   if (status === "generation_failed") {
     return json({ ok: false, sessionId, status, reason: "LLM_FAILED", message: MESSAGES.llmFailed }, { status: 503 });
   }
-  return json({ ok: true, consultation: serializeConsultation(consultation) });
+  return json({ ok: true, consultation: await serializeConsultation(consultation) });
 }
 
 export async function handleSukuyoCompatibilityAiRoutes(request, env = {}) {

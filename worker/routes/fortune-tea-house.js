@@ -2,12 +2,14 @@ import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJ
 import { callGeminiText } from "../lib/gemini.js";
 // 🔴 음력일은 한국 음양력 코어에서만 나온다. lunar-javascript 는 **중국 표준시(CST) 기준 중국 음력**이라
 // 삭이 CST 23시대에 들면 그 달 전체의 음력일이 하루 밀린다 — 실측 2026-08-27 기준 1900~2100 전수
-// 73,414일 중 2,997일(4.08%)이 갈린다. 27수는 음력 월·일로 직접 결정되므로 그 하루가 곧 다른 수(宿)다.
+// 음력 월·일은 화면 표시 메타데이터에만 사용한다. 숙 판정은 출생 장소·시각을
+// UTC/JD로 정규화한 뒤 공통 Swiss 항성 달 황경에서 직접 계산한다.
 import { lunarToSolar, solarToLunar } from "../../lib/korean-calendar/index.js";
 import { createHash } from "node:crypto";
 import { getCurrentUser, getOptionalUserFromRequest } from "../lib/auth.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
-import { buildSukuyoAiCompatibility, buildSukuyoFromLunar, describeSukuyoDirectionalRelation } from "../lib/sukuyo-ai-calculation.js";
+import { buildSukuyoAiCompatibility, describeSukuyoDirectionalRelation } from "../lib/sukuyo-ai-calculation.js";
+import { calculateSukuyoForMoment } from "../lib/sukuyo-astronomy.js";
 import {
   buildSajuAdvancedFactors,
   buildSajuMyeongsikFactSnapshot,
@@ -579,6 +581,12 @@ function normalizeSukuyoPerson(value, fallbackName) {
     name: cleanText(source.name || fallbackName, 40),
     birthDate: cleanText(source.birthDate, 20),
     calendarType: source.calendarType === "lunar" ? "lunar" : "solar",
+    birthTime: cleanText(source.birthTime || source.time, 12),
+    birthTimeUnknown: source.birthTimeUnknown === true,
+    timezone: cleanText(source.timezone, 80) || "Asia/Seoul",
+    timezoneOffset: Number.isFinite(Number(source.timezoneOffset ?? source.tzOffset)) ? Number(source.timezoneOffset ?? source.tzOffset) : 9,
+    latitude: Number.isFinite(Number(source.latitude ?? source.lat)) ? Number(source.latitude ?? source.lat) : null,
+    longitude: Number.isFinite(Number(source.longitude ?? source.lon ?? source.lng)) ? Number(source.longitude ?? source.lon ?? source.lng) : null,
     gender: cleanText(source.gender, 20),
   };
 }
@@ -709,13 +717,33 @@ function lunarForFortuneTeaSukuyoPerson(person = {}) {
 }
 
 function calculateFortuneTeaSukuyoPerson(person = {}) {
+  if (person.astronomySukuyo && typeof person.astronomySukuyo === "object") return person.astronomySukuyo;
   const lunar = lunarForFortuneTeaSukuyoPerson(person);
-  const sukuyo = buildSukuyoFromLunar(lunar.lunarMonth, lunar.lunarDay, {
-    isLeapMonth: lunar.isLeapMonth,
-    source: lunar.source,
-  });
-  if (!sukuyo) throw new Error("SUKUYO_EMPTY");
-  return { ...sukuyo, lunarYear: lunar.lunarYear };
+  void lunar;
+  throw new Error("SUKUYO_ASTRONOMY_CONTEXT_REQUIRED");
+}
+
+async function prepareFortuneTeaSukuyoAstronomy(request, env, requestUrl) {
+  if (request?.consultationMode !== "sukuyo" || !request.sukuyo) return;
+  for (const person of [request.sukuyo.user, request.sukuyo.partner]) {
+    const birth = parseFortuneTeaSukuyoBirthDate(person?.birthDate);
+    if (!birth) continue;
+    const timeMatch = String(person.birthTime || "").match(/^(\d{1,2}):(\d{2})$/);
+    const timeUnknown = person.birthTimeUnknown === true || !timeMatch;
+    person.astronomySukuyo = await calculateSukuyoForMoment(env, {
+      calendarType: person.calendarType,
+      year: birth.year,
+      month: birth.month,
+      day: birth.day,
+      hour: timeUnknown ? 12 : Number(timeMatch[1]),
+      minute: timeUnknown ? 0 : Number(timeMatch[2]),
+      timezone: person.timezone,
+      timezoneOffset: person.timezoneOffset,
+      latitude: person.latitude,
+      longitude: person.longitude,
+      birthTimeKnown: !timeUnknown,
+    }, { requestUrl });
+  }
 }
 
 function fortuneTeaSukuyoName(value = {}) {
@@ -5178,6 +5206,7 @@ async function handleConsult(request, env, ctx = null) {
 
   const body = await readJson(request);
   const consultRequest = normalizeRequest(body);
+  await prepareFortuneTeaSukuyoAstronomy(consultRequest, env, request.url);
   const access = await verifyFortuneTeaHouseConsultAccess(request, env, body, consultRequest);
   if (!access.ok) return access.response;
 

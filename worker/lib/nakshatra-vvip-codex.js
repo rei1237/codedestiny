@@ -38,7 +38,7 @@ const ROLE_GIST = Object.freeze({
 
 const CHAPTER_ORDER = ["natal", "masters", "terrain", "lord", "dasha"];
 
-// 🔴 숙요 객체의 index 는 buildSukuyoFromLunar 가 붙여 주는 파생 필드다 —
+// 🔴 숙요 객체의 index 는 buildSukuyoFromMoonLongitude 가 붙여 주는 파생 필드다 —
 //    SUKUYO_MANSIONS 원소 자체에는 없다. 인덱스가 없으면 격각 거리가 NaN 이 되어
 //    27수 지형표가 "조용히 빈 표"로 나가므로, 여기서 이름으로 되찾고 그래도 없으면 실패시킨다.
 function resolveMansionIndex(sukuyo) {

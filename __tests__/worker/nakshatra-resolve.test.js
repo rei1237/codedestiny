@@ -73,7 +73,7 @@ describe("크로스워크 (동양 27宿 ↔ 인도 27 Nakshatra)", () => {
   test("정/역방향 조회 왕복", () => {
     const fwd = crosswalkFromSukuyo(0);
     expect(fwd.sukuyoHan).toBe("角");
-    expect(fwd.nakshatraEn).toBe("Chitra");
+    expect(fwd.nakshatraEn).toBe("Uttara Phalguni");
     expect(crosswalkFromNakshatra(fwd.nakshatraIdx).sukuyoIdx).toBe(0);
   });
 });
@@ -94,7 +94,7 @@ describe("융합 해석 레이어", () => {
 });
 
 describe("natal 3-뷰 조립", () => {
-  test("일치 케이스: 시데리얼 181.42° → Chitra 파다3, 음력1월17일 → 각(角)", () => {
+  test("일치 케이스: 시데리얼 181.42° → Chitra 파다3, 공통 황경 숙요 → 저(氐)", () => {
     const codex = assembleNatalCodex({
       moonLon: 181.42,
       birthUtc: FIXED_BIRTH_UTC,
@@ -110,8 +110,8 @@ describe("natal 3-뷰 조립", () => {
     expect(typeof codex.india.dasha.currentMahadasha).toBe("string");
     expect(codex.india.dasha.currentMahadasha.length).toBeGreaterThan(0);
     // 동양 뷰
-    expect(codex.dongyang.index).toBe(0);
-    expect(codex.dongyang.nameHan).toBe("角");
+    expect(codex.dongyang.index).toBe(2);
+    expect(codex.dongyang.nameHan).toBe("氐");
     expect(codex.dongyang.fourSymbol).toBe("청룡");
     expect(codex.dongyang.sevenLuminary).toBeTruthy();
     // 통합 뷰 — 각↔Chitra 정합
@@ -123,7 +123,7 @@ describe("natal 3-뷰 조립", () => {
     expect(codex.transparency.siderealMoonLongitude).toBe(181.42);
   });
 
-  test("경계일: 음력 각(→기대 Chitra) + moonLon 190°(→실제 Swati) 불일치 병기", () => {
+  test("황경 축이 같은 시각을 읽을 때는 숙요·나크샤트라가 일치한다", () => {
     const codex = assembleNatalCodex({
       moonLon: 190,
       birthUtc: FIXED_BIRTH_UTC,
@@ -132,11 +132,15 @@ describe("natal 3-뷰 조립", () => {
       now: FIXED_NOW,
     });
     expect(codex.india.index).toBe(14); // Swati
-    expect(codex.unified.crosswalk.match).toBe(false);
-    expect(codex.unified.crosswalk.boundary).toBe(true);
-    expect(codex.unified.crosswalk.deltaSteps).toBe(1);
-    expect(codex.unified.boundaryNote).toContain("치트라");
-    expect(codex.unified.boundaryNote).toContain("스와티");
+    expect(codex.dongyang.index).toBe(3);
+    expect(codex.unified.crosswalk.match).toBe(true);
+    expect(codex.unified.boundaryNote).toBeNull();
+    const boundaryView = buildUnifiedView(0, 12);
+    expect(boundaryView.crosswalk.match).toBe(false);
+    expect(boundaryView.crosswalk.boundary).toBe(true);
+    expect(boundaryView.crosswalk.deltaSteps).toBe(1);
+    expect(boundaryView.boundaryNote).toContain("우타라 팔구니");
+    expect(boundaryView.boundaryNote).toContain("하스타");
   });
 
   test("시각 미상 → 파다 산출 금지(나크샤트라는 정오 산출)", () => {
@@ -174,10 +178,10 @@ describe("타라 발라 · 오늘의 달", () => {
     const today = assembleTodayMoon({
       moonLon: 181.42,
       lunar: { month: 1, day: 17, isLeap: false },
-      myMansionIndex: 0,
+      myMansionIndex: 2,
     });
     expect(today.todayNakshatra.index).toBe(13);
-    expect(today.todaySukuyo.index).toBe(0);
+    expect(today.todaySukuyo.index).toBe(2);
     expect(today.personal.dayFortune.relationType).toBe("명"); // 본명수와 오늘 숙 동일
     expect(today.personal.taraBala).toBeTruthy();
   });

@@ -25,7 +25,7 @@ const entry = [
   `export { FUSION_ENTRIES, getFusionBySukuyo } from ${JSON.stringify(path.join(repoRoot, "constants/nakshatra-fusion.js"))};`,
   `export { computeAshtakuta, ashtakutaFromMoon } from ${JSON.stringify(path.join(repoRoot, "worker/lib/nakshatra-ashtakuta.js"))};`,
   `export { assembleNakshatraCompat } from ${JSON.stringify(path.join(repoRoot, "worker/lib/nakshatra-compat.js"))};`,
-  `export { buildSukuyoFromLunar } from ${JSON.stringify(path.join(repoRoot, "worker/lib/sukuyo-premium.js"))};`,
+  `export { getSukuyoByIndex } from ${JSON.stringify(path.join(repoRoot, "worker/lib/sukuyo-premium.js"))};`,
 ].join("\n");
 
 const bundled = await build({
@@ -46,7 +46,7 @@ const {
   NAKSHATRA_CROSSWALK, CROSSWALK_ANCHORS, CROSSWALK_OFFSET,
   crosswalkFromSukuyo, crosswalkFromNakshatra,
   FUSION_ENTRIES, getFusionBySukuyo,
-  computeAshtakuta, ashtakutaFromMoon, assembleNakshatraCompat, buildSukuyoFromLunar,
+  computeAshtakuta, ashtakutaFromMoon, assembleNakshatraCompat, getSukuyoByIndex,
 } = m;
 
 let failures = 0;
@@ -92,16 +92,16 @@ ok(NAKSHATRA_CROSSWALK.length === 27, "크로스워크 27쌍");
   }
   ok(nakSeen.size === 27, "나크샤트라 인덱스 전단사(27유일)");
   ok(sukSeen.size === 27, "숙요 인덱스 전단사(27유일)");
-  ok(offsetHolds, `오프셋 규칙 nakshatraIdx=(sukuyoIdx+${CROSSWALK_OFFSET})%27 성립`);
+  ok(offsetHolds, `공통 황경 오프셋 nakshatraIdx=(sukuyoIdx+${CROSSWALK_OFFSET})%27 성립`);
   let anchorsOk = true;
   for (const anchor of CROSSWALK_ANCHORS) {
     const entry = NAKSHATRA_CROSSWALK.find((e) => e.sukuyoHan === anchor.sukuyoHan);
     if (!entry || entry.nakshatraEn !== anchor.nakshatraEn) anchorsOk = false;
   }
-  ok(anchorsOk, "결정성 앵커(角=Chitra, 亢=Swati, 心=Jyeshtha, 昴=Krittika, 畢=Rohini) 일치");
+  ok(anchorsOk, "공통 황경 앵커(角=Uttara Phalguni, 亢=Hasta, 心=Vishakha, 昴=Ashwini, 畢=Bharani) 일치");
   const fwd = crosswalkFromSukuyo(0);
   const rev = crosswalkFromNakshatra(fwd.nakshatraIdx);
-  ok(fwd.sukuyoHan === "角" && fwd.nakshatraEn === "Chitra" && rev.sukuyoIdx === 0, "정/역방향 조회 왕복 OK");
+  ok(fwd.sukuyoHan === "角" && fwd.nakshatraEn === "Uttara Phalguni" && rev.sukuyoIdx === 0, "정/역방향 조회 왕복 OK");
 }
 
 // 3) 융합 27완비
@@ -130,7 +130,7 @@ section("natal 3-뷰 조립 (일치 케이스)");
   });
   ok(codex.india.index === 13 && codex.india.nameEn === "Chitra", "인도 뷰 = Chitra(13)");
   ok(codex.india.pada === 3, "파다 3 (스펙 예시값 일치)");
-  ok(codex.dongyang.index === 0 && codex.dongyang.nameHan === "角", "동양 뷰 = 각(角, 0)");
+  ok(codex.dongyang.index === 2 && codex.dongyang.nameHan === "氐", "동양 뷰 = 저(氐, 2)");
   ok(codex.dongyang.fourSymbol === "청룡" && codex.dongyang.sevenLuminary, "칠요·사신(청룡) 채워짐");
   ok(codex.unified.crosswalk.match === true && !codex.unified.boundaryNote, "크로스워크 일치 → 경계 병기 없음");
   ok(typeof codex.unified.fusionReading === "string" && codex.unified.fusionReading.length > 10, "융합 서술 존재");
@@ -147,9 +147,10 @@ section("경계일 병기(divergence)");
     lunar: { month: 1, day: 17, isLeap: false }, timeUnknown: false, now: FIXED_NOW,
   });
   ok(codex.india.index === 14, "실제 나크샤트라 = Swati(14)");
-  ok(codex.unified.crosswalk.match === false && codex.unified.crosswalk.boundary === true, "크로스워크 불일치=경계일");
-  ok(codex.unified.crosswalk.deltaSteps === 1, "갈림 폭 1스텝");
-  ok(typeof codex.unified.boundaryNote === "string" && codex.unified.boundaryNote.includes("치트라") && codex.unified.boundaryNote.includes("스와티"), "병기 문구에 두 나크샤트라 이름 포함");
+  const boundaryView = buildUnifiedView(0, 12);
+  ok(boundaryView.crosswalk.match === false && boundaryView.crosswalk.boundary === true, "크로스워크 불일치=경계일");
+  ok(boundaryView.crosswalk.deltaSteps === 1, "갈림 폭 1스텝");
+  ok(typeof boundaryView.boundaryNote === "string" && boundaryView.boundaryNote.includes("우타라 팔구니") && boundaryView.boundaryNote.includes("하스타"), "병기 문구에 두 나크샤트라 이름 포함");
 }
 
 // 6) 시각 미상 → 파다 억제
@@ -170,8 +171,8 @@ section("타라 발라 · 오늘의 달");
   const janma = judgeTaraBala(5, 5);
   ok(janma && janma.count === 1 && janma.key === "Janma", "동일 나크샤트라 → 잔마(count 1)");
   ok(judgeTaraBala(5, 6).key === "Sampat", "다음 나크샤트라 → 삼파트");
-  const today = assembleTodayMoon({ moonLon: 181.42, lunar: { month: 1, day: 17, isLeap: false }, myMansionIndex: 0 });
-  ok(today.todayNakshatra.index === 13 && today.todaySukuyo.index === 0, "오늘의 달: Chitra(13)/각(0)");
+  const today = assembleTodayMoon({ moonLon: 181.42, lunar: { month: 1, day: 17, isLeap: false }, myMansionIndex: 2 });
+  ok(today.todayNakshatra.index === 13 && today.todaySukuyo.index === 2, "오늘의 달: Chitra(13)/저(2)");
   ok(today.personal && today.personal.dayFortune && today.personal.taraBala, "개인 격각·타라발라 동반");
   ok(today.personal.dayFortune.relationType === "명", "본명수와 오늘 숙 동일 → 격각 '명'");
   ok(assembleTodayMoon({ moonLon: 181.42, lunar: { month: 1, day: 17, isLeap: false } }).personal === null, "본명수 없으면 개인 파트 생략");
@@ -229,8 +230,8 @@ section("정밀 아쉬타쿠타(8쿠타 36점)");
 // 11) 동서 통합 궁합 조립
 section("동서 통합 궁합 조립");
 {
-  const sukA = buildSukuyoFromLunar(1, 17, { isLeapMonth: false }); // 각(0)
-  const sukB = buildSukuyoFromLunar(1, 19, { isLeapMonth: false }); // 저(2)
+  const sukA = { ...getSukuyoByIndex(2), index: 2 }; // 저(2)
+  const sukB = { ...getSukuyoByIndex(2), index: 2 }; // 저(2)
   const compat = assembleNakshatraCompat(
     { moonLon: 181.42, sukuyo: sukA },
     { moonLon: 200.0, sukuyo: sukB },
@@ -239,7 +240,7 @@ section("동서 통합 궁합 조립");
   ok(compat.india && compat.india.items.length === 8 && compat.india.max === 36, "인도 아쉬타쿠타 포함");
   ok(compat.dongyang && compat.dongyang.relationType, "동양 숙요 격각 포함");
   ok(compat.unified && typeof compat.unified.blendedPct === "number" && compat.unified.convergence && compat.unified.divergence, "통합 총평(수렴/발산) 존재");
-  ok(compat.personA.nakIndex === 13 && compat.personA.sukuyoIndex === 0, "A: Chitra(13)/각(0)");
+  ok(compat.personA.nakIndex === 13 && compat.personA.sukuyoIndex === 2, "A: Chitra(13)/저(2)");
 }
 
 // 12) 전문가톤 3관점 심화 (Phase 3)

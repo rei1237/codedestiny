@@ -1,12 +1,12 @@
 import { primeCmsRecords } from "../lib/cms-records.js";
-// 🔴 음력일은 한국 음양력 코어에서만 나온다. lunar-javascript 는 **중국 표준시(CST) 기준 중국 음력**이라
-// 삭이 CST 23시대에 들면 그 달 전체의 음력일이 하루 밀린다 — 실측 2026-08-27 기준 1900~2100 전수
-// 73,414일 중 2,997일(4.08%)이 갈린다. 27수는 음력 월·일로 직접 결정되므로 그 하루가 곧 다른 수(宿)다.
-import { solarToLunar } from "../../lib/korean-calendar/index.js";
+// 음력 월·일은 화면 표시 메타데이터에만 사용한다. 숙 판정은 출생 장소·시각을
+// UTC/JD로 정규화한 뒤 공통 Swiss 항성 달 황경에서 직접 계산한다.
+import { lunarToSolar, solarToLunar } from "../../lib/korean-calendar/index.js";
 import { cookieValue, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { getOptionalUserFromRequest, requireAuth, resolvePaidRouteAuth } from "../lib/auth.js";
 import { requirePremiumReportAccess } from "../lib/access-control.js";
-import { buildCanonicalSukuyoCompatibility, buildSukuyoFromLunar } from "../lib/sukuyo-premium.js";
+import { buildCanonicalSukuyoCompatibility } from "../lib/sukuyo-premium.js";
+import { calculateSukuyoForMoment } from "../lib/sukuyo-astronomy.js";
 import { judgeDayFortune } from "../lib/sukuyo-relation-core.js";
 import { connectDb, withMongoRetry } from "../lib/db.js";
 import {
@@ -181,15 +181,15 @@ function buildSukuyoCalendarInterpretation(sukuyo = {}) {
   };
 }
 
-function buildSukuyoCalendarDay(year, month, day, todayKey, myMansionIndex = null) {
+async function buildSukuyoCalendarDay(year, month, day, todayKey, myMansionIndex = null, env = {}, requestUrl = "") {
   const lunar = solarToLunar(year, month, day);
   if (!lunar) throw new Error("숙요 달력이 다루는 범위를 벗어난 날짜입니다(지원 1900~2100).");
-  const { lunarMonth, lunarDay } = lunar;
-  const sukuyo = buildSukuyoFromLunar(lunarMonth, lunarDay, {
-    isLeapMonth: lunar.isLeapMonth,
-    source: "korean-calendar-core",
-  });
-  const mansionIndex = Number(sukuyo?.index);
+  // 날짜형 달력은 입력 시각이 없으므로 모든 소비자가 같은 12:00 KST 대표값을 쓴다.
+  const astronomy = await calculateSukuyoForMoment(env, {
+    year, month, day, hour: 12, minute: 0, timezoneOffset: 9, birthTimeKnown: false,
+  }, { requestUrl });
+  const sukuyo = astronomy;
+  const mansionIndex = Number(sukuyo?.mansionIdx);
   if (!Number.isInteger(mansionIndex) || mansionIndex < 0 || mansionIndex > 26) {
     throw new Error("숙요 계산값을 달력 표기로 연결하지 못했습니다.");
   }
@@ -210,8 +210,8 @@ function buildSukuyoCalendarDay(year, month, day, todayKey, myMansionIndex = nul
     isToday: date === todayKey,
     lunarDate: {
       year: lunar.lunarYear,
-      month: lunarMonth,
-      day: lunarDay,
+      month: astronomy.lunarMonth,
+      day: astronomy.lunarDay,
       isLeapMonth: lunar.isLeapMonth,
     },
     core: reading.core,
@@ -225,13 +225,13 @@ function buildSukuyoCalendarDay(year, month, day, todayKey, myMansionIndex = nul
   };
 }
 
-function buildSukuyoCalendarMonth(yearInput, monthInput, myMansionIndex = null) {
+async function buildSukuyoCalendarMonth(yearInput, monthInput, myMansionIndex = null, env = {}, requestUrl = "") {
   const { year, month } = normalizeSukuyoCalendarYearMonth(yearInput, monthInput);
   const today = getSukuyoCalendarTodayKey();
   const daysInMonth = getSukuyoCalendarDaysInMonth(year, month);
-  const days = Array.from({ length: daysInMonth }, (_, index) =>
-    buildSukuyoCalendarDay(year, month, index + 1, today, myMansionIndex)
-  );
+  const days = await Promise.all(Array.from({ length: daysInMonth }, (_, index) =>
+    buildSukuyoCalendarDay(year, month, index + 1, today, myMansionIndex, env, requestUrl)
+  ));
   return {
     year,
     month,
@@ -263,10 +263,10 @@ async function resolveSukuyoViewerMansionIndex(request, env) {
         ? await ProfileCard.findOne({ userId: auth.userId, profileId }).lean()
         : await ProfileCard.findOne({ userId: auth.userId }).sort({ updatedAt: -1, createdAt: -1 }).lean();
     });
-    const lunar = resolveSukuyoLunarFromProfile(profile);
-    if (!lunar) return null;
-    const natal = buildSukuyoFromLunar(lunar.month, lunar.day, { isLeapMonth: lunar.isLeap, source: "profile-canonical" });
-    const index = Number(natal?.index);
+    const person = normalizePersonInput(profile || {}, "사용자");
+    if (!person.birthDate) return null;
+    const natal = await buildPersonSukuyo(person, env, request.url);
+    const index = Number(natal?.mansionIdx ?? natal?.index);
     return Number.isInteger(index) && index >= 0 && index <= 26 ? index : null;
   } catch (error) {
     console.warn("[sukuyo-calendar-personalize-skip]", error?.message || error);
@@ -282,7 +282,7 @@ async function handleSukuyoCalendar(request, env) {
   try {
     const url = new URL(request.url);
     const myMansionIndex = await resolveSukuyoViewerMansionIndex(request, env);
-    const calendar = buildSukuyoCalendarMonth(url.searchParams.get("year"), url.searchParams.get("month"), myMansionIndex);
+    const calendar = await buildSukuyoCalendarMonth(url.searchParams.get("year"), url.searchParams.get("month"), myMansionIndex, env, request.url);
     return json({
       ok: true,
       ...calendar,
@@ -295,6 +295,54 @@ async function handleSukuyoCalendar(request, env) {
       // 내부 에러 원문은 로그로만 남기고 사용자에게는 안내문만 노출한다.
       error: "숙요 달력을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
     }, { status: 400 });
+  }
+}
+
+/**
+ * 프롬프트 허브와 기타 무인증 클라이언트가 같은 숙요 천문 코어를 소비하는
+ * 공개 계산 경로. 음력 월·일 룩업값을 반환하지 않고, UTC/JD·달 황경·진태양시
+ * 컨텍스트를 그대로 반환한다.
+ */
+async function handleSukuyoAstronomy(request, env) {
+  try {
+    const body = await readJson(request);
+    const source = body && typeof body === "object" ? body : {};
+    const date = parseDateParts(source.birthDate || source.date);
+    const time = parseTimeParts(source.birthTime || source.time);
+    if (!date) {
+      return json({ ok: false, code: "SUKUYO_MISSING_BIRTH_DATE", message: "생년월일을 YYYY-MM-DD 형식으로 입력해 주세요." }, { status: 400 });
+    }
+
+    const calendarType = normalizeCalendarType(source.calendarType || source.calendar || "solar");
+    if (!["solar", "lunar", "lunar_leap"].includes(calendarType)) {
+      return json({ ok: false, code: "SUKUYO_INVALID_CALENDAR_TYPE", message: "양력 또는 음력 입력을 확인해 주세요." }, { status: 400 });
+    }
+
+    const latitude = toNumber(source.latitude ?? source.lat, NaN);
+    const longitude = toNumber(source.longitude ?? source.lon ?? source.lng, NaN);
+    const astronomy = await calculateSukuyoForMoment(env, {
+      calendarType,
+      year: date.year,
+      month: date.month,
+      day: date.day,
+      hour: time.hour,
+      minute: time.minute,
+      timezone: clean(source.timezone || source.timezoneName || "Asia/Seoul") || "Asia/Seoul",
+      timezoneOffset: source.timezoneOffset ?? source.tzOffset,
+      latitude: Number.isFinite(latitude) ? latitude : undefined,
+      longitude: Number.isFinite(longitude) ? longitude : undefined,
+      birthPlace: clean(source.birthPlace || source.place),
+      birthTimeKnown: time.hasTime && source.birthTimeUnknown !== true,
+    }, { requestUrl: request.url });
+
+    return json({ ok: true, astronomy });
+  } catch (error) {
+    console.error("[sukuyo-astronomy-error]", error?.message || error);
+    return json({
+      ok: false,
+      code: "SUKUYO_ASTRONOMY_FAILED",
+      message: "숙요 천문 계산을 완료하지 못했습니다. 입력과 시간대를 확인해 주세요.",
+    }, { status: 422 });
   }
 }
 
@@ -432,32 +480,37 @@ function normalizeRequestedMode(raw) {
 
 function normalizePersonInput(raw = {}, fallbackName = "사용자") {
   const profile = raw.profile && typeof raw.profile === "object" ? raw.profile : raw;
+  const birth = profile.birth && typeof profile.birth === "object" ? profile.birth : profile;
+  const location = profile.location && typeof profile.location === "object"
+    ? profile.location
+    : (birth.location && typeof birth.location === "object" ? birth.location : {});
   const birthDate = clean(
-    profile.birthDate
-      || profile.birthday
-      || profile.solarDate
-      || profile.lunarDate
-      || profile.date
-      || profile.partnerBirth
-      || profile.partnerBirthDate
-      || profile.targetBirth
-      || profile.targetDate,
-  );
+    birth.birthDate
+      || birth.birthday
+      || birth.solarDate
+      || birth.lunarDate
+      || birth.date
+      || birth.partnerBirth
+      || birth.partnerBirthDate
+      || birth.targetBirth
+      || birth.targetDate,
+  ) || (Number.isFinite(Number(birth.year)) && Number.isFinite(Number(birth.month)) && Number.isFinite(Number(birth.day))
+    ? `${String(birth.year).padStart(4, "0")}-${String(birth.month).padStart(2, "0")}-${String(birth.day).padStart(2, "0")}`
+    : "");
 
   const date = parseDateParts(birthDate);
   const time = parseTimeParts(
-    profile.birthTime
-      || profile.time
-      || profile.partnerTime
-      || profile.hour
-      || profile.birth_hour,
+    birth.birthTime
+      || birth.time
+      || birth.partnerTime
+      || (birth.hour != null ? String(birth.hour).padStart(2, "0") + ":" + String(birth.minute ?? 0).padStart(2, "0") : birth.birth_hour),
   );
 
   return {
-    name: clean(profile.name || profile.label || fallbackName),
-    gender: normalizeGender(profile.gender || profile.sex),
-    calendarType: normalizeCalendarType(profile.calendarType || profile.calType),
-    isLeapMonth: profile.isLeapMonth === true || profile.leapMonth === true || normalizeCalendarType(profile.calendarType || profile.calType) === "lunar_leap",
+    name: clean(profile.name || birth.name || profile.label || fallbackName),
+    gender: normalizeGender(profile.gender || birth.gender || profile.sex || birth.sex),
+    calendarType: normalizeCalendarType(birth.calendarType || birth.calType || profile.calendarType || profile.calType),
+    isLeapMonth: birth.isLeapMonth === true || birth.leapMonth === true || normalizeCalendarType(birth.calendarType || birth.calType || profile.calendarType || profile.calType) === "lunar_leap",
     birthDate,
     birthYear: date?.year ?? null,
     birthMonth: date?.month ?? null,
@@ -465,7 +518,13 @@ function normalizePersonInput(raw = {}, fallbackName = "사용자") {
     birthTime: time.normalizedTime,
     birthHour: time.hasTime ? time.hour : null,
     birthMinute: time.hasTime ? time.minute : null,
-    timezone: clean(profile.timezone || "Asia/Seoul") || "Asia/Seoul",
+    timezone: clean(birth.timezone || profile.timezone || location.timezone || "Asia/Seoul") || "Asia/Seoul",
+    timezoneOffset: Number.isFinite(Number(birth.timezoneOffset ?? birth.tzOffset ?? profile.timezoneOffset ?? profile.tzOffset))
+      ? Number(birth.timezoneOffset ?? birth.tzOffset ?? profile.timezoneOffset ?? profile.tzOffset) : null,
+    latitude: Number.isFinite(Number(birth.latitude ?? birth.lat ?? profile.latitude ?? profile.lat ?? location.latitude ?? location.lat))
+      ? Number(birth.latitude ?? birth.lat ?? profile.latitude ?? profile.lat ?? location.latitude ?? location.lat) : null,
+    longitude: Number.isFinite(Number(birth.longitude ?? birth.lon ?? birth.lng ?? profile.longitude ?? profile.lon ?? profile.lng ?? location.longitude ?? location.lon ?? location.lng))
+      ? Number(birth.longitude ?? birth.lon ?? birth.lng ?? profile.longitude ?? profile.lon ?? profile.lng ?? location.longitude ?? location.lon ?? location.lng) : null,
     isTimeUnknown: time.isTimeUnknown,
   };
 }
@@ -519,16 +578,24 @@ function toLunarBirth(person) {
   };
 }
 
-function buildPersonSukuyo(person) {
-  const lunar = toLunarBirth(person);
-  const sukuyo = buildSukuyoFromLunar(lunar.lunarMonth, lunar.lunarDay, {
-    isLeapMonth: lunar.isLeapMonth,
-    source: lunar.source,
-  });
+async function buildPersonSukuyo(person, env = {}, requestUrl = "") {
+  const sukuyo = await calculateSukuyoForMoment(env, {
+    calendarType: person.calendarType,
+    year: person.birthYear,
+    month: person.birthMonth,
+    day: person.birthDay,
+    hour: person.birthHour ?? 12,
+    minute: person.birthMinute ?? 0,
+    timezone: person.timezone,
+    timezoneOffset: person.timezoneOffset,
+    latitude: person.latitude,
+    longitude: person.longitude,
+    birthTimeKnown: !person.isTimeUnknown,
+  }, { requestUrl });
   if (!sukuyo) {
     throw Object.assign(new Error("숙요점 27숙 계산에 실패했습니다."), { status: 422, code: "SUKUYO_CALC_FAILED" });
   }
-  return { ...sukuyo, lunarYear: lunar.lunarYear };
+  return { ...sukuyo, lunarYear: sukuyo.lunarYear };
 }
 
 function normalizeCompatibilityInput(body = {}) {
@@ -1359,8 +1426,8 @@ async function handleSukuyoPastLifeReading(request, env) {
   let partnerSukuyo;
   let canonical;
   try {
-    selfSukuyo = buildPersonSukuyo(self);
-    partnerSukuyo = buildPersonSukuyo(partner);
+    selfSukuyo = await buildPersonSukuyo(self, env, request.url);
+    partnerSukuyo = await buildPersonSukuyo(partner, env, request.url);
     canonical = buildCanonicalSukuyoCompatibility({
       reportType: "compatibility",
       personAName: self.name,
@@ -1538,7 +1605,8 @@ function clampSukuyoBirthClockPart(value, max, fallback) {
 }
 
 function resolveSukuyoLunarFromProfile(profile) {
-  const birth = profile?.birth || {};
+  const birth = profile?.birth || profile || {};
+  const location = profile?.location || birth.location || {};
   const year = Math.trunc(Number(birth.year));
   const month = Math.trunc(Number(birth.month));
   const day = Math.trunc(Number(birth.day));
@@ -1551,7 +1619,18 @@ function resolveSukuyoLunarFromProfile(profile) {
   }
   const calendarType = clean(birth.calType || "solar").toLowerCase();
   if (calendarType === "lunar" || calendarType === "lunar_leap") {
-    return { year, month, day, isLeap: calendarType === "lunar_leap" };
+    const solar = lunarToSolar(year, month, day, calendarType === "lunar_leap");
+    return {
+      year, month, day, isLeap: calendarType === "lunar_leap", calendarType,
+      solarYear: solar?.year ?? null, solarMonth: solar?.month ?? null, solarDay: solar?.day ?? null,
+      hour,
+      minute,
+      timezone: clean(birth.timezone || location.timezone || "Asia/Seoul") || "Asia/Seoul",
+      timezoneOffset: Number.isFinite(Number(birth.timezoneOffset ?? birth.tzOffset ?? location.timezoneOffset ?? location.tzOffset))
+        ? Number(birth.timezoneOffset ?? birth.tzOffset ?? location.timezoneOffset ?? location.tzOffset) : null,
+      latitude: Number.isFinite(Number(birth.latitude ?? birth.lat ?? location.latitude ?? location.lat)) ? Number(birth.latitude ?? birth.lat ?? location.latitude ?? location.lat) : null,
+      longitude: Number.isFinite(Number(birth.longitude ?? birth.lon ?? birth.lng ?? location.longitude ?? location.lon ?? location.lng)) ? Number(birth.longitude ?? birth.lon ?? birth.lng ?? location.longitude ?? location.lon ?? location.lng) : null,
+    };
   }
   // 시·분은 위에서 접어 두었지만 음력일 판정에는 쓰이지 않는다(실측: 0~23시 동일).
   const lunar = solarToLunar(year, month, day);
@@ -1561,6 +1640,17 @@ function resolveSukuyoLunarFromProfile(profile) {
     month: lunar.lunarMonth,
     day: lunar.lunarDay,
     isLeap: lunar.isLeapMonth,
+    calendarType: "solar",
+    solarYear: year,
+    solarMonth: month,
+    solarDay: day,
+    hour,
+    minute,
+    timezone: clean(birth.timezone || location.timezone || "Asia/Seoul") || "Asia/Seoul",
+    timezoneOffset: Number.isFinite(Number(birth.timezoneOffset ?? birth.tzOffset ?? location.timezoneOffset ?? location.tzOffset))
+      ? Number(birth.timezoneOffset ?? birth.tzOffset ?? location.timezoneOffset ?? location.tzOffset) : null,
+    latitude: Number.isFinite(Number(birth.latitude ?? birth.lat ?? location.latitude ?? location.lat)) ? Number(birth.latitude ?? birth.lat ?? location.latitude ?? location.lat) : null,
+    longitude: Number.isFinite(Number(birth.longitude ?? birth.lon ?? birth.lng ?? location.longitude ?? location.lon ?? location.lng)) ? Number(birth.longitude ?? birth.lon ?? birth.lng ?? location.longitude ?? location.lon ?? location.lng) : null,
   };
 }
 
@@ -1573,7 +1663,7 @@ function relationFromSukuyoDistance(distance) {
   return { label: "성위", theme: "역할과 성취가 현실로 굳어지는 달", opportunity: "성과 발표, 시험, 승진, 사업 구조화", caution: "성과를 빨리 증명하려다 회복을 줄이는 선택" };
 }
 
-function buildSukuyoYearlyFortuneResult({ auth, profile, targetYear }) {
+async function buildSukuyoYearlyFortuneResult({ auth, profile, targetYear, env = {}, requestUrl = "" }) {
   const lunar = resolveSukuyoLunarFromProfile(profile);
   if (!lunar) {
     const error = new Error("숙요점 1년운 계산에 필요한 생년월일이 부족합니다.");
@@ -1581,7 +1671,19 @@ function buildSukuyoYearlyFortuneResult({ auth, profile, targetYear }) {
     error.code = "INVALID_PROFILE_BIRTH";
     throw error;
   }
-  const natal = buildSukuyoFromLunar(lunar.month, lunar.day, { isLeapMonth: lunar.isLeap, source: "profile-canonical" }) || {};
+  const natal = await calculateSukuyoForMoment(env, {
+    calendarType: lunar.calendarType,
+    year: lunar.calendarType === "solar" ? lunar.solarYear : lunar.year,
+    month: lunar.calendarType === "solar" ? lunar.solarMonth : lunar.month,
+    day: lunar.calendarType === "solar" ? lunar.solarDay : lunar.day,
+    hour: lunar.hour,
+    minute: lunar.minute,
+    timezone: lunar.timezone,
+    timezoneOffset: lunar.timezoneOffset,
+    latitude: lunar.latitude,
+    longitude: lunar.longitude,
+    birthTimeKnown: true,
+  }, { requestUrl });
   const natalName = clean(natal.nameKo || natal.name || natal.label || natal.mansion || "본명숙");
   const natalIndex = Number.isFinite(Number(natal.index)) ? Number(natal.index) : 0;
   const birth = profile.birth || {};
@@ -1614,8 +1716,10 @@ function buildSukuyoYearlyFortuneResult({ auth, profile, targetYear }) {
     pickSukuyoYearly(["월별 속도 조절", "관계의 선명함", "돈의 기준선", "몸의 리듬", "작은 완성"], seed, 8),
   ];
   const monthTitles = ["문이 열림", "숨 고르기", "관계 조율", "기반 정리", "실행 점화", "감정 정돈", "성과 노출", "계약 검증", "회복과 재배치", "귀인 접속", "돈의 기준", "마무리와 봉인"];
-  const monthlyFlow = Array.from({ length: 12 }, (_, index) => {
-    const monthSukuyo = buildSukuyoFromLunar(((index + targetYear) % 12) + 1, ((natalIndex + index * 2 + targetYear) % 27) + 1, { source: "yearly-month-seed" }) || {};
+  const monthlyAstronomy = await Promise.all(Array.from({ length: 12 }, (_, index) => calculateSukuyoForMoment(env, {
+    year: targetYear, month: index + 1, day: 15, hour: 12, minute: 0, timezoneOffset: 9, birthTimeKnown: false,
+  }, { requestUrl })));
+  const monthlyFlow = monthlyAstronomy.map((monthSukuyo, index) => {
     const monthIndex = Number.isFinite(Number(monthSukuyo.index)) ? Number(monthSukuyo.index) : (natalIndex + index + 1) % 27;
     const distance = (monthIndex - natalIndex + 27) % 27;
     const relation = relationFromSukuyoDistance(distance);
@@ -1723,21 +1827,17 @@ function formatSukuyoYearlyAnchorDate(year, month) {
   return `${String(Number(year)).padStart(4, "0")}-${String(Number(month)).padStart(2, "0")}-15`;
 }
 
-function resolveSukuyoYearlyAnchor(year, month) {
-  const lunar = solarToLunar(Number(year), Number(month), 15);
-  if (!lunar) throw new Error("숙요 1년운이 다루는 범위를 벗어난 연도입니다(지원 1900~2100).");
-  const { lunarMonth, lunarDay } = lunar;
-  const monthSukuyo = buildSukuyoFromLunar(lunarMonth, lunarDay, {
-    isLeapMonth: lunar.isLeapMonth,
-    source: "yearly-month-anchor",
-  }) || {};
+async function resolveSukuyoYearlyAnchor(year, month, env = {}, requestUrl = "") {
+  const monthSukuyo = await calculateSukuyoForMoment(env, {
+    year: Number(year), month: Number(month), day: 15, hour: 12, minute: 0, timezoneOffset: 9, birthTimeKnown: false,
+  }, { requestUrl });
   return {
     anchorDate: formatSukuyoYearlyAnchorDate(year, month),
     lunarDate: {
-      year: lunar.lunarYear,
-      month: lunarMonth,
-      day: lunarDay,
-      isLeapMonth: lunar.isLeapMonth,
+      year: monthSukuyo.lunarYear,
+      month: monthSukuyo.lunarMonth,
+      day: monthSukuyo.lunarDay,
+      isLeapMonth: monthSukuyo.isLeapMonth,
     },
     monthSukuyo,
   };
@@ -1810,7 +1910,7 @@ function buildSukuyoYearlyDomain({ title, score, mainText, advice, evidence = []
   };
 }
 
-function buildSukuyoYearlyFortuneResultV2({ auth, profile, targetYear }) {
+async function buildSukuyoYearlyFortuneResultV2({ auth, profile, targetYear, env = {}, requestUrl = "" }) {
   const lunar = resolveSukuyoLunarFromProfile(profile);
   if (!lunar) {
     const error = new Error("숙요점 1년운 계산에 필요한 생년월일이 부족합니다.");
@@ -1819,7 +1919,19 @@ function buildSukuyoYearlyFortuneResultV2({ auth, profile, targetYear }) {
     throw error;
   }
 
-  const natal = buildSukuyoFromLunar(lunar.month, lunar.day, { isLeapMonth: lunar.isLeap, source: "profile-canonical" }) || {};
+  const natal = await calculateSukuyoForMoment(env, {
+    calendarType: lunar.calendarType,
+    year: lunar.calendarType === "solar" ? lunar.solarYear : lunar.year,
+    month: lunar.calendarType === "solar" ? lunar.solarMonth : lunar.month,
+    day: lunar.calendarType === "solar" ? lunar.solarDay : lunar.day,
+    hour: lunar.hour,
+    minute: lunar.minute,
+    timezone: lunar.timezone,
+    timezoneOffset: lunar.timezoneOffset,
+    latitude: lunar.latitude,
+    longitude: lunar.longitude,
+    birthTimeKnown: true,
+  }, { requestUrl });
   const natalName = clean(natal.nameKo || natal.name || natal.label || natal.mansion || "본명숙");
   const natalIndex = Number.isFinite(Number(natal.index)) ? Number(natal.index) : 0;
   const birth = profile.birth || {};
@@ -1848,11 +1960,17 @@ function buildSukuyoYearlyFortuneResultV2({ auth, profile, targetYear }) {
   const firstScore = scoreSukuyoYearly(seed, 68 + (natalIndex % 7), 12, 2);
   const secondScore = scoreSukuyoYearly(seed, 70 + (natalIndex % 6), 12, 3);
   const monthTitles = ["문이 열림", "숨 고르기", "관계 조율", "기반 정리", "실행 점화", "감정 정돈", "성과 노출", "계약 검증", "회복과 재배치", "귀인 접속", "돈의 기준", "마무리와 봉인"];
-  const monthlyFlow = Array.from({ length: 12 }, (_, index) => {
+  const monthlyAstronomy = await Promise.all(Array.from({ length: 12 }, (_, index) => calculateSukuyoForMoment(env, {
+    year: targetYear, month: index + 1, day: 15, hour: 12, minute: 0, timezoneOffset: 9, birthTimeKnown: false,
+  }, { requestUrl })));
+  const monthlyFlow = monthlyAstronomy.map((monthSukuyo, index) => {
     const month = index + 1;
-    const anchor = resolveSukuyoYearlyAnchor(targetYear, month);
-    const monthSukuyo = anchor.monthSukuyo;
-    const monthIndex = Number.isFinite(Number(monthSukuyo.index)) ? Number(monthSukuyo.index) : (natalIndex + index + 1) % 27;
+    const anchor = {
+      anchorDate: formatSukuyoYearlyAnchorDate(targetYear, month),
+      lunarDate: { year: monthSukuyo.lunarYear, month: monthSukuyo.lunarMonth, day: monthSukuyo.lunarDay, isLeapMonth: monthSukuyo.isLeapMonth },
+      monthSukuyo,
+    };
+    const monthIndex = Number.isFinite(Number(monthSukuyo.mansionIdx)) ? Number(monthSukuyo.mansionIdx) : (natalIndex + index + 1) % 27;
     const distance = (monthIndex - natalIndex + 27) % 27;
     const relation = relationFromSukuyoYearlyDistance(distance);
     const score = scoreSukuyoYearly(seed, 65 + (distance % 9), 14, index + 10);
@@ -2029,7 +2147,7 @@ async function handleSukuyoYearlyFortune(request, env) {
   const url = new URL(request.url);
   const targetYear = normalizeSukuyoTargetYear(url.searchParams.get("year"));
   const profile = await resolveSukuyoYearlyProfile(env, auth, url.searchParams.get("profileId"));
-  const fullResult = buildSukuyoYearlyFortuneResultV2({ auth, profile, targetYear });
+  const fullResult = await buildSukuyoYearlyFortuneResultV2({ auth, profile, targetYear, env, requestUrl: request.url });
   const unlock = await findSukuyoYearlyUnlock({ userId: auth.userId, profileId: profile.profileId, targetYear, env });
   const unlocked = Boolean(unlock?._id);
   return json({
@@ -2353,6 +2471,11 @@ export async function handleSukuyoRoutes(request, env = {}, ctx = null) {
   try {
     const method = request.method.toUpperCase();
     path = getRoutePath(request, "/api/sukuyo");
+
+    if (path === "/astronomy") {
+      if (method !== "POST") return methodNotAllowed();
+      return await handleSukuyoAstronomy(request, env);
+    }
 
     if (path === "/calendar") {
       if (method !== "GET") return methodNotAllowed();

@@ -55,7 +55,11 @@ async function main() {
   const commands = ciPreflightPlan(workflow, tier, { runFast, runGuards });
   if (!runFast) commands.unshift("npm run verify:doc-freshness");
   // These cheap independent PR gates also read shared source outside their path filters.
-  commands.push("npm run verify:ai-locale-pipeline", "npm run verify:business-identity");
+  commands.push(
+    "npm run verify:ai-locale-pipeline",
+    "npm run verify:business-identity",
+    "npm run verify:sukuyo-astronomy",
+  );
   console.log(JSON.stringify({ base, tree: candidate, tier, files, commands }, null, 2));
   if (planOnly) return;
   const dependencies = resolve(root, "node_modules");
