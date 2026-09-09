@@ -1,3 +1,4 @@
+import { buildLifeBookExpertFactors } from "./saju-expert-factors.js";
 import { daeun } from "../../lib/korean-calendar/index.js";
 // 🔴 명리 상수 표(納音·十神·지장간·오행·十二運星·旬空)는 달력이 아니라 문자열 조회 표다.
 // lunar-javascript 의 LunarUtil 에서 그대로 옮겨 왔고, verify:myeongri-tables 가 매번 잔차 0 을 다시 증명한다.
@@ -719,7 +720,7 @@ function resolveSolarBirth(inputDate, birthTime, calendarType) {
   return { year: inputDate.year, month: inputDate.month, day: inputDate.day, hour: birthTime.hour, minute: birthTime.minute };
 }
 
-export function calculateLifeBookAiSaju(birthInfo = {}) {
+export function calculateLifeBookAiSaju(birthInfo = {}, options = {}) {
   const birthDate = parseDate(birthInfo.birthDate);
   if (!birthDate) {
     const error = new Error("Invalid birth date");
@@ -752,7 +753,7 @@ export function calculateLifeBookAiSaju(birthInfo = {}) {
   const tenGods = buildTenGodDistribution(dayMaster, pillars);
   const usefulElement = pickBalancingElement(fiveElements);
   const dominantElement = pickDominantElement(fiveElements);
-  const currentYear = new Date().getFullYear();
+  const currentYear = options.now instanceof Date ? options.now.getUTCFullYear() : new Date().getFullYear();
   const pillarDetails = {
     // 🔴 네 기둥의 파생 필드가 전부 같은 표에서 나온다(lib/saju/myeongri-tables.js).
     // 예전에는 년·월만 여기서 뽑고 일·시는 eightChar 에서 뽑아, 節 경계 60분 창에서 한 응답 안에
@@ -800,6 +801,7 @@ export function calculateLifeBookAiSaju(birthInfo = {}) {
   });
 
   return {
+    advancedFactors: buildLifeBookExpertFactors({ yearPillar, monthPillar, dayPillar, hourPillar, majorLuck, yearlyLuck, usefulGod, unfavorableGod }),
     yearPillar,
     monthPillar,
     dayPillar,

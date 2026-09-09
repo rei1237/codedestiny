@@ -1,3 +1,4 @@
+import { pickExpertFields } from "../expert-evidence.js";
 import { calculateLifeBookAiSaju } from "../../life-book-ai-saju.js";
 import { arrayText, nonEmptyText, objectText, text } from "../../guardian-fortune-adapter-utils.js";
 
@@ -33,7 +34,7 @@ export async function buildSajuAdapter(input, options = {}) {
     birthTimeUnknown: !input.hasBirthTime,
     calendarType: input.calendarType,
     gender: input.gender,
-  });
+  }, options.fusionExpert ? { now: options.now } : {});
 
   const dayMaster = nonEmptyText(raw?.dayMaster, 80);
   const fiveElementsSummary = summarizeDistribution(raw?.fiveElements, "오행");
@@ -56,6 +57,11 @@ export async function buildSajuAdapter(input, options = {}) {
 
   const focus = TOPIC_FOCUS[input.topic] || TOPIC_FOCUS.daily;
   return {
+    ...(options.fusionExpert ? { expertEvidence: {
+      ...pickExpertFields(raw, ["usefulGod", "unfavorableGod", "majorLuck", "yearlyLuck", "natalInteractions", "seasonalBalance"]),
+      gyeokguk: raw.advancedFactors?.gyeokguk,
+      hiddenStemExposures: raw.advancedFactors?.hiddenStemExposures,
+    } } : {}),
     dayMaster,
     tenGodsSummary: tenGodsSummary || `십성은 ${focus}를 살펴보는 단서로 사용합니다.`,
     fiveElementsSummary: fiveElementsSummary || "오행의 균형은 행동의 속도와 회복 리듬을 살펴보는 단서입니다.",

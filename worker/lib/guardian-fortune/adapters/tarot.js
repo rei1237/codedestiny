@@ -50,10 +50,10 @@ export function buildTarotAdapter(input, options = {}) {
   }
 
   const fusionPositions = options.fusionTarot === true
-    ? ["core", "saju_bridge", "ziwei_bridge", "vedic_bridge", "relationship_bridge", "action_bridge"].map((key) => ({ key }))
+    ? (options.fusionExpert ? ["current", "inner", "obstacle", "external", "choice", "action"] : ["core", "saju_bridge", "ziwei_bridge", "vedic_bridge", "relationship_bridge", "action_bridge"]).map((key) => ({ key }))
     : null;
-  const spreadId = fusionPositions ? "fusion_six_system_bridge" : spreadForTopic(input.topic);
-  const spread = fusionPositions
+  const spreadId = fusionPositions ? options.fusionExpert ? "fusion_six_expert" : "fusion_six_system_bridge" : spreadForTopic(input.topic);
+  const spread = options.fusionExpert && fusionPositions ? getSpreadDefinition(spreadId) : fusionPositions
     ? { positions: fusionPositions, questionType: "fusion_fortune" }
     : getSpreadDefinition(spreadId);
   if (!spread || !Array.isArray(spread.positions) || !spread.positions.length) {
@@ -97,7 +97,8 @@ export function buildTarotAdapter(input, options = {}) {
     reading = null;
   }
 
-  const outputCards = drawnCards.map(({ card, orientation, positionKey }, index) => ({
+  const outputCards = drawnCards.map(({ card, cardId, orientation, positionKey }, index) => ({
+    cardId,
     name: nonEmptyText(card?.nameKo || card?.nameEn, 100) || "타로 카드",
     orientation,
     positionKey,

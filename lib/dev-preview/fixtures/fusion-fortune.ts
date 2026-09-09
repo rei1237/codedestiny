@@ -136,7 +136,13 @@ function buildStageTwo() {
 
 export function buildFusionPreviewResult(state: DevPreviewState) {
   if (state === "failed") return { ok: false as const, reason: "LLM_ERROR" };
-  // truncated = 1단계만 도착한 상태. 차례의 "2단계" 대기 그룹과 대기 말풍선이 이 상태에서만 보인다.
-  if (state === "truncated") return { ok: true as const, stageTwoPending: true, result: buildStageOne() };
-  return { ok: true as const, stageTwoPending: false, result: { ...buildStageOne(), ...buildStageTwo() } };
+  const first = buildStageOne();
+  if (state === "legacy") return { ok: true as const, stageTwoPending: false, result: { ...first, ...buildStageTwo() } };
+  const expert = {
+    expertMeta: { version: "fusion-expert.v2", locale: "ko", identity: "local-preview", calculatedAt: "2026-09-09T00:00:00.000Z", pendingStage: 2 as const, complete: state !== "truncated" },
+    tarotCards: ["major_fool", "major_magician", "major_high_priestess", "major_empress", "major_emperor", "major_lovers"].map((cardId, i) => ({ cardId, name: ["바보", "마법사", "여사제", "여황제", "황제", "연인"][i], orientation: i % 2 ? "reversed" : "upright", positionKey: ["current", "inner", "obstacle", "external", "choice", "action"][i], meaningSummary: "개발 전용 카드 공개 예시" })),
+    evidenceCrossCheck: { aligned: [], divergent: [{ domain: "psychology" as const, period: "current", systems: ["saju", "tarot"] as const, preferredSystems: ["tarot"] as const, positions: [{ system: "saju", summary: "실행을 준비하는 흐름입니다.", evidenceKeys: ["saju.expertEvidence.majorLuck"] }, { system: "tarot", summary: "선택하기 전에 마음의 속도를 돌아봅니다.", evidenceKeys: ["tarot.cards.0.name"] }] }] },
+  };
+  if (state === "truncated") return { ok: true as const, stageTwoPending: true, result: { ...first, ...expert } };
+  return { ok: true as const, stageTwoPending: false, result: { ...first, ...buildStageTwo(), ...expert } };
 }

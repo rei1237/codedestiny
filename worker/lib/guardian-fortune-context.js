@@ -189,6 +189,7 @@ function projectTarot(data) {
     questionType: String(data.questionType || "").slice(0, 80),
     cards: Array.isArray(data.cards)
       ? data.cards.map((card) => ({
+          cardId: String(card.cardId || "").slice(0, 100),
           name: String(card.name || "타로 카드").slice(0, 100),
           orientation: card.orientation === "reversed" ? "reversed" : "upright",
           positionKey: String(card.positionKey || "").slice(0, 80),
@@ -363,6 +364,7 @@ export async function buildGuardianFortuneContext(input, options = {}) {
   for (const adapterName of ADAPTER_NAMES) {
     if (!results[adapterName]) continue;
     const projection = PROJECTION_BY_ADAPTER[adapterName](results[adapterName]);
+    if (options.fusionExpert && results[adapterName].expertEvidence) projection.expertEvidence = results[adapterName].expertEvidence;
     if (projectionHasValue(projection)) context[adapterName] = projection;
   }
 
