@@ -1,4 +1,5 @@
 "use client";
+import { useFusionExpertCopy } from "./ExpertEvidence";
 
 import { useLocaleRequestScope, type LocaleRequestScope } from "@/app/hooks/useLocaleRequestScope";
 import { AI_LOCALE_HEADER, toAiLocale } from "@/lib/i18n/ai-locale";
@@ -87,6 +88,7 @@ const FUSION_HANDOFF_KEY = "cdGuardianFusionHandoffV1";
  */
 type FusionRequestBody = {
   locale?: string;
+  contextVersion?: number;
   birthDate?: string;
   birthTime?: string;
   birthTimeUnknown?: boolean;
@@ -1967,6 +1969,8 @@ function useFusionFortuneCopy(): FusionFortuneCopy {
 
 export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?: ReactNode; valuePreview?: ReactNode }) {
   const copy = useFusionFortuneCopy();
+  const expertCopy = useFusionExpertCopy();
+  const recoveredStageRef = useRef<1 | 2>(1);
   const sharedCopy = useFusionSharedCopy();
   const fusionStages = useMemo(() => buildFusionStages(sharedCopy), [sharedCopy]);
   const apiBase = getApiBaseUrl();
@@ -2179,6 +2183,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
       const payload = await parseJson<{ ok?: boolean; consultation?: OpenedConsultation }>(response, copy);
       if (!scope.isCurrent()) return "stale";
       if (!payload.ok || !payload.consultation?.result) return false;
+      recoveredStageRef.current = payload.consultation.result.expertMeta?.pendingStage || 2;
       applyOpenedConsultation(payload.consultation);
       // 1단계만 저장된 보관본이면 화면에는 올리되 완성으로 치지 않는다 — 호출자가 2단계를 이어 간다.
       return payload.consultation.status === "partial" ? "partial" : "completed";
@@ -2203,7 +2208,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
         void loadRecentList();
         rememberPaidRequest("");
       } else if (recovered === "partial") {
-        await runGenerationRef.current?.(stored.requestId, body, 2, "");
+        await runGenerationRef.current?.(stored.requestId, body, recoveredStageRef.current, "");
       }
     })();
   }, [pendingPaidRequest, loading, recoverPaidResult, loadRecentList, rememberPaidRequest, copy.resultCompletedNotice]);
@@ -2316,7 +2321,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
     // 이 값은 제출 시점에만 필요하므로 그때 URL 에서 직접 읽는다.
     const fortuneChatSessionId = new URLSearchParams(window.location.search).get("fortuneChatSession") || "";
     if (status.nextAction === "login") { window.location.assign(status.cta?.targetPath || "/auth/login"); return; }
-    if (!form.birthDate || (!form.birthTime && !form.birthTimeUnknown)) { setError(copy.birthInputRequiredMessage); return; }
+    if (!pendingPaidRequest && !readFusionPaidRequest() && (!form.birthDate || !form.birthTime)) { setError(expertCopy.required); return; }
 
     // 앞선 시도가 결제까지 끝났다면 그 requestId 를 재사용한다 — 새 id 로 보내면 증빙을
     // 못 찾아 이미 낸 3만원이 사라진다. 저장소까지 보는 이유는 새로고침으로 ref 가 비기 때문이다.
@@ -2327,8 +2332,13 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
     }
     const resumed = Boolean(requestId);
     const selectedPlace = birthPlaces.find((place) => place.label === form.birthPlaceKey);
+    if (!resumed && (!form.birthDate || !form.birthTime || form.birthTimeUnknown || !selectedPlace)) {
+      setError(expertCopy.required); return;
+    }
     // 결제 전에 한 번 만들어 둔다 — 재개 서술자가 이 입력을 그대로 싣고 리다이렉트를 건너간다.
     const formRequestBody: FusionRequestBody = {
+      contextVersion: 2,
+      locale: getCurrentLoadingLocale(),
       birthDate: form.birthDate,
       birthTime: form.birthTimeUnknown ? "" : form.birthTime,
       birthTimeUnknown: form.birthTimeUnknown,
@@ -2376,7 +2386,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
           rememberPaidRequest("");
           return;
         }
-        if (recovered === "partial") startStage = 2;
+        if (recovered === "partial") startStage = recoveredStageRef.current;
       }
       await runGeneration(requestId, requestBody, startStage, fortuneChatSessionId);
     }
@@ -2409,6 +2419,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
       let payload: Record<string, unknown> = {};
       for (let stage = startStage; stage <= 2; stage += 1) {
         reachedStage = stage as 1 | 2;
+        recoveredStageRef.current = reachedStage;
         if (stage === 2) { setComposeProgress(null); setStageStates((current) => ({ ...current, fusion: "active" })); }
         lastEventAtRef.current = Date.now();
         startedAtRef.current = Date.now();
@@ -2495,25 +2506,33 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
         if (!scope.isCurrent()) return;
         // 심박(ping)을 포함한 **모든** 이벤트가 무음 감시를 되돌린다.
         lastEventAtRef.current = Date.now();
+        if (streamEvent === "checkpoint" && streamPayload.result) {
+          setResult(streamPayload.result as Result); return;
+        }
         if (streamEvent !== "stage" || typeof streamPayload.stage !== "string") return;
+        if (streamPayload.phase === "calculation") return;
+        if (streamPayload.phase === "analysis_start") {
+          const started = streamPayload.stage as FusionStageKey;
+          if (fusionStages.some((item) => item.key === started)) setStageStates((current) => ({ ...current, [started]: "active" }));
+          return;
+        }
         if (streamPayload.stage === "compose") {
           setComposeProgress({
             completed: Number(streamPayload.completedGroups) || 0,
             // 서버가 단계별 묶음 수를 보낸다(1단계 6 · 2단계 3). 없을 때만 그 기본값을 쓴다.
             total: Number(streamPayload.totalGroups) || (stage === 2 ? 3 : 6),
-            label: String(streamPayload.groupLabel || ""),
+            label: fusionStages.find((stage) => stage.key === streamPayload.group)?.label || "",
             phase: String(streamPayload.phase || "compose"),
           });
-          setStageStates((current) => ({ ...current, fusion: "active" }));
+          if (stage === 2) setStageStates((current) => ({ ...current, fusion: "active" }));
           return;
         }
         const completed = streamPayload.stage as FusionStageKey;
         if (!fusionStages.some((stage) => stage.key === completed)) return;
-        setStageStates(() => {
-          const completedIndex = fusionStages.findIndex((stage) => stage.key === completed);
-          return fusionStages.reduce((next, stage, index) => ({
+        setStageStates((current) => {
+          return fusionStages.reduce((next, stage) => ({
             ...next,
-            [stage.key]: index <= completedIndex ? "completed" : index === completedIndex + 1 ? "active" : "pending",
+            [stage.key]: stage.key === completed ? "completed" : current[stage.key],
           }), {} as Record<FusionStageKey, FusionStageState>);
         });
         if (fortuneChatSessionId) {
@@ -2533,7 +2552,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
     const requestBody = paidRequestBodyRef.current || stored?.body || null;
     if (!requestId || !requestBody) { formRef.current?.requestSubmit(); return; }
     setError(""); setNotice(""); setFailure(null);
-    await runGeneration(requestId, requestBody, 2, new URLSearchParams(window.location.search).get("fortuneChatSession") || "");
+    await runGeneration(requestId, requestBody, recoveredStageRef.current, new URLSearchParams(window.location.search).get("fortuneChatSession") || "");
   };
 
   const cancelGeneration = () => requestAbortRef.current?.abort();
@@ -2674,19 +2693,20 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
       <Link href="/#fortuneGatewayEntry">{copy.navHome}</Link>
     </nav>
     <section ref={heroRef} className={styles.hero}>
-      <Image className={styles.heroImage} src="/images/fusion-fortune/fusion-guardian-celestial-hero.webp" alt="" fill priority sizes="(max-width: 720px) 100vw, 1080px" />
+      <Image className={styles.heroImage} src="/images/fusion-fortune/fusion-guardian-celestial-hero.webp" alt="" fill priority sizes="(max-width: 720px) 100vw, 960px" />
       <div className={styles.heroVeil} />
       <div className={styles.heroCopy}>
         <Link className={styles.guardianLink} href="/#guardian-fortune">{copy.guardianLinkText}</Link>
-        <h1>{copy.heroTitleLine1}<br />{copy.heroTitleLine2}</h1>
-        <p>{copy.heroDesc}</p>
+        <h1>{expertCopy.title}</h1>
+        <p>{expertCopy.intro}</p>
         <div className={styles.heroMeta}>
           <span className={styles.firstCome}>{copy.heroFirstCome}</span>
           <PriceBadge featureKey={PAID_FEATURE_KEY} fallbackLabel={copy.heroPriceFallback} prefix={copy.heroPricePrefix} className={styles.heroPrice} />
           <span>{copy.heroWordCount}</span>
           <span>{copy.heroSaveNote}</span>
         </div>
-        <p className={styles.chatLead}>{copy.chatLead}</p>
+        <p className={styles.chatLead}>{expertCopy.reviewFlow}</p>
+        <p className={styles.expertTrust}>{expertCopy.trust}</p>
         <a className={styles.heroCta} href="#fusion-form">{copy.heroFormCta}</a>
       </div>
       <FusionOrb orbCoreAlt={sharedCopy.orbCoreAlt} />
@@ -2700,7 +2720,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
         {FUSION_ORBS.map((orb) => (
           <li key={orb.key} style={{ "--tint": orb.tint } as React.CSSProperties}>
             <i aria-hidden className={styles.systemDot} />
-            <strong>{orb.label}</strong>
+            <strong>{sharedCopy.systemLabels[orb.key]}</strong>
           </li>
         ))}
       </ol>
@@ -2719,7 +2739,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
 
     {valuePreview}
 
-    <ExpertValueCards theme="fusion" points={[{ title: "여섯 체계", description: "사주·자미두수·베다점·숙요점·점성술·타로를 각 언어로 읽습니다." }, { title: "교차 신호", description: "서로 겹치는 흐름과 엇갈리는 지점을 한 질문 안에서 비교합니다." }, { title: "하나의 작전", description: "결론을 단정하지 않고 지금 선택할 우선순위와 다음 행동을 남깁니다." }]} />
+    <ExpertValueCards theme="fusion" points={expertCopy.valuePoints} />
 
     <section className={styles.panel}>
       <div className={styles.status}>
@@ -2735,7 +2755,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
             <span className={styles.systemsLegendList}>
               {FUSION_ORBS.map((orb) => (
                 <span key={orb.key} className={styles.systemsLegendItem}>
-                  <i aria-hidden className={styles.systemDot} style={{ "--tint": orb.tint } as React.CSSProperties} />{orb.label}
+                  <i aria-hidden className={styles.systemDot} style={{ "--tint": orb.tint } as React.CSSProperties} />{sharedCopy.systemLabels[orb.key]}
                 </span>
               ))}
             </span>
@@ -2745,8 +2765,8 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
         </div>
         <p className={styles.formSectionFirst}>{copy.formSectionBirth}</p>
         <label><span className={styles.labelRow}>{copy.birthDateLabel}<FieldSystems field="birthDate" copy={copy} /></span><input required {...birthDateTextInputProps(form.birthDate, (nextBirthDate) => setForm({ ...form, birthDate: nextBirthDate }))} /></label>
-        <label><span className={styles.labelRow}>{copy.birthTimeLabel}<FieldSystems field="birthTime" copy={copy} /></span><input type="time" required={!form.birthTimeUnknown} disabled={form.birthTimeUnknown} value={form.birthTime} onChange={(event) => setForm({ ...form, birthTime: event.target.value })} /><span className={styles.inlineCheck}><input type="checkbox" checked={form.birthTimeUnknown} onChange={(event) => setForm({ ...form, birthTimeUnknown: event.target.checked, birthTime: event.target.checked ? "" : form.birthTime })} /> {copy.birthTimeUnknownLabel}</span><small>{copy.birthTimeUnknownNote}</small></label>
-        <label><span className={styles.labelRow}>{copy.birthPlaceLabel}<FieldSystems field="birthPlace" copy={copy} /></span><select value={form.birthPlaceKey} onChange={(event) => setForm({ ...form, birthPlaceKey: event.target.value })}><option value="">{copy.birthPlaceUnknownOption}</option>{birthPlaces.map((place) => <option key={`${place.label}-${place.lat}-${place.lon}`} value={place.label}>{place.label}</option>)}</select><small>{copy.birthPlaceNote}</small></label>
+        <label><span className={styles.labelRow}>{copy.birthTimeLabel}<FieldSystems field="birthTime" copy={copy} /></span><input type="time" required={!form.birthTimeUnknown} disabled={Boolean(pendingPaidRequest) && form.birthTimeUnknown} value={form.birthTime} onChange={(event) => setForm({ ...form, birthTime: event.target.value, birthTimeUnknown: false })} />{pendingPaidRequest && <span className={styles.inlineCheck}><input type="checkbox" checked={form.birthTimeUnknown} onChange={(event) => setForm({ ...form, birthTimeUnknown: event.target.checked, birthTime: event.target.checked ? "" : form.birthTime })} /> {copy.birthTimeUnknownLabel}</span>}<small>{expertCopy.required}</small></label>
+        <label><span className={styles.labelRow}>{copy.birthPlaceLabel}<FieldSystems field="birthPlace" copy={copy} /></span><select required={!pendingPaidRequest} value={form.birthPlaceKey} onChange={(event) => setForm({ ...form, birthPlaceKey: event.target.value })}><option value="">{pendingPaidRequest ? copy.birthPlaceUnknownOption : expertCopy.selectPlace}</option>{birthPlaces.map((place) => <option key={`${place.label}-${place.lat}-${place.lon}`} value={place.label}>{place.label}</option>)}</select><small>{copy.birthPlaceNote}</small></label>
         <fieldset><legend><span className={styles.labelRow}>{copy.calendarTypeLabel}<FieldSystems field="calendarType" copy={copy} /></span></legend><label><input type="radio" checked={form.calendarType === "solar"} onChange={() => setForm({ ...form, calendarType: "solar" })} /> {copy.calendarSolarLabel}</label><label><input type="radio" checked={form.calendarType === "lunar"} onChange={() => setForm({ ...form, calendarType: "lunar" })} /> {copy.calendarLunarLabel}</label></fieldset>
         <label><span className={styles.labelRow}><span>{copy.genderLabel}<em>{copy.optionalTag}</em></span><FieldSystems field="gender" copy={copy} /></span><select value={form.gender} onChange={(event) => setForm({ ...form, gender: event.target.value })}><option value="unspecified">{copy.genderUnspecifiedOption}</option><option value="female">{copy.genderFemaleOption}</option><option value="male">{copy.genderMaleOption}</option></select></label>
         <p className={styles.formSection}>{copy.formSectionMind}</p>
@@ -2778,7 +2798,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
           {showSubmitPrice && <PriceBadge featureKey={PAID_FEATURE_KEY} fallbackLabel={copy.heroPriceFallback} prefix={copy.heroPricePrefix} className={styles.submitPrice} />}
         </button>
       </form>}
-      <ExpertStickyCta theme="fusion" targetId="fusion-form" label="초융합 상담 시작" price={<PriceBadge featureKey={PAID_FEATURE_KEY} fallbackLabel={copy.heroPriceFallback} prefix={copy.heroPricePrefix} />} />
+      <ExpertStickyCta theme="fusion" targetId="fusion-form" label={copy.heroFormCta} price={<PriceBadge featureKey={PAID_FEATURE_KEY} fallbackLabel={copy.heroPriceFallback} prefix={copy.heroPricePrefix} />} />
     </section>
 
     {/* 생성과 결과는 끊기지 않는 하나의 대화다. 진행 표시는 서버가 실제로 보낸 stage/compose
@@ -2786,7 +2806,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
     {(loading || result || failure) && <section
       ref={threadRef}
       aria-label={copy.threadAriaLabel}
-      className="relative z-[2] mx-auto mb-[26px] w-full max-w-[1080px] overflow-clip rounded-[28px] border border-[rgba(200,177,235,0.27)] bg-[linear-gradient(145deg,rgba(24,19,48,0.94),rgba(13,11,29,0.97))] shadow-[0_24px_70px_rgba(0,0,0,0.3)]"
+      className="relative z-[2] mx-auto mb-[26px] w-full max-w-[960px] overflow-clip rounded-[28px] border border-[rgba(200,177,235,0.27)] bg-[linear-gradient(145deg,rgba(24,19,48,0.94),rgba(13,11,29,0.97))] shadow-[0_24px_70px_rgba(0,0,0,0.3)]"
     >
       <span aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-56 bg-[radial-gradient(120%_100%_at_50%_0%,rgba(160,92,214,0.24),transparent_72%)]" />
 
@@ -2805,7 +2825,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
                 ? copy.threadSubFailure
                 : fusionStages.find((stage) => stageStates[stage.key] === "active")?.message || copy.threadSubIdle}
           </p>
-          {!result && loading && <p className="m-0 mt-2 text-[0.82rem] text-[var(--fx-ink-4)]">{copy.stagesCompletedPrefix}<b className="font-display text-[var(--fx-gold)]">{completedStageCount}</b>{copy.stagesCompletedSuffix}</p>}
+          {(!result || result.expertMeta?.complete === false) && loading && <p className="m-0 mt-2 text-[0.82rem] text-[var(--fx-ink-4)]">{copy.stagesCompletedPrefix}<b className="font-display text-[var(--fx-gold)]">{completedStageCount}</b>{copy.stagesCompletedSuffix}</p>}
         </div>
       </header>
 
@@ -2817,7 +2837,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
         <span aria-hidden className="pointer-events-none absolute bottom-12 left-[26px] top-12 w-px max-[430px]:left-5 sm:left-[54px] bg-[linear-gradient(180deg,transparent,rgba(201,181,243,0.3),transparent)]" />
 
         {/* 생성 중에는 끝난 체계와 지금 쓰는 체계만 말한다. 아직 없는 내용을 자리로 약속하지 않는다. */}
-        {!result && fusionStages.map((stage, index) => {
+        {(!result || result.expertMeta?.complete === false) && fusionStages.map((stage, index) => {
           const state = stageStates[stage.key];
           if (state === "pending") return null;
           const systemKey = stage.key === "fusion" ? "fusion" : stage.key as FusionSystemKey;

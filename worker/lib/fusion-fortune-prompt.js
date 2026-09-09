@@ -1,3 +1,4 @@
+import { fusionLocaleLengthScale, FUSION_EXPERT_VERSION, buildFusionEvidenceCrossCheck } from "./fusion-expert-contract.js";
 /**
  * 초융합 운세 프롬프트.
  *
@@ -378,6 +379,7 @@ function safeArray(value, maxItems = 3, maxText = 140) {
 function projectTarot(cards) {
   if (!Array.isArray(cards)) return [];
   return cards.map((card) => ({
+    cardId: safeText(card?.cardId, 100),
     name: safeText(card?.name, 80),
     orientation: card?.orientation === "reversed" ? "reversed" : "upright",
     positionKey: safeText(card?.positionKey || card?.position, 60),
@@ -404,6 +406,7 @@ function projectSystem(name, source) {
     const value = safeText(source[field]);
     if (value) projected[field] = value;
   }
+  if (source.expertEvidence) projected.expertEvidence = sanitizeExpertEvidence(source.expertEvidence);
   const evidence = safeArray(source.evidence, 6, 80);
   if (evidence.length) projected.evidence = evidence;
   return Object.keys(projected).length ? projected : undefined;
@@ -430,6 +433,7 @@ export function projectFusionFortuneContextForPrompt(context = {}) {
 
   return {
     version: String(context.version || "fusion-fortune.v1"),
+    locale: context.locale || "ko",
     birthTimeKnown: context.birthTimeKnown === true,
     birthPlaceKnown: context.birthPlaceKnown === true,
     systems,
@@ -568,6 +572,7 @@ const FUSION_SECTION_GROUP_LENGTH_LINE = "이번 요청은 전체 상담 중 한
  *    조용히 안 걸리고(결과는 정상이라 눈에 안 띈다) 절감만 사라진다.
  */
 export function buildFusionSectionSystemPrompt(context = {}) {
+  if (context.version === FUSION_EXPERT_VERSION) return EXPERT_SYSTEM_PROMPT;
   return buildSharedSystemPrompt(projectFusionFortuneContextForPrompt(context), FUSION_SECTION_GROUP_LENGTH_LINE);
 }
 
@@ -590,6 +595,7 @@ function composeFusionSectionPromptPrefix(safeContext, digest) {
  *    (접두사가 4,000자 미만이면 createGeminiContextCache 가 null 을 돌려주고 예전처럼 정가로 나간다.)
  */
 export function buildFusionSectionPromptPrefix({ context = {}, stage = 1, priorSections = null } = {}) {
+  if (context.version === FUSION_EXPERT_VERSION) return expertPromptPrefix(context, stage, priorSections);
   const safeContext = projectFusionFortuneContextForPrompt(context);
   return composeFusionSectionPromptPrefix(safeContext, Number(stage) === 2 ? buildFusionStageOneDigest(priorSections) : "");
 }
@@ -600,6 +606,7 @@ export function buildFusionSectionPromptPrefix({ context = {}, stage = 1, priorS
  * @param {{ context?: object, group: object, priorSections?: object, extraInstruction?: string }} args
  */
 export function buildFusionSectionGroupPrompt({ context = {}, group, priorSections = null, extraInstruction = "" } = {}) {
+  if (context.version === FUSION_EXPERT_VERSION) return buildExpertGroupPrompt(context, group, priorSections, extraInstruction);
   const safeContext = projectFusionFortuneContextForPrompt(context);
   const responseSchema = pickSchema(group.keys);
   // 🔴 상한은 스키마 서술자(lengthDirective)와 **같은 함수**에서 나온다 — 두 자리가 다른 천장을
@@ -745,4 +752,50 @@ export async function buildAdminLabPrompt(body = {}, options = {}) {
       `타로 카드는 매번 달라지면 비교가 안 되므로 랩에서만 시드를 "${ADMIN_LAB_TAROT_SEED}" 로 고정한다.`,
     ],
   };
+}
+
+
+const EXPERT_SYSTEM_PROMPT = "CODE DESTINY의 초융합 상담자다. 제공한 계산 근거만 해석하고 새로운 별·궁·격국·시기를 만들지 않는다. 독립 전문가 단계에서는 다른 체계를 참조하지 않는다. 전문 용어는 쉬운 설명을 붙인다. 타인의 마음·성공·질병·투자 결과를 단정하지 않는다. 개인정보·입력 원문을 인용하지 않는다. 별도의 분석 한계 섹션을 만들지 않는다. 지시된 JSON 스키마만 출력한다.";
+function sanitizeExpertEvidence(value, depth = 0) {
+  if (depth > 7) return undefined;
+  if (typeof value === "string") return safeText(value, 700);
+  if (typeof value === "number" || typeof value === "boolean") return value;
+  if (Array.isArray(value)) return value.slice(0, 24).map((item) => sanitizeExpertEvidence(item, depth + 1));
+  if (!value || typeof value !== "object") return undefined;
+  return Object.fromEntries(Object.entries(value)
+    .filter(([key]) => !/birthDate|birthTime|latitude|longitude|timezone|solarDate|raw|nickname|concern|requestId|payment/i.test(key))
+    .map(([key, item]) => [key, sanitizeExpertEvidence(item, depth + 1)]));
+}
+function expertPromptPrefix(context, stage, prior) {
+  const common = `전문 분석 계약 ${FUSION_EXPERT_VERSION}. 출력 언어: ${context.locale || "ko"}. 근거 → 독립 결론 → 강점과 주의점 → 행동 조언 순으로 충분히 쓴다. 같은 문장으로 분량을 채우지 않는다.`;
+  if (Number(stage) !== 2) return common;
+  const projected = projectFusionFortuneContextForPrompt(context);
+  delete projected.integratedInsight;
+  return [common, "완성된 독립 분석을 통합한다. 시기는 사주·베다·서양점성술의 시기 근거, 심리는 타로, 관계 거리감은 숙요, 일은 사주·자미두수를 우선한다. 다수결·합의율은 예측 확률이 아니다. 서로 다른 관점은 어떤 상황에서 어떤 근거를 우선했는지 설명한다. 없는 상충을 만들지 않는다.",
+    JSON.stringify({ context: projected, independent: buildFusionStageOneDigest(prior), crossCheck: buildFusionEvidenceCrossCheck(prior, context) }),
+  ].join("\n\n");
+}
+function buildExpertGroupPrompt(context, group, prior, extraInstruction) {
+  const safeContext = projectFusionFortuneContextForPrompt(context);
+  const prefix = expertPromptPrefix(context, group.stage, prior);
+  let responseSchema = structuredClone(pickSchema(group.keys));
+  // V2 comparisons use referenced conclusions; no generated score chart.
+  delete responseSchema.visualization;
+  if (responseSchema.finalVerdict) responseSchema.finalVerdict.confidence = "number (0; legacy compatibility field, never a probability)";
+  if (group.stage === 1) {
+    for (const system of group.systems) {
+      responseSchema[`${system}Section`].signals = [{ domain: "timing|relationship|psychology|work", period: "current 또는 YYYY-MM", stance: "advance|pause|adapt", summary: "string (독립 결론)", evidenceKeys: ["string (제공된 데이터 경로. 예: saju.expertEvidence.gyeokguk)"] }];
+    }
+  }
+  if (context.locale && context.locale !== "ko") {
+    responseSchema = JSON.parse(JSON.stringify(responseSchema).replace(/한국어/g, context.locale).replace(/([0-9,]+)자/g, (_, count) => `${Math.round(Number(count.replaceAll(",", "")) * fusionLocaleLengthScale(context.locale))}자`));
+  }
+  const own = group.stage === 1 ? Object.fromEntries(group.systems.map((key) => [key, safeContext.systems[key]])) : null;
+  const userPrompt = [prefix, `이 요청의 범위: ${group.id === "action" ? "실제 시기 계산과 독립 결론에 근거한 준비·선택·행동 계획. 계산에 없는 월별 사건이나 점수를 만들지 않는다." : group.focus}`,
+    group.stage === 1 ? `독립 전문가: ${group.systems.join(", ")}. 다른 체계의 결론을 추측하지 않는다. signals에는 동일 질문에 대한 영역별 결론과 실제 존재하는 근거 경로를 기록한다.\n${JSON.stringify({ systems: own, topic: safeContext.topic, questionFocus: safeContext.questionFocus })}` : "최종 종합과 행동은 제공된 crossCheck와 독립 결론을 근거로 작성한다.",
+    group.systems.includes("tarot") ? "여섯 카드의 카드명·정역방향·포지션을 모두 인용한다. 카드 이름 자체는 서버의 표기를 유지한다." : "",
+    group.systems.includes("saju") ? "격국·용신·대운·세운의 제공 근거를 설명한다. 사주 엔진은 실제 경력 10년차 명리학자 설계·자문이라는 신뢰 요소를 존중한다. 추가 계산이 별도 전문가 검수를 받았다고 표현하지 않는다." : "",
+    `응답 JSON 스키마: ${JSON.stringify(responseSchema)}`, extraInstruction,
+  ].filter(Boolean).join("\n\n");
+  return { systemPrompt: EXPERT_SYSTEM_PROMPT, userPrompt, promptPrefix: prefix, responseSchema, geminiSchema: toGeminiSchema(responseSchema) };
 }

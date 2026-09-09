@@ -185,6 +185,7 @@ export function normalizeFusionCrossChecks(raw, context = {}) {
  * @returns {{ systemScores: Array, monthlyTimeline: Array, crossChecks: { aligned: Array, divergent: Array } }}
  */
 export function normalizeFusionVisualization(raw, context = {}, { now = new Date() } = {}) {
+  if (context.version === "fusion-expert.v2") return { version: "fusion-expert.v2", systemScores: [], monthlyTimeline: [], crossChecks: { aligned: [], divergent: [] } };
   return {
     systemScores: normalizeFusionSystemScores(raw?.systemScores, context),
     monthlyTimeline: normalizeFusionMonthlyTimeline(raw?.monthlyTimeline, { now }),
@@ -252,6 +253,7 @@ export function isFusionFinalVerdictShaped(value) {
 
 /** 검증용 — normalize 를 통과한 블록인지 확인한다. */
 export function isFusionVisualizationShaped(value) {
+  if (value?.version === "fusion-expert.v2") return Array.isArray(value.systemScores) && Array.isArray(value.monthlyTimeline);
   if (!value || typeof value !== "object") return false;
   if (!Array.isArray(value.systemScores) || value.systemScores.length !== FUSION_VISUAL_SYSTEMS.length) return false;
   if (value.systemScores.some((item) => !FUSION_VISUAL_SYSTEMS.some((system) => system.key === item?.key) || !Number.isFinite(Number(item?.score)))) return false;
