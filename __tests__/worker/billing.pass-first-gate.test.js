@@ -10,6 +10,7 @@
  */
 
 let buildPassPaymentDecision;
+let buildMeteredPassBudgetFilter;
 let PASS_LIMITS;
 
 const EQUAL_METHODS = ["DIRECT_KRW", "MOONLIGHT_STONE"];
@@ -32,6 +33,7 @@ function pricing(coinPrice, featureKey = "tarot-year-fortune") {
 beforeAll(async () => {
   const billingMod = await import("../../worker/routes/billing.js");
   buildPassPaymentDecision = billingMod.__billingTestUtils.buildPassPaymentDecision;
+  buildMeteredPassBudgetFilter = billingMod.__billingTestUtils.buildMeteredPassBudgetFilter;
   // 🔴 상한 숫자를 여기 박지 않는다 — 적용 가격 범위가 바뀌면 이 테스트가 정책이 아니라
   //    옛 숫자를 지킨다(2026-08-24 상향에서 실제로 걸렸다).
   ({ PASS_LIMITS } = await import("../../worker/lib/profile-limits.js"));
@@ -144,5 +146,24 @@ describe("이용권 선검사 게이트", () => {
       expect(decision.hiddenMethods).toEqual([]);
       expect(decision.recommendedMethods).toEqual(EQUAL_METHODS);
     }
+  });
+});
+
+describe("레거시 이용권 소비 CAS", () => {
+  test("같은 사이클의 DB 최신 사용액이 잔여 예산을 넘으면 원자 쓰기 필터가 거절한다", () => {
+    const filter = buildMeteredPassBudgetFilter({ applies: true, cycleKey: "cycle-1", limitCoin: 5000 }, 200);
+    expect(filter).toEqual({
+      $or: [
+        { "profileSubscription.premiumUseCycleKey": { $ne: "cycle-1" } },
+        {
+          "profileSubscription.premiumUseCycleKey": "cycle-1",
+          $expr: { $lte: [{ $ifNull: ["$profileSubscription.monthlySpendCoin", 0] }, 4800] },
+        },
+      ],
+    });
+  });
+
+  test("월 한도 비적용 이용권에는 추가 CAS 필터를 만들지 않는다", () => {
+    expect(buildMeteredPassBudgetFilter({ applies: false }, 200)).toBeNull();
   });
 });
