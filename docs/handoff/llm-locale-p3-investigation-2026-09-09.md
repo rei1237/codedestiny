@@ -21,7 +21,7 @@ next: #1860 최신 HEAD CI를 확인하고, 추가 renderer 전수 조사는 별
 
 preflight에서 발견한 검증기 문제도 함께 수정했다: 원본 followup의 허용되지 않는 `status: paused`를 `done`으로 정리했고, 통합 운세 단계 흐름 검사가 새 `stale` 반환 타입과 다음 단계 차단을 검증하도록 갱신했다. `verify:fusion-fortune-stage-flow`는 1단계 partial→2단계 completed 병합 36,687자·예약·옛 보관본 계약을 모두 통과했다. 최종 preflight 전체 실행 기록은 `.codex-tmp/locale-p3-preflight-delivery.log`에 남긴다(로컬 전용). 이 문서 작성 이후의 원격 최신 HEAD·검사 결과는 아래 명령으로 조회한다.
 
-최신 main `05c18c84053eaa0647b3c60e198d004d5102e9ce`를 기존 브랜치에 통합했다. 개발 워크트리는 그대로 사용했으며 preflight만 임시 검증 체크아웃을 자동 생성·정리한다. 다른 작업의 미커밋 파일은 수정하지 않았다. 인수인계 이후의 sitemap `/vedic-ai/` 서명 변경과 이번 `/destiny-compass/` 서명 변경은 생성기로 검증했다. 가격·결제 증빙·멱등 키·인증·서버 API 응답·DB 스키마는 이번 P3 수정에서 변경하지 않았다.
+P3 구현 커밋은 `d7273575e`다. 검사 도중 main이 갱신되어 최신 main `1587621ed`를 기존 브랜치에 추가 통합했다(헤더 2파일, P3 소스 중첩 없음). 앞서 통과한 전체 검사 기준 main은 `05c18c84053eaa0647b3c60e198d004d5102e9ce`이며 최종 preflight는 새 main 기준으로 실행한다. 개발 워크트리는 그대로 사용했으며 preflight만 임시 검증 체크아웃을 자동 생성·정리한다. 다른 작업의 미커밋 파일은 수정하지 않았다. 인수인계 이후의 sitemap `/vedic-ai/` 서명 변경과 이번 `/destiny-compass/` 서명 변경은 생성기로 검증했다. 가격·결제 증빙·멱등 키·인증·서버 API 응답·DB 스키마는 이번 P3 수정에서 변경하지 않았다.
 
 
 아래는 수정 전 조사 근거와 당시 상태다.
