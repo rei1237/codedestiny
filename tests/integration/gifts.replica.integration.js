@@ -9,6 +9,7 @@ import { __paymentsContextTestUtils, handlePaymentsContext } from "../../worker/
 import { signAuthToken } from "../../worker/lib/auth.js";
 import { handleGiftRoute } from "../../worker/payments/gift-routes.js";
 import { refundGiftAsOperator } from "../../worker/payments/gift-refund.js";
+import { applyEntitlementUpdate } from "../../worker/routes/app-store.js";
 
 const uri = "mongodb://127.0.0.1:27029/gift_integration_test?replicaSet=gift-test";
 const purchaser = new mongoose.Types.ObjectId("64b000000000000000000001");
@@ -38,6 +39,18 @@ async function paidGift(tier = "standard") {
   return { gift, order, tokenHash: await hashGiftToken(link.claimPath.split("=")[1]), token: link.claimPath.split("=")[1] };
 }
 test("required unique indexes exist", async () => { await assertGiftIndexes(db); });
+
+test("app pass activation racing gift claim preserves both grants and replay safety", async () => {
+  const g = await paidGift();
+  const args = { userId: receiver, product: { kind: "pass", passTier: "standard", productId: "standard-30", featureKey: "standard-pass" }, googlePurchase: {}, now, passOrderId: "google-test-order" };
+  await Promise.all([claimGift(db, { tokenHash: g.tokenHash, userId: receiver }), applyEntitlementUpdate(args)]);
+  const user = await User.findById(receiver).lean();
+  expect(new Date(user.profileSubscription.expiresAt).getTime()).toBeGreaterThanOrEqual(now.getTime() + 60 * day);
+  expect(user.passGrantOrderIds).toEqual(expect.arrayContaining([g.gift.giftId, "google-test-order"]));
+  await applyEntitlementUpdate(args);
+  expect((await User.findById(receiver).lean()).profileSubscription).toEqual(user.profileSubscription);
+  expect(await GiftGrant.countDocuments()).toBe(1);
+});
 
 test("cancellation before approval cannot be reversed by a later callback", async () => {
   const plan = resolvePassPlan("standard", 1);

@@ -520,6 +520,10 @@ async function handlePassConfirm({ request, env, ctx, userId, body, withDb }) {
     if (!order) throw paymentError("ORDER_NOT_FOUND", "이용권 주문을 찾을 수 없습니다.", { orderId });
     assertOrderOwner(order, userId);
     giftPurchase = order.purchaseType === "GIFT";
+    if (giftPurchase) {
+      const { assertGiftOrigin } = await import("./gift-routes.js");
+      assertGiftOrigin(request, env);
+    }
     if (order.purchaseType != null && !["SELF", "GIFT"].includes(order.purchaseType)) throw paymentError("INVALID_REQUEST", "구매 방식이 올바르지 않습니다.");
     if (body.purchaseType !== undefined && body.purchaseType !== (order.purchaseType || "SELF")) throw paymentError("INVALID_REQUEST", "주문 구매 방식이 다릅니다.");
     /* 🔴 등급은 body 가 없어도 **주문에서 복원**한다. 모바일은 PG 가 상위 프레임을 리다이렉트하는데

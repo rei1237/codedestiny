@@ -8,6 +8,7 @@ on:
       - 'worker/lib/payment-refund.js'
       - 'worker/lib/profile-limits.js'
       - 'worker/lib/db.js'
+      - 'worker/routes/app-store.js'
       - 'lib/payment/**'
       - 'tests/integration/gifts.replica.integration.js'
       - '.github/workflows/gift-integrity.yml'
