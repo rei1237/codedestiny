@@ -298,8 +298,10 @@ function buildStagingMockText(request: LLMRequest): string {
 }
 
 function buildStagingMockResponse(request: LLMRequest): LLMResponse {
+  // The locale directive itself mentions JSON keys, so do not treat that
+  // appended instruction as a request for JSON output.
   const wantsJson = String(request.responseMimeType || "").toLowerCase() === "application/json"
-    || /(?:json|JSON|JSON 형식|JSON 하나)/.test(request.prompt || "");
+    || /출력 형식은 JSON 하나입니다/.test(request.prompt || "");
   return {
     text: wantsJson ? buildStagingMockJson(request.prompt) : buildStagingMockText(request),
     provider: "staging-mock",
