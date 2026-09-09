@@ -85,6 +85,7 @@ export function buildVisualDetails(html, book) {
     ...context.window.__cdServiceRegistry.map(item => ({
       slug: item.id, title: item.name, description: item.desc,
       href: item.href || `/index.html?action=${encodeURIComponent(item.action)}`,
+      visualHref: item.visualHref || item.href,
       featureKey: item.featureKey, featureKeyTo: item.featureKeyTo, action: item.action, accessType: item.price === '무료' ? 'free' : undefined,
     })),
     ...react.map(item => ({ ...item, href: item.launchRoute })),
@@ -93,8 +94,9 @@ export function buildVisualDetails(html, book) {
   for (const source of sources) {
     if (!/^[a-z0-9-]+$/.test(source.slug) || !source.href?.startsWith('/') || source.href.startsWith('//')) continue;
     const route = cleanPath(source.href);
-    if (seen.has(route)) continue;
-    seen.add(route);
+    const visualRoute = cleanPath(source.visualHref || source.href);
+    if (seen.has(visualRoute)) continue;
+    seen.add(visualRoute);
     const candidates = [source.featureKey, source.action, source.slug, source.href, route, `${route}/`].filter(Boolean);
     const match = candidates.map(key => book.items[key]).find(Boolean);
     const base = candidates.map(key => legacy[key]).find(Boolean);

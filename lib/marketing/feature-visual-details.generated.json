@@ -375,15 +375,13 @@
       "slug": "saju",
       "title": "사주 정밀 분석",
       "href": "/saju/basic/play",
-      "featureKey": "",
+      "featureKey": "saju",
       "accessType": "free",
       "image": "/feature-details/assets/saju-960.webp",
       "aliases": [
         "saju",
-        "/saju/",
-        "/saju",
-        "/saju/basic/play",
-        "/saju/basic/play/"
+        "/saju/basic/play/",
+        "/saju/basic/play"
       ],
       "category": "사주·심층 상담",
       "description": "생년월일과 출생시간으로 사주 네 기둥을 세운 뒤, 오행과 십성의 균형을 바탕으로 성향과 생활의 리듬을 차분히 정리합니다.",
@@ -391,37 +389,32 @@
     },
     {
       "slug": "tarot",
-      "title": "타로 리딩",
+      "title": "타로",
       "href": "/index.html?action=openTarotModal",
-      "featureKey": "",
-      "accessType": "free",
+      "featureKey": "tarot",
+      "accessType": "unknown",
       "image": "/feature-details/assets/tarot-960.webp",
       "aliases": [
         "openTarotModal",
         "tarot",
-        "/tarot/",
-        "/tarot",
         "/index.html?action=openTarotModal",
         "/index.html?action=openTarotModal/"
       ],
       "category": "타로·신탁",
-      "description": "타로 상징과 스프레드의 흐름 속에서 현재의 감정과 선택의 실마리가 강하게 떠오릅니다.",
+      "description": "질문을 정하고 카드를 뽑으면 그 상징이 지금의 감정과 선택을 어떻게 비추는지 풀어 주는 기본 타로입니다.",
       "verification": "verified"
     },
     {
       "slug": "ziwei",
       "title": "심화 자미두수 12궁 상담",
       "href": "/ziwei/chart",
-      "featureKey": "",
+      "featureKey": "ziwei-basic",
       "accessType": "free",
       "image": "/feature-details/assets/ziwei-960.webp",
       "aliases": [
-        "openZiweiModal",
         "ziwei",
-        "/ziwei/",
-        "/ziwei",
-        "/ziwei/chart",
-        "/ziwei/chart/"
+        "/ziwei/chart/",
+        "/ziwei/chart"
       ],
       "category": "사주·심층 상담",
       "description": "생년월일과 출생시간으로 명궁과 열두 궁을 세우고, 주요 별의 배치와 시기 흐름을 통해 삶의 주제를 더 세분해 살펴봅니다.",
@@ -430,15 +423,15 @@
     {
       "slug": "sukuyo",
       "title": "숙요점",
-      "href": "/sukuyo/",
+      "href": "/index.html?action=openSukuyoModal",
       "featureKey": "compat-sukuyo-compatibility",
       "accessType": "unknown",
       "image": "/feature-details/assets/sukuyo-960.webp",
       "aliases": [
         "openSukuyoModal",
         "sukuyo",
-        "/sukuyo/",
-        "/sukuyo"
+        "/index.html?action=openSukuyoModal",
+        "/index.html?action=openSukuyoModal/"
       ],
       "category": "사주·심층 상담",
       "description": "27수 가운데 두 사람의 본명숙을 각각 계산해 관계 유형과 거리를 판정하고, 연애·결혼·재회·비밀연애·장거리·협업 여섯 주제로 나눠 읽습니다.",
@@ -448,13 +441,11 @@
       "slug": "vedic",
       "title": "베다 점성술 분석",
       "href": "/index.html?action=navigateToVedic",
-      "featureKey": "",
+      "featureKey": "vedic-basic",
       "accessType": "free",
       "image": "/feature-details/assets/vedic-960.webp",
       "aliases": [
         "vedic",
-        "/vedic/",
-        "/vedic",
         "/index.html?action=navigateToVedic",
         "/index.html?action=navigateToVedic/"
       ],
@@ -466,14 +457,12 @@
       "slug": "astrology",
       "title": "서양 점성술 차트 분석",
       "href": "/index.html?action=openAstroModal",
-      "featureKey": "",
+      "featureKey": "astro-basic",
       "accessType": "free",
       "image": "/feature-details/assets/astrology-960.webp",
       "aliases": [
         "openAstroModal",
         "astrology",
-        "/astrology/",
-        "/astrology",
         "/index.html?action=openAstroModal",
         "/index.html?action=openAstroModal/"
       ],
@@ -533,17 +522,17 @@
     {
       "slug": "daily-fortune",
       "title": "오늘의 운세",
-      "href": "/daily-fortune/",
-      "featureKey": "daily-fortune",
+      "href": "/today/",
+      "featureKey": "today-hub",
       "accessType": "free",
       "image": "/feature-details/assets/daily-fortune-960.webp",
       "aliases": [
         "daily-fortune",
-        "/daily-fortune/",
-        "/daily-fortune"
+        "/today/",
+        "/today"
       ],
       "category": "오늘·시기",
-      "description": "생년월일 기준으로 오늘 날짜의 기운을 대조해, 하루 동안 무엇을 밀고 무엇을 미룰지 짧게 정리해 줍니다.",
+      "description": "한 화면에서 세 체계의 오늘 해석을 함께 놓고, 서로 겹치는 신호와 갈리는 지점을 비교해 볼 수 있는 허브입니다.",
       "verification": "verified"
     },
     {
@@ -967,7 +956,7 @@
       "slug": "sukyo",
       "title": "숙요 인연 레이더",
       "href": "/index.html?action=openSukuyoModal",
-      "featureKey": "",
+      "featureKey": "compat-sukuyo-compatibility",
       "accessType": "free",
       "image": "/feature-details/assets/sukyo-960.webp",
       "aliases": [
@@ -3156,16 +3145,14 @@
       "slug": "saju",
       "title": "사주 정밀 분석",
       "href": "/saju/basic/play",
-      "featureKey": "",
+      "featureKey": "saju",
       "featureKeyTo": "",
       "accessType": "free",
       "image": "/feature-details/assets/saju-960.webp",
       "aliases": [
         "saju",
-        "/saju/",
-        "/saju",
-        "/saju/basic/play",
-        "/saju/basic/play/"
+        "/saju/basic/play/",
+        "/saju/basic/play"
       ],
       "category": "사주·심층 상담",
       "headline": "여덟 글자에 담긴 기질과, 지금의 흐름을 함께 읽습니다.",
@@ -3221,32 +3208,46 @@
     },
     "tarot": {
       "slug": "tarot",
-      "title": "타로 리딩",
+      "title": "타로",
       "href": "/index.html?action=openTarotModal",
-      "featureKey": "",
+      "featureKey": "tarot",
       "featureKeyTo": "",
-      "accessType": "free",
+      "accessType": "unknown",
       "image": "/feature-details/assets/tarot-960.webp",
       "aliases": [
         "openTarotModal",
         "tarot",
-        "/tarot/",
-        "/tarot",
         "/index.html?action=openTarotModal",
         "/index.html?action=openTarotModal/"
       ],
       "category": "타로·신탁",
-      "headline": "타로 리딩",
-      "description": "타로 상징과 스프레드의 흐름 속에서 현재의 감정과 선택의 실마리가 강하게 떠오릅니다.",
+      "headline": "지금 마음에 걸린 질문을 카드 한 장으로 꺼내 보세요.",
+      "description": "질문을 정하고 카드를 뽑으면 그 상징이 지금의 감정과 선택을 어떻게 비추는지 풀어 주는 기본 타로입니다.",
       "panels": [
         {
-          "title": "타로 리딩에서 확인하는 흐름",
-          "text": "타로 상징과 스프레드의 흐름 속에서 현재의 감정과 선택의 실마리가 강하게 떠오릅니다.",
+          "title": "타로에서 확인하는 흐름",
+          "text": "점괘를 단정하지 않고, 카드의 상징을 지금 상황에 붙여 읽어 줍니다.",
           "visualPreview": "feature-map",
           "previewTone": "타로·신탁"
+        },
+        {
+          "title": "이런 질문에 도움이 됩니다",
+          "items": [
+            "지금 제 마음은 어떤 상태인가요?",
+            "이 선택은 어떤 결과로 이어질까요?",
+            "무엇을 놓치고 있나요?"
+          ]
+        },
+        {
+          "title": "이런 분께 어울려요",
+          "items": [
+            "타로를 처음 보는 분",
+            "오늘의 마음을 짚고 싶은 분",
+            "가볍게 질문을 던져 보고 싶은 분"
+          ]
         }
       ],
-      "ctaLabel": "이 기능 시작하기",
+      "ctaLabel": "무료로 타로 뽑기",
       "evidence": [
         "index.html",
         "index.html",
@@ -3279,17 +3280,14 @@
       "slug": "ziwei",
       "title": "심화 자미두수 12궁 상담",
       "href": "/ziwei/chart",
-      "featureKey": "",
+      "featureKey": "ziwei-basic",
       "featureKeyTo": "",
       "accessType": "free",
       "image": "/feature-details/assets/ziwei-960.webp",
       "aliases": [
-        "openZiweiModal",
         "ziwei",
-        "/ziwei/",
-        "/ziwei",
-        "/ziwei/chart",
-        "/ziwei/chart/"
+        "/ziwei/chart/",
+        "/ziwei/chart"
       ],
       "category": "사주·심층 상담",
       "headline": "명궁에서 시작해, 삶의 여러 자리를 한 장의 명반으로 읽습니다.",
@@ -3327,7 +3325,9 @@
           "열두 궁은 나의 성향을 어떻게 보여줄까요?"
         ],
         "trustNotes": [
-          "운세 결과는 참고용이며, 중요한 선택은 현실적인 판단과 함께 확인해 주세요."
+          "해석은 참고용입니다.",
+          "유파에 따라 해석이 다를 수 있습니다.",
+          "기존 서비스 기준을 따릅니다."
         ],
         "faq": []
       },
@@ -3345,7 +3345,7 @@
     "sukuyo": {
       "slug": "sukuyo",
       "title": "숙요점",
-      "href": "/sukuyo/",
+      "href": "/index.html?action=openSukuyoModal",
       "featureKey": "compat-sukuyo-compatibility",
       "featureKeyTo": "",
       "accessType": "unknown",
@@ -3353,8 +3353,8 @@
       "aliases": [
         "openSukuyoModal",
         "sukuyo",
-        "/sukuyo/",
-        "/sukuyo"
+        "/index.html?action=openSukuyoModal",
+        "/index.html?action=openSukuyoModal/"
       ],
       "category": "사주·심층 상담",
       "headline": "상대의 생년월일만 있으면 두 사람이 어떤 거리의 인연인지 바로 나옵니다.",
@@ -3426,7 +3426,7 @@
       ],
       "ctaLabel": "숙요점 열기",
       "evidence": [
-        "app/sukuyo/page.js",
+        "index.html",
         "index.html",
         "js/core/service-registry.js"
       ],
@@ -3473,14 +3473,12 @@
       "slug": "vedic",
       "title": "베다 점성술 분석",
       "href": "/index.html?action=navigateToVedic",
-      "featureKey": "",
+      "featureKey": "vedic-basic",
       "featureKeyTo": "",
       "accessType": "free",
       "image": "/feature-details/assets/vedic-960.webp",
       "aliases": [
         "vedic",
-        "/vedic/",
-        "/vedic",
         "/index.html?action=navigateToVedic",
         "/index.html?action=navigateToVedic/"
       ],
@@ -3520,7 +3518,9 @@
           "다샤의 흐름은 어떻게 읽으면 좋을까요?"
         ],
         "trustNotes": [
-          "운세 결과는 참고용이며, 중요한 선택은 현실적인 판단과 함께 확인해 주세요."
+          "해석은 참고용입니다.",
+          "업·카르마는 상징적 개념입니다.",
+          "기존 서비스 기준을 따릅니다."
         ],
         "faq": []
       },
@@ -3539,15 +3539,13 @@
       "slug": "astrology",
       "title": "서양 점성술 차트 분석",
       "href": "/index.html?action=openAstroModal",
-      "featureKey": "",
+      "featureKey": "astro-basic",
       "featureKeyTo": "",
       "accessType": "free",
       "image": "/feature-details/assets/astrology-960.webp",
       "aliases": [
         "openAstroModal",
         "astrology",
-        "/astrology/",
-        "/astrology",
         "/index.html?action=openAstroModal",
         "/index.html?action=openAstroModal/"
       ],
@@ -3587,7 +3585,9 @@
           "내가 반복하는 반응을 어떻게 이해할까요?"
         ],
         "trustNotes": [
-          "운세 결과는 참고용이며, 중요한 선택은 현실적인 판단과 함께 확인해 주세요."
+          "해석은 참고용입니다.",
+          "출생 정보 정확도에 영향을 받습니다.",
+          "기존 서비스 기준을 따릅니다."
         ],
         "faq": []
       },
@@ -3813,44 +3813,44 @@
     "daily-fortune": {
       "slug": "daily-fortune",
       "title": "오늘의 운세",
-      "href": "/daily-fortune/",
-      "featureKey": "daily-fortune",
+      "href": "/today/",
+      "featureKey": "today-hub",
       "featureKeyTo": "",
       "accessType": "free",
       "image": "/feature-details/assets/daily-fortune-960.webp",
       "aliases": [
         "daily-fortune",
-        "/daily-fortune/",
-        "/daily-fortune"
+        "/today/",
+        "/today"
       ],
       "category": "오늘·시기",
-      "headline": "긴 해석은 나중에, 오늘 하루의 흐름부터 확인해보세요.",
-      "description": "생년월일 기준으로 오늘 날짜의 기운을 대조해, 하루 동안 무엇을 밀고 무엇을 미룰지 짧게 정리해 줍니다.",
+      "headline": "오늘 하루를 사주·숙요점·베다점 세 갈래로 나란히 확인해보세요.",
+      "description": "한 화면에서 세 체계의 오늘 해석을 함께 놓고, 서로 겹치는 신호와 갈리는 지점을 비교해 볼 수 있는 허브입니다.",
       "panels": [
         {
           "title": "오늘의 운세에서 확인하는 흐름",
-          "text": "길게 늘이지 않고 오늘 하루에 필요한 만큼만 짚습니다.",
+          "text": "한 갈래의 결론만 주지 않고, 세 갈래를 나란히 놓아 비교할 수 있게 합니다.",
           "visualPreview": "feature-map",
           "previewTone": "오늘·시기"
         },
         {
           "title": "이런 질문에 도움이 됩니다",
           "items": [
-            "오늘 하루는 어떤 흐름인가요?",
-            "오늘 조심할 것은 무엇인가요?",
-            "오늘 무엇을 하면 좋을까요?"
+            "세 체계가 오늘을 어떻게 보나요?",
+            "공통으로 짚는 신호는 무엇인가요?",
+            "오늘의 우선순위는 무엇인가요?"
           ]
         },
         {
           "title": "이런 분께 어울려요",
           "items": [
-            "매일 짧게 확인하고 싶은 분",
-            "오늘의 컨디션이 궁금한 분",
-            "운세를 습관처럼 보고 싶은 분"
+            "여러 체계를 비교하고 싶은 분",
+            "오늘 흐름을 교차 확인하고 싶은 분",
+            "한 화면에서 끝내고 싶은 분"
           ]
         }
       ],
-      "ctaLabel": "오늘의 운세 보기",
+      "ctaLabel": "오늘의 운세 허브 열기",
       "evidence": [
         "index.html",
         "index.html",
@@ -3859,9 +3859,9 @@
       "verification": "verified",
       "journey": {
         "questions": [
-          "오늘 하루는 어떤 흐름인가요?",
-          "오늘 조심할 것은 무엇인가요?",
-          "오늘 무엇을 하면 좋을까요?"
+          "세 체계가 오늘을 어떻게 보나요?",
+          "공통으로 짚는 신호는 무엇인가요?",
+          "오늘의 우선순위는 무엇인가요?"
         ],
         "trustNotes": [
           "운세 결과는 참고용이며, 중요한 선택은 현실적인 판단과 함께 확인해 주세요."
@@ -6150,7 +6150,7 @@
       "slug": "sukyo",
       "title": "숙요 인연 레이더",
       "href": "/index.html?action=openSukuyoModal",
-      "featureKey": "",
+      "featureKey": "compat-sukuyo-compatibility",
       "featureKeyTo": "",
       "accessType": "free",
       "image": "/feature-details/assets/sukyo-960.webp",
@@ -6196,9 +6196,25 @@
           "두 사람의 다른 속도를 어떻게 이해할까요?"
         ],
         "trustNotes": [
-          "운세 결과는 참고용이며, 중요한 선택은 현실적인 판단과 함께 확인해 주세요."
+          "상대의 생년월일이 없으면 내 본명숙 해석까지만 가능합니다.",
+          "출생시각을 모르면 낮 12시 기준으로 계산됩니다.",
+          "회당 결제이며 이용권·월정석으로도 열 수 있습니다.",
+          "관계 유형은 거리감의 성격을 알려줄 뿐 결말을 보장하지 않습니다."
         ],
-        "faq": []
+        "faq": [
+          {
+            "q": "상대 생년월일이 꼭 필요한가요?",
+            "a": "네. 상대의 본명숙을 계산해야 관계 유형이 나옵니다. 없으면 내 본명숙 해석까지만 볼 수 있습니다."
+          },
+          {
+            "q": "30,000원 숙요점 궁합 전문가 상담과 무엇이 다른가요?",
+            "a": "이 궁합은 27수 계산 규칙으로 관계 유형과 여섯 주제를 산출합니다. 전문가 상담은 같은 계산 위에 상담문을 매번 새로 씁니다."
+          },
+          {
+            "q": "결제는 어떻게 되나요?",
+            "a": "회당 결제입니다. 다른 상대와 다시 보려면 그때 다시 결제하며, 이용권이나 월정석으로도 열 수 있습니다."
+          }
+        ]
       },
       "heroVariants": [
         {

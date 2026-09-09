@@ -85,6 +85,7 @@
       desc: item.desc || "",
       href: item.href || "",
       action: item.action || "",
+      dedupeHref: item.dedupeHref || "",
       collection: "",
       price: item.price || "",
       buckets: bucketsOf(item.price),
@@ -218,7 +219,7 @@
     if (catalogue) return catalogue;
     var known = Object.create(null);
     CURATED.forEach(function (item) {
-      registerKeys(known, item.action, item.featureKey, item.href, item.collection);
+      registerKeys(known, item.action, item.featureKey, item.dedupeHref || item.href, item.collection);
     });
     catalogue = CURATED.concat(scrapeTiles(known));
     return catalogue;
