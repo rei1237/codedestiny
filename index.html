@@ -15939,7 +15939,7 @@ html.neo-mode body .cd-why-us__proof-caption{color:rgba(228,214,255,.72)}
           </a>
         </div>
 
-        <!-- 버그 제보실은 주요 서비스 탐색을 마친 뒤, 접힌 부가 기능보다 먼저 둔다.
+        <!-- 버그 제보실은 홈 퍼널의 무료 서비스 다음으로 이동한다.
              제보 흐름(/feedback/)과 보상 안내는 기존 구현을 그대로 재사용한다. -->
         <!-- feedback moved intact into #cdHomeFunnel at build time. -->
 
@@ -17779,6 +17779,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
         --fb-accent:#ffc4de;--fb-border:rgba(244,190,209,.38);--fb-gold:#ead089;
         max-width:var(--cd-w-grid,1280px);margin:18px auto 8px;padding:0 clamp(12px,3vw,24px)
       }
+      html body #cdHomeFunnel .cd-feedback{max-width:none;margin:0;padding:0}
       html.neo-mode body .cd-feedback,html body.neo-mode .cd-feedback{
         --fb-bg-a:#13102a;--fb-bg-b:#0a0818;
         --fb-ink:#f4eeff;--fb-ink-muted:rgba(216,200,255,.86);
@@ -17787,8 +17788,8 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
       html body .cd-feedback__card{
         position:relative;overflow:hidden;isolation:isolate;
         display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;
-        gap:clamp(12px,2.2vw,20px);min-height:104px;
-        padding:clamp(14px,2.2vw,20px) clamp(16px,2.6vw,24px);
+        gap:clamp(16px,2.6vw,24px);min-height:128px;
+        padding:clamp(20px,2.8vw,28px) clamp(20px,3.2vw,32px);
         border:1px solid var(--fb-border);border-radius:calc(var(--cd-r-md,16px) + 4px);
         background:linear-gradient(158deg,var(--fb-bg-a),var(--fb-bg-b));
         box-shadow:0 14px 34px rgba(8,3,14,.28)
@@ -17807,8 +17808,8 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
           radial-gradient(30% 38% at 88% 76%,rgba(232,213,163,.16),transparent 72%)
       }
       html body .cd-feedback__icon{
-        display:grid;place-items:center;width:52px;height:52px;border-radius:16px;
-        font-size:1.6rem;line-height:1;
+        display:grid;place-items:center;width:64px;height:64px;border-radius:18px;
+        font-size:1.85rem;line-height:1;
         background:rgba(255,255,255,.08);border:1px solid var(--fb-border)
       }
       html body .cd-feedback__copy{display:flex;flex-direction:column;gap:5px;min-width:0}
@@ -17818,16 +17819,16 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
          같은 방식으로 여기서 되돌린다. */
       html body .cd-feedback__title{
         margin:0;font-family:var(--font-display)!important;
-        font-weight:700;font-size:clamp(1.02rem,2vw,1.28rem);line-height:1.36;letter-spacing:-.01em;
+        font-weight:700;font-size:clamp(1.2rem,2.4vw,1.6rem);line-height:1.36;letter-spacing:-.01em;
         color:var(--fb-ink);word-break:keep-all
       }
       /* 보상 배지 — 카드가 이미 정의한 --fb-gold 만 쓴다(연이=샴페인 골드, 네오=e8d5a3).
          align-self:start 없으면 __copy 의 flex column 때문에 칩이 가로로 늘어난다. */
       html body .cd-feedback__reward{
         display:inline-flex;align-items:center;gap:6px;align-self:start;
-        margin:1px 0 2px;padding:5px 12px;border-radius:999px;
+        margin:1px 0 2px;padding:8px 14px;border-radius:999px;
         font-family:var(--font-body)!important;
-        font-size:.78rem;font-weight:700;letter-spacing:-.01em;line-height:1.4;
+        font-size:.9rem;font-weight:800;letter-spacing:-.01em;line-height:1.45;
         color:var(--fb-gold);background:rgba(234,208,137,.12);
         border:1px solid rgba(234,208,137,.42);word-break:keep-all
       }
@@ -17837,13 +17838,13 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
       }
       html body .cd-feedback__body{
         margin:0;max-width:54ch;font-family:var(--font-body)!important;
-        font-size:.85rem;line-height:1.7;color:var(--fb-ink-muted);word-break:keep-all
+        font-size:.92rem;line-height:1.7;color:var(--fb-ink-muted);word-break:keep-all
       }
       html body .cd-feedback__cta{
         display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;
-        min-height:46px;padding:12px 22px;border-radius:999px;text-decoration:none;
+        min-height:56px;padding:15px 28px;border-radius:999px;text-decoration:none;
         font-family:var(--font-body)!important;
-        font-size:.9rem;font-weight:900;letter-spacing:-.01em;color:var(--fb-bg-b);
+        font-size:1rem;font-weight:900;letter-spacing:-.01em;color:var(--fb-bg-b);
         background:linear-gradient(120deg,var(--fb-gold),#fff8dc);
         box-shadow:0 8px 22px rgba(234,208,137,.28);
         transition:transform var(--cd-dur-base,220ms) var(--cd-ease-out,ease),box-shadow var(--cd-dur-base,220ms) ease
@@ -17854,8 +17855,10 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
       html body .cd-feedback a:focus-visible{outline:2px solid var(--fb-gold);outline-offset:3px}
       @media (max-width:720px){
         html body .cd-feedback{margin:14px auto 8px}
-        html body .cd-feedback__card{grid-template-columns:auto minmax(0,1fr);row-gap:12px;min-height:0}
-        html body .cd-feedback__cta{grid-column:1 / -1;width:100%}
+        html body #cdHomeFunnel .cd-feedback{margin:0}
+        html body .cd-feedback__card{grid-template-columns:auto minmax(0,1fr);row-gap:16px;min-height:0;padding:20px}
+        html body .cd-feedback__reward{flex-wrap:wrap}
+        html body .cd-feedback__cta{grid-column:1 / -1;width:100%;min-height:58px}
       }
       @media (prefers-reduced-motion:reduce){
         html body .cd-feedback__cta{transition:none!important}
