@@ -171,8 +171,8 @@ export const UI_TEXT = {
   },
   reportCtaTitle: { ko: "프리미엄 리포트", en: "Premium Report", ja: "プレミアムレポート", "zh-CN": "高级报告", "zh-TW": "進階報告" },
   reportCtaBody: {
-    ko: "지금 보고 계신 계산 결과만 근거로 쓰는 18장 분량의 개인 분석 리포트입니다. 웹에서 읽고 PDF 로 내려받을 수 있습니다.",
-    en: "An 18-chapter personal analysis written only from the calculation you are looking at. Read it on the web and download it as a PDF.", ja: "いま見ている計算だけを根拠に書く18章の個人分析です。ウェブで読み、PDFでも保存できます。", "zh-CN": "只依据你眼前这份计算写成的 18 章个人分析。可在网页阅读，也能下载 PDF。", "zh-TW": "只依據你眼前這份計算寫成的 18 章個人分析。可在網頁閱讀，也能下載 PDF。",
+    ko: "지금 보고 계신 계산 결과만 근거로 쓰는 18장 분량의 개인 분석 리포트입니다. 웹에서 읽고, 지원되는 문자권에서는 PDF 로 저장할 수 있습니다.",
+    en: "An 18-chapter personal analysis written only from the calculation you are looking at. Read it on the web, with PDF saving available for supported scripts.", ja: "いま見ている計算だけを根拠に書く18章の個人分析です。ウェブで読み、対応する文字ではPDFでも保存できます。", "zh-CN": "只依据你眼前这份计算写成的 18 章个人分析。可在网页阅读；PDF 保存将在字体支持后提供。", "zh-TW": "只依據你眼前這份計算寫成的 18 章個人分析。可在網頁閱讀；PDF 儲存將在字體支援後提供。",
   },
   // 🔴 아래는 예전에 컴포넌트 안에서 `locale === "ko" ? A : B` 삼항으로 갈리던 문구다.
   //    삼항은 로케일이 둘일 때만 성립한다 — 다섯이 되면 ko 아닌 전부가 영어로 떨어진다.

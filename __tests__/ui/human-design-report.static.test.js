@@ -29,6 +29,8 @@ const GENERATION = read("app/human-design/report/_components/GenerationProgress.
 const SCENE_CSS = read("app/human-design/report/_components/generation-scene.module.css");
 const HANDOFF = read("app/human-design/_lib/chart-handoff.ts");
 const COPY = read("app/human-design/report/_lib/copy.ts");
+const PDF_LOCALE = read("lib/pdf/human-design-pdf-locale.ts");
+const PDF_EXPORTER = read("lib/pdf/export-human-design-report-pdf.ts");
 const CONTRACT = read("worker/lib/human-design-report-contract.js");
 
 /**
@@ -98,6 +100,18 @@ test("블록 종류: 플랜(.js)의 목록과 화면 타입(.ts)의 유니온이
     [...planKinds].sort(),
     "플랜의 REPORT_BLOCK_KINDS 와 화면의 ReportBlockKind 가 어긋났다 — 한쪽만 고치면 웹과 PDF 가 갈린다",
   );
+});
+
+test("PDF는 임베드 글꼴이 보장하지 않는 문자권을 실패-폐쇄한다", () => {
+  for (const locale of ["ko", "en", "vi", "es", "fr", "de", "nl", "ms"]) {
+    assert.ok(PDF_LOCALE.includes(`\"${locale}\"`), `${locale} PDF 지원 선언이 없다`);
+  }
+  for (const locale of ["ja", "zh-CN", "zh-TW", "hi"]) {
+    assert.ok(!PDF_LOCALE.includes(`\"${locale}\"`), `${locale}는 현재 임베드 글꼴로 보장할 수 없다`);
+  }
+  assert.ok(PDF_EXPORTER.includes("isHumanDesignPdfLocaleSupported(plan.locale)"), "PDF 생성 전에 locale 글꼴 경계를 확인하지 않는다");
+  assert.ok(PDF_EXPORTER.includes("HumanDesignPdfLocaleError"), "지원하지 않는 문자권의 PDF 오류가 구분되지 않는다");
+  assert.ok(COPY.includes("pdfLocaleUnsupported"), "웹 리더에 PDF 문자권 안내가 없다");
 });
 
 test("렌더러 레지스트리가 모든 블록 종류를 갖는다", () => {

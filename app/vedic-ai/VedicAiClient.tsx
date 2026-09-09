@@ -27,6 +27,7 @@ import { ExpertStickyCta, ExpertValueCards } from "@/app/components/expert-consu
 import { DashaProgressRing, DashaTimeline, getGrahaMeta, GrahaNatureDot, NorthIndianChart } from "./VedicChartVisuals";
 import styles from "./VedicAiClient.module.css";
 import { detectLocale } from "@/lib/i18n/dictionary";
+import { normalizeLocale, type RuntimeLocale } from "@/lib/i18n/locale-normalize.js";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 
 type Gender = "male" | "female" | "unknown" | "";
@@ -2941,7 +2942,7 @@ export default function VedicAiClient() {
   });
   const requestIdRef = useRef("");
   // 결제 리다이렉트·폴링 중 현재 UI 언어가 바뀌어도 같은 요청의 생성 언어는 고정한다.
-  const requestLocaleRef = useRef("");
+  const requestLocaleRef = useRef<RuntimeLocale | "">("");
   const pendingAccessRef = useRef<PendingAccess | null>(null);
   const submitBusyRef = useRef(false);
   const { seed: profileSeed, seedVersion, reload: reloadProfileSeed } = useAiProfileSeed();
@@ -3056,10 +3057,10 @@ export default function VedicAiClient() {
     access: Record<string, unknown>,
     paymentWasRequired = false,
     formOverride?: FormState,
-    localeOverride?: string,
+    localeOverride?: RuntimeLocale,
   ) {
     const source = formOverride || form;
-    const requestLocale = localeOverride || requestLocaleRef.current || detectLocale();
+    const requestLocale = normalizeLocale(localeOverride || requestLocaleRef.current || detectLocale());
     setPhase("start");
     // 다음 화면(생성 로딩)이 마운트되는 시점 — 게이트 오버레이 hold를 해제한다.
     releasePaidFeatureGate(requestId);
@@ -3106,7 +3107,7 @@ export default function VedicAiClient() {
     const requestId = typeof args.requestId === "string" ? args.requestId : "";
     const restored = unpackPaidResumeArg<{ form?: FormState; locale?: string }>(args.form);
     const restoredForm = restored?.form;
-    const restoredLocale = toText(restored?.locale) || "ko";
+    const restoredLocale = normalizeLocale(toText(restored?.locale));
     if (!requestId || !restoredForm || !restoredForm.birthDate) return false;
     submitBusyRef.current = true;
     requestIdRef.current = requestId;
@@ -3170,7 +3171,7 @@ export default function VedicAiClient() {
       const { status, data } = await runAccessCheckWithTransientRetry(
         () => postJson<EnsureAccessResult>(
           "/api/vedic-ai/ensure-access",
-          { ...buildPayload(form, requestId, requestLocaleRef.current), idempotencyKey: requestId },
+          { ...buildPayload(form, requestId, normalizeLocale(requestLocaleRef.current)), idempotencyKey: requestId },
           requestId,
         ),
         { onRetry: () => setNotice(copy.retryAccessNotice) },

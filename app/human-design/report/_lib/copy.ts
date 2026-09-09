@@ -29,8 +29,8 @@ export const REPORT_TEXT = {
   lockedKicker: { ko: "유료", en: "Paid", ja: "有料", "zh-CN": "付费", "zh-TW": "付費" },
   lockedHeading: { ko: "전문 분석 리포트", en: "The professional analysis report", ja: "専門分析レポート", "zh-CN": "专业分析报告", "zh-TW": "專業分析報告" },
   lockedBody: {
-    ko: "차트는 계속 무료입니다. 리포트는 이 계산 결과만 근거로 쓰는 개인 분석 문서이며, 웹에서 읽고 PDF 로 내려받을 수 있습니다.",
-    en: "The chart stays free. The report is a personal analysis document written only from this calculation — read it on the web and download it as a PDF.", ja: "チャートはこれからも無料です。レポートはこの計算だけを根拠に書く個人分析の文書で、ウェブで読み、PDFでも保存できます。", "zh-CN": "图一直是免费的。报告是只依据这份计算写成的个人分析文件，可在网页阅读，也能下载 PDF。", "zh-TW": "圖一直是免費的。報告是只依據這份計算寫成的個人分析文件，可在網頁閱讀，也能下載 PDF。",
+    ko: "차트는 계속 무료입니다. 리포트는 이 계산 결과만 근거로 쓰는 개인 분석 문서이며, 웹에서 읽고 지원되는 문자권에서는 PDF 로 저장할 수 있습니다.",
+    en: "The chart stays free. The report is a personal analysis document written only from this calculation — read it on the web, with PDF saving available for supported scripts.", ja: "チャートはこれからも無料です。レポートはこの計算だけを根拠に書く個人分析の文書で、ウェブで読み、対応する文字ではPDFでも保存できます。", "zh-CN": "图一直是免费的。报告是只依据这份计算写成的个人分析文件，可在网页阅读；PDF 保存将在字体支持后提供。", "zh-TW": "圖一直是免費的。報告是只依據這份計算寫成的個人分析文件，可在網頁閱讀；PDF 儲存將在字體支援後提供。",
   },
   lockedContents: { ko: "리포트 목차", en: "Report contents", ja: "レポートの目次", "zh-CN": "报告目录", "zh-TW": "報告目錄" },
   buy: { ko: "리포트 만들기 · ₩10,000", en: "Create the report · ₩10,000", ja: "レポートを作る · ₩10,000", "zh-CN": "生成报告 · ₩10,000", "zh-TW": "產生報告 · ₩10,000" },
@@ -66,6 +66,13 @@ export const REPORT_TEXT = {
   pdfNote: {
     ko: "글자를 그대로 조판한 문서입니다. 검색과 복사가 됩니다.",
     en: "Typeset as real text — searchable and selectable.", ja: "本物のテキストとして組んでいます。検索も選択もできます。", "zh-CN": "以真实文字排版 — 可搜索、可选取。", "zh-TW": "以真實文字排版 — 可搜尋、可選取。",
+  },
+  pdfLocaleUnsupported: {
+    ko: "이 리포트의 문자권을 PDF에 안전하게 담을 글꼴을 준비 중입니다. 리포트는 이 화면에서 그대로 읽을 수 있습니다.",
+    en: "A font that can safely embed this report's script in PDF is being prepared. Your report remains fully readable on this page.",
+    ja: "このレポートの文字をPDFに安全に埋め込むフォントを準備中です。レポートはこの画面でそのまま読めます。",
+    "zh-CN": "正在准备可将此报告文字安全嵌入 PDF 的字体。报告仍可在此页面完整阅读。",
+    "zh-TW": "正在準備可將此報告文字安全嵌入 PDF 的字體。報告仍可在此頁面完整閱讀。",
   },
   pdfFontFailed: {
     ko: "글꼴을 불러오지 못해 PDF 를 만들지 못했습니다. 잠시 후 다시 시도해 주세요. 리포트는 이 화면에 그대로 있습니다.",

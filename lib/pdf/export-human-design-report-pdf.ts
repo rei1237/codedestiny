@@ -2,6 +2,7 @@ import type { jsPDF as JsPDFInstance } from "jspdf";
 
 import { registerPdfFontsSafely } from "./export-result-pdf";
 import { buildHumanDesignPdfChapters } from "./human-design-report-chapters";
+import { isHumanDesignPdfLocaleSupported } from "./human-design-pdf-locale";
 import {
   CONTENT_WIDTH_MM,
   INK,
@@ -36,6 +37,13 @@ import {
  */
 
 export { PdfFontError as HumanDesignPdfFontError };
+
+export class HumanDesignPdfLocaleError extends PdfFontError {
+  constructor(locale: string) {
+    super(`human design report pdf: embedded fonts do not support locale ${locale}`);
+    this.name = "HumanDesignPdfLocaleError";
+  }
+}
 
 export type HumanDesignPdfPlan = {
   planVersion: string;
@@ -116,6 +124,7 @@ function drawCover(pdf: JsPDFInstance, fonts: { title: string; body: string }, o
 
 export async function exportHumanDesignReportPdf(options: ExportHumanDesignReportPdfOptions): Promise<void> {
   const { plan, images = new Map(), fileName } = options;
+  if (!isHumanDesignPdfLocaleSupported(plan.locale)) throw new HumanDesignPdfLocaleError(plan.locale);
   const lang = plan.locale === "en" ? "en" : "ko";
   const watermarkText = options.watermarkText || (lang === "en" ? "Code Destiny · Human Design Report" : "Code Destiny · 휴먼 디자인 리포트");
 
