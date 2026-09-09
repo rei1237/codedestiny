@@ -26,7 +26,7 @@ import { CREDENTIAL_CACHE_PREFIXES, purgeCredentialCache } from "../lib/credenti
 //    옵셔널 경유(globalThis.__accessStateCache?.invalidateForUser?.())는 아이솔레이트에 모듈이 아직
 //    안 실렸으면 조용히 no-op 이라 fail-open 이고, verify:access-state-cache-order 가 거부한다.
 import { invalidateAccessStateCacheForUser } from "../lib/access-state-cache.js";
-import { User } from "../lib/models.js";
+import { Payment, User } from "../lib/models.js";
 import { prepareResumeContext, readOrderResumeContext } from "./resume-context.js";
 import { getPortOnePublicConfig, resolveChargeAmountKRW } from "../lib/portone.js";
 import { decryptPhoneNumber } from "../lib/pii-crypto.js";
@@ -39,6 +39,8 @@ import { dropEntitlementByIdentity, grantEntitlement, markUserFeatureUnlocked, r
 import { settleOrphanSpends, spendMoonstone } from "./moonstone.js";
 import { acceptWebhook, claimReplayableEvents, describeEventFailure, markEventFailed, markEventProcessed } from "./webhook.js";
 import { runPaymentReconcile } from "./reconcile.js";
+import { grantPurchaseEntitlement, readPaidExecution, readPurchaseEntitlement } from "./executions.js";
+import { consumePassForFeature } from "../lib/pass-consumption.js";
 import { sendPendingReceiptEmails } from "./receipt-email.js";
 import { resolveLegacyProduct } from "./legacy-pricing.js";
 import {
@@ -627,6 +629,7 @@ function presentOrder(order) {
     status: toOrderStatus(order),
     productId: String(order.productId || ""),
     featureKey: String(order.featureKey || ""),
+    requestId: String(order.requestId || order.idempotencyKey || ""),
     amountKRW: Number(order.paymentAmount || 0),
     paidAt: order.paidAt || null,
     entitlementGranted: Boolean(order.entitlementGrantedAt),
@@ -647,7 +650,9 @@ function evaluateConfirmable(ctx, order, { orderId, actorUserId = "" }) {
   const status = toOrderStatus(order);
   if (status === "PAID") {
     // 재생. PG 를 다시 부르지 않는다 — PortOne 지연이 확정 경로의 지배적 비용이다.
-    return { order, replayed: true, granted: Boolean(order.entitlementGrantedAt), settled: true };
+    const executionMissing = order.paymentType === "digital_content" && isPerUseFeatureKey(order.featureKey)
+      && order.metadata?.purchaseGrantVersion !== 1;
+    return { order, replayed: true, granted: Boolean(order.entitlementGrantedAt) && !executionMissing, settled: true };
   }
   // 🔴 PG_PAYMENT_NOT_PAID 로 닫힌 FAILED 는 되살린다(2026-09-03). 결제창을 연 뒤 60초 지나 /points 부팅
   // 재확인이 돌면 PG 가 아직 ready 라 422 → failed 가 되는데, 그 뒤 실제 결제가 나면 웹훅·크론이 이 주문을
@@ -703,6 +708,7 @@ async function confirmOrder(env, ctx, { orderId, actorUserId = "" }, options = {
     || await withDb(env, ctx, async (db) => evaluateConfirmable(ctx, await findOrder(db, { orderId }), { orderId, actorUserId }));
 
   if (begun.settled) {
+    if (!begun.granted) begun.granted = await withDb(env, ctx, db => grantOrderEntitlement(db, begun.order));
     if (afterSettle) await withDb(env, ctx, (db) => afterSettle(db, begun));
     return begun;
   }
@@ -815,11 +821,13 @@ async function grantOrderEntitlement(db, order) {
       productId: String(order.productId || ""),
       featureKey: String(order.featureKey || ""),
     });
-    /* 🔴 회당 결제(per_use)는 영구 해금을 남기지 않는다 — 남기면 다음 이용이 공짜가 된다.
-       월정석(coin-gate/moonstone)·이용권(coin-gate/pass-check) 경로에는 있던 이 경계가 단건 KRW
-       확정 경로에만 빠져 있었다. 회당 결제의 증빙은 Payment 문서가 맡으므로(verifyPerUsePayment)
-       여기서는 지급을 건너뛰고 주문 상태만 마무리한다. */
+    // 회당 구매권은 주문·요청에 묶인다. 서비스별 실행 기록을 미리 만들거나
+    // 기능 전체를 영구 해금하지 않아 기존 실행 신원과 새 회차의 과금 정책을 보존한다.
     if (String(product.billingType || "per_use") === "per_use") {
+      await grantPurchaseEntitlement(db, order, product);
+      await db.updateOne(Payment, { merchantUid: String(order.merchantUid), status: { $in: ["paid", "success", "fulfilled"] } }, {
+        $set: { "metadata.purchaseGrantVersion": 1 },
+      });
       await markEntitlementGranted(db, { orderId: String(order.merchantUid || "") });
       invalidateBalanceSnapshot(order?.userId);
       return true;
@@ -853,6 +861,46 @@ async function grantOrderEntitlement(db, order) {
    auth: "required" 면 토큰에서 userId 를 뽑아 넘긴다(**Mongo 읽기 0회**),
          "none" 이면 신원을 보지 않는다(webhook·카탈로그). */
 const ROUTES = {
+  "GET /recoveries": {
+    auth: "required",
+    async handle({ request, env, ctx, userId, withDb }) {
+      const query = new URL(request.url).searchParams;
+      const cursor = query.get("before");
+      const features = String(query.get("featureKeys") || "").split(",").map(value => value.trim()).filter(Boolean);
+      if (features.length > 10 || features.some(value => value.length > 160)) throw paymentError("INVALID_REQUEST", "Invalid features");
+      if (cursor && !/^[a-f0-9]{24}$/i.test(cursor)) throw paymentError("INVALID_REQUEST", "Invalid cursor");
+      const orders = await withDb(env, ctx, db => db.find(Payment, {
+        userId: toObjectId(userId), paymentType: "digital_content",
+        status: { $in: ["pending", "paid", "success", "fulfilled"] },
+        purchaseType: { $ne: "GIFT" },
+        ...(features.length ? { featureKey: { $in: features } } : {}),
+        ...(cursor ? { _id: { $lt: toObjectId(cursor) } } : {}),
+      }, { sort: { _id: -1 }, limit: 50 }));
+      return json({ ok: true, orders: orders.map(presentOrder), nextCursor: orders.length === 50 ? String(orders.at(-1)._id) : null });
+    },
+  },
+  "GET /orders/:id/status": {
+    auth: "required",
+    async handle({ env, ctx, userId, params, withDb }) {
+      return withDb(env, ctx, async db => {
+        const order = await findOrder(db, { orderId: params.id });
+        assertOrderOwner(order, userId);
+        const execution = order.paymentType === "digital_content" && isPerUseFeatureKey(order.featureKey)
+          ? await readPaidExecution(db, order) : null;
+        const entitlement = order.paymentType === "digital_content" && isPerUseFeatureKey(order.featureKey)
+          ? await readPurchaseEntitlement(db, order) : null;
+        const paid = toOrderStatus(order) === "PAID";
+        const ready = paid && (entitlement
+          ? entitlement.status === "granted"
+          : (order.paymentType !== "digital_content" || !isPerUseFeatureKey(order.featureKey)) && Boolean(order.entitlementGrantedAt));
+        return json({ ok: true, ...presentOrder(order), verified: paid,
+          entitlementGranted: ready, serviceReady: ready,
+          executionStatus: execution?.status || null, resultId: execution?.resultId || null,
+          recoveryRequired: paid && !ready,
+        });
+      });
+    },
+  },
   "GET /features": {
     auth: "none",
     // Mongo 를 아예 열지 않는다 — 슬롯 0개.
@@ -1285,6 +1333,12 @@ const ROUTES = {
         const user = await db.findOne(User, { _id: toObjectId(userId) });
         const entitlement = resolveCanonicalEntitlement(user || {});
         const coverage = evaluatePassCoverage({ user, entitlement, coinCost: product.priceCoins });
+
+        if (!unlock) {
+          const consumed = await consumePassForFeature({ db, user, entitlement, userId,
+            featureKey: product.featureKey, requestId, coinCost: product.priceCoins });
+          return { coverage: consumed.coverage, entitlement, user: consumed.user || user, replayed: consumed.replayed };
+        }
 
         // 이미 커버한 실행은 마지막 소비로 이용권이 종료됐어도 복구한다.
         // 현재 잔여 한도는 새 실행에만 적용하고 동일 요청의 재열람에 적용하지 않는다.

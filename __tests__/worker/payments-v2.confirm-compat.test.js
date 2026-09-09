@@ -109,6 +109,7 @@ test("회당 결제(per_use) 확정: accessGrant 는 주되 해금 선언(unlock
 test("PAID 인데 지급 마무리 대기: GRANT_PENDING + '다시 결제하지 마세요' (성공 봉투 금지)", async () => {
   const db = makeFakePaymentDb();
   const order = seedPaidOrder(db, { entitlementGrantedAt: null });
+  db.findOneAndUpdate = async () => { throw new Error("grant DB timeout"); };
   const { response, payload } = await postConfirm(db, { merchantUid: order.merchantUid, impUid: "portone-tx-1" });
   expect(response.status).toBe(200);
   expect(payload.ok).toBe(true);
