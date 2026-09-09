@@ -1,5 +1,19 @@
 [
   {
+    "slug": "ziwei-star-brightness",
+    "title": "자미두수 별 밝기: 묘·왕·리·평·함을 읽는 순서",
+    "description": "묘·왕·리·평·함은 관측 밝기나 능력 점수가 아닌 자미두수의 배치 평가입니다. 유파별 등급 차이, 사화와 함께 보는 법, 단정하기 쉬운 오류를 설명합니다.",
+    "href": "/insights/ziwei-star-brightness/",
+    "body": "ziwei-star-brightness-eff722010da3.json"
+  },
+  {
+    "slug": "ziwei-vs-saju",
+    "title": "자미두수 vs 사주(명리학) 완전 비교 가이드 — 무엇이 다르고, 무엇을 함께 보면 좋은가?",
+    "description": "자미두수와 사주는 서로 다른 관점에서 같은 사람을 해석하는 두 체계입니다. 계산 원리·해석 단위·시기 읽기 방식의 차이, 각 체계의 장단점, 교차 확인 순서를 정리했습니다.",
+    "href": "/insights/ziwei-vs-saju/",
+    "body": "ziwei-vs-saju-55ab31c07494.json"
+  },
+  {
     "slug": "ziwei-tanlang-star-desire-and-talent",
     "title": "탐랑성(貪狼星) 완전 해설 — 자미두수의 욕망·재능·도화를 상징하는 별",
     "description": "탐랑성은 자미두수 14주성 가운데 욕망과 다재다능, 사교성과 도화를 대표하는 별입니다. 기본 의미부터 성격·장단점·궁위별 해석·다른 주성과의 조합·재물운·연애운까지 정리했습니다.",
@@ -161,24 +175,10 @@
     "body": "ziwei-minggong-933b5005d018.json"
   },
   {
-    "slug": "ziwei-star-brightness",
-    "title": "별 밝기(廟·旺·利·平·陷) 완전 가이드 — 자미두수에서 별의 힘을 읽는 핵심 원리",
-    "description": "별 밝기(묘·왕·리·평·함)는 주성이 궁위에서 본래의 힘을 얼마나 발휘하는지 나타내는 기준입니다. 다섯 단계의 의미부터 직업·재물·인간관계 적용, 사화와의 관계, 함지에 대한 오해까지 정리했습니다.",
-    "href": "/insights/ziwei-star-brightness/",
-    "body": "ziwei-star-brightness-887c8f7cba5b.json"
-  },
-  {
     "slug": "ziwei-career-palace-action",
     "title": "자미두수 궁별 실천 체크(직업·승진) 완전 가이드 — 12궁으로 보는 직업운, 승진운, 커리어 성장 전략",
     "description": "직업과 승진은 관록궁만이 아니라 명궁·재백궁·천이궁·교우궁·복덕궁·부모궁을 함께 봐야 합니다. 궁별 확인 사항과 실천 포인트, 사화·대한·유년과 승진운의 관계를 정리했습니다.",
     "href": "/insights/ziwei-career-palace-action/",
     "body": "ziwei-career-palace-action-268224ba8b3f.json"
-  },
-  {
-    "slug": "ziwei-vs-saju",
-    "title": "자미두수 vs 사주(명리학) 완전 비교 가이드 — 무엇이 다르고, 무엇을 함께 보면 좋은가?",
-    "description": "자미두수와 사주는 서로 다른 관점에서 같은 사람을 해석하는 두 체계입니다. 계산 원리·해석 단위·시기 읽기 방식의 차이, 각 체계의 장단점, 교차 확인 순서를 정리했습니다.",
-    "href": "/insights/ziwei-vs-saju/",
-    "body": "ziwei-vs-saju-599f4d341e4e.json"
   }
 ]
