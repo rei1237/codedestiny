@@ -224,14 +224,14 @@ export default function AuthWidget() {
       ? ""
       : copy.passRemaining(formatKrwAmount(passRemainingKRW, locale));
     const subscriptionCls = subscriptionTier === "family"
-      ? "border-emerald-300/50 bg-emerald-500/15 text-emerald-100"
+      ? "border-emerald-200/75 bg-emerald-500/25 text-emerald-50"
       : subscriptionTier === "vvip"
-      ? "border-purple-300/50 bg-purple-500/15 text-purple-100"
+      ? "border-purple-200/75 bg-purple-500/25 text-purple-50"
       : subscriptionTier === "premium"
-        ? "border-rose-300/50 bg-rose-500/15 text-rose-100"
+        ? "border-rose-200/75 bg-rose-500/25 text-rose-50"
         : subscriptionTier === "standard"
-          ? "border-amber-300/50 bg-amber-500/15 text-amber-100"
-          : "border-slate-400/30 bg-slate-700/40 text-slate-300";
+          ? "border-amber-200/75 bg-amber-500/25 text-amber-50"
+          : "border-slate-300/60 bg-slate-700/70 text-slate-100";
     return (
       <div className="flex items-center gap-2">
         {displayImage ? (
@@ -249,15 +249,15 @@ export default function AuthWidget() {
           </span>
         )}
         <span className="flex max-w-[180px] flex-col leading-tight">
-          <span className="truncate text-sm text-violet-200/90">{copy.nameLabel(displayName)}</span>
+          <span className="truncate text-sm font-semibold text-violet-50">{copy.nameLabel(displayName)}</span>
           {displayEmail ? (
-            <span className="truncate text-[11px] text-violet-200/60">{displayEmail}</span>
+            <span className="truncate text-[11px] text-violet-100/90">{displayEmail}</span>
           ) : null}
         </span>
         {user.role === "admin" && (
           <Link
             href="/admin"
-            className="rounded-lg border border-violet-400/40 bg-violet-500/20 px-2.5 py-1 text-xs font-semibold text-violet-200 transition hover:bg-violet-500/35"
+            className="inline-flex min-h-9 items-center rounded-lg border border-violet-300/60 bg-violet-500/25 px-2.5 py-1 text-xs font-semibold text-violet-50 transition hover:border-violet-200/80 hover:bg-violet-500/40"
           >
             {copy.admin}
           </Link>
@@ -269,13 +269,13 @@ export default function AuthWidget() {
         >
           {subscriptionLabel}
           {passRemainingLabel ? (
-            <span className="ml-1 font-normal opacity-80">· {passRemainingLabel}</span>
+            <span className="ml-1 font-medium text-current">· {passRemainingLabel}</span>
           ) : null}
         </Link>
         <button
           type="button"
           onClick={handleLogout}
-          className="rounded-lg border border-slate-400/30 bg-slate-700/40 px-2.5 py-1 text-xs font-semibold text-slate-300 transition hover:bg-slate-600/50"
+          className="inline-flex min-h-9 items-center rounded-lg border border-slate-300/60 bg-slate-700/75 px-2.5 py-1 text-xs font-semibold text-slate-50 transition hover:border-slate-200/80 hover:bg-slate-600/90"
         >
           {copy.logout}
         </button>

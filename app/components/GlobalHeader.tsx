@@ -246,7 +246,7 @@ export default function GlobalHeader() {
                 <Link
                   key={`d-${item.href}`}
                   href={item.href}
-                  className="rounded-full border border-violet-200/20 bg-[rgba(32,19,60,0.54)] px-2.5 py-1 text-[11px] font-semibold text-violet-100/90 transition hover:border-violet-200/45 hover:bg-[rgba(65,39,120,0.48)]"
+                  className="rounded-full border border-violet-200/35 bg-[rgba(32,19,60,0.72)] px-2.5 py-1 text-[11px] font-semibold text-violet-50 transition hover:border-violet-200/65 hover:bg-[rgba(65,39,120,0.68)]"
                 >
                   {label}
                 </Link>
@@ -259,7 +259,7 @@ export default function GlobalHeader() {
       {menuOpen ? (
         <div className="sticky top-[58px] z-[65] border-b border-violet-200/20 bg-[rgba(11,8,26,0.95)] px-3 pb-4 pt-3 md:hidden">
           <div className="mb-3 flex items-center justify-between gap-2 rounded-xl border border-violet-200/20 bg-[rgba(36,20,68,0.45)] p-2">
-            <span className="text-xs font-semibold tracking-[0.14em] text-violet-200/75">{copy.auth}</span>
+            <span className="text-xs font-semibold tracking-[0.14em] text-violet-100">{copy.auth}</span>
             <div className="flex items-center gap-2">
               <LocaleSwitcher />
               <AuthWidget />
@@ -281,7 +281,7 @@ export default function GlobalHeader() {
             })}
           </div>
           <div className="mt-4 border-t border-violet-200/15 pt-3">
-            <p className="mb-2 text-[11px] font-semibold tracking-[0.12em] text-violet-200/70">{copy.policyLinks}</p>
+            <p className="mb-2 text-[11px] font-semibold tracking-[0.12em] text-violet-100">{copy.policyLinks}</p>
             <div className="flex flex-wrap gap-2">
               {policyNavItems.map((item) => {
                 const label = copy.nav[item.href] || item.href;
