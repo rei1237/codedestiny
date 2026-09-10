@@ -6,7 +6,7 @@ import { RelationshipBoundaryTest } from "../lib/models.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { verifyPerUsePayment } from "../lib/nakshatra-paid-access.js";
-import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
+import { callGeminiJsonWithRetry as defaultCallGeminiJsonWithRetry } from "../lib/structured-consultation.js";
 import { calculateLoveSecretAiSaju, normalizeLoveSecretAiInput } from "../lib/love-secret-ai-calculation.js";
 
 const FEATURE_KEY = "relationship-boundary-test";
@@ -118,9 +118,9 @@ function prompt(saju, result, targetGender) {
 const MIN_READING_CHARS = 15000;
 const readingText = (value, max) => String(value ?? "").replace(/\r\n?/g, "\n").trim().slice(0, max);
 
-async function generate(saju, boundary, targetGender, env, callModel = callGeminiJsonWithRetry) {
+async function generate(saju, boundary, targetGender, env, callGeminiJsonWithRetry = defaultCallGeminiJsonWithRetry) {
   const local = fallback(boundary);
-  const response = await callModel(env, prompt(saju, boundary, targetGender), { temperature: 0.72, baseTokens: 24000, capTokens: 32000, attempts: 3, fallbackToWorkersAI: true, fallbackMinChars: MIN_READING_CHARS });
+  const response = await callGeminiJsonWithRetry(env, prompt(saju, boundary, targetGender), { temperature: 0.72, baseTokens: 24000, capTokens: 32000, attempts: 3, fallbackToWorkersAI: true, fallbackMinChars: MIN_READING_CHARS });
   if (!response?.ok || response.truncated || !response.text) throw new Error("READING_INCOMPLETE");
   const parsed = JSON.parse(response.text);
   if (!parsed || typeof parsed !== "object" || !clean(parsed.summary) || !Array.isArray(parsed.sections)) throw new Error("READING_INCOMPLETE");
