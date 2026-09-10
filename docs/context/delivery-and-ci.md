@@ -194,7 +194,7 @@ Pages 와 Worker 가 서로 다른 코드를 가리키는 것이 이 저장소�
 공통 변경 검사 계획을 로컬에서 사용하며, CI는 10개 PR 동안 기존 검사와 새 계획을 비교하는 shadow 모드다. required check와 기존 실행 조건은 유지한다. 실제 범위 축소는 관측에서 누락이 없음을 확인한 별도 변경으로 한다. 시작 명령은 check:fast이며 위험 변경은 자동 승격한다. 기존 check:quick --skip-build 호환과 CI Pages 빌드 근거를 보존한다. 전체 incremental typecheck는 실행당 한 번이다. 동시 편집 때문에 모든 수정은 워크트리에서 수행한다. 노력 수준은 위험도에 맞추며 과거 전역 high 지시는 적용하지 않는다.
 
 ## 2026-09-08 사용자 전달 방식 변경
-PR 생성 후 필수 검사와 최신 base 충돌을 확인하고 에이전트가 안전하게 머지한다. **순차 머지 큐는 Ready PR 한 건만 처리한다.** 후보 워크트리에서 `npm run delivery:admit -- --pr=<number>`가 통과해야 하며, 이 검사는 후보 clean 상태, 최신 `origin/main` 포함, 같은 파일을 수정 중인 활성 워크트리 부재, GitHub 필수 CI 통과, 그리고 직전 main SHA의 스테이징 Pages·Worker 도달을 모두 확인한다. 하나라도 실패하면 그 PR을 건너뛰거나 다음 PR을 머지하지 않고 원인만 보고한다. 머지 뒤에는 해당 SHA의 스테이징 Pages·Worker 배포 SHA와 읽기 전용 핵심 응답을 확인한 뒤에만 다음 후보를 처리한다. 과거 사용자 수동 머지·머지 후 배포 미확인 조항보다 이 지시가 우선한다. 프로덕션 승격은 여전히 사용자의 명시적인 1회 승인 때만 진행한다. branch protection을 우회하지 않으며 실패·필수 승인 대기는 보고한다.
+PR 생성 후 필수 검사와 최신 base 충돌을 확인하고 에이전트가 안전하게 머지한다. **순차 머지 큐는 Ready PR 한 건만 처리한다.** 후보 워크트리에서 `npm run delivery:admit -- --pr=<number>`가 통과해야 하며, 이 검사는 후보 clean 상태, 최신 `origin/main` 포함, 같은 파일을 수정 중인 활성 워크트리 부재, GitHub 필수 CI 통과, 최신 PR HEAD와 검증 증거를 확인한다. 스테이징 도달은 admission 조건이 아니다. 하나라도 실패하면 그 PR을 건너뛰거나 다음 PR을 머지하지 않고 원인만 보고한다. 머지 뒤에는 다음 후보의 필수 CI와 admission을 확인해 연속 머지한다. PR 사이에 스테이징을 기다리지 않고 마지막 병합 SHA의 스테이징 Pages·Worker SHA와 읽기 전용 핵심 응답을 한 번 검증한다. 과거 사용자 수동 머지·머지 후 배포 미확인 조항보다 이 지시가 우선한다. 프로덕션 승격은 여전히 사용자의 명시적인 1회 승인 때만 진행한다. branch protection을 우회하지 않으며 실패·필수 승인 대기는 보고한다.
 
 2026-09-08 사용자 추가 지시: 수정 시작 시 워크트리를 자동 생성한다. PR 머지와 스테이징의 병합 SHA·정상 응답 확인 후 해당 작업의 clean 워크트리를 제거한다. 삭제 전 절대 경로와 미커밋 상태를 확인하고 의존성 정션은 대상이 아닌 링크만 먼저 제거한다. 다른 작업의 워크트리·공유 의존성은 보존한다. 운영 승격은 별도 명시적 승인 때만 수행한다.
 
@@ -208,7 +208,13 @@ PR 생성 후 필수 검사와 최신 base 충돌을 확인하고 에이전트�
 - `delivery:batch-plan`이 통과한 다중 PR은 배치 입장 증거로 사용하고, 고위험 또는 단독 판정 PR은 기존 `delivery:admit -- --pr=<number>`를 사용한다. 두 명령 모두 merge/push/checkout을 수행하지 않는다.
 - 배치 머지 중에도 `main` push마다 스테이징 배포가 발생한다. 배치 계획을 통과한 경우에는 배치의 마지막 merge SHA를 기준으로 Pages·Worker 도달과 정상 응답을 확인한다. 릴리스 실패·취소·SHA 불일치가 보이면 배치를 즉시 중단하고 각 merge SHA를 개별 조사한다.
 - PR CI는 변경 경로 기반으로 불필요한 러너를 줄인다. Markdown-only PR은 classify에서 문서 신선도만 실행하고 fast(typecheck·lint)를 skip하며, `docs/context`, `docs/handoff`, `docs/dev` 계약 문서는 정적 가드를 추가로 실행한다. 코드·설정·생성물·테스트가 섞이면 기존 fast/build/critical 티어 판정을 유지한다. `CI required` aggregate는 실행된 lane의 성공과 판정된 skip만 허용하고 실패·취소는 차단한다.
-- 안전한 작업은 로컬·필수 CI·리뷰·충돌·선행 PR 조건을 모두 충족하면 `delivery:admit` 후 SHA를 지정해 merge하고 staging의 Pages/Worker SHA·정상 응답까지 확인한다. 프로덕션 승격은 별도 1회 승인이 필요하다. --admin·보호 해제·실패 무시·destructive force push는 금지한다.
+- 안전한 작업은 로컬·필수 CI·리뷰·충돌·선행 PR 조건을 모두 충족하면 `delivery:admit` 후 SHA를 지정해 연속 merge하고 마지막 SHA의 staging Pages/Worker SHA·정상 응답을 검증한다. 프로덕션 승격은 별도 1회 승인이 필요하다. --admin·보호 해제·실패 무시·destructive force push는 금지한다.
 - 매 merge 후 fetch하고 남은 PR의 새 main 호환성을 확인한다. 겹치거나 기반이 필요한 브랜치만 merge-main/rebase 후 동일 preflight와 GitHub CI를 재실행한다. 타 작업의 미커밋/locked worktree를 수정하지 않는다.
 - CI 실패는 job/log → 원인 분류 → 로컬 재현·수정 → preflight → commit/push → 최신 head CI 확인까지 해결한다. 기존 실패를 성공으로 바꾸거나 rerun으로 숨기지 않는다.
 - 독립 기능은 독립 PR. 강한 의존 관계는 함께 묶고 UI·인프라는 가능한 분리한다. 범위 밖 수정·대규모 formatter·불필요한 lockfile 변경을 금지한다.
+
+## 2026-09-10 상시 연속 머지 정책
+
+커밋 기반 PR은 각 최신 HEAD의 필수 CI와 delivery:admit을 확인한 뒤 연속 머지한다. PR 사이에 스테이징 도달을 기다리지 않는다. main 변경으로 무효화된 후보 검증만 갱신한다. PR 생성 전 ci:preflight와 보호 규칙은 유지한다. delivery:batch-plan은 의존성 계획 도구이며 PR별 admission을 대체하지 않는다.
+
+마지막 병합의 전체 SHA를 고정해 npm run delivery:verify-batch -- --sha=<40자리 SHA>를 실행하고 staging smoke·noindex·핵심 화면을 검증한다. 실패하면 배치 완료·운영 승격·워크트리 삭제를 진행하지 않는다. 이미 진행 중인 배포는 취소하지 않고 아직 배포하지 않은 낡은 staging 실행은 최신 main에 양보한다. 운영 승격은 별도 1회 승인 때만 수행한다. 이전의 PR별 staging 대기 조항보다 이 정책이 우선한다.

@@ -167,6 +167,14 @@ jobs:
             exit 0
           fi
           # 여기부터는 push·schedule 이고, 둘 다 **스테이징**이다.
+          # 연속 머지에서는 아직 배포하지 않은 오래된 SHA를 최신 main에 양보한다.
+          LATEST_MAIN=$(git ls-remote --exit-code origin refs/heads/main | cut -f1) || exit 1
+          if [ -z "${LATEST_MAIN}" ]; then exit 1; fi
+          if [ "${LATEST_MAIN}" != "${GITHUB_SHA}" ]; then
+            emit
+            echo "::notice::더 최신 main이 있습니다. 이 스테이징 실행은 배포 전에 양보합니다."
+            exit 0
+          fi
           # 머지는 더 이상 프로덕션에 나가지 않는다 — 프로덕션은 사람이 dispatch 할 때만 갱신된다.
           if [ "${GITHUB_EVENT_NAME}" = "push" ]; then
             PROCEED_STAGING=true
@@ -598,15 +606,20 @@ jobs:
       - name: Scan for leaked secrets
         run: npm run verify:no-secret-leak
 
+      - name: Check latest staging SHA before deployment
+        id: staging_current
+        run: node scripts/staging-release-current.mjs
+
       - name: Deploy staging Pages and Worker at the exact SHA
         id: deploy
+        if: steps.staging_current.outputs.current == 'true'
         run: npm run deploy:staging -- --ci --yes
 
       # 🔴 release 잡과 같은 이유로 배포 실패 시에는 **기록 전용**이다. 그렇게 하지 않으면
       # 빌드·테스트가 죽은 런에서도 이 스텝이 마지막 빨간불이 돼 "SHA 가 안 맞는다"로 보이고,
       # 실제 원인은 로그 위쪽으로 묻힌다.
       - name: Verify deployed SHA on staging
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && (steps.deploy.outcome == 'success' || steps.deploy.outcome == 'failure') }}
         continue-on-error: ${{ steps.deploy.outcome == 'failure' }}
         run: |
           if [ "${{ steps.deploy.outcome }}" = "failure" ]; then
@@ -620,7 +633,7 @@ jobs:
       # 어떤 단계가 산출물을 다시 써서 메타가 사라져도 여기서 잡힌다. 실패하면 배포를 실패로
       # 남겨 다음 릴리스 전에 반드시 보게 한다.
       - name: Probe staging is not indexable
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && steps.deploy.outcome == 'success' }}
         run: |
           set -euo pipefail
           ROBOTS=$(curl -fsS "${CD_STAGING_ORIGIN}/robots.txt")

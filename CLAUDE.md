@@ -68,3 +68,9 @@ CI 선택 실행은 10개 PR 비교 전까지 shadow다. 기존 검사를 삭제
 이용권·월정석·단건 결제 용어와 정책을 유지한다. 동결 파일 변경은 payment-freeze 절차를 따른다.
 Claude 훅은 Codex 훅이 아니다. 도구별 규칙 적용을 구분한다.
 충돌은 [CONTEXT_AUDIT](docs/CONTEXT_AUDIT.md)에 기록한다. 현재 상태는 [CURRENT_DEV_BASELINE](docs/CURRENT_DEV_BASELINE.md).
+
+## 2026-09-10 상시 연속 머지 정책
+
+커밋 기반 PR은 각 최신 HEAD의 필수 CI와 delivery:admit을 확인한 뒤 연속 머지한다. PR 사이에 스테이징 도달을 기다리지 않는다. main 변경으로 무효화된 후보 검증만 갱신한다. PR 생성 전 ci:preflight와 보호 규칙은 유지한다. delivery:batch-plan은 의존성 계획 도구이며 PR별 admission을 대체하지 않는다.
+
+마지막 병합의 전체 SHA를 고정해 npm run delivery:verify-batch -- --sha=<40자리 SHA>를 실행하고 staging smoke·noindex·핵심 화면을 검증한다. 실패하면 배치 완료·운영 승격·워크트리 삭제를 진행하지 않는다. 이미 진행 중인 배포는 취소하지 않고 아직 배포하지 않은 낡은 staging 실행은 최신 main에 양보한다. 운영 승격은 별도 1회 승인 때만 수행한다. 이전의 PR별 staging 대기 조항보다 이 정책이 우선한다.
