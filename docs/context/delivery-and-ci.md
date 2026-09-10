@@ -19,10 +19,11 @@
 - 5줄 이상 변경 시 코딩 전 계획(plan) 우선
 - 코딩 후: `lint` → `typecheck` → 관련 `verify:*` 스크립트 실행 → 변경 파일만 `git add` → Conventional Commits
 - 🔴 **`config/payment-freeze.json`에 등록된 파일·함수를 건드렸다면 커밋 전 반드시 확인**: `worker/payments/` 재작성 기간 동안 "동결"된 구 결제 코드(예: `app/_lib/billing-client.ts`, `app/hooks/useCoinGate.ts`, `lib/payment/portone.ts`, `index.html`의 `_cdChooseServicePaymentMode`/`_cdRunDirectKrwCheckout`/`_cdOpenPaidServiceGate`, `js/destiny-profile.js`의 `_dpRenderStandalonePaymentChoice` 등)은 내용이 바뀌면 `npm run verify:payment-freeze`가 CI(`paid-flow-gates`)에서 실패한다. 순수 CSS/문구 변경이라도 예외 없다. 의도한 변경이면 `node scripts/verify-payment-freeze.mjs --update`로 매니페스트를 갱신해 **같은 커밋에** 담을 것 — env 우회나 체크 무력화 금지(트립와이어 자체를 없애면 재작성 중 조용한 분기를 다시 못 잡는다). `worker/payments/`에 대응 구현이 있다면 그쪽도 같은 변경이 필요한지 먼저 확인한다.
-- 🔴 **배포 흐름 (2026-08-20 개정 — 스테이징 컷오버, 커밋 `80d3660c1`)**: `main` 직접 작업·직접 배포는 **폐기**됐다. 다만 "머지가 곧 라이브"는 더 이상 맞지 않는다 — **머지는 스테이징까지만 자동으로 간다.**
+ - 🔴 **배포 흐름 (2026-08-20 개정 — 스테이징 컷오버, 커밋 `80d3660c1`)**: `main` 직접 작업·직접 배포는 **폐기**됐다. 다만 "머지가 곧 라이브"는 더 이상 맞지 않는다 — **머지는 스테이징 배포를 비동기로 예약한다.**
   ```
   feature 브랜치 → 커밋 → push → PR → PR CI 자동 검증 → 검사 통과 후 에이전트가 안전하게 Merge
-    → main push → "Release Cloudflare Pages and Worker" 가 그 SHA 로 **스테이징**에 자동 배포
+     → main push → 짧은 디스패처가 최신 `main`의 스테이징 배포를 **비동기로 예약**하고 즉시 종료
+     → 별도 `workflow_dispatch(mode=staging)` 실행이 고정 SHA로 **스테이징** 빌드·배포·검증
     → 프로덕션은 사람이 GitHub Actions 에서 workflow_dispatch(mode=production) 를 수동 실행해야 승격된다
   ```
   - 스테이징: `staging.code-destiny.com` / Worker `code-destiny-web-staging` / DB `code_destiny_staging`(프로덕션과 분리). `robots.txt: Disallow: /` + `X-Robots-Tag: noindex` 로 색인 차단.
@@ -77,10 +78,10 @@
   - **현재 사용 가능성(2026-09-08 확인)**: 이 저장소는 공개지만 개인 계정(`ownerType: User`) 소유다. GitHub Merge Queue는 조직 소유 공개 저장소 또는 GitHub Enterprise Cloud 조직 소유 비공개 저장소에만 제공되므로 현재 ruleset에는 활성화할 수 없다. `merge_group` 트리거는 향후 조직 이전 시 설정 순서가 뒤집혀 체크가 사라지는 일을 막는 준비다. 이전 전에는 `CI required` 단일 필수 체크 + strict up-to-date 비활성 유지가 권장값이며, 실제 충돌 PR만 머지 직전 수동 갱신한다.
   - **라벨 탈출구**: `full-ci` 는 티어를 `critical` 로 올린다. 경로만으로는 안 잡히는데 사람은 아는 변경에 쓴다(예: 공용 유틸을 고쳐 결제·인증에 **간접** 영향이 가는 경우). 내리는 라벨은 없다 — 그건 게이트를 끄는 버튼이다.
 - 🔴 **PR 별 프리뷰 단계는 없다(2026-08-11).** Worker 프리뷰 버전은 라우팅되지 않아 프리뷰 URL 의 `/api/*` 를 **지금 라이브인 워커**(옛 코드)가 응답하고, 그 `/api` 는 프로덕션 DB 를 본다(샌드박스가 아니다). 결제·인증·Worker 변경에는 무용했고 Cloudflare 아티팩트만 쌓였다.
-  - 🔴 **다만 2026-08-20 이후 머지는 곧바로 프로덕션이 아니라 스테이징에 반영된다** — 위 "배포 흐름" 참고. 스테이징은 프로덕션과 분리된 DB 를 쓰는 실제 배포라 PR 프리뷰보다는 유의미하지만, 별도 결제 샌드박스 채널이 붙어 있는지는 미검증이므로 스테이징 결제 시도를 "안전하다"고 단정하지 않는다.
+   - 🔴 **다만 2026-08-20 이후 머지는 곧바로 프로덕션이 아니라 스테이징 배포를 비동기로 예약한다** — 위 "배포 흐름" 참고. 실제 스테이징 실행은 최신 대기 항목을 순차 처리하며, 다음 작업·PR·머지를 기다리게 하지 않는다. 스테이징은 프로덕션과 분리된 DB 를 쓰는 실제 배포라 PR 프리뷰보다는 유의미하지만, 별도 결제 샌드박스 채널이 붙어 있는지는 미검증이므로 스테이징 결제 시도를 "안전하다"고 단정하지 않는다.
   - 검증은 **머지 전 PR CI** 와 **배포 자체의 안전장치**가 나눠 맡는다. 릴리스는 승격 전에 내부적으로 Pages 배포본을 만들어 스모크를 돌리고, 승격 후에는 스모크 + Pages/Worker SHA 대조를 하며, 실패하면 양쪽을 함께 자동 롤백한다. 이건 사용자가 기다리는 단계가 아니라 릴리스 잡 안에서 끝난다.
   - 로컬 `npm run deploy:preview` 는 개발용 도구로 남아 있지만 흐름의 일부가 아니다. 실행하면 Cloudflare 에 아티팩트가 남으므로 습관적으로 돌리지 않는다. 변경 집합만 보려면 업로드가 없는 `npm run deploy:check`.
-- **스테이징 도달 감시는 배포 자체보다 좁게 적용한다.** 모든 main 머지는 기존 릴리스 계약대로 스테이징에 배포되지만, Landing Watchdog의 장기 감시는 DB 스키마·결제/인증·유료 접근·주요 Worker 라우트 변경에만 실행한다. 오타·UI 문구·CSS·정적 자산은 scope job만 통과하고 무거운 감시는 생략한다. 판정 실패는 감시 실행으로 닫으며, 판정 정본은 `scripts/lib/change-risk.mjs`의 `requiresStagingWatch`다.
+   - **스테이징 도달 감시는 배포 자체보다 좁게 적용한다.** 모든 main 머지는 기존 릴리스 계약대로 스테이징 배포를 비동기로 예약하지만, Landing Watchdog의 장기 감시는 DB 스키마·결제/인증·유료 접근·주요 Worker 라우트 변경에만 실행한다. 오타·UI 문구·CSS·정적 자산은 scope job만 통과하고 무거운 감시는 생략한다. 판정 실패는 감시 실행으로 닫으며, 판정 정본은 `scripts/lib/change-risk.mjs`의 `requiresStagingWatch`다.
 - **결제·인증 전용 게이트**(`paid-flow-gates.yml`)는 그대로 남아 `pull_request` 에서 결제·로그인·운세 경로가 걸릴 때만 49개 항목(검증기 48 + `npm test`)을 돌린다. 위 티어와 **독립**이며 필수 체크는 아니다.
   - 🔴 **스위트 목록의 정본은 `scripts/run-paid-gate-suite.mjs` 한 벌이다**(2026-08-16). 워크플로에는 스텝을 늘어놓지 않는다. 러너는 ①첫 실패에서 멈추지 않고 전부 돌린 뒤 실패를 모아 보고하며 ②실패한 항목만 **merge-base 워크트리에서 다시 돌려 귀책을 가른다**. base 에서도 실패하면 `PRE-EXISTING` 으로 분류해 **경고로 낮추고 통과**시키고(그 PR 을 고쳐도 초록불이 안 되므로 별도 PR 이 필요하다), base 가 통과했는데 head 가 실패하면 그대로 실패다. base 를 못 구하면 전부 이 변경 책임으로 본다(fail-closed) — 그래서 체크아웃이 `fetch-depth: 0` 이어야 한다.
   - 🔴 **`push: main` 트리거는 게이트가 아니라 건강 신호다**(2026-08-16). 이 게이트의 가드는 트리거 `paths:` **밖** 파일도 읽는다. 실측 사고: PR #678(`CLAUDE.md` 분할)은 이 워크플로를 아예 깨우지 않은 채 머지됐는데 `verify:nakshatra-premium` 이 `CLAUDE.md` 본문을 단언하고 있어 머지 직후부터 main 이 빨간불이 됐고, 80분 뒤 무관한 두 브랜치(`perf/inp-tap-fixed-cost`·`fix/pg-window-idempotency-scope`)가 같은 스텝에서 동시에 죽었다. **고치는 방향은 `paths:` 를 넓히는 것이 아니다** — 가드가 읽는 파일을 다 넣으면 2026-08-08 에 일부러 좁힌 트리거가 되살아난다. 대신 머지된 main 을 한 번 직접 본다.
@@ -92,7 +93,7 @@
     - 🔴 **fail-closed 다.** `if: needs.scope.outputs.run != 'false'` 이므로 판정이 실패하거나 출력이 없으면 **돌린다.** 건너뛰는 것은 `run=false` 를 명시적으로 받았을 때뿐이다. 이 조건을 `== 'true'` 로 바꾸지 말 것.
     - 검증 매트릭스(도입 시 실측): 문구 전용 → 건너뜀 / 결제 라우트 → 돎 / 결제 게이트 → 돎 / **셸의 결제 구간만** → 돎 / **셸의 문구만** → 건너뜀.
     - `js/mobile-interaction-patch.js` 도 이때 트리거에 추가했다 — 고스트 클릭 억제가 상세 팝업 CTA 의 진입 클릭을 삼켜 유료 기능 13종이 전부 무반응이었는데(PR #625), 그 파일이 목록에 없어 결제 게이트가 깨어나지 않았다.
-- **Merging the PR is the staging deploy trigger, not the production one.** The push to `main` starts *Release Cloudflare Pages and Worker*, which checks out `github.sha` exactly, builds once, and promotes the Worker then Pages **on staging**, smokes it, and verifies the live SHA on both layers (`npm run verify:deployed-sha`). Failure auto-rolls back both layers. Production only runs this same promote/smoke/verify sequence when a human fires `workflow_dispatch(mode=production)`.
+- **Merging the PR schedules staging asynchronously, not production.** The push to `main` starts a short dispatcher in *Release Cloudflare Pages and Worker*, which queues `workflow_dispatch(mode=staging)` for the latest `main` and then exits. The dispatched staging run checks out one fixed SHA, builds once, promotes the Worker then Pages **on staging**, smokes it, and verifies the live SHA on both layers (`npm run verify:deployed-sha`). Failure auto-rolls back both layers. Production only runs this same promote/smoke/verify sequence when a human fires `workflow_dispatch(mode=production)`.
 - **Local production deploys are blocked** by `scripts/lib/production-deploy-guard.mjs`. `deploy:check`, `deploy:preview`, and `deploy:smoke` still work locally. The break-glass path — for when GitHub Actions itself is unavailable — is `CD_BREAK_GLASS=1 <command> --break-glass`, and anything shipped that way must be re-landed through a PR or the next release silently reverts it.
 - Production Cloudflare credentials belong in GitHub Actions secrets. Do not add them to CI workflows from `.env` files.
 - `scripts/lib/change-risk.mjs` judges two independent axes: `level` (how deep the ordinary checks go) and `deepRequired` (auth/login, payment/entitlement, DB schema and migrations, `.github/workflows/**`, `wrangler.toml`, `.env*`, `config/env.contract.json`, `scripts/deploy*`). `deepRequired` forces the full `deploy:critical` regression regardless of `level`. `worker/**` stays `level=high` either way.
@@ -196,7 +197,7 @@ Pages 와 Worker 가 서로 다른 코드를 가리키는 것이 이 저장소�
 ## 2026-09-08 사용자 전달 방식 변경
 PR 생성 후 필수 검사와 최신 base 충돌을 확인하고 에이전트가 안전하게 머지한다. **순차 머지 큐는 Ready PR 한 건만 처리한다.** 후보 워크트리에서 `npm run delivery:admit -- --pr=<number>`가 통과해야 하며, 이 검사는 후보 clean 상태, 최신 `origin/main` 포함, GitHub 필수 CI 통과, 최신 PR HEAD와 검증 증거를 확인한다. 같은 파일을 수정 중인 활성 워크트리는 참고 경고로 기록하지만, PR의 커밋 집합과 GitHub 병합 가능 상태를 별도로 판정하므로 admission을 차단하지 않는다. 스테이징 도달은 admission 조건이 아니다. 하나라도 실패하면 그 PR을 건너뛰거나 다음 PR을 머지하지 않고 원인만 보고한다. 머지 뒤에는 다음 후보의 필수 CI와 admission을 확인해 연속 머지한다. PR 사이에 스테이징을 기다리지 않고 마지막 병합 SHA의 스테이징 Pages·Worker SHA와 읽기 전용 핵심 응답을 한 번 검증한다. 과거 사용자 수동 머지·머지 후 배포 미확인 조항보다 이 지시가 우선한다. 프로덕션 승격은 여전히 사용자의 명시적인 1회 승인 때만 진행한다. branch protection을 우회하지 않으며 실패·필수 승인 대기는 보고한다.
 
-2026-09-08 사용자 추가 지시: 수정 시작 시 워크트리를 자동 생성한다. PR 머지와 스테이징의 병합 SHA·정상 응답 확인 후 해당 작업의 clean 워크트리를 제거한다. 삭제 전 절대 경로와 미커밋 상태를 확인하고 의존성 정션은 대상이 아닌 링크만 먼저 제거한다. 다른 작업의 워크트리·공유 의존성은 보존한다. 운영 승격은 별도 명시적 승인 때만 수행한다.
+2026-09-08 사용자 추가 지시: 수정 시작 시 워크트리를 자동 생성한다. PR 머지 뒤 스테이징 배포는 비동기로 감시하며, 스테이징 SHA·정상 응답 확인을 다음 작업 시작·다음 PR 머지·새 워크트리 준비의 선행 조건으로 삼지 않는다. 해당 작업의 clean 워크트리는 PR 전달이 끝난 뒤 제거한다. 삭제 전 절대 경로와 미커밋 상태를 확인하고 의존성 정션은 대상이 아닌 링크만 먼저 제거한다. 다른 작업의 워크트리·공유 의존성은 보존한다. 운영 승격은 별도 명시적 승인 때만 수행한다.
 
 ## PR preflight와 순차 전달
 
@@ -206,15 +207,15 @@ PR 생성 후 필수 검사와 최신 base 충돌을 확인하고 에이전트�
 - 여러 PR은 전체 파일 diff·공통 코드·선행 기능·migration·CI·main 기준을 먼저 조사해 순서를 정한다. 번호순 머지를 하지 않는다. 기반 공통 코드 → 소비자 순으로 통합하되 미완성 Draft는 보존한다.
 - 저위험·비중첩 PR은 최대 4개까지 `npm run delivery:batch-plan -- --prs=123,124`로 배치 계획을 만든 뒤 연속 머지할 수 있다. 배치 계획은 최신 `origin/main`의 깨끗한 제어용 linked worktree에서 실행하며 PR 상태·필수 CI·파일 중첩을 확인한다. Worker·결제·인증·라우팅·테스트·공통 정적 셸·생성 미러·사이트맵 ledger 변경은 단독 배치로 판정한다.
 - `delivery:batch-plan`이 통과한 다중 PR은 배치 입장 증거로 사용하고, 고위험 또는 단독 판정 PR은 기존 `delivery:admit -- --pr=<number>`를 사용한다. 두 명령 모두 merge/push/checkout을 수행하지 않는다.
-- 배치 머지 중에도 `main` push마다 스테이징 배포가 발생한다. 배치 계획을 통과한 경우에는 배치의 마지막 merge SHA를 기준으로 Pages·Worker 도달과 정상 응답을 확인한다. 릴리스 실패·취소·SHA 불일치가 보이면 배치를 즉시 중단하고 각 merge SHA를 개별 조사한다.
+- 배치 머지 중에도 `main` push마다 최신 main 기준 스테이징 배포가 비동기로 예약된다. 배치 계획을 통과한 경우에는 배치의 마지막 merge SHA를 기준으로 Pages·Worker 도달과 정상 응답을 **후속 감시로** 확인한다. 이 확인은 다음 작업·PR·머지를 막지 않으며, 릴리스 실패·취소·SHA 불일치는 별도 전달·재조정 대상으로 남긴다.
 - PR CI는 변경 경로 기반으로 불필요한 러너를 줄인다. Markdown-only PR은 classify에서 문서 신선도만 실행하고 fast(typecheck·lint)를 skip하며, `docs/context`, `docs/handoff`, `docs/dev` 계약 문서는 정적 가드를 추가로 실행한다. 코드·설정·생성물·테스트가 섞이면 기존 fast/build/critical 티어 판정을 유지한다. `CI required` aggregate는 실행된 lane의 성공과 판정된 skip만 허용하고 실패·취소는 차단한다.
-- 안전한 작업은 로컬·필수 CI·리뷰·충돌·선행 PR 조건을 모두 충족하면 `delivery:admit` 후 SHA를 지정해 연속 merge하고 마지막 SHA의 staging Pages/Worker SHA·정상 응답을 검증한다. 프로덕션 승격은 별도 1회 승인이 필요하다. --admin·보호 해제·실패 무시·destructive force push는 금지한다.
+- 안전한 작업은 로컬·필수 CI·리뷰·충돌·선행 PR 조건을 모두 충족하면 `delivery:admit` 후 SHA를 지정해 연속 merge한다. 마지막 SHA의 staging Pages/Worker SHA·정상 응답은 비동기 후속 검증으로 확인하며, 그 결과를 기다려 다음 작업을 시작하지 않는다. 프로덕션 승격은 별도 1회 승인이 필요하다. --admin·보호 해제·실패 무시·destructive force push는 금지한다.
 - 매 merge 후 fetch하고 남은 PR의 새 main 호환성을 확인한다. 겹치거나 기반이 필요한 브랜치만 merge-main/rebase 후 동일 preflight와 GitHub CI를 재실행한다. 타 작업의 미커밋/locked worktree를 수정하지 않는다.
 - CI 실패는 job/log → 원인 분류 → 로컬 재현·수정 → preflight → commit/push → 최신 head CI 확인까지 해결한다. 기존 실패를 성공으로 바꾸거나 rerun으로 숨기지 않는다.
 - 독립 기능은 독립 PR. 강한 의존 관계는 함께 묶고 UI·인프라는 가능한 분리한다. 범위 밖 수정·대규모 formatter·불필요한 lockfile 변경을 금지한다.
 
 ## 2026-09-10 상시 연속 머지 정책
 
-커밋 기반 PR은 각 최신 HEAD의 필수 CI와 delivery:admit을 확인한 뒤 연속 머지한다. PR 사이에 스테이징 도달을 기다리지 않는다. main 변경으로 무효화된 후보 검증만 갱신한다. PR 생성 전 ci:preflight와 보호 규칙은 유지한다. delivery:batch-plan은 의존성 계획 도구이며 PR별 admission을 대체하지 않는다.
+커밋 기반 PR은 각 최신 HEAD의 필수 CI와 delivery:admit을 확인한 뒤 연속 머지한다. PR 사이에 스테이징 도달을 기다리지 않는다. main push는 짧은 디스패처만 실행하고 실제 스테이징 배포·검증은 별도 직렬 실행으로 비동기 처리한다. main 변경으로 무효화된 후보 검증만 갱신한다. PR 생성 전 ci:preflight와 보호 규칙은 유지한다. delivery:batch-plan은 의존성 계획 도구이며 PR별 admission을 대체하지 않는다.
 
-마지막 병합의 전체 SHA를 고정해 npm run delivery:verify-batch -- --sha=<40자리 SHA>를 실행하고 staging smoke·noindex·핵심 화면을 검증한다. 실패하면 배치 완료·운영 승격·워크트리 삭제를 진행하지 않는다. 이미 진행 중인 배포는 취소하지 않고 아직 배포하지 않은 낡은 staging 실행은 최신 main에 양보한다. 운영 승격은 별도 1회 승인 때만 수행한다. 이전의 PR별 staging 대기 조항보다 이 정책이 우선한다.
+마지막 병합의 전체 SHA를 고정해 `npm run delivery:verify-batch -- --sha=<40자리 SHA>`를 후속 검증으로 실행하고 staging smoke·noindex·핵심 화면을 확인한다. 이 검증과 진행 중인 스테이징 배포는 다음 작업·PR·머지·새 워크트리 준비를 막지 않는다. 실패하면 운영 승격은 중단하고 원인·재조정만 보고한다. 이미 진행 중인 배포는 취소하지 않고 아직 배포하지 않은 낡은 staging 실행은 최신 main에 양보한다. 운영 승격은 별도 1회 승인 때만 수행한다. 이전의 PR별 staging 대기 조항보다 이 정책이 우선한다.

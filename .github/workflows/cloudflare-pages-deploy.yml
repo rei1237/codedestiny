@@ -2,7 +2,7 @@ name: Release Cloudflare Pages and Worker
 
 # 🔴 프로덕션에 도달하는 유일한 경로다.
 #
-# feature 브랜치 → PR → PR CI 통과 → main 머지 → **스테이징 자동 배포**.
+# feature 브랜치 → PR → PR CI 통과 → main 머지 → **스테이징 배포 예약**.
 # 프로덕션은 사람이 Run workflow(mode=production)를 눌렀을 때만 나간다.
 #
 # 2026-08-20 컷오버로 push 의 의미가 뒤집혔다. 그 전에는 머지가 곧 프로덕션이라,
@@ -15,12 +15,13 @@ name: Release Cloudflare Pages and Worker
 # 체크아웃에서 함께 나간다. 두 시스템이 서로 다른 코드를 가리키는 상태가 결제·인증 사고의
 # 실제 원인이었기 때문에, 배포 후 양쪽 런타임에서 SHA 를 다시 읽어 대조한다.
 #
-# 🔴 schedule 이 붙어 있는 이유 — 머지가 **스테이징** 배포로 이어지지 않는 구간이 실제로 존재한다.
-# concurrency 그룹은 실행 1 + 대기 1 만 유지하므로, 연속 머지 시 **대기 중이던 런이 취소된다**
-# (최근 60런 중 8건). 취소된 런은 잡이 시작조차 안 해서 PR 코멘트도 메일도 없다.
-# 2026-08-12 에는 8건 연속 머지 동안 성공한 배포가 0건이었고 프로덕션이 46분간 옛 SHA 에 머물렀다.
-# 20분마다 "프로덕션이 main HEAD 인가"를 확인해 아니면 스스로 수렴한다. 취소·[skip ci]·
-# 일시적 실패가 어떤 조합으로 오든 최대 20분 뒤에는 복구된다.
+# 🔴 push·schedule 은 무거운 스테이징 배포를 직접 기다리지 않고, 최신 main을 대상으로 한
+# workflow_dispatch(mode=staging)만 예약한 뒤 끝난다. 실제 Pages/Worker 배포는 별도 실행이
+# 같은 스테이징 concurrency 그룹에서 직렬화한다. 따라서 머지·다음 PR·다음 작업은 Cloudflare
+# 배포 시간에 묶이지 않는다.
+#
+# 스테이징 실행은 그룹당 실행 1 + 대기 1 만 유지한다. 빠른 연속 머지에서는 오래된 대기 실행이
+# 최신 예약으로 대체될 수 있지만, 이미 진행 중인 배포는 취소하지 않는다.
 on:
   push:
     branches: [main]
@@ -90,7 +91,7 @@ concurrency:
     (github.event_name == 'workflow_dispatch' && (inputs.mode == 'production' || inputs.mode == 'rollback')) && 'cloudflare-production-release'
     || (github.event_name == 'workflow_dispatch' && inputs.mode == 'preview') && 'cloudflare-preview-build'
     || (github.event_name == 'workflow_dispatch' && inputs.mode == 'staging') && 'cloudflare-staging-release'
-    || 'cloudflare-staging-release'
+    || 'cloudflare-staging-dispatch'
     }}
   cancel-in-progress: false
 
@@ -123,6 +124,7 @@ jobs:
       #       를 매칭하므로 그 이름과 의미를 건드리면 릴리스와 PR CI 가 동시에 멈춘다.
       #   (2) 한 출력이 두 타깃을 뜻하면 표현식 오타 하나가 곧 프로덕션 배포다.
       proceed_staging: ${{ steps.decide.outputs.proceed_staging }}
+      dispatch_staging: ${{ steps.decide.outputs.dispatch_staging }}
     steps:
       - name: Checkout release SHA
         uses: actions/checkout@v4
@@ -148,9 +150,11 @@ jobs:
           #    "그 잡은 그냥 안 돈다"로 조용히 끝난다.
           PROCEED=false
           PROCEED_STAGING=false
+          DISPATCH_STAGING=false
           emit() {
             echo "proceed=${PROCEED}" >> "$GITHUB_OUTPUT"
             echo "proceed_staging=${PROCEED_STAGING}" >> "$GITHUB_OUTPUT"
+            echo "dispatch_staging=${DISPATCH_STAGING}" >> "$GITHUB_OUTPUT"
           }
           # 🔴 프로덕션에 도달하는 갈래는 **workflow_dispatch 하나뿐**이다. 두 값이 동시에
           #    true 가 되는 갈래는 없어야 한다 — 있으면 스테이징을 골랐는데 프로덕션이 나간다.
@@ -166,8 +170,8 @@ jobs:
             echo "::notice::수동 실행(mode=${DISPATCH_MODE}) — 프로덕션 경로로 갑니다."
             exit 0
           fi
-          # 여기부터는 push·schedule 이고, 둘 다 **스테이징**이다.
-          # 연속 머지에서는 아직 배포하지 않은 오래된 SHA를 최신 main에 양보한다.
+          # 여기부터는 push·schedule 이고, 둘 다 **스테이징 예약**이다.
+          # 연속 머지에서는 아직 예약하지 않은 오래된 SHA를 최신 main에 양보한다.
           LATEST_MAIN=$(git ls-remote --exit-code origin refs/heads/main | cut -f1) || exit 1
           if [ -z "${LATEST_MAIN}" ]; then exit 1; fi
           if [ "${LATEST_MAIN}" != "${GITHUB_SHA}" ]; then
@@ -177,9 +181,9 @@ jobs:
           fi
           # 머지는 더 이상 프로덕션에 나가지 않는다 — 프로덕션은 사람이 dispatch 할 때만 갱신된다.
           if [ "${GITHUB_EVENT_NAME}" = "push" ]; then
-            PROCEED_STAGING=true
+            DISPATCH_STAGING=true
             emit
-            echo "::notice::main 머지 — 스테이징에 반영합니다. 프로덕션은 수동 실행 전까지 그대로입니다."
+            echo "::notice::main 머지 — 스테이징 배포를 비동기로 예약합니다. 프로덕션은 수동 실행 전까지 그대로입니다."
             exit 0
           fi
           # schedule — 스테이징이 main HEAD 와 어긋났는지만 본다.
@@ -208,13 +212,27 @@ jobs:
           fi
           DRIFTED=$(printf '%s' "$OUT" | jq -r '.drifted // "error"')
           if [ "${DRIFTED}" = "true" ]; then
-            PROCEED_STAGING=true
+            DISPATCH_STAGING=true
             emit
-            echo "::warning::스테이징이 main HEAD 와 다릅니다. 자동으로 재배포합니다."
+            echo "::warning::스테이징이 main HEAD 와 다릅니다. 최신 스테이징 배포를 비동기로 예약합니다."
           else
             emit
             echo "스테이징이 main HEAD 와 같습니다. 배포할 것이 없습니다."
           fi
+
+  dispatch_staging:
+    name: Queue asynchronous staging release
+    needs: gate
+    if: needs.gate.outputs.dispatch_staging == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: read
+    steps:
+      - name: Queue latest main for staging
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run cloudflare-pages-deploy.yml --ref main -f mode=staging
 
   release:
     needs: gate
@@ -575,9 +593,6 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-
-      - name: Install Playwright Chromium
-        run: npx playwright install chromium
 
       - name: Fail fast when the staging project is unconfigured
         run: |
