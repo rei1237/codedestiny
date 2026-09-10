@@ -7,6 +7,26 @@ import {
 } from "../../worker/routes/relationship-boundary-test.js";
 
 describe("relationship boundary test", () => {
+  it("parses the structured provider text and preserves at least 15000 body characters", async () => {
+    const boundary = __relationshipBoundaryTestTestUtils.scoreBoundary({ myChart: {} });
+    const sections = Array.from({ length: 5 }, (_, i) => ({ title: `장면 ${i + 1}`, body: (`장면 ${i + 1}의 서로 다른 해석과 대화 예시입니다.\n\n`).repeat(130) }));
+    let options;
+    const result = await __relationshipBoundaryTestTestUtils.generate({}, boundary, "female", {}, async (_env, _prompt, opts) => {
+      options = opts;
+      return { ok: true, text: JSON.stringify({ summary: "계산 근거 요약", sections, character: { title: "선택의 장면" }, finalMessage: "서로의 기준을 확인하세요." }) };
+    });
+    expect(options.baseTokens).toBe(24000);
+    expect(options.capTokens).toBe(32000);
+    expect(result.sections.reduce((sum, section) => sum + section.body.length, 0)).toBeGreaterThanOrEqual(15000);
+    expect(result.sections[0].body).toContain("\n\n");
+  });
+
+  it("does not replace an incomplete paid reading with a short canned result", async () => {
+    const boundary = __relationshipBoundaryTestTestUtils.scoreBoundary({ myChart: {} });
+    for (const response of [{ ok: false }, { ok: true, text: "{}" }, { ok: true, text: JSON.stringify({ summary: "짧은 요약", sections: Array.from({ length: 5 }, () => ({ title: "장면", body: "짧은 본문" })) }) }]) {
+      await expect(__relationshipBoundaryTestTestUtils.generate({}, boundary, "female", {}, async () => response)).rejects.toThrow("READING_INCOMPLETE");
+    }
+  });
   it("rejects a target without the required gender before any payment or provider path", async () => {
     const response = await handleRelationshipBoundaryTestRoutes(
       new Request("https://example.test/api/relationship-boundary-test/prepare", {

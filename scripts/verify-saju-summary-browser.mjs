@@ -20,6 +20,7 @@ await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
 const origin = `http://127.0.0.1:${server.address().port}`;
 const browser = await chromium.launch({headless:true});
 try {
+ for (const alreadyUnlocked of [false, true]) {
   const context = await browser.newContext({viewport:{width:390,height:844}});
   await context.route('**/*', route => new URL(route.request().url()).origin === origin ? route.continue() : route.abort());
   await context.addInitScript(() => sessionStorage.setItem('privacyAgreed', 'true'));
@@ -31,15 +32,18 @@ try {
   await page.locator('#cdQuickServices a[href*="cdOneStepFreeSajuEntry"]').click();
   await page.locator('#nameInput').fill('회귀검증');
   await page.locator('#birthDate').fill('1990-05-15');
+  if (alreadyUnlocked) await page.evaluate(() => { window.unlockedFeatureMap.section_summary = true; });
   await page.locator('#run-btn').click();
   await page.waitForFunction(() => window.__cdLastSummaryArgs, {timeout:30000});
+  if (!alreadyUnlocked) {
   assert.equal(await page.locator('#summaryArea').textContent(), '');
   await page.evaluate(() => {
     // Simulate a restored profile with current engine data but no transient calculate arguments.
     delete window.__cdLastSummaryArgs;
     window.unlockedFeatureMap.section_summary = true;
   });
-  await page.locator('#summaryGate button').click();
+  await page.locator('#summaryGate button[data-unlock-key]').click();
+  }
   await page.locator('#summaryArea .saju-summary-report').waitFor({state:'visible'});
   for (const width of [360,390,430,1280]) {
     await page.setViewportSize({width,height:900});
@@ -48,6 +52,12 @@ try {
     assert.ok(metrics.length>10000 && metrics.height>500);
     assert.equal(metrics.hidden,'false');
     assert.equal(metrics.overflow,false);
-    console.log(`PASS restored summary ${width}px: ${metrics.length} characters`);
+    const chapter = page.locator('#summaryArea .saju-summary-chapter__body').first();
+    await chapter.locator('.saju-reading-depth').first().scrollIntoViewIfNeeded();
+    assert.equal(await chapter.evaluate(el => getComputedStyle(el).maxHeight), 'none');
+    assert.equal(await page.locator('#summaryArea .btn-sub').count(), 0);
+    console.log(`PASS ${alreadyUnlocked ? 'previously unlocked' : 'restored'} summary ${width}px: ${metrics.length} characters`);
   }
+  await context.close();
+ }
 } finally { await browser.close(); server.close(); }

@@ -169,7 +169,7 @@ var REPORT_CARDS = [
   // rpt-v2-section-undefined 가 두 번 나온다.
   { id:'legacyLuckSyncDiary', thumb:'luck-sync-diary-v2.webp', label:'운기 다이어리 (이전 버전)', desc:'사주 원국과 동기화된 이전 버전 다이어리를 이 화면에서 그대로 열어봅니다.', note:'새 다이어리로 옮기기 전 쓰던 월간 운기 달력과 감성 기록 화면입니다.', cta:'이전 버전 열기', accent:'#a78bfa', glow:'rgba(167,139,250,.5)', target:'legacyLuckSyncDiary', action:'openLegacyLuckSyncDiary', coinCost:0, badge:'FREE' },
   { id:'4CUT',       thumb:'사주 네컷.webp', label:_reportDashboardText("rd.label.012"),   desc:'사주 데이터를 인생네컷 감성으로 재해석해 한 장에 담아보세요.', note:'킹받는데 공감되는 팩폭으로 네 컷을 완성했어요. 저장하고 카톡으로 바로 던져봐.', cta:_reportDashboardText("rd.cta.015"),            accent:'#f97316', glow:'rgba(249,115,22,.45)',  target:'sajuFourCutCard',    coinCost:0   },
-  { id:'relationshipTemptation', thumb:'saju-relationship-temptation-768.webp', label:'그 사람의 바람끼는?', shortTitle:'그 사람의 바람끼는?', desc:'대상자의 생년 정보로 관계 경계와 외부 자극에 흔들릴 수 있는 경향을 살펴봅니다.', note:'도화 하나로 단정하지 않고 계산된 사주 근거와 현실적인 관계 기준을 함께 읽어드려요.', cta:'관계 성향 확인하기', accent:'#b31955', glow:'rgba(179,25,85,.38)', target:'relationshipBoundaryTestEntry', action:'openRelationshipBoundaryTestRoute', coinCost:0, badge:'NEW' },
+  { id:'relationshipTemptation', thumb:'saju-relationship-temptation-768.webp', label:'그 사람의 바람끼는?', shortTitle:'그 사람의 바람끼는?', desc:'대상자의 생년 정보로 관계 경계와 외부 자극에 흔들릴 수 있는 경향을 살펴봅니다.', note:'도화 하나로 단정하지 않고 계산된 사주 근거와 현실적인 관계 기준을 함께 읽어드려요.', cta:'관계 성향 확인하기', accent:'#b31955', glow:'rgba(179,25,85,.38)', target:'relationshipBoundaryTestEntry', coinCost:0, selfGated:true, badge:'NEW' },
   { id:'dopamine',   thumb:'도파민 중독.webp', label:_reportDashboardText("rd.label.018"), shortTitle:'도파민 중독 테스트', desc:'새로운 자극을 쫓는 타입인지, 안정을 더 사랑하는 타입인지 확인해보세요.', note:'자극 지수와 등급, 자극 레이더 8축, 몰입 분야, 오늘의 미션까지 한 번에 확인합니다.', cta:_reportDashboardText("rd.cta.017"), accent:'#e879f9', glow:'rgba(232,121,249,.5)', target:'dopamineCard', coinCost:0, badge:'NEW' },
   { id:'secretHouse', thumb:'시크릿 하우스.webp', label:_reportDashboardText("rd.label.013"), desc:'선택형 사주 연애 리얼리티로 엔딩 루트를 체험해보세요.', note:'자동 일간 연동 + 다중 엔딩 + 엔딩 카드 저장/공유까지 이어지는 몰입형 콘텐츠입니다.', cta:_reportDashboardText("rd.cta.016"), accent:'#f43f5e', glow:'rgba(244,63,94,.45)', target:'secretHouseEntryCard', action:'openSecretHouseRoute', coinCost:50 },
   { id: SAJU_ANIMAL_TEST_FEATURE.id, thumb: SAJU_ANIMAL_TEST_FEATURE.thumb, label: SAJU_ANIMAL_TEST_FEATURE.title, shortTitle: SAJU_ANIMAL_TEST_FEATURE.shortTitle, desc: SAJU_ANIMAL_TEST_FEATURE.description, note:'열두 운성의 기세를 동물 캐릭터로 매핑해 "왜 이 관계에서 힘든지"와 "지금 바로 써먹을 한 줄 행동"까지 재밌고 현실적으로 제시합니다.', cta: SAJU_ANIMAL_TEST_FEATURE.cta, accent:'#f59e0b', glow:'rgba(245,158,11,.45)', target: SAJU_ANIMAL_TEST_FEATURE.target, action: SAJU_ANIMAL_TEST_FEATURE.action, lockKey: SAJU_ANIMAL_TEST_FEATURE.lockKey, coinCost: SAJU_ANIMAL_TEST_FEATURE.coinCost, badge: SAJU_ANIMAL_TEST_FEATURE.badge, tags: SAJU_ANIMAL_TEST_FEATURE.tags, group: SAJU_ANIMAL_TEST_FEATURE.group },
@@ -1330,6 +1330,16 @@ function _sajuFunHasRenderableContent(targetEl) {
 }
 
 function renderReportDashboard() {
+  // 이전 계산/복원에서 남은 구형 인라인 결과도 전용 진입 카드와 중복되지 않게 정리한다.
+  var legacyRelationship = document.getElementById('relationshipTemptationCard');
+  if (legacyRelationship) legacyRelationship.remove();
+  if (!document.getElementById('relationshipBoundaryTestEntry')) {
+    var relationshipEntry = document.createElement('div');
+    relationshipEntry.id = 'relationshipBoundaryTestEntry';
+    relationshipEntry.innerHTML = '<iframe title="대상자 생년 정보와 관계 성향 결과" data-relationship-card-frame loading="lazy" src="/relationship-boundary-test/inline/" style="display:block;width:100%;height:1080px;border:0" allow="payment"></iframe>';
+    var relationshipHost = document.getElementById('resultPage');
+    if (relationshipHost) relationshipHost.appendChild(relationshipEntry);
+  }
   try { renderSajuFourCutContent(); } catch (fourCutErr) { console.warn('[SajuFourCut] 렌더 실패:', fourCutErr); }
 
   var container = document.getElementById('reportDashboard');
@@ -1453,7 +1463,7 @@ function renderReportDashboard() {
     } else {
       // 무료(비직접) 카드에도 기능 상세 프리뷰 팝업이 뜨도록 마커 부여:
       // data-feature-key=문구 조회 키, data-pvw-free=프리뷰 인터셉터 매칭용. 인라인 onclick은 유지(CTA 재클릭 시 토글).
-      var freeAttrs = (b.coinCost > 0) ? '' : (' data-feature-key="rpt_' + b.target + '" data-pvw-free="1"');
+      var freeAttrs = (b.coinCost > 0 || b.selfGated) ? '' : (' data-feature-key="rpt_' + b.target + '" data-pvw-free="1"');
       gridHtml += '<button class="rpt-v2-toggle-btn" type="button"' + (b.coinCost > 0 ? ' data-action="toggleRptCard"' : ' onclick="toggleReportFeatureCard(this)"') + coinAttrs + freeAttrs + ' aria-expanded="false" data-label="' + b.cta + '">';
       gridHtml += '<span class="rpt-v2-toggle-label">' + b.cta + '</span>';
       gridHtml += '<span class="rpt-v2-toggle-arrow" aria-hidden="true">▼</span>';
@@ -1599,6 +1609,16 @@ function syncReportBlockHeight(block) {
   if (!detail || !inner) return;
   detail.style.setProperty('--rpt-open-height', (inner.scrollHeight + 6) + 'px');
 }
+
+window.addEventListener('message', function(event) {
+  if (event.origin !== window.location.origin || !event.data || event.data.type !== 'cd:relationship-card-height') return;
+  var frame = document.querySelector('[data-relationship-card-frame]');
+  if (!frame || event.source !== frame.contentWindow) return;
+  var height = Number(event.data.height);
+  if (!Number.isFinite(height) || height < 100 || height > 150000) return;
+  frame.style.height = Math.ceil(height) + 'px';
+  syncReportBlockHeight(frame.closest('.rpt-v2-block'));
+});
 
 var _rptHeightWatchers = (typeof WeakMap !== 'undefined') ? new WeakMap() : null;
 

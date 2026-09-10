@@ -445,6 +445,9 @@ function setupTextCollapse() {
   const targets = document.querySelectorAll('.prem-text,.feature-card__detail-text,.res-text,.q-explanation,.compat-fact-body,.compat-advice-body');
   __runChunked(targets, (el) => {
     if (!el || el.dataset.collapsedReady === '1') return;
+    // 종합 풀이는 장별 펼치기/접기를 이미 제공한다. 공통 미리보기 높이를 다시 씌우면
+    // 확장 문단이 첫 몇 줄 뒤로 감춰지고 두 개의 접기 상태가 서로 충돌한다.
+    if (el.closest && el.closest('#summaryArea')) return;
     const txt = (el.textContent || '').trim();
     if (txt.length < 240) return;
 

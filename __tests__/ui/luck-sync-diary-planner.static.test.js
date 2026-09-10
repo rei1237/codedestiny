@@ -97,11 +97,13 @@ test("legacy diary action opens through a first-click-safe loader and mirrors st
   assert.equal(publicDashboard, dashboard, "public dashboard mirror is stale");
 });
 
-test("relationship temptation card routes to the paid standalone report", () => {
+test("relationship temptation card embeds the self-gated target report", () => {
   const dashboard = read("js/core/saju/reportDashboard.js");
 
   assert.match(dashboard, /label:'그 사람의 바람끼는\?'/);
-  assert.match(dashboard, /action:'openRelationshipBoundaryTestRoute'/);
+  assert.doesNotMatch(dashboard, /action:'openRelationshipBoundaryTestRoute'/);
+  assert.match(dashboard, /target:'relationshipBoundaryTestEntry', coinCost:0, selfGated:true/);
+  assert.match(dashboard, /src="\/relationship-boundary-test\/inline\/"/);
   assert.match(dashboard, /window\.openRelationshipBoundaryTestRoute = function\(\)/);
   assert.doesNotMatch(dashboard, /target:'relationshipTemptationCard'.*?label:'사주로 보는/);
 });
