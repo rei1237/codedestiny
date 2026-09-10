@@ -27094,7 +27094,7 @@ function renderSummary(p,johu,natal){
   function summaryDepth(title){
     var monthName=monthCommand&&monthCommand.monthName?monthCommand.monthName:'태어난 달';
     var monthSeason=monthCommand&&monthCommand.season?monthCommand.season:'계절의 흐름';
-    var monthElement=monthCommand&&monthCommand.dominantElement?EL_KO[monthCommand.dominantElement]:'계절 오행';
+    var monthElement=monthCommand&&monthCommand.dominantElement?(EL_KO[monthCommand.dominantElement]||EL_KO[SAJU_ELEMENT_KO_TO_EN[monthCommand.dominantElement]]||'계절 오행'):'계절 오행';
     var monthRelation=monthReading&&monthReading.relationToDayMaster?monthReading.relationToDayMaster:'월령과 일간의 관계';
     var seasonAdvice=monthReading&&monthReading.advice?monthReading.advice:'계절의 힘을 생활 리듬에 맞춰 조절해 보세요.';
     var seasonCaution=monthReading&&monthReading.caution?monthReading.caution:'한 가지 기운을 과하게 밀어붙이기보다 회복과 조절의 여지를 남겨두세요.';

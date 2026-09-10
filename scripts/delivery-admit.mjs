@@ -5,10 +5,8 @@ import { promisify } from "node:util";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { inspectWorktree } from "./worktree-status.mjs";
-import { readProductionShas, shaMatches } from "./verify-deployed-sha.mjs";
 
 const execute = promisify(execFile);
-const DEFAULT_STAGING_ORIGIN = "https://staging.code-destiny.com";
 
 function argValue(name, argv = process.argv) {
   const prefix = `--${name}=`;
@@ -37,7 +35,7 @@ export function parseRequiredChecks(output) {
 const git = (args, options) => command("git", args, options);
 const gh = (args, options) => command("gh", args, options);
 
-async function collectAdmission({ cwd = process.cwd(), prNumber, stagingOrigin = DEFAULT_STAGING_ORIGIN } = {}) {
+export async function collectAdmission({ cwd = process.cwd(), prNumber } = {}) {
   const findings = [];
   const root = (await git(["rev-parse", "--show-toplevel"], { cwd })).stdout;
   const [branchResult, headResult, dirtyResult] = await Promise.all([
@@ -74,18 +72,12 @@ async function collectAdmission({ cwd = process.cwd(), prNumber, stagingOrigin =
     append(findings, required.length > 0, "필수 PR CI 존재", required.length > 0 ? `${required.length}개` : "필수 체크가 보고되지 않았습니다.");
     append(findings, required.length > 0 && required.every((check) => check.bucket === "pass"), "필수 PR CI 통과", required.map((check) => `${check.name}:${check.bucket}`).join(", "));
   } catch (error) { append(findings, false, "필수 PR CI", error.message); }
-  if (mainSha) {
-    const live = await readProductionShas({ origin: stagingOrigin });
-    const pagesOk = !live.pages.error && shaMatches(mainSha, live.pages.sha);
-    const workerOk = !live.worker.error && shaMatches(mainSha, live.worker.sha);
-    append(findings, pagesOk && workerOk, "직전 main 스테이징 도달", `expected=${mainSha.slice(0, 12)}, pages=${live.pages.sha || live.pages.error || "unknown"}, worker=${live.worker.sha || live.worker.error || "unknown"}`);
-  }
   return summarizeAdmission(findings);
 }
 function printReport(report, asJson) {
   if (asJson) return console.log(JSON.stringify(report, null, 2));
   for (const finding of report.findings) console.log(`${finding.ok ? "PASS" : "BLOCK"} ${finding.label}: ${finding.detail}`);
-  console.log(report.ok ? "[delivery-admit] PASS: 이 PR만 순차 머지할 수 있습니다." : "[delivery-admit] BLOCK: 실패 항목을 해결할 때까지 다음 PR을 포함해 머지하지 마세요.");
+  console.log(report.ok ? "[delivery-admit] PASS: 이 HEAD를 머지할 수 있습니다. 다음 PR도 admission을 확인하고, 배치 마지막 SHA는 delivery:verify-batch로 검증하세요." : "[delivery-admit] BLOCK: 실패 항목을 해결할 때까지 다음 PR을 포함해 머지하지 마세요.");
 }
 export function selfTest() {
   const tests = [
@@ -98,10 +90,8 @@ export function selfTest() {
 async function main() {
   if (hasFlag("self-test")) return selfTest();
   const prNumber = argValue("pr");
-  const stagingOrigin = argValue("staging-origin") || process.env.CD_STAGING_ORIGIN || DEFAULT_STAGING_ORIGIN;
   if (!/^\d+$/.test(prNumber)) throw new Error("PR 번호가 필요합니다: npm run delivery:admit -- --pr=<number>");
-  if (!/^https:\/\//i.test(stagingOrigin)) throw new Error("staging-origin은 HTTPS 절대 URL이어야 합니다.");
-  const report = await collectAdmission({ prNumber, stagingOrigin });
+  const report = await collectAdmission({ prNumber });
   printReport(report, hasFlag("json"));
   if (!report.ok) process.exitCode = 1;
 }

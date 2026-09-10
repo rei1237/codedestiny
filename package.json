@@ -538,6 +538,7 @@
     "measure:ci-timings": "node scripts/measure-ci-timings.mjs",
     "worktree:status": "node scripts/worktree-status.mjs",
     "delivery:admit": "node scripts/delivery-admit.mjs",
+    "delivery:verify-batch": "node scripts/delivery-verify-batch.mjs",
     "delivery:batch-plan": "node scripts/delivery-batch-plan.mjs",
     "verify:delivery-admit": "node scripts/delivery-admit.mjs --self-test",
     "verify:delivery-batch-plan": "node scripts/delivery-batch-plan.mjs --self-test",
