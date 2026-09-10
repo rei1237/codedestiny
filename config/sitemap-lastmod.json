@@ -3,7 +3,7 @@
   "note": "사이트맵 lastmod 원장. scripts/lib/sitemap-lastmod.mjs 가 라우트별 소스 서명을 계산해 다시 쓴다. 손으로 고치지 말고 npm run sitemap:generate 로 갱신할 것.",
   "routes": {
     "/": {
-      "signature": "296178f7cd4bf809",
+      "signature": "e29b6f52498cc2da",
       "lastmod": "2026-09-10"
     },
     "/about/": {
@@ -83,7 +83,7 @@
       "lastmod": "2026-09-10"
     },
     "/en/": {
-      "signature": "c6d88bb3aac55853",
+      "signature": "7c2cd8ceecbcd853",
       "lastmod": "2026-09-10"
     },
     "/en/about/": {
@@ -655,7 +655,7 @@
       "lastmod": "2026-09-10"
     },
     "/ja/": {
-      "signature": "c6d88bb3aac55853",
+      "signature": "7c2cd8ceecbcd853",
       "lastmod": "2026-09-10"
     },
     "/ja/about/": {
@@ -1315,7 +1315,7 @@
       "lastmod": "2026-09-10"
     },
     "/zh-tw/": {
-      "signature": "c6d88bb3aac55853",
+      "signature": "7c2cd8ceecbcd853",
       "lastmod": "2026-09-10"
     },
     "/zh-tw/insights/": {
@@ -1355,7 +1355,7 @@
       "lastmod": "2026-09-10"
     },
     "/zh/": {
-      "signature": "c6d88bb3aac55853",
+      "signature": "7c2cd8ceecbcd853",
       "lastmod": "2026-09-10"
     },
     "/zh/about/": {

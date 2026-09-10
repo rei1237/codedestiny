@@ -728,10 +728,16 @@ for (const marker of [
   "window.__cdLastSummaryArgs={p:p,johu:johu,natal:natal};",
   "if(unlocked&&sg.unlockKey==='section_summary'",
   "if(unlocked&&sg.unlockKey==='section_daewun'",
+  "window.addEventListener('cd:unlocks-changed', applySectionGates);",
+  "window.addEventListener('cd:tile-locks-updated', applySectionGates);",
 ]) {
   const source = marker.startsWith("window.__cdLastSummaryArgs") ? sajuEngineSource : indexHtml;
   assert.ok(source.includes(marker), `해금 시 본문 생성 배선 유지: ${marker}`);
 }
+assert.ok(
+  indexHtml.includes("typeof window.renderSummary === 'function' ? window.renderSummary : null"),
+  "section_summary 해금 후 재렌더는 window.renderSummary 전역도 확인한다",
+);
 
 // 자미두수 기본 심화(각 10,000원)·대한 10년운(10,000원)·점성술 심화(각 5,000원)도 같은 형태로
 // 새고 있었다 — 게이트 컨테이너에 계산된 본문을 넣고 blur 만 씌웠다. 생산자를 전수로 훑어

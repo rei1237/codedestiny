@@ -13497,9 +13497,12 @@ html.neo-mode body .cd-why-us__proof-caption{color:rgba(228,214,255,.72)}
         document.querySelectorAll('[data-membership-toggle]').forEach(function(toggle){ toggle.setAttribute('aria-expanded', 'false'); });
       }
 
+      var navVisibilityVersion = 0;
+
       function applyBottomNavVisibility(visible){
         var nav = document.getElementById('cdMobileBottomNav');
         if (!nav) return;
+        var visibilityVersion = ++navVisibilityVersion;
         if (!visible) {
           document.body.classList.add('cd-all-fortunes-fullscreen');
           document.body.classList.add('cd-mobile-nav-exiting');
@@ -13507,6 +13510,7 @@ html.neo-mode body .cd-why-us__proof-caption{color:rgba(228,214,255,.72)}
           nav.inert = true;
           if (!document.body.classList.contains('cd-mobile-nav-hidden') && !navHideTimer) {
             navHideTimer = window.setTimeout(function(){
+              if (visibilityVersion !== navVisibilityVersion) return;
               document.body.classList.add('cd-mobile-nav-hidden');
               navHideTimer = 0;
             }, 280);
@@ -13516,10 +13520,16 @@ html.neo-mode body .cd-why-us__proof-caption{color:rgba(228,214,255,.72)}
         window.clearTimeout(navHideTimer);
         navHideTimer = 0;
         document.body.classList.remove('cd-mobile-nav-hidden');
-        window.requestAnimationFrame(function(){ document.body.classList.remove('cd-mobile-nav-exiting'); });
+        window.requestAnimationFrame(function(){
+          if (visibilityVersion !== navVisibilityVersion) return;
+          document.body.classList.remove('cd-mobile-nav-exiting');
+        });
         nav.removeAttribute('aria-hidden');
         nav.inert = false;
-        window.requestAnimationFrame(function(){ document.body.classList.remove('cd-all-fortunes-fullscreen'); });
+        window.requestAnimationFrame(function(){
+          if (visibilityVersion !== navVisibilityVersion) return;
+          document.body.classList.remove('cd-all-fortunes-fullscreen');
+        });
       }
 
       navigationStore.subscribe(function(next){ applyBottomNavVisibility(next.bottomNavVisible); });
@@ -14013,11 +14023,11 @@ html.neo-mode body .cd-why-us__proof-caption{color:rgba(228,214,255,.72)}
         if (!group) return;
         if (isActive) group.setAttribute('data-mobile-active-group', 'true');
         else group.removeAttribute('data-mobile-active-group');
+        var host = group.closest ? group.closest('#cdhCollections') : null;
+        if (host) host.toggleAttribute('data-cd-mobile-overlay-active', !!isActive);
       }
-      // 🔴 홈 펼치기는 홈 DOM 을 실제로 보여줄 때만 한다 — [data-cd-home-secondary] 17개가
-      // display:none 에서 풀리면서 문서 전체 레이아웃을 동기로 다시 계산한다(실측 371ms 로
-      // 탭 지연의 대부분). 개요 화면은 body 직속 패널이라 홈이 접힌 채로도 온전히 동작하지만,
-      // 컬렉션은 .fg-group[data-cd-home-secondary] 안에 있어 펼치지 않으면 렌더되지 않는다.
+      // 🔴 컬렉션 선택은 홈 전체를 펼치지 않는다 — 선택 그룹만 아래 overlay 전용 CSS 훅으로
+      // 표시해야 메인 화면의 다른 [data-cd-home-secondary] 요소가 히트 영역을 차지하지 않는다.
       function ensureHomeExpanded(){
         if (document.documentElement.classList.contains('cd-home-expanded')) return;
         if (!window.__cdExpandHome) return;
@@ -14027,7 +14037,6 @@ html.neo-mode body .cd-why-us__proof-caption{color:rgba(228,214,255,.72)}
       }
       function switchCollection(collId){
         if (collId === currentCollectionId) return;
-        ensureHomeExpanded();
         hideOverview();
         // 기존 컬렉션 닫기
         if (currentCollectionId) {
@@ -15941,7 +15950,7 @@ html.neo-mode body .cd-why-us__proof-caption{color:rgba(228,214,255,.72)}
           </a>
         </div>
 
-        <!-- 버그 제보실은 주요 서비스 탐색을 마친 뒤, 접힌 부가 기능보다 먼저 둔다.
+        <!-- 버그 제보실은 홈 퍼널의 무료 서비스 다음으로 이동한다.
              제보 흐름(/feedback/)과 보상 안내는 기존 구현을 그대로 재사용한다. -->
         <!-- feedback moved intact into #cdHomeFunnel at build time. -->
 
@@ -17781,6 +17790,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
         --fb-accent:#ffc4de;--fb-border:rgba(244,190,209,.38);--fb-gold:#ead089;
         max-width:var(--cd-w-grid,1280px);margin:18px auto 8px;padding:0 clamp(12px,3vw,24px)
       }
+      html body #cdHomeFunnel .cd-feedback{max-width:none;margin:0;padding:0}
       html.neo-mode body .cd-feedback,html body.neo-mode .cd-feedback{
         --fb-bg-a:#13102a;--fb-bg-b:#0a0818;
         --fb-ink:#f4eeff;--fb-ink-muted:rgba(216,200,255,.86);
@@ -17789,8 +17799,8 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
       html body .cd-feedback__card{
         position:relative;overflow:hidden;isolation:isolate;
         display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;
-        gap:clamp(12px,2.2vw,20px);min-height:104px;
-        padding:clamp(14px,2.2vw,20px) clamp(16px,2.6vw,24px);
+        gap:clamp(16px,2.6vw,24px);min-height:128px;
+        padding:clamp(20px,2.8vw,28px) clamp(20px,3.2vw,32px);
         border:1px solid var(--fb-border);border-radius:calc(var(--cd-r-md,16px) + 4px);
         background:linear-gradient(158deg,var(--fb-bg-a),var(--fb-bg-b));
         box-shadow:0 14px 34px rgba(8,3,14,.28)
@@ -17809,8 +17819,8 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
           radial-gradient(30% 38% at 88% 76%,rgba(232,213,163,.16),transparent 72%)
       }
       html body .cd-feedback__icon{
-        display:grid;place-items:center;width:52px;height:52px;border-radius:16px;
-        font-size:1.6rem;line-height:1;
+        display:grid;place-items:center;width:64px;height:64px;border-radius:18px;
+        font-size:1.85rem;line-height:1;
         background:rgba(255,255,255,.08);border:1px solid var(--fb-border)
       }
       html body .cd-feedback__copy{display:flex;flex-direction:column;gap:5px;min-width:0}
@@ -17820,16 +17830,16 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
          같은 방식으로 여기서 되돌린다. */
       html body .cd-feedback__title{
         margin:0;font-family:var(--font-display)!important;
-        font-weight:700;font-size:clamp(1.02rem,2vw,1.28rem);line-height:1.36;letter-spacing:-.01em;
+        font-weight:700;font-size:clamp(1.2rem,2.4vw,1.6rem);line-height:1.36;letter-spacing:-.01em;
         color:var(--fb-ink);word-break:keep-all
       }
       /* 보상 배지 — 카드가 이미 정의한 --fb-gold 만 쓴다(연이=샴페인 골드, 네오=e8d5a3).
          align-self:start 없으면 __copy 의 flex column 때문에 칩이 가로로 늘어난다. */
       html body .cd-feedback__reward{
         display:inline-flex;align-items:center;gap:6px;align-self:start;
-        margin:1px 0 2px;padding:5px 12px;border-radius:999px;
+        margin:1px 0 2px;padding:8px 14px;border-radius:999px;
         font-family:var(--font-body)!important;
-        font-size:.78rem;font-weight:700;letter-spacing:-.01em;line-height:1.4;
+        font-size:.9rem;font-weight:800;letter-spacing:-.01em;line-height:1.45;
         color:var(--fb-gold);background:rgba(234,208,137,.12);
         border:1px solid rgba(234,208,137,.42);word-break:keep-all
       }
@@ -17839,13 +17849,13 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
       }
       html body .cd-feedback__body{
         margin:0;max-width:54ch;font-family:var(--font-body)!important;
-        font-size:.85rem;line-height:1.7;color:var(--fb-ink-muted);word-break:keep-all
+        font-size:.92rem;line-height:1.7;color:var(--fb-ink-muted);word-break:keep-all
       }
       html body .cd-feedback__cta{
         display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;
-        min-height:46px;padding:12px 22px;border-radius:999px;text-decoration:none;
+        min-height:56px;padding:15px 28px;border-radius:999px;text-decoration:none;
         font-family:var(--font-body)!important;
-        font-size:.9rem;font-weight:900;letter-spacing:-.01em;color:var(--fb-bg-b);
+        font-size:1rem;font-weight:900;letter-spacing:-.01em;color:var(--fb-bg-b);
         background:linear-gradient(120deg,var(--fb-gold),#fff8dc);
         box-shadow:0 8px 22px rgba(234,208,137,.28);
         transition:transform var(--cd-dur-base,220ms) var(--cd-ease-out,ease),box-shadow var(--cd-dur-base,220ms) ease
@@ -17856,8 +17866,10 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
       html body .cd-feedback a:focus-visible{outline:2px solid var(--fb-gold);outline-offset:3px}
       @media (max-width:720px){
         html body .cd-feedback{margin:14px auto 8px}
-        html body .cd-feedback__card{grid-template-columns:auto minmax(0,1fr);row-gap:12px;min-height:0}
-        html body .cd-feedback__cta{grid-column:1 / -1;width:100%}
+        html body #cdHomeFunnel .cd-feedback{margin:0}
+        html body .cd-feedback__card{grid-template-columns:auto minmax(0,1fr);row-gap:16px;min-height:0;padding:20px}
+        html body .cd-feedback__reward{flex-wrap:wrap}
+        html body .cd-feedback__cta{grid-column:1 / -1;width:100%;min-height:58px}
       }
       @media (prefers-reduced-motion:reduce){
         html body .cd-feedback__cta{transition:none!important}
@@ -29224,7 +29236,10 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
         if(dwGridEl&&!dwGridEl.innerHTML&&typeof renderDaewun==='function'){try{renderDaewun(window.__cdLastDaewunBazi);}catch(_dwRenderErr){}}
         else if(typeof renderLifeGraph==='function'){requestAnimationFrame(function(){renderLifeGraph(window.__cdLastDaewunBazi);});}
       }
-      if(unlocked&&sg.unlockKey==='section_summary'&&typeof renderSummary==='function'){
+      var renderSummaryFn = null;
+      try { renderSummaryFn = typeof window.renderSummary === 'function' ? window.renderSummary : null; } catch (_windowSummaryErr) {}
+      if(!renderSummaryFn&&typeof renderSummary==='function')renderSummaryFn=renderSummary;
+      if(unlocked&&sg.unlockKey==='section_summary'&&typeof renderSummaryFn==='function'){
         var summaryAreaEl=document.getElementById('summaryArea');
         if(summaryAreaEl&&!summaryAreaEl.textContent.trim()){
           // 프로필 복원은 원국을 재구성하지만 calculate의 임시 인자는 남기지 않을 수 있다.
@@ -29232,7 +29247,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
             p:window.G_PILLARS,johu:window.G_JOHU,natal:window.G_NATAL
           };
           if(summaryArgs.p&&summaryArgs.johu&&summaryArgs.natal){
-            try{renderSummary(summaryArgs.p,summaryArgs.johu,summaryArgs.natal);}
+            try{renderSummaryFn(summaryArgs.p,summaryArgs.johu,summaryArgs.natal);}
             catch(_summaryRenderErr){console.error('[saju-summary] unlocked render failed',_summaryRenderErr);}
           }
         }
@@ -29241,6 +29256,8 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
     applyDynamicPaidContentGates();
   }
   window.addEventListener('cd:saju-summary-ready', applySectionGates);
+  window.addEventListener('cd:unlocks-changed', applySectionGates);
+  window.addEventListener('cd:tile-locks-updated', applySectionGates);
   function applyDynamicPaidContentGates(root) {
     var host = root || document;
     var gates = host.querySelectorAll ? host.querySelectorAll('.zw-basic-paid-gate') : [];
@@ -37051,6 +37068,13 @@ html.neo-mode .tile-pvw-overlay.pvw-prem .tile-pvw-cta-sticky,body.neo-mode .til
   body.cd-all-fortunes-fullscreen.cd-mobile-nav-hidden #cdMobileBottomNav{display:none!important}
   body.cd-all-fortunes-fullscreen #honeyMembershipMini{display:none!important}
   body.cd-all-fortunes-fullscreen .cd-mobile-collection-chrome{z-index:970!important}
+  /* 컬렉션 선택 중에는 홈 전체를 펼치지 않고, 선택된 그룹만 렌더한다. */
+  body.cd-all-fortunes-fullscreen #cdhCollections[data-cd-mobile-overlay-active="true"]{display:block!important}
+  body.cd-all-fortunes-fullscreen #cdhCollections[data-cd-mobile-overlay-active="true"] .fg-group:not([data-mobile-active-group="true"]){display:none!important}
+  /* 메인 홈의 fixed/sticky 요소가 overlay의 탭 히트 영역을 가리지 않게 한다. */
+  body.cd-all-fortunes-fullscreen #inputPage{pointer-events:none!important}
+  body.cd-all-fortunes-fullscreen #inputPage .cd-mobile-collection-fullscreen{pointer-events:auto!important}
+  body.cd-all-fortunes-fullscreen .theme-switch-wrapper{visibility:hidden!important;pointer-events:none!important}
   .cd-mobile-collection-chrome.is-compact{gap:4px!important;padding-top:calc(6px + env(safe-area-inset-top,0px))!important;padding-bottom:6px!important}
   .cd-mobile-collection-chrome.is-compact .cd-mobile-collection-head{min-height:38px!important}
   .cd-mobile-collection-chrome.is-compact .cd-mobile-collection-title{font-size:.88rem!important}
