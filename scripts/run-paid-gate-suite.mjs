@@ -276,7 +276,7 @@ async function main() {
   const requested = Number(arg("--jobs", ""));
   const jobs = Number.isFinite(requested) && requested >= 1
     ? Math.floor(requested)
-    : Math.max(2, Math.min(4, os.availableParallelism?.() ?? os.cpus().length));
+    : Math.max(2, Math.min(6, os.availableParallelism?.() ?? os.cpus().length));
   const verbose = hasFlag("--verbose");
   const baseRef = arg("--base");
 
