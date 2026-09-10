@@ -5,6 +5,14 @@ import { renderFeatureDetailPanels } from '../../js/feature-detail-panels.mjs';
 
 const catalog = JSON.parse(fs.readFileSync('public/feature-details/catalog.json', 'utf8'));
 const sharedHero = '/feature-details/assets/feature-detail-shared-hero-v1-960.webp';
+const shell = fs.readFileSync('index.html', 'utf8');
+
+test('every tile popup uses the shared responsive hero before marketing detail hydration', () => {
+  assert.match(shell, /var imgSrc='\/feature-details\/assets\/feature-detail-shared-hero-v1-960\.webp'/);
+  assert.match(shell, /feature-detail-shared-hero-v1-480\.webp 480w, \/feature-details\/assets\/feature-detail-shared-hero-v1-960\.webp 960w/);
+  assert.doesNotMatch(shell, /var imgSrc=\(imgWrap&&imgWrap\.getAttribute\('data-img-src'\)\)/);
+});
+
 test('published visual introductions have proven sources, real assets, and distinct destinations', () => {
   const generated = JSON.parse(fs.readFileSync('lib/marketing/feature-visual-details.generated.json', 'utf8'));
   assert.equal(generated.index.length, 65);
