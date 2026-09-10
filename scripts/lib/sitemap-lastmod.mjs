@@ -130,6 +130,7 @@ const FORTUNE_VOLATILE_CADENCES = new Map([
   ["tomorrow", (ymd) => ymd],
   ["weekly", kstWeekStartYmd],
   ["monthly", (ymd) => ymd],
+  ["date", (ymd) => ymd],
 ]);
 
 /**

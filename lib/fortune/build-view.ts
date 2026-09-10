@@ -10,7 +10,13 @@
  *  monthly        — 월건(절입일에 바뀜) · 절기 구간 · 삭망 날짜
  */
 import type { DailyPackage, DailySignEntry } from "./daily-data";
-import { formatKoreanDate, getSignEntry, loadDailyPackage, resolvePeriodDate } from "./daily-data";
+import {
+  formatKoreanDate,
+  getSignEntry,
+  loadDailyPackage,
+  loadDailyPackageForDate,
+  resolvePeriodDate,
+} from "./daily-data";
 import type { FortunePeriodId } from "./periods";
 import { PERIOD_TITLE } from "./periods";
 import type { SignProfile } from "./sign-profiles";
@@ -302,4 +308,45 @@ export function buildSignViewModel(profile: SignProfile, period: FortunePeriodId
   if (period === "weekly") return buildWeekly(profile);
   if (period === "monthly") return buildMonthly(profile);
   return buildDaily(profile, period);
+}
+
+export interface DateSignViewModel {
+  date: string;
+  profile: SignProfile;
+  entry: DailySignEntry;
+  score: FortuneScore;
+  basis: ScoreAxis[];
+  rangeLabel: string;
+  facts: FactRow[];
+  relation: DayRelation | null;
+}
+
+/** 날짜·띠별 보관 페이지가 기존 일일 계산 축을 그대로 재사용하도록 만든 뷰모델. */
+export function buildDateSignViewModel(profile: SignProfile, date: string): DateSignViewModel | null {
+  const pkg = loadDailyPackageForDate(date);
+  const entry = getSignEntry(pkg, profile.kind, profile.id);
+  if (!entry) return null;
+
+  const score = computeSignScore(profile, {
+    ganji: pkg.calendar.ilchin,
+    moonPhase: pkg.sky_today.moon_phase,
+    moonSign: pkg.sky_today.moon_sign,
+    ymd: date,
+  });
+
+  return {
+    date,
+    profile,
+    entry,
+    score,
+    basis: score.basis,
+    rangeLabel: formatKoreanDate(date),
+    relation: relationFor(profile, pkg.calendar.ilchin, date, pkg.sky_today.moon_sign),
+    facts: [
+      { label: "일진", value: pkg.calendar.ilchin },
+      { label: "월건", value: pkg.calendar.wolgeon },
+      { label: "음력", value: pkg.calendar.lunar_date },
+      { label: "절기", value: pkg.calendar.current_jeolgi },
+    ],
+  };
 }

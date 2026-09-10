@@ -9,8 +9,10 @@ import { pathToFileURL } from "node:url";
 import { STATIC_CANONICAL_ROUTES } from "./static-canonical-route-map.mjs";
 import { createSitemapLastmodLedger } from "./lib/sitemap-lastmod.mjs";
 import { kstYmdToday } from "./lib/fortune-date.mjs";
+import { kstYmdPreviousDay } from "./lib/fortune-date.mjs";
 import { createLiveRouteMatcher } from "./lib/live-route-matcher.mjs";
 import { createRequire } from "node:module";
+import { ILGAN_MONTHLY_MONTHS, ILGAN_MONTHLY_STEMS } from "../lib/saju/ilgan-monthly-registry.mjs";
 const requireJson = createRequire(import.meta.url);
 const STORY_EPISODE_SLUGS = requireJson("../lib/stories/vn/episodes.generated.json").episodes.map((e) => e.slug);
 
@@ -186,6 +188,7 @@ const coreRoutes = [
   // 의 metadata.robots 에 있고, 광고 대상 제외는 app/components/adsense-route-policy.js 에 있다.
   // 리뷰가 실제로 쌓이면 세 곳을 함께 되돌릴 것.
   { path: "/today", changefreq: "daily", priority: 0.97 },
+  { path: "/fortune/date", changefreq: "daily", priority: 0.86 },
   { path: "/compatibility", changefreq: "weekly", priority: 0.96 },
   { path: "/saju/compatibility", changefreq: "weekly", priority: 0.96 },
   { path: "/tarot", changefreq: "weekly", priority: 0.96 },
@@ -492,21 +495,29 @@ function extractFamousSajuRoutes() {
  *    어긋나지 않는다. 24종이 아니면 실패시킨다(fail-closed) — 사이트맵에만 있고 산출물이 없으면
  *    verify-seo-heading-integrity 가 PR CI 에서 막고, 반대면 색인에서 조용히 빠진다.
  */
-function extractFortuneSignRoutes() {
+function readFortuneSignProfiles() {
   const source = readFileSync(fortuneSignSourcePath, "utf8");
-  const idRegex = /^\s{4}id:\s*"([a-z]+)",/gm;
-  const ids = [];
+  const profileRegex = /\{\s*id:\s*"([a-z]+)",\s*kind:\s*"(zodiac|animal)",/g;
+  const profiles = [];
   let match;
-  while ((match = idRegex.exec(source)) !== null) {
-    if (!ids.includes(match[1])) ids.push(match[1]);
+  while ((match = profileRegex.exec(source)) !== null) {
+    if (!profiles.some((profile) => profile.id === match[1])) {
+      profiles.push({ id: match[1], kind: match[2] });
+    }
   }
 
-  if (ids.length !== 24) {
+  if (profiles.length !== 24 || profiles.filter((profile) => profile.kind === "animal").length !== 12) {
     throw new Error(
-      `[sitemap] lib/fortune/sign-profiles.ts 에서 별자리·띠 24종을 찾지 못했습니다(발견 ${ids.length}종). ` +
+      `[sitemap] lib/fortune/sign-profiles.ts 에서 별자리·띠 프로필 24종을 찾지 못했습니다(발견 ${profiles.length}종). ` +
         "파일 구조가 바뀌었다면 이 추출기를 함께 고쳐야 합니다.",
     );
   }
+
+  return profiles;
+}
+
+function extractFortuneSignRoutes() {
+  const ids = readFortuneSignProfiles().map((profile) => profile.id);
 
   // lib/fortune/periods.ts 의 FORTUNE_PERIOD_IDS 와 같아야 한다.
   // changefreq 는 크롤러의 참고값일 뿐이지만 lastmod 와 어긋난 값을 적어 둘 이유는 없다 —
@@ -518,6 +529,42 @@ function extractFortuneSignRoutes() {
     routes.push({ path: `/fortune/${period}`, changefreq, priority: 0.9 });
     for (const id of ids) {
       routes.push({ path: `/fortune/${period}/${id}`, changefreq, priority: 0.82 });
+    }
+  }
+  return routes;
+}
+
+/** 최근 30일의 날짜·띠별 검색 페이지. 보관 범위는 날짜 생성기와 같은 KST 기준이다. */
+function extractFortuneDateRoutes() {
+  const animalIds = readFortuneSignProfiles()
+    .filter((profile) => profile.kind === "animal")
+    .map((profile) => profile.id);
+  const routes = [];
+  let date = volatileToday;
+
+  for (let index = 0; index < 30; index += 1) {
+    for (const id of animalIds) {
+      routes.push({
+        path: `/fortune/date/${date}/${id}`,
+        changefreq: "daily",
+        priority: 0.78,
+        // 날짜 페이지의 내용 날짜와 lastmod를 일치시킨다. 오늘이 되면 새 날짜 집합을 생성한다.
+        lastmod: date,
+      });
+    }
+    date = kstYmdPreviousDay(date);
+  }
+
+  return routes;
+}
+
+/** 월건·절기 기반 2026년 9월 일간별 운세 허브와 10개 상세 페이지. */
+function extractSajuMonthlyIlganRoutes() {
+  const routes = [];
+  for (const monthKey of Object.keys(ILGAN_MONTHLY_MONTHS)) {
+    routes.push({ path: `/saju/monthly/${monthKey}`, changefreq: "monthly", priority: 0.9 });
+    for (const profile of ILGAN_MONTHLY_STEMS) {
+      routes.push({ path: `/saju/monthly/${monthKey}/${profile.slug}`, changefreq: "monthly", priority: 0.82 });
     }
   }
   return routes;
@@ -697,6 +744,8 @@ async function main() {
     ...extractPsychotestRoutes(),
     ...extractHighValueRoutes(),
     ...extractFortuneSignRoutes(),
+    ...extractFortuneDateRoutes(),
+    ...extractSajuMonthlyIlganRoutes(),
   ];
 
   // 자체 갱신일이 없는 라우트는 여기서 콘텐츠 서명으로 날짜를 정한다.

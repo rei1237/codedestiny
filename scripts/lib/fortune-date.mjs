@@ -51,6 +51,14 @@ export function kstYmdNextDay(ymd) {
   return next.toISOString().slice(0, 10);
 }
 
+/** YYYY-MM-DD 의 전날. 날짜 아카이브 범위를 계산할 때 사용한다. */
+export function kstYmdPreviousDay(ymd) {
+  if (!isValidYmd(ymd)) throw new Error(`[fortune-date] YYYY-MM-DD 가 아닙니다: ${ymd}`);
+  const [y, m, d] = ymd.split('-').map(Number);
+  const previous = new Date(Date.UTC(y, m - 1, d - 1));
+  return previous.toISOString().slice(0, 10);
+}
+
 /** KST 달력 기준 내일 (자정이 지난 ‘다음 날’ 파일을 미리 만들 때 등) */
 export function kstYmdTomorrow(now = new Date()) {
   return kstYmdNextDay(kstYmdToday(now));

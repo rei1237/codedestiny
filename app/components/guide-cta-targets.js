@@ -45,6 +45,39 @@ export const GUIDE_CTA_TARGETS = {
     primary: { href: "/manse", label: "무료로 만세력 보기", note: "무료 · 가입 없이" },
     secondary: [{ href: "/saju/guide", label: "사주 기본 가이드" }],
   },
+  "/saju/monthly/2026-09": {
+    from: "saju-ilgan-monthly-hub",
+    kicker: "다음 단계",
+    heading: "내 일간으로 이번 달 흐름을 확인해 보세요",
+    body: "만세력에서 태어난 날의 천간을 확인하면 10천간 중 내 월간 운세를 골라 읽을 수 있습니다.",
+    primary: { href: "/manse", label: "무료로 만세력 보기", note: "무료 · 가입 없이" },
+    secondary: [
+      { href: "/saju/ten-gods", label: "십성 해석 가이드" },
+      { href: "/saju", label: "사주 전체 분석" },
+    ],
+  },
+  "/saju/monthly/[month]/[stem]": {
+    from: "saju-ilgan-monthly-detail",
+    kicker: "내 명식으로 넓혀 보기",
+    heading: "일간 운세를 내 사주 전체 흐름과 함께 읽어 보세요",
+    body: "일간별 월간 운세는 한 달의 환경을 보는 기준입니다. 오행과 십성의 배치를 함께 확인하면 해석의 맥락이 더 선명해집니다.",
+    primary: { href: "/manse", label: "무료로 만세력 보기", note: "무료 · 가입 없이" },
+    secondary: [
+      { href: "/saju/ten-gods", label: "십성 뜻 살펴보기" },
+      { href: "/saju", label: "사주 전체 분석" },
+    ],
+  },
+  "/fortune/date": {
+    from: "fortune-date-archive",
+    kicker: "오늘의 흐름도 이어서",
+    heading: "날짜를 골랐다면 오늘의 운세도 확인해 보세요",
+    body: "지난 날짜의 일진을 다시 읽은 뒤, 현재 날짜에 맞춰 바뀌는 오늘의 띠 운세로 흐름을 이어갈 수 있습니다.",
+    primary: { href: "/today", label: "오늘의 운세 보기" },
+    secondary: [
+      { href: "/saju", label: "사주 전체 분석" },
+      { href: "/manse", label: "무료 만세력" },
+    ],
+  },
   "/saju/five-elements": {
     from: "five-elements-guide",
     kicker: "바로 해보기",

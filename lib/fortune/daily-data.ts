@@ -13,11 +13,14 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 // 🔴 주 시작일·달 1일 규칙은 scripts/fortune-build-data.mjs 가 패키지를 만들 때 쓴 것과
 //    **같은 함수**여야 한다. 폴백 경로에서 규칙이 갈리면 없는 파일을 찾아 빌드가 죽는다.
-import { kstWeekStartYmd, kstMonthStartYmd } from "@/scripts/lib/fortune-date.mjs";
+import { kstYmdPreviousDay, kstWeekStartYmd, kstMonthStartYmd } from "@/scripts/lib/fortune-date.mjs";
 
 export type FortunePeriod = "today" | "tomorrow";
 
 export const FORTUNE_PERIODS: FortunePeriod[] = ["today", "tomorrow"];
+
+/** 날짜·띠별 검색 페이지가 유지하는 KST 기준 최근 날짜 수. */
+export const FORTUNE_ARCHIVE_DAYS = 30;
 
 /**
  * 패키지를 고르는 **시드 기간**. `FortunePeriod` 를 늘리지 않은 이유가 있다 — 그쪽은
@@ -112,7 +115,7 @@ function kstYmd(offsetDays = 0): string {
  * 매니페스트가 있으면 prebuild 가 실제로 무엇을 만들었는지 그대로 따른다. 매니페스트가
  * 없으면(로컬 개발 등 prebuild 를 안 거친 경우) 기존처럼 시계를 읽어 폴백한다.
  */
-type RunManifest = Record<FortuneTonePeriod, string>;
+type RunManifest = Record<FortuneTonePeriod, string> & { archive?: string[] };
 const MANIFEST_KEYS: FortuneTonePeriod[] = ["today", "tomorrow", "weekly", "monthly"];
 
 let manifestCache: RunManifest | null = null;
@@ -146,8 +149,30 @@ export function resolvePeriodDate(period: FortuneTonePeriod): string {
 
 const cache = new Map<string, DailyPackage>();
 
-export function loadDailyPackage(period: FortuneTonePeriod): DailyPackage {
-  const date = resolvePeriodDate(period);
+export function isValidFortuneDate(value: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const [year, month, day] = value.split("-").map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
+}
+
+export function resolveFortuneArchiveDates(): string[] {
+  const manifest = readRunManifest();
+  if (Array.isArray(manifest?.archive)) {
+    const dates = manifest.archive.filter((date) => typeof date === "string" && isValidFortuneDate(date));
+    if (dates.length === FORTUNE_ARCHIVE_DAYS) return dates;
+  }
+
+  const dates: string[] = [];
+  let date = kstYmd(0);
+  for (let index = 0; index < FORTUNE_ARCHIVE_DAYS; index += 1) {
+    dates.push(date);
+    date = kstYmdPreviousDay(date);
+  }
+  return dates;
+}
+
+function loadDailyPackageForResolvedDate(date: string): DailyPackage {
   const cached = cache.get(date);
   if (cached) return cached;
 
@@ -169,6 +194,16 @@ export function loadDailyPackage(period: FortuneTonePeriod): DailyPackage {
 
   cache.set(date, parsed);
   return parsed;
+}
+
+export function loadDailyPackageForDate(date: string): DailyPackage {
+  if (!isValidFortuneDate(date)) throw new Error(`[fortune] 올바른 날짜가 아닙니다: ${date}`);
+  return loadDailyPackageForResolvedDate(date);
+}
+
+export function loadDailyPackage(period: FortuneTonePeriod): DailyPackage {
+  const date = resolvePeriodDate(period);
+  return loadDailyPackageForResolvedDate(date);
 }
 
 export function getSignEntry(pkg: DailyPackage, kind: "zodiac" | "animal", id: string): DailySignEntry | null {

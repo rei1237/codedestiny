@@ -29,7 +29,7 @@ export function generateMetadata() {
     title: ziweiGuideText("metaTitle"),
     description:
       "자미두수 명반이 무엇을 살피는지, 생년월일과 출생시간이 왜 필요한지, 12궁과 주성, 대운 흐름을 어떻게 읽는지 안내합니다.",
-    keywords: ["자미두수 가이드", "자미두수 명반", "12궁", "주성", "대운", "Code Destiny"],
+    keywords: ["자미두수 가이드", "자미두수 명반", "12궁", "명궁", "신궁", "사화", "재백궁", "관록궁", "주성", "대운", "Code Destiny"],
   });
 }
 
@@ -88,7 +88,7 @@ const guideJsonLd = JSON.stringify({
     buildArticleJsonLd({
       ...GUIDE_ARTICLE,
       category: "자미두수 서비스",
-      keywords: ["자미두수 가이드", "자미두수 명반", "12궁", "주성", "대운", "Code Destiny"],
+      keywords: ["자미두수 가이드", "자미두수 명반", "12궁", "명궁", "신궁", "사화", "재백궁", "관록궁", "주성", "대운", "Code Destiny"],
     }),
     // 화면의 FAQ 카드와 같은 배열을 넘긴다 — 스키마와 본문이 다른 문답이면 리치결과 정책 위반.
     buildFaqPageJsonLd(faqItems),

@@ -29,7 +29,7 @@ export function generateMetadata() {
     title: vedicGuideText("metaTitle"),
     description:
       "베다 점성술의 라시 차트, 라그나, 나크샤트라, 다샤 흐름을 어떻게 읽는지와 입력값, 샘플 리딩, 주의사항을 안내합니다.",
-    keywords: ["베다 점성술 가이드", "라시 차트", "라그나", "나크샤트라", "다샤", "Code Destiny"],
+    keywords: ["베다 점성술 가이드", "베다점 운세", "베다 점성술", "조티쉬", "라시 차트", "라그나", "나크샤트라", "다샤", "Code Destiny"],
   });
 }
 
@@ -88,7 +88,7 @@ const guideJsonLd = JSON.stringify({
     buildArticleJsonLd({
       ...GUIDE_ARTICLE,
       category: "베다 점성술 서비스",
-      keywords: ["베다 점성술 가이드", "라시 차트", "라그나", "나크샤트라", "다샤", "Code Destiny"],
+      keywords: ["베다 점성술 가이드", "베다점 운세", "베다 점성술", "조티쉬", "라시 차트", "라그나", "나크샤트라", "다샤", "Code Destiny"],
     }),
     // 화면의 FAQ 카드와 같은 배열을 넘긴다 — 스키마와 본문이 다른 문답이면 리치결과 정책 위반.
     buildFaqPageJsonLd(faqItems),

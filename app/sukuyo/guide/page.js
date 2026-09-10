@@ -28,8 +28,8 @@ export function generateMetadata() {
     path: "/sukuyo/guide",
     title: sukuyoGuideText("metaTitle"),
     description:
-      "숙요점의 27숙 구조, 본명숙과 상대 숙의 관계, 궁합에서 보는 거리와 긴장, 무료·유료 해석 범위를 안내합니다.",
-    keywords: ["숙요점 가이드", "27숙", "숙요 궁합", "본명숙", "Code Destiny"],
+      "숙요점의 27숙 구조, 본명숙과 상대 숙의 관계, 업태관계·영친·안괴·성위의 차이, 무료·유료 해석 범위를 안내합니다.",
+    keywords: ["숙요점 가이드", "27숙", "숙요 궁합", "본명숙", "업태관계 뜻", "영친·안괴·성위", "Code Destiny"],
   });
 }
 
@@ -88,7 +88,7 @@ const guideJsonLd = JSON.stringify({
     buildArticleJsonLd({
       ...GUIDE_ARTICLE,
       category: "숙요점 서비스",
-      keywords: ["숙요점 가이드", "27숙", "숙요 궁합", "본명숙", "Code Destiny"],
+      keywords: ["숙요점 가이드", "27숙", "숙요 궁합", "본명숙", "업태관계 뜻", "영친·안괴·성위", "Code Destiny"],
     }),
     // 화면의 FAQ 카드와 같은 배열을 넘긴다 — 스키마와 본문이 다른 문답이면 리치결과 정책 위반.
     buildFaqPageJsonLd(faqItems),
@@ -117,7 +117,7 @@ export default function SukuyoGuidePage() {
         <article className="cd-card">
           <h2>{sukuyoGuideText("observe")}</h2>
           <p>
-            숙요점은 본명숙을 중심으로 내가 편안하게 반응하는 방식, 관계에서 가까워지는 속도, 상대와 부딪히기 쉬운 지점을 살핍니다. 궁합은 운명적 확정이 아니라 두 사람이 어떤 리듬으로 만나는지 보여 주는 참고 지도입니다.
+            숙요점은 본명숙을 중심으로 내가 편안하게 반응하는 방식, 관계에서 가까워지는 속도, 상대와 부딪히기 쉬운 지점을 살핍니다. 궁합은 운명적 확정이 아니라 두 사람이 어떤 리듬으로 만나는지 보여 주는 참고 지도입니다. 업태관계·영친·안괴·성위는 그 거리와 역할을 설명하는 관계 유형이며, 이름만으로 좋고 나쁨을 가르기보다 실제 반복 패턴과 함께 읽습니다.
           </p>
         </article>
 
