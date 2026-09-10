@@ -32,7 +32,7 @@
  *    48개 가드가 통째로 "미배선"으로 떨어진다.
  *
  * 사용:
- *   node scripts/run-paid-gate-suite.mjs [--base <sha>] [--jobs N] [--verbose] [--only <substr>]
+ *   node scripts/run-paid-gate-suite.mjs [--base <sha>] [--jobs N] [--verbose] [--only <substr>] [--skip <substr>]
  */
 
 import { spawn, execFileSync } from "node:child_process";
@@ -267,19 +267,20 @@ const seconds = (ms) => `${(ms / 1000).toFixed(1)}s`;
 
 async function main() {
   const only = arg("--only");
-  const entries = only ? SUITE.filter((e) => e.run.includes(only)) : SUITE;
+  const skip = arg("--skip");
+  const entries = SUITE.filter((entry) => (!only || entry.run.includes(only)) && (!skip || !entry.run.includes(skip)));
   if (!entries.length) {
-    console.error(`[paid-gate-suite] --only ${only} 에 걸리는 항목이 없다`);
+    console.error(`[paid-gate-suite] 선택된 항목이 없다${only ? ` (--only ${only})` : ""}${skip ? ` (--skip ${skip})` : ""}`);
     process.exit(1);
   }
   const requested = Number(arg("--jobs", ""));
   const jobs = Number.isFinite(requested) && requested >= 1
     ? Math.floor(requested)
-    : Math.max(2, Math.min(4, os.availableParallelism?.() ?? os.cpus().length));
+    : Math.max(2, Math.min(6, os.availableParallelism?.() ?? os.cpus().length));
   const verbose = hasFlag("--verbose");
   const baseRef = arg("--base");
 
-  console.log(`[paid-gate-suite] ${entries.length}개 항목 · 동시 실행 ${jobs}`);
+  console.log(`[paid-gate-suite] ${entries.length}개 항목 · 동시 실행 ${jobs}${skip ? ` · 제외=${skip}` : ""}`);
   const wallStarted = Date.now();
 
   const results = await runPool(entries, jobs, ROOT, (entry, result) => {

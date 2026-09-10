@@ -63,6 +63,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "24"
+          cache: npm
 
       # 의존성이 필요 없는 순수 모듈이라 npm ci 를 돌리지 않는다.
       - name: Verify AI locale pipeline invariants

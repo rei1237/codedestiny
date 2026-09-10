@@ -185,6 +185,14 @@ function assertWorkflowShape(workflow) {
   // Pages 와 Worker 가 같은 커밋인지 배포 후 런타임에서 대조한다.
   assert(workflow.includes("npm run verify:deployed-sha"), `${canonicalWorkflow} must verify the deployed SHA on both Pages and Worker.`);
 
+  // push·schedule 은 실제 스테이징 배포를 기다리지 않고 별도 dispatch 만 예약한다.
+  const stagingDispatcher = jobBody(workflow, "dispatch_staging");
+  assert(stagingDispatcher, `${canonicalWorkflow} must define an asynchronous staging dispatcher job.`);
+  assert(/dispatch_staging:\s*\$\{\{\s*steps\.decide\.outputs\.dispatch_staging\s*\}\}/.test(workflow), `${canonicalWorkflow} gate must expose the asynchronous staging dispatch decision.`);
+  assert(/needs\.gate\.outputs\.dispatch_staging\s*==\s*'true'/.test(stagingDispatcher), `${canonicalWorkflow} staging dispatcher must depend on the gate decision.`);
+  assert(/gh workflow run cloudflare-pages-deploy\.yml --ref main -f mode=staging/.test(stagingDispatcher), `${canonicalWorkflow} staging dispatcher must queue a staging-only workflow run.`);
+  assert(/actions:\s*write/.test(stagingDispatcher), `${canonicalWorkflow} staging dispatcher must have permission to queue the staging run.`);
+
   // 🔴 아래 검사들은 전부 **잡 스코프**다.
   //
   // 예전에는 `workflow.includes(...)` 로 파일 전체에서 문자열만 찾았다. 그러면 프로덕션 리터럴이
@@ -516,9 +524,13 @@ async function runWorkflowShapeMutationTests() {
     [
       "프로덕션 그룹이 fallback 자리에 오면 거부",
       (text) => text.replace(
-        / {4}\|\| 'cloudflare-staging-release'(\r?\n) {4}\}\}/,
+        / {4}\|\| 'cloudflare-staging-dispatch'(\r?\n) {4}\}\}/,
         "    || 'cloudflare-production-release'$1    }}",
       ),
+    ],
+    [
+      "스테이징 디스패처가 다른 모드를 호출하면 거부",
+      (text) => text.replace("-f mode=staging", "-f mode=production"),
     ],
     [
       "staging 잡이 퍼지 토큰을 잃으면 거부",

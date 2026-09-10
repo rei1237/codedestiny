@@ -4,7 +4,6 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { inspectWorktree } from "./worktree-status.mjs";
 
 const execute = promisify(execFile);
 
@@ -48,15 +47,21 @@ export async function collectAdmission({ cwd = process.cwd(), prNumber } = {}) {
   const fetched = await git(["fetch", "--quiet", "origin", "+refs/heads/main:refs/remotes/origin/main"], { cwd: root, optional: true });
   append(findings, fetched.ok, "origin/main 최신 조회", fetched.ok ? "origin/main을 갱신했습니다." : fetched.stderr);
   if (!fetched.ok) return summarizeAdmission(findings);
-  const [mainResult, worktree] = await Promise.all([git(["rev-parse", "origin/main"], { cwd: root, optional: true }), inspectWorktree(root, { untracked: true })]);
+  const mainResult = await git(["rev-parse", "origin/main"], { cwd: root, optional: true });
   const mainSha = mainResult.stdout;
-  const preflight = await command(process.execPath, ["scripts/ci-preflight.mjs", "--verify-receipt"], { cwd: root, optional: true });
-  append(findings, preflight.ok, "최신 tree/main 로컬 preflight", preflight.ok ? "검증 증거 일치" : preflight.stderr || "npm run ci:preflight 필요");
   append(findings, Boolean(mainSha), "main 기준 SHA", mainSha || "origin/main을 확인하지 못했습니다.");
-  const conflicts = worktree.activeOverlaps;
-  append(findings, true, "활성 워크트리 파일 충돌", conflicts.length === 0 ? "후보 변경 파일과 겹치는 다른 활성 워크트리가 없습니다." : `주의(비차단): ${conflicts.map((item) => `${item.branch || item.path}: ${item.files.join(", ")}`).join(" | ")}`);
+  const [mergeTree, preflight] = mainSha ? await Promise.all([
+    git(["merge-tree", "--write-tree", "origin/main", "HEAD"], { cwd: root, optional: true }),
+    command(process.execPath, ["scripts/ci-preflight.mjs", "--verify-receipt"], { cwd: root, optional: true }),
+  ]) : [{ ok: false, stderr: "origin/main을 확인하지 못했습니다." }, { ok: false, stderr: "origin/main을 확인하지 못했습니다." }];
+  append(findings, mergeTree.ok, "Git-native merge-tree 충돌 없음", mergeTree.ok ? "후보 커밋을 최신 origin/main에 병합할 수 있습니다." : mergeTree.stderr || "후보 커밋과 최신 origin/main의 병합 충돌을 해결해야 합니다.");
+  append(findings, preflight.ok, "최신 tree/main 로컬 preflight", preflight.ok ? "검증 증거 일치" : preflight.stderr || "npm run ci:preflight 필요");
   const containsMain = mainSha ? await git(["merge-base", "--is-ancestor", "origin/main", "HEAD"], { cwd: root, optional: true }) : { ok: false };
   append(findings, containsMain.ok, "최신 main 반영", containsMain.ok ? `${mainSha.slice(0, 12)} 포함` : "후보 브랜치가 최신 origin/main을 포함하지 않습니다.");
+  // 전체 활성 worktree 스캔은 동기 입장 조건에서 제외한다. 실제 병합 안전성은 후보 커밋
+  // 자체의 merge-tree와 GitHub mergeability/필수 CI가 판정하고, 상세 중첩 진단은 필요할 때
+  // 사용자가 별도로 `npm run worktree:status`를 실행한다.
+  append(findings, true, "활성 워크트리 중첩 검사", "비차단·동기 입장 검사에서 제외했습니다. 필요할 때만 worktree:status로 확인합니다.");
   const pr = await gh(["pr", "view", String(prNumber), "--json", "number,isDraft,baseRefName,headRefName,headRefOid,mergeable,mergeStateStatus,url"], { cwd: root, optional: true });
   if (!pr.ok) { append(findings, false, "PR 조회", pr.stderr); return summarizeAdmission(findings); }
   let metadata;
