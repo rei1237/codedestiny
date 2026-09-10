@@ -62,3 +62,11 @@ test("all-fortunes entry seeds matching prices without a catalog request", () =>
   assert.match(pricingStore, /fetch\('\/api\/billing\/features'/);
   assert.match(pricingStore, /getOrLoad:/);
 });
+
+test("all-fortunes fullscreen isolates the home shell from the visible collection", () => {
+  const overlayCss = shell.slice(shell.indexOf('<style id="cd-mobile-collection-fullscreen-overlay-v20260705">'));
+  assert.match(overlayCss, /body\.cd-all-fortunes-fullscreen #inputPage\{visibility:hidden!important\}/);
+  assert.match(overlayCss, /body\.cd-all-fortunes-fullscreen #inputPage \.cd-mobile-collection-fullscreen\{pointer-events:auto!important\}/);
+  const pinClick = shell.slice(shell.indexOf("function buildPinCard"), shell.indexOf("function buildPinSection"));
+  assert.doesNotMatch(pinClick, /ensureHomeExpanded\(\)/);
+});
