@@ -50,11 +50,16 @@ export function matches(doc, filter) {
         }
         if (op === "$lt") return value != null && value < operand;
         if (op === "$gt") return value != null && value > operand;
-        // $lte/$gte 는 이용권 예산 CAS 가 쓴다(passes.js consumePassCoverage). 값이 없으면
-        // 아직 0 이라는 뜻이므로 통과시킨다 — 실드라이버는 missing 을 비교에서 제외하지만,
-        // 이 픽스처의 소비 CAS 는 항상 cycleKey 일치 필터와 AND 라 그 조합에서만 도달한다.
-        if (op === "$lte") return value == null ? operand >= 0 : value <= operand;
-        if (op === "$gte") return value == null ? operand <= 0 : value >= operand;
+        // Mongo 비교 연산자는 누락 필드나 null 을 숫자 0 으로 바꾸지 않는다. 운영과 다르게
+        // 통과시키면 레거시 이용권 문서의 CAS 실패를 테스트가 숨기는 가짜 초록불이 된다.
+        const tag = item => Object.prototype.toString.call(item);
+        const bothDates = tag(value) === "[object Date]" && tag(operand) === "[object Date]"
+          && Number.isFinite(value.getTime()) && Number.isFinite(operand.getTime());
+        const bothComparablePrimitives = typeof value === typeof operand
+          && ["number", "string", "boolean"].includes(typeof value);
+        const comparable = bothDates || bothComparablePrimitives;
+        if (op === "$lte") return comparable && value <= operand;
+        if (op === "$gte") return comparable && value >= operand;
         if (op === "$exists") return (value !== undefined) === operand;
         throw new Error(`fake-payment-db: 미구현 연산자 ${op}`);
       });

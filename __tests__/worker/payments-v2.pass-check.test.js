@@ -14,6 +14,7 @@
 import { handlePaymentsContext } from "../../worker/payments/index.js";
 import { listProducts } from "../../worker/payments/catalog.js";
 import { activatePassSubscription, evaluatePassCoverage, revokePassGrantForOrder, terminatePassOnBudgetExhaustion } from "../../worker/payments/passes.js";
+import { getBillingFeaturePricing } from "../../worker/lib/billing-feature-registry.js";
 import { MIN_PASS_COVERABLE_COIN, MONTHLY_PASS_LIMITS, PASS_LIMITS } from "../../worker/lib/profile-limits.js";
 import { makeFakePaymentDb } from "../fixtures/fake-payment-db.mjs";
 
@@ -135,6 +136,32 @@ describe("정책 — 건당 상한 + 단일 월 예산 2규칙", () => {
 });
 
 describe("라우트 — 왕복 예산·소비·봉투", () => {
+  test.each([
+    ["premium", "ziwei_ai_prompt_generator"],
+    ["vvip", "saju_ai_prompt_generator"],
+    ["vvip", "master-love-codex"],
+    ["family", "master-love-codex-compat"],
+    ["family", "ziwei-ai-consultation"],
+  ])("레거시 %s 이용권은 실제 pass-check에서 %s를 PG 없이 승인하고 재요청을 재개한다", async (tier, featureKey) => {
+    const db = makeFakePaymentDb();
+    const pass = activePass(tier);
+    pass.premiumUseCycleKey = pass.expiresAt.toISOString();
+    const user = seedUser(db, pass); // monthlySpendCoin 없는 기존 이용권 문서
+    const body = { featureKey, paymentMode: "MEMBERSHIP_PASS", requestId: `legacy-route-${featureKey}` };
+    const pricing = getBillingFeaturePricing({ featureKey });
+    expect(pricing.ok).toBe(true);
+
+    const first = await postPassCheck(db, body);
+    const replay = await postPassCheck(db, body);
+
+    expect(first.response.status).toBe(200);
+    expect(first.payload.data.consume.accessMethod).toBe(tier === "family" ? "FAMILY" : "PASS");
+    expect(first.payload.data.consume.chargedCoins).toBe(0);
+    expect(replay.response.status).toBe(200);
+    expect(replay.payload.data.consume.idempotent).toBe(true);
+    expect(user.profileSubscription.monthlySpendCoin).toBe(Number(pricing.pricing.cost));
+  });
+
   test("🔴 커버 성공: 셸 판정기가 읽는 키 + User 1읽기 + CAS 1쓰기(왕복 2회)", async () => {
     const db = makeFakePaymentDb();
     const user = seedUser(db, activePass("premium"));
