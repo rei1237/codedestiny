@@ -110,22 +110,24 @@ function prompt(saju, result, targetGender) {
     "대상자 성별과 점수대 연출을 참고해, 이 사람만의 재미있는 웹툰 캐릭터명(8~18자)과 소개 한 줄을 새로 지으세요. 고정된 별명이나 유명 인물 이름을 반복하지 마세요. 캐릭터명은 비난·낙인·외도 단정 없이, 선택과 관계의 분위기를 표현해야 합니다.",
     `[확정 근거] ${result.scoreFactors.join(" ")}`,
     `[명식] 일간=${clean(saju.myChart?.dayMaster)} 일주=${clean(saju.myChart?.dayPillar)} 대운=${clean(saju.myChart?.majorLuck?.currentCycle?.pillar, 20)}`,
-    "만원 유료 리포트에 맞게 요약을 반복하지 말고, 전체 본문을 충분히 풍부하게 작성하세요. summary는 3~4문장, 아래 다섯 장면은 각각 5~7문장, finalMessage는 2~3문장으로 씁니다.",
-    JSON.stringify({ character: { title: "웹툰 캐릭터명", caption: "한 문장 소개" }, summary: "3~4문장", sections: [{ title: "프롤로그: 첫 장면", body: "5~7문장" }, { title: "시선이 머무는 이유", body: "5~7문장" }, { title: "흔들리는 조건", body: "5~7문장" }, { title: "관계를 지키는 힘", body: "5~7문장" }, { title: "에필로그: 현실적인 선택", body: "5~7문장" }], finalMessage: "2~3문장" }),
+    "만원 유료 리포트에 맞게 요약을 반복하지 말고, 전체 본문을 충분히 풍부하게 작성하세요. summary는 6~8문장으로 쓰고, 다섯 장면의 body 합계는 공백 포함 최소 15000자 이상으로 씁니다. 각 장면은 3200~4000자로 구성하며 짧은 문단을 빈 줄로 나눕니다. 계산 근거의 쉬운 설명, 일상 장면, 강점과 주의점, 대화 예시, 단계별 행동을 서로 중복하지 않게 전개하세요. 단순 반복으로 분량을 채우지 마세요. finalMessage는 4~6문장으로 씁니다.",
+    JSON.stringify({ character: { title: "웹툰 캐릭터명", caption: "한 문장 소개" }, summary: "6~8문장", sections: [{ title: "프롤로그: 첫 장면", body: "3200~4000자, 빈 줄로 구분한 8~12개 문단" }, { title: "시선이 머무는 이유", body: "3200~4000자, 빈 줄로 구분한 8~12개 문단" }, { title: "흔들리는 조건", body: "3200~4000자, 빈 줄로 구분한 8~12개 문단" }, { title: "관계를 지키는 힘", body: "3200~4000자, 빈 줄로 구분한 8~12개 문단" }, { title: "에필로그: 현실적인 선택", body: "3200~4000자, 빈 줄로 구분한 8~12개 문단" }], finalMessage: "4~6문장" }),
   ].join("\n");
 }
 
-async function generate(saju, boundary, targetGender, env) {
+const MIN_READING_CHARS = 15000;
+const readingText = (value, max) => String(value ?? "").replace(/\r\n?/g, "\n").trim().slice(0, max);
+
+async function generate(saju, boundary, targetGender, env, callModel = callGeminiJsonWithRetry) {
   const local = fallback(boundary);
-  try {
-    const response = await callGeminiJsonWithRetry(env, prompt(saju, boundary, targetGender), { temperature: 0.72, maxOutputTokens: 6000, fallbackToWorkersAI: true, fallbackMinChars: 1800 });
-    const parsed = response?.data || response?.json || response;
-    if (!parsed || typeof parsed !== "object" || !clean(parsed.summary) || !Array.isArray(parsed.sections)) return local;
-    const sections = parsed.sections.map((item) => ({ title: clean(item?.title, 80), body: clean(item?.body, 5000) })).filter((item) => item.title && item.body).slice(0, 5);
-    if (sections.length < 5) return local;
-    const character = parsed.character && typeof parsed.character === "object" ? parsed.character : {};
-    return { character: { title: clean(character.title, 40) || local.character.title, caption: clean(character.caption, 300) || local.character.caption }, summary: clean(parsed.summary, 1000), sections, finalMessage: clean(parsed.finalMessage, 2000) || local.finalMessage };
-  } catch { return local; }
+  const response = await callModel(env, prompt(saju, boundary, targetGender), { temperature: 0.72, baseTokens: 24000, capTokens: 32000, attempts: 3, fallbackToWorkersAI: true, fallbackMinChars: MIN_READING_CHARS });
+  if (!response?.ok || response.truncated || !response.text) throw new Error("READING_INCOMPLETE");
+  const parsed = JSON.parse(response.text);
+  if (!parsed || typeof parsed !== "object" || !clean(parsed.summary) || !Array.isArray(parsed.sections)) throw new Error("READING_INCOMPLETE");
+  const sections = parsed.sections.map((item) => ({ title: clean(item?.title, 80), body: readingText(item?.body, 12000) })).filter((item) => item.title && item.body).slice(0, 5);
+  if (sections.length !== 5 || sections.some((section) => section.body.length < 2000) || sections.reduce((total, section) => total + section.body.length, 0) < MIN_READING_CHARS) throw new Error("READING_INCOMPLETE");
+  const character = parsed.character && typeof parsed.character === "object" ? parsed.character : {};
+  return { character: { title: clean(character.title, 40) || local.character.title, caption: clean(character.caption, 300) || local.character.caption }, summary: clean(parsed.summary, 1000), sections, finalMessage: clean(parsed.finalMessage, 2000) || local.finalMessage };
 }
 
 async function handlePrepare(request, env) {
@@ -169,4 +171,4 @@ export async function handleRelationshipBoundaryTestRoutes(request, env = {}) {
   catch (error) { if (isTransientMongoError(error)) return json({ ok: false, retryable: true, reason: "DB_DEGRADED", message: "일시적인 연결 문제가 있어요." }, { status: 503 }); console.error("[relationship-boundary-test]", clean(error?.message || error, 300)); return json({ ok: false, reason: "SERVER_ERROR", message: "결과를 준비하는 중 문제가 생겼어요." }, { status: 500 }); }
 }
 
-export const __relationshipBoundaryTestTestUtils = { normalize, scoreBoundary, storyDirectionFor, prompt, paymentPayload };
+export const __relationshipBoundaryTestTestUtils = { normalize, scoreBoundary, storyDirectionFor, prompt, paymentPayload, generate, MIN_READING_CHARS };

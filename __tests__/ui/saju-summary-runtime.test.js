@@ -38,7 +38,7 @@ test('unlocked restored result hydrates without the transient calculation argume
   const p = {};
   ['甲子','丙寅','戊辰','庚午'].forEach((s,i) => p[['y','m','d','h'][i]] = {g:s[0],j:s[1],gE:GAN[s[0]].e,jE:JI[s[1]].e});
   G_POWER = calcPower(p); G_JONG = detectJong(p);
-  const restored = {G_PILLARS:p,G_JOHU:analyzeJohu(p),G_NATAL:calcNatalElement(p)};
+  const restored = {G_PILLARS:p,G_JOHU:analyzeJohu(p),G_NATAL:calcNatalElement(p),addEventListener(){}};
   const context = vm.createContext({document, window:restored, console, renderSummary,
     SECTION_GATE_KEYS:[{gateId:'summaryGate',unlockKey:'section_summary'}],
     isSajuSectionUnlockedForRender:()=>true,sajuAccessUnlockState:'ready',

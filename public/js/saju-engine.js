@@ -5498,6 +5498,9 @@ async function calculate(){
     // applySectionGates 가 아래 __cdLastSummaryArgs 로 수행한다(renderLifeGraph 재호출과 같은 패턴).
     window.__cdLastSummaryArgs={p:p,johu:johu,natal:natal};
     try { if(_cdSajuGateUnlocked('section_summary')) renderSummary(p,johu,natal); } catch(e) { console.error('Summary 에러:', e); }
+    // 기존 해금은 계산보다 먼저 복원될 수 있다. 본문 준비가 끝난 시점에 같은 게이트
+    // 판정으로 숨김 상태도 동기화한다(해금 버튼을 다시 누를 필요가 없어야 한다).
+    window.dispatchEvent(new CustomEvent('cd:saju-summary-ready'));
     try {
       if (!invokeOptionalGlobalRenderer('renderEnergyCoord', [natal])) {
         runDeferredSajuTasks([function(){ try { invokeOptionalGlobalRenderer('renderEnergyCoord', [natal]); } catch(_){ } }]);
@@ -5540,7 +5543,8 @@ async function calculate(){
       function() { try { renderVillain(p, G_POWER); } catch(e) { console.error('Villain 에러:', e); } },
       function() { try { renderHormoneVibe(p, G_POWER); } catch(e) { console.error('HormoneVibe 에러:', e, e.stack); } },
       function() { try { invokeOptionalGlobalRenderer('renderDopamineReport', [p, natal, G_POWER, johu]); } catch(e) { console.error('Dopamine 에러:', e); } },
-      function() { try { invokeOptionalGlobalRenderer('renderRelationshipTemptation', [p, natal, G_POWER, johu, GENDER]); } catch(e) { console.error('RelationshipTemptation 에러:', e); } },
+      // 관계 분석은 대상자를 입력하는 전용 화면으로 연결한다. 구형 본인 명식 결과를
+      // 함께 생성하면 같은 제목의 카드가 중복되고 새 입력 흐름을 건너뛴다.
       function() { try { renderReportDashboard(); } catch(e) { console.error('ReportDashboard 에러:', e); }
       }
     ]);

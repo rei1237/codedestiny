@@ -44,15 +44,17 @@ describe('사주 관계 자극 성향 카드 렌더링', () => {
     expect(card.textContent).toContain('실제 외도 여부를 결정하지 않습니다');
   });
 
-  test('엔진과 대시보드가 새 결정론 모듈을 지연 로드하고 호출한다', () => {
+  test('대시보드는 입력 가능한 서비스 하나만 카드 안에서 연다', () => {
     const root = path.resolve(__dirname, '../..');
     const runtime = fs.readFileSync(path.join(root, 'js/core/index-inline-runtime.js'), 'utf8');
     const engine = fs.readFileSync(path.join(root, 'js/saju-engine.js'), 'utf8');
     const dashboard = fs.readFileSync(path.join(root, 'js/core/saju/reportDashboard.js'), 'utf8');
     expect(runtime).toContain('/js/core/saju/relationshipTemptationAnalysis.js');
-    expect(engine).toContain("invokeOptionalGlobalRenderer('renderRelationshipTemptation'");
+    expect(engine).not.toContain("invokeOptionalGlobalRenderer('renderRelationshipTemptation'");
     expect(engine).toContain('window._sajuVillainBuildTenGodDistribution');
-    expect(dashboard).toContain("action:'openRelationshipBoundaryTestRoute'");
+    expect(dashboard).not.toContain("action:'openRelationshipBoundaryTestRoute'");
+    expect(dashboard).toContain('/relationship-boundary-test/inline/');
+    expect(dashboard).toContain('legacyRelationship.remove()');
     expect(dashboard).toContain("window.openRelationshipBoundaryTestRoute");
     expect(dashboard).toContain("case 'relationshipTemptationCard':");
     expect(dashboard).not.toContain("target:'relationshipTemptationCard'");
