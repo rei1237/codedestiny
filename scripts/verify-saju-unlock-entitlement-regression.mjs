@@ -741,6 +741,12 @@ assert.ok(
   "section_summary 해금 후 재렌더는 window.renderSummary 전역도 확인한다",
 );
 assert.ok(
+  indexHtml.includes("function isSajuSectionUnlockedForRender(rawKey)") &&
+    indexHtml.includes("mergeAccessStoreUnlocksIntoLegacyMap();") &&
+    indexHtml.includes("렌더용 판정도 일반 isTileKeyUnlocked 와 같은 보강 원장을"),
+  "section_summary 렌더 판정은 전역 unlock map 교체 후에도 보강 원장을 먼저 병합한다",
+);
+assert.ok(
   indexHtml.includes("if (isSajuAccessFeatureKey(entry.featureKey)) {")
     && indexHtml.includes("if (entryProfileId && profileId && entryProfileId === profileId) merged[entry.featureKey] = true;"),
   "사주 프로필 스코프 해금은 빈 profileId 원장을 전역 해금처럼 병합하지 않는다",
