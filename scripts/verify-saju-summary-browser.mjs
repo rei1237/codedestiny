@@ -19,6 +19,31 @@ const server = createServer(async (req, res) => {
 await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
 const origin = `http://127.0.0.1:${server.address().port}`;
 const browser = await chromium.launch({headless:true});
+
+async function assertSummaryVisible(page, label) {
+  await page.locator('#summaryArea .saju-summary-report').waitFor({state:'visible'});
+  const metrics = await page.locator('#summaryArea').evaluate(el => {
+    const gateBody = el.closest('.cd-section-gate__body');
+    const style = getComputedStyle(el);
+    return {
+      length: el.textContent.length,
+      height: el.getBoundingClientRect().height,
+      overflow: el.scrollWidth > el.clientWidth + 1,
+      hidden: gateBody ? gateBody.getAttribute('aria-hidden') : '',
+      display: style.display,
+      visibility: style.visibility,
+      opacity: style.opacity,
+    };
+  });
+  assert.ok(metrics.length > 10000 && metrics.height > 500, `${label}: summary body collapsed`);
+  assert.equal(metrics.hidden, 'false', `${label}: summary gate relocked`);
+  assert.equal(metrics.display, 'block', `${label}: summary display changed`);
+  assert.notEqual(metrics.visibility, 'hidden', `${label}: summary hidden by CSS`);
+  assert.notEqual(metrics.opacity, '0', `${label}: summary faded out`);
+  assert.equal(metrics.overflow, false, `${label}: horizontal overflow`);
+  return metrics;
+}
+
 try {
  for (const alreadyUnlocked of [false, true]) {
   const context = await browser.newContext({viewport:{width:390,height:844}});
@@ -45,13 +70,48 @@ try {
   await page.locator('#summaryGate button[data-unlock-key]').click();
   }
   await page.locator('#summaryArea .saju-summary-report').waitFor({state:'visible'});
+  await page.evaluate((alreadyUnlocked) => {
+    if (alreadyUnlocked) return;
+    window.__cdCurrentDestinyProfile = { profileId: 'profile-summary-race' };
+    try {
+      window._cdFinalizeUnlockState('section_summary', {
+        data: {
+          featureKey: 'section_summary',
+          profileId: 'profile-summary-race',
+          requestId: 'summary-race-payment',
+          accessGranted: true,
+          accessGrant: {
+            featureKey: 'section_summary',
+            profileId: 'profile-summary-race',
+            evidenceId: 'summary-race-payment'
+          }
+        }
+      });
+      window.CodeDestinyAccessStore.applyAccessStateSnapshot({
+        data: {
+          userId: 'summary-race-user',
+          profileId: 'profile-summary-race',
+          currentProfileId: 'profile-summary-race',
+          completeness: 'full',
+          authority: 'server',
+          degraded: false,
+          unlockMap: { section_summary: false },
+          accessUnlocks: {
+            profileId: 'profile-summary-race',
+            unlocks: { 'saju.fullReading': { unlocked: false } }
+          }
+        }
+      }, { userId: 'summary-race-user', profileId: 'profile-summary-race' });
+    } catch (error) {
+      throw new Error('failed to simulate stale summary unlock snapshot: ' + error.message);
+    }
+  }, alreadyUnlocked);
+  await page.waitForTimeout(900);
+  await assertSummaryVisible(page, alreadyUnlocked ? 'previously unlocked stable' : 'restored stable after stale snapshot');
   for (const width of [360,390,430,1280]) {
     await page.setViewportSize({width,height:900});
     await page.locator('#summaryArea').scrollIntoViewIfNeeded();
-    const metrics = await page.locator('#summaryArea').evaluate(el => ({length:el.textContent.length,height:el.getBoundingClientRect().height,overflow:el.scrollWidth>el.clientWidth+1,hidden:el.closest('.cd-section-gate__body').getAttribute('aria-hidden')}));
-    assert.ok(metrics.length>10000 && metrics.height>500);
-    assert.equal(metrics.hidden,'false');
-    assert.equal(metrics.overflow,false);
+    const metrics = await assertSummaryVisible(page, `${alreadyUnlocked ? 'previously unlocked' : 'restored'} ${width}px`);
     const chapter = page.locator('#summaryArea .saju-summary-chapter__body').first();
     await chapter.locator('.saju-reading-depth').first().scrollIntoViewIfNeeded();
     assert.equal(await chapter.evaluate(el => getComputedStyle(el).maxHeight), 'none');
