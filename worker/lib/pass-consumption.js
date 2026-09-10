@@ -49,6 +49,22 @@ function loadPassPolicy() {
   return import("../payments/passes.js");
 }
 
+function withPersistedPassUsage(coverage = {}, user = null) {
+  if (!coverage?.budgetApplies) return coverage;
+  const sub = user?.profileSubscription && typeof user.profileSubscription === "object"
+    ? user.profileSubscription
+    : {};
+  const sameCycle = String(sub.premiumUseCycleKey || "") === String(coverage.cycleKey || "");
+  const usedCoin = sameCycle
+    ? Math.max(0, Math.floor(Number(sub.monthlySpendCoin || 0)))
+    : 0;
+  return {
+    ...coverage,
+    usedCoin,
+    remainingCoin: Math.max(0, Number(coverage.budgetCoin || 0) - usedCoin),
+  };
+}
+
 /* worker/payments/db.js 의 makeCountingDb 와 같은 모양의 최소 어댑터.
    이 두 라우트는 결제 컨텍스트(withPaymentDb)를 만들지 않고 mongoose 모델을 직접 쓰므로
    슬롯 부기 없는 얇은 판을 쓴다 — 네이티브 드라이버라 mongoose strict 가 필드를 버리는
@@ -118,7 +134,13 @@ export async function consumePassForFeature({ user, entitlement, userId, feature
   const marker = buildPassConsumeMarker(featureKey, requestId);
   if (await hasConsumedPassFeature(user, featureKey, requestId, db)) {
     await recordPassUsageEvidence(db, { userId, product: { featureKey, priceCoins: cost }, requestId, coverage, user });
-    return { covered: true, reason: "", replayed: true, coverage: { ...coverage, covered: true, reason: "", coinCost: cost }, user };
+    return {
+      covered: true,
+      reason: "",
+      replayed: true,
+      coverage: withPersistedPassUsage({ ...coverage, covered: true, reason: "", coinCost: cost }, user),
+      user,
+    };
   }
   if (!coverage.covered) {
     return { covered: false, reason: String(coverage.reason || "pass_not_covered"), replayed: false, coverage };
@@ -138,5 +160,11 @@ export async function consumePassForFeature({ user, entitlement, userId, feature
   // 차감은 성공했는데 60초 읽기 캐시가 예전 사용액을 되돌리면 화면에는 계속 0원으로 보인다.
   // 쓰기 성공 뒤에만 사용자 단위 캐시를 비우며, 캐시 장애가 소비 성공을 뒤집지는 않는다.
   invalidatePassUsageReadCaches(userId);
-  return { covered: true, reason: "", replayed: false, coverage, user: updated };
+  return {
+    covered: true,
+    reason: "",
+    replayed: false,
+    coverage: withPersistedPassUsage(coverage, updated),
+    user: updated,
+  };
 }

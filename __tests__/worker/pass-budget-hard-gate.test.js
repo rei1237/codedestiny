@@ -104,6 +104,31 @@ describe("한도 경계 — 도달 직전 · 도달 · 초과 이후", () => {
     expect(db.rows[0].profileSubscription.monthlySpendCoin).toBe(cost);
   });
 
+  test.each(Object.keys(MONTHLY_PASS_LIMITS))("%s: 회당 사용 결과에도 최신 사용액과 잔여 한도를 반환한다", async (tier) => {
+    const db = makeFakePaymentDb();
+    const at = expiresAt();
+    const cost = Math.min(10, PASS_LIMITS[tier]);
+    const user = {
+      _id: USER,
+      profileSubscription: {
+        tier, passTier: tier, isActive: true, expiresAt: at,
+        premiumUseCycleKey: at.toISOString(), monthlySpendCoin: 0, monthlyLimitCoin: 0,
+      },
+      recentConsumeRequestIds: [],
+    };
+    db.rows.push(user);
+
+    const result = await consumePassForFeature({
+      db, user, entitlement: { tier, passTier: tier, isActive: true, expiresAt: at },
+      userId: USER, featureKey: `${FEATURE}-${tier}`, requestId: `all-tier-${tier}`, coinCost: cost,
+    });
+
+    expect(result.covered).toBe(true);
+    expect(db.rows[0].profileSubscription.monthlySpendCoin).toBe(cost);
+    expect(result.coverage.usedCoin).toBe(cost);
+    expect(result.coverage.remainingCoin).toBe(MONTHLY_PASS_LIMITS[tier] - cost);
+  });
+
   test("🔴 남은 예산으로 이 건을 못 덮으면 통과하지 못한다(한도 초과)", async () => {
     const db = makeFakePaymentDb();
     const at = expiresAt();
