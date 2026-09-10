@@ -2,6 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { buildSeoMetadata } from "@/lib/seo";
 import { siteSeo } from "@/lib/seo/siteSeo";
+import GuideCta from "@/app/components/GuideCta";
+import { GUIDE_CTA_TARGETS } from "@/app/components/guide-cta-targets";
 import {
   buildBreadcrumbJsonLd,
   buildCollectionPageJsonLd,
@@ -167,6 +169,8 @@ export default function IlganMonthlyHubPage({ params }: { params: { month: strin
             <Link href="/saju" className="cd-chip">사주 전체 분석</Link>
           </div>
         </section>
+
+        <GuideCta target={GUIDE_CTA_TARGETS["/saju/monthly/2026-09"]} />
 
         <section className="mt-12" aria-labelledby="hub-faq-heading">
           <h2 id="hub-faq-heading">자주 묻는 질문</h2>

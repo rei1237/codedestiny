@@ -8,6 +8,8 @@ import {
 } from "@/lib/structured-data";
 import { SIGN_PROFILES } from "@/lib/fortune/sign-profiles";
 import { resolveFortuneArchiveDates } from "@/lib/fortune/daily-data";
+import GuideCta from "@/app/components/GuideCta";
+import { GUIDE_CTA_TARGETS } from "@/app/components/guide-cta-targets";
 
 const ANIMAL_PROFILES = SIGN_PROFILES.filter((profile) => profile.kind === "animal");
 const TITLE = "최근 30일 띠별 날짜 운세";
@@ -130,6 +132,8 @@ export default function DateFortuneArchivePage() {
             ))}
           </div>
         </section>
+
+        <GuideCta target={GUIDE_CTA_TARGETS["/fortune/date"]} />
 
         <p className="mt-10 break-keep text-xs leading-6 text-[rgba(244,238,255,0.55)]">
           운세 콘텐츠는 오락과 자기성찰을 위한 참고 정보입니다. 건강·법률·재무처럼 중요한 결정은 실제 조건과 해당 분야 전문가의 조언을 함께 확인하세요.
