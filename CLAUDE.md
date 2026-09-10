@@ -18,7 +18,7 @@ GREEN은 관련 파일부터 수정하고, RED는 위험·검증·롤백을 먼�
 4. 수정 금지: .env*, package-lock.json, .wrangler/, dist/, out/, 마이그레이션 결과물, worker/wrangler.toml 구조. vars 예외는 참조 문서.
 5. 비밀정보 출력·저장·커밋 금지. 승인 연락처 예외는 참조 문서.
 6. 요청 밖 기능·라우트·콘텐츠 삭제 금지. 삭제는 소스·테스트·검증기 참조 확인 후 별도 변경으로 다룬다.
-7. 완료 세션은 검증→commit→push→Ready PR→인수인계 순서를 지킨다. 다음 세션은 PR merge와 staging SHA 확인 후 최신 `origin/main` 기반 linked worktree에서 `npm run session:start -- --handoff=...`를 통과하고 시작한다.
+7. 완료 세션은 검증→commit→push→Ready PR→인수인계 순서를 지킨다. 다음 세션은 PR이 merge되면 최신 `origin/main` 기반 linked worktree에서 `npm run session:start -- --handoff=...`를 통과하고 시작한다. staging SHA 확인은 후속 감시이며 다음 세션의 선행 조건이 아니다.
 
 ## 코딩 원칙 (번호 유지)
 
@@ -73,4 +73,4 @@ Claude 훅은 Codex 훅이 아니다. 도구별 규칙 적용을 구분한다.
 
 커밋 기반 PR은 각 최신 HEAD의 필수 CI와 delivery:admit을 확인한 뒤 연속 머지한다. PR 사이에 스테이징 도달을 기다리지 않는다. main 변경으로 무효화된 후보 검증만 갱신한다. PR 생성 전 ci:preflight와 보호 규칙은 유지한다. delivery:batch-plan은 의존성 계획 도구이며 PR별 admission을 대체하지 않는다. 활성 worktree 중첩은 delivery:admit의 동기 차단 검사가 아니다. 후보 커밋의 `git merge-tree --write-tree`, GitHub 병합 가능 상태, 최신 main 반영, 필수 CI가 입장 기준이며, 상세 중첩 진단은 필요할 때만 `npm run worktree:status`로 확인한다.
 
-마지막 병합의 전체 SHA를 고정해 npm run delivery:verify-batch -- --sha=<40자리 SHA>를 실행하고 staging smoke·noindex·핵심 화면을 검증한다. 실패하면 배치 완료·운영 승격·워크트리 삭제를 진행하지 않는다. 이미 진행 중인 배포는 취소하지 않고 아직 배포하지 않은 낡은 staging 실행은 최신 main에 양보한다. 운영 승격은 별도 1회 승인 때만 수행한다. 이전의 PR별 staging 대기 조항보다 이 정책이 우선한다.
+마지막 병합의 전체 SHA를 고정해 npm run delivery:verify-batch -- --sha=<40자리 SHA>를 후속 실행하고 staging smoke·noindex·핵심 화면을 검증한다. 실패하면 운영 승격만 중단하고 원인·재조정을 보고한다. 다음 작업·PR·머지는 이 후속 검증을 기다리지 않으며, 이미 진행 중인 배포는 취소하지 않고 아직 배포하지 않은 낡은 staging 실행은 최신 main에 양보한다. 운영 승격은 별도 1회 승인 때만 수행한다. 이전의 PR별 staging 대기 조항보다 이 정책이 우선한다.

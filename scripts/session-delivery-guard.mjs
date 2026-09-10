@@ -105,7 +105,7 @@ function close() {
   if (prData.headRefName !== branch || prData.headRefOid !== git('rev-parse', 'HEAD')) fail(`PR #${pr}의 head가 현재 브랜치/SHA와 다릅니다.`);
   if (prData.isDraft || prData.state !== 'OPEN') fail(`PR #${pr}은 Ready 상태의 열린 PR이어야 합니다.`);
   console.log(`[session:close] PASS: ${prData.url}`);
-  console.log('다음 세션은 이 PR이 merge되고 staging이 merge SHA를 서비스한 뒤, 최신 origin/main에서 시작하세요.');
+  console.log('다음 세션은 이 PR이 merge되면 최신 origin/main에서 시작하세요. staging SHA 확인은 비동기 후속 감시입니다.');
 }
 
 if (!mode || argv.includes('--help')) {

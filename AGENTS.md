@@ -22,10 +22,10 @@ Code Destiny는 한국어 운세·상담 서비스다. 한국어로 보고한다
 
 Ignore snapshot, archive, and one-off audit paths unless the user explicitly asks for them: `.claude/worktrees/**`, `.codex-worktrees/**`, `.cleanup/**`, `reports/**`. 현재 편집하는 격리 워크트리는 제외하지 않는다.
 
-PR 전 `npm run ci:preflight` 통과는 필수다. 실패하면 PR을 생성하지 않는다. 검증 증거를 확인하는 `npm run pr:create`를 사용한다. 안전 조건 충족 시 순차 merge와 staging 확인까지 완료한다. 세부 규칙은 [PR preflight와 순차 전달](docs/context/delivery-and-ci.md#pr-preflight와-순차-전달)을 따른다. 이 규칙은 기존 PR 생성만으로 전달 완료/다음 세션 머지 규칙보다 우선한다.
+PR 전 `npm run ci:preflight` 통과는 필수다. 실패하면 PR을 생성하지 않는다. 검증 증거를 확인하는 `npm run pr:create`를 사용한다. 안전 조건 충족 시 순차 merge하고, staging SHA·smoke 확인은 비동기 후속 감시로 예약한다. 세부 규칙은 [PR preflight와 순차 전달](docs/context/delivery-and-ci.md#pr-preflight와-순차-전달)을 따른다. 이 규칙은 기존 PR 생성만으로 전달 완료/다음 세션 머지 규칙보다 우선한다.
 
 ## 2026-09-10 상시 연속 머지 정책
 
 커밋 기반 PR은 각 최신 HEAD의 필수 CI와 delivery:admit을 확인한 뒤 연속 머지한다. PR 사이에 스테이징 도달을 기다리지 않는다. main 변경으로 무효화된 후보 검증만 갱신한다. PR 생성 전 ci:preflight와 보호 규칙은 유지한다. delivery:batch-plan은 의존성 계획 도구이며 PR별 admission을 대체하지 않는다.
 
-마지막 병합의 전체 SHA를 고정해 npm run delivery:verify-batch -- --sha=<40자리 SHA>를 실행하고 staging smoke·noindex·핵심 화면을 검증한다. 실패하면 배치 완료·운영 승격·워크트리 삭제를 진행하지 않는다. 이미 진행 중인 배포는 취소하지 않고 아직 배포하지 않은 낡은 staging 실행은 최신 main에 양보한다. 운영 승격은 별도 1회 승인 때만 수행한다. 이전의 PR별 staging 대기 조항보다 이 정책이 우선한다.
+마지막 병합의 전체 SHA를 고정해 npm run delivery:verify-batch -- --sha=<40자리 SHA>를 후속 실행하고 staging smoke·noindex·핵심 화면을 검증한다. 실패하면 운영 승격만 중단하고 원인·재조정을 보고한다. 다음 작업·PR·머지는 이 후속 검증을 기다리지 않는다. 이미 진행 중인 배포는 취소하지 않고 아직 배포하지 않은 낡은 staging 실행은 최신 main에 양보한다. 운영 승격은 별도 1회 승인 때만 수행한다. 이전의 PR별 staging 대기 조항보다 이 정책이 우선한다.
