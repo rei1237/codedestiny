@@ -613,7 +613,7 @@ jobs:
       - name: Deploy staging Pages and Worker at the exact SHA
         id: deploy
         if: steps.staging_current.outputs.current == 'true'
-        run: npm run deploy:staging -- --ci --yes
+        run: npm run deploy:staging -- --ci --yes ${REDEPLOY_FLAG}
 
       # 🔴 release 잡과 같은 이유로 배포 실패 시에는 **기록 전용**이다. 그렇게 하지 않으면
       # 빌드·테스트가 죽은 런에서도 이 스텝이 마지막 빨간불이 돼 "SHA 가 안 맞는다"로 보이고,
