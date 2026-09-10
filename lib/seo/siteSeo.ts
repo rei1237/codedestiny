@@ -23,6 +23,8 @@ const SITE_SEO_TEXT_TRANSLATIONS = {
     "siteSeo.023": "운세 인사이트 가이드 | 사주·타로·궁합·점성술",
     "siteSeo.024": "운세 인사이트 아카이브 | 사주·타로·자미두수 가이드",
     "siteSeo.025": "연이와 네오 — 꿀꿀 운세 캐릭터·세계관 소개",
+    "siteSeo.026": "2026년 9월 일간별 운세 | 정유월 사주 흐름",
+    "siteSeo.027": "최근 30일 띠별 날짜 운세",
   },
 } as const;
 
@@ -123,7 +125,7 @@ export type PublicSeoPage = {
   keywords?: string[];
   changeFrequency?: "daily" | "weekly" | "monthly" | "yearly";
   priority?: number;
-  structuredData: Array<"Organization" | "WebSite" | "WebPage" | "AboutPage" | "FAQPage" | "Article" | "BreadcrumbList">;
+  structuredData: Array<"Organization" | "WebSite" | "WebPage" | "CollectionPage" | "AboutPage" | "FAQPage" | "Article" | "BreadcrumbList">;
 };
 
 export const publicSeoPages: Record<string, PublicSeoPage> = {
@@ -174,7 +176,7 @@ export const publicSeoPages: Record<string, PublicSeoPage> = {
     description:
       "생년월일과 시간을 바탕으로 만세력의 사주팔자, 오행, 십성, 대운 흐름을 확인하는 방법을 안내합니다.",
     h1: "무료 만세력 사주 분석",
-    keywords: ["무료 만세력", "사주 만세력", "오행", "십성", "대운"],
+    keywords: ["무료 만세력", "사주 만세력", "오행", "십성", "대운", "일간별 운세"],
     changeFrequency: "daily",
     priority: 0.98,
     structuredData: ["WebPage", "BreadcrumbList", "FAQPage"],
@@ -185,10 +187,32 @@ export const publicSeoPages: Record<string, PublicSeoPage> = {
     description:
       "사주팔자의 기본 구조와 오행 균형, 십성, 대운을 통해 성향과 선택의 흐름을 살펴보는 무료 사주 안내 페이지입니다.",
     h1: "무료 사주팔자 분석",
-    keywords: ["무료 사주", "사주팔자", "오행", "십성", "사주 분석"],
+    keywords: ["무료 사주", "사주팔자", "오행", "십성", "사주 분석", "일간별 운세"],
     changeFrequency: "daily",
     priority: 0.98,
     structuredData: ["WebPage", "BreadcrumbList", "FAQPage"],
+  },
+  sajuMonthlyIlgan: {
+    path: "/saju/monthly/2026-09",
+    title: siteSeoText("siteSeo.026"),
+    description:
+      "2026년 9월 정유월의 절기와 십성 관계를 기준으로 갑목·을목부터 계수까지 10천간의 일간별 월간 운세를 정리합니다.",
+    h1: "2026년 9월 일간별 운세",
+    keywords: ["2026년 9월 일간별 운세", "정유월 운세", "10천간 월간 운세", "일간별 사주 운세"],
+    changeFrequency: "monthly",
+    priority: 0.9,
+    structuredData: ["CollectionPage", "WebPage", "BreadcrumbList", "FAQPage"],
+  },
+  fortuneDateArchive: {
+    path: "/fortune/date",
+    title: siteSeoText("siteSeo.027"),
+    description:
+      "최근 30일의 날짜별 띠 운세를 한곳에서 확인하세요. 12띠별 총운·재물운·연애운·직장운·건강운과 일진 근거를 날짜별로 정리합니다.",
+    h1: "최근 30일 띠별 날짜 운세",
+    keywords: ["날짜별 띠 운세", "띠별 날짜 운세", "최근 30일 띠 운세", "원숭이띠 날짜 운세"],
+    changeFrequency: "daily",
+    priority: 0.86,
+    structuredData: ["CollectionPage", "WebPage", "BreadcrumbList", "FAQPage"],
   },
   sajuBasic: {
     path: "/saju/basic",
@@ -251,7 +275,7 @@ export const publicSeoPages: Record<string, PublicSeoPage> = {
     description:
       "자미두수 명반의 12궁과 주요 별 배치를 바탕으로 성향, 직업, 관계, 시기 흐름을 살펴보고 삶의 영역별 해석 기준과 읽는 순서를 초보자용으로 안내합니다.",
     h1: "자미두수 12궁 명반 분석",
-    keywords: ["자미두수", "자미두수 명반", "12궁", "명궁"],
+    keywords: ["자미두수", "자미두수 명반", "12궁", "명궁", "신궁", "사화", "재백궁", "관록궁"],
     changeFrequency: "weekly",
     priority: 0.95,
     structuredData: ["WebPage", "BreadcrumbList", "FAQPage"],
@@ -273,7 +297,7 @@ export const publicSeoPages: Record<string, PublicSeoPage> = {
     description:
       "숙요점의 27숙과 달의 관계법을 바탕으로 인연의 거리, 갈등 패턴, 회복 흐름을 살펴보고 관계를 읽는 기준과 대화 힌트를 초보자용으로 정리합니다.",
     h1: "숙요점 27숙 궁합",
-    keywords: ["숙요점", "숙요 궁합", "27숙", "인연의 거리"],
+    keywords: ["숙요점", "숙요 궁합", "27숙", "숙요점 업태관계", "업태관계 뜻", "영친·안괴·성위"],
     changeFrequency: "weekly",
     priority: 0.94,
     structuredData: ["WebPage", "BreadcrumbList", "FAQPage"],
@@ -284,7 +308,7 @@ export const publicSeoPages: Record<string, PublicSeoPage> = {
     description:
       "베다 점성술의 조티쉬 차트, 달 별자리, 다샤 흐름을 초보자도 이해하기 쉽게 안내하고 서양 점성술과 다른 해석 축과 활용법을 실전형으로 정리합니다.",
     h1: "베다 점성술 무료 해석",
-    keywords: ["베다 점성술", "조티쉬", "다샤", "달 별자리"],
+    keywords: ["베다 점성술", "베다점 운세", "조티쉬", "라그나", "나크샤트라", "다샤", "달 별자리"],
     changeFrequency: "weekly",
     priority: 0.9,
     structuredData: ["WebPage", "BreadcrumbList", "FAQPage"],

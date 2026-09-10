@@ -24,7 +24,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { mkdirSync, writeFileSync } from 'node:fs';
-import { kstYmdToday, kstYmdNextDay, kstWeekStartYmd, kstMonthStartYmd } from './lib/fortune-date.mjs';
+import { kstYmdToday, kstYmdNextDay, kstYmdPreviousDay, kstWeekStartYmd, kstMonthStartYmd } from './lib/fortune-date.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, '..');
@@ -39,12 +39,23 @@ const runDateKst = kstYmdToday();
 // 🔴 weekly·monthly 의 시드 날짜는 그 기간 페이지가 `datePublished` 로 내보내는 날짜와 같다
 //    (주 시작일 · 그 달 1일). scripts/verify-fortune-freshness.mjs 의 expectedDateFor 가
 //    같은 규칙을 프로덕션에서 확인하므로 둘이 어긋나면 그 가드가 먼저 운다.
-const targets = [
+const archiveDates = [];
+let archiveDate = runDateKst;
+for (let index = 0; index < 30; index += 1) {
+  archiveDates.unshift(archiveDate);
+  archiveDate = kstYmdPreviousDay(archiveDate);
+}
+
+const periodTargets = [
   { label: 'today', date: runDateKst },
   { label: 'tomorrow', date: kstYmdNextDay(runDateKst) },
   { label: 'weekly', date: kstWeekStartYmd(runDateKst) },
   { label: 'monthly', date: kstMonthStartYmd(runDateKst) },
 ];
+const targets = [
+  ...archiveDates.map((date) => ({ label: 'archive', date })),
+  ...periodTargets,
+].filter((target, index, all) => all.findIndex((item) => item.date === target.date) === index);
 
 console.log(`[fortune-build-data] RUN_DATE_KST=${runDateKst}`);
 
@@ -53,7 +64,9 @@ for (const target of targets) {
   const result = spawnSync(process.execPath, [onceScript], {
     cwd: root,
     stdio: 'inherit',
-    env: { ...process.env, FORTUNE_DATE: target.date },
+    // 현재 30일과 별도로 /fortune/tomorrow 가 읽는 다음 날 파일을 보존해야 하므로
+    // 물리 파일 보관은 31일로 둔다. 검색·라우트 노출 범위는 archive 30일로 제한한다.
+    env: { ...process.env, FORTUNE_DATE: target.date, FORTUNE_RETENTION_DAYS: '31' },
   });
   if ((result.status ?? 1) !== 0) {
     console.error(`[fortune-build-data] 생성 실패: ${target.label} (${target.date})`);
@@ -70,9 +83,10 @@ const manifest = {
   tomorrow: kstYmdNextDay(runDateKst),
   weekly: kstWeekStartYmd(runDateKst),
   monthly: kstMonthStartYmd(runDateKst),
+  archive: archiveDates,
 };
 const manifestDir = path.join(root, 'fortune', 'data');
 mkdirSync(manifestDir, { recursive: true });
 writeFileSync(path.join(manifestDir, 'run-manifest.json'), JSON.stringify(manifest, null, 2));
 
-console.log('[fortune-build-data] 완료 — 오늘/내일/이번 주/이번 달 패키지 준비됨.');
+console.log(`[fortune-build-data] 완료 — 최근 ${archiveDates.length}일 날짜 아카이브와 오늘/내일/이번 주/이번 달 패키지 준비됨.`);

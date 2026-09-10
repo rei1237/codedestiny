@@ -22,8 +22,26 @@ function readProjectFile(relativePath) {
 
 function hasRouteSource(routePath) {
   const relative = routePath.replace(/^\//, "");
+  let directory = path.join(root, "app");
+  for (const segment of relative.split("/").filter(Boolean)) {
+    const literal = path.join(directory, segment);
+    if (fs.existsSync(literal) && fs.statSync(literal).isDirectory()) {
+      directory = literal;
+      continue;
+    }
+
+    // 동적 App Router 세그먼트는 실제 URL의 값과 디렉터리명이 다르다.
+    // 예: /saju/monthly/2026-09 -> app/saju/monthly/[month].
+    const dynamicName = fs.readdirSync(directory).find((name) => {
+      if (!/^\[[^\]]+\]$/.test(name)) return false;
+      return fs.statSync(path.join(directory, name)).isDirectory();
+    });
+    if (!dynamicName) return false;
+    directory = path.join(directory, dynamicName);
+  }
+
   const candidates = ["page.js", "page.jsx", "page.ts", "page.tsx"]
-    .map((name) => path.join(root, "app", relative, name));
+    .map((name) => path.join(directory, name));
   return candidates.some((candidate) => fs.existsSync(candidate));
 }
 

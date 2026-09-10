@@ -229,6 +229,23 @@ export default function FortunePeriodHubPage({ params }: { params: { period: str
             </ul>
           </section>
 
+          {period === "monthly" && (
+            <section aria-labelledby="saju-monthly-heading" className="mt-12">
+              <h2 id="saju-monthly-heading" className="break-keep text-lg font-extrabold">
+                2026년 9월 일간별 사주 운세
+              </h2>
+              <p className={`mt-2 break-keep text-sm leading-7 ${MUTED}`}>
+                별자리·띠가 아니라 태어난 날의 천간인 일간으로 이번 달 흐름을 보고 싶다면, 갑목부터 계수까지 10천간 월간 운세를 이어서 확인해 보세요.
+              </p>
+              <Link href="/saju/monthly/2026-09/" className={`mt-4 block p-5 transition-colors hover:border-[#b31955]/45 ${CARD}`}>
+                <span className={`text-sm font-extrabold ${ACCENT}`}>2026년 9월 일간별 운세 보기 →</span>
+                <span className={`mt-1 block break-keep text-xs leading-6 ${MUTED}`}>
+                  정유월(丁酉月)의 절기 흐름과 일간·월간 십성 관계, 일간별 재물운·연애운·직업운·건강운을 살펴봅니다.
+                </span>
+              </Link>
+            </section>
+          )}
+
           <section aria-labelledby="next-heading" className="mt-12">
             <h2 id="next-heading" className="break-keep text-lg font-extrabold">이어서 보기</h2>
             <div className="mt-4 grid gap-3 sm:grid-cols-3">

@@ -1,6 +1,7 @@
 import { SEO_LANDING_PAGES } from "../../lib/seo-landing-pages";
 import { FORTUNE_PERIOD_IDS, PERIOD_LABEL } from "../../lib/fortune/periods";
 import { SIGN_PROFILES } from "../../lib/fortune/sign-profiles";
+import { getIlganMonthlyPeriod } from "../../lib/saju/monthly-ilgan";
 
 /**
  * /today 의 서버 렌더 해설 섹션.
@@ -17,6 +18,7 @@ import { SIGN_PROFILES } from "../../lib/fortune/sign-profiles";
 export default function TodayReadingGuide() {
   const page = SEO_LANDING_PAGES.today;
   if (!page) return null;
+  const ilganMonthlyPeriod = getIlganMonthlyPeriod("2026-09");
 
   return (
     <>
@@ -79,6 +81,26 @@ export default function TodayReadingGuide() {
             </a>
           ))}
         </nav>
+
+        <a
+          href="/saju/monthly/2026-09/"
+          className="mt-4 block rounded-2xl border border-amber-400/35 bg-amber-400/[0.06] p-4 transition-colors hover:border-amber-300"
+        >
+          <span className="text-sm font-bold text-amber-200">내 일간으로 이번 달 흐름 보기</span>
+          <span className="mt-1 block break-keep text-xs leading-6 text-slate-300">
+            태어난 날의 천간인 일간을 기준으로 {ilganMonthlyPeriod?.label || "이번 달"} {ilganMonthlyPeriod?.monthGanji || "월건"}의 재물운·연애운·직업운·건강운을 확인합니다.
+          </span>
+        </a>
+
+        <a
+          href="/fortune/date/"
+          className="mt-4 block rounded-2xl border border-slate-700/60 bg-slate-900/70 p-4 transition-colors hover:border-amber-400/40"
+        >
+          <span className="text-sm font-bold text-amber-200">날짜별 띠 운세 archive</span>
+          <span className="mt-1 block break-keep text-xs leading-6 text-slate-300">
+            특정 날짜의 원숭이띠·용띠 등 12띠 운세와 일진 근거를 최근 30일 범위에서 다시 확인합니다.
+          </span>
+        </a>
 
         {[
           { kind: "zodiac", title: "별자리 12종 오늘의 운세" },
