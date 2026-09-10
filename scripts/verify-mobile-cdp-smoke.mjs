@@ -124,6 +124,7 @@ try {
   assert(initial.audioVideoCount === 0, "home has no initial audio/video elements", initial);
   assert(initial.hiddenOverlaysPointerSafe, "hidden overlays do not block touch", initial);
 
+  if (!focusAllFortunes) {
   // ── 스크롤 중 오탭 회귀 (2026-08-15) ──────────────────────────────────────────
   // 이 셸에는 같은 탭을 놓고 경쟁하는 리스너 스택이 8벌 있고 임계값이 제각각이라,
   // 한 스택이 "스크롤이니 막자"고 판정해도 다른 스택이 기능을 열었다. 판정 정본은
@@ -209,6 +210,7 @@ try {
 
     await navigate(cdp, homeUrl);
     await delay(400);
+  }
   }
 
   // ── 중재자를 안 묻던 스택의 회귀 (2026-08-15) ────────────────────────────────
@@ -379,7 +381,13 @@ try {
       navPointerEvents: getComputedStyle(document.getElementById('cdMobileBottomNav')).pointerEvents,
       navAriaHidden: document.getElementById('cdMobileBottomNav')?.getAttribute('aria-hidden'),
       panelBottom: panel ? Math.round(panel.getBoundingClientRect().bottom) : 0,
-      viewportHeight: innerHeight
+      viewportHeight: innerHeight,
+      inputPageVisibility: getComputedStyle(document.getElementById('inputPage')).visibility,
+      inputPagePointerEvents: getComputedStyle(document.getElementById('inputPage')).pointerEvents,
+      hitTestOwner: (() => {
+        const hit = document.elementFromPoint(innerWidth / 2, innerHeight / 2);
+        return hit?.closest('#cdMobileFortuneOverview')?.id || hit?.closest('#inputPage')?.id || hit?.id || null;
+      })()
     };
   })()`, "after bottom nav all-fortunes tap");
   assert(afterFortunesNav.overlayOpen && afterFortunesNav.overviewShown, "bottom nav all-fortunes opens the overview overlay", afterFortunesNav);
@@ -387,6 +395,8 @@ try {
   assert(afterFortunesNav.activeKey === "fortunes", "all-fortunes tab marks itself active", afterFortunesNav);
   assert(afterFortunesNav.navDisplay === "none" && afterFortunesNav.navPointerEvents === "none" && afterFortunesNav.navAriaHidden === "true", "immersive all-fortunes removes the bottom-nav layout and touch target", afterFortunesNav);
   assert(afterFortunesNav.panelBottom >= afterFortunesNav.viewportHeight - 1, "all-fortunes content extends through the released bottom safe area", afterFortunesNav);
+  assert(afterFortunesNav.inputPageVisibility === "hidden" && afterFortunesNav.inputPagePointerEvents === "none", "all-fortunes hides the main home shell from visual and touch hit-testing", afterFortunesNav);
+  assert(afterFortunesNav.hitTestOwner === "cdMobileFortuneOverview", "all-fortunes overview owns the center touch target", afterFortunesNav);
 
   await tapSelector(cdp, '.cd-fov__cat[data-collection-id="tarotCollection"]');
   await delay(120);
@@ -400,10 +410,19 @@ try {
       overlayOpen: !!api?.isOpen?.(),
       currentCollection: api?.getCurrent?.() || null,
       activeCollection: activeTab?.getAttribute('data-collection-id') || null,
-      chromePointerEvents: chrome ? getComputedStyle(chrome).pointerEvents : null
+      chromePointerEvents: chrome ? getComputedStyle(chrome).pointerEvents : null,
+      inputPageVisibility: getComputedStyle(document.getElementById('inputPage')).visibility,
+      hitTestOwner: (() => {
+        const collection = document.getElementById('oracleCollection');
+        if (!collection) return null;
+        const r = collection.getBoundingClientRect();
+        const hit = document.elementFromPoint(Math.max(1, Math.min(innerWidth - 1, r.left + r.width / 2)), Math.max(1, Math.min(innerHeight - 1, r.top + 24)));
+        return hit?.closest('.cd-mobile-collection-fullscreen')?.id || hit?.closest('#inputPage')?.id || hit?.id || null;
+      })()
     };
   })()`, "after rapid tarot-to-oracle touch switch");
   assert(afterRapidCollectionSwitch.overlayOpen && afterRapidCollectionSwitch.currentCollection === "oracleCollection" && afterRapidCollectionSwitch.activeCollection === "oracleCollection" && afterRapidCollectionSwitch.chromePointerEvents === "auto", "rapid tarot-to-oracle touch switch remains interactive", afterRapidCollectionSwitch);
+  assert(afterRapidCollectionSwitch.inputPageVisibility === "hidden" && afterRapidCollectionSwitch.hitTestOwner === "oracleCollection", "selected fortune collection is the only home content owning the touch target", afterRapidCollectionSwitch);
   await tapSelector(cdp, '.cd-mobile-collection-tab[data-collection-id="miscCollection"]');
   await delay(120);
   await tapSelector(cdp, ".cd-mobile-collection-close");
@@ -420,6 +439,7 @@ try {
   const restoredFortunesState = await evaluate(cdp, "({ currentCollection: window.cdMobileCollectionFullscreen?.getCurrent?.() || null, overlayOpen: !!window.cdMobileCollectionFullscreen?.isOpen?.() })", "restored all-fortunes state");
   assert(restoredFortunesState.overlayOpen && restoredFortunesState.currentCollection === "miscCollection", "reopening all-fortunes preserves its selected collection", restoredFortunesState);
 
+  if (!focusAllFortunes) {
   // ── 모바일 상세 시트 구간 (2026-09-01 계약 변경 ⓒ) ──────────────────────────
   // 🔴 모바일은 **유료 항목만** 상세 시트를 연다. 무료 항목은 2026-08-15 그대로 즉시 진입이다.
   // 셸이 __cdFeatureMarketingPreviewEnabled=true 와 __cdFeatureMarketingPreviewPaidOnly=true 를
@@ -658,6 +678,7 @@ try {
     tarotLoveClose,
   );
 
+  }
   if (!focusAllFortunes) {
   await navigate(cdp, `http://127.0.0.1:${server.port}/index.html`);
   await navigate(cdp, `http://127.0.0.1:${server.port}/index.html`);
