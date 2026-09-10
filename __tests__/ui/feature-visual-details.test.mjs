@@ -5,6 +5,23 @@ import { renderFeatureDetailPanels } from '../../js/feature-detail-panels.mjs';
 
 const catalog = JSON.parse(fs.readFileSync('public/feature-details/catalog.json', 'utf8'));
 const sharedHero = '/feature-details/assets/feature-detail-shared-hero-v1-960.webp';
+const shell = fs.readFileSync('index.html', 'utf8');
+
+test('every tile popup uses the shared responsive hero before marketing detail hydration', () => {
+  assert.match(shell, /var imgSrc='\/feature-details\/assets\/feature-detail-shared-hero-v1-960\.webp'/);
+  assert.match(shell, /feature-detail-shared-hero-v1-480\.webp 480w, \/feature-details\/assets\/feature-detail-shared-hero-v1-960\.webp 960w/);
+  assert.doesNotMatch(shell, /var imgSrc=\(imgWrap&&imgWrap\.getAttribute\('data-img-src'\)\)/);
+});
+
+test('popup reading colors cannot fall back to per-card or standalone-page palettes', () => {
+  const popupCss = fs.readFileSync('styles/feature-marketing-detail.css', 'utf8');
+  const visualCss = fs.readFileSync('styles/feature-visual-detail.css', 'utf8');
+  assert.match(popupCss, /\.tile-pvw-overlay:not\(\.pvw-visual\) \.tile-pvw-title[\s\S]*color: #3c1830 !important/);
+  assert.match(popupCss, /\.tile-pvw-overlay:not\(\.pvw-visual\) \.tile-pvw-tagline[\s\S]*color: #70445c !important/);
+  assert.match(visualCss, /\.tile-pvw-overlay\.pvw-visual \.featureVisualDetail\{[^}]*color:#3c1830!important/);
+  assert.match(visualCss, /\.tile-pvw-overlay\.pvw-visual \.featureVisualDetail :is\(p,[^}]*color:#70445c!important/);
+});
+
 test('published visual introductions have proven sources, real assets, and distinct destinations', () => {
   const generated = JSON.parse(fs.readFileSync('lib/marketing/feature-visual-details.generated.json', 'utf8'));
   assert.equal(generated.index.length, 65);

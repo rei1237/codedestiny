@@ -730,6 +730,42 @@ body.neo-mode .tile-pvw-cta-btn {
   }
 }
 
+/* The static shell still exposes per-card color tokens after this shared file.
+ * Lock the popup's reading palette to the surface itself so a tile cannot make
+ * headings or descriptions disappear against the common detail background. */
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-title,
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-feats li,
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-premium-list li,
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-premium-intro {
+  color: #3c1830 !important;
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-tagline,
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-cta-meta,
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-cta-note {
+  color: #70445c !important;
+}
+
+html.neo-mode .tile-pvw-overlay:not(.pvw-visual) .tile-pvw-title,
+html.neo-mode .tile-pvw-overlay:not(.pvw-visual) .tile-pvw-feats li,
+html.neo-mode .tile-pvw-overlay:not(.pvw-visual) .tile-pvw-premium-list li,
+html.neo-mode .tile-pvw-overlay:not(.pvw-visual) .tile-pvw-premium-intro,
+body.neo-mode .tile-pvw-overlay:not(.pvw-visual) .tile-pvw-title,
+body.neo-mode .tile-pvw-overlay:not(.pvw-visual) .tile-pvw-feats li,
+body.neo-mode .tile-pvw-overlay:not(.pvw-visual) .tile-pvw-premium-list li,
+body.neo-mode .tile-pvw-overlay:not(.pvw-visual) .tile-pvw-premium-intro {
+  color: #f4eeff !important;
+}
+
+html.neo-mode .tile-pvw-overlay:not(.pvw-visual) .tile-pvw-tagline,
+html.neo-mode .tile-pvw-overlay:not(.pvw-visual) .tile-pvw-cta-meta,
+html.neo-mode .tile-pvw-overlay:not(.pvw-visual) .tile-pvw-cta-note,
+body.neo-mode .tile-pvw-overlay:not(.pvw-visual) .tile-pvw-tagline,
+body.neo-mode .tile-pvw-overlay:not(.pvw-visual) .tile-pvw-cta-meta,
+body.neo-mode .tile-pvw-overlay:not(.pvw-visual) .tile-pvw-cta-note {
+  color: #c8b8e6 !important;
+}
+
 @media (max-width: 520px) {
   .cd-detail-table,
   .tile-pvw-cmp {
