@@ -82,7 +82,9 @@ const BIRTH = {
 const SAMPLES = {
   buildSajuPromptFacts: [BIRTH],
   buildZiweiPromptFacts: [{ ...BIRTH, palace: "부처궁" }],
-  buildSukuyoPromptFacts: [{ birthDate: BIRTH.birthDate, calendarType: BIRTH.calendarType }],
+  // 동기 블록 빌더는 계산된 달 황경을 입력으로 받는다. 실시간 계산은 클라이언트의
+  // /api/sukuyo/astronomy 배선에서 검증하고, 여기서는 매퍼·출력 형식을 순수하게 스모크한다.
+  buildSukuyoPromptFacts: [{ birthDate: BIRTH.birthDate, calendarType: BIRTH.calendarType, moonLongitude: 123.456789 }],
   buildDangsajuPromptFacts: [{ ...BIRTH, question: "올해 협업의 방향이 궁금합니다.", lifeArea: "관계" }],
   buildKuseiPromptFacts: [{ ...BIRTH, baseDate: "2026-07-01", focusTopic: "이사 방향", question: "동쪽 이동을 고민 중입니다." }],
   buildMeihuaPromptFacts: [{ eventDateTime: "2026-07-08T13:44", question: "제안이 어떤 변화를 열까요?", numberOrSign: "37" }],

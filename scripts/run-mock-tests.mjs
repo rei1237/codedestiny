@@ -24,7 +24,11 @@ export function mockTestInvocation(mode, extraArgs = [], inherited = process.env
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   try {
-    const invocation = mockTestInvocation(process.argv[2], process.argv.slice(3));
+    const mode = process.argv[2];
+    const invocation = mockTestInvocation(mode, process.argv.slice(3), {
+      ...process.env,
+      ...(mode === 'jest' ? { CD_MOCK_TESTS: 'true' } : {}),
+    });
     const result = spawnSync(process.execPath, invocation.args, {
       cwd: root, env: invocation.env, stdio: 'inherit', windowsHide: true,
     });

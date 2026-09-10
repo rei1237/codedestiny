@@ -4,7 +4,6 @@ import {
   relationFromForwardDistance,
 } from "./sukuyo-relation-core.js";
 
-const SUKUYO_MONTH_START = [11, 13, 15, 17, 19, 21, 23, 25, 0, 2, 4, 7];
 
 const SUKUYO_MANSIONS = [
   { nameKo: "각", nameHan: "角", nameJp: "Kaku", direction: "동방", element: "목", animalSymbol: "청룡", category: "청룡", archetypeTitle: "개척의 뿔", keywords: ["개척", "시작", "비전"], strengths: ["시작 추진력", "선도 감각"], shadows: ["조급함", "과속"] },
@@ -113,23 +112,6 @@ function getSukuyoByIndex(index) {
 
 function getSukuyoChapterMeta(reportType) {
   return reportType === "compatibility" ? SUKUYO_COMPAT_CHAPTER_META : SUKUYO_PERSONAL_CHAPTER_META;
-}
-
-function buildSukuyoFromLunar(lunarMonthRaw, lunarDayRaw, options = {}) {
-  const lunarMonth = Math.max(1, Math.min(12, Math.abs(Number(lunarMonthRaw) || 1)));
-  const lunarDay = Math.max(1, Math.min(30, Math.abs(Number(lunarDayRaw) || 1)));
-  const start = SUKUYO_MONTH_START[lunarMonth - 1] ?? 11;
-  const index = (start + lunarDay - 1) % 27;
-  const item = getSukuyoByIndex(index);
-  if (!item) return null;
-  return {
-    index,
-    ...item,
-    lunarMonth,
-    lunarDay,
-    isLeapMonth: Boolean(options.isLeapMonth),
-    source: String(options.source || "korean-calendar-core"),
-  };
 }
 
 function distanceLabelByRule(shortestDistance, relationType) {
@@ -796,7 +778,6 @@ function buildSukuyoNatalDataSummaryTable(canonical) {
 }
 
 export {
-  SUKUYO_MONTH_START,
   SUKUYO_MANSIONS,
   SUKUYO_FORBIDDEN_REPEATED_PHRASES,
   SUKUYO_NATAL_FORBIDDEN_COMMON_SECTIONS,
@@ -806,7 +787,6 @@ export {
   getSukuyoChapterMeta,
   getSukuyoNatalChapterSpec,
   getSukuyoByIndex,
-  buildSukuyoFromLunar,
   relationFromForwardDistance,
   buildCompatibilityFromIndices,
   buildCanonicalSukuyoNatal,

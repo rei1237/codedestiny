@@ -1,8 +1,7 @@
 /**
  * 숙요(27수) 어댑터 — 기존 숙요 엔진(calcSukuyoForServer)을 읽기 전용으로 소비해 방향성 기여로 변환.
  * 본명숙의 칠요(七曜: 일월화수목금토) 원형 → 6축 매핑 + talent 강도 변조. 근거=27수 원용어.
- * 결정론: 난수·Date 미사용(생년월일→숙요는 순수 함수). 시각 결측에도 날짜 기반이라 품질 높음.
- * 계산 경로 무침해: calcSukuyoForServer/Lunar를 import만(엔진 수정 없음).
+ * 결정론: 난수·현재시각을 쓰지 않고 입력 순간을 Swiss Ephemeris로 계산한다.
  */
 import { lunarToSolar } from "@/lib/korean-calendar";
 import { calcSukuyoForServer } from "@/lib/sukuyo-engine-server";
@@ -25,17 +24,41 @@ function clamp01(n: number): number {
 }
 
 // 생년월일(+음력 변환) → 양력 Y/M/D + hour. 순수(난수·Date 미사용).
-function toSolarYmd(birth: CompassInput["birth"]): { y: number; m: number; d: number; hour: number } {
+function toSolarYmd(birth: CompassInput["birth"]): {
+  y: number; m: number; d: number; hour: number; minute: number;
+  timezone?: string; timezoneOffset?: number; latitude?: number; longitude?: number; standardMeridian?: number;
+} {
   const [yy, mm, dd] = birth.birthDate.split("-").map(Number);
-  const hour = birth.birthTime ? Number(birth.birthTime.split(":")[0]) || 12 : 12;
+  const [rawHour, rawMinute] = birth.birthTime ? birth.birthTime.split(":").map(Number) : [12, 0];
+  const hour = Number.isFinite(rawHour) ? rawHour : 12;
+  const minute = Number.isFinite(rawMinute) ? rawMinute : 0;
+  const timezoneOffset = Number.isFinite(birth.timezoneOffset)
+    ? birth.timezoneOffset
+    : Number.isFinite(birth.timezoneOffsetMinutes)
+      ? Number(birth.timezoneOffsetMinutes) / 60
+      : undefined;
   if (birth.calendarType === "lunar") {
     // 🔴 음력→양력도 한국 음양력 코어가 한다. 중국 음력은 3.7% 의 날짜에서 하루 어긋나고
     //    그 하루가 그대로 다른 수(宿)가 된다. 실패 시 상위 try/catch가 흡수한다.
     const solar = lunarToSolar(yy, mm, dd, Boolean(birth.lunarLeap));
     if (!solar) throw new RangeError("음력 생년월일을 양력으로 옮기지 못했습니다(지원 1900~2100).");
-    return { y: solar.year, m: solar.month, d: solar.day, hour };
+    return {
+      y: solar.year, m: solar.month, d: solar.day, hour, minute,
+      timezone: birth.timezone,
+      timezoneOffset,
+      latitude: birth.latitude,
+      longitude: birth.longitude,
+      standardMeridian: birth.standardMeridian,
+    };
   }
-  return { y: yy, m: mm, d: dd, hour };
+  return {
+    y: yy, m: mm, d: dd, hour, minute,
+    timezone: birth.timezone,
+    timezoneOffset,
+    latitude: birth.latitude,
+    longitude: birth.longitude,
+    standardMeridian: birth.standardMeridian,
+  };
 }
 
 export const sukuyoAdapter: EngineAdapter = {
@@ -45,8 +68,15 @@ export const sukuyoAdapter: EngineAdapter = {
     return Boolean(input.birth?.birthDate);
   },
   async contribute(input: CompassInput): Promise<EngineContribution> {
-    const { y, m, d, hour } = toSolarYmd(input.birth);
-    const res = calcSukuyoForServer(y, m, d, hour);
+    const { y, m, d, hour, minute, timezone, timezoneOffset, latitude, longitude, standardMeridian } = toSolarYmd(input.birth);
+    const res = await calcSukuyoForServer(y, m, d, hour, minute, {
+      timezone,
+      timezoneOffset,
+      latitude,
+      longitude,
+      standardMeridian,
+      birthTimeKnown: Boolean(input.birth.birthTime),
+    });
 
     const el = res.element;
     const talent = typeof res.traits?.talent === "number" ? res.traits.talent : 80;
@@ -64,8 +94,7 @@ export const sukuyoAdapter: EngineAdapter = {
     return {
       directions,
       timelineHint,
-      // 날짜 기반이라 시각 결측 영향이 작다 → 품질 높게.
-      dataQuality: 0.95,
+      dataQuality: input.birth.birthTime ? 0.95 : 0.8,
       // 🔴 evidence[0] 고정(본명숙) — 신규는 뒤로만 append.
       evidence: [
         {

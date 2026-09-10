@@ -100,8 +100,8 @@ function mansionSections(todayMansion) {
  *
  * @param {object} params
  * @param {object} params.verdict      judgeDayFortune() 결과
- * @param {object} params.todayMansion buildSukuyoFromLunar() 결과 (오늘)
- * @param {object|null} params.natalMansion buildSukuyoFromLunar() 결과 (본명)
+ * @param {object} params.todayMansion buildSukuyoFromMoonLongitude() 결과 (오늘)
+ * @param {object|null} params.natalMansion buildSukuyoFromMoonLongitude() 결과 (본명)
  */
 export function buildTodaySukuyoDetail({ verdict, todayMansion, natalMansion }) {
   if (!verdict || !todayMansion) return { highlights: [], sections: [] };
@@ -135,7 +135,7 @@ export function buildTodaySukuyoDetail({ verdict, todayMansion, natalMansion }) 
 /**
  * 본명수 없이도 참인 오늘의 수(宿).
  *
- * @param {object} todayMansion buildSukuyoFromLunar() 결과
+ * @param {object} todayMansion buildSukuyoFromMoonLongitude() 결과
  */
 export function buildTodaySukuyoPublic(todayMansion) {
   if (!todayMansion) return null;

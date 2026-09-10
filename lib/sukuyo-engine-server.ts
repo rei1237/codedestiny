@@ -1,7 +1,8 @@
 ﻿// 🔴 음력일은 한국 음양력 코어에서만 나온다. lunar-javascript 는 **중국 표준시(CST) 기준 중국 음력**이라
-// 삭이 CST 23시대에 들면 그 달 전체의 음력일이 하루 밀린다 — 실측 2026-08-27 기준 1900~2100 전수
-// 73,414일 중 2,997일(4.08%)이 갈린다. 27수는 음력 월·일로 직접 결정되므로 그 하루가 곧 다른 수(宿)다.
+// 한국 음양력은 화면 표시용 메타데이터에만 사용하고 숙요 인덱스 산출에는 사용하지 않는다.
+// 27수는 음력 월·일이 아니라 동일 입력 시각의 UTC/JD와 Swiss 항성 달 황경으로 결정한다.
 import { BRANCH_HANJA, STEM_HANJA, sexagenaryYearIndexes, solarToLunar } from "@/lib/korean-calendar";
+import { calculateSukuyoForMoment } from "@/worker/lib/sukuyo-astronomy.js";
 
 export interface MansionTraits {
   icon: string;
@@ -33,6 +34,17 @@ export interface SukuyoCalcResult {
   yearGan: string;
   yearZhi: string;
   traits: MansionTraits;
+  utcTimestamp?: number;
+  utcIso?: string;
+  julianDate?: number;
+  moonEclipticLongitude?: number;
+  moonSiderealLongitude?: number;
+  calculationBasis?: string;
+  astronomyVersion?: string;
+  birthTimeKnown?: boolean;
+  latitude?: number | null;
+  longitude?: number | null;
+  birthTimeContext?: Record<string, unknown>;
 }
 
 //  27 만션 위치 데이터 (동/북/서/남 방위, 오행, 상징동물) 
@@ -317,9 +329,6 @@ const BASE_DATA: Record<string, MansionTraits> = {
     wealth:"단돈 1원도 헛되이 쓰지 않으며 치밀한 자금 관리로 막대한 부를 서서히 일궈냅니다." },
 };
 
-//  월 시작 오프셋 (엔진 원본과 동일) 
-const MONTH_START_OFFSETS = [11, 13, 15, 17, 19, 21, 23, 25, 0, 2, 4, 7];
-
 //  6대 관계 계산 
 const RELATION_TYPES = [
   { diff: 0,  rel: "안(安)", desc: "같은 숙요. 안정적 공명 관계 — 서로 가장 편안하고 자연스럽습니다." },
@@ -341,17 +350,45 @@ export function calcRelationType(myIdx: number, targetIdx: number) {
 }
 
 //  메인 계산 함수 
-export function calcSukuyoForServer(
+export async function calcSukuyoForServer(
   year: number,
   month: number,
   day: number,
-  hour: number = 12
-): SukuyoCalcResult {
-  // 🔴 hour 는 본명숙 판정에 쓰이지 않는다 — 음력일은 민용일 단위라 시각이 바꾸지 않는다
-  //    (실측 2026-08-27: 0·1·6·12·18·22·23시 전부 정오와 같은 음력일, 표본 1,944건).
-  //    시그니처는 호출부(destiny-compass 어댑터)가 넘기고 있어 그대로 둔다.
-  void hour;
-  const lunar = solarToLunar(year, month, day);
+  hour: number = 12,
+  minute: number = 0,
+  options: { timezoneOffset?: number; timezone?: string; latitude?: number; longitude?: number; standardMeridian?: number; timeCorrectionPolicy?: string; env?: unknown; requestUrl?: string; birthTimeKnown?: boolean } = {},
+): Promise<SukuyoCalcResult> {
+  type SukuyoAstronomyResult = {
+    mansionIdx: number;
+    lunarYear: number | null;
+    lunarMonth: number | null;
+    lunarDay: number | null;
+    isLeapMonth: boolean;
+    utcTimestamp: number;
+    utcIso: string;
+    julianDate: number;
+    moonEclipticLongitude: number;
+    moonSiderealLongitude: number;
+    calculationBasis: string;
+    astronomyVersion: string;
+    birthTimeKnown: boolean;
+    latitude: number | null;
+    longitude: number | null;
+    birthTimeContext?: Record<string, unknown>;
+  };
+  const astronomy = await calculateSukuyoForMoment(options.env || {}, {
+    year, month, day, hour, minute,
+    timezoneOffset: options.timezoneOffset,
+    timezone: options.timezone,
+    latitude: options.latitude,
+    longitude: options.longitude,
+    standardMeridian: options.standardMeridian,
+    timeCorrectionPolicy: options.timeCorrectionPolicy,
+    birthTimeKnown: options.birthTimeKnown,
+  }, { requestUrl: options.requestUrl }) as unknown as SukuyoAstronomyResult;
+  const lunar = astronomy.lunarYear && astronomy.lunarMonth && astronomy.lunarDay
+    ? { lunarYear: astronomy.lunarYear, lunarMonth: astronomy.lunarMonth, lunarDay: astronomy.lunarDay, isLeapMonth: astronomy.isLeapMonth }
+    : solarToLunar(year, month, day);
   if (!lunar) {
     throw new RangeError(`한국 음양력 코어가 ${year}-${month}-${day} 를 답하지 못했습니다(지원 1900~2100).`);
   }
@@ -364,8 +401,7 @@ export function calcSukuyoForServer(
   const yearGan = STEM_HANJA[yearIndexes.stemIndex];
   const yearZhi = BRANCH_HANJA[yearIndexes.branchIndex];
 
-  let startIdx = MONTH_START_OFFSETS[lMonth - 1] ?? 11;
-  const finalIdx = (startIdx + lDay - 1) % 27;
+  const finalIdx = astronomy.mansionIdx;
 
   const slotBase = MANSIONS_27[finalIdx];
   const key = slotBase.key as string;
@@ -398,5 +434,16 @@ export function calcSukuyoForServer(
     yearGan,
     yearZhi,
     traits,
+    utcTimestamp: astronomy.utcTimestamp,
+    utcIso: astronomy.utcIso,
+    julianDate: astronomy.julianDate,
+    moonEclipticLongitude: astronomy.moonEclipticLongitude,
+    moonSiderealLongitude: astronomy.moonSiderealLongitude,
+    calculationBasis: astronomy.calculationBasis,
+    astronomyVersion: astronomy.astronomyVersion,
+    birthTimeKnown: astronomy.birthTimeKnown,
+    latitude: astronomy.latitude,
+    longitude: astronomy.longitude,
+    birthTimeContext: astronomy.birthTimeContext,
   };
 }

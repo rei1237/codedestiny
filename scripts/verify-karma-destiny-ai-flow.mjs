@@ -106,7 +106,8 @@ assertNotIncludes(routeSource, "payload?.lensContribution", "lens contribution m
 assertIncludes(calculationSource, "computeLensContribution", "deterministic lens contribution");
 assertIncludes(calculationSource, "buildSukuyoRelationAxis", "sukuyo relation axis wired");
 assertIncludes(calculationSource, "calculateZiweiAiChart", "ziwei engine wired");
-assertIncludes(calculationSource, "buildSukuyoFromLunar", "sukuyo engine wired");
+assertIncludes(calculationSource, "calculateSukuyoForMoment", "sukuyo astronomy engine wired");
+assertIncludes(calculationSource, "timezoneOffset", "sukuyo local-time normalization wired");
 assertIncludes(calculationSource, "buildVimshottariDasha", "real vedic dasha wired");
 assertNotIncludes(routeSource, "function hasMonthlyCredit", "monthly credit balance must not grant direct access");
 assertNotIncludes(routeSource, "return { ok: true, accessType: \"subscription\", paymentId: \"\", usageAlreadyApplied: false }", "monthly credit must not be direct entitlement");

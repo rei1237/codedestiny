@@ -127,41 +127,41 @@ describe("숙요 궁합 실험실", () => {
     partnerName: name,
   });
 
-  test("상대를 넣지 않으면 궁합 데이터 없이 개인 해석만 나간다", () => {
-    const solo = admin.buildAdminSukuyoContext(profile(), null);
+  test("상대를 넣지 않으면 궁합 데이터 없이 개인 해석만 나간다", async () => {
+    const solo = await admin.buildAdminSukuyoContext(profile(), null);
     expect(solo.compatibilityResult).toBeNull();
     expect(solo.basicResult.mansion).toBeTruthy();
   });
 
-  test("상대 생년월일이 실제 27수로 계산된다", () => {
-    const context = admin.buildAdminSukuyoContext(profile(), partner("1992-11-03", "상대A"));
+  test("상대 생년월일이 실제 27수로 계산된다", async () => {
+    const context = await admin.buildAdminSukuyoContext(profile(), partner("1992-11-03", "상대A"));
     expect(context.compatibilityResult).toBeTruthy();
     expect(context.compatibilityResult.partnerName).toBe("상대A");
     expect(context.compatibilityResult.partnerMansion).toMatch(/숙$/);
     expect(context.compatibilityResult.relationType).toBeTruthy();
   });
 
-  test("상대 index 가 '내 index + 7' 합성이 아니다(회귀 감시)", () => {
-    const context = admin.buildAdminSukuyoContext(profile(), partner("1992-11-03", "상대A"));
+  test("상대 index 가 '내 index + 7' 합성이 아니다(회귀 감시)", async () => {
+    const context = await admin.buildAdminSukuyoContext(profile(), partner("1992-11-03", "상대A"));
     const { myIdx, partnerIdx } = context.compatibilityResult;
     expect((partnerIdx - myIdx + 27) % 27).not.toBe(7);
   });
 
-  test("상대를 바꾸면 본명숙이 실제로 달라진다", () => {
-    const a = admin.buildAdminSukuyoContext(profile(), partner("1992-11-03", "상대A"));
-    const b = admin.buildAdminSukuyoContext(profile(), partner("1988-02-20", "상대B"));
+  test("상대를 바꾸면 본명숙이 실제로 달라진다", async () => {
+    const a = await admin.buildAdminSukuyoContext(profile(), partner("1992-11-03", "상대A"));
+    const b = await admin.buildAdminSukuyoContext(profile(), partner("1988-02-20", "상대B"));
     expect(a.compatibilityResult.partnerIdx).not.toBe(b.compatibilityResult.partnerIdx);
   });
 
-  test("객체로 오는 정본을 프롬프트가 읽는 문자열로 평문화한다", () => {
-    const { compatibilityResult } = admin.buildAdminSukuyoContext(profile(), partner("1992-11-03", "상대A"));
+  test("객체로 오는 정본을 프롬프트가 읽는 문자열로 평문화한다", async () => {
+    const { compatibilityResult } = await admin.buildAdminSukuyoContext(profile(), partner("1992-11-03", "상대A"));
     expect(compatibilityResult.roleGuideText).toBeTruthy();
     expect(compatibilityResult.elementHarmonyText).toBeTruthy();
     expect(compatibilityResult.strengthShadowText).toBeTruthy();
   });
 
-  test("궁합 템플릿이 상대 데이터를 실제로 물고 프롬프트를 만든다", () => {
-    const context = admin.buildAdminSukuyoContext(profile(), partner("1992-11-03", "상대A"));
+  test("궁합 템플릿이 상대 데이터를 실제로 물고 프롬프트를 만든다", async () => {
+    const context = await admin.buildAdminSukuyoContext(profile(), partner("1992-11-03", "상대A"));
     const built = sukuyoPrompt.buildSukuyoAIPromptWithDomain({
       question: "이 사람과 오래 갈 수 있을지 궁금합니다.",
       basicResult: context.basicResult,

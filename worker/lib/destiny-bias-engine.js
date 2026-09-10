@@ -1,5 +1,6 @@
 
 import { daeun } from "../../lib/korean-calendar/index.js";
+import { calculateEquationOfTimeMinutes, shiftLocalDateByDays, standardMeridianForTimezone } from "./birth-time-context.js";
 
 // 🔴 절기 축은 전부 여기서 나온다. lunar-javascript 의 절기 시각은 **중국 표준시(CST) 벽시계**라,
 // 생시를 KST 벽시계로 넘기면 월건 경계가 정확히 60분 이르다(실측 2026-08-27, 1960~2030
@@ -346,9 +347,15 @@ export function resolveBirthLocation(rawBirth = {}, rawPerson = {}) {
   ).trim() || DEFAULT_LOCATION.timezone;
 
   const timezoneOffsetHours = parseTimezoneOffsetHours(timezone);
-  const standardMeridian = Number.isFinite(timezoneOffsetHours)
-    ? timezoneOffsetHours * 15
-    : DEFAULT_LOCATION.standardMeridian;
+  const standardMeridian = standardMeridianForTimezone(
+    timezone,
+    timezoneOffsetHours,
+    Number(rawBirth?.year),
+    Number(rawBirth?.month),
+    Number(rawBirth?.day),
+    Number(rawBirth?.hour),
+    Number(rawBirth?.minute),
+  );
 
   const name = normalizeName(
     rawBirth?.birthPlace
@@ -644,28 +651,6 @@ function solarToDateTimeKstString(solar) {
   return `${String(y).padStart(4, "0")}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")} ${String(h).padStart(2, "0")}:${String(min).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
 }
 
-function shiftYmdByDays(year, month, day, dayOffset) {
-  const base = Date.UTC(year, month - 1, day, 0, 0, 0);
-  const shifted = new Date(base + dayOffset * 86400000);
-  return {
-    year: shifted.getUTCFullYear(),
-    month: shifted.getUTCMonth() + 1,
-    day: shifted.getUTCDate(),
-  };
-}
-
-function getDayOfYear(year, month, day) {
-  const current = Date.UTC(year, month - 1, day, 0, 0, 0);
-  const start = Date.UTC(year, 0, 1, 0, 0, 0);
-  return Math.floor((current - start) / 86400000) + 1;
-}
-
-function calculateEquationOfTimeMinutes(year, month, day) {
-  const n = getDayOfYear(year, month, day);
-  const b = (2 * Math.PI * (n - 81)) / 364;
-  return 9.87 * Math.sin(2 * b) - 7.53 * Math.cos(b) - 1.5 * Math.sin(b);
-}
-
 export function applyHourPillarTimeCorrection(birth, location, policy) {
   const clockTotalMinutes = birth.hour * 60 + birth.minute;
   const longitudeCorrectionMinutes = (location.longitude - location.standardMeridian) * 4;
@@ -683,7 +668,7 @@ export function applyHourPillarTimeCorrection(birth, location, policy) {
   const minuteOfDay = ((roundedTotal % 1440) + 1440) % 1440;
   const correctedHour = Math.floor(minuteOfDay / 60);
   const correctedMinute = minuteOfDay % 60;
-  const shiftedDate = shiftYmdByDays(birth.year, birth.month, birth.day, dayOffset);
+  const shiftedDate = shiftLocalDateByDays(birth.year, birth.month, birth.day, dayOffset);
 
   return {
     clockTotalMinutes,

@@ -15,6 +15,10 @@
 import { loadTsModule } from "./lib/load-ts-module.mjs";
 import { jaccard, shingles } from "./lib/text-shingles.mjs";
 import { CELEBRITY_EDITORIAL, getIndexedCelebritySlugs } from "../lib/famous-saju/celebrity-editorial.js";
+import http from "node:http";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 const MIN_NARRATIVE_CHARS = 700;
 const NARRATIVE_PARAGRAPHS = 3;
@@ -22,6 +26,32 @@ const MIN_CROSS_NOTE_CHARS = 150;
 const MAX_SEO_DESCRIPTION_WIDTH = 160;
 const MAX_HOOK_CHARS = 60;
 const MAX_PAIRWISE_OVERLAP = 0.3;
+
+// 이 검증은 실제 Swiss 결과를 비교해야 하므로 mock 천문값을 쓰지 않는다.
+// CI에는 외부 네트워크가 없을 수 있으므로 저장소의 동일 ephemeris 파일을
+// loopback HTTP로 제공한다. 운영 런타임의 SWISS_EPHEMERIS_FILES_BASE_URL은
+// 이미 설정돼 있으면 그대로 존중한다.
+const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+let localEphemerisServer = null;
+if (!process.env.SWISS_EPHEMERIS_FILES_BASE_URL) {
+  const ephemerisRoot = path.join(repoRoot, "public", "ephe");
+  localEphemerisServer = http.createServer((request, response) => {
+    const filename = decodeURIComponent(new URL(request.url || "/", "http://127.0.0.1").pathname).split("/").pop();
+    if (!filename || !/^(?:seas|semo|sepl)_18\.se1$/.test(filename)) {
+      response.writeHead(404).end();
+      return;
+    }
+    const fullPath = path.join(ephemerisRoot, filename);
+    if (!fs.existsSync(fullPath)) {
+      response.writeHead(404).end();
+      return;
+    }
+    fs.createReadStream(fullPath).on("error", () => response.writeHead(500).end()).pipe(response);
+  });
+  localEphemerisServer.unref();
+  await new Promise((resolve) => localEphemerisServer.listen(0, "127.0.0.1", resolve));
+  process.env.SWISS_EPHEMERIS_FILES_BASE_URL = `http://127.0.0.1:${localEphemerisServer.address().port}/`;
+}
 
 const service = loadTsModule("lib/famous-saju/celebrity-saju-service.ts");
 const multiSystem = loadTsModule("lib/famous-saju/celebrity-multi-system.ts");
@@ -83,7 +113,7 @@ for (const [slug, entry] of entries) {
 
   // 엔진 정합
   const reading = service.buildCelebrityReading(seed);
-  const engine = multiSystem.buildCelebrityMultiSystem({ birthDate: seed.birthDate, birthTime: seed.birthTime, country: seed.country, magazine: reading.magazine });
+  const engine = await multiSystem.buildCelebrityMultiSystem({ birthDate: seed.birthDate, birthTime: seed.birthTime, country: seed.country, magazine: reading.magazine });
   const expected = {
     dayPillar: reading.magazine.pillars.day.ganji,
     dayElement: reading.magazine.dayElement,
@@ -110,7 +140,9 @@ for (let i = 0; i < narratives.length; i += 1) {
 if (failures.length > 0) {
   console.error("[verify:famous-saju-editorial] FAIL");
   for (const line of failures) console.error(`  - ${line}`);
+  localEphemerisServer?.close();
   process.exit(1);
 }
 
+localEphemerisServer?.close();
 console.log(`[verify:famous-saju-editorial] OK — 원고 ${entries.length}건 (검수·색인 ${getIndexedCelebritySlugs().length}건), 엔진 정합·분량·출처·중복도 통과`);

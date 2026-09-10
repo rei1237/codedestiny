@@ -1,24 +1,20 @@
 // 나크샤트라 결정판 — 동양 27宿 ↔ 인도 27 Nakshatra 크로스워크 (IP 핵심)
 //
 // [저작 근거 — 사용자 검수 대상]
-// 이 대응표는 "결정성(determinative star) 기준" 학술 대응이다. 두 체계는 역사적으로
-// 동일한 황도 27분할에서 파생했고, 대표 별(결정성)이 정렬된다:
-//   - 角(각) = Chitra   : 둘 다 스피카(α Vir)
-//   - 亢(항) = Swati    : 아르크투루스 인근
-//   - 心(심) = Jyeshtha : 둘 다 안타레스(α Sco)
-//   - 昴(묘) = Krittika : 둘 다 플레이아데스
-//   - 畢(필) = Rohini   : 둘 다 알데바란/히아데스
+// 이 대응표는 런타임의 공통 달 황경 좌표를 동양 27숙과 인도 27 나크샤트라로
+// 읽을 때 사용하는 순서 대응이다. 본명숙은 Swiss 항성 달 황경의 27등분에서
+// 계산되므로, 두 체계의 인덱스 관계도 동일한 황경 좌표에서 파생되어야 한다.
 //
 // [牛/Abhijit 이음새]
 // 중국 28宿에는 牛(우)가 있으나, 본 서비스의 숙요점은 27宿 체계로 牛를 제외한다
 // (MANSIONS_27/SUKUYO_MANSIONS 모두 27개, 牛 없음). 인도 27 나크샤트라 역시
 // "28번째" Abhijit을 제외한다. 양쪽이 같은 여분(牛/Abhijit)을 덜어냈기에 나머지
-// 27:27이 **일정 오프셋의 전단사**로 맞아떨어진다:  nakshatraIdx = (sukuyoIdx + 13) mod 27.
+// 27:27이 **일정 오프셋의 전단사**로 맞아떨어진다: nakshatraIdx = (sukuyoIdx + 11) mod 27.
 // 아래 표는 그 결과를 한 행씩 명시(감사·검수 가능)하며, 오프셋은 CROSSWALK_OFFSET 로도 노출한다.
 //
-// ⚠ 주의: 이 표는 "체계 간 순서 대응"이지, "한 사람의 음력-룩업 숙(S)이 항상 시데리얼
-//   나크샤트라(N)와 (S+13)%27로 일치한다"는 뜻이 아니다. 두 계산은 서로 다른 천문
-//   (숙요=음력 룩업, 나크샤트라=시데리얼 황경)이라 경계일에는 갈릴 수 있고, 그 갈림을
+// ⚠ 주의: 이 표는 공통 황경 좌표의 "체계 간 순서 대응"이다. 런타임 본명숙은 음력 일자
+//   룩업이 아니라 입력 시각의 Swiss 항성 달 황경에서 계산하며, 나크샤트라의 실제
+//   황경 인덱스와 이 좌표 대응을 혼동하지 않는다. 경계·불일치는
 //   judgeCrosswalkMatch()가 divergence(병기) 신호로 판정한다.
 
 import { NAKSHATRA_ATTRIBUTES } from "./nakshatra-attributes.js";
@@ -37,8 +33,8 @@ const SUKUYO_27 = [
   { ko: "장", han: "張" }, { ko: "익", han: "翼" }, { ko: "진", han: "軫" },
 ];
 
-// 결정성 대응의 구조적 오프셋: nakshatraIdx = (sukuyoIdx + CROSSWALK_OFFSET) % 27.
-const CROSSWALK_OFFSET = 13;
+// 공통 달 황경 매퍼의 원점(숙요 +16)에 대응하는 역방향 오프셋: 16 + 11 = 27.
+const CROSSWALK_OFFSET = 11;
 
 // 27 크로스워크 엔트리(명시). nakshatraIdx는 오프셋으로 도출하되 표로 고정해 감사 가능하게 둔다.
 const NAKSHATRA_CROSSWALK = SUKUYO_27.map((suk, sukuyoIdx) => {
@@ -54,13 +50,13 @@ const NAKSHATRA_CROSSWALK = SUKUYO_27.map((suk, sukuyoIdx) => {
   };
 });
 
-// 결정성 앵커(검수·검증용) — 이 쌍들은 대표 별이 물리적으로 정렬되므로 표가 틀리면 여기서 깨진다.
+// 공통 황경 좌표 앵커(검수·검증용) — 실제 계산 매퍼와 표의 전단사 관계를 고정한다.
 const CROSSWALK_ANCHORS = Object.freeze([
-  { sukuyoHan: "角", nakshatraEn: "Chitra" },
-  { sukuyoHan: "亢", nakshatraEn: "Swati" },
-  { sukuyoHan: "心", nakshatraEn: "Jyeshtha" },
-  { sukuyoHan: "昴", nakshatraEn: "Krittika" },
-  { sukuyoHan: "畢", nakshatraEn: "Rohini" },
+  { sukuyoHan: "角", nakshatraEn: "Uttara Phalguni" },
+  { sukuyoHan: "亢", nakshatraEn: "Hasta" },
+  { sukuyoHan: "心", nakshatraEn: "Vishakha" },
+  { sukuyoHan: "昴", nakshatraEn: "Ashwini" },
+  { sukuyoHan: "畢", nakshatraEn: "Bharani" },
 ]);
 
 function clampIdx27(index) {
@@ -89,9 +85,9 @@ function circularDistance27(a, b) {
 }
 
 /**
- * 한 사람의 음력-도출 숙(sukuyoIdx)과 시데리얼-도출 나크샤트라(nakshatraIdx)가
- * 크로스워크 상 일치하는지 판정한다.
- *  - expectedNakshatraIdx: 숙요 기준 기대 나크샤트라((S+13)%27)
+ * 한 사람의 공통 항성 달 황경에서 도출한 숙요(sukuyoIdx)와
+ * 나크샤트라(nakshatraIdx)가 크로스워크 상 일치하는지 판정한다.
+ *  - expectedNakshatraIdx: 숙요 기준 기대 나크샤트라((S+11)%27)
  *  - match: 기대 == 실제
  *  - deltaSteps: 두 체계가 갈린 최소 스텝(0=일치, 1=경계일 인접 등)
  *  - boundary: 불일치(=경계일 병기 필요) 여부

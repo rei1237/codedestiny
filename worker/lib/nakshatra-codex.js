@@ -10,7 +10,7 @@ import {
   buildVimshottariDasha,
   nakshatraInfo,
 } from "./vedic-derived-calculations.js";
-import { buildSukuyoFromLunar } from "./sukuyo-premium.js";
+import { buildSukuyoFromMoonLongitude } from "./sukuyo-coordinate.js";
 import { judgeDayFortune } from "./sukuyo-relation-core.js";
 import {
   clampNakshatraIndex,
@@ -104,8 +104,8 @@ export function buildUnifiedView(sukuyoIdx, nakshatraIdx) {
     const actual = getNakshatraAttributes(match.nakshatraIdx);
     if (expected && actual) {
       boundaryNote =
-        `전통 숙요(음력)가 가리키는 나크샤트라는 ${expected.nameKo}, ` +
-        `시데리얼 계산은 ${actual.nameKo}입니다 — 달이 경계에 걸친 날이에요. ` +
+        `27숙 크로스워크 기준이 가리키는 나크샤트라는 ${expected.nameKo}, ` +
+        `시데리얼 달 황경 계산은 ${actual.nameKo}입니다 — 달이 경계에 걸친 날이에요. ` +
         `두 이름 모두 당신의 결에 함께 흐릅니다.`;
     }
   }
@@ -133,7 +133,7 @@ function summarizeDasha(dasha) {
 }
 
 /**
- * 순수 조립: 달 시데리얼 황경 + 음력(월/일) + 옵션으로 3-뷰 객체 생성.
+ * 순수 조립: 달 시데리얼 황경 + 표시용 음양력 메타데이터 + 옵션으로 3-뷰 객체 생성.
  * 하네스가 이 함수를 고정 입력으로 직접 호출해 검증한다(WASM 불필요).
  */
 export function assembleNatalCodex({ moonLon, birthUtc, lunar, timeUnknown = false, now }) {
@@ -144,7 +144,12 @@ export function assembleNatalCodex({ moonLon, birthUtc, lunar, timeUnknown = fal
 
   // 🔴 lunar 는 호출부가 한국 음양력 코어로 만들어 넘긴다(routes/nakshatra.js·nakshatra-ai.js).
   //    라벨은 그 자리에서 명시한다 — 기본값에 기대면 기본값이 바뀔 때 조용히 따라간다.
-  const suk = buildSukuyoFromLunar(lunar.month, lunar.day, { isLeapMonth: Boolean(lunar.isLeap), source: "korean-calendar-core" });
+  const suk = buildSukuyoFromMoonLongitude(moonLon, {
+    lunarMonth: lunar?.month ?? null,
+    lunarDay: lunar?.day ?? null,
+    isLeapMonth: Boolean(lunar?.isLeap),
+    source: "swiss-ephemeris-lahiri",
+  });
 
   const dasha = buildVimshottariDasha(moonLon, birthUtc, now || birthUtc);
   const dashaSummary = summarizeDasha(dasha);
@@ -188,8 +193,13 @@ function clampNakshatraIndexSafe(value) {
 export function assembleTodayMoon({ moonLon, lunar, myMansionIndex = null }) {
   const nak = nakshatraInfo(moonLon);
   const attrs = getNakshatraAttributes(nak.index);
-  const todaySuk = lunar
-    ? buildSukuyoFromLunar(lunar.month, lunar.day, { isLeapMonth: Boolean(lunar.isLeap), source: "korean-calendar-core" })
+  const todaySuk = Number.isFinite(Number(moonLon))
+    ? buildSukuyoFromMoonLongitude(moonLon, {
+      lunarMonth: lunar?.month ?? null,
+      lunarDay: lunar?.day ?? null,
+      isLeapMonth: Boolean(lunar?.isLeap),
+      source: "swiss-ephemeris-lahiri",
+    })
     : null;
   const cross = crosswalkFromSukuyo(todaySuk ? todaySuk.index : ((nak.index - 13 + 27) % 27));
 

@@ -219,6 +219,11 @@ for (const year of SAMPLE_YEARS) {
       hasTime: true,
       calendarType: "solar",
       timezone: "Asia/Seoul",
+      // nodeTerms() is the Korean calendar core's fixed KST wall-clock table.
+      // Keep this parity check on that declared KST axis; runtime callers that
+      // need historical civil-time accuracy omit the explicit offset and use
+      // the IANA timezone rules instead.
+      timezoneOffsetMinutes: 540,
       hourPillarTimePolicy: "KST_CLOCK_TIME",
       year: at.getUTCFullYear(),
       month: at.getUTCMonth() + 1,

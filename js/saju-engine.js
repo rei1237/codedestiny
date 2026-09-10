@@ -2926,7 +2926,7 @@ window.computeProfileForModal = function(profile) {
     hour: hour,
     minute: minute,
     longitude: lng,
-    standardMeridian: tzOff * 15
+    standardMeridian: resolvedTz.baseOffsetHours * 15
   });
   if (correction) {
     corrYear = correction.correctedYear;
@@ -5133,7 +5133,7 @@ async function calculate(){
   var bTz = countrySel ? countrySel.value : 'Asia/Seoul';
   var tzResolved = resolveBirthTimezoneOffset(year, month, day, hour, minute, bTz, bBaseTzOff);
   var bTzOff = tzResolved.tzOffsetHours;
-  var stdLong = bTzOff * 15;
+  var stdLong = tzResolved.baseOffsetHours * 15;
   var correction = _applyTrueSolarTimeCorrection({
     year: year,
     month: month,

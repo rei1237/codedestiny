@@ -44,7 +44,7 @@ const LITE_PROMPT_TOOLS_TEXT_TRANSLATIONS = {
     "litePrompt.005": "간단한 점성술 프롬프트",
     "litePrompt.006": "태양궁 중심의 가벼운 서양 점성술 리딩 프롬프트를 만듭니다.",
     "litePrompt.007": "간단한 숙요점 프롬프트",
-    "litePrompt.008": "음력 월일 기반 본명숙을 산출해 기본 성향 프롬프트를 만듭니다.",
+    "litePrompt.008": "출생 시각을 반영한 달 황경 기반 본명숙 프롬프트를 준비합니다.",
     "litePrompt.009": "양력",
     "litePrompt.010": "연주",
     "litePrompt.011": "월주",
@@ -71,13 +71,6 @@ export const LITE_PROMPT_MODES = [
   { id: "astrology", label: litePromptToolsText("litePrompt.005"), description: litePromptToolsText("litePrompt.006") },
   { id: "sukuyo", label: litePromptToolsText("litePrompt.007"), description: litePromptToolsText("litePrompt.008") },
 ] as const;
-
-const SUKUYO_MONTH_START = [11, 13, 15, 17, 19, 21, 24, 0, 2, 4, 6, 8];
-const SUKUYO_MANSIONS = [
-  "각宿", "항宿", "저宿", "방宿", "심宿", "미宿", "기宿", "두宿", "우宿",
-  "여宿", "허宿", "위宿", "실宿", "벽宿", "규宿", "루宿", "위宿", "묘宿",
-  "필宿", "자宿", "삼宿", "정宿", "귀宿", "류宿", "성宿", "장宿", "익宿",
-];
 
 const SOLAR_SIGNS = [
   { sign: "염소자리", start: [12, 22], end: [1, 19] },
@@ -178,12 +171,6 @@ function findSolarSign(month: number, day: number) {
     return value >= start && value <= end;
   });
   return match?.sign || "계산 필요";
-}
-
-function buildSukuyo(lunarMonth: number, lunarDay: number) {
-  const start = SUKUYO_MONTH_START[Math.max(1, Math.min(12, lunarMonth)) - 1] ?? 11;
-  const index = (start + Math.max(1, Math.min(30, lunarDay)) - 1) % 27;
-  return { index, mansion: SUKUYO_MANSIONS[index] || "미산출" };
 }
 
 function normalizeLiteInput(input: LitePromptInput) {
@@ -292,15 +279,14 @@ export function calculateLiteSajuPrompt(input: LitePromptInput): LitePromptResul
 
 export function calculateLiteSukuyoPrompt(input: LitePromptInput): LitePromptResult {
   const data = normalizeLiteInput(input);
-  const sukuyo = buildSukuyo(data.lunar.month, data.lunar.day);
   const cards = [
-    { label: litePromptToolsText("litePrompt.014"), value: sukuyo.mansion },
+    { label: litePromptToolsText("litePrompt.014"), value: "계산 필요" },
     { label: litePromptToolsText("litePrompt.015"), value: `${data.lunar.month}월 ${data.lunar.day}일` },
     { label: litePromptToolsText("litePrompt.016"), value: "본명숙 중심" },
   ];
   const prompt = `당신은 숙요점 상담에 능숙한 전문 상담가입니다.
 
-아래 정보는 정규화된 음력 월일을 바탕으로 본명숙만 산출한 무료 간이 숙요점 프롬프트입니다. 정식 숙요 궁합 리포트처럼 관계 거리, 궁합 지수, 장문 챕터를 만들지 말고 본명숙의 기본 성향과 질문의 흐름을 중심으로 읽어주세요.
+아래 정보는 한국 시간대와 출생 시각을 정리한 무료 간이 숙요점 프롬프트입니다. 본명숙은 Swiss Ephemeris의 지심 항성 달 황경을 계산해야 하므로, 황경이 제공되지 않은 상태에서는 임의로 숙을 정하지 않습니다.
 
 [입력 정보]
 이름 또는 별칭: ${input.name || "미입력"}
@@ -313,13 +299,13 @@ export function calculateLiteSukuyoPrompt(input: LitePromptInput): LitePromptRes
 양력 생년월일: ${data.normalized.solarDate}
 음력 생년월일: ${data.normalized.lunarDate}
 윤달 여부: ${data.normalized.isLeapMonth ? "예" : "아니오"}
-본명숙: ${sukuyo.mansion}
-산출 기준: 음력 월일 기반 본명숙 간이 계산
+본명숙: 계산 필요(항성 달 황경 계산 대기)
+산출 기준: KST/출생지 시간대 → UTC·JD → Swiss Ephemeris 라히리 달 황경의 27등분
 
 [해석 요청]
-1. 본명숙이 보여주는 기본 기질을 설명해 주세요.
-2. 질문과 연결되는 관계, 일, 선택 습관을 현실적으로 짚어 주세요.
-3. 정식 궁합 거리나 상대 숙 계산은 계산 필요로 남겨 주세요.
+1. 본명숙이 산출되지 않았으므로 숙 이름이나 기질을 지어내지 마세요.
+2. 질문과 연결되는 관계, 일, 선택 습관은 사용자가 제공한 정보만으로 현실적으로 짚어 주세요.
+3. 정확한 숙요 해석에는 항성 달 황경과 출생지 시간대 계산이 필요하다고 알려 주세요.
 4. 지금 확인해야 할 체크포인트 3가지를 제안해 주세요.
 5. 재미와 참고 목적의 리딩임을 자연스럽게 안내해 주세요.
 

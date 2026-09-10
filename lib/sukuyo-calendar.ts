@@ -4,7 +4,7 @@ import { cmsRecordRow } from "./cms/build-text";
 // 삭이 CST 23시대에 들면 그 달 전체의 음력일이 하루 밀린다 — 실측 2026-08-27 기준 1900~2100 전수
 // 73,414일 중 2,997일(4.08%)이 갈린다. 27수는 음력 월·일로 직접 결정되므로 그 하루가 곧 다른 수(宿)다.
 import { solarToLunar } from "@/lib/korean-calendar";
-import { buildSukuyoFromLunar } from "@/worker/lib/sukuyo-premium.js";
+import { calculateSukuyoForMoment } from "@/worker/lib/sukuyo-astronomy.js";
 
 export const SUKUYO_CALENDAR_TIMEZONE = "Asia/Seoul";
 
@@ -495,17 +495,15 @@ function normalizeYearMonth(year: number, month: number) {
   return { year, month };
 }
 
-function resolveSukuyoBySolarDate(year: number, month: number, day: number) {
+async function resolveSukuyoBySolarDate(year: number, month: number, day: number) {
   const lunar = solarToLunar(year, month, day);
   if (!lunar) {
     throw new RangeError(`한국 음양력 코어가 ${formatKstDateKey(year, month, day)} 를 답하지 못했습니다(지원 1900~2100).`);
   }
   const { lunarMonth, lunarDay, lunarYear, isLeapMonth } = lunar;
-  const sukuyo = buildSukuyoFromLunar(lunarMonth, lunarDay, {
-    isLeapMonth,
-    source: "korean-calendar-core",
-  });
-  const mansionIndex = Number(sukuyo?.index);
+  // 날짜형 화면은 시각이 없는 입력이므로 계약상 12:00 KST 대표값을 사용한다.
+  const sukuyo = await calculateSukuyoForMoment({}, { year, month, day, hour: 12, minute: 0, timezoneOffset: 9, birthTimeKnown: false });
+  const mansionIndex = Number(sukuyo?.mansionIdx);
   if (!Number.isInteger(mansionIndex) || mansionIndex < 0 || mansionIndex >= SUKUYO_CALENDAR_MANSIONS.length) {
     throw new Error("숙요 계산값을 달력 표기로 연결하지 못했습니다.");
   }
@@ -521,9 +519,9 @@ function resolveSukuyoBySolarDate(year: number, month: number, day: number) {
   };
 }
 
-export function buildSukuyoCalendarDay(year: number, month: number, day: number, todayKey = getKstTodayKey()): SukuyoCalendarDay {
+export async function buildSukuyoCalendarDay(year: number, month: number, day: number, todayKey = getKstTodayKey()): Promise<SukuyoCalendarDay> {
   const date = formatKstDateKey(year, month, day);
-  const resolved = resolveSukuyoBySolarDate(year, month, day);
+  const resolved = await resolveSukuyoBySolarDate(year, month, day);
   const weekdayIndex = getKstWeekdayIndex(year, month, day);
   const text = resolved.text;
 
@@ -554,13 +552,13 @@ export function buildSukuyoCalendarDay(year: number, month: number, day: number,
   };
 }
 
-export function buildSukuyoCalendarMonth(yearInput: number, monthInput: number, options: BuildMonthOptions = {}): SukuyoCalendarMonth {
+export async function buildSukuyoCalendarMonth(yearInput: number, monthInput: number, options: BuildMonthOptions = {}): Promise<SukuyoCalendarMonth> {
   const { year, month } = normalizeYearMonth(yearInput, monthInput);
   const today = getKstTodayKey(options.now);
   const daysInMonth = getDaysInMonth(year, month);
-  const days = Array.from({ length: daysInMonth }, (_, index) =>
+  const days = await Promise.all(Array.from({ length: daysInMonth }, (_, index) =>
     buildSukuyoCalendarDay(year, month, index + 1, today)
-  );
+  ));
 
   return {
     year,

@@ -26,6 +26,7 @@
  *      지점이라, 여기가 중국 음력이면 업스트림이 죽는 동안에만 조용히 틀린다.
  */
 import fs from "node:fs";
+import http from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -37,6 +38,29 @@ import { loadTsModule } from "./lib/load-ts-module.mjs";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
 const REPORT = process.argv.includes("--report");
+
+// 관리자 숙요 소비자도 실제 공통 Swiss 천문 코어를 사용한다. 네트워크 없는
+// 검증 환경에서는 저장소에 포함된 동일 ephemeris 파일을 loopback으로만 제공한다.
+let localEphemerisServer = null;
+if (!process.env.SWISS_EPHEMERIS_FILES_BASE_URL) {
+  const ephemerisRoot = path.join(root, "public", "ephe");
+  localEphemerisServer = http.createServer((request, response) => {
+    const filename = decodeURIComponent(new URL(request.url || "/", "http://127.0.0.1").pathname).split("/").pop();
+    if (!filename || !/^(?:seas|semo|sepl)_18\.se1$/.test(filename)) {
+      response.writeHead(404).end();
+      return;
+    }
+    const fullPath = path.join(ephemerisRoot, filename);
+    if (!fs.existsSync(fullPath)) {
+      response.writeHead(404).end();
+      return;
+    }
+    fs.createReadStream(fullPath).on("error", () => response.writeHead(500).end()).pipe(response);
+  });
+  localEphemerisServer.unref();
+  await new Promise((resolve) => localEphemerisServer.listen(0, "127.0.0.1", resolve));
+  process.env.SWISS_EPHEMERIS_FILES_BASE_URL = `http://127.0.0.1:${localEphemerisServer.address().port}/`;
+}
 
 const failures = [];
 let checks = 0;
@@ -399,18 +423,18 @@ const LUNAR_TO_SOLAR = [
 const SOLAR_TO_LUNAR = [
   {
     name: "worker/lib/karma-destiny-ai-calculations.js toLunarParts",
-    lunarOf: (s) => {
+    lunarOf: async (s) => {
       const parts = karma.toLunarParts({ birthDate: s.ymd, birthTime: "12:00", calendarType: "solar" });
       return parts ? `${parts.lunarMonth}/${parts.lunarDay}` : "null";
     },
   },
   {
     name: "worker/routes/admin.js resolveAdminSukuyoStar",
-    lunarOf: (s) => {
-      const star = admin.resolveAdminSukuyoStar({
+    lunarOf: async (s) => {
+      const star = await admin.resolveAdminSukuyoStar({
         year: s.year, month: s.month, day: s.day, hour: 12, minute: 0, timeUnknown: false, calendarType: "solar",
       });
-      return `${star.lunarMonth}/${star.lunarDay}`;
+      return `${star.sukuyo.lunarMonth}/${star.sukuyo.lunarDay}`;
     },
   },
   {
@@ -531,10 +555,12 @@ for (const consumer of SOLAR_TO_LUNAR) {
 
 // ── 결과 ────────────────────────────────────────────────────────────────────
 if (failures.length) {
+  localEphemerisServer?.close();
   console.error(`\n[verify:lunar-conversion-core] 실패 ${failures.length}건 / 검사 ${checks}건`);
   failures.forEach((f) => console.error(`  ✗ ${f}`));
   process.exit(1);
 }
+localEphemerisServer?.close();
 console.log(
   `[verify:lunar-conversion-core] 통과 — 검사 ${checks}건 · 변환 소스 ${found.length}개 · `
   + `소비자 ${LUNAR_TO_SOLAR.length + SOLAR_TO_LUNAR.length}벌 · `

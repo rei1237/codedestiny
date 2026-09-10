@@ -34,6 +34,7 @@ const FALLBACK_SWISS_EPHE_BASE_URL = "https://cdn.jsdelivr.net/npm/sweph-wasm/di
 
 let swissPromise = null;
 let sweWasmModulePromise = null;
+let localEphemerisServerPromise = null;
 
 // 이 파일은 두 번들러가 공유한다: worker/index.js(wrangler/esbuild, Node API 없는 순수 워커)와
 // app/api/*.ts(Next webpack, 실제 Node 런타임). swisseph.wasm은 Emscripten 산출물이라 내부
@@ -45,9 +46,16 @@ let sweWasmModulePromise = null;
 async function loadSweWasmModule() {
   sweWasmModulePromise ??= (async () => {
     try {
-      const { readFile } = await import("node:fs/promises");
-      const wasmUrl = new URL("../../public/js/vendor/sweph-wasm/wasm/swisseph.wasm", import.meta.url);
-      const bytes = await readFile(wasmUrl);
+      // Keep the Node-only loader opaque to Next webpack. The same module is
+      // bundled by Wrangler for the Worker, where node:fs is unavailable and
+      // the WASM asset import below is the intended path.
+      const loadNodeFs = Function("specifier", "return import(specifier)");
+      const { readFile } = await loadNodeFs("node:fs/promises");
+      // Next places this module under `.next/server/app/**`; resolving the
+      // public asset from import.meta.url would therefore manufacture an
+      // `app/insights/public` path during prerendering.
+      const wasmPath = `${process.cwd()}/public/js/vendor/sweph-wasm/wasm/swisseph.wasm`;
+      const bytes = await readFile(wasmPath);
       return await WebAssembly.compile(bytes);
     } catch {
       const mod = await import(/* webpackIgnore: true */ "../../public/js/vendor/sweph-wasm/wasm/swisseph.wasm");
@@ -655,6 +663,66 @@ function julianDayFromInput(swe, input) {
   );
 }
 
+function isNodeRuntime() {
+  return typeof process !== "undefined" && Boolean(process.versions?.node);
+}
+
+async function resolveLocalEphemerisBaseUrl() {
+  if (!isNodeRuntime()) return "";
+
+  localEphemerisServerPromise ??= (async () => {
+    // Next static generation has no request origin, while the Node runtime can
+    // still serve the checked-in ephemeris files from the project workspace.
+    // Keep these imports opaque so the same module remains Worker-compatible.
+    const loadNodeModule = Function("specifier", "return import(specifier)");
+    const [{ createServer }, { readFile }, path] = await Promise.all([
+      loadNodeModule("node:http"),
+      loadNodeModule("node:fs/promises"),
+      loadNodeModule("node:path"),
+    ]);
+    const epheRoot = path.resolve(process.cwd(), "public", "ephe");
+    const allowedFiles = new Set(EPHE_FILES);
+    const server = createServer(async (request, response) => {
+      try {
+        const requestPath = new URL(request.url || "/", "http://127.0.0.1").pathname;
+        const fileName = decodeURIComponent(requestPath.replace(/^\/+/, ""));
+        if (!allowedFiles.has(fileName)) {
+          response.statusCode = 404;
+          response.end();
+          return;
+        }
+        const bytes = await readFile(path.join(epheRoot, fileName));
+        response.statusCode = 200;
+        response.setHeader("content-type", fileName.endsWith(".txt") ? "text/plain" : "application/octet-stream");
+        response.end(bytes);
+      } catch (error) {
+        response.statusCode = 404;
+        response.end();
+      }
+    });
+
+    await new Promise((resolve, reject) => {
+      const onError = (error) => reject(error);
+      server.once("error", onError);
+      server.listen(0, "127.0.0.1", () => {
+        server.off("error", onError);
+        resolve();
+      });
+    });
+    const address = server.address();
+    if (!address || typeof address === "string" || !Number.isFinite(address.port)) {
+      throw new Error("Unable to resolve local Swiss ephemeris server address.");
+    }
+    server.unref();
+    return `http://127.0.0.1:${address.port}/`;
+  })().catch((error) => {
+    localEphemerisServerPromise = null;
+    throw error;
+  });
+
+  return localEphemerisServerPromise;
+}
+
 function resolveEpheBaseUrl(env, options = {}) {
   const fromEnv = sanitizeUrlLikeEnvValue(
     getEnv(env, "SWISS_EPHEMERIS_FILES_BASE_URL")
@@ -778,7 +846,16 @@ async function createSwissInstance(env, options = {}) {
     throw buildSwissWasmInitError(attempts);
   }
 
-  const epheBaseUrl = resolveEpheBaseUrl(env, options);
+  let epheBaseUrl;
+  try {
+    epheBaseUrl = resolveEpheBaseUrl(env, options);
+  } catch (error) {
+    // Next static generation has no request origin. In Node only, serve the
+    // checked-in ephemeris files locally without changing the public sync URL
+    // resolver contract used by Worker safety tests and callers.
+    if (!isNodeRuntime() || !/Swiss ephemeris base URL is missing/i.test(error?.message || "")) throw error;
+    epheBaseUrl = await resolveLocalEphemerisBaseUrl();
+  }
   const epheAttempts = [epheBaseUrl];
   if (epheBaseUrl !== FALLBACK_SWISS_EPHE_BASE_URL) epheAttempts.push(FALLBACK_SWISS_EPHE_BASE_URL);
 
@@ -800,7 +877,57 @@ async function createSwissInstance(env, options = {}) {
   return swe;
 }
 
+// Jest 라우트 계약 테스트는 WASM 호스트를 띄우지 않는다. 실제 서비스와 천문 검증
+// 스크립트는 아래 분기를 타지 않고 createSwissInstance의 Swiss Ephemeris를 사용한다.
+function createMockSwissInstance() {
+  const constants = {
+    SE_SUN: 0, SE_MOON: 1, SE_MERCURY: 2, SE_VENUS: 3, SE_MARS: 4,
+    SE_JUPITER: 5, SE_SATURN: 6, SE_URANUS: 7, SE_NEPTUNE: 8, SE_PLUTO: 9,
+    SE_TRUE_NODE: 10, SEFLG_SWIEPH: 1, SEFLG_SPEED: 2, SEFLG_SIDEREAL: 4,
+    SE_SIDM_LAHIRI: 1, SE_GREG_CAL: 1,
+  };
+  const bodyByConstant = {
+    [constants.SE_SUN]: "Sun", [constants.SE_MOON]: "Moon", [constants.SE_MERCURY]: "Mercury",
+    [constants.SE_VENUS]: "Venus", [constants.SE_MARS]: "Mars", [constants.SE_JUPITER]: "Jupiter",
+    [constants.SE_SATURN]: "Saturn", [constants.SE_URANUS]: "Uranus", [constants.SE_NEPTUNE]: "Neptune",
+    [constants.SE_PLUTO]: "Pluto",
+  };
+  const dateFromJd = (jd) => new Date((Number(jd) - 2440587.5) * 86400000);
+  const longitudeFor = (body, date) => {
+    const ecliptic = Astronomy.Ecliptic(Astronomy.GeoVector(Astronomy.Body[body], date, true));
+    return nd(ecliptic?.elon);
+  };
+  return {
+    ...constants,
+    swe_set_sid_mode() {},
+    swe_julday(year, month, day, hour) {
+      return (Date.UTC(year, month - 1, day) + Number(hour) * 3600000) / 86400000 + 2440587.5;
+    },
+    swe_get_ayanamsa_ut() { return 24; },
+    swe_calc_ut(jd, planet, flags = 0) {
+      const date = dateFromJd(jd);
+      const body = bodyByConstant[planet] || "Moon";
+      const longitude = body === "Moon"
+        ? longitudeFor(body, date)
+        : (Astronomy.Body[body] ? longitudeFor(body, date) : nd(longitudeFor("Moon", date) - 125));
+      const siderealLongitude = (flags & constants.SEFLG_SIDEREAL) ? nd(longitude - 24) : longitude;
+      return [siderealLongitude, 0, 0, 0];
+    },
+    swe_houses_ex(jd, flags, lat, lon) {
+      const input = { year: dateFromJd(jd).getUTCFullYear(), lat, lon };
+      const utcDate = dateFromJd(jd);
+      input.month = utcDate.getUTCMonth() + 1;
+      input.day = utcDate.getUTCDate();
+      input.hour = utcDate.getUTCHours();
+      input.minute = utcDate.getUTCMinutes();
+      const houses = calcAscMcByAstronomyEngine(input, utcDate);
+      return { ascmc: [houses.asc, houses.mc], cusps: [0, ...houses.houseCusps] };
+    },
+  };
+}
+
 async function getSwiss(env, options = {}) {
+  if (getEnv(env, "CD_MOCK_TESTS") === "true") return createMockSwissInstance();
   if (!swissPromise) {
     swissPromise = createSwissInstance(env, options).catch((error) => {
       swissPromise = null;

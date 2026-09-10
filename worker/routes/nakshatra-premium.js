@@ -19,7 +19,7 @@ import { connectDb, isTransientMongoError, withMongoRetry } from "../lib/db.js";
 import { User } from "../lib/models.js";
 import { getSwissVedicPlanets, getSwissMoonLongitudes } from "../lib/swiss-ephemeris.js";
 import { nakshatraInfo, buildVimshottariDasha } from "../lib/vedic-derived-calculations.js";
-import { buildSukuyoFromLunar } from "../lib/sukuyo-premium.js";
+import { buildSukuyoFromMoonLongitude } from "../lib/sukuyo-astronomy.js";
 import { buildNakshatraLordReport } from "../lib/nakshatra-lord-report.js";
 import { buildNakshatraDashaMap } from "../lib/nakshatra-dasha-map.js";
 import { buildNakshatraMuhurta, listMuhurtaPurposes } from "../lib/nakshatra-muhurta.js";
@@ -105,12 +105,12 @@ function isValidBirth(input) {
 // 🔴 음력은 한국 음양력 코어(KST 삭 기준)가 낸다. 중국 음력(lunar-javascript)은 삭이 CST 23시대에
 //    들면 그 달 전체가 하루 밀려 27수 본명숙이 통째로 다른 수가 된다(실측 3.57%).
 //    생시는 음력일을 바꾸지 않으므로 코어는 날짜만 받는다. 범위 밖이면 null.
-function sukuyoFromSolarDate(year, month, day) {
+function sukuyoFromSolarDate(year, month, day, moonLongitude = null) {
   const lunar = solarToLunar(year, month, day);
-  if (!lunar) return null;
-  return buildSukuyoFromLunar(lunar.lunarMonth, lunar.lunarDay, {
-    isLeapMonth: lunar.isLeapMonth,
-    source: "korean-calendar-core",
+  if (!lunar || !Number.isFinite(Number(moonLongitude))) return null;
+  return buildSukuyoFromMoonLongitude(moonLongitude, {
+    lunarMonth: lunar.lunarMonth, lunarDay: lunar.lunarDay,
+    isLeapMonth: lunar.isLeapMonth, source: "swiss-ephemeris-lahiri",
   });
 }
 
@@ -276,12 +276,10 @@ function buildScanDays(startDate, dayCount) {
     const year = cursor.getUTCFullYear();
     const month = cursor.getUTCMonth() + 1;
     const day = cursor.getUTCDate();
-    const suk = sukuyoFromSolarDate(year, month, day);
-    if (!suk) continue;
     out.push({
       date: `${year}-${pad2(month)}-${pad2(day)}`,
       weekdayIndex: cursor.getUTCDay(),
-      sukuyoIndex: suk.index,
+      sukuyoIndex: null,
       moment: { year, month, day, hour: 12, minute: 0, timezone: 9 },
     });
   }
@@ -318,7 +316,7 @@ async function handleMuhurta(request, env) {
   if (moonLon == null) {
     return json({ ok: false, retryable: true, reason: "SWISS_MOON_UNAVAILABLE", message: MESSAGES.moonUnavailable }, { status: 502 });
   }
-  const mySuk = sukuyoFromSolarDate(input.year, input.month, input.day);
+  const mySuk = sukuyoFromSolarDate(input.year, input.month, input.day, moonLon);
   if (!mySuk) {
     return json({ ok: false, reason: "INVALID_INPUT", message: MESSAGES.invalidInput }, { status: 400 });
   }
@@ -339,7 +337,7 @@ async function handleMuhurta(request, env) {
     days: scan.map((day, index) => ({
       date: day.date,
       weekdayIndex: day.weekdayIndex,
-      sukuyoIndex: day.sukuyoIndex,
+      sukuyoIndex: buildSukuyoFromMoonLongitude(longitudes[index])?.index ?? null,
       moonLongitude: longitudes[index],
     })),
   });
@@ -375,7 +373,7 @@ async function handleVvipCodex(request, env) {
     return json({ ok: false, retryable: true, reason: "SWISS_MOON_UNAVAILABLE", message: MESSAGES.moonUnavailable }, { status: 502 });
   }
 
-  const sukuyo = sukuyoFromSolarDate(input.year, input.month, input.day);
+  const sukuyo = sukuyoFromSolarDate(input.year, input.month, input.day, moonLon);
   if (!sukuyo) {
     return json({ ok: false, reason: "INVALID_INPUT", message: MESSAGES.invalidInput }, { status: 400 });
   }

@@ -5,19 +5,19 @@ const SUKUYO_CALENDAR_PAGE_TEXT_TRANSLATIONS = {
   ko: {
     title: "27숙 달력 | Code Destiny",
     description:
-      "양력 날짜를 음력으로 옮겨 그날 달이 머무는 27숙을 찾고, 활용·주의·연애·일과 돈 조언과 본명숙 기준 개인 길흉까지 한 화면에서 봅니다.",
+      "입력 시각을 UTC와 줄리안일로 바꾸어 그 순간의 항성 달 황경에서 27숙을 찾고, 활용·주의·연애·일과 돈 조언을 한 화면에서 봅니다.",
     keywords: ["27숙 달력", "숙요 달력", "숙요점", "27수", "오늘의 숙요"],
   },
   en: {
     title: "27 Lunar Mansion Calendar | Code Destiny",
     description:
-      "Converts a solar date to its lunar date, finds the 27 lunar mansion the Moon occupies, and shows daily use, caution, love and money guidance plus personal fortune from your birth mansion.",
+      "Converts the selected local time to UTC and Julian Date, finds the Moon's sidereal mansion continuously, and shows daily use, caution, love, work and money guidance.",
     keywords: ["27 lunar mansion calendar", "Sukuyo calendar", "Sukuyo astrology", "daily Sukuyo"],
   },
   ja: {
     title: "二十七宿カレンダー | Code Destiny",
     description:
-      "新暦の日付を旧暦に換算してその日の二十七宿を割り出し、活用・注意・恋愛・仕事とお金の助言に加え、本命宿を基準にした個人の吉凶まで一画面で確認できます。",
+      "入力した時刻をUTCとユリウス日へ変換し、その瞬間の月のサイデリアル黄経から二十七宿を求め、活用・注意・恋愛・仕事とお金の助言を確認できます。",
     keywords: ["二十七宿カレンダー", "宿曜カレンダー", "宿曜占星術", "今日の宿曜"],
   },
 } as const;
@@ -61,9 +61,10 @@ export default function SukuyoCalendarPage() {
 
           <h2 className="mt-2 text-xl font-semibold">이 달력은 날짜에서 숙을 어떻게 뽑나</h2>
           <p className="leading-8">
-            먼저 입력한 양력 날짜를 한국 음양력 코어로 음력으로 옮깁니다. 숙요점의 자리는 음력 월과 음력 일이 함께
-            정하는 값이라, 양력에서 곧바로 계산하면 매년 며칠씩 어긋납니다. 윤달도 그대로 반영해 윤달의 하루와 평달의
-            같은 날짜가 서로 다른 숙을 받도록 했습니다.
+            먼저 입력한 현지 시각을 실제 발생 순간의 UTC와 줄리안일(JD)로 정규화합니다. 그 순간 Swiss Ephemeris가
+            계산한 지심 항성 달 황경을 360도에서 27개 동일 구간으로 나누므로, 시·분이 바뀌면 황경도 연속적으로
+            변하고 경계를 지나는 순간 다음 숙으로 넘어갑니다. 화면에 표시하는 음력 날짜는 한국 음양력 코어의
+            메타데이터이며 숙 판정의 입력값으로 사용하지 않습니다.
           </p>
           <p className="leading-8">
             날짜 경계는 한국 표준시를 기준으로 삼습니다. 자정을 넘긴 새벽에 보아도 달력이 말하는 오늘은 한국 시간의

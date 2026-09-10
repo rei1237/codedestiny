@@ -715,7 +715,7 @@ export default async function FamousSajuInsightDetailPage({ params }: PageProps)
   const { celebrity, magazine } = reading;
   const editorial = getCelebrityEditorial(celebrity.slug);
   const reviewedAt = editorial?.reviewedAt || null;
-  const multiSystem = buildCelebrityMultiSystem({ birthDate: celebrity.birthDate || "", birthTime: celebrity.birthTime, country: celebrity.country, magazine });
+  const multiSystem = await buildCelebrityMultiSystem({ birthDate: celebrity.birthDate || "", birthTime: celebrity.birthTime, country: celebrity.country, magazine });
   const related = getCelebrityRelatedList(celebrity);
   const relatedSummary: RelatedCelebrity = { slug: celebrity.slug, category: celebrity.category, nameKo: celebrity.nameKo, tags: celebrity.tags };
   const accent = accentFor(magazine.dayElement);
