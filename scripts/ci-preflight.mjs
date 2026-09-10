@@ -96,7 +96,11 @@ async function main() {
     console.log(scope);
     if (!scope.includes("[paid-gate-scope] run=false")) {
       // No base attribution waiver: every paid regression must pass locally.
-      run(process.execPath, ["scripts/run-paid-gate-suite.mjs"], { cwd: snapshot, env });
+      const paidGateArgs = ["scripts/run-paid-gate-suite.mjs"];
+      // test:jest와 test:node를 이미 preflight 명령으로 통과했으면 paid suite의 `npm test`와 중복된다.
+      // 독립 GitHub paid-flow-gates job은 여전히 전체 스위트를 실행한다.
+      if (commands.includes("npm run test:jest") && commands.includes("npm run test:node")) paidGateArgs.push("--skip", "npm test");
+      run(process.execPath, paidGateArgs, { cwd: snapshot, env });
     }
     if (tree() !== candidate || git(["rev-parse", "origin/main"]) !== base) throw new Error("Source/main changed during validation; run preflight again.");
     writeFileSync(receiptPath, JSON.stringify({ version: 1, tree: candidate, base, tier, completedAt: new Date().toISOString() }, null, 2));
