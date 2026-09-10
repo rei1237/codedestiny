@@ -331,7 +331,7 @@ jobs:
         run: npm ci
 
       - name: Install Playwright Chromium
-        run: npx playwright install chromium
+        run: npx playwright install --with-deps chromium
 
       - name: Verify release pipeline contract
         env:
@@ -566,6 +566,7 @@ jobs:
       CD_STAGING_ORIGIN: ${{ vars.CD_STAGING_ORIGIN || 'https://staging.code-destiny.com' }}
       CD_DEPLOY_HEAD_SHA: ${{ github.sha }}
       CD_ALLOW_EMPTY_CHANGESET: "true"
+      REDEPLOY_FLAG: ${{ (github.event_name == 'workflow_dispatch' && inputs.allow_redeploy) && '--allow-redeploy' || '' }}
       # 프론트가 자기 오리진의 /api 를 치게 한다. 안 세우면 next.config.mjs 가 NODE_ENV=production
       # 이라는 이유로 https://code-destiny.com 을 빌드에 인라인해, 스테이징 화면이 프로덕션 API 를
       # 호출하고 CSP(connect-src 'self')에도 걸린다.
@@ -593,6 +594,9 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
 
       - name: Fail fast when the staging project is unconfigured
         run: |
@@ -627,8 +631,8 @@ jobs:
 
       - name: Deploy staging Pages and Worker at the exact SHA
         id: deploy
-        if: steps.staging_current.outputs.current == 'true'
-        run: npm run deploy:staging -- --ci --yes
+        if: steps.staging_current.outputs.current == 'true' || (github.event_name == 'workflow_dispatch' && inputs.allow_redeploy)
+        run: npm run deploy:staging -- --ci --yes ${REDEPLOY_FLAG}
 
       # 🔴 release 잡과 같은 이유로 배포 실패 시에는 **기록 전용**이다. 그렇게 하지 않으면
       # 빌드·테스트가 죽은 런에서도 이 스텝이 마지막 빨간불이 돼 "SHA 가 안 맞는다"로 보이고,
@@ -706,7 +710,7 @@ jobs:
         run: npm ci
 
       - name: Install Playwright Chromium
-        run: npx playwright install chromium
+        run: npx playwright install --with-deps chromium
 
       - name: Require at least one rollback target
         run: |
