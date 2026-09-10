@@ -15,11 +15,13 @@
  * 🔴 여기서 고정하지 않는 것: 재구매 시 한도 갱신 정책(같은 등급 가산 · 만료 뒤 재구매 리셋)은
  *    __tests__/worker/payments-v2.pass-check.test.js 가 이미 고정한다. 사본을 만들지 않는다.
  */
+import { runInNewContext } from "node:vm";
 import { consumePassForFeature } from "../../worker/lib/pass-consumption.js";
+import { consumePassCoverage } from "../../worker/payments/passes.js";
 import { readAccessStateCache, writeAccessStateCache } from "../../worker/lib/access-state-cache.js";
 import { getBillingFeaturePricing } from "../../worker/lib/billing-feature-registry.js";
 import { MIN_PASS_COVERABLE_COIN, MONTHLY_PASS_LIMITS, PASS_LIMITS } from "../../worker/lib/profile-limits.js";
-import { makeFakePaymentDb } from "../fixtures/fake-payment-db.mjs";
+import { makeFakePaymentDb, matches } from "../fixtures/fake-payment-db.mjs";
 
 const USER = "64b000000000000000000001";
 const DAY_MS = 86_400_000;
@@ -57,6 +59,189 @@ function consume(db, user, at, { cost, requestId }) {
     featureKey: FEATURE, requestId, coinCost: cost,
   });
 }
+
+test("fake payment DB keeps Mongo comparison semantics for missing and null values", () => {
+  expect(matches({}, { counter: { $lte: 0 } })).toBe(false);
+  expect(matches({ counter: null }, { counter: { $lte: 0 } })).toBe(false);
+  expect(matches({ counter: "0" }, { counter: { $lte: 0 } })).toBe(false);
+  expect(matches({ counter: 0 }, { counter: { $lte: 0 } })).toBe(true);
+  expect(matches({ key: "a" }, { key: { $gte: "a" } })).toBe(true);
+  const foreignDate = runInNewContext("new Date('2030-01-01T00:00:00.000Z')");
+  expect(matches({ at: foreignDate }, { at: { $lte: new Date("2030-01-02T00:00:00.000Z") } })).toBe(true);
+  expect(matches({}, { counter: { $exists: false } })).toBe(true);
+  expect(matches({ counter: null }, { counter: { $exists: false } })).toBe(false);
+});
+
+describe("레거시 이용권 카운터 복구 — 실제 문제 기능", () => {
+  test.each([
+    ["premium", "ziwei_ai_prompt_generator"],
+    ["vvip", "saju_ai_prompt_generator"],
+    ["vvip", "master-love-codex"],
+    ["family", "master-love-codex-compat"],
+    ["family", "ziwei-ai-consultation"],
+  ])("%s 이용권은 %s 가격을 커버하면 누락 카운터를 원자적으로 시작한다", async (tier, requestedFeatureKey) => {
+    const db = makeFakePaymentDb();
+    const at = expiresAt();
+    const resolved = getBillingFeaturePricing({ featureKey: requestedFeatureKey });
+    expect(resolved.ok).toBe(true);
+    const cost = Number(resolved.pricing.cost);
+    const user = {
+      _id: USER,
+      profileSubscription: {
+        tier, passTier: tier, isActive: true, expiresAt: at,
+        premiumUseCycleKey: at.toISOString(), monthlyLimitCoin: 0,
+      },
+      recentConsumeRequestIds: [],
+    };
+    db.rows.push(user);
+
+    const input = {
+      db, user, entitlement: { tier, passTier: tier, isActive: true, expiresAt: at }, userId: USER,
+      featureKey: resolved.pricing.featureKey, requestId: `legacy-${requestedFeatureKey}`, coinCost: cost,
+    };
+    const first = await consumePassForFeature(input);
+    const retry = await consumePassForFeature({ ...input, user: db.rows[0] });
+
+    expect(first.covered).toBe(true);
+    expect(retry).toMatchObject({ covered: true, replayed: true });
+    expect(db.rows[0].profileSubscription.monthlySpendCoin).toBe(cost);
+    expect(db.rows[0].recentConsumeRequestIds).toHaveLength(1);
+  });
+
+  test.each([
+    ["standard", "ziwei_ai_prompt_generator"],
+    ["premium", "saju_ai_prompt_generator"],
+    ["premium", "master-love-codex"],
+    ["vvip", "master-love-codex-compat"],
+    ["vvip", "ziwei-ai-consultation"],
+  ])("%s 이용권은 %s 가격을 커버하지 않으면 기존 결제 선택으로 인계한다", async (tier, requestedFeatureKey) => {
+    const db = makeFakePaymentDb();
+    const at = expiresAt();
+    const resolved = getBillingFeaturePricing({ featureKey: requestedFeatureKey });
+    expect(resolved.ok).toBe(true);
+    const user = {
+      _id: USER,
+      profileSubscription: {
+        tier, passTier: tier, isActive: true, expiresAt: at,
+        premiumUseCycleKey: at.toISOString(), monthlyLimitCoin: 0,
+      },
+      recentConsumeRequestIds: [],
+    };
+    db.rows.push(user);
+    const result = await consumePassForFeature({
+      db, user, entitlement: { tier, passTier: tier, isActive: true, expiresAt: at }, userId: USER,
+      featureKey: resolved.pricing.featureKey, requestId: `not-covered-${requestedFeatureKey}`, coinCost: Number(resolved.pricing.cost),
+    });
+    expect(result).toMatchObject({ covered: false, reason: "price_exceeds_pass_limit" });
+    expect(db.rows[0].profileSubscription.monthlySpendCoin).toBeUndefined();
+  });
+
+  test("명시적 null 카운터는 손상 상태로 보고 결제 없이 통과시키지 않는다", async () => {
+    const db = makeFakePaymentDb();
+    const at = expiresAt();
+    const user = {
+      _id: USER,
+      profileSubscription: {
+        tier: "family", passTier: "family", isActive: true, expiresAt: at,
+        premiumUseCycleKey: at.toISOString(), monthlySpendCoin: null, monthlyLimitCoin: 0,
+      },
+      recentConsumeRequestIds: [],
+    };
+    db.rows.push(user);
+    const result = await consumePassForFeature({
+      db, user, entitlement: { tier: "family", passTier: "family", isActive: true, expiresAt: at }, userId: USER,
+      featureKey: "master-love-codex", requestId: "corrupt-null-counter", coinCost: 200,
+    });
+    expect(result).toMatchObject({ covered: false, reason: "pass_access_conflict" });
+    expect(db.rows[0].profileSubscription.monthlySpendCoin).toBeNull();
+  });
+
+  test("문자열 카운터도 손상 상태로 보고 결제 없이 통과시키지 않는다", async () => {
+    const db = makeFakePaymentDb();
+    const at = expiresAt();
+    const user = {
+      _id: USER,
+      profileSubscription: {
+        tier: "family", passTier: "family", isActive: true, expiresAt: at,
+        premiumUseCycleKey: at.toISOString(), monthlySpendCoin: "0", monthlyLimitCoin: 0,
+      },
+      recentConsumeRequestIds: [],
+    };
+    db.rows.push(user);
+    const result = await consumePassForFeature({
+      db, user, entitlement: { tier: "family", passTier: "family", isActive: true, expiresAt: at }, userId: USER,
+      featureKey: "master-love-codex", requestId: "corrupt-string-counter", coinCost: 200,
+    });
+    expect(result).toMatchObject({ covered: false, reason: "pass_access_conflict" });
+    expect(db.rows[0].profileSubscription.monthlySpendCoin).toBe("0");
+  });
+
+  test("누락 카운터의 서로 다른 동시 요청은 월 한도를 합산 초과하지 못한다", async () => {
+    const db = makeFakePaymentDb();
+    const at = expiresAt();
+    const user = {
+      _id: USER,
+      profileSubscription: {
+        tier: "family", passTier: "family", isActive: true, expiresAt: at,
+        premiumUseCycleKey: at.toISOString(),
+      },
+      recentConsumeRequestIds: [],
+    };
+    db.rows.push(user);
+    const snapshot = structuredClone(user);
+    const base = { db, user: snapshot, entitlement: { tier: "family", passTier: "family", isActive: true, expiresAt: at }, userId: USER, coinCost: 3000 };
+    const results = await Promise.all([
+      consumePassForFeature({ ...base, featureKey: "legacy-concurrency-a", requestId: "legacy-parallel-a" }),
+      consumePassForFeature({ ...base, featureKey: "legacy-concurrency-b", requestId: "legacy-parallel-b" }),
+    ]);
+    expect(results.filter(result => result.covered)).toHaveLength(1);
+    expect(db.rows[0].profileSubscription.monthlySpendCoin).toBe(3000);
+  });
+
+  test("다른 요청이 새 회차를 먼저 연 경합에서도 누락 카운터를 두 번째 CAS로 시작한다", async () => {
+    const db = makeFakePaymentDb();
+    const at = expiresAt();
+    const user = {
+      _id: USER,
+      profileSubscription: {
+        tier: "family", passTier: "family", isActive: true, expiresAt: at,
+        premiumUseCycleKey: "old-cycle", monthlySpendCoin: 400, monthlyLimitCoin: 0,
+      },
+      recentConsumeRequestIds: [],
+    };
+    db.rows.push({
+      ...structuredClone(user),
+      profileSubscription: { ...structuredClone(user.profileSubscription), premiumUseCycleKey: at.toISOString() },
+    });
+    delete db.rows[0].profileSubscription.monthlySpendCoin;
+    const result = await consumePassForFeature({
+      db, user, entitlement: { tier: "family", passTier: "family", isActive: true, expiresAt: at }, userId: USER,
+      featureKey: "master-love-codex", requestId: "new-cycle-race", coinCost: 200,
+    });
+    expect(result.covered).toBe(true);
+    expect(db.rows[0].profileSubscription.monthlySpendCoin).toBe(200);
+  });
+
+  test("잔여 예산이 음수면 누락 카운터도 CAS를 통과하지 않는다", async () => {
+    const db = makeFakePaymentDb();
+    const at = expiresAt();
+    db.rows.push({
+      _id: USER,
+      profileSubscription: { premiumUseCycleKey: at.toISOString() },
+      recentConsumeRequestIds: [],
+    });
+    const result = await consumePassCoverage(db, {
+      userId: USER,
+      coverage: {
+        budgetApplies: true, sameCycle: true, cycleKey: at.toISOString(),
+        budgetCoin: 100, coinCost: 200, tier: "family", perItemLimit: PASS_LIMITS.family,
+      },
+      marker: "negative-budget",
+    });
+    expect(result).toBeNull();
+    expect(db.rows[0].profileSubscription.monthlySpendCoin).toBeUndefined();
+  });
+});
 
 describe("한도 경계 — 도달 직전 · 도달 · 초과 이후", () => {
   test.each(["saju_ai_prompt_generator", "ziwei_ai_prompt_generator", "astrology_ai_prompt_generator"])("%s: 백그라운드 기록과 생성 요청이 경합해도 둘 다 통과하고 1회 소비", async (featureKey) => {

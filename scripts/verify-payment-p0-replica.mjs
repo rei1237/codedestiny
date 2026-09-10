@@ -23,7 +23,7 @@ try {
   const userId = new mongoose.Types.ObjectId();
   const at = new Date(Date.now() + 10 * 86400000);
   const subscription = { tier: "family", passTier: "family", isActive: true, expiresAt: at,
-    premiumUseCycleKey: at.toISOString(), monthlySpendCoin: 0, monthlyLimitCoin: 0 };
+    premiumUseCycleKey: at.toISOString(), monthlyLimitCoin: 0 };
   await User.collection.insertOne({ _id: userId, profileSubscription: subscription, recentConsumeRequestIds: [] });
   const user = await User.collection.findOne({ _id: userId });
   const input = { user, userId: String(userId), entitlement: { ...subscription },
@@ -40,6 +40,19 @@ try {
     await assert.rejects(consumePassForFeature({ ...input, requestId: "failed-write", user: await User.collection.findOne({ _id: userId }) }), /injected/);
   } finally { PointHistory.collection.findOneAndUpdate = original; }
   assert.equal((await User.collection.findOne({ _id: userId })).profileSubscription.monthlySpendCoin, 300);
+
+  // Missing is the only legacy shape we lazily initialize. Explicit null is corrupt data and must
+  // remain fail-closed instead of being coerced to a fresh zero balance.
+  await User.collection.updateOne({ _id: userId }, { $set: { "profileSubscription.monthlySpendCoin": null } });
+  const corruptCounter = await consumePassForFeature({
+    ...input,
+    requestId: "corrupt-null-counter",
+    user: await User.collection.findOne({ _id: userId }),
+  });
+  assert.equal(corruptCounter.covered, false);
+  assert.equal(corruptCounter.reason, "pass_access_conflict");
+  assert.equal((await User.collection.findOne({ _id: userId })).profileSubscription.monthlySpendCoin, null);
+  await User.collection.updateOne({ _id: userId }, { $set: { "profileSubscription.monthlySpendCoin": 300 } });
 
   await User.collection.updateOne({ _id: userId }, { $set: {
     recentConsumeRequestIds: [], "profileSubscription.monthlySpendCoin": MONTHLY_PASS_LIMITS.family,
@@ -189,7 +202,7 @@ try {
   console.log("[payment-p0-replica] PASS: KakaoPay owned session -> all mock chapters -> completed replay -> refund blocked; no access token required");
   console.log("[payment-p0-replica] PASS: authenticated KakaoPay purchase -> deferred registration -> replay one record");
   console.log("[payment-p0-replica] PASS: original null-progress Mongo code 28 reproduced; fixed first batch and failed-run retry; concurrent lock=1");
-  console.log("[payment-p0-replica] PASS: concurrent consume=1, evidence=1, atomic rollback, expired-pass recovery, new-purchase rejection");
+  console.log("[payment-p0-replica] PASS: legacy missing counter init, concurrent consume=1, evidence=1, atomic rollback, corrupt-null rejection, expired-pass recovery, new-purchase rejection");
 } finally {
   await mongoose.disconnect();
   await replica.stop();
