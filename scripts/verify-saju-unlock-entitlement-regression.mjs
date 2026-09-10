@@ -735,8 +735,19 @@ for (const marker of [
   assert.ok(source.includes(marker), `해금 시 본문 생성 배선 유지: ${marker}`);
 }
 assert.ok(
-  indexHtml.includes("typeof window.renderSummary === 'function' ? window.renderSummary : null"),
+  indexHtml.includes("function renderUnlockedSajuSummaryIfReady(")
+    && indexHtml.includes("typeof window.renderSummary==='function'?window.renderSummary:null")
+    && indexHtml.includes("if(!renderSummaryFn&&typeof renderSummary==='function')renderSummaryFn=renderSummary;"),
   "section_summary 해금 후 재렌더는 window.renderSummary 전역도 확인한다",
+);
+assert.ok(
+  indexHtml.includes("if (isSajuAccessFeatureKey(entry.featureKey)) {")
+    && indexHtml.includes("if (entryProfileId && profileId && entryProfileId === profileId) merged[entry.featureKey] = true;"),
+  "사주 프로필 스코프 해금은 빈 profileId 원장을 전역 해금처럼 병합하지 않는다",
+);
+assert.ok(
+  indexHtml.includes("profile-scoped-unlock-missing-profile"),
+  "profileId 없는 사주 해금 확정은 화면만 해금 처리하지 않는다",
 );
 
 // 자미두수 기본 심화(각 10,000원)·대한 10년운(10,000원)·점성술 심화(각 5,000원)도 같은 형태로

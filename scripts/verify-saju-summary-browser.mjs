@@ -61,10 +61,41 @@ try {
   await page.locator('#run-btn').click();
   await page.waitForFunction(() => window.__cdLastSummaryArgs, {timeout:30000});
   if (!alreadyUnlocked) {
+  const mismatchedProfileUnlock = await page.evaluate(() => {
+    const grantsKey = 'cd_verified_unlock_grants_v1';
+    try { localStorage.removeItem(grantsKey); } catch (_) {}
+    window.__cdCurrentDestinyProfile = {
+      id: 'stored-profile',
+      profileId: 'stored-profile',
+      gender: 'F',
+      birth: {year: 1988, month: 8, day: 8, hour: 8, minute: 0}
+    };
+    window.__cdActiveBirthProfile = {
+      gender: 'F',
+      birth: {year: 1990, month: 5, day: 15, hour: 12, minute: 0}
+    };
+    const finalized = window._cdFinalizeUnlockState('section_summary', {
+      ok: true,
+      status: 'paid',
+      featureKey: 'section_summary',
+      accessGrant: {ok: true, featureKey: 'section_summary', evidenceId: 'pay-without-profile'}
+    });
+    const grants = JSON.parse(localStorage.getItem(grantsKey) || '{}');
+    return {
+      finalized,
+      unlocked: window.isTileKeyUnlocked('section_summary'),
+      grantKeys: Object.keys(grants)
+    };
+  });
+  assert.equal(mismatchedProfileUnlock.finalized, false, 'profile-scoped saju unlock must not finalize without a matching profile');
+  assert.equal(mismatchedProfileUnlock.unlocked, false, 'mismatched active profile must not inherit the stored profile unlock');
+  assert.deepEqual(mismatchedProfileUnlock.grantKeys, [], 'profile-scoped saju unlock must not write an unscoped grant');
   assert.equal(await page.locator('#summaryArea').textContent(), '');
   await page.evaluate(() => {
     // Simulate a restored profile with current engine data but no transient calculate arguments.
     delete window.__cdLastSummaryArgs;
+    window.__cdCurrentDestinyProfile = { profileId: 'profile-summary-race' };
+    window.__cdActiveBirthProfile = { profileId: 'profile-summary-race', birth: {year: 1990, month: 5, day: 15, hour: 12, minute: 0} };
     window.unlockedFeatureMap.section_summary = true;
   });
   await page.locator('#summaryGate button[data-unlock-key]').click();
