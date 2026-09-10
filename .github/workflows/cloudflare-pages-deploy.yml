@@ -612,7 +612,7 @@ jobs:
 
       - name: Deploy staging Pages and Worker at the exact SHA
         id: deploy
-        if: steps.staging_current.outputs.current == 'true'
+        if: steps.staging_current.outputs.current == 'true' || (github.event_name == 'workflow_dispatch' && inputs.allow_redeploy)
         run: npm run deploy:staging -- --ci --yes ${REDEPLOY_FLAG}
 
       # 🔴 release 잡과 같은 이유로 배포 실패 시에는 **기록 전용**이다. 그렇게 하지 않으면
