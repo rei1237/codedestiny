@@ -9,14 +9,14 @@ const npmArgs = (args) => (canRunNpmCliWithNode ? [npmCli, ...args] : args);
 
 // optional: true 인 스텝은 실패해도 빌드를 멈추지 않고 경고만 남긴다.
 //
-// 🔴 i18n:check 가 optional 인 이유 — 이건 번역 "커버리지/ratchet" 지표라 콘텐츠가 쌓이는 만큼
+// 🔴 i18n:deployment-check 가 optional 인 이유 — 이건 번역 "커버리지" 지표라 콘텐츠가 쌓이는 만큼
 // 자연히 뒤처진다. 그런데 이 스텝이 배포 경로(deploy:cf:pages → build:cf → 여기) 안에 있어서,
 // 한국어 문구 몇 개가 늘어난 것만으로 프로덕션 배포 전체가 멈췄다(2026-07-28, 커밋 88685d224 이후
 // Pages 배포 연속 실패). i18n 검사는 원래 배포 워크플로에 넣지 않기로 한 것이라, 여기 있는 것
 // 자체가 그 의도와 어긋나 있었다.
-// 회귀 가시성은 유지된다: 실패 내용은 그대로 빌드 로그에 찍힌다. 전용 i18n 워크플로는 2026-08-08
-// CI 게이트 정리에서 없앴고, 필요하면 `npm run verify:locale-main-sync` 등을 수동으로 돌린다.
-// 되돌리려면 optional 플래그만 지우면 된다.
+// 회귀 가시성은 유지된다: key/parity/runtime 검사는 그대로 로그에 찍힌다. 한국어 fallback ratchet은
+// 현재 런타임의 ko fallback 계약과 별도인 부채 지표라 `npm run i18n:check`/`verify:i18n-no-fallback`에서
+// 독립적으로 확인한다. 되돌리려면 `i18n:deployment-check`를 `i18n:check`로 바꾸면 된다.
 const steps = [
   // 🔴 clean:build 보다 먼저 와야 한다 — dev 서버가 떠 있으면 clean 이 그 발밑의 .next 를
   // 지우고, 이후 두 프로세스가 같은 경로를 번갈아 쓰면서 빌드가 조용히 멈춘다.
@@ -39,7 +39,7 @@ const steps = [
   // Cloudflare Pages 는 _redirects 의 첫 102개만 적용하고 나머지를 조용히 무시한다(2026-08-16 실측).
   { command: npmCommand, args: npmArgs(["run", "verify:redirects-budget"]) },
   { command: npmCommand, args: npmArgs(["run", "verify:public-parity"]) },
-  { command: npmCommand, args: npmArgs(["run", "i18n:check"]), optional: true },
+  { command: npmCommand, args: npmArgs(["run", "i18n:deployment-check"]), optional: true },
   { command: npmCommand, args: npmArgs(["run", "verify:locale-main-sync"]) },
   { command: npmCommand, args: npmArgs(["run", "verify:runtime-cache-sync"]) },
   { command: npmCommand, args: npmArgs(["run", "verify:adsense-route-policy"]) },

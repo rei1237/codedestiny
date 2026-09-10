@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { spawnSync } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { existsSync, readFileSync, writeFileSync, unlinkSync, symlinkSync, mkdirSync, rmdirSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { createRequire } from "node:module";
@@ -15,6 +15,33 @@ function run(file, args, { cwd = root, env = process.env, capture = false } = {}
   if (result.status !== 0) throw new Error(`${file} ${args.join(" ")} failed (${result.status ?? result.error?.code})${capture ? `: ${result.stderr}` : ""}`);
   return (result.stdout || "").trim();
 }
+function runAsync(file, args, { cwd = root, env = process.env } = {}) {
+  return new Promise(resolveRun => {
+    const child = spawn(file, args, { cwd, env, windowsHide: true, stdio: ["ignore", "pipe", "pipe"] });
+    let stdout = "";
+    let stderr = "";
+    let timedOut = false;
+    const timeout = setTimeout(() => {
+      timedOut = true;
+      child.kill();
+    }, 30 * 60 * 1000);
+    child.stdout.on("data", chunk => { stdout += chunk; });
+    child.stderr.on("data", chunk => { stderr += chunk; });
+    child.on("error", error => {
+      clearTimeout(timeout);
+      resolveRun({ status: null, signal: null, stdout, stderr, error });
+    });
+    child.on("close", (status, signal) => {
+      clearTimeout(timeout);
+      resolveRun({ status: timedOut ? null : status, signal: timedOut ? "SIGTERM" : signal, stdout, stderr, timedOut });
+    });
+  });
+}
+const INDEPENDENT_PURE_CHECKS = [
+  "npm run verify:ai-locale-pipeline",
+  "npm run verify:business-identity",
+  "npm run verify:sukuyo-astronomy",
+];
 const git = (args, options = {}) => run("git", args, { capture: true, ...options });
 function tree() {
   const index = resolve(git(["rev-parse", "--absolute-git-dir"]), `preflight-index-${randomUUID()}`);
@@ -82,11 +109,38 @@ async function main() {
     const env = { ...process.env, PR_BASE_SHA: base, PR_HEAD_SHA: commit, LLM_DRY_RUN: "true", WORKERS_AI_ENABLED: "false", NEXT_TELEMETRY_DISABLED: "1", WRANGLER_SEND_METRICS: "false", ALLOW_DEV_SERVER_DURING_BUILD: "1", NODE_OPTIONS: `${process.env.NODE_OPTIONS || ""} --require="${guard}"`.trim() };
     const npm = process.env.npm_execpath;
     if (!npm) throw new Error("Invoke through npm run ci:preflight");
+    const assertBase = () => {
+      if (git(["rev-parse", "origin/main"]) !== base) throw new Error("main changed during validation; update the branch and run preflight again.");
+    };
+    const runIndependentChecks = async (parallelCommands) => {
+      assertBase();
+      console.log(`[ci:preflight] parallel (${parallelCommands.length}) ${parallelCommands.join(" | ")}`);
+      const results = await Promise.all(parallelCommands.map(async command => {
+        const [binary, ...args] = command.split(/\s+/);
+        const result = await runAsync(process.execPath, binary === "npm" ? [npm, ...args] : args, { cwd: snapshot, env });
+        return { command, ...result };
+      }));
+      for (const result of results) {
+        if (result.stdout) process.stdout.write(result.stdout);
+        if (result.stderr) process.stderr.write(result.stderr);
+        if (result.error) throw new Error(`${result.command} failed to start: ${result.error.message}`);
+        if (result.status !== 0) throw new Error(`${result.command} failed (${result.status ?? result.signal})`);
+      }
+      assertBase();
+    };
     // Mirror checks run before build generators; no branch commit is needed.
     const mirror = commands.filter(c => c.startsWith("npm run verify:public-mirror-fresh"));
     const ordered = [...mirror, ...commands.filter(c => !mirror.includes(c))];
-    for (const command of ordered) {
-      if (git(["rev-parse", "origin/main"]) !== base) throw new Error("main changed during validation; update the branch and run preflight again.");
+    const parallelStart = ordered.length - INDEPENDENT_PURE_CHECKS.length;
+    const parallelCommands = ordered.slice(parallelStart);
+    if (parallelCommands.join("\n") !== INDEPENDENT_PURE_CHECKS.join("\n")) throw new Error("Independent preflight checks must remain the final pure-check group");
+    for (let index = 0; index < ordered.length; index += 1) {
+      const command = ordered[index];
+      if (index >= parallelStart) {
+        if (index === parallelStart) await runIndependentChecks(parallelCommands);
+        continue;
+      }
+      assertBase();
       console.log(`[ci:preflight] ${command}`);
       const [binary, ...args] = command.split(/\s+/);
       run(process.execPath, binary === "npm" ? [npm, ...args] : args, { cwd: snapshot, env });
