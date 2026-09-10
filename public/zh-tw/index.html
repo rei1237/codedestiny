@@ -13509,9 +13509,12 @@ html.neo-mode body .cd-why-us__proof-caption{color:rgba(228,214,255,.72)}
         document.querySelectorAll('[data-membership-toggle]').forEach(function(toggle){ toggle.setAttribute('aria-expanded', 'false'); });
       }
 
+      var navVisibilityVersion = 0;
+
       function applyBottomNavVisibility(visible){
         var nav = document.getElementById('cdMobileBottomNav');
         if (!nav) return;
+        var visibilityVersion = ++navVisibilityVersion;
         if (!visible) {
           document.body.classList.add('cd-all-fortunes-fullscreen');
           document.body.classList.add('cd-mobile-nav-exiting');
@@ -13519,6 +13522,7 @@ html.neo-mode body .cd-why-us__proof-caption{color:rgba(228,214,255,.72)}
           nav.inert = true;
           if (!document.body.classList.contains('cd-mobile-nav-hidden') && !navHideTimer) {
             navHideTimer = window.setTimeout(function(){
+              if (visibilityVersion !== navVisibilityVersion) return;
               document.body.classList.add('cd-mobile-nav-hidden');
               navHideTimer = 0;
             }, 280);
@@ -13528,10 +13532,16 @@ html.neo-mode body .cd-why-us__proof-caption{color:rgba(228,214,255,.72)}
         window.clearTimeout(navHideTimer);
         navHideTimer = 0;
         document.body.classList.remove('cd-mobile-nav-hidden');
-        window.requestAnimationFrame(function(){ document.body.classList.remove('cd-mobile-nav-exiting'); });
+        window.requestAnimationFrame(function(){
+          if (visibilityVersion !== navVisibilityVersion) return;
+          document.body.classList.remove('cd-mobile-nav-exiting');
+        });
         nav.removeAttribute('aria-hidden');
         nav.inert = false;
-        window.requestAnimationFrame(function(){ document.body.classList.remove('cd-all-fortunes-fullscreen'); });
+        window.requestAnimationFrame(function(){
+          if (visibilityVersion !== navVisibilityVersion) return;
+          document.body.classList.remove('cd-all-fortunes-fullscreen');
+        });
       }
 
       navigationStore.subscribe(function(next){ applyBottomNavVisibility(next.bottomNavVisible); });
