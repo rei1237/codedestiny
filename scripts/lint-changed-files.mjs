@@ -19,6 +19,7 @@
  */
 
 import { spawnSync } from "node:child_process";
+import { dirname, resolve } from "node:path";
 
 import { lintTargets, selfTestLintTargets } from "./lib/lint-targets.mjs";
 
@@ -61,9 +62,10 @@ function main() {
   for (const target of targets.slice(0, 40)) console.log(`  ${target}`);
   if (targets.length > 40) console.log(`  ... 그 외 ${targets.length - 40}개`);
 
-  const result = spawnSync("npm", ["exec", "--", "eslint", "--quiet", ...targets], {
+  const npmCli = process.env.npm_execpath || resolve(dirname(process.execPath), "node_modules/npm/bin/npm-cli.js");
+  const result = spawnSync(process.execPath, [npmCli, "exec", "--", "eslint", "--quiet", ...targets], {
     stdio: "inherit",
-    shell: process.platform === "win32",
+    windowsHide: true,
   });
   if (result.error) {
     console.error(`[lint-changed] eslint 실행 실패: ${result.error.message}`);
