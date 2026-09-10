@@ -139,6 +139,16 @@ try {
   }, alreadyUnlocked);
   await page.waitForTimeout(900);
   await assertSummaryVisible(page, alreadyUnlocked ? 'previously unlocked stable' : 'restored stable after stale snapshot');
+  if (!alreadyUnlocked) {
+    await page.evaluate(() => {
+      // AccessStore/system bootstrap can replace the legacy global map after the body has rendered.
+      // Verified profile-scoped grants must be merged before the next section-gate pass relocks the DOM.
+      window.unlockedFeatureMap = {};
+      window.dispatchEvent(new CustomEvent('cd:unlocks-changed', { detail: { source: 'forced-empty-legacy-map' } }));
+    });
+    await page.waitForTimeout(120);
+    await assertSummaryVisible(page, 'restored stable after legacy map replacement');
+  }
   for (const width of [360,390,430,1280]) {
     await page.setViewportSize({width,height:900});
     await page.locator('#summaryArea').scrollIntoViewIfNeeded();
