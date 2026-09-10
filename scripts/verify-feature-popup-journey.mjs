@@ -13,7 +13,7 @@ assert.ok(template, 'actual popup template');
 const styles = [...shell.matchAll(/<style\b[^>]*>[\s\S]*?<\/style>/g)].map(match => match[0]).join('\n');
 const siteShare = shell.match(/<section id="cdPublicSiteShare"[\s\S]*?<\/section>/)?.[0];
 assert.ok(siteShare, 'actual site share section');
-const fixture = `<!doctype html><html lang="ko"><head><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/styles/theme-tokens.css">${styles}<style>body{margin:0;background:#100d14}.tile-pvw-overlay{transition:none!important}</style></head><body>${template}${siteShare}<script type="module">import {mountFeatureDetailPreview} from '/js/feature-detail-preview.mjs';window.openDetail=async slug=>{const overlay=document.getElementById('tilePvwOverlay');overlay.classList.add('pvw-open');overlay.setAttribute('aria-hidden','false');document.getElementById('tilePvwTitle').textContent=slug;document.getElementById('tilePvwPaywall').style.display='block';document.getElementById('tilePvwPaywallTitle').textContent='가격·이용 방법 확인 영역';await mountFeatureDetailPreview(overlay,[slug]);};window.nativeClicks=0;document.getElementById('tilePvwCtaBtn').addEventListener('click',()=>window.nativeClicks++);</script></body></html>`;
+const fixture = `<!doctype html><html lang="ko"><head><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/styles/theme-tokens.css"><link rel="stylesheet" href="/styles/feature-marketing-detail.css">${styles}<style>body{margin:0;background:#100d14}.tile-pvw-overlay{transition:none!important}</style></head><body>${template}${siteShare}<script type="module">import {mountFeatureDetailPreview} from '/js/feature-detail-preview.mjs';window.openDetail=async slug=>{const overlay=document.getElementById('tilePvwOverlay');overlay.classList.add('pvw-open');overlay.setAttribute('aria-hidden','false');document.getElementById('tilePvwTitle').textContent=slug;document.getElementById('tilePvwPaywall').style.display='block';document.getElementById('tilePvwPaywallTitle').textContent='가격·이용 방법 확인 영역';await mountFeatureDetailPreview(overlay,[slug]);};window.nativeClicks=0;document.getElementById('tilePvwCtaBtn').addEventListener('click',()=>window.nativeClicks++);</script></body></html>`;
 const server = http.createServer((request, response) => {
   const pathname = new URL(request.url, 'http://localhost').pathname;
   if (pathname === '/') { response.setHeader('Content-Type', 'text/html; charset=utf-8'); response.end(fixture); return; }
@@ -58,11 +58,32 @@ try {
         const sheet = document.querySelector('.tile-pvw-sheet');
         const scroll = document.querySelector('.tile-pvw-scroll');
         const cta = document.getElementById('tilePvwCtaBtn').getBoundingClientRect();
-        return { overflow: sheet.scrollWidth > sheet.clientWidth + 1, ctaBottom: cta.bottom, ctaHeight: cta.height, scrollBottom: scroll.getBoundingClientRect().bottom, footerTop: document.querySelector('.tile-pvw-cta-sticky').getBoundingClientRect().top };
+        const detail = document.querySelector('.featureVisualDetail');
+        const art = detail.querySelector('.featureDetailArt');
+        const conversion = detail.querySelector('.featureDetailConversion');
+        const artRect = art.getBoundingClientRect();
+        return {
+          overflow: sheet.scrollWidth > sheet.clientWidth + 1,
+          ctaBottom: cta.bottom,
+          ctaHeight: cta.height,
+          scrollBottom: scroll.getBoundingClientRect().bottom,
+          footerTop: document.querySelector('.tile-pvw-cta-sticky').getBoundingClientRect().top,
+          textColor: getComputedStyle(detail).color,
+          mutedColor: getComputedStyle(detail.querySelector('p')).color,
+          conversionColor: getComputedStyle(conversion).color,
+          artSrc: art.getAttribute('src'),
+          artRatio: artRect.width / artRect.height,
+          viewportHeight: window.innerHeight,
+        };
       });
       assert.equal(layout.overflow, false, `${width}/${entry.slug}: overflow`);
-      assert.ok(layout.ctaBottom <= 845 && layout.ctaHeight >= 44, `${width}/${entry.slug}: CTA visible and touchable ${JSON.stringify(layout)}`);
+      assert.ok(layout.ctaBottom <= layout.viewportHeight + 1 && layout.ctaHeight >= 44, `${width}/${entry.slug}: CTA visible and touchable ${JSON.stringify(layout)}`);
       assert.ok(layout.scrollBottom <= layout.footerTop + 1, `${width}/${entry.slug}: body behind CTA`);
+      assert.equal(layout.textColor, 'rgb(60, 24, 48)', `${width}/${entry.slug}: readable heading color`);
+      assert.equal(layout.mutedColor, 'rgb(112, 68, 92)', `${width}/${entry.slug}: readable body color`);
+      assert.equal(layout.conversionColor, 'rgb(255, 250, 247)', `${width}/${entry.slug}: readable conversion color`);
+      assert.equal(layout.artSrc, '/feature-details/assets/feature-detail-shared-hero-v1-960.webp');
+      assert.ok(Math.abs(layout.artRatio - (16 / 9)) < 0.02, `${width}/${entry.slug}: 16:9 shared art ${layout.artRatio}`);
       await page.locator('[data-feature-share="copy"]').click();
       const copied = await page.evaluate(() => window.copiedUrl);
       assert.equal(new URL(copied).pathname, `/features/${entry.slug}/`);

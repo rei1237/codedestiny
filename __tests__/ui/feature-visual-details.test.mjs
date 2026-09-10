@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import { renderFeatureDetailPanels } from '../../js/feature-detail-panels.mjs';
 
 const catalog = JSON.parse(fs.readFileSync('public/feature-details/catalog.json', 'utf8'));
+const sharedHero = '/feature-details/assets/feature-detail-shared-hero-v1-960.webp';
 test('published visual introductions have proven sources, real assets, and distinct destinations', () => {
   const generated = JSON.parse(fs.readFileSync('lib/marketing/feature-visual-details.generated.json', 'utf8'));
   assert.equal(generated.index.length, 65);
@@ -22,7 +23,11 @@ test('published visual introductions have proven sources, real assets, and disti
       assert.ok(panel.verifiedCapture.width > 0 && panel.verifiedCapture.height > 0);
     }
     for (const variant of detail.heroVariants || []) assert.ok(fs.statSync(`public${variant.src}`).size <= 180000);
-    assert.ok(renderFeatureDetailPanels(detail).includes(detail.journey?.questions?.[0] || detail.headline));
+    const rendered = renderFeatureDetailPanels(detail);
+    assert.ok(rendered.includes(detail.journey?.questions?.[0] || detail.headline));
+    assert.ok(rendered.includes(sharedHero), `${entry.slug}: 공통 상세 이미지가 없다`);
+    assert.ok(rendered.includes('feature-detail-shared-hero-v1-480.webp 480w'));
+    if (detail.image !== sharedHero) assert.ok(!rendered.includes(`src="${detail.image}"`), `${entry.slug}: 기존 비율 이미지가 남았다`);
   }
   assert.ok(!catalog.find(item => item.slug === 'animal-destiny').aliases.includes('animal-destiny-unlock'), 'free route must not replace a separately locked feature');
   const neo = JSON.parse(fs.readFileSync('public/feature-details/neo-operation-room.json', 'utf8'));

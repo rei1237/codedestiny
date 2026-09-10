@@ -6,6 +6,12 @@ const safeImage = value => {
   try { const url = new URL(text); return url.protocol === 'https:' && ['assets.code-destiny.com', 'code-destiny.com'].includes(url.hostname) ? url.href : ''; }
   catch { return ''; }
 };
+const SHARED_DETAIL_HERO = '/feature-details/assets/feature-detail-shared-hero-v1-960.webp';
+const SHARED_DETAIL_HERO_VARIANTS = [
+  { src: '/feature-details/assets/feature-detail-shared-hero-v1-480.webp', width: 480 },
+  { src: SHARED_DETAIL_HERO, width: 960 },
+];
+const SHARED_DETAIL_HERO_ALT = '달빛 아래 여러 운세 체계가 만나는 공통 상세 이미지';
 
 function renderFeatureMap(panel, detail) {
   const points = (detail.panels || []).flatMap(item => [
@@ -41,8 +47,8 @@ function renderVisualPreview(kind, panel, detail) {
 export function renderFeatureDetailPanels(detail, { headingLevel = 3, conversionPrompt = false } = {}) {
   if (!detail || detail.verification !== 'verified') return '';
   const heading = headingLevel === 2 ? 'h2' : 'h3';
-  const hero = safeImage(detail.image);
-  const variants = (detail.heroVariants || []).filter(item => safeImage(item.src) && Number.isInteger(item.width) && item.width > 0 && item.width <= 2048);
+  const hero = safeImage(detail.image) ? SHARED_DETAIL_HERO : '';
+  const variants = hero ? SHARED_DETAIL_HERO_VARIANTS : [];
   const srcset = variants.map(item => `${escape(safeImage(item.src))} ${item.width}w`).join(', ');
   const journey = detail.journey || {};
   const questions = [...new Set((journey.questions || []).filter(Boolean))];
@@ -61,7 +67,7 @@ export function renderFeatureDetailPanels(detail, { headingLevel = 3, conversion
   const trust = journey.trustNotes?.length ? `<section class="featureDetailPanel featureDetailBody" data-purchase-stage="trust"><${heading}>해석을 읽기 전에</${heading}><ul class="featureDetailItems">${journey.trustNotes.map(note => `<li>${escape(note)}</li>`).join('')}</ul></section>` : '';
   const share = conversionPrompt ? `<section class="featureDetailPanel featureDetailBody" data-purchase-stage="advocacy" data-feature-share-section><${heading}>이 이야기가 떠오르는 사람이 있나요?</${heading}><p>함께 궁금했던 질문이라면 이 기능을 소개해 보세요. 개인 결과 대신, 지금 보고 있는 기능 소개가 전달됩니다.</p><div class="featureDetailShareActions"><button type="button" data-feature-share="native">이 기능 소개 공유하기</button><button type="button" data-feature-share="copy">소개 링크 복사</button><button type="button" data-feature-share="site">CODE DESTINY 소개하기</button></div><input hidden readonly aria-label="공유할 소개 링크"><p role="status" aria-live="polite"></p></section>` : '';
   const faq = journey.faq?.length ? `<section class="featureDetailPanel featureDetailBody" data-purchase-stage="consideration"><${heading}>시작 전에 궁금한 점</${heading}>${journey.faq.map(item => `<details class="featureDetailFaq"><summary>${escape(item.q)}</summary><p>${escape(item.a)}</p></details>`).join('')}</section>` : '';
-  return `<article class="featureVisualDetail"><header data-purchase-stage="awareness" class="featureDetailPanel featureDetailHero">${hero ? `<img class="featureDetailArt" src="${escape(hero)}"${srcset ? ` srcset="${srcset}" sizes="(max-width: 699px) 100vw, 480px"` : ''} width="960" height="540" alt="${escape(detail.title)}" loading="eager" decoding="async">` : ''}<div class="featureDetailBody"><${heading}>${escape(hook)}</${heading}><p>${escape(detail.description)}</p>${prompt}${questionList}</div></header>${panels}${trust}${faq}${share}</article>`;
+  return `<article class="featureVisualDetail"><header data-purchase-stage="awareness" class="featureDetailPanel featureDetailHero">${hero ? `<img class="featureDetailArt" src="${escape(hero)}"${srcset ? ` srcset="${srcset}" sizes="(max-width: 699px) 100vw, 480px"` : ''} width="960" height="540" alt="${SHARED_DETAIL_HERO_ALT}" loading="eager" decoding="async">` : ''}<div class="featureDetailBody"><${heading}>${escape(hook)}</${heading}><p>${escape(detail.description)}</p>${prompt}${questionList}</div></header>${panels}${trust}${faq}${share}</article>`;
 }
 
 let catalogPromise;
