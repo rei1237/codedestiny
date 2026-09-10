@@ -1347,7 +1347,7 @@
       "suffix": "最适合您。"
     },
     "feedback": {
-      "rewardPrefix": "每一则被采纳的错误回报"
+      "rewardPrefix": "每个确认属实的问题反馈"
     },
     "whyUs": {
       "proof": {
@@ -6550,7 +6550,7 @@
     },
     "cdFeedbackCard": {
       "cdFeedbackCopy": {
-        "k1qqtskq": "邀你一起打造这项服务。"
+        "k1qqtskq": "问题反馈室"
       }
     },
     "cdFeedbackCopy": {
@@ -6564,7 +6564,7 @@
     },
     "cdFeedbackGate": {
       "cdFeedbackCard": {
-        "k1chb9k4": "发送反馈"
+        "k1chb9k4": "提交问题"
       }
     },
     "tarotYearFortuneIntroStage": {
@@ -9212,10 +9212,22 @@
         "3": "同时查看单张讯息、综合解读与今日行动计划"
       },
       "analysisSteps": {
-        "0": { "label": "确定问题", "detail": "写下困扰，或直接从当下心境开始。" },
-        "1": { "label": "选择仪式", "detail": "按所需深度选择一张、三张或五张牌。" },
-        "2": { "label": "翻开卡牌", "detail": "依次翻牌，观察守护动物之间的脉络。" },
-        "3": { "label": "整理行动", "detail": "根据综合解读与今日计划决定下一步。" }
+        "0": {
+          "label": "确定问题",
+          "detail": "写下困扰，或直接从当下心境开始。"
+        },
+        "1": {
+          "label": "选择仪式",
+          "detail": "按所需深度选择一张、三张或五张牌。"
+        },
+        "2": {
+          "label": "翻开卡牌",
+          "detail": "依次翻牌，观察守护动物之间的脉络。"
+        },
+        "3": {
+          "label": "整理行动",
+          "detail": "根据综合解读与今日计划决定下一步。"
+        }
       },
       "premiumOutcomes": {
         "0": "卡牌解读仅供参考。",

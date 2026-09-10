@@ -1347,7 +1347,7 @@
       "suffix": "am besten zu dir."
     },
     "feedback": {
-      "rewardPrefix": "Pro angenommenem Fehlerbericht"
+      "rewardPrefix": "Pro Fehlerbericht, der als echter Fehler bestätigt wird"
     },
     "whyUs": {
       "proof": {
@@ -6550,7 +6550,7 @@
     },
     "cdFeedbackCard": {
       "cdFeedbackCopy": {
-        "k1qqtskq": "Gestalten Sie diesen Dienst mit."
+        "k1qqtskq": "Fehler melden"
       }
     },
     "cdFeedbackCopy": {
@@ -6564,7 +6564,7 @@
     },
     "cdFeedbackGate": {
       "cdFeedbackCard": {
-        "k1chb9k4": "Feedback senden"
+        "k1chb9k4": "Fehler melden"
       }
     },
     "tarotYearFortuneIntroStage": {
@@ -9212,10 +9212,22 @@
         "3": "Sieh die Botschaft jeder Karte, eine Gesamtdeutung und den praktischen Plan für heute"
       },
       "analysisSteps": {
-        "0": { "label": "Frage festlegen", "detail": "Notiere dein Anliegen oder beginne mit deinem aktuellen Gemütszustand." },
-        "1": { "label": "Ritual wählen", "detail": "Wähle je nach gewünschter Tiefe eine, drei oder fünf Karten." },
-        "2": { "label": "Karten aufdecken", "detail": "Decke sie der Reihe nach auf und folge dem Verlauf der Schutztiere." },
-        "3": { "label": "Handlung wählen", "detail": "Nutze Gesamtdeutung und Tagesplan, um deinen nächsten Schritt zu bestimmen." }
+        "0": {
+          "label": "Frage festlegen",
+          "detail": "Notiere dein Anliegen oder beginne mit deinem aktuellen Gemütszustand."
+        },
+        "1": {
+          "label": "Ritual wählen",
+          "detail": "Wähle je nach gewünschter Tiefe eine, drei oder fünf Karten."
+        },
+        "2": {
+          "label": "Karten aufdecken",
+          "detail": "Decke sie der Reihe nach auf und folge dem Verlauf der Schutztiere."
+        },
+        "3": {
+          "label": "Handlung wählen",
+          "detail": "Nutze Gesamtdeutung und Tagesplan, um deinen nächsten Schritt zu bestimmen."
+        }
       },
       "premiumOutcomes": {
         "0": "Kartendeutungen dienen nur als Orientierung.",

@@ -1347,7 +1347,7 @@
       "suffix": "het beste bij je."
     },
     "feedback": {
-      "rewardPrefix": "Per geaccepteerde bugmelding"
+      "rewardPrefix": "Per bugmelding die als echte bug is bevestigd"
     },
     "whyUs": {
       "proof": {
@@ -6550,7 +6550,7 @@
     },
     "cdFeedbackCard": {
       "cdFeedbackCopy": {
-        "k1qqtskq": "Help ons deze dienst te bouwen."
+        "k1qqtskq": "Bugmeldpunt"
       }
     },
     "cdFeedbackCopy": {
@@ -6564,7 +6564,7 @@
     },
     "cdFeedbackGate": {
       "cdFeedbackCard": {
-        "k1chb9k4": "Feedback sturen"
+        "k1chb9k4": "Bug melden"
       }
     },
     "tarotYearFortuneIntroStage": {
@@ -9212,10 +9212,22 @@
         "3": "Bekijk de boodschap per kaart, een gezamenlijke duiding en het praktische plan voor vandaag"
       },
       "analysisSteps": {
-        "0": { "label": "Bepaal je vraag", "detail": "Schrijf je zorg op of begin vanuit je huidige gemoedstoestand." },
-        "1": { "label": "Kies een ritueel", "detail": "Kies één, drie of vijf kaarten voor de diepgang die je nodig hebt." },
-        "2": { "label": "Open de kaarten", "detail": "Draai ze op volgorde om en volg de stroom van de beschermdieren." },
-        "3": { "label": "Kies een actie", "detail": "Gebruik de gezamenlijke duiding en het dagplan om je volgende stap te kiezen." }
+        "0": {
+          "label": "Bepaal je vraag",
+          "detail": "Schrijf je zorg op of begin vanuit je huidige gemoedstoestand."
+        },
+        "1": {
+          "label": "Kies een ritueel",
+          "detail": "Kies één, drie of vijf kaarten voor de diepgang die je nodig hebt."
+        },
+        "2": {
+          "label": "Open de kaarten",
+          "detail": "Draai ze op volgorde om en volg de stroom van de beschermdieren."
+        },
+        "3": {
+          "label": "Kies een actie",
+          "detail": "Gebruik de gezamenlijke duiding en het dagplan om je volgende stap te kiezen."
+        }
       },
       "premiumOutcomes": {
         "0": "Kaartinterpretaties zijn bedoeld als leidraad.",

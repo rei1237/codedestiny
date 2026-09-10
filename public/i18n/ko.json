@@ -1194,7 +1194,7 @@
       "suffix": "가장 잘 맞습니다."
     },
     "feedback": {
-      "rewardPrefix": "채택된 버그 제보 1건당"
+      "rewardPrefix": "실제 버그로 확인된 제보 1건당"
     },
     "whyUs": {
       "proof": {
@@ -4220,7 +4220,7 @@
     },
     "cdFeedbackCard": {
       "cdFeedbackCopy": {
-        "k1qqtskq": "서비스를 함께 만들어 주세요."
+        "k1qqtskq": "버그 제보실"
       }
     },
     "cdFeedbackCopy": {
@@ -4234,7 +4234,7 @@
     },
     "cdFeedbackGate": {
       "cdFeedbackCard": {
-        "k1chb9k4": "의견 보내기"
+        "k1chb9k4": "버그 제보하기"
       }
     },
     "tarotYearFortuneIntroStage": {

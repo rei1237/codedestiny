@@ -1347,7 +1347,7 @@
       "suffix": "fits you best."
     },
     "feedback": {
-      "rewardPrefix": "Per accepted bug report"
+      "rewardPrefix": "Per bug report confirmed as genuine"
     },
     "whyUs": {
       "proof": {
@@ -6550,7 +6550,7 @@
     },
     "cdFeedbackCard": {
       "cdFeedbackCopy": {
-        "k1qqtskq": "Help us build this service."
+        "k1qqtskq": "Bug Report Desk"
       }
     },
     "cdFeedbackCopy": {
@@ -6564,7 +6564,7 @@
     },
     "cdFeedbackGate": {
       "cdFeedbackCard": {
-        "k1chb9k4": "Send Feedback"
+        "k1chb9k4": "Report a Bug"
       }
     },
     "tarotYearFortuneIntroStage": {
@@ -9212,10 +9212,22 @@
         "3": "See each card's message, a combined interpretation, and a practical plan for today"
       },
       "analysisSteps": {
-        "0": { "label": "Set your question", "detail": "Write your concern or read from your present state of mind." },
-        "1": { "label": "Choose a ritual", "detail": "Choose one, three, or five cards for the depth you need." },
-        "2": { "label": "Reveal the cards", "detail": "Turn them over in order and follow the guardian animals' flow." },
-        "3": { "label": "Choose an action", "detail": "Use the combined reading and today's plan to decide your next step." }
+        "0": {
+          "label": "Set your question",
+          "detail": "Write your concern or read from your present state of mind."
+        },
+        "1": {
+          "label": "Choose a ritual",
+          "detail": "Choose one, three, or five cards for the depth you need."
+        },
+        "2": {
+          "label": "Reveal the cards",
+          "detail": "Turn them over in order and follow the guardian animals' flow."
+        },
+        "3": {
+          "label": "Choose an action",
+          "detail": "Use the combined reading and today's plan to decide your next step."
+        }
       },
       "premiumOutcomes": {
         "0": "Card interpretations are for reference.",

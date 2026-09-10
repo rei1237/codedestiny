@@ -78,6 +78,9 @@ function contrast(foreground, background) {
         width: document.getElementById('cdHomeFunnel').getBoundingClientRect().width,
         unique: ['cdQuickServices', 'cdTodayHub', 'cdConcernPick', 'cdSignatureConsult', 'fortuneGatewayEntry', 'cdHomeGuideTitle'].every((id) => document.querySelectorAll('#' + id).length === 1),
         neoButton: Boolean(document.querySelector('#cdhThemeSlot [data-theme-mode="neo"]')),
+        feedback: Boolean(document.querySelector('#cdhFeedbackSlot #cdFeedbackGate')),
+        feedbackCta: Boolean(document.querySelector('#cdhFeedbackSlot .cd-feedback__cta[href="/feedback/"]')),
+        feedbackReward: Boolean(document.querySelector('#cdhFeedbackSlot .cd-feedback__reward strong')),
         moved: Boolean(document.querySelector('#cdhQuickSlot #cdQuickServices') && document.querySelector('#cdhPassSlot .membership-recap-cta')),
         shareEvent: Boolean(document.querySelector('#cdhShareControls #dpKakaoReferralShareBtn') && document.querySelector('#cdhShareControls #dpKakaoReferralNote')),
         profileCardOnHome: Boolean(document.querySelector('#cdHomeFunnel #dpMasterCard')),
@@ -85,6 +88,7 @@ function contrast(foreground, background) {
       assert.equal(layout.overflow, false, `${width}px overflow`);
       assert.ok(layout.unique && layout.moved, `${width}px reuses unique legacy nodes`);
       assert.ok(layout.neoButton, `${width}px Neo control visible in common header`);
+      assert.ok(layout.feedback && layout.feedbackCta && layout.feedbackReward, `${width}px bug report entry and reward copy are visible in the primary home flow`);
       assert.ok(layout.shareEvent, `${width}px reuses the Kakao referral event`);
       assert.equal(layout.profileCardOnHome, false, `${width}px keeps the full profile card under My`);
       if (width >= 1280) assert.ok(layout.width > 1000, `${width}px uses expanded desktop canvas`);
