@@ -31,19 +31,21 @@ test('unlocked restored result hydrates without the transient calculation argume
   const fs = require('node:fs');
   const vm = require('node:vm');
   const source = fs.readFileSync(require('node:path').join(__dirname, '../../index.html'), 'utf8');
-  const start = source.indexOf('  function applySectionGates(){');
+  const start = source.indexOf('  var latestSajuSummaryArgs=null;');
   const end = source.indexOf('  function applyDynamicPaidContentGates(', start);
   const dom = new JSDOM('<section><div id="summaryGate"><div class="cd-section-gate__body"><div id="summaryArea"></div></div></div></section>');
   global.document = dom.window.document;
   const p = {};
   ['甲子','丙寅','戊辰','庚午'].forEach((s,i) => p[['y','m','d','h'][i]] = {g:s[0],j:s[1],gE:GAN[s[0]].e,jE:JI[s[1]].e});
   G_POWER = calcPower(p); G_JONG = detectJong(p);
-  const restored = {G_PILLARS:p,G_JOHU:analyzeJohu(p),G_NATAL:calcNatalElement(p),addEventListener(){}};
+  const summaryArgs = {p,johu:analyzeJohu(p),natal:calcNatalElement(p)};
+  const restored = {addEventListener(){}};
   const context = vm.createContext({document, window:restored, console, renderSummary,
     SECTION_GATE_KEYS:[{gateId:'summaryGate',unlockKey:'section_summary'}],
     isSajuSectionUnlockedForRender:()=>true,sajuAccessUnlockState:'ready',
     applySectionGateOverlayState:()=>{},applyDynamicPaidContentGates:()=>{}});
-  vm.runInContext(source.slice(start,end) + '\napplySectionGates();',context);
+  context.summaryArgs = summaryArgs;
+  vm.runInContext(source.slice(start,end) + "\napplySectionGates({type:'cd:saju-summary-ready',detail:summaryArgs});",context);
   assert.ok(document.querySelector('.saju-summary-report'), 'unlocked restored result must not stay empty');
   dom.window.close();
 });
