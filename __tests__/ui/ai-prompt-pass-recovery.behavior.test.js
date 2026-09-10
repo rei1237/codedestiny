@@ -19,6 +19,8 @@ const modules = Promise.all([
   import('../../worker/lib/entitlement-policy.js'),
   import('../../worker/lib/pass-consumption.js'),
   import('../../__tests__/fixtures/fake-payment-db.mjs'),
+  import('../../worker/lib/saju-ai-prompt.js'),
+  import('../../worker/lib/ziwei-ai-prompt.js'),
 ]);
 const USER = '64b000000000000000000001';
 
@@ -48,14 +50,16 @@ for (const [name, core] of [
   });
 }
 
-async function fixture({ spent = 0, tier = 'vvip' } = {}) {
+async function fixture({ spent = 0, tier = 'vvip', counterMissing = false } = {}) {
   const [policy, entitlement, pass, { makeFakePaymentDb }] = await modules;
   const db = makeFakePaymentDb();
   const expiresAt = new Date(Date.now() + 86400000);
-  db.rows.push({ _id: USER, points: 0, recentConsumeRequestIds: [], profileSubscription: {
+  const profileSubscription = {
     tier, passTier: tier, isActive: true, expiresAt,
-    premiumUseCycleKey: expiresAt.toISOString(), monthlySpendCoin: spent,
-  } });
+    premiumUseCycleKey: expiresAt.toISOString(),
+  };
+  if (!counterMissing) profileSubscription.monthlySpendCoin = spent;
+  db.rows.push({ _id: USER, points: 0, recentConsumeRequestIds: [], profileSubscription });
   let paymentLookups = 0;
   const context = vm.createContext({
     normalizeHoneyPassEntitlement: policy.normalizeHoneyPassEntitlement,
@@ -136,11 +140,14 @@ for (const tier of ['standard', 'premium', 'vvip', 'family']) {
 }
 
 async function routeFixture(name) {
-  const f = await fixture({ spent: 1800 });
-  const featureKey = name === 'handleSajuAIPrompt' ? 'saju_ai_prompt_generator' : 'ziwei_ai_prompt_generator';
-  const input = { auth: { userId: USER }, featureKey, requestId: 'route-resume', cost: 200,
+  const f = await fixture({ counterMissing: true });
+  const [, , , , sajuPrompt, ziweiPrompt] = await modules;
+  const isSaju = name === 'handleSajuAIPrompt';
+  const featureKey = isSaju ? sajuPrompt.SAJU_AI_PROMPT_FEATURE_KEY : ziweiPrompt.ZIWEI_AI_PROMPT_FEATURE_KEY;
+  const cost = isSaju ? sajuPrompt.SAJU_AI_PROMPT_PRICE : ziweiPrompt.ZIWEI_AI_PROMPT_PRICE;
+  const input = { auth: { userId: USER }, featureKey, requestId: 'route-resume', cost,
     body: { freeBySubscription: true }, env: {} };
-  // PG 증빙 없이 이용권으로 이미 커버한 실행. 마지막 소비 후 이용권은 끝난 상태다.
+  // PG 증빙 없이 레거시 이용권으로 이미 커버한 실행. 첫 소비가 누락 카운터를 만든다.
   await f.run({ ...input, consume: true });
   let generated = 0;
   const fakePrompt = () => ({ generatedPrompt: 'fixture prompt '.repeat(20), digestSource: 'fixture-digest', promptVersion: 'fixture' });
@@ -155,8 +162,8 @@ async function routeFixture(name) {
     buildSajuAIPromptError: fail, buildZiweiAIPromptError: fail,
     buildSajuAIPromptPaymentRequiredError: () => fail('PAYMENT_REQUIRED', '', 402),
     calculateKrwAmountFromCoins: cost => cost * 100,
-    SAJU_AI_PROMPT_FEATURE_KEY: 'saju_ai_prompt_generator', SAJU_AI_PROMPT_PRICE: 200,
-    ZIWEI_AI_PROMPT_FEATURE_KEY: 'ziwei_ai_prompt_generator', ZIWEI_AI_PROMPT_PRICE: 200,
+    SAJU_AI_PROMPT_FEATURE_KEY: sajuPrompt.SAJU_AI_PROMPT_FEATURE_KEY, SAJU_AI_PROMPT_PRICE: sajuPrompt.SAJU_AI_PROMPT_PRICE,
+    ZIWEI_AI_PROMPT_FEATURE_KEY: ziweiPrompt.ZIWEI_AI_PROMPT_FEATURE_KEY, ZIWEI_AI_PROMPT_PRICE: ziweiPrompt.ZIWEI_AI_PROMPT_PRICE,
     SAJU_AI_PROMPT_VERSION: 'fixture', FEATURE_AI_LLM_BUDGET_MS: 60000,
     sha256Hex: async () => 'fixture-hash', readAIPromptRequestId: body => body.requestId,
     resolveSajuAIProfileIdForConsultation: () => 'fixture-profile',
@@ -183,20 +190,22 @@ async function routeFixture(name) {
   return { response, f, generated };
 }
 
-test('궁성 맞춤 AI 실제 라우트: 이용권 재개 → mock 생성 → resultText 응답', async () => {
+test('궁성 맞춤 AI 실제 라우트: 누락 카운터 이용권 재개 → mock 생성 → resultText 응답', async () => {
   const { response, f, generated } = await routeFixture('handleZiweiAIPrompt');
   assert.equal(response.status, 200);
   assert.equal((await response.json()).resultText, 'generated ziwei result');
   assert.equal(generated, 1);
   assert.equal(f.paymentLookups(), 0);
+  assert.equal(f.db.rows[0].profileSubscription.monthlySpendCoin, 100);
 });
 
-test('명식 사주 AI 실제 라우트: 이용권 재개 → 저장된 결과 응답, LLM 재호출 없음', async () => {
+test('명식 사주 AI 실제 라우트: 누락 카운터 이용권 재개 → 저장된 결과 응답, LLM 재호출 없음', async () => {
   const { response, f, generated } = await routeFixture('handleSajuAIPrompt');
   assert.equal(response.status, 200);
   assert.equal((await response.json()).resultText, 'stored saju result');
   assert.equal(generated, 0);
   assert.equal(f.paymentLookups(), 0);
+  assert.equal(f.db.rows[0].profileSubscription.monthlySpendCoin, 200);
 });
 
 for (const priorStatus of [null, 'generation_failed', 'generating']) {

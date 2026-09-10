@@ -27,7 +27,7 @@ import { EDGE_RESPONSE_DEADLINE_MS } from "../lib/sync-llm-timeout.js";
 import { MasterLoveCodexSession, PaidExecutionRecord, Payment, PointHistory, User } from "../lib/models.js";
 import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { recoverCodexSession } from "../lib/master-love-codex-session-access.js";
-import { assertCodexChapterQuality, qualityCheckedCodexCache, generateCodexChapterResponse, buildCodexChapterMemory, buildCodexStagingChapter } from "../lib/master-love-codex-quality.js";
+import { assertCodexChapterQuality, qualityCheckedCodexCache, generateCodexChapterResponse, buildCodexChapterMemory, buildCodexStagingChapter, parseChapterJson } from "../lib/master-love-codex-quality.js";
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
@@ -548,29 +548,6 @@ function fallbackChapterBody(chapter, birthInfo) {
     `이 장의 이야기를 옮겨 적는 중 잠시 손이 멈췄습니다. 잠시 후 다시 열면 ${clean(birthInfo?.name) || "당신"}님의 명식과 명반을 근거로 이 장이 채워집니다.`,
     "이미 완성된 다른 장은 그대로 남아 있으니 먼저 읽으셔도 좋습니다.",
   ].join("\n");
-}
-
-/**
- * DNA 챕터 JSON 파싱.
- * Gemini 는 responseMimeType 으로 순수 JSON 을 보장하지만 Workers AI 폴백(env.AI.run)은
- * 그 옵션을 받지 않아 코드펜스나 앞뒤 설명문이 섞여 온다. 첫 `{` ~ 마지막 `}` 만 잘라 쓴다.
- * (같은 헬퍼가 nakshatra/love-secret/neo 프롬프트 모듈에 각자 있다 — 워커 번들 1MB 제약 때문에
- *  그 모듈들을 끌어오지 않고 이 라우트에도 지역 사본을 둔다.)
- */
-function parseChapterJson(text) {
-  const raw = clean(text);
-  if (!raw) return {};
-  try {
-    return JSON.parse(raw);
-  } catch (_) { /* 폴백 경로: 앞뒤 잡음 제거 후 재시도 */ }
-  const start = raw.indexOf("{");
-  const end = raw.lastIndexOf("}");
-  if (start < 0 || end <= start) return {};
-  try {
-    return JSON.parse(raw.slice(start, end + 1));
-  } catch (_) {
-    return {};
-  }
 }
 
 function normalizeLoveDna(parsed, metricDefs = LOVE_DNA_METRICS) {
