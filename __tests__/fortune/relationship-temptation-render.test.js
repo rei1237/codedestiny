@@ -50,7 +50,9 @@ describe('사주 관계 자극 성향 카드 렌더링', () => {
     expect(runtime).toContain('/js/core/saju/relationshipTemptationAnalysis.js');
     expect(engine).toContain("invokeOptionalGlobalRenderer('renderRelationshipTemptation'");
     expect(engine).toContain('window._sajuVillainBuildTenGodDistribution');
-    expect(dashboard).toContain("target:'relationshipTemptationCard'");
+    expect(dashboard).toContain("action:'openRelationshipBoundaryTestRoute'");
+    expect(dashboard).toContain("window.openRelationshipBoundaryTestRoute");
     expect(dashboard).toContain("case 'relationshipTemptationCard':");
+    expect(dashboard).not.toContain("target:'relationshipTemptationCard'");
   });
 });

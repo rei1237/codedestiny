@@ -83,6 +83,29 @@ test("fortune planner entry cuts over to the /diary app", () => {
   assert.match(dashboard, /cta:'다이어리 열기'/);
 });
 
+test("legacy diary action opens through a first-click-safe loader and mirrors stay in sync", () => {
+  const runtime = read("js/core/index-inline-runtime.js");
+  const publicRuntime = read("public/js/core/index-inline-runtime.js");
+  const dashboard = read("js/core/saju/reportDashboard.js");
+  const publicDashboard = read("public/js/core/saju/reportDashboard.js");
+
+  assert.match(runtime, /function __cdOpenLegacyLuckSyncDiaryProxy\(\)[\s\S]*?LuckSyncDiary\.open\(\)/);
+  assert.match(runtime, /window\.openLegacyLuckSyncDiary = __cdOpenLegacyLuckSyncDiaryProxy/);
+  assert.match(dashboard, /action:'openLegacyLuckSyncDiary'/);
+  assert.match(dashboard, /actionName === 'openLegacyLuckSyncDiary'/);
+  assert.equal(publicRuntime, runtime, "public runtime mirror is stale");
+  assert.equal(publicDashboard, dashboard, "public dashboard mirror is stale");
+});
+
+test("relationship temptation card routes to the paid standalone report", () => {
+  const dashboard = read("js/core/saju/reportDashboard.js");
+
+  assert.match(dashboard, /label:'사주로 보는 그 사람의 바람끼는\?'/);
+  assert.match(dashboard, /action:'openRelationshipBoundaryTestRoute'/);
+  assert.match(dashboard, /window\.openRelationshipBoundaryTestRoute = function\(\)/);
+  assert.doesNotMatch(dashboard, /target:'relationshipTemptationCard'.*?label:'사주로 보는/);
+});
+
 test("diary calendar adds local schedules without an entitlement dependency", () => {
   const diary = read("js/luck-sync-diary.js");
 
