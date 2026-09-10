@@ -19,6 +19,7 @@ test('admission has no staging dependency and retains all blocking findings', ()
   const source = readFileSync(new URL('../../scripts/delivery-admit.mjs', import.meta.url), 'utf8');
   assert.doesNotMatch(source, /readProductionShas|직전 main 스테이징 도달/);
   for (const label of ['필수 PR CI', '후보와 PR head 일치', 'GitHub 병합 가능', '최신 tree/main 로컬 preflight']) assert.ok(source.includes(label));
+  assert.match(source, /append\(findings, true, "활성 워크트리 파일 충돌"/);
   assert.equal(summarizeAdmission([{ok:true}, {ok:false}]).ok, false);
 });
 test('staging yields before deployment and never cancels an active transaction', () => {

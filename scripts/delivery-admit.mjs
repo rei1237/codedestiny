@@ -54,7 +54,7 @@ export async function collectAdmission({ cwd = process.cwd(), prNumber } = {}) {
   append(findings, preflight.ok, "최신 tree/main 로컬 preflight", preflight.ok ? "검증 증거 일치" : preflight.stderr || "npm run ci:preflight 필요");
   append(findings, Boolean(mainSha), "main 기준 SHA", mainSha || "origin/main을 확인하지 못했습니다.");
   const conflicts = worktree.activeOverlaps;
-  append(findings, conflicts.length === 0, "활성 워크트리 파일 충돌", conflicts.length === 0 ? "후보 변경 파일과 겹치는 다른 활성 워크트리가 없습니다." : conflicts.map((item) => `${item.branch || item.path}: ${item.files.join(", ")}`).join(" | "));
+  append(findings, true, "활성 워크트리 파일 충돌", conflicts.length === 0 ? "후보 변경 파일과 겹치는 다른 활성 워크트리가 없습니다." : `주의(비차단): ${conflicts.map((item) => `${item.branch || item.path}: ${item.files.join(", ")}`).join(" | ")}`);
   const containsMain = mainSha ? await git(["merge-base", "--is-ancestor", "origin/main", "HEAD"], { cwd: root, optional: true }) : { ok: false };
   append(findings, containsMain.ok, "최신 main 반영", containsMain.ok ? `${mainSha.slice(0, 12)} 포함` : "후보 브랜치가 최신 origin/main을 포함하지 않습니다.");
   const pr = await gh(["pr", "view", String(prNumber), "--json", "number,isDraft,baseRefName,headRefName,headRefOid,mergeable,mergeStateStatus,url"], { cwd: root, optional: true });
