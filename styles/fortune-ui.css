@@ -16918,3 +16918,353 @@ button,.tog-btn,.btn-main,.btn-sub,.dw-item,.feature-card,
   word-break: keep-all;
   overflow-wrap: break-word;
 }
+
+/* ═══ 사주 종합 풀이 · 장문 리포트 읽기 표면 ═══ */
+#resultPage #summaryArea .saju-summary-report {
+  color: var(--cd-text, #3c1830);
+  font-family: var(--font-body, 'Pretendard', 'Malgun Gothic', sans-serif);
+  font-size: max(1rem, 16px);
+  line-height: 1.78;
+  letter-spacing: -0.01em;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+#resultPage #summaryArea .saju-summary-nav {
+  display: flex;
+  gap: 8px;
+  margin: 0 0 16px;
+  padding: 2px 0 6px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--cd-accent-soft, #f4bed1) transparent;
+}
+#resultPage #summaryArea .saju-summary-nav a {
+  flex: 0 0 auto;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 13px;
+  border: 1px solid var(--cd-border, rgba(216,63,120,.16));
+  border-radius: 999px;
+  background: var(--cd-surface-2, rgba(255,247,250,.84));
+  color: var(--cd-text-muted, #70445c);
+  font-size: .86rem;
+  font-weight: 800;
+  text-decoration: none;
+  white-space: nowrap;
+}
+#resultPage #summaryArea .saju-summary-nav a:hover,
+#resultPage #summaryArea .saju-summary-nav a:focus-visible {
+  border-color: var(--cd-accent, #b31955);
+  color: var(--cd-accent, #b31955);
+}
+#resultPage #summaryArea .saju-summary-chapter {
+  margin: 0 0 16px;
+  padding: clamp(18px, 3vw, 26px);
+  border: 1px solid var(--cd-border, rgba(216,63,120,.16));
+  border-radius: var(--cd-r-md, 16px);
+  background: var(--cd-surface, rgba(255,255,255,.96));
+  box-shadow: var(--cd-elev-0, 0 4px 12px rgba(150,72,104,.07));
+}
+#resultPage #summaryArea .saju-summary-chapter__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+#resultPage #summaryArea .saju-summary-chapter__title {
+  flex: 1 1 auto;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  color: var(--cd-text, #3c1830);
+  font-family: var(--font-display, var(--font-body)) !important;
+  font-size: clamp(1.12rem, 2.8vw, 1.38rem);
+  line-height: 1.4;
+  font-weight: 800;
+}
+#resultPage #summaryArea .saju-summary-toggle {
+  flex: 0 0 auto;
+  min-width: 68px;
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 1px solid var(--cd-border, rgba(216,63,120,.16));
+  border-radius: 10px;
+  background: transparent;
+  color: var(--cd-text-muted, #70445c);
+  font: 800 .82rem/1 var(--font-body, sans-serif);
+  cursor: pointer;
+}
+#resultPage #summaryArea .saju-summary-toggle:hover,
+#resultPage #summaryArea .saju-summary-toggle:focus-visible {
+  border-color: var(--cd-accent, #b31955);
+  color: var(--cd-accent, #b31955);
+}
+#resultPage #summaryArea .saju-summary-chapter__body {
+  max-width: 66ch;
+  color: var(--cd-prose-body-color, var(--cd-text, #3c1830));
+  font-size: max(1rem, 16px);
+  line-height: 1.78;
+}
+#resultPage #summaryArea .saju-summary-chapter__body > p,
+#resultPage #summaryArea .saju-summary-chapter__body .saju-reading-depth p {
+  margin: 0 0 1em;
+}
+#resultPage #summaryArea .saju-summary-subhead {
+  display: block;
+  margin: 1.35em 0 .45em;
+  color: var(--saju-subhead-color, var(--cd-accent, #b31955));
+  font-size: 1rem;
+  line-height: 1.45;
+  font-weight: 850;
+}
+#resultPage #summaryArea .saju-summary-kv {
+  display: grid;
+  grid-template-columns: minmax(76px, 7.5rem) minmax(0, 1fr);
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--cd-border, #ead5df) 72%, transparent);
+}
+#resultPage #summaryArea .saju-summary-kv b {
+  color: var(--cd-text-muted, #70445c);
+  font-size: .86rem;
+  font-weight: 850;
+}
+#resultPage #summaryArea .saju-summary-kv span {
+  color: var(--cd-text, #3c1830);
+  font-size: 1rem;
+  line-height: 1.7;
+}
+#resultPage #summaryArea .saju-summary-list,
+#resultPage #summaryArea .saju-reading-actions {
+  margin: .65em 0 1em 1.25em;
+  padding: 0;
+}
+#resultPage #summaryArea .saju-summary-list li,
+#resultPage #summaryArea .saju-reading-actions li {
+  margin: .42em 0;
+  padding-left: .15em;
+}
+#resultPage #summaryArea .saju-reading-depth {
+  margin: 1.25em 0;
+  padding: 15px 16px;
+  border: 1px solid var(--cd-border, rgba(216,63,120,.16));
+  border-radius: 12px;
+  background: var(--cd-surface-2, rgba(255,247,250,.84));
+}
+#resultPage #summaryArea .saju-reading-depth__label {
+  display: block;
+  margin-bottom: .38em;
+  color: var(--cd-accent, #b31955);
+  font-size: .88rem;
+  font-weight: 850;
+}
+#resultPage #summaryArea .saju-reading-actions {
+  padding: 12px 15px 12px 30px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--cd-accent-soft, #f4bed1) 34%, var(--cd-surface, #fff));
+}
+body.neo-mode #resultPage #summaryArea .saju-summary-chapter,
+body.neo-mode #resultPage #summaryArea .saju-reading-depth,
+body.neo-mode #resultPage #summaryArea .saju-summary-nav a {
+  background: var(--cd-surface, rgba(19,16,42,.96));
+  border-color: var(--cd-border, rgba(196,181,253,.32));
+}
+body.neo-mode #resultPage #summaryArea .saju-summary-chapter__title,
+body.neo-mode #resultPage #summaryArea .saju-summary-kv span {
+  color: var(--cd-text, #f4eeff);
+}
+body.neo-mode #resultPage #summaryArea .saju-summary-kv b,
+body.neo-mode #resultPage #summaryArea .saju-summary-toggle {
+  color: var(--cd-text-muted, rgba(200,170,255,.7));
+}
+
+/* ═══ 만세력: 큰 한자와 역할 정보의 4열 읽기 구조 ═══ */
+#resultPage #sajuCard .manse-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(7px, 1.8vw, 12px);
+}
+#resultPage #sajuCard .pillar {
+  min-width: 0;
+  padding: 10px 6px 12px;
+  border: 1px solid var(--cd-border, rgba(216,63,120,.16));
+  border-radius: 14px;
+  background: var(--cd-surface-2, rgba(255,247,250,.84));
+}
+#resultPage #sajuCard .pillar-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px;
+  color: var(--cd-text, #3c1830);
+  font-family: var(--font-display, var(--font-body));
+  font-size: .86rem;
+  line-height: 1.35;
+}
+#resultPage #sajuCard .pillar-head small {
+  color: var(--cd-text-muted, #70445c);
+  font-family: var(--font-premium, 'CodeDestinySerifKR', serif);
+  font-size: .72rem;
+  font-weight: 700;
+}
+#resultPage #sajuCard .manse-char-role {
+  margin: 2px 0 1px;
+  color: var(--cd-text-muted, #70445c);
+  font-size: .68rem;
+  line-height: 1.25;
+  font-weight: 800;
+}
+#resultPage #sajuCard .char-box {
+  min-width: 44px;
+  min-height: 54px;
+  aspect-ratio: 1 / 1;
+  border: 1px solid color-mix(in srgb, var(--cd-accent, #b31955) 22%, transparent);
+  font-family: var(--font-premium, 'CodeDestinySerifKR', 'Noto Serif KR', serif);
+  font-size: clamp(1.55rem, 5vw, 2.1rem);
+  line-height: 1;
+  text-rendering: optimizeLegibility;
+}
+#resultPage #sajuCard .manse-char-glyph {
+  font-variant-east-asian: traditional;
+}
+#resultPage #sajuCard .char-box:focus-visible {
+  outline: 3px solid var(--cd-focus-ring, #b31955);
+  outline-offset: 3px;
+}
+#resultPage #sajuCard .yang-yin {
+  color: var(--cd-text-muted, #70445c);
+  font-size: .72rem;
+  line-height: 1.35;
+}
+
+/* ═══ 궁합 장문 리포트 ═══ */
+#resultPage #compatResult .compat-wrap {
+  color: var(--cd-text, #3c1830);
+  font-family: var(--font-body, 'Pretendard', 'Malgun Gothic', sans-serif);
+  font-size: max(1rem, 16px);
+  line-height: 1.78;
+  letter-spacing: -0.01em;
+}
+#resultPage #compatResult .compat-section,
+#resultPage #compatResult .compat-fact-box,
+#resultPage #compatResult .compat-advice-box {
+  border: 1px solid var(--cd-border, rgba(216,63,120,.16));
+  border-radius: var(--cd-r-md, 16px);
+  background: var(--cd-surface, rgba(255,255,255,.96));
+  color: var(--cd-text, #3c1830);
+  box-shadow: var(--cd-elev-0, 0 4px 12px rgba(150,72,104,.07));
+}
+#resultPage #compatResult .compat-section-title,
+#resultPage #compatResult .compat-fact-title,
+#resultPage #compatResult .compat-advice-title {
+  color: var(--cd-accent, #b31955);
+  font-family: var(--font-display, var(--font-body));
+  font-size: 1.08rem;
+  line-height: 1.45;
+}
+#resultPage #compatResult .compat-check-item {
+  align-items: flex-start;
+  min-width: 0;
+  padding: 13px 0;
+  color: var(--cd-text, #3c1830);
+  font-size: 1rem;
+  line-height: 1.78;
+}
+#resultPage #compatResult .compat-check-item > span:last-child {
+  min-width: 0;
+}
+#resultPage #compatResult .compat-check-reason {
+  display: block;
+  margin-bottom: .32em;
+  color: var(--cd-text, #3c1830);
+}
+#resultPage #compatResult .compat-check-detail {
+  display: block;
+  color: var(--cd-text-muted, #70445c);
+  font-size: .92rem;
+  line-height: 1.7;
+}
+#resultPage #compatResult .compat-love-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+#resultPage #compatResult .compat-love-card {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--cd-border, rgba(216,63,120,.16));
+  border-radius: 13px;
+  background: var(--cd-surface-2, rgba(255,247,250,.84));
+}
+#resultPage #compatResult .compat-love-card h4 {
+  margin: 0 0 9px;
+  color: var(--cd-accent, #b31955);
+  font-family: var(--font-display, var(--font-body));
+  font-size: 1rem;
+  line-height: 1.45;
+}
+#resultPage #compatResult .compat-love-card p {
+  margin: 0 0 1em;
+  color: var(--cd-text, #3c1830);
+  font-size: 1rem;
+  line-height: 1.78;
+}
+#resultPage #compatResult .compat-love-card p:last-child { margin-bottom: 0; }
+#resultPage #compatResult .pastlife-reflection {
+  margin-top: 16px;
+  padding: 17px;
+  border: 1px solid rgba(186,104,200,.38);
+  border-radius: 14px;
+  background: color-mix(in srgb, #8b5cf6 13%, var(--cd-surface, #fff));
+}
+#resultPage #compatResult .pastlife-reflection h4 {
+  margin: 0 0 8px;
+  color: var(--cd-accent, #b31955);
+  font-family: var(--font-display, var(--font-body));
+  font-size: 1.02rem;
+}
+#resultPage #compatResult .pastlife-reflection p {
+  margin: 0 0 1em;
+  font-size: 1rem;
+  line-height: 1.78;
+}
+#resultPage #compatResult .pastlife-reflection ul {
+  margin: .6em 0 0 1.25em;
+  padding: 0;
+}
+body.neo-mode #resultPage #compatResult .compat-section,
+body.neo-mode #resultPage #compatResult .compat-fact-box,
+body.neo-mode #resultPage #compatResult .compat-advice-box,
+body.neo-mode #resultPage #compatResult .compat-love-card {
+  background: var(--cd-surface, rgba(19,16,42,.96));
+  border-color: var(--cd-border, rgba(196,181,253,.32));
+}
+body.neo-mode #resultPage #compatResult .compat-check-item,
+body.neo-mode #resultPage #compatResult .compat-check-reason,
+body.neo-mode #resultPage #compatResult .compat-love-card p {
+  color: var(--cd-text, #f4eeff);
+}
+body.neo-mode #resultPage #compatResult .compat-check-detail {
+  color: var(--cd-text-muted, rgba(200,170,255,.7));
+}
+@media (max-width: 640px) {
+  #resultPage #summaryArea .saju-summary-chapter { padding: 16px 14px; }
+  #resultPage #summaryArea .saju-summary-chapter__head { gap: 8px; }
+  #resultPage #summaryArea .saju-summary-chapter__title { font-size: 1.08rem; }
+  #resultPage #summaryArea .saju-summary-chapter__body { font-size: 1rem; line-height: 1.75; }
+  #resultPage #summaryArea .saju-summary-kv { grid-template-columns: 5.1rem minmax(0, 1fr); gap: 8px; }
+  #resultPage #summaryArea .saju-reading-depth { padding: 14px 13px; }
+  #resultPage #compatResult .compat-love-grid { grid-template-columns: 1fr; }
+  #resultPage #compatResult .compat-section,
+  #resultPage #compatResult .compat-fact-box,
+  #resultPage #compatResult .compat-advice-box { padding: 15px 14px; }
+  #resultPage #sajuCard .pillar { padding: 8px 3px 10px; }
+  #resultPage #sajuCard .pillar-head { font-size: .78rem; }
+  #resultPage #sajuCard .pillar-head small { font-size: .64rem; }
+  #resultPage #sajuCard .char-box { font-size: 1.55rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #resultPage #sajuCard .char-box,
+  #resultPage #summaryArea .saju-summary-nav a { transition: none !important; }
+}

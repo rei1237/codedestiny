@@ -10200,7 +10200,7 @@ function render24Terms(ctx, p){
 }
 
 function renderManse(p){
-  var cols=[{l:'시주',g:p.h.g,j:p.h.j},{l:'일주',g:p.d.g,j:p.d.j},{l:'월주',g:p.m.g,j:p.m.j},{l:'년주',g:p.y.g,j:p.y.j}];
+  var cols=[{l:'시주',han:'時柱',g:p.h.g,j:p.h.j},{l:'일주',han:'日柱',g:p.d.g,j:p.d.j},{l:'월주',han:'月柱',g:p.m.g,j:p.m.j},{l:'년주',han:'年柱',g:p.y.g,j:p.y.j}];
   var h='';
   cols.forEach(function(c){
     var gd=GAN[c.g]||{e:'metal',y:'+',n:'?'},jd=JI[c.j]||{e:'water',y:'+',a:'?'};
@@ -10210,13 +10210,15 @@ function renderManse(p){
     var branchAria=c.l+' 지지 '+c.j+' 상세 보기';
 
     var isDayStem = (c.l==='일주');
-    h+='<div class="pillar">'+
-      '<div class="pillar-head">'+c.l+'</div>'+
+    h+='<div class="pillar" data-pillar="'+c.l+'">'+
+      '<div class="pillar-head"><span>'+c.l+'</span><small>'+c.han+'</small></div>'+
       '<div class="ten-god-badge'+(isDayStem?' day':'')+'">'+gGod+'</div>'+
-      '<div class="char-box bg-'+gd.e+'" role="button" tabindex="0" data-manse-char="1" data-char="'+escapeManseAttr(c.g)+'" data-char-type="stem" data-gan="'+escapeManseAttr(c.g)+'" data-zhi="'+escapeManseAttr(c.j)+'" data-pos-label="'+escapeManseAttr(c.l)+'" data-is-day-stem="'+(isDayStem?'1':'0')+'" aria-label="'+escapeManseAttr(stemAria)+'">'+c.g+'</div>'+
+      '<div class="manse-char-role">천간</div>'+
+      '<div class="char-box bg-'+gd.e+'" role="button" tabindex="0" data-manse-char="1" data-char="'+escapeManseAttr(c.g)+'" data-char-type="stem" data-gan="'+escapeManseAttr(c.g)+'" data-zhi="'+escapeManseAttr(c.j)+'" data-pos-label="'+escapeManseAttr(c.l)+'" data-is-day-stem="'+(isDayStem?'1':'0')+'" aria-label="'+escapeManseAttr(stemAria)+'"><span class="manse-char-glyph">'+c.g+'</span></div>'+
       '<div class="yang-yin">'+(gd.y==='+'?'양':'음')+' '+gd.n+'</div>'+
       '<div class="ten-god-badge">'+jGod+'</div>'+
-      '<div class="char-box bg-'+jd.e+'" role="button" tabindex="0" data-manse-char="1" data-char="'+escapeManseAttr(c.j)+'" data-char-type="branch" data-gan="'+escapeManseAttr(c.g)+'" data-zhi="'+escapeManseAttr(c.j)+'" data-pos-label="'+escapeManseAttr(c.l)+'" data-is-day-stem="0" aria-label="'+escapeManseAttr(branchAria)+'">'+c.j+'</div>'+
+      '<div class="manse-char-role">지지</div>'+
+      '<div class="char-box bg-'+jd.e+'" role="button" tabindex="0" data-manse-char="1" data-char="'+escapeManseAttr(c.j)+'" data-char-type="branch" data-gan="'+escapeManseAttr(c.g)+'" data-zhi="'+escapeManseAttr(c.j)+'" data-pos-label="'+escapeManseAttr(c.l)+'" data-is-day-stem="0" aria-label="'+escapeManseAttr(branchAria)+'"><span class="manse-char-glyph">'+c.j+'</span></div>'+
       '<div class="yang-yin">'+(jd.y==='+'?'양':'음')+' '+jd.a+'</div>'+
       '</div>';
   });
@@ -26773,6 +26775,7 @@ function sbxToggle(id,btn){
   var hidden=el.style.display==='none';
   el.style.display=hidden?'':'none';
   btn.textContent=hidden?'접기 ▲':'펼치기 ▼';
+  btn.setAttribute('aria-expanded',hidden?'true':'false');
 }
 
 var SAJU_MONTH_COMMAND_BY_BRANCH = {
@@ -27082,19 +27085,130 @@ function renderSummary(p,johu,natal){
 
   /* ─── 섹션 빌더 헬퍼 ─── */
   var _bxCtr=0;
-  function box(title,body,accent,bg){
-    var bc=accent||'#bba371';var bkg=bg||'rgba(255,255,255,.85)';
-    var id='sbx'+(++_bxCtr);
-    return '<div class="prem-box" style="background:'+bkg+';border-left:4px solid '+bc+'">'+
-      '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px;margin-bottom:10px">'+
-      '<span class="prem-title" style="border-color:'+bc+';margin-bottom:0;flex:1">'+title+'</span>'+
-      '<button type="button" data-bxid="'+id+'" onclick="sbxToggle(this.dataset.bxid,this)" style="flex-shrink:0;background:none;border:1px solid rgba(150,150,150,.4);border-radius:4px;padding:2px 8px;font-size:.7rem;cursor:pointer;color:inherit;opacity:.7;white-space:nowrap;line-height:1.5">접기 ▲</button>'+
-      '</div>'+
-      '<div id="'+id+'" class="prem-text">'+body+'</div></div>';
+  function depthParagraph(label,text){
+    return '<div class="saju-reading-depth"><b class="saju-reading-depth__label">'+label+'</b><p>'+text+'</p></div>';
   }
-  function subHead(txt,c){return '<b style="font-size:.88rem;color:'+(c||'#444')+'">'+txt+'</b><br>';}
-  function li(items){return '<ul style="margin:6px 0 6px 16px;padding:0;font-size:.85rem;line-height:1.78">'+items.map(function(t){return '<li>'+t+'</li>';}).join('')+'</ul>';}
-  function kv(k,v){return '<span style="display:inline-flex;gap:4px;margin:3px 0"><b style="color:#666;font-size:.8rem;min-width:72px">'+k+'</b><span style="color:#333;font-size:.84rem;line-height:1.58">'+v+'</span></span><br>';}
+  function depthList(items){
+    return '<ul class="saju-reading-actions">'+items.map(function(t){return '<li>'+t+'</li>';}).join('')+'</ul>';
+  }
+  function summaryDepth(title){
+    var monthName=monthCommand&&monthCommand.monthName?monthCommand.monthName:'태어난 달';
+    var monthSeason=monthCommand&&monthCommand.season?monthCommand.season:'계절의 흐름';
+    var monthElement=monthCommand&&monthCommand.dominantElement?EL_KO[monthCommand.dominantElement]:'계절 오행';
+    var monthRelation=monthReading&&monthReading.relationToDayMaster?monthReading.relationToDayMaster:'월령과 일간의 관계';
+    var seasonAdvice=monthReading&&monthReading.advice?monthReading.advice:'계절의 힘을 생활 리듬에 맞춰 조절해 보세요.';
+    var seasonCaution=monthReading&&monthReading.caution?monthReading.caution:'한 가지 기운을 과하게 밀어붙이기보다 회복과 조절의 여지를 남겨두세요.';
+    var yong=(pw&&pw.yongshin||[]).map(function(e){return EL_KO[e];}).join('·')||'필요한 오행';
+    var kij=(pw&&pw.kijishin||[]).map(function(e){return EL_KO[e];}).join('·')||'과해지기 쉬운 오행';
+    var common=depthParagraph('이 해석을 읽는 법',
+      '이 장의 결론은 한 가지 문장으로 운명을 고정하는 판정이 아니라, 일간·계절·오행 분포가 함께 만들어내는 반복 패턴을 읽은 것입니다. 같은 기질도 환경과 선택에 따라 강점으로 쓰일 수 있고, 과해지면 피로와 갈등의 모습으로 나타날 수 있으니 자신의 실제 경험과 대조해 받아들여 주세요.');
+    var action=depthList(['오늘의 선택에서 이 장의 키워드가 드러난 장면을 한 가지 기록하기','강점은 한 번 더 반복하고, 과해지는 신호는 한 박자 늦추는 개인 규칙 만들기','가까운 사람에게 내 패턴을 설명하고 현실적인 피드백 한 가지 받기']);
+    if(title.indexOf('나의 사주 총평')>=0){
+      return depthParagraph('기질이 움직이는 방식',
+        '일간 '+dg+'의 성향은 혼자 떨어져 작동하기보다 태어난 계절과 주변 오행의 도움을 받으며 방향이 정해집니다. 그래서 '+(ganKeyword[dg]||'고유한 기질')+'은 이미 갖고 있는 자원이고, '+(ganWeakPoint[dg]||'균형 조율')+'은 능력이 부족해서가 아니라 힘이 한쪽으로 몰릴 때 생기는 그림자로 보는 편이 정확합니다. '+monthName+'의 '+monthSeason+' 흐름과 '+monthElement+' 기운이 이 기질의 속도와 표현 방식을 조절합니다.')+
+        depthParagraph('생활에서 확인할 신호',
+          '일이 잘 풀릴 때는 '+(ganTalent[dg]||'자신의 재능')+'이 자연스럽게 반복되고, 지칠 때는 '+(ganWeakPoint[dg]||'과한 기질')+'이 먼저 드러날 수 있습니다. 연애에서도 '+(ganRel[dg]||'진심 있는 관계')+'를 원하지만 표현 속도와 상대의 속도가 다를 수 있으므로, 마음을 증명하려는 행동보다 서로의 회복 시간을 합의하는 방식이 더 오래 갑니다.')+action;
+    }
+    if(title.indexOf('조후')>=0){
+      return depthParagraph('온도와 습도의 실제 의미',
+        '조후는 좋고 나쁨을 가르는 낙인이 아니라, 몸과 감정이 어떤 환경에서 편안하게 움직이는지 살피는 기준입니다. 현재 판정이 '+(johu&&johu.type||'균형')+' 쪽으로 기울어 있다면 일·관계·수면 리듬도 같은 방향으로 영향을 받을 수 있습니다. '+(johu&&johu.advice||seasonAdvice))+
+        depthParagraph('계절에 맞춘 조정',seasonCaution+' '+monthRelation+'을 함께 보면서 지나치게 뜨겁거나 차가운 선택을 줄이고, 내가 회복되는 장소·사람·시간대를 구체적으로 확보해 보세요.')+action;
+    }
+    if(title.indexOf('억부')>=0||title.indexOf('종격')>=0){
+      return depthParagraph('강약을 활용하는 법',
+        '현재 구조는 '+(pw&&pw.isStrong?'일간의 힘이 비교적 강한 편':'일간의 힘이 외부 도움과 조율을 필요로 하는 편')+'으로 읽힙니다. '+(jg&&jg.isJong?'종격 가능성이 함께 검토되는 구조이므로 한 방향의 힘을 무조건 억누르기보다 실제 삶에서 지속 가능한지 확인하는 과정이 중요합니다.':'일반적인 억부 흐름에서는 강한 부분을 설기하거나 부족한 부분을 보완하는 균형 감각이 핵심입니다.')+' 용신 후보는 '+yong+', 조심해서 다룰 기운은 '+kij+'로 정리됩니다.')+
+        depthParagraph('선택의 기준',
+          '좋은 선택은 용신이라는 이름을 맹목적으로 따르는 것이 아니라, 그 기운을 활용했을 때 집중력·회복력·관계의 안정이 실제로 좋아지는지 확인하는 선택입니다. 반대로 기신으로 읽힌 기운도 필요한 역할이 있으므로 없애기보다 양과 속도를 조절하는 방식으로 접근하세요.')+action;
+    }
+    if(title.indexOf('월령')>=0){
+      return depthParagraph('계절이 만든 기본 템포',
+        monthName+'은 '+monthSeason+'에 해당하며, 이때 살아나는 '+monthElement+'의 힘이 사주 전체의 기본 템포를 만듭니다. '+monthRelation+'은 일간의 재능을 바로 강화하거나, 반대로 쉬어 갈 틈 없이 몰아붙이는 압력으로도 나타날 수 있습니다. 이 차이를 알면 “왜 나는 같은 일을 해도 어떤 때는 빠르고 어떤 때는 느린가”를 설명하기 쉬워집니다.')+
+        depthParagraph('가까운 흐름의 활용',
+          (monthReading&&monthReading.careerImpact||'일과 역할에서는 계절의 강점을 반복 가능한 방식으로 구조화하는 것이 좋습니다.')+' '+(monthReading&&monthReading.loveImpact||'관계에서는 표현의 속도와 감정 회복 시간을 서로 맞추는 것이 중요합니다.')+' '+seasonAdvice+' '+seasonCaution)+action;
+    }
+    if(title.indexOf('오행 분포')>=0){
+      return depthParagraph('비율보다 중요한 균형',
+        '현재 오행 비율은 '+ratStr+'로 보입니다. 여기서 핵심은 가장 많은 오행을 좋다·나쁘다로 판단하는 것이 아니라, 그 기운이 어떤 역할을 충분히 하고 어떤 역할은 비어 있는지 살피는 것입니다. '+EL_KO[domE]+'가 중심이 된 흐름은 '+(tips&&tips.ctips?tips.ctips.action:'조절 행동')+'처럼 구체적인 루틴으로 옮길 때 생활에서 체감되기 쉽습니다.')+
+        depthParagraph('부족함을 채우는 방식',
+          '부족해 보이는 오행을 한꺼번에 늘리기보다 일·주거·관계·식습관 중 한 영역부터 작게 보완하세요. 반대로 과한 기운은 억지로 끊기보다 '+(tips&&tips.dtips?tips.dtips.action:'속도를 낮추는 활동')+'처럼 분산시키는 행동을 더하는 편이 지속 가능합니다.')+action;
+    }
+    if(title.indexOf('십성')>=0){
+      return depthParagraph('에너지 구성의 반복 패턴',
+        '가장 두드러진 십성은 '+dominant+'이며, 이는 '+(tsInfo&&tsInfo.meaning||deep.nature||'삶에서 반복되는 역할과 욕구')+'로 읽을 수 있습니다. 같은 십성도 직업에서는 성과를 만드는 힘이 되고, 관계에서는 기대와 부담의 방식으로 나타날 수 있으므로 한 단어의 성격 진단으로 축소하지 않습니다.')+
+        depthParagraph('강점을 오래 쓰는 조건',
+          (deep.career||'자신에게 맞는 역할을 반복 가능한 구조로 만들 때 역량이 안정됩니다.')+' '+(deep.love||'관계에서는 마음을 표현하는 방식과 상대가 받는 방식을 함께 확인하는 것이 좋습니다.')+' '+(tsMoneyPattern[dominant]||'재물에서는 수입과 지출의 흐름을 기록해 패턴을 확인하세요.'))+action;
+    }
+    if(title.indexOf('성격·기질')>=0){
+      return depthParagraph('내면과 겉모습의 간격',
+        (ganChar[dg]||'일간의 상징')+'은 처음 만난 사람에게 보이는 태도와 혼자 있을 때의 회복 방식이 다를 수 있음을 보여줍니다. '+(ganKeyword[dg]||'고유한 강점')+'이 빠르게 드러나는 장면과 '+(ganWeakPoint[dg]||'주의점')+'이 올라오는 장면을 나누어 관찰하면 자기비판보다 자기조절에 가까운 해석이 됩니다.')+
+        depthParagraph('관계에서의 사용법',
+          (ganRel[dg]||'진심 있는 관계')+'를 원한다면 상대가 알아서 읽어주기를 기다리기보다 원하는 거리·표현·회복 시간을 말로 알려주는 것이 좋습니다. 나를 바꾸는 것보다, 강점이 잘 작동하는 환경과 과한 반응을 줄이는 경계를 함께 설계하는 편이 현실적입니다.')+action;
+    }
+    if(title.indexOf('진로 적성')>=0){
+      return depthParagraph('직업 선택의 축',
+        (monthReading&&monthReading.careerImpact||'계절의 힘과 십성의 역할이 만나는 지점에서 진로 방향이 구체화됩니다.')+' '+(deep.career||'능력을 반복해서 성과로 바꾸는 역할을 선택하세요.')+' '+(lifeStrategyByTs[dominant]||'전문성과 신뢰를 쌓는 전략')+'을 함께 보면 단순 직업 목록보다 어떤 방식으로 일해야 오래 버틸 수 있는지가 선명해집니다.')+
+        depthParagraph('성공을 지속하는 조건',
+          '잘 맞는 일도 속도·권한·피드백 구조가 맞지 않으면 소진될 수 있습니다. 처음부터 큰 결정을 하기보다 2~4주짜리 작은 프로젝트로 적합도를 시험하고, 결과보다 몰입도와 회복 비용을 기록해 다음 선택의 근거로 삼아 보세요.')+action;
+    }
+    if(title.indexOf('연애·결혼')>=0){
+      return depthParagraph('사랑의 속도와 표현',
+        (ganRel[dg]||'진심 있는 연애')+'를 바라는 마음은 분명하지만, 상대가 같은 방식으로 애정을 표현한다고 보기는 어렵습니다. '+(monthReading&&monthReading.loveImpact||'계절의 온도와 일지의 감정 리듬을 함께 살피면')+' 내가 사랑을 확인하는 방식과 상대가 편안함을 느끼는 방식을 구분할 수 있습니다.')+
+        depthParagraph('오래 가는 관계의 조건',
+          '연애와 결혼의 핵심은 끌림의 크기만이 아니라 갈등 뒤에 다시 연결되는 방법입니다. 연락 빈도, 혼자 있는 시간, 돈과 집안일의 역할, 서운함을 말하는 타이밍을 미리 합의하면 감정이 흔들리는 날에도 관계의 기본 구조를 지킬 수 있습니다.')+action;
+    }
+    if(title.indexOf('신살')>=0){
+      return depthParagraph('상징을 현실에 번역하기',
+        '신살은 사람을 규정하는 낙인보다 특정 장면에서 반응이 커지는 상징으로 읽는 편이 안전합니다. 매력·이동·집중·직관 같은 힘은 환경을 만나면 재능이 되고, 과해지면 충동·피로·관계의 오해로 나타날 수 있습니다. 실제 경험과 맞는 부분만 선택적으로 받아들이세요.')+
+        depthParagraph('균형을 지키는 질문',
+          '이 에너지가 잘 작동할 때 나는 무엇을 만들고 있는가, 과해질 때 누구와 어떤 갈등을 반복하는가를 나누어 기록해 보세요. 상징을 두려워하기보다 사용 가능한 재능과 조절해야 할 습관으로 분리하면 신살 해석이 현실적인 자기이해로 바뀝니다.')+action;
+    }
+    if(title.indexOf('건강')>=0){
+      return depthParagraph('컨디션의 패턴',
+        '건강 해석은 진단이 아니라 생활 리듬을 점검하는 참고 신호입니다. '+(health.weak||'취약하기 쉬운 컨디션')+'와 '+(health.stress||'스트레스 신호')+'가 겹치는 시기에는 의지로 버티기보다 수면·식사·움직임을 먼저 정돈하는 방식이 안전합니다.')+
+        depthParagraph('회복 루틴의 기준',
+          (health.advice||'작고 반복 가능한 회복 루틴')+' '+(health.food||'몸에 맞는 식사')+'를 한꺼번에 바꾸기보다 하나씩 실험하세요. 증상이 지속되거나 일상에 영향을 준다면 운세 해석보다 의료 전문가의 판단을 우선해야 합니다.')+action;
+    }
+    if(title.indexOf('재물운')>=0){
+      return depthParagraph('돈이 움직이는 방식',
+        (tsMoneyPattern[dominant]||'수입과 지출의 반복 패턴')+' '+(monthReading&&monthReading.wealthImpact||'계절의 압력이 재물 판단의 속도에 영향을 줄 수 있습니다.')+' 따라서 큰 기회를 기다리기보다 수입원·고정비·비상 여유를 나누어 기록할 때 자신의 재물 흐름을 더 정확히 확인할 수 있습니다.')+
+        depthParagraph('현실적인 수호선',
+          (elMoneyAdvice[domE]||'계약과 지출 기록을 꼼꼼히 확인하세요.')+' 운세는 투자 수익이나 손실을 보장하지 않으므로, 중요한 금융 결정은 감당 가능한 범위와 검증된 정보 안에서 판단하세요.')+action;
+    }
+    if(title.indexOf('귀인')>=0){
+      return depthParagraph('도움을 주고받는 방식',
+        (guiinByDom[domE]||'성장을 돕는 멘토')+'가 귀인으로 읽히는 이유는 당신이 부족해서가 아니라, 혼자 반복하기 어려운 시야와 연결을 보완해 주기 때문입니다. 도움을 받는 동시에 자신이 먼저 나눌 수 있는 경험과 자원을 정리하면 관계가 일방향 의존으로 흐르지 않습니다.')+
+        depthParagraph('귀인 인연을 유지하는 법',
+          '좋은 조언을 들었다면 실행 결과를 짧게 공유하고, 상대의 시간과 경계를 존중하세요. 한 번의 강한 만남보다 스터디·프로젝트·커뮤니티처럼 같은 방향의 접점을 반복하는 환경이 실제 귀인 관계를 만들 가능성이 높습니다.')+action;
+    }
+    if(title.indexOf('개운 루트')>=0){
+      return depthParagraph('개운의 핵심',
+        '개운은 특정 물건 하나로 운을 바꾸는 주문이 아니라, 과한 기운은 분산하고 필요한 기운은 반복해서 생활에 들이는 조정법입니다. '+EL_KO[tips.controller]+'을 활용하는 행동과 '+EL_KO[tips.drain]+'으로 힘을 나누는 행동을 번갈아 적용하면 무리 없이 균형을 시험할 수 있습니다.')+
+        depthParagraph('작게 시작하는 순서',
+          '색·방향·음식·활동을 모두 바꾸기보다 가장 쉽게 반복할 수 있는 한 가지를 2주간 실천하고, 수면·집중·관계의 변화를 기록하세요. 효과가 체감되지 않으면 다른 요소로 조정하며 자신에게 맞는 루틴만 남기는 것이 좋습니다.')+action;
+    }
+    if(title.indexOf('인생 전략')>=0){
+      return depthParagraph('장기 전략의 중심',
+        (lifeStrategyByTs[dominant]||'전문성과 신뢰를 쌓는 전략')+'은 빠른 승부보다 자신의 에너지를 반복 가능한 성과로 바꾸는 방향을 뜻합니다. '+monthName+'의 계절 템포와 '+(monthReading&&monthReading.strengthAnalysis||'현재 강약 흐름')+'을 함께 고려하면 지금 확장할 일과 잠시 정리할 일을 구분하기 쉬워집니다.')+
+        depthParagraph('다음 90일의 기준',
+          '큰 목표를 한 문장으로 두고, 매주 확인할 행동 하나와 매일 반복할 루틴 하나로 쪼개세요. 결과가 늦더라도 기록이 남으면 다음 선택의 정확도가 올라가며, 이 리포트도 정답지가 아니라 그 기록을 시작하는 지도처럼 사용할 수 있습니다.')+action;
+    }
+    return common+action;
+  }
+  function box(title,body,accent,bg){
+    var bc=accent||'#bba371';
+    var id='sbx'+(++_bxCtr);
+    var chapterId='sajuSummaryChapter'+_bxCtr;
+    return '<article id="'+chapterId+'" class="prem-box saju-summary-chapter" data-saju-summary-chapter="'+_bxCtr+'">'+
+      '<div class="saju-summary-chapter__head">'+
+      '<h4 class="prem-title saju-summary-chapter__title">'+title+'</h4>'+
+      '<button class="saju-summary-toggle" type="button" data-bxid="'+id+'" aria-controls="'+id+'" aria-expanded="true" onclick="sbxToggle(this.dataset.bxid,this)">'+
+      '접기 ▲</button>'+
+      '</div>'+
+      '<div id="'+id+'" class="prem-text saju-summary-chapter__body">'+body+summaryDepth(title)+'</div></article>';
+  }
+  function subHead(txt,c){return '<b class="saju-summary-subhead" style="--saju-subhead-color:'+(c||'var(--cd-accent,#b31955)')+'">'+txt+'</b>';}
+  function li(items){return '<ul class="saju-summary-list">'+items.map(function(t){return '<li>'+t+'</li>';}).join('')+'</ul>';}
+  function kv(k,v){return '<div class="saju-summary-kv"><b>'+k+'</b><span>'+v+'</span></div>';}
 
   /* ─── 데이터 맵 ─── */
   var EL_KO={wood:'목(木)',fire:'화(火)',earth:'토(土)',metal:'금(金)',water:'수(水)'};
@@ -27238,7 +27352,13 @@ function renderSummary(p,johu,natal){
     '정인':'수용 전략 — 배움이 당신 평생 자산입니다. 좋은 스승 찾아 배우고, 받은 만큼 나눠주세요.'
   };
 
-  var html='';
+  var html='<div class="saju-summary-report">'+
+    '<nav class="saju-summary-nav" aria-label="종합 사주 풀이 목차">'+
+    '<a href="#sajuSummaryChapter1">기질과 계절</a>'+
+    '<a href="#sajuSummaryChapter5">오행과 십성</a>'+
+    '<a href="#sajuSummaryChapter7">성격과 관계</a>'+
+    '<a href="#sajuSummaryChapter15">현실 전략</a>'+
+    '</nav>';
 
   /* ───────────────────────────────
      1. 사주 총평 & 일간 분석
@@ -27750,6 +27870,7 @@ function renderSummary(p,johu,natal){
     };
   } catch (_eLastReading) {}
 
+  html+='</div>';
   document.getElementById('summaryArea').innerHTML=html;
 }
 
@@ -28939,35 +29060,34 @@ function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name){
   var integratedScore = scoreMyeongri;
 
   var grade,gradeCls,gradeLabel,gradeComment;
-  if(score>=13){grade='S급';gradeCls='grade-s';gradeLabel='🌟 전생의 은인';gradeComment='타고난 인연입니다. 서로의 부족한 에너지를 정확히 채워주고 기신까지 제거해주는, 명리학적으로 가장 이상적인 궁합입니다.';}
+  if(score>=13){grade='S급';gradeCls='grade-s';gradeLabel='🌟 전생의 은인';gradeComment='서로의 부족한 에너지를 보완하는 흐름이 강하게 읽히는 관계입니다. 기신으로 읽힌 부담도 함께 조절할 여지가 있어, 배려와 공동 목표가 더해지면 안정적으로 성장할 수 있습니다.';}
   else if(score>=8){grade='A급';gradeCls='grade-a';gradeLabel='✨ 운명 궁합';gradeComment='기본 코드와 에너지 방향이 잘 맞는 강한 인연입니다. 노력과 배려가 더해지면 오래 함께 성장할 수 있는 무게 있는 궁합입니다.';}
   else if(score>=3){grade='B급';gradeCls='grade-b';gradeLabel='😊 인연 궁합';gradeComment='맞는 부분과 조율이 필요한 부분이 섞여 있지만 충분히 잘 자라날 수 있는 궁합입니다. 서로의 차이를 자원으로 바라보는 시각이 필요합니다.';}
   else if(score>=-2){grade='C급';gradeCls='grade-c';gradeLabel='🙂 평범한 인연';gradeComment='특별히 좋지도 나쁘지도 않은 인연입니다. 운명보다는 선택과 노력이 이 관계의 방향을 결정합니다.';}
-  else if(score>=-6){grade='D급';gradeCls='grade-d';gradeLabel='⚠️ 업보 궁합';gradeComment='에너지 방향이 충돌하거나 서로에게 해로운 기운을 증폭시키는 구조입니다. 강한 끌림이 있을 수 있지만 장기적으로 소모가 큰 관계입니다.';}
-  else{grade='F급';gradeCls='grade-f';gradeLabel='🌧️ 악연 궁합';gradeComment='서로에게 가장 해로운 에너지를 주고받는 구조입니다. 강렬한 끌림이 있더라도 그것이 소모인지 성장인지 냉철하게 판단해야 합니다.';}
+  else if(score>=-6){grade='D급';gradeCls='grade-d';gradeLabel='⚠️ 업보 궁합';gradeComment='에너지 방향이 충돌하거나 서로의 부담을 키울 수 있는 구조가 보입니다. 강한 끌림이 있더라도 장기 운영에는 회복 시간과 경계선에 대한 합의가 필요합니다.';}
+  else{grade='F급';gradeCls='grade-f';gradeLabel='🌧️ 악연 궁합';gradeComment='서로의 취약한 지점을 자주 건드릴 수 있는 구조입니다. 강렬한 끌림의 크기보다 관계 안에서 편안함과 소모가 어떻게 반복되는지 차분히 확인하는 것이 중요합니다.';}
 
   var str1=(pw1&&pw1.isStrong)?'신강':'신약';
   var str2=(pw2&&pw2.isStrong)?'신강':'신약';
   var factLines=[];
   if(str1==='신강'&&str2==='신약'){
-    factLines.push('<b>힘의 불균형 경보:</b> 당신('+g1+') 신강 × 상대('+g2+') 신약. 관계의 운전대는 자연스럽게 당신이 잡게 됩니다. 그 리더십이 "배려"로 포장되면 이 관계는 흔들림 없는 안식처가 되지만, "통제"로 변질되는 순간 상대방은 숨이 막혀 도망치려 할 것입니다. "내 방식이 맞아"라는 무의식적인 억압이 없는지 주기적으로 점검하세요.');
+    factLines.push('<b>힘의 불균형 경보:</b> 당신('+g1+') 신강 × 상대('+g2+') 신약. 관계의 방향을 당신이 더 자주 정하게 될 수 있습니다. 그 리더십이 배려로 전달되면 안정감이 되지만, 통제로 느껴지는 순간 상대는 위축될 수 있으니 "내 방식이 맞아"라는 압박이 없는지 주기적으로 확인하세요.');
   }else if(str1==='신약'&&str2==='신강'){
-    factLines.push('<b>흡수 주의보:</b> 당신('+g1+') 신약 × 상대('+g2+') 신강. 압도적인 상대의 에너지 블랙홀에 당신이 빨려 들어가기 쉬운 구조입니다. 처음엔 든든해서 좋지만, 시간이 지날수록 내 목소리를 잃어버리고 억울함만 쌓일 수 있습니다. 서운함이 한계치를 넘기 전에 아주 사소한 거절부터 연습하여 나만의 프라이버시(경계선)를 사수하세요.');
+    factLines.push('<b>흡수 주의보:</b> 당신('+g1+') 신약 × 상대('+g2+') 신강. 상대의 추진력이 관계의 결정을 많이 이끄는 구조로 나타날 수 있습니다. 처음에는 든든해도 시간이 지나며 내 목소리가 작아질 수 있으니, 서운함이 쌓이기 전에 작은 거절부터 연습해 나만의 프라이버시와 경계선을 지켜보세요.');
   }else{
-    factLines.push('<b>강대강 / 약대약:</b> 두 사람 모두 '+str1+'/'+str2+' 형태의 동급 에너지 사주를 지녔습니다. 영혼의 무게가 비슷해 안정적이지만, 한번 자존심을 걸고 다투기 시작하면 끝장을 보려는 경향이 다분합니다. 절대 누가 위인지 서열을 정하려 들지 말고 파이를 아주 정확히 반으로 나누어 각자의 영역을 100% 인정해주어야 평화가 유지됩니다.');
+    factLines.push('<b>강대강 / 약대약:</b> 두 사람 모두 '+str1+'/'+str2+' 형태의 동급 에너지 사주를 지녔습니다. 힘의 무게가 비슷해 안정적일 수 있지만, 자존심이 걸린 주제에서는 각자 물러서지 않는 장면이 반복될 수 있습니다. 누가 위인지 정하기보다 의사결정 영역을 나누고, 서로의 선택권을 충분히 인정하는 방식이 평화를 돕습니다.');
   }
   if(KE[e1]===e2){
-    factLines.push('<b>일간 상극(당신이 통제자):</b> 당신의 ('+EL_K[e1]+')가 상대의 ('+EL_K[e2]+')를 쥐고 흔듭니다. 당신이 무의식적으로 던진 팩트 폭격이나 평가가 상대에게는 엄청난 상처의 비수로 꽂히고 있을 수 있습니다. 내가 느끼는 가벼운 터치가 상대에겐 주먹질일 수도 있다는 감각의 차이를 잊지 마세요.');
+    factLines.push('<b>일간 상극(당신이 통제자):</b> 당신의 ('+EL_K[e1]+')가 상대의 ('+EL_K[e2]+')를 압박하는 장면이 생길 수 있습니다. 무심코 던진 평가나 빠른 해결책이 상대에게는 큰 상처로 느껴질 수 있으니, 말하기 전에 상대가 지금 원하는 것이 공감인지 해결인지 먼저 물어보세요.');
   }else if(KE[e2]===e1){
-    factLines.push('<b>일간 상극(당신이 피통제자):</b> 상대의 ('+EL_K[e2]+')가 당신의 ('+EL_K[e1]+')를 짓누릅니다. 당신 스스로도 모르게 착한 아이 콤플렉스가 발동해 무조건 다 맞춰주고 있다면 위험 신호입니다. 참다가 한 번에 폭발(이별/절교)할 확률이 매우 높으니, 관계의 매몰비용을 아까워하지 마세요.');
+    factLines.push('<b>일간 상극(당신이 피통제자):</b> 상대의 ('+EL_K[e2]+')가 당신의 ('+EL_K[e1]+')를 압박하는 장면이 생길 수 있습니다. 나도 모르게 상대에게 맞추는 일이 반복된다면 작은 거절부터 연습하고, 서운함이 쌓이기 전에 원하는 거리와 선택권을 말로 알려주세요.');
   }
   if(kijiControlEvents.length){
-    factLines.push('<b>약점 보완의 달콤함:</b> 이 사람 옆에 있으면 이유 없이 마음이 편안해지지 않나요? 그것은 우연이 아닙니다. 내 사주를 괴롭히고 뒤틀리게 하는 답답한 흉신(기신)을 상대방의 글자들이 꾹꾹 눌러주며 해독제 역할을 하고 있기 때문입니다. 이 달콤한 편안함을 당연한 권리라 착각하지 말고 진심 어린 보상을 돌려주세요.');
+    factLines.push('<b>약점 보완의 달콤함:</b> 이 사람 옆에서 마음이 편안해지는 장면이 있다면, 상대의 글자가 내 사주에서 부담으로 읽힌 기운을 조절해 주는 흐름일 수 있습니다. 이 편안함을 당연한 권리로 여기기보다, 어떤 배려가 도움이 되었는지 구체적으로 알려주고 서로 돌려주는 관계로 만들어 보세요.');
   }
   if(heTrapFound){
-    factLines.push('<b>⚠ 합(合)의 함정 경보:</b> 두 사람은 아주 강력한 합으로 엮여 있어 지독한 끌림을 느낍니다. 하지만 주의하세요! 이 편안함이 진짜 성장이 아니라 "우물 안 개구리"처럼 서로의 단점이나 나태함을 눈감아 주는 독이 든 성배(탐합망귀)일 수 있습니다. 익숙함이 빚어낸 맹목적 의존과 진짜 사랑을 예리하게 구분해야 합니다.');
+    factLines.push('<b>⚠ 합(合)의 함정 경보:</b> 두 사람은 합으로 엮인 편안함과 끌림을 크게 느낄 수 있습니다. 다만 그 익숙함이 서로의 단점이나 정체를 눈감아 주는 방식으로 굳을 수도 있으니, 함께 있을 때 성장하는지 혹은 선택을 미루게 되는지 정기적으로 점검해 보세요.');
   }
-  var factHtml=factLines.map(function(f){return '<div class="compat-check-item"><span class="compat-check-icon" style="color:#d81b60; font-size:1.1rem">🔥</span><span>'+f+'</span></div>';}).join('');
 
   var emotionalSummary = sok.text.split('<br><br>')[0] || '두 사람의 감정 리듬을 명리 중심으로 해석한 요약입니다.';
   var conflictSummary = heTrapFound
@@ -28987,6 +29107,17 @@ function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name){
       : integratedScore >= 50
         ? '매력은 있지만 운영 난도가 있는 관계입니다. 갈등 이후 복구 방식이 정착되지 않으면 감정 소모가 반복될 수 있습니다.'
         : '초반 끌림과 별개로 장기 운용에는 체력과 합의가 많이 필요한 관계입니다. 경계선과 기대치를 분명히 해야 손실을 줄일 수 있습니다.';
+
+  factLines.push('<b>반복되기 쉬운 장면:</b> '+emotionalSummary+' 이 차이가 커지는 순간에는 상대의 의도를 추측하기보다, 무엇을 기대했고 무엇이 부담이었는지 한 문장씩 나누어 확인하는 것이 관계의 손실을 줄이는 방법입니다.');
+  factLines.push('<b>회복의 기준:</b> '+conflictSummary+' 갈등의 승패를 정하는 대신 대화 중단 시간, 다시 이야기할 시점, 먼저 사과할 수 있는 표현을 미리 정해두면 강한 끌림도 안정적인 관계 운영으로 이어질 수 있습니다.');
+  var reasonDetail = function(reason){
+    if(reason.indexOf('합')>=0) return '끌림과 편안함이 생기는 지점입니다. 다만 익숙함이 기대치로 굳지 않도록 각자의 속도와 경계를 확인해 주세요.';
+    if(reason.indexOf('충')>=0||reason.indexOf('상극')>=0) return '차이가 행동과 말투의 마찰로 드러날 수 있는 지점입니다. 문제를 사람의 성격으로 단정하지 말고 상황별 규칙으로 조정해 보세요.';
+    if(reason.indexOf('생')>=0||reason.indexOf('도와')>=0) return '서로의 성장을 돕는 자원입니다. 도움을 주는 쪽과 받는 쪽이 고정되지 않도록 역할을 번갈아 나누는 것이 좋습니다.';
+    if(reason.indexOf('기신')>=0||reason.indexOf('용신')>=0) return '한쪽의 생활 리듬을 다른 쪽이 보완하는 구조입니다. 고마움을 당연하게 여기지 않고 구체적인 배려로 돌려주세요.';
+    return '관계에서 실제로 반복되는지 관찰해 볼 수 있는 포인트입니다. 맞지 않는 부분은 억지로 끼워 맞추지 말고 두 사람의 경험을 기준으로 조정하세요.';
+  };
+  var factHtml=factLines.map(function(f){return '<div class="compat-check-item compat-fact-item"><span class="compat-check-icon" style="color:#d81b60; font-size:1.1rem">🔥</span><span>'+f+'</span></div>';}).join('');
   var detailCardsHtml = [
     { title:_sajuEngineText("se_24078_prop_title"), body: emotionalSummary },
     { title:_sajuEngineText("se_24079_prop_title"), body: conflictSummary },
@@ -29011,13 +29142,24 @@ function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name){
   }
 
   if(type==='love'){
-    advLines.push('<b>[연애 시크릿]:</b> 상대방이 칠흑 같은 어둠 속에 있을 때 다정한 위로 한마디보다, 그 사람의 용신(절대적으로 필요한 오행) 컬러의 옷을 입거나 그 오행에 맞는 데이트 코스(예: 수(水)기운이 필요하면 밤바다, 화(火)기운이 필요하면 밝고 더운 낮 야외)를 기획하는 것이 명리학적으로 100배 더 강력한 영혼의 치유입니다.');
+    advLines.push('<b>[연애 시크릿]:</b> 상대방이 지쳐 있을 때 다정한 위로 한마디에 더해, 그 사람의 용신(보완이 필요한 오행)과 연결되는 색이나 데이트 코스(예: 수(水)기운이 필요하면 조용한 물가, 화(火)기운이 필요하면 밝고 따뜻한 야외)를 선택해 보세요. 상징을 현실의 휴식과 대화로 번역하면 서로의 회복을 더 직접적으로 도울 수 있습니다.');
   }else if(type==='business'){
     advLines.push('<b>[동업 시크릿]:</b> 천생연분의 파트너십일지라도 돈의 흐름 앞에서는 반드시 시험대에 오르게 됩니다. 궁합이 좋다고 대충 넘기려 하지 마세요. 역할, 권한, 손절 매뉴얼, 이익 분배율을 가장 안 친한 남처럼 문서로 남겨두는 것만이 이 환상적인 동업을 영원히 비즈니스로 지켜주는 무적의 방패입니다.');
   }else{
     advLines.push('<b>[우정 시크릿]:</b> 완벽한 친구란 내 기대를 모두 채워주는 사람이 아니라, 기대치의 허들을 0으로 낮췄을 때 비로소 발견되는 보석입니다. 상대방이 "무언가를 의무적으로 해줘야 한다"는 압박을 느끼지 않도록 깃털처럼 가볍고 부담 없는 맹물 같은 텐션을 유지하세요.');
   }
+  advLines.push('<b>[갈등 복구 루틴]:</b> 감정이 올라온 순간 결론부터 내리지 말고, 잠시 멈춘 뒤 사실·감정·요청을 나누어 말해보세요. 예를 들어 "연락이 늦었다"는 사실, "기다리며 불안했다"는 감정, "다음에는 늦어질 때 알려달라"는 요청을 분리하면 같은 대화가 공격과 방어로 번지는 것을 줄일 수 있습니다.');
+  advLines.push('<b>[공동 성장 목표]:</b> '+(type==='business'?'분기별 성과와 역할을 함께 점검하는 회의':type==='friend'?'한 달에 한 번 서로의 근황과 필요한 도움을 나누는 시간':'한 달에 한 번 관계의 만족도와 생활 분담을 점검하는 대화')+'를 정해두세요. 좋은 궁합도 방치하면 서로 다른 방향으로 흘러갈 수 있으므로, 작은 합의를 반복하는 것이 장기적인 안정감을 만듭니다.');
   var advHtml=advLines.map(function(a){return '<p style="margin:0 0 10px; line-height:1.75;">'+a+'</p>';}).join('');
+
+  var loveDepthHtml = type==='love' ? '<div class="compat-section compat-love-depth">'+
+    '<div class="compat-section-title">💍 연애·결혼 궁합 심화</div>'+
+    '<div class="compat-love-grid">'+
+    '<article class="compat-love-card"><h4>💞 감정·표현 리듬</h4><p>'+emotionalSummary+'</p><p>애정을 확인하는 방식이 다를수록 사랑의 크기보다 표현의 번역이 중요합니다. 한 사람은 말과 연락을 원하고 다른 사람은 행동과 시간을 내어주는 방식일 수 있으니, 서로가 알아듣는 표현을 두세 가지씩 정해두세요.</p></article>'+
+    '<article class="compat-love-card"><h4>🧯 갈등·회복 방식</h4><p>'+conflictSummary+'</p><p>갈등을 피하는 사람과 바로 풀고 싶은 사람이 만나면 침묵도 압박도 상처가 됩니다. 잠시 쉬는 시간을 정하되 대화를 다시 시작할 시점을 남겨두고, 반복되는 주제는 감정이 가라앉은 뒤 생활 규칙으로 바꾸는 편이 좋습니다.</p></article>'+
+    '<article class="compat-love-card"><h4>🏠 동거·결혼 생활 운영</h4><p>'+practicalSummary+'</p><p>결혼 생활에서는 끌림보다 수면·집안일·돈·가족과의 거리처럼 매일 반복되는 영역의 합의가 더 오래 작동합니다. 각자의 강점을 역할로 고정하지 말고, 바쁜 시기에는 서로 교대할 수 있는 예비안을 마련하세요.</p></article>'+
+    '<article class="compat-love-card"><h4>🌱 장기 성장 조건</h4><p>'+longTermSummary+'</p><p>두 사람이 함께 성장하려면 관계 밖의 개인 시간과 관계 안의 공동 목표가 동시에 필요합니다. 서로의 친구·일·취미를 존중하면서도 분기마다 하나의 경험을 함께 쌓으면 익숙함이 정체가 되지 않고 다음 단계로 이어집니다.</p></article>'+
+    '</div></div>' : '';
 
   var gradeIcon=score>=13?'🌟':score>=8?'✨':score>=3?'😊':score>=-2?'🙂':score>=-6?'⚠️':'🌧️';
   var html='<div class="compat-wrap">'+
@@ -29047,9 +29189,10 @@ function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name){
     '<div class="compat-section-title">📋 궁합 포인트 체크 <span style="font-size:.7rem;font-weight:400;color:#aaa">총점 '+score.toFixed(1)+'점</span></div>'+
     reasons.map(function(r){
       var icon=r.indexOf('⭐')>=0?'⭐':r.indexOf('🚨')>=0?'🚨':r.indexOf('합')>=0||r.indexOf('생')>=0?'💛':'💜';
-      return '<div class="compat-check-item"><span class="compat-check-icon">'+icon+'</span><span>'+r.replace(/^[⭐🚨]\s*/,'')+'</span></div>';
+      return '<div class="compat-check-item"><span class="compat-check-icon">'+icon+'</span><span><b class="compat-check-reason">'+r.replace(/^[⭐🚨]\s*/,'')+'</b><small class="compat-check-detail">'+reasonDetail(r)+'</small></span></div>';
     }).join('')+
     '</div>'+
+    loveDepthHtml+
     '<div class="compat-fact-box">'+
     '<div class="compat-fact-title">💥 팩폭 분석 — 이 관계의 진실</div>'+
     '<div class="compat-fact-body">'+factHtml+'</div>'+
@@ -29326,13 +29469,28 @@ function analyzePastLifeCompat(p1, p2, name){
 
   var abHtml=buildCrossResult(a_dg,a_dj,b_yg,b_yj,ab_ganHe,ab_ganChong,ab_ganSame,ab_jiHe,ab_jiChong,ab_jiSame);
   var baHtml=buildCrossResult(b_dg,b_dj,a_yg,a_yj,ba_ganHe,ba_ganChong,ba_ganSame,ba_jiHe,ba_jiChong,ba_jiSame);
+  function softenPastLifeText(value){
+    return String(value||'')
+      .replace(/수백만 분의 일 확률로 만나는 극히 드문 우주적 인연입니다\./g,'명리 상징으로 강한 연결을 읽을 수 있는 드문 인연입니다.')
+      .replace(/결코 우연이나 착각이 아닙니다\./g,'우연 이상의 익숙함으로 체감될 수 있습니다.')
+      .replace(/무조건적인 하차입니다\./g,'때로는 멈추고 거리를 두는 선택도 필요합니다.')
+      .replace(/절대적/g,'매우 깊은')
+      .replace(/반드시/g,'우선');
+  }
+  var pastLifeReflection='<div class="pastlife-reflection">'+
+    '<h4>현생에서 확인할 질문</h4>'+
+    '<p>전생 인연의 등급은 관계의 결론을 대신하는 판정이 아니라, 두 사람이 만났을 때 느끼는 익숙함과 긴장을 돌아보는 상징입니다. '+
+    '특히 '+gradeLabel+'으로 읽힌 이번 결과는 '+(pScore>=1?'끌림이나 반복되는 감정 장면을':'거리감이나 조율이 필요한 장면을')+' 관찰하는 데 참고할 수 있습니다.</p>'+
+    '<p>“우리는 왜 이렇게 끌리거나 부딪히는가?”를 묻는 데서 멈추지 말고, 현재의 관계에서 실제로 바꿀 수 있는 행동을 찾아보세요. 과거의 서사보다 지금의 합의와 경계가 두 사람의 다음 장면을 만듭니다.</p>'+
+    '<ul><li>반복되는 갈등을 한 문장으로 이름 붙이기</li><li>서로에게 필요한 거리와 연락 방식을 말로 합의하기</li><li>관계가 편안해지는 행동과 소모되는 행동을 각각 기록하기</li></ul>'+
+    '</div>';
 
   return '<div class="pastlife-card">'+
     '<div class="pastlife-header">'+
     '<div><div class="pastlife-title-text">🔮 전생 인연 풀이</div>'+
     '<div class="pastlife-subtitle">PAST LIFE COMPATIBILITY · 일주×년주 교차 분석</div></div></div>'+
     '<div class="pastlife-karma-badge">'+grade+' · '+gradeLabel+'</div>'+
-    '<div style="font-size:.78rem;color:rgba(224,176,255,.7);line-height:1.65;margin-bottom:14px">'+gradeDesc+'</div>'+
+    '<div style="font-size:.78rem;color:rgba(224,176,255,.7);line-height:1.65;margin-bottom:14px">'+softenPastLifeText(gradeDesc)+'</div>'+
     '<div class="pastlife-cross-row">'+
     '<div class="pastlife-cross-title">🧬 '+(USER_NAME||'나')+'의 일주('+a_dg+a_dj+') × '+name+'의 년주('+b_yg+b_yj+')</div>'+
     abHtml+
@@ -29343,12 +29501,13 @@ function analyzePastLifeCompat(p1, p2, name){
     '</div>'+
     '<div class="pastlife-story-box">'+
     '<div class="pastlife-story-icon">'+gradeIcon+'</div>'+
-    '<div class="pastlife-story-text">'+story+'</div>'+
+    '<div class="pastlife-story-text">'+softenPastLifeText(story)+'</div>'+
     '</div>'+
     '<div class="pastlife-prescription">'+
     '<div class="pastlife-prescription-title">⚔️ 천기적 처방</div>'+
-    '<div class="pastlife-prescription-body">'+prescription+'</div>'+
+    '<div class="pastlife-prescription-body">'+softenPastLifeText(prescription)+'</div>'+
     '</div>'+
+    pastLifeReflection+
     '<div class="pastlife-disclaimer">※ 전생 인연 풀이는 명리학적 재미 콘텐츠입니다 🌙</div>'+
     '</div>';
 }
