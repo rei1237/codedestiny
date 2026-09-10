@@ -14021,11 +14021,11 @@ html.neo-mode body .cd-why-us__proof-caption{color:rgba(228,214,255,.72)}
         if (!group) return;
         if (isActive) group.setAttribute('data-mobile-active-group', 'true');
         else group.removeAttribute('data-mobile-active-group');
+        var host = group.closest ? group.closest('#cdhCollections') : null;
+        if (host) host.toggleAttribute('data-cd-mobile-overlay-active', !!isActive);
       }
-      // 🔴 홈 펼치기는 홈 DOM 을 실제로 보여줄 때만 한다 — [data-cd-home-secondary] 17개가
-      // display:none 에서 풀리면서 문서 전체 레이아웃을 동기로 다시 계산한다(실측 371ms 로
-      // 탭 지연의 대부분). 개요 화면은 body 직속 패널이라 홈이 접힌 채로도 온전히 동작하지만,
-      // 컬렉션은 .fg-group[data-cd-home-secondary] 안에 있어 펼치지 않으면 렌더되지 않는다.
+      // 🔴 컬렉션 선택은 홈 전체를 펼치지 않는다 — 선택 그룹만 아래 overlay 전용 CSS 훅으로
+      // 표시해야 메인 화면의 다른 [data-cd-home-secondary] 요소가 히트 영역을 차지하지 않는다.
       function ensureHomeExpanded(){
         if (document.documentElement.classList.contains('cd-home-expanded')) return;
         if (!window.__cdExpandHome) return;
@@ -14035,7 +14035,6 @@ html.neo-mode body .cd-why-us__proof-caption{color:rgba(228,214,255,.72)}
       }
       function switchCollection(collId){
         if (collId === currentCollectionId) return;
-        ensureHomeExpanded();
         hideOverview();
         // 기존 컬렉션 닫기
         if (currentCollectionId) {
@@ -37067,6 +37066,13 @@ html.neo-mode .tile-pvw-overlay.pvw-prem .tile-pvw-cta-sticky,body.neo-mode .til
   body.cd-all-fortunes-fullscreen.cd-mobile-nav-hidden #cdMobileBottomNav{display:none!important}
   body.cd-all-fortunes-fullscreen #honeyMembershipMini{display:none!important}
   body.cd-all-fortunes-fullscreen .cd-mobile-collection-chrome{z-index:970!important}
+  /* 컬렉션 선택 중에는 홈 전체를 펼치지 않고, 선택된 그룹만 렌더한다. */
+  body.cd-all-fortunes-fullscreen #cdhCollections[data-cd-mobile-overlay-active="true"]{display:block!important}
+  body.cd-all-fortunes-fullscreen #cdhCollections[data-cd-mobile-overlay-active="true"] .fg-group:not([data-mobile-active-group="true"]){display:none!important}
+  /* 메인 홈의 fixed/sticky 요소가 overlay의 탭 히트 영역을 가리지 않게 한다. */
+  body.cd-all-fortunes-fullscreen #inputPage{pointer-events:none!important}
+  body.cd-all-fortunes-fullscreen #inputPage .cd-mobile-collection-fullscreen{pointer-events:auto!important}
+  body.cd-all-fortunes-fullscreen .theme-switch-wrapper{visibility:hidden!important;pointer-events:none!important}
   .cd-mobile-collection-chrome.is-compact{gap:4px!important;padding-top:calc(6px + env(safe-area-inset-top,0px))!important;padding-bottom:6px!important}
   .cd-mobile-collection-chrome.is-compact .cd-mobile-collection-head{min-height:38px!important}
   .cd-mobile-collection-chrome.is-compact .cd-mobile-collection-title{font-size:.88rem!important}
