@@ -30,6 +30,8 @@ describe('사주 관계 자극 성향 카드 렌더링', () => {
     const image = card.querySelector('img');
     const gauge = card.querySelector('[role="progressbar"]');
     expect(card.nextElementSibling.id).toBe('reportDashboardCard');
+    expect(card.querySelector('#relationshipTemptationTitle').textContent).toBe('그 사람의 바람끼는?');
+    expect(card.textContent).not.toContain('사주로 보는 그 사람의 바람끼는?');
     expect(image.getAttribute('loading')).toBe('lazy');
     expect(image.getAttribute('decoding')).toBe('async');
     expect(image.getAttribute('srcset')).toContain('480.webp 480w');

@@ -448,7 +448,7 @@
       + 'sizes="(max-width:620px) calc(100vw - 32px), 720px" width="1024" height="768" loading="lazy" decoding="async" '
       + 'alt="식당에서 가까이 대화하는 두 사람과 이를 바라보는 연인을 그린 웹툰 장면">'
       + '<figcaption>한 장면만으로 관계를 단정할 수 없듯, 사주도 실제 행동이 아닌 감정의 패턴을 읽습니다.</figcaption></figure>'
-      + '<div class="rt-body"><h3 class="rt-title" id="relationshipTemptationTitle">사주로 보는 그 사람의 바람끼는?</h3>'
+      + '<div class="rt-body"><h3 class="rt-title" id="relationshipTemptationTitle">그 사람의 바람끼는?</h3>'
       + '<p class="rt-subtitle">사주 속 이성 관계의 흔들림과 한 사람에게 머무는 힘을 함께 살펴봅니다.</p>'
       + '<div class="rt-score-row"><div><p class="rt-score-label">바람끼 지수</p><p class="rt-score-level">' + escapeHtml(result.level) + '</p></div>'
       + '<div class="rt-score-number">' + result.score + ' <small>/ 100</small></div></div>'

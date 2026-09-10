@@ -100,7 +100,7 @@ test("legacy diary action opens through a first-click-safe loader and mirrors st
 test("relationship temptation card routes to the paid standalone report", () => {
   const dashboard = read("js/core/saju/reportDashboard.js");
 
-  assert.match(dashboard, /label:'사주로 보는 그 사람의 바람끼는\?'/);
+  assert.match(dashboard, /label:'그 사람의 바람끼는\?'/);
   assert.match(dashboard, /action:'openRelationshipBoundaryTestRoute'/);
   assert.match(dashboard, /window\.openRelationshipBoundaryTestRoute = function\(\)/);
   assert.doesNotMatch(dashboard, /target:'relationshipTemptationCard'.*?label:'사주로 보는/);
