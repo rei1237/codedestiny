@@ -1,6 +1,6 @@
 /** @jest-environment node */
 import { jest } from "@jest/globals";
-import { assertCodexChapterQuality, qualityCheckedCodexCache, generateCodexChapterResponse, buildCodexChapterMemory, buildCodexEditorialContract, buildCodexStagingChapter } from "../../worker/lib/master-love-codex-quality.js";
+import { assertCodexChapterQuality, qualityCheckedCodexCache, generateCodexChapterResponse, buildCodexChapterMemory, buildCodexEditorialContract, buildCodexStagingChapter, parseChapterJson } from "../../worker/lib/master-love-codex-quality.js";
 import { __masterLoveCodexTestUtils as utils } from "../../worker/routes/master-love-codex.js";
 
 const fixture = chapter => ({
@@ -61,6 +61,47 @@ test.each(['{"body":', '{"body":"short"}'])("invalid response receives one bound
   expect((await generateCodexChapterResponse(call, "prompt", { chapter })).parsed).toEqual(parsed);
   expect(call).toHaveBeenCalledTimes(2);
   expect(call.mock.calls[1][0]).toContain("재작성");
+});
+
+test.each(["solo", "compat"])("%s structured chapters recover provider wrappers and raw control characters", async mode => {
+  const chapter = utils.resolveMode(mode).chapters[0];
+  const parsed = { ...fixture(chapter), body: `${fixture(chapter).body}\n두 번째 문단\t행동 기준` };
+  const json = JSON.stringify(parsed);
+  const wrapped = `완성 원고입니다.\n\`\`\`json\n${json}\n\`\`\`\n이상입니다.`;
+  const wrappedWithBraces = `응답 메타 {초안 아님}\n\`\`\`json\n${json}\n\`\`\`\n후기 {완료}`;
+  const rawControls = json.replace("\\n", "\n").replace("\\t", "\t");
+
+  expect(parseChapterJson(wrapped)).toEqual(parsed);
+  expect(parseChapterJson(wrappedWithBraces)).toEqual(parsed);
+  expect(parseChapterJson(rawControls)).toEqual(parsed);
+  const call = jest.fn().mockResolvedValue({ text: rawControls });
+  expect((await generateCodexChapterResponse(call, "prompt", { chapter })).parsed).toEqual(parsed);
+  expect(call).toHaveBeenCalledTimes(1);
+});
+
+test("truncated JSON is not repaired into a completed chapter", () => {
+  expect(() => parseChapterJson('{"body":"완성되지 않은 원고"')).toThrow("LLM_JSON_INVALID");
+});
+
+test("truncated provider responses remain retryable failures", async () => {
+  const chapter = utils.resolveMode("solo").chapters[0];
+  const call = jest.fn().mockResolvedValue({ text: JSON.stringify(fixture(chapter)), truncated: true });
+  await expect(generateCodexChapterResponse(call, "prompt", { chapter })).rejects.toThrow("LLM_OUTPUT_TRUNCATED");
+  expect(call).toHaveBeenCalledTimes(2);
+});
+
+test("chapter cache accepts repairable JSON but still rejects incomplete content", async () => {
+  const chapter = utils.resolveMode("solo").chapters[0];
+  const complete = { ...fixture(chapter), body: `${fixture(chapter).body}\n이어지는 문단` };
+  const repairable = { text: JSON.stringify(complete).replace("\\n", "\n") };
+  const incomplete = { text: JSON.stringify({ ...complete, actions: [] }) };
+  const store = { get: jest.fn().mockResolvedValueOnce(repairable).mockResolvedValueOnce(incomplete), set: jest.fn() };
+  const cache = qualityCheckedCodexCache(store, value => assertCodexChapterQuality(parseChapterJson(value.text), chapter));
+
+  expect(await cache.get("repairable")).toEqual(repairable);
+  expect(await cache.get("incomplete")).toBeNull();
+  await cache.set("incomplete", incomplete, 100);
+  expect(store.set).not.toHaveBeenCalled();
 });
 
 test("quality repair stops at two attempts and never starts after the deadline", async () => {

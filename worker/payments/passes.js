@@ -560,13 +560,25 @@ export async function consumePassCoverage(db, { userId, coverage, marker, existi
   }
 
   // 같은 사이클이면 증분(예산 잔량을 필터로 재검사), 새 사이클이면 이번 건부터 다시 센다.
+  const maxSpendBefore = Number(coverage.budgetCoin) - cost;
+  // monthlySpendCoin 도입 전 문서는 회차 키만 있고 카운터가 없다. Mongo 의 $lte 는 missing 을
+  // 0으로 보지 않으므로 명시적으로 허용하며, $inc 가 첫 사용액을 원자적으로 만든다.
+  // 단, 예산보다 비싼 건에는 missing 분기를 열지 않는다. null/손상 값도 fail-closed 로 남긴다.
+  const spendWithinBudget = {
+    $or: [
+      ...(Number.isFinite(maxSpendBefore) && maxSpendBefore >= 0
+        ? [{ "profileSubscription.monthlySpendCoin": { $exists: false } }]
+        : []),
+      { "profileSubscription.monthlySpendCoin": { $lte: maxSpendBefore } },
+    ],
+  };
   const attempts = coverage.sameCycle
     ? [
       {
         filter: {
           _id: uid, ...markerSet,
           "profileSubscription.premiumUseCycleKey": coverage.cycleKey,
-          "profileSubscription.monthlySpendCoin": { $lte: coverage.budgetCoin - cost },
+          ...spendWithinBudget,
         },
         update: mergeUpdate({ $set: baseSet, $inc: { "profileSubscription.monthlySpendCoin": cost } }, markerWrite),
       },
@@ -590,7 +602,7 @@ export async function consumePassCoverage(db, { userId, coverage, marker, existi
         filter: {
           _id: uid, ...markerSet,
           "profileSubscription.premiumUseCycleKey": coverage.cycleKey,
-          "profileSubscription.monthlySpendCoin": { $lte: coverage.budgetCoin - cost },
+          ...spendWithinBudget,
         },
         update: mergeUpdate({ $set: baseSet, $inc: { "profileSubscription.monthlySpendCoin": cost } }, markerWrite),
       },

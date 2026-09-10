@@ -1,3 +1,5 @@
+import { escapeRawControlCharsInJsonStrings } from "./json-text-repair.js";
+
 /** Shared editorial contract for both books; calculations and pricing remain unchanged. */
 export function buildCodexEditorialContract(chapter, compatibility) {
   const min = chapter.minChars || 2400;
@@ -79,6 +81,35 @@ export function qualityCheckedCodexCache(store, validate) {
   };
 }
 
+/** Recover only syntactically complete chapter objects; quality validation remains separate. */
+export function parseChapterJson(text) {
+  const raw = String(text ?? "").trim();
+  if (!raw) throw new Error("LLM_JSON_INVALID");
+  const fenced = [...raw.matchAll(/```(?:json)?\s*([\s\S]*?)\s*```/gi)]
+    .map(match => match[1].trim())
+    .filter(Boolean);
+  const withoutFence = raw
+    .replace(/^```(?:json)?\s*/i, "")
+    .replace(/\s*```$/, "")
+    .trim();
+  // Provider explanations may contain their own braces. A complete fenced payload is more
+  // authoritative than the wrapper, so parse it before the broad first/last-brace fallback.
+  const candidates = [...fenced, withoutFence];
+  const start = withoutFence.indexOf("{");
+  const end = withoutFence.lastIndexOf("}");
+  if (start >= 0 && end > start) candidates.push(withoutFence.slice(start, end + 1));
+
+  for (const candidate of [...new Set(candidates)]) {
+    for (const prepared of [...new Set([candidate, escapeRawControlCharsInJsonStrings(candidate)])]) {
+      try {
+        const parsed = JSON.parse(prepared);
+        if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) return parsed;
+      } catch { /* try the next recoverable representation */ }
+    }
+  }
+  throw new Error("LLM_JSON_INVALID");
+}
+
 /** Two bounded provider attempts cover malformed JSON and incomplete content too. */
 export async function generateCodexChapterResponse(call, prompt, { chapter, metricDefs, deadlineAt = Infinity, minBudgetMs = 1000, options = {} }) {
   let failure;
@@ -93,9 +124,7 @@ export async function generateCodexChapterResponse(call, prompt, { chapter, metr
     try {
       if (ai?.truncated) throw new Error("LLM_OUTPUT_TRUNCATED");
       if (!ai?.text) throw new Error("LLM_OUTPUT_EMPTY");
-      let parsed;
-      try { parsed = JSON.parse(String(ai.text).trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "")); }
-      catch { throw new Error("LLM_JSON_INVALID"); }
+      const parsed = parseChapterJson(ai.text);
       assertCodexChapterQuality(parsed, chapter, metricDefs);
       return { ai, parsed };
     } catch (error) { failure = error; }
