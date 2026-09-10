@@ -47,6 +47,23 @@ try {
     });
     await page.goto(origin);
     await page.waitForFunction(() => typeof window.openDetail === 'function');
+    const basePalette = await page.evaluate(() => {
+      const overlay = document.getElementById('tilePvwOverlay');
+      overlay.classList.add('pvw-open');
+      document.getElementById('tilePvwTitle').textContent = '상세 제목';
+      document.getElementById('tilePvwTagline').textContent = '상세 설명';
+      document.getElementById('tilePvwFeats').innerHTML = '<li>상세 항목</li>';
+      return {
+        title: getComputedStyle(document.getElementById('tilePvwTitle')).color,
+        tagline: getComputedStyle(document.getElementById('tilePvwTagline')).color,
+        feature: getComputedStyle(document.querySelector('.tile-pvw-feats li')).color,
+      };
+    });
+    assert.deepEqual(basePalette, {
+      title: 'rgb(60, 24, 48)',
+      tagline: 'rgb(112, 68, 92)',
+      feature: 'rgb(60, 24, 48)',
+    }, `${width}: base popup palette`);
     for (const entry of catalog) {
       await page.evaluate(slug => window.openDetail(slug), entry.slug);
       const prompt = page.locator('[data-feature-conversion-request]').first();
