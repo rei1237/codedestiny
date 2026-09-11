@@ -7,8 +7,8 @@ next: PR 머지 후 남은 결함 1(해시 진입 시 홈 사라짐)을 0d805da8
 # 홈 "전체 서비스 검색" — 카드 이미지·음악 1,000원 복구·접기/펼치기·중복 정리 (2026-09-11)
 
 - 브랜치: `worktree-home-finder-disclosure-music` (base `origin/main` 73cfd6e07)
-- PR: (PR 생성 후 기입)
-- 상태: 커밋·푸시·Ready PR까지. **머지·스테이징 확인은 사용자 승인 대기.**
+- PR: #1919 (https://github.com/rei1237/codedestiny/pull/1919)
+- 상태: Ready PR. 사용자 요청(2026-09-11)으로 필수 CI·delivery:admit 통과 시 머지 → staging 자동 배포. 운영 승격은 별도 승인.
 
 ## 한 일
 1. **접기/펼치기** — 새 토글을 만들지 않고, `56932bb53`의 `<details id="cdhFinderDisclosure">`를 되살렸다. #1912(`3a3e7c433`)가 마크업·CSS만 지웠고 JS 훅(`js/core/home-funnel.js` toggle 이벤트, `js/core/home-service-finder.js` `boot()` 지연 마운트)은 살아 있었다. 기본 상태는 접힘(사용자 확정).
