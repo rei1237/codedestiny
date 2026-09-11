@@ -336,6 +336,7 @@
 }
 .readingFlow,
 .panel,
+.reportPreview,
 .ticket,
 .seoGuide {
   max-width: 960px;
@@ -359,28 +360,48 @@
   font-size: 1rem;
   font-weight: 700;
 }
+/* 예전에는 여섯 체계가 이름만 적힌 알약 칩이었다. 3만원짜리 상품에서 "무엇을 읽는지"를
+   한 줄도 말하지 않는 자리라, 체계마다 아이콘과 한 줄 설명을 갖는 카드로 바꾼다. */
 .readingFlowList {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: stretch;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 .readingFlowList > li {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
   align-items: center;
-  gap: 8px;
-  border: 1px solid rgba(232, 213, 163, 0.16);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.035);
-  padding: 9px 15px;
-  color: #ded3ea;
-  font-size: 0.9rem;
-  font-weight: 700;
+  gap: 2px 10px;
+  border: 1px solid var(--fx-line);
+  border-radius: 16px;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--tint) 9%, transparent), var(--fx-surface));
+  padding: 14px 16px;
+  color: var(--fx-ink-2);
   word-break: keep-all;
+}
+.readingFlowList > li > strong {
+  grid-column: 2;
+  align-self: end;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.readingFlowList > li > span {
+  grid-column: 2;
+  align-self: start;
+  color: var(--fx-ink-4);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+.readingFlowList > li .systemIcon {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  color: var(--tint);
+  filter: drop-shadow(0 0 12px color-mix(in srgb, var(--tint) 55%, transparent));
 }
 .readingFlowList > li .systemDot {
   width: 9px;
@@ -434,6 +455,137 @@
   color: #cabfdd;
   font-weight: 400;
   line-height: 1.65;
+}
+
+/* ── 리포트 차례 미리보기 + 신뢰 ─────────────────────────────────────────────
+   구매 전에 결과물의 규모를 눈으로 가늠하게 하는 자리다. 본문은 한 글자도 보여 주지
+   않고 **차례만** 선명하게 둔다 — 실제 결과 화면의 순서와 라벨을 그대로 쓴다. */
+.reportPreview {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  gap: clamp(20px, 3vw, 36px);
+  border: 1px solid var(--fx-line-strong);
+  border-radius: 24px;
+  background: linear-gradient(150deg, rgba(24, 19, 48, 0.92), rgba(13, 11, 29, 0.96));
+  padding: clamp(22px, 3.4vw, 38px);
+}
+.reportPreviewEyebrow {
+  margin: 0;
+  color: var(--fx-gold);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+.reportPreview h2 {
+  margin: 8px 0 20px;
+  color: var(--fx-ink-1);
+  font-family: var(--fx-serif);
+  font-size: clamp(1.35rem, 2.6vw, 1.85rem);
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  word-break: keep-all;
+}
+.reportPreviewToc {
+  counter-reset: fx-toc;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.reportPreviewToc > li {
+  counter-increment: fx-toc;
+  position: relative;
+  padding: 11px 0 11px 34px;
+  border-bottom: 1px solid var(--fx-line);
+  color: var(--fx-ink-2);
+  font-size: 0.95rem;
+  font-weight: 600;
+  word-break: keep-all;
+}
+.reportPreviewToc > li::before {
+  content: counter(fx-toc, decimal-leading-zero);
+  position: absolute;
+  left: 0;
+  color: var(--fx-ink-4);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+.reportPreviewToc ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 9px 0 2px;
+  padding: 0;
+  list-style: none;
+}
+.reportPreviewToc ul > li {
+  border: 1px solid color-mix(in srgb, var(--tint) 42%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--tint) 12%, transparent);
+  padding: 4px 11px;
+  color: var(--fx-ink-3);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+.reportPreviewVerdict {
+  color: var(--fx-gold);
+}
+.reportPreviewLength {
+  margin: 16px 0 0;
+  color: var(--fx-ink-4);
+  font-size: 0.82rem;
+}
+.reportPreviewTrust {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  /* 2단에서 차례 목록 높이만큼 늘어나면 카드 위쪽이 비어 미완성처럼 보였다. 내용 높이로 둔다. */
+  align-self: start;
+  align-content: center;
+  gap: 14px;
+  overflow: hidden;
+  border: 1px solid var(--fx-line);
+  border-radius: 20px;
+  background: var(--fx-surface-deep);
+  padding: clamp(20px, 2.6vw, 28px);
+}
+/* 기존 숙요 도감 아트를 얇게 깐다 — 새 이미지를 만들지 않는다. */
+.reportPreviewTrust::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: url("/images/sukuyo/sukuyo-moonlight-dogam-v1.webp") center / cover no-repeat;
+  opacity: 0.17;
+}
+.reportPreviewTrust::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(180deg, rgba(8, 7, 20, 0.62), rgba(8, 7, 20, 0.9));
+}
+.reportPreviewTrust p {
+  margin: 0;
+  color: var(--fx-ink-3);
+  font-size: 0.88rem;
+  line-height: 1.75;
+  word-break: keep-all;
+}
+.reportPreviewTrust .reportPreviewTrustLead {
+  color: var(--fx-gold);
+  font-family: var(--fx-serif);
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+.reportPreviewTrust .reportPreviewTrustNote {
+  border-top: 1px solid var(--fx-line);
+  padding-top: 12px;
+  color: var(--fx-ink-4);
+  font-size: 0.8rem;
 }
 .panel,
 .ticket,
@@ -863,6 +1015,12 @@
     margin: 28px 18px 0 0;
     opacity: 0.9;
   }
+  .readingFlowList {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .reportPreview {
+    grid-template-columns: 1fr;
+  }
   .seoGuideGrid,
   .seoSystemLinks {
     grid-template-columns: 1fr;
@@ -893,6 +1051,9 @@
   }
 }
 @media (max-width: 390px) {
+  .readingFlowList {
+    grid-template-columns: 1fr;
+  }
   .hero {
     min-height: min(620px, 86svh);
   }
@@ -914,14 +1075,6 @@
   }
 }
 
-/* Premium chat canvas: server-completed stages are the only moving source of truth. */
-.chatLead {
-  margin-top: 18px !important;
-  border-left: 2px solid rgba(237, 213, 149, 0.7);
-  padding-left: 12px;
-  color: #f4e8ff !important;
-  font-size: 0.92rem !important;
-}
 /* 히어로에서 폼까지가 360x640 기준 4128px(약 6.5화면)이라 첫 화면에서 폼으로 갈 방법이
    없었다. 스크롤 대신 앵커 한 번으로 간다 — 사이 콘텐츠는 그대로 둔다. */
 .heroCta {
@@ -942,9 +1095,8 @@
 }
 /* 🔴 360x640 에서 CTA 아래 여유가 7px 뿐이었다(#1438 실측, 390x844 는 203px). 글자 크기와
    줄높이는 그대로 두고 문안 블록의 **세로 간격만** 좁혀 CTA 를 위로 끌어올린다 — 좁은 화면에서
-   본문을 줄이면 축 2(가독성 개선)를 되돌리는 셈이라 여백만 손댄다. 합계 -32px.
-   🔴 위쪽 @media (max-width:390px) 블록(:855)으로 합치지 말 것 — .chatLead 의 margin-top 이
-      !important 라, 같은 특이도에서 이기려면 이 블록이 그 선언보다 소스에서 아래여야 한다. */
+   본문을 줄이면 축 2(가독성 개선)를 되돌리는 셈이라 여백만 손댄다.
+   (예전 .chatLead 줄은 2026-09-11 히어로에서 빠졌다 — 구매 전 화면에 맥락이 없는 결과 대기 안내였다.) */
 @media (max-width: 390px) {
   .heroCopy {
     padding-top: 16px;
@@ -954,9 +1106,6 @@
   }
   .heroMeta {
     margin-top: 18px;
-  }
-  .chatLead {
-    margin-top: 12px !important;
   }
   .heroCta {
     margin-top: 16px;
@@ -1113,10 +1262,18 @@
 }
 
 /* 두 항목 묶음(태어난 정보 / 지금의 마음)을 가르는 얇은 금선 — ThreadBubble
-   말풍선 상단 헤어라인과 같은 문법을 폼에도 재사용해 결과 화면과 결을 맞춘다. */
+   말풍선 상단 헤어라인과 같은 문법을 폼에도 재사용해 결과 화면과 결을 맞춘다.
+   여기에 01·02 스텝 번호를 CSS 카운터로 얹는다. 번호를 마크업에 적지 않는 이유는
+   11개 로케일에 "STEP 1" 같은 새 문구 키를 늘리지 않기 위해서다 — 숫자는 언어가 없다. */
+.form { counter-reset: fx-step; }
 .formSectionFirst,
 .formSection {
   grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  counter-increment: fx-step;
   margin: 4px 0 -6px;
   color: #f0dda8;
   font-family: var(--font-display);
@@ -1124,12 +1281,29 @@
   font-weight: 700;
   word-break: keep-all;
 }
+.formSectionFirst::before,
+.formSection::before {
+  content: counter(fx-step, decimal-leading-zero);
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--fx-line-strong);
+  border-radius: 50%;
+  background: var(--fx-surface-deep);
+  color: var(--fx-gold);
+  font-family: var(--fx-serif);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+/* 금선은 ::before 를 스텝 번호에 내줬으니 ::after 로 옮긴다. 보이는 결과는 같다. */
 .formSection {
   position: relative;
   margin-top: 10px;
   padding-top: 20px;
 }
-.formSection::before {
+.formSection::after {
   content: "";
   position: absolute;
   inset: 0 0 auto;
@@ -1470,9 +1644,13 @@
   width: min(560px, calc(100vw - 24px));
   border: 1px solid rgba(232, 213, 163, 0.4);
   border-radius: 999px;
-  background: rgba(14, 10, 29, 0.94);
+  /* 페이지 바탕과 거의 같은 색이라 94% 로는 "떠 있는 층" 으로 읽히지 않고 뒤 글자가
+     비쳐 가격과 겹쳐 보였다(2026-09-11 실측). 불투명 + 흐림으로 확실히 한 겹 위에 둔다. */
+  background: rgba(32, 25, 60, 0.98);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   padding: 10px 12px 10px 20px;
-  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.45), 0 18px 44px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(232, 213, 163, 0.14);
   opacity: 0;
   transform: translate(-50%, 150%);
   pointer-events: none;
@@ -1582,9 +1760,12 @@
 
 /* Approved Fusion expert surface: scoped, 960px, existing artwork and payment controls. */
 .page > section, .page > nav { max-width: 960px; }
-.hero { min-height: 480px; grid-template-columns: minmax(0, 1fr); }
+/* 🔴 2026-09-11: 이 블록이 예전에 `.hero { grid-template-columns: minmax(0,1fr) }` 로 히어로를
+   1단으로 접고 아래에서 `.hero > .orbStage { display:none }` 으로 Fusion Core 궤도를 통째로
+   꺼 놓고 있었다. 오브 마크업은 DOM 에 계속 있었는데 화면에만 없었다 — 상품의 유일한
+   시그니처 비주얼이 사라져 첫 화면이 밋밋했던 실제 원인이다. 2단 복원이 정상이다. */
 .heroCopy { max-width: 760px; padding: clamp(24px, 5vw, 48px); }
-.hero h1 { font-family: Pretendard, "Malgun Gothic", sans-serif; font-size: clamp(2rem, 4vw, 3rem); line-height: 1.3; letter-spacing: -.025em; }
+.hero h1 { font-family: var(--fx-serif); font-size: clamp(2rem, 5.6vw, 3.1rem); line-height: 1.24; letter-spacing: -.02em; }
 .expertTrust { color: var(--fx-ink-3); font-size: .85rem; }
 .expertEvidence { padding: 24px; border: 1px solid #806888; border-radius: 18px; background: #191326; color: #f6f0ff; }
 .tarotGrid { display: grid; grid-template-columns: repeat(6,minmax(0,1fr)); gap: 12px; }
@@ -1597,8 +1778,26 @@
 @media(max-width:600px) { .tarotGrid { grid-template-columns: repeat(3,minmax(0,1fr)); } .hero { min-height: 0; } }
 @media(prefers-reduced-motion:reduce) { .tarotCard img { animation: none; } }
 
-.hero > .orbStage { display: none; }
 .hero h1 { word-break: keep-all; overflow-wrap: break-word; text-wrap: balance; }
+/* "설계·자문" 의 "문", 본문 끝 "요." 처럼 한 글자만 다음 줄로 떨어지던 고아 줄을 막는다. */
+.heroCopy > p, .expertTrust { word-break: keep-all; overflow-wrap: break-word; text-wrap: pretty; }
+/* 신뢰 문구는 한 문장으로 두면 좁은 폭에서 "·자문" 만 떨어졌다. TSX 의 splitTrustLine 이
+   "사주 엔진" 을 라벨로 떼어 내고, 여기서 라벨을 한 줄 위에 금색으로 올린다. */
+.expertTrustLabel { display: block; margin: 14px 0 0; color: var(--fx-gold); font-size: .74rem; font-weight: 700; line-height: 1.3; letter-spacing: .12em; }
+/* 하단 고정 .orderBar(높이 약 66px + 여백 14px)가 페이지 마지막 내용을 영구히 덮지 않게
+   바 높이만큼 바닥 여백을 둔다. 위 미디어쿼리의 padding 단축 속성보다 뒤에 와야 이긴다. */
+.page { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
+/* 🔴 모바일에서 오브를 문안과 같은 칸에 겹쳐 놓으면 제목·본문이 코어 발광부 위로 올라타
+   대비가 1.4~2.3:1 까지 떨어진다(2026-09-11 390px 실측). 겹치지 않게 위·아래 2행으로 쌓고,
+   aspect-ratio 로 크기를 고정해 이미지가 늦게 와도 CLS 가 생기지 않게 한다. */
+@media (max-width: 760px) {
+  .hero { grid-template-rows: auto auto; align-items: center; }
+  .hero > .orbStage { grid-area: 1/1; width: min(56vw, 216px); justify-self: center; margin: 26px 0 0; }
+  .heroCopy { grid-area: 2/1; }
+}
+@media (max-width: 390px) {
+  .hero > .orbStage { width: min(52vw, 178px); margin-top: 16px; }
+}
 .seoGuide { width: min(960px, calc(100% - 32px)); margin-inline: auto; }
 
 .tarotCard { position: relative; perspective: 800px; }
