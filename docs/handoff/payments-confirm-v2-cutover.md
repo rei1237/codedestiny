@@ -29,7 +29,7 @@ next: 스테이징 배포가 반영된 뒤 confirm 왕복(단건·이용권)을 
 
 - `app/points/PointsClient.tsx` 의 죽은 `fortune_pending_order` 분기.
 - `worker/routes/billing.js` 의 동명 `handleConfirm` — `/api/billing/confirm` 이 가로채이므로 도달 불가로 **추정**(라우터 표 1곳만 확인, 미검증).
-- `PAYMENT_CONCURRENCY_AUDIT.md:69` 가 사라진 `settlePaymentByImpUid` 를 언급한다.
+- ~~`PAYMENT_CONCURRENCY_AUDIT.md:69` 가 사라진 `settlePaymentByImpUid` 를 언급한다.~~ → 그 문서는 2026-09-12 정리에서 삭제(git 히스토리 참조). 이 축은 해소됐다.
 
 ## 별도 축 — 사용자만 할 수 있는 수동 스테이징 테스트
 

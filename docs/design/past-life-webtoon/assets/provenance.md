@@ -2,7 +2,9 @@
 
 2026-09-08~09, 내장 image_gen으로 이 작업에서 신규 제작. 스톡 이미지/업로드 얼굴 미사용. 인물은 가상의 성인. 목업용이며 모든 사용자 결과에 이 인물을 적용하지 않는다.
 
-원본 디렉터리: `C:/Users/user/.codex/generated_images/01a0817e-355f-7a92-ab39-284d00c8638e/`. 원본은 보존했다. `optimize-assets.cjs`가 sharp로 480/800px WebP quality74/effort6 변환. 파일별 크기는 `../asset-sizes.json`.
+원본 디렉터리: `C:/Users/user/.codex/generated_images/01a0817e-355f-7a92-ab39-284d00c8638e/`. 원본은 보존했다. `optimize-assets.cjs`가 sharp로 480/800px WebP quality74/effort6 변환. 파일별 크기는 `asset-sizes.json`.
+
+> 2026-09-12 정리: 아래 harbor·choice·memory 세 절은 **목업 전용** 이미지의 기록이며, 그 WebP 6개와 `optimize-assets.cjs`·`asset-sizes.json` 은 삭제했다(git 히스토리 참조). 이 파일이 남은 이유는 마지막 절 「실제 서비스 공통 컷」이 **배포 중인** `fuctionassets/past-life-webtoon/` 자산의 생성 출처이기 때문이다.
 
 ## harbor
 

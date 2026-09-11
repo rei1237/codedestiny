@@ -24,9 +24,7 @@ const REPO_PREFIXES = [
 const ROOT_REPO_PATHS = new Set([
   'AGENTS.md',
   'CLAUDE.md',
-  'PROJECT_STRUCTURE.md',
   'PAYMENT_POLICY.md',
-  'PAYMENT_CONCURRENCY_AUDIT.md',
   'CLOUDFLARE_PAGES_SETUP.md',
   'DEPLOY_CHECKLIST.md',
   'index.html',
