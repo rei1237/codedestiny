@@ -219,3 +219,11 @@ PR 생성 후 필수 검사와 최신 base 충돌을 확인하고 에이전트�
 커밋 기반 PR은 각 최신 HEAD의 필수 CI와 delivery:admit을 확인한 뒤 연속 머지한다. PR 사이에 스테이징 도달을 기다리지 않는다. main push는 짧은 디스패처만 실행하고 실제 스테이징 배포·검증은 별도 직렬 실행으로 비동기 처리한다. main 변경으로 무효화된 후보 검증만 갱신한다. PR 생성 전 ci:preflight와 보호 규칙은 유지한다. delivery:batch-plan은 의존성 계획 도구이며 PR별 admission을 대체하지 않는다.
 
 마지막 병합의 전체 SHA를 고정해 `npm run delivery:verify-batch -- --sha=<40자리 SHA>`를 후속 검증으로 실행하고 staging smoke·noindex·핵심 화면을 확인한다. 이 검증과 진행 중인 스테이징 배포는 다음 작업·PR·머지·새 워크트리 준비를 막지 않는다. 실패하면 운영 승격만 중단하고 원인·재조정을 보고한다. 이미 진행 중인 배포는 취소하지 않고 아직 배포하지 않은 낡은 staging 실행은 최신 main에 양보한다. 운영 승격은 별도 1회 승인 때만 수행한다. 이전의 PR별 staging 대기 조항보다 이 정책이 우선한다.
+
+## 2026-09-11 `ci-preflight.mjs` 재사용 조건을 파일 겹침 기준으로 완화
+
+`ci-preflight.mjs`의 receipt 재사용(`--verify-receipt`)과 PR 생성(`--create-pr`)은 과거 "receipt.base가 방금 fetch한 origin/main과 SHA까지 완전히 같아야 함"을 요구했다. 이 저장소는 개인 계정 소유라 GitHub Merge Queue를 쓸 수 없고 `strict_required_status_checks_policy: false`다 — 즉 GitHub 자신도 "PR 브랜치가 최신 main을 포함해야 머지 가능"을 강제하지 않으며, `delivery-admit.mjs`의 `mergeable`/`mergeStateStatus` 확인은 git 트리 충돌 여부만 본다. 로컬 규칙만 이보다 엄격했던 것이라, main이 이번 PR과 무관한 파일만 전진해도 최대 30분짜리 전체 검증을 처음부터 다시 요구하는 병목이 있었다.
+
+지금은 `upstreamCompatible`/`checkUpstream`(`ci-preflight.mjs`)이 "receipt.base가 최신 main의 조상이고, 그 사이 upstream이 건드린 파일이 이번 후보가 건드린 파일과 하나도 겹치지 않을 때"만 재사용을 허용한다. main이 rebase/force-push로 재작성돼 조상 관계 자체가 깨지면(`ancestor: false`) 항상 차단한다(fail-closed 유지). receipt에는 이제 `files` 필드가 함께 기록되어 재사용 시점에 재계산 없이 그대로 쓰인다. `--create-pr`의 "branch가 최신 main을 이미 포함해야 함" 요구(과거 `merge-base --is-ancestor base HEAD`)는 이 완화의 대상 그 자체이므로 제거했다 — receipt.base가 애초에 HEAD의 조상이라는 사실은 최초 preflight 실행 시점에 이미 확인된다. 검증 루프 진행 중 origin/main이 전진하는 경우(`assertBase`)와 종료 직후 최종 확인도 동일한 `checkUpstream`으로 판정하며, 통과 시 그 시점의 `base`를 갱신해 이후 판정 기준으로 삼는다.
+
+잔여 위험: 파일명이 겹치지 않아도 의미론적 의존성(예: 다른 파일의 export 시그니처 변경)은 이 검사로 잡히지 않는다. 이는 새로운 위험이 아니라 GitHub Merge Queue 미제공·strict 비활성으로 현재도 감수 중인 위험과 같은 선상이다. `delivery-admit.mjs`의 "최신 main 반영" 자체 게이트와 plain 실행 시작 시 조상 검사(`ci-preflight.mjs`)는 이번 완화 대상이 아니며 그대로 유지된다.

@@ -4,8 +4,15 @@ import { readFileSync } from 'node:fs';
 import { batchVerificationArgs } from '../../scripts/delivery-verify-batch.mjs';
 import { shouldDeployStaging } from '../../scripts/staging-release-current.mjs';
 import { summarizeAdmission } from '../../scripts/delivery-admit.mjs';
+import { upstreamCompatible } from '../../scripts/ci-preflight.mjs';
 
 const sha = 'a'.repeat(40), newer = 'b'.repeat(40);
+test('upstream file overlap gates receipt/PR reuse; rewritten history always blocks', () => {
+  assert.equal(upstreamCompatible({ ancestor: false, upstreamFiles: [], files: ['a.ts'] }), false);
+  assert.equal(upstreamCompatible({ ancestor: true, upstreamFiles: [], files: ['a.ts'] }), true);
+  assert.equal(upstreamCompatible({ ancestor: true, upstreamFiles: ['b.ts'], files: ['a.ts'] }), true);
+  assert.equal(upstreamCompatible({ ancestor: true, upstreamFiles: ['a.ts'], files: ['a.ts'] }), false);
+});
 test('batch completion requires explicit SHA and both staging layers', () => {
   assert.deepEqual(batchVerificationArgs([`--sha=${sha}`]), ['scripts/verify-deployed-sha.mjs', `--sha=${sha}`, '--origin=https://staging.code-destiny.com']);
   for (const args of [[], ['--sha=abcdef0'], [`--sha=${sha}`, '--skip-worker']]) assert.throws(() => batchVerificationArgs(args));
