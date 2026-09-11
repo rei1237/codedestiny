@@ -26,8 +26,9 @@ const errors = [];
 const notes = [];
 const fail = (msg) => errors.push(msg);
 
-/* 홈 검색 카드는 공통 이미지 하나(home-service-finder.js DEFAULT_SERVICE_IMAGE)만 쓴다.
-   항목별 이미지 매핑이 서비스와 맞지 않는 그림·폐기된 이용권 그림을 띄워 2026-09-11 에 폐지했다. */
+/* 홈 검색 카드 이미지는 같은 기능을 여는 홈 타일에서 런타임에 빌리고(home-service-finder.js
+   featureTileImage), 타일이 없으면 달 이미지(DEFAULT_SERVICE_IMAGE)를 쓴다. 항목별 정적 이미지
+   매핑은 서비스와 맞지 않는 그림·폐기된 이용권 그림을 띄워 2026-09-11 에 폐지했다. */
 const FINDER_FILE = resolve(ROOT, "js/core/home-service-finder.js");
 const DEFAULT_IMAGE = (readFileSync(FINDER_FILE, "utf8").match(/DEFAULT_SERVICE_IMAGE\s*=\s*"([^"]+)"/) || [])[1];
 if (!DEFAULT_IMAGE) fail("홈 검색 공통 이미지 DEFAULT_SERVICE_IMAGE 를 찾지 못했다");
@@ -142,7 +143,7 @@ for (const item of registry) {
     else for (const r of item.roles) if (!ROLES.has(r)) fail(`${at}: 알 수 없는 role "${r}"`);
   }
 
-  if (item.image) fail(`${at}: 항목별 이미지(${item.image})를 넣지 않는다 — 카드는 공통 이미지 하나로 통일`);
+  if (item.image) fail(`${at}: 항목별 이미지(${item.image})를 넣지 않는다 — 카드 이미지는 같은 기능의 홈 타일에서 런타임에 파생`);
 
   const price = readPrice(item.price);
   if (!price) {
