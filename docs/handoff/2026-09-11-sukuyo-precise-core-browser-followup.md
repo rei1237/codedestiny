@@ -1,8 +1,10 @@
 ---
-status: active
+status: done
 updated: 2026-09-11
-next: 워커 PR(숙요 정밀 코어 적용 복구) 머지·스테이징 SHA 확인 후, 아래 「브라우저·잠금화면 옛 방식 4곳」을 새 코어(Swiss 항성 달 황경)로 옮긴다.
+next: 완료 — 후속은 docs/handoff/2026-09-11-sukuyo-precise-browser-done.md 를 따른다.
 ---
+
+> ✅ 아래 「남은 일」 4곳은 브랜치 `worktree-sukuyo-precise-browser` 에서 모두 옮겼다. 후속·검증 결과는 [2026-09-11-sukuyo-precise-browser-done.md](2026-09-11-sukuyo-precise-browser-done.md).
 
 # 숙요 정밀 코어 — 브라우저·잠금화면 후속
 
