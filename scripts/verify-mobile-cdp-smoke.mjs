@@ -387,7 +387,10 @@ try {
       hitTestOwner: (() => {
         const hit = document.elementFromPoint(innerWidth / 2, innerHeight / 2);
         return hit?.closest('#cdMobileFortuneOverview')?.id || hit?.closest('#inputPage')?.id || hit?.id || null;
-      })()
+      })(),
+      overviewScrollTop: panel ? panel.scrollTop : 0,
+      overviewScrollHeight: panel ? panel.scrollHeight : 0,
+      overviewClientHeight: panel ? panel.clientHeight : 0
     };
   })()`, "after bottom nav all-fortunes tap");
   assert(afterFortunesNav.overlayOpen && afterFortunesNav.overviewShown, "bottom nav all-fortunes opens the overview overlay", afterFortunesNav);
@@ -397,6 +400,16 @@ try {
   assert(afterFortunesNav.panelBottom >= afterFortunesNav.viewportHeight - 1, "all-fortunes content extends through the released bottom safe area", afterFortunesNav);
   assert(afterFortunesNav.inputPageVisibility === "hidden" && afterFortunesNav.inputPagePointerEvents === "none", "all-fortunes hides the main home shell from visual and touch hit-testing", afterFortunesNav);
   assert(afterFortunesNav.hitTestOwner === "cdMobileFortuneOverview", "all-fortunes overview owns the center touch target", afterFortunesNav);
+  assert(afterFortunesNav.overviewScrollHeight >= afterFortunesNav.overviewClientHeight, "all-fortunes overview owns a valid scroll container", afterFortunesNav);
+  if (afterFortunesNav.overviewScrollHeight > afterFortunesNav.overviewClientHeight) {
+    await swipeFromSelector(cdp, "#cdMobileFortuneOverview", 0, -220);
+    await delay(250);
+    const afterOverviewScroll = await evaluate(cdp, `(() => {
+      const panel = document.getElementById('cdMobileFortuneOverview');
+      return { scrollTop: panel ? panel.scrollTop : 0, scrollHeight: panel ? panel.scrollHeight : 0, clientHeight: panel ? panel.clientHeight : 0 };
+    })()`, "after all-fortunes overview swipe");
+    assert(afterOverviewScroll.scrollTop > 0, "all-fortunes overview responds to a mobile scroll gesture", afterOverviewScroll);
+  }
 
   await tapSelector(cdp, '.cd-fov__cat[data-collection-id="tarotCollection"]');
   await delay(120);

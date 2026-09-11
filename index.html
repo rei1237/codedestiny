@@ -795,8 +795,10 @@ button, .tog-btn, .btn-main, .btn-sub, .dw-item, .feature-card, .fortune-tab, .m
       그때는 부분집합이 아니라 전체 시트를 그냥 받는다 — 상위집합이라 한 줄로 둘 다 덮는다. -->
  <noscript><link rel="stylesheet" href="/styles/fortune-ui.css?v=build-af9beeef42da"></noscript>
  <!-- fortune-gateway.css 는 렌더 블로킹에서 뺀다 — 이 시트가 칠하는 4개 호스트가 전부 폴드보다
-      한참 아래다(2026-09-01 실측, dist·networkidle): .cd-quick__grid 4283 / #cdFinder 4611 /
-      #fortuneGatewayEntry 5894 / #cdDiaryPlannerEntry 7036 (모바일 390x844 기준 top, px).
+      아래다(2026-09-11 재실측, dist·networkidle — #cdFinder 를 무료 카드 바로 아래로 승격하며
+      갱신): .cd-quick__grid 825 / #cdFinder 1322 / #cdDiaryPlannerEntry 5113 /
+      #fortuneGatewayEntry 6836 (모바일 390x844 기준 top, px). #cdFinder 가 예전보다 훨씬 위로
+      올라왔지만(4611→1322) 여전히 844px 폴드 아래라 안전하다.
       preload 라 우선순위는 그대로 높고 다운로드도 즉시 시작하지만 첫 페인트를 막지 않는다. -->
  <link rel="preload" as="style" href="/styles/fortune-gateway.css?v=build-af9beeef42da" onload="this.onload=null;this.rel='stylesheet'">
  <noscript><link rel="stylesheet" href="/styles/fortune-gateway.css?v=build-af9beeef42da"></noscript>
@@ -861,7 +863,9 @@ html.cd-mobile-runtime .cd-home-guide { content-visibility: auto; contain-intrin
  *     content-visibility:visible!important 를 걸어 무력화된다(위 제외 목록과 같은 사유).
  *   #cdFinder — paint containment 가 잉크를 자른다. 자손 button.fortune-gateway__chip 이
  *     섹션 보더 박스 밖으로 506px 나간다(2026-09-02 실측, 390x844). 컨테인먼트를 걸면
- *     그 칩이 잘려 사라진다. */
+ *     그 칩이 잘려 사라진다.
+ *   #cdhServices(2026-09-11, #cdFinder 를 감싸는 새 승격 섹션) — 같은 이유로 뺐다. #cdFinder
+ *     가 그 자손이라 부모에 걸어도 같은 칩 오버플로가 그대로 잘린다. */
 /* 데스크탑(비터치)에도 같은 축을 건다 — 2026-08-29 실측.
  * 왜: 스테이징 홈을 데스크탑 1350x940 · CPU 4x 로 트레이스하면 Layout 이 3,339~3,527ms 로
  *   메인스레드 최대 항목이었다(Script Evaluation 은 1,520~1,626ms). 폴드 아래 섹션이 레이아웃
@@ -9248,33 +9252,13 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
         </div>
 
 </section></div>
-    <div class="cdh-slot cdh-slot--feedback" id="cdhFeedbackSlot"><section class="cd-feedback" id="cdFeedbackGate" data-marker="cd-feedback-gate-v20260731" aria-labelledby="cdFeedbackGateTitle">
-          <div class="cd-feedback__card">
-            <span class="cd-feedback__icon" aria-hidden="true">🐞</span>
-            <div class="cd-feedback__copy"><span class="cd-yehwa-peony" aria-hidden="true"></span>
-              <h2 id="cdFeedbackGateTitle" class="cd-feedback__title" data-cd-trans="shell.cdFeedbackCard.cdFeedbackCopy.k1qqtskq">버그 제보실</h2>
-              <!-- 금액 정본은 worker/routes/admin-feedback.js 의 BUG_REPORT_REWARD_AMOUNT(300).
-                   바꾸면 app/feedback/_lib/categories.ts 의 rewardNote 와 이 줄도 함께 고칠 것. -->
-              <p class="cd-feedback__reward"><span aria-hidden="true">🌙</span><span data-cd-trans="home.feedback.rewardPrefix">실제 버그로 확인된 제보 1건당</span> <strong data-cd-trans="shell.cdFeedbackCopy.cdFeedbackReward.k1ubfgod">월정석 300개</strong></p>
-              <p class="cd-feedback__body"><span data-cd-trans="shell.cdFeedbackCopy.cdFeedbackBody.k2a2ghh">버그, 어색한 화면, "이런 기능이 있었으면" 하는 순간 &mdash; 무엇이든 좋습니다.</span><br><span data-cd-trans="shell.cdFeedbackCopy.cdFeedbackBody.k84kqr7">보내주신 의견은 하나씩 읽고 다음 업데이트에 반영합니다.</span></p>
-            </div>
-            <a class="cd-feedback__cta" href="/feedback/" data-cd-trans="shell.cdFeedbackGate.cdFeedbackCard.k1chb9k4">버그 제보하기</a>
-          </div>
-        </section></div>
-    <div class="cdh-slot" id="cdhCollectionToggleSlot"><div class="cd-home-more">
-          <span class="cd-yehwa-vine" aria-hidden="true"></span>
-          <button type="button" class="cd-home-more__btn" id="cdHomeExpandToggle" aria-expanded="false">
-            <span class="cd-home-more__on" data-cd-trans data-key="home.svcIndex.expandCta">홈에서 접어 둔 섹션도 모두 펼치기</span>
-            <span class="cd-home-more__off" data-cd-trans data-key="home.svcIndex.collapseCta">펼친 섹션 다시 접기</span>
-            <span class="cd-home-more__chevron" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>
-          </button>
-        </div>
-      <div id="cdhCollections" data-cd-home-secondary></div>
-    </div>
-    <section class="cdh cdh-services cdh-services--inline" id="cdhServices" aria-labelledby="cdhServicesTitle">
-      <details id="cdhFinderDisclosure" class="cdh-finder-disclosure">
-        <summary><h2 id="cdhServicesTitle" data-cd-trans="home.heroTrust.search">전체 서비스 검색</h2><svg class="cdh-finder-disclosure__arrow" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></summary>
+    <section class="cdh cdh-services cdh-services--inline cdh-services--luxe" id="cdhServices" aria-labelledby="cdhServicesTitle">
+      <span class="cd-yehwa-vine cdh-services__vine" aria-hidden="true"></span>
+      <div class="cdh-services__head moon-section-head">
+        <p class="cdh-intro">FIND YOUR READING</p>
+        <h2 id="cdhServicesTitle" tabindex="-1" data-cd-trans="home.heroTrust.search">전체 서비스 검색</h2>
         <p class="cdh-lead">고민·방식·가격으로 지금 필요한 리딩을 찾아보세요.</p>
+      </div>
       <section data-cd-funnel-section="finder" class="cd-finder" id="cdFinder" aria-labelledby="cdFinderTitle" data-marker="cd-finder-v20260819">
 
 
@@ -9340,8 +9324,30 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
 
 </section>
       <a href="/?action=cdOpenAllFortunes" data-action="cdOpenAllFortunes" class="cdh-catalog-link">컬렉션 전체 둘러보기 <span aria-hidden="true">↗</span></a>
-      </details>
     </section>
+    <div class="cdh-slot cdh-slot--feedback" id="cdhFeedbackSlot"><section class="cd-feedback" id="cdFeedbackGate" data-marker="cd-feedback-gate-v20260731" aria-labelledby="cdFeedbackGateTitle">
+          <div class="cd-feedback__card">
+            <span class="cd-feedback__icon" aria-hidden="true">🐞</span>
+            <div class="cd-feedback__copy"><span class="cd-yehwa-peony" aria-hidden="true"></span>
+              <h2 id="cdFeedbackGateTitle" class="cd-feedback__title" data-cd-trans="shell.cdFeedbackCard.cdFeedbackCopy.k1qqtskq">버그 제보실</h2>
+              <!-- 금액 정본은 worker/routes/admin-feedback.js 의 BUG_REPORT_REWARD_AMOUNT(300).
+                   바꾸면 app/feedback/_lib/categories.ts 의 rewardNote 와 이 줄도 함께 고칠 것. -->
+              <p class="cd-feedback__reward"><span aria-hidden="true">🌙</span><span data-cd-trans="home.feedback.rewardPrefix">실제 버그로 확인된 제보 1건당</span> <strong data-cd-trans="shell.cdFeedbackCopy.cdFeedbackReward.k1ubfgod">월정석 300개</strong></p>
+              <p class="cd-feedback__body"><span data-cd-trans="shell.cdFeedbackCopy.cdFeedbackBody.k2a2ghh">버그, 어색한 화면, "이런 기능이 있었으면" 하는 순간 &mdash; 무엇이든 좋습니다.</span><br><span data-cd-trans="shell.cdFeedbackCopy.cdFeedbackBody.k84kqr7">보내주신 의견은 하나씩 읽고 다음 업데이트에 반영합니다.</span></p>
+            </div>
+            <a class="cd-feedback__cta" href="/feedback/" data-cd-trans="shell.cdFeedbackGate.cdFeedbackCard.k1chb9k4">버그 제보하기</a>
+          </div>
+        </section></div>
+    <div class="cdh-slot" id="cdhCollectionToggleSlot"><div class="cd-home-more">
+          <span class="cd-yehwa-vine" aria-hidden="true"></span>
+          <button type="button" class="cd-home-more__btn" id="cdHomeExpandToggle" aria-expanded="false">
+            <span class="cd-home-more__on" data-cd-trans data-key="home.svcIndex.expandCta">홈에서 접어 둔 섹션도 모두 펼치기</span>
+            <span class="cd-home-more__off" data-cd-trans data-key="home.svcIndex.collapseCta">펼친 섹션 다시 접기</span>
+            <span class="cd-home-more__chevron" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>
+          </button>
+        </div>
+      <div id="cdhCollections" data-cd-home-secondary></div>
+    </div>
     <div class="cdh-slot" id="cdhTodaySlot"><section data-cd-funnel-section="today_hub" class="cd-today" id="cdTodayHub" data-marker="cd-today-hub-v20260808" aria-labelledby="cdTodayHubTitle">
         <div class="cd-today__head">
           <h2 class="cd-today__title" id="cdTodayHubTitle" data-cd-trans data-key="home.todayHub.title">오늘의 운세</h2>
