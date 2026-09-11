@@ -28,7 +28,7 @@ next: "상세창 프리미엄 개편 PR 의 CI·머지를 확인한 뒤, 운명�
 
 ## 지금 상태
 
-- 브랜치 `feat/detail-sheet-premium`, 워크트리 `D:\Development\code-destiny-wt\detail-sheet-premium`. PR: (아래 갱신)
+- 브랜치 `feat/detail-sheet-premium`, 워크트리 `D:\Development\code-destiny-wt\detail-sheet-premium`. PR: #1923 (Ready, 머지 미포함)
 - 계획 정본: `C:\Users\user\.claude\plans\witty-twirling-petal.md`
 
 ### 남는 계약
