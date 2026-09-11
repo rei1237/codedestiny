@@ -419,3 +419,28 @@ test("목적지를 공유하되 다른 화면을 여는 타일은 남는다", as
     `href 만 겹치고 액션이 다른 타일까지 지워졌다 — 중복 제거가 과하다: ${hits.join(", ")}`,
   );
 });
+
+// 회귀 배경(2026-09-12 실측): 모바일은 닫힌 컬렉션 카드를 DOM 에서 떼어
+// collection.__cdLazyCards 에만 둔다(index.html prepareCollectionLazyMounts). scrapeTiles 가
+// 연결된 DOM 만 훑어서 이 카드들이 검색에서 통째로 빠졌다("사주" 390:7건/1280:10건).
+test("닫힌 컬렉션 카드(__cdLazyCards)도 검색에 잡힌다", async () => {
+  const { doc, window } = await boot();
+
+  const collection = doc.createElement("div");
+  collection.className = "tarot-collection";
+  doc.getElementById("inputPage").appendChild(collection);
+
+  const card = doc.createElement("a");
+  card.className = "tarot-tile";
+  card.setAttribute("href", "/tarot/lazy/");
+  card.setAttribute("data-action", "openLazyCollectionCardModal");
+  card.innerHTML = '<span class="tarot-tile__title">닫힌 컬렉션 카드</span>';
+  // 실제 모바일 흐름처럼 그리드에서 떼어져 있다 — 어디에도 붙어 있지 않다(isConnected === false).
+  collection.__cdLazyCards = [card];
+
+  const hits = await search(window, doc, "닫힌 컬렉션 카드");
+  assert.ok(
+    hits.includes("닫힌 컬렉션 카드"),
+    `__cdLazyCards 에만 있는 카드가 검색에서 빠졌다: ${hits.join(", ")}`,
+  );
+});
