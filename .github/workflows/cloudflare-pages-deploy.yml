@@ -232,7 +232,7 @@ jobs:
       - name: Queue latest main for staging
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh workflow run cloudflare-pages-deploy.yml --ref main -f mode=staging
+        run: gh workflow run cloudflare-pages-deploy.yml --ref main -f mode=staging -R ${{ github.repository }}
 
   release:
     needs: gate
