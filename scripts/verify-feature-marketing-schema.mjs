@@ -14,7 +14,7 @@
  * 추가로, 30,000원 이상 유료 상품은 전부 자기 샘플 리포트를 갖도록 강제한다
  * (없으면 카테고리 일반 샘플로 떨어져 "무엇을 사는지" 가 다시 흐려진다).
  */
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -64,18 +64,30 @@ for (const banned of ["sampleReport", "resultPreview"]) {
   }
 }
 
-// 순서 계약: 무엇을 얻는가 → 어떻게 분석 → 리포트 예시 → 누구에게 → 가격 → FAQ
+// 순서 계약(feature-marketing-premium-v20260911): 구매 결정 흐름 순서다.
+// 누구에게 → 무엇을 받나 → 결과 화면 구성 → 어떻게 분석 → 신뢰 → 가격·혜택 → 안심 → FAQ
 const ORDER = [
-  "tilePvwPremiumBlock", "tilePvwScaleSec", "tilePvwQuestSec", "tilePvwStepsSec",
-  "tilePvwReqSec", "tilePvwAudSec", "tilePvwCmpSec",
-  "tilePvwTrustSec", "tilePvwPaywall", "tilePvwFaqSec",
+  "tilePvwAudSec", "tilePvwQuestSec", "tilePvwReceiveSec", "tilePvwScaleSec",
+  "tilePvwOutlineSec", "tilePvwStepsSec", "tilePvwReqSec", "tilePvwTrustSec",
+  "tilePvwPriceSec", "tilePvwPaywall", "tilePvwPremiumBlock", "tilePvwCmpSec",
+  "tilePvwAssure", "tilePvwFaqSec",
 ];
+if (!html.includes("feature-marketing-premium-v20260911")) {
+  fail("상세창 계약 주석 feature-marketing-premium-v20260911 이 사라졌습니다 — 템플릿을 바꿨다면 계약 버전과 이 가드를 함께 올리세요.");
+}
 let cursor = -1;
 for (const id of ORDER) {
   const at = html.indexOf(`id="${id}"`);
   if (at < 0) { fail(`#${id} 노드가 없습니다 — 팝업 섹션 순서 계약이 깨졌습니다.`); continue; }
-  if (at < cursor) fail(`#${id} 가 순서를 벗어났습니다 (가치 → 분석 → 예시 → 대상 → 가격 → FAQ).`);
+  if (at < cursor) fail(`#${id} 가 순서를 벗어났습니다 (대상 → 받는 것 → 구성 → 분석 → 신뢰 → 가격 → 안심 → FAQ).`);
   cursor = at;
+}
+
+// 🔴 세로 한 글자 줄바꿈의 근본 원인 재발 방지. .tile-pvw-step 은 2열 grid(마커 28px | 본문)라
+// b·span 이 li 에 바로 붙으면 grid item 이 3개가 되어 설명 span 이 28px 칸으로 떨어진다.
+// 렌더러가 둘을 .tile-pvw-step-body 한 겹으로 감싸야 한다.
+if (!/className\s*=\s*'tile-pvw-step-body'/.test(html)) {
+  fail("_fillPairs 가 b·span 을 .tile-pvw-step-body 로 감싸지 않습니다 — 모바일에서 설명이 28px 칸에 세로로 한 글자씩 끊깁니다.");
 }
 
 /* ── 2. 카피 데이터 추출 ───────────────────────────────────────────── */
@@ -96,6 +108,7 @@ try {
 /* ── 3. 스키마 검사 ────────────────────────────────────────────────── */
 
 const SCALE_KEYS = ["chapters", "sections", "dataPoints", "minWords", "readMinutes"];
+const PREMIUM_BANNED_TERMS = ["기능", "계산값", "컬럼", "데이터", "규칙 기반 시각화", "시스템", "프롬프트", "내부 로직"];
 
 function checkEntry(label, entry) {
   if (!entry || typeof entry !== "object") return;
@@ -138,7 +151,9 @@ function checkEntry(label, entry) {
 
   if (entry.valueCompare !== undefined) {
     const rows = entry.valueCompare?.rows;
-    if (!Array.isArray(rows) || !rows.length) fail(`${label}: valueCompare.rows 가 비었습니다.`);
+    // `{rows:[]}` 는 "이 상품에는 비교표를 두지 않는다"는 명시적 숨김이다. 필드를 지우면
+    // _pickPreviewField 가 레거시 D·카테고리 템플릿의 비교표로 떨어진다(!=null 조회).
+    if (!Array.isArray(rows)) fail(`${label}: valueCompare.rows 가 배열이 아닙니다.`);
     else rows.forEach((row, i) => {
       if (!String(row?.axis || "").trim()) fail(`${label}: valueCompare.rows[${i}].axis 가 비었습니다.`);
       if (!String(row?.premium || "").trim()) fail(`${label}: valueCompare.rows[${i}].premium 이 비었습니다.`);
@@ -150,6 +165,30 @@ function checkEntry(label, entry) {
     else entry.analysisSteps.forEach((step, i) => {
       if (!String(step?.label || "").trim()) fail(`${label}: analysisSteps[${i}].label 이 비었습니다.`);
     });
+  }
+
+  // 상세창 프리미엄 문서(v20260911): "내가 받게 되는 것"(icon·title·한 문장)과 "결과 화면 구성".
+  for (const field of ["receives", "outline"]) {
+    if (entry[field] === undefined) continue;
+    if (!Array.isArray(entry[field]) || !entry[field].length) { fail(`${label}: ${field} 가 비었거나 배열이 아닙니다.`); continue; }
+    entry[field].forEach((item, i) => {
+      if (!String(item?.title || "").trim()) fail(`${label}: ${field}[${i}].title 이 비었습니다.`);
+      if (!String(item?.detail || "").trim()) fail(`${label}: ${field}[${i}].detail 이 비었습니다.`);
+    });
+  }
+  // 결과 화면 구성 이미지는 이미 있는 자산만 쓴다 — 없는 경로면 빈 액자가 뜬다.
+  if (entry.outlineImage !== undefined) {
+    const src = String(entry.outlineImage || "");
+    if (!src.startsWith("/") || !existsSync(resolve(ROOT, "public", `.${src}`))) {
+      fail(`${label}: outlineImage ${JSON.stringify(src)} 파일이 public/ 에 없습니다.`);
+    }
+  }
+  // 새 형식으로 옮긴 상품(receives 보유)은 개발 문서 말투를 쓰지 않는다. 옛 형식 98개는 후속 배치에서 옮긴다.
+  if (entry.receives !== undefined) {
+    const text = JSON.stringify(entry);
+    for (const word of PREMIUM_BANNED_TERMS) {
+      if (text.includes(word)) fail(`${label}: 상세창 카피에 금지어 "${word}" 가 있습니다 — 사용자가 받는 것으로 풀어 쓰세요.`);
+    }
   }
 }
 
