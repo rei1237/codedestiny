@@ -1,7 +1,8 @@
 ---
 status: active
 updated: 2026-09-11
-next: 이 PR 의 필수 CI 와 머지 여부를 확인한다. 구매 전 화면 리뉴얼 범위는 닫혔고, 남은 것은 범위 밖 결함 보고 5건이다
+pr: https://github.com/rei1237/codedestiny/pull/1915
+next: PR #1915 의 필수 CI 와 머지 여부를 확인한다. 구매 전 화면 리뉴얼 범위는 닫혔고, 남은 것은 범위 밖 결함 보고 5건이다
 ---
 
 # 초융합 운세 — 구매 전 화면 프리미엄 리뉴얼
@@ -27,7 +28,8 @@ next: 이 PR 의 필수 CI 와 머지 여부를 확인한다. 구매 전 화면 
 
 ## 검증
 
-- `npm run test:node` 1051/1051, `verify:fusion-fortune-stage-flow` PASS, `verify:fusion-fortune-retry-payload` PASS, `tsc --noEmit` 0 오류.
+- `npm run ci:preflight` PASS(paid-gate-suite 85/0), `npm run check:fast` PASS(jest 2686), `npm run test:node` 1051/1051, `verify:fusion-fortune-stage-flow` PASS, `verify:fusion-fortune-retry-payload` PASS, `tsc --noEmit` 0 오류, eslint 0.
+- 결과 화면 회귀(mock `?preview=success|truncated|failed|legacy` + `#fusion-form` submit 디스패치) — 페이지 오류 0, TOC/PDF 섹션 수 정상, 미리보기가 `data-fusion-toc` 를 오염시키지 않음.
 - 360/390/430/768/1440 스크린샷(mock, `?preview` 없이 구매 전 화면) — 가로 넘침 0, 히어로 오브·문안 겹침 0(h1 대비 18.6:1), 폼 요약 카드·STEP 뱃지 정상.
 - 실결제·실 LLM 호출 없음.
 
