@@ -13,7 +13,7 @@
  *
  * 실행: npm run verify:home-service-registry
  */
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import vm from "node:vm";
@@ -68,6 +68,11 @@ function readPrice(raw) {
   const text = String(raw || "").trim();
   if (!text) return null;
   if (/^무료(\s*시작)?$/.test(text)) return { bucket: "free", krw: null, krwTo: null };
+  const freeWithPaidOption = text.replace(/,/g, "").match(/^무료\s*재생\s*·\s*다운로드\s*(\d{3,7})원$/);
+  if (freeWithPaidOption) {
+    const won = Number(freeWithPaidOption[1]);
+    return { bucket: "free", extraBucket: bucketOfWon(won), krw: null, krwTo: null, optionalKRW: won };
+  }
   if (text === "이용권") return { bucket: "vvip", krw: null, krwTo: null };
   const flat = text.replace(/,/g, "");
   const single = flat.match(/^(\d{3,7})원$/);
@@ -128,6 +133,12 @@ for (const item of registry) {
     else for (const r of item.roles) if (!ROLES.has(r)) fail(`${at}: 알 수 없는 role "${r}"`);
   }
 
+  // 대표 이미지가 깨지면 카드가 공통 로고로 조용히 떨어진다 — 파일이 실제로 있어야 한다.
+  if (!item.image || !item.image.startsWith("/")) fail(`${at}: 대표 이미지 경로가 없다`);
+  else if (!existsSync(resolve(ROOT, "public", "." + decodeURIComponent(item.image)))) {
+    fail(`${at}: 대표 이미지 ${item.image} 가 public/ 에 없다`);
+  }
+
   const price = readPrice(item.price);
   if (!price) {
     fail(`${at}: price "${item.price}" 를 해석할 수 없다 — '무료' | '무료 시작' | '이용권' | 'N,NNN원' | 'N,NNN원~M,MMM원' 만 허용`);
@@ -135,6 +146,9 @@ for (const item of registry) {
   }
 
   if (price.krw === null) {
+    if (price.optionalKRW !== undefined && price.optionalKRW < 1000) {
+      fail(`${at}: 선택 결제 금액 ${price.optionalKRW.toLocaleString()}원은 PG 최소 금액 1,000원보다 작다`);
+    }
     if (item.featureKey && !resolveFeature(item.featureKey)) {
       fail(`${at}: featureKey "${item.featureKey}" 가 결제 정본에 없다`);
     }

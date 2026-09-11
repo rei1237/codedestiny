@@ -883,34 +883,6 @@ html.neo-mode body .fortune-gateway__door:focus-visible { outline-color: #e8d5a3
   font-weight: 800;
   white-space: nowrap;
 }
-.fortune-gateway__all {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  justify-self: start;
-  margin-top: 2px;
-  padding: 10px 16px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.72);
-  border: 1px solid rgba(179, 25, 85, 0.18);
-  color: #6b2a4a;
-  font-size: 13px;
-  font-weight: 800;
-  text-decoration: none;
-  transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease;
-}
-.fortune-gateway__all:hover {
-  background: linear-gradient(135deg, #d83f78, #b31955);
-  border-color: transparent;
-  color: #fff;
-  transform: translateY(-1px);
-}
-.fortune-gateway__all em {
-  font-style: normal;
-  transition: transform 0.18s ease;
-}
-.fortune-gateway__all:hover em { transform: translateX(3px); }
-
 /* neo-mode */
 html.neo-mode body .fortune-gateway__chip {
   background: rgba(10, 11, 26, 0.6);
@@ -936,15 +908,6 @@ html.neo-mode body .fortune-gateway__rec-name b {
 html.neo-mode body .fortune-gateway__rec-desc { color: #b9b3c9; }
 html.neo-mode body .fortune-gateway__rec-price { color: #c9a84c; }
 html.neo-mode body .fortune-gateway__rec-go { color: #c9a84c; }
-html.neo-mode body .fortune-gateway__all {
-  background: rgba(10, 11, 26, 0.6);
-  border-color: rgba(201, 168, 76, 0.28);
-  color: #e8dfc8;
-}
-html.neo-mode body .fortune-gateway__all:hover {
-  background: linear-gradient(135deg, #c9a84c, #8a6d2f);
-  color: #0a0b1a;
-}
 
 /* mobile */
 @media (max-width: 680px) {
@@ -961,7 +924,6 @@ html.neo-mode body .fortune-gateway__all:hover {
   .fortune-gateway__chips::-webkit-scrollbar { display: none; }
   .fortune-gateway__chip { flex: 0 0 auto; }
   .fortune-gateway__recs-grid { grid-template-columns: 1fr; }
-  .fortune-gateway__all { width: 100%; justify-content: center; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -972,13 +934,9 @@ html.neo-mode body .fortune-gateway__all:hover {
   .fortune-gateway__door:hover,
 .fortune-gateway__door:hover .fortune-gateway__door-go em { transform: none; }
   .fortune-gateway__chip,
-.fortune-gateway__rec,
-.fortune-gateway__all,
-.fortune-gateway__all em { transition: none; }
+.fortune-gateway__rec { transition: none; }
   .fortune-gateway__chip:hover,
-.fortune-gateway__rec:hover,
-.fortune-gateway__all:hover,
-.fortune-gateway__all:hover em { transform: none; }
+.fortune-gateway__rec:hover { transform: none; }
   .fortune-gateway__door--chat .fortune-gateway__door-art-yeon,
 .fortune-gateway__door--chat .fortune-gateway__door-halo { animation: none; }
 }
@@ -1002,11 +960,9 @@ html.neo-mode body .fortune-gateway__all:hover {
   font-family: var(--font-body, "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif);
 }
 
-.cd-quick__head,
-.cd-finder__head { margin: 0 0 14px; text-align: center; }
+.cd-quick__head { margin: 0 0 14px; text-align: center; }
 
-.cd-quick__head h2,
-.cd-finder__head h2 {
+.cd-quick__head h2 {
   margin: 0;
   font-family: var(--font-display, "Noto Serif KR", serif);
   font-size: clamp(20px, 4.6vw, 28px);
@@ -1146,8 +1102,7 @@ html.neo-mode body .fortune-gateway__all:hover {
 }
 
 /* ── 네오(퍼플) — 표면·텍스트·강조색을 한 세트로 교체한다 ── */
-html.neo-mode body .cd-quick__head h2,
-html.neo-mode body .cd-finder__head h2 { color: #f4eeff; }
+html.neo-mode body .cd-quick__head h2 { color: #f4eeff; }
 
 html.neo-mode body .cd-quick-card {
   border-color: rgba(196, 181, 253, .24);

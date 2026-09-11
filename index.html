@@ -9254,17 +9254,16 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
 </section></div>
     <section class="cdh cdh-services cdh-services--inline cdh-services--luxe" id="cdhServices" aria-labelledby="cdhServicesTitle">
       <span class="cd-yehwa-vine cdh-services__vine" aria-hidden="true"></span>
-      <div class="cdh-services__head moon-section-head">
-        <p class="cdh-intro">FIND YOUR READING</p>
-        <h2 id="cdhServicesTitle" tabindex="-1" data-cd-trans="home.heroTrust.search">전체 서비스 검색</h2>
-        <p class="cdh-lead">고민·방식·가격으로 지금 필요한 리딩을 찾아보세요.</p>
-      </div>
-      <section data-cd-funnel-section="finder" class="cd-finder" id="cdFinder" aria-labelledby="cdFinderTitle" data-marker="cd-finder-v20260819">
+      <details id="cdhFinderDisclosure" class="cdh-finder-disclosure">
+        <summary class="cdh-services__head moon-section-head">
+          <span class="cdh-intro">FIND YOUR READING</span>
+          <h2 id="cdhServicesTitle" tabindex="-1" data-cd-trans="home.heroTrust.search">전체 서비스 검색</h2>
+          <span class="cdh-lead">고민·방식·가격으로 지금 필요한 리딩을 찾아보세요.</span>
+          <svg class="cdh-finder-disclosure__arrow" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+        </summary>
+        <section data-cd-funnel-section="finder" class="cd-finder" id="cdFinder" aria-labelledby="cdhServicesTitle" data-marker="cd-finder-v20260819">
 
 
-<div class="moon-section-head cd-finder__head">
-          <h2 id="cdFinderTitle" data-cd-trans="shell.cdFinder.moonSectionHead.kf1ogji">필요한 서비스를 찾아보세요</h2>
-        </div>
 
 <div class="fortune-gateway__discover" id="fortuneGatewayDiscover" data-fortune-gateway-discover>
             <div class="fortune-gateway__search" role="search">
@@ -9304,7 +9303,7 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
                 <span class="fortune-gateway__filter-label" data-cd-trans="shell.fortuneGatewayFilters.fortuneGatewayFilterRow.ku7c9">가격</span>
                 <div class="fortune-gateway__filter-chips">
                   <button type="button" class="fortune-gateway__fchip" data-price="free" aria-pressed="false" data-cd-trans="shell.fortuneGatewayFilterRow.fortuneGatewayFilterChips.kwuu0">무료</button>
-                  <button type="button" class="fortune-gateway__fchip" data-price="low" aria-pressed="false" data-cd-trans="home.mobileFunnel.lowPrice">3천원대</button>
+                  <button type="button" class="fortune-gateway__fchip" data-price="low" aria-pressed="false" data-cd-trans="home.mobileFunnel.lowPrice">1천원대</button>
                   <button type="button" class="fortune-gateway__fchip" data-price="mid" aria-pressed="false" data-cd-trans="shell.fortuneGatewayFilterRow.fortuneGatewayFilterChips.kvu9ix">3천원대</button>
                   <button type="button" class="fortune-gateway__fchip" data-price="high" aria-pressed="false" data-cd-trans="shell.fortuneGatewayFilterRow.fortuneGatewayFilterChips.kvvjhz">5천원대</button>
                   <button type="button" class="fortune-gateway__fchip" data-price="premium" aria-pressed="false" data-cd-trans="shell.fortuneGatewayFilterRow.fortuneGatewayFilterChips.kt1sff">1만원대</button>
@@ -9317,13 +9316,11 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
               <button type="button" class="fortune-gateway__reset" data-cd-finder-reset hidden>선택 초기화</button>
             </div>
             <div class="fortune-gateway__recs" id="fortuneGatewayRecs" aria-live="polite" hidden></div>
-            <a class="fortune-gateway__all" href="#cdServiceIndex" data-cd-service-index-jump="1">
-              <span data-cd-trans="shell.fortuneGatewayDiscover.fortuneGatewayAll.kqk7ooc">전체 보기</span><em aria-hidden="true">→</em>
-            </a>
           </div>
 
 </section>
-      <a href="/?action=cdOpenAllFortunes" data-action="cdOpenAllFortunes" class="cdh-catalog-link">컬렉션 전체 둘러보기 <span aria-hidden="true">↗</span></a>
+        <a href="/?action=cdOpenAllFortunes" data-action="cdOpenAllFortunes" class="cdh-catalog-link">컬렉션 전체 둘러보기 <span aria-hidden="true">↗</span></a>
+      </details>
     </section>
     <div class="cdh-slot cdh-slot--feedback" id="cdhFeedbackSlot"><section class="cd-feedback" id="cdFeedbackGate" data-marker="cd-feedback-gate-v20260731" aria-labelledby="cdFeedbackGateTitle">
           <div class="cd-feedback__card">
@@ -11272,19 +11269,6 @@ html body .cd-fortune-pick.cd-reveal-armed .cd-pick-card.is-revealed{opacity:1;t
 /* ── ⑤ 전체 서비스 디렉토리 + 검색 ────────────────────── */
 html body .cd-svc-index{max-width:var(--cd-w-grid,1280px);margin:34px auto 6px;padding:0 clamp(12px,3vw,24px)}
 html body .cd-svc-index__head{margin:0 0 14px;text-align:center}
-html body .cd-svc-index__searchbar{display:flex;align-items:center;gap:10px;max-width:640px;margin:0 auto;padding:4px 8px 4px 18px;border-radius:999px;background:var(--cd-surface,rgba(255,255,255,.96));border:1px solid var(--cd-border,rgba(216,63,120,.16));box-shadow:var(--cd-elev-1,0 10px 24px rgba(0,0,0,.08))}
-html body .cd-svc-index__searchbar:focus-within{border-color:color-mix(in srgb,var(--cd-accent,#b31955) 52%,transparent);box-shadow:var(--cd-elev-1,0 10px 24px rgba(0,0,0,.08)),var(--cd-glow,0 0 22px rgba(179,25,85,.16))}
-html body .cd-svc-index__search-icon{font-size:1rem;opacity:.75}
-html body .cd-svc-index__input{flex:1;min-width:0;min-height:46px;border:0;outline:0;background:transparent;font:inherit;font-size:.94rem;color:var(--cd-text,#3c1830)}
-html body .cd-svc-index__input::placeholder{color:var(--cd-text-muted,#70445c);opacity:.72}
-html body .cd-svc-index__results{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;max-width:920px;margin:14px auto 0}
-html body .cd-svc-hit{display:grid;grid-template-columns:88px minmax(0,1fr);gap:3px 10px;padding:10px;text-align:left;font:inherit;text-decoration:none;cursor:pointer;color:var(--cd-text,#3c1830);border-radius:12px;background:var(--cd-surface,rgba(255,255,255,.96));border:1px solid var(--cd-border,rgba(216,63,120,.16));transition:transform var(--cd-dur-fast,120ms) ease,border-color var(--cd-dur-fast,120ms) ease}
-html body .cd-svc-hit__media{grid-row:1 / span 2;display:block;width:88px;aspect-ratio:16/9;overflow:hidden;border-radius:9px;background:linear-gradient(135deg,rgba(126,16,57,.14),rgba(212,183,124,.18))}
-html body .cd-svc-hit__media img{display:block;width:100%;height:100%;object-fit:cover}
-html body .cd-svc-hit:hover,html body .cd-svc-hit:focus-visible{transform:translateY(-2px);border-color:color-mix(in srgb,var(--cd-accent,#b31955) 46%,transparent)}
-html body .cd-svc-hit strong{min-width:0;font-size:.9rem;font-weight:800;line-height:1.32;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-html body .cd-svc-hit span:not(.cd-svc-hit__media){display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;font-size:.72rem;color:var(--cd-text-muted,#70445c);line-height:1.4}
-html body .cd-svc-index__empty{margin:14px auto 0;text-align:center;font-size:.86rem;color:var(--cd-text-muted,#70445c)}
 
 /* ── ⑨ 푸터 (cd-footer-refine-v20260724): 브랜드열 + 4열 + legal bar ────
    기본 .cd-footer-policy-link(8975행 다크 알약)·모바일오버라이드(5674행)를
