@@ -43,7 +43,7 @@ next: "상세창 프리미엄 개편 PR 의 CI·머지를 확인한 뒤, 운명�
 - **FAQ** 는 `details` 가 아니라 `button[aria-expanded][aria-controls]` + region, `grid-template-rows 0fr→1fr` 애니메이션, reduced-motion 에서 끔.
 - **CSS 범위**: 새 기하는 전부 `.tile-pvw-overlay:not(.pvw-visual)` 로 한정 — 허브(`FeatureMarketingDetailModal.tsx`)·비주얼 상세 모드는 제외. 비주얼 모드는 `styles/feature-visual-detail.css:96` 에서 새 섹션(Faq·Receive·Outline)을 숨긴다.
 - **결제 로직 무변경**: `_open` 페이월 4분기·`_onCta`/`_runCta`·bypass 재클릭·가격 스토어·상품 ID 손대지 않음. 페이월 박스는 위치·스타일만 이동.
-- **환불 안내 공통 문구**(`preview.paywallNote`, 12개 로케일): 약관 §12 기준 "7일 이내 청약철회 · 열람/생성 시작분 제한 · 환불 정책 링크". 운명의 꽃 FAQ 에는 "월정석 현금 환불 아님" 추가.
+- **환불 안내**: `preview.paywallNote` 는 기존 법적 고지 원문 그대로(안심 안내 카드로 위치만 이동) + 환불 정책 링크(`/refund-policy/`) 추가. 🔴 사전·카피에 환불 기한("7일")을 적으면 `verify:payment-legal-copy` 가 막는다 — 정본은 `lib/legal/refund-policy-rows.js` 하나. 운명의 꽃 FAQ 환불 답변도 기한 없이 "환불 정책의 조건에 따라 · 열람 시작분 제한 · 월정석 현금 환불 아님"으로 적었다.
 - **로케일**: 신규 preview 라벨 9개(`recommendForLabel`·`receivesLabel`·`outlineLabel`·`outlineCaption`·`pricingLabel`·`benefitsLabel`·`assureLabel`·`refundPolicyLink`·`trustLabel`) + `flower_fc` 전면 재작성. en·ja·zh-cn·zh-tw 손번역, 나머지 7개는 en 복사, ko 는 preview 만.
 
 ## 운명의 꽃 카피 근거 (지어내지 않은 것만)

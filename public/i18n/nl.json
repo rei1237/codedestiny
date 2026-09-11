@@ -4041,7 +4041,7 @@
     "outcomesLabel": "Bekijk het met een gerust hart",
     "resultPreviewLabel": "Resultaatvoorbeeld",
     "startNow": "Begin nu →",
-    "paywallNote": "You can use it right after payment. You may request withdrawal within 7 days of payment, but withdrawal may be limited for parts you have already started viewing or generating. See the refund policy for details.",
+    "paywallNote": "Alle betaalde diensten worden onmiddellijk na voltooiing van de betaling (aankoop) geleverd; zodra de levering is begonnen, kan het herroepingsrecht op grond van de toepasselijke wetgeving beperkt zijn.",
     "deliverablesLabel": "Wat het rapport bevat",
     "scaleLabel": "Diepte van de analyse",
     "scaleChapters": "{count} hoofdstukken",
@@ -12110,7 +12110,7 @@
         },
         "4": {
           "q": "How do refunds work?",
-          "a": "You can request withdrawal within 7 days of payment. However, withdrawal may be limited for parts you have already started viewing, and Moonstones are not eligible for cash refunds. Please see the refund policy for details."
+          "a": "You can request withdrawal under the conditions set out in the refund policy. Withdrawal may be limited for parts you have already started viewing, and Moonstones are not eligible for cash refunds. Please see the refund policy for details."
         }
       }
     },

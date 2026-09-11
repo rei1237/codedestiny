@@ -4041,7 +4041,7 @@
     "outcomesLabel": "निश्चिंत होकर देखें",
     "resultPreviewLabel": "परिणाम पूर्वावलोकन",
     "startNow": "अभी प्रारंभ करें →",
-    "paywallNote": "You can use it right after payment. You may request withdrawal within 7 days of payment, but withdrawal may be limited for parts you have already started viewing or generating. See the refund policy for details.",
+    "paywallNote": "सभी सशुल्क सेवाएँ भुगतान (खरीद) पूरा होते ही तुरंत प्रदान की जाती हैं, और सेवा शुरू होने के बाद संबंधित कानूनों के अनुसार खरीद वापस लेने का अधिकार सीमित हो सकता है।",
     "deliverablesLabel": "रिपोर्ट में क्या शामिल है",
     "scaleLabel": "विश्लेषण की गहराई",
     "scaleChapters": "{count} अध्याय",
@@ -12110,7 +12110,7 @@
         },
         "4": {
           "q": "How do refunds work?",
-          "a": "You can request withdrawal within 7 days of payment. However, withdrawal may be limited for parts you have already started viewing, and Moonstones are not eligible for cash refunds. Please see the refund policy for details."
+          "a": "You can request withdrawal under the conditions set out in the refund policy. Withdrawal may be limited for parts you have already started viewing, and Moonstones are not eligible for cash refunds. Please see the refund policy for details."
         }
       }
     },

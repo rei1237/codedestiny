@@ -4041,7 +4041,7 @@
     "outcomesLabel": "Semak dengan tenang",
     "resultPreviewLabel": "Pratonton keputusan",
     "startNow": "Mulakan sekarang →",
-    "paywallNote": "You can use it right after payment. You may request withdrawal within 7 days of payment, but withdrawal may be limited for parts you have already started viewing or generating. See the refund policy for details.",
+    "paywallNote": "Semua perkhidmatan berbayar disediakan sebaik sahaja pembayaran (pembelian) selesai, dan setelah penyediaan bermula, hak untuk menarik diri daripada pembelian mungkin terhad menurut undang-undang yang berkaitan.",
     "deliverablesLabel": "Kandungan dalam laporan",
     "scaleLabel": "Kedalaman analisis",
     "scaleChapters": "{count} bab",
@@ -12110,7 +12110,7 @@
         },
         "4": {
           "q": "How do refunds work?",
-          "a": "You can request withdrawal within 7 days of payment. However, withdrawal may be limited for parts you have already started viewing, and Moonstones are not eligible for cash refunds. Please see the refund policy for details."
+          "a": "You can request withdrawal under the conditions set out in the refund policy. Withdrawal may be limited for parts you have already started viewing, and Moonstones are not eligible for cash refunds. Please see the refund policy for details."
         }
       }
     },

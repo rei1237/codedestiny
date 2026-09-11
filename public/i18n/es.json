@@ -4041,7 +4041,7 @@
     "outcomesLabel": "Compruébalo con tranquilidad",
     "resultPreviewLabel": "Vista previa del resultado",
     "startNow": "Empezar ahora →",
-    "paywallNote": "You can use it right after payment. You may request withdrawal within 7 days of payment, but withdrawal may be limited for parts you have already started viewing or generating. See the refund policy for details.",
+    "paywallNote": "Todos los servicios de pago se proporcionan inmediatamente tras completar el pago (la compra), y una vez iniciada la prestación, el derecho de desistimiento puede quedar limitado conforme a la legislación aplicable.",
     "deliverablesLabel": "Qué incluye el informe",
     "scaleLabel": "Profundidad del análisis",
     "scaleChapters": "{count} capítulos",
@@ -12110,7 +12110,7 @@
         },
         "4": {
           "q": "How do refunds work?",
-          "a": "You can request withdrawal within 7 days of payment. However, withdrawal may be limited for parts you have already started viewing, and Moonstones are not eligible for cash refunds. Please see the refund policy for details."
+          "a": "You can request withdrawal under the conditions set out in the refund policy. Withdrawal may be limited for parts you have already started viewing, and Moonstones are not eligible for cash refunds. Please see the refund policy for details."
         }
       }
     },
