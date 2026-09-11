@@ -20,6 +20,12 @@ next: "상세창 프리미엄 개편 PR 의 CI·머지를 확인한 뒤, 운명�
 
 🔴 가드: `verify:feature-marketing-schema` 가 래퍼 생성 코드를 문다(래퍼를 지우는 변이로 실패 확인함).
 
+### 같이 잡은 원인 3건 (렌더 실측 후)
+
+- **모바일 본문 13px 대**: 셸이 모바일에서 `html{font-size:14px}` 로 루트를 낮춘다(index.html·styles/fortune-ui*.css 7곳). 새 블록을 rem 으로 적어 본문이 13.1~14px 로 줄었다. 프리미엄 블록의 모든 크기를 `--pvw-rem:16px` 토큰 배수(`calc(N * var(--pvw-rem))`)로 바꿔 루트와 끊었다. 새 크기를 넣을 때 rem 을 쓰지 말 것.
+- **닫기 버튼이 본문을 가림**: `.tile-pvw-close` 가 시트 기준 absolute 라 스크롤되는 본문 위에 떠 있었다. 시트(flex column) 흐름으로 넣어 스크롤 영역 위 한 줄을 차지하게 했다.
+- **데스크톱 히어로 462px**: `aspect-ratio:16/9` + `max-height:260px` + width auto → 높이 상한이 비율을 타고 폭으로 전달됐다. `width:100%` 명시.
+
 ## 지금 상태
 
 - 브랜치 `feat/detail-sheet-premium`, 워크트리 `D:\Development\code-destiny-wt\detail-sheet-premium`. PR: (아래 갱신)
@@ -52,8 +58,15 @@ next: "상세창 프리미엄 개편 PR 의 CI·머지를 확인한 뒤, 운명�
 - `verify:feature-marketing-dictionary` OK(로케일 11 / 경로 34100 / 결손 0)
 - `verify:rpt-preview-cta` · `verify:public-parity` · `verify:mobile-detail-nonintrusive` · `verify:hero-contrast` · `verify:payment-freeze` · `verify:mobile-cdp-smoke` 통과
 - `node scripts/verify-feature-popup-journey.mjs` PASS(63 상세 × 4폭)
-- `typecheck` 통과
-- (렌더·결제 회귀 결과는 아래 갱신)
+- `typecheck` 통과 · `verify:handoff-contract` OK
+- origin/main 리베이스 후 위 가드 전부 재실행 통과(충돌은 `config/sitemap-lastmod.json` 하나 — upstream 채택 후 `sitemap:generate`·`sync:public` 재생성)
+- **렌더 실측**(scratch Playwright, `/api/**` 전부 스텁, 외부 호스트 차단 — 실결제·LLM·네트워크 0): 운명의 꽃 Yeon·Neo × 320/360/375/390/412/430/1280
+  - 가로 넘침 0 · 40px 미만 칸 글자 0 · CTA 48px(데스크톱 52) 뷰포트 안 · 닫기 48px 스크롤 영역과 겹침 0
+  - 모바일 본문 15~16px · line-height 1.6~1.75 (위반 0) · 좌우 여백 20px · 데스크톱 다이얼로그 720px · 히어로 718px(전폭)
+  - role=dialog·aria-modal·aria-labelledby · 포커스 트랩 순환 · ESC 닫힘 · FAQ 5개 기본 접힘·aria-expanded 토글
+  - 다른 상품 5종(타로·사주·궁합·코인 단건·잠금) 360·1280 넘침·좁은 칸·CTA 통과
+  - 시각 검사 에이전트: 세로 글자 0, 대비 전부 AA 이상(본문 7.59:1, 금색 번호 5.44:1, CTA 10.77:1, Neo 본문 10.40:1)
+- **결제 회귀(mock 6상태, 새 코드 vs origin/main)**: 무료·PG 단건·이용권·구매 완료·프리미엄 이용권·해금 + 가격 API 실패. 페이월 문구·CTA 클릭 경로(bypass 재클릭 1회)·네트워크 호출이 전부 동일하고, 차이는 운명의 꽃 CTA 문구("운명의 꽃 피우기" → "운명의 꽃 해금하기")뿐. 점성술 상담 5상태도 동일.
 
 ## 후속 과제 (보고만, 이 PR 에서 안 고침)
 
@@ -65,4 +78,10 @@ next: "상세창 프리미엄 개편 PR 의 CI·머지를 확인한 뒤, 운명�
 6. `#tilePvwCompareSec` 를 찾는 코드와 실제 id `#tilePvwCmpSec` 가 어긋난다.
 7. `openXFlowerStudio` COPY 4항목(openDestinyFlowerStudio 외)이 "팔레트·꽃말·관계·커리어 가이드 패널"을 주장한다 — 관계·커리어 패널은 실측되지 않았다.
 8. 기존 인수인계에 적힌 결제 결함 4건은 그대로 열려 있다.
-9. 참고: 최근 90일 실결제가 0에 가깝고 병목은 전환율이 아니라 모수다 — 전환 UI 추가 투자는 보류를 권한다.
+9. **가격 배지가 모든 유료 상품에 "· 전문가 상담"을 붙인다** — `index.html` `_resolvePreviewData` 의 `merged.cost=featurePricing.displayPrice+' · '+_pvwTr('home.nav.aiConsult','전문가 상담')`. 운명의 꽃·올림푸스 신탁처럼 상담이 아닌 상품에도 붙어 사실과 다르다(origin/main 동일, 가격 표시 코드라 이번에 안 건드림).
+10. **CTA 이중 호출** — 운명의 꽃 구매 완료·해금 상태에서 CTA 한 번에 `openDestinyFlowerStudio` 가 2회 불린다(`js/core/index-inline-runtime.js` 액션 디스패처 + `js/mobile-interaction-patch.js` 1661 근처). origin/main 동일.
+11. **프리미엄 이용권 상태 CTA 후 렌더러 크래시** — mock 에서 `POST /api/billing/coin-gate` 뒤 페이지가 죽었다. `{}` 스텁 탓일 수 있어 실제 응답 형태로 재현 필요. origin/main 동일.
+12. **비주얼 상세 모드(타로·사주 카탈로그 타일)** 는 이번 새 구조에서 제외(`.pvw-visual`)라 옛 레이아웃(마젠타 그라데이션 CTA·중간 버튼)이 그대로다. 같은 형식으로 옮길지 별도 결정.
+13. Neo 테마 안심 안내 박스가 한 단계 떠 있는 남보라 면(#1C1937)이다 — "남색 박스 금지"에 경계. 디자인 판단 필요.
+14. 가격 로딩 중에는 CTA 가 "가격 확인 중"으로 보이고 누를 수 없다(기존 동작, 가격 API 실패 시 안내 문구 표시).
+15. 참고: 최근 90일 실결제가 0에 가깝고 병목은 전환율이 아니라 모수다 — 전환 UI 추가 투자는 보류를 권한다.
