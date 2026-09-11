@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-12
-next: 3) CI 최적화 — Playwright 브라우저 캐시부터 착수한다
+next: PR-5 머지 후 5) 룰셋에 `CI required` 등록, 이어서 3) CI 최적화(paid-flow-gates 중복·트리거)
 ---
 
 # 레포 정리 (쓰레기 수거) 후속
@@ -14,23 +14,24 @@ next: 3) CI 최적화 — Playwright 브라우저 캐시부터 착수한다
 
 - PR-2(#1933, 머지됨): 죽은 루트 파일·목업 캡처·미참조 자산·완료 핸드오프 20개 삭제 + 참조 문장 정정.
 - PR-3(#1936, 머지됨): 미사용 의존성 3개 제거, 규칙 4 예외는 `docs/CONTEXT_AUDIT.md` 2026-09-12 절에 기록.
-- PR-4(브랜치 `chore/repo-cleanup-batch2`): 보류 삭제 5건 처리. 머지는 사용자.
+- PR-4(#1939, 머지됨): 보류 삭제 5건 처리.
+- PR-5(브랜치 `chore/remove-preflight`): 로컬 preflight 폐기 — 3)의 "preflight 경량화"를 제거로 끝냈다. 머지는 사용자.
 - 규약: `docs/AI_HANDOFF.md` (완료 핸드오프는 삭제, 목록은 git grep).
 
 ## 남은 작업
 
 - [x] 1) PR-3 의존성 제거 완료. `scripts/test-resend-email.mjs` 는 `worker/lib/resend.js` 를 쓰므로 그대로 둔다.
 - [x] 2) 보류 삭제 5건 완료(PR-4). `AUDIT.md` 는 사용자 확인 결과 **결제 원장이 아니다** — 가격·결제 정본은 `worker/lib/paid-feature-registry.js`·`worker/payments/passes.js`·`docs/payment-policy-*` 3부작이고, `AUDIT.md` 는 2026-07-22 시점 실사 스냅샷이라 삭제했다. `docs/design/past-life-webtoon/` 은 `assets/provenance.md` 만 남겼다(배포 중인 `fuctionassets/past-life-webtoon/` 자산의 생성 출처).
-- [ ] 3) CI 최적화: Playwright 브라우저 캐시, paid-flow-gates jest 중복 제거, 스테이징 checks() 생략·blob-less checkout, main-drift-watchdog 제거, 매시 크론 축소, preflight 경량화, ai-locale-gate paths 필터.
+- [ ] 3) CI 최적화: Playwright 브라우저 캐시, paid-flow-gates jest 중복 제거 + 트리거 paths 구멍(PR-5 후속으로 착수), 스테이징 checks() 생략·blob-less checkout, main-drift-watchdog 제거, 매시 크론 축소, ai-locale-gate paths 필터. ~~preflight 경량화~~ → PR-5 에서 **폐기**로 종결(경량화가 아니라 제거).
 - [ ] 4) 미러·sitemap·cachebust 커밋 요동 재설계, CSS·자산·로케일 중복 제거, 배포·SEO 체크리스트 통합, 루트 생성 보고서를 `reports/` 로 이동.
-- [ ] 5) 룰셋 20666260의 required check 제거는 사용자 의도 — 머지 가능 보고 전 PR 체크 전체 통과를 확인한다(delivery:admit 이 전체 체크를 본다, PR #1932).
+- [ ] 5) 🔴 **결정 뒤집힘(PR-5)**: 룰셋 20666260 에 aggregate `CI required` 하나를 required status check 로 **등록한다**. 이전 기록("required check 제거는 사용자 의도")은 로컬 preflight 가 안전망이던 시절의 판단이고, preflight 를 폐기한 지금은 GitHub 강제가 그 자리를 메워야 한다(사용자 확정). strict(최신 base 요구)는 켜지 않는다 — 켜면 main 전진마다 전 PR 재검증이라 `delivery-and-ci.md` 가 기록한 병목이 되살아난다. paths 트리거 워크플로(`Paid Flow Gates`·`Gift transaction integrity`·`AI Locale Gate`)는 절대 넣지 않는다 — 경로가 안 걸린 PR 에서 체크가 생성되지 않아 영구 pending 이 된다. 등록은 사용자가 하며 절차는 아래 「룰셋 등록」.
 - [ ] 6) 범위 밖 발견: `app/_lib/fortune/ganjiGuardianSprite.ts:101-102` 가 레포에 없는 `/fuctionassets/60갑자.webp` 를 가리킨다. R2/CDN 에 있는지 확인(보고만, 미수정).
 - [ ] 7) 로컬 정리: 머지되고 clean 한 워크트리·브랜치 제거. 스쿼시 머지라 is-ancestor 로는 판정이 안 되므로 `gh pr list --state merged --json headRefName,headRefOid` 로 판정.
 
 ## 함정
 
 - 공개 미러(`public/_headers`·`public/js/README.md` 등)는 손편집하지 않고 `npm run sync:public` 으로 만든다.
-- 다른 열린 PR 이 `CLAUDE.md`·`docs/CONTEXT_AUDIT.md`·`package.json`·`.github/workflows/**` 를 고친다. 그 PR 머지 뒤에 2)·3)을 한다.
+- 다른 열린 PR 이 `CLAUDE.md`·`docs/CONTEXT_AUDIT.md`·`package.json`·`.github/workflows/**` 를 고친다. 그 PR 머지 뒤에 3)을 한다.
 
 ## 검증
 
@@ -38,5 +39,23 @@ next: 3) CI 최적화 — Playwright 브라우저 캐시부터 착수한다
 npm run verify:doc-freshness
 npm run verify:handoff-contract
 npm run check:fast
-npm run ci:preflight
 ```
+
+로컬 전체 preflight 는 폐기했다(PR-5). 나머지 검증은 PR CI 가 한다.
+
+## 룰셋 등록 (5번, 사용자)
+
+```bash
+gh api repos/rei1237/codedestiny/rulesets/20666260 > ruleset-20666260.backup.json
+jq '.rules += [{"type":"required_status_checks","parameters":{
+      "strict_required_status_checks_policy": false,
+      "do_not_enforce_on_create": false,
+      "required_status_checks":[{"context":"CI required"}]}}]
+    | {name,target,enforcement,conditions,rules,bypass_actors}' \
+  ruleset-20666260.backup.json > ruleset-20666260.next.json
+gh api --method PUT repos/rei1237/codedestiny/rulesets/20666260 --input ruleset-20666260.next.json
+gh api repos/rei1237/codedestiny/rulesets/20666260 \
+  --jq '.rules[]|select(.type=="required_status_checks")|.parameters'
+```
+
+롤백은 백업 파일로 같은 PUT 한 줄. `pr-ci.yml` 에 `workflow_dispatch` 가 있어 체크가 큐에 안 잡히면 수동 재발행할 수 있다.
