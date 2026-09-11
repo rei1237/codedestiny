@@ -1623,15 +1623,10 @@ function clampSukuyoMansionIndex(indexLike) {
   return normalized + 1;
 }
 
-function estimateSukuyoMansionIndexFromBirth(birth = {}) {
-  const y = Number(birth.year || 2000);
-  const m = Number(birth.month || 1);
-  const d = Number(birth.day || 1);
-  const seed = y * 372 + m * 31 + d + 13;
-  return clampSukuyoMansionIndex((seed % 27) + 1);
-}
-
-function resolveSukuyoMansionIndex(mansionLike, birth = {}) {
+// 숙을 알 수 없으면 null 을 돌려준다. 예전에는 생년월일 해시로 숙을 지어냈는데, 그 값은
+// Swiss 항성 달 황경으로 정하는 정본 숙과 무관해 다른 화면과 어긋났다. 숙은 브라우저가
+// 정본 코어로 계산해 보낸 이름·번호로만 정한다.
+function resolveSukuyoMansionIndex(mansionLike) {
   const raw = String(mansionLike || '').trim();
   if (raw) {
     // Prefer explicit hanja tokens in labels like "위(胃)" over ambiguous Korean syllables.
@@ -1650,11 +1645,11 @@ function resolveSukuyoMansionIndex(mansionLike, birth = {}) {
     if (found) return found.index;
   }
 
-  if (Number.isFinite(Number(mansionLike))) {
+  if (raw && Number.isFinite(Number(mansionLike))) {
     return clampSukuyoMansionIndex(Number(mansionLike));
   }
 
-  return estimateSukuyoMansionIndexFromBirth(birth);
+  return null;
 }
 
 function estimateMoonPhaseFromBirthDate(birth = {}) {
@@ -1725,8 +1720,8 @@ function buildSukuyoConstellation(index) {
   return points;
 }
 
-function parseSukuyoMansionIndex(value, birth = {}) {
-  return resolveSukuyoMansionIndex(value, birth);
+function parseSukuyoMansionIndex(value) {
+  return resolveSukuyoMansionIndex(value);
 }
 
 function formatSukuyoGroupLabel(groupLike) {
@@ -1866,10 +1861,9 @@ export function matchSukuyoFlower(userData = {}, options = {}) {
   const sukuyo = (profile.domains && profile.domains.sukuyo) || {};
   const mansionHint = options.mansion || sukuyo.mansion || sukuyo.name || '';
   const mansionNumericHint = options.mansionIndex || sukuyo.mansion_index || '';
-  const mansionIndex = resolveSukuyoMansionIndex(
-    mansionHint || mansionNumericHint,
-    birth
-  );
+  const mansionIndex = resolveSukuyoMansionIndex(mansionHint || mansionNumericHint);
+  // 숙을 모르면 꽃을 지어내지 않는다 — 라우트가 이 체계를 null 로 내보낸다.
+  if (mansionIndex == null) return null;
   const phase = normalizeSukyoMoonPhase(options.moonPhase || sukuyo.phase || '', birth);
   const match = calculateSukyoFlower(mansionIndex, phase);
 
@@ -2142,7 +2136,7 @@ export function parseDestinyProfile(userData = {}) {
         enabled: Boolean(sukuyo && Object.keys(sukuyo).length),
         mansion: sukuyo.mansion || sukuyo.name || '',
         // Legacy calculators can expose shifted numeric indexes; prefer textual mansion labels first.
-        mansion_index: parseSukuyoMansionIndex(sukuyo.mansion || sukuyo.name || sukuyo.mansionIndex || sukuyo.index || '', birth),
+        mansion_index: parseSukuyoMansionIndex(sukuyo.mansion || sukuyo.name || sukuyo.mansionIndex || sukuyo.index || ''),
         phase: sukuyo.phase || '',
         tags: normalizeSignalList(sukuyo.tags)
       },

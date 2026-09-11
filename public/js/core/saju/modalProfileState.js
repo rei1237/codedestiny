@@ -195,8 +195,9 @@ function _renderSukuyoSection(profile) {
   setTimeout(function () {
     _resolveSukuyoLunarObj(profile)
       .then(function (lunarObj) {
+        /* 🔴 실패 표식을 넘긴다 — null 을 넘기면 renderSukuyo 가 결과 화면 출생값(_astroBirth)으로 다시 계산해 다른 사람의 수(宿)를 그린다. */
         if (!lunarObj || typeof window.__cdCalculateSukuyoAstronomy !== 'function') {
-          if (typeof renderSukuyo === 'function') renderSukuyo(null, null, null, null, null, profile);
+          if (typeof renderSukuyo === 'function') renderSukuyo(null, null, null, { syAstronomyUnavailable: true }, null, profile);
           return;
         }
         return window.__cdCalculateSukuyoAstronomy({
@@ -214,7 +215,7 @@ function _renderSukuyoSection(profile) {
       })
       .catch(function (e) {
         console.warn('[Sukuyo] 렌더 준비 실패:', e);
-        if (typeof renderSukuyo === 'function') renderSukuyo(null, null, null, null, null, profile);
+        if (typeof renderSukuyo === 'function') renderSukuyo(null, null, null, { syAstronomyUnavailable: true }, null, profile);
       })
       .finally(function () {
         _cdModalHardResetTop('sukuyoModalOverlay', 'sukuyoModalSheet', 'sukuyoSection');

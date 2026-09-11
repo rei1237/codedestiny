@@ -25,6 +25,7 @@ import {
   type DailyFortuneSystem,
 } from "@/lib/lock-screen-daily-fortune";
 import { readAiProfileSeed } from "../_lib/ai-prefill-seed";
+import { getApiUrl } from "../_lib/api-config";
 import { isMobileAppRuntime } from "../_lib/auth-client";
 import { getCurrentLoadingLocale, INTL_LOCALE_BY_LOADING_LOCALE, type LoadingLocale } from "@/constants/loadingMessages";
 
@@ -857,6 +858,7 @@ export default function LockScreenFortuneClient() {
   const [state, setState] = useState<LockState | null>(null);
   const [content, setContent] = useState<LockScreenContent | null>(null);
   const [birth, setBirth] = useState<{ birthDate?: string; birthTime?: string }>({});
+  const [todayMansionIndex, setTodayMansionIndex] = useState<number | null>(null);
   const [page, setPage] = useState(0);
   const [sheet, setSheet] = useState<Sheet>("none");
   const [dismissed, setDismissed] = useState(false);
@@ -905,12 +907,32 @@ export default function LockScreenFortuneClient() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [affirmationCatsKey]);
 
+  // 숙요 카드의 오늘 수(宿)는 서버 Swiss 코어(항성 달 황경, 12:00 KST) 값만 쓴다. 날짜가
+  // 어긋나거나 오프라인이면 받지 않고, 카드는 숙 이름 없는 중립 문구로 남는다.
+  useEffect(() => {
+    if (runtimeOk !== true) return;
+    let alive = true;
+    const expectedDate = getKstDateKey(new Date());
+    setTodayMansionIndex(null);
+    fetch(getApiUrl("/api/fortune/today-hub"), { credentials: "omit" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((payload: { ok?: boolean; date?: string; systems?: { sukuyo?: { mansionIndex?: unknown } | null } } | null) => {
+        if (!alive || !payload || payload.ok !== true || payload.date !== expectedDate) return;
+        const idx = payload.systems?.sukuyo?.mansionIndex;
+        if (typeof idx === "number" && Number.isInteger(idx) && idx >= 0 && idx < 27) setTodayMansionIndex(idx);
+      })
+      .catch(() => { /* 오프라인 — 중립 문구 유지 */ });
+    return () => {
+      alive = false;
+    };
+  }, [runtimeOk, content?.dateKey]);
+
   const dailySystem = state?.prefs.dailyFortuneSystem ?? "sukuyo";
   const dailyFortune: DailyFortune | null = useMemo(() => {
     if (!content) return null;
-    return getDailyFortune(dailySystem, birth, new Date());
+    return getDailyFortune(dailySystem, { ...birth, todayMansionIndex }, new Date());
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dailySystem, birth.birthDate, birth.birthTime, content?.dateKey]);
+  }, [dailySystem, birth.birthDate, birth.birthTime, content?.dateKey, todayMansionIndex]);
 
   const pagerCards: PagerCard[] = useMemo(() => {
     if (!content) return [{ type: "daily" }];
