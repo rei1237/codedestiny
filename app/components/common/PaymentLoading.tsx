@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useBodyScrollLock } from "@/app/_lib/body-scroll-lock";
 import LoadingProgressMotion, {
   type LoadingMotionPhase,
   type LoadingMotionTone,
@@ -223,16 +224,9 @@ export default function PaymentLoading({
     img.src = PAYMENT_PIG_LOGO_URL;
   }, [open]);
 
-  useEffect(() => {
-    if (!open || typeof document === "undefined") return;
-
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
-    return () => {
-      document.body.style.overflow = originalOverflow;
-    };
-  }, [open]);
+  // 🔴 참조 카운트 공용 락만 쓴다. 직접 스냅샷·복원하면 다른 화면의 락과 해제 순서가 엇갈릴 때
+  //    "hidden" 을 되살려 다음 화면의 스크롤이 막힌다.
+  useBodyScrollLock(open);
 
   useEffect(() => {
     if (!open) return;
