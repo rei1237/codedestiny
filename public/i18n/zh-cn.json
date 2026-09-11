@@ -8409,7 +8409,7 @@
       "premiumAudience": {
         "0": "与对方莫名吸引却又频繁冲突的人",
         "1": "需要一个结论来决定是继续还是放下这段缘分的人",
-        "2": "总是错过联系与对话时机的人"
+        "2": "想知道对话为何总是错开的人"
       },
       "premiumChapters": {
         "0": "总论 — 综合相性总评与解读依据",
@@ -8427,7 +8427,7 @@
       "answersQuestions": {
         "0": "和这个人可以继续见面吗？",
         "1": "为什么越靠近越容易冲突？",
-        "2": "可以再联系对方吗？"
+        "2": "想让这段关系长久，需要守住什么？"
       },
       "valueCompare": {
         "0": {
@@ -8440,9 +8440,9 @@
           "premium": "15个章节合计18,000字以上"
         },
         "2": {
-          "axis": "时机建议",
+          "axis": "时间走向",
           "free": "无",
-          "premium": "何时该靠近、何时该后退"
+          "premium": "从刚认识到五年以后的变化"
         }
       },
       "faq": {
@@ -8456,7 +8456,59 @@
         },
         "2": {
           "q": "也会看复合的可能性吗？",
-          "a": "不保证可能性，但会指出关系可能重新变动的地方，以及现在该避免的反应。"
+          "a": "不会单独占卜复合。这份咨询以恋人关系为前提，写两人的距离感，以及关系如何随时间变化。"
+        },
+        "3": {
+          "q": "可以直接提问吗？",
+          "a": "没有输入问题的地方。由两人本命宿决定的各部分会一次写成。"
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "综合合盘分数与8轴星级",
+          "detail": "用综合合盘分数仪表和关系分数8轴星级，一眼看出两人的契合。"
+        },
+        "1": {
+          "title": "这段关系的本质与分析依据",
+          "detail": "从两人的本命宿与关系类型点出这段关系的本质，并附上这样解读的依据。"
+        },
+        "2": {
+          "title": "分项指标与两人对比",
+          "detail": "用雷达图和柱状图展示各项指标，并把两人并排比较。"
+        },
+        "3": {
+          "title": "分部分完整解说",
+          "detail": "从总论到最后一句话，按部分写出吸引、沟通方式、冲突、分领域合盘与随时间的变化。"
+        },
+        "4": {
+          "title": "PDF保存与再次查看",
+          "detail": "结果可以保存为PDF，也能从过往的月光合盘列表中重新打开。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "月光合盘回信",
+          "detail": "首先打开综合合盘分数仪表与关系分数8轴星级。"
+        },
+        "1": {
+          "title": "这段关系的本质",
+          "detail": "用一段话概括两人的关系，并附上分析依据。"
+        },
+        "2": {
+          "title": "分项指标",
+          "detail": "用雷达图和柱状图查看每一项中两人的分数。"
+        },
+        "3": {
+          "title": "两人对比",
+          "detail": "把两人的结果并排比较。"
+        },
+        "4": {
+          "title": "详细查看",
+          "detail": "从总论到最后一句话，依次阅读各部分的完整解说。"
+        },
+        "5": {
+          "title": "保存与再次查看",
+          "detail": "可保存为PDF，或从过往的月光合盘列表中重新打开。"
         }
       }
     },
@@ -9021,24 +9073,24 @@
     "openLoveSimulation": {
       "badge": "恋爱模拟",
       "headline": "看看你的恋爱模式在哪些场景里发光，在哪些场景里动摇。",
-      "tagline": "16 partner characters with 20 scenes each; every choice moves five meters — affection, trust, chemistry, tension and stability.",
+      "tagline": "在16位对象角色、每人20个场景中做出选择来体验关系，选择不同，约会结果与关系路线也会不同。",
       "feats": {
         "0": "16 partner characters · 20 scenes per character, with 3 choices in every scene",
-        "1": "Each choice shifts five meters: affection, trust, chemistry, tension and stability",
-        "2": "Compatibility is scored 0-100 on 5 axes: attraction, stability, communication, conflict pattern and long-term durability",
-        "3": "Every item shows its grounds and confidence level — day-stem unions and clashes, branch relations, useful and adverse elements, ten gods, and the peach-blossom and red-flame stars"
+        "1": "选择会改变约会结果（结局）、关系路线与对话选择分析",
+        "2": "八字合盘以吸引・稳定性・沟通・持续性・冲突处理5个维度给出0~100分",
+        "3": "从日干合・冲、地支关系、五行、十神、神煞（桃花・红艳）中挑出最突出的三条依据，并附上风险与约会建议"
       },
-      "premiumIntro": "As you pick a choice, the five meters — affection, trust, chemistry, tension, stability — move on the spot, and compatibility is calculated from signals drawn out of both charts.",
+      "premiumIntro": "浏览角色免费，付款后开始模拟。合盘分数由两人的八字决定，每个场景的选择会改变约会结果与关系路线。",
       "premiumAudience": {
         "0": "People who want to experience compatibility as scenes",
         "1": "People who want to compare how it unfolds by partner type",
         "2": "People who want to see the grounds behind a compatibility score"
       },
       "premiumChapters": {
-        "0": "All 16 partner characters available to choose",
-        "1": "Playing through 20 scenes per character",
-        "2": "A compatibility result reflecting how the five meters moved",
-        "3": "The 5-axis scores with per-item saju grounds and confidence"
+        "0": "从16位对象角色中选择想要的对象开始模拟",
+        "1": "每人20个场景，每个场景3个选项",
+        "2": "随选择改变的约会结果与关系路线",
+        "3": "八字合盘5个维度分数与最突出的依据・风险・约会建议"
       },
       "premiumOutcomes": {
         "0": "Compatibility is calculated inside the app, directly from the birth details you enter.",
@@ -9046,7 +9098,7 @@
         "2": "Fortune results are for reference; please check important choices against practical judgement as well."
       },
       "answersQuestions": {
-        "0": "Why does tension rise so much when I am with this person?",
+        "0": "和这个人应该避开什么样的走向？",
         "1": "What kinds of situations do we usually clash in?",
         "2": "Is this a relationship that can last?"
       },
@@ -9054,11 +9106,11 @@
       "analysisSteps": {
         "0": {
           "label": "Choose a partner",
-          "detail": "Pick one of the 16 characters and enter both people's birth details."
+          "detail": "从16位角色中选一位，或输入对方信息与最接近的角色配对。你的八字使用个人资料中的信息。"
         },
         "1": {
           "label": "Play the scenes",
-          "detail": "Pick one of 3 choices in each scene, and the five meters shift on the spot."
+          "detail": "在每个场景的3个选项中选一个，推进故事。"
         },
         "2": {
           "label": "Signal extraction",
@@ -9066,7 +9118,7 @@
         },
         "3": {
           "label": "Result",
-          "detail": "It shows the 5-axis scores — attraction, stability, communication, conflict pattern, long-term durability — with the grounds and confidence for each signal."
+          "detail": "一并显示5个维度分数与最突出的三条依据，以及由选择决定的约会结果与关系路线。"
         }
       },
       "valueCompare": {
@@ -9080,21 +9132,69 @@
         },
         "2": {
           "axis": "Grounds shown",
-          "premium": "Saju signals and confidence per item"
+          "premium": "最突出的三条八字依据与风险・约会建议"
         }
       },
       "faq": {
         "0": {
           "q": "What are the compatibility scores based on?",
-          "a": "Signals are drawn from both people's day-stem unions and clashes, branch relations, useful and adverse elements, ten gods, and the peach-blossom and red-flame stars, and every item is shown with its grounds and confidence level."
+          "a": "从两人的日干合・冲、地支关系、五行用神・忌神、十神、神煞（桃花・红艳）中提取信号，并在结果中显示其中最突出的三条依据。"
         },
         "1": {
           "q": "Do my choices affect the result?",
-          "a": "Every choice shifts the five meters — affection, trust, chemistry, tension, stability — and that state is reflected on the result screen."
+          "a": "选择会改变约会结果（结局）、关系路线与基于对话选择的分析。八字合盘5个维度分数由两人的八字决定，与选择无关，始终相同。"
         },
         "2": {
           "q": "How many partners can I see?",
           "a": "16 characters are available, and each one has its own 20 scenes."
+        },
+        "3": {
+          "q": "可以保存或分享结果吗？",
+          "a": "没有保存与分享。不过可以用重新开始尝试不同的选择。"
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "Final Code判定与等级",
+          "detail": "两人的八字合盘分数、等级和一句话判定放在结果最上方。"
+        },
+        "1": {
+          "title": "随选择改变的约会结果",
+          "detail": "根据每个场景的选择，结局标题、关系路线和基于对话选择的分析都会改变。"
+        },
+        "2": {
+          "title": "八字合盘5个维度",
+          "detail": "以柱状图显示吸引・稳定性・沟通・持续性・冲突处理，并附上最突出的三条依据、风险与约会建议。"
+        },
+        "3": {
+          "title": "角色故事",
+          "detail": "可以在分页中分别阅读所选对象的世界观・恋爱倾向・结局路线・任务。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Final Code",
+          "detail": "先出现判定与等级・分数。"
+        },
+        "1": {
+          "title": "八字合盘卡片",
+          "detail": "把根据两人八字算出的合盘整理成一张卡片。"
+        },
+        "2": {
+          "title": "Date Result",
+          "detail": "显示由你的选择决定的结局标题与关系路线。"
+        },
+        "3": {
+          "title": "5个维度与命理要点",
+          "detail": "查看5个维度的柱状图、八字倾向概要・命理合盘要点・应避开的走向。"
+        },
+        "4": {
+          "title": "基于对话选择的分析",
+          "detail": "整理每个场景中的选择造成了怎样的走向。"
+        },
+        "5": {
+          "title": "角色故事",
+          "detail": "以世界观・恋爱倾向・结局路线・任务分页和重新开始作结。"
         }
       }
     },
@@ -11800,7 +11900,7 @@
     },
     "master_love_codex_compat": {
       "fallbackTitle": "把两人的关系拆成二十个章节整理成一册。",
-      "tagline": "分别解读各自命盘后，把两人相遇之处重叠比对，依序累积吸引、冲突与长久条件而成的最高阶相性解读书。",
+      "tagline": "先分别解读各自的命盘，再把两人相遇的位置叠在一起，用五幕二十章写出吸引、冲突与长久的条件——这是最高阶的合盘解读书。",
       "premiumIntro": "相性篇不会以简单的合不合结束，而是用二十章说明两人在哪里出现分歧、坚守什么才能改变。",
       "fallbackCta": "查看相性解读书",
       "ctaNote": "以两人命盘计算出的20个章节将会开启。",
@@ -11821,7 +11921,7 @@
         "2": "彼此互补之处、地支的合冲刑害",
         "3": "两份命盘的相互配置、夫妻宫交叉比较、煞星与四化",
         "4": "关系的温度曲线、冲突的根源、和解的语言",
-        "5": "持续可能性与婚姻运、八字与紫微斗数的契合点",
+        "5": "持续可能性与婚姻运、八字与紫微斗数的契合点与差异",
         "6": "关系DNA档案、未来3年、最后一封信"
       },
       "premiumOutcomes": {
@@ -11856,10 +11956,14 @@
           "a": "是的。只有分别计算两人的命盘，才能得出接触点。"
         },
         "1": {
+          "q": "不知道对方的出生时间怎么办？",
+          "a": "可以留空。会以正午为基准计算，并在解读中去掉时柱。"
+        },
+        "2": {
           "q": "结果不好就该分手吗？",
           "a": "不是。目的是了解分歧所在。知道那个位置，就不会重复同样的冲突。"
         },
-        "2": {
+        "3": {
           "q": "和本人篇有什么不同？",
           "a": "本人篇处理你自己的恋爱模式，相性篇处理两人之间实际发生的事。"
         }
@@ -11871,7 +11975,7 @@
         },
         "1": {
           "label": "整理个别性向",
-          "detail": "分别整理各自开始与结束恋爱的方式。"
+          "detail": "从各自的原局与命盘中分别解读气质与相处方式。"
         },
         "2": {
           "label": "接触点对照",
@@ -11880,6 +11984,54 @@
         "3": {
           "label": "撰写解读书",
           "detail": "从关系的起点到长期展望，拆成二十章撰写。"
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "五幕二十章的合盘解读书",
+          "detail": "从两人的质地到八字与命盘所见的合盘、关系的现实、综合与封印，分成五幕来写。"
+        },
+        "1": {
+          "title": "每章的依据与洞察",
+          "detail": "每章附上依据标签、洞察和关系中需要留意的时刻，还能展开阅读详细咨询内容。"
+        },
+        "2": {
+          "title": "现在就能做的行动",
+          "detail": "每章给出两三个两人马上可以尝试的行动。"
+        },
+        "3": {
+          "title": "恋爱DNA十项指标",
+          "detail": "以0~100的柱状图与依据显示亲和・沟通・信任・热情・节奏契合・冲突耐受・现实契合・成长・独立・持续。"
+        },
+        "4": {
+          "title": "PDF收藏与再次打开",
+          "detail": "完成版可以保存为PDF，并且无需再次付款即可重新打开。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "封面・一眼看懂的咨询",
+          "detail": "先展开两人的关系类型名称与核心概要。"
+        },
+        "1": {
+          "title": "I 两人的质地",
+          "detail": "解读面对面的两人、你与对方，并看是什么让彼此相互吸引。"
+        },
+        "2": {
+          "title": "II 八字所见的合盘",
+          "detail": "点出日干关系・十神互动・彼此互补的位置・地支合冲刑破害。"
+        },
+        "3": {
+          "title": "III 命盘所见的合盘",
+          "detail": "查看两张命盘的相互配置、夫妻宫交叉比较，以及煞星与四化所在的位置。"
+        },
+        "4": {
+          "title": "IV 关系的现实",
+          "detail": "讨论关系的温度曲线・冲突的根源・和解的语言・持续可能性与婚姻运。"
+        },
+        "5": {
+          "title": "V 综合与封印",
+          "detail": "以八字与紫微斗数的契合点与差异、关系DNA档案、未来三年和最后一封信作结。"
         }
       }
     },
@@ -13216,36 +13368,37 @@
       "fallbackCta": "Check your passes"
     },
     "openSukuyoModal": {
-      "tagline": "It calculates each person's birth mansion among the 27, determines the relationship type and the distance between them, and reads it across six themes: dating, marriage, reunion, secret romance, long distance, and working together.",
+      "tagline": "从二十七宿中分别算出两人的本命宿，判定缘分类型与距离，并把关系处方与注意信号整理成一份缘分报告。",
       "feats": [
-        "Calculating your own birth mansion and its basic reading is free -- payment of ₩5,000 per use applies only when you open the compatibility reading",
-        "Enter the other person's birth date, birth time, solar/lunar calendar, and gender to calculate their birth mansion too",
-        "Six relationship types -- myeong, eoptae, yeongchin, useo, angoe, seongwi -- and a near, middle, or far distance verdict",
-        "Dating, marriage, reunion, secret romance, long distance, and working together, each interpreted separately"
+        "用命运卡片中的本人信息，以及对方的出生日期、出生时间、阳历/阴历、性别，算出两人的本命宿",
+        "命・业胎・荣亲・友衰・安坏・危成六种缘分类型，以及同宿・近距离・中距离・远距离的距离判定",
+        "关系・温度・吸引三个区间，以及写明容易打开的场景与需要留意场景的专家综合判定",
+        "两句马上能用的关系处方与修复步骤、注意信号，以及缘分之光与现实处方"
       ],
-      "premiumIntro": "This compatibility reading is derived from the 27-mansion calculation rules. The same two people get the same result whenever they open it; if you want the wording written fresh each time, that is the ₩30,000 Sukuyo compatibility expert consultation.",
+      "premiumIntro": "这份合盘按二十七宿的计算规则得出，同样的两个人无论何时打开都会得到相同结果。恋爱、结婚、复合等按目的的解读和30天时机，要在结果中的精密合盘扩展里另外打开。",
       "premiumAudience": [
         "Anyone strangely drawn to someone yet always colliding with them",
-        "Anyone deciding whether to read this as dating, marriage, or reunion",
-        "Anyone who also wants to read non-romantic ties like long distance or collaboration"
+        "想知道两人在什么距离最自在的人",
+        "想知道现在该对对方说什么、该留意哪些信号的人"
       ],
       "premiumChapters": [
-        "The relationship type and its nickname, both people's mansions, and each person's role",
-        "The nature of the tie, what surfaces as you get closer, and the recurring emotional pattern",
-        "The felt pace, the advantages of the distance, and the distance to watch and how to manage it",
-        "Good timing -- the best window and the window to be careful with",
-        "Interpretation and cautions for each of the six themes: dating, marriage, reunion, secret romance, long distance, and working together",
-        "What keeps it going long-term, and today's question"
+        "两人的关系名称・缘分质地・距离徽章",
+        "缘分概要与算出的关系类型解说",
+        "关系・温度・吸引核心区间",
+        "专家综合判定——容易打开的场景与需要留意的场景",
+        "两句马上能用的关系处方与修复步骤・注意信号",
+        "缘分之光与现实处方・谁站在什么位置"
       ],
       "premiumOutcomes": [
         "Without the other person's birth date, you can only go as far as the reading of your own birth mansion.",
         "If the birth time is unknown, it is calculated as 12:00 noon.",
         "It is charged per use, and can also be opened with a pass or moonstone.",
-        "The relationship type tells you the character of the distance between you; it does not guarantee an outcome."
+        "The relationship type tells you the character of the distance between you; it does not guarantee an outcome.",
+        "结果无法保存或重新打开，需要的内容请当场确认。"
       ],
       "answersQuestions": [
         "What kind of distance is the tie between us?",
-        "What about collaboration or long distance rather than romance?",
+        "现在该对这个人说些什么？",
         "Why do we collide the closer we get?"
       ],
       "fallbackCta": "Open Sukuyo",
@@ -13253,7 +13406,7 @@
       "analysisSteps": [
         {
           "label": "Deriving your birth mansion",
-          "detail": "It calculates your birth mansion among the 27 from your birth date. This much is free."
+          "detail": "根据命运卡片中的出生日期，算出二十七宿中你的本命宿。到这一步都是免费的。"
         },
         {
           "label": "Deriving the other person's birth mansion",
@@ -13261,11 +13414,11 @@
         },
         {
           "label": "Determining relationship type and distance",
-          "detail": "It settles which of the six relationship types the two mansions form, and whether the distance is near, middle, or far."
+          "detail": "确定两个本命宿形成的六种关系类型，以及同宿・近距离・中距离・远距离。"
         },
         {
-          "label": "Theme-by-theme interpretation",
-          "detail": "It separates the six themes and lays out the state, what to do now, and what to watch for in each."
+          "label": "整理缘分报告",
+          "detail": "把关系类型解说、核心区间、综合判定、关系处方与注意信号整理成一份报告。"
         }
       ],
       "faq": [
@@ -13274,12 +13427,56 @@
           "a": "Yes. The relationship type only comes out once their birth mansion is calculated. Without it you can only see the reading of your own birth mansion."
         },
         {
-          "q": "How does this differ from the ₩30,000 Sukuyo compatibility expert consultation?",
-          "a": "This compatibility reading derives the relationship type and the six themes from the 27-mansion calculation rules. The expert consultation writes the consultation text fresh each time on top of the same calculation."
+          "q": "和宿曜合盘咨询有什么不同？",
+          "a": "这份合盘按二十七宿的计算规则得出缘分类型与处方。宿曜合盘咨询则以两人的本命宿为基础，重新撰写多个部分的咨询内容。"
         },
         {
           "q": "How does payment work?",
           "a": "It is charged per use. Reading it for a different person means paying again at that point, and it can also be opened with a pass or moonstone."
+        }
+      ],
+      "receives": [
+        {
+          "title": "两人的缘分类型与距离",
+          "detail": "先告诉你两个本命宿形成的缘分类型与缘分质地，以及两人在同宿・近距离・中距离・远距离中的距离。"
+        },
+        {
+          "title": "关系・温度・吸引核心区间",
+          "detail": "按区间看关系以怎样的速度靠近，温度与吸引在哪里升起、在哪里冷却。"
+        },
+        {
+          "title": "专家综合判定",
+          "detail": "把这段缘分容易打开的场景和需要留意的场景分开，并说明两人各自容易站在什么位置。"
+        },
+        {
+          "title": "马上能用的关系处方",
+          "detail": "整理现在就能说出口的两句话、修复步骤，以及需要先知道的注意信号。"
+        }
+      ],
+      "outline": [
+        {
+          "title": "缘分报告开头",
+          "detail": "先展开两人的关系名称、缘分质地与距离徽章。"
+        },
+        {
+          "title": "缘分概要・关系类型解说",
+          "detail": "简短概括两人的缘分，并解释算出的关系类型意味着什么。"
+        },
+        {
+          "title": "核心区间",
+          "detail": "查看关系・温度・吸引三个区间的走向。"
+        },
+        {
+          "title": "专家综合判定",
+          "detail": "指出容易打开的场景、需要留意的场景，以及适合这份距离感的态度。"
+        },
+        {
+          "title": "关系处方与注意信号",
+          "detail": "依次整理两句马上能用的话、修复步骤与注意信号。"
+        },
+        {
+          "title": "光与现实・两人的位置",
+          "detail": "以缘分之光与现实处方、谁站在什么位置作结。"
         }
       ]
     },
@@ -13509,18 +13706,18 @@
     },
     "nakshatra_compat": {
       "tagline": "It names first where the two systems agree and where they part, then sets out the score by category, the relationship type, and a guide to how each of you can act.",
-      "premiumIntro": "It runs even without a birth time, and an invite link lets the other person enter their own details.",
+      "premiumIntro": "不知道出生时间也能以正午为基准进行。先显示两个体系是趋同还是分歧，再用分项分数说明原因。",
       "fallbackCta": "See the combined match",
       "premiumChapters": {
         "0": "The combined verdict and combined score",
         "1": "Ashtakoota scores by category with dosha noted",
-        "2": "Three scores: affinity · stability · friction",
+        "2": "吸引・稳定・冲突三个分数",
         "3": "A guide to how each of you can act from where you stand"
       },
       "premiumAudience": {
         "0": "People not convinced by one system alone",
         "1": "People who want to know what to watch for, not just a score",
-        "2": "People who want the other person to enter their own details"
+        "2": "想知道两人各自该做什么的人"
       },
       "answersQuestions": {
         "0": "Do the two systems read this relationship the same way?",
@@ -13531,12 +13728,12 @@
         "0": "India's 36-point Ashtakoota calculated category by category",
         "1": "The relationship type judged by Eastern Sukuyo angles",
         "2": "Where the two systems converge and diverge, set out first",
-        "3": "An invite link that collects the other person's details"
+        "3": "不知道出生时间时，以正午为基准计算并照常进行"
       },
       "analysisSteps": {
         "0": {
           "label": "Both people's details",
-          "detail": "Name, date of birth, birth time, gender and birth city go in — or arrive through an invite link."
+          "detail": "输入两人的出生日期・出生时间・性别・出生城市。"
         },
         "1": {
           "label": "Run both systems",
@@ -13550,17 +13747,57 @@
       "faq": {
         "0": {
           "q": "What if I don't know the birth time?",
-          "a": "You can leave it unknown and carry on."
+          "a": "选择“时间不明”后，以正午为基准计算并照常进行。"
         },
         "1": {
-          "q": "How do I get the other person's details?",
-          "a": "Send the invite link and they can enter their own details."
+          "q": "发送邀请链接后能一起看结果吗？",
+          "a": "邀请链接里带着你的信息。对方填入自己的信息后在自己的设备上打开结果，结果不会回到发送方的画面。"
+        },
+        "2": {
+          "q": "结果可以保存吗？",
+          "a": "没有保存与再次查看。可以用“换个对象再看”重新计算。"
         }
       },
       "premiumOutcomes": {
         "0": "The calculation follows the calendar system; the reading is for reference.",
         "1": "Auspicious dates and compatibility do not stand in for your decision.",
         "2": "The existing payment policy applies."
+      },
+      "receives": {
+        "0": {
+          "title": "综合判定与综合分数",
+          "detail": "把印度阿什塔库塔与东方宿曜的分数并排，先给出综合判定与总评。"
+        },
+        "1": {
+          "title": "阿什塔库塔36分的八个项目",
+          "detail": "以柱状图显示瓦尔纳・瓦夏・塔拉・约尼・格拉哈・迈特里・加纳・巴库特・纳迪的分数，并单独标出多夏。"
+        },
+        "2": {
+          "title": "宿曜格角的关系类型与距离",
+          "detail": "整理宿曜所见的关系类型与距离，以及吸引・稳定・冲突三个分数。"
+        },
+        "3": {
+          "title": "各自位置上能做的事",
+          "detail": "用一句话分别点出你和对方可以尝试的行动。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "综合判定",
+          "detail": "把判定与综合分数、阿什塔库塔・宿曜分数放在开头。"
+        },
+        "1": {
+          "title": "综合总评",
+          "detail": "简短说明两个体系指向同一方向还是出现分歧。"
+        },
+        "2": {
+          "title": "印度阿什塔库塔",
+          "detail": "查看36分满分的总分、八个项目的柱状图与多夏标记。"
+        },
+        "3": {
+          "title": "东方宿曜格角",
+          "detail": "以关系类型・距离、三个分数，以及你和对方的行动指南作结。"
+        }
       }
     }
   },
