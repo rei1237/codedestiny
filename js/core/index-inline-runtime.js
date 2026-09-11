@@ -2264,8 +2264,7 @@ function __cdEnsureSajuCoreLoaded() {
     '/js/saju-engine-continuation.js?v=build-3d241ea2daf1',
     '/js/entertain-engine.js?v=build-3d241ea2daf1',
     /* 체인은 순차 reduce라 앞에 끼우면 이 파일의 실패가 뒤쪽 전체를 죽인다 — 신규 카드 스크립트는 맨 뒤에 둔다. */
-    '/js/core/saju/dopamineResult.js?v=build-3d241ea2daf1',
-    '/js/core/saju/relationshipTemptationAnalysis.js?v=build-3d241ea2daf1'
+    '/js/core/saju/dopamineResult.js?v=build-0e2364cc7fe5'
   ];
 
   /* 다운로드만 병렬로 앞당긴다 — 아래 reduce 의 순차 실행은 그대로다(__cdPreloadScripts 주석 참고). */
