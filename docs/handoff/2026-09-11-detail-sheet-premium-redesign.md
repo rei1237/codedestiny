@@ -1,7 +1,7 @@
 ---
-status: active
-updated: 2026-09-11
-next: "상세창 프리미엄 개편 PR 의 CI·머지를 확인한 뒤, 운명의 꽃과 같은 형식(receives·outline)으로 나머지 유료 상품 카피를 카테고리 배치 1번(사주 프리미엄 리포트)부터 옮긴다."
+status: done
+updated: 2026-09-12
+next: "후속 문서 docs/handoff/2026-09-12-detail-copy-batch1-saju-premium.md 를 읽는다 — PR #1923 머지 완료, 배치 1 진행 기록은 그쪽에 있다"
 ---
 
 # 유료 상세창 프리미엄 개편 — 공통 구조 + 운명의 꽃
@@ -28,7 +28,7 @@ next: "상세창 프리미엄 개편 PR 의 CI·머지를 확인한 뒤, 운명�
 
 ## 지금 상태
 
-- 브랜치 `feat/detail-sheet-premium`, 워크트리 `D:\Development\code-destiny-wt\detail-sheet-premium`. PR: #1923 (Ready, 머지 미포함)
+- 브랜치 `feat/detail-sheet-premium`, 워크트리 `D:\Development\code-destiny-wt\detail-sheet-premium`. PR: #1923 — 2026-09-11 머지(7aecad1fb), main CI 성공
 - 계획 정본: `C:\Users\user\.claude\plans\witty-twirling-petal.md`
 
 ### 남는 계약
