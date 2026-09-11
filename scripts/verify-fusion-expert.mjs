@@ -8,6 +8,7 @@ import { buildZiweiAdapter } from "../worker/lib/guardian-fortune/adapters/ziwei
 import { buildAstrologyAdapter } from "../worker/lib/guardian-fortune/adapters/astrology.js";
 import { buildVedicAdapter } from "../worker/lib/guardian-fortune/adapters/vedic.js";
 import { buildSukuyoAdapter } from "../worker/lib/guardian-fortune/adapters/sukuyo.js";
+import { buildSukuyoFromMoonLongitude } from "../worker/lib/sukuyo-astronomy.js";
 import { FUSION_EXPERT_VERSION, FUSION_SYSTEM_KEYS, validFusionSignals, buildFusionEvidenceCrossCheck } from "../worker/lib/fusion-expert-contract.js";
 import { buildFusionFortuneContext, generateFusionFortuneWithRealLLM, generateFusionFortuneWithMockLLM, generateFusionFortuneRequest, createMemoryFusionFortuneStore } from "../worker/lib/fusion-fortune.js";
 import { FUSION_SECTION_GROUP_SPECS, buildFusionSectionGroupPrompt, buildFusionSectionPromptPrefix } from "../worker/lib/fusion-fortune-prompt.js";
@@ -31,7 +32,8 @@ assert.ok(sajuEvidence.expertEvidence.gyeokguk.judgmentReason);
 const ziwei = await buildZiweiAdapter(adapterInput, { fusionExpert: true });
 assert.equal(ziwei.expertEvidence.palaces.length, 12);
 assert.ok(ziwei.expertEvidence.majorLuck.length);
-const sukuyo = buildSukuyoAdapter(adapterInput, { fusionExpert: true });
+const sukuyoMoonLongitudes = { 1990: 181.42, 2026: 250 };
+const sukuyo = await buildSukuyoAdapter(adapterInput, { fusionExpert: true, calculator: (_env, moment) => buildSukuyoFromMoonLongitude(sukuyoMoonLongitudes[moment.year], moment) });
 assert.ok(sukuyo.expertEvidence.birth.strengths.length);
 assert.ok(sukuyo.expertEvidence.target.shadows.length);
 const natal = { planets: { Sun: { sign: "Taurus", longitude: 30 }, Moon: { sign: "Cancer", longitude: 90 } }, houseCusps: Array.from({ length: 12 }, (_, i) => i * 30), aspects: [{ p1: "Sun", p2: "Moon", type: "sextile" }] };
