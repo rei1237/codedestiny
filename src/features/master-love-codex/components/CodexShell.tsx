@@ -8,8 +8,9 @@
  * 아래로 비치면 안 되기 때문이다. 랜딩 단계는 일반 흐름이라 그 설명이 정상적으로 읽힌다.
  */
 
-import { useEffect, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import { useReducedMotion } from "framer-motion";
+import { useBodyScrollLock } from "@/app/_lib/body-scroll-lock";
 import CodexStarfield from "./CodexStarfield";
 import styles from "../styles/codex.module.css";
 
@@ -36,12 +37,9 @@ export default function CodexShell({
   const prefersReducedMotion = useReducedMotion();
 
   // 오버레이가 떠 있는 동안에는 뒤 문서가 함께 스크롤되지 않게 잠근다.
-  useEffect(() => {
-    if (!overlay || typeof document === "undefined") return undefined;
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => { document.body.style.overflow = previous; };
-  }, [overlay]);
+  // 🔴 참조 카운트 공용 락만 쓴다. 직접 스냅샷·복원하면 결제 대기 화면의 락과 해제 순서가
+  //    엇갈릴 때 "hidden" 을 되살려, 결과 화면이 모바일에서 스크롤되지 않는다.
+  useBodyScrollLock(overlay);
 
   return (
     <div
