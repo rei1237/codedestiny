@@ -4,6 +4,7 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { syncWithMain } from "./delivery-sync.mjs";
 
 const execute = promisify(execFile);
 
@@ -96,6 +97,13 @@ async function main() {
   if (hasFlag("self-test")) return selfTest();
   const prNumber = argValue("pr");
   if (!/^\d+$/.test(prNumber)) throw new Error("PR 번호가 필요합니다: npm run delivery:admit -- --pr=<number>");
+  // --auto-sync는 "최신 main 반영" 판정 자체는 바꾸지 않는다. 판정 전에 origin/main을 미리
+  // 병합·push해 그 판정이 자연히 통과하게 만들 뿐이며, 충돌 시에는 그대로 사람에게 넘긴다.
+  if (hasFlag("auto-sync")) {
+    const sync = await syncWithMain({ push: true });
+    console.log(sync.ok ? `[delivery-admit] auto-sync: ${sync.message}` : `[delivery-admit] auto-sync FAIL: ${sync.message}`);
+    if (!sync.ok) { process.exitCode = 1; return; }
+  }
   const report = await collectAdmission({ prNumber });
   printReport(report, hasFlag("json"));
   if (!report.ok) process.exitCode = 1;
