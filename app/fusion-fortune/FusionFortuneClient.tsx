@@ -17,7 +17,8 @@ import { useAiProfileSeed } from "../hooks/useAiProfileSeed";
 import { useCoinGate } from "../hooks/useCoinGate";
 import { packPaidResumeArg, unpackPaidResumeArg, usePaidResume } from "../hooks/usePaidResume";
 import { PriceBadge } from "../components/PriceBadge";
-import { ExpertStickyCta, ExpertValueCards } from "../components/expert-consulting/ExpertConsultationFrame";
+import { ExpertValueCards } from "../components/expert-consulting/ExpertConsultationFrame";
+import DestinyIcon, { type DestinyIconName } from "../components/icons/DestinyIcon";
 import { FUSION_ORB_BY_KEY, FUSION_ORBS, type FusionSystemKey } from "./fusionOrbs";
 import { FusionRecentList, type FusionRecentItem } from "./FusionRecentList";
 import { FusionResultRail } from "./FusionResultRail";
@@ -68,6 +69,21 @@ const EMPTY_STATUS: Status = {
 };
 
 /** 회당 결제 키. 가격 정본은 worker/lib/paid-feature-registry.js (300코인 = 30,000원). */
+/* 체계↔아이콘 짝은 app/_lib/design/iconMap.ts 의 FEATURE_ICON_MAP 과 같은 것을 쓴다.
+   그 맵을 직접 import 하지 않는 이유는 숙요 키가 거기서 `sukyo` 라 이 화면의
+   FusionSystemKey("sukuyo")와 맞지 않기 때문이다 — 조용히 undefined 가 되는 걸 막는다. */
+/* 신뢰 문구("사주 엔진 — 실제 경력 10년차 명리학자 설계·자문")를 라벨과 본문 두 줄로 나눈다.
+   한 문장으로 두면 좁은 폭에서 "·자문" 만 다음 줄로 떨어진다. 문구 자체는 expert-labels 정본을
+   그대로 쓰고(테스트가 고정), 구분자가 없는 로케일(en)은 한 줄로 둔다. */
+function splitTrustLine(text: string): [string, string] {
+  const at = text.indexOf(" — ");
+  return at < 0 ? ["", text] : [text.slice(0, at), text.slice(at + 3)];
+}
+
+const FUSION_SYSTEM_ICONS: Record<FusionSystemKey, DestinyIconName> = {
+  saju: "yinYang", ziwei: "palace", vedic: "compass", sukuyo: "moon", astrology: "zodiac", tarot: "tarot",
+};
+
 const PAID_FEATURE_KEY = "fusion-fortune-consultation";
 const PAID_COIN_PRICE = 300;
 const PAID_AMOUNT_KRW = 30000;
@@ -257,6 +273,10 @@ type FusionFortuneCopy = {
   heroTitleLine1: string;
   heroTitleLine2: string;
   heroDesc: string;
+  /** 여섯 체계가 각각 무엇을 읽는지 한 줄로. 키 하나로 여섯 줄을 얻어 로케일 부담을 줄인다. */
+  systemBriefs: Record<FusionSystemKey, string>;
+  /** 리포트 차례 미리보기 섹션의 제목. 없는 내용을 지어내지 않고 실제 차례를 보여 준다는 선언이다. */
+  reportPreviewTitle: string;
   heroFirstCome: string;
   heroPriceFallback: string;
   heroPricePrefix: string;
@@ -391,6 +411,8 @@ const FUSION_FORTUNE_EN: FusionFortuneCopy = {
   heroTitleLine1: "Six readings,",
   heroTitleLine2: "one consultation",
   heroDesc: "We read Saju, Ziwei Doushu, Vedic astrology, Sukuyo, Western astrology, and Tarot deeply, each in its own language, then bring them together into a single cross reading. Your finished consultation is saved to your account so you can reopen it anytime and download it as a PDF.",
+  systemBriefs: { saju: "Natural temperament and the flow of a life", ziwei: "Life domains and how their seasons turn", vedic: "Planetary cycles and the timing of fate", sukuyo: "The rhythm of relationships and ties", astrology: "Patterns of psychology and choice", tarot: "The question you hold now, and what it opens" },
+  reportPreviewTitle: "The table of contents you actually receive",
   heroFirstCome: "Six-system cross reading",
   heroPriceFallback: "₩30,000",
   heroPricePrefix: "per reading ",
@@ -517,7 +539,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     buttonPayingLabel: "결제를 확인하고 있어요",
     buttonLoginLabel: "로그인하고 시작하기",
     buttonResumeLabel: "추가 결제 없이 이어서 받기",
-    buttonSubmitLabel: "초융합 운세 생성하기",
+    buttonSubmitLabel: "초융합 리딩 시작하기",
     navAriaLabel: "초융합 사주 탐색",
     threadAriaLabel: "초융합 상담 대화",
     navBack: "이전",
@@ -526,13 +548,15 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     heroTitleLine1: "여섯 개의 해석을",
     heroTitleLine2: "하나의 상담으로",
     heroDesc: "사주·자미두수·베다점·숙요점·점성술·타로를 각 분야의 언어로 깊게 읽고, 마지막에 하나의 교차 판정으로 모읍니다. 완성된 상담은 계정에 저장돼 언제든 다시 열고 PDF 로 내려받을 수 있어요.",
+    systemBriefs: { saju: "타고난 기질과 삶의 흐름", ziwei: "삶의 영역과 시기의 변화", vedic: "행성 주기와 운명의 시간", sukuyo: "관계와 인연의 리듬", astrology: "심리와 선택의 패턴", tarot: "지금의 질문과 그 가능성" },
+    reportPreviewTitle: "실제로 받게 되는 리포트의 차례입니다",
     heroFirstCome: "여섯 체계 교차 판정",
     heroPriceFallback: "30,000원",
     heroPricePrefix: "1회 ",
     heroWordCount: "30,000자 이상",
     heroSaveNote: "저장 · 재열람 · PDF",
     chatLead: "Fusion AI가 여섯 체계의 완료 흐름을 이 화면에서 차례로 알려드려요.",
-    heroFormCta: "지금 리딩 시작하기",
+    heroFormCta: "나의 초융합 리딩 시작하기",
     readingFlowAriaLabel: "초융합 리딩이 지나가는 순서",
     readingFlowLead: "이 상담이 지나가는 길",
     readingFlowFinalTitle: "교차 판정 하나",
@@ -542,7 +566,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     statusScopeNote: "사주·자미두수·베다점·숙요점·점성술·타로를 각각 읽고 마지막에 교차 판정합니다.",
     statusMethodLabel: "이용 방식",
     statusMethodValue: "회당 결제",
-    statusMethodNote: "결제창에서 이용권·단건·월정석을 함께 고를 수 있어요. family 이용권은 커버됩니다.",
+    statusMethodNote: "결제창에서 이용권·단건·월정석 중에 고를 수 있어요. 가족 이용권도 그대로 적용됩니다.",
     coreButtonLabel: "Fusion Core 진행 방식 보기",
     formIntroHeading: "정확한 생시로 여섯 체계를 연결해요",
     formIntroDesc: "입력 정보는 결과 본문과 공유 요약에 노출하지 않습니다.",
@@ -660,6 +684,8 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     heroTitleLine1: "六つの解釈を",
     heroTitleLine2: "ひとつの相談に",
     heroDesc: "四柱推命・紫微斗数・ヴェーダ占星術・宿曜・西洋占星術・タロットをそれぞれの分野の言葉で深く読み解き、最後にひとつのクロス判定にまとめます。完成した相談はアカウントに保存され、いつでも再度開いてPDFとしてダウンロードできます。",
+    systemBriefs: { saju: "生まれ持った気質と人生の流れ", ziwei: "人生の領域と時期の移り変わり", vedic: "惑星周期と運命の時間", sukuyo: "関係と縁のリズム", astrology: "心理と選択のパターン", tarot: "今の問いとその可能性" },
+    reportPreviewTitle: "実際に受け取るレポートの目次です",
     heroFirstCome: "六体系クロス判定",
     heroPriceFallback: "₩30,000",
     heroPricePrefix: "1回 ",
@@ -793,6 +819,8 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     heroTitleLine1: "六种解读，",
     heroTitleLine2: "合而为一",
     heroDesc: "以命理、紫微斗数、吠陀占星术、宿曜、西方占星术、塔罗各自的语言深入解读，最终汇聚为一份交叉判定。完成的咨询会保存到您的账户，可随时再次打开并下载为PDF。",
+    systemBriefs: { saju: "与生俱来的气质与人生流向", ziwei: "人生领域与时期的变化", vedic: "行星周期与命运的时间", sukuyo: "关系与缘分的节奏", astrology: "心理与选择的模式", tarot: "此刻的提问与可能性" },
+    reportPreviewTitle: "这是您实际会收到的报告目录",
     heroFirstCome: "六体系交叉解读",
     heroPriceFallback: "₩30,000",
     heroPricePrefix: "每次 ",
@@ -926,6 +954,8 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     heroTitleLine1: "六種解讀，",
     heroTitleLine2: "合而為一",
     heroDesc: "以命理、紫微斗數、吠陀占星術、宿曜、西方占星術、塔羅各自的語言深入解讀，最終匯聚為一份交叉判定。完成的諮詢會儲存到您的帳戶，可隨時再次開啟並下載為PDF。",
+    systemBriefs: { saju: "與生俱來的氣質與人生流向", ziwei: "人生領域與時期的變化", vedic: "行星週期與命運的時間", sukuyo: "關係與緣分的節奏", astrology: "心理與選擇的模式", tarot: "此刻的提問與可能性" },
+    reportPreviewTitle: "這是您實際會收到的報告目錄",
     heroFirstCome: "六體系交叉解讀",
     heroPriceFallback: "₩30,000",
     heroPricePrefix: "每次 ",
@@ -1059,6 +1089,8 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     heroTitleLine1: "Sáu bài đọc,",
     heroTitleLine2: "một buổi tư vấn",
     heroDesc: "Chúng tôi đọc sâu Tứ Trụ, Tử Vi Đẩu Số, chiêm tinh Vệ Đà, Sukuyo, chiêm tinh Phương Tây và Tarot, mỗi hệ thống theo ngôn ngữ riêng, sau đó tổng hợp thành một bài đọc chéo duy nhất. Buổi tư vấn hoàn chỉnh được lưu vào tài khoản để bạn có thể mở lại bất cứ lúc nào và tải xuống dưới dạng PDF.",
+    systemBriefs: { saju: "Natural temperament and the flow of a life", ziwei: "Life domains and how their seasons turn", vedic: "Planetary cycles and the timing of fate", sukuyo: "The rhythm of relationships and ties", astrology: "Patterns of psychology and choice", tarot: "The question you hold now, and what it opens" },
+    reportPreviewTitle: "The table of contents you actually receive",
     heroFirstCome: "Đọc chéo sáu hệ thống",
     heroPriceFallback: "₩30,000",
     heroPricePrefix: "mỗi lần đọc ",
@@ -1192,6 +1224,8 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     heroTitleLine1: "छह रीडिंग,",
     heroTitleLine2: "एक परामर्श",
     heroDesc: "हम साजू, ज़िवेई दोशु, वैदिक ज्योतिष, सुक्यो, पाश्चात्य ज्योतिष और टैरो को गहराई से पढ़ते हैं, प्रत्येक को अपनी भाषा में, फिर उन्हें एक ही क्रॉस रीडिंग में लाते हैं। आपका पूर्ण परामर्श आपके खाते में सहेजा जाता है ताकि आप इसे कभी भी फिर से खोल सकें और PDF के रूप में डाउनलोड कर सकें।",
+    systemBriefs: { saju: "Natural temperament and the flow of a life", ziwei: "Life domains and how their seasons turn", vedic: "Planetary cycles and the timing of fate", sukuyo: "The rhythm of relationships and ties", astrology: "Patterns of psychology and choice", tarot: "The question you hold now, and what it opens" },
+    reportPreviewTitle: "The table of contents you actually receive",
     heroFirstCome: "छह-प्रणाली क्रॉस रीडिंग",
     heroPriceFallback: "₩30,000",
     heroPricePrefix: "प्रति रीडिंग ",
@@ -1325,6 +1359,8 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     heroTitleLine1: "Seis lecturas,",
     heroTitleLine2: "una consulta",
     heroDesc: "Leemos profundamente Saju, Ziwei Doushu, astrología védica, Sukuyo, astrología occidental y Tarot, cada uno en su propio idioma, y luego los unimos en una sola lectura cruzada. Tu consulta terminada se guarda en tu cuenta para que puedas reabrirla en cualquier momento y descargarla como PDF.",
+    systemBriefs: { saju: "Natural temperament and the flow of a life", ziwei: "Life domains and how their seasons turn", vedic: "Planetary cycles and the timing of fate", sukuyo: "The rhythm of relationships and ties", astrology: "Patterns of psychology and choice", tarot: "The question you hold now, and what it opens" },
+    reportPreviewTitle: "The table of contents you actually receive",
     heroFirstCome: "Lectura cruzada de seis sistemas",
     heroPriceFallback: "₩30,000",
     heroPricePrefix: "por lectura ",
@@ -1458,6 +1494,8 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     heroTitleLine1: "Six lectures,",
     heroTitleLine2: "une consultation",
     heroDesc: "Nous lisons en profondeur le Saju, le Ziwei Doushu, l'astrologie védique, le Sukuyo, l'astrologie occidentale et le Tarot, chacun dans son propre langage, puis nous les réunissons en une seule lecture croisée. Votre consultation terminée est enregistrée dans votre compte afin que vous puissiez la rouvrir à tout moment et la télécharger en PDF.",
+    systemBriefs: { saju: "Natural temperament and the flow of a life", ziwei: "Life domains and how their seasons turn", vedic: "Planetary cycles and the timing of fate", sukuyo: "The rhythm of relationships and ties", astrology: "Patterns of psychology and choice", tarot: "The question you hold now, and what it opens" },
+    reportPreviewTitle: "The table of contents you actually receive",
     heroFirstCome: "Lecture croisée à six systèmes",
     heroPriceFallback: "₩30,000",
     heroPricePrefix: "par lecture ",
@@ -1591,6 +1629,8 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     heroTitleLine1: "Sechs Deutungen,",
     heroTitleLine2: "eine Beratung",
     heroDesc: "Wir lesen Saju, Ziwei Doushu, vedische Astrologie, Sukuyo, westliche Astrologie und Tarot jeweils tiefgehend in ihrer eigenen Sprache und führen sie dann zu einer einzigen Kreuzdeutung zusammen. Ihre fertige Beratung wird in Ihrem Konto gespeichert, damit Sie sie jederzeit erneut öffnen und als PDF herunterladen können.",
+    systemBriefs: { saju: "Natural temperament and the flow of a life", ziwei: "Life domains and how their seasons turn", vedic: "Planetary cycles and the timing of fate", sukuyo: "The rhythm of relationships and ties", astrology: "Patterns of psychology and choice", tarot: "The question you hold now, and what it opens" },
+    reportPreviewTitle: "The table of contents you actually receive",
     heroFirstCome: "Sechs-Systeme-Kreuzdeutung",
     heroPriceFallback: "₩30,000",
     heroPricePrefix: "pro Deutung ",
@@ -1724,6 +1764,8 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     heroTitleLine1: "Zes lezingen,",
     heroTitleLine2: "één consult",
     heroDesc: "We lezen Saju, Ziwei Doushu, Vedische astrologie, Sukuyo, Westerse astrologie en Tarot elk diepgaand in hun eigen taal, en brengen ze vervolgens samen in één kruislezing. Je voltooide consult wordt opgeslagen in je account, zodat je het altijd opnieuw kunt openen en als PDF kunt downloaden.",
+    systemBriefs: { saju: "Natural temperament and the flow of a life", ziwei: "Life domains and how their seasons turn", vedic: "Planetary cycles and the timing of fate", sukuyo: "The rhythm of relationships and ties", astrology: "Patterns of psychology and choice", tarot: "The question you hold now, and what it opens" },
+    reportPreviewTitle: "The table of contents you actually receive",
     heroFirstCome: "Zes-systemen kruislezing",
     heroPriceFallback: "₩30,000",
     heroPricePrefix: "per lezing ",
@@ -1857,6 +1899,8 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     heroTitleLine1: "Enam bacaan,",
     heroTitleLine2: "satu perundingan",
     heroDesc: "Kami membaca Saju, Ziwei Doushu, astrologi Veda, Sukuyo, astrologi Barat dan Tarot secara mendalam, masing-masing dalam bahasanya sendiri, kemudian menggabungkannya menjadi satu bacaan silang. Perundingan anda yang selesai disimpan dalam akaun anda supaya anda boleh membukanya semula pada bila-bila masa dan memuat turunnya sebagai PDF.",
+    systemBriefs: { saju: "Natural temperament and the flow of a life", ziwei: "Life domains and how their seasons turn", vedic: "Planetary cycles and the timing of fate", sukuyo: "The rhythm of relationships and ties", astrology: "Patterns of psychology and choice", tarot: "The question you hold now, and what it opens" },
+    reportPreviewTitle: "The table of contents you actually receive",
     heroFirstCome: "Bacaan silang enam sistem",
     heroPriceFallback: "₩30,000",
     heroPricePrefix: "setiap bacaan ",
@@ -2696,17 +2740,22 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
       <Image className={styles.heroImage} src="/images/fusion-fortune/fusion-guardian-celestial-hero.webp" alt="" fill priority sizes="(max-width: 720px) 100vw, 960px" />
       <div className={styles.heroVeil} />
       <div className={styles.heroCopy}>
-        <Link className={styles.guardianLink} href="/#guardian-fortune">{copy.guardianLinkText}</Link>
-        <h1>{expertCopy.title}</h1>
-        <p>{expertCopy.intro}</p>
+        {/* 귀인 배지는 실제로 「오늘의 귀인」에서 넘어온 세션에만 맞는 문구다. 직접 들어온
+            사람에게도 조건 없이 띄우면 없는 맥락을 만든다 — 핸드오프 상태가 있을 때만 건다. */}
+        {guardianHandoff && <Link className={styles.guardianLink} href="/#guardian-fortune">{copy.guardianLinkText}</Link>}
+        {/* 🔴 h1/p 는 expert-labels.ts(ko·en 2개뿐)가 아니라 11개 로케일을 모두 갖춘
+            FUSION_FORTUNE_COPY 에서 읽는다. 전에는 ja·vi·hi·es·fr·de·nl·ms 사용자가 영어 h1 을 봤다. */}
+        <h1>{copy.heroTitleLine1}<br />{copy.heroTitleLine2}</h1>
+        <p>{copy.heroDesc}</p>
         <div className={styles.heroMeta}>
           <span className={styles.firstCome}>{copy.heroFirstCome}</span>
           <PriceBadge featureKey={PAID_FEATURE_KEY} fallbackLabel={copy.heroPriceFallback} prefix={copy.heroPricePrefix} className={styles.heroPrice} />
           <span>{copy.heroWordCount}</span>
           <span>{copy.heroSaveNote}</span>
         </div>
-        <p className={styles.chatLead}>{expertCopy.reviewFlow}</p>
-        <p className={styles.expertTrust}>{expertCopy.trust}</p>
+        {/* reviewFlow("분석이 완료되면 이 화면에서 확인") 는 결과 대기 안내라 구매 전 히어로에
+            맥락이 없다. 신뢰 한 줄(10년차 명리학자 설계)을 CTA 바로 위로 올린다. */}
+        <p className={styles.expertTrust}>{splitTrustLine(expertCopy.trust).map((part, index) => part && <span key={index} className={index === 0 ? styles.expertTrustLabel : undefined}>{part}</span>)}</p>
         <a className={styles.heroCta} href="#fusion-form">{copy.heroFormCta}</a>
       </div>
       <FusionOrb orbCoreAlt={sharedCopy.orbCoreAlt} />
@@ -2719,8 +2768,9 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
       <ol className={styles.readingFlowList}>
         {FUSION_ORBS.map((orb) => (
           <li key={orb.key} style={{ "--tint": orb.tint } as React.CSSProperties}>
-            <i aria-hidden className={styles.systemDot} />
+            <DestinyIcon name={FUSION_SYSTEM_ICONS[orb.key]} size={22} variant="line" className={styles.systemIcon} />
             <strong>{sharedCopy.systemLabels[orb.key]}</strong>
+            <span>{copy.systemBriefs[orb.key]}</span>
           </li>
         ))}
       </ol>
@@ -2735,11 +2785,46 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
       </div>
     </section>
 
-    <FusionRecentList items={recentList} activeId={openedConsultationId} busyId={reopeningId} onOpen={(id) => void openConsultation(id)} />
-
     {valuePreview}
 
     <ExpertValueCards theme="fusion" points={expertCopy.valuePoints} />
+
+    {/* 리포트 미리보기 + 신뢰. 3만원짜리 결과물의 규모를 구매 전에 그려 볼 수 있어야 한다.
+        🔴 여기 적히는 차례는 지어낸 목차가 아니라 FusionResultThread 의 실제 렌더 순서이며,
+           라벨도 결과 화면이 쓰는 FUSION_SHARED_COPY 키를 그대로 가져온다(신규 문안 0).
+        🔴 data-fusion-toc / data-fusion-pdf-section / data-fusion-visual / id="fusion-toc-*" 를
+           절대 쓰지 않는다 — 결과 화면의 TOC 관찰자와 PDF 캡처가 이 섹션을 결과로 오인한다. */}
+    <section className={styles.reportPreview} aria-labelledby="fusion-report-preview-heading">
+      <div className={styles.reportPreviewMain}>
+        <p className={styles.reportPreviewEyebrow}>{sharedCopy.tocHeading}</p>
+        <h2 id="fusion-report-preview-heading">{copy.reportPreviewTitle}</h2>
+        <ol className={styles.reportPreviewToc}>
+          <li>{sharedCopy.openingShortLabel}</li>
+          <li>{sharedCopy.summaryShortLabel}</li>
+          <li>
+            {sharedCopy.sixSystemsDirectionSpeaker}
+            <ul>
+              {FUSION_ORBS.map((orb) => (
+                <li key={orb.key} style={{ "--tint": orb.tint } as React.CSSProperties}>{sharedCopy.systemLabels[orb.key]}</li>
+              ))}
+            </ul>
+          </li>
+          <li>{sharedCopy.integratedShortLabel}</li>
+          <li>{sharedCopy.whenWhatSpeaker}</li>
+          <li>{sharedCopy.crossCheckHeading}</li>
+          <li className={styles.reportPreviewVerdict}>{sharedCopy.verdictShortLabel}</li>
+          <li>{sharedCopy.closingShortLabel}</li>
+        </ol>
+        <p className={styles.reportPreviewLength}>{expertCopy.length}</p>
+      </div>
+      <aside className={styles.reportPreviewTrust}>
+        <p className={styles.reportPreviewTrustLead}>{expertCopy.trust}</p>
+        <p>{expertCopy.guideBody}</p>
+        <p className={styles.reportPreviewTrustNote}>{copy.dialogNote}</p>
+      </aside>
+    </section>
+
+    <FusionRecentList items={recentList} activeId={openedConsultationId} busyId={reopeningId} onOpen={(id) => void openConsultation(id)} />
 
     <section className={styles.panel}>
       <div className={styles.status}>
@@ -2763,6 +2848,16 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
           {guardianHandoff && <p className={styles.handoffNotice}>{copy.guardianHandoffPrefix}<strong>{guardianHandoff.topic}</strong>{copy.guardianHandoffSuffix}</p>}
           <button className={styles.profileReload} type="button" onClick={() => void reloadProfileSeed()}>{copy.profileReloadCta}</button>
         </div>
+        {/* "무엇을 받는가" 를 폼 **맨 앞**에 둔다. 히어로 CTA 가 가치 섹션을 건너뛰고 이 폼으로
+            바로 점프하기 때문에, 전에는 이 카드가 제출 버튼 바로 위에 있어 사용자가 입력을
+            다 끝낸 뒤에야 받는 것을 읽었다. 문구는 이 화면이 이미 쓰는 키를 그대로 재사용한다 —
+            11개 로케일에 새 키를 늘리지 않기 위해서다. */}
+        <ul className={`${styles.wide} ${styles.orderSummary}`}>
+          <li>{copy.statusScopeValue}</li>
+          <li>{copy.readingFlowFinalTitle} — {copy.readingFlowFinalDesc}</li>
+          <li>{copy.heroSaveNote}</li>
+          <li>{copy.statusMethodNote}</li>
+        </ul>
         <p className={styles.formSectionFirst}>{copy.formSectionBirth}</p>
         <label><span className={styles.labelRow}>{copy.birthDateLabel}<FieldSystems field="birthDate" copy={copy} /></span><input required {...birthDateTextInputProps(form.birthDate, (nextBirthDate) => setForm({ ...form, birthDate: nextBirthDate }))} /></label>
         <label><span className={styles.labelRow}>{copy.birthTimeLabel}<FieldSystems field="birthTime" copy={copy} /></span><input type="time" required={!form.birthTimeUnknown} disabled={Boolean(pendingPaidRequest) && form.birthTimeUnknown} value={form.birthTime} onChange={(event) => setForm({ ...form, birthTime: event.target.value, birthTimeUnknown: false })} />{pendingPaidRequest && <span className={styles.inlineCheck}><input type="checkbox" checked={form.birthTimeUnknown} onChange={(event) => setForm({ ...form, birthTimeUnknown: event.target.checked, birthTime: event.target.checked ? "" : form.birthTime })} /> {copy.birthTimeUnknownLabel}</span>}<small>{expertCopy.required}</small></label>
@@ -2783,22 +2878,16 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
           <p className={styles.error} role="alert">{error}</p>
           {statusUnavailable && <button type="button" className={styles.profileReload} onClick={() => { setError(""); void refresh(); }}>{copy.statusRetryCta}</button>}
         </div>}
-        {/* 결제를 누르는 자리에서 "무엇을 받는가" 를 한 번 더 못박는다. 히어로 CTA 가 가치
-            섹션을 통째로 건너뛰어 이 폼으로 점프하기 때문에, 이 카드가 없으면 상당수가
-            금액만 보고 버튼을 누른다. 문구는 이 화면이 이미 쓰는 키를 그대로 재사용한다 —
-            11개 로케일에 새 키를 늘리지 않기 위해서다. */}
-        <ul className={`${styles.wide} ${styles.orderSummary}`}>
-          <li>{copy.statusScopeValue}</li>
-          <li>{copy.readingFlowFinalTitle} — {copy.readingFlowFinalDesc}</li>
-          <li>{copy.heroSaveNote}</li>
-          <li>{copy.statusMethodNote}</li>
-        </ul>
         <button disabled={loading || isPaying || status.nextAction === "disabled"} type="submit">
           <span>{buttonLabel}</span>
           {showSubmitPrice && <PriceBadge featureKey={PAID_FEATURE_KEY} fallbackLabel={copy.heroPriceFallback} prefix={copy.heroPricePrefix} className={styles.submitPrice} />}
         </button>
       </form>}
-      <ExpertStickyCta theme="fusion" targetId="fusion-form" label={copy.heroFormCta} price={<PriceBadge featureKey={PAID_FEATURE_KEY} fallbackLabel={copy.heroPriceFallback} prefix={copy.heroPricePrefix} />} />
+      {/* 예전에는 여기 ExpertStickyCta 와 아래 .orderBar 두 개가 동시에 떠서 화면 하단에
+          같은 CTA 가 두 겹으로 쌓였다. .orderBar 쪽만 남긴다 — 가격과 CTA 를 한 줄에 들고
+          있고, 히어로·폼이 화면 밖일 때만 뜨는 조건부라 폼 입력을 가리지 않는다.
+          🔴 공유 컴포넌트(ExpertConsultationFrame)는 9개 유료 페이지가 함께 쓰므로 수정하지
+             않는다. 이 화면에서 쓰지 않을 뿐이다. */}
     </section>
 
     {/* 생성과 결과는 끊기지 않는 하나의 대화다. 진행 표시는 서버가 실제로 보낸 stage/compose
