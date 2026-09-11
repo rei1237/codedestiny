@@ -648,6 +648,14 @@ jobs:
             --sha="${GITHUB_SHA}" \
             --origin="${CD_STAGING_ORIGIN}"
 
+      # 🔴 이 스텝이 없던 동안은 배포 성공 뒤 /api/health·/api/version·콘솔 에러를 사람이
+      # 로컬에서 매번 별도로 npm run deploy:smoke -- --base <staging-url> 로 확인해야 했다
+      # (2026-09-10 인수인계: 세션이 중단되면 이 확인 자체가 누락됐다). verify:deployed-sha는
+      # SHA 일치만 보고 응답 내용은 보지 않으므로 중복이 아니다.
+      - name: Run staging smoke checks
+        if: ${{ !cancelled() && steps.deploy.outcome == 'success' }}
+        run: npm run deploy:smoke -- --base "${CD_STAGING_ORIGIN}"
+
       # 🔴 정적 가드는 배선을 지키고, 실제로 색인을 막는 것은 이 프로브다. 빌드 파이프라인의
       # 어떤 단계가 산출물을 다시 써서 메타가 사라져도 여기서 잡힌다. 실패하면 배포를 실패로
       # 남겨 다음 릴리스 전에 반드시 보게 한다.
