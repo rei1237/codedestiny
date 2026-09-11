@@ -169,8 +169,16 @@ When a new stale reference or document conflict is found:
 
 - **머지 주체**: 아래 2026-09-08 절("에이전트가 안전하게 머지")은 폐기. 사용자 지시로 머지는 사용자가 하고, 에이전트는 머지 가능 상태·안전 순서만 보고한다.
 - **스테이징 확인**: 2026-09-08·09-10의 "스테이징 SHA 확인/후속 감시" 조항은 폐기. 기본 흐름은 PR CI 통과에서 끝나며 스테이징 검증은 선택(`npm run verify:staging`)이다. 정본은 `CLAUDE.md` 2026-09-12 절과 `docs/context/delivery-and-ci.md` 같은 날짜 절.
-- **최신 main 포함 요구**: 사용자가 룰셋에서 먼저 제거했고(2026-09-12 실측: required status check 규칙 없음), 레포 쪽 `delivery-admit.mjs`·`ci-preflight.mjs`의 조상 검사를 merge-tree 충돌 + 파일 겹침 판정으로 대체했다. 룰셋의 required check 제거는 사용자 의도다(2026-09-12 확인) — 복구를 권하지 않고, 머지 가능 보고 전에 PR 체크 전체 통과를 확인한다.
+- **최신 main 포함 요구**: 사용자가 룰셋에서 먼저 제거했고(2026-09-12 실측: required status check 규칙 없음), 레포 쪽 `delivery-admit.mjs`의 조상 검사를 merge-tree 충돌 + 파일 겹침 판정으로 대체했다(같은 날 `ci-preflight.mjs`도 이 판정을 들고 있었으나 스크립트째 삭제됐다). 머지 가능 보고 전에 PR 체크 전체 통과를 확인한다.
 - **인수인계 형식**: 단일 AI_HANDOFF 파일 요청 대신 주제별 `docs/handoff/*.md` 유지 + done 즉시 삭제로 확정(사용자 선택). 단일 파일은 병렬 PR마다 충돌한다.
+
+## 2026-09-12 로컬 preflight 폐기 — GitHub CI가 유일한 공식 검증 게이트
+
+- **폐기 대상**: `ci-preflight.mjs`·`ci-preflight-plan.mjs`와 그 테스트, `npm run ci:preflight` 키(경로는 삭제됐으므로 링크로 적지 않는다 — git 히스토리 참조). 그 스크립트는 `pr-ci.yml`을 파싱해 잡 명령을 로컬에서 그대로 재현하는 CI 복제본이었고, PR마다 같은 lint·typecheck·test·build를 두 번 돌렸다. 사용자 지시로 제거했다.
+- **이관한 것 하나**: `upstreamCompatible`(파일 겹침 판정). 영수증이 아니라 `delivery-admit.mjs`의 `checkUpstreamOverlap()`이 admit 실행 시점에 직접 계산한다. 이관하지 않았다면 입장 기준 3개 중 1개가 소리 없이 사라졌다.
+- **이관하지 않은 것**: `verify:doc-freshness`·`verify:sukuyo-astronomy`는 `pr-ci.yml`과 완전 중복이라 옮길 것이 없다.
+- **🔴 의도적으로 열어둔 커버리지 갭**(사용자 확정 범위 밖): ⓐ `verify:business-identity`는 레포 전체를 git grep하는데 `business-identity-gate.yml:67` 트리거 paths는 ~12개뿐이다. ⓑ `verify:ai-locale-pipeline`의 `ai-locale-gate.yml:70` paths는 코드 확장자를 덮지만 `.md`/`.css`/이미지 전용 PR은 비켜간다. 둘 다 preflight가 무조건 실행으로 덮고 있던 갭이다. 근본 해소는 두 워크플로를 `pr-ci.yml` guards로 흡수하고 두 가드의 "자기 워크플로 트리거 대조" 불변식(`verify-business-identity.mjs:151-180`, `verify-ai-locale-pipeline.mjs:376-424`)을 다시 쓰는 것 — 살아있는 가드 2개의 재작성이라 별도 PR로 남긴다. 지금 `pr-ci.yml`에 그냥 추가하면 코드 PR마다 2번 실행되어 방금 없앤 중복이 그대로 돌아온다.
+- **대체 안전망**: 룰셋 20666260에 `CI required` aggregate 하나를 required status check로 등록한다. strict(최신 base 요구)는 끈 채로 둔다 — 켜면 main 전진마다 전 PR 재검증이라 이 문서가 기록한 병목이 되살아난다. 이는 위 「전달 흐름 개정」의 "required check 제거는 사용자 의도" 기록을 **명시적으로 뒤집는 것**이며, 뒤집는 이유는 preflight가 비운 자리를 GitHub 강제가 메우기 때문이다.
 
 ## 2026-09-12 절대 규칙 4 예외 — 미사용 의존성 제거로 `package-lock.json` 변경
 

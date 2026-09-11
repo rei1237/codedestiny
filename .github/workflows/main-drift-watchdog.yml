@@ -61,5 +61,5 @@ jobs:
             echo "- 커밋: \`${GITHUB_SHA}\`"
             echo "- 실패한 step과 로그에서 설치/환경 오류인지 실제 생성 미러 차이인지 먼저 확인할 것."
             echo "- 격리 브랜치에서 \`npm ci\`, \`npm run verify:public-mirror-fresh\`, \`npm run verify:locale-main-sync\` 로 재현할 것."
-            echo "- 실제 미러 차이일 때만 \`npm run sync:public\` 으로 재생성하고 preflight 통과 후 PR로 수정할 것."
+            echo "- 실제 미러 차이일 때만 \`npm run sync:public\` 으로 재생성하고 PR 로 수정할 것(검증은 PR CI 가 한다)."
           } >> "$GITHUB_STEP_SUMMARY"

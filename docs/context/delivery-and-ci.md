@@ -195,8 +195,8 @@ Pages 와 Worker 가 서로 다른 코드를 가리키는 것이 이 저장소�
 공통 변경 검사 계획을 로컬에서 사용하며, CI는 10개 PR 동안 기존 검사와 새 계획을 비교하는 shadow 모드다. required check와 기존 실행 조건은 유지한다. 실제 범위 축소는 관측에서 누락이 없음을 확인한 별도 변경으로 한다. 시작 명령은 check:fast이며 위험 변경은 자동 승격한다. 기존 check:quick --skip-build 호환과 CI Pages 빌드 근거를 보존한다. 전체 incremental typecheck는 실행당 한 번이다. 동시 편집 때문에 모든 수정은 워크트리에서 수행한다. 노력 수준은 위험도에 맞추며 과거 전역 high 지시는 적용하지 않는다.
 
 ## 2026-09-12 전달 흐름 개정 (아래 2026-09-08·09-10 절보다 우선)
-기본 흐름은 `ci:preflight` → commit → push → Ready PR → PR CI 통과 확인에서 끝난다. **머지는 사용자가 한다** — 에이전트는 머지 가능 상태와 안전한 순서만 보고하고 `gh pr merge`를 실행하지 않는다. 아래 절의 "에이전트가 머지"·"스테이징 후속 감시" 문구는 이 절로 대체됐다.
-- 입장 기준: 필수 CI(룰셋에 필수 검사가 없으면 보고된 PR 체크 전체 + `CI required` 집계), `git merge-tree --write-tree` 무충돌, merge-base 이후 main이 같은 파일을 건드리지 않음(파일 겹침). **최신 main 포함은 요구하지 않는다** — `delivery-admit.mjs`는 뒤처진 커밋 수를 정보로만 표시하고, `ci-preflight.mjs`는 조상 검사 대신 probe merge-tree + `checkUpstream`으로 판정한다.
+기본 흐름은 코드 수정 → targeted 검사(`check:fast`) → commit → push → Ready PR → PR CI 통과 확인에서 끝난다. 로컬 전체 preflight는 폐기했다(아래 「전달 흐름과 위험 영역 검증」). **머지는 사용자가 한다** — 에이전트는 머지 가능 상태와 안전한 순서만 보고하고 `gh pr merge`를 실행하지 않는다. 아래 절의 "에이전트가 머지"·"스테이징 후속 감시" 문구는 이 절로 대체됐다.
+- 입장 기준: 필수 CI(룰셋에 필수 검사가 없으면 보고된 PR 체크 전체 + `CI required` 집계), `git merge-tree --write-tree` 무충돌, merge-base 이후 main이 같은 파일을 건드리지 않음(파일 겹침). **최신 main 포함은 요구하지 않는다** — `delivery-admit.mjs`는 뒤처진 커밋 수를 정보로만 표시한다. 파일 겹침은 같은 파일의 `checkUpstreamOverlap()`이 admit 실행 시점에 merge-base 기준으로 직접 계산한다 — 2026-09-12 preflight 폐기 전에는 preflight receipt가 이 판정을 들고 있었다.
 - 자동 브랜치 갱신 끔: `pr-branch-sync.yml`은 수동 실행 전용, `landing-watchdog.yml`의 `--update-branches`는 제거(스크립트 수동 옵션만 남음). main push마다 PR CI를 재실행시키던 원인이다.
 - 스테이징 검증은 선택: `npm run verify:staging -- --sha=<40자리 SHA>`(= `delivery:verify-batch`), 릴리스 전 `npm run verify:release`(= `deploy:critical`). 사용자 요청·배포 인프라 변경·운영 릴리스 전·대형 결제/로그인 변경·라우팅 변경·스테이징 전용 버그 때만 실행한다. 일상 머지 뒤 스테이징 URL·배포 상태·SHA를 폴링하지 않는다.
 - ⚠️ 2026-09-12 실측: 룰셋 20666260에 required status check 규칙이 없다(사용자가 의도적으로 제거 — 복구를 권하지 않는다). GitHub가 빨간 CI PR의 머지를 막지 않으므로, 머지 가능 보고 전에 PR 체크 전체 통과를 확인하는 것이 에이전트 몫이다(`delivery:admit`이 전체 체크를 본다).
@@ -206,40 +206,42 @@ PR 생성 후 필수 검사와 최신 base 충돌을 확인하고 에이전트�
 
 2026-09-08 사용자 추가 지시: 수정 시작 시 워크트리를 자동 생성한다. PR 머지 뒤 스테이징 배포는 비동기로 감시하며, 스테이징 SHA·정상 응답 확인을 다음 작업 시작·다음 PR 머지·새 워크트리 준비의 선행 조건으로 삼지 않는다. 해당 작업의 clean 워크트리는 PR 전달이 끝난 뒤 제거한다. 삭제 전 절대 경로와 미커밋 상태를 확인하고 의존성 정션은 대상이 아닌 링크만 먼저 제거한다. 다른 작업의 워크트리·공유 의존성은 보존한다. 운영 승격은 별도 명시적 승인 때만 수행한다.
 
-## PR preflight와 순차 전달
+## 전달 흐름과 위험 영역 검증
 
-- 작업 중 빠른 피드백은 `npm run check:fast`; PR 전 필수 검사는 `npm run ci:preflight`다. `--plan`은 검사 성공이 아니다. 실패한 상태에서는 Draft를 포함해 PR을 새로 만들지 않는다.
-- preflight는 별도 임시 index와 격리 체크아웃에서 현재 수정본을 검사한다. 사용자의 index·브랜치·미커밋 파일을 변경하지 않는다. CI YAML의 명령을 사용하며 tier에 필요한 Pages/Worker build와 산출물 검사까지 실행한다. LLM·PG·DB 외부 호출은 차단한다.
-- 통과 → 변경 파일만 commit → main 최신성 확인 → push → `npm run pr:create -- --title "..." --body-file ...`. 생성기는 검증한 tree/main SHA와 현재 상태가 다르면 거부한다. 직접 GitHub UI/CLI로 만드는 PR을 서버가 사전에 차단할 수는 없으므로 AI는 이 진입점을 사용한다. GitHub 필수 검사는 별도로 유지한다.
+- **로컬 전체 preflight는 2026-09-12에 폐기했다**(`ci-preflight.mjs`·`ci-preflight-plan.mjs` 삭제, git 히스토리 참조). 그 스크립트는 `pr-ci.yml`을 js-yaml로 파싱해 `fast`/`guards`/`build`/`critical` 잡의 명령을 로컬 격리 체크아웃에서 그대로 재현하는 **CI 복제본**이었다. 설계상 중복이었고 실제로도 PR마다 같은 lint·typecheck·test·build가 로컬에서 한 번, GitHub에서 또 한 번 돌았다. **유일한 공식 검증 게이트는 GitHub CI다.**
+- 기본 흐름: 코드 수정 → 관련 targeted 검사 → 변경 파일만 commit → push → `npm run pr:create -- --title "..." --body-file ...` → PR CI 통과 확인. 머지는 사용자가 한다. CI가 통과하고 PR이 merge되면 그 작업은 완료다 — staging 배포 완료를 기다리거나 staging URL을 확인하지 않는다.
+- targeted 검사는 `npm run check:fast` 하나다. 위험 영역(결제·인증·DB 마이그레이션·Cloudflare 배포 설정·운영 라우팅)은 `scripts/lib/change-risk.mjs`가 deepRequired/high로 판정하고 `scripts/lib/verification-plan.mjs`가 `check:critical` 계약 전체 + `test:jest`까지 자동 승격한다. **위험 영역 전용 새 명령을 만들지 않는다.** Cloudflare 배포 설정만 `npm run check:worker`로 worker 빌드를 명시 강제한다.
+- `npm run check:all`은 pr-ci의 guards+critical을 로컬에서 재현한다. **일상 흐름에서 쓰지 않는다** — 되살리면 방금 없앤 중복 그대로다. 수동 조사용으로만 남긴다.
+- `npm run pr:create`(`scripts/pr-create.mjs`)는 CI가 구조적으로 잡을 수 없는 세 가지만 막는다: 미커밋 변경, 미푸시 커밋, `--head`/`--base`/`--repo` 오버라이드. 직접 GitHub UI/CLI로 만드는 PR을 서버가 사전에 차단할 수는 없으므로 AI는 이 진입점을 사용한다.
 - 여러 PR은 전체 파일 diff·공통 코드·선행 기능·migration·CI·main 기준을 먼저 조사해 순서를 정한다. 번호순 머지를 하지 않는다. 기반 공통 코드 → 소비자 순으로 통합하되 미완성 Draft는 보존한다. 활성 worktree 중첩은 권고 진단으로만 남기며, `delivery:admit`에서 전체 worktree를 동기 스캔하지 않는다.
 - 저위험·비중첩 PR은 최대 4개까지 `npm run delivery:batch-plan -- --prs=123,124`로 배치 계획을 만든 뒤 연속 머지할 수 있다. 배치 계획은 최신 `origin/main`의 깨끗한 제어용 linked worktree에서 실행하며 PR 상태·필수 CI·파일 중첩을 확인한다. Worker·결제·인증·라우팅·테스트·공통 정적 셸·생성 미러·사이트맵 ledger 변경은 단독 배치로 판정한다.
 - `delivery:batch-plan`이 통과한 다중 PR은 배치 입장 증거로 사용하고, 고위험 또는 단독 판정 PR은 기존 `delivery:admit -- --pr=<number>`를 사용한다. 두 명령 모두 merge/push/checkout을 수행하지 않는다.
 - 배치 머지 중에도 `main` push마다 최신 main 기준 스테이징 배포가 비동기로 예약된다. 배치 계획을 통과한 경우에는 배치의 마지막 merge SHA를 기준으로 Pages·Worker 도달과 정상 응답을 **후속 감시로** 확인한다. 이 확인은 다음 작업·PR·머지를 막지 않으며, 릴리스 실패·취소·SHA 불일치는 별도 전달·재조정 대상으로 남긴다.
 - PR CI는 변경 경로 기반으로 불필요한 러너를 줄인다. Markdown-only PR은 classify에서 문서 신선도만 실행하고 fast(typecheck·lint)를 skip하며, `docs/context`, `docs/handoff`, `docs/dev` 계약 문서는 정적 가드를 추가로 실행한다. 코드·설정·생성물·테스트가 섞이면 기존 fast/build/critical 티어 판정을 유지한다. `CI required` aggregate는 실행된 lane의 성공과 판정된 skip만 허용하고 실패·취소는 차단한다.
 - 안전한 작업은 후보 clean 상태·최신 main·`git merge-tree --write-tree`·필수 CI·GitHub 병합 가능·선행 PR 조건을 모두 충족하면 `delivery:admit` 후 SHA를 지정해 연속 merge한다. 활성 worktree 중첩은 이 입장 경로를 막지 않으며, 필요할 때만 `npm run worktree:status`로 조사한다. 마지막 SHA의 staging Pages/Worker SHA·정상 응답은 비동기 후속 검증으로 확인하며, 그 결과를 기다려 다음 작업을 시작하지 않는다. 프로덕션 승격은 별도 1회 승인이 필요하다. --admin·보호 해제·실패 무시·destructive force push는 금지한다.
-- 매 merge 후 fetch하고 남은 PR의 새 main 호환성을 확인한다. 겹치거나 기반이 필요한 브랜치만 merge-main/rebase 후 동일 preflight와 GitHub CI를 재실행한다. 타 작업의 미커밋/locked worktree를 수정하지 않는다.
-- CI 실패는 job/log → 원인 분류 → 로컬 재현·수정 → preflight → commit/push → 최신 head CI 확인까지 해결한다. 기존 실패를 성공으로 바꾸거나 rerun으로 숨기지 않는다.
+- 매 merge 후 fetch하고 남은 PR의 새 main 호환성을 확인한다. 겹치거나 기반이 필요한 브랜치만 merge-main/rebase 후 push해 GitHub CI를 다시 받는다. 타 작업의 미커밋/locked worktree를 수정하지 않는다.
+- CI 실패는 job/log → 원인 분류 → **실패한 검사만** 로컬 재현·수정 → commit/push → 최신 head CI 확인까지 해결한다. 전체 검사를 로컬에서 다시 돌리지 않는다. 기존 실패를 성공으로 바꾸거나 rerun으로 숨기지 않는다.
 - 독립 기능은 독립 PR. 강한 의존 관계는 함께 묶고 UI·인프라는 가능한 분리한다. 범위 밖 수정·대규모 formatter·불필요한 lockfile 변경을 금지한다.
 
 ## 2026-09-10 상시 연속 머지 정책 (역사 — 2026-09-12 개정으로 대체)
 
 main push는 짧은 디스패처만 실행하고 실제 스테이징 배포·검증은 별도 직렬 실행으로 비동기 처리한다. 이미 진행 중인 배포는 취소하지 않고 아직 배포하지 않은 낡은 staging 실행은 최신 main에 양보한다. 머지 주체·입장 기준·스테이징 검증 시점은 위 2026-09-12 절을 따른다.
 
-## 2026-09-11 `ci-preflight.mjs` 재사용 조건을 파일 겹침 기준으로 완화
+## 2026-09-11 `ci-preflight.mjs` 재사용 조건을 파일 겹침 기준으로 완화 (역사 — 2026-09-12 preflight 폐기로 대체)
 
 `ci-preflight.mjs`의 receipt 재사용(`--verify-receipt`)과 PR 생성(`--create-pr`)은 과거 "receipt.base가 방금 fetch한 origin/main과 SHA까지 완전히 같아야 함"을 요구했다. 이 저장소는 개인 계정 소유라 GitHub Merge Queue를 쓸 수 없고 `strict_required_status_checks_policy: false`다 — 즉 GitHub 자신도 "PR 브랜치가 최신 main을 포함해야 머지 가능"을 강제하지 않으며, `delivery-admit.mjs`의 `mergeable`/`mergeStateStatus` 확인은 git 트리 충돌 여부만 본다. 로컬 규칙만 이보다 엄격했던 것이라, main이 이번 PR과 무관한 파일만 전진해도 최대 30분짜리 전체 검증을 처음부터 다시 요구하는 병목이 있었다.
 
 지금은 `upstreamCompatible`/`checkUpstream`(`ci-preflight.mjs`)이 "receipt.base가 최신 main의 조상이고, 그 사이 upstream이 건드린 파일이 이번 후보가 건드린 파일과 하나도 겹치지 않을 때"만 재사용을 허용한다. main이 rebase/force-push로 재작성돼 조상 관계 자체가 깨지면(`ancestor: false`) 항상 차단한다(fail-closed 유지). receipt에는 이제 `files` 필드가 함께 기록되어 재사용 시점에 재계산 없이 그대로 쓰인다. `--create-pr`의 "branch가 최신 main을 이미 포함해야 함" 요구(과거 `merge-base --is-ancestor base HEAD`)는 이 완화의 대상 그 자체이므로 제거했다 — receipt.base가 애초에 HEAD의 조상이라는 사실은 최초 preflight 실행 시점에 이미 확인된다. 검증 루프 진행 중 origin/main이 전진하는 경우(`assertBase`)와 종료 직후 최종 확인도 동일한 `checkUpstream`으로 판정하며, 통과 시 그 시점의 `base`를 갱신해 이후 판정 기준으로 삼는다.
 
-잔여 위험(재사용 완화): 파일명이 겹치지 않아도 의미론적 의존성(예: 다른 파일의 export 시그니처 변경)은 이 검사로 잡히지 않는다. 이는 새로운 위험이 아니라 GitHub Merge Queue 미제공·strict 비활성으로 현재도 감수 중인 위험과 같은 선상이다. (2026-09-12 갱신) `delivery-admit.mjs`의 "최신 main 반영" 게이트와 plain 실행 시작 시 조상 검사(`ci-preflight.mjs`)도 제거했다 — 둘 다 merge-tree 충돌 + 파일 겹침 판정으로 대체됐다(위 2026-09-12 절).
+잔여 위험(재사용 완화): 파일명이 겹치지 않아도 의미론적 의존성(예: 다른 파일의 export 시그니처 변경)은 이 검사로 잡히지 않는다. 이는 새로운 위험이 아니라 GitHub Merge Queue 미제공·strict 비활성으로 현재도 감수 중인 위험과 같은 선상이다. (2026-09-12 갱신) `delivery-admit.mjs`의 "최신 main 반영" 게이트와 plain 실행 시작 시 조상 검사(`ci-preflight.mjs`)도 제거했다 — 둘 다 merge-tree 충돌 + 파일 겹침 판정으로 대체됐다(위 2026-09-12 절). (2026-09-12 폐기) `ci-preflight.mjs` 자체를 삭제했다. 여기서 만든 `upstreamCompatible` 판정만 `delivery-admit.mjs`로 옮겨 살아남았고, receipt·격리 체크아웃·CI YAML 재현은 전부 사라졌다.
 
 ## 2026-09-11 캐시버스트 false CONFLICTING 자동 복구
 
 `.gitattributes`의 `merge=cachebust` 경로(정적 셸·로케일 미러·로더 JS 등 21개)는 로컬 merge driver(`scripts/git/cachebust-merge-driver.mjs`)가 `?v=build-<hash>`를 정규화한 뒤 3-way 병합한다. **GitHub의 서버측 PR 병합 가능 계산(`gh pr view --json mergeable,mergeStateStatus`)은 이 로컬 driver를 절대 실행하지 않는다 — 플랫폼 제약이고 우리가 고칠 수 있는 버그가 아니다.** 그래서 `origin/main`이 이 파일들을 한 번만 건드려도 내용 차이가 0인 PR까지 전부 `mergeable=CONFLICTING`으로 보인다. 지금까지 해결책은 항상 사람이 하는 "로컬 리베이스 + force-push"였고(과거 인시던트 핸드오프 5건), 그 사이 10~30분짜리 `ci:preflight`가 통째로 무효화되는 병목이 있었다.
 
-- **`scripts/delivery-admit.mjs`**: `mergeable === "CONFLICTING"`이고 base=main·Ready·로컬 head 일치일 때만 **딱 한 번** 자동 복구를 시도한다. driver 등록(`setup-git-merge-drivers.mjs` 재사용) → `origin/main` fetch → **일회용 detached worktree**(`.admit-recovery-<8hex>`, `ci-preflight.mjs`의 스냅샷 패턴과 동일하게 `finally`에서 제거) 안에서 `git rebase origin/main` → 종료 코드뿐 아니라 `git status --porcelain`의 충돌 표식(UU/AA 등)과 트리 clean까지 확인 → PR head 브랜치 하나에만 `--force-with-lease` push → `gh pr view` 재조회 값으로 판정한다.
+- **`scripts/delivery-admit.mjs`**: `mergeable === "CONFLICTING"`이고 base=main·Ready·로컬 head 일치일 때만 **딱 한 번** 자동 복구를 시도한다. driver 등록(`setup-git-merge-drivers.mjs` 재사용) → `origin/main` fetch → **일회용 detached worktree**(`.admit-recovery-<8hex>`, `finally`에서 제거) 안에서 `git rebase origin/main` → 종료 코드뿐 아니라 `git status --porcelain`의 충돌 표식(UU/AA 등)과 트리 clean까지 확인 → PR head 브랜치 하나에만 `--force-with-lease` push → `gh pr view` 재조회 값으로 판정한다.
 - **실제 충돌은 예전과 똑같이 차단된다.** 해시를 걷어내고도 충돌이 남으면 즉시 `git rebase --abort`, 일회용 worktree 제거, 복구 이전 `mergeable` 값 그대로 BLOCK한다. 복구 자체가 실패하거나(네트워크·권한·예상 밖 git 상태) 예외를 던져도 원래 값으로 되돌아간다 — 새 경로의 버그가 admission을 통과시키는 일은 없다. 이 변경은 **가용성 수정이지 엄격함의 완화가 아니다**.
-- **로컬 브랜치는 건드리지 않는다.** 복구가 성공하면 원격 head만 앞서므로 "후보와 PR head 일치"가 정직하게 BLOCK된다. 운영자는 `git fetch && git reset --hard origin/<branch>` 후 preflight를 다시 돌린다. 자동화되는 것은 사람이 손으로 하던 리베이스·force-push 한 번이다. 끄려면 `npm run delivery:admit -- --pr=<n> --no-recovery`.
+- **로컬 브랜치는 건드리지 않는다.** 복구가 성공하면 원격 head만 앞서므로 "후보와 PR head 일치"가 정직하게 BLOCK된다. 운영자는 `git fetch && git reset --hard origin/<branch>`로 로컬을 맞추고 PR CI 결과를 다시 확인한다. 자동화되는 것은 사람이 손으로 하던 리베이스·force-push 한 번이다. 끄려면 `npm run delivery:admit -- --pr=<n> --no-recovery`.
 - **push 안전장치**: push 인자는 `cachebustForcePushArgs()` 한 곳에서만 만들고 `main`·`refs/*`·`HEAD`·비정상 브랜치명·비정상 SHA를 전부 거부한다. bare `--force`는 쓰지 않는다.
-- **`scripts/ci-preflight.mjs`**: `main()` 첫 줄에서 `setup-git-merge-drivers.mjs`를 방어적으로 재실행한다(idempotent). `node_modules`를 정션으로 빌려 쓰는 격리 워크트리는 npm의 `prepare`가 한 번도 돈 적이 없어 driver 등록이 통째로 빠질 수 있다. 등록 실패는 경고만 남기고 preflight를 막지 않는다(실패 시 동작은 오늘과 동일).
+- **driver 등록 시점**: `node_modules`를 정션으로 빌려 쓰는 격리 워크트리는 npm의 `prepare`가 한 번도 돈 적이 없어 merge driver 등록이 통째로 빠질 수 있다. 그래서 복구 경로가 `setup-git-merge-drivers.mjs`를 스스로 다시 실행한다(idempotent). 등록에 실패하면 복구를 중단하고 원래 판정을 그대로 쓴다. (2026-09-12: 같은 방어를 preflight도 하고 있었으나 그 스크립트는 삭제됐다.)
 - **회귀 가드**: `__tests__/ui/delivery-continuous-merge.test.mjs`가 실제 scratch 저장소를 만들어 (1) 해시만 다른 경우 복구 성공 (2) 진짜 내용 충돌은 `reason=conflict`로 차단하고 리베이스를 취소 (3) push 인자가 PR head 브랜치 하나뿐임을 검사한다. 변이 확인 완료: 충돌 검사를 지우면 (2)가, 정규화를 지우면 (1)이 실패한다.

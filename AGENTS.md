@@ -23,7 +23,7 @@ Code Destiny는 한국어 운세·상담 서비스다. 한국어로 보고한다
 
 Ignore snapshot, archive, and one-off audit paths unless the user explicitly asks for them: `.claude/worktrees/**`, `.codex-worktrees/**`, `.cleanup/**`, `reports/**`. 현재 편집하는 격리 워크트리는 제외하지 않는다.
 
-PR 전 `npm run ci:preflight` 통과는 필수다. 실패하면 PR을 생성하지 않는다. 검증 증거를 확인하는 `npm run pr:create`를 사용한다. PR CI 통과를 확인하면 전달이 끝난다. 머지는 사용자가 하며, 머지 가능 상태·안전한 순서만 보고한다. 스테이징 검증은 선택이다 — 조건과 명령은 [CLAUDE.md](CLAUDE.md)의 2026-09-12 전달 흐름 절, 세부 규칙은 [PR preflight와 순차 전달](docs/context/delivery-and-ci.md#pr-preflight와-순차-전달)을 따른다.
+로컬 전체 preflight는 폐기했다(2026-09-12). **유일한 공식 검증 게이트는 GitHub CI다.** 기본 흐름은 코드 수정 → 관련 targeted 검사(`npm run check:fast`) → commit → push → `npm run pr:create` → PR CI 통과 확인이다. PR 생성 전에 전체 lint/typecheck/test/build를 로컬에서 반복하지 않는다. 머지는 사용자가 하며, 머지 가능 상태·안전한 순서만 보고한다. 스테이징 검증은 선택이다 — 조건과 명령은 [CLAUDE.md](CLAUDE.md)의 2026-09-12 전달 흐름 절, 세부 규칙은 [전달 흐름과 위험 영역 검증](docs/context/delivery-and-ci.md#전달-흐름과-위험-영역-검증)을 따른다.
 
 Do not wait for or manually verify staging deployment after every PR merge. Once CI passes and the PR is merged, continue to the next task. Verify staging only when explicitly requested, when deployment infrastructure changed, or during a final batch/release verification.
 Do not poll staging URLs, deployment status, commit SHA, or freshness markers after routine merges.
