@@ -8,7 +8,14 @@ next: PR 머지 후 남은 결함 1(해시 진입 시 홈 사라짐)을 0d805da8
 
 - 브랜치: `worktree-home-finder-disclosure-music` (base `origin/main` 73cfd6e07)
 - PR: #1919 (https://github.com/rei1237/codedestiny/pull/1919)
-- 상태: Ready PR. 사용자 요청(2026-09-11)으로 필수 CI·delivery:admit 통과 시 머지 → staging 자동 배포. 운영 승격은 별도 승인.
+- 상태: #1919 머지(25c8ee704). 운영 승격은 별도 승인.
+- 후속 PR(브랜치 `fix/home-guide-note-center`): 홈 하단 `.cd-home-guide__note` 두 문단이 데스크톱에서 왼쪽으로 붙던 문제 수정. `styles/home-funnel.css`의 `.cdh p{margin:0}`(0,1,1)이 `.cd-home-guide__note{margin:0 auto …}`(0,1,0)를 덮은 게 원인이다. `index.html`에 `.cd-home-guide__inner>.cd-home-guide__note{margin:0 auto clamp(20px,3.5vw,28px)}`를 추가했다. 1440 실측 결과 x=480·w=481로 중심 720이 뷰포트 중심과 같다(수정 전 x=230). 390에서는 변화가 없다(부모 폭 그대로).
+- 같은 후속 PR, 사용자 요청(2026-09-11) "이미지 참조가 잘못된 게 많으니 공통 이미지 하나로 통일, 구버전 달빛 이용권 이미지 삭제": 아래 "한 일 3"을 되돌렸다.
+  - `js/core/service-registry.js`의 `SERVICE_MEDIA_BY_ID`와 `/feature-details/assets/<id>-480.webp` 파생 규칙을 삭제했다. 이제 카드는 모두 `home-service-finder.js` `DEFAULT_SERVICE_IMAGE`(꿀꿀 운세 로고)를 쓴다.
+  - verify는 항목별 image가 있으면 실패하고, 공통 이미지 파일이 없어도 실패한다. 변이 테스트로 실패하는 것을 확인했다.
+  - `points` 카드가 참조하던 `public/fuctionassets/membership-honey-kkulkkul.webp` 파일을 삭제했다. index.html `data-retired-asset`에 폐기 자산으로 표시돼 있던 파일이다. `verify-billing-pass-policy`는 index.html에 파일명 문자열이 있는지만 검사하며, 이 문자열은 retired 표시에 그대로 남아 있어 통과한다. docs 인벤토리 JSON 두 개는 과거 스냅샷이라 손대지 않았다.
+  - 남은 폐기 자산: `public/icons/code-destiny-moonlight-pass.webp`. 런타임 참조가 없고 이번에 삭제하지 않았다.
+- staging 배포: 25c8ee704 첫 두 번이 smoke 에서 실패하고 롤백됐다. 34563932562는 `i18n/ko.json` 500 ×3, 34564930201은 googletagmanager `ERR_BLOCKED_BY_ORB` ×5로, 매번 다른 외부·환경 잡음이었다. 세 번째 34566096025가 성공했고, `delivery:verify-batch` 결과 Pages·Worker 모두 25c8ee704로 PASS다.
 
 ## 한 일
 1. **접기/펼치기** — 새 토글을 만들지 않고, `56932bb53`의 `<details id="cdhFinderDisclosure">`를 되살렸다. #1912(`3a3e7c433`)가 마크업·CSS만 지웠고 JS 훅(`js/core/home-funnel.js` toggle 이벤트, `js/core/home-service-finder.js` `boot()` 지연 마운트)은 살아 있었다. 기본 상태는 접힘(사용자 확정).
