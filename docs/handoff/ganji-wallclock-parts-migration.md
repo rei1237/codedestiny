@@ -1052,11 +1052,13 @@ KASI 갈래를 안 탄다. `_VALIDATED_SOLAR_TERMS_BY_YEAR`·`KASI_KNOWN_ERRATA`
 12:00·0:20 뿐이라 **23시대가 한 건도 없고**, `verify-sukuyo-korean-calendar` 의 `CONSUMERS` 10벌은
 전부 `lib/`·`worker/`·`app/` 이라 셸은 실행 대상이 아니었다.
 
-✅ **검사 ⑥ 이 그 저울이다**(2026-08-28). 셸 소비자 7벌을 브라우저와 같은 로드 체인에서 실제로
-돌리고(자식 프로세스 `scripts/lib/sukuyo-shell-probe.cjs`), 현행을
-`scripts/fixtures/sukuyo-shell-axis.json` 에 박는다 — **대조군 갈래 1 · 23시대 갈래 2** 가 계약이다.
-통일하는 PR 이 그 숫자를 1 로 바꾸고, 그 diff 가 곧 변화량이다.
-상세: [scripts/fixtures/README-sukuyo-shell-axis.md](../../scripts/fixtures/README-sukuyo-shell-axis.md)
+✅ **검사 ⑥ 이 그 저울이다**(2026-08-28, 지금은 폐기). 당시 셸 소비자 7벌을 브라우저와 같은
+로드 체인에서 실제로 돌리고(자식 프로세스 `scripts/lib/sukuyo-shell-probe.cjs`), 현행을
+`scripts/fixtures/sukuyo-shell-axis.json` 에 박아 **대조군 갈래 1 · 23시대 갈래 2** 를 계약으로 삼았다.
+통일하는 PR 이 그 숫자를 1 로 바꾸는 것이 목표였다.
+🔴 PR #1921(2026-09-11 숙요 정밀 코어 통일) 이후 이 probe·fixture 를 호출하는 곳이 사라졌고
+(`verify-sukuyo-korean-calendar.mjs` 재작성본에 배선 없음), 2026-09-12 삭제 안전성 확인(소스·테스트·
+verify 3면 grep 0건) 후 세 파일 모두 삭제됨. 위 갈래 수치는 삭제 시점 기록으로만 남긴다.
 
 ### 🔴 (결정 완료) §6-4 야자시 의미 결정 — 근거 실측
 
