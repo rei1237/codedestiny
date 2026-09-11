@@ -165,13 +165,9 @@ body.neo-mode .tile-pvw-bd {
   transform: translateX(-50%);
 }
 
-.tile-pvw-premium-block {
-  display: none;
-}
-
-.tile-pvw-premium-block.is-marketing-detail {
-  display: block;
-}
+/* 혜택 블록(#tilePvwPremiumBlock)의 표시 여부는 _open 이 인라인 display 로 직접 정한다.
+ * 예전에는 여기서 기본 숨김 + .is-marketing-detail 로만 보이게 했는데, 그 클래스를 붙이던
+ * 네이비 전용 분기를 걷어냈으므로 CSS 가 다시 숨기면 가격 영역의 혜택 목록이 사라진다. */
 
 .cd-detail-visual::after,
 .tile-pvw-hero-gradient {
@@ -414,6 +410,17 @@ body.neo-mode .tile-pvw-bd {
   content: counter(pvw-step);
   font-size: 0.72rem;
   font-weight: 900;
+}
+
+/* 🔴 세로 한 글자 줄바꿈의 근본 원인 고정.
+ * li 는 [번호 28px | 본문] 2열 그리드다. 예전에는 제목(b)과 설명(span)이 li 의 직계 자식이라
+ * ::before 까지 그리드 아이템이 3개였고, 설명 span 이 자동 배치로 2행 1열(28px 칸)에 떨어졌다.
+ * 거기에 overflow-wrap:anywhere 가 겹쳐 한국어가 한두 글자마다 꺾였다.
+ * 이제 _fillPairs 가 제목·설명을 .tile-pvw-step-body 하나로 감싸고(아이템 2개), CSS 도 본문을
+ * 2열에 못 박아 마크업이 다시 흩어져도 좁은 칸으로 떨어지지 않게 한다. */
+.tile-pvw-step-body {
+  grid-column: 2;
+  min-width: 0;
 }
 
 .cd-detail-step-title,
@@ -706,7 +713,7 @@ body.neo-mode .tile-pvw-cta-btn {
  * surface so the same content has one predictable hierarchy at every width. */
 @media (max-width: 859px) {
   html:not(.neo-mode) .tile-pvw-sheet {
-    background: linear-gradient(145deg, #fffaf7, #fff3f8) !important;
+    background: #fffaf7 !important;
     border-color: rgba(179, 25, 85, 0.2) !important;
     color: #3c1830 !important;
   }
@@ -834,14 +841,15 @@ body.neo-mode .tile-pvw-overlay:not(.pvw-visual) .tile-pvw-cta-note {
  * behavior. These declarations make that marker use the same panel contract,
  * instead of reviving the older full-screen grid and sticky-content rules. */
 @media (min-width: 860px) {
+  /* 상세창은 히어로·본문이 한 스크롤 안에 있는 한 단 문서다(아래 premium 블록). 2단 그리드로 두면
+   * 칼럼이 2열에 놓이고 1열이 빈 채 남는다. */
   .tile-pvw-overlay.pvw-prem .tile-pvw-sheet {
-    display: grid;
-    grid-template-columns: minmax(280px, 0.86fr) minmax(360px, 1.14fr);
-    grid-template-rows: minmax(0, 1fr);
-    width: min(960px, calc(100vw - 32px));
-    min-height: min(560px, calc(100dvh - 32px));
-    max-height: min(88dvh, 840px);
-    border-radius: 26px;
+    display: flex;
+    flex-direction: column;
+    width: min(720px, calc(100vw - 32px));
+    min-height: 0;
+    max-height: min(90dvh, 900px);
+    border-radius: 22px;
     overflow: hidden;
   }
 
@@ -881,5 +889,790 @@ body.neo-mode .tile-pvw-overlay:not(.pvw-visual) .tile-pvw-cta-note {
     grid-row: auto;
     flex: 0 0 auto;
     margin: 0 !important;
+  }
+}
+
+/* ------------------------------------------------------------------------
+ * 상세창 프리미엄 문서 (feature-marketing-premium-v20260911)
+ *
+ * 타일 상세창(#tilePvwOverlay)만의 레이아웃·토큰이다. 허브 모달(cd-detail-*)과 카탈로그
+ * 비주얼 모드(.pvw-visual)는 자기 기하를 유지하도록 이 블록에서 제외한다.
+ * 원칙: 박스를 쌓지 않고 여백과 얇은 선으로 나눈다. 금색은 선·점·번호 같은 포인트에만,
+ * 버건디는 제목과 행동(CTA)에만 쓴다. 그라데이션·글로우·두꺼운 그림자는 쓰지 않는다.
+ * 본문은 15~16px / 줄간격 1.7 안팎, 한국어는 keep-all 로 어절 단위로만 줄을 바꾼다.
+ * ---------------------------------------------------------------------- */
+.tile-pvw-overlay {
+  /* 글자 크기의 기준. 🔴 셸은 모바일에서 html{font-size:14px} 로 루트를 낮춘다(index.html 등 7곳).
+     rem 을 그대로 쓰면 이 상세창 본문만 13px 대로 줄어 "본문 15~16px" 기준을 못 지킨다.
+     그래서 이 블록의 크기는 전부 이 토큰의 배수로 적는다. */
+  --pvw-rem: 16px;
+  --pvw-bg: #fffaf7;
+  --pvw-paper: #fffdfb;
+  --pvw-blush: #fbeef1;
+  --pvw-blush-line: #f0cfd9;
+  --pvw-wine: #6b1f3a;
+  --pvw-wine-hover: #561830;
+  --pvw-on-wine: #fffaf7;
+  --pvw-ink: #3c1830;
+  --pvw-ink-soft: #70445c;
+  --pvw-gold: #b8904a;
+  --pvw-gold-ink: #87601f;
+  --pvw-line: rgba(107, 31, 58, 0.12);
+  --pvw-gold-line: rgba(184, 144, 74, 0.45);
+  --pvw-serif: "CodeDestinySerifLatin", "CodeDestinySerifKR", "Nanum Myeongjo", "Gowun Batang", var(--font-body, serif);
+}
+
+html.neo-mode .tile-pvw-overlay,
+body.neo-mode .tile-pvw-overlay {
+  --pvw-bg: #0f0c26;
+  --pvw-paper: #151133;
+  --pvw-blush: rgba(196, 181, 253, 0.08);
+  --pvw-blush-line: rgba(196, 181, 253, 0.22);
+  --pvw-wine: #c4b5fd;
+  --pvw-wine-hover: #d6cbff;
+  --pvw-on-wine: #0d0a22;
+  --pvw-ink: #f4eeff;
+  --pvw-ink-soft: #c8b8e6;
+  --pvw-gold: #e8d5a3;
+  --pvw-gold-ink: #e8d5a3;
+  --pvw-line: rgba(196, 181, 253, 0.16);
+  --pvw-gold-line: rgba(232, 213, 163, 0.36);
+}
+
+/* 한 단 대화상자: 데스크톱 720px, 히어로와 본문이 한 스크롤, CTA 는 바닥 고정. */
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-sheet {
+  display: flex;
+  flex-direction: column;
+  width: min(720px, calc(100vw - 32px));
+  min-height: 0;
+  max-height: min(90dvh, 900px);
+  border: 1px solid var(--pvw-line);
+  border-radius: 22px;
+  background: var(--pvw-bg);
+  color: var(--pvw-ink);
+  box-shadow: 0 16px 48px rgba(45, 17, 38, 0.18);
+}
+
+.tile-pvw-overlay .tile-pvw-column {
+  grid-column: auto;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-hero {
+  /* 폭을 명시하지 않으면 max-height 가 aspect-ratio 를 타고 폭까지 줄인다(데스크톱 462px). */
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  max-height: 260px;
+  background: var(--pvw-blush);
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-hero-gradient {
+  background: linear-gradient(180deg, transparent 58%, rgba(45, 17, 38, 0.24));
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-hero-cat,
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-hero-cost {
+  border-color: var(--pvw-gold-line);
+  background: color-mix(in srgb, var(--pvw-bg) 92%, transparent);
+  color: var(--pvw-wine);
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-handle {
+  background: color-mix(in srgb, var(--pvw-bg) 78%, transparent);
+}
+
+/* 닫기 버튼은 스크롤 영역 밖 시트 상단 줄에 둔다. absolute 로 두면 스크롤되는 본문을 덮는다. */
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-sheet > .tile-pvw-close {
+  position: relative;
+  inset: auto;
+  z-index: 5;
+  flex: 0 0 auto;
+  align-self: flex-end;
+  margin: 10px 12px 6px 0;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  width: 44px;
+  height: 44px;
+  border-color: var(--pvw-line);
+  background: var(--pvw-bg);
+  color: var(--pvw-ink);
+  font-size: var(--pvw-rem);
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-content {
+  padding: 34px 40px 36px;
+  color: var(--pvw-ink);
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-content > * {
+  max-width: none;
+}
+
+/* HERO 문구 */
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-title {
+  margin: 0;
+  font-family: var(--pvw-serif);
+  font-size: clamp(calc(1.5 * var(--pvw-rem)), calc(1.1 * var(--pvw-rem)) + 1.6vw, calc(1.95 * var(--pvw-rem)));
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.34;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  text-wrap: balance;
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-tagline {
+  margin: 14px 0 0;
+  font-size: var(--pvw-rem);
+  font-weight: 500;
+  line-height: 1.78;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+/* 금색 가는 선 사이의 작은 별 — 히어로와 본문을 가르는 유일한 장식 */
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-divider {
+  display: flex;
+  width: auto;
+  height: auto;
+  align-items: center;
+  gap: 12px;
+  margin: 26px 0 2px;
+  border-radius: 0;
+  background: none;
+  color: var(--pvw-gold);
+  font-size: calc(0.7 * var(--pvw-rem));
+  line-height: 1;
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-divider::before,
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-divider::after {
+  flex: 1 1 auto;
+  height: 1px;
+  background: var(--pvw-gold-line);
+  content: "";
+}
+
+/* 섹션: 상자 대신 여백 + 버건디 제목 + 금색 짧은 선 */
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-sec {
+  margin: 0;
+  padding: 30px 0 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-sec-title {
+  margin: 0 0 14px;
+  color: var(--pvw-wine);
+  font-family: var(--pvw-serif);
+  font-size: calc(1.12 * var(--pvw-rem));
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  line-height: 1.45;
+  word-break: keep-all;
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-sec-title::before {
+  display: inline-block;
+  width: 14px;
+  height: 1px;
+  margin-right: 10px;
+  background: var(--pvw-gold);
+  content: "";
+  vertical-align: 0.34em;
+}
+
+/* 목록 공통: 걸린 들여쓰기(두 번째 줄이 표식 아래로 파고들지 않게) */
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-feats,
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-premium-list {
+  gap: 10px;
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-feats[hidden],
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-steps[hidden],
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-receives[hidden],
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-outline-figure[hidden] {
+  display: none;
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-feats li,
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-premium-list li {
+  position: relative;
+  padding-left: 22px;
+  font-size: calc(0.97 * var(--pvw-rem));
+  line-height: 1.72;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-feats li::before {
+  position: absolute;
+  top: 0.72em;
+  left: 2px;
+  margin: 0;
+  color: var(--pvw-gold);
+  font-size: calc(0.7 * var(--pvw-rem));
+  line-height: 1;
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-premium-list li::before {
+  position: absolute;
+  top: 0.7em;
+  left: 6px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--pvw-gold);
+  content: "";
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-check-list li::before,
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-premium-list.is-deliverables li::before {
+  top: 0;
+  left: 0;
+  width: auto;
+  height: auto;
+  border-radius: 0;
+  background: none;
+  color: var(--pvw-wine);
+  content: "✓";
+  font-weight: 800;
+  line-height: inherit;
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-quote-list {
+  gap: 8px;
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-quote-list li {
+  padding: 11px 14px;
+  border-radius: 12px;
+  background: var(--pvw-blush);
+  font-weight: 600;
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-quote-list li::before {
+  content: none;
+}
+
+/* 내가 받게 되는 것: 아이콘 + 제목 + 한 문장 */
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-receives {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-receive {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+  padding: 16px;
+  border: 1px solid var(--pvw-blush-line);
+  border-radius: 16px;
+  background: var(--pvw-blush);
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-pair-icon {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border: 1px solid var(--pvw-gold-line);
+  border-radius: 50%;
+  background: var(--pvw-bg);
+  font-size: calc(1.15 * var(--pvw-rem));
+  line-height: 1;
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-receive .tile-pvw-step-label,
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-outline-item .tile-pvw-step-label,
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-step .tile-pvw-step-label {
+  display: block;
+  color: var(--pvw-ink);
+  font-size: var(--pvw-rem);
+  font-weight: 750;
+  line-height: 1.6;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-receive .tile-pvw-step-detail,
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-outline-item .tile-pvw-step-detail,
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-step .tile-pvw-step-detail {
+  display: block;
+  margin-top: 4px;
+  color: var(--pvw-ink-soft);
+  font-size: calc(0.94 * var(--pvw-rem));
+  line-height: 1.72;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-scale-chip {
+  border-color: var(--pvw-gold-line);
+  background: var(--pvw-bg);
+  color: var(--pvw-gold-ink);
+  font-size: calc(0.82 * var(--pvw-rem));
+}
+
+/* 결과 화면 구성: 번호 목록 + (있으면) 대표 일러스트 */
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-outline {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: pvw-outline;
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-outline-item {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 10px;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--pvw-line);
+  counter-increment: pvw-outline;
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-outline-item:first-child {
+  padding-top: 0;
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-outline-item:last-child {
+  border-bottom: 0;
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-outline-item::before {
+  color: var(--pvw-gold-ink);
+  content: counter(pvw-outline, decimal-leading-zero);
+  font-family: var(--pvw-serif);
+  font-size: calc(0.95 * var(--pvw-rem));
+  font-weight: 700;
+  line-height: 1.6;
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-outline-figure {
+  margin: 0 0 16px;
+  overflow: hidden;
+  aspect-ratio: 3 / 2;
+  border: 1px solid var(--pvw-line);
+  border-radius: 16px;
+  background: var(--pvw-blush);
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-outline-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-outline-caption {
+  margin: 12px 0 0;
+  color: var(--pvw-ink-soft);
+  font-size: calc(0.9375 * var(--pvw-rem));
+  line-height: 1.6;
+  word-break: keep-all;
+}
+
+@media (min-width: 600px) {
+  .tile-pvw-overlay:not(.pvw-visual) #tilePvwOutlineSec:not([hidden]):has(> .tile-pvw-outline-figure:not([hidden])) {
+    display: grid;
+    grid-template-columns: 200px minmax(0, 1fr);
+    column-gap: 22px;
+    align-items: start;
+  }
+
+  #tilePvwOutlineSec:has(> .tile-pvw-outline-figure:not([hidden])) > .tile-pvw-sec-title,
+  #tilePvwOutlineSec:has(> .tile-pvw-outline-figure:not([hidden])) > .tile-pvw-outline-caption {
+    grid-column: 1 / -1;
+  }
+
+  #tilePvwOutlineSec:has(> .tile-pvw-outline-figure:not([hidden])) > .tile-pvw-outline-figure {
+    grid-column: 1;
+    margin: 2px 0 0;
+  }
+
+  #tilePvwOutlineSec:has(> .tile-pvw-outline-figure:not([hidden])) > .tile-pvw-outline {
+    grid-column: 2;
+  }
+}
+
+/* 어떻게 분석하나요: 금색 점과 가는 세로선으로 이은 STEP 01~ */
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-premium-intro {
+  margin: 0 0 18px;
+  font-size: calc(0.97 * var(--pvw-rem));
+  line-height: 1.75;
+  word-break: keep-all;
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-steps {
+  gap: 0;
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-step {
+  position: relative;
+  grid-template-columns: 16px minmax(0, 1fr);
+  gap: 14px;
+  padding-bottom: 22px;
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-step:last-child {
+  padding-bottom: 0;
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-step::before {
+  display: block;
+  width: 11px;
+  height: 11px;
+  margin-top: 3px;
+  justify-self: center;
+  border: 1.5px solid var(--pvw-gold);
+  border-radius: 50%;
+  background: var(--pvw-bg);
+  content: "";
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-step::after {
+  position: absolute;
+  top: 20px;
+  bottom: 2px;
+  left: 7.5px;
+  width: 1px;
+  background: var(--pvw-gold-line);
+  content: "";
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-step:last-child::after {
+  content: none;
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-step .tile-pvw-step-body::before {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--pvw-gold-ink);
+  content: "STEP " counter(pvw-step, decimal-leading-zero);
+  font-size: calc(0.72 * var(--pvw-rem));
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  line-height: 1.4;
+}
+
+/* 가격과 혜택: 이 문서에서 유일한 카드. 가격 문구는 기존 paywall 분기가 그대로 채운다. */
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-price-sec {
+  margin-top: 34px;
+  padding: 22px 20px 20px;
+  border: 1px solid var(--pvw-gold-line);
+  border-radius: 18px;
+  background: var(--pvw-paper);
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-price-sec .tile-pvw-paywall {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-paywall-icon {
+  display: grid;
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--pvw-blush);
+  font-size: calc(1.2 * var(--pvw-rem));
+  line-height: 1;
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-paywall-body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-paywall-title {
+  display: block;
+  color: var(--pvw-ink);
+  font-size: calc(1.06 * var(--pvw-rem));
+  font-weight: 800;
+  line-height: 1.5;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-paywall-desc {
+  display: block;
+  margin-top: 4px;
+  color: var(--pvw-ink-soft);
+  font-size: calc(0.9375 * var(--pvw-rem));
+  line-height: 1.7;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-price-sec .tile-pvw-premium-block {
+  margin: 18px 0 0;
+  padding: 16px 0 0;
+  border: 0;
+  border-top: 1px dashed var(--pvw-gold-line);
+  border-radius: 0;
+  background: none;
+}
+
+/* 무료(결제 안내 없음)일 때는 혜택 목록이 카드의 첫 줄이라 구분선이 필요 없다. */
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-paywall[style*="none"] + .tile-pvw-premium-block {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-premium-title {
+  margin: 0 0 10px;
+  color: var(--pvw-gold-ink);
+  font-size: calc(0.8 * var(--pvw-rem));
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-cmp,
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-cmp-row {
+  border-color: var(--pvw-line);
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-cmp-c {
+  font-size: calc(0.86 * var(--pvw-rem));
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-cmp-head,
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-cmp-prem {
+  background: var(--pvw-blush);
+}
+
+/* 안심 안내 */
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-assure {
+  margin: 16px 0 0;
+  padding: 16px 18px 6px;
+  border-radius: 16px;
+  background: var(--pvw-blush);
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-assure-title {
+  margin: 0;
+  color: var(--pvw-wine);
+  font-size: calc(0.95 * var(--pvw-rem));
+  font-weight: 800;
+  line-height: 1.5;
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-assure-title::before {
+  margin-right: 6px;
+  color: var(--pvw-gold);
+  content: "✦";
+  font-size: calc(0.7 * var(--pvw-rem));
+  vertical-align: 0.15em;
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-assure .tile-pvw-paywall-note {
+  display: block;
+  margin: 6px 0 0;
+  padding: 0;
+  border: 0;
+  color: var(--pvw-ink-soft);
+  font-size: calc(0.9375 * var(--pvw-rem));
+  line-height: 1.72;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-assure-link {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  color: var(--pvw-wine);
+  font-size: calc(0.9375 * var(--pvw-rem));
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* FAQ: 기본 접힘, 버튼 + region, 높이는 grid-template-rows 0fr→1fr 로 여닫는다. */
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-faq {
+  overflow: visible;
+  border: 0;
+  border-top: 1px solid var(--pvw-line);
+  border-radius: 0;
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-faq-item,
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-faq-item:last-child {
+  border-bottom: 1px solid var(--pvw-line);
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-faq-q {
+  display: flex;
+  width: 100%;
+  min-height: 52px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin: 0;
+  padding: 14px 2px;
+  border: 0;
+  background: none;
+  color: var(--pvw-ink);
+  cursor: pointer;
+  font: inherit;
+  font-size: calc(0.98 * var(--pvw-rem));
+  font-weight: 700;
+  line-height: 1.6;
+  text-align: left;
+  word-break: keep-all;
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-faq-q:hover {
+  color: var(--pvw-wine);
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-faq-q-text {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-faq-mark {
+  position: relative;
+  flex: 0 0 22px;
+  width: 22px;
+  height: 22px;
+  border: 1px solid var(--pvw-gold-line);
+  border-radius: 50%;
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-faq-mark::before,
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-faq-mark::after {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 9px;
+  height: 1.5px;
+  background: var(--pvw-wine);
+  content: "";
+  transform: translate(-50%, -50%);
+  transition: transform 220ms ease;
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-faq-mark::after {
+  transform: translate(-50%, -50%) rotate(90deg);
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-faq-item.is-open .tile-pvw-faq-mark::after {
+  transform: translate(-50%, -50%) rotate(0deg);
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-faq-a {
+  display: grid;
+  grid-template-rows: 0fr;
+  padding: 0 2px;
+  color: var(--pvw-ink-soft);
+  font-size: calc(0.94 * var(--pvw-rem));
+  line-height: 1.75;
+  transition: grid-template-rows 260ms ease;
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-faq-item.is-open .tile-pvw-faq-a {
+  grid-template-rows: 1fr;
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-faq-a-inner {
+  min-height: 0;
+  overflow: hidden;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+/* 아래 여백도 접히는 행 안에 둬서 높이 애니메이션은 grid-template-rows 하나로만 움직인다. */
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-faq-a-inner::after {
+  display: block;
+  height: 16px;
+  content: "";
+}
+
+/* 최종 CTA: 단색 버건디(네오는 라일락), 48px 이상 */
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-cta-sticky {
+  padding: 14px 40px calc(16px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--pvw-line);
+  background: var(--pvw-bg);
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-cta-btn {
+  min-height: 52px;
+  border-radius: 14px;
+  background: var(--pvw-wine);
+  color: var(--pvw-on-wine);
+  box-shadow: none;
+  font-size: var(--pvw-rem);
+  font-weight: 800;
+  letter-spacing: -0.005em;
+}
+
+.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-cta-btn:hover {
+  background: var(--pvw-wine-hover);
+  box-shadow: none;
+  filter: none;
+}
+
+@media (min-width: 860px) {
+  .tile-pvw-overlay:not(.pvw-visual) .tile-pvw-handle {
+    display: none;
+  }
+}
+
+@media (max-width: 859px) {
+  .tile-pvw-overlay:not(.pvw-visual) .tile-pvw-sheet {
+    width: 100%;
+    max-height: min(94dvh, 900px);
+    border-bottom: 0;
+    border-radius: 22px 22px 0 0;
+    box-shadow: none;
+  }
+
+  .tile-pvw-overlay:not(.pvw-visual) .tile-pvw-content {
+    padding: 24px 20px 28px;
+  }
+
+  .tile-pvw-overlay:not(.pvw-visual) .tile-pvw-title {
+    font-size: clamp(calc(1.36 * var(--pvw-rem)), calc(1.05 * var(--pvw-rem)) + 1.7vw, calc(1.62 * var(--pvw-rem)));
+  }
+
+  .tile-pvw-overlay:not(.pvw-visual) .tile-pvw-sec {
+    padding-top: 28px;
+  }
+
+  .tile-pvw-overlay:not(.pvw-visual) .tile-pvw-price-sec {
+    margin-top: 30px;
+    padding: 20px 16px 18px;
+  }
+
+  .tile-pvw-overlay:not(.pvw-visual) .tile-pvw-cta-sticky {
+    padding: 12px 20px calc(14px + env(safe-area-inset-bottom));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tile-pvw-overlay .tile-pvw-faq-a,
+  .tile-pvw-overlay .tile-pvw-faq-mark::before,
+  .tile-pvw-overlay .tile-pvw-faq-mark::after {
+    transition: none;
   }
 }

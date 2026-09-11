@@ -4068,7 +4068,16 @@
     "accessFree": "免费功能",
     "accessPaid": "付款后返回原画面",
     "navPending": "正在打开…",
-    "priceDetailCheck": "查看详情"
+    "priceDetailCheck": "查看详情",
+    "recommendForLabel": "推荐给这样的你",
+    "receivesLabel": "你将获得",
+    "outlineLabel": "结果页面这样组成",
+    "outlineCaption": "实际结果将根据你输入的信息计算 · 图片为代表插画",
+    "pricingLabel": "价格与权益",
+    "benefitsLabel": "包含的权益",
+    "assureLabel": "请放心使用",
+    "refundPolicyLink": "查看退款政策",
+    "trustLabel": "值得信赖的理由"
   },
   "mbti": {
     "compat": {
@@ -11980,59 +11989,128 @@
       }
     },
     "flower_fc": {
-      "tagline": "The calculated values of four branches -- Saju, astrology, Ziwei Doushu, and Sukuyo -- each decide a flower's species and color, blooming your flower out of a catalogue of eighty-nine. One unlock opens all four branches.",
+      "tagline": "出生那天的气，为你挑选花的种类与颜色。八字、占星、紫微斗数、宿曜——四种视角各自为你绽放一朵花，一次解锁即可全部相见。",
       "feats": {
-        "0": "One unlock covers all four branches: Saju, astrology, Ziwei Doushu, and Sukuyo",
-        "1": "A catalogue of eighty-nine flower species",
-        "2": "Rule-based visualization in which the chart's calculated values decide species and color",
-        "3": "An explanation of which calculation is reflected in each part of the flower",
-        "4": "An AI art prompt for drawing your own flower"
+        "0": "八字、占星、紫微斗数、宿曜四个流派的花一次看全",
+        "1": "从八十九种图鉴中为你选出的花与颜色",
+        "2": "逐部分解说这朵花为何来到你身边",
+        "3": "可以转化为图画的花朵描述文",
+        "4": "在这台设备上累积的我的开花记录"
       },
-      "premiumIntro": "The Destiny Flower is not a random picture -- it is a visualization in which the chart's calculated values decide species and color by rule.",
-      "premiumAudience": {
-        "0": "Those who want to keep a result as an image",
-        "1": "Those who enjoy several divination methods",
-        "2": "Those who want a fortune pretty enough to give as a gift"
-      },
-      "premiumChapters": {
-        "0": "A Destiny Flower for each of the four branches",
-        "1": "An explanation of the calculation behind the species and color",
-        "2": "A blooming record you can pick up again on the same device",
-        "3": "A permanent unlock you can bloom again anytime"
-      },
-      "premiumOutcomes": {
-        "0": "The reading and the visualization are for reference.",
-        "1": "Flower matching is a rule-based calculation.",
-        "2": "The existing payment policy applies."
-      },
-      "answersQuestions": {
-        "0": "What flower does my chart bloom into?",
-        "1": "How do the flowers of the four branches differ from each other?",
-        "2": "Why were the flower's color and shape decided this way?"
-      },
-      "fallbackCta": "Bloom your Destiny Flower",
-      "analysisSteps": {
+      "receives": {
         "0": {
-          "label": "Choose a branch",
-          "detail": "Pick from Saju, astrology, Ziwei Doushu, and Sukuyo."
+          "title": "在四个流派中绽放的你的花",
+          "detail": "八字、占星、紫微斗数、宿曜，四种视角各为你选出一朵。"
         },
         "1": {
-          "label": "Chart calculation",
-          "detail": "The calculated values decide the flower's species and color by rule."
+          "title": "与你相似的颜色和花语",
+          "detail": "展示个人色彩调色盘、命运花语，以及适合搭配在一起的协同调色盘。"
         },
         "2": {
-          "label": "Blooming and explanation",
-          "detail": "The flower blooms and the part-by-part explanation of the calculation opens."
+          "title": "这朵花为何来到你身边",
+          "detail": "花朵档案与园丁观察日记，会解说哪种气寄托在花的哪个部分。"
+        },
+        "3": {
+          "title": "可以转化为图画的花朵描述文",
+          "detail": "复制后粘贴到你喜欢的AI绘图工具，就能亲手画出你的花。"
+        },
+        "4": {
+          "title": "我的开花记录",
+          "detail": "绽放过的花会在这台设备上保留最近十二朵，之后可以随时再翻看。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "四个流派标签页",
+          "detail": "在八字、占星、紫微斗数、宿曜之间切换，查看每个流派绽放的花。"
+        },
+        "1": {
+          "title": "个人色彩调色盘 · 粒子氛围",
+          "detail": "在花的旁边铺展与你相似的颜色与氛围。"
+        },
+        "2": {
+          "title": "花朵档案 · 园丁观察日记",
+          "detail": "依次解说花的名字与特征，以及选中这朵花的理由。"
+        },
+        "3": {
+          "title": "命运花语 · 园丁的一句话",
+          "detail": "送给此刻的你一句短语，接着是今日园艺一句话。"
+        },
+        "4": {
+          "title": "秘密配方 · 花朵描述文",
+          "detail": "收录帮助花朵绽放的行动配方，以及转化为图画时使用的描述文。"
+        },
+        "5": {
+          "title": "分享与记录",
+          "detail": "可将结果文字通过KakaoTalk分享或复制，并保存在我的开花记录中。"
+        }
+      },
+      "premiumIntro": "命运之花不是随机抽出的图画。从出生那天读出的气，会按照固定的顺序为你选出花与颜色。",
+      "premiumAudience": {
+        "0": "比起长篇文字，更想用一朵花和一种颜色记住运势的人",
+        "1": "想在同一处比较八字、星座、紫微斗数与宿曜的人",
+        "2": "想像珍藏礼物一样留住与自己相似的颜色和花语的人"
+      },
+      "premiumChapters": {
+        "0": "八字、占星、紫微斗数、宿曜四个流派的花全部开放",
+        "1": "每个流派的个人色彩调色盘、花语与观察日记解说",
+        "2": "复制可转化为图画的花朵描述文",
+        "3": "保存在这台设备上的我的开花记录（最近十二朵）"
+      },
+      "premiumRequired": {
+        "0": "出生日期（必填）",
+        "1": "出生时间与地点（不清楚时以正午、首尔为准）"
+      },
+      "premiumOutcomes": {
+        "0": "并非随机——输入相同的信息，无论何时看都会开出同一朵花。",
+        "1": "只从预先定好的八十九种图鉴中选花。",
+        "2": "推算依循命理与占星的古典规则，而交到读者手中的每一句话由人负责。",
+        "3": "花与花语是帮助你回望自己的参考解读，并不断定未来。"
+      },
+      "answersQuestions": {
+        "0": "我的命盘会开出什么样的花？",
+        "1": "四种占术的花各有什么不同？",
+        "2": "为什么偏偏是这朵花、这种颜色来到我身边？"
+      },
+      "fallbackCta": "解锁命运之花",
+      "analysisSteps": {
+        "0": {
+          "label": "用出生信息排出命盘",
+          "detail": "根据出生日期计算四种占术的基本排布。若不清楚出生时间与地点，则以正午、首尔为准。"
+        },
+        "1": {
+          "label": "用四种视角解读",
+          "detail": "八字看日干、五行比例与出生季节；占星看太阳、上升与月亮的位置；紫微斗数看主星的亮度与四化；宿曜看二十七宿与月相。"
+        },
+        "2": {
+          "label": "从八十九种图鉴中选花",
+          "detail": "将读出的气对照预先定好的八十九种图鉴，决定花与颜色。相同的信息，无论何时看都是同一朵花。"
+        },
+        "3": {
+          "label": "开花与解说",
+          "detail": "花朵绽放后，逐部分解说选中这朵花的理由，以及它的颜色与花语。"
         }
       },
       "faq": {
         "0": {
-          "q": "What does unlocking open?",
-          "a": "A single unlock opens all four branches, and you can view them again anytime."
+          "q": "解锁后会开放什么？",
+          "a": "一次解锁，即可同时开放八字、占星、紫微斗数、宿曜四个流派的花，以及各流派的调色盘、花语与解说。"
         },
         "1": {
-          "q": "Can I save the flower image?",
-          "a": "An AI art prompt for drawing the flower is provided, so you can make and keep the image with the AI of your choice."
+          "q": "不知道出生时间也可以吗？",
+          "a": "可以。只要有出生日期即可。若不清楚时间与地点，将以正午、首尔为准计算；若清楚，则按你提供的值计算。"
+        },
+        "2": {
+          "q": "再看一次，花会变吗？",
+          "a": "输入相同的信息，无论何时看都会开出同一朵花，因为我们不做随机抽取。若更改出生时间或地点，结果可能会不同。"
+        },
+        "3": {
+          "q": "可以保存花的图片吗？",
+          "a": "命运之花不会生成图片文件。你可以复制花朵描述文，用喜欢的AI绘图工具画出来；结果文字也可以通过KakaoTalk或复制来分享。绽放过的花会保留在这台设备的开花记录中。"
+        },
+        "4": {
+          "q": "如何退款？",
+          "a": "可按照退款政策规定的条件申请撤回。已开始查看的部分，撤回可能会受到限制，月精石不属于现金退款对象。详细标准请查看退款政策。"
         }
       }
     },

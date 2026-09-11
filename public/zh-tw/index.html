@@ -15,14 +15,14 @@
     });
   </script>
 <!-- canonical-redirect: 동기 실행 유지 (installCoreLayoutStabilityGuards → CLS 방지 필수) -->
-  <script src="/js/inline/canonical-redirect.js?v=build-4516c75d9aac"></script>
+  <script src="/js/inline/canonical-redirect.js?v=build-1f74aa8391af"></script>
   <script src="/js/inline/legacy-action-launcher.js" defer></script>
       <script src="/js/inline/global-error-guard.js"></script>
 <!-- 🔴 스크롤/탭 단일 판정기. defer 를 붙이지 말 것 — window capture 리스너를 아래 인라인
      스택들(openWindowTap 등)보다 먼저 등록해야 판정이 선두에 선다. defer 로 내리면 등록이
      뒤로 밀려 그 스택들이 판정 전에 기능을 열어 버린다. 순수 이벤트 리스너 등록뿐이라
      렌더 블로킹 비용은 무시 가능하다. -->
-      <script src="/js/inline/gesture-arbiter.js?v=build-4516c75d9aac"></script>
+      <script src="/js/inline/gesture-arbiter.js?v=build-1f74aa8391af"></script>
 <!-- 🔴 이 블록의 defer 여부는 취향이 아니라 "파싱 시점에 그 전역을 읽는 코드가 있는가" 하나로 갈린다
      (2026-08-14 감사). 첫 스타일시트가 아래 500번대 줄이라, 여기서 동기로 받는 바이트는 전부
      첫 페인트 앞에 쌓인다. 그래서 파싱 시점 소비자가 없는 것은 전부 defer 로 내렸다.
@@ -30,31 +30,31 @@
      defer 를 새로 붙이거나 떼기 전에 그 전역을 읽는 곳이 함수 안인지 최상위인지 반드시 확인할 것. -->
 <!-- 이용권 판정 정본(js/core/pass-verdict.js). 셸 인라인 블록이 파싱 시점에 window.__cdPassVerdict 를
      필요로 하므로 defer 를 붙이지 않는다. 순수 로직 파일이라 렌더 블로킹 비용은 무시 가능하다. -->
-      <script src="/js/core/pass-verdict.js?v=build-4516c75d9aac"></script>
+      <script src="/js/core/pass-verdict.js?v=build-1f74aa8391af"></script>
 <!-- 로그인 힌트 판정 정본(js/core/auth-hint.js). 바로 아래 셸 인라인 블록(hasClientAuthHint)이
      파싱 시점에 window.__cdAuthHint 를 필요로 하므로 defer 를 붙이지 않는다. -->
-      <script src="/js/core/auth-hint.js?v=build-4516c75d9aac"></script>
+      <script src="/js/core/auth-hint.js?v=build-1f74aa8391af"></script>
 <!-- access-store: 셸의 참조 8곳이 전부 함수 안 호출시점 조회이고 null 가드가 있어 defer 가 안전하다.
      머리쪽 세션캐시가 /api/me/access-state 를 'accessState' 로 캐싱하므로(위 kind() 참고),
      부트 콜백이 스토어보다 먼저 응답을 받아 시드를 건너뛰어도 나중 ensureLoaded 가 캐시에서 받는다.
      즉 왕복이 늘지 않는다 — 이 캐시를 걷어내면 defer 전제가 깨지므로 함께 봐야 한다. -->
-      <script src="/js/core/access-store.js?v=build-4516c75d9aac" defer></script>
+      <script src="/js/core/access-store.js?v=build-1f74aa8391af" defer></script>
 <!-- 🔴 payment-service 는 defer 금지. 셸 인라인이 파싱 시점에 registerPaymentWindow(...,'canonical-shell')
      로 결제창 단일비행 경계를 등록하는데(아래 _cdChooseServicePaymentMode 등록부), defer 로 내리면
      그 자리에서 else 가지로 떨어져 경계 없는 렌더러로 조용히 강등된다. 실패가 눈에 안 보이는 종류다. -->
-      <script src="/js/core/payment-service.js?v=build-4516c75d9aac"></script>
-      <script src="/js/mobile-fortune-entry-trace.js?v=build-4516c75d9aac" defer></script>
-      <script src="/js/core/feature-pricing-store.js?v=build-4516c75d9aac" defer></script>
+      <script src="/js/core/payment-service.js?v=build-1f74aa8391af"></script>
+      <script src="/js/mobile-fortune-entry-trace.js?v=build-1f74aa8391af" defer></script>
+      <script src="/js/core/feature-pricing-store.js?v=build-1f74aa8391af" defer></script>
 <!-- 앱(Capacitor) 판별 정본. checkout-entry 와 셸 인라인이 진입 분기에서 읽으므로 그보다 먼저 둔다.
      🔴 defer 금지 — 아래 부팅 게이트(cd-early-runtime-class-hoist)가 파싱 시점에 isApp() 을 부른다. -->
-      <script src="/js/core/app-context.js?v=build-4516c75d9aac"></script>
-      <script src="/js/core/checkout-entry.js?v=build-4516c75d9aac" defer></script>
+      <script src="/js/core/app-context.js?v=build-1f74aa8391af"></script>
+      <script src="/js/core/checkout-entry.js?v=build-1f74aa8391af" defer></script>
 <!-- GA4 측정 ID. 값을 채우면 그 즉시 계측이 켜지고, 비어 있으면 analytics.js 가 통째로 no-op 이다
      (플레이스홀더가 배포돼도 안전하다). 공개 식별자라 소스에 그대로 두어도 된다.
      Next 라우트는 app/layout.js 가 NEXT_PUBLIC_GA_MEASUREMENT_ID 로 같은 전역을 주입한다. -->
       <script>window.__CD_GA_ID = "";</script>
-      <script src="/js/core/analytics.js?v=build-4516c75d9aac" defer></script>
-      <script src="/js/kill-switch.js?v=build-4516c75d9aac" defer></script>
+      <script src="/js/core/analytics.js?v=build-1f74aa8391af" defer></script>
+      <script src="/js/kill-switch.js?v=build-1f74aa8391af" defer></script>
       <script>
         window.tailwind = window.tailwind || {};
         tailwind.config = {
@@ -493,7 +493,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#FFF8F0" data-neo-theme="#080d24" data-yeoni-theme="#FFF8F0">
-<link rel="manifest" href="/manifest.zh-tw.json?v=build-4516c75d9aac">
+<link rel="manifest" href="/manifest.zh-tw.json?v=build-1f74aa8391af">
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="96x96" href="/icons/app-logo-96.png">
 <link rel="apple-touch-icon" href="/icons/app-logo-180.png">
@@ -616,10 +616,10 @@ html.cd-boot-gate-out .cd-boot-gate__veil{opacity:0;transition:opacity .3s ease}
      함께 고쳐야 하며, 그건 결제 경로 정책 변경이라 임의로 하지 말 것. -->
 
 <link rel="preload" as="image" href="/icons/app-logo-512.webp" fetchpriority="high">
-<link rel="stylesheet" href="/styles/theme-tokens.css?v=build-4516c75d9aac">
-<link rel="stylesheet" href="/styles/core-ui.css?v=build-4516c75d9aac">
-<link rel="stylesheet" href="/styles/yehwa-motifs.css?v=build-4516c75d9aac">
-<link rel="stylesheet" href="/styles/yehwa-motifs-nav.css?v=build-4516c75d9aac">
+<link rel="stylesheet" href="/styles/theme-tokens.css?v=build-1f74aa8391af">
+<link rel="stylesheet" href="/styles/core-ui.css?v=build-1f74aa8391af">
+<link rel="stylesheet" href="/styles/yehwa-motifs.css?v=build-1f74aa8391af">
+<link rel="stylesheet" href="/styles/yehwa-motifs-nav.css?v=build-1f74aa8391af">
  <!-- fortune-ui.css(583KB, brotli 127KB)는 셸에서 가장 큰 렌더 차단 자원이었고
       모바일 FCP 의 최대 단일 원인이었다. 렌더는 막지 않되 높은 우선순위로 받는다.
       바로 아래 cd-fortune-ui-critical 블록은 그 파일에서 이 홈 문서에 실제로 매칭되는
@@ -789,20 +789,20 @@ button, .tog-btn, .btn-main, .btn-sub, .dw-item, .feature-card, .fortune-tab, .m
 .moon-section-head p, .feature-card__desc, .feature-card__detail-text, .tarot-tile__desc, .fortune-section, .sub-desc, .sub-daily-note, #tarotModalOverlay .oracle-text-m, #tarotModalOverlay .ritual-text-m, .result-content, .villain-v2-section p, .villain-zone-card p, .villain-one-line, .villain-profile-card .villain-quote { word-break: keep-all; overflow-wrap: break-word; font-family: var(--font-body) !important; letter-spacing: 0px !important; }
 .feature-card__launch, .feature-card__cta, .mystic-summon-btn, .btn-subscribe, .membership-recap-cta__btn, .villain-copy-btn, .lotto-draw-btn { font-weight: 800; word-break: keep-all; overflow-wrap: break-word; font-family: var(--font-body) !important; letter-spacing: 0px !important; }
  </style>
- <link rel="preload" as="style" href="/styles/fortune-ui-home.css?v=build-4516c75d9aac" onload="this.onload=null;this.rel='stylesheet'">
- <link data-cd-noncritical-style-src="/styles/fortune-ui.css?v=build-4516c75d9aac" data-cd-mobile-delay="1" media="print">
+ <link rel="preload" as="style" href="/styles/fortune-ui-home.css?v=build-1f74aa8391af" onload="this.onload=null;this.rel='stylesheet'">
+ <link data-cd-noncritical-style-src="/styles/fortune-ui.css?v=build-1f74aa8391af" data-cd-mobile-delay="1" media="print">
  <!-- JS 가 꺼져 있으면 위 두 줄은 모두 적용되지 않는다(preload 의 rel 교체도, 지연 로더도 JS 다).
       그때는 부분집합이 아니라 전체 시트를 그냥 받는다 — 상위집합이라 한 줄로 둘 다 덮는다. -->
- <noscript><link rel="stylesheet" href="/styles/fortune-ui.css?v=build-4516c75d9aac"></noscript>
+ <noscript><link rel="stylesheet" href="/styles/fortune-ui.css?v=build-1f74aa8391af"></noscript>
  <!-- fortune-gateway.css 는 렌더 블로킹에서 뺀다 — 이 시트가 칠하는 4개 호스트가 전부 폴드보다
       아래다(2026-09-11 재실측, dist·networkidle — #cdFinder 를 무료 카드 바로 아래로 승격하며
       갱신): .cd-quick__grid 825 / #cdFinder 1322 / #cdDiaryPlannerEntry 5113 /
       #fortuneGatewayEntry 6836 (모바일 390x844 기준 top, px). #cdFinder 가 예전보다 훨씬 위로
       올라왔지만(4611→1322) 여전히 844px 폴드 아래라 안전하다.
       preload 라 우선순위는 그대로 높고 다운로드도 즉시 시작하지만 첫 페인트를 막지 않는다. -->
- <link rel="preload" as="style" href="/styles/fortune-gateway.css?v=build-4516c75d9aac" onload="this.onload=null;this.rel='stylesheet'">
- <noscript><link rel="stylesheet" href="/styles/fortune-gateway.css?v=build-4516c75d9aac"></noscript>
-<link rel="stylesheet" href="/styles/mobile-lite.css?v=build-4516c75d9aac" media="(max-width: 1024px), (hover: none) and (pointer: coarse)" data-cd-mobile-runtime-css="1">
+ <link rel="preload" as="style" href="/styles/fortune-gateway.css?v=build-1f74aa8391af" onload="this.onload=null;this.rel='stylesheet'">
+ <noscript><link rel="stylesheet" href="/styles/fortune-gateway.css?v=build-1f74aa8391af"></noscript>
+<link rel="stylesheet" href="/styles/mobile-lite.css?v=build-1f74aa8391af" media="(max-width: 1024px), (hover: none) and (pointer: coarse)" data-cd-mobile-runtime-css="1">
 <style data-marker="cd-mobile-home-offscreen-containment-v20260816">
 /* 모바일 홈에서 첫 화면 아래 섹션은 화면에 들어오기 전까지 스타일·레이아웃을 건너뛴다.
  * recalc 한 번의 비용은 `요소 수 × 규칙 수` 이고, 여기 열거한 9개가 모바일 홈 2,031 요소 중
@@ -895,9 +895,9 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
      그래서 print-swap 으로 내린다. 세리프는 위쪽 폴드에서 쓰이지 않으므로(히어로는 인라인 선언된
      CodeDestinyDisplay/Body) 늦게 붙어도 보이는 변화는 아래쪽 제목의 스왑뿐이다.
      🔴 data-cd-noncritical-style-src 로 옮기지 말 것 — 그 로더는 모바일에서 최대 45초까지 미룬다. -->
-<link rel="stylesheet" href="/styles/fonts-serif.css?v=build-4516c75d9aac" media="print" onload="this.onload=null;this.media='all'">
-<noscript><link rel="stylesheet" href="/styles/fonts-serif.css?v=build-4516c75d9aac"></noscript>
-<link rel="preload" href="/styles/cosmic-main.css?v=build-4516c75d9aac" as="style">
+<link rel="stylesheet" href="/styles/fonts-serif.css?v=build-1f74aa8391af" media="print" onload="this.onload=null;this.media='all'">
+<noscript><link rel="stylesheet" href="/styles/fonts-serif.css?v=build-1f74aa8391af"></noscript>
+<link rel="preload" href="/styles/cosmic-main.css?v=build-1f74aa8391af" as="style">
 
 <title>CODE DESTINY | 免費四柱八字·塔羅·紫微斗數·合婚 — 運勢</title>
 
@@ -941,7 +941,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
 <meta property="og:description" content="透過四柱命理、紫微斗數、宿曜占星術與塔羅認識自己的行為和關係。閱讀公開解說，了解AI解讀的用途與局限，並在各功能頁面確認使用條件。">
 <meta property="og:url" content="https://code-destiny.com/zh-tw/">
 <meta property="og:locale" content="zh_TW">
-<meta property="og:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-4516c75d9aac">
+<meta property="og:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-1f74aa8391af">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="蜜豚運勢 HONEY FORTUNE — 印有花豬 Yeoni 客串形象與服務介紹的 CODE DESTINY 名片卡">
@@ -950,7 +950,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="CODE DESTINY | 免費四柱八字·塔羅·紫微斗數·合婚 — 運勢">
 <meta name="twitter:description" content="透過四柱命理、紫微斗數、宿曜占星術與塔羅認識自己的行為和關係。閱讀公開解說，了解AI解讀的用途與局限，並在各功能頁面確認使用條件。">
-<meta name="twitter:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-4516c75d9aac">
+<meta name="twitter:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-1f74aa8391af">
 <meta name="twitter:image:alt" content="蜜豚運勢 HONEY FORTUNE — 印有花豬 Yeoni 客串形象與服務介紹的 CODE DESTINY 名片卡">
 <script type="application/ld+json">
 {
@@ -2075,46 +2075,46 @@ body.neo-mode .pf-showcase{--pf-title-color:#fff7dd;--pf-sub-color:rgba(233,224,
   <!-- ════════════════════════════════════════════════════════
        레이아웃 CSS: 렌더블로킹 유지 (CLS 방지 필수 — 레이아웃 정의 파일)
        ════════════════════════════════════════════════════════ -->
-  <script src="/js/inline/api-base-init.js?v=build-4516c75d9aac" defer></script>
+  <script src="/js/inline/api-base-init.js?v=build-1f74aa8391af" defer></script>
 
   <!-- ════════════════════════════════════════════════════════
        모달/기능별 CSS: 비동기 로드 (초기 렌더에 불필요 — CLS 위험 없음)
        ════════════════════════════════════════════════════════ -->
 
-  <link rel="stylesheet" href="/styles/cosmic-main.css?v=build-4516c75d9aac">
+  <link rel="stylesheet" href="/styles/cosmic-main.css?v=build-1f74aa8391af">
 
-  <link data-cd-noncritical-style-src="/styles/destiny-flower-cosmic.css?v=build-4516c75d9aac" data-cd-mobile-delay="1" media="print">
-  <noscript><link rel="stylesheet" href="/styles/destiny-flower-cosmic.css?v=build-4516c75d9aac"></noscript>
+  <link data-cd-noncritical-style-src="/styles/destiny-flower-cosmic.css?v=build-1f74aa8391af" data-cd-mobile-delay="1" media="print">
+  <noscript><link rel="stylesheet" href="/styles/destiny-flower-cosmic.css?v=build-1f74aa8391af"></noscript>
 
-  <link data-cd-noncritical-style-src="/styles/animal-totem-mystic.css?v=build-4516c75d9aac" data-cd-mobile-delay="1" media="print">
-  <noscript><link rel="stylesheet" href="/styles/animal-totem-mystic.css?v=build-4516c75d9aac"></noscript>
+  <link data-cd-noncritical-style-src="/styles/animal-totem-mystic.css?v=build-1f74aa8391af" data-cd-mobile-delay="1" media="print">
+  <noscript><link rel="stylesheet" href="/styles/animal-totem-mystic.css?v=build-1f74aa8391af"></noscript>
 
   <!-- 이 시트는 모달용이 아니라 홈 본문(#inputPage)을 직접 칠한다(.fc-closed-peek 숨김, .fc-toggle-hint 글자크기).
        지연 목록에 있으면 첫 터치에 시트가 붙으면서 접힘 표시가 사라지고 글자·높이가 튄다 —
        측정으로 확인된 잔여 깜빡임의 유일한 원인이었다. rel 을 미리 박아 첫 페인트부터 적용시킨다.
        <link> 위치는 그대로라 승격됐을 때와 캐스케이드 순서가 동일하다. (cd-totem-fix-blocking-v20260721) -->
-  <link rel="stylesheet" href="/styles/mobile-totem-flower-fix.css?v=build-4516c75d9aac">
+  <link rel="stylesheet" href="/styles/mobile-totem-flower-fix.css?v=build-1f74aa8391af">
 
-  <link data-cd-noncritical-style-src="/styles/tarot-love-mystic.css?v=build-4516c75d9aac" data-cd-mobile-delay="1" media="print">
-  <noscript><link rel="stylesheet" href="/styles/tarot-love-mystic.css?v=build-4516c75d9aac"></noscript>
+  <link data-cd-noncritical-style-src="/styles/tarot-love-mystic.css?v=build-1f74aa8391af" data-cd-mobile-delay="1" media="print">
+  <noscript><link rel="stylesheet" href="/styles/tarot-love-mystic.css?v=build-1f74aa8391af"></noscript>
 
-  <link data-cd-noncritical-style-src="/styles/tarot-healing-dawn.css?v=build-4516c75d9aac" data-cd-mobile-delay="1" media="print">
-  <noscript><link rel="stylesheet" href="/styles/tarot-healing-dawn.css?v=build-4516c75d9aac"></noscript>
+  <link data-cd-noncritical-style-src="/styles/tarot-healing-dawn.css?v=build-1f74aa8391af" data-cd-mobile-delay="1" media="print">
+  <noscript><link rel="stylesheet" href="/styles/tarot-healing-dawn.css?v=build-1f74aa8391af"></noscript>
 
-  <link data-cd-noncritical-style-src="/styles/tarot-reunion-lighthouse.css?v=build-4516c75d9aac" data-cd-mobile-delay="1" media="print">
-  <noscript><link rel="stylesheet" href="/styles/tarot-reunion-lighthouse.css?v=build-4516c75d9aac"></noscript>
+  <link data-cd-noncritical-style-src="/styles/tarot-reunion-lighthouse.css?v=build-1f74aa8391af" data-cd-mobile-delay="1" media="print">
+  <noscript><link rel="stylesheet" href="/styles/tarot-reunion-lighthouse.css?v=build-1f74aa8391af"></noscript>
 
-  <link data-cd-noncritical-style-src="/styles/tarot-year-fortune.css?v=build-4516c75d9aac" data-cd-mobile-delay="1" media="print">
-  <noscript><link rel="stylesheet" href="/styles/tarot-year-fortune.css?v=build-4516c75d9aac"></noscript>
+  <link data-cd-noncritical-style-src="/styles/tarot-year-fortune.css?v=build-1f74aa8391af" data-cd-mobile-delay="1" media="print">
+  <noscript><link rel="stylesheet" href="/styles/tarot-year-fortune.css?v=build-1f74aa8391af"></noscript>
 
-  <link data-cd-noncritical-style-src="/styles/tarot-self-esteem-quest.css?v=build-4516c75d9aac" data-cd-mobile-delay="1" media="print">
-  <noscript><link rel="stylesheet" href="/styles/tarot-self-esteem-quest.css?v=build-4516c75d9aac"></noscript>
+  <link data-cd-noncritical-style-src="/styles/tarot-self-esteem-quest.css?v=build-1f74aa8391af" data-cd-mobile-delay="1" media="print">
+  <noscript><link rel="stylesheet" href="/styles/tarot-self-esteem-quest.css?v=build-1f74aa8391af"></noscript>
 
   <!-- cd-premium-pdf-cosmic-chapter-ui-v20260519 -->
-  <link data-cd-noncritical-style-src="/styles/life-book.css?v=build-4516c75d9aac" data-cd-mobile-delay="1" media="print">
-  <noscript><link rel="stylesheet" href="/styles/life-book.css?v=build-4516c75d9aac"></noscript>
-  <link data-cd-noncritical-style-src="/styles/sibyl-system.css?v=build-4516c75d9aac" data-cd-mobile-delay="1" media="print">
-  <noscript><link rel="stylesheet" href="/styles/sibyl-system.css?v=build-4516c75d9aac"></noscript>
+  <link data-cd-noncritical-style-src="/styles/life-book.css?v=build-1f74aa8391af" data-cd-mobile-delay="1" media="print">
+  <noscript><link rel="stylesheet" href="/styles/life-book.css?v=build-1f74aa8391af"></noscript>
+  <link data-cd-noncritical-style-src="/styles/sibyl-system.css?v=build-1f74aa8391af" data-cd-mobile-delay="1" media="print">
+  <noscript><link rel="stylesheet" href="/styles/sibyl-system.css?v=build-1f74aa8391af"></noscript>
   <style id="cd-sibyl-modal-critical">
   /* 시빌라 모달 임계 CSS — 지연 로드되는 styles/sibyl-system.css가 승격되기 전에도
      모달이 정상적으로 열리도록 하는 구조 폴백. 색/테두리/애니 세부는 지연 시트 담당.
@@ -2126,8 +2126,8 @@ body.neo-mode .pf-showcase{--pf-title-color:#fff7dd;--pf-sub-color:rgba(233,224,
   #sibylModal.sb-open .sb-panel{transform:translateY(0)}
   #sibylModal .sb-hidden{display:none}
   </style>
-  <link data-cd-noncritical-style-src="/styles/love-secret.css?v=build-4516c75d9aac" data-cd-mobile-delay="1" media="print">
-  <noscript><link rel="stylesheet" href="/styles/love-secret.css?v=build-4516c75d9aac"></noscript>
+  <link data-cd-noncritical-style-src="/styles/love-secret.css?v=build-1f74aa8391af" data-cd-mobile-delay="1" media="print">
+  <noscript><link rel="stylesheet" href="/styles/love-secret.css?v=build-1f74aa8391af"></noscript>
 
   <link data-cd-noncritical-style-src="/css/entertain-system.css" data-cd-mobile-delay="1" media="print">
   <noscript><link rel="stylesheet" href="/css/entertain-system.css"></noscript>
@@ -2833,9 +2833,8 @@ body.neo-mode .pf-showcase{--pf-title-color:#fff7dd;--pf-sub-color:rgba(233,224,
   .feature-card-grid .tarot-tile__desc{display:none!important}
   .feature-card-grid .tarot-tile__coin-badge{font-size:.63rem!important;line-height:1.15!important}
   .tile-pvw-overlay{touch-action:pan-y}
-  .tile-pvw-sheet{max-height:92dvh!important;border-radius:18px 18px 0 0!important}
-  .tile-pvw-content{padding:16px 14px calc(22px + env(safe-area-inset-bottom))!important}
-  .tile-pvw-feats li{font-size:.8rem!important;line-height:1.38!important;padding:8px 10px!important}
+  /* 상세 시트의 높이·여백·글자 크기는 styles/feature-marketing-detail.css 한 곳이 정한다.
+     여기서 !important 로 .8rem·14px 여백을 덮어쓰던 규칙은 본문을 좁고 작게 만들어 지웠다. */
   #honeyMembershipMini .honey-membership-mini__desc,
   #honeyMembershipMini .honey-membership-mini__chips{display:none!important}
   #honeyMembershipMini .honey-membership-mini__details:not([hidden]){position:fixed!important;left:10px!important;right:10px!important;bottom:calc(10px + env(safe-area-inset-bottom,0px))!important;z-index:9998!important;max-height:74dvh!important;overflow:auto!important;margin:0!important;padding:14px 12px 16px!important;border:1px solid rgba(232,223,200,.24)!important;border-radius:18px 18px 12px 12px!important;background:linear-gradient(180deg,rgba(12,18,36,.98),rgba(8,13,28,.98))!important;box-shadow:0 -18px 44px rgba(0,0,0,.46),inset 0 1px 0 rgba(255,255,255,.12)!important;-webkit-overflow-scrolling:touch}
@@ -2975,13 +2974,10 @@ body.neo-mode .pf-showcase{--pf-title-color:#fff7dd;--pf-sub-color:rgba(233,224,
   #inputPage [data-collection-open="true"] > .tarot-collection__grid .tarot-tile__desc,
   #inputPage [data-collection-open="true"] > .feat-collection__grid .prem-card .tarot-tile__desc{display:none!important}
   .feature-card-grid .MobileLockedCard{border-color:rgba(248,191,80,.38)!important;box-shadow:inset 0 0 0 1px rgba(248,191,80,.12),0 6px 18px rgba(0,0,0,.22)!important}
-  .MobileFeatureBottomSheet.tile-pvw-overlay .tile-pvw-sheet{width:100%!important;max-height:88dvh!important;border-radius:16px 16px 0 0!important}
   /* 히어로는 카드 그리드와 같은 16:9 — 112px 로 눌러두면 가로 배너 아트가 띠처럼 잘린다 */
   .MobileFeatureBottomSheet.tile-pvw-overlay .tile-pvw-hero{height:auto!important;min-height:0!important;max-height:none!important;aspect-ratio:16/9!important}
-  .MobileFeatureBottomSheet.tile-pvw-overlay .tile-pvw-title{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:1.06rem!important}
-  .MobileFeatureBottomSheet.tile-pvw-overlay .tile-pvw-tagline{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:.82rem!important;line-height:1.42!important}
-  .MobileFeatureBottomSheet.tile-pvw-overlay .tile-pvw-feats{gap:6px!important;margin-bottom:12px!important}
-  .MobileFeatureBottomSheet.tile-pvw-overlay .tile-pvw-feats li{font-size:.76rem!important;line-height:1.34!important;border-radius:8px!important}
+  /* (제거됨) 제목 한 줄 말줄임·태그라인 2줄 자르기·.76rem 목록 — 상품명과 핵심 문장이 잘려
+     '무엇을 받는지'가 보이지 않던 원인이다. 시트 폭·높이도 feature-marketing-detail.css 가 정한다. */
   /* CTA 는 sticky 로 둔다 — fixed 로 두면 본문을 덮는다.
      .tile-pvw-cta-sticky 는 스크롤 컨테이너(.tile-pvw-sheet) 안의 .tile-pvw-content 자식이고,
      그 시트에는 열기 애니메이션용 transform 이 걸려 있다. transform 조상이 있으면 position:fixed 의
@@ -2989,12 +2985,12 @@ body.neo-mode .pf-showcase{--pf-title-color:#fff7dd;--pf-sub-color:rgba(233,224,
      본문(“안심하고 확인하세요”·해금 안내·약관 문구)이 CTA 뒤로 가려졌다.
      sticky 는 흐름에 남아 자기 높이를 스스로 확보하므로 어떤 CTA 높이에서도 겹치지 않는다.
      (96px 같은 상수로 보정하면 문구가 두 줄이 되는 순간 다시 깨진다) */
-  .MobileFeatureBottomSheet.tile-pvw-overlay.pvw-open .tile-pvw-content{padding-bottom:calc(8px + env(safe-area-inset-bottom,0px))!important}
+  .MobileFeatureBottomSheet.tile-pvw-overlay.pvw-open .tile-pvw-content{padding-bottom:28px!important}
   /* (제거됨) 시트 하단 예약 126px 해제 규칙 — mobile-lite 의 [data-mobile-detail-template]
      규칙을 되돌리려던 보정이었다. 그 예약 자체를 없앴으므로 해제도 필요 없다. */
 
   /* CTA 는 콘텐츠 밖 시트 바닥의 고정 바다(sticky 아님) — 본문을 덮지 않는다 */
-  .MobileFeatureBottomSheet.tile-pvw-overlay.pvw-open .tile-pvw-cta-sticky{position:static!important;z-index:5!important;margin:0!important;padding:12px 14px calc(14px + env(safe-area-inset-bottom,0px))!important;background:#fffaf7!important;border-top:1px solid rgba(216,63,120,.14)!important}
+  .MobileFeatureBottomSheet.tile-pvw-overlay.pvw-open .tile-pvw-cta-sticky{position:static!important;z-index:5!important;margin:0!important;padding:12px 20px calc(14px + env(safe-area-inset-bottom,0px))!important;background:#fffaf7!important;border-top:1px solid rgba(216,63,120,.14)!important}
   html.neo-mode .MobileFeatureBottomSheet.tile-pvw-overlay.pvw-open .tile-pvw-cta-sticky,
   body.neo-mode .MobileFeatureBottomSheet.tile-pvw-overlay.pvw-open .tile-pvw-cta-sticky{background:#0f0c26!important;border-top-color:rgba(196,181,253,.18)!important}
   .MobileFeatureBottomSheet.tile-pvw-overlay.pvw-open .tile-pvw-cta-btn{min-height:48px!important;border-radius:10px!important}
@@ -9556,7 +9552,7 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
                    새 연이 일러스트(작약 화관·진주 목걸이, 투명 WebP)가 오면 같은 경로에 덮어쓰고 sync:public 만 돌린다(?v= 는 sync 가 build 키로 다시 쓴다). -->
               <span class="fortune-gateway__door-art" aria-hidden="true">
                 <span class="fortune-gateway__door-halo"></span>
-                <img class="fortune-gateway__door-art-yeon" src="/images/fortune-tea-house/yeon-peony-crown.webp?v=build-4516c75d9aac" alt="" width="360" height="360" loading="lazy" decoding="async">
+                <img class="fortune-gateway__door-art-yeon" src="/images/fortune-tea-house/yeon-peony-crown.webp?v=build-1f74aa8391af" alt="" width="360" height="360" loading="lazy" decoding="async">
                 <span class="cd-yehwa-sparkle cd-yehwa-sparkle--a"></span><span class="cd-yehwa-sparkle cd-yehwa-sparkle--b"></span><span class="cd-yehwa-sparkle cd-yehwa-sparkle--c"></span>
               </span>
               <span class="fortune-gateway__door-kicker">FORTUNE CHAT</span>
@@ -12084,8 +12080,8 @@ html.neo-mode body .cd-why-us__proof-caption{color:rgba(228,214,255,.72)}
       </script>
       <div class="neo-logo">
         <div class="pig-svg-wrap">
-          <img id="neoLogo" class="neo-logo-icon" src="/icons/neo.webp?v=build-4516c75d9aac"
-            srcset="/icons/neo-96.webp?v=build-4516c75d9aac 96w, /icons/neo-130.webp?v=build-4516c75d9aac 130w, /icons/neo.webp?v=build-4516c75d9aac 512w" sizes="(max-width: 768px) 88px, 130px"
+          <img id="neoLogo" class="neo-logo-icon" src="/icons/neo.webp?v=build-1f74aa8391af"
+            srcset="/icons/neo-96.webp?v=build-1f74aa8391af 96w, /icons/neo-130.webp?v=build-1f74aa8391af 130w, /icons/neo.webp?v=build-1f74aa8391af 512w" sizes="(max-width: 768px) 88px, 130px"
             width="130" height="130" alt="네오 모드 로고" data-cd-trans-attr="alt:auth.neoLogoAlt" loading="eager" fetchpriority="low" decoding="async">
         </div>
         <p aria-hidden="true" style="font-family:var(--font-display);color:#FFD700;font-size:1.9rem;font-weight:700;margin:0.2em 0;" data-cd-trans="auth.neoTagline">네오의 팩폭 운세 플랫폼</p>
@@ -16655,8 +16651,8 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                data-price-krw="5000"
                data-fallback-href="/tarot-ijik.html"
                aria-label="일의 문턱을 읽는 7카드 커리어 전환 타로 시작" data-cd-trans-attr="aria-label:home.tiles.tarotCareerMoveAria">
-              <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/taromove.webp?v=build-4516c75d9aac" data-img-alt="이직 운명의 카드 — 일의 문턱을 읽는 7카드 커리어 리딩" data-cd-trans-attr="data-img-alt:home.tiles.tarotCareerMoveAlt">
-                <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" src="/fuctionassets/taromove.webp?v=build-4516c75d9aac" alt="이직 운명의 카드 — 일의 문턱을 읽는 7카드 커리어 리딩" onerror="this.onerror=null;this.src='/fuctionassets/tarolove.webp';" data-cd-trans-attr="alt:home.tiles.tarotCareerMoveImgAlt">
+              <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/taromove.webp?v=build-1f74aa8391af" data-img-alt="이직 운명의 카드 — 일의 문턱을 읽는 7카드 커리어 리딩" data-cd-trans-attr="data-img-alt:home.tiles.tarotCareerMoveAlt">
+                <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" src="/fuctionassets/taromove.webp?v=build-1f74aa8391af" alt="이직 운명의 카드 — 일의 문턱을 읽는 7카드 커리어 리딩" onerror="this.onerror=null;this.src='/fuctionassets/tarolove.webp';" data-cd-trans-attr="alt:home.tiles.tarotCareerMoveImgAlt">
                 <span class="tarot-tile__badge tarot-tile__badge--new">CAREER</span>
                 <span class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price5000">1회 5,000원</span>
               </div>
@@ -16669,8 +16665,8 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
             <!-- [기능 연결부] 말과 행동 사이 타로 → /tarot/mindscan -->
             <a class="tarot-tile tarot-tile--mindscan" href="/tarot/mindscan/"
                aria-label="말과 행동 사이의 온도를 읽는 10카드 타로 시작" data-cd-trans-attr="aria-label:home.tiles.tarotMindscanAria">
-              <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/mindscantaro.webp?v=build-4516c75d9aac" data-img-alt="말과 행동 사이 — 마음의 온도를 읽는 10카드 관계 리딩" data-cd-trans-attr="data-img-alt:home.tiles.tarotMindscanAlt">
-                <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" src="/fuctionassets/mindscantaro.webp?v=build-4516c75d9aac" alt="말과 행동 사이 — 마음의 온도를 읽는 10카드 관계 리딩" onerror="this.onerror=null;this.src='/fuctionassets/tarolove.webp';" data-cd-trans-attr="alt:home.tiles.tarotMindscanImgAlt">
+              <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/mindscantaro.webp?v=build-1f74aa8391af" data-img-alt="말과 행동 사이 — 마음의 온도를 읽는 10카드 관계 리딩" data-cd-trans-attr="data-img-alt:home.tiles.tarotMindscanAlt">
+                <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" src="/fuctionassets/mindscantaro.webp?v=build-1f74aa8391af" alt="말과 행동 사이 — 마음의 온도를 읽는 10카드 관계 리딩" onerror="this.onerror=null;this.src='/fuctionassets/tarolove.webp';" data-cd-trans-attr="alt:home.tiles.tarotMindscanImgAlt">
                 <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
                 <span class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price5000">1회 5,000원</span>
               </div>
@@ -16683,8 +16679,8 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
             <!-- [기능 연결부] 원석 소울 타로 → /tarot/crystal-soul -->
             <a class="tarot-tile tarot-tile--crystal-soul" href="/tarot/crystal-soul/"
                aria-label="원석 소울 타로 리딩 시작" data-cd-trans-attr="aria-label:home.tiles.tarotCrystalSoulAria">
-              <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/stonetaro.webp?v=build-4516c75d9aac" data-img-alt="원석 소울 타로 — 크리스탈 에너지 리딩" data-cd-trans-attr="data-img-alt:home.tiles.tarotCrystalSoulAlt">
-                <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" src="/fuctionassets/stonetaro.webp?v=build-4516c75d9aac" alt="원석 소울 타로 — 크리스탈 에너지 리딩" onerror="this.onerror=null;this.src='/fuctionassets/tarolove.webp';" data-cd-trans-attr="alt:home.tiles.tarotCrystalSoulImgAlt">
+              <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/stonetaro.webp?v=build-1f74aa8391af" data-img-alt="원석 소울 타로 — 크리스탈 에너지 리딩" data-cd-trans-attr="data-img-alt:home.tiles.tarotCrystalSoulAlt">
+                <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" src="/fuctionassets/stonetaro.webp?v=build-1f74aa8391af" alt="원석 소울 타로 — 크리스탈 에너지 리딩" onerror="this.onerror=null;this.src='/fuctionassets/tarolove.webp';" data-cd-trans-attr="alt:home.tiles.tarotCrystalSoulImgAlt">
                 <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
                 <span class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price5000">1회 5,000원</span>
               </div>
@@ -16883,7 +16879,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                 <!-- 핀란드 주석점 -->
                 <a class="tarot-tile tarot-tile--sikojen-fc" href="/oracle/sikojen-povailu/"
                    aria-label="핀란드 주석점 시작" data-cd-trans-attr="aria-label:home.tiles.sikojenAria">
-                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/핀란드%20돼지%20주석점.webp?v=build-4516c75d9aac" data-img-alt="핀란드 돼지 주석점 — 연이와 주석 그림자 의식" data-cd-trans-attr="data-img-alt:home.tiles.sikojenAlt">
+                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/핀란드%20돼지%20주석점.webp?v=build-1f74aa8391af" data-img-alt="핀란드 돼지 주석점 — 연이와 주석 그림자 의식" data-cd-trans-attr="data-img-alt:home.tiles.sikojenAlt">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🐷</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
                     <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free" data-cd-trans data-key="home.tiles.freeBadge">무료</span>
@@ -20428,24 +20424,24 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
      DCL 이고, 하는 일은 첫 페인트가 아니라 프로필 카드 강화다. high 로 두면 그 다운로드가 LCP
      히어로 이미지 preload 와 같은 우선순위 슬롯을 놓고 경쟁해 LCP 를 늦춘다. low 도 쓰지 않는다 —
      DCL 이 defer 실행을 기다리므로 지나치게 내리면 DCL 자체가 밀린다. 기본값이 맞다. -->
-<script defer src="/js/destiny-profile.js?v=build-4516c75d9aac" data-marker="profile-card-date-input-v20260624"></script>
+<script defer src="/js/destiny-profile.js?v=build-1f74aa8391af" data-marker="profile-card-date-input-v20260624"></script>
 <!-- 오늘의 운세 허브 계산 코어. 히어로 직후 첫 화면이라 지연 로더(data-cd-noncritical-src)에 태우지 않는다.
      defer 라 DOMContentLoaded 전에 실행이 끝나고, destiny-profile.js 뒤에 두어 dpGetDataForVedic() 이 먼저 준비된다. -->
-<script defer src="/js/fortune-gateway.js?v=build-4516c75d9aac" data-marker="fortune-gateway-v1"></script>
+<script defer src="/js/fortune-gateway.js?v=build-1f74aa8391af" data-marker="fortune-gateway-v1"></script>
 <!-- 홈 통합 운세 탐색기 — 서비스 레지스트리(데이터) + 탐색 엔진(검색·고민·방식·가격).
      운명의 문 디스커버와 전체 서비스 인덱스가 이 한 벌을 함께 쓴다. 인라인으로 되돌리지 말 것 —
      8KB 를 넘으면 외부 청크로 빠지며 data-marker 가 사라진다.
      🔴 레지스트리가 엔진보다 먼저 실행돼야 한다(defer 는 문서 순서를 지킨다). -->
-<script defer src="/js/core/service-registry.js?v=build-4516c75d9aac" data-marker="cd-home-service-registry-v20260819"></script>
-<script defer src="/js/core/home-service-finder.js?v=build-4516c75d9aac" data-marker="cd-home-service-finder-v20260819"></script>
-<script defer src="/js/core/home-funnel.js?v=build-4516c75d9aac"></script>
+<script defer src="/js/core/service-registry.js?v=build-1f74aa8391af" data-marker="cd-home-service-registry-v20260819"></script>
+<script defer src="/js/core/home-service-finder.js?v=build-1f74aa8391af" data-marker="cd-home-service-finder-v20260819"></script>
+<script defer src="/js/core/home-funnel.js?v=build-1f74aa8391af"></script>
 <script defer src="/js/mobile-interaction-patch.js?v=build-8e32409da267" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
-<script data-cd-lazy-src="/js/core/saju/basicFortunePresentation.js?v=build-4516c75d9aac" data-cd-mobile-delay="1"></script>
+<script data-cd-lazy-src="/js/core/saju/basicFortunePresentation.js?v=build-1f74aa8391af" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
-<script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-4516c75d9aac" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
-<script defer src="/js/core/index-inline-runtime.js?v=build-4516c75d9aac" data-cd-saju-prompt-marker="saju-ai-consultation-flow-v20260706 saju-ai-calibration-v20260706 saju-ai-llm-result-v20260625 sukuyo-guardian-drawing-v20260625 sukuyo-pastlife-v2-20260621" data-cd-kemet-ai-prompt-marker="kemet-ai-prompt-generator-v20260619"></script>
-<script defer src="/js/pwa-install-prompt.js?v=build-4516c75d9aac"></script>
+<script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-1f74aa8391af" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
+<script defer src="/js/core/index-inline-runtime.js?v=build-1f74aa8391af" data-cd-saju-prompt-marker="saju-ai-consultation-flow-v20260706 saju-ai-calibration-v20260706 saju-ai-llm-result-v20260625 sukuyo-guardian-drawing-v20260625 sukuyo-pastlife-v2-20260621" data-cd-kemet-ai-prompt-marker="kemet-ai-prompt-generator-v20260619"></script>
+<script defer src="/js/pwa-install-prompt.js?v=build-1f74aa8391af"></script>
 <script data-cd-lazy-src="/js/admin-flower.js" data-cd-mobile-delay="2"></script>
 <div class="share-toast" id="shareToast"></div>
 
@@ -20570,7 +20566,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
             content: {
               title: tr('kakaoReferral.kakaoTitle', 'Code Destiny 별빛 운세 초대'),
               description: tr('kakaoReferral.kakaoDescription', '이 카카오 공유 링크로 친구를 초대할 수 있어요.'),
-              imageUrl: 'https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-4516c75d9aac',
+              imageUrl: 'https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-1f74aa8391af',
               link: { mobileWebUrl: shareUrl, webUrl: shareUrl }
             },
             buttons: [
@@ -20634,8 +20630,8 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
 })();
 </script>
 
-<script data-cd-noncritical-src="/js/share-reward.js?v=build-4516c75d9aac"></script>
-<script data-cd-noncritical-src="/js/share.js?v=build-4516c75d9aac"></script>
+<script data-cd-noncritical-src="/js/share-reward.js?v=build-1f74aa8391af"></script>
+<script data-cd-noncritical-src="/js/share.js?v=build-1f74aa8391af"></script>
 <script>
 (function(){
   var shouldRunVersionProbe = function () {
@@ -20686,9 +20682,9 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
 })();
 </script>
 
-<script data-cd-noncritical-src="/js/iching-engine.js?v=build-4516c75d9aac" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
+<script data-cd-noncritical-src="/js/iching-engine.js?v=build-1f74aa8391af" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
 
-<script data-cd-noncritical-src="/js/iching-modal.js?v=build-4516c75d9aac" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
+<script data-cd-noncritical-src="/js/iching-modal.js?v=build-1f74aa8391af" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
 
 <!-- 자체 언어 라우팅: 구글 번역 위젯 완전 대체 (로케일 경로 네비게이션) -->
 <!-- native language override disabled: core runtime handler provides immediate GT switching -->
@@ -20702,7 +20698,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
   </div>
 </div>
 
-<script data-cd-noncritical-src="/js/fate-scroll-reveal.js?v=build-4516c75d9aac" data-cd-mobile-delay="2" data-cd-lowend-skip="1" data-marker="fate-scroll-indicator-disabled-when-result-active-v20260627"></script>
+<script data-cd-noncritical-src="/js/fate-scroll-reveal.js?v=build-1f74aa8391af" data-cd-mobile-delay="2" data-cd-lowend-skip="1" data-marker="fate-scroll-indicator-disabled-when-result-active-v20260627"></script>
 <script data-cd-noncritical-src="/js/fate-scroll-top.js" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
 <script data-cd-noncritical-src="/js/fsn-navbar.js" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
 
@@ -21246,7 +21242,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
   // 예전에 R2(assets.code-destiny.com)의 742KB PNG 를 결제 경로에 두었다가 PortOne SDK 와 대역폭을
   // 다투어 "network error 로 PG 창이 안 뜨는" 사고가 났고, verify-portone-single-payment 가 그 회귀를 막는다.
   // 이 파일은 독립 정적 결제 오버레이(js/destiny-profile.js)가 이미 쓰는 것과 같은 자산이다.
-  var CD_CHECKOUT_GUIDE_PIG_SRC = '/icons/app-logo-176.webp?v=build-4516c75d9aac';
+  var CD_CHECKOUT_GUIDE_PIG_SRC = '/icons/app-logo-176.webp?v=build-1f74aa8391af';
   // 이용권을 사러 떠나기 직전에 남긴다 — /points 가 결제 성공 후 이 지점으로 돌려보낸다.
   // 셸은 화면 상태가 해시·쿼리에 있으므로 셋 다 담는다.
   function _cdRememberCheckoutReturn(label, options) {
@@ -33352,30 +33348,33 @@ function updateBadge() {
 
 <!-- MBTI/화투 모듈은 mobile-performance-bootstrap에서 필요 시 로드 -->
 
-<script data-cd-noncritical-src="/js/mobile-performance-bootstrap.js?v=build-4516c75d9aac" data-cd-mobile-delay="1"></script>
-<script src="/js/io-image-lazy-loader.js?v=build-4516c75d9aac" defer></script>
-<script src="/js/noncritical-defer-loader.js?v=build-4516c75d9aac" defer></script>
-<script src="/js/cd-lang-native.js?v=build-4516c75d9aac" defer></script>
+<script data-cd-noncritical-src="/js/mobile-performance-bootstrap.js?v=build-1f74aa8391af" data-cd-mobile-delay="1"></script>
+<script src="/js/io-image-lazy-loader.js?v=build-1f74aa8391af" defer></script>
+<script src="/js/noncritical-defer-loader.js?v=build-1f74aa8391af" defer></script>
+<script src="/js/cd-lang-native.js?v=build-1f74aa8391af" defer></script>
 <script data-cd-noncritical-src="/js/image-fallback.js" data-cd-mobile-delay="1"></script>
-<script data-cd-noncritical-src="/js/runtime-stability.js?v=build-4516c75d9aac" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
+<script data-cd-noncritical-src="/js/runtime-stability.js?v=build-1f74aa8391af" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
 <script data-cd-noncritical-src="/js/touch-perf.js" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
 <!-- ARIA 모달 포커스 매니저: aria-hidden 경고 해소 + inert 기반 배경 잠금 -->
 <script src="/js/cd-aria-modal-manager.js" defer></script>
-<script data-cd-lazy-src="/js/dream-ledger.js?v=build-4516c75d9aac" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
-<script data-cd-lazy-src="/js/psycho-dream-analyzer-freuds-study.js?v=build-4516c75d9aac" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
+<script data-cd-lazy-src="/js/dream-ledger.js?v=build-1f74aa8391af" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
+<script data-cd-lazy-src="/js/psycho-dream-analyzer-freuds-study.js?v=build-1f74aa8391af" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
 <script data-cd-lazy-src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" data-cd-mobile-delay="2" data-cd-lowend-skip="1" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <!-- jsPDF removed from initial bundle; load on demand only if a feature requires it -->
-<script data-cd-noncritical-src="/js/sibyl-system.js?v=build-4516c75d9aac" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
+<script data-cd-noncritical-src="/js/sibyl-system.js?v=build-1f74aa8391af" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
 <script src="/js/cd-lazy-feature-loader.js" defer></script>
-<script type="module" src="/js/app.js?v=build-4516c75d9aac"></script>
+<script type="module" src="/js/app.js?v=build-1f74aa8391af"></script>
 <!-- Feature Preview Panel v2 -->
 <template id="tilePvwOverlayTemplate" data-component="MobileFeatureBottomSheetTemplate">
 <div id="tilePvwOverlay" class="tile-pvw-overlay cd-detail-overlay MobileFeatureBottomSheet" data-cd-detail-overlay="" data-component="MobileFeatureBottomSheet" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="tilePvwTitle" data-marker="main-overlay-dedupe-v20260625 mobile-feature-bottom-sheet-v20260701 feature-marketing-detail-v20260702">
   <div class="tile-pvw-bd" id="tilePvwBd"></div>
   <div class="tile-pvw-sheet cd-detail-panel" id="tilePvwSheet" data-cd-detail-panel data-cd-detail-no-media="false">
     <div class="tile-pvw-handle" aria-hidden="true"></div>
-    <button class="tile-pvw-close" id="tilePvwClose" aria-label="닫기" data-cd-trans-attr="aria-label:common.close">✕</button>
-    <!-- 데스크톱에서는 이미지와 본문이 나란히, 모바일에서는 이미지가 먼저 온다. -->
+    <button class="tile-pvw-close" id="tilePvwClose" type="button" aria-label="닫기" data-cd-trans-attr="aria-label:common.close">✕</button>
+    <div class="tile-pvw-column cd-detail-column">
+    <!-- 스크롤 영역: 히어로와 본문이 함께 스크롤하고 CTA는 시트 바닥에 남는다.
+         히어로를 스크롤 밖에 두면 모바일에서 화면 1/4을 계속 차지해 읽을 자리가 줄어든다. -->
+    <div class="tile-pvw-scroll" id="tilePvwScroll">
     <div class="tile-pvw-hero cd-detail-visual" id="tilePvwHero" data-cd-detail-visual>
       <img class="tile-pvw-hero-img" id="tilePvwHeroImg" alt="" loading="lazy" decoding="async" width="800" height="450">
       <div class="tile-pvw-hero-gradient" aria-hidden="true"></div>
@@ -33384,73 +33383,94 @@ function updateBadge() {
         <span class="tile-pvw-hero-cost" id="tilePvwCost"></span>
       </div>
     </div>
-    <div class="tile-pvw-column cd-detail-column">
-    <!-- 스크롤 영역: 본문만 스크롤하고 CTA는 시트 바닥에 남는다. -->
-    <div class="tile-pvw-scroll" id="tilePvwScroll">
     <!-- 콘텐츠 영역 -->
     <div class="tile-pvw-content cd-detail-content" data-cd-detail-content>
       <h2 class="tile-pvw-title" id="tilePvwTitle"></h2>
       <p class="tile-pvw-tagline" id="tilePvwTagline"></p>
-      <div class="tile-pvw-divider" aria-hidden="true"></div>
-      <!-- 순서 계약(feature-marketing-cro-v20260731):
-           무엇을 얻는가 → 어떻게 분석하는가 → 실제 리포트 예시 → 누구에게 맞는가 → 가격 → CTA.
-           기존 4개 리스트(audience/chapters/required/outcomes)는 id 와 data-cd-trans 를 그대로 두고
-           위치만 옮긴다 — 지우면 i18n 키 4개와 _setListSection 호출이 함께 끊긴다. -->
+      <div class="tile-pvw-divider" aria-hidden="true"><span>✦</span></div>
+      <!-- 순서 계약(feature-marketing-premium-v20260911):
+           누구에게 → 무엇을 받는가 → 결과 화면 구성 → 어떻게 분석하는가 → 믿을 이유 → 가격과 혜택
+           → 안심 안내 → FAQ → CTA. 기존 리스트 id 와 data-cd-trans 는 그대로 두고 위치만 옮긴다 —
+           지우면 i18n 키와 _setListSection 호출이 함께 끊긴다. 순서는 verify:feature-marketing-schema 가 지킨다. -->
 
-      <!-- ① 무엇을 얻는가 -->
-      <p class="tile-pvw-feats-label" id="tilePvwFeatsLabel" data-cd-trans="preview.featuresLabel">주요 기능</p>
-      <ul class="tile-pvw-feats" id="tilePvwFeats"></ul>
-      <div class="tile-pvw-premium-block" id="tilePvwPremiumBlock">
-        <p class="tile-pvw-premium-intro" id="tilePvwPremiumIntro"></p>
-        <p class="tile-pvw-premium-title" id="tilePvwPremiumChaptersTitle" data-cd-trans="preview.deliverablesLabel">리포트에 담기는 것</p>
-        <ul class="tile-pvw-premium-list is-deliverables" id="tilePvwPremiumChapters"></ul>
-      </div>
-      <section class="tile-pvw-sec" id="tilePvwScaleSec" hidden>
-        <p class="tile-pvw-sec-title" data-cd-trans="preview.scaleLabel">분석 깊이</p>
-        <div class="tile-pvw-scale" id="tilePvwScale"></div>
+      <!-- ① 누구에게 맞는가 -->
+      <section class="tile-pvw-sec" id="tilePvwAudSec" hidden>
+        <h3 class="tile-pvw-sec-title" id="tilePvwPremiumAudienceTitle" data-cd-trans="preview.recommendForLabel">이런 분에게 추천해요</h3>
+        <ul class="tile-pvw-premium-list tile-pvw-check-list" id="tilePvwPremiumAudience"></ul>
       </section>
       <section class="tile-pvw-sec" id="tilePvwQuestSec" hidden>
-        <p class="tile-pvw-sec-title" id="tilePvwQuestionsTitle" data-cd-trans="preview.questionsLabel">이런 질문에 도움이 됩니다</p>
-        <ul class="tile-pvw-premium-list" id="tilePvwQuestions"></ul>
+        <h3 class="tile-pvw-sec-title" id="tilePvwQuestionsTitle" data-cd-trans="preview.questionsLabel">이런 질문에 도움이 됩니다</h3>
+        <ul class="tile-pvw-premium-list tile-pvw-quote-list" id="tilePvwQuestions"></ul>
       </section>
 
-      <!-- ② 어떻게 분석하는가 (사용자가 이해하는 단계까지만 — 내부 로직·모델은 쓰지 않는다) -->
+      <!-- ② 무엇을 받는가 — receives(아이콘·제목·한 문장)가 있으면 그것을, 없으면 feats 를 보인다. -->
+      <section class="tile-pvw-sec" id="tilePvwReceiveSec" hidden>
+        <h3 class="tile-pvw-sec-title tile-pvw-feats-label" id="tilePvwFeatsLabel" data-cd-trans="preview.receivesLabel">내가 받게 되는 것</h3>
+        <ul class="tile-pvw-receives" id="tilePvwReceives" hidden></ul>
+        <ul class="tile-pvw-feats" id="tilePvwFeats"></ul>
+      </section>
+      <section class="tile-pvw-sec" id="tilePvwScaleSec" hidden>
+        <h3 class="tile-pvw-sec-title" data-cd-trans="preview.scaleLabel">분석 깊이</h3>
+        <div class="tile-pvw-scale" id="tilePvwScale"></div>
+      </section>
+
+      <!-- ③ 결과 화면 구성 — 실제 결과 화면의 구성 이름만 적는다. 지어낸 결과 문장은 넣지 않는다. -->
+      <section class="tile-pvw-sec" id="tilePvwOutlineSec" hidden>
+        <h3 class="tile-pvw-sec-title" data-cd-trans="preview.outlineLabel">결과 화면은 이렇게 구성돼요</h3>
+        <figure class="tile-pvw-outline-figure" id="tilePvwOutlineFigure" hidden>
+          <img class="tile-pvw-outline-img" id="tilePvwOutlineImg" alt="" loading="lazy" decoding="async" width="320" height="213">
+        </figure>
+        <ol class="tile-pvw-outline" id="tilePvwOutline"></ol>
+        <p class="tile-pvw-outline-caption" data-cd-trans="preview.outlineCaption">실제 결과는 입력하신 정보로 계산됩니다 · 이미지는 대표 일러스트입니다</p>
+      </section>
+
+      <!-- ④ 어떻게 분석하는가 (사용자가 이해하는 단계까지만 — 내부 로직·모델은 쓰지 않는다) -->
       <section class="tile-pvw-sec" id="tilePvwStepsSec" hidden>
-        <p class="tile-pvw-sec-title" data-cd-trans="preview.stepsLabel">어떤 방식으로 분석하나요</p>
+        <h3 class="tile-pvw-sec-title" data-cd-trans="preview.stepsLabel">어떤 방식으로 분석하나요</h3>
+        <p class="tile-pvw-premium-intro" id="tilePvwPremiumIntro" hidden></p>
         <ol class="tile-pvw-steps" id="tilePvwSteps"></ol>
       </section>
       <section class="tile-pvw-sec" id="tilePvwReqSec" hidden>
-        <p class="tile-pvw-sec-title" id="tilePvwPremiumRequiredTitle" data-cd-trans="preview.requiredInfoLabel">생성 전 필요 정보</p>
+        <h3 class="tile-pvw-sec-title" id="tilePvwPremiumRequiredTitle" data-cd-trans="preview.requiredInfoLabel">생성 전 필요 정보</h3>
         <ul class="tile-pvw-premium-list" id="tilePvwPremiumRequired"></ul>
       </section>
 
-      <!-- ④ 누구에게 맞는가 -->
-      <section class="tile-pvw-sec" id="tilePvwAudSec" hidden>
-        <p class="tile-pvw-sec-title" id="tilePvwPremiumAudienceTitle" data-cd-trans="preview.audienceLabel">추천 상황</p>
-        <ul class="tile-pvw-premium-list" id="tilePvwPremiumAudience"></ul>
+      <!-- ⑤ 믿을 이유 — 코드와 약관으로 확인된 사실만 -->
+      <section class="tile-pvw-sec" id="tilePvwTrustSec" hidden>
+        <h3 class="tile-pvw-sec-title" id="tilePvwPremiumOutcomesTitle" data-cd-trans="preview.outcomesLabel">안심하고 확인하세요</h3>
+        <ul class="tile-pvw-premium-list tile-pvw-check-list" id="tilePvwPremiumOutcomes"></ul>
       </section>
 
-      <!-- ⑤ 가격 — 무료와 무엇이 다른지 먼저 납득시키고, 신뢰 요소를 붙인 뒤 결제 안내로 넘긴다. -->
+      <!-- ⑥ 가격과 혜택 — 가격 문구는 기존 paywall 분기가 그대로 채운다(여기서 가격을 쓰지 않는다). -->
+      <section class="tile-pvw-sec tile-pvw-price-sec" id="tilePvwPriceSec" hidden>
+        <h3 class="tile-pvw-sec-title" id="tilePvwPriceTitle" data-cd-trans="preview.pricingLabel">가격과 혜택</h3>
+        <div class="tile-pvw-paywall" id="tilePvwPaywall" style="display:none" aria-live="polite">
+          <span class="tile-pvw-paywall-icon" id="tilePvwPaywallIcon" aria-hidden="true">🪙</span>
+          <div class="tile-pvw-paywall-body">
+            <strong class="tile-pvw-paywall-title" id="tilePvwPaywallTitle"></strong>
+            <span class="tile-pvw-paywall-desc" id="tilePvwPaywallDesc"></span>
+          </div>
+        </div>
+        <div class="tile-pvw-premium-block" id="tilePvwPremiumBlock">
+          <p class="tile-pvw-premium-title" id="tilePvwPremiumChaptersTitle" data-cd-trans="preview.benefitsLabel">포함된 혜택</p>
+          <ul class="tile-pvw-premium-list is-deliverables" id="tilePvwPremiumChapters"></ul>
+        </div>
+      </section>
       <section class="tile-pvw-sec" id="tilePvwCmpSec" hidden>
-        <p class="tile-pvw-sec-title" data-cd-trans="preview.compareLabel">왜 유료인가요</p>
+        <h3 class="tile-pvw-sec-title" data-cd-trans="preview.compareLabel">왜 유료인가요</h3>
         <div class="tile-pvw-cmp" id="tilePvwCompare" role="table"></div>
       </section>
-      <section class="tile-pvw-sec" id="tilePvwTrustSec" hidden>
-        <p class="tile-pvw-sec-title" id="tilePvwPremiumOutcomesTitle" data-cd-trans="preview.outcomesLabel">안심하고 확인하세요</p>
-        <ul class="tile-pvw-premium-list" id="tilePvwPremiumOutcomes"></ul>
-      </section>
-      <!-- 결제/해금 paywall 정보 박스 -->
-      <div class="tile-pvw-paywall" id="tilePvwPaywall" style="display:none" aria-live="polite">
-        <span class="tile-pvw-paywall-icon" id="tilePvwPaywallIcon" aria-hidden="true">🪙</span>
-        <div class="tile-pvw-paywall-body">
-          <strong class="tile-pvw-paywall-title" id="tilePvwPaywallTitle"></strong>
-          <span class="tile-pvw-paywall-desc" id="tilePvwPaywallDesc"></span>
-          <span class="tile-pvw-paywall-note" data-cd-trans="preview.paywallNote">모든 유료 서비스는 결제(구매) 완료 즉시 제공되며, 제공이 시작된 후에는 관련 법령에 따라 청약철회가 제한될 수 있습니다.</span>
-        </div>
-      </div>
-      <!-- ⑥ FAQ — 기본 접힘. 결제 직전 남는 마지막 의문만 걷어내는 자리다. -->
+
+      <!-- ⑦ 안심 안내 — 결제 안내가 보일 때만. 문구는 이용약관 제12조(청약철회)와 같은 뜻을 유지한다. -->
+      <aside class="tile-pvw-assure" id="tilePvwAssure" hidden>
+        <p class="tile-pvw-assure-title" data-cd-trans="preview.assureLabel">안심하고 이용하세요</p>
+        <p class="tile-pvw-paywall-note" data-cd-trans="preview.paywallNote">모든 유료 서비스는 결제(구매) 완료 즉시 제공되며, 제공이 시작된 후에는 관련 법령에 따라 청약철회가 제한될 수 있습니다.</p>
+        <a class="tile-pvw-assure-link" href="/zh-tw/refund-policy/" data-cd-trans="preview.refundPolicyLink">환불 정책 보기</a>
+      </aside>
+
+      <!-- ⑧ FAQ — 기본 접힘. 결제 직전 남는 마지막 의문만 걷어내는 자리다. -->
       <section class="tile-pvw-sec" id="tilePvwFaqSec" hidden>
-        <p class="tile-pvw-sec-title" data-cd-trans="preview.faqLabel">자주 묻는 질문</p>
+        <h3 class="tile-pvw-sec-title" data-cd-trans="preview.faqLabel">자주 묻는 질문</h3>
         <div class="tile-pvw-faq" id="tilePvwFaq"></div>
       </section>
     </div>
@@ -33767,7 +33787,7 @@ function updateBadge() {
 (function(){
   'use strict';
   var D={
-    '#destinyCardForm':{cat:'사주 · 무료 운명 카드',fallbackTitle:'🌙 나의 달빛 운명 카드',tagline:'생년월일과 출생시간을 바탕으로 사주, 오늘의 흐름, 궁합, 별자리 서비스로 이어지는 기본 프로필을 만듭니다.',feats:['이름·생년월일·출생시간 기반 기본 운명 카드 생성','출생시간을 모를 때 낮 12시 기준으로 보수 계산','사주 결과와 주요 운세 서비스 바로가기 자동 연결','저장한 프로필로 무료·프리미엄 리딩을 더 빠르게 시작'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/%EC%82%AC%EC%A3%BC%EB%B3%B4%EB%8A%94%20%EC%97%B0%EC%9D%B4.webp?v=build-4516c75d9aac',fallbackCta:'운명 카드 만들기'},
+    '#destinyCardForm':{cat:'사주 · 무료 운명 카드',fallbackTitle:'🌙 나의 달빛 운명 카드',tagline:'생년월일과 출생시간을 바탕으로 사주, 오늘의 흐름, 궁합, 별자리 서비스로 이어지는 기본 프로필을 만듭니다.',feats:['이름·생년월일·출생시간 기반 기본 운명 카드 생성','출생시간을 모를 때 낮 12시 기준으로 보수 계산','사주 결과와 주요 운세 서비스 바로가기 자동 연결','저장한 프로필로 무료·프리미엄 리딩을 더 빠르게 시작'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/%EC%82%AC%EC%A3%BC%EB%B3%B4%EB%8A%94%20%EC%97%B0%EC%9D%B4.webp?v=build-1f74aa8391af',fallbackCta:'운명 카드 만들기'},
     gotoZiweiPremium:{cat:'프리미엄 · 자미두수 전문가 상담',fallbackTitle:'자미두수 전문가 상담',tagline:'명궁·신궁·12궁·사화·대운·세운 흐름을 바탕으로 지금의 질문에 답합니다.',feats:['입력은 무료 — 상담 생성 버튼을 누를 때 30,000원 단건 결제 또는 이용권·월정석 확인','결제 확인이 끝나면 상담문이 바로 생성','명궁·재백·관록·부부·질액궁을 질문에 맞춰 연결 해석','상담 결과를 화면에서 바로 확인하고 추가 질문 이어가기'],cost:'30,000원 · 전문가 상담',ct:'paid',img:'/fuctionassets/jamipremiun.webp',fallbackCta:'자미두수 상담 받기'},
     '/neo-operation-room':{cat:'프리미엄 · 운명 작전실',fallbackTitle:'네오의 팩폭 운명 작전실',tagline:'사주·자미두수·베다점·점성술의 지도를 한 장의 전략처럼 펼쳐, 지금 밀리는 전선과 다시 잡아야 할 기준을 또렷하게 짚습니다.',feats:['30,000원 상담 이용권 확인','결제 완료 후 네오의 작전실로 바로 이동','사주와 별자리 흐름을 함께 비추는 종합 상담','현재 고민에 맞춘 선택 기준과 다음 행동 정리'],cost:'30,000원 · 전문가 상담',ct:'paid',img:'https://assets.code-destiny.com/DestinyWar/%EB%84%A4%EC%98%A4%EC%9D%98%20%ED%8C%A9%ED%8F%AD%20%EC%9A%B4%EB%AA%85%20%EC%9E%91%EC%A0%84%EC%8B%A4.webp',fallbackCta:'작전실 열기'},
     openNamingPromptModal:{cat:'작명 · 전문가 상담',fallbackTitle:'훈민정음 작명소',tagline:'생년월일시와 원하는 이름 조건을 바탕으로 용신·소리오행·한자 의미·수리 풀이를 종합해 전문가가 직접 이름을 짓고, 그 결과를 만든 프롬프트 원문까지 함께 드립니다.',feats:['입력과 무료 초안 추천은 무료로 열립니다','프리미엄 작명 시작 시 30,000원 단건 결제 또는 이용권·월정석 확인이 진행됩니다','사주 보완, 인명용 한자, 소리오행, 자원오행, 원형이정 수리를 종합한 완성형 결과 제공','결제 검증 후 전문가 작명 결과와 PDF 저장, 생성에 사용된 프롬프트 원문까지 다시 확인할 수 있습니다'],cost:'30,000원 · 이용권/월정석 가능',ct:'paid',img:'/fuctionassets/naming.webp',fallbackCta:'작명 시작하기'},
@@ -33812,7 +33832,7 @@ function updateBadge() {
     openRuneOracle:{cat:'스톤헨지 · 룬 오라클',fallbackTitle:'ᚠ 스톤헨지 룬 오라클',tagline:'바이킹 전사들이 전투 전날 뽑았던 그 룬 — 오늘 내린 결정이 맞는지 룬 문자가 답합니다',feats:['고대 퓨사크 24룬 완전 정통 해석','정방향·역방향 모든 상황 적용','지금 직면한 결정에 룬이 구체적으로 답함','켈트 전통 스톤헨지 의식 감성 비주얼'],cost:'5,000원',ct:'paid',img:'/fuctionassets/rune.webp'},
     openGeomancyOracle:{cat:'지오맨시 · 흙점',fallbackTitle:'⟁ 지오맨시 흙점',tagline:'아라비아 왕국의 재상들이 국가 대사를 결정할 때 쓴 대지의 신탁 — 16행 점이 오늘 방향을 알려줍니다',feats:['중동·아프리카 4000년 전통 흙점 완전 분석','16개 점 패턴으로 보는 오늘 내가 해야 할 것','돈·사랑·진로 중 지금 집중해야 할 방향 파악','감성적 사막 아트 비주얼 리딩'],cost:'5,000원',ct:'paid',img:'/fuctionassets/geomancy.webp'},
     openRoyalTeaOracle:{cat:'영국 홍차점 · 타세오그래피',fallbackTitle:'🫖 영국 홍차점',tagline:'빅토리아 여왕도 중요한 결정 전에 찻잎의 징조를 살폈습니다 — 왕실의 찻잎 문양이 오늘의 운명을 전합니다',feats:['영국 왕실 전통 타세오그래피 의식 완전 체험','찻잎 형태 20가지 상징 심층 해독 & 적용','오늘 내가 반드시 알아야 할 운명의 메시지','빅토리아 시대 감성 왕실 리포트'],cost:'3,000원',ct:'paid',img:'/fuctionassets/london.webp'},
-    '/oracle/sikojen-povailu':{cat:'핀란드 주석점 · 북유럽 새해 의식',fallbackTitle:'🐷 핀란드 돼지 주석점',tagline:'작은 돼지 연이가 반짝이는 주석 그림자를 따라 올해의 행운, 사랑, 돈의 징조를 부드럽게 전해줍니다.',feats:['녹은 주석이 물에 닿는 순간 피어나는 새해 징조 리딩','귀여운 돼지 연이와 함께 고르는 금전·연애·행운 주머니','주석 형상과 그림자 메시지로 보는 겉운과 속마음의 흐름','결과를 예쁜 의식 카드처럼 확인하고 바로 공유 가능'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/핀란드%20돼지%20주석점.webp?v=build-4516c75d9aac'},
+    '/oracle/sikojen-povailu':{cat:'핀란드 주석점 · 북유럽 새해 의식',fallbackTitle:'🐷 핀란드 돼지 주석점',tagline:'작은 돼지 연이가 반짝이는 주석 그림자를 따라 올해의 행운, 사랑, 돈의 징조를 부드럽게 전해줍니다.',feats:['녹은 주석이 물에 닿는 순간 피어나는 새해 징조 리딩','귀여운 돼지 연이와 함께 고르는 금전·연애·행운 주머니','주석 형상과 그림자 메시지로 보는 겉운과 속마음의 흐름','결과를 예쁜 의식 카드처럼 확인하고 바로 공유 가능'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/핀란드%20돼지%20주석점.webp?v=build-1f74aa8391af'},
     '/destiny-poker.html':{cat:'데스티니 포커',fallbackTitle:'🃏 데스티니 포커',tagline:'신과의 카드 대결에서 이기면 행운이 찾아옵니다 — 올림푸스 신들과 운명을 건 포커 한 판',feats:['5장 포커로 신과 벌이는 운명 대결 게임','제우스·아테나·포세이돈·헤르메스 4신 배틀','오늘 내 승률이 바로 오늘의 운세 지수','완전 무료 엔터테인먼트 점술 게임'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/destiny%20pocker.webp'},
     openLoveSimulation:{cat:'사주 · 연애 시뮬레이션',fallbackTitle:'💕 LOVE CODE',tagline:'사주 오행으로 이 사람이 내 소울메이트인지 즉시 알 수 있습니다 — 가상 데이트로 찰떡 궁합 직접 확인',feats:['사주 8글자 기반 연애 페르소나 자동 생성','오행 궁합으로 찾는 최고 상성 & 최악 상대 비교','일간별 실시간 채팅으로 연애 케미 직접 체험','8가지 데이트 코스 & 크리티컬 히트 이벤트'],cost:'🔒 잠금 해제 10,000원',ct:'paid',img:'/fuctionassets/love code.webp'},
     openAstroModal:{cat:'점성술 · 기본 출생차트',fallbackTitle:'✨ 서양 점성술 기본 출생차트',tagline:'태양 별자리·달 별자리·상승궁과 MC로 나를 이해하는 5분 기본 리딩입니다.',feats:['출생 정보 신뢰도와 계산 기준 표시','태양 별자리·달 별자리·상승궁 3축 통합 해석','MC·10하우스·6하우스 기반 역할 조건','상대 차트 교차 분석은 시너스트리 궁합으로 확장'],cost:'✨ 기본 무료 · 시너스트리 궁합 5,000원',ct:'free',img:'/fuctionassets/jumsung.webp'},
@@ -34100,7 +34120,16 @@ function updateBadge() {
     // 꽃 아틀리에 4종(사주·점성술·자미두수·숙요)은 data-feature-key 가 모두 flower-fc 라
     // 타일 어느 것을 눌러도 이 항목이 먼저 잡힌다. 그래서 특정 꽃이 아니라 네 갈래를 함께
     // 설명하는 카피를 둔다(운명의 꽃 전용 문구를 상속시키면 나머지 셋이 틀린 설명을 받는다).
-    'flower-fc':{featureId:'flower-fc',category:'프리미엄 리포트',badge:'시각화형',headline:'여든아홉 송이 가운데, 당신의 명식이 피워내는 단 한 송이.',subheadline:'사주 · 점성술 · 자미두수 · 숙요 네 갈래의 계산값이 각각 꽃의 종과 색을 정해, 여든아홉 종 카탈로그에서 당신의 꽃을 피워냅니다. 해금 한 번으로 네 갈래가 모두 열립니다.',painPoints:['운세 결과를 글이 아니라 한 송이 꽃으로 간직하고 싶을 때','내 명식의 기운이 어떤 모습일지 궁금할 때','여러 점법을 한 자리에서 비교해 보고 싶을 때'],feats:['해금 한 번으로 사주 · 점성술 · 자미두수 · 숙요 네 갈래 전부','여든아홉 종의 꽃 카탈로그','명식 계산값이 종과 색을 정하는 규칙 기반 시각화','꽃의 부분마다 어떤 계산이 반영됐는지 해설','내 꽃을 그려낼 AI 아트 프롬프트 제공'],unlockBenefits:['네 갈래 각각의 운명의 꽃','종 · 색이 정해진 계산 근거 해설','같은 기기에서 이어 보는 개화 기록','언제든 다시 피우는 영구 해금'],previewText:'운명의 꽃은 무작위 그림이 아니라, 명식의 계산값이 규칙대로 종과 색을 정하는 시각화입니다.',recommendedFor:['결과를 이미지로 간직하고 싶은 분','여러 점법을 두루 즐기는 분','선물처럼 예쁜 운세를 원하는 분'],answersQuestions:['내 명식은 어떤 꽃으로 피어나나요?','네 갈래의 꽃은 서로 어떻게 다른가요?','꽃의 색과 모양은 왜 이렇게 정해졌나요?'],analysisSteps:[{label:'갈래 선택',detail:'사주 · 점성술 · 자미두수 · 숙요 가운데 고릅니다.'},{label:'명식 계산',detail:'계산값이 규칙대로 꽃의 종과 색을 정합니다.'},{label:'개화·해설',detail:'꽃이 피어나고 부분별 계산 해설이 열립니다.'}],faq:[{q:'해금하면 무엇이 열리나요?',a:'한 번의 해금으로 네 갈래가 모두 열리고, 언제든 다시 열람할 수 있습니다.'},{q:'꽃 이미지를 저장할 수 있나요?',a:'꽃을 그려낼 AI 아트 프롬프트를 제공해, 원하는 AI로 이미지를 만들어 간직할 수 있습니다.'}],trustNotes:['풀이 · 시각화는 참고용입니다.','꽃 매칭은 규칙 기반 계산입니다.','기존 결제 정책을 따릅니다.'],ctaLabel:'운명의 꽃 피우기'},
+    /* 상세창 프리미엄 개편의 기준 상품(2026-09-11). 모든 문장은 실제 구현에서 확인한 사실만 쓴다.
+       - 네 갈래·패널 이름: 아틀리에 화면(#dfStudio*)의 실제 탭·패널 제목
+       - 계산 재료: worker/lib/destiny-flower-engine.js (사주 일간·오행 비율·계절 / 점성술 태양·상승·달 /
+         자미두수 주성의 밝기·사화 / 숙요 27수·달 위상 → 89종 도감 랭킹, Math.random 없음)
+       - 개화 기록은 이 기기 localStorage 최근 12건, 공유는 카카오톡 텍스트·복사
+       - 환불 문장은 이용약관 제12조·FAQ 정본과 같은 기준
+       '10년 경력' 문장은 사주·만세력 해설 검수에 대한 것이라 이 상품에 옮겨 쓰지 않는다.
+       가격은 여기 적지 않는다 — 가격·혜택 칸은 기존 paywall 분기와 가격 저장소가 채운다.
+       비교표(valueCompare)는 해금 전 무료로 볼 수 있는 부분이 없어 명시적으로 비운다. */
+    'flower-fc':{featureId:'flower-fc',category:'프리미엄 리포트',badge:'꽃 아틀리에',headline:'여든아홉 송이 가운데, 당신의 명식이 피워내는 단 한 송이.',subheadline:'태어난 날의 기운이 꽃의 종류와 색을 고릅니다. 사주 · 점성술 · 자미두수 · 숙요, 네 가지 시선으로 각각 피어난 나의 꽃을 한 번의 해금으로 만나 보세요.',painPoints:['운세를 긴 글보다 한 송이 꽃으로 간직하고 싶을 때','내 명식의 기운이 어떤 모습일지 궁금할 때','여러 점법을 한 자리에서 견줘 보고 싶을 때'],feats:['사주 · 점성술 · 자미두수 · 숙요 네 갈래의 꽃을 한 번에','여든아홉 종 도감에서 고른 나의 꽃과 색','이 꽃이 나에게 온 이유를 부분별로 풀어 준 해설','그림으로 옮길 수 있는 꽃 묘사문','이 기기에 쌓이는 나의 개화 기록'],receives:[{icon:'🌸',title:'네 갈래로 피어난 나의 꽃',detail:'사주 · 점성술 · 자미두수 · 숙요, 네 가지 시선이 각각 한 송이씩 골라 줍니다.'},{icon:'🎨',title:'나를 닮은 색과 꽃말',detail:'퍼스널 컬러 팔레트와 운명의 꽃말, 함께 두면 좋은 시너지 팔레트를 보여 드려요.'},{icon:'📖',title:'이 꽃이 나에게 온 이유',detail:'꽃 프로필과 정원사의 관찰 일지가 어떤 기운이 어느 부분에 담겼는지 풀어 줍니다.'},{icon:'🖋️',title:'그림으로 옮길 수 있는 꽃 묘사문',detail:'복사해서 원하는 그림 AI에 붙여 넣으면 나의 꽃을 직접 그려 볼 수 있어요.'},{icon:'🗓️',title:'나의 개화 기록',detail:'피운 꽃은 이 기기에 최근 열두 송이까지 남아, 다음에 다시 꺼내 볼 수 있어요.'}],outline:[{title:'네 갈래 탭',detail:'사주 · 점성술 · 자미두수 · 숙요를 오가며 갈래마다 피어난 꽃을 봅니다.'},{title:'퍼스널 컬러 팔레트 · 입자 무드',detail:'꽃과 함께 나를 닮은 색과 분위기를 펼쳐 둡니다.'},{title:'꽃 프로필 · 정원사의 관찰 일지',detail:'꽃의 이름과 특징, 그리고 이 꽃이 고른 이유를 차례로 풀어 둡니다.'},{title:'운명의 꽃말 · 가드너의 한 마디',detail:'지금의 나에게 건네는 짧은 문장과 오늘의 가드닝 한 줄이 이어집니다.'},{title:'비밀 레시피 · 꽃 묘사문',detail:'꽃이 잘 피도록 돕는 행동 레시피와, 그림으로 옮길 때 쓰는 묘사문을 담았습니다.'},{title:'나누기와 기록',detail:'결과 문장을 카카오톡으로 나누거나 복사하고, 나의 개화 기록에 남깁니다.'}],outlineImage:'/fuctionassets/flower-320.webp',previewText:'운명의 꽃은 무작위로 뽑는 그림이 아닙니다. 태어난 날에서 읽어 낸 기운이 정해진 순서대로 꽃과 색을 고릅니다.',analysisSteps:[{label:'태어난 정보로 명식 세우기',detail:'생년월일을 바탕으로 네 가지 점법의 기본 배치를 계산합니다. 태어난 시각과 장소를 모르면 정오 · 서울을 기준으로 봅니다.'},{label:'네 가지 시선으로 읽기',detail:'사주는 일간과 오행의 비율 · 태어난 계절을, 점성술은 태양 · 상승 · 달의 자리를, 자미두수는 주성의 밝기와 사화를, 숙요는 27수와 달의 위상을 봅니다.'},{label:'여든아홉 종 도감에서 꽃 고르기',detail:'읽어 낸 기운을 미리 정해 둔 여든아홉 종 도감에 맞춰 꽃과 색을 정합니다. 같은 정보라면 언제 봐도 같은 꽃이에요.'},{label:'개화와 해설',detail:'꽃이 피어난 뒤, 이 꽃이 고른 이유와 색 · 꽃말을 부분별로 풀어 드립니다.'}],requiredInfo:['생년월일 (필수)','태어난 시각 · 장소 (모르면 정오 · 서울 기준)'],unlockBenefits:['사주 · 점성술 · 자미두수 · 숙요 네 갈래의 꽃 모두','갈래마다 퍼스널 컬러 팔레트 · 꽃말 · 관찰 일지 해설','그림으로 옮길 수 있는 꽃 묘사문 복사','이 기기에 남는 나의 개화 기록 (최근 열두 송이)'],recommendedFor:['운세를 긴 글보다 한 송이 꽃과 색으로 기억하고 싶은 분','사주 · 별자리 · 자미두수 · 숙요를 한 자리에서 견줘 보고 싶은 분','나를 닮은 색과 꽃말을 선물처럼 간직하고 싶은 분'],answersQuestions:['내 명식은 어떤 꽃으로 피어나나요?','네 가지 점법의 꽃은 서로 어떻게 다른가요?','왜 하필 이 꽃, 이 색이 나에게 왔을까요?'],valueCompare:{rows:[]},faq:[{q:'해금하면 무엇이 열리나요?',a:'한 번의 해금으로 사주 · 점성술 · 자미두수 · 숙요 네 갈래의 꽃과, 갈래마다의 팔레트 · 꽃말 · 해설이 함께 열립니다.'},{q:'태어난 시간을 몰라도 되나요?',a:'네. 생년월일만 있으면 됩니다. 시각과 장소를 모르면 정오 · 서울을 기준으로 계산하고, 알고 계시면 그 값으로 계산합니다.'},{q:'다시 보면 꽃이 바뀌나요?',a:'같은 정보를 넣으면 언제 봐도 같은 꽃이 피어납니다. 무작위로 뽑지 않기 때문이에요. 태어난 시각이나 장소를 바꾸면 결과가 달라질 수 있습니다.'},{q:'꽃 이미지를 저장할 수 있나요?',a:'운명의 꽃은 이미지 파일을 만들어 드리지 않습니다. 대신 꽃 묘사문을 복사해 원하는 그림 AI로 그려 볼 수 있고, 결과 문장은 카카오톡이나 복사로 나눌 수 있어요. 피운 꽃은 이 기기의 개화 기록에 남습니다.'},{q:'환불은 어떻게 되나요?',a:'청약철회는 환불 정책에서 정한 조건에 따라 요청할 수 있어요. 열람이 이미 시작된 부분은 철회가 제한될 수 있고, 월정석은 현금 환불 대상이 아닙니다. 자세한 기준은 환불 정책에서 확인해 주세요.'}],trustNotes:['무작위가 아닙니다 — 같은 정보를 넣으면 언제 봐도 같은 꽃이 피어납니다.','미리 정해 둔 여든아홉 종 도감 안에서만 꽃을 고릅니다.','계산은 명리학과 점성술의 고전 규칙이 맡고, 사람에게 건네는 문장은 사람이 책임집니다.','꽃과 꽃말은 나를 돌아보는 참고용 해석이며, 미래를 단정하지 않습니다.'],ctaLabel:'운명의 꽃 해금하기'},
     // 코스믹 소울 명상은 운세 해석이 아니라 세션형 콘텐츠라 카테고리 폴백(사주)이 통째로 틀렸다.
     // analysisSteps·unlockBenefits 를 빈 배열로 "명시적으로 비워" 템플릿 갭필을 막는다
     // (키를 지우면 사주 템플릿의 '명식 계산' 단계와 리포트 목차가 되살아난다).
@@ -34249,6 +34278,8 @@ function updateBadge() {
   var _premiumAudienceTitleEl,_premiumChaptersTitleEl,_premiumRequiredTitleEl,_premiumOutcomesTitleEl;
   var _scaleSecEl,_scaleEl,_questSecEl,_questEl,_questTitleEl,_stepsSecEl,_stepsEl;
   var _reqSecEl,_audSecEl,_trustSecEl,_cmpSecEl,_cmpEl,_faqSecEl,_faqEl,_ctaNoteEl;
+  var _receiveSecEl,_receivesEl,_outlineSecEl,_outlineEl,_outlineFigureEl,_outlineImgEl,_priceSecEl,_priceTitleEl,_assureEl;
+  var _faqSeq=0;
   var _pendingTile=null,_pendingHref=null,_lastTrigger=null,_lastFocusFallback=null;
   var _ctaLoading=false;
   var _globalHandlersBound=false;
@@ -34322,8 +34353,13 @@ function updateBadge() {
     return !!ok;
   }
 
-  /* 라벨 + 상세 두 줄짜리 항목 리스트(분석 단계 전용). li 안이 복합 구조라 _fillList 로는 안 된다. */
-  function _fillPairs(el,items,liClass,keyA,keyB){
+  /* 라벨 + 상세 두 줄짜리 항목 리스트(분석 단계·받게 되는 것·결과 구성). li 안이 복합 구조라
+     _fillList 로는 안 된다.
+     🔴 제목과 설명은 반드시 한 래퍼(.tile-pvw-step-body) 안에 넣는다. li 는 [번호|본문] 2열 그리드인데,
+     예전처럼 b 와 span 을 li 에 바로 붙이면 ::before 까지 그리드 항목이 3개가 되어 span 이 다음 줄
+     첫 칸(28px 번호 칸)으로 자동 배치된다. 그 좁은 칸에서 한국어가 한두 글자씩 세로로 끊겼다.
+     iconKey 가 있으면 아이콘 글리프를 번호 대신 첫 칸에 둔다(장식이라 aria-hidden). */
+  function _fillPairs(el,items,liClass,keyA,keyB,iconKey){
     if(!el)return 0;
     el.innerHTML='';
     var count=0;
@@ -34332,19 +34368,55 @@ function updateBadge() {
       if(!label)return;
       var li=document.createElement('li');
       li.className=liClass;
+      if(iconKey){
+        var icon=document.createElement('span');
+        icon.className='tile-pvw-pair-icon';
+        icon.setAttribute('aria-hidden','true');
+        icon.textContent=String((item&&item[iconKey])||'✦');
+        li.appendChild(icon);
+      }
+      var body=document.createElement('div');
+      body.className='tile-pvw-step-body';
       var b=document.createElement('b');
+      b.className='tile-pvw-step-label';
       b.textContent=label;
-      li.appendChild(b);
+      body.appendChild(b);
       var detail=String((item&&item[keyB])||'').trim();
       if(detail){
         var span=document.createElement('span');
+        span.className='tile-pvw-step-detail';
         span.textContent=detail;
-        li.appendChild(span);
+        body.appendChild(span);
       }
+      li.appendChild(body);
       el.appendChild(li);
       count++;
     });
     return count;
+  }
+
+  /* 내가 받게 되는 것. receives(아이콘·제목·한 문장)를 저작한 상품만 카드형으로 보이고,
+     나머지는 기존 feats 목록을 같은 자리·같은 제목으로 보인다. */
+  function _renderReceives(d){
+    var count=_fillPairs(_receivesEl,d.receives,'tile-pvw-receive','title','detail','icon');
+    if(_receivesEl)_receivesEl.hidden=!count;
+    var feats=count?[]:(d.feats||[]);
+    _fillList(_featsEl,feats);
+    if(_featsEl)_featsEl.hidden=!feats.length;
+    return _toggleSec(_receiveSecEl,count>0||feats.length>0);
+  }
+
+  /* 결과 화면 구성. 실제 결과 화면의 부분 이름만 적는 칸이다 — 지어낸 결과 문장을 싣지 않는다.
+     이미지는 이미 서비스에 있는 자산만(카피의 outlineImage, 스키마 가드가 파일 존재를 확인). */
+  function _renderOutline(d){
+    var count=_fillPairs(_outlineEl,d.outline,'tile-pvw-outline-item','title','detail');
+    var img=count?String(d.outlineImage||'').trim():'';
+    if(_outlineFigureEl)_outlineFigureEl.hidden=!img;
+    if(_outlineImgEl){
+      if(img)_outlineImgEl.src=img;
+      else _outlineImgEl.removeAttribute('src');
+    }
+    return _toggleSec(_outlineSecEl,count>0);
   }
 
   /* 분석 깊이. 카피에 사람이 적어 넣은 양의 정수만 칩이 된다 —
@@ -34407,18 +34479,46 @@ function updateBadge() {
     var items=(Array.isArray(faq)?faq:[])
       .filter(function(f){return f&&String(f.q||'').trim()&&String(f.a||'').trim();}).slice(0,5);
     _faqEl.innerHTML='';
+    /* details/summary 대신 button[aria-expanded] + region 을 쓴다. 펼침 상태를 스크린리더에 알리고,
+       답변 높이를 grid-template-rows 0fr→1fr 로 부드럽게 여닫기 위해서다(모션 축소 설정이면 CSS 가 끈다).
+       접힌 답변은 hidden 대신 inert 로 둔다 — hidden 이면 닫히는 애니메이션이 보이지 않는다. */
     items.forEach(function(item){
-      var details=document.createElement('details');
-      details.className='tile-pvw-faq-item';
-      var summary=document.createElement('summary');
-      summary.className='tile-pvw-faq-q';
-      summary.textContent=String(item.q);
+      var id='tilePvwFaqA'+(++_faqSeq);
+      var wrap=document.createElement('div');
+      wrap.className='tile-pvw-faq-item';
+      var btn=document.createElement('button');
+      btn.type='button';
+      btn.className='tile-pvw-faq-q';
+      btn.id=id+'q';
+      btn.setAttribute('aria-expanded','false');
+      btn.setAttribute('aria-controls',id);
+      var qText=document.createElement('span');
+      qText.className='tile-pvw-faq-q-text';
+      qText.textContent=String(item.q);
+      var mark=document.createElement('span');
+      mark.className='tile-pvw-faq-mark';
+      mark.setAttribute('aria-hidden','true');
+      btn.appendChild(qText);
+      btn.appendChild(mark);
       var answer=document.createElement('div');
       answer.className='tile-pvw-faq-a';
-      answer.textContent=String(item.a);
-      details.appendChild(summary);
-      details.appendChild(answer);
-      _faqEl.appendChild(details);
+      answer.id=id;
+      answer.setAttribute('role','region');
+      answer.setAttribute('aria-labelledby',btn.id);
+      answer.inert=true;
+      var inner=document.createElement('div');
+      inner.className='tile-pvw-faq-a-inner';
+      inner.textContent=String(item.a);
+      answer.appendChild(inner);
+      btn.addEventListener('click',function(){
+        var open=btn.getAttribute('aria-expanded')!=='true';
+        btn.setAttribute('aria-expanded',open?'true':'false');
+        wrap.classList.toggle('is-open',open);
+        answer.inert=!open;
+      });
+      wrap.appendChild(btn);
+      wrap.appendChild(answer);
+      _faqEl.appendChild(wrap);
     });
     return _toggleSec(_faqSecEl,items.length>0);
   }
@@ -34674,6 +34774,10 @@ function updateBadge() {
     take('valueCompare',src.pick('valueCompare'),null);
     take('faq',src.pick('faq'),[]);
     take('ctaNote',src.pick('ctaNote'),'');
+    // 새 구조 필드(받게 되는 것·결과 화면 구성)는 상품 카피만 가진다 — 템플릿·레거시에는 없다.
+    take('receives',src.pick('receives'),[]);
+    take('outline',src.pick('outline'),[]);
+    merged.outlineImage=(copy&&typeof copy.outlineImage==='string')?copy.outlineImage:'';
     // 분석 깊이만 template 을 보지 않는다 — 카테고리 공용 숫자는 그 상품의 실제 분량이 아니다.
     merged.reportScale=_pickPreviewField('reportScale',copy,base,null)||null;
     // 샘플: 상품 전용 > 상품 레거시 > 카테고리 전용 > 카테고리 레거시
@@ -34698,6 +34802,9 @@ function updateBadge() {
        돈을 받는 화면에서만 쓴다 — 무료 타일에 붙으면 팝업이 그 기능을 유료라고 잘못 말한다.
        자기 카피에 표가 들어 있어도 무료면 렌더하지 않는다(그 표의 목적이 가격 정당화다). */
     if(merged.ct!=='paid')merged.valueCompare=null;
+    // 상품이 확인된 신뢰 근거(trustNotes)를 적었을 때만 '믿고 볼 수 있는 이유' 제목을 쓴다.
+    // 공용 안내 문구에는 기존 '안심하고 확인하세요' 를 둔다 — 공용 문구는 근거가 아니라 안내다.
+    merged.trustIsOwn=!!(copy&&Array.isArray(copy.trustNotes)&&copy.trustNotes.length);
     if(!merged.premiumOutcomes)merged.premiumOutcomes=merged.ct==='paid'?_PAID_TRUST_NOTES:_FREE_TRUST_NOTES;
     return _localizeMarketingCopy(merged,nsOf,itemNs);
   }
@@ -34783,6 +34890,18 @@ function updateBadge() {
         };
       })};
     }
+    /* 아이콘은 글리프라 번역하지 않는다. 제목·설명만 사전을 거친다. */
+    ['receives','outline'].forEach(function(field){
+      if(!Array.isArray(merged[field]))return;
+      var pairNs=ns(field);
+      merged[field]=merged[field].map(function(item,i){
+        return {
+          icon:item&&item.icon,
+          title:_pvwTrKeep(pairNs+'.'+field+'.'+i+'.title',item&&item.title),
+          detail:_pvwTrKeep(pairNs+'.'+field+'.'+i+'.detail',item&&item.detail)
+        };
+      });
+    });
     if(Array.isArray(merged.faq)){
       var faqNs=ns('faq');
       merged.faq=merged.faq.map(function(item,i){
@@ -34905,6 +35024,15 @@ function updateBadge() {
     _cmpEl=document.getElementById('tilePvwCompare');
     _faqSecEl=document.getElementById('tilePvwFaqSec');
     _faqEl=document.getElementById('tilePvwFaq');
+    _receiveSecEl=document.getElementById('tilePvwReceiveSec');
+    _receivesEl=document.getElementById('tilePvwReceives');
+    _outlineSecEl=document.getElementById('tilePvwOutlineSec');
+    _outlineEl=document.getElementById('tilePvwOutline');
+    _outlineFigureEl=document.getElementById('tilePvwOutlineFigure');
+    _outlineImgEl=document.getElementById('tilePvwOutlineImg');
+    _priceSecEl=document.getElementById('tilePvwPriceSec');
+    _priceTitleEl=document.getElementById('tilePvwPriceTitle');
+    _assureEl=document.getElementById('tilePvwAssure');
     _ctaNoteEl=document.getElementById('tilePvwCtaNote');
     document.getElementById('tilePvwBd').addEventListener('click',_close);
     var closeBtn=document.getElementById('tilePvwClose');
@@ -34966,32 +35094,36 @@ function updateBadge() {
     _titleEl.textContent=_pvwTileText(tile) || d.fallbackTitle || '';
     _taglineEl.textContent=d.tagline||'';
 
-    if(_featsLabelEl)_featsLabelEl.textContent=d.featsLabel||_pvwTr('preview.featuresLabel',_featsLabelDefault);
-    _fillList(_featsEl,d.feats||[]);
+    // 고민 목록으로 폴백한 타일만 자기 제목(featsLabel)을 쓰고, 나머지는 '내가 받게 되는 것'.
+    if(_featsLabelEl)_featsLabelEl.textContent=d.featsLabel||_pvwTr('preview.receivesLabel',_featsLabelDefault);
+    _renderReceives(d);
+    _renderOutline(d);
 
     // 라벨은 반드시 _pvwTr 을 거친다 — 한국어 문자열을 그대로 넘기면 data-cd-trans 로
     // 번역된 제목을 덮어써서 비한국어 로케일에 한국어가 그대로 노출된다.
     // 폴백도 한국어 리터럴 대신 DOM 의 현재 텍스트를 쓴다(이미 i18n 런타임이 번역해 둔 값).
+    // 소개 문장(previewText)은 '어떻게 분석하나요' 의 첫 문장으로 옮겼다.
+    var hasIntro=!!d.premiumIntro;
+    if(_premiumIntroEl){_premiumIntroEl.textContent=d.premiumIntro||'';_premiumIntroEl.hidden=!hasIntro;}
+    var stepCount=_fillPairs(_stepsEl,d.analysisSteps,'tile-pvw-step','label','detail');
+    if(_stepsEl)_stepsEl.hidden=!stepCount;
+    _toggleSec(_stepsSecEl,stepCount>0||hasIntro);
+    // 이 블록은 이제 '포함된 혜택'(unlockBenefits)만 담고 가격과 혜택 섹션 안에 산다.
+    var hasChapters=!!(d.premiumChapters&&d.premiumChapters.length);
     if(_premiumBlockEl){
-      _premiumBlockEl.classList.toggle('is-marketing-detail',true);
-      // 이 블록은 이제 "무엇을 얻는가"만 담는다(intro + painPoints + 리포트 구성).
-      var hasPremiumInfo = !!(d.premiumIntro || (d.premiumChapters&&d.premiumChapters.length));
-      _premiumBlockEl.style.display = hasPremiumInfo ? '' : 'none';
-      if(hasPremiumInfo){
-        if(_premiumIntroEl){_premiumIntroEl.textContent=d.premiumIntro||'';_premiumIntroEl.hidden=!d.premiumIntro;}
-        _setListSection(_premiumChaptersTitleEl,_premiumChaptersEl,d.premiumChaptersLabel||_pvwTr('preview.deliverablesLabel',_pvwLabelText(_premiumChaptersTitleEl)),d.premiumChapters||[]);
-      }
+      _premiumBlockEl.style.display=hasChapters?'':'none';
+      if(hasChapters)_setListSection(_premiumChaptersTitleEl,_premiumChaptersEl,d.premiumChaptersLabel||_pvwTr('preview.benefitsLabel',_pvwLabelText(_premiumChaptersTitleEl)),d.premiumChapters);
     }
     _renderScale(d.reportScale);
     _toggleSec(_questSecEl,_setListSection(_questTitleEl,_questEl,_pvwTr('preview.questionsLabel',_pvwLabelText(_questTitleEl)),d.answersQuestions||[]));
-
-    _toggleSec(_stepsSecEl,_fillPairs(_stepsEl,d.analysisSteps,'tile-pvw-step','label','detail')>0);
     _toggleSec(_reqSecEl,_setListSection(_premiumRequiredTitleEl,_premiumRequiredEl,d.premiumRequiredLabel||_pvwTr('preview.requiredInfoLabel',_pvwLabelText(_premiumRequiredTitleEl)),d.premiumRequired||[]));
-
-    _toggleSec(_audSecEl,_setListSection(_premiumAudienceTitleEl,_premiumAudienceEl,d.premiumAudienceLabel||_pvwTr('preview.audienceLabel',_pvwLabelText(_premiumAudienceTitleEl)),d.premiumAudience||[]));
+    _toggleSec(_audSecEl,_setListSection(_premiumAudienceTitleEl,_premiumAudienceEl,d.premiumAudienceLabel||_pvwTr('preview.recommendForLabel',_pvwLabelText(_premiumAudienceTitleEl)),d.premiumAudience||[]));
 
     _renderCompare(d.valueCompare);
-    _toggleSec(_trustSecEl,_setListSection(_premiumOutcomesTitleEl,_premiumOutcomesEl,d.premiumOutcomesLabel||_pvwTr('preview.outcomesLabel',_pvwLabelText(_premiumOutcomesTitleEl)),d.premiumOutcomes||[]));
+    var trustLabel=d.premiumOutcomesLabel||(d.trustIsOwn
+      ?_pvwTr('preview.trustLabel','믿고 볼 수 있는 이유')
+      :_pvwTr('preview.outcomesLabel','안심하고 확인하세요'));
+    _toggleSec(_trustSecEl,_setListSection(_premiumOutcomesTitleEl,_premiumOutcomesEl,trustLabel,d.premiumOutcomes||[]));
     _renderFaq(d.faq);
 
     // 상세 팝업은 카드 썸네일의 제각각인 비율·저해상도 원본을 확대하지 않는다.
@@ -35015,7 +35147,8 @@ function updateBadge() {
       };
       _heroImg.src=imgSrc;
       _heroImg.srcset='/feature-details/assets/feature-detail-shared-hero-v1-480.webp 480w, /feature-details/assets/feature-detail-shared-hero-v1-960.webp 960w';
-      _heroImg.sizes='(max-width: 699px) 100vw, 480px';
+      // 데스크톱 상세창이 720px 한 단이 되어 히어로도 720px 폭을 채운다 — 480px 로 두면 480w 를 골라 흐려진다.
+      _heroImg.sizes='(max-width: 859px) 100vw, 720px';
       _heroImg.alt='달빛 아래 여러 운세 체계가 만나는 공통 상세 이미지';
       if(_heroEl){
         _heroEl.style.display='';
@@ -35124,6 +35257,17 @@ function updateBadge() {
         _setCtaLabel(d.fallbackCta ? _pvwCta(action, _pendingHref, d.fallbackCta) : _pvwTr('preview.startNow', '지금 시작하기 →'));
       }
     }
+    /* 가격과 혜택·안심 안내는 위 결제 분기의 결과(paywall 표시 여부)만 읽는다 — 분기 자체는 건드리지 않는다.
+       가격 문구가 있으면 '가격과 혜택', 혜택 목록만 있으면 제목 하나로 '포함된 혜택' 을 쓴다. */
+    var paywallShown=!!(_paywallEl&&_paywallEl.style.display!=='none');
+    if(_priceSecEl){
+      _priceSecEl.hidden=!(paywallShown||hasChapters);
+      if(_priceTitleEl)_priceTitleEl.textContent=paywallShown
+        ?_pvwTr('preview.pricingLabel','가격과 혜택')
+        :_pvwTr('preview.benefitsLabel','포함된 혜택');
+      if(_premiumChaptersTitleEl)_premiumChaptersTitleEl.hidden=!paywallShown;
+    }
+    if(_assureEl)_assureEl.hidden=!paywallShown;
 
     _setCtaLoading(false,'');
     // CTA 보조 문구. _setCtaLoading 이 _ctaMetaEl 을 비운 뒤에 쓴다(노드가 달라 서로 덮지 않는다).
@@ -35336,7 +35480,7 @@ function updateBadge() {
 
 <!-- ═══ 유명인 사주 분석 패널 스크립트 ═══ -->
 
-<script defer src="/js/inline/saju-core-bootstrap.js?v=build-4516c75d9aac"></script>
+<script defer src="/js/inline/saju-core-bootstrap.js?v=build-1f74aa8391af"></script>
 <!-- ═══ 유명인 사주 분석 패널 스크립트 끝 ═══ -->
 
 <script>
@@ -35408,7 +35552,7 @@ function updateBadge() {
   var pigLogoSrcset = pigLogoSrc + ' 96w, ' + pigLogoSrc + ' 130w, ' + pigLogoSrc + ' 512w';
   /* 네오 히어로 캐릭터: R2 전략실 네오 이미지(브랜드 로고 슬롯·자는 연이 마스코트 공통 교체) */
   var neoLogoSrc = 'https://assets.code-destiny.com/DestinyWar/%EC%A0%84%EB%9E%B5%EC%8B%A4%20%EB%84%A4%EC%98%A4%20%EB%A9%94%EC%9D%B8-Photoroom.webp';
-  var neoLogoFallbackSrc = '/icons/neo.webp?v=build-4516c75d9aac';
+  var neoLogoFallbackSrc = '/icons/neo.webp?v=build-1f74aa8391af';
   var neoBtn = switchRoot ? switchRoot.querySelector('.tsp-lion') : null;
   var pigBtn = switchRoot ? switchRoot.querySelector('.tsp-pig') : null;
   var neoBtnDesktop = switchRootDesktop ? switchRootDesktop.querySelector('.tsp-lion') : null;
@@ -36400,18 +36544,9 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 </style>
 <style id="premium-vvip-preview-style">
 .tile-pvw-close{width:44px;height:44px}
-.tile-pvw-premium-block{display:none;margin-top:12px;padding:12px;border-radius:14px;border:1px solid rgba(223,184,86,0.34);background:linear-gradient(170deg,rgba(46,28,8,0.6),rgba(22,14,5,0.65));}
-.tile-pvw-premium-intro{margin:0 0 10px;font-size:.93rem;line-height:1.56;color:rgba(252,238,206,.94)}
-.tile-pvw-premium-title{margin:12px 0 8px;font-size:.8rem;font-weight:800;letter-spacing:.08em;color:rgba(241,203,106,.96);text-transform:uppercase}
-.tile-pvw-premium-list{margin:0;padding-left:18px;display:grid;gap:6px}
-.tile-pvw-premium-list li{color:rgba(248,233,199,.9);font-size:.86rem;line-height:1.5}
 .tile-pvw-premium-title[hidden],.tile-pvw-premium-list[hidden]{display:none!important}
-.tile-pvw-premium-block.is-marketing-detail{display:block;background:linear-gradient(170deg,rgba(13,28,52,.66),rgba(34,22,56,.62));border-color:rgba(148,163,184,.28)}
-.tile-pvw-premium-block.is-marketing-detail .tile-pvw-premium-intro{padding:11px 12px;border-radius:10px;border:1px solid rgba(250,204,21,.22);background:rgba(250,204,21,.07);color:rgba(255,248,220,.94)}
-.tile-pvw-premium-block.is-marketing-detail .tile-pvw-premium-title{color:rgba(186,230,253,.94);text-transform:none}
-.tile-pvw-premium-block.is-marketing-detail .tile-pvw-premium-list{list-style:none;padding-left:0}
-.tile-pvw-premium-block.is-marketing-detail .tile-pvw-premium-list li{position:relative;padding-left:18px;color:rgba(226,239,255,.9)}
-.tile-pvw-premium-block.is-marketing-detail .tile-pvw-premium-list li::before{content:'•';position:absolute;left:3px;color:#f6d76b}
+/* (제거됨) 남색 그라디언트·하늘색 제목의 .is-marketing-detail 블록 — 크림색 시트 한가운데에
+   다크 박스가 떠 보이던 원인. 혜택 목록의 재질은 feature-marketing-detail.css 가 정한다. */
 </style>
 <!-- Legacy detail rules are retained for source history but disabled; the shared contract owns this surface. -->
 <style id="tile-preview-styles" media="not all" data-legacy-disabled="feature-marketing-detail-shared-style-v1">
@@ -36928,7 +37063,7 @@ html.neo-mode .tile-pvw-overlay.pvw-prem .tile-pvw-cta-sticky,body.neo-mode .til
   html:not(.neo-mode) .tile-pvw-cta-meta{color:rgba(255,214,232,.78)!important}
 }
 </style>
-<link rel="stylesheet" href="/styles/feature-marketing-detail.css?v=build-4516c75d9aac" data-marker="feature-marketing-detail-shared-style-v1">
+<link rel="stylesheet" href="/styles/feature-marketing-detail.css?v=build-1f74aa8391af" data-marker="feature-marketing-detail-shared-style-v1">
 <style id="saju-newyear-premium-image-card">
   .lifebook-tile.saju-newyear-tile {
     background:
@@ -36936,7 +37071,7 @@ html.neo-mode .tile-pvw-overlay.pvw-prem .tile-pvw-cta-sticky,body.neo-mode .til
       linear-gradient(135deg, rgba(255,245,211,0.12), transparent 31%),
       linear-gradient(28deg, rgba(106,28,38,0.36), transparent 48%),
       repeating-linear-gradient(90deg, rgba(241,205,124,0.13) 0 1px, transparent 1px 44px),
-      url('/fuctionassets/신년운세.webp?v=build-4516c75d9aac') center 34% / cover no-repeat,
+      url('/fuctionassets/신년운세.webp?v=build-1f74aa8391af') center 34% / cover no-repeat,
       linear-gradient(145deg, #130d0b 0%, #321014 52%, #071018 100%) !important;
     box-shadow:
       0 18px 54px rgba(22, 9, 8, 0.62),

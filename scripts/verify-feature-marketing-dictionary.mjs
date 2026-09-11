@@ -171,6 +171,14 @@ function requiredPaths(copy) {
     if (item && item.q) out.push(`faq.${i}.q`);
     if (item && item.a) out.push(`faq.${i}.a`);
   });
+  // 상세창 프리미엄 문서(v20260911)의 "내가 받게 되는 것"·"결과 화면 구성". 상품 COPY 에만 있고
+  // 레거시 D·템플릿에는 없는 필드라 이 경로 목록만 알면 된다. icon 은 번역하지 않는다.
+  for (const field of ["receives", "outline"]) {
+    (Array.isArray(copy[field]) ? copy[field] : []).forEach((item, i) => {
+      if (item && item.title) out.push(`${field}.${i}.title`);
+      if (item && item.detail) out.push(`${field}.${i}.detail`);
+    });
+  }
   return out;
 }
 
