@@ -325,6 +325,50 @@ test("PG 거절 복귀(code 있음): confirm 0회, 수단 이름+코드가 든 a
   }
 });
 
+/* 조용한 티켓 폴백(2026-09-11). PG 카드창 안의 "간편결제(카카오페이 등)" 하위 흐름은 상위 프레임을
+   redirectUrl 로 돌려보내지 못하고 끝나는 경우가 있다 — 쿼리 신호(portone_redirect=1)가 전혀 없는
+   재진입이다. 살아있는 티켓만으로도 확정을 시도해야 하고, 확인 중 오버레이는 조용히 생략한다. */
+test("쿼리 신호 없는 재진입도 유효한(60초 이상 지난) 티켓이 있으면 조용히 확정하고 콘텐츠를 연다", async () => {
+  const handled = [];
+  const { window, calls } = boot({
+    url: "https://code-destiny.com/",
+    ticket: {
+      at: Date.now() - 61000,
+      resume: { kind: "silent-fallback-fixture", action: "", args: { question: "silent" } },
+    },
+    confirmResponse: () => jsonResponse({ ok: true, unlocked: true, featureKey: "neville-meditation" }),
+    beforeProfile: (win) => {
+      win.__cdCheckoutEntry.registerPaidResumeHandler("silent-fallback-fixture", (descriptor) => {
+        handled.push(descriptor);
+        return true;
+      });
+    },
+  });
+  try {
+    await waitFor(() => calls.events.length === 1, "조용한 폴백 복귀 이벤트");
+    assert.equal(handled.length, 1, "핸들러는 정확히 1회");
+    assert.equal(calls.confirm[0].body.merchantUid, "ord_1");
+    assert.equal(calls.overlay.some((c) => c.mode === "unlock-saving"), false, "무관한 페이지라 확인 중 오버레이를 띄우지 않는다");
+  } finally {
+    window.close();
+  }
+});
+
+test("쿼리 신호 없고 티켓이 60초 미만이면(결제창이 아직 열려 있을 수 있음) 이번 로드에서는 건드리지 않는다", async () => {
+  const { window, calls } = boot({
+    url: "https://code-destiny.com/",
+    ticket: { at: Date.now() - 5000 },
+  });
+  try {
+    await new Promise((r) => setTimeout(r, 50));
+    assert.equal(calls.confirm.length, 0, "방금 시작한 결제를 섣불리 확정하지 않는다");
+    assert.equal(calls.events.length, 0);
+    assert.ok(window.localStorage.getItem(RESUME_KEY), "티켓은 지우지 않고 다음 로드에 다시 시도한다");
+  } finally {
+    window.close();
+  }
+});
+
 test("티켓 없는 새 탭 복귀: 쿼리 paymentId 만으로 confirm 하고 Generic 문구를 쓴다", async () => {
   const { window, calls } = boot({
     url: "https://code-destiny.com/?portone_redirect=1&paymentId=ord_9",
