@@ -62,3 +62,24 @@ test("all-fortunes entry seeds matching prices without a catalog request", () =>
   assert.match(pricingStore, /fetch\('\/api\/billing\/features'/);
   assert.match(pricingStore, /getOrLoad:/);
 });
+
+test("all-fortunes fullscreen isolates the home shell from the visible collection", () => {
+  const overlayCss = shell.slice(shell.indexOf('<style id="cd-mobile-collection-fullscreen-overlay-v20260705">'));
+  assert.match(
+    overlayCss,
+    /body\.cd-all-fortunes-fullscreen #inputPage\{visibility:hidden!important\}/,
+    "fullscreen 운세 화면이 메인 홈 셸을 숨기지 않는다",
+  );
+  assert.match(
+    overlayCss,
+    /body\.cd-all-fortunes-fullscreen #inputPage \.cd-mobile-collection-fullscreen\{visibility:visible!important;pointer-events:auto!important\}/,
+    "fullscreen 운세 화면이 선택된 컬렉션을 다시 표시·터치 가능하게 만들지 않는다",
+  );
+
+  const pinClick = shell.slice(shell.indexOf("function buildPinCard"), shell.indexOf("function buildPinSection"));
+  assert.doesNotMatch(
+    pinClick,
+    /ensureHomeExpanded\(\)/,
+    "개요의 즐겨찾기·최근 기능 진입이 메인 홈 전체를 다시 펼친다",
+  );
+});
