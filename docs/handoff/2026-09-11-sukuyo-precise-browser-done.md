@@ -1,13 +1,13 @@
 ---
 status: active
 updated: 2026-09-11
-next: PR(숙요 브라우저·잠금화면 Swiss 코어 통일) 머지·스테이징 SHA 확인 후, 스테이징에서 숙요 화면 3곳(사주 결과 숙요 탭·운명의 꽃 숙요·잠금화면 숙요 카드)이 같은 날 같은 숙을 내는지 눈으로 확인한다.
+next: PR #1921(숙요 브라우저·잠금화면 Swiss 코어 통일) 머지 후, 스테이징에서 숙요 화면 3곳(사주 결과 숙요 탭·운명의 꽃 숙요·잠금화면 숙요 카드)이 같은 날 같은 숙을 내는지 눈으로 확인한다.
 ---
 
 # 숙요 정밀 코어 — 브라우저·잠금화면 통일 완료
 
 선행: [2026-09-11-sukuyo-precise-core-browser-followup.md](2026-09-11-sukuyo-precise-core-browser-followup.md) 의 「남은 일 4곳」.
-브랜치 `worktree-sukuyo-precise-browser` · PR: (생성 후 기재)
+브랜치 `worktree-sukuyo-precise-browser` · PR: [#1921](https://github.com/rei1237/codedestiny/pull/1921)
 
 ## 한 일
 
@@ -37,11 +37,11 @@ next: PR(숙요 브라우저·잠금화면 Swiss 코어 통일) 머지·스테�
 
 ## 범위 밖 (보고만, 미수정)
 
-- `npm run verify:today-hub-gate` 가 이 워크트리에서 전 항목 실패(호출 0회). 이 PR 의 index.html 차이는 빌드 해시뿐, 게이트는 CI 미배선 — 기존 결함 추정.
+- `npm run verify:today-hub-gate` 가 이 워크트리에서 전 항목 실패(호출 0회). base(25c8ee704) 셸 7개로도 똑같이 실패 → 기존 결함 확인. 게이트는 CI 미배선.
 - `scripts/verify-fusion-expert.mjs` 미배선, `verify-nakshatra-premium` +13 전제, `sukuyo-premium` 尾 `shadows` 누락 — 선행 문서 그대로.
 - `scripts/lib/sukuyo-shell-probe.cjs`·관련 fixture 는 #1886 이후 호출처 없음.
 - 로컬 `build:worker` 는 워크트리에 wrangler 가 없으면 실패한다(공유 node_modules 부분 설치).
 
 ## 다음 세션 첫 문장
 
-> handoff=docs/handoff/2026-09-11-sukuyo-precise-browser-done.md 로 시작해서, 숙요 통일 PR 머지·스테이징 SHA 확인 후 스테이징에서 숙요 화면 3곳이 같은 숙을 내는지 확인해줘.
+> handoff=docs/handoff/2026-09-11-sukuyo-precise-browser-done.md 로 시작해서, PR #1921 머지 후 스테이징에서 숙요 화면 3곳이 같은 숙을 내는지 확인해줘.
