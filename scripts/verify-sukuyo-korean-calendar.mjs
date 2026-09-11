@@ -104,6 +104,22 @@ for (const [year, month, day] of samples) {
 ok("여러 연월일시분 연속 Loop가 공통 UTC/JD·27숙 매퍼를 통과한다", failures.length === 0, `${validMoments}개 시각`);
 ok("숙 1칸의 황경 폭이 정확히 360/27이다", Math.abs(MANSION_SPAN_DEGREES - 360 / 27) < Number.EPSILON);
 
+// 브라우저·잠금화면·꽃 엔진이 음력일·날짜·생년월일 해시로 숙을 짓던 옛 경로가 되살아나지 않게 막는다.
+const readCode = (rel) => stripComments(fs.readFileSync(path.join(root, rel), "utf8"));
+const quantumCode = readCode("js/saju-engine-tarot-sukuyo-quantum.js");
+ok("quantum.js 에 음력 월 시작 숙 표(monthStartOffsets)가 없다", !/\bmonthStartOffsets\b/.test(quantumCode));
+ok("quantum.js calcSukuyoData 가 공통 황경 매퍼로 숙을 정한다", /__cdBuildSukuyoFromMoonLongitude\s*\(\s*lunarObj\.moonEclipticLongitude\s*\)/.test(quantumCode));
+ok("운명의 꽃 엔진에 생년월일 해시 숙 추정이 없다", !/\bestimateSukuyoMansionIndexFromBirth\b/.test(readCode("worker/lib/destiny-flower-engine.js")));
+ok("잠금화면 숙요가 날짜 순환(% 27)으로 숙을 고르지 않는다", !/%\s*27\b/.test(readCode("lib/lock-screen-daily-fortune.ts")));
+ok("today-hub 숙요 카드가 오늘 숙 인덱스를 싣는다", (readCode("worker/routes/fortune-today.js").match(/mansionIndex:\s*todaySukuyo\.index/g) || []).length === 2);
+const runtimeCode = readCode("js/core/index-inline-runtime.js");
+const quantumLoads = [...runtimeCode.matchAll(/'\/js\/saju-engine-tarot-sukuyo-quantum\.js[^']*'/g)];
+ok("홈 런타임이 quantum.js 를 싣는 곳이 있다", quantumLoads.length > 0);
+for (const match of quantumLoads) {
+  const before = runtimeCode.slice(Math.max(0, match.index - 200), match.index);
+  ok(`홈 런타임 ${match.index}번째 글자의 quantum.js 로드 직전에 숙요 천문 코어가 실린다`, /'\/js\/core\/sukuyo-astronomy\.js[^']*',\s*$/.test(before));
+}
+
 if (failures.length > 0) {
   console.error(`FAIL ${failures.length}/${checks}`);
   console.error(failures.join("\n"));

@@ -220,6 +220,8 @@ function buildSukuyo(natalIndex, natalSukuyo, todaySukuyo, wantDetail) {
       system: "sukuyo",
       label: "숙요점",
       anchor: publicCard.anchor,
+      // 오늘(12:00 KST) 달의 숙 0-based 인덱스 — 잠금화면이 자체 추정 대신 이 값을 쓴다.
+      mansionIndex: todaySukuyo.index,
       headline: publicCard.headline,
       body: publicCard.body,
       tier: null,
@@ -238,6 +240,7 @@ function buildSukuyo(natalIndex, natalSukuyo, todaySukuyo, wantDetail) {
     system: "sukuyo",
     label: "숙요점",
     anchor: `오늘의 수(宿) · ${todaySukuyo.nameKo}(${todaySukuyo.nameHan})`,
+    mansionIndex: todaySukuyo.index,
     headline: verdict.headline,
     body: verdict.advice,
     tier: verdict.tier,
