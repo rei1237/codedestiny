@@ -65,7 +65,6 @@
     var hash = location.hash.slice(1);
     var isServices = hash === 'services' || hash.indexOf('services/') === 0 || hash === 'cdServiceIndex' || hash === 'cdFinder';
     home.hidden = isServices;
-    services.hidden = !isServices;
     if (isServices) {
       doc.classList.remove('cdh-input-open');
       if (finderDisclosure) finderDisclosure.open = true;
@@ -83,6 +82,7 @@
       window.scrollTo(0, 0);
     } else if (hash === 'home') {
       doc.classList.remove('cdh-input-open');
+      services.hidden = false;
       if (finderDisclosure) finderDisclosure.open = false;
       if (window.__cdCollapseHome) window.__cdCollapseHome();
       window.scrollTo(0, 0);
@@ -107,7 +107,7 @@
     if (target.closest('#cdMobileBottomNav [data-nav-key="home"]')) {
       doc.classList.remove('cdh-input-open');
       home.hidden = false;
-      services.hidden = true;
+      services.hidden = false;
       if (location.hash.indexOf('services') !== -1) history.replaceState(null, '', location.pathname + location.search);
     }
     if (target.closest('[data-cd-service-index-jump]')) {
