@@ -4,7 +4,9 @@ updated: 2026-09-11
 next: 해시 진입 복원 PR 머지·staging 확인 후 남은 결함 2(verify-mobile-runtime-readiness main 실패)를 조사한다
 ---
 
-## 2026-09-11 후속 — 남은 결함 1 복원(브랜치 `fix/home-hash-entry-visibility`, base `origin/main` 7aecad1fb)
+## 2026-09-11 후속 — 남은 결함 1 복원(브랜치 `fix/home-hash-entry-visibility`, base `origin/main` 5e418282e)
+
+- PR: #1924 (https://github.com/rei1237/codedestiny/pull/1924)
 
 - 원인 재확인: `#cdFinder`는 `#cdhFinderDisclosure` 안, 즉 `#cdHomeFunnel` 안에 있다. `route()`의 `home.hidden = isServices`가 검색 섹션까지 숨겼다.
 - 수정(`js/core/home-funnel.js`만, `0d805da89` 기준): `home.hidden = false` 고정, finder 해시에서 `cdhServicesTitle` 포커스 + `scrollTo(0,0)` 대신 rAF 안에서 `#cdFinder` 스크롤 + `#fortuneGatewaySearch` 포커스, `[data-cd-service-index-jump]` 점프 해시 `services` → `cdFinder`. `home-service-finder.js` 점프 해시는 이미 `cdFinder`여서 그대로 뒀다. 현재 구조에 남아 있는 `#cdhServices`·disclosure 열기·필터 칩 로직은 유지했다. 나머지 diff는 `sync:public` 캐시버스터·미러다.
