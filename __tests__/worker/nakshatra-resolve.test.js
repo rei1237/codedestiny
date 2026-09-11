@@ -184,6 +184,8 @@ describe("타라 발라 · 오늘의 달", () => {
     expect(today.todaySukuyo.index).toBe(2);
     expect(today.personal.dayFortune.relationType).toBe("명"); // 본명수와 오늘 숙 동일
     expect(today.personal.taraBala).toBeTruthy();
+    // 본명수 저(2)의 대응 나크샤트라는 크로스워크 +11 → Chitra(13) = 오늘 달 → 잔마.
+    expect(today.personal.taraBala.key).toBe("Janma");
   });
 
   test("본명수 없으면 개인 파트 생략", () => {

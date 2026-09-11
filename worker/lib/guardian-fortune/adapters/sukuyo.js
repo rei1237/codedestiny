@@ -1,27 +1,16 @@
 // 음력 월·일은 결과 표시 메타데이터에만 사용한다. 숙 판정은 출생 장소·시각을
 // UTC/JD로 정규화한 뒤 공통 Swiss 항성 달 황경에서 직접 계산한다.
-import { solarToLunar } from "../../../../lib/korean-calendar/index.js";
-import { buildSukuyoFromMoonLongitude, calculateSukuyoForMoment } from "../../sukuyo-astronomy.js";
+import { calculateSukuyoForMoment } from "../../sukuyo-astronomy.js";
+import { judgeDayFortune } from "../../sukuyo-relation-core.js";
+import { pickExpertFields } from "../expert-evidence.js";
 import { nonEmptyText, text } from "../../guardian-fortune-adapter-utils.js";
+
+const MANSION_EXPERT_FIELDS = ["nameKo", "nameHan", "index", "direction", "element", "keywords", "strengths", "shadows", "calculationBasis", "moonSiderealLongitude"];
 
 function dateParts(date) {
   const [year, month, day] = String(date).split("-").map(Number);
   if (![year, month, day].every(Number.isInteger)) throw new Error("SUKUYO_DATE_INVALID");
   return { year, month, day };
-}
-
-function lunarPartsForDate(date, calendarType) {
-  const parts = dateParts(date);
-  if (calendarType === "lunar") {
-    return { lunarMonth: parts.month, lunarDay: parts.day, isLeapMonth: false };
-  }
-  const lunar = solarToLunar(parts.year, parts.month, parts.day);
-  if (!lunar) throw new Error("SUKUYO_DATE_OUT_OF_RANGE");
-  return {
-    lunarMonth: lunar.lunarMonth,
-    lunarDay: lunar.lunarDay,
-    isLeapMonth: lunar.isLeapMonth,
-  };
 }
 
 function mansionLabel(mansion) {
@@ -44,45 +33,27 @@ function placeParts(input, options) {
 }
 
 export async function buildSukuyoAdapter(input, options = {}) {
-  // calculator 는 테스트/명시적 어댑터 주입용이다. 실제 서비스 경로는 항상
-  // KST/현지시각 → UTC/JD → Swiss 항성 달 황경 코어를 탄다.
-  const calculate = options.calculator;
+  // calculator 는 테스트 주입용으로 코어와 같은 (env, moment, options) 시그니처를 받는다.
+  // 실제 서비스 경로는 항상 KST/현지시각 → UTC/JD → Swiss 항성 달 황경 코어를 탄다.
+  const calculate = options.calculator || calculateSukuyoForMoment;
+  const env = options.env || {};
+  const calcOptions = { timeCorrectionPolicy: options.timeCorrectionPolicy };
   const place = placeParts(input, options);
-  const birthClock = timeParts(input.birthTime, 12);
-  const birthDate = dateParts(input.birthDate);
-  const targetDate = dateParts(input.targetDate);
-  let birthMansion;
-  let todayMansion;
-  if (calculate) {
-    const birth = lunarPartsForDate(input.birthDate, input.calendarType);
-    const today = lunarPartsForDate(input.targetDate, "solar");
-    birthMansion = await calculate(birth.lunarMonth, birth.lunarDay, {
-      isLeapMonth: birth.isLeapMonth,
-      source: "swiss-ephemeris-lahiri",
-      moonLongitude: options.birthMoonLongitude,
-    });
-    todayMansion = await calculate(today.lunarMonth, today.lunarDay, {
-      isLeapMonth: today.isLeapMonth,
-      source: "swiss-ephemeris-lahiri",
-      moonLongitude: options.targetMoonLongitude,
-    });
-  } else {
-    birthMansion = await calculateSukuyoForMoment(options.env || {}, {
-      ...birthDate,
-      ...birthClock,
-      ...place,
-      calendarType: input.calendarType,
-      birthTimeKnown: input.hasBirthTime,
-    }, { timeCorrectionPolicy: options.timeCorrectionPolicy });
-    todayMansion = await calculateSukuyoForMoment(options.env || {}, {
-      ...targetDate,
-      hour: 12,
-      minute: 0,
-      ...place,
-      calendarType: "solar",
-      birthTimeKnown: false,
-    }, { timeCorrectionPolicy: options.timeCorrectionPolicy });
-  }
+  const birthMansion = await calculate(env, {
+    ...dateParts(input.birthDate),
+    ...timeParts(input.birthTime, 12),
+    ...place,
+    calendarType: input.calendarType,
+    birthTimeKnown: input.hasBirthTime,
+  }, calcOptions);
+  const todayMansion = await calculate(env, {
+    ...dateParts(input.targetDate),
+    hour: 12,
+    minute: 0,
+    ...place,
+    calendarType: "solar",
+    birthTimeKnown: false,
+  }, calcOptions);
 
   const birthLabel = mansionLabel(birthMansion);
   const todayLabel = mansionLabel(todayMansion);
@@ -99,6 +70,12 @@ export async function buildSukuyoAdapter(input, options = {}) {
   const keywordHint = keywords.length ? ` ${keywords.join(", ")}의 결이 함께 보입니다.` : "";
 
   return {
+    ...(options.fusionExpert ? { expertEvidence: {
+      birth: pickExpertFields(birthMansion, MANSION_EXPERT_FIELDS),
+      target: pickExpertFields(todayMansion, MANSION_EXPERT_FIELDS),
+      targetDate: input.targetDate,
+      dayFortune: pickExpertFields(judgeDayFortune(birthMansion?.index, todayMansion?.index), ["relationType", "aRole", "bRole", "forwardDistance", "tier", "tierLabel", "advice"]),
+    } } : {}),
     birthMansion: birthLabel,
     todayMansion: todayLabel,
     emotionalPattern: `감정이 움직일 때 표정이나 말투로 분위기를 먼저 조절하려는 흐름${keywordHint}`,
