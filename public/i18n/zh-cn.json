@@ -8949,18 +8949,62 @@
         "0": "当前关系的氛围与情感温度",
         "1": "产生吸引与犹豫的点位",
         "2": "现在可以说出口的话与该守住的界线",
-        "3": "付款后进入现有的塔罗解读画面"
+        "3": "六个牌位的解读与关系检查清单"
       },
       "premiumOutcomes": {
         "0": "卡牌解读仅供参考。",
         "1": "付款与权限确认沿用现有政策。",
         "2": "不会确定或保证对方的心意。"
+      },
+      "receives": {
+        "0": {
+          "title": "关系此刻的温度",
+          "detail": "先把此刻两人之间流动的氛围整体梳理一遍。"
+        },
+        "1": {
+          "title": "心意错开的地方",
+          "detail": "指出想靠近的力量与想后退的力量在哪里相撞。"
+        },
+        "2": {
+          "title": "现实走向与下一步选择",
+          "detail": "把往后的走向与眼下可选的几条路分开来读。"
+        },
+        "3": {
+          "title": "六个牌位的解读",
+          "detail": "六张牌按牌位逐一解读，一点点说明关系的纹理。"
+        },
+        "4": {
+          "title": "该守住的界线与检查清单",
+          "detail": "把今天要留下的一句话、对话的温度、自己要守住的界线和七天的节奏整理成检查清单。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "摊开六张牌",
+          "detail": "无需另外填写，直接在六个牌位摊开牌卡。"
+        },
+        "1": {
+          "title": "确认关系温度",
+          "detail": "先读此刻的温度和心意错开的地方。"
+        },
+        "2": {
+          "title": "逐位解读",
+          "detail": "六张牌按牌位分开细读。"
+        },
+        "3": {
+          "title": "整理界线",
+          "detail": "以该守住的界线和关系检查清单收尾。"
+        },
+        "4": {
+          "title": "分享",
+          "detail": "结果页面可以分享到 KakaoTalk，但不会另行保存。"
+        }
       }
     },
     "openTarotReunionModal": {
       "tagline": "Five card seats trace everything from the warmth still left to the conditions for repairing the relationship, closing with a low-pressure opening line and a 7-day recovery routine.",
       "feats": {
-        "0": "A five-seat reading: warmth still left · their feelings now · why contact stopped · what lies beneath the words · conditions for repair",
+        "0": "残留情感的温度、对方此刻的心意、联络中断的背景、能否重新靠近的距离、关系修复的条件，共五个牌位的解读",
         "1": "Detailed interpretation reading every card along eight strands",
         "2": "A standard for whether to move first, and a suggested low-pressure opening line",
         "3": "A 7-day recovery routine and a reunion checklist"
@@ -8979,8 +9023,9 @@
       },
       "premiumOutcomes": {
         "0": "Reunion outcomes are not guaranteed.",
-        "1": "Card interpretations are for reference.",
-        "2": "The existing payment policy applies."
+        "1": "解读依照牌位以事先准备好的语句写成。",
+        "2": "Card interpretations are for reference.",
+        "3": "The existing payment policy applies."
       },
       "answersQuestions": {
         "0": "Do they still have feelings for me?",
@@ -9009,18 +9054,62 @@
         },
         "1": {
           "q": "Can I see the result again later?",
-          "a": "There is no separate save feature, so it is a reading you check on the spot; you can share it from the result screen."
+          "a": "不会另行保存，是当场查看的解读，可以在结果页面分享。"
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "此刻位置的概览",
+          "detail": "先用五行摘要和逐条点评告诉你，这段关系现在走到哪里。"
+        },
+        "1": {
+          "title": "逐位详细解读",
+          "detail": "从残留情感的温度到关系修复的条件，五个牌位分八个方向来读。"
+        },
+        "2": {
+          "title": "重新靠近前要准备的话与距离",
+          "detail": "整理出主动之前的判断标准，以及一句让对方没有负担的开场白。"
+        },
+        "3": {
+          "title": "七天的检查清单",
+          "detail": "把接下来七天要做到的行动和先按住不说的话整理在一起。"
+        },
+        "4": {
+          "title": "可以接着问的提问文本",
+          "detail": "想继续追问时，附上可以直接复制使用的提问文本。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "夜海序章",
+          "detail": "愿意的话，可以先经过一段简短的静心画面再开始。"
+        },
+        "1": {
+          "title": "摊开五张牌",
+          "detail": "从 78 张牌中抽出五张，分别放在各个牌位。无需填写任何内容。"
+        },
+        "2": {
+          "title": "确认位置概览",
+          "detail": "用五行摘要和逐条点评理清当下的位置。"
+        },
+        "3": {
+          "title": "逐位详细解读",
+          "detail": "每张牌分八个方向细读。"
+        },
+        "4": {
+          "title": "要准备的话与七天节奏",
+          "detail": "以开场白、先按住不说的话和检查清单收尾。"
         }
       }
     },
     "openTarotYearFortuneModal": {
-      "tagline": "Twelve major cards are laid one per month and read alongside the guardian story of your birth year, organizing the flow across twelve fields plus turning points and lucky actions.",
+      "tagline": "把 12 张大阿尔卡纳按月各放一张，配上与每个月相对应的守护神故事，整理出十二个领域的走向、转折点与幸运行动的年度解读。",
       "feats": {
         "0": "This year's core card and the yearly overview read as one continuous flow",
-        "1": "A drill-down that reopens each monthly card, January to December, as three cards: cause, process, result",
+        "1": "从 1 月到 12 月，每个月的牌都能以起因、发展、结果三张牌重新展开细看",
         "2": "Readings for twelve fields including money, work and business, love, and helpful people",
         "3": "This year's turning points and lucky actions you can take right away",
-        "4": "The result is saved so you can open it again at any time"
+        "4": "登录后会保存同一年的结果，再次进入时可以接着看"
       },
       "premiumIntro": "Rather than nailing the year down as prophecy, it organizes the flow that is easy to miss month by month, and the moments where a choice is made.",
       "premiumAudience": {
@@ -9032,7 +9121,7 @@
         "0": "An in-depth interpretation of this year's core card",
         "1": "The twelve monthly cards and the flow by field",
         "2": "Choices to be careful with, and this year's opportunities",
-        "3": "Reopening the saved result"
+        "3": "登录后可接着查看同一年的结果"
       },
       "premiumOutcomes": {
         "0": "It does not fix the future.",
@@ -9048,7 +9137,7 @@
       "analysisSteps": {
         "0": {
           "label": "Find your guardian",
-          "detail": "Your birth year identifies your guardian among the twelve."
+          "detail": "先确认与每个月相对应的十二位守护神。无需填写出生日期。"
         },
         "1": {
           "label": "Lay the twelve cards",
@@ -9062,11 +9151,55 @@
       "faq": {
         "0": {
           "q": "Can I see the result again later?",
-          "a": "Yes. A paid result is saved and you can pick it up again when you return."
+          "a": "处于登录状态时会保存同一年的结果，再次进入时可以接着看。"
         },
         "1": {
           "q": "How do I read the monthly readings?",
-          "a": "Opening a month's card reveals the three-card drill-down — cause, process, result — and the interpretation by field."
+          "a": "打开某个月的牌，就会展开起因、发展、结果三张牌，以及按领域划分的解读。"
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "今年的核心牌",
+          "detail": "从大阿尔卡纳中选出主导今年的一张，与全年总运连成一条走向来解读。"
+        },
+        "1": {
+          "title": "十二个月的月度牌",
+          "detail": "从 1 月到 12 月每月各放一张，打开某个月还会再展开起因、发展、结果三张牌。"
+        },
+        "2": {
+          "title": "十二位守护神的故事",
+          "detail": "与每个月相对应的守护神叙事，会与牌义解读一起阅读。"
+        },
+        "3": {
+          "title": "十二个领域的解读",
+          "detail": "金钱、工作与事业、感情、贵人等十二个领域的走向分开整理。"
+        },
+        "4": {
+          "title": "转折点与幸运行动",
+          "detail": "把今年的转折点和马上就能做的幸运行动整理在一起。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "开启解读",
+          "detail": "无需填写出生日期，年度解读会直接生成。"
+        },
+        "1": {
+          "title": "摆放十二张牌",
+          "detail": "12 张大阿尔卡纳按月各放一张。"
+        },
+        "2": {
+          "title": "逐月展开",
+          "detail": "打开每个月，都会接着出现起因、发展、结果三张牌。"
+        },
+        "3": {
+          "title": "按领域整理",
+          "detail": "整理成十二个领域的走向、转折点与幸运行动。"
+        },
+        "4": {
+          "title": "接着查看",
+          "detail": "处于登录状态时会保存同一年的结果，之后可以再打开。"
         }
       }
     },
@@ -12655,12 +12788,12 @@
       }
     },
     "tarot_celestial_harmony": {
-      "tagline": "Cards are laid across eleven planetary seats and tied together by a final integration card, so love, work, money and health are read as separate axes in one extended cosmic tarot reading.",
+      "tagline": "在含凯龙星在内的十一个行星牌位上摆放大阿尔卡纳，把爱情、工作、钱财、健康四条轴线分开来读的扩展型宇宙塔罗解读。",
       "feats": {
-        "0": "A large spread running from eleven planetary seats to an integration card",
+        "0": "在十一个行星牌位上摆放大阿尔卡纳的大型牌阵",
         "1": "Every card read through eight separate perspectives",
         "2": "Four areas organized: love, work, money and health",
-        "3": "A starlight tuning guide for the next 7 days"
+        "3": "从今天就能开始的调和练习指引"
       },
       "premiumIntro": "Celestial Harmony does not hand you a single answer. It spreads out where the different axes of your mind are sitting right now, following the planetary seats.",
       "premiumAudience": {
@@ -12672,7 +12805,7 @@
         "0": "The full card interpretation for every planetary seat",
         "1": "The axis acting on you most strongly right now",
         "2": "The points where your feelings collide with each other",
-        "3": "The 7-day starlight tuning guide"
+        "3": "从今天开始的调和练习指引"
       },
       "premiumOutcomes": {
         "0": "The interpretation is written by AI and does not fix the future.",
@@ -12688,15 +12821,15 @@
       "analysisSteps": {
         "0": {
           "label": "Card placement",
-          "detail": "Cards are placed on the eleven planetary seats and the integration seat."
+          "detail": "在十一个行星牌位上摆放大阿尔卡纳。"
         },
         "1": {
           "label": "AI integrated reading",
           "detail": "AI ties the whole spread together and writes a long-form interpretation."
         },
         "2": {
-          "label": "Areas and 7 days",
-          "detail": "It is organized into the four areas — love, work, money, health — and a 7-day tuning guide."
+          "label": "领域与调和整理",
+          "detail": "整理成爱情、工作、钱财、健康四个领域，以及从今天开始的调和练习。"
         }
       },
       "faq": {
@@ -12706,7 +12839,51 @@
         },
         "1": {
           "q": "Can I see the result again?",
-          "a": "On the same device the most recent result is restored. There is no separate save-to-account feature."
+          "a": "在同一台设备上会还原最近一次结果，处于登录状态时可以调出已保存的结果。"
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "十一个行星牌位的解读",
+          "detail": "含凯龙星在内的十一个牌位上的牌，按牌位分开细读。"
+        },
+        "1": {
+          "title": "每张牌的八个视角",
+          "detail": "一张牌分八个方向展开，把情感与现实分开来看。"
+        },
+        "2": {
+          "title": "四个领域的整理",
+          "detail": "整理爱情、工作、钱财、健康这几条轴线此刻各自的位置。"
+        },
+        "3": {
+          "title": "相撞的地方",
+          "detail": "指出彼此推开的心思在哪条轴线上发生冲突。"
+        },
+        "4": {
+          "title": "从今天开始的调和练习",
+          "detail": "汇总当下就能尝试的调和方法，有时还会一并给出星光调和清单。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "摊开牌阵",
+          "detail": "无需填写，直接在十一个行星牌位上摆放大阿尔卡纳。"
+        },
+        "1": {
+          "title": "逐位阅读",
+          "detail": "每个行星上的牌义解读都分八个方向写出。"
+        },
+        "2": {
+          "title": "归并领域",
+          "detail": "再按爱情、工作、钱财、健康四条轴线重新归并。"
+        },
+        "3": {
+          "title": "查看调和练习",
+          "detail": "展开从今天就能尝试的调和方法。"
+        },
+        "4": {
+          "title": "重新调出",
+          "detail": "在同一台设备上会还原最近一次结果，处于登录状态时可以调出已保存的结果。"
         }
       }
     },
@@ -12714,13 +12891,13 @@
       "badge": "提示词型",
       "headline": "先把贴合你提问的塔罗咨询语句整理出来。",
       "hubTagline": "把要让牌义解读走得更深的提问与咨询流程，捆成一份提示词的功能。",
-      "tagline": "Pick the structure that fits your situation from 77 spreads and turn the cards yourself; AI then writes the consultation from exactly that layout and shows you the original prompt it used.",
+      "tagline": "从 77 种牌阵中挑出贴合当下情况的结构，亲手翻开牌卡，AI 就会依照这个排布立刻写出咨询结果，并把咨询所用的提问文本原文一并呈现。",
       "feats": {
-        "0": "Choose the structure yourself from 77 spreads, ranging from 1 card to 14",
-        "1": "Pick cards yourself from the 78-card deck and set upright or reversed",
+        "0": "在 77 种牌阵中亲自挑选结构",
+        "1": "从 78 张牌中亲手选牌，随机定下的正逆位也能改",
         "2": "AI writes a real consultation from exactly the layout you chose",
-        "3": "View and copy the original prompt used for the consultation",
-        "4": "Choose the tone you want from 3 writing styles"
+        "3": "查看并复制咨询所用的提问文本原文",
+        "4": "把要复制的提问文本换成三种形态"
       },
       "premiumIntro": "The Tarot Prompt Library starts by sharpening the question, then carries the card layout you chose straight through into an AI consultation.",
       "premiumAudience": {
@@ -12731,7 +12908,7 @@
       "premiumChapters": {
         "0": "An AI tarot consultation matched to your own layout",
         "1": "Interpretation and practical advice reflecting position and orientation",
-        "2": "The original prompt used for the consultation, shown as it is",
+        "2": "原样查看咨询所用的提问文本原文",
         "3": "Finished lines you can copy to keep your own consultation going"
       },
       "premiumOutcomes": {
@@ -12752,11 +12929,11 @@
         },
         "1": {
           "label": "Turn the cards yourself",
-          "detail": "Choose your cards from the 78-card deck and set upright or reversed."
+          "detail": "从 78 张牌中选牌并确认正逆位。"
         },
         "2": {
           "label": "AI writes the consultation",
-          "detail": "You receive a consultation reflecting the layout, plus the original prompt."
+          "detail": "拿到反映了牌卡排布的咨询结果与提问文本原文。"
         }
       },
       "faq": {
@@ -12766,7 +12943,51 @@
         },
         "1": {
           "q": "What happens if generation fails?",
-          "a": "You can retry a set number of times within the same payment, and if it still does not work you receive the finished prompt instead."
+          "a": "在同一次付款内可以按既定次数重试，若仍不顺利，会改为提供已完成的提问文本。"
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "贴合情况的牌阵",
+          "detail": "可以在 77 种结构中亲自挑出贴合当下提问的排布。"
+        },
+        "1": {
+          "title": "你翻开的牌原样保留",
+          "detail": "从 78 张牌中选出的牌与正逆位，会原样进入解读。"
+        },
+        "2": {
+          "title": "AI 咨询结果",
+          "detail": "AI 会依照你挑选的排布立刻写出咨询结果。"
+        },
+        "3": {
+          "title": "提问文本原文",
+          "detail": "可以打开并复制咨询所用的提问文本原文。"
+        },
+        "4": {
+          "title": "重新尝试",
+          "detail": "生成不顺利时，可在同一次付款内按既定次数重试。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "写下提问",
+          "detail": "先写下你想问的是什么。"
+        },
+        "1": {
+          "title": "挑选牌阵",
+          "detail": "在 77 种中挑出贴合提问的结构。"
+        },
+        "2": {
+          "title": "翻开牌卡",
+          "detail": "从 78 张牌中亲手选牌并确认正逆位。"
+        },
+        "3": {
+          "title": "获得咨询结果",
+          "detail": "AI 依照牌卡排布写出咨询结果。"
+        },
+        "4": {
+          "title": "复制提问文本",
+          "detail": "可以打开咨询所用的提问文本原文并原样复制。"
         }
       }
     },
@@ -12908,13 +13129,13 @@
       "fallbackCta": "Open the Sibyl in-depth reading"
     },
     "tarot_numerology": {
-      "tagline": "It calculates your life number and today's number, places the cards that match those numbers, and reads your innate grain and today's flow across five positions.",
+      "tagline": "先算出生命数与今日数，再从依这些数字洗好的牌堆中亲手选出五张，分九个主题细读的深层解读。",
       "feats": [
         "When a single card leaves the story unfinished",
         "When you want today's flow read with a bit more grounding",
         "When you want numbers and cards seen together"
       ],
-      "premiumIntro": "Not one random card -- cards are attached to calculated numbers and read across five positions.",
+      "premiumIntro": "不是随机的一张牌，而是从出生日期推出的数字所洗成的牌堆里，在二十二个牌位中亲手挑出五张来读。",
       "premiumAudience": [
         "Anyone interested in numerology",
         "Anyone who wants a read on the daily flow",
@@ -12925,7 +13146,51 @@
         "What does my life number say?",
         "Where is the current flow heading?"
       ],
-      "fallbackCta": "Open the 5-card numerology tarot"
+      "fallbackCta": "Open the 5-card numerology tarot",
+      "receives": [
+        {
+          "title": "生命数与今日数",
+          "detail": "先算出由出生日期得来的数字，再接上今天的走向。"
+        },
+        {
+          "title": "亲手挑出的五张牌",
+          "detail": "在依这些数字洗好的牌堆的二十二个牌位中，亲手挑出五张摊开。"
+        },
+        {
+          "title": "九个主题的深层解读",
+          "detail": "把你写下的提问分成九个主题，长篇展开细读。"
+        },
+        {
+          "title": "今日态度的整理",
+          "detail": "把天生的纹理与今天的走向接起来，整理成此刻需要的态度。"
+        },
+        {
+          "title": "在同一台设备上重看",
+          "detail": "结果会留在同一台设备上，可以再次打开，也可以分享。"
+        }
+      ],
+      "outline": [
+        {
+          "title": "填写出生日期与提问",
+          "detail": "输入出生日期和想问的事情。"
+        },
+        {
+          "title": "算出数字",
+          "detail": "先确认生命数与今日数。"
+        },
+        {
+          "title": "挑出五张牌",
+          "detail": "在二十二个牌位中亲手挑出五张。"
+        },
+        {
+          "title": "九个主题的解读",
+          "detail": "把你写下的提问分成九个主题来读。"
+        },
+        {
+          "title": "重看与分享",
+          "detail": "可以在同一台设备上重新打开结果并分享。"
+        }
+      ]
     },
     "compatibility": {
       "tagline": "A free compatibility reading that calculates each person's chart and shows separately where your energies mesh and where they grind.",
@@ -13486,9 +13751,9 @@
       "fallbackCta": "Read the gap",
       "premiumChapters": {
         "0": "The overall current of the gap between you",
-        "1": "Readings of the hidden-feeling support cards",
-        "2": "Example messages worth sending now",
-        "3": "A practical guide to what to do next"
+        "1": "隐藏情感组合的解读",
+        "2": "我适合采取的态度",
+        "3": "往后的联络走向"
       },
       "premiumAudience": {
         "0": "People who want to check what the other person truly means",
@@ -13498,13 +13763,13 @@
       "answersQuestions": {
         "0": "How far apart are their words and their feelings?",
         "1": "Why has this relationship stalled?",
-        "2": "What words should I open with again?"
+        "2": "现在的我该采取什么态度？"
       },
       "feats": {
         "0": "Five positions: spoken words · inner grain · the stall · the wish · reality",
-        "1": "Five hidden-feeling cards laid over them and read together",
+        "1": "从叠抽的牌中读出最多六种隐藏的情感组合",
         "2": "Five main and five support cards drawn from the full 78-card deck",
-        "3": "Example messages worth sending now"
+        "3": "整理出我适合采取的态度"
       },
       "analysisSteps": {
         "0": {
@@ -13513,27 +13778,71 @@
         },
         "1": {
           "label": "Lay ten cards",
-          "detail": "Cards go into the five main positions, with the hidden-feeling cards laid over them."
+          "detail": "在主牌阵的五个牌位上摆牌，再叠抽五张。"
         },
         "2": {
           "label": "Read the gap",
-          "detail": "The difference between spoken words and inner grain is set out, closing with example messages and a guide to what to do."
+          "detail": "把表面的话与心里的纹理之间的差距分七个方向整理，最后落到我的态度与往后的走向。"
         }
       },
       "faq": {
         "0": {
           "q": "Do I have to write a question?",
-          "a": "Yes. The five positions are read against your question, so it is required."
+          "a": "是的。解读会随提问而不同，所以需要填写。"
         },
         "1": {
           "q": "What are the support cards?",
-          "a": "Five cards drawn over the main five, held apart to read the feelings that were never said."
+          "a": "是在主牌阵五张之上叠抽的五张，用来读出没有说出口的情感组合，最多六种。"
         }
       },
       "premiumOutcomes": {
         "0": "The interpretation is written by AI and does not fix the future.",
         "1": "Card interpretations are for reference.",
         "2": "The existing payment policy applies."
+      },
+      "receives": {
+        "0": {
+          "title": "对方此刻的心意",
+          "detail": "依照你写下的提问，先读出对方心里此刻还留着的东西。"
+        },
+        "1": {
+          "title": "表面的态度与内里的纹理",
+          "detail": "把言语行动上表现出来的态度，与其下未曾显露的心思分开整理。"
+        },
+        "2": {
+          "title": "犹豫的原因",
+          "detail": "指出对方此刻停在原地的缘由。"
+        },
+        "3": {
+          "title": "联络走向与我的态度",
+          "detail": "把往后的联络走向和我适合采取的态度放在一起看。"
+        },
+        "4": {
+          "title": "关系将走向何方",
+          "detail": "在七个方向的解说末尾，整理出这段关系正走向哪里。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "写下提问",
+          "detail": "先写下想确认的关系和提问。"
+        },
+        "1": {
+          "title": "摆放十张牌",
+          "detail": "从 78 张牌中先摆主牌阵五张，再叠抽五张。"
+        },
+        "2": {
+          "title": "隐藏的情感组合",
+          "detail": "从叠上去的牌中读出隐藏的情感组合，最多六种。"
+        },
+        "3": {
+          "title": "七个方向的解说",
+          "detail": "从对方的心意到关系的走向，分七个方向细读。"
+        },
+        "4": {
+          "title": "保存与分享",
+          "detail": "结果页面可以存成图片或分享，正文也可以复制。"
+        }
       }
     },
     "tarot_crystal_soul_reading": {
@@ -13583,13 +13892,57 @@
         },
         "1": {
           "q": "Do I have to write a question?",
-          "a": "It runs without one — the reading is built from the stone you chose and the cards laid out."
+          "a": "没有填写提问的地方。解读由你选的原石和牌卡排布生成。"
         }
       },
       "premiumOutcomes": {
-        "0": "The interpretation is written by AI and does not fix the future.",
+        "0": "解读依照所选原石与牌位以事先准备好的语句写成，不会断定未来。",
         "1": "Card interpretations are for reference.",
         "2": "The existing payment policy applies."
+      },
+      "receives": {
+        "0": {
+          "title": "原石的讯息",
+          "detail": "先读出所选原石今天传来的是怎样的纹理。"
+        },
+        "1": {
+          "title": "五个牌位的解读",
+          "detail": "第一道光、被遮住的一面、警示、处方、将开的门，逐位写出。"
+        },
+        "2": {
+          "title": "被遮住的一面与警示",
+          "detail": "把此刻看不见的一面和需要当心的地方另外点出来。"
+        },
+        "3": {
+          "title": "水晶的处方",
+          "detail": "整理出改变什么，光才会打开。"
+        },
+        "4": {
+          "title": "可以接着问的提问文本",
+          "detail": "想继续追问时，附上可以直接复制使用的提问文本。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "挑选原石",
+          "detail": "在十二枚原石中挑出手停下来的那一枚，摩擦唤醒它。"
+        },
+        "1": {
+          "title": "摆放五张牌",
+          "detail": "从第一道光到光将打开的门，在五个牌位上摆牌。"
+        },
+        "2": {
+          "title": "读原石的讯息",
+          "detail": "先把所选原石的纹理传达给你。"
+        },
+        "3": {
+          "title": "逐张详细解读",
+          "detail": "按牌位接着读每张牌的解读。"
+        },
+        "4": {
+          "title": "复制提问文本与分享",
+          "detail": "可以复制追加的提问文本，也可以分享结果。"
+        }
       }
     },
     "tarot_ijik": {
@@ -13620,8 +13973,8 @@
       },
       "analysisSteps": {
         "0": {
-          "label": "Frame the question",
-          "detail": "You write down where you stand and what is weighing on you."
+          "label": "开启解读",
+          "detail": "无需填写，七个牌位的解读直接开始。"
         },
         "1": {
           "label": "Lay seven cards",
@@ -13635,17 +13988,61 @@
       "faq": {
         "0": {
           "q": "Do I draw the cards myself?",
-          "a": "Yes — you draw all seven in order across three screens."
+          "a": "是的。在同一个页面按 STAGE 1、2、3 的顺序亲手抽出七张牌。"
         },
         "1": {
           "q": "What if the reading fails to open?",
-          "a": "If the reading does not open, you are refunded automatically."
+          "a": "同一次请求可以原样再次打开查看，无需再次付款。"
         }
       },
       "premiumOutcomes": {
-        "0": "The interpretation is written by AI and does not fix the future.",
+        "0": "解读依照牌位以事先准备好的语句写成，不会断定未来。",
         "1": "Card interpretations are for reference.",
         "2": "The existing payment policy applies."
+      },
+      "receives": {
+        "0": {
+          "title": "摘要面板",
+          "detail": "先把跳槽走向、行动时机、留在原职这三条整理成一眼可见的摘要。"
+        },
+        "1": {
+          "title": "决定前要确认的条件",
+          "detail": "把行动之前该核对的条件另外整理成一组。"
+        },
+        "2": {
+          "title": "七张牌的解读",
+          "detail": "从留下来的走向到最终方向，按牌位逐一细读。"
+        },
+        "3": {
+          "title": "结论与核心走向",
+          "detail": "在正文开头就点明结论和当下的核心走向。"
+        },
+        "4": {
+          "title": "30 天的选择标准",
+          "detail": "整理出接下来一个月要以什么为标准来做选择。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "在同一页面开始",
+          "detail": "无需填写，按 STAGE 1、2、3 的顺序翻开牌卡。"
+        },
+        "1": {
+          "title": "抽出七张",
+          "detail": "从 16 张大阿尔卡纳组成的牌堆中填满七个牌位。"
+        },
+        "2": {
+          "title": "查看摘要面板",
+          "detail": "先看跳槽走向、时机、留在原职和要确认的条件。"
+        },
+        "3": {
+          "title": "阅读正文",
+          "detail": "接着读结论与核心走向、七张牌卡，以及 30 天的选择标准。"
+        },
+        "4": {
+          "title": "分享并继续追问",
+          "detail": "可以分享结果，也可以直接复制下一个提问文本。"
+        }
       }
     },
     "nakshatra_muhurta": {
