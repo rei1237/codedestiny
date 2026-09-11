@@ -18,6 +18,7 @@ import {
   getPadaDetail,
 } from "../../constants/nakshatra-attributes.js";
 import {
+  CROSSWALK_OFFSET,
   crosswalkFromSukuyo,
   judgeCrosswalkMatch,
 } from "../../constants/nakshatra-crosswalk.js";
@@ -201,7 +202,7 @@ export function assembleTodayMoon({ moonLon, lunar, myMansionIndex = null }) {
       source: "swiss-ephemeris-lahiri",
     })
     : null;
-  const cross = crosswalkFromSukuyo(todaySuk ? todaySuk.index : ((nak.index - 13 + 27) % 27));
+  const cross = crosswalkFromSukuyo(todaySuk ? todaySuk.index : ((nak.index - CROSSWALK_OFFSET + 27) % 27));
 
   let personal = null;
   const myIdx = clampNakshatraIndexSafe(myMansionIndex);
@@ -209,7 +210,7 @@ export function assembleTodayMoon({ moonLon, lunar, myMansionIndex = null }) {
     // 동양: 오늘의 숙이 본명수에게 갖는 격각(judgeDayFortune).
     const dayFortune = judgeDayFortune(myIdx, todaySuk.index);
     // 인도: 본명수의 대응 나크샤트라 대비 오늘 달 나크샤트라의 타라 발라.
-    const myNakIdx = (myIdx + 13) % 27;
+    const myNakIdx = (myIdx + CROSSWALK_OFFSET) % 27;
     const taraBala = judgeTaraBala(myNakIdx, nak.index);
     personal = { myMansionIndex: myIdx, dayFortune, taraBala };
   }

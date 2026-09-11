@@ -36,6 +36,7 @@ import { buildTodaySajuDetail, buildTodaySajuPublic } from "../lib/today-saju-de
 import { buildTodaySukuyoDetail, buildTodaySukuyoPublic } from "../lib/today-sukuyo-detail.js";
 import { buildTodayVedicDetail, buildTodayVedicPublic, computePanchanga } from "../lib/today-vedic-detail.js";
 import { getNakshatraAttributes } from "../../constants/nakshatra-attributes.js";
+import { CROSSWALK_OFFSET } from "../../constants/nakshatra-crosswalk.js";
 
 const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
 
@@ -84,10 +85,10 @@ function weekdayOf({ year, month, day }) {
 }
 
 // 본명 나크샤트라 이름. assembleTodayMoon 이 타라발라를 잴 때 쓰는 것과 같은 대응
-// (본명수 index + 13) % 27 을 그대로 따른다 — 여기서 다른 규칙을 쓰면 두 값이 어긋난다.
+// (본명수 index + CROSSWALK_OFFSET) % 27 을 그대로 따른다 — 여기서 다른 규칙을 쓰면 두 값이 어긋난다.
 function natalNakshatraNameKo(natalMansionIndex) {
   if (!Number.isInteger(natalMansionIndex)) return "";
-  const attrs = getNakshatraAttributes((natalMansionIndex + 13) % 27);
+  const attrs = getNakshatraAttributes((natalMansionIndex + CROSSWALK_OFFSET) % 27);
   return attrs ? attrs.nameKo : "";
 }
 
