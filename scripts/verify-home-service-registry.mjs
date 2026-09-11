@@ -26,6 +26,15 @@ const errors = [];
 const notes = [];
 const fail = (msg) => errors.push(msg);
 
+/* 홈 검색 카드는 공통 이미지 하나(home-service-finder.js DEFAULT_SERVICE_IMAGE)만 쓴다.
+   항목별 이미지 매핑이 서비스와 맞지 않는 그림·폐기된 이용권 그림을 띄워 2026-09-11 에 폐지했다. */
+const FINDER_FILE = resolve(ROOT, "js/core/home-service-finder.js");
+const DEFAULT_IMAGE = (readFileSync(FINDER_FILE, "utf8").match(/DEFAULT_SERVICE_IMAGE\s*=\s*"([^"]+)"/) || [])[1];
+if (!DEFAULT_IMAGE) fail("홈 검색 공통 이미지 DEFAULT_SERVICE_IMAGE 를 찾지 못했다");
+else if (!existsSync(resolve(ROOT, "public", "." + decodeURIComponent(DEFAULT_IMAGE)))) {
+  fail(`홈 검색 공통 이미지 ${DEFAULT_IMAGE} 가 public/ 에 없다`);
+}
+
 /* ── 결제 정본 ─────────────────────────────────────────────────── */
 const paid = await import(pathToFileURL(resolve(ROOT, "worker/lib/paid-feature-registry.js")).href);
 const PRICE_TABLE = paid.FEATURE_KEY_PRICE_TABLE || {};
@@ -133,11 +142,7 @@ for (const item of registry) {
     else for (const r of item.roles) if (!ROLES.has(r)) fail(`${at}: 알 수 없는 role "${r}"`);
   }
 
-  // 대표 이미지가 깨지면 카드가 공통 로고로 조용히 떨어진다 — 파일이 실제로 있어야 한다.
-  if (!item.image || !item.image.startsWith("/")) fail(`${at}: 대표 이미지 경로가 없다`);
-  else if (!existsSync(resolve(ROOT, "public", "." + decodeURIComponent(item.image)))) {
-    fail(`${at}: 대표 이미지 ${item.image} 가 public/ 에 없다`);
-  }
+  if (item.image) fail(`${at}: 항목별 이미지(${item.image})를 넣지 않는다 — 카드는 공통 이미지 하나로 통일`);
 
   const price = readPrice(item.price);
   if (!price) {
