@@ -131,6 +131,29 @@
     "#inputPage .prem-card",
     "#inputPage .feature-card"
   ].join(", ");
+  var TILE_CLASS_SELECTOR = [
+    ".moon-preview-card",
+    ".tarot-tile",
+    ".cd-pick-card",
+    ".prem-card",
+    ".feature-card"
+  ].join(", ");
+
+  /* 모바일은 닫힌 컬렉션의 카드를 DOM 에서 떼어 collection.__cdLazyCards 에만 둔다
+     (index.html prepareCollectionLazyMounts) — TILE_SELECTOR 의 #inputPage 조상 조건은
+     떼어낸(부모 없는) 카드에는 성립하지 않으므로, 클래스만으로 다시 판정해 더한다. */
+  function lazyCollectionCards() {
+    var out = [];
+    var collections = document.querySelectorAll(".feat-collection, .tarot-collection");
+    for (var c = 0; c < collections.length; c += 1) {
+      var lazyCards = collections[c].__cdLazyCards || [];
+      for (var d = 0; d < lazyCards.length; d += 1) {
+        if (lazyCards[d].isConnected) continue;
+        out.push(lazyCards[d]);
+      }
+    }
+    return out;
+  }
 
   /* 중복 제거는 표시 이름이 아니라 "무엇을 여는가" 로 판정한다. 이름 기반 키
      (`name|href|action`)는 이모지·수식어가 붙은 스크랩 타일(`🕯️ 정신분석 해몽`)을
@@ -163,15 +186,10 @@
     if (!featureImageIndex) {
       featureImageIndex = {};
       var nodes = Array.prototype.slice.call(document.querySelectorAll(TILE_KEY_SELECTOR));
-      var collections = document.querySelectorAll(".feat-collection, .tarot-collection");
-      for (var c = 0; c < collections.length; c += 1) {
-        var lazyCards = collections[c].__cdLazyCards || [];
-        for (var d = 0; d < lazyCards.length; d += 1) {
-          if (lazyCards[d].isConnected) continue;
-          if (lazyCards[d].matches(TILE_KEY_SELECTOR)) nodes.push(lazyCards[d]);
-          nodes.push.apply(nodes, lazyCards[d].querySelectorAll(TILE_KEY_SELECTOR));
-        }
-      }
+      lazyCollectionCards().forEach(function (card) {
+        if (card.matches(TILE_KEY_SELECTOR)) nodes.push(card);
+        nodes.push.apply(nodes, card.querySelectorAll(TILE_KEY_SELECTOR));
+      });
       for (var i = 0; i < nodes.length; i += 1) {
         var el = nodes[i];
         if (el.closest("#cdFinder, [data-cd-finder-results], template")) continue;
@@ -217,7 +235,10 @@
 
   function scrapeTiles(knownKeys) {
     var out = [];
-    var nodes = document.querySelectorAll(TILE_SELECTOR);
+    var nodes = Array.prototype.slice.call(document.querySelectorAll(TILE_SELECTOR));
+    lazyCollectionCards().forEach(function (card) {
+      if (card.matches(TILE_CLASS_SELECTOR)) nodes.push(card);
+    });
     for (var i = 0; i < nodes.length; i += 1) {
       var el = nodes[i];
       if (el.closest("[data-cd-finder-results]")) continue;

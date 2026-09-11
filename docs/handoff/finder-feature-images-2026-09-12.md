@@ -3,8 +3,26 @@ topic: 홈 전체 서비스 검색 카드 이미지 — 실제 기능 이미지 
 date: 2026-09-12
 status: active
 updated: 2026-09-12
-next: R2 폴백 PR 머지·staging 확인 후 모바일 검색에서 스크랩 타일이 빠지는 결함(아래 범위 밖 1)을 조사한다
+next: PR 머지·staging 확인 후 "범위 밖" 남은 2~6번(사이빌 달 대체, 가격 치환 등)을 필요시 조사한다
 ---
+
+## 후속 — 닫힌 컬렉션 카드 스크랩 결함 수정 (아래 "범위 밖" 1번)
+
+- 원인(실측): 모바일은 닫힌 컬렉션 카드를 DOM 에서 떼어 `collection.__cdLazyCards`에만
+  둔다(`index.html` `prepareCollectionLazyMounts`/`unmountCollectionCards`). 검색 카탈로그를
+  만드는 `scrapeTiles()`는 `document.querySelectorAll(TILE_SELECTOR)`로 연결된 DOM 만 훑어서
+  이 카드들이 통째로 빠졌다.
+- 수정(`js/core/home-service-finder.js`):
+  - `lazyCollectionCards()` 헬퍼를 추가해 `.feat-collection, .tarot-collection`의
+    `__cdLazyCards` 중 미연결(`isConnected === false`) 카드를 모은다.
+    `featureTileImage()`의 기존 인라인 루프를 이 헬퍼로 교체(중복 제거).
+  - `scrapeTiles()`가 연결된 타일 + `lazyCollectionCards()`(클래스만으로 재판정,
+    `#inputPage` 조상 조건은 부모 없는 카드에 성립하지 않는다)를 합쳐 훑는다.
+- 범위: `.tarot-tile`/`.prem-card` 등 `TILE_SELECTOR`가 이미 다루는 클래스만 포함한다.
+  `.sibyl-entry-tile` 등은 원래도 `TILE_SELECTOR` 밖이라 이번에도 밖(아래 범위 밖 2번, 별개).
+- 검증: `__tests__/ui/home-service-finder.test.js`에 닫힌 컬렉션 카드 회귀 테스트 1건 추가,
+  `node --test` 19/19 통과. `npm run check:fast` 통과(jest 228 suites/2686 tests, build:worker
+  dry-run 포함). staging 실측(390/1280 결과 건수)은 머지 후 확인 필요.
 
 # 홈 검색 카드 이미지 — 실제 기능 이미지 매칭
 
