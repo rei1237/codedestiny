@@ -296,6 +296,13 @@ test("결과 카드 이미지는 같은 기능의 홈 타일에서 빌리고, �
   };
   assert.equal(srcOf(target.name), "/fuctionassets/feature-test.webp", "같은 기능 타일의 이미지를 빌리지 않았다");
   assert.equal(srcOf(shown[1]), "/images/home/finder-moon.svg", "타일이 없는 항목이 달 이미지로 떨어지지 않았다");
+
+  // R2 에만 있는 자산: 로컬 경로 404 → R2 원본 → 그래도 실패하면 달.
+  const img = doc.querySelector(`#fortuneGatewayRecs img[src="/fuctionassets/feature-test.webp"]`);
+  img.dispatchEvent(new doc.defaultView.Event("error"));
+  assert.equal(img.getAttribute("src"), "https://assets.code-destiny.com/feature-test.webp", "로컬 404 에서 R2 원본으로 물러나지 않았다");
+  img.dispatchEvent(new doc.defaultView.Event("error"));
+  assert.equal(img.getAttribute("src"), "/images/home/finder-moon.svg", "R2 도 실패했는데 달 이미지로 떨어지지 않았다");
 });
 
 test("필터를 켰다가 모두 끄면 기본 목록으로 되돌아온다", async () => {
