@@ -169,7 +169,7 @@ When a new stale reference or document conflict is found:
 
 - **머지 주체**: 아래 2026-09-08 절("에이전트가 안전하게 머지")은 폐기. 사용자 지시로 머지는 사용자가 하고, 에이전트는 머지 가능 상태·안전 순서만 보고한다.
 - **스테이징 확인**: 2026-09-08·09-10의 "스테이징 SHA 확인/후속 감시" 조항은 폐기. 기본 흐름은 PR CI 통과에서 끝나며 스테이징 검증은 선택(`npm run verify:staging`)이다. 정본은 `CLAUDE.md` 2026-09-12 절과 `docs/context/delivery-and-ci.md` 같은 날짜 절.
-- **최신 main 포함 요구**: 사용자가 룰셋에서 먼저 제거했고(2026-09-12 실측: required status check 규칙 없음), 레포 쪽 `delivery-admit.mjs`·`ci-preflight.mjs`의 조상 검사를 merge-tree 충돌 + 파일 겹침 판정으로 대체했다. 부작용으로 GitHub가 빨간 CI 머지를 막지 않으므로 `CI required` required check(strict off) 재추가를 권고했다(설정 변경은 사용자 승인 대기).
+- **최신 main 포함 요구**: 사용자가 룰셋에서 먼저 제거했고(2026-09-12 실측: required status check 규칙 없음), 레포 쪽 `delivery-admit.mjs`·`ci-preflight.mjs`의 조상 검사를 merge-tree 충돌 + 파일 겹침 판정으로 대체했다. 룰셋의 required check 제거는 사용자 의도다(2026-09-12 확인) — 복구를 권하지 않고, 머지 가능 보고 전에 PR 체크 전체 통과를 확인한다.
 - **인수인계 형식**: 단일 AI_HANDOFF 파일 요청 대신 주제별 `docs/handoff/*.md` 유지 + done 즉시 삭제로 확정(사용자 선택). 단일 파일은 병렬 PR마다 충돌한다.
 
 ## 2026-09-08 사용자 전달 방식 변경 (역사 — 2026-09-12 절로 대체)
