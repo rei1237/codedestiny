@@ -14,11 +14,11 @@ next: 최신 main 기준으로 PR #1848 required CI와 스테이징 SHA를 확�
 
 ## 완료한 작업
 
-`docs/design/past-life-webtoon/analysis.md`: 진입/사진/엔진/API/결제복귀/저장/공유/i18n/오류 추적, 문제, DTO/매핑/이미지전략/검증계획.
+`analysis.md`(2026-09-12 정리에서 삭제, git 히스토리 참조): 진입/사진/엔진/API/결제복귀/저장/공유/i18n/오류 추적, 문제, DTO/매핑/이미지전략/검증계획.
 
-`docs/design/past-life-webtoon/mockup.html`: 가상 지도 제작자 예시, 3장면+대표 공유카드, 실제 창작 문구, 프로필/관상 단서/현재 연결. 버튼은 안내용 demo임을 명시. 아직 실제 분석 결과 연결이 아님.
+`mockup.html`(2026-09-12 정리에서 삭제, git 히스토리 참조): 가상 지도 제작자 예시, 3장면+대표 공유카드, 실제 창작 문구, 프로필/관상 단서/현재 연결. 버튼은 안내용 demo임을 명시. 아직 실제 분석 결과 연결이 아님.
 
-`docs/design/past-life-webtoon/assets`: 480/800px WebP 6개, 프롬프트 provenance.md. 800px 97.5~113.5KiB, 480px 44.1~52.7KiB. 원본은 Codex generated_images에 보존.
+목업용 WebP 6개(2026-09-12 정리에서 삭제, git 히스토리 참조): 800px 97.5~113.5KiB, 480px 44.1~52.7KiB. 원본은 Codex generated_images에 보존. 제작 프롬프트는 [docs/design/past-life-webtoon/assets/provenance.md](../design/past-life-webtoon/assets/provenance.md) 에 남겼다 — 배포 중인 `fuctionassets/past-life-webtoon/` 자산의 출처 기록이라 유지한다.
 
 `verify-plf-mockup.cjs`(2026-09-12 정리에서 삭제, git 히스토리 참조): 360/390/430/1440px 브라우저 검증. `mockup-verification.json` 및 captures/(2026-09-12 정리에서 삭제, git 히스토리 참조)에 증거.
 
@@ -34,7 +34,7 @@ next: 최신 main 기준으로 PR #1848 required CI와 스테이징 SHA를 확�
 - `node verify-plf-mockup.cjs`(2026-09-12 정리에서 삭제, git 히스토리 참조): PASS, 실제 모듈 기준 네 폭 가로 넘침 없음, 핵심 3화 1,317자, 초기 src 이미지1개, 버튼44px 이상, CLS0, IO 없음/404/reduced-motion/초점 복원. 로컬 DPR1 결과로 운영 LCP/모바일 실제 네트워크 증거는 아님.
 - `npm run check:fast -- --plan`: shared/critical 전체 검사 판정.
 - `npm run check:fast`: PASS, lint 경고만, 타입 검사, Node 969개, Jest 2,422개, 결제·복귀·Worker·인코딩 가드 통과.
-- `node docs/design/past-life-webtoon/serve.cjs`: 로컬 목업 서버 127.0.0.1:4187. 필요하면 재시작.
+- `node serve.cjs`(2026-09-12 정리에서 삭제, git 히스토리 참조): 로컬 목업 서버 127.0.0.1:4187.
 - 실 LLM/결제/운영DB/배포 호출 없음. 추가 이미지는 도구로 3회 제작했으며 테스트 LLM 호출과 무관.
 
 ## 다음 작업

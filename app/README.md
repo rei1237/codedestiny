@@ -118,4 +118,4 @@ api/                 → 🌐 API 엔드포인트
 - **메타데이터**: `lib/generate-page-metadata.ts`에서 생성 (경로별 고유 코드)
 - **SEO**: `app/_content/seo-copy.js`와 `SeoJsonLd.tsx` 연동
 
-📌 **더 자세히**: [PROJECT_STRUCTURE.md](../PROJECT_STRUCTURE.md) 참고
+📌 **더 자세히**: [docs/SERVICE_STRUCTURE.md](../docs/SERVICE_STRUCTURE.md) 참고

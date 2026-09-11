@@ -19,7 +19,7 @@
 | `pricing.app.ts` (손으로 관리하는 앱 가격표) | 파일명은 없으나 **기능은 이미 존재**. `worker/lib/app-store-pricing.js`에 13개 Play SKU 티어표가 있고 `verify:app-store-pricing`·`verify:play-console-products` 가드가 붙어 있다. "손으로 관리하던 앱 가격표를 흡수"가 아니라 **기존 SKU 체계를 통폐합**하는 작업이 된다 |
 | 콘텐츠 검색 인덱스 + 검색 API에 `band` 파라미터 추가 | **검색 API도, `/search` 라우트도, 검색 인덱스도 없다.** 현재 검색은 `index.html`의 `#cdServiceIndex` — 런타임에 DOM 타일(`.moon-preview-card`, `.tarot-tile` 등)을 긁어 `indexOf` 부분문자열로 매칭하는 클라이언트 검색이며, **정적 셸 7벌에 사본**이 있다. Phase 4는 "인덱스 필드 추가 / API 파라미터"가 아니라 **DOM 데이터 속성 기반 필터**로 재설계해야 한다 |
 | 대상 로케일 `ko, en, ja, zh-CN, zh-TW` 5개 | **2계층 12개.** 런타임 사전 12개(`ko,en,ja,zh-CN,zh-TW,vi,hi,es,fr,de,nl,ms` — `lib/i18n/locale-normalize.js:13`), SSR/SEO 라우팅 5개(`ko,ja,zh,zh-TW,en` — `lib/i18n/locales.ts`). 가격 문자열은 **12벌 전부**에 들어 있다 |
-| 갤럭시아 머니트리 잔존 코드 | **코드에 없음.** 저장소 전체에서 `AUDIT.md:20` 문서 언급 1건뿐 |
+| 갤럭시아 머니트리 잔존 코드 | **코드에 없음.** 저장소 전수 검색에서 문서 언급 1건뿐이었고, 그 문서(루트 `AUDIT.md`, 2026-07-22 Phase 1 실사)는 2026-09-12 정리에서 삭제했다(git 히스토리 참조) |
 | 결제 통화 KRW 고정 | 맞다. ~~단 `GlobalPricingCard.jsx`는 국가코드→통화 매핑(`BRL`/`MXN`/`KRW` 등)을 이미 갖고 랜딩에 렌더된다~~ → **2026-09-05: 그 카드와 랜딩(`MainLandingPage.tsx`) 모두 삭제돼 렌더 경로가 없다** |
 | `sajuAdapter.ts` / `normalizeSaju.ts` / `calculateLocalResult` | 존재. 읽기 전용 규칙 그대로 유효 |
 | PortOne 상점아이디 · Inicis | 유효. 실결제 경로는 PortOne V2(`pg:'KG_INICIS'`) + 앱 Google Play Billing |
