@@ -1,8 +1,30 @@
 ---
-status: done
+status: superseded
 updated: 2026-09-11
-next: PR 생성 완료 — 머지·스테이징 확인은 사용자 승인 범위에서 진행
+next: 없음 — PR #1910 닫음(중복). 동일 버그는 이미 main의 PR #1906으로 해결됨
 ---
+
+## 결론 (2026-09-11 추가)
+
+PR #1910을 열었더니 main과 머지 불가(CONFLICTING) 상태였다. 원인을 추적한 결과 이 브랜치가 오래된
+main 스냅샷 기준이었고, 그 사이 다른 세션이 **동일한 버그**를 PR #1906
+(`fix/mobile-all-fortunes-isolation`, 커밋 `1e478e684`)으로 이미 고쳐 머지한 상태였다.
+
+실측으로 origin/main의 index.html에서 이 작업의 핵심 어서션 3개가 전부 이미 참임을 확인:
+- `body.cd-all-fortunes-fullscreen #inputPage{visibility:hidden!important}` 존재
+- `buildPinCard` 블록에 `ensureHomeExpanded()` 없음(programmatic click으로 대체됨)
+- `.cd-mobile-collection-fullscreen{pointer-events:auto!important}` 존재
+- `scripts/verify-mobile-cdp-smoke.mjs`에 동일한 hit-test/visibility 어서션도 이미 포함
+
+#1906은 `data-cd-mobile-overlay-active` 속성 게이팅을 쓰는 더 정교한 방식이라, 이 PR의 예전 방식
+(`#cdhCollections`를 무조건 노출 + `.cd-mobile-collection-fullscreen`에 `visibility:visible` 강제)으로
+덮어 병합하면 리그레션 위험이 있다고 판단해 **PR #1910을 닫았다**(강제 병합/재작성 대신 중복 폐기를 선택,
+사용자 승인 후 진행).
+
+순증분이었던 CDP smoke의 "개요 스크롤 컨테이너" 어서션(`overviewScrollHeight`/`overviewClientHeight`,
+스와이프 응답 확인)은 main에는 없다 — 필요하면 별도의 작은 PR로 다시 낼 것.
+
+이 문서와 브랜치 `codex/bug-report-room-visibility`는 더 참고할 필요 없음.
 
 # 전체화면 운세 오버레이 방 가시성 버그 수정
 
