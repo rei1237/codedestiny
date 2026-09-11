@@ -1,0 +1,132 @@
+#!/usr/bin/env node
+/**
+ * ai-locale-gate.yml 관찰 전용(shadow) 스크립트.
+ *
+ * 지금 트리거는 `worker/lib/**`, `worker/routes/**` 를 디렉터리 전체로 감시한다. 이 스크립트는
+ * 그 두 글롭 대신, 이 가드 자신의 git-grep 발견 로직(scripts/verify-ai-locale-pipeline.mjs 이
+ * LLM 호출 파일을 찾는 것과 동일한 패턴 — worker/ 에서 callGeminiText·callLLM·callGeminiJson)이
+ * 실제로 찾은 파일만으로 좁히면, 이 PR 이 여전히 걸렸을지만 관찰해 GITHUB_STEP_SUMMARY 에 적는다.
+ *
+ * 🔴 실제 트리거(.github/workflows/ai-locale-gate.yml 의 on.pull_request.paths)는 절대 건드리지
+ *    않는다. CLAUDE.md: "CI 선택 실행은 10개 PR 비교 전까지 shadow다. 기존 검사를 삭제하지 않는다."
+ *    이 스크립트의 출력은 어떤 job 조건에도 들어가지 않는다 — 순수 관찰 기록이다.
+ */
+import { execFileSync } from "node:child_process";
+import { readFileSync, appendFileSync } from "node:fs";
+import path from "node:path";
+
+const root = process.cwd();
+const workflowRelPath = ".github/workflows/ai-locale-gate.yml";
+const narrowedGlobs = new Set(["worker/lib/**", "worker/routes/**"]);
+
+function git(args) {
+  return execFileSync("git", args, { cwd: root, encoding: "utf8" });
+}
+
+function commitExists(sha) {
+  try {
+    git(["cat-file", "-e", `${sha}^{commit}`]);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// 가드 자신의 발견 로직과 동일한 패턴 — scripts/verify-ai-locale-pipeline.mjs 참고.
+// 그 파일이 이 정규식을 바꾸면 이 관찰도 같이 갱신해야 한다(둘이 갈라지면 관찰이 거짓말을 한다).
+function discoverAiCallFiles() {
+  try {
+    return git(["grep", "-l", "callGeminiText\\|callLLM\\|callGeminiJson", "--", "worker/"])
+      .split("\n")
+      .filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
+function currentTriggerPaths() {
+  const text = readFileSync(path.join(root, workflowRelPath), "utf8");
+  const pathsBlock = text.match(/paths:\r?\n((?:[ \t]+-[ \t]+.*\r?\n)+)/);
+  if (!pathsBlock) return [];
+  return pathsBlock[1]
+    .split(/\r?\n/)
+    .map((line) => line.match(/^[ \t]*-[ \t]+"?([^"#]+?)"?[ \t]*(#.*)?$/))
+    .filter(Boolean)
+    .map((match) => match[1].trim());
+}
+
+function globToRegExp(glob) {
+  const marker = " DOUBLESTAR ";
+  const parts = glob.split("/").map((segment) => {
+    if (segment === "**") return marker;
+    return segment.replace(/[.+^${}()|[\]\\]/g, "\\$&").replace(/\*/g, "[^/]*");
+  });
+  let pattern = parts.join("/");
+  pattern = pattern
+    .replace(new RegExp(`/${marker}/`, "g"), "/(?:.*/)?")
+    .replace(new RegExp(`^${marker}/`), "(?:.*/)?")
+    .replace(new RegExp(`/${marker}$`), "(?:/.*)?")
+    .replace(new RegExp(`^${marker}$`), ".*");
+  return new RegExp(`^${pattern}$`);
+}
+
+function matchesAny(file, globs) {
+  return globs.some((glob) => globToRegExp(glob).test(file));
+}
+
+function main() {
+  const baseSha = process.env.PR_BASE_SHA;
+  const headSha = process.env.PR_HEAD_SHA;
+  if (!baseSha || !headSha) {
+    console.log("[shadow-ai-locale-gate-trigger] PR_BASE_SHA/PR_HEAD_SHA 없음 — pull_request 런이 아니므로 건너뜀.");
+    return;
+  }
+
+  for (const sha of [baseSha, headSha]) {
+    if (commitExists(sha)) continue;
+    try {
+      git(["fetch", "--no-tags", "--depth=1", "origin", sha]);
+    } catch (fetchError) {
+      console.log(`[shadow-ai-locale-gate-trigger] SHA(${sha})를 가져오지 못했다 — 관찰을 건너뜀: ${fetchError.message}`);
+      return;
+    }
+  }
+
+  const changedFiles = git(["diff", "--name-only", baseSha, headSha]).split("\n").filter(Boolean);
+  const aiCallFiles = new Set(discoverAiCallFiles());
+  const broadPaths = currentTriggerPaths();
+  const narrowPaths = broadPaths.filter((entry) => !narrowedGlobs.has(entry));
+
+  const matchedNarrow = changedFiles.filter((file) => aiCallFiles.has(file) || matchesAny(file, narrowPaths));
+  const missedByNarrowing = changedFiles.filter(
+    (file) => matchesAny(file, [...narrowedGlobs]) && !aiCallFiles.has(file) && !matchesAny(file, narrowPaths),
+  );
+  const wouldTrigger = matchedNarrow.length > 0;
+
+  const lines = [
+    "",
+    "## Proposed narrower trigger (shadow only)",
+    "",
+    "Existing paths trigger remains active. Collect 10 PR comparisons before narrowing.",
+    "",
+    `- narrower set = current \`paths:\`, with \`worker/lib/**\`/\`worker/routes/**\` replaced by the ${aiCallFiles.size} files the gate's own git-grep discovery found`,
+    `- would this PR still trigger under the narrower set: **${wouldTrigger}**`,
+    missedByNarrowing.length
+      ? `- would now be MISSED (under worker/lib/** or worker/routes/**, but not among the discovered LLM-call files): ${missedByNarrowing.join(", ")}`
+      : "- nothing under worker/lib/** or worker/routes/** would be missed by narrowing",
+    "",
+    "```json",
+    JSON.stringify({ wouldTrigger, matchedNarrow, missedByNarrowing, aiCallFileCount: aiCallFiles.size }, null, 2),
+    "```",
+    "",
+  ];
+  const summary = lines.join("\n");
+
+  if (process.env.GITHUB_STEP_SUMMARY) {
+    appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary);
+  } else {
+    console.log(summary);
+  }
+}
+
+main();
