@@ -4041,7 +4041,7 @@
     "outcomesLabel": "Check with peace of mind",
     "resultPreviewLabel": "Result preview",
     "startNow": "Start now →",
-    "paywallNote": "All paid services are provided immediately upon completion of payment (purchase), and once provision has begun, the right of withdrawal may be restricted in accordance with applicable laws.",
+    "paywallNote": "You can use it right after payment. You may request withdrawal within 7 days of payment, but withdrawal may be limited for parts you have already started viewing or generating. See the refund policy for details.",
     "deliverablesLabel": "What the report includes",
     "scaleLabel": "Analysis depth",
     "scaleChapters": "{count} chapters",
@@ -4068,7 +4068,16 @@
     "accessFree": "Free feature",
     "accessPaid": "Returns to the same screen after payment",
     "navPending": "Opening...",
-    "priceDetailCheck": "Check details"
+    "priceDetailCheck": "Check details",
+    "recommendForLabel": "Who it's for",
+    "receivesLabel": "What you'll receive",
+    "outlineLabel": "How the result screen is laid out",
+    "outlineCaption": "Your actual result is calculated from the details you enter · The image is a representative illustration",
+    "pricingLabel": "Price and benefits",
+    "benefitsLabel": "Included benefits",
+    "assureLabel": "Use it with peace of mind",
+    "refundPolicyLink": "View refund policy",
+    "trustLabel": "Why you can trust it"
   },
   "mbti": {
     "compat": {
@@ -11980,59 +11989,128 @@
       }
     },
     "flower_fc": {
-      "tagline": "The calculated values of four branches -- Saju, astrology, Ziwei Doushu, and Sukuyo -- each decide a flower's species and color, blooming your flower out of a catalogue of eighty-nine. One unlock opens all four branches.",
+      "tagline": "The energy of the day you were born chooses a flower's kind and color. Through four lenses (Saju, astrology, Ziwei Doushu, and Sukuyo), meet the flower that blooms for you in each, all with a single unlock.",
       "feats": {
-        "0": "One unlock covers all four branches: Saju, astrology, Ziwei Doushu, and Sukuyo",
-        "1": "A catalogue of eighty-nine flower species",
-        "2": "Rule-based visualization in which the chart's calculated values decide species and color",
-        "3": "An explanation of which calculation is reflected in each part of the flower",
-        "4": "An AI art prompt for drawing your own flower"
+        "0": "The flowers of all four branches (Saju, astrology, Ziwei Doushu, and Sukuyo) at once",
+        "1": "Your flower and color, chosen from an eighty-nine-species field guide",
+        "2": "A part-by-part explanation of why this flower came to you",
+        "3": "A flower description you can turn into a picture",
+        "4": "A blooming record that builds up on this device"
       },
-      "premiumIntro": "The Destiny Flower is not a random picture -- it is a visualization in which the chart's calculated values decide species and color by rule.",
+      "receives": {
+        "0": {
+          "title": "Your flower, bloomed in four branches",
+          "detail": "Four lenses (Saju, astrology, Ziwei Doushu, and Sukuyo) each choose one flower for you."
+        },
+        "1": {
+          "title": "Colors and flower language that resemble you",
+          "detail": "See your personal color palette, your destiny flower language, and a synergy palette of colors that go well with you."
+        },
+        "2": {
+          "title": "Why this flower came to you",
+          "detail": "The flower profile and the gardener observation journal explain which energy lives in which part."
+        },
+        "3": {
+          "title": "A flower description you can turn into a picture",
+          "detail": "Copy it into the image AI of your choice and draw your own flower."
+        },
+        "4": {
+          "title": "My blooming records",
+          "detail": "Flowers you bloom stay on this device, up to the twelve most recent, so you can revisit them later."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Four branch tabs",
+          "detail": "Move between Saju, astrology, Ziwei Doushu, and Sukuyo to see the flower that bloomed in each."
+        },
+        "1": {
+          "title": "Personal color palette · Particle mood",
+          "detail": "Lays out the colors and atmosphere that resemble you alongside the flower."
+        },
+        "2": {
+          "title": "Flower profile · Gardener observation journal",
+          "detail": "Explains the flower's name and traits, then why it was chosen for you."
+        },
+        "3": {
+          "title": "Destiny flower language · A gardener's word",
+          "detail": "Short lines for who you are now, followed by today's gardening sentence."
+        },
+        "4": {
+          "title": "Secret recipe · Flower description",
+          "detail": "An action recipe to help your flower thrive, and a description to use when turning it into a picture."
+        },
+        "5": {
+          "title": "Sharing and records",
+          "detail": "Share the result text on KakaoTalk or copy it, and keep it in your blooming records."
+        }
+      },
+      "premiumIntro": "The Destiny Flower is not a randomly drawn picture. The energy read from the day you were born chooses the flower and its color in a fixed order.",
       "premiumAudience": {
-        "0": "Those who want to keep a result as an image",
-        "1": "Those who enjoy several divination methods",
-        "2": "Those who want a fortune pretty enough to give as a gift"
+        "0": "Those who would rather remember a reading as a flower and a color than as a long text",
+        "1": "Those who want to compare Saju, astrology, Ziwei Doushu, and Sukuyo in one place",
+        "2": "Those who want to keep the colors and flower language that resemble them, like a gift"
       },
       "premiumChapters": {
-        "0": "A Destiny Flower for each of the four branches",
-        "1": "An explanation of the calculation behind the species and color",
-        "2": "A blooming record you can pick up again on the same device",
-        "3": "A permanent unlock you can bloom again anytime"
+        "0": "Flowers for all four branches: Saju, astrology, Ziwei Doushu, and Sukuyo",
+        "1": "A personal color palette, flower language, and observation-journal explanation for each branch",
+        "2": "Copy the flower description to turn it into a picture",
+        "3": "Blooming records kept on this device (the twelve most recent)"
+      },
+      "premiumRequired": {
+        "0": "Date of birth (required)",
+        "1": "Birth time and place (noon in Seoul if unknown)"
       },
       "premiumOutcomes": {
-        "0": "The reading and the visualization are for reference.",
-        "1": "Flower matching is a rule-based calculation.",
-        "2": "The existing payment policy applies."
+        "0": "It is not random: the same details always bloom the same flower.",
+        "1": "Flowers are chosen only from a fixed eighty-nine-species field guide.",
+        "2": "The calculations follow the classical rules of myeongri and astrology, and every sentence handed to a reader is a person's responsibility.",
+        "3": "Flowers and flower language are a reference for reflecting on yourself, not a verdict on your future."
       },
       "answersQuestions": {
         "0": "What flower does my chart bloom into?",
-        "1": "How do the flowers of the four branches differ from each other?",
-        "2": "Why were the flower's color and shape decided this way?"
+        "1": "How do the flowers of the four methods differ?",
+        "2": "Why did this particular flower and color come to me?"
       },
-      "fallbackCta": "Bloom your Destiny Flower",
+      "fallbackCta": "Unlock the Destiny Flower",
       "analysisSteps": {
         "0": {
-          "label": "Choose a branch",
-          "detail": "Pick from Saju, astrology, Ziwei Doushu, and Sukuyo."
+          "label": "Set up your chart from your birth details",
+          "detail": "We calculate the basic layout of four divination methods from your date of birth. If you don't know your birth time and place, noon in Seoul is used."
         },
         "1": {
-          "label": "Chart calculation",
-          "detail": "The calculated values decide the flower's species and color by rule."
+          "label": "Read through four lenses",
+          "detail": "Saju looks at your day master, the balance of the Five Elements, and your birth season; astrology at the Sun, Ascendant, and Moon; Ziwei Doushu at the brightness of the main stars and the Four Transformations; Sukuyo at the 27 lunar mansions and the Moon's phase."
         },
         "2": {
+          "label": "Choose a flower from eighty-nine species",
+          "detail": "The energy we read is matched against a fixed eighty-nine-species field guide to decide the flower and color. The same details always give the same flower."
+        },
+        "3": {
           "label": "Blooming and explanation",
-          "detail": "The flower blooms and the part-by-part explanation of the calculation opens."
+          "detail": "Once the flower blooms, we explain part by part why it was chosen, along with its colors and flower language."
         }
       },
       "faq": {
         "0": {
           "q": "What does unlocking open?",
-          "a": "A single unlock opens all four branches, and you can view them again anytime."
+          "a": "A single unlock opens the flowers of all four branches (Saju, astrology, Ziwei Doushu, and Sukuyo), together with each branch's palette, flower language, and explanation."
         },
         "1": {
+          "q": "Do I need to know my birth time?",
+          "a": "No. Your date of birth is enough. If you don't know the time and place, noon in Seoul is used; if you do, those values are used."
+        },
+        "2": {
+          "q": "Will the flower change if I look again?",
+          "a": "The same details always bloom the same flower, because nothing is drawn at random. Changing your birth time or place may change the result."
+        },
+        "3": {
           "q": "Can I save the flower image?",
-          "a": "An AI art prompt for drawing the flower is provided, so you can make and keep the image with the AI of your choice."
+          "a": "The Destiny Flower does not create an image file. Instead, you can copy the flower description into the image AI of your choice to draw it, and share the result text on KakaoTalk or by copying it. Flowers you bloom stay in the blooming records on this device."
+        },
+        "4": {
+          "q": "How do refunds work?",
+          "a": "You can request withdrawal within 7 days of payment. However, withdrawal may be limited for parts you have already started viewing, and Moonstones are not eligible for cash refunds. Please see the refund policy for details."
         }
       }
     },

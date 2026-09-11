@@ -4041,7 +4041,7 @@
     "outcomesLabel": "安心してご確認ください",
     "resultPreviewLabel": "結果プレビュー",
     "startNow": "今すぐ始める →",
-    "paywallNote": "すべての有料サービスは決済（購入）完了後ただちに提供され、提供開始後は関連法令に基づき申込みの撤回が制限される場合があります。",
+    "paywallNote": "決済後すぐにご利用いただけます。決済日から7日以内であれば申込みの撤回を申請できますが、閲覧・生成がすでに始まった部分は撤回が制限される場合があります。詳しくは返金ポリシーをご確認ください。",
     "deliverablesLabel": "レポートに含まれる内容",
     "scaleLabel": "分析の深さ",
     "scaleChapters": "{count}章",
@@ -4068,7 +4068,16 @@
     "accessFree": "無料機能",
     "accessPaid": "決済後、元の画面へ移動します",
     "navPending": "開いています…",
-    "priceDetailCheck": "詳細を確認"
+    "priceDetailCheck": "詳細を確認",
+    "recommendForLabel": "こんな方におすすめ",
+    "receivesLabel": "受け取れるもの",
+    "outlineLabel": "結果画面はこのような構成です",
+    "outlineCaption": "実際の結果は入力した情報で計算されます · 画像は代表イラストです",
+    "pricingLabel": "価格と特典",
+    "benefitsLabel": "含まれる特典",
+    "assureLabel": "安心してご利用ください",
+    "refundPolicyLink": "返金ポリシーを見る",
+    "trustLabel": "信頼できる理由"
   },
   "mbti": {
     "compat": {
@@ -11980,59 +11989,128 @@
       }
     },
     "flower_fc": {
-      "tagline": "The calculated values of four branches -- Saju, astrology, Ziwei Doushu, and Sukuyo -- each decide a flower's species and color, blooming your flower out of a catalogue of eighty-nine. One unlock opens all four branches.",
+      "tagline": "生まれた日の気が、花の種類と色を選びます。四柱推命・占星術・紫微斗数・宿曜、四つの視点それぞれに咲いたあなたの花に、一度の解放で出会えます。",
       "feats": {
-        "0": "One unlock covers all four branches: Saju, astrology, Ziwei Doushu, and Sukuyo",
-        "1": "A catalogue of eighty-nine flower species",
-        "2": "Rule-based visualization in which the chart's calculated values decide species and color",
-        "3": "An explanation of which calculation is reflected in each part of the flower",
-        "4": "An AI art prompt for drawing your own flower"
+        "0": "四柱推命・占星術・紫微斗数・宿曜、四つの花を一度に",
+        "1": "八十九種の図鑑から選ばれたあなたの花と色",
+        "2": "この花があなたのもとへ来た理由を部分ごとに解説",
+        "3": "絵に描き起こせる花の描写文",
+        "4": "この端末に積み重なる私の開花記録"
       },
-      "premiumIntro": "The Destiny Flower is not a random picture -- it is a visualization in which the chart's calculated values decide species and color by rule.",
-      "premiumAudience": {
-        "0": "Those who want to keep a result as an image",
-        "1": "Those who enjoy several divination methods",
-        "2": "Those who want a fortune pretty enough to give as a gift"
-      },
-      "premiumChapters": {
-        "0": "A Destiny Flower for each of the four branches",
-        "1": "An explanation of the calculation behind the species and color",
-        "2": "A blooming record you can pick up again on the same device",
-        "3": "A permanent unlock you can bloom again anytime"
-      },
-      "premiumOutcomes": {
-        "0": "The reading and the visualization are for reference.",
-        "1": "Flower matching is a rule-based calculation.",
-        "2": "The existing payment policy applies."
-      },
-      "answersQuestions": {
-        "0": "What flower does my chart bloom into?",
-        "1": "How do the flowers of the four branches differ from each other?",
-        "2": "Why were the flower's color and shape decided this way?"
-      },
-      "fallbackCta": "Bloom your Destiny Flower",
-      "analysisSteps": {
+      "receives": {
         "0": {
-          "label": "Choose a branch",
-          "detail": "Pick from Saju, astrology, Ziwei Doushu, and Sukuyo."
+          "title": "四つの視点で咲いたあなたの花",
+          "detail": "四柱推命・占星術・紫微斗数・宿曜、四つの視点がそれぞれ一輪ずつ選びます。"
         },
         "1": {
-          "label": "Chart calculation",
-          "detail": "The calculated values decide the flower's species and color by rule."
+          "title": "あなたに似合う色と花言葉",
+          "detail": "パーソナルカラーパレットと運命の花言葉、一緒に置くとよいシナジーパレットをお見せします。"
         },
         "2": {
-          "label": "Blooming and explanation",
-          "detail": "The flower blooms and the part-by-part explanation of the calculation opens."
+          "title": "この花があなたのもとへ来た理由",
+          "detail": "花のプロフィールとガーデナー観察日誌が、どの気がどの部分に宿っているかを解き明かします。"
+        },
+        "3": {
+          "title": "絵に描き起こせる花の描写文",
+          "detail": "コピーしてお好きな画像生成AIに貼り付ければ、あなたの花を自分で描いてみられます。"
+        },
+        "4": {
+          "title": "私の開花記録",
+          "detail": "咲かせた花はこの端末に直近十二輪まで残り、あとでまた見返せます。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "四つの占術タブ",
+          "detail": "四柱推命・占星術・紫微斗数・宿曜を行き来しながら、それぞれに咲いた花を見られます。"
+        },
+        "1": {
+          "title": "パーソナルカラーパレット · 粒子ムード",
+          "detail": "花と一緒に、あなたに似合う色と雰囲気を広げます。"
+        },
+        "2": {
+          "title": "花のプロフィール · ガーデナー観察日誌",
+          "detail": "花の名前と特徴、そしてこの花が選ばれた理由を順に解説します。"
+        },
+        "3": {
+          "title": "運命の花言葉 · ガーデナーの一言",
+          "detail": "今のあなたに贈る短い言葉と、今日のガーデニング一文が続きます。"
+        },
+        "4": {
+          "title": "秘密のレシピ · 花の描写文",
+          "detail": "花がよく咲くための行動レシピと、絵に描き起こすときに使う描写文を収めています。"
+        },
+        "5": {
+          "title": "シェアと記録",
+          "detail": "結果の文章をカカオトークで共有したりコピーしたりして、私の開花記録に残せます。"
+        }
+      },
+      "premiumIntro": "運命の花は、ランダムに引く絵ではありません。生まれた日から読み取った気が、決まった順序で花と色を選びます。",
+      "premiumAudience": {
+        "0": "運勢を長い文章より一輪の花と色で覚えておきたい方",
+        "1": "四柱推命・星座・紫微斗数・宿曜を一か所で見比べたい方",
+        "2": "自分に似合う色と花言葉を贈り物のように大切にしたい方"
+      },
+      "premiumChapters": {
+        "0": "四柱推命・占星術・紫微斗数・宿曜、四つの花すべて",
+        "1": "占術ごとのパーソナルカラーパレット・花言葉・観察日誌の解説",
+        "2": "絵に描き起こせる花の描写文のコピー",
+        "3": "この端末に残る私の開花記録（直近十二輪）"
+      },
+      "premiumRequired": {
+        "0": "生年月日（必須）",
+        "1": "出生時刻・出生地（不明な場合は正午・ソウル基準）"
+      },
+      "premiumOutcomes": {
+        "0": "ランダムではありません。同じ情報を入れれば、いつ見ても同じ花が咲きます。",
+        "1": "あらかじめ定めた八十九種の図鑑の中からだけ花を選びます。",
+        "2": "計算は命理と占星術の古典的な規則にゆだね、読み手に渡す文章は人が責任を持ちます。",
+        "3": "花と花言葉は自分を振り返るための参考の解釈であり、未来を断定するものではありません。"
+      },
+      "answersQuestions": {
+        "0": "私の命式はどんな花として咲きますか？",
+        "1": "四つの占術の花は、それぞれどう違いますか？",
+        "2": "なぜこの花、この色が私のもとへ来たのでしょう？"
+      },
+      "fallbackCta": "運命の花を解放する",
+      "analysisSteps": {
+        "0": {
+          "label": "生まれた情報から命式を立てる",
+          "detail": "生年月日をもとに、四つの占術の基本配置を計算します。出生時刻と出生地がわからない場合は、正午・ソウルを基準にします。"
+        },
+        "1": {
+          "label": "四つの視点で読む",
+          "detail": "四柱推命は日干と五行のバランス・生まれた季節を、占星術は太陽・アセンダント・月の位置を、紫微斗数は主星の明るさと四化を、宿曜は二十七宿と月の位相を見ます。"
+        },
+        "2": {
+          "label": "八十九種の図鑑から花を選ぶ",
+          "detail": "読み取った気をあらかじめ定めた八十九種の図鑑に照らし、花と色を決めます。同じ情報なら、いつ見ても同じ花です。"
+        },
+        "3": {
+          "label": "開花と解説",
+          "detail": "花が咲いたあと、この花が選ばれた理由と色・花言葉を部分ごとに解説します。"
         }
       },
       "faq": {
         "0": {
-          "q": "What does unlocking open?",
-          "a": "A single unlock opens all four branches, and you can view them again anytime."
+          "q": "解放すると何が開きますか？",
+          "a": "一度の解放で、四柱推命・占星術・紫微斗数・宿曜の四つの花と、占術ごとのパレット・花言葉・解説がまとめて開きます。"
         },
         "1": {
-          "q": "Can I save the flower image?",
-          "a": "An AI art prompt for drawing the flower is provided, so you can make and keep the image with the AI of your choice."
+          "q": "生まれた時刻がわからなくても大丈夫ですか？",
+          "a": "はい。生年月日だけで大丈夫です。時刻と場所がわからない場合は正午・ソウルを基準に計算し、わかる場合はその値で計算します。"
+        },
+        "2": {
+          "q": "もう一度見ると花は変わりますか？",
+          "a": "同じ情報を入れれば、いつ見ても同じ花が咲きます。ランダムに選ばないためです。出生時刻や出生地を変えると、結果が変わることがあります。"
+        },
+        "3": {
+          "q": "花の画像を保存できますか？",
+          "a": "運命の花は画像ファイルを作成しません。代わりに花の描写文をコピーしてお好きな画像生成AIで描いてみることができ、結果の文章はカカオトークやコピーで共有できます。咲かせた花はこの端末の開花記録に残ります。"
+        },
+        "4": {
+          "q": "返金はどうなりますか？",
+          "a": "決済日から7日以内であれば申込みの撤回を申請できます。ただし、すでに閲覧を始めた部分は撤回が制限される場合があり、月精石は現金返金の対象ではありません。詳しい基準は返金ポリシーをご確認ください。"
         }
       }
     },

@@ -2833,9 +2833,8 @@ body.neo-mode .pf-showcase{--pf-title-color:#fff7dd;--pf-sub-color:rgba(233,224,
   .feature-card-grid .tarot-tile__desc{display:none!important}
   .feature-card-grid .tarot-tile__coin-badge{font-size:.63rem!important;line-height:1.15!important}
   .tile-pvw-overlay{touch-action:pan-y}
-  .tile-pvw-sheet{max-height:92dvh!important;border-radius:18px 18px 0 0!important}
-  .tile-pvw-content{padding:16px 14px calc(22px + env(safe-area-inset-bottom))!important}
-  .tile-pvw-feats li{font-size:.8rem!important;line-height:1.38!important;padding:8px 10px!important}
+  /* 상세 시트의 높이·여백·글자 크기는 styles/feature-marketing-detail.css 한 곳이 정한다.
+     여기서 !important 로 .8rem·14px 여백을 덮어쓰던 규칙은 본문을 좁고 작게 만들어 지웠다. */
   #honeyMembershipMini .honey-membership-mini__desc,
   #honeyMembershipMini .honey-membership-mini__chips{display:none!important}
   #honeyMembershipMini .honey-membership-mini__details:not([hidden]){position:fixed!important;left:10px!important;right:10px!important;bottom:calc(10px + env(safe-area-inset-bottom,0px))!important;z-index:9998!important;max-height:74dvh!important;overflow:auto!important;margin:0!important;padding:14px 12px 16px!important;border:1px solid rgba(232,223,200,.24)!important;border-radius:18px 18px 12px 12px!important;background:linear-gradient(180deg,rgba(12,18,36,.98),rgba(8,13,28,.98))!important;box-shadow:0 -18px 44px rgba(0,0,0,.46),inset 0 1px 0 rgba(255,255,255,.12)!important;-webkit-overflow-scrolling:touch}
@@ -2975,13 +2974,10 @@ body.neo-mode .pf-showcase{--pf-title-color:#fff7dd;--pf-sub-color:rgba(233,224,
   #inputPage [data-collection-open="true"] > .tarot-collection__grid .tarot-tile__desc,
   #inputPage [data-collection-open="true"] > .feat-collection__grid .prem-card .tarot-tile__desc{display:none!important}
   .feature-card-grid .MobileLockedCard{border-color:rgba(248,191,80,.38)!important;box-shadow:inset 0 0 0 1px rgba(248,191,80,.12),0 6px 18px rgba(0,0,0,.22)!important}
-  .MobileFeatureBottomSheet.tile-pvw-overlay .tile-pvw-sheet{width:100%!important;max-height:88dvh!important;border-radius:16px 16px 0 0!important}
   /* 히어로는 카드 그리드와 같은 16:9 — 112px 로 눌러두면 가로 배너 아트가 띠처럼 잘린다 */
   .MobileFeatureBottomSheet.tile-pvw-overlay .tile-pvw-hero{height:auto!important;min-height:0!important;max-height:none!important;aspect-ratio:16/9!important}
-  .MobileFeatureBottomSheet.tile-pvw-overlay .tile-pvw-title{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:1.06rem!important}
-  .MobileFeatureBottomSheet.tile-pvw-overlay .tile-pvw-tagline{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:.82rem!important;line-height:1.42!important}
-  .MobileFeatureBottomSheet.tile-pvw-overlay .tile-pvw-feats{gap:6px!important;margin-bottom:12px!important}
-  .MobileFeatureBottomSheet.tile-pvw-overlay .tile-pvw-feats li{font-size:.76rem!important;line-height:1.34!important;border-radius:8px!important}
+  /* (제거됨) 제목 한 줄 말줄임·태그라인 2줄 자르기·.76rem 목록 — 상품명과 핵심 문장이 잘려
+     '무엇을 받는지'가 보이지 않던 원인이다. 시트 폭·높이도 feature-marketing-detail.css 가 정한다. */
   /* CTA 는 sticky 로 둔다 — fixed 로 두면 본문을 덮는다.
      .tile-pvw-cta-sticky 는 스크롤 컨테이너(.tile-pvw-sheet) 안의 .tile-pvw-content 자식이고,
      그 시트에는 열기 애니메이션용 transform 이 걸려 있다. transform 조상이 있으면 position:fixed 의
@@ -2989,12 +2985,12 @@ body.neo-mode .pf-showcase{--pf-title-color:#fff7dd;--pf-sub-color:rgba(233,224,
      본문(“안심하고 확인하세요”·해금 안내·약관 문구)이 CTA 뒤로 가려졌다.
      sticky 는 흐름에 남아 자기 높이를 스스로 확보하므로 어떤 CTA 높이에서도 겹치지 않는다.
      (96px 같은 상수로 보정하면 문구가 두 줄이 되는 순간 다시 깨진다) */
-  .MobileFeatureBottomSheet.tile-pvw-overlay.pvw-open .tile-pvw-content{padding-bottom:calc(8px + env(safe-area-inset-bottom,0px))!important}
+  .MobileFeatureBottomSheet.tile-pvw-overlay.pvw-open .tile-pvw-content{padding-bottom:28px!important}
   /* (제거됨) 시트 하단 예약 126px 해제 규칙 — mobile-lite 의 [data-mobile-detail-template]
      규칙을 되돌리려던 보정이었다. 그 예약 자체를 없앴으므로 해제도 필요 없다. */
 
   /* CTA 는 콘텐츠 밖 시트 바닥의 고정 바다(sticky 아님) — 본문을 덮지 않는다 */
-  .MobileFeatureBottomSheet.tile-pvw-overlay.pvw-open .tile-pvw-cta-sticky{position:static!important;z-index:5!important;margin:0!important;padding:12px 14px calc(14px + env(safe-area-inset-bottom,0px))!important;background:#fffaf7!important;border-top:1px solid rgba(216,63,120,.14)!important}
+  .MobileFeatureBottomSheet.tile-pvw-overlay.pvw-open .tile-pvw-cta-sticky{position:static!important;z-index:5!important;margin:0!important;padding:12px 20px calc(14px + env(safe-area-inset-bottom,0px))!important;background:#fffaf7!important;border-top:1px solid rgba(216,63,120,.14)!important}
   html.neo-mode .MobileFeatureBottomSheet.tile-pvw-overlay.pvw-open .tile-pvw-cta-sticky,
   body.neo-mode .MobileFeatureBottomSheet.tile-pvw-overlay.pvw-open .tile-pvw-cta-sticky{background:#0f0c26!important;border-top-color:rgba(196,181,253,.18)!important}
   .MobileFeatureBottomSheet.tile-pvw-overlay.pvw-open .tile-pvw-cta-btn{min-height:48px!important;border-radius:10px!important}
@@ -33374,8 +33370,11 @@ function updateBadge() {
   <div class="tile-pvw-bd" id="tilePvwBd"></div>
   <div class="tile-pvw-sheet cd-detail-panel" id="tilePvwSheet" data-cd-detail-panel data-cd-detail-no-media="false">
     <div class="tile-pvw-handle" aria-hidden="true"></div>
-    <button class="tile-pvw-close" id="tilePvwClose" aria-label="닫기" data-cd-trans-attr="aria-label:common.close">✕</button>
-    <!-- 데스크톱에서는 이미지와 본문이 나란히, 모바일에서는 이미지가 먼저 온다. -->
+    <button class="tile-pvw-close" id="tilePvwClose" type="button" aria-label="닫기" data-cd-trans-attr="aria-label:common.close">✕</button>
+    <div class="tile-pvw-column cd-detail-column">
+    <!-- 스크롤 영역: 히어로와 본문이 함께 스크롤하고 CTA는 시트 바닥에 남는다.
+         히어로를 스크롤 밖에 두면 모바일에서 화면 1/4을 계속 차지해 읽을 자리가 줄어든다. -->
+    <div class="tile-pvw-scroll" id="tilePvwScroll">
     <div class="tile-pvw-hero cd-detail-visual" id="tilePvwHero" data-cd-detail-visual>
       <img class="tile-pvw-hero-img" id="tilePvwHeroImg" alt="" loading="lazy" decoding="async" width="800" height="450">
       <div class="tile-pvw-hero-gradient" aria-hidden="true"></div>
@@ -33384,73 +33383,94 @@ function updateBadge() {
         <span class="tile-pvw-hero-cost" id="tilePvwCost"></span>
       </div>
     </div>
-    <div class="tile-pvw-column cd-detail-column">
-    <!-- 스크롤 영역: 본문만 스크롤하고 CTA는 시트 바닥에 남는다. -->
-    <div class="tile-pvw-scroll" id="tilePvwScroll">
     <!-- 콘텐츠 영역 -->
     <div class="tile-pvw-content cd-detail-content" data-cd-detail-content>
       <h2 class="tile-pvw-title" id="tilePvwTitle"></h2>
       <p class="tile-pvw-tagline" id="tilePvwTagline"></p>
-      <div class="tile-pvw-divider" aria-hidden="true"></div>
-      <!-- 순서 계약(feature-marketing-cro-v20260731):
-           무엇을 얻는가 → 어떻게 분석하는가 → 실제 리포트 예시 → 누구에게 맞는가 → 가격 → CTA.
-           기존 4개 리스트(audience/chapters/required/outcomes)는 id 와 data-cd-trans 를 그대로 두고
-           위치만 옮긴다 — 지우면 i18n 키 4개와 _setListSection 호출이 함께 끊긴다. -->
+      <div class="tile-pvw-divider" aria-hidden="true"><span>✦</span></div>
+      <!-- 순서 계약(feature-marketing-premium-v20260911):
+           누구에게 → 무엇을 받는가 → 결과 화면 구성 → 어떻게 분석하는가 → 믿을 이유 → 가격과 혜택
+           → 안심 안내 → FAQ → CTA. 기존 리스트 id 와 data-cd-trans 는 그대로 두고 위치만 옮긴다 —
+           지우면 i18n 키와 _setListSection 호출이 함께 끊긴다. 순서는 verify:feature-marketing-schema 가 지킨다. -->
 
-      <!-- ① 무엇을 얻는가 -->
-      <p class="tile-pvw-feats-label" id="tilePvwFeatsLabel" data-cd-trans="preview.featuresLabel">주요 기능</p>
-      <ul class="tile-pvw-feats" id="tilePvwFeats"></ul>
-      <div class="tile-pvw-premium-block" id="tilePvwPremiumBlock">
-        <p class="tile-pvw-premium-intro" id="tilePvwPremiumIntro"></p>
-        <p class="tile-pvw-premium-title" id="tilePvwPremiumChaptersTitle" data-cd-trans="preview.deliverablesLabel">리포트에 담기는 것</p>
-        <ul class="tile-pvw-premium-list is-deliverables" id="tilePvwPremiumChapters"></ul>
-      </div>
-      <section class="tile-pvw-sec" id="tilePvwScaleSec" hidden>
-        <p class="tile-pvw-sec-title" data-cd-trans="preview.scaleLabel">분석 깊이</p>
-        <div class="tile-pvw-scale" id="tilePvwScale"></div>
+      <!-- ① 누구에게 맞는가 -->
+      <section class="tile-pvw-sec" id="tilePvwAudSec" hidden>
+        <h3 class="tile-pvw-sec-title" id="tilePvwPremiumAudienceTitle" data-cd-trans="preview.recommendForLabel">이런 분에게 추천해요</h3>
+        <ul class="tile-pvw-premium-list tile-pvw-check-list" id="tilePvwPremiumAudience"></ul>
       </section>
       <section class="tile-pvw-sec" id="tilePvwQuestSec" hidden>
-        <p class="tile-pvw-sec-title" id="tilePvwQuestionsTitle" data-cd-trans="preview.questionsLabel">이런 질문에 도움이 됩니다</p>
-        <ul class="tile-pvw-premium-list" id="tilePvwQuestions"></ul>
+        <h3 class="tile-pvw-sec-title" id="tilePvwQuestionsTitle" data-cd-trans="preview.questionsLabel">이런 질문에 도움이 됩니다</h3>
+        <ul class="tile-pvw-premium-list tile-pvw-quote-list" id="tilePvwQuestions"></ul>
       </section>
 
-      <!-- ② 어떻게 분석하는가 (사용자가 이해하는 단계까지만 — 내부 로직·모델은 쓰지 않는다) -->
+      <!-- ② 무엇을 받는가 — receives(아이콘·제목·한 문장)가 있으면 그것을, 없으면 feats 를 보인다. -->
+      <section class="tile-pvw-sec" id="tilePvwReceiveSec" hidden>
+        <h3 class="tile-pvw-sec-title tile-pvw-feats-label" id="tilePvwFeatsLabel" data-cd-trans="preview.receivesLabel">내가 받게 되는 것</h3>
+        <ul class="tile-pvw-receives" id="tilePvwReceives" hidden></ul>
+        <ul class="tile-pvw-feats" id="tilePvwFeats"></ul>
+      </section>
+      <section class="tile-pvw-sec" id="tilePvwScaleSec" hidden>
+        <h3 class="tile-pvw-sec-title" data-cd-trans="preview.scaleLabel">분석 깊이</h3>
+        <div class="tile-pvw-scale" id="tilePvwScale"></div>
+      </section>
+
+      <!-- ③ 결과 화면 구성 — 실제 결과 화면의 구성 이름만 적는다. 지어낸 결과 문장은 넣지 않는다. -->
+      <section class="tile-pvw-sec" id="tilePvwOutlineSec" hidden>
+        <h3 class="tile-pvw-sec-title" data-cd-trans="preview.outlineLabel">결과 화면은 이렇게 구성돼요</h3>
+        <figure class="tile-pvw-outline-figure" id="tilePvwOutlineFigure" hidden>
+          <img class="tile-pvw-outline-img" id="tilePvwOutlineImg" alt="" loading="lazy" decoding="async" width="320" height="213">
+        </figure>
+        <ol class="tile-pvw-outline" id="tilePvwOutline"></ol>
+        <p class="tile-pvw-outline-caption" data-cd-trans="preview.outlineCaption">실제 결과는 입력하신 정보로 계산됩니다 · 이미지는 대표 일러스트입니다</p>
+      </section>
+
+      <!-- ④ 어떻게 분석하는가 (사용자가 이해하는 단계까지만 — 내부 로직·모델은 쓰지 않는다) -->
       <section class="tile-pvw-sec" id="tilePvwStepsSec" hidden>
-        <p class="tile-pvw-sec-title" data-cd-trans="preview.stepsLabel">어떤 방식으로 분석하나요</p>
+        <h3 class="tile-pvw-sec-title" data-cd-trans="preview.stepsLabel">어떤 방식으로 분석하나요</h3>
+        <p class="tile-pvw-premium-intro" id="tilePvwPremiumIntro" hidden></p>
         <ol class="tile-pvw-steps" id="tilePvwSteps"></ol>
       </section>
       <section class="tile-pvw-sec" id="tilePvwReqSec" hidden>
-        <p class="tile-pvw-sec-title" id="tilePvwPremiumRequiredTitle" data-cd-trans="preview.requiredInfoLabel">생성 전 필요 정보</p>
+        <h3 class="tile-pvw-sec-title" id="tilePvwPremiumRequiredTitle" data-cd-trans="preview.requiredInfoLabel">생성 전 필요 정보</h3>
         <ul class="tile-pvw-premium-list" id="tilePvwPremiumRequired"></ul>
       </section>
 
-      <!-- ④ 누구에게 맞는가 -->
-      <section class="tile-pvw-sec" id="tilePvwAudSec" hidden>
-        <p class="tile-pvw-sec-title" id="tilePvwPremiumAudienceTitle" data-cd-trans="preview.audienceLabel">추천 상황</p>
-        <ul class="tile-pvw-premium-list" id="tilePvwPremiumAudience"></ul>
+      <!-- ⑤ 믿을 이유 — 코드와 약관으로 확인된 사실만 -->
+      <section class="tile-pvw-sec" id="tilePvwTrustSec" hidden>
+        <h3 class="tile-pvw-sec-title" id="tilePvwPremiumOutcomesTitle" data-cd-trans="preview.outcomesLabel">안심하고 확인하세요</h3>
+        <ul class="tile-pvw-premium-list tile-pvw-check-list" id="tilePvwPremiumOutcomes"></ul>
       </section>
 
-      <!-- ⑤ 가격 — 무료와 무엇이 다른지 먼저 납득시키고, 신뢰 요소를 붙인 뒤 결제 안내로 넘긴다. -->
+      <!-- ⑥ 가격과 혜택 — 가격 문구는 기존 paywall 분기가 그대로 채운다(여기서 가격을 쓰지 않는다). -->
+      <section class="tile-pvw-sec tile-pvw-price-sec" id="tilePvwPriceSec" hidden>
+        <h3 class="tile-pvw-sec-title" id="tilePvwPriceTitle" data-cd-trans="preview.pricingLabel">가격과 혜택</h3>
+        <div class="tile-pvw-paywall" id="tilePvwPaywall" style="display:none" aria-live="polite">
+          <span class="tile-pvw-paywall-icon" id="tilePvwPaywallIcon" aria-hidden="true">🪙</span>
+          <div class="tile-pvw-paywall-body">
+            <strong class="tile-pvw-paywall-title" id="tilePvwPaywallTitle"></strong>
+            <span class="tile-pvw-paywall-desc" id="tilePvwPaywallDesc"></span>
+          </div>
+        </div>
+        <div class="tile-pvw-premium-block" id="tilePvwPremiumBlock">
+          <p class="tile-pvw-premium-title" id="tilePvwPremiumChaptersTitle" data-cd-trans="preview.benefitsLabel">포함된 혜택</p>
+          <ul class="tile-pvw-premium-list is-deliverables" id="tilePvwPremiumChapters"></ul>
+        </div>
+      </section>
       <section class="tile-pvw-sec" id="tilePvwCmpSec" hidden>
-        <p class="tile-pvw-sec-title" data-cd-trans="preview.compareLabel">왜 유료인가요</p>
+        <h3 class="tile-pvw-sec-title" data-cd-trans="preview.compareLabel">왜 유료인가요</h3>
         <div class="tile-pvw-cmp" id="tilePvwCompare" role="table"></div>
       </section>
-      <section class="tile-pvw-sec" id="tilePvwTrustSec" hidden>
-        <p class="tile-pvw-sec-title" id="tilePvwPremiumOutcomesTitle" data-cd-trans="preview.outcomesLabel">안심하고 확인하세요</p>
-        <ul class="tile-pvw-premium-list" id="tilePvwPremiumOutcomes"></ul>
-      </section>
-      <!-- 결제/해금 paywall 정보 박스 -->
-      <div class="tile-pvw-paywall" id="tilePvwPaywall" style="display:none" aria-live="polite">
-        <span class="tile-pvw-paywall-icon" id="tilePvwPaywallIcon" aria-hidden="true">🪙</span>
-        <div class="tile-pvw-paywall-body">
-          <strong class="tile-pvw-paywall-title" id="tilePvwPaywallTitle"></strong>
-          <span class="tile-pvw-paywall-desc" id="tilePvwPaywallDesc"></span>
-          <span class="tile-pvw-paywall-note" data-cd-trans="preview.paywallNote">모든 유료 서비스는 결제(구매) 완료 즉시 제공되며, 제공이 시작된 후에는 관련 법령에 따라 청약철회가 제한될 수 있습니다.</span>
-        </div>
-      </div>
-      <!-- ⑥ FAQ — 기본 접힘. 결제 직전 남는 마지막 의문만 걷어내는 자리다. -->
+
+      <!-- ⑦ 안심 안내 — 결제 안내가 보일 때만. 문구는 이용약관 제12조(청약철회)와 같은 뜻을 유지한다. -->
+      <aside class="tile-pvw-assure" id="tilePvwAssure" hidden>
+        <p class="tile-pvw-assure-title" data-cd-trans="preview.assureLabel">안심하고 이용하세요</p>
+        <p class="tile-pvw-paywall-note" data-cd-trans="preview.paywallNote">결제 후 바로 이용할 수 있어요. 결제일로부터 7일 이내 청약철회를 요청할 수 있으며, 열람·생성이 이미 시작된 부분은 철회가 제한될 수 있어요. 자세한 내용은 환불 정책에서 확인하세요.</p>
+        <a class="tile-pvw-assure-link" href="/refund-policy/" data-cd-trans="preview.refundPolicyLink">환불 정책 보기</a>
+      </aside>
+
+      <!-- ⑧ FAQ — 기본 접힘. 결제 직전 남는 마지막 의문만 걷어내는 자리다. -->
       <section class="tile-pvw-sec" id="tilePvwFaqSec" hidden>
-        <p class="tile-pvw-sec-title" data-cd-trans="preview.faqLabel">자주 묻는 질문</p>
+        <h3 class="tile-pvw-sec-title" data-cd-trans="preview.faqLabel">자주 묻는 질문</h3>
         <div class="tile-pvw-faq" id="tilePvwFaq"></div>
       </section>
     </div>
@@ -34100,7 +34120,16 @@ function updateBadge() {
     // 꽃 아틀리에 4종(사주·점성술·자미두수·숙요)은 data-feature-key 가 모두 flower-fc 라
     // 타일 어느 것을 눌러도 이 항목이 먼저 잡힌다. 그래서 특정 꽃이 아니라 네 갈래를 함께
     // 설명하는 카피를 둔다(운명의 꽃 전용 문구를 상속시키면 나머지 셋이 틀린 설명을 받는다).
-    'flower-fc':{featureId:'flower-fc',category:'프리미엄 리포트',badge:'시각화형',headline:'여든아홉 송이 가운데, 당신의 명식이 피워내는 단 한 송이.',subheadline:'사주 · 점성술 · 자미두수 · 숙요 네 갈래의 계산값이 각각 꽃의 종과 색을 정해, 여든아홉 종 카탈로그에서 당신의 꽃을 피워냅니다. 해금 한 번으로 네 갈래가 모두 열립니다.',painPoints:['운세 결과를 글이 아니라 한 송이 꽃으로 간직하고 싶을 때','내 명식의 기운이 어떤 모습일지 궁금할 때','여러 점법을 한 자리에서 비교해 보고 싶을 때'],feats:['해금 한 번으로 사주 · 점성술 · 자미두수 · 숙요 네 갈래 전부','여든아홉 종의 꽃 카탈로그','명식 계산값이 종과 색을 정하는 규칙 기반 시각화','꽃의 부분마다 어떤 계산이 반영됐는지 해설','내 꽃을 그려낼 AI 아트 프롬프트 제공'],unlockBenefits:['네 갈래 각각의 운명의 꽃','종 · 색이 정해진 계산 근거 해설','같은 기기에서 이어 보는 개화 기록','언제든 다시 피우는 영구 해금'],previewText:'운명의 꽃은 무작위 그림이 아니라, 명식의 계산값이 규칙대로 종과 색을 정하는 시각화입니다.',recommendedFor:['결과를 이미지로 간직하고 싶은 분','여러 점법을 두루 즐기는 분','선물처럼 예쁜 운세를 원하는 분'],answersQuestions:['내 명식은 어떤 꽃으로 피어나나요?','네 갈래의 꽃은 서로 어떻게 다른가요?','꽃의 색과 모양은 왜 이렇게 정해졌나요?'],analysisSteps:[{label:'갈래 선택',detail:'사주 · 점성술 · 자미두수 · 숙요 가운데 고릅니다.'},{label:'명식 계산',detail:'계산값이 규칙대로 꽃의 종과 색을 정합니다.'},{label:'개화·해설',detail:'꽃이 피어나고 부분별 계산 해설이 열립니다.'}],faq:[{q:'해금하면 무엇이 열리나요?',a:'한 번의 해금으로 네 갈래가 모두 열리고, 언제든 다시 열람할 수 있습니다.'},{q:'꽃 이미지를 저장할 수 있나요?',a:'꽃을 그려낼 AI 아트 프롬프트를 제공해, 원하는 AI로 이미지를 만들어 간직할 수 있습니다.'}],trustNotes:['풀이 · 시각화는 참고용입니다.','꽃 매칭은 규칙 기반 계산입니다.','기존 결제 정책을 따릅니다.'],ctaLabel:'운명의 꽃 피우기'},
+    /* 상세창 프리미엄 개편의 기준 상품(2026-09-11). 모든 문장은 실제 구현에서 확인한 사실만 쓴다.
+       - 네 갈래·패널 이름: 아틀리에 화면(#dfStudio*)의 실제 탭·패널 제목
+       - 계산 재료: worker/lib/destiny-flower-engine.js (사주 일간·오행 비율·계절 / 점성술 태양·상승·달 /
+         자미두수 주성의 밝기·사화 / 숙요 27수·달 위상 → 89종 도감 랭킹, Math.random 없음)
+       - 개화 기록은 이 기기 localStorage 최근 12건, 공유는 카카오톡 텍스트·복사
+       - 환불 문장은 이용약관 제12조·FAQ 정본과 같은 기준
+       '10년 경력' 문장은 사주·만세력 해설 검수에 대한 것이라 이 상품에 옮겨 쓰지 않는다.
+       가격은 여기 적지 않는다 — 가격·혜택 칸은 기존 paywall 분기와 가격 저장소가 채운다.
+       비교표(valueCompare)는 해금 전 무료로 볼 수 있는 부분이 없어 명시적으로 비운다. */
+    'flower-fc':{featureId:'flower-fc',category:'프리미엄 리포트',badge:'꽃 아틀리에',headline:'여든아홉 송이 가운데, 당신의 명식이 피워내는 단 한 송이.',subheadline:'태어난 날의 기운이 꽃의 종류와 색을 고릅니다. 사주 · 점성술 · 자미두수 · 숙요, 네 가지 시선으로 각각 피어난 나의 꽃을 한 번의 해금으로 만나 보세요.',painPoints:['운세를 긴 글보다 한 송이 꽃으로 간직하고 싶을 때','내 명식의 기운이 어떤 모습일지 궁금할 때','여러 점법을 한 자리에서 견줘 보고 싶을 때'],feats:['사주 · 점성술 · 자미두수 · 숙요 네 갈래의 꽃을 한 번에','여든아홉 종 도감에서 고른 나의 꽃과 색','이 꽃이 나에게 온 이유를 부분별로 풀어 준 해설','그림으로 옮길 수 있는 꽃 묘사문','이 기기에 쌓이는 나의 개화 기록'],receives:[{icon:'🌸',title:'네 갈래로 피어난 나의 꽃',detail:'사주 · 점성술 · 자미두수 · 숙요, 네 가지 시선이 각각 한 송이씩 골라 줍니다.'},{icon:'🎨',title:'나를 닮은 색과 꽃말',detail:'퍼스널 컬러 팔레트와 운명의 꽃말, 함께 두면 좋은 시너지 팔레트를 보여 드려요.'},{icon:'📖',title:'이 꽃이 나에게 온 이유',detail:'꽃 프로필과 정원사의 관찰 일지가 어떤 기운이 어느 부분에 담겼는지 풀어 줍니다.'},{icon:'🖋️',title:'그림으로 옮길 수 있는 꽃 묘사문',detail:'복사해서 원하는 그림 AI에 붙여 넣으면 나의 꽃을 직접 그려 볼 수 있어요.'},{icon:'🗓️',title:'나의 개화 기록',detail:'피운 꽃은 이 기기에 최근 열두 송이까지 남아, 다음에 다시 꺼내 볼 수 있어요.'}],outline:[{title:'네 갈래 탭',detail:'사주 · 점성술 · 자미두수 · 숙요를 오가며 갈래마다 피어난 꽃을 봅니다.'},{title:'퍼스널 컬러 팔레트 · 입자 무드',detail:'꽃과 함께 나를 닮은 색과 분위기를 펼쳐 둡니다.'},{title:'꽃 프로필 · 정원사의 관찰 일지',detail:'꽃의 이름과 특징, 그리고 이 꽃이 고른 이유를 차례로 풀어 둡니다.'},{title:'운명의 꽃말 · 가드너의 한 마디',detail:'지금의 나에게 건네는 짧은 문장과 오늘의 가드닝 한 줄이 이어집니다.'},{title:'비밀 레시피 · 꽃 묘사문',detail:'꽃이 잘 피도록 돕는 행동 레시피와, 그림으로 옮길 때 쓰는 묘사문을 담았습니다.'},{title:'나누기와 기록',detail:'결과 문장을 카카오톡으로 나누거나 복사하고, 나의 개화 기록에 남깁니다.'}],outlineImage:'/fuctionassets/flower-320.webp',previewText:'운명의 꽃은 무작위로 뽑는 그림이 아닙니다. 태어난 날에서 읽어 낸 기운이 정해진 순서대로 꽃과 색을 고릅니다.',analysisSteps:[{label:'태어난 정보로 명식 세우기',detail:'생년월일을 바탕으로 네 가지 점법의 기본 배치를 계산합니다. 태어난 시각과 장소를 모르면 정오 · 서울을 기준으로 봅니다.'},{label:'네 가지 시선으로 읽기',detail:'사주는 일간과 오행의 비율 · 태어난 계절을, 점성술은 태양 · 상승 · 달의 자리를, 자미두수는 주성의 밝기와 사화를, 숙요는 27수와 달의 위상을 봅니다.'},{label:'여든아홉 종 도감에서 꽃 고르기',detail:'읽어 낸 기운을 미리 정해 둔 여든아홉 종 도감에 맞춰 꽃과 색을 정합니다. 같은 정보라면 언제 봐도 같은 꽃이에요.'},{label:'개화와 해설',detail:'꽃이 피어난 뒤, 이 꽃이 고른 이유와 색 · 꽃말을 부분별로 풀어 드립니다.'}],requiredInfo:['생년월일 (필수)','태어난 시각 · 장소 (모르면 정오 · 서울 기준)'],unlockBenefits:['사주 · 점성술 · 자미두수 · 숙요 네 갈래의 꽃 모두','갈래마다 퍼스널 컬러 팔레트 · 꽃말 · 관찰 일지 해설','그림으로 옮길 수 있는 꽃 묘사문 복사','이 기기에 남는 나의 개화 기록 (최근 열두 송이)'],recommendedFor:['운세를 긴 글보다 한 송이 꽃과 색으로 기억하고 싶은 분','사주 · 별자리 · 자미두수 · 숙요를 한 자리에서 견줘 보고 싶은 분','나를 닮은 색과 꽃말을 선물처럼 간직하고 싶은 분'],answersQuestions:['내 명식은 어떤 꽃으로 피어나나요?','네 가지 점법의 꽃은 서로 어떻게 다른가요?','왜 하필 이 꽃, 이 색이 나에게 왔을까요?'],valueCompare:{rows:[]},faq:[{q:'해금하면 무엇이 열리나요?',a:'한 번의 해금으로 사주 · 점성술 · 자미두수 · 숙요 네 갈래의 꽃과, 갈래마다의 팔레트 · 꽃말 · 해설이 함께 열립니다.'},{q:'태어난 시간을 몰라도 되나요?',a:'네. 생년월일만 있으면 됩니다. 시각과 장소를 모르면 정오 · 서울을 기준으로 계산하고, 알고 계시면 그 값으로 계산합니다.'},{q:'다시 보면 꽃이 바뀌나요?',a:'같은 정보를 넣으면 언제 봐도 같은 꽃이 피어납니다. 무작위로 뽑지 않기 때문이에요. 태어난 시각이나 장소를 바꾸면 결과가 달라질 수 있습니다.'},{q:'꽃 이미지를 저장할 수 있나요?',a:'운명의 꽃은 이미지 파일을 만들어 드리지 않습니다. 대신 꽃 묘사문을 복사해 원하는 그림 AI로 그려 볼 수 있고, 결과 문장은 카카오톡이나 복사로 나눌 수 있어요. 피운 꽃은 이 기기의 개화 기록에 남습니다.'},{q:'환불은 어떻게 되나요?',a:'결제일로부터 7일 이내 청약철회를 요청할 수 있습니다. 다만 열람이 이미 시작된 부분은 철회가 제한될 수 있고, 월정석은 현금 환불 대상이 아닙니다. 자세한 기준은 환불 정책에서 확인해 주세요.'}],trustNotes:['무작위가 아닙니다 — 같은 정보를 넣으면 언제 봐도 같은 꽃이 피어납니다.','미리 정해 둔 여든아홉 종 도감 안에서만 꽃을 고릅니다.','계산은 명리학과 점성술의 고전 규칙이 맡고, 사람에게 건네는 문장은 사람이 책임집니다.','꽃과 꽃말은 나를 돌아보는 참고용 해석이며, 미래를 단정하지 않습니다.'],ctaLabel:'운명의 꽃 해금하기'},
     // 코스믹 소울 명상은 운세 해석이 아니라 세션형 콘텐츠라 카테고리 폴백(사주)이 통째로 틀렸다.
     // analysisSteps·unlockBenefits 를 빈 배열로 "명시적으로 비워" 템플릿 갭필을 막는다
     // (키를 지우면 사주 템플릿의 '명식 계산' 단계와 리포트 목차가 되살아난다).
@@ -34249,6 +34278,8 @@ function updateBadge() {
   var _premiumAudienceTitleEl,_premiumChaptersTitleEl,_premiumRequiredTitleEl,_premiumOutcomesTitleEl;
   var _scaleSecEl,_scaleEl,_questSecEl,_questEl,_questTitleEl,_stepsSecEl,_stepsEl;
   var _reqSecEl,_audSecEl,_trustSecEl,_cmpSecEl,_cmpEl,_faqSecEl,_faqEl,_ctaNoteEl;
+  var _receiveSecEl,_receivesEl,_outlineSecEl,_outlineEl,_outlineFigureEl,_outlineImgEl,_priceSecEl,_priceTitleEl,_assureEl;
+  var _faqSeq=0;
   var _pendingTile=null,_pendingHref=null,_lastTrigger=null,_lastFocusFallback=null;
   var _ctaLoading=false;
   var _globalHandlersBound=false;
@@ -34322,8 +34353,13 @@ function updateBadge() {
     return !!ok;
   }
 
-  /* 라벨 + 상세 두 줄짜리 항목 리스트(분석 단계 전용). li 안이 복합 구조라 _fillList 로는 안 된다. */
-  function _fillPairs(el,items,liClass,keyA,keyB){
+  /* 라벨 + 상세 두 줄짜리 항목 리스트(분석 단계·받게 되는 것·결과 구성). li 안이 복합 구조라
+     _fillList 로는 안 된다.
+     🔴 제목과 설명은 반드시 한 래퍼(.tile-pvw-step-body) 안에 넣는다. li 는 [번호|본문] 2열 그리드인데,
+     예전처럼 b 와 span 을 li 에 바로 붙이면 ::before 까지 그리드 항목이 3개가 되어 span 이 다음 줄
+     첫 칸(28px 번호 칸)으로 자동 배치된다. 그 좁은 칸에서 한국어가 한두 글자씩 세로로 끊겼다.
+     iconKey 가 있으면 아이콘 글리프를 번호 대신 첫 칸에 둔다(장식이라 aria-hidden). */
+  function _fillPairs(el,items,liClass,keyA,keyB,iconKey){
     if(!el)return 0;
     el.innerHTML='';
     var count=0;
@@ -34332,19 +34368,55 @@ function updateBadge() {
       if(!label)return;
       var li=document.createElement('li');
       li.className=liClass;
+      if(iconKey){
+        var icon=document.createElement('span');
+        icon.className='tile-pvw-pair-icon';
+        icon.setAttribute('aria-hidden','true');
+        icon.textContent=String((item&&item[iconKey])||'✦');
+        li.appendChild(icon);
+      }
+      var body=document.createElement('div');
+      body.className='tile-pvw-step-body';
       var b=document.createElement('b');
+      b.className='tile-pvw-step-label';
       b.textContent=label;
-      li.appendChild(b);
+      body.appendChild(b);
       var detail=String((item&&item[keyB])||'').trim();
       if(detail){
         var span=document.createElement('span');
+        span.className='tile-pvw-step-detail';
         span.textContent=detail;
-        li.appendChild(span);
+        body.appendChild(span);
       }
+      li.appendChild(body);
       el.appendChild(li);
       count++;
     });
     return count;
+  }
+
+  /* 내가 받게 되는 것. receives(아이콘·제목·한 문장)를 저작한 상품만 카드형으로 보이고,
+     나머지는 기존 feats 목록을 같은 자리·같은 제목으로 보인다. */
+  function _renderReceives(d){
+    var count=_fillPairs(_receivesEl,d.receives,'tile-pvw-receive','title','detail','icon');
+    if(_receivesEl)_receivesEl.hidden=!count;
+    var feats=count?[]:(d.feats||[]);
+    _fillList(_featsEl,feats);
+    if(_featsEl)_featsEl.hidden=!feats.length;
+    return _toggleSec(_receiveSecEl,count>0||feats.length>0);
+  }
+
+  /* 결과 화면 구성. 실제 결과 화면의 부분 이름만 적는 칸이다 — 지어낸 결과 문장을 싣지 않는다.
+     이미지는 이미 서비스에 있는 자산만(카피의 outlineImage, 스키마 가드가 파일 존재를 확인). */
+  function _renderOutline(d){
+    var count=_fillPairs(_outlineEl,d.outline,'tile-pvw-outline-item','title','detail');
+    var img=count?String(d.outlineImage||'').trim():'';
+    if(_outlineFigureEl)_outlineFigureEl.hidden=!img;
+    if(_outlineImgEl){
+      if(img)_outlineImgEl.src=img;
+      else _outlineImgEl.removeAttribute('src');
+    }
+    return _toggleSec(_outlineSecEl,count>0);
   }
 
   /* 분석 깊이. 카피에 사람이 적어 넣은 양의 정수만 칩이 된다 —
@@ -34407,18 +34479,46 @@ function updateBadge() {
     var items=(Array.isArray(faq)?faq:[])
       .filter(function(f){return f&&String(f.q||'').trim()&&String(f.a||'').trim();}).slice(0,5);
     _faqEl.innerHTML='';
+    /* details/summary 대신 button[aria-expanded] + region 을 쓴다. 펼침 상태를 스크린리더에 알리고,
+       답변 높이를 grid-template-rows 0fr→1fr 로 부드럽게 여닫기 위해서다(모션 축소 설정이면 CSS 가 끈다).
+       접힌 답변은 hidden 대신 inert 로 둔다 — hidden 이면 닫히는 애니메이션이 보이지 않는다. */
     items.forEach(function(item){
-      var details=document.createElement('details');
-      details.className='tile-pvw-faq-item';
-      var summary=document.createElement('summary');
-      summary.className='tile-pvw-faq-q';
-      summary.textContent=String(item.q);
+      var id='tilePvwFaqA'+(++_faqSeq);
+      var wrap=document.createElement('div');
+      wrap.className='tile-pvw-faq-item';
+      var btn=document.createElement('button');
+      btn.type='button';
+      btn.className='tile-pvw-faq-q';
+      btn.id=id+'q';
+      btn.setAttribute('aria-expanded','false');
+      btn.setAttribute('aria-controls',id);
+      var qText=document.createElement('span');
+      qText.className='tile-pvw-faq-q-text';
+      qText.textContent=String(item.q);
+      var mark=document.createElement('span');
+      mark.className='tile-pvw-faq-mark';
+      mark.setAttribute('aria-hidden','true');
+      btn.appendChild(qText);
+      btn.appendChild(mark);
       var answer=document.createElement('div');
       answer.className='tile-pvw-faq-a';
-      answer.textContent=String(item.a);
-      details.appendChild(summary);
-      details.appendChild(answer);
-      _faqEl.appendChild(details);
+      answer.id=id;
+      answer.setAttribute('role','region');
+      answer.setAttribute('aria-labelledby',btn.id);
+      answer.inert=true;
+      var inner=document.createElement('div');
+      inner.className='tile-pvw-faq-a-inner';
+      inner.textContent=String(item.a);
+      answer.appendChild(inner);
+      btn.addEventListener('click',function(){
+        var open=btn.getAttribute('aria-expanded')!=='true';
+        btn.setAttribute('aria-expanded',open?'true':'false');
+        wrap.classList.toggle('is-open',open);
+        answer.inert=!open;
+      });
+      wrap.appendChild(btn);
+      wrap.appendChild(answer);
+      _faqEl.appendChild(wrap);
     });
     return _toggleSec(_faqSecEl,items.length>0);
   }
@@ -34674,6 +34774,10 @@ function updateBadge() {
     take('valueCompare',src.pick('valueCompare'),null);
     take('faq',src.pick('faq'),[]);
     take('ctaNote',src.pick('ctaNote'),'');
+    // 새 구조 필드(받게 되는 것·결과 화면 구성)는 상품 카피만 가진다 — 템플릿·레거시에는 없다.
+    take('receives',src.pick('receives'),[]);
+    take('outline',src.pick('outline'),[]);
+    merged.outlineImage=(copy&&typeof copy.outlineImage==='string')?copy.outlineImage:'';
     // 분석 깊이만 template 을 보지 않는다 — 카테고리 공용 숫자는 그 상품의 실제 분량이 아니다.
     merged.reportScale=_pickPreviewField('reportScale',copy,base,null)||null;
     // 샘플: 상품 전용 > 상품 레거시 > 카테고리 전용 > 카테고리 레거시
@@ -34698,6 +34802,9 @@ function updateBadge() {
        돈을 받는 화면에서만 쓴다 — 무료 타일에 붙으면 팝업이 그 기능을 유료라고 잘못 말한다.
        자기 카피에 표가 들어 있어도 무료면 렌더하지 않는다(그 표의 목적이 가격 정당화다). */
     if(merged.ct!=='paid')merged.valueCompare=null;
+    // 상품이 확인된 신뢰 근거(trustNotes)를 적었을 때만 '믿고 볼 수 있는 이유' 제목을 쓴다.
+    // 공용 안내 문구에는 기존 '안심하고 확인하세요' 를 둔다 — 공용 문구는 근거가 아니라 안내다.
+    merged.trustIsOwn=!!(copy&&Array.isArray(copy.trustNotes)&&copy.trustNotes.length);
     if(!merged.premiumOutcomes)merged.premiumOutcomes=merged.ct==='paid'?_PAID_TRUST_NOTES:_FREE_TRUST_NOTES;
     return _localizeMarketingCopy(merged,nsOf,itemNs);
   }
@@ -34783,6 +34890,18 @@ function updateBadge() {
         };
       })};
     }
+    /* 아이콘은 글리프라 번역하지 않는다. 제목·설명만 사전을 거친다. */
+    ['receives','outline'].forEach(function(field){
+      if(!Array.isArray(merged[field]))return;
+      var pairNs=ns(field);
+      merged[field]=merged[field].map(function(item,i){
+        return {
+          icon:item&&item.icon,
+          title:_pvwTrKeep(pairNs+'.'+field+'.'+i+'.title',item&&item.title),
+          detail:_pvwTrKeep(pairNs+'.'+field+'.'+i+'.detail',item&&item.detail)
+        };
+      });
+    });
     if(Array.isArray(merged.faq)){
       var faqNs=ns('faq');
       merged.faq=merged.faq.map(function(item,i){
@@ -34905,6 +35024,15 @@ function updateBadge() {
     _cmpEl=document.getElementById('tilePvwCompare');
     _faqSecEl=document.getElementById('tilePvwFaqSec');
     _faqEl=document.getElementById('tilePvwFaq');
+    _receiveSecEl=document.getElementById('tilePvwReceiveSec');
+    _receivesEl=document.getElementById('tilePvwReceives');
+    _outlineSecEl=document.getElementById('tilePvwOutlineSec');
+    _outlineEl=document.getElementById('tilePvwOutline');
+    _outlineFigureEl=document.getElementById('tilePvwOutlineFigure');
+    _outlineImgEl=document.getElementById('tilePvwOutlineImg');
+    _priceSecEl=document.getElementById('tilePvwPriceSec');
+    _priceTitleEl=document.getElementById('tilePvwPriceTitle');
+    _assureEl=document.getElementById('tilePvwAssure');
     _ctaNoteEl=document.getElementById('tilePvwCtaNote');
     document.getElementById('tilePvwBd').addEventListener('click',_close);
     var closeBtn=document.getElementById('tilePvwClose');
@@ -34966,32 +35094,36 @@ function updateBadge() {
     _titleEl.textContent=_pvwTileText(tile) || d.fallbackTitle || '';
     _taglineEl.textContent=d.tagline||'';
 
-    if(_featsLabelEl)_featsLabelEl.textContent=d.featsLabel||_pvwTr('preview.featuresLabel',_featsLabelDefault);
-    _fillList(_featsEl,d.feats||[]);
+    // 고민 목록으로 폴백한 타일만 자기 제목(featsLabel)을 쓰고, 나머지는 '내가 받게 되는 것'.
+    if(_featsLabelEl)_featsLabelEl.textContent=d.featsLabel||_pvwTr('preview.receivesLabel',_featsLabelDefault);
+    _renderReceives(d);
+    _renderOutline(d);
 
     // 라벨은 반드시 _pvwTr 을 거친다 — 한국어 문자열을 그대로 넘기면 data-cd-trans 로
     // 번역된 제목을 덮어써서 비한국어 로케일에 한국어가 그대로 노출된다.
     // 폴백도 한국어 리터럴 대신 DOM 의 현재 텍스트를 쓴다(이미 i18n 런타임이 번역해 둔 값).
+    // 소개 문장(previewText)은 '어떻게 분석하나요' 의 첫 문장으로 옮겼다.
+    var hasIntro=!!d.premiumIntro;
+    if(_premiumIntroEl){_premiumIntroEl.textContent=d.premiumIntro||'';_premiumIntroEl.hidden=!hasIntro;}
+    var stepCount=_fillPairs(_stepsEl,d.analysisSteps,'tile-pvw-step','label','detail');
+    if(_stepsEl)_stepsEl.hidden=!stepCount;
+    _toggleSec(_stepsSecEl,stepCount>0||hasIntro);
+    // 이 블록은 이제 '포함된 혜택'(unlockBenefits)만 담고 가격과 혜택 섹션 안에 산다.
+    var hasChapters=!!(d.premiumChapters&&d.premiumChapters.length);
     if(_premiumBlockEl){
-      _premiumBlockEl.classList.toggle('is-marketing-detail',true);
-      // 이 블록은 이제 "무엇을 얻는가"만 담는다(intro + painPoints + 리포트 구성).
-      var hasPremiumInfo = !!(d.premiumIntro || (d.premiumChapters&&d.premiumChapters.length));
-      _premiumBlockEl.style.display = hasPremiumInfo ? '' : 'none';
-      if(hasPremiumInfo){
-        if(_premiumIntroEl){_premiumIntroEl.textContent=d.premiumIntro||'';_premiumIntroEl.hidden=!d.premiumIntro;}
-        _setListSection(_premiumChaptersTitleEl,_premiumChaptersEl,d.premiumChaptersLabel||_pvwTr('preview.deliverablesLabel',_pvwLabelText(_premiumChaptersTitleEl)),d.premiumChapters||[]);
-      }
+      _premiumBlockEl.style.display=hasChapters?'':'none';
+      if(hasChapters)_setListSection(_premiumChaptersTitleEl,_premiumChaptersEl,d.premiumChaptersLabel||_pvwTr('preview.benefitsLabel',_pvwLabelText(_premiumChaptersTitleEl)),d.premiumChapters);
     }
     _renderScale(d.reportScale);
     _toggleSec(_questSecEl,_setListSection(_questTitleEl,_questEl,_pvwTr('preview.questionsLabel',_pvwLabelText(_questTitleEl)),d.answersQuestions||[]));
-
-    _toggleSec(_stepsSecEl,_fillPairs(_stepsEl,d.analysisSteps,'tile-pvw-step','label','detail')>0);
     _toggleSec(_reqSecEl,_setListSection(_premiumRequiredTitleEl,_premiumRequiredEl,d.premiumRequiredLabel||_pvwTr('preview.requiredInfoLabel',_pvwLabelText(_premiumRequiredTitleEl)),d.premiumRequired||[]));
-
-    _toggleSec(_audSecEl,_setListSection(_premiumAudienceTitleEl,_premiumAudienceEl,d.premiumAudienceLabel||_pvwTr('preview.audienceLabel',_pvwLabelText(_premiumAudienceTitleEl)),d.premiumAudience||[]));
+    _toggleSec(_audSecEl,_setListSection(_premiumAudienceTitleEl,_premiumAudienceEl,d.premiumAudienceLabel||_pvwTr('preview.recommendForLabel',_pvwLabelText(_premiumAudienceTitleEl)),d.premiumAudience||[]));
 
     _renderCompare(d.valueCompare);
-    _toggleSec(_trustSecEl,_setListSection(_premiumOutcomesTitleEl,_premiumOutcomesEl,d.premiumOutcomesLabel||_pvwTr('preview.outcomesLabel',_pvwLabelText(_premiumOutcomesTitleEl)),d.premiumOutcomes||[]));
+    var trustLabel=d.premiumOutcomesLabel||(d.trustIsOwn
+      ?_pvwTr('preview.trustLabel','믿고 볼 수 있는 이유')
+      :_pvwTr('preview.outcomesLabel','안심하고 확인하세요'));
+    _toggleSec(_trustSecEl,_setListSection(_premiumOutcomesTitleEl,_premiumOutcomesEl,trustLabel,d.premiumOutcomes||[]));
     _renderFaq(d.faq);
 
     // 상세 팝업은 카드 썸네일의 제각각인 비율·저해상도 원본을 확대하지 않는다.
@@ -35015,7 +35147,8 @@ function updateBadge() {
       };
       _heroImg.src=imgSrc;
       _heroImg.srcset='/feature-details/assets/feature-detail-shared-hero-v1-480.webp 480w, /feature-details/assets/feature-detail-shared-hero-v1-960.webp 960w';
-      _heroImg.sizes='(max-width: 699px) 100vw, 480px';
+      // 데스크톱 상세창이 720px 한 단이 되어 히어로도 720px 폭을 채운다 — 480px 로 두면 480w 를 골라 흐려진다.
+      _heroImg.sizes='(max-width: 859px) 100vw, 720px';
       _heroImg.alt='달빛 아래 여러 운세 체계가 만나는 공통 상세 이미지';
       if(_heroEl){
         _heroEl.style.display='';
@@ -35124,6 +35257,17 @@ function updateBadge() {
         _setCtaLabel(d.fallbackCta ? _pvwCta(action, _pendingHref, d.fallbackCta) : _pvwTr('preview.startNow', '지금 시작하기 →'));
       }
     }
+    /* 가격과 혜택·안심 안내는 위 결제 분기의 결과(paywall 표시 여부)만 읽는다 — 분기 자체는 건드리지 않는다.
+       가격 문구가 있으면 '가격과 혜택', 혜택 목록만 있으면 제목 하나로 '포함된 혜택' 을 쓴다. */
+    var paywallShown=!!(_paywallEl&&_paywallEl.style.display!=='none');
+    if(_priceSecEl){
+      _priceSecEl.hidden=!(paywallShown||hasChapters);
+      if(_priceTitleEl)_priceTitleEl.textContent=paywallShown
+        ?_pvwTr('preview.pricingLabel','가격과 혜택')
+        :_pvwTr('preview.benefitsLabel','포함된 혜택');
+      if(_premiumChaptersTitleEl)_premiumChaptersTitleEl.hidden=!paywallShown;
+    }
+    if(_assureEl)_assureEl.hidden=!paywallShown;
 
     _setCtaLoading(false,'');
     // CTA 보조 문구. _setCtaLoading 이 _ctaMetaEl 을 비운 뒤에 쓴다(노드가 달라 서로 덮지 않는다).
@@ -36400,18 +36544,9 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 </style>
 <style id="premium-vvip-preview-style">
 .tile-pvw-close{width:44px;height:44px}
-.tile-pvw-premium-block{display:none;margin-top:12px;padding:12px;border-radius:14px;border:1px solid rgba(223,184,86,0.34);background:linear-gradient(170deg,rgba(46,28,8,0.6),rgba(22,14,5,0.65));}
-.tile-pvw-premium-intro{margin:0 0 10px;font-size:.93rem;line-height:1.56;color:rgba(252,238,206,.94)}
-.tile-pvw-premium-title{margin:12px 0 8px;font-size:.8rem;font-weight:800;letter-spacing:.08em;color:rgba(241,203,106,.96);text-transform:uppercase}
-.tile-pvw-premium-list{margin:0;padding-left:18px;display:grid;gap:6px}
-.tile-pvw-premium-list li{color:rgba(248,233,199,.9);font-size:.86rem;line-height:1.5}
 .tile-pvw-premium-title[hidden],.tile-pvw-premium-list[hidden]{display:none!important}
-.tile-pvw-premium-block.is-marketing-detail{display:block;background:linear-gradient(170deg,rgba(13,28,52,.66),rgba(34,22,56,.62));border-color:rgba(148,163,184,.28)}
-.tile-pvw-premium-block.is-marketing-detail .tile-pvw-premium-intro{padding:11px 12px;border-radius:10px;border:1px solid rgba(250,204,21,.22);background:rgba(250,204,21,.07);color:rgba(255,248,220,.94)}
-.tile-pvw-premium-block.is-marketing-detail .tile-pvw-premium-title{color:rgba(186,230,253,.94);text-transform:none}
-.tile-pvw-premium-block.is-marketing-detail .tile-pvw-premium-list{list-style:none;padding-left:0}
-.tile-pvw-premium-block.is-marketing-detail .tile-pvw-premium-list li{position:relative;padding-left:18px;color:rgba(226,239,255,.9)}
-.tile-pvw-premium-block.is-marketing-detail .tile-pvw-premium-list li::before{content:'•';position:absolute;left:3px;color:#f6d76b}
+/* (제거됨) 남색 그라디언트·하늘색 제목의 .is-marketing-detail 블록 — 크림색 시트 한가운데에
+   다크 박스가 떠 보이던 원인. 혜택 목록의 재질은 feature-marketing-detail.css 가 정한다. */
 </style>
 <!-- Legacy detail rules are retained for source history but disabled; the shared contract owns this surface. -->
 <style id="tile-preview-styles" media="not all" data-legacy-disabled="feature-marketing-detail-shared-style-v1">
