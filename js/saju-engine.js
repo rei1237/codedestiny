@@ -5061,8 +5061,8 @@ async function calculate(){
       var _rp = document.getElementById('resultPage');
       ['lottoCard','quantumCard','healthReportCard','skillTreeCard',
        'tTestCard','hormone-vibe-section','energyCoordCard',
-      'villainCard','sajuFourCutCard','aiPromptCard','sajuQuestionPromptGeneratorCard',
-      'relationshipTemptationCard'].forEach(function(id) {
+      'villainCard','sajuFourCutCard','aiPromptCard','sajuQuestionPromptGeneratorCard'
+      ].forEach(function(id) {
         var el = document.getElementById(id);
         if (!el) return;
         if ((_rc && _rc.contains(el)) || (_rz && _rz.contains(el))) {
