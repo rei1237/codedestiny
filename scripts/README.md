@@ -194,4 +194,4 @@ DEPLOYMENT_ID=[auto-generated]
 - `npm run verify-runtime-cache-sync`로 파일 동기화 검증
 - `git push` 후 5분 내 배포 완료 대기
 
-📖 **더 자세히**: [PROJECT_STRUCTURE.md](../PROJECT_STRUCTURE.md)
+📖 **더 자세히**: [docs/DEPLOYMENT_AND_INFRA.md](../docs/DEPLOYMENT_AND_INFRA.md)

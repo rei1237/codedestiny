@@ -264,7 +264,7 @@ git push origin main
 - **Schema.org 마크업**: https://schema.org/docs/schema_org_in_ld_json.html
 - **OG 태그 가이드**: https://ogp.me/
 - **Google Search Central**: https://developers.google.com/search
-- **프로젝트 SEO 전략**: [PROJECT_STRUCTURE.md](../PROJECT_STRUCTURE.md)
+- **프로젝트 SEO 운영**: [docs/seo/GROWTH_OPERATIONS.md](../docs/seo/GROWTH_OPERATIONS.md)
 
 ---
 

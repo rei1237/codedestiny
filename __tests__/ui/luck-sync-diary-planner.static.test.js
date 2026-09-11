@@ -102,7 +102,7 @@ test("relationship temptation card embeds the self-gated target report", () => {
 
   assert.match(dashboard, /label:'그 사람의 바람끼는\?'/);
   assert.doesNotMatch(dashboard, /action:'openRelationshipBoundaryTestRoute'/);
-  assert.match(dashboard, /target:'relationshipBoundaryTestEntry', coinCost:0, selfGated:true/);
+  assert.match(dashboard, /target:'relationshipBoundaryTestEntry', coinCost:100, selfGated:true/);
   assert.match(dashboard, /src="\/relationship-boundary-test\/inline\/"/);
   assert.match(dashboard, /window\.openRelationshipBoundaryTestRoute = function\(\)/);
   assert.doesNotMatch(dashboard, /target:'relationshipTemptationCard'.*?label:'사주로 보는/);
