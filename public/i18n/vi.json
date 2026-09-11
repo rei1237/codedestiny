@@ -9302,15 +9302,55 @@
     },
     "rpt_healthReportCard": {
       "fallbackTitle": "Find your Saju's inborn energy weak points and health biorhythm.",
-      "tagline": "A report that combines your natal chart with today’s day pillar and lays out Five-Elements balance and organ-system risks across five sections.",
+      "tagline": "Reads your natal Five-Elements balance against your body’s rhythm and lays it out in five chapters: today, elemental balance, constitution, flow and practice.",
       "premiumIntro": "The Myeongni Health Report doesn't predict disease -- it calmly points out health issues in your Saju flow that need care ahead of time.",
       "fallbackCta": "Check the Health Report",
       "feats": {
-        "0": "Calculates your natal chart together with today’s day pillar and lays it out in five sections",
-        "1": "Reads today’s constitutional balance, separating what is in excess from what is lacking",
-        "2": "Maps excess and deficient elements to liver/gallbladder, heart/small intestine, spleen/stomach, lung/large intestine and kidney/bladder",
-        "3": "Picks ten meal suggestions for today along with foods to avoid",
-        "4": "Closes with exercises, a lucky stretch and today’s luck-opening health mission"
+        "0": "Today’s health reading by Day Master, with an overall rhythm score",
+        "1": "The strength of wood, fire, earth, metal and water, with an in-depth note on your weak element",
+        "2": "Constitutional rhythm by Day Master, stress patterns by Ten Gods and a Myeongni expert’s note",
+        "3": "Health by period, read through seasonal climate (johu) and the seasons",
+        "4": "Today’s recovery routine, recommended foods and teas, and Five-Elements luck boosters"
+      },
+      "receives": {
+        "0": {
+          "title": "Today’s health reading and rhythm score",
+          "detail": "Your Day Master shows where your body tends to react first, alongside an overall rhythm score and three health missions for today."
+        },
+        "1": {
+          "title": "Elemental balance and weak-element note",
+          "detail": "Reads how strong each of the Five Elements is and which everyday signals a weak element tends to show up as."
+        },
+        "2": {
+          "title": "Your inborn constitutional rhythm",
+          "detail": "Sums up constitutional rhythm by Day Master, your inborn constitution and stress patterns by Ten Gods in a Myeongni expert’s note."
+        },
+        "3": {
+          "title": "A recovery routine to try today",
+          "detail": "Suggests foods and teas matched to the element you need, gentle movement and rest, and Five-Elements luck boosters."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Today",
+          "detail": "Opens with today’s health card, elemental tuning and today’s health mission."
+        },
+        "1": {
+          "title": "Elemental balance",
+          "detail": "Checks your elemental balance, gives an in-depth note on the weak element and shows the pressure axis where the cycles create tension."
+        },
+        "2": {
+          "title": "Constitution",
+          "detail": "Continues with constitutional rhythm by Day Master, inborn constitution, stress patterns by Ten Gods and an expert’s note."
+        },
+        "3": {
+          "title": "Flow",
+          "detail": "Walks through the johu rhythm, seasonal health and health by period."
+        },
+        "4": {
+          "title": "Practice",
+          "detail": "Closes with a recovery routine, foods and teas, Five-Elements luck boosters and lifestyle signals."
+        }
       },
       "premiumAudience": {
         "0": "Those who fall ill often and want to know the cause",
@@ -9318,10 +9358,10 @@
         "2": "Those unsure where to start fixing their lifestyle habits"
       },
       "premiumChapters": {
-        "0": "Today’s constitutional balance reading",
-        "1": "Excess/deficient elements mapped to five organ systems",
-        "2": "Ten meal picks for today plus foods to avoid",
-        "3": "Luck-opening exercises and today’s health mission"
+        "0": "A health report in five chapters: today, elemental balance, constitution, flow and practice",
+        "1": "An overall rhythm score and today’s health mission",
+        "2": "An in-depth weak-element note and stress patterns by Ten Gods",
+        "3": "Recommended foods and teas, a recovery routine and Five-Elements luck boosters"
       },
       "premiumOutcomes": {
         "0": "This is not a medical diagnosis or treatment.",
@@ -9329,40 +9369,40 @@
         "2": "The existing payment policy applies."
       },
       "answersQuestions": {
-        "0": "Which way is my Five-Elements balance leaning today?",
+        "0": "Which way does my elemental balance lean?",
         "1": "Which organ system should I look after first?",
         "2": "What should I eat and how should I move today?"
       },
       "analysisSteps": {
         "0": {
-          "label": "Chart and day pillar",
-          "detail": "Builds the natal chart from your birth date and time, then attaches today’s day pillar."
+          "label": "Building the chart",
+          "detail": "Builds the natal chart from your birth date and time and reads your Day Master and elemental proportions."
         },
         "1": {
           "label": "Balance reading",
-          "detail": "Combines chart and day pillar to separate today’s excess elements from the lacking ones."
+          "detail": "Separates strong elements from empty ones and finds where the generating and controlling cycles create tension."
         },
         "2": {
-          "label": "Organ mapping",
-          "detail": "Maps excess and deficient elements onto the five organ systems and writes the risks."
+          "label": "Constitution and flow",
+          "detail": "Reads constitutional rhythm by Day Master, Ten Gods patterns, and the flow of johu and the seasons."
         },
         "3": {
-          "label": "Lifestyle prescription",
-          "detail": "Selects ten meals, foods to avoid, exercises, a stretch and today’s mission."
+          "label": "Practical prescription",
+          "detail": "Puts together a recovery routine, foods and teas, luck boosters and health missions for the element you need."
         }
       },
       "valueCompare": {
         "0": {
           "axis": "Structure",
-          "premium": "Five sections: balance, organ risks, meals, exercise, mission"
+          "premium": "Five chapters: today, elemental balance, constitution, flow, practice"
         },
         "1": {
           "axis": "Basis",
-          "premium": "Natal chart + today’s day pillar"
+          "premium": "Your natal chart’s Day Master, elemental proportions and johu"
         },
         "2": {
           "axis": "Action items",
-          "premium": "Ten meal picks, foods to avoid, a lucky stretch, today’s mission"
+          "premium": "Recovery routine, recommended foods and teas, Five-Elements luck boosters, three health missions"
         }
       },
       "faq": {
@@ -9372,7 +9412,7 @@
         },
         "1": {
           "q": "Does the result change daily?",
-          "a": "The natal chart stays the same, but today’s day pillar changes daily, so the balance reading, meals and mission change with it."
+          "a": "It is read from your natal chart, so the same birth date and time mostly gives the same reading. For charts without a clear johu lean, the seasonal part uses the current month."
         },
         "2": {
           "q": "Does an AI write it?",
@@ -9391,6 +9431,54 @@
         "2": "Separates visible from hidden Ten Gods and measures real strength through season, ground and support",
         "3": "Determines the useful and hostile element per element and analyses transformation and clash mutations separately",
         "4": "Lays out the full luck cycle plus 5 years, 12 months and 7 days across 18 sections"
+      },
+      "receives": {
+        "0": {
+          "title": "Chart structure and Yongsin matrix",
+          "detail": "Measures each element’s real strength through season, ground and support, then names the useful and hostile element for each."
+        },
+        "1": {
+          "title": "A detailed reading of the four pillars",
+          "detail": "Unfolds the chart’s inner structure through palace positions, hidden stems, the twelve stages and void branches, plus combination, clash, punishment, break, harm and resentment."
+        },
+        "2": {
+          "title": "From the ten-year cycle to the daily flow",
+          "detail": "Follows the full ten-year luck cycle, five years of annual luck, twelve months and the seven days from today."
+        },
+        "3": {
+          "title": "Transformation, clash mutation and sinsal",
+          "detail": "Separately analyses how combinations transform and clashes shift when luck arrives, and the energy of your sinsal."
+        },
+        "4": {
+          "title": "Cheongi action prescription",
+          "detail": "Ends with the key fortune verdict and an action prescription for what to do now."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Quantum expert verdict · Core of the consultation",
+          "detail": "Shows the report’s conclusion and the heart of the consultation first."
+        },
+        "1": {
+          "title": "Chart structure · Four-pillar detail",
+          "detail": "Continues with the Yongsin matrix, palace positions, hidden stems, the twelve stages, void branches and an elemental coordinate summary."
+        },
+        "2": {
+          "title": "Internal structure · Ten Gods axis",
+          "detail": "Separates combination, clash, punishment, break, harm and resentment, and visible versus hidden Ten Gods."
+        },
+        "3": {
+          "title": "Elemental balance diagnosis",
+          "detail": "Covers real strength through season, ground and support, plus a summary of useful and hostile elements."
+        },
+        "4": {
+          "title": "Flow of luck",
+          "detail": "The full ten-year cycle, five years, twelve months, the seven days from today, and a summary of the current cycle and year."
+        },
+        "5": {
+          "title": "Mutation · Sinsal · Prescription",
+          "detail": "Ends with transformation and clash mutations, sinsal energy, the key fortune verdict and the Cheongi action prescription."
+        }
       },
       "premiumAudience": {
         "0": "Those who want to sort out concepts like Yongsin and He-hua",
@@ -9467,9 +9555,53 @@
       "fallbackCta": "Open the Skill Tree",
       "feats": {
         "0": "Converts the Five Elements into five stats: creativity, charisma, stability, decisiveness and intuition",
-        "1": "Assigns a character class name, a RANK chip and a growth-flow score",
+        "1": "Shows your character class name, a RANK chip, and the chapter and growth flow for your current age",
         "2": "Separates your main skills, owned skills and still-locked skills",
         "3": "Draws this year’s level-up Cheongi from the annual pillar"
+      },
+      "receives": {
+        "0": {
+          "title": "Your destiny class",
+          "detail": "Shows the character class set by your elemental stat spread, RANK chips and whether your chart runs strong or weak."
+        },
+        "1": {
+          "title": "Five elemental stats",
+          "detail": "Reads your elements as five stats: creativity, charisma, stability, decisiveness and intuition."
+        },
+        "2": {
+          "title": "Main, owned and locked skills",
+          "detail": "Separates the skills you use now, the ones you have, and the ones still locked."
+        },
+        "3": {
+          "title": "This year’s level-up Cheongi",
+          "detail": "Uses this year’s annual pillar to point out which area to grow first."
+        },
+        "4": {
+          "title": "Today’s daily quests",
+          "detail": "Quests change every day, and completing them earns EXP that raises your level."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Character sheet",
+          "detail": "Your destiny class, RANK, month-command and growth-axis chips, plus the chapter and growth flow for your current age."
+        },
+        "1": {
+          "title": "Elemental stats · Power of destiny",
+          "detail": "Five stat bars and an orbit map of how your elements circulate."
+        },
+        "2": {
+          "title": "Skill tree",
+          "detail": "Main, owned and locked skills, with a signature ability for some day pillars."
+        },
+        "3": {
+          "title": "Level-up Cheongi",
+          "detail": "Points out which area to grow first, based on this year’s annual pillar."
+        },
+        "4": {
+          "title": "Today’s growth log",
+          "detail": "Level and EXP bars, Yongsin resonance, today’s daily quests and a secret fortune."
+        }
       },
       "premiumAudience": {
         "0": "Those who want to see their strengths as stats",
@@ -9478,7 +9610,7 @@
       },
       "premiumChapters": {
         "0": "Five element stats: creativity, charisma, stability, decisiveness, intuition",
-        "1": "Character class name, RANK chip and growth-flow score",
+        "1": "Character class name, RANK chip and growth flow by chapter",
         "2": "Main, owned and locked skills separated",
         "3": "This year’s level-up Cheongi based on the annual pillar"
       },
@@ -9503,7 +9635,7 @@
         },
         "2": {
           "label": "Class reading",
-          "detail": "Sets the character class, RANK and growth-flow score from how the stats are distributed."
+          "detail": "Sets the character class and RANK from how the stats are distributed, then shows the chapter and growth flow for your current age."
         },
         "3": {
           "label": "Skill tree",
@@ -9517,7 +9649,7 @@
         },
         "1": {
           "axis": "Reading",
-          "premium": "Character class, RANK chip, growth-flow score"
+          "premium": "Character class · RANK chip · growth flow by chapter"
         },
         "2": {
           "axis": "Skills",
@@ -10446,6 +10578,54 @@
         "3": "Suggests a situational charm-activation report and the stages that suit you",
         "4": "Finishes across nine sections with blunt-truth cards, the Cheongi prescription and today’s charm mission"
       },
+      "receives": {
+        "0": {
+          "title": "Your charm class",
+          "detail": "Sums up your charm class along with your first-impression charm, the charm that shows over time, and the image people easily misread."
+        },
+        "1": {
+          "title": "The three charm sinsal stats",
+          "detail": "Shows as bars how strongly dohwa, yeokma and hwagae attach, and explains who each one works well with and how to use it."
+        },
+        "2": {
+          "title": "Elemental charm magnetism",
+          "detail": "Sorts the grain of attraction your Five Elements create."
+        },
+        "3": {
+          "title": "Charm by situation and the stages that suit you",
+          "detail": "How your charm activates in six scenes, from a blind date to a conflict, and six stages such as romance, work and social media."
+        },
+        "4": {
+          "title": "Blunt-truth cards and the Cheongi prescription",
+          "detail": "Five points where your charm turns into a misunderstanding, eight prescriptions to use from today and today’s charm mission."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Charm class · Core summary",
+          "detail": "Your charm class, first-impression charm, the charm that shows over time and the image people easily misread."
+        },
+        "1": {
+          "title": "Situational charm-activation report",
+          "detail": "How your charm shows up in six scenes, from a blind date to a crisis."
+        },
+        "2": {
+          "title": "The three charm sinsal stats",
+          "detail": "Bars for dohwa, yeokma and hwagae, with five readings for each."
+        },
+        "3": {
+          "title": "Elemental charm magnetism",
+          "detail": "Five elemental blocks that sort the grain of your appeal."
+        },
+        "4": {
+          "title": "Stages where this charm pays off",
+          "detail": "Romance, relationships, work, social media, creative work, and ways to make it pay."
+        },
+        "5": {
+          "title": "Blunt-truth cards · Cheongi prescription · Today’s charm mission",
+          "detail": "Ends with where charm turns into misunderstanding, the prescriptions, and a mission card with three tasks."
+        }
+      },
       "premiumAudience": {
         "0": "Those curious why they've been catching attention lately",
         "1": "Those who want to know what kind of charm they have",
@@ -10510,7 +10690,7 @@
         },
         "2": {
           "q": "Can I save it as an image?",
-          "a": "There is no image-save feature. It is a report you read directly on screen across nine sections."
+          "a": "The result isn’t turned into an image file. It is a report you read directly on screen across nine sections."
         }
       }
     },
@@ -10521,10 +10701,58 @@
       "fallbackCta": "Check the Destination Reading",
       "feats": {
         "0": "Lays out the elements you need to top up, the deficit level and your useful and hostile elements on one dashboard",
-        "1": "Offers 5–6 domestic and 5–6 overseas places with coordinates, match labels and trip difficulty",
+        "1": "Offers 5–6 domestic and 5–6 overseas places with coordinates and an energy-grain label, adding trip difficulty to overseas picks",
         "2": "Points out your target energy direction alongside the current seasonal balance axis",
         "3": "Splits recommendations across six trip types: day trip, one night, solo, couple, creative/study reset and burnout recovery",
         "4": "Leaves you three energy-recharge missions and the travel patterns to avoid"
+      },
+      "receives": {
+        "0": {
+          "title": "Five-Elements energy dashboard",
+          "detail": "Shows at a glance the element to top up, the deficit level, useful and supporting elements, hostile elements, the seasonal balance axis and a recommended direction."
+        },
+        "1": {
+          "title": "Domestic and overseas energy coordinates",
+          "detail": "Picks 5–6 domestic and 5–6 overseas places, each with coordinates and an energy-grain label."
+        },
+        "2": {
+          "title": "Target direction and travel prescriptions",
+          "detail": "Covers the direction to head for now, travel prescriptions by element and recommendations for six trip types."
+        },
+        "3": {
+          "title": "Today’s energy roulette",
+          "detail": "Draw again from domestic, overseas, monthly or random expeditions."
+        },
+        "4": {
+          "title": "Recharge missions and patterns to avoid",
+          "detail": "Closes with three energy-recharge missions, travel patterns to avoid and a one-line conclusion."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Energy expedition report",
+          "detail": "Opens with the key element to supplement, the deficit level and the Five-Elements energy dashboard."
+        },
+        "1": {
+          "title": "The travel energy you need",
+          "detail": "Your supplement route, environment prescription and how to run today’s expedition."
+        },
+        "2": {
+          "title": "Target direction · Domestic/overseas coordinates",
+          "detail": "The direction is followed by domestic and overseas coordinate cards."
+        },
+        "3": {
+          "title": "Today’s energy roulette",
+          "detail": "Domestic coordinates, overseas coordinates, monthly destinations and a random expedition."
+        },
+        "4": {
+          "title": "Travel prescriptions · Picks by trip type",
+          "detail": "Travel prescriptions by element and recommendations for six trip types."
+        },
+        "5": {
+          "title": "Recharge missions · Patterns to avoid · One-line conclusion",
+          "detail": "Wraps up with three recharge missions and the travel patterns to avoid."
+        }
       },
       "premiumAudience": {
         "0": "Those unsure where to go to refill their energy",
@@ -10582,7 +10810,7 @@
       "faq": {
         "0": {
           "q": "How many destinations are suggested?",
-          "a": "5–6 domestic and 5–6 overseas, each with coordinates, a match label and trip difficulty."
+          "a": "5–6 domestic and 5–6 overseas, each with coordinates and an energy-grain label; overseas picks also show trip difficulty."
         },
         "1": {
           "q": "Does it book flights or lodging?",
@@ -10590,7 +10818,7 @@
         },
         "2": {
           "q": "Can I redraw the recommendations?",
-          "a": "Yes, with the daily energy roulette inside the result."
+          "a": "Yes, with today’s energy roulette inside the result. Places shown recently are pushed back, so the list may differ when you reopen it."
         }
       }
     },
@@ -10600,11 +10828,51 @@
       "premiumIntro": "The Villain Report doesn't single out any specific person -- it points out the grain of relationships you often get caught up in, and where to be careful.",
       "fallbackCta": "Check Your Villain Type",
       "feats": {
-        "0": "Reads ten relationship-villain archetypes you are prone to running into repeatedly",
+        "0": "Picks the 5–7 of ten relationship-villain archetypes that your chart is prone to",
         "1": "Shows today’s final boss, your chart’s weak button and a survival phrase as summary cards",
         "2": "Scores each archetype for villain power and ranks it S, A+, A, B or watchlist",
         "3": "Sorts three red flags, three defence routines and three conflict triggers",
         "4": "Gives three copyable emergency lines plus a five-question self-check"
+      },
+      "receives": {
+        "0": {
+          "title": "Today’s final boss · Weak button · Survival phrase",
+          "detail": "Three summary cards show first which type to watch most and where you are easiest to press."
+        },
+        "1": {
+          "title": "Your villain codex",
+          "detail": "Of the ten archetypes, the 5–7 with the highest villain power, with scores and S, A+, A, B or watchlist ranks."
+        },
+        "2": {
+          "title": "Red flags and defence routines",
+          "detail": "Three red flags, three defence routines and three conflict triggers for each type."
+        },
+        "3": {
+          "title": "Copyable emergency lines",
+          "detail": "Three ready-to-use lines per type that you can copy in one go."
+        },
+        "4": {
+          "title": "A five-question self-check",
+          "detail": "Check how well your defences are holding right now."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Villain list summary",
+          "detail": "Today’s final boss, your chart’s weak button and a survival phrase."
+        },
+        "1": {
+          "title": "Villain cards",
+          "detail": "A villain-power bar, warning signs and a banishing phrase for each type."
+        },
+        "2": {
+          "title": "Open the villain codex",
+          "detail": "Why your chart picks it up, approach patterns, red flags, defence routines, caution zones by relationship and conflict triggers."
+        },
+        "3": {
+          "title": "Emergency lines · Self-check",
+          "detail": "Three copyable lines, a five-question checklist, and advice from Yeoni and Neo."
+        }
       },
       "premiumAudience": {
         "0": "Those constantly worn down by a certain type",
@@ -10612,7 +10880,7 @@
         "2": "Those who want to set a standard for keeping distance"
       },
       "premiumChapters": {
-        "0": "A ten-archetype villain codex with villain-power ranks",
+        "0": "The 5–7 villains your chart is prone to, with villain-power ranks",
         "1": "Today’s final boss, your weak button and a survival phrase",
         "2": "Three red flags and three defence routines per archetype",
         "3": "Three copyable emergency lines and a five-question self-check"
@@ -10638,7 +10906,7 @@
         },
         "2": {
           "label": "Archetype scoring",
-          "detail": "Scores the ten villain archetypes for villain power and assigns ranks."
+          "detail": "Scores the ten archetypes for villain power and rank, then picks the top 5–7."
         },
         "3": {
           "label": "Defence write-up",
@@ -10648,7 +10916,7 @@
       "valueCompare": {
         "0": {
           "axis": "Structure",
-          "premium": "Three summary cards plus a ten-archetype villain codex"
+          "premium": "Three summary cards + a codex of the 5–7 villains your chart is prone to"
         },
         "1": {
           "axis": "Reading",
@@ -10666,7 +10934,7 @@
         },
         "1": {
           "q": "How many types appear?",
-          "a": "Ten archetypes, each with a villain-power score and an S, A+, A, B or watchlist rank."
+          "a": "Of the ten archetypes, the 5–7 with the highest villain power appear, each with an S, A+, A, B or watchlist rank."
         },
         "2": {
           "q": "Does an AI write it?",
@@ -10680,11 +10948,51 @@
       "premiumIntro": "Secret House doesn't predict your actual love life -- it's interactive content that turns the grain of your Day Master into a story to enjoy.",
       "fallbackCta": "Enter Secret House",
       "feats": {
-        "0": "Reads your day stem directly and starts you with one of five partners",
+        "0": "Reads your day stem directly to set your starting affection and compatibility with the five cast members",
         "1": "Runs 14 episodes of choices across five days",
         "2": "Branches into seven ending tones per character based on the choices you stack up",
         "3": "Shows a relationship-flow reading at the ending and why it branched that way",
         "4": "Lets you send the share text via KakaoTalk, device share or copying the link"
+      },
+      "receives": {
+        "0": {
+          "title": "A five-day love reality show",
+          "detail": "Share a house with five cast members of different charms and carry the story forward through your choices across 14 scenes."
+        },
+        "1": {
+          "title": "Affection that starts from your Day Master",
+          "detail": "The Day Master from your Saju result sets your starting affection and compatibility with each of the five."
+        },
+        "2": {
+          "title": "Seven endings shaped by your choices",
+          "detail": "Your choices branch each character into seven ending tones, such as true, sweet or hidden."
+        },
+        "3": {
+          "title": "Your destiny card",
+          "detail": "Holds your compatibility score, the relationship-flow reading, the grounds and reasons for the branch, a play log and a recommended date course."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Your love mood",
+          "detail": "Pulls the Day Master from your Saju result, or lets you pick one of ten."
+        },
+        "1": {
+          "title": "The five men of destiny",
+          "detail": "Introduces the cast and starts the stay."
+        },
+        "2": {
+          "title": "Scenes and the affection board",
+          "detail": "Scenes unfold day by day, and the cast’s affection shifts with your choices."
+        },
+        "3": {
+          "title": "Final choice",
+          "detail": "On the last day, choose your person of destiny."
+        },
+        "4": {
+          "title": "Destiny card",
+          "detail": "Your ending and compatibility score, relationship-flow reading, ending tone, play log summary and recommended date course."
+        }
       },
       "premiumAudience": {
         "0": "Those who prefer participation over reading fortune",
@@ -10692,7 +11000,7 @@
         "2": "Those looking for light, immersive content"
       },
       "premiumChapters": {
-        "0": "Five partners linked to your day stem",
+        "0": "Five cast members whose starting affection depends on your day stem",
         "1": "14 episodes of choices across five days",
         "2": "Seven ending tones per character depending on your choices",
         "3": "An ending reading plus share text"
@@ -10703,14 +11011,14 @@
         "2": "The existing payment policy applies."
       },
       "answersQuestions": {
-        "0": "What kind of partner connects with my day stem?",
+        "0": "Which of the five cast members suits me best?",
         "1": "How do my choices change the temperature of the relationship?",
         "2": "Which ending did it lead to?"
       },
       "analysisSteps": {
         "0": {
           "label": "Day stem",
-          "detail": "Takes the day stem straight from your Saju result and assigns a partner."
+          "detail": "Takes the day stem from your Saju result and sets your starting affection and compatibility with the five cast members."
         },
         "1": {
           "label": "Episodes",
@@ -10750,7 +11058,7 @@
         },
         "2": {
           "q": "Can I save it as an image?",
-          "a": "There is no image-save feature. You can send the share text from the result screen via KakaoTalk, device share or by copying the link."
+          "a": "The result isn’t saved as an image file. Use the share button on the result screen for KakaoTalk, device share or copying the link."
         }
       }
     },
