@@ -4213,6 +4213,9 @@
   // 이 파일은 정적 셸(defer)과 React 유료 화면 양쪽에 로드되는 공통 런타임이라 복귀 처리를 여기 한 곳에 둔다.
   var _DP_DIRECT_RESUME_KEY = 'cd_direct_payment_resume';
   var _DP_DIRECT_RESUME_TTL_MS = 30 * 60 * 1000;
+  // PointsClient.tsx의 PENDING_SUBSCRIPTION_BOOT_RETRY_MIN_AGE_MS와 같은 값·같은 이유 —
+  // 결제창이 아직 열려 있을 수 있는 직후에는 조용한 폴백이 미결제 주문을 섣불리 확정하지 않는다.
+  var _DP_DIRECT_RESUME_SILENT_MIN_AGE_MS = 60 * 1000;
 
   // 🔴 티켓 저장소 정본도 checkout-entry 다(saveDirectPaymentResumeTicket 머리주석에 localStorage 인 이유).
   // 모듈이 아직 안 붙었을 때만 종전 sessionStorage 경로로 떨어진다 — 결제 흐름을 죽이지 않는다.
@@ -4443,7 +4446,23 @@
     var query;
     try { query = new URLSearchParams(window.location.search || ''); } catch (_) { return; }
     var isPassReturn = query.get('paid_pass_resume') === '1';
-    if (query.get('portone_redirect') !== '1' && !isPassReturn) return;
+    /* 🔴 조용한 티켓 폴백(실측 2026-09-11). PG 카드창 안의 "간편결제(카카오페이 등)" 하위 흐름은
+       상위 프레임을 이 redirectUrl 로 돌려보내지 못하고 끝나는 경우가 있다 — 결제는 승인됐는데
+       쿼리 신호(portone_redirect=1)가 전혀 없어, 기존 게이트가 여기서 조용히 리턴하면 사용자가
+       기능을 재진입해도 안내가 하나도 뜨지 않는다(재조정 크론 20분도 화면엔 안 보인다).
+       살아있는(TTL 이내) 티켓이 있으면 그 주문 하나만 이 경로로 태운다 — confirm 은 PortOne
+       원본과 대조하는 멱등 호출이라 실제로 결제되지 않은(체크아웃만 열고 이탈한) 티켓엔 무해하다.
+       단, 이 폴백은 실패해도 사용자에게 알리지 않는다 — 대부분은 결제 안 하고 나간 정상 이탈이라
+       알림·오버레이를 그대로 쓰면 무관한 페이지에서 가짜 결제 실패 경고가 뜬다. */
+    var isSilentTicketFallback = false;
+    if (query.get('portone_redirect') !== '1' && !isPassReturn) {
+      var _dpStaleTicket = _dpReadDirectResumeTicket();
+      if (!_dpStaleTicket || !_dpStaleTicket.merchantUid || !_dpStaleTicket.confirmBody) return;
+      // 결제창이 아직 열려 있을 수 있는 직후는 건드리지 않는다 — 다음 로드에서 다시 시도한다
+      // (티켓은 TTL 로만 만료되므로 여기서 리턴해도 사라지지 않는다).
+      if (Date.now() - (Number(_dpStaleTicket.at) || 0) < _DP_DIRECT_RESUME_SILENT_MIN_AGE_MS) return;
+      isSilentTicketFallback = true;
+    }
     // 이용권·월정석·코인 복귀는 /points 의 몫이다.
     if (query.get('portone_subscription_redirect') || _dpIsPointsShopPath()) return;
 
@@ -4525,7 +4544,11 @@
          DP_WAIT_UI_ALLOWED_MODE_RE · 셸 CD_WAIT_UI_ALLOWED_MODE_RE · React REACT_WAIT_UI_ALLOWED_MODE_RE)
          어디에도 없어 **조용히 안 떴다** — 복귀 뒤 confirm 1~3초가 빈 화면이었다.
          문구는 이미 돌아온 사용자에게 하는 말이라 수단별 대기 문구("…자동으로 돌아옵니다")를 쓰지 않는다. */
-      _dpSetPaymentPending(true, _dpDirectResumeText('directResumeConfirming', resumeMethodLabel), 'unlock-saving');
+      // 조용한 티켓 폴백은 대부분 결제 안 하고 이탈한 정상 케이스라, 무관한 화면에 확인 중
+      // 오버레이를 띄우지 않는다 — 실제로 지급될 때만 아래 성공 경로가 스스로 안내한다.
+      if (!isSilentTicketFallback) {
+        _dpSetPaymentPending(true, _dpDirectResumeText('directResumeConfirming', resumeMethodLabel), 'unlock-saving');
+      }
       // 🔴 티켓은 confirm 성공 뒤에 지운다. 먼저 지우면 5xx 한 번에 승인된 결제의 복구 수단이 사라진다.
       // 티켓은 30분 TTL(_DP_DIRECT_RESUME_TTL_MS)로 스스로 만료되므로 남겨 둬도 되살아나지 않는다.
       /* 🔴 티켓이 없어도(새 탭 복귀) 확정은 성립한다 — 단건 confirm 의 필수 입력은 주문번호 하나이고
@@ -4552,7 +4575,11 @@
       }
       _dpSetPaymentPending(false);
       if (!confirmRes.ok) {
-        window.alert(_dpReadBillingMessage(resumePayload, '결제 검증에 실패했습니다. 고객센터로 문의해 주세요.'));
+        // 조용한 폴백에서의 실패는 대부분 "결제 안 하고 이탈"이다 — 알림 없이 티켓만 남겨
+        // TTL 안에서 다음 진입 때 다시 시도하게 둔다(진짜 실패라도 재조정 크론이 정산한다).
+        if (!isSilentTicketFallback) {
+          window.alert(_dpReadBillingMessage(resumePayload, '결제 검증에 실패했습니다. 고객센터로 문의해 주세요.'));
+        }
         return;
       }
       if (isPassReturn) {
