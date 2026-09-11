@@ -67,7 +67,18 @@ function checkUpstream(oldBase, newBase, files) {
   const upstreamFiles = ancestor ? git(["diff", "--name-only", oldBase, newBase]).split(/\r?\n/).filter(Boolean) : [];
   return upstreamCompatible({ ancestor, upstreamFiles, files });
 }
+// 캐시버스트 merge driver 는 .git/config 에만 살고 clone·worktree 로 따라오지 않는다. node_modules 를
+// 정션으로 빌려 쓰는 격리 워크트리에서는 npm 의 prepare 가 한 번도 돌지 않아 등록이 통째로 빠질 수 있고,
+// 그러면 rebase·merge 가 조용히 기본 병합으로 되돌아간다(= 해시 충돌 재발). 등록은 idempotent 하고,
+// 실패해도 오늘과 동일한 동작이므로 preflight 자체는 막지 않고 경고만 남긴다.
+function ensureMergeDrivers() {
+  const result = spawnSync(process.execPath, ["scripts/setup-git-merge-drivers.mjs"], { cwd: root, encoding: "utf8", windowsHide: true, timeout: 60 * 1000 });
+  if (result.status === 0) return true;
+  console.warn(`[ci:preflight] merge driver 등록 실패(계속 진행): ${(result.stderr || result.error?.message || "").trim()}`);
+  return false;
+}
 async function main() {
+  ensureMergeDrivers();
   const receiptPath = resolve(git(["rev-parse", "--absolute-git-dir"]), "ci-preflight.json");
   const planOnly = argv.includes("--plan");
   if (!planOnly) git(["fetch", "--quiet", "origin", "main"]);
