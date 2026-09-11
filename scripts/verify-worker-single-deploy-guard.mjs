@@ -431,6 +431,119 @@ async function verifyNoOtherWorkflowDeploys() {
   );
 }
 
+/**
+ * `gh workflow run`/`gh run list`/`gh run view`/`gh pr ...` 는 실행 중인 워크플로 파일이 아니라
+ * 현재 셸의 `gh` 기본 리포로 해석된다. 워크플로 구조가 바뀌어 다른 리포에서 이 스텝이 돌면
+ * (예: fork, 리포 이름 변경, 셀프호스티드 러너 재배치) 조용히 엉뚱한 리포를 향할 수 있다
+ * (PR #1899). `-R`/`--repo` 나 스텝 `env.GH_REPO` 로 리포를 명시하지 않은 호출은 실패로 잡는다.
+ */
+const GH_REPO_SCOPED_CALL_PATTERN = /\bgh\s+(?:workflow\s+run\b|run\s+list\b|run\s+view\b|pr\s)/;
+const GH_REPO_FLAG_ON_LINE_PATTERN = /(?:-R\b|--repo\b)/;
+
+/**
+ * `run: |` 블록 안의 `cat > file <<EOF ... EOF` 같은 heredoc 은 셸에 실행되지 않는 리터럴
+ * 텍스트다. 그 안에 `gh workflow run` 같은 예시 문자열이 있어도 실제 호출이 아니므로 스캔에서
+ * 제외해야 한다 — 안 그러면 이 가드가 죽은 예시 문자열에 대해 false positive 를 낸다.
+ */
+function computeHeredocMask(lines) {
+  const mask = new Array(lines.length).fill(false);
+  const stack = [];
+  for (let i = 0; i < lines.length; i += 1) {
+    const line = lines[i];
+    if (stack.length) {
+      mask[i] = true;
+      if (line.trim() === stack[stack.length - 1]) stack.pop();
+      continue;
+    }
+    const start = line.match(/<<-?\s*(?:"([^"]+)"|'([^']+)'|([A-Za-z_][A-Za-z0-9_]*))/);
+    if (start) stack.push(start[1] || start[2] || start[3]);
+  }
+  return mask;
+}
+
+/**
+ * YAML 리스트 항목(`- key: value`)의 첫 키는 대시 뒤에 바로 오지만, 그 형제 키들은 대시가
+ * 아니라 공백으로 같은 열에 맞춰진다 (`- name: x` 다음 줄의 `env:`/`run:` 처럼). 대시를
+ * 순수 공백 들여쓰기와 동등하게 취급해야 형제 키의 들여쓰기가 서로 맞아떨어진다.
+ */
+function effectiveIndent(line) {
+  const match = line.match(/^(\s*)(-\s+)?/);
+  return match[1].length + (match[2] ? match[2].length : 0);
+}
+
+/**
+ * 위반 줄을 담고 있는 스텝의 `run:` 시작 줄을 찾고, 그 형제 `env:` 블록에 `GH_REPO` 가
+ * 있는지 확인한다. 스텝 경계를 못 찾으면(들여쓰기가 애매하거나 구조를 못 읽으면) false 를
+ * 반환해 위반으로 처리한다 — fail-closed.
+ */
+function stepEnvHasGhRepo(lines, violationIndex) {
+  const violationIndent = effectiveIndent(lines[violationIndex]);
+  let runIndent = -1;
+  let runLineIndex = -1;
+  const singleLineRunMatch = lines[violationIndex].match(/^(?:\s*)(?:-\s+)?run:\s*(\S.*)$/);
+  if (singleLineRunMatch && !/^[|>][-+]?\s*(#.*)?$/.test(singleLineRunMatch[1])) {
+    runIndent = violationIndent;
+    runLineIndex = violationIndex;
+  } else {
+    for (let i = violationIndex - 1; i >= 0; i -= 1) {
+      const indent = effectiveIndent(lines[i]);
+      if (indent >= violationIndent) continue;
+      if (/^\s*(?:-\s+)?run:\s*[|>]/.test(lines[i])) {
+        runIndent = indent;
+        runLineIndex = i;
+      }
+      break;
+    }
+  }
+  if (runLineIndex === -1) return false;
+  for (let i = runLineIndex - 1; i >= 0; i -= 1) {
+    const indent = effectiveIndent(lines[i]);
+    if (indent < runIndent) break;
+    if (indent === runIndent && /^\s*(?:-\s+)?env:\s*$/.test(lines[i])) {
+      for (let j = i + 1; j < runLineIndex; j += 1) {
+        const envIndent = effectiveIndent(lines[j]);
+        if (envIndent <= runIndent) break;
+        if (/\bGH_REPO\b/.test(lines[j])) return true;
+      }
+      return false;
+    }
+  }
+  return false;
+}
+
+function findGhCliRepoTargetingViolations(workflowText) {
+  const lines = String(workflowText).replace(/\r\n/g, "\n").split("\n");
+  const heredocMask = computeHeredocMask(lines);
+  const violations = [];
+  for (let i = 0; i < lines.length; i += 1) {
+    if (heredocMask[i]) continue;
+    const line = lines[i];
+    if (!GH_REPO_SCOPED_CALL_PATTERN.test(line)) continue;
+    if (GH_REPO_FLAG_ON_LINE_PATTERN.test(line)) continue;
+    if (stepEnvHasGhRepo(lines, i)) continue;
+    violations.push(`line ${i + 1}: ${line.trim()}`);
+  }
+  return violations;
+}
+
+async function verifyGhCliRepoTargeting() {
+  const workflowDir = path.join(repoRoot, ".github/workflows");
+  const workflowFiles = (await readdir(workflowDir)).filter((file) => /\.(yml|yaml)$/i.test(file));
+  const allViolations = [];
+  for (const file of workflowFiles) {
+    const relativePath = `.github/workflows/${file}`;
+    const contents = await readRepoFile(relativePath);
+    for (const violation of findGhCliRepoTargetingViolations(contents)) {
+      allViolations.push(`${relativePath} ${violation}`);
+    }
+  }
+  assert(
+    allViolations.length === 0,
+    `gh CLI calls missing explicit repo targeting (-R/--repo, or GH_REPO in the step env) — a workflow-structure shift can silently point them at the wrong repo (PR #1899):\n${allViolations.join("\n")}`,
+  );
+  console.log("[verify-worker-single-deploy-guard] PASS: all gh workflow run/run list/run view/pr calls target an explicit repo.");
+}
+
 function runSelfTest() {
   const release = `on:\n  push:\n    branches: [main]\n  workflow_dispatch:\n    inputs:\n      mode:\n        type: choice\n\njobs:\n  deploy:\n    runs-on: ubuntu-latest\n`;
   const dispatchOnly = `on:\n  workflow_dispatch:\n\njobs:\n  deploy:\n    runs-on: ubuntu-latest\n`;
@@ -468,6 +581,16 @@ function runSelfTest() {
   assert(!runsWranglerDeployDirectly("node scripts/with-utf8-console.mjs node scripts/deploy-worker.mjs"), "a gated script wrapper must not be flagged");
 
   runProductionDeployGuardSelfTest();
+
+  // gh CLI 리포 타기팅 — 실제 위반이 잡히는지, 통과 케이스가 조용히 통과하는지 둘 다 증명한다.
+  const ghRepoFlagPresent = `jobs:\n  release:\n    steps:\n      - run: |\n          gh workflow run cloudflare-pages-deploy.yml -R "\${{ github.repository }}" --ref main\n`;
+  const ghRepoFlagMissing = `jobs:\n  release:\n    steps:\n      - run: |\n          gh workflow run cloudflare-pages-deploy.yml --ref main\n`;
+  const ghRepoEnvPresent = `jobs:\n  release:\n    steps:\n      - env:\n          GH_REPO: \${{ github.repository }}\n        run: |\n          gh run list --workflow=cloudflare-pages-deploy.yml\n`;
+  const ghRepoInHeredoc = `jobs:\n  release:\n    steps:\n      - run: |\n          cat > body.md <<EOF\n          gh workflow run cloudflare-pages-deploy.yml --ref main\n          EOF\n`;
+  assert(findGhCliRepoTargetingViolations(ghRepoFlagPresent).length === 0, "a gh call with -R present must not be flagged");
+  assert(findGhCliRepoTargetingViolations(ghRepoFlagMissing).length === 1, "a gh call without -R/--repo/GH_REPO must be flagged");
+  assert(findGhCliRepoTargetingViolations(ghRepoEnvPresent).length === 0, "a gh call whose step env declares GH_REPO must not be flagged");
+  assert(findGhCliRepoTargetingViolations(ghRepoInHeredoc).length === 0, "gh-call-shaped text inside a heredoc must not be flagged — it is inert literal text, not an executed command");
 
   console.log("[verify-worker-single-deploy-guard] self-test passed");
 }
@@ -623,6 +746,7 @@ async function main() {
   await verifyPullRequestGate();
   await verifyPackageAndDeployScript();
   await verifyNoOtherWorkflowDeploys();
+  await verifyGhCliRepoTargeting();
   await verifyLocalDeployPathsAreGated();
   console.log(`[verify-worker-single-deploy-guard] PASS: ${canonicalWorkflow} is the only repository Worker deploy path, and local production deploys stay CI-gated.`);
 

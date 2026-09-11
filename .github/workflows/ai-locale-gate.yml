@@ -77,3 +77,13 @@ jobs:
           node scripts/audit-ai-locale-calls.mjs --check
           node scripts/verify-ai-locale-browser-contract.mjs
           node --experimental-strip-types --no-warnings scripts/verify-ai-locale-provider-contract.mjs
+
+      # 관찰 전용. worker/lib/**, worker/routes/** 를 이 가드 자신의 git-grep 발견 로직이 찾은
+      # 실제 LLM 호출 파일로 좁혀도 이 PR 이 여전히 걸렸을지 GITHUB_STEP_SUMMARY 에만 기록한다.
+      # 위 on.pull_request.paths 는 바꾸지 않는다 — CI 선택 실행은 10개 PR 비교 전까지 shadow다.
+      - name: Compute proposed narrower trigger (shadow only)
+        if: github.event_name == 'pull_request'
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: node scripts/shadow-ai-locale-gate-trigger.mjs
