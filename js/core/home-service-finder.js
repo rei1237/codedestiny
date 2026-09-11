@@ -20,7 +20,8 @@
   "use strict";
 
   var REGISTRY = window.__cdServiceRegistry || [];
-  var DEFAULT_SERVICE_IMAGE = "/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp";
+  // 홈에 같은 기능 타일이 없는 항목의 대체 이미지(달 컨셉). 기능 이미지는 featureTileImage 가 런타임에 찾는다.
+  var DEFAULT_SERVICE_IMAGE = "/images/home/finder-moon.svg";
 
   var PURPOSE_LABEL = {
     love: { label: "연애", emoji: "❤️" },
@@ -95,7 +96,7 @@
       methods: item.methods || [],
       badge: item.badge || "",
       roles: item.roles || [],
-      image: item.image || DEFAULT_SERVICE_IMAGE,
+      image: item.image || "",
       imageAlt: item.imageAlt || (item.name ? item.name + " 대표 이미지" : "운세 서비스 대표 이미지"),
       tagged: true,
       hay: norm([item.name, item.desc, item.price, item.keys].join(" "))
@@ -137,6 +138,59 @@
     value = value.split("#")[0].split("?")[0];
     if (value.length > 1 && value.charAt(value.length - 1) === "/") value = value.slice(0, -1);
     return value;
+  }
+
+  /* 타일 이미지: 지연 로드 타일은 [data-img-src], 정적 타일은 <img> 를 읽는다. */
+  function tileImageOf(el) {
+    var wrap = el.matches("[data-img-src]") ? el : el.querySelector("[data-img-src]");
+    if (wrap) return wrap.getAttribute("data-img-src") || "";
+    var image = el.querySelector("img");
+    var src = image ? (image.getAttribute("data-lazy-src") || image.getAttribute("src") || "") : "";
+    return src.indexOf("data:") === 0 ? "" : src;
+  }
+
+  /* 검색 카드 이미지는 레지스트리에 저장하지 않고(파생값 금지), 같은 기능을 여는 홈 타일의
+     이미지를 문서 순서상 첫 번째로 빌린다. 판정 키는 isDuplicate 와 같은 action·featureKey·href.
+     검색 결과 자신은 제외한다 — 결과 카드 이미지를 다시 원본으로 삼으면 달 이미지가 번진다.
+     모바일은 닫힌 컬렉션의 카드를 DOM 에서 떼어 collection.__cdLazyCards 에만 둔다
+     (index.html prepareCollectionLazyMounts) — 그 카드도 함께 훑어야 모바일에서 달로 떨어지지 않는다. */
+  var TILE_KEY_SELECTOR = "[data-action], [data-feature-key], a[href]";
+  var featureImageIndex = null;
+  function featureTileImage(item) {
+    if (!featureImageIndex) {
+      featureImageIndex = {};
+      var nodes = Array.prototype.slice.call(document.querySelectorAll(TILE_KEY_SELECTOR));
+      var collections = document.querySelectorAll(".feat-collection, .tarot-collection");
+      for (var c = 0; c < collections.length; c += 1) {
+        var lazyCards = collections[c].__cdLazyCards || [];
+        for (var d = 0; d < lazyCards.length; d += 1) {
+          if (lazyCards[d].isConnected) continue;
+          if (lazyCards[d].matches(TILE_KEY_SELECTOR)) nodes.push(lazyCards[d]);
+          nodes.push.apply(nodes, lazyCards[d].querySelectorAll(TILE_KEY_SELECTOR));
+        }
+      }
+      for (var i = 0; i < nodes.length; i += 1) {
+        var el = nodes[i];
+        if (el.closest("#cdFinder, [data-cd-finder-results], template")) continue;
+        var src = tileImageOf(el);
+        if (!src) continue;
+        var keys = ["a:" + (el.getAttribute("data-action") || ""), "f:" + (el.getAttribute("data-feature-key") || ""), "h:" + imageHrefKey(el.getAttribute("href"))];
+        for (var k = 0; k < keys.length; k += 1) {
+          if (keys[k].length > 2 && !featureImageIndex[keys[k]]) featureImageIndex[keys[k]] = src;
+        }
+      }
+    }
+    return (item.action && featureImageIndex["a:" + item.action]) ||
+      (item.featureKey && featureImageIndex["f:" + item.featureKey]) ||
+      (imageHrefKey(item.href) && featureImageIndex["h:" + imageHrefKey(item.href)]) || "";
+  }
+
+  /* 이미지 판정용 href 키는 쿼리를 남긴다 — normHref 처럼 떼면 /index.html?action=… 항목이
+     전부 "/index.html" 하나로 뭉쳐 남의 기능 이미지를 빌린다. */
+  function imageHrefKey(href) {
+    var value = String(href || "").trim();
+    if (!value || value.charAt(0) === "#") return "";
+    return value.split("#")[0].replace(/\/(?=\?|$)/, "") || "/";
   }
 
   function registerKeys(known, action, featureKey, href, collection) {
@@ -199,10 +253,7 @@
         purposes: [],
         methods: [],
         badge: "",
-        image: (function () {
-          var image = el.querySelector("img");
-          return image ? (image.getAttribute("data-lazy-src") || image.getAttribute("src") || "") : "";
-        })(),
+        image: tileImageOf(el),
         imageAlt: (function () {
           var image = el.querySelector("img");
           return image && image.getAttribute("alt") || (name ? name + " 대표 이미지" : "운세 서비스 대표 이미지");
@@ -277,7 +328,7 @@
     var media = document.createElement("span");
     media.className = className;
     var image = document.createElement("img");
-    image.src = item.image || DEFAULT_SERVICE_IMAGE;
+    image.src = item.image || featureTileImage(item) || DEFAULT_SERVICE_IMAGE;
     image.alt = item.imageAlt || (item.name ? item.name + " 대표 이미지" : "운세 서비스 대표 이미지");
     image.loading = "lazy";
     image.decoding = "async";
@@ -302,6 +353,8 @@
 
   /* 운명의 문 디스커버용 — 이름/설명/가격 3단 카드 */
   function renderRichResults(panel, list, state) {
+    // 타일은 부팅 뒤에도 붙고 떨어진다(모바일 지연 마운트). 첫 렌더 시점의 색인을 굳히지 않는다.
+    featureImageIndex = null;
     panel.textContent = "";
     if (!list.length) {
       var empty = document.createElement("p");

@@ -276,6 +276,28 @@ test("기본 목록은 홈 상단 두 섹션의 카드와 겹치지 않는다", 
   );
 });
 
+test("결과 카드 이미지는 같은 기능의 홈 타일에서 빌리고, 없으면 달 이미지를 쓴다", async () => {
+  const first = await boot();
+  const shown = names(first.doc.getElementById("fortuneGatewayRecs"));
+  const target = first.window.__cdServiceRegistry.find((i) => i.name === shown[0]);
+  assert.ok(target && shown.length > 1, "기본 목록이 비어 대조가 공회전한다(fail-open)");
+
+  const attr = target.action
+    ? `data-action="${target.action}"`
+    : target.featureKey ? `data-feature-key="${target.featureKey}"` : `href="${target.href}"`;
+  const { doc } = await boot([
+    `<a class="tarot-tile" ${attr}><span class="tarot-tile__img-wrap" data-img-src="/fuctionassets/feature-test.webp"></span></a>`,
+  ]);
+  const srcOf = (name) => {
+    const card = Array.from(doc.querySelectorAll("#fortuneGatewayRecs .fortune-gateway__rec-media"))
+      .map((media) => media.parentElement)
+      .find((c) => c.querySelector(".fortune-gateway__rec-name").firstChild.textContent.trim() === name);
+    return card.querySelector(".fortune-gateway__rec-media img").getAttribute("src");
+  };
+  assert.equal(srcOf(target.name), "/fuctionassets/feature-test.webp", "같은 기능 타일의 이미지를 빌리지 않았다");
+  assert.equal(srcOf(shown[1]), "/images/home/finder-moon.svg", "타일이 없는 항목이 달 이미지로 떨어지지 않았다");
+});
+
 test("필터를 켰다가 모두 끄면 기본 목록으로 되돌아온다", async () => {
   const { doc } = await boot();
   const panel = doc.getElementById("fortuneGatewayRecs");
