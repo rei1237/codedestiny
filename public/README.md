@@ -151,5 +151,3 @@ Cache-Control 정책
 - **캐시 문제**: `_headers`의 `max-age=0`으로 실시간 반영 가능
 - **배포 시간**: Cloudflare Pages는 git push 후 ~1-2분 내 배포 완료
 - **검증**: `https://code-destiny-web.pages.dev`에서 라이브 확인
-
-📖 **더 자세히**: [QUICK_START.md](../QUICK_START.md) 참고

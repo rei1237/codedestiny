@@ -20,7 +20,7 @@ next: 최신 main 기준으로 PR #1848 required CI와 스테이징 SHA를 확�
 
 `docs/design/past-life-webtoon/assets`: 480/800px WebP 6개, 프롬프트 provenance.md. 800px 97.5~113.5KiB, 480px 44.1~52.7KiB. 원본은 Codex generated_images에 보존.
 
-`verify-plf-mockup.cjs`: 360/390/430/1440px 브라우저 검증. `mockup-verification.json` 및 captures/에 증거.
+`verify-plf-mockup.cjs`(2026-09-12 정리에서 삭제, git 히스토리 참조): 360/390/430/1440px 브라우저 검증. `mockup-verification.json` 및 captures/(2026-09-12 정리에서 삭제, git 히스토리 참조)에 증거.
 
 `PastLifeFaceUI.js`: 기존 계산을 그대로 둔 표시용 `plfBuildStory` DTO, 핵심 3화 웹툰, 프로필·얼굴 단서·현재 연결·공유 카드 구현. 기존 상세 9장면·3령·부적·유료 궁합은 펼침 영역에 보존. JSON/누락 입력과 이미지 실패 fallback, 지연 로드, 모달 초점 가둠·복원을 추가.
 
@@ -31,7 +31,7 @@ next: 최신 main 기준으로 PR #1848 required CI와 스테이징 SHA를 확�
 ## 실행 증거
 
 - `npm run verify:past-life-face`: PASS, 55종×27 수호령=1485 고유 조합, 핵심 3화·원문 상세 9장면, 객체/JSON/누락/오류 입력, 이미지 계약, mock 결제 궁합 렌더, 동시 스크립트 로드.
-- `node verify-plf-mockup.cjs`: PASS, 실제 모듈 기준 네 폭 가로 넘침 없음, 핵심 3화 1,317자, 초기 src 이미지1개, 버튼44px 이상, CLS0, IO 없음/404/reduced-motion/초점 복원. 로컬 DPR1 결과로 운영 LCP/모바일 실제 네트워크 증거는 아님.
+- `node verify-plf-mockup.cjs`(2026-09-12 정리에서 삭제, git 히스토리 참조): PASS, 실제 모듈 기준 네 폭 가로 넘침 없음, 핵심 3화 1,317자, 초기 src 이미지1개, 버튼44px 이상, CLS0, IO 없음/404/reduced-motion/초점 복원. 로컬 DPR1 결과로 운영 LCP/모바일 실제 네트워크 증거는 아님.
 - `npm run check:fast -- --plan`: shared/critical 전체 검사 판정.
 - `npm run check:fast`: PASS, lint 경고만, 타입 검사, Node 969개, Jest 2,422개, 결제·복귀·Worker·인코딩 가드 통과.
 - `node docs/design/past-life-webtoon/serve.cjs`: 로컬 목업 서버 127.0.0.1:4187. 필요하면 재시작.

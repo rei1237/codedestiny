@@ -78,7 +78,7 @@ visualScenes 제작 manifest에는 character/location/era/mood/cameraAngle/light
 ## 검증 결과
 
 - `npm run verify:past-life-face` PASS: 55종 × 27 수호령 = 1,485 고유 조합, 3령/근거, 핵심 3화, 원문 상세 9장면, 객체/JSON/누락/오류 입력, 이미지 계약, 유료 궁합 mock 렌더, 클래식 스크립트 공존.
-- `node verify-plf-mockup.cjs` PASS: 360/390/430/1440px, 가로 넘침 없음, 핵심 3화·상세 9장면, 핵심 본문 1,317자, 최초 이미지 1개, IO 없음/404/reduced-motion, 초점 복원, 버튼 44px 이상, CLS 0.
+- `node verify-plf-mockup.cjs`(2026-09-12 정리에서 삭제, git 히스토리 참조) PASS: 360/390/430/1440px, 가로 넘침 없음, 핵심 3화·상세 9장면, 핵심 본문 1,317자, 최초 이미지 1개, IO 없음/404/reduced-motion, 초점 복원, 버튼 44px 이상, CLS 0.
 - `npm run check:fast -- --plan`은 shared/critical 전체 검사로 판정. `npm run check:fast` PASS: lint 경고만, 타입 검사, Node 969개, Jest 2,422개 및 결제·복귀·Worker·인코딩 가드 통과.
 - 정적 800px WebP 3장은 각각 120KiB 이하이고 첫 장만 eager, 나머지는 관찰 영역 진입 시 같은 출처에서 불러온다.
 - 미검증: 실기기 카메라, 실제 카카오 파일 공유, 운영 네트워크/LCP, PR CI, 스테이징.

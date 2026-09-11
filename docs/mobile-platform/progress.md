@@ -21,7 +21,7 @@
 - 공통 상세·공유 단위, typecheck, mobile detail 비침입/렌더 검사.
 - 실제 LLM·PG·운영 DB·배포 사용 없음.
 
-최신 명령·PR 상태는 [handoff](../handoff/mobile-platform-ux.md), 기능 범위는 [coverage](feature-detail-coverage.md)를 따른다.
+최신 명령·PR 상태는 handoff(완료 핸드오프, git 히스토리 참조), 기능 범위는 [coverage](feature-detail-coverage.md)를 따른다.
 
 ## 남은 외부 확인
 
