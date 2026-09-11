@@ -2123,7 +2123,16 @@
     "accessFree": "무료 기능",
     "accessPaid": "결제 후 기존 화면으로 이동",
     "navPending": "열고 있어요…",
-    "priceDetailCheck": "상세 확인"
+    "priceDetailCheck": "상세 확인",
+    "recommendForLabel": "이런 분에게 추천해요",
+    "receivesLabel": "내가 받게 되는 것",
+    "outlineLabel": "결과 화면은 이렇게 구성돼요",
+    "outlineCaption": "실제 결과는 입력하신 정보로 계산됩니다 · 이미지는 대표 일러스트입니다",
+    "pricingLabel": "가격과 혜택",
+    "benefitsLabel": "포함된 혜택",
+    "assureLabel": "안심하고 이용하세요",
+    "refundPolicyLink": "환불 정책 보기",
+    "trustLabel": "믿고 볼 수 있는 이유"
   },
   "mbti": {
     "compat": {
