@@ -10,7 +10,7 @@ name: Auto-update behind PR branches
 #
 # 충돌이 있는 PR은 건너뛰고 코멘트만 남긴다. 이 워크플로가 대신 해결하지 않는다.
 #
-# 2026-09-12: "최신 main 반영"은 더 이상 입장 조건이 아니다(ruleset·delivery-admit·ci-preflight 모두
+# 2026-09-12: "최신 main 반영"은 더 이상 입장 조건이 아니다(ruleset·delivery-admit 모두
 # 충돌 + 파일 겹침 기준). main push 마다 모든 PR 을 갱신하면 CI 만 재실행되므로 수동 실행 전용으로 둔다.
 on:
   workflow_dispatch:

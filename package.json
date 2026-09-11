@@ -547,8 +547,7 @@
     "verify:delivery-admit": "node scripts/delivery-admit.mjs --self-test",
     "verify:delivery-batch-plan": "node scripts/delivery-batch-plan.mjs --self-test",
     "ci:fast": "npm run lint && npm run lint:changed -- --self-test && npm run lint:changed && npm run typecheck",
-    "ci:preflight": "node scripts/ci-preflight.mjs",
-    "pr:create": "node scripts/ci-preflight.mjs --create-pr"
+    "pr:create": "node scripts/pr-create.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.4.1",

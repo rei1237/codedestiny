@@ -72,7 +72,7 @@ Claude 훅은 Codex 훅이 아니다. 도구별 규칙 적용을 구분한다.
 
 ## 2026-09-12 전달 흐름: CI까지, 머지는 사용자, 스테이징은 선택
 
-기본 흐름은 ci:preflight→commit→push→Ready PR→PR CI 통과 확인에서 끝난다. 머지는 사용자가 한다. AI는 머지 가능 상태·안전한 순서만 보고하고 gh pr merge를 실행하지 않는다. 입장 기준은 필수 CI(없으면 `CI required` aggregate), 후보 커밋의 `git merge-tree --write-tree` 무충돌, 그 사이 main이 같은 파일을 건드리지 않았는지(파일 겹침)다. 최신 main 포함은 요구하지 않는다. 활성 worktree 중첩은 차단 조건이 아니며 필요할 때만 `npm run worktree:status`로 본다. delivery:batch-plan은 계획 도구이며 PR별 delivery:admit을 대체하지 않는다.
+기본 흐름은 코드 수정→targeted 검사(check:fast)→commit→push→Ready PR→PR CI 통과 확인에서 끝난다. 로컬 전체 preflight(구 ci:preflight)는 폐기했고 유일한 공식 검증 게이트는 GitHub CI다 — PR 전에 전체 lint/typecheck/test/build를 로컬에서 반복하지 않는다. 머지는 사용자가 한다. AI는 머지 가능 상태·안전한 순서만 보고하고 gh pr merge를 실행하지 않는다. 입장 기준은 필수 CI(없으면 `CI required` aggregate), 후보 커밋의 `git merge-tree --write-tree` 무충돌, 그 사이 main이 같은 파일을 건드리지 않았는지(파일 겹침)다. 최신 main 포함은 요구하지 않는다. 활성 worktree 중첩은 차단 조건이 아니며 필요할 때만 `npm run worktree:status`로 본다. delivery:batch-plan은 계획 도구이며 PR별 delivery:admit을 대체하지 않는다.
 
 스테이징은 main push마다 비동기로 배포된다. 스테이징 검증(`npm run verify:staging -- --sha=<40자리 SHA>`)은 사용자 요청, 배포 인프라 변경, 운영 릴리스 전(`npm run verify:release`), 대형 결제·로그인 변경 후, 라우팅 변경 후, 스테이징 전용 버그 조사 때만 한다. 운영 승격은 별도 1회 승인 때만 수행한다. 이전의 staging 대기·후속 감시 조항보다 이 절이 우선한다.
 

@@ -14,7 +14,7 @@ npm run session:start -- --handoff=docs/handoff/<주제>.md
 ```
 
 - 루트 `CLAUDE.md`와 작업 축에 해당하는 `docs/context/*`를 먼저 읽는다.
-- 직전 PR이 merge되고 그 merge SHA가 staging Pages·Worker 양쪽에 도달했는지 먼저 확인한다.
+- 직전 PR이 merge되었는지 확인한다. staging 도달은 선택이며 시작 조건이 아니다.
 - 직전 PR에 포함된 `docs/handoff/*` 문서에서 `status: active|blocked`인 현재 작업을 확인한다.
 - 새 작업 브랜치의 첫 SHA는 최신 `origin/main`과 같아야 한다. 이전 세션의 미머지 branch 위에 새 작업을 쌓지 않는다.
 - 다른 세션의 변경이 있는 기본 체크아웃에서는 수정하지 않고 격리 worktree를 사용한다.
@@ -57,8 +57,8 @@ npm run session:close -- --handoff=docs/handoff/<주제>.md --pr=<번호>
 ## PR과 머지 운영
 
 - PR에는 변경 범위, 검증 결과, 인수인계 경로를 남긴다. PR 없는 완료 세션은 허용하지 않는다.
-- 다음 작업은 PR merge → canonical staging의 merge SHA 확인 → 최신 `origin/main` 기반 새 worktree 순서로 시작한다.
-- 순차 통합 담당 세션은 `npm run delivery:admit -- --pr=<번호>` 통과 후 한 PR씩 머지하고, staging SHA 확인 전에는 다음 PR을 머지하지 않는다.
+- 다음 작업은 PR merge → 최신 `origin/main` 기반 새 worktree 순서로 시작한다. staging SHA 확인을 기다리지 않는다.
+- 순차 통합은 `npm run delivery:admit -- --pr=<번호>` 통과를 확인하고 한 PR씩 진행한다. 머지는 사용자가 하며, staging SHA 확인 전에도 다음 PR의 admission을 확인할 수 있다.
 - 같은 PR의 새 커밋은 이전 PR CI를 취소할 수 있지만, `merge_group`과 main 건강 검사는 취소하지 않는다.
 - Merge Queue가 활성화되면 PR 브랜치를 반복해서 수동 rebase하지 않고 큐의 최신 main 합성 커밋을 검증한다.
 - ruleset의 필수 체크는 내부 job이 아니라 안정된 aggregate 이름 `CI required` 하나를 사용한다.

@@ -109,7 +109,34 @@ export async function attemptCachebustRecovery({ root, prNumber, branch, metadat
   if (!refreshed.ok) return { ok: false, message: `push 는 했지만 PR 상태를 다시 읽지 못했습니다(원래 판정 유지): ${refreshed.stderr}` };
   let fresh;
   try { fresh = JSON.parse(refreshed.stdout); } catch { return { ok: false, message: "push 는 했지만 갱신된 PR 응답을 해석하지 못했습니다(원래 판정 유지)." }; }
-  return { ok: true, metadata: fresh, message: `원격 ${branch} 를 리베이스 결과 ${rebased.sha.slice(0, 12)} 로 갱신했습니다. 로컬 브랜치는 그대로이므로 git fetch && git reset --hard origin/${branch} 후 ci:preflight 를 다시 실행하세요.` };
+  return { ok: true, metadata: fresh, message: `원격 ${branch} 를 리베이스 결과 ${rebased.sha.slice(0, 12)} 로 갱신했습니다. 로컬 브랜치는 그대로이므로 git fetch && git reset --hard origin/${branch} 로 맞춘 뒤 PR CI 결과를 다시 확인하세요.` };
+}
+
+// ── main 파일 겹침 판정 ────────────────────────────────────────────────────────
+// Upstream moved but never touched any file this candidate changed: merging without a refresh is safe.
+// GitHub itself does not require a PR branch to contain the latest main (no merge queue, strict status checks off),
+// so this local rule only needs to match that already-accepted risk level, not exceed it.
+// 2026-09-12 이전에는 이 판정이 ci-preflight.mjs 의 receipt 안에 있었다. preflight 폐기와 함께
+// admit 실행 시점에 직접 계산한다 — 고정된 증거가 아니라 지금의 origin/main 을 본다.
+export function upstreamCompatible({ ancestor, upstreamFiles, files }) {
+  if (!ancestor) return false;
+  return !upstreamFiles.some((file) => files.includes(file));
+}
+/** git 조회가 하나라도 실패하면 통과시키지 않는다(원칙 10: fail-closed). */
+export async function checkUpstreamOverlap({ root, upstream = "origin/main" }) {
+  const base = await git(["merge-base", upstream, "HEAD"], { cwd: root, optional: true });
+  if (!base.ok || !SHA40.test(base.stdout)) return { ok: false, detail: base.stderr || `${upstream} 와의 merge-base 를 구하지 못했습니다.` };
+  const [upstreamDiff, candidateDiff] = await Promise.all([
+    git(["diff", "--name-only", base.stdout, upstream], { cwd: root, optional: true }),
+    git(["diff", "--name-only", base.stdout, "HEAD"], { cwd: root, optional: true }),
+  ]);
+  if (!upstreamDiff.ok || !candidateDiff.ok) return { ok: false, detail: upstreamDiff.stderr || candidateDiff.stderr || "변경 파일 목록을 구하지 못했습니다." };
+  const names = (output) => output.split(/\r?\n/).filter(Boolean);
+  const upstreamFiles = names(upstreamDiff.stdout);
+  const files = names(candidateDiff.stdout);
+  const ok = upstreamCompatible({ ancestor: true, upstreamFiles, files });
+  if (!ok) return { ok, detail: `merge-base 이후 main 이 같은 파일을 건드렸습니다: ${upstreamFiles.filter((file) => files.includes(file)).join(", ")}` };
+  return { ok, detail: upstreamFiles.length ? `main 이 ${upstreamFiles.length}개 파일 전진했지만 후보 ${files.length}개와 겹치지 않습니다.` : "merge-base 이후 main 전진 없음" };
 }
 
 export async function collectAdmission({ cwd = process.cwd(), prNumber, allowRecovery = true } = {}) {
@@ -128,14 +155,14 @@ export async function collectAdmission({ cwd = process.cwd(), prNumber, allowRec
   const mainResult = await git(["rev-parse", "origin/main"], { cwd: root, optional: true });
   const mainSha = mainResult.stdout;
   append(findings, Boolean(mainSha), "main 기준 SHA", mainSha || "origin/main을 확인하지 못했습니다.");
-  const [mergeTree, preflight] = mainSha ? await Promise.all([
+  const [mergeTree, overlap] = mainSha ? await Promise.all([
     git(["merge-tree", "--write-tree", "origin/main", "HEAD"], { cwd: root, optional: true }),
-    command(process.execPath, ["scripts/ci-preflight.mjs", "--verify-receipt"], { cwd: root, optional: true }),
-  ]) : [{ ok: false, stderr: "origin/main을 확인하지 못했습니다." }, { ok: false, stderr: "origin/main을 확인하지 못했습니다." }];
+    checkUpstreamOverlap({ root }),
+  ]) : [{ ok: false, stderr: "origin/main을 확인하지 못했습니다." }, { ok: false, detail: "origin/main을 확인하지 못했습니다." }];
   append(findings, mergeTree.ok, "Git-native merge-tree 충돌 없음", mergeTree.ok ? "후보 커밋을 최신 origin/main에 병합할 수 있습니다." : mergeTree.stderr || "후보 커밋과 최신 origin/main의 병합 충돌을 해결해야 합니다.");
-  append(findings, preflight.ok, "최신 tree/main 로컬 preflight", preflight.ok ? "검증 증거 일치" : preflight.stderr || "npm run ci:preflight 필요");
+  append(findings, overlap.ok, "main 파일 겹침 없음", overlap.detail);
   // 최신 main 포함은 입장 조건이 아니다(GitHub ruleset 도 요구하지 않음, 2026-09-12). 병합 충돌은 위 merge-tree 가,
-  // main 이 같은 파일을 건드린 경우는 preflight receipt 의 파일 겹침 검사가 막는다. 여기서는 뒤처진 정도만 알린다.
+  // main 이 같은 파일을 건드린 경우는 바로 위 겹침 검사가 막는다. 여기서는 뒤처진 정도만 알린다.
   const behind = mainSha ? await git(["rev-list", "--count", "HEAD..origin/main"], { cwd: root, optional: true }) : { ok: false };
   append(findings, true, "최신 main 반영(정보)", behind.ok && behind.stdout === "0" ? `${mainSha.slice(0, 12)} 포함` : `origin/main 보다 ${behind.ok ? behind.stdout : "?"}커밋 뒤 — 충돌·파일 겹침이 없으면 갱신 없이 머지 가능`);
   // 전체 활성 worktree 스캔은 동기 입장 조건에서 제외한다. 실제 병합 안전성은 후보 커밋
@@ -165,7 +192,7 @@ export async function collectAdmission({ cwd = process.cwd(), prNumber, allowRec
     }
   }
   const headMatched = effective.headRefName === branch && effective.headRefOid === head;
-  append(findings, headMatched, "후보와 PR head 일치", headMatched ? `${branch} @ ${head.slice(0, 12)}` : `현재 워크트리와 GitHub PR head가 일치하지 않습니다.${recoveryNote ? " 자동 복구로 원격 head 가 앞서 있으면 로컬을 맞추고 preflight 를 다시 실행하세요." : ""}`);
+  append(findings, headMatched, "후보와 PR head 일치", headMatched ? `${branch} @ ${head.slice(0, 12)}` : `현재 워크트리와 GitHub PR head가 일치하지 않습니다.${recoveryNote ? " 자동 복구로 원격 head 가 앞서 있으면 로컬을 맞추고 PR CI 결과를 다시 확인하세요." : ""}`);
   append(findings, effective.mergeable === "MERGEABLE" && effective.mergeStateStatus === "CLEAN", "GitHub 병합 가능", `mergeable=${effective.mergeable}, state=${effective.mergeStateStatus}${recoveryNote}`);
   const requiredChecks = await gh(["pr", "checks", String(prNumber), "--required", "--json", "name,state,bucket"], { cwd: root, optional: true });
   // ruleset 에 필수 상태 검사가 없으면 --required 가 "no required checks reported" 로 실패한다(2026-09-12 실측).
@@ -189,6 +216,7 @@ export function selfTest() {
   const tests = [
     [argValue("pr", ["--pr=42"]) === "42", "--pr=값 형식"], [argValue("pr", ["--pr", "42"]) === "42", "--pr 값 형식"], [hasFlag("json", ["--json"]), "플래그 형식"],
     [parseRequiredChecks('[{"name":"CI required","bucket":"pass"}]').length === 1, "필수 검사 배열 해석"], [selectRequiredChecks([{ name: "paid", bucket: "fail" }, { name: "CI required", bucket: "pass" }], true).length === 2 && selectRequiredChecks([{ name: "lint" }], true).length === 0, "필수 검사 없으면 전체 체크(집계 체크 필수)"], [summarizeAdmission([{ ok: true }, { ok: true }]).ok, "모든 조건 통과"], [!summarizeAdmission([{ ok: true }, { ok: false }]).ok, "하나라도 실패하면 차단"],
+    [upstreamCompatible({ ancestor: true, upstreamFiles: ["a.md"], files: ["b.md"] }) && !upstreamCompatible({ ancestor: true, upstreamFiles: ["a.md"], files: ["a.md"] }) && !upstreamCompatible({ ancestor: false, upstreamFiles: [], files: [] }), "main 파일 겹침 판정"],
     [hasUnresolvedConflicts("UU index.html"), "충돌 표식 감지"], [!hasUnresolvedConflicts(" M index.html\n?? tmp.txt"), "일반 변경은 충돌이 아니다"],
     [cachebustForcePushArgs({ branch: "feat/x", expectedOid: "a".repeat(40), newSha: "b".repeat(40) }).join(" ") === `push --force-with-lease=refs/heads/feat/x:${"a".repeat(40)} origin ${"b".repeat(40)}:refs/heads/feat/x`, "복구 push 인자"],
     [(() => { try { cachebustForcePushArgs({ branch: "main", expectedOid: "a".repeat(40), newSha: "b".repeat(40) }); return false; } catch { return true; } })(), "main 으로는 복구 push 하지 않는다"],

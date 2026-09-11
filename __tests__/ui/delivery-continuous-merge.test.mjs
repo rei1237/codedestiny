@@ -7,24 +7,25 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { batchVerificationArgs } from '../../scripts/delivery-verify-batch.mjs';
 import { shouldDeployStaging } from '../../scripts/staging-release-current.mjs';
-import { cachebustForcePushArgs, hasUnresolvedConflicts, rebaseWithCachebustDriver, selectRequiredChecks, summarizeAdmission } from '../../scripts/delivery-admit.mjs';
-import { upstreamCompatible } from '../../scripts/ci-preflight.mjs';
+import { cachebustForcePushArgs, hasUnresolvedConflicts, rebaseWithCachebustDriver, selectRequiredChecks, summarizeAdmission, upstreamCompatible } from '../../scripts/delivery-admit.mjs';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 
 const sha = 'a'.repeat(40), newer = 'b'.repeat(40);
-test('upstream file overlap gates receipt/PR reuse; rewritten history always blocks', () => {
+test('upstream file overlap gates admission; rewritten history always blocks', () => {
   assert.equal(upstreamCompatible({ ancestor: false, upstreamFiles: [], files: ['a.ts'] }), false);
   assert.equal(upstreamCompatible({ ancestor: true, upstreamFiles: [], files: ['a.ts'] }), true);
   assert.equal(upstreamCompatible({ ancestor: true, upstreamFiles: ['b.ts'], files: ['a.ts'] }), true);
   assert.equal(upstreamCompatible({ ancestor: true, upstreamFiles: ['a.ts'], files: ['a.ts'] }), false);
 });
 test('latest-main containment is informational; conflicts and upstream file overlap still block', () => {
-  const preflight = readFileSync(new URL('../../scripts/ci-preflight.mjs', import.meta.url), 'utf8');
-  assert.doesNotMatch(preflight, /"--is-ancestor", base, "HEAD"/);
-  assert.match(preflight, /"merge-tree", "--write-tree", base, probe/);
-  assert.match(preflight, /checkUpstream\(diffBase, base, files\)/);
   const admit = readFileSync(new URL('../../scripts/delivery-admit.mjs', import.meta.url), 'utf8');
+  // 로컬 preflight 는 폐기됐다(2026-09-12). 파일 겹침은 영수증이 아니라 admit 이 직접 계산한다.
+  assert.doesNotMatch(admit, /scripts\/ci-preflight/);
+  assert.doesNotMatch(admit, /"--is-ancestor", base, "HEAD"/);
+  assert.match(admit, /git\(\["merge-base", upstream, "HEAD"\]/);
+  assert.match(admit, /upstreamCompatible\(\{ ancestor: true, upstreamFiles, files \}\)/);
+  assert.match(admit, /append\(findings, overlap\.ok, "main 파일 겹침 없음"/);
   assert.match(admit, /append\(findings, true, "최신 main 반영\(정보\)"/);
 });
 test('without ruleset required checks, admission requires every reported PR check incl. the CI required aggregate (fail-closed)', () => {
@@ -45,7 +46,7 @@ test('only latest staging commit deploys; missing remote fails closed', () => {
 test('admission has no staging dependency and retains all blocking findings', () => {
   const source = readFileSync(new URL('../../scripts/delivery-admit.mjs', import.meta.url), 'utf8');
   assert.doesNotMatch(source, /readProductionShas|직전 main 스테이징 도달/);
-  for (const label of ['필수 PR CI', '후보와 PR head 일치', 'GitHub 병합 가능', '최신 tree/main 로컬 preflight']) assert.ok(source.includes(label));
+  for (const label of ['필수 PR CI', '후보와 PR head 일치', 'GitHub 병합 가능', 'main 파일 겹침 없음']) assert.ok(source.includes(label));
   assert.match(source, /merge-tree", "--write-tree/);
   assert.match(source, /활성 워크트리 중첩 검사/);
   assert.doesNotMatch(source, /inspectWorktree\(/);
@@ -140,11 +141,9 @@ test('자동 복구는 CONFLICTING 에서만 열리고 실패하면 원래 판�
   assert.equal(hasUnresolvedConflicts('M  a.js\nAA shell.html'), true);
   assert.equal(hasUnresolvedConflicts(' M shell.html\n?? tmp.txt'), false);
   assert.equal(hasUnresolvedConflicts(''), false);
-  // 방어적 등록은 preflight 의 첫 동작이고, 실패해도 --plan 을 포함한 실행을 막지 않는다.
-  const preflight = readFileSync(new URL('../../scripts/ci-preflight.mjs', import.meta.url), 'utf8');
-  assert.match(preflight, /async function main\(\) \{\s*\r?\n\s*ensureMergeDrivers\(\);/);
-  assert.match(preflight, /spawnSync\(process\.execPath, \["scripts\/setup-git-merge-drivers\.mjs"\]/);
-  assert.match(preflight, /console\.warn\(`\[ci:preflight\] merge driver 등록 실패\(계속 진행\)/);
+  // merge driver 등록은 복구 경로의 첫 동작이고, 실패하면 복구를 중단한다(원래 판정 유지).
+  assert.match(source, /setup-git-merge-drivers\.mjs/);
+  assert.match(source, /merge driver 등록에 실패해 복구를 중단했습니다/);
 });
 
 test('staging yields before deployment and never cancels an active transaction', () => {
