@@ -426,6 +426,7 @@ jobs:
     timeout-minutes: 5
     outputs:
       run: ${{ steps.decide.outputs.run }}
+      runs_critical: ${{ steps.tier.outputs.runs_critical }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -438,6 +439,22 @@ jobs:
       - name: Decide whether the paid gates are needed
         id: decide
         run: node scripts/resolve-paid-gate-scope.mjs --base "${{ github.event.pull_request.base.sha }}" --head "${{ github.event.pull_request.head.sha }}"
+
+      # 결제 PR 은 이 스위트의 `npm test` 와 pr-ci 의 critical `test:jest` 로 jest 를 두 번 돌린다.
+      # 폐기 전 로컬 preflight 는 `--skip "npm test"` 로 이미 이 중복을 끊고 있었다 — 그 판단만 CI 로 옮긴다.
+      #
+      # 🔴 무조건 스킵은 커버리지 손실이다. paid scope 가 run=true 를 내면서 티어는 critical 이 아닌
+      #    경우가 있고, 그때는 pr-ci 가 jest 를 돌리지 않는다. 그래서 **같은 정본(change-risk.mjs)으로
+      #    티어를 다시 판정해** critical 일 때만 스킵한다. env 3종은 pr-ci.yml 의 tier 스텝과 글자
+      #    그대로 같아야 한다(CD_FORCE_CRITICAL 포함) — 한 글자라도 갈리면 두 판정이 갈린다.
+      #    판정이 실패하면 출력이 비고 조건이 거짓이 되어 스킵하지 않는다(fail-closed).
+      - name: Resolve the same tier pr-ci resolves
+        id: tier
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha || github.event.before }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha || github.sha }}
+          CD_FORCE_CRITICAL: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'full-ci') }}
+        run: node scripts/resolve-ci-tier.mjs
 
   paid-flow-gates:
     needs: scope
@@ -468,5 +485,13 @@ jobs:
       #    왕복이 2번이었고 (b) 실패가 이 PR 탓인지 main 탓인지 구분할 방법이 없었다.
       #    verify:guard-wiring 은 이 YAML → 러너 파일 → npm run 이름 순으로 간선을 따라가므로
       #    48개 가드의 배선은 그대로 계산된다.
+      #
+      # `--skip "npm test"` 는 PR 이벤트이면서 티어가 critical 일 때만 붙는다 — 그때만 pr-ci 의
+      # critical 잡이 같은 jest 를 이미 돌린다. push:main·workflow_dispatch 에는 절대 붙지 않으므로
+      # main 건강 신호는 전량 유지된다. SUITE 목록에서 `npm test` 를 지우지 않는다 —
+      # verify:guard-wiring 이 워크플로 → 러너 소스 → npm run 이름 순으로 간선을 따르므로
+      # 목록에서 지우면 배선이 끊긴다. YAML 런타임 플래그는 그 간선에 영향이 없다.
       - name: Run paid flow gate suite
-        run: node scripts/run-paid-gate-suite.mjs --base "${{ github.event.pull_request.base.sha }}"
+        run: >-
+          node scripts/run-paid-gate-suite.mjs --base "${{ github.event.pull_request.base.sha }}"
+          ${{ (github.event_name == 'pull_request' && needs.scope.outputs.runs_critical == 'true') && '--skip "npm test"' || '' }}
