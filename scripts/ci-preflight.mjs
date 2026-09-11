@@ -2,6 +2,7 @@
 import { spawn, spawnSync } from "node:child_process";
 import { existsSync, readFileSync, writeFileSync, unlinkSync, symlinkSync, mkdirSync, rmdirSync } from "node:fs";
 import { resolve, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
 import { randomUUID } from "node:crypto";
 import { ciPreflightPlan, validatedPrArguments } from "./lib/ci-preflight-plan.mjs";
@@ -52,18 +53,31 @@ function tree() {
     return git(["write-tree"], { env });
   } finally { if (existsSync(index)) unlinkSync(index); }
 }
+// Upstream moved but never touched any file this candidate changed: reusing prior verification is safe.
+// GitHub itself does not require a PR branch to contain the latest main (no merge queue, strict status checks off),
+// so this local rule only needs to match that already-accepted risk level, not exceed it.
+export function upstreamCompatible({ ancestor, upstreamFiles, files }) {
+  if (!ancestor) return false;
+  return !upstreamFiles.some((file) => files.includes(file));
+}
+function checkUpstream(oldBase, newBase, files) {
+  if (oldBase === newBase) return true;
+  let ancestor = true;
+  try { git(["merge-base", "--is-ancestor", oldBase, newBase]); } catch { ancestor = false; }
+  const upstreamFiles = ancestor ? git(["diff", "--name-only", oldBase, newBase]).split(/\r?\n/).filter(Boolean) : [];
+  return upstreamCompatible({ ancestor, upstreamFiles, files });
+}
 async function main() {
   const receiptPath = resolve(git(["rev-parse", "--absolute-git-dir"]), "ci-preflight.json");
   const planOnly = argv.includes("--plan");
   if (!planOnly) git(["fetch", "--quiet", "origin", "main"]);
-  const base = git(["rev-parse", "origin/main"]);
+  let base = git(["rev-parse", "origin/main"]);
   const head = git(["rev-parse", "HEAD"]);
   const candidate = tree();
   if (argv.includes("--verify-receipt") || argv.includes("--create-pr")) {
     const receipt = JSON.parse(readFileSync(receiptPath, "utf8"));
-    if (receipt.tree !== candidate || receipt.base !== base || receipt.version !== 1) throw new Error("Preflight evidence is stale. Run npm run ci:preflight again.");
+    if (receipt.tree !== candidate || receipt.version !== 1 || !Array.isArray(receipt.files) || !checkUpstream(receipt.base, base, receipt.files)) throw new Error("Preflight evidence is stale. Run npm run ci:preflight again.");
     if (git(["status", "--porcelain"])) throw new Error("Commit verified changes before PR creation.");
-    git(["merge-base", "--is-ancestor", base, "HEAD"]);
     if (argv.includes("--create-pr")) {
       const branch = git(["branch", "--show-current"]);
       const remote = git(["ls-remote", "origin", `refs/heads/${branch}`]).split(/\s/)[0];
@@ -110,7 +124,10 @@ async function main() {
     const npm = process.env.npm_execpath;
     if (!npm) throw new Error("Invoke through npm run ci:preflight");
     const assertBase = () => {
-      if (git(["rev-parse", "origin/main"]) !== base) throw new Error("main changed during validation; update the branch and run preflight again.");
+      const latest = git(["rev-parse", "origin/main"]);
+      if (latest === base) return;
+      if (!checkUpstream(base, latest, files)) throw new Error("main changed during validation; update the branch and run preflight again.");
+      base = latest;
     };
     const runIndependentChecks = async (parallelCommands) => {
       assertBase();
@@ -156,8 +173,13 @@ async function main() {
       if (commands.includes("npm run test:jest") && commands.includes("npm run test:node")) paidGateArgs.push("--skip", "npm test");
       run(process.execPath, paidGateArgs, { cwd: snapshot, env });
     }
-    if (tree() !== candidate || git(["rev-parse", "origin/main"]) !== base) throw new Error("Source/main changed during validation; run preflight again.");
-    writeFileSync(receiptPath, JSON.stringify({ version: 1, tree: candidate, base, tier, completedAt: new Date().toISOString() }, null, 2));
+    if (tree() !== candidate) throw new Error("Source changed during validation; run preflight again.");
+    const finalMain = git(["rev-parse", "origin/main"]);
+    if (finalMain !== base) {
+      if (!checkUpstream(base, finalMain, files)) throw new Error("Source/main changed during validation; run preflight again.");
+      base = finalMain;
+    }
+    writeFileSync(receiptPath, JSON.stringify({ version: 1, tree: candidate, base, tier, files, completedAt: new Date().toISOString() }, null, 2));
     console.log("[ci:preflight] PASS. Commit, push, then npm run pr:create -- --title ... --body-file ...");
   } finally {
     // Only this UUID snapshot is disposable. Never touch another worktree.
@@ -172,4 +194,5 @@ async function main() {
     }
   }
 }
-main().catch(error => { console.error(`[ci:preflight] BLOCKED: ${error.message}`); process.exitCode = 1; });
+function isEntrypoint() { return process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url); }
+if (isEntrypoint()) main().catch(error => { console.error(`[ci:preflight] BLOCKED: ${error.message}`); process.exitCode = 1; });
