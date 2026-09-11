@@ -1,7 +1,7 @@
 ---
-status: active
+status: done
 updated: 2026-09-12
-next: "배치 1(사주 프리미엄 리포트) 상세창 카피 PR 의 CI·머지를 확인한 뒤, 같은 형식(receives·outline)으로 배치 2(궁합) 유료 상품 카피를 옮긴다."
+next: "후속: 2026-09-12-detail-copy-batch2-compat.md (배치 2 궁합)."
 ---
 
 # 유료 상세창 카피 배치 1 — 사주 프리미엄 리포트 7종

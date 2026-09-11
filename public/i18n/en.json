@@ -8409,7 +8409,7 @@
       "premiumAudience": {
         "0": "Those strangely drawn to someone yet constantly clashing with them",
         "1": "Those who need a conclusion on whether to continue or let go of this bond",
-        "2": "Those who keep missing the timing for contact and conversation"
+        "2": "Those who want to know why conversations keep going sideways"
       },
       "premiumChapters": {
         "0": "Overview -- overall compatibility summary and the reasoning behind it",
@@ -8427,7 +8427,7 @@
       "answersQuestions": {
         "0": "Should I keep seeing this person?",
         "1": "Why do we keep clashing the closer we get?",
-        "2": "Is it okay to reach out again?"
+        "2": "What should we protect to keep this relationship going?"
       },
       "valueCompare": {
         "0": {
@@ -8440,9 +8440,9 @@
           "premium": "18,000+ characters across 15 sections"
         },
         "2": {
-          "axis": "Timing advice",
+          "axis": "Over time",
           "free": "None",
-          "premium": "When to move closer, when to step back"
+          "premium": "Changes from right after meeting to five years on"
         }
       },
       "faq": {
@@ -8455,8 +8455,60 @@
           "a": "No. The harder the type, the clearer the boundaries you need to keep become. Telling you those boundaries is the point of this consultation."
         },
         "2": {
-          "q": "Does it check the chance of a reunion too?",
-          "a": "It doesn't guarantee a chance, but it does point out where the relationship could move again and what to avoid reacting with right now."
+          "q": "Does it look at the chance of getting back together?",
+          "a": "It does not predict reunion separately. The consultation reads you as a couple and writes about your sense of distance and how the relationship changes over time."
+        },
+        "3": {
+          "q": "Can I ask my own question?",
+          "a": "There is no question input. The sections set by your two birth mansions are written in one go."
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "Overall score and 8-axis stars",
+          "detail": "An overall compatibility gauge and star ratings on 8 relationship axes show your match at a glance."
+        },
+        "1": {
+          "title": "The essence of this relationship and its grounds",
+          "detail": "The essence of the relationship is drawn from your two birth mansions and bond type, with the grounds for that reading."
+        },
+        "2": {
+          "title": "Indicators by item and a side-by-side comparison",
+          "detail": "Radar and bar charts show each indicator, and the two of you are compared side by side."
+        },
+        "3": {
+          "title": "Full commentary by section",
+          "detail": "From the overview to the final word, attraction, communication, conflict, compatibility by area and change over time are written out section by section."
+        },
+        "4": {
+          "title": "PDF save and revisit",
+          "detail": "The result can be saved as a PDF and reopened from your list of past moonlight compatibility readings."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Moonlight compatibility reply",
+          "detail": "The overall compatibility gauge and 8-axis star ratings open first."
+        },
+        "1": {
+          "title": "The essence of this relationship",
+          "detail": "Your relationship summed up in a paragraph, with the grounds attached."
+        },
+        "2": {
+          "title": "Indicators by item",
+          "detail": "Radar and bar charts show both of your scores for each item."
+        },
+        "3": {
+          "title": "Side-by-side comparison",
+          "detail": "Your two results placed next to each other."
+        },
+        "4": {
+          "title": "Read in detail",
+          "detail": "Full commentary for each section, from the overview to the final word."
+        },
+        "5": {
+          "title": "Save and revisit",
+          "detail": "Save as a PDF, or reopen it from your list of past moonlight compatibility readings."
         }
       }
     },
@@ -9021,24 +9073,24 @@
     "openLoveSimulation": {
       "badge": "Love simulation",
       "headline": "See in which scenes your love pattern shines and in which it wavers.",
-      "tagline": "16 partner characters with 20 scenes each; every choice moves five meters — affection, trust, chemistry, tension and stability.",
+      "tagline": "Play through 20 scenes with any of 16 partner characters, and your choices change the date result and the relationship route.",
       "feats": {
         "0": "16 partner characters · 20 scenes per character, with 3 choices in every scene",
-        "1": "Each choice shifts five meters: affection, trust, chemistry, tension and stability",
-        "2": "Compatibility is scored 0-100 on 5 axes: attraction, stability, communication, conflict pattern and long-term durability",
-        "3": "Every item shows its grounds and confidence level — day-stem unions and clashes, branch relations, useful and adverse elements, ten gods, and the peach-blossom and red-flame stars"
+        "1": "Your choices change the date result (ending), the relationship route and the conversation-choice analysis",
+        "2": "Saju compatibility is scored 0-100 on 5 axes: attraction, stability, communication, durability and conflict management",
+        "3": "The three strongest grounds among day-stem unions and clashes, branch relations, five elements, ten gods and the peach-blossom and red-flame stars are shown with a risk note and a date tip"
       },
-      "premiumIntro": "As you pick a choice, the five meters — affection, trust, chemistry, tension, stability — move on the spot, and compatibility is calculated from signals drawn out of both charts.",
+      "premiumIntro": "Browsing characters is free; the simulation starts after payment. The compatibility score is set by both of your saju charts, and the choices you make in each scene change the date result and the relationship route.",
       "premiumAudience": {
         "0": "People who want to experience compatibility as scenes",
         "1": "People who want to compare how it unfolds by partner type",
         "2": "People who want to see the grounds behind a compatibility score"
       },
       "premiumChapters": {
-        "0": "All 16 partner characters available to choose",
-        "1": "Playing through 20 scenes per character",
-        "2": "A compatibility result reflecting how the five meters moved",
-        "3": "The 5-axis scores with per-item saju grounds and confidence"
+        "0": "Start the simulation with any of the 16 partner characters",
+        "1": "20 scenes per character, with 3 choices in every scene",
+        "2": "A date result and relationship route that change with your choices",
+        "3": "Saju compatibility scores on 5 axes, with the strongest grounds, a risk note and a date tip"
       },
       "premiumOutcomes": {
         "0": "Compatibility is calculated inside the app, directly from the birth details you enter.",
@@ -9046,7 +9098,7 @@
         "2": "Fortune results are for reference; please check important choices against practical judgement as well."
       },
       "answersQuestions": {
-        "0": "Why does tension rise so much when I am with this person?",
+        "0": "Which flows should I avoid with this person?",
         "1": "What kinds of situations do we usually clash in?",
         "2": "Is this a relationship that can last?"
       },
@@ -9054,11 +9106,11 @@
       "analysisSteps": {
         "0": {
           "label": "Choose a partner",
-          "detail": "Pick one of the 16 characters and enter both people's birth details."
+          "detail": "Pick one of the 16 characters, or enter the other person's details to be matched with the closest character. Your own saju comes from your profile."
         },
         "1": {
           "label": "Play the scenes",
-          "detail": "Pick one of 3 choices in each scene, and the five meters shift on the spot."
+          "detail": "Pick one of 3 choices in each scene to move the story along."
         },
         "2": {
           "label": "Signal extraction",
@@ -9066,7 +9118,7 @@
         },
         "3": {
           "label": "Result",
-          "detail": "It shows the 5-axis scores — attraction, stability, communication, conflict pattern, long-term durability — with the grounds and confidence for each signal."
+          "detail": "Shows the 5-axis scores and the three strongest grounds, together with the date result and relationship route set by your choices."
         }
       },
       "valueCompare": {
@@ -9080,21 +9132,69 @@
         },
         "2": {
           "axis": "Grounds shown",
-          "premium": "Saju signals and confidence per item"
+          "premium": "The three strongest saju grounds, a risk note and a date tip"
         }
       },
       "faq": {
         "0": {
           "q": "What are the compatibility scores based on?",
-          "a": "Signals are drawn from both people's day-stem unions and clashes, branch relations, useful and adverse elements, ten gods, and the peach-blossom and red-flame stars, and every item is shown with its grounds and confidence level."
+          "a": "Signals are drawn from the two charts' day-stem unions and clashes, branch relations, useful and adverse elements, ten gods and the peach-blossom and red-flame stars, and the three strongest grounds are shown in the result."
         },
         "1": {
           "q": "Do my choices affect the result?",
-          "a": "Every choice shifts the five meters — affection, trust, chemistry, tension, stability — and that state is reflected on the result screen."
+          "a": "Choices change the date result (ending), the relationship route and the conversation-choice analysis. The 5-axis saju compatibility score is set by both charts and stays the same whatever you choose."
         },
         "2": {
           "q": "How many partners can I see?",
           "a": "16 characters are available, and each one has its own 20 scenes."
+        },
+        "3": {
+          "q": "Can I save or share the result?",
+          "a": "There is no save or share. Instead, you can use Start over to try different choices."
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "Final Code verdict and grade",
+          "detail": "Your saju compatibility score, grade and one-line verdict sit at the top of the result."
+        },
+        "1": {
+          "title": "A date result shaped by your choices",
+          "detail": "The ending title, relationship route and conversation-choice analysis change with the choices you make in each scene."
+        },
+        "2": {
+          "title": "Saju compatibility on 5 axes",
+          "detail": "Attraction, stability, communication, durability and conflict management appear as bars, with the three strongest grounds, a risk note and a date tip."
+        },
+        "3": {
+          "title": "Character stories",
+          "detail": "Read the chosen partner's world, dating style, ending routes and missions in separate tabs."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Final Code",
+          "detail": "The verdict, grade and score come first."
+        },
+        "1": {
+          "title": "Saju compatibility card",
+          "detail": "Compatibility calculated from both of your saju charts, on a single card."
+        },
+        "2": {
+          "title": "Date Result",
+          "detail": "The ending title and relationship route set by your choices."
+        },
+        "3": {
+          "title": "5 axes and Myeongri points",
+          "detail": "The 5-axis bars, a summary of saju tendencies, Myeongri compatibility points and flows to avoid."
+        },
+        "4": {
+          "title": "Conversation-choice analysis",
+          "detail": "What flow the choices you made in each scene created."
+        },
+        "5": {
+          "title": "Character stories",
+          "detail": "Tabs for world, dating style, ending routes and missions, closing with Start over."
         }
       }
     },
@@ -11800,7 +11900,7 @@
     },
     "master_love_codex_compat": {
       "fallbackTitle": "Splits the two of you into twenty chapters and organizes it into one volume.",
-      "tagline": "After reading each person's chart separately, this overlays where the two of you meet, stacking up attraction, conflict, and the conditions for lasting, in order, into the top-tier compatibility interpretation.",
+      "tagline": "Each chart is read on its own, then the points where the two of you meet are laid over each other — attraction, conflict and what makes it last, written across five acts and twenty chapters in our top-tier compatibility book.",
       "premiumIntro": "The Compatibility edition doesn't end with a simple 'well-matched or not' -- it explains, across twenty chapters, where the two of you diverge and what would change things if you kept it.",
       "fallbackCta": "View the Compatibility Interpretation",
       "ctaNote": "The 20 chapters, calculated from both your charts, open.",
@@ -11821,7 +11921,7 @@
         "2": "Where you complete each other · the combinations/clashes/harms of the Earthly Branches",
         "3": "The mutual placement of both charts · Spouse-Palace cross-comparison · malefic stars and Four Transformations",
         "4": "The temperature curve of the relationship · the root of conflict · the language of reconciliation",
-        "5": "Sustainability and marriage fortune · the meeting point of Saju and Ziwei Doushu",
+        "5": "Durability and marriage luck · where saju and Ziwei agree and differ",
         "6": "A relationship-DNA profile · the next 3 years · a final letter"
       },
       "premiumOutcomes": {
@@ -11856,10 +11956,14 @@
           "a": "Yes. The meeting point only emerges once each person's chart is calculated separately."
         },
         "1": {
+          "q": "What if I don't know my partner's birth time?",
+          "a": "You can leave it blank. Noon is used for the calculation and the hour pillar is left out of the reading."
+        },
+        "2": {
           "q": "If the result is bad, should we break up?",
           "a": "No. The purpose is to know where you diverge. Knowing that spot keeps you from repeating the same conflict."
         },
-        "2": {
+        "3": {
           "q": "How is this different from the self-analysis edition?",
           "a": "The self-analysis edition covers your own love pattern; the compatibility edition covers what actually happens between the two of you."
         }
@@ -11871,7 +11975,7 @@
         },
         "1": {
           "label": "Organizing individual tendencies",
-          "detail": "Separately organizes how each of you starts and ends love."
+          "detail": "Temperament and relationship style are read separately from each person's chart and Ziwei chart."
         },
         "2": {
           "label": "Cross-referencing the meeting point",
@@ -11880,6 +11984,54 @@
         "3": {
           "label": "Writing the interpretation",
           "detail": "Writes across twenty chapters, from the start of the relationship to the long-term outlook."
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "A compatibility book in five acts and twenty chapters",
+          "detail": "From the texture of the two of you to compatibility through saju and the Ziwei chart, the reality of the relationship, and the synthesis and seal — written in five acts."
+        },
+        "1": {
+          "title": "Grounds and insight in every chapter",
+          "detail": "Each chapter carries grounds chips, an insight and the moments to watch in the relationship, with the detailed consultation ready to expand."
+        },
+        "2": {
+          "title": "Things you can do now",
+          "detail": "Every chapter gives two or three actions the two of you can try right away."
+        },
+        "3": {
+          "title": "Ten love DNA indicators",
+          "detail": "Affinity, communication, trust, passion, pace match, conflict resilience, practical match, growth, independence and durability shown as 0-100 bars with their grounds."
+        },
+        "4": {
+          "title": "Keep as PDF and reopen",
+          "detail": "The finished book can be kept as a PDF and reopened without paying again."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Cover · consultation at a glance",
+          "detail": "Your relationship type name and key summary come first."
+        },
+        "1": {
+          "title": "I The texture of the two of you",
+          "detail": "The two of you face to face, you and your partner read one by one, and what drew you together."
+        },
+        "2": {
+          "title": "II Compatibility through saju",
+          "detail": "Day-stem relationship, ten-god interplay, where you complete each other, and branch unions and clashes."
+        },
+        "3": {
+          "title": "III Compatibility through the Ziwei chart",
+          "detail": "How the two charts sit together, a cross-comparison of the spouse palaces, and where the malefic stars and four transformations land."
+        },
+        "4": {
+          "title": "IV The reality of the relationship",
+          "detail": "The temperature curve, the roots of conflict, the language of reconciliation, and durability and marriage luck."
+        },
+        "5": {
+          "title": "V Synthesis and seal",
+          "detail": "Where saju and Ziwei agree and differ, your relationship DNA profile, the next three years and a final letter."
         }
       }
     },
@@ -13216,36 +13368,37 @@
       "fallbackCta": "Check your passes"
     },
     "openSukuyoModal": {
-      "tagline": "It calculates each person's birth mansion among the 27, determines the relationship type and the distance between them, and reads it across six themes: dating, marriage, reunion, secret romance, long distance, and working together.",
+      "tagline": "From the 27 lunar mansions, your two birth mansions are calculated separately to determine your bond type and distance, and everything down to relationship advice and warning signs is gathered into a single bond report.",
       "feats": [
-        "Calculating your own birth mansion and its basic reading is free -- payment of ₩5,000 per use applies only when you open the compatibility reading",
-        "Enter the other person's birth date, birth time, solar/lunar calendar, and gender to calculate their birth mansion too",
-        "Six relationship types -- myeong, eoptae, yeongchin, useo, angoe, seongwi -- and a near, middle, or far distance verdict",
-        "Dating, marriage, reunion, secret romance, long distance, and working together, each interpreted separately"
+        "Both birth mansions are calculated from your Destiny Card details and the other person's birth date, birth time, solar/lunar calendar and gender",
+        "Six bond types — myeong, eoptae, yeongchin, useo, angoe and seongwi — and a distance verdict: same mansion, near, middle or far",
+        "Relationship, warmth and attraction bands, plus an expert verdict on the scenes that open easily and the scenes to watch",
+        "Two ready-to-use relationship lines with recovery steps, warning signs, and the bond's light alongside practical advice"
       ],
-      "premiumIntro": "This compatibility reading is derived from the 27-mansion calculation rules. The same two people get the same result whenever they open it; if you want the wording written fresh each time, that is the ₩30,000 Sukuyo compatibility expert consultation.",
+      "premiumIntro": "This compatibility is produced by the 27-mansion calculation rules, so the same two people get the same result whenever it is opened. Purpose-based readings such as dating, marriage and reunion, and 30-day timing, open separately in the Precision Compatibility extension inside the result.",
       "premiumAudience": [
         "Anyone strangely drawn to someone yet always colliding with them",
-        "Anyone deciding whether to read this as dating, marriage, or reunion",
-        "Anyone who also wants to read non-romantic ties like long distance or collaboration"
+        "Those who want to know at what distance the two of you feel at ease",
+        "Those who want to know what to say to the other person now and which signs to watch"
       ],
       "premiumChapters": [
-        "The relationship type and its nickname, both people's mansions, and each person's role",
-        "The nature of the tie, what surfaces as you get closer, and the recurring emotional pattern",
-        "The felt pace, the advantages of the distance, and the distance to watch and how to manage it",
-        "Good timing -- the best window and the window to be careful with",
-        "Interpretation and cautions for each of the six themes: dating, marriage, reunion, secret romance, long distance, and working together",
-        "What keeps it going long-term, and today's question"
+        "Your relationship name · texture of the bond · distance badge",
+        "Bond summary and the calculated bond type explained",
+        "Relationship · warmth · attraction bands",
+        "Expert verdict — scenes that open easily and scenes to watch",
+        "Two ready-to-use relationship lines, recovery steps · warning signs",
+        "The bond's light and practical advice · who stands where"
       ],
       "premiumOutcomes": [
         "Without the other person's birth date, you can only go as far as the reading of your own birth mansion.",
         "If the birth time is unknown, it is calculated as 12:00 noon.",
         "It is charged per use, and can also be opened with a pass or moonstone.",
-        "The relationship type tells you the character of the distance between you; it does not guarantee an outcome."
+        "The relationship type tells you the character of the distance between you; it does not guarantee an outcome.",
+        "The result cannot be saved or reopened, so please check what you need while it is on screen."
       ],
       "answersQuestions": [
         "What kind of distance is the tie between us?",
-        "What about collaboration or long distance rather than romance?",
+        "What should I say to this person right now?",
         "Why do we collide the closer we get?"
       ],
       "fallbackCta": "Open Sukuyo",
@@ -13253,7 +13406,7 @@
       "analysisSteps": [
         {
           "label": "Deriving your birth mansion",
-          "detail": "It calculates your birth mansion among the 27 from your birth date. This much is free."
+          "detail": "Your birth mansion among the 27 is calculated from the birth date on your Destiny Card. Up to this point it is free."
         },
         {
           "label": "Deriving the other person's birth mansion",
@@ -13261,11 +13414,11 @@
         },
         {
           "label": "Determining relationship type and distance",
-          "detail": "It settles which of the six relationship types the two mansions form, and whether the distance is near, middle, or far."
+          "detail": "The six bond types your two birth mansions form and same mansion, near, middle or far are determined."
         },
         {
-          "label": "Theme-by-theme interpretation",
-          "detail": "It separates the six themes and lays out the state, what to do now, and what to watch for in each."
+          "label": "Bond report",
+          "detail": "The bond type explanation, key bands, expert verdict, advice and warning signs are gathered into one report."
         }
       ],
       "faq": [
@@ -13274,12 +13427,56 @@
           "a": "Yes. The relationship type only comes out once their birth mansion is calculated. Without it you can only see the reading of your own birth mansion."
         },
         {
-          "q": "How does this differ from the ₩30,000 Sukuyo compatibility expert consultation?",
-          "a": "This compatibility reading derives the relationship type and the six themes from the 27-mansion calculation rules. The expert consultation writes the consultation text fresh each time on top of the same calculation."
+          "q": "How is this different from the Sukuyo Compatibility Consultation?",
+          "a": "This compatibility produces the bond type and advice with the 27-mansion calculation rules. The Sukuyo Compatibility Consultation writes a fresh multi-section consultation on top of your two birth mansions."
         },
         {
           "q": "How does payment work?",
           "a": "It is charged per use. Reading it for a different person means paying again at that point, and it can also be opened with a pass or moonstone."
+        }
+      ],
+      "receives": [
+        {
+          "title": "Your bond type and distance",
+          "detail": "First you see the bond type and texture your two birth mansions form, and where you sit among same mansion, near, middle and far."
+        },
+        {
+          "title": "Relationship · warmth · attraction bands",
+          "detail": "See how fast the relationship draws closer, and where warmth and attraction rise and cool, band by band."
+        },
+        {
+          "title": "Expert verdict",
+          "detail": "The scenes where this bond opens easily are separated from those to watch, along with the position each of you tends to take."
+        },
+        {
+          "title": "Relationship advice you can use now",
+          "detail": "Two lines you can say today, recovery steps, and the warning signs to know first."
+        }
+      ],
+      "outline": [
+        {
+          "title": "Bond report header",
+          "detail": "Your relationship name, the texture of the bond and the distance badge come first."
+        },
+        {
+          "title": "Bond summary · bond type explained",
+          "detail": "A short summary of your bond, then what the calculated bond type means."
+        },
+        {
+          "title": "Key bands",
+          "detail": "The flow across the relationship, warmth and attraction bands."
+        },
+        {
+          "title": "Expert verdict",
+          "detail": "Scenes that open easily, scenes to watch, and the attitude that suits your distance."
+        },
+        {
+          "title": "Advice and warning signs",
+          "detail": "Two lines to use now, recovery steps and warning signs, in order."
+        },
+        {
+          "title": "Light and reality · where you each stand",
+          "detail": "It closes with the bond's light and practical advice, and who stands where."
         }
       ]
     },
@@ -13509,18 +13706,18 @@
     },
     "nakshatra_compat": {
       "tagline": "It names first where the two systems agree and where they part, then sets out the score by category, the relationship type, and a guide to how each of you can act.",
-      "premiumIntro": "It runs even without a birth time, and an invite link lets the other person enter their own details.",
+      "premiumIntro": "It goes ahead at noon even if you don't know the birth time. It first shows whether the two systems converge or part ways, then explains why with item-by-item scores.",
       "fallbackCta": "See the combined match",
       "premiumChapters": {
         "0": "The combined verdict and combined score",
         "1": "Ashtakoota scores by category with dosha noted",
-        "2": "Three scores: affinity · stability · friction",
+        "2": "Three scores: attraction · stability · conflict",
         "3": "A guide to how each of you can act from where you stand"
       },
       "premiumAudience": {
         "0": "People not convinced by one system alone",
         "1": "People who want to know what to watch for, not just a score",
-        "2": "People who want the other person to enter their own details"
+        "2": "Those who want to know what each of you can do"
       },
       "answersQuestions": {
         "0": "Do the two systems read this relationship the same way?",
@@ -13531,12 +13728,12 @@
         "0": "India's 36-point Ashtakoota calculated category by category",
         "1": "The relationship type judged by Eastern Sukuyo angles",
         "2": "Where the two systems converge and diverge, set out first",
-        "3": "An invite link that collects the other person's details"
+        "3": "If the birth time is unknown, noon is used and the reading goes ahead"
       },
       "analysisSteps": {
         "0": {
           "label": "Both people's details",
-          "detail": "Name, date of birth, birth time, gender and birth city go in — or arrive through an invite link."
+          "detail": "Enter both people's birth date, birth time, gender and birth city."
         },
         "1": {
           "label": "Run both systems",
@@ -13550,17 +13747,57 @@
       "faq": {
         "0": {
           "q": "What if I don't know the birth time?",
-          "a": "You can leave it unknown and carry on."
+          "a": "Choose 'time unknown' and it is calculated at noon and goes ahead."
         },
         "1": {
-          "q": "How do I get the other person's details?",
-          "a": "Send the invite link and they can enter their own details."
+          "q": "If I send an invite link, do we see the result together?",
+          "a": "The invite link carries your details. Your partner enters their own details and opens the result on their own device; the result does not come back to the sender's screen."
+        },
+        "2": {
+          "q": "Can I save the result?",
+          "a": "There is no save or revisit. You can calculate again with 'try with someone else'."
         }
       },
       "premiumOutcomes": {
         "0": "The calculation follows the calendar system; the reading is for reference.",
         "1": "Auspicious dates and compatibility do not stand in for your decision.",
         "2": "The existing payment policy applies."
+      },
+      "receives": {
+        "0": {
+          "title": "Combined verdict and combined score",
+          "detail": "Indian Ashtakoota and Eastern Sukuyo scores side by side, with the combined verdict and overview first."
+        },
+        "1": {
+          "title": "Ashtakoota: eight items out of 36",
+          "detail": "Varna, Vashya, Tara, Yoni, Graha Maitri, Gana, Bhakoot and Nadi scores are shown as bars, with doshas marked separately."
+        },
+        "2": {
+          "title": "Sukuyo bond type and distance",
+          "detail": "The bond type and distance seen through Sukuyo, plus three scores: attraction, stability and conflict."
+        },
+        "3": {
+          "title": "What each of you can do",
+          "detail": "One line each on what you and your partner can try from where you stand."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Combined verdict",
+          "detail": "The verdict, combined score, and the Ashtakoota and Sukuyo scores head the result."
+        },
+        "1": {
+          "title": "Combined overview",
+          "detail": "A short note on whether the two systems point the same way or part ways."
+        },
+        "2": {
+          "title": "Indian Ashtakoota",
+          "detail": "The total out of 36, bars for the eight items, and dosha marks."
+        },
+        "3": {
+          "title": "Eastern Sukuyo",
+          "detail": "Bond type and distance, the three scores, and action guides for you and your partner to close."
+        }
       }
     }
   },

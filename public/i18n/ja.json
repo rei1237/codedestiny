@@ -8409,7 +8409,7 @@
       "premiumAudience": {
         "0": "相手と不思議に惹かれつつも度々ぶつかる方",
         "1": "この縁を続けるか整理するか結論が必要な方",
-        "2": "連絡や会話のタイミングを度々逃す方"
+        "2": "会話がいつもすれ違う理由を知りたい方"
       },
       "premiumChapters": {
         "0": "総論 — 総合相性の総評と解釈の根拠",
@@ -8427,7 +8427,7 @@
       "answersQuestions": {
         "0": "この人と会い続けても良いでしょうか？",
         "1": "なぜ近づくほどぶつかるのでしょうか？",
-        "2": "また連絡しても良いでしょうか？"
+        "2": "この関係を長く続けるには何を守ればいいですか？"
       },
       "valueCompare": {
         "0": {
@@ -8440,9 +8440,9 @@
           "premium": "15セクション合計18,000字以上"
         },
         "2": {
-          "axis": "時期のアドバイス",
+          "axis": "時間の流れ",
           "free": "なし",
-          "premium": "いつ近づき、いつ引くべきか"
+          "premium": "出会った直後から5年後以降までの変化"
         }
       },
       "faq": {
@@ -8455,8 +8455,60 @@
           "a": "いいえ。難しい類型ほど守るべき線がむしろ明確になります。その線をお伝えするのがこの相談の目的です。"
         },
         "2": {
-          "q": "再会の可能性も見てくれますか？",
-          "a": "可能性を保証はしません。ただ関係がまた動きうる地点と今避けるべき反応は指摘します。"
+          "q": "復縁の可能性も見てもらえますか？",
+          "a": "復縁を別に占うことはしません。この相談は恋人関係を前提に、二人の距離感と、関係が時間とともにどう変わるかを書きます。"
+        },
+        "3": {
+          "q": "知りたいことを直接質問できますか？",
+          "a": "質問を入力する欄はありません。お二人の本命宿で決まるセクションが一度に書かれます。"
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "総合相性スコアと8軸の星評価",
+          "detail": "総合相性スコアのゲージと関係スコア8軸の星評価で、二人の相性をひと目でお見せします。"
+        },
+        "1": {
+          "title": "この関係の本質と分析の根拠",
+          "detail": "二人の本命宿と関係タイプからこの関係の本質を示し、そう読んだ根拠も書き添えます。"
+        },
+        "2": {
+          "title": "項目別の指標と二人の比較",
+          "detail": "レーダーと棒グラフで項目別の指標を示し、二人を並べて比較します。"
+        },
+        "3": {
+          "title": "セクションごとの全体解説",
+          "detail": "総論から最後のひと言まで、引力・話し方・葛藤・分野別の相性・時間による変化をセクションごとに書きます。"
+        },
+        "4": {
+          "title": "PDF保存と再表示",
+          "detail": "結果はPDFで保存でき、過去の月明かり相性一覧から開き直せます。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "月明かり相性の返信",
+          "detail": "総合相性スコアのゲージと関係スコア8軸の星評価が最初に開きます。"
+        },
+        "1": {
+          "title": "この関係の本質",
+          "detail": "二人の関係を一段落にまとめ、分析の根拠を添えます。"
+        },
+        "2": {
+          "title": "項目別の指標",
+          "detail": "レーダーと棒グラフで、項目ごとの二人のスコアを見ます。"
+        },
+        "3": {
+          "title": "二人の比較",
+          "detail": "二人の結果を並べて比べます。"
+        },
+        "4": {
+          "title": "詳しく見る",
+          "detail": "総論から最後のひと言まで、セクションごとの全体解説を順に読みます。"
+        },
+        "5": {
+          "title": "保存と再表示",
+          "detail": "PDFで保存したり、過去の月明かり相性一覧から開き直したりできます。"
         }
       }
     },
@@ -9021,24 +9073,24 @@
     "openLoveSimulation": {
       "badge": "恋愛シミュレーション",
       "headline": "自分の恋愛パターンがどの場面で輝き、どの場面で揺れるのか確かめてみてください。",
-      "tagline": "16 partner characters with 20 scenes each; every choice moves five meters — affection, trust, chemistry, tension and stability.",
+      "tagline": "16人の相手キャラクター、一人20の場面を選びながら関係を体験し、選択によってデート結果と関係ルートが変わります。",
       "feats": {
         "0": "16 partner characters · 20 scenes per character, with 3 choices in every scene",
-        "1": "Each choice shifts five meters: affection, trust, chemistry, tension and stability",
-        "2": "Compatibility is scored 0-100 on 5 axes: attraction, stability, communication, conflict pattern and long-term durability",
-        "3": "Every item shows its grounds and confidence level — day-stem unions and clashes, branch relations, useful and adverse elements, ten gods, and the peach-blossom and red-flame stars"
+        "1": "選択によってデート結果（エンディング）と関係ルート、会話選択の分析が変わります",
+        "2": "四柱推命の相性は、引力・安定性・コミュニケーション・持続性・葛藤の扱い方の5軸を0〜100で出します",
+        "3": "日干の合・冲、地支の関係、五行、十神、神殺（桃花・紅艶）のうち際立った根拠三つと、リスク・デートのヒントを一緒に示します"
       },
-      "premiumIntro": "As you pick a choice, the five meters — affection, trust, chemistry, tension, stability — move on the spot, and compatibility is calculated from signals drawn out of both charts.",
+      "premiumIntro": "キャラクターを見るのは無料で、シミュレーションは決済後に始まります。相性スコアは二人の命式で決まり、場面ごとの選択はデート結果と関係ルートを変えます。",
       "premiumAudience": {
         "0": "People who want to experience compatibility as scenes",
         "1": "People who want to compare how it unfolds by partner type",
         "2": "People who want to see the grounds behind a compatibility score"
       },
       "premiumChapters": {
-        "0": "All 16 partner characters available to choose",
-        "1": "Playing through 20 scenes per character",
-        "2": "A compatibility result reflecting how the five meters moved",
-        "3": "The 5-axis scores with per-item saju grounds and confidence"
+        "0": "16人の相手キャラクターから好きな相手を選んでシミュレーションを開始",
+        "1": "一人20の場面、場面ごとに選択肢3つ",
+        "2": "選択によって変わるデート結果と関係ルート",
+        "3": "四柱推命の相性5軸スコアと際立った根拠・リスク・デートのヒント"
       },
       "premiumOutcomes": {
         "0": "Compatibility is calculated inside the app, directly from the birth details you enter.",
@@ -9046,7 +9098,7 @@
         "2": "Fortune results are for reference; please check important choices against practical judgement as well."
       },
       "answersQuestions": {
-        "0": "Why does tension rise so much when I am with this person?",
+        "0": "この人とはどんな流れを避けるべきですか？",
         "1": "What kinds of situations do we usually clash in?",
         "2": "Is this a relationship that can last?"
       },
@@ -9054,11 +9106,11 @@
       "analysisSteps": {
         "0": {
           "label": "Choose a partner",
-          "detail": "Pick one of the 16 characters and enter both people's birth details."
+          "detail": "16人のキャラクターから一人を選ぶか、相手の情報を入れていちばん近いキャラクターとつながります。自分の命式はプロフィール情報を使います。"
         },
         "1": {
           "label": "Play the scenes",
-          "detail": "Pick one of 3 choices in each scene, and the five meters shift on the spot."
+          "detail": "場面ごとに3つの選択肢から一つを選び、物語を進めます。"
         },
         "2": {
           "label": "Signal extraction",
@@ -9066,7 +9118,7 @@
         },
         "3": {
           "label": "Result",
-          "detail": "It shows the 5-axis scores — attraction, stability, communication, conflict pattern, long-term durability — with the grounds and confidence for each signal."
+          "detail": "5軸のスコアと際立った根拠三つ、選択で決まったデート結果と関係ルートをあわせて示します。"
         }
       },
       "valueCompare": {
@@ -9080,21 +9132,69 @@
         },
         "2": {
           "axis": "Grounds shown",
-          "premium": "Saju signals and confidence per item"
+          "premium": "際立った四柱推命の根拠三つとリスク・デートのヒント"
         }
       },
       "faq": {
         "0": {
           "q": "What are the compatibility scores based on?",
-          "a": "Signals are drawn from both people's day-stem unions and clashes, branch relations, useful and adverse elements, ten gods, and the peach-blossom and red-flame stars, and every item is shown with its grounds and confidence level."
+          "a": "二人の日干の合・冲、地支の関係、五行の用神・忌神、十神、神殺（桃花・紅艶）をシグナルとして取り出し、そのうち際立った根拠三つを結果に示します。"
         },
         "1": {
           "q": "Do my choices affect the result?",
-          "a": "Every choice shifts the five meters — affection, trust, chemistry, tension, stability — and that state is reflected on the result screen."
+          "a": "選択はデート結果（エンディング）と関係ルート、会話選択にもとづく分析を変えます。四柱推命の相性5軸スコアは二人の命式で決まり、選択に関係なく同じです。"
         },
         "2": {
           "q": "How many partners can I see?",
           "a": "16 characters are available, and each one has its own 20 scenes."
+        },
+        "3": {
+          "q": "結果を保存したり共有したりできますか？",
+          "a": "保存と共有はありません。そのかわり、最初からやり直すで別の選択を試せます。"
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "Final Codeの判定と等級",
+          "detail": "二人の四柱推命の相性スコアと等級、ひと言の判定を結果のいちばん上に示します。"
+        },
+        "1": {
+          "title": "選択で変わるデート結果",
+          "detail": "場面ごとに選んだ選択肢によって、エンディングのタイトルと関係ルート、会話選択にもとづく分析が変わります。"
+        },
+        "2": {
+          "title": "四柱推命の相性5軸",
+          "detail": "引力・安定性・コミュニケーション・持続性・葛藤の扱い方を棒グラフで示し、際立った根拠三つとリスク、デートのヒントを添えます。"
+        },
+        "3": {
+          "title": "キャラクターの物語",
+          "detail": "選んだ相手の世界観・恋愛傾向・エンディングルート・ミッションをタブで読めます。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Final Code",
+          "detail": "判定と等級・スコアが最初に出ます。"
+        },
+        "1": {
+          "title": "四柱推命の相性カード",
+          "detail": "二人の命式から出した相性をカード一枚にまとめます。"
+        },
+        "2": {
+          "title": "Date Result",
+          "detail": "自分の選択で決まったエンディングのタイトルと関係ルートを示します。"
+        },
+        "3": {
+          "title": "5軸と命理のポイント",
+          "detail": "5軸の棒グラフと命式の傾向のまとめ・命理相性のポイント・避けたい流れを見ます。"
+        },
+        "4": {
+          "title": "会話選択にもとづく分析",
+          "detail": "場面ごとに選んだ選択がどんな流れをつくったのかをまとめます。"
+        },
+        "5": {
+          "title": "キャラクターの物語",
+          "detail": "世界観・恋愛傾向・エンディングルート・ミッションのタブと、最初からやり直すで締めくくります。"
         }
       }
     },
@@ -11800,7 +11900,7 @@
     },
     "master_love_codex_compat": {
       "fallbackTitle": "二人の関係を二十個の章に分けて一冊にまとめます。",
-      "tagline": "それぞれの命式を別々に読んだ後、二人が出会う地点を重ね、惹かれ・衝突・長く続く条件を順番に積み上げる最上位の相性解釈書です。",
+      "tagline": "それぞれの命式を別々に読んだうえで二人が出会う地点を重ね、引力と衝突と長続きする条件を五幕二十章にわたって書き上げる最上位の相性解説書です。",
       "premiumIntro": "相性編は合う/合わないで終わらせず、二人がどこでずれ、何を守れば変わるのかを二十章にわたって説明します。",
       "fallbackCta": "相性解釈書を閲覧する",
       "ctaNote": "お二人の命式で計算された20個の章が開きます。",
@@ -11821,7 +11921,7 @@
         "2": "互いを満たす場所・地支の合冲刑破害",
         "3": "二つの命盤の相互配置・夫妻宮交差比較・殺星と四化",
         "4": "関係の温度曲線・葛藤の根・和解の言葉",
-        "5": "持続可能性と結婚運・四柱推命と紫微斗数の合致点",
+        "5": "持続可能性と結婚運・四柱推命と紫微斗数の合致点と相違点",
         "6": "関係DNAプロフィール・これから3年・最後の手紙"
       },
       "premiumOutcomes": {
@@ -11856,10 +11956,14 @@
           "a": "はい。二人の命式をそれぞれ計算して初めて接点が出ます。"
         },
         "1": {
+          "q": "相手の出生時刻がわからない場合は？",
+          "a": "空欄のままで大丈夫です。正午を基準に計算し、時柱は解釈から外します。"
+        },
+        "2": {
           "q": "結果が悪ければ別れるべきですか？",
           "a": "いいえ。ずれる地点を知ることが目的です。その地点を知れば同じ葛藤を繰り返しません。"
         },
-        "2": {
+        "3": {
           "q": "本人編と何が違いますか？",
           "a": "本人編は自分の恋愛パターンを、相性編は二人の間で実際に起きることを扱います。"
         }
@@ -11871,7 +11975,7 @@
         },
         "1": {
           "label": "個別性向の整理",
-          "detail": "各自が愛を始め終える方式を別々に整理します。"
+          "detail": "それぞれの命式と命盤から、気質と関係の築き方を別々に読みます。"
         },
         "2": {
           "label": "接点の対照",
@@ -11880,6 +11984,54 @@
         "3": {
           "label": "解釈書作成",
           "detail": "関係の始まりから長期展望まで二十章に分けて書きます。"
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "五幕二十章の相性解説書",
+          "detail": "二人の質から、四柱推命と命盤が見る相性、関係の現実、総合と封印まで五幕に分けて書きます。"
+        },
+        "1": {
+          "title": "章ごとの根拠とインサイト",
+          "detail": "各章に根拠チップとインサイト、関係で気をつけたい瞬間を添え、詳しい相談内容を広げて読めます。"
+        },
+        "2": {
+          "title": "今できる行動",
+          "detail": "章ごとに、二人がすぐ試せる行動を二つ三つずつお渡しします。"
+        },
+        "3": {
+          "title": "恋愛DNAの10の指標",
+          "detail": "親和・コミュニケーション・信頼・情熱・ペースの一致・葛藤への耐性・現実の一致・成長・自立・持続を0〜100の棒グラフと根拠で示します。"
+        },
+        "4": {
+          "title": "PDFで保管・再表示",
+          "detail": "完成版はPDFで保管でき、再決済なしで開き直せます。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "表紙・ひと目でわかる相談",
+          "detail": "二人の関係タイプの名前と核心の要約を最初に広げます。"
+        },
+        "1": {
+          "title": "I 二人の質",
+          "detail": "向き合う二人、あなたと相手をそれぞれ読み、何が互いを引き寄せたのかを見ます。"
+        },
+        "2": {
+          "title": "II 四柱推命が見る相性",
+          "detail": "日干の関係・十神の相互作用・互いを補う位置・地支の合冲刑破害を示します。"
+        },
+        "3": {
+          "title": "III 命盤が見る相性",
+          "detail": "二つの命盤の配置と夫妻宮の交差比較、殺星と四化が座る位置を見ます。"
+        },
+        "4": {
+          "title": "IV 関係の現実",
+          "detail": "関係の温度曲線・葛藤の根・和解の言葉・持続可能性と結婚運を扱います。"
+        },
+        "5": {
+          "title": "V 総合と封印",
+          "detail": "四柱推命と紫微斗数の合致点と相違点、関係DNAプロフィール、これからの3年、最後の手紙で閉じます。"
         }
       }
     },
@@ -13216,36 +13368,37 @@
       "fallbackCta": "Check your passes"
     },
     "openSukuyoModal": {
-      "tagline": "It calculates each person's birth mansion among the 27, determines the relationship type and the distance between them, and reads it across six themes: dating, marriage, reunion, secret romance, long distance, and working together.",
+      "tagline": "27宿のうち二人の本命宿をそれぞれ算出して縁のタイプと距離を判定し、関係の処方と注意サインまで一枚の縁レポートにまとめます。",
       "feats": [
-        "Calculating your own birth mansion and its basic reading is free -- payment of ₩5,000 per use applies only when you open the compatibility reading",
-        "Enter the other person's birth date, birth time, solar/lunar calendar, and gender to calculate their birth mansion too",
-        "Six relationship types -- myeong, eoptae, yeongchin, useo, angoe, seongwi -- and a near, middle, or far distance verdict",
-        "Dating, marriage, reunion, secret romance, long distance, and working together, each interpreted separately"
+        "運命カードの自分の情報と、相手の生年月日・出生時刻・陽暦/陰暦・性別から二人の本命宿を算出",
+        "命・業胎・栄親・友衰・安壊・危成の六つの縁のタイプと、同宿・近距離・中距離・遠距離の距離判定",
+        "関係・温度・引力の三つの区間と、うまく開く場面・気をつけたい場面をまとめた専門家の総合判定",
+        "すぐ使える関係の処方二文と回復のステップ、注意サイン、縁の光と現実的な処方"
       ],
-      "premiumIntro": "This compatibility reading is derived from the 27-mansion calculation rules. The same two people get the same result whenever they open it; if you want the wording written fresh each time, that is the ₩30,000 Sukuyo compatibility expert consultation.",
+      "premiumIntro": "この相性は27宿の算出ルールで導かれるため、同じ二人ならいつ開いても同じ結果になります。恋愛・結婚・復縁などの目的別リーディングと30日のタイミングは、結果の中の精密相性拡張で別に開きます。",
       "premiumAudience": [
         "Anyone strangely drawn to someone yet always colliding with them",
-        "Anyone deciding whether to read this as dating, marriage, or reunion",
-        "Anyone who also wants to read non-romantic ties like long distance or collaboration"
+        "二人がどんな距離なら心地よいのか知りたい方",
+        "相手に今かける言葉と気をつけたいサインを知りたい方"
       ],
       "premiumChapters": [
-        "The relationship type and its nickname, both people's mansions, and each person's role",
-        "The nature of the tie, what surfaces as you get closer, and the recurring emotional pattern",
-        "The felt pace, the advantages of the distance, and the distance to watch and how to manage it",
-        "Good timing -- the best window and the window to be careful with",
-        "Interpretation and cautions for each of the six themes: dating, marriage, reunion, secret romance, long distance, and working together",
-        "What keeps it going long-term, and today's question"
+        "二人の関係の名前・縁の質・距離バッジ",
+        "縁の要約と算出された関係タイプの解説",
+        "関係・温度・引力の核心区間",
+        "専門家の総合判定 — うまく開く場面と気をつけたい場面",
+        "すぐ使える関係の処方二文と回復のステップ・注意サイン",
+        "縁の光と現実的な処方・誰がどの位置に立つのか"
       ],
       "premiumOutcomes": [
         "Without the other person's birth date, you can only go as far as the reading of your own birth mansion.",
         "If the birth time is unknown, it is calculated as 12:00 noon.",
         "It is charged per use, and can also be opened with a pass or moonstone.",
-        "The relationship type tells you the character of the distance between you; it does not guarantee an outcome."
+        "The relationship type tells you the character of the distance between you; it does not guarantee an outcome.",
+        "結果は保存や再表示ができないため、必要な内容はその場でご確認ください。"
       ],
       "answersQuestions": [
         "What kind of distance is the tie between us?",
-        "What about collaboration or long distance rather than romance?",
+        "今この人にどんな言葉をかければいいですか？",
         "Why do we collide the closer we get?"
       ],
       "fallbackCta": "Open Sukuyo",
@@ -13253,7 +13406,7 @@
       "analysisSteps": [
         {
           "label": "Deriving your birth mansion",
-          "detail": "It calculates your birth mansion among the 27 from your birth date. This much is free."
+          "detail": "運命カードにある生年月日から、27宿のうち自分の本命宿を算出します。ここまでは無料です。"
         },
         {
           "label": "Deriving the other person's birth mansion",
@@ -13261,11 +13414,11 @@
         },
         {
           "label": "Determining relationship type and distance",
-          "detail": "It settles which of the six relationship types the two mansions form, and whether the distance is near, middle, or far."
+          "detail": "二つの本命宿がつくる六つの関係タイプと、同宿・近距離・中距離・遠距離を確定します。"
         },
         {
-          "label": "Theme-by-theme interpretation",
-          "detail": "It separates the six themes and lays out the state, what to do now, and what to watch for in each."
+          "label": "縁レポートの整理",
+          "detail": "関係タイプの解説と核心区間、総合判定、関係の処方と注意サインを一枚のレポートにまとめます。"
         }
       ],
       "faq": [
@@ -13274,12 +13427,56 @@
           "a": "Yes. The relationship type only comes out once their birth mansion is calculated. Without it you can only see the reading of your own birth mansion."
         },
         {
-          "q": "How does this differ from the ₩30,000 Sukuyo compatibility expert consultation?",
-          "a": "This compatibility reading derives the relationship type and the six themes from the 27-mansion calculation rules. The expert consultation writes the consultation text fresh each time on top of the same calculation."
+          "q": "宿曜相性相談とは何が違いますか？",
+          "a": "この相性は27宿の算出ルールで縁のタイプと処方を導きます。宿曜相性相談は二人の本命宿をもとに、複数のセクションの相談文を新しく書きます。"
         },
         {
           "q": "How does payment work?",
           "a": "It is charged per use. Reading it for a different person means paying again at that point, and it can also be opened with a pass or moonstone."
+        }
+      ],
+      "receives": [
+        {
+          "title": "二人の縁のタイプと距離",
+          "detail": "二つの本命宿がつくる縁のタイプと縁の質、同宿・近距離・中距離・遠距離のうち二人の距離を最初にお見せします。"
+        },
+        {
+          "title": "関係・温度・引力の核心区間",
+          "detail": "関係がどんな速さで近づくのか、温度と引力がどこで上がりどこで冷めるのかを区間ごとに見ます。"
+        },
+        {
+          "title": "専門家の総合判定",
+          "detail": "この縁がうまく開く場面と気をつけたい場面を分け、二人がそれぞれどの立ち位置に立ちやすいかを解きます。"
+        },
+        {
+          "title": "すぐ使える関係の処方",
+          "detail": "今かけられる言葉二つと回復のステップ、先に知っておきたい注意サインをまとめます。"
+        }
+      ],
+      "outline": [
+        {
+          "title": "縁レポートの冒頭",
+          "detail": "二人の関係の名前と縁の質、距離バッジを最初に広げます。"
+        },
+        {
+          "title": "縁の要約・関係タイプの解説",
+          "detail": "二人の縁を短く要約し、算出された関係タイプの意味を解きます。"
+        },
+        {
+          "title": "核心区間",
+          "detail": "関係・温度・引力の三つの区間の流れを見ます。"
+        },
+        {
+          "title": "専門家の総合判定",
+          "detail": "うまく開く場面と気をつけたい場面、距離感に合った姿勢を示します。"
+        },
+        {
+          "title": "関係の処方と注意サイン",
+          "detail": "すぐ使える言葉二つと回復のステップ、注意サインを順にまとめます。"
+        },
+        {
+          "title": "光と現実・二人の立ち位置",
+          "detail": "縁の光と現実的な処方、誰がどの位置に立つのかで締めくくります。"
         }
       ]
     },
@@ -13509,18 +13706,18 @@
     },
     "nakshatra_compat": {
       "tagline": "It names first where the two systems agree and where they part, then sets out the score by category, the relationship type, and a guide to how each of you can act.",
-      "premiumIntro": "It runs even without a birth time, and an invite link lets the other person enter their own details.",
+      "premiumIntro": "出生時刻がわからなくても正午を基準に進められます。二つの体系が一つにまとまるのか分かれるのかを先に示し、項目別のスコアで理由を説明します。",
       "fallbackCta": "See the combined match",
       "premiumChapters": {
         "0": "The combined verdict and combined score",
         "1": "Ashtakoota scores by category with dosha noted",
-        "2": "Three scores: affinity · stability · friction",
+        "2": "引力・安定・葛藤の三つのスコア",
         "3": "A guide to how each of you can act from where you stand"
       },
       "premiumAudience": {
         "0": "People not convinced by one system alone",
         "1": "People who want to know what to watch for, not just a score",
-        "2": "People who want the other person to enter their own details"
+        "2": "二人がそれぞれ何をすればいいか知りたい方"
       },
       "answersQuestions": {
         "0": "Do the two systems read this relationship the same way?",
@@ -13531,12 +13728,12 @@
         "0": "India's 36-point Ashtakoota calculated category by category",
         "1": "The relationship type judged by Eastern Sukuyo angles",
         "2": "Where the two systems converge and diverge, set out first",
-        "3": "An invite link that collects the other person's details"
+        "3": "出生時刻がわからなければ正午を基準に計算してそのまま進めます"
       },
       "analysisSteps": {
         "0": {
           "label": "Both people's details",
-          "detail": "Name, date of birth, birth time, gender and birth city go in — or arrive through an invite link."
+          "detail": "二人の生年月日・出生時刻・性別・出生都市を入力します。"
         },
         "1": {
           "label": "Run both systems",
@@ -13550,17 +13747,57 @@
       "faq": {
         "0": {
           "q": "What if I don't know the birth time?",
-          "a": "You can leave it unknown and carry on."
+          "a": "「時刻不明」を選ぶと正午を基準に計算してそのまま進めます。"
         },
         "1": {
-          "q": "How do I get the other person's details?",
-          "a": "Send the invite link and they can enter their own details."
+          "q": "招待リンクを送ると一緒に結果を見られますか？",
+          "a": "招待リンクにはあなたの情報が入っています。相手が自分の情報を入れて自分の端末で結果を開き、送った側の画面には結果は届きません。"
+        },
+        "2": {
+          "q": "結果を保存できますか？",
+          "a": "保存と再表示はありません。「別の相手でもう一度見る」で新しく計算できます。"
         }
       },
       "premiumOutcomes": {
         "0": "The calculation follows the calendar system; the reading is for reference.",
         "1": "Auspicious dates and compatibility do not stand in for your decision.",
         "2": "The existing payment policy applies."
+      },
+      "receives": {
+        "0": {
+          "title": "統合判定と統合スコア",
+          "detail": "インドのアシュタクータと東洋の宿曜のスコアを並べ、統合判定と総評を最初にお届けします。"
+        },
+        "1": {
+          "title": "アシュタクータ36点の8項目",
+          "detail": "ヴァルナ・ヴァシャ・ターラ・ヨーニ・グラハ・マイトリ・ガナ・バクート・ナーディのスコアを棒グラフで示し、ドーシャを別に表示します。"
+        },
+        "2": {
+          "title": "宿曜格角の関係タイプと距離",
+          "detail": "宿曜で見た関係タイプと距離、引力・安定・葛藤の三つのスコアをまとめます。"
+        },
+        "3": {
+          "title": "それぞれの立場でできること",
+          "detail": "自分と相手がそれぞれ試せる行動を一行ずつ示します。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "統合判定",
+          "detail": "判定と統合スコア、アシュタクータ・宿曜のスコアを冒頭に置きます。"
+        },
+        "1": {
+          "title": "統合総評",
+          "detail": "二つの体系が同じ方向を指すのか、分かれるのかを短くまとめます。"
+        },
+        "2": {
+          "title": "インドのアシュタクータ",
+          "detail": "36点満点の総点と8項目の棒グラフ、ドーシャの表示を見ます。"
+        },
+        "3": {
+          "title": "東洋の宿曜格角",
+          "detail": "関係タイプ・距離と三つのスコア、自分と相手の行動ガイドで締めくくります。"
+        }
       }
     }
   },
