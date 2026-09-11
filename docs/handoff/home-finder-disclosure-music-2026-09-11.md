@@ -1,8 +1,22 @@
 ---
 status: active
 updated: 2026-09-11
-next: PR 머지 후 남은 결함 1(해시 진입 시 홈 사라짐)을 0d805da89 기준으로 복원한다
+next: 해시 진입 복원 PR 머지·staging 확인 후 남은 결함 2(verify-mobile-runtime-readiness main 실패)를 조사한다
 ---
+
+## 2026-09-11 후속 — 남은 결함 1 복원(브랜치 `fix/home-hash-entry-visibility`, base `origin/main` 7aecad1fb)
+
+- 원인 재확인: `#cdFinder`는 `#cdhFinderDisclosure` 안, 즉 `#cdHomeFunnel` 안에 있다. `route()`의 `home.hidden = isServices`가 검색 섹션까지 숨겼다.
+- 수정(`js/core/home-funnel.js`만, `0d805da89` 기준): `home.hidden = false` 고정, finder 해시에서 `cdhServicesTitle` 포커스 + `scrollTo(0,0)` 대신 rAF 안에서 `#cdFinder` 스크롤 + `#fortuneGatewaySearch` 포커스, `[data-cd-service-index-jump]` 점프 해시 `services` → `cdFinder`. `home-service-finder.js` 점프 해시는 이미 `cdFinder`여서 그대로 뒀다. 현재 구조에 남아 있는 `#cdhServices`·disclosure 열기·필터 칩 로직은 유지했다. 나머지 diff는 `sync:public` 캐시버스터·미러다.
+- 검증(실측, 로컬 `public/` 정적 서버 127.0.0.1:4180 + playwright):
+  - 해시 진입 8건(390·1280 × `#services`·`#cdFinder`·`#services/tarot`·점프 버튼 클릭): 모두 홈 표시, disclosure 열림, 결과 카드 6~11개, `#services/tarot`은 타로 칩 눌림, pageerror 0.
+  - `node scripts/design/verify-home-funnel.cjs` 6개 폭 전부 PASS(exit 0). main에서는 130~131행(`location.hash='services'` 후 결과 대기)에서 시간 초과였다.
+  - `npm run check:fast`는 PR 본문에 결과를 적는다.
+- 새로 본 것(이번 범위 밖, 보고만):
+  - `verify-home-funnel.cjs:74`(430px, 타로 전체화면 컬렉션 Esc 후 접힘 복원)가 불안정하다. 16회 반복에서 main 3회·fix 4회 실패했고, 해시 변화는 양쪽 모두 0건이라 이번 수정과 무관하다.
+  - 390px에서 `#services`로 첫 로드하면 스크롤 뒤 레이아웃이 밀려 검색창이 화면 밖에 남는다(포커스는 됨). 1280에서는 화면 안이다.
+  - `#cdFinder`로 첫 로드하면 검색창 포커스가 안 된다(스크롤은 됨).
+  - 해시가 이미 `#cdFinder`인 상태에서 점프 버튼을 다시 누르면 `hashchange`가 없어 아무 반응이 없다(`0d805da89`도 같은 동작).
 
 # 홈 "전체 서비스 검색" — 카드 이미지·음악 1,000원 복구·접기/펼치기·중복 정리 (2026-09-11)
 
@@ -44,7 +58,7 @@ next: PR 머지 후 남은 결함 1(해시 진입 시 홈 사라짐)을 0d805da8
 - 로컬 브라우저(1280·390, visual-checker 판정): 접힘 시작 → summary 펼침/접힘, 1천원대 칩 = "달빛 음악 플레이어", 카드 이미지 깨짐 0·로고 폴백 0, 중복 제목·링크 0, 콘솔 오류 0.
 
 ## 남은 결함(후속 과제 — 이번 PR 범위 밖)
-1. 🔴 **해시 진입 시 홈 전체가 사라짐.** `js/core/home-funnel.js` `route()`의 `home.hidden = isServices;` 때문에 `#cdFinder`·`#services/*`·헤더/내비 "전체 서비스" 버튼(`data-cd-service-index-jump` → `#services`) 진입 시 `#cdHomeFunnel`(검색 섹션 포함)이 `display:none` → 빈 화면. `0d805da89`(fix(home): restore service discovery)가 고쳤던 것을 #1835가 되돌렸다. 복원안: `0d805da89`의 route/click 변경(`home.hidden = false`, `#cdFinder` 스크롤 + `#fortuneGatewaySearch` 포커스, 점프 해시 `cdFinder`). `scripts/design/verify-home-funnel.cjs:130-131`도 이 때문에 main에서도 시간 초과.
+1. ✅ (2026-09-11 후속에서 복원, 위 절 참고) **해시 진입 시 홈 전체가 사라짐.** `js/core/home-funnel.js` `route()`의 `home.hidden = isServices;` 때문에 `#cdFinder`·`#services/*`·헤더/내비 "전체 서비스" 버튼(`data-cd-service-index-jump` → `#services`) 진입 시 `#cdHomeFunnel`(검색 섹션 포함)이 `display:none` → 빈 화면. `0d805da89`(fix(home): restore service discovery)가 고쳤던 것을 #1835가 되돌렸다. 복원안: `0d805da89`의 route/click 변경(`home.hidden = false`, `#cdFinder` 스크롤 + `#fortuneGatewaySearch` 포커스, 점프 해시 `cdFinder`). `scripts/design/verify-home-funnel.cjs:130-131`도 이 때문에 main에서도 시간 초과.
 2. `scripts/verify-mobile-runtime-readiness.mjs` 가 main에서도 실패(하단 내비 `data-nav-key="fortunes" … #cdhFeatured`, `data-nav-key="free"` 없음).
 3. #1835 가 `worker/payments/*`·`pass-consumption.js`·음원 이용권 다운로드 등 09-08 결제 작업도 되돌린 흔적 → 별도 감사.
 4. `.cdh-services__vine` 이 CSS 우선순위 충돌로 안 보임.

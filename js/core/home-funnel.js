@@ -63,9 +63,10 @@
 
   function route() {
     var hash = location.hash.slice(1);
-    var isServices = hash === 'services' || hash.indexOf('services/') === 0 || hash === 'cdServiceIndex' || hash === 'cdFinder';
-    home.hidden = isServices;
-    if (isServices) {
+    var isFinder = hash === 'services' || hash.indexOf('services/') === 0 || hash === 'cdServiceIndex' || hash === 'cdFinder';
+    // 검색 섹션(#cdFinder)은 홈 안에 있다. 홈을 숨기면 해시 진입이 빈 화면이 된다.
+    home.hidden = false;
+    if (isFinder) {
       doc.classList.remove('cdh-input-open');
       if (finderDisclosure) finderDisclosure.open = true;
       document.dispatchEvent(new Event('cd:home-finder-open'));
@@ -78,8 +79,12 @@
         if (chip) chip.click();
         lastFilter = filter;
       }
-      document.getElementById('cdhServicesTitle').focus({ preventScroll: true });
-      window.scrollTo(0, 0);
+      requestAnimationFrame(function () {
+        var finder = document.getElementById('cdFinder');
+        var input = document.getElementById('fortuneGatewaySearch');
+        if (finder) finder.scrollIntoView({ block: 'start' });
+        try { if (input) input.focus({ preventScroll: true }); } catch (_) {}
+      });
     } else if (hash === 'home') {
       doc.classList.remove('cdh-input-open');
       services.hidden = false;
@@ -112,7 +117,7 @@
     }
     if (target.closest('[data-cd-service-index-jump]')) {
       event.preventDefault();
-      location.hash = 'services';
+      location.hash = 'cdFinder';
     }
   }, true);
 
