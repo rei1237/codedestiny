@@ -7,18 +7,18 @@
 GREEN: 문구·CSS·마크업·문서 등 동작 경계가 바뀌지 않는 국소 수정.
 RED: 결제·이용권·인증·DB·배포·CI·라우팅·공유 동작·삭제·리네임 또는 영향 불명.
 파일 수는 등급 기준이 아니다. 생성 미러 때문에 등급을 올리지 않는다.
-수정 시작 시 워크트리를 자동 생성한다. main·공유 체크아웃에서 편집하지 않는다. 머지 후 스테이징 배포는 비동기 감시로 남기며, 그 완료를 다음 작업 시작이나 다음 PR 진행의 조건으로 삼지 않는다. 이 작업의 clean 워크트리는 PR 전달이 끝난 뒤 제거한다.
+수정 시작 시 워크트리를 자동 생성한다. main·공유 체크아웃에서 편집하지 않는다. 이 작업의 clean 워크트리는 PR이 머지된 뒤 제거한다.
 GREEN은 관련 파일부터 수정하고, RED는 위험·검증·롤백을 먼저 알린다. 이미 승인된 범위는 다시 묻지 않는다.
 
 ## 절대 규칙
 
 1. 과금 LLM 검증 금지. mock 기본, 실호출은 정확한 1회 승인 필요.
 2. 실결제·운영 DB 쓰기·환불·정산 금지. 승인 예외의 정본은 결제 문서. 이번 개발환경 검증은 전부 mock.
-3. main 직접 수정·배포 금지. PR→필수 검사 통과→안전한 머지→스테이징 비동기 예약. 운영 승격은 명시적인 1회 요청 때만 대행.
+3. main 직접 수정·배포 금지. PR→필수 검사 통과→머지(사용자). 스테이징 확인은 선택이다. 운영 승격은 명시적인 1회 요청 때만 대행.
 4. 수정 금지: .env*, package-lock.json, .wrangler/, dist/, out/, 마이그레이션 결과물, worker/wrangler.toml 구조. vars 예외는 참조 문서.
 5. 비밀정보 출력·저장·커밋 금지. 승인 연락처 예외는 참조 문서.
 6. 요청 밖 기능·라우트·콘텐츠 삭제 금지. 삭제는 소스·테스트·검증기 참조 확인 후 별도 변경으로 다룬다.
-7. 완료 세션은 검증→commit→push→Ready PR→인수인계 순서를 지킨다. 다음 세션은 PR이 merge되면 최신 `origin/main` 기반 linked worktree에서 `npm run session:start -- --handoff=...`를 통과하고 시작한다. staging SHA 확인은 후속 감시이며 다음 세션의 선행 조건이 아니다.
+7. 완료 세션은 검증→commit→push→Ready PR→인수인계 순서를 지킨다. 다음 세션은 PR이 merge되면 최신 `origin/main` 기반 linked worktree에서 `npm run session:start -- --handoff=...`를 통과하고 시작한다.
 
 ## 코딩 원칙 (번호 유지)
 
@@ -43,6 +43,7 @@ GREEN은 관련 파일부터 수정하고, RED는 위험·검증·롤백을 먼�
 
 위치가 불명확하면 [ARCHITECTURE.md](ARCHITECTURE.md) → 심볼 → import → 호출부.
 5~15파일은 목표이며 필요한 회귀 확인을 막지 않는다. 관련 없는 전체 탐색·로그 전문·반복 읽기를 피한다.
+Do not scan or read the entire repository unless explicitly required. Use git grep/rg/git ls-files to locate relevant files first.
 npm run check:fast로 변경 기반 검사를 한 번 실행한다. 계획은 --plan. 위험 변경은 자동 승격되며 typecheck는 전체 incremental 1회다.
 로컬 Pages 빌드는 기존 --skip-build 계약을 유지한다. CI build 조건을 줄이려면 이 근거도 함께 갱신한다.
 CI 선택 실행은 10개 PR 비교 전까지 shadow다. 기존 검사를 삭제하지 않는다.
@@ -69,8 +70,11 @@ CI 선택 실행은 10개 PR 비교 전까지 shadow다. 기존 검사를 삭제
 Claude 훅은 Codex 훅이 아니다. 도구별 규칙 적용을 구분한다.
 충돌은 [CONTEXT_AUDIT](docs/CONTEXT_AUDIT.md)에 기록한다. 현재 상태는 [CURRENT_DEV_BASELINE](docs/CURRENT_DEV_BASELINE.md).
 
-## 2026-09-10 상시 연속 머지 정책
+## 2026-09-12 전달 흐름: CI까지, 머지는 사용자, 스테이징은 선택
 
-커밋 기반 PR은 각 최신 HEAD의 필수 CI와 delivery:admit을 확인한 뒤 연속 머지한다. PR 사이에 스테이징 도달을 기다리지 않는다. main 변경으로 무효화된 후보 검증만 갱신한다. PR 생성 전 ci:preflight와 보호 규칙은 유지한다. delivery:batch-plan은 의존성 계획 도구이며 PR별 admission을 대체하지 않는다. 활성 worktree 중첩은 delivery:admit의 동기 차단 검사가 아니다. 후보 커밋의 `git merge-tree --write-tree`, GitHub 병합 가능 상태, 최신 main 반영, 필수 CI가 입장 기준이며, 상세 중첩 진단은 필요할 때만 `npm run worktree:status`로 확인한다.
+기본 흐름은 ci:preflight→commit→push→Ready PR→PR CI 통과 확인에서 끝난다. 머지는 사용자가 한다. AI는 머지 가능 상태·안전한 순서만 보고하고 gh pr merge를 실행하지 않는다. 입장 기준은 필수 CI(없으면 `CI required` aggregate), 후보 커밋의 `git merge-tree --write-tree` 무충돌, 그 사이 main이 같은 파일을 건드리지 않았는지(파일 겹침)다. 최신 main 포함은 요구하지 않는다. 활성 worktree 중첩은 차단 조건이 아니며 필요할 때만 `npm run worktree:status`로 본다. delivery:batch-plan은 계획 도구이며 PR별 delivery:admit을 대체하지 않는다.
 
-마지막 병합의 전체 SHA를 고정해 npm run delivery:verify-batch -- --sha=<40자리 SHA>를 후속 실행하고 staging smoke·noindex·핵심 화면을 검증한다. 실패하면 운영 승격만 중단하고 원인·재조정을 보고한다. 다음 작업·PR·머지는 이 후속 검증을 기다리지 않으며, 이미 진행 중인 배포는 취소하지 않고 아직 배포하지 않은 낡은 staging 실행은 최신 main에 양보한다. 운영 승격은 별도 1회 승인 때만 수행한다. 이전의 PR별 staging 대기 조항보다 이 정책이 우선한다.
+스테이징은 main push마다 비동기로 배포된다. 스테이징 검증(`npm run verify:staging -- --sha=<40자리 SHA>`)은 사용자 요청, 배포 인프라 변경, 운영 릴리스 전(`npm run verify:release`), 대형 결제·로그인 변경 후, 라우팅 변경 후, 스테이징 전용 버그 조사 때만 한다. 운영 승격은 별도 1회 승인 때만 수행한다. 이전의 staging 대기·후속 감시 조항보다 이 절이 우선한다.
+
+Do not wait for or manually verify staging deployment after every PR merge. Once CI passes and the PR is merged, continue to the next task. Verify staging only when explicitly requested, when deployment infrastructure changed, or during a final batch/release verification.
+Do not poll staging URLs, deployment status, commit SHA, or freshness markers after routine merges.

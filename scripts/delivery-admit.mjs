@@ -35,7 +35,14 @@ export function parseRequiredChecks(output) {
   if (!Array.isArray(parsed)) throw new Error("필수 PR 검사 응답 형식이 배열이 아닙니다.");
   return parsed;
 }
-const git = (args, options) => command("git", args, options);
+export const AGGREGATE_CHECK = "CI required";
+// 룰셋에 필수 검사가 없으면 보고된 PR 체크 전체를 본다 — paid-flow-gates·secret-scan 등은 CI required 집계 밖이다.
+// 집계 체크가 아직 없으면 빈 목록(=차단). skip 판정 체크만 뺀다.
+export function selectRequiredChecks(checks, noRequired) {
+  if (!noRequired) return checks;
+  return checks.some((check) => check.name === AGGREGATE_CHECK) ? checks.filter((check) => check.bucket !== "skipping") : [];
+}
+const git =(args, options) => command("git", args, options);
 const gh = (args, options) => command("gh", args, options);
 
 // ── 캐시버스트 false CONFLICTING 자동 복구 ─────────────────────────────────────
@@ -127,8 +134,10 @@ export async function collectAdmission({ cwd = process.cwd(), prNumber, allowRec
   ]) : [{ ok: false, stderr: "origin/main을 확인하지 못했습니다." }, { ok: false, stderr: "origin/main을 확인하지 못했습니다." }];
   append(findings, mergeTree.ok, "Git-native merge-tree 충돌 없음", mergeTree.ok ? "후보 커밋을 최신 origin/main에 병합할 수 있습니다." : mergeTree.stderr || "후보 커밋과 최신 origin/main의 병합 충돌을 해결해야 합니다.");
   append(findings, preflight.ok, "최신 tree/main 로컬 preflight", preflight.ok ? "검증 증거 일치" : preflight.stderr || "npm run ci:preflight 필요");
-  const containsMain = mainSha ? await git(["merge-base", "--is-ancestor", "origin/main", "HEAD"], { cwd: root, optional: true }) : { ok: false };
-  append(findings, containsMain.ok, "최신 main 반영", containsMain.ok ? `${mainSha.slice(0, 12)} 포함` : "후보 브랜치가 최신 origin/main을 포함하지 않습니다.");
+  // 최신 main 포함은 입장 조건이 아니다(GitHub ruleset 도 요구하지 않음, 2026-09-12). 병합 충돌은 위 merge-tree 가,
+  // main 이 같은 파일을 건드린 경우는 preflight receipt 의 파일 겹침 검사가 막는다. 여기서는 뒤처진 정도만 알린다.
+  const behind = mainSha ? await git(["rev-list", "--count", "HEAD..origin/main"], { cwd: root, optional: true }) : { ok: false };
+  append(findings, true, "최신 main 반영(정보)", behind.ok && behind.stdout === "0" ? `${mainSha.slice(0, 12)} 포함` : `origin/main 보다 ${behind.ok ? behind.stdout : "?"}커밋 뒤 — 충돌·파일 겹침이 없으면 갱신 없이 머지 가능`);
   // 전체 활성 worktree 스캔은 동기 입장 조건에서 제외한다. 실제 병합 안전성은 후보 커밋
   // 자체의 merge-tree와 GitHub mergeability/필수 CI가 판정하고, 상세 중첩 진단은 필요할 때
   // 사용자가 별도로 `npm run worktree:status`를 실행한다.
@@ -158,10 +167,14 @@ export async function collectAdmission({ cwd = process.cwd(), prNumber, allowRec
   const headMatched = effective.headRefName === branch && effective.headRefOid === head;
   append(findings, headMatched, "후보와 PR head 일치", headMatched ? `${branch} @ ${head.slice(0, 12)}` : `현재 워크트리와 GitHub PR head가 일치하지 않습니다.${recoveryNote ? " 자동 복구로 원격 head 가 앞서 있으면 로컬을 맞추고 preflight 를 다시 실행하세요." : ""}`);
   append(findings, effective.mergeable === "MERGEABLE" && effective.mergeStateStatus === "CLEAN", "GitHub 병합 가능", `mergeable=${effective.mergeable}, state=${effective.mergeStateStatus}${recoveryNote}`);
-  const checks = await gh(["pr", "checks", String(prNumber), "--required", "--json", "name,state,bucket"], { cwd: root, optional: true });
-  if (!checks.ok) append(findings, false, "필수 PR CI", checks.stderr || checks.stdout || "필수 검사 실패 또는 아직 완료되지 않음");
+  const requiredChecks = await gh(["pr", "checks", String(prNumber), "--required", "--json", "name,state,bucket"], { cwd: root, optional: true });
+  // ruleset 에 필수 상태 검사가 없으면 --required 가 "no required checks reported" 로 실패한다(2026-09-12 실측).
+  // 그때는 pr-ci 의 단일 집계 체크를 필수로 간주한다. 집계 체크가 없으면 아래에서 차단된다(fail-closed).
+  const noRequired = !requiredChecks.ok && /no required checks/i.test(`${requiredChecks.stderr}\n${requiredChecks.stdout}`);
+  const checks = noRequired ? await gh(["pr", "checks", String(prNumber), "--json", "name,state,bucket"], { cwd: root, optional: true }) : requiredChecks;
+  if (!checks.ok && !(noRequired && checks.stdout.startsWith("["))) append(findings, false, "필수 PR CI", checks.stderr || checks.stdout || "필수 검사 실패 또는 아직 완료되지 않음");
   else try {
-    const required = parseRequiredChecks(checks.stdout);
+    const required = selectRequiredChecks(parseRequiredChecks(checks.stdout), noRequired);
     append(findings, required.length > 0, "필수 PR CI 존재", required.length > 0 ? `${required.length}개` : "필수 체크가 보고되지 않았습니다.");
     append(findings, required.length > 0 && required.every((check) => check.bucket === "pass"), "필수 PR CI 통과", required.map((check) => `${check.name}:${check.bucket}`).join(", "));
   } catch (error) { append(findings, false, "필수 PR CI", error.message); }
@@ -170,12 +183,12 @@ export async function collectAdmission({ cwd = process.cwd(), prNumber, allowRec
 function printReport(report, asJson) {
   if (asJson) return console.log(JSON.stringify(report, null, 2));
   for (const finding of report.findings) console.log(`${finding.ok ? "PASS" : "BLOCK"} ${finding.label}: ${finding.detail}`);
-  console.log(report.ok ? "[delivery-admit] PASS: 이 HEAD를 머지할 수 있습니다. 다음 PR도 admission을 확인하고, 배치 마지막 SHA는 delivery:verify-batch로 검증하세요." : "[delivery-admit] BLOCK: 실패 항목을 해결할 때까지 다음 PR을 포함해 머지하지 마세요.");
+  console.log(report.ok ? "[delivery-admit] PASS: 이 HEAD를 머지할 수 있습니다. 다음 PR도 admission을 확인하세요. 스테이징 확인은 선택(npm run verify:staging)입니다." : "[delivery-admit] BLOCK: 실패 항목을 해결할 때까지 다음 PR을 포함해 머지하지 마세요.");
 }
 export function selfTest() {
   const tests = [
     [argValue("pr", ["--pr=42"]) === "42", "--pr=값 형식"], [argValue("pr", ["--pr", "42"]) === "42", "--pr 값 형식"], [hasFlag("json", ["--json"]), "플래그 형식"],
-    [parseRequiredChecks('[{"name":"CI required","bucket":"pass"}]').length === 1, "필수 검사 배열 해석"], [summarizeAdmission([{ ok: true }, { ok: true }]).ok, "모든 조건 통과"], [!summarizeAdmission([{ ok: true }, { ok: false }]).ok, "하나라도 실패하면 차단"],
+    [parseRequiredChecks('[{"name":"CI required","bucket":"pass"}]').length === 1, "필수 검사 배열 해석"], [selectRequiredChecks([{ name: "paid", bucket: "fail" }, { name: "CI required", bucket: "pass" }], true).length === 2 && selectRequiredChecks([{ name: "lint" }], true).length === 0, "필수 검사 없으면 전체 체크(집계 체크 필수)"], [summarizeAdmission([{ ok: true }, { ok: true }]).ok, "모든 조건 통과"], [!summarizeAdmission([{ ok: true }, { ok: false }]).ok, "하나라도 실패하면 차단"],
     [hasUnresolvedConflicts("UU index.html"), "충돌 표식 감지"], [!hasUnresolvedConflicts(" M index.html\n?? tmp.txt"), "일반 변경은 충돌이 아니다"],
     [cachebustForcePushArgs({ branch: "feat/x", expectedOid: "a".repeat(40), newSha: "b".repeat(40) }).join(" ") === `push --force-with-lease=refs/heads/feat/x:${"a".repeat(40)} origin ${"b".repeat(40)}:refs/heads/feat/x`, "복구 push 인자"],
     [(() => { try { cachebustForcePushArgs({ branch: "main", expectedOid: "a".repeat(40), newSha: "b".repeat(40) }); return false; } catch { return true; } })(), "main 으로는 복구 push 하지 않는다"],
@@ -187,8 +200,8 @@ async function main() {
   if (hasFlag("self-test")) return selfTest();
   const prNumber = argValue("pr");
   if (!/^\d+$/.test(prNumber)) throw new Error("PR 번호가 필요합니다: npm run delivery:admit -- --pr=<number>");
-  // --auto-sync는 "최신 main 반영" 판정 자체는 바꾸지 않는다. 판정 전에 origin/main을 미리
-  // 병합·push해 그 판정이 자연히 통과하게 만들 뿐이며, 충돌 시에는 그대로 사람에게 넘긴다.
+  // --auto-sync는 판정 전에 origin/main을 미리 병합·push한다(선택). "최신 main 반영"은 이제 정보 항목이라
+  // 필요 없지만, 겹치는 파일 때문에 preflight 를 다시 돌려야 할 때 쓴다. 충돌 시에는 그대로 사람에게 넘긴다.
   if (hasFlag("auto-sync")) {
     const sync = await syncWithMain({ push: true });
     console.log(sync.ok ? `[delivery-admit] auto-sync: ${sync.message}` : `[delivery-admit] auto-sync FAIL: ${sync.message}`);

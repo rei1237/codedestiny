@@ -194,6 +194,13 @@ Pages 와 Worker 가 서로 다른 코드를 가리키는 것이 이 저장소�
 ## 개발환경 최적화 전환 (2026-09-08)
 공통 변경 검사 계획을 로컬에서 사용하며, CI는 10개 PR 동안 기존 검사와 새 계획을 비교하는 shadow 모드다. required check와 기존 실행 조건은 유지한다. 실제 범위 축소는 관측에서 누락이 없음을 확인한 별도 변경으로 한다. 시작 명령은 check:fast이며 위험 변경은 자동 승격한다. 기존 check:quick --skip-build 호환과 CI Pages 빌드 근거를 보존한다. 전체 incremental typecheck는 실행당 한 번이다. 동시 편집 때문에 모든 수정은 워크트리에서 수행한다. 노력 수준은 위험도에 맞추며 과거 전역 high 지시는 적용하지 않는다.
 
+## 2026-09-12 전달 흐름 개정 (아래 2026-09-08·09-10 절보다 우선)
+기본 흐름은 `ci:preflight` → commit → push → Ready PR → PR CI 통과 확인에서 끝난다. **머지는 사용자가 한다** — 에이전트는 머지 가능 상태와 안전한 순서만 보고하고 `gh pr merge`를 실행하지 않는다. 아래 절의 "에이전트가 머지"·"스테이징 후속 감시" 문구는 이 절로 대체됐다.
+- 입장 기준: 필수 CI(룰셋에 필수 검사가 없으면 보고된 PR 체크 전체 + `CI required` 집계), `git merge-tree --write-tree` 무충돌, merge-base 이후 main이 같은 파일을 건드리지 않음(파일 겹침). **최신 main 포함은 요구하지 않는다** — `delivery-admit.mjs`는 뒤처진 커밋 수를 정보로만 표시하고, `ci-preflight.mjs`는 조상 검사 대신 probe merge-tree + `checkUpstream`으로 판정한다.
+- 자동 브랜치 갱신 끔: `pr-branch-sync.yml`은 수동 실행 전용, `landing-watchdog.yml`의 `--update-branches`는 제거(스크립트 수동 옵션만 남음). main push마다 PR CI를 재실행시키던 원인이다.
+- 스테이징 검증은 선택: `npm run verify:staging -- --sha=<40자리 SHA>`(= `delivery:verify-batch`), 릴리스 전 `npm run verify:release`(= `deploy:critical`). 사용자 요청·배포 인프라 변경·운영 릴리스 전·대형 결제/로그인 변경·라우팅 변경·스테이징 전용 버그 때만 실행한다. 일상 머지 뒤 스테이징 URL·배포 상태·SHA를 폴링하지 않는다.
+- ⚠️ 2026-09-12 실측: 룰셋 20666260에 required status check 규칙이 없다 → GitHub가 빨간 CI PR의 머지를 막지 않는다. `CI required`를 required check(strict off)로 다시 넣는 것을 권고한다(설정 변경은 사용자 승인 사항).
+
 ## 2026-09-08 사용자 전달 방식 변경
 PR 생성 후 필수 검사와 최신 base 충돌을 확인하고 에이전트가 안전하게 머지한다. **순차 머지 큐는 Ready PR 한 건만 처리한다.** 후보 워크트리에서 `npm run delivery:admit -- --pr=<number>`가 통과해야 하며, 이 검사는 후보 clean 상태, 최신 `origin/main` 포함, GitHub 필수 CI 통과, 최신 PR HEAD와 검증 증거를 확인한다. 같은 파일을 수정 중인 활성 워크트리는 참고 경고로 기록하지만, PR의 커밋 집합과 GitHub 병합 가능 상태를 별도로 판정하므로 admission을 차단하지 않는다. 스테이징 도달은 admission 조건이 아니다. 하나라도 실패하면 그 PR을 건너뛰거나 다음 PR을 머지하지 않고 원인만 보고한다. 머지 뒤에는 다음 후보의 필수 CI와 admission을 확인해 연속 머지한다. PR 사이에 스테이징을 기다리지 않고 마지막 병합 SHA의 스테이징 Pages·Worker SHA와 읽기 전용 핵심 응답은 후속 감시로 검증한다. 과거 사용자 수동 머지·머지 후 배포 미확인 조항보다 이 지시가 우선한다. 프로덕션 승격은 여전히 사용자의 명시적인 1회 승인 때만 진행한다. branch protection을 우회하지 않으며 실패·필수 승인 대기는 보고한다.
 
@@ -214,11 +221,9 @@ PR 생성 후 필수 검사와 최신 base 충돌을 확인하고 에이전트�
 - CI 실패는 job/log → 원인 분류 → 로컬 재현·수정 → preflight → commit/push → 최신 head CI 확인까지 해결한다. 기존 실패를 성공으로 바꾸거나 rerun으로 숨기지 않는다.
 - 독립 기능은 독립 PR. 강한 의존 관계는 함께 묶고 UI·인프라는 가능한 분리한다. 범위 밖 수정·대규모 formatter·불필요한 lockfile 변경을 금지한다.
 
-## 2026-09-10 상시 연속 머지 정책
+## 2026-09-10 상시 연속 머지 정책 (역사 — 2026-09-12 개정으로 대체)
 
-커밋 기반 PR은 각 최신 HEAD의 필수 CI와 delivery:admit을 확인한 뒤 연속 머지한다. PR 사이에 스테이징 도달을 기다리지 않는다. main push는 짧은 디스패처만 실행하고 실제 스테이징 배포·검증은 별도 직렬 실행으로 비동기 처리한다. main 변경으로 무효화된 후보 검증만 갱신한다. PR 생성 전 ci:preflight와 보호 규칙은 유지한다. delivery:batch-plan은 의존성 계획 도구이며 PR별 admission을 대체하지 않는다.
-
-마지막 병합의 전체 SHA를 고정해 `npm run delivery:verify-batch -- --sha=<40자리 SHA>`를 후속 검증으로 실행하고 staging smoke·noindex·핵심 화면을 확인한다. 이 검증과 진행 중인 스테이징 배포는 다음 작업·PR·머지·새 워크트리 준비를 막지 않는다. 실패하면 운영 승격만 중단하고 원인·재조정을 보고한다. 이미 진행 중인 배포는 취소하지 않고 아직 배포하지 않은 낡은 staging 실행은 최신 main에 양보한다. 운영 승격은 별도 1회 승인 때만 수행한다. 이전의 PR별 staging 대기 조항보다 이 정책이 우선한다.
+main push는 짧은 디스패처만 실행하고 실제 스테이징 배포·검증은 별도 직렬 실행으로 비동기 처리한다. 이미 진행 중인 배포는 취소하지 않고 아직 배포하지 않은 낡은 staging 실행은 최신 main에 양보한다. 머지 주체·입장 기준·스테이징 검증 시점은 위 2026-09-12 절을 따른다.
 
 ## 2026-09-11 `ci-preflight.mjs` 재사용 조건을 파일 겹침 기준으로 완화
 
@@ -226,7 +231,7 @@ PR 생성 후 필수 검사와 최신 base 충돌을 확인하고 에이전트�
 
 지금은 `upstreamCompatible`/`checkUpstream`(`ci-preflight.mjs`)이 "receipt.base가 최신 main의 조상이고, 그 사이 upstream이 건드린 파일이 이번 후보가 건드린 파일과 하나도 겹치지 않을 때"만 재사용을 허용한다. main이 rebase/force-push로 재작성돼 조상 관계 자체가 깨지면(`ancestor: false`) 항상 차단한다(fail-closed 유지). receipt에는 이제 `files` 필드가 함께 기록되어 재사용 시점에 재계산 없이 그대로 쓰인다. `--create-pr`의 "branch가 최신 main을 이미 포함해야 함" 요구(과거 `merge-base --is-ancestor base HEAD`)는 이 완화의 대상 그 자체이므로 제거했다 — receipt.base가 애초에 HEAD의 조상이라는 사실은 최초 preflight 실행 시점에 이미 확인된다. 검증 루프 진행 중 origin/main이 전진하는 경우(`assertBase`)와 종료 직후 최종 확인도 동일한 `checkUpstream`으로 판정하며, 통과 시 그 시점의 `base`를 갱신해 이후 판정 기준으로 삼는다.
 
-잔여 위험(재사용 완화): 파일명이 겹치지 않아도 의미론적 의존성(예: 다른 파일의 export 시그니처 변경)은 이 검사로 잡히지 않는다. 이는 새로운 위험이 아니라 GitHub Merge Queue 미제공·strict 비활성으로 현재도 감수 중인 위험과 같은 선상이다. `delivery-admit.mjs`의 "최신 main 반영" 자체 게이트와 plain 실행 시작 시 조상 검사(`ci-preflight.mjs`)는 이번 완화 대상이 아니며 그대로 유지된다.
+잔여 위험(재사용 완화): 파일명이 겹치지 않아도 의미론적 의존성(예: 다른 파일의 export 시그니처 변경)은 이 검사로 잡히지 않는다. 이는 새로운 위험이 아니라 GitHub Merge Queue 미제공·strict 비활성으로 현재도 감수 중인 위험과 같은 선상이다. (2026-09-12 갱신) `delivery-admit.mjs`의 "최신 main 반영" 게이트와 plain 실행 시작 시 조상 검사(`ci-preflight.mjs`)도 제거했다 — 둘 다 merge-tree 충돌 + 파일 겹침 판정으로 대체됐다(위 2026-09-12 절).
 
 ## 2026-09-11 캐시버스트 false CONFLICTING 자동 복구
 

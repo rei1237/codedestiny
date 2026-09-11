@@ -98,8 +98,15 @@ async function main() {
     return;
   }
   if (!planOnly && existsSync(receiptPath)) unlinkSync(receiptPath);
-  git(["merge-base", "--is-ancestor", base, "HEAD"]);
-  const files = git(["diff", "--name-only", base, candidate]).split(/\r?\n/).filter(Boolean);
+  // 브랜치가 최신 main 을 포함할 필요는 없다(GitHub ruleset 도 요구하지 않음). 후보 diff 는 merge-base 기준으로
+  // 잡고, main 과 병합 충돌이 나거나 그 사이 main 이 같은 파일을 건드렸으면 차단한다(delivery:admit 과 같은 기준).
+  const diffBase = git(["merge-base", base, "HEAD"]);
+  const files = git(["diff", "--name-only", diffBase, candidate]).split(/\r?\n/).filter(Boolean);
+  if (diffBase !== base && !planOnly) {
+    const probe = git(["commit-tree", candidate, "-p", head, "-m", "Local preflight merge probe (not published)"]);
+    try { git(["merge-tree", "--write-tree", base, probe]); } catch { throw new Error("Candidate conflicts with latest origin/main. Merge or rebase main, then run preflight again."); }
+    if (!checkUpstream(diffBase, base, files)) throw new Error("origin/main changed files this candidate also changes. Merge or rebase main, then run preflight again.");
+  }
   const tier = argv.includes("--full") ? "critical" : resolveTier(files);
   const workflow = require("js-yaml").load(readFileSync(resolve(root, ".github/workflows/pr-ci.yml"), "utf8"));
   const runFast = argv.includes("--full") || shouldRunFastChecks(files);
@@ -112,7 +119,7 @@ async function main() {
     "npm run verify:business-identity",
     "npm run verify:sukuyo-astronomy",
   );
-  console.log(JSON.stringify({ base, tree: candidate, tier, files, commands }, null, 2));
+  console.log(JSON.stringify({ base, diffBase, tree: candidate, tier, files, commands }, null, 2));
   if (planOnly) return;
   const dependencies = resolve(root, "node_modules");
   if (!existsSync(dependencies)) throw new Error("Run npm ci and npx playwright install chromium first.");
@@ -131,7 +138,7 @@ async function main() {
     symlinkSync(dependencies, resolve(snapshot, "node_modules"), process.platform === "win32" ? "junction" : "dir");
     const guard = resolve(snapshot, "scripts/lib/mock-network-guard.cjs").replaceAll("\\", "/");
     // The UUID checkout has its own .next; unrelated dev servers cannot own it.
-    const env = { ...process.env, PR_BASE_SHA: base, PR_HEAD_SHA: commit, LLM_DRY_RUN: "true", WORKERS_AI_ENABLED: "false", NEXT_TELEMETRY_DISABLED: "1", WRANGLER_SEND_METRICS: "false", ALLOW_DEV_SERVER_DURING_BUILD: "1", NODE_OPTIONS: `${process.env.NODE_OPTIONS || ""} --require="${guard}"`.trim() };
+    const env = { ...process.env, PR_BASE_SHA: diffBase, PR_HEAD_SHA: commit, LLM_DRY_RUN: "true", WORKERS_AI_ENABLED: "false", NEXT_TELEMETRY_DISABLED: "1", WRANGLER_SEND_METRICS: "false", ALLOW_DEV_SERVER_DURING_BUILD: "1", NODE_OPTIONS: `${process.env.NODE_OPTIONS || ""} --require="${guard}"`.trim() };
     const npm = process.env.npm_execpath;
     if (!npm) throw new Error("Invoke through npm run ci:preflight");
     const assertBase = () => {
@@ -174,7 +181,7 @@ async function main() {
       run(process.execPath, binary === "npm" ? [npm, ...args] : args, { cwd: snapshot, env });
     }
     // Scope uses the exact snapshot diff, including uncommitted shell payment edits.
-    const scope = run(process.execPath, ["scripts/resolve-paid-gate-scope.mjs", "--base", base, "--head", commit], { cwd: snapshot, env, capture: true });
+    const scope = run(process.execPath, ["scripts/resolve-paid-gate-scope.mjs", "--base", diffBase, "--head", commit], { cwd: snapshot, env, capture: true });
     console.log(scope);
     if (!scope.includes("[paid-gate-scope] run=false")) {
       // No base attribution waiver: every paid regression must pass locally.

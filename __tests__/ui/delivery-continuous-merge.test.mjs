@@ -7,7 +7,7 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { batchVerificationArgs } from '../../scripts/delivery-verify-batch.mjs';
 import { shouldDeployStaging } from '../../scripts/staging-release-current.mjs';
-import { cachebustForcePushArgs, hasUnresolvedConflicts, rebaseWithCachebustDriver, summarizeAdmission } from '../../scripts/delivery-admit.mjs';
+import { cachebustForcePushArgs, hasUnresolvedConflicts, rebaseWithCachebustDriver, selectRequiredChecks, summarizeAdmission } from '../../scripts/delivery-admit.mjs';
 import { upstreamCompatible } from '../../scripts/ci-preflight.mjs';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
@@ -18,6 +18,20 @@ test('upstream file overlap gates receipt/PR reuse; rewritten history always blo
   assert.equal(upstreamCompatible({ ancestor: true, upstreamFiles: [], files: ['a.ts'] }), true);
   assert.equal(upstreamCompatible({ ancestor: true, upstreamFiles: ['b.ts'], files: ['a.ts'] }), true);
   assert.equal(upstreamCompatible({ ancestor: true, upstreamFiles: ['a.ts'], files: ['a.ts'] }), false);
+});
+test('latest-main containment is informational; conflicts and upstream file overlap still block', () => {
+  const preflight = readFileSync(new URL('../../scripts/ci-preflight.mjs', import.meta.url), 'utf8');
+  assert.doesNotMatch(preflight, /"--is-ancestor", base, "HEAD"/);
+  assert.match(preflight, /"merge-tree", "--write-tree", base, probe/);
+  assert.match(preflight, /checkUpstream\(diffBase, base, files\)/);
+  const admit = readFileSync(new URL('../../scripts/delivery-admit.mjs', import.meta.url), 'utf8');
+  assert.match(admit, /append\(findings, true, "최신 main 반영\(정보\)"/);
+});
+test('without ruleset required checks, admission requires every reported PR check incl. the CI required aggregate (fail-closed)', () => {
+  const checks = [{ name: 'paid-flow-gates', bucket: 'fail' }, { name: 'optional', bucket: 'skipping' }, { name: 'CI required', bucket: 'pass' }];
+  assert.deepEqual(selectRequiredChecks(checks, true).map((check) => check.name), ['paid-flow-gates', 'CI required']);
+  assert.equal(selectRequiredChecks([{ name: 'lint' }], true).length, 0);
+  assert.equal(selectRequiredChecks([{ name: 'lint' }], false).length, 1);
 });
 test('batch completion requires explicit SHA and both staging layers', () => {
   assert.deepEqual(batchVerificationArgs([`--sha=${sha}`]), ['scripts/verify-deployed-sha.mjs', `--sha=${sha}`, '--origin=https://staging.code-destiny.com']);
