@@ -19,6 +19,7 @@ next: PR 머지 후 남은 결함 1(해시 진입 시 홈 사라짐)을 0d805da8
    - `js/core/service-registry.js` music `price: "무료 재생 · 다운로드 1,000원"`.
    - `index.html` `data-price="low"` 칩 "1천원대", `public/i18n/*.json` `home.mobileFunnel.lowPrice` 12개 언어.
    - `scripts/verify-home-service-registry.mjs` 가격 형식·PG 최소 1,000원 검사 복원.
+   - 같은 #1835에 되돌려진 `e56f1aaf2`(krw-copy-canonical 가드가 `lib/music-access-policy.js` 1,000원을 정본으로 인정)·`6129ceb28`(ja·zh-cn·zh-tw `lowPrice`에 ₩ 표기)를 `cherry-pick -x`로 복원 — 없으면 paid-gate-suite 가 음악 1,000원을 폐지 가격으로 판정해 막는다.
 3. **카드 이미지** — 매핑 없는 36개가 공통 로고로 폴백되던 것을 기능 상세 대표 이미지 `/feature-details/assets/<id>-480.webp` 파생 규칙으로 교체. 깨진 `tarot-celestial-harmony` 명시 경로 제거, `points` → `/fuctionassets/membership-honey-kkulkkul.webp`. verify에 "최종 이미지 파일이 public/에 존재" fail-closed 검사 추가(변이 테스트로 무는 것 확인).
 4. **중복 삭제**(deletion-auditor 3면 확인 후)
    - `#cdFinder` 내부 중복 제목 `h2#cdFinderTitle` → `aria-labelledby="cdhServicesTitle"`.
