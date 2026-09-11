@@ -2255,6 +2255,8 @@ function __cdEnsureSajuCoreLoaded() {
     '/js/compat-llm-prompts.js?v=build-e6a209c353a5',
     '/js/saju-engine.js?v=build-e6a209c353a5',
       '/js/core/saju/extremeTResult.js?v=build-e6a209c353a5',
+      /* 숙요 정본(Swiss 항성 달 황경). quantum.js 의 calcSukuyoData 가 이것 없이는 수(宿)를 내지 않는다. */
+      '/js/core/sukuyo-astronomy.js?v=build-1f74aa8391af',
       '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-e6a209c353a5',
     '/js/core/saju/basicFortunePresentation.js?v=build-e6a209c353a5',
     '/js/core/saju/modalProfileState.js?v=build-e6a209c353a5',
@@ -4330,6 +4332,61 @@ function _dfDeriveZiweiDomain(ziweiRaw) {
   };
 }
 
+/*
+ * 숙(宿)은 출생 순간의 Swiss 항성 달 황경으로만 정한다(calcSukuyoData 가 moonEclipticLongitude 없이는
+ * 수를 내지 않는다). 코어는 WASM 을 기다리는 비동기라서 생년월일시·출생지별로 한 번 계산해 담아 두고,
+ * 첫 호출은 null(숙요 없음)로 넘긴 뒤 계산이 끝나면 스튜디오를 다시 그린다. 실패하면 그 출생 정보에
+ * 대해선 다시 조르지 않고 숙요 없이 둔다 — 날짜로 숙을 지어내지 않는다.
+ */
+var _dfSukuyoAstronomyCache = { key: '', value: null, failed: false, pending: false };
+
+function _dfSukuyoBirthKey(birthCtx) {
+  return [birthCtx.year, birthCtx.month, birthCtx.day, birthCtx.hour, birthCtx.minute, birthCtx.tz, birthCtx.lat, birthCtx.lon].join('|');
+}
+
+function _dfEnsureSukuyoAstronomy(birthCtx, key, lunarObj) {
+  var cache = _dfSukuyoAstronomyCache;
+  if (cache.key === key && (cache.value || cache.failed || cache.pending)) return;
+  if (typeof window.__cdCalculateSukuyoAstronomy !== 'function') return;
+  cache.key = key;
+  cache.value = null;
+  cache.failed = false;
+  cache.pending = true;
+  var num = function (v, fallback) { return v != null && v !== '' && Number.isFinite(Number(v)) ? Number(v) : fallback; };
+  Promise.resolve().then(function () {
+    return window.__cdCalculateSukuyoAstronomy({
+      year: Number(birthCtx.year),
+      month: Number(birthCtx.month),
+      day: Number(birthCtx.day),
+      hour: num(birthCtx.hour, 12),
+      minute: num(birthCtx.minute, 0),
+      timezoneOffset: num(birthCtx.tz, 9),
+      latitude: num(birthCtx.lat, 37.5665),
+      longitude: num(birthCtx.lon, 126.978)
+    });
+  }).then(function (astronomy) {
+    if (cache.key !== key) return;
+    var enriched = Object.assign({}, lunarObj, astronomy);
+    var sData = window.calcSukuyoData(enriched);
+    if (!sData) throw new Error('SUKUYO_MANSION_UNRESOLVED');
+    cache.value = { lunarObj: enriched, sData: sData };
+    cache.pending = false;
+    // 스튜디오를 연 적이 없으면 다시 그릴 것이 없다 — 다음에 열 때 담아 둔 값을 쓴다.
+    if (!_dfStudioState.selection && !_dfStudioState.flowerData) return;
+    try {
+      if (_dfStudioState.flowerData) _dfStudioState.flowerData.sources = {};
+      _dfRefreshStudioForSource(_dfStudioState.activeSource || 'saju', true);
+    } catch (refreshError) {
+      console.warn('[DestinyFlower] 숙요 결과 반영 실패:', refreshError);
+    }
+  }).catch(function (error) {
+    if (cache.key !== key) return;
+    cache.failed = true;
+    cache.pending = false;
+    console.warn('[DestinyFlower] 숙요 천문 계산 실패:', error);
+  });
+}
+
 function _dfExtractSukuyoLiveData(birthCtx) {
   if (!_dfHasBirthCore(birthCtx) || typeof window.calcSukuyoData !== 'function') return null;
 
@@ -4351,13 +4408,20 @@ function _dfExtractSukuyoLiveData(birthCtx) {
 
   if (!lunarObj) return null;
 
+  var sukuyoKey = _dfSukuyoBirthKey(birthCtx);
+  var cached = _dfSukuyoAstronomyCache.key === sukuyoKey ? _dfSukuyoAstronomyCache.value : null;
+  if (!cached) {
+    _dfEnsureSukuyoAstronomy(birthCtx, sukuyoKey, lunarObj);
+    return null;
+  }
+
   try {
-    var sData = window.calcSukuyoData(lunarObj);
+    var sData = cached.sData;
     if (!sData) return null;
 
     var phase = '';
     if (typeof window.getDailyKarmicGuidance === 'function') {
-      var daily = window.getDailyKarmicGuidance(lunarObj, sData.mansion);
+      var daily = window.getDailyKarmicGuidance(cached.lunarObj, sData.mansion);
       phase = (daily && daily.moon && daily.moon.label) ? String(daily.moon.label) : '';
     }
 
@@ -8222,6 +8286,7 @@ function __cdEnsureSukuyoZiweiCoreLoaded() {
     typeof window.renderSukuyo !== 'function' ||
     typeof window.renderZiwei !== 'function' ||
     typeof window.calcSukuyoData !== 'function' ||
+    typeof window.__cdCalculateSukuyoAstronomy !== 'function' ||
     typeof window.calcZiweiPalaces !== 'function'
   );
 
@@ -8234,6 +8299,7 @@ function __cdEnsureSukuyoZiweiCoreLoaded() {
     '/js/core/korean-calendar.js?v=build-e6a209c353a5',
     '/js/compat-llm-prompts.js?v=build-e6a209c353a5',
       '/js/saju-engine.js?v=build-e6a209c353a5',
+      '/js/core/sukuyo-astronomy.js?v=build-1f74aa8391af',
       '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-e6a209c353a5'
   ];
 

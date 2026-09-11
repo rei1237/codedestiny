@@ -26,6 +26,9 @@ export const DAILY_FORTUNE_SYSTEMS: readonly DailyFortuneSystemMeta[] = [
 export interface DailyFortuneInput {
   birthDate?: string | null; // "YYYY-MM-DD"
   birthTime?: string | null; // "HH:MM"
+  // 오늘(12:00 KST) 달의 숙 0-based 인덱스. /api/fortune/today-hub 가 Swiss 항성 달 황경으로
+  // 계산한 값만 받는다. 없으면(오프라인·응답 전) 숙 이름 없이 중립 문구로 그린다.
+  todayMansionIndex?: number | null;
 }
 
 export interface DailyFortune {
@@ -265,7 +268,9 @@ function buildVedic(input: DailyFortuneInput, now: Date): DailyFortune {
 }
 
 // ── 숙요점(27수 기운) ─────────────────────────────────────────
-// 달이 머무는 별자리의 기운을 하루 단위로. 무거운 음력 엔진 없이 27일 주기로 결정론 순환한다.
+// 달이 머무는 별자리의 기운을 하루 단위로. 수(宿)는 이 파일에서 추정하지 않는다 — 달은 27일이
+// 아니라 약 27.3일에 한 바퀴를 돌아 날짜 순환으로는 실제 달 위치와 금방 어긋난다. 순서는
+// Swiss 코어(buildSukuyoFromMoonLongitude)의 0-based 인덱스와 같다(0 = 각).
 const SUKUYO_MANSION: readonly { name: string; theme: string }[] = [
   { name: "각(角)", theme: "첫 문을 여는" }, { name: "항(亢)", theme: "기준을 세우는" },
   { name: "저(氐)", theme: "뿌리를 다지는" }, { name: "방(房)", theme: "중심을 품는" },
@@ -292,9 +297,10 @@ const SUKUYO_DAILY: readonly string[] = [
 ];
 
 function buildSukuyo(input: DailyFortuneInput, now: Date): DailyFortune {
-  const t = kstParts(now);
-  const jd = julianDay(t.y, t.m, t.d);
-  const mansion = SUKUYO_MANSION[(Math.floor(jd + 0.5) % 27 + 27) % 27];
+  const idx = input.todayMansionIndex;
+  const mansion = typeof idx === "number" && Number.isInteger(idx) && idx >= 0 && idx < SUKUYO_MANSION.length
+    ? SUKUYO_MANSION[idx]
+    : null;
   const seed = hashStr(dateKeyOf(now) + "sukuyo");
   const birth = parseYmd(input.birthDate);
   const body = pickBy(SUKUYO_DAILY, seed);
@@ -302,8 +308,8 @@ function buildSukuyo(input: DailyFortuneInput, now: Date): DailyFortune {
     system: "sukuyo",
     label: "숙요점",
     emoji: "🌙",
-    anchor: `오늘의 수(宿) · ${mansion.name}`,
-    headline: `${mansion.theme} 별이 하루를 이끕니다`,
+    anchor: mansion ? `오늘의 수(宿) · ${mansion.name}` : "오늘의 수(宿)",
+    headline: mansion ? `${mansion.theme} 별이 하루를 이끕니다` : "달이 머무는 별이 하루를 이끕니다",
     body,
     personalized: Boolean(birth),
   };

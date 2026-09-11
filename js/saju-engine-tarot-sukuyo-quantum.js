@@ -6693,8 +6693,60 @@ function renderLottoNumbers(natal, bazi){
 /* ─────────────────────────────────────────────────────────
  * LUNAR-SOLAR HYBRID ENGINE: SUKUYO & QUANTUM SAJU
  * ───────────────────────────────────────────────────────── */
+/**
+ * 출생 순간(현지 벽시계)을 숙요 코어 입력으로 만든다.
+ * lunarObj 에 양력 부품(solarYear…)이 있으면 그것을, 없으면 결과 화면의 표준시 출생 데이터(window._astroBirth)를 쓴다.
+ * 🔴 _ziweiBirth 는 진태양시 보정값이라 쓰지 않는다 — 서버 코어도 표준시 벽시계를 UTC 로 바꾼다.
+ */
+function sySukuyoMomentFromBirth(lunarObj) {
+    var hasSolar = lunarObj && [lunarObj.solarYear, lunarObj.solarMonth, lunarObj.solarDay].every(function (v) { return v != null && Number.isFinite(Number(v)); });
+    var b = hasSolar ? {
+        year: lunarObj.solarYear, month: lunarObj.solarMonth, day: lunarObj.solarDay,
+        hour: lunarObj.hour, minute: lunarObj.minute,
+        tz: lunarObj.timezoneOffset, lat: lunarObj.latitude, lon: lunarObj.longitude
+    } : window._astroBirth;
+    if (!b || ![b.year, b.month, b.day].every(function (v) { return v != null && Number.isFinite(Number(v)); })) return null;
+    var num = function (v, fallback) { return v != null && v !== '' && Number.isFinite(Number(v)) ? Number(v) : fallback; };
+    return {
+        year: Number(b.year), month: Number(b.month), day: Number(b.day),
+        hour: num(b.hour, 12), minute: num(b.minute, 0),
+        timezoneOffset: num(b.tz, 9), latitude: num(b.lat, 37.5665), longitude: num(b.lon, 126.978)
+    };
+}
+
+/**
+ * 폼 입력(연월일 + 달력 종류 + 시분)을 숙요 코어 입력으로 만든다. 음력이면 한국 음양력 코어로 양력으로 옮긴다.
+ * 위치·시간대는 이 파일의 다른 폼 입력과 같이 결과 화면 출생지(_astroBirth)를 따르고, 없으면 서울·KST.
+ */
+function sySukuyoMomentFromInput(year, month, day, calendarType, hour, minute) {
+    var cal = String(calendarType || 'solar');
+    var solar = { year: Number(year), month: Number(month), day: Number(day) };
+    if (cal === 'lunar' || cal === 'lunar_leap') {
+        solar = (typeof KasiEngine !== 'undefined' && typeof KasiEngine.lunarToSolar === 'function')
+            ? KasiEngine.lunarToSolar(Number(year), Number(month), Number(day), cal === 'lunar_leap')
+            : null;
+    }
+    if (!solar) return null;
+    var b = window._astroBirth || window._ziweiBirth || {};
+    return sySukuyoMomentFromBirth({
+        solarYear: solar.year, solarMonth: solar.month, solarDay: solar.day,
+        hour: hour, minute: minute,
+        timezoneOffset: b.tz, latitude: b.lat, longitude: b.lon
+    });
+}
+
+/** 코어로 달 황경을 계산해 lunarObj 에 싣는다. 코어가 없거나 실패하면 reject — 호출부가 기존 실패 경로로 보낸다. */
+function syComputeSukuyoAstronomy(lunarObj, moment) {
+    if (!moment || typeof window.__cdCalculateSukuyoAstronomy !== 'function') {
+        return Promise.reject(new Error('SUKUYO_ASTRONOMY_CORE_UNAVAILABLE'));
+    }
+    return Promise.resolve(window.__cdCalculateSukuyoAstronomy(moment)).then(function (astronomy) {
+        return Object.assign({}, lunarObj || {}, astronomy);
+    });
+}
+
 function calcSukuyoData(lunarObj, opt = { leapRule: 'current' }) {
-    if (!lunarObj || (!lunarObj.month || !lunarObj.day) && !Number.isFinite(Number(lunarObj.moonEclipticLongitude))) return null;
+    if (!lunarObj) return null;
 
     const mansions27 = [
         { name: "각", ch_name: "角" }, { name: "항", ch_name: "亢" }, { name: "저", ch_name: "氐" },
@@ -6708,28 +6760,14 @@ function calcSukuyoData(lunarObj, opt = { leapRule: 'current' }) {
         { name: "성", ch_name: "星" }, { name: "장", ch_name: "張" }, { name: "익", ch_name: "翼" }, { name: "진", ch_name: "軫" }
     ];
 
-    const monthStartOffsets = [11, 13, 15, 17, 19, 21, 23, 25, 0, 2, 4, 7];
-
-    let m_month = parseInt(lunarObj.month, 10);
-    let m_day = parseInt(lunarObj.day, 10);
-    let isLeap = !!lunarObj.isLeap;
-
-    if (Number.isFinite(Number(lunarObj.moonEclipticLongitude)) && typeof window.__cdBuildSukuyoFromMoonLongitude === 'function') {
-        const astronomy = window.__cdBuildSukuyoFromMoonLongitude(lunarObj.moonEclipticLongitude);
-        if (!astronomy) return null;
-        lunarObj.lunarMansion = astronomy.mansionIdx;
-    }
-
-    if (isLeap && opt.leapRule === 'previous') {
-        m_month = m_month === 1 ? 12 : m_month - 1;
-    }
-
-    let startIdx = monthStartOffsets[m_month - 1];
-    if (startIdx === undefined) startIdx = 11;
-
-    let finalIdx = Number.isFinite(Number(lunarObj.moonEclipticLongitude))
-      ? Number(lunarObj.lunarMansion)
-      : (startIdx + m_day - 1) % 27;
+    // 🔴 수(宿)는 Swiss 항성 달 황경(js/core/sukuyo-astronomy.js)으로만 정한다 — 서버 코어와 같은 식이다.
+    //    옛 음력 월초 표 폴백은 걷어냈다: 달 황경이 없으면 표로 대신 채우지 않고 null(fail-closed).
+    //    달 황경은 호출부가 syComputeSukuyoAstronomy 로 먼저 실어 온다.
+    if (!Number.isFinite(Number(lunarObj.moonEclipticLongitude)) || typeof window.__cdBuildSukuyoFromMoonLongitude !== 'function') return null;
+    const astronomy = window.__cdBuildSukuyoFromMoonLongitude(lunarObj.moonEclipticLongitude);
+    if (!astronomy || !Number.isInteger(astronomy.mansionIdx)) return null;
+    const finalIdx = astronomy.mansionIdx;
+    lunarObj.lunarMansion = finalIdx;
     let m_data = mansions27[finalIdx];
     let m = m_data.name;
 
@@ -10290,6 +10328,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     var area = document.getElementById('sukuyoSection');
     var card = document.getElementById('sukuyoCard');
     if (!area || !card) return;
+    var _syRenderSeq = window.__sySukuyoRenderSeq = (window.__sySukuyoRenderSeq || 0) + 1;
 
     // CSS를 document.head에 주입 (모바일 WebKit innerHTML <style> 미적용 버그 방지 + iOS backdrop-filter 화이트스크린 수정)
     if (!document.getElementById('sy-main-style')) {
@@ -10847,7 +10886,22 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         } catch (e) {}
     }
 
-    let sData = lunarObj ? calcSukuyoData(lunarObj) : null;
+    // 달 황경이 아직 없으면 코어를 비동기로 부르고, 실어 온 값으로 이 함수를 다시 부른다.
+    // 코어가 실패하면 syAstronomyUnavailable 표식으로 다시 불러 빈 상태(!sData)로 그린다 — 옛 표로 채우지 않는다.
+    if (!lunarObj || (!Number.isFinite(Number(lunarObj.moonEclipticLongitude)) && !lunarObj.syAstronomyUnavailable)) {
+        var _syPending = lunarObj;
+        syComputeSukuyoAstronomy(_syPending, sySukuyoMomentFromBirth(_syPending)).catch(function (err) {
+            console.warn('[Sukuyo] Swiss 항성 달 황경 계산 실패 — 수(宿)를 비워 둡니다:', err && err.message ? err.message : err);
+            return Object.assign({}, _syPending || {}, { syAstronomyUnavailable: true });
+        }).then(function (next) {
+            if (_syRenderSeq !== window.__sySukuyoRenderSeq) return; // 그 사이 더 새 렌더가 있었다
+            renderSukuyo(p, natal, bazi, next, canonicalPayload, sourceProfile);
+        });
+        area.innerHTML = '<div class="fr-state" role="status" aria-live="polite">태어난 날의 숙을 읽고 있어요.</div>';
+        return;
+    }
+
+    let sData = calcSukuyoData(lunarObj);
     let dailyFlow = sData ? getDailyKarmicGuidance(lunarObj, sData.mansion) : null;
 
     window._syLastSukuyoBasicResult = sData ? {
@@ -12211,11 +12265,11 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     if (!Number.isFinite(hour)) hour = 12;
     if (!Number.isFinite(minute)) minute = 0;
     var cal = String(calendarType || 'solar');
-    if (cal === 'lunar' || cal === 'lunar_leap') {
-      return { year: parsed.year, month: parsed.month, day: parsed.day, isLeap: cal === 'lunar_leap' };
-    }
     var lunarObj = null;
-    if (typeof resolvePrimaryCalendarContext === 'function') {
+    if (cal === 'lunar' || cal === 'lunar_leap') {
+      lunarObj = { year: parsed.year, month: parsed.month, day: parsed.day, isLeap: cal === 'lunar_leap' };
+    }
+    if (!lunarObj && typeof resolvePrimaryCalendarContext === 'function') {
       var lat = (window._astroBirth && window._astroBirth.lat) || (window._ziweiBirth && window._ziweiBirth.lat) || 37.5665;
       var lon = (window._astroBirth && window._astroBirth.lon) || (window._ziweiBirth && window._ziweiBirth.lon) || 126.9780;
       var tz = (window._astroBirth && window._astroBirth.tz != null) ? window._astroBirth.tz : ((window._ziweiBirth && window._ziweiBirth.tz != null) ? window._ziweiBirth.tz : 9);
@@ -12243,7 +12297,12 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       lunarObj = KasiEngine.solarToLunarFromParts(_kasiPartsOf(parsed.year, parsed.month, parsed.day, hour, minute, 0));
     }
     if (!lunarObj) throw new Error('음력 변환에 실패했습니다.');
-    return lunarObj;
+    // 수(宿)는 음력일이 아니라 출생 순간의 Swiss 항성 달 황경으로 정한다 — calcSukuyoData 가 이 값만 읽는다.
+    try {
+      return await syComputeSukuyoAstronomy(lunarObj, sySukuyoMomentFromInput(parsed.year, parsed.month, parsed.day, cal, hour, minute));
+    } catch (_astroErr) {
+      throw new Error('달의 위치를 계산하지 못했습니다. 잠시 후 다시 시도해 주세요.');
+    }
   }
 
   function syRadarReadField(form, selector) {
@@ -16849,7 +16908,11 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           }
 
           let tData;
-          try { tData = calcSukuyoData(lunarObj); } catch(_ce) { tData = null; }
+          // 수(宿)는 출생 순간의 Swiss 항성 달 황경으로 정한다. 코어가 실패하면 아래 실패 알림으로 간다(옛 표 폴백 없음).
+          try {
+              lunarObj = await syComputeSukuyoAstronomy(lunarObj, sySukuyoMomentFromInput(y, m, d, calType, h, min));
+              tData = calcSukuyoData(lunarObj);
+          } catch(_ce) { tData = null; }
           if(!tData) {
               ld.style.display = 'none';
               window._sy3Running = false;
