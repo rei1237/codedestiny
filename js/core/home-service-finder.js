@@ -378,36 +378,6 @@
     panel.hidden = false;
   }
 
-  /* 전체 서비스 인덱스용 — 이름 + 한 줄 메타 */
-  function renderCompactResults(panel, list) {
-    panel.textContent = "";
-    if (!list.length) {
-      var empty = document.createElement("p");
-      empty.className = "cd-svc-index__empty";
-      empty.textContent = translate("home.svcIndex.empty", "검색 결과가 없어요. 다른 키워드로 찾아보세요.");
-      panel.appendChild(empty);
-      panel.hidden = false;
-      return;
-    }
-    var frag = document.createDocumentFragment();
-    list.slice(0, 8).forEach(function (item) {
-      var node = openerNode(item, "cd-svc-hit");
-      appendServiceImage(node, item, "cd-svc-hit__media");
-      var name = document.createElement("strong");
-      name.textContent = item.name;
-      node.appendChild(name);
-      var meta = item.desc || item.price;
-      if (meta) {
-        var metaEl = document.createElement("span");
-        metaEl.textContent = item.price && item.desc ? item.desc + " · " + item.price : meta;
-        node.appendChild(metaEl);
-      }
-      frag.appendChild(node);
-    });
-    panel.appendChild(frag);
-    panel.hidden = false;
-  }
-
   /* ── 마운트 ─────────────────────────────────────────────────── */
   function pressedValues(root, attr, selector) {
     var out = [];
@@ -442,8 +412,7 @@
       var active = current.query || current.purposes.length || current.methods.length || current.buckets.length;
       /* 아무것도 고르지 않은 상태 = 기본 목록. 필터를 켰다가 모두 끄면 이리로 되돌아온다. */
       var list = active || document.getElementById("cdHomeFunnel") ? filterServices(current) : DEFAULT_PICKS;
-      if (config.layout === "rich") renderRichResults(panel, list, current);
-      else renderCompactResults(panel, list);
+      renderRichResults(panel, list, current);
       if (clearButton) clearButton.hidden = !current.query;
       if (resetButton) resetButton.hidden = !active;
       if (summary) summary.textContent = active
@@ -571,7 +540,6 @@
         return;
       }
       var target = document.getElementById("cdServiceIndex");
-      var input = document.getElementById("cdServiceSearchInput");
       if (!target) return;
       event.preventDefault();
       try {
@@ -579,9 +547,6 @@
       } catch (_) {
         location.hash = "cdServiceIndex";
       }
-      window.setTimeout(function () {
-        try { if (input) input.focus({ preventScroll: true }); } catch (_) {}
-      }, 420);
     });
   }
 

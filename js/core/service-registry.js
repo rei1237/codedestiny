@@ -48,8 +48,9 @@ window.__cdServiceRegistryMeta = {
 
 /* app/_lib/serviceFeatureRegistry.ts 의 SERVICE_FEATURE_MEDIA_BY_SLUG 과 맞추는 정적 셸 미러.
    홈 검색은 번들 경계 밖의 정적 런타임이라 직접 import할 수 없으므로, 서비스 메타데이터 중
-   표시 계층에 필요한 대표 이미지와 alt만 이 파일에 복제한다. 이미지가 없는 항목은 finder가
-   공통 fallback을 사용한다. */
+   표시 계층에 필요한 대표 이미지와 alt만 이 파일에 복제한다. 여기 없는 항목은 같은 id 의
+   기능 상세 대표 이미지(/feature-details/assets/<id>-480.webp)를 쓴다 — 파일 존재는
+   scripts/verify-home-service-registry.mjs 가 전수 검사한다. */
 var SERVICE_MEDIA_BY_ID = {
   "master-love-codex": { image: "/fuctionassets/lovebible.webp", imageAlt: "마스터 인연의 서 대표 이미지" },
   "fortune-tea-house": { image: "/images/fortune-tea-house/premium-tea-house-mobile.webp", imageAlt: "운명의 찻집 대표 이미지" },
@@ -70,8 +71,8 @@ var SERVICE_MEDIA_BY_ID = {
   "vedic": { image: "/fuctionassets/veda.webp", imageAlt: "베다점 대표 이미지" },
   "astrology": { image: "/fuctionassets/jumsung.webp", imageAlt: "점성술 대표 이미지" },
   "tarot-year-fortune": { image: "/fuctionassets/new-year-almanac-v1.webp", imageAlt: "십이지신 천운 타로 대표 이미지" },
-  "tarot-celestial-harmony": { image: "/fuctionassets/Celestial%20Harmony.webp", imageAlt: "천체의 선율 대표 이미지" },
   "animal-totem": { image: "/fuctionassets/animaltotem.webp", imageAlt: "애니멀 토템 대표 이미지" },
+  "points": { image: "/fuctionassets/membership-honey-kkulkkul.webp", imageAlt: "달빛 이용권 대표 이미지" },
 };
 
 window.__cdServiceRegistry = [
@@ -723,7 +724,7 @@ window.__cdServiceRegistry = [
     name: "달빛 음악 플레이어",
     desc: "운세와 어울리는 음악으로 마음 달래기",
     href: "/music/",
-    price: "무료",
+    price: "무료 재생 · 다운로드 1,000원",
     purposes: ["etc"],
     methods: ["ai"],
     keys: "음악 뮤직 bgm 플레이리스트",
@@ -752,6 +753,6 @@ window.__cdServiceRegistry = [
 
 window.__cdServiceRegistry.forEach(function (item) {
   var media = SERVICE_MEDIA_BY_ID[item.id];
-  item.image = media ? media.image : "";
-  item.imageAlt = media ? media.imageAlt : "";
+  item.image = media ? media.image : "/feature-details/assets/" + item.id + "-480.webp";
+  item.imageAlt = media ? media.imageAlt : item.name + " 대표 이미지";
 });

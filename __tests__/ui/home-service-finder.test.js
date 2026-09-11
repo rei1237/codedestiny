@@ -64,7 +64,7 @@ async function boot(extraTiles = []) {
 }
 
 const names = (panel) =>
-  Array.from(panel.querySelectorAll(".fortune-gateway__rec-name, .cd-svc-hit strong")).map((n) =>
+  Array.from(panel.querySelectorAll(".fortune-gateway__rec-name")).map((n) =>
     n.firstChild.textContent.trim(),
   );
 

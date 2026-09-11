@@ -910,7 +910,7 @@
       "title": "달빛 음악 플레이어",
       "href": "/music/",
       "featureKey": "music",
-      "accessType": "free",
+      "accessType": "unknown",
       "image": "/feature-details/assets/music-960.webp",
       "aliases": [
         "music",
@@ -5966,7 +5966,7 @@
       "href": "/music/",
       "featureKey": "music",
       "featureKeyTo": "",
-      "accessType": "free",
+      "accessType": "unknown",
       "image": "/feature-details/assets/music-960.webp",
       "aliases": [
         "music",

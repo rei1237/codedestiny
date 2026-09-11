@@ -32,13 +32,16 @@
     <div class="cdh-slot" id="cdhQuickSlot">{{quick}}</div>
     <section class="cdh cdh-services cdh-services--inline cdh-services--luxe" id="cdhServices" aria-labelledby="cdhServicesTitle">
       <span class="cd-yehwa-vine cdh-services__vine" aria-hidden="true"></span>
-      <div class="cdh-services__head moon-section-head">
-        <p class="cdh-intro">FIND YOUR READING</p>
-        <h2 id="cdhServicesTitle" tabindex="-1" data-cd-trans="home.heroTrust.search">전체 서비스 검색</h2>
-        <p class="cdh-lead">고민·방식·가격으로 지금 필요한 리딩을 찾아보세요.</p>
-      </div>
-      {{finder}}
-      <a href="/?action=cdOpenAllFortunes" data-action="cdOpenAllFortunes" class="cdh-catalog-link">컬렉션 전체 둘러보기 <span aria-hidden="true">↗</span></a>
+      <details id="cdhFinderDisclosure" class="cdh-finder-disclosure">
+        <summary class="cdh-services__head moon-section-head">
+          <span class="cdh-intro">FIND YOUR READING</span>
+          <h2 id="cdhServicesTitle" tabindex="-1" data-cd-trans="home.heroTrust.search">전체 서비스 검색</h2>
+          <span class="cdh-lead">고민·방식·가격으로 지금 필요한 리딩을 찾아보세요.</span>
+          <svg class="cdh-finder-disclosure__arrow" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+        </summary>
+        {{finder}}
+        <a href="/?action=cdOpenAllFortunes" data-action="cdOpenAllFortunes" class="cdh-catalog-link">컬렉션 전체 둘러보기 <span aria-hidden="true">↗</span></a>
+      </details>
     </section>
     <div class="cdh-slot cdh-slot--feedback" id="cdhFeedbackSlot">{{feedback}}</div>
     <div class="cdh-slot" id="cdhCollectionToggleSlot">{{homeMore}}

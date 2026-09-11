@@ -62,7 +62,19 @@ const MOBILE_UA =
  *    `a.tarot-tile--mindscan` 1,224ms)이라, 못 잰다는 것은 **가장 중요한 것을 못 잰다**는 뜻이었다.
  */
 const TARGETS = [
-  { name: "서비스 검색 입력", selector: "#cdServiceSearchInput", type: "type", text: "사주" },
+  /* 검색 입력은 기본으로 접힌 `#cdhFinderDisclosure` 안에 있고, 펼칠 때 finder 가 마운트된다.
+     사용자와 같은 진입점(summary 클릭)으로 먼저 펼친다. */
+  {
+    name: "서비스 검색 입력",
+    selector: "#fortuneGatewaySearch",
+    type: "type",
+    text: "사주",
+    setup: async (page) => {
+      await scrollIntoView(page, "#cdhFinderDisclosure summary");
+      if (!(await page.$eval("#cdhFinderDisclosure", (d) => d.open))) await page.click("#cdhFinderDisclosure summary");
+      await page.waitForSelector("#fortuneGatewaySearch", { state: "visible" });
+    },
+  },
 
   /* 🔴 '탑바 드롭다운'(`.cd-nav-group__toggle`)은 뺐다. **모바일 DOM 에 0개다**(실측 2026-08-16 —
      느려서 못 잰 게 아니라 데스크탑 전용 요소다). 데스크탑 프리셋을 붙일 때 `#themeToggleLabel`
