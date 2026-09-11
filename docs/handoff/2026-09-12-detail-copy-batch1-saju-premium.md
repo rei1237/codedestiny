@@ -36,6 +36,8 @@ next: "배치 1(사주 프리미엄 리포트) 상세창 카피 PR 의 CI·머�
 - `verify-feature-popup-journey` PASS(63 × 4폭 — rpt 카드는 이 검사 대상이 아니다)
 - `check:fast` 통과(jest 228 스위트 / 2686)
 - **렌더 실측**(scratch CDP, rpt-preview-cta 하네스 복사, 390 모바일, 잠금 상태): 7종 모두 상세창 열림 · receives/outline 제목 전부 표시 · outlineImage 로드(naturalWidth>0). 시트 안 "기능"은 공통 헤더 라벨 「기능 상세」 하나뿐(모든 상세창 공통 UI, 이번 범위 밖).
+- 시각 검사 에이전트(스크린샷 7장, sharp 픽셀): 제목 잘림 0 · 띠 #FBEEF1(blush) 위아래 17~18px 대칭 · 대비 AA 이상(본문 7.6:1, 번호 5.4:1, CTA 10.8:1). 촬영 환경은 가격 API 가 없어 CTA 가 "가격 확인 중"으로 보인다(정상).
+- origin/main(875401499, #1921 숙요) 리베이스 후 위 가드·`check:fast`·렌더 실측 재실행 통과. 충돌은 `config/sitemap-lastmod.json` 하나 — upstream 채택 후 `sitemap:generate`·`sync:public` 재생성. #1921 이 바꾼 퀀텀 엔진 파일은 퀀텀 카피(숙요 언급 없음)에 영향 없음.
 
 ## 함정
 
