@@ -362,6 +362,32 @@ on:
       - "scripts/verify-security-hardening.mjs"
       - "scripts/verify-worker-security-guards.mjs"
       - ".github/workflows/paid-flow-gates.yml"
+      # 🔴 아래는 change-risk.mjs 가 이미 deepRequired 로 못 박았는데 트리거에는 없던 경로들이다
+      #    (2026-09-12 추가). 바로 아래 push:main 주석의 2026-08-16 결정("paths 를 넓히는 대신
+      #    머지된 main 을 직접 본다")과 축이 다르다 — 그 결정은 **가드가 트리거 밖 문서를 읽는**
+      #    문제였고, 여기 추가하는 것은 결제·DB·배포 **소스 파일** 자체다.
+      #    🔴 형식 제약: resolve-paid-gate-scope.mjs:275-278 이 이 블록을 직접 파싱한다. 항목은
+      #    정확히 6칸 들여쓰기 + 큰따옴표, 주석도 정확히 6칸이어야 한다. 어긋난 줄 하나가 그 뒤
+      #    목록 전체를 조용히 버리고 run=false(fail-open)를 만든다. 그래서 목록 맨 끝에 둔다.
+      # 결제 정책 정본 (change-risk.mjs:102,109)
+      - "worker/routes/app-store.js"
+      - "worker/lib/deferred-billing-proof.js"
+      - "worker/lib/moonstone-spend-proof.js"
+      - "worker/lib/jwt.js"
+      # DB 스키마·마이그레이션 (change-risk.mjs:140-141)
+      - "worker/lib/models.js"
+      - "scripts/migrations/**"
+      # 배포·환경 계약 (change-risk.mjs:145-148)
+      - "wrangler.toml"
+      - "config/env.contract.json"
+      - "scripts/deploy*"
+      - "scripts/release*"
+      - "scripts/rollback*"
+      # 이 스위트의 실행 계약 (change-risk.mjs:151,153)
+      - "package-lock.json"
+      - "scripts/run-mock-tests.mjs"
+      - "scripts/lib/mock-network-guard.cjs"
+      - "scripts/lib/mock-test-config.mjs"
   # 🔴 main 건강 신호 (2026-08-16 추가). 게이트가 아니라 알림이다 — 배포를 막지 않는다.
   #    이 게이트의 가드는 트리거 paths 밖 파일도 읽는다(예: verify:nakshatra-premium 은 규약 문서를
   #    읽는다). 그래서 paths 에 안 걸리는 PR 이 가드를 깨뜨린 채 머지될 수 있고, 실제로 그렇게 됐다:
