@@ -8949,18 +8949,62 @@
         "0": "現在の関係の雰囲気と感情の温度",
         "1": "惹かれと迷いが生まれる地点",
         "2": "今伝えても良い言葉と守るべき線",
-        "3": "決済後、既存のタロットリーディング画面へ移動"
+        "3": "六つの位置のカード解釈と関係チェックリスト"
       },
       "premiumOutcomes": {
         "0": "カード解釈は参考用です。",
         "1": "決済と権限確認は既存ポリシーに従います。",
         "2": "相手の心を確定したり保証したりしません。"
+      },
+      "receives": {
+        "0": {
+          "title": "関係の今の温度",
+          "detail": "今二人の間に流れている雰囲気を、まずひとまとまりに整理してお伝えします。"
+        },
+        "1": {
+          "title": "気持ちがすれ違う地点",
+          "detail": "近づこうとする力と離れようとする力が、どこでぶつかるのかを見極めます。"
+        },
+        "2": {
+          "title": "現実の流れと次の選択",
+          "detail": "これからの流れと、今選べる選択肢を分けて読みます。"
+        },
+        "3": {
+          "title": "六つの位置のカード解釈",
+          "detail": "六枚を位置ごとに読み分け、関係の細かな質感をひとつずつ説明します。"
+        },
+        "4": {
+          "title": "守る基準とチェックリスト",
+          "detail": "今日残す一文・会話の温度・自分が守る線・七日間のリズムをチェックリストにまとめます。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "カード六枚を開く",
+          "detail": "入力せずに、そのまま六つの位置へカードを並べます。"
+        },
+        "1": {
+          "title": "関係の温度を確認",
+          "detail": "今の温度と、すれ違う地点をまず読みます。"
+        },
+        "2": {
+          "title": "位置ごとの解釈",
+          "detail": "六枚を位置ごとに分けて読み解きます。"
+        },
+        "3": {
+          "title": "基準の整理",
+          "detail": "守るべき線と関係チェックリストで締めくくります。"
+        },
+        "4": {
+          "title": "共有",
+          "detail": "結果画面をカカオトークで共有できます。別途保存はされません。"
+        }
       }
     },
     "openTarotReunionModal": {
       "tagline": "Five card seats trace everything from the warmth still left to the conditions for repairing the relationship, closing with a low-pressure opening line and a 7-day recovery routine.",
       "feats": {
-        "0": "A five-seat reading: warmth still left · their feelings now · why contact stopped · what lies beneath the words · conditions for repair",
+        "0": "残った感情の温もり・相手の今の気持ち・連絡が止まった背景・また近づける距離・関係修復の条件という五つの位置のリーディング",
         "1": "Detailed interpretation reading every card along eight strands",
         "2": "A standard for whether to move first, and a suggested low-pressure opening line",
         "3": "A 7-day recovery routine and a reunion checklist"
@@ -8979,8 +9023,9 @@
       },
       "premiumOutcomes": {
         "0": "Reunion outcomes are not guaranteed.",
-        "1": "Card interpretations are for reference.",
-        "2": "The existing payment policy applies."
+        "1": "解釈はカードの位置に合わせて用意された文章で書かれます。",
+        "2": "Card interpretations are for reference.",
+        "3": "The existing payment policy applies."
       },
       "answersQuestions": {
         "0": "Do they still have feelings for me?",
@@ -9009,18 +9054,62 @@
         },
         "1": {
           "q": "Can I see the result again later?",
-          "a": "There is no separate save feature, so it is a reading you check on the spot; you can share it from the result screen."
+          "a": "別途保存はされず、その場で確認するリーディングです。結果画面から共有できます。"
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "今の位置の要約",
+          "detail": "関係が今どのあたりにあるのかを、五行の要約と番号ごとの指摘でまずお見せします。"
+        },
+        "1": {
+          "title": "位置ごとの詳しい解釈",
+          "detail": "残った感情の温もりから関係修復の条件まで、五つの位置を八つの視点に分けて読みます。"
+        },
+        "2": {
+          "title": "また近づく前に備える言葉と距離",
+          "detail": "先に動く前の基準と、負担を抑えた最初の一文を整理します。"
+        },
+        "3": {
+          "title": "七日間のチェックリスト",
+          "detail": "これからの七日間に守る行動と、控えておきたい表現をまとめてお渡しします。"
+        },
+        "4": {
+          "title": "続けて尋ねる質問文",
+          "detail": "もっと聞きたいときにそのままコピーして使える質問文も添えます。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "夜の海のプロローグ",
+          "detail": "希望すれば短い瞑想画面を挟み、心を落ち着けてから始めます。"
+        },
+        "1": {
+          "title": "五つの位置にカードを開く",
+          "detail": "78枚のデッキから五枚を引き、位置ごとに並べます。入力はありません。"
+        },
+        "2": {
+          "title": "今の位置の要約を確認",
+          "detail": "五行の要約と番号ごとの指摘で、現在地を整理します。"
+        },
+        "3": {
+          "title": "位置ごとの詳しい解釈",
+          "detail": "カードごとに八つの視点へ分けて読みます。"
+        },
+        "4": {
+          "title": "備える言葉と七日間の習慣",
+          "detail": "最初の一文・控えておく表現・チェックリストで締めくくります。"
         }
       }
     },
     "openTarotYearFortuneModal": {
-      "tagline": "Twelve major cards are laid one per month and read alongside the guardian story of your birth year, organizing the flow across twelve fields plus turning points and lucky actions.",
+      "tagline": "メジャーカード12枚を月ごとに一枚ずつ置き、その月に結びついた守護神の物語とともに、十二分野の流れと転換点・幸運の行動までを整理する一年のリーディングです。",
       "feats": {
         "0": "This year's core card and the yearly overview read as one continuous flow",
-        "1": "A drill-down that reopens each monthly card, January to December, as three cards: cause, process, result",
+        "1": "1月から12月までの月別カードを、原因・展開・結果の三枚で開き直すドリルダウン",
         "2": "Readings for twelve fields including money, work and business, love, and helpful people",
         "3": "This year's turning points and lucky actions you can take right away",
-        "4": "The result is saved so you can open it again at any time"
+        "4": "ログインすると同じ年の結果が保存され、再び訪れても続きから見られます"
       },
       "premiumIntro": "Rather than nailing the year down as prophecy, it organizes the flow that is easy to miss month by month, and the moments where a choice is made.",
       "premiumAudience": {
@@ -9032,7 +9121,7 @@
         "0": "An in-depth interpretation of this year's core card",
         "1": "The twelve monthly cards and the flow by field",
         "2": "Choices to be careful with, and this year's opportunities",
-        "3": "Reopening the saved result"
+        "3": "ログイン時に同じ年の結果を続けて見る"
       },
       "premiumOutcomes": {
         "0": "It does not fix the future.",
@@ -9048,7 +9137,7 @@
       "analysisSteps": {
         "0": {
           "label": "Find your guardian",
-          "detail": "Your birth year identifies your guardian among the twelve."
+          "detail": "月ごとに結びついた十二の守護神をまず確認します。生年月日の入力はありません。"
         },
         "1": {
           "label": "Lay the twelve cards",
@@ -9062,11 +9151,55 @@
       "faq": {
         "0": {
           "q": "Can I see the result again later?",
-          "a": "Yes. A paid result is saved and you can pick it up again when you return."
+          "a": "ログインしている状態なら同じ年の結果が保存され、再び訪れたときに続きから見られます。"
         },
         "1": {
           "q": "How do I read the monthly readings?",
-          "a": "Opening a month's card reveals the three-card drill-down — cause, process, result — and the interpretation by field."
+          "a": "各月のカードを開くと、原因・展開・結果の三枚のドリルダウンと分野ごとの解釈が開きます。"
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "今年の中心となるカード",
+          "detail": "メジャーカードのうち今年を導く一枚と、一年の総合的な流れをひと続きに読み解きます。"
+        },
+        "1": {
+          "title": "月別カード十二枚",
+          "detail": "1月から12月まで一枚ずつ置き、月を開くと原因・展開・結果の三枚がさらに広がります。"
+        },
+        "2": {
+          "title": "十二の守護神の物語",
+          "detail": "月ごとに結びついた守護神の物語を、カード解釈とあわせて読みます。"
+        },
+        "3": {
+          "title": "十二分野のリーディング",
+          "detail": "金運・仕事と事業・恋愛・人の縁など、十二の分野の流れを分けて整理します。"
+        },
+        "4": {
+          "title": "転換点と幸運の行動",
+          "detail": "今年の転換点と、すぐ実践できる幸運の行動をまとめてお渡しします。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "リーディングを開く",
+          "detail": "生年月日を入力せずに、一年のリーディングがそのまま作られます。"
+        },
+        "1": {
+          "title": "十二枚を並べる",
+          "detail": "メジャーカード12枚を、月ごとに一枚ずつ置きます。"
+        },
+        "2": {
+          "title": "月を開いて見る",
+          "detail": "各月を開くと、原因・展開・結果の三枚が続きます。"
+        },
+        "3": {
+          "title": "分野ごとの整理",
+          "detail": "十二分野の流れと転換点、幸運の行動として整理します。"
+        },
+        "4": {
+          "title": "続けて見る",
+          "detail": "ログインしている状態なら、同じ年の結果が保存され再び開けます。"
         }
       }
     },
@@ -12655,12 +12788,12 @@
       }
     },
     "tarot_celestial_harmony": {
-      "tagline": "Cards are laid across eleven planetary seats and tied together by a final integration card, so love, work, money and health are read as separate axes in one extended cosmic tarot reading.",
+      "tagline": "カイロンまで含めた十一の惑星の位置にメジャーカードを置き、愛・仕事・お金・健康の軸を分けて読む拡張型コズミックタロットのリーディングです。",
       "feats": {
-        "0": "A large spread running from eleven planetary seats to an integration card",
+        "0": "十一の惑星の位置にメジャーカードを置く大型スプレッド",
         "1": "Every card read through eight separate perspectives",
         "2": "Four areas organized: love, work, money and health",
-        "3": "A starlight tuning guide for the next 7 days"
+        "3": "今日から試せる調整の実践ガイド"
       },
       "premiumIntro": "Celestial Harmony does not hand you a single answer. It spreads out where the different axes of your mind are sitting right now, following the planetary seats.",
       "premiumAudience": {
@@ -12672,7 +12805,7 @@
         "0": "The full card interpretation for every planetary seat",
         "1": "The axis acting on you most strongly right now",
         "2": "The points where your feelings collide with each other",
-        "3": "The 7-day starlight tuning guide"
+        "3": "今日からの調整の実践ガイド"
       },
       "premiumOutcomes": {
         "0": "The interpretation is written by AI and does not fix the future.",
@@ -12688,15 +12821,15 @@
       "analysisSteps": {
         "0": {
           "label": "Card placement",
-          "detail": "Cards are placed on the eleven planetary seats and the integration seat."
+          "detail": "十一の惑星の位置にメジャーカードを置きます。"
         },
         "1": {
           "label": "AI integrated reading",
           "detail": "AI ties the whole spread together and writes a long-form interpretation."
         },
         "2": {
-          "label": "Areas and 7 days",
-          "detail": "It is organized into the four areas — love, work, money, health — and a 7-day tuning guide."
+          "label": "領域・調整の整理",
+          "detail": "愛・仕事・お金・健康の四つの領域と、今日からの調整の実践として整理します。"
         }
       },
       "faq": {
@@ -12706,7 +12839,51 @@
         },
         "1": {
           "q": "Can I see the result again?",
-          "a": "On the same device the most recent result is restored. There is no separate save-to-account feature."
+          "a": "同じ端末では直近の結果が復元され、ログインしている状態なら保存された結果を呼び出せます。"
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "十一の惑星の位置の解釈",
+          "detail": "カイロンまで含めた十一の位置に置かれたカードを、位置ごとに分けて読みます。"
+        },
+        "1": {
+          "title": "カードごとに八つの視点",
+          "detail": "一枚を八つの視点へ読み解き、感情と現実を切り分けて見ます。"
+        },
+        "2": {
+          "title": "四つの領域の整理",
+          "detail": "愛・仕事・お金・健康の軸が、今どのように置かれているのかを整理します。"
+        },
+        "3": {
+          "title": "ぶつかっている地点",
+          "detail": "互いに押し合う心の軸が、どこで衝突しているのかを見極めます。"
+        },
+        "4": {
+          "title": "今日からの調整の実践",
+          "detail": "今試せる調整の方法をまとめてお渡しし、星明かりの調整リストが一緒に出ることもあります。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "スプレッドを開く",
+          "detail": "入力なしで、十一の惑星の位置にメジャーカードを置きます。"
+        },
+        "1": {
+          "title": "位置ごとに読む",
+          "detail": "惑星ごとにカード解釈を八つの視点へ広げて書きます。"
+        },
+        "2": {
+          "title": "領域にまとめる",
+          "detail": "愛・仕事・お金・健康の四つの軸へ、あらためてまとめ直します。"
+        },
+        "3": {
+          "title": "調整の実践を見る",
+          "detail": "今日から試せる調整の方法を広げて確かめます。"
+        },
+        "4": {
+          "title": "もう一度呼び出す",
+          "detail": "同じ端末では直近の結果が復元され、ログインしている状態なら保存された結果を呼び出せます。"
         }
       }
     },
@@ -12714,13 +12891,13 @@
       "badge": "プロンプト型",
       "headline": "自分の問いに合ったタロット相談の文章を、まず整理してみてください。",
       "hubTagline": "カード解釈をより深く続けるための質問と相談の流れを、プロンプトとして束ねる機能です。",
-      "tagline": "Pick the structure that fits your situation from 77 spreads and turn the cards yourself; AI then writes the consultation from exactly that layout and shows you the original prompt it used.",
+      "tagline": "77種のスプレッドから状況に合う構造を選んでカードを自分で開くと、AIがその配置のまま相談結果をすぐ書き上げ、相談に使われた質問文の原文まで見せてくれます。",
       "feats": {
-        "0": "Choose the structure yourself from 77 spreads, ranging from 1 card to 14",
-        "1": "Pick cards yourself from the 78-card deck and set upright or reversed",
+        "0": "77種のスプレッドから構造を自分で選択",
+        "1": "78枚のデッキからカードを自分で選び、ランダムに決まった向きも変更",
         "2": "AI writes a real consultation from exactly the layout you chose",
-        "3": "View and copy the original prompt used for the consultation",
-        "4": "Choose the tone you want from 3 writing styles"
+        "3": "相談に使われた質問文の原文の閲覧・コピー",
+        "4": "コピーする質問文を三つの形に整えて受け取る"
       },
       "premiumIntro": "The Tarot Prompt Library starts by sharpening the question, then carries the card layout you chose straight through into an AI consultation.",
       "premiumAudience": {
@@ -12731,7 +12908,7 @@
       "premiumChapters": {
         "0": "An AI tarot consultation matched to your own layout",
         "1": "Interpretation and practical advice reflecting position and orientation",
-        "2": "The original prompt used for the consultation, shown as it is",
+        "2": "相談に使われた質問文の原文をそのまま閲覧",
         "3": "Finished lines you can copy to keep your own consultation going"
       },
       "premiumOutcomes": {
@@ -12752,11 +12929,11 @@
         },
         "1": {
           "label": "Turn the cards yourself",
-          "detail": "Choose your cards from the 78-card deck and set upright or reversed."
+          "detail": "78枚のデッキからカードを選び、向きを確認します。"
         },
         "2": {
           "label": "AI writes the consultation",
-          "detail": "You receive a consultation reflecting the layout, plus the original prompt."
+          "detail": "配置を反映した相談結果と、質問文の原文を受け取ります。"
         }
       },
       "faq": {
@@ -12766,7 +12943,51 @@
         },
         "1": {
           "q": "What happens if generation fails?",
-          "a": "You can retry a set number of times within the same payment, and if it still does not work you receive the finished prompt instead."
+          "a": "同じ支払いの中で決められた回数まで再試行でき、それでも難しい場合は仕上がった質問文をお渡しします。"
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "状況に合うスプレッド",
+          "detail": "77種の構造のうち、今の質問に合う配置を自分で選べます。"
+        },
+        "1": {
+          "title": "自分が開いたカードのまま",
+          "detail": "78枚のデッキから選んだカードと向きが、そのまま解釈に入ります。"
+        },
+        "2": {
+          "title": "AIの相談結果",
+          "detail": "選んだ配置を反映して、AIが相談結果をすぐ書き上げます。"
+        },
+        "3": {
+          "title": "質問文の原文",
+          "detail": "相談に使われた質問文の原文を開いて見て、コピーできます。"
+        },
+        "4": {
+          "title": "再試行",
+          "detail": "作成がうまく進まないときは、同じ支払いの中で決められた回数まで再試行します。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "質問を書く",
+          "detail": "何を尋ねたいのかを、まず書き込みます。"
+        },
+        "1": {
+          "title": "スプレッドを選ぶ",
+          "detail": "77種のうち、質問に合う構造を選びます。"
+        },
+        "2": {
+          "title": "カードを開く",
+          "detail": "78枚のデッキからカードを自分で選び、向きを確認します。"
+        },
+        "3": {
+          "title": "相談結果を受け取る",
+          "detail": "配置を反映した相談結果を、AIが書き上げます。"
+        },
+        "4": {
+          "title": "質問文をコピー",
+          "detail": "相談に使われた質問文の原文を開いて、そのままコピーできます。"
         }
       }
     },
@@ -12908,13 +13129,13 @@
       "fallbackCta": "Open the Sibyl in-depth reading"
     },
     "tarot_numerology": {
-      "tagline": "It calculates your life number and today's number, places the cards that match those numbers, and reads your innate grain and today's flow across five positions.",
+      "tagline": "生命数と今日の数をまず出し、その数で混ぜたデッキから五枚を自分で選んで、九つのテーマに分けて読む深いリーディングです。",
       "feats": [
         "When a single card leaves the story unfinished",
         "When you want today's flow read with a bit more grounding",
         "When you want numbers and cards seen together"
       ],
-      "premiumIntro": "Not one random card -- cards are attached to calculated numbers and read across five positions.",
+      "premiumIntro": "ランダムな一枚ではなく、生年月日から出た数で混ぜたデッキの二十二の位置のうち、五枚を自分で選んで読みます。",
       "premiumAudience": [
         "Anyone interested in numerology",
         "Anyone who wants a read on the daily flow",
@@ -12925,7 +13146,51 @@
         "What does my life number say?",
         "Where is the current flow heading?"
       ],
-      "fallbackCta": "Open the 5-card numerology tarot"
+      "fallbackCta": "Open the 5-card numerology tarot",
+      "receives": [
+        {
+          "title": "生命数と今日の数",
+          "detail": "生年月日から出る数をまず取り出し、今日の質感へつなげます。"
+        },
+        {
+          "title": "自分で選んだ五枚",
+          "detail": "その数で混ぜたデッキの二十二の位置のうち、五枚を自分で選んで並べます。"
+        },
+        {
+          "title": "九つのテーマの深いリーディング",
+          "detail": "書き込んだ質問を九つのテーマに分け、じっくり読み解いてお渡しします。"
+        },
+        {
+          "title": "今日の姿勢の整理",
+          "detail": "生まれ持った質感と今日の流れをつなぎ、今必要な姿勢として整理します。"
+        },
+        {
+          "title": "同じ端末でもう一度見る",
+          "detail": "結果は同じ端末に残り、あらためて開くことができ、共有もできます。"
+        }
+      ],
+      "outline": [
+        {
+          "title": "生年月日と質問を書く",
+          "detail": "生年月日と尋ねたいことを入力します。"
+        },
+        {
+          "title": "数を出す",
+          "detail": "生命数と今日の数を、まず確認します。"
+        },
+        {
+          "title": "五枚を選ぶ",
+          "detail": "二十二の位置のうち、五枚を自分で選びます。"
+        },
+        {
+          "title": "九つのテーマの解釈",
+          "detail": "書き込んだ質問を、九つのテーマに分けて読みます。"
+        },
+        {
+          "title": "見直しと共有",
+          "detail": "同じ端末で結果をあらためて開き、共有できます。"
+        }
+      ]
     },
     "compatibility": {
       "tagline": "A free compatibility reading that calculates each person's chart and shows separately where your energies mesh and where they grind.",
@@ -13486,9 +13751,9 @@
       "fallbackCta": "Read the gap",
       "premiumChapters": {
         "0": "The overall current of the gap between you",
-        "1": "Readings of the hidden-feeling support cards",
-        "2": "Example messages worth sending now",
-        "3": "A practical guide to what to do next"
+        "1": "隠れた感情の組み合わせの解釈",
+        "2": "自分が取るとよい姿勢",
+        "3": "これからの連絡の流れ"
       },
       "premiumAudience": {
         "0": "People who want to check what the other person truly means",
@@ -13498,13 +13763,13 @@
       "answersQuestions": {
         "0": "How far apart are their words and their feelings?",
         "1": "Why has this relationship stalled?",
-        "2": "What words should I open with again?"
+        "2": "今の私はどんな姿勢を取ればよいですか?"
       },
       "feats": {
         "0": "Five positions: spoken words · inner grain · the stall · the wish · reality",
-        "1": "Five hidden-feeling cards laid over them and read together",
+        "1": "重ねて引いたカードから、言葉にならない感情の組み合わせを最大六つの視点で読む",
         "2": "Five main and five support cards drawn from the full 78-card deck",
-        "3": "Example messages worth sending now"
+        "3": "自分が取るとよい姿勢の整理"
       },
       "analysisSteps": {
         "0": {
@@ -13513,27 +13778,71 @@
         },
         "1": {
           "label": "Lay ten cards",
-          "detail": "Cards go into the five main positions, with the hidden-feeling cards laid over them."
+          "detail": "メインの五つの位置にカードを置き、その上に五枚を重ねて引きます。"
         },
         "2": {
           "label": "Read the gap",
-          "detail": "The difference between spoken words and inner grain is set out, closing with example messages and a guide to what to do."
+          "detail": "口に出した言葉と心の質感の違いを七つの視点で整理し、自分の姿勢とこれからの流れで締めくくります。"
         }
       },
       "faq": {
         "0": {
           "q": "Do I have to write a question?",
-          "a": "Yes. The five positions are read against your question, so it is required."
+          "a": "はい。質問に合わせて解釈が変わるため、入力が必要です。"
         },
         "1": {
           "q": "What are the support cards?",
-          "a": "Five cards drawn over the main five, held apart to read the feelings that were never said."
+          "a": "メインの五枚の上に重ねて引く五枚で、ここから言葉にならなかった感情の組み合わせを最大六つの視点で読みます。"
         }
       },
       "premiumOutcomes": {
         "0": "The interpretation is written by AI and does not fix the future.",
         "1": "Card interpretations are for reference.",
         "2": "The existing payment policy applies."
+      },
+      "receives": {
+        "0": {
+          "title": "相手の今の気持ち",
+          "detail": "書き込んだ質問に合わせて、今の相手に残っている気持ちからまず読みます。"
+        },
+        "1": {
+          "title": "表に見える態度と内側の質感",
+          "detail": "言葉と行動に表れた態度と、その下にある表に出ない心の質感を分けて整理します。"
+        },
+        "2": {
+          "title": "ためらう理由",
+          "detail": "相手が今立ち止まっている理由を見極めます。"
+        },
+        "3": {
+          "title": "連絡の流れと自分の姿勢",
+          "detail": "これからの連絡の流れと、自分が取るとよい姿勢をあわせて見ます。"
+        },
+        "4": {
+          "title": "関係が向かう流れ",
+          "detail": "七つの視点の解説の最後で、関係がどこへ向かうのかを整理します。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "質問を書く",
+          "detail": "確かめたい関係と質問を、まず書き込みます。"
+        },
+        "1": {
+          "title": "十枚を並べる",
+          "detail": "78枚のデッキからメインの五枚を置き、その上に五枚を重ねて引きます。"
+        },
+        "2": {
+          "title": "隠れた感情の組み合わせ",
+          "detail": "重ねたカードから、隠れた感情の組み合わせを最大六つの視点で取り出します。"
+        },
+        "3": {
+          "title": "七つの視点の解説",
+          "detail": "相手の気持ちから関係が向かう流れまで、七つの視点に分けて読みます。"
+        },
+        "4": {
+          "title": "保存と共有",
+          "detail": "結果画面を画像として保存したり共有したりでき、本文のコピーもできます。"
+        }
       }
     },
     "tarot_crystal_soul_reading": {
@@ -13583,13 +13892,57 @@
         },
         "1": {
           "q": "Do I have to write a question?",
-          "a": "It runs without one — the reading is built from the stone you chose and the cards laid out."
+          "a": "質問を入力する欄はありません。選んだ原石とカードの配置から解釈が作られます。"
         }
       },
       "premiumOutcomes": {
-        "0": "The interpretation is written by AI and does not fix the future.",
+        "0": "解釈は選んだ原石とカードの位置に合わせて用意された文章で書かれ、未来を確定するものではありません。",
         "1": "Card interpretations are for reference.",
         "2": "The existing payment policy applies."
+      },
+      "receives": {
+        "0": {
+          "title": "原石のメッセージ",
+          "detail": "選んだ原石が今日どんな質感を届けているのかを、まず読みます。"
+        },
+        "1": {
+          "title": "五つの位置のカード解釈",
+          "detail": "最初の光・隠れた面・警告・処方・開かれる扉を、位置ごとに読み解きます。"
+        },
+        "2": {
+          "title": "隠れた面と警告",
+          "detail": "今見えていない面と、気をつけたい地点を別に取り上げます。"
+        },
+        "3": {
+          "title": "クリスタルの処方",
+          "detail": "何を変えれば光が開くのかを、処方として整理します。"
+        },
+        "4": {
+          "title": "続けて尋ねる質問文",
+          "detail": "もっと聞きたいときにそのままコピーして使える質問文も添えます。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "原石を選ぶ",
+          "detail": "十二の原石のうち、手が止まる一つをこすって目覚めさせます。"
+        },
+        "1": {
+          "title": "五枚を並べる",
+          "detail": "最初の光から光が開いてくれる扉まで、五つの位置にカードを置きます。"
+        },
+        "2": {
+          "title": "原石のメッセージを読む",
+          "detail": "選んだ原石の質感を、まずお伝えします。"
+        },
+        "3": {
+          "title": "カードごとの詳しい解釈",
+          "detail": "位置ごとのカード解釈を、続けて読みます。"
+        },
+        "4": {
+          "title": "質問文のコピーと共有",
+          "detail": "追加の質問文をコピーし、結果を共有できます。"
+        }
       }
     },
     "tarot_ijik": {
@@ -13620,8 +13973,8 @@
       },
       "analysisSteps": {
         "0": {
-          "label": "Frame the question",
-          "detail": "You write down where you stand and what is weighing on you."
+          "label": "リーディングを開く",
+          "detail": "入力なしで、そのまま七つの位置のリーディングが始まります。"
         },
         "1": {
           "label": "Lay seven cards",
@@ -13635,17 +13988,61 @@
       "faq": {
         "0": {
           "q": "Do I draw the cards myself?",
-          "a": "Yes — you draw all seven in order across three screens."
+          "a": "はい。一つの画面でSTAGE 1・2・3の順に、七枚を自分で引きます。"
         },
         "1": {
           "q": "What if the reading fails to open?",
-          "a": "If the reading does not open, you are refunded automatically."
+          "a": "同じ依頼のまま、追加の支払いなくもう一度開いて見られます。"
         }
       },
       "premiumOutcomes": {
-        "0": "The interpretation is written by AI and does not fix the future.",
+        "0": "解釈はカードの位置に合わせて用意された文章で書かれ、未来を確定するものではありません。",
         "1": "Card interpretations are for reference.",
         "2": "The existing payment policy applies."
+      },
+      "receives": {
+        "0": {
+          "title": "要約パネル",
+          "detail": "転職の流れ・動く時期・現職を続ける道の三つを、まず一目で整理します。"
+        },
+        "1": {
+          "title": "決める前に確かめる条件",
+          "detail": "動く前に押さえておきたい条件を、別にまとめてお渡しします。"
+        },
+        "2": {
+          "title": "七枚のカード解釈",
+          "detail": "留まったときの流れから最終的な方向まで、位置ごとに読み解きます。"
+        },
+        "3": {
+          "title": "結論と中心の流れ",
+          "detail": "本文の冒頭で、結論と今の中心となる流れを明らかにします。"
+        },
+        "4": {
+          "title": "30日の選択基準",
+          "detail": "これからの一か月、何を基準に選ぶのかを整理します。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "一つの画面で始める",
+          "detail": "入力なしで、STAGE 1・2・3の順にカードを開きます。"
+        },
+        "1": {
+          "title": "七枚を引く",
+          "detail": "メジャーカード十六枚のデッキから、七つの位置を埋めます。"
+        },
+        "2": {
+          "title": "要約パネルの確認",
+          "detail": "転職の流れ・時期・現職を続ける道と、確かめる条件をまず見ます。"
+        },
+        "3": {
+          "title": "本文を読む",
+          "detail": "結論と中心の流れ、七枚のカード、30日の選択基準を続けて読みます。"
+        },
+        "4": {
+          "title": "共有して続けて尋ねる",
+          "detail": "結果を共有し、次の質問文をそのままコピーできます。"
+        }
       }
     },
     "nakshatra_muhurta": {

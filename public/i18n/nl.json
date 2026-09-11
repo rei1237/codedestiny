@@ -8949,18 +8949,62 @@
         "0": "The current relationship's mood and emotional temperature",
         "1": "The point where attraction and hesitation arise",
         "2": "Words that are fine to say now, and the line to keep",
-        "3": "After payment, moves into the existing tarot reading screen"
+        "3": "A six-seat card reading and a relationship checklist"
       },
       "premiumOutcomes": {
         "0": "Card interpretation is for reference only.",
         "1": "Payment and access checks follow the existing policy.",
         "2": "It doesn't fix or guarantee the other person's feelings."
+      },
+      "receives": {
+        "0": {
+          "title": "The relationship's current temperature",
+          "detail": "The mood running between the two of you right now is gathered into one piece first."
+        },
+        "1": {
+          "title": "Where your feelings miss each other",
+          "detail": "It points out where the pull toward closeness meets the pull toward stepping back."
+        },
+        "2": {
+          "title": "The flow ahead and your next choice",
+          "detail": "The flow to come and the choices open to you now are read apart from each other."
+        },
+        "3": {
+          "title": "Six seats, read one by one",
+          "detail": "Each of the six cards is read in its own seat to set out the grain of the relationship."
+        },
+        "4": {
+          "title": "Your line and a checklist",
+          "detail": "One sentence to leave today, the temperature of the conversation, the line you keep, and a seven-day rhythm are gathered into a checklist."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Turn six cards",
+          "detail": "With nothing to fill in, cards are laid straight onto the six seats."
+        },
+        "1": {
+          "title": "Check the temperature",
+          "detail": "The temperature right now and the point where you miss each other are read first."
+        },
+        "2": {
+          "title": "Read each seat",
+          "detail": "The six cards are worked through one seat at a time."
+        },
+        "3": {
+          "title": "Set your standard",
+          "detail": "It closes with the line to keep and a relationship checklist."
+        },
+        "4": {
+          "title": "Share",
+          "detail": "You can share the result screen through KakaoTalk. It is not saved separately."
+        }
       }
     },
     "openTarotReunionModal": {
       "tagline": "Five card seats trace everything from the warmth still left to the conditions for repairing the relationship, closing with a low-pressure opening line and a 7-day recovery routine.",
       "feats": {
-        "0": "A five-seat reading: warmth still left · their feelings now · why contact stopped · what lies beneath the words · conditions for repair",
+        "0": "A five-seat reading: warmth still left · their feelings now · why contact stopped · how close you can get again · conditions for repair",
         "1": "Detailed interpretation reading every card along eight strands",
         "2": "A standard for whether to move first, and a suggested low-pressure opening line",
         "3": "A 7-day recovery routine and a reunion checklist"
@@ -8979,8 +9023,9 @@
       },
       "premiumOutcomes": {
         "0": "Reunion outcomes are not guaranteed.",
-        "1": "Card interpretations are for reference.",
-        "2": "The existing payment policy applies."
+        "1": "The interpretation is written from lines prepared for each card seat.",
+        "2": "Card interpretations are for reference.",
+        "3": "The existing payment policy applies."
       },
       "answersQuestions": {
         "0": "Do they still have feelings for me?",
@@ -9009,18 +9054,62 @@
         },
         "1": {
           "q": "Can I see the result again later?",
-          "a": "There is no separate save feature, so it is a reading you check on the spot; you can share it from the result screen."
+          "a": "It is not saved separately, so it is a reading you check on the spot; you can share it from the result screen."
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "Where you stand now",
+          "detail": "Five summary lines and a note on each seat show you where the relationship sits."
+        },
+        "1": {
+          "title": "Each seat in detail",
+          "detail": "From the warmth still left to the conditions for repair, the five seats are read along eight strands."
+        },
+        "2": {
+          "title": "What to say, and how close to come",
+          "detail": "It sets out your standard before you move first, and a low-pressure opening line."
+        },
+        "3": {
+          "title": "A seven-day checklist",
+          "detail": "What to keep doing over the next seven days and what to hold back are gathered together."
+        },
+        "4": {
+          "title": "Question text to ask next",
+          "detail": "When you want to ask more, you get question text you can copy and use as it is."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Night-sea prologue",
+          "detail": "If you like, a short meditation screen settles your mind before you begin."
+        },
+        "1": {
+          "title": "Turn five cards",
+          "detail": "Five cards are drawn from the 78-card deck and laid one per seat. There is nothing to fill in."
+        },
+        "2": {
+          "title": "Check where you stand",
+          "detail": "Five summary lines and a note on each seat set out your position now."
+        },
+        "3": {
+          "title": "Each seat in detail",
+          "detail": "Every card is read along eight strands."
+        },
+        "4": {
+          "title": "Your words and a seven-day routine",
+          "detail": "It closes with the opening line, what to hold back, and the checklist."
         }
       }
     },
     "openTarotYearFortuneModal": {
-      "tagline": "Twelve major cards are laid one per month and read alongside the guardian story of your birth year, organizing the flow across twelve fields plus turning points and lucky actions.",
+      "tagline": "Twelve major cards are laid one per month and read alongside the guardian story paired with each month, organizing the flow across twelve fields plus turning points and lucky actions.",
       "feats": {
         "0": "This year's core card and the yearly overview read as one continuous flow",
         "1": "A drill-down that reopens each monthly card, January to December, as three cards: cause, process, result",
         "2": "Readings for twelve fields including money, work and business, love, and helpful people",
         "3": "This year's turning points and lucky actions you can take right away",
-        "4": "The result is saved so you can open it again at any time"
+        "4": "Sign in and the result for that year is kept, so it picks up where you left off"
       },
       "premiumIntro": "Rather than nailing the year down as prophecy, it organizes the flow that is easy to miss month by month, and the moments where a choice is made.",
       "premiumAudience": {
@@ -9032,7 +9121,7 @@
         "0": "An in-depth interpretation of this year's core card",
         "1": "The twelve monthly cards and the flow by field",
         "2": "Choices to be careful with, and this year's opportunities",
-        "3": "Reopening the saved result"
+        "3": "Picking up the same year's result when signed in"
       },
       "premiumOutcomes": {
         "0": "It does not fix the future.",
@@ -9048,7 +9137,7 @@
       "analysisSteps": {
         "0": {
           "label": "Find your guardian",
-          "detail": "Your birth year identifies your guardian among the twelve."
+          "detail": "The twelve guardians paired with the months are identified first. There is no birth date to enter."
         },
         "1": {
           "label": "Lay the twelve cards",
@@ -9062,11 +9151,55 @@
       "faq": {
         "0": {
           "q": "Can I see the result again later?",
-          "a": "Yes. A paid result is saved and you can pick it up again when you return."
+          "a": "If you are signed in, the result for that year is kept and you can pick it up again when you return."
         },
         "1": {
           "q": "How do I read the monthly readings?",
           "a": "Opening a month's card reveals the three-card drill-down — cause, process, result — and the interpretation by field."
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "This year's core card",
+          "detail": "The one major card leading your year and the yearly overview are read as a single flow."
+        },
+        "1": {
+          "title": "Twelve monthly cards",
+          "detail": "One card sits on each month from January to December, and opening a month unfolds three more: cause, process, result."
+        },
+        "2": {
+          "title": "The twelve guardian stories",
+          "detail": "The story of the guardian paired with each month is read alongside the card."
+        },
+        "3": {
+          "title": "Readings across twelve fields",
+          "detail": "The flow is set out field by field, including money, work and business, love, and helpful people."
+        },
+        "4": {
+          "title": "Turning points and lucky actions",
+          "detail": "This year's turning points and the lucky actions you can take right away are gathered together."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Open the reading",
+          "detail": "The yearly reading is built straight away, with no birth date to enter."
+        },
+        "1": {
+          "title": "Lay twelve cards",
+          "detail": "Twelve major cards are placed one per month."
+        },
+        "2": {
+          "title": "Open a month",
+          "detail": "Opening each month brings up three cards: cause, process, result."
+        },
+        "3": {
+          "title": "Field by field",
+          "detail": "It is set out as the flow across twelve fields, the turning points and the lucky actions."
+        },
+        "4": {
+          "title": "Pick it up later",
+          "detail": "If you are signed in, the result for that year is kept and you can open it again."
         }
       }
     },
@@ -12655,12 +12788,12 @@
       }
     },
     "tarot_celestial_harmony": {
-      "tagline": "Cards are laid across eleven planetary seats and tied together by a final integration card, so love, work, money and health are read as separate axes in one extended cosmic tarot reading.",
+      "tagline": "Major cards are laid across eleven planetary seats, Chiron included, so love, work, money and health are read as separate axes in one extended cosmic tarot reading.",
       "feats": {
-        "0": "A large spread running from eleven planetary seats to an integration card",
+        "0": "A large spread laying major cards across eleven planetary seats",
         "1": "Every card read through eight separate perspectives",
         "2": "Four areas organized: love, work, money and health",
-        "3": "A starlight tuning guide for the next 7 days"
+        "3": "A tuning practice you can start today"
       },
       "premiumIntro": "Celestial Harmony does not hand you a single answer. It spreads out where the different axes of your mind are sitting right now, following the planetary seats.",
       "premiumAudience": {
@@ -12672,7 +12805,7 @@
         "0": "The full card interpretation for every planetary seat",
         "1": "The axis acting on you most strongly right now",
         "2": "The points where your feelings collide with each other",
-        "3": "The 7-day starlight tuning guide"
+        "3": "The tuning practice to start today"
       },
       "premiumOutcomes": {
         "0": "The interpretation is written by AI and does not fix the future.",
@@ -12688,15 +12821,15 @@
       "analysisSteps": {
         "0": {
           "label": "Card placement",
-          "detail": "Cards are placed on the eleven planetary seats and the integration seat."
+          "detail": "Major cards are placed on the eleven planetary seats."
         },
         "1": {
           "label": "AI integrated reading",
           "detail": "AI ties the whole spread together and writes a long-form interpretation."
         },
         "2": {
-          "label": "Areas and 7 days",
-          "detail": "It is organized into the four areas — love, work, money, health — and a 7-day tuning guide."
+          "label": "Areas and tuning",
+          "detail": "It is organized into the four areas — love, work, money, health — and the tuning practice to start today."
         }
       },
       "faq": {
@@ -12706,7 +12839,51 @@
         },
         "1": {
           "q": "Can I see the result again?",
-          "a": "On the same device the most recent result is restored. There is no separate save-to-account feature."
+          "a": "On the same device the most recent result is restored, and if you are signed in you can bring back a saved result."
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "Eleven planetary seats",
+          "detail": "The cards on the eleven seats, Chiron included, are read one seat at a time."
+        },
+        "1": {
+          "title": "Eight perspectives per card",
+          "detail": "Each card is opened along eight strands so feelings and practical reality stay separate."
+        },
+        "2": {
+          "title": "The four areas together",
+          "detail": "It sets out how the axes of love, work, money and health are sitting right now."
+        },
+        "3": {
+          "title": "Where they collide",
+          "detail": "It points out where the axes pushing against each other actually clash."
+        },
+        "4": {
+          "title": "Tuning to start today",
+          "detail": "You get the ways of tuning you can try now, sometimes alongside a starlight tuning list."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Open the spread",
+          "detail": "With nothing to fill in, major cards are laid on the eleven planetary seats."
+        },
+        "1": {
+          "title": "Read each seat",
+          "detail": "The card on every planet is opened along eight strands."
+        },
+        "2": {
+          "title": "Group the areas",
+          "detail": "It is gathered again into the four axes: love, work, money and health."
+        },
+        "3": {
+          "title": "See the tuning",
+          "detail": "The ways of tuning to try from today are laid out."
+        },
+        "4": {
+          "title": "Bring it back",
+          "detail": "On the same device the most recent result is restored, and if you are signed in you can bring back a saved result."
         }
       }
     },
@@ -12714,13 +12891,13 @@
       "badge": "Prompt builder",
       "headline": "Sort out the sentences of a tarot consultation that fit your question first.",
       "hubTagline": "A feature that bundles the questions and consultation flow for carrying a card reading deeper into a single prompt.",
-      "tagline": "Pick the structure that fits your situation from 77 spreads and turn the cards yourself; AI then writes the consultation from exactly that layout and shows you the original prompt it used.",
+      "tagline": "Pick the structure that fits your situation from 77 spreads and turn the cards yourself; AI then writes the consultation from exactly that layout and shows you the original question text it was sent.",
       "feats": {
-        "0": "Choose the structure yourself from 77 spreads, ranging from 1 card to 14",
-        "1": "Pick cards yourself from the 78-card deck and set upright or reversed",
+        "0": "Choose the structure yourself from 77 spreads",
+        "1": "Pick cards yourself from the 78-card deck, and change the orientation drawn at random",
         "2": "AI writes a real consultation from exactly the layout you chose",
-        "3": "View and copy the original prompt used for the consultation",
-        "4": "Choose the tone you want from 3 writing styles"
+        "3": "View and copy the original question text used for the consultation",
+        "4": "Recast the question text you copy into three different forms"
       },
       "premiumIntro": "The Tarot Prompt Library starts by sharpening the question, then carries the card layout you chose straight through into an AI consultation.",
       "premiumAudience": {
@@ -12731,7 +12908,7 @@
       "premiumChapters": {
         "0": "An AI tarot consultation matched to your own layout",
         "1": "Interpretation and practical advice reflecting position and orientation",
-        "2": "The original prompt used for the consultation, shown as it is",
+        "2": "The original question text used for the consultation, shown as it is",
         "3": "Finished lines you can copy to keep your own consultation going"
       },
       "premiumOutcomes": {
@@ -12752,11 +12929,11 @@
         },
         "1": {
           "label": "Turn the cards yourself",
-          "detail": "Choose your cards from the 78-card deck and set upright or reversed."
+          "detail": "You choose your cards from the 78-card deck and check the orientation."
         },
         "2": {
           "label": "AI writes the consultation",
-          "detail": "You receive a consultation reflecting the layout, plus the original prompt."
+          "detail": "You receive a consultation reflecting the layout, plus the original question text."
         }
       },
       "faq": {
@@ -12766,7 +12943,51 @@
         },
         "1": {
           "q": "What happens if generation fails?",
-          "a": "You can retry a set number of times within the same payment, and if it still does not work you receive the finished prompt instead."
+          "a": "You can retry a set number of times within the same purchase, and if it still does not work you receive the finished question text instead."
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "A spread for your situation",
+          "detail": "You can pick the layout that fits your question yourself from 77 structures."
+        },
+        "1": {
+          "title": "Exactly the cards you turned",
+          "detail": "The cards you chose from the 78-card deck, and their orientation, go straight into the reading."
+        },
+        "2": {
+          "title": "The AI consultation",
+          "detail": "AI writes the consultation straight away, reflecting the layout you chose."
+        },
+        "3": {
+          "title": "The original question text",
+          "detail": "You can open and copy the original question text used for the consultation."
+        },
+        "4": {
+          "title": "Try again",
+          "detail": "If the writing does not come through, you can retry a set number of times within the same purchase."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Write your question",
+          "detail": "You write down what you want to ask first."
+        },
+        "1": {
+          "title": "Choose a spread",
+          "detail": "You pick the structure that fits your question from 77 options."
+        },
+        "2": {
+          "title": "Turn the cards",
+          "detail": "You choose your cards from the 78-card deck and check the orientation."
+        },
+        "3": {
+          "title": "Receive the consultation",
+          "detail": "AI writes a consultation reflecting the layout."
+        },
+        "4": {
+          "title": "Copy the question text",
+          "detail": "You can open the original question text used for the consultation and copy it as it is."
         }
       }
     },
@@ -12908,13 +13129,13 @@
       "fallbackCta": "Open the Sibyl in-depth reading"
     },
     "tarot_numerology": {
-      "tagline": "It calculates your life number and today's number, places the cards that match those numbers, and reads your innate grain and today's flow across five positions.",
+      "tagline": "Your life number and today's number come first, then you pick five cards yourself from a deck shuffled by those numbers and read them across nine themes in depth.",
       "feats": [
         "When a single card leaves the story unfinished",
         "When you want today's flow read with a bit more grounding",
         "When you want numbers and cards seen together"
       ],
-      "premiumIntro": "Not one random card -- cards are attached to calculated numbers and read across five positions.",
+      "premiumIntro": "Not one random card — you pick five yourself from the twenty-two seats of a deck shuffled by the numbers drawn from your birth date.",
       "premiumAudience": [
         "Anyone interested in numerology",
         "Anyone who wants a read on the daily flow",
@@ -12925,7 +13146,51 @@
         "What does my life number say?",
         "Where is the current flow heading?"
       ],
-      "fallbackCta": "Open the 5-card numerology tarot"
+      "fallbackCta": "Open the 5-card numerology tarot",
+      "receives": [
+        {
+          "title": "Life number and today's number",
+          "detail": "The numbers drawn from your birth date come first, joined to the grain of today."
+        },
+        {
+          "title": "Five cards you pick",
+          "detail": "You pick five yourself from the twenty-two seats of the deck shuffled by those numbers."
+        },
+        {
+          "title": "Nine themes in depth",
+          "detail": "The question you wrote is split across nine themes and worked through at length."
+        },
+        {
+          "title": "The attitude for today",
+          "detail": "Your innate grain and today's flow are joined into the attitude you need now."
+        },
+        {
+          "title": "Open it again on this device",
+          "detail": "The result stays on the same device so you can open it again, and you can share it."
+        }
+      ],
+      "outline": [
+        {
+          "title": "Birth date and question",
+          "detail": "You enter your birth date and what you want to ask."
+        },
+        {
+          "title": "Draw the numbers",
+          "detail": "Your life number and today's number are checked first."
+        },
+        {
+          "title": "Pick five cards",
+          "detail": "You pick five yourself from the twenty-two seats."
+        },
+        {
+          "title": "Nine themes",
+          "detail": "The question you wrote is split across nine themes and read."
+        },
+        {
+          "title": "Reopen and share",
+          "detail": "You can open the result again on the same device and share it."
+        }
+      ]
     },
     "compatibility": {
       "tagline": "A free compatibility reading that calculates each person's chart and shows separately where your energies mesh and where they grind.",
@@ -13486,9 +13751,9 @@
       "fallbackCta": "Read the gap",
       "premiumChapters": {
         "0": "The overall current of the gap between you",
-        "1": "Readings of the hidden-feeling support cards",
-        "2": "Example messages worth sending now",
-        "3": "A practical guide to what to do next"
+        "1": "Readings of the hidden combinations of feeling",
+        "2": "The attitude worth taking yourself",
+        "3": "How contact is likely to go from here"
       },
       "premiumAudience": {
         "0": "People who want to check what the other person truly means",
@@ -13498,13 +13763,13 @@
       "answersQuestions": {
         "0": "How far apart are their words and their feelings?",
         "1": "Why has this relationship stalled?",
-        "2": "What words should I open with again?"
+        "2": "What attitude should I be taking right now?"
       },
       "feats": {
         "0": "Five positions: spoken words · inner grain · the stall · the wish · reality",
-        "1": "Five hidden-feeling cards laid over them and read together",
+        "1": "Reading up to six hidden combinations of feeling from the cards laid over the main five",
         "2": "Five main and five support cards drawn from the full 78-card deck",
-        "3": "Example messages worth sending now"
+        "3": "The attitude worth taking yourself"
       },
       "analysisSteps": {
         "0": {
@@ -13513,27 +13778,71 @@
         },
         "1": {
           "label": "Lay ten cards",
-          "detail": "Cards go into the five main positions, with the hidden-feeling cards laid over them."
+          "detail": "Cards go into the five main positions, with five more drawn over them."
         },
         "2": {
           "label": "Read the gap",
-          "detail": "The difference between spoken words and inner grain is set out, closing with example messages and a guide to what to do."
+          "detail": "The gap between spoken words and inner grain is set out along seven strands, closing with your attitude and the flow ahead."
         }
       },
       "faq": {
         "0": {
           "q": "Do I have to write a question?",
-          "a": "Yes. The five positions are read against your question, so it is required."
+          "a": "Yes. The interpretation changes with your question, so it is required."
         },
         "1": {
           "q": "What are the support cards?",
-          "a": "Five cards drawn over the main five, held apart to read the feelings that were never said."
+          "a": "They are five cards drawn over the main five, and they are where up to six unspoken combinations of feeling are read."
         }
       },
       "premiumOutcomes": {
         "0": "The interpretation is written by AI and does not fix the future.",
         "1": "Card interpretations are for reference.",
         "2": "The existing payment policy applies."
+      },
+      "receives": {
+        "0": {
+          "title": "How they feel now",
+          "detail": "Matched to the question you wrote, it starts with the feelings the other person still holds."
+        },
+        "1": {
+          "title": "Their manner and what lies under it",
+          "detail": "The manner shown in words and actions, and the grain of feeling hidden beneath it, are set out separately."
+        },
+        "2": {
+          "title": "Why they are hesitating",
+          "detail": "It points out what has brought the other person to a stop."
+        },
+        "3": {
+          "title": "Contact ahead and your own stance",
+          "detail": "How contact is likely to go and the attitude worth taking are looked at together."
+        },
+        "4": {
+          "title": "Where the relationship is heading",
+          "detail": "At the end of the seven strands, it sets out where the relationship is going."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Write your question",
+          "detail": "You write down the relationship and the question you want looked at."
+        },
+        "1": {
+          "title": "Lay ten cards",
+          "detail": "Five main cards from the 78-card deck are laid out, with five more drawn over them."
+        },
+        "2": {
+          "title": "Hidden feelings",
+          "detail": "Up to six hidden combinations of feeling are drawn from the cards laid over."
+        },
+        "3": {
+          "title": "Seven strands",
+          "detail": "From their feelings to where the relationship is heading, it is read along seven strands."
+        },
+        "4": {
+          "title": "Save and share",
+          "detail": "You can save or share the result screen as an image, and copy the text."
+        }
       }
     },
     "tarot_crystal_soul_reading": {
@@ -13583,13 +13892,57 @@
         },
         "1": {
           "q": "Do I have to write a question?",
-          "a": "It runs without one — the reading is built from the stone you chose and the cards laid out."
+          "a": "There is nowhere to write a question. The reading is built from the stone you chose and the cards laid out."
         }
       },
       "premiumOutcomes": {
-        "0": "The interpretation is written by AI and does not fix the future.",
+        "0": "The interpretation is written from lines prepared for the stone you chose and the card seats, and it does not fix the future.",
         "1": "Card interpretations are for reference.",
         "2": "The existing payment policy applies."
+      },
+      "receives": {
+        "0": {
+          "title": "The stone's message",
+          "detail": "It starts with the grain the stone you chose is sending today."
+        },
+        "1": {
+          "title": "Five seats, read one by one",
+          "detail": "First light, hidden side, warning, remedy and the door ahead are each worked through in turn."
+        },
+        "2": {
+          "title": "The hidden side and the warning",
+          "detail": "The side you are not seeing and the point to be careful with are pointed out separately."
+        },
+        "3": {
+          "title": "The crystal's remedy",
+          "detail": "It sets out, as a remedy, what to change so the light opens."
+        },
+        "4": {
+          "title": "Question text to ask next",
+          "detail": "When you want to ask more, you get question text you can copy and use as it is."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Choose a stone",
+          "detail": "You rub awake the one of twelve raw stones where your hand stops."
+        },
+        "1": {
+          "title": "Lay five cards",
+          "detail": "Cards go into five seats, from the first light to the door the light opens."
+        },
+        "2": {
+          "title": "Read the stone's message",
+          "detail": "The grain of the stone you chose comes through first."
+        },
+        "3": {
+          "title": "Each card in detail",
+          "detail": "The card reading for every seat follows on from there."
+        },
+        "4": {
+          "title": "Copy and share",
+          "detail": "You can copy the follow-up question text and share the result."
+        }
       }
     },
     "tarot_ijik": {
@@ -13620,8 +13973,8 @@
       },
       "analysisSteps": {
         "0": {
-          "label": "Frame the question",
-          "detail": "You write down where you stand and what is weighing on you."
+          "label": "Open the reading",
+          "detail": "The seven-seat reading starts straight away, with nothing to fill in."
         },
         "1": {
           "label": "Lay seven cards",
@@ -13635,17 +13988,61 @@
       "faq": {
         "0": {
           "q": "Do I draw the cards myself?",
-          "a": "Yes — you draw all seven in order across three screens."
+          "a": "Yes. You draw all seven yourself on one screen, in the order of STAGE 1, 2 and 3."
         },
         "1": {
           "q": "What if the reading fails to open?",
-          "a": "If the reading does not open, you are refunded automatically."
+          "a": "You can open the same request again without paying again."
         }
       },
       "premiumOutcomes": {
-        "0": "The interpretation is written by AI and does not fix the future.",
+        "0": "The interpretation is written from lines prepared for each card seat, and it does not fix the future.",
         "1": "Card interpretations are for reference.",
         "2": "The existing payment policy applies."
+      },
+      "receives": {
+        "0": {
+          "title": "The summary panel",
+          "detail": "The flow of moving, the timing to move, and staying where you are come first, at a glance."
+        },
+        "1": {
+          "title": "What to confirm before deciding",
+          "detail": "The conditions to check before you move are gathered separately."
+        },
+        "2": {
+          "title": "Seven cards, read one by one",
+          "detail": "From the flow if you stay to the final direction, every seat is worked through in turn."
+        },
+        "3": {
+          "title": "The conclusion and the main flow",
+          "detail": "The text opens by naming the conclusion and the flow you are in now."
+        },
+        "4": {
+          "title": "A standard for the next 30 days",
+          "detail": "It sets out what to decide by over the coming month."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Start on one screen",
+          "detail": "With nothing to fill in, you turn the cards in the order of STAGE 1, 2 and 3."
+        },
+        "1": {
+          "title": "Draw seven cards",
+          "detail": "Seven seats are filled from a deck of sixteen major cards."
+        },
+        "2": {
+          "title": "Check the summary",
+          "detail": "The flow of moving, the timing, staying put and what to confirm come first."
+        },
+        "3": {
+          "title": "Read the text",
+          "detail": "The conclusion and main flow, the seven cards, and the 30-day standard follow in order."
+        },
+        "4": {
+          "title": "Share and ask on",
+          "detail": "You can share the result and copy the next question text as it is."
+        }
       }
     },
     "nakshatra_muhurta": {
