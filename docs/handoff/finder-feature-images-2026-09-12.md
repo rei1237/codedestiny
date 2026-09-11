@@ -3,7 +3,7 @@ topic: 홈 전체 서비스 검색 카드 이미지 — 실제 기능 이미지 
 date: 2026-09-12
 status: active
 updated: 2026-09-12
-next: PR 머지·staging 확인 후 모바일 검색에서 스크랩 타일이 빠지는 결함(아래 범위 밖 1)을 조사한다
+next: R2 폴백 PR 머지·staging 확인 후 모바일 검색에서 스크랩 타일이 빠지는 결함(아래 범위 밖 1)을 조사한다
 ---
 
 # 홈 검색 카드 이미지 — 실제 기능 이미지 매칭
@@ -36,6 +36,15 @@ next: PR 머지·staging 확인 후 모바일 검색에서 스크랩 타일이 �
   - 레지스트리 57개 중 정적 조사 기준 44개가 기능 이미지, 13개가 달(연애 비책·사주·만세력·오늘의 운세 허브 등).
   - 로컬에서 `타로`·`AI 반려동물 사주` 가 달로 떨어진 것은 `/cdn-cgi/image/…` URL 이 로컬 서버에 없어서다
     (onerror 폴백 확인). Cloudflare 에서는 홈 타일과 같은 URL 이라 로드된다 — staging 에서 재확인.
+
+## 후속 — staging 실측과 R2 폴백 (PR #1928 머지 d00737dd1 이후)
+
+- staging d00737dd1: `delivery:verify-batch` PASS, `#services` 진입 시 홈 유지·검색 노출(390·1280),
+  "타로" 12/12 기능 이미지 로드. 단 `🐾 AI 반려동물 사주` 는 달로 떨어졌다 — 위 로컬 추정(cdn-cgi) 은 틀렸다.
+- 원인(실측): 타일 `data-img-src` 는 `/fuctionassets/반려 동물 사주.webp` 인데 Pages 에는 없고(404)
+  R2 `https://assets.code-destiny.com/…` 에만 있다(200). 홈 타일은 `resolveCollectionImageSrc` 로 R2 에서 받는다.
+- 수정: `appendServiceImage` 의 onerror 를 순서 있는 폴백으로 — 로컬 경로 → R2 원본(`/fuctionassets/` 일 때만) → 달.
+  테스트에 두 단계 폴백 단언 추가(R2 단계를 끄는 변이로 실패 확인).
 
 ## 범위 밖(보고만)
 

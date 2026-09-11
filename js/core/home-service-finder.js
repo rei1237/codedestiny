@@ -22,6 +22,9 @@
   var REGISTRY = window.__cdServiceRegistry || [];
   // 홈에 같은 기능 타일이 없는 항목의 대체 이미지(달 컨셉). 기능 이미지는 featureTileImage 가 런타임에 찾는다.
   var DEFAULT_SERVICE_IMAGE = "/images/home/finder-moon.svg";
+  /* 컬렉션 자산 일부는 Pages 가 아니라 R2 에만 있다(홈 타일은 index-inline-runtime 의
+     resolveCollectionImageSrc 로 R2 에서 받는다). 로컬 경로가 404 면 R2 원본으로 한 번 물러난다. */
+  var R2_ASSET_BASE = "https://assets.code-destiny.com/";
 
   var PURPOSE_LABEL = {
     love: { label: "연애", emoji: "❤️" },
@@ -334,10 +337,16 @@
     image.decoding = "async";
     image.width = 320;
     image.height = 180;
+    var path = image.getAttribute("src").split(/[?#]/)[0];
+    var fallbacks = [
+      path.indexOf("/fuctionassets/") === 0 ? R2_ASSET_BASE + path.slice("/fuctionassets/".length) : "",
+      DEFAULT_SERVICE_IMAGE
+    ].filter(function (src) { return src && src !== path; });
     image.addEventListener("error", function () {
-      if (image.dataset.cdFallback === "1") return;
+      var next = fallbacks.shift();
+      if (!next) return;
       image.dataset.cdFallback = "1";
-      image.src = DEFAULT_SERVICE_IMAGE;
+      image.src = next;
     });
     media.appendChild(image);
     parent.appendChild(media);
