@@ -226,4 +226,15 @@ PR 생성 후 필수 검사와 최신 base 충돌을 확인하고 에이전트�
 
 지금은 `upstreamCompatible`/`checkUpstream`(`ci-preflight.mjs`)이 "receipt.base가 최신 main의 조상이고, 그 사이 upstream이 건드린 파일이 이번 후보가 건드린 파일과 하나도 겹치지 않을 때"만 재사용을 허용한다. main이 rebase/force-push로 재작성돼 조상 관계 자체가 깨지면(`ancestor: false`) 항상 차단한다(fail-closed 유지). receipt에는 이제 `files` 필드가 함께 기록되어 재사용 시점에 재계산 없이 그대로 쓰인다. `--create-pr`의 "branch가 최신 main을 이미 포함해야 함" 요구(과거 `merge-base --is-ancestor base HEAD`)는 이 완화의 대상 그 자체이므로 제거했다 — receipt.base가 애초에 HEAD의 조상이라는 사실은 최초 preflight 실행 시점에 이미 확인된다. 검증 루프 진행 중 origin/main이 전진하는 경우(`assertBase`)와 종료 직후 최종 확인도 동일한 `checkUpstream`으로 판정하며, 통과 시 그 시점의 `base`를 갱신해 이후 판정 기준으로 삼는다.
 
-잔여 위험: 파일명이 겹치지 않아도 의미론적 의존성(예: 다른 파일의 export 시그니처 변경)은 이 검사로 잡히지 않는다. 이는 새로운 위험이 아니라 GitHub Merge Queue 미제공·strict 비활성으로 현재도 감수 중인 위험과 같은 선상이다. `delivery-admit.mjs`의 "최신 main 반영" 자체 게이트와 plain 실행 시작 시 조상 검사(`ci-preflight.mjs`)는 이번 완화 대상이 아니며 그대로 유지된다.
+잔여 위험(재사용 완화): 파일명이 겹치지 않아도 의미론적 의존성(예: 다른 파일의 export 시그니처 변경)은 이 검사로 잡히지 않는다. 이는 새로운 위험이 아니라 GitHub Merge Queue 미제공·strict 비활성으로 현재도 감수 중인 위험과 같은 선상이다. `delivery-admit.mjs`의 "최신 main 반영" 자체 게이트와 plain 실행 시작 시 조상 검사(`ci-preflight.mjs`)는 이번 완화 대상이 아니며 그대로 유지된다.
+
+## 2026-09-11 캐시버스트 false CONFLICTING 자동 복구
+
+`.gitattributes`의 `merge=cachebust` 경로(정적 셸·로케일 미러·로더 JS 등 21개)는 로컬 merge driver(`scripts/git/cachebust-merge-driver.mjs`)가 `?v=build-<hash>`를 정규화한 뒤 3-way 병합한다. **GitHub의 서버측 PR 병합 가능 계산(`gh pr view --json mergeable,mergeStateStatus`)은 이 로컬 driver를 절대 실행하지 않는다 — 플랫폼 제약이고 우리가 고칠 수 있는 버그가 아니다.** 그래서 `origin/main`이 이 파일들을 한 번만 건드려도 내용 차이가 0인 PR까지 전부 `mergeable=CONFLICTING`으로 보인다. 지금까지 해결책은 항상 사람이 하는 "로컬 리베이스 + force-push"였고(과거 인시던트 핸드오프 5건), 그 사이 10~30분짜리 `ci:preflight`가 통째로 무효화되는 병목이 있었다.
+
+- **`scripts/delivery-admit.mjs`**: `mergeable === "CONFLICTING"`이고 base=main·Ready·로컬 head 일치일 때만 **딱 한 번** 자동 복구를 시도한다. driver 등록(`setup-git-merge-drivers.mjs` 재사용) → `origin/main` fetch → **일회용 detached worktree**(`.admit-recovery-<8hex>`, `ci-preflight.mjs`의 스냅샷 패턴과 동일하게 `finally`에서 제거) 안에서 `git rebase origin/main` → 종료 코드뿐 아니라 `git status --porcelain`의 충돌 표식(UU/AA 등)과 트리 clean까지 확인 → PR head 브랜치 하나에만 `--force-with-lease` push → `gh pr view` 재조회 값으로 판정한다.
+- **실제 충돌은 예전과 똑같이 차단된다.** 해시를 걷어내고도 충돌이 남으면 즉시 `git rebase --abort`, 일회용 worktree 제거, 복구 이전 `mergeable` 값 그대로 BLOCK한다. 복구 자체가 실패하거나(네트워크·권한·예상 밖 git 상태) 예외를 던져도 원래 값으로 되돌아간다 — 새 경로의 버그가 admission을 통과시키는 일은 없다. 이 변경은 **가용성 수정이지 엄격함의 완화가 아니다**.
+- **로컬 브랜치는 건드리지 않는다.** 복구가 성공하면 원격 head만 앞서므로 "후보와 PR head 일치"가 정직하게 BLOCK된다. 운영자는 `git fetch && git reset --hard origin/<branch>` 후 preflight를 다시 돌린다. 자동화되는 것은 사람이 손으로 하던 리베이스·force-push 한 번이다. 끄려면 `npm run delivery:admit -- --pr=<n> --no-recovery`.
+- **push 안전장치**: push 인자는 `cachebustForcePushArgs()` 한 곳에서만 만들고 `main`·`refs/*`·`HEAD`·비정상 브랜치명·비정상 SHA를 전부 거부한다. bare `--force`는 쓰지 않는다.
+- **`scripts/ci-preflight.mjs`**: `main()` 첫 줄에서 `setup-git-merge-drivers.mjs`를 방어적으로 재실행한다(idempotent). `node_modules`를 정션으로 빌려 쓰는 격리 워크트리는 npm의 `prepare`가 한 번도 돈 적이 없어 driver 등록이 통째로 빠질 수 있다. 등록 실패는 경고만 남기고 preflight를 막지 않는다(실패 시 동작은 오늘과 동일).
+- **회귀 가드**: `__tests__/ui/delivery-continuous-merge.test.mjs`가 실제 scratch 저장소를 만들어 (1) 해시만 다른 경우 복구 성공 (2) 진짜 내용 충돌은 `reason=conflict`로 차단하고 리베이스를 취소 (3) push 인자가 PR head 브랜치 하나뿐임을 검사한다. 변이 확인 완료: 충돌 검사를 지우면 (2)가, 정규화를 지우면 (1)이 실패한다.
