@@ -172,5 +172,11 @@ When a new stale reference or document conflict is found:
 - **최신 main 포함 요구**: 사용자가 룰셋에서 먼저 제거했고(2026-09-12 실측: required status check 규칙 없음), 레포 쪽 `delivery-admit.mjs`·`ci-preflight.mjs`의 조상 검사를 merge-tree 충돌 + 파일 겹침 판정으로 대체했다. 룰셋의 required check 제거는 사용자 의도다(2026-09-12 확인) — 복구를 권하지 않고, 머지 가능 보고 전에 PR 체크 전체 통과를 확인한다.
 - **인수인계 형식**: 단일 AI_HANDOFF 파일 요청 대신 주제별 `docs/handoff/*.md` 유지 + done 즉시 삭제로 확정(사용자 선택). 단일 파일은 병렬 PR마다 충돌한다.
 
+## 2026-09-12 절대 규칙 4 예외 — 미사용 의존성 제거로 `package-lock.json` 변경
+
+- **예외 범위**: `resend`·`recharts`·`@tiptap/extension-link` 3개를 `npm uninstall --package-lock-only` 로 제거했다. lock 은 npm 이 재생성했고 손편집하지 않았다. 하위 의존성 44개가 함께 빠졌고, `react-is` 는 dev 전용 표시만 바뀌었다.
+- **근거**: 세 패키지와 빠진 하위 패키지를 import·require 하는 소스는 0건이다(`git grep`). 메일은 fetch 기반 `worker/lib/resend.js` 가 보내며 `resend` 패키지를 쓰지 않는다. `@tiptap/extension-link` 는 `@tiptap/starter-kit` 의 하위 의존성으로 lock 에 남는다.
+- **한정**: 이 변경에만 적용되는 1회 예외다. 규칙 4 자체는 그대로다.
+
 ## 2026-09-08 사용자 전달 방식 변경 (역사 — 2026-09-12 절로 대체)
 PR 생성 후 필수 검사와 최신 base 충돌을 확인하고 에이전트가 안전하게 머지한다. 스테이징에서 Pages·Worker 배포 SHA 및 읽기 전용 핵심 응답을 확인한다. 과거 사용자 수동 머지·머지 후 배포 미확인 조항보다 이 지시가 우선한다. 프로덕션 승격은 여전히 사용자의 명시적인 1회 승인 때만 진행한다. branch protection을 우회하지 않으며 실패·필수 승인 대기는 보고한다.
