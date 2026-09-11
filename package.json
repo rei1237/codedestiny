@@ -541,6 +541,8 @@
     "delivery:admit": "node scripts/delivery-admit.mjs",
     "delivery:sync": "node scripts/delivery-sync.mjs",
     "delivery:verify-batch": "node scripts/delivery-verify-batch.mjs",
+    "verify:staging": "node scripts/delivery-verify-batch.mjs",
+    "verify:release": "npm run deploy:critical",
     "delivery:batch-plan": "node scripts/delivery-batch-plan.mjs",
     "verify:delivery-admit": "node scripts/delivery-admit.mjs --self-test",
     "verify:delivery-batch-plan": "node scripts/delivery-batch-plan.mjs --self-test",

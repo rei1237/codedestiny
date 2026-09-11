@@ -15,7 +15,7 @@ next: "새 세션은 merge된 인수인계 문서를 지정해 npm run session:s
 
 - `npm run session:start -- --handoff=...`는 linked worktree, clean 상태, 최신 `origin/main`, main에 merge된 인수인계 문서를 검사한다.
 - `npm run session:close -- --handoff=... --pr=N`는 clean 상태, push 완료, Ready PR의 branch/SHA, 현재 PR에 포함된 인수인계 문서를 검사한다.
-- 순차 통합은 기존 `npm run delivery:admit -- --pr=N`을 사용하며 직전 main의 staging Pages·Worker SHA 도달 전 다음 PR을 머지하지 않는다.
+- 순차 통합은 기존 `npm run delivery:admit -- --pr=N`을 사용한다. 스테이징 도달은 머지 조건이 아니다(2026-09-12 개정, 머지는 사용자).
 
 ## 검증
 
