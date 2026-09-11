@@ -7,7 +7,7 @@ next: "노출 0인 사이트맵 340개(77.4%) 중 /fortune 92 · /insights 84 ·
 # GSC 실적 3개월 판정 — 병목은 색인도 CTR 도 아니고 **노출 모수** (2026-08-30)
 
 > 원본: `~/Downloads/` 의 실적 CSV 7종(검색 노출·검색어 수·국가·기기·차트·페이지·필터). 기간 최근 3개월, 검색 유형 웹.
-> 커버리지 축은 [gsc-coverage-drilldown-2026-08-30.md](gsc-coverage-drilldown-2026-08-30.md) 에서 종결됐다.
+> 커버리지 축은 `gsc-coverage-drilldown-2026-08-30`(완료 핸드오프, git 히스토리 참조) 에서 종결됐다.
 
 ## 1. 숫자
 

@@ -9,7 +9,7 @@ next: "§3 남은 것 — 비교 문서 `/compare/astrology-vs-myeongri` · `/co
 > **이 문서만 읽고 시작할 수 있게 쓴다.** 수치는 전부 이 세션의 실측이고 재현 명령을 함께 남긴다.
 >
 > 이 세션은 `docs/handoff/locale-footer-hub-2026-08-16.md` §7 과
-> `docs/handoff/seo-ai-and-content-opportunities-2026-08-16.md` 의 큐를 실행했다.
+> `seo-ai-and-content-opportunities-2026-08-16`(완료 핸드오프, git 히스토리 참조) 의 큐를 실행했다.
 > **그 두 문서의 큐는 이제 대부분 비었다.** 남은 것은 §3 에 정리했다.
 
 ---

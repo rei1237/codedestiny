@@ -1596,6 +1596,6 @@ null==null 로 통과한다) / `pinTimezone()` 제거 후 `TZ=UTC` / 매트릭�
 ## 8. 같이 봐야 할 것
 
 - [docs/handoff/korean-calendar-migration-2026-08-27.md](korean-calendar-migration-2026-08-27.md) — 마이그레이션 본체. 이 축의 출처는 §PR-D2 의 "신규 발견"
-- [docs/handoff/solar-term-frame-kasi-verification.md](solar-term-frame-kasi-verification.md) — 같은 계획의 다른 축(절기 프레임 KASI 대조, PR #1225 로 tier-1 완료)
+- `solar-term-frame-kasi-verification`(완료 핸드오프, git 히스토리 참조) — 같은 계획의 다른 축(절기 프레임 KASI 대조, PR #1225 로 tier-1 완료)
 - `scripts/verify-solar-term-frame-kasi.mjs` — **TZ 핀 · 소스 전수 발견 · 동결 지문 · pending 마커**의 정본 구현. PR-B 의 하네스·픽스처가 그대로 따라 하면 된다
 - CLAUDE.md 원칙 8(부정 단언 금지) · 10(가드는 fail-closed) · 12(인수인계)

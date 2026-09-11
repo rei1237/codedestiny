@@ -15,7 +15,7 @@ next: "\"다음 세션 시작점\" 절 — 마이그레이션은 끝났고 인�
 |---|---|
 | **대운 나이 두 축 혼재** | 🟢 **닫힘 — PR #1218.** 세는 나이로 통일(사용자 결정). 아래 §PR-D2 참조 |
 | **셸 세차가 비KST 브라우저에서 어긋난다** | 🟢 **닫힘 — PR #1217.** 같은 PR 이 **더 큰 결함 둘**을 함께 고쳤다(아래) |
-| **절기 프레임 세차·월건의 KASI 대조 미실시** | 🔴 **막혔다.** KASI `get24DivisionsInfo` 가 **HTTP 403** 이라 채집이 불가능하다. 원인 후보 둘 중 코드 쪽은 PR #1220 이 고쳤고, 나머지 갈래는 [docs/handoff/solar-term-frame-kasi-verification.md](solar-term-frame-kasi-verification.md) |
+| **절기 프레임 세차·월건의 KASI 대조 미실시** | 🔴 **막혔다.** KASI `get24DivisionsInfo` 가 **HTTP 403** 이라 채집이 불가능하다. 원인 후보 둘 중 코드 쪽은 PR #1220 이 고쳤고, 나머지 갈래는 `solar-term-frame-kasi-verification`(완료 핸드오프, git 히스토리 참조) |
 
 ### 🔴 그 착수가 찾아낸 것 — 예고에 없던 라이브 결함 셋
 
@@ -221,7 +221,7 @@ KASI `getLunCalInfo` 의 `lunSecha`/`lunWolgeon` 은 **음력 프레임**이다 
 지금은 `verify:solar-term-frame-kasi` 가 tier-1 + tier-2 로 돌며 월건·세차 프레임을 KASI 지상값과
 대조한다. 🔴 **커버리지는 2000~2028 뿐이다**(음양력은 1391~2050 인데 절기만 좁다) — 그 밖의 해는
 이 축으로 검증되지 않는다. 경위 · 임계 근거 · KASI 자체 오류 3건 · 남은 미검증은
-→ [docs/handoff/solar-term-frame-kasi-verification.md](solar-term-frame-kasi-verification.md)
+→ `solar-term-frame-kasi-verification`(완료 핸드오프, git 히스토리 참조)
 
 ### (C) 🟢 클래식 스크립트판은 PR-C 에서 만들어졌다 — `js/core/korean-calendar.js`
 

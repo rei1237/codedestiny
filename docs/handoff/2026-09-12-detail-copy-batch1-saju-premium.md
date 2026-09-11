@@ -6,7 +6,7 @@ next: "배치 1(사주 프리미엄 리포트) 상세창 카피 PR 의 CI·머�
 
 # 유료 상세창 카피 배치 1 — 사주 프리미엄 리포트 7종
 
-선행 문서: [2026-09-11-detail-sheet-premium-redesign.md](2026-09-11-detail-sheet-premium-redesign.md) (공통 구조·운명의 꽃, PR #1923 머지 7aecad1fb). 형식 계약(섹션 순서·금지어·`valueCompare:{rows:[]}` 명시 숨김·outlineImage 실재 검사)은 그 문서가 정본이다.
+선행 문서: `2026-09-11-detail-sheet-premium-redesign`(완료 핸드오프, git 히스토리 참조) (공통 구조·운명의 꽃, PR #1923 머지 7aecad1fb). 형식 계약(섹션 순서·금지어·`valueCompare:{rows:[]}` 명시 숨김·outlineImage 실재 검사)은 그 문서가 정본이다.
 
 ## 범위 (가정)
 

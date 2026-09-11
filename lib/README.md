@@ -278,5 +278,3 @@ git push origin main
 [ ] 4. npm run build 검증
 [ ] 5. git push 배포
 ```
-
-📖 **더 자세히**: [QUICK_START.md](../QUICK_START.md)

@@ -13,7 +13,7 @@ next: "\"아직 안 본 파일\" 절의 파일부터 연다 — P0-1·P0-2·P1-2
 > - P0-1·P0-2 는 `fix/payment-duplicate-key-503`, P0-3·P0-4a 는 `fix/auth-logout-relogin-race` 로
 >   **검증까지 마치고 PR 로 나갔다.** 이 문서를 근거로 다시 착수하지 말 것.
 > - **P1-2 는 보류가 아니라 이미 착륙했다** — `worker/payments/orders.js` 의 `createPayableOrder`
->   (세대 멱등키 방식). 상세는 [p1-2-order-attempt-branch.md](p1-2-order-attempt-branch.md) 머리말.
+>   (세대 멱등키 방식). 상세는 `p1-2-order-attempt-branch`(완료 핸드오프, git 히스토리 참조) 머리말.
 > - 아직 안 한 것: P0-1 의 `withMongoRetry` 래핑 · P0-4b(클라 abort) · P0-4c · P1-1·P1-3·P1-4 · `[vars]` 3개.
 
 ## 상태
@@ -28,7 +28,7 @@ next: "\"아직 안 본 파일\" 절의 파일부터 연다 — P0-1·P0-2·P1-2
 ### 2026-08-15 갱신 — PR ① 착수함 (아직 미검증)
 
 - 사용자 증상 보고: **"409·503 둘 다 난다. 모두 간헐적이고 실패해도 자동 복구된다."**
-  → 레이스성 원인(후보 A·E) 확정적. 영구 409 인 후보 B 는 배제 → [P1-2 는 보류](p1-2-order-attempt-branch.md).
+  → 레이스성 원인(후보 A·E) 확정적. 영구 409 인 후보 B 는 배제 → P1-2 는 보류(완료 핸드오프, git 히스토리 참조).
   → **다음 순위는 후보 D**(클라 in-flight 가드 우회 = 레이스를 만드는 방아쇠, 계획서 §2-D).
 - **P0-2 코드 수정함** — `worker/payments/orders.js` `createOrder` 11000 복구.
 - **P0-1 코드 수정함** — `worker/routes/payments.js` `handleSinglePaymentStart` upsert + 11000 복구.

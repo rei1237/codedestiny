@@ -109,7 +109,7 @@ git fetch origin main; git rebase origin/main   # 충돌 나면 두 판을 손�
 
 [docs/handoff/human-design-report-generation-fix.md](human-design-report-generation-fix.md) 의 `next` 는 "teardown 을 임계 경로에서 빼는 PR" 을 가리키는데, 그건 **PR #1372 로 이미 머지됐다**. 2-A 를 올리면 이 문서는 닫힌다.
 
-[docs/handoff/mongo-collscan-and-cache-2026-08-30.md](mongo-collscan-and-cache-2026-08-30.md) 도 마찬가지 — 마지막 미확인 항목(결제 직후 정합성)이 **PR #1369 로 머지됐다.**
+`mongo-collscan-and-cache-2026-08-30`(완료 핸드오프, git 히스토리 참조) 도 마찬가지 — 마지막 미확인 항목(결제 직후 정합성)이 **PR #1369 로 머지됐다.**
 
 🔴 **위 문단의 옛 서술("종결 커밋이 `origin/main` 에 없으니 `docs/handoff-mongo-cache-verified` 브랜치를 올려라")은 틀렸다**(2026-08-31 정정).
 `aec5900e6` 의 내용은 PR #1358(`48c15fdcc`)로 이미 머지됐고, 그 뒤 PR #1365 가 결제 직후 무효화 구멍을

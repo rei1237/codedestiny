@@ -170,6 +170,5 @@ var __cdCollectionToggleHintTextByLang = {
 
 ## 📖 **더 알아보기**
 
-- **다국어 전체 플로우**: `QUICK_START.md` 참고
 - **더 자세한 런타임 구조**: `PROJECT_STRUCTURE.md` 참고
 - **배포 과정**: `scripts/README.md` 참고

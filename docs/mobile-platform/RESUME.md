@@ -4,7 +4,7 @@
 
 ```powershell
 Set-Location -LiteralPath 'D:\Development\code-destiny-mobile-platform-ux'
-Get-Content -LiteralPath 'docs/handoff/mobile-platform-ux.md'
+# 완료 핸드오프 mobile-platform-ux 는 삭제됨(git 히스토리 참조)
 git status --short --branch
 git log -6 --oneline
 npm run worktree:status
@@ -24,7 +24,7 @@ gh pr view 1824 --json url,isDraft,headRefOid,mergeStateStatus,statusCheckRollup
 ## 완료 정본
 
 - 상세 범위: [feature-detail-coverage.md](feature-detail-coverage.md)
-- 상태와 검증: [../handoff/mobile-platform-ux.md](../handoff/mobile-platform-ux.md)
+- 상태와 검증: `mobile-platform-ux`(완료 핸드오프, git 히스토리 참조)
 - 수기 상세 콘텐츠: `index.html`의 `FEATURE_VISUAL_DETAILS`
 - 검토 허용 목록·생성: `scripts/lib/build-visual-details.mjs`
 - 공통 렌더러: `js/feature-detail-panels.mjs`
