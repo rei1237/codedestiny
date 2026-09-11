@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-11
-next: PR(#PR_NUMBER) 필수 CI 통과·사용자 머지를 확인한 뒤, 스테이징에서 시나리오 B(아래)로 결과 화면 터치 스크롤이 되는지 확인한다.
+next: PR(#1916) 필수 CI 통과·사용자 머지를 확인한 뒤, 스테이징에서 시나리오 B(아래)로 결과 화면 터치 스크롤이 되는지 확인한다.
 ---
 
 # 마스터 인연의 서 — 모바일 결과 화면 스크롤 불가
@@ -42,7 +42,7 @@ next: PR(#PR_NUMBER) 필수 CI 통과·사용자 머지를 확인한 뒤, 스테
   - 무결제 통과
 - 대기 화면·오버레이가 떠 있는 동안에는 여전히 잠긴다.
 - 통과: typecheck, test:node(신규 포함), verify:paid-gate-ui, verify:portone-single-payment, 그 밖의 check:fast 단계(PR 본문 참조).
-- ⚠️ 로컬 `lint`/`lint-changed` 는 **환경 문제로 미검증**이다. 로컬 node_modules 의 `@typescript-eslint/parser` 8.70 과 `typescript-estree` 8.57 이 어긋나 모든 TS 파일에서 파서 오류가 난다(메인 체크아웃의 미수정 파일도 동일). PR CI 의 lint 결과로 확인한다.
+- 공유 node_modules 가 package-lock 과 어긋나 lint 파서 오류·jest `lru-cache` 누락·ci:preflight 드리프트 차단이 났다. 워크트리의 node_modules 정션을 떼고 격리 `npm ci` 후 재실행해 **변경 파일 eslint 통과, `test:jest` 228 스위트·2686 테스트 통과, `ci:preflight` PASS**.
 
 ## 후속 과제 (범위 밖, 보고만)
 
@@ -51,8 +51,13 @@ next: PR(#PR_NUMBER) 필수 CI 통과·사용자 머지를 확인한 뒤, 스테
   - `app/saju/destiny-bias/DestinyBiasClient.tsx`
   - `app/oracle/sikojen-povailu/SikojenpovailuApp.tsx`
   - `app/components/MindScanTarot.tsx`
-- 로컬 node_modules 의 typescript-eslint 버전 불일치(위).
+- 메인 체크아웃의 공유 node_modules 가 package-lock 과 어긋나 있다(`npm ci` 필요). 다른 세션도 쓰므로 이번 작업에서는 건드리지 않았다.
+
+## 전달 상태
+
+- 브랜치 `fix/master-love-codex-result-scroll-lock`, PR https://github.com/rei1237/codedestiny/pull/1916 (Ready)
+- 워크트리 `D:/Development/code-destiny/.claude/worktrees/codex-result-scroll-lock` — 스테이징 확인 후 제거한다.
 
 ## 다음 세션 첫 문장
 
-"docs/handoff/2026-09-11-master-love-codex-result-scroll-lock.md 를 읽고, PR #PR_NUMBER 머지 여부와 스테이징 SHA 를 확인한 뒤 모바일 결과 화면 스크롤(시나리오 B)을 스테이징에서 검증해줘."
+"D:/Development/code-destiny 에서 docs/handoff/2026-09-11-master-love-codex-result-scroll-lock.md 를 읽고, PR #1916 머지 여부와 스테이징 SHA 를 확인한 뒤 모바일 결과 화면 스크롤(시나리오 B)을 스테이징에서 검증해줘."
