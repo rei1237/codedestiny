@@ -152,6 +152,14 @@ try {
     }
   }, alreadyUnlocked);
   await page.waitForTimeout(900);
+  // alreadyUnlocked 경로는 여기까지 오는 동안 #summaryGate 버튼 클릭(자동 스크롤 유발)을 거치지
+  // 않는다 — run-btn 클릭이 유발하는 스크롤은 #resultPage 맨 위(block:'start')로 가지 #summaryCard
+  // 위치까지 보장하지 않는다. 실사용자도 스크롤해야 도달하는 지점이니 뒤쪽 폭 루프(줄 168)와
+  // 같은 방식으로 명시적으로 스크롤한 뒤 단정한다 — 그렇지 않으면 섹션 높이·뷰포트 조합에 따라
+  // IntersectionObserver 가 아직 관찰조차 못 한 상태를 "리빌 실패"로 오판한다(실측: 데스크탑 셸에서만
+  // 우연히 초기 뷰포트가 summaryCard 를 비껴가 실패했다).
+  await page.locator('#summaryArea').scrollIntoViewIfNeeded();
+  await page.waitForTimeout(200);
   await assertSummaryVisible(page, `${shell.label} ${alreadyUnlocked ? 'previously unlocked stable' : 'restored stable after stale snapshot'}`);
   if (!alreadyUnlocked) {
     await page.evaluate(() => {
