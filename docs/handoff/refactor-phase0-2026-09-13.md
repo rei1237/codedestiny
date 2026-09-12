@@ -71,6 +71,9 @@ docs/CONTEXT_AUDIT.md                                  판정-단위 충돌 해�
 관측 집계: `gh run list --workflow=guards-shadow.yml -R <repo>` → `gh run view <id> --json jobs`
 의 `steps[].conclusion`.
 
+**관측 1/10 (2026-09-13, 커밋 `c3aa60546`, run `34715837924`): 가드 41개 전원 성공, 오탐 0.**
+같은 push 의 `CI required` 는 영향 없이 success — 차단력 0 이 실제로 확인됐다.
+
 ### 2. 실패 가드 3개 — 원인은 범위 밖이라 보고만 한다 (코딩 원칙 14)
 
 `UNWIRED_BY_DESIGN` 에 그대로 남겼다. 통과하지 않는 것을 관측에 넣으면 "오탐 0" 기준이 처음부터
@@ -86,6 +89,23 @@ docs/CONTEXT_AUDIT.md                                  판정-단위 충돌 해�
 
 `jest.config.cjs` 의 목 매퍼가 `^\.\./\.\./lib/llm-client\.ts$` 라는 **상대 깊이**에만 걸린다.
 깊이가 다른 테스트는 목을 못 받는다. 그때까지 새 LLM 테스트를 추가하면 반드시 목 주입을 직접 확인한다.
+
+### 4. `public/js/` 에 소스 없는 수작업 파일 3개 — 보고만 (2026-09-13 실측)
+
+`public/js/` 는 명목상 `js/` 의 생성 미러인데(`scripts/sync-legacy-static-to-public.mjs`), 아래 3개는
+`js/` 에 원본이 **없다**. 그 스크립트는 `cpSync` 로 더하기만 하고 target 을 솎아내지 않으므로
+미러 아닌 파일이 영구히 남아 `dist/`·`out/`·Android 번들까지 실려 나간다.
+
+| 파일 | LOC | 판정 (검색 범위: 레포 전체, `dist/`·`out/`·`apps/mobile/android/` 제외) |
+|---|---|---|
+| `public/js/sukuyo-book.js` | 3,863 | **고아.** 참조가 `docs/payments/payment-inventory.json`·`payment-p0-inventory.json` 과 죽은 `styles/life-book.css:2232-2380`(`#sukuyoBookModal`, 아무도 생성하지 않음)뿐. script 태그·import 0 |
+| `public/js/vedic-astrology-module.js` | 80 | **고아.** 참조 0 |
+| `public/js/birth-place-groups.js` | 130 | 🔴 **살아 있다.** `app/fusion-fortune/FusionFortuneClient.tsx:2339`, `vedic-astrology.html:864`, `public/vedic-astrology.html:864` 가 `/js/birth-place-groups.js` 를 동적 로드 |
+
+🔴 **`public/js/` 를 정리하거나 sync 를 솎아내기(prune) 전에 `birth-place-groups.js` 의 `js/` 원본을
+먼저 만들어야 한다.** 지금 상태에서 미러를 청소하면 융합 운세의 출생지 선택기가 죽는다. 고아 2개도
+결제 인벤토리에 유료 표면으로 올라가 있으니 삭제는 [cleanup 규칙](../../CLAUDE.md)대로 별도 변경으로
+다루고, 소스·테스트·verify 3면 확인을 먼저 한다(코딩 원칙 9).
 
 ## 다음 작업 — Phase 1 (C급 중복 수렴)
 
