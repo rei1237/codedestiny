@@ -52,11 +52,11 @@ VS Code 설정은 개인 경로·자동승인을 제외한 항목만 공유한�
 각 변경은 git revert로 되돌린다. 운영 배포·실 LLM·실결제·DB 쓰기·결제 cutover·폴더 전면 이동은 이 변경에 포함하지 않는다.
 
 ## 동시 작업과 전달 확인
-작업 시작 시 npm run worktree:status로 미커밋·main 미반영 커밋의 파일 겹침, 공유 의존성 lock 일치, merge driver를 확인한다. --strict는 겹침·조회 불가에도 실패하며 --json은 전체 근거를 제공한다. 타 작업의 변경을 stash/reset/checkout하거나 공유 설치본에서 npm ci를 실행하지 않는다. 이번 작업은 자체 build-cache 아래에 lockfile 기반 설치본을 만들었다.
+작업 시작 시 git branch --show-current와 git status로 main·clean을 확인하고 git pull --ff-only 후 시작한다(2026-09-12 main 단독 개발 전환). npm run worktree:status는 남아 있는 과거 워크트리를 배수할 때만 쓴다. 타 세션의 변경을 stash/reset/checkout하거나 공유 설치본에서 npm ci를 실행하지 않는다. 이번 작업은 자체 build-cache 아래에 lockfile 기반 설치본을 만들었다.
 
 중첩 워크트리 ESLint가 상위 설정을 상속해 플러그인이 충돌하던 문제는 root:true로, Next가 부모 lockfile을 root로 선택하던 문제는 outputFileTracingRoot로 수정했다. dev는 포트 점유 시 기존 서버를 건드리지 않고 중단한다. 테스트는 절대 preload 경로를 사용해 다른 cwd의 자식 Node에도 mock 차단이 유지된다.
 
-check:fast는 커밋 전 검사다. check:all은 커밋 후 push 전 검사이며, clean HEAD를 요구하는 기존 public-mirror-fresh 검사를 초반에 실행한다. 검사의 clean 조건을 약화하지 않는다. PR 필수 검사 후 안전하게 머지하고 스테이징 SHA·응답을 확인한다. 프로덕션 승격은 별도 명시 승인 때만 한다.
+check:fast는 커밋 전 검사다. check:all은 커밋 후 push 전 검사이며, clean HEAD를 요구하는 기존 public-mirror-fresh 검사를 초반에 실행한다. 검사의 clean 조건을 약화하지 않는다. push 후에는 main CI(`CI required`) 결과만 확인하고, 스테이징 SHA·응답 확인은 필요한 경우에만 한다. 프로덕션 승격은 별도 명시 승인 때만 한다.
 
 독립 설치 시 npm audit는 기존 lockfile에 취약점 경고 77건(높음 22건)을 보고했다. 도달 가능성·운영 영향은 미분석이며 의존성 자동 업데이트는 하지 않았다. 별도 보안 검토 대상으로 남긴다.
 

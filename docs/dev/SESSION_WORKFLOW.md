@@ -1,23 +1,21 @@
 # Session Workflow
 
-긴 Claude Code/Codex 작업은 한 세션에 모든 맥락을 쌓지 않는다. 작업 상태는 `docs/handoff/<주제 이름>.md`에 남기고, 새 세션은 **merge된 직전 PR의 인수인계 문서**와 최신 `origin/main`에서만 시작한다. 완료한 변경은 로컬 브랜치나 worktree에만 남겨두지 않고 반드시 PR로 인계한다.
+긴 Claude Code/Codex 작업은 한 세션에 모든 맥락을 쌓지 않는다. 작업 상태는 `docs/handoff/<주제 이름>.md`에 남기고, 새 세션은 그 문서와 최신 `origin/main`에서만 시작한다. 완료한 변경은 로컬에만 남겨두지 않고 반드시 커밋·push로 인계한다.
+
+**2026-09-12부터 브랜치와 PR을 만들지 않는다.** 모든 작업은 `main` 체크아웃에서 직접 한다. 안전장치는 격리가 아니라 작은 커밋과 빠른 롤백이다.
 
 ## 작업 시작 시
 
 ```bash
-git status
-git branch --show-current
-git fetch origin
-git rev-list --left-right --count HEAD...origin/main
-git diff --stat origin/main...HEAD
-npm run session:start -- --handoff=docs/handoff/<주제>.md
+git branch --show-current   # main 이어야 한다
+git status                  # clean 이어야 한다
+git pull --ff-only
 ```
 
 - 루트 `CLAUDE.md`와 작업 축에 해당하는 `docs/context/*`를 먼저 읽는다.
-- 직전 PR이 merge되었는지 확인한다. staging 도달은 선택이며 시작 조건이 아니다.
-- 직전 PR에 포함된 `docs/handoff/*` 문서에서 `status: active|blocked`인 현재 작업을 확인한다.
-- 새 작업 브랜치의 첫 SHA는 최신 `origin/main`과 같아야 한다. 이전 세션의 미머지 branch 위에 새 작업을 쌓지 않는다.
-- 다른 세션의 변경이 있는 기본 체크아웃에서는 수정하지 않고 격리 worktree를 사용한다.
+- main이 아니면 브랜치를 새로 만들지 말고 안전하게 main으로 돌아온 뒤 시작한다.
+- `docs/handoff/*` 문서에서 `status: active|blocked`인 현재 작업을 확인한다.
+- 미커밋 변경이 남아 있으면 내 것인지 먼저 판별한다. 다른 세션의 것이면 보존하고 커밋에 섞지 않는다.
 
 ## 작업 중
 
@@ -26,39 +24,37 @@ npm run session:start -- --handoff=docs/handoff/<주제>.md
 - LLM·결제·외부 API 검증은 mock/stub/fake만 사용한다.
 - 불필요한 전체 리팩터링을 하지 않는다.
 - 파일 삭제·리네임 전에는 소스, `__tests__/`, `scripts/verify-*`를 `git grep`으로 확인한다.
-- Quick Pass(오타·UI 문구·CSS·정적 자산)는 경량 CI만 사용하고 스테이징 도달 감시 대상에서 제외한다.
-- Staging 필수(DB 스키마·결제/인증 로직·주요 Worker 데이터 흐름)는 전체 CI와 스테이징 도달 감시를 유지한다.
+- 작업을 독립적으로 검증 가능한 단위로 쪼갠다. 하나가 동작하면 **바로 커밋한다.** 되돌려도 다른 기능이 흔들리지 않는 크기가 기준이다.
+- 무관한 변경을 한 커밋에 섞지 않는다. 커밋 시점의 main은 항상 실행 가능해야 한다.
+- 회귀가 나면 조건·try/catch·CSS 오버라이드를 덧대지 않는다. 미커밋은 `git reset --hard HEAD`, 나쁜 커밋은 그 커밋만 되돌린다. 이미 커밋된 다른 정상 작업까지 날리지 않는다.
+- 되돌린 뒤에는 같은 구조로 재시도하지 않는다. 실패 원인·회귀 영역·새 접근을 보고한 다음 다르게 구현한다.
 
 ## 세션 종료 전
 
 ```bash
+git status
 git diff --stat
-git diff --name-only
-git diff --numstat
-npm run handoff
-npm run verify:handoff-contract
 npm run check:fast -- --plan
 npm run check:fast
-# 변경을 논리 단위로 commit한 뒤
-git push -u origin <branch>
-gh pr create --base main --fill
-npm run session:close -- --handoff=docs/handoff/<주제>.md --pr=<번호>
+npm run handoff
+npm run verify:handoff-contract
+# 검증한 변경만 논리 단위로 commit한 뒤
+git push origin main
 ```
 
+- `git add .` 전에 `git status`와 `git diff --stat`을 반드시 본다. `.env`·secret·API key·credential·개인 설정·로그·임시 파일·빌드 산출물·대형 파일은 제외한다.
 - 주요 diff를 파일별로 확인한다.
 - 실행한 테스트 명령과 실제 결과를 기록한다.
 - 남은 위험과 TODO를 우선순위로 적는다.
-- `docs/handoff/<주제 이름>.md`를 업데이트하고 같은 PR에 포함한다. 완료 회고보다 현재 상태와 다음 행동을 우선한다.
-- 검증 → commit → push → Ready PR → `session:close`까지 끝나기 전에는 세션을 완료로 표시하지 않는다.
-- PR이 아직 merge되지 않았으면 다음 세션은 그 branch를 이어서 마무리할 수는 있지만, 별도 작업을 그 위에 쌓지 않는다.
+- `docs/handoff/<주제 이름>.md`를 업데이트하고 같은 push에 포함한다. 완료 회고보다 현재 상태와 다음 행동을 우선한다.
+- 검증 → commit → push → 인수인계까지 끝나기 전에는 세션을 완료로 표시하지 않는다.
 - 다음 세션 시작 프롬프트에 실제 handoff 경로와 첫 TODO를 넣는다.
 - production deploy, secret 변경, 실제 결제·환불·정산, 과금 LLM 호출은 사용자 승인 항목으로 분리한다.
 
-## PR과 머지 운영
+## push와 CI 운영
 
-- PR에는 변경 범위, 검증 결과, 인수인계 경로를 남긴다. PR 없는 완료 세션은 허용하지 않는다.
-- 다음 작업은 PR merge → 최신 `origin/main` 기반 새 worktree 순서로 시작한다. staging SHA 확인을 기다리지 않는다.
-- 순차 통합은 `npm run delivery:admit -- --pr=<번호>` 통과를 확인하고 한 PR씩 진행한다. 머지는 사용자가 하며, staging SHA 확인 전에도 다음 PR의 admission을 확인할 수 있다.
-- 같은 PR의 새 커밋은 이전 PR CI를 취소할 수 있지만, `merge_group`과 main 건강 검사는 취소하지 않는다.
-- Merge Queue가 활성화되면 PR 브랜치를 반복해서 수동 rebase하지 않고 큐의 최신 main 합성 커밋을 검증한다.
-- ruleset의 필수 체크는 내부 job이 아니라 안정된 aggregate 이름 `CI required` 하나를 사용한다.
+- 커밋은 복구 지점, push는 원격 백업 겸 배포 지점이다. 로컬 마이크로 커밋은 자주, push는 작업 단위가 안정됐을 때 묶어서 한다.
+- push 1회 → CI 1라운드가 목표다. 같은 코드에 CI를 두 번 돌리지 않는다.
+- ruleset `main-protection`의 필수 체크는 내부 job이 아니라 안정된 aggregate 이름 `CI required` 하나를 사용한다.
+- ruleset은 `deletion`·`non_fast_forward`를 유지한다. main이 유일한 복구 지점이므로 브랜치 삭제와 force-push 차단이 더 중요하다. 롤백은 `git revert`로 하며 force-push가 필요 없다.
+- 스테이징은 main push마다 비동기로 배포된다. 배포 도달을 매번 기다리지 않는다.

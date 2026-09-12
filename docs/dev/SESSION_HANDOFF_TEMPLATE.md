@@ -11,7 +11,7 @@ next: "다음 세션에서 가장 먼저 할 일"
 ## 1. 작업 목적
 
 - 이번 세션에서 해결하려던 문제:
-- 관련 PR/브랜치/이슈:
+- 관련 커밋 SHA/이슈:
 - 사용자가 가장 중요하게 본 요구사항:
 
 ## 2. 현재 상태
@@ -71,11 +71,12 @@ npm run build
 1. docs/handoff/<현재 작업 handoff>.md
 2. docs/dev/SESSION_WORKFLOW.md
 3. git status
-4. 현재 브랜치와 origin/main 차이
+4. 로컬 main과 origin/main 차이
 5. 직전 세션의 미완료 TODO
 
 절대 원칙:
-- main 직접 push 금지
+- 브랜치·PR 금지. main에서 직접 작업하고 작은 단위로 커밋한다
+- 회귀는 덧대지 말고 되돌린다
 - 결제/권한/월정석/이용권 로직은 최소 변경
 - LLM 실제 호출 금지, mock 테스트만 허용
 - production deploy, secret 변경, 결제 실테스트는 사용자 승인 전 금지
