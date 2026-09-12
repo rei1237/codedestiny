@@ -45,18 +45,15 @@ test("fortune planner entry cuts over to the /diary app", () => {
   const diaryTitle = html.match(/id="cdDiaryPlannerTitle">([\s\S]*?)<\/h2>/);
   assert.ok(diaryTitle, "#cdDiaryPlannerTitle 을 찾지 못했다");
   assert.match(diaryTitle[1], /운기·기일 다이어리와[\s\S]*나의 운세 플래너/);
-  // 2026-09-02: 다이어리 진입은 여전히 #cdHomeSecondaryPanel 안에 있지만 그 패널의 접기를
-  // 풀었다 — 지킬 것이 뒤집힌다. 예전에는 "접혀 있다"(grid-template-rows:0fr)를 지켰고,
-  // 지금은 "접히지 않는다"를 지킨다. 래퍼 div 자체는 남는다: data-cd-funnel-section
-  // ="secondary_panel" 이 애널리틱스 귀속 단위라 지우면 이 3개 섹션의 클릭이 어디에도 안 잡힌다.
-  // 🔴 아래 doesNotMatch 2건이 이 가드가 무는 지점이다 — 초기값 0fr 이나 .cd-home-expanded
-  // 오버라이드가 되살아나면 여기서 잡힌다(match 만 두면 규칙을 덧붙여 되접어도 통과한다).
+  // 2026-09-12(6fc160f56, FORTUNE GATE 6카드 개편): #cdHomeSecondaryPanel 래퍼와
+  // .cd-home-secondary-panel 접기/펼치기 CSS 는 이 개편에서 함께 지워졌다 — 접이식 보조
+  // 패널이라는 개념 자체가 없어졌다(실측: index.html 에 두 선택자 모두 0개). 지킬 것은
+  // 여전히 "다이어리 진입이 살아 있고, 오늘의 운세 다음·관심사 선택 앞 순서를 지키는 것"이다.
   assert.match(html, /<section class="cd-diary-planner-entry" id="cdDiaryPlannerEntry"/);
   assert.ok(html.indexOf('id="cdhDiarySlot"') < html.indexOf('id="cdDiaryPlannerEntry"'));
-  assert.ok(html.indexOf('id="cdDiaryPlannerEntry"') < html.indexOf('id="cdHomeSecondaryPanel"'));
-  assert.match(html, /html body \.cd-home-secondary-panel\{display:grid;grid-template-rows:1fr\}/);
-  assert.doesNotMatch(html, /\.cd-home-secondary-panel\{[^}]*grid-template-rows:0fr/);
-  assert.doesNotMatch(html, /html\.cd-home-expanded body \.cd-home-secondary-panel/);
+  assert.ok(html.indexOf('id="cdDiaryPlannerEntry"') < html.indexOf('id="cdhConcern"'));
+  assert.doesNotMatch(html, /id="cdHomeSecondaryPanel"/);
+  assert.doesNotMatch(html, /\.cd-home-secondary-panel\{/);
   // 2026-09-08(home-existing-assets-reassembly): 대표 상담은 홈 정보 구조 안으로 승격됐고,
   // 프로필 마스터 카드는 홈에 중복 노출하지 않고 마이 시트의 호스트로 대여한다. 운세 입력 폼은
   // 기존 단일 노드와 패널 계약을 그대로 유지한다.
