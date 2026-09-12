@@ -4906,6 +4906,11 @@ async function startSajuCalculationFlow() {
   var _spinner = document.getElementById('sajuCalcLoadingOverlay');
   var _spinnerShownAt = 0;
   if (_spinner) {
+    // #destinyCardForm 은 backdrop-filter/contain 때문에 fixed 자손의 containing block이 되어
+    // 뷰포트 전체를 덮지 못한다. body 로 옮겨 그 영향에서 벗어나게 한다.
+    if (_spinner.parentElement !== document.body) {
+      document.body.appendChild(_spinner);
+    }
     _spinner.classList.add('saju-calc-loading-overlay--visible');
     _spinner.setAttribute('aria-hidden', 'false');
     _spinnerShownAt = Date.now();
