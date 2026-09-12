@@ -793,6 +793,13 @@ body.neo-mode .tile-pvw-overlay:not(.pvw-visual) .tile-pvw-cta-note {
     overflow: hidden;
   }
 
+  /* 각 행이 독립 카드가 되는 레이아웃이라, 데스크톱 표에서 이어붙은 테두리를
+     지우던 :last-child 규칙이 그대로 새면 마지막 카드만 밑변이 없어 보인다. */
+  .cd-detail-table-row:last-child,
+  .tile-pvw-cmp-row:last-child {
+    border-bottom: 1px solid var(--cd-detail-line);
+  }
+
   .cd-detail-table-row:first-child,
   .tile-pvw-cmp-head {
     display: none;
@@ -985,8 +992,10 @@ body.neo-mode .tile-pvw-overlay {
   background: color-mix(in srgb, var(--pvw-bg) 78%, transparent);
 }
 
-/* 닫기 버튼은 스크롤 영역 밖 시트 상단 줄에 둔다. absolute 로 두면 스크롤되는 본문을 덮는다. */
-.tile-pvw-overlay:not(.pvw-visual) .tile-pvw-sheet > .tile-pvw-close {
+/* 닫기 버튼은 스크롤 영역 밖 시트 상단 줄에 둔다. absolute 로 두면 스크롤되는 본문을 덮는다.
+   비주얼 모드도 같은 flex-column 시트 구조라 예외를 둘 이유가 없다 — 예전엔 여기서 빠져
+   본문 글자와 겹쳤다. */
+.tile-pvw-overlay .tile-pvw-sheet > .tile-pvw-close {
   position: relative;
   inset: auto;
   z-index: 5;
