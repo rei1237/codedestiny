@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-12
-next: 4) cachebust 재설계는 PR-8 로 종결(92줄 → 6줄 실측). 남은 것은 CSS·자산·로케일 중복 제거부터. 3) 은 크론 축소(사용자 결정)·ai-locale-gate shadow 원장만 남았다. 5) 룰셋 `CI required` 등록은 2026-09-12 완료·검증됨
+next: 4) 자산 중복은 PR-9 로 종결(125 → 63개, 2.3MB). CSS 축은 29KB 실측으로 제외. 남은 것은 로케일 3.8MB(en 폴백 선행 필요)·배포·SEO 체크리스트 통합·루트 보고서 `reports/` 이동. 3) 은 크론 축소(사용자 결정)·ai-locale-gate shadow 원장만 남았다. 5) 룰셋 `CI required` 등록은 2026-09-12 완료·검증됨
 ---
 
 # 레포 정리 (쓰레기 수거) 후속
@@ -18,6 +18,7 @@ next: 4) cachebust 재설계는 PR-8 로 종결(92줄 → 6줄 실측). 남은 �
 - PR-5(#1940, 머지됨): 로컬 preflight 폐기 — 3)의 "preflight 경량화"를 제거로 끝냈다. `upstreamCompatible` 만 `delivery-admit.mjs` 로 이관.
 - PR-6(#1941, 머지됨): paid-flow-gates 트리거 paths 구멍 15개 + 결제 PR jest 2회 실행 제거. CI 로그로 실동작 확정 — scope 가 `tier=critical` 을 내고 스위트가 `제외=npm test` 로 85개 항목을 2m29s 에 끝냈다.
 - PR-8(`chore/cachebust-per-asset`): 정적 셸 `?v=` 를 자산별 내용 해시로 전환. index.html 커밋 요동 92줄 → 6줄(실측).
+- PR-9(`chore/dedupe-css-assets-locale`): feature-details 히어로 자산 중복 제거(125 → 63개) + CSS·로케일 축 실측 종결.
 - 규약: `docs/AI_HANDOFF.md` (완료 핸드오프는 삭제, 목록은 git grep).
 
 ## 남은 작업
@@ -34,8 +35,14 @@ next: 4) cachebust 재설계는 PR-8 로 종결(92줄 → 6줄 실측). 남은 �
   - ✅ **cachebust 재설계 완료(PR-8)**. 원인은 전역 빌드 키 하나가 `index.html` 의 `?v=` 94개를 한꺼번에 덮은 것이고, 그 키가 `index.html`+`js/**`+`styles/**` **전체**의 해시라 무관한 한 줄에도 전부 회전했다. 실측(index.html 최근 25커밋): 10건(40%)이 실내용 0줄인데 92줄 변경, 내용 있는 커밋도 92줄이 덤(실내용 6줄 → raw 98줄), 미러 7개까지 커밋당 약 736줄. `scripts/lib/asset-cache-keys.mjs` 로 `?v=` 를 **자산별 내용 해시**로 바꿨다 — 실측 **92줄 → 6줄**. 캐시 정합도 같이 이득이다(전에는 한 줄 고치면 전 자산 엣지 캐시가 통째로 무효화됐다).
   - 🔴 **이미지 `?v=` 는 일부러 전역 키로 남겼다**(남은 6줄의 정체). `index.html` 주석이 "새 일러스트는 같은 경로에 덮어쓰고 sync:public 만 돌린다"고 못 박은 **의도된 장치**다. 이미지는 R2/CDN 배포분이라 레포에 파일이 없어 내용 해시를 계산할 수도 없다. 이 6줄을 더 줄이려면 이미지 배포 경로부터 바꿔야 하는 별건이다.
   - 🔴 새 참조가 레포 파일로 안 풀리면 **빌드가 선다**(fail-closed, 원칙 10). js/css/json 인데 못 풀면 에러, 이미지 확장자는 전역 키, 미분류 확장자는 에러다. 분류표는 `scripts/lib/asset-cache-keys.mjs` 상단에 있다.
-  - ⏳ 남은 셋: CSS·자산·로케일 중복 제거, 배포·SEO 체크리스트 통합, 루트 생성 보고서 `reports/` 이동. **sitemap 요동은 손댈 것이 없다**(확인함) — `config/sitemap-lastmod.json` 내용 서명 원장이 이미 같은 원리로 처리하고 있다.
+  - ✅ **CSS·자산·로케일 3축 실측 완료(PR-9)**. 전 추적 파일 내용 해시로 비미러 중복을 재니 **9.83MB**(미러 227그룹 중 36그룹)였고, 축별 결론이 갈렸다.
+    - **CSS = 실질 없음(종결)**. 29개 파일 2.0MB / rule 11,156개에서 동일 selector+body 중복은 **29.1KB**뿐이다(307그룹, 대부분 `fortune-ui.css`↔`fortune-ui-home.css` 와 `core-ui.css`↔`globals.css`). 재설계 비용이 이득을 넘는다 — 4) 에서 뺀다.
+    - ✅ **자산 = PR-9 로 제거**. `public/feature-details/assets` 125개 중 **80개가 9개 원본의 바이트 동일 복제**였다(13x·7x·5x·5x·2x). 원인은 `build-visual-details.mjs:67-75` 의 카테고리 공용 fallback 을 슬러그마다 재인코딩한 것. 원본 공유 시 `shared-<sha1 8자>-<폭>.webp` 1개만 쓰게 바꿨다 — **125 → 63개, 5.9MB → 3.5MB**. 고유 원본은 `<slug>-<폭>.webp` 유지(기능별 일러스트를 같은 경로에 넣는 기존 방식 보존).
+    - ⏸ **로케일 = 최대(3.8MB)인데 선행 과제가 있다**. `public/i18n/{de,en,es,fr,hi,ms,nl,vi}/loveSimulationScenes.json` **543.6KB 8개가 완전 동일**이다. 그런데 로더(`lib/i18n/dictionary.ts:150-169`, `js/cd-lang-native.js:314-328`)는 404 에 `null` 만 돌려주고 **en 재시도 분기가 없고**, `scripts/i18n-check.mjs:16` 이 파일 존재를 단언한다. 사본 삭제 전에 폴백 규약부터 세우는 별건이다.
+  - ⏳ 남은 둘: 배포·SEO 체크리스트 통합, 루트 생성 보고서 `reports/` 이동. **sitemap 요동은 손댈 것이 없다**(확인함) — `config/sitemap-lastmod.json` 내용 서명 원장이 이미 같은 원리로 처리하고 있다.
 - [x] 5) **완료(2026-09-12 등록 확인)**. 실측 값: `required_status_checks` = `[{context:"CI required", integration_id:15368}]`, `strict_required_status_checks_policy:false`, ruleset `enforcement:active`. 필수 체크는 **1개뿐**이고 paths 트리거 워크플로 혼입 없음 — 아래 3줄 제약을 모두 만족한다. 🔴 **결정 뒤집힘(PR-5)**: 룰셋 20666260 에 aggregate `CI required` 하나를 required status check 로 **등록했다**. 이전 기록("required check 제거는 사용자 의도")은 로컬 preflight 가 안전망이던 시절의 판단이고, preflight 를 폐기한 지금은 GitHub 강제가 그 자리를 메워야 한다(사용자 확정). strict(최신 base 요구)는 켜지 않는다 — 켜면 main 전진마다 전 PR 재검증이라 `delivery-and-ci.md` 가 기록한 병목이 되살아난다. paths 트리거 워크플로(`Paid Flow Gates`·`Gift transaction integrity`·`AI Locale Gate`)는 절대 넣지 않는다 — 경로가 안 걸린 PR 에서 체크가 생성되지 않아 영구 pending 이 된다. 절차·롤백은 아래 「룰셋 등록」에 남겨둔다 — 되돌리거나 다시 만들 때 쓴다.
+- [ ] 8) 범위 밖 발견(PR-9): `verify:feature-marketing-schema` 가 `scripts/verify-guard-wiring.mjs:158` 에서 `UNWIRED_BY_DESIGN` 이라 **CI 에서 돌지 않는다**. `index.html` 의 수기 `outlineImage` 36개가 실제 파일을 가리키는지 보는 유일한 가드이므로, 깨지면 CI 초록인데 화면만 빈 액자가 된다. PR-9 에서는 로컬 1회 + 없는 경로 주입 변이로 무는 것을 확인했지만(실측), 배선 자체는 범위 밖이라 손대지 않았다.
+- [ ] 9) 범위 밖 발견(PR-9): `scripts/lib/build-visual-details.mjs` 의 자산 prune 은 **이 생성기가 소유한 이름**(`<알려진 슬러그>|shared-*` + `-<폭>.webp`)만 지운다. 수기 자산 `feature-detail-shared-hero-v1-*.webp` 를 보호하려는 의도적 제약이다. 규약 밖 이름의 stale 자산은 여전히 자동으로 안 지워진다.
 - [ ] 6) 범위 밖 발견: `app/_lib/fortune/ganjiGuardianSprite.ts:101-102` 가 레포에 없는 `/fuctionassets/60갑자.webp` 를 가리킨다. R2/CDN 에 있는지 확인(보고만, 미수정).
 - [ ] 7) 로컬 정리: 머지되고 clean 한 워크트리·브랜치 제거. 스쿼시 머지라 is-ancestor 로는 판정이 안 되므로 `gh pr list --state merged --json headRefName,headRefOid` 로 판정.
 
