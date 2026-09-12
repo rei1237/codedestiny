@@ -1,7 +1,10 @@
 name: PR CI
 
-# main 으로 가는 모든 변경이 통과해야 하는 관문이다. 프로덕션 배포는 이 워크플로가 아니라
-# main 머지 이후 "Release Cloudflare Pages and Worker" 가 수행한다 — 여기서는 아무것도 배포하지 않는다.
+# main 에 착지한 모든 변경이 통과해야 하는 관문이다. 프로덕션 배포는 이 워크플로가 아니라
+# "Release Cloudflare Pages and Worker" 가 수행한다 — 여기서는 아무것도 배포하지 않는다.
+#
+# 🔴 2026-09-12 부터 이 레포는 PR 을 쓰지 않는다. 이 워크플로는 main push 에서만 돈다.
+#    이름은 필수 체크 이름("CI required")과 함께 고정돼 있어 그대로 둔다.
 #
 # 🔴 검사 강도는 **변경된 파일 경로**로 정한다. 모든 PR 에 같은 검사를 돌리면 CSS 한 줄 고치는 데
 #    전체 회귀를 기다리게 되고, 그러면 게이트를 우회할 방법을 찾게 된다. 반대로 전부 가볍게 하면
@@ -16,26 +19,25 @@ name: PR CI
 # 🔴 CI required aggregate 는 항상 실행된다. 각 검증 lane은 변경 범위에 따라 실제로 skip할 수
 #    있으며, aggregate 는 성공한 lane과 판정상 skip된 lane을 모두 정상으로 취급한다.
 on:
-  pull_request:
-    branches: [main]
-    types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled]
-  merge_group:
-    types: [checks_requested]
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      full_ci:
+        description: "경로 판정을 무시하고 critical 티어를 강제한다"
+        type: boolean
+        default: false
 
 concurrency:
-  group: pr-ci-${{ github.event.pull_request.number || github.event.merge_group.head_ref || github.run_id }}
-  # PR 의 새 커밋만 이전 실행을 대체한다. merge queue 와 main 건강 검사는 서로의
-  # 필수 체크를 취소하면 안 되므로 끝까지 실행한다.
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  # 커밋마다 독립 실행이다. main 건강 검사는 서로를 취소하면 안 되므로 끝까지 돈다
+  # (앞선 커밋을 취소하면 그 커밋이 검사되지 않은 채 이력에 남는다).
+  group: pr-ci-${{ github.sha }}
+  cancel-in-progress: false
 
 permissions:
   contents: read
   checks: read
   statuses: read
-  pull-requests: read
 
 jobs:
   classify:
@@ -71,15 +73,15 @@ jobs:
 
       # 의존성이 필요 없는 순수 모듈이라 npm ci 를 돌리지 않는다.
       #
-      # CD_FORCE_CRITICAL 은 `full-ci` 라벨로 티어를 끌어올리는 탈출구다. 경로만으로는 안 잡히는
-      # 변경(예: 정적 셸 index.html 안의 결제 모달 수정)을 사람이 알고 있을 때 쓴다. 라벨은
+      # CD_FORCE_CRITICAL 은 티어를 끌어올리는 탈출구다(수동 실행의 full_ci 입력). 경로만으로는
+      # 안 잡히는 변경(예: 정적 셸 index.html 안의 결제 모달 수정)을 사람이 알고 있을 때 쓴다.
       # 올리는 방향으로만 작동한다 — 내리는 길을 만들면 게이트를 끄는 버튼이 된다.
       - name: Resolve verification tier from changed paths
         id: tier
         env:
-          PR_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha || github.event.before }}
-          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha || github.sha }}
-          CD_FORCE_CRITICAL: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'full-ci') }}
+          PR_BASE_SHA: ${{ github.event.before }}
+          PR_HEAD_SHA: ${{ github.sha }}
+          CD_FORCE_CRITICAL: ${{ inputs.full_ci }}
         run: |
           node scripts/lib/change-risk.mjs --self-test
           node scripts/resolve-ci-tier.mjs --self-test
@@ -91,9 +93,9 @@ jobs:
 
       - name: Compare proposed verification plan (shadow only)
         env:
-          PR_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha || github.event.before }}
-          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha || github.sha }}
-          CD_FORCE_CRITICAL: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'full-ci') }}
+          PR_BASE_SHA: ${{ github.event.before }}
+          PR_HEAD_SHA: ${{ github.sha }}
+          CD_FORCE_CRITICAL: ${{ inputs.full_ci }}
         run: |
           node --test __tests__/release/verification-plan.test.js
           node scripts/check-changed.mjs --ci-shadow --output=verification-plan.json
@@ -101,46 +103,9 @@ jobs:
       - name: Save shadow plan for the 10-PR comparison
         uses: actions/upload-artifact@v4
         with:
-          name: verification-plan-${{ github.event.pull_request.number || github.run_id }}
+          name: verification-plan-${{ github.run_id }}
           path: verification-plan.json
           retention-days: 30
-
-  # 🔴 스택 PR 을 부모(→main)부터 머지하면 자식의 머지 커밋은 목적지를 잃은 브랜치로 들어간다.
-  # GitHub 은 자식을 "Merged" 로 칠하지만 그 커밋은 main 의 조상이 아니고, 아무 신호도 남지
-  # 않는다. 전수조사에서 그렇게 좌초한 PR 이 9건 나왔고 복구 PR 을 세 번 만들었다(#591·#593·#600).
-  # 사고는 전부 부모가 자식보다 12~16초 먼저 머지되며 일어났다 — 사람이 조심해서 막을 간격이 아니다.
-  #
-  # 그래서 순서를 기계로 고정한다: 자식이 열려 있는 동안 부모는 머지되지 않는다. 스택은 바닥
-  # 브랜치에 전부 쌓인 뒤 main 으로 한 번에 들어가므로 경합 구간 자체가 사라진다.
-  #
-  # 자식을 부모 브랜치에 머지하면 그것이 곧 부모 PR 의 head 갱신이라 부모 PR 에 synchronize 가
-  # 발생해 이 검사가 자동으로 다시 돈다. 자식을 머지 없이 닫았을 때만 수동 재실행이 필요하다.
-  #
-  # classify 에 의존하지 않는다 — 티어와 무관하게 항상 돌아야 하고, 먼저 끝날수록 좋다.
-  landing-order:
-    name: Landing order
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - name: Refuse to merge a parent before its stacked children
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
-        run: |
-          set -euo pipefail
-          if [ -z "${PR_HEAD_REF:-}" ]; then
-            echo "::notice::PR 컨텍스트가 없어 착지 순서를 검사하지 않습니다."
-            exit 0
-          fi
-          children=$(gh --repo "$GITHUB_REPOSITORY" pr list --state open --base "$PR_HEAD_REF" --json number,title \
-            --jq '.[] | "  - #\(.number) \(.title)"')
-          if [ -z "$children" ]; then
-            echo "이 브랜치(${PR_HEAD_REF})를 base 로 하는 열린 PR 이 없습니다. 지금 머지해도 좌초하지 않습니다."
-            exit 0
-          fi
-          echo "::error::이 PR 을 먼저 머지하면 아래 PR 들의 머지 커밋이 main 에 도달하지 못합니다. 아래를 먼저 머지하세요."
-          echo "$children"
-          exit 1
 
   fast:
     name: Typecheck and lint
@@ -186,8 +151,8 @@ jobs:
 
       - name: Run the shared fast CI entrypoint
         env:
-          PR_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha || github.event.before }}
-          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha || github.sha }}
+          PR_BASE_SHA: ${{ github.event.before }}
+          PR_HEAD_SHA: ${{ github.sha }}
         run: npm run ci:fast
 
   guards:
@@ -761,24 +726,24 @@ jobs:
   build:
     name: Build Pages and Worker
     needs: classify
-    if: needs.classify.outputs.runs_build == 'true' && github.event.pull_request.draft != true
+    if: needs.classify.outputs.runs_build == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     # build가 필요한 Ready PR만 러너를 점유한다. ready_for_review 전환 시 다시 평가된다.
     steps:
       - name: Checkout PR head
-        if: needs.classify.outputs.runs_build == 'true' && github.event.pull_request.draft != true
+        if: needs.classify.outputs.runs_build == 'true'
         uses: actions/checkout@v4
 
       - name: Setup Node.js
-        if: needs.classify.outputs.runs_build == 'true' && github.event.pull_request.draft != true
+        if: needs.classify.outputs.runs_build == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: "24"
           cache: npm
 
       - name: Install dependencies
-        if: needs.classify.outputs.runs_build == 'true' && github.event.pull_request.draft != true
+        if: needs.classify.outputs.runs_build == 'true'
         run: npm ci
 
       # next 컴파일이 build:cf 166s 중 90.9s 였다(2026-09-06 실측, job 101448056153). 그 대부분이
@@ -787,7 +752,7 @@ jobs:
       # 🔴 경로가 .next/cache 가 아닌 이유: build:cf 첫 스텝 clean:build 가 .next 를 통째로 지운다.
       # 캐시는 브랜치 스코프라 첫 런은 콜드다 — 같은 PR 의 두 번째 런부터 복원된다.
       - name: Restore webpack build cache
-        if: needs.classify.outputs.runs_build == 'true' && github.event.pull_request.draft != true
+        if: needs.classify.outputs.runs_build == 'true'
         uses: actions/cache@v4
         with:
           path: build-cache/next-webpack
@@ -799,7 +764,7 @@ jobs:
       # build:cf 의 postbuild 가 out/ 을 읽어 AdSense 콘텐츠 게이트를 돌린다. 빌드가 끝나야만
       # 도는 검사라 여기서 함께 잡는다 — 배포 직전에 처음 알게 되면 릴리스가 통째로 막힌다.
       - name: Build Cloudflare Pages output
-        if: needs.classify.outputs.runs_build == 'true' && github.event.pull_request.draft != true
+        if: needs.classify.outputs.runs_build == 'true'
         env:
           NEXT_WEBPACK_FS_CACHE: "1"
         run: npm run build:cf
@@ -807,7 +772,7 @@ jobs:
       # 색인 대상 라우트의 H1 이 정확히 1개인지 본다. 사이트맵에서 라우트를 전수 발견하므로
       # 새 라우트도 자동으로 걸린다. out/ 을 읽으니 반드시 build:cf 뒤에 둔다.
       - name: Verify SEO heading integrity
-        if: needs.classify.outputs.runs_build == 'true' && github.event.pull_request.draft != true
+        if: needs.classify.outputs.runs_build == 'true'
         run: npm run verify:seo-heading-integrity
 
       # 위 가드는 **서버 HTML 만** 본다. `page.tsx` 가 h1 을 그리고 같은 라우트의
@@ -817,7 +782,7 @@ jobs:
       # 🔴 여기 있어야 하는 이유: verify-guard-wiring 이 "아무 게이트도 안 부르는 검증기" 를
       #    실패시킨다. 이 줄을 지우면 그 가드가 빨간불이 된다.
       - name: Verify hydrated H1 integrity
-        if: needs.classify.outputs.runs_build == 'true' && github.event.pull_request.draft != true
+        if: needs.classify.outputs.runs_build == 'true'
         run: npm run verify:hydrated-h1-integrity
 
       # 색인 대상 라우트가 "문장급" 본문을 실제로 갖고 있는지 본다. raw 글자수 게이트는 링크
@@ -825,7 +790,7 @@ jobs:
       # (2026-08-24 실측: /oracle/ifa 0자 · /saju/love-simulation 0자). dist/ 와 그 안의
       # 사이트맵을 읽으니 반드시 build:cf 뒤에 둔다.
       - name: Verify indexable prose depth
-        if: needs.classify.outputs.runs_build == 'true' && github.event.pull_request.draft != true
+        if: needs.classify.outputs.runs_build == 'true'
         run: npm run verify:indexable-prose-depth
 
       # 색인 대상 라우트가 홈에서 몇 홉 만에 닿는지 본다. 사이트맵에 넣는 것만으로는 크롤되지
@@ -833,7 +798,7 @@ jobs:
       # /stories/* 45개 전부가 노출 0 이었고, 그 141개가 "발견됨 - 미색인" 하한 145와 겹쳤다.
       # dist/ 와 그 안의 사이트맵을 읽으니 반드시 build:cf 뒤에 둔다.
       - name: Verify internal link depth
-        if: needs.classify.outputs.runs_build == 'true' && github.event.pull_request.draft != true
+        if: needs.classify.outputs.runs_build == 'true'
         run: npm run verify:internal-link-depth
 
       # 얇은 광고 라우트에 사람이 쓴 편집자 노트가 붙어 있는지 본다. 대상을 out/ 에서 전수
@@ -842,14 +807,14 @@ jobs:
       #    실패시킨다. 이 줄을 지우면 그 가드가 다시 빨간불이 된다(지우려면 UNWIRED_BY_DESIGN
       #    에 사유와 함께 옮길 것).
       - name: Verify editor notes
-        if: needs.classify.outputs.runs_build == 'true' && github.event.pull_request.draft != true
+        if: needs.classify.outputs.runs_build == 'true'
         run: npm run verify:editor-notes
 
       # /fortune/{period}/{sign} 96개가 기간마다 실제로 다른 글을 내보내는지 본다.
       # 소스에서 sign 을 전수 발견하므로 sign 을 늘리고 기간 문안을 빠뜨리면 여기서 걸린다.
       # out/ 을 읽지 않으므로 빌드 앞에 두어도 되지만, 같은 성격의 SEO 가드끼리 모아 둔다.
       - name: Verify fortune period axis
-        if: needs.classify.outputs.runs_build == 'true' && github.event.pull_request.draft != true
+        if: needs.classify.outputs.runs_build == 'true'
         run: npm run verify:fortune-period-axis
 
       # /fortune 의 회전 문장은 data-cd-trans 로 사전 템플릿을 가리키고, 변수 값이 `@키` 면
@@ -857,16 +822,16 @@ jobs:
       # 한국어로 남는다 — 화면을 열어 보지 않으면 모르므로 여기서 막는다. 소스에서
       # 키를 전수 발견하고 템플릿 슬롯과 넘기는 변수 이름이 맞는지도 본다.
       - name: Verify fortune marker keys
-        if: needs.classify.outputs.runs_build == 'true' && github.event.pull_request.draft != true
+        if: needs.classify.outputs.runs_build == 'true'
         run: npm run verify:fortune-marker-keys
 
       # 번들 1MB 제한과 문법 오류를 업로드 없이 잡는다(--dry-run 은 아무것도 올리지 않는다).
       - name: Build Worker bundle (dry run)
-        if: needs.classify.outputs.runs_build == 'true' && github.event.pull_request.draft != true
+        if: needs.classify.outputs.runs_build == 'true'
         run: npm run build:worker
 
       - name: Verify Worker size budget
-        if: needs.classify.outputs.runs_build == 'true' && github.event.pull_request.draft != true
+        if: needs.classify.outputs.runs_build == 'true'
         run: npm run verify:worker-size
 
       # 🔴 배포와 같은 조건에서 돌아야 한다. deploy-safe.mjs:720 은 `risk.level !== "low"` 일 때
@@ -874,7 +839,7 @@ jobs:
       # 낸다 — level!==low 가 곧 runs_build 다. 그런데 PR CI 에는 이 스텝이 없어서, 머지 전에는
       # 아무도 돌리지 않고 배포에서 처음 돌았다.
       - name: Run the core mock smoke tests the release runs
-        if: needs.classify.outputs.runs_build == 'true' && github.event.pull_request.draft != true
+        if: needs.classify.outputs.runs_build == 'true'
         run: npm run smoke:core
 
   critical:
@@ -997,25 +962,24 @@ jobs:
         run: npm run verify:no-secret-leak
 
   # 브랜치 룰셋은 내부 잡 이름 여럿 대신 이 한 이름만 요구한다. 내부 병렬화나 잡 분리는
-  # ruleset 변경 없이 가능하고, merge_group 에서도 같은 최종 판정을 보고한다.
+  # ruleset 변경 없이 가능하다.
   ci-required:
     name: CI required
     if: ${{ always() }}
-    needs: [classify, landing-order, fast, guards, build, critical]
+    needs: [classify, fast, guards, build, critical]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - name: Require every executed CI lane to succeed
         env:
           CLASSIFY_RESULT: ${{ needs.classify.result }}
-          LANDING_ORDER_RESULT: ${{ needs.landing-order.result }}
           FAST_RESULT: ${{ needs.fast.result }}
           GUARDS_RESULT: ${{ needs.guards.result }}
           BUILD_RESULT: ${{ needs.build.result }}
           CRITICAL_RESULT: ${{ needs.critical.result }}
         run: |
           set -euo pipefail
-          for result in "$CLASSIFY_RESULT" "$LANDING_ORDER_RESULT" "$FAST_RESULT" "$GUARDS_RESULT" "$BUILD_RESULT" "$CRITICAL_RESULT"; do
+          for result in "$CLASSIFY_RESULT" "$FAST_RESULT" "$GUARDS_RESULT" "$BUILD_RESULT" "$CRITICAL_RESULT"; do
             if [ "$result" != "success" ] && [ "$result" != "skipped" ]; then
               echo "::error::필수 CI lane 이 성공 또는 정상 skip 상태가 아닙니다: $result"
               exit 1

@@ -231,20 +231,26 @@ function targetFileOf(command) {
   return match ? match[0] : null;
 }
 
+/** 배포 파이프라인 정본. 배포보다 먼저 도는 축에서는 출발점이 될 수 없다. */
+const RELEASE_WORKFLOW = "cloudflare-pages-deploy.yml";
+
 /**
  * 게이트(워크플로)의 출발점을 모은다.
  *
- * `pullRequestOnly` 를 주면 **pull_request 로 트리거되는 워크플로만** 본다 — "이 검사가
- * 머지 전에도 도는가" 를 묻는 축이 쓴다. push:main·schedule 로만 도는 워크플로(릴리스·워치독)는
- * 이미 머지된 뒤이므로 그 축에서는 출발점이 될 수 없다.
+ * `preDeployOnly` 를 주면 **배포보다 먼저 도는 워크플로만** 본다 — "이 검사가 배포 전에도
+ * 도는가" 를 묻는 축이 쓴다. 이 레포는 PR 을 쓰지 않으므로(2026-09-12) 그 기준은
+ * `pull_request` 가 아니라 **main push 로 도는가 + 릴리스 워크플로가 아닌가** 다.
+ *
+ * 🔴 릴리스 워크플로를 출발점에 넣으면 배포에서만 도는 게이트가 전부 "먼저 돈다"로 계산돼
+ * 이 축이 통째로 공허해진다 — PRE_MERGE_EDGE_BLIND 가 막는 것과 같은 모양의 사고다.
  */
 function readWorkflowRoots(options) {
-  const pullRequestOnly = Boolean(options?.pullRequestOnly);
+  const preDeployOnly = Boolean(options?.preDeployOnly);
   const roots = { names: new Set(), files: new Set() };
   for (const entry of readdirSync(WORKFLOW_DIR)) {
     if (!/\.ya?ml$/.test(entry)) continue;
     const source = stripYamlComments(readFileSync(join(WORKFLOW_DIR, entry), "utf8"));
-    if (pullRequestOnly && !/^\s{2}pull_request:/m.test(source)) continue;
+    if (preDeployOnly && (entry === RELEASE_WORKFLOW || !/^\s{2}push:/m.test(source))) continue;
     const { names, files } = edgesFrom(source);
     for (const name of names) roots.names.add(name);
     for (const file of files) roots.files.add(file);
@@ -321,11 +327,11 @@ export function auditGuardWiring({ scripts, roots, readFile, declared }) {
 }
 
 /**
- * `deploy:critical` 이 부르는데 **머지 전에는 돌지 않아도 되는** 게이트. 각 항목에 **왜** 를 적는다.
+ * `deploy:critical` 이 부르는데 **배포 전에는 돌지 않아도 되는** 게이트. 각 항목에 **왜** 를 적는다.
  *
- * 🔴 여기에 넣기 전에 먼저 물을 것: "그럼 이건 언제 처음 도는가?" 답이 "머지된 뒤 배포" 뿐이면
- * 그 게이트가 잡는 결함은 **PR 이 초록불로 머지된 뒤에** 드러난다. 그동안 배포는 막혀 있고,
- * 머지한 내용은 스테이징에 도달하지 못한다 — 최근 릴리스 실패 6건 중 5건이 그 형태였다.
+ * 🔴 여기에 넣기 전에 먼저 물을 것: "그럼 이건 언제 처음 도는가?" 답이 "배포" 뿐이면
+ * 그 게이트가 잡는 결함은 **커밋이 main 에 올라간 뒤에** 드러난다. 그동안 배포는 막혀 있고,
+ * 올린 내용은 스테이징에 도달하지 못한다 — 최근 릴리스 실패 6건 중 5건이 그 형태였다.
  * 실 자격증명이 필요하거나 배포된 오리진이 있어야만 의미가 있는 것만 여기 온다.
  */
 const POST_MERGE_BY_DESIGN = [
@@ -333,12 +339,12 @@ const POST_MERGE_BY_DESIGN = [
 ];
 
 /**
- * 머지 전 도달성을 계산할 때만 간선을 끊는 파일.
+ * 배포 전 도달성을 계산할 때만 간선을 끊는 파일.
  *
  * 🔴 왜 필요한가 (2026-08-24 실측): `pr-ci.yml` 은 `npm run verify:deploy-safe` 를 돌리고,
  * 그 검증기는 `scripts/deploy-safe.mjs` 를 **텍스트로 읽어** 계약을 확인한다 — 실행하지 않는다.
  * 그런데 그 파일 안에 `deploy:critical` 이라는 문자열이 있으므로, 간선을 그대로 따라가면
- * 배포 전용 게이트 **23개 중 23개가** "머지 전에도 돈다"로 계산된다. 그 상태의 축은 아무것도
+ * 배포 전용 게이트 **23개 중 23개가** "배포 전에도 돈다"로 계산된다. 그 상태의 축은 아무것도
  * 지키지 않는다 — 통과만 할 줄 아는 가드다.
  *
  * 🔴 이 목록은 도달 집합을 **줄이기만** 한다. 거짓 통과를 만들 수 없는 방향이라 안전한 예외다
@@ -355,7 +361,7 @@ export function deployCriticalGates(scripts) {
 }
 
 /**
- * 배포가 부르는 게이트가 머지 전에도 도는가.
+ * 배포가 부르는 게이트가 배포보다 먼저(main push CI 에서) 도는가.
  *
  * 기존 축("어느 게이트가 이 검증기를 부르는가")은 **언제** 부르는지를 보지 않는다. 배포에서만
  * 부르는 것도 "배선됨"이라 초록불이었고, 그 사이로 세 번 샜다(7e7f05a9 · 72e5c0d4 · ddf032d2 —
@@ -376,9 +382,9 @@ export function auditPreMergeGates({ scripts, roots, readFile, declared }) {
     gates,
     preMerge,
     postMergeOnly,
-    // ① 배포에서만 도는데 사유 선언도 없다 — 머지 후에야 터지는 게이트가 조용히 늘어나는 것을 막는다.
+    // ① 배포에서만 도는데 사유 선언도 없다 — 배포에서야 터지는 게이트가 조용히 늘어나는 것을 막는다.
     undeclared: postMergeOnly.filter((name) => !declaredNames.has(name)),
-    // ② 선언돼 있는데 실제로는 머지 전에도 돈다 — 낡은 선언이 쌓여 목록이 거짓말이 되는 것을 막는다.
+    // ② 선언돼 있는데 실제로는 배포 전에도 돈다 — 낡은 선언이 쌓여 목록이 거짓말이 되는 것을 막는다.
     staleDeclared: preMerge.filter((name) => declaredNames.has(name)),
     // ③ deploy:critical 이 더 이상 부르지 않는 것을 가리키는 선언.
     danglingDeclared: [...declaredNames].filter((name) => !gates.includes(name)),
@@ -433,7 +439,7 @@ function selfTest() {
   assertSelf(decoy.undeclared.includes("verify:bait"), "도달 불가 스크립트의 언급은 배선이 아니다");
 
 
-  // ── 머지 전 축 — 배포가 부르는 게이트가 PR 에서도 도는가.
+  // ── 배포 전 축 — 배포가 부르는 게이트가 main push CI 에서도 도는가.
   const preBase = {
     scripts: {
       "deploy:critical": "npm run verify:early && npm run verify:late",
@@ -454,7 +460,7 @@ function selfTest() {
     roots: prRoots(["verify:early", "verify:late"]),
     declared: [],
   });
-  assertSelf(preOk.undeclared.length === 0, "PR 에서 다 도는데 미선언으로 신고했다");
+  assertSelf(preOk.undeclared.length === 0, "main push CI 에서 다 도는데 미선언으로 신고했다");
 
   const preGap = auditPreMergeGates({
     ...preBase,
@@ -488,7 +494,7 @@ function selfTest() {
   assertSelf(preDangling.danglingDeclared.join(",") === "verify:gone", "죽은 선언을 잡지 못했다");
 
   // 🔴 읽기 전용 간선을 끊지 않으면 이 축은 공허해진다. deploy-safe.mjs 를 텍스트로 읽는
-  //    검증기 하나만 PR 에 있어도 배포 게이트 전부가 "머지 전에도 돈다"로 계산됐다(실측 23/23).
+  //    검증기 하나만 main push CI 에 있어도 배포 게이트 전부가 "먼저 돈다"로 계산됐다(실측 23/23).
   const preLeak = auditPreMergeGates({
     scripts: {
       "deploy:critical": "npm run verify:late",
@@ -573,23 +579,23 @@ if (result.danglingDeclared.length) {
 
 const preMergeResult = auditPreMergeGates({
   scripts,
-  roots: readWorkflowRoots({ pullRequestOnly: true }),
+  roots: readWorkflowRoots({ preDeployOnly: true }),
   readFile: (relPath) => (relPath === SELF ? null : readRepoFile(relPath)),
   declared: POST_MERGE_BY_DESIGN,
 });
 
 if (preMergeResult.undeclared.length) {
   problems.push(
-    `배포(deploy:critical)만 부르고 PR 에서는 돌지 않는 게이트 ${preMergeResult.undeclared.length}개:\n` +
+    `배포(deploy:critical)만 부르고 main push CI 에서는 돌지 않는 게이트 ${preMergeResult.undeclared.length}개:\n` +
       preMergeResult.undeclared.map((name) => `    - ${name}`).join("\n") +
-      "\n  → 이것들이 잡는 결함은 PR 이 초록불로 머지된 뒤 배포에서 처음 드러납니다. 그동안" +
-      "\n    배포는 막히고 머지한 내용은 스테이징에 도달하지 못합니다." +
-      "\n  → pull_request 워크플로에 배선하거나(사용자 승인 필요), POST_MERGE_BY_DESIGN 에 사유와 함께 선언하세요.",
+      "\n  → 이것들이 잡는 결함은 커밋이 main 에 올라간 뒤 배포에서 처음 드러납니다. 그동안" +
+      "\n    배포는 막히고 올린 내용은 스테이징에 도달하지 못합니다." +
+      "\n  → main push CI 워크플로에 배선하거나(사용자 승인 필요), POST_MERGE_BY_DESIGN 에 사유와 함께 선언하세요.",
   );
 }
 if (preMergeResult.staleDeclared.length) {
   problems.push(
-    `POST_MERGE_BY_DESIGN 에 있지만 실제로는 머지 전에도 도는 게이트 ${preMergeResult.staleDeclared.length}개:\n` +
+    `POST_MERGE_BY_DESIGN 에 있지만 실제로는 배포 전에도 도는 게이트 ${preMergeResult.staleDeclared.length}개:\n` +
       preMergeResult.staleDeclared.map((name) => `    - ${name}`).join("\n") +
       "\n  → 목록에서 지우세요. 낡은 선언을 두면 이 목록 자체가 거짓말이 됩니다.",
   );
@@ -610,5 +616,5 @@ if (problems.length) {
 console.log(
   `[verify-guard-wiring] OK — verify:* ${result.wired.length + result.unwired.length}개 중 ` +
     `${result.wired.length}개 배선, ${result.unwired.length}개는 사유와 함께 미배선으로 선언됨. ` +
-    `배포 게이트 ${preMergeResult.gates.length}개 중 ${preMergeResult.preMerge.length}개가 머지 전에도 돈다.`,
+    `배포 게이트 ${preMergeResult.gates.length}개 중 ${preMergeResult.preMerge.length}개가 배포 전에도 돈다.`,
 );

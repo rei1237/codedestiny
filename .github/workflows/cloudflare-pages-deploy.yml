@@ -2,7 +2,7 @@ name: Release Cloudflare Pages and Worker
 
 # 🔴 프로덕션에 도달하는 유일한 경로다.
 #
-# feature 브랜치 → PR → PR CI 통과 → main 머지 → **스테이징 배포 예약**.
+# main 직접 커밋 → main push → main CI(pr-ci.yml) 통과 → **스테이징 배포 예약**.
 # 프로덕션은 사람이 Run workflow(mode=production)를 눌렀을 때만 나간다.
 #
 # 2026-08-20 컷오버로 push 의 의미가 뒤집혔다. 그 전에는 머지가 곧 프로덕션이라,
@@ -97,7 +97,6 @@ concurrency:
 
 permissions:
   contents: read
-  pull-requests: write
   # gate 잡이 "이 SHA 를 배포하는 릴리스 런이 지금 도는가" 를 읽는다. 이 권한이 없으면
   # 조회가 실패하고, 판정은 옛 시간 유예로 폴백한다(동작은 하되 자가 수렴이 다시 느려진다).
   actions: read
@@ -492,56 +491,9 @@ jobs:
             fi
           } >> "$GITHUB_STEP_SUMMARY"
 
-      # 머지된 PR 하나만 봐도 프로덕션 반영 상태를 알 수 있어야 한다.
-      #
-      # 🔴 조건이 `github.event_name == 'push'` 였다. 컷오버로 push 는 스테이징으로 가므로
-      # 그대로 두면 이 스텝은 영원히 돌지 않는다 — 프로덕션 승격 기록이 통째로 사라지는데
-      # 증상은 "코멘트가 안 달린다" 뿐이라 한참 모른다. 승격 자체를 조건으로 바꾼다.
-      # (머지가 스테이징에 도달했는지는 landing-watchdog 이 스테이징 기준으로 본다.)
-      #
-      # 🔴 target_sha 릴리스는 제외한다. context.sha 는 여전히 디스패치 ref(main)의 팁이라,
-      # 실제로 배포된 커밋(target_sha, main 보다 뒤처진 옛 커밋)과 다르다. 그대로 두면 이번
-      # 배포와 무관한 최신 PR에 "Production Deployment ✅" 코멘트가 잘못 달린다.
-      - name: Report deployment status on the merged PR
-        if: always() && env.RELEASE_MODE == 'production' && !inputs.target_sha
-        uses: actions/github-script@v7
-        env:
-          JOB_STATUS: ${{ job.status }}
-          PAGES_DEPLOYMENT_ID: ${{ steps.state.outputs.pages_deployment_id }}
-          WORKER_VERSION_ID: ${{ steps.state.outputs.worker_version_id }}
-        with:
-          script: |
-            const { data: pulls } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              commit_sha: context.sha,
-            });
-            const pr = pulls[0];
-            if (!pr) {
-              core.info('이 커밋과 연결된 PR 이 없습니다. 코멘트를 건너뜁니다.');
-              return;
-            }
-            const ok = process.env.JOB_STATUS === 'success';
-            const mark = ok ? '✅' : '❌';
-            const body = [
-              '<!-- cd-production-deployment -->',
-              `### ${mark} Production Deployment`,
-              '',
-              '| 항목 | 값 |',
-              '|---|---|',
-              `| SHA | \`${context.sha}\` |`,
-              `| Pages | ${process.env.PAGES_DEPLOYMENT_ID || (ok ? '배포됨' : '실패 또는 미배포')} |`,
-              `| Worker | ${process.env.WORKER_VERSION_ID || (ok ? '배포됨' : '실패 또는 미배포')} |`,
-              `| Smoke test | ${mark} |`,
-              `| SHA verification | ${mark} |`,
-              `| Run | ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId} |`,
-            ].join('\n');
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: pr.number,
-              body,
-            });
+      # 🔴 2026-09-12: "머지된 PR 에 프로덕션 배포 결과를 코멘트한다" 스텝을 제거했다. 이 레포는
+      # PR 을 쓰지 않으므로 코멘트를 달 곳이 없다. 프로덕션 승격 기록의 정본은 위의 잡 요약
+      # (GITHUB_STEP_SUMMARY)이며, 커밋 SHA·Pages/Worker 배포 ID·스모크 결과가 거기 남는다.
 
   # 스테이징 배포. 프로덕션과 **같은 파일·같은 흐름**에 두는 이유는 하나다 — 별도 워크플로로
   # 빼면 스테이징이 프로덕션의 리허설이기를 그만두고, "배포 경로는 하나"라는 명제가 규약에서
