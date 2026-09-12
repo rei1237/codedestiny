@@ -50,13 +50,14 @@ import {
 import { PASS_MONTHLY_WON } from "../lib/payment/pass-pricing.js";
 import { MUSIC_TRACK_UNLOCK_PRICE_KRW } from "../lib/music-access-policy.js";
 import { PASS_LIMITS_KRW, MONTHLY_PASS_LIMITS_KRW } from "../worker/lib/profile-limits.js";
+import { KRW_PER_COIN as COIN_TO_KRW } from "../worker/lib/billing-policy.js";
 import { gateCovers as gateCoversAny, readGatePatterns } from "./lib/gate-trigger-coverage.mjs";
 
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 
 // ── 1) 정본 금액 집합 ─────────────────────────────────────────────────────────
 // 표를 옮겨 적지 않는다. 레지스트리가 바뀌면 이 집합도 같이 바뀐다.
-const COIN_TO_KRW = 100;
+// 환산율도 옮겨 적지 않는다 — COIN_TO_KRW 는 billing-policy.js 의 KRW_PER_COIN 정본이다.
 const canonical = new Set();
 const add = (n) => {
   if (Number.isFinite(n) && n > 0) canonical.add(n);

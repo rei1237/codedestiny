@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { KRW_PER_COIN } from "../worker/lib/billing-policy.js";
 
 // PAYMENT_POLICY.md(운명 찻집 상담 가격 정본)와 코드 3곳의 가격이 어긋나지 않는지 검증한다.
 // Cloudflare Worker는 런타임에 파일을 못 읽으므로, 이 정합성은 빌드/CI 시점에 여기서 강제한다.
@@ -9,7 +10,6 @@ import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const source = (path) => readFileSync(resolve(root, path), "utf8");
-const KRW_PER_COIN = 100;
 
 const errors = [];
 const fail = (msg) => errors.push(msg);
