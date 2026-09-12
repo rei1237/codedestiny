@@ -227,11 +227,14 @@ function prompt(saju, result, targetGender) {
  */
 const mockRejected = (env, response) => (/mock/i.test(String(response?.provider || "")) || /mock/i.test(String(response?.model || "")) || response?.isMock === true) && !isStagingLlmMockEnabled(env);
 
-/** 장면 1개 호출. 실패를 throw 하지 않고 빈 문자열로 돌려 한 장면이 나머지를 죽이지 않게 한다. */
-async function callSection(env, call, promptText, timeoutMs, maxTokens) {
+/** 장면 1개 호출. 실패를 throw 하지 않고 빈 문자열로 돌려 한 장면이 나머지를 죽이지 않게 한다.
+ *  🔴 주입 파라미터 이름을 줄이지 말 것. scripts/audit-ai-locale-calls.mjs 는 호출부 식별자로
+ *  LLM 호출 원장을 만들기 때문에, `call` 같은 짧은 이름으로 바꾸면 실제로는 호출하면서도
+ *  원장에서 조용히 사라진다(가드는 fail-closed 여야 한다). */
+async function callSection(env, callGeminiJsonWithRetry, promptText, timeoutMs, maxTokens) {
   if (!timeoutMs) return "";
   const attempt = Promise.resolve()
-    .then(() => call(env, promptText, {
+    .then(() => callGeminiJsonWithRetry(env, promptText, {
       temperature: 0.72, baseTokens: maxTokens, capTokens: maxTokens, attempts: 1,
       timeoutMs, responseMimeType: "", taskType: "fortune",
       fallbackToWorkersAI: true, fallbackMinChars: RBT_SECTION_FALLBACK_MIN_CHARS,
@@ -243,10 +246,10 @@ async function callSection(env, call, promptText, timeoutMs, maxTokens) {
   return response.truncated ? trimToLastCompleteSentence(body) : body;
 }
 
-async function callFrame(env, call, promptText, timeoutMs) {
+async function callFrame(env, callGeminiJsonWithRetry, promptText, timeoutMs) {
   if (!timeoutMs) return null;
   const attempt = Promise.resolve()
-    .then(() => call(env, promptText, {
+    .then(() => callGeminiJsonWithRetry(env, promptText, {
       temperature: 0.72, baseTokens: RBT_FRAME_TOKENS, capTokens: RBT_FRAME_TOKENS, attempts: 1,
       timeoutMs, taskType: "fortune", fallbackToWorkersAI: true, fallbackMinChars: 200,
     }))
