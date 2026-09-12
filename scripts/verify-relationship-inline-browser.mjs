@@ -35,6 +35,40 @@ try {
   assert.ok(heights.frame>=heights.body-2);
   console.log('PASS inline 15000+ reading',width,m.length,heights);
  }
+ // 임베드에서는 등급 히어로 1장만 나오고 챕터 장면은 렌더하지 않는다(부모가 iframe 높이를
+ // 콘텐츠 전체 높이로 맞춰 lazy 로딩도 sticky 도 성립하지 않기 때문).
+ await page.setViewportSize({width:390,height:844});
+ assert.equal(await frame.locator('.rt-scene').count(),0);
+ assert.equal(await frame.locator('.rt-hero-scene img').count(),1);
+ const hero=await frame.locator('.rt-hero-scene img').evaluate(el=>({src:el.getAttribute('src'),natural:el.naturalWidth}));
+ // 인덱스/등급 매핑이 어긋나면 여기서 잡힌다(목의 grade 는 'medium').
+ assert.ok(hero.src.includes('/images/relationship-boundary-test/medium.webp'),'hero must follow the grade: '+hero.src);
+ assert.ok(hero.natural>0,'hero image must actually load');
+ // aspect-ratio 로 높이를 미리 잡아 두었는지 — 이미지가 늦게 와도 높이가 흔들리면 안 된다.
+ const before=await frame.locator('.rt-page').evaluate(el=>el.getBoundingClientRect().height);
+ await page.waitForTimeout(800);
+ const after=await frame.locator('.rt-page').evaluate(el=>el.getBoundingClientRect().height);
+ assert.ok(Math.abs(after-before)<=2,'embedded height drifted after image load: '+before+' -> '+after);
+ console.log('PASS embedded hero only, grade-mapped, no height drift',hero.src);
+
+ // 독립 라우트: 챕터 장면 5장 + sticky 연출 + 결과 화면에서는 기존 표지를 쓰지 않는다.
+ const solo=await context.newPage();solo.setDefaultTimeout(45000);
+ await solo.goto(origin+'/relationship-boundary-test/',{waitUntil:'domcontentloaded'});
+ await solo.locator('#target-birth-date').waitFor({state:'visible'});
+ await solo.waitForFunction(()=>Boolean(window.__cdCheckoutEntry?.runPaidResume));
+ const soloResumed=await solo.evaluate(()=>window.__cdCheckoutEntry.runPaidResume({kind:'relationship-boundary-test',action:'',args:{payload:JSON.stringify({idempotencyKey:'mock-reading',targetInfo:{gender:'female',birthDate:'1990-05-15',birthTimeUnknown:true,calendarType:'solar'}})}},null));
+ assert.equal(soloResumed,true);
+ await solo.locator('.rt-reading').waitFor({state:'visible'});
+ assert.equal(await solo.locator('.rt-scene img').count(),5);
+ assert.equal(await solo.locator('.rt-hero-scene img').count(),1);
+ assert.equal(await solo.locator('.rt-visual').count(),0);
+ // 🔴 .rt-shell 이 overflow:hidden 이면 스크롤 컨테이너가 되어 내부 sticky 가 영영 안 걸린다.
+ assert.notEqual(await solo.locator('.rt-shell').evaluate(el=>getComputedStyle(el).overflowY),'hidden');
+ assert.equal(await solo.locator('.rt-scene').first().evaluate(el=>getComputedStyle(el).position),'sticky');
+ assert.equal(await solo.locator('.rt-reading').evaluate(el=>el.scrollWidth>el.clientWidth+1),false);
+ console.log('PASS standalone storytelling scenes, sticky, no legacy cover');
+ await solo.close();
+
  await page.evaluate(()=>{window.unlockedFeatureMap.section_summary=true;});
  await page.locator('#summaryGate button[data-unlock-key]').click();
  await page.locator('#summaryArea .saju-reading-depth').first().scrollIntoViewIfNeeded();
