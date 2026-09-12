@@ -50,7 +50,7 @@ import {
 import { PASS_MONTHLY_WON } from "../lib/payment/pass-pricing.js";
 import { MUSIC_TRACK_UNLOCK_PRICE_KRW } from "../lib/music-access-policy.js";
 import { PASS_LIMITS_KRW, MONTHLY_PASS_LIMITS_KRW } from "../worker/lib/profile-limits.js";
-import { KRW_PER_COIN as COIN_TO_KRW } from "../worker/lib/billing-policy.js";
+import { KRW_PER_COIN as COIN_TO_KRW, MEMBERSHIP_CREDIT_PER_COIN } from "../worker/lib/billing-policy.js";
 import { gateCovers as gateCoversAny, readGatePatterns } from "./lib/gate-trigger-coverage.mjs";
 
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
@@ -78,6 +78,33 @@ assert.ok(
   canonical.size >= MINIMUM_CANONICAL,
   `정본 금액이 ${canonical.size}개 — 최소 ${MINIMUM_CANONICAL}개여야 합니다. `
     + "가격 정본 모듈 import 가 깨졌습니다(대상 0개는 통과가 아닙니다).",
+);
+
+// ── 1-b) 프론트 환산 상수가 서버 정본과 같은가 ────────────────
+// lib/payment/coin-pricing.ts 는 화면에 뿌릴 원화를 만드는 정본(formatKrwAmount ·
+// formatKrwFromCoins · formatKrwFromMonthlyCredits)이다. 주석은 "worker/lib/billing-policy.js 와
+// 반드시 일치해야 한다"고 적혀 있었지만, 2026-09-13 실측 결과 scripts/** · __tests__/**
+// 어디서도 이 파일을 참조하지 않아, 값이 갈려도 아무도 몰랐다. 여기서 묶는다.
+// .ts 라 import 하지 않고 소스에서 리터럴을 읽는다 — 못 찾으면 실패다(fail-closed).
+const COIN_PRICING_TS = "lib/payment/coin-pricing.ts";
+const coinPricingSource = readFileSync(resolve(root, COIN_PRICING_TS), "utf8");
+const readTsConst = (name) => {
+  const m = coinPricingSource.match(new RegExp(String.raw`export const ${name}\s*=\s*(\d+)\s*;`));
+  assert.ok(
+    m,
+    `${COIN_PRICING_TS}: export const ${name} = <숫자> 를 못 찾았습니다 — 상수 이름이 바뀌었거나 추출기가 깨졌습니다(대상 0개는 통과가 아닙니다).`,
+  );
+  return Number(m[1]);
+};
+assert.equal(
+  readTsConst("KRW_PER_COIN"),
+  COIN_TO_KRW,
+  `${COIN_PRICING_TS} 의 KRW_PER_COIN 이 worker/lib/billing-policy.js 정본(${COIN_TO_KRW})과 다릅니다 — 화면 표시 원화와 서버 청구액이 갈립니다.`,
+);
+assert.equal(
+  readTsConst("KRW_PER_MONTHLY_CREDIT"),
+  COIN_TO_KRW / MEMBERSHIP_CREDIT_PER_COIN,
+  `${COIN_PRICING_TS} 의 KRW_PER_MONTHLY_CREDIT 이 정본 환산(KRW_PER_COIN ${COIN_TO_KRW} ÷ MEMBERSHIP_CREDIT_PER_COIN ${MEMBERSHIP_CREDIT_PER_COIN})과 다릅니다 — 월정석 표시액이 갈립니다.`,
 );
 
 // ── 2) 원화 금액 추출기 ───────────────────────────────────────────────────────
@@ -249,6 +276,7 @@ const gatePatterns = readGatePatterns(resolve(root, GATE_WORKFLOW));
 const READ_PATHS = [
   "worker/lib/paid-feature-registry.js",
   "lib/payment/pass-pricing.js",
+  "lib/payment/coin-pricing.ts",
   "lib/music-access-policy.js",
   "worker/lib/profile-limits.js",
   "scripts/verify-krw-copy-canonical.mjs",
