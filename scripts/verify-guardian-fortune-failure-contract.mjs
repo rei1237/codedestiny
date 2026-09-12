@@ -17,7 +17,9 @@ import { readFileSync } from "node:fs";
 import { generateGuardianFortuneRequest } from "../worker/lib/guardian-fortune-generate.js";
 import {
   createMemoryGuardianFortuneStore,
+  GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT,
   GUARDIAN_FORTUNE_ERROR_CODES,
+  GUARDIAN_FORTUNE_GUEST_LIMIT,
 } from "../worker/lib/guardian-fortune-usage.js";
 
 const failures = [];
@@ -169,23 +171,42 @@ async function run(store, overrides = {}) {
 
   check("성공: status 200", response.status === 200, `실제 ${response.status}`);
   check("성공: 커밋 후 findDaily 재조회 없음", !store.calls.findDaily, `findDaily ${store.calls.findDaily || 0}회`);
-  // 값 자체는 종전과 동일해야 한다 — 여기서 틀리면 무료 잔여 표시와 결제 판정이 어긋난다.
+  // 값이 어긋나면 무료 잔여 표시와 결제 판정이 갈린다.
+  //
+  // 🔴 기대값을 숫자로 적지 않는다. 2026-08-17 정책 변경(계정 3회→1회, 게스트 1회→0회) 때 이
+  // 가드가 구 숫자 3·2·1 을 박아 둔 채 7건 실패로 남아 **아무것도 지키지 못했다**. 정책 정본은
+  // worker/lib/guardian-fortune-usage.js 의 상수이므로 거기서 유도한다.
   check("성공: dailyFreeUsed=1", response.usage?.dailyFreeUsed === 1, JSON.stringify(response.usage));
-  check("성공: dailyFreeRemaining=2", response.usage?.dailyFreeRemaining === 2, JSON.stringify(response.usage));
-  check("성공: dailyFreeLimit=3", response.usage?.dailyFreeLimit === 3, JSON.stringify(response.usage));
+  check(
+    "성공: dailyFreeRemaining 이 정책 상수-1",
+    response.usage?.dailyFreeRemaining === Math.max(0, GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT - 1),
+    JSON.stringify(response.usage),
+  );
+  // seed 의 freeLimit 은 3 이다(기존 회원 문서에 $setOnInsert 로 박제된 값). 정책 상수로 clamp 돼
+  // 내려와야 한다 — "상수만 낮추면 기존 계정도 함께 내려온다"는 계약(usage.js:12-14)을 고정한다.
+  check(
+    "성공: 박제된 freeLimit 3 이 정책 상수로 clamp 된다",
+    response.usage?.dailyFreeLimit === GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT,
+    JSON.stringify(response.usage),
+  );
   check("성공: isLoggedIn=true", response.usage?.isLoggedIn === true);
   check("성공: canGenerate=true", response.usage?.canGenerate === true);
   check("성공: generationSource=daily_free", response.generationSource === "daily_free", String(response.generationSource));
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 5) 게스트 성공도 같은 계약 (커밋 문서 재사용이 게스트 분기에서도 동일해야 한다)
+// 5) 게스트 분기 — 무엇을 단언할지 정책 상수를 보고 고른다
+//
+// 무료가 있던 시절에는 "커밋 문서 재사용으로 왕복이 줄었는가"를 여기서 봤다. 2026-08-17 에
+// GUEST_LIMIT 이 0 이 되면서 게스트 성공 경로 자체가 사라졌다. 한쪽만 적어 두면 정책이 바뀔 때
+// 또 조용히 죽으므로 두 정책을 모두 기술하고 상수로 고른다.
 // ─────────────────────────────────────────────────────────────────────────────
 {
+  const hash = "a".repeat(64);
   const store = countingStore();
   const response = await generateGuardianFortuneRequest({
     input: BASE_INPUT,
-    guestIdHash: "a".repeat(64),
+    guestIdHash: hash,
     requestId: "fortune-chat-consultation:guest-1",
     dateKey: DATE_KEY,
     store,
@@ -193,11 +214,36 @@ async function run(store, overrides = {}) {
     generator: async () => deliverableResult(),
     contextOptions: { env: {} },
   });
-  check("게스트 성공: status 200", response.status === 200, `실제 ${response.status}`);
-  check("게스트 성공: findGuest 재조회 없음", !store.calls.findGuest, `findGuest ${store.calls.findGuest || 0}회`);
-  check("게스트 성공: guestFreeUsed=1", response.usage?.guestFreeUsed === 1, JSON.stringify(response.usage));
-  check("게스트 성공: guestFreeRemaining=0", response.usage?.guestFreeRemaining === 0, JSON.stringify(response.usage));
-  check("게스트 성공: isLoggedIn=false", response.usage?.isLoggedIn === false);
+  if (GUARDIAN_FORTUNE_GUEST_LIMIT > 0) {
+    check("게스트 성공: status 200", response.status === 200, `실제 ${response.status}`);
+    check("게스트 성공: findGuest 재조회 없음", !store.calls.findGuest, `findGuest ${store.calls.findGuest || 0}회`);
+    check("게스트 성공: guestFreeUsed=1", response.usage?.guestFreeUsed === 1, JSON.stringify(response.usage));
+    check(
+      "게스트 성공: guestFreeRemaining 이 정책 상수-1",
+      response.usage?.guestFreeRemaining === GUARDIAN_FORTUNE_GUEST_LIMIT - 1,
+      JSON.stringify(response.usage),
+    );
+  } else {
+    check("게스트 무료 0: status 429", response.status === 429, `실제 ${response.status}`);
+    check(
+      "게스트 무료 0: GUEST_LIMIT_EXCEEDED 코드",
+      response.error === GUARDIAN_FORTUNE_ERROR_CODES.GUEST_LIMIT_EXCEEDED,
+      String(response.error),
+    );
+    // 무료가 없는 정책의 목적은 차단이 아니라 로그인 유도다. 여기가 흔들리면 첫 방문자가 막힌다.
+    check("게스트 무료 0: 로그인으로 유도한다", response.usage?.nextAction === "login", JSON.stringify(response.usage));
+    check(
+      "게스트 무료 0: 무료를 차감하지 않았다",
+      !store.state.guests.get(hash)?.totalUsed,
+      JSON.stringify(store.state.guests.get(hash)),
+    );
+  }
+  check("게스트 분기: isLoggedIn=false", response.usage?.isLoggedIn === false);
+  check(
+    "게스트 분기: guestFreeLimit 이 정책 상수",
+    response.usage?.guestFreeLimit === GUARDIAN_FORTUNE_GUEST_LIMIT,
+    JSON.stringify(response.usage),
+  );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -266,13 +312,31 @@ async function run(store, overrides = {}) {
 // 10) 죽은 예약(고아 reserved)이 무료 자리를 영구히 잠그지 않는다
 //
 // 예약과 커밋 사이에서 요청이 죽으면(엣지 컷·아이솔레이트 종료로 catch 조차 못 도는 경우)
-// reserved 가 1 오른 채 남는다. 게스트는 한도가 1이라 그 한 건으로 영구 차단됐다.
+// reserved 가 1 오른 채 남는다. 회수가 없으면 그 한 건으로 무료 상담이 영구히 막힌다.
+//
+// 🔴 회수 성공은 **계정 축**에서 본다. 게스트 한도가 0 인 현행 정책에서는 회수에 성공해도
+// 재예약이 원리적으로 불가능해(0+0 >= 0) 429 가 정상 동작이고, 그 상태로는 "회수되면 상담이
+// 된다"를 관측할 수 없다. 무료 자리가 남아 있는 계정 축이 이 계약의 관측 지점이다.
 // ─────────────────────────────────────────────────────────────────────────────
 {
   const OLD = new Date(Date.now() - 60 * 60 * 1000); // TTL(10분)을 한참 넘긴 고아
+  const store = countingStore({
+    daily: { [USER_ID]: { userId: USER_ID, freeUsed: 0, reserved: 1, reservationUpdatedAt: OLD, freeLimit: 3 } },
+  });
+  const response = await run(store);
+  check("고아 예약 회수: 상담이 성공한다(회수가 없으면 영구 차단)", response.status === 200, `실제 ${response.status} ${response.error || ""}`);
+  check("고아 예약 회수: 만료분을 실제로 풀었다", store.calls.releaseStaleDaily >= 1, `releaseStaleDaily ${store.calls.releaseStaleDaily || 0}회`);
+  check("고아 예약 회수: 무료 1회가 정상 차감됐다", store.state.daily.get(USER_ID)?.freeUsed === 1, JSON.stringify(store.state.daily.get(USER_ID)));
+  check("고아 예약 회수: 고아가 남지 않았다", store.state.daily.get(USER_ID)?.reserved === 0, JSON.stringify(store.state.daily.get(USER_ID)));
+}
+
+// 10-b) 게스트 축에서도 회수 자체는 돈다 — 429 는 정책(무료 0) 때문이지 물린 예약 때문이 아니다.
+//       이 구분이 없으면 "게스트가 영구 차단됐다"는 오진으로 되돌아간다.
+{
+  const OLD = new Date(Date.now() - 60 * 60 * 1000);
   const hash = "b".repeat(64);
   const store = countingStore({ guests: { [hash]: { guestIdHash: hash, totalUsed: 0, reserved: 1, reservationUpdatedAt: OLD } } });
-  const response = await generateGuardianFortuneRequest({
+  await generateGuardianFortuneRequest({
     input: BASE_INPUT,
     guestIdHash: hash,
     requestId: "fortune-chat-consultation:stale-guest-1",
@@ -282,9 +346,9 @@ async function run(store, overrides = {}) {
     generator: async () => deliverableResult(),
     contextOptions: { env: {} },
   });
-  check("고아 예약 회수: 상담이 성공한다(고치기 전엔 429 영구 차단)", response.status === 200, `실제 ${response.status} ${response.error || ""}`);
-  check("고아 예약 회수: 만료분을 실제로 풀었다", store.calls.releaseStaleGuest >= 1, `releaseStaleGuest ${store.calls.releaseStaleGuest || 0}회`);
-  check("고아 예약 회수: 무료 1회가 정상 차감됐다", store.state.guests.get(hash)?.totalUsed === 1, JSON.stringify(store.state.guests.get(hash)));
+  check("게스트 고아 회수: 만료분을 실제로 풀었다", store.calls.releaseStaleGuest >= 1, `releaseStaleGuest ${store.calls.releaseStaleGuest || 0}회`);
+  check("게스트 고아 회수: 고아가 남지 않았다", store.state.guests.get(hash)?.reserved === 0, JSON.stringify(store.state.guests.get(hash)));
+  check("게스트 고아 회수: 무료를 차감하지 않았다", store.state.guests.get(hash)?.totalUsed === 0, JSON.stringify(store.state.guests.get(hash)));
 }
 
 // 11) 아직 살아 있는(만료 전) 예약은 절대 건드리지 않는다 — 동시 요청 보호
