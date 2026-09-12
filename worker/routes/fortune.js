@@ -104,7 +104,7 @@ import { resolveCanonicalEntitlement } from "../lib/entitlement-policy.js";
 // 🔴 이용권 무료 통과는 **차감을 동반해야** 한도가 존재한다. 이 파일의 두 통과 지점
 // (AI 프롬프트 이용권 증빙 · SUBSCRIPTION_INCLUDED)은 coin-gate 를 거치지 않아 지금까지
 // monthlySpendCoin 을 한 번도 올리지 않았다. 판정·소비 정본은 worker/payments/passes.js.
-import { consumePassForFeature, hasConsumedPassFeature, passDenialCode } from "../lib/pass-consumption.js";
+import { consumePassForFeature, hasConsumedPassFeature, passDenialCode, refundPassCoverage } from "../lib/pass-consumption.js";
 import { calculateKrwAmountFromCoins, calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { autoRefundSinglePaymentDeliveryFailure } from "../lib/payment-refund.js";
 import { EDGE_RESPONSE_DEADLINE_MS, clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
@@ -1830,6 +1830,9 @@ async function findAIPromptPaidAccessEvidence({ auth, featureKey, body, requestI
     // 건당 상한(10,000원)이 상담 포함횟수 기준가(300코인=30,000원)보다 낮다. cycleKey를 못 구해도
     // (만료일 없음) 열어 둬야 하므로 applies가 아니라 eligible을 쓴다(profile-limits.js 참고).
     if (alreadyConsumed || ((canUseByPass(passEntitlement, cost) || premiumQuota.eligible) && !(premiumQuota.applies && premiumQuota.exhausted) && !(monthlyQuota.applies && monthlyQuota.exceeded))) {
+      // 이번 호출에서 실제로 monthlySpendCoin 이 새로 깎였을 때만(재생이 아니고 예산을 셀 수
+      // 있을 때만) 채운다 — 뒤이은 AI 생성이 실패하면 handleZiweiAIPrompt 가 이 값으로 되돌린다.
+      let passRefund = null;
       if (consume && !alreadyConsumed) {
         // 🔴 위 monthlyQuota 검사는 **읽기**뿐이라, 아무도 쓰지 않던 monthlySpendCoin 은 영원히 0
         //    이었고 한도에 도달하는 것 자체가 불가능했다. 정본으로 판정하고 실제로 차감한다.
@@ -1844,6 +1847,9 @@ async function findAIPromptPaidAccessEvidence({ auth, featureKey, body, requestI
         });
         const denial = consumed.covered ? "" : passDenialCode(consumed.reason);
         if (denial) return { source: "pass_denied", reason: denial, record: null };
+        passRefund = consumed.covered && !consumed.replayed && consumed.coverage?.budgetApplies && cost > 0
+          ? { cycleKey: consumed.coverage.cycleKey, cost }
+          : null;
       }
       return {
         source: "pass_payload",
@@ -1856,6 +1862,7 @@ async function findAIPromptPaidAccessEvidence({ auth, featureKey, body, requestI
             accessMethod: "PASS",
             paymentMode: "MEMBERSHIP_PASS",
             passTier: passEntitlement.tier || "",
+            passRefund,
           },
         },
       };
@@ -1934,6 +1941,9 @@ function buildAIPromptVerifiedConsumePayload({ auth, featureKey, reason, request
     paymentMode,
     forceDeductApplied: false,
     transactionId,
+    // 이용권 커버로 monthlySpendCoin 이 새로 깎인 요청만 채워진다 — 호출부가 뒤이은 AI 생성
+    // 실패 시 이 값으로 refundPassCoverage 를 불러 되돌린다.
+    passRefund: metadata.passRefund || null,
     consume: {
       ok: true,
       transactionId,
@@ -5299,6 +5309,7 @@ async function handleZiweiAIPrompt(request, auth, env) {
   let sourceTransactionId = "";
   let isPointSpend = false;
   let isCardSpend = false;
+  let passRefund = null;
 
   try {
     const delegatedRequest = new Request(request.url, {
@@ -5341,6 +5352,7 @@ async function handleZiweiAIPrompt(request, auth, env) {
     chargedCoins = Math.max(0, Number(consumePayload?.chargedCoins || 0));
     sourceTransactionId = String(consumePayload?.transactionId || "").trim();
     ({ isPointSpend, isCardSpend } = readSajuAIPromptPointRefundContext(consumePayload, body));
+    passRefund = consumePayload?.passRefund && typeof consumePayload.passRefund === "object" ? consumePayload.passRefund : null;
     const balanceAfterRaw = Number(consumePayload?.user?.points);
     const balanceAfter = Number.isFinite(balanceAfterRaw) ? balanceAfterRaw : undefined;
 
@@ -5412,6 +5424,20 @@ async function handleZiweiAIPrompt(request, auth, env) {
         reasonMessage: "Ziwei AI consultation generation failed auto-refund",
       });
       refundOk = cardRefund.refunded === true;
+    } else if (passRefund) {
+      // 이용권 커버로 monthlySpendCoin 이 이미 깎인 뒤 생성이 실패했다 — 되돌린다.
+      // 실패해도 로그만 남기고 원래 실패 응답(500/503)을 가리지 않는다.
+      refundAttempted = true;
+      try {
+        const passRefundResult = await refundPassCoverage({
+          userId: auth.userId,
+          cycleKey: passRefund.cycleKey,
+          cost: passRefund.cost,
+        });
+        refundOk = passRefundResult.refunded === true;
+      } catch (refundError) {
+        console.error("[fortune][ziwei-ai-prompt] pass refund failed:", refundError);
+      }
     }
 
     console.error("[fortune][ziwei-ai-prompt] request failed:", error);
@@ -6869,6 +6895,8 @@ export const __fortuneAccessTestUtils = {
   mapSajuAIExecutionStatus,
   buildSajuAIStatusPayload,
   readAIPromptRequestId,
+  findAIPromptPaidAccessEvidence,
+  buildAIPromptVerifiedConsumePayload,
 };
 
 // 그룹 병렬 생성은 결제 경로 한가운데에 있어 mock 없이는 손댈 수 없다.

@@ -4904,17 +4904,37 @@ async function startSajuCalculationFlow() {
 
   // 만세력 책 로더 기능 제거: 클릭 즉시 계산 실행
   var _spinner = document.getElementById('sajuCalcLoadingOverlay');
-  if (_spinner) { _spinner.classList.add('saju-calc-loading-overlay--visible'); _spinner.setAttribute('aria-hidden', 'false'); }
+  var _spinnerShownAt = 0;
+  if (_spinner) {
+    _spinner.classList.add('saju-calc-loading-overlay--visible');
+    _spinner.setAttribute('aria-hidden', 'false');
+    _spinnerShownAt = Date.now();
+    // calculate()는 대부분 동기 렌더링이라, 페인트를 강제로 양보하지 않으면
+    // 오버레이가 화면에 그려지기도 전에 메인 스레드가 계산으로 막혀 버린다.
+    await new Promise(function(resolve) {
+      requestAnimationFrame(function(){ requestAnimationFrame(resolve); });
+    });
+  }
   setSajuFormStatus('사주 원국을 계산하는 중입니다.', 'info');
+  var _hideSpinner = async function() {
+    if (!_spinner) return;
+    var _elapsed = Date.now() - _spinnerShownAt;
+    var _minVisibleMs = 550;
+    if (_elapsed < _minVisibleMs) {
+      await new Promise(function(resolve){ setTimeout(resolve, _minVisibleMs - _elapsed); });
+    }
+    _spinner.classList.remove('saju-calc-loading-overlay--visible');
+    _spinner.setAttribute('aria-hidden', 'true');
+  };
   try {
     await calculate();
   } catch (calcErr) {
     console.error('[saju] calculate flow failed', calcErr);
-    if (_spinner) { _spinner.classList.remove('saju-calc-loading-overlay--visible'); _spinner.setAttribute('aria-hidden', 'true'); }
+    await _hideSpinner();
     setSajuFormStatus('사주 원국 계산을 완료하지 못했습니다. 프로필 정보를 확인한 뒤 다시 시도해 주세요.', 'error', 'birthDate');
     return;
   }
-  if (_spinner) { _spinner.classList.remove('saju-calc-loading-overlay--visible'); _spinner.setAttribute('aria-hidden', 'true'); }
+  await _hideSpinner();
 
   var resultPage = document.getElementById('resultPage');
   var isResultVisible = !!(resultPage && resultPage.style.display !== 'none');
