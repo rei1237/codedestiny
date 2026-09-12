@@ -1,7 +1,7 @@
 ---
-status: active
+status: done
 updated: 2026-09-12
-next: "배치 5+ PR #1946 의 머지를 확인한 뒤, nakshatra-compat-ai · premium-veda-compatibility-addon 2종을 구현할지 가격표에서 내릴지 사용자에게 확인하고 처리한다."
+next: "종결. PR #1946 머지 완료(d3fe1881f). 남아 있던 2종 결정은 '가격표에서 철거' 로 처리했다 → docs/handoff/2026-09-12-retire-ghost-paid-products.md (PR #1948)."
 ---
 
 # 상세창 카피 배치 5+ (남은 전량) 인수인계

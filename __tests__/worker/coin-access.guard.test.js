@@ -119,19 +119,6 @@ describe("Fortune coin access guard", () => {
     expect(priced.pricingSource).toBe("feature-key");
   });
 
-  test("베다 궁합 addon featureKey는 서버 가격 300으로 고정되어야 한다", () => {
-    const priced = utils.resolveServerCoinPricing({
-      env: { NODE_ENV: "production" },
-      productSpec: null,
-      requestedCost: 1,
-      featureKey: "premium-veda-compatibility-addon",
-      reason: "프리미엄 베다점 궁합 확장 분석 추가",
-    });
-
-    expect(priced.ok).toBe(true);
-    expect(priced.cost).toBe(300);
-    expect(priced.pricingSource).toBe("feature-key");
-  });
 
   test("요가 구루는 reason 기반 서버 가격을 적용해야 한다", () => {
     const priced = utils.resolveServerCoinPricing({

@@ -106,7 +106,6 @@ export const REVIEW_PRODUCTS = Object.freeze([
       "fortune-tea-house-sukuyo-compatibility-consultation",
       "physiognomy-compatibility",
       "physiognomy-pastlife-compatibility",
-      "premium-veda-compatibility-addon",
       "premium-sukuyo-compat-extra",
     ]),
   },
@@ -172,7 +171,6 @@ export const REVIEW_PRODUCTS = Object.freeze([
     featureKeys: Object.freeze([
       "nakshatra-ai-consultation",
       "nakshatra-compat",
-      "nakshatra-compat-ai",
       "nakshatra-muhurta",
       "nakshatra-vvip-codex",
       "nakshatra-lord-report",
