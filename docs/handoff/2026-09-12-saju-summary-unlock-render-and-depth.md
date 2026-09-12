@@ -1,3 +1,9 @@
+---
+status: active
+updated: 2026-09-12
+next: "PR #1957 이 머지됐는지 확인하고, 머지됐으면 40자리 SHA 로 스테이징을 확인한 뒤 프로덕션으로 승격한다."
+---
+
 # 종합 사주 풀이 — 해금 후 미표시 근본 수정 + 분량 증량
 
 - status: **머지 대기** (PR [#1957](https://github.com/rei1237/codedestiny/pull/1957), 브랜치 `fix/saju-summary-unlock-render-and-depth`, 머지 후보 `f88ac054e`, `MERGEABLE`/`CLEAN`)
