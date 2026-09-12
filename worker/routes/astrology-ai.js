@@ -48,7 +48,6 @@ const CARD_REFUNDED_MESSAGE = "상담을 완성하지 못했습니다. 결제하
 const RESULT_NOT_FOUND_MESSAGE = "저장된 점성술 상담 결과를 찾지 못했습니다. 로그인 상태와 결과 링크를 다시 확인해 주세요.";
 const ASTROLOGY_AI_MIN_RESULT_CHARS = 15000;
 const ASTROLOGY_AI_MAX_RESULT_CHARS = 26000;
-const ASTROLOGY_AI_MIN_FOLLOWUP_CHARS = 80;
 const ASTROLOGY_AI_SANITIZE_MAX_CHARS = 70000;
 const ASTROLOGY_AI_MIN_EXPERT_PARTS = 5;
 
@@ -969,29 +968,6 @@ function buildSharedContextLines(input, chart) {
   ];
 }
 
-function buildFollowUpPrompt(consultation, message) {
-  const recent = Array.isArray(consultation.messages) ? consultation.messages.slice(-8) : [];
-  return [
-    "아래 차트와 이전 상담 흐름을 바탕으로 사용자의 추가 질문에 상담형으로 답하세요.",
-    "사용자의 질문에 바로 응답하고, 이어서 필요한 차트 근거와 현실적인 선택 기준을 제시하세요.",
-    "이전 답변을 반복하지 말고 추가 질문의 초점에 맞춰 더 구체적인 장면, 경계선, 실행 순서를 제안하세요.",
-    "계산 데이터에 없는 배치는 새로 만들지 말고, 확인 가능한 근거의 범위 안에서만 말하세요.",
-    "",
-    "[상담 주제]",
-    consultation.topic,
-    "",
-    "[차트 데이터]",
-    JSON.stringify(consultation.astrologyChart || {}),
-    "",
-    "[최근 대화]",
-    // 클립이 없으면 assistant 메시지 8개(각 1만~2만자)가 그대로 실려 한 턴에 16만자까지 간다.
-    // 형제 라우트(ziwei-ai·karma-destiny-ai·sukuyo-compatibility-ai)와 같은 1,400자 상한을 쓴다.
-    ...recent.map((item) => `${item.role === "assistant" ? "상담가" : "사용자"}: ${clean(item.content, 1400)}`),
-    "",
-    `[추가 질문]\n${message}`,
-  ].join("\n");
-}
-
 function countConsultationChars(value) {
   return clean(value).replace(/\s+/g, "").length;
 }
@@ -1852,52 +1828,6 @@ async function handleResult(request, env, pathId = "") {
   return json(payload);
 }
 
-async function handleMessage(request, env) {
-  const body = await readJson(request);
-  const sessionId = clean(body?.sessionId || body?.consultationId, 120);
-  const message = clean(body?.message || body?.question, 1400);
-  if (!sessionId || message.length < 2) return invalidInput(INVALID_INPUT_MESSAGE);
-  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
-  if (!auth) return loginRequired();
-
-  await connectDb(env);
-  const consultation = await AstrologyAiConsultation.findOne({
-    id: sessionId,
-    userId: auth.userId,
-    status: "completed",
-  }).lean();
-  if (!consultation) return invalidInput("상담 세션을 찾지 못했습니다.", 404);
-
-  try {
-    const generated = await generateConsultation(env, buildFollowUpPrompt(consultation, message), {
-      minLength: ASTROLOGY_AI_MIN_FOLLOWUP_CHARS,
-      maxOutputTokens: 4500,
-      temperature: 0.7,
-    });
-    const updated = await AstrologyAiConsultation.findOneAndUpdate(
-      { id: sessionId, userId: auth.userId },
-      {
-        $push: {
-          messages: {
-            $each: [
-              { role: "user", content: message, createdAt: new Date() },
-              { role: "assistant", content: generated.content, createdAt: new Date() },
-            ],
-          },
-        },
-        $set: {
-          llmMeta: { provider: generated.provider, model: generated.model, updatedAt: new Date().toISOString(), lastMessageQuality: generated.quality },
-        },
-      },
-      { new: true },
-    ).lean();
-    return json(publicSession(updated));
-  } catch (error) {
-    console.error("[astrology-ai] follow-up failed", { message: clean(error?.message || error, 300) });
-    return json({ ok: false, reason: "LLM_ERROR", message: LLM_ERROR_MESSAGE }, { status: 503 });
-  }
-}
-
 // 계산 근거만 즉시 돌려준다 — LLM 미호출, DB 접근 없음, 과금 없음.
 // 신원 확인은 로컬 JWT 검증만 써서 Mongo를 건드리지 않고, 트랜싯은 건너뛰어 대기 화면을 빨리 채운다.
 async function handleBasis(request, env) {
@@ -1925,7 +1855,6 @@ export async function handleAstrologyAiRoutes(request, env = {}, ctx) {
     if (method === "POST" && path === "/basis") return await handleBasis(request, env);
     if (method === "POST" && path === "/ensure-access") return await handleEnsureAccess(request, env);
     if (method === "POST" && path === "/start") return await handleStart(request, env, ctx);
-    if (method === "POST" && path === "/message") return await handleMessage(request, env);
     if (["GET", "POST"].includes(method)) return notFound();
     return methodNotAllowed();
   } catch (error) {

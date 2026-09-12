@@ -56,7 +56,7 @@ const ziweiTokenBudget = Number(/INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS = (\d+)/
 assert(ziweiTokenBudget >= 47250, `initial generation token budget too small: ${ziweiTokenBudget} (need >= 47250 for 30,000 chars + headroom)`);
 assert(route.includes("triad_axis") && route.includes("twelve_palaces") && route.includes("timing_strategy") && route.includes("core_answer"), "expert expansion sections missing");
 assert(route.includes("문장만 늘리지 말고") && route.includes("자미두수 전문가가 실제로 더 살필 파트"), "quality expansion guard missing");
-assert(route.includes("POST") && route.includes("/prepare") && route.includes("/generate") && route.includes("/ensure-access") && route.includes("/start") && route.includes("/message"), "API handlers missing");
+assert(route.includes("POST") && route.includes("/prepare") && route.includes("/generate") && route.includes("/ensure-access") && route.includes("/start"), "API handlers missing");
 assert(route.includes("calculateZiweiAiChart"), "chart calculator not connected");
 assert(route.includes("resolveBillingGateAccess"), "runBillingCoinGate evidence verifier missing");
 assert(route.includes("applyUsageOnce"), "usage finalization missing");
@@ -91,7 +91,7 @@ const page = [
   read("app/ziwei-ai/ZiweiAiClient.tsx"),
 ].join("\n");
 assert(page.includes("runBillingCoinGate"), "page must use runBillingCoinGate");
-assert(page.includes("/api/ziwei-ai/prepare") && page.includes("/api/ziwei-ai/generate") && page.includes("/api/ziwei-ai/message"), "page API calls missing");
+assert(page.includes("/api/ziwei-ai/prepare") && page.includes("/api/ziwei-ai/generate"), "page API calls missing");
 assert(!/fuctionassets|\.webp|<img|backgroundImage|url\(/.test(page), "/ziwei-ai page must not depend on image files");
 assert(page.includes("별궁을 열기 위한 정보를 확인하고 있습니다"), "loading copy missing");
 assert(page.includes("결제창을 확인해 주세요"), "payment copy missing");

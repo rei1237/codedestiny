@@ -1555,36 +1555,6 @@ function buildFirstPrompt(input, chart) {
   });
 }
 
-function buildFollowUpPrompt(consultation, question) {
-  const birth = consultation.birthInfo || {};
-  const history = (consultation.messages || [])
-    .slice(-8)
-    .map((message) => `${message.role === "assistant" ? "상담가" : "사용자"}: ${clean(message.content, 1400)}`)
-    .join("\n\n");
-  return [
-    "[상담 정보]",
-    `이름 또는 닉네임: ${birth.name || "이름 미입력"}`,
-    `성별: ${birth.gender}`,
-    `생년월일: ${birth.birthDate}`,
-    `출생시간: ${birth.birthTimeUnknown ? "모름" : birth.birthTime}`,
-    `달력: ${birth.calendarType === "lunar" ? "음력" : "양력"}`,
-    `처음 상담 주제: ${consultation.topic}`,
-    "",
-    "[자미두수 명반 데이터]",
-    JSON.stringify(consultation.ziweiChart || {}),
-    "",
-    "[이전 대화]",
-    history,
-    "",
-    "[새 질문]",
-    question,
-    "",
-    "이전 상담의 흐름을 이어받아 새 질문에 직접 답해 주세요. 질문과 가장 가까운 궁을 먼저 잡고, 명궁·신궁·주성 강약·사화·삼방사정·대운/세운 연결을 사용자가 이해할 수 있는 상담형 문장으로 풀어 주세요.",
-    "[이전 대화]에 이미 정리된 이 사람의 핵심 성향(겉과 속, 장점과 그림자, 인간관계·사고방식 등)을 전제로 답을 이어가고, 그 성향과 모순되는 서술은 하지 마세요.",
-    "새 답변도 명반 근거, 현실에서 드러나는 모습, 지금 선택할 조언이 자연스럽게 이어져야 합니다. 절대적 예언, 건강 단정, 불안을 키우는 표현은 피하세요.",
-  ].join("\n");
-}
-
 function cleanForbiddenResult(text) {
   return clean(text)
     .replace(/\bAI\b/gi, "상담")
@@ -1610,7 +1580,7 @@ async function generateConsultationText(env, prompt, options = {}) {
     ...getProviderDiagnostics(env),
   });
   // 자미두수 상담(자유질문 포함) → 캐시 키가 프롬프트 전체(질문 포함)로 잡혀 동일 입력만 히트.
-  // 재제출/더블클릭 dedup + 결정적 재열람. follow-up(handleMessage)은 캐시 대상 아님.
+  // 재제출/더블클릭 dedup + 결정적 재열람.
   // 🔴 keyExtra 는 생성 방식을 바꿀 때마다 올린다. v1 시절의 짧은 결과가 30일 TTL 캐시에 남아 있어
   //    그대로 두면 병렬 생성으로 바꿔도 옛 결과가 계속 히트해 변경이 통째로 무효가 된다.
   //    그룹 병렬 생성은 그룹마다 다른 프롬프트를 쓰므로 keyExtra 에 그룹 id 까지 실어 서로 섞이지 않게 한다.
@@ -2539,57 +2509,6 @@ async function handleStart(request, env, route = "/api/ziwei-ai/generate", ctx =
   }
 }
 
-async function handleMessage(request, env) {
-  const route = "/api/ziwei-ai/message";
-  const body = await readJson(request);
-  const sessionId = clean(body?.sessionId || body?.consultationId, 120);
-  const message = clean(body?.message || body?.question, 1200);
-  if (!sessionId) return invalidInput("상담 기록을 찾을 수 없습니다.", 404);
-  if (message.length < 2) return invalidInput("추가 질문을 입력해 주세요.");
-
-  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
-  if (!auth) return loginRequired();
-
-  await connectDb(env);
-  const consultation = await ZiweiAiConsultation.findOne({
-    id: sessionId,
-    userId: clean(auth.userId),
-    status: "completed",
-  }).lean();
-  if (!consultation) return invalidInput("상담 기록을 찾을 수 없습니다.", 404);
-
-  try {
-    const logContext = safeLogPayload({ route, requestId: sessionId, body, access: "follow_up", env });
-    const generated = await generateConsultationText(env, buildFollowUpPrompt(consultation, message), {
-      minLength: 100,
-      maxOutputTokens: 5000,
-      logContext,
-    });
-    const userMessage = { role: "user", content: message, createdAt: new Date() };
-    const assistantMessage = { role: "assistant", content: generated.text, createdAt: new Date() };
-    const updated = await ZiweiAiConsultation.findOneAndUpdate(
-      { id: sessionId, userId: clean(auth.userId) },
-      {
-        $push: { messages: { $each: [userMessage, assistantMessage] } },
-        $set: {
-          llmMeta: { provider: generated.provider, model: generated.model, updatedAt: new Date().toISOString() },
-        },
-      },
-      { new: true },
-    ).lean();
-    logZiweiAi("Generate Success", {
-      ...logContext,
-      providerReason: generated.provider || generated.model || "real_llm_success",
-      provider: generated.provider,
-      model: generated.model,
-    });
-    return json(publicConsultation(updated));
-  } catch (error) {
-    logZiweiAi("Error", safeLogPayload({ route, requestId: sessionId, body, access: "follow_up", env, error }), "error");
-    return json({ ok: false, reason: "LLM_ERROR", message: MESSAGES.llmFailed }, { status: 503 });
-  }
-}
-
 async function handleResult(request, env) {
   // 폴링은 이미 인가된 세션의 결과 조회다. 인증 판정에서 일시적 DB 장애가 나면 하드 503으로 끊지 말고
   // 재시도 가능하다는 신호를 실어 보내 클라가 폴링을 이어가게 한다(nakshatra/neo와 동일한 완충).
@@ -2688,7 +2607,6 @@ export async function handleZiweiAiRoutes(request, env = {}, ctx = null) {
     if (method === "POST" && (path === "/generate" || path === "/start")) {
       return await handleStart(request, env, path === "/generate" ? "/api/ziwei-ai/generate" : "/api/ziwei-ai/start", ctx);
     }
-    if (method === "POST" && path === "/message") return await handleMessage(request, env);
     if (["GET", "POST"].includes(method)) return notFound();
     return methodNotAllowed();
   } catch (error) {

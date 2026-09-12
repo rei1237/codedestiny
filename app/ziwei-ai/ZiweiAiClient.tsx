@@ -300,7 +300,6 @@ const FEATURE_REASON = "자미두수 전문가 상담";
 const FEATURE_COST = 300;
 const FEATURE_AMOUNT_KRW = 30000;
 const FEATURE_MEMBERSHIP_CREDIT_COST = 3000;
-const ZIWEI_AI_MESSAGE_ENDPOINT = "/api/ziwei-ai/message";
 
 const ERROR_TEXT: Record<string, string> = {
   LOGIN_REQUIRED: "상담을 시작하려면 로그인이 필요합니다. 로그인 후 다시 시도해 주세요.",
@@ -1148,7 +1147,7 @@ export default function ZiweiAiPage() {
   }
 
   return (
-    <main className="ziweiAiShell" data-follow-up-endpoint={ZIWEI_AI_MESSAGE_ENDPOINT}>
+    <main className="ziweiAiShell">
       <section className="ziweiHero">
         <div className="heroConstellation" aria-hidden="true">
           <span className="heroOrbit heroOrbit--outer" />
