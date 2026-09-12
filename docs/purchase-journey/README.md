@@ -10,7 +10,7 @@
 
 초안 PR: https://github.com/rei1237/codedestiny/pull/1858
 
-조사 후 최신 main의 모바일 복귀 변경을 충돌 없이 통합했다. `MOBILE_JOURNEY_MATRIX.md`와 `scripts/verify-mobile-journeys.mjs`가 추가되어 있으므로 후속 실제 화면 감사는 이 기준선을 재사용한다. 이 문서 역시 개별 화면을 아직 미검증으로 표시한다.
+조사 후 최신 main의 모바일 복귀 변경을 충돌 없이 통합했다. `npm run mobile:journey-matrix` 가 만드는 `reports/MOBILE_JOURNEY_MATRIX.md`(커밋하지 않는 산출물)와 `scripts/verify-mobile-journeys.mjs`가 있으므로 후속 실제 화면 감사는 이 기준선을 재사용한다. 이 문서 역시 개별 화면을 아직 미검증으로 표시한다.
 
 ```powershell
 Set-Location D:\Development\code-destiny-purchase-journey

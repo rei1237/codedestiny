@@ -38,7 +38,7 @@ GSC 웹 검색, 전체 국가·기기, **2026-06-07–2026-09-06**: 클릭 **31*
 
 공개 HTTP 감사는 498개 경로, 현재 사이트맵 488개, 메타/HTTP 이슈 0건이었다. HTTP→HTTPS, www→non-www는 301, `/saju`→`/saju/`는 308, 임의 없는 경로는 404, 추적 파라미터는 clean canonical이었다. GSC의 과거 765개 404를 현재 사이트맵의 404 765개로 표현하지 않는다. 복수 변형을 조합한 모든 redirect chain은 미검증이다.
 
-초기 HTML 정적 전수표는 [SEO_ADSENSE_AUDIT.md](../../SEO_ADSENSE_AUDIT.md), 언어별 표는 [I18N_TRANSLATION_MATRIX.md](../../I18N_TRANSLATION_MATRIX.md)에 생성한다. 빌드 산출물과 실제 HTTP 검사는 별도다. 구조화 데이터 JSON/타입/빵부스러기 목적지와 내부 인바운드 그래프를 기존 `seo-audit --source=out`으로 검사한다. 새 Person 경력이나 FAQ 리치결과 보장을 추가하지 않았다.
+초기 HTML 정적 전수표는 `reports/SEO_ADSENSE_AUDIT.md`, 언어별 표는 `reports/I18N_TRANSLATION_MATRIX.md`에 `npm run seo:audit:complete` 가 생성한다(재생성 가능한 산출물이라 커밋하지 않는다). 빌드 산출물과 실제 HTTP 검사는 별도다. 구조화 데이터 JSON/타입/빵부스러기 목적지와 내부 인바운드 그래프를 기존 `seo-audit --source=out`으로 검사한다. 새 Person 경력이나 FAQ 리치결과 보장을 추가하지 않았다.
 
 모바일 표본: 12개 경로 × 360/390/430/1280px = 48. 외부·API 요청을 모두 503 mock 처리해 확인했다. 가로 넘침·JS 오류 0, H1 각 1, 사이트맵 경로 488개 200, 없는 URL 404. 화면 이미지도 확인했다. 홈 한국어 잔여에는 브랜드와 보상 안내가 있으며, 번체 일부 신뢰 링크는 한국어로 이동한다. 단순 scrollWidth 검사가 발견하지 못한 일본어 제목 잘림은 이미지 검수로 발견해 줄바꿈을 보정했다. 광고가 실제 제공되는 상태의 CLS·오클릭·겹침은 아직 검증되지 않았다.
 
