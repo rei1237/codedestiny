@@ -1,5 +1,5 @@
 ---
-status: resolved
+status: done
 updated: 2026-09-12
 next: "종결. PR #1946 머지 완료(d3fe1881f). 남아 있던 2종 결정은 '가격표에서 철거' 로 처리했다 → docs/handoff/2026-09-12-retire-ghost-paid-products.md (PR #1948)."
 ---
