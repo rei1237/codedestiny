@@ -251,6 +251,9 @@ jobs:
         run: |
           npm run test:node
           npm run verify:quantum-card-cascade
+          # 종합 사주 풀이 해금 본문이 모바일·데스크탑 두 셸에서 실제로 보이는지 확인한다.
+          # 이 잡만 Chromium 을 설치하므로 브라우저 검증기의 제자리는 여기다.
+          npm run verify:saju-summary-browser
 
       # 숙요는 음력 일자표가 아니라 UTC/JD와 연속적인 Swiss 달 황경을 정본으로
       # 사용한다. 시간 경계·27숙 매핑·공개 astronomy 경로를 실제 파일로 확인한다.

@@ -289,10 +289,29 @@ function createUiUnlockHoldHarness() {
     }
   }
 
+  // 🔴 index.html 의 mergeAccessStoreUnlocksIntoLegacyMap 미러: authoritative 스냅샷은
+  // unlockedFeatureMap 을 통째로 비운 뒤 persistentUnlocks + 유효 optimistic + verified
+  // grant 만 되살린다. _cdReconcileUnlocksWithServer 만 미러링하던 이 하니스는 실제
+  // 재잠금 경로 하나를 통째로 밖에 두고 있었다.
+  function mergeAuthoritativeSnapshot(snapshot, profileId) {
+    const persistent = new Set((snapshot?.persistentUnlocks || []).map(mapContentKey));
+    const optimistic = new Set(
+      Object.entries(snapshot?.optimisticUnlocks || {})
+        .filter(([, expiresAt]) => typeof expiresAt === "number" && expiresAt > now)
+        .map(([key]) => mapContentKey(key)),
+    );
+    const held = Object.keys(unlocked).filter((featureKey) => isHeld(featureKey, profileId));
+    for (const featureKey of Object.keys(unlocked)) delete unlocked[featureKey];
+    for (const featureKey of [...persistent, ...optimistic, ...held]) {
+      if (featureKey) markUnlocked(featureKey);
+    }
+  }
+
   return {
     beginHold,
     markUnlocked,
     reconcile,
+    mergeAuthoritativeSnapshot,
     advance(ms) {
       now += ms;
     },
@@ -463,6 +482,37 @@ expiredUi.reconcile({
   },
 }, "profile-expired");
 assert.equal(expiredUi.isUnlocked(SAJU_FEATURE_KEYS.FULL), false, "expired verified hold allows authoritative relock");
+
+// 🔴 실제 재잠금은 서버 false 뿐 아니라 authoritative 스냅샷이 맵을 통째로 비우는 경로에서도
+// 일어난다(mergeAccessStoreUnlocksIntoLegacyMap). 그 경로도 hold 를 존중해야 한다.
+const snapshotWipeUi = createUiUnlockHoldHarness();
+snapshotWipeUi.beginHold(SAJU_FEATURE_KEYS.FULL, "profile-wipe");
+snapshotWipeUi.mergeAuthoritativeSnapshot({ persistentUnlocks: [], optimisticUnlocks: {} }, "profile-wipe");
+assert.equal(
+  snapshotWipeUi.isUnlocked(SAJU_FEATURE_KEYS.FULL),
+  true,
+  "authoritative 스냅샷이 맵을 비워도 살아 있는 verified hold 는 section_summary 를 유지한다",
+);
+
+const snapshotWipeExpiredUi = createUiUnlockHoldHarness();
+snapshotWipeExpiredUi.beginHold(SAJU_FEATURE_KEYS.FULL, "profile-wipe-expired");
+snapshotWipeExpiredUi.advance(15001);
+snapshotWipeExpiredUi.mergeAuthoritativeSnapshot({ persistentUnlocks: [], optimisticUnlocks: {} }, "profile-wipe-expired");
+assert.equal(
+  snapshotWipeExpiredUi.isUnlocked(SAJU_FEATURE_KEYS.FULL),
+  false,
+  "hold 가 만료되면 authoritative 스냅샷 병합이 정상적으로 재잠근다(무기한 해금 금지)",
+);
+
+// persistentUnlocks 는 contentKey 로 들어와도 featureKey 로 번역되어 살아남아야 한다.
+const snapshotPersistentUi = createUiUnlockHoldHarness();
+snapshotPersistentUi.markUnlocked(SAJU_FEATURE_KEYS.FULL);
+snapshotPersistentUi.mergeAuthoritativeSnapshot({ persistentUnlocks: [SAJU_KEYS.FULL], optimisticUnlocks: {} }, "profile-persist");
+assert.equal(
+  snapshotPersistentUi.isUnlocked(SAJU_FEATURE_KEYS.FULL),
+  true,
+  "persistentUnlocks 의 contentKey 는 featureKey 로 번역되어 스냅샷 병합을 통과한다",
+);
 
 const failureUi = h.accessApiFailureState();
 assert.equal(failureUi.bodyVisible, false, "access API 실패 시 본문 비노출");
@@ -691,17 +741,39 @@ assert.ok(
 );
 
 // 호출부를 전수로 훑는다 — 새 호출부가 게이트 없이 추가되면 여기서 실패한다.
-const summaryCallLines = sajuEngineSource
-  .split("\n")
-  .filter((line) => line.includes("renderSummary(") && !line.includes("function renderSummary("));
+// 🔴 예전에는 js/saju-engine.js 만 훑었고, 그래서 테마 전환 경로(js/share.js)가 게이트 없이
+// renderSummary 를 부르던 누출을 이 가드가 놓쳤다. 검사 범위는 js/** 전체다(fail-closed).
+function collectJsFiles(dir) {
+  const out = [];
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) out.push(...collectJsFiles(full));
+    else if (entry.isFile() && /\.(js|mjs|cjs)$/.test(entry.name)) out.push(full);
+  }
+  return out;
+}
+const summaryCallSites = [];
+for (const file of collectJsFiles(path.join(root, "js"))) {
+  const lines = fs.readFileSync(file, "utf8").split("\n");
+  lines.forEach((line, i) => {
+    if (!line.includes("renderSummary(") || line.includes("function renderSummary(")) return;
+    // 게이트 판정이 같은 줄에 없고 바로 위 if 문에 있는 형태(js/share.js)도 인정한다.
+    const ctx = lines.slice(Math.max(0, i - 3), i + 1).join(" ");
+    summaryCallSites.push({
+      where: `${path.relative(root, file).split(path.sep).join("/")}:${i + 1}`,
+      line: line.trim(),
+      gated: ctx.includes("_cdSajuGateUnlocked('section_summary')"),
+    });
+  });
+}
 assert.ok(
-  summaryCallLines.length > 0,
+  summaryCallSites.length > 0,
   "renderSummary 호출부를 하나도 찾지 못했다 — 마커가 바뀌었는지 확인할 것(검사 대상 0은 통과가 아니다)",
 );
-for (const line of summaryCallLines) {
+for (const site of summaryCallSites) {
   assert.ok(
-    line.includes("_cdSajuGateUnlocked('section_summary')"),
-    `renderSummary 는 section_summary 해금 뒤에서만 호출한다: ${line.trim()}`,
+    site.gated,
+    `renderSummary 는 section_summary 해금 뒤에서만 호출한다: ${site.where} — ${site.line}`,
   );
 }
 

@@ -35,7 +35,19 @@ async function assertSummaryVisible(page, label) {
       opacity: style.opacity,
     };
   });
-  assert.ok(metrics.length > 10000 && metrics.height > 500, `${label}: summary body collapsed`);
+  // fate-scroll-reveal 의 IntersectionObserver 콜백은 스크롤 직후가 아니라 한 틱 뒤에 클래스를
+  // 붙인다. 대기 없이 읽으면 회귀가 있어도 아직 'card' 상태라 단정이 항상 통과한다(실측).
+  await page.waitForTimeout(400);
+  // 🔴 데스크탑 전용 회귀: 해금 본문이 배달되면 #summaryCard 가 뷰포트보다 훨씬 커져
+  // fate-scroll-reveal 의 비율 임계값(7%)에 영원히 도달하지 못하고 opacity:0 으로 굳었다.
+  // 본문은 DOM 에 정상 배달된 채 화면에서만 사라지므로 길이 단정만으로는 잡힐 수 없다.
+  const reveal = await page.locator('#summaryCard').evaluate(el => ({
+    opacity: getComputedStyle(el).opacity,
+    hiddenClass: el.classList.contains('fate-scroll-section-hidden'),
+  }));
+  assert.equal(reveal.hiddenClass, false, `${label}: scroll-reveal left the summary card hidden`);
+  assert.notEqual(reveal.opacity, '0', `${label}: summary card faded out by scroll-reveal`);
+  assert.ok(metrics.length > 24000 && metrics.height > 500, `${label}: summary body collapsed`);
   assert.equal(metrics.hidden, 'false', `${label}: summary gate relocked`);
   assert.equal(metrics.display, 'block', `${label}: summary display changed`);
   assert.notEqual(metrics.visibility, 'hidden', `${label}: summary hidden by CSS`);
@@ -45,8 +57,10 @@ async function assertSummaryVisible(page, label) {
 }
 
 try {
+ // 모바일만 돌리면 데스크탑 전용 스크롤 리빌 회귀를 구조적으로 못 잡는다 — 두 셰을 모두 돌린다.
+ for (const shell of [{width:390,height:844,label:'mobile'},{width:1280,height:900,label:'desktop'}])
  for (const alreadyUnlocked of [false, true]) {
-  const context = await browser.newContext({viewport:{width:390,height:844}});
+  const context = await browser.newContext({viewport:{width:shell.width,height:shell.height}});
   await context.route('**/*', route => new URL(route.request().url()).origin === origin ? route.continue() : route.abort());
   await context.addInitScript(() => sessionStorage.setItem('privacyAgreed', 'true'));
   const page = await context.newPage();
@@ -138,7 +152,7 @@ try {
     }
   }, alreadyUnlocked);
   await page.waitForTimeout(900);
-  await assertSummaryVisible(page, alreadyUnlocked ? 'previously unlocked stable' : 'restored stable after stale snapshot');
+  await assertSummaryVisible(page, `${shell.label} ${alreadyUnlocked ? 'previously unlocked stable' : 'restored stable after stale snapshot'}`);
   if (!alreadyUnlocked) {
     await page.evaluate(() => {
       // AccessStore/system bootstrap can replace the legacy global map after the body has rendered.
@@ -147,17 +161,17 @@ try {
       window.dispatchEvent(new CustomEvent('cd:unlocks-changed', { detail: { source: 'forced-empty-legacy-map' } }));
     });
     await page.waitForTimeout(120);
-    await assertSummaryVisible(page, 'restored stable after legacy map replacement');
+    await assertSummaryVisible(page, `${shell.label} restored stable after legacy map replacement`);
   }
   for (const width of [360,390,430,1280]) {
     await page.setViewportSize({width,height:900});
     await page.locator('#summaryArea').scrollIntoViewIfNeeded();
-    const metrics = await assertSummaryVisible(page, `${alreadyUnlocked ? 'previously unlocked' : 'restored'} ${width}px`);
+    const metrics = await assertSummaryVisible(page, `${shell.label} ${alreadyUnlocked ? 'previously unlocked' : 'restored'} ${width}px`);
     const chapter = page.locator('#summaryArea .saju-summary-chapter__body').first();
     await chapter.locator('.saju-reading-depth').first().scrollIntoViewIfNeeded();
     assert.equal(await chapter.evaluate(el => getComputedStyle(el).maxHeight), 'none');
     assert.equal(await page.locator('#summaryArea .btn-sub').count(), 0);
-    console.log(`PASS ${alreadyUnlocked ? 'previously unlocked' : 'restored'} summary ${width}px: ${metrics.length} characters`);
+    console.log(`PASS ${shell.label} ${alreadyUnlocked ? 'previously unlocked' : 'restored'} summary ${width}px: ${metrics.length} characters`);
   }
   await context.close();
  }

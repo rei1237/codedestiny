@@ -62,30 +62,89 @@
 
   /* ── 1. Reveal Observer (Intersection Observer) ── */
   var revealObserver = null;
+  var REVEAL_RATIO   = 0.07;
+  var REVEAL_MIN_PX  = 120;
+  var pendingReveal  = [];
+  var revealSweepQueued = false;
+  var revealSweepBound  = false;
+
+  function revealSection(el) {
+    if (!el || !el.classList) return;
+    el.classList.remove(HIDDEN_CLS);
+    el.classList.add(VISIBLE_CLS);
+    if (revealObserver) { try { revealObserver.unobserve(el); } catch (e) {} }
+    var idx = pendingReveal.indexOf(el);
+    if (idx !== -1) pendingReveal.splice(idx, 1);
+  }
+
+  function trackPendingReveal(el) {
+    if (!el) return;
+    if (pendingReveal.indexOf(el) === -1) pendingReveal.push(el);
+  }
+
+  /* 🔴 비율(threshold)만 보면 뷰포트보다 훨씬 큰 섹션은 영원히 등장하지 못한다.
+     종합 사주 풀이(#summaryCard)는 해금 본문이 배달되면 20,000px 을 넘어 7% = 1,458px 이
+     보여야 하는데 데스크탑 뷰포트(900px)에서는 도달 자체가 불가능해 opacity:0 으로 굳었다.
+     본문은 DOM 에 정상 배달된 채로 화면에서만 사라져 "해금했는데 안 보인다"가 된다.
+     그래서 비율과 함께 "실제로 보이는 픽셀 높이" 기준을 본다. */
+  function isRevealWorthy(visiblePx, ratio) {
+    return ratio >= REVEAL_RATIO || visiblePx >= REVEAL_MIN_PX;
+  }
+
+  /* content-visibility:auto 로 접혀 있던 섹션이 뒤늦게 펼쳐지면 비율이 크게 바뀌어도
+     threshold 경계를 다시 넘지 않아 관찰자가 울리지 않는다. 남은 섹션만 훑는 안전망을
+     둔다 — 등장한 섹션은 목록에서 빠지므로 비용이 0 으로 수렴한다. */
+  function sweepPendingReveal() {
+    revealSweepQueued = false;
+    if (!pendingReveal.length) return;
+    var viewH = window.innerHeight || 0;
+    pendingReveal.slice().forEach(function (el) {
+      if (!el || !el.getBoundingClientRect) { revealSection(el); return; }
+      if (el.isConnected === false) { revealSection(el); return; }
+      var rect = el.getBoundingClientRect();
+      if (!rect || rect.height <= 0) return;
+      if (rect.bottom <= 0 || rect.top >= viewH) return;
+      var visiblePx = Math.min(rect.bottom, viewH) - Math.max(rect.top, 0);
+      if (isRevealWorthy(visiblePx, visiblePx / rect.height)) revealSection(el);
+    });
+  }
+
+  function scheduleRevealSweep() {
+    if (revealSweepQueued) return;
+    revealSweepQueued = true;
+    requestAnimationFrame(sweepPendingReveal);
+  }
 
   function initReveal() {
     if (!('IntersectionObserver' in window)) return;
     try {
-      revealObserver = new IntersectionObserver(function (entries, observer) {
+      revealObserver = new IntersectionObserver(function (entries) {
         entries.forEach(function (entry) {
-          if (entry.isIntersecting && entry.target) {
-            entry.target.classList.remove(HIDDEN_CLS);
-            entry.target.classList.add(VISIBLE_CLS);
-            observer.unobserve(entry.target);
-          }
+          if (!entry || !entry.target || !entry.isIntersecting) return;
+          var rect = entry.intersectionRect;
+          if (isRevealWorthy(rect ? rect.height : 0, entry.intersectionRatio)) revealSection(entry.target);
         });
       }, {
         root: null,
         rootMargin: '0px 0px -50px 0px',
-        threshold: 0.07
+        threshold: [0, REVEAL_RATIO]
       });
 
+      pendingReveal = [];
       getSections().forEach(function (el) {
         if (el && !el.classList.contains(VISIBLE_CLS)) {
           el.classList.add(HIDDEN_CLS);
+          trackPendingReveal(el);
           revealObserver.observe(el);
         }
       });
+
+      if (!revealSweepBound) {
+        revealSweepBound = true;
+        window.addEventListener('scroll', scheduleRevealSweep, { passive: true });
+        window.addEventListener('resize', scheduleRevealSweep, { passive: true });
+      }
+      scheduleRevealSweep();
     } catch(e) {
       console.error('[revealObserver] fail:', e);
     }
@@ -348,8 +407,10 @@
             if (!sec.classList.contains(VISIBLE_CLS) && !sec.classList.contains(HIDDEN_CLS)) {
               sec.classList.add(HIDDEN_CLS);
             }
+            if (!sec.classList.contains(VISIBLE_CLS)) trackPendingReveal(sec);
             revealObserver.observe(sec);
           });
+          scheduleRevealSweep();
         }
         scheduleIndicatorUpdate();
       });

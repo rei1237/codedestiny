@@ -1668,7 +1668,10 @@ function applyNeoTexts(){
   // 결과 화면이 보일 때만 무거운 카드 재렌더를 수행해 모바일 전환 안정성을 높인다.
   if(isResultPageVisible() && window.G_PILLARS) {
     // 사주 분석 종합 요약 (NEO 전용 팩폭 ↔ 연이 조언 즉시 전환)
-    if(typeof renderSummary === 'function' && window.G_NATAL) {
+    // 🔴 종합 풀이(section_summary)는 5,000원 유료다. 테마 전환 경로에서도 같은 게이트 판정을
+    // 거쳐야 한다 — 그렇지 않으면 잠긴 본문이 DOM 에 들어가고 CSS blur 만 방어하게 된다.
+    if(typeof renderSummary === 'function' && window.G_NATAL
+      && typeof _cdSajuGateUnlocked === 'function' && _cdSajuGateUnlocked('section_summary')) {
       try { renderSummary(window.G_PILLARS, window.G_JOHU || {badgeCls:'',badgeTxt:'',advice:''}, window.G_NATAL); } catch(e){}
     }
     if(typeof renderLetter === 'function') {
