@@ -8156,26 +8156,26 @@
     "gotoZiweiPremium": {
       "badge": "Expert consultation",
       "headline": "Read calmly where the arrangement of the stars is leading your question now.",
-      "tagline": "The main text runs to at least 20,700 characters, and once you have the result you can keep asking follow-up questions at no extra charge.",
+      "tagline": "Pick a consultation topic and write down what is on your mind, and it answers as one long consultation, tracing from the Life and Body palaces through the twelve palaces, the Four Transformations, and your decade cycles.",
       "feats": {
-        "0": "Builds your twelve-palace chart from your birth date and time",
-        "1": "Organizes the consultation into 14 separate topics",
+        "0": "Builds your twelve-palace chart from your name, birth date, and time",
+        "1": "You pick one of sixteen consultation topics and write your own concern",
         "2": "The main text runs to at least 20,700 characters",
-        "3": "Follow-up questions after the result carry no extra charge",
-        "4": "The consultation is saved so you can open it again"
+        "3": "Sums up the Life and Body palaces, the key stars, and the consultation keywords up front",
+        "4": "You can download the finished consultation as a PDF"
       },
-      "premiumIntro": "This is not a one-shot report but a consultation you can read and question back.",
+      "premiumIntro": "Not a one-shot summary -- it is written by tracing your chart against the topic you chose and the concern you wrote down.",
       "premiumAudience": {
         "0": "Those who want one proper look at their Ziwei Doushu chart",
-        "1": "Those who want to ask back after reading",
+        "1": "Those who want an answer fitted to what is on their mind right now",
         "2": "Those who want a long-form interpretation"
       },
       "premiumChapters": {
-        "0": "Reading of the twelve-palace chart",
-        "1": "A consultation split into 14 topics",
+        "0": "The twelve-palace chart and the decade timeline",
+        "1": "A summary of the Life and Body palaces and the key stars",
         "2": "Main text of at least 20,700 characters",
-        "3": "Continuing follow-up questions",
-        "4": "Re-opening the saved result"
+        "3": "An answer to your question, and what to do about it",
+        "4": "PDF saving and reopening past records"
       },
       "premiumOutcomes": {
         "0": "You can check what the feature does before paying.",
@@ -8188,7 +8188,7 @@
         "2": "Can I make a big decision this year?"
       },
       "fallbackCta": "Open the Ziwei Doushu consultation",
-      "ctaNote": "After payment, the twelve-palace chart and the 14-topic consultation open.",
+      "ctaNote": "After payment, the twelve-palace chart and a consultation of at least 20,700 characters open.",
       "analysisSteps": {
         "0": {
           "label": "Chart construction",
@@ -8200,11 +8200,11 @@
         },
         "2": {
           "label": "Topic-by-topic writing",
-          "detail": "Splits the work into 14 topics and writes a consultation for each."
+          "detail": "Takes the topic you chose as the axis and writes the consultation across each position of the chart."
         },
         "3": {
-          "label": "Follow-up questions",
-          "detail": "After reading the result you can keep asking what is left, at no extra charge."
+          "label": "Stating the grounds",
+          "detail": "Leaves alongside it which stars and placements were read."
         }
       },
       "valueCompare": {
@@ -8214,25 +8214,69 @@
         },
         "1": {
           "axis": "Structure",
-          "premium": "A consultation split into 14 topics"
+          "premium": "The chart and decade timeline, plus the consultation text"
         },
         "2": {
-          "axis": "Follow-up questions",
-          "premium": "No extra charge for questions that follow the result"
+          "axis": "Keeping it",
+          "premium": "Save as PDF and reopen past records"
         }
       },
       "faq": {
         "0": {
-          "q": "Do follow-up questions have to be paid for separately?",
-          "a": "No. Questions that follow after you receive the result carry no extra charge."
+          "q": "What if I do not know my birth time?",
+          "a": "You can leave it as unknown and continue."
         },
         "1": {
           "q": "Can I see the result again later?",
-          "a": "The consultation is saved, so you can open it again."
+          "a": "If you stay signed in, past consultations remain in your list and reopen with no extra charge."
         },
         "2": {
           "q": "How long is it?",
           "a": "It comes out at at least 20,700 characters of main text."
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "A consultation of 20,700+ characters",
+          "detail": "From the order in which your chart is read through to the answer to your question and what to do about it, written out at length across separate pages."
+        },
+        "1": {
+          "title": "Life and Body palaces at a glance",
+          "detail": "Shows the Life Palace, Body Palace, key stars, and consultation keywords in four boxes before the main text."
+        },
+        "2": {
+          "title": "The twelve-palace chart and decade flow",
+          "detail": "Twelve palace cards and a decade timeline, so you can see which period you are passing through."
+        },
+        "3": {
+          "title": "The grounds for the reading",
+          "detail": "You can open, separately, which stars and placements it read to say what it said."
+        },
+        "4": {
+          "title": "PDF saving and past records",
+          "detail": "Download the finished piece as a PDF, and if you stay signed in, reopen past consultations from your list."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Consultation cover",
+          "detail": "Your name, birth details, and the consultation topic you chose go on the cover."
+        },
+        "1": {
+          "title": "Life and Body palace summary",
+          "detail": "Life Palace, Body Palace, key stars, and consultation keywords, sorted into four boxes first."
+        },
+        "2": {
+          "title": "The chart and decade cycles",
+          "detail": "Unfolds the base chart, the twelve palace cards, and the decade timeline."
+        },
+        "3": {
+          "title": "The main consultation",
+          "detail": "From how the chart is read and your core disposition through work, wealth, and relationships, to choices for the decade and the year."
+        },
+        "4": {
+          "title": "The answer to your question",
+          "detail": "Closes with an answer to the concern you wrote down and actions to try now."
         }
       }
     },
@@ -8513,24 +8557,26 @@
       }
     },
     "astrology_ai_consultation": {
-      "tagline": "The main text runs to at least 15,000 characters, and after reading it you can keep asking follow-up questions.",
+      "tagline": "Pick a consultation topic and write your question, and it answers as one long consultation, tracing from your Sun, Moon, and Ascendant through the aspects and transits.",
       "feats": {
-        "0": "Calculates your birth chart from the birth details you enter",
-        "1": "Organizes the consultation into 6 separate topics",
+        "0": "Calculates planetary positions and houses from the birth details you enter",
+        "1": "You pick one of fourteen consultation topics and write your own question",
         "2": "The main text runs to at least 15,000 characters",
-        "3": "You can keep asking follow-up questions after reading"
+        "3": "Sets out the Sun, Moon, Ascendant, and chart ruler separately",
+        "4": "You can download the finished consultation as a PDF"
       },
       "premiumIntro": "This is not a horoscope shared by the twelve signs -- it is written from your own chart, calculated from the birth details you enter.",
       "premiumAudience": {
         "0": "Those left wanting more by shared sun-sign horoscopes",
         "1": "Those who want one proper look at their own chart",
-        "2": "Those who want to ask back after reading"
+        "2": "Those who want to read while also checking the grounds"
       },
       "premiumChapters": {
         "0": "Calculation of your own birth chart",
-        "1": "A consultation split into 6 topics",
-        "2": "Main text of at least 15,000 characters",
-        "3": "Continuing follow-up questions"
+        "1": "Main text of at least 15,000 characters",
+        "2": "Your natal chart wheel and chart signature",
+        "3": "The grounds for the reading, and the raw chart",
+        "4": "PDF saving and reopening"
       },
       "premiumOutcomes": {
         "0": "Chart-based features are affected by how accurate the birth time you enter is.",
@@ -8543,23 +8589,23 @@
         "2": "How do I look to other people?"
       },
       "fallbackCta": "Open the astrology consultation",
-      "ctaNote": "After payment, a 6-topic consultation calculated from your own birth chart opens.",
+      "ctaNote": "After payment, the consultation calculated from your own birth chart and the natal chart wheel open.",
       "analysisSteps": {
         "0": {
           "label": "Birth chart calculation",
           "detail": "Calculates planetary positions and houses from the birth details you enter."
         },
         "1": {
-          "label": "Topic split",
-          "detail": "Divides the consultation into 6 topics."
+          "label": "Topic and question",
+          "detail": "Takes the topic you chose and the question you wrote as the axis of the consultation."
         },
         "2": {
-          "label": "Topic-by-topic writing",
-          "detail": "Writes each topic while naming which placement in the chart it rests on."
+          "label": "Section-by-section writing",
+          "detail": "Splits it into six groups and writes while naming which placement in the chart it rests on."
         },
         "3": {
-          "label": "Follow-up questions",
-          "detail": "After reading the result you can keep asking what is left."
+          "label": "Stating the grounds",
+          "detail": "Gathers separately which placements were read and leaves them alongside."
         }
       },
       "valueCompare": {
@@ -8572,22 +8618,66 @@
           "premium": "Main text of at least 15,000 characters"
         },
         "2": {
-          "axis": "Structure",
-          "premium": "A consultation split into 6 topics"
+          "axis": "Keeping it",
+          "premium": "Save as PDF and reopen from your account"
         }
       },
       "faq": {
         "0": {
-          "q": "What happens if I don't know my birth time?",
-          "a": "This is a chart-based reading, so the accuracy of the birth time affects the result."
+          "q": "What happens if I do not know my birth time?",
+          "a": "You can leave it as unknown and continue. In that case the Ascendant and houses are not fixed and are read only in a limited way."
         },
         "1": {
           "q": "How long is it?",
           "a": "It comes out at at least 15,000 characters of main text."
         },
         "2": {
-          "q": "Can I ask more after reading?",
-          "a": "You can keep asking follow-up questions once you have the result."
+          "q": "Can I see the result again later?",
+          "a": "It is saved to the account you signed in with, so you can reopen it with no extra charge."
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "A consultation of 15,000+ characters",
+          "detail": "Written at length across six groups, fitted to the topic you chose and the question you wrote down."
+        },
+        "1": {
+          "title": "Natal chart wheel and chart signature",
+          "detail": "Along with the wheel, the Sun, Moon, Ascendant, and chart ruler are sorted into cards."
+        },
+        "2": {
+          "title": "Raw planets, houses, aspects, and transits",
+          "detail": "Beside the consultation you can open the calculated placements group by group."
+        },
+        "3": {
+          "title": "The main grounds",
+          "detail": "Gathers separately which placements it read to say what it said."
+        },
+        "4": {
+          "title": "PDF saving and reopening",
+          "detail": "Saved to the account you signed in with, so you can reopen it with no extra charge and download it as a PDF."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Input summary",
+          "detail": "Birth date, birth time, birthplace, and consultation topic, checked first as cards."
+        },
+        "1": {
+          "title": "Your question now",
+          "detail": "The question you wrote is placed as-is in front of the consultation."
+        },
+        "2": {
+          "title": "The main consultation",
+          "detail": "From the central axis of Sun, Moon, and Ascendant through the personal planets, aspects and elements, houses and transits, read across separate pages."
+        },
+        "3": {
+          "title": "Natal chart wheel and chart signature",
+          "detail": "The wheel drawing alongside the Sun, Moon, Ascendant, and chart ruler."
+        },
+        "4": {
+          "title": "Main grounds and the raw chart",
+          "detail": "Closes with the grounds for the reading and the raw planets, houses, aspects, and transits."
         }
       }
     },
@@ -11867,8 +11957,8 @@
     },
     "navigateToZiweiChart": {
       "fallbackTitle": "Opens your life's master plan, read through all 12 palaces.",
-      "tagline": "A deep Ziwei Doushu reading that links all 12 palaces, from Life Palace through Siblings, Spouse, Wealth, and Career, to organize your life strategy and timing.",
-      "premiumIntro": "The Ziwei Doushu deep reading unfolds, like a strategy, the big map of life woven by the 12 palaces, instead of a fragmentary interpretation.",
+      "tagline": "Pick the question you want read first, and it is read across fourteen chapters, from the Life and Body palaces through the twelve palaces, the Four Transformations, and your major cycle.",
+      "premiumIntro": "The deep chart opens with no payment. If you want a longer commentary, you can choose the deep report separately at the bottom of the screen.",
       "fallbackCta": "Open the 12-Palace Strategy",
       "feats": {
         "0": "When you need a deeper strategy beyond the basic chart",
@@ -11881,15 +11971,61 @@
         "2": "Those who need grounds for a long-term plan"
       },
       "premiumChapters": {
-        "0": "A deep character analysis based on the 12 palaces' main stars",
-        "1": "Connecting life strategy to the key palaces",
-        "2": "Decade and Yearly Fortune timing flow",
-        "3": "Automatic calculation linked to your profile"
+        "0": "The core answer and the general overview",
+        "1": "Question-by-question consultation, with the grounds shown",
+        "2": "The twelve-palace chart, the Four Transformations, and the three-harmony view",
+        "3": "What to do this week and this month",
+        "4": "Analysis of the current period and a closing"
       },
       "premiumOutcomes": {
         "0": "The deep interpretation is for reference only.",
         "1": "It can vary by school.",
-        "2": "The existing service standard applies."
+        "2": "Results are not kept, so you will need to enter your details again next time.",
+        "3": "The existing service standard applies."
+      },
+      "receives": {
+        "0": {
+          "title": "A core answer to the question you chose",
+          "detail": "Answers the question you picked from eight topics with the conclusion first."
+        },
+        "1": {
+          "title": "A deep consultation across fourteen chapters",
+          "detail": "Read chapter by chapter, from the Life and Body palaces through the twelve palaces and major-cycle strategy."
+        },
+        "2": {
+          "title": "The twelve-palace chart, opened up",
+          "detail": "You can unfold the main and supporting stars of all twelve palaces, the Four Transformations, and the three-harmony view as a grid."
+        },
+        "3": {
+          "title": "What to do this week and this month",
+          "detail": "Turns what you read into actions to try now, set out separately."
+        },
+        "4": {
+          "title": "Share the summary only",
+          "detail": "You can share just the question you chose and the core answer, leaving out your name and birth details."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Core answer",
+          "detail": "Puts the conclusion to the question you chose first."
+        },
+        "1": {
+          "title": "General overview",
+          "detail": "Reads through from the basic frame of the chart, in order."
+        },
+        "2": {
+          "title": "Question-by-question consultation",
+          "detail": "Each topic comes with a try-this note and a look at the grounds for that reading."
+        },
+        "3": {
+          "title": "The chart",
+          "detail": "Unfolds the twelve-palace grid, the palace placements, and the flow the Four Transformations make."
+        },
+        "4": {
+          "title": "Today's advice",
+          "detail": "Closes with analysis of the current period and what to do this week and this month."
+        }
       }
     },
     "openAstroModal": {
@@ -12000,7 +12136,7 @@
       },
       "faq": {
         "0": {
-          "q": "How is this different from other love features?",
+          "q": "How is this different from other love consultations?",
           "a": "Instead of pointing at a single scene, it splits your entire love life into twenty chapters and writes it as one volume. It has the greatest length and density of grounds."
         },
         "1": {
@@ -12028,6 +12164,54 @@
         "3": {
           "label": "Writing the interpretation",
           "detail": "Writes in order so the earlier chapter becomes the grounds for the one after it."
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "A love interpretation in five acts and twenty chapters",
+          "detail": "Written across five acts: your inborn grain, the structure of your heart, the temperature of a relationship, where it deepens, and the decoding and sealing."
+        },
+        "1": {
+          "title": "Grounds and insight in every chapter",
+          "detail": "Opens as chips what it read this from, and points out the flow of the chapter and the moments to watch."
+        },
+        "2": {
+          "title": "Things you can do now",
+          "detail": "Gives two or three actions you can try right away in each chapter."
+        },
+        "3": {
+          "title": "Ten love-DNA indicators",
+          "detail": "Shows trust, consideration, initiative, expressiveness, jealousy, attachment, feeling, reason, flutter, and devotion as 0-100 bars."
+        },
+        "4": {
+          "title": "Keep the PDF and reopen it",
+          "detail": "Kept in your account so you can open it without paying again, and pick up where you left off."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Cover and the consultation at a glance",
+          "detail": "Unfolds your love-type name and the core summary first."
+        },
+        "1": {
+          "title": "I. Your inborn grain",
+          "detail": "Reads the Gate of Destiny, your inborn love temperament, the spouse-image the Spouse Palace tells, and the mechanics of attraction."
+        },
+        "2": {
+          "title": "II. The structure of your heart",
+          "detail": "Points out attachment and expression style, the mind's defense mechanisms, where a bond opens, and what turns a situationship into a relationship."
+        },
+        "3": {
+          "title": "III. The temperature of a relationship",
+          "detail": "Looks at confession and timing, the temperature curve, the root of conflict, and the language of reconciliation."
+        },
+        "4": {
+          "title": "IV. Where it deepens",
+          "detail": "Covers jealousy and keeping distance, the rhythm of intimacy, the gate of parting and reunion, and marriage fortune and the long haul."
+        },
+        "5": {
+          "title": "V. Decoding and sealing",
+          "detail": "Closes with the Saju and Ziwei Doushu cross-verification, your love-DNA profile, the next three years, and a final letter."
         }
       }
     },
@@ -12170,15 +12354,15 @@
     },
     "ziwei_deep_pdf": {
       "fallbackTitle": "Points to each of the 12 palaces one by one, unfolding a single chart into fifteen chapters of writing.",
-      "tagline": "From an overview of your Life Palace to each palace's star strength and configuration, this is a deep report that explains your Ziwei Doushu chart chapter by chapter and leaves it as a PDF.",
+      "tagline": "From the answer your chart gives to your question now, through the twelve palaces to the direction ahead -- a deep report unpacked across fifteen chapters and left as a PDF.",
       "premiumIntro": "The deep report doesn't judge fortune or misfortune -- it calmly unpacks, chapter by chapter, what each position of your chart means.",
       "fallbackCta": "View the Deep Report",
       "ctaNote": "The 15 chapters and the PDF save both open after payment.",
       "feats": {
-        "0": "Builds your chart from your birth date and time, then writes the overview, the twelve palaces, and two in-depth chapters in order",
-        "1": "Explains all twelve palaces — life, spouse, wealth and more — each as its own chapter",
-        "2": "Uses the four transformations and the three-harmony/four-cardinal view to lay out how the stars act on each other, in a separate chapter",
-        "3": "Places the strategy along the time axis in the final chapter, as a major-cycle and annual master plan"
+        "0": "Carries over the chart set up on the deep-chart screen and writes fifteen chapters",
+        "1": "Starts from one of eight areas of interest plus the question you write",
+        "2": "Explains the twelve palaces -- Life, Spouse, Wealth and more -- each as its own chapter",
+        "3": "The final chapter sets out which direction to choose from here"
       },
       "premiumAudience": {
         "0": "Those who want to read the chart explained in words",
@@ -12186,12 +12370,12 @@
         "2": "Those who want a saved reference to look at again"
       },
       "premiumChapters": {
-        "0": "Chart overview -- the map of the star that is you",
-        "1": "Life Palace, Siblings Palace, Spouse Palace, Children Palace",
-        "2": "Wealth Palace, Health Palace, Travel Palace, Servants Palace",
-        "3": "Career Palace, Property Palace, Fortune-Virtue Palace, Parents Palace",
-        "4": "Four Transformations & Triangular-Opposite deep dive -- the conversation between the stars",
-        "5": "Decade & Yearly master plan -- your life strategy on the timeline"
+        "0": "Chapter 1 -- the answer your chart gives to your question",
+        "1": "Chapter 2 -- what kind of person you are",
+        "2": "Chapters 3-9 -- relationships and love, care and wealth, the rhythm of health",
+        "3": "Chapters 10-14 -- work and foundations, the recovery of the heart, family and opportunity",
+        "4": "Chapter 15 -- which direction to choose from here",
+        "5": "PDF saving and reopening past reports"
       },
       "premiumOutcomes": {
         "0": "You can check the structure and length before paying.",
@@ -12201,7 +12385,7 @@
       "answersQuestions": {
         "0": "What does each palace of my chart mean?",
         "1": "Which palace holds the strength?",
-        "2": "Is an empty palace a bad thing?"
+        "2": "Which direction would be good to take from here?"
       },
       "valueCompare": {
         "0": {
@@ -12212,7 +12396,7 @@
         "1": {
           "axis": "Length",
           "free": "Diagram and labels",
-          "premium": "15 chapters totaling 34,000+ characters"
+          "premium": "15 chapters totaling 36,000+ characters"
         },
         "2": {
           "axis": "Keeping it",
@@ -12226,8 +12410,8 @@
           "a": "The basic chart shows the star placement. The deep report writes out in words what that placement means, palace by palace."
         },
         "1": {
-          "q": "Are empty palaces explained too?",
-          "a": "Yes. An empty palace is also part of the arrangement, so it's a subject of commentary in its own right."
+          "q": "Can I see a report I made again?",
+          "a": "If you stay signed in, it reopens from your past-report list with no extra charge."
         },
         "2": {
           "q": "Can I get it as a PDF?",
@@ -12236,20 +12420,64 @@
       },
       "analysisSteps": {
         "0": {
-          "label": "Chart drafting",
-          "detail": "Sets up the 12 palaces with main stars and Four Transformations from your birth date and time."
+          "label": "Carrying over the chart",
+          "detail": "Takes the chart set up on the deep-chart screen as-is."
         },
         "1": {
-          "label": "Strength assessment",
-          "detail": "Determines which of the six strength states -- Grave, King, Gain, Advantage, Level, Trapped -- each star falls into."
+          "label": "Area and question",
+          "detail": "Takes the area you chose and the question you wrote as the axis of the first chapter."
         },
         "2": {
-          "label": "Chapter allocation",
-          "detail": "Splits the overview and 12 palaces into fifteen chapters, distributed without overlap."
+          "label": "Chapter-by-chapter writing",
+          "detail": "Fills the fifteen chapters in order, stating the grounds for each palace."
         },
         "3": {
-          "label": "Writing the report",
-          "detail": "Writes the commentary while stating the grounds for each chapter, bound into a PDF."
+          "label": "Binding the PDF",
+          "detail": "Binds the finished chapters into one volume you can download."
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "Fifteen chapters of deep commentary",
+          "detail": "The first chapter answers the question you wrote, then it passes through the twelve palaces one by one and sets out a direction at the end."
+        },
+        "1": {
+          "title": "Open each chapter as you like",
+          "detail": "Skim each chapter as a preview and open only the ones you want to read."
+        },
+        "2": {
+          "title": "PDF saving",
+          "detail": "Download the finished report as a PDF and keep it."
+        },
+        "3": {
+          "title": "Reopen past reports",
+          "detail": "If you stay signed in, reports you have made reopen from your list with no extra charge."
+        },
+        "4": {
+          "title": "Resumes if interrupted",
+          "detail": "If generation is cut off, reopening with the same request picks up from the remaining chapters."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Cover",
+          "detail": "Puts the report name and the date it was made up front."
+        },
+        "1": {
+          "title": "Chapter 1 -- the answer to your question",
+          "detail": "Starts with the answer your chart gives to the area you chose and the question you wrote."
+        },
+        "2": {
+          "title": "Chapter 2 -- the person you are",
+          "detail": "Reads your inborn grain around the Life and Body palaces."
+        },
+        "3": {
+          "title": "Chapters 3-14 -- the twelve palaces",
+          "detail": "One chapter per palace: relationships and love, care and wealth, health and travel, work and foundations, heart and family."
+        },
+        "4": {
+          "title": "Chapter 15 -- the direction ahead",
+          "detail": "Gathers what has been read and closes with which direction would be good to choose."
         }
       }
     },

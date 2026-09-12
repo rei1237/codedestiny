@@ -15,14 +15,14 @@
     });
   </script>
 <!-- canonical-redirect: 동기 실행 유지 (installCoreLayoutStabilityGuards → CLS 방지 필수) -->
-  <script src="/js/inline/canonical-redirect.js?v=build-dea2f250133c"></script>
+  <script src="/js/inline/canonical-redirect.js?v=build-6912e0d37f12"></script>
   <script src="/js/inline/legacy-action-launcher.js" defer></script>
       <script src="/js/inline/global-error-guard.js"></script>
 <!-- 🔴 스크롤/탭 단일 판정기. defer 를 붙이지 말 것 — window capture 리스너를 아래 인라인
      스택들(openWindowTap 등)보다 먼저 등록해야 판정이 선두에 선다. defer 로 내리면 등록이
      뒤로 밀려 그 스택들이 판정 전에 기능을 열어 버린다. 순수 이벤트 리스너 등록뿐이라
      렌더 블로킹 비용은 무시 가능하다. -->
-      <script src="/js/inline/gesture-arbiter.js?v=build-dea2f250133c"></script>
+      <script src="/js/inline/gesture-arbiter.js?v=build-6912e0d37f12"></script>
 <!-- 🔴 이 블록의 defer 여부는 취향이 아니라 "파싱 시점에 그 전역을 읽는 코드가 있는가" 하나로 갈린다
      (2026-08-14 감사). 첫 스타일시트가 아래 500번대 줄이라, 여기서 동기로 받는 바이트는 전부
      첫 페인트 앞에 쌓인다. 그래서 파싱 시점 소비자가 없는 것은 전부 defer 로 내렸다.
@@ -30,31 +30,31 @@
      defer 를 새로 붙이거나 떼기 전에 그 전역을 읽는 곳이 함수 안인지 최상위인지 반드시 확인할 것. -->
 <!-- 이용권 판정 정본(js/core/pass-verdict.js). 셸 인라인 블록이 파싱 시점에 window.__cdPassVerdict 를
      필요로 하므로 defer 를 붙이지 않는다. 순수 로직 파일이라 렌더 블로킹 비용은 무시 가능하다. -->
-      <script src="/js/core/pass-verdict.js?v=build-dea2f250133c"></script>
+      <script src="/js/core/pass-verdict.js?v=build-6912e0d37f12"></script>
 <!-- 로그인 힌트 판정 정본(js/core/auth-hint.js). 바로 아래 셸 인라인 블록(hasClientAuthHint)이
      파싱 시점에 window.__cdAuthHint 를 필요로 하므로 defer 를 붙이지 않는다. -->
-      <script src="/js/core/auth-hint.js?v=build-dea2f250133c"></script>
+      <script src="/js/core/auth-hint.js?v=build-6912e0d37f12"></script>
 <!-- access-store: 셸의 참조 8곳이 전부 함수 안 호출시점 조회이고 null 가드가 있어 defer 가 안전하다.
      머리쪽 세션캐시가 /api/me/access-state 를 'accessState' 로 캐싱하므로(위 kind() 참고),
      부트 콜백이 스토어보다 먼저 응답을 받아 시드를 건너뛰어도 나중 ensureLoaded 가 캐시에서 받는다.
      즉 왕복이 늘지 않는다 — 이 캐시를 걷어내면 defer 전제가 깨지므로 함께 봐야 한다. -->
-      <script src="/js/core/access-store.js?v=build-dea2f250133c" defer></script>
+      <script src="/js/core/access-store.js?v=build-6912e0d37f12" defer></script>
 <!-- 🔴 payment-service 는 defer 금지. 셸 인라인이 파싱 시점에 registerPaymentWindow(...,'canonical-shell')
      로 결제창 단일비행 경계를 등록하는데(아래 _cdChooseServicePaymentMode 등록부), defer 로 내리면
      그 자리에서 else 가지로 떨어져 경계 없는 렌더러로 조용히 강등된다. 실패가 눈에 안 보이는 종류다. -->
-      <script src="/js/core/payment-service.js?v=build-dea2f250133c"></script>
-      <script src="/js/mobile-fortune-entry-trace.js?v=build-dea2f250133c" defer></script>
-      <script src="/js/core/feature-pricing-store.js?v=build-dea2f250133c" defer></script>
+      <script src="/js/core/payment-service.js?v=build-6912e0d37f12"></script>
+      <script src="/js/mobile-fortune-entry-trace.js?v=build-6912e0d37f12" defer></script>
+      <script src="/js/core/feature-pricing-store.js?v=build-6912e0d37f12" defer></script>
 <!-- 앱(Capacitor) 판별 정본. checkout-entry 와 셸 인라인이 진입 분기에서 읽으므로 그보다 먼저 둔다.
      🔴 defer 금지 — 아래 부팅 게이트(cd-early-runtime-class-hoist)가 파싱 시점에 isApp() 을 부른다. -->
-      <script src="/js/core/app-context.js?v=build-dea2f250133c"></script>
-      <script src="/js/core/checkout-entry.js?v=build-dea2f250133c" defer></script>
+      <script src="/js/core/app-context.js?v=build-6912e0d37f12"></script>
+      <script src="/js/core/checkout-entry.js?v=build-6912e0d37f12" defer></script>
 <!-- GA4 측정 ID. 값을 채우면 그 즉시 계측이 켜지고, 비어 있으면 analytics.js 가 통째로 no-op 이다
      (플레이스홀더가 배포돼도 안전하다). 공개 식별자라 소스에 그대로 두어도 된다.
      Next 라우트는 app/layout.js 가 NEXT_PUBLIC_GA_MEASUREMENT_ID 로 같은 전역을 주입한다. -->
       <script>window.__CD_GA_ID = "";</script>
-      <script src="/js/core/analytics.js?v=build-dea2f250133c" defer></script>
-      <script src="/js/kill-switch.js?v=build-dea2f250133c" defer></script>
+      <script src="/js/core/analytics.js?v=build-6912e0d37f12" defer></script>
+      <script src="/js/kill-switch.js?v=build-6912e0d37f12" defer></script>
       <script>
         window.tailwind = window.tailwind || {};
         tailwind.config = {
@@ -493,7 +493,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#FFF8F0" data-neo-theme="#080d24" data-yeoni-theme="#FFF8F0">
-<link rel="manifest" href="/manifest.zh.json?v=build-dea2f250133c">
+<link rel="manifest" href="/manifest.zh.json?v=build-6912e0d37f12">
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="96x96" href="/icons/app-logo-96.png">
 <link rel="apple-touch-icon" href="/icons/app-logo-180.png">
@@ -616,10 +616,10 @@ html.cd-boot-gate-out .cd-boot-gate__veil{opacity:0;transition:opacity .3s ease}
      함께 고쳐야 하며, 그건 결제 경로 정책 변경이라 임의로 하지 말 것. -->
 
 <link rel="preload" as="image" href="/icons/app-logo-512.webp" fetchpriority="high">
-<link rel="stylesheet" href="/styles/theme-tokens.css?v=build-dea2f250133c">
-<link rel="stylesheet" href="/styles/core-ui.css?v=build-dea2f250133c">
-<link rel="stylesheet" href="/styles/yehwa-motifs.css?v=build-dea2f250133c">
-<link rel="stylesheet" href="/styles/yehwa-motifs-nav.css?v=build-dea2f250133c">
+<link rel="stylesheet" href="/styles/theme-tokens.css?v=build-6912e0d37f12">
+<link rel="stylesheet" href="/styles/core-ui.css?v=build-6912e0d37f12">
+<link rel="stylesheet" href="/styles/yehwa-motifs.css?v=build-6912e0d37f12">
+<link rel="stylesheet" href="/styles/yehwa-motifs-nav.css?v=build-6912e0d37f12">
  <!-- fortune-ui.css(583KB, brotli 127KB)는 셸에서 가장 큰 렌더 차단 자원이었고
       모바일 FCP 의 최대 단일 원인이었다. 렌더는 막지 않되 높은 우선순위로 받는다.
       바로 아래 cd-fortune-ui-critical 블록은 그 파일에서 이 홈 문서에 실제로 매칭되는
@@ -789,20 +789,20 @@ button, .tog-btn, .btn-main, .btn-sub, .dw-item, .feature-card, .fortune-tab, .m
 .moon-section-head p, .feature-card__desc, .feature-card__detail-text, .tarot-tile__desc, .fortune-section, .sub-desc, .sub-daily-note, #tarotModalOverlay .oracle-text-m, #tarotModalOverlay .ritual-text-m, .result-content, .villain-v2-section p, .villain-zone-card p, .villain-one-line, .villain-profile-card .villain-quote { word-break: keep-all; overflow-wrap: break-word; font-family: var(--font-body) !important; letter-spacing: 0px !important; }
 .feature-card__launch, .feature-card__cta, .mystic-summon-btn, .btn-subscribe, .membership-recap-cta__btn, .villain-copy-btn, .lotto-draw-btn { font-weight: 800; word-break: keep-all; overflow-wrap: break-word; font-family: var(--font-body) !important; letter-spacing: 0px !important; }
  </style>
- <link rel="preload" as="style" href="/styles/fortune-ui-home.css?v=build-dea2f250133c" onload="this.onload=null;this.rel='stylesheet'">
- <link data-cd-noncritical-style-src="/styles/fortune-ui.css?v=build-dea2f250133c" data-cd-mobile-delay="1" media="print">
+ <link rel="preload" as="style" href="/styles/fortune-ui-home.css?v=build-6912e0d37f12" onload="this.onload=null;this.rel='stylesheet'">
+ <link data-cd-noncritical-style-src="/styles/fortune-ui.css?v=build-6912e0d37f12" data-cd-mobile-delay="1" media="print">
  <!-- JS 가 꺼져 있으면 위 두 줄은 모두 적용되지 않는다(preload 의 rel 교체도, 지연 로더도 JS 다).
       그때는 부분집합이 아니라 전체 시트를 그냥 받는다 — 상위집합이라 한 줄로 둘 다 덮는다. -->
- <noscript><link rel="stylesheet" href="/styles/fortune-ui.css?v=build-dea2f250133c"></noscript>
+ <noscript><link rel="stylesheet" href="/styles/fortune-ui.css?v=build-6912e0d37f12"></noscript>
  <!-- fortune-gateway.css 는 렌더 블로킹에서 뺀다 — 이 시트가 칠하는 4개 호스트가 전부 폴드보다
       아래다(2026-09-11 재실측, dist·networkidle — #cdFinder 를 무료 카드 바로 아래로 승격하며
       갱신): .cd-quick__grid 825 / #cdFinder 1322 / #cdDiaryPlannerEntry 5113 /
       #fortuneGatewayEntry 6836 (모바일 390x844 기준 top, px). #cdFinder 가 예전보다 훨씬 위로
       올라왔지만(4611→1322) 여전히 844px 폴드 아래라 안전하다.
       preload 라 우선순위는 그대로 높고 다운로드도 즉시 시작하지만 첫 페인트를 막지 않는다. -->
- <link rel="preload" as="style" href="/styles/fortune-gateway.css?v=build-dea2f250133c" onload="this.onload=null;this.rel='stylesheet'">
- <noscript><link rel="stylesheet" href="/styles/fortune-gateway.css?v=build-dea2f250133c"></noscript>
-<link rel="stylesheet" href="/styles/mobile-lite.css?v=build-dea2f250133c" media="(max-width: 1024px), (hover: none) and (pointer: coarse)" data-cd-mobile-runtime-css="1">
+ <link rel="preload" as="style" href="/styles/fortune-gateway.css?v=build-6912e0d37f12" onload="this.onload=null;this.rel='stylesheet'">
+ <noscript><link rel="stylesheet" href="/styles/fortune-gateway.css?v=build-6912e0d37f12"></noscript>
+<link rel="stylesheet" href="/styles/mobile-lite.css?v=build-6912e0d37f12" media="(max-width: 1024px), (hover: none) and (pointer: coarse)" data-cd-mobile-runtime-css="1">
 <style data-marker="cd-mobile-home-offscreen-containment-v20260816">
 /* 모바일 홈에서 첫 화면 아래 섹션은 화면에 들어오기 전까지 스타일·레이아웃을 건너뛴다.
  * recalc 한 번의 비용은 `요소 수 × 규칙 수` 이고, 여기 열거한 9개가 모바일 홈 2,031 요소 중
@@ -895,9 +895,9 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
      그래서 print-swap 으로 내린다. 세리프는 위쪽 폴드에서 쓰이지 않으므로(히어로는 인라인 선언된
      CodeDestinyDisplay/Body) 늦게 붙어도 보이는 변화는 아래쪽 제목의 스왑뿐이다.
      🔴 data-cd-noncritical-style-src 로 옮기지 말 것 — 그 로더는 모바일에서 최대 45초까지 미룬다. -->
-<link rel="stylesheet" href="/styles/fonts-serif.css?v=build-dea2f250133c" media="print" onload="this.onload=null;this.media='all'">
-<noscript><link rel="stylesheet" href="/styles/fonts-serif.css?v=build-dea2f250133c"></noscript>
-<link rel="preload" href="/styles/cosmic-main.css?v=build-dea2f250133c" as="style">
+<link rel="stylesheet" href="/styles/fonts-serif.css?v=build-6912e0d37f12" media="print" onload="this.onload=null;this.media='all'">
+<noscript><link rel="stylesheet" href="/styles/fonts-serif.css?v=build-6912e0d37f12"></noscript>
+<link rel="preload" href="/styles/cosmic-main.css?v=build-6912e0d37f12" as="style">
 
 <title>CODE DESTINY | 免费四柱八字·塔罗·紫微斗数·合婚 — 每日运势</title>
 
@@ -941,7 +941,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
 <meta property="og:description" content="通过四柱命理、紫微斗数、宿曜占星术与塔罗认识自己的行为和关系。阅读公开解说，了解AI解读的用途与局限，并在各功能页面确认使用条件。">
 <meta property="og:url" content="https://code-destiny.com/zh/">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-dea2f250133c">
+<meta property="og:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-6912e0d37f12">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="蜜豚运势 HONEY FORTUNE — 印有花猪 Yeoni 客串形象与服务介绍的 CODE DESTINY 名片卡">
@@ -950,7 +950,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="CODE DESTINY | 免费四柱八字·塔罗·紫微斗数·合婚 — 每日运势">
 <meta name="twitter:description" content="通过四柱命理、紫微斗数、宿曜占星术与塔罗认识自己的行为和关系。阅读公开解说，了解AI解读的用途与局限，并在各功能页面确认使用条件。">
-<meta name="twitter:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-dea2f250133c">
+<meta name="twitter:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-6912e0d37f12">
 <meta name="twitter:image:alt" content="蜜豚运势 HONEY FORTUNE — 印有花猪 Yeoni 客串形象与服务介绍的 CODE DESTINY 名片卡">
 <script type="application/ld+json">
 {
@@ -2075,46 +2075,46 @@ body.neo-mode .pf-showcase{--pf-title-color:#fff7dd;--pf-sub-color:rgba(233,224,
   <!-- ════════════════════════════════════════════════════════
        레이아웃 CSS: 렌더블로킹 유지 (CLS 방지 필수 — 레이아웃 정의 파일)
        ════════════════════════════════════════════════════════ -->
-  <script src="/js/inline/api-base-init.js?v=build-dea2f250133c" defer></script>
+  <script src="/js/inline/api-base-init.js?v=build-6912e0d37f12" defer></script>
 
   <!-- ════════════════════════════════════════════════════════
        모달/기능별 CSS: 비동기 로드 (초기 렌더에 불필요 — CLS 위험 없음)
        ════════════════════════════════════════════════════════ -->
 
-  <link rel="stylesheet" href="/styles/cosmic-main.css?v=build-dea2f250133c">
+  <link rel="stylesheet" href="/styles/cosmic-main.css?v=build-6912e0d37f12">
 
-  <link data-cd-noncritical-style-src="/styles/destiny-flower-cosmic.css?v=build-dea2f250133c" data-cd-mobile-delay="1" media="print">
-  <noscript><link rel="stylesheet" href="/styles/destiny-flower-cosmic.css?v=build-dea2f250133c"></noscript>
+  <link data-cd-noncritical-style-src="/styles/destiny-flower-cosmic.css?v=build-6912e0d37f12" data-cd-mobile-delay="1" media="print">
+  <noscript><link rel="stylesheet" href="/styles/destiny-flower-cosmic.css?v=build-6912e0d37f12"></noscript>
 
-  <link data-cd-noncritical-style-src="/styles/animal-totem-mystic.css?v=build-dea2f250133c" data-cd-mobile-delay="1" media="print">
-  <noscript><link rel="stylesheet" href="/styles/animal-totem-mystic.css?v=build-dea2f250133c"></noscript>
+  <link data-cd-noncritical-style-src="/styles/animal-totem-mystic.css?v=build-6912e0d37f12" data-cd-mobile-delay="1" media="print">
+  <noscript><link rel="stylesheet" href="/styles/animal-totem-mystic.css?v=build-6912e0d37f12"></noscript>
 
   <!-- 이 시트는 모달용이 아니라 홈 본문(#inputPage)을 직접 칠한다(.fc-closed-peek 숨김, .fc-toggle-hint 글자크기).
        지연 목록에 있으면 첫 터치에 시트가 붙으면서 접힘 표시가 사라지고 글자·높이가 튄다 —
        측정으로 확인된 잔여 깜빡임의 유일한 원인이었다. rel 을 미리 박아 첫 페인트부터 적용시킨다.
        <link> 위치는 그대로라 승격됐을 때와 캐스케이드 순서가 동일하다. (cd-totem-fix-blocking-v20260721) -->
-  <link rel="stylesheet" href="/styles/mobile-totem-flower-fix.css?v=build-dea2f250133c">
+  <link rel="stylesheet" href="/styles/mobile-totem-flower-fix.css?v=build-6912e0d37f12">
 
-  <link data-cd-noncritical-style-src="/styles/tarot-love-mystic.css?v=build-dea2f250133c" data-cd-mobile-delay="1" media="print">
-  <noscript><link rel="stylesheet" href="/styles/tarot-love-mystic.css?v=build-dea2f250133c"></noscript>
+  <link data-cd-noncritical-style-src="/styles/tarot-love-mystic.css?v=build-6912e0d37f12" data-cd-mobile-delay="1" media="print">
+  <noscript><link rel="stylesheet" href="/styles/tarot-love-mystic.css?v=build-6912e0d37f12"></noscript>
 
-  <link data-cd-noncritical-style-src="/styles/tarot-healing-dawn.css?v=build-dea2f250133c" data-cd-mobile-delay="1" media="print">
-  <noscript><link rel="stylesheet" href="/styles/tarot-healing-dawn.css?v=build-dea2f250133c"></noscript>
+  <link data-cd-noncritical-style-src="/styles/tarot-healing-dawn.css?v=build-6912e0d37f12" data-cd-mobile-delay="1" media="print">
+  <noscript><link rel="stylesheet" href="/styles/tarot-healing-dawn.css?v=build-6912e0d37f12"></noscript>
 
-  <link data-cd-noncritical-style-src="/styles/tarot-reunion-lighthouse.css?v=build-dea2f250133c" data-cd-mobile-delay="1" media="print">
-  <noscript><link rel="stylesheet" href="/styles/tarot-reunion-lighthouse.css?v=build-dea2f250133c"></noscript>
+  <link data-cd-noncritical-style-src="/styles/tarot-reunion-lighthouse.css?v=build-6912e0d37f12" data-cd-mobile-delay="1" media="print">
+  <noscript><link rel="stylesheet" href="/styles/tarot-reunion-lighthouse.css?v=build-6912e0d37f12"></noscript>
 
-  <link data-cd-noncritical-style-src="/styles/tarot-year-fortune.css?v=build-dea2f250133c" data-cd-mobile-delay="1" media="print">
-  <noscript><link rel="stylesheet" href="/styles/tarot-year-fortune.css?v=build-dea2f250133c"></noscript>
+  <link data-cd-noncritical-style-src="/styles/tarot-year-fortune.css?v=build-6912e0d37f12" data-cd-mobile-delay="1" media="print">
+  <noscript><link rel="stylesheet" href="/styles/tarot-year-fortune.css?v=build-6912e0d37f12"></noscript>
 
-  <link data-cd-noncritical-style-src="/styles/tarot-self-esteem-quest.css?v=build-dea2f250133c" data-cd-mobile-delay="1" media="print">
-  <noscript><link rel="stylesheet" href="/styles/tarot-self-esteem-quest.css?v=build-dea2f250133c"></noscript>
+  <link data-cd-noncritical-style-src="/styles/tarot-self-esteem-quest.css?v=build-6912e0d37f12" data-cd-mobile-delay="1" media="print">
+  <noscript><link rel="stylesheet" href="/styles/tarot-self-esteem-quest.css?v=build-6912e0d37f12"></noscript>
 
   <!-- cd-premium-pdf-cosmic-chapter-ui-v20260519 -->
-  <link data-cd-noncritical-style-src="/styles/life-book.css?v=build-dea2f250133c" data-cd-mobile-delay="1" media="print">
-  <noscript><link rel="stylesheet" href="/styles/life-book.css?v=build-dea2f250133c"></noscript>
-  <link data-cd-noncritical-style-src="/styles/sibyl-system.css?v=build-dea2f250133c" data-cd-mobile-delay="1" media="print">
-  <noscript><link rel="stylesheet" href="/styles/sibyl-system.css?v=build-dea2f250133c"></noscript>
+  <link data-cd-noncritical-style-src="/styles/life-book.css?v=build-6912e0d37f12" data-cd-mobile-delay="1" media="print">
+  <noscript><link rel="stylesheet" href="/styles/life-book.css?v=build-6912e0d37f12"></noscript>
+  <link data-cd-noncritical-style-src="/styles/sibyl-system.css?v=build-6912e0d37f12" data-cd-mobile-delay="1" media="print">
+  <noscript><link rel="stylesheet" href="/styles/sibyl-system.css?v=build-6912e0d37f12"></noscript>
   <style id="cd-sibyl-modal-critical">
   /* 시빌라 모달 임계 CSS — 지연 로드되는 styles/sibyl-system.css가 승격되기 전에도
      모달이 정상적으로 열리도록 하는 구조 폴백. 색/테두리/애니 세부는 지연 시트 담당.
@@ -2126,8 +2126,8 @@ body.neo-mode .pf-showcase{--pf-title-color:#fff7dd;--pf-sub-color:rgba(233,224,
   #sibylModal.sb-open .sb-panel{transform:translateY(0)}
   #sibylModal .sb-hidden{display:none}
   </style>
-  <link data-cd-noncritical-style-src="/styles/love-secret.css?v=build-dea2f250133c" data-cd-mobile-delay="1" media="print">
-  <noscript><link rel="stylesheet" href="/styles/love-secret.css?v=build-dea2f250133c"></noscript>
+  <link data-cd-noncritical-style-src="/styles/love-secret.css?v=build-6912e0d37f12" data-cd-mobile-delay="1" media="print">
+  <noscript><link rel="stylesheet" href="/styles/love-secret.css?v=build-6912e0d37f12"></noscript>
 
   <link data-cd-noncritical-style-src="/css/entertain-system.css" data-cd-mobile-delay="1" media="print">
   <noscript><link rel="stylesheet" href="/css/entertain-system.css"></noscript>
@@ -9552,7 +9552,7 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
                    새 연이 일러스트(작약 화관·진주 목걸이, 투명 WebP)가 오면 같은 경로에 덮어쓰고 sync:public 만 돌린다(?v= 는 sync 가 build 키로 다시 쓴다). -->
               <span class="fortune-gateway__door-art" aria-hidden="true">
                 <span class="fortune-gateway__door-halo"></span>
-                <img class="fortune-gateway__door-art-yeon" src="/images/fortune-tea-house/yeon-peony-crown.webp?v=build-dea2f250133c" alt="" width="360" height="360" loading="lazy" decoding="async">
+                <img class="fortune-gateway__door-art-yeon" src="/images/fortune-tea-house/yeon-peony-crown.webp?v=build-6912e0d37f12" alt="" width="360" height="360" loading="lazy" decoding="async">
                 <span class="cd-yehwa-sparkle cd-yehwa-sparkle--a"></span><span class="cd-yehwa-sparkle cd-yehwa-sparkle--b"></span><span class="cd-yehwa-sparkle cd-yehwa-sparkle--c"></span>
               </span>
               <span class="fortune-gateway__door-kicker">FORTUNE CHAT</span>
@@ -12080,8 +12080,8 @@ html.neo-mode body .cd-why-us__proof-caption{color:rgba(228,214,255,.72)}
       </script>
       <div class="neo-logo">
         <div class="pig-svg-wrap">
-          <img id="neoLogo" class="neo-logo-icon" src="/icons/neo.webp?v=build-dea2f250133c"
-            srcset="/icons/neo-96.webp?v=build-dea2f250133c 96w, /icons/neo-130.webp?v=build-dea2f250133c 130w, /icons/neo.webp?v=build-dea2f250133c 512w" sizes="(max-width: 768px) 88px, 130px"
+          <img id="neoLogo" class="neo-logo-icon" src="/icons/neo.webp?v=build-6912e0d37f12"
+            srcset="/icons/neo-96.webp?v=build-6912e0d37f12 96w, /icons/neo-130.webp?v=build-6912e0d37f12 130w, /icons/neo.webp?v=build-6912e0d37f12 512w" sizes="(max-width: 768px) 88px, 130px"
             width="130" height="130" alt="네오 모드 로고" data-cd-trans-attr="alt:auth.neoLogoAlt" loading="eager" fetchpriority="low" decoding="async">
         </div>
         <p aria-hidden="true" style="font-family:var(--font-display);color:#FFD700;font-size:1.9rem;font-weight:700;margin:0.2em 0;" data-cd-trans="auth.neoTagline">네오의 팩폭 운세 플랫폼</p>
@@ -16651,8 +16651,8 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                data-price-krw="5000"
                data-fallback-href="/tarot-ijik.html"
                aria-label="일의 문턱을 읽는 7카드 커리어 전환 타로 시작" data-cd-trans-attr="aria-label:home.tiles.tarotCareerMoveAria">
-              <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/taromove.webp?v=build-dea2f250133c" data-img-alt="이직 운명의 카드 — 일의 문턱을 읽는 7카드 커리어 리딩" data-cd-trans-attr="data-img-alt:home.tiles.tarotCareerMoveAlt">
-                <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" src="/fuctionassets/taromove.webp?v=build-dea2f250133c" alt="이직 운명의 카드 — 일의 문턱을 읽는 7카드 커리어 리딩" onerror="this.onerror=null;this.src='/fuctionassets/tarolove.webp';" data-cd-trans-attr="alt:home.tiles.tarotCareerMoveImgAlt">
+              <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/taromove.webp?v=build-6912e0d37f12" data-img-alt="이직 운명의 카드 — 일의 문턱을 읽는 7카드 커리어 리딩" data-cd-trans-attr="data-img-alt:home.tiles.tarotCareerMoveAlt">
+                <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" src="/fuctionassets/taromove.webp?v=build-6912e0d37f12" alt="이직 운명의 카드 — 일의 문턱을 읽는 7카드 커리어 리딩" onerror="this.onerror=null;this.src='/fuctionassets/tarolove.webp';" data-cd-trans-attr="alt:home.tiles.tarotCareerMoveImgAlt">
                 <span class="tarot-tile__badge tarot-tile__badge--new">CAREER</span>
                 <span class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price5000">1회 5,000원</span>
               </div>
@@ -16665,8 +16665,8 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
             <!-- [기능 연결부] 말과 행동 사이 타로 → /tarot/mindscan -->
             <a class="tarot-tile tarot-tile--mindscan" href="/tarot/mindscan/"
                aria-label="말과 행동 사이의 온도를 읽는 10카드 타로 시작" data-cd-trans-attr="aria-label:home.tiles.tarotMindscanAria">
-              <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/mindscantaro.webp?v=build-dea2f250133c" data-img-alt="말과 행동 사이 — 마음의 온도를 읽는 10카드 관계 리딩" data-cd-trans-attr="data-img-alt:home.tiles.tarotMindscanAlt">
-                <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" src="/fuctionassets/mindscantaro.webp?v=build-dea2f250133c" alt="말과 행동 사이 — 마음의 온도를 읽는 10카드 관계 리딩" onerror="this.onerror=null;this.src='/fuctionassets/tarolove.webp';" data-cd-trans-attr="alt:home.tiles.tarotMindscanImgAlt">
+              <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/mindscantaro.webp?v=build-6912e0d37f12" data-img-alt="말과 행동 사이 — 마음의 온도를 읽는 10카드 관계 리딩" data-cd-trans-attr="data-img-alt:home.tiles.tarotMindscanAlt">
+                <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" src="/fuctionassets/mindscantaro.webp?v=build-6912e0d37f12" alt="말과 행동 사이 — 마음의 온도를 읽는 10카드 관계 리딩" onerror="this.onerror=null;this.src='/fuctionassets/tarolove.webp';" data-cd-trans-attr="alt:home.tiles.tarotMindscanImgAlt">
                 <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
                 <span class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price5000">1회 5,000원</span>
               </div>
@@ -16679,8 +16679,8 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
             <!-- [기능 연결부] 원석 소울 타로 → /tarot/crystal-soul -->
             <a class="tarot-tile tarot-tile--crystal-soul" href="/tarot/crystal-soul/"
                aria-label="원석 소울 타로 리딩 시작" data-cd-trans-attr="aria-label:home.tiles.tarotCrystalSoulAria">
-              <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/stonetaro.webp?v=build-dea2f250133c" data-img-alt="원석 소울 타로 — 크리스탈 에너지 리딩" data-cd-trans-attr="data-img-alt:home.tiles.tarotCrystalSoulAlt">
-                <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" src="/fuctionassets/stonetaro.webp?v=build-dea2f250133c" alt="원석 소울 타로 — 크리스탈 에너지 리딩" onerror="this.onerror=null;this.src='/fuctionassets/tarolove.webp';" data-cd-trans-attr="alt:home.tiles.tarotCrystalSoulImgAlt">
+              <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/stonetaro.webp?v=build-6912e0d37f12" data-img-alt="원석 소울 타로 — 크리스탈 에너지 리딩" data-cd-trans-attr="data-img-alt:home.tiles.tarotCrystalSoulAlt">
+                <img class="tarot-tile__img" loading="lazy" decoding="async" width="200" height="150" src="/fuctionassets/stonetaro.webp?v=build-6912e0d37f12" alt="원석 소울 타로 — 크리스탈 에너지 리딩" onerror="this.onerror=null;this.src='/fuctionassets/tarolove.webp';" data-cd-trans-attr="alt:home.tiles.tarotCrystalSoulImgAlt">
                 <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
                 <span class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price5000">1회 5,000원</span>
               </div>
@@ -16879,7 +16879,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                 <!-- 핀란드 주석점 -->
                 <a class="tarot-tile tarot-tile--sikojen-fc" href="/oracle/sikojen-povailu/"
                    aria-label="핀란드 주석점 시작" data-cd-trans-attr="aria-label:home.tiles.sikojenAria">
-                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/핀란드%20돼지%20주석점.webp?v=build-dea2f250133c" data-img-alt="핀란드 돼지 주석점 — 연이와 주석 그림자 의식" data-cd-trans-attr="data-img-alt:home.tiles.sikojenAlt">
+                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/핀란드%20돼지%20주석점.webp?v=build-6912e0d37f12" data-img-alt="핀란드 돼지 주석점 — 연이와 주석 그림자 의식" data-cd-trans-attr="data-img-alt:home.tiles.sikojenAlt">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🐷</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
                     <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free" data-cd-trans data-key="home.tiles.freeBadge">무료</span>
@@ -20424,24 +20424,24 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
      DCL 이고, 하는 일은 첫 페인트가 아니라 프로필 카드 강화다. high 로 두면 그 다운로드가 LCP
      히어로 이미지 preload 와 같은 우선순위 슬롯을 놓고 경쟁해 LCP 를 늦춘다. low 도 쓰지 않는다 —
      DCL 이 defer 실행을 기다리므로 지나치게 내리면 DCL 자체가 밀린다. 기본값이 맞다. -->
-<script defer src="/js/destiny-profile.js?v=build-dea2f250133c" data-marker="profile-card-date-input-v20260624"></script>
+<script defer src="/js/destiny-profile.js?v=build-6912e0d37f12" data-marker="profile-card-date-input-v20260624"></script>
 <!-- 오늘의 운세 허브 계산 코어. 히어로 직후 첫 화면이라 지연 로더(data-cd-noncritical-src)에 태우지 않는다.
      defer 라 DOMContentLoaded 전에 실행이 끝나고, destiny-profile.js 뒤에 두어 dpGetDataForVedic() 이 먼저 준비된다. -->
-<script defer src="/js/fortune-gateway.js?v=build-dea2f250133c" data-marker="fortune-gateway-v1"></script>
+<script defer src="/js/fortune-gateway.js?v=build-6912e0d37f12" data-marker="fortune-gateway-v1"></script>
 <!-- 홈 통합 운세 탐색기 — 서비스 레지스트리(데이터) + 탐색 엔진(검색·고민·방식·가격).
      운명의 문 디스커버와 전체 서비스 인덱스가 이 한 벌을 함께 쓴다. 인라인으로 되돌리지 말 것 —
      8KB 를 넘으면 외부 청크로 빠지며 data-marker 가 사라진다.
      🔴 레지스트리가 엔진보다 먼저 실행돼야 한다(defer 는 문서 순서를 지킨다). -->
-<script defer src="/js/core/service-registry.js?v=build-dea2f250133c" data-marker="cd-home-service-registry-v20260819"></script>
-<script defer src="/js/core/home-service-finder.js?v=build-dea2f250133c" data-marker="cd-home-service-finder-v20260819"></script>
-<script defer src="/js/core/home-funnel.js?v=build-dea2f250133c"></script>
+<script defer src="/js/core/service-registry.js?v=build-6912e0d37f12" data-marker="cd-home-service-registry-v20260819"></script>
+<script defer src="/js/core/home-service-finder.js?v=build-6912e0d37f12" data-marker="cd-home-service-finder-v20260819"></script>
+<script defer src="/js/core/home-funnel.js?v=build-6912e0d37f12"></script>
 <script defer src="/js/mobile-interaction-patch.js?v=build-8e32409da267" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
-<script data-cd-lazy-src="/js/core/saju/basicFortunePresentation.js?v=build-dea2f250133c" data-cd-mobile-delay="1"></script>
+<script data-cd-lazy-src="/js/core/saju/basicFortunePresentation.js?v=build-6912e0d37f12" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
-<script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-dea2f250133c" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
-<script defer src="/js/core/index-inline-runtime.js?v=build-dea2f250133c" data-cd-saju-prompt-marker="saju-ai-consultation-flow-v20260706 saju-ai-calibration-v20260706 saju-ai-llm-result-v20260625 sukuyo-guardian-drawing-v20260625 sukuyo-pastlife-v2-20260621" data-cd-kemet-ai-prompt-marker="kemet-ai-prompt-generator-v20260619"></script>
-<script defer src="/js/pwa-install-prompt.js?v=build-dea2f250133c"></script>
+<script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-6912e0d37f12" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
+<script defer src="/js/core/index-inline-runtime.js?v=build-6912e0d37f12" data-cd-saju-prompt-marker="saju-ai-consultation-flow-v20260706 saju-ai-calibration-v20260706 saju-ai-llm-result-v20260625 sukuyo-guardian-drawing-v20260625 sukuyo-pastlife-v2-20260621" data-cd-kemet-ai-prompt-marker="kemet-ai-prompt-generator-v20260619"></script>
+<script defer src="/js/pwa-install-prompt.js?v=build-6912e0d37f12"></script>
 <script data-cd-lazy-src="/js/admin-flower.js" data-cd-mobile-delay="2"></script>
 <div class="share-toast" id="shareToast"></div>
 
@@ -20566,7 +20566,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
             content: {
               title: tr('kakaoReferral.kakaoTitle', 'Code Destiny 별빛 운세 초대'),
               description: tr('kakaoReferral.kakaoDescription', '이 카카오 공유 링크로 친구를 초대할 수 있어요.'),
-              imageUrl: 'https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-dea2f250133c',
+              imageUrl: 'https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-6912e0d37f12',
               link: { mobileWebUrl: shareUrl, webUrl: shareUrl }
             },
             buttons: [
@@ -20630,8 +20630,8 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
 })();
 </script>
 
-<script data-cd-noncritical-src="/js/share-reward.js?v=build-dea2f250133c"></script>
-<script data-cd-noncritical-src="/js/share.js?v=build-dea2f250133c"></script>
+<script data-cd-noncritical-src="/js/share-reward.js?v=build-6912e0d37f12"></script>
+<script data-cd-noncritical-src="/js/share.js?v=build-6912e0d37f12"></script>
 <script>
 (function(){
   var shouldRunVersionProbe = function () {
@@ -20682,9 +20682,9 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
 })();
 </script>
 
-<script data-cd-noncritical-src="/js/iching-engine.js?v=build-dea2f250133c" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
+<script data-cd-noncritical-src="/js/iching-engine.js?v=build-6912e0d37f12" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
 
-<script data-cd-noncritical-src="/js/iching-modal.js?v=build-dea2f250133c" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
+<script data-cd-noncritical-src="/js/iching-modal.js?v=build-6912e0d37f12" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
 
 <!-- 자체 언어 라우팅: 구글 번역 위젯 완전 대체 (로케일 경로 네비게이션) -->
 <!-- native language override disabled: core runtime handler provides immediate GT switching -->
@@ -20698,7 +20698,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
   </div>
 </div>
 
-<script data-cd-noncritical-src="/js/fate-scroll-reveal.js?v=build-dea2f250133c" data-cd-mobile-delay="2" data-cd-lowend-skip="1" data-marker="fate-scroll-indicator-disabled-when-result-active-v20260627"></script>
+<script data-cd-noncritical-src="/js/fate-scroll-reveal.js?v=build-6912e0d37f12" data-cd-mobile-delay="2" data-cd-lowend-skip="1" data-marker="fate-scroll-indicator-disabled-when-result-active-v20260627"></script>
 <script data-cd-noncritical-src="/js/fate-scroll-top.js" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
 <script data-cd-noncritical-src="/js/fsn-navbar.js" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
 
@@ -21242,7 +21242,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
   // 예전에 R2(assets.code-destiny.com)의 742KB PNG 를 결제 경로에 두었다가 PortOne SDK 와 대역폭을
   // 다투어 "network error 로 PG 창이 안 뜨는" 사고가 났고, verify-portone-single-payment 가 그 회귀를 막는다.
   // 이 파일은 독립 정적 결제 오버레이(js/destiny-profile.js)가 이미 쓰는 것과 같은 자산이다.
-  var CD_CHECKOUT_GUIDE_PIG_SRC = '/icons/app-logo-176.webp?v=build-dea2f250133c';
+  var CD_CHECKOUT_GUIDE_PIG_SRC = '/icons/app-logo-176.webp?v=build-6912e0d37f12';
   // 이용권을 사러 떠나기 직전에 남긴다 — /points 가 결제 성공 후 이 지점으로 돌려보낸다.
   // 셸은 화면 상태가 해시·쿼리에 있으므로 셋 다 담는다.
   function _cdRememberCheckoutReturn(label, options) {
@@ -33356,22 +33356,22 @@ function updateBadge() {
 
 <!-- MBTI/화투 모듈은 mobile-performance-bootstrap에서 필요 시 로드 -->
 
-<script data-cd-noncritical-src="/js/mobile-performance-bootstrap.js?v=build-dea2f250133c" data-cd-mobile-delay="1"></script>
-<script src="/js/io-image-lazy-loader.js?v=build-dea2f250133c" defer></script>
-<script src="/js/noncritical-defer-loader.js?v=build-dea2f250133c" defer></script>
-<script src="/js/cd-lang-native.js?v=build-dea2f250133c" defer></script>
+<script data-cd-noncritical-src="/js/mobile-performance-bootstrap.js?v=build-6912e0d37f12" data-cd-mobile-delay="1"></script>
+<script src="/js/io-image-lazy-loader.js?v=build-6912e0d37f12" defer></script>
+<script src="/js/noncritical-defer-loader.js?v=build-6912e0d37f12" defer></script>
+<script src="/js/cd-lang-native.js?v=build-6912e0d37f12" defer></script>
 <script data-cd-noncritical-src="/js/image-fallback.js" data-cd-mobile-delay="1"></script>
-<script data-cd-noncritical-src="/js/runtime-stability.js?v=build-dea2f250133c" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
+<script data-cd-noncritical-src="/js/runtime-stability.js?v=build-6912e0d37f12" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
 <script data-cd-noncritical-src="/js/touch-perf.js" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
 <!-- ARIA 모달 포커스 매니저: aria-hidden 경고 해소 + inert 기반 배경 잠금 -->
 <script src="/js/cd-aria-modal-manager.js" defer></script>
-<script data-cd-lazy-src="/js/dream-ledger.js?v=build-dea2f250133c" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
-<script data-cd-lazy-src="/js/psycho-dream-analyzer-freuds-study.js?v=build-dea2f250133c" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
+<script data-cd-lazy-src="/js/dream-ledger.js?v=build-6912e0d37f12" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
+<script data-cd-lazy-src="/js/psycho-dream-analyzer-freuds-study.js?v=build-6912e0d37f12" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
 <script data-cd-lazy-src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" data-cd-mobile-delay="2" data-cd-lowend-skip="1" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <!-- jsPDF removed from initial bundle; load on demand only if a feature requires it -->
-<script data-cd-noncritical-src="/js/sibyl-system.js?v=build-dea2f250133c" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
+<script data-cd-noncritical-src="/js/sibyl-system.js?v=build-6912e0d37f12" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
 <script src="/js/cd-lazy-feature-loader.js" defer></script>
-<script type="module" src="/js/app.js?v=build-dea2f250133c"></script>
+<script type="module" src="/js/app.js?v=build-6912e0d37f12"></script>
 <!-- Feature Preview Panel v2 -->
 <template id="tilePvwOverlayTemplate" data-component="MobileFeatureBottomSheetTemplate">
 <div id="tilePvwOverlay" class="tile-pvw-overlay cd-detail-overlay MobileFeatureBottomSheet" data-cd-detail-overlay="" data-component="MobileFeatureBottomSheet" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="tilePvwTitle" data-marker="main-overlay-dedupe-v20260625 mobile-feature-bottom-sheet-v20260701 feature-marketing-detail-v20260702">
@@ -33795,7 +33795,7 @@ function updateBadge() {
 (function(){
   'use strict';
   var D={
-    '#destinyCardForm':{cat:'사주 · 무료 운명 카드',fallbackTitle:'🌙 나의 달빛 운명 카드',tagline:'생년월일과 출생시간을 바탕으로 사주, 오늘의 흐름, 궁합, 별자리 서비스로 이어지는 기본 프로필을 만듭니다.',feats:['이름·생년월일·출생시간 기반 기본 운명 카드 생성','출생시간을 모를 때 낮 12시 기준으로 보수 계산','사주 결과와 주요 운세 서비스 바로가기 자동 연결','저장한 프로필로 무료·프리미엄 리딩을 더 빠르게 시작'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/%EC%82%AC%EC%A3%BC%EB%B3%B4%EB%8A%94%20%EC%97%B0%EC%9D%B4.webp?v=build-dea2f250133c',fallbackCta:'운명 카드 만들기'},
+    '#destinyCardForm':{cat:'사주 · 무료 운명 카드',fallbackTitle:'🌙 나의 달빛 운명 카드',tagline:'생년월일과 출생시간을 바탕으로 사주, 오늘의 흐름, 궁합, 별자리 서비스로 이어지는 기본 프로필을 만듭니다.',feats:['이름·생년월일·출생시간 기반 기본 운명 카드 생성','출생시간을 모를 때 낮 12시 기준으로 보수 계산','사주 결과와 주요 운세 서비스 바로가기 자동 연결','저장한 프로필로 무료·프리미엄 리딩을 더 빠르게 시작'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/%EC%82%AC%EC%A3%BC%EB%B3%B4%EB%8A%94%20%EC%97%B0%EC%9D%B4.webp?v=build-6912e0d37f12',fallbackCta:'운명 카드 만들기'},
     gotoZiweiPremium:{cat:'프리미엄 · 자미두수 전문가 상담',fallbackTitle:'자미두수 전문가 상담',tagline:'명궁·신궁·12궁·사화·대운·세운 흐름을 바탕으로 지금의 질문에 답합니다.',feats:['입력은 무료 — 상담 생성 버튼을 누를 때 30,000원 단건 결제 또는 이용권·월정석 확인','결제 확인이 끝나면 상담문이 바로 생성','명궁·재백·관록·부부·질액궁을 질문에 맞춰 연결 해석','상담 결과를 화면에서 바로 확인하고 추가 질문 이어가기'],cost:'30,000원 · 전문가 상담',ct:'paid',img:'/fuctionassets/jamipremiun.webp',fallbackCta:'자미두수 상담 받기'},
     '/neo-operation-room':{cat:'프리미엄 · 운명 작전실',fallbackTitle:'네오의 팩폭 운명 작전실',tagline:'사주·자미두수·베다점·점성술의 지도를 한 장의 전략처럼 펼쳐, 지금 밀리는 전선과 다시 잡아야 할 기준을 또렷하게 짚습니다.',feats:['30,000원 상담 이용권 확인','결제 완료 후 네오의 작전실로 바로 이동','사주와 별자리 흐름을 함께 비추는 종합 상담','현재 고민에 맞춘 선택 기준과 다음 행동 정리'],cost:'30,000원 · 전문가 상담',ct:'paid',img:'https://assets.code-destiny.com/DestinyWar/%EB%84%A4%EC%98%A4%EC%9D%98%20%ED%8C%A9%ED%8F%AD%20%EC%9A%B4%EB%AA%85%20%EC%9E%91%EC%A0%84%EC%8B%A4.webp',fallbackCta:'작전실 열기'},
     openNamingPromptModal:{cat:'작명 · 전문가 상담',fallbackTitle:'훈민정음 작명소',tagline:'생년월일시와 원하는 이름 조건을 바탕으로 용신·소리오행·한자 의미·수리 풀이를 종합해 전문가가 직접 이름을 짓고, 그 결과를 만든 프롬프트 원문까지 함께 드립니다.',feats:['입력과 무료 초안 추천은 무료로 열립니다','프리미엄 작명 시작 시 30,000원 단건 결제 또는 이용권·월정석 확인이 진행됩니다','사주 보완, 인명용 한자, 소리오행, 자원오행, 원형이정 수리를 종합한 완성형 결과 제공','결제 검증 후 전문가 작명 결과와 PDF 저장, 생성에 사용된 프롬프트 원문까지 다시 확인할 수 있습니다'],cost:'30,000원 · 이용권/월정석 가능',ct:'paid',img:'/fuctionassets/naming.webp',fallbackCta:'작명 시작하기'},
@@ -33840,7 +33840,7 @@ function updateBadge() {
     openRuneOracle:{cat:'스톤헨지 · 룬 오라클',fallbackTitle:'ᚠ 스톤헨지 룬 오라클',tagline:'바이킹 전사들이 전투 전날 뽑았던 그 룬 — 오늘 내린 결정이 맞는지 룬 문자가 답합니다',feats:['고대 퓨사크 24룬 완전 정통 해석','정방향·역방향 모든 상황 적용','지금 직면한 결정에 룬이 구체적으로 답함','켈트 전통 스톤헨지 의식 감성 비주얼'],cost:'5,000원',ct:'paid',img:'/fuctionassets/rune.webp'},
     openGeomancyOracle:{cat:'지오맨시 · 흙점',fallbackTitle:'⟁ 지오맨시 흙점',tagline:'아라비아 왕국의 재상들이 국가 대사를 결정할 때 쓴 대지의 신탁 — 16행 점이 오늘 방향을 알려줍니다',feats:['중동·아프리카 4000년 전통 흙점 완전 분석','16개 점 패턴으로 보는 오늘 내가 해야 할 것','돈·사랑·진로 중 지금 집중해야 할 방향 파악','감성적 사막 아트 비주얼 리딩'],cost:'5,000원',ct:'paid',img:'/fuctionassets/geomancy.webp'},
     openRoyalTeaOracle:{cat:'영국 홍차점 · 타세오그래피',fallbackTitle:'🫖 영국 홍차점',tagline:'빅토리아 여왕도 중요한 결정 전에 찻잎의 징조를 살폈습니다 — 왕실의 찻잎 문양이 오늘의 운명을 전합니다',feats:['영국 왕실 전통 타세오그래피 의식 완전 체험','찻잎 형태 20가지 상징 심층 해독 & 적용','오늘 내가 반드시 알아야 할 운명의 메시지','빅토리아 시대 감성 왕실 리포트'],cost:'3,000원',ct:'paid',img:'/fuctionassets/london.webp'},
-    '/oracle/sikojen-povailu':{cat:'핀란드 주석점 · 북유럽 새해 의식',fallbackTitle:'🐷 핀란드 돼지 주석점',tagline:'작은 돼지 연이가 반짝이는 주석 그림자를 따라 올해의 행운, 사랑, 돈의 징조를 부드럽게 전해줍니다.',feats:['녹은 주석이 물에 닿는 순간 피어나는 새해 징조 리딩','귀여운 돼지 연이와 함께 고르는 금전·연애·행운 주머니','주석 형상과 그림자 메시지로 보는 겉운과 속마음의 흐름','결과를 예쁜 의식 카드처럼 확인하고 바로 공유 가능'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/핀란드%20돼지%20주석점.webp?v=build-dea2f250133c'},
+    '/oracle/sikojen-povailu':{cat:'핀란드 주석점 · 북유럽 새해 의식',fallbackTitle:'🐷 핀란드 돼지 주석점',tagline:'작은 돼지 연이가 반짝이는 주석 그림자를 따라 올해의 행운, 사랑, 돈의 징조를 부드럽게 전해줍니다.',feats:['녹은 주석이 물에 닿는 순간 피어나는 새해 징조 리딩','귀여운 돼지 연이와 함께 고르는 금전·연애·행운 주머니','주석 형상과 그림자 메시지로 보는 겉운과 속마음의 흐름','결과를 예쁜 의식 카드처럼 확인하고 바로 공유 가능'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/핀란드%20돼지%20주석점.webp?v=build-6912e0d37f12'},
     '/destiny-poker.html':{cat:'데스티니 포커',fallbackTitle:'🃏 데스티니 포커',tagline:'신과의 카드 대결에서 이기면 행운이 찾아옵니다 — 올림푸스 신들과 운명을 건 포커 한 판',feats:['5장 포커로 신과 벌이는 운명 대결 게임','제우스·아테나·포세이돈·헤르메스 4신 배틀','오늘 내 승률이 바로 오늘의 운세 지수','완전 무료 엔터테인먼트 점술 게임'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/destiny%20pocker.webp'},
     openLoveSimulation:{cat:'사주 · 연애 시뮬레이션',fallbackTitle:'💕 LOVE CODE',tagline:'사주 오행으로 이 사람이 내 소울메이트인지 즉시 알 수 있습니다 — 가상 데이트로 찰떡 궁합 직접 확인',feats:['사주 8글자 기반 연애 페르소나 자동 생성','오행 궁합으로 찾는 최고 상성 & 최악 상대 비교','일간별 실시간 채팅으로 연애 케미 직접 체험','8가지 데이트 코스 & 크리티컬 히트 이벤트'],cost:'🔒 잠금 해제 10,000원',ct:'paid',img:'/fuctionassets/love code.webp'},
     openAstroModal:{cat:'점성술 · 기본 출생차트',fallbackTitle:'✨ 서양 점성술 기본 출생차트',tagline:'태양 별자리·달 별자리·상승궁과 MC로 나를 이해하는 5분 기본 리딩입니다.',feats:['출생 정보 신뢰도와 계산 기준 표시','태양 별자리·달 별자리·상승궁 3축 통합 해석','MC·10하우스·6하우스 기반 역할 조건','상대 차트 교차 분석은 시너스트리 궁합으로 확장'],cost:'✨ 기본 무료 · 시너스트리 궁합 5,000원',ct:'free',img:'/fuctionassets/jumsung.webp'},
@@ -34103,7 +34103,8 @@ function updateBadge() {
     '/music/':{featureId:'music',category:'음악',badge:'무료 감상',headline:'해석을 읽고 남은 마음을 음악으로 마저 가라앉혀 보세요.',subheadline:'연이와 네오의 세계관에 맞춰 만든 곡을 모아 둔 플레이어입니다. 운세를 보는 동안 배경으로 틀어 둘 수 있어요.',painPoints:['결과를 읽고 마음이 어수선할 때','집중할 배경음이 필요할 때','서비스 세계관이 궁금할 때'],previewText:'운세 해석이 아니라, 서비스의 분위기를 그대로 옮긴 음악 모음입니다.',recommendedFor:['배경음과 함께 보고 싶은 분','연이·네오 세계관을 좋아하는 분','조용히 마음을 정리하고 싶은 분'],answersQuestions:['어떤 곡이 있나요?','운세를 보면서 틀어도 되나요?','세계관과 어떻게 이어지나요?'],ctaLabel:'달빛 플레이어 열기'},
     '/codedestiny-novel.html':{featureId:'novel',category:'읽을거리',badge:'무료 연재',headline:'운명의 서재에서 연이와 네오의 이야기를 이어 읽어보세요.',subheadline:'서비스 세계관을 배경으로 한 라이트 노벨 연재입니다. 운세와 별개로 읽을거리로 즐길 수 있어요.',painPoints:['운세 말고 읽을거리를 찾을 때','캐릭터의 배경이 궁금할 때','가볍게 시간을 보내고 싶을 때'],previewText:'운세 해석이 아니라 창작 이야기입니다. 결과에 영향을 주지 않아요.',recommendedFor:['연이·네오 캐릭터를 좋아하는 분','연재물을 즐기는 분','세계관을 더 알고 싶은 분'],answersQuestions:['어떤 이야기인가요?','운세와 관련이 있나요?','어디서부터 읽으면 되나요?'],ctaLabel:'운명의 서재 열기',analysisSteps:[],unlockBenefits:[],faq:[]},
     '/points/':{featureId:'points',category:'이용권',badge:'이용권 안내',headline:'유료 기능을 자주 본다면 매번 결제하지 않아도 됩니다.',subheadline:'달빛 이용권은 정해진 기간 동안 유료 기능을 이용할 수 있게 해 주는 이용권입니다. 보유 현황과 사용 내역을 여기서 확인할 수 있어요.',painPoints:['볼 때마다 결제하기 번거로울 때','남은 이용권이 얼마인지 모를 때','무엇에 쓸 수 있는지 헷갈릴 때'],previewText:'운세 해석이 아니라, 이용권 보유 현황과 사용 범위를 확인하는 화면입니다.',recommendedFor:['유료 기능을 자주 이용하는 분','보유 현황을 확인하려는 분','결제 방식을 비교하려는 분'],answersQuestions:['이용권은 어디에 쓸 수 있나요?','지금 얼마나 남았나요?','단건결제와 무엇이 다른가요?'],ctaLabel:'이용권 확인하기',analysisSteps:[],unlockBenefits:[],faq:[]},
-    gotoZiweiPremium:{featureId:'ziwei-ai-consultation',category:'자미두수',badge:'전문가 상담형',headline:'자미두수 명반을 세우고 14개 주제로 나눠 상담문을 씁니다.',subheadline:'본문은 20,700자 이상으로 나오고, 결과를 받은 뒤 추가 질문은 요금 없이 이어서 할 수 있습니다.',feats:['생년월일시로 12궁 명반을 세웁니다','상담문을 14개 주제로 나눠 정리합니다','본문은 20,700자 이상입니다','결과를 받은 뒤 추가 질문을 요금 없이 이어서 할 수 있습니다','상담 내용이 저장되어 다시 열어볼 수 있습니다'],painPoints:['명반을 봐도 어느 궁이 중요한지 모를 때','해석이 짧아 궁금한 게 남을 때','읽고 나서 되묻고 싶을 때'],unlockBenefits:['12궁 명반 해석','14개 주제로 나눈 상담문','20,700자 이상 본문','추가 질문 이어가기','결과 재열람'],previewText:'한 번에 끝나는 리포트가 아니라, 읽고 되물을 수 있는 상담 형태입니다.',recommendedFor:['자미두수를 제대로 한 번 보고 싶은 분','읽고 나서 되묻고 싶은 분','긴 분량의 해석을 원하는 분'],answersQuestions:['지금 이직해도 괜찮을까요?','돈과 일 중 어디에 무게를 둬야 할까요?','올해 큰 결정을 내려도 될까요?'],analysisSteps:[{label:'명반 작성',detail:'생년월일시로 12궁에 주성과 사화를 배치합니다.'},{label:'궁 강약 판정',detail:'어느 궁에 힘이 실리고 어디가 비었는지 가립니다.'},{label:'주제별 작성',detail:'14개 주제로 나눠 각각 상담문을 씁니다.'},{label:'추가 질문',detail:'결과를 읽고 남은 질문을 요금 없이 이어서 물을 수 있습니다.'}],valueCompare:{rows:[{axis:'분량',premium:'본문 20,700자 이상'},{axis:'구성',premium:'14개 주제로 나눈 상담문'},{axis:'추가 질문',premium:'결과 후 이어지는 질문에 추가 요금 없음'}]},faq:[{q:'추가 질문은 따로 결제해야 하나요?',a:'아니요. 결과를 받은 뒤 이어지는 질문에는 추가 요금이 없습니다.'},{q:'결과를 나중에 다시 볼 수 있나요?',a:'상담 내용이 저장되어 다시 열어볼 수 있습니다.'},{q:'얼마나 긴가요?',a:'본문 기준 20,700자 이상으로 나옵니다.'}],trustNotes:['결제 전 기능 내용을 먼저 확인할 수 있어요.','이용권·월정석·단건결제 판단은 기존 결제 정책을 그대로 따릅니다.','운세 결과는 참고용이며 중요한 선택은 현실적인 판단과 함께 확인해 주세요.'],ctaLabel:'자미두수 상담 열기',reportScale:{minWords:20700,sections:14},ctaNote:'결제 후 12궁 명반과 14개 주제 상담문이 열립니다.'},
+    // 배치 4 — 자미·점성: receives·outline 은 결과 화면 실측으로 쓴다. 자미 상담·점성 상담 모두 추가 질문 입력창이 화면에 없고(/api/*/message 호출부 0건), /ziwei/chart 는 잠금 없이 열린다.
+    gotoZiweiPremium:{featureId:'ziwei-ai-consultation',category:'자미두수',badge:'전문가 상담형',headline:'자미두수 명반을 세우고 20,700자 이상으로 상담문을 씁니다.',subheadline:'상담 주제를 고르고 지금의 고민을 적으면, 명궁·신궁부터 12궁과 사화·대운까지 짚어 가며 한 편의 상담문으로 답합니다.',feats:['이름과 생년월일시로 12궁 명반을 세웁니다','상담 주제 열여섯 가지 중 하나를 고르고 고민을 직접 적습니다','본문은 20,700자 이상입니다','명궁·신궁과 핵심 별, 상담 키워드를 먼저 정리해 보여 줍니다','완성된 상담을 PDF 로 내려받을 수 있습니다'],painPoints:['명반을 봐도 어느 궁이 중요한지 모를 때','해석이 짧아 궁금한 게 남을 때','지금 고민에 맞춘 답을 받고 싶을 때'],receives:[{icon:'📜',title:'20,700자 이상 상담문',detail:'명반을 읽는 순서부터 지금 질문에 대한 답과 처방까지 쪽을 나눠 길게 써 드립니다.'},{icon:'🧭',title:'명궁·신궁 한눈 정리',detail:'명궁과 신궁, 핵심 별, 상담 키워드 네 칸을 상담문보다 먼저 보여 줍니다.'},{icon:'🗺️',title:'12궁 명반과 대운 흐름',detail:'열두 궁 카드와 대운 타임라인으로 지금 어느 시기를 지나는지 함께 봅니다.'},{icon:'🔍',title:'해석 근거',detail:'어떤 별과 배치를 읽고 그렇게 말했는지 근거를 따로 펼쳐 볼 수 있어요.'},{icon:'📄',title:'PDF 저장과 지난 기록',detail:'완성본을 PDF 로 내려받고, 로그인해 두면 지난 상담을 목록에서 다시 열 수 있어요.'}],outline:[{title:'상담 표지',detail:'이름과 생년월일, 고른 상담 주제를 표지에 적습니다.'},{title:'명궁·신궁 요약',detail:'명궁 · 신궁 · 핵심 별 · 상담 키워드를 네 칸으로 먼저 정리합니다.'},{title:'명반과 대운',detail:'기본 명반과 열두 궁 카드, 대운 타임라인을 펼칩니다.'},{title:'상담 본문',detail:'명반을 읽는 순서와 핵심 성향부터 일 · 재물 · 관계, 대한과 세운의 선택 전략까지 차례로 씁니다.'},{title:'질문에 대한 답과 처방',detail:'적어 둔 고민에 대한 답과 지금 해 볼 행동으로 닫습니다.'}],outlineImage:'/feature-details/assets/ziwei-ai-960.webp',unlockBenefits:['12궁 명반과 대운 타임라인','명궁·신궁과 핵심 별 요약','20,700자 이상 상담 본문','질문에 대한 답과 처방','PDF 저장과 지난 기록 다시 보기'],previewText:'한 번에 끝나는 요약이 아니라, 고른 주제와 적어 둔 고민에 맞춰 명반을 짚어 가며 쓰는 상담문입니다.',recommendedFor:['자미두수를 제대로 한 번 보고 싶은 분','지금의 고민에 맞춘 답을 원하는 분','긴 분량의 해석을 원하는 분'],answersQuestions:['지금 이직해도 괜찮을까요?','돈과 일 중 어디에 무게를 둬야 할까요?','올해 큰 결정을 내려도 될까요?'],analysisSteps:[{label:'명반 작성',detail:'생년월일시로 열두 궁에 주성과 사화를 배치합니다.'},{label:'궁 강약 판정',detail:'어느 궁에 힘이 실리고 어디가 비었는지 가립니다.'},{label:'주제별 작성',detail:'고른 주제를 축으로 명반의 각 자리를 나눠 상담문을 씁니다.'},{label:'근거 정리',detail:'어떤 별과 배치를 읽었는지 근거를 함께 남깁니다.'}],valueCompare:{rows:[{axis:'분량',premium:'본문 20,700자 이상'},{axis:'구성',premium:'명반 · 대운 타임라인과 상담 본문'},{axis:'보관',premium:'PDF 저장과 지난 기록 다시 보기'}]},faq:[{q:'출생 시간을 모르면 어떻게 되나요?',a:'모름으로 두고 진행할 수 있습니다.'},{q:'결과를 나중에 다시 볼 수 있나요?',a:'로그인해 두면 지난 상담이 목록에 남아 추가 결제 없이 다시 열 수 있습니다.'},{q:'얼마나 긴가요?',a:'본문 기준 20,700자 이상으로 나옵니다.'}],trustNotes:['결제 전 구성과 분량을 먼저 확인할 수 있어요.','이용권·월정석·단건결제 판단은 기존 결제 정책을 그대로 따릅니다.','운세 결과는 참고용이며 중요한 선택은 현실적인 판단과 함께 확인해 주세요.'],ctaLabel:'자미두수 상담 열기',reportScale:{minWords:20700},ctaNote:'결제 후 12궁 명반과 20,700자 이상 상담문이 열립니다.'},
     'ziwei-ai-consultation':{inherit:'gotoZiweiPremium'},
     '/ziwei-ai':{inherit:'gotoZiweiPremium'},
     '/destiny-island.html':{featureId:'ziwei-destiny-island',category:'자미두수',badge:'무료 체험형',headline:'태어난 순간의 명반이 하나의 섬으로 태어납니다.',subheadline:'명궁 주성이 섬의 바이옴을, 궁의 강약이 건물의 등급을 정하는 자미두수 인터랙티브 맵입니다.',painPoints:['명반 도표가 낯설고 어렵게 느껴질 때','내 12궁의 강약을 한눈에 보고 싶을 때','매일 가볍게 들여다볼 운세 공간이 필요할 때'],unlockBenefits:['명궁 주성·오행국 기반 나만의 섬 생성','12궁 건물 등급(폐허~신전)과 공명 흐름 시각화','대운의 계절·매일 바뀌는 섬 날씨','연이·네오와 12궁 NPC의 안내 대화, 일일 퀘스트'],recommendedFor:['명반 도표가 낯설어 그림으로 먼저 보고 싶은 분','내 12궁 중 어디가 강하고 약한지 한눈에 보고 싶은 분','매일 가볍게 들여다볼 운세 공간을 찾는 분'],previewText:'운명의 섬은 무료로 열리는 체험형 지도예요. 깊은 상담이 필요하면 섬 안에서 자미두수 전문가 상담으로 이어집니다.',trustNotes:['섬 생성과 탐험은 모두 무료입니다.','섬의 지형과 건물은 명반 계산 결과 그대로를 반영합니다.','운세 결과는 참고용이며 중요한 선택은 현실적인 판단과 함께 확인해 주세요.'],ctaLabel:'섬으로 입장'},
@@ -34128,7 +34129,7 @@ function updateBadge() {
     '/oracle/sukuyo/':{inherit:'openSukuyoModal'},
     gotoSukuyoPremium:{featureId:'sukuyo-compatibility-ai',category:'숙요점',badge:'전문가 상담형',headline:'좋고 나쁨보다 중요한 두 사람의 거리감을 먼저 읽어보세요.',subheadline:'본명숙과 관계 유형을 바탕으로 끌림, 충돌, 다시 가까워지는 리듬을 상담형으로 정리합니다.',painPoints:['상대와의 거리감이 자주 흔들릴 때','끌리지만 부딪히는 이유가 궁금할 때','관계를 이어갈 말과 피해야 할 행동을 구분하고 싶을 때'],feats:['두 사람의 본명숙을 각각 계산해 관계 유형과 해석 근거를 먼저 제시','끌림·감정의 방향성·대화법·갈등·금기를 각각 별도 섹션으로 분리','결혼·동거·사업·친구·직장 등 영역별로 궁합을 나눠 해석','만난 직후·1년·3년·5년 이후 네 구간의 변화를 함께 정리'],receives:[{icon:'💯',title:'종합 궁합 점수와 8축 별점',detail:'종합 궁합 점수 게이지와 관계 점수 8축 별점으로 두 사람의 결을 한눈에 보여 드려요.'},{icon:'🌙',title:'이 관계의 본질과 분석 근거',detail:'두 사람의 본명숙과 관계 유형에서 이 관계의 본질을 짚고, 그렇게 읽은 근거를 함께 적습니다.'},{icon:'📊',title:'항목별 지표와 두 사람 비교',detail:'레이더와 막대로 항목별 지표를 보여 주고, 두 사람을 나란히 놓고 비교합니다.'},{icon:'📜',title:'섹션별 전체 해설',detail:'총론부터 마지막 한마디까지 끌림 · 대화법 · 갈등 · 영역별 궁합 · 시간에 따른 변화를 섹션마다 풀어 씁니다.'},{icon:'📄',title:'PDF 저장과 다시 보기',detail:'결과는 PDF로 저장할 수 있고, 지난 달빛 궁합 목록에서 다시 열어 볼 수 있어요.'}],outline:[{title:'달빛 궁합 답장',detail:'종합 궁합 점수 게이지와 관계 점수 8축 별점이 먼저 열립니다.'},{title:'이 관계의 본질',detail:'두 사람의 관계를 한 문단으로 정리하고 분석 근거를 붙입니다.'},{title:'항목별 지표',detail:'레이더와 막대로 항목마다 두 사람의 점수를 봅니다.'},{title:'두 사람 비교',detail:'두 사람의 결과를 나란히 놓고 비교합니다.'},{title:'자세히 보기',detail:'총론부터 마지막 한마디까지 섹션별 전체 해설을 차례로 읽습니다.'},{title:'저장과 다시 보기',detail:'PDF로 저장하거나, 지난 달빛 궁합 목록에서 다시 열 수 있습니다.'}],outlineImage:'/fuctionassets/sukyo_premium.webp',recommendedFor:['상대와 이상하게 끌리면서도 자꾸 부딪히는 분','이 인연을 이어갈지 정리할지 결론이 필요한 분','연락과 대화의 타이밍을 번번이 놓치는 분'],answersQuestions:['이 사람과 계속 만나도 될까요?','왜 가까워질수록 자꾸 부딪힐까요?','다시 연락해도 괜찮을까요?'],valueCompare:{rows:[{axis:'대상',free:'내 본명숙 요약',premium:'두 사람의 본명숙과 관계 유형 전체'},{axis:'분량',premium:'15개 섹션 합계 18,000자 이상'},{axis:'시기 조언',free:'없음',premium:'언제 다가서고 언제 물러설지'}]},faq:[{q:'상대 생년월일이 꼭 필요한가요?',a:'네. 두 사람의 본명숙을 각각 계산해야 관계 유형이 나옵니다.'},{q:'궁합이 나쁘면 헤어져야 하나요?',a:'아니요. 어려운 유형일수록 지켜야 할 선이 오히려 분명해집니다. 그 선을 알려드리는 게 이 상담의 목적입니다.'},{q:'재회 가능성도 봐주나요?',a:'가능성을 보장하지는 않습니다. 다만 관계가 다시 움직일 수 있는 지점과 지금 피해야 할 반응은 짚어 드립니다.'}],unlockBenefits:['총론 — 종합 궁합 총평과 해석 근거','두 별의 본질, 끌림의 구조, 감정의 방향성','대화법·관계 유지 전략과 갈등의 파문','반드시 조심해야 할 패턴과 카르마 분석','영역별 궁합(결혼·동거·사업·친구·직장)','시간에 따른 변화와 마지막 한마디'],previewText:'숙요점 상담은 재회나 결말을 보장하지 않고, 위 항목을 열다섯 개 섹션으로 나눠 관계의 온도와 거리감이 어떻게 움직이는지를 씁니다.',trustNotes:['상대 정보가 필요한 상담은 입력 후 해석이 달라질 수 있습니다.','이용권·월정석·단건결제 정책은 기존 기준을 따릅니다.','관계 판단은 현실적인 대화와 함께 살펴주세요.'],ctaLabel:'숙요 궁합 상담 열기',reportScale:{sections:15,minWords:18000},ctaNote:'두 분의 본명숙으로 계산된 관계 리포트가 열립니다.'},
     'sukuyo-compatibility-ai':{inherit:'gotoSukuyoPremium'},
-    'astrology-ai-consultation':{featureId:'astrology-ai-consultation',category:'점성술',badge:'전문가 상담형',headline:'출생 차트를 계산해 6개 주제로 나눈 상담문을 씁니다.',subheadline:'본문은 15,000자 이상으로 나오고, 읽고 난 뒤 추가 질문을 이어서 할 수 있습니다.',feats:['입력한 출생 정보로 출생 차트를 계산합니다','상담문을 6개 주제로 나눠 정리합니다','본문은 15,000자 이상입니다','읽고 난 뒤 추가 질문을 이어서 할 수 있습니다'],painPoints:['별자리 운세는 봐도 내 얘기 같지 않을 때','태양·달·상승궁이 무슨 뜻인지 모를 때','언제 움직여야 할지 시기를 잡고 싶을 때'],unlockBenefits:['본인 출생 차트 계산','6개 주제로 나눈 상담문','15,000자 이상 본문','추가 질문 이어가기'],previewText:'열두 별자리 공통 운세가 아니라, 입력한 출생 정보로 계산한 본인 차트를 근거로 씁니다.',recommendedFor:['공통 별자리 운세가 아쉬웠던 분','내 차트를 제대로 한 번 보고 싶은 분','읽고 나서 되묻고 싶은 분'],answersQuestions:['왜 마음과 상황이 따로 놀까요?','언제 움직이는 게 좋을까요?','사람들에게 나는 어떻게 보일까요?'],analysisSteps:[{label:'출생 차트 계산',detail:'입력한 출생 정보로 행성 위치와 하우스를 계산합니다.'},{label:'주제 분할',detail:'상담문을 6개 주제로 나눕니다.'},{label:'주제별 작성',detail:'주제마다 차트의 어느 배치를 근거로 하는지 밝히며 씁니다.'},{label:'추가 질문',detail:'결과를 읽고 남은 질문을 이어서 물을 수 있습니다.'}],valueCompare:{rows:[{axis:'대상',premium:'입력한 출생 정보로 계산한 본인 차트'},{axis:'분량',premium:'본문 15,000자 이상'},{axis:'구성',premium:'6개 주제로 나눈 상담문'}]},faq:[{q:'태어난 시간을 모르면 어떻게 되나요?',a:'차트 기반 해석이라 출생 시간의 정확도가 결과에 영향을 줍니다.'},{q:'얼마나 긴가요?',a:'본문 기준 15,000자 이상으로 나옵니다.'},{q:'읽고 나서 더 물어볼 수 있나요?',a:'결과를 받은 뒤 추가 질문을 이어서 할 수 있습니다.'}],trustNotes:['차트 기반 기능은 입력한 출생 시간의 정확도에 영향을 받습니다.','결제 정책은 기존 이용권·월정석·단건결제 기준을 따릅니다.','운세 결과는 참고용입니다.'],ctaLabel:'점성술 상담 열기',reportScale:{minWords:15000,sections:6},ctaNote:'결제 후 본인 출생 차트로 계산된 6개 주제 상담문이 열립니다.'},
+    'astrology-ai-consultation':{featureId:'astrology-ai-consultation',category:'점성술',badge:'전문가 상담형',headline:'출생 차트를 계산해 15,000자 이상 상담문을 씁니다.',subheadline:'상담 주제를 고르고 질문을 적으면, 태양·달·상승궁부터 각도와 트랜짓까지 짚어 가며 한 편의 상담문으로 답합니다.',feats:['입력한 출생 정보로 행성 위치와 하우스를 계산합니다','상담 주제 열네 가지 중 하나를 고르고 질문을 직접 적습니다','본문은 15,000자 이상입니다','태양·달·상승궁과 차트 룰러를 따로 정리해 보여 줍니다','완성된 상담을 PDF 로 내려받을 수 있습니다'],painPoints:['별자리 운세는 봐도 내 얘기 같지 않을 때','태양·달·상승궁이 무슨 뜻인지 모를 때','언제 움직여야 할지 시기를 잡고 싶을 때'],receives:[{icon:'📜',title:'15,000자 이상 상담문',detail:'고른 주제와 적어 둔 질문에 맞춰 여섯 묶음으로 나눠 길게 써 드립니다.'},{icon:'🪐',title:'출생 천궁도와 차트 시그니처',detail:'천궁도와 함께 태양·달·상승궁, 차트 룰러를 카드로 정리해 보여 줍니다.'},{icon:'🔭',title:'행성·하우스·각도·트랜짓 원본',detail:'상담문 옆에서 계산된 배치를 그룹별로 직접 펼쳐 볼 수 있어요.'},{icon:'🔍',title:'주요 근거',detail:'어떤 배치를 읽고 그렇게 말했는지 근거를 따로 모아 둡니다.'},{icon:'📄',title:'PDF 저장과 다시 열기',detail:'로그인한 계정에 저장돼 추가 결제 없이 다시 열 수 있고 PDF 로도 내려받습니다.'}],outline:[{title:'입력 요약',detail:'생년월일 · 출생시간 · 출생지 · 상담 주제를 카드로 먼저 확인합니다.'},{title:'현재 질문',detail:'적어 둔 질문을 상담문 앞에 그대로 둡니다.'},{title:'상담 본문',detail:'태양·달·상승궁의 중심축부터 개인 행성, 각도와 원소, 하우스와 트랜짓까지 쪽을 나눠 읽습니다.'},{title:'출생 천궁도와 차트 시그니처',detail:'천궁도 그림과 태양·달·상승궁·차트 룰러를 함께 봅니다.'},{title:'주요 근거와 차트 원본',detail:'해석의 근거와 행성·하우스·각도·트랜짓 원본으로 닫습니다.'}],outlineImage:'/feature-details/assets/astrology-960.webp',unlockBenefits:['본인 출생 차트 계산','15,000자 이상 상담 본문','출생 천궁도와 차트 시그니처','해석 근거와 차트 원본 열람','PDF 저장과 다시 열기'],previewText:'열두 별자리 공통 운세가 아니라, 입력한 출생 정보로 계산한 본인 차트를 근거로 씁니다.',recommendedFor:['공통 별자리 운세가 아쉬웠던 분','내 차트를 제대로 한 번 보고 싶은 분','근거까지 확인하며 읽고 싶은 분'],answersQuestions:['왜 마음과 상황이 따로 놀까요?','언제 움직이는 게 좋을까요?','사람들에게 나는 어떻게 보일까요?'],analysisSteps:[{label:'출생 차트 계산',detail:'입력한 출생 정보로 행성 위치와 하우스를 계산합니다.'},{label:'주제와 질문 확인',detail:'고른 상담 주제와 적어 둔 질문을 상담문의 축으로 삼습니다.'},{label:'주제별 작성',detail:'여섯 묶음으로 나눠 차트의 어느 배치를 근거로 하는지 밝히며 씁니다.'},{label:'근거 정리',detail:'어떤 배치를 읽었는지 근거를 따로 모아 함께 남깁니다.'}],valueCompare:{rows:[{axis:'대상',premium:'입력한 출생 정보로 계산한 본인 차트'},{axis:'분량',premium:'본문 15,000자 이상'},{axis:'보관',premium:'PDF 저장과 계정에서 다시 열기'}]},faq:[{q:'태어난 시간을 모르면 어떻게 되나요?',a:'모름으로 두고 진행할 수 있습니다. 이때 상승궁과 하우스는 확정하지 않고 제한적으로만 읽습니다.'},{q:'얼마나 긴가요?',a:'본문 기준 15,000자 이상으로 나옵니다.'},{q:'결과를 나중에 다시 볼 수 있나요?',a:'로그인한 계정에 저장돼 추가 결제 없이 다시 열 수 있습니다.'}],trustNotes:['차트 해석은 입력한 출생 시간의 정확도에 영향을 받습니다.','결제 정책은 기존 이용권·월정석·단건결제 기준을 따릅니다.','운세 결과는 참고용입니다.'],ctaLabel:'점성술 상담 열기',reportScale:{minWords:15000,sections:6},ctaNote:'결제 후 본인 출생 차트로 계산된 상담문과 천궁도가 열립니다.'},
     gotoAstrologyPremium:{inherit:'astrology-ai-consultation'},
     '/astrology-ai':{inherit:'astrology-ai-consultation'},
     'karma-destiny-ai-consultation':{featureId:'karma-destiny-ai-consultation',category:'프리미엄 리포트',badge:'전문가 상담형',headline:'같은 인연과 같은 사건이 왜 반복되는지, 그 뿌리부터 되짚습니다.',subheadline:'명식에 새겨진 오래된 흐름과 지금의 관계·선택을 연결해, 반복의 원인과 끊어낼 지점을 정리하는 최상위 상담입니다.',painPoints:['비슷한 사람에게 계속 끌려 같은 결말을 볼 때','노력해도 특정 영역만 늘 막힐 때','이유를 모른 채 죄책감이나 부채감이 남을 때'],recommendedFor:['원인을 모른 채 같은 패턴을 반복해온 분','관계에서 매번 같은 역할을 떠맡게 되는 분','한 번은 뿌리까지 정리하고 넘어가고 싶은 분'],feats:['명식을 근거로 열다섯 개 장을 순서대로 작성하고 한 번에 한 장씩 깊게 전개','인간관계·사랑·돈·직업·건강의 업을 각각 독립된 장으로 분리','숨겨진 재능과 운명의 전환점을 별도 장에서 정리','다섯 관점의 종합 결론과 마지막 편지로 마무리'],unlockBenefits:['운명의 핵심 주제 · 운명의 근원 · 현재 삶의 흐름','업의 핵심 과제 · 인간관계의 업 · 사랑의 업','돈의 업 · 직업의 업 · 건강 에너지','숨겨진 재능 · 운명의 전환점 · 앞으로의 성장 전략','다섯 관점의 종합 결론','운명을 바꾸는 핵심 문장 · 최종 편지'],previewText:'운명의 업 상담은 전생 이야기로 끝내지 않고, 위 주제를 열다섯 개 장으로 나눠 지금 삶에서 무엇을 끊고 무엇을 남길지까지 정리합니다.',trustNotes:['전생·업에 대한 해석은 상징적 관점이며 사실 판정이 아닙니다.','상담 결과는 참고용이며 치료·법률 판단을 대신하지 않습니다.','이용권·월정석·단건결제 정책은 기존 기준을 따릅니다.'],ctaLabel:'운명의 업 열람하기',reportScale:{chapters:15},answersQuestions:['왜 비슷한 사람에게 계속 끌릴까요?','이 패턴은 언제부터 시작됐나요?','무엇을 끊어야 반복이 멈추나요?'],valueCompare:{rows:[{axis:'구성',free:'성향 요약',premium:'15개 장으로 나뉜 심층 해석'},{axis:'관점',free:'지금의 나',premium:'패턴의 시작점부터 지금까지'},{axis:'조언',free:'일반론',premium:'끊을 고리와 남길 인연을 나눠서'}]},faq:[{q:'전생 이야기인가요?',a:'전생은 상징으로만 다룹니다. 핵심은 지금 삶에서 무엇이 반복되고 무엇을 끊어야 하는지입니다.'},{q:'치료나 상담을 대신하나요?',a:'아니요. 심리 치료나 법률 판단을 대신하지 않습니다. 참고 자료로만 봐 주세요.'},{q:'다른 상담과 무엇이 다른가요?',a:'15개 장으로 나눠 패턴의 뿌리부터 되짚기 때문에 분량과 계산 범위가 가장 큽니다.'}],ctaNote:'결제 후 15개 장 전체와 단계별 실행안이 열립니다.'},
@@ -34255,12 +34256,12 @@ function updateBadge() {
     openSajuGuardianPage:{featureId:'saju-guardian-unlock',category:'사주 수호신',badge:'수호 소환형',headline:'당신의 일주가 부르는 수호 가디언, 소환진 위에 나타납니다.',subheadline:'태어난 날의 일주가 예순 갑자 가운데 당신의 가디언을 정하고, 같은 명식이면 늘 같은 모습으로 소환됩니다. 다섯 패널의 풀이와 부적 주머니가 함께 열립니다.',painPoints:['사주 풀이가 글자만 빽빽해 와닿지 않을 때','내 명식을 캐릭터로 간직하고 싶을 때','매일 챙길 개운 루틴이 필요할 때'],feats:['예순 갑자 그대로, 60가지 수호 가디언 캐릭터','같은 명식이면 같은 모습 — AI가 그려내는 내 가디언 이미지','핵심 수호 인장 · 관계/일/재물 운용 · 오늘의 개운 의식 · 7일 가디언 미션 · 실전 가디언 가이드 다섯 패널','오늘의 색 · 소환 주문 · 작은 실행 · 시간 열쇠를 담은 부적 주머니'],unlockBenefits:['내 일주의 수호 가디언과 AI 이미지','핵심 수호 인장과 관계 · 일 · 재물 운용','오늘의 개운 의식과 7일 가디언 미션','부적 주머니 — 오늘의 색 · 소환 주문 · 작은 실행 · 시간 열쇠'],previewText:'수호 가디언은 사주 용어를 캐릭터의 언어로 옮겨, 내 명식을 지키는 존재로 만나게 합니다.',recommendedFor:['사주 용어가 어렵게 느껴졌던 분','나만의 수호 캐릭터를 갖고 싶은 분','짧은 개운 루틴을 원하는 분'],answersQuestions:['내 일주의 가디언은 어떤 모습인가요?','관계 · 일 · 재물은 어떻게 운용해야 하나요?','오늘 나를 지키는 의식은 무엇인가요?'],analysisSteps:[{label:'명식 계산',detail:'생년월일시로 일주를 세웁니다.'},{label:'가디언 소환',detail:'예순 갑자에서 내 가디언이 정해지고 같은 모습으로 나타납니다.'},{label:'풀이·부적 열기',detail:'다섯 패널 풀이와 부적 주머니가 열립니다.'}],faq:[{q:'볼 때마다 가디언이 바뀌나요?',a:'아니요. 같은 명식이면 언제나 같은 가디언이 같은 모습으로 소환됩니다.'},{q:'로그인해야 하나요?',a:'로그인 없이 이용할 수 있습니다.'}],trustNotes:['풀이는 참고용입니다.','캐릭터 이미지는 AI가 생성합니다.','기존 결제 정책을 따릅니다.'],ctaLabel:'수호 가디언 소환하기'},
     openSajuAnimalPage:{inherit:'openSajuGuardianPage'},
     openZiweiModal:{featureId:'ziwei-basic',category:'자미두수',badge:'명반 리딩',headline:'명궁과 신궁이 그리는 내 운명의 별자리 지도를 펼칩니다.',subheadline:'동양 점성술 자미두수로 나의 기본 성향과 삶의 작동축을 읽어주는 명반 분석입니다.',painPoints:['내 타고난 성향의 중심축이 궁금할 때','일·돈·관계 중 어디에 강점이 있는지 알고 싶을 때','사주와는 다른 각도로 나를 보고 싶을 때'],unlockBenefits:['명궁·신궁 기반 핵심 기질','관록·재백·부부궁의 기본 흐름','강점과 주의 신호 요약','더 깊은 해석으로 확장하는 길'],previewText:'자미두수 명반은 길흉을 겁주지 않고, 내 운명의 별들이 어느 궁에 어떻게 자리했는지를 지도처럼 보여줍니다.',recommendedFor:["자미두수를 처음 접해 기본부터 보고 싶은 분","내 명궁 주성이 무엇인지 궁금한 분","유료 상담 전에 구조를 먼저 익히고 싶은 분"],trustNotes:['해석은 참고용입니다.','유파에 따라 해석이 다를 수 있습니다.','기존 서비스 기준을 따릅니다.'],ctaLabel:'내 명반 펼치기'},
-    navigateToZiweiChart:{featureId:'ziwei-deep',category:'자미두수 심화',badge:'12궁 전략',headline:'12궁 전체로 읽는 당신의 인생 마스터플랜을 엽니다.',subheadline:'명궁부터 형제·부부·재백·관록까지 12궁을 잇는 심화 자미두수로 인생 전략과 시기를 정리합니다.',painPoints:['기본 명반을 넘어 심화 전략이 필요할 때','대한·유년의 기회 시기를 알고 싶을 때','인생의 큰 판을 한눈에 보고 싶을 때'],unlockBenefits:['12궁 주성 기반 심화 캐릭터 분석','인생 전략과 핵심 궁의 연결','대한·유년 타이밍 흐름','프로필 연동 자동 계산'],previewText:'자미두수 심화는 단편적 해석 대신, 12궁이 엮어내는 인생의 큰 지도를 전략처럼 펼쳐냅니다.',recommendedFor:["기본 명반을 보고 더 깊이 들어가고 싶은 분","12궁 전체를 한 번에 정리하고 싶은 분","장기 계획의 근거가 필요한 분"],trustNotes:['심화 해석은 참고용입니다.','유파에 따라 다를 수 있습니다.','기존 서비스 기준을 따릅니다.'],ctaLabel:'12궁 전략 열기'},
+    navigateToZiweiChart:{featureId:'ziwei-deep',category:'자미두수 심화',badge:'12궁 전략',headline:'열두 궁을 하나씩 짚어 인생 전략을 결제 없이 펼칩니다.',subheadline:'먼저 읽고 싶은 질문을 고르면 명궁·신궁부터 열두 궁과 사화·대한까지 열네 장으로 나눠 읽어 드립니다.',painPoints:['기본 명반을 넘어 심화 전략이 필요할 때','대한·유년의 기회 시기를 알고 싶을 때','인생의 큰 판을 한눈에 보고 싶을 때'],receives:[{icon:'🧭',title:'고른 질문부터 답하는 핵심 답변',detail:'여덟 가지 주제 가운데 고른 질문에 결론부터 답하고 시작합니다.'},{icon:'📜',title:'열네 장으로 나눈 심화 상담',detail:'명궁·신궁부터 열두 궁과 사화·대한 전략까지 장을 나눠 읽습니다.'},{icon:'🗺️',title:'12궁 명반 펼쳐 보기',detail:'열두 궁의 주성과 보조성, 사화와 삼방사정을 격자로 펼쳐 볼 수 있어요.'},{icon:'✍️',title:'이번 주와 이번 달 할 일',detail:'읽은 내용을 지금 해 볼 행동으로 바꿔 따로 정리합니다.'},{icon:'🔗',title:'요약만 골라 공유',detail:'이름과 출생 정보는 빼고 고른 질문과 핵심 답변만 공유할 수 있어요.'}],outline:[{title:'핵심 답변',detail:'고른 질문에 대한 결론을 먼저 둡니다.'},{title:'기본 총론',detail:'명반의 기본 골격부터 순서대로 읽어 나갑니다.'},{title:'질문별 상담',detail:'주제마다 해석과 함께 이렇게 해보세요, 이 해석의 근거 보기를 붙입니다.'},{title:'명반',detail:'열두 궁 격자와 궁위 배치, 사화가 만드는 흐름을 펼쳐 봅니다.'},{title:'오늘의 조언',detail:'현재 시기 분석과 이번 주·이번 달 할 일로 닫습니다.'}],outlineImage:'/feature-details/assets/ziwei-960.webp',unlockBenefits:['핵심 답변과 기본 총론','질문별 상담과 해석 근거 보기','12궁 명반과 사화·삼방사정','이번 주·이번 달 할 일','현재 시기 분석과 상담 마무리'],previewText:'심화 명반은 결제 없이 열립니다. 더 긴 해설이 필요하면 화면 아래의 심층 리포트를 따로 고를 수 있습니다.',recommendedFor:['기본 명반을 보고 더 깊이 들어가고 싶은 분','열두 궁 전체를 한 번에 정리하고 싶은 분','장기 계획의 근거가 필요한 분'],trustNotes:['심화 해석은 참고용입니다.','유파에 따라 다를 수 있습니다.','결과는 따로 보관되지 않아 다시 열 때는 정보를 다시 넣어야 해요.','기존 서비스 기준을 따릅니다.'],ctaLabel:'12궁 전략 열기'},
     openAstroModal:{featureId:'astro-basic',category:'서양 점성술',badge:'출생차트',headline:'태양·달·상승궁이 말하는 진짜 나를 만나보세요.',subheadline:'태어난 하늘의 배치로 나의 겉모습과 속마음, 인생의 방향을 읽어주는 기본 출생차트 리딩입니다.',painPoints:['별자리보다 깊은 나를 알고 싶을 때','겉과 속이 다르게 느껴지는 이유가 궁금할 때','내 인생의 큰 방향을 하늘에서 찾고 싶을 때'],unlockBenefits:['태양·달·상승궁 3축 통합 해석','겉모습과 속마음의 차이','인생 방향을 가리키는 MC','궁합으로 확장하는 시너스트리'],previewText:'출생차트는 하루 운세가 아니라, 태어난 순간의 하늘이 그린 당신의 근원적 지도를 보여줍니다.',recommendedFor:["별자리를 태양 하나로만 알고 있던 분","내 출생 차트를 처음 보는 분","유료 상담 전에 기본을 익히고 싶은 분"],trustNotes:['해석은 참고용입니다.','출생 정보 정확도에 영향을 받습니다.','기존 서비스 기준을 따릅니다.'],ctaLabel:'내 별의 지도 보기'},
     navigateToVedic:{featureId:'vedic-basic',category:'베다 점성술',badge:'Jyotish',headline:'5000년 인도 점성술이 해독하는 전생의 업과 지금의 시기.',subheadline:'라시·낙샤트라·다샤의 흐름으로 카르마의 패턴과 인생의 시간표를 읽어주는 베다 점성술입니다.',painPoints:['왜 같은 일이 반복되는지 근원이 궁금할 때','기회와 위기의 시기를 미리 알고 싶을 때','서양 점성술과 다른 깊이를 원할 때'],unlockBenefits:['라시·낙샤트라로 읽는 업의 패턴','다샤 기간별 기회와 시련의 시기','반복되는 카르마의 뿌리','지금 시점의 카르마적 의미'],previewText:'베다 점성술은 막연한 운세가 아니라, 전생의 업이 지금 어떻게 작동하는지를 시간의 흐름으로 해독합니다.',recommendedFor:["서양 점성술과 다른 시선을 보고 싶은 분","시기(다샤) 개념이 궁금한 분","유료 상담 전에 차트를 먼저 보고 싶은 분"],trustNotes:['해석은 참고용입니다.','업·카르마는 상징적 개념입니다.','기존 서비스 기준을 따릅니다.'],ctaLabel:'카르마 해독 시작'},
-    'master-love-codex':{featureId:'master-love-codex',category:'프리미엄 리포트',badge:'연애 심층서',headline:'당신의 연애를 스무 개의 장으로 나눠 한 권으로 정리합니다.',subheadline:'일간의 기질과 명궁 주성을 근거로 타고난 연애 성향부터 시기별 전망까지 순서대로 쌓아 올리는 최상위 연애 해석서입니다.',painPoints:['연애가 매번 비슷한 방식으로 끝날 때','내가 어떤 사람에게 약한지 모를 때','짧은 해석으로는 늘 아쉬웠을 때'],recommendedFor:['연애 패턴을 한 번 제대로 정리하고 싶은 분','요약이 아니라 한 권 분량을 원하는 분','근거까지 확인하며 읽고 싶은 분'],feats:['생년월일시로 사주 원국과 자미두수 명반을 함께 계산','스무 개 장을 순서대로 생성하며 앞 장을 뒷 장의 근거로 사용','일간·십성·부부궁·천이궁 등 장마다 근거를 명시','연애 DNA 지표와 앞으로 3년의 인연 흐름을 별도 장으로 정리'],unlockBenefits:['운명의 문 · 타고난 연애 기질 · 부부궁이 말하는 배우자상','끌림의 원리 · 애착과 표현 방식 · 마음의 방어기제','인연이 열리는 자리 · 썸에서 연애로 · 고백과 타이밍','관계의 온도 곡선 · 갈등의 뿌리 · 화해와 회복의 언어','질투와 거리두기 · 친밀감의 리듬 · 이별과 재회의 문','결혼운과 장기 동행 · 사주 × 자미두수 교차검증','연애 DNA 프로필 · 앞으로 3년 · 마지막 편지'],previewText:'마스터 러브 코덱스는 좋은 말을 늘어놓기보다, 당신이 사랑에서 반복하는 구조를 근거와 함께 스무 장에 나눠 설명합니다.',reportScale:{chapters:20,minWords:46000},answersQuestions:['왜 매번 같은 방식으로 끝날까요?','끌리는 사람과 맞는 사람이 왜 다를까요?','다음 연애에서는 뭘 바꿔야 할까요?'],analysisSteps:[{label:'명식 계산',detail:'생년월일시로 사주 원국과 자미두수 명반을 함께 계산합니다.'},{label:'연애 축 추출',detail:'일간·십성과 부부궁·복덕궁에서 연애의 큰 축 세 가지를 뽑습니다.'},{label:'장별 전개',detail:'그 축을 스무 개 장으로 나눠 서로 겹치지 않게 배분합니다.'},{label:'해석서 작성',detail:'앞 장이 뒷 장의 근거가 되도록 순서대로 써 내려갑니다.'}],valueCompare:{rows:[{axis:'구성',free:'성향 요약',premium:'20개 장으로 나뉜 해석서'},{axis:'분량',premium:'20개 장 합계 46,000자 이상'},{axis:'근거',free:'없음',premium:'장마다 일간·궁위 근거를 명시'}]},faq:[{q:'다른 연애 기능과 무엇이 다른가요?',a:'한 장면을 짚는 게 아니라 연애 전체를 스무 장으로 나눠 한 권으로 씁니다. 분량과 근거의 밀도가 가장 큽니다.'},{q:'생성에 얼마나 걸리나요?',a:'분량이 커서 시간이 걸립니다. 화면을 닫지 말고 기다려 주세요.'},{q:'상대 정보가 필요한가요?',a:'이 상품은 본인 분석입니다. 두 사람 궁합은 별도의 궁합편에서 다룹니다.'}],trustNotes:['결제 전 구성과 분량을 먼저 확인할 수 있어요.','이용권·월정석·단건결제 정책은 기존 기준을 따릅니다.','관계 결과를 보장하지 않는 참고용 해석입니다.'],ctaNote:'결제 후 20개 장 전체가 순서대로 열립니다.',ctaLabel:'연애 해석서 열람하기'},
+    'master-love-codex':{featureId:'master-love-codex',category:'프리미엄 리포트',badge:'연애 심층서',headline:'당신의 연애를 스무 개의 장으로 나눠 한 권으로 정리합니다.',subheadline:'일간의 기질과 명궁 주성을 근거로 타고난 연애 성향부터 시기별 전망까지 순서대로 쌓아 올리는 최상위 연애 해석서입니다.',painPoints:['연애가 매번 비슷한 방식으로 끝날 때','내가 어떤 사람에게 약한지 모를 때','짧은 해석으로는 늘 아쉬웠을 때'],recommendedFor:['연애 패턴을 한 번 제대로 정리하고 싶은 분','요약이 아니라 한 권 분량을 원하는 분','근거까지 확인하며 읽고 싶은 분'],feats:['생년월일시로 사주 원국과 자미두수 명반을 함께 계산','스무 개 장을 순서대로 생성하며 앞 장을 뒷 장의 근거로 사용','일간·십성·부부궁·천이궁 등 장마다 근거를 명시','연애 DNA 지표와 앞으로 3년의 인연 흐름을 별도 장으로 정리'],receives:[{icon:'📖',title:'다섯 막 스무 장의 연애 해석서',detail:'타고난 결부터 마음의 구조, 관계의 온도, 깊어지는 자리, 해독과 봉인까지 다섯 막으로 나눠 씁니다.'},{icon:'🔍',title:'장마다 근거와 인사이트',detail:'무엇을 근거로 읽었는지 칩으로 펼치고, 이 장의 흐름과 주의할 순간을 함께 짚습니다.'},{icon:'✍️',title:'지금 할 수 있는 행동',detail:'장마다 바로 해 볼 수 있는 행동을 두세 가지씩 드립니다.'},{icon:'🧬',title:'연애 DNA 열 가지 지표',detail:'신뢰 · 배려 · 주도성 · 표현력 · 질투 · 집착 · 감성 · 이성 · 설렘 · 헌신을 0~100 막대로 보여 줍니다.'},{icon:'📄',title:'PDF 소장과 다시 열기',detail:'계정에 보관돼 다시 결제하지 않고 열 수 있고, 읽던 자리에서 이어 읽을 수 있어요.'}],outline:[{title:'표지 · 한눈에 보는 상담',detail:'연애 유형 이름과 핵심 요약을 먼저 펼칩니다.'},{title:'I 타고난 결',detail:'운명의 문과 타고난 연애 기질, 부부궁이 말하는 배우자상, 끌림의 원리를 읽습니다.'},{title:'II 마음의 구조',detail:'애착과 표현 방식, 마음의 방어기제, 인연이 열리는 자리와 썸에서 연애로 넘어가는 조건을 짚습니다.'},{title:'III 관계의 온도',detail:'고백과 타이밍, 관계의 온도 곡선, 갈등의 뿌리와 화해의 언어를 봅니다.'},{title:'IV 깊어지는 자리',detail:'질투와 거리두기, 친밀감의 리듬, 이별과 재회의 문, 결혼운과 장기 동행을 다룹니다.'},{title:'V 해독과 봉인',detail:'사주와 자미두수의 교차검증, 연애 DNA 프로필, 앞으로 3년, 마지막 편지로 닫습니다.'}],outlineImage:'/feature-details/assets/master-love-codex-960.webp',unlockBenefits:['운명의 문 · 타고난 연애 기질 · 부부궁이 말하는 배우자상','끌림의 원리 · 애착과 표현 방식 · 마음의 방어기제','인연이 열리는 자리 · 썸에서 연애로 · 고백과 타이밍','관계의 온도 곡선 · 갈등의 뿌리 · 화해와 회복의 언어','질투와 거리두기 · 친밀감의 리듬 · 이별과 재회의 문','결혼운과 장기 동행 · 사주 × 자미두수 교차검증','연애 DNA 프로필 · 앞으로 3년 · 마지막 편지'],previewText:'마스터 인연의 서는 좋은 말을 늘어놓기보다, 당신이 사랑에서 반복하는 구조를 근거와 함께 스무 장에 나눠 설명합니다.',reportScale:{chapters:20,minWords:46000},answersQuestions:['왜 매번 같은 방식으로 끝날까요?','끌리는 사람과 맞는 사람이 왜 다를까요?','다음 연애에서는 뭘 바꿔야 할까요?'],analysisSteps:[{label:'명식 계산',detail:'생년월일시로 사주 원국과 자미두수 명반을 함께 계산합니다.'},{label:'연애 축 추출',detail:'일간·십성과 부부궁·복덕궁에서 연애의 큰 축 세 가지를 뽑습니다.'},{label:'장별 전개',detail:'그 축을 스무 개 장으로 나눠 서로 겹치지 않게 배분합니다.'},{label:'해석서 작성',detail:'앞 장이 뒷 장의 근거가 되도록 순서대로 써 내려갑니다.'}],valueCompare:{rows:[{axis:'구성',free:'성향 요약',premium:'20개 장으로 나뉜 해석서'},{axis:'분량',premium:'20개 장 합계 46,000자 이상'},{axis:'근거',free:'없음',premium:'장마다 일간·궁위 근거를 명시'}]},faq:[{q:'다른 연애 상담과 무엇이 다른가요?',a:'한 장면을 짚는 게 아니라 연애 전체를 스무 장으로 나눠 한 권으로 씁니다. 분량과 근거의 밀도가 가장 큽니다.'},{q:'생성에 얼마나 걸리나요?',a:'분량이 커서 시간이 걸립니다. 화면을 닫지 말고 기다려 주세요.'},{q:'상대 정보가 필요한가요?',a:'이 상품은 본인 분석입니다. 두 사람 궁합은 별도의 궁합편에서 다룹니다.'}],trustNotes:['결제 전 구성과 분량을 먼저 확인할 수 있어요.','이용권·월정석·단건결제 정책은 기존 기준을 따릅니다.','관계 결과를 보장하지 않는 참고용 해석입니다.'],ctaNote:'결제 후 20개 장 전체가 순서대로 열립니다.',ctaLabel:'연애 해석서 열람하기'},
     'master-love-codex-compat':{featureId:'master-love-codex-compat',category:'프리미엄 리포트',badge:'궁합 심층서',headline:'두 사람의 관계를 스무 개의 장으로 나눠 한 권으로 정리합니다.',subheadline:'각자의 명식을 따로 읽은 뒤 두 사람이 만나는 지점을 겹쳐, 끌림과 충돌과 오래 가는 조건을 다섯 막 스무 장에 걸쳐 풀어 쓰는 최상위 궁합 해석서입니다.',painPoints:['잘 맞는 것 같은데 자꾸 부딪힐 때','이 관계를 계속 이어가도 될지 모를 때','짧은 궁합 점수로는 답이 안 될 때'],recommendedFor:['결혼처럼 큰 결정을 앞둔 분','궁합 점수 말고 이유를 알고 싶은 분','두 사람 것을 한 권으로 남기고 싶은 분'],feats:['두 사람의 생년월일시로 각각의 사주 원국과 자미두수 명반을 계산','각자를 따로 읽은 뒤 일간 관계·십성 상호작용·지지의 합충형파해로 접점 대조','두 명반의 상호 배치와 부처궁 교차 비교, 사화의 교환까지 장으로 분리','관계 DNA 지표와 앞으로 3년의 관계 흐름을 별도 장으로 정리'],receives:[{icon:'📖',title:'다섯 막 스무 장의 궁합 해석서',detail:'두 사람의 결부터 사주와 명반이 보는 궁합, 관계의 현실, 종합과 봉인까지 다섯 막으로 나눠 씁니다.'},{icon:'🔍',title:'장마다 근거와 인사이트',detail:'각 장에 근거 칩과 인사이트, 관계에서 주의할 순간을 붙이고, 상세 상담 내용을 펼쳐 읽을 수 있어요.'},{icon:'✍️',title:'지금 할 수 있는 행동',detail:'장마다 두 사람이 바로 해 볼 수 있는 행동을 두세 가지씩 드립니다.'},{icon:'🧬',title:'연애 DNA 열 가지 지표',detail:'친화 · 소통 · 신뢰 · 열정 · 속도합 · 갈등내구 · 현실합 · 성장 · 자립 · 지속을 0~100 막대와 근거로 보여 줍니다.'},{icon:'📄',title:'PDF 소장과 다시 열기',detail:'완성본은 PDF로 소장할 수 있고, 다시 결제하지 않고 다시 열어 볼 수 있어요.'}],outline:[{title:'표지 · 한눈에 보는 상담',detail:'두 사람의 관계 유형 이름과 핵심 요약을 먼저 펼칩니다.'},{title:'I 두 사람의 결',detail:'마주 선 두 사람, 당신과 상대를 각각 읽고 무엇이 서로를 끌었는지 봅니다.'},{title:'II 사주가 보는 궁합',detail:'일간의 관계 · 십성 상호작용 · 서로를 채우는 자리 · 지지의 합충형파해를 짚습니다.'},{title:'III 명반이 보는 궁합',detail:'두 명반의 상호 배치와 부처궁 교차 비교, 살성과 사화가 앉는 자리를 봅니다.'},{title:'IV 관계의 현실',detail:'관계의 온도 곡선 · 갈등의 뿌리 · 화해의 언어 · 지속 가능성과 결혼운을 다룹니다.'},{title:'V 종합과 봉인',detail:'사주와 자미두수의 합치점과 차이점, 관계 DNA 프로필, 앞으로 3년, 마지막 편지로 닫습니다.'}],outlineImage:'/feature-details/assets/master-love-codex-960.webp',unlockBenefits:['마주 선 두 사람 · 당신이라는 사람 · 상대라는 사람','무엇이 서로를 끌었나 · 일간의 관계 · 십성 상호작용','서로를 채우는 자리 · 지지의 합충형파해','두 명반의 상호 배치 · 부처궁 교차 비교 · 살성과 사화','관계의 온도 곡선 · 갈등의 뿌리 · 화해의 언어','지속 가능성과 결혼운 · 사주와 자미두수의 합치점','관계 DNA 프로필 · 앞으로 3년 · 마지막 편지'],analysisSteps:[{label:'두 명식 계산',detail:'두 사람의 생년월일시로 각각의 원국과 명반을 계산합니다.'},{label:'개별 성향 정리',detail:'각자가 사랑을 시작하고 끝내는 방식을 따로 정리합니다.'},{label:'접점 대조',detail:'두 결과를 겹쳐 끌림과 충돌이 생기는 자리를 찾습니다.'},{label:'해석서 작성',detail:'관계의 시작부터 장기 전망까지 스무 장으로 나눠 씁니다.'}],faq:[{q:'상대 생년월일이 꼭 필요한가요?',a:'네. 두 사람의 명식을 각각 계산해야 접점이 나옵니다.'},{q:'결과가 나쁘면 헤어져야 하나요?',a:'아니요. 어긋나는 자리를 아는 것이 목적입니다. 그 자리를 알면 같은 갈등을 반복하지 않습니다.'},{q:'본인편과 무엇이 다른가요?',a:'본인편은 내 연애 패턴을, 궁합편은 두 사람 사이에서 실제로 벌어지는 일을 다룹니다.'}],previewText:'궁합편은 잘 맞는다/안 맞는다로 끝내지 않고, 두 사람이 어디서 어긋나고 무엇을 지키면 달라지는지를 스무 장에 걸쳐 설명합니다.',reportScale:{chapters:20,minWords:46000},answersQuestions:['이 사람과 결혼까지 갈 수 있을까요?','반복되는 갈등의 진짜 원인이 뭘까요?','무엇을 바꾸면 오래 갈 수 있을까요?'],valueCompare:{rows:[{axis:'대상',free:'궁합 점수',premium:'두 사람 각각 + 접점 전체'},{axis:'분량',premium:'20개 장 합계 46,000자 이상'},{axis:'조언',free:'잘 맞음/안 맞음',premium:'무엇을 지키면 달라지는지까지'}]},trustNotes:['결제 전 구성과 분량을 먼저 확인할 수 있어요.','이용권·월정석·단건결제 정책은 기존 기준을 따릅니다.','관계 결과를 보장하지 않는 참고용 해석입니다.'],ctaNote:'두 분의 명식으로 계산된 20개 장이 열립니다.',ctaLabel:'궁합 해석서 열람하기'},
-    'ziwei-deep-pdf':{featureId:'ziwei-deep-pdf',category:'자미두수',badge:'심층 리포트',headline:'12궁을 하나씩 짚어 명반 한 장을 열다섯 장의 글로 풀어냅니다.',subheadline:'명궁 총론부터 각 궁의 별 세기와 격국까지, 자미두수 명반을 장별로 해설해 PDF 로 남기는 심층 리포트입니다.',painPoints:['명반 도표만 봐서는 무슨 뜻인지 모를 때','궁마다 어떤 의미인지 정리하고 싶을 때','한 번 만들어 두고 오래 보고 싶을 때'],recommendedFor:['명반을 글로 풀어 읽고 싶은 분','12궁을 하나씩 이해하고 싶은 분','저장해 두고 다시 볼 자료를 원하는 분'],feats:['생년월일시로 명반을 세우고 총론 + 12궁 + 심층 2장을 순서대로 작성','명궁·부부궁·재백궁 등 열두 궁을 각각 독립된 장으로 해설','사화와 삼방사정으로 별들이 주고받는 관계를 별도 장에서 정리','대한·유년 마스터플랜으로 시간축 위의 전략을 마지막 장에 배치'],unlockBenefits:['명반 총론 — 당신이라는 별의 지도','명궁·형제궁·부부궁·자녀궁','재백궁·질액궁·천이궁·노복궁','관록궁·전택궁·복덕궁·부모궁','사화·삼방사정 심층 — 별들이 주고받는 대화','대한·유년 마스터플랜 — 시간축 위의 인생 전략'],previewText:'심층 리포트는 길흉을 단정하지 않고, 명반의 각 자리가 무엇을 뜻하는지 장별로 차분히 풀어 씁니다.',reportScale:{chapters:15,minWords:34000},answersQuestions:['내 명반의 각 궁은 무슨 뜻인가요?','어느 궁에 힘이 실려 있나요?','비어 있는 궁은 나쁜 건가요?'],analysisSteps:[{label:'명반 작성',detail:'생년월일시로 12궁에 주성과 사화를 배치합니다.'},{label:'세기 판정',detail:'각 별이 묘·왕·득·리·평·함 중 어디에 놓였는지 가립니다.'},{label:'장별 배분',detail:'총론과 12궁을 열다섯 개 장으로 나눠 중복 없이 배분합니다.'},{label:'리포트 작성',detail:'장마다 근거를 밝히며 해설을 써 PDF 로 묶습니다.'}],valueCompare:{rows:[{axis:'형태',free:'명반 도표',premium:'장별 해설 15장'},{axis:'분량',free:'도표와 라벨',premium:'15개 장 합계 34,000자 이상'},{axis:'보관',free:'화면에서만',premium:'PDF 로 저장해 다시 읽기'}]},faq:[{q:'기본 명반과 무엇이 다른가요?',a:'기본 명반은 별의 배치를 보여줍니다. 심층 리포트는 그 배치가 무슨 뜻인지 궁마다 글로 풀어 씁니다.'},{q:'비어 있는 궁도 해설되나요?',a:'네. 비어 있음도 배치의 일부라 그 자체로 해설 대상입니다.'},{q:'PDF 로 받을 수 있나요?',a:'결과 화면에서 PDF 로 저장할 수 있습니다.'}],trustNotes:['결제 전 구성과 분량을 먼저 확인할 수 있어요.','유파에 따라 해석이 다를 수 있습니다.','해석은 참고용입니다.'],ctaNote:'결제 후 15개 장과 PDF 저장이 함께 열립니다.',ctaLabel:'심층 리포트 열람하기'},
+    'ziwei-deep-pdf':{featureId:'ziwei-deep-pdf',category:'자미두수',badge:'심층 리포트',headline:'12궁을 하나씩 짚어 명반 한 장을 열다섯 장의 글로 풀어냅니다.',subheadline:'명반이 지금 질문에 주는 답부터 열두 궁과 앞으로의 방향까지, 열다섯 장으로 풀어 PDF 로 남기는 심층 리포트입니다.',painPoints:['명반 도표만 봐서는 무슨 뜻인지 모를 때','궁마다 어떤 의미인지 정리하고 싶을 때','한 번 만들어 두고 오래 보고 싶을 때'],recommendedFor:['명반을 글로 풀어 읽고 싶은 분','열두 궁을 하나씩 이해하고 싶은 분','저장해 두고 다시 볼 자료를 원하는 분'],feats:['심화 명반 화면에서 세운 명식을 그대로 이어받아 열다섯 장을 작성','관심 분야 여덟 가지 중에 고르고 궁금한 질문을 적어 시작','명궁·부부궁·재백궁 등 열두 궁을 각각 독립된 장으로 해설','마지막 장에서 앞으로 어떤 방향을 고르면 좋을지 정리'],receives:[{icon:'📚',title:'열다섯 장의 심층 해설',detail:'첫 장에서 적어 둔 질문에 답하고, 열두 궁을 하나씩 지나 마지막에 방향을 정리합니다.'},{icon:'🔎',title:'장마다 펼쳐 읽기',detail:'각 장을 미리보기로 훑고 필요한 장만 펼쳐 읽을 수 있어요.'},{icon:'📄',title:'PDF 저장',detail:'완성된 리포트를 PDF 로 내려받아 두고두고 볼 수 있습니다.'},{icon:'🗂️',title:'지난 리포트 다시 보기',detail:'로그인해 두면 만들어 둔 리포트를 목록에서 추가 결제 없이 다시 엽니다.'},{icon:'🧩',title:'중단돼도 이어 쓰기',detail:'생성이 끊겨도 같은 요청으로 다시 열면 남은 장부터 이어서 채웁니다.'}],outline:[{title:'표지',detail:'리포트 이름과 만든 날짜를 앞에 둡니다.'},{title:'제1장 · 질문에 대한 답',detail:'고른 관심 분야와 적어 둔 질문에 명반이 주는 답부터 씁니다.'},{title:'제2장 · 나라는 사람',detail:'명궁과 신궁을 중심으로 타고난 결을 읽습니다.'},{title:'제3~14장 · 열두 궁',detail:'관계와 사랑, 돌봄과 재물, 건강과 이동, 일과 기반, 마음과 가족까지 궁마다 한 장씩 해설합니다.'},{title:'제15장 · 앞으로의 방향',detail:'지금까지 읽은 것을 모아 어떤 방향을 고르면 좋을지로 닫습니다.'}],outlineImage:'/images/ziwei/celestial-atlas.webp',unlockBenefits:['제1장 · 내 질문에 명반이 주는 답','제2장 · 나는 어떤 사람인가','제3~9장 · 관계와 사랑, 돌봄과 재물, 건강의 리듬','제10~14장 · 일과 기반, 마음의 회복, 가족과 기회','제15장 · 앞으로 어떤 방향을 고를까','PDF 저장과 지난 리포트 다시 보기'],previewText:'심층 리포트는 길흉을 단정하지 않고, 명반의 각 자리가 무엇을 뜻하는지 장별로 차분히 풀어 씁니다.',reportScale:{chapters:15,minWords:36000},answersQuestions:['내 명반의 각 궁은 무슨 뜻인가요?','어느 궁에 힘이 실려 있나요?','앞으로 어떤 방향을 고르면 좋을까요?'],analysisSteps:[{label:'명식 이어받기',detail:'심화 명반 화면에서 세운 명식을 그대로 가져옵니다.'},{label:'관심 분야와 질문 확인',detail:'고른 관심 분야와 적어 둔 질문을 첫 장의 축으로 삼습니다.'},{label:'장별 작성',detail:'열다섯 장을 순서대로 채우며 궁마다 근거를 밝힙니다.'},{label:'PDF 로 묶기',detail:'완성된 장을 한 권으로 묶어 내려받을 수 있게 합니다.'}],valueCompare:{rows:[{axis:'형태',free:'명반 도표',premium:'장별 해설 15장'},{axis:'분량',free:'도표와 라벨',premium:'15개 장 합계 36,000자 이상'},{axis:'보관',free:'화면에서만',premium:'PDF 저장과 지난 리포트 다시 보기'}]},faq:[{q:'기본 명반과 무엇이 다른가요?',a:'기본 명반은 별의 배치를 보여줍니다. 심층 리포트는 그 배치가 무슨 뜻인지 궁마다 글로 풀어 씁니다.'},{q:'만든 리포트를 다시 볼 수 있나요?',a:'로그인해 두면 지난 리포트 목록에서 추가 결제 없이 다시 엽니다.'},{q:'PDF 로 받을 수 있나요?',a:'결과 화면에서 PDF 로 저장할 수 있습니다.'}],trustNotes:['결제 전 구성과 분량을 먼저 확인할 수 있어요.','유파에 따라 해석이 다를 수 있습니다.','해석은 참고용입니다.'],ctaNote:'결제 후 15개 장과 PDF 저장이 함께 열립니다.',ctaLabel:'심층 리포트 열람하기'},
     'nakshatra-ai-consultation':{featureId:'nakshatra-ai-consultation',category:'베다점',badge:'27수 상담형',headline:'하나의 별을, 두 전통의 언어로 함께 읽습니다.',subheadline:'베다 나크샤트라와 숙요 27숙이 공통으로 말하는 부분과 다르게 비추는 부분을 교차해, 한 사람의 성격·관계·일·그림자를 하나의 상담으로 읽습니다.',painPoints:['내 타고난 결이 무엇인지 궁금할 때','지금이 움직일 때인지 참을 때인지 모를 때','한 체계의 해석만으로는 부족할 때'],recommendedFor:['숙요와 베다를 함께 보고 싶은 분','타고난 성향부터 정리하고 싶은 분','시기 판단의 근거가 필요한 분'],feats:['기존 결정론 계산으로 숙요 본명숙과 베다 나크샤트라·파다를 확인','공통 신호·겉과 속·사랑·일·그림자 등 9개 질문형 장으로 교차 해석','일치만 나열하지 않고 두 전통이 다르게 비추는 지점까지 현실의 모습으로 통합','마지막 사용 설명서에서 잘될 조건과 경고 신호, 실천 세 가지를 정리'],unlockBenefits:['두 개의 별 프로필과 가장 중요한 통합 결론','성격·관계·사랑·일·그림자 7개 심층 장','두 전통의 공통 신호와 차이를 분리한 교차 해석','당신에게 맞춘 사용 설명서와 마지막 별의 문장'],previewText:'두 전통을 같은 체계로 섞지 않습니다. 숙요 27숙과 베다 나크샤트라가 공통으로 비추는 패턴, 서로 다른 각도로 드러나는 성향을 분리한 뒤, 실제 사랑·일·관계에서 어떤 모습으로 함께 나타나는지 한 흐름으로 읽습니다.',reportScale:{sections:9,minWords:8000},answersQuestions:['나는 원래 어떤 사람일까요?','나는 어떤 사랑과 관계를 원하는 사람일까요?','내가 일을 잘할 수 있는 환경은 어디일까요?'],analysisSteps:[{label:'두 별 계산',detail:'기존 엔진으로 숙요 본명숙과 베다 나크샤트라·파다를 확인합니다.'},{label:'공통·차이 추출',detail:'두 전통의 공통 신호와 각 체계에서만 강한 신호를 분리합니다.'},{label:'현실 장면 통합',detail:'성격·관계·사랑·일에서 그 신호가 함께 나타나는 방식을 읽습니다.'},{label:'상담문 완성',detail:'당신에게 맞춘 사용 설명서와 행동 기준까지 정리합니다.'}],valueCompare:{rows:[{axis:'체계',free:'본명수 요약',premium:'27수와 나크샤트라를 함께'},{axis:'분량',premium:'9개 장 · 8,000자 이상 통합 상담'},{axis:'시기',free:'없음',premium:'다샤로 본 지금 구간의 성격'}]},faq:[{q:'숙요와 나크샤트라는 같은 건가요?',a:'같은 체계가 아닙니다. 계산 기준과 해석 전통이 다르므로, 각각의 근거를 분리한 뒤 공통점과 차이를 함께 읽습니다.'},{q:'출생 시간이 필요한가요?',a:'본명숙은 날짜만으로 나오지만, 파다와 달의 세부 정보는 시간이 있으면 더 안정적으로 읽을 수 있습니다.'},{q:'궁합도 볼 수 있나요?',a:'궁합은 별도의 나크샤트라 궁합 기능에서 다룹니다.'}],trustNotes:['결제 전 구성과 분량을 먼저 확인할 수 있어요.','이용권·월정석·단건결제 정책은 기존 기준을 따릅니다.','해석은 참고용입니다.'],ctaNote:'결제 후 9개 장의 통합 상담이 순서대로 열립니다.',ctaLabel:'두 별 통합 상담 시작'},
     'nakshatra-compat-ai':{featureId:'nakshatra-compat-ai',category:'베다점',badge:'27수 궁합',headline:'두 사람의 나크샤트라가 만드는 거리와 리듬을 읽습니다.',subheadline:'각자의 본명수와 나크샤트라를 대조해 끌림, 충돌, 오래 가는 조건을 정리하는 궁합 상담입니다.',painPoints:['이 사람과의 인연이 어떤 성격인지 궁금할 때','가까워질수록 어긋나는 이유를 알고 싶을 때','관계를 이어갈지 정리할지 판단이 필요할 때'],recommendedFor:['관계의 성격을 근거로 이해하고 싶은 분','동서양 두 관점을 함께 보고 싶은 분','결정을 앞두고 판단 근거가 필요한 분'],unlockBenefits:['두 사람의 본명수와 나크샤트라 대조','끌림과 충돌이 생기는 자리','관계가 흔들리는 시기와 회복 방식','지금 지켜야 할 거리와 태도'],previewText:'궁합 상담은 점수를 매기지 않고, 두 사람의 리듬이 어디서 맞고 어디서 어긋나는지를 먼저 보여줍니다.',answersQuestions:['이 인연은 어떤 성격인가요?','왜 가까워질수록 어긋날까요?','이 관계를 이어가도 될까요?'],analysisSteps:[{label:'두 본명수 산출',detail:'두 사람의 생년월일로 본명수를 각각 계산합니다.'},{label:'나크샤트라 대조',detail:'각자의 달 자리와 그 관계를 확인합니다.'},{label:'거리 해석',detail:'끌림과 충돌이 생기는 자리, 리듬이 어긋나는 지점을 풀어냅니다.'},{label:'조언 정리',detail:'지금 지킬 거리와 태도를 순서대로 정리합니다.'}],valueCompare:{rows:[{axis:'대상',free:'내 본명수 요약',premium:'두 사람의 관계 전체'},{axis:'관점',free:'한 체계',premium:'27수와 나크샤트라를 함께'},{axis:'조언',free:'없음',premium:'지금 지킬 거리와 태도까지'}]},faq:[{q:'상대 생년월일이 꼭 필요한가요?',a:'네. 두 사람의 자리를 각각 계산해야 관계가 나옵니다.'},{q:'궁합이 나쁘면 안 되는 인연인가요?',a:'아니요. 어려운 조합일수록 지켜야 할 선이 분명해집니다. 그 선을 알려드리는 게 목적입니다.'},{q:'출생 시간이 없어도 되나요?',a:'날짜만으로도 기본 대조는 가능합니다. 시간이 있으면 시기 조언이 더 정확해집니다.'}],trustNotes:['결제 전 구성을 먼저 확인할 수 있어요.','이용권·월정석·단건결제 정책은 기존 기준을 따릅니다.','관계 결과를 보장하지 않는 참고용 해석입니다.'],ctaNote:'두 분의 출생 정보로 계산된 궁합이 열립니다.',ctaLabel:'27수 궁합 열기'},
     'nakshatra-vvip-codex':{featureId:'nakshatra-vvip-codex',category:'베다점',badge:'VVIP 코덱스',headline:'27수 전체를 한 권으로 묶은 최상위 코덱스를 엽니다.',subheadline:'본명수 해석에 그치지 않고 27수 전체 지형 안에서 내 자리를 짚어, 인연·시기·방향을 통째로 정리하는 최상위 구성입니다.',painPoints:['단편적인 해석을 여러 번 봐도 정리가 안 될 때','27수 전체 구조를 이해하고 싶을 때','한 번에 끝내는 자료를 원할 때'],recommendedFor:['부분 해석을 여러 번 사 본 경험이 있는 분','27수 전체 구조까지 이해하고 싶은 분','한 번 만들어 오래 볼 자료를 원하는 분'],unlockBenefits:['27수 전체 지형과 내 자리의 관계','본명수 심층 해석과 격각 전개','인연·시기·방향의 통합 정리','코덱스 형태로 남는 결과물'],previewText:'코덱스는 낱개 해석을 모아 놓은 것이 아니라, 27수라는 지도 위에서 내 자리를 설명하는 한 권입니다.',answersQuestions:['27수 전체에서 내 자리는 어디인가요?','다른 자리들과는 어떤 관계인가요?','앞으로의 방향을 어디에 둬야 하나요?'],analysisSteps:[{label:'본명수 산출',detail:'생년월일로 27수 가운데 본명수를 계산합니다.'},{label:'전체 지형 배치',detail:'27수 지도 위에서 내 자리와 이웃한 자리의 관계를 확인합니다.'},{label:'격각 전개',detail:'각 자리와 맺는 관계 유형을 순서대로 펼칩니다.'},{label:'코덱스 편성',detail:'인연·시기·방향을 한 권의 흐름으로 묶어 정리합니다.'}],valueCompare:{rows:[{axis:'범위',free:'본명수 요약',premium:'27수 전체 지형과 내 자리'},{axis:'구성',free:'단편 해석',premium:'한 권으로 묶인 코덱스'},{axis:'활용',free:'그때 한 번',premium:'두고두고 참조하는 자료'}]},faq:[{q:'일반 27수 상담과 무엇이 다른가요?',a:'상담은 지금 질문에 답합니다. 코덱스는 27수 전체 지형 안에서 내 자리를 설명해 오래 참조하도록 만듭니다.'},{q:'왜 가장 비싼가요?',a:'낱개 해석이 아니라 27수 전체를 다루는 구성이라 계산 범위와 분량이 가장 큽니다.'},{q:'출생 시간이 필요한가요?',a:'본명수는 날짜만으로 나오지만, 시기 관련 항목은 시간이 있어야 정확합니다.'}],trustNotes:['결제 전 구성을 먼저 확인할 수 있어요.','이용권·월정석·단건결제 정책은 기존 기준을 따릅니다.','해석은 참고용입니다.'],ctaNote:'결제 후 코덱스 전체가 열립니다.',ctaLabel:'코덱스 열람하기'},
@@ -35535,7 +35536,7 @@ function updateBadge() {
 
 <!-- ═══ 유명인 사주 분석 패널 스크립트 ═══ -->
 
-<script defer src="/js/inline/saju-core-bootstrap.js?v=build-dea2f250133c"></script>
+<script defer src="/js/inline/saju-core-bootstrap.js?v=build-6912e0d37f12"></script>
 <!-- ═══ 유명인 사주 분석 패널 스크립트 끝 ═══ -->
 
 <script>
@@ -35607,7 +35608,7 @@ function updateBadge() {
   var pigLogoSrcset = pigLogoSrc + ' 96w, ' + pigLogoSrc + ' 130w, ' + pigLogoSrc + ' 512w';
   /* 네오 히어로 캐릭터: R2 전략실 네오 이미지(브랜드 로고 슬롯·자는 연이 마스코트 공통 교체) */
   var neoLogoSrc = 'https://assets.code-destiny.com/DestinyWar/%EC%A0%84%EB%9E%B5%EC%8B%A4%20%EB%84%A4%EC%98%A4%20%EB%A9%94%EC%9D%B8-Photoroom.webp';
-  var neoLogoFallbackSrc = '/icons/neo.webp?v=build-dea2f250133c';
+  var neoLogoFallbackSrc = '/icons/neo.webp?v=build-6912e0d37f12';
   var neoBtn = switchRoot ? switchRoot.querySelector('.tsp-lion') : null;
   var pigBtn = switchRoot ? switchRoot.querySelector('.tsp-pig') : null;
   var neoBtnDesktop = switchRootDesktop ? switchRootDesktop.querySelector('.tsp-lion') : null;
@@ -37118,7 +37119,7 @@ html.neo-mode .tile-pvw-overlay.pvw-prem .tile-pvw-cta-sticky,body.neo-mode .til
   html:not(.neo-mode) .tile-pvw-cta-meta{color:rgba(255,214,232,.78)!important}
 }
 </style>
-<link rel="stylesheet" href="/styles/feature-marketing-detail.css?v=build-dea2f250133c" data-marker="feature-marketing-detail-shared-style-v1">
+<link rel="stylesheet" href="/styles/feature-marketing-detail.css?v=build-6912e0d37f12" data-marker="feature-marketing-detail-shared-style-v1">
 <style id="saju-newyear-premium-image-card">
   .lifebook-tile.saju-newyear-tile {
     background:
@@ -37126,7 +37127,7 @@ html.neo-mode .tile-pvw-overlay.pvw-prem .tile-pvw-cta-sticky,body.neo-mode .til
       linear-gradient(135deg, rgba(255,245,211,0.12), transparent 31%),
       linear-gradient(28deg, rgba(106,28,38,0.36), transparent 48%),
       repeating-linear-gradient(90deg, rgba(241,205,124,0.13) 0 1px, transparent 1px 44px),
-      url('/fuctionassets/신년운세.webp?v=build-dea2f250133c') center 34% / cover no-repeat,
+      url('/fuctionassets/신년운세.webp?v=build-6912e0d37f12') center 34% / cover no-repeat,
       linear-gradient(145deg, #130d0b 0%, #321014 52%, #071018 100%) !important;
     box-shadow:
       0 18px 54px rgba(22, 9, 8, 0.62),
