@@ -103,6 +103,10 @@ const UNWIRED_BY_DESIGN = [
     "verify:app-bottom-clearance",
     "playwright 실렌더 + safe-area 에뮬레이션, 최신 dist/ 필요(빌드 3분) — 찻집·네오 등 App Router 화면의 하단 여백을 고쳤으면 손으로 돌린다",
   ],
+  [
+    "verify:relationship-inline-browser",
+    "playwright 실렌더 + 로컬 dev 서버 필요 — 「그 사람의 바람끼는?」 인라인 임베드 높이 계약과 결과 화면 장면 배치를 본다. 그 결과 화면이나 reportDashboard 의 iframe 높이 계약을 고쳤으면 손으로 돌린다. 게이트 승격은 사용자 승인 사항",
+  ],
   ["verify:r2-fonts", "R2 실요청 — 네트워크 필요"],
   ["verify:r2-public-cache", "R2 실요청 — 네트워크 필요"],
   ["verify:www-canonical", "프로덕션 도메인 실요청 — 배포 후 수동 확인"],
