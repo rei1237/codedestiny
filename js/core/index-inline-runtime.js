@@ -1952,9 +1952,9 @@ var __cdLazyActionLoaders = {
   // 탭/45초 타임아웃/백그라운드 전환 중 하나가 있어야 로드)로만 실려서, 결과 화면
   // 도달 후 첫 공유 탭이 아직 로드 전이면 조용히 아무 반응 없이 죽었다(setGender와
   // 같은 계열의 버그 — 위 주석 참고).
-  shareKakao: function() { return __cdLoadScriptOnce('/js/share.js?v=build-b6244d57e215'); },
-  shareInstagram: function() { return __cdLoadScriptOnce('/js/share.js?v=build-b6244d57e215'); },
-  shareSajuResultImage: function() { return __cdLoadScriptOnce('/js/share.js?v=build-b6244d57e215'); }
+  shareKakao: function() { return __cdLoadScriptOnce('/js/share.js?v=build-b9e82051d203'); },
+  shareInstagram: function() { return __cdLoadScriptOnce('/js/share.js?v=build-b9e82051d203'); },
+  shareSajuResultImage: function() { return __cdLoadScriptOnce('/js/share.js?v=build-b9e82051d203'); }
 };
 window.__cdLazyActionLoaders = __cdLazyActionLoaders;
 var __cdLazyActionState = {};
@@ -2253,7 +2253,7 @@ function __cdEnsureSajuCoreLoaded() {
     '/js/core/korean-calendar.js?v=build-67e89135b871',
     '/js/core/kasi-calendar-service.js?v=build-99c5568a4710',
     '/js/compat-llm-prompts.js?v=build-f4b380e036d0',
-    '/js/saju-engine.js?v=build-e17dde377f4d',
+    '/js/saju-engine.js?v=build-eb8c12e0d74c',
       '/js/core/saju/extremeTResult.js?v=build-2c30eaeaaf14',
       /* 숙요 정본(Swiss 항성 달 황경). quantum.js 의 calcSukuyoData 가 이것 없이는 수(宿)를 내지 않는다. */
       '/js/core/sukuyo-astronomy.js?v=build-5198c8e4c8b2',
@@ -3459,8 +3459,8 @@ function __cdBindAnimalTotemTileDirect() {
       return;
     }
     raf(function() {
-      loadScriptOnce('js/services/animal-totem-content-engine.js?v=build-e569fdf859da')
-        .then(function() { return loadScriptOnce('js/animal-totem-experience.js?v=build-e569fdf859da'); })
+      loadScriptOnce('js/services/animal-totem-content-engine.js?v=build-ccced4ad1688')
+        .then(function() { return loadScriptOnce('js/animal-totem-experience.js?v=build-ccced4ad1688'); })
         .then(function() {
           try {
             if (typeof window.openAnimalTotemModal === 'function') window.openAnimalTotemModal();
@@ -8297,7 +8297,7 @@ function __cdEnsureSukuyoZiweiCoreLoaded() {
      * 중국 표준시 기준 음력이 섞여 자미두수 명반이 하루 밀린다). 로컬 파일이라 CDN 보다 안전하다. */
     '/js/core/korean-calendar.js?v=build-67e89135b871',
     '/js/compat-llm-prompts.js?v=build-f4b380e036d0',
-      '/js/saju-engine.js?v=build-e17dde377f4d',
+      '/js/saju-engine.js?v=build-eb8c12e0d74c',
       '/js/core/sukuyo-astronomy.js?v=build-5198c8e4c8b2',
       '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-9115f1d0ca75'
   ];

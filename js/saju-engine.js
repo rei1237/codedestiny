@@ -5497,7 +5497,7 @@ async function calculate(){
     // 클래스 하나만 지우면 A4 20페이지 분량이 그대로 보였다. 해금 시 재렌더는 index.html 의
     // applySectionGates 가 아래 __cdLastSummaryArgs 로 수행한다(renderLifeGraph 재호출과 같은 패턴).
     window.__cdLastSummaryArgs={p:p,johu:johu,natal:natal};
-    try { if(_cdSajuGateUnlocked('section_summary')) renderSummary(p,johu,natal); } catch(e) { console.error('Summary 에러:', e); }
+    try { if(_cdSajuGateUnlocked('section_summary')) renderSummary(p,johu,natal); } catch(e) { try { window.__cdLastSummaryRenderError=e; } catch(_errKeepErr){} console.error('Summary 에러:', e); }
     // 기존 해금은 계산보다 먼저 복원될 수 있다. 본문 준비가 끝난 시점에 같은 게이트
     // 판정으로 숨김 상태도 동기화한다(해금 버튼을 다시 누를 필요가 없어야 한다).
     window.dispatchEvent(new CustomEvent('cd:saju-summary-ready',{detail:{p:p,johu:johu,natal:natal}}));
@@ -27095,7 +27095,7 @@ function renderSummary(p,johu,natal){
   function depthList(items){
     return '<ul class="saju-reading-actions">'+items.map(function(t){return '<li>'+t+'</li>';}).join('')+'</ul>';
   }
-  function summaryDepth(title){
+  function summaryDepth(key){
     var monthName=monthCommand&&monthCommand.monthName?monthCommand.monthName:'태어난 달';
     var monthSeason=monthCommand&&monthCommand.season?monthCommand.season:'계절의 흐름';
     var monthElement=monthCommand&&monthCommand.dominantElement?(EL_KO[monthCommand.dominantElement]||EL_KO[SAJU_ELEMENT_KO_TO_EN[monthCommand.dominantElement]]||'계절 오행'):'계절 오행';
@@ -27104,111 +27104,267 @@ function renderSummary(p,johu,natal){
     var seasonCaution=monthReading&&monthReading.caution?monthReading.caution:'한 가지 기운을 과하게 밀어붙이기보다 회복과 조절의 여지를 남겨두세요.';
     var yong=(pw&&pw.yongshin||[]).map(function(e){return EL_KO[e];}).join('·')||'필요한 오행';
     var kij=(pw&&pw.kijishin||[]).map(function(e){return EL_KO[e];}).join('·')||'과해지기 쉬운 오행';
+    /* 심화 단락 공용 파생값 — 전부 폴백을 둬서 undefined 노출을 원천 차단한다.
+       (renderSummary 는 runtime-stability 의 wrapCriticalFn 으로 감싸여 있어 참조 예외 1건이
+        결과 화면 전체를 폴백으로 날린다.) */
+    var powerTxt=(pw&&typeof pw.score==='number')?(Math.round(pw.score)+'점'):'측정값';
+    var strongTxt=(pw&&pw.isStrong)?'신강(身强)':'신약(身弱)';
+    var tsRank=Object.keys(cnt).sort(function(a,b){return cnt[b]-cnt[a];});
+    var tsSecond=tsRank[1]||'두 번째 십성';
+    var tsList=tsRank.slice(0,3).map(function(t){return t+'('+cnt[t]+')';}).join(' · ')||'십성 분포';
+    var elOrder=Object.keys(natal.ratios||{}).sort(function(a,b){return natal.ratios[b]-natal.ratios[a];});
+    var elTop=EL_KO[elOrder[0]]||EL_KO[domE]||'중심 오행';
+    var elLow=EL_KO[elOrder[elOrder.length-1]]||'비어 있는 오행';
+    var johuType=(johu&&johu.type)||'균형';
+    var johuScoreTxt=(johu&&typeof johu.score==='number')?(Math.round(johu.score)+'점'):'현재 값';
+    var johuMoistType=(johu&&johu.moistType)||'중간';
+    var johuImprove=(johu&&johu.improve)||'생활 리듬을 계절에 맞춰 조금씩 조정해 보세요.';
+    var johuMoistAdvice=(johu&&johu.moistAdvice)||'건조함과 눅눅함 사이에서 몸이 편한 지점을 찾아 보세요.';
+    var johuSeasonTxt=(johu&&johu.season)||monthSeason;
+    var ctips=(tips&&tips.ctips)||{};
+    var dtips=(tips&&tips.dtips)||{};
+    var ctrlEl=(tips&&EL_KO[tips.controller])||'조절 오행';
+    var drainEl=(tips&&EL_KO[tips.drain])||'분산 오행';
+    var dayElKo=EL_KO[dayMaster]||'일간 오행';
+    var mrSeasonal=(monthReading&&monthReading.seasonalEnergy)||'태어난 달의 기운이 사주 전체의 출발 조건을 만듭니다.';
+    var mrBalance=(monthReading&&monthReading.elementBalanceImpact)||'월령은 오행 균형의 기준점을 정합니다.';
+    var mrStrength=(monthReading&&monthReading.strengthAnalysis)||'지금의 강약 흐름을 함께 보세요.';
+    var mrSummary=(monthReading&&monthReading.summary)||'월령 해석은 계절의 힘을 기준으로 읽습니다.';
+    var mcInterp=(monthCommand&&monthCommand.interpretation)||'월령이 일간에 주는 힘을 기준으로 읽습니다.';
+    var mcCaution=(monthCommand&&monthCommand.caution)||seasonCaution;
+    var mcRelText=(monthCommand&&monthCommand.dayMasterRelationText)||monthRelation;
     var common=depthParagraph('이 해석을 읽는 법',
       '이 장의 결론은 한 가지 문장으로 운명을 고정하는 판정이 아니라, 일간·계절·오행 분포가 함께 만들어내는 반복 패턴을 읽은 것입니다. 같은 기질도 환경과 선택에 따라 강점으로 쓰일 수 있고, 과해지면 피로와 갈등의 모습으로 나타날 수 있으니 자신의 실제 경험과 대조해 받아들여 주세요.');
-    var action=depthList(['오늘의 선택에서 이 장의 키워드가 드러난 장면을 한 가지 기록하기','강점은 한 번 더 반복하고, 과해지는 신호는 한 박자 늦추는 개인 규칙 만들기','가까운 사람에게 내 패턴을 설명하고 현실적인 피드백 한 가지 받기']);
-    if(title.indexOf('나의 사주 총평')>=0){
+    var action=depthList([
+      '오늘의 선택에서 이 장의 키워드가 드러난 장면을 한 가지 기록하기',
+      '강점은 한 번 더 반복하고, 과해지는 신호는 한 박자 늦추는 개인 규칙 만들기',
+      '가까운 사람에게 내 패턴을 설명하고 현실적인 피드백 한 가지 받기',
+      '이 장의 서술 중 내 경험과 어긋나는 문장을 하나 골라 왜 다른지 적어 두기',
+      '2주 뒤 같은 장을 다시 읽고 달라진 점과 그대로인 점을 구분해 보기'
+    ]);
+    if(key==='chongpyeong'){
       return depthParagraph('기질이 움직이는 방식',
         '일간 '+dg+'의 성향은 혼자 떨어져 작동하기보다 태어난 계절과 주변 오행의 도움을 받으며 방향이 정해집니다. 그래서 '+(ganKeyword[dg]||'고유한 기질')+'은 이미 갖고 있는 자원이고, '+(ganWeakPoint[dg]||'균형 조율')+'은 능력이 부족해서가 아니라 힘이 한쪽으로 몰릴 때 생기는 그림자로 보는 편이 정확합니다. '+monthName+'의 '+monthSeason+' 흐름과 '+monthElement+' 기운이 이 기질의 속도와 표현 방식을 조절합니다.')+
         depthParagraph('생활에서 확인할 신호',
-          '일이 잘 풀릴 때는 '+(ganTalent[dg]||'자신의 재능')+'이 자연스럽게 반복되고, 지칠 때는 '+(ganWeakPoint[dg]||'과한 기질')+'이 먼저 드러날 수 있습니다. 연애에서도 '+(ganRel[dg]||'진심 있는 관계')+'를 원하지만 표현 속도와 상대의 속도가 다를 수 있으므로, 마음을 증명하려는 행동보다 서로의 회복 시간을 합의하는 방식이 더 오래 갑니다.')+action;
+          '일이 잘 풀릴 때는 '+(ganTalent[dg]||'자신의 재능')+'이 자연스럽게 반복되고, 지칠 때는 '+(ganWeakPoint[dg]||'과한 기질')+'이 먼저 드러날 수 있습니다. 연애에서도 '+(ganRel[dg]||'진심 있는 관계')+'를 원하지만 표현 속도와 상대의 속도가 다를 수 있으므로, 마음을 증명하려는 행동보다 서로의 회복 시간을 합의하는 방식이 더 오래 갑니다.')+
+        depthParagraph('구조가 말해주는 근거',
+          '여덟 글자를 일간 '+dg+' 기준으로 다시 세면 십성은 '+tsList+' 순으로 힘이 실립니다. 가장 두꺼운 '+dominant+'이 평소의 판단 습관을 만들고, '+tsSecond+'은 주력이 막혔을 때 꺼내 쓰는 두 번째 태도로 작동합니다. 오행으로 보면 '+elTop+'가 앞에 서고 '+elLow+'가 뒤에 남는데, 이 간격이 곧 "쉽게 잘하는 일"과 "자꾸 미루는 일" 사이의 거리입니다.')+
+        depthParagraph('시기에 따라 달라지는 체감',
+          '한 해를 크게 보면 '+johuSeasonTxt+'의 기운이 살아날 때 이 기질이 가장 자연스럽게 흘러갑니다. 반대로 기록·마무리·거절처럼 '+elLow+'의 역할이 필요한 구간에서는 같은 능력도 유난히 무겁게 느껴질 수 있습니다. 그 시기를 재능 부족으로 해석하지 말고 배치의 문제로 읽으면 회복이 훨씬 빠릅니다.')+
+        depthParagraph('흔한 오해 바로잡기',
+          '총평을 "나는 원래 이런 사람"이라는 고정된 라벨로 받아들이면 오히려 선택지가 좁아집니다. 명리에서 말하는 기질은 출발 지점이지 도착 지점이 아니며, 같은 '+dg+' 일간이라도 어떤 계절·어떤 사람·어떤 역할과 만나느냐에 따라 드러나는 얼굴이 달라집니다. 이 리포트는 가능성의 지도이지 판결문이 아닙니다.')+
+        depthParagraph('스스로 확인할 질문',
+          '최근 한 달 동안 가장 몰입했던 장면과 가장 소모적이었던 장면을 하나씩 떠올려 보세요. 두 장면에서 '+(ganKeyword[dg]||'핵심 기질')+'이 어떻게 다르게 쓰였는지 비교하면, 바꿔야 할 것은 성격 자체가 아니라 그 기질이 놓이는 환경이라는 점이 드러납니다.')+action;
     }
-    if(title.indexOf('조후')>=0){
+    if(key==='johu'){
       return depthParagraph('온도와 습도의 실제 의미',
-        '조후는 좋고 나쁨을 가르는 낙인이 아니라, 몸과 감정이 어떤 환경에서 편안하게 움직이는지 살피는 기준입니다. 현재 판정이 '+(johu&&johu.type||'균형')+' 쪽으로 기울어 있다면 일·관계·수면 리듬도 같은 방향으로 영향을 받을 수 있습니다. '+(johu&&johu.advice||seasonAdvice))+
-        depthParagraph('계절에 맞춘 조정',seasonCaution+' '+monthRelation+'을 함께 보면서 지나치게 뜨겁거나 차가운 선택을 줄이고, 내가 회복되는 장소·사람·시간대를 구체적으로 확보해 보세요.')+action;
+        '조후는 좋고 나쁨을 가르는 낙인이 아니라, 몸과 감정이 어떤 환경에서 편안하게 움직이는지 살피는 기준입니다. 현재 판정이 '+johuType+' 쪽으로 기울어 있다면 일·관계·수면 리듬도 같은 방향으로 영향을 받을 수 있습니다. '+((johu&&johu.advice)||seasonAdvice))+
+        depthParagraph('계절에 맞춘 조정',
+          seasonCaution+' '+monthRelation+'을 함께 보면서 지나치게 뜨겁거나 차가운 선택을 줄이고, 내가 회복되는 장소·사람·시간대를 구체적으로 확보해 보세요.')+
+        depthParagraph('두 개의 축을 나누어 본다',
+          '조후 점수는 '+johuScoreTxt+'이고 습·조의 축에서는 '+johuMoistType+' 쪽으로 읽힙니다. 온도 축(춥다·덥다)과 습도 축(마르다·눅눅하다)은 서로 다른 문제라서 해법도 다릅니다. 온도는 활동량과 사람과의 접촉으로, 습도는 수면·수분·공간의 환기로 조정하는 편이 체감이 빠릅니다.')+
+        depthParagraph('실제 생활로 옮기기',
+          johuImprove+' '+johuMoistAdvice+' 한 번에 전부 바꾸려 하면 몸이 먼저 지칩니다. 아침·낮·저녁 가운데 컨디션이 가장 많이 무너지는 시간대 하나를 골라 그 구간에만 조정을 넣고, 2주 뒤에 다음 구간으로 넘어가세요.')+
+        depthParagraph('흔한 오해 바로잡기',
+          '조후가 치우쳤다고 해서 사주가 나쁜 것이 아닙니다. 조후는 "지금의 나에게 무엇이 모자란가"를 알려주는 계기판이며, 나이·직업·사는 지역의 기후에 따라 체감이 크게 달라집니다. 같은 사주라도 근무 환경이 바뀌면 조후의 고민 자체가 사라지기도 합니다.')+
+        depthParagraph('스스로 확인할 질문',
+          '몸이 가장 편안했던 계절과 장소를 떠올려 보세요. 그때의 온도·습도·빛의 양을 지금 생활에 얼마나 재현할 수 있는지 적어 보면, 조후 조정은 추상적인 이론이 아니라 방 하나·습관 하나의 문제로 내려옵니다.')+action;
     }
-    if(title.indexOf('억부')>=0||title.indexOf('종격')>=0){
+    if(key==='eokbu'){
       return depthParagraph('강약을 활용하는 법',
         '현재 구조는 '+(pw&&pw.isStrong?'일간의 힘이 비교적 강한 편':'일간의 힘이 외부 도움과 조율을 필요로 하는 편')+'으로 읽힙니다. '+(jg&&jg.isJong?'종격 가능성이 함께 검토되는 구조이므로 한 방향의 힘을 무조건 억누르기보다 실제 삶에서 지속 가능한지 확인하는 과정이 중요합니다.':'일반적인 억부 흐름에서는 강한 부분을 설기하거나 부족한 부분을 보완하는 균형 감각이 핵심입니다.')+' 용신 후보는 '+yong+', 조심해서 다룰 기운은 '+kij+'로 정리됩니다.')+
         depthParagraph('선택의 기준',
-          '좋은 선택은 용신이라는 이름을 맹목적으로 따르는 것이 아니라, 그 기운을 활용했을 때 집중력·회복력·관계의 안정이 실제로 좋아지는지 확인하는 선택입니다. 반대로 기신으로 읽힌 기운도 필요한 역할이 있으므로 없애기보다 양과 속도를 조절하는 방식으로 접근하세요.')+action;
+          '좋은 선택은 용신이라는 이름을 맹목적으로 따르는 것이 아니라, 그 기운을 활용했을 때 집중력·회복력·관계의 안정이 실제로 좋아지는지 확인하는 선택입니다. 반대로 기신으로 읽힌 기운도 필요한 역할이 있으므로 없애기보다 양과 속도를 조절하는 방식으로 접근하세요.')+
+        depthParagraph('수치가 뜻하는 것',
+          '강약 판정의 근거가 되는 점수는 '+powerTxt+'이며 '+strongTxt+' 쪽에 놓입니다. 이 수치는 절대 등급이 아니라 일간이 계절·뿌리·도움의 글자에서 얼마나 지지를 받는지를 합산한 상대값입니다. 경계선에 가까울수록 환경의 영향이 커지므로, 같은 사람도 직장·거주지·인간관계가 바뀌면 체감하는 힘이 달라집니다.')+
+        depthParagraph('용신과 기신의 쓰임새',
+          yong+'은 "더하면 숨통이 트이는 기운"이고 '+kij+'는 "이미 충분하거나 넘치기 쉬운 기운"입니다. '+(jg&&jg.isJong?'종격에 가까운 구조에서는 일반 억부 공식이 반대로 작동할 수 있어, 강한 흐름을 억지로 누르는 선택이 오히려 소모로 이어지기도 합니다.':'일반 억부 구조에서는 넘치는 쪽을 덜어내고 부족한 쪽을 채우는 단순한 원칙이 대체로 잘 맞습니다.')+' 어느 쪽이든 최종 기준은 이론이 아니라 실제 컨디션의 변화입니다.')+
+        depthParagraph('흔한 오해 바로잡기',
+          '용신을 행운의 부적처럼 다루는 해석은 위험합니다. 용신은 결과를 보장하는 장치가 아니라 힘의 배분을 조절하는 방향 표시이며, 기신이라 불린 기운도 삶의 어떤 국면에서는 반드시 필요합니다. 예컨대 통제와 마감을 담당하는 기운이 전혀 없으면 재능이 있어도 결과로 맺히지 않습니다.')+
+        depthParagraph('스스로 확인할 질문',
+          '최근 6개월 중 성과가 가장 좋았던 시기에 무엇을 늘리고 무엇을 줄였는지 적어 보세요. 그 목록이 '+yong+' 쪽에 가까웠는지 '+kij+' 쪽에 가까웠는지 대조하면, 이 장의 판정이 내 경험과 맞는지 스스로 검증할 수 있습니다.')+action;
     }
-    if(title.indexOf('월령')>=0){
+    if(key==='wollyeong'){
       return depthParagraph('계절이 만든 기본 템포',
-        monthName+'은 '+monthSeason+'에 해당하며, 이때 살아나는 '+monthElement+'의 힘이 사주 전체의 기본 템포를 만듭니다. '+monthRelation+'은 일간의 재능을 바로 강화하거나, 반대로 쉬어 갈 틈 없이 몰아붙이는 압력으로도 나타날 수 있습니다. 이 차이를 알면 “왜 나는 같은 일을 해도 어떤 때는 빠르고 어떤 때는 느린가”를 설명하기 쉬워집니다.')+
+        monthName+'은 '+monthSeason+'에 해당하며, 이때 살아나는 '+monthElement+'의 힘이 사주 전체의 기본 템포를 만듭니다. '+monthRelation+'은 일간의 재능을 바로 강화하거나, 반대로 쉬어 갈 틈 없이 몰아붙이는 압력으로도 나타날 수 있습니다. 이 차이를 알면 "왜 나는 같은 일을 해도 어떤 때는 빠르고 어떤 때는 느린가"를 설명하기 쉬워집니다.')+
         depthParagraph('가까운 흐름의 활용',
-          (monthReading&&monthReading.careerImpact||'일과 역할에서는 계절의 강점을 반복 가능한 방식으로 구조화하는 것이 좋습니다.')+' '+(monthReading&&monthReading.loveImpact||'관계에서는 표현의 속도와 감정 회복 시간을 서로 맞추는 것이 중요합니다.')+' '+seasonAdvice+' '+seasonCaution)+action;
+          ((monthReading&&monthReading.careerImpact)||'일과 역할에서는 계절의 강점을 반복 가능한 방식으로 구조화하는 것이 좋습니다.')+' '+((monthReading&&monthReading.loveImpact)||'관계에서는 표현의 속도와 감정 회복 시간을 서로 맞추는 것이 중요합니다.')+' '+seasonAdvice+' '+seasonCaution)+
+        depthParagraph('월령을 가장 무겁게 보는 이유',
+          mrSeasonal+' '+mrBalance+' 명리에서 월지를 가장 힘이 센 자리로 보는 이유가 여기 있습니다. 태어난 달의 기운은 나머지 일곱 글자가 각자의 역할을 얼마나 해낼 수 있는지의 전제 조건을 먼저 정해 버리기 때문입니다.')+
+        depthParagraph('일간과 월령이 만나는 지점',
+          mcInterp+' '+mcRelText+' 실제 생활에서는 이것이 "언제 밀어붙이고 언제 정비할 것인가"의 감각으로 나타납니다. 계절이 나를 밀어줄 때는 결정의 크기를 키워도 무리가 적고, 계절이 반대로 작동할 때는 같은 결정이 두 배의 힘을 요구합니다.')+
+        depthParagraph('흔한 오해 바로잡기',
+          '월령이 강하다고 반드시 좋은 것도, 약하다고 불리한 것도 아닙니다. '+mcCaution+' 강한 월령은 방향을 빠르게 정해주는 대신 다른 선택지를 지우고, 약한 월령은 속도가 느린 대신 여러 가능성을 오래 열어 둡니다. 둘은 장단점의 배치가 다를 뿐입니다.')+
+        depthParagraph('스스로 확인할 질문',
+          '태어난 달과 같은 계절이 돌아올 때 체감이 어떻게 달라지는지 1년만 기록해 보세요. '+mrSummary+' 기록이 쌓이면 이 장의 해석이 나에게 어떤 형태로 나타나는지가 개인적인 데이터로 남습니다.')+action;
     }
-    if(title.indexOf('오행 분포')>=0){
+    if(key==='ohaeng'){
       return depthParagraph('비율보다 중요한 균형',
-        '현재 오행 비율은 '+ratStr+'로 보입니다. 여기서 핵심은 가장 많은 오행을 좋다·나쁘다로 판단하는 것이 아니라, 그 기운이 어떤 역할을 충분히 하고 어떤 역할은 비어 있는지 살피는 것입니다. '+EL_KO[domE]+'가 중심이 된 흐름은 '+(tips&&tips.ctips?tips.ctips.action:'조절 행동')+'처럼 구체적인 루틴으로 옮길 때 생활에서 체감되기 쉽습니다.')+
+        '현재 오행 비율은 '+ratStr+'로 보입니다. 여기서 핵심은 가장 많은 오행을 좋다·나쁘다로 판단하는 것이 아니라, 그 기운이 어떤 역할을 충분히 하고 어떤 역할은 비어 있는지 살피는 것입니다. '+elTop+'가 중심이 된 흐름은 '+(ctips.action||'조절 행동')+'처럼 구체적인 루틴으로 옮길 때 생활에서 체감되기 쉽습니다.')+
         depthParagraph('부족함을 채우는 방식',
-          '부족해 보이는 오행을 한꺼번에 늘리기보다 일·주거·관계·식습관 중 한 영역부터 작게 보완하세요. 반대로 과한 기운은 억지로 끊기보다 '+(tips&&tips.dtips?tips.dtips.action:'속도를 낮추는 활동')+'처럼 분산시키는 행동을 더하는 편이 지속 가능합니다.')+action;
+          '부족해 보이는 오행을 한꺼번에 늘리기보다 일·주거·관계·식습관 중 한 영역부터 작게 보완하세요. 반대로 과한 기운은 억지로 끊기보다 '+(dtips.action||'속도를 낮추는 활동')+'처럼 분산시키는 행동을 더하는 편이 지속 가능합니다.')+
+        depthParagraph('순환이 끊기는 자리',
+          '가장 두꺼운 층은 '+elTop+', 가장 얇은 층은 '+elLow+'입니다. 명리에서 중요한 것은 다섯 기운이 똑같이 20%씩 나뉘는 상태가 아니라, 서로를 낳고(相生) 눌러주는(相剋) 순환이 끊기지 않는가입니다. 한 곳이 지나치게 두꺼우면 순환이 그 자리에서 정체되고, 한 곳이 비면 고리 자체가 끊어집니다.')+
+        depthParagraph('두꺼운 층과 얇은 층의 역할',
+          elTop+'가 앞선 구조에서는 그 기운이 잘하는 일을 자연스럽게 반복하게 되므로 성과도 그 방향에서 먼저 나옵니다. 문제는 '+elLow+'가 담당하는 영역 — 대체로 기록·마감·거절·휴식처럼 눈에 잘 띄지 않는 일 — 이 계속 뒤로 밀린다는 점입니다. 이 얇은 층을 사람이나 시스템으로 대신 채우는 것도 훌륭한 해법입니다.')+
+        depthParagraph('흔한 오해 바로잡기',
+          '비어 있는 오행을 색이나 물건으로 한 번에 채우려는 시도는 대개 오래가지 않습니다. 오행은 물건의 속성이기 이전에 행동의 성질에 가깝기 때문입니다. '+ctrlEl+'을 쓰는 행동('+(ctips.action||'정리와 원칙 세우기')+')과 '+drainEl+'로 힘을 빼는 행동('+(dtips.action||'활동과 교류')+')처럼 동사로 바꿔야 실제 변화가 생깁니다.')+
+        depthParagraph('스스로 확인할 질문',
+          '이번 주에 미룬 일 세 가지를 적고 각각이 어떤 오행의 성질을 요구하는지 표시해 보세요. 미룬 일이 한 오행에 몰려 있다면, 그것이 이 사주에서 가장 얇은 층일 가능성이 높습니다.')+action;
     }
-    if(title.indexOf('십성')>=0){
+    if(key==='sipseong'){
       return depthParagraph('에너지 구성의 반복 패턴',
-        '가장 두드러진 십성은 '+dominant+'이며, 이는 '+(tsInfo&&tsInfo.meaning||deep.nature||'삶에서 반복되는 역할과 욕구')+'로 읽을 수 있습니다. 같은 십성도 직업에서는 성과를 만드는 힘이 되고, 관계에서는 기대와 부담의 방식으로 나타날 수 있으므로 한 단어의 성격 진단으로 축소하지 않습니다.')+
+        '가장 두드러진 십성은 '+dominant+'이며, 이는 '+((tsInfo&&tsInfo.meaning)||deep.nature||'삶에서 반복되는 역할과 욕구')+'로 읽을 수 있습니다. 같은 십성도 직업에서는 성과를 만드는 힘이 되고, 관계에서는 기대와 부담의 방식으로 나타날 수 있으므로 한 단어의 성격 진단으로 축소하지 않습니다.')+
         depthParagraph('강점을 오래 쓰는 조건',
-          (deep.career||'자신에게 맞는 역할을 반복 가능한 구조로 만들 때 역량이 안정됩니다.')+' '+(deep.love||'관계에서는 마음을 표현하는 방식과 상대가 받는 방식을 함께 확인하는 것이 좋습니다.')+' '+(tsMoneyPattern[dominant]||'재물에서는 수입과 지출의 흐름을 기록해 패턴을 확인하세요.'))+action;
+          (deep.career||'자신에게 맞는 역할을 반복 가능한 구조로 만들 때 역량이 안정됩니다.')+' '+(deep.love||'관계에서는 마음을 표현하는 방식과 상대가 받는 방식을 함께 확인하는 것이 좋습니다.')+' '+(tsMoneyPattern[dominant]||'재물에서는 수입과 지출의 흐름을 기록해 패턴을 확인하세요.'))+
+        depthParagraph('주력과 보조를 함께 읽기',
+          '십성 분포를 세면 '+tsList+' 순입니다. 가장 두드러진 '+dominant+'은 '+((tsInfo&&tsInfo.desc)||'고유한 역할')+'로 요약되고, '+tsSecond+'은 주력이 통하지 않을 때 꺼내 드는 보조 전략이 됩니다. 두 개를 함께 보면 "평소의 나"와 "위기의 나"가 왜 그렇게 달라 보이는지 설명됩니다.')+
+        depthParagraph('무대에 따라 달라지는 얼굴',
+          (deep.advice||'자신의 에너지를 반복 가능한 구조 위에 얹으세요.')+' 십성은 재능의 목록이 아니라 에너지가 흐르는 방향입니다. 같은 '+dominant+'도 스스로 선택한 무대에서는 추진력이 되지만, 떠밀려 앉은 자리에서는 소모와 예민함으로 나타납니다.')+
+        depthParagraph('흔한 오해 바로잡기',
+          '어떤 십성이 좋고 나쁘다는 해석은 명리의 본래 용법이 아닙니다. 십성은 일간을 기준으로 한 관계의 이름일 뿐이어서, 관(官)이 부담으로 읽히는 사람에게는 책임이 무겁고 명예가 중요한 사람에게는 같은 글자가 성취의 통로가 됩니다. 이름의 어감이 아니라 내 경험을 기준으로 읽으세요.')+
+        depthParagraph('스스로 확인할 질문',
+          '내가 가장 자주 맡는 역할과, 남들이 나에게 가장 자주 부탁하는 일을 각각 세 가지씩 적어 보세요. 그 목록이 '+dominant+'의 성질과 얼마나 겹치는지 확인하면 이 장의 해석을 현실에서 검증할 수 있습니다.')+action;
     }
-    if(title.indexOf('성격·기질')>=0){
+    if(key==='seonggyeok'){
       return depthParagraph('내면과 겉모습의 간격',
         (ganChar[dg]||'일간의 상징')+'은 처음 만난 사람에게 보이는 태도와 혼자 있을 때의 회복 방식이 다를 수 있음을 보여줍니다. '+(ganKeyword[dg]||'고유한 강점')+'이 빠르게 드러나는 장면과 '+(ganWeakPoint[dg]||'주의점')+'이 올라오는 장면을 나누어 관찰하면 자기비판보다 자기조절에 가까운 해석이 됩니다.')+
         depthParagraph('관계에서의 사용법',
-          (ganRel[dg]||'진심 있는 관계')+'를 원한다면 상대가 알아서 읽어주기를 기다리기보다 원하는 거리·표현·회복 시간을 말로 알려주는 것이 좋습니다. 나를 바꾸는 것보다, 강점이 잘 작동하는 환경과 과한 반응을 줄이는 경계를 함께 설계하는 편이 현실적입니다.')+action;
+          (ganRel[dg]||'진심 있는 관계')+'를 원한다면 상대가 알아서 읽어주기를 기다리기보다 원하는 거리·표현·회복 시간을 말로 알려주는 것이 좋습니다. 나를 바꾸는 것보다, 강점이 잘 작동하는 환경과 과한 반응을 줄이는 경계를 함께 설계하는 편이 현실적입니다.')+
+        depthParagraph('첫인상과 실제 작동 방식',
+          (ganChar[dg]||'일간의 상징')+'이 만드는 첫인상과 십성 구조가 만드는 실제 행동은 종종 어긋납니다. 지금 구조에서는 '+dominant+'이 앞에 나서므로 처음에는 '+((tsInfo&&tsInfo.meaning)||'그 십성의 인상')+'으로 읽히기 쉽습니다. 여기에 '+strongTxt+'의 힘 배분을 더해 보면, 밖으로 드러나는 태도와 혼자 있을 때 필요한 회복 방식이 왜 다른지가 설명됩니다.')+
+        depthParagraph('압박이 걸릴 때의 순서',
+          '기질은 스트레스 상황에서 가장 선명해집니다. 여유가 있을 때는 '+(ganTalent[dg]||'재능')+'이 먼저 나오지만, 압박이 커지면 '+(ganWeakPoint[dg]||'약점')+'이 앞장섭니다. 이 순서를 미리 알고 있으면 "왜 중요한 순간에 평소와 다른 내가 나오는가"를 성격의 문제가 아니라 설계의 문제로 다룰 수 있습니다.')+
+        depthParagraph('흔한 오해 바로잡기',
+          '성격 해석을 고치라는 지시로 받아들이지 마세요. 명리는 기질을 바꾸는 기술이 아니라 기질을 어디에 놓을지 정하는 기술입니다. 같은 예민함이 감시받는 자리에서는 불안이 되고, 품질을 책임지는 자리에서는 전문성이 됩니다.')+
+        depthParagraph('스스로 확인할 질문',
+          '가까운 사람 두 명에게 "내가 어떤 상황에서 가장 나답고, 어떤 상황에서 가장 나답지 않아 보이는지" 물어 보세요. 그 답과 이 장의 서술이 겹치는 부분이 실제로 조정할 가치가 있는 지점입니다.')+action;
     }
-    if(title.indexOf('진로 적성')>=0){
+    if(key==='jinro'){
       return depthParagraph('직업 선택의 축',
-        (monthReading&&monthReading.careerImpact||'계절의 힘과 십성의 역할이 만나는 지점에서 진로 방향이 구체화됩니다.')+' '+(deep.career||'능력을 반복해서 성과로 바꾸는 역할을 선택하세요.')+' '+(lifeStrategyByTs[dominant]||'전문성과 신뢰를 쌓는 전략')+'을 함께 보면 단순 직업 목록보다 어떤 방식으로 일해야 오래 버틸 수 있는지가 선명해집니다.')+
+        ((monthReading&&monthReading.careerImpact)||'계절의 힘과 십성의 역할이 만나는 지점에서 진로 방향이 구체화됩니다.')+' '+(deep.career||'능력을 반복해서 성과로 바꾸는 역할을 선택하세요.')+' '+(lifeStrategyByTs[dominant]||'전문성과 신뢰를 쌓는 전략')+'을 함께 보면 단순 직업 목록보다 어떤 방식으로 일해야 오래 버틸 수 있는지가 선명해집니다.')+
         depthParagraph('성공을 지속하는 조건',
-          '잘 맞는 일도 속도·권한·피드백 구조가 맞지 않으면 소진될 수 있습니다. 처음부터 큰 결정을 하기보다 2~4주짜리 작은 프로젝트로 적합도를 시험하고, 결과보다 몰입도와 회복 비용을 기록해 다음 선택의 근거로 삼아 보세요.')+action;
+          '잘 맞는 일도 속도·권한·피드백 구조가 맞지 않으면 소진될 수 있습니다. 처음부터 큰 결정을 하기보다 2~4주짜리 작은 프로젝트로 적합도를 시험하고, 결과보다 몰입도와 회복 비용을 기록해 다음 선택의 근거로 삼아 보세요.')+
+        depthParagraph('업종이 아니라 동사로 고른다',
+          ((tsInfo&&tsInfo.desc)||'주력 십성의 성질')+'을 직업으로 옮길 때 중요한 것은 업종의 이름이 아니라 하루의 대부분을 어떤 동사로 채우는가입니다. '+dominant+'이 강한 구조는 '+(deep.career||'그 십성이 잘 쓰이는 역할')+'에서 성과가 먼저 나오고, '+tsSecond+'은 팀 안에서 자연스럽게 맡게 되는 두 번째 역할을 설명합니다.')+
+        depthParagraph('확장기와 정비기의 구분',
+          mrStrength+' 계절의 힘까지 고려하면 지금이 확장기인지 정비기인지 가늠할 수 있습니다. 확장기에는 무대의 수를 늘리고, 정비기에는 이미 쌓은 것을 문서·시스템·관계로 굳히는 편이 다음 확장의 발판이 됩니다. 두 국면에 같은 전략을 쓰면 성과보다 피로가 먼저 쌓입니다.')+
+        depthParagraph('흔한 오해 바로잡기',
+          '"이 사주에 맞는 직업 목록"을 정답표처럼 받아들이면 오히려 기회를 놓칩니다. 같은 구조라도 조직 문화·권한의 크기·피드백 주기가 다르면 결과가 정반대로 나옵니다. 직업명보다 근무 조건을 기준으로 비교하는 편이 훨씬 정확합니다.')+
+        depthParagraph('스스로 확인할 질문',
+          '지난 1년 중 시간이 가장 빨리 지나간 업무와 가장 느리게 지나간 업무를 적어 보세요. 몰입의 차이를 만든 것이 일의 종류였는지, 함께한 사람이었는지, 주어진 권한이었는지 구분하면 다음 선택의 기준이 선명해집니다.')+action;
     }
-    if(title.indexOf('연애·결혼')>=0){
+    if(key==='yeonae'){
       return depthParagraph('사랑의 속도와 표현',
-        (ganRel[dg]||'진심 있는 연애')+'를 바라는 마음은 분명하지만, 상대가 같은 방식으로 애정을 표현한다고 보기는 어렵습니다. '+(monthReading&&monthReading.loveImpact||'계절의 온도와 일지의 감정 리듬을 함께 살피면')+' 내가 사랑을 확인하는 방식과 상대가 편안함을 느끼는 방식을 구분할 수 있습니다.')+
+        (ganRel[dg]||'진심 있는 연애')+'를 바라는 마음은 분명하지만, 상대가 같은 방식으로 애정을 표현한다고 보기는 어렵습니다. '+((monthReading&&monthReading.loveImpact)||'계절의 온도와 일지의 감정 리듬을 함께 살피면')+' 내가 사랑을 확인하는 방식과 상대가 편안함을 느끼는 방식을 구분할 수 있습니다.')+
         depthParagraph('오래 가는 관계의 조건',
-          '연애와 결혼의 핵심은 끌림의 크기만이 아니라 갈등 뒤에 다시 연결되는 방법입니다. 연락 빈도, 혼자 있는 시간, 돈과 집안일의 역할, 서운함을 말하는 타이밍을 미리 합의하면 감정이 흔들리는 날에도 관계의 기본 구조를 지킬 수 있습니다.')+action;
+          '연애와 결혼의 핵심은 끌림의 크기만이 아니라 갈등 뒤에 다시 연결되는 방법입니다. 연락 빈도, 혼자 있는 시간, 돈과 집안일의 역할, 서운함을 말하는 타이밍을 미리 합의하면 감정이 흔들리는 날에도 관계의 기본 구조를 지킬 수 있습니다.')+
+        depthParagraph('애정 표현의 번역 문제',
+          '관계에서 반복되는 패턴은 일지(日支)와 십성의 배치에서 읽습니다. 지금 구조에서는 '+dominant+'의 성질이 애정 표현에도 그대로 나타나기 쉬워 '+(deep.love||'마음을 전하는 고유한 방식')+'이 관계의 리듬을 결정합니다. 상대가 이 방식을 애정으로 번역하지 못하면, 마음의 크기와 무관하게 오해가 쌓입니다.')+
+        depthParagraph('회복 속도의 차이',
+          johuType+' 쪽으로 기운 조후는 다툰 뒤 회복에 필요한 시간에도 영향을 줍니다. 빨리 풀어야 안심하는 사람과 혼자 정리할 시간이 필요한 사람이 만나면, 문제는 사랑의 크기가 아니라 회복 속도의 차이입니다. 이 차이를 미리 말로 정해 두면 같은 다툼이 반복되지 않습니다.')+
+        depthParagraph('흔한 오해 바로잡기',
+          '궁합을 두 사람의 점수로 환산하는 해석은 실제 관계를 설명하지 못합니다. 명리가 보는 것은 두 기운이 만났을 때 어떤 장면이 자주 반복되는가이며, 그 장면은 대화와 합의로 바꿀 수 있습니다. 맞지 않는 조합이라기보다 아직 조율하지 않은 조합인 경우가 훨씬 많습니다.')+
+        depthParagraph('스스로 확인할 질문',
+          '최근 다툰 장면을 하나 골라 "무엇 때문에"가 아니라 "어떤 순서로" 벌어졌는지 적어 보세요. 순서가 매번 비슷하다면 그것이 이 사주가 관계에서 반복하는 패턴이고, 그 순서의 한 칸만 바꿔도 결과가 달라집니다.')+action;
     }
-    if(title.indexOf('신살')>=0){
+    if(key==='sinsal'){
       return depthParagraph('상징을 현실에 번역하기',
         '신살은 사람을 규정하는 낙인보다 특정 장면에서 반응이 커지는 상징으로 읽는 편이 안전합니다. 매력·이동·집중·직관 같은 힘은 환경을 만나면 재능이 되고, 과해지면 충동·피로·관계의 오해로 나타날 수 있습니다. 실제 경험과 맞는 부분만 선택적으로 받아들이세요.')+
         depthParagraph('균형을 지키는 질문',
-          '이 에너지가 잘 작동할 때 나는 무엇을 만들고 있는가, 과해질 때 누구와 어떤 갈등을 반복하는가를 나누어 기록해 보세요. 상징을 두려워하기보다 사용 가능한 재능과 조절해야 할 습관으로 분리하면 신살 해석이 현실적인 자기이해로 바뀝니다.')+action;
+          '이 에너지가 잘 작동할 때 나는 무엇을 만들고 있는가, 과해질 때 누구와 어떤 갈등을 반복하는가를 나누어 기록해 보세요. 상징을 두려워하기보다 사용 가능한 재능과 조절해야 할 습관으로 분리하면 신살 해석이 현실적인 자기이해로 바뀝니다.')+
+        depthParagraph('뼈대와 색을 구분한다',
+          '신살은 사주의 뼈대가 아니라 뼈대 위에 입혀지는 색입니다. 일간 '+dg+'와 '+strongTxt+'의 힘 배분이 기본 구조를 정하고, 신살은 그 구조가 특정 장면에서 얼마나 튀게 드러나는지를 알려줍니다. 그래서 같은 신살도 구조가 안정된 사람에게는 재능으로, 힘이 한쪽으로 몰린 사람에게는 과부하로 나타납니다.')+
+        depthParagraph('큰 에너지를 흘려보내는 자리',
+          '이동·인기·직관처럼 강하게 읽히는 상징은 대개 에너지의 총량이 큰 자리입니다. 총량이 큰 힘은 쓸 곳이 정해져 있으면 성과가 되고, 쓸 곳이 없으면 안으로 돌아 충동이나 불안이 됩니다. '+drainEl+' 쪽으로 힘을 흘려보내는 활동('+(dtips.action||'운동과 교류')+')을 미리 배치해 두는 편이 안전합니다.')+
+        depthParagraph('흔한 오해 바로잡기',
+          '흉살이라는 이름 때문에 불안해질 필요는 없습니다. 전통적으로 흉하게 분류된 글자들은 대부분 변화·분리·긴장을 뜻하는데, 이는 현대의 이직·이사·독립처럼 스스로 선택하는 변화와 같은 에너지입니다. 통제할 수 없는 사건이 아니라 다룰 수 있는 성질로 읽는 편이 정확합니다.')+
+        depthParagraph('스스로 확인할 질문',
+          '인생에서 방향이 크게 바뀐 시점을 세 번 떠올려 보세요. 그 변화가 외부에서 밀려온 것이었는지 스스로 당긴 것이었는지 구분하면, 같은 에너지를 앞으로 어느 쪽으로 쓸지 정하기 쉬워집니다.')+action;
     }
-    if(title.indexOf('건강')>=0){
+    if(key==='geongang'){
       return depthParagraph('컨디션의 패턴',
         '건강 해석은 진단이 아니라 생활 리듬을 점검하는 참고 신호입니다. '+(health.weak||'취약하기 쉬운 컨디션')+'와 '+(health.stress||'스트레스 신호')+'가 겹치는 시기에는 의지로 버티기보다 수면·식사·움직임을 먼저 정돈하는 방식이 안전합니다.')+
         depthParagraph('회복 루틴의 기준',
-          (health.advice||'작고 반복 가능한 회복 루틴')+' '+(health.food||'몸에 맞는 식사')+'를 한꺼번에 바꾸기보다 하나씩 실험하세요. 증상이 지속되거나 일상에 영향을 준다면 운세 해석보다 의료 전문가의 판단을 우선해야 합니다.')+action;
+          (health.advice||'작고 반복 가능한 회복 루틴')+' '+(health.food||'몸에 맞는 식사')+'를 한꺼번에 바꾸기보다 하나씩 실험하세요. 증상이 지속되거나 일상에 영향을 준다면 운세 해석보다 의료 전문가의 판단을 우선해야 합니다.')+
+        depthParagraph('신호가 먼저 오는 자리',
+          '일간 '+dg+'('+dayElKo+') 기준으로는 '+(health.weak||'주의할 부위')+'가 먼저 신호를 보내는 편이고, 오행 분포에서 '+elLow+'가 얇다는 점은 회복 자원이 부족해지기 쉬운 지점을 알려줍니다. 조후가 '+johuType+' 쪽이라면 계절이 바뀌는 구간에 컨디션의 진폭이 특히 커질 수 있습니다.')+
+        depthParagraph('식사를 다루는 방식',
+          (health.food||'몸에 맞는 식사')+'는 치료식이 아니라 기울어진 기운을 되돌리는 생활 재료로 보는 편이 맞습니다. '+(ctips.food||'담백한 식사')+' 같은 방향을 평소 식단에 조금씩 섞고, 극단적인 제한 대신 비율만 바꾸세요. 오래 지키지 못하는 식단은 효과를 확인할 기회조차 주지 않습니다.')+
+        depthParagraph('반드시 지켜야 할 한계',
+          '명리의 건강 해석은 의료 진단이 아닙니다. 같은 사주라도 수면·운동·스트레스·병력에 따라 실제 몸 상태는 완전히 달라지며, 이 리포트는 검사 결과를 대신할 수 없습니다. 통증·수면장애·기분의 급격한 변화가 2주 이상 이어진다면 반드시 의료 전문가의 진료를 받으세요.')+
+        depthParagraph('스스로 확인할 질문',
+          '지난 한 달 중 컨디션이 가장 나빴던 사흘을 찾아 그 전날 무엇을 했는지 적어 보세요. 원인은 대개 당일이 아니라 전날의 수면·식사·감정 소모에 있습니다.')+action;
     }
-    if(title.indexOf('재물운')>=0){
+    if(key==='jaemul'){
       return depthParagraph('돈이 움직이는 방식',
-        (tsMoneyPattern[dominant]||'수입과 지출의 반복 패턴')+' '+(monthReading&&monthReading.wealthImpact||'계절의 압력이 재물 판단의 속도에 영향을 줄 수 있습니다.')+' 따라서 큰 기회를 기다리기보다 수입원·고정비·비상 여유를 나누어 기록할 때 자신의 재물 흐름을 더 정확히 확인할 수 있습니다.')+
+        (tsMoneyPattern[dominant]||'수입과 지출의 반복 패턴')+' '+((monthReading&&monthReading.wealthImpact)||'계절의 압력이 재물 판단의 속도에 영향을 줄 수 있습니다.')+' 따라서 큰 기회를 기다리기보다 수입원·고정비·비상 여유를 나누어 기록할 때 자신의 재물 흐름을 더 정확히 확인할 수 있습니다.')+
         depthParagraph('현실적인 수호선',
-          (elMoneyAdvice[domE]||'계약과 지출 기록을 꼼꼼히 확인하세요.')+' 운세는 투자 수익이나 손실을 보장하지 않으므로, 중요한 금융 결정은 감당 가능한 범위와 검증된 정보 안에서 판단하세요.')+action;
+          (elMoneyAdvice[domE]||'계약과 지출 기록을 꼼꼼히 확인하세요.')+' 운세는 투자 수익이나 손실을 보장하지 않으므로, 중요한 금융 결정은 감당 가능한 범위와 검증된 정보 안에서 판단하세요.')+
+        depthParagraph('재성보다 중요한 감당할 힘',
+          '재물은 십성에서 재성(財星)의 자리로 읽지만, 실제 축적을 결정하는 것은 재성의 개수가 아니라 그것을 감당할 힘입니다. '+strongTxt+' 판정('+powerTxt+')에서 보면 '+((pw&&pw.isStrong)?'기회를 잡는 추진력은 충분한 편이므로 관리와 마감의 체계를 붙일 때 수익의 폭이 커집니다.':'큰 판을 혼자 감당하기보다 검증된 구조 안에서 반복 가능한 수입을 먼저 쌓는 편이 안전합니다.'))+
+        depthParagraph('판단이 급해지는 구간',
+          ((monthReading&&monthReading.wealthImpact)||'계절의 압력이 돈에 대한 판단 속도에 영향을 줍니다.')+' 수입원·고정비·비상금을 한 장에 적어 두면 "흐름이 좋은 시기"와 "판단이 급해지는 시기"를 구분할 수 있습니다. 대부분의 손실은 정보가 없어서가 아니라 결정에 쓴 시간이 짧아서 생깁니다.')+
+        depthParagraph('반드시 지켜야 할 한계',
+          '운세는 수익을 보장하지 않습니다. 명리로 읽을 수 있는 것은 돈을 다룰 때 반복되는 습관 — 언제 과감해지고 언제 미루는가 — 이지 특정 종목이나 시점의 결과가 아닙니다. 투자·대출·계약은 반드시 감당 가능한 범위와 검증된 정보 안에서 결정하세요.')+
+        depthParagraph('스스로 확인할 질문',
+          '최근 후회한 지출과 만족한 지출을 각각 세 건씩 적어 보세요. 금액이 아니라 결정에 걸린 시간을 비교하면, 이 사주가 돈에서 어떤 속도일 때 실수하는지가 드러납니다.')+action;
     }
-    if(title.indexOf('귀인')>=0){
+    if(key==='guiin'){
       return depthParagraph('도움을 주고받는 방식',
         (guiinByDom[domE]||'성장을 돕는 멘토')+'가 귀인으로 읽히는 이유는 당신이 부족해서가 아니라, 혼자 반복하기 어려운 시야와 연결을 보완해 주기 때문입니다. 도움을 받는 동시에 자신이 먼저 나눌 수 있는 경험과 자원을 정리하면 관계가 일방향 의존으로 흐르지 않습니다.')+
         depthParagraph('귀인 인연을 유지하는 법',
-          '좋은 조언을 들었다면 실행 결과를 짧게 공유하고, 상대의 시간과 경계를 존중하세요. 한 번의 강한 만남보다 스터디·프로젝트·커뮤니티처럼 같은 방향의 접점을 반복하는 환경이 실제 귀인 관계를 만들 가능성이 높습니다.')+action;
+          '좋은 조언을 들었다면 실행 결과를 짧게 공유하고, 상대의 시간과 경계를 존중하세요. 한 번의 강한 만남보다 스터디·프로젝트·커뮤니티처럼 같은 방향의 접점을 반복하는 환경이 실제 귀인 관계를 만들 가능성이 높습니다.')+
+        depthParagraph('얇은 층을 채워주는 사람',
+          '귀인은 신비한 구원자가 아니라 내 사주에서 얇은 층을 대신 채워주는 사람입니다. 지금 구조에서 '+elLow+'가 얇다면, 그 성질을 자연스럽게 갖춘 사람이 곁에 있을 때 일이 눈에 띄게 풀립니다. 반대로 '+elTop+'가 두꺼운 사람끼리만 모이면 속도는 빨라도 같은 실수를 함께 반복하기 쉽습니다.')+
+        depthParagraph('밀도보다 반복',
+          '관계의 강렬함보다 접점의 반복이 중요합니다. 한 번의 인상적인 만남보다 같은 목표를 향해 정기적으로 마주치는 환경 — 스터디·프로젝트·정기 모임 — 에서 귀인 관계가 만들어집니다. '+(ctips.place||'정돈된 공간')+'처럼 내 기운이 안정되는 장소에서 사람을 만나면 대화의 질도 달라집니다.')+
+        depthParagraph('흔한 오해 바로잡기',
+          '귀인을 기다리는 태도는 위험합니다. 도움은 대개 이미 무언가를 시작한 사람에게 붙기 때문입니다. 또한 나를 돕는 사람이 늘 편안한 사람은 아닙니다 — 쓴 말을 해주는 사람이 얇은 층을 채워주는 경우가 오히려 더 많습니다.')+
+        depthParagraph('스스로 확인할 질문',
+          '지난 3년간 내 방향을 바꾼 조언을 준 사람을 떠올려 보세요. 그 사람들의 공통점을 한 문장으로 정리하면, 앞으로 나를 어떤 자리에 두어야 할지가 정해집니다.')+action;
     }
-    if(title.indexOf('개운 루트')>=0){
+    if(key==='gaeun'){
       return depthParagraph('개운의 핵심',
-        '개운은 특정 물건 하나로 운을 바꾸는 주문이 아니라, 과한 기운은 분산하고 필요한 기운은 반복해서 생활에 들이는 조정법입니다. '+EL_KO[tips.controller]+'을 활용하는 행동과 '+EL_KO[tips.drain]+'으로 힘을 나누는 행동을 번갈아 적용하면 무리 없이 균형을 시험할 수 있습니다.')+
+        '개운은 특정 물건 하나로 운을 바꾸는 주문이 아니라, 과한 기운은 분산하고 필요한 기운은 반복해서 생활에 들이는 조정법입니다. '+ctrlEl+'을 활용하는 행동과 '+drainEl+'으로 힘을 나누는 행동을 번갈아 적용하면 무리 없이 균형을 시험할 수 있습니다.')+
         depthParagraph('작게 시작하는 순서',
-          '색·방향·음식·활동을 모두 바꾸기보다 가장 쉽게 반복할 수 있는 한 가지를 2주간 실천하고, 수면·집중·관계의 변화를 기록하세요. 효과가 체감되지 않으면 다른 요소로 조정하며 자신에게 맞는 루틴만 남기는 것이 좋습니다.')+action;
+          '색·방향·음식·활동을 모두 바꾸기보다 가장 쉽게 반복할 수 있는 한 가지를 2주간 실천하고, 수면·집중·관계의 변화를 기록하세요. 효과가 체감되지 않으면 다른 요소로 조정하며 자신에게 맞는 루틴만 남기는 것이 좋습니다.')+
+        depthParagraph('원리는 단순하다',
+          '개운의 원리는 단순합니다. 넘치는 '+elTop+'의 힘을 '+drainEl+' 쪽으로 흘려보내고, 부족한 자리는 '+ctrlEl+'의 성질로 붙잡아 주는 것입니다. 색('+(ctips.color||'차분한 색')+'), 공간('+(ctips.place||'정돈된 장소')+'), 음식('+(ctips.food||'담백한 식사')+')은 그 성질을 몸이 기억하게 만드는 보조 장치일 뿐, 핵심은 언제나 행동입니다.')+
+        depthParagraph('분산과 응집을 번갈아',
+          '분산이 필요할 때는 '+(dtips.action||'활동과 교류')+' 쪽을, 응집이 필요할 때는 '+(ctips.action||'정리와 원칙 세우기')+' 쪽을 씁니다. 두 가지를 동시에 하면 서로 상쇄되므로 2주 단위로 하나씩 번갈아 적용하고, 그 사이의 수면·집중·기분을 기록해 어느 쪽이 나에게 맞는지 확인하세요.')+
+        depthParagraph('흔한 오해 바로잡기',
+          '부적이나 방향·색만으로 운이 바뀐다는 설명은 명리의 본래 논리와 다릅니다. 오행은 물건의 속성이기 이전에 행동의 성질이며, 바뀌는 것은 운 자체가 아니라 같은 상황에서 내가 선택하는 반응입니다. 고가의 물건을 구매하는 방식의 개운은 권하지 않습니다.')+
+        depthParagraph('스스로 확인할 질문',
+          '2주 실험을 마친 뒤 "다시 하고 싶은 것"만 남기고 나머지는 버리세요. 개운 루틴은 길수록 좋은 것이 아니라 끝까지 반복되는 것만 효과가 있습니다.')+action;
     }
-    if(title.indexOf('인생 전략')>=0){
+    if(key==='jeollyak'){
       return depthParagraph('장기 전략의 중심',
-        (lifeStrategyByTs[dominant]||'전문성과 신뢰를 쌓는 전략')+'은 빠른 승부보다 자신의 에너지를 반복 가능한 성과로 바꾸는 방향을 뜻합니다. '+monthName+'의 계절 템포와 '+(monthReading&&monthReading.strengthAnalysis||'현재 강약 흐름')+'을 함께 고려하면 지금 확장할 일과 잠시 정리할 일을 구분하기 쉬워집니다.')+
+        (lifeStrategyByTs[dominant]||'전문성과 신뢰를 쌓는 전략')+'은 빠른 승부보다 자신의 에너지를 반복 가능한 성과로 바꾸는 방향을 뜻합니다. '+monthName+'의 계절 템포와 '+mrStrength+'을 함께 고려하면 지금 확장할 일과 잠시 정리할 일을 구분하기 쉬워집니다.')+
         depthParagraph('다음 90일의 기준',
-          '큰 목표를 한 문장으로 두고, 매주 확인할 행동 하나와 매일 반복할 루틴 하나로 쪼개세요. 결과가 늦더라도 기록이 남으면 다음 선택의 정확도가 올라가며, 이 리포트도 정답지가 아니라 그 기록을 시작하는 지도처럼 사용할 수 있습니다.')+action;
+          '큰 목표를 한 문장으로 두고, 매주 확인할 행동 하나와 매일 반복할 루틴 하나로 쪼개세요. 결과가 늦더라도 기록이 남으면 다음 선택의 정확도가 올라가며, 이 리포트도 정답지가 아니라 그 기록을 시작하는 지도처럼 사용할 수 있습니다.')+
+        depthParagraph('전략의 세 가지 뼈대',
+          '첫째, 이미 두꺼운 '+elTop+'의 힘은 더 키우기보다 결과물로 바꿉니다. 둘째, 얇은 '+elLow+'는 혼자 채우려 애쓰기보다 사람·도구·시스템으로 대신합니다. 셋째, 주력 십성 '+dominant+'이 잘 작동하는 조건을 문장으로 적어 두고 그 조건을 만족하는 자리만 고릅니다. 이 세 가지가 서면 나머지 선택은 자동으로 좁혀집니다.')+
+        depthParagraph('지금의 국면을 읽는다',
+          mrSeasonal+' 지금이 확장기라면 무대의 수를 늘리고, 정비기라면 이미 벌여 둔 것의 수를 줄이세요. '+seasonAdvice+' 국면을 잘못 읽으면 같은 노력으로 절반의 결과만 남습니다.')+
+        depthParagraph('흔한 오해 바로잡기',
+          '장기 전략을 세울 때 가장 흔한 실수는 목표를 늘리는 것입니다. 사주의 관점에서 보면 사람이 동시에 감당할 수 있는 방향은 많아야 둘이며, 셋 이상이 되면 가장 두꺼운 오행 쪽으로 힘이 몰려 나머지는 방치됩니다. 더할 것보다 버릴 것을 먼저 정하는 편이 빠릅니다.')+
+        depthParagraph('스스로 확인할 질문',
+          '1년 뒤 스스로에게 보여주고 싶은 증거 한 가지를 정하세요. 숫자든 작품이든 관계든 상관없습니다. 그 증거 하나가 정해지면 이 리포트의 모든 장이 그것을 이루기 위한 세부 지침으로 다시 읽힙니다.')+action;
     }
     return common+action;
   }
-  function box(title,body,accent,bg){
+  function box(key,title,body,accent,bg){
     var bc=accent||'#bba371';
     var id='sbx'+(++_bxCtr);
-    var chapterId='sajuSummaryChapter'+_bxCtr;
+    var chapterId='sajuSummaryChapter-'+key;
     return '<article id="'+chapterId+'" class="prem-box saju-summary-chapter" data-saju-summary-chapter="'+_bxCtr+'">'+
       '<div class="saju-summary-chapter__head">'+
       '<h4 class="prem-title saju-summary-chapter__title">'+title+'</h4>'+
       '<button class="saju-summary-toggle" type="button" data-bxid="'+id+'" aria-controls="'+id+'" aria-expanded="true" onclick="sbxToggle(this.dataset.bxid,this)">'+
       '접기 ▲</button>'+
       '</div>'+
-      '<div id="'+id+'" class="prem-text saju-summary-chapter__body">'+body+summaryDepth(title)+'</div></article>';
+      '<div id="'+id+'" class="prem-text saju-summary-chapter__body">'+body+summaryDepth(key)+'</div></article>';
   }
   function subHead(txt,c){return '<b class="saju-summary-subhead" style="--saju-subhead-color:'+(c||'var(--cd-accent,#b31955)')+'">'+txt+'</b>';}
   function li(items){return '<ul class="saju-summary-list">'+items.map(function(t){return '<li>'+t+'</li>';}).join('')+'</ul>';}
@@ -27358,16 +27514,16 @@ function renderSummary(p,johu,natal){
 
   var html='<div class="saju-summary-report">'+
     '<nav class="saju-summary-nav" aria-label="종합 사주 풀이 목차">'+
-    '<a href="#sajuSummaryChapter1">기질과 계절</a>'+
-    '<a href="#sajuSummaryChapter5">오행과 십성</a>'+
-    '<a href="#sajuSummaryChapter7">성격과 관계</a>'+
-    '<a href="#sajuSummaryChapter15">현실 전략</a>'+
+    '<a href="#sajuSummaryChapter-chongpyeong">기질과 계절</a>'+
+    '<a href="#sajuSummaryChapter-ohaeng">오행과 십성</a>'+
+    '<a href="#sajuSummaryChapter-seonggyeok">성격과 관계</a>'+
+    '<a href="#sajuSummaryChapter-jeollyak">현실 전략</a>'+
     '</nav>';
 
   /* ───────────────────────────────
      1. 사주 총평 & 일간 분석
   ─────────────────────────────── */
-  html+=box('🌿 ① 나의 사주 총평 — 일간(日干) '+dg+' 풀이',
+  html+=box('chongpyeong','🌿 ① 나의 사주 총평 — 일간(日干) '+dg+' 풀이',
     subHead('일간 근본 기운','#2e7d32')+
     kv('일간','<b>'+dg+' ('+dayMaster+')</b> — '+(ganChar[dg]||dg))+
     kv('핵심 키워드',ganKeyword[dg]||'추진력·독립')+
@@ -27389,7 +27545,7 @@ function renderSummary(p,johu,natal){
   /* ───────────────────────────────
      2. 조후 & 억부 & 종격
   ─────────────────────────────── */
-  html+=box('🌡️ ② 조후(調候) 판정 — 계절 에너지 분석',
+  html+=box('johu','🌡️ ② 조후(調候) 판정 — 계절 에너지 분석',
     '<span class="johu-badge '+johu.badgeCls+'">'+johu.badgeTxt+'</span><br>'+
     johu.advice+'<br><br>'+
     subHead('조후(調候)란 무엇인가','#1565C0')+
@@ -27402,7 +27558,7 @@ function renderSummary(p,johu,natal){
       :'조후 조절은 거창한 변화가 아니라 일상의 작은 선택에서 시작합니다. 자신의 조후에 맞는 색상, 음식, 방향, 활동을 의식적으로 선택하면 에너지 균형이 잡히고 삶의 흐름이 부드러워집니다. 아래 개운 파트에서 구체적인 조후 맞춤 개운법을 확인하세요.')+'</div>',
     '#2196F3','rgba(227,242,253,.7)');
 
-  html+=box('⚖️ ③ 억부(抑扶) & 종격(從格) 심층 분석',
+  html+=box('eokbu','⚖️ ③ 억부(抑扶) & 종격(從格) 심층 분석',
     (jg&&jg.isJong
       ?'<b>'+jg.name+'</b> — '+EL_KO[jg.dominant]+' 기운 '+jg.pct+'% 지배<br>'+
        '<div style="margin-top:6px;font-size:.85rem;line-height:1.78">'+
@@ -27440,7 +27596,7 @@ function renderSummary(p,johu,natal){
      2-1. 월령(절기 기준) 해석
   ─────────────────────────────── */
   if(monthCommand&&monthReading){
-    html+=box('🌙 월령 해석 — 태어난 계절이 내 사주에 주는 힘',
+    html+=box('wollyeong','🌙 월령 해석 — 태어난 계절이 내 사주에 주는 힘',
       subHead('월령 한눈에 보기','#3f51b5')+
       kv('월령',monthCommand.monthName+' ('+monthCommand.branch+')')+
       kv('절기 구간',monthCommand.startTerm+' ~ '+monthCommand.endTerm)+
@@ -27464,7 +27620,7 @@ function renderSummary(p,johu,natal){
       '<div style="margin-top:8px;padding:9px 10px;border-radius:8px;border-left:3px solid #8b5cf6;background:rgba(129,140,248,.12);font-size:.82rem;line-height:1.72;color:#4c1d95"><b>주의:</b> '+monthReading.caution+'</div>',
       '#5c6bc0','rgba(232,236,255,.78)');
   }else if(monthReading){
-    html+=box('🌙 월령 해석 — 태어난 계절이 내 사주에 주는 힘',
+    html+=box('wollyeong','🌙 월령 해석 — 태어난 계절이 내 사주에 주는 힘',
       '<div style="font-size:.84rem;line-height:1.85">'+monthReading.summary+'</div>'+
       '<br>'+subHead('보완 안내','#5c6bc0')+
       '<div style="font-size:.84rem;line-height:1.85">'+monthReading.caution+'</div>',
@@ -27488,7 +27644,7 @@ function renderSummary(p,johu,natal){
   });
   ratioBar+='</div>';
 
-  html+=box('🧭 ④ 오행 분포 & 균형 진단',
+  html+=box('ohaeng','🧭 ④ 오행 분포 & 균형 진단',
     (_isNeoSaju
       ?(natal.counts[domE]>=5?'🔴 <b>'+EL_K[domE]+' 기운이 심하게 편중</b>돼 있는데요. 균형 조절, 선택이 아니라 필수입니다.'
         :natal.counts[domE]>=4?'🟠 <b>'+EL_K[domE]+' 기운이 강하게 쏠려</b> 있네요. 적극적으로 손봐야 하는 수준입니다.'
@@ -27525,7 +27681,7 @@ function renderSummary(p,johu,natal){
   });
   tsRankHtml+='</div>';
 
-  html+=box('⭐ ⑤ 십성(十星) 심층 분석 — 내 삶의 에너지 구성',
+  html+=box('sipseong','⭐ ⑤ 십성(十星) 심층 분석 — 내 삶의 에너지 구성',
     subHead('보유 십성 랭킹','#5c35c8')+
     tsRankHtml+
     '<br>'+subHead('주 십성 '+dominant+' — 성향 상세','#7c3aed')+
@@ -27596,7 +27752,7 @@ function renderSummary(p,johu,natal){
     癸:'계수(癸水)는 맑은 이슬입니다. 공감 능력 탁월하고 일대일 관계에서 깊고 따뜻한 거 인정합니다. 근데 우유부단함, 지나친 내성이 최대 약점이에요. 결정 미루다 기회 놓치는 거 그만하고, 직관 믿고 행동하는 용기 좀 내시죠. 꾸준함이 무기인 건 맞으니, 생각한 다음엔 반드시 한 걸음 실천을 붙이세요.'
   };
 
-  html+=box((_isNeoSaju?'🦁 ⑥ 성격·기질 심층 분석 (팩트 보고서)':'🌸 ⑥ 성격·기질 심층 분석 — 나를 이해하는 시간'),
+  html+=box('seonggyeok',(_isNeoSaju?'🦁 ⑥ 성격·기질 심층 분석 (팩트 보고서)':'🌸 ⑥ 성격·기질 심층 분석 — 나를 이해하는 시간'),
     subHead('핵심 성향','#c2185b')+
     '<div style="font-size:.85rem;line-height:1.85;margin-top:6px">'+
     ((_isNeoSaju?personalityByGanNeo:personalityByGan)[dg]||deep.nature)+'</div>'+
@@ -27625,7 +27781,7 @@ function renderSummary(p,johu,natal){
     water:['연구·분석·데이터','외교·무역·관광','심리·상담·철학','글쓰기·시·문학','음악·영화·순수예술']
   };
 
-  html+=box('💼 ⑦ 진로 적성 & 성공 천기 — 운명이 알려주는 직업 지도',
+  html+=box('jinro','💼 ⑦ 진로 적성 & 성공 천기 — 운명이 알려주는 직업 지도',
     subHead('천성 맞춤 분야 ('+EL_KO[dayMaster]+' 에너지 기반)','#1565C0')+
     li(careerByEl[dayMaster]||[])+
     subHead('십성 '+dominant+' 기반 추천','#0d47a1')+
@@ -27653,7 +27809,7 @@ function renderSummary(p,johu,natal){
     water:'감성적이고 깊이 있는 관계를 원합니다. 영혼의 교감을 중시하고 표면적인 것보다 내면의 연결을 봅니다. 이별의 상처가 오래가는 편입니다.'
   };
 
-  html+=box('💘 ⑧ 연애·결혼 심층 풀이',
+  html+=box('yeonae','💘 ⑧ 연애·결혼 심층 풀이',
     subHead('사랑의 패턴','#ad1457')+
     '<div style="font-size:.84rem;line-height:1.78;margin-top:4px">'+deep.love+'<br><br>'+loveByEl[dayMaster||'earth']+'</div>'+
     '<br>'+subHead('인연의 신호 — 어떤 사람과 맞는가','#c2185b')+
@@ -27722,7 +27878,7 @@ function renderSummary(p,johu,natal){
       ?'주요 신살 해당 없음 — 신살 없이도 순수 오행 매력으로 승부 보는 타입입니다. 용신 오행이랑 일간 기질 자체가 이미 당신 강점이라는 거예요.'
       :'주요 신살 해당 없음 — 신살에 의존하지 않는 순수한 오행 매력의 소유자입니다. 용신 오행과 일간의 기질 자체가 당신의 매력과 강점을 만들어냅니다.')+'</div>';
   }
-  html+=box('💫 ⑨ 신살(神殺) 분석 — 타고난 특수 에너지',
+  html+=box('sinsal','💫 ⑨ 신살(神殺) 분석 — 타고난 특수 에너지',
     subHead('내 사주의 신살 목록','#6a1b9a')+
     _sinsalBodyHtml+
     '<br>'+subHead('신살이란?','#7b1fa2')+
@@ -27742,7 +27898,7 @@ function renderSummary(p,johu,natal){
     water:'허리와 무릎이 약해지고 이명이 생기거나 두려움이 커지면 신장·방광 에너지 고갈입니다.'
   };
 
-  html+=box('🥗 ⑨ 건강·소울 푸드 & 스트레스 신호 분석',
+  html+=box('geongang','🥗 ⑨ 건강·소울 푸드 & 스트레스 신호 분석',
     subHead('타고난 건강 약점','#2e7d32')+
     '<div style="font-size:.84rem;line-height:1.78;margin-top:4px">'+
     kv('취약 부위',health.weak)+
@@ -27761,7 +27917,7 @@ function renderSummary(p,johu,natal){
   /* ───────────────────────────────
      9. 재물운 & 투자 전략
   ─────────────────────────────── */
-  html+=box('💰 ⑩ 재물운 & 투자 전략 상세',
+  html+=box('jaemul','💰 ⑩ 재물운 & 투자 전략 상세',
     subHead('재물 패턴','#e65100')+
     '<div style="font-size:.84rem;line-height:1.78;margin-top:4px">'+
     (_isNeoSaju?tsMoneyPatternNeo:tsMoneyPattern)[dominant]+'</div>'+
@@ -27784,7 +27940,7 @@ function renderSummary(p,johu,natal){
   /* ───────────────────────────────
      10. 귀인 & 인간관계
   ─────────────────────────────── */
-  html+=box('🤝 ⑪ 귀인(貴人) & 인간관계 지도',
+  html+=box('guiin','🤝 ⑪ 귀인(貴人) & 인간관계 지도',
     subHead('귀인의 유형','#1565C0')+
     '<div style="font-size:.84rem;line-height:1.78;margin-top:4px">'+
     ((_isNeoSaju?guiinByDomNeo:guiinByDom)[domE]||(_isNeoSaju?'당신 성장 돕는 멘토·공동체, 그런 사람들입니다':'당신의 성장을 돕는 멘토와 공동체'))+'</div>'+
@@ -27809,7 +27965,7 @@ function renderSummary(p,johu,natal){
   /* ───────────────────────────────
      11. 개운 테마 & 행동 루틴
   ─────────────────────────────── */
-  html+=box('🍀 ⑫ 개운 루트 상세 — '+EL_K[domE]+' 에너지 다스리기',
+  html+=box('gaeun','🍀 ⑫ 개운 루트 상세 — '+EL_K[domE]+' 에너지 다스리기',
     '<div class="tip-grid">'+
     '<div class="tip-chip"><strong>극(눌러주기): '+EL_K[tips.controller]+'</strong>'+
     '🎨 '+tips.ctips.color+'<br>🏠 '+tips.ctips.place+'<br>🧭 '+tips.ctips.action+'<br>🍽️ '+tips.ctips.food+'</div>'+
@@ -27829,7 +27985,7 @@ function renderSummary(p,johu,natal){
   /* ───────────────────────────────
      12. 인생 전략 요약
   ─────────────────────────────── */
-  html+=box((_isNeoSaju?'🚀 ⑬ 인생 전략 로드맵 — 네오의 종합 브리핑':'🚀 ⑬ 인생 전략 로드맵 — 연이의 종합 천기'),
+  html+=box('jeollyak',(_isNeoSaju?'🚀 ⑬ 인생 전략 로드맵 — 네오의 종합 브리핑':'🚀 ⑬ 인생 전략 로드맵 — 연이의 종합 천기'),
     subHead('지금 당장 실천할 것','#7b1fa2')+
     li(_isNeoSaju
       ?['강점인 <b>'+dominant+'</b> 에너지, 일이랑 관계에 최대한 써먹으세요',
