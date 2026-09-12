@@ -7,7 +7,7 @@
 | Phase | 내용 | 대상 TOP20 | 상태 |
 |---|---|---|---|
 | 0 | 감사 문서 + 가드 shadow 배선 + guardian 가드 현행화 | 20 | **완료 (2026-09-13)** — `517939421` · `ecc17b406` · `9163a7dac` + 이 문서 커밋 |
-| 1 | C급 중복 수렴: 상수·원화 포맷·`normalizeGender`·`Asia/Seoul` | 16, 17 | 대기 |
+| 1 | C급 중복 수렴: 환산 상수 5벌 → 정본 1개 (원화 포맷·`normalizeGender`·`Asia/Seoul` 은 재분류) | 16, 17 | **완료 (2026-09-13)** — `dc93b4545` · `6559cb245` · `827248162` + 이 문서 커밋 |
 | 2 | LLM 경계 닫기: 우회 3곳 + 경로 의존 목 제거 | 10, 11 | 대기 |
 | 3 | 안전망 보강: `tsconfig` 범위·eslint 가시화·CI `skipped` 구멍 | 18, 19 | 대기 |
 | 4 | 권한 판정 단일화: writer 4개 → 서버 SoT 하나에 묻기 | 3, 4, 5, 6, 15 | 대기 |
@@ -78,6 +78,27 @@ CLAUDE.md: "CI 선택 실행은 10회 push 비교 전까지 shadow다. 기존 �
 Phase 9 에서 제안한다. 승격 제안 시 관측시작일과 관측 횟수를 함께 보고한다.
 
 관측 집계: `gh run list --workflow=guards-shadow.yml -R <repo>` → `gh run view <id> --json jobs` 의 `steps[].conclusion`.
+
+## Phase 1 의 내용 (2026-09-13)
+
+```
+[Phase 1 완료]
+- 변경: worker/lib/profile-limits.js(KRW_PER_COIN 재선언 제거 → billing-policy.js import 후 되내보내기),
+        scripts/verify-payment-policy-md.mjs · scripts/verify-krw-copy-canonical.mjs(하드코딩 환산율 → 정본 import),
+        scripts/verify-krw-copy-canonical.mjs(lib/payment/coin-pricing.ts 상수 대조 + 게이트 커버리지 추가),
+        config/sitemap-lastmod.json(유료 라우트 13개 의존 서명 재생성 — lastmod 변화 없음)
+- 삭제: 없음
+- 추가: coin-pricing.ts ↔ billing-policy.js 상수 대조 2건(fail-closed)
+- 테스트: PASS — npm run check:payment(guard 20종 + jest 231 suites / 2,699 tests), 변이 검증 7건 전부 탐지
+- 회귀: 없음
+- 다음 작업: Phase 2(LLM 경계 닫기 — TOP 10·11)
+```
+
+계획과 다른 점: **Phase 1 의 네 축 중 실제 작업은 하나였다.** pass 가격과 worker 내 `KRW_PER_COIN` 은 이미 가드가 묶고 있었고(변이로 확인), 원화 포맷과 `normalizeGender`·`Asia/Seoul` 은 C급이 아니었다. 근거와 이관처는 [structural-issues-top20.md 의 "16·17 재측정"](structural-issues-top20.md#1617-재측정-2026-09-13-phase-1) 에 적었다.
+
+대신 계획에 없던 것을 하나 찾아 고쳤다: **가드 2개가 지켜야 할 환산율을 자기 안에 하드코딩**하고 있었다. `verify-payment-policy-md` 는 `billing-policy.js` 의 `KRW_PER_COIN` 을 120 으로 바꿔도 PASS 였다 — 환산율이 바뀌면 결제 정책 문서가 낡은 환율 기준으로 계속 초록불이 된다.
+
+🔴 이 Phase 에서 "보호 테스트 먼저"는 **변이 검증**으로 대신했다. 상수 수렴은 새 동작을 만들지 않으므로 새 테스트를 남기지 않고, 대신 기존 가드가 실제로 무는지를 값을 틀어서 확인했다(코딩 원칙 10, 도는 가드 ≠ 무는 가드).
 
 ## 이번 리팩터링에서 하지 않는 것
 
