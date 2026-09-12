@@ -51,7 +51,7 @@ Page Value Gate 체크:
 
 | 후보 | 근거 |
 |---|---|
-| `/ja/saju` | 일본어권 "四柱推命" 검색 의도 존재(`SEO_SUBMISSION_GUIDE.md §7`에 이미 타겟 키워드 기록됨) |
+| `/ja/saju` | 일본어권 "四柱推命" 검색 의도 존재(`docs/seo/checklists.md §7`에 이미 타겟 키워드 기록됨) |
 | `/ja/tarot`, `/ja/astrology` | 기존 ja 인프라(hreflang, locale 라우팅)를 그대로 재사용 가능 |
 | `/en/*`, `/zh/*` 동일 확장 | ja 확장 패턴 검증 후 순차 적용 |
 

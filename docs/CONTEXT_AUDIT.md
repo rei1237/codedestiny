@@ -136,8 +136,6 @@ The following may still be useful as evidence, but they are not active coding ba
 > 🔴 **2026-08-14 정정** — 이 목록이 활성 문서 5종(`docs/payment-policy-overview.md` · `payment-policy-content-access.md` · `payment-policy-flow.md` · `deploy-cache.md` · `r2-assets-cache-strategy.md`)을 "역사 참고용"으로 강등하고 있었다. 다섯 모두 활성 참조 목록에 올라 있고 결제 3부작은 정책 **정본**이다. 제거했다. 이 목록에 무언가를 넣기 전에 `docs/context/doc-precedence.md` §활성 참조 문서 목록과 대조할 것(2026-08-28 이전에는 `AGENTS.md` §Important Docs 였다).
 
 - `PAYMENT_POLICY.md`
-- `CLOUDFLARE_PAGES_SETUP.md`
-- `DEPLOY_CHECKLIST.md`
 - `docs/admin-subscription-tier-simulation-checklist-2026-04-22.md`
 - `docs/portone-resubmission-checklist-2026-04-16.md`
 
