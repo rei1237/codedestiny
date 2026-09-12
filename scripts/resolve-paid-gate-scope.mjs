@@ -266,18 +266,37 @@ function git(args) {
 
 /** 워크플로 YAML 의 `paths:` 목록을 그대로 읽어 온다(목록 중복 정의 금지). */
 function readTriggerGlobs() {
-  const text = fs.readFileSync(WORKFLOW, "utf8");
+  return parseTriggerGlobs(fs.readFileSync(WORKFLOW, "utf8"), WORKFLOW);
+}
+
+/**
+ * `paths:` 블록만 떼어 글롭 목록으로 만든다. 파일을 읽지 않는 순수 함수라 self-test 가
+ * 어긋난 블록을 직접 먹여 볼 수 있다 — 2026-09-12 이전에는 이 파싱이 아무 테스트도
+ * 타지 않아, 조용한 절단이 게이트 범위를 줄여도 초록불이 났다.
+ */
+function parseTriggerGlobs(text, source) {
   const start = text.indexOf("    paths:");
-  if (start < 0) throw new Error("paths: 블록을 못 찾았다");
+  if (start < 0) throw new Error(`${source}: paths: 블록을 못 찾았다`);
   const rest = text.slice(start);
   const globs = [];
-  for (const line of rest.split("\n").slice(1)) {
-    const m = /^\s{6}- "(.+)"\s*$/.exec(line);
-    if (m) { globs.push(m[1]); continue; }
-    if (/^\s{6}#/.test(line) || !line.trim()) continue;
-    break; // paths 블록 끝
+  for (const raw of rest.split("\n").slice(1)) {
+    const line = raw.replace(/\r$/, "");
+    if (!line.trim()) continue;
+    // 들여쓰기가 6칸 미만인 내용 줄 = 상위 키로 돌아왔다는 뜻이고, 거기가 블록의 끝이다.
+    if (!/^ {6}/.test(line)) break;
+    if (/^ {6}#/.test(line)) continue;
+    const m = /^ {6}- (?:"([^"]+)"|'([^']+)')\s*$/.exec(line);
+    // 🔴 fail-closed(CLAUDE.md 원칙 10). 옛 파서는 블록 안에서 못 읽는 줄을 만나면 break 로
+    //    빠져나가 **그 뒤 목록 전체를 조용히 버렸다** — 따옴표 종류나 들여쓰기가 한 줄만
+    //    어긋나도 게이트 범위가 소리 없이 줄어들고, 줄어든 채로 초록불이 난다.
+    if (!m) {
+      throw new Error(
+        `${source} 의 paths: 항목을 읽지 못했다 — \`      - "<glob>"\` 형식만 받는다: ${JSON.stringify(line)}`,
+      );
+    }
+    globs.push(m[1] ?? m[2]);
   }
-  if (!globs.length) throw new Error("paths: 목록이 비었다");
+  if (!globs.length) throw new Error(`${source}: paths: 목록이 비었다`);
   return globs;
 }
 
@@ -466,7 +485,48 @@ function selfTest() {
   if (!I18N_DICT.test("public/i18n/de/shellRuntime.json")) fail("I18N_DICT 가 하위 사전을 놓친다");
   if (I18N_DICT.test("public/i18n/ko.json.bak")) fail("I18N_DICT 가 .json 이 아닌 것도 먹는다");
 
-  const total = VALUES.length + NON_LEAF.length + 4;
+  // ── 트리거 paths 파서 ─────────────────────────────────────────────────
+  // 🔴 이 축이 없던 동안 파서는 아무 테스트도 타지 않았다. 옛 파서는 어긋난 줄에서
+  //    break 로 빠져나가 그 뒤 목록 전체를 조용히 버렸고, 게이트는 줄어든 범위로
+  //    초록불을 냈다(fail-open). 여기서 절단과 조용한 무시를 둘 다 고정한다.
+  let triggerGlobs = [];
+  try {
+    triggerGlobs = readTriggerGlobs();
+  } catch (error) {
+    fail(`트리거 paths 를 읽지 못했다: ${error.message}`);
+  }
+  // 항목 수를 파서와 무관하게 다시 세어 대조한다 — 개수가 맞아야 절단이 없다.
+  {
+    const wf = fs.readFileSync(WORKFLOW, "utf8");
+    const from = wf.indexOf("    paths:");
+    const to = wf.indexOf("\n  push:", from);
+    const raw = wf.slice(from, to > 0 ? to : undefined).split("\n")
+      .filter((l) => /^ {6}- /.test(l.replace(/\r$/, ""))).length;
+    if (triggerGlobs.length !== raw) {
+      fail(`트리거 paths 가 잘렸다: 파서 ${triggerGlobs.length}개 ≠ 실제 항목 ${raw}개`);
+    }
+  }
+  if (!triggerGlobs.includes("scripts/resolve-paid-gate-scope.mjs")) {
+    fail("판정기 자신이 트리거 목록에서 빠졌다(자가 스킵 구멍)");
+  }
+  // 어긋난 줄은 버리지 말고 던져야 한다.
+  const MALFORMED = [
+    ['    paths:', '      - "a.js"', '      - b.js', '      - "c.js"'].join("\n"),
+    ['    paths:', '      - "a.js"', '        - "b.js"'].join("\n"),
+  ];
+  for (const fixture of MALFORMED) {
+    let threw = false;
+    try { parseTriggerGlobs(fixture, "(fixture)"); } catch { threw = true; }
+    if (!threw) fail(`어긋난 paths 줄을 조용히 버렸다: ${JSON.stringify(fixture)}`);
+  }
+  // 합법 형태(작은따옴표·6칸 주석)는 그대로 읽혀야 한다.
+  {
+    const ok = ['    paths:', '      # 주석', "      - 'a.js'", '      - "b.js"', '  push:'].join("\n");
+    const got = parseTriggerGlobs(ok, "(fixture)");
+    if (got.join(",") !== "a.js,b.js") fail(`합법 paths 를 잘못 읽었다: ${got.join(",")}`);
+  }
+
+  const total = VALUES.length + NON_LEAF.length + 10;
   console.log(`[paid-gate-scope] self-test ${total - failed}/${total} ${failed ? "FAILED" : "OK"}`);
   return failed ? 1 : 0;
 }
