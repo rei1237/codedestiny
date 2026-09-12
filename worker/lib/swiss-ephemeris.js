@@ -179,19 +179,6 @@ function createSwissWesternUnavailableError(error) {
   return wrapped;
 }
 
-function summarizeChartInput(input) {
-  return {
-    year: Number(input?.year),
-    month: Number(input?.month),
-    day: Number(input?.day),
-    hour: Number(input?.hour),
-    minute: Number(input?.minute),
-    timezone: Number(input?.timezone),
-    lat: Number(input?.lat),
-    lon: Number(input?.lon),
-  };
-}
-
 function parsePlanetLongitude(value) {
   const n = Number(value);
   return Number.isFinite(n) ? nd(n) : NaN;
@@ -316,7 +303,6 @@ async function getExternalVedicPlanets(env, input) {
       hasBaseUrl,
       hasApiKey,
       forceExternal,
-      request: summarizeChartInput(input),
     }));
   } catch (e) {
     // ignore logging failure
