@@ -15,8 +15,8 @@
 | 7 | repository 계층 부재 | worker 69파일에 인라인 모델 접근 ~681곳. 동일 30필드 projection 이 `worker/routes/profile.js` 945·1024·1057·1245·1391·1427 에 6번 | 미해소 (Phase 6) |
 | 8 | `worker/routes/fortune.js` 6,915줄이 결제·권한·인증·Mongo·LLM·프롬프트·엔진을 융합 | 손으로 만든 402 응답 ~20개 | 미해소 (Phase 6) |
 | 9 | AI 상담 라우트 8개 17,805줄이 각자 전 과정을 재구현 | 공용 `permission-service.js`·`payment-service.js` import **0** | 미해소 (Phase 6) |
-| 10 | LLM 추상화 우회 3곳 + mock 게이트 5벌 재구현 | `lib/tarot/oracle-consultation.mjs:299`, `mindscan-reading.mjs:841`, `love-reading-llm.mjs:167` | 미해소 (Phase 2) |
-| 11 | 🔴 jest 목 매퍼가 경로 모양에 의존 → **테스트가 실과금 LLM 호출을 할 수 있다** | `jest.config.cjs` 가 `^\.\./\.\./lib/llm-client\.ts$` 만 매핑. 깊이가 다른 테스트는 목을 못 받는다 | 미해소 (Phase 2) |
+| 10 | LLM 추상화 우회 3곳 + mock 게이트 5벌 재구현 | 실측 2026-09-13: 우회는 **2곳**(`mindscan-reading.mjs:841`·`love-reading-llm.mjs:167`) — oracle 은 이미 어댑터 주입으로 닫혀 있었다. 게이트는 런타임 **4벌** + jest 목 1벌 | 부분 해소 (`85fa2d10a`) — 게이트는 정본 1개로 수렴. 우회 2곳은 **RED 선보고 대기**, 아래 참조 |
+| 11 | 🔴 목 매퍼가 아니라 **가드가 러너에만 있어서** 테스트가 실과금 LLM 호출을 했다 | 실측 2026-09-13: `npx jest <파일>` 이 `generativelanguage.googleapis.com` 까지 실제로 나갔다(status 400). 원장이 적은 "깊이가 다른 테스트" 는 오진 — 아래 참조 | 해소 (`817161297`) |
 | 12 | 결제 스택 2개를 body-sniffing 으로 중개, PortOne 로더 3개 경쟁, 환불 경로 4개, identity 2개 | `worker/index.js:1327-1448`; `index.html:22061`, `js/destiny-profile.js:3968`, `lib/payment/portone.ts:294` | 미해소 (Phase 8) |
 | 13 | 주문 상태기 정본 외 병렬 status enum 6개 이상 | 정본 `worker/payments/orders.js:35`; 경쟁 `worker/lib/models.js:315,316,462,732,738,772,781,821` | 미해소 (Phase 8) |
 | 14 | resume 영속 스키마 3개 | `checkout-entry.js:154,1549`, `app/_lib/paid-attempt-session.ts:42`, `access-store.js:10` | 미해소 (Phase 8) |
@@ -47,6 +47,24 @@
 - `Asia/Seoul` · Julian day · `iana-offset`: 이번 리팩터링에서 **하지 않는다**. 상수화는 보호를 만들지 않고, 날짜 엔진 통합은 Phase 7(엔진 단일화)의 characterization 뒤에야 안전하다.
 
 🔴 교훈: "같은 값이 N벌"은 그 자체로 C급 근거가 아니다. **이미 묶여 있는지(변이로 확인)** 와 **벌끼리 계약이 같은지** 를 먼저 봐야 한다. 이 표의 여섯 축 중 실제 작업은 둘이었다.
+
+## 10·11 재측정 (2026-09-13, Phase 2)
+
+원장의 10·11 도 절반이 오진이었다. 16·17 때와 같은 이유다 — **"N벌이 있다"만 보고 "그래서 어떤 실패가 나는가"를 보지 않았다.**
+
+| 축 | 원장이 적은 것 | 실측 | 판정 |
+|---|---|---|---|
+| 11 목 매퍼 | "깊이가 다른 테스트는 목을 못 받는다" | `moduleNameMapper` 는 **임포터가 적은 문자열**에 걸린다. 테스트 깊이와 무관하다. 현재 임포터 2개는 둘 다 깊이 2라 덮여 있었다. 매핑을 못 받은 `.ts` 는 조용히 실호출하는 게 아니라 babel 파싱에서 **크게 실패**한다 | 오진. 단 매퍼는 대상 기준(`(^\|/)(lib/)?llm-client(\.ts)?$`)으로 넓혀 두었다 |
+| 11 실제 구멍 | (없음) | 실호출 차단이 `scripts/run-mock-tests.mjs` 의 `NODE_OPTIONS --require` 에만 있었다. `npx jest <파일>` 로 러너를 우회하면 보호가 통째로 사라진다 — 그 상태에서 요청이 `generativelanguage.googleapis.com` 까지 실제로 나갔다(status 400). 키가 env 에 있었으면 **과금됐다** | 실제 구멍. `jest.config.cjs` 의 `setupFiles` 로 올려 호출 방식과 무관하게 적용 |
+| 10 우회 3곳 | oracle·mindscan·love | oracle 은 **이미 닫혀 있다** — `worker/routes/tarot.js:1853-1860` 이 `worker/lib/tarot-oracle-llm.js` 의 어댑터를 `callJson` 으로 주입한다. `oracle-consultation.mjs:299` 의 raw fetch 는 어댑터가 없을 때만 쓰는 폴백이다 | 우회는 **2곳**(mindscan·love) |
+| 10 게이트 5벌 | "5벌 재구현" | 런타임 4벌(`worker/lib/staging-llm-mock.js` 정본, `lib/llm-client.ts`, `mindscan-reading.mjs`, `love-reading-llm.mjs`) + jest 목 1벌. 네 벌 모두 `String(x\|\|"").trim().toLowerCase()` 에 같은 허용값 배열 = **완전 동일** | C급. 정본 하나로 수렴(`85fa2d10a`) |
+| jest 목 사본 | — | `__tests__/__mocks__/llm-client.js` 는 CJS 라 ESM 정본을 `require` 할 수 없다. 임포터는 0 이지만 export 를 지우면 `gemini.js` 의 named import 가 파싱 단계에서 깨진다(과거 19 스위트 동시 실패) | **수렴 불가**. 지우지 말고 `verify:staging-llm-mock` 의 진리표(4×8×7=224 케이스)로 정본과 대조 |
+
+### 남은 것 — 우회 2곳은 왜 이번에 안 했나
+
+`worker/routes/tarot.js:2020`(love)·`:2109`(mindscan)은 어댑터 없이 `env` 만 넘기고, 모듈 안에서 Gemini 를 직접 친다. oracle 패턴으로 옮기면 **유료 기능의 실행 경로가 바뀐다** — 재시도 소유권, Workers AI 폴백(`fallbackMinChars` 필요), 토큰 로깅, 타임아웃이 전부 어댑터 쪽 계약으로 넘어간다. 코딩 원칙 7 에 따라 **위험·검증·롤백 선보고 후**에만 착수한다. 게이트 수렴은 그 앞의 무해한 절반이라 먼저 끝냈다.
+
+🔴 교훈(16·17 과 같다): 원장의 "N벌·N곳"은 **가설**이다. Phase 를 시작할 때 그 행만 다시 재보고, 다르면 원장을 고친다. 이번 Phase 에서 10·11 네 축 중 원장 그대로였던 것은 **게이트 중복 하나**뿐이다.
 
 ## 측정 방법 재현
 

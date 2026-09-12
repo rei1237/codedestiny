@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-13
-next: docs/refactor/phase-plan.md 의 Phase 2(LLM 경계 닫기 — 우회 3곳 + 경로 의존 목 제거, TOP 10·11)부터 시작한다.
+next: Phase 2 는 부분 완료다(refactor-phase2-2026-09-13.md). 다음 세션은 그 문서부터 읽는다.
 ---
 
 # 점진 구조 개선 Phase 1 인수인계
@@ -74,6 +74,11 @@ gh run view <id> --json jobs --jq '.jobs[].steps[] | select(.conclusion != "succ
 ```
 
 ## 다음 작업 — Phase 2 (LLM 경계 닫기)
+
+> 🔴 **이 절의 전제 두 가지는 2026-09-13 실측에서 틀린 것으로 판명됐다** — TOP 11 은 "깊이가 다른
+> 테스트" 문제가 아니었고(진짜 구멍은 실호출 차단이 러너에만 있던 것), TOP 10 의 우회는 3곳이
+> 아니라 2곳이다. 결과는 [refactor-phase2-2026-09-13.md](refactor-phase2-2026-09-13.md) 를 본다.
+> 아래는 Phase 2 **착수 시점의 계획**으로 남긴다.
 
 대상은 TOP20 의 **10·11** 이다. 가치가 아니라 **사고 예방**이라 Phase 4(최고가치)보다 앞에 뒀다.
 

@@ -8,7 +8,7 @@
 |---|---|---|---|
 | 0 | 감사 문서 + 가드 shadow 배선 + guardian 가드 현행화 | 20 | **완료 (2026-09-13)** — `517939421` · `ecc17b406` · `9163a7dac` + 이 문서 커밋 |
 | 1 | C급 중복 수렴: 환산 상수 5벌 → 정본 1개 (원화 포맷·`normalizeGender`·`Asia/Seoul` 은 재분류) | 16, 17 | **완료 (2026-09-13)** — `dc93b4545` · `6559cb245` · `827248162` + 이 문서 커밋 |
-| 2 | LLM 경계 닫기: 우회 3곳 + 경로 의존 목 제거 | 10, 11 | 대기 |
+| 2 | LLM 경계 닫기: 실호출 차단을 설정으로 + mock 게이트 정본 수렴 | 10, 11 | **부분 완료 (2026-09-13)** — `817161297` · `85fa2d10a` + 이 문서 커밋. 우회 2곳은 RED 선보고 대기 |
 | 3 | 안전망 보강: `tsconfig` 범위·eslint 가시화·CI `skipped` 구멍 | 18, 19 | 대기 |
 | 4 | 권한 판정 단일화: writer 4개 → 서버 SoT 하나에 묻기 | 3, 4, 5, 6, 15 | 대기 |
 | 5 | 정적 셸 추출: `js/inline/` 패턴으로 12,721줄 블록 단계 분리 | 1 | 대기 |
@@ -99,6 +99,30 @@ Phase 9 에서 제안한다. 승격 제안 시 관측시작일과 관측 횟수�
 대신 계획에 없던 것을 하나 찾아 고쳤다: **가드 2개가 지켜야 할 환산율을 자기 안에 하드코딩**하고 있었다. `verify-payment-policy-md` 는 `billing-policy.js` 의 `KRW_PER_COIN` 을 120 으로 바꿔도 PASS 였다 — 환산율이 바뀌면 결제 정책 문서가 낡은 환율 기준으로 계속 초록불이 된다.
 
 🔴 이 Phase 에서 "보호 테스트 먼저"는 **변이 검증**으로 대신했다. 상수 수렴은 새 동작을 만들지 않으므로 새 테스트를 남기지 않고, 대신 기존 가드가 실제로 무는지를 값을 틀어서 확인했다(코딩 원칙 10, 도는 가드 ≠ 무는 가드).
+
+## Phase 2 의 내용 (2026-09-13) — 부분 완료
+
+```
+[Phase 2 부분 완료]
+- 변경: jest.config.cjs(실네트워크 가드를 setupFiles 로, 목 매퍼를 상대 깊이 → 대상 기준),
+        lib/llm-client.ts · lib/tarot/mindscan-reading.mjs · lib/tarot/love-reading-llm.mjs
+        (staging mock 게이트 재선언 제거 → worker/lib/staging-llm-mock.js import),
+        worker/lib/staging-llm-mock.js(정본 표기 + 재구현 금지 주석)
+- 삭제: 게이트 재구현 3벌(같은 파일 안에서 import 로 대체. 외부 계약 변화 없음)
+- 추가: __tests__/ui/mock-test-runner.test.mjs 정적 가드 2축(setupFiles 실재+실제로 무는지,
+        llm-client 임포터 전수 ↔ 매퍼 커버리지),
+        scripts/verify-staging-llm-mock.mjs 진리표 224 케이스(jest 목 ↔ 정본)
+- 테스트: PASS — check:fast 33스텝 EXIT=0 (typecheck · build:worker · jest 231 suites / 2,699 tests),
+          변이 7건 전부 탐지
+- 회귀: 없음
+- 다음 작업: TOP 10 의 나머지 — 우회 2곳(mindscan · love) 어댑터 이관. **RED 선보고 후**
+```
+
+계획과 다른 점: **Phase 2 의 제목이 틀렸다.** TOP 11 은 "경로 의존 목" 문제가 아니었고(매퍼는 임포터 문자열에 걸린다 — 테스트 깊이와 무관), 진짜 구멍은 **실호출 차단이 러너에만 있었던 것**이다. `npx jest <파일>` 한 번으로 보호가 통째로 사라져 요청이 실제 공급자까지 나갔다. TOP 10 의 우회도 3곳이 아니라 2곳이었다 — oracle 은 이미 어댑터 주입으로 닫혀 있다. 근거는 [structural-issues-top20.md 의 "10·11 재측정"](structural-issues-top20.md#1011-재측정-2026-09-13-phase-2).
+
+🔴 **가드는 러너가 아니라 설정이 져야 한다.** 러너에만 있는 보호는 "러너를 안 쓰면 없는 보호"다. 단 `mock-network-guard` 를 CI 잡의 `NODE_OPTIONS` 로 올리지는 않는다 — `npm ci` 까지 막힌다.
+
+우회 2곳을 남긴 이유: `worker/routes/tarot.js:2020`(love)·`:2109`(mindscan)을 oracle 패턴으로 옮기면 재시도 소유권·Workers AI 폴백·토큰 로깅·타임아웃이 어댑터 계약으로 넘어가 **유료 기능의 실행 경로가 바뀐다**. 코딩 원칙 7 의 RED 선보고 대상이다.
 
 ## 이번 리팩터링에서 하지 않는 것
 
