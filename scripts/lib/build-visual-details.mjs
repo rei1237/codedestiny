@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
@@ -73,6 +74,17 @@ function fallbackImage(group) {
   if (group === '휴식·콘텐츠') return '/images/fortune-tea-house/premium-tea-house-desktop.webp';
   return '/fuctionassets/saju.webp';
 }
+
+/**
+ * Hero variants used to be written per slug, so the category fallback images
+ * (fallbackImage) were re-encoded once per feature — 2.6MB of byte-identical webp.
+ * A source shared by more than one feature now writes one file named after the
+ * source, and a feature with its own artwork keeps `<slug>-<width>.webp` so that
+ * dropping in a per-feature illustration needs no reference change.
+ */
+const SHARED_ASSET_PREFIX = 'shared-';
+const sharedAssetStem = imagePath => `${SHARED_ASSET_PREFIX}${crypto.createHash('sha1').update(imagePath).digest('hex').slice(0, 8)}`;
+const GENERATED_ASSET_PATTERN = /^(.+)-(\d+)\.webp$/;
 
 /** Derived from the existing shell/React registries; never a second authored copy. */
 export function buildVisualDetails(html, book) {
@@ -164,18 +176,32 @@ export async function writeVisualDetails(html, book) {
   for (const name of ['life-book-summary', 'animal-summary']) {
     fs.copyFileSync(path.join(root, `docs/mobile-platform/mockup-assets/${name}.webp`), path.join(directory, `examples/${name}.webp`));
   }
+  const heroUsers = new Map();
+  for (const [slug, item] of Object.entries(data.items)) {
+    if (slug.startsWith(SHARED_ASSET_PREFIX)) throw new Error(`Slug collides with the shared hero namespace: ${slug}`);
+    if (item.verification !== 'verified') continue;
+    if (!item.image.startsWith('/') || item.image.startsWith('//')) continue;
+    heroUsers.set(item.image, (heroUsers.get(item.image) || 0) + 1);
+  }
+  const knownSlugs = new Set(Object.keys(data.items));
+  const writtenAssets = new Set();
   for (const [slug, item] of Object.entries(data.items)) {
     const destination = path.join(directory, `${slug}.json`);
     if (item.verification === 'verified') {
       if (item.image.startsWith('/') && !item.image.startsWith('//')) {
-        const source = path.resolve(root, 'public', decodeURIComponent(item.image.slice(1)));
+        const imagePath = item.image;
+        const source = path.resolve(root, 'public', decodeURIComponent(imagePath.slice(1)));
         const publicRoot = path.resolve(root, 'public') + path.sep;
         if (!source.startsWith(publicRoot)) throw new Error('Image outside public');
         const meta = await sharp(source).metadata();
+        const stem = heroUsers.get(imagePath) > 1 ? sharedAssetStem(imagePath) : slug;
         item.heroVariants = [];
         for (const width of [...new Set([Math.min(480, meta.width), Math.min(960, meta.width)])]) {
-          const name = `${slug}-${width}.webp`;
-          await sharp(source).resize({ width, withoutEnlargement: true }).webp({ quality: 78 }).toFile(path.join(directory, 'assets', name));
+          const name = `${stem}-${width}.webp`;
+          if (!writtenAssets.has(name)) {
+            await sharp(source).resize({ width, withoutEnlargement: true }).webp({ quality: 78 }).toFile(path.join(directory, 'assets', name));
+            writtenAssets.add(name);
+          }
           item.heroVariants.push({ src: `/feature-details/assets/${name}`, width });
         }
         item.image = item.heroVariants[item.heroVariants.length - 1].src;
@@ -190,6 +216,14 @@ export async function writeVisualDetails(html, book) {
       writeJsonAtomic(destination, item);
     }
     else if (fs.existsSync(destination)) fs.unlinkSync(destination);
+  }
+  // Only the names this generator owns are pruned. Hand-authored heroes such as
+  // feature-detail-shared-hero-v1-*.webp match no slug and stay untouched.
+  for (const name of fs.readdirSync(path.join(directory, 'assets'))) {
+    if (writtenAssets.has(name)) continue;
+    const stem = GENERATED_ASSET_PATTERN.exec(name)?.[1];
+    if (!stem || !(knownSlugs.has(stem) || stem.startsWith(SHARED_ASSET_PREFIX))) continue;
+    fs.unlinkSync(path.join(directory, 'assets', name));
   }
   const published = [...new Map(data.index.filter(item => item.verification === 'verified').map(item => [item.slug, item])).values()];
   writeJsonAtomic(path.join(directory, 'catalog.json'), published);

@@ -3,7 +3,8 @@ import path from "node:path";
 
 const root = process.cwd();
 const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
-const output = path.join(root, "MOBILE_JOURNEY_MATRIX.md");
+// 재생성 가능한 산출물이라 루트가 아니라 `reports/`(gitignore 대상)에 쓴다.
+const output = path.join(root, "reports", "MOBILE_JOURNEY_MATRIX.md");
 
 const serviceSections = read("app/_lib/serviceSections.js");
 const registry = read("MOBILE_FEATURE_REGISTRY.md");
@@ -47,6 +48,7 @@ const lines = [
   "- iOS Safari, Android Chrome, 설치형 PWA의 실제 기기 확인은 명령 결과와 분리해 날짜·기기·브라우저를 남긴다.",
 ];
 
+fs.mkdirSync(path.dirname(output), { recursive: true });
 fs.writeFileSync(output, `${lines.join("\n")}\n`, "utf8");
 console.log(`Mobile journey matrix written: ${path.relative(root, output)}`);
 console.log(`- Service routes: ${routes.length}`);

@@ -367,7 +367,6 @@ const RAW_PIG_COIN_UNLOCK_PRODUCTS = Object.freeze({
   "unlock.tetogen_deep_report": { featureKey: "tetogen_deep_report", cost: 100, reason: "테토 에겐 상세 리포트 해금" },
   "unlock.secret_house_episodes": { featureKey: "secretHouseEpisodes", cost: 50, reason: "Secret house episodes unlock" },
   "unlock.premium_divination_pack": { featureKey: "premiumDivinationPack", cost: 300, reason: "Premium divination pack unlock" },
-  "unlock.premium_ziwei": { featureKey: "premium-ziwei", cost: 200, reason: "Premium ziwei unlock" },
   "unlock.ziwei_decade_luck": { featureKey: "ziwei_decade_luck", cost: 100, reason: "자미두수 대한 흐름 해금" },
   "unlock.ziwei_love_deep": { featureKey: "ziwei_love_deep", cost: 100, reason: "자미두수 부부궁 심화 상담 해금" },
   "unlock.ziwei_twelve_palaces": { featureKey: "ziwei_twelve_palaces", cost: 100, reason: "자미두수 12궁 정밀 해설 해금" },
@@ -386,6 +385,10 @@ export const PIG_COIN_UNLOCK_PRODUCTS = normalizeRegistryPricingTable(RAW_PIG_CO
 //    premium_veda · premium_naming) 삭제. 어느 화면도 이 키로 결제를 시작하지 않아
 //    Play SKU 두 개(cd_content_tier_11 ₩39,000 · cd_content_tier_13 ₩70,000)만 남기고 있었다.
 //    __tests__/worker/paid-feature-registry.legacy-65de451.test.js 의 사본과 항상 짝으로 고친다.
+//  · 2026-09-12 premium_ziwei(200코인) 삭제. 자미두수 심화 화면이 "명반 무료 열람"으로 전환되면서
+//    클라이언트가 이 코인게이트를 아예 거치지 않게 됐고(navigateToZiweiChart 는 무조건 직행),
+//    안 쓰는 가격표만 남아 있었다. 과거 결제 조회용 PERSISTENT_UNLOCK_KEY_SET(fortune.js)
+//    키는 human-design-chart 선례대로 남긴다.
 const LEGACY_UNLOCK_PRODUCTS_65DE451 = Object.freeze({
   "unlock.section_daewun": { featureKey: "section_daewun", cost: 50, reason: "Section daewun unlock" },
   "unlock.section_summary": { featureKey: "section_summary", cost: 50, reason: "Section summary unlock" },
@@ -397,7 +400,6 @@ const LEGACY_UNLOCK_PRODUCTS_65DE451 = Object.freeze({
   "unlock.health_report": { featureKey: "healthReport", cost: 50, reason: "Health report unlock" },
   "unlock.secret_house_episodes": { featureKey: "secretHouseEpisodes", cost: 50, reason: "Secret house episodes unlock" },
   "unlock.premium_divination_pack": { featureKey: "premiumDivinationPack", cost: 300, reason: "Premium divination pack unlock" },
-  "unlock.premium_ziwei": { featureKey: "premium-ziwei", cost: 200, reason: "Premium ziwei unlock" },
 });
 
 export const UNLOCK_PRODUCT_BY_FEATURE_KEY = Object.freeze(
@@ -626,7 +628,6 @@ export const PAID_FEATURE_KEY_ALIASES = Object.freeze({
   openJamidusuFlowerStudio: "flower-fc",
   openSukuyoFlowerStudio: "flower-fc",
   openOlympusOracleModal: "olympus-fc",
-  navigateToZiweiChart: "premium-ziwei",
   startCrystalSoulTarot: "tarot-crystal-soul-reading",
   openCrystalSoulTarot: "tarot-crystal-soul-reading",
   openTarotCrystalSoulModal: "tarot-crystal-soul-reading",

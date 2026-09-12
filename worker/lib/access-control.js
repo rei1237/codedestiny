@@ -9,7 +9,7 @@ import { verifyPremiumAccessToken } from "./premium-access-token.js";
 import { normalizeHoneyPassEntitlement } from "./profile-limits.js";
 
 export const PREMIUM_UNLOCK_POLICY = Object.freeze({
-  ziweiPremium: ["premium-ziwei", "premiumDivinationPack"],
+  ziweiPremium: ["premiumDivinationPack"],
   // sukuyo-past-life-reading 은 회당 결제(PER_USE_PAID_FEATURE_KEY_LIST)다.
   // 이 목록은 영구 해금(ContentEntitlement) 후보 키라, 회당 결제 키를 넣으면
   // 1회 결제로 이후 모든 상대 조회가 무료가 된다. 번들 상품만 남긴다.

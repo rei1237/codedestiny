@@ -1,6 +1,7 @@
 name: Gift transaction integrity
 on:
-  pull_request:
+  push:
+    branches: [main]
     paths:
       - 'worker/payments/**'
       - 'worker/lib/models.js'

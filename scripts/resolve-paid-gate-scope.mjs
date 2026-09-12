@@ -497,11 +497,18 @@ function selfTest() {
   }
   // 항목 수를 파서와 무관하게 다시 세어 대조한다 — 개수가 맞아야 절단이 없다.
   {
-    const wf = fs.readFileSync(WORKFLOW, "utf8");
-    const from = wf.indexOf("    paths:");
-    const to = wf.indexOf("\n  push:", from);
-    const raw = wf.slice(from, to > 0 ? to : undefined).split("\n")
-      .filter((l) => /^ {6}- /.test(l.replace(/\r$/, ""))).length;
+    const lines = fs.readFileSync(WORKFLOW, "utf8").split("\n").map((l) => l.replace(/\r$/, ""));
+    // 🔴 블록의 끝은 트리거 이름이 아니라 들여쓰기로 찾는다. 2026-09-12 에 pull_request
+    //    트리거를 걷어내 `push:` 가 `paths:` 앞으로 오자, 종료 표지로 "\n  push:" 를 쓰던
+    //    옛 재계수가 -1 을 받아 파일 끝까지 세었다 — jobs 의 `      - ` 8줄이 딸려 들어와
+    //    183 ≠ 175 로 헛실패했다. 트리거 배치가 바뀌어도 깨지지 않게 이름 의존을 없앤다.
+    const at = lines.indexOf("    paths:");
+    let end = lines.length;
+    for (let i = at + 1; i < lines.length; i += 1) {
+      if (!lines[i].trim()) continue;
+      if (!/^ {6}/.test(lines[i])) { end = i; break; }
+    }
+    const raw = lines.slice(at + 1, end).filter((l) => /^ {6}- /.test(l)).length;
     if (triggerGlobs.length !== raw) {
       fail(`트리거 paths 가 잘렸다: 파서 ${triggerGlobs.length}개 ≠ 실제 항목 ${raw}개`);
     }

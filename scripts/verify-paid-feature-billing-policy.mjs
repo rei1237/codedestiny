@@ -165,11 +165,14 @@ for (const alias of [
   "openJamidusuFlowerStudio",
   "openSukuyoFlowerStudio",
   "openOlympusOracleModal",
-  "navigateToZiweiChart",
 ]) {
   assert.match(registrySource, new RegExp(`${alias}:`), `${alias} must resolve to a server priced feature`);
 }
 assert.doesNotMatch(registrySource, /openSibylModal:\s*"premium-sibyl-dominator"/, "free Sibyl entry must not be gated as paid");
+// 자미두수 심화 명반은 2026-09-12에 "명반 무료 열람"으로 전환되며 이 코인게이트를 아예
+// 거치지 않게 됐다(index.html 이 navigateToZiweiChart 를 결제 없는 직행 라우트로 특별 취급).
+// premium-ziwei 가격표도 같은 날 레지스트리에서 삭제됐으므로 이 별칭이 남아 있으면 안 된다.
+assert.doesNotMatch(registrySource, /navigateToZiweiChart:/, "free ziwei chart entry must not be gated as paid");
 
 for (const text of ["점성술 셜럭 시나스트리 궁합", "점성술 직접 입력 시나스트리 궁합", "자미두수 궁합 분석", "사주 궁합 분석"]) {
   assert.match(sajuEngineSource, new RegExp(text), `${text} must still call the common paid gate`);

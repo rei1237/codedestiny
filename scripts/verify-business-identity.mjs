@@ -145,7 +145,7 @@ function stripSeparator(value) {
 
 // (4) 이 가드를 부르는 워크플로의 트리거 paths 가 **가드가 여는 파일 전부**를 덮는가.
 //
-// 🔴 CLAUDE.md 원칙 10. 가드가 보는 파일이 트리거에 없으면 그 파일만 고친 PR 에서 가드가
+// 🔴 CLAUDE.md 원칙 10. 가드가 보는 파일이 트리거에 없으면 그 파일만 고친 커밋에서 가드가
 //    깨어나지 않는다 — 있으나 마나 한 게이트가 된다. paid-flow-gates 에서 이 구멍이 다섯 번 났다.
 //    손으로 목록을 적지 않는다: readTracked() 가 실제로 연 경로를 그대로 쓴다.
 {
@@ -158,7 +158,7 @@ function stripSeparator(value) {
   );
 
   const pathsBlock = workflow.match(/^ {4}paths:$([\s\S]*?)^ {2}workflow_dispatch:$/m);
-  assert(pathsBlock, `${WORKFLOW}: pull_request.paths 블록을 찾지 못했다 — 트리거 대조가 무력화됐다`);
+  assert(pathsBlock, `${WORKFLOW}: push.paths 블록을 찾지 못했다 — 트리거 대조가 무력화됐다`);
 
   const globs = pathsBlock
     ? [...pathsBlock[1].matchAll(/^ {6}- "([^"]+)"$/gm)].map((match) => match[1])

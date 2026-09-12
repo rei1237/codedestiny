@@ -1,6 +1,6 @@
 name: AI Locale Gate
 
-# AI 출력 로케일 파이프의 불변식 가드(scripts/verify-ai-locale-pipeline.mjs)를 PR 에서 돌린다.
+# AI 출력 로케일 파이프의 불변식 가드(scripts/verify-ai-locale-pipeline.mjs)를 main push 에서 돌린다.
 #
 # 🔴 왜 전용 워크플로인가 — 이 가드는 지금까지 **실질적으로 아무데서도 돌지 않았다.**
 #    도달 경로가 `i18n:check` 체인 하나뿐인데 그 체인은 (a) 배포 워크플로의 `build:cf` 안에
@@ -15,7 +15,7 @@ name: AI Locale Gate
 #
 # 기존 불변식은 설치 전에 실행하고 AST·브라우저 계약 검사는 잠긴 개발 의존성을 쓴다.
 on:
-  pull_request:
+  push:
     branches: [main]
     paths:
       - "**/*.js"

@@ -96,7 +96,10 @@ async function findMonthlyLedger(env, userId, featureKey, requestId) {
  *
  * @param {object} env
  * @param {{ userId:string, featureKey:string, coinPrice:number, requestId:string }} input
- * @returns {Promise<{proven:(boolean|null), source:string, reason:string, transactionId?:string}>}
+ * @returns {Promise<{proven:(boolean|null), source:string, reason:string, transactionId?:string, passRefund?:{cycleKey:string, cost:number}}>}
+ *   passRefund : source==="pass" 로 monthlySpendCoin 을 실제로 차감했을 때만 있다 — 뒤 단계(생성)가
+ *     실패하면 호출부가 이 정보로 그 차감을 되돌려야 한다(worker/lib/service-execution-task.js
+ *     runPassQuotaRefund).
  *   proven === true  : 증빙됨
  *   proven === false : 증빙 못 찾음
  *   proven === null  : 🔴 판단 보류(DB 일시 장애). 절대 402 로 바꾸지 말 것 — 503 이다.
@@ -186,6 +189,7 @@ export async function verifyPerUsePayment(env, { userId, featureKey, coinPrice =
       const cost = Math.max(0, Math.floor(Number(coinPrice) || 0));
       // 가격이 없는(무료) 건은 차감할 것이 없다 — 예전 동작을 그대로 둔다.
       // 여기서 cost>0 조건을 빼면 evaluatePassCoverage 가 invalid_price 로 무료 건을 막는다.
+      let passRefund;
       if (cost > 0) {
         const consumed = await consumePassForFeature({
           user,
@@ -198,8 +202,12 @@ export async function verifyPerUsePayment(env, { userId, featureKey, coinPrice =
         // 🔴 코드가 빈 문자열이면 막지 않는다(passDenialCode 주석) — 예전 통과 판정을 존중한다.
         const denial = consumed.covered ? "" : passDenialCode(consumed.reason);
         if (denial) return { proven: false, source: "", reason: denial };
+        // 🔴 monthlySpendCoin 차감분을 되돌릴 정보다 — 이걸 안 실어 보내면 뒤에서 결제(생성)가
+        //    실패해도 이 월간 사용한도가 영원히 복구되지 않는다(2026-09-12 실사고 수정).
+        const cycleKey = consumed.coverage?.cycleKey;
+        if (cycleKey) passRefund = { cycleKey: String(cycleKey), cost };
       }
-      return { proven: true, source: "pass", reason: "" };
+      return { proven: true, source: "pass", reason: "", ...(passRefund ? { passRefund } : {}) };
     }
 
     return { proven: false, source: "", reason: rid ? "NO_RECORD" : "NO_REQUEST_ID" };

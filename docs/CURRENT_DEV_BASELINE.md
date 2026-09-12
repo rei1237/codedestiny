@@ -43,15 +43,16 @@ Last curated: `2026-09-12`
 - Source files: `index.html`, `js/core/index-inline-runtime.js`, `js/core/uiBindings.js`
 - Why it matters now: the root shell is still the live home source of truth, and mirror sync remains a recurring regression risk.
 
-### 5. PR-based delivery safety
+### 5. main 단독 전달 안전장치
 
-> 🔴 **2026-08-20 정정 · 2026-08-28 경로 갱신.** 아래는 요약이며 **계약 정본은 [docs/context/delivery-and-ci.md](context/delivery-and-ci.md) 하나다** — 여기에 상세를 복제하지 않는다(중복이 곧 다음 드리프트다).
+> 🔴 **2026-09-12 개정 (이전 제목: PR-based delivery safety).** 아래는 요약이며 **계약 정본은 [docs/context/delivery-and-ci.md](context/delivery-and-ci.md) 하나다** — 여기에 상세를 복제하지 않는다(중복이 곧 다음 드리프트다).
 
 - Source files: `docs/context/delivery-and-ci.md`, `scripts/lib/change-risk.mjs`, `scripts/lib/production-deploy-guard.mjs`, `.github/workflows/pr-ci.yml`, `.github/workflows/cloudflare-pages-deploy.yml`
-- 🔴 **2026-08-20 컷오버(커밋 `80d3660c1`)로 "머지가 곧 라이브"는 더 이상 맞지 않는다.** 흐름: **브랜치 → 커밋 → push → PR → PR CI → 사용자가 Merge → 그 SHA 가 스테이징(`staging.code-destiny.com`, DB 분리)에 자동 배포.** 프로덕션(`code-destiny.com`)은 사람이 `workflow_dispatch(mode=production)` 을 수동 실행해야 승격된다 — main HEAD 보다 뒤처져 있는 것이 정상 상태다. 일일 운세 재발행만 예외로 프로덕션을 직접 건드린다.
-- `main` 직접 push 는 브랜치 룰셋이 막고, 로컬 프로덕션 배포는 `production-deploy-guard.mjs` 가 막는다. 로컬에 남는 것은 `deploy:check`(업로드 없음)·`deploy:preview`(흐름 밖 도구)·`deploy:smoke` 뿐이다.
-- PR CI 강도는 변경 경로가 정한다(`fast` / `standard` / `critical`). 판정 정본은 `scripts/lib/change-risk.mjs` 하나이며, `deepRequired`(인증·결제·DB 스키마·배포 파이프라인)는 `level` 과 무관하게 전체 회귀를 강제한다.
-- 병렬 세션은 각자 워크트리를 쓰고 각자 PR 을 연다. 머지는 GitHub 에서만 한다.
+- 🔴 **2026-09-12 전환으로 브랜치·PR 단계가 없어졌다**(2026-08-20 컷오버 커밋 `80d3660c1` 의 스테이징 구조는 그대로). 흐름: **main 직접 수정 → 최소 검증 → 커밋 → (안정 시점에) push → main CI 1회 → 그 SHA 가 스테이징(`staging.code-destiny.com`, DB 분리)에 자동 배포.** 프로덕션(`code-destiny.com`)은 사람이 `workflow_dispatch(mode=production)` 을 수동 실행해야 승격된다 — main HEAD 보다 뒤처져 있는 것이 정상 상태다. 일일 운세 재발행만 예외로 프로덕션을 직접 건드린다.
+- `main` 직접 push 는 이제 허용된다(룰셋 `main-protection` 에서 `pull_request`·`required_status_checks` 제거, `deletion`·`non_fast_forward` 유지). 로컬 프로덕션 배포는 여전히 `production-deploy-guard.mjs` 가 막는다 — 로컬에 남는 것은 `deploy:check`(업로드 없음)·`deploy:preview`(흐름 밖 도구)·`deploy:smoke` 뿐이다.
+- 안전장치는 격리가 아니라 **작은 커밋과 빠른 롤백**이다. 커밋은 복구 지점, push 는 배포 지점. 회귀는 덧대지 말고 되돌린다(미커밋은 `git reset --hard HEAD`, 나쁜 커밋은 그 커밋만).
+- main CI 강도는 변경 경로가 정한다(`fast` / `standard` / `critical`). 판정 정본은 `scripts/lib/change-risk.mjs` 하나이며, `deepRequired`(인증·결제·DB 스키마·배포 파이프라인)는 `level` 과 무관하게 전체 회귀를 강제한다.
+- 여러 세션이 같은 main 체크아웃을 공유하므로 **한 번에 한 세션**이 원칙이다. 내 것이 아닌 미커밋 변경은 보존하고 커밋에 섞지 않는다.
 
 ### 6. SEO 와 서비스 안정성 (2026-08-14 — 새 우선 축)
 

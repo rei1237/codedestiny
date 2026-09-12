@@ -18,6 +18,10 @@ beforeAll(async () => {
  *  · 2026-09-01 번들 해금 5종 삭제 — unlock.all_paid_saju · premium_astrology · premium_sukuyo ·
  *    premium_veda · premium_naming. 어느 화면도 이 키로 결제를 시작하지 않아 Play SKU
  *    cd_content_tier_11(₩39,000)·cd_content_tier_13(₩70,000) 만 남기고 있었다.
+ *  · 2026-09-12 premium_ziwei(200코인) 삭제. 자미두수 심화 화면이 "명반 무료 열람"으로 전환되면서
+ *    클라이언트가 이 코인게이트를 아예 거치지 않게 됐고(navigateToZiweiChart 는 무조건 직행),
+ *    안 쓰는 가격표만 남아 있었다. 과거 결제 조회용 PERSISTENT_UNLOCK_KEY_SET(fortune.js)
+ *    키는 human-design-chart 선례대로 남긴다.
  */
 const LEGACY_UNLOCK_PRODUCTS_65DE451 = Object.freeze({
   "unlock.section_daewun": { featureKey: "section_daewun", cost: 50, reason: "Section daewun unlock", forceDeduct: true },
@@ -31,7 +35,6 @@ const LEGACY_UNLOCK_PRODUCTS_65DE451 = Object.freeze({
   "unlock.saju_diary": { featureKey: "sajuDiary", cost: 100, reason: "Saju diary unlock", forceDeduct: true },
   "unlock.secret_house_episodes": { featureKey: "secretHouseEpisodes", cost: 50, reason: "Secret house episodes unlock", forceDeduct: true },
   "unlock.premium_divination_pack": { featureKey: "premiumDivinationPack", cost: 300, reason: "Premium divination pack unlock", forceDeduct: true },
-  "unlock.premium_ziwei": { featureKey: "premium-ziwei", cost: 200, reason: "Premium ziwei unlock", forceDeduct: true },
 });
 
 describe("Paid feature registry legacy baseline (65de451)", () => {

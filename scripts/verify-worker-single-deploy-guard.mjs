@@ -16,7 +16,6 @@ const canonicalWorkflow = ".github/workflows/cloudflare-pages-deploy.yml";
  */
 const REQUIRED_CHECK_NAMES = [
   "Risk tier",
-  "Landing order",
   "Typecheck and lint",
   "Static guards",
   "Build Pages and Worker",
@@ -288,21 +287,20 @@ function jobBody(workflow, jobName) {
 }
 
 /**
- * PR 관문이 살아 있는지. 이 워크플로가 사라지면 브랜치 룰셋의 필수 체크가 영원히 대기 상태가
- * 되거나(머지 불가), 룰셋도 함께 지워져 무검증 머지가 프로덕션까지 그대로 흘러간다.
+ * main 관문이 살아 있는지. 이 레포는 PR 을 쓰지 않으므로(2026-09-12) main push CI 가 유일한
+ * 관문이다. 이 워크플로가 사라지면 검증되지 않은 커밋이 그대로 스테이징·프로덕션으로 흘러간다.
  */
-async function verifyPullRequestGate() {
+async function verifyMainGate() {
   const prWorkflow = ".github/workflows/pr-ci.yml";
   const workflow = await readRepoFile(prWorkflow).catch(() => {
     throw new Error(`${prWorkflow} is missing; PR CI is the required gate before main.`);
   });
   const triggers = deploymentTriggerBlock(workflow);
-  assert(/^\s+pull_request:/m.test(triggers), `${prWorkflow} must run on pull_request.`);
-  assert(/^\s+merge_group:/m.test(triggers), `${prWorkflow} must run on merge_group before enabling the merge queue.`);
-  assert(/^\s+push:[\s\S]*?branches:\s*\[\s*main\s*\]/m.test(triggers), `${prWorkflow} push trigger must be limited to main.`);
+  assert(/^\s+push:[\s\S]*?branches:\s*\[\s*main\s*\]/m.test(triggers), `${prWorkflow} must run on push to main — that is the only gate this repo has.`);
+  assert(!/^\s+pull_request:/m.test(triggers), `${prWorkflow} must not run on pull_request; this repo lands directly on main (2026-09-12).`);
   assert(
-    /cancel-in-progress:\s*\$\{\{\s*github\.event_name\s*==\s*'pull_request'\s*\}\}/.test(workflow),
-    `${prWorkflow} may cancel superseded PR runs, but must not cancel merge_group or main health checks.`,
+    /cancel-in-progress:\s*false/.test(workflow),
+    `${prWorkflow} must not cancel in-progress runs — every commit that lands on main has to be checked exactly once.`,
   );
   const packageScripts = JSON.parse(await readRepoFile("package.json")).scripts;
   assert(/run:\s*npm run ci:fast\s*(?:\r?\n|$)/.test(workflow), `${prWorkflow} must execute the shared ci:fast entrypoint.`);
@@ -336,7 +334,7 @@ async function verifyPullRequestGate() {
   }
   const aggregate = jobBody(workflow, "ci-required");
   assert(/if:\s*\$\{\{\s*always\(\)\s*\}\}/.test(aggregate), `${prWorkflow} ci-required must report even when an upstream lane fails.`);
-  for (const dependency of ["classify", "landing-order", "fast", "guards", "build", "critical"]) {
+  for (const dependency of ["classify", "fast", "guards", "build", "critical"]) {
     assert(new RegExp(`needs:\\s*\\[[^\\]]*\\b${dependency.replace("-", "\\-")}\\b`).test(aggregate), `${prWorkflow} ci-required must depend on ${dependency}.`);
   }
 }
@@ -743,7 +741,7 @@ async function main() {
   }
 
   await verifyCanonicalWorkflow();
-  await verifyPullRequestGate();
+  await verifyMainGate();
   await verifyPackageAndDeployScript();
   await verifyNoOtherWorkflowDeploys();
   await verifyGhCliRepoTargeting();

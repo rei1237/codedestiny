@@ -97,7 +97,7 @@
       "node_modules"
     ],
     "baseRef": "fresh",
-    "bgIsolation": "worktree"
+    "bgIsolation": "none"
   },
   "hooks": {
     "SessionStart": [
