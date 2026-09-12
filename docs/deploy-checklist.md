@@ -1,0 +1,312 @@
+# 배포 체크리스트 (통합)
+
+루트에 흩어져 있던 배포 관련 문서 3개를 병합했다. 각 절은 원문을 그대로 옮겼고, 구획만 나눴다.
+
+- §1 배포 모드 정책 — 무엇이 언제 배포를 트리거하는지 (구 `DEPLOYMENT_MODE.md`)
+- §2 빌드·캐시 검증 체크리스트 — 배포 후 수동 검증 절차 (구 `DEPLOY_CHECKLIST.md`)
+- §3 Cloudflare Pages + Workers 복구 가이드 — 저장소를 처음부터 다시 연결해야 할 때만 쓰는 역사적 절차 (구 `CLOUDFLARE_PAGES_SETUP.md`, `docs/CONTEXT_AUDIT.md`의 Historical-Only References 대상이었다)
+
+## 1. 배포 모드 정책
+
+The full contract lives in [DEPLOYMENT_AND_INFRA.md](DEPLOYMENT_AND_INFRA.md). This section records the two settings that must hold on the Cloudflare side, because they cannot be enforced from the repository.
+
+An earlier version of this file claimed "GitHub Actions `wrangler pages deploy` is disabled" and "Do not run Pages deploy from GitHub Actions". That was wrong for a long time — GitHub Actions was in fact the deploy authority. What is actually disabled is Cloudflare's **Git integration** auto-deploy.
+
+### Current mode
+
+- Production is reached by `npm run deploy:production` from a developer machine, or by dispatching the **Release Cloudflare Pages and Worker** workflow with `mode: production`. Nothing deploys on push.
+- Cloudflare Pages **Git integration** auto-deploy is off, for production and preview alike. Previews are created by `wrangler pages deploy --branch preview-<branch>-<sha>`, never by Cloudflare's Git trigger.
+- Cloudflare **Workers Builds** Git trigger is disconnected for `code-destiny-web` for the same reason.
+
+Both are enforced from the repo: `scripts/ensure-pages-single-deploy.mjs` (and `pages-config-guard.yml`) fail when `deployments_enabled`, `production_deployments_enabled`, or `preview_deployment_setting` drift; `scripts/verify-worker-single-deploy-guard.mjs` fails when a `Workers Builds:` check reappears or a second Worker deploy path is added.
+
+If both were left on, the same commit would deploy twice with different chunk hashes — the cause of the 2026-07 blank-page incident.
+
+### Manual dashboard settings (must be done in Cloudflare)
+
+1. Pages project settings → disable Git integration auto-deploy for push and PR.
+2. Workers → `code-destiny-web` → disconnect the Git integration.
+3. Caching → Cache Rules → `URI Path starts with /_next/static/` → `Edge TTL: by status code → 404: **No store**`. Without this, a transient 404 during a deploy cutover is cached for two days and a rollback does not fix it (identical content hashes to the same URL).
+
+   🔴 **"No store" is not "Bypass cache".** They are different controls. `Bypass cache` is the cache *eligibility* setting (`cache: false`) — it makes every matching response uncacheable, including the 200s, so content-hashed immutable assets would go to the origin on every request. What we want applies to the 404 alone, which is the per-status-code Edge TTL. In the API that is `edge_ttl.status_code_ttl: [{ "status_code": 404, "value": -1 }]`, where **`-1` = no-store and `0` = no-cache**. A positive value caches the 404 for that many seconds — on 2026-08-08 this rule held `31536000` (one year), so a rule named `next-static-404-no-store` was pinning 404s for a year and failing releases back to back.
+
+   `CLOUDFLARE_PURGE_TOKEN` carries Zone/Cache Rules permission as of 2026-08-08, so this rule can now be scripted.
+
+### After a production deploy
+
+`deploy:production` already runs the checks below; this list is for a manual verification pass.
+
+1. Compare `/version.json` and `/api/version` — `commit` must match on both, or Pages and Worker are running different code.
+2. `npm run verify:deployed-assets` — referenced `_next/static` assets must all return 200.
+3. Distinguish an edge-cached 404 from a missing file with `curl <url>` versus `curl <url>?cdcb=1`. Different results mean cache poisoning, not a bad build.
+
+### Security notes
+
+- Never commit `.env` files.
+- Never expose tokens or secrets in workflow logs.
+- Keep API credentials in GitHub/Cloudflare secret stores only.
+
+## 2. 빌드·캐시 검증 체크리스트
+
+Detailed cache/version runbook: [deploy-cache.md](deploy-cache.md)
+
+### 2.1) Build and artifact validation
+
+1. Run `npm run build`.
+2. Confirm build log shows commit and branch (`[build-context]` lines).
+3. Confirm `dist/_headers` exists.
+4. Confirm `dist/version.json` exists and contains current commit hash.
+5. Confirm `dist/static/version.json` exists.
+6. Confirm `.next/static` does not contain local API origins: `rg "127\\.0\\.0\\.1:8790|localhost:8790" .next/static`.
+
+### 2.2) Required Cloudflare Pages environment variables
+
+Set these in Cloudflare Pages -> Settings -> Environment variables -> Production:
+
+```env
+NEXT_PUBLIC_API_URL=https://code-destiny.com
+NEXT_PUBLIC_API_BASE_URL=https://code-destiny.com
+NEXT_PUBLIC_AUTH_API_BASE_URL=https://code-destiny.com
+```
+
+Do not set any Production public API variable to `http://127.0.0.1:8790` or `http://localhost:8790`.
+
+### 2.3) Cloudflare Pages deployment validation
+
+1. In Cloudflare Pages deployment logs, confirm the latest Git commit is used.
+2. Confirm build logs include:
+   - `[build-context] commit=...`
+   - `[write-version-json] commit=...`
+3. Open both domains and compare versions:
+   - `https://code-destiny.com/version.json`
+   - `https://codedestiny.pages.dev/version.json`
+4. Verify `commit` or `commitShort` matches the deployed Git commit.
+
+### 2.4) Cache policy validation
+
+1. Check response headers for these paths and verify `Cache-Control: no-cache, no-store, must-revalidate`:
+   - `/`
+   - `/index.html`
+   - `/static/index.html`
+   - `/api/health`
+   - `/version.json`
+2. Check hashed Next.js static files (`/_next/static/...`) return:
+   - `Cache-Control: public, max-age=31536000, immutable`
+3. Check non-hashed legacy assets (`/js/*.js`, `/styles/*.css`, `/icons/*`) return no-cache/no-store.
+
+### 2.5) Purge and browser verification
+
+1. In Cloudflare dashboard, run **Purge Everything**.
+2. Hard refresh both custom domain and pages.dev domain.
+3. In browser DevTools > Application:
+   - Service Workers: no old worker should remain registered.
+   - Cache Storage: old keys (for example `kkul-mansaeryeok-*`, `fortune-tama-*`) should be removed.
+4. Confirm UI and static assets reflect the latest deployment.
+
+### 2.6) Rollback safety check
+
+1. If stale content still appears, compare custom domain vs pages.dev `/version.json` output.
+2. If versions differ, inspect Cloudflare Pages project connection/branch settings.
+3. If versions match but UI differs, inspect browser extensions, SW registration, and local cache state.
+
+## 3. Cloudflare Pages + Workers 복구 가이드 (역사적 절차)
+
+🔴 이 절은 저장소를 새 GitHub 원격에 다시 연결하고 Worker/Pages 를 처음부터 세팅해야 하는 복구 상황 전용이다. 평상시 배포 절차가 아니다.
+
+### 현재 권장 구조
+
+- Frontend: Cloudflare Pages, `dist/` 정적 배포
+- API entrypoint: Cloudflare Worker `code-destiny-web`
+- Worker URL: `https://code-destiny-web.bulegyung.workers.dev`
+- API routing: Pages의 `public/_redirects`가 `/api/*` 요청을 Worker로 전달
+- Worker-native routes: `/api/auth/*`, `/api/payments/*`, `/api/fortune/*`
+- Optional fallback proxy: `API_UPSTREAM_ORIGIN`은 아직 Worker로 포팅하지 않은 API 그룹이 있을 때만 사용
+
+이번 구성은 기존 `server/routes/auth.routes.js`, `payment.routes.js`, `fortune.routes.js`의 핵심 로직을 Worker Fetch 핸들러로 옮깁니다. MongoDB 컬렉션 구조, JWT 토큰, OAuth, PortOne 결제 검증, 포인트/구독 로직은 기존 데이터와 맞도록 유지했습니다.
+
+### 로컬에서 먼저 확인
+
+```bash
+npm run build:cf
+npm run build:worker
+npm run secrets:cf:worker:dry
+npm run secrets:cf:pages:dry
+```
+
+`npm run build:cf`는 Pages용 `dist/`를 만들고, `npm run build:worker`는 Worker 번들 dry-run을 실행합니다.
+
+### 배포 규칙 (중요)
+
+- Pages와 Worker를 동시에 배포하지 않습니다.
+- 반드시 순차 배포만 사용합니다: `Worker -> Pages`.
+- 권장 단일 명령: `npm run deploy:cf:all`.
+- 수동 배포 시에도 아래 순서를 고정합니다.
+
+```bash
+npm run deploy:cf:worker
+npm run deploy:cf:pages
+```
+
+### Worker 설정
+
+Worker 설정 파일:
+
+```text
+worker/wrangler.toml
+```
+
+운영 Worker에 필요한 주요 값:
+
+```text
+AUTH_API_BASE_URL=https://code-destiny-web.bulegyung.workers.dev
+AUTH_FRONTEND_BASE_URL=https://code-destiny.com
+SITE_BASE_URL=https://code-destiny.com
+JWT_SECRET=<강한 랜덤 문자열>
+JWT_ACCESS_SECRET=<강한 랜덤 문자열>
+JWT_REFRESH_SECRET=<JWT_ACCESS_SECRET와 다른 강한 랜덤 문자열>
+ACCESS_TOKEN_EXPIRES_IN=30m
+REFRESH_TOKEN_EXPIRES_IN=14d
+JWT_ISSUER=code-destiny-api
+JWT_AUDIENCE=code-destiny-web
+AUTH_COOKIE_SECURE=true
+AUTH_COOKIE_SAMESITE=lax
+MONGO_URI=<MongoDB Atlas connection string>
+MONGO_DB_NAME=code_destiny
+PORTONE_API_BASE_URL=https://api.portone.io
+PORTONE_API_Secret=<PortOne API secret>
+PORTONE_Store=<PortOne Store ID>
+PORTONE_channel=<PortOne KG Inicis channel key>
+PORTONE_webhook_URL=<PortOne webhook URL>
+AUTH_SIGNUP_BONUS_POINTS=50
+MONGO_WORKER_CONNECT_GUARD_MS=8000
+```
+
+OAuth를 사용한다면 아래도 Worker secret 또는 vars로 들어가야 합니다.
+
+```text
+GOOGLE_OAUTH_CLIENT_ID=
+GOOGLE_OAUTH_CLIENT_SECRET=
+NAVER_OAUTH_CLIENT_ID=
+NAVER_OAUTH_CLIENT_SECRET=
+KAKAO_OAUTH_CLIENT_ID=
+KAKAO_OAUTH_CLIENT_SECRET=
+```
+
+아직 Worker로 옮기지 않은 `/api/*`가 필요할 때만 `API_UPSTREAM_ORIGIN`을 외부 Express API origin으로 설정하세요. 절대 `https://code-destiny-web.bulegyung.workers.dev`나 Pages 프론트 주소로 설정하면 안 됩니다. 자기 자신 또는 프론트로 프록시 루프가 생깁니다.
+
+시크릿 일괄 반영:
+
+```bash
+npm run secrets:cf:worker
+```
+
+배포:
+
+```bash
+npm run deploy:cf:worker
+```
+
+헬스체크:
+
+```text
+https://code-destiny-web.bulegyung.workers.dev/api/health
+```
+
+정상이라면 `mode: "worker-native"`와 `nativeRoutes: ["auth","payments","fortune"]`가 보여야 합니다.
+
+### Pages 설정
+
+Cloudflare Pages 프로젝트 설정:
+
+- Project name: `codedestiny`
+- Build command: `npm run build:cf`
+- Build output directory: `dist`
+- Root directory: `/`
+- Node version: `20` 이상 권장
+
+배포:
+
+```bash
+npm run deploy:cf:pages
+```
+
+전체 배포 (순차, Worker -> Pages):
+
+```bash
+npm run deploy:cf:all
+```
+
+### Pages 환경변수
+
+운영에서는 프론트가 같은 origin의 `/api/*`를 호출하고 `_redirects`가 Worker로 넘기도록 두는 것이 가장 단순합니다.
+
+권장:
+
+```text
+NEXT_PUBLIC_API_BASE_URL=
+NEXT_PUBLIC_CODE_DESTINY_API_URL=
+```
+
+로컬 개발에서만 필요하면:
+
+```text
+NEXT_PUBLIC_API_BASE_URL=http://localhost:4000
+```
+
+### GitHub 저장소 복구
+
+새 GitHub 저장소:
+
+```text
+https://github.com/rei1237/codedestiny
+```
+
+로컬에서 원격을 다시 연결:
+
+```bash
+git remote -v
+git remote set-url origin https://github.com/rei1237/codedestiny.git
+git push -u origin main
+```
+
+새 저장소가 완전히 비어 있다면 첫 push 때 `main` 브랜치를 그대로 올리면 됩니다. Cloudflare Pages에서 Git 연결 배포를 쓰려면 새 GitHub 저장소를 Pages 프로젝트에 다시 연결하세요. 아니면 `npm run deploy:cf:pages`로 직접 배포해도 됩니다.
+
+### 반드시 확인할 외부 설정
+
+- MongoDB Atlas Network Access: Workers는 고정 IP가 없으므로 Atlas에서 접근 정책을 맞춰야 합니다. 가장 단순한 복구는 Atlas Network Access를 `0.0.0.0/0`로 열고 DB 계정 권한/비밀번호를 강하게 관리하는 방식입니다.
+- PortOne Webhook URL: `https://code-destiny-web.bulegyung.workers.dev/api/payments/webhook`
+- OAuth redirect URI:
+  - Google: `https://code-destiny-web.bulegyung.workers.dev/api/auth/oauth/google/callback`
+  - Naver: `https://code-destiny-web.bulegyung.workers.dev/api/auth/oauth/naver/callback`
+  - Kakao: `https://code-destiny-web.bulegyung.workers.dev/api/auth/oauth/kakao/callback`
+- Cloudflare custom domain:
+  - Pages: `code-destiny.com`
+  - API Worker: 가능하면 `api.code-destiny.com`을 Worker custom domain으로 연결하면 OAuth/결제 설정이 더 깔끔해집니다.
+
+### 아직 남은 포팅 후보
+
+이번에 옮긴 범위는 사용자가 요청한 세 파일입니다. 다음 API들은 별도 점검이 필요합니다.
+
+- `server/routes/admin.routes.js`
+- `server/routes/tarot.routes.js`
+- `server/routes/astro.routes.js`
+- `server/routes/kasi.routes.js`
+- `server/routes/translate.routes.js`
+- `server/routes/subscription.routes.js`
+- Next static export에서 비활성화되는 `app/api/*`
+
+### 중복 배포 방지 체크리스트 (필수)
+
+같은 `main` 커밋에서 Pages와 Worker가 동시에 자동 배포되면 아래 2가지를 반드시 함께 맞춰야 합니다.
+
+1. GitHub Actions 자동 실행 관리
+- `.github/workflows/cloudflare-pages-deploy.yml`만 자동 실행 대상으로 유지
+- `.github/workflows/cloudflare-worker-deploy.yml`는 수동 실행(`workflow_dispatch`) 전용으로 유지
+
+2. Cloudflare Pages 대시보드 자동 배포 비활성화
+- Workers & Pages > `codedestiny` > Settings > Builds > Branch control
+- `Enable automatic production branch deployments` 비활성화
+- Preview branch는 `None`으로 설정 (필요하면)
+
+그리고 Pages 대시보드 Build/Deploy command에 Worker 배포 명령(`wrangler deploy --config worker/wrangler.toml`)을 넣지 마세요.
+Worker 배포는 GitHub Actions에서만 단일 경로로 관리하고, 필요할 때만 Pages 배포가 1회 실행되도록 유지해야 합니다.

@@ -12,7 +12,7 @@
 | `lib/seo.v2.ts` 죽은 export | `buildSitemapEntriesV2()`, `getIndexableRouteEntries()` 호출부 0건(정의부 외) | 낮음(typecheck가 참조 누락을 즉시 잡음) | 삭제 | `typecheck` | **별도 PR로 처리** |
 | `lib/README.md` 낡음 | SEO 유틸 9개 중 3개만 문서화, `LOCALE_MAP`에 실제 없는 `/en-us`/`/ja-jp` 경로 예시, "git push origin main" 배포 예시(현재 PR 기반 배포 계약과 모순) | 중간(다음 세션이 이 README를 정본으로 오인할 위험) | 이번 범위 밖 — SEO 작업과 무관한 전면 정비가 필요해 별도 이슈로 분리 권장 | — | 미착수 |
 | ~~GSC 인증 미확정~~ | **2026-08-13 해결 — Cloudflare DNS TXT 로 도메인 속성 인증 완료**(`dig code-destiny.com TXT` 에 `google-site-verification=f8zuI8Ok…` 확인). `index.html`·`app/layout.js` 의 placeholder 는 **주석 안**이라 아무것도 안 나가며, DNS 인증이 이를 대체하므로 주석 해제 불필요 | — | 조치 없음 | — | **완료** |
-| 네이버 인증 코드 2개 병기 | `naver-site-verification` 메타 2개, 어느 쪽이 유효한지 불명 | 낮음(기능상 문제 없음, 관리 혼선만) | 서치어드바이저 로그인해 유효 코드 확인 후 하나만 남김(`SEO_SUBMISSION_GUIDE.md §2`에 이미 안내됨) | — | 미착수 |
+| 네이버 인증 코드 2개 병기 | `naver-site-verification` 메타 2개, 어느 쪽이 유효한지 불명 | 낮음(기능상 문제 없음, 관리 혼선만) | 서치어드바이저 로그인해 유효 코드 확인 후 하나만 남김(`docs/seo/checklists.md §2`에 이미 안내됨) | — | 미착수 |
 | 다국어 SSR 커버리지 격차 | ja/zh/en은 `home`/`ziwei`/`sukuyo`/`today`/`insights` 5개 라우트군뿐, 사주/타로/점성술/베다 없음 | 낮음(콘텐츠 공백이지 버그 아님) | [06-content-roadmap.md P1](06-content-roadmap.md) | — | 로드맵 등록됨 |
 | `/insights/*` 서브허브 8개 registry 미등록 | `SeoLandingTemplate.jsx` 자동 상호링크 대상 아님 | 낮음 | [06-content-roadmap.md P2](06-content-roadmap.md) | `verify:seo-entity-registry` | 로드맵 등록됨 |
 | `app/insights/adsense-ready-articles.js`/`methodology-articles.js` | 최초 죽은 코드로 의심됐으나 조사 결과 **둘 다 실사용**(`articles.js`/`seo-growth-articles.js`가 import해 렌더 파이프라인에 병합) | — | 조치 없음 — 삭제 대상 아님 | — | 확인 완료(취소) |

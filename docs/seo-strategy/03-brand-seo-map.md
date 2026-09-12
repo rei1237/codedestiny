@@ -1,7 +1,7 @@
 # Brand SEO Map — CODE DESTINY / 꿀꿀운세 / 꽃돼지
 
 > [세트 인덱스](README.md) · 이 문서는 3/10부다. 자산 **현황(정적) 인벤토리**만 다룬다. GSC/네이버
-> 등록 절차는 [SEO_SUBMISSION_GUIDE.md](../../SEO_SUBMISSION_GUIDE.md)를 참고하고 여기서 복제하지 않는다.
+> 등록 절차는 [docs/seo/checklists.md](../seo/checklists.md)를 참고하고 여기서 복제하지 않는다.
 
 ## 1. 브랜드 엔티티 정의 (정본: `lib/seo/entity-registry.mjs`의 `SEO_BRAND_ENTITY`)
 
@@ -26,13 +26,13 @@ aliases: [CODE DESTINY, Code Destiny, CodeDestiny, code-destiny, 코드데스티
 | 파비콘/아이콘 세트 | ✅ 존재 | `public/icons/`에 "꿀꿀 운세 로고.png/.webp" 한글 파일명으로 직접 존재 |
 | 기본 OG 이미지 | ✅ 존재 | `public/og/code-destiny-og-vvip.png` 등 3종, `og:render`/`og:cache-bust` 스크립트로 관리 |
 | GSC `google-site-verification` | ❌ placeholder | `index.html`·`app/layout.js` 둘 다 주석 처리 상태 — Cloudflare DNS TXT로 별도 인증됐는지 미확인, 사용자 확인 필요 |
-| 네이버 `naver-site-verification` | ⚠️ 2개 병기 | 어느 쪽이 유효한지 서치어드바이저 로그인 필요(`SEO_SUBMISSION_GUIDE.md §2` 이미 문서화) |
+| 네이버 `naver-site-verification` | ⚠️ 2개 병기 | 어느 쪽이 유효한지 서치어드바이저 로그인 필요(`docs/seo/checklists.md §2` 이미 문서화) |
 
 ## 3. sameAs / 외부 신뢰 신호
 
 | 채널 | URL | 상태 |
 |---|---|---|
-| 네이버 블로그 | `blog.naver.com/codedestiny` | 운영 중 — `SEO_SUBMISSION_GUIDE.md §2-4`가 네이버 브랜드 검색 신호의 핵심 채널로 명시 |
+| 네이버 블로그 | `blog.naver.com/codedestiny` | 운영 중 — `docs/seo/checklists.md §2-4`가 네이버 브랜드 검색 신호의 핵심 채널로 명시 |
 | 인스타그램 | `instagram.com/code_destiny_official` | sameAs 등록됨 |
 | 유튜브 / X(트위터) / 틱톡 | — | 없음(코드 전체 검색 결과 0건 — 추측 아님) |
 
@@ -48,9 +48,9 @@ CODE DESTINY / CODEDESTINY / code destiny / code-destiny / 코드 데스티니 /
 질의는 신규로 반복 삽입하지 않는다 — §2의 기존 표면(별칭 페이지, JSON-LD alternateName)과 각 토픽
 허브(02번 문서)가 자연스럽게 함께 색인되면 조합 질의는 그 결과로 따라온다는 것이 이 세트의 전제다.
 
-## 5. `SEO_SUBMISSION_GUIDE.md`와의 경계
+## 5. `docs/seo/checklists.md`와의 경계
 
-| | 이 문서 | `SEO_SUBMISSION_GUIDE.md` |
+| | 이 문서 | `docs/seo/checklists.md` |
 |---|---|---|
 | 성격 | 자산 현황(정적 인벤토리) | 등록·운영 절차(액션 가이드) |
 | GSC/네이버 인증 코드 상태 | §2 표에 상태만 기록 | 인증 방법·절차 상세 |

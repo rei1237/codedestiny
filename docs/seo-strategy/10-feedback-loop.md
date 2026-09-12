@@ -33,7 +33,7 @@
 | 특정 클러스터 CTR 저조(노출은 있는데 클릭 없음) | [01](01-audit-framework.md)에서 해당 페이지 IMPROVE로 재분류(제목/설명 검색의도 불일치 의심) |
 | GSC 검색어 리포트에서 신규 non-brand/롱테일 질의 발견 | Page Value Gate 통과 시 [06](06-content-roadmap.md) P1로 승격 |
 | 두 페이지가 같은 질의에서 경쟁(자기잠식) 확인 | [04](04-url-architecture.md) 예외 후보로 등록 |
-| 색인 커버리지 리포트에서 "noindex 있음" 경고 | `public/_headers`의 noindex 목록과 `scripts/generate-sitemap.mjs`의 `noindexPathPrefixes` 동기화 확인(기존 운영 절차, `SEO_SUBMISSION_GUIDE.md §5` 이미 명시) |
+| 색인 커버리지 리포트에서 "noindex 있음" 경고 | `public/_headers`의 noindex 목록과 `scripts/generate-sitemap.mjs`의 `noindexPathPrefixes` 동기화 확인(기존 운영 절차, `docs/seo/checklists.md §5` 이미 명시) |
 
 ## 4. 자동 게이트 연결 (구현 후 검증 단계에 고정 배치)
 
