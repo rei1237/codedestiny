@@ -1,3 +1,9 @@
+---
+status: active
+updated: 2026-09-12
+next: "배치 5+ PR #1946 의 머지를 확인한 뒤, nakshatra-compat-ai · premium-veda-compatibility-addon 2종을 구현할지 가격표에서 내릴지 사용자에게 확인하고 처리한다."
+---
+
 # 상세창 카피 배치 5+ (남은 전량) 인수인계
 
 - 날짜: 2026-09-12
