@@ -14,6 +14,7 @@ import {
   computeRootAssetCacheKeys,
   rewriteRootAssetCacheRefs,
 } from "./lib/root-asset-cache-keys.mjs";
+import { createAssetCacheKeys, restampAssetCacheRefs } from "./lib/asset-cache-keys.mjs";
 
 const rootDir = process.cwd();
 const publicDir = resolve(rootDir, "public");
@@ -233,33 +234,12 @@ function stripLeadingBom(buffer) {
 }
 
 const CACHE_BUST_QUERY_RE = /\?v=[a-zA-Z0-9_-]+/g;
-// 이 키가 셸의 `/js/mobile-interaction-patch.js?v=` 를 덮어쓴다. 일반 셸 키와 **독립**이어야
-// 하는 이유는 그대로다 — 모바일 브리지만 고친 핫픽스가 이전에 캐시된 쿼리 URL 로 서빙되면 안 된다.
-//
-// 🔴 예전에는 손으로 적은 상수였고 **두 번 낡았다.** 2026-07-02 값이 07-22 수정본까지 그대로
-//    붙잡고 있었고, 2026-08-16 에도 상수(build-9edeaf4719a9)와 실제 파일이 어긋나 있었다.
-//    파일은 바뀌는데 URL 이 그대로라 재방문 사용자가 옛 캐시를 계속 썼다. 손으로 유지하는 값은
-//    또 낡으므로(원칙 10) 파일에서 직접 계산한다.
-//
-// 🔴 **정규화한 내용**을 해싱한다. 원문 그대로 해싱하면 안 된다 — 이 파일 안에는
-//    `cacheBustMobileInteractionPatchScriptRefs` 가 매 빌드 다시 쓰는 `?v=<일반 빌드 키>` 참조가
-//    들어 있어서, 원문 해시는 **이 파일과 무관한 변경에도 매번 바뀐다.** 그러면 "일반 셸 키와
-//    독립"이라는 목적이 무너지고 무관한 배포마다 모바일 브리지 캐시가 통째로 날아간다.
-//    실측(2026-08-16): 원문 해시는 origin/main `build-8bc8b48b61e6` vs 워킹트리 `build-fa1097ce6100`
-//    로 갈렸지만, 정규화 해시는 양쪽 다 `build-1e92fb001e76` 로 같았다.
-let mobileInteractionPatchCacheKey = "";
-function resolveMobileInteractionPatchCacheKey() {
-  if (mobileInteractionPatchCacheKey) return mobileInteractionPatchCacheKey;
-  const abs = resolve(rootDir, "js/mobile-interaction-patch.js");
-  if (!existsSync(abs)) {
-    // 파일이 없으면 셸이 그 스크립트를 안 쓰는 상태다. 조용히 임의 값을 만들지 않는다.
-    throw new Error("[sync:public] js/mobile-interaction-patch.js 가 없다 — 캐시 키를 계산할 수 없다.");
-  }
-  const raw = stripLeadingBom(readFileSync(abs)).toString("utf8");
-  const digest = createHash("sha256").update(normalizeForCacheKey(raw)).digest("hex").slice(0, 12);
-  mobileInteractionPatchCacheKey = `build-${digest}`;
-  return mobileInteractionPatchCacheKey;
-}
+// 🔴 mobile-interaction-patch.js 만 쓰던 독립 키 계산기는 제거했다(2026-09-12). 이제 **모든**
+//    자산이 자기 내용 해시를 쓰므로(scripts/lib/asset-cache-keys.mjs) 독립성이 특례가 아니라
+//    기본값이다. 그 계산기가 남긴 두 교훈은 새 모듈이 그대로 지킨다:
+//    ① 손으로 적은 상수는 또 낡는다(2026-07-02·2026-08-16 두 번 낡았다) → 파일에서 직접 계산.
+//    ② **정규화한 내용**을 해싱한다 — 원문 해시는 그 파일 안의 `?v=` 참조가 다시 쓰일 때마다
+//       바뀌어 무관한 변경에도 캐시가 날아간다.
 const CACHE_KEY_SOURCE_FILES = [
   "index.html",
 ];
@@ -439,34 +419,29 @@ function stripLegacyPublicBlocks(html) {
     .replace(/\n{3,}/g, "\n\n");
 }
 
-function cacheBustUiBindingsScriptRefs(source, buildTimestamp) {
-  const html = String(source || "");
-  return html.replace(
-    /(\/js\/[^"'\s`)]+\.js\?v=)([a-zA-Z0-9_-]+)/g,
-    (match, prefix) => `${prefix}${buildTimestamp}`,
-  );
-}
-
 /**
- * ES 모듈 import 지정자의 ?v= 를 회전시킨다.
+ * 캐시 키 회전은 scripts/lib/asset-cache-keys.mjs 가 **자산별 내용 해시**로 한다
+ * (restampAssetCacheRefs). 예전에는 셸·런타임·uiBindings·mobile-patch·모듈 지정자마다
+ * 정규식이 따로 있었고 값은 전역 키 하나였다. 그 구조가 남긴 사고 둘을 여기 남겨 둔다 —
+ * 둘 다 **정규식이 참조 형태를 못 덮어서** 났다:
  *
- * 🔴 2026-08-24 릴리스 사고의 근본원인. js/app.js 가 `./core/bootstrapDestinyFlower.js` 를
- * `?v=20260625-df-i18n` 이라는 **손으로 박은 날짜 키**로 부르고 있었다. 그 파일 내용이
- * 바뀌어도(매칭 엔진을 워커로 옮기면서 import 한 줄이 사라졌다) URL 이 그대로라, _headers 의
- * `/js/*.js  max-age=604800` 을 타고 엣지가 **삭제된 모듈을 참조하는 옛 파일**을 계속 서빙했다.
- * 승격 후 스모크가 그 404 를 잡아 릴리스가 통째로 자동 롤백됐다(run 32683154849).
+ * 🔴 2026-08-24 릴리스 자동 롤백. js/app.js 가 `./core/bootstrapDestinyFlower.js` 를
+ *    `?v=20260625-df-i18n` 이라는 손으로 박은 날짜 키로 불렀다. 파일 내용이 바뀌어도
+ *    URL 이 그대로라 `_headers` 의 `/js/*.js max-age=604800` 을 타고 엣지가 **삭제된 모듈을
+ *    참조하는 옛 파일**을 계속 서빙했다. 승격 후 스모크가 404 를 잡아 릴리스가 통째로
+ *    롤백됐다(run 32683154849). 당시 정규식들은 `/js/…`·`js/…` 로 **시작하는** 참조만 봤고
+ *    모듈 지정자는 `./core/…` 라 구조적으로 안 걸렸다.
  *
- * 위쪽 셋(index-inline-runtime·uiBindings·mobile-interaction-patch)의 정규식은 `/js/…` 나
- * `js/…` 로 **시작하는** 참조만 본다. 모듈 지정자는 `./core/…`·`../services/…` 라 구조적으로
- * 안 걸렸다 — bare 루트 자산이 안 걸렸던 것(syncRootAssetCacheKeys 주석, 2026-08-08 장애)과
- * 정확히 같은 모양의 구멍이다.
+ * 🔴 2026-08-08 전생 관상 장애. 루트 bare 자산(`AnalysisEngine.js`)이 같은 이유로 안 걸렸다
+ *    (syncRootAssetCacheKeys 주석 참조).
  *
- * 🔴 이 목록 밖에서 수기 `?v=` 를 모듈 지정자에 새로 박지 말 것. verify:js-module-graph 가
- *    회전 형식(build-…/h…)이 아닌 키를 실패로 잡는다.
+ * 그래서 지금 스캐너는 경로 접두사로 앵커를 잡지 않는다 — `?v=` 앞에서 따옴표·공백을 만날
+ * 때까지 뒤로 훑어 **모든 형태**를 덮는다. bare 자산만 `keep` 으로 비켜 두고
+ * syncRootAssetCacheKeys 가 소유한다.
+ *
+ * 🔴 수기 `?v=` 를 새로 박지 말 것. verify:js-module-graph 가 회전 형식(build-…/h…)이 아닌
+ *    키를 실패로 잡는다.
  */
-function cacheBustModuleImportSpecifiers(source, buildTimestamp) {
-  return String(source || "").replace(/(\.js\?v=)[a-zA-Z0-9_-]+/g, `$1${buildTimestamp}`);
-}
 
 /** 모듈 지정자 캐시 키를 회전시킬 파일. 루트와 public 사본에 같은 목록을 쓴다. */
 const MODULE_IMPORT_CACHE_KEY_FILES = [
@@ -474,21 +449,6 @@ const MODULE_IMPORT_CACHE_KEY_FILES = [
   ["js", "core", "init.js"],
   ["js", "core", "bootstrapDestinyFlower.js"],
 ];
-
-function preserveIndependentCacheKeys(source) {
-  return String(source || "").replace(
-    /(\/js\/mobile-interaction-patch\.js\?v=)[a-zA-Z0-9_-]+/g,
-    `$1${resolveMobileInteractionPatchCacheKey()}`,
-  );
-}
-
-function cacheBustMobileInteractionPatchScriptRefs(source, buildTimestamp) {
-  const js = String(source || "");
-  return js.replace(
-    /(js\/[^"'\s`)]+\.js\?v=)[a-zA-Z0-9_-]+/g,
-    `$1${buildTimestamp}`,
-  );
-}
 
 // 로케일 랜딩 셸(/ja, /zh, /en)의 head 를 해당 언어로 현지화한다.
 // 본문은 런타임에 cd-lang-native.js 가 /i18n/{lang}.json 사전으로 번역하고
@@ -939,14 +899,14 @@ if (existsSync(publicIndex) || existsSync(rootIndexPath)) {
     console.log("[sync-legacy-static-to-public] Stripped legacy public-only blocks from canonical shell");
   }
 
-  // Auto cache-bust all static asset query strings (?v=...)
+  // 캐시 키는 자산별 내용 해시로 찍는다(scripts/lib/asset-cache-keys.mjs).
+  // buildTimestamp 는 레포에 파일이 없는 참조(이미지·외부 URL)에만 쓰는 대비값이다.
   const buildTimestamp = resolveDeterministicCacheKey();
-  const cacheBustedIndexHtml = preserveIndependentCacheKeys(
-    baseIndexHtml.replace(/\?v=[a-zA-Z0-9_-]+/g, "?v=" + buildTimestamp),
-  );
+  const assetKeys = createAssetCacheKeys(rootDir);
+  const cacheBustedIndexHtml = restampAssetCacheRefs(baseIndexHtml, "index.html", buildTimestamp, assetKeys);
   if (cacheBustedIndexHtml !== baseIndexHtml) {
     baseIndexHtml = cacheBustedIndexHtml;
-    console.log(`[sync-legacy-static-to-public] Auto cache-busted static assets with ${buildTimestamp}`);
+    console.log("[sync-legacy-static-to-public] Restamped static asset cache keys (per-asset content hash)");
   }
 
   // The home stylesheet is small and page-specific. Inline it only in deployable shells so
@@ -965,32 +925,45 @@ if (existsSync(publicIndex) || existsSync(rootIndexPath)) {
   const inlineRuntimePath = resolve(publicDir, "js", "core", "index-inline-runtime.js");
   if (existsSync(inlineRuntimePath)) {
     let runtimeJs = readFileSync(inlineRuntimePath, "utf8");
-    const bustedRuntimeJs = preserveIndependentCacheKeys(
-      runtimeJs.replace(/\?v=[a-zA-Z0-9_-]+/g, "?v=" + buildTimestamp),
+    const bustedRuntimeJs = restampAssetCacheRefs(
+      runtimeJs,
+      "js/core/index-inline-runtime.js",
+      buildTimestamp,
+      assetKeys,
     );
     if (bustedRuntimeJs !== runtimeJs) {
       writeFileSync(inlineRuntimePath, bustedRuntimeJs);
-      console.log(`[sync-legacy-static-to-public] Auto cache-busted index-inline-runtime.js with ${buildTimestamp}`);
+      console.log("[sync-legacy-static-to-public] Restamped index-inline-runtime.js cache keys");
     }
   }
 
   const uiBindingsPath = resolve(publicDir, "js", "core", "uiBindings.js");
   if (existsSync(uiBindingsPath)) {
     const uiBindingsJs = readFileSync(uiBindingsPath, "utf8");
-    const bustedUiBindingsJs = cacheBustUiBindingsScriptRefs(uiBindingsJs, buildTimestamp);
+    const bustedUiBindingsJs = restampAssetCacheRefs(
+      uiBindingsJs,
+      "js/core/uiBindings.js",
+      buildTimestamp,
+      assetKeys,
+    );
     if (bustedUiBindingsJs !== uiBindingsJs) {
       writeFileSync(uiBindingsPath, bustedUiBindingsJs);
-      console.log(`[sync-legacy-static-to-public] Auto cache-busted uiBindings.js PDF/runtime loaders with ${buildTimestamp}`);
+      console.log("[sync-legacy-static-to-public] Restamped uiBindings.js PDF/runtime loader cache keys");
     }
   }
 
   const mobilePatchPath = resolve(publicDir, "js", "mobile-interaction-patch.js");
   if (existsSync(mobilePatchPath)) {
     const mobilePatchJs = readFileSync(mobilePatchPath, "utf8");
-    const bustedMobilePatchJs = cacheBustMobileInteractionPatchScriptRefs(mobilePatchJs, buildTimestamp);
+    const bustedMobilePatchJs = restampAssetCacheRefs(
+      mobilePatchJs,
+      "js/mobile-interaction-patch.js",
+      buildTimestamp,
+      assetKeys,
+    );
     if (bustedMobilePatchJs !== mobilePatchJs) {
       writeFileSync(mobilePatchPath, bustedMobilePatchJs);
-      console.log(`[sync-legacy-static-to-public] Auto cache-busted mobile-interaction-patch.js tarot loader with ${buildTimestamp}`);
+      console.log("[sync-legacy-static-to-public] Restamped mobile-interaction-patch.js loader cache keys");
     }
   }
 
@@ -998,10 +971,10 @@ if (existsSync(publicIndex) || existsSync(rootIndexPath)) {
     const modulePath = resolve(publicDir, ...parts);
     if (!existsSync(modulePath)) continue;
     const moduleJs = readFileSync(modulePath, "utf8");
-    const bustedModuleJs = cacheBustModuleImportSpecifiers(moduleJs, buildTimestamp);
+    const bustedModuleJs = restampAssetCacheRefs(moduleJs, parts.join("/"), buildTimestamp, assetKeys);
     if (bustedModuleJs !== moduleJs) {
       writeFileSync(modulePath, bustedModuleJs);
-      console.log(`[sync-legacy-static-to-public] Auto cache-busted ${parts.join("/")} module imports with ${buildTimestamp}`);
+      console.log(`[sync-legacy-static-to-public] Restamped ${parts.join("/")} module import cache keys`);
     }
   }
 
@@ -1043,32 +1016,45 @@ if (existsSync(publicIndex) || existsSync(rootIndexPath)) {
   const rootInlineRuntimePath = resolve(rootDir, "js", "core", "index-inline-runtime.js");
   if (existsSync(rootInlineRuntimePath)) {
     let rootRuntimeJs = readFileSync(rootInlineRuntimePath, "utf8");
-    const bustedRootRuntimeJs = preserveIndependentCacheKeys(
-      rootRuntimeJs.replace(/\?v=[a-zA-Z0-9_-]+/g, "?v=" + buildTimestamp),
+    const bustedRootRuntimeJs = restampAssetCacheRefs(
+      rootRuntimeJs,
+      "js/core/index-inline-runtime.js",
+      buildTimestamp,
+      assetKeys,
     );
     if (bustedRootRuntimeJs !== rootRuntimeJs) {
       writeFileSync(rootInlineRuntimePath, bustedRootRuntimeJs);
-      console.log(`[sync-legacy-static-to-public] Updated root index-inline-runtime.js with ${buildTimestamp}`);
+      console.log("[sync-legacy-static-to-public] Updated root index-inline-runtime.js cache keys");
     }
   }
 
   const rootUiBindingsPath = resolve(rootDir, "js", "core", "uiBindings.js");
   if (existsSync(rootUiBindingsPath)) {
     const rootUiBindingsJs = readFileSync(rootUiBindingsPath, "utf8");
-    const bustedRootUiBindingsJs = cacheBustUiBindingsScriptRefs(rootUiBindingsJs, buildTimestamp);
+    const bustedRootUiBindingsJs = restampAssetCacheRefs(
+      rootUiBindingsJs,
+      "js/core/uiBindings.js",
+      buildTimestamp,
+      assetKeys,
+    );
     if (bustedRootUiBindingsJs !== rootUiBindingsJs) {
       writeFileSync(rootUiBindingsPath, bustedRootUiBindingsJs);
-      console.log(`[sync-legacy-static-to-public] Updated root uiBindings.js PDF/runtime loaders with ${buildTimestamp}`);
+      console.log("[sync-legacy-static-to-public] Updated root uiBindings.js PDF/runtime loader cache keys");
     }
   }
 
   const rootMobilePatchPath = resolve(rootDir, "js", "mobile-interaction-patch.js");
   if (existsSync(rootMobilePatchPath)) {
     const rootMobilePatchJs = readFileSync(rootMobilePatchPath, "utf8");
-    const bustedRootMobilePatchJs = cacheBustMobileInteractionPatchScriptRefs(rootMobilePatchJs, buildTimestamp);
+    const bustedRootMobilePatchJs = restampAssetCacheRefs(
+      rootMobilePatchJs,
+      "js/mobile-interaction-patch.js",
+      buildTimestamp,
+      assetKeys,
+    );
     if (bustedRootMobilePatchJs !== rootMobilePatchJs) {
       writeFileSync(rootMobilePatchPath, bustedRootMobilePatchJs);
-      console.log(`[sync-legacy-static-to-public] Updated root mobile-interaction-patch.js tarot loader with ${buildTimestamp}`);
+      console.log("[sync-legacy-static-to-public] Updated root mobile-interaction-patch.js loader cache keys");
     }
   }
 
@@ -1076,21 +1062,19 @@ if (existsSync(publicIndex) || existsSync(rootIndexPath)) {
     const rootModulePath = resolve(rootDir, ...parts);
     if (!existsSync(rootModulePath)) continue;
     const rootModuleJs = readFileSync(rootModulePath, "utf8");
-    const bustedRootModuleJs = cacheBustModuleImportSpecifiers(rootModuleJs, buildTimestamp);
+    const bustedRootModuleJs = restampAssetCacheRefs(rootModuleJs, parts.join("/"), buildTimestamp, assetKeys);
     if (bustedRootModuleJs !== rootModuleJs) {
       writeFileSync(rootModulePath, bustedRootModuleJs);
-      console.log(`[sync-legacy-static-to-public] Updated root ${parts.join("/")} module imports with ${buildTimestamp}`);
+      console.log(`[sync-legacy-static-to-public] Updated root ${parts.join("/")} module import cache keys`);
     }
   }
 
   if (existsSync(rootIndexPath)) {
     let rootHtml = readFileSync(rootIndexPath, "utf8");
-    const bustedRootHtml = preserveIndependentCacheKeys(
-      rootHtml.replace(/\?v=[a-zA-Z0-9_-]+/g, "?v=" + buildTimestamp),
-    );
+    const bustedRootHtml = restampAssetCacheRefs(rootHtml, "index.html", buildTimestamp, assetKeys);
     if (bustedRootHtml !== rootHtml) {
       writeFileSync(rootIndexPath, bustedRootHtml);
-      console.log(`[sync-legacy-static-to-public] Updated root index.html with ${buildTimestamp}`);
+      console.log("[sync-legacy-static-to-public] Updated root index.html cache keys");
     }
   }
 }
@@ -1098,12 +1082,13 @@ if (existsSync(publicIndex) || existsSync(rootIndexPath)) {
 /**
  * 루트 bare 자산(AnalysisEngine.js 등)의 ?v= 를 파일 내용 해시로 맞춘다.
  *
- * 🔴 반드시 다른 모든 캐시버스트 **뒤에** 돌아야 한다. 위쪽의 무차별 치환
- * (`replace(/\?v=[a-zA-Z0-9_-]+/g, buildTimestamp)`)이 index-inline-runtime.js 의
- * `/HwatuFortune.js?v=` 까지 덮어쓰기 때문에, 먼저 돌면 그 값이 되돌아간다.
+ * 🔴 반드시 다른 모든 캐시버스트 **뒤에** 돌아야 한다. 예전엔 위쪽이 무차별 치환
+ * (`replace(/\?v=[a-zA-Z0-9_-]+/g, buildTimestamp)`)이라 index-inline-runtime.js 의
+ * `/HwatuFortune.js?v=` 까지 덮어써서, 먼저 돌면 그 값이 되돌아갔다. 지금은
+ * restampAssetCacheRefs 가 bare 참조를 `keep` 으로 분류해 건드리지 않지만(소유권이
+ * 여기 있다는 뜻), 순서 의존을 되살리지 않도록 뒤에 두는 계약은 그대로 지킨다.
  *
- * 이 자산들은 디렉터리 없는 bare 파일명이라 위의 `\/js\/`·`js\/` 정규식에
- * 구조적으로 안 걸린다 — 그게 2026-08-08 전생 관상 장애의 원인이었다.
+ * 이 자산들이 디렉터리 없는 bare 파일명이라는 점이 2026-08-08 전생 관상 장애의 원인이었다.
  */
 function syncRootAssetCacheKeys() {
   const keys = computeRootAssetCacheKeys(rootDir);
