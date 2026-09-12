@@ -25,8 +25,6 @@ const ROOT_REPO_PATHS = new Set([
   'AGENTS.md',
   'CLAUDE.md',
   'PAYMENT_POLICY.md',
-  'CLOUDFLARE_PAGES_SETUP.md',
-  'DEPLOY_CHECKLIST.md',
   'index.html',
   'package.json',
   'PhysiognomyUI.js',

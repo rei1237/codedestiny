@@ -1,7 +1,7 @@
 # Measurement Plan
 
 > [세트 인덱스](README.md) · 이 문서는 9/10부다. GSC/네이버 서치어드바이저 연동 후 추적할 지표와,
-> 실측 데이터가 채워질 자리를 정의한다. 등록 절차는 [SEO_SUBMISSION_GUIDE.md](../../SEO_SUBMISSION_GUIDE.md)
+> 실측 데이터가 채워질 자리를 정의한다. 등록 절차는 [docs/seo/checklists.md](../seo/checklists.md)
 > 참고.
 
 ## 1. 데이터 소스 접근 상태 (2026-08-11 기준)

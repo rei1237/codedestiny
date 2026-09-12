@@ -41,7 +41,7 @@
 | `docs/insight-hub-authoring.md` | `/insights/[slug]` 아티클 층의 KEEP/MERGE 원장(저자 투입 파이프라인, 통합 완료 이력) | **인사이트 아티클 층의 정본.** 이 세트는 그 위 계층(기능 허브·랜딩·유틸리티 라우트)만 다룬다 |
 | `docs/seo-before-after.md` | 2026-07 SEO 리팩터의 변경 전/후 스냅샷 | 과거 히스토리 기록물 — 갱신하지 않는다 |
 | `docs/seo-deploy-checklist.md` | 배포 시점 실행 체크리스트(로컬 검증 → 제출 → Day7/14/30 추적) | 1회성 배포 운영 절차 — [08](08-technical-seo-checklist.md)/[09](09-measurement-plan.md)/[10](10-feedback-loop.md)은 링크만 한다 |
-| `SEO_SUBMISSION_GUIDE.md`(루트) | GSC/네이버/Bing/다음 등록 조작법 | 콘솔 조작 가이드 — [03](03-brand-seo-map.md)/[09](09-measurement-plan.md)은 링크만 한다 |
+| `docs/seo/checklists.md` | GSC/네이버/Bing/다음 등록 조작법 | 콘솔 조작 가이드 — [03](03-brand-seo-map.md)/[09](09-measurement-plan.md)은 링크만 한다 |
 
 ## 4. 실행 순서 권장
 
