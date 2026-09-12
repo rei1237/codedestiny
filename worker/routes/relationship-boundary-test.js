@@ -65,7 +65,7 @@ function storyDirectionFor(score) {
   return { key: "porous", scene: "여러 갈래 불빛이 교차하는 밤거리의 선택 장면", tension: "시선과 기회가 많은 자리에서 관계 밖 자극이 크게 느껴질 수 있는 흐름", action: "오해가 생기기 전, 관계의 우선순위와 거절 기준을 분명히 확인하기" };
 }
 
-function scoreBoundary(saju = {}, gender = "") {
+function scoreBoundary(saju = {}) {
   const chart = saju.myChart || {};
   const stars = chart.shinsal || chart.specialStars || {};
   const hit = (name) => Number(stars?.[name]?.score || stars?.[name]?.intensity || stars?.[name] || 0);
