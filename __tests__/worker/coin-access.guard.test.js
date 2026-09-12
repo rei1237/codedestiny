@@ -213,12 +213,12 @@ describe("Fortune coin access guard", () => {
       env: { NODE_ENV: "production" },
       productSpec: null,
       requestedCost: 1,
-      featureKey: "navigateToZiweiChart",
-      reason: "Premium ziwei unlock",
+      featureKey: "openOlympusOracleModal",
+      reason: "Olympus profile unlock",
     });
 
     expect(priced.ok).toBe(true);
-    expect(priced.cost).toBe(200);
+    expect(priced.cost).toBe(100);
     expect(priced.pricingSource).toBe("unlock-feature");
   });
 

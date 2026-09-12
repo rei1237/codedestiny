@@ -824,8 +824,10 @@ function handlePlan() {
 
 // GET /access 는 제거했다(2026-08-13). 잠금 상품 `premium-ziwei` 의 엔타이틀먼트를 조회하던
 // 엔드포인트인데, 심화 화면이 "명반 무료 열람"으로 바뀌면서 호출자가 0이 됐다.
-// 🔴 `premium-ziwei` 잠금 자체는 살아 있다 — 게이팅 정본은 worker/lib/access-control.js
-// (`ziweiPremium`)와 worker/routes/fortune.js 의 PERSISTENT_UNLOCK_KEY_SET 이다.
+// 2026-09-12: `premium-ziwei` 잠금 자체도 paid-feature-registry.js 에서 지웠다 —
+// 게이팅 정본이 살아 있다던 위 문장은 실측과 달랐다(access-control.js 의 ziweiPremium 을
+// 소비하는 호출부가 0건이었다). worker/routes/fortune.js 의 PERSISTENT_UNLOCK_KEY_SET 키는
+// 과거 결제 조회용으로만 남긴다.
 
 export async function handleZiweiDeepReportRoutes(request, env = {}) {
   const method = request.method.toUpperCase();

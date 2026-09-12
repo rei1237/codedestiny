@@ -64,7 +64,7 @@ assert(!existsSync("js/astro-book.js"), "retired js/astro-book.js still exists")
 
 const route = read("worker/routes/astrology-ai.js");
 assert(route.includes('FEATURE_KEY = "astrology-ai-consultation"'), "feature key missing");
-assert(route.includes('/ensure-access') && route.includes('/start') && route.includes('/message'), "API handlers missing");
+assert(route.includes('/ensure-access') && route.includes('/start'), "API handlers missing");
 assert(route.includes("canAccessPaidFeature"), "server access check missing");
 assert(route.includes("getSwissWesternChart"), "Swiss western chart calculator missing");
 assert(route.includes("callGeminiText"), "LLM generation missing");
@@ -105,7 +105,6 @@ assert(!page.includes("loadPaidServiceRuntimeGate"), "page must not call loadPai
 assert(!page.includes("DIRECT_KRW"), "page must not force DIRECT_KRW");
 assert(page.includes("/api/astrology-ai/ensure-access"), "ensure-access call missing");
 assert(page.includes("/api/astrology-ai/start"), "start call missing");
-assert(page.includes("/api/astrology-ai/message"), "message call missing");
 assert(page.includes("idempotencyKey"), "frontend idempotency key missing");
 assert(page.includes("별자리 차트를 펼치고 있습니다"), "chart loading copy missing");
 assert(page.includes("결제창을 확인해 주세요"), "payment copy missing");

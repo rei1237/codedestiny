@@ -76,7 +76,6 @@ export const REVIEW_PRODUCTS = Object.freeze([
       "ziwei_twelve_palaces",
       "ziwei_symbolic_layer",
       "ziwei_life_yearly_flow",
-      "premium-ziwei",
       "compat-ziwei-compatibility",
     ]),
   },

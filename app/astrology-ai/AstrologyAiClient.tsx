@@ -1379,7 +1379,6 @@ const FEATURE_AMOUNT_KRW = 30000;
 const API_ENDPOINTS = {
   ensureAccess: "/api/astrology-ai/ensure-access",
   start: "/api/astrology-ai/start",
-  message: "/api/astrology-ai/message",
   basis: "/api/astrology-ai/basis",
 } as const;
 
