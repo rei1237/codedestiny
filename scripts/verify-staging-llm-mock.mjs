@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import { createRequire } from "node:module";
 import { callLLM, isStagingLlmMockEnabled } from "../lib/llm-client.ts";
 import { enhanceLoveReadingWithLlm } from "../lib/tarot/love-reading-llm.mjs";
 
@@ -16,6 +17,20 @@ assert.equal(isStagingLlmMockEnabled(stagingEnv), true, "staging mock gate must 
 assert.equal(isStagingLlmMockEnabled({ ...stagingEnv, APP_ENV: "production" }), false, "production must never enable staging mock");
 assert.equal(isStagingLlmMockEnabled({ ...stagingEnv, WORKERS_AI_ENABLED: "true" }), false, "Workers AI must be off for staging mock");
 assert.equal(isStagingLlmMockEnabled({ ...stagingEnv, STAGING_LLM_MOCK_ENABLED: "false" }), false, "explicitly disabled mock must stay off");
+
+// 🔴 게이트 판정의 정본은 worker/lib/staging-llm-mock.js 하나다. 딱 하나 수렴할 수 없는 사본이
+//    jest 목(__tests__/__mocks__/llm-client.js)인데 CJS 라 ESM 정본을 require 할 수 없다.
+//    그 사본이 갈라지면 테스트가 실제와 다른 판정 위에서 통과한다 — 진리표로 묶어 둔다.
+const jestLlmMock = createRequire(import.meta.url)("../__tests__/__mocks__/llm-client.js");
+for (const appEnv of ["staging", "production", "", " Staging "]) {
+  for (const flag of ["1", "true", "on", "yes", "0", "false", "", "maybe"]) {
+    for (const workersAi of ["0", "false", "off", "no", "1", "true", ""]) {
+      const env = { APP_ENV: appEnv, STAGING_LLM_MOCK_ENABLED: flag, WORKERS_AI_ENABLED: workersAi };
+      assert.equal(jestLlmMock.isStagingLlmMockEnabled(env), isStagingLlmMockEnabled(env),
+        `jest 목의 staging mock 게이트가 정본과 다르다: ${JSON.stringify(env)}`);
+    }
+  }
+}
 
 const originalFetch = globalThis.fetch;
 let fetchCalls = 0;

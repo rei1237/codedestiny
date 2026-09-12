@@ -1,6 +1,7 @@
 import { withLLMCache } from "./llm-cache.ts";
 import type { LLMCacheConfig } from "./llm-cache.ts";
 import { buildOutputLanguageDirective, toAiLocale } from "./i18n/ai-locale.js";
+import { isStagingLlmMockEnabled } from "../worker/lib/staging-llm-mock.js";
 
 export interface LLMRequest {
   prompt: string;
@@ -122,21 +123,10 @@ const GEMINI_MODEL = "gemini-2.5-flash";
 const GEMINI_API_BASE = "https://generativelanguage.googleapis.com/v1beta";
 const DEFAULT_TIMEOUT_MS = 30_000;
 
-/**
- * 스테이징의 유료 결과 파이프라인을 실제 공급자 호출 없이 검증하는 잠금.
- *
- * 세 조건을 모두 요구한다. 플래그만 복사되거나 APP_ENV가 운영으로 바뀌면
- * mock이 켜지지 않아야 하며, Workers AI도 동시에 켜져 있으면 안 된다.
- */
-export function isStagingLlmMockEnabled(env?: CloudflareEnv): boolean {
-  const record = env as Record<string, unknown> | undefined;
-  const appEnv = String(record?.APP_ENV || "").trim().toLowerCase();
-  const flag = String(record?.STAGING_LLM_MOCK_ENABLED || "").trim().toLowerCase();
-  const workersAi = String(record?.WORKERS_AI_ENABLED || "").trim().toLowerCase();
-  return appEnv === "staging"
-    && ["1", "true", "on", "yes"].includes(flag)
-    && ["0", "false", "off", "no"].includes(workersAi);
-}
+// 스테이징의 유료 결과 파이프라인을 실제 공급자 호출 없이 검증하는 잠금. 판정 정본은
+// worker/lib/staging-llm-mock.js 하나이며 여기서는 되내보내기만 한다 — 아래 callLLM 이
+// 직접 쓰므로 `export { X } from` 이 아니라 import 후 export 로 나눠 적는다.
+export { isStagingLlmMockEnabled };
 
 type GeminiPayload = {
   candidates?: Array<{
