@@ -8,13 +8,25 @@
 // 테스트 환경에서는 스텁으로 대체한다.
 module.exports = {
   roots: ["<rootDir>/__tests__"],
+  // 🔴 실과금·실네트워크 차단은 러너가 아니라 **설정**이 진다. scripts/run-mock-tests.mjs 는
+  //    NODE_OPTIONS 의 --require 로 이 가드를 넣지만, `npx jest <파일>` 처럼 러너를 우회하면
+  //    보호가 통째로 사라진다 — 실측 2026-09-13: 직접 호출한 jest 안에서 요청이
+  //    generativelanguage.googleapis.com 까지 실제로 나갔다(status 400). setupFiles 에 두면
+  //    호출 방식과 무관하게 적용된다. 러너의 --require 는 node --test 와 자식 프로세스를
+  //    덮으므로 그대로 둔다.
+  //    🔴 이것을 CI 잡의 NODE_OPTIONS 로 올리지 말 것 — npm ci 까지 막힌다.
+  setupFiles: ["<rootDir>/scripts/lib/mock-network-guard.cjs"],
   moduleNameMapper: {
     // 🔴 <rootDir>/node_modules 로 적지 말 것. 이 레포는 .claude/worktrees/ 아래 워크트리에서
     //    작업하는데, 워크트리에는 node_modules 가 없어서 그 경로가 통째로 빗나간다
     //    (실측 2026-08-20: 21개 스위트 · 146개 테스트가 그 이유 하나로 실패했다).
     //    require.resolve 는 노드의 상위 탐색을 타므로 워크트리에서도 레포의 설치본을 찾는다.
     "^astronomy-engine$": require.resolve("astronomy-engine"),
-    "^\\.\\./\\.\\./lib/llm-client\\.ts$": "<rootDir>/__tests__/__mocks__/llm-client.js",
+    // 🔴 상대 깊이로 적지 말 것. moduleNameMapper 는 **임포터가 적은 문자열**에 걸리므로
+    //    "^\\.\\./\\.\\./lib/llm-client\\.ts$" 는 깊이 2 인 worker/lib/*.js 만 덮었다.
+    //    깊이가 다른 모듈이 llm-client 를 물면 목이 조용히 빠진다(실측 2026-09-13:
+    //    ../../../lib/llm-client.ts 는 매핑되지 않았다). 경로 모양이 아니라 대상으로 건다.
+    "(^|/)(lib/)?llm-client(\\.ts)?$": "<rootDir>/__tests__/__mocks__/llm-client.js",
     // lib/cms/build-text.ts 도 같은 이유로 대역한다 — constants/*.js 같은 순수 JS 모듈이
     // CMS 폴백 유틸을 물면서 파싱 단계에서 깨졌다. 테스트 환경엔 발행본이 없으므로
     // "항상 코드 기본값을 돌려준다"는 대역이 실제 동작과 정확히 같다.
