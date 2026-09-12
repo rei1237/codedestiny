@@ -1,14 +1,35 @@
 ---
 status: active
 updated: 2026-09-12
-next: "PR #1957 이 머지됐는지 확인하고, 머지됐으면 40자리 SHA 로 스테이징을 확인한 뒤 프로덕션으로 승격한다."
+next: "스테이징 실측 통과 완료(25,975자, saju-engine.js?v=build-79792732621b). 프로덕션 승격은 사용자의 별도 1회 명시 승인을 다시 받은 뒤에만 진행한다."
 ---
 
 # 종합 사주 풀이 — 해금 후 미표시 근본 수정 + 분량 증량
 
-- status: **머지 대기** (PR [#1957](https://github.com/rei1237/codedestiny/pull/1957), 브랜치 `fix/saju-summary-unlock-render-and-depth`, 머지 후보 `f88ac054e`, `MERGEABLE`/`CLEAN`)
-- worktree: `D:/Development/code-destiny-wt/saju-summary-unlock` (`origin/main` `e42b62267` 병합 완료)
-- 다음 세션 첫 문장: **"PR #1957 이 머지됐는지 확인하고, 머지됐으면 40자리 SHA 로 스테이징을 확인한 뒤 프로덕션으로 승격한다."**
+- status: **main 머지 완료, 스테이징 실측 통과** (PR [#1957](https://github.com/rei1237/codedestiny/pull/1957) → `116897a1c`)
+- 다음 세션 첫 문장: **"스테이징 실측은 끝났다. 프로덕션 승격을 사용자에게 다시 확인받고 진행한다."**
+
+## 🔴 후속 결함 — 캐시버스트 해시 고정으로 스테이징에 반영이 안 됐던 문제 (2026-09-12, 추가 수정 `d15dc7ac3`)
+
+`116897a1c`가 main에 머지·배포된 뒤에도 실사용자에게는 증량된 본문이 계속 옛 분량(15,071자)으로 보이는
+문제가 별도로 보고됐다. 근본 원인은 `scripts/lib/asset-cache-keys.mjs`의 `keyForRepoRel()`이 파일 안의
+**모든** `?v=`를 지우고 해싱하는 `normalizeAssetForHash`를 그대로 재사용한 것 — `js/core/index-inline-runtime.js`처럼
+자기 자신은 안 바뀌고 다른 파일(`saju-engine.js`)을 가리키는 `?v=` 참조만 바뀌는 파일은, 그 참조가 해싱 전에
+지워지므로 계산된 해시가 영원히 동일했다. 그 결과 `index.html`이 물고 있는 `index-inline-runtime.js`의
+캐시버스트 URL이 절대 바뀌지 않아, `/js/*.js`의 7일 하드캐시+30일 stale-while-revalidate 아래서 Cloudflare
+엣지가 옛 바이트(옛 saju-engine.js 해시를 내장한 버전)를 계속 서빙했다.
+
+수정: 자기 참조(`normalizeOwnReferenceForHash`)만 정규화하고 다른 파일을 가리키는 `?v=`는 그대로 두도록
+좁혔다(레포 전수 `?v=` 참조 그래프에서 진짜 자기참조는 `js/compat-llm-prompts.js` 1건뿐 — 순환 위험 재도입 없음).
+`sync:public` 재실행으로 `index-inline-runtime.js` 등의 캐시버스트 URL이 실제로 바뀌었고, 커밋 `d15dc7ac3`로
+main에 push, 스테이징 배포 후 Playwright로 실측:
+
+- 데스크탑·모바일 모두 `#summaryArea` 텍스트 25,975자, `saju-engine.js?v=build-79792732621b` 로드 확인.
+- `#summaryCard` opacity 1, `fate-scroll-section-hidden` 없음 — 리빌 정상.
+
+이 결함은 `js/core/index-inline-runtime.js`처럼 "내용은 안 바뀌고 남을 가리키는 참조만 바뀌는" 모든 파일에
+동일하게 적용됐던 구조적 문제였으므로, 앞으로 이 파일들을 건드리는 어떤 변경도 이 수정 전에는 스테이징에
+반영되지 않았을 것이다.
 
 ## 🔴 이 레포에는 PR CI 가 없다 (실측)
 
@@ -72,9 +93,11 @@ next: "PR #1957 이 머지됐는지 확인하고, 머지됐으면 40자리 SHA �
 
 ## 남은 일
 
-1. PR #1957 머지. **머지는 사용자가 한다.** (PR CI 는 없다 — 위 절 참조)
-2. 머지 SHA 40자리 고정 후 스테이징 확인(해금 계정 실화면 + 분량 실측).
-3. **프로덕션 승격** — 사용자가 이번 요청에서 명시적으로 1회 승인했다. 스테이징 확인 통과 후에만.
+1. ~~PR #1957 머지~~ — 완료(`116897a1c`).
+2. ~~머지 SHA 고정 후 스테이징 확인~~ — 완료. 단, 첫 배포는 캐시버스트 해시 고정 결함(위 🔴 절)으로
+   실사용자에게 반영되지 않았고, 추가 수정 `d15dc7ac3` 배포 후 재실측(25,975자, 최신 해시)으로 확정.
+3. **프로덕션 승격** — 사용자가 원 요청에서 1회 승인했으나, 이번에 배포된 것은 그 이후 발견된 별도의
+   빌드 툴링 결함(`d15dc7ac3`)까지 포함한 새로운 변경 묶음이므로 승격 전 사용자에게 다시 확인받는다.
 
 ## 범위 밖 (보고만, 별도 과제)
 
