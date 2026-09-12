@@ -196,5 +196,14 @@ When a new stale reference or document conflict is found:
 - **근거**: 세 패키지와 빠진 하위 패키지를 import·require 하는 소스는 0건이다(`git grep`). 메일은 fetch 기반 `worker/lib/resend.js` 가 보내며 `resend` 패키지를 쓰지 않는다. `@tiptap/extension-link` 는 `@tiptap/starter-kit` 의 하위 의존성으로 lock 에 남는다.
 - **한정**: 이 변경에만 적용되는 1회 예외다. 규칙 4 자체는 그대로다.
 
+## 2026-09-12 구조 개선 요청서 ↔ `ARCHITECTURE.md` 충돌 해소 — 리팩터링 단위는 파일이 아니라 판정
+
+- **충돌**: 사용자 구조 개선 요청서는 `features/payment/{domain,application,infrastructure,ui}` 식 기능별 재배치를 제안했다. 레포 계약은 반대로 적고 있다 — [`ARCHITECTURE.md:37`](../ARCHITECTURE.md) "새 payment-core나 가격표를 만들지 않는다", [`:51`](../ARCHITECTURE.md) "기능 경계는 기존 위치를 유지한다. 이 지도는 새 폴더로 이동하라는 지시가 아니다", [`:40`](../ARCHITECTURE.md) "줄 수만으로 분할하지 않는다".
+- **해소**: **기존 경계를 유지한다.** 요청서의 우선순위가 "회귀 방지 > 안정성 > 유지보수성 > 코드 미관"이고 폴더 트리는 목표가 아니라 수단이었으므로, 같은 목표(단일 진실 공급원)를 경로를 건드리지 않고 달성하는 쪽을 택했다. 사용자가 같은 요청서에서 구조 방향 결정을 에이전트에게 위임했다("근본적으로 유지보수가 쉬워야 한다").
+- **근거 ①**: 파일 이동은 중복 판정을 **0개** 줄인다. `worker/payments/entitlements.js` → `features/payment/domain/entitlement.js` 는 이름만 바뀌고, 이용권 판정이 3벌인 사실은 그대로다.
+- **근거 ② (실측, 2026-09-12)**: 이 레포의 안전망이 **경로 모양**이다 — `__tests__/ui` 149개 중 139개가 `readFileSync(고정 경로)`, `jest.config.cjs` 의 LLM 목 매퍼가 `^\.\./\.\./lib/llm-client\.ts$` 라는 **상대 깊이** 의존, `config/payment-freeze.json` 이 파일 경로+함수 본문 해시, 루트 `.ignore` 의 생성물 204경로, `scripts/verify-*` 189개가 경로를 grep, 셸 미러 7벌의 캐시버스트 해시. 옮기면 테스트·가드가 **조용히** 꺼진다. 실패는 보이지만 안 도는 것은 안 보인다 — 1순위를 깎아 미관을 사는 거래다.
+- **채택한 작업 규칙**: **중복된 판정을 없애는 변경은 한다. 파일을 옮기는 변경은 하지 않는다.** 판정에 정본이 아예 없을 때만 모듈 하나를 새로 **추가**한다(추가는 가드를 깨지 않는다). 정본이 있으면 호출부를 그쪽으로 돌린다.
+- **정본 위치**: 원장은 [`docs/refactor/`](refactor/README.md) 4종. `ARCHITECTURE.md` 는 탐색 지도로 그대로 유지한다(대체 관계가 아니다).
+
 ## 2026-09-08 사용자 전달 방식 변경 (역사 — 2026-09-12 절로 대체)
 PR 생성 후 필수 검사와 최신 base 충돌을 확인하고 에이전트가 안전하게 머지한다. 스테이징에서 Pages·Worker 배포 SHA 및 읽기 전용 핵심 응답을 확인한다. 과거 사용자 수동 머지·머지 후 배포 미확인 조항보다 이 지시가 우선한다. 프로덕션 승격은 여전히 사용자의 명시적인 1회 승인 때만 진행한다. branch protection을 우회하지 않으며 실패·필수 승인 대기는 보고한다.
