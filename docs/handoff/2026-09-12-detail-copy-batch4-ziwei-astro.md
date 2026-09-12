@@ -1,7 +1,7 @@
 ---
-status: in-review
-scope: 자미·점성 유료 5종 상세창 카피를 receives·outline 형식으로 이전 (배치 4)
-next: 같은 형식으로 배치 5(월정석·단건) 유료 상품 카피를 옮긴다.
+status: active
+updated: 2026-09-12
+next: "배치 4(자미·점성) PR #1943 의 CI·머지를 확인한 뒤, 같은 형식(receives·outline)으로 배치 5(월정석·단건) 유료 상품 카피를 옮긴다."
 ---
 
 # 배치 4 — 자미·점성 유료 5종 상세창 카피 이전
