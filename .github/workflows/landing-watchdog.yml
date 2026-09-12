@@ -1,16 +1,18 @@
 name: Landing Watchdog
 
-# 머지된 작업이 스테이징에 도달하지 못하는 세 가지 **조용한** 실패를 하나의 신호로 만든다.
+# main 에 올린 작업이 스테이징에 도달하지 못하는 두 가지 **조용한** 실패를 하나의 신호로 만든다.
 #
-#   ① 스택 PR 좌초 — 부모를 자식보다 먼저 머지하면 자식의 머지 커밋이 고아가 된다.
-#      GitHub 은 "Merged" 로 칠하고, 그걸로 끝이다.
-#   ② 릴리스 런 취소 — concurrency 그룹당 실행 1 + 대기 1 만 유지되므로 연속 머지 시
-#      대기 런이 취소된다. 취소된 런은 잡이 시작조차 안 해 PR 코멘트가 달리지 않고,
-#      GitHub 은 실패와 달리 취소에는 메일을 보내지 않는다.
-#   ③ 스테이징 드리프트 — 라이브 SHA 와 main HEAD 를 비교하는 장치가 없었다.
+#   ① 릴리스 런 취소 — concurrency 그룹당 실행 1 + 대기 1 만 유지되므로 연속 push 시
+#      대기 런이 취소된다. 취소된 런은 잡이 시작조차 안 하고, GitHub 은 실패와 달리
+#      취소에는 메일을 보내지 않는다.
+#   ② 스테이징 드리프트 — 라이브 SHA 와 main HEAD 를 비교하는 장치가 없었다.
 #
-# 셋 다 "실패했는데 아무도 모른다"가 본질이라, 감지 자체보다 **한 곳만 보면 알 수 있게**
+# 둘 다 "실패했는데 아무도 모른다"가 본질이라, 감지 자체보다 **한 곳만 보면 알 수 있게**
 # 만드는 것이 이 워크플로의 목적이다. 결과는 이슈 하나에 모이고 제자리에서 갱신된다.
+#
+# 🔴 2026-09-12: "스택 PR 좌초" 축을 제거했다. 이 레포는 PR 을 쓰지 않고 main 에 직접
+# 커밋하므로 고아 머지 커밋이 생길 경로 자체가 없다. 그에 딸린 PR 자동 최신화(update-branch)
+# 와 좌초 PR 코멘트도 함께 사라졌다 — 그래서 이 워크플로는 더 이상 PR 을 읽거나 쓰지 않는다.
 #
 # pages-config-guard.yml 과 같은 형태의 예약 가드다. npm ci 를 돌리지 않는다 —
 # 이 스크립트는 Node 내장 모듈 + git + gh 만 쓴다.
@@ -22,10 +24,6 @@ on:
     branches: [main]
   workflow_dispatch:
     inputs:
-      days:
-        description: "머지된 PR 을 며칠 거슬러 볼지"
-        type: string
-        default: "7"
       dry_run:
         description: "true 면 이슈·코멘트를 쓰지 않고 본문만 출력한다"
         type: boolean
@@ -41,9 +39,8 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  contents: write # PR 자동 최신화(update-branch)가 head 브랜치를 갱신한다
-  issues: write # 워치독 이슈 생성·갱신·종료 + 좌초 PR 코멘트
-  pull-requests: write # 열린 PR 조회 및 update-branch
+  contents: read # 체크아웃만 한다. 이 워치독은 더 이상 브랜치를 밀지 않는다.
+  issues: write # 워치독 이슈 생성·갱신·종료
   actions: read # 릴리스 런 결론 조회
 
 jobs:
@@ -74,7 +71,7 @@ jobs:
           node scripts/dev/resolve-staging-watch.mjs --origin="${CD_STAGING_ORIGIN}"
 
   watch:
-    name: Check that merged work reached staging
+    name: Check that landed work reached staging
     needs: scope
     # 판정 실패는 감시 실행으로 닫는다. 명시적인 false 만 Quick Pass 로 건너뛴다.
     if: needs.scope.outputs.run != 'false'
@@ -85,20 +82,16 @@ jobs:
       # 🔴 2026-08-20 컷오버 이후 감시 대상은 **스테이징**이다.
       # 프로덕션은 사람이 묶어서 내보내므로 main 보다 뒤처져 있는 것이 정상 상태다. 그대로
       # 프로덕션을 보게 두면 이 워치독이 영구 critical 이슈를 열어 진짜 신호를 덮는다.
-      # "머지된 작업이 도달하지 못하는 조용한 실패" 라는 명제는 이제 스테이징에 적용된다.
+      # "올린 작업이 도달하지 못하는 조용한 실패" 라는 명제는 이제 스테이징에 적용된다.
       CD_STAGING_ORIGIN: ${{ vars.CD_STAGING_ORIGIN || 'https://staging.code-destiny.com' }}
 
     steps:
-      # 🔴 fetch-depth: 0 만으로는 부족하다. 고아 머지 커밋은 main 이 아니라 살아남은 feature
-      # 브랜치에 매달려 있으므로, 모든 브랜치 팁이 로컬에 있어야 조상 판정이 성립한다.
-      # (없으면 스크립트가 GitHub compare API 로 폴백하지만, 그건 PR 수만큼 왕복한다.)
-      - name: Check out full history
+      # main HEAD 의 SHA 와 커밋 시각만 있으면 된다. 블롭은 받지 않는다.
+      - name: Check out history without blobs
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: Fetch every branch tip
-        run: git fetch --no-tags --prune origin "+refs/heads/*:refs/remotes/origin/*"
+          filter: blob:none
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -109,34 +102,14 @@ jobs:
       - name: Self-test the watchdog logic
         run: node scripts/verify-merge-landed.mjs --self-test
 
-      # 🔴 2026-08-21 이전에는 --update-branches 를 push 에서 켰다. main 으로의 push(=PR 머지)
-      # 마다 열린 모든 PR 브랜치에 main 을 자동 병합했는데, 이 병합 커밋의 push 가
-      # pull_request:synchronize 를 실제로 재트리거해 pr-ci.yml 의 cancel-in-progress:true
-      # 가 진행 중이거나 승인 대기 중인 PR CI 런을 계속 취소·재시작시켰다(실행 이력의
-      # head_sha 가 이 워치독의 병합 커밋 SHA 와 정확히 일치함을 확인). main 이 9~20분
-      # 간격으로 계속 움직이는 이 저장소에서는 사실상 PR CI 가 끝까지 못 도는 상태가 됐다.
-      # "GITHUB_TOKEN 이 일으킨 push 는 재귀 방지 규칙 때문에 PR CI 를 재트리거하지 않는다"는
-      # 당시의 가정은 실제 실행 이력과 어긋났다.
-      #
-      # 그래서 --update-branches 는 schedule(매시 27분)에서만 켰고, 2026-09-12 에 그것도 껐다 —
-      # "최신 main 반영"이 입장 조건에서 빠져(충돌 + 파일 겹침 기준) 자동 갱신은 CI 재실행만 낳는다.
-      # 필요하면 스크립트의 --update-branches 를 수동으로 쓴다.
-      # update-branch 의 push 는 여기 GH_TOKEN 의 주체가 triggering_actor 가 된다. 기본
-      # GITHUB_TOKEN(=github-actions[bot])으로 push 하면 그 봇 계정은 이 저장소에 "자기
-      # 이름으로 병합된 커밋"이 영원히 없어, "Approval for running fork pull request
-      # workflows from contributors" 설정이 가장 느슨한 단계여도 매번 신규 기여자로 잡혀
-      # pr-ci.yml 이 action_required 로 멈춘다(2026-08-21 확인, job 0개로 종료).
-      # WATCHDOG_PAT(레포 관리자 소유, rei1237/codedestiny 한정 fine-grained PAT)를 쓰면
-      # triggering_actor 가 사람이 되어 이 게이트를 만나지 않는다. 시크릿이 아직 없을 때는
-      # github.token 으로 폴백해 워크플로가 깨지지 않게 한다.
-      - name: Check that merged work reached staging
+      # 🔴 --report 는 남긴다. 이슈 갱신이 이 워치독의 유일한 출력이고, 그걸 끄면 워치독 자신이
+      # "실패했는데 아무도 모른다" 의 또 다른 사례가 된다. 이슈 쓰기는 PR 축이 아니다.
+      - name: Check that landed work reached staging
         env:
-          DAYS: ${{ inputs.days || '7' }}
           DRY_RUN: ${{ inputs.dry_run || 'false' }}
-          GH_TOKEN: ${{ secrets.WATCHDOG_PAT || github.token }}
         run: |
           set -euo pipefail
-          ARGS=(--days="${DAYS}" --origin="${CD_STAGING_ORIGIN}")
+          ARGS=(--origin="${CD_STAGING_ORIGIN}")
           if [ "${DRY_RUN}" = "true" ]; then
             ARGS+=(--dry-run)
           else
