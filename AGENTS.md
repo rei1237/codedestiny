@@ -11,7 +11,8 @@ Code Destiny는 한국어 운세·상담 서비스다. 한국어로 보고한다
 ## 적용 경계
 - Claude 설정·훅·슬래시 명령은 Codex 집행 장치가 아니다. 이 파일은 지시문이며 실행 가능한 검사는 npm과 CI가 담당한다.
 - 개발환경 검증에는 실 LLM·실결제·운영 DB·배포를 사용하지 않는다. mock에서 실제 연동으로 폴백하지 않는다.
-- main 체크아웃에서 직접 편집한다. 기능·작업·임시 브랜치와 워크트리를 새로 만들지 않는다. 다른 세션의 미커밋 변경은 보존하고 커밋에 섞지 않는다.
+- main 체크아웃에서 직접 편집한다. 기능·작업·임시 브랜치와 PR 은 만들지 않는다. 다른 세션의 미커밋 변경은 보존하고 커밋에 섞지 않는다.
+- 예외 — **동시에 쓰는 세션이 둘 이상이면 두 번째부터 워크트리를 만든다**(`powershell -File scripts/create-safe-worktree.ps1 -Slug <이름>`). 거기서도 PR 은 만들지 않는다: 끝나면 main 에 직접 머지하고 워크트리를 배수한다. 혼자 쓰는 세션이면 만들지 않는다.
 - 작업 단위가 검증되면 즉시 커밋한다. 되돌려도 다른 기능이 흔들리지 않는 크기가 기준이며, 무관한 변경을 한 커밋에 섞지 않는다.
 - `npm run worktree:status`는 남아 있는 과거 워크트리를 배수할 때만 쓰는 읽기 전용 진단이다. 새 작업의 진입·전달 판정에는 쓰지 않는다.
 - Do not scan or read the entire repository unless explicitly required. Use git grep/rg/git ls-files to locate relevant files first.

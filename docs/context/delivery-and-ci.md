@@ -67,7 +67,14 @@
 - 🔴 **이 파일이 배포 계약의 정본이다** (2026-08-28 — `AGENTS.md` §Delivery 를 여기로 흡수했다. 요약을 다른 문서에 두지 않는다). 2026-08-11 의 "PR 기반 CI/CD" 계약과 2026-08-08 의 "work on main / ship with `deploy:safe`" 계약을 포함해, 이 파일 안팎의 더 오래된 배포 규칙을 전부 대체한다.
   - 🔴 **2026-08-08 계약과 헷갈리지 말 것.** 그때 되돌린 이유는 "main 에서 일한다"가 아니라 **로컬 `wrangler` 가 커밋이 아니라 워킹트리를 밀었기 때문**이다(아래 "낡은 베이스" 항목). 지금 릴리스는 `github.sha` 를 체크아웃해 배포하므로 그 원인은 제거됐다. **로컬 배포 금지는 그대로다.**
 - **GitHub is the source of truth for production.** Production only ever runs a commit that exists on `main`, and every commit reaches `main` by a direct push.
-- Work on `main` directly. Do not create feature/fix/temp branches, worktrees, or pull requests. Commit each verified unit immediately and push when the unit is stable. The safety net is small commits and fast rollback, not isolation.
+- Work on `main` directly. Do not create feature/fix/temp branches or pull requests. Commit each verified unit immediately and push when the unit is stable. The safety net is small commits and fast rollback, not isolation.
+- 🔴 **워크트리 예외 (2026-09-12 개정 — 같은 날의 "신규 워크트리 생성 금지" 조항을 대체한다).** **동시에 쓰는 세션이 둘 이상일 때는 두 번째 세션부터 워크트리를 만든다**: `powershell -File scripts/create-safe-worktree.ps1 -Slug <이름>`.
+  - **왜 예외가 필요한가**: 롤백이 이 계약의 안전장치인데 `git reset --hard`·`git stash`·`git checkout -- <파일>` 은 **누구 작업인지 구분하지 않는다.** 공유 체크아웃에서 한 세션이 자기 실수를 되돌리면 옆 세션의 미커밋 편집이 **복구 수단 없이** 사라진다. 같은 파일 동시 편집도 충돌 표시 없이 나중 저장이 덮는다. 격리를 끈 것 자체가 문제가 아니라, **격리를 끈 상태에서 롤백을 안전장치로 삼은 조합**이 문제다.
+  - **실측 근거 (2026-09-12)**: 하루에 세 가지가 다 났다 — 옆 세션의 미커밋 CSS 때문에 `git merge` 가 막혔고, 남의 커밋 3개가 이쪽 push 에 딸려 갔고, 남의 인수인계 문서가 `verify:handoff-contract` 를 깨뜨려 **main 이 빨간 채로 있었다**.
+  - **예외의 범위**: 읽기만 하는 세션은 몇 개든 워크트리가 필요 없다. 혼자 쓰는 세션도 만들지 않는다 — 기본은 여전히 main 직접 편집이다.
+  - **워크트리에서도 PR 은 만들지 않는다.** 검증 → 커밋 → main 으로 직접 `git merge` → push. 끝나면 즉시 배수한다(`npm run worktree:unmerged` → `npm run cleanup:candidates` → `git worktree remove`).
+  - **롤백 시 옆 세션을 지키는 법**: `reset --hard` 대신 내가 만진 파일만 `git checkout -- <파일>`, 커밋된 것은 `git revert <해시>`.
+  - `.claude/settings.json` 의 `worktree.bgIsolation` 은 `"none"` 이다 — 워크트리는 **자동이 아니라 의도적으로** 만든다.
 - 🔴 **main CI 는 변경 경로에 따라 강도가 갈린다** (`.github/workflows/pr-ci.yml` — 파일명은 2026-09-12 이후에도 그대로다. 트리거만 `push: main` 이다). 모든 push 에 같은 검사를 돌리면 CSS 한 줄에 전체 회귀를 기다리게 되고, 그러면 게이트를 우회할 방법을 찾게 된다. 반대로 전부 가볍게 하면 결제·인증이 무방비가 된다.
 
   | 티어 | 걸리는 경로 | 도는 검사 |
@@ -177,7 +184,7 @@ Pages 와 Worker 가 서로 다른 코드를 가리키는 것이 이 저장소�
 
 ## 격리 워크트리에서 명령 돌리기 (2026-09-04 `CLAUDE.md` 에서 이관 — 2026-09-12 부로 신규 생성은 폐기)
 
-🔴 **새 워크트리를 만들지 않는다**(2026-09-12 main 단독 개발 전환). 아래는 **아직 남아 있는 과거 워크트리를 배수할 때만** 쓰는 실측이다. 배수가 끝나면 이 절도 지운다.
+🔴 **워크트리는 자동이 아니라 예외다**(2026-09-12 개정). 단독 세션은 main 에서 직접 일하고, **동시에 쓰는 세션이 둘 이상일 때만** 두 번째부터 만든다 — 근거와 절차는 위 §Delivery Contract 의 「워크트리 예외」항목이 정본이다. 아래는 그때 필요한 실측이자 **아직 남아 있는 과거 워크트리를 배수할 때** 쓰는 자료다.
 
 - 🔴 **`node_modules` 가 딸려온다고 믿지 말 것** — `.claude/settings.json` 에 `symlinkDirectories: ["node_modules"]` 가 있는데도 실제로는 대개 안 생긴다(2026-08-23 실측: 워크트리 41개 중 **8개만** 보유). 원인은 미확인이다. 그런데도 `npm test`·`typecheck`·`lint`·`verify:*` 는 대개 도는데, 그건 Node·도구들이 상위 디렉터리를 타고 올라가 저장소 루트의 설치본을 주워 쓰기 때문이다.
 - 🔴 그래서 **`<rootDir>/node_modules` 같은 절대 경로를 코드에 박으면 그 한 줄만 빗나간다** — `require.resolve` 를 쓸 것. 상위 탐색이 안 통하는 유일한 자리라, 박은 그 도구만 죽고 나머지는 전부 초록불이라 늦게 발견된다. 두 번 났다: `jest.config`(21개 스위트 사망) · `next-build-with-pages-manifest.mjs` 의 next CLI 경로(lint·typecheck·jest 가 **전부 통과한 채로** 빌드에서만 `Cannot find module`).

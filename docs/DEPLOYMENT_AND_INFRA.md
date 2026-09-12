@@ -140,7 +140,9 @@ database write is required for this activation.
 
 ## Parallel sessions and worktrees
 
-🔴 **2026-09-12: new worktrees are no longer created.** All work happens directly on `main`, one session at a time; the safety net is small commits and fast rollback, not filesystem isolation. What follows documents the leftover worktrees that still have to be drained (`npm run worktree:unmerged` → `cleanup:candidates` → `cleanup:apply`) and the local-deploy history that shaped these guards. Production deploys have run from GitHub Actions only since 2026-08-11, so the promotion contention below is history, not current practice.
+🔴 **2026-09-12 (개정): 기본은 `main` 직접 편집, 예외로 워크트리를 만든다.** 한 세션만 쓸 때는 워크트리 없이 `main` 에서 바로 일한다 — 안전장치는 작은 커밋과 빠른 롤백이다. **동시에 쓰는 세션이 둘 이상이면 두 번째부터 `powershell -File scripts/create-safe-worktree.ps1 -Slug <이름>` 로 격리한다**: 공유 체크아웃에서 `git reset --hard` 는 옆 세션의 미커밋 작업까지 복구 불가로 지우기 때문이다. 워크트리에서도 PR 은 만들지 않는다 — `main` 에 직접 머지하고 끝나면 배수한다(`npm run worktree:unmerged` → `npm run cleanup:candidates` → `git worktree remove`). 정본은 [context/delivery-and-ci.md](context/delivery-and-ci.md) 다.
+
+아래 표와 실패 모드는 **로컬 배포 시절의 이력**이다. 프로덕션 배포는 2026-08-11 부터 GitHub Actions 에서만 돌기 때문에 승격 경합은 현재 관행이 아니다.
 
 Concurrency is split by stage, because only one of them contends:
 

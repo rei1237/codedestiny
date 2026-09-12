@@ -170,8 +170,12 @@ When a new stale reference or document conflict is found:
 - **안전장치 교체**: 리뷰 게이트(PR)가 아니라 **작은 커밋과 빠른 롤백**이 안전장치다. 미커밋 회귀는 `git reset --hard HEAD`, 나쁜 커밋은 그 커밋만 `git revert` — 이미 커밋된 다른 정상 작업까지 날리지 않는다.
 - 🔴 **2026-08-11 회귀 원인은 이미 제거됐다.** 이 레포는 2026-08-08 에도 "work on `main`" 계약을 썼다가 08-11 에 되돌렸는데, 위 §Delivery Policy 가 적은 되돌린 이유는 *"`wrangler` 가 커밋이 아니라 워킹트리를 민다 → 프로덕션이 어느 커밋인지 이름 붙일 수 없고, 낡은 베이스면 머지된 변경이 조용히 증발"* 이다. 지금 릴리스 워크플로는 `github.sha` 를 체크아웃해 배포하고 로컬 프로덕션 배포는 가드가 막으므로, **되돌린 이유 자체가 성립하지 않는다.** 이번 전환은 그때의 계약을 되살리는 것이 아니라 그때 없던 전제 위에서 다시 세우는 것이다.
 - **룰셋**: `main-protection`(id 20666260)에서 `pull_request` 와 `required_status_checks` 규칙만 제거했고 `deletion` 과 `non_fast_forward` 는 유지했다. main 이 유일한 복구 지점이 되므로 강제 push·브랜치 삭제 차단이 오히려 더 중요하다. 이는 바로 아래 「전달 흐름 개정」의 required check 관련 기록과 「로컬 preflight 폐기」의 "`CI required` 를 required status check 로 등록한다" 기록을 **뒤집는다** — 뒤집는 이유는 required check 가 PR 게이트 전제 위에 있었고, push 흐름에서는 CI 결과를 push 후에 확인하기 때문이다.
-- **폐기한 조항**: Merge Queue(`merge_group`), `full-ci` 라벨 탈출구, 2026-09-10 상시 연속 머지 정책, PR 전용 도구(`session-delivery-guard`·`delivery-admit`·`delivery-sync`·`delivery-batch-plan`·`pr-create`·`resume-unmerged`), 신규 워크트리 생성.
-- **남은 전제**: 여러 세션이 같은 `main` 체크아웃을 공유하므로 **한 번에 한 세션**이 원칙이다. 타 세션의 미커밋 변경은 보존하고 커밋에 섞지 않는다.
+- **폐기한 조항**: Merge Queue(`merge_group`), `full-ci` 라벨 탈출구, 2026-09-10 상시 연속 머지 정책, PR 전용 도구(`session-delivery-guard`·`delivery-admit`·`delivery-sync`·`delivery-batch-plan`·`pr-create`·`resume-unmerged`).
+- 🔴 **같은 날 재개정 — 워크트리 금지는 철회한다.** 이 전환은 처음에 "신규 워크트리 생성"까지 폐기 목록에 넣었으나, **같은 날 사용자 지시로 예외를 되살렸다**: 동시에 쓰는 세션이 둘 이상이면 두 번째부터 워크트리를 만든다.
+  - **철회 이유**: 롤백이 이 계약의 안전장치인데 `git reset --hard`·`stash`·`checkout --` 는 소유자를 구분하지 않는다. 공유 체크아웃에서는 한 세션의 정상적인 롤백이 옆 세션의 미커밋 작업을 **복구 수단 없이** 지운다. "격리를 껐다"가 아니라 **"격리를 끈 채 롤백을 안전장치로 삼았다"**가 결함이었다.
+  - **실측 (2026-09-12 당일)**: 옆 세션 미커밋 CSS 로 `git merge` 차단 → 남의 커밋 3개가 이쪽 push 에 동반 → 남의 인수인계 문서가 `verify:handoff-contract` 를 깨 **main 이 빨간 상태**. 세 가지가 하루에 다 났다.
+  - **유지되는 것**: 기본은 여전히 main 직접 편집이고, 워크트리에서도 **PR 은 만들지 않는다**(직접 `git merge` → push → 배수). 읽기 전용 세션과 단독 세션은 워크트리를 만들지 않는다. 도구는 `scripts/create-safe-worktree.ps1` 로 살아 있다.
+- **남은 전제**: 워크트리를 쓰지 않는 경우 여러 세션이 같은 `main` 체크아웃을 공유하므로 **쓰는 세션은 한 번에 하나**가 원칙이다. 타 세션의 미커밋 변경은 보존하고 커밋에 섞지 않는다.
 
 ## 2026-09-12 전달 흐름 개정 — 충돌 해소 기록
 
