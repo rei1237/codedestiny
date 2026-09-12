@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-12
-next: 4) 자산 중복은 PR-9 로 종결(125 → 63개, 2.3MB). CSS 축은 29KB 실측으로 제외. 남은 것은 로케일 3.8MB(en 폴백 선행 필요)·배포·SEO 체크리스트 통합·루트 보고서 `reports/` 이동. 3) 은 크론 축소(사용자 결정)·ai-locale-gate shadow 원장만 남았다. 5) 룰셋 `CI required` 등록은 2026-09-12 완료·검증됨
+next: 4) 자산 중복은 PR-9 로 종결(125 → 63개, 2.3MB). CSS 축은 29KB 실측으로 제외. 루트 생성 보고서 3개는 PR-10 으로 `reports/` 이동 완료. 남은 것은 로케일 3.8MB(en 폴백 선행 필요)·배포·SEO 체크리스트 통합. 3) 은 크론 축소(사용자 결정)·ai-locale-gate shadow 원장만 남았다. 5) 룰셋 `CI required` 등록은 2026-09-12 완료·검증됨
 ---
 
 # 레포 정리 (쓰레기 수거) 후속
@@ -19,6 +19,7 @@ next: 4) 자산 중복은 PR-9 로 종결(125 → 63개, 2.3MB). CSS 축은 29KB
 - PR-6(#1941, 머지됨): paid-flow-gates 트리거 paths 구멍 15개 + 결제 PR jest 2회 실행 제거. CI 로그로 실동작 확정 — scope 가 `tier=critical` 을 내고 스위트가 `제외=npm test` 로 85개 항목을 2m29s 에 끝냈다.
 - PR-8(`chore/cachebust-per-asset`): 정적 셸 `?v=` 를 자산별 내용 해시로 전환. index.html 커밋 요동 92줄 → 6줄(실측).
 - PR-9(`chore/dedupe-css-assets-locale`): feature-details 히어로 자산 중복 제거(125 → 63개) + CSS·로케일 축 실측 종결.
+- PR-10(`chore/dedupe-css-assets-locale`): 루트 생성 보고서 3개를 `reports/` 로 이동(루트 추적본 1,756줄 제거).
 - 규약: `docs/AI_HANDOFF.md` (완료 핸드오프는 삭제, 목록은 git grep).
 
 ## 남은 작업
@@ -39,7 +40,8 @@ next: 4) 자산 중복은 PR-9 로 종결(125 → 63개, 2.3MB). CSS 축은 29KB
     - **CSS = 실질 없음(종결)**. 29개 파일 2.0MB / rule 11,156개에서 동일 selector+body 중복은 **29.1KB**뿐이다(307그룹, 대부분 `fortune-ui.css`↔`fortune-ui-home.css` 와 `core-ui.css`↔`globals.css`). 재설계 비용이 이득을 넘는다 — 4) 에서 뺀다.
     - ✅ **자산 = PR-9 로 제거**. `public/feature-details/assets` 125개 중 **80개가 9개 원본의 바이트 동일 복제**였다(13x·7x·5x·5x·2x). 원인은 `build-visual-details.mjs:67-75` 의 카테고리 공용 fallback 을 슬러그마다 재인코딩한 것. 원본 공유 시 `shared-<sha1 8자>-<폭>.webp` 1개만 쓰게 바꿨다 — **125 → 63개, 5.9MB → 3.5MB**. 고유 원본은 `<slug>-<폭>.webp` 유지(기능별 일러스트를 같은 경로에 넣는 기존 방식 보존).
     - ⏸ **로케일 = 최대(3.8MB)인데 선행 과제가 있다**. `public/i18n/{de,en,es,fr,hi,ms,nl,vi}/loveSimulationScenes.json` **543.6KB 8개가 완전 동일**이다. 그런데 로더(`lib/i18n/dictionary.ts:150-169`, `js/cd-lang-native.js:314-328`)는 404 에 `null` 만 돌려주고 **en 재시도 분기가 없고**, `scripts/i18n-check.mjs:16` 이 파일 존재를 단언한다. 사본 삭제 전에 폴백 규약부터 세우는 별건이다.
-  - ⏳ 남은 둘: 배포·SEO 체크리스트 통합, 루트 생성 보고서 `reports/` 이동. **sitemap 요동은 손댈 것이 없다**(확인함) — `config/sitemap-lastmod.json` 내용 서명 원장이 이미 같은 원리로 처리하고 있다.
+  - ✅ **루트 생성 보고서 `reports/` 이동 완료(PR-10)**. 루트 md 중 **스크립트가 쓰는 것은 3개뿐**이었다(실측): `SEO_ADSENSE_AUDIT.md`·`I18N_TRANSLATION_MATRIX.md`(`scripts/audit-seo-adsense-i18n.mjs`), `MOBILE_JOURNEY_MATRIX.md`(`scripts/build-mobile-journey-matrix.mjs`). 셋 다 `reports/`(이미 `.gitignore` + `safe-clean-repo.mjs` 대상)로 돌리고 루트 추적본 1,756줄을 지웠다. 🔴 **`MOBILE_FEATURE_REGISTRY.md`·`MOBILE_FEATURE_DETAIL_TEMPLATE_REPORT.md`·`MOBILE_FINAL_COMPLETION_AUDIT.md` 는 이름이 REPORT 여도 생성물이 아니라 수기 원장이다** — `scripts/verify-mobile-final-audit.mjs:7-9` 와 `verify-mobile-entry-actions.mjs:7` 이 **입력으로 읽으므로** 루트에 남겼다. 참조 2곳(`docs/seo/GROWTH_OPERATIONS.md:41`, `docs/purchase-journey/README.md:13`)은 생성 명령 + `reports/` 경로로 고쳤다. `docs/payments/payment-inventory.json` 의 `excludedFiles` 에도 이름이 있지만 고정 HEAD 스냅샷이고 이를 읽는 검사가 없어(전수 grep) 두었다.
+  - ⏳ 남은 하나: 배포·SEO 체크리스트 통합(루트 `DEPLOY_CHECKLIST`·`DEPLOYMENT_MODE`·`CLOUDFLARE_PAGES_SETUP` / `ADSENSE_APPROVAL_CHECKLIST`·`GOOGLE_INDEXING_CHECKLIST`·`SEO_SUBMISSION_GUIDE`·`SEO_ADSENSE_AUDIT`). 🔴 통합 시 `scripts/lib/doc-refs.mjs:24-33` 의 `ROOT_REPO_PATHS` 허용목록(`CLOUDFLARE_PAGES_SETUP.md`·`DEPLOY_CHECKLIST.md` 포함)과 `docs/seo-strategy/**` 의 인바운드 링크 7곳을 같이 고쳐야 한다. **sitemap 요동은 손댈 것이 없다**(확인함) — `config/sitemap-lastmod.json` 내용 서명 원장이 이미 같은 원리로 처리하고 있다.
 - [x] 5) **완료(2026-09-12 등록 확인)**. 실측 값: `required_status_checks` = `[{context:"CI required", integration_id:15368}]`, `strict_required_status_checks_policy:false`, ruleset `enforcement:active`. 필수 체크는 **1개뿐**이고 paths 트리거 워크플로 혼입 없음 — 아래 3줄 제약을 모두 만족한다. 🔴 **결정 뒤집힘(PR-5)**: 룰셋 20666260 에 aggregate `CI required` 하나를 required status check 로 **등록했다**. 이전 기록("required check 제거는 사용자 의도")은 로컬 preflight 가 안전망이던 시절의 판단이고, preflight 를 폐기한 지금은 GitHub 강제가 그 자리를 메워야 한다(사용자 확정). strict(최신 base 요구)는 켜지 않는다 — 켜면 main 전진마다 전 PR 재검증이라 `delivery-and-ci.md` 가 기록한 병목이 되살아난다. paths 트리거 워크플로(`Paid Flow Gates`·`Gift transaction integrity`·`AI Locale Gate`)는 절대 넣지 않는다 — 경로가 안 걸린 PR 에서 체크가 생성되지 않아 영구 pending 이 된다. 절차·롤백은 아래 「룰셋 등록」에 남겨둔다 — 되돌리거나 다시 만들 때 쓴다.
 - [ ] 8) 범위 밖 발견(PR-9): `verify:feature-marketing-schema` 가 `scripts/verify-guard-wiring.mjs:158` 에서 `UNWIRED_BY_DESIGN` 이라 **CI 에서 돌지 않는다**. `index.html` 의 수기 `outlineImage` 36개가 실제 파일을 가리키는지 보는 유일한 가드이므로, 깨지면 CI 초록인데 화면만 빈 액자가 된다. PR-9 에서는 로컬 1회 + 없는 경로 주입 변이로 무는 것을 확인했지만(실측), 배선 자체는 범위 밖이라 손대지 않았다.
 - [ ] 9) 범위 밖 발견(PR-9): `scripts/lib/build-visual-details.mjs` 의 자산 prune 은 **이 생성기가 소유한 이름**(`<알려진 슬러그>|shared-*` + `-<폭>.webp`)만 지운다. 수기 자산 `feature-detail-shared-hero-v1-*.webp` 를 보호하려는 의도적 제약이다. 규약 밖 이름의 stale 자산은 여전히 자동으로 안 지워진다.

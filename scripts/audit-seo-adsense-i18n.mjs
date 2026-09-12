@@ -110,7 +110,9 @@ const summary = [
   "", "## Search Console 후속 확인", "페이지 색인 보고서의 제외 사유, URL 검사의 Google 선택 canonical·최근 크롤링·렌더링 HTML, sitemap 가져오기 상태, 국가/검색어/언어별 노출을 배포 후 확인한다.",
   "", "## 근거", "- https://developers.google.com/search/docs/crawling-indexing/javascript/javascript-seo-basics", "- https://developers.google.com/search/docs/specialty/international/localized-versions", "- https://support.google.com/adsense/answer/7299563", "",
 ];
-writeFileSync("SEO_ADSENSE_AUDIT.md", summary.join("\n"));
+// 재생성 가능한 산출물이라 루트가 아니라 `reports/`(gitignore 대상)에 쓴다.
+mkdirSync("reports", { recursive: true });
+writeFileSync("reports/SEO_ADSENSE_AUDIT.md", summary.join("\n"));
 const matrix = ["# 번역 상태 매트릭스", "", report.limitation, "정적 본문만 검사한다. 버튼/토스트/오류는 런타임 별도 검증이 없으면 미검증으로 표시한다.", "", "| route | ko | ja | en | zh | zh-tw | title/meta | 본문 | 버튼/토스트/오류 | 한국어 잔존 |", "|---|---|---|---|---|---|---|---|---|---|"];
 for (const row of rows.filter(r => r.indexed)) {
   const lang = row.route.match(/^\/(ja|en|zh|zh-tw)\//)?.[1] || "ko";
@@ -121,6 +123,6 @@ if (existsSync("reports/i18n-hardcoded-audit.json")) {
   const scan = JSON.parse(readFileSync("reports/i18n-hardcoded-audit.json", "utf8"));
   matrix.push("", `## 하드코딩 후보: ${scan.totalFindings}건 / ${scan.scannedFiles}파일`, "한국어 전용 글·관리자·fixture·결제 보호 파일을 포함하므로 모든 건이 외국어 노출 오류는 아니다.", ...Object.entries(scan.byFile).sort((a,b) => b[1]-a[1]).map(([file,count]) => `- ${file}: ${count}`));
 }
-writeFileSync("I18N_TRANSLATION_MATRIX.md", matrix.join("\n") + "\n");
+writeFileSync("reports/I18N_TRANSLATION_MATRIX.md", matrix.join("\n") + "\n");
 console.log(JSON.stringify({ html: rows.length, indexed: indexed.size, missing, technicalIssues: technicalIssues.length, routesWithFindings: rows.filter(r => r.issues.length).length }));
 if (process.argv.includes("--strict") && (missing.length || technicalIssues.length)) process.exitCode = 1;
