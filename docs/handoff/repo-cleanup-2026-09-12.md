@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-12
-next: 5) 룰셋에 `CI required` 등록(사용자), 이어서 3) 남은 CI 최적화(Playwright 캐시·워치독·크론)
+next: 3) 남은 CI 최적화(Playwright 캐시·워치독·크론). 5) 룰셋 `CI required` 등록은 2026-09-12 완료·검증됨
 ---
 
 # 레포 정리 (쓰레기 수거) 후속
@@ -25,7 +25,7 @@ next: 5) 룰셋에 `CI required` 등록(사용자), 이어서 3) 남은 CI 최�
 - [x] 2) 보류 삭제 5건 완료(PR-4). `AUDIT.md` 는 사용자 확인 결과 **결제 원장이 아니다** — 가격·결제 정본은 `worker/lib/paid-feature-registry.js`·`worker/payments/passes.js`·`docs/payment-policy-*` 3부작이고, `AUDIT.md` 는 2026-07-22 시점 실사 스냅샷이라 삭제했다. `docs/design/past-life-webtoon/` 은 `assets/provenance.md` 만 남겼다(배포 중인 `fuctionassets/past-life-webtoon/` 자산의 생성 출처).
 - [ ] 3) CI 최적화: Playwright 브라우저 캐시, 스테이징 checks() 생략·blob-less checkout, main-drift-watchdog 제거, 매시 크론 축소, ai-locale-gate paths 필터. ~~preflight 경량화~~ → PR-5 에서 **폐기**로 종결(경량화가 아니라 제거). ~~paid-flow-gates jest 중복 + 트리거 paths 구멍~~ → PR-6 완료. 🔴 남은 구조적 취약점: `resolve-paid-gate-scope.mjs:275` 가 같은 `paths` 를 GitHub 과 **이중으로** 읽고 파서 쪽 실패가 fail-open 이다 — 형식이 어긋난 줄 하나가 뒤 목록 전체를 조용히 버린다.
 - [ ] 4) 미러·sitemap·cachebust 커밋 요동 재설계, CSS·자산·로케일 중복 제거, 배포·SEO 체크리스트 통합, 루트 생성 보고서를 `reports/` 로 이동.
-- [ ] 5) 🔴 **결정 뒤집힘(PR-5)**: 룰셋 20666260 에 aggregate `CI required` 하나를 required status check 로 **등록한다**. 이전 기록("required check 제거는 사용자 의도")은 로컬 preflight 가 안전망이던 시절의 판단이고, preflight 를 폐기한 지금은 GitHub 강제가 그 자리를 메워야 한다(사용자 확정). strict(최신 base 요구)는 켜지 않는다 — 켜면 main 전진마다 전 PR 재검증이라 `delivery-and-ci.md` 가 기록한 병목이 되살아난다. paths 트리거 워크플로(`Paid Flow Gates`·`Gift transaction integrity`·`AI Locale Gate`)는 절대 넣지 않는다 — 경로가 안 걸린 PR 에서 체크가 생성되지 않아 영구 pending 이 된다. 등록은 사용자가 하며 절차는 아래 「룰셋 등록」.
+- [x] 5) **완료(2026-09-12 등록 확인)**. 실측 값: `required_status_checks` = `[{context:"CI required", integration_id:15368}]`, `strict_required_status_checks_policy:false`, ruleset `enforcement:active`. 필수 체크는 **1개뿐**이고 paths 트리거 워크플로 혼입 없음 — 아래 3줄 제약을 모두 만족한다. 🔴 **결정 뒤집힘(PR-5)**: 룰셋 20666260 에 aggregate `CI required` 하나를 required status check 로 **등록했다**. 이전 기록("required check 제거는 사용자 의도")은 로컬 preflight 가 안전망이던 시절의 판단이고, preflight 를 폐기한 지금은 GitHub 강제가 그 자리를 메워야 한다(사용자 확정). strict(최신 base 요구)는 켜지 않는다 — 켜면 main 전진마다 전 PR 재검증이라 `delivery-and-ci.md` 가 기록한 병목이 되살아난다. paths 트리거 워크플로(`Paid Flow Gates`·`Gift transaction integrity`·`AI Locale Gate`)는 절대 넣지 않는다 — 경로가 안 걸린 PR 에서 체크가 생성되지 않아 영구 pending 이 된다. 절차·롤백은 아래 「룰셋 등록」에 남겨둔다 — 되돌리거나 다시 만들 때 쓴다.
 - [ ] 6) 범위 밖 발견: `app/_lib/fortune/ganjiGuardianSprite.ts:101-102` 가 레포에 없는 `/fuctionassets/60갑자.webp` 를 가리킨다. R2/CDN 에 있는지 확인(보고만, 미수정).
 - [ ] 7) 로컬 정리: 머지되고 clean 한 워크트리·브랜치 제거. 스쿼시 머지라 is-ancestor 로는 판정이 안 되므로 `gh pr list --state merged --json headRefName,headRefOid` 로 판정.
 
