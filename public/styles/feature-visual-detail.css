@@ -89,11 +89,11 @@
 .featureVisualDetail .featureEditorialMap[data-tone="상징·마음"]{--map-bg:#e0e6db;--map-fg:#577460;--map-text:#293a30}
 .featureVisualDetail .featureEditorialMap[data-tone="휴식·콘텐츠"]{--map-bg:#dfe8ea;--map-fg:#55717a;--map-text:#283a40}
 .featureVisualDetail .featureEditorialMap .featureEditorialTitle,.featureVisualDetail .featureEditorialMap dt{color:var(--map-text)}
-.featureVisualDetail .featureEditorialMap dd{color:var(--map-text);opacity:.76}
+.featureVisualDetail .featureEditorialMap dd{color:var(--map-text);opacity:.9}
 .featureVisualDetail .featureEditorialMap dl,.featureVisualDetail .featureEditorialMap dl>div{border-color:color-mix(in srgb,var(--map-fg) 35%,transparent)}
 @media(min-width:700px){.featureVisualDetail .featureEditorial{margin-top:0;padding:28px 24px 32px}}
 .featureDetailStandaloneLink{display:inline-flex;min-height:44px;align-items:center;padding:8px 0;margin-bottom:20px;color:#e7cc9f;font-size:14px;text-decoration:underline;text-underline-offset:5px}
-.tile-pvw-overlay.pvw-visual #tilePvwHero,.tile-pvw-overlay.pvw-visual #tilePvwTagline,.tile-pvw-overlay.pvw-visual .tile-pvw-divider,.tile-pvw-overlay.pvw-visual #tilePvwFeats,.tile-pvw-overlay.pvw-visual #tilePvwScaleSec,.tile-pvw-overlay.pvw-visual #tilePvwQuestSec,.tile-pvw-overlay.pvw-visual #tilePvwStepsSec,.tile-pvw-overlay.pvw-visual #tilePvwReqSec,.tile-pvw-overlay.pvw-visual #tilePvwAudSec,.tile-pvw-overlay.pvw-visual #tilePvwCompareSec,.tile-pvw-overlay.pvw-visual #tilePvwFaqSec{display:none}
+.tile-pvw-overlay.pvw-visual #tilePvwHero,.tile-pvw-overlay.pvw-visual #tilePvwTagline,.tile-pvw-overlay.pvw-visual .tile-pvw-divider,.tile-pvw-overlay.pvw-visual #tilePvwFeats,.tile-pvw-overlay.pvw-visual #tilePvwScaleSec,.tile-pvw-overlay.pvw-visual #tilePvwQuestSec,.tile-pvw-overlay.pvw-visual #tilePvwStepsSec,.tile-pvw-overlay.pvw-visual #tilePvwReqSec,.tile-pvw-overlay.pvw-visual #tilePvwAudSec,.tile-pvw-overlay.pvw-visual #tilePvwFaqSec{display:none}
 /* 저작한 receives 가 없으면 feats 폴백만 남는데, 그 내용은 비주얼 패널이 이미 말한다 — 제목만 남은 빈 칸을 막는다. */
 .tile-pvw-overlay.pvw-visual #tilePvwReceiveSec:has(#tilePvwReceives[hidden]){display:none}
 .tile-pvw-overlay.pvw-visual .tile-pvw-sheet{display:flex;flex-direction:column;background:linear-gradient(145deg,#fffaf7,#fff3f8)!important;color:#3c1830!important}

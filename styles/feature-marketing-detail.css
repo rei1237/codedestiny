@@ -455,12 +455,11 @@ body.neo-mode .tile-pvw-bd {
 .tile-pvw-cmp-row {
   display: grid;
   grid-template-columns: 1.1fr 1fr 1.2fr;
-  border-bottom: 1px solid var(--cd-detail-line);
 }
 
-.cd-detail-table-row:last-child,
-.tile-pvw-cmp-row:last-child {
-  border-bottom: 0;
+.cd-detail-table-row:not(:last-child),
+.tile-pvw-cmp-row:not(:last-child) {
+  border-bottom: 1px solid var(--cd-detail-line);
 }
 
 .cd-detail-table-cell,
@@ -791,13 +790,6 @@ body.neo-mode .tile-pvw-overlay:not(.pvw-visual) .tile-pvw-cta-note {
     border: 1px solid var(--cd-detail-line);
     border-radius: 10px;
     overflow: hidden;
-  }
-
-  /* 각 행이 독립 카드가 되는 레이아웃이라, 데스크톱 표에서 이어붙은 테두리를
-     지우던 :last-child 규칙이 그대로 새면 마지막 카드만 밑변이 없어 보인다. */
-  .cd-detail-table-row:last-child,
-  .tile-pvw-cmp-row:last-child {
-    border-bottom: 1px solid var(--cd-detail-line);
   }
 
   .cd-detail-table-row:first-child,
