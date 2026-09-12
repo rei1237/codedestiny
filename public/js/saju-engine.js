@@ -4903,18 +4903,18 @@ async function startSajuCalculationFlow() {
   if (!canProceed) return;
 
   // 만세력 책 로더 기능 제거: 클릭 즉시 계산 실행
-  var _spinner = document.getElementById('sajuLoadingSpinner');
-  if (_spinner) _spinner.classList.add('loading-spinner--visible');
+  var _spinner = document.getElementById('sajuCalcLoadingOverlay');
+  if (_spinner) { _spinner.classList.add('saju-calc-loading-overlay--visible'); _spinner.setAttribute('aria-hidden', 'false'); }
   setSajuFormStatus('사주 원국을 계산하는 중입니다.', 'info');
   try {
     await calculate();
   } catch (calcErr) {
     console.error('[saju] calculate flow failed', calcErr);
-    if (_spinner) _spinner.classList.remove('loading-spinner--visible');
+    if (_spinner) { _spinner.classList.remove('saju-calc-loading-overlay--visible'); _spinner.setAttribute('aria-hidden', 'true'); }
     setSajuFormStatus('사주 원국 계산을 완료하지 못했습니다. 프로필 정보를 확인한 뒤 다시 시도해 주세요.', 'error', 'birthDate');
     return;
   }
-  if (_spinner) _spinner.classList.remove('loading-spinner--visible');
+  if (_spinner) { _spinner.classList.remove('saju-calc-loading-overlay--visible'); _spinner.setAttribute('aria-hidden', 'true'); }
 
   var resultPage = document.getElementById('resultPage');
   var isResultVisible = !!(resultPage && resultPage.style.display !== 'none');
