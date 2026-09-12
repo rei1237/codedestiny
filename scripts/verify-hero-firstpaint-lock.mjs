@@ -84,7 +84,19 @@ if (raw.includes('id="cdHomeFunnel"')) {
   const homeRuntimeCacheKey = raw.match(/<script defer src="\/js\/core\/home-funnel\.js\?v=(build-[a-f0-9]{12})"><\/script>/)?.[1];
   const shellCacheKey = raw.match(/\/js\/core\/home-service-finder\.js\?v=(build-[a-f0-9]{12})/)?.[1];
   assert.ok(homeRuntimeCacheKey, 'Home funnel runtime must have a deploy build key');
-  assert.equal(homeRuntimeCacheKey, shellCacheKey, 'Home funnel runtime must rotate with the deploy shell');
+  assert.ok(shellCacheKey, 'Home service finder must have a deploy build key');
+  // 🔴 2026-09-12 — 예전엔 두 값이 **같은지**를 봤다. 그때는 sync 가 전역 빌드 키 하나로 모든
+  //    `?v=` 를 덮었으므로 "같다"가 곧 "배포 때 회전한다"였다. 지금은 캐시 키가 자산별 내용
+  //    해시라 두 파일의 값은 당연히 다르다 — 오히려 같으면 전역 키로 되돌아갔다는 신호다.
+  //    지키려던 것(배포 때 회전한다)은 각 값이 **제 파일의 내용 해시**와 일치하는지로 직접
+  //    확인한다. 같은지 보는 것보다 강하다: 손으로 적혔거나 낡은 키를 그대로 잡아낸다.
+  const { createAssetCacheKeys } = await import('./lib/asset-cache-keys.mjs');
+  const assetKeys = createAssetCacheKeys(root);
+  const expectedKey = (ref) => assetKeys.resolve(ref, 'index.html').key;
+  assert.equal(homeRuntimeCacheKey, expectedKey('/js/core/home-funnel.js'),
+    'home-funnel.js 캐시 키가 파일 내용과 어긋난다 — npm run sync:public 을 돌릴 것');
+  assert.equal(shellCacheKey, expectedKey('/js/core/home-service-finder.js'),
+    'home-service-finder.js 캐시 키가 파일 내용과 어긋난다 — npm run sync:public 을 돌릴 것');
   console.log('[hero-firstpaint-lock] PASS: single source compact hero, reserved image geometry, static trust');
   process.exit(0);
 }
