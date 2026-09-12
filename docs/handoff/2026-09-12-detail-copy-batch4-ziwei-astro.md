@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-12
-next: "배치 4(자미·점성) PR #1943 의 CI·머지를 확인한 뒤, 같은 형식(receives·outline)으로 배치 5(월정석·단건) 유료 상품 카피를 옮긴다."
+next: "배치 4(자미·점성) PR #1943 의 CI·머지를 확인한 뒤, 같은 형식(receives·outline)으로 배치 5(₩30,000 AI 상담 6종: karma-destiny·life-fortune·love-secret·fusion-fortune·neo-operation-room·new-year)를 옮긴다."
 ---
 
 # 배치 4 — 자미·점성 유료 5종 상세창 카피 이전
@@ -67,4 +67,15 @@ check:fast                           jest 228 스위트 / 2,686 테스트 통과
 
 ## 다음 배치
 
-**배치 5 — 월정석·단건.** 같은 형식(`receives`·`outline`)으로 옮긴다. 이 브랜치가 머지된 뒤 최신 `origin/main` 에서 끊거나, 연속 진행이면 이 브랜치 위에 스택으로 쌓는다.
+🔴 **월정석·단건은 이 작업의 배치가 아니다.** 그것은 결제 방식(이용권 vs 회당결제)이고, 이 작업은 유료 **서비스별 상세창 카피**를 옮긴다. 배치 3 문서의 "배치 5 = 월정석·단건" 은 오기였다.
+
+실측(`FEATURE_MARKETING_COPY` × `FEATURE_KEY_PRICE_TABLE`): 유료 레지스트리에 걸린 COPY 키 109개 중 **`receives` 보유 50 / 미보유 59** — featureId 기준 34종이 남았다.
+
+**배치 5 권장 = ₩30,000 AI 상담 6종** (가격 높고 형식이 자미·점성 5종과 같아 문장을 그대로 이식할 수 있다):
+`karma-destiny-ai-consultation` · `life-fortune-ai-consultation` · `love-secret-ai-consultation` · `fusion-fortune-consultation` · `neo-operation-room-consultation` · `new-year-ai-consultation`
+
+이후 후보:
+- **베다·낙샤트라 축** (₩30,000 4종 + `nakshatra-muhurta` ₩5,000): `vedic-ai-consultation` · `nakshatra-ai-consultation` · `nakshatra-compat-ai` · `nakshatra-vvip-codex` · `premium-veda-compatibility-addon` — 배치 1~4 에서 계속 미뤄 온 별도 축.
+- **₩20,000 이하 해금·단품군** 22종: `premium-naming-prompt`(₩30,000) · `life-book-ai-consultation` · `cosmic-soul-meditation` · `palm-reading-general` · `human-design-chart` · `destiny-compass-life-voyage` · `premium-sibyl-dominator` · `animal-destiny-unlock` · `saju-guardian-unlock` · `destiny_meeting_place` · `fortune-chat-consultation` · `fortune-tea-house-tarot-consultation` · `stonehenge-runes-triad` · `royal-tea-oracle` · `openGeomancyOracle` · `dream-psycho-analysis` · `ifa-oracle` · `openJuyukModal` · `openKemetModal` · `animal-totem-basic` · `neville-meditation` · `yoga-guru-per-use`
+
+이 브랜치가 머지된 뒤 최신 `origin/main` 에서 끊거나, 연속 진행이면 이 브랜치 위에 스택으로 쌓는다.
