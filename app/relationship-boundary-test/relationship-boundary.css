@@ -1,8 +1,9 @@
-.rt-page{--rt-ink:#3c1830;--rt-muted:#70445c;--rt-accent:#b31955;--rt-soft:#fff0f5;--rt-surface:#fffaf7;--rt-border:rgba(179,25,85,.2);min-height:100vh;padding:24px 16px 72px;background:var(--rt-surface);color:var(--rt-ink)}
-.rt-shell{max-width:760px;margin:0 auto;overflow:hidden;border:1px solid var(--rt-border);border-radius:20px;background:var(--rt-surface)}
-.rt-visual{position:relative;margin:0;aspect-ratio:4/3;overflow:hidden;background:#3a0e28}
+.rt-page{--rt-ink:#3c1830;--rt-muted:#70445c;--rt-accent:#b31955;--rt-soft:#fff0f5;--rt-surface:#fffaf7;--rt-border:rgba(179,25,85,.2);--rt-scene-shade:rgba(36,8,26,.78);--rt-scene-frame:#3a0e28;--rt-scene-radius:16px;min-height:100vh;padding:24px 16px 72px;background:var(--rt-surface);color:var(--rt-ink)}
+/* 🔴 overflow:hidden 은 스크롤 컨테이너를 만들어 내부 sticky 를 영영 죽인다. clip 은 안 만든다. */
+.rt-shell{max-width:760px;margin:0 auto;overflow:clip;border:1px solid var(--rt-border);border-radius:20px;background:var(--rt-surface)}
+.rt-visual{position:relative;margin:0;aspect-ratio:4/3;overflow:hidden;background:var(--rt-scene-frame)}
 .rt-visual img{display:block;width:100%;height:100%;object-fit:cover}
-.rt-visual::after{content:"";position:absolute;inset:auto 0 0;height:35%;background:linear-gradient(transparent,rgba(36,8,26,.78));pointer-events:none}
+.rt-visual::after{content:"";position:absolute;inset:auto 0 0;height:35%;background:linear-gradient(transparent,var(--rt-scene-shade));pointer-events:none}
 .rt-visual figcaption{position:absolute;z-index:1;left:18px;right:18px;bottom:16px;color:#fff1f7;font-size:.8rem;line-height:1.6}
 .rt-body{padding:28px 26px 32px}
 .rt-title{margin:0;font-size:clamp(1.5rem,5.6vw,2rem);line-height:1.3;letter-spacing:-.025em;font-weight:800;word-break:keep-all}
@@ -21,8 +22,27 @@
 .rt-factor-list{display:grid;gap:12px;margin:0;padding:0;list-style:none}
 .rt-factor-item{display:flex;align-items:flex-start;gap:10px;padding:16px;border:1px solid var(--rt-border);border-radius:16px;line-height:1.8;color:var(--rt-muted)}
 .rt-factor-item svg{flex-shrink:0;margin-top:6px;color:var(--rt-accent)}
+/* 등급 히어로 — 점수·게이지를 사진 위 스크림에 얹는다. */
+.rt-hero-scene{position:relative;margin:0;aspect-ratio:16/9;overflow:hidden;background:var(--rt-scene-frame)}
+.rt-hero-scene img{display:block;width:100%;height:100%;object-fit:cover}
+/* 양쪽 테마 모두 어두운 사진 위이므로 이 글자색만은 테마 변수로 돌리지 않는다. */
+.rt-hero-overlay{position:absolute;inset:auto 0 0;padding:18px;background:linear-gradient(transparent,var(--rt-scene-shade) 42%);color:#fff1f7}
+.rt-hero-overlay .rt-score-row{margin-top:0}
+.rt-hero-overlay .rt-score-label,.rt-hero-overlay .rt-score-number small{color:rgba(255,241,247,.82)}
+.rt-hero-overlay .rt-score-number{color:#fff1f7}
+.rt-hero-overlay .rt-gauge{margin-top:12px;background:rgba(255,241,247,.28)}
 .rt-reading{margin-top:32px}
 .rt-reading-chapter{padding:26px 0;border-top:1px solid var(--rt-border);overflow-wrap:anywhere;word-break:keep-all}
+/* 챕터 장면. aspect-ratio 를 두 브레이크포인트 모두에 명시해 이미지 도착 전에 높이를 확정한다
+   (부모 iframe 높이 계약과 인라인 검증기가 높이 드리프트에 민감하다). */
+.rt-scene{position:relative;margin:0 0 20px;aspect-ratio:3/4;overflow:hidden;border-radius:var(--rt-scene-radius);background:var(--rt-scene-frame)}
+.rt-scene img{display:block;width:100%;height:100%;object-fit:cover}
+@media(min-width:620px){.rt-scene{aspect-ratio:3/2}.rt-scene img{object-position:50% 32%}}
+/* 챕터를 읽는 내내 그 장면이 붙어 있다가 다음 챕터가 밀어 올린다 — JS 없이. */
+@media(min-width:380px) and (prefers-reduced-motion:no-preference){
+  .rt-page:not(.rt-page--embedded) .rt-scene{position:sticky;top:8px}
+}
+.rt-page--embedded .rt-scene{display:none}
 .rt-chapter-number{font-size:.8rem;font-weight:800;color:var(--rt-accent)}
 .rt-reading-chapter h2{margin:8px 0 18px;font-size:1.25rem;line-height:1.5;font-weight:800}
 .rt-reading-chapter p{max-width:66ch;margin:0 0 1.25em;font-size:1rem;line-height:1.9}
@@ -33,5 +53,5 @@
 .rt-page button:disabled{cursor:wait}
 .rt-page--embedded{min-height:0;padding:0;background:var(--rt-surface)}
 .rt-page--embedded .rt-shell{border:0;border-radius:0}
-html.neo-mode .rt-page,body.neo-mode .rt-page,[data-cd-theme="neo"] .rt-page{--rt-ink:#f4eeff;--rt-muted:#d8c7f3;--rt-accent:#c4b5fd;--rt-soft:#211a3d;--rt-surface:#13102a;--rt-border:rgba(196,181,253,.28)}
+html.neo-mode .rt-page,body.neo-mode .rt-page,[data-cd-theme="neo"] .rt-page{--rt-ink:#f4eeff;--rt-muted:#d8c7f3;--rt-accent:#c4b5fd;--rt-soft:#211a3d;--rt-surface:#13102a;--rt-border:rgba(196,181,253,.28);--rt-scene-shade:rgba(9,6,24,.86);--rt-scene-frame:#0d0a1f}
 @media(max-width:620px){.rt-page:not(.rt-page--embedded){padding:12px 12px 72px}.rt-body{padding:22px 16px 26px}.rt-score-row{align-items:flex-start}.rt-summary{padding:16px}}
