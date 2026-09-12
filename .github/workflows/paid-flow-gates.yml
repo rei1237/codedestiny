@@ -362,6 +362,32 @@ on:
       - "scripts/verify-security-hardening.mjs"
       - "scripts/verify-worker-security-guards.mjs"
       - ".github/workflows/paid-flow-gates.yml"
+      # 🔴 아래는 change-risk.mjs 가 이미 deepRequired 로 못 박았는데 트리거에는 없던 경로들이다
+      #    (2026-09-12 추가). 바로 아래 push:main 주석의 2026-08-16 결정("paths 를 넓히는 대신
+      #    머지된 main 을 직접 본다")과 축이 다르다 — 그 결정은 **가드가 트리거 밖 문서를 읽는**
+      #    문제였고, 여기 추가하는 것은 결제·DB·배포 **소스 파일** 자체다.
+      #    🔴 형식 제약: resolve-paid-gate-scope.mjs:275-278 이 이 블록을 직접 파싱한다. 항목은
+      #    정확히 6칸 들여쓰기 + 큰따옴표, 주석도 정확히 6칸이어야 한다. 어긋난 줄 하나가 그 뒤
+      #    목록 전체를 조용히 버리고 run=false(fail-open)를 만든다. 그래서 목록 맨 끝에 둔다.
+      # 결제 정책 정본 (change-risk.mjs:102,109)
+      - "worker/routes/app-store.js"
+      - "worker/lib/deferred-billing-proof.js"
+      - "worker/lib/moonstone-spend-proof.js"
+      - "worker/lib/jwt.js"
+      # DB 스키마·마이그레이션 (change-risk.mjs:140-141)
+      - "worker/lib/models.js"
+      - "scripts/migrations/**"
+      # 배포·환경 계약 (change-risk.mjs:145-148)
+      - "wrangler.toml"
+      - "config/env.contract.json"
+      - "scripts/deploy*"
+      - "scripts/release*"
+      - "scripts/rollback*"
+      # 이 스위트의 실행 계약 (change-risk.mjs:151,153)
+      - "package-lock.json"
+      - "scripts/run-mock-tests.mjs"
+      - "scripts/lib/mock-network-guard.cjs"
+      - "scripts/lib/mock-test-config.mjs"
   # 🔴 main 건강 신호 (2026-08-16 추가). 게이트가 아니라 알림이다 — 배포를 막지 않는다.
   #    이 게이트의 가드는 트리거 paths 밖 파일도 읽는다(예: verify:nakshatra-premium 은 규약 문서를
   #    읽는다). 그래서 paths 에 안 걸리는 PR 이 가드를 깨뜨린 채 머지될 수 있고, 실제로 그렇게 됐다:
@@ -400,6 +426,7 @@ jobs:
     timeout-minutes: 5
     outputs:
       run: ${{ steps.decide.outputs.run }}
+      runs_critical: ${{ steps.tier.outputs.runs_critical }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -412,6 +439,22 @@ jobs:
       - name: Decide whether the paid gates are needed
         id: decide
         run: node scripts/resolve-paid-gate-scope.mjs --base "${{ github.event.pull_request.base.sha }}" --head "${{ github.event.pull_request.head.sha }}"
+
+      # 결제 PR 은 이 스위트의 `npm test` 와 pr-ci 의 critical `test:jest` 로 jest 를 두 번 돌린다.
+      # 폐기 전 로컬 preflight 는 `--skip "npm test"` 로 이미 이 중복을 끊고 있었다 — 그 판단만 CI 로 옮긴다.
+      #
+      # 🔴 무조건 스킵은 커버리지 손실이다. paid scope 가 run=true 를 내면서 티어는 critical 이 아닌
+      #    경우가 있고, 그때는 pr-ci 가 jest 를 돌리지 않는다. 그래서 **같은 정본(change-risk.mjs)으로
+      #    티어를 다시 판정해** critical 일 때만 스킵한다. env 3종은 pr-ci.yml 의 tier 스텝과 글자
+      #    그대로 같아야 한다(CD_FORCE_CRITICAL 포함) — 한 글자라도 갈리면 두 판정이 갈린다.
+      #    판정이 실패하면 출력이 비고 조건이 거짓이 되어 스킵하지 않는다(fail-closed).
+      - name: Resolve the same tier pr-ci resolves
+        id: tier
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha || github.event.before }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha || github.sha }}
+          CD_FORCE_CRITICAL: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'full-ci') }}
+        run: node scripts/resolve-ci-tier.mjs
 
   paid-flow-gates:
     needs: scope
@@ -442,5 +485,13 @@ jobs:
       #    왕복이 2번이었고 (b) 실패가 이 PR 탓인지 main 탓인지 구분할 방법이 없었다.
       #    verify:guard-wiring 은 이 YAML → 러너 파일 → npm run 이름 순으로 간선을 따라가므로
       #    48개 가드의 배선은 그대로 계산된다.
+      #
+      # `--skip "npm test"` 는 PR 이벤트이면서 티어가 critical 일 때만 붙는다 — 그때만 pr-ci 의
+      # critical 잡이 같은 jest 를 이미 돌린다. push:main·workflow_dispatch 에는 절대 붙지 않으므로
+      # main 건강 신호는 전량 유지된다. SUITE 목록에서 `npm test` 를 지우지 않는다 —
+      # verify:guard-wiring 이 워크플로 → 러너 소스 → npm run 이름 순으로 간선을 따르므로
+      # 목록에서 지우면 배선이 끊긴다. YAML 런타임 플래그는 그 간선에 영향이 없다.
       - name: Run paid flow gate suite
-        run: node scripts/run-paid-gate-suite.mjs --base "${{ github.event.pull_request.base.sha }}"
+        run: >-
+          node scripts/run-paid-gate-suite.mjs --base "${{ github.event.pull_request.base.sha }}"
+          ${{ (github.event_name == 'pull_request' && needs.scope.outputs.runs_critical == 'true') && '--skip "npm test"' || '' }}
