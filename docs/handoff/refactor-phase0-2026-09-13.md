@@ -34,7 +34,13 @@ next: docs/refactor/phase-plan.md 의 Phase 1(C급 중복 수렴 — 상수·원
 | `9163a7dac` | `.github/workflows/guards-shadow.yml` 신설 + 실측 통과 가드 41개 이관 |
 | `e051b101f` | 구조 부채 원장 4종 + `CONTEXT_AUDIT` 충돌 해소 1항목 |
 
-마지막 정상 커밋 = **`e051b101f`** (`git log` 기준 main).
+**검증된 마지막 변경 = `e051b101f`** — 위 4개를 `check:fast` 33스텝(`--committed-head
+--base=1add8df4a --head=e051b101f`)으로 확인했다. 그 뒤의 커밋은 이 인수인계 문서뿐이므로,
+되돌릴 일이 생기면 `e051b101f` 가 아니라 **문제를 만든 그 커밋 하나만** `git revert` 한다.
+
+🔴 이 레포는 main 을 옆 세션과 공유한다. 내 push 가 그 세션의 커밋을 함께 올릴 수 있다
+(2026-09-13: `47e8b88c9` 꽃돼지 스프라이트 — 내 검증 범위 밖이다). `git log` 를 내 작업 목록으로
+읽지 말고 위 표의 SHA 로 판단한다.
 
 ## 현재 구조 (요지만 — 전체는 원장 문서)
 
