@@ -14980,6 +14980,7 @@ function renderAstroInsightLegacyNeon() {
           window._cdCoinGatePerUse(50, '점성술 셜럭 시나스트리 궁합', function() {
             window._astroPickCelebCore(name, birth, hour);
           }, {
+            featureKey: 'compat-astro-synastry',
             // 모바일 리다이렉트 복귀용. 서술자를 게이트 열기 '전에' 만든다(복귀 후에는 이 값이 없다).
             action: 'openAstroModal',
             resume: _seBuildAstroCelebResumeDescriptor(name, birth, hour) || undefined
@@ -15245,6 +15246,7 @@ function renderAstroInsightLegacyNeon() {
           window._cdCoinGatePerUse(50, '점성술 직접 입력 시나스트리 궁합', function() {
             window._astroDirectSynastryCore();
           }, {
+            featureKey: 'compat-astro-direct-synastry',
             action: 'openAstroModal',
             resume: _seBuildAstroDirectResumeDescriptor() || undefined
           });
@@ -22648,6 +22650,7 @@ function renderZiwei(p, natal, targetId) {
     window._runZwCompatibility = function() {
       if (typeof window._cdCoinGatePerUse === 'function') {
         window._cdCoinGatePerUse(ZW_COMPAT_COST, '자미두수 궁합 분석', function() { window._runZwCompatibilityCore(); }, {
+          featureKey: 'compat-ziwei-compatibility',
           action: 'openZiweiModal',
           resume: _seBuildZiweiCompatResumeDescriptor() || undefined
         });
@@ -28837,6 +28840,7 @@ async function runCompat(){
         compatRunBtn.style.opacity = '';
       }
     }, {
+      featureKey: 'compat-saju-compatibility',
       action: 'cdSajuTabEntry',
       resume: _seBuildSajuCompatResumeDescriptor(name, bd, type) || undefined
     });
