@@ -1,3 +1,9 @@
+---
+status: active
+updated: 2026-09-12
+next: master-love-codex.js/fortune.js(ziwei-ai)/ziwei-island-ai.js/payments/index.js 에 human-design-report.js 와 동일한 환급 패턴 적용
+---
+
 # 이용권 월간 사용한도(monthlySpendCoin) 미복구 — 후속 과제
 
 ## 배경
