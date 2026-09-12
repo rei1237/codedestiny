@@ -369,6 +369,7 @@ window.__cdServiceRegistry = [
     purposes: ["life", "self"],
     methods: ["vedic"],
     keys: "베다 조티시 인도 점성",
+    roles: ["quick"],
   },
   {
     id: "astrology",
@@ -433,7 +434,6 @@ window.__cdServiceRegistry = [
     methods: ["saju"],
     keys: "오늘 데일리 일일운세 하루",
     badge: "무료",
-    roles: ["quick"],
   },
   {
     id: "today-hub",
