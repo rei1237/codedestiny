@@ -1,8 +1,17 @@
 # 종합 사주 풀이 — 해금 후 미표시 근본 수정 + 분량 증량
 
-- status: **PR 대기** (PR [#1957](https://github.com/rei1237/codedestiny/pull/1957), 브랜치 `fix/saju-summary-unlock-render-and-depth`, 커밋 `ff1937209`)
-- worktree: `D:/Development/code-destiny-wt/saju-summary-unlock` (베이스 `fae066f1a`)
-- 다음 세션 첫 문장: **"PR #1957 의 필수 CI 상태를 확인하고, 통과했으면 머지 순서를 사용자에게 보고한다."**
+- status: **머지 대기** (PR [#1957](https://github.com/rei1237/codedestiny/pull/1957), 브랜치 `fix/saju-summary-unlock-render-and-depth`, 머지 후보 `f88ac054e`, `MERGEABLE`/`CLEAN`)
+- worktree: `D:/Development/code-destiny-wt/saju-summary-unlock` (`origin/main` `e42b62267` 병합 완료)
+- 다음 세션 첫 문장: **"PR #1957 이 머지됐는지 확인하고, 머지됐으면 40자리 SHA 로 스테이징을 확인한 뒤 프로덕션으로 승격한다."**
+
+## 🔴 이 레포에는 PR CI 가 없다 (실측)
+
+`.github/workflows/**` 의 모든 워크플로가 `on: push: branches:[main]` 이다(`pr-ci.yml` 머리말이 명시:
+"2026-09-12 부터 이 레포는 PR 을 쓰지 않는다"). 따라서 PR #1957 의 `statusCheckRollup` 은 영원히
+0건이며, **검사를 기다리는 것은 무한 대기다.** 입장 판정은 `MERGEABLE`/`CLEAN` + 아래 로컬 검증
+실측으로 한다. 필수 CI(`CI required`)는 main 에 착지한 뒤에 돈다.
+
+`delivery:admit` 은 이 리비전의 `package.json` 에 없다 — CLAUDE.md 의 언급이 앞서 있다.
 
 ## 사용자 요청
 
@@ -47,9 +56,17 @@
 관찰되지 않는다. 그래서 회귀를 무는 정본은 위의 jsdom 단위 테스트다. 브라우저 검증기는 폭(뷰포트
 4종 × 셸 2종 × 해금 2경로)만 담당한다. 검증기를 "돌아간다"는 이유로 무는 가드로 취급하지 말 것.
 
+## 검증 실측 (병합 트리 `f88ac054e` 기준)
+
+`check:fast`(jest 227 suites / 2673 tests 포함) · `test:node`(1053 pass) · `check:payment` ·
+`verify:saju-summary-browser`(16조합, 25,975자) · `verify:saju-unlock-entitlement-regression` ·
+`verify:paid-gate-ui` · `verify:static-paid-gate-failsafe` · `verify:saju-fun-content-gate` ·
+`verify:paid-gate-profile-scope` · `verify:per-use-never-unlocks` · `verify:love-code-permanent-unlock` ·
+`verify:public-parity` · `verify:public-mirror-fresh` · `verify:sitemap-drift` — 전부 EXIT=0.
+
 ## 남은 일
 
-1. PR #1957 필수 CI 확인 → 머지 순서 보고. **머지는 사용자가 한다.**
+1. PR #1957 머지. **머지는 사용자가 한다.** (PR CI 는 없다 — 위 절 참조)
 2. 머지 SHA 40자리 고정 후 스테이징 확인(해금 계정 실화면 + 분량 실측).
 3. **프로덕션 승격** — 사용자가 이번 요청에서 명시적으로 1회 승인했다. 스테이징 확인 통과 후에만.
 
