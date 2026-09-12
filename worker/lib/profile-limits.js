@@ -1,3 +1,12 @@
+// 코인→원 환산 상수의 정본은 billing-policy.js 하나다. 여기서 재선언하지 않고 되내보낸다 —
+// 이 모듈에서 KRW_PER_COIN 을 가져가는 곳(access-state.js · payments/passes.js ·
+// billing-feature-registry.js)이 이미 있어서 import 경로는 그대로 살려 둔다.
+// billing-policy.js 는 import·env·전역이 없는 순수 상수 모듈이라 클라이언트 번들
+// (app/app/store/AppPassStoreClient.tsx 가 이 파일을 import 한다)에 들어가도 안전하다.
+import { KRW_PER_COIN } from "./billing-policy.js";
+
+export { KRW_PER_COIN };
+
 export const PASS_TIERS = Object.freeze({
   STANDARD: "standard",
   PREMIUM: "premium",
@@ -6,7 +15,6 @@ export const PASS_TIERS = Object.freeze({
 });
 
 export const FAMILY_PASS_MAX_COVERED_COIN = 999999999;
-export const KRW_PER_COIN = 100;
 
 // ── 공정이용: 월 이용 한도 ────────────────────────────────────────────────
 // 2026-08-24 정책은 규칙이 둘뿐이다: ①건당 적용 가격 범위(PASS_LIMITS) ②월 이용
