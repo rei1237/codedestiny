@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-13
-next: TOP 10 의 남은 절반 — worker/routes/tarot.js 의 love(:2020)·mindscan(:2109) LLM 우회를 oracle 어댑터 패턴으로 옮긴다. RED 라 위험·검증·롤백 선보고 후 착수한다.
+next: 🔴 선보고 완료 — 리터럴 이관은 회귀를 낳는다(아래 "착수 전 실측"). 사용자 판정 대기. 권장안은 이관 보류 + 보호막 먼저(verify-mindscan-reading 배선 + mindscan staging-mock 등가 단언).
 ---
 
 # 점진 구조 개선 Phase 2 인수인계
@@ -81,6 +81,44 @@ Phase 1 의 교훈이 그대로 반복됐다. **원장의 "N벌·N곳"은 가설
    `llmFailReason === "staging_mock"`, `fetchCalls === 0`)을 묶고 있다. mindscan 은 **안 묶여
    있다** — 이관 전에 등가 단언을 만든다.
 
+## 🔴 착수 전 실측 (2026-09-13) — 리터럴 이관은 지금 하면 안 된다
+
+위 3항목을 실측한 결과, **어댑터가 값을 바꾸지 않는지**(합격 기준 1)가 **불합격**이다. oracle
+어댑터를 그대로 갖다 쓰면 유료 기능 2개의 생성 파라미터가 8축에서 달라진다.
+
+| 축 | 현재 (love·mindscan 직접 fetch) | oracle 어댑터 경로 | 판정 |
+|---|---|---|---|
+| 전송 시도 | 3회 — `love-reading-llm.mjs:304` · `mindscan-reading.mjs:911` | `TRANSPORT_ATTEMPTS = 2` (`tarot-oracle-llm.js:23`) | 3→2 감소 |
+| 잘림 토큰 증폭 | `×(1+0.4·n)` cap 24000 (`:311` · `:918`) | `×(1+0.3·n)` cap=`capTokens` (`structured-consultation.js:73`) | 계수 변경 |
+| 총 데드라인 | `*_TOTAL_TIMEOUT_MS` 기본 42000, 남은 예산을 per-call timeout 으로 넘기고 1500ms 미만이면 중단 (`:299`·`:305-310`) | **없다.** 어댑터에 총 상한 루프가 없다 | 🔴 전체 상한 소실 |
+| topP | `*_GEMINI_TOP_P` 0.92 (`:167`) | `lib/llm-client.ts` 에 `topP` 가 **없다**(git grep 0건). `callGeminiText` 화이트리스트에도 없다 | 🔴 **조용히 사라진다** |
+| thinkingBudget | `*_GEMINI_THINKING_BUDGET` 기본 **0** (`:171`) | `callGeminiText:130` 은 지원하지만 **어댑터가 안 넘긴다** | 🔴 thinking 토큰이 maxOutputTokens 를 잠식 → 잘림 증가 |
+| temperature | `*_GEMINI_TEMPERATURE` 0.7 | 어댑터가 안 넘긴다 | 기본값으로 바뀜 |
+| Workers AI 폴백 | **없다** (Gemini 실패 → 로컬 룰엔진) | `fallbackToWorkersAI` 기본 on + `fallbackMinChars` 필수 | 🔴 유료 2기능에 **새 공급자 경로**. 두 기능엔 `targetChars` 개념이 없어 문턱을 정할 근거가 없다 |
+| 토큰 로깅 | 없다 | `logContext.featureKey`/`serviceId` 필요 | 결제 리포트에 신규 키 등장 |
+
+**결정적 근거 — env 계약.** `config/env.contract.json` 이 선언한 `LOVE_READING_*`·`MINDSCAN_*`
+**12개 키의 `consumers` 가 정확히 이 두 파일뿐**이다(`:1054-1219`). 어댑터로 옮기면 소비자가
+사라져 `scripts/env-parity.mjs` 가 깨지거나, 더 나쁘게는 **노브가 선언만 남고 아무 데도 안 걸린다.**
+
+**보호막 실측.** `scripts/verify-mindscan-reading.mjs` 는 실재하지만 `package.json` 에 **항목이 0개**다
+(`node -e` 로 키·값 양쪽 grep 확인). 즉 mindscan 이관은 지금 **보호 테스트가 아예 없는 상태**에서
+유료 경로를 바꾸는 일이다.
+
+> 🔴 교훈: "같은 패턴으로 옮긴다"는 **패턴이 같을 때만** 무해하다. oracle 은 총 데드라인도
+> 노브도 없이 태어난 라우트라 어댑터가 그 계약을 안 갖는다. love·mindscan 은 둘 다 갖고 있다 —
+> 이관은 수렴이 아니라 **기능 축소**가 된다.
+
+### 그래서 선택지는 셋
+
+| 안 | 내용 | 비용·위험 |
+|---|---|---|
+| **A (권장)** | 이관 보류. 보호막만 먼저 — `verify-mindscan-reading` 배선 + mindscan staging-mock 등가 단언. 원장에 우회 2곳을 `미해소(Phase 6)` 로 확정 | 낮음. 유료 실행 경로 무변경 |
+| B | 값 보존 이관 — `llm-client` 에 `topP` 추가 + 어댑터에 총 데드라인·노브 3개 전달 | 🔴 LLM 코어 변경이라 8개 AI 라우트 전체가 폭발 반경 |
+| C | Phase 3(TOP 18·19 안전망)으로 이동. 우회 2곳은 Phase 6 에서 라우트 8개와 함께 | 낮음. 단 보호막은 여전히 없음 |
+
+A → C 가 권장 순서다. A 는 B·C 어느 쪽으로 가든 **먼저 필요한 선행 작업**이라 버려지지 않는다.
+
 ## 게이트 정본 구조 (지금 상태)
 
 ```
@@ -121,7 +159,7 @@ __tests__/__mocks__/llm-client.js  ← 수렴 불가(CJS). 진리표로만 묶�
 (`APP_ENV=production` 에서 `source: "rule-engine"` → `"staging_mock_local_fallback"`).
 사본을 지운 뒤 정말 정본을 무는지까지 본 것이다 — import 문만 보고 "묶였다"고 하지 않는다.
 
-## 관측 중 — shadow 7/10 (2026-09-13)
+## 관측 중 — shadow 8/10 (2026-09-13)
 
 승격 조건은 여전히 **main push 10회 + 오탐 0 + 사용자의 명시적 승인**이다(Phase 9).
 
@@ -134,7 +172,7 @@ __tests__/__mocks__/llm-client.js  ← 수렴 불가(CJS). 진리표로만 묶�
 | 5 | `280d3434b` | `34718114019` | 비성공 스텝 0 |
 | 6 | `1ac30cd88` | `34718213041` | 비성공 스텝 0 |
 | 7 | `22910230f` | `34718236946` | 비성공 스텝 0 |
-| 8 | `29d723776` | `34721849384` | **진행 중** — 내 커밋 2개가 이 push 에 실려 있다. 다음 세션이 확인해 기록한다 |
+| 8 | `29d723776` | `34721849384` | 스텝 48개 중 비성공 **0** (2026-09-13 확인) |
 
 **오탐 0 유지.** 워크플로 레벨 `success` 는 근거가 안 된다 — 스텝마다 `continue-on-error: true`
 라 가드가 실패해도 잡은 초록이다. 반드시 스텝 결론을 본다:
