@@ -4,8 +4,12 @@
 >
 > `docs/context/doc-precedence.md` §활성 참조 문서 목록과 `docs/CURRENT_DEV_BASELINE.md` 가 이 문서를 **활성 참조**로
 > 올려 두고 있는데, 바로 아래 "Current release policy (2026-08-08)" 절은 **"PR-first delivery was
-> retired"** 로 시작해 로컬 `deploy:safe` 배포를 지시한다. 이는 `CLAUDE.md` 절대 규칙 3(브랜치 →
-> PR → CI → 사용자가 머지 → 스테이징 자동, 프로덕션은 수동 `workflow_dispatch`)과 **정반대**다.
+> retired"** 로 시작해 로컬 `deploy:safe` 배포를 지시한다. 이는 당시 `CLAUDE.md` 절대 규칙 3(브랜치 →
+> PR → CI → 사용자가 머지 → 스테이징 자동, 프로덕션은 수동 `workflow_dispatch`)과 **정반대**였다.
+>
+> 🔴 **2026-09-12 보강**: 절대 규칙 3 의 브랜치·PR 부분은 main 단독 개발 전환으로 폐기됐다(이제 main 직접 커밋 →
+> push → main CI → 스테이징 자동). 그래도 **아래 절은 여전히 폐기 상태다** — 폐기 사유는 "PR 을 건너뛴다"가 아니라
+> **로컬에서 프로덕션에 배포한다**는 점이고, 그 금지는 그대로 유효하다.
 >
 > 실제로 그 절을 따라 하면 `scripts/lib/production-deploy-guard.mjs` 가 막아 exit 1 이 난다.
 > 같은 문서 안에서도 아래 "배포" 절(2026-08-11 개정)이 이미 반대 내용을 적고 있어, **한 문서에
@@ -124,7 +128,7 @@ database write is required for this activation.
 - `scripts/ensure-pages-single-deploy.mjs`가 세 값을 함께 검사하고, 자동 수정 시 전체 `source.config`를 보존 병합한 뒤 GET으로 재검증한다.
 - `--check`와 CI에서는 Cloudflare 인증 누락 또는 API 조회 실패를 성공으로 처리하지 않는다. 로컬에서 토큰이 없을 때만 안내 후 건너뛴다.
 - 기존에 취소되거나 pending으로 남은 배포는 자동 삭제하지 않는다. 삭제하려면 Pages Write 권한과 별도 승인이 필요하다.
-- `main` 에는 branch protection 도 ruleset 도 없다(2026-08-08 확인). required check 개념 자체를 쓰지 않으며, 배포 가부는 `deploy-safe.mjs` 가 로컬에서 판정한다.
+- 🔴 **`main` 룰셋 현황(2026-09-12 실측)**: 룰셋 `main-protection`(id 20666260)이 `deletion` 과 `non_fast_forward` 만 건다. `pull_request` 와 `required_status_checks` 규칙은 main 단독 개발 전환 때 제거했다 — 직접 push 는 통과하고 force-push·브랜치 삭제는 여전히 거부된다. (2026-08-08 의 "룰셋이 없다" 기록은 폐기.)
 
 재발 방지 계층:
 
@@ -136,13 +140,7 @@ database write is required for this activation.
 
 ## Parallel sessions and worktrees
 
-Worktrees are filesystem isolation, not a review gate. They remain useful when two sessions must edit the repository at once; they are not required for ordinary work.
-
-```powershell
-powershell -File scripts/create-safe-worktree.ps1 -Slug <name>
-```
-
-Each worktree previews independently and gets its own preview URL. Merge back with a plain `git merge` — there is no PR step.
+🔴 **2026-09-12: new worktrees are no longer created.** All work happens directly on `main`, one session at a time; the safety net is small commits and fast rollback, not filesystem isolation. What follows documents the leftover worktrees that still have to be drained (`npm run worktree:unmerged` → `cleanup:candidates` → `cleanup:apply`) and the local-deploy history that shaped these guards. Production deploys have run from GitHub Actions only since 2026-08-11, so the promotion contention below is history, not current practice.
 
 Concurrency is split by stage, because only one of them contends:
 
@@ -283,7 +281,7 @@ Server/Worker secrets or vars:
 
 ## 배포
 
-> 2026-09-08 CI 운영 변경: Merge Queue용 `merge_group` 검증, aggregate 필수 체크 `CI required`, Quick Pass 스테이징 감시 제외의 정본은 [context/delivery-and-ci.md](context/delivery-and-ci.md)다. GitHub ruleset 변경은 워크플로 PR이 머지된 뒤 별도 승인으로 적용한다.
+> 🔴 2026-09-12 개정: main 단독 개발으로 전환하면서 Merge Queue(`merge_group`)와 PR 트리거 조항은 폐기했다. aggregate 필수 체크 `CI required` 와 Quick Pass 스테이징 감시 제외는 유지되며, 정본은 [context/delivery-and-ci.md](context/delivery-and-ci.md)다.
 
 🔴 **2026-08-11 개정 — 프로덕션 배포는 GitHub Actions 에서만 일어난다.** `deploy:cf:pages`,
 `deploy:cf:worker`, `deploy:cf:opennext`, `deploy:production`, `deploy:rollback --yes` 는 전부
@@ -291,12 +289,12 @@ Server/Worker secrets or vars:
 
 | 목적 | 방법 |
 |---|---|
-| 프로덕션 배포 | feature 브랜치 → PR → PR CI 통과 → **사용자가 머지** → `Release Cloudflare Pages and Worker` 자동 실행 |
-| 프리뷰 확인 | PR 에 `preview` 라벨 → `PR Preview` 워크플로가 URL 을 PR 에 코멘트 |
+| 스테이징 배포 | main 직접 커밋 → `git push origin main` → main CI → `Release Cloudflare Pages and Worker` 가 스테이징으로 자동 실행 (2026-09-12 개정) |
+| 프로덕션 배포 | Actions → Release Cloudflare Pages and Worker → Run workflow → `mode: production`. **명시적 1회 승인 때만.** |
 | 변경 집합 점검(업로드 없음) | `npm run deploy:check` |
 | 배포된 SHA 확인 | `npm run verify:deployed-sha -- --sha=<commit>` · 브라우저에서 `/version.json`(Pages) · `/api/version`(Worker) |
 | 롤백 | Actions → Release Cloudflare Pages and Worker → Run workflow → `mode: rollback` (`pages_deployment_id` / `worker_version_id`). 후보 목록은 `npm run deploy:rollback -- --list`(읽기 전용) |
-| 비상 탈출구(Actions 사용 불가 시) | `CD_BREAK_GLASS=1 npm run deploy:cf:worker -- --break-glass` — 이렇게 나간 변경은 **반드시 PR 로 다시 올려야** 다음 릴리스가 되돌리지 않는다 |
+| 비상 탈출구(Actions 사용 불가 시) | `CD_BREAK_GLASS=1 npm run deploy:cf:worker -- --break-glass` — 이렇게 나간 변경은 **반드시 main 에 커밋·push 해야** 다음 릴리스가 되돌리지 않는다 |
 
 `deploy:cf:versions`(raw `wrangler versions upload`)는 참조하는 곳이 없고 게이트도 없어 2026-08-11 에 제거했다.
 
