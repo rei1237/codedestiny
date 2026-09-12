@@ -235,7 +235,11 @@ main push는 짧은 디스패처만 실행하고 실제 스테이징 배포·검
 
 잔여 위험(재사용 완화): 파일명이 겹치지 않아도 의미론적 의존성(예: 다른 파일의 export 시그니처 변경)은 이 검사로 잡히지 않는다. 이는 새로운 위험이 아니라 GitHub Merge Queue 미제공·strict 비활성으로 현재도 감수 중인 위험과 같은 선상이다. (2026-09-12 갱신) `delivery-admit.mjs`의 "최신 main 반영" 게이트와 plain 실행 시작 시 조상 검사(`ci-preflight.mjs`)도 제거했다 — 둘 다 merge-tree 충돌 + 파일 겹침 판정으로 대체됐다(위 2026-09-12 절). (2026-09-12 폐기) `ci-preflight.mjs` 자체를 삭제했다. 여기서 만든 `upstreamCompatible` 판정만 `delivery-admit.mjs`로 옮겨 살아남았고, receipt·격리 체크아웃·CI YAML 재현은 전부 사라졌다.
 
-## 2026-09-11 캐시버스트 false CONFLICTING 자동 복구
+## 2026-09-11 캐시버스트 false CONFLICTING 자동 복구 (2026-09-12 폐기)
+
+> 🔴 **폐기.** PR 을 쓰지 않으므로 "GitHub 이 PR 을 CONFLICTING 으로 본다" 는 상황 자체가 없어졌다. `scripts/delivery-admit.mjs`·`scripts/delivery-sync.mjs`·회귀 가드 `__tests__/ui/delivery-continuous-merge.test.mjs` 를 함께 삭제했다.
+> **살아남은 것**: merge driver 본체 `scripts/git/cachebust-merge-driver.mjs` 와 등록기 `scripts/setup-git-merge-drivers.mjs`, 그리고 `verify:cachebust-merge`. main 에서 직접 작업해도 `git pull` 병합에서 driver 가 그대로 쓰인다.
+> 아래 서술은 그 시절의 근거 기록이다 — 같은 함정이 되살아나는지 판단할 때만 읽는다.
 
 `.gitattributes`의 `merge=cachebust` 경로(정적 셸·로케일 미러·로더 JS 등 21개)는 로컬 merge driver(`scripts/git/cachebust-merge-driver.mjs`)가 `?v=build-<hash>`를 정규화한 뒤 3-way 병합한다. **GitHub의 서버측 PR 병합 가능 계산(`gh pr view --json mergeable,mergeStateStatus`)은 이 로컬 driver를 절대 실행하지 않는다 — 플랫폼 제약이고 우리가 고칠 수 있는 버그가 아니다.** 그래서 `origin/main`이 이 파일들을 한 번만 건드려도 내용 차이가 0인 PR까지 전부 `mergeable=CONFLICTING`으로 보인다. 지금까지 해결책은 항상 사람이 하는 "로컬 리베이스 + force-push"였고(과거 인시던트 핸드오프 5건), 그 사이 10~30분짜리 `ci:preflight`가 통째로 무효화되는 병목이 있었다.
 

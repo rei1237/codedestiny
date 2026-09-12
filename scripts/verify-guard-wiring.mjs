@@ -132,8 +132,6 @@ const UNWIRED_BY_DESIGN = [
   ["verify:seo-entity-registry", "SEO 엔티티 리포트 — 수동"],
   ["verify:style-sync", "스타일 미러 수동 점검 도구"],
   ["verify:cachebust-merge", "캐시버스트 병합 수동 점검 도구"],
-  ["verify:delivery-admit", "순차 머지 직전 수동 입장 검사 — 후보 커밋·GitHub PR·필수 CI가 필요"],
-  ["verify:delivery-batch-plan", "배치 PR 계획 수동 점검 — merge/push/checkout 없이 후보를 판정"],
 
   // ── 배선 후보이나 미승인. 게이트 추가는 사용자 승인 사항이라 임의로 넣지 않는다.
   //    🔴 이 버킷은 "지금은 아무것도 지키지 않는다"는 뜻이다. 문서가 이들을 "차단한다"고
