@@ -1,10 +1,14 @@
 ---
 status: active
 updated: 2026-09-13
-next: docs/refactor/phase-plan.md 의 Phase 1(C급 중복 수렴 — 상수·원화 포맷·normalizeGender·Asia/Seoul)부터 시작한다.
+next: Phase 1 은 끝났다(refactor-phase1-2026-09-13.md). 다음 세션은 그 문서를 읽고 Phase 2(LLM 경계 닫기)부터 시작한다.
 ---
 
 # 점진 구조 개선 Phase 0 인수인계
+
+🔴 **Phase 1 은 완료됐다 — 최신 인계는 [refactor-phase1-2026-09-13.md](refactor-phase1-2026-09-13.md) 다.**
+이 문서는 계속 유효하다: 아래의 **작업 규칙·금지 영역·현재 구조·남은 문제 4건**이 리팩터링 전체의
+정본이다. 단 맨 아래 "다음 작업 — Phase 1" 절은 측정으로 뒤집혔으니 Phase 1 문서를 따른다.
 
 ## 왜 이 작업을 하는가
 
@@ -80,6 +84,9 @@ docs/CONTEXT_AUDIT.md                                  판정-단위 충돌 해�
 **관측 1/10 (2026-09-13, 커밋 `c3aa60546`, run `34715837924`): 가드 41개 전원 성공, 오탐 0.**
 같은 push 의 `CI required` 는 영향 없이 success — 차단력 0 이 실제로 확인됐다.
 
+🔴 관측 집계표의 정본은 [refactor-phase1-2026-09-13.md](refactor-phase1-2026-09-13.md) 로 옮겼다
+(2026-09-13 기준 **4/10**, 오탐 0). 여기에 중복해서 적지 않는다.
+
 ### 2. 실패 가드 3개 — 원인은 범위 밖이라 보고만 한다 (코딩 원칙 14)
 
 `UNWIRED_BY_DESIGN` 에 그대로 남겼다. 통과하지 않는 것을 관측에 넣으면 "오탐 0" 기준이 처음부터
@@ -113,9 +120,14 @@ docs/CONTEXT_AUDIT.md                                  판정-단위 충돌 해�
 결제 인벤토리에 유료 표면으로 올라가 있으니 삭제는 [cleanup 규칙](../../CLAUDE.md)대로 별도 변경으로
 다루고, 소스·테스트·verify 3면 확인을 먼저 한다(코딩 원칙 9).
 
-## 다음 작업 — Phase 1 (C급 중복 수렴)
+## 다음 작업 — Phase 1 (C급 중복 수렴) 〔완료 — 이 절은 측정으로 뒤집혔다〕
 
-대상은 TOP20 의 16·17 번이다. **동작 경계가 바뀌지 않는 것만** 고른 가장 안전한 Phase다.
+🔴 아래 목록은 2026-09-13 Phase 1 에서 **변이 검증으로 대부분 부정됐다.** pass 가격과 worker 내
+`KRW_PER_COIN` 은 이미 가드가 묶고 있었고, 원화 포맷·`normalizeGender` 은 벌끼리 계약이 달라 C급이
+아니며(→ Phase 6), `Asia/Seoul`·Julian day·`iana-offset` 은 이번 리팩터링에서 하지 않는다.
+결과와 근거는 [refactor-phase1-2026-09-13.md](refactor-phase1-2026-09-13.md) 와
+[structural-issues-top20.md 의 "16·17 재측정"](../refactor/structural-issues-top20.md#1617-재측정-2026-09-13-phase-1)
+에 있다. 기록으로만 남긴다:
 
 - pass 가격 4종: `lib/payment/pass-pricing.js:18-21` ↔ `worker/lib/app-store-pricing.js:73-76`
 - `KRW_PER_COIN` 3곳, 원화 포맷 인라인 ~25곳
@@ -123,8 +135,8 @@ docs/CONTEXT_AUDIT.md                                  판정-단위 충돌 해�
 - `iana-offset` 정본 importer 6 vs 경쟁 파서 4
 
 🔴 가격·이용권 상수는 **등급 C 가 아니다.** 값이 하나라도 바뀌면 결제 금액이 바뀐다. "정본을 읽게
-바꾼다"와 "값을 통일한다"를 섞지 말고, 불일치를 발견하면 먼저 보고한다. `Asia/Seoul` 121파일을
-한 커밋에 몰지 않는다 — 작업 루프는 [phase-plan.md](../refactor/phase-plan.md) 에 고정돼 있다.
+바꾼다"와 "값을 통일한다"를 섞지 말고, 불일치를 발견하면 먼저 보고한다. 작업 루프는
+[phase-plan.md](../refactor/phase-plan.md) 에 고정돼 있다. **이 두 문단은 Phase 2 이후에도 유효하다.**
 
 ## 절대 건드리면 안 되는 영역
 
