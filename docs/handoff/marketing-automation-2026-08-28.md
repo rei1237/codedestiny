@@ -487,6 +487,45 @@ Meta 는 컨테이너 발행 후 약 30초의 안정화를 권한다. 상시 거
   1번 글 발행 → 답글 시도가 그대로 일어나고, 이 브랜치가 넣은 로깅이 Graph 원본 `code`/`error_subcode` 를
   잠금 문서에 남긴다. 즉 `tmp-threads-probe.mjs` 수동 실행은 **크론이 안 뜰 때만** 필요하다.
 
+### C-7. 🔴 2026-09-13 — 동일 문구 재발(`@me/threads_publish`, code=24). 컨테이너 상태확인 없이 발행하던 문제를 고침
+
+크론 알림: `threads(stage=send)=The requested resource does not exist [code=24 @me/threads_publish] [토큰 회전 필요] / 성공 telegram=sent`.
+사용자가 "텔레그램이 죽는다"고 보고했으나 실제로는 **텔레그램은 성공**했고(알림 자체가 텔레그램으로 오는 채널을 겸해 혼동됨),
+**스레드만** 실패했다. §C-5/§C-6(2026-09-02)의 동일 문구 전례와 이어지는 재발이다.
+
+**차이점.** 09-02 는 `reply_to_id` 답글 컨테이너(2번째 요청)에서 죽었는데, 오늘은 `@me/threads_publish` —
+즉 **컨테이너 생성(`me/threads`)은 성공했고 발행 단계 자체가 거절**됐다. `publishOneThread`
+(`worker/lib/threads.js`)는 컨테이너 생성 응답을 받자마자 대기·상태확인 없이 바로 발행을 호출하고 있었다 —
+Graph 의 컨테이너는 비동기 처리라 `status` 가 `FINISHED` 가 되기 전에 발행을 시도하면 이 문구로 거절한다.
+
+🔴 **다시 한 번: `[토큰 회전 필요]` 는 회전 지시가 아니다.** `classifyThreadsError` 의 `permanent` 판정 목록
+(190/200/10/401/403)에 `code=24` 는 없다 — 그런데도 라벨이 붙었다는 건 `status` 가 401/403 이었거나
+`type` 이 `OAuthException` 이었다는 뜻인데, 09-02 전례에서 토큰은 재확인 시 멀쩡했다(§C-3). **토큰 회전은
+시도하지 않았다.**
+
+**고침(이 커밋).** `worker/lib/threads.js` 에 `waitForContainerReady` 추가 — 컨테이너 생성 뒤
+`GET {id}?fields=status` 를 최대 8회(1초 간격)까지 확인해 `FINISHED` 가 될 때까지 기다린 뒤에만
+`me/threads_publish` 를 부른다. `status=ERROR` 면 즉시, 끝까지 `FINISHED` 가 안 되면 타임아웃으로
+`{ permanent:false, error:"container_not_ready_timeout" }` 을 돌려준다(`발행 호출 0회` — 준비 안 된
+컨테이너로 발행을 시도하지 않는다). 토큰은 URL 이 아니라 `Authorization: Bearer` 헤더로만 보낸다
+(기존 "토큰을 URL 에 남기지 않는다" 불변식 유지). 검증기 `verify:sns-daily-post` ㉔ 이 이 대기·타임아웃·
+ERROR 분류를 전부 실측(주입한 `sleepImpl` 로 실제 대기 없이) 확인한다.
+
+🔴 **이것은 확정된 원인 규명이 아니라 가장 근거 있는 가설에 대한 수정이다** — 실측 원칙(코딩 원칙 8):
+mock 환경에서는 실제 Graph API 를 재현할 수 없고, 이번 세션은 실호출·과금 LLM 검증을 하지 않는다.
+근거는 (a) 코드에 대기/상태확인이 전무했다는 실측, (b) 09-02 전례가 같은 문구로 "전파 지연" 가설을
+이미 세워뒀다는 문서 기록, (c) `code=24` 가 `permanent` 판정 목록에 없어 라벨 자체가 오분류일 가능성.
+
+**이 폴링으로도 재발하면** 다음 데이터는 폴링이 잡아낸 실제 `status` 값(로그·잠금 문서 `error`)이므로
+그때는 "얼마나 기다려야 하는가"가 아니라 "왜 끝까지 FINISHED 가 안 되는가"(스코프·권한 등)로 원인이 좁혀진다.
+
+**하지 않은 것.** 토큰 회전(위험 — 멀쩡한 토큰을 버릴 수 있음). 답글(`reply_to_id`) 전파 지연에 대한
+별도 대기(09-02 §C-6 의 "상시 거절 vs 전파 지연" 미해결 항목 — 오늘 실패 지점(`@me/threads_publish`
+자체)과 달라 범위 밖으로 남겨둠, 필요해지면 별도 확인 후 처리).
+
+**다음 확인.** 다음날 KST 07:00 크론 뒤 `GET /api/admin/sns-daily-post/status` 에서
+`2026-09-14:threads` 문서가 `success` 인지 사람이 확인한다.
+
 ### D. 재방문 이메일 (PR 4) — 보류
 
 별도 진단서: [docs/handoff/reengagement-email-blocked-2026-08-28.md](reengagement-email-blocked-2026-08-28.md)

@@ -34,6 +34,8 @@
  *   ㉒ 사실에 없는 십성이 섞인 문안은 그 항목만 버려지고, 프롬프트에는 확정된 사실이 박힌다.
  *   ㉓ 발행 표식(responseRef.sendStartedAt)이 send() **앞에서** 굳고, 표식 실패는 발행을 건너뛴다.
  *     같은 날 회수 창(10분 크론)은 UTC 22:10~22:59 로 닫혀 있다.
+ *   ㉔ 컨테이너가 FINISHED 될 때까지 기다린 뒤에만 발행한다. 끝까지 준비 안 되면 발행 호출 0회로
+ *     container_not_ready_timeout(permanent:false)을 돌려준다 — [토큰 회전 필요] 오분류를 막는다.
  *
  * 실행: npm run verify:sns-daily-post
  */
@@ -551,8 +553,9 @@ function jsonResponse(body, status = 200) {
   );
 }
 
-/* ⑮ 답글 체인이 **직전 발행 글**에 이어 붙고, 글 N개가 요청 2N회다(컨테이너 생성 → 발행).
-      중간에 실패하면 이미 나간 글(ids)과 멈춘 지점(failedAt)을 그대로 돌려준다. */
+/* ⑮ 답글 체인이 **직전 발행 글**에 이어 붙고, 글 N개가 요청 3N회다
+      (컨테이너 생성 → 상태확인 → 발행). 중간에 실패하면 이미 나간 글(ids)과 멈춘 지점(failedAt)을
+      그대로 돌려준다. */
 {
   const texts = ["첫 글", "둘째 글", "셋째 글", "넷째 글"];
   const calls = [];
@@ -561,11 +564,17 @@ function jsonResponse(body, status = 200) {
     { THREADS_ACCESS_TOKEN: "test-token" },
     {
       texts,
+      sleepImpl: async () => {},
       fetchImpl: async (url, init) => {
+        const urlStr = String(url);
+        assert.ok(!urlStr.includes("access_token"), "요청 URL 에 액세스 토큰이 실렸다(⑮)");
+        if (urlStr.includes("?fields=status")) {
+          calls.push({ url: urlStr, kind: "status" });
+          return jsonResponse({ status: "FINISHED" });
+        }
         const params = new URLSearchParams(init.body);
-        assert.ok(!String(url).includes("access_token"), "요청 URL 에 액세스 토큰이 실렸다(⑮)");
         assert.equal(params.get("access_token"), "test-token", "토큰이 POST 본문에 없다(⑮)");
-        calls.push({ url: String(url), params });
+        calls.push({ url: urlStr, kind: "post", params });
         seq += 1;
         return jsonResponse({ id: `id-${seq}` });
       },
@@ -573,15 +582,17 @@ function jsonResponse(body, status = 200) {
   );
 
   assert.equal(result.ok, true, `체인 발행이 실패했다: ${result.error}(⑮)`);
-  assert.equal(calls.length, texts.length * 2, `글 ${texts.length}개인데 호출이 ${calls.length}회다 — 2N 회여야 한다(⑮)`);
+  assert.equal(calls.length, texts.length * 3, `글 ${texts.length}개인데 호출이 ${calls.length}회다 — 3N 회여야 한다(⑮)`);
   assert.equal(result.ids.length, texts.length, "발행된 글 id 수가 글 수와 다르다(⑮)");
 
   for (let index = 0; index < texts.length; index += 1) {
-    const create = calls[index * 2];
-    const publish = calls[index * 2 + 1];
+    const create = calls[index * 3];
+    const status = calls[index * 3 + 1];
+    const publish = calls[index * 3 + 2];
     assert.ok(create.url.endsWith("/me/threads"), `${index + 1}번째 컨테이너 생성 엔드포인트가 틀렸다(⑮)`);
     assert.equal(create.params.get("media_type"), "TEXT", `${index + 1}번째 글의 media_type 이 TEXT 가 아니다(⑮)`);
     assert.equal(create.params.get("text"), texts[index], `${index + 1}번째 글 본문이 바뀌었다(⑮)`);
+    assert.equal(status.kind, "status", `${index + 1}번째 글이 상태확인 없이 발행됐다(⑮)`);
     assert.ok(publish.url.endsWith("/me/threads_publish"), `${index + 1}번째 발행 엔드포인트가 틀렸다(⑮)`);
     assert.equal(publish.params.get("creation_id"), `id-${index * 2 + 1}`, `${index + 1}번째 발행이 다른 컨테이너를 가리킨다(⑮)`);
 
@@ -596,13 +607,16 @@ function jsonResponse(body, status = 200) {
     }
   }
 
-  // 중간 실패: 되돌리지 않고 어디까지 나갔는지를 그대로 보고한다.
+  // 중간 실패: 되돌리지 않고 어디까지 나갔는지를 그대로 보고한다. 상태확인은 항상 즉시 FINISHED —
+  // 이 테스트가 보는 건 발행 자체의 실패 처리이지 대기 로직이 아니다(그건 ㉔이 본다).
   let attempt = 0;
   const partial = await postThreadsChain(
     { THREADS_ACCESS_TOKEN: "test-token" },
     {
       texts,
-      fetchImpl: async () => {
+      sleepImpl: async () => {},
+      fetchImpl: async (url) => {
+        if (String(url).includes("?fields=status")) return jsonResponse({ status: "FINISHED" });
         attempt += 1;
         if (attempt === 5) {
           return jsonResponse(
@@ -1125,4 +1139,77 @@ function jsonResponse(body, status = 200) {
   }
 }
 
-console.log("[verify-sns-daily-post] 통과 — 기본 꺼짐 · throw 없음 4종 · 토큰 URL 미로깅 2종 · 링크 실재 8건 · 시각 반영 · 크론 배선 · 배포 스위치 해석 가능 3종 · 실패 기록 유지 · 관리자 수동 실행 배선 · Threads 체인 6글(루트+오행 짝 5) · 평문 계약 · 일진 대조 365일 · 채널별 잠금 분리 · 실패 시 throw(실제 발행 0회) · 해시태그 생존(Threads 루트 1 · 텔레그램 4) · 단계 표식(load/connect_db/send · 태스크 6개 전수) · 일간 10개 축 대조 60갑자 전수 · AI 덧칠 계약(실호출 0회) · 재선점 필터 행위 검사(분기 전수) · 발행 표식 선행 · 회수 창 UTC 22:10~22:59");
+/* ㉔ 컨테이너가 FINISHED 상태가 될 때까지 기다린 뒤에만 발행한다 — 2026-09-02·09-13 에
+      "The requested resource does not exist"(code=24, @me/threads_publish)로 죽은 게 이 대기 부재였다.
+      끝까지 준비되지 않으면 발행을 아예 시도하지 않고(호출 0회) container_not_ready_timeout 을
+      permanent:false 로 돌려준다 — [토큰 회전 필요] 오분류로 사람을 헛돌게 하지 않는다. */
+{
+  const statusSequence = ["IN_PROGRESS", "IN_PROGRESS", "FINISHED"];
+  let statusCalls = 0;
+  let publishCalls = 0;
+  const ready = await postThreadsChain(
+    { THREADS_ACCESS_TOKEN: "test-token" },
+    {
+      texts: ["글 하나"],
+      sleepImpl: async () => {},
+      fetchImpl: async (url) => {
+        const urlStr = String(url);
+        if (urlStr.includes("?fields=status")) {
+          const status = statusSequence[Math.min(statusCalls, statusSequence.length - 1)];
+          statusCalls += 1;
+          return jsonResponse({ status });
+        }
+        if (urlStr.endsWith("/me/threads_publish")) {
+          publishCalls += 1;
+          assert.equal(statusCalls, statusSequence.length, "FINISHED 확인 전에 발행을 호출했다(㉔)");
+        }
+        return jsonResponse({ id: "container-1" });
+      },
+    },
+  );
+  assert.equal(ready.ok, true, `상태가 결국 FINISHED 인데 발행이 실패했다: ${ready.error}(㉔)`);
+  assert.equal(publishCalls, 1, "FINISHED 뒤 발행이 정확히 1회 불리지 않았다(㉔)");
+  assert.ok(statusCalls >= statusSequence.length, "상태확인이 FINISHED 이전에 멈췄다(㉔)");
+
+  let neverPublished = 0;
+  const timedOut = await postThreadsChain(
+    { THREADS_ACCESS_TOKEN: "test-token" },
+    {
+      texts: ["글 하나"],
+      sleepImpl: async () => {},
+      maxAttempts: 3,
+      fetchImpl: async (url) => {
+        const urlStr = String(url);
+        if (urlStr.includes("?fields=status")) return jsonResponse({ status: "IN_PROGRESS" });
+        if (urlStr.endsWith("/me/threads_publish")) neverPublished += 1;
+        return jsonResponse({ id: "container-1" });
+      },
+    },
+  );
+  assert.equal(timedOut.ok, false, "컨테이너가 끝까지 준비 안 됐는데 발행을 성공으로 읽었다(㉔)");
+  assert.equal(neverPublished, 0, "준비 안 된 컨테이너인데 me/threads_publish 를 호출했다(㉔)");
+  assert.equal(timedOut.error, "container_not_ready_timeout", "타임아웃 사유가 다른 값으로 뭉개졌다(㉔)");
+  assert.equal(
+    timedOut.permanent,
+    false,
+    "상태확인 타임아웃을 permanent 로 분류했다 — [토큰 회전 필요] 오분류로 사람을 헛돌게 한다(㉔)",
+  );
+
+  const errored = await postThreadsChain(
+    { THREADS_ACCESS_TOKEN: "test-token" },
+    {
+      texts: ["글 하나"],
+      sleepImpl: async () => {},
+      fetchImpl: async (url) => {
+        const urlStr = String(url);
+        if (urlStr.includes("?fields=status")) return jsonResponse({ status: "ERROR" });
+        if (urlStr.endsWith("/me/threads_publish")) assert.fail("ERROR 상태인데 발행을 호출했다(㉔)");
+        return jsonResponse({ id: "container-1" });
+      },
+    },
+  );
+  assert.equal(errored.error, "container_error", "컨테이너 ERROR 상태를 다른 사유로 뭉갰다(㉔)");
+  assert.equal(errored.permanent, false, "컨테이너 ERROR 를 permanent 로 잘못 분류했다(㉔)");
+}
+
+console.log("[verify-sns-daily-post] 통과 — 기본 꺼짐 · throw 없음 4종 · 토큰 URL 미로깅 2종 · 링크 실재 8건 · 시각 반영 · 크론 배선 · 배포 스위치 해석 가능 3종 · 실패 기록 유지 · 관리자 수동 실행 배선 · Threads 체인 6글(루트+오행 짝 5) · 평문 계약 · 일진 대조 365일 · 채널별 잠금 분리 · 실패 시 throw(실제 발행 0회) · 해시태그 생존(Threads 루트 1 · 텔레그램 4) · 단계 표식(load/connect_db/send · 태스크 6개 전수) · 일간 10개 축 대조 60갑자 전수 · AI 덧칠 계약(실호출 0회) · 재선점 필터 행위 검사(분기 전수) · 발행 표식 선행 · 회수 창 UTC 22:10~22:59 · 컨테이너 FINISHED 대기(타임아웃·ERROR 오분류 방지)");

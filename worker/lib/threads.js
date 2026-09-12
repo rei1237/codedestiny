@@ -11,8 +11,9 @@ import { getEnv } from "./env.js";
  * 토큰이 URL 에 들어가 로그·에러 리포트·프록시 기록에 남을 수 있다. 그래서 이 파일은 URL 을
  * 조립할 때 토큰을 넣지 않고, 어떤 경우에도 요청 URL 을 로그에 남기지 않는다.
  *
- * 발행은 2단계다(Threads API 규격): 컨테이너 생성 → 발행. 답글은 컨테이너를 만들 때
- * reply_to_id 로 상위 글을 가리킨다. 그래서 N 글짜리 체인은 요청이 2N 회다.
+ * 발행은 컨테이너 생성 → 상태확인(FINISHED 대기) → 발행 순서다(Threads API 규격). 컨테이너는
+ * 비동기로 처리되는데, 준비 전에 발행을 시도하면 "The requested resource does not exist" 로 거절당한다
+ * (2026-09-02, 2026-09-13 관측). 답글은 컨테이너를 만들 때 reply_to_id 로 상위 글을 가리킨다.
  *
  * fetchImpl 을 주입받는 이유는 검증 스크립트가 **실제 발행 없이** 계약을 확인하기 위해서다
  * (telegram.js 와 같은 관례).
@@ -116,16 +117,68 @@ async function callThreadsApi(doFetch, token, endpoint, params) {
   return { ok: true, status: response.status, id };
 }
 
+const CONTAINER_READY_MAX_ATTEMPTS = 8;
+const CONTAINER_READY_INTERVAL_MS = 1000;
+
 /**
- * 텍스트 글 하나를 발행한다(컨테이너 생성 → 발행).
+ * 컨테이너 생성 직후 발행하면 아직 비동기 처리 중이라 me/threads_publish 가
+ * "The requested resource does not exist" 로 거절하는 사례가 있었다(2026-09-02, 2026-09-13).
+ * Graph 는 상태를 status 필드로 노출한다(IN_PROGRESS → FINISHED, 실패 시 ERROR) — 그걸 확인하고 발행한다.
+ *
+ * 🔴 이 GET 은 토큰을 쿼리에 싣지 않는다 — Authorization 헤더로 보낸다(POST 쪽 body 관례와 대응).
+ */
+async function waitForContainerReady(doFetch, token, containerId, options = {}) {
+  const maxAttempts = options.maxAttempts ?? CONTAINER_READY_MAX_ATTEMPTS;
+  const intervalMs = options.intervalMs ?? CONTAINER_READY_INTERVAL_MS;
+  const sleepImpl = options.sleepImpl ?? ((ms) => new Promise((resolve) => setTimeout(resolve, ms)));
+
+  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+    let response;
+    let raw = "";
+    try {
+      response = await doFetch(`${THREADS_API_BASE}/${THREADS_API_VERSION}/${containerId}?fields=status`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      raw = await response.text();
+    } catch (error) {
+      console.error("[THREADS] 컨테이너 상태 확인 요청 자체가 실패:", error?.message || error);
+      return { ready: false, error: String(error?.message || "container_status_request_failed"), permanent: false };
+    }
+
+    let payload = null;
+    try {
+      payload = raw ? JSON.parse(raw) : null;
+    } catch (_parseError) {
+      payload = null;
+    }
+
+    const status = payload && typeof payload === "object" ? String(payload.status || "") : "";
+    if (status === "FINISHED") return { ready: true };
+    if (status === "ERROR") {
+      return { ready: false, error: "container_error", permanent: false };
+    }
+
+    if (attempt < maxAttempts - 1) await sleepImpl(intervalMs);
+  }
+
+  return { ready: false, error: "container_not_ready_timeout", permanent: false };
+}
+
+/**
+ * 텍스트 글 하나를 발행한다(컨테이너 생성 → 상태확인 → 발행).
  * @param {string} [replyToId] 있으면 그 글의 답글로 붙는다.
  */
-async function publishOneThread(doFetch, token, text, replyToId) {
+async function publishOneThread(doFetch, token, text, replyToId, waitOptions) {
   const params = { media_type: "TEXT", text };
   if (replyToId) params.reply_to_id = replyToId;
 
   const container = await callThreadsApi(doFetch, token, "me/threads", params);
   if (!container.ok) return container;
+
+  const readiness = await waitForContainerReady(doFetch, token, container.id, waitOptions);
+  if (!readiness.ready) {
+    return { ok: false, status: 0, endpoint: "container_status", ...readiness };
+  }
 
   return await callThreadsApi(doFetch, token, "me/threads_publish", { creation_id: container.id });
 }
@@ -138,14 +191,20 @@ async function publishOneThread(doFetch, token, text, replyToId) {
  * 하나 더 생긴다. 대신 어디까지 나갔는지(ids)와 몇 번째에서 멈췄는지(failedAt)를 그대로 돌려주고,
  * 판단은 호출부(태스크)와 사람이 한다.
  *
+ * 컨테이너 생성 뒤 상태가 FINISHED 가 될 때까지 기다린 뒤에만 발행한다(waitForContainerReady).
+ *
  * @param {Object} env
  * @param {Object} options
  * @param {string[]} options.texts 발행할 글들. 각 THREADS_TEXT_LIMIT 이하여야 한다.
  * @param {Function} [options.fetchImpl] 검증용 주입구. 기본값은 전역 fetch.
+ * @param {Function} [options.sleepImpl] 컨테이너 상태 재확인 대기 주입구. 기본값은 실제 setTimeout.
+ * @param {number} [options.maxAttempts] 컨테이너 상태 확인 최대 횟수.
+ * @param {number} [options.intervalMs] 컨테이너 상태 확인 간격(ms).
  * @returns {Promise<{ok: boolean, status: number, ids: string[], error?: string, code?: number|null, permanent?: boolean, failedAt?: number}>}
  */
 export async function postThreadsChain(env, options = {}) {
-  const { texts, fetchImpl } = options;
+  const { texts, fetchImpl, sleepImpl, maxAttempts, intervalMs } = options;
+  const waitOptions = { sleepImpl, maxAttempts, intervalMs };
 
   const token = getEnv(env, "THREADS_ACCESS_TOKEN");
   if (!token) {
@@ -169,7 +228,7 @@ export async function postThreadsChain(env, options = {}) {
   const ids = [];
 
   for (let index = 0; index < chain.length; index += 1) {
-    const result = await publishOneThread(doFetch, token, chain[index], ids[ids.length - 1]);
+    const result = await publishOneThread(doFetch, token, chain[index], ids[ids.length - 1], waitOptions);
     if (!result.ok) {
       return { ...result, ids, failedAt: index };
     }
