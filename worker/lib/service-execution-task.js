@@ -4,6 +4,7 @@ import { restoreMonthlyCreditLot } from "./monthly-credit-store.js";
 import { findMoonstoneSpendEvidence } from "./moonstone-spend-proof.js";
 import { cancelPortOnePayment } from "./portone.js";
 import { revokePaymentContentAccess } from "./content-unlocks.js";
+import { invalidateAccessStateCacheForUser } from "./access-state-cache.js";
 
 const DEFAULT_TIMEOUT_SECONDS = 600;
 const DEFAULT_LOCK_SECONDS = 45;
@@ -403,6 +404,8 @@ function toSummary(doc) {
       monthlyCreditRefunded: Boolean(doc?.compensation?.monthlyCreditRefunded),
       monthlyCreditRefundAmount: Number(doc?.compensation?.monthlyCreditRefundAmount || 0),
       monthlyCreditRefundLedgerId: String(doc?.compensation?.monthlyCreditRefundLedgerId || ""),
+      passQuotaRefunded: Boolean(doc?.compensation?.passQuotaRefunded),
+      passQuotaRefundAmount: Number(doc?.compensation?.passQuotaRefundAmount || 0),
       paymentCancelled: Boolean(doc?.compensation?.paymentCancelled),
     },
     refundStatus: String(doc?.refundStatus || "none"),
@@ -486,6 +489,49 @@ async function runCoinRefund({ userId, featureKey, cost, sourceTransactionId, ex
     idempotent: false,
     refundTxId: String(refund?._id || ""),
   };
+}
+
+/**
+ * 이용권 커버(worker/lib/nakshatra-paid-access.js verifyPerUsePayment 4번째 분기)로
+ * profileSubscription.monthlySpendCoin 을 차감한 뒤, 뒤 단계(생성)가 실패하면 그 차감을 되돌린다.
+ *
+ * 🔴 monthlySpendCoin 은 레포 전체에서 worker/payments/passes.js consumePassCoverage 한 곳에서만
+ *    증가한다(2026-09-12 실사고 이전에는 감소 경로가 아예 없었다). 사이클이 넘어갔거나(만료·갱신)
+ *    다른 소비가 끼어들어 잔액이 cost 미만이면 조용히 skip — 다른 달의 카운터를 잘못 건드리지 않는다.
+ */
+async function runPassQuotaRefund({ userId, executionId, execution }) {
+  const passRefund = execution?.metadata?.passRefund;
+  const cost = Math.max(0, Math.floor(Number(passRefund?.cost) || 0));
+  const cycleKey = cleanMetadataText(passRefund?.cycleKey, 160);
+  if (!userId || cost <= 0 || !cycleKey) {
+    return { refunded: false, skipped: true };
+  }
+  // 멱등: 재시도로 이 함수가 다시 불려도 두 번 복구하지 않는다.
+  if (passRefund?.refundedAt) {
+    return { refunded: true, idempotent: true, amount: cost };
+  }
+
+  const updated = await User.findOneAndUpdate(
+    {
+      _id: userId,
+      "profileSubscription.premiumUseCycleKey": cycleKey,
+      "profileSubscription.monthlySpendCoin": { $gte: cost },
+    },
+    { $inc: { "profileSubscription.monthlySpendCoin": -cost } },
+    { returnDocument: "after", projection: { "profileSubscription.monthlySpendCoin": 1 } },
+  ).lean();
+  if (!updated) {
+    return { refunded: false, skipped: true, reason: "PASS_QUOTA_CYCLE_MISMATCH_OR_INSUFFICIENT" };
+  }
+
+  try { invalidateAccessStateCacheForUser(userId); } catch {}
+
+  await ServiceExecutionTransaction.updateOne(
+    { _id: executionId },
+    { $set: { "metadata.passRefund.refundedAt": new Date() } },
+  ).catch(() => {});
+
+  return { refunded: true, idempotent: false, amount: cost };
 }
 
 function extractMonthlyCreditExecutionHints(execution = {}) {
@@ -1172,10 +1218,17 @@ async function settleExecutionById(env, executionId, reasonCode, reasonMessage) 
       reason: `${reason.message}`.slice(0, 120),
     }), { retries: 0, attemptTimeoutMS: 15000 });
 
+    const passQuotaResult = await withMongoRetry(env, () => runPassQuotaRefund({
+      userId: execution.userId,
+      executionId: String(execution._id),
+      execution,
+    }), { retries: 0 });
+
     const paymentResult = await runPaymentCancel(env, execution.paymentRef || {}, reason.message, execution);
 
     const nextStatus = coinResult.refunded
       || monthlyCreditResult.refunded
+      || passQuotaResult.refunded
       || paymentResult.cancelled
       ? "refunded"
       : "failed";
@@ -1202,6 +1255,7 @@ async function settleExecutionById(env, executionId, reasonCode, reasonMessage) 
             : [
               coinResult.reason,
               monthlyCreditResult.reason,
+              passQuotaResult.reason,
               paymentResult.reason,
             ].filter(Boolean).join("; ").slice(0, 500),
           "compensation.coinRefunded": Boolean(coinResult.refunded),
@@ -1209,6 +1263,8 @@ async function settleExecutionById(env, executionId, reasonCode, reasonMessage) 
           "compensation.monthlyCreditRefunded": Boolean(monthlyCreditResult.refunded),
           "compensation.monthlyCreditRefundAmount": Number(monthlyCreditResult.amount || 0),
           "compensation.monthlyCreditRefundLedgerId": String(monthlyCreditResult.ledgerId || ""),
+          "compensation.passQuotaRefunded": Boolean(passQuotaResult.refunded),
+          "compensation.passQuotaRefundAmount": Number(passQuotaResult.amount || 0),
           "compensation.paymentCancelled": Boolean(paymentResult.cancelled),
           "compensation.unlockRevoked": Boolean(paymentResult.unlockRevoked),
           "compensation.adminReviewRequired": Boolean(paymentResult.adminReviewRequired),
@@ -1234,6 +1290,7 @@ async function settleExecutionById(env, executionId, reasonCode, reasonMessage) 
       status: nextStatus,
       coinResult,
       monthlyCreditResult,
+      passQuotaResult,
       paymentResult,
     };
   } catch (error) {
