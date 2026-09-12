@@ -46,17 +46,32 @@ npm run check:fast
 
 ## 룰셋 등록 (5번, 사용자)
 
+**웹 UI 가 가장 빠르다**(도구 불필요): `Settings → Rules → Rulesets → main-protection → Require status checks to pass` 체크 → `Add checks` 에서 **`CI required`** 검색·추가 → 🔴 `Require branches to be up to date before merging`(strict)은 **끈 채로 둔다** → `Save changes`.
+
+CLI 로 할 때 — 🔴 이 PC 에 `jq` 가 없다(실측). `gh --jq` 는 gh 내장이라 동작하지만 파이프 `jq` 는 안 된다. 그래서 페이로드 가공은 node 로 한다(`package.json` 은 commonjs).
+
 ```bash
+# 0) 백업 — 되돌릴 때 이 파일이 유일한 근거다. 레포 밖(임시 폴더)에 둔다.
 gh api repos/rei1237/codedestiny/rulesets/20666260 > ruleset-20666260.backup.json
-jq '.rules += [{"type":"required_status_checks","parameters":{
-      "strict_required_status_checks_policy": false,
-      "do_not_enforce_on_create": false,
-      "required_status_checks":[{"context":"CI required"}]}}]
-    | {name,target,enforcement,conditions,rules,bypass_actors}' \
-  ruleset-20666260.backup.json > ruleset-20666260.next.json
+
+# 1) 규칙 하나만 더한 페이로드 생성 (이미 있으면 중단)
+node --input-type=commonjs -e "
+const fs=require('fs');
+const r=JSON.parse(fs.readFileSync('ruleset-20666260.backup.json','utf8'));
+if(r.rules.some(x=>x.type==='required_status_checks')){console.log('이미 등록됨 — 중단');process.exit(1);}
+r.rules.push({type:'required_status_checks',parameters:{strict_required_status_checks_policy:false,do_not_enforce_on_create:false,required_status_checks:[{context:'CI required'}]}});
+const {name,target,enforcement,conditions,rules,bypass_actors}=r;
+fs.writeFileSync('ruleset-20666260.next.json',JSON.stringify({name,target,enforcement,conditions,rules,bypass_actors},null,2));
+console.log('보낼 rules:',rules.map(x=>x.type).join(', '));"
+
+# 2) 적용
 gh api --method PUT repos/rei1237/codedestiny/rulesets/20666260 --input ruleset-20666260.next.json
+
+# 3) 검증 — parameters 가 찍히면 등록된 것이다
 gh api repos/rei1237/codedestiny/rulesets/20666260 \
   --jq '.rules[]|select(.type=="required_status_checks")|.parameters'
 ```
 
-롤백은 백업 파일로 같은 PUT 한 줄. `pr-ci.yml` 에 `workflow_dispatch` 가 있어 체크가 큐에 안 잡히면 수동 재발행할 수 있다.
+롤백은 백업 파일로 같은 PUT 한 줄: `gh api --method PUT repos/rei1237/codedestiny/rulesets/20666260 --input ruleset-20666260.backup.json`. `pr-ci.yml` 에 `workflow_dispatch` 가 있어 체크가 큐에 안 잡히면 수동 재발행할 수 있다.
+
+등록 후 첫 PR 에서 `CI required` 가 **Required** 로 표시되는지 한 번 확인한다. paths 트리거 워크플로를 실수로 넣으면 그 즉시 전 PR 이 영구 pending 이 되므로 required 목록에는 `CI required` **하나만** 있어야 한다.
