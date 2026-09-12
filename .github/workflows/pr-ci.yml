@@ -228,6 +228,14 @@ jobs:
       - name: Verify Playwright APT source is safe for browser guards
         run: node scripts/verify-playwright-apt-source.mjs
 
+      # 브라우저는 매 런 ~130MB 를 새로 받는다. 잠금파일이 그대로면 같은 버전이므로
+      # 캐시에서 복원한다. install 스텝은 그대로 둔다 — 복원돼도 무결성을 확인하고,
+      # --with-deps 의 apt 패키지는 캐시 대상이 아니라 매번 필요하다.
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - name: Install Playwright Chromium for browser guards
         run: npx playwright install --with-deps chromium
 
