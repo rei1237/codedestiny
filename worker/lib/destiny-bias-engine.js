@@ -1,6 +1,7 @@
 
 import { daeun } from "../../lib/korean-calendar/index.js";
 import { calculateEquationOfTimeMinutes, shiftLocalDateByDays, standardMeridianForTimezone } from "./birth-time-context.js";
+import { resolveTimezoneOffsetHours } from "./iana-offset.js";
 
 // 🔴 절기 축은 전부 여기서 나온다. lunar-javascript 의 절기 시각은 **중국 표준시(CST) 벽시계**라,
 // 생시를 KST 벽시계로 넘기면 월건 경계가 정확히 60분 이르다(실측 2026-08-27, 1960~2030
@@ -304,17 +305,6 @@ function parseBirthTimeParts(rawTime) {
   return { hour, minute };
 }
 
-function parseTimezoneOffsetHours(timezone) {
-  const text = String(timezone || "").trim();
-  const m = text.match(/(?:GMT|UTC)\s*([+-])(\d{1,2})(?::?(\d{2}))?/i);
-  if (!m) return null;
-  const sign = m[1] === "-" ? -1 : 1;
-  const hour = Number(m[2] || 0);
-  const minute = Number(m[3] || 0);
-  if (!Number.isFinite(hour) || !Number.isFinite(minute)) return null;
-  return sign * (hour + minute / 60);
-}
-
 export function resolveBirthLocation(rawBirth = {}, rawPerson = {}) {
   const rawLocation = rawPerson?.location && typeof rawPerson.location === "object"
     ? rawPerson.location
@@ -346,7 +336,17 @@ export function resolveBirthLocation(rawBirth = {}, rawPerson = {}) {
     || DEFAULT_LOCATION.timezone,
   ).trim() || DEFAULT_LOCATION.timezone;
 
-  const timezoneOffsetHours = parseTimezoneOffsetHours(timezone);
+  // 🔴 숫자 오프셋·IANA 지역명 모두 정확히 풀어야 한다 — 예전 자체 파서는 "GMT/UTC±HH:MM"
+  //    표기만 인식해 숫자만 온 경우(9, -5)와 IANA 지역명(Asia/Seoul 등)에서 null 을 돌려줬고,
+  //    아래 standardMeridianForTimezone 은 숫자가 아닌 문자열에서만 DST 폴백을 타서 숫자
+  //    오프셋 입력은 무조건 서울(135°) 기준 자오선으로 떨어졌다(실측 2026-09-12).
+  const timezoneOffsetHours = resolveTimezoneOffsetHours(timezone, {
+    year: Number(rawBirth?.year),
+    month: Number(rawBirth?.month),
+    day: Number(rawBirth?.day),
+    hour: Number(rawBirth?.hour),
+    minute: Number(rawBirth?.minute),
+  });
   const standardMeridian = standardMeridianForTimezone(
     timezone,
     timezoneOffsetHours,
