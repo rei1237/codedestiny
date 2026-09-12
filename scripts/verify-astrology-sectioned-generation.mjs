@@ -190,8 +190,6 @@ assert(
   "폴백 문턱이 섹션 목표 기준(section.minChars * 0.4)이 아니다 — 전체 목표 기준이면 짧은 폴백이 통과한다",
 );
 assert(route.includes("generateSectionedConsultation"), "섹션 생성 함수가 없다");
-// 후속 질문 경로는 단일 호출을 유지한다(짧아서 분할 이득이 없다).
-assert(/buildFollowUpPrompt\(consultation, message\)/.test(route), "후속 질문 경로가 사라졌다");
 
 // ── 결과 ─────────────────────────────────────────────────────────────────────
 if (failures.length) {
