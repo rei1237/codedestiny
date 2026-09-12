@@ -42,6 +42,7 @@ next: 4) cachebust 재설계는 PR-8 로 종결(92줄 → 6줄 실측). 남은 �
 ## 함정
 
 - 공개 미러(`public/_headers`·`public/js/README.md` 등)는 손편집하지 않고 `npm run sync:public` 으로 만든다.
+- 🔴 **`check:fast` 는 CI 의 Static guards 를 돌지 않는다**(PR-8 실측). 캐시 키·셸 규약을 바꾸면 로컬이 전부 초록이어도 CI 에서 처음 터진다. PR-8 에서 `verify:hero-firstpaint-lock` 이 그랬다 — 전역 키 시절 "배포마다 회전한다"를 *서로 다른 두 파일의 `?v=` 가 같은지*로 표현하고 있었는데, 자산별 해시에서는 당연히 달라진다. 값 비교 대신 **각 값이 제 파일 내용 해시와 맞는지**로 바꿨다(약화가 아니라 강화 — 낡은 수기 키까지 잡는다). 같은 유형을 `verify-mobile-final-audit`·`verify-payment-choice-parity` 에서도 확인했고 둘은 안전했다.
 - 다른 열린 PR 이 `CLAUDE.md`·`docs/CONTEXT_AUDIT.md`·`package.json`·`.github/workflows/**` 를 고친다. 그 PR 머지 뒤에 3)을 한다.
 
 ## 검증
