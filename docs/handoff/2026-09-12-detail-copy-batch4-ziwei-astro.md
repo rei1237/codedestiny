@@ -1,7 +1,7 @@
 ---
-status: active
+status: done
 updated: 2026-09-12
-next: "배치 4(자미·점성) PR #1943 의 CI·머지를 확인한 뒤, 같은 형식(receives·outline)으로 배치 5(₩30,000 AI 상담 6종: karma-destiny·life-fortune·love-secret·fusion-fortune·neo-operation-room·new-year)를 옮긴다."
+next: "완료 — 배치 5+ 로 남은 32종까지 이전했다(PR #1946). 후속은 docs/handoff/2026-09-12-detail-copy-batch5-plus.md 를 볼 것."
 ---
 
 # 배치 4 — 자미·점성 유료 5종 상세창 카피 이전

@@ -8339,8 +8339,8 @@
       },
       "faq": {
         "0": {
-          "q": "这是安慰型咨询吗？",
-          "a": "不是。它会冷静指出你现在被压制的地方，并说出该放弃什么。如果需要安慰，建议使用其他功能。"
+          "q": "这是能给人安慰的咨询吗？",
+          "a": "不是。它会冷静指出你正在退让的地方，甚至告诉你该放弃什么。如果需要安慰，建议选择其他咨询。"
         },
         "1": {
           "q": "为什么要把八字和星座一起看？",
@@ -8352,10 +8352,54 @@
         }
       },
       "badge": "战略咨询型",
-      "headline": "把散落的烦恼，整理成一张作战地图。"
+      "headline": "把散落的烦恼，整理成一张作战地图。",
+      "receives": {
+        "0": {
+          "title": "14节战略报告",
+          "detail": "从最初的诊断到7天作战计划，按顺序获得十四个小节。"
+        },
+        "1": {
+          "title": "性格核心与优缺点",
+          "detail": "先解读天生性格的核心与优缺点，再进入主题深度解析。"
+        },
+        "2": {
+          "title": "侦察报告与内奥的直言",
+          "detail": "获得整理所选术数实际依据的侦察报告，以及内奥的直言。"
+        },
+        "3": {
+          "title": "即时作战与7天作战计划",
+          "detail": "获得今日禁止行为、立即执行的作战和按天安排的7天计划。"
+        },
+        "4": {
+          "title": "保存PDF",
+          "detail": "可在结果页面保存为PDF留存。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "作战开始——内奥的第一次诊断",
+          "detail": "先正面回应你的问题，判定当下命运的前线。"
+        },
+        "1": {
+          "title": "兵力解读——天生性格的核心与优缺点",
+          "detail": "把天生结构中的自我分为优势阵地与弱势阵地。"
+        },
+        "2": {
+          "title": "主题定制解读·分领域深度解析·时机走向",
+          "detail": "紧贴所选主题，一并讲述相关领域与时机。"
+        },
+        "3": {
+          "title": "原本的武器体系·反复出现的败局·错位的前线",
+          "detail": "对比天生得力的方式与反复出现的选择，指出当下错位之处。"
+        },
+        "4": {
+          "title": "侦察报告·内奥的直言·即时作战·7天作战计划",
+          "detail": "以有依据的直言和从今天开始的7天计划收尾。"
+        }
+      }
     },
     "openNamingPromptModal": {
-      "tagline": "Proposes 5 to 7 new names in an eight-chapter naming book, and hands you the original prompt that produced that book as well.",
+      "tagline": "在8章结构的取名册中提议5~7个新名字，还会连同做出这本取名册的基准原文一并奉上。",
       "feats": {
         "0": "The naming book is made up of eight chapters",
         "1": "Proposes 5 to 7 candidate new names",
@@ -8363,9 +8407,9 @@
         "3": "Checks each name's five-element makeup against the favorable and supporting elements",
         "4": "Looks at the sound five-element flow and the four numerology frames together",
         "5": "The main text runs to at least 5,000 characters",
-        "6": "Includes the original prompt used to produce the naming book"
+        "6": "一并提供制作这本取名册所依据的基准原文"
       },
-      "premiumIntro": "Input and the draft suggestions open for free. Payment happens when you take the eight-chapter naming book and the original prompt.",
+      "premiumIntro": "输入和初稿建议免费开放。付款会在您领取8章取名册和基准原文时进行。",
       "premiumAudience": {
         "0": "Those who want to settle on a child's name with reasons attached",
         "1": "Those who want the candidates they were given checked",
@@ -8376,7 +8420,7 @@
         "1": "5 to 7 proposed new names",
         "2": "Evaluation of your own candidates plus 3 to 5 more proposals",
         "3": "Checks by favorable element, sound five elements, and the four numerology frames",
-        "4": "The original prompt, included"
+        "4": "提供基准原文"
       },
       "premiumOutcomes": {
         "0": "Input and the free draft suggestions open for free.",
@@ -8389,7 +8433,7 @@
         "2": "Why was this name recommended?"
       },
       "fallbackCta": "Start naming",
-      "ctaNote": "After payment, the eight-chapter naming book and the original prompt open together.",
+      "ctaNote": "付款后，8章取名册和取名基准原文会一起开放。",
       "analysisSteps": {
         "0": {
           "label": "Saju calculation",
@@ -8404,8 +8448,8 @@
           "detail": "Filters the candidates again through the sound five-element flow and the four numerology frames."
         },
         "3": {
-          "label": "Writing the naming book",
-          "detail": "Organizes everything into eight chapters and includes the original prompt used to build it."
+          "label": "撰写取名册",
+          "detail": "整理成8章结构，并附上制作时使用的基准原文。"
         }
       },
       "valueCompare": {
@@ -8419,8 +8463,8 @@
           "premium": "Favorable and supporting elements, sound five elements, and the four numerology frames"
         },
         "2": {
-          "axis": "Deliverable",
-          "premium": "An eight-chapter naming book plus the original prompt"
+          "axis": "成果物",
+          "premium": "8章取名册 + 取名基准原文"
         }
       },
       "faq": {
@@ -8433,8 +8477,56 @@
           "a": "If you enter candidates, they are evaluated first, and 3 to 5 more are proposed on top of them."
         },
         "2": {
-          "q": "Why do you hand over the original prompt?",
-          "a": "So you can see exactly what criteria the names were built on and reuse it yourself."
+          "q": "为什么会提供基准原文？",
+          "a": "是为了让您原样确认取名所依据的标准，并可以自行再次使用。"
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "8章取名册",
+          "detail": "从总评到最终推荐，整理成8章奉上。"
+        },
+        "1": {
+          "title": "5~7个新名字",
+          "detail": "提议符合用神、喜神的新名字候选。"
+        },
+        "2": {
+          "title": "验证您自己的候选",
+          "detail": "如果输入自己想的名字，会先评估，再追加提议3~5个。"
+        },
+        "3": {
+          "title": "音五行与数理验证",
+          "detail": "用音五行流向和元亨利贞四格数理再次筛选候选。"
+        },
+        "4": {
+          "title": "取名基准原文",
+          "detail": "原样奉上制作这本取名册所依据的基准原文。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "取名师的总评",
+          "detail": "讲述初次看到这个八字的第一印象，以及名字需要弥补的部分。"
+        },
+        "1": {
+          "title": "八字解读与用神验证",
+          "detail": "解读命式与五行分布，验证用神、忌神候选。"
+        },
+        "2": {
+          "title": "这个孩子的取名原则",
+          "detail": "定下应纳入与应避开的五行等，符合这个八字的标准。"
+        },
+        "3": {
+          "title": "候选名字详解",
+          "detail": "提议5~7个新名字，若有自己输入的候选会先评估。"
+        },
+        "4": {
+          "title": "三个名字并排比较与最终推荐",
+          "detail": "将上位候选并排比较，最终确定一个并推荐。"
+        },
+        "5": {
+          "title": "应避开的名字与基准原文",
+          "detail": "说明应避开的名字与登记前的确认事项，并附上取名基准原文。"
         }
       }
     },
@@ -8746,6 +8838,50 @@
           "q": "和其他咨询有什么不同？",
           "a": "因为拆成15个篇章、从根源回溯模式，所以篇幅与计算范围是其中最大的。"
         }
+      },
+      "receives": {
+        "0": {
+          "title": "15章深度报告",
+          "detail": "以命盘为依据按顺序展开十五个章节，总字数在3万字以上。"
+        },
+        "1": {
+          "title": "反复模式的根源",
+          "detail": "人际关系、爱情、金钱、事业、健康的业力分别用独立章节讲述。"
+        },
+        "2": {
+          "title": "五种视角的综合结论",
+          "detail": "把命盘的多条线索汇总成一个结论和今后的方向。"
+        },
+        "3": {
+          "title": "关键句与最后的信",
+          "detail": "收到收尾的十句关键句和一封来自咨询师的信，各成一章。"
+        },
+        "4": {
+          "title": "保存PDF、随时重看",
+          "detail": "可在结果页面保存为PDF，随时重新打开查看。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "命运的核心主题·起源·当下的流向",
+          "detail": "先说明造成反复的命盘结构和当下人生所处的位置。"
+        },
+        "1": {
+          "title": "业力的核心课题·人际关系之业·爱情之业",
+          "detail": "把关系和爱情中反复出现的模式分章讲述。"
+        },
+        "2": {
+          "title": "金钱之业·事业之业·健康能量",
+          "detail": "梳理金钱、工作、身体与能量中反复出现的流向。"
+        },
+        "3": {
+          "title": "隐藏的才能·命运的转折点·成长策略",
+          "detail": "讲述尚未使用的才能、即将到来的转折点和执行策略。"
+        },
+        "4": {
+          "title": "五种视角的综合结论·关键句·最后的信",
+          "detail": "把所有章节汇总为一个结论，以关键句和信件收尾。"
+        }
       }
     },
     "vedic_ai_consultation": {
@@ -8770,7 +8906,7 @@
         "3": "A summary of the flow behind the reading"
       },
       "premiumOutcomes": {
-        "0": "Chart-based features are affected by how accurate the details you enter are.",
+        "0": "基于星盘的解读会受到你输入信息准确度的影响。",
         "1": "The payment policy follows the existing pass, moonstone, and single-payment rules.",
         "2": "Fortune results are for reference."
       },
@@ -8825,6 +8961,50 @@
         "2": {
           "q": "What is an upaya?",
           "a": "It means a practice recommended in response to your current period. It is included in the fourth topic."
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "拉格纳星盘与达沙推算",
+          "detail": "根据出生年月日和时间计算你的拉格纳、纳克夏特拉和维姆绍塔里达沙。"
+        },
+        "1": {
+          "title": "四大主题深度解读",
+          "detail": "从业力起源到达沙与解运法，分成四个主题为你撰写解读文。"
+        },
+        "2": {
+          "title": "正文15000字以上",
+          "detail": "每个主题都写满3800字以上，是一份很长的深度解读。"
+        },
+        "3": {
+          "title": "附解读依据整理",
+          "detail": "拉格纳、格拉哈、达沙等解读所依据的内容会单独整理展示。"
+        },
+        "4": {
+          "title": "可以再次查看",
+          "detail": "收到的解读文会被保存，之后无需再次付费即可重新查看。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "业力的起源",
+          "detail": "通过拉格纳和纳克夏特拉解读你与生俱来的本质和反复出现的气质。"
+        },
+        "1": {
+          "title": "物质成就与达摩",
+          "detail": "通过格拉哈的尊贵度和婆瓦位置分析事业财运的走向，以及应尽的本分。"
+        },
+        "2": {
+          "title": "缘分与灵魂伴侣",
+          "detail": "对照拉希盘(D1)与纳瓦安夏盘(D9)，同时解读关系的表象与本质。"
+        },
+        "3": {
+          "title": "当前达沙走势与解运法",
+          "detail": "梳理你目前正经历的大达沙、小达沙，以及可以实践的解运方法。"
+        },
+        "4": {
+          "title": "解读依据说明",
+          "detail": "单独整理支撑上述解读的拉格纳、格拉哈、达沙依据展示给你。"
         }
       }
     },
@@ -9017,6 +9197,50 @@
         "3": {
           "q": "价格是多少？",
           "a": "30分钟和60分钟课程价格不同。选定课程后，付款画面会显示对应金额及是否可使用通行券、月光石。"
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "30/60分钟课程选择",
+          "detail": "可按财富、清晰、爱情、健康等意图，选择所需时长的冥想课程。"
+        },
+        "1": {
+          "title": "分阶段引导语",
+          "detail": "整场课程按重置→修补→渲染→锚定→部署的顺序，配合引导语和计时器进行。"
+        },
+        "2": {
+          "title": "沉浸式画面呈现",
+          "detail": "每个阶段的色彩与背景都会变化，帮助你保持沉浸感。"
+        },
+        "3": {
+          "title": "宇宙日志",
+          "detail": "可以记录冥想中看到的画面并保存在浏览器中。"
+        },
+        "4": {
+          "title": "连续天数记录",
+          "detail": "每完成一次课程，连续天数与累计次数都会累积。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "选择意图与课程",
+          "detail": "从财富、清晰、爱情、健康中选择今天的意图，并选择30分钟或60分钟课程。"
+        },
+        "1": {
+          "title": "导入放松",
+          "detail": "通过调整呼吸放下身心紧张的导入阶段。"
+        },
+        "2": {
+          "title": "θ波同步",
+          "detail": "跟随旁白逐渐沉入θ波频段的阶段。"
+        },
+        "3": {
+          "title": "画面渲染",
+          "detail": "清晰描绘所设意图的画面并沉浸其中的核心阶段。"
+        },
+        "4": {
+          "title": "锚定与日志记录",
+          "detail": "将感受锚定在当下后，把今天看到的画面记录到宇宙日志中。"
         }
       }
     },
@@ -9514,6 +9738,50 @@
         "0": "这不是医学诊断或治疗。",
         "1": "梦境解读仅供参考。",
         "2": "沿用现有付款政策。"
+      },
+      "receives": {
+        "0": {
+          "title": "梦境场景整理",
+          "detail": "先整理梦中出现的场景与核心象征。"
+        },
+        "1": {
+          "title": "弗洛伊德式解读",
+          "detail": "从弗洛伊德的视角解读无意识的愿望与冲突。"
+        },
+        "2": {
+          "title": "荣格心理学解读",
+          "detail": "从内在原型与整合的视角重新解读。"
+        },
+        "3": {
+          "title": "灵性象征解梦",
+          "detail": "指出梦境传达的神秘讯息。"
+        },
+        "4": {
+          "title": "今日实践建议",
+          "detail": "提出一个可以在现实中尝试的小行动。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "梦境场景与象征整理",
+          "detail": "先整理梦中出现的场景与核心象征。"
+        },
+        "1": {
+          "title": "精神分析式解读",
+          "detail": "从弗洛伊德的视角指出无意识的愿望与冲突。"
+        },
+        "2": {
+          "title": "荣格心理学式解读",
+          "detail": "从内在原型与整合的视角重新解读。"
+        },
+        "3": {
+          "title": "灵性象征解梦",
+          "detail": "以神秘的笔触指出梦境传达的象征讯息。"
+        },
+        "4": {
+          "title": "现实建议",
+          "detail": "以今天可以做的小行动收尾。"
+        }
       }
     },
     "openAnimalTotemModal": {
@@ -9565,6 +9833,50 @@
         "0": "卡牌解读仅供参考。",
         "1": "内容不会断言未来，而是帮助你做出当下的选择。",
         "2": "适用现有支付政策。"
+      },
+      "receives": {
+        "0": {
+          "title": "可选一张或三张牌阅读",
+          "detail": "可选择深入解读一只动物的单张模式，或查看过去、现在、整合流程的三张模式。"
+        },
+        "1": {
+          "title": "亲自抽取守护动物卡",
+          "detail": "亲手抽卡，遇见今天你最需要的守护动物。"
+        },
+        "2": {
+          "title": "与问题相连的解读",
+          "detail": "如果写下了问题，卡牌信息会围绕这个问题进行解读。"
+        },
+        "3": {
+          "title": "今日的实践方案",
+          "detail": "解读结束时会提供一项今天就能实践的行动建议。"
+        },
+        "4": {
+          "title": "保存到收藏夹随时重看",
+          "detail": "完成的解读会保存到收藏夹，随时可以重新打开查看。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "选择模式",
+          "detail": "选择单张(3,000韩元)或三张(3,000韩元)模式。"
+        },
+        "1": {
+          "title": "输入问题",
+          "detail": "写下想问的问题，或选择不带问题、只看当下状态的方式。"
+        },
+        "2": {
+          "title": "抽取卡牌",
+          "detail": "亲自抽卡，确认你的守护动物。"
+        },
+        "3": {
+          "title": "查看每张卡的解读",
+          "detail": "查看每张卡的信息，以及贯穿整体的解释。"
+        },
+        "4": {
+          "title": "查看行动方案并保存",
+          "detail": "查看今日的实践事项，并将结果保存到收藏夹。"
+        }
       }
     },
     "openKemetModal": {
@@ -9614,12 +9926,56 @@
       },
       "faq": {
         "0": {
-          "q": "Are the cards drawn automatically?",
-          "a": "No. You choose three of the twelve gods' cards yourself."
+          "q": "卡牌是自动抽取的吗?",
+          "a": "不是。是从十二神卡牌中亲手挑选三张的方式。"
         },
         "1": {
-          "q": "Can I see the result again?",
-          "a": "There is no separate save feature, so it is an oracle you read on the spot."
+          "q": "可以再次查看结果吗?",
+          "a": "结果不会另行保存，需要当场查看这一神谕。"
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "十二神卡牌",
+          "detail": "面对拉、奥西里斯、伊西斯、荷鲁斯等十二神的卡牌。"
+        },
+        "1": {
+          "title": "亲手挑选三张",
+          "detail": "亲手挑选放在过去、现在、未来三个位置的卡牌。"
+        },
+        "2": {
+          "title": "逐位解读",
+          "detail": "逐一解读放在每个位置的神明含义。"
+        },
+        "3": {
+          "title": "三神合一",
+          "detail": "综合三张卡牌的神明，整理出对问题的答案。"
+        },
+        "4": {
+          "title": "当场查看",
+          "detail": "结果不会被保存，需当场确认。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "写下问题",
+          "detail": "写下三个字以上、心中挂念的问题。"
+        },
+        "1": {
+          "title": "洗牌",
+          "detail": "十二神的卡牌被打乱。"
+        },
+        "2": {
+          "title": "亲手挑选三张",
+          "detail": "亲手挑选放在过去、现在、未来位置的卡牌。"
+        },
+        "3": {
+          "title": "逐位解读神谕",
+          "detail": "确认放在每个位置的神明含义。"
+        },
+        "4": {
+          "title": "整理三神合一",
+          "detail": "以三神综合后的答案作结。"
         }
       }
     },
@@ -10041,12 +10397,56 @@
       },
       "faq": {
         "0": {
-          "q": "Does the hexagram change with the question?",
-          "a": "The hexagram is decided at the moment of the rite, and the question you write is used to match the strands of the reading."
+          "q": "卦会因问题而不同吗?",
+          "a": "卦在仪式的瞬间就已决定，写下的问题只用于匹配解读的方向。"
         },
         "1": {
-          "q": "Can I see the result again?",
-          "a": "There is no separate save feature, so it is a divination you read on the spot."
+          "q": "可以再次查看结果吗?",
+          "a": "结果不会另行保存，需要当场查看这一占卜。"
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "开出一卦",
+          "detail": "经过龟甲仪式，从六十四卦中开出一卦。"
+        },
+        "1": {
+          "title": "体用形势解读",
+          "detail": "从上卦与下卦的关系中，看清当下局面的体用。"
+        },
+        "2": {
+          "title": "五个方向的解说",
+          "detail": "按恋爱、事业、财物、考试、合约五个方向分别解读形势。"
+        },
+        "3": {
+          "title": "该进还是该等",
+          "detail": "整理出现在应当推进还是等待的方向。"
+        },
+        "4": {
+          "title": "当场查看",
+          "detail": "结果不会被保存，需当场确认。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "写下问题",
+          "detail": "写下心中挂念的问题。"
+        },
+        "1": {
+          "title": "龟甲仪式",
+          "detail": "龟甲裂开，决定出一卦。"
+        },
+        "2": {
+          "title": "确认卦的含义",
+          "detail": "先读出所开卦的名称与基本含义。"
+        },
+        "3": {
+          "title": "体用与五方向解读",
+          "detail": "查看上卦、下卦的形势，以及恋爱、事业、财物、考试、合约五个方向。"
+        },
+        "4": {
+          "title": "整理今日态度",
+          "detail": "区分该推进的时候和该停下的时候，整理成当下应有的态度。"
         }
       }
     },
@@ -10105,6 +10505,50 @@
           "q": "Can I keep the result?",
           "a": "You can download it as a text file from the result screen and keep it."
         }
+      },
+      "receives": {
+        "0": {
+          "title": "选择方向",
+          "detail": "从总运、恋爱、财运、健康四个方向中选择想问的方向。"
+        },
+        "1": {
+          "title": "八位依次开启",
+          "detail": "奥佩莱链依次开启八个位置，组成一个奥杜。"
+        },
+        "2": {
+          "title": "256种奥杜解读",
+          "detail": "所开出奥杜的故事，化为回应你当前处境的讯息。"
+        },
+        "3": {
+          "title": "仪式与禁忌指引",
+          "detail": "同时获得应守的禁忌与应践行的态度。"
+        },
+        "4": {
+          "title": "以文本文件保存",
+          "detail": "可将结果下载为文本文件保存留存。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "选择方向",
+          "detail": "从总运、恋爱、财运、健康中选择问题的方向。"
+        },
+        "1": {
+          "title": "开启八个位置",
+          "detail": "奥佩莱链依次开启八个位置。"
+        },
+        "2": {
+          "title": "确定奥杜",
+          "detail": "开启的各位置两两配对，确定出一个奥杜。"
+        },
+        "3": {
+          "title": "奥杜解读",
+          "detail": "获得奥杜的故事，以及禁忌与实践指引。"
+        },
+        "4": {
+          "title": "保存",
+          "detail": "在结果画面将结果下载为文本文件保存。"
+        }
       }
     },
     "openRuneOracle": {
@@ -10157,12 +10601,56 @@
       },
       "faq": {
         "0": {
-          "q": "Are there reversed readings too?",
-          "a": "Yes. Runes whose shape is symmetrical, and the blank rune Wyrd, are read upright only."
+          "q": "也有逆位解读吗?",
+          "a": "是的。但形状左右对称的符文，以及空白符文维尔德，只以正位解读。"
         },
         "1": {
-          "q": "Can I see the result again?",
-          "a": "There is no separate save feature, so it is a reading you check on the spot."
+          "q": "可以再次查看结果吗?",
+          "a": "结果不会另行保存，需要当场查看这一解读。"
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "25符文体系",
+          "detail": "在24个符文文字的基础上，加入空白符文维尔德一同抽取。"
+        },
+        "1": {
+          "title": "三位排列",
+          "detail": "过去（乌尔德）、现在（薇尔丹蒂）、未来（诗蔻蒂）三个位置分别放置符文。"
+        },
+        "2": {
+          "title": "正位与逆位解读",
+          "detail": "每个符文都分为正位与逆位来解读。"
+        },
+        "3": {
+          "title": "维尔德的特殊含义",
+          "detail": "若出现空白符文维尔德，则解读为一切尚未确定的讯号。"
+        },
+        "4": {
+          "title": "分享结果",
+          "detail": "可通过KakaoTalk或设备分享功能传递完成的解读。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "确认牌阵",
+          "detail": "以过去、现在、未来三位排列进行。"
+        },
+        "1": {
+          "title": "抽取三枚符文",
+          "detail": "在乌尔德、薇尔丹蒂、诗蔻蒂的位置放置符文。"
+        },
+        "2": {
+          "title": "确认正位或逆位",
+          "detail": "确认每枚符文是正位还是逆位。"
+        },
+        "3": {
+          "title": "按位置解读走势",
+          "detail": "解读从过去到现在、再延续到未来之路的走势。"
+        },
+        "4": {
+          "title": "分享",
+          "detail": "可以分享完成的解读结果。"
         }
       }
     },
@@ -10213,12 +10701,56 @@
       },
       "faq": {
         "0": {
-          "q": "How is the reading produced?",
-          "a": "AI writes the reading on the grounds of the raised figures alone; if generation does not go smoothly, a prepared interpretation is used instead."
+          "q": "解读是怎么生成的?",
+          "a": "AI仅根据已排出的图形撰写解读，如生成不顺利，则改用预先准备好的解释。"
         },
         "1": {
-          "q": "Can I see the result again?",
-          "a": "There is no separate save feature, so it is a reading you check on the spot."
+          "q": "可以再次查看结果吗?",
+          "a": "结果不会另行保存，需要当场查看这一占卜。"
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "16行沙占",
+          "detail": "随机点出的点组成16行，形成土占图形。"
+        },
+        "1": {
+          "title": "15位盾牌图",
+          "detail": "母、女、侄、证人依次排列，直到判官，共15个位置全部填满。"
+        },
+        "2": {
+          "title": "AI综合解读",
+          "detail": "AI仅以完成的图形为依据，解读原因、走势与神谕。"
+        },
+        "3": {
+          "title": "分时段行动建议",
+          "detail": "获得7天、21天、40天三个区间的注意事项与可立即执行的建议。"
+        },
+        "4": {
+          "title": "当场查看",
+          "detail": "结果不会被保存，需在屏幕上当场确认。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "输入问题",
+          "detail": "写下想要衡量的问题。"
+        },
+        "1": {
+          "title": "刻画16行",
+          "detail": "随机点出的点组成16行。"
+        },
+        "2": {
+          "title": "搭建盾牌图",
+          "detail": "经母、女、侄、证人，完成15位盾牌图。"
+        },
+        "3": {
+          "title": "解读判官图形",
+          "detail": "先确认决定核心答案的判官图形的含义。"
+        },
+        "4": {
+          "title": "AI综合解读",
+          "detail": "仅以图形为依据，获得原因、走势、神谕与行动建议。"
         }
       }
     },
@@ -10269,12 +10801,56 @@
       },
       "faq": {
         "0": {
-          "q": "Does the result change every time I look?",
-          "a": "With the same input you get the same cup on the same day, and it is brewed anew when the date turns."
+          "q": "每次查看结果都会不同吗?",
+          "a": "输入相同的话，同一天会得到相同的茶杯，日期一变则会重新泡出新的一杯。"
         },
         "1": {
-          "q": "Can I see the result again?",
-          "a": "There is no save-to-account feature, but within the same day the same input brings back the same cup."
+          "q": "可以再次查看结果吗?",
+          "a": "不会保存到账户，但只要在同一天使用相同的输入，就能再次确认同一个茶杯。"
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "选择提问领域",
+          "detail": "从恋爱、工作、金钱、人际、转折五个领域中选择一个。"
+        },
+        "1": {
+          "title": "泡好今日的茶",
+          "detail": "根据输入，今日的茶杯中会浮现茶叶形状。"
+        },
+        "2": {
+          "title": "三处位置解读时机",
+          "detail": "以杯缘、杯壁、杯底三个位置，分段解读近三个月的走向。"
+        },
+        "3": {
+          "title": "方位与浓淡解读",
+          "detail": "连同形状的方位与浓淡一起，补充情感与行动上的建议。"
+        },
+        "4": {
+          "title": "分享到KakaoTalk",
+          "detail": "可将完成的茶杯结果分享到KakaoTalk。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "选择提问领域",
+          "detail": "从恋爱、工作、金钱、人际、转折五个领域中选择。"
+        },
+        "1": {
+          "title": "泡茶",
+          "detail": "今日的茶杯中会浮现茶叶形状。"
+        },
+        "2": {
+          "title": "确认三处位置",
+          "detail": "确认杯缘、杯壁、杯底浮现的形状。"
+        },
+        "3": {
+          "title": "解读方位与浓淡",
+          "detail": "加上形状的方位与浓淡，解读其中含义。"
+        },
+        "4": {
+          "title": "分享",
+          "detail": "将完成的茶杯结果分享到KakaoTalk。"
         }
       }
     },
@@ -10412,6 +10988,50 @@
           "q": "Are the two courses the same price?",
           "a": "No. The 60-minute course costs more than the 30-minute one."
         }
+      },
+      "receives": {
+        "0": {
+          "title": "可选30分钟或60分钟课程",
+          "detail": "可选择4个阶段的30分钟课程(3,000韩元)，或5个阶段的60分钟课程(5,000韩元)。"
+        },
+        "1": {
+          "title": "按秒推进的引导",
+          "detail": "按照固定的时间表，以文字形式在对应的秒数提示接下来该做什么。"
+        },
+        "2": {
+          "title": "练习SATS技法",
+          "detail": "按阶段跟随内维尔·戈达德的SATS(近似入睡状态)技法练习。"
+        },
+        "3": {
+          "title": "背景音乐随阶段变化",
+          "detail": "每进入新的冥想阶段，背景音乐也会随之切换。"
+        },
+        "4": {
+          "title": "无需看表即可跟练",
+          "detail": "不必自己确认剩余时间，只需跟着提示文字进行，课程会自动结束。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "选择课程",
+          "detail": "选择30分钟或60分钟课程开始。"
+        },
+        "1": {
+          "title": "快速放松、准备",
+          "detail": "放松身心的紧张，进入冥想状态。"
+        },
+        "2": {
+          "title": "进入纯粹意识",
+          "detail": "放下杂念，进入平静的意识状态。"
+        },
+        "3": {
+          "title": "核心SATS循环",
+          "detail": "反复练习SATS技法，感受想要的场景仿佛已经实现。"
+        },
+        "4": {
+          "title": "确定并回归",
+          "detail": "巩固所感受到的状态，回到当下，课程结束。"
+        }
       }
     },
     "openYogaGuru": {
@@ -10494,6 +11114,50 @@
           "q": "What happens if generation fails?",
           "a": "If the course cannot be built, the amount used is refunded automatically."
         }
+      },
+      "receives": {
+        "0": {
+          "title": "根据当下心情生成专属课程",
+          "detail": "用简短文字写下现在的心情或状态，就会据此生成一套专属瑜伽课程。"
+        },
+        "1": {
+          "title": "可选30分钟或60分钟",
+          "detail": "可在30分钟课程(3,000韩元)和60分钟课程(5,000韩元)中选择喜欢的时长。"
+        },
+        "2": {
+          "title": "每个体式都有详细指引",
+          "detail": "每个体式都会标注梵文、英文、韩文名称，以及保持时间、呼吸法和注意事项。"
+        },
+        "3": {
+          "title": "显示脉轮与难度",
+          "detail": "课程会同时标示难度(初级、中级、高级)、重点部位和脉轮主题。"
+        },
+        "4": {
+          "title": "生成失败自动退款",
+          "detail": "如果课程生成失败，所支付的金额会自动退还。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "选择课程时长",
+          "detail": "选择30分钟或60分钟其中之一。"
+        },
+        "1": {
+          "title": "输入今日心情",
+          "detail": "用简短文字写下现在的心情或身体状态。"
+        },
+        "2": {
+          "title": "生成课程",
+          "detail": "根据输入内容，按热身、体式、呼吸、冥想、放松的顺序生成课程。"
+        },
+        "3": {
+          "title": "逐个体式跟练",
+          "detail": "按顺序练习，同时确认每个体式的名称、呼吸法和注意事项。"
+        },
+        "4": {
+          "title": "以结语真言结束",
+          "detail": "课程在最后的真言中结束。"
+        }
       }
     },
     "life_book_ai": {
@@ -10569,7 +11233,55 @@
         "1": "好奇反复出现的选择模式所为何来时",
         "2": "想把当下的转折点读得更深时"
       },
-      "hubFallbackCta": "阅览人生之书"
+      "hubFallbackCta": "阅览人生之书",
+      "receives": {
+        "0": {
+          "title": "十章人生叙事",
+          "detail": "从原型一直写到最后一句，按顺序展开。"
+        },
+        "1": {
+          "title": "核心深度解读4篇",
+          "detail": "分别深入解读气质、五行补充、十神与大运抉择。"
+        },
+        "2": {
+          "title": "大运·流年走势",
+          "detail": "把人生的重大场景与近期建议一并呈现。"
+        },
+        "3": {
+          "title": "保存为PDF",
+          "detail": "把完成的人生之书下载为PDF，方便日后再读。"
+        },
+        "4": {
+          "title": "最后一句话",
+          "detail": "以把前九章收束成一个人的故事的一句话作结。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "与生俱来的八字原型与性格",
+          "detail": "由日干、月支、藏干确立原型，解读内心运作的方式。"
+        },
+        "1": {
+          "title": "才能与爱情之章",
+          "detail": "讲述工作的方向，以及爱情中反复出现的吸引力。"
+        },
+        "2": {
+          "title": "财运与人际之章",
+          "detail": "整理金钱进出的节奏与在家庭中承担的角色。"
+        },
+        "3": {
+          "title": "健康与调候的平衡",
+          "detail": "查看身体最先反应的部位。"
+        },
+        "4": {
+          "title": "大运·流年看时机",
+          "detail": "把人生的重大场景与近期建议连接起来。"
+        },
+        "5": {
+          "title": "核心深度解读4篇与最后一句",
+          "detail": "分别深入解读四个主题，最后以一句话收尾。"
+        }
+      }
     },
     "premium_unlock": {
       "fallbackTitle": "以命盘为依据，把人生、事业、财富、关系的大方向追踪到底。",
@@ -10639,7 +11351,51 @@
       "badge": "专家咨询型",
       "headline": "以命式为据，把人生、事业、财富、关系的大流向一路推到底。",
       "hubTagline": "如果说《人生之书》是故事，《人生总运》就是诊断。十章全部附上日干、用神、十神、大运的依据，以三万字的篇幅展开。",
-      "hubFallbackCta": "阅览人生总运"
+      "hubFallbackCta": "阅览人生总运",
+      "receives": {
+        "0": {
+          "title": "10章人生总运",
+          "detail": "以日干、用神、十神、大运为依据，用十个章节诊断整个人生。"
+        },
+        "1": {
+          "title": "命盘深度解读4篇",
+          "detail": "在十个章节之外，还能获得深入解读命盘的额外4篇内容。"
+        },
+        "2": {
+          "title": "大运·流年的时期走向",
+          "detail": "分章讲述当前大运区间和未来5年流年的走向。"
+        },
+        "3": {
+          "title": "逐句标注命盘依据",
+          "detail": "每一句都标明该判断源自哪个命盘要素。"
+        },
+        "4": {
+          "title": "保存PDF",
+          "detail": "可在结果页面保存为PDF，方便以后查看。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "命盘的核心·性格与心结",
+          "detail": "先以日干和五行说明核心性向。"
+        },
+        "1": {
+          "title": "才能与事业方向·财富与生活基础",
+          "detail": "梳理命盘在事业和金钱上指向的方向。"
+        },
+        "2": {
+          "title": "爱情与缘分的流向·关系与家庭",
+          "detail": "讲述缘分和家庭关系中反复出现的走向。"
+        },
+        "3": {
+          "title": "健康与生活节奏",
+          "detail": "说明身体与节奏容易崩溃的地方及恢复方式。"
+        },
+        "4": {
+          "title": "大运的重大转折·近期流年·深度解读4篇",
+          "detail": "以未来5年的转折期和额外4篇解读收尾。"
+        }
+      }
     },
     "love_secret_ai": {
       "fallbackTitle": "把恋爱拆成六部、二十八个章节，以八字命盘解读。",
@@ -10705,6 +11461,54 @@
         "2": {
           "q": "如果结果让人难受怎么办？",
           "a": "不会用好听的话掩盖，而是会一并写出该改变什么才能有所不同。"
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "6部28节的咨询",
+          "detail": "从恋爱倾向到相性、矛盾、时机、实践，分成28个小节分别讲述。"
+        },
+        "1": {
+          "title": "连同伴侣相性一起计算",
+          "detail": "输入对方的出生信息后，可一并查看相性、理想型、情感距离感。"
+        },
+        "2": {
+          "title": "今年的爱情运与吉日",
+          "detail": "讲述从计算出的日辰中挑选的吉日和今年的爱情运走向。"
+        },
+        "3": {
+          "title": "7天行动指南",
+          "detail": "获得从今天就能实践的恋爱秘诀，以及按天安排的7天指南。"
+        },
+        "4": {
+          "title": "保存PDF",
+          "detail": "可以把完成的咨询结果保存为PDF。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "核心爱情运与问题解答",
+          "detail": "先说明当前关系所处的位置，并回答你的自由提问。"
+        },
+        "1": {
+          "title": "我的恋爱倾向——优点、缺点、心理",
+          "detail": "以日干和十神区分依恋方式与表达方式。"
+        },
+        "2": {
+          "title": "对方·相性·理想型",
+          "detail": "一并解读对方的气运、吸引力的条件与理想型。"
+        },
+        "3": {
+          "title": "矛盾·出轨风险·复合·自我保护",
+          "detail": "敏感话题也各自作为独立小节讲述。"
+        },
+        "4": {
+          "title": "大运·今年·吉日·婚姻运",
+          "detail": "讲述各时期的走向、计算出的吉日与婚姻运。"
+        },
+        "5": {
+          "title": "暧昧策略·对话·魅力·实践",
+          "detail": "以现在就能用的对话文和7天行动指南收尾。"
         }
       }
     },
@@ -10804,6 +11608,50 @@
         "6": {
           "label": "融合 — 交叉验证与时机、行动"
         }
+      },
+      "receives": {
+        "0": {
+          "title": "六大体系的深度解读",
+          "detail": "把四柱、紫微斗数、吠陀占星、宿曜、西洋占星、塔罗分别用各自的语言解读。"
+        },
+        "1": {
+          "title": "交叉验证结果",
+          "detail": "把六大体系中重合的信号与分歧的信号分开整理。"
+        },
+        "2": {
+          "title": "现场抽取的塔罗牌",
+          "detail": "在塔罗小节一并解读服务器现场抽出的六张牌。"
+        },
+        "3": {
+          "title": "12个月的时机线",
+          "detail": "最后整理未来12个月的走向与分时期的行动指引。"
+        },
+        "4": {
+          "title": "保存PDF、随时重看",
+          "detail": "完成的咨询会保存到账户中，可随时重新打开并下载PDF。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "四柱——气质与季节的流向",
+          "detail": "先从天生的气质与季节的平衡开始。"
+        },
+        "1": {
+          "title": "紫微斗数——人生的舞台与角色",
+          "detail": "解读你在人生中承担的舞台与角色。"
+        },
+        "2": {
+          "title": "吠陀占星·宿曜——潜意识的节奏与人际距离",
+          "detail": "讲述潜意识的流向与人与人之间的距离感。"
+        },
+        "3": {
+          "title": "西洋占星·塔罗——表达与责任，眼前的选择",
+          "detail": "看当下浮现的情绪与面前的选择。"
+        },
+        "4": {
+          "title": "融合——交叉验证与12个月的时机·行动指引",
+          "detail": "汇总六大体系，整理重合的信号与今后的行动。"
+        }
       }
     },
     "saju_destiny_meeting_place": {
@@ -10816,7 +11664,7 @@
         "2": "Narrows the lucky timing to 3 seasons · 4 months · 3 time bands",
         "3": "Gives 5 bond-drawing items along with a styling guide",
         "4": "Sets out separately the settings to avoid and an action plan",
-        "5": "Includes 7 prompts for generating images"
+        "5": "还附带可直接交给其他AI使用的7张提示卡"
       },
       "premiumIntro": "Instead of vague advice, it narrows place, country, type and timing into lists. The result is calculated from the birth details you enter.",
       "premiumAudience": {
@@ -10829,7 +11677,7 @@
         "1": "4 types of encounter and the lucky timing",
         "2": "Bond-drawing items and the styling guide",
         "3": "Settings to avoid and the action plan",
-        "4": "The 7 prompts"
+        "4": "可询问其他AI的7张提示卡"
       },
       "premiumOutcomes": {
         "0": "It does not guarantee any actual meeting or outcome.",
@@ -10884,8 +11732,52 @@
           "a": "5 recommended countries come with it."
         },
         "2": {
-          "q": "What are the prompts for?",
-          "a": "They are 7 prepared lines for turning the scenes you were given into images."
+          "q": "这些提示卡是做什么用的？",
+          "a": "是为了向其他AI进一步询问推荐的地点、对话、约会路线等内容而准备的7张可直接粘贴使用的提示卡。"
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "推荐地点5处",
+          "detail": "按当下八字挑选5处可能开启缘分的地点。"
+        },
+        "1": {
+          "title": "推荐国家5个",
+          "detail": "把范围扩展到海外，连城市也一并列出。"
+        },
+        "2": {
+          "title": "相遇类型与时机",
+          "detail": "用4种相遇类型和3个季节·4个月份·3个时段缩小行动时机。"
+        },
+        "3": {
+          "title": "缘分单品与行动计划",
+          "detail": "整理5件单品、造型指南，以及应避开的场所与准备事项。"
+        },
+        "4": {
+          "title": "可询问AI的7张提示卡",
+          "detail": "用于就地点、对话、约会路线等向其他AI进一步提问的现成语句。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "输入出生信息",
+          "detail": "输入出生年月日时。"
+        },
+        "1": {
+          "title": "整理缘分能量",
+          "detail": "从日干与五行中提取缘分开启的方向与气质。"
+        },
+        "2": {
+          "title": "推荐地点·国家·类型",
+          "detail": "挑选5处地点、5个国家、4种相遇类型。"
+        },
+        "3": {
+          "title": "时机与准备事项",
+          "detail": "整理3个季节·4个月份·3个时段，以及缘分单品、造型、应避开的场所。"
+        },
+        "4": {
+          "title": "AI用提示卡",
+          "detail": "获得可就推荐内容向其他AI进一步提问的7张提示卡。"
         }
       }
     },
@@ -11843,6 +12735,50 @@
           "q": "不会和去年的结果重复吗？",
           "a": "岁运每年都会变化，即使是同一命盘，每年被压的位置也不同。"
         }
+      },
+      "receives": {
+        "0": {
+          "title": "5节流年报告",
+          "detail": "把总运、财运与事业、爱情与人际、月度走向、健康与开运法分成五个小节呈现。"
+        },
+        "1": {
+          "title": "1~12月逐月走向",
+          "detail": "把从1月到12月的十二个月走向逐月拆解。"
+        },
+        "2": {
+          "title": "自行选择要看的年份",
+          "detail": "默认是明年，但你可以自行选择想看的年份来确认流年。"
+        },
+        "3": {
+          "title": "回答你自己问题的小节",
+          "detail": "会有单独的小节优先回答你留下的问题。"
+        },
+        "4": {
+          "title": "保存PDF、随时重看",
+          "detail": "可在结果页面保存为PDF，并回顾以往的新年运势。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "今年的总运",
+          "detail": "先从这一年流年与命盘相遇之处开始梳理。"
+        },
+        "1": {
+          "title": "财运与事业",
+          "detail": "讲述金钱与工作中开启与收尾的时机。"
+        },
+        "2": {
+          "title": "爱情与人际关系",
+          "detail": "看你与周围人之间的流向。"
+        },
+        "3": {
+          "title": "1~12月逐月走向",
+          "detail": "把十二个月的走向与注意事项逐月拆分。"
+        },
+        "4": {
+          "title": "健康与开运法",
+          "detail": "以身体的流向和可实践的开运法收尾。"
+        }
       }
     },
     "openSibylModal": {
@@ -11925,6 +12861,50 @@
         "1": {
           "q": "Do I have to sign in?",
           "a": "You can use it without signing in."
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "专属守护灵AI画像",
+          "detail": "只要命式相同，就一直以同样的样貌绘制。"
+        },
+        "1": {
+          "title": "核心守护印章",
+          "detail": "以日柱为中心，指出此刻需要的印章。"
+        },
+        "2": {
+          "title": "人际·工作·财运运用",
+          "detail": "按十神流向获得相应的运用语句。"
+        },
+        "3": {
+          "title": "7日守护灵任务",
+          "detail": "同时开启今日开运仪式与7日实践任务。"
+        },
+        "4": {
+          "title": "护身符袋",
+          "detail": "为您准备今日颜色、召唤咒语、小小行动、时间钥匙四样内容。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "命式与守护灵召唤",
+          "detail": "以出生年月日时立日柱，从六十甲子中决定您的守护灵。"
+        },
+        "1": {
+          "title": "核心守护印章",
+          "detail": "在印章面板中先指出核心气运。"
+        },
+        "2": {
+          "title": "人际·工作·财运运用",
+          "detail": "结合十神流向解说使用方式。"
+        },
+        "3": {
+          "title": "今日仪式与7日任务",
+          "detail": "开启今日要做的仪式与7日守护灵任务。"
+        },
+        "4": {
+          "title": "护身符袋与实战指南",
+          "detail": "以今日颜色、召唤咒语、小小行动、时间钥匙与实战指南作结。"
         }
       }
     },
@@ -12541,7 +13521,7 @@
         },
         "2": {
           "q": "也能看相性吗？",
-          "a": "相性由另外的Nakshatra相性功能处理。"
+          "a": "相性由另外的纳克夏特拉相性咨询处理。"
         }
       },
       "analysisSteps": {
@@ -12560,6 +13540,50 @@
         "3": {
           "label": "撰写咨询文",
           "detail": "以重叠之处作为结论，整理成可执行的建议。"
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "双星推算",
+          "detail": "根据出生日期和出生地，同时算出你的宿曜本命宿与吠陀纳克夏特拉、帕达。"
+        },
+        "1": {
+          "title": "9章整合解读文",
+          "detail": "从本质到爱情、事业、阴影面，共9章、8000字以上为你撰写。"
+        },
+        "2": {
+          "title": "融入你的提问",
+          "detail": "付费前写下想问的问题，我们会把它融入解读文中。"
+        },
+        "3": {
+          "title": "使用说明书",
+          "detail": "最后一章会整理顺利的条件、警示信号，以及可以实践的三件事。"
+        },
+        "4": {
+          "title": "免费PDF保存",
+          "detail": "完成的解读文可以免费保存为PDF。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "双星推算与开篇总览",
+          "detail": "同时计算宿曜与纳克夏特拉，以概括两颗星的开篇章节开始。"
+        },
+        "1": {
+          "title": "本质与内外形象",
+          "detail": "解读两大传统共同指出的本质，以及外在形象与不为人知的一面。"
+        },
+        "2": {
+          "title": "爱情与事业",
+          "detail": "分析你渴望的爱情样貌，以及事业顺利发展的环境。"
+        },
+        "3": {
+          "title": "反复出现的模式与两大传统的差异",
+          "detail": "追溯反复出现的问题根源，并比较两大传统解读上的差异之处。"
+        },
+        "4": {
+          "title": "使用说明与结语",
+          "detail": "以为你量身定制的实践准则和来自星辰的结语收尾。"
         }
       }
     },
@@ -12724,6 +13748,50 @@
         "3": {
           "label": "典籍编排",
           "detail": "把缘分、时机、方向整理成一册的流程。"
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "5章整合典籍",
+          "detail": "从命盘总览到达沙人生地图，5个章节汇集成一本典籍送给你。"
+        },
+        "1": {
+          "title": "27宿全图地形表",
+          "detail": "在27宿全部坐标中，一张表确认你与其他星宿的角度关系。"
+        },
+        "2": {
+          "title": "三位大师之声",
+          "detail": "同时获得宿曜大师、吠陀大师与整合视角三种解说。"
+        },
+        "3": {
+          "title": "主星与达沙报告全文",
+          "detail": "原本需单独付费的主星深度报告和达沙人生地图全文，原样收录进典籍中。"
+        },
+        "4": {
+          "title": "PDF保存",
+          "detail": "完成的典籍可保存为PDF，随时翻阅。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "第一章·命盘总览",
+          "detail": "宿曜、纳克夏特拉、主星、帕达与当前达沙，一次性整理呈现。"
+        },
+        "1": {
+          "title": "第二章·三位大师之声",
+          "detail": "依次呈现宿曜大师、吠陀大师、整合视角三种解说。"
+        },
+        "2": {
+          "title": "第三章·27宿地图中的我",
+          "detail": "在27宿全部坐标上，以表格查看你与其他星宿的角度关系。"
+        },
+        "3": {
+          "title": "第四章·主星深度报告",
+          "detail": "以主宰行星为中心的深度解读全文，原样收录。"
+        },
+        "4": {
+          "title": "第五章·达沙人生地图",
+          "detail": "从出生起持续展开的大运整体走势，以达沙人生地图呈现。"
         }
       }
     },
@@ -13013,6 +14081,50 @@
           "q": "Can it tell me about my health?",
           "a": "It does not make medical diagnoses. Palm readings are for reference."
         }
+      },
+      "receives": {
+        "0": {
+          "title": "双手判读",
+          "detail": "分别上传双手照片，会一起解读并比较两只手。"
+        },
+        "1": {
+          "title": "主线与副线确认",
+          "detail": "以4条主线和9种副线作为依据来指出。"
+        },
+        "2": {
+          "title": "掌丘与纹样",
+          "detail": "同时确认手掌7个掌丘和特殊纹样。"
+        },
+        "3": {
+          "title": "按目的定制解读",
+          "detail": "以你从6种咨询目的中选择的一个为主线展开解读。"
+        },
+        "4": {
+          "title": "1200字以上的解读文",
+          "detail": "将判读结果整理成1200字以上的解读文。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "上传照片并选择目的",
+          "detail": "上传双手照片，并从6种咨询目的中选择一个。"
+        },
+        "1": {
+          "title": "手相判读",
+          "detail": "一起解读双手，确认4条主线、9种副线、7个掌丘和特殊纹样。"
+        },
+        "2": {
+          "title": "分数汇总",
+          "detail": "将判读结果按项目整理成分数呈现。"
+        },
+        "3": {
+          "title": "撰写解读文",
+          "detail": "以所选目的为主线，撰写1200字以上的解读。"
+        },
+        "4": {
+          "title": "查看结果",
+          "detail": "在屏幕上直接查看完成的解读。"
+        }
       }
     },
     "tarot_celestial_harmony": {
@@ -13274,6 +14386,50 @@
           "q": "Can I keep the result?",
           "a": "You can save the result card as a portrait high-resolution image."
         }
+      },
+      "receives": {
+        "0": {
+          "title": "判定专属守护动物",
+          "detail": "用日柱十二长生判定十二动物中的一个。"
+        },
+        "1": {
+          "title": "性格·爱情解读",
+          "detail": "讲述与生俱来的性向与在爱情中显露的特质。"
+        },
+        "2": {
+          "title": "职业·人际解读",
+          "detail": "整理工作中的优势与人际关系中的态度。"
+        },
+        "3": {
+          "title": "十二动物图鉴",
+          "detail": "可一并查看其余十一种角色与相性等级。"
+        },
+        "4": {
+          "title": "保存高清结果卡",
+          "detail": "把完成的结果卡保存为高清图片留存。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "输入出生年月日时",
+          "detail": "以韩国天文研究院历法计算日柱十二长生。"
+        },
+        "1": {
+          "title": "判定并揭晓守护动物",
+          "detail": "从十二种动物中确定专属守护动物，卡片随即开启。"
+        },
+        "2": {
+          "title": "性格·爱情·职业·人际解读",
+          "detail": "分四个方向展开深度解读。"
+        },
+        "3": {
+          "title": "动物图鉴与相性等级",
+          "detail": "以等级确认与其他动物的相性。"
+        },
+        "4": {
+          "title": "保存结果卡",
+          "detail": "把完成的卡片保存为高清图片。"
+        }
       }
     },
     "fortune_tea_house": {
@@ -13294,7 +14450,55 @@
         "Is this a time to wait, or a time to move?",
         "Is it all right to keep holding on to this relationship?"
       ],
-      "fallbackCta": "Start a reading at the tea house"
+      "fallbackCta": "Start a reading at the tea house",
+      "receives": {
+        "0": {
+          "title": "从茶馆仪式开始的咨询",
+          "detail": "选择茶杯并完成简短的仪式，写下问题后，妍伊会为你展开故事。"
+        },
+        "1": {
+          "title": "可选3张或5张牌阵",
+          "detail": "可选择快速看重点的3张牌阵(5,000韩元)，或更深入的5张牌阵(7,000韩元)。"
+        },
+        "2": {
+          "title": "贴合你问题的解读",
+          "detail": "会依据你写下的问题，对每张牌给出相互关联的解读。"
+        },
+        "3": {
+          "title": "结果可保存、导出PDF、分享",
+          "detail": "完成的咨询结果可以保存、下载为PDF，也可以按你喜欢的方式分享。"
+        },
+        "4": {
+          "title": "可重新查看以往咨询",
+          "detail": "以前完成的咨询记录随时都可以再次打开查看。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "进入茶馆",
+          "detail": "进入茶馆，为今天的咨询做好氛围准备。"
+        },
+        "1": {
+          "title": "选择茶杯",
+          "detail": "挑选一个喜欢的茶杯，开始咨询。"
+        },
+        "2": {
+          "title": "茶杯仪式",
+          "detail": "用选好的茶杯完成简短仪式，梳理你的问题。"
+        },
+        "3": {
+          "title": "输入问题并选择牌阵",
+          "detail": "写下想问的问题，并选择3张或5张牌阵。"
+        },
+        "4": {
+          "title": "揭示卡牌",
+          "detail": "在茶香弥漫的等待之后，抽到的卡牌会依次展开。"
+        },
+        "5": {
+          "title": "查看并保存结果",
+          "detail": "查看每张牌的解读和综合建议，还可以保存、导出PDF、分享。"
+        }
+      }
     },
     "fortune_chat": {
       "tagline": "A reading where two voices, Yeon-i and Neo, take the same question from different angles and narrow the focus of your situation through the back-and-forth.",
@@ -13314,7 +14518,51 @@
         "What is the risk in this choice?",
         "Is there something I'm missing right now?"
       ],
-      "fallbackCta": "Start a destiny conversation"
+      "fallbackCta": "Start a destiny conversation",
+      "receives": {
+        "0": {
+          "title": "与妍伊、尼奥对话式咨询",
+          "detail": "可从八字、紫微斗数、吠陀占星、宿曜、西洋占星、塔罗中选择主题，与妍伊或尼奥进行对话式咨询。"
+        },
+        "1": {
+          "title": "延续上下文的对话",
+          "detail": "会参考最近的对话内容(最多6条)，在同一脉络下继续回答。"
+        },
+        "2": {
+          "title": "每个账号免费1次，之后按次付费",
+          "detail": "登录后每个账号可免费对话1次，之后每往返一次需支付5,000韩元。"
+        },
+        "3": {
+          "title": "对话自动保存",
+          "detail": "聊天记录会保存在会话中，重新进入也能接着看。"
+        },
+        "4": {
+          "title": "随时切换主题",
+          "detail": "咨询过程中也可以更换主题或角色，听到不同角度的解读。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "选择主题",
+          "detail": "从八字、紫微斗数、吠陀、宿曜、占星、塔罗中选择想咨询的主题。"
+        },
+        "1": {
+          "title": "选择角色",
+          "detail": "决定与妍伊还是尼奥对话。"
+        },
+        "2": {
+          "title": "输入第一个问题",
+          "detail": "写下现在困扰你的情况，开始对话。"
+        },
+        "3": {
+          "title": "查看回答后继续追问",
+          "detail": "看完回答后可以继续追问，回答会参考最近的对话内容。"
+        },
+        "4": {
+          "title": "免费次数用完后付费继续",
+          "detail": "用完账号的1次免费额度后，可付费继续对话。"
+        }
+      }
     },
     "destiny_compass": {
       "tagline": "A report-style reading that puts your saju flow next to the options in front of you and reads direction and timing as two separate things.",
@@ -13334,7 +14582,55 @@
         "When would moving cost me the least?",
         "What should I sort out first?"
       ],
-      "fallbackCta": "Open the compass reading"
+      "fallbackCta": "Open the compass reading",
+      "receives": {
+        "0": {
+          "title": "基于烦恼的解读",
+          "detail": "以你写下的一句烦恼为基础构成报告。"
+        },
+        "1": {
+          "title": "四体系原因分析",
+          "detail": "将四柱、紫微斗数、宿曜、塔罗四种体系合而为一，指出原因。"
+        },
+        "2": {
+          "title": "变化时机提示",
+          "detail": "指出当前流势何时会发生变化。"
+        },
+        "3": {
+          "title": "行动计划",
+          "detail": "整理成从今天起可以执行的具体行动。"
+        },
+        "4": {
+          "title": "保存为PDF",
+          "detail": "可将完成的报告保存为PDF文件。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "确认当前坐标",
+          "detail": "写下烦恼后，先指出你现在所处的位置与流势。"
+        },
+        "1": {
+          "title": "解读原因",
+          "detail": "将四柱、紫微斗数、宿曜、塔罗四种体系合而为一，指出当前流势的原因。"
+        },
+        "2": {
+          "title": "变化时机",
+          "detail": "指出流势何时会发生变化。"
+        },
+        "3": {
+          "title": "机会与注意",
+          "detail": "分别指出现在该把握的机会与该回避的时机。"
+        },
+        "4": {
+          "title": "行动计划与总结",
+          "detail": "一次性整理出从今天起的行动与整体结论。"
+        },
+        "5": {
+          "title": "保存为PDF",
+          "detail": "将完成的报告保存为PDF文件。"
+        }
+      }
     },
     "saju_sibyl": {
       "tagline": "An in-depth consultation-style reading that puts your natal chart next to the luck period you are passing through and traces the repeating patterns back to their root.",
@@ -13354,7 +14650,55 @@
         "What phase is this period for me?",
         "Where do I break the repeating pattern?"
       ],
-      "fallbackCta": "Open the Sibyl in-depth reading"
+      "fallbackCta": "Open the Sibyl in-depth reading",
+      "receives": {
+        "0": {
+          "title": "核心矩阵诊断",
+          "detail": "先用日干、五行、十神、风险/适性系数呈现整体图景。"
+        },
+        "1": {
+          "title": "风险与适性精密分析",
+          "detail": "深入解析该系数的依据，直到五行失衡与刑冲破害。"
+        },
+        "2": {
+          "title": "10年路线图",
+          "detail": "追踪逐年的风险与机会走势，以及扩张、守备的时机。"
+        },
+        "3": {
+          "title": "月度风险规划表",
+          "detail": "分别整理每月的风险、动力、储备与应对方案。"
+        },
+        "4": {
+          "title": "人际·财运·职业策略",
+          "detail": "一次性获得恋爱模式、金钱走向与职业标准。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "核心矩阵",
+          "detail": "通过日干、主导/不足五行、主导十神与风险/适性系数诊断整体。"
+        },
+        "1": {
+          "title": "风险与适性精密分析",
+          "detail": "分别附带依据，解析风险系数与适性系数。"
+        },
+        "2": {
+          "title": "十神模式与五行平衡",
+          "detail": "说明主导十神的行为模式和调和五行的习惯。"
+        },
+        "3": {
+          "title": "10年路线图与月度规划表",
+          "detail": "展开10年风险与机会走势，以及月度应对方案。"
+        },
+        "4": {
+          "title": "人际·财运·职业策略",
+          "detail": "整理恋爱模式、金钱走向与职业选择标准。"
+        },
+        "5": {
+          "title": "最终执行指南",
+          "detail": "以八字结构为依据，用宣言与策略语句收尾。"
+        }
+      }
     },
     "tarot_numerology": {
       "tagline": "先算出生命数与今日数，再从依这些数字洗好的牌堆中亲手选出五张，分九个主题细读的深层解读。",
@@ -13561,13 +14905,13 @@
       "fallbackCta": "See your birth chart for free"
     },
     "human_design": {
-      "tagline": "It calculates your type, strategy, inner authority, and defined centers from your birth data, and shows how your way of deciding and of spending energy is designed.",
+      "tagline": "根据出生日期与出生时间计算类型、策略、内在权威与中心定义，展示你做决定与消耗能量的方式是如何被设计的。",
       "feats": [
         "When you're always trying hard and always ending up drained",
         "When you don't know how you should be making decisions",
         "When personality-test results never quite fit"
       ],
-      "premiumIntro": "Not a personality classification -- it shows the energy blueprint calculated from your birth data as it is.",
+      "premiumIntro": "这不是性格分类，而是如实展示由出生日期与出生时间计算出的能量蓝图。",
       "premiumAudience": [
         "Anyone who wants to know how they decide",
         "Anyone who wants to cut down on draining patterns",
@@ -13578,7 +14922,55 @@
         "How should I actually be making decisions?",
         "Where is my energy leaking?"
       ],
-      "fallbackCta": "Calculate your chart for free"
+      "fallbackCta": "Calculate your chart for free",
+      "receives": {
+        "0": {
+          "title": "免费类型计算",
+          "detail": "根据出生日期与出生时间计算类型、策略、内在权威与人生角色。"
+        },
+        "1": {
+          "title": "18章完整报告",
+          "detail": "从中心定义到通道、闸门再到生活领域，共18章展开解读。"
+        },
+        "2": {
+          "title": "已定义与开放中心解读",
+          "detail": "分别解读你的已定义中心与开放中心。"
+        },
+        "3": {
+          "title": "应用到生活领域",
+          "detail": "套用到人际关系、事业与金钱、成长与决策等实际场景中解读。"
+        },
+        "4": {
+          "title": "保存为PDF",
+          "detail": "可将完成的报告下载为PDF文件保存。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "免费图表计算",
+          "detail": "输入出生日期与出生时间，计算类型、策略、内在权威与人生角色。"
+        },
+        "1": {
+          "title": "中心定义解读",
+          "detail": "依次解读已定义中心与开放中心。"
+        },
+        "2": {
+          "title": "通道与闸门解读",
+          "detail": "以已连接的通道与关键闸门作为依据解读。"
+        },
+        "3": {
+          "title": "生活领域解读",
+          "detail": "套用到人际关系、事业与金钱、成长与决策等领域解读。"
+        },
+        "4": {
+          "title": "实践指南与总结",
+          "detail": "以当下可用的实践建议和整体总结收尾。"
+        },
+        "5": {
+          "title": "保存为PDF",
+          "detail": "将完成的报告下载为PDF文件。"
+        }
+      }
     },
     "nakshatra": {
       "tagline": "It calculates which of the 27 nakshatras your moon occupied at birth, and lays out the temperament and life direction that placement carries.",
@@ -14327,6 +15719,50 @@
         "0": "The calculation follows the calendar system; the reading is for reference.",
         "1": "Auspicious dates and compatibility do not stand in for your decision.",
         "2": "The existing payment policy applies."
+      },
+      "receives": {
+        "0": {
+          "title": "按目的选择择日",
+          "detail": "从结婚、开业、签约、搬家、启动、疗愈六种目的中选一种进行计算。"
+        },
+        "1": {
+          "title": "60天全面扫描",
+          "detail": "从今天起60天内，逐日叠加纳克夏特拉与宿曜进行评分。"
+        },
+        "2": {
+          "title": "吉日与宜避开的日子",
+          "detail": "分别挑出两大体系都认为好的日子，以及若可调整则建议避开的日子。"
+        },
+        "3": {
+          "title": "一致徽章",
+          "detail": "当两大体系都认为同一天好时，会标注一致徽章提醒你。"
+        },
+        "4": {
+          "title": "逐日等级与理由表",
+          "detail": "60天全部内容可通过表格查看纳克夏特拉、宿曜、塔拉等级及理由。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "选择目的与起始日期",
+          "detail": "从六种目的中选一种，并选择开始查找的日期。"
+        },
+        "1": {
+          "title": "吉日",
+          "detail": "优先展示符合你目的、评分最高的日子。"
+        },
+        "2": {
+          "title": "宜避开的日子",
+          "detail": "接着展示若可调整则建议避开的日子。"
+        },
+        "3": {
+          "title": "汇总卡片",
+          "detail": "以卡片形式整理本次查找的标准与结果。"
+        },
+        "4": {
+          "title": "60天完整表格",
+          "detail": "按日期、等级、分数顺序，以表格查看全部60天的结果。"
+        }
       }
     },
     "nakshatra_compat": {

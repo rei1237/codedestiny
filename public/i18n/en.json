@@ -8340,7 +8340,7 @@
       "faq": {
         "0": {
           "q": "Is this a comforting consultation?",
-          "a": "No. It coldly points out where you're losing ground now and tells you what to give up. If you need comfort, we recommend a different feature."
+          "a": "No. It coldly points out where you're losing ground and even what you should give up. If you need comfort, we'd recommend a different consultation."
         },
         "1": {
           "q": "Why look at Saju and the star chart together?",
@@ -8352,10 +8352,54 @@
         }
       },
       "badge": "Strategy consultation",
-      "headline": "Sort your scattered worries into a single operations map."
+      "headline": "Sort your scattered worries into a single operations map.",
+      "receives": {
+        "0": {
+          "title": "A 14-section strategy report",
+          "detail": "You receive fourteen sections in order, from the first diagnosis to the 7-day battle plan."
+        },
+        "1": {
+          "title": "The core of your temperament and your strengths and weaknesses",
+          "detail": "First reads the core of your innate temperament and your strengths and weaknesses, then moves into a topic-focused deep dive."
+        },
+        "2": {
+          "title": "A recon report and Neo's blunt truth",
+          "detail": "You receive a recon report laying out the evidence behind the chosen method, plus Neo's blunt truth."
+        },
+        "3": {
+          "title": "Immediate orders and a 7-day battle plan",
+          "detail": "You get today's forbidden action, immediate orders, and a day-by-day 7-day plan."
+        },
+        "4": {
+          "title": "Save as PDF",
+          "detail": "You can save the result screen as a PDF to keep."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Operation start — Neo's first diagnosis",
+          "detail": "Addresses your question directly and pins down the current front line of your fate."
+        },
+        "1": {
+          "title": "Troop reading — the core of your innate temperament and strengths and weaknesses",
+          "detail": "Splits your innate core into strong ground and weak ground."
+        },
+        "2": {
+          "title": "Topic-focused reading · area-by-area depth · timing flow",
+          "detail": "Sticks closely to your chosen topic, covering the related areas and timing together."
+        },
+        "3": {
+          "title": "Your original weapon system · repeating defeats · the misaligned front",
+          "detail": "Contrasts what powers you naturally against your repeating choices and where things are misaligned now."
+        },
+        "4": {
+          "title": "Recon report · Neo's blunt truth · immediate orders · 7-day battle plan",
+          "detail": "Closes with evidence-backed blunt truth and a 7-day plan starting today."
+        }
+      }
     },
     "openNamingPromptModal": {
-      "tagline": "Proposes 5 to 7 new names in an eight-chapter naming book, and hands you the original prompt that produced that book as well.",
+      "tagline": "Proposes 5 to 7 new names in an eight-chapter naming book, and hands you the original write-up behind that book as well.",
       "feats": {
         "0": "The naming book is made up of eight chapters",
         "1": "Proposes 5 to 7 candidate new names",
@@ -8363,9 +8407,9 @@
         "3": "Checks each name's five-element makeup against the favorable and supporting elements",
         "4": "Looks at the sound five-element flow and the four numerology frames together",
         "5": "The main text runs to at least 5,000 characters",
-        "6": "Includes the original prompt used to produce the naming book"
+        "6": "Includes the original write-up used to produce the naming book"
       },
-      "premiumIntro": "Input and the draft suggestions open for free. Payment happens when you take the eight-chapter naming book and the original prompt.",
+      "premiumIntro": "Input and the draft suggestions open for free. Payment happens when you take the eight-chapter naming book and the original write-up.",
       "premiumAudience": {
         "0": "Those who want to settle on a child's name with reasons attached",
         "1": "Those who want the candidates they were given checked",
@@ -8376,7 +8420,7 @@
         "1": "5 to 7 proposed new names",
         "2": "Evaluation of your own candidates plus 3 to 5 more proposals",
         "3": "Checks by favorable element, sound five elements, and the four numerology frames",
-        "4": "The original prompt, included"
+        "4": "The original write-up, included"
       },
       "premiumOutcomes": {
         "0": "Input and the free draft suggestions open for free.",
@@ -8389,7 +8433,7 @@
         "2": "Why was this name recommended?"
       },
       "fallbackCta": "Start naming",
-      "ctaNote": "After payment, the eight-chapter naming book and the original prompt open together.",
+      "ctaNote": "After payment, the eight-chapter naming book and the original write-up open together.",
       "analysisSteps": {
         "0": {
           "label": "Saju calculation",
@@ -8405,7 +8449,7 @@
         },
         "3": {
           "label": "Writing the naming book",
-          "detail": "Organizes everything into eight chapters and includes the original prompt used to build it."
+          "detail": "Organizes everything into eight chapters and includes the original write-up used to build it."
         }
       },
       "valueCompare": {
@@ -8420,7 +8464,7 @@
         },
         "2": {
           "axis": "Deliverable",
-          "premium": "An eight-chapter naming book plus the original prompt"
+          "premium": "An eight-chapter naming book plus the original write-up behind it"
         }
       },
       "faq": {
@@ -8433,8 +8477,56 @@
           "a": "If you enter candidates, they are evaluated first, and 3 to 5 more are proposed on top of them."
         },
         "2": {
-          "q": "Why do you hand over the original prompt?",
+          "q": "Why do you hand over the original write-up?",
           "a": "So you can see exactly what criteria the names were built on and reuse it yourself."
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "The eight-chapter naming book",
+          "detail": "Organized from the overall impression to the final recommendation, across eight chapters."
+        },
+        "1": {
+          "title": "5 to 7 new names",
+          "detail": "Proposes new name candidates that fit your favorable and supporting elements."
+        },
+        "2": {
+          "title": "Your own candidates checked",
+          "detail": "If you enter names of your own, they are evaluated first, then 3 to 5 more are proposed."
+        },
+        "3": {
+          "title": "Sound and numerology checks",
+          "detail": "Filters candidates again through the sound five-element flow and the four numerology frames."
+        },
+        "4": {
+          "title": "The naming write-up",
+          "detail": "Hands you, as-is, the original write-up behind this naming book."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "The namer's first impression",
+          "detail": "Covers the first impression of this chart and what the name needs to fill in."
+        },
+        "1": {
+          "title": "Chart reading and element check",
+          "detail": "Reads the chart and element distribution, and verifies the favorable and unfavorable elements."
+        },
+        "2": {
+          "title": "This child's naming principles",
+          "detail": "Sets the criteria fitted to this chart, such as elements to include and avoid."
+        },
+        "3": {
+          "title": "Candidate names in detail",
+          "detail": "Proposes 5 to 7 new names, evaluating any candidates you entered first."
+        },
+        "4": {
+          "title": "Comparing the top three, final pick",
+          "detail": "Compares the leading candidates side by side, then settles on one and recommends it."
+        },
+        "5": {
+          "title": "Names to avoid, and the write-up",
+          "detail": "Covers names to avoid and registration checks, and includes the original naming write-up."
         }
       }
     },
@@ -8746,6 +8838,50 @@
           "q": "How is this different from other consultations?",
           "a": "Because it traces the pattern back to its root across 15 chapters, its length and calculation scope are the largest of any consultation here."
         }
+      },
+      "receives": {
+        "0": {
+          "title": "A 15-chapter deep report",
+          "detail": "Based on your chart, you receive fifteen chapters in order, totaling at least 30,000 characters."
+        },
+        "1": {
+          "title": "The roots of repeating patterns",
+          "detail": "The karma of relationships, love, money, career, and health are each covered in a separate chapter."
+        },
+        "2": {
+          "title": "A synthesis from five perspectives",
+          "detail": "Every branch of your chart is gathered into one conclusion and a direction forward."
+        },
+        "3": {
+          "title": "Key sentences and a final letter",
+          "detail": "You receive ten key closing sentences and a letter from the counselor as separate chapters."
+        },
+        "4": {
+          "title": "Save as PDF, reopen anytime",
+          "detail": "You can save the result as a PDF on the results screen and reopen it whenever you like."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Destiny's core theme · origin · current flow",
+          "detail": "First identifies the chart structure behind the repetition and where your life stands now."
+        },
+        "1": {
+          "title": "The core task of karma · the karma of relationships · the karma of love",
+          "detail": "Splits repeating patterns in relationships and love into separate chapters."
+        },
+        "2": {
+          "title": "The karma of money · career · health energy",
+          "detail": "Sorts out the repeating flow in money, work, body, and energy."
+        },
+        "3": {
+          "title": "Hidden talents · turning points · growth strategy",
+          "detail": "Covers talents you haven't used yet, upcoming turning points, and an action strategy."
+        },
+        "4": {
+          "title": "Synthesis from five perspectives · key sentences · final letter",
+          "detail": "Gathers every chapter into one conclusion, closing with key sentences and a letter."
+        }
       }
     },
     "vedic_ai_consultation": {
@@ -8770,7 +8906,7 @@
         "3": "A summary of the flow behind the reading"
       },
       "premiumOutcomes": {
-        "0": "Chart-based features are affected by how accurate the details you enter are.",
+        "0": "Chart-based readings are affected by how accurate the details you enter are.",
         "1": "The payment policy follows the existing pass, moonstone, and single-payment rules.",
         "2": "Fortune results are for reference."
       },
@@ -8825,6 +8961,50 @@
         "2": {
           "q": "What is an upaya?",
           "a": "It means a practice recommended in response to your current period. It is included in the fourth topic."
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "Lagna chart & dasha calculation",
+          "detail": "We calculate your Lagna, Nakshatra, and Vimshottari Dasha from your birth date, time, and place."
+        },
+        "1": {
+          "title": "Four in-depth topics",
+          "detail": "Your reading is written across four topics, from the roots of your karma to your dasha and remedies."
+        },
+        "2": {
+          "title": "15,000+ characters of reading",
+          "detail": "Each topic runs 3,800+ characters, adding up to a long, in-depth consultation."
+        },
+        "3": {
+          "title": "Interpretation basis included",
+          "detail": "We show the Lagna, graha, and dasha evidence behind the reading separately."
+        },
+        "4": {
+          "title": "Read again anytime",
+          "detail": "Your reading is saved, so you can revisit it later without paying again."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Roots of your karma",
+          "detail": "Read your innate nature and recurring tendencies through your Lagna and Nakshatra."
+        },
+        "1": {
+          "title": "Material achievement and dharma",
+          "detail": "See the flow of career and wealth, and your rightful path, through your graha dignities and bhava placements."
+        },
+        "2": {
+          "title": "Relationships and soul partnership",
+          "detail": "Compare your Rasi (D1) and Navamsa (D9) charts to see both the surface and the depth of your relationships."
+        },
+        "3": {
+          "title": "Current dasha flow and upaya",
+          "detail": "Understand the Mahadasha and Antardasha you're passing through now, with practical remedies (upaya)."
+        },
+        "4": {
+          "title": "Interpretation basis flow",
+          "detail": "See the Lagna, graha, and dasha evidence that supports the reading above, gathered separately."
         }
       }
     },
@@ -9017,6 +9197,50 @@
         "3": {
           "q": "How much does it cost?",
           "a": "The 30-minute and 60-minute courses are priced differently. Once you pick a course, the payment screen shows the price and whether a pass or monthly-stone applies."
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "30- or 60-minute course",
+          "detail": "Choose the length of session that fits your intent -- wealth, clarity, love, or health."
+        },
+        "1": {
+          "title": "Stage-by-stage guidance",
+          "detail": "Follow the whole session through Reset, Patch, Render, Anchor, and Deploy with guided lines and a timer."
+        },
+        "2": {
+          "title": "Immersive visuals",
+          "detail": "Colors and backgrounds shift with each stage to help you stay immersed."
+        },
+        "3": {
+          "title": "Cosmic journal",
+          "detail": "Record what you saw during the session and save it in your browser."
+        },
+        "4": {
+          "title": "Streak tracking",
+          "detail": "Your streak and total session count build up each time you finish."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Choose intent & course",
+          "detail": "Pick today's intent -- wealth, clarity, love, or health -- and choose the 30- or 60-minute course."
+        },
+        "1": {
+          "title": "Settling in",
+          "detail": "An opening stage where you pace your breathing and let go of tension."
+        },
+        "2": {
+          "title": "Theta sync",
+          "detail": "A stage where you gradually settle into the theta frequency band, following the narration."
+        },
+        "3": {
+          "title": "Vision rendering",
+          "detail": "The core stage where you vividly picture the intended scene and stay immersed."
+        },
+        "4": {
+          "title": "Anchoring & journaling",
+          "detail": "Anchors the feeling in the present, then leaves what you saw today in the cosmic journal."
         }
       }
     },
@@ -9514,6 +9738,50 @@
         "0": "This is not a medical diagnosis or treatment.",
         "1": "Dream interpretation is for reference only.",
         "2": "The existing payment policy applies."
+      },
+      "receives": {
+        "0": {
+          "title": "Dream scene summary",
+          "detail": "First organizes the scene and key symbols from your dream."
+        },
+        "1": {
+          "title": "Freudian interpretation",
+          "detail": "Reads the subconscious's wishes and conflicts from a Freudian angle."
+        },
+        "2": {
+          "title": "Jungian interpretation",
+          "detail": "Reads it again through the lens of inner archetypes and integration."
+        },
+        "3": {
+          "title": "Spiritual symbol reading",
+          "detail": "Points to the mysterious message the dream carries."
+        },
+        "4": {
+          "title": "Today's action advice",
+          "detail": "Suggests a small action you can try in real life."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Dream scene & symbols",
+          "detail": "First organizes the scene and key symbols from the dream."
+        },
+        "1": {
+          "title": "Psychoanalytic interpretation",
+          "detail": "Reads the subconscious's wishes and conflicts from a Freudian angle."
+        },
+        "2": {
+          "title": "Jungian interpretation",
+          "detail": "Reads it again through the lens of inner archetypes and integration."
+        },
+        "3": {
+          "title": "Spiritual symbol reading",
+          "detail": "Points to the symbolic message the dream carries, in a mysterious tone."
+        },
+        "4": {
+          "title": "Real-life advice",
+          "detail": "Wraps up with a small action you can take today."
+        }
       }
     },
     "openAnimalTotemModal": {
@@ -9565,6 +9833,50 @@
         "0": "Card interpretations are for reference.",
         "1": "The reading supports present choices without declaring the future.",
         "2": "The existing payment policy applies."
+      },
+      "receives": {
+        "0": {
+          "title": "Choose a one-card or three-card reading",
+          "detail": "Pick a one-card reading that goes deep on a single animal, or a three-card reading of past, present, and integration."
+        },
+        "1": {
+          "title": "Draw your guardian animal",
+          "detail": "Draw the cards yourself to meet the guardian animal you need today."
+        },
+        "2": {
+          "title": "A reading connected to your question",
+          "detail": "If you've written a question, the card messages are interpreted in relation to it."
+        },
+        "3": {
+          "title": "A plan of action for today",
+          "detail": "The reading closes with something practical you can do today."
+        },
+        "4": {
+          "title": "Save to your archive and revisit",
+          "detail": "Completed readings are saved to your archive so you can reopen them anytime."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Choose a mode",
+          "detail": "Choose either the one-card (3,000 KRW) or three-card (3,000 KRW) reading."
+        },
+        "1": {
+          "title": "Write your question",
+          "detail": "Write down what's on your mind, or choose to read your current state with no question at all."
+        },
+        "2": {
+          "title": "Draw the cards",
+          "detail": "Draw the cards yourself to reveal your guardian animals."
+        },
+        "3": {
+          "title": "Read each card's message",
+          "detail": "Review each card's message along with an interpretation that ties them together."
+        },
+        "4": {
+          "title": "Get your action plan and save",
+          "detail": "Check today's action items and save the result to your archive."
+        }
       }
     },
     "openKemetModal": {
@@ -9619,7 +9931,51 @@
         },
         "1": {
           "q": "Can I see the result again?",
-          "a": "There is no separate save feature, so it is an oracle you read on the spot."
+          "a": "It isn't saved anywhere, so it's an oracle you check right there on the spot."
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "Twelve Gods' Cards",
+          "detail": "You face the cards of Ra, Osiris, Isis, Horus, and other gods."
+        },
+        "1": {
+          "title": "Three Cards You Choose",
+          "detail": "You pick, by hand, the cards for the past, present, and future positions."
+        },
+        "2": {
+          "title": "Reading by Position",
+          "detail": "You read the meaning of the god placed in each position, one by one."
+        },
+        "3": {
+          "title": "The Union of Three Gods",
+          "detail": "The three gods are brought together into one answer to your question."
+        },
+        "4": {
+          "title": "Checked on the Spot",
+          "detail": "It isn't saved, so you check the result right there."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Write your question",
+          "detail": "You write down a question of at least three characters."
+        },
+        "1": {
+          "title": "Shuffle the cards",
+          "detail": "The twelve gods' cards are shuffled."
+        },
+        "2": {
+          "title": "Choose three cards yourself",
+          "detail": "You pick, by hand, the cards for the past, present, and future positions."
+        },
+        "3": {
+          "title": "Reading by position",
+          "detail": "You check the meaning of the god placed in each position."
+        },
+        "4": {
+          "title": "The union of three gods",
+          "detail": "You close with the combined answer of the three gods."
         }
       }
     },
@@ -10046,7 +10402,51 @@
         },
         "1": {
           "q": "Can I see the result again?",
-          "a": "There is no separate save feature, so it is a divination you read on the spot."
+          "a": "It isn't saved anywhere, so it's a divination you check right there on the spot."
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "One Hexagram Opens",
+          "detail": "The tortoise-shell rite decides one hexagram out of the sixty-four."
+        },
+        "1": {
+          "title": "Substance and Function",
+          "detail": "The relation between the upper and lower trigrams shows the shape of the moment."
+        },
+        "2": {
+          "title": "Five Strands of Reading",
+          "detail": "Love, career, money, exams, and contracts are read as five separate strands."
+        },
+        "3": {
+          "title": "Push or Wait",
+          "detail": "You get a clear answer on whether now is the time to push ahead or to wait."
+        },
+        "4": {
+          "title": "Checked on the Spot",
+          "detail": "It isn't saved, so you check the result right there."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Write your question",
+          "detail": "You write down the question on your mind."
+        },
+        "1": {
+          "title": "The tortoise-shell rite",
+          "detail": "The tortoise shell cracks and one hexagram is decided."
+        },
+        "2": {
+          "title": "Check the hexagram's meaning",
+          "detail": "You first read the name and basic meaning of the hexagram that opened."
+        },
+        "3": {
+          "title": "Substance, function, and five strands",
+          "detail": "You look at the shape from the trigrams and the five strands: love, career, money, exams, contracts."
+        },
+        "4": {
+          "title": "Today's attitude",
+          "detail": "You close by telling apart when to push and when to stop, into the attitude to take now."
         }
       }
     },
@@ -10105,6 +10505,50 @@
           "q": "Can I keep the result?",
           "a": "You can download it as a text file from the result screen and keep it."
         }
+      },
+      "receives": {
+        "0": {
+          "title": "Choose a Strand",
+          "detail": "You pick the strand of your question from overall, love, money, or health."
+        },
+        "1": {
+          "title": "Eight Positions Open",
+          "detail": "The opele chain opens the eight positions one by one to form an Odu."
+        },
+        "2": {
+          "title": "256 Odu Readings",
+          "detail": "The story of the Odu that opened turns into a message that answers your situation."
+        },
+        "3": {
+          "title": "Rites and Taboos",
+          "detail": "You also receive the taboos to keep and the attitude to practise."
+        },
+        "4": {
+          "title": "Kept as a Text File",
+          "detail": "You can download the result as a text file and keep it."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Choose a strand",
+          "detail": "You pick the strand of your question from overall, love, money, or health."
+        },
+        "1": {
+          "title": "Open the eight positions",
+          "detail": "The opele chain opens the eight positions in turn."
+        },
+        "2": {
+          "title": "The Odu is set",
+          "detail": "The opened positions pair up and one Odu is decided."
+        },
+        "3": {
+          "title": "Odu reading",
+          "detail": "You receive the story of the Odu, with its taboos and practice guidance."
+        },
+        "4": {
+          "title": "Save it",
+          "detail": "You download the result as a text file from the result screen and keep it."
+        }
       }
     },
     "openRuneOracle": {
@@ -10162,7 +10606,51 @@
         },
         "1": {
           "q": "Can I see the result again?",
-          "a": "There is no separate save feature, so it is a reading you check on the spot."
+          "a": "It isn't saved anywhere, so you check the result right there on the spot."
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "The 25-Rune System",
+          "detail": "You draw from the 24 Futhark runes plus the blank rune Wyrd."
+        },
+        "1": {
+          "title": "Three-Position Spread",
+          "detail": "Runes are placed in the past (Urd), present (Verdandi), and future (Skuld) positions."
+        },
+        "2": {
+          "title": "Upright and Reversed",
+          "detail": "Each rune is read as either upright or reversed."
+        },
+        "3": {
+          "title": "Wyrd's Special Meaning",
+          "detail": "If the blank rune Wyrd appears, it's read as a sign that nothing is decided yet."
+        },
+        "4": {
+          "title": "Share It",
+          "detail": "You can share the finished reading via KakaoTalk or your device's share options."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Check the spread",
+          "detail": "You proceed with the past, present, and future three-position layout."
+        },
+        "1": {
+          "title": "Draw three runes",
+          "detail": "Runes are placed in the Urd, Verdandi, and Skuld positions."
+        },
+        "2": {
+          "title": "Check upright or reversed",
+          "detail": "You check whether each rune is upright or reversed."
+        },
+        "3": {
+          "title": "Read the flow by position",
+          "detail": "You read the flow from the past through the present to the road ahead."
+        },
+        "4": {
+          "title": "Share it",
+          "detail": "You can share the finished reading."
         }
       }
     },
@@ -10218,7 +10706,51 @@
         },
         "1": {
           "q": "Can I see the result again?",
-          "a": "There is no separate save feature, so it is a reading you check on the spot."
+          "a": "It isn't saved anywhere, so you check the result right there on the spot."
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "16 Lines of Sand",
+          "detail": "You cast random points to form 16 lines that build a geomancy figure."
+        },
+        "1": {
+          "title": "15-Position Shield Chart",
+          "detail": "Mother, Daughter, Niece, and Witness fill the chart through to the Judge — 15 positions in all."
+        },
+        "2": {
+          "title": "AI Full Reading",
+          "detail": "The AI writes the cause, flow, and oracle message based only on the completed figures."
+        },
+        "3": {
+          "title": "Action Steps by Timeline",
+          "detail": "You get cautions and next actions across the 7-day, 21-day, and 40-day windows."
+        },
+        "4": {
+          "title": "Checked on the Spot",
+          "detail": "The result is not saved, so you check it right there on the screen."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Enter your question",
+          "detail": "You write down the question you want to weigh."
+        },
+        "1": {
+          "title": "Cast 16 lines",
+          "detail": "Random points form the 16 lines."
+        },
+        "2": {
+          "title": "Build the shield chart",
+          "detail": "Mother, Daughter, Niece, and Witness complete the 15-position shield chart."
+        },
+        "3": {
+          "title": "Read the Judge figure",
+          "detail": "You first check the meaning of the Judge figure that decides the core answer."
+        },
+        "4": {
+          "title": "AI full reading",
+          "detail": "You get the cause, flow, oracle message, and action steps based on the figures alone."
         }
       }
     },
@@ -10274,7 +10806,51 @@
         },
         "1": {
           "q": "Can I see the result again?",
-          "a": "There is no save-to-account feature, but within the same day the same input brings back the same cup."
+          "a": "It isn't saved to an account, but with the same input on the same day you can check the same cup again."
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "Choose Your Question Area",
+          "detail": "You pick one of five areas: love, work, money, relationships, or transitions."
+        },
+        "1": {
+          "title": "Today's Cup is Brewed",
+          "detail": "Tea-leaf shapes form in today's cup based on your input."
+        },
+        "2": {
+          "title": "Three-Position Timing",
+          "detail": "The rim, the wall, and the base read the flow across the coming three months."
+        },
+        "3": {
+          "title": "Direction and Density",
+          "detail": "The shape's direction and density are added for emotional and practical advice."
+        },
+        "4": {
+          "title": "Share on KakaoTalk",
+          "detail": "You can share the finished cup on KakaoTalk."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Choose a question area",
+          "detail": "You pick one of five areas: love, work, money, relationships, or transitions."
+        },
+        "1": {
+          "title": "Brew the cup",
+          "detail": "Tea-leaf shapes form in today's cup."
+        },
+        "2": {
+          "title": "Check the three positions",
+          "detail": "You check the shapes at the rim, the wall, and the base."
+        },
+        "3": {
+          "title": "Read direction and density",
+          "detail": "You add the shape's direction and density to read the grain."
+        },
+        "4": {
+          "title": "Share it",
+          "detail": "You share the finished cup on KakaoTalk."
         }
       }
     },
@@ -10412,6 +10988,50 @@
           "q": "Are the two courses the same price?",
           "a": "No. The 60-minute course costs more than the 30-minute one."
         }
+      },
+      "receives": {
+        "0": {
+          "title": "Choose the 30- or 60-minute course",
+          "detail": "Choose between the 30-minute course (4 stages, 3,000 KRW) and the 60-minute course (5 stages, 5,000 KRW)."
+        },
+        "1": {
+          "title": "Guidance timed to the second",
+          "detail": "Following a fixed timetable, the next step is given to you as text at the right second."
+        },
+        "2": {
+          "title": "Practise the SATS technique",
+          "detail": "Follow Neville Goddard's SATS (State Akin To Sleep) technique step by step."
+        },
+        "3": {
+          "title": "Background music changes by stage",
+          "detail": "The background music shifts each time the meditation moves to a new stage."
+        },
+        "4": {
+          "title": "Follow along without watching the clock",
+          "detail": "Just follow the guidance text -- there's no need to track the remaining time yourself."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Choose your course",
+          "detail": "Start by choosing the 30-minute or 60-minute course."
+        },
+        "1": {
+          "title": "Rapid relaxation and preparation",
+          "detail": "Release tension in body and mind and settle into a meditative state."
+        },
+        "2": {
+          "title": "Entering pure awareness",
+          "detail": "Let go of stray thoughts and move into a quiet, aware state."
+        },
+        "3": {
+          "title": "The core SATS loop",
+          "detail": "Repeat the SATS technique, feeling the desired scene as already real."
+        },
+        "4": {
+          "title": "Settling and returning",
+          "detail": "Fix the feeling in place and return to the present as the session ends."
+        }
       }
     },
     "openYogaGuru": {
@@ -10494,6 +11114,50 @@
           "q": "What happens if generation fails?",
           "a": "If the course cannot be built, the amount used is refunded automatically."
         }
+      },
+      "receives": {
+        "0": {
+          "title": "A course built from how you're feeling",
+          "detail": "Write a short note about your mood or condition right now, and a yoga course is built around it."
+        },
+        "1": {
+          "title": "Choose 30 or 60 minutes",
+          "detail": "Choose between the 30-minute course (3,000 KRW) and the 60-minute course (5,000 KRW)."
+        },
+        "2": {
+          "title": "Detailed guidance for every pose",
+          "detail": "Each pose comes with its Sanskrit, English, and Korean names, hold time, breathing method, and cautions."
+        },
+        "3": {
+          "title": "Chakra focus and difficulty shown",
+          "detail": "Difficulty (beginner, intermediate, advanced), focus area, and chakra theme are shown alongside the course."
+        },
+        "4": {
+          "title": "Automatic refund if generation fails",
+          "detail": "If the course can't be generated, the amount you paid is refunded automatically."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Choose a duration",
+          "detail": "Choose either the 30-minute or 60-minute course."
+        },
+        "1": {
+          "title": "Describe today's mood",
+          "detail": "Write a short note about how you're feeling or your physical condition."
+        },
+        "2": {
+          "title": "The course is generated",
+          "detail": "A course is built from your input, in the order of warm-up, asana, breathing, meditation, and relaxation."
+        },
+        "3": {
+          "title": "Follow along pose by pose",
+          "detail": "Work through each pose, checking its name, breathing method, and cautions as you go."
+        },
+        "4": {
+          "title": "Close with the final mantra",
+          "detail": "The session ends with a closing mantra."
+        }
       }
     },
     "life_book_ai": {
@@ -10569,7 +11233,55 @@
         "1": "When you wonder why the same choice patterns keep repeating",
         "2": "When you want to read the turning point you are in more deeply"
       },
-      "hubFallbackCta": "Open the Book of Life"
+      "hubFallbackCta": "Open the Book of Life",
+      "receives": {
+        "0": {
+          "title": "A ten-chapter life narrative",
+          "detail": "Writes from your original form to the final sentence, in order."
+        },
+        "1": {
+          "title": "4 expert deep readings",
+          "detail": "Reads your temperament, element balance, ten gods, and major-luck choices as separate deep dives."
+        },
+        "2": {
+          "title": "Major and yearly luck flow",
+          "detail": "Ties together the big scenes of your life and advice for the near term."
+        },
+        "3": {
+          "title": "Save as PDF",
+          "detail": "Download the finished Life Book as a PDF to read again later."
+        },
+        "4": {
+          "title": "The final sentence",
+          "detail": "Closes by knotting the first nine chapters into one person's story."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Your inborn form and character",
+          "detail": "Sets your original form from your day master, month branch, and hidden stems, then reads how your mind operates."
+        },
+        "1": {
+          "title": "Talent and love",
+          "detail": "Covers the direction of your work and the pull that repeats in your love life."
+        },
+        "2": {
+          "title": "Wealth and relationships",
+          "detail": "Organizes the rhythm of money coming and going, and your role within the family."
+        },
+        "3": {
+          "title": "Health and seasonal balance",
+          "detail": "Looks at where your body reacts first."
+        },
+        "4": {
+          "title": "Major and yearly luck timing",
+          "detail": "Connects the big scenes of your life with advice for the near term."
+        },
+        "5": {
+          "title": "4 expert readings and final sentence",
+          "detail": "Reads four themes as separate deep dives, then closes with one sentence."
+        }
+      }
     },
     "premium_unlock": {
       "fallbackTitle": "We trace the big flow of your life, work, wealth, and relationships all the way through, backed by your chart.",
@@ -10639,7 +11351,51 @@
       "badge": "Expert consultation",
       "headline": "We trace the larger current of life, work, wealth, and relationships to the end, grounded in your chart.",
       "hubTagline": "If the Book of Life is the story, Life Fortune is the diagnosis. All ten chapters carry the reasoning of day master, useful god, ten gods, and luck cycles, unpacked across 30,000 characters.",
-      "hubFallbackCta": "Open Life Fortune"
+      "hubFallbackCta": "Open Life Fortune",
+      "receives": {
+        "0": {
+          "title": "A 10-chapter life reading",
+          "detail": "Diagnoses your whole life across ten chapters, backed by your day master, useful god, ten gods, and luck cycle."
+        },
+        "1": {
+          "title": "4 extra deep readings",
+          "detail": "Beyond the ten chapters, you also receive four additional in-depth readings of your chart."
+        },
+        "2": {
+          "title": "Major and yearly luck flow",
+          "detail": "Covers your current major luck window and the yearly luck for the next 5 years, each in its own chapter."
+        },
+        "3": {
+          "title": "Chart evidence cited line by line",
+          "detail": "Each line notes which chart element the judgment is based on."
+        },
+        "4": {
+          "title": "Save as PDF",
+          "detail": "You can save the result screen as a PDF to check again later."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "The core of your chart · personality and mindset",
+          "detail": "Starts from the core temperament based on your day master and five elements."
+        },
+        "1": {
+          "title": "Talent and career direction · wealth and life foundation",
+          "detail": "Sorts out what your chart points to in work and money."
+        },
+        "2": {
+          "title": "The flow of love · relationships and family",
+          "detail": "Looks at repeating threads in bonds and family relationships."
+        },
+        "3": {
+          "title": "Health and life rhythm",
+          "detail": "Covers where your body and rhythm break down and how to recover."
+        },
+        "4": {
+          "title": "Major luck turning points · near-term yearly luck · 4 extra deep readings",
+          "detail": "Closes with the next 5 years of turning points and the 4 extra readings."
+        }
+      }
     },
     "love_secret_ai": {
       "fallbackTitle": "Reads your love life through your Saju chart, split into six parts and twenty-eight sections.",
@@ -10705,6 +11461,54 @@
         "2": {
           "q": "What if the result hurts?",
           "a": "It doesn't cover things up with pleasant words. Instead, it also writes what would need to change for things to be different."
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "A 6-part, 28-section consultation",
+          "detail": "From love temperament to compatibility, conflict, timing, and action, split into twenty-eight sections written separately."
+        },
+        "1": {
+          "title": "Compatibility calculated with your partner",
+          "detail": "Enter your partner's birth details and get compatibility, ideal type, and emotional distance together."
+        },
+        "2": {
+          "title": "This year's love luck and lucky dates",
+          "detail": "Covers lucky dates chosen from the calculated daily stem-branch and this year's love flow."
+        },
+        "3": {
+          "title": "A 7-day action guide",
+          "detail": "You get love secrets you can act on starting today plus a day-by-day 7-day guide."
+        },
+        "4": {
+          "title": "Save as PDF",
+          "detail": "You can save the finished consultation as a PDF."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Core love luck and the answer to your question",
+          "detail": "Starts from where the relationship stands now and the answer to your free question."
+        },
+        "1": {
+          "title": "Your love temperament — strengths, weaknesses, psychology",
+          "detail": "Splits attachment and expression style by day master and ten gods."
+        },
+        "2": {
+          "title": "Your partner · compatibility · ideal type",
+          "detail": "Reads your partner's energy, the conditions for attraction, and your ideal type together."
+        },
+        "3": {
+          "title": "Conflict · wandering risk · reunion · self-protection",
+          "detail": "Covers sensitive topics as separate sections too."
+        },
+        "4": {
+          "title": "Luck cycle · this year · lucky dates · marriage fortune",
+          "detail": "Covers timing flow, calculated lucky dates, and marriage fortune."
+        },
+        "5": {
+          "title": "Crush strategy · conversation · charm · action",
+          "detail": "Closes with lines you can use right now and a 7-day action guide."
         }
       }
     },
@@ -10804,6 +11608,50 @@
         "6": {
           "label": "Fusion -- cross-verification and timing/action"
         }
+      },
+      "receives": {
+        "0": {
+          "title": "A deep reading across six systems",
+          "detail": "Reads Saju, Ziwei Doushu, Vedic astrology, Sukuyo, Western astrology, and Tarot separately, each in its own language."
+        },
+        "1": {
+          "title": "A cross-verification result",
+          "detail": "Sorts out which signals overlap and which diverge across the six systems."
+        },
+        "2": {
+          "title": "Tarot cards drawn live",
+          "detail": "Reads six cards the server draws on the spot together in the Tarot section."
+        },
+        "3": {
+          "title": "A 12-month timing line",
+          "detail": "Closes with the flow for the next 12 months and timing-based action guidance."
+        },
+        "4": {
+          "title": "Save as PDF, reopen anytime",
+          "detail": "Your finished consultation is saved to your account so you can reopen it anytime and download it as a PDF."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Saju — temperament and the seasons' flow",
+          "detail": "Starts from your innate temperament and the balance of the seasons."
+        },
+        "1": {
+          "title": "Ziwei Doushu — life's stage and role",
+          "detail": "Reads the stage and role you take on in life."
+        },
+        "2": {
+          "title": "Vedic astrology · Sukuyo — the rhythm of the unconscious and relational distance",
+          "detail": "Covers your unconscious flow and the distance between you and others."
+        },
+        "3": {
+          "title": "Western astrology · Tarot — expression and responsibility, the choice in front of you",
+          "detail": "Looks at the feelings surfacing now and the choice you're facing."
+        },
+        "4": {
+          "title": "Fusion — cross-verification and 12-month timing and action",
+          "detail": "Brings the six systems together into overlapping signals and what to do next."
+        }
       }
     },
     "saju_destiny_meeting_place": {
@@ -10816,7 +11664,7 @@
         "2": "Narrows the lucky timing to 3 seasons · 4 months · 3 time bands",
         "3": "Gives 5 bond-drawing items along with a styling guide",
         "4": "Sets out separately the settings to avoid and an action plan",
-        "5": "Includes 7 prompts for generating images"
+        "5": "Includes 7 prompt cards you can put straight to another AI"
       },
       "premiumIntro": "Instead of vague advice, it narrows place, country, type and timing into lists. The result is calculated from the birth details you enter.",
       "premiumAudience": {
@@ -10829,7 +11677,7 @@
         "1": "4 types of encounter and the lucky timing",
         "2": "Bond-drawing items and the styling guide",
         "3": "Settings to avoid and the action plan",
-        "4": "The 7 prompts"
+        "4": "7 prompt cards to ask another AI"
       },
       "premiumOutcomes": {
         "0": "It does not guarantee any actual meeting or outcome.",
@@ -10884,8 +11732,52 @@
           "a": "5 recommended countries come with it."
         },
         "2": {
-          "q": "What are the prompts for?",
-          "a": "They are 7 prepared lines for turning the scenes you were given into images."
+          "q": "What are these prompt cards for?",
+          "a": "They are 7 ready-made cards for asking another AI to go deeper on the places, conversation, or date route you were recommended."
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "5 recommended places",
+          "detail": "Picks 5 places where a bond is likely to open, matched to your chart right now."
+        },
+        "1": {
+          "title": "5 recommended countries",
+          "detail": "Widens the picture overseas, right down to the cities."
+        },
+        "2": {
+          "title": "Encounter types and timing",
+          "detail": "Narrows down when to move with 4 encounter types and 3 seasons · 4 months · 3 time bands."
+        },
+        "3": {
+          "title": "Bond items and action plan",
+          "detail": "Organizes 5 items, a styling guide, and what to avoid and prepare."
+        },
+        "4": {
+          "title": "7 prompt cards for AI",
+          "detail": "Ready-made lines for asking another AI to go deeper on places, conversation, or a date route."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Enter your birth details",
+          "detail": "Enter your date and time of birth."
+        },
+        "1": {
+          "title": "Sort out your bond energy",
+          "detail": "Draws the direction and texture of where a bond opens from your day master and elements."
+        },
+        "2": {
+          "title": "Places, countries, types",
+          "detail": "Picks 5 places, 5 countries, and 4 encounter types."
+        },
+        "3": {
+          "title": "Timing and what to prepare",
+          "detail": "Organizes 3 seasons · 4 months · 3 time bands along with bond items, styling, and places to avoid."
+        },
+        "4": {
+          "title": "Prompt cards for AI",
+          "detail": "Get 7 prompt cards for asking another AI to go further on the recommendations."
         }
       }
     },
@@ -11843,6 +12735,50 @@
           "q": "Won't it overlap with last year's result?",
           "a": "Yearly Fortune changes every year, so even with the same chart, a different point gets pressed each year."
         }
+      },
+      "receives": {
+        "0": {
+          "title": "A 5-section yearly luck report",
+          "detail": "Covers overall luck, wealth and career, love and relationships, monthly flow, and health and rituals across five sections."
+        },
+        "1": {
+          "title": "Month-by-month flow for Jan–Dec",
+          "detail": "Breaks down the flow of all twelve months from January to December."
+        },
+        "2": {
+          "title": "Pick the year yourself",
+          "detail": "Defaults to next year, but you can choose any year yourself to check its yearly luck."
+        },
+        "3": {
+          "title": "A section answering your own question",
+          "detail": "A separate section answers the question you leave, as top priority."
+        },
+        "4": {
+          "title": "Save as PDF, reopen anytime",
+          "detail": "You can save the result as a PDF and revisit past yearly readings."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "This year's overall luck",
+          "detail": "Starts from where your yearly luck meets your chart."
+        },
+        "1": {
+          "title": "Wealth and career",
+          "detail": "Covers the timing that opens and closes for money and work."
+        },
+        "2": {
+          "title": "Love and relationships",
+          "detail": "Looks at the flow between you and the people around you."
+        },
+        "3": {
+          "title": "Month-by-month flow for Jan–Dec",
+          "detail": "Splits the flow and cautions of all twelve months."
+        },
+        "4": {
+          "title": "Health and rituals",
+          "detail": "Closes with your body's flow and rituals to practice."
+        }
       }
     },
     "openSibylModal": {
@@ -11925,6 +12861,50 @@
         "1": {
           "q": "Do I have to sign in?",
           "a": "You can use it without signing in."
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "Your guardian's AI image",
+          "detail": "Drawn in the same figure every time, for the same chart."
+        },
+        "1": {
+          "title": "The core guardian seal",
+          "detail": "Centres on your day pillar to point out the seal you need right now."
+        },
+        "2": {
+          "title": "Relationships, work, money",
+          "detail": "Gives you sentences for handling them, matched to your ten god flow."
+        },
+        "3": {
+          "title": "The 7-day guardian mission",
+          "detail": "Opens today's fortune-turning rite along with a 7-day mission."
+        },
+        "4": {
+          "title": "The talisman pouch",
+          "detail": "Holds four things for you: today's colour, a summoning phrase, a small action, and a time key."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Chart and guardian summoning",
+          "detail": "Sets your day pillar from your birth date and time, and decides your guardian from the sixty jiazi."
+        },
+        "1": {
+          "title": "The core guardian seal",
+          "detail": "Points out your central energy first, in the seal panel."
+        },
+        "2": {
+          "title": "Relationships, work, money",
+          "detail": "Explains how to use them, alongside your ten god flow."
+        },
+        "3": {
+          "title": "Today's rite and the 7-day mission",
+          "detail": "Opens today's fortune-turning rite and the 7-day guardian mission."
+        },
+        "4": {
+          "title": "The talisman pouch and practical guide",
+          "detail": "Closes with today's colour, a summoning phrase, a small action, a time key, and a practical guide."
         }
       }
     },
@@ -12541,7 +13521,7 @@
         },
         "2": {
           "q": "Can I check compatibility too?",
-          "a": "Compatibility is handled in the separate Nakshatra Compatibility feature."
+          "a": "We cover compatibility in a separate Nakshatra compatibility consultation."
         }
       },
       "analysisSteps": {
@@ -12560,6 +13540,50 @@
         "3": {
           "label": "Writing the consultation",
           "detail": "Takes the point of agreement as the conclusion and organizes it into actionable advice."
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "Two-star calculation",
+          "detail": "We calculate both your Sukyo natal star and your Vedic Nakshatra and pada from your birth date and place."
+        },
+        "1": {
+          "title": "9-chapter integrated reading",
+          "detail": "Your reading covers your nature, love, work, and shadow side across 9 chapters, running 8,000+ characters."
+        },
+        "2": {
+          "title": "Your own question included",
+          "detail": "Add a question before payment, and we weave it into your reading."
+        },
+        "3": {
+          "title": "A user's guide for you",
+          "detail": "The final chapter sums up the conditions for things to go well, warning signs, and three things to practice."
+        },
+        "4": {
+          "title": "Free PDF download",
+          "detail": "Save your finished reading as a PDF at no extra cost."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Two-star calculation & summary",
+          "detail": "We calculate both Sukyo and Nakshatra together and open with a summary of your two stars."
+        },
+        "1": {
+          "title": "Nature, inner and outer",
+          "detail": "Read what both traditions say about your nature — how you appear, and who you are underneath."
+        },
+        "2": {
+          "title": "Love and work",
+          "detail": "See the kind of love you're drawn to and the environment where your work goes well."
+        },
+        "3": {
+          "title": "Recurring patterns & where traditions differ",
+          "detail": "Trace the roots of recurring problems, and where the two traditions read you differently."
+        },
+        "4": {
+          "title": "Your guide & closing line",
+          "detail": "Close with practical standards tailored to you and a final line from the stars."
         }
       }
     },
@@ -12724,6 +13748,50 @@
         "3": {
           "label": "Compiling the codex",
           "detail": "Binds bonds, timing, and direction into the flow of one volume."
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "5-chapter codex",
+          "detail": "Receive all five chapters, from your full chart overview to your Dasha life map, in one volume."
+        },
+        "1": {
+          "title": "Full 27-Nakshatra map",
+          "detail": "See your relationship to every one of the 27 Nakshatras, including hard-angle placements, in one table."
+        },
+        "2": {
+          "title": "Three masters' voices",
+          "detail": "Get three readings together: the Sukyo master, the Vedic master, and an integrated view."
+        },
+        "3": {
+          "title": "Full lord & dasha reports included",
+          "detail": "The full text of the Ruling-Star Deep Report and the Dasha Life Map — normally separate purchases — is included in the codex as-is."
+        },
+        "4": {
+          "title": "PDF download",
+          "detail": "Save your finished codex as a PDF to keep for good."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Chapter 1 · Full chart overview",
+          "detail": "Your Sukyo star, Nakshatra, ruling star, pada, and current dasha, all in one place."
+        },
+        "1": {
+          "title": "Chapter 2 · Three masters' voices",
+          "detail": "Three readings in turn: the Sukyo master, the Vedic master, and an integrated view."
+        },
+        "2": {
+          "title": "Chapter 3 · Your place among the 27 stars",
+          "detail": "See your hard-angle relationships to every one of the 27 Nakshatras in a table."
+        },
+        "3": {
+          "title": "Chapter 4 · Ruling-star deep report",
+          "detail": "The full in-depth reading centered on your ruling planet, included as-is."
+        },
+        "4": {
+          "title": "Chapter 5 · Dasha life map",
+          "detail": "The full arc of your major life periods (Dasha), laid out from birth onward."
         }
       }
     },
@@ -13013,6 +14081,50 @@
           "q": "Can it tell me about my health?",
           "a": "It does not make medical diagnoses. Palm readings are for reference."
         }
+      },
+      "receives": {
+        "0": {
+          "title": "Both-hand reading",
+          "detail": "Upload photos of both hands and each is read together for comparison."
+        },
+        "1": {
+          "title": "Major & minor lines",
+          "detail": "Points to the 4 major lines and 9 minor lines as evidence."
+        },
+        "2": {
+          "title": "Palm mounts & markings",
+          "detail": "Also checks the 7 mounts of the palm and any special markings."
+        },
+        "3": {
+          "title": "Purpose-matched reading",
+          "detail": "Builds the interpretation around the one consultation purpose you chose from 6."
+        },
+        "4": {
+          "title": "1,200+ character reading",
+          "detail": "Organizes the reading results into a write-up of at least 1,200 characters."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Upload photos & pick a purpose",
+          "detail": "Upload photos of both hands and choose one of 6 consultation purposes."
+        },
+        "1": {
+          "title": "Palm reading",
+          "detail": "Reads both hands together, checking 4 major lines, 9 minor lines, 7 mounts, and special markings."
+        },
+        "2": {
+          "title": "Score summary",
+          "detail": "Sums up the reading results as scores by category."
+        },
+        "3": {
+          "title": "Writing the reading",
+          "detail": "Writes an interpretation of at least 1,200 characters around the purpose you chose."
+        },
+        "4": {
+          "title": "Result",
+          "detail": "See the finished reading right on the screen."
+        }
       }
     },
     "tarot_celestial_harmony": {
@@ -13274,6 +14386,50 @@
           "q": "Can I keep the result?",
           "a": "You can save the result card as a portrait high-resolution image."
         }
+      },
+      "receives": {
+        "0": {
+          "title": "Your guardian animal, decided",
+          "detail": "Decides one of twelve animals from your day pillar's twelve life stages."
+        },
+        "1": {
+          "title": "Personality and love reading",
+          "detail": "Covers your inborn nature and the texture that shows up in love."
+        },
+        "2": {
+          "title": "Career and relationship reading",
+          "detail": "Organizes your strengths at work and how you show up in relationships."
+        },
+        "3": {
+          "title": "The twelve-animal codex",
+          "detail": "See the other eleven characters and their compatibility grades with yours."
+        },
+        "4": {
+          "title": "Save your card in high resolution",
+          "detail": "Save the finished result card as a high-resolution image to keep."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Enter your birth details",
+          "detail": "Calculates your day pillar's twelve life stages using KASI's calendar."
+        },
+        "1": {
+          "title": "Your guardian animal appears",
+          "detail": "One of the twelve animals is decided as yours, and the card opens."
+        },
+        "2": {
+          "title": "Personality, love, career, relationships",
+          "detail": "Unfolds a deep reading across all four branches."
+        },
+        "3": {
+          "title": "Codex and compatibility grades",
+          "detail": "Check your compatibility grade with the other animals."
+        },
+        "4": {
+          "title": "Save the result card",
+          "detail": "Save the finished card as a high-resolution image."
+        }
       }
     },
     "fortune_tea_house": {
@@ -13294,7 +14450,55 @@
         "Is this a time to wait, or a time to move?",
         "Is it all right to keep holding on to this relationship?"
       ],
-      "fallbackCta": "Start a reading at the tea house"
+      "fallbackCta": "Start a reading at the tea house",
+      "receives": {
+        "0": {
+          "title": "A reading that opens with a tea house ritual",
+          "detail": "Choose a teacup, complete a short ritual, write your question, and Yeon-i unfolds the story from there."
+        },
+        "1": {
+          "title": "Choose a 3-card or 5-card spread",
+          "detail": "Pick the quick 3-card spread (5,000 KRW) for the essentials, or the deeper 5-card spread (7,000 KRW)."
+        },
+        "2": {
+          "title": "A reading built around your question",
+          "detail": "Each card is interpreted in connection with the question you wrote."
+        },
+        "3": {
+          "title": "Save, export as PDF, or share",
+          "detail": "Save your finished reading, download it as a PDF, or share it in the format you prefer."
+        },
+        "4": {
+          "title": "Reopen past readings",
+          "detail": "You can revisit any completed reading from your history at any time."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Enter the tea house",
+          "detail": "Step into the tea house and set the mood for today's reading."
+        },
+        "1": {
+          "title": "Choose your teacup",
+          "detail": "Pick a teacup you're drawn to and begin the reading."
+        },
+        "2": {
+          "title": "Teacup ritual",
+          "detail": "A short ritual with your chosen cup helps sharpen your question."
+        },
+        "3": {
+          "title": "Write your question and choose a spread",
+          "detail": "Write what's on your mind and choose a 3-card or 5-card spread."
+        },
+        "4": {
+          "title": "Cards are revealed",
+          "detail": "After a short wait while the tea steeps, the drawn cards unfold in order."
+        },
+        "5": {
+          "title": "Review and save the result",
+          "detail": "Read each card's meaning and the combined advice, then save, export, or share it."
+        }
+      }
     },
     "fortune_chat": {
       "tagline": "A reading where two voices, Yeon-i and Neo, take the same question from different angles and narrow the focus of your situation through the back-and-forth.",
@@ -13314,7 +14518,51 @@
         "What is the risk in this choice?",
         "Is there something I'm missing right now?"
       ],
-      "fallbackCta": "Start a destiny conversation"
+      "fallbackCta": "Start a destiny conversation",
+      "receives": {
+        "0": {
+          "title": "Chat with Yeon-i or Neo",
+          "detail": "Pick a topic -- saju, ziwei, Vedic, sukuyo, astrology, or tarot -- and talk it through with Yeon-i or Neo."
+        },
+        "1": {
+          "title": "A conversation that remembers context",
+          "detail": "Your last few exchanges are kept in view, so each answer builds on where the conversation left off."
+        },
+        "2": {
+          "title": "One free turn per account, then pay per exchange",
+          "detail": "Signed-in accounts get one free exchange in total; after that, each back-and-forth costs 5,000 KRW."
+        },
+        "3": {
+          "title": "Saved automatically",
+          "detail": "Your conversation is saved to your session, so you can pick it up again later."
+        },
+        "4": {
+          "title": "Switch topics anytime",
+          "detail": "You can change the topic or character mid-conversation to hear a different angle."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Choose a topic",
+          "detail": "Pick the topic you want a reading on -- saju, ziwei, Vedic, sukuyo, astrology, or tarot."
+        },
+        "1": {
+          "title": "Choose a character",
+          "detail": "Decide whether you want to talk with Yeon-i or Neo."
+        },
+        "2": {
+          "title": "Ask your first question",
+          "detail": "Write out what's on your mind to start the conversation."
+        },
+        "3": {
+          "title": "Read the answer, then ask more",
+          "detail": "After reading the reply, keep asking -- each answer takes recent context into account."
+        },
+        "4": {
+          "title": "Pay to continue after your free turn",
+          "detail": "Once your account's one free turn is used, pay to keep the conversation going."
+        }
+      }
     },
     "destiny_compass": {
       "tagline": "A report-style reading that puts your saju flow next to the options in front of you and reads direction and timing as two separate things.",
@@ -13334,7 +14582,55 @@
         "When would moving cost me the least?",
         "What should I sort out first?"
       ],
-      "fallbackCta": "Open the compass reading"
+      "fallbackCta": "Open the compass reading",
+      "receives": {
+        "0": {
+          "title": "Concern-based reading",
+          "detail": "Builds the report around the one line of concern you write."
+        },
+        "1": {
+          "title": "Four-strand cause analysis",
+          "detail": "Combines saju, zi wei dou shu, sukuyo, and tarot into one reading of the cause."
+        },
+        "2": {
+          "title": "Timing of change",
+          "detail": "Points to when the current flow is due to change."
+        },
+        "3": {
+          "title": "Action plan",
+          "detail": "Turns things into concrete actions you can start today."
+        },
+        "4": {
+          "title": "Save as PDF",
+          "detail": "Save the finished report as a PDF file to keep."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Check your coordinates",
+          "detail": "Write your concern and it first points out where you stand and the current flow."
+        },
+        "1": {
+          "title": "Reading the cause",
+          "detail": "Combines saju, zi wei dou shu, sukuyo, and tarot into one reading of the cause behind the current flow."
+        },
+        "2": {
+          "title": "Timing of change",
+          "detail": "Points to when the flow is due to change."
+        },
+        "3": {
+          "title": "Opportunity & caution",
+          "detail": "Points to the opportunity to catch and the timing to avoid, each in turn."
+        },
+        "4": {
+          "title": "Action plan & synthesis",
+          "detail": "Wraps up with what to do starting today and an overall conclusion."
+        },
+        "5": {
+          "title": "Save as PDF",
+          "detail": "Save the finished report as a PDF file."
+        }
+      }
     },
     "saju_sibyl": {
       "tagline": "An in-depth consultation-style reading that puts your natal chart next to the luck period you are passing through and traces the repeating patterns back to their root.",
@@ -13354,7 +14650,55 @@
         "What phase is this period for me?",
         "Where do I break the repeating pattern?"
       ],
-      "fallbackCta": "Open the Sibyl in-depth reading"
+      "fallbackCta": "Open the Sibyl in-depth reading",
+      "receives": {
+        "0": {
+          "title": "Core matrix diagnosis",
+          "detail": "Shows the full picture first through your day master, elements, ten gods, and risk/aptitude scores."
+        },
+        "1": {
+          "title": "Risk and aptitude deep dive",
+          "detail": "Unpacks why those scores came out, down to element imbalance and clashing branches."
+        },
+        "2": {
+          "title": "10-year roadmap",
+          "detail": "Traces the year-by-year risk and opportunity flow, and when to expand or defend."
+        },
+        "3": {
+          "title": "Monthly risk planner",
+          "detail": "Lays out each month's risk, drive, reserve, and response plan separately."
+        },
+        "4": {
+          "title": "Relationships, money, career strategy",
+          "detail": "Gives you your romance pattern, how money moves, and career criteria all at once."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Core matrix",
+          "detail": "Diagnoses the whole picture through your day master, dominant and weak elements, leading ten god, and risk/aptitude scores."
+        },
+        "1": {
+          "title": "Risk and aptitude deep dive",
+          "detail": "Unpacks the risk score and aptitude score, each with its own evidence."
+        },
+        "2": {
+          "title": "Ten god pattern and element balance",
+          "detail": "Covers the leading ten god's behavior pattern and habits that balance your elements."
+        },
+        "3": {
+          "title": "10-year roadmap and monthly planner",
+          "detail": "Opens the 10-year risk and opportunity flow and the monthly response plan."
+        },
+        "4": {
+          "title": "Relationships, money, career strategy",
+          "detail": "Organizes your romance pattern, how money moves, and career criteria."
+        },
+        "5": {
+          "title": "Final action guide",
+          "detail": "Closes with a declaration and strategy built on your chart's structure."
+        }
+      }
     },
     "tarot_numerology": {
       "tagline": "Your life number and today's number come first, then you pick five cards yourself from a deck shuffled by those numbers and read them across nine themes in depth.",
@@ -13561,13 +14905,13 @@
       "fallbackCta": "See your birth chart for free"
     },
     "human_design": {
-      "tagline": "It calculates your type, strategy, inner authority, and defined centers from your birth data, and shows how your way of deciding and of spending energy is designed.",
+      "tagline": "It calculates your type, strategy, inner authority, and defined centers from your date and time of birth, and shows how your way of deciding and of spending energy is designed.",
       "feats": [
         "When you're always trying hard and always ending up drained",
         "When you don't know how you should be making decisions",
         "When personality-test results never quite fit"
       ],
-      "premiumIntro": "Not a personality classification -- it shows the energy blueprint calculated from your birth data as it is.",
+      "premiumIntro": "Not a personality classification -- it shows the energy blueprint calculated from your date and time of birth as it is.",
       "premiumAudience": [
         "Anyone who wants to know how they decide",
         "Anyone who wants to cut down on draining patterns",
@@ -13578,7 +14922,55 @@
         "How should I actually be making decisions?",
         "Where is my energy leaking?"
       ],
-      "fallbackCta": "Calculate your chart for free"
+      "fallbackCta": "Calculate your chart for free",
+      "receives": {
+        "0": {
+          "title": "Free type calculation",
+          "detail": "Calculates your type, strategy, inner authority, and profile from your date and time of birth."
+        },
+        "1": {
+          "title": "18-chapter report",
+          "detail": "Covers everything from defined centers to channels, gates, and life areas across 18 chapters."
+        },
+        "2": {
+          "title": "Defined & open centers explained",
+          "detail": "Walks through your defined centers and open centers one by one."
+        },
+        "3": {
+          "title": "Applied to life areas",
+          "detail": "Applies the chart to relationships, work and money, growth and decisions."
+        },
+        "4": {
+          "title": "Save as PDF",
+          "detail": "Download the finished report as a PDF to keep."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Free chart calculation",
+          "detail": "Enter your date and time of birth to calculate your type, strategy, inner authority, and profile."
+        },
+        "1": {
+          "title": "Center definitions explained",
+          "detail": "Walks through your defined centers and open centers in turn."
+        },
+        "2": {
+          "title": "Channels & gates explained",
+          "detail": "Reads your connected channels and key gates as evidence."
+        },
+        "3": {
+          "title": "Life-area readings",
+          "detail": "Applies the chart to relationships, work and money, growth and decisions."
+        },
+        "4": {
+          "title": "Practical guide & summary",
+          "detail": "Wraps up with practical advice you can use now and an overall summary."
+        },
+        "5": {
+          "title": "Save as PDF",
+          "detail": "Download the finished report as a PDF file."
+        }
+      }
     },
     "nakshatra": {
       "tagline": "It calculates which of the 27 nakshatras your moon occupied at birth, and lays out the temperament and life direction that placement carries.",
@@ -14327,6 +15719,50 @@
         "0": "The calculation follows the calendar system; the reading is for reference.",
         "1": "Auspicious dates and compatibility do not stand in for your decision.",
         "2": "The existing payment policy applies."
+      },
+      "receives": {
+        "0": {
+          "title": "Choose your purpose",
+          "detail": "Pick one of six purposes — marriage, business, contract, moving, new start, or healing — to calculate for."
+        },
+        "1": {
+          "title": "Full 60-day scan",
+          "detail": "We score every day for the next 60 days by overlaying Nakshatra and Sukyo."
+        },
+        "2": {
+          "title": "Best days and days to avoid",
+          "detail": "We pull out the days both systems favor, and separately flag days better avoided if you can reschedule."
+        },
+        "3": {
+          "title": "Match badge",
+          "detail": "When both systems favor the same day, we mark it with a match badge."
+        },
+        "4": {
+          "title": "Full day-by-day table",
+          "detail": "See all 60 days in a table with Nakshatra, Sukyo, and Tara grades plus the reasons behind them."
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "Choose purpose & start date",
+          "detail": "Pick one of six purposes and the date to start scanning from."
+        },
+        "1": {
+          "title": "Best days",
+          "detail": "See the highest-scoring days for your purpose first."
+        },
+        "2": {
+          "title": "Days to avoid",
+          "detail": "Next, see days that are better avoided if you can reschedule."
+        },
+        "3": {
+          "title": "Summary cards",
+          "detail": "A card view summing up the criteria and results of this scan."
+        },
+        "4": {
+          "title": "Full 60-day table",
+          "detail": "Browse all 60 scanned days by date, grade, and score in a table."
+        }
       }
     },
     "nakshatra_compat": {
