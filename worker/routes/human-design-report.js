@@ -227,19 +227,21 @@ async function finalizeReport(env, userId, reportId, status, extra = {}) {
 
 // ── 결제 · 환불 ──────────────────────────────────────────────────────────────
 
-async function openRefundableExecution(env, userId, requestId, reportId, transactionId) {
-  // 이용권·관리자 통과는 차감이 없으므로 되돌릴 것도 없다.
-  if (!transactionId) return;
+async function openRefundableExecution(env, userId, requestId, reportId, transactionId, passRefund) {
+  // 관리자 통과는 차감이 없으므로 되돌릴 것도 없다. 이용권 통과는 passRefund 가 있으면
+  // monthlySpendCoin 을 실제로 차감했다는 뜻이라 되돌릴 것이 있다(2026-09-12 실사고 수정).
+  const hasPassRefund = Number(passRefund?.cost) > 0 && Boolean(passRefund?.cycleKey);
+  if (!transactionId && !hasPassRefund) return;
   await startServiceExecution(env, userId, {
     executionKey: executionKeyOf(requestId),
     requestId: executionKeyOf(requestId),
     featureKey: FEATURE_KEY,
-    cost: COIN_PRICE,
-    sourceTransactionId: transactionId,
+    cost: transactionId ? COIN_PRICE : 0,
+    sourceTransactionId: transactionId || "",
     reportId,
     reportType: "humanDesignPremiumReport",
     idempotencyKey: requestId,
-    metadata: { featureKey: FEATURE_KEY, reportId },
+    metadata: { featureKey: FEATURE_KEY, reportId, ...(hasPassRefund ? { passRefund } : {}) },
   }).catch((error) => {
     console.warn("[human-design-report] execution open failed", clean(error?.message || error, 200));
   });
@@ -503,7 +505,7 @@ async function handleStart(request, env) {
     ));
   }
 
-  await openRefundableExecution(env, auth.userId, requestId, reportId, clean(proof.transactionId, 120));
+  await openRefundableExecution(env, auth.userId, requestId, reportId, clean(proof.transactionId, 120), proof.passRefund);
 
   return json(
     {
