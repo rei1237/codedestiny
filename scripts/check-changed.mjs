@@ -34,7 +34,9 @@ function main() {
   const ci = args.includes("--ci-shadow");
   const committed = args.includes("--committed-head");
   const changes = collectChanges({
-    root, base: value("base") || (ci ? process.env.PR_BASE_SHA || "MISSING_PR_BASE" : committed ? "HEAD^" : "origin/main"),
+    // main 직접 개발: 로컬 기본 베이스는 HEAD 다. origin/main 을 쓰면 아직 push 하지 않은
+    // 마이크로 커밋이 전부 누적돼 검사 범위가 세션 내내 불어난다(= 최소 검증이 깨진다).
+    root, base: value("base") || (ci ? process.env.PR_BASE_SHA || "MISSING_PR_BASE" : committed ? "HEAD^" : "HEAD"),
     head: value("head") || (ci ? process.env.PR_HEAD_SHA || "HEAD" : "HEAD"), working: !ci && !committed,
   });
   let jestConfig;

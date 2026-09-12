@@ -25,7 +25,8 @@ const CASES = [
   // --- 통과해야 하는 일상 작업 (예전엔 이것들이 전부 프롬프트를 탔다) ---
   ["PASS", "Bash", "npm run verify:billing-pass-policy"],
   ["PASS", "Bash", "node scripts/verify-mindscan-reading.mjs"],
-  ["PASS", "Bash", "git push -u origin fix/some-branch"],
+  // main 직접 개발이 기본이므로 main push 는 통과한다 (강제 push 만 승인 대상)
+  ["PASS", "Bash", "git push origin main"],
   ["PASS", "Bash", "git log --oneline -5"],
   ["PASS", "Bash", "grep -rn 'maintenance' worker/"],
   ["PASS", "Bash", "gh pr create --title x --body y"],
@@ -85,8 +86,7 @@ const CASES = [
   ["ASK ", "Bash", "npm run seed:test-account"],
   ["ASK ", "Bash", "node scripts/seed-test-account.mjs"],
   ["ASK ", "Bash", "npm run backfill:insights-pexels"],
-  // --- 머지 = 배포, 워크플로 수동 실행 ---
-  ["ASK ", "Bash", "gh pr merge 648 --squash"],
+  // --- 워크플로 수동 실행 ---
   ["ASK ", "Bash", "gh workflow run release.yml -f mode=preview"],
   // --- CI 완료 대기 폴링·로그 전량 (토큰 소모) ---
   ["ASK ", "Bash", "gh run watch 31889129456 --exit-status"],
@@ -97,9 +97,9 @@ const CASES = [
     "PowerShell",
     'gh run watch 31889129456 --exit-status; echo "=== FINAL ==="; gh run view 31889129456 --json status,conclusion',
   ],
-  // --- git ---
-  ["ASK ", "Bash", "git push origin main"],
+  // --- git: 되돌릴 수 없는 강제 push 만 ---
   ["ASK ", "Bash", "git push --force-with-lease"],
+  ["ASK ", "Bash", "git push --force origin main"],
 ];
 
 /** 입력이 망가졌을 때 통과시키면 가드가 아니다 (원칙 11). */

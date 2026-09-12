@@ -93,11 +93,6 @@ const RULES = [
     why: "DB 마이그레이션·시드·백필 실행",
   },
   {
-    id: "pr-merge",
-    re: /\bgh\s+pr\s+merge\b/i,
-    why: "PR 머지는 사용자 결정 사항이며, 머지가 곧 프로덕션 배포입니다",
-  },
-  {
     id: "workflow-dispatch",
     re: /\bgh\s+workflow\s+run\b/i,
     why: "GitHub Actions 수동 실행 — 배포·롤백이 트리거될 수 있습니다",
@@ -111,8 +106,9 @@ const RULES = [
   },
   {
     id: "git-danger",
-    re: /\bgit\s+push\b[^|;&]*(?:--force|--force-with-lease|\s-f\b)|\bgit\s+push\b[^|;&]*\bmain\b/i,
-    why: "main 직접 push 또는 강제 push",
+    // main 직접 push 는 이제 기본 동작이라 잡지 않는다. 강제 push 는 여전히 되돌릴 수 없다.
+    re: /\bgit\s+push\b[^|;&]*(?:--force|--force-with-lease|\s-f\b)/i,
+    why: "강제 push — 원격 이력을 덮어씁니다",
   },
 ];
 
