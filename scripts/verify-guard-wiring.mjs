@@ -186,6 +186,32 @@ const UNWIRED_BY_DESIGN = [
   ["verify:mobile-bottom-nav-sync", "배선 후보(미승인) — 모바일 하단 내비 동기화"],
 ];
 
+/**
+ * shadow 관측 중인 검증기 — `[이름, 사유, 관측시작일]`.
+ *
+ * 왜 세 번째 버킷이 필요한가:
+ *   `UNWIRED_BY_DESIGN` 의 "배선 후보(미승인)" 항목 다수는 **지금 그냥 통과한다.** 안 돌리는 것은
+ *   순수한 손실이다. 그렇다고 차단 게이트에 바로 넣으면 오탐 하나가 main 을 세운다. 그래서
+ *   비차단(`continue-on-error`) 워크플로에서 먼저 관측한다(CLAUDE.md "CI 선택 실행은 10회 push
+ *   비교 전까지 shadow").
+ *
+ * 🔴 그런데 `isWired()` 는 **도달 가능성만** 본다 — 스텝이 무는지 여부를 모른다. 그래서 shadow 에
+ * 올린 검증기를 `UNWIRED_BY_DESIGN` 에서 지우는 순간, 기존 축은 그걸 "배선됨"으로 집계하고
+ * 감사 전체가 **없는 보호를 있다고 단언**한다 — 이 파일 헤더의 payment-reconcile·유료 LLM 사고
+ * 두 건과 정확히 같은 모양이다. 그래서 이 버킷은 축이 하나 더 있다:
+ *
+ *   shadow 항목은 (a) 전체 워크플로 기준으로 **배선돼 있어야** 하고,
+ *                 (b) shadow 워크플로를 제외한 기준으로는 **배선돼 있지 않아야** 한다.
+ *   (a) 위반 = 안 도는 shadow(적어 놓고 아무도 안 부름). (b) 위반 = 차단하는 척하는 shadow
+ *   (이미 무는 게이트에 있으니 관측 단계가 아니다 — 이 목록에서 내려야 한다).
+ *
+ * 🔴 여기 있는 동안은 **실패해도 아무것도 막지 않는다.** 문서가 이들을 "차단한다"고 적으면 그
+ * 문서가 틀린 것이다. 차단 승격은 사용자 승인 사항이다(CLAUDE.md CI gate scope).
+ */
+const SHADOW_OBSERVING = [
+  // 지금은 비어 있다. 항목을 넣을 때 사유와 관측시작일(YYYY-MM-DD)을 함께 적는다.
+];
+
 // ─────────────────────────────────────────────────────────────── 그래프
 
 /** 문자열·URL 은 건드리지 않고 주석만 지운다. 헤더 주석의 "실행: npm run verify:X" 가 배선으로 세어지면 안 된다. */
@@ -236,6 +262,9 @@ function targetFileOf(command) {
 /** 배포 파이프라인 정본. 배포보다 먼저 도는 축에서는 출발점이 될 수 없다. */
 const RELEASE_WORKFLOW = "cloudflare-pages-deploy.yml";
 
+/** shadow 관측 전용 워크플로. 전부 `continue-on-error` 라 아무것도 막지 않는다. */
+const SHADOW_WORKFLOW = "guards-shadow.yml";
+
 /**
  * 게이트(워크플로)의 출발점을 모은다.
  *
@@ -245,13 +274,24 @@ const RELEASE_WORKFLOW = "cloudflare-pages-deploy.yml";
  *
  * 🔴 릴리스 워크플로를 출발점에 넣으면 배포에서만 도는 게이트가 전부 "먼저 돈다"로 계산돼
  * 이 축이 통째로 공허해진다 — PRE_MERGE_EDGE_BLIND 가 막는 것과 같은 모양의 사고다.
+ *
+ * 🔴 같은 이유로 `preDeployOnly` 는 **shadow 워크플로도 항상 제외한다.** shadow 는 main push 로
+ * 돌지만 비차단이라, 출발점에 넣으면 "배포 전에도 돈다"가 "배포 전에 막는다"로 읽힌다. 호출부가
+ * 잊을 수 있는 일을 여기서 고정한다.
+ *
+ * `excludeWorkflows` 는 shadow 축이 쓴다 — "shadow 를 뺐을 때도 여전히 배선돼 있는가" 를 계산한다.
+ * `entries`·`read` 는 self-test 주입구다(없으면 실제 .github/workflows 를 읽는다).
  */
-function readWorkflowRoots(options) {
+export function readWorkflowRoots(options) {
   const preDeployOnly = Boolean(options?.preDeployOnly);
+  const exclude = new Set([...(options?.excludeWorkflows || []), ...(preDeployOnly ? [SHADOW_WORKFLOW] : [])]);
+  const entries = options?.entries || readdirSync(WORKFLOW_DIR);
+  const read = options?.read || ((entry) => readFileSync(join(WORKFLOW_DIR, entry), "utf8"));
   const roots = { names: new Set(), files: new Set() };
-  for (const entry of readdirSync(WORKFLOW_DIR)) {
+  for (const entry of entries) {
     if (!/\.ya?ml$/.test(entry)) continue;
-    const source = stripYamlComments(readFileSync(join(WORKFLOW_DIR, entry), "utf8"));
+    if (exclude.has(entry)) continue;
+    const source = stripYamlComments(read(entry));
     if (preDeployOnly && (entry === RELEASE_WORKFLOW || !/^\s{2}push:/m.test(source))) continue;
     const { names, files } = edgesFrom(source);
     for (const name of names) roots.names.add(name);
@@ -305,8 +345,18 @@ export function isWired(name, command, reachable) {
   return Boolean(target && reachable.reachedFiles.has(target));
 }
 
-export function auditGuardWiring({ scripts, roots, readFile, declared }) {
+/**
+ * `ownedElsewhere` 는 **다른 버킷이 전수 책임지는** 이름들이다(현재: SHADOW_OBSERVING).
+ *
+ * 🔴 왜 양쪽 축에서 모두 빼는가: shadow 항목은 정상 상태에서 "배선됨"으로 계산되므로 ②에
+ * 걸리고, shadow 워크플로가 사라지면 "미배선 + 미선언"이 되어 ①에 걸린다. 둘 중 어느 쪽도
+ * 정확한 진단이 아니다(전자는 오탐, 후자는 원인을 가린다). 이름 하나는 축 하나가 소유한다.
+ * 이 제외가 구멍이 되지 않는 이유는 auditShadowObservation 이 **양방향을 모두** 단언하고,
+ * findBucketOverlap 이 한 이름의 두 버킷 동시 등재를 실패시키기 때문이다.
+ */
+export function auditGuardWiring({ scripts, roots, readFile, declared, ownedElsewhere = [] }) {
   const reachable = computeReachable(scripts, roots, readFile);
+  const owned = new Set(ownedElsewhere);
   const verifyNames = Object.keys(scripts).filter((name) => name.startsWith("verify:"));
 
   const wired = [];
@@ -320,7 +370,7 @@ export function auditGuardWiring({ scripts, roots, readFile, declared }) {
     wired,
     unwired,
     // ① 배선도 선언도 없다 — 새 가드가 조용히 안 도는 것을 막는다.
-    undeclared: unwired.filter((name) => !declaredNames.has(name)),
+    undeclared: unwired.filter((name) => !declaredNames.has(name) && !owned.has(name)),
     // ② 선언돼 있는데 실제로는 배선됐다 — 낡은 선언이 쌓여 목록이 거짓말이 되는 것을 막는다.
     staleDeclared: wired.filter((name) => declaredNames.has(name)),
     // ③ 존재하지 않는 스크립트를 가리키는 선언 — 이름이 바뀌면 선언이 죽은 채 남는다.
@@ -391,6 +441,63 @@ export function auditPreMergeGates({ scripts, roots, readFile, declared }) {
     // ③ deploy:critical 이 더 이상 부르지 않는 것을 가리키는 선언.
     danglingDeclared: [...declaredNames].filter((name) => !gates.includes(name)),
   };
+}
+
+/**
+ * shadow 축 — 관측 중이라고 적힌 것이 **정말 관측 중인가**, 그리고 **아직 차단은 아닌가**.
+ *
+ * `rootsAll` = 모든 워크플로, `rootsWithoutShadow` = shadow 워크플로만 제외한 나머지.
+ * 두 도달 집합의 차이가 곧 "shadow 가 기여하는 실행"이다. 같은 이름이 양쪽에 다 있으면 그건
+ * shadow 가 아니라 이미 차단 게이트다.
+ */
+export function auditShadowObservation({ scripts, rootsAll, rootsWithoutShadow, readFile, declared }) {
+  const withShadow = computeReachable(scripts, rootsAll, readFile);
+  const withoutShadow = computeReachable(scripts, rootsWithoutShadow, readFile);
+
+  const observing = [];
+  const notRunning = [];
+  const alreadyBlocking = [];
+  const missingScript = [];
+  const malformed = [];
+
+  for (const [name, reason, observedSince] of declared) {
+    if (!String(reason || "").trim()) malformed.push([name, "사유가 비었다"]);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(String(observedSince || ""))) {
+      malformed.push([name, `관측시작일이 YYYY-MM-DD 가 아니다(${observedSince ?? "없음"})`]);
+    }
+    if (!Object.hasOwn(scripts, name)) {
+      missingScript.push(name);
+      continue;
+    }
+    const inAll = isWired(name, scripts[name], withShadow);
+    const inBlocking = isWired(name, scripts[name], withoutShadow);
+    // ① 적어 놓고 아무도 안 부른다 — 이 버킷이 가장 위험하게 거짓말하는 형태다.
+    if (!inAll) notRunning.push(name);
+    // ② shadow 를 빼도 여전히 불린다 = 차단 축에 이미 있다. 관측 단계가 아니다.
+    if (inBlocking) alreadyBlocking.push(name);
+    if (inAll && !inBlocking) observing.push(name);
+  }
+
+  return { observing, notRunning, alreadyBlocking, missingScript, malformed };
+}
+
+/**
+ * 한 검증기가 두 버킷에 동시에 등재되는 것을 막는다.
+ *
+ * 버킷이 셋이 되면서 생긴 위험이다. `UNWIRED_BY_DESIGN` 에 남겨 둔 채 `SHADOW_OBSERVING` 에도
+ * 넣으면, 앞의 축은 "선언됐으니 괜찮다"로 조용해지고 뒤의 축은 ownedElsewhere 로 제외를
+ * 얻는다 — 아무 축도 책임지지 않는 상태가 된다. 입력을 받는 순수 함수라 self-test 가 쉽다.
+ */
+export function findBucketOverlap(buckets) {
+  const owner = new Map();
+  const overlaps = [];
+  for (const [bucketName, entries] of buckets) {
+    for (const [name] of entries) {
+      if (owner.has(name)) overlaps.push([name, owner.get(name), bucketName]);
+      else owner.set(name, bucketName);
+    }
+  }
+  return overlaps;
 }
 
 // ─────────────────────────────────────────────────────────────── 자기 검사
@@ -516,10 +623,101 @@ function selfTest() {
     preLeak.undeclared.join(",") === "verify:late",
     "deploy-safe.mjs 를 읽기만 하는 검증기를 통해 배포 게이트가 새어 들어왔다",
   );
-  console.log("[verify-guard-wiring] self-test OK — 13개 케이스 통과");
+
+  // ── shadow 축 — 관측 중이라고 적힌 것이 정말 도는가, 그리고 아직 차단은 아닌가.
+  const wfEntries = ["pr-ci.yml", SHADOW_WORKFLOW, "notes.txt"];
+  const wfRead = (entry) =>
+    entry === SHADOW_WORKFLOW
+      ? "on:\n  push:\n    branches: [main]\njobs:\n  shadow:\n    steps:\n      - run: npm run verify:shadowed\n"
+      : "on:\n  push:\n    branches: [main]\njobs:\n  ci:\n    steps:\n      - run: npm run verify:blocking\n";
+
+  const allRoots = readWorkflowRoots({ entries: wfEntries, read: wfRead });
+  assertSelf(
+    allRoots.names.has("verify:shadowed") && allRoots.names.has("verify:blocking"),
+    "전체 기준 출발점에는 shadow 워크플로도 포함돼야 한다",
+  );
+  const noShadowRoots = readWorkflowRoots({ entries: wfEntries, read: wfRead, excludeWorkflows: [SHADOW_WORKFLOW] });
+  assertSelf(
+    !noShadowRoots.names.has("verify:shadowed") && noShadowRoots.names.has("verify:blocking"),
+    "excludeWorkflows 가 shadow 워크플로를 제외하지 못했다 — 제외가 무효면 shadow 축 전체가 공허해진다",
+  );
+  // 🔴 shadow 는 main push 로 돌지만 비차단이다. 배포 전 축의 출발점이 되면 "배포 전에도 돈다"가
+  //    "배포 전에 막는다"로 읽혀 RELEASE_WORKFLOW 를 넣었을 때와 같은 공허함이 생긴다.
+  const preDeployRoots = readWorkflowRoots({ entries: wfEntries, read: wfRead, preDeployOnly: true });
+  assertSelf(
+    !preDeployRoots.names.has("verify:shadowed") && preDeployRoots.names.has("verify:blocking"),
+    "배포 전 축이 비차단 shadow 워크플로를 출발점으로 삼았다",
+  );
+
+  const shadowBase = {
+    scripts: {
+      "verify:shadowed": "node scripts/verify-shadowed.mjs",
+      "verify:blocking": "node scripts/verify-blocking.mjs",
+    },
+    readFile: readNothing,
+    rootsAll: allRoots,
+    rootsWithoutShadow: noShadowRoots,
+  };
+
+  const shadowOk = auditShadowObservation({ ...shadowBase, declared: [["verify:shadowed", "사유", "2026-09-12"]] });
+  assertSelf(
+    shadowOk.observing.join(",") === "verify:shadowed" &&
+      !shadowOk.notRunning.length &&
+      !shadowOk.alreadyBlocking.length &&
+      !shadowOk.malformed.length &&
+      !shadowOk.missingScript.length,
+    "정상 shadow 구성(전체에선 배선·shadow 제외 시 미배선)을 통과시키지 못했다",
+  );
+
+  const shadowDead = auditShadowObservation({
+    ...shadowBase,
+    rootsAll: noShadowRoots, // shadow 워크플로가 사라진 상태
+    declared: [["verify:shadowed", "사유", "2026-09-12"]],
+  });
+  assertSelf(
+    shadowDead.notRunning.join(",") === "verify:shadowed",
+    "① 적어만 놓고 아무도 부르지 않는 shadow 를 잡지 못했다",
+  );
+
+  const shadowBlocking = auditShadowObservation({ ...shadowBase, declared: [["verify:blocking", "사유", "2026-09-12"]] });
+  assertSelf(
+    shadowBlocking.alreadyBlocking.join(",") === "verify:blocking",
+    "② 차단 게이트에 이미 있는데 shadow 라고 적힌 항목을 잡지 못했다",
+  );
+
+  const shadowGone = auditShadowObservation({ ...shadowBase, declared: [["verify:gone", "사유", "2026-09-12"]] });
+  assertSelf(shadowGone.missingScript.join(",") === "verify:gone", "③ 없는 스크립트를 가리키는 shadow 선언을 잡지 못했다");
+
+  const shadowSloppy = auditShadowObservation({
+    ...shadowBase,
+    declared: [["verify:shadowed", "", "2026/09/12"]],
+  });
+  assertSelf(shadowSloppy.malformed.length === 2, "사유 누락·관측시작일 형식 오류를 잡지 못했다");
+
+  const overlap = findBucketOverlap([
+    ["UNWIRED_BY_DESIGN", [["verify:both", "사유"]]],
+    ["SHADOW_OBSERVING", [["verify:both", "사유", "2026-09-12"]]],
+  ]);
+  assertSelf(
+    overlap.length === 1 && overlap[0][0] === "verify:both",
+    "한 검증기가 두 버킷에 동시에 등재된 것을 잡지 못했다 — 그 상태에선 아무 축도 책임지지 않는다",
+  );
+  assertSelf(
+    findBucketOverlap([
+      ["UNWIRED_BY_DESIGN", [["verify:a", "사유"]]],
+      ["SHADOW_OBSERVING", [["verify:b", "사유", "2026-09-12"]]],
+    ]).length === 0,
+    "서로 다른 버킷의 서로 다른 이름을 중복으로 신고했다",
+  );
+
+  // 🔴 개수를 손으로 적지 않는다. 직전에는 14개를 "13개 케이스"로 적고 있었다.
+  console.log(`[verify-guard-wiring] self-test OK — ${selfTestCases}개 케이스 통과`);
 }
 
+let selfTestCases = 0;
+
 function assertSelf(condition, message) {
+  selfTestCases += 1;
   if (!condition) {
     console.error(`[verify-guard-wiring] self-test FAIL: ${message}`);
     process.exit(1);
@@ -541,11 +739,14 @@ const readRepoFile = (relPath) => {
   return existsSync(abs) ? readFileSync(abs, "utf8") : null;
 };
 
+const readForGraph = (relPath) => (relPath === SELF ? null : readRepoFile(relPath));
+
 const result = auditGuardWiring({
   scripts,
   roots: readWorkflowRoots(),
-  readFile: (relPath) => (relPath === SELF ? null : readRepoFile(relPath)),
+  readFile: readForGraph,
   declared: UNWIRED_BY_DESIGN,
+  ownedElsewhere: SHADOW_OBSERVING.map(([name]) => name),
 });
 
 if (args.has("--report")) {
@@ -556,6 +757,7 @@ if (args.has("--report")) {
 }
 
 const problems = [];
+let shadowObserving = 0;
 if (result.undeclared.length) {
   problems.push(
     `아무 게이트도 부르지 않는데 사유 선언도 없는 검증기 ${result.undeclared.length}개:\n` +
@@ -582,7 +784,7 @@ if (result.danglingDeclared.length) {
 const preMergeResult = auditPreMergeGates({
   scripts,
   roots: readWorkflowRoots({ preDeployOnly: true }),
-  readFile: (relPath) => (relPath === SELF ? null : readRepoFile(relPath)),
+  readFile: readForGraph,
   declared: POST_MERGE_BY_DESIGN,
 });
 
@@ -609,6 +811,68 @@ if (preMergeResult.danglingDeclared.length) {
       "\n  → 배포 게이트 목록이 바뀌었습니다. 선언도 함께 정리하세요.",
   );
 }
+
+// ── 버킷 중복. 한 이름은 축 하나가 소유한다(ownedElsewhere 가 구멍이 되지 않게 하는 전제).
+const overlaps = findBucketOverlap([
+  ["UNWIRED_BY_DESIGN", UNWIRED_BY_DESIGN],
+  ["POST_MERGE_BY_DESIGN", POST_MERGE_BY_DESIGN],
+  ["SHADOW_OBSERVING", SHADOW_OBSERVING],
+]);
+if (overlaps.length) {
+  problems.push(
+    `한 검증기가 두 버킷에 동시에 등재됐습니다 (${overlaps.length}개):\n` +
+      overlaps.map(([name, first, second]) => `    - ${name} (${first} + ${second})`).join("\n") +
+      "\n  → 이 상태에서는 어느 축도 그 이름을 책임지지 않습니다. 한 버킷만 남기세요.",
+  );
+}
+
+// ── shadow 축. 선언이 있는데 워크플로 파일이 없으면 제외가 무효가 되어 축 전체가 뒤집힌다.
+const shadowWorkflowExists = existsSync(join(WORKFLOW_DIR, SHADOW_WORKFLOW));
+if (SHADOW_OBSERVING.length && !shadowWorkflowExists) {
+  problems.push(
+    `SHADOW_OBSERVING 에 ${SHADOW_OBSERVING.length}개가 선언됐는데 .github/workflows/${SHADOW_WORKFLOW} 가 없습니다.` +
+      "\n  → 그 항목들은 아무 데서도 돌지 않습니다. 워크플로를 복원하거나 선언을 UNWIRED_BY_DESIGN 으로 되돌리세요.",
+  );
+} else if (SHADOW_OBSERVING.length) {
+  const shadowResult = auditShadowObservation({
+    scripts,
+    rootsAll: readWorkflowRoots(),
+    rootsWithoutShadow: readWorkflowRoots({ excludeWorkflows: [SHADOW_WORKFLOW] }),
+    readFile: readForGraph,
+    declared: SHADOW_OBSERVING,
+  });
+  if (shadowResult.notRunning.length) {
+    problems.push(
+      `SHADOW_OBSERVING 에 있지만 어느 워크플로도 부르지 않는 검증기 ${shadowResult.notRunning.length}개:\n` +
+        shadowResult.notRunning.map((name) => `    - ${name}`).join("\n") +
+        `\n  → "관측 중"이라고 적혀 있으나 신호가 0입니다. ${SHADOW_WORKFLOW} 의 스위트 목록에 넣으세요.`,
+    );
+  }
+  if (shadowResult.alreadyBlocking.length) {
+    problems.push(
+      `SHADOW_OBSERVING 에 있지만 shadow 를 제외해도 여전히 배선된 검증기 ${shadowResult.alreadyBlocking.length}개:\n` +
+        shadowResult.alreadyBlocking.map((name) => `    - ${name}`).join("\n") +
+        "\n  → 이미 차단 게이트에 있습니다. 관측 단계가 아니므로 SHADOW_OBSERVING 에서 내리세요." +
+        "\n    이 목록을 그대로 두면 '차단하는 척하는 shadow' 가 됩니다.",
+    );
+  }
+  if (shadowResult.missingScript.length) {
+    problems.push(
+      `SHADOW_OBSERVING 이 존재하지 않는 스크립트를 가리킵니다 (${shadowResult.missingScript.length}개):\n` +
+        shadowResult.missingScript.map((name) => `    - ${name}`).join("\n") +
+        "\n  → 이름이 바뀌었거나 삭제됐습니다. 선언도 함께 정리하세요.",
+    );
+  }
+  if (shadowResult.malformed.length) {
+    problems.push(
+      `SHADOW_OBSERVING 선언 형식 오류 (${shadowResult.malformed.length}개):\n` +
+        shadowResult.malformed.map(([name, why]) => `    - ${name}: ${why}`).join("\n") +
+        "\n  → 각 항목은 [이름, 사유, 관측시작일(YYYY-MM-DD)] 입니다. 관측시작일이 없으면 승격 판단을 할 수 없습니다.",
+    );
+  }
+  shadowObserving = shadowResult.observing.length;
+}
+
 if (problems.length) {
   console.error("\n[verify-guard-wiring] FAIL\n");
   for (const problem of problems) console.error(`  ${problem}\n`);
@@ -617,6 +881,7 @@ if (problems.length) {
 
 console.log(
   `[verify-guard-wiring] OK — verify:* ${result.wired.length + result.unwired.length}개 중 ` +
-    `${result.wired.length}개 배선, ${result.unwired.length}개는 사유와 함께 미배선으로 선언됨. ` +
+    `${result.wired.length}개 배선(그중 ${shadowObserving}개는 비차단 shadow 관측), ` +
+    `${result.unwired.length}개는 사유와 함께 미배선으로 선언됨. ` +
     `배포 게이트 ${preMergeResult.gates.length}개 중 ${preMergeResult.preMerge.length}개가 배포 전에도 돈다.`,
 );
