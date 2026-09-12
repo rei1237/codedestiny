@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import MoonIcon from "@/components/ui/MoonIcon";
 import { type FormEvent, type ReactNode, useEffect, useMemo, useState } from "react";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { trackEvent } from "@/lib/analytics";
@@ -42,6 +43,7 @@ function markFreshSignup(user?: AuthUser) {
 
 type Copy = {
   loginTitle: string; signupTitle: string; loginDescription: string; signupDescription: string;
+  moonstoneBadgeTitle: string; moonstoneBadgeDetail: string;
   socialLabel: string; google: string; naver: string; kakao: string; moving: string; orEmail: string;
   email: string; password: string; phone: string; phoneHint: string; invalidPhone: string;
   showPassword: string; hidePassword: string; capsLock: string; passwordHint: string; login: string; signup: string;
@@ -55,7 +57,9 @@ type Copy = {
 const EN: Copy = {
   loginTitle: "Welcome back", signupTitle: "Save your destiny safely",
   loginDescription: "Continue quickly with a social account or email.",
-  signupDescription: "Sign up and get 500 moonstones (worth ₩5,000) right away, usable on paid readings for 30 days. We only ask for the essentials.",
+  signupDescription: "Sign up and a special gift is waiting for you. We only ask for the essentials.",
+  moonstoneBadgeTitle: "Get 500 moonstones the moment you sign up",
+  moonstoneBadgeDetail: "Worth ₩5,000 · a bonus currency available only through events · usable on paid content for 30 days",
   socialLabel: "Continue with a social account", google: "Continue with Google", naver: "Continue with Naver",
   kakao: "Continue with Kakao", moving: "Opening authentication…", orEmail: "or use email",
   email: "Email", password: "Password", phone: "Mobile number",
@@ -82,7 +86,9 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
   ko: {
     loginTitle: "다시 만나서 반가워요", signupTitle: "운명의 기록을 안전하게 저장해 보세요",
     loginDescription: "소셜 계정 또는 이메일로 빠르게 이어갈 수 있어요.",
-    signupDescription: "가입하면 월정석 500개(5,000원 상당)를 바로 드려요 — 30일 안에 유료 콘텐츠에 쓸 수 있어요. 계정에는 꼭 필요한 정보만 받아요.",
+    signupDescription: "가입하면 특별한 선물이 기다리고 있어요. 계정에는 꼭 필요한 정보만 받아요.",
+    moonstoneBadgeTitle: "가입 즉시 월정석 500개 지급",
+    moonstoneBadgeDetail: "5,000원 상당 · 이벤트로만 받을 수 있는 보너스 재화 · 30일 안에 유료 콘텐츠 결제에 사용",
     socialLabel: "소셜 계정으로 계속하기", google: "Google로 계속하기", naver: "네이버로 계속하기",
     kakao: "카카오로 계속하기", moving: "인증 화면으로 이동 중…", orEmail: "또는 이메일로 계속하기",
     email: "이메일", password: "비밀번호", phone: "휴대폰 번호",
@@ -108,7 +114,9 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
   ja: {
     loginTitle: "おかえりなさい", signupTitle: "運命の記録を安全に保存しましょう",
     loginDescription: "ソーシャルアカウントまたはメールで手早く続けられます。",
-    signupDescription: "登録すると月光石500個(₩5,000相当)をすぐにプレゼント — 30日以内に有料コンテンツで使えます。必要最小限の情報のみお伺いします。",
+    signupDescription: "登録すると特別なプレゼントが待っています。必要最小限の情報のみお伺いします。",
+    moonstoneBadgeTitle: "登録するとすぐに月光石500個をプレゼント",
+    moonstoneBadgeDetail: "₩5,000相当・イベントでしか手に入らないボーナス通貨・30日以内に有料コンテンツで使用可能",
     socialLabel: "ソーシャルアカウントで続ける", google: "Googleで続ける", naver: "Naverで続ける",
     kakao: "Kakaoで続ける", moving: "認証画面に移動しています…", orEmail: "またはメールで続ける",
     email: "メールアドレス", password: "パスワード", phone: "携帯電話番号",
@@ -134,7 +142,9 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
   "zh-CN": {
     loginTitle: "欢迎回来", signupTitle: "安全保存你的命运记录",
     loginDescription: "使用社交账号或邮箱即可快速继续。",
-    signupDescription: "注册即可立即获得500个月光石(价值₩5,000) — 30天内可用于付费内容。我们只收集必要的信息。",
+    signupDescription: "注册后有惊喜礼物在等你。我们只收集必要的信息。",
+    moonstoneBadgeTitle: "注册即刻获得500个月光石",
+    moonstoneBadgeDetail: "价值₩5,000 · 仅限活动获得的奖励货币 · 30天内可用于付费内容",
     socialLabel: "使用社交账号继续", google: "使用Google继续", naver: "使用Naver继续",
     kakao: "使用Kakao继续", moving: "正在跳转到认证页面…", orEmail: "或使用邮箱继续",
     email: "电子邮箱", password: "密码", phone: "手机号码",
@@ -160,7 +170,9 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
   "zh-TW": {
     loginTitle: "歡迎回來", signupTitle: "安全保存你的命運記錄",
     loginDescription: "使用社群帳號或電子郵件即可快速繼續。",
-    signupDescription: "註冊即可立即獲得500個月光石(價值₩5,000) — 30天內可用於付費內容。我們只收集必要的資訊。",
+    signupDescription: "註冊後有驚喜禮物在等你。我們只收集必要的資訊。",
+    moonstoneBadgeTitle: "註冊即刻獲得500個月光石",
+    moonstoneBadgeDetail: "價值₩5,000 · 僅限活動獲得的獎勵貨幣 · 30天內可用於付費內容",
     socialLabel: "使用社群帳號繼續", google: "使用Google繼續", naver: "使用Naver繼續",
     kakao: "使用Kakao繼續", moving: "正在前往驗證畫面…", orEmail: "或使用電子郵件繼續",
     email: "電子郵件", password: "密碼", phone: "手機號碼",
@@ -186,7 +198,9 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
   vi: {
     loginTitle: "Chào mừng bạn trở lại", signupTitle: "Lưu trữ vận mệnh của bạn một cách an toàn",
     loginDescription: "Tiếp tục nhanh chóng bằng tài khoản mạng xã hội hoặc email.",
-    signupDescription: "Đăng ký để nhận ngay 500 đá mặt trăng (trị giá ₩5.000) — dùng được cho nội dung trả phí trong 30 ngày. Chúng tôi chỉ thu thập thông tin cần thiết.",
+    signupDescription: "Sign up and a special gift is waiting for you. We only ask for the essentials.",
+    moonstoneBadgeTitle: "Get 500 moonstones the moment you sign up",
+    moonstoneBadgeDetail: "Worth ₩5,000 · a bonus currency available only through events · usable on paid content for 30 days",
     socialLabel: "Tiếp tục bằng tài khoản mạng xã hội", google: "Tiếp tục với Google", naver: "Tiếp tục với Naver",
     kakao: "Tiếp tục với Kakao", moving: "Đang chuyển đến màn hình xác thực…", orEmail: "hoặc dùng email",
     email: "Email", password: "Mật khẩu", phone: "Số điện thoại di động",
@@ -212,7 +226,9 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
   hi: {
     loginTitle: "वापसी पर स्वागत है", signupTitle: "अपनी नियति को सुरक्षित रूप से सहेजें",
     loginDescription: "सोशल खाते या ईमेल से तुरंत जारी रखें।",
-    signupDescription: "साइन अप करते ही आपको तुरंत 500 मूनस्टोन (₩5,000 मूल्य के) मिलेंगे — 30 दिनों तक पेड कंटेंट पर उपयोग कर सकते हैं। हम केवल ज़रूरी जानकारी माँगते हैं।",
+    signupDescription: "Sign up and a special gift is waiting for you. We only ask for the essentials.",
+    moonstoneBadgeTitle: "Get 500 moonstones the moment you sign up",
+    moonstoneBadgeDetail: "Worth ₩5,000 · a bonus currency available only through events · usable on paid content for 30 days",
     socialLabel: "सोशल खाते से जारी रखें", google: "Google से जारी रखें", naver: "Naver से जारी रखें",
     kakao: "Kakao से जारी रखें", moving: "प्रमाणीकरण स्क्रीन पर जा रहे हैं…", orEmail: "या ईमेल से जारी रखें",
     email: "ईमेल", password: "पासवर्ड", phone: "मोबाइल नंबर",
@@ -238,7 +254,9 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
   es: {
     loginTitle: "Bienvenido de nuevo", signupTitle: "Guarda tu destino de forma segura",
     loginDescription: "Continúa rápidamente con una cuenta social o correo electrónico.",
-    signupDescription: "Regístrate y recibe al instante 500 piedras lunares (valoradas en ₩5.000) — utilizables en contenido de pago durante 30 días. Solo pedimos lo esencial.",
+    signupDescription: "Sign up and a special gift is waiting for you. We only ask for the essentials.",
+    moonstoneBadgeTitle: "Get 500 moonstones the moment you sign up",
+    moonstoneBadgeDetail: "Worth ₩5,000 · a bonus currency available only through events · usable on paid content for 30 days",
     socialLabel: "Continuar con una cuenta social", google: "Continuar con Google", naver: "Continuar con Naver",
     kakao: "Continuar con Kakao", moving: "Abriendo la autenticación…", orEmail: "o usa tu correo electrónico",
     email: "Correo electrónico", password: "Contraseña", phone: "Número de móvil",
@@ -264,7 +282,9 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
   fr: {
     loginTitle: "Content de vous revoir", signupTitle: "Sauvegardez votre destin en toute sécurité",
     loginDescription: "Continuez rapidement avec un compte social ou un e-mail.",
-    signupDescription: "Inscrivez-vous et recevez immédiatement 500 pierres de lune (d'une valeur de ₩5 000) — utilisables sur le contenu payant pendant 30 jours. Nous ne demandons que l'essentiel.",
+    signupDescription: "Sign up and a special gift is waiting for you. We only ask for the essentials.",
+    moonstoneBadgeTitle: "Get 500 moonstones the moment you sign up",
+    moonstoneBadgeDetail: "Worth ₩5,000 · a bonus currency available only through events · usable on paid content for 30 days",
     socialLabel: "Continuer avec un compte social", google: "Continuer avec Google", naver: "Continuer avec Naver",
     kakao: "Continuer avec Kakao", moving: "Ouverture de l'authentification…", orEmail: "ou utilisez votre e-mail",
     email: "E-mail", password: "Mot de passe", phone: "Numéro de mobile",
@@ -290,7 +310,9 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
   de: {
     loginTitle: "Willkommen zurück", signupTitle: "Speichere dein Schicksal sicher",
     loginDescription: "Setze schnell mit einem sozialen Konto oder deiner E-Mail-Adresse fort.",
-    signupDescription: "Registriere dich und erhalte sofort 500 Mondsteine (im Wert von ₩5.000) — einlösbar für kostenpflichtige Inhalte innerhalb von 30 Tagen. Wir fragen nur das Nötigste ab.",
+    signupDescription: "Sign up and a special gift is waiting for you. We only ask for the essentials.",
+    moonstoneBadgeTitle: "Get 500 moonstones the moment you sign up",
+    moonstoneBadgeDetail: "Worth ₩5,000 · a bonus currency available only through events · usable on paid content for 30 days",
     socialLabel: "Mit einem sozialen Konto fortfahren", google: "Mit Google fortfahren", naver: "Mit Naver fortfahren",
     kakao: "Mit Kakao fortfahren", moving: "Authentifizierung wird geöffnet…", orEmail: "oder per E-Mail fortfahren",
     email: "E-Mail", password: "Passwort", phone: "Mobilnummer",
@@ -316,7 +338,9 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
   nl: {
     loginTitle: "Welkom terug", signupTitle: "Bewaar je lot veilig",
     loginDescription: "Ga snel verder met een sociaal account of e-mailadres.",
-    signupDescription: "Meld je aan en ontvang direct 500 maanstenen (ter waarde van ₩5.000) — te gebruiken voor betaalde content gedurende 30 dagen. We vragen alleen het hoognodige.",
+    signupDescription: "Sign up and a special gift is waiting for you. We only ask for the essentials.",
+    moonstoneBadgeTitle: "Get 500 moonstones the moment you sign up",
+    moonstoneBadgeDetail: "Worth ₩5,000 · a bonus currency available only through events · usable on paid content for 30 days",
     socialLabel: "Doorgaan met een sociaal account", google: "Doorgaan met Google", naver: "Doorgaan met Naver",
     kakao: "Doorgaan met Kakao", moving: "Verificatiescherm wordt geopend…", orEmail: "of ga verder met e-mail",
     email: "E-mail", password: "Wachtwoord", phone: "Mobiel nummer",
@@ -342,7 +366,9 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
   ms: {
     loginTitle: "Selamat kembali", signupTitle: "Simpan takdir anda dengan selamat",
     loginDescription: "Teruskan dengan pantas menggunakan akaun sosial atau e-mel.",
-    signupDescription: "Daftar dan terima serta-merta 500 batu bulan (bernilai ₩5,000) — boleh digunakan untuk kandungan berbayar dalam tempoh 30 hari. Kami hanya meminta maklumat yang perlu.",
+    signupDescription: "Sign up and a special gift is waiting for you. We only ask for the essentials.",
+    moonstoneBadgeTitle: "Get 500 moonstones the moment you sign up",
+    moonstoneBadgeDetail: "Worth ₩5,000 · a bonus currency available only through events · usable on paid content for 30 days",
     socialLabel: "Teruskan dengan akaun sosial", google: "Teruskan dengan Google", naver: "Teruskan dengan Naver",
     kakao: "Teruskan dengan Kakao", moving: "Membuka skrin pengesahan…", orEmail: "atau gunakan e-mel",
     email: "E-mel", password: "Kata laluan", phone: "Nombor telefon bimbit",
@@ -579,7 +605,9 @@ export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
     <div aria-hidden="true" className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_50%_-10%,rgba(125,92,190,.32),transparent_42%),linear-gradient(180deg,#11132a_0%,#090b1a_72%)]" />
     <div className="relative mx-auto flex min-h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-2.5rem)] w-full max-w-[440px] py-3">
       <section className="my-auto w-full rounded-[24px] border border-[#c9b7f0]/20 bg-[#12152b] p-5 shadow-[0_24px_70px_rgba(0,0,0,.38)] sm:p-7" aria-labelledby="auth-title">
-        <header className="text-center"><img src="/icons/app-logo-96.png" width="52" height="52" alt="" className="mx-auto h-[52px] w-[52px] rounded-2xl" /><h1 id="auth-title" className="mt-4 text-balance text-[1.55rem] font-black tracking-[-0.025em]">{appReturnUrl ? copy.returnToApp : ticket ? copy.finishTitle : isSignup ? copy.signupTitle : copy.loginTitle}</h1><p className="mx-auto mt-2 max-w-[38ch] text-pretty text-sm leading-6 text-[#d8d0ea]">{appReturnUrl ? copy.returnToAppHint : ticket ? copy.finishDescription : isSignup ? copy.signupDescription : copy.loginDescription}</p></header>
+        <header className="text-center"><img src="/icons/app-logo-96.png" width="52" height="52" alt="" className="mx-auto h-[52px] w-[52px] rounded-2xl" /><h1 id="auth-title" className="mt-4 text-balance text-[1.55rem] font-black tracking-[-0.025em]">{appReturnUrl ? copy.returnToApp : ticket ? copy.finishTitle : isSignup ? copy.signupTitle : copy.loginTitle}</h1><p className="mx-auto mt-2 max-w-[38ch] text-pretty text-sm leading-6 text-[#d8d0ea]">{appReturnUrl ? copy.returnToAppHint : ticket ? copy.finishDescription : isSignup ? copy.signupDescription : copy.loginDescription}</p>
+          {isSignup && !ticket && !appReturnUrl && <div className="mt-4 rounded-2xl border border-[#F4C86A]/35 bg-[linear-gradient(135deg,rgba(244,200,106,.16),rgba(124,92,191,.14))] px-4 py-3.5 text-left shadow-[0_0_22px_rgba(244,200,106,.14),inset_0_1px_0_rgba(255,255,255,.08)]"><div className="flex items-start gap-3"><MoonIcon phase="crescent" className="mt-0.5 h-9 w-9 shrink-0" /><div><p className="text-sm font-black leading-5 text-[#FCEFC0]">{copy.moonstoneBadgeTitle}</p><p className="mt-1 text-xs font-semibold leading-5 text-[#E6D9C2] break-keep">{copy.moonstoneBadgeDetail}</p></div></div></div>}
+        </header>
         <div className="my-4 min-h-6" aria-live="polite">{error ? <p id="auth-error" role="alert" className="rounded-xl border border-[#ff8ca5]/40 bg-[#421d2a] px-3 py-2.5 text-sm text-[#ffd7df]">{error}</p> : null}</div>
         {appReturnUrl ? <a href={appReturnUrl} className="flex min-h-12 w-full items-center justify-center rounded-xl border border-[#b89ae8]/45 bg-[#7c5cbf] px-4 text-sm font-black text-white shadow-[0_10px_28px_rgba(65,42,116,.36)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#dbc9ff]">{copy.returnToApp}</a> : null}
         {!ticket && <><section aria-label={copy.socialLabel}><div className="grid gap-3">{(["google", "naver", "kakao"] as const).map((provider) => <button key={provider} type="button" disabled={Boolean(socialBusy) || busy} onClick={() => startSocial(provider)} className={`min-h-12 rounded-xl border px-4 text-sm font-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:opacity-55 ${provider === "google" ? "border-[#d9dce5] bg-white text-[#252735]" : provider === "naver" ? "border-[#03a94d] bg-[#03C75A] text-white" : "border-[#e3cb00] bg-[#FEE500] text-[#191919]"}`}>{socialBusy === provider ? copy.moving : provider === "google" ? copy.google : provider === "naver" ? copy.naver : copy.kakao}</button>)}</div><p className="mt-3 text-center text-xs leading-5 text-[#a99dbd]">{copy.providerPolicy}</p><section aria-label={copy.agreeOnSubmit} className="mt-3 space-y-1.5 rounded-xl border border-[#c9b7f0]/18 bg-[#0d1022] p-3 text-[11px] leading-5 text-[#aa9fbd]"><p className="text-[#cfc4e5]">{copy.agreeOnSubmit}</p><p className="flex flex-wrap items-center gap-x-3"><Link href="/terms" target="_blank" className="min-h-11 py-2.5 font-bold text-[#d7c1ff] underline underline-offset-4">{copy.terms}</Link><Link href="/privacy" target="_blank" className="min-h-11 py-2.5 font-bold text-[#d7c1ff] underline underline-offset-4">{copy.privacy}</Link></p><p>{copy.privacySummary}</p></section></section><div className="my-5 flex items-center gap-3 text-xs text-[#aa9fbd]"><span className="h-px flex-1 bg-[#c9b7f0]/15" /><span>{copy.orEmail}</span><span className="h-px flex-1 bg-[#c9b7f0]/15" /></div></>}
