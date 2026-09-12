@@ -8156,26 +8156,26 @@
     "gotoZiweiPremium": {
       "badge": "専門家相談型",
       "headline": "星の配置が今の問いをどこへ導いているのか、落ち着いて読んでみてください。",
-      "tagline": "The main text runs to at least 20,700 characters, and once you have the result you can keep asking follow-up questions at no extra charge.",
+      "tagline": "相談テーマを選んで今の悩みを書くと、命宮・身宮から十二宮・四化・大限まで辿りながら、一編の相談文としてお答えします。",
       "feats": {
-        "0": "Builds your twelve-palace chart from your birth date and time",
-        "1": "Organizes the consultation into 14 separate topics",
-        "2": "The main text runs to at least 20,700 characters",
-        "3": "Follow-up questions after the result carry no extra charge",
-        "4": "The consultation is saved so you can open it again"
+        "0": "お名前と生年月日時から十二宮の命盤を立てます",
+        "1": "十六の相談テーマから一つを選び、悩みをご自身で書きます",
+        "2": "本文は20,700字以上です",
+        "3": "命宮・身宮と主要な星、相談キーワードを先にまとめて示します",
+        "4": "完成した相談文はPDFで保存できます"
       },
-      "premiumIntro": "This is not a one-shot report but a consultation you can read and question back.",
+      "premiumIntro": "一度きりの要約ではなく、選んだテーマと書き留めた悩みに合わせて命盤を辿りながら書く相談文です。",
       "premiumAudience": {
         "0": "Those who want one proper look at their Ziwei Doushu chart",
-        "1": "Those who want to ask back after reading",
+        "1": "今の悩みに合った答えを求める方",
         "2": "Those who want a long-form interpretation"
       },
       "premiumChapters": {
-        "0": "Reading of the twelve-palace chart",
-        "1": "A consultation split into 14 topics",
-        "2": "Main text of at least 20,700 characters",
-        "3": "Continuing follow-up questions",
-        "4": "Re-opening the saved result"
+        "0": "十二宮の命盤と大限のタイムライン",
+        "1": "命宮・身宮と主要な星のまとめ",
+        "2": "20,700字以上の相談本文",
+        "3": "質問への答えと処方",
+        "4": "PDF保存と過去の記録の閲覧"
       },
       "premiumOutcomes": {
         "0": "You can check what the feature does before paying.",
@@ -8188,7 +8188,7 @@
         "2": "Can I make a big decision this year?"
       },
       "fallbackCta": "Open the Ziwei Doushu consultation",
-      "ctaNote": "After payment, the twelve-palace chart and the 14-topic consultation open.",
+      "ctaNote": "決済後に十二宮の命盤と20,700字以上の相談文が開きます。",
       "analysisSteps": {
         "0": {
           "label": "Chart construction",
@@ -8199,12 +8199,12 @@
           "detail": "Sorts out which palaces carry weight and which are empty."
         },
         "2": {
-          "label": "Topic-by-topic writing",
-          "detail": "Splits the work into 14 topics and writes a consultation for each."
+          "label": "テーマ別の執筆",
+          "detail": "選んだテーマを軸に、命盤のそれぞれの位置を分けて相談文を書きます。"
         },
         "3": {
-          "label": "Follow-up questions",
-          "detail": "After reading the result you can keep asking what is left, at no extra charge."
+          "label": "根拠の整理",
+          "detail": "どの星と配置を読んだのか、根拠も併せて残します。"
         }
       },
       "valueCompare": {
@@ -8213,26 +8213,70 @@
           "premium": "Main text of at least 20,700 characters"
         },
         "1": {
-          "axis": "Structure",
-          "premium": "A consultation split into 14 topics"
+          "axis": "構成",
+          "premium": "命盤・大限タイムラインと相談本文"
         },
         "2": {
-          "axis": "Follow-up questions",
-          "premium": "No extra charge for questions that follow the result"
+          "axis": "保管",
+          "premium": "PDF保存と過去の記録の閲覧"
         }
       },
       "faq": {
         "0": {
-          "q": "Do follow-up questions have to be paid for separately?",
-          "a": "No. Questions that follow after you receive the result carry no extra charge."
+          "q": "出生時間が分からない場合はどうなりますか?",
+          "a": "不明のまま進めることができます。"
         },
         "1": {
-          "q": "Can I see the result again later?",
-          "a": "The consultation is saved, so you can open it again."
+          "q": "結果を後から見返せますか?",
+          "a": "ログインしておけば過去の相談が一覧に残り、追加の決済なしで開けます。"
         },
         "2": {
           "q": "How long is it?",
           "a": "It comes out at at least 20,700 characters of main text."
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "20,700字以上の相談文",
+          "detail": "命盤を読む順序から、今の質問への答えと処方まで、章を分けて長く書きます。"
+        },
+        "1": {
+          "title": "命宮・身宮のひと目まとめ",
+          "detail": "命宮と身宮、主要な星、相談キーワードの四つの枠を本文より先に示します。"
+        },
+        "2": {
+          "title": "十二宮の命盤と大限の流れ",
+          "detail": "十二宮のカードと大限のタイムラインで、今どの時期を通っているのかを一緒に見ます。"
+        },
+        "3": {
+          "title": "解釈の根拠",
+          "detail": "どの星と配置を読んでそう述べたのか、根拠を別に開いて確認できます。"
+        },
+        "4": {
+          "title": "PDF保存と過去の記録",
+          "detail": "完成版をPDFで保存でき、ログインしておけば過去の相談を一覧から開けます。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "相談の表紙",
+          "detail": "お名前と生年月日、選んだ相談テーマを表紙に記します。"
+        },
+        "1": {
+          "title": "命宮・身宮のまとめ",
+          "detail": "命宮・身宮・主要な星・相談キーワードを四つの枠で先に整理します。"
+        },
+        "2": {
+          "title": "命盤と大限",
+          "detail": "基本の命盤と十二宮のカード、大限のタイムラインを広げます。"
+        },
+        "3": {
+          "title": "相談本文",
+          "detail": "命盤を読む順序と中心的な性向から、仕事・財・人間関係、大限と流年の選択まで順に書きます。"
+        },
+        "4": {
+          "title": "質問への答えと処方",
+          "detail": "書き留めた悩みへの答えと、今試せる行動で締めくくります。"
         }
       }
     },
@@ -8513,24 +8557,26 @@
       }
     },
     "astrology_ai_consultation": {
-      "tagline": "The main text runs to at least 15,000 characters, and after reading it you can keep asking follow-up questions.",
+      "tagline": "相談テーマを選んで質問を書くと、太陽・月・アセンダントからアスペクトやトランジットまで辿りながら、一編の相談文としてお答えします。",
       "feats": {
-        "0": "Calculates your birth chart from the birth details you enter",
-        "1": "Organizes the consultation into 6 separate topics",
-        "2": "The main text runs to at least 15,000 characters",
-        "3": "You can keep asking follow-up questions after reading"
+        "0": "入力された出生情報から天体の位置とハウスを計算します",
+        "1": "十四の相談テーマから一つを選び、質問をご自身で書きます",
+        "2": "本文は15,000字以上です",
+        "3": "太陽・月・アセンダントとチャートルーラーを別にまとめて示します",
+        "4": "完成した相談文はPDFで保存できます"
       },
       "premiumIntro": "This is not a horoscope shared by the twelve signs -- it is written from your own chart, calculated from the birth details you enter.",
       "premiumAudience": {
         "0": "Those left wanting more by shared sun-sign horoscopes",
         "1": "Those who want one proper look at their own chart",
-        "2": "Those who want to ask back after reading"
+        "2": "根拠まで確かめながら読みたい方"
       },
       "premiumChapters": {
-        "0": "Calculation of your own birth chart",
-        "1": "A consultation split into 6 topics",
-        "2": "Main text of at least 15,000 characters",
-        "3": "Continuing follow-up questions"
+        "0": "ご自身の出生図の計算",
+        "1": "15,000字以上の相談本文",
+        "2": "出生図のホイールとチャートシグネチャー",
+        "3": "解釈の根拠とチャート原本",
+        "4": "PDF保存と再閲覧"
       },
       "premiumOutcomes": {
         "0": "Chart-based features are affected by how accurate the birth time you enter is.",
@@ -8543,23 +8589,23 @@
         "2": "How do I look to other people?"
       },
       "fallbackCta": "Open the astrology consultation",
-      "ctaNote": "After payment, a 6-topic consultation calculated from your own birth chart opens.",
+      "ctaNote": "決済後にご自身の出生図から計算された相談文とホロスコープが開きます。",
       "analysisSteps": {
         "0": {
           "label": "Birth chart calculation",
           "detail": "Calculates planetary positions and houses from the birth details you enter."
         },
         "1": {
-          "label": "Topic split",
-          "detail": "Divides the consultation into 6 topics."
+          "label": "テーマと質問の確認",
+          "detail": "選んだ相談テーマと書き留めた質問を相談文の軸にします。"
         },
         "2": {
-          "label": "Topic-by-topic writing",
-          "detail": "Writes each topic while naming which placement in the chart it rests on."
+          "label": "区分ごとの執筆",
+          "detail": "六つのまとまりに分け、チャートのどの配置を根拠にするかを示しながら書きます。"
         },
         "3": {
-          "label": "Follow-up questions",
-          "detail": "After reading the result you can keep asking what is left."
+          "label": "根拠の整理",
+          "detail": "どの配置を読んだのかを別にまとめて併せて残します。"
         }
       },
       "valueCompare": {
@@ -8572,22 +8618,66 @@
           "premium": "Main text of at least 15,000 characters"
         },
         "2": {
-          "axis": "Structure",
-          "premium": "A consultation split into 6 topics"
+          "axis": "保管",
+          "premium": "PDF保存とアカウントからの再閲覧"
         }
       },
       "faq": {
         "0": {
-          "q": "What happens if I don't know my birth time?",
-          "a": "This is a chart-based reading, so the accuracy of the birth time affects the result."
+          "q": "生まれた時間が分からない場合はどうなりますか?",
+          "a": "不明のまま進めることができます。その場合アセンダントとハウスは確定せず、限定的にのみ読みます。"
         },
         "1": {
           "q": "How long is it?",
           "a": "It comes out at at least 15,000 characters of main text."
         },
         "2": {
-          "q": "Can I ask more after reading?",
-          "a": "You can keep asking follow-up questions once you have the result."
+          "q": "結果を後から見返せますか?",
+          "a": "ログインしたアカウントに保存され、追加の決済なしで開けます。"
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "15,000字以上の相談文",
+          "detail": "選んだテーマと書き留めた質問に合わせて、六つのまとまりに分けて長く書きます。"
+        },
+        "1": {
+          "title": "出生図とチャートシグネチャー",
+          "detail": "ホロスコープと併せて、太陽・月・アセンダント、チャートルーラーをカードで整理して示します。"
+        },
+        "2": {
+          "title": "天体・ハウス・アスペクト・トランジットの原本",
+          "detail": "相談文の隣で、計算された配置をグループごとに直接開けます。"
+        },
+        "3": {
+          "title": "主要な根拠",
+          "detail": "どの配置を読んでそう述べたのか、根拠を別にまとめておきます。"
+        },
+        "4": {
+          "title": "PDF保存と再閲覧",
+          "detail": "ログインしたアカウントに保存され、追加の決済なしで開けるほかPDFでも保存できます。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "入力のまとめ",
+          "detail": "生年月日・出生時間・出生地・相談テーマをカードで先に確認します。"
+        },
+        "1": {
+          "title": "今の質問",
+          "detail": "書き留めた質問を相談文の前にそのまま置きます。"
+        },
+        "2": {
+          "title": "相談本文",
+          "detail": "太陽・月・アセンダントの中心軸から個人天体、アスペクトとエレメント、ハウスとトランジットまで章を分けて読みます。"
+        },
+        "3": {
+          "title": "出生図とチャートシグネチャー",
+          "detail": "ホロスコープの図と太陽・月・アセンダント・チャートルーラーを一緒に見ます。"
+        },
+        "4": {
+          "title": "主要な根拠とチャート原本",
+          "detail": "解釈の根拠と天体・ハウス・アスペクト・トランジットの原本で締めくくります。"
         }
       }
     },
@@ -11867,8 +11957,8 @@
     },
     "navigateToZiweiChart": {
       "fallbackTitle": "12宮全体で読むあなたの人生マスタープランを開きます。",
-      "tagline": "命宮から兄弟・夫妻・財帛・官禄まで12宮をつなぐ深化紫微斗数で、人生戦略と時期を整理します。",
-      "premiumIntro": "紫微斗数深化は断片的な解釈の代わりに、12宮が織りなす人生の大きな地図を戦略のように広げます。",
+      "tagline": "先に読みたい質問を選ぶと、命宮・身宮から十二宮・四化・大限まで十四章に分けて読み解きます。",
+      "premiumIntro": "深化命盤は決済なしで開きます。より長い解説が必要な場合は、画面下の深層リポートを別に選べます。",
       "fallbackCta": "12宮戦略を開く",
       "feats": {
         "0": "基本命盤を超えて深化戦略が必要な時",
@@ -11881,15 +11971,61 @@
         "2": "長期計画の根拠が必要な方"
       },
       "premiumChapters": {
-        "0": "12宮主星に基づく深化キャラクター分析",
-        "1": "人生戦略と核心宮のつながり",
-        "2": "大限・流年タイミングの流れ",
-        "3": "プロフィール連動の自動計算"
+        "0": "核心の答えと基本総論",
+        "1": "質問ごとの相談と解釈の根拠",
+        "2": "十二宮の命盤と四化・三方四正",
+        "3": "今週・今月にすること",
+        "4": "現在の時期の分析と締めくくり"
       },
       "premiumOutcomes": {
         "0": "深化解釈は参考用です。",
         "1": "流派によって異なる場合があります。",
-        "2": "既存のサービス基準に従います。"
+        "2": "結果は保管されないため、次に開くときは情報を入力し直す必要があります。",
+        "3": "既存のサービス基準に従います。"
+      },
+      "receives": {
+        "0": {
+          "title": "選んだ質問から答える核心の答え",
+          "detail": "八つのテーマのうち選んだ質問に、結論から答えて始めます。"
+        },
+        "1": {
+          "title": "十四章に分けた深化相談",
+          "detail": "命宮・身宮から十二宮と四化・大限の戦略まで、章を分けて読みます。"
+        },
+        "2": {
+          "title": "十二宮の命盤を広げて見る",
+          "detail": "十二宮の主星と補助星、四化と三方四正を格子で広げて確認できます。"
+        },
+        "3": {
+          "title": "今週と今月にすること",
+          "detail": "読んだ内容を今試せる行動に変えて別にまとめます。"
+        },
+        "4": {
+          "title": "要約だけ選んで共有",
+          "detail": "お名前と出生情報を除き、選んだ質問と核心の答えだけを共有できます。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "核心の答え",
+          "detail": "選んだ質問への結論を先に置きます。"
+        },
+        "1": {
+          "title": "基本総論",
+          "detail": "命盤の基本的な骨格から順に読み進めます。"
+        },
+        "2": {
+          "title": "質問ごとの相談",
+          "detail": "テーマごとに解釈と併せて、試してみる提案とこの解釈の根拠を添えます。"
+        },
+        "3": {
+          "title": "命盤",
+          "detail": "十二宮の格子と宮位の配置、四化がつくる流れを広げて見ます。"
+        },
+        "4": {
+          "title": "今日の助言",
+          "detail": "現在の時期の分析と今週・今月にすることで締めくくります。"
+        }
       }
     },
     "openAstroModal": {
@@ -12000,7 +12136,7 @@
       },
       "faq": {
         "0": {
-          "q": "他の恋愛機能と何が違いますか？",
+          "q": "他の恋愛相談と何が違いますか?",
           "a": "一場面を指摘するのではなく、恋愛全体を二十章に分けて一冊に書きます。分量と根拠の密度が最も大きいです。"
         },
         "1": {
@@ -12028,6 +12164,54 @@
         "3": {
           "label": "解釈書作成",
           "detail": "前章が後章の根拠になるよう順番に書き下ろします。"
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "五幕二十章の恋愛解釈書",
+          "detail": "生まれ持った質から心の構造、関係の温度、深まる場所、解読と封印まで、五幕に分けて書きます。"
+        },
+        "1": {
+          "title": "章ごとの根拠とインサイト",
+          "detail": "何を根拠に読んだのかをチップで開き、その章の流れと注意すべき瞬間も併せて示します。"
+        },
+        "2": {
+          "title": "今できる行動",
+          "detail": "章ごとにすぐ試せる行動を二つ三つお渡しします。"
+        },
+        "3": {
+          "title": "恋愛DNAの十の指標",
+          "detail": "信頼・思いやり・主導性・表現力・嫉妬・執着・感性・理性・ときめき・献身を0〜100のバーで示します。"
+        },
+        "4": {
+          "title": "PDFでの保存と再閲覧",
+          "detail": "アカウントに保管され、再度決済せずに開けて、読んでいた場所から続けて読めます。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "表紙・ひと目で見る相談",
+          "detail": "恋愛タイプの名前と核心の要約を先に広げます。"
+        },
+        "1": {
+          "title": "I 生まれ持った質",
+          "detail": "運命の門と生まれ持った恋愛気質、夫妻宮が語る配偶者像、惹かれの原理を読みます。"
+        },
+        "2": {
+          "title": "II 心の構造",
+          "detail": "愛着と表現の仕方、心の防衛機制、縁が開く場所、曖昧な関係から恋愛へ移る条件を押さえます。"
+        },
+        "3": {
+          "title": "III 関係の温度",
+          "detail": "告白とタイミング、関係の温度曲線、対立の根と和解の言葉を見ます。"
+        },
+        "4": {
+          "title": "IV 深まる場所",
+          "detail": "嫉妬と距離の取り方、親密さのリズム、別れと再会の門、結婚運と長い同行を扱います。"
+        },
+        "5": {
+          "title": "V 解読と封印",
+          "detail": "四柱推命と紫微斗数の交差検証、恋愛DNAプロフィール、これからの三年、最後の手紙で締めくくります。"
         }
       }
     },
@@ -12170,15 +12354,15 @@
     },
     "ziwei_deep_pdf": {
       "fallbackTitle": "12宮を一つずつ指し示し、命盤一枚を十五章の文章で解き明かします。",
-      "tagline": "命宮総論から各宮の星の強さと格局まで、紫微斗数の命盤を章別に解説してPDFで残す深層レポートです。",
+      "tagline": "命盤が今の質問に与える答えから十二宮、これからの方向まで、十五章に解いてPDFで残す深層リポートです。",
       "premiumIntro": "深層レポートは吉凶を断定せず、命盤の各位置が何を意味するのかを章ごとに落ち着いて解き明かします。",
       "fallbackCta": "深層レポートを閲覧する",
       "ctaNote": "決済後、15個の章とPDF保存が一緒に開きます。",
       "feats": {
-        "0": "Builds your chart from your birth date and time, then writes the overview, the twelve palaces, and two in-depth chapters in order",
-        "1": "Explains all twelve palaces — life, spouse, wealth and more — each as its own chapter",
-        "2": "Uses the four transformations and the three-harmony/four-cardinal view to lay out how the stars act on each other, in a separate chapter",
-        "3": "Places the strategy along the time axis in the final chapter, as a major-cycle and annual master plan"
+        "0": "深化命盤の画面で立てた命式をそのまま引き継いで十五章を作成します",
+        "1": "八つの関心分野から選び、気になる質問を書いて始めます",
+        "2": "命宮・夫妻宮・財帛宮など十二宮をそれぞれ独立した章で解説します",
+        "3": "最終章でこれからどの方向を選べばよいかをまとめます"
       },
       "premiumAudience": {
         "0": "命盤を文章で読み解きたい方",
@@ -12186,12 +12370,12 @@
         "2": "保存して再度見る資料を望む方"
       },
       "premiumChapters": {
-        "0": "命盤総論 — あなたという星の地図",
-        "1": "命宮・兄弟宮・夫妻宮・子女宮",
-        "2": "財帛宮・疾厄宮・遷移宮・奴僕宮",
-        "3": "官禄宮・田宅宮・福徳宮・父母宮",
-        "4": "四化・三方四正深層 — 星々が交わす対話",
-        "5": "大限・流年マスタープラン — 時間軸上の人生戦略"
+        "0": "第1章 · 私の質問に命盤が与える答え",
+        "1": "第2章 · 私はどんな人か",
+        "2": "第3〜9章 · 関係と愛、支えと財、健康のリズム",
+        "3": "第10〜14章 · 仕事と基盤、心の回復、家族と機会",
+        "4": "第15章 · これからどの方向を選ぶか",
+        "5": "PDF保存と過去のリポートの閲覧"
       },
       "premiumOutcomes": {
         "0": "決済前に構成と分量を先に確認できます。",
@@ -12201,7 +12385,7 @@
       "answersQuestions": {
         "0": "自分の命盤の各宮はどんな意味ですか？",
         "1": "どの宮に力が入っていますか？",
-        "2": "空いている宮は悪いことですか？"
+        "2": "これからどの方向を選べばよいでしょうか?"
       },
       "valueCompare": {
         "0": {
@@ -12212,7 +12396,7 @@
         "1": {
           "axis": "分量",
           "free": "図表とラベル",
-          "premium": "15個の章合計34,000字以上"
+          "premium": "15章合計36,000字以上"
         },
         "2": {
           "axis": "保管",
@@ -12226,8 +12410,8 @@
           "a": "基本命盤は星の配置を見せます。深層レポートはその配置が何を意味するのか宮ごとに文章で解き明かします。"
         },
         "1": {
-          "q": "空いている宮も解説されますか？",
-          "a": "はい。空いていることも配置の一部なので、それ自体が解説の対象です。"
+          "q": "作ったリポートを見返せますか?",
+          "a": "ログインしておけば過去のリポート一覧から追加の決済なしで開けます。"
         },
         "2": {
           "q": "PDFで受け取れますか？",
@@ -12236,20 +12420,64 @@
       },
       "analysisSteps": {
         "0": {
-          "label": "命盤作成",
-          "detail": "生年月日時で12宮に主星と四化を配置します。"
+          "label": "命式の引き継ぎ",
+          "detail": "深化命盤の画面で立てた命式をそのまま取り込みます。"
         },
         "1": {
-          "label": "強さ判定",
-          "detail": "各星が廟・旺・得・利・平・陥のどこに置かれているかを見極めます。"
+          "label": "関心分野と質問の確認",
+          "detail": "選んだ関心分野と書き留めた質問を第1章の軸にします。"
         },
         "2": {
-          "label": "章別配分",
-          "detail": "総論と12宮を十五個の章に分け、重複なく配分します。"
+          "label": "章ごとの執筆",
+          "detail": "十五章を順に埋めながら、宮ごとに根拠を示します。"
         },
         "3": {
-          "label": "レポート作成",
-          "detail": "章ごとに根拠を明かしながら解説を書き、PDFにまとめます。"
+          "label": "PDFへのまとめ",
+          "detail": "完成した章を一冊にまとめ、保存できるようにします。"
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "十五章の深層解説",
+          "detail": "第1章で書き留めた質問に答え、十二宮を一つずつ辿って最後に方向をまとめます。"
+        },
+        "1": {
+          "title": "章ごとに開いて読む",
+          "detail": "各章をプレビューで見渡し、必要な章だけ開いて読めます。"
+        },
+        "2": {
+          "title": "PDF保存",
+          "detail": "完成したリポートをPDFで保存して繰り返し読めます。"
+        },
+        "3": {
+          "title": "過去のリポートの閲覧",
+          "detail": "ログインしておけば作成済みのリポートを一覧から追加の決済なしで開けます。"
+        },
+        "4": {
+          "title": "中断しても続きから",
+          "detail": "生成が途切れても同じ依頼で開き直すと、残りの章から続けて埋めます。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "表紙",
+          "detail": "リポートの名前と作成日を前に置きます。"
+        },
+        "1": {
+          "title": "第1章 · 質問への答え",
+          "detail": "選んだ関心分野と書き留めた質問に命盤が与える答えから書きます。"
+        },
+        "2": {
+          "title": "第2章 · 私という人",
+          "detail": "命宮と身宮を中心に生まれ持った質を読みます。"
+        },
+        "3": {
+          "title": "第3〜14章 · 十二宮",
+          "detail": "関係と愛、支えと財、健康と移動、仕事と基盤、心と家族まで、宮ごとに一章ずつ解説します。"
+        },
+        "4": {
+          "title": "第15章 · これからの方向",
+          "detail": "ここまで読んだものを集めて、どの方向を選べばよいかで締めくくります。"
         }
       }
     },

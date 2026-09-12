@@ -1,7 +1,7 @@
 ---
-status: active
+status: done
 updated: 2026-09-12
-next: "배치 3(타로) 상세창 카피 PR 의 CI·머지를 확인한 뒤, 같은 형식(receives·outline)으로 배치 4(자미·점성) 유료 상품 카피를 옮긴다."
+next: "배치 4(자미·점성)로 이어졌다 — docs/handoff/2026-09-12-detail-copy-batch4-ziwei-astro.md 를 본다."
 ---
 
 # 유료 상세창 카피 배치 3 — 타로 유료 상품 9종

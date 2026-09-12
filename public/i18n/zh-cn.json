@@ -8156,26 +8156,26 @@
     "gotoZiweiPremium": {
       "badge": "专家咨询型",
       "headline": "静下心读一读，星曜的排布正把此刻的提问引向何处。",
-      "tagline": "The main text runs to at least 20,700 characters, and once you have the result you can keep asking follow-up questions at no extra charge.",
+      "tagline": "选择咨询主题并写下当下的烦恼，便会从命宫、身宫一路看到十二宫与四化、大限，以一篇咨询文回答。",
       "feats": {
-        "0": "Builds your twelve-palace chart from your birth date and time",
-        "1": "Organizes the consultation into 14 separate topics",
-        "2": "The main text runs to at least 20,700 characters",
-        "3": "Follow-up questions after the result carry no extra charge",
-        "4": "The consultation is saved so you can open it again"
+        "0": "以姓名与出生年月日时排出十二宫命盘",
+        "1": "从十六个咨询主题中选一个，并亲自写下烦恼",
+        "2": "正文在20,700字以上",
+        "3": "先整理命宫、身宫与核心星曜、咨询关键词",
+        "4": "完成的咨询可下载为PDF"
       },
-      "premiumIntro": "This is not a one-shot report but a consultation you can read and question back.",
+      "premiumIntro": "不是一次性的摘要，而是依照所选主题与写下的烦恼，逐处对照命盘写成的咨询文。",
       "premiumAudience": {
         "0": "Those who want one proper look at their Ziwei Doushu chart",
-        "1": "Those who want to ask back after reading",
+        "1": "希望得到贴合当下烦恼之答案的人",
         "2": "Those who want a long-form interpretation"
       },
       "premiumChapters": {
-        "0": "Reading of the twelve-palace chart",
-        "1": "A consultation split into 14 topics",
-        "2": "Main text of at least 20,700 characters",
-        "3": "Continuing follow-up questions",
-        "4": "Re-opening the saved result"
+        "0": "十二宫命盘与大限时间轴",
+        "1": "命宫、身宫与核心星曜摘要",
+        "2": "20,700字以上的咨询正文",
+        "3": "对问题的回答与建议",
+        "4": "PDF保存与回看过往记录"
       },
       "premiumOutcomes": {
         "0": "You can check what the feature does before paying.",
@@ -8188,7 +8188,7 @@
         "2": "Can I make a big decision this year?"
       },
       "fallbackCta": "Open the Ziwei Doushu consultation",
-      "ctaNote": "After payment, the twelve-palace chart and the 14-topic consultation open.",
+      "ctaNote": "付款后开启十二宫命盘与20,700字以上的咨询文。",
       "analysisSteps": {
         "0": {
           "label": "Chart construction",
@@ -8199,12 +8199,12 @@
           "detail": "Sorts out which palaces carry weight and which are empty."
         },
         "2": {
-          "label": "Topic-by-topic writing",
-          "detail": "Splits the work into 14 topics and writes a consultation for each."
+          "label": "分主题撰写",
+          "detail": "以所选主题为轴，分开命盘的各个位置撰写咨询文。"
         },
         "3": {
-          "label": "Follow-up questions",
-          "detail": "After reading the result you can keep asking what is left, at no extra charge."
+          "label": "整理依据",
+          "detail": "一并留下读了哪些星曜与配置的依据。"
         }
       },
       "valueCompare": {
@@ -8213,26 +8213,70 @@
           "premium": "Main text of at least 20,700 characters"
         },
         "1": {
-          "axis": "Structure",
-          "premium": "A consultation split into 14 topics"
+          "axis": "结构",
+          "premium": "命盘、大限时间轴与咨询正文"
         },
         "2": {
-          "axis": "Follow-up questions",
-          "premium": "No extra charge for questions that follow the result"
+          "axis": "保存",
+          "premium": "PDF保存与回看过往记录"
         }
       },
       "faq": {
         "0": {
-          "q": "Do follow-up questions have to be paid for separately?",
-          "a": "No. Questions that follow after you receive the result carry no extra charge."
+          "q": "不知道出生时间怎么办？",
+          "a": "可以设为不详继续进行。"
         },
         "1": {
-          "q": "Can I see the result again later?",
-          "a": "The consultation is saved, so you can open it again."
+          "q": "之后还能再看结果吗？",
+          "a": "只要保持登录，过往咨询会留在列表中，无需再次付款即可打开。"
         },
         "2": {
           "q": "How long is it?",
           "a": "It comes out at at least 20,700 characters of main text."
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "20,700字以上的咨询文",
+          "detail": "从阅读命盘的顺序，到对当下问题的回答与建议，分章长篇写就。"
+        },
+        "1": {
+          "title": "命宫、身宫一目了然",
+          "detail": "在正文之前，先以四格显示命宫、身宫、核心星曜与咨询关键词。"
+        },
+        "2": {
+          "title": "十二宫命盘与大限流向",
+          "detail": "以十二宫卡片与大限时间轴，一起看你正走在哪个时期。"
+        },
+        "3": {
+          "title": "解读依据",
+          "detail": "可另行展开查看是依据哪些星曜与配置这样说的。"
+        },
+        "4": {
+          "title": "PDF保存与过往记录",
+          "detail": "可将完成稿下载为PDF；保持登录后还能从列表重新打开过往咨询。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "咨询封面",
+          "detail": "封面写上姓名、出生资料与所选的咨询主题。"
+        },
+        "1": {
+          "title": "命宫、身宫摘要",
+          "detail": "先以四格整理命宫、身宫、核心星曜与咨询关键词。"
+        },
+        "2": {
+          "title": "命盘与大限",
+          "detail": "展开基本命盘、十二宫卡片与大限时间轴。"
+        },
+        "3": {
+          "title": "咨询正文",
+          "detail": "从阅读命盘的顺序与核心性格，到工作、财富、关系，再到大限与流年的选择策略，依序写出。"
+        },
+        "4": {
+          "title": "对问题的回答与建议",
+          "detail": "以对所写烦恼的回答与当下可做的行动收尾。"
         }
       }
     },
@@ -8513,24 +8557,26 @@
       }
     },
     "astrology_ai_consultation": {
-      "tagline": "The main text runs to at least 15,000 characters, and after reading it you can keep asking follow-up questions.",
+      "tagline": "选择咨询主题并写下问题，便会从太阳、月亮、上升一路看到相位与行运，以一篇咨询文回答。",
       "feats": {
-        "0": "Calculates your birth chart from the birth details you enter",
-        "1": "Organizes the consultation into 6 separate topics",
-        "2": "The main text runs to at least 15,000 characters",
-        "3": "You can keep asking follow-up questions after reading"
+        "0": "以输入的出生资料计算行星位置与宫位",
+        "1": "从十四个咨询主题中选一个，并亲自写下问题",
+        "2": "正文在15,000字以上",
+        "3": "另行整理太阳、月亮、上升与星盘主宰星",
+        "4": "完成的咨询可下载为PDF"
       },
       "premiumIntro": "This is not a horoscope shared by the twelve signs -- it is written from your own chart, calculated from the birth details you enter.",
       "premiumAudience": {
         "0": "Those left wanting more by shared sun-sign horoscopes",
         "1": "Those who want one proper look at their own chart",
-        "2": "Those who want to ask back after reading"
+        "2": "希望连依据一起确认着阅读的人"
       },
       "premiumChapters": {
-        "0": "Calculation of your own birth chart",
-        "1": "A consultation split into 6 topics",
-        "2": "Main text of at least 15,000 characters",
-        "3": "Continuing follow-up questions"
+        "0": "计算属于你的出生星盘",
+        "1": "15,000字以上的咨询正文",
+        "2": "出生星盘图与星盘签名",
+        "3": "解读依据与星盘原始资料",
+        "4": "PDF保存与再次打开"
       },
       "premiumOutcomes": {
         "0": "Chart-based features are affected by how accurate the birth time you enter is.",
@@ -8543,23 +8589,23 @@
         "2": "How do I look to other people?"
       },
       "fallbackCta": "Open the astrology consultation",
-      "ctaNote": "After payment, a 6-topic consultation calculated from your own birth chart opens.",
+      "ctaNote": "付款后开启以你本人出生星盘计算的咨询文与星盘图。",
       "analysisSteps": {
         "0": {
           "label": "Birth chart calculation",
           "detail": "Calculates planetary positions and houses from the birth details you enter."
         },
         "1": {
-          "label": "Topic split",
-          "detail": "Divides the consultation into 6 topics."
+          "label": "确认主题与问题",
+          "detail": "以所选咨询主题与写下的问题作为咨询文的主轴。"
         },
         "2": {
-          "label": "Topic-by-topic writing",
-          "detail": "Writes each topic while naming which placement in the chart it rests on."
+          "label": "分区撰写",
+          "detail": "分成六组撰写，并说明依据星盘中的哪一个配置。"
         },
         "3": {
-          "label": "Follow-up questions",
-          "detail": "After reading the result you can keep asking what is left."
+          "label": "整理依据",
+          "detail": "另行汇整读了哪些配置，一并留下。"
         }
       },
       "valueCompare": {
@@ -8572,22 +8618,66 @@
           "premium": "Main text of at least 15,000 characters"
         },
         "2": {
-          "axis": "Structure",
-          "premium": "A consultation split into 6 topics"
+          "axis": "保存",
+          "premium": "PDF保存与从账号再次打开"
         }
       },
       "faq": {
         "0": {
-          "q": "What happens if I don't know my birth time?",
-          "a": "This is a chart-based reading, so the accuracy of the birth time affects the result."
+          "q": "不知道出生时间怎么办？",
+          "a": "可以设为不详继续进行。此时上升与宫位不予确定，只作有限的解读。"
         },
         "1": {
           "q": "How long is it?",
           "a": "It comes out at at least 15,000 characters of main text."
         },
         "2": {
-          "q": "Can I ask more after reading?",
-          "a": "You can keep asking follow-up questions once you have the result."
+          "q": "之后还能再看结果吗？",
+          "a": "会保存在登录的账号中，无需再次付款即可打开。"
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "15,000字以上的咨询文",
+          "detail": "配合所选主题与写下的问题，分成六组长篇写就。"
+        },
+        "1": {
+          "title": "出生星盘图与星盘签名",
+          "detail": "连同星盘图，将太阳、月亮、上升与星盘主宰星整理成卡片。"
+        },
+        "2": {
+          "title": "行星、宫位、相位、行运原始资料",
+          "detail": "可在咨询文旁按组别直接展开已计算的配置。"
+        },
+        "3": {
+          "title": "主要依据",
+          "detail": "另行汇整是读了哪些配置才这样说的。"
+        },
+        "4": {
+          "title": "PDF保存与再次打开",
+          "detail": "保存在登录的账号中，无需再次付款即可打开，也可下载为PDF。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "输入摘要",
+          "detail": "先以卡片确认出生日期、出生时间、出生地与咨询主题。"
+        },
+        "1": {
+          "title": "当下的问题",
+          "detail": "把写下的问题原样放在咨询文之前。"
+        },
+        "2": {
+          "title": "咨询正文",
+          "detail": "从太阳、月亮、上升的中心轴，到个人行星、相位与元素、宫位与行运，分章阅读。"
+        },
+        "3": {
+          "title": "出生星盘图与星盘签名",
+          "detail": "一起看星盘图与太阳、月亮、上升、星盘主宰星。"
+        },
+        "4": {
+          "title": "主要依据与星盘原始资料",
+          "detail": "以解读依据与行星、宫位、相位、行运的原始资料收尾。"
         }
       }
     },
@@ -11867,8 +11957,8 @@
     },
     "navigateToZiweiChart": {
       "fallbackTitle": "开启以12宫整体解读的你的人生总体规划。",
-      "tagline": "从命宫到兄弟、夫妻、财帛、官禄，把12宫连结起来的深度紫微斗数，整理人生战略与时机。",
-      "premiumIntro": "紫微斗数深度解读不做零散解释，而是像战略一样展开12宫编织出的人生大地图。",
+      "tagline": "先选择想读的问题，便会从命宫、身宫到十二宫与四化、大限，分成十四章为你解读。",
+      "premiumIntro": "深化命盘无需付款即可开启。若需要更长的解说，可在画面下方另行选择深层报告。",
       "fallbackCta": "开启十二宫战略",
       "feats": {
         "0": "超越基础命盘、需要深度战略时",
@@ -11881,15 +11971,61 @@
         "2": "需要长期计划依据的人"
       },
       "premiumChapters": {
-        "0": "基于12宫主星的深度性格分析",
-        "1": "人生战略与核心宫位的连结",
-        "2": "大限、流年时机流向",
-        "3": "与个人资料联动的自动计算"
+        "0": "核心回答与基本总论",
+        "1": "各问题的咨询与解读依据",
+        "2": "十二宫命盘与四化、三方四正",
+        "3": "本周与本月要做的事",
+        "4": "当前时期分析与咨询收尾"
       },
       "premiumOutcomes": {
-        "0": "深度解读仅供参考。",
+        "0": "深化解读仅供参考。",
         "1": "可能因流派而异。",
-        "2": "沿用现有服务标准。"
+        "2": "结果不会另行保存，下次打开时需要重新输入资料。",
+        "3": "依照既有的服务标准。"
+      },
+      "receives": {
+        "0": {
+          "title": "从所选问题开始的核心回答",
+          "detail": "对你在八个主题中选择的问题，先给结论再展开。"
+        },
+        "1": {
+          "title": "分成十四章的深化咨询",
+          "detail": "从命宫、身宫到十二宫与四化、大限策略，分章阅读。"
+        },
+        "2": {
+          "title": "展开十二宫命盘",
+          "detail": "可以格状展开十二宫的主星与辅星、四化与三方四正。"
+        },
+        "3": {
+          "title": "本周与本月要做的事",
+          "detail": "把读到的内容转成当下可做的行动，另行整理。"
+        },
+        "4": {
+          "title": "只挑摘要分享",
+          "detail": "可以略去姓名与出生资料，只分享所选问题与核心回答。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "核心回答",
+          "detail": "先放上对所选问题的结论。"
+        },
+        "1": {
+          "title": "基本总论",
+          "detail": "从命盘的基本骨架依序读下去。"
+        },
+        "2": {
+          "title": "各问题的咨询",
+          "detail": "每个主题都附上解读，以及不妨这样做与查看此解读的依据。"
+        },
+        "3": {
+          "title": "命盘",
+          "detail": "展开十二宫格与宫位配置，以及四化造成的流向。"
+        },
+        "4": {
+          "title": "今日建议",
+          "detail": "以当前时期分析与本周、本月要做的事收尾。"
+        }
       }
     },
     "openAstroModal": {
@@ -12000,7 +12136,7 @@
       },
       "faq": {
         "0": {
-          "q": "和其他恋爱功能有什么不同？",
+          "q": "与其他恋爱咨询有什么不同？",
           "a": "不是指出单一场景，而是把整个恋爱拆成二十章、写成一册。篇幅与依据密度都是最大的。"
         },
         "1": {
@@ -12028,6 +12164,54 @@
         "3": {
           "label": "撰写解读书",
           "detail": "依序撰写，让前一章成为后一章的依据。"
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "五幕二十章的恋爱解读书",
+          "detail": "从天生的纹理到内心的结构、关系的温度、加深之处，再到解读与封印，分成五幕写就。"
+        },
+        "1": {
+          "title": "每章都有依据与洞察",
+          "detail": "以标签展开是依据什么读出的，并一并指出该章的流向与需要留意的时刻。"
+        },
+        "2": {
+          "title": "现在就能做的行动",
+          "detail": "每章给出两三个可以立刻尝试的行动。"
+        },
+        "3": {
+          "title": "恋爱DNA的十项指标",
+          "detail": "以0至100的条形显示信任、体贴、主导性、表达力、嫉妒、执着、感性、理性、心动与奉献。"
+        },
+        "4": {
+          "title": "PDF收藏与再次打开",
+          "detail": "保存在账号中，无需再次付款即可打开，并能从上次读到的地方接着读。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "封面 · 一目了然的咨询",
+          "detail": "先展开恋爱类型的名称与核心摘要。"
+        },
+        "1": {
+          "title": "I 天生的纹理",
+          "detail": "阅读命运之门与天生的恋爱气质、夫妻宫所说的伴侣形象，以及吸引的原理。"
+        },
+        "2": {
+          "title": "II 内心的结构",
+          "detail": "指出依恋与表达方式、内心的防卫机制、缘分开启之处，以及从暧昧走向恋爱的条件。"
+        },
+        "3": {
+          "title": "III 关系的温度",
+          "detail": "看告白与时机、关系的温度曲线、冲突的根源与和解的语言。"
+        },
+        "4": {
+          "title": "IV 加深之处",
+          "detail": "谈嫉妒与保持距离、亲密的节奏、分手与复合之门，以及婚姻运与长久同行。"
+        },
+        "5": {
+          "title": "V 解读与封印",
+          "detail": "以四柱与紫微斗数的交叉验证、恋爱DNA档案、未来三年与最后一封信收尾。"
         }
       }
     },
@@ -12170,15 +12354,15 @@
     },
     "ziwei_deep_pdf": {
       "fallbackTitle": "逐一点出十二宫，把一张命盘化为十五章文字解开。",
-      "tagline": "从命宫总论到各宫的星曜强弱与格局，把紫微斗数命盘按章解说并留存为PDF的深层报告。",
+      "tagline": "从命盘对当下问题给出的回答，到十二宫与未来的方向，分成十五章解说并留存为PDF的深层报告。",
       "premiumIntro": "深层报告不断言吉凶，而是逐章冷静地解开命盘每个位置所代表的意义。",
       "fallbackCta": "查看深层报告",
       "ctaNote": "付款后15个章节与PDF保存将一并开启。",
       "feats": {
-        "0": "Builds your chart from your birth date and time, then writes the overview, the twelve palaces, and two in-depth chapters in order",
-        "1": "Explains all twelve palaces — life, spouse, wealth and more — each as its own chapter",
-        "2": "Uses the four transformations and the three-harmony/four-cardinal view to lay out how the stars act on each other, in a separate chapter",
-        "3": "Places the strategy along the time axis in the final chapter, as a major-cycle and annual master plan"
+        "0": "直接承接深化命盘画面所排的命式，撰写十五章",
+        "1": "从八个关注领域中选择，并写下想问的问题开始",
+        "2": "将命宫、夫妻宫、财帛宫等十二宫各自独立成章解说",
+        "3": "在最后一章整理今后宜选择的方向"
       },
       "premiumAudience": {
         "0": "想把命盘用文字解读来读的人",
@@ -12186,12 +12370,12 @@
         "2": "想要一份保存下来反复查看的资料的人"
       },
       "premiumChapters": {
-        "0": "命盘总论——你这颗星的地图",
-        "1": "命宫、兄弟宫、夫妻宫、子女宫",
-        "2": "财帛宫、疾厄宫、迁移宫、奴仆宫",
-        "3": "官禄宫、田宅宫、福德宫、父母宫",
-        "4": "四化、三方四正深层——星曜之间的对话",
-        "5": "大限、流年总体规划——时间轴上的人生战略"
+        "0": "第1章 · 命盘对我的问题给出的回答",
+        "1": "第2章 · 我是怎样的人",
+        "2": "第3〜9章 · 关系与爱、照顾与财富、健康的节奏",
+        "3": "第10〜14章 · 工作与根基、心的恢复、家人与机会",
+        "4": "第15章 · 今后要选择什么方向",
+        "5": "PDF保存与回看过往报告"
       },
       "premiumOutcomes": {
         "0": "付款前可以先确认构成与篇幅。",
@@ -12201,7 +12385,7 @@
       "answersQuestions": {
         "0": "我命盘的各宫分别是什么意思？",
         "1": "哪个宫位承载着力量？",
-        "2": "空宫是不好的意思吗？"
+        "2": "今后宜选择什么方向呢？"
       },
       "valueCompare": {
         "0": {
@@ -12212,7 +12396,7 @@
         "1": {
           "axis": "篇幅",
           "free": "图表与标签",
-          "premium": "15个章节合计34,000字以上"
+          "premium": "15章合计36,000字以上"
         },
         "2": {
           "axis": "保存",
@@ -12226,8 +12410,8 @@
           "a": "基础命盘只呈现星曜配置。深层报告会把该配置代表的意义按宫位用文字解开。"
         },
         "1": {
-          "q": "空宫也会解说吗？",
-          "a": "会。空宫也是配置的一部分，本身就是解说的对象。"
+          "q": "做好的报告还能再看吗？",
+          "a": "只要保持登录，就能从过往报告列表中无需再次付款打开。"
         },
         "2": {
           "q": "可以拿到PDF吗？",
@@ -12236,20 +12420,64 @@
       },
       "analysisSteps": {
         "0": {
-          "label": "命盘编制",
-          "detail": "以出生年月日时在十二宫配置主星与四化。"
+          "label": "承接命式",
+          "detail": "直接取用深化命盘画面所排的命式。"
         },
         "1": {
-          "label": "强弱判定",
-          "detail": "判断各星曜落在庙、旺、得、利、平、陷中的哪一种。"
+          "label": "确认关注领域与问题",
+          "detail": "以所选关注领域与写下的问题作为第一章的主轴。"
         },
         "2": {
-          "label": "章节分配",
-          "detail": "把总论与十二宫拆成十五个章节，不重叠地分配。"
+          "label": "分章撰写",
+          "detail": "依序填满十五章，并逐宫说明依据。"
         },
         "3": {
-          "label": "撰写报告",
-          "detail": "逐章说明依据并撰写解说，装订成PDF。"
+          "label": "汇整成PDF",
+          "detail": "把完成的章节装订成一册供下载。"
+        }
+      },
+      "receives": {
+        "0": {
+          "title": "十五章的深层解说",
+          "detail": "第一章回答你写下的问题，接着逐一走过十二宫，最后整理出方向。"
+        },
+        "1": {
+          "title": "逐章展开阅读",
+          "detail": "可以先以预览浏览各章，只展开需要的章节阅读。"
+        },
+        "2": {
+          "title": "PDF保存",
+          "detail": "把完成的报告下载为PDF，长久保存阅读。"
+        },
+        "3": {
+          "title": "回看过往报告",
+          "detail": "只要保持登录，做好的报告可从列表无需再次付款打开。"
+        },
+        "4": {
+          "title": "中断也能接着写",
+          "detail": "即使生成中断，以同一请求重新打开就会从剩下的章节接着填。"
+        }
+      },
+      "outline": {
+        "0": {
+          "title": "封面",
+          "detail": "在前面放上报告名称与制作日期。"
+        },
+        "1": {
+          "title": "第1章 · 对问题的回答",
+          "detail": "先写命盘对所选关注领域与所写问题给出的回答。"
+        },
+        "2": {
+          "title": "第2章 · 我这个人",
+          "detail": "以命宫与身宫为中心，读出天生的纹理。"
+        },
+        "3": {
+          "title": "第3〜14章 · 十二宫",
+          "detail": "关系与爱、照顾与财富、健康与移动、工作与根基、内心与家人，每宫各一章解说。"
+        },
+        "4": {
+          "title": "第15章 · 未来的方向",
+          "detail": "汇集至此读到的内容，以宜选择什么方向收尾。"
         }
       }
     },
