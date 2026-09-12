@@ -20,12 +20,16 @@
  *      (회당 약 6분)이었다. 이제 한 번에 전부 보인다.
  *   2) **병렬 실행.** 2026-08-15 실측(run 31892017330)으로 스위트 304초 중 상위 5개가 206초였다.
  *      느린 것부터 채우는 풀로 벽시계를 줄인다.
- *   3) **귀책 판정.** 실패한 가드만 merge-base 워크트리에서 다시 돌린다. 거기서도 실패하면
- *      `PRE-EXISTING` — 이 PR 의 잘못이 아니므로 **경고로 낮추고 통과**시키되, 로그와 Job Summary
- *      에 "main 이 이미 빨간불" 을 크게 남긴다. base 가 통과했는데 head 가 실패하면 `NEW` 이고
- *      그건 그대로 실패다.
+ *   3) **귀책 판정 — 책임만 가르고 판정은 바꾸지 않는다.** 실패한 가드만 merge-base 워크트리에서
+ *      다시 돌린다. 거기서도 실패하면 `PRE-EXISTING`, base 가 통과했으면 `NEW` 다. 🔴 **어느 쪽이든
+ *      스위트는 실패한다**(2026-09-12 개정). 예전에는 `PRE-EXISTING` 을 경고로 낮추고 통과시켰는데,
+ *      그건 "다른 PR 이 main 을 고쳐 줄 것"이라는 PR 시대 전제였다. main 단독 개발에는 그 다른 PR 이
+ *      없어서, 깨진 가드가 main 에 한 번 안착하면 이후 push 가 전부 초록으로 지나갔다 — 실측:
+ *      cbbfcd6e4 가 가드를 깨뜨린 뒤 e4c723784 의 스위트가 초록이었다. 귀책은 이제 로그와 Job
+ *      Summary 의 정보로만 남는다.
  *   4) **base 를 못 구하면 전부 NEW 로 본다**(fail-closed). "모른다"를 "안전하다"로 읽지 않는다.
- *      main push 런에는 base 가 없으므로 자동으로 이 경로를 탄다 — 그게 main 건강 신호다.
+ *      main push 런은 `github.event.before` 를 base 로 받으므로 "직전 main 이 이미 깨져 있었다" 를
+ *      구분해 보여 준다 — 구분만 하고 통과시키지는 않는다(3항).
  *
  * 🔴 목록은 여기 한 벌뿐이다. `npm run <name>` 형태로 적는 이유는 `verify:guard-wiring` 이
  *    워크플로 → 이 파일 → 이름 순으로 간선을 따라가 배선을 계산하기 때문이다. 이름을 벗기면
@@ -343,21 +347,24 @@ async function main() {
   }
   if (preExisting.length) {
     summary.push(
-      `**main 이 이미 빨간불인 가드 ${preExisting.length}개 (이 PR 책임 아님)**`,
+      `**직전 main 에서도 실패하던 가드 ${preExisting.length}개 (이 push 가 깨뜨린 것은 아님)**`,
       ...preExisting.map((e) => `- \`${e.run}\``),
       "",
-      "이 항목들은 merge-base 에서도 실패한다. 이 PR 을 고쳐도 초록불이 되지 않으니 **별도 PR 로 고쳐야 한다.**",
+      "이 항목들은 merge-base 에서도 실패한다 — 이 push 의 책임은 아니지만 **스위트는 그래도 실패한다.** 깨진 가드가 main 에 남는 쪽이 더 위험하다.",
     );
-    for (const entry of preExisting) gh.warning(`${entry.run} — merge-base 에서도 실패한다. main 이 이미 빨간불이며 이 PR 책임이 아니다.`);
+    for (const entry of preExisting) gh.error(`${entry.run} — merge-base 에서도 실패한다. 이 push 가 깨뜨린 것은 아니지만 main 이 깨진 상태라 통과시키지 않는다.`);
   }
   writeSummary(summary);
 
   if (introduced.length) {
-    console.log(`\n[paid-gate-suite] FAIL — 이 변경이 깨뜨린 가드 ${introduced.length}개` + (preExisting.length ? ` (그 밖에 main 귀책 ${preExisting.length}개)` : ""));
+    console.log(`\n[paid-gate-suite] FAIL — 이 변경이 깨뜨린 가드 ${introduced.length}개` + (preExisting.length ? ` (그 밖에 직전 main 귀책 ${preExisting.length}개)` : ""));
     return 1;
   }
-  console.log(`\n[paid-gate-suite] PASS(경고) — 실패 ${preExisting.length}개는 전부 merge-base 에서도 실패한다. main 을 고치는 별도 PR 이 필요하다.`);
-  return 0;
+  // 🔴 여기 도달했다 = 실패는 있는데 전부 직전 main 에서도 실패한다. 예전에는 0 을 돌려 통과시켰다.
+  //    PR 시대에는 "별도 PR 이 main 을 고친다" 가 성립했지만, main 단독 개발에는 그 별도 PR 이 없다.
+  //    통과시키면 깨진 가드가 main 에 눌러앉고 이후 push 가 전부 초록으로 지나간다 — 실제로 그랬다.
+  console.log(`\n[paid-gate-suite] FAIL — 실패 ${preExisting.length}개는 전부 merge-base 에서도 실패한다. 이 push 의 책임은 아니지만 main 이 깨진 상태다 — 그것부터 고친다.`);
+  return 1;
 }
 
 // process.exit() 로 끊으면 파이프에 남은 출력이 잘릴 수 있다 — 실패 로그가 잘리면 이 러너의

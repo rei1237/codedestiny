@@ -463,8 +463,10 @@ jobs:
         uses: actions/checkout@v4
         with:
           # 🔴 귀책 판정용. 러너가 실패한 가드만 merge-base 워크트리에서 다시 돌려
-          #    "main 이 이미 빨간불" 과 "이 PR 이 깨뜨렸다" 를 가른다. 얕은 체크아웃이면
-          #    base 커밋이 없어 판정이 통째로 fail-closed(전부 이 PR 책임)로 접힌다.
+          #    "직전 main 이 이미 깨져 있었다" 와 "이 push 가 깨뜨렸다" 를 가른다. 얕은
+          #    체크아웃이면 base 커밋이 없어 판정이 통째로 fail-closed(전부 이 push 책임)로
+          #    접힌다. 🔴 어느 쪽으로 갈리든 실패가 있으면 스위트는 실패한다(2026-09-12) —
+          #    귀책은 보고를 정확하게 할 뿐 통과 여부를 바꾸지 않는다.
           fetch-depth: 0
 
       - name: Setup Node.js
