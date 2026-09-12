@@ -93,7 +93,9 @@
 .featureVisualDetail .featureEditorialMap dl,.featureVisualDetail .featureEditorialMap dl>div{border-color:color-mix(in srgb,var(--map-fg) 35%,transparent)}
 @media(min-width:700px){.featureVisualDetail .featureEditorial{margin-top:0;padding:28px 24px 32px}}
 .featureDetailStandaloneLink{display:inline-flex;min-height:44px;align-items:center;padding:8px 0;margin-bottom:20px;color:#e7cc9f;font-size:14px;text-decoration:underline;text-underline-offset:5px}
-.tile-pvw-overlay.pvw-visual #tilePvwHero,.tile-pvw-overlay.pvw-visual #tilePvwTagline,.tile-pvw-overlay.pvw-visual .tile-pvw-divider,.tile-pvw-overlay.pvw-visual #tilePvwFeatsLabel,.tile-pvw-overlay.pvw-visual #tilePvwFeats,.tile-pvw-overlay.pvw-visual #tilePvwPremiumBlock,.tile-pvw-overlay.pvw-visual #tilePvwScaleSec,.tile-pvw-overlay.pvw-visual #tilePvwQuestSec,.tile-pvw-overlay.pvw-visual #tilePvwStepsSec,.tile-pvw-overlay.pvw-visual #tilePvwReqSec,.tile-pvw-overlay.pvw-visual #tilePvwAudSec,.tile-pvw-overlay.pvw-visual #tilePvwCompareSec,.tile-pvw-overlay.pvw-visual #tilePvwFaqSec,.tile-pvw-overlay.pvw-visual #tilePvwReceiveSec,.tile-pvw-overlay.pvw-visual #tilePvwOutlineSec{display:none}
+.tile-pvw-overlay.pvw-visual #tilePvwHero,.tile-pvw-overlay.pvw-visual #tilePvwTagline,.tile-pvw-overlay.pvw-visual .tile-pvw-divider,.tile-pvw-overlay.pvw-visual #tilePvwFeats,.tile-pvw-overlay.pvw-visual #tilePvwScaleSec,.tile-pvw-overlay.pvw-visual #tilePvwQuestSec,.tile-pvw-overlay.pvw-visual #tilePvwStepsSec,.tile-pvw-overlay.pvw-visual #tilePvwReqSec,.tile-pvw-overlay.pvw-visual #tilePvwAudSec,.tile-pvw-overlay.pvw-visual #tilePvwCompareSec,.tile-pvw-overlay.pvw-visual #tilePvwFaqSec{display:none}
+/* 저작한 receives 가 없으면 feats 폴백만 남는데, 그 내용은 비주얼 패널이 이미 말한다 — 제목만 남은 빈 칸을 막는다. */
+.tile-pvw-overlay.pvw-visual #tilePvwReceiveSec:has(#tilePvwReceives[hidden]){display:none}
 .tile-pvw-overlay.pvw-visual .tile-pvw-sheet{display:flex;flex-direction:column;background:linear-gradient(145deg,#fffaf7,#fff3f8)!important;color:#3c1830!important}
 .tile-pvw-overlay.pvw-visual .tile-pvw-content{width:100%;max-width:960px;margin-inline:auto}
 html.neo-mode .tile-pvw-overlay.pvw-visual .featureVisualDetail,body.neo-mode .tile-pvw-overlay.pvw-visual .featureVisualDetail{--feature-surface:#171331;--feature-text:#f4eeff;--feature-muted:#c8b8e6;--feature-accent:#c4b5fd;--feature-line:rgba(196,181,253,.24);color:#f4eeff!important}
@@ -101,6 +103,53 @@ html.neo-mode .tile-pvw-overlay.pvw-visual .featureVisualDetail :is(h2,h3,strong
 html.neo-mode .tile-pvw-overlay.pvw-visual .featureVisualDetail :is(p,.featureDetailItems li,.featureDetailQuestions li),body.neo-mode .tile-pvw-overlay.pvw-visual .featureVisualDetail :is(p,.featureDetailItems li,.featureDetailQuestions li){color:#c8b8e6!important}
 html.neo-mode .tile-pvw-overlay.pvw-visual .featureDetailConversion,body.neo-mode .tile-pvw-overlay.pvw-visual .featureDetailConversion{background:#c4b5fd!important;border-color:#c4b5fd!important;color:#0f0c26!important}
 html.neo-mode .tile-pvw-overlay.pvw-visual .tile-pvw-sheet,body.neo-mode .tile-pvw-overlay.pvw-visual .tile-pvw-sheet{background:linear-gradient(145deg,#0f0c26,#171331)!important;color:#f4eeff!important}
+/* 비주얼 상세 모드의 「내가 받게 되는 것」·「결과 화면은 이렇게 구성돼요」.
+   두 칸은 저작한 사실(받는 산출물·결과 화면 구성)이라 비주얼 소개가 대신하지 못한다. 숨기지 않고
+   비주얼 시트 팔레트로 다시 칠한다 — 기본 상세창 스타일은 전부 :not(.pvw-visual) 로 잠겨 있어 여기서 따로 준다. */
+.tile-pvw-overlay.pvw-visual .tile-pvw-content{--pvd-text:#3c1830;--pvd-muted:#70445c;--pvd-accent:#b31955;--pvd-line:rgba(179,25,85,.2);--pvd-card:#fffaf7}
+html.neo-mode .tile-pvw-overlay.pvw-visual .tile-pvw-content,body.neo-mode .tile-pvw-overlay.pvw-visual .tile-pvw-content{--pvd-text:#f4eeff;--pvd-muted:#c8b8e6;--pvd-accent:#c4b5fd;--pvd-line:rgba(196,181,253,.24);--pvd-card:rgba(196,181,253,.08)}
+.tile-pvw-overlay.pvw-visual :is(#tilePvwReceiveSec,#tilePvwOutlineSec,#tilePvwCmpSec){margin:0;padding:36px 0 0;border:0;border-radius:0;background:transparent;color:var(--pvd-text)}
+.tile-pvw-overlay.pvw-visual #tilePvwReceiveSec{border-top:1px solid var(--pvd-line)}
+.tile-pvw-overlay.pvw-visual :is(#tilePvwReceiveSec,#tilePvwOutlineSec,#tilePvwCmpSec,#tilePvwPriceSec) .tile-pvw-sec-title{margin:0 0 18px;color:var(--pvd-text);font-family:inherit;font-size:clamp(21px,3vw,28px);font-weight:600;letter-spacing:-.035em;line-height:1.5;text-wrap:balance;word-break:keep-all}
+.tile-pvw-overlay.pvw-visual .tile-pvw-receives{display:grid;gap:12px;margin:0;padding:0;list-style:none}
+.tile-pvw-overlay.pvw-visual .tile-pvw-receives[hidden],.tile-pvw-overlay.pvw-visual .tile-pvw-outline-figure[hidden]{display:none}
+.tile-pvw-overlay.pvw-visual .tile-pvw-receive{display:grid;grid-template-columns:40px minmax(0,1fr);gap:14px;align-items:start;padding:16px;border:1px solid var(--pvd-line);border-radius:14px;background:var(--pvd-card)}
+.tile-pvw-overlay.pvw-visual .tile-pvw-receive .tile-pvw-pair-icon{display:grid;width:40px;height:40px;place-items:center;border:1px solid var(--pvd-line);border-radius:50%;background:transparent;font-size:19px;line-height:1}
+.tile-pvw-overlay.pvw-visual :is(.tile-pvw-receive,.tile-pvw-outline-item) .tile-pvw-step-label{display:block;color:var(--pvd-text);font-size:16px;font-weight:650;line-height:1.6;word-break:keep-all;overflow-wrap:break-word}
+.tile-pvw-overlay.pvw-visual :is(.tile-pvw-receive,.tile-pvw-outline-item) .tile-pvw-step-detail{display:block;margin-top:4px;color:var(--pvd-muted);font-size:15px;line-height:1.72;word-break:keep-all;overflow-wrap:break-word}
+.tile-pvw-overlay.pvw-visual .tile-pvw-outline{display:grid;margin:0;padding:0;list-style:none;counter-reset:pvw-outline}
+.tile-pvw-overlay.pvw-visual .tile-pvw-outline-item{display:grid;grid-template-columns:34px minmax(0,1fr);gap:10px;padding:13px 0;border-bottom:1px solid var(--pvd-line);counter-increment:pvw-outline}
+.tile-pvw-overlay.pvw-visual .tile-pvw-outline-item:first-child{padding-top:0}
+.tile-pvw-overlay.pvw-visual .tile-pvw-outline-item:last-child{border-bottom:0}
+.tile-pvw-overlay.pvw-visual .tile-pvw-outline-item::before{color:var(--pvd-accent);content:counter(pvw-outline,decimal-leading-zero);font-family:var(--font-serif,Georgia,serif);font-size:15px;font-weight:700;line-height:1.6}
+/* 타일 썸네일은 16:9 라 3:2 틀에서 cover 가 제목 글자를 자른다 — contain + 투명 배경으로 틀 색이 띠에 보이게 한다. */
+.tile-pvw-overlay.pvw-visual .tile-pvw-outline-figure{margin:0 0 16px;overflow:hidden;aspect-ratio:3/2;border:1px solid var(--pvd-line);border-radius:14px;background:var(--pvd-card)}
+.tile-pvw-overlay.pvw-visual .tile-pvw-outline-img{display:block;width:100%;height:100%;object-fit:contain;background:transparent}
+.tile-pvw-overlay.pvw-visual .tile-pvw-outline-caption{margin:12px 0 0;color:var(--pvd-muted);font-size:14px;line-height:1.6;word-break:keep-all}
+@media(min-width:600px){.tile-pvw-overlay.pvw-visual #tilePvwOutlineSec:not([hidden]):has(>.tile-pvw-outline-figure:not([hidden])){display:grid;grid-template-columns:200px minmax(0,1fr);column-gap:22px;align-items:start}}
+/* 가격·비교표·안심 안내도 같은 편집 체계로 맞춘다. 기본 상세창 스타일(`--cd-detail-*` 상자)이
+   그대로 새면 시트 아래쪽만 옛 디자인으로 갈아타 보인다(390px 실측). 가격 카드 하나만 남긴다. */
+.tile-pvw-overlay.pvw-visual #tilePvwPriceSec{margin:36px 0 0;padding:22px 20px 20px;border:1px solid var(--pvd-line);border-radius:16px;background:var(--pvd-card);color:var(--pvd-text)}
+.tile-pvw-overlay.pvw-visual #tilePvwPriceSec .tile-pvw-sec-title{font-size:clamp(19px,2.6vw,23px);margin-bottom:14px}
+.tile-pvw-overlay.pvw-visual #tilePvwPriceSec .tile-pvw-paywall{display:flex;align-items:flex-start;gap:12px;margin:0;padding:0;border:0;border-radius:0;background:none}
+.tile-pvw-overlay.pvw-visual .tile-pvw-paywall-icon{display:grid;flex:0 0 auto;width:40px;height:40px;place-items:center;border-radius:50%;border:1px solid var(--pvd-line);background:transparent;font-size:19px;line-height:1}
+.tile-pvw-overlay.pvw-visual .tile-pvw-paywall-body{flex:1 1 auto;min-width:0}
+.tile-pvw-overlay.pvw-visual .tile-pvw-paywall-title{display:block;color:var(--pvd-text);font-size:17px;font-weight:700;line-height:1.5;word-break:keep-all;overflow-wrap:break-word}
+.tile-pvw-overlay.pvw-visual .tile-pvw-paywall-desc{display:block;margin-top:4px;color:var(--pvd-muted);font-size:15px;line-height:1.7;word-break:keep-all;overflow-wrap:break-word}
+/* 「포함된 혜택」도 저작한 카피다 — 가격 카드 안 구분선 아래에 함께 둔다. */
+.tile-pvw-overlay.pvw-visual #tilePvwPremiumBlock{margin:18px 0 0;padding:16px 0 0;border:0;border-top:1px dashed var(--pvd-line);border-radius:0;background:none}
+.tile-pvw-overlay.pvw-visual .tile-pvw-paywall[style*="none"]+#tilePvwPremiumBlock{margin-top:0;padding-top:0;border-top:0}
+.tile-pvw-overlay.pvw-visual .tile-pvw-premium-title{margin:0 0 10px;color:var(--pvd-accent);font-size:13px;font-weight:700;letter-spacing:.02em}
+.tile-pvw-overlay.pvw-visual #tilePvwPremiumBlock .tile-pvw-premium-list li{color:var(--pvd-muted);font-size:15px;line-height:1.72;word-break:keep-all}
+/* 비교 행도 카드와 같은 채움을 준다 — 테두리만 맞추면 시트 배경(그라디언트)이 비쳐 혼자 빈 상자로 보인다. */
+.tile-pvw-overlay.pvw-visual :is(.tile-pvw-cmp,.tile-pvw-cmp-row){border-color:var(--pvd-line)}
+.tile-pvw-overlay.pvw-visual .tile-pvw-cmp-row{background:var(--pvd-card)}
+.tile-pvw-overlay.pvw-visual .tile-pvw-cmp-c{font-size:14px;word-break:keep-all;overflow-wrap:break-word}
+.tile-pvw-overlay.pvw-visual :is(.tile-pvw-cmp-head,.tile-pvw-cmp-prem){background:var(--pvd-card)}
+.tile-pvw-overlay.pvw-visual .tile-pvw-assure{margin:20px 0 0;padding:16px 18px 6px;border:1px solid var(--pvd-line);border-radius:14px;background:var(--pvd-card);color:var(--pvd-text)}
+.tile-pvw-overlay.pvw-visual .tile-pvw-assure-title{margin:0;color:var(--pvd-text);font-size:15px;font-weight:700;line-height:1.5}
+.tile-pvw-overlay.pvw-visual .tile-pvw-assure .tile-pvw-paywall-note{display:block;margin:6px 0 0;padding:0;border:0;color:var(--pvd-muted);font-size:14px;line-height:1.72;word-break:keep-all;overflow-wrap:break-word}
+.tile-pvw-overlay.pvw-visual .tile-pvw-assure-link{display:inline-flex;min-height:44px;align-items:center;color:var(--pvd-accent);font-size:15px;font-weight:650;text-decoration:underline;text-underline-offset:3px}
 @media(min-width:700px){.featureIntroductionPage{padding-inline:40px}.featureIntroductionNav{margin-bottom:40px}.featureVisualDetail .featureDetailHero:has(.featureDetailArt){display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:40px;padding-bottom:48px}.featureVisualDetail .featureDetailHero .featureDetailArt{height:auto;min-height:0;aspect-ratio:16/9;align-self:center}.featureVisualDetail .featureDetailHero .featureDetailBody{padding:32px 0}.featureVisualDetail section.featureDetailPanel{padding:48px 0}.featureVisualDetail .featureDetailPreview{display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:48px}.featureVisualDetail figure{margin:0}.featureVisualDetail .featureDetailSteps{grid-template-columns:1fr 1fr;column-gap:48px}.featureIntroductionActions{display:flex;align-items:center;justify-content:space-between;gap:24px}.featureIntroductionActions p{margin:0}.featureIntroductionActions>a{min-width:280px}}
 
 .featureCatalogPage{min-height:100svh;background:#100d14;color:#f5efe7;padding:24px 18px 80px;font-family:var(--font-body,system-ui,sans-serif)}
