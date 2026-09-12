@@ -17,10 +17,15 @@
  *   · resolveMobileInteractionPatchCacheKey — mobile-interaction-patch.js 한 개
  * 둘 다 "바뀔 때만 URL 을 바꾼다"는 같은 이유로 내용 해시를 쓴다.
  *
- * 🔴 정규화 후 해싱하는 이유(순환 차단)는 root-asset-cache-keys.mjs 와 같다. 참조를 다시 쓰면
- *    그 파일의 해시가 바뀌고, 그러면 그 파일을 가리키는 참조가 또 바뀌는 무한 루프가 된다.
- *    `?v=` 값을 자리표시자로 치환한 뒤 해싱하면 고리가 끊긴다 — 그래서 결과가 고정점이고
- *    `verify:public-mirror-fresh` 의 멱등성 전제가 유지된다.
+ * 🔴 순환 차단은 **자기 참조**만 정규화한다(normalizeOwnReferenceForHash). 파일 안의 `?v=`
+ *    를 전부 자리표시자로 바꾸면(root-asset-cache-keys.mjs 의 옛 방식) 이 파일이 **다른**
+ *    자산을 가리키는 참조가 바뀌어도 이 파일 자신의 해시가 그대로라서, 그 파일을 가리키는
+ *    쪽(index.html 등)의 URL 이 영원히 바뀌지 않는다 — 실측: 116897a1c 에서
+ *    index-inline-runtime.js 는 내부의 saju-engine.js?v= 만 바뀌었는데 전체 정규화로 계산한
+ *    해시는 그대로였다. 자기 참조만 자리표시자로 바꾸면 고리는 여전히 끊기고
+ *    (compat-llm-prompts.js 가 스스로를 다시 로드하는 한 줄이 유일한 실제 자기 참조 — 레포
+ *    전수 `?v=` 참조 그래프에 그 외 상호 참조 사이클은 없다) `verify:public-mirror-fresh`
+ *    의 멱등성 전제도 유지된다.
  *
  * 🔴 루트 정본으로 통일해 해싱한다. `public/js/core/uiBindings.js` 를 처리할 때도 `/js/foo.js`
  *    는 루트의 `js/foo.js` 로 푼다. 그래야 루트와 미러가 **같은 키**를 얻어
@@ -29,7 +34,6 @@
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { posix, resolve } from "node:path";
-import { normalizeAssetForHash } from "./root-asset-cache-keys.mjs";
 
 /**
  * 내용 해시를 계산할 수 있어야 하는 확장자. 이 확장자인데 레포에서 파일을 못 찾으면
@@ -55,6 +59,33 @@ function extensionOf(refPath) {
 
 function stripBom(text) {
   return String(text).replace(/^\uFEFF+/, "");
+}
+
+function escapeRegExp(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/**
+ * `normalizeAssetForHash` \uB294 \uD30C\uC77C \uC548\uC758 **\uBAA8\uB4E0** `?v=` \uB97C \uC9C0\uC6B4\uB2E4 \u2014 \uADF8\uB7EC\uBA74 \uC774 \uD30C\uC77C\uC774 \uB2E4\uB978
+ * \uC790\uC0B0\uC744 \uAC00\uB9AC\uD0A4\uB294 \uCC38\uC870\uAC00 \uBC14\uB00C\uC5B4\uB3C4(\uC608: index-inline-runtime.js \uC548 saju-engine.js?v= \uAC31\uC2E0)
+ * \uC774 \uD30C\uC77C \uC790\uC2E0\uC758 \uD574\uC2DC\uAC00 \uADF8\uB300\uB85C\uB77C\uC11C index.html \uC774 \uBB3C\uACE0 \uC788\uB294 \uC774 \uD30C\uC77C\uC758 URL \uC774 \uC601\uC6D0\uD788
+ * \uBC14\uB00C\uC9C0 \uC54A\uB294\uB2E4(\uC2E4\uCE21: 116897a1c \uC5D0\uC11C index-inline-runtime.js \uB294 saju-engine.js?v= \uB9CC
+ * \uBC14\uB00C\uC5C8\uB294\uB370 \uACC4\uC0B0\uB41C \uD574\uC2DC\uB294 \uB3D9\uC77C\uD588\uB2E4 \u2014 `/js/*.js` \uC758 7\uC77C+30\uC77C \uCE90\uC2DC \uC544\uB798\uC11C CDN \uC774 \uC61B \uBC14\uC774\uD2B8\uB97C
+ * \uBB34\uAE30\uD55C \uC11C\uBE59\uD588\uB2E4).
+ *
+ * \uC815\uADDC\uD654\uAC00 \uC2E4\uC81C\uB85C \uB9C9\uC544\uC57C \uD558\uB294 \uAC83\uC740 **\uC790\uAE30 \uC790\uC2E0\uC744 \uAC00\uB9AC\uD0A4\uB294** `?v=` \uBFD0\uC774\uB2E4(\uC608:
+ * compat-llm-prompts.js \uAC00 `js/compat-llm-prompts.js?v=...` \uB85C \uC2A4\uC2A4\uB85C\uB97C \uB2E4\uC2DC \uB85C\uB4DC\uD558\uB294
+ * \uCF54\uB4DC \u2014 \uADF8 \uAC12\uC744 \uD574\uC2DC\uC5D0 \uB123\uC73C\uBA74 \uD574\uC2DC\uAC00 \uADF8 \uAC12\uC744 \uBC14\uAFB8\uACE0 \uADF8 \uAC12\uC774 \uD574\uC2DC\uB97C \uB2E4\uC2DC \uBC14\uAFB8\uB294 \u5FAA\u74B0\uC774 \uB41C\uB2E4).
+ * \uADF8\uB798\uC11C \uC774 \uD30C\uC77C\uC774 **\uB2E4\uB978** \uC790\uC0B0\uC744 \uAC00\uB9AC\uD0A4\uB294 `?v=` \uB294 \uADF8\uB300\uB85C \uB450\uACE0 \uC790\uAE30 \uCC38\uC870\uB9CC \uC790\uB9AC\uD45C\uC2DC\uC790\uB85C
+ * \uBC14\uAFBC\uB2E4.
+ */
+function normalizeOwnReferenceForHash(content, rel) {
+  const base = escapeRegExp(rel.split("/").pop());
+  const selfRefRe = new RegExp(`${base}\\?v=[a-zA-Z0-9_-]+`, "g");
+  return String(content)
+    .replace(selfRefRe, `${rel.split("/").pop()}?v=__CACHE_KEY__`)
+    .replace(/\r\n/g, "\n")
+    .replace(/\r/g, "\n");
 }
 
 /**
@@ -99,7 +130,7 @@ export function createAssetCacheKeys(rootDir) {
 
   function keyForRepoRel(rel) {
     if (keyCache.has(rel)) return keyCache.get(rel);
-    const normalized = normalizeAssetForHash(stripBom(readFileSync(resolve(rootDir, rel), "utf8")));
+    const normalized = normalizeOwnReferenceForHash(stripBom(readFileSync(resolve(rootDir, rel), "utf8")), rel);
     const key = `build-${createHash("sha256").update(normalized).digest("hex").slice(0, 12)}`;
     keyCache.set(rel, key);
     return key;
