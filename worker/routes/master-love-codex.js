@@ -38,7 +38,7 @@ import { canUseByPass, normalizeHoneyPassEntitlement, resolvePremiumQuota } from
 import { resolveCanonicalEntitlement } from "../lib/entitlement-policy.js";
 // 🔴 이 라우트는 coin-gate 를 거치지 않는 자체 게이트라, 이용권 통과를 내주면서 누적 사용량을
 // 아무도 차감하지 않았다(한도가 존재하지 않았다). 판정·소비 정본은 worker/payments/passes.js.
-import { consumePassForFeature, hasConsumedPassFeature, passDenialCode } from "../lib/pass-consumption.js";
+import { consumePassForFeature, hasConsumedPassFeature, passDenialCode, refundPassCoverage } from "../lib/pass-consumption.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
@@ -770,6 +770,16 @@ function handlePlan(request) {
   return json({ ok: true, mode: resolveMode(mode).mode, plan });
 }
 
+/**
+ * consumePassForFeature 가 이번 호출에서 실제로 monthlySpendCoin 을 새로 깎았을 때만
+ * 되돌릴 정보를 만든다 — 재생(replayed)이거나 예산을 못 세는 상태(budgetApplies 없음)면
+ * 애초에 차감이 없었으므로 undefined 를 돌려준다(환불 대상 아님).
+ */
+function passRefundFor(consumed, cost) {
+  if (!consumed?.covered || consumed.replayed || !consumed.coverage?.budgetApplies || !(cost > 0)) return undefined;
+  return { cycleKey: consumed.coverage.cycleKey, cost };
+}
+
 async function handleEnsureAccess(request, env) {
   const body = await readJson(request);
   const idempotencyKey = clean(body?.idempotencyKey || body?.requestId, 120) || sha256(String(Date.now()));
@@ -786,13 +796,13 @@ async function handleEnsureAccess(request, env) {
   if (!auth) return loginRequired();
 
   const pricing = getPricing(normalized.mode);
-  const grant = async (accessType) => json({
+  const grant = async (accessType, passRefund) => json({
     ok: true,
     accessType,
     mode: normalized.mode,
     accessToken: await createAccessToken(
       env,
-      { userId: auth.userId, accessType, idempotencyKey, inputHash: normalized.inputHash },
+      { userId: auth.userId, accessType, idempotencyKey, inputHash: normalized.inputHash, ...(passRefund ? { passRefund } : {}) },
       normalized.mode,
     ),
   });
@@ -830,7 +840,9 @@ async function handleEnsureAccess(request, env) {
         : null;
       // 🔴 한도 위반만 결제로 인계한다. 정본이 이용권을 못 보는 상태(passDenialCode "")는
       //    셀 예산이 없다는 뜻이라 예전 통과 판정을 그대로 존중한다.
-      if (consumed && (consumed.covered || !passDenialCode(consumed.reason))) return grant("pass");
+      if (consumed && (consumed.covered || !passDenialCode(consumed.reason))) {
+        return grant("pass", passRefundFor(consumed, pricing.coinPrice));
+      }
     }
   }
 
@@ -853,7 +865,7 @@ async function resolveStartAccess(request, env, auth, body, normalized, idempote
         // 🔴 모드(=featureKey)가 다르면 거부한다. 개인판 토큰으로 궁합을 생성할 수 없다.
         && tokenMatchesMode(payload, normalized.mode)
         && ["admin", "pass"].includes(clean(payload.accessType))) {
-        return { ok: true, accessType: clean(payload.accessType), paymentId: "", billingRequestId: idempotencyKey };
+        return { ok: true, accessType: clean(payload.accessType), paymentId: "", billingRequestId: idempotencyKey, passRefund: payload.passRefund || null };
       }
     } catch (_) { /* fall through */ }
   }
@@ -896,7 +908,7 @@ async function resolveStartAccess(request, env, auth, body, normalized, idempote
         })
         : null;
       if (consumed && (consumed.covered || !passDenialCode(consumed.reason))) {
-        return { ok: true, accessType: "pass", paymentId: "", billingRequestId: idempotencyKey };
+        return { ok: true, accessType: "pass", paymentId: "", billingRequestId: idempotencyKey, passRefund: passRefundFor(consumed, startCoinCost) || null };
       }
     }
   }
@@ -963,6 +975,7 @@ async function handleStart(request, env) {
     idempotencyKey,
     inputHash: normalized.inputHash,
     status: "generating",
+    passRefund: access.passRefund || null,
   } }, { upsert: true, new: true }).lean();
 
   if (doc.inputHash !== normalized.inputHash || sessionMode(doc) !== normalized.mode) {
@@ -1000,6 +1013,29 @@ async function acquireBatchLock(sessionId, userId) {
     { new: true },
   ).lean();
   return updated ? { ok: true, lockToken, doc: updated } : { ok: false };
+}
+
+/**
+ * 이용권으로 차감된 monthlySpendCoin 을 생성 실패 시 되돌린다. 챕터가 하나라도 이미
+ * 커밋된 세션은 대상이 아니다(기존 "부분 전달 시 무료 재개" 동작을 건드리지 않기 위함 —
+ * 이번 버그 수정 범위 밖). refundedAt 마커로 재시도 시 이중 환불을 막는다.
+ */
+async function refundSessionPassIfNeeded(sessionId, userId, doc, existingChapters, dependencies = {}) {
+  const refund = doc?.passRefund;
+  if (!refund || refund.refundedAt || existingChapters.length > 0) return;
+  const refundFn = dependencies.refundPassCoverage || refundPassCoverage;
+  const SessionModel = dependencies.MasterLoveCodexSession || MasterLoveCodexSession;
+  try {
+    const result = await refundFn({ userId, cycleKey: refund.cycleKey, cost: refund.cost });
+    if (result.refunded) {
+      await SessionModel.updateOne(
+        { id: sessionId, userId, "passRefund.refundedAt": { $exists: false } },
+        { $set: { "passRefund.refundedAt": new Date() } },
+      ).catch(() => {});
+    }
+  } catch (error) {
+    console.error("[master-love-codex] pass refund", clean(error?.message, 300));
+  }
 }
 
 async function handleGenerate(request, env, dependencies = {}) {
@@ -1090,6 +1126,7 @@ async function handleGenerate(request, env, dependencies = {}) {
         { $set: { status: "generation_failed", generationError: { code: reason, at: new Date() }, "generationProgress.lockedAt": null, "generationProgress.lockToken": "" } },
       ).catch(() => {});
       console.warn("[master-love-codex] generation retry", { sessionId, reason, startIndex });
+      await refundSessionPassIfNeeded(sessionId, clean(auth.userId), doc, existingChapters, dependencies);
       return json({
         ok: false,
         reason,
@@ -1125,6 +1162,7 @@ async function handleGenerate(request, env, dependencies = {}) {
       lockFilter,
       { $set: { status: "generation_failed", "generationProgress.lockedAt": null, "generationProgress.lockToken": "" } },
     ).catch(() => {});
+    await refundSessionPassIfNeeded(sessionId, clean(auth.userId), doc, existingChapters, dependencies);
     return serverError("이야기를 이어 쓰는 중 문제가 생겼습니다. 결제와 지금까지 쓰인 장은 보존되니 잠시 후 다시 시도해 주세요.", 503);
   }
 }
@@ -1189,4 +1227,5 @@ export const __masterLoveCodexTestUtils = {
   // 배치 시간 예산 — 검증 스크립트가 LLM 호출 없이 순수 함수로 확인한다.
   withDeadline, planBatchCommit, acquireBatchLock,
   BATCH_BUDGET_MS, BATCH_LOCK_TTL_MS, CHAPTER_MIN_BUDGET_MS, EDGE_RESPONSE_DEADLINE_MS,
+  passRefundFor, refundSessionPassIfNeeded,
 };

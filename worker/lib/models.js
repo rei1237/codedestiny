@@ -1223,6 +1223,9 @@ const masterLoveCodexSchema = new mongoose.Schema({
   idempotencyKey: { type: String, required: true, trim: true, maxlength: 180 },
   inputHash: { type: String, required: true, trim: true, maxlength: 80 },
   status: { type: String, enum: ["generating", "completed", "generation_failed"], default: "generating" },
+  // 이용권 커버로 monthlySpendCoin 이 차감된 건만 채워진다(covered && !replayed && budgetApplies).
+  // 챕터가 하나도 커밋되기 전에 생성이 실패하면 되돌린다 — refundedAt 이 멱등 마커.
+  passRefund: { type: mongoose.Schema.Types.Mixed, default: null },
   generationError: { type: mongoose.Schema.Types.Mixed, default: null },
 }, { timestamps: true, collection: "masterLoveCodexSessions" });
 

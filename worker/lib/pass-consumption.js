@@ -49,6 +49,20 @@ function loadPassPolicy() {
   return import("../payments/passes.js");
 }
 
+/* toObjectId 정본은 worker/payments/db.js 하나뿐이다(worker/payments/passes.js 도 여기서 가져다 쓴다).
+   사본을 만들지 않고 같은 이유(정적 임포트 시 결제 그래프가 워커 메인 청크에 들어가는 것을 피함)로
+   동적 임포트한다 — loadPassPolicy() 가 이미 passes.js 를 통해 이 모듈을 불러오므로 실질 비용은 0에 가깝다. */
+function loadPaymentDb() {
+  return import("../payments/db.js");
+}
+
+/* worker/payments/passes.js 의 findOneAndUpdate 반환 형태(구 드라이버의 {value} 래핑 vs 문서 그대로)를
+   그대로 미러링한다 — 그 파일의 동명 지역 함수와 동일한 계약. */
+function unwrapUser(result) {
+  if (result && typeof result === "object" && "value" in result && !("_id" in result)) return result.value;
+  return result || null;
+}
+
 function withPersistedPassUsage(coverage = {}, user = null) {
   if (!coverage?.budgetApplies) return coverage;
   const sub = user?.profileSubscription && typeof user.profileSubscription === "object"
@@ -167,4 +181,37 @@ export async function consumePassForFeature({ user, entitlement, userId, feature
     coverage: withPersistedPassUsage(coverage, updated),
     user: updated,
   };
+}
+
+/**
+ * consumePassForFeature 가 이미 차감한 monthlySpendCoin 을, 그 뒤 AI 생성이 실패했을 때 되돌린다.
+ * worker/payments/passes.js 의 consumePassCoverage 와 같은 CAS 형태(사이클키 일치 + 잔액 조건부)를
+ * 반대 방향(증분 → 감분)으로 미러링한다 — 판정 로직 정본은 여전히 passes.js 하나이고 여기서는
+ * 새 규칙을 만들지 않는다.
+ *
+ * 사이클이 이미 넘어갔거나(만료·갱신) 잔액이 이상하면(다른 소비가 끼어들어 amount 미만) **조용히
+ * skip** 한다 — 다른 사이클의 카운터를 잘못 건드리지 않기 위해서다(과소환불은 안전한 방향).
+ *
+ * @returns {Promise<{refunded:boolean, amount?:number, skipped?:boolean, reason?:string}>}
+ */
+export async function refundPassCoverage({ userId, cycleKey, cost, db = nativeDb }) {
+  const amount = Math.max(0, Math.floor(Number(cost) || 0));
+  const key = String(cycleKey || "").trim();
+  if (!userId || amount <= 0 || !key) return { refunded: false, skipped: true };
+  const { toObjectId } = await loadPaymentDb();
+  const uid = toObjectId(userId);
+  if (!uid) return { refunded: false, skipped: true };
+  const updated = unwrapUser(await db.findOneAndUpdate(
+    User,
+    {
+      _id: uid,
+      "profileSubscription.premiumUseCycleKey": key,
+      "profileSubscription.monthlySpendCoin": { $gte: amount },
+    },
+    { $inc: { "profileSubscription.monthlySpendCoin": -amount } },
+    { returnDocument: "after" },
+  ));
+  if (!updated) return { refunded: false, skipped: true, reason: "PASS_QUOTA_CYCLE_MISMATCH_OR_INSUFFICIENT" };
+  invalidatePassUsageReadCaches(userId);
+  return { refunded: true, amount };
 }
