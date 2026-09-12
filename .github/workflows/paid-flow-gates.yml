@@ -279,6 +279,9 @@ on:
       #    그래서 어댑터와 그 아래 정본 체인이 바뀌어도 이 잡이 깨어나야 한다.
       - "scripts/verify-oracle-consultation-fallback.mjs"
       - "worker/lib/tarot-oracle-llm.js"
+      #    verify:mindscan-reading 은 lib/tarot/mindscan-reading.mjs 를 import 해서 실행한다.
+      #    2026-09-13 배선 — 그 전까지 마인드스캔 유료 경로를 무는 가드가 0 이었다.
+      - "scripts/verify-mindscan-reading.mjs"
       - "worker/lib/structured-consultation.js"
       - "worker/lib/gemini.js"
       - "lib/llm-client.ts"

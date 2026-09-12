@@ -3,6 +3,7 @@ import fs from "node:fs";
 import { createRequire } from "node:module";
 import { callLLM, isStagingLlmMockEnabled } from "../lib/llm-client.ts";
 import { enhanceLoveReadingWithLlm } from "../lib/tarot/love-reading-llm.mjs";
+import { buildMindscanReadingPayload } from "../lib/tarot/mindscan-reading.mjs";
 
 const stagingEnv = {
   APP_ENV: "staging",
@@ -61,6 +62,25 @@ try {
   });
   assert.equal(loveFallback.source, "local_fallback");
   assert.equal(loveFallback.llmFailReason, "staging_mock");
+
+  // 🔴 love 와 등가. mindscan 은 어댑터를 안 거치고 Gemini 를 직접 치는 **두 번째** 경로라,
+  //    게이트가 여기서도 무는지 따로 단언해야 한다 — love 만 묶여 있던 동안 이쪽 신호는 0 이었다.
+  const mindscanFallback = await buildMindscanReadingPayload(
+    [
+      { slot: 1, mainCardId: 0, subCardId: 22 },
+      { slot: 2, mainCardId: 6, subCardId: 30 },
+      { slot: 3, mainCardId: 13, subCardId: 45 },
+      { slot: 4, mainCardId: 17, subCardId: 51 },
+      { slot: 5, mainCardId: 20, subCardId: 63 },
+    ],
+    {
+      question: "헤어진 상대에게서 다시 연락이 올까요?",
+      env: stagingEnv,
+      fetchImpl: async () => { throw new Error("direct tarot fetch must not run in staging mock mode"); },
+    },
+  );
+  assert.equal(mindscanFallback.source, "staging_mock_local_fallback");
+  assert.equal(mindscanFallback.llmFailReason, "staging_mock");
 } finally {
   globalThis.fetch = originalFetch;
 }
@@ -73,4 +93,4 @@ assert.match(stagingConfig, /STAGING_LLM_MOCK_ENABLED\s*=\s*"true"/);
 assert.doesNotMatch(productionConfig, /STAGING_LLM_MOCK_ENABLED\s*=/);
 assert.match(stagingConfig, /WORKERS_AI_ENABLED\s*=\s*"false"/);
 
-console.log("[verify-staging-llm-mock] PASS — staging mock gate, text/JSON fixtures, direct tarot fallback, and zero provider calls verified.");
+console.log("[verify-staging-llm-mock] PASS — staging mock gate, text/JSON fixtures, direct tarot fallbacks (love·mindscan), and zero provider calls verified.");

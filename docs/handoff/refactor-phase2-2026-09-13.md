@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-13
-next: 🔴 선보고 완료 — 리터럴 이관은 회귀를 낳는다(아래 "착수 전 실측"). 사용자 판정 대기. 권장안은 이관 보류 + 보호막 먼저(verify-mindscan-reading 배선 + mindscan staging-mock 등가 단언).
+next: Phase 3(안전망 보강 — tsconfig 범위·eslint 가시화·CI skipped 구멍, TOP 18·19). TOP 10 이관은 실측 결과 기능 축소라 폐기했고, 그 전제였던 mindscan 보호막은 배선 완료다.
 ---
 
 # 점진 구조 개선 Phase 2 인수인계
@@ -119,6 +119,35 @@ Phase 1 의 교훈이 그대로 반복됐다. **원장의 "N벌·N곳"은 가설
 
 A → C 가 권장 순서다. A 는 B·C 어느 쪽으로 가든 **먼저 필요한 선행 작업**이라 버려지지 않는다.
 
+### 판정 — A 채택, 보호막 배선 완료 (2026-09-13)
+
+사용자가 A 를 선택했다. 이관은 폐기하고 보호막만 만들었다. **유료 실행 경로는 한 줄도 안 바뀌었다** —
+`worker/routes/tarot.js`·`lib/tarot/*.mjs` 의 생성 코드는 무변경이고, 바뀐 것은 검증기·배선뿐이다.
+
+| 파일 | 무엇 |
+|---|---|
+| `package.json` | `verify:mindscan-reading` 신규 배선 |
+| `scripts/run-paid-gate-suite.mjs` | 유료 게이트 스위트에 항목 추가(oracle 2개 바로 아래) |
+| `.github/workflows/paid-flow-gates.yml` | 트리거 `paths:` 에 검증기 경로 추가 — paths 는 깨어날 조건, 스위트가 실행 |
+| `scripts/verify-mindscan-reading.mjs` | 케이스 6(staging mock) 추가 + 케이스 5 낡은 단언 정정 |
+| `scripts/verify-staging-llm-mock.mjs` | love 와 등가인 mindscan 폴백 단언 추가 |
+
+**🔴 배선하자마자 낡은 단언이 하나 터졌다.** 케이스 5 는 "locale 미지정 시 출력 언어 지시문이
+없어야 한다"였는데, `2026-09-09` `a1e9b397b`(fix(i18n): preserve LLM request language)가 `ko` 에도
+명시 출력 계약을 넣으면서 의도적으로 바뀌었다. 검증기의 마지막 수정은 `2026-08-21` `6e63ca1da` —
+**19일 동안 아무도 몰랐다. 배선이 없었기 때문이다.** 제품 버그가 아니라 단언이 낡은 것이라,
+잡으려는 회귀(locale 미지정이 엉뚱한 언어로 새는 것)는 유지한 채 현재 계약으로 고쳤다.
+
+**변이 검증 2/2 탐지.** `mindscan-reading.mjs` 의 staging mock 분기를 `if (false && …)` 로 죽이자:
+
+| 가드 | 결과 |
+|---|---|
+| `verify:mindscan-reading` 케이스 6 | 탐지 — `source가 staging_mock_local_fallback — source=rule-engine` |
+| `verify:staging-llm-mock` 의 mindscan 단언 | 탐지 — `AssertionError` |
+
+배선 메타 가드도 새 검증기를 배선된 것으로 센다(`verify:* 317개 중 255개 배선`).
+`node scripts/run-paid-gate-suite.mjs --only mindscan` 으로 스위트가 실제로 집어 실행하는 것까지 봤다.
+
 ## 게이트 정본 구조 (지금 상태)
 
 ```
@@ -194,7 +223,10 @@ gh run view <id> --json jobs --jq '.jobs[].steps[] | select(.conclusion != "succ
 ## 검증 명령
 
 ```bash
-npm run verify:staging-llm-mock                  # 게이트 4케이스 + 진리표 224 + love 폴백 + fetch 0
+npm run verify:staging-llm-mock                  # 게이트 4케이스 + 진리표 224 + love·mindscan 폴백 + fetch 0
+npm run verify:mindscan-reading                  # 마인드스캔 6케이스 (2026-09-13 배선)
+npm run verify:guard-wiring                      # 새 검증기가 게이트에서 도달 가능한지 (fail-closed)
+node scripts/run-paid-gate-suite.mjs --only mindscan  # 유료 게이트가 실제로 집는지
 node --test __tests__/ui/mock-test-runner.test.mjs   # setupFiles 실재·실제로 무는지 + 매퍼 커버리지
 npm run check:fast                                # 변경 기반 1회
 ```
@@ -219,11 +251,20 @@ npm run check:fast                                # 변경 기반 1회
   본다(`scripts/env-parity.mjs:254`). `lib/llm-client.ts` 에서 함수를 빼도 `CloudflareEnv` 의
   `STAGING_LLM_MOCK_ENABLED?: string` 선언이 남아 있어 통과했다 — 그 줄을 지우면 깨진다.
 
+## 남은 위험 · 후속 과제 (이번 범위 밖, 보고만)
+
+1. **`guards-shadow.yml` 에는 `verify:mindscan-reading` 을 넣지 않았다.** shadow 관측이 8/10 로
+   진행 중이라 스텝을 더하면 비교 기준이 흔들린다. 승격 판정이 끝난 뒤에 넣는다.
+2. **love 쪽 회귀 검증기는 여전히 없다.** `verify:staging-llm-mock` 이 게이트 폴백 3단언만
+   묶고 있고, mindscan 같은 6케이스 스위트는 없다. 우회 2곳 중 한쪽만 덮인 상태다.
+3. **`LOVE_READING_*`·`MINDSCAN_*` 12키는 아무 가드도 값 범위를 안 본다.** `env-parity` 는
+   consumers 문자열 포함만 본다(`scripts/env-parity.mjs:254`). 노브가 조용히 죽어도 모른다.
+
 ## 다음 세션의 첫 문장
 
-> `docs/handoff/refactor-phase2-2026-09-13.md` 를 읽고, TOP 10 의 남은 절반(tarot 라우트의
-> love·mindscan LLM 우회 → oracle 어댑터 패턴 이관)의 **위험·검증·롤백을 먼저 보고**한다.
+> `docs/handoff/refactor-phase2-2026-09-13.md` 를 읽고 Phase 3(안전망 보강 — `tsconfig` 범위·
+> eslint 가시화·CI `skipped` 구멍, TOP 18·19)를 시작한다. TOP 10 이관은 실측으로 폐기됐고
+> 우회 2곳은 원장에 `미해소(Phase 6)` 로 확정돼 있으니 다시 열지 않는다.
 
-Phase 2 를 여기서 닫고 Phase 3(안전망 보강 — `tsconfig` 범위·eslint 가시화·CI `skipped` 구멍,
-TOP 18·19)로 넘어가는 선택도 가능하다. 그 경우 우회 2곳은 원장에 `미해소` 로 남기고 Phase 6
-(라우트 공통화)에서 함께 다룬다 — 어차피 AI 상담 라우트 8개가 같은 문제를 갖고 있다.
+Phase 2 는 여기서 닫는다. 우회 2곳은 Phase 6(라우트 공통화)에서 AI 상담 라우트 8개와 함께
+다룬다 — 값 보존 이관은 라우트 2개가 아니라 `lib/llm-client.ts` 쪽 문제라서다.

@@ -178,7 +178,7 @@ async function runMockSuite() {
   check("영어 지시문 포함", enPromptText.includes("Write the ENTIRE response in English only."));
   check("한국어 하드코딩 지시를 무효화한다는 override 포함", enPromptText.includes("overrides every other language instruction above"));
 
-  console.log("\n[케이스 5] locale 미지정 → 기존 한국어 전용 동작과 100% 동일(회귀 없음)");
+  console.log("\n[케이스 5] locale 미지정 → ko 로 확정되고 한국어 출력 계약이 실린다");
   const koFetch = mockFetch(() => jsonResponse({
     candidates: [{ content: { parts: [{ text: JSON.stringify(buildLlmReadingFixture()) }] } }],
   }));
@@ -189,7 +189,26 @@ async function runMockSuite() {
   });
   const koRequestBody = JSON.parse(koFetch.calls[0]?.init?.body || "{}");
   const koPromptText = koRequestBody?.contents?.[0]?.parts?.[0]?.text || "";
-  check("locale 미지정 시 출력 언어 지시문 없음(기존 프롬프트 불변)", !koPromptText.includes("[OUTPUT LANGUAGE"));
+  // 🔴 2026-08-21 의 이 단언은 "지시문이 없어야 한다" 였다. 2026-09-09 a1e9b397b
+  //    (fix(i18n): preserve LLM request language) 가 ko 에도 명시 출력 계약을 넣으면서
+  //    의도적으로 바뀌었는데, 이 검증기가 npm 에 배선돼 있지 않아 19일 동안 아무도 몰랐다
+  //    (2026-09-13 배선하며 정정). 잡으려는 회귀는 그대로다 — locale 미지정이 엉뚱한 언어로 새는 것.
+  check("locale 미지정 시 한국어 출력 계약이 실림", koPromptText.includes("Write the ENTIRE response in Korean only."));
+  check("locale 미지정이 영어로 새지 않음", !koPromptText.includes("Write the ENTIRE response in English only."));
+
+  console.log("\n[케이스 6] staging mock 게이트 ON → 로컬 폴백 + 네트워크 0회");
+  // 🔴 이 라우트는 어댑터를 거치지 않고 Gemini 를 직접 친다. 게이트 정본(worker/lib/staging-llm-mock.js)이
+  //    여기서도 무는지 보지 않으면, 스테이징에서 유료 경로만 조용히 실호출로 돌아간다.
+  const gateFetch = mockFetch(() => { throw new Error("staging mock 에서 Gemini 를 부르면 안 된다."); });
+  const gatedReading = await buildMindscanReadingPayload(SAMPLE_PAIRS, {
+    question: SAMPLE_QUESTION,
+    env: { ...env, APP_ENV: "staging", STAGING_LLM_MOCK_ENABLED: "true", WORKERS_AI_ENABLED: "false" },
+    fetchImpl: gateFetch,
+  });
+  check("source가 staging_mock_local_fallback", gatedReading?.source === "staging_mock_local_fallback", `source=${gatedReading?.source}`);
+  check("llmFailReason=staging_mock", gatedReading?.llmFailReason === "staging_mock", `reason=${gatedReading?.llmFailReason}`);
+  check("Gemini 호출 0회", gateFetch.calls.length === 0, `calls=${gateFetch.calls.length}`);
+  check("게이트 폴백도 섹션 7개", Array.isArray(gatedReading?.sections) && gatedReading.sections.length === 7);
 }
 
 async function runLive() {

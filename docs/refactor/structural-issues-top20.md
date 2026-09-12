@@ -66,7 +66,7 @@
 
 **2026-09-13 선보고 실측 결과 — 리터럴 이관은 기능 축소다.** 두 경로를 8축으로 대조하니 어댑터가 값을 **바꾼다**: 전송 시도 3→2, 잘림 증폭 계수 0.4→0.3, 총 데드라인(`*_TOTAL_TIMEOUT_MS` 42000) **소실**, `topP` 는 `lib/llm-client.ts` 가 아예 지원하지 않아 **조용히 사라지고**, `thinkingBudget`(현재 0)·`temperature`(0.7)는 어댑터가 안 넘겨 기본값이 되며, Workers AI 폴백이 **새로 켜진다**(두 기능엔 `targetChars` 가 없어 `fallbackMinChars` 근거도 없다). 결정타는 `config/env.contract.json:1054-1219` — `LOVE_READING_*`·`MINDSCAN_*` **12키의 `consumers` 가 이 두 파일뿐**이라 이관 시 노브가 선언만 남고 아무 데도 안 걸린다. 또 `scripts/verify-mindscan-reading.mjs` 는 **npm 미배선**이라 mindscan 쪽은 보호 테스트가 0 이다. 근거표는 [refactor-phase2 핸드오프의 "착수 전 실측"](../handoff/refactor-phase2-2026-09-13.md#-착수-전-실측-2026-09-13--리터럴-이관은-지금-하면-안-된다).
 
-→ **판정: 우회 2곳은 `미해소`.** oracle 어댑터로의 리터럴 이관은 폐기하고, Phase 6(라우트 공통화)에서 AI 상담 라우트 8개와 함께 다룬다 — 값 보존을 하려면 `llm-client` 에 `topP` 를 더하고 총 데드라인을 어댑터 계약에 넣어야 하는데, 그건 라우트 2개가 아니라 LLM 코어의 문제다. 그 전에 필요한 선행 작업은 **mindscan 보호막**(verify 배선 + staging-mock 등가 단언)이다.
+→ **판정: 우회 2곳은 `미해소`.** oracle 어댑터로의 리터럴 이관은 폐기하고, Phase 6(라우트 공통화)에서 AI 상담 라우트 8개와 함께 다룬다 — 값 보존을 하려면 `llm-client` 에 `topP` 를 더하고 총 데드라인을 어댑터 계약에 넣어야 하는데, 그건 라우트 2개가 아니라 LLM 코어의 문제다. 그 전에 필요한 선행 작업이던 **mindscan 보호막은 2026-09-13 에 만들었다** — `verify:mindscan-reading` 을 유료 게이트 스위트에 배선하고(`scripts/run-paid-gate-suite.mjs` + `paid-flow-gates.yml` 트리거), staging mock 케이스와 love 등가 단언을 더했다. 변이 2/2 탐지. 배선하자마자 낡은 단언 1건이 터졌다(케이스 5 — `a1e9b397b` 가 `ko` 출력 계약을 넣은 2026-09-09 이후 19일간 미탐지). 유료 실행 경로는 무변경이다.
 
 🔴 교훈: **"같은 패턴으로 옮긴다"는 패턴이 같을 때만 무해하다.** oracle 은 총 데드라인도 튜닝 노브도 없이 태어난 라우트라 어댑터가 그 계약을 안 갖는다. love·mindscan 은 둘 다 갖고 있어서, 이관이 수렴이 아니라 축소가 된다. 다음에 "N곳을 정본 하나로"를 볼 때는 **정본이 각 호출부의 계약을 전부 담는지**부터 실측한다.
 
