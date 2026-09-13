@@ -73,7 +73,7 @@ mkdirSync(outDir, { recursive: true });
 const outPath = join(outDir, `${locale}.json`);
 let existing = {};
 try { existing = JSON.parse(readFileSync(outPath, "utf8")); } catch {}
-const sourceHash = createHash("sha256").update(source).digest("hex");
+const sourceHash = createHash("sha256").update(source.replace(/\r\n/g, "\n")).digest("hex");
 const translated = new Map(Object.entries(existing.sourceHash === sourceHash ? existing.translations || {} : {}));
 const pending = items.filter((item) => !translated.get(item.id)?.trim() || /[가-힣]|__CD_FORTUNE_/.test(translated.get(item.id)));
 console.log(`[translate-fortune] ${locale}: ${pending.length}/${items.length}개 문장 시작`);

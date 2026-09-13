@@ -10,7 +10,7 @@ if (!existsSync(dir)) throw new Error("fortune/data missing; run node scripts/ge
 const files = readdirSync(dir).filter((file) => /^daily-\d{4}-\d{2}-\d{2}\.json$/.test(file));
 const errors = [];
 if (!files.length) errors.push("No daily fortune artifacts to verify");
-const sourceHash = createHash("sha256").update(readFileSync(resolve(root, "lib/fortune/sign-profiles.ts"), "utf8")).digest("hex");
+const sourceHash = createHash("sha256").update(readFileSync(resolve(root, "lib/fortune/sign-profiles.ts"), "utf8").replace(/\r\n/g, "\n")).digest("hex");
 const { SIGN_PROFILES } = loadTsModule("lib/fortune/sign-profiles.ts");
 for (const locale of ["en", "ja", "zh-CN", "zh-TW"]) {
   const file = resolve(root, "content/fortune/translations", `${locale}.json`);

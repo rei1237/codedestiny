@@ -10,6 +10,8 @@
  * DESIGN.md 의 One Accent Rule · Glow-Not-Shadow · Hue-Stays Rule 을 지킨다.
  */
 import Link from "next/link";
+import { formatFortuneEvidence, resolveFortuneMarked } from "@/lib/fortune/localized-evidence";
+import type { LangBox } from "@/lib/fortune/daily-data";
 import { FusionCrossSell } from "@/app/components/FusionCrossSell";
 import type { SignViewModel } from "@/lib/fortune/build-view";
 import { PERIOD_LABEL, PERIOD_TITLE, type FortunePeriodId } from "@/lib/fortune/periods";
@@ -29,7 +31,7 @@ const SCORE_AXES = [
 function axisLabel(key: string, locale: FortuneLocale) {
   const normalized = ({ "애정운": "love", "재물운": "money", "건강운": "health", "직장운": "work" } as Record<string, string>)[key] || key;
   if (locale === "ko") return ({ love: "애정운", money: "재물운", health: "건강운", work: "직장운" } as Record<string, string>)[normalized] || key;
-  return ({ love: "Love", money: "Money", health: "Health", work: "Work" } as Record<string, string>)[normalized] || key;
+  return (FORTUNE_COPY[locale] as Record<string, string>)[normalized] || formatFortuneEvidence(key, locale);
 }
 
 const CARD = "rounded-2xl border border-[#f4bed1]/70 bg-white/85 dark:border-[rgba(244,190,209,0.30)] dark:bg-[#2e0a20]/60";
@@ -91,7 +93,7 @@ function SignLinkGrid({ profiles, period, currentId, heading, locale = "ko" }: {
 function localizeViewModel(source: SignViewModel, locale: FortuneLocale): SignViewModel {
   if (locale === "ko") return source;
   const profile = getLocalizedProfile(source.profile, locale);
-  const box = (value: any) => ({ ...value, kr: langBoxText(value, locale) });
+  const box = (value: LangBox) => ({ ...value, kr: langBoxText(value, locale) });
   const entry = {
     ...source.entry,
     keyword: box(source.entry.keyword),
@@ -99,18 +101,11 @@ function localizeViewModel(source: SignViewModel, locale: FortuneLocale): SignVi
     planet_message: source.entry.planet_message ? box(source.entry.planet_message) : undefined,
     lucky: { ...source.entry.lucky, color_kr: (source.entry.lucky as unknown as Record<string, string>)[`color_${locale === "ja" ? "ja" : locale === "zh-CN" ? "zh" : locale === "zh-TW" ? "zh_tw" : "en"}`] || source.entry.lucky.color_en || "" },
   } as SignViewModel["entry"];
-  const copy = FORTUNE_COPY[locale];
-  const facts = source.facts.map((fact) => ({ ...fact, label: ({ "일진": "Day pillar", "월건": "Month pillar", "음력": "Lunar date", "절기": "Solar term", "기간": "Period", "일진 흐름": "Day-pillar flow", "달의 이동": "Moon movement", "주 시작": "Week begins" } as Record<string, string>)[fact.label] || fact.label }));
-  const highlights = source.highlights?.map((row) => ({ ...row, label: ({ "가장 좋은 날": "Best day", "조심할 날": "Day for care", "기운이 맞는 날": "Days in harmony", "부딪히는 날": "Days of friction", "시작하기 좋은 때": "Good time to begin", "매듭짓기 좋은 때": "Good time to complete", "기운이 바뀌는 날": "Turning point" } as Record<string, string>)[row.label] || row.label }));
-  const narrative = locale === "en"
-    ? `${profile.nameEn} is moving through ${source.period} with a pattern that rewards clear priorities. Read the scores as a prompt for pacing, not a fixed verdict.`
-    : locale === "ja"
-      ? `${profile.nameEn}の${source.period}は、優先順位を整えるほど流れが活きる時期です。スコアは断定ではなく、行動のペースを考える目安として読んでください。`
-      : locale === "zh-CN"
-        ? `${profile.nameEn}在${source.period}的走势适合先整理优先事项。请把评分当作调整行动节奏的参考，而不是固定的结论。`
-        : `${profile.nameEn}在${source.period}的走勢適合先整理優先事項。請把評分當作調整行動節奏的參考，而不是固定的結論。`;
-  const weekDays = source.weekDays?.map((day) => ({ ...day, weekdayKo: new Intl.DateTimeFormat(locale === "ja" ? "ja-JP" : locale === "zh-TW" ? "zh-TW" : locale === "zh-CN" ? "zh-CN" : "en-US", { weekday: "short" }).format(new Date(`${day.ymd}T12:00:00Z`)), badge: copy.relationship }));
-  return { ...source, profile, entry: { ...entry, saju_insight: narrative }, facts, highlights, weekDays, narrative, narrativeI18n: undefined, relation: source.relation ? { ...source.relation, badge: copy.relationship, detail: narrative, badgeI18n: undefined, detailI18n: undefined } : null } as SignViewModel;
+  const evidence = (row: SignViewModel["facts"][number]) => ({ ...row, label: formatFortuneEvidence(row.label, locale), value: resolveFortuneMarked(row.valueI18n, row.value, locale) });
+  const narrative = resolveFortuneMarked(source.narrativeI18n, source.narrative, locale);
+  const weekDays = source.weekDays?.map((day) => ({ ...day, weekdayKo: new Intl.DateTimeFormat(locale, { weekday: "short" }).format(new Date(day.ymd + "T12:00:00Z")), badge: ({ trine: ["Harmony", "合", "合", "合"], clash: ["Clash", "冲", "冲", "沖"], same: ["Same", "比和", "比和", "比和"], neutral: ["Neutral", "中立", "中性", "中性"] }[day.kind])[(["en", "ja", "zh-CN", "zh-TW"] as string[]).indexOf(locale)] }));
+  return { ...source, profile, entry, facts: source.facts.map(evidence), highlights: source.highlights?.map(evidence), basis: source.basis.map(row => ({ ...row, label: formatFortuneEvidence(row.label, locale), value: formatFortuneEvidence(row.value, locale) })), rangeLabel: formatFortuneEvidence(source.rangeLabel, locale), weekDays, narrative, relation: source.relation ? { ...source.relation, badge: resolveFortuneMarked(source.relation.badgeI18n, source.relation.badge, locale), detail: resolveFortuneMarked(source.relation.detailI18n, source.relation.detail, locale) } : null };
+
 }
 
 export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: SignViewModel; locale?: FortuneLocale }) {
@@ -159,7 +154,7 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
         {/* 기간별 기준 값 — 매 기간 실제로 다른 값이다 */}
         <section aria-labelledby="facts-heading" className={`mt-8 p-5 ${CARD}`}>
           <h2 id="facts-heading" className={`break-keep text-sm font-extrabold ${ACCENT}`}>
-            {`${periodLabel}의 기준 값`}
+            {`${periodLabel} · ${copy.facts}`}
           </h2>
           <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 text-sm sm:grid-cols-4">
             {vm.facts.map((fact) => (
@@ -291,7 +286,7 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
             {`${profile.nameKo} · ${copy.profile}`}
           </h2>
           <p className={`mt-2 break-keep text-sm leading-7 ${MUTED}`}>
-            {`아래는 날짜와 무관하게 이 ${kindLabel}가 늘 지니는 성향입니다. 위의 점수·관계가 그날그날 달라지는 부분이고, 이 문단은 그 위에 깔리는 바탕입니다.`}
+            {locale === "ko" ? `아래는 날짜와 무관하게 이 ${kindLabel}가 늘 지니는 성향입니다. 위의 점수·관계가 그날그날 달라지는 부분이고, 이 문단은 그 위에 깔리는 바탕입니다.` : locale === "en" ? "These are enduring tendencies. The scores and relationships above change with the date; this section describes their background." : locale === "ja" ? "ここでは日付に左右されない基本的な傾向を紹介します。上のスコアや関係は日々変化しますが、この部分はその土台です。" : locale === "zh-CN" ? "以下是不随日期改变的基本倾向。上方评分和关系随日期变化，这一部分说明其基础。" : "以下是不隨日期改變的基本傾向。上方評分和關係隨日期變化，這一部分說明其基礎。"}
           </p>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             {SCORE_AXES.map((axis) => (
@@ -324,7 +319,7 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
             <YeoniPortrait mood="cheer" size={64} />
             <div className="min-w-0 flex-1">
               <p className="break-keep text-sm leading-7">{entry.sections.advice.kr}</p>
-              <p className={`mt-2 text-xs font-bold ${ACCENT}`}>— 연이</p>
+              <p className={`mt-2 text-xs font-bold ${ACCENT}`}>{locale === "ko" ? "— 연이" : "— Yeoni"}</p>
             </div>
           </div>
           {entry.planet_message?.kr && (
@@ -478,9 +473,7 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
         <FusionCrossSell fromPath={`/fortune/${period}/${profile.id}`} tone="yeoni" />
 
         <p className={`mt-12 break-keep text-xs leading-6 ${MUTED}`}>
-          이 페이지의 점수는 해당 기간의 일진·월건·절기·달의 위치를 실제로 계산해 각 별자리와 띠의 기질에 대입한 값이며,
-          산출 근거를 위에 그대로 표시하고 있습니다. 사람이 매일 손으로 쓰는 글이 아니므로 같은 기간이면 언제 열어도 결과가 같습니다.
-          결과는 참고 자료이며 의료·법률·투자 판단을 대신하지 않습니다.
+          {locale === "ko" ? "이 페이지의 점수는 해당 기간의 일진·월건·절기·달의 위치를 실제로 계산해 각 별자리와 띠의 기질에 대입한 값이며, 산출 근거를 위에 그대로 표시하고 있습니다. 사람이 매일 손으로 쓰는 글이 아니므로 같은 기간이면 언제 열어도 결과가 같습니다. 결과는 참고 자료이며 의료·법률·투자 판단을 대신하지 않습니다." : locale === "en" ? "Scores use calculated pillars, solar terms and lunar positions. Their basis is shown above. Readings are generated from these inputs, rather than written by hand each day. They are for reference and do not replace medical, legal or investment advice." : locale === "ja" ? "スコアは日柱・月柱・節気・月の位置を計算して導き、根拠を上に示しています。毎日手書きする文章ではなく、計算値に基づくリーディングです。参考情報であり、医療・法律・投資の判断に代わるものではありません。" : locale === "zh-CN" ? "评分根据日柱、月柱、节气和月亮位置计算，依据已列于上方。解读由这些数据生成，并非每日人工撰写。结果仅供参考，不能替代医疗、法律或投资判断。" : "評分根據日柱、月柱、節氣和月亮位置計算，依據已列於上方。解讀由這些資料生成，並非每日人工撰寫。結果僅供參考，不能替代醫療、法律或投資判斷。"}
         </p>
       </div>
     </main>

@@ -1,5 +1,7 @@
-import { readFileSync } from "node:fs";
-import path from "node:path";
+import enProfiles from "@/content/fortune/translations/en.json";
+import jaProfiles from "@/content/fortune/translations/ja.json";
+import zhCnProfiles from "@/content/fortune/translations/zh-CN.json";
+import zhTwProfiles from "@/content/fortune/translations/zh-TW.json";
 import type { DailySignEntry, LangBox } from "./daily-data";
 import type { SignProfile } from "./sign-profiles";
 import type { FortunePeriodId } from "./periods";
@@ -82,17 +84,12 @@ export function periodTitle(period: FortunePeriodId, locale: FortuneLocale): str
   return locale === "en" ? label : locale === "ja" ? `${label}の` : `${label}的`;
 }
 
-const profileCache = new Map<string, Record<string, string>>();
+const profileTranslations = { en: enProfiles, ja: jaProfiles, "zh-CN": zhCnProfiles, "zh-TW": zhTwProfiles };
 export function getLocalizedProfile(profile: SignProfile, locale: FortuneLocale): SignProfile {
   if (locale === "ko") return profile;
-  const cacheKey = locale;
-  if (!profileCache.has(cacheKey)) {
-    const file = path.join(process.cwd(), "content", "fortune", "translations", `${locale}.json`);
-    const parsed = JSON.parse(readFileSync(file, "utf8"));
-    if (parsed.locale !== locale || parsed.schemaVersion !== 1) throw new Error(`[fortune:i18n] invalid ${locale} profile translation`);
-    profileCache.set(cacheKey, parsed.translations || {});
-  }
-  const translated = profileCache.get(cacheKey)!;
+  const parsed = profileTranslations[locale];
+  if (parsed.locale !== locale || parsed.schemaVersion !== 1) throw new Error(`[fortune:i18n] invalid ${locale} profile translation`);
+  const translated: Record<string, string> = parsed.translations;
   const field = (key: string, original: string) => translated[`${profile.id}:${key}`] || (() => { throw new Error(`[fortune:i18n] missing ${locale} ${profile.id}:${key}`); })();
   return {
     ...profile,
