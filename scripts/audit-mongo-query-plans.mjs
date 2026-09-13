@@ -51,7 +51,6 @@ const INSIGHT_TYPE_OR = { $or: [{ type: "fortune_insight" }, { type: { $exists: 
 /** 코드에서 그대로 옮긴 쿼리 모양. sample 은 실제 문서에서 채운다. */
 function buildCases(sample) {
   const now = new Date();
-  const kstMidnight = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()) - 9 * 3600 * 1000);
   const { userId, profileId, featureKey, referralCode } = sample;
   const aliases = [featureKey, `${featureKey}-alias`];
   const profileOr = [{ "metadata.profileId": profileId }, { "metadata.selectedProfileId": profileId }];
@@ -77,7 +76,6 @@ function buildCases(sample) {
     },
     { id: "fortune.js:2342", coll: "pointhistories", op: "distinct", key: "featureKey", filter: { userId, kind: "deduct", featureKey: { $in: aliases }, $or: profileOr } },
     { id: "fortune.js:2360", coll: "pointhistories", op: "distinct", key: "featureKey", filter: { userId, kind: "deduct", featureKey: { $in: aliases } } },
-    { id: "fortune.js:5989", coll: "pointhistories", op: "count", filter: { userId, kind: "share_reward", createdAt: { $gte: kstMidnight } } },
     {
       id: "billing.js:876 (_id 점조회 — 계획 표의 COLLSCAN 후보 지목은 오류)", coll: "users", op: "find", limit: 1,
       filter: { _id: userId, $and: [{ $or: [{ "profileSubscription.tier": { $in: ["basic"] } }, { plan: { $in: ["basic"] } }] }, { $or: [{ expiresAt: { $gt: now } }, { expiresAt: null }, { expiresAt: { $exists: false } }] }] },

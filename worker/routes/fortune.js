@@ -2224,8 +2224,6 @@ function getSubscriptionTierRank(tierRaw) {
   return Number(SUBSCRIPTION_TIER_RANK[tier] || 0);
 }
 
-const SHARE_REWARD_AMOUNT = 10;
-const SHARE_REWARD_DAILY_LIMIT = 3;
 const PERSISTENT_UNLOCK_ALIAS_MAP = Object.freeze({
   "olympus-profile-fc": ["olympus-fc"],
   "olympus-fc": ["olympus-profile-fc"],
@@ -2600,58 +2598,6 @@ async function handleChargeSimulate(request, env, auth) {
     message: "선불형 잔액 상품은 더 이상 판매하지 않습니다. 상품별 원화 단건 결제를 이용해 주세요.",
     code: "POINT_CHARGE_DISABLED",
   }, { status: 410 });
-
-  if (String(env.PIG_COIN_PAYMENT_API_READY || "") !== "true") {
-    return json({
-      message: "Prepaid balance simulation is disabled because the payment API is not ready.",
-      code: "PIG_COIN_CHARGE_DISABLED",
-    }, { status: 503 });
-  }
-
-  const body = await readJson(request);
-  const packageId = String(body?.packageId || "").trim();
-  const pkg = PIG_COIN_PACKAGES[packageId];
-  if (!pkg) return json({ message: "Unsupported charge package." }, { status: 400 });
-
-  const delta = Number(pkg.coins || 0) + Number(pkg.bonus || 0);
-  if (!Number.isFinite(delta) || delta <= 0) {
-    return json({ message: "Invalid charge amount." }, { status: 400 });
-  }
-
-  const updatedUser = await User.findByIdAndUpdate(
-    auth.userId,
-    { $inc: { points: delta } },
-    { returnDocument: "after", projection: { points: 1 } },
-  ).lean();
-
-  if (!updatedUser) return json({ message: "User not found." }, { status: 404 });
-
-  await PointHistory.create({
-    userId: auth.userId,
-    kind: "charge",
-    delta,
-    balanceAfter: Number(updatedUser.points || 0),
-    reason: "Prepaid balance simulation",
-    featureKey: "pig-coin-charge",
-    metadata: {
-      source: "fortune.pig-coin.charge-simulate",
-      packageId,
-      packageName: pkg.name,
-      baseCoins: Number(pkg.coins || 0),
-      bonusCoins: Number(pkg.bonus || 0),
-    },
-  });
-
-  return json({
-    message: `${delta.toLocaleString("ko-KR")} coins charged.`,
-    package: {
-      id: packageId,
-      name: pkg.name,
-      coins: Number(pkg.coins || 0),
-      bonus: Number(pkg.bonus || 0),
-    },
-    user: userPayload(auth, updatedUser.points),
-  });
 }
 
 function isTransactionUnsupported(error) {
@@ -6084,91 +6030,6 @@ async function handleShareReward(request, auth) {
     code: "POINT_REWARD_DISABLED",
     legacyCoinDisabled: true,
   }, { status: 410 });
-
-  const body = await readJson(request);
-  const contentId = String(body?.contentId || "default")
-    .trim()
-    .replace(/[^a-zA-Z0-9_-]/g, "")
-    .slice(0, 40) || "default";
-
-  const now = new Date();
-  const kstMidnight = new Date(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0) - 9 * 3600 * 1000,
-  );
-
-  const todayCount = await PointHistory.countDocuments({
-    userId: auth.userId,
-    kind: "share_reward",
-    createdAt: { $gte: kstMidnight },
-  });
-
-  if (todayCount >= SHARE_REWARD_DAILY_LIMIT) {
-    return json({
-      message: "Daily share reward limit reached.",
-      code: "DAILY_LIMIT_EXCEEDED",
-      usedToday: todayCount,
-      limitPerDay: SHARE_REWARD_DAILY_LIMIT,
-    }, { status: 429 });
-  }
-
-  // Per-content/day idempotency key. Unique index on PointHistory.dedupeKey makes the
-  // duplicate-grant check atomic (create-first), closing the previous count-then-$inc TOCTOU
-  // where concurrent requests for the same contentId could both pass the check and double-credit.
-  const kstNow = new Date(now.getTime() + 9 * 3600 * 1000);
-  const kstDateKey = `${kstNow.getUTCFullYear()}${String(kstNow.getUTCMonth() + 1).padStart(2, "0")}${String(kstNow.getUTCDate()).padStart(2, "0")}`;
-  const dedupeKey = `share_reward:${auth.userId}:${contentId}:${kstDateKey}`;
-
-  let rewardHistory;
-  try {
-    rewardHistory = await PointHistory.create({
-      userId: auth.userId,
-      kind: "share_reward",
-      delta: SHARE_REWARD_AMOUNT,
-      balanceAfter: 0, // backfilled after the atomic increment below
-      reason: `Share reward for ${contentId}`,
-      featureKey: "share-reward",
-      dedupeKey,
-      metadata: {
-        source: "fortune.pig-coin.share-reward",
-        contentId,
-      },
-    });
-  } catch (err) {
-    if (err?.code === 11000) {
-      return json({
-        message: "This content was already rewarded today.",
-        code: "CONTENT_ALREADY_REWARDED",
-        usedToday: todayCount,
-        limitPerDay: SHARE_REWARD_DAILY_LIMIT,
-      }, { status: 409 });
-    }
-    throw err;
-  }
-
-  const updatedUser = await User.findByIdAndUpdate(
-    auth.userId,
-    { $inc: { points: SHARE_REWARD_AMOUNT } },
-    { returnDocument: "after", projection: { points: 1 } },
-  ).lean();
-
-  if (!updatedUser) {
-    // Roll back the lock so a missing/removed account isn't permanently blocked.
-    await PointHistory.deleteOne({ _id: rewardHistory._id }).catch(() => {});
-    return json({ message: "User not found." }, { status: 404 });
-  }
-
-  await PointHistory.updateOne(
-    { _id: rewardHistory._id },
-    { $set: { balanceAfter: Number(updatedUser.points || 0) } },
-  ).catch(() => {});
-
-  return json({
-    message: `${SHARE_REWARD_AMOUNT} coins awarded for sharing.`,
-    reward: SHARE_REWARD_AMOUNT,
-    usedToday: todayCount + 1,
-    limitPerDay: SHARE_REWARD_DAILY_LIMIT,
-    user: userPayload(auth, updatedUser.points),
-  });
 }
 
 async function handleSubscribe(request, auth) {
