@@ -9,7 +9,7 @@
 | 1 | 38,517줄 수작업 `index.html` 이 production `/` — 인라인 스크립트 21,803줄, 단일 블록 12,721줄 | 120일 커밋 24%(1,525/6,436), 렌더링 테스트 0, 가드 61개가 텍스트로만 읽음 | 미해소 (Phase 5) |
 | 2 | 사주 엔진 5벌이 한 생일에 다른 답을 낼 수 있다 | `js/saju-engine.js:5072`, `app/saju/animal-destiny/engine/localSajuCalculator.ts`, `worker/lib/destiny-bias-engine.js:936`, `life-book-ai-saju.js:723`, `saju-snapshot-from-birth.js:56` | 미해소 (Phase 7) |
 | 3 | 이용권 판정 3벌이 하드코딩돼 있고 값이 불일치 | 실측 2026-09-13: **값 불일치는 없다.** 세 사본 전부 `scripts/verify-pass-tier-policy.mjs:219-252` 가 서버 정본(`PASS_LIMITS`·`MONTHLY_PASS_LIMITS`)을 **import 해서** 대조하고, 그 가드는 `check:critical`·`deploy:critical` 차단 경로다. 변이 2/2 탐지 | **오진 (2026-09-13 재측정)** — 아래 참조. 남은 것은 죽은 4번째 판정 하나 |
-| 4 | 권한 상태 writer 4개 × TTL 4종 → 결제한 잠금이 화면마다 보였다 안 보임 | 실측 2026-09-13: TTL 은 4종이 아니라 **9종** — `js/core/access-store.js:14-16`(60s·30m·24h), `app/_lib/optimistic-unlock-ledger.ts:17-18`(72h·10m), `app/_lib/user-session-cache.ts:90`(180s), `js/core/pass-verdict.js:26-46`(60s·5m·24h·35d) | 미해소 (Phase 4) — 원장보다 크다 |
+| 4 | 권한 상태 writer 4개 × TTL 4종 → 결제한 잠금이 화면마다 보였다 안 보임 | 실측 2026-09-13: TTL 은 4종이 아니라 **9종** — `js/core/access-store.js:14-16`(60s·30m·24h), `app/_lib/optimistic-unlock-ledger.ts:17-18`(72h·10m), `app/_lib/user-session-cache.ts:90`(180s), `js/core/pass-verdict.js:26-46`(60s·5m·24h·35d). **엇갈림 4종을 실행으로 재현**(`__tests__/ui/permission-writer-divergence.behavior.test.js`, 변이 5/5 탐지) | **실재 확정 (Phase 4)** — 재현됨, 수렴 대상. 아래 참조 |
 | 5 | `window.fetch` 몽키패치 | 실측 2026-09-13: 실재한다(`app/_lib/user-session-cache.ts:552-619`, `resolveCacheKind` 의 엔드포인트 8개를 가로챈다). 단 설치처는 **React 뿐**(`app/providers/UserSessionProvider.tsx:13`) — 정적 셸은 설치하지 않는다 | 미해소 (Phase 4) — 원장의 "`js/**` 전부"는 정정, 아래 참조 |
 | 6 | `/api/auth/me` 를 독립 시계 3개가 호출(8s / 30s / 30·15·2s) | 실측 2026-09-13: 인증 폴링 `setInterval` 은 **1개**(`app/_lib/auth-store.ts:704` `SESSION_HEARTBEAT_INTERVAL_MS`). `verify:entry-fanout` 의 "[6] 세션 검증 단일화 — force 합류 + 공유 세션 시계"가 셸 7종·클라 2종에서 PASS | **해소로 재판정 (2026-09-13)** — 아래 참조 |
 | 7 | repository 계층 부재 | worker 69파일에 인라인 모델 접근 ~681곳. 동일 30필드 projection 이 `worker/routes/profile.js` 945·1024·1057·1245·1391·1427 에 6번 | 미해소 (Phase 6) |
@@ -110,10 +110,48 @@
 | 3 판정 3벌 | "하드코딩돼 있고 **값이 불일치**" | 하드코딩은 맞다. 불일치는 **아니다** — `scripts/verify-pass-tier-policy.mjs` 가 `worker/lib/profile-limits.js` 의 `PASS_LIMITS`·`MONTHLY_PASS_LIMITS` 를 **import** 해서(:32-36) 사본 3개를 전부 대조한다: pass-verdict(:219-232) · billing-client(:234-242) · 셸 goldenPackages(:244-252). `check:critical`·`deploy:critical` 차단 경로 | 오진. 구조적으로 묶여 있다 |
 | 3 변이 검증 | — | `pass-verdict.js` 와 `billing-client.ts` 의 vvip 를 **동시에** 200→210 으로 틀었더니 가드가 `실패 2건` 으로 둘 다 지목 | **2/2 탐지.** 도는 가드가 아니라 무는 가드다 |
 | 3 남은 것 | (없음) | `app/_lib/billing-client.ts:579` `maxCoinCoveredForPlan` 은 **월 이용 한도를 모르는** 4번째 판정이다. 그런데 유일한 호출부가 `:3734` `debugAccessDecision` 이고, 그 반환값은 `debugEntitlement()` 로그로만 쓰인다(:3739-3740, `NODE_ENV !== production` 에서만 출력). 게이트가 아니다 | **죽은 판정.** 값은 가드가 묶고 있으나, `export` 라 누가 배선하면 월 한도 없는 게이트가 된다 |
-| 4 writer·TTL | "writer 4개 × TTL **4종**" | writer 4개는 맞다. TTL 은 **9종**이다 — access-store 60s/30m/24h · optimistic-unlock-ledger 72h/10m · user-session-cache 180s · pass-verdict 60s/5m/24h/35d | 실재. **원장보다 크다** |
+| 4 writer·TTL | "writer 4개 × TTL **4종**" | writer 4개는 맞다. TTL 은 **9종**이다 — access-store 60s/30m/24h · optimistic-unlock-ledger 72h/10m · user-session-cache 180s · pass-verdict 60s/5m/24h/35d | 실재. **원장보다 크다.** 보호 테스트로 엇갈림 4종 재현 완료, 아래 참조 |
 | 5 몽키패치 | "`js/**` 의 raw fetch **전부**가 우회된다" | 패치는 실재한다(`installUserAccessFetchCache`, 엔드포인트 8개). 그런데 설치 호출부는 `app/providers/UserSessionProvider.tsx:13` 과 `user-session-cache.ts:421` **둘 다 React** 다. 정적 셸(`index.html`)은 설치하지 않는다 | 실재하되 **범위가 다르다.** 아래 참조 |
 | 6 시계 3개 | "8s / 30s / 30·15·2s, 실측 5회" | 인증 폴링 `setInterval` 은 `app/_lib/auth-store.ts:704` **하나**뿐이다(나머지 `setInterval` 4개는 결제 팝업 폴링·애니메이션 타이머로 `/api/auth/me` 와 무관). 원장이 지목한 계측기 `verify:entry-fanout` 자신이 지금 PASS 이고, 그 안에 "[6] 세션 검증 단일화 — force 합류 + 공유 세션 시계" 축이 셸 7종·클라 2종으로 들어 있다 | **해소로 재판정** |
 | 15 래퍼 5개 | "`lib/http-client.ts`" | 그 경로에 파일이 **없다**. 실제 경로는 `app/_lib/http-client.ts` | 실재, 경로만 정정 |
+
+### 4 는 재현된다: 엇갈림 4종 (보호 테스트, 2026-09-13)
+
+계획서의 고정 작업 루프대로 **보호 테스트를 먼저** 썼다. 프로덕션 코드는 0줄이다.
+`__tests__/ui/permission-writer-divergence.behavior.test.js` 가 네 writer 를 한 `node:vm` 샌드박스에
+함께 올리고(셸 classic script 2개는 그대로, TS 2개는 `ts.transpileModule`), `Date` 를 `Proxy` 로 감싸
+시계를 손으로 돌린다 — TTL 자체가 관측 대상이라 가짜 시계가 필수다.
+
+결론: **TOP 4 는 재현된다.** 3·6 처럼 재판정 대상이 아니라 실제 수렴 대상이다. 같은 사용자·같은
+기능·같은 순간에 답이 갈리는 조합 4종을 실행으로 고정했다.
+
+| 축 | 재현된 엇갈림 | 원인 |
+|---|---|---|
+| W1 × W4 | 서버가 권한을 회수한 직후 **셸은 즉시 잠그고**(서버 도달 2회) **React 는 60초 동안 열어 둔다**(서버 도달 1회). +61초 뒤에는 둘 다 잠긴다 | `access-store` 의 `revalidate({force})` 도 `cache:'no-store'` 도 몽키패치에는 보이지 않는다. `user-session-cache.ts:229-232` 의 유일한 우회 열쇠는 `x-code-destiny-cache-refresh` 헤더인데 `access-store` 는 이 헤더를 **한 번도 보내지 않는다**(전수 grep 0건) |
+| W1 × W3 | 결제 실패로 `rollbackOptimisticUpdate` 를 부르면 **access-store 는 비고 원장은 남는다** → 셸은 잠그고 React 는 계속 열려 있다 | `access-store.js:1179-1180` 은 자기 `state.optimistic` 만 비운다. `use-content-unlock.ts:66` 이 `snapshotIncludesFeature(...) \|\| ledger[key] === true` 로 **OR** 합류시키므로 원장 한쪽만 남아도 React 는 열린다. `forgetOptimisticUnlock` 을 쓰면 둘 다 지워진다 |
+| W1 × W2 | 이용권 만료 직후 **한 화면이 세 답을 동시에** 쥔다 — `isUnlocked=true` · `getEffectiveTier='free'` · `coversNow=false` | `unlockedFeatureIds` 에 출처(provenance)가 없다. 이용권으로 열린 것과 따로 구매한 것을 구분할 수 없으니 만료가 잠금 목록에 반영되지 않는다. `coversNow=false` 는 세 가드가 **각각 독립적으로** 만든다: `pass-verdict.js:186`(만료 스냅샷 폐기) · `:503`(`stale` 판정) · `access-store` 의 등급 만료 검사 |
+| W1 × W3 수명 | 같은 해금의 수명이 다르다. 원장 `legacy_verified` 는 **+72h 에 죽고** access-store 는 그대로 열려 있다. 원장 `confirmed` 는 **+365일에도 살아 있다** | 원장 `:42` 가 `entry.mode !== "confirmed"` 조건 때문에 confirmed 를 TTL 검사에서 아예 제외한다 — 자기 문서 주석(`:13`)과 어긋난다. access-store 쪽은 `confirmedUnlocks` 가 캐시 만료를 넘겨 살아남는다(`:388-393`) |
+
+🔴 원장이 암시한 방향이 **반대였다.** "access-store 가 24h GRACE 로 먼저 닫히고 원장이 72h 로 더
+버틴다"고 읽힐 만하게 적혀 있었는데, 실측은 그 반대다 — `ensureLoaded` 로 컨텍스트를 세우면
+access-store 는 +73h 에도 열려 있고, 먼저 죽는 쪽은 원장이다. 가설이 아니라 측정을 적는다.
+
+같은 이유로 가설 하나를 **기각**했다: access-store 의 낙관 TTL 은 `:996-1010` 에서 10분이고
+원장의 `OPTIMISTIC_TTL_MS` 도 10분이다. 여기에는 불일치가 없다.
+
+변이 검증 **5/5 탐지** — 네 축 각각과 confirmed 수명까지 다섯 지점을 틀었을 때 전부 실패로 잡혔다.
+처음 두 번은 미탐이었는데, 원인은 단언이 약해서가 아니라 **변이가 무효**여서였다(TTL 을 `0` 으로
+바꿔도 시계가 안 움직이는 테스트에서는 `0 > 0` 이 거짓이라 아무 일도 안 일어난다). 유효한 변이로
+바꿔 다시 돌렸다.
+
+이 파일은 **옳은 동작이 아니라 수렴 전의 실측**을 고정한다. 네 writer 를 한 서버 정본으로 모으면
+위 단언들은 깨진다 — 그때가 수렴이 끝난 시점이고, 그 커밋에서 이 테스트를 뒤집는다.
+
+### 4 와 5 가 만나는 지점
+
+W1 × W4 축은 TOP 4 의 몸통인 동시에 **TOP 5 그 자체**다. 원장은 둘을 따로 세었지만 실행해 보면
+한 사건이다 — 몽키패치(5)가 있고 없고에 따라 같은 `access-store.js` 의 같은 호출이 다른 답을 받는
+것(4)이 곧 "런타임에 따라 답이 갈린다"다. 수렴 설계는 두 행을 같이 다뤄야 한다.
 
 ### 5 는 왜 "범위가 다르다" 인가
 
