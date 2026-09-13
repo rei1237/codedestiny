@@ -128,6 +128,13 @@ assert(
 // ── 4. 프론트: 공용 게이트만 사용 ────────────────────────────────────────────
 const pageFile = "src/features/master-love-codex/MasterLoveCodexPage.tsx";
 const pageSource = read(pageFile);
+// 🔴 배치 생성 루프는 _lib/runCodexBatches.ts 로 분리됐다(c86a49720). 화면의 생성 계약은
+//    두 파일을 **한 단위로** 본다 — 마커가 어느 쪽에 있든 통과하되, 양쪽에서 사라지면 여전히 문다.
+//    파일이 통째로 없어지면 read() 가 failure 를 쌓으므로 사라짐도 통과하지 않는다.
+const batchFile = "src/features/master-love-codex/_lib/runCodexBatches.ts";
+const batchSource = read(batchFile);
+const generationFiles = `${pageFile} + ${batchFile}`;
+const generationSource = `${pageSource}\n${batchSource}`;
 assertIncludes(pageFile, pageSource, "beginPaidFeatureGateCheck");
 assertIncludes(pageFile, pageSource, "completePaidFeatureGateCheck");
 assertIncludes(pageFile, pageSource, "failPaidFeatureGateCheck");
@@ -419,7 +426,7 @@ assert(
 // ── 5-1e. 클라이언트: 일시적 실패를 하드 종료로 굳히지 않을 것 ────────────────
 // 다른 유료 화면 10곳이 쓰는 공용 판정을 이 화면만 안 써서, 503·retryable 이 전부
 // "생성 실패"로 확정되고 있었다.
-assertIncludes(pageFile, pageSource, "isRetriableResultPollFailure");
+assertIncludes(generationFiles, generationSource, "isRetriableResultPollFailure");
 // 🔴 생성 단계 실패를 공용 결제 게이트로 띄우면 "확인 실패"라는 거짓 제목이 뜬다
 //    (게이트는 /start 직전에 이미 release 된 뒤라, 이 호출이 모달을 되살린 것이었다).
 assert(
@@ -428,8 +435,8 @@ assert(
 );
 // 미완성인 채로 결과 페이지로 밀어 넣으면 사용자는 20장을 받은 줄 안다.
 assert(
-  /throw new Error\(errorText\.GENERATION_BUDGET_EXCEEDED\)/.test(pageSource),
-  `${pageFile}: 배치 루프가 미완성으로 끝나면 실패로 표면화해야 합니다(GENERATION_BUDGET_EXCEEDED)`,
+  /throw new Error\(errorText\.GENERATION_BUDGET_EXCEEDED\)/.test(generationSource),
+  `${generationFiles}: 배치 루프가 미완성으로 끝나면 실패로 표면화해야 합니다(GENERATION_BUDGET_EXCEEDED)`,
 );
 const pageAst = ts.createSourceFile(pageFile, pageSource, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
 let navigatesFromCatch = false;
