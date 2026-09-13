@@ -4,6 +4,17 @@ import {
   getTopicCtas,
   isAllowedCta,
 } from "./guardian-fortune-runtime-contract.js";
+import {
+  base64UrlToString,
+  createShareId,
+  hasSensitiveText,
+  isRecord,
+  sanitizeShareText as asString,
+  signaturesMatch,
+  signShareTokenBody,
+  stringToBase64Url,
+  toIso,
+} from "./share-snapshot-core.js";
 
 export const GUARDIAN_FORTUNE_SHARE_TOKEN_VERSION = 1;
 export const GUARDIAN_FORTUNE_SHARE_TOKEN_TTL_MS = 10 * 60 * 1000;
@@ -35,72 +46,9 @@ const SHARE_RESULT_FIELDS = Object.freeze([
 ]);
 const VALID_MODES = new Set(["yeoni", "neo"]);
 const VALID_TOPICS = new Set(["daily", "love", "money_work", "relationship", "mind", "decision"]);
-const SENSITIVE_PATTERNS = Object.freeze([
-  /\b\d{6}[- ]?\d{7}\b/,
-  /\b\d{2,4}[- ]?\d{3,4}[- ]?\d{4}\b/,
-  /[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}/,
-  /(?:주민번호|주민등록|계좌번호|카드번호|비밀번호|password)/i,
-]);
-
-function asString(value, limit) {
-  return String(value == null ? "" : value)
-    .replace(/<[^>]*>/g, " ")
-    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "")
-    .replace(/[ \t]{2,}/g, " ")
-    .replace(/[ \t]+\n/g, "\n")
-    .trim()
-    .slice(0, limit);
-}
-
-function hasSensitiveText(value) {
-  if (typeof value !== "string") return false;
-  return SENSITIVE_PATTERNS.some((pattern) => pattern.test(value));
-}
-
-function isRecord(value) {
-  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
-}
-
-function bytesToBase64Url(bytes) {
-  let binary = "";
-  for (const byte of bytes) binary += String.fromCharCode(byte);
-  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
-}
-
-function stringToBase64Url(value) {
-  return bytesToBase64Url(new TextEncoder().encode(value));
-}
-
-function base64UrlToString(value) {
-  const normalized = String(value || "").replace(/-/g, "+").replace(/_/g, "/");
-  const padded = normalized + "=".repeat((4 - (normalized.length % 4)) % 4);
-  const binary = atob(padded);
-  const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
-  return new TextDecoder().decode(bytes);
-}
-
-async function signTokenBody(body, secret) {
-  const subtle = globalThis.crypto?.subtle;
-  if (!subtle) throw new Error("GUARDIAN_FORTUNE_SHARE_CRYPTO_UNAVAILABLE");
-  const key = await subtle.importKey(
-    "raw",
-    new TextEncoder().encode(secret),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"],
-  );
-  const signature = await subtle.sign("HMAC", key, new TextEncoder().encode(body));
-  return bytesToBase64Url(new Uint8Array(signature));
-}
-
-async function signaturesMatch(expected, actual) {
-  const left = String(expected || "");
-  const right = String(actual || "");
-  if (!left || left.length !== right.length) return false;
-  let difference = 0;
-  for (let index = 0; index < left.length; index += 1) difference |= left.charCodeAt(index) ^ right.charCodeAt(index);
-  return difference === 0;
-}
+// 서명 오류 코드는 그대로 둔다 — 라우트의 오류 매핑이 이 접두사에 붙어 있다.
+const signTokenBody = (body, secret) =>
+  signShareTokenBody(body, secret, { cryptoErrorCode: "GUARDIAN_FORTUNE_SHARE_CRYPTO_UNAVAILABLE" });
 
 function getShareSecret(env = {}) {
   return String(env.GUARDIAN_FORTUNE_SHARE_SECRET || "").trim();
@@ -115,9 +63,7 @@ export function isValidGuardianFortuneShareId(shareId) {
 }
 
 export function createGuardianFortuneShareId() {
-  const bytes = new Uint8Array(18);
-  globalThis.crypto.getRandomValues(bytes);
-  return `${GUARDIAN_FORTUNE_SHARE_ID_PREFIX}${bytesToBase64Url(bytes)}`;
+  return createShareId(GUARDIAN_FORTUNE_SHARE_ID_PREFIX);
 }
 
 function projectPremiumCta(topic, cta) {
@@ -202,11 +148,6 @@ export async function verifyGuardianFortuneShareDraftToken(token, { env = {}, no
   } catch {
     return { ok: false, errorCode: "GUARDIAN_FORTUNE_SHARE_TOKEN_INVALID" };
   }
-}
-
-function toIso(value) {
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? "" : date.toISOString();
 }
 
 export function toPublicGuardianFortuneSnapshot(record) {
