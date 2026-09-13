@@ -465,6 +465,46 @@ test("partial or degraded snapshots cannot downgrade an active pass", () => {
   assert.equal(store.getSnapshot().status, "degraded");
 });
 
+// 🔴 Phase 4 D1 — 권위 스냅샷의 판정 집합 정본은 unlockedFeatureIds 와
+// entitlementSnapshot.unlockedFeatureIds 둘뿐이다. 나머지 배열·맵을 합집합한 채로 두면 D2 의
+// 집합 치환이 무효가 된다(서버가 뺀 키가 다른 배열에 남아 회수가 반영되지 않는다).
+// 비권위 스냅샷은 종전대로 전부 읽는다 — 모를 때 알던 것을 지우지 않는다.
+test("an authoritative snapshot reads unlock keys only from the canonical fields", () => {
+  const store = loadStore(async () => ({ ok: true, status: 200, json: async () => ({ ok: true }) }));
+  store.applyAccessStateSnapshot({
+    userId: "user-1",
+    completeness: "full",
+    authority: "server",
+    unlockedFeatureIds: ["section_daewun"],
+    // 정본이 아닌 출처들. 권위 페이로드에서는 읽지 않는다.
+    unlockedFeatures: ["ziwei_decade_luck"],
+    unlockedContentKeys: ["ziwei.loveDeep"],
+    unlockMap: { ziwei_twelve_palaces: true },
+    entitlementSnapshot: { userId: "user-1", tier: "free", completeness: "full", authority: "server" },
+  }, { userId: "user-1", profileId: "profile-1" });
+
+  assert.equal(store.isUnlocked("section_daewun"), true, "정본 필드의 키는 열려야 합니다");
+  assert.equal(store.isUnlocked("ziwei_decade_luck"), false, "unlockedFeatures 는 권위 경로의 정본이 아닙니다");
+  assert.equal(store.isUnlocked("ziwei_love_deep"), false, "unlockedContentKeys 는 권위 경로의 정본이 아닙니다");
+  assert.equal(store.isUnlocked("ziwei_twelve_palaces"), false, "unlockMap 은 권위 경로의 정본이 아닙니다");
+});
+
+test("a degraded snapshot still reads every unlock source", () => {
+  const store = loadStore(async () => ({ ok: true, status: 200, json: async () => ({ ok: true }) }));
+  store.applyAccessStateSnapshot({
+    userId: "user-1",
+    degraded: true,
+    completeness: "partial",
+    authority: "cache",
+    unlockedFeatures: ["ziwei_decade_luck"],
+    unlockMap: { ziwei_twelve_palaces: true },
+    entitlementSnapshot: { userId: "user-1", tier: "free", completeness: "partial", authority: "cache" },
+  }, { userId: "user-1", profileId: "profile-1" });
+
+  assert.equal(store.isUnlocked("ziwei_decade_luck"), true, "비권위 스냅샷에서는 보강 출처를 계속 읽어야 합니다");
+  assert.equal(store.isUnlocked("ziwei_twelve_palaces"), true, "비권위 스냅샷에서는 맵 출처도 계속 읽어야 합니다");
+});
+
 test("a snapshot for another user is rejected", () => {
   const store = loadStore(async () => ({ ok: true, status: 200, json: async () => ({ ok: true }) }));
   const applied = store.applyAccessStateSnapshot({

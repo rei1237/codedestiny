@@ -437,7 +437,24 @@
     return { key: key, userId: userId, profileId: profileId, serviceKeys: serviceKeys };
   }
 
-  function extractUnlockMap(payload) {
+  /* 🔴 판정 집합의 정본 필드는 둘뿐이다(Phase 4 D1): unlockedFeatureIds 와
+     entitlementSnapshot.unlockedFeatureIds. options.authoritative 일 때 그 둘만 읽는다.
+
+     이유는 치환이다 — 권위 페이로드로 집합을 **치환**하려면 치환 대상 집합이 하나로 정의돼 있어야
+     한다. 다섯 배열 + 세 맵을 합집합한 채로 치환하면, 서버가 뺀 키가 다른 배열에 남아 있는 한
+     회수가 다시 무효가 된다.
+
+     실측(2026-09-13): 권위 페이로드에서 여덟 출처는 전부 같은 집합이다.
+       unlockedFeatures 는 unlockedFeatureIds 와 같은 배열(worker/lib/access-state.js:236),
+       unlockMap 은 그 배열 ∪ contentState.unlockMap 인데 후자의 키는 이미 그 배열에 들어 있고(:161),
+       unlockedContentKeys 는 같은 doc 루프 산출이며 클라이언트 CONTENT_KEY_TO_FEATURE_KEY 8개는
+       서버 PROFILE_UNLOCK_FEATURE_BY_CONTENT_KEY 의 부분집합이다.
+     즉 지금은 집합이 변하지 않는다. 바뀌는 것은 "앞으로 어느 필드가 정본인가"다.
+
+     🔴 비권위 페이로드(degraded·부분 스냅샷·결제 응답)는 종전대로 전부 읽는다. 모를 때 알던 것을
+     지우지 않는다는 payloadCarriesUnlockAuthority 의 방향과 같다. */
+  function extractUnlockMap(payload, options) {
+    var authoritative = options && options.authoritative === true;
     var result = Object.create(null);
     function addKey(rawKey) {
       var key = normalizeFeatureKey(rawKey);
@@ -445,18 +462,23 @@
       result[key] = true;
       if (CONTENT_KEY_TO_FEATURE_KEY[key]) result[CONTENT_KEY_TO_FEATURE_KEY[key]] = true;
     }
-    var arrays = [
-      payload && payload.unlockedContentKeys,
-      payload && payload.unlockedFeatures,
-      payload && payload.unlockedFeatureIds,
-      payload && payload.entitlementSnapshot && payload.entitlementSnapshot.unlockedFeatureIds,
-      payload && payload.unlockedFeatureMap
-    ];
+    var arrays = authoritative
+      ? [
+        payload && payload.unlockedFeatureIds,
+        payload && payload.entitlementSnapshot && payload.entitlementSnapshot.unlockedFeatureIds
+      ]
+      : [
+        payload && payload.unlockedContentKeys,
+        payload && payload.unlockedFeatures,
+        payload && payload.unlockedFeatureIds,
+        payload && payload.entitlementSnapshot && payload.entitlementSnapshot.unlockedFeatureIds,
+        payload && payload.unlockedFeatureMap
+      ];
     arrays.forEach(function (source) {
       if (!Array.isArray(source)) return;
       source.forEach(function (key) { addKey(key); });
     });
-    var maps = [
+    var maps = authoritative ? [] : [
       payload && payload.unlockedFeatureMap,
       payload && payload.unlocks,
       payload && payload.unlockMap
@@ -470,11 +492,13 @@
         }
       });
     });
-    var nested = payload && payload.data && typeof payload.data === 'object' ? extractUnlockMap(payload.data) : null;
+    var nested = payload && payload.data && typeof payload.data === 'object' ? extractUnlockMap(payload.data, options) : null;
     if (nested) {
       Object.keys(nested).forEach(function (key) { result[key] = true; });
     }
-    var directFeatureKey = payload && (payload.featureKey || payload.accessGrant && payload.accessGrant.featureKey);
+    /* 단건 지급 응답(featureKey + status)은 권위 스냅샷의 모양이 아니다. 권위 경로에서는 읽지 않는다 —
+       읽으면 정본 필드에 없는 키가 치환 집합에 섞여 D2 의 치환이 다시 무효가 된다. */
+    var directFeatureKey = !authoritative && payload && (payload.featureKey || payload.accessGrant && payload.accessGrant.featureKey);
     var directStatus = String(payload && (payload.status || payload.accessGrant && payload.accessGrant.status) || '').trim().toLowerCase();
     if (directFeatureKey && (payload.unlocked === true || payload.alreadyUnlocked === true || payload.accessGranted === true
       || /^(paid|success|fulfilled|unlocked|already_unlocked|pass_applied)$/.test(directStatus))) {
@@ -627,13 +651,15 @@
       serviceKeys: options && options.serviceKeys,
       authenticated: true
     });
-    var unlocks = extractUnlockMap(source);
-    state.profileId = profileId;
-    state.userId = sourceUserId;
-    state.serviceKeys = context.serviceKeys.slice();
+    /* 🔴 권위 판정을 먼저 한다 — extractUnlockMap 이 그 결과에 따라 읽을 필드를 바꾸기 때문이다
+       (Phase 4 D1). 예전에는 추출이 먼저였고 판정이 뒤였다. */
     var completeness = String(source.completeness || source.entitlementSnapshot && source.entitlementSnapshot.completeness || '').toLowerCase();
     var authority = String(source.authority || source.entitlementSnapshot && source.entitlementSnapshot.authority || '').toLowerCase();
     var authoritativeFull = source.degraded !== true && completeness === 'full' && authority === 'server';
+    var unlocks = extractUnlockMap(source, { authoritative: authoritativeFull });
+    state.profileId = profileId;
+    state.userId = sourceUserId;
+    state.serviceKeys = context.serviceKeys.slice();
     if (authoritativeFull) {
       Object.keys(unlocks).forEach(function (key) { state.confirmedUnlocks[key] = true; });
     }
