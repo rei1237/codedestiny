@@ -992,8 +992,14 @@ async function handleStart(request, env) {
   });
 }
 
-/** 배치 락 확보 — 병렬 요청이 같은 구간을 중복 생성하지 않게 한다. */
-async function acquireBatchLock(sessionId, userId) {
+/**
+ * 배치 락 확보 — 병렬 요청이 같은 구간을 중복 생성하지 않게 한다.
+ *
+ * 🔴 크론 회수 태스크(worker/lib/master-love-codex-recovery-task.js)도 **이 함수를 그대로**
+ *    부른다. 필터에 status 조건이 들어 있어 완료 세션을 되살리지 않는 것이 여기서 보장된다 —
+ *    태스크 쪽에 락 쿼리를 다시 쓰면 그 보장이 둘로 갈라진다.
+ */
+export async function acquireBatchLock(sessionId, userId) {
   const now = Date.now();
   const lockToken = `${now.toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
   const updated = await MasterLoveCodexSession.findOneAndUpdate(
@@ -1082,6 +1088,44 @@ async function handleGenerate(request, env, dependencies = {}) {
     return paymentVerifyFailed();
   }
 
+  const wave = await runCodexWave(env, {
+    sessionId,
+    userId: clean(auth.userId),
+    doc,
+    lockToken: lock.lockToken,
+    dependencies,
+    deadlineAt,
+  });
+  switch (wave.outcome) {
+    case "denied": return paymentVerifyFailed();
+    case "completed":
+    case "committed": return sessionWithAccessToken(env, wave.session);
+    case "lock_lost": return json({ ok: false, reason: "GENERATION_IN_PROGRESS", retryable: true, message: MESSAGES.busy }, { status: 409 });
+    case "stalled": return json({
+      ok: false,
+      reason: wave.reason,
+      retryable: true,
+      message: "생성이 지연되고 있습니다. 지금까지 쓰인 장은 그대로 보관되니 잠시 후 이어서 쓰면 됩니다.",
+    }, { status: 503 });
+    default: return serverError("이야기를 이어 쓰는 중 문제가 생겼습니다. 결제와 지금까지 쓰인 장은 보존되니 잠시 후 다시 시도해 주세요.", 503);
+  }
+}
+
+/**
+ * 락을 이미 쥔 상태에서 남은 장을 **한 웨이브**(최대 CHAPTER_BATCH_SIZE 장) 쓴다.
+ *
+ * HTTP 를 모른다 — 요청 핸들러와 크론 회수 태스크(worker/lib/master-love-codex-recovery-task.js)가
+ * 같은 본문을 쓰기 위해 결과를 `outcome` 으로만 돌려준다.
+ *
+ * 🔴 웨이브 하나만 돈다. 한 락으로 두 웨이브(156초+)를 돌면 락 TTL(BATCH_LOCK_TTL_MS = 120초)을
+ *    넘겨 클라이언트가 락을 훔치고, 두 주체가 같은 구간을 동시에 쓰게 된다. 해제는 아래 커밋
+ *    갈래들이 모두 담당한다.
+ * 🔴 진행 위치의 정본은 언제나 서버의 existingChapters 다 — 호출자가 준 값을 믿지 않는다.
+ */
+export async function runCodexWave(env, { sessionId, userId, doc, lockToken, dependencies = {}, deadlineAt }) {
+  const ownerId = clean(userId);
+  const lockFilter = { id: sessionId, userId: ownerId, "generationProgress.lockToken": lockToken };
+  const modeDef = resolveMode(doc.mode);
   const existingChapters = Array.isArray(doc.chapters) ? doc.chapters.slice() : [];
   const startIndex = existingChapters.length; // 서버가 진행 위치의 정본이다(클라이언트 값 미신뢰)
   const slice = modeDef.chapters.slice(startIndex, startIndex + CHAPTER_BATCH_SIZE);
@@ -1092,7 +1136,7 @@ async function handleGenerate(request, env, dependencies = {}) {
       { $set: { status: "completed", "generationProgress.lockedAt": null, "generationProgress.lockToken": "" } },
     );
     const finished = await MasterLoveCodexSession.findOne({ id: sessionId }).lean();
-    return sessionWithAccessToken(env, finished);
+    return { outcome: "completed", session: finished };
   }
 
   try {
@@ -1112,10 +1156,10 @@ async function handleGenerate(request, env, dependencies = {}) {
       deadlineAt,
     }));
 
-    const stillAuthorized = await recoverCodexSession({ userId: auth.userId, sessionId });
+    const stillAuthorized = await recoverCodexSession({ userId: ownerId, sessionId });
     if (!stillAuthorized || stillAuthorized.denied) {
       await MasterLoveCodexSession.updateOne(lockFilter, { $set: { "generationProgress.lockedAt": null, "generationProgress.lockToken": "" } });
-      return paymentVerifyFailed();
+      return { outcome: "denied" };
     }
     // 예산 초과로 못 쓴 장이 나오면 그 앞까지만 커밋한다(챕터는 연속이어야 한다).
     const committed = planBatchCommit(results);
@@ -1126,13 +1170,8 @@ async function handleGenerate(request, env, dependencies = {}) {
         { $set: { status: "generation_failed", generationError: { code: reason, at: new Date() }, "generationProgress.lockedAt": null, "generationProgress.lockToken": "" } },
       ).catch(() => {});
       console.warn("[master-love-codex] generation retry", { sessionId, reason, startIndex });
-      await refundSessionPassIfNeeded(sessionId, clean(auth.userId), doc, existingChapters, dependencies);
-      return json({
-        ok: false,
-        reason,
-        retryable: true,
-        message: "생성이 지연되고 있습니다. 지금까지 쓰인 장은 그대로 보관되니 잠시 후 이어서 쓰면 됩니다.",
-      }, { status: 503 });
+      await refundSessionPassIfNeeded(sessionId, ownerId, doc, existingChapters, dependencies);
+      return { outcome: "stalled", reason };
     }
 
     const newChapters = committed.map((result) => result.chapter);
@@ -1152,18 +1191,19 @@ async function handleGenerate(request, env, dependencies = {}) {
       },
     });
 
-    if (!saved.matchedCount) return json({ ok: false, reason: "GENERATION_IN_PROGRESS", retryable: true, message: MESSAGES.busy }, { status: 409 });
+    // 락을 뺏겼다는 뜻이다 — 다른 주체가 같은 구간을 이미 커밋했으니 여기서는 아무것도 덮어쓰지 않는다.
+    if (!saved.matchedCount) return { outcome: "lock_lost" };
 
     const updated = await MasterLoveCodexSession.findOne({ id: sessionId }).lean();
-    return sessionWithAccessToken(env, updated);
+    return { outcome: "committed", session: updated, done };
   } catch (error) {
     console.error("[master-love-codex] generate", clean(error?.message, 300));
     await MasterLoveCodexSession.updateOne(
       lockFilter,
       { $set: { status: "generation_failed", "generationProgress.lockedAt": null, "generationProgress.lockToken": "" } },
     ).catch(() => {});
-    await refundSessionPassIfNeeded(sessionId, clean(auth.userId), doc, existingChapters, dependencies);
-    return serverError("이야기를 이어 쓰는 중 문제가 생겼습니다. 결제와 지금까지 쓰인 장은 보존되니 잠시 후 다시 시도해 주세요.", 503);
+    await refundSessionPassIfNeeded(sessionId, ownerId, doc, existingChapters, dependencies);
+    return { outcome: "failed" };
   }
 }
 
@@ -1225,7 +1265,7 @@ export const __masterLoveCodexTestUtils = {
   normalizeInput, getPricing, buildBillingGatePayload, normalizeLoveDna,
   resolveMode, tokenMatchesMode, buildCharts,
   // 배치 시간 예산 — 검증 스크립트가 LLM 호출 없이 순수 함수로 확인한다.
-  withDeadline, planBatchCommit, acquireBatchLock,
+  withDeadline, planBatchCommit, acquireBatchLock, runCodexWave,
   BATCH_BUDGET_MS, BATCH_LOCK_TTL_MS, CHAPTER_MIN_BUDGET_MS, EDGE_RESPONSE_DEADLINE_MS,
   passRefundFor, refundSessionPassIfNeeded,
 };

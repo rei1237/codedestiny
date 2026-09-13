@@ -1919,6 +1919,14 @@ export default {
       ctx.waitUntil(runSnsDailyPostRecovery(env).catch((error) => {
         console.error("[sns-daily-post-recovery] task failed:", error?.message || error);
       }));
+      // 🔴 마스터 인연의 서의 **버려진 세션 백스톱**. 20장 생성은 브라우저가 5~8왕복으로 미는데,
+      // 결제 직후 PG 리다이렉트로 돌아온 탭이 잠들거나 닫히면 세션이 미완인 채 굳는다 — 돈은
+      // 이미 나갔다. 결과 화면이 이어쓰기 주체가 된 뒤에도 "아무도 안 보는 세션"은 남으므로
+      // 이 10분 주기가 그것들을 완주까지 밀어 올린다. 틱당 3세션 · 세션당 웨이브 1회다.
+      const { runMasterLoveCodexRecovery } = await import("./lib/master-love-codex-recovery-task.js");
+      ctx.waitUntil(runMasterLoveCodexRecovery(env).catch((error) => {
+        console.error("[master-love-codex-recovery] task failed:", error?.message || error);
+      }));
       return;
     }
 
