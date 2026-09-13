@@ -660,8 +660,15 @@
     state.profileId = profileId;
     state.userId = sourceUserId;
     state.serviceKeys = context.serviceKeys.slice();
+    /* 🔴 권위 페이로드는 덧쓰기가 아니라 **치환**이다 (Phase 4 D2). 서버는 회수를 별도 신호로
+       보내지 않는다 — revokedFeatureIds 는 워커 전체에 생산자가 없고(전수 grep), 환불은
+       ContentEntitlement.status 를 REFUNDED 로 바꿀 뿐이며(worker/payments/entitlements.js)
+       조회는 status: ACTIVE 만 본다(worker/lib/content-unlocks.js). 그래서 회수의 유일한 표현은
+       "unlockedFeatureIds 에서 사라짐" 이다. 덧쓰기로는 그 사라짐을 영원히 읽지 못한다.
+       🔴 authoritativeFull 이 아니면 절대 치환하지 않는다 — degraded·부분 응답은 완전 집합이
+       아니므로 치환하면 산 것을 지운다(원칙 10 fail-closed). */
     if (authoritativeFull) {
-      Object.keys(unlocks).forEach(function (key) { state.confirmedUnlocks[key] = true; });
+      state.confirmedUnlocks = copyMap(unlocks);
     }
     var merged = authoritativeFull ? copyMap(unlocks) : copyMap(state.persistentUnlocks);
     Object.keys(unlocks).forEach(function (key) { merged[key] = true; });

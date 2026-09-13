@@ -247,7 +247,13 @@ test("a final 401 is classified as authentication failure without erasing the la
   assert.equal(store.getSnapshot().status, "degraded");
 });
 
-test("confirmed grants survive stale snapshots and require an explicit versioned revoke", () => {
+// 🔴 Phase 4 커밋 5(D2)에서 이 테스트의 단언 하나를 **뒤집었다**(지우지 않았다).
+// 예전에는 권위 스냅샷이 덧쓰기라, 두 번째 완전 스냅샷이 section_summary 를 빼고 와도
+// 그 키가 confirmedUnlocks 에 영원히 남았다. 서버는 회수를 별도 신호로 보내지 않으므로
+// (revokedFeatureIds 는 워커에 생산자가 없다) 그 덧쓰기는 회수를 영구히 무효로 만들었다.
+// 이제 권위 스냅샷은 치환이다. 치환을 덧쓰기로 되돌리면 :269 가 곧바로 실패한다.
+// revokedFeatureIds 분기 자체는 아래 세 번째 스냅샷이 계속 지킨다(생산자가 없어도 지우지 않는다).
+test("an authoritative snapshot replaces the confirmed set, and an explicit versioned revoke still works", () => {
   const store = loadStore(async () => ({ ok: false, status: 503, json: async () => ({ ok: false }) }));
   store.applyAccessStateSnapshot({
     userId: "user-1",
@@ -266,10 +272,20 @@ test("confirmed grants survive stale snapshots and require an explicit versioned
     completeness: "full",
     authority: "server",
   }, { userId: "user-1", profileId: "profile-1" });
-  assert.equal(store.isUnlocked("section_summary"), true);
+  // 🔴 수렴 단언(뒤집기 전: true). 두 번째 권위 스냅샷이 section_summary 를 빼고 왔다 —
+  // 서버가 낼 수 있는 유일한 회수 신호가 이것이다. 실패하면 D2 치환이 덧쓰기로 되돌아간 것이다.
+  assert.equal(store.isUnlocked("section_summary"), false);
   assert.equal(store.isUnlocked("section_compat"), true);
+  // 치환 결과는 서버 집합과 **정확히** 같아야 한다. 더 비우면(빈 맵) persistentUnlocks 가
+  // 가려 주어 isUnlocked 로는 안 보이므로, 확정 집합 자체를 본다.
+  assert.deepEqual(Object.keys(store.getSnapshot().confirmedUnlocks).sort(), ["section_compat"]);
   assert.notEqual(first, store.getSnapshot());
 
+  // revokedFeatureIds 분기는 생산자가 없어도 남겨 둔다(원칙 6·9).
+  // 🔴 다만 이 스냅샷은 이제 분기를 독립적으로 검증하지 못한다 — 치환만으로도 같은 결과가
+  // 나오기 때문이다. 정본 집합에 **들어 있는** 키를 revoked 로 빼 보면 :680 의
+  // persistentUnlocks = copyMap(unlocks) 가 그 키를 되살려 분기가 실효를 잃는다(실측).
+  // 생산자가 없어 지금 새는 곳은 없고, 고치는 것은 D2 범위 밖이라 별 변경으로 남긴다.
   store.applyAccessStateSnapshot({
     userId: "user-1",
     currentProfileId: "profile-1",
@@ -280,6 +296,31 @@ test("confirmed grants survive stale snapshots and require an explicit versioned
     authority: "server",
   }, { userId: "user-1", profileId: "profile-1" });
   assert.equal(store.isUnlocked("section_summary"), false);
+});
+
+// 🔴 D2 치환의 fail-closed 짝. 치환은 권위 페이로드에만 걸린다 — degraded·부분 응답은 완전
+// 집합이 아니므로 치환하면 산 것을 지운다(원칙 10). 조건을 떼면 이 테스트가 문다.
+test("a degraded snapshot never replaces the confirmed set", () => {
+  const store = loadStore(async () => ({ ok: false, status: 503, json: async () => ({ ok: false }) }));
+  store.applyAccessStateSnapshot({
+    userId: "user-1",
+    currentProfileId: "profile-1",
+    unlockedFeatureIds: ["section_summary"],
+    completeness: "full",
+    authority: "server",
+  }, { userId: "user-1", profileId: "profile-1" });
+  assert.equal(store.isUnlocked("section_summary"), true);
+
+  store.applyAccessStateSnapshot({
+    userId: "user-1",
+    currentProfileId: "profile-1",
+    unlockedFeatureIds: [],
+    degraded: true,
+    completeness: "partial",
+    authority: "server",
+  }, { userId: "user-1", profileId: "profile-1" });
+  assert.equal(store.isUnlocked("section_summary"), true, "degraded 응답이 확정 해금을 지우면 유료 콘텐츠가 장애 때마다 잠긴다");
+  assert.equal(store.getSnapshot().confirmedUnlocks.section_summary, true);
 });
 
 test("verified payment grants persist without TTL and survive logout and reload", async () => {

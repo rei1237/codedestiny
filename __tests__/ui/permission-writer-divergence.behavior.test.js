@@ -185,8 +185,13 @@ test("서버가 권한을 회수하면 셸과 React 가 같은 순간에 잠근�
     let revoked = false;
     const runner = boot({
       installFetchCache,
+      // 🔴 Phase 4 커밋 5(D2): 회수를 **집합에서 빼는 것만으로** 표현한다. 예전에는 여기서
+      // revoked: [FEATURE_KEY] 를 함께 실어 줬지만 서버는 그 필드를 낸 적이 없다 —
+      // revokedFeatureIds 는 워커 전체에 생산자가 0이고(전수 grep), 환불은 엔타이틀먼트를
+      // status: REFUNDED 로 바꿔 조회(status: ACTIVE)에서 빠지게 할 뿐이다. 실제 서버가 내는
+      // 모양으로 되돌렸으므로, 이제 아래 회수 단언들은 D2 의 권위 집합 치환을 요구한다.
       respond: () => (revoked
-        ? accessState({ unlocked: false, revoked: [FEATURE_KEY], version: 2 })
+        ? accessState({ unlocked: false, version: 2 })
         : accessState({ unlocked: true })),
     });
     await runner.store.ensureLoaded({ userId: USER_ID, profileId: PROFILE_ID, authenticated: true, force: true });
