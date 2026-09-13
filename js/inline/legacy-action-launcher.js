@@ -3,7 +3,8 @@
  * Runs after window "load" so deferred bundles have registered globals.
  */
 (function launchLegacyActionFromQuery() {
-  // SignupClient.tsx 의 검증 규칙과 동일: 코드 6~24자 [A-Z0-9_-] 대문자, 토큰 24~1800자.
+  // 읽는 쪽(app/components/auth/AuthShell.tsx 의 readPendingReferral)과 동일한 검증 규칙:
+  // 코드 6~24자 [A-Z0-9_-] 대문자, 토큰 24~1800자. 한쪽만 느슨해지면 서버가 되던진다.
   function captureReferralFromQuery(params) {
     try {
       var refCode = String(params.get("ref") || params.get("referralCode") || "").trim().toUpperCase();
@@ -30,7 +31,8 @@
 
       // 공유 링크형 유입: 홈/기능 어디로 떨어지든 리퍼럴을 승계한다.
       // (기존엔 /signup 에서만 캡처 → 홈 랜딩 시 추천 보상이 유실되던 사각지대 보강)
-      // 저장 규격은 app/signup/SignupClient.tsx 의 cd_pending_referral_v1 / cd_ref 쿠키와 동일해야 한다.
+      // 저장 규격(cd_pending_referral_v1 / cd_ref 쿠키)은 읽는 쪽인
+      // app/components/auth/AuthShell.tsx 의 readPendingReferral · clearPendingReferral 과 같아야 한다.
       captureReferralFromQuery(params);
 
       var action = params.get("action");

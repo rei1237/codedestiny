@@ -41,6 +41,35 @@ function markFreshSignup(user?: AuthUser) {
   } catch { /* 저장 실패는 기존 로딩 카드 경로로 폴백될 뿐이라 조용히 넘어간다 */ }
 }
 
+/* 공유 링크로 홈에 떨어진 방문자의 리퍼럴을 가입까지 승계한다.
+   쓰는 쪽 정본은 js/inline/legacy-action-launcher.js 의 captureReferralFromQuery 이고,
+   그 파일이 홈·기능 어디로 떨어지든 ?ref=... 를 이 키에 담아 둔다. 읽는 쪽이 없던 동안은
+   방문자가 페이지를 한 번만 옮겨도 추천 보상이 통째로 유실됐다.
+   🔴 검증 규칙은 쓰는 쪽과 글자 그대로 같아야 한다 — 한쪽만 느슨해지면 서버
+   (worker/lib/validation.js)가 되던지는 값이 저장돼 가입이 실패한다.
+   🔴 URL 쿼리가 언제나 우선이다. 이 폴백은 쿼리에 ref 가 없을 때만 본다. */
+const PENDING_REFERRAL_KEY = "cd_pending_referral_v1";
+type PendingReferral = { referralCode?: string; referralShareToken?: string; referralSource?: string };
+
+function readPendingReferral(): PendingReferral {
+  try {
+    const raw = localStorage.getItem(PENDING_REFERRAL_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw) as PendingReferral;
+    const code = String(parsed?.referralCode || "").trim().toUpperCase();
+    if (!/^[A-Z0-9_-]{6,24}$/.test(code)) return {};
+    const rawToken = String(parsed?.referralShareToken || "").trim();
+    const token = rawToken.length >= 24 && rawToken.length <= 1800 ? rawToken : "";
+    const source = String(parsed?.referralSource || "").trim().toLowerCase() || "kakao_reward";
+    return { referralCode: code, referralShareToken: token, referralSource: source };
+  } catch { return {}; /* 손상된 값은 리퍼럴 없음과 같게 다룬다 — 가입을 막지 않는다 */ }
+}
+
+function clearPendingReferral() {
+  try { localStorage.removeItem(PENDING_REFERRAL_KEY); } catch { /* 지우기 실패는 다음 가입에서 다시 시도된다 */ }
+  try { document.cookie = "cd_ref=; path=/; max-age=0; samesite=lax"; } catch { /* 위와 같다 */ }
+}
+
 type Copy = {
   loginTitle: string; signupTitle: string; loginDescription: string; signupDescription: string;
   moonstoneBadgeTitle: string; moonstoneBadgeDetail: string;
@@ -550,9 +579,18 @@ export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
         return;
       }
       const current = new URLSearchParams(window.location.search);
+      // URL 쿼리가 우선, 없을 때만 홈에서 캡처해 둔 값을 승계한다(readPendingReferral 주석 참조).
+      const pendingReferral = current.get("ref") ? {} : readPendingReferral();
+      const referralCode = current.get("ref") || pendingReferral.referralCode || undefined;
+      const referralShareToken = current.get("ref")
+        ? (current.get("rs") || undefined)
+        : (pendingReferral.referralShareToken || undefined);
+      const referralSource = current.get("ref")
+        ? (current.get("via") || undefined)
+        : (pendingReferral.referralSource || undefined);
       const response = await authFetch(`${apiBase}/api/auth/register`, {
         method: "POST", credentials: "include", headers: { "Content-Type": "application/json", ...mobileAppAuthHeaders() },
-        body: JSON.stringify({ email: email.trim(), password, phoneNumber: normalizedPhone, privacyAccepted: true, termsAccepted: true, birthYear: birthYear.trim(), nextPath: nextPath(), referralCode: current.get("ref") || undefined, referralShareToken: current.get("rs") || undefined, referralSource: current.get("via") || undefined }),
+        body: JSON.stringify({ email: email.trim(), password, phoneNumber: normalizedPhone, privacyAccepted: true, termsAccepted: true, birthYear: birthYear.trim(), nextPath: nextPath(), referralCode, referralShareToken, referralSource }),
       });
       const payload = await response.json().catch(() => ({})) as { message?: string; code?: string; requestId?: string; nextPath?: string; accessToken?: string; refreshToken?: string; user?: AuthUser };
       // 🔴 5xx 를 throw 로 넘기지 않는다 — 아래 catch 의 /failed|invalid|.../ 정규식이 진단 꼬리표
@@ -561,6 +599,8 @@ export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
       if (!response.ok) throw new Error(payload.message || copy.invalidSignup);
       completeClientLogin(payload);
       markFreshSignup(payload.user);
+      // 승계가 끝났으니 키를 비운다 — 남겨 두면 다음 가입이 남의 리퍼럴을 달고 간다.
+      if (referralCode) clearPendingReferral();
       trackEvent("signup", { method: "password" });
       redirect(payload.nextPath, payload.user?.role);
     } catch (reason) {
