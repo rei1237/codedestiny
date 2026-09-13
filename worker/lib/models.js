@@ -1787,6 +1787,38 @@ const guardianFortuneSharedSnapshotSchema = new mongoose.Schema({
 guardianFortuneSharedSnapshotSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 guardianFortuneSharedSnapshotSchema.index({ status: 1, createdAt: -1 });
 
+// 정적 셸(index.html) 결과의 공유 스냅샷. 위 가디언 스냅샷과 달리 **서버 생성 이력이 없어**
+// 클라이언트가 본문을 올린다 — 이 컬렉션이 레포에서 유일하게 임의 사용자 텍스트를 받는 공개
+// 쓰기 대상이다. 그래서 feature 는 열거형으로 못 박고, 길이는 스키마에서 한 번 더 자른다
+// (worker/lib/result-share-snapshot.js 의 화이트리스트가 1차, 여기가 2차 방어선이다).
+const resultSharedSnapshotSchema = new mongoose.Schema({
+  shareId: { type: String, required: true, unique: true, trim: true, maxlength: 96, index: true },
+  feature: { type: String, enum: ["tarot-basic", "saju-basic"], required: true },
+  title: { type: String, required: true, trim: true, maxlength: 120 },
+  summary: { type: String, required: true, trim: true, maxlength: 400 },
+  sections: {
+    type: [{
+      _id: false,
+      heading: { type: String, required: true, trim: true, maxlength: 80 },
+      body: { type: String, required: true, trim: true, maxlength: 1200 },
+    }],
+    default: [],
+  },
+  locale: { type: String, required: true, trim: true, maxlength: 20, default: "ko-KR" },
+  status: { type: String, enum: ["active", "deleted", "expired"], default: "active" },
+  // 같은 결과를 두 번 공유해도 링크가 하나로 모이게 한다. 카카오는 URL 을 캐시 키로 쓰므로
+  // 같은 본문에 URL 이 두 개 생기면 스크랩도 두 번 일어나고 카드 갱신이 갈린다.
+  contentHash: { type: String, trim: true, maxlength: 80, sparse: true, unique: true },
+  createdAt: { type: Date, required: true, default: Date.now },
+  // expiresAt 는 아래 TTL 인덱스로만 색인한다(idempotency_keys 와 동일한 충돌 회피).
+  // 필드 레벨 index:true 를 함께 두면 같은 키의 plain 인덱스와 TTL 인덱스가 IndexOptionsConflict
+  // 로 충돌해 plain 쪽이 살아남고 TTL 이 적용되지 않는다. 실측 2026-08-21: 선언에서 인덱스를
+  // 만든 스테이징 DB 의 이 세 컬렉션이 전부 TTL 없는 expiresAt_1 만 갖고 있었다(= 영구 누적).
+  expiresAt: { type: Date, required: true },
+}, { collection: "resultSharedSnapshots" });
+resultSharedSnapshotSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+resultSharedSnapshotSchema.index({ feature: 1, createdAt: -1 });
+
 const fusionFortuneGenerationAttemptSchema = new mongoose.Schema({
   requestId: { type: String, required: true, unique: true, trim: true, maxlength: 120, index: true },
   userId: { type: mongoose.Schema.Types.ObjectId, required: true },
@@ -1965,6 +1997,8 @@ export const GuardianFortuneGenerationAttempt = mongoose.models.GuardianFortuneG
   || mongoose.model("GuardianFortuneGenerationAttempt", guardianFortuneGenerationAttemptSchema);
 export const GuardianFortuneSharedSnapshot = mongoose.models.GuardianFortuneSharedSnapshot
   || mongoose.model("GuardianFortuneSharedSnapshot", guardianFortuneSharedSnapshotSchema);
+export const ResultSharedSnapshot = mongoose.models.ResultSharedSnapshot
+  || mongoose.model("ResultSharedSnapshot", resultSharedSnapshotSchema);
 export const FusionFortuneGenerationAttempt = mongoose.models.FusionFortuneGenerationAttempt
   || mongoose.model("FusionFortuneGenerationAttempt", fusionFortuneGenerationAttemptSchema);
 export const FusionFortuneConsultation = mongoose.models.FusionFortuneConsultation

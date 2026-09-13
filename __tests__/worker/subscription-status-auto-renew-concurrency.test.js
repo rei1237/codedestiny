@@ -102,6 +102,7 @@ jest.unstable_mockModule("../../worker/lib/models.js", () => ({
   GuardianFortuneAnonymousMerge: {},
   GuardianFortuneGenerationAttempt: {},
   GuardianFortuneSharedSnapshot: {},
+  ResultSharedSnapshot: {},
   Insight: {},
   DestinyBiasCard: {},
   ContentOverride: {},

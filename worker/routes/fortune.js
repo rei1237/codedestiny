@@ -1,6 +1,6 @@
 import { connectDb, mongoose, withMongoRetry, mongoTransactionOptions } from "../lib/db.js";
 import { invalidateAccessStateCacheForUser } from "../lib/access-state.js";
-import { User, PointHistory, Payment, MonthlyCreditLedger, PaidExecutionRecord, RECENT_CONSUME_REQUEST_ID_CAP, GuardianFortuneSharedSnapshot } from "../lib/models.js";
+import { User, PointHistory, Payment, MonthlyCreditLedger, PaidExecutionRecord, RECENT_CONSUME_REQUEST_ID_CAP, GuardianFortuneSharedSnapshot, ResultSharedSnapshot } from "../lib/models.js";
 import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import { getUnlockedContentSnapshot } from "../lib/content-unlocks.js";
@@ -31,6 +31,14 @@ import {
   isGuardianFortuneShareEnabled,
   verifyGuardianFortuneShareDraftToken,
 } from "../lib/guardian-fortune-share.js";
+import {
+  createResultShareSnapshot,
+  findPublicResultSnapshot,
+  isResultShareEnabled,
+  RESULT_SHARE_RATE_LIMIT_WINDOW_MS,
+  resultShareRateLimitSubject,
+  resultShareRateLimitVerdict,
+} from "../lib/result-share-snapshot.js";
 import {
   getForcePaidTestAccountEmails as getForcePaidTestAccountEmailsFromGuard,
   isAdminPigCoinBypassEnabled as isAdminPigCoinBypassEnabledFromGuard,
@@ -6489,6 +6497,62 @@ async function handleGuardianFortuneShareReadRoute(request, env, trace, shareId)
   return json(snapshot, { headers: { "Cache-Control": "public, max-age=60, s-maxage=300" } });
 }
 
+/**
+ * 정적 셸 결과 공유. 가디언 쪽과 달리 서명 토큰이 없어 **본문을 클라이언트가 올린다**.
+ * 그래서 순서가 계약이다: 플래그 → 레이트 리밋 → 본문 검증. 레이트 리밋을 본문 뒤로 미루면
+ * 큰 본문을 던지는 것만으로 파싱 비용을 무제한 태울 수 있다.
+ */
+async function handleResultShareCreateRoute(request, env, trace) {
+  if (!isResultShareEnabled(env)) {
+    return json({ ok: false, error: "RESULT_SHARE_DISABLED", message: "공유 기능을 찾을 수 없습니다." }, { status: 404 });
+  }
+
+  const subjectHash = await sha256Hex(`result-share:${resultShareRateLimitSubject(request)}`);
+  const limit = await incrementRateLimit({
+    subjectHash,
+    endpoint: "result_share_create",
+    windowMs: RESULT_SHARE_RATE_LIMIT_WINDOW_MS,
+    env,
+  });
+  trace.dbConnected = true;
+  const limited = resultShareRateLimitVerdict(limit);
+  if (limited) {
+    return json(limited, { status: 429, headers: { "Retry-After": String(limited.retryAfterSeconds) } });
+  }
+
+  const body = await readJson(request);
+  let created;
+  try {
+    created = await createResultShareSnapshot({ input: body, requestUrl: request.url, env, model: ResultSharedSnapshot });
+  } catch (error) {
+    if (error?.message !== "RESULT_SHARE_RESULT_INVALID") throw error;
+    return json({
+      ok: false,
+      error: "RESULT_SHARE_RESULT_INVALID",
+      message: "이 결과는 공유할 수 없어요. 무료 결과만 공유할 수 있습니다.",
+    }, { status: 400 });
+  }
+  return json({
+    ok: true,
+    shareId: created.snapshot.shareId,
+    shareUrl: created.shareUrl,
+    title: created.snapshot.title,
+    summary: created.snapshot.summary,
+    reused: created.reused,
+  }, { status: 201 });
+}
+
+async function handleResultShareReadRoute(request, env, trace, shareId) {
+  if (!isResultShareEnabled(env)) return notFound();
+  const snapshotId = String(shareId || "").trim();
+  if (!snapshotId) return notFound();
+  await connectDb(env);
+  trace.dbConnected = true;
+  const snapshot = await findPublicResultSnapshot({ shareId: snapshotId, model: ResultSharedSnapshot });
+  if (!snapshot) return notFound();
+  return json(snapshot, { headers: { "Cache-Control": "public, max-age=60, s-maxage=300" } });
+}
+
 export async function handleFortuneRoutes(request, env, ctx = null) {
   const method = request.method.toUpperCase();
   const path = getRoutePath(request, "/api/fortune");
@@ -6528,6 +6592,14 @@ export async function handleFortuneRoutes(request, env, ctx = null) {
 
     if (method === "GET" && path.startsWith("/guardian/share/")) {
       return await handleGuardianFortuneShareReadRoute(request, env, trace, path.slice("/guardian/share/".length));
+    }
+
+    if (method === "POST" && path === "/share") {
+      return await handleResultShareCreateRoute(request, env, trace);
+    }
+
+    if (method === "GET" && path.startsWith("/share/")) {
+      return await handleResultShareReadRoute(request, env, trace, path.slice("/share/".length));
     }
 
     if (method === "GET" && path === "/pig-coin/prices") return handlePigCoinPrices();
