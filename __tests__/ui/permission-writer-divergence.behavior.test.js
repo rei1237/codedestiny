@@ -4,7 +4,8 @@
 // 대상 writer:
 //   W1 js/core/access-store.js            — 셸·React 공용 classic script. isUnlocked() 가 셸의 답이다.
 //   W2 js/core/pass-verdict.js            — 이용권 커버 판정(resolveVerdict). 결제창 직행 여부를 가른다.
-//   W3 app/_lib/optimistic-unlock-ledger.ts — React 전용 원장. use-content-unlock.ts:66 이 W1 과 **OR** 로 합류시킨다.
+//   W3 app/_lib/optimistic-unlock-ledger.ts — React 전용 원장. use-content-unlock.ts 의
+//      resolveUnlockedMap 이 W1 과 합류시킨다(Phase 4 D3 이후: 권위 스냅샷 전의 낙관만 기여).
 //   W4 app/_lib/user-session-cache.ts     — window.fetch 몽키패치. W1 이 서버에 닿는지 자체를 좌우한다.
 //
 // 🔴 이 파일은 "옳은 동작"이 아니라 **수렴 전의 실측**을 고정한다. 네 writer 를 한 서버 정본으로
@@ -109,7 +110,10 @@ function boot({ storage = new Map(), startedAt = T0, respond, installFetchCache 
 
   // TS 모듈 밖의 의존성만 대역으로 세운다. 판정 본체는 전부 원문 그대로다.
   const stubs = {
-    react: { useCallback: (fn) => fn, useSyncExternalStore: () => null },
+    react: { useCallback: (fn) => fn, useMemo: (fn) => fn(), useEffect: () => undefined, useSyncExternalStore: () => null },
+    // use-content-unlock 은 훅 밖의 순수 함수(resolveUnlockedMap)로 합류를 계산한다. 프로바이더는
+    // 그 순수 함수에 관여하지 않으므로 모듈 로드만 되게 대역을 세운다.
+    "@/app/providers/UnlockProvider": { useAccessStore: () => null, useAccessStoreSnapshot: () => null },
     "@/app/_lib/billing-client": {
       fetchBillingBalance: async () => ({}),
       seedMonthlyQuotaFromAccessState: () => undefined,
@@ -134,14 +138,22 @@ function boot({ storage = new Map(), startedAt = T0, respond, installFetchCache 
   const ledger = loadTs("app/_lib/optimistic-unlock-ledger.ts");
   const sessionCache = loadTs("app/_lib/user-session-cache.ts");
   if (installFetchCache) sessionCache.installUserAccessFetchCache();
+  // W1 × W3 의 합류 지점 자체를 싣는다 — 원장이 "무엇을 들고 있는가"가 아니라 React 화면이
+  // "무슨 답을 받는가"가 쟁점이기 때문이다. 원장은 위에서 만든 인스턴스를 그대로 준다.
+  stubs["@/app/_lib/optimistic-unlock-ledger"] = ledger;
+  stubs["@/app/_lib/love-code-entitlement"] = loadTs("app/_lib/love-code-entitlement.ts");
+  const contentUnlock = loadTs("app/_lib/use-content-unlock.ts");
+  const store = sandbox.CodeDestinyAccessStore;
 
   return {
     storage,
     serverHits,
-    store: sandbox.CodeDestinyAccessStore, // W1
+    store, // W1
     verdict: sandbox.__cdPassVerdict, // W2
     ledger, // W3
     sessionCache, // W4
+    /** React 화면이 실제로 받는 답(use-content-unlock.ts 의 W1 × W3 합류). */
+    reactAnswer: (featureKey) => contentUnlock.resolveUnlockedMap(store.getSnapshot(), [featureKey])[featureKey] === true,
     advance: (ms) => { now += ms; },
   };
 }
@@ -228,11 +240,16 @@ test("서버가 권한을 회수하면 셸과 React 가 같은 순간에 잠근�
 // 2) 낙관 해금 회수가 두 저장소 중 하나만 지운다.
 //
 // access-store.rollbackOptimisticUpdate(access-store.js:1179)는 state.optimistic 을 통째로 비우지만
-// 원장(cd_verified_unlock_grants_v1)은 모른다. React 의 useContentUnlock(use-content-unlock.ts:66)은
-// 두 곳을 **OR** 로 합치므로, 셸이 잠근 기능이 React 에서는 열린 채로 남는다.
+// 원장(cd_verified_unlock_grants_v1)은 모른다. 예전 React 의 useContentUnlock 은 두 곳을 **OR** 로
+// 합쳤으므로, 셸이 잠근 기능이 React 에서는 열린 채로 남았다.
 // (키 단위 회수 forgetOptimisticUnlock 은 양쪽을 지운다 — 아래 짝 단언으로 함께 고정한다.)
+//
+// 🔴 단언은 지우지 않고 방향만 뒤집었다(Phase 4 커밋 6, D3). 엇갈림을 대표하던 자리는 "원장에
+// 엔트리가 남는가"였지만, D3 은 원장을 **지우지 않고** 입을 닫게 한다 — 쓰기 API 는 동결 파일이
+// import 하므로 손대지 않는다. 그래서 같은 자리에서 이제 그 잔존이 실제로 낳던 답
+// (use-content-unlock 의 합류)을 본다: 열림 → 잠김.
 // ─────────────────────────────────────────────────────────────────────────────
-test("낙관 전면 롤백은 access-store 만 비우고 원장은 남긴다 (W1 × W3)", () => {
+test("낙관 전면 롤백 뒤 셸과 React 가 같은 답을 낸다 (W1 × W3)", () => {
   const runner = boot({ respond: () => accessState({ unlocked: false }) });
   runner.store.applyAccessStateSnapshot(accessState({ unlocked: false }), { profileId: PROFILE_ID });
 
@@ -241,12 +258,16 @@ test("낙관 전면 롤백은 access-store 만 비우고 원장은 남긴다 (W1
   runner.store.markOptimisticallyUnlocked(FEATURE_KEY, PROFILE_ID, { source: "content-unlock-hook" });
   assert.equal(runner.store.isUnlocked(FEATURE_KEY), true);
   assert.equal(runner.ledger.hasLedgerUnlock(FEATURE_KEY), true);
+  assert.equal(runner.reactAnswer(FEATURE_KEY), true, "결제 직후 낙관 창은 열려 있어야 합니다 — 원장을 좁히다 이 창까지 닫으면 산 사람이 잠깁니다");
 
   runner.store.rollbackOptimisticUpdate("payment-failed");
 
-  // 🔴 재현된 엇갈림: 셸은 잠김, 원장은 열림 → React 의 OR 합류는 열림이 된다.
   assert.equal(runner.store.isUnlocked(FEATURE_KEY), false, "셸의 답");
-  assert.equal(runner.ledger.hasLedgerUnlock(FEATURE_KEY), true, "원장이 함께 지워졌다면 수렴된 것입니다");
+  assert.equal(runner.ledger.hasLedgerUnlock(FEATURE_KEY), true, "원장 엔트리 자체는 남는다 — D3 은 쓰기 API 를 건드리지 않는다");
+
+  // 🔴 수렴 단언(뒤집기 전: true). 원장이 남아 있어도 권위 스냅샷이 도착해 있으면 합류는 서버
+  // 답만 따른다. use-content-unlock 의 게이트를 떼면 여기서 곧바로 문다.
+  assert.equal(runner.reactAnswer(FEATURE_KEY), false, "셸이 잠근 기능이 React 에서 열려 있으면 결제 실패가 무료 열람이 됩니다");
 
   // 짝 단언: 키 단위 회수는 지금도 양쪽을 지운다. 이 경로까지 깨지면 402 회수가 통째로 무력해진다.
   runner.ledger.recordOptimisticUnlock(FEATURE_KEY);
@@ -254,6 +275,35 @@ test("낙관 전면 롤백은 access-store 만 비우고 원장은 남긴다 (W1
   runner.ledger.forgetOptimisticUnlock(FEATURE_KEY);
   assert.equal(runner.ledger.hasLedgerUnlock(FEATURE_KEY), false, "월 한도 402 회수는 원장을 지워야 합니다");
   assert.equal(runner.store.isUnlocked(FEATURE_KEY), false, "월 한도 402 회수는 store 도 지워야 합니다");
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 2-b) degraded 200 은 원장의 입을 막지 않는다 (W1 × W3, D3 의 fail-open 짝).
+//
+// 결제 서버가 흔들리면 워커는 200 으로 답한다 — worker/routes/fortune.js:2556 buildDbFallbackBalance
+// 는 userId 도 entitlementSnapshot 도 없이 unlocksAuthority: "none" 과 빈 목록을 싣는다.
+// 그 봉투는 applyAccessStateSnapshot 에서 userId 가 없어 걸러지고 applyServerPayload 로 가는데
+// (access-store.js:914-921), 거기서 status 를 **무조건** ready 로 올린다(:618).
+// 그래서 D3 의 게이트가 status 만 봤다면 이 순간 원장이 잠긴다 — 방금 결제한 사람이 잠긴다는 뜻이다.
+// 게이트가 completeness/authority 까지 보는 이유가 이것이고, 이 테스트가 그 이유를 문다.
+// ─────────────────────────────────────────────────────────────────────────────
+test("degraded 200 응답은 원장의 낙관 기여를 막지 않는다 (W1 × W3)", async () => {
+  const runner = boot({
+    respond: () => ({
+      ok: true, authenticated: true, degraded: true, source: "auth_snapshot", code: "DB_FALLBACK",
+      unlocksAuthority: "none", unlockedFeatures: [], unlockMap: {},
+    }),
+  });
+  // 🔴 순서가 중요하다. access-store 의 LEGACY_LEDGER_KEY(:10)는 원장의 STORAGE_KEY 와 같은
+  // cd_verified_unlock_grants_v1 이라, 캐시 미스 때 restoreCache 가 원장을 통째로
+  // persistentUnlocks 로 올린다(:352-371). 먼저 찍으면 W1 이 답해 버려 W3 의 기여를 못 본다.
+  // 그래서 응답이 먼저 닿고, 그 뒤 다른 탭(셸)에서 결제가 끝나 원장에 낙관이 찍힌 상황으로 둔다.
+  await runner.store.ensureLoaded({ userId: USER_ID, profileId: PROFILE_ID, authenticated: true, force: true });
+  runner.ledger.recordOptimisticUnlock(FEATURE_KEY);
+
+  assert.equal(runner.store.getSnapshot().status, "ready", "degraded 봉투인데도 status 는 ready 다(access-store.js:618)");
+  assert.equal(runner.store.isUnlocked(FEATURE_KEY), false, "store 는 이 해금을 아직 모른다");
+  assert.equal(runner.reactAnswer(FEATURE_KEY), true, "권위 없는 200 을 근거로 원장을 잠그면 방금 결제한 사람이 잠깁니다");
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -329,6 +379,14 @@ test("같은 해금의 수명이 원장과 access-store 에서 다르다 (W1 × 
   const muchLater = boot({ storage: confirmedStorage, startedAt: T0 + 365 * 24 * HOUR_MS, respond });
   assert.equal(
     muchLater.ledger.hasLedgerUnlock(FEATURE_KEY), true,
-    "주석은 72시간이라고 적었지만 confirmed 는 TTL 검사를 건너뛴다 — 만료가 생겼다면 수렴된 것입니다",
+    "원장 엔트리 자체는 영구다 — confirmed 는 :42 에서 TTL 검사를 건너뛴다(D3 은 쓰기·저장을 안 바꾼다)",
+  );
+
+  // 🔴 수렴 단언(뒤집기 전: true). 1년 된 확정 엔트리가 React 의 답을 열어 주던 자리다.
+  // D3 이후 원장은 **낙관 엔트리로만** 답에 기여하므로(readPendingOptimisticUnlockKeys),
+  // 서버 스냅샷이 아직 없는 이 시점의 답은 잠김이다. 낙관 필터를 떼면 여기서 문다.
+  assert.equal(
+    muchLater.reactAnswer(FEATURE_KEY), false,
+    "1년 전 원장 기록이 서버 확인 없이 콘텐츠를 열면 해금 수명이 writer 마다 갈립니다",
   );
 });

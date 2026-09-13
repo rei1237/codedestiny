@@ -59,6 +59,28 @@ export function readLedgerUnlockKeys(): string[] {
   return keys;
 }
 
+/**
+ * 🔴 아직 **서버 페이로드에 안 보이는** 낙관 엔트리의 featureKey 만 돌려준다 (Phase 4 D3).
+ *
+ * 원장은 답이 아니라 대기 버퍼다. `confirmed`·`legacy_verified` 엔트리는 "서버가 이미 알고 있다"는
+ * 기록이므로 판정에 기여하면 안 된다 — 기여시키면 서버가 회수한 뒤에도 원장이 열어 주고
+ * (`confirmed` 는 :42 에서 TTL 검사를 건너뛰므로 영구다), 같은 해금의 수명이 writer 마다 갈린다.
+ * readGrantMap 이 10분 지난 낙관 엔트리를 이미 걸러 주므로 여기서 TTL 을 다시 세지 않는다.
+ *
+ * 🔴 쓰기 API(recordOptimisticUnlock / forgetOptimisticUnlock / recordVerifiedUnlock)는 그대로다.
+ * 읽기만 좁힌다 — 동결 파일(app/_lib/billing-client.ts:3956)이 쓰기 쪽을 직접 import 한다.
+ */
+export function readPendingOptimisticUnlockKeys(): string[] {
+  const map = readGrantMap();
+  const keys: string[] = [];
+  for (const mapKey of Object.keys(map)) {
+    if (map[mapKey]?.mode !== "optimistic") continue;
+    const featureKey = String(map[mapKey]?.featureKey || "").trim();
+    if (featureKey && !keys.includes(featureKey)) keys.push(featureKey);
+  }
+  return keys;
+}
+
 export function hasLedgerUnlock(featureKey: string): boolean {
   const key = String(featureKey || "").trim();
   if (!key) return false;
