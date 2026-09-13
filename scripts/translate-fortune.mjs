@@ -24,9 +24,9 @@ const source = readFileSync(sourcePath, "utf8");
 const compiled = ts.transpileModule(source, {
   compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
 }).outputText;
-const module = { exports: {} };
-vm.runInNewContext(compiled, { module, exports: module.exports, require: localRequire, console });
-const profiles = module.exports.SIGN_PROFILES;
+const sandboxModule = { exports: {} };
+vm.runInNewContext(compiled, { module: sandboxModule, exports: sandboxModule.exports, require: localRequire, console });
+const profiles = sandboxModule.exports.SIGN_PROFILES;
 if (!Array.isArray(profiles) || profiles.length !== 24) throw new Error("SIGN_PROFILES must contain 24 profiles");
 
 const fields = ["rangeLabel", "element", "ruler", "essence", "strength", "caution", "luckyHabit", "reading"];
