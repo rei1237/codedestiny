@@ -10,6 +10,12 @@ import { fortuneLocaleSegment as prefix, FORTUNE_COPY, getLocalizedProfile, lang
 export const dynamicParams = false;
 const LOCALE_PARAMS = ["en", "ja", "zh", "zh-tw"];
 function resolveLocale(value: string): FortuneLocale | null { return LOCALE_PARAMS.includes(value) ? normalizeFortuneLocale(value === "zh" ? "zh-CN" : value === "zh-tw" ? "zh-TW" : value) : null; }
+function periodDescription(label: string, locale: FortuneLocale): string {
+  if (locale === "ja") return `${label}の${FORTUNE_COPY[locale].fortune}。12星座と12生肖それぞれの総合運・恋愛運・金運・健康運・仕事運を比較できます。日柱・月柱・節気・月の位置から導いた計算根拠もあわせて確認できます。`;
+  if (locale === "zh-CN") return `${label}${FORTUNE_COPY[locale].fortune}，可比较12星座与12生肖各自的综合运、感情运、财运、健康运和事业运，并同时查看根据日柱、月柱、节气与月亮位置计算出的参考依据。`;
+  if (locale === "zh-TW") return `${label}${FORTUNE_COPY[locale].fortune}，可比較12星座與12生肖各自的綜合運、感情運、財運、健康運和事業運，並同時查看根據日柱、月柱、節氣與月亮位置計算出的參考依據。`;
+  return `${label} ${FORTUNE_COPY[locale].fortune}: compare overall, love, money, health and work guidance for all 12 zodiac and 12 Chinese zodiac signs, with calculated day and month pillars, solar terms and lunar position.`;
+}
 
 export function generateStaticParams() { return LOCALE_PARAMS.flatMap((locale) => FORTUNE_PERIOD_IDS.map((period) => ({ locale, period }))); }
 
@@ -19,7 +25,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   if (!locale || !isFortunePeriodId(period)) return {};
   const label = periodLabel(period, locale);
   const base = `/fortune/${period}`;
-  return buildSeoMetadata({ path: `/${prefix(locale)}${base}`, title: `${label} ${FORTUNE_COPY[locale].fortune} | Code Destiny`, description: `${label} ${FORTUNE_COPY[locale].fortune}: 12 ${FORTUNE_COPY[locale].zodiac} and 12 ${FORTUNE_COPY[locale].animal} readings.`, keywords: [label, FORTUNE_COPY[locale].zodiac, FORTUNE_COPY[locale].animal, FORTUNE_COPY[locale].fortune], hreflang: { ko: base, en: `/en${base}`, ja: `/ja${base}`, "zh-CN": `/zh${base}`, "zh-TW": `/zh-tw${base}` } });
+  return buildSeoMetadata({ path: `/${prefix(locale)}${base}`, title: `${label} ${FORTUNE_COPY[locale].fortune} | Code Destiny`, description: periodDescription(label, locale), keywords: [label, FORTUNE_COPY[locale].zodiac, FORTUNE_COPY[locale].animal, FORTUNE_COPY[locale].fortune], hreflang: { ko: base, en: `/en${base}`, ja: `/ja${base}`, "zh-CN": `/zh${base}`, "zh-TW": `/zh-tw${base}` } });
 }
 
 export default async function LocalizedFortunePeriodPage({ params }: { params: Promise<{ locale: string; period: string }> }) {
@@ -31,7 +37,7 @@ export default async function LocalizedFortunePeriodPage({ params }: { params: P
   const models = [...getSiblingProfiles("zodiac"), ...getSiblingProfiles("animal")].map((profile) => ({ source: profile, translated: getLocalizedProfile(profile, locale), vm: buildSignViewModel(profile, period) })).filter((row) => row.vm);
   const label = periodLabel(period, locale);
   const title = `${label} ${FORTUNE_COPY[locale].fortune} | Code Destiny`;
-  const description = locale === "ja" ? `${label}の${FORTUNE_COPY[locale].fortune}。12星座と12生肖のリーディングをまとめて確認できます。` : locale === "zh-CN" ? `${label}${FORTUNE_COPY[locale].fortune}，汇总12星座与12生肖的解读。` : locale === "zh-TW" ? `${label}${FORTUNE_COPY[locale].fortune}，彙整12星座與12生肖的解讀。` : `${label} ${FORTUNE_COPY[locale].fortune}: 12 ${FORTUNE_COPY[locale].zodiac} and 12 ${FORTUNE_COPY[locale].animal} readings.`;
+  const description = periodDescription(label, locale);
   const guidance = locale === "ja" ? "スコアは振り返りの手がかりとして使い、実際の予定に合うペースを選んでください。" : locale === "zh-CN" ? "请把评分作为整理思路的参考，并按自己的实际安排选择合适节奏。" : locale === "zh-TW" ? "請把評分作為整理思路的參考，並依自己的實際安排選擇合適節奏。" : "Use the score as a reflection prompt and choose the pace that fits your real schedule.";
   return <>
     <main className="cd-yeoni-surface min-h-screen bg-[linear-gradient(180deg,#fffaf7_0%,#fff3f8_44%,#fffaf7_100%)] pb-24 text-[#3c1830] dark:bg-[linear-gradient(165deg,#3a0e28_0%,#2e0a20_55%,#24081a_100%)] dark:text-[#fff1f7]">
