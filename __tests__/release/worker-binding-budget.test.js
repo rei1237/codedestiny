@@ -1,9 +1,19 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const load = () => import("../../scripts/lib/worker-binding-budget.mjs");
+const { readFileSync } = require("node:fs");
 
 const config = (count) => '[vars]\n' + Array.from({ length: count }, (_, i) => `VAR_${i} = "1"`).join('\n');
 const secrets = Array.from({ length: 69 }, (_, i) => ({ name: `SECRET_${i}`, type: "secret_text" }));
+
+test("tracked production vars preserve headroom against the observed secret inventory", async () => {
+  const { assertWorkerBindingBudget } = await load();
+  assert.ok(assertWorkerBindingBudget(readFileSync("worker/wrangler.toml", "utf8"), secrets).remaining >= 2);
+  const auth = readFileSync("worker/routes/auth.js", "utf8");
+  assert.match(auth, /getEnv\(env, "AUTH_OPERATION_TIMEOUT_MS", "12000"\)/);
+  const celestial = readFileSync("worker/routes/celestial-harmony.js", "utf8");
+  assert.match(celestial, /\["CELESTIAL_HARMONY_GEMINI_MODEL", "GEMINI_MODEL", "PREMIUM_GEMINI_MODEL"\]/);
+});
 
 test("retained secrets and injected COMMIT_SHA leave two deployment slots", async () => {
   const { assertWorkerBindingBudget } = await load();
