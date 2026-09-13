@@ -124,7 +124,22 @@ for (const file of ["js/destiny-profile.js", "public/js/destiny-profile.js"]) {
   // ── 리다이렉트 복귀 재개(모바일·카카오페이 새 탭) — 2026-09-05 재설계 계약 ─────────────────
   // 데스크톱 confirm 과 달리 이 경로는 (1) 대기 mode 가 허용목록에 없어 안 뜨고 (2) "여는 중" 문구를
   // 띄우고 아무것도 안 열고 (3) access-state 갱신을 빼먹고 (4) GRANT_PENDING 을 완료로 표시했다.
-  const resume = sliceFunction(source, "  async function _dpResumeDirectPaymentAfterRedirect() {", `${file} resume`);
+  const resume = sliceFunction(source, "  async function _dpResumeDirectPaymentAfterRedirect(options) {", `${file} resume`);
+  /* PG 리다이렉트가 오지 않는 간편결제(카카오페이 등)의 안전망. 결제창을 연 문서에서 주문 상태를
+     직접 조회하다가 paid 를 보면 이 복귀 함수를 그대로 태운다 — 이 셋 중 하나라도 끊기면 그 경로는
+     조용히 사라지고, 사용자는 다시 재조정 크론(최대 20분)만 기다리게 된다. */
+  assert.ok(
+    source.includes("_dpStartDirectOrderPoll(merchantUid);"),
+    `${file}: 결제창을 여는 자리에서 복귀 폴링 안전망을 시작하지 않는다`,
+  );
+  assert.ok(
+    resume.includes("options && options.pollingPaymentId"),
+    `${file}: 복귀 함수가 폴링 진입(pollingPaymentId)을 받지 않는다 — 폴러가 확정으로 이어지지 못한다`,
+  );
+  assert.ok(
+    /_dpShouldUseAppStoreEntry\(\)\) return;/.test(source.slice(source.indexOf("function _dpStartDirectOrderPoll"))),
+    `${file}: 폴링 안전망이 앱(Capacitor) 런타임에서 빠지지 않는다 — 그 경로엔 PortOne 이 없다`,
+  );
   // 셸이 심는 마커(portone_redirect=1)를 읽는 쪽. 심는 쪽은 위 ④ 가 잡는다 — 둘 중 하나만 바뀌면 복귀가 조용히 무시된다.
   assert.ok(
     resume.includes("query.get('portone_redirect') !== '1'"),

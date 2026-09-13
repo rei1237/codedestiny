@@ -4285,6 +4285,74 @@
     } catch (_stripError) {}
   }
 
+  /* ═══ PG 리다이렉트에 의존하지 않는 복귀 폴링 안전망 ══════════════════════════════════════
+     🔴 실측(2026-09-11 주석 · 2026-09-13 사용자 신고): PG 카드창 안의 간편결제(카카오페이 등)는
+     상위 프레임을 redirectUrl 로 돌려보내지 못하고 끝나는 경우가 있다. 그러면 requestPayment 의
+     await 는 영원히 안 깨지고 쿼리 신호도 없어서, **결제는 승인됐는데 결제창을 연 그 화면이
+     아무 것도 하지 않는다.** 지금까지의 유일한 안전망은 재진입 + 60초 뒤 조용한 티켓 폴백이었고,
+     그 자리에서 기다리는 사용자에게는 재조정 크론(최대 20분)이 유일한 구제였다.
+
+     그래서 결제창을 **연 문서에서만**, 살아있는 티켓이 있는 동안 주문 상태를 직접 조회한다.
+     서버가 paid 라고 답하면 리다이렉트가 오지 않아도 그 자리에서 기존 확정·재개 경로를 탄다.
+
+     🔴 기존 경로를 지우지 않는다. 리다이렉트 복귀와 조용한 폴백은 그대로 있고 이것은 **추가**다.
+        셋 다 runPaidResume 의 __cdPaidResumeRuns 락으로 합류하므로 이중 실행되지 않는다.
+     🔴 무관한 페이지에서는 절대 돌지 않는다 — 시작점이 requestPayment 호출부 하나뿐이다. */
+  var _DP_ORDER_POLL_INTERVAL_MS = 3000;
+  // 티켓 TTL(30분)까지 끌지 않는다. 승인이 났다면 웹훅은 수 초~수십 초 안에 들어오고, 그 뒤로는
+  // 재진입 폴백과 재조정 크론이 맡는다. 열어 둔 탭에서 무한히 도는 타이머를 남기지 않기 위함이다.
+  var _DP_ORDER_POLL_MAX_MS = 5 * 60 * 1000;
+  var _dpOrderPollTimer = 0;
+
+  function _dpStopDirectOrderPoll() {
+    if (!_dpOrderPollTimer) return;
+    try { clearTimeout(_dpOrderPollTimer); } catch (_) {}
+    _dpOrderPollTimer = 0;
+  }
+
+  /** 주문 상세의 종착 상태 판정. V2 는 status:"paid" / orderState:"PAID_VERIFIED" 로 끝난다. */
+  function _dpOrderLooksPaid(order) {
+    if (!order) return false;
+    var status = String(order.status || '').trim().toLowerCase();
+    var state = String(order.orderState || '').trim().toUpperCase();
+    return status === 'paid' || status === 'success' || status === 'fulfilled'
+      || state === 'PAID_VERIFIED' || state === 'PAID';
+  }
+
+  function _dpStartDirectOrderPoll(paymentId) {
+    var orderId = String(paymentId || '').trim();
+    if (!orderId || typeof window === 'undefined') return;
+    // 앱(Capacitor)은 PortOne 을 쓰지 않는다 — 이 경로 자체가 성립하지 않는다.
+    if (_dpShouldUseAppStoreEntry()) return;
+    _dpStopDirectOrderPoll();
+    var startedAt = Date.now();
+
+    function tick() {
+      _dpOrderPollTimer = 0;
+      if (Date.now() - startedAt > _DP_ORDER_POLL_MAX_MS) return;
+      // 티켓이 사라졌다는 것은 다른 경로가 이미 이 주문을 확정했다는 뜻이다.
+      var ticket = _dpReadDirectResumeTicket(orderId);
+      if (!ticket || String(ticket.merchantUid || '') !== orderId) return;
+
+      _dpPaymentFetchJson('/api/payments/orders/' + encodeURIComponent(orderId), { method: 'GET' }, { retryOn401: true, refreshOn401: true })
+        .then(function (res) {
+          if (!res || !res.ok) return schedule();
+          var payload = res.payload || {};
+          if (!_dpOrderLooksPaid(payload.order || payload)) return schedule();
+          // 승인이 확인됐다 — 리다이렉트 복귀와 **같은** 확정·재개 본문을 탄다.
+          return _dpResumeDirectPaymentAfterRedirect({ pollingPaymentId: orderId });
+        })
+        .catch(function () { schedule(); });
+    }
+
+    function schedule() {
+      if (_dpOrderPollTimer) return;
+      _dpOrderPollTimer = window.setTimeout(tick, _DP_ORDER_POLL_INTERVAL_MS);
+    }
+
+    schedule();
+  }
+
   // 복귀 결과 안내를 mode 별 스킨으로 holdMs 동안 띄운다. _dpSetPaymentPending 을 거치므로 셸
   // (_cdSetCoinGateOverlay)·독립 페이지(_dpSetStandalonePaymentOverlay) 어느 쪽이든 같은 경로다.
   var _dpDirectResumeNoticeTimer = 0;
@@ -4441,8 +4509,16 @@
     try { (openBtn || dismissBtn).focus({ preventScroll: true }); } catch (_focusError) {}
   }
 
-  async function _dpResumeDirectPaymentAfterRedirect() {
+  /**
+   * @param {{pollingPaymentId?: string}} [options]
+   *   pollingPaymentId 가 있으면 **폴링 안전망**(_dpStartDirectOrderPoll)이 서버로부터 승인을
+   *   확인하고 부른 것이다. 쿼리 신호를 기다리지 않고 그 주문을 그대로 확정한다 — 조용한 폴백과
+   *   달리 추측이 아니라 서버가 paid 라고 답한 상태라, 확인 오버레이·안내를 그대로 쓴다.
+   */
+  async function _dpResumeDirectPaymentAfterRedirect(options) {
     if (typeof window === 'undefined') return;
+    var pollingPaymentId = String((options && options.pollingPaymentId) || '').trim();
+    if (pollingPaymentId) _dpStopDirectOrderPoll();
     var query;
     try { query = new URLSearchParams(window.location.search || ''); } catch (_) { return; }
     var isPassReturn = query.get('paid_pass_resume') === '1';
@@ -4455,7 +4531,7 @@
        단, 이 폴백은 실패해도 사용자에게 알리지 않는다 — 대부분은 결제 안 하고 나간 정상 이탈이라
        알림·오버레이를 그대로 쓰면 무관한 페이지에서 가짜 결제 실패 경고가 뜬다. */
     var isSilentTicketFallback = false;
-    if (query.get('portone_redirect') !== '1' && !isPassReturn) {
+    if (!pollingPaymentId && query.get('portone_redirect') !== '1' && !isPassReturn) {
       var _dpStaleTicket = _dpReadDirectResumeTicket();
       if (!_dpStaleTicket || !_dpStaleTicket.merchantUid || !_dpStaleTicket.confirmBody) return;
       // 결제창이 아직 열려 있을 수 있는 직후는 건드리지 않는다 — 다음 로드에서 다시 시도한다
@@ -4466,7 +4542,7 @@
     // 이용권·월정석·코인 복귀는 /points 의 몫이다.
     if (query.get('portone_subscription_redirect') || _dpIsPointsShopPath()) return;
 
-    var queryPaymentId = String(
+    var queryPaymentId = pollingPaymentId || String(
       query.get('paymentId') || query.get('payment_id') || query.get('imp_uid') || '',
     ).trim();
     var ticket = _dpReadDirectResumeTicket(queryPaymentId);
@@ -4487,8 +4563,10 @@
         if (restored.ok && restored.payload && restored.payload.context) ticket = restored.payload.context;
       } catch (_resumeContextError) { /* 주문 확정은 계속하고, 입력 없는 실행은 하지 않는다. */ }
     }
-    var failed = String(query.get('code') || '').trim() !== ''
-      || String(query.get('imp_success') || '').toLowerCase() === 'false';
+    // 폴링 진입은 서버가 paid 라고 답한 상태다 — 이 문서에 남아 있던 옛 PG 쿼리로 실패 처리하지 않는다.
+    var failed = !pollingPaymentId
+      && (String(query.get('code') || '').trim() !== ''
+        || String(query.get('imp_success') || '').toLowerCase() === 'false');
     // 수단은 **티켓**에서 읽는다 — 선택 슬롯(setSelectedDirectPayMethod, TTL 120s)은 카카오톡을 다녀오는
     // 사이 만료되기 쉽다. 티켓이 없으면(새 탭 복귀) ''이라 Generic 문구로 떨어진다.
     var resumeMethod = String(
@@ -5584,6 +5662,12 @@
         confirmBody: _dpDirectConfirmBody,
         resume: opts.resume || null,
       });
+      /* 🔴 티켓만으로는 부족하다. 카카오페이처럼 PG 창 안의 간편결제는 상위 프레임을 redirectUrl 로
+         돌려보내지 못하고 끝나는 경우가 있어, 아래 await 가 영영 안 깨지고 쿼리 신호도 안 온다.
+         그 경우의 유일한 구제가 재조정 크론(최대 20분)이었다 — 결제창을 연 이 문서에서 주문 상태를
+         직접 확인해 그 자리에서 확정까지 잇는다. 리다이렉트가 정상 동작하면 이 폴러는 페이지와 함께
+         사라지고, await 가 정상 반환하면 바로 아래에서 멈춘다. */
+      _dpStartDirectOrderPoll(merchantUid);
       _dpMarkPgStep('customer');
       // 🔴 한 줄 문자열로 남긴다 — 객체로 남기면 콘솔에서 'Object' 로 접혀 펼쳐 보지 않으면 못 읽는다
       // (셸의 [direct-checkout] 계측과 동일 포맷 — React·독립 정적 신고를 같은 방식으로 진단하기 위함).
@@ -5606,6 +5690,8 @@
       window.__cdSuppressPaymentUnloadBlock = true;
       _dpSetPaymentPending(false);
       var rsp = await window.PortOne.requestPayment(requestData);
+      // 결제창이 이 문서로 정상 반환했다 — 아래 인라인 확정이 주체다. 폴러는 여기서 물러난다.
+      _dpStopDirectOrderPoll();
       window.__cdSuppressPaymentUnloadBlock = false;
       var paymentId = String((rsp && rsp.paymentId) || merchantUid || '').trim();
       // 아래 confirm 실패 분기(422 새-키 재시도)가 이 값을 읽는다 — var 호이스팅에 기대지 않고 여기서 연다.
@@ -13126,6 +13212,12 @@
 
     return runMonthlyCreditGate();
   };
+
+  /* 폴링 안전망(_dpStartDirectOrderPoll)의 유일한 시작점은 requestPayment 호출부 안이라, 실행
+     검증이 결제창 전체를 재현하지 않고는 그 진입점에 닿지 못한다. 그 한 지점만 밖으로 낸다 —
+     상태를 바꾸는 것은 없고, 프로덕션에서 이걸 부르는 곳은 없다
+     (__tests__/ui/direct-payment-poll-safety-net.behavior.test.js 가 소비자). */
+  window.__cdDirectOrderPollHook = { start: _dpStartDirectOrderPoll, stop: _dpStopDirectOrderPoll };
 
   // 리다이렉트 복귀 확정은 한 번만 시도한다(같은 페이지에 이 스크립트가 두 번 주입되는 경우 대비).
   if (!window.__cdDirectPaymentResumeStarted) {
