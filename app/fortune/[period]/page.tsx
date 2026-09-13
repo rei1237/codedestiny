@@ -91,6 +91,13 @@ export function generateMetadata({ params }: { params: { period: string } }) {
     title: seo.title,
     description: seo.description,
     keywords: seo.keywords,
+    hreflang: {
+      ko: seo.path,
+      en: `/en${seo.path}`,
+      ja: `/ja${seo.path}`,
+      "zh-CN": `/zh${seo.path}`,
+      "zh-TW": `/zh-tw${seo.path}`,
+    },
   });
 }
 
