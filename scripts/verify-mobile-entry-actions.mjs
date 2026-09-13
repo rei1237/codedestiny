@@ -100,7 +100,7 @@ function routeHasImplementation(token) {
     return sourceCorpus.includes(`id="${id}"`) || sourceCorpus.includes(`id='${id}'`) || sourceCorpus.includes(token);
   }
   if (token.startsWith("/api/")) {
-    return sourceCorpus.includes(token) || routeFileExists(path.join("app", token.slice(1))) || workerRouteMentions(token);
+    return sourceCorpus.includes(token) || appApiRouteExists(token) || workerRouteMentions(token);
   }
 
   const routePath = token.split("?")[0].split("#")[0].replace(/^\/+|\/+$/g, "");
@@ -229,11 +229,35 @@ function routeAliasExists(token) {
   return (aliases[normalized] || []).some((alias) => sourceCorpus.includes(alias) || routeHasImplementation(alias));
 }
 
+/** App Router 가 직접 들고 있는 /api 핸들러(app/<경로>/route.ts). */
+function appApiRouteExists(token) {
+  const routePath = token.replace(/^\/+|\/+$/g, "");
+  if (!routePath) return false;
+  return ["route.ts", "route.tsx", "route.js", "route.mjs"]
+    .some((entry) => fileExists(path.join("app", routePath, entry)));
+}
+
 function workerRouteMentions(token) {
   const workerDir = path.join(root, "worker");
   if (!fs.existsSync(workerDir)) return false;
-  const files = collectFiles(workerDir, /\.(js|mjs|ts)$/);
-  return files.some((file) => fs.readFileSync(file, "utf8").includes(token));
+  const sources = collectFiles(workerDir, /\.(js|mjs|ts)$/).map((file) => fs.readFileSync(file, "utf8"));
+  if (sources.some((source) => source.includes(token))) return true;
+
+  /* 🔴 워커는 /api/<묶음> 을 벗겨 하위 라우터에 넘긴다(worker/index.js:1479 등). 그래서 핸들러
+     소스에는 접두사 없는 경로만 남고, 전체 토큰으로는 절대 안 잡힌다. 접두사가 index.js 에
+     **실제로 등록돼 있을 때만** 나머지 경로로 다시 찾는다 — 아무 꼬리나 인정하지 않는다.
+     핸들러 줄이 사라지면 따옴표째 사라지므로 가드는 그대로 문다. */
+  const entry = path.join(workerDir, "index.js");
+  if (!fs.existsSync(entry)) return false;
+  const entrySource = fs.readFileSync(entry, "utf8");
+  const segments = token.split("/").filter(Boolean);
+  for (let cut = segments.length - 1; cut >= 2; cut -= 1) {
+    const mount = `/${segments.slice(0, cut).join("/")}`;
+    const rest = `/${segments.slice(cut).join("/")}`;
+    if (!entrySource.includes(`"${mount}"`) && !entrySource.includes(`"${mount}/"`)) continue;
+    if (sources.some((source) => source.includes(`"${rest}"`))) return true;
+  }
+  return false;
 }
 
 function actionHasImplementation(action) {
