@@ -2908,11 +2908,6 @@ function _sibylText(key) {
     }
     return null;
   }
-  /* 하위 호환: 구버전 호출부 대응 */
-  function _bijabWarning(counts, dominant) {
-    return _buildSmartWarning(null, dominant, counts, _ohaengDist(window.G_PILLARS));
-  }
-
   /* ── 무료 성향 분석 HTML 빌드 (1000자+) ── */
   function _buildNatureAnalysis(pillars, dist, dominant, counts) {
     var dayGan = pillars && pillars.d && pillars.d.g;

@@ -878,9 +878,4 @@
     }
   };
 
-  /* 하위 호환: 기존 _drawIching 연결 */
-  window._drawIching = function() {
-    if (_TC_STATE === 'IDLE') tcReset();
-  };
-
 })();

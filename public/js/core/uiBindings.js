@@ -106,7 +106,7 @@ const __lazyActionLoaders = {
   generateLoveSecret: () => Promise.resolve(window.location.assign('/love-secret-ai/')),
   openOlympusOracleModal: () => __loadScriptOnce('/js/olympus-oracle.js'),
   openRuneOracle: () => Promise.resolve(window.location.assign('/oracle/rune/')),
-  openSibylModal: () => __loadScriptOnce('/js/sibyl-system.js?v=build-c6317faa0751').then(() => {
+  openSibylModal: () => __loadScriptOnce('/js/sibyl-system.js?v=build-c63f87a37894').then(() => {
     if (typeof window.openSibylModal === 'function') window.openSibylModal();
   }),
   
