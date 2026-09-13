@@ -1,40 +1,24 @@
 ---
-status: merge-pending
+status: done
 updated: 2026-09-13
-next: 🔴 아직 main 에 머지되지 않았다. 옆 세션이 커밋해 main 이 clean 해지면 머지한다.
+next: 남은 2건은 각각 선행 조건이 있다 — fortune.js 는 결제 가드 재작성, PER_USE_ENFORCE 는 프로덕션 로그 표본
 ---
 
 # 죽은 코드 후속 과제 정리 (2026-09-13)
 
 직전 세션(`07d4d0c46` · `814f0a15c` · `7fc4f4ba9` 계열)이 남긴 후속 항목을 닫았다.
-격리 워크트리 `wt/deadcode-followups-20260913-124759` 에서 작업했고,
-**작업은 끝났으나 머지는 대기 중이다** — 아래 「머지 대기」 참조.
+격리 워크트리 `wt/deadcode-followups-20260913-124759` 에서 작업해 `48939597b` 로 main 에 머지했다.
 
-## 🔴 머지 대기 (2026-09-13 현재)
+## 머지 메모
 
-브랜치 `wt/deadcode-followups-20260913-124759` (워크트리
-`D:\Development\codedestiny-worktrees\deadcode-followups-20260913-124759`) 에
-6커밋이 검증까지 끝난 채로 있다. main 에 머지도 push 도 하지 않았다.
+옆 세션이 `config/sitemap-lastmod.json` 을 미커밋으로 쥐고 있어 한 차례 머지를 보류했다가,
+main 이 clean 해진 뒤(`a0be2bbe1`) 합쳤다. 충돌은 그 원장 **한 건뿐**이었고 나머지
+(`index.html`·public 미러 7개)는 자동 병합됐다.
 
-**왜 멈췄나**: 주 체크아웃 main(`22e57a3bb`)에 다른 세션의 미커밋 작업 12건이 올라와 있고,
-그중 `config/sitemap-lastmod.json` 이 `MM`(staged + unstaged) 상태다. 이 파일이 커밋
-`24cb4d724` 와 겹친다. 지금 머지하면 옆 세션이 작업 중인 파일을 재생성해 덮게 된다.
-
-**충돌 실측**(`git merge-tree --write-tree`, 읽기 전용): 충돌은 `config/sitemap-lastmod.json`
-**한 건뿐**이다. `index.html` 과 public 미러 7개는 자동 병합된다.
-
-**재개 절차**:
-
-1. `cd d:\Development\code-destiny` → `git status` 로 main 이 clean 한지 확인한다.
-   깨끗하지 않으면 아직 때가 아니다. 🔴 `reset --hard` · `stash` · `checkout --` 금지.
-2. `git merge wt/deadcode-followups-20260913-124759`
-3. 충돌은 `config/sitemap-lastmod.json` 하나다. 생성물이므로 손으로 고치지 말고
-   `npm run sitemap:generate` 를 돌려 재생성한 결과를 쓴다.
-4. `npm run check:fast` → 커밋 → push. **push 는 스테이징까지다.** CI(`CI required`)
-   통과 확인에서 끝내고 스테이징 폴링·프로덕션 승격은 하지 않는다.
-5. 워크트리 정리: `(Get-Item -LiteralPath '<워크트리>\node_modules' -Force).Delete()` 로
-   정션을 **먼저** 끊고, 그다음 `git worktree remove --force '<워크트리>'`.
-   순서를 지키지 않으면 공유 `node_modules` 1.2GB 가 지워진다.
+🔴 원장 충돌은 손으로 고치지 않는다 — 생성물이다. 또 `npm run sitemap:generate` 는 기존
+원장을 읽으므로 **충돌 마커가 남은 채로는 파싱에 실패한다**. 한쪽 판본을 먼저 복원한 뒤
+(`git show main:config/sitemap-lastmod.json > config/sitemap-lastmod.json`) 재생성해야 한다.
+`checkout --` 는 공유 체크아웃에서 금지이므로 `git show` 를 썼다.
 
 ## 착수 전 실측이 목록과 달랐던 것
 
@@ -107,7 +91,6 @@ next: 🔴 아직 main 에 머지되지 않았다. 옆 세션이 커밋해 main 
 
 ## 다음 세션의 첫 문장
 
-> `docs/handoff/deadcode-followups-2026-09-13.md` 를 읽었다. 죽은 코드 후속 4건은 워크트리
-> 브랜치에서 닫혔지만 **아직 main 에 머지되지 않았다** — main 이 clean 해지면 「머지 대기」의
-> 절차를 따른다. 남은 과제는 `fortune.js` 죽은 차감 213줄(결제 가드 재작성 선행)과
+> `docs/handoff/deadcode-followups-2026-09-13.md` 를 읽었다. 죽은 코드 후속 4건은 닫혀
+> main 에 머지됐고, 남은 것은 `fortune.js` 죽은 차감 213줄(결제 가드 재작성 선행)과
 > PER_USE_ENFORCE 2단계(프로덕션 로그 표본 선행)다.
