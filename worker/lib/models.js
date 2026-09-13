@@ -1226,6 +1226,9 @@ const masterLoveCodexSchema = new mongoose.Schema({
   // 이용권 커버로 monthlySpendCoin 이 차감된 건만 채워진다(covered && !replayed && budgetApplies).
   // 챕터가 하나도 커밋되기 전에 생성이 실패하면 되돌린다 — refundedAt 이 멱등 마커.
   passRefund: { type: mongoose.Schema.Types.Mixed, default: null },
+  // 코인·월정석·카드로 결제된 건의 자동 환급 기록. passRefund 와 같은 계약이다 —
+  // 챕터가 하나도 커밋되지 않은 확정 실패에서만 채워지고, refundedAt 이 멱등 마커다.
+  billingRefund: { type: mongoose.Schema.Types.Mixed, default: null },
   generationError: { type: mongoose.Schema.Types.Mixed, default: null },
 }, { timestamps: true, collection: "masterLoveCodexSessions" });
 

@@ -39,6 +39,9 @@ import { resolveCanonicalEntitlement } from "../lib/entitlement-policy.js";
 // 🔴 이 라우트는 coin-gate 를 거치지 않는 자체 게이트라, 이용권 통과를 내주면서 누적 사용량을
 // 아무도 차감하지 않았다(한도가 존재하지 않았다). 판정·소비 정본은 worker/payments/passes.js.
 import { consumePassForFeature, hasConsumedPassFeature, passDenialCode, refundPassCoverage } from "../lib/pass-consumption.js";
+// 🔴 코인·월정석·카드 환급은 결제 축의 정본 3종을 그대로 쓴다. 여기에 자체 환불기를 만들면
+// 멱등 마커가 갈라져(metadata.refundedForServiceExecution 등) 이중 환불이 열린다.
+import { runCoinRefund, runMonthlyCreditRefund, runPaymentCancel } from "../lib/service-execution-task.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
@@ -1044,6 +1047,95 @@ async function refundSessionPassIfNeeded(sessionId, userId, doc, existingChapter
   }
 }
 
+/**
+ * 결제 수단 환급이 "확정 실패"로 인정되기까지의 최소 경과 시간.
+ *
+ * 🔴 첫 웨이브 실패에 곧바로 환불하면 안 된다. 10분 크론 회수 태스크
+ *    (worker/lib/master-love-codex-recovery-task.js)가 버려진 세션을 계속 밀어 올리는데,
+ *    카드를 취소하는 순간 recoverCodexSession 이 PURCHASE_REFUNDED 로 그 세션을 닫아버린다
+ *    — 완성될 수 있었던 책을 우리 손으로 없애는 것이다. 30분이면 크론이 최소 두 번은 재시도한 뒤다.
+ */
+const BILLING_REFUND_AFTER_MS = 30 * 60 * 1000;
+
+/**
+ * 챕터가 **하나도** 커밋되지 않은 채 확정 실패한 세션의 결제 수단(코인·월정석·카드)을 되돌린다.
+ *
+ * 🔴 새 환불기를 만들지 않는다. worker/lib/service-execution-task.js 의 정본 3종을 그대로 부른다.
+ *    그 함수들이 남기는 멱등 마커(metadata.refundedForServiceExecution 등)를 이 라우트의
+ *    findBillingEvidence(:394-398)가 이미 배제하고 있어서, 환급된 결제로는 /start 가 다시 열리지 않는다.
+ * 🔴 execution 인자는 ServiceExecutionTransaction 문서가 아니라 필드 가방이다. 코덱스 세션에서
+ *    같은 모양을 만들어 넘긴다 — executionId 는 세션 id 라 재시도해도 같은 환급 sourceId 로 수렴한다.
+ * 🔴 1장이라도 커밋됐으면 환불하지 않는다(기존 계약). 세션은 영구 보존되고 재개가 무료다.
+ */
+async function refundSessionBillingIfNeeded(env, sessionId, userId, doc, existingChapters, dependencies = {}) {
+  if (existingChapters.length > 0) return { refunded: false, skipped: true, reason: "PARTIAL_DELIVERY" };
+  if (doc?.billingRefund?.refundedAt) return { refunded: true, idempotent: true };
+  const accessType = clean(doc?.accessType);
+  if (accessType === "pass" || accessType === "admin") return { refunded: false, skipped: true, reason: "NOT_BILLED" };
+
+  const createdAt = doc?.createdAt ? new Date(doc.createdAt).getTime() : 0;
+  const now = Number(dependencies.now) || Date.now();
+  if (!createdAt || now - createdAt < BILLING_REFUND_AFTER_MS) {
+    return { refunded: false, skipped: true, reason: "RETRY_WINDOW_OPEN" };
+  }
+
+  const modeDef = resolveMode(doc?.mode);
+  const featureKey = modeDef.featureKey;
+  const paymentId = clean(doc?.paymentId, 160);
+  const cost = getPricing(modeDef.mode).coinPrice;
+  const reason = `${modeDef.title} 생성 실패 — 자동 환급`;
+  // service-execution-task 의 환불기들이 읽는 필드 가방. 세션이 가진 식별자를 전부 실어 준다.
+  const execution = {
+    userId, featureKey, serviceId: featureKey,
+    sessionId, jobId: sessionId,
+    paymentId, merchantUid: paymentId,
+    idempotencyKey: clean(doc?.idempotencyKey, 180),
+    sourceTransactionId: clean(doc?.billingRequestId, 180),
+    metadata: {
+      sessionId,
+      requestId: clean(doc?.billingRequestId, 180),
+      ledgerId: paymentId,
+      idempotencyKey: clean(doc?.idempotencyKey, 180),
+    },
+  };
+  const common = { userId, featureKey, executionId: sessionId, requestId: execution.sourceTransactionId, reason, execution };
+
+  const coinFn = dependencies.runCoinRefund || runCoinRefund;
+  const monthlyFn = dependencies.runMonthlyCreditRefund || runMonthlyCreditRefund;
+  const cancelFn = dependencies.runPaymentCancel || runPaymentCancel;
+  const SessionModel = dependencies.MasterLoveCodexSession || MasterLoveCodexSession;
+
+  // 갈래마다 해당 없는 것은 스스로 skip 한다(코인 갈래는 paymentId 가 PointHistory _id 가
+  // 아니면 빠지고, 카드 갈래는 Payment 문서가 없으면 빠진다). 순서는 결제 축의 정본
+  // 오케스트레이터(service-execution-task.js:1180-1250)와 같다.
+  const outcome = { coin: null, monthlyCredit: null, payment: null };
+  try {
+    if (accessType !== "monthly_credit" && accessType !== "membership_credit") {
+      outcome.coin = await coinFn({ ...common, cost, sourceTransactionId: paymentId });
+    }
+    if (!outcome.coin?.refunded) {
+      outcome.monthlyCredit = await monthlyFn({ env, ...common, sourceTransactionId: paymentId });
+    }
+    if (!outcome.coin?.refunded && !outcome.monthlyCredit?.refunded) {
+      outcome.payment = await cancelFn(env, { paymentId, merchantUid: paymentId }, reason, execution);
+    }
+  } catch (error) {
+    console.error("[master-love-codex] billing refund", sessionId, clean(error?.message, 300));
+    return { refunded: false, error: true };
+  }
+
+  const refunded = Boolean(outcome.coin?.refunded || outcome.monthlyCredit?.refunded || outcome.payment?.cancelled);
+  if (!refunded) return { refunded: false, skipped: true, outcome };
+
+  const method = outcome.coin?.refunded ? "coin" : outcome.monthlyCredit?.refunded ? "monthly_credit" : "payment";
+  await SessionModel.updateOne(
+    { id: sessionId, userId, "billingRefund.refundedAt": { $exists: false } },
+    { $set: { billingRefund: { refundedAt: new Date(), method, amount: cost, reason } } },
+  ).catch(() => {});
+  console.warn("[master-love-codex] billing refunded", { sessionId, method });
+  return { refunded: true, method };
+}
+
 async function handleGenerate(request, env, dependencies = {}) {
   // 예산 시계는 핸들러 진입 시점부터 돈다 — 앞단의 인증·DB 왕복·락 획득이 자동으로 예산에서 빠진다.
   const deadlineAt = Date.now() + BATCH_BUDGET_MS;
@@ -1171,6 +1263,7 @@ export async function runCodexWave(env, { sessionId, userId, doc, lockToken, dep
       ).catch(() => {});
       console.warn("[master-love-codex] generation retry", { sessionId, reason, startIndex });
       await refundSessionPassIfNeeded(sessionId, ownerId, doc, existingChapters, dependencies);
+      await refundSessionBillingIfNeeded(env, sessionId, ownerId, doc, existingChapters, dependencies);
       return { outcome: "stalled", reason };
     }
 
@@ -1203,6 +1296,7 @@ export async function runCodexWave(env, { sessionId, userId, doc, lockToken, dep
       { $set: { status: "generation_failed", "generationProgress.lockedAt": null, "generationProgress.lockToken": "" } },
     ).catch(() => {});
     await refundSessionPassIfNeeded(sessionId, ownerId, doc, existingChapters, dependencies);
+    await refundSessionBillingIfNeeded(env, sessionId, ownerId, doc, existingChapters, dependencies);
     return { outcome: "failed" };
   }
 }
@@ -1267,5 +1361,5 @@ export const __masterLoveCodexTestUtils = {
   // 배치 시간 예산 — 검증 스크립트가 LLM 호출 없이 순수 함수로 확인한다.
   withDeadline, planBatchCommit, acquireBatchLock, runCodexWave,
   BATCH_BUDGET_MS, BATCH_LOCK_TTL_MS, CHAPTER_MIN_BUDGET_MS, EDGE_RESPONSE_DEADLINE_MS,
-  passRefundFor, refundSessionPassIfNeeded,
+  passRefundFor, refundSessionPassIfNeeded, refundSessionBillingIfNeeded, BILLING_REFUND_AFTER_MS,
 };

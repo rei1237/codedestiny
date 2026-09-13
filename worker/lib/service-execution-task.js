@@ -428,7 +428,14 @@ function toSummary(doc) {
   };
 }
 
-async function runCoinRefund({ userId, featureKey, cost, sourceTransactionId, executionId, requestId, reason }) {
+/**
+ * 🔴 이 환불기 3종(runCoinRefund·runMonthlyCreditRefund·runPaymentCancel)은 ServiceExecutionTransaction
+ *    경유 경로 밖에서도 쓰인다 — worker/routes/master-love-codex.js 가 자체 세션으로 같은 함수를 부른다.
+ *    execution 인자는 문서가 아니라 **필드 가방**으로만 읽히므로(serviceId·featureKey·sessionId·metadata)
+ *    호출자가 같은 모양을 만들어 넘기면 된다. 여기에 ServiceExecutionTransaction 전용 필드 의존을
+ *    새로 넣으면 그 호출자가 조용히 skip 된다.
+ */
+export async function runCoinRefund({ userId, featureKey, cost, sourceTransactionId, executionId, requestId, reason }) {
   if (!userId || !sourceTransactionId || cost <= 0) {
     return { refunded: false, skipped: true };
   }
@@ -732,7 +739,7 @@ async function resolveMonthlyCreditSourceTransactionId({
  * 굳었다(재시도 리퍼는 pending 만 줍는다). 구 데이터를 위해 PointHistory 갈래를 먼저 태우고,
  * 그것이 "차감 이력 없음"으로 끝나면 원장 갈래로 넘긴다.
  */
-async function runMonthlyCreditRefund({
+export async function runMonthlyCreditRefund({
   env,
   userId,
   featureKey,
@@ -1024,7 +1031,7 @@ async function runMonthlyCreditPointHistoryRefund({
   };
 }
 
-async function runPaymentCancel(env, paymentRef = {}, reason, execution = {}) {
+export async function runPaymentCancel(env, paymentRef = {}, reason, execution = {}) {
   const impUid = String(paymentRef.impUid || paymentRef.paymentId || "").trim();
   const merchantUid = String(paymentRef.merchantUid || execution.merchantUid || "").trim();
   const paymentId = String(paymentRef.paymentId || execution.paymentId || impUid || merchantUid || "").trim();

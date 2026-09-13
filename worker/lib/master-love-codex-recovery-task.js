@@ -50,9 +50,11 @@ export function buildAbandonedFilter(now) {
   return {
     status: { $in: ["generating", "generation_failed"] },
     updatedAt: { $lt: new Date(now - ABANDONED_AFTER_MS) },
-    // 이용권 환급이 끝난 세션은 이미 값이 돌아간 것이다 — 공짜로 완성시키지 않는다.
-    // (카드 환불은 recoverCodexSession 이 PURCHASE_REFUNDED 로 막는다.)
+    // 환급이 끝난 세션은 이미 값이 돌아간 것이다 — 공짜로 완성시키지 않는다.
+    // 🔴 코인·월정석은 돌려줘도 세션 자체는 멀쩡해서 recoverCodexSession 이 막지 못한다
+    //    (그쪽이 거절하는 것은 취소된 카드 결제뿐이다). 여기서 빼는 것이 유일한 방어다.
     "passRefund.refundedAt": { $exists: false },
+    "billingRefund.refundedAt": { $exists: false },
     $or: [
       { "generationProgress.lockedAt": { $exists: false } },
       { "generationProgress.lockedAt": null },

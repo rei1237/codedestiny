@@ -44,6 +44,7 @@ describe("buildAbandonedFilter", () => {
     expect(filter.updatedAt.$lt.getTime()).toBe(now - ABANDONED_AFTER_MS);
     // 🔴 환급이 끝난 세션을 되살리면 값을 돌려주고도 책을 내주게 된다.
     expect(filter["passRefund.refundedAt"]).toEqual({ $exists: false });
+    expect(filter["billingRefund.refundedAt"]).toEqual({ $exists: false });
     expect(filter.$or).toHaveLength(3);
     // 🔴 completed 는 후보에서 아예 빠진다 — 완료 세션 재기동은 구조적으로 불가능해야 한다.
     expect(filter.status.$in).not.toContain("completed");
