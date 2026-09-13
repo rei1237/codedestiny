@@ -58,6 +58,10 @@ npm run verify:ci-required-lanes -- --self-test    # 17케이스
 npm run check:fast                                 # EXIT=0
 ```
 
+승격 커밋 `b8e4f5843` 의 main CI 는 **초록**이다(런 34731666860): `Risk tier`·`Typecheck and lint`·
+`Static guards`·`Build Pages and Worker`·`Critical checks`·`CI required` 6잡 전부 `success`.
+41개가 이제 `ci-required` 를 통해 실제로 막는다는 뜻이다.
+
 변이 3건 전부 탐지(도는 가드가 아니라 무는 가드인지 확인):
 
 | 변이 | 결과 |
@@ -71,8 +75,11 @@ npm run check:fast                                 # EXIT=0
 1. **`UNWIRED_BY_DESIGN` 의 실패 3개는 그대로다** — `verify:no-timestamp-conflict`(worker/payments
    3건 오탐) · `verify:today-hub-gate` · `verify:animal-totem-reading`. 지금도 실패하므로 배선 전에
    원인부터 고쳐야 한다. 승격 대상이 아니었다.
-2. **`guards` lane 이 3분 18초 → 약 6분 20초.** `build`/`critical` 과 병렬이라 전체 wall-clock
-   증가는 대부분 흡수될 전망이지만 **아직 실측 전이다** — 승격 후 첫 런에서 확인할 것.
+2. **`guards` lane 이 198초 → 429초. 전체 CI 는 290초 → 463초(실측).** 승격 전 예측("병렬이라
+   대부분 흡수된다")은 **틀렸다** — 승격 전 임계 경로는 `build`(256초)였는데, 승격 후 `guards`
+   (429초)가 `build`(251초)를 제치고 임계 경로가 됐다. 그래서 늘어난 231초 중 173초가 그대로
+   전체 시간에 실린다. 근거: 런 34729969121(5301c52bb, 승격 전) vs 34731666860(b8e4f5843, 승격 후).
+   줄이려면 41개를 한 잡에 몰지 말고 별도 잡으로 쪼개 `build` 와 병렬화해야 한다 — 이번 범위 밖.
 3. **루트 `.md` 단독 push 가 이제 `guards` lane 을 깨운다.** README 류 수정 한 번에 약 6분.
    드리프트 없는 fail-closed 를 택한 대가이며, 의도한 비용이다.
 
