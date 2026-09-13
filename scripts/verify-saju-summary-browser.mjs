@@ -3,6 +3,9 @@ import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { resolve, extname } from 'node:path';
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { mkdir } from 'node:fs/promises';
+import { tmpdir, freemem } from 'node:os';
 
 const root = process.cwd();
 const server = createServer(async (req, res) => {
@@ -19,9 +22,22 @@ const server = createServer(async (req, res) => {
 await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
 const origin = `http://127.0.0.1:${server.address().port}`;
 const browser = await chromium.launch({headless:true});
+const inputs = ['index.html', 'js/fate-scroll-reveal.js', 'js/core/access-store.js'];
+const fingerprints = async () => Object.fromEntries(await Promise.all(inputs.map(async file => [file, createHash('sha256').update(await readFile(resolve(root, file))).digest('hex')])));
+const before = await fingerprints();
+let activePage;
+let activeCase = '';
+const browserErrors = [];
 
 async function assertSummaryVisible(page, label) {
   await page.locator('#summaryArea .saju-summary-report').waitFor({state:'visible'});
+  // The report can exceed 30,000px; scrollIntoViewIfNeeded can consider a
+  // sliver of its body visible while the card's reveal threshold is unmet.
+  await page.locator('#summaryCard').evaluate(el => el.scrollIntoView({ block: 'start', behavior: 'instant' }));
+  await page.waitForFunction(() => {
+    const card = document.getElementById('summaryCard');
+    return card && !card.classList.contains('fate-scroll-section-hidden') && Number(getComputedStyle(card).opacity) > 0;
+  }, undefined, { timeout: 10000 });
   const metrics = await page.locator('#summaryArea').evaluate(el => {
     const gateBody = el.closest('.cd-section-gate__body');
     const style = getComputedStyle(el);
@@ -37,7 +53,6 @@ async function assertSummaryVisible(page, label) {
   });
   // fate-scroll-reveal 의 IntersectionObserver 콜백은 스크롤 직후가 아니라 한 틱 뒤에 클래스를
   // 붙인다. 대기 없이 읽으면 회귀가 있어도 아직 'card' 상태라 단정이 항상 통과한다(실측).
-  await page.waitForTimeout(400);
   // 🔴 데스크탑 전용 회귀: 해금 본문이 배달되면 #summaryCard 가 뷰포트보다 훨씬 커져
   // fate-scroll-reveal 의 비율 임계값(7%)에 영원히 도달하지 못하고 opacity:0 으로 굳었다.
   // 본문은 DOM 에 정상 배달된 채 화면에서만 사라지므로 길이 단정만으로는 잡힐 수 없다.
@@ -64,8 +79,10 @@ try {
   await context.route('**/*', route => new URL(route.request().url()).origin === origin ? route.continue() : route.abort());
   await context.addInitScript(() => sessionStorage.setItem('privacyAgreed', 'true'));
   const page = await context.newPage();
+  activePage = page;
+  activeCase = `${shell.label}-${alreadyUnlocked ? 'unlocked' : 'restored'}`;
   page.on('dialog', dialog => dialog.dismiss());
-  page.on('pageerror', error => console.log('PAGE ERROR:', error.message));
+  page.on('pageerror', error => { browserErrors.push({ case: activeCase, error: error.message }); console.log('PAGE ERROR:', error.message); });
   page.on('console', message => { if (message.type() === 'error' && /Summary|renderSummary/.test(message.text())) console.log(message.text()); });
   await page.goto(origin, {waitUntil:'domcontentloaded'});
   await page.locator('#cdQuickServices a[href*="cdOneStepFreeSajuEntry"]').click();
@@ -151,7 +168,6 @@ try {
       throw new Error('failed to simulate stale summary unlock snapshot: ' + error.message);
     }
   }, alreadyUnlocked);
-  await page.waitForTimeout(900);
   // alreadyUnlocked 경로는 여기까지 오는 동안 #summaryGate 버튼 클릭(자동 스크롤 유발)을 거치지
   // 않는다 — run-btn 클릭이 유발하는 스크롤은 #resultPage 맨 위(block:'start')로 가지 #summaryCard
   // 위치까지 보장하지 않는다. 실사용자도 스크롤해야 도달하는 지점이니 뒤쪽 폭 루프(줄 168)와
@@ -159,7 +175,6 @@ try {
   // IntersectionObserver 가 아직 관찰조차 못 한 상태를 "리빌 실패"로 오판한다(실측: 데스크탑 셸에서만
   // 우연히 초기 뷰포트가 summaryCard 를 비껴가 실패했다).
   await page.locator('#summaryArea').scrollIntoViewIfNeeded();
-  await page.waitForTimeout(200);
   await assertSummaryVisible(page, `${shell.label} ${alreadyUnlocked ? 'previously unlocked stable' : 'restored stable after stale snapshot'}`);
   if (!alreadyUnlocked) {
     await page.evaluate(() => {
@@ -168,7 +183,7 @@ try {
       window.unlockedFeatureMap = {};
       window.dispatchEvent(new CustomEvent('cd:unlocks-changed', { detail: { source: 'forced-empty-legacy-map' } }));
     });
-    await page.waitForTimeout(120);
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
     await assertSummaryVisible(page, `${shell.label} restored stable after legacy map replacement`);
   }
   for (const width of [360,390,430,1280]) {
@@ -183,4 +198,13 @@ try {
   }
   await context.close();
  }
+} catch (error) {
+  const directory = resolve(tmpdir(), `cd-saju-summary-${process.pid}`);
+  await mkdir(directory, { recursive: true });
+  if (activePage && !activePage.isClosed()) {
+    console.error('SUMMARY DOM:', await activePage.locator('#summaryCard').evaluate(el => ({ classes: el.className, rect: el.getBoundingClientRect().toJSON(), viewport: innerHeight, scrollY, opacity: getComputedStyle(el).opacity })).catch(() => null));
+    await activePage.screenshot({ path: resolve(directory, 'failure.png') }).catch(() => {});
+  }
+  console.error('SUMMARY DIAGNOSTICS:', JSON.stringify({ case: activeCase, directory, freeMemory: freemem(), before, after: await fingerprints(), browserErrors }));
+  throw error;
 } finally { await browser.close(); server.close(); }
