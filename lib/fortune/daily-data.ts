@@ -34,7 +34,7 @@ export const FORTUNE_ARCHIVE_DAYS = 30;
 export type FortuneTonePeriod = FortunePeriod | "weekly" | "monthly";
 
 /** 8개 언어 박스 — 이 페이지들은 kr 만 쓴다(로케일 확장은 별건). */
-export interface LangBox {
+interface LangBox {
   kr: string;
   en?: string;
   [lang: string]: string | undefined;
@@ -51,7 +51,7 @@ export interface DailyScore {
 export interface DailySignEntry {
   keyword: LangBox;
   score: DailyScore;
-  lucky: { color_kr: string; color_en?: string; color_ja?: string; color_zh?: string; color_zh_tw?: string; number: number };
+  lucky: { color_kr: string; color_en?: string; number: number };
   sections: {
     overall: LangBox;
     love: LangBox;
@@ -73,7 +73,6 @@ export interface DailyCalendar {
   wolgeon: string;
   year_ganji: string;
   current_jeolgi: string;
-  [key: string]: string;
 }
 
 export interface DailySky {
@@ -91,11 +90,6 @@ export interface DailyPackage {
   sky_today: DailySky;
   animals: Record<string, DailySignEntry>;
   zodiacs: Record<string, DailySignEntry>;
-  daily_editorial?: Record<string, unknown>;
-  daily_seo?: Record<string, unknown>;
-  ziwei?: Record<string, unknown>;
-  sukuyo?: Record<string, unknown>;
-  panchanga?: Record<string, unknown>;
 }
 
 const KST_TIME_ZONE = "Asia/Seoul";

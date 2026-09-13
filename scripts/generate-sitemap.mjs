@@ -531,22 +531,6 @@ function extractFortuneSignRoutes() {
       routes.push({ path: `/fortune/${period}/${id}`, changefreq, priority: 0.82 });
     }
   }
-  // 검색용 로케일 라우트는 한국어 정본과 같은 period/sign 집합에서 파생한다.
-  // /zh 는 간체, /zh-tw 는 번체 URL 계약이다.
-  const localized = ["en", "ja", "zh", "zh-tw"];
-  const hreflang = (base) => [
-    { hreflang: "ko", href: toUrl(base) },
-    ...localized.map((locale) => ({ hreflang: locale === "zh" ? "zh-CN" : locale === "zh-tw" ? "zh-TW" : locale, href: toUrl(`/${locale}${base}`) })),
-  ];
-  for (const locale of localized) routes.push({ path: `/${locale}/fortune`, changefreq: "daily", priority: 0.88, alternates: hreflang("/fortune") });
-  for (const [period, changefreq] of Object.entries(periodChangefreq)) {
-    const base = `/fortune/${period}`;
-    for (const locale of localized) routes.push({ path: `/${locale}${base}`, changefreq, priority: 0.86, alternates: hreflang(base) });
-    for (const id of ids) {
-      const detail = `${base}/${id}`;
-      for (const locale of localized) routes.push({ path: `/${locale}${detail}`, changefreq, priority: 0.8, alternates: hreflang(detail) });
-    }
-  }
   return routes;
 }
 

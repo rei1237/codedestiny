@@ -540,7 +540,7 @@ function getTodayHubCopy(locale: LoadingLocale): TodayHubCopy {
   return TODAY_HUB_COPY[locale] || TODAY_HUB_COPY_EN;
 }
 
-function useTodayHubCopy(): { copy: TodayHubCopy; locale: LoadingLocale } {
+function useTodayHubCopy(): TodayHubCopy {
   const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
   useEffect(() => {
     const sync = () => setLocale(getCurrentLoadingLocale());
@@ -551,7 +551,7 @@ function useTodayHubCopy(): { copy: TodayHubCopy; locale: LoadingLocale } {
       window.removeEventListener("cd:locale-ready", sync);
     };
   }, []);
-  return { copy: getTodayHubCopy(locale), locale };
+  return getTodayHubCopy(locale);
 }
 
 // 셸 렌더러(index.html)와 같은 등급→톤 매핑. 두 화면이 다른 색으로 같은 등급을 말하면 안 된다.
@@ -705,7 +705,7 @@ function CardPanel({ card, tabLabel, copy }: { card: SystemCard | null | undefin
 }
 
 export default function TodayHubClient({ children }: { children?: ReactNode }) {
-  const { copy, locale } = useTodayHubCopy();
+  const copy = useTodayHubCopy();
   const { seed, seedVersion } = useAiProfileSeed();
   // 마운트 후에만 계산한다(정적 빌드에 날짜가 굳는 것을 막고, 자정을 넘겨도 새로고침이면 갱신된다).
   const [now, setNow] = useState<Date | null>(null);
@@ -719,7 +719,7 @@ export default function TodayHubClient({ children }: { children?: ReactNode }) {
   const [reloadToken, setReloadToken] = useState(0);
 
   const query = useMemo(() => {
-    const params = new URLSearchParams({ detail: "1", locale });
+    const params = new URLSearchParams({ detail: "1" });
     if (seed?.birthDate) {
       params.set("birth", seed.birthDate);
       if (seed.birthTime && !seed.birthTimeUnknown) params.set("time", seed.birthTime);
@@ -727,13 +727,13 @@ export default function TodayHubClient({ children }: { children?: ReactNode }) {
       params.set("gender", seed.gender === "male" ? "male" : "female");
     }
     return params.toString();
-  }, [locale, seed?.birthDate, seed?.birthTime, seed?.birthTimeUnknown, seed?.calendarType, seed?.gender]);
+  }, [seed?.birthDate, seed?.birthTime, seed?.birthTimeUnknown, seed?.calendarType, seed?.gender]);
 
   useEffect(() => {
     if (!now) return undefined;
     let active2 = true;
     setFailed(false);
-    fetch(getApiUrl(`/api/fortune/today-hub?${query}`), { credentials: "omit", headers: { "x-code-destiny-locale": locale } })
+    fetch(getApiUrl(`/api/fortune/today-hub?${query}`), { credentials: "omit" })
       .then((res) => {
         if (!res.ok) throw new Error(`http_${res.status}`);
         return res.json();
@@ -750,7 +750,7 @@ export default function TodayHubClient({ children }: { children?: ReactNode }) {
       active2 = false;
     };
     // seedVersion 은 프로필 카드가 뒤늦게 도착했을 때(로그인 사용자의 서버 동기화) 다시 계산하려고 둔다.
-  }, [locale, now, query, seedVersion, reloadToken]);
+  }, [now, query, seedVersion, reloadToken]);
 
   // 탭 화살표 이동 — 홈 셸의 허브와 같은 WAI-ARIA roving tabindex 규칙.
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});

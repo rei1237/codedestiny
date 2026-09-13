@@ -46,56 +46,6 @@ const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
 const PUBLIC_HUB_CACHE_TTL_SECONDS = 1800;
 const PUBLIC_HUB_STALE_TTL_SECONDS = 3600;
 
-const TODAY_LOCALE_COPY = {
-  en: {
-    "사주": "Saju", "숙요점": "Sukuyo", "베다점": "Vedic", "오늘의 수": "Today's mansion",
-    "오늘의 달자리": "Today's Moon mansion", "오늘의 운세": "Today's Fortune", "오늘 하루의 흐름": "Today's overall flow",
-    "대길": "Very auspicious", "길": "Auspicious", "중립": "Neutral", "주의": "Caution", "흉": "Challenging",
-    "지금의 흐름": "Current flow", "오늘의 핵심": "Today's focus", "관계": "Relationship", "조언": "Advice",
-    "본명수": "birth mansion", "지배성": "ruling planet", "운세": "fortune", "화(化) 기운": "transformation energy",
-  },
-  ja: {
-    "사주": "四柱推命", "숙요점": "宿曜", "베다점": "ヴェーダ占星術", "오늘의 수": "今日の宿",
-    "오늘의 달자리": "今日の月宿", "오늘의 운세": "今日の運勢", "오늘 하루의 흐름": "今日の流れ",
-    "대길": "大吉", "길": "吉", "중립": "中立", "주의": "注意", "흉": "慎重に",
-    "지금의 흐름": "今の流れ", "오늘의 핵심": "今日のポイント", "관계": "関係", "조언": "アドバイス",
-    "본명수": "本命宿", "지배성": "支配星", "운세": "運勢", "화(化) 기운": "化の気",
-  },
-  "zh-CN": {
-    "사주": "四柱推命", "숙요점": "宿曜", "베다점": "吠陀占星术", "오늘의 수": "今日宿曜",
-    "오늘의 달자리": "今日月宿", "오늘의 운세": "今日运势", "오늘 하루의 흐름": "今日整体走势",
-    "대길": "大吉", "길": "吉", "중립": "中立", "주의": "注意", "흉": "谨慎",
-    "지금의 흐름": "当前走势", "오늘의 핵심": "今日重点", "관계": "关系", "조언": "建议",
-    "본명수": "本命宿", "지배성": "守护星", "운세": "运势", "화(化) 기운": "化气",
-  },
-  "zh-TW": {
-    "사주": "四柱推命", "숙요점": "宿曜", "베다점": "吠陀占星術", "오늘의 수": "今日宿曜",
-    "오늘의 달자리": "今日月宿", "오늘의 운세": "今日運勢", "오늘 하루의 흐름": "今日整體走勢",
-    "대길": "大吉", "길": "吉", "중립": "中立", "주의": "注意", "흉": "謹慎",
-    "지금의 흐름": "目前走勢", "오늘의 핵심": "今日重點", "관계": "關係", "조언": "建議",
-    "본명수": "本命宿", "지배성": "守護星", "운세": "運勢", "화(化) 기운": "化氣",
-  },
-};
-
-function requestLocale(request) {
-  const url = new URL(request.url);
-  const raw = request.headers.get("x-code-destiny-locale") || url.searchParams.get("locale") || "ko";
-  const normalized = String(raw).toLowerCase();
-  if (normalized === "en" || normalized.startsWith("en-")) return "en";
-  if (normalized === "ja" || normalized.startsWith("ja-")) return "ja";
-  if (["zh-tw", "zh_hant", "zh-hant"].includes(normalized)) return "zh-TW";
-  if (["zh", "zh-cn", "zh_hans", "zh-hans"].includes(normalized)) return "zh-CN";
-  return "ko";
-}
-
-function localizeTodayPayload(value, locale) {
-  if (locale === "ko" || !value || typeof value !== "object") return value;
-  if (Array.isArray(value)) return value.map((item) => localizeTodayPayload(item, locale));
-  const replacements = TODAY_LOCALE_COPY[locale] || {};
-  const translate = (text) => Object.entries(replacements).reduce((out, [from, to]) => out.split(from).join(to), text);
-  return Object.fromEntries(Object.entries(value).map(([key, child]) => [key, typeof child === "string" ? translate(child) : localizeTodayPayload(child, locale)]));
-}
-
 // 타라발라 9구간 tier → 숙요·사주와 같은 5티어 어휘. 세 점술이 서로 다른 등급 이름을
 // 쓰면 한 화면에서 비교가 안 된다. Janma(mixed)는 "본디 자리"라 양날 — pivotal 로 읽는다.
 const TARA_TIER_TO_DAY_TIER = {
@@ -412,20 +362,19 @@ async function buildTodayHubPayload(request, env, input, wantDetail) {
 
   if (!saju && !sukuyo && !vedic) return null;
 
-  return localizeTodayPayload({
+  return {
     ok: true,
     date: dateKey(today),
     personalized: Boolean(input),
     systems: { saju, sukuyo, vedic },
-  }, requestLocale(request));
+  };
 }
 
-function todayHubUnavailable(request) {
-  const locale = requestLocale(request);
+function todayHubUnavailable() {
   return json({
     ok: false,
     code: "TODAY_HUB_UNAVAILABLE",
-    message: ({ en: "Today's fortune could not be calculated. Please try again shortly.", ja: "今日の運勢を計算できませんでした。しばらくしてからもう一度お試しください。", "zh-CN": "无法计算今日运势，请稍后再试。", "zh-TW": "無法計算今日運勢，請稍後再試。" }[locale] || "오늘의 운세를 계산하지 못했습니다. 잠시 후 다시 시도해 주세요."),
+    message: "오늘의 운세를 계산하지 못했습니다. 잠시 후 다시 시도해 주세요.",
   }, { status: 503 });
 }
 
@@ -447,7 +396,7 @@ async function handleTodayHub(request, env) {
   //    이 조건을 단언한다.
   if (input) {
     const payload = await buildTodayHubPayload(request, env, input, wantDetail);
-    if (!payload) return todayHubUnavailable(request);
+    if (!payload) return todayHubUnavailable();
     return json(payload, { headers: { "Cache-Control": "private, max-age=1800" } });
   }
 
@@ -455,9 +404,8 @@ async function handleTodayHub(request, env) {
   // 자연히 새 키가 되고, 옛 키는 TTL 로 사라진다.
   let loaded = false;
   try {
-    const locale = requestLocale(request);
     const { value, stale } = await readCmsThroughCache({
-      key: `today-hub:v1:${locale}:${dateKey(kstParts(new Date()))}:${wantDetail ? "detail" : "summary"}`,
+      key: `today-hub:v1:${dateKey(kstParts(new Date()))}:${wantDetail ? "detail" : "summary"}`,
       ttlSeconds: PUBLIC_HUB_CACHE_TTL_SECONDS,
       staleTtlSeconds: PUBLIC_HUB_STALE_TTL_SECONDS,
       load: async () => {
@@ -477,7 +425,7 @@ async function handleTodayHub(request, env) {
     });
   } catch (error) {
     // 위 sentinel 만 503 으로 바꾼다. 나머지 예외는 handleFortuneTodayRoutes 의 500 경로로 보낸다.
-    if (String(error?.message || "") === "TODAY_HUB_UNAVAILABLE") return todayHubUnavailable(request);
+    if (String(error?.message || "") === "TODAY_HUB_UNAVAILABLE") return todayHubUnavailable();
     throw error;
   }
 }
@@ -490,11 +438,10 @@ export async function handleFortuneTodayRoutes(request, env) {
     return await handleTodayHub(request, env);
   } catch (error) {
     console.error("[today-hub-error]", error);
-    const locale = requestLocale(request);
     return json({
       ok: false,
       code: "TODAY_HUB_FAILED",
-      message: ({ en: "Today's fortune could not be calculated. Please try again shortly.", ja: "今日の運勢を計算できませんでした。しばらくしてからもう一度お試しください。", "zh-CN": "无法计算今日运势，请稍后再试。", "zh-TW": "無法計算今日運勢，請稍後再試。" }[locale] || "오늘의 운세를 계산하지 못했습니다. 잠시 후 다시 시도해 주세요."),
+      message: "오늘의 운세를 계산하지 못했습니다. 잠시 후 다시 시도해 주세요.",
     }, { status: 500 });
   }
 }
