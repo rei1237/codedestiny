@@ -8344,10 +8344,8 @@ body.neo-mode .feature-card--juyuk .feature-card__img-wrap { background: linear-
   transform: scale(1.04);
   filter: drop-shadow(0 0 14px rgba(232,121,249,0.7)) brightness(1.1);
 }
-@media (max-width: 480px) {
-  .juyuk-modal-inner { padding: 0 12px !important; }
-  .juyuk-modal-card { padding: 20px 16px !important; }
-}
+/* .juyuk-modal-inner · .juyuk-modal-card 규칙을 걷어냈다 — 두 클래스를 다는 엘리먼트가
+   레포 어디에도 없었다(index.html 주역 레지스트리의 죽은 셀렉터 목록과 함께 정리). */
 
 
 /* NEO (사자) mode overrides */

@@ -433,37 +433,14 @@ async function handleSyncDestinyProfiles(request, auth) {
     if (!payment.ok) return payment.response;
   }
 
-  if (false && !subscription.isActive && normalizedProfiles.length > 1) {
-    const lockedId = sanitizeProfileId(user.destinyProfilesLockedCurrentId);
-    const hasLockedProfile = lockedId && normalizedProfiles.some((profile) => profile.profileId === lockedId);
-    const hasRequestedProfile = requestedCurrentId && normalizedProfiles.some((profile) => profile.profileId === requestedCurrentId);
-    return json({
-      ok: false,
-      code: hasLockedProfile ? "PROFILE_SINGLE_LOCKED" : "PROFILE_SELECTION_REQUIRED",
-      message: hasLockedProfile
-        ? "이용권 혜택 종료 후 확정한 프로필 카드만 사용할 수 있습니다."
-        : "이용권 혜택이 종료되어 사용할 프로필 카드 1개를 먼저 선택해야 합니다.",
-      currentId: hasLockedProfile ? lockedId : (hasRequestedProfile ? requestedCurrentId : ""),
-      lockedProfileId: hasLockedProfile ? lockedId : "",
-      profileAccess: {
-        mode: "single",
-        selectionRequired: !hasLockedProfile,
-        locked: Boolean(hasLockedProfile),
-        lockedProfileId: hasLockedProfile ? lockedId : "",
-        profileLimit: 1,
-      },
-      subscription,
-    }, { status: 409 });
-  }
-
-  if (false && normalizedProfiles.length > subscription.profileLimit) {
-    return json({
-      ok: false,
-      code: "PROFILE_LIMIT_EXCEEDED",
-      message: "무료 계정은 프로필 카드를 1개만 생성할 수 있습니다. 구독 후 추가 생성이 가능합니다.",
-      subscription,
-    }, { status: 403 });
-  }
+  /* single 모드(이용권 종료 후 카드 1개 확정)와 무료 계정 카드 수 상한은 서버 전역에서 꺼져 있다 —
+     worker/lib/profile-limits.js 의 resolveSingleProfileAccess 도 같은 상수로 subscription 모드만
+     내보내고, 아래 resolveSingleProfileAccess(..., { allowZeroLimit }) 호출이 실효 판정을 맡는다.
+     여기 있던 409 PROFILE_SINGLE_LOCKED / PROFILE_SELECTION_REQUIRED 분기와 403 PROFILE_LIMIT_EXCEEDED
+     분기는 리터럴 false 로 고정돼 도달 불가능한 코드였다. 되살릴 때는 profile-limits.js 쪽과 함께 켜고,
+     같은 이유로 이미 정리된 worker/routes/profile.js 의 isSingleMode 자리도 함께 볼 것.
+     클라이언트(js/destiny-profile.js:2015, :9991)의 두 코드 처리는 남아 있다 — 발신처가
+     worker/routes/billing.js 등에 따로 살아 있다. */
 
   try {
     if (normalizedProfiles.length > 0) {

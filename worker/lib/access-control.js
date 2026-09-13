@@ -597,22 +597,6 @@ function buildBindingClause(binding = {}) {
   return clauses;
 }
 
-function buildContextBindingClause(binding = {}) {
-  const clauses = [];
-  if (binding.requestId) clauses.push({ "metadata.requestId": binding.requestId });
-  if (binding.profileId) {
-    clauses.push({ "metadata.profileId": binding.profileId });
-    clauses.push({ "metadata.selectedProfileId": binding.profileId });
-  }
-  if (binding.reportId) clauses.push({ "metadata.reportId": binding.reportId });
-  if (binding.sessionId) {
-    clauses.push({ "metadata.sessionId": binding.sessionId });
-    clauses.push({ "metadata.reportSessionId": binding.sessionId });
-  }
-  if (binding.purchaseId) clauses.push({ "metadata.purchaseId": binding.purchaseId });
-  return clauses;
-}
-
 function paymentEvidenceMatchesRule(evidence = {}, rule = {}) {
   const rawFeatureKey = String(evidence?.featureKey || "").trim();
   const rawRuleKey = String(rule?.featureKey || "").trim();
@@ -658,40 +642,19 @@ function premiumTokenMatchesCurrentAccessRules(tokenPayload = {}, alternativeRul
   return rules.some((rule) => paymentEvidenceMatchesRule(evidence, rule));
 }
 
-function premiumTokenMatchesRequestBinding(tokenPayload = {}, binding = {}) {
-  const tokenBinding = {
-    reportId: String(tokenPayload?.reportId || "").trim(),
-    sessionId: String(tokenPayload?.sessionId || tokenPayload?.reportSessionId || "").trim(),
-    requestId: String(tokenPayload?.requestId || "").trim(),
-    purchaseId: String(tokenPayload?.purchaseId || "").trim(),
-  };
-  const requestBinding = {
-    reportId: String(binding?.reportId || "").trim(),
-    sessionId: String(binding?.sessionId || "").trim(),
-    requestId: String(binding?.requestId || "").trim(),
-    purchaseId: String(binding?.purchaseId || "").trim(),
-  };
-  const pairs = [
-    [tokenBinding.reportId, requestBinding.reportId],
-    [tokenBinding.sessionId, requestBinding.sessionId],
-    [tokenBinding.requestId, requestBinding.requestId],
-    [tokenBinding.purchaseId, requestBinding.purchaseId],
-  ];
-  if (!pairs.some(([tokenValue]) => Boolean(tokenValue))) return false;
-  if (!pairs.some(([, requestValue]) => Boolean(requestValue))) return false;
-  return pairs.some(([tokenValue, requestValue]) => tokenValue && requestValue && tokenValue === requestValue);
-}
-
-function requiresContextBoundPremiumPaymentEvidence(reportType = "") {
-  return false;
-}
-
-async function findEvidenceByPaymentTokens(userId, requestBody = {}, rules = [], options = {}) {
+/* 컨텍스트 바인딩(요청의 reportId·sessionId·requestId·purchaseId 가 결제 증빙과 같아야 한다)은
+   서버 전역에서 꺼져 있었다 — requiresContextBoundPremiumPaymentEvidence() 가 reportType 을 보지도
+   않고 상수 false 를 돌려주는 바람에, 그것을 타고 살던 것들이 전부 도달 불가였다:
+   premiumTokenMatchesRequestBinding(토큰 바인딩 대조 23줄) · buildContextBindingClause(느슨한
+   buildBindingClause 대신 쓰던 좁은 조회 절) · findEvidenceByPaymentTokens 의
+   requireContextBinding 옵션과 그 "바인딩 힌트가 없으면 null" 조기 반환.
+   실제로 돌던 경로는 buildBindingClause 뿐이고 지금도 그대로다.
+   되살릴 때는 requiresContextBoundPremiumPaymentEvidence 를 reportType 화이트리스트로 되돌리는 것이
+   출발점이고, 이 커밋 하나를 revert 하면 네 조각이 함께 돌아온다. */
+async function findEvidenceByPaymentTokens(userId, requestBody = {}, rules = []) {
   const tokens = extractPaymentLookupTokens(requestBody);
   const binding = extractAccessBindingHints(requestBody);
-  const requireContextBinding = options?.requireContextBinding === true;
-  const bindingClauses = requireContextBinding ? buildContextBindingClause(binding) : buildBindingClause(binding);
-  if (requireContextBinding && !bindingClauses.length) return null;
+  const bindingClauses = buildBindingClause(binding);
   if (!tokens.transactionId && !tokens.requestId && !tokens.receiptId && !tokens.orderId && !bindingClauses.length) return null;
 
   const featureKeys = uniqueStrings(
@@ -841,7 +804,6 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
   const payment = requestBody && typeof requestBody.payment === "object" ? requestBody.payment : {};
   const paymentContext = requestBody && typeof requestBody._paymentContext === "object" ? requestBody._paymentContext : {};
   const consume = requestBody && typeof requestBody.consume === "object" ? requestBody.consume : {};
-  const accessBinding = extractAccessBindingHints(requestBody);
   const receivedFeatureKey = String(
     requestBody?.featureKey
     || requestBody?.featureType
@@ -862,17 +824,12 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
     || consume?._premiumAccessToken
     || "",
   ).trim();
-  const requiresContextBoundPaymentEvidence = requiresContextBoundPremiumPaymentEvidence(normalizedReportType);
-
   if (premiumAccessToken) {
     const tokenCheck = await verifyPremiumAccessToken(premiumAccessToken, env, {
       userId: String(userId || ""),
       reportType: normalizedReportType,
     });
-    const tokenBindingOk = requiresContextBoundPaymentEvidence
-      ? premiumTokenMatchesRequestBinding(tokenCheck.payload, accessBinding)
-      : true;
-    if (tokenCheck.ok && tokenBindingOk && premiumTokenMatchesCurrentAccessRules(tokenCheck.payload, alternativeRules, requiredRules)) {
+    if (tokenCheck.ok && premiumTokenMatchesCurrentAccessRules(tokenCheck.payload, alternativeRules, requiredRules)) {
       const tokenPayload = tokenCheck.payload || {};
       const tokenTransactionId = String(tokenPayload.transactionId || requestBody?.sourceTransactionId || requestBody?.transactionId || "").trim();
       const tokenFeatureKey = String(tokenPayload.featureKey || requestBody?.featureKey || "").trim();
@@ -902,11 +859,7 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
         featureKey: String(requestBody?.featureKey || tokenPayload.featureKey || "").trim(),
       };
 
-      const tokenBoundEvidence = tokenBindingOk || !requiresContextBoundPaymentEvidence
-        ? await findEvidenceByPaymentTokens(userId, tokenEvidenceRequest, alternativeRules, {
-          requireContextBinding: requiresContextBoundPaymentEvidence,
-        })
-        : null;
+      const tokenBoundEvidence = await findEvidenceByPaymentTokens(userId, tokenEvidenceRequest, alternativeRules);
       if (tokenBoundEvidence) {
         logPremiumAccessDecision({
           route: requestBody?._accessRoute,
@@ -1062,9 +1015,7 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
 
   if (requiredRules.length) {
     for (let i = 0; i < requiredRules.length; i += 1) {
-      const evidence = await findEvidenceByPaymentTokens(user._id, requestBody, [requiredRules[i]], {
-        requireContextBinding: requiresContextBoundPaymentEvidence,
-      });
+      const evidence = await findEvidenceByPaymentTokens(user._id, requestBody, [requiredRules[i]]);
       if (!evidence) {
         logPremiumAccessDecision({
           route: requestBody?._accessRoute,
@@ -1108,9 +1059,7 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
     return allowed;
   }
 
-  const tokenEvidence = await findEvidenceByPaymentTokens(user._id, requestBody, alternativeRules, {
-    requireContextBinding: requiresContextBoundPaymentEvidence,
-  });
+  const tokenEvidence = await findEvidenceByPaymentTokens(user._id, requestBody, alternativeRules);
   if (tokenEvidence) {
     if (!isPerUsePdfReportType) {
       await upsertPremiumContentEntitlementFromEvidence({
@@ -1182,6 +1131,4 @@ export const __accessControlTestUtils = {
   buildAlternativePaymentRules,
   buildRequiredPaymentRules,
   extractPaymentLookupTokens,
-  premiumTokenMatchesRequestBinding,
-  requiresContextBoundPremiumPaymentEvidence,
 };
