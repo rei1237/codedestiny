@@ -317,8 +317,139 @@ async function serveDynamicFeed(request, env) {
   });
 }
 
+// 🔴 /fortune/share/ 카카오 미리보기 카드.
+//
+// 이 사이트는 `output: "export"` 라 `/fortune/share/?shareId=x` 는 shareId 가 무엇이든
+// **같은 HTML** 을 준다. 카카오는 **페이지 URL 을 캐시 키로** 스크랩하므로 공유마다 URL 은
+// 다른데 카드 내용은 전부 같은 기본 문구가 된다 — 단톡방에서 클릭할 이유가 0이다.
+// 여기서 스냅샷을 읽어 og 태그를 **교체**한다(추가가 아니다. og:image 가 둘이면 카카오가
+// 정적 이미지를 고른다).
+//
+// 이 파일은 import 를 쓰지 않는다. `wrangler pages deploy dist` 가 이 파일을 정적 자산으로
+// 올리므로 상대 import 는 런타임에서 깨진다. 순수 함수를 여기 두고
+// __tests__/ui/guardian-share-og.static.test.js 가 소스를 잘라 vm 으로 검사한다
+// (fortune-legacy-redirect.static.test.js 와 같은 방식).
+//
+// 🔴 오작동 반경이 크다. 이 파일은 사이트맵에 있는 /fortune/** 약 96개를 서빙한다. 그래서
+// 경로와 shareId 정규식이 **동시에** 맞을 때만 들어오고, 무엇 하나라도 어긋나거나 예외가
+// 나면 null 을 돌려 원래 자산 서빙으로 떨어뜨린다.
+const GUARDIAN_SHARE_PATHS = new Set(["/fortune/share", "/fortune/share/"]);
+const GUARDIAN_SHARE_ID_PATTERN = /^gf_[A-Za-z0-9_-]{24,80}$/;
+const GUARDIAN_SHARE_CACHE_TTL_SECONDS = 600;
+const GUARDIAN_SHARE_TITLE_LIMIT = 60;
+const GUARDIAN_SHARE_DESC_LIMIT = 110;
+
+function guardianShareIdFromUrl(url) {
+  if (!GUARDIAN_SHARE_PATHS.has(String(url.pathname || ""))) return "";
+  const shareId = url.searchParams.get("shareId") || "";
+  return GUARDIAN_SHARE_ID_PATTERN.test(shareId) ? shareId : "";
+}
+
+function clampShareText(value, limit) {
+  const text = String(value == null ? "" : value).replace(/\s+/g, " ").trim();
+  if (text.length <= limit) return text;
+  return `${text.slice(0, limit - 1).replace(/\s+$/, "")}…`;
+}
+
+function buildGuardianShareOgMeta(snapshot, options) {
+  const origin = String((options && options.origin) || "").replace(/\/+$/, "");
+  const shareId = String((options && options.shareId) || "");
+  if (!snapshot || !origin || !GUARDIAN_SHARE_ID_PATTERN.test(shareId)) return null;
+
+  const title = clampShareText(snapshot.title, GUARDIAN_SHARE_TITLE_LIMIT);
+  const description = clampShareText(snapshot.shareText || snapshot.openingLine, GUARDIAN_SHARE_DESC_LIMIT);
+  if (!title || !description) return null;
+
+  // 🔴 og:url 에는 shareId 만 남긴다. ref·utm 같은 추천 파라미터를 붙이면 수신자마다 URL 이
+  // 달라져 카카오 캐시가 통째로 무력화된다. 그런 파라미터는 카카오 feed 의 link 에만 싣는다.
+  const pageUrl = `${origin}/fortune/share/?shareId=${encodeURIComponent(shareId)}`;
+  const imageParams = new URLSearchParams();
+  imageParams.set("title", title);
+  imageParams.set("desc", description);
+  imageParams.set("badge", "fortune");
+  return { title, description, url: pageUrl, image: `${origin}/api/og?${imageParams.toString()}` };
+}
+
+// 주입한 JSON 을 뷰어가 그대로 읽어 첫 화면에서 API 왕복을 없앤다.
+// `<` 를 이스케이프해 본문에 `</script>` 가 섞여도 태그가 끊기지 않게 한다.
+function guardianShareSnapshotScript(snapshot) {
+  const json = JSON.stringify(snapshot).replace(/</g, "\\u003c");
+  return `<script type="application/json" id="cd-share-snapshot">${json}</script>`;
+}
+
+function transformGuardianShareHtml(assetResponse, meta, snapshot) {
+  const replaceContent = (value) => ({
+    element(element) {
+      element.setAttribute("content", value);
+    },
+  });
+  return new HTMLRewriter()
+    .on('meta[property="og:title"]', replaceContent(meta.title))
+    .on('meta[property="og:description"]', replaceContent(meta.description))
+    .on('meta[property="og:url"]', replaceContent(meta.url))
+    .on('meta[property="og:image"]', replaceContent(meta.image))
+    .on('meta[name="twitter:title"]', replaceContent(meta.title))
+    .on('meta[name="twitter:description"]', replaceContent(meta.description))
+    .on('meta[name="twitter:image"]', replaceContent(meta.image))
+    .on("title", {
+      element(element) {
+        element.setInnerContent(meta.title);
+      },
+    })
+    .on("head", {
+      element(element) {
+        element.append(guardianShareSnapshotScript(snapshot), { html: true });
+      },
+    })
+    .transform(assetResponse);
+}
+
+async function serveGuardianShareCard(request, env, ctx, url, shareId) {
+  const cache = globalThis.caches && globalThis.caches.default;
+  // 캐시 키는 shareId 하나다. 실제 요청 URL 을 쓰면 utm 하나에 캐시가 갈라진다.
+  const cacheKey = new Request(`https://cd-share-card.local/fortune/share/${shareId}`);
+
+  try {
+    if (cache) {
+      const hit = await cache.match(cacheKey);
+      if (hit) return hit;
+    }
+
+    const apiOrigin = resolveApiWorkerOrigin(env);
+    if (!apiOrigin) return null;
+    // 공개 스냅샷이라 쿠키·인증 헤더를 넘기지 않는다.
+    const snapshotResponse = await fetch(
+      `${apiOrigin}/api/fortune/guardian/share/${encodeURIComponent(shareId)}`,
+      { headers: { Accept: "application/json", "X-Code-Destiny-Proxy": "pages" } },
+    );
+    // 🔴 404·오류는 캐시하지 않는다. 만료 전 스냅샷이 잠깐 못 읽힌 것을 10분 굳히면
+    // 그동안 공유된 링크가 전부 기본 카드로 나간다.
+    if (!snapshotResponse.ok) return null;
+    const snapshot = await snapshotResponse.json();
+    const meta = buildGuardianShareOgMeta(snapshot, { origin: url.origin, shareId });
+    if (!meta) return null;
+
+    const assetResponse = await env.ASSETS.fetch(request);
+    if (!assetResponse.ok) return null;
+
+    const transformed = transformGuardianShareHtml(assetResponse, meta, snapshot);
+    const headers = new Headers(transformed.headers);
+    headers.set("Cache-Control", `public, max-age=60, s-maxage=${GUARDIAN_SHARE_CACHE_TTL_SECONDS}`);
+    headers.set("X-Code-Destiny-Share-Card", "rendered");
+    const response = hardenResponse(
+      request.url,
+      new Response(transformed.body, { status: assetResponse.status, headers }),
+    );
+    if (cache && ctx && typeof ctx.waitUntil === "function") ctx.waitUntil(cache.put(cacheKey, response.clone()));
+    return response;
+  } catch (error) {
+    console.error("[share-card] 카드 생성 실패 — 원본 자산으로 폴백:", (error && error.message) || error);
+    return null;
+  }
+}
+
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const url = new URL(request.url);
     if (url.pathname === "/api" || url.pathname.startsWith("/api/")) {
       const apiResponse = await proxyApiRequest(request, env);
@@ -350,6 +481,12 @@ export default {
       const target = new URL(famousAliasTarget, url);
       target.search = url.search;
       return Response.redirect(target.toString(), 301);
+    }
+
+    const guardianShareId = request.method.toUpperCase() === "GET" ? guardianShareIdFromUrl(url) : "";
+    if (guardianShareId) {
+      const shareCard = await serveGuardianShareCard(request, env, ctx, url, guardianShareId);
+      if (shareCard) return shareCard;
     }
 
     const assetResponse = await env.ASSETS.fetch(request);

@@ -206,6 +206,25 @@ function isInternalPath(value: unknown): value is string {
   return typeof value === "string" && /^\/[A-Za-z0-9/_?&=.#%-]*$/.test(value) && !value.startsWith("//");
 }
 
+/**
+ * public/_worker.js 가 <head> 에 심어 둔 스냅샷을 먼저 쓴다.
+ *
+ * 카톡으로 링크를 받은 친구에게는 이 화면이 첫인상이고, 그 순간 API 왕복 한 번이 통째로
+ * 로딩 문구다. 엣지에서 이미 읽어 온 값이 있으면 그대로 그린다. 없으면(구 캐시·직접 방문)
+ * 아래의 기존 fetch 경로로 내려간다.
+ */
+function readInjectedSnapshot(shareId: string): PublicSnapshot | null {
+  if (typeof document === "undefined") return null;
+  const node = document.getElementById("cd-share-snapshot");
+  if (!node?.textContent) return null;
+  try {
+    const parsed = JSON.parse(node.textContent) as PublicSnapshot;
+    return parsed?.shareId === shareId ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
 function getModeLink(mode: ShareMode, topic: ShareTopic) {
   return `/?guardianMode=${encodeURIComponent(mode)}&guardianTopic=${encodeURIComponent(topic)}`;
 }
@@ -236,6 +255,12 @@ export default function GuardianFortuneShareClient() {
       return () => { cancelled = true; };
     }
     setStatus("loading");
+    const injected = readInjectedSnapshot(shareId);
+    if (injected) {
+      setSnapshot(injected);
+      setStatus("ready");
+      return () => { cancelled = true; };
+    }
     fetch(`/api/fortune/guardian/share/${encodeURIComponent(shareId)}`, {
       method: "GET",
       headers: { Accept: "application/json" },
