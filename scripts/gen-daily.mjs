@@ -116,8 +116,37 @@ const homeEntryUrl = `https://code-destiny.com/?utm_source=daily_fortune&utm_med
 
 const L = ['kr', 'en', 'jp', 'cn', 'fr', 'nl', 'vi', 'ms'];
 
+// 공개 JSON은 과거 jp/cn 필드를 호환용으로 남기되, 새 렌더러가 읽는 정본 키는
+// ja/zh-CN/zh-TW로 고정한다. 번체는 간체 원문을 그대로 재사용하지 않고 별도 변환
+// 표를 거쳐 생성해 간체·번체 혼용을 막는다.
+const ZH_TW_REPLACEMENTS = {
+  关: '關', 这: '這', 个: '個', 变: '變', 动: '動', 见: '見', 说: '說', 话: '話',
+  读: '讀', 识: '識', 书: '書', 记: '記', 计: '計', 体: '體', 现: '現', 进: '進',
+  过: '過', 运: '運', 势: '勢', 财: '財', 爱: '愛', 感: '感', 关: '關', 系: '係',
+  号: '號', 见: '見', 习: '習', 气: '氣', 阳: '陽', 阴: '陰', 开: '開', 发: '發',
+  让: '讓', 为: '為', 无: '無', 义: '義', 乐: '樂', 亲: '親', 乡: '鄉', 后: '後',
+  里: '裡', 这: '這', 时: '時', 间: '間', 实: '實', 对: '對', 应: '應', 续: '續',
+  备: '備', 处: '處', 产: '產', 质: '質', 线: '線', 结: '結', 果: '果', 轻: '輕',
+  进: '進', 还: '還', 头: '頭', 题: '題', 够: '夠', 认: '認', 证: '證', 复: '復',
+};
+function toTraditional(value) {
+  return String(value || '').replace(/[关这变动见说话读识书记计体现进过运势财爱系号习气阳阴开发让为无义乐亲乡后里时间实对应续备处产质线结轻还头题够认证复]/g, (char) => ZH_TW_REPLACEMENTS[char] || char);
+}
 function box(kr, en, jp, cn, fr, nl, vi, ms) {
-  return { kr, en, jp, cn, fr, nl, vi, ms };
+  return { kr, en, jp, cn, fr, nl, vi, ms, ja: jp, 'zh-CN': cn, 'zh-TW': toTraditional(cn) };
+}
+
+function addDailyLocaleFields(value) {
+  if (!value || typeof value !== 'object') return value;
+  if (Array.isArray(value)) return value.map(addDailyLocaleFields);
+  const next = {};
+  for (const [key, child] of Object.entries(value)) next[key] = addDailyLocaleFields(child);
+  if (typeof next.kr === 'string') {
+    next.ja ??= next.jp || next.en;
+    next['zh-CN'] ??= next.cn || next.en;
+    next['zh-TW'] ??= toTraditional(next['zh-CN']);
+  }
+  return next;
 }
 
 /**
@@ -714,7 +743,24 @@ const payload = {
   vedic: mkVedic(),
 };
 
+// 날짜별 발행물의 상단 SEO/소개도 카드 문구와 같은 정본으로 보관한다. 기존 *_kr/*_en
+// 필드는 외부 소비자 호환을 위해 유지하고, 새 화면은 아래 locale map을 우선 사용한다.
+payload.daily_editorial.localized = {
+  en: { intro: payload.daily_editorial.intro_en, homeCta: 'Read the full daily reading on Code Destiny.' },
+  ja: { intro: `${dateStr}の今日の運勢は${({ '연애운': '恋愛運', '금전운': '金運', '직장운': '仕事運', '건강운': '健康運', '인간관계운': '人間関係運', '행운 포인트': '開運ポイント' })[SEO_THEME_KR] || '開運ポイント'}がテーマです。月のリズムに合わせ、小さな習慣を整えましょう。`, homeCta: 'Code Destinyで今日の詳しい運勢を読む' },
+  'zh-CN': { intro: `${dateStr}的今日运势以${({ '연애운': '感情运', '금전운': '财运', '직장운': '事业运', '건강운': '健康运', '인간관계운': '人际关系运', '행운 포인트': '幸运要点' })[SEO_THEME_KR] || '幸运要点'}为重点。顺着月亮的节奏守住小习惯，好运会逐渐累积。`, homeCta: '在 Code Destiny 查看完整的今日运势' },
+  'zh-TW': { intro: `${dateStr}的今日運勢以${({ '연애운': '感情運', '금전운': '財運', '직장운': '事業運', '건강운': '健康運', '인간관계운': '人際關係運', '행운 포인트': '幸運要點' })[SEO_THEME_KR] || '幸運要點'}為重點。順著月亮的節奏守住小習慣，好運會逐漸累積。`, homeCta: '在 Code Destiny 查看完整的今日運勢' },
+};
+payload.daily_seo.localized = {
+  en: { title: payload.daily_seo.title_en, description: payload.daily_seo.description_en, keywords: payload.daily_seo.keywords_en },
+  ja: { title: `${dateStr} 今日の運勢 | 開運ガイド`, description: `${dateStr}の今日の運勢を四柱推命・占星術・紫微斗数・宿曜・ヴェーダの視点から読み解きます。`, keywords: ['今日の運勢', dateStr, '無料占い', '四柱推命', '宿曜'] },
+  'zh-CN': { title: `${dateStr} 今日运势 | 幸运指南`, description: `从四柱推命、占星术、紫微斗数、宿曜与吠陀视角解读${dateStr}的今日运势。`, keywords: ['今日运势', dateStr, '免费运势', '四柱推命', '宿曜'] },
+  'zh-TW': { title: `${dateStr} 今日運勢 | 幸運指南`, description: `從四柱推命、占星術、紫微斗數、宿曜與吠陀視角解讀${dateStr}的今日運勢。`, keywords: ['今日運勢', dateStr, '免費運勢', '四柱推命', '宿曜'] },
+};
+
+const localizedPayload = addDailyLocaleFields(payload);
+
 for (const outFile of outFiles) {
-  fs.writeFileSync(outFile, JSON.stringify(payload, null, 2), 'utf8');
+  fs.writeFileSync(outFile, JSON.stringify(localizedPayload, null, 2), 'utf8');
   console.log('Wrote', outFile);
 }
