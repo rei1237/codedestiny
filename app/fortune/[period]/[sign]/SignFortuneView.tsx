@@ -19,7 +19,7 @@ import { getSignProfile, getSiblingProfiles, type SignProfile } from "@/lib/fort
 import { getPeriodReading } from "@/lib/fortune/period-readings";
 import { buildPeriodFaqs } from "@/lib/fortune/period-faqs";
 import { markerAttrs } from "@/lib/fortune/i18n-marker";
-import { fortuneLocaleSegment, FORTUNE_COPY, langBoxText, getLocalizedProfile, type FortuneLocale } from "@/lib/fortune/localization";
+import { fortuneLocaleSegment, FORTUNE_COPY, getLocalizedPeriodReading, langBoxText, getLocalizedProfile, periodLabel as localizedPeriodLabel, sajuInsightText, type FortuneLocale } from "@/lib/fortune/localization";
 import YeoniPortrait, { moodForScore } from "../YeoniPortrait";
 
 const SCORE_AXES = [
@@ -99,6 +99,7 @@ function localizeViewModel(source: SignViewModel, locale: FortuneLocale): SignVi
     keyword: box(source.entry.keyword),
     sections: Object.fromEntries(Object.entries(source.entry.sections).map(([key, value]) => [key, box(value)])),
     planet_message: source.entry.planet_message ? box(source.entry.planet_message) : undefined,
+    saju_insight: sajuInsightText(source.profile.id, source.entry.saju_insight, locale),
     lucky: { ...source.entry.lucky, color_kr: (source.entry.lucky as unknown as Record<string, string>)[`color_${locale === "ja" ? "ja" : locale === "zh-CN" ? "zh" : locale === "zh-TW" ? "zh_tw" : "en"}`] || source.entry.lucky.color_en || "" },
   } as SignViewModel["entry"];
   const evidence = (row: SignViewModel["facts"][number]) => ({ ...row, label: formatFortuneEvidence(row.label, locale), value: resolveFortuneMarked(row.valueI18n, row.value, locale) });
@@ -112,13 +113,13 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
   const vm = localizeViewModel(sourceVm, locale);
   const { profile, entry, period, score } = vm;
   const copy = FORTUNE_COPY[locale];
-  const periodLabel = locale === "ko" ? PERIOD_LABEL[period] : ({ today: locale === "en" ? "Today" : locale === "ja" ? "今日" : locale === "zh-CN" ? "今日" : "今日", tomorrow: locale === "en" ? "Tomorrow" : locale === "ja" ? "明日" : locale === "zh-CN" ? "明日" : "明日", weekly: locale === "en" ? "This week" : locale === "ja" ? "今週" : locale === "zh-CN" ? "本周" : "本週", monthly: locale === "en" ? "This month" : locale === "ja" ? "今月" : locale === "zh-CN" ? "本月" : "本月" } as Record<string, string>)[period];
+  const currentPeriodLabel = localizedPeriodLabel(period, locale);
   const kindLabel = profile.kind === "zodiac" ? copy.zodiac : copy.animal;
   const siblings = getSiblingProfiles(profile.kind).map((item) => getLocalizedProfile(item, locale));
   const others = getSiblingProfiles(profile.kind === "zodiac" ? "animal" : "zodiac").map((item) => getLocalizedProfile(item, locale));
   const compatible = profile.bestWith.map(getSignProfile).filter(Boolean).map((item) => getLocalizedProfile(item!, locale)) as SignProfile[];
   const tricky = profile.challengeWith.map(getSignProfile).filter(Boolean).map((item) => getLocalizedProfile(item!, locale)) as SignProfile[];
-  const prefix = locale === "ko" ? "" : `/${locale === "zh-TW" ? "zh-tw" : locale}`;
+  const prefix = locale === "ko" ? "" : `/${fortuneLocaleSegment(locale)}`;
   const otherPeriods = (["today", "tomorrow", "weekly", "monthly"] as FortunePeriodId[]).filter((p) => p !== period);
 
   return (
@@ -131,7 +132,7 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
           <span aria-hidden="true">›</span>
           <Link href={`${prefix}/today/`} className="hover:underline">{copy.today}</Link>
           <span aria-hidden="true">›</span>
-          <Link href={`${prefix}/fortune/${period}/`} className="hover:underline">{`${periodLabel} ${kindLabel} ${copy.fortune}`}</Link>
+          <Link href={`${prefix}/fortune/${period}/`} className="hover:underline">{`${currentPeriodLabel} ${kindLabel} ${copy.fortune}`}</Link>
           <span aria-hidden="true">›</span>
           <span className={ACCENT}>{profile.nameKo}</span>
         </nav>
@@ -142,7 +143,7 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
             <p className={`text-xs font-bold tracking-wider ${ACCENT}`}>{vm.rangeLabel}</p>
             <h1 className="mt-3 break-keep text-3xl font-black leading-tight sm:text-4xl">
               <span aria-hidden="true" className="mr-2">{profile.symbol}</span>
-              {`${profile.nameKo} ${locale === "ko" ? PERIOD_TITLE[period] : periodLabel} ${copy.fortune}`}
+              {`${profile.nameKo} ${locale === "ko" ? PERIOD_TITLE[period] : currentPeriodLabel} ${copy.fortune}`}
             </h1>
             <p className={`mt-3 break-keep text-sm leading-7 ${MUTED}`}>
               {`${profile.rangeLabel} · ${profile.element} · ${profile.ruler}`}
@@ -154,7 +155,7 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
         {/* 기간별 기준 값 — 매 기간 실제로 다른 값이다 */}
         <section aria-labelledby="facts-heading" className={`mt-8 p-5 ${CARD}`}>
           <h2 id="facts-heading" className={`break-keep text-sm font-extrabold ${ACCENT}`}>
-            {`${periodLabel} · ${copy.facts}`}
+            {`${currentPeriodLabel} · ${copy.facts}`}
           </h2>
           <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 text-sm sm:grid-cols-4">
             {vm.facts.map((fact) => (
@@ -170,7 +171,7 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
         {vm.relation && (
           <section aria-labelledby="relation-heading" className="mt-4 rounded-2xl border border-[#ead089]/60 bg-[#fff8dc]/50 p-5 dark:border-[#ead089]/25 dark:bg-[#ead089]/[0.06]">
             <h2 id="relation-heading" className={`break-keep text-sm font-extrabold ${ACCENT}`}>
-            {`${profile.nameKo} · ${periodLabel} ${copy.relationship}`}
+            {`${profile.nameKo} · ${currentPeriodLabel} ${copy.relationship}`}
             </h2>
             <p
               {...markerAttrs(vm.relation.badgeI18n)}
@@ -185,7 +186,7 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
         {/* 점수 + 산출 근거 */}
         <section aria-labelledby="score-heading" className="mt-8">
           <h2 id="score-heading" className="break-keep text-lg font-extrabold">
-            {`${periodLabel} ${copy.score}`}
+            {`${currentPeriodLabel} ${copy.score}`}
           </h2>
           <div className={`mt-4 p-5 ${CARD}`}>
             <div className="flex flex-wrap items-center gap-3">
@@ -224,11 +225,19 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
           <section aria-labelledby="week-heading" className="mt-8">
             <h2 id="week-heading" className="break-keep text-lg font-extrabold">{locale === "ko" ? "요일별 흐름" : locale === "ja" ? "曜日ごとの流れ" : locale === "en" ? "Flow by day" : "每日走势"}</h2>
             <p className={`mt-2 break-keep text-sm leading-7 ${MUTED}`}>
-              {`같은 주라도 띠와 별자리마다 이 배치가 전부 다릅니다. 일진의 지지가 이 ${kindLabel}와 어떤 관계를 맺는지로 판정합니다.`}
+              {locale === "ko"
+                ? `같은 주라도 띠와 별자리마다 이 배치가 전부 다릅니다. 일진의 지지가 이 ${kindLabel}와 어떤 관계를 맺는지로 판정합니다.`
+                : locale === "en"
+                  ? "The map differs for every Chinese zodiac animal and Western zodiac sign, even within the same week. It is calculated from how each day's earthly branch relates to this sign."
+                  : locale === "ja"
+                    ? "同じ週でも、干支と星座ごとに並びは異なります。各日の日支がこの星座・干支とどのような関係を結ぶかで判定します。"
+                    : locale === "zh-CN"
+                      ? "即使在同一周，不同生肖与星座的排列也各不相同。判断依据是每天的日支与当前生肖或星座形成的关系。"
+                      : "即使在同一週，不同生肖與星座的排列也各不相同。判斷依據是每天的日支與目前生肖或星座形成的關係。"}
             </p>
             <div className="mt-4 overflow-x-auto">
               <table className={`w-full min-w-[30rem] border-collapse text-sm ${CARD}`}>
-                <caption className="sr-only">{vm.rangeLabel} 요일별 일진과 총운</caption>
+                <caption className="sr-only">{locale === "ko" ? `${vm.rangeLabel} 요일별 일진과 총운` : locale === "en" ? `${vm.rangeLabel}, daily pillars and overall scores` : locale === "ja" ? `${vm.rangeLabel}、曜日別の日柱と総合運` : locale === "zh-CN" ? `${vm.rangeLabel}，每日柱与综合运` : `${vm.rangeLabel}，每日日柱與綜合運`}</caption>
                 <thead>
                   <tr className={`text-xs ${MUTED}`}>
                     <th scope="col" className="px-4 py-3 text-left font-bold">{locale === "en" ? "Date" : locale === "ja" ? "日付" : locale === "ko" ? "날짜" : "日期"}</th>
@@ -267,7 +276,7 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
         {vm.highlights && (
           <section aria-labelledby="highlight-heading" className="mt-8">
             <h2 id="highlight-heading" className="break-keep text-lg font-extrabold">
-            {`${periodLabel} · ${copy.highlights}`}
+            {`${currentPeriodLabel} · ${copy.highlights}`}
             </h2>
             <dl className="mt-4 grid gap-3 sm:grid-cols-2">
               {vm.highlights.map((row) => (
@@ -300,7 +309,7 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
 
         {/* 행운 포인트 + 연이 서명 */}
         <section aria-labelledby="lucky-heading" className={`mt-8 p-5 ${CARD}`}>
-          <h2 id="lucky-heading" className="break-keep text-lg font-extrabold">{`${periodLabel} · ${copy.lucky}`}</h2>
+          <h2 id="lucky-heading" className="break-keep text-lg font-extrabold">{`${currentPeriodLabel} · ${copy.lucky}`}</h2>
           <dl className="mt-4 flex flex-wrap gap-x-8 gap-y-3 text-sm">
             <div>
               <dt className={`text-xs ${MUTED}`}>{copy.luckyColor}</dt>
@@ -348,7 +357,7 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
 
           <h3 className={`mt-5 break-keep text-sm font-extrabold ${ACCENT}`}>{copy.reading}</h3>
           <p className={`mt-2 break-keep text-sm leading-7 ${MUTED}`}>
-            {locale === "ko" ? getPeriodReading(profile.id, period, profile.reading) : profile.reading}
+            {getLocalizedPeriodReading(profile, period, locale, getPeriodReading(profile.id, period, profile.reading))}
           </p>
         </section>
 
@@ -400,7 +409,7 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
         <section aria-labelledby="faq-heading" className="mt-12">
           <h2 id="faq-heading" className="break-keep text-lg font-extrabold">{locale === "ko" ? "자주 묻는 질문" : locale === "en" ? "Frequently asked questions" : locale === "ja" ? "よくある質問" : "常见问题"}</h2>
           <div className="mt-4 space-y-3">
-            {(locale === "ko" ? buildPeriodFaqs(profile, period) : profile.faqs).map((faq) => (
+            {buildPeriodFaqs(profile, period, locale).map((faq) => (
               <details key={faq.question} className={`px-5 py-4 ${CARD}`}>
                 <summary className="cursor-pointer list-none break-keep text-sm font-bold marker:content-none">
                   {faq.question}
@@ -423,7 +432,7 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
                   href={`${prefix}/fortune/${p}/${profile.id}/`}
                   className="inline-flex min-h-[44px] items-center rounded-full border border-[#b31955]/35 bg-[#b31955]/[0.06] px-5 text-sm font-bold text-[#b31955] hover:bg-[#b31955]/12 dark:border-[rgba(255,196,222,0.35)] dark:bg-white/[0.06] dark:text-[rgba(255,196,222,0.96)]"
                 >
-                  {`${profile.nameKo} ${locale === "ko" ? PERIOD_LABEL[p] : p === "today" ? (locale === "en" ? "Today" : locale === "ja" ? "今日" : "今日") : p === "tomorrow" ? (locale === "en" ? "Tomorrow" : locale === "ja" ? "明日" : "明日") : p === "weekly" ? (locale === "en" ? "This week" : locale === "ja" ? "今週" : locale === "zh-CN" ? "本周" : "本週") : (locale === "en" ? "This month" : locale === "ja" ? "今月" : locale === "zh-CN" ? "本月" : "本月")} ${copy.fortune} →`}
+                  {`${profile.nameKo} ${localizedPeriodLabel(p, locale)} ${copy.fortune} →`}
                 </Link>
               </li>
             ))}
@@ -470,7 +479,9 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
           </div>
         </section>
 
-        <FusionCrossSell fromPath={`/fortune/${period}/${profile.id}`} tone="yeoni" />
+        {locale === "ko" ? (
+          <FusionCrossSell fromPath={`/fortune/${period}/${profile.id}`} tone="yeoni" />
+        ) : null}
 
         <p className={`mt-12 break-keep text-xs leading-6 ${MUTED}`}>
           {locale === "ko" ? "이 페이지의 점수는 해당 기간의 일진·월건·절기·달의 위치를 실제로 계산해 각 별자리와 띠의 기질에 대입한 값이며, 산출 근거를 위에 그대로 표시하고 있습니다. 사람이 매일 손으로 쓰는 글이 아니므로 같은 기간이면 언제 열어도 결과가 같습니다. 결과는 참고 자료이며 의료·법률·투자 판단을 대신하지 않습니다." : locale === "en" ? "Scores use calculated pillars, solar terms and lunar positions. Their basis is shown above. Readings are generated from these inputs, rather than written by hand each day. They are for reference and do not replace medical, legal or investment advice." : locale === "ja" ? "スコアは日柱・月柱・節気・月の位置を計算して導き、根拠を上に示しています。毎日手書きする文章ではなく、計算値に基づくリーディングです。参考情報であり、医療・法律・投資の判断に代わるものではありません。" : locale === "zh-CN" ? "评分根据日柱、月柱、节气和月亮位置计算，依据已列于上方。解读由这些数据生成，并非每日人工撰写。结果仅供参考，不能替代医疗、法律或投资判断。" : "評分根據日柱、月柱、節氣和月亮位置計算，依據已列於上方。解讀由這些資料生成，並非每日人工撰寫。結果僅供參考，不能替代醫療、法律或投資判斷。"}

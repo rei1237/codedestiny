@@ -67,13 +67,18 @@ const terms = [
   ["토", "Earth", "土", "土", "土"], ["금", "Metal", "金", "金", "金"], ["수", "Water", "水", "水", "水"],
 ] as const;
 const solarTerms = ["소한", "대한", "입춘", "우수", "경칩", "춘분", "청명", "곡우", "입하", "소만", "망종", "하지", "소서", "대서", "입추", "처서", "백로", "추분", "한로", "상강", "입동", "소설", "대설", "동지"];
-const solarNames = ["小寒", "大寒", "立春", "雨水", "驚蟄", "春分", "清明", "穀雨", "立夏", "小滿", "芒種", "夏至", "小暑", "大暑", "立秋", "處暑", "白露", "秋分", "寒露", "霜降", "立冬", "小雪", "大雪", "冬至"];
+const solarNames: Record<Exclude<FortuneLocale, "ko">, readonly string[]> = {
+  en: ["Minor Cold", "Major Cold", "Start of Spring", "Rain Water", "Awakening of Insects", "Spring Equinox", "Pure Brightness", "Grain Rain", "Start of Summer", "Grain Full", "Grain in Ear", "Summer Solstice", "Minor Heat", "Major Heat", "Start of Autumn", "End of Heat", "White Dew", "Autumn Equinox", "Cold Dew", "Frost Descent", "Start of Winter", "Minor Snow", "Major Snow", "Winter Solstice"],
+  ja: ["小寒", "大寒", "立春", "雨水", "啓蟄", "春分", "清明", "穀雨", "立夏", "小満", "芒種", "夏至", "小暑", "大暑", "立秋", "処暑", "白露", "秋分", "寒露", "霜降", "立冬", "小雪", "大雪", "冬至"],
+  "zh-CN": ["小寒", "大寒", "立春", "雨水", "惊蛰", "春分", "清明", "谷雨", "立夏", "小满", "芒种", "夏至", "小暑", "大暑", "立秋", "处暑", "白露", "秋分", "寒露", "霜降", "立冬", "小雪", "大雪", "冬至"],
+  "zh-TW": ["小寒", "大寒", "立春", "雨水", "驚蟄", "春分", "清明", "穀雨", "立夏", "小滿", "芒種", "夏至", "小暑", "大暑", "立秋", "處暑", "白露", "秋分", "寒露", "霜降", "立冬", "小雪", "大雪", "冬至"],
+};
 
 export function resolveFortuneMarked(marked: MarkedText | undefined, fallback: string, locale: FortuneLocale): string {
   if (locale === "ko" || !marked) return formatFortuneEvidence(fallback, locale);
   const dictionary = dictionaries[locale];
   if (typeof valueAtPath(dictionary, marked.key) !== "string") throw new Error(`Missing fortune translation: ${locale}:${marked.key}`);
-  return resolveKey(dictionary, marked.key, locale, marked.vars);
+  return formatFortuneEvidence(resolveKey(dictionary, marked.key, locale, marked.vars), locale);
 }
 
 export function formatFortuneEvidence(value: string, locale: FortuneLocale): string {
@@ -82,10 +87,12 @@ export function formatFortuneEvidence(value: string, locale: FortuneLocale): str
   const weekday = (index: number) => new Intl.DateTimeFormat(locale, { weekday: "short", timeZone: "UTC" }).format(new Date(Date.UTC(2026, 8, 13 + index)));
   text = text.replace(/([일월화수목금토])요일/g, (_, day) => weekday("일월화수목금토".indexOf(day)))
     .replace(/\(([일월화수목금토])\)/g, (_, day) => `(${weekday("일월화수목금토".indexOf(day))})`)
-    .replace(/(\d+)년\s*/g, "$1-").replace(/(\d+)월\s*/g, "$1-").replace(/(\d+)일/g, "$1")
+    .replace(/(\d{4})년\s*(\d{1,2})월\s*(\d{1,2})일/g, (_, year, month, day) => new Intl.DateTimeFormat(locale, { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" }).format(new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)))))
+    .replace(/(\d{4})년\s*(\d{1,2})월/g, (_, year, month) => new Intl.DateTimeFormat(locale, { year: "numeric", month: "long", timeZone: "UTC" }).format(new Date(Date.UTC(Number(year), Number(month) - 1, 1))))
+    .replace(/(\d{1,2})월\s*(\d{1,2})일/g, (_, month, day) => new Intl.DateTimeFormat(locale, { month: "short", day: "numeric", timeZone: "UTC" }).format(new Date(Date.UTC(2026, Number(month) - 1, Number(day)))))
     .replace(/(\d+)점/g, "$1/10");
   for (const profile of SIGN_PROFILES) text = text.replaceAll(profile.nameKo, signName(profile.id, locale));
-  solarTerms.forEach((term, index) => { text = text.replaceAll(term, solarNames[index]); });
+  solarTerms.forEach((term, index) => { text = text.replaceAll(term, solarNames[locale][index]); });
   for (const row of [...terms].sort((a, b) => b[0].length - a[0].length)) text = text.replaceAll(row[0], row[columns[locale]]);
   return text;
 }

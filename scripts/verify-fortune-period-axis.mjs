@@ -151,12 +151,18 @@ for (const bad of ["weekly", "monthly"]) {
 // 화면과 스키마가 같은 목록을 쓰는가 (한쪽만 고치면 구조화 데이터가 4벌 동일로 돌아간다)
 const viewSrc = read("app/fortune/[period]/[sign]/SignFortuneView.tsx");
 const pageSrc = read("app/fortune/[period]/[sign]/page.tsx");
-assert(/buildPeriodFaqs\(profile, period\)/.test(viewSrc),
+assert(/buildPeriodFaqs\(profile, period(?:, locale)?\)/.test(viewSrc),
   "[period-faqs] SignFortuneView 가 profile.faqs 를 그대로 쓴다 — buildPeriodFaqs 로 바꿀 것.");
 assert(/buildFaqPageJsonLd\(buildPeriodFaqs\(/.test(pageSrc),
   "[period-faqs] FAQPage 스키마가 buildPeriodFaqs 를 쓰지 않는다 — 4개 기간이 같은 스키마를 내보낸다.");
 assert(/getPeriodReading\(profile\.id, period/.test(viewSrc),
   "[period-readings] SignFortuneView 가 profile.reading 을 그대로 쓴다 — getPeriodReading 으로 바꿀 것.");
+assert(/getLocalizedPeriodReading\(profile, period, locale/.test(viewSrc),
+  "[period-readings] 비한국어 화면이 기간별 해설 대신 일반 profile.reading 으로 돌아갔다.");
+
+const localePageSrc = read("app/[locale]/fortune/[period]/[sign]/page.tsx");
+assert(/buildFaqPageJsonLd\(faqs\)/.test(localePageSrc) && /buildPeriodFaqs\(profile, period, locale\)/.test(localePageSrc),
+  "[period-faqs] 로케일 FAQPage 스키마가 화면의 기간별 FAQ 정본과 다르다.");
 
 if (failures.length) {
   console.error("[fortune-period-axis] 실패:");

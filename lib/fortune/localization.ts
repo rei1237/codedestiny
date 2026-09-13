@@ -85,6 +85,73 @@ export function periodTitle(period: FortunePeriodId, locale: FortuneLocale): str
 }
 
 const profileTranslations = { en: enProfiles, ja: jaProfiles, "zh-CN": zhCnProfiles, "zh-TW": zhTwProfiles };
+
+const SAJU_INSIGHT_COPY: Record<Exclude<FortuneLocale, "ko">, Record<string, string>> = {
+  en: {
+    rat: "As the day's energy settles, words lose their edge and cooperation becomes easier. If a clash or penalty appears, pause for one beat before responding.",
+    ox: "When Earth energy offers support, routine becomes an asset. Strengthen the basics before expanding further.",
+    tiger: "The stronger the Wood energy, the more the tone of a single sentence shapes the outcome.",
+    rabbit: "As Resource energy becomes active, considerate action draws better results than explanation alone.",
+    dragon: "When Authority energy is clear, sharing responsibility through cooperation becomes the central task.",
+    snake: "Ideas become practical when Eating God and Hurting Officer energies are kept in balance.",
+    horse: "On days when Companion and Rob Wealth energies run strong, choosing cooperation over competition reduces avoidable loss.",
+    goat: "When Eating God energy is active, your senses and taste can connect with a source of income.",
+    monkey: "When Hurting Officer and Eating God energies are active together, keep humor from turning cutting.",
+    rooster: "As Direct Officer and Seven Killings energies settle, clear rules become a form of protection.",
+    dog: "When Resource energy is strong, help others without neglecting your own energy.",
+    pig: "When Wealth energy is clear, easing excessive desire can open a wider flow.",
+  },
+  ja: {
+    rat: "日干の気が整うほど言葉の鋭さが和らぎ、協力しやすくなります。冲や刑が見えるときは、一呼吸置いてください。",
+    ox: "土の気が支えるときは、習慣が資産になります。無理に広げるより、基本を固めましょう。",
+    tiger: "木の気が強いほど、ひと言の温度が結果を左右します。",
+    rabbit: "印星の気が働くほど、言葉で説明するより思いやりのある行動が運を招きます。",
+    dragon: "官星が明確なほど、責任の重さを分け合う協力が要になります。",
+    snake: "食神と傷官のバランスが整うと、アイデアが現実の形に下りてきます。",
+    horse: "比肩と劫財が強い日ほど、競争より協力の道を選ぶと損失を抑えられます。",
+    goat: "食神が働くと、感覚や好みが収入につながることがあります。",
+    monkey: "傷官と食神がともに働くときは、ユーモアが棘にならないよう気をつけてください。",
+    rooster: "正官と偏官の気が整うほど、明確な規則が守りになります。",
+    dog: "印星が強いほど、人を助けながら自分のエネルギーも守ってください。",
+    pig: "財星が澄むほど、欲を少し緩めることで流れがかえって広がります。",
+  },
+  "zh-CN": {
+    rat: "日干之气越有条理，言语的锋芒越容易缓和，合作也会顺畅起来。若出现冲、刑，先停一拍再回应。",
+    ox: "土的力量提供支撑时，稳定的习惯会成为资产。与其勉强扩张，不如先巩固基本功。",
+    tiger: "木气越强，一句话的温度越容易左右结果。",
+    rabbit: "印星之气越活跃，比起言语说明，体贴的行动更能带来顺势。",
+    dragon: "官星越清晰，越需要通过合作分担责任的重量。",
+    snake: "食神与伤官保持平衡时，想法更容易落到现实。",
+    horse: "比肩、劫财较强的日子里，选择合作而非竞争，可以减少不必要的损耗。",
+    goat: "食神活跃时，感受力与审美也可能连接到收入。",
+    monkey: "伤官与食神同时活跃时，要留意别让幽默变成伤人的锋芒。",
+    rooster: "正官、偏官之气越有条理，清晰的规则越能成为保护。",
+    dog: "印星较强时，可以帮助别人，也要照顾自己的精力。",
+    pig: "财星越清明，适度放下过多欲望，反而更容易打开流动。",
+  },
+  "zh-TW": {
+    rat: "日干之氣越有條理，言語的鋒芒越容易緩和，合作也會順暢起來。若出現沖、刑，先停一拍再回應。",
+    ox: "土的力量提供支撐時，穩定的習慣會成為資產。與其勉強擴張，不如先鞏固基本功。",
+    tiger: "木氣越強，一句話的溫度越容易左右結果。",
+    rabbit: "印星之氣越活躍，比起言語說明，體貼的行動更能帶來順勢。",
+    dragon: "官星越清晰，越需要透過合作分擔責任的重量。",
+    snake: "食神與傷官保持平衡時，想法更容易落到現實。",
+    horse: "比肩、劫財較強的日子裡，選擇合作而非競爭，可以減少不必要的損耗。",
+    goat: "食神活躍時，感受力與審美也可能連結到收入。",
+    monkey: "傷官與食神同時活躍時，要留意別讓幽默變成傷人的鋒芒。",
+    rooster: "正官、偏官之氣越有條理，清晰的規則越能成為保護。",
+    dog: "印星較強時，可以幫助別人，也要照顧自己的精力。",
+    pig: "財星越清明，適度放下過多欲望，反而更容易打開流動。",
+  },
+};
+
+export function sajuInsightText(signId: string, original: string | undefined, locale: FortuneLocale): string | undefined {
+  if (!original || locale === "ko") return original;
+  const value = SAJU_INSIGHT_COPY[locale][signId];
+  if (!value) throw new Error(`[fortune:i18n] missing ${locale} saju insight for ${signId}`);
+  return value;
+}
+
 export function getLocalizedProfile(profile: SignProfile, locale: FortuneLocale): SignProfile {
   if (locale === "ko") return profile;
   const parsed = profileTranslations[locale];
@@ -102,4 +169,38 @@ export function getLocalizedProfile(profile: SignProfile, locale: FortuneLocale)
     essence: field("essence", profile.essence), strength: field("strength", profile.strength), caution: field("caution", profile.caution), luckyHabit: field("luckyHabit", profile.luckyHabit), reading: field("reading", profile.reading),
     faqs: profile.faqs.map((faq, index) => ({ question: field(`faq:${index}:question`, faq.question), answer: field(`faq:${index}:answer`, faq.answer) })),
   } as SignProfile & Record<string, unknown>;
+}
+
+export function getLocalizedPeriodReading(
+  profile: SignProfile,
+  period: FortunePeriodId,
+  locale: FortuneLocale,
+  koreanReading: string,
+): string {
+  if (locale === "ko") return koreanReading;
+  if (period === "today") return profile.reading;
+
+  const copy = {
+    en: {
+      tomorrow: `Use tomorrow's score to prepare tonight, not to predict every event. ${profile.luckyHabit} Then decide one thing to begin, one thing to postpone, and where to leave room so ${profile.nameKo}'s strengths can work without being rushed.`,
+      weekly: `Read the seven-day table as a schedule, not as seven separate verdicts. Put work that draws on ${profile.nameKo}'s strengths on higher-scoring days. On lower-scoring days, slow down and use this caution as a boundary: ${profile.caution}`,
+      monthly: `Divide the month around the turning points shown above. Build on this strength in the earlier stretch — ${profile.strength} — then use the later stretch to consolidate, keeping the caution above as a practical limit.`,
+    },
+    ja: {
+      tomorrow: `明日のスコアは出来事を断定するためではなく、今夜の準備に使います。${profile.luckyHabit} そのうえで、始めること・先送りすること・余白を残すことを一つずつ決めておくと、${profile.nameKo}らしい強みを急がず活かせます。`,
+      weekly: `7日分の表は、七つの判定ではなく一週間の予定表として読みます。スコアの高い日に${profile.nameKo}の強みを使う仕事を置き、低い日は速度を落として、次の注意点を境界線にしてください。${profile.caution}`,
+      monthly: `上に示した転換点を境に一か月を分けて読みます。前半は「${profile.strength}」という強みを育て、後半は広げたものを整えながら、注意点を現実的な上限として使ってください。`,
+    },
+    "zh-CN": {
+      tomorrow: `明日的评分用于今晚做准备，而不是断定每一件事。${profile.luckyHabit} 在此基础上，分别决定一件要开始的事、一件可延后的事，以及需要保留余地的地方，${profile.nameKo}的优势会更容易发挥。`,
+      weekly: `请把七天表当作一周的安排，而不是七个彼此孤立的结论。把能发挥${profile.nameKo}优势的事项放在高分日；低分日则放慢速度，并把这条提醒当作边界：${profile.caution}`,
+      monthly: `请以上方标出的转折点划分这个月。前半段发展这项优势——${profile.strength}——后半段则收拢已经展开的事项，并把上方的注意点作为现实边界。`,
+    },
+    "zh-TW": {
+      tomorrow: `明日的評分用來在今晚做準備，而不是斷定每一件事。${profile.luckyHabit} 在此基礎上，分別決定一件要開始的事、一件可延後的事，以及需要保留餘地的地方，${profile.nameKo}的優勢會更容易發揮。`,
+      weekly: `請把七天表當作一週的安排，而不是七個彼此孤立的結論。把能發揮${profile.nameKo}優勢的事項放在高分日；低分日則放慢速度，並把這條提醒當作界線：${profile.caution}`,
+      monthly: `請以上方標出的轉折點劃分這個月。前半段發展這項優勢——${profile.strength}——後半段則收攏已經展開的事項，並把上方的注意點作為現實界線。`,
+    },
+  } as const;
+  return copy[locale][period];
 }

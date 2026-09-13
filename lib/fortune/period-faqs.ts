@@ -18,6 +18,7 @@
 
 import type { FortunePeriodId } from "./periods";
 import type { SignFaq, SignProfile } from "./sign-profiles";
+import type { FortuneLocale } from "./localization";
 
 /**
  * 받침 유무로 `와`/`과` 를 고른다.
@@ -71,13 +72,88 @@ const PERIOD_BASIS: Record<FortunePeriodId, BasisCopy> = {
   },
 };
 
+const LOCALIZED_PERIOD_BASIS: Record<Exclude<FortuneLocale, "ko">, Record<FortunePeriodId, BasisCopy>> = {
+  en: {
+    today: {
+      question: (name) => `How is today's fortune for ${name} calculated?`,
+      answer: (p) => `We first calculate today's sexagenary day pillar, Moon phase and current solar-term interval. Those values are read against ${p.nameKo}'s ${p.element} element and ${p.ruler} traits across five axes: overall, love, money, health and work. Because the result comes from the date rather than a text written by hand each day, it remains the same whenever it is opened on that date.`,
+    },
+    tomorrow: {
+      question: (name) => `How is tomorrow's fortune for ${name} different from today's?`,
+      answer: (p) => `Moving the reference date forward changes the day pillar and advances the Moon phase, so the combination meeting ${p.nameKo}'s ${p.element} element also changes. Tomorrow's page is recalculated from tomorrow's values rather than copied from today. Use today's reading for a current choice and tomorrow's reading to prepare ahead.`,
+    },
+    weekly: {
+      question: (name) => `Is the weekly fortune for ${name} just seven daily readings added together?`,
+      answer: (p) => `No. The weekly page compares all seven day pillars with ${p.nameKo}'s ${p.ruler} traits and separates days of harmony from days of friction. The result is scheduling guidance about which day suits which action, so its axis differs from a single day's overall score.`,
+    },
+    monthly: {
+      question: (name) => `What data is used for the monthly fortune for ${name}?`,
+      answer: (p) => `It begins with the month's pillar, the solar-term interval, and the new- and full-moon dates. ${p.nameKo}'s ${p.element} element is then applied to divide the month into earlier and later stretches and mark turning points. A single day's pillar is not used here because a month is read as a sequence of intervals.`,
+    },
+  },
+  ja: {
+    today: {
+      question: (name) => `${name}の今日の運勢は、何を基準に計算しますか？`,
+      answer: (p) => `今日の日柱の干支、月相、現在の節気区間を先に計算し、${p.nameKo}の${p.element}の気と${p.ruler}の性質に当てはめます。そのうえで総合運・恋愛運・金運・健康運・仕事運の五つに分けます。毎日手書きする文章ではなく日付から決まる値なので、同じ日なら開く時刻が違っても結果は同じです。`,
+    },
+    tomorrow: {
+      question: (name) => `${name}の明日の運勢は、今日と何が違いますか？`,
+      answer: (p) => `基準日が一日進むと日柱が変わり、月相も動くため、${p.nameKo}の${p.element}の気と出会う組み合わせ自体が変わります。明日のページは今日の複製ではなく、明日の値で計算し直した結果です。今日は今の選択に、明日は事前の準備に使ってください。`,
+    },
+    weekly: {
+      question: (name) => `${name}の週間運勢は、一日運勢を七つ足したものですか？`,
+      answer: (p) => `いいえ。週間ページは七日分の日柱を並べ、${p.nameKo}の${p.ruler}の性質と照らして、調和しやすい日と摩擦が生じやすい日を分けます。そのため結果は「何を何曜日に置くか」という予定の助言になり、一日単位の総合スコアとは軸が異なります。`,
+    },
+    monthly: {
+      question: (name) => `${name}の月間運勢は、どの資料から作られますか？`,
+      answer: (p) => `今月の月柱、節気の区間、新月と満月の日付を先に確認します。そこへ${p.nameKo}の${p.element}の気を当てはめ、前半と後半を分けて流れの転換点を示します。一日分の日柱ではなく、一か月を複数の区間として読むための計算です。`,
+    },
+  },
+  "zh-CN": {
+    today: {
+      question: (name) => `${name}今日运势依据什么计算？`,
+      answer: (p) => `先计算今日的日柱干支、月相与当前节气区间，再结合${p.nameKo}的${p.element}元素和${p.ruler}特质，分别得出综合、感情、财运、健康与事业五项评分。结果来自日期数据，并非每天手写，因此在同一天的不同时刻打开，结果也保持一致。`,
+    },
+    tomorrow: {
+      question: (name) => `${name}明日运势与今日有什么不同？`,
+      answer: (p) => `基准日期向后一天，日柱会改变，月相也会继续运行，因此与${p.nameKo}的${p.element}元素形成的组合随之变化。明日页面不是今日内容的复制，而是按明日数据重新计算；今日适合判断当下，明日适合提前准备。`,
+    },
+    weekly: {
+      question: (name) => `${name}周运是把七天日运相加吗？`,
+      answer: (p) => `不是。周运会排列本周七天的日柱，并与${p.nameKo}的${p.ruler}特质比较，区分较易协调与较易产生摩擦的日期。因此结果侧重“哪一天安排什么”的节奏建议，与单日综合评分采用不同的观察轴。`,
+    },
+    monthly: {
+      question: (name) => `${name}月运使用哪些资料？`,
+      answer: (p) => `先确定本月月柱、节气区间以及新月与满月日期，再结合${p.nameKo}的${p.element}元素，划分前后阶段并标出转折点。这里不使用某一天的日柱，因为月运需要按区间观察整个月的变化。`,
+    },
+  },
+  "zh-TW": {
+    today: {
+      question: (name) => `${name}今日運勢依據什麼計算？`,
+      answer: (p) => `先計算今日的日柱干支、月相與目前節氣區間，再結合${p.nameKo}的${p.element}元素和${p.ruler}特質，分別得出綜合、感情、財運、健康與事業五項評分。結果來自日期資料，並非每天手寫，因此在同一天的不同時刻開啟，結果也保持一致。`,
+    },
+    tomorrow: {
+      question: (name) => `${name}明日運勢與今日有什麼不同？`,
+      answer: (p) => `基準日期往後一天，日柱會改變，月相也會繼續運行，因此與${p.nameKo}的${p.element}元素形成的組合隨之變化。明日頁面不是今日內容的複製，而是按明日資料重新計算；今日適合判斷當下，明日適合提前準備。`,
+    },
+    weekly: {
+      question: (name) => `${name}週運是把七天日運相加嗎？`,
+      answer: (p) => `不是。週運會排列本週七天的日柱，並與${p.nameKo}的${p.ruler}特質比較，區分較易協調與較易產生摩擦的日期。因此結果側重「哪一天安排什麼」的節奏建議，與單日綜合評分採用不同的觀察軸。`,
+    },
+    monthly: {
+      question: (name) => `${name}月運使用哪些資料？`,
+      answer: (p) => `先確定本月月柱、節氣區間以及新月與滿月日期，再結合${p.nameKo}的${p.element}元素，劃分前後階段並標出轉折點。這裡不使用某一天的日柱，因為月運需要按區間觀察整個月的變化。`,
+    },
+  },
+};
+
 /** 이 기간 페이지가 실제로 무엇을 계산하는지 설명하는 문답 하나. */
-export function buildPeriodBasisFaq(profile: SignProfile, period: FortunePeriodId): SignFaq {
-  const copy = PERIOD_BASIS[period];
+export function buildPeriodBasisFaq(profile: SignProfile, period: FortunePeriodId, locale: FortuneLocale = "ko"): SignFaq {
+  const copy = locale === "ko" ? PERIOD_BASIS[period] : LOCALIZED_PERIOD_BASIS[locale][period];
   return { question: copy.question(profile.nameKo), answer: copy.answer(profile) };
 }
 
 /** 화면과 FAQPage 스키마가 함께 쓰는 목록. 기간 문답이 맨 앞에 온다. */
-export function buildPeriodFaqs(profile: SignProfile, period: FortunePeriodId): SignFaq[] {
-  return [buildPeriodBasisFaq(profile, period), ...profile.faqs];
+export function buildPeriodFaqs(profile: SignProfile, period: FortunePeriodId, locale: FortuneLocale = "ko"): SignFaq[] {
+  return [buildPeriodBasisFaq(profile, period, locale), ...profile.faqs];
 }
