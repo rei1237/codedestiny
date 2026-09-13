@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   if (!locale) return {};
   const base = "/fortune";
   const title = locale === "en" ? "Fortune by period" : locale === "ja" ? "期間別運勢" : locale === "zh-CN" ? "按期间查看运势" : "依期間查看運勢";
-  const description = locale === "en" ? "Choose today, tomorrow, this week or this month, then read all 12 zodiac and 12 Chinese zodiac fortunes." : locale === "ja" ? "今日・明日・今週・今月から期間を選び、12星座と12生肖の運勢を確認できます。" : locale === "zh-CN" ? "从今日、明日、本周或本月中选择期间，查看12星座与12生肖运势。" : "從今日、明日、本週或本月中選擇期間，查看12星座與12生肖運勢。";
+  const description = locale === "en" ? "Choose today, tomorrow, this week or this month, then compare overall, love, money, health and work guidance for all 12 zodiac and 12 Chinese zodiac signs. Each reading also shows its calculated pillars, solar terms and lunar evidence." : locale === "ja" ? "今日・明日・今週・今月から期間を選び、12星座と12生肖それぞれの総合運・恋愛運・金運・健康運・仕事運を確認できます。日柱・月柱・節気・月の位置から導いた計算根拠もあわせて表示します。" : locale === "zh-CN" ? "从今日、明日、本周或本月中选择期间，查看12星座与12生肖的综合运、感情运、财运、健康运和事业运。页面同时展示根据日柱、月柱、节气与月亮位置计算出的参考依据。" : "從今日、明日、本週或本月中選擇期間，查看12星座與12生肖的綜合運、感情運、財運、健康運和事業運。頁面同時展示根據日柱、月柱、節氣與月亮位置計算出的參考依據。";
   return buildSeoMetadata({ path: `/${prefix(locale)}${base}`, title: `${title} | Code Destiny`, description, keywords: [title, FORTUNE_COPY[locale].zodiac, FORTUNE_COPY[locale].animal], hreflang: { ko: base, en: `/en${base}`, ja: `/ja${base}`, "zh-CN": `/zh${base}`, "zh-TW": `/zh-tw${base}` } });
 }
 
