@@ -161,37 +161,6 @@ function resolvePremiumPassReportAccess(user = {}, {
   };
 }
 
-function hasCompatibilityPartnerInputs(requestBody = {}) {
-  const partnerYear = Number(requestBody?.partnerYear);
-  const partnerMonth = Number(requestBody?.partnerMonth);
-  const partnerDay = Number(requestBody?.partnerDay);
-  const partnerBirthDate = String(requestBody?.partnerBirthDate || requestBody?.partnerDob || "").trim();
-  const partner = requestBody && typeof requestBody.partner === "object" ? requestBody.partner : {};
-
-  const nestedPartnerYear = Number(partner?.year);
-  const nestedPartnerMonth = Number(partner?.month);
-  const nestedPartnerDay = Number(partner?.day);
-  const nestedPartnerBirthDate = String(partner?.birthDate || "").trim();
-
-  const hasFlatPartnerDate = Number.isFinite(partnerYear) && Number.isFinite(partnerMonth) && Number.isFinite(partnerDay);
-  const hasNestedPartnerDate = Number.isFinite(nestedPartnerYear) && Number.isFinite(nestedPartnerMonth) && Number.isFinite(nestedPartnerDay);
-
-  return hasFlatPartnerDate
-    || hasNestedPartnerDate
-    || Boolean(partnerBirthDate)
-    || Boolean(nestedPartnerBirthDate)
-    || requestBody?.compatibility === true;
-}
-
-function normalizeModeToken(requestBody = {}) {
-  const mode = String(requestBody?.mode || requestBody?.reportMode || "").trim().toLowerCase();
-  const reportMode = String(requestBody?.reportType || "").trim().toLowerCase();
-  const token = `${mode} ${reportMode}`.trim();
-  if (token.includes("compat") || token.includes("couple")) return token;
-  if (hasCompatibilityPartnerInputs(requestBody)) return `${token} compatibility`.trim();
-  return token;
-}
-
 export function buildAlternativePaymentRules(reportType, requestBody = {}) {
   if (reportType === "celestialHarmony") {
     return [

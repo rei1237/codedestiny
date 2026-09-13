@@ -705,13 +705,6 @@ function buildMemory(chapters = []) {
   return buildCodexChapterMemory(chapters);
 }
 
-// ─── 세션 저장 ───────────────────────────────────────────────────────────────
-
-function createSessionId(userId) {
-  const tail = clean(userId, 24).slice(-6) || "anon";
-  return `mlc_${tail}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
-}
-
 function publicSession(doc) {
   const chapters = (Array.isArray(doc?.chapters) ? doc.chapters : [])
     .slice()

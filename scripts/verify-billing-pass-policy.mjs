@@ -16,6 +16,7 @@ import {
   PREMIUM_QUOTA_MIN_COIN_COST,
 } from "../worker/lib/profile-limits.js";
 import { applyPdfPassDiscountToPricing } from "../worker/lib/pdf-pass-discount.js";
+import { validatePurchasePolicy } from "../worker/lib/entitlement-policy.js";
 import {
   MUSIC_TRACK_UNLOCK_COIN_COST,
   MUSIC_TRACK_UNLOCK_PRICE_KRW,
@@ -596,11 +597,8 @@ assertContains(confirmSource, "preverifiedAuth: confirmAuthCheck.auth", "confirm
 assertContains(paymentsSource, "const auth = delegatedAuth?.userId", "payments accepts only an internally delegated verified auth object");
 
 // 결제수단 선택은 명시적이다. DIRECT_KRW는 PortOne으로, MEMBERSHIP_PASS만 이용권 적용으로 간다.
-assertContains(
-  billingSource,
-  "if (!shouldApplyMembershipPassBeforeCard(body)) return null;",
-  "only an explicit membership-pass choice may apply a pass before card checkout",
-);
+assertNotContains(checkoutSource, "getMembershipPassForBillingRequest", "direct card checkout does not look up a pass");
+assertNotContains(confirmSource, "getMembershipPassForBillingRequest", "direct card confirmation does not look up a pass");
 // 이미 PG 결제가 끝나 검증 페이로드가 실린 confirm 요청은 그대로 검증·기록한다.
 assertContains(billingSource, "const shouldLoadMembershipPass = shouldVerifyMembershipPass(paymentCommand.method);", "payment method is resolved before pass lookup");
 assertContains(paymentsSource, "fetchPortOnePayment", "PortOne verification remains");
@@ -609,7 +607,11 @@ assertContains(paymentsSource, "PortOne V2 KG Inicis", "KG Inicis public config 
 // V2 는 accessMethod 를 이용권/월정석에만 싣고 단건은 accessType 으로 구분하며, 셸 판정기
 // (index.html 의 accessType === 'single_purchase' 분기)가 실제로 읽는 것도 이쪽이다.
 assertContains(paymentsV2CompatSource, 'accessType: "single_purchase"', "single card purchase access type remains");
-assertContains(paymentsSource, "SUBSCRIPTION_MONTHLY_CREDIT_UNSUPPORTED", "subscription pass monthly credit purchase is explicitly rejected");
+// Exercise the live policy instead of a literal in an unused legacy handler.
+for (const method of ["monthly_credit", "membership_credit", "moonlight_stone", "pass", "coin"]) {
+  assert.equal(validatePurchasePolicy({ productType: "membership_pass", requestedPaymentMethod: method }).allowed, false, `pass purchase rejects ${method}`);
+}
+assert.equal(validatePurchasePolicy({ productType: "membership_pass", requestedPaymentMethod: "CARD" }).allowed, true, "pass purchase accepts direct card payment");
 assertNotContains(paymentsSource, "handleSubscriptionMonthlyCreditConfirm", "subscription pass monthly credit confirm path removed");
 assertNotContains(pointsSource, "handleSubscribeWithMonthlyCredit", "subscription pass monthly credit UI handler removed");
 assertNotContains(pointsSource, 'paymentMethod: "monthly_credit"', "subscription pass UI does not submit monthly-credit purchases");

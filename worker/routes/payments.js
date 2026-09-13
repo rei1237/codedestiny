@@ -95,34 +95,6 @@ function normalizePaymentMethod(value) {
   return method ? method.slice(0, 32) : "unknown";
 }
 
-/* 🔴 아래 3개는 호출부가 없다(구 /subscription/prepare 가 유일한 호출부였고 2026-09-06 에 지웠다).
-   그래도 지우지 않는다 — scripts/verify-billing-pass-policy.mjs:606 이 이 파일 소스에
-   "SUBSCRIPTION_MONTHLY_CREDIT_UNSUPPORTED" 리터럴이 있는지로 "월정석으로 이용권을 살 수 없다" 를
-   단언한다. 정본 판정은 V2(worker/payments/passes.js)로 옮겼으므로, 그 가드를 V2 소스로 옮겨 겨눈
-   다음에 함께 지우는 것이 순서다. */
-const SUBSCRIPTION_MONTHLY_CREDIT_UNSUPPORTED_CODE = "SUBSCRIPTION_MONTHLY_CREDIT_UNSUPPORTED";
-const SUBSCRIPTION_MONTHLY_CREDIT_UNSUPPORTED_MESSAGE = "이용권은 단건 결제로만 구매할 수 있습니다. 월정석으로는 이용권을 구매할 수 없습니다.";
-
-function isSubscriptionMonthlyCreditMethod(value) {
-  const normalized = String(value || "").trim().toLowerCase().replace(/[\s-]+/g, "_");
-  return [
-    "monthly",
-    "monthly_credit",
-    "membership_credit",
-    "moonlight_stone",
-    "moonlightstone",
-    "moonlight_credit",
-    "monthly_billing",
-  ].includes(normalized);
-}
-
-function rejectSubscriptionMonthlyCreditPurchase() {
-  return json({
-    message: SUBSCRIPTION_MONTHLY_CREDIT_UNSUPPORTED_MESSAGE,
-    code: SUBSCRIPTION_MONTHLY_CREDIT_UNSUPPORTED_CODE,
-  }, { status: 400 });
-}
-
 function normalizePortOneCurrency(value) {
   return String(value || "").trim().toUpperCase();
 }
@@ -395,16 +367,6 @@ function logPaymentsMeTrace(level, fields) {
   }
 }
 
-function logPaymentOrderTrace(level, fields) {
-  const line = { event: "payments.order.detail", ...fields };
-  const writer = level === "error" ? console.error : level === "warn" ? console.warn : console.info;
-  try {
-    writer(JSON.stringify(line));
-  } catch {
-    writer(line);
-  }
-}
-
 async function runPaymentsMeOptionalQuery(metrics, stage, operation) {
   const startedAt = Date.now();
   metrics.dbQueryCount += 1;
@@ -496,12 +458,6 @@ function formatPaymentResponse(payment) {
     cancelledAt: toIsoOrNull(cancelledAt),
     cancelEligible: isPaymentAutoCancelEligible(payment),
   };
-}
-
-function maskPaymentIdentifier(value) {
-  const text = String(value || "").trim();
-  if (!text) return null;
-  return text.length <= 4 ? `••••${text}` : `••••${text.slice(-4)}`;
 }
 
 function formatPaymentSummaryResponse(payment) {
