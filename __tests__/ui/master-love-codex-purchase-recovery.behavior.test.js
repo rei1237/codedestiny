@@ -41,6 +41,44 @@ function fixture({ ready = true, expired = false } = {}) {
   vm.runInContext(executable("recoverStoredPurchase"), context);
   return { context, state, events };
 }
+
+test("redirect start failure retries the same paid run without a session or a second checkout", async () => {
+  const { state, events } = fixture();
+  let attempt = 0;
+  Object.assign(state, {
+    useCallback: fn => fn,
+    pendingResumeRef: { current: null }, sessionIdRef: { current: "" },
+    lastTokenRef: { current: "" }, lastSessionRef: { current: {} },
+    setGenerationError: message => events.push(["generationError", message]),
+    setChapters() {},
+    setBirth: update => events.push(["birth", update({ name: "", partner: null })]),
+    extractPayment: (grant, key) => ({ paymentId: grant.paymentId, requestId: key }),
+    postJson: async (url, body, key) => {
+      events.push(["post", url, body, key]);
+      if (++attempt === 1) return { status: 503, data: { ok: false } };
+      return { status: 200, data: { ok: true, sessionId: "owned-book", accessToken: "mock-access" } };
+    },
+  });
+  const context = vm.createContext(state);
+  vm.runInContext(executable("resumePaidCodex"), context);
+  context.resumePaidCodex = context.run;
+  const args = { idempotencyKey: "paid-run", payload: JSON.stringify({ birthInfo: { name: "owner", birthDate: "1993-05-14" }, partnerInfo: { name: "partner", birthDate: "1992-01-01" } }) };
+  assert.equal(await context.resumePaidCodex(args, { paymentId: "paid-order" }), false);
+  assert.equal(state.sessionIdRef.current, "");
+  assert.equal(state.pendingResumeRef.current.args, args);
+  vm.runInContext(executable("retryGeneration"), context);
+  context.run();
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(state.sessionIdRef.current, "owned-book");
+  assert.equal(state.pendingResumeRef.current, null);
+  const posts = events.filter(row => row[0] === "post");
+  assert.deepEqual(posts.map(row => [row[1], row[2].paymentId, row[3]]), [
+    ["/api/master-love-codex/start", "paid-order", "paid-run"],
+    ["/api/master-love-codex/start", "paid-order", "paid-run"],
+  ]);
+  assert.equal(events.find(row => row[0] === "birth")[1].partner.name, "partner");
+  assert.equal(events.filter(row => row[0] === "generate").length, 1);
+});
 test("closed browser recovery uses owned server input and starts without checkout", async () => {
   const { context, events } = fixture();
   await context.run(purchase);

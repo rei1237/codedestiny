@@ -16,7 +16,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { authFetch } from "@/app/_lib/auth-client";
-import { usePaidResume, packPaidResumeArg, unpackPaidResumeArg } from "@/app/hooks/usePaidResume";
+import { usePaidResume, packPaidResumeArg, unpackPaidResumeArg, type PaidResumeArgs, type PaidResumeGrant } from "@/app/hooks/usePaidResume";
 import {
   beginPaidFeatureGateCheck,
   completePaidFeatureGateCheck,
@@ -185,6 +185,7 @@ export default function MasterLoveCodexPage() {
   // 이번 시도에서 실제로 결제가 완료됐는지. 완료됐다면 idempotencyKey 를 절대 버리지 않는다
   // (ensure-access 는 결제 이력을 보지 않으므로 새 키로 재시도하면 그대로 두 번 결제된다).
   const chargedRef = useRef(false);
+  const pendingResumeRef = useRef<{ args: PaidResumeArgs; grant: PaidResumeGrant | null } | null>(null);
   // 생성 단계에 들어섰는지. 여기부터의 실패는 이용권/결제 실패가 아니므로 결제 게이트 모달을
   // 다시 열면 안 된다("확인 실패"라는 거짓 제목이 그렇게 붙었다).
   const generationStartedRef = useRef(false);
@@ -332,22 +333,25 @@ export default function MasterLoveCodexPage() {
    * 실패는 false 다 — 복귀 문서에는 입력 폼이 없어 '지금 열기' 카드가 유일한 재시도 수단이고,
    * 같은 멱등키로 다시 나가므로 이중 차감이 아니다.
    */
-  const buildResume = usePaidResume(MASTER_LOVE_CODEX_RESUME_KIND, async (args, grant) => {
+  const resumePaidCodex = useCallback(async (args: PaidResumeArgs, grant: PaidResumeGrant | null) => {
     if (busyRef.current) return false;
     const restored = unpackPaidResumeArg<Record<string, unknown>>(args.payload);
     const idempotencyKey = toText(args.idempotencyKey);
     if (!restored || !idempotencyKey) return false;
+    pendingResumeRef.current = { args, grant };
     busyRef.current = true;
     idempotencyRef.current = idempotencyKey;
     chargedRef.current = true;
     setError("");
-    setBirth((current) => ({ ...current, name: toText(asRecord(restored.birthInfo).name) || current.name }));
+    setBirth((current) => ({ ...current, ...asRecord(restored.birthInfo), partner: restored.partnerInfo ? { ...EMPTY_CODEX_PARTNER, ...asRecord(restored.partnerInfo) } : null }));
+    setGenerationError("");
     setPhase("generating");
     try {
       const startBody = { ...restored, ...extractPayment(grant, idempotencyKey) };
       const started = await postJson("/api/master-love-codex/start", startBody, idempotencyKey);
       if (!started.data?.ok || !started.data.sessionId) throw new Error(mapError(started.data, started.status, errorText));
       sessionIdRef.current = started.data.sessionId;
+      pendingResumeRef.current = null;
       setChapters(Array.isArray(started.data.chapters) ? started.data.chapters : []);
       await runBatches(started.data.sessionId, toText(started.data.accessToken), started.data);
       return true;
@@ -359,11 +363,19 @@ export default function MasterLoveCodexPage() {
     } finally {
       busyRef.current = false;
     }
-  });
+  }, [runBatches, errorText]);
+  const buildResume = usePaidResume(MASTER_LOVE_CODEX_RESUME_KIND, resumePaidCodex);
 
   /** 생성만 다시 돈다 — 결제·ensure-access 를 재실행하지 않으므로 이중 결제 위험이 없다. */
   const retryGeneration = useCallback(() => {
-    if (busyRef.current || !sessionIdRef.current) return;
+    if (busyRef.current) return;
+    // /start can fail after payment, before a session exists. Retry that same
+    // paid operation instead of leaving the visible retry button inert.
+    if (!sessionIdRef.current) {
+      const pending = pendingResumeRef.current;
+      if (pending) void resumePaidCodex(pending.args, pending.grant);
+      return;
+    }
     busyRef.current = true;
     void runBatches(sessionIdRef.current, lastTokenRef.current, lastSessionRef.current)
       .catch((caught) => {
@@ -372,7 +384,7 @@ export default function MasterLoveCodexPage() {
           : caught instanceof Error ? caught.message : errorText.SERVER_ERROR);
       })
       .finally(() => { busyRef.current = false; });
-  }, [runBatches, errorText]);
+  }, [runBatches, errorText, resumePaidCodex]);
 
   const recoverStoredSession = async (sessionId: string) => {
     if (busyRef.current) return;
