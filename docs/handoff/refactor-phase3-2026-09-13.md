@@ -127,6 +127,11 @@ Phase 2 가 다음 세션에 넘기라고 명시한 건이다. **코드 작업�
    일이라 RED 다. 793건을 분류(`no-explicit-any` 위주)한 뒤에야 의미가 있다.
 4. **`**/*.ts` include 가 `.d.mts` 6개를 안 잡는다** — 선언 파일이라 피해가 작다.
 5. **TOP 10 우회 2곳**(Phase 2 에서 폐기 판정) — Phase 6 에서 LLM 코어와 함께.
+6. **`scripts/verify-ci-required-lanes.mjs` 가 `change-risk.mjs` 에서 미분류다** — push 후 실측:
+   shadow 비교가 `unclassified source/config change` 로 찍었고, 그건 `change-risk.mjs:166` 의
+   기본값 **medium**(= standard 티어)이다. 구멍은 아니다 — `ci-required` 는 `if: always()` 라
+   이 게이트의 17케이스 자기검사가 **모든 main push 에서 무조건** 먼저 돈다. 분류 규칙을 더할지는
+   `scripts/verify-*` 전체를 어느 등급으로 볼 것인가의 문제라 이 Phase 범위 밖이다.
 
 ## 다음 세션의 첫 문장
 
