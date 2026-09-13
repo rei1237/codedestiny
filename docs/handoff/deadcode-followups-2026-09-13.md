@@ -20,6 +20,25 @@ main 이 clean 해진 뒤(`a0be2bbe1`) 합쳤다. 충돌은 그 원장 **한 건
 (`git show main:config/sitemap-lastmod.json > config/sitemap-lastmod.json`) 재생성해야 한다.
 `checkout --` 는 공유 체크아웃에서 금지이므로 `git show` 를 썼다.
 
+## 머지 후 CI 가 문 것 2건 (둘 다 닫음)
+
+머지 커밋 `48939597b` 의 CI 에서 `Main drift watchdog` · `PR CI` 두 워크플로가 실패했다.
+둘 다 같은 `Static guards` lane 이고, 첫 실패가 두 번째를 가리고 있었다.
+
+| 커밋 | 무엇을 물었나 |
+|---|---|
+| `44c29239a` | `verify:public-mirror-fresh` — 미러 7개가 낡았다 |
+| `54c98770a` | `verify:handoff-contract` — `status: open` 은 허용값이 아니다(active·blocked·done) |
+
+🔴 **워크트리에서 만든 미러는 머지 후에 다시 낡는다.** `24cb4d724` 가 `styles/fortune-ui.css`
+를 건드렸고 main 쪽도 `index.html` 을 건드려, 둘이 자동 병합된 뒤의 `index.html` 기준
+캐시버스트 해시가 워크트리에서 만든 미러와 어긋났다. 병합이 깨끗해도 **생성물은 다시
+만들어야 한다** — 머지 직후 `npm run sync:public` 을 고정점까지 돌리고 그 결과를 커밋할 것.
+
+두 번째는 `84a07a8a0` 이 만든 `per-use-enforce-stage2` 문서의 프론트매터다. 계약이
+`8be828c24`(워크트리 분기 이후 main)에서 조여져 있었다. 선행 조건이 로그 표본이므로
+`blocked` 가 맞는 값이다.
+
 ## 착수 전 실측이 목록과 달랐던 것
 
 계획은 기억이 아니라 실측을 따랐다.
@@ -40,6 +59,8 @@ main 이 clean 해진 뒤(`a0be2bbe1`) 합쳤다. 충돌은 그 원장 **한 건
 | `6433adc5c` | `worker/lib/access-control.js` 상수-false 컨텍스트 바인딩 연쇄 삭제(68줄) |
 | `24cb4d724` | `index.html` 주역 레지스트리 죽은 셀렉터 11개 + `.juyuk-modal-card` CSS |
 | `aa9688096` | 레퍼럴 배선 완성 — 끊겨 있던 reader 를 `AuthShell.tsx` 에 잇는다 |
+| `44c29239a` | (머지 후속) 캐시버스트 해시 체인 재고정 — 미러 7개 |
+| `54c98770a` | (머지 후속) `per-use-enforce-stage2` 프론트매터 `open` → `blocked` |
 
 ### 🔴 커밋 `6433adc5c` 를 되살릴 때
 
