@@ -20,7 +20,7 @@
 
 import { readFileSync, existsSync } from "node:fs";
 import { join, resolve, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const TAG = "[verify-worker-config-parity]";
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -166,7 +166,7 @@ function parseValue(raw) {
   throw new Error(`unsupported TOML value: ${text}`);
 }
 
-function parseToml(text) {
+export function parseToml(text) {
   const lines = text.split(/\r?\n/);
   const root = {};
   const arrays = {};
@@ -303,7 +303,7 @@ export function compareConfigs(productionText, stagingText) {
   const staging = flatten(stagingText);
   failures.push(...checkOriginInvariants("프로덕션", production));
   failures.push(...checkOriginInvariants("스테이징", staging));
-  const allKeys = new Set([...production.keys(), ...staging.keys()]);
+  const allKeys = new Set([...production.keys(), ...staging.keys(), ...STAGING_ONLY_KEYS]);
 
   for (const key of [...allKeys].sort()) {
     const inProduction = production.has(key);
@@ -428,6 +428,10 @@ const BASE_STAGING = [
   '[vars]',
   'NODE_ENV = "production"',
   'APP_ENV = "staging"',
+  'STAGING_LLM_MOCK_ENABLED = "true"',
+  'CORS_ORIGIN = "https://staging.code-destiny.com"',
+  'PAYMENT_TEST_AMOUNT_KRW = "1000"',
+  'ENABLE_RESULT_SHARE = "false"',
   'SITE_BASE_URL = "https://staging.code-destiny.com"',
   'AUTH_API_BASE_URL = "https://staging.code-destiny.com"',
   'AUTH_FRONTEND_BASE_URL = "https://staging.code-destiny.com"',
@@ -447,6 +451,12 @@ function withExtraVar(fixture, line) {
 
 function runSelfTest() {
   const cases = [
+    ...[...STAGING_ONLY_KEYS].map((key) => ({
+      name: `${key} missing from both configurations fails closed`,
+      production: BASE_PRODUCTION,
+      staging: BASE_STAGING.split("\n").filter((line) => !line.startsWith(`${key.slice(5)} =`)).join("\n"),
+      expectFailure: new RegExp(`${key}: 스테이징 전용 키인데 스테이징 설정에 없다`),
+    })),
     {
       name: "baseline passes",
       production: BASE_PRODUCTION,
@@ -586,6 +596,6 @@ function main() {
   console.log(`${TAG} OK — ${PRODUCTION_CONFIG} 와 ${STAGING_CONFIG} 의 차이가 전부 선언된 범위 안에 있다.`);
 }
 
-main();
+if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) main();
 
 export { STRUCTURAL_KEYS, MUST_DIFFER_KEYS, STAGING_ONLY_KEYS, REQUIRED_ON_KEYS };
