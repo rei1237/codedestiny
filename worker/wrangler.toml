@@ -121,11 +121,15 @@ ADMIN_MONTHLY_CREDIT_GRANT_ENABLED = "true"
 # route silently falls back to the mock generator).
 ENABLE_GUARDIAN_FORTUNE_API = "true"
 ENABLE_GUARDIAN_FORTUNE_SHARE = "true"
-# 정적 셸(타로·사주) 결과 공유 스냅샷의 킬 스위치 — POST /api/fortune/share 와
-# GET /api/fortune/share/{sr_id} 가 이 한 줄에 달려 있다. 이 엔드포인트는 레포에서 유일하게
-# 서명 없이 클라이언트 본문을 받는 공개 쓰기 경로라, 소비자(정적 셸 공유 버튼)가 붙기 전까지
-# 켜지 않는다. 켜는 시점은 js/share-bridge.mjs 배선 커밋이다.
-ENABLE_RESULT_SHARE = "false"
+# 🔴 정적 셸(타로·사주) 결과 공유 스냅샷의 킬 스위치 ENABLE_RESULT_SHARE 는 프로덕션 toml 에서
+# **일부러 비워 둔다**. POST /api/fortune/share 와 GET /api/fortune/share/{sr_id} 가 이 스위치에
+# 달려 있지만, 워커의 텍스트 바인딩 한도는 128개(plain vars + secrets 합산)이고 이 한 줄을 더하면
+# 129개가 되어 배포가 code 10055 로 막힌다(run 34751376669 실측). 코드는 없는 값을 false 로
+# 읽으므로(worker/lib/result-share-snapshot.js:39) 동작은 "false" 를 적은 것과 완전히 같다.
+# 이 엔드포인트는 레포에서 유일하게 서명 없이 클라이언트 본문을 받는 공개 쓰기 경로라, 소비자
+# (정적 셸 공유 버튼, js/share-bridge.mjs 배선 커밋)가 붙기 전까지 어차피 켜지 않는다. 프로덕션에서
+# 켜려면 먼저 바인딩 한 자리를 비워야 한다 — 선례 02560ce64. 스테이징 킬스위치는
+# wrangler.staging.toml 에 그대로 살아 있다.
 ENABLE_GUARDIAN_FORTUNE_REAL_LLM = "true"
 ALLOW_REAL_GUARDIAN_FORTUNE_LLM = "true"
 GUARDIAN_FORTUNE_LLM_PROVIDER = "gemini"

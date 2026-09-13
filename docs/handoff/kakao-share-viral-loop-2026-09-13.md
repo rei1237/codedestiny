@@ -60,7 +60,8 @@ next: 워크트리 kakao-share-phase5-20260913-125400 에서 Phase 5 를 이어�
 - `worker/routes/fortune.js` — `POST /api/fortune/share`, `GET /api/fortune/share/{sr_id}`
 - `app/share/` — `page.tsx` / `ResultShareClient.tsx` / `.module.css` (뷰어, `robots: noindex`)
 - `config/env.contract.json` — `ENABLE_RESULT_SHARE` 등재
-- `worker/wrangler.toml` · `worker/wrangler.staging.toml` — `ENABLE_RESULT_SHARE = "false"`
+- `worker/wrangler.staging.toml` — `ENABLE_RESULT_SHARE = "false"` (스테이징 전용. 프로덕션
+  `wrangler.toml` 에는 바인딩 128개 한도 때문에 넣지 않고 `STAGING_ONLY_KEYS` 에 선언했다 — 위 7번)
 - `__tests__/worker/result-share-snapshot.test.js` (8 테스트)
 - 모델 목 2곳(`pig-coin-refund-escalation`, `subscription-status-auto-renew-concurrency`)에
   `ResultSharedSnapshot: {},` 추가 — **모델 export 를 늘리면 이 목들이 link 단계에서 깨진다.**
@@ -156,8 +157,12 @@ next: 워크트리 kakao-share-phase5-20260913-125400 에서 Phase 5 를 이어�
 6. **SDK 일원화** — `index.html:20443` `KAKAO_SDK_SRC` 2.8.1 → `share-service.mjs:3` 의 2.8.3 경로로
    통일하고 **`KAKAO_SDK_INTEGRITY`(:20444) 와 그 사용처(:20541) 도 함께 삭제**(고아 참조 방지).
    CSP `script-src-elem` 은 이미 `https://t1.kakaocdn.net` 를 허용 — **CSP 변경 불필요.**
-7. **`ENABLE_RESULT_SHARE` 를 양쪽 토물에서 `"true"` 로.** 파리티 가드가 값 불일치를 물므로
-   **스테이징만 켤 수 없다** — 두 파일을 반드시 같이 고친다.
+7. **`ENABLE_RESULT_SHARE` 켜기 — 프로덕션은 먼저 바인딩 자리를 비워야 한다.** 이 키는 이제
+   프로덕션 `wrangler.toml` 에 **없고**, `verify-worker-config-parity.mjs` 의 `STAGING_ONLY_KEYS` 에
+   선언돼 있다(프로덕션 텍스트 바인딩이 128개 한도라 한 줄만 더해도 code 10055 로 배포가 막힌다 —
+   run 34751376669 실측). 순서: ① 프로덕션 `[vars]` 에서 안 쓰는 키 하나를 빼 자리를 만들고
+   ② `STAGING_ONLY_KEYS` 에서 `vars.ENABLE_RESULT_SHARE` 줄을 빼고 ③ 양쪽 토물에 `"true"` 로 넣는다.
+   ②를 건너뛰면 파리티 가드가 "스테이징 전용 키인데 프로덕션에도 있다" 로 문다.
 8. **`public/_routes.json` `/share/*` include + `public/_worker.js` 마커·`sr_` 분기** (위 참조).
 9. **`npm run sync:public`** — 미러: `share.js`, `share-service.mjs`, `share-bridge.mjs`,
    `share-reward.js`, `index.html`. **산출물 커밋 필수.**

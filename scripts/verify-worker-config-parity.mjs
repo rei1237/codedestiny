@@ -81,6 +81,13 @@ const STAGING_ONLY_KEYS = new Set([
   //    (worker/lib/portone.js resolveTestChargeAmountKRW), 둘 다 여기 선언돼 프로덕션 유입이 막힌다.
   //    프로덕션 toml 에 이 키가 들어오면 결제 금액이 조용히 바뀌므로 이 단언이 유일한 자동 방어다.
   "vars.PAYMENT_TEST_AMOUNT_KRW",
+  // 🔴 여기 있는 이유가 다른 항목들과 다르다: "프로덕션에 오면 위험해서"가 아니라 **프로덕션에
+  //    자리가 없어서**다. 워커 텍스트 바인딩 한도가 128개인데 이 키를 프로덕션 [vars] 에 넣으면
+  //    129개가 되어 배포 자체가 code 10055 로 막힌다(run 34751376669 실측). 코드는 없는 값을
+  //    false 로 읽으므로(worker/lib/result-share-snapshot.js:39) 프로덕션 동작은 "false" 와 같다.
+  //    정적 셸 공유 버튼을 배선해 프로덕션에서 켤 때는, 이 줄을 빼기 전에 먼저 바인딩 한 자리를
+  //    비워야 한다 — 선례 02560ce64.
+  "vars.ENABLE_RESULT_SHARE",
 ]);
 
 /**
