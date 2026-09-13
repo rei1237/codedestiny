@@ -50,6 +50,10 @@ const SPECIFIER_PATTERNS = [
   /\brequire\s*\(\s*["']([^"']+)["']\s*\)/g,
 ];
 
+// TypeScript의 type-only import/re-export는 빌드 산출물에 들어가지 않는다. 이를 런타임
+// 의존으로 따라가면 타입 선언만 공유한 정적 허브까지 운세 데이터의 휘발성을 상속한다.
+const TYPE_ONLY_IMPORT_RE = /\b(?:import|export)\s+type\b[\s\S]*?\bfrom\s*["'][^"']+["']\s*;?/g;
+
 /**
  * 정적 셸(index.html)이 본문인 라우트.
  *
@@ -318,7 +322,7 @@ export function createSitemapLastmodLedger({ rootDir, today, volatileToday = tod
     if (depsCache.has(rel)) return depsCache.get(rel);
     const deps = [];
     if (!rel.endsWith(".json") && !rel.endsWith(".css")) {
-      const source = readNormalized(rel);
+      const source = readNormalized(rel).replace(TYPE_ONLY_IMPORT_RE, "");
       const seen = new Set();
       for (const pattern of SPECIFIER_PATTERNS) {
         pattern.lastIndex = 0;
@@ -425,7 +429,8 @@ export function createSitemapLastmodLedger({ rootDir, today, volatileToday = tod
   /** 휘발성 라우트가 "마지막으로 달라진 날". 분류에 실패하면 통과시키지 않고 멈춘다. */
   function volatileLastmodFor(pathname) {
     const parts = pathname.split("/").filter(Boolean);
-    const cadence = parts[0] === "fortune" ? FORTUNE_VOLATILE_CADENCES.get(parts[1]) : undefined;
+    const fortuneIndex = parts[0] === "fortune" ? 0 : parts[1] === "fortune" ? 1 : -1;
+    const cadence = fortuneIndex >= 0 ? FORTUNE_VOLATILE_CADENCES.get(parts[fortuneIndex + 1]) : undefined;
     if (!cadence) {
       throw new Error(
         `[sitemap-lastmod] 휘발성 라우트 ${pathname} 의 갱신 주기를 분류하지 못했습니다. ` +

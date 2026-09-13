@@ -146,8 +146,13 @@ test("주간 라우트의 lastmod 는 주 시작일에 멈추고, 오늘·내일
 
   assert.equal(ledger.lastmodFor("/fortune/weekly/"), monday, "주간 허브가 주 시작일을 쓰지 않습니다.");
   assert.equal(ledger.lastmodFor("/fortune/weekly/pig/"), monday, "주간 상세가 주 시작일을 쓰지 않습니다.");
+  assert.equal(ledger.lastmodFor("/en/fortune/weekly/"), monday, "로케일 주간 허브가 주 시작일을 쓰지 않습니다.");
+  assert.equal(ledger.lastmodFor("/zh-tw/fortune/weekly/pig/"), monday, "로케일 주간 상세가 주 시작일을 쓰지 않습니다.");
   assert.equal(ledger.lastmodFor("/fortune/today/aries/"), thursday, "오늘 운세가 그날 날짜를 잃었습니다.");
   assert.equal(ledger.lastmodFor("/fortune/tomorrow/pig/"), thursday, "내일 운세가 그날 날짜를 잃었습니다.");
+  assert.equal(ledger.lastmodFor("/zh/fortune/tomorrow/pig/"), thursday, "로케일 내일 운세가 그날 날짜를 잃었습니다.");
+  ledger.lastmodFor("/en/fortune/");
+  assert.equal(ledger.volatileRoutes().has("/en/fortune/"), false, "type-only import가 로케일 운세 허브를 휘발성으로 만들었습니다.");
 
   // 🔴 월간이 여기 daily 로 남아 있는 것은 의도다. lib/fortune/range-data.ts 의 loadMonthRange 가
   //    **오늘**을 앵커로 잡아 월건·달 위상·점수를 계산하므로 월간 HTML 도 날마다 달라진다.
