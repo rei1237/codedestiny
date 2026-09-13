@@ -597,6 +597,7 @@
         : null;
       if (!snap) return;
       // applyAccessStateSnapshot 의 authoritativeFull 과 같은 기준을 쓴다(새 기준을 만들지 않는다).
+      // 단 정본 해금 배열 조건은 여기 없다 — 이 경로는 해금 집합을 치환하지 않고 이용권 상태만 싣는다.
       if (source.degraded === true || snap.degraded === true) return;
       var completeness = String(source.completeness || snap.completeness || '').toLowerCase();
       var authority = String(source.authority || snap.authority || '').toLowerCase();
@@ -720,7 +721,15 @@
        (Phase 4 D1). 예전에는 추출이 먼저였고 판정이 뒤였다. */
     var completeness = String(source.completeness || source.entitlementSnapshot && source.entitlementSnapshot.completeness || '').toLowerCase();
     var authority = String(source.authority || source.entitlementSnapshot && source.entitlementSnapshot.authority || '').toLowerCase();
-    var authoritativeFull = source.degraded !== true && completeness === 'full' && authority === 'server';
+    /* 🔴 정본 필드가 **없는 것**과 **빈 것**은 다르다. 권위 경로는 unlockedFeatureIds 만 읽고(D1)
+       그 결과로 집합을 치환하므로(D2), 정본 배열을 아예 안 실은 페이로드를 권위로 인정하면
+       형태가 불완전한 응답 하나가 산 해금을 통째로 지운다. 서버의 completeness:"full" 생산자는
+       top-level 과 entitlementSnapshot 양쪽에 이 배열을 반드시 싣는다(worker/lib/access-state.js:243,283)
+       — 없다면 그건 권위 응답이 아니다. 없으면 예전 병합 경로로 내려가 fail-open 한다. */
+    var hasCanonicalUnlockArray = Array.isArray(source.unlockedFeatureIds)
+      || Boolean(source.entitlementSnapshot && Array.isArray(source.entitlementSnapshot.unlockedFeatureIds));
+    var authoritativeFull = source.degraded !== true && completeness === 'full' && authority === 'server'
+      && hasCanonicalUnlockArray;
     var unlocks = extractUnlockMap(source, { authoritative: authoritativeFull });
     /* 🔴 근거도 집합과 같은 규칙으로 다룬다 (Phase 4 D6). 권위 페이로드면 **치환**이다 —
        서버가 더 이상 싣지 않는 근거는 사라져야 한다. 권위가 아니면 덧쓰기만 한다: degraded
