@@ -6,8 +6,10 @@
 ## 다음 세션 첫 문장
 
 > `D:\Development\codedestiny-worktrees\kakao-share-phase5-20260913-125400` 로 이동해
-> 브랜치 `wt/kakao-share-phase5-20260913-125400` 에서 Phase 5(정적 셸 파일럿 배선)를 시작한다.
+> 브랜치 `wt/kakao-share-phase5-20260913-125400` 에서 Phase 5 를 이어간다(0단계는 끝났다).
 > 주 체크아웃(`D:\Development\code-destiny`)에는 **다른 세션이 쓰고 있으므로 들어가지 않는다.**
+> **첫 할 일은 코드가 아니라 결정이다** — 아래 "정적 셸에는 카카오 JS 키를 얻을 길이
+> 비로그인 상태에서 없다" 를 사용자에게 보고하고 A/B/C 중 하나를 받는다.
 
 ---
 
@@ -83,9 +85,55 @@
 
 ---
 
+## 🔴 Phase 5 착수 중 발견 — 먼저 결정해야 하는 것
+
+### 정적 셸에는 카카오 JS 키를 얻을 길이 **비로그인 상태에서 없다**
+
+전수 grep(`kakaoJavascriptKey`, 소스 3건) 결과, 셸이 키를 얻는 경로는
+`index.html:20553` 하나뿐이고 그 출처는 **`POST /api/auth/referral/kakao-share`** 다.
+`worker/routes/auth.js:4225` `handleKakaoReferralShare` 는 맨 첫 줄이 `requireAuth` 이고
+비로그인은 **401** 이다. 게다가 이 엔드포인트는 호출될 때마다 **추천 코드를 만들고 RPG EXP 를
+적립하는 부작용**이 있다 — 공유 버튼이 쓸 수 있는 성격의 API 가 아니다.
+
+한편 `NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY` 는 `config/env.contract.json` 상
+`scope: client` / `secret: false` / **`targets: ["pages"]`** / 소비자 `app/components/KakaoSdk.tsx` 다.
+즉 **리액트 빌드에만 주입되고 정적 셸에는 들어오지 않는다.**
+
+**결과:** 파일럿 ②③(정적 셸 타로·사주)에서 **비로그인 사용자는 카톡 리치 카드를 띄울 수 없다.**
+바이럴 대상의 대다수가 비로그인이므로 이걸 풀지 않으면 Phase 5 의 핵심 효과가 안 난다.
+
+**권장(A): 부작용 없는 공개 키 엔드포인트를 하나 판다.**
+`GET /api/auth/kakao-share-key` → `{ kakaoJavascriptKey }` 만. 카카오 JS 키는 설계상
+브라우저에 노출되는 **공개 클라이언트 키**이므로(계약에도 `secret: false`) 인증 없이 내려도 된다.
+기존 `resolveKakaoJavascriptKey(env)`(`auth.js:207`)를 그대로 재사용하면 로직 추가가 없다.
+🔴 다만 **새 공개 라우트**이므로 CLAUDE.md 상 RED — 착수 전 위험·검증·롤백 선보고가 필요하고,
+`config/env.contract.json` 의 `targets` 에 `worker` 를, `consumers` 에 그 라우트를 추가해야
+`verify:env-parity` 가 통과한다(fail-closed).
+
+**대안(B):** 키를 `index.html` 에 빌드 타임 인라인 — 계약상 `targets: ["pages"]` 를 깨고
+키 문자열이 레포에 커밋된다. **권장하지 않는다.**
+**대안(C):** 로그인 사용자만 리치 카드, 비로그인은 기존 텍스트 폴백 — 효과가 대폭 줄어든다.
+
+**이 결정이 나기 전까지 파일럿 ②③ 의 카카오 리치 카드 부분은 착수할 수 없다.**
+스냅샷 생성(`POST /api/fortune/share`)과 링크 복사·`navigator.share` 폴백은 키 없이도 되므로
+그 부분은 먼저 붙일 수 있다.
+
+### `sync:public` 은 사이트맵 원장을 함께 밀어낸다
+
+`npm run sync:public` 이 캐시버스트 키를 다시 쓰면 `index.html` + 로케일 미러 5개가 바뀌고,
+그 여파로 `config/sitemap-lastmod.json` 의 **signature 29개**가 갱신된다(`lastmod` 날짜는 그대로).
+`verify:sitemap-drift` 가 fail-closed 로 문다. **sync:public 을 돌렸으면 항상
+`npm run sitemap:generate` 를 이어 돌리고 원장을 같은 커밋에 담는다.** 이번에 한 번 막혔다.
+
+---
+
 ## Phase 5 할 일 (🟠 AMBER) — 실측 앵커 포함
 
 줄 번호는 워크트리 기준 2026-09-13 실측.
+
+0. ✅ **완료 (커밋 `994eeb6ab`)** — `js/share-service.mjs` `publicShareUrl` 이 `/share` + `sr_`
+   를 통과시키도록 `SNAPSHOT_ROUTES` 표로 바꿨다. 이걸 안 고치면 새 공유 링크의 id 가 통째로
+   삭제돼 친구가 빈 뷰어를 본다(Phase 0 에서 `gf_` 로 겪은 그 증상). 변이 2종 확인.
 
 1. **`js/share-bridge.mjs` 신규** — `window.cdPrepareKakao` / `window.cdShareThrough` 노출.
    비모듈 `js/share.js` 가 `js/share-service.mjs` 의 `prepareKakao`(:18) / `shareThrough`(:54) 를
