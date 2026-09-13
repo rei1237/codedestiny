@@ -16,7 +16,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { authFetch } from "@/app/_lib/auth-client";
-import { isRetriableResultPollFailure } from "@/app/_lib/consultationResultPolling";
 import { usePaidResume, packPaidResumeArg, unpackPaidResumeArg } from "@/app/hooks/usePaidResume";
 import {
   beginPaidFeatureGateCheck,
@@ -35,7 +34,7 @@ import CodexBirthGate, { EMPTY_CODEX_BIRTH, EMPTY_CODEX_PARTNER, type CodexBirth
 import CodexFloatingCta from "./components/CodexFloatingCta";
 import CodexGenerating from "./components/CodexGenerating";
 import CodexShell from "./components/CodexShell";
-import type { CodexChapter, CodexLoveDna } from "./components/CodexReader";
+import type { CodexChapter } from "./components/CodexReader";
 import { masterLoveCodexBgmTracks } from "./data/assets";
 import { codexPrologueStageOrder, type CodexPrologueChoiceKey, type CodexPrologueStage } from "./data/prologue";
 import {
@@ -45,43 +44,27 @@ import {
   type MasterLoveCodexMode,
 } from "./constants";
 import { getMasterLoveCodexCopy, useMasterLoveCodexLocale, type MasterLoveCodexErrorText } from "./_lib/copy";
+// 🔴 배치 루프·postJson·mapError 의 정본은 이 모듈 하나다. 결과 페이지가 같은 함수를 import 해
+//    이어쓰기 주체가 된다 — 여기에 사본을 다시 만들지 않는다.
+import {
+  runCodexBatches,
+  postCodexJson as postJson,
+  mapCodexError as mapError,
+  type CodexSessionPayload,
+} from "./_lib/runCodexBatches";
 import codexStyles from "./styles/codex.module.css";
 
 // 읽기(reader)는 이 라우트에 없다 — 생성이 끝나면 /master-love-codex/result 로 넘긴다.
 type Phase = "landing" | "prologue" | "birth" | "checking" | "payment" | "generating";
 
-// 서버가 예산을 넘기면 4장이 아니라 1~3장만 커밋하고 돌아온다(worker/routes/master-love-codex.js).
-// 그래서 왕복 수는 20/4=5 회로 고정되지 않는다 — 최악(장당 1회)까지 여유를 둔 터미널 가드다.
-const MAX_BATCHES = 32;
-// 200 을 받았는데 장이 하나도 안 늘어난 경우의 상한. 서버는 1장 이상 커밋하거나 503 을 주므로
-// 정상 경로에서는 발생하지 않는다 — 순수 무한루프 방지용이다.
-const MAX_NO_PROGRESS_BATCHES = 3;
-// 🔴 '연속 실패'가 이어지는 시간의 상한이다(생성 시작 시각 기준이 아니다). 성공 배치가 하나라도
-//    끼면 초기화된다 — 20장 생성은 정상적으로도 몇 분이 걸려서, 시작 기준으로 재면 후반 배치의
-//    일시적 실패에는 완충이 하나도 남지 않는다.
-//    서버 배치 락 TTL(120초)보다 길어야 엣지 컷 뒤 남은 락이 풀릴 때까지 버틴다.
-const GENERATION_STALL_BUDGET_MS = 240_000;
 // 결제 후 자동 재개 종류. SKU(개인/궁합)가 갈려도 복귀 경로는 하나라 featureKey 가 아니라 고정 문자열이다.
 const MASTER_LOVE_CODEX_RESUME_KIND = "master-love-codex";
 
-type SessionPayload = {
-  ok?: boolean;
-  reason?: string;
-  message?: string;
-  /** 서버가 "일시적이니 다시 불러도 된다"고 표시한 응답 — 공용 판정(isRetriableResultPollFailure)이 읽는다 */
-  retryable?: boolean;
-  sessionId?: string;
-  status?: string;
-  accessToken?: string;
-  accessType?: string;
-  chapters?: CodexChapter[];
-  loveDna?: CodexLoveDna | null;
-  totalCharCount?: number;
-  totalChapters?: number;
+type SessionPayload = CodexSessionPayload;
+/** /session 원문을 폼에 되붓는 자리에서만 쓰는 좁힌 형태 — 배치 루프는 이 구체 타입을 몰라도 된다. */
+type RestorableSessionPayload = CodexSessionPayload & {
   birthInfo?: Partial<CodexBirthInput> | null;
   partnerInfo?: CodexBirthInput["partner"];
-  done?: boolean;
-  paymentPayload?: Record<string, unknown>;
 };
 
 function createIdempotencyKey() {
@@ -92,25 +75,6 @@ function toText(value: unknown) { return String(value || "").trim(); }
 function toNumber(value: unknown, fallback = 0) { const n = Number(value); return Number.isFinite(n) ? n : fallback; }
 function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
-}
-
-async function postJson(url: string, body: Record<string, unknown>, idempotencyKey?: string) {
-  const response = await authFetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", ...(idempotencyKey ? { "Idempotency-Key": idempotencyKey } : {}) },
-    credentials: "include",
-    body: JSON.stringify(body),
-  }, { retryOn401: false });
-  let data = (await response.json().catch(() => null)) as SessionPayload | null;
-  // 🔴 엣지 컷(524)·게이트웨이 오류는 JSON 이 아니라 HTML 을 돌려준다. 예전처럼 {} 로 뭉개면
-  //    상태 코드까지 사라져 "일시적 지연"과 "확정 실패"를 구분할 수 없게 되고, 모든 실패가
-  //    같은 제네릭 문구 하나로 표면화된다. 본문이 없으면 상태 코드로 사유를 세운다.
-  if (!data) {
-    data = response.ok
-      ? { ok: false, reason: "SERVER_ERROR" }
-      : { ok: false, reason: response.status >= 500 ? "EDGE_TIMEOUT" : "SERVER_ERROR", retryable: response.status >= 500 };
-  }
-  return { status: response.status, data };
 }
 
 function runtimePayload(result: unknown) {
@@ -195,20 +159,6 @@ function buildBillingGateInput(
   };
 }
 
-function mapError(data: SessionPayload, status: number, errorText: MasterLoveCodexErrorText) {
-  const reason = String(data?.reason || "").toUpperCase() as keyof MasterLoveCodexErrorText;
-  const serverMessage = String(data?.message || "").trim();
-  // SERVER_ERROR 는 서버가 상황을 훨씬 정확히 안다 — 제네릭 상수로 덮어쓰면
-  // "결제와 지금까지 쓰인 장은 보존됩니다" 같은 안내가 사용자에게 영영 닿지 않는다.
-  // (다른 사유는 기존 문구를 그대로 쓴다 — 이 화면의 표현 계약이 바뀌지 않게.)
-  if (reason === "SERVER_ERROR" && serverMessage) return serverMessage;
-  if (reason && errorText[reason]) return errorText[reason];
-  if (status === 401) return errorText.LOGIN_REQUIRED;
-  if (status === 402) return errorText.PAYMENT_VERIFY_FAILED;
-  return serverMessage || errorText.SERVER_ERROR;
-}
-
-
 export default function MasterLoveCodexPage() {
   const router = useRouter();
   const locale = useMasterLoveCodexLocale();
@@ -241,6 +191,8 @@ export default function MasterLoveCodexPage() {
   // 생성만 재시도할 때 필요한 최신 토큰·세션 스냅샷(결제 왕복을 다시 타지 않기 위해).
   const lastTokenRef = useRef("");
   const lastSessionRef = useRef<SessionPayload>({});
+  // 결과 페이지로 이어쓰기를 넘겼는지. 넘긴 뒤에는 이 화면의 배치 루프가 더 돌면 안 된다.
+  const handedOffRef = useRef(false);
   const [generationError, setGenerationError] = useState("");
   const [storedSessions, setStoredSessions] = useState<Array<{ sessionId: string; mode: MasterLoveCodexMode; status: string }>>([]);
   type RecoverablePurchase = { orderId: string; featureKey: string; requestId: string; status: string };
@@ -339,48 +291,36 @@ export default function MasterLoveCodexPage() {
     //    (비워 두면 재시도가 빈 토큰으로 /generate 를 불러 402 로 죽는다.)
     lastTokenRef.current = startToken;
     lastSessionRef.current = seed;
-    let token = startToken;
-    let current = seed;
-    let written = Array.isArray(seed.chapters) ? seed.chapters.length : 0;
-    let batches = 0;
-    let retries = 0;
-    let noProgress = 0;
-    let stallStartedAt = 0;
+    handedOffRef.current = false;
 
-    while (!(current.done || String(current.status) === "completed")) {
-      if (batches >= MAX_BATCHES) throw new Error(errorText.GENERATION_BUDGET_EXCEEDED);
-      const { status, data } = await postJson("/api/master-love-codex/generate", { sessionId: startSessionId, accessToken: token });
-
-      if (!data?.ok) {
-        // 일시적 실패(409 재기동 대기 · 503 예산 초과/DB 블립 · 엣지 컷)는 종료 사유가 아니다.
-        // 판정은 다른 유료 화면 10곳이 쓰는 공용 함수를 그대로 재사용한다(중복 구현 금지).
-        if (!stallStartedAt) stallStartedAt = Date.now();
-        const withinStallBudget = Date.now() - stallStartedAt < GENERATION_STALL_BUDGET_MS;
-        if (isRetriableResultPollFailure(status, data) && withinStallBudget) {
-          retries += 1;
-          const delayMs = Math.min(8000, Math.round(1500 * 1.8 ** Math.min(retries - 1, 4)));
-          await new Promise((resolve) => setTimeout(resolve, delayMs));
-          continue;
-        }
-        throw new Error(mapError(data, status, errorText));
-      }
-
-      batches += 1;
-      retries = 0;
-      stallStartedAt = 0;
-      if (data.accessToken) token = data.accessToken;
-      current = data;
-      const chapters = Array.isArray(data.chapters) ? data.chapters : [];
-      setChapters(chapters);
-      lastTokenRef.current = token;
-      lastSessionRef.current = data;
-      // 서버는 1장 이상 커밋하거나 503 을 준다. 진행 없는 200 이 이어지면 그건 무한루프다.
-      if (chapters.length > written) { written = chapters.length; noProgress = 0; } else { noProgress += 1; }
-      if (noProgress >= MAX_NO_PROGRESS_BATCHES) throw new Error(errorText.GENERATION_BUDGET_EXCEEDED);
-    }
     // 읽기는 몰입 전용 라우트에서 한다 — 그쪽은 사이트맵에 없어 서버 렌더 설명 하한(1,800자)
     // 대상이 아니고, 따라서 코덱스 아래에 아무 설명도 남지 않는다.
-    router.replace(`/master-love-codex/result?sessionId=${encodeURIComponent(startSessionId)}`);
+    const handOff = () => {
+      if (handedOffRef.current) return;
+      handedOffRef.current = true;
+      router.replace(`/master-love-codex/result?sessionId=${encodeURIComponent(startSessionId)}`);
+    };
+
+    await runCodexBatches({
+      sessionId: startSessionId,
+      accessToken: startToken,
+      seed,
+      errorText,
+      // 🔴 핸드오프 뒤에는 이 화면의 루프를 멈춘다. 결과 페이지가 같은 세션을 이어쓰므로,
+      //    두 루프가 함께 돌면 서버 배치 락을 서로 뺏어 409 만 주고받는다.
+      shouldStop: () => handedOffRef.current,
+      onProgress: (session) => {
+        setChapters(Array.isArray(session.chapters) ? session.chapters : []);
+        if (session.accessToken) lastTokenRef.current = session.accessToken;
+        lastSessionRef.current = session;
+        // 🔴 완주가 아니라 **첫 진척**에서 넘긴다. 20장 완주는 5~10분이라 PG 리다이렉트로 돌아온
+        //    모바일 탭이 그때까지 살아 있지 못했고, 그것이 "결제했는데 책이 미완성"의 주경로였다.
+        //    읽기 화면은 남은 장을 이어쓰면서 쌓이는 것을 그대로 보여준다.
+        handOff();
+      },
+    });
+    // 씨앗이 이미 완성본이었으면 onProgress 가 한 번도 불리지 않는다 — 그때도 결과로 넘긴다.
+    handOff();
   }, [router, errorText]);
 
   /**
@@ -441,7 +381,7 @@ export default function MasterLoveCodexPage() {
     setError("");
     try {
       const response = await authFetch(`/api/master-love-codex/session?sessionId=${encodeURIComponent(sessionId)}`, { cache: "no-store" });
-      const data: SessionPayload = await response.json();
+      const data: RestorableSessionPayload = await response.json();
       if (!response.ok || !data.ok) throw new Error(mapError(data, response.status, errorText));
       if (data.status === "completed") {
         router.push(`/master-love-codex/result?sessionId=${encodeURIComponent(sessionId)}`);
