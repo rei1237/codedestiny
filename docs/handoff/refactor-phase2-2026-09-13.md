@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-13
-next: Phase 3(안전망 보강 — tsconfig 범위·eslint 가시화·CI skipped 구멍, TOP 18·19). TOP 10 이관은 실측 결과 기능 축소라 폐기했고, 그 전제였던 mindscan 보호막은 배선 완료다.
+next: Phase 3 은 끝났다(refactor-phase3-2026-09-13.md). 다음 세션은 그 문서부터 읽는다 — shadow 41개 차단 승격이 사용자 승인 대기 상태로 넘어가 있다.
 ---
 
 # 점진 구조 개선 Phase 2 인수인계

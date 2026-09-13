@@ -23,8 +23,8 @@
 | 15 | fetch 래퍼 5개 + 재시도·서킷브레이커 정책 4종, API base 재도출 ~20곳, 기본 origin 4개 | `http-client.ts`, `auth-client.ts:570`, `billing-client.ts:1916,1971`, `service-read-client.ts`, `access-store.js:258` | 미해소 (Phase 4) |
 | 16 | 동일 상수 재선언 | `KRW_PER_COIN` 이 3곳이 아니라 **5곳**(정본 `billing-policy.js:1`, 복사 `profile-limits.js:9`·`coin-pricing.ts:3`, 가드 내 하드코딩 `verify-payment-policy-md.mjs:12`·`verify-krw-copy-canonical.mjs:60`). pass 가격은 **이미 묶여 있었다** | 해소 (`dc93b4545`·`6559cb245`·`827248162`) — 원화 **포맷** 인라인은 이관, 아래 참조 |
 | 17 | 범용 유틸 중복 | `normalizeGender` 31벌, `Asia/Seoul` 하드코딩 **179**파일(121 은 글롭 범위가 달랐다), Julian day 9벌, `iana-offset` 정본 importer 6 vs 경쟁 파서 4 | **C급 오분류** — 아래 참조. Phase 1 에서 하지 않는다 |
-| 18 | 타입·린트 사각지대 | `tsconfig` include 가 `**/*.ts(x)` 뿐 → `js/`·`worker/`(73파일)·`scripts/` 전부 미검사. `next.config.mjs` `ignoreBuildErrors: true`. `eslint --quiet` 로 `no-explicit-any` 등 warn 전부 비가시 | 미해소 (Phase 3) |
-| 19 | 필수 CI 가 `skipped` 를 통과로 인정 | `.github/workflows/pr-ci.yml:969-972` `ci-required` 가 `if: always()` + `needs:[classify,fast,guards,build,critical]` → `classify` 오분류가 초록불과 구분되지 않는다 | 미해소 (Phase 3) |
+| 18 | 타입·린트 사각지대 | 실측 2026-09-13: `worker/` 는 73 이 아니라 **309**파일이고 `verify:worker-no-undef` 로 **이미 덮여 있었다**. 진짜 사각지대는 `lib/`(89파일, 유료 LLM·결제 경로 포함) — `next lint` 대상이지만 `no-undef` 가 꺼져 있고 `checkJs` 가 없어 tsc 도 안 본다. `next.config.mjs`·`--quiet` 는 **의도된 계약**, 아래 참조 | 부분 해소 (`ea63cd451`) — `lib/` 그물 신설·fail-open 제거. `scripts/`·`js/` 는 후속 |
+| 19 | 필수 CI 가 `skipped` 를 통과로 인정 | `.github/workflows/pr-ci.yml:969-972` `ci-required` 가 `if: always()` + `needs:[classify,fast,guards,build,critical]` → `classify` 오분류가 초록불과 구분되지 않는다 | 해소 (`53536305b`) — 선언(`runs_*`)과 실행(`result`) 대조로 교체, 변이 3/3 탐지 |
 | 20 | 가드 44개가 "배선 후보(미승인)"로 아무것도 지키지 않음 | `scripts/verify-guard-wiring.mjs` `UNWIRED_BY_DESIGN`. 2026-09-13 전수 실측: **41개 통과 / 3개 실패** — 통과분을 안 돌리는 것은 순수 손실 | 부분 해소 (`9163a7dac`) — 41개는 `SHADOW_OBSERVING` 에서 비차단 관측 중, 차단 승격은 Phase 9 |
 
 ## 16·17 재측정 (2026-09-13, Phase 1)
@@ -71,6 +71,34 @@
 🔴 교훈: **"같은 패턴으로 옮긴다"는 패턴이 같을 때만 무해하다.** oracle 은 총 데드라인도 튜닝 노브도 없이 태어난 라우트라 어댑터가 그 계약을 안 갖는다. love·mindscan 은 둘 다 갖고 있어서, 이관이 수렴이 아니라 축소가 된다. 다음에 "N곳을 정본 하나로"를 볼 때는 **정본이 각 호출부의 계약을 전부 담는지**부터 실측한다.
 
 🔴 교훈(16·17 과 같다): 원장의 "N벌·N곳"은 **가설**이다. Phase 를 시작할 때 그 행만 다시 재보고, 다르면 원장을 고친다. 이번 Phase 에서 10·11 네 축 중 원장 그대로였던 것은 **게이트 중복 하나**뿐이다.
+
+## 18·19 재측정 (2026-09-13, Phase 3)
+
+세 번째 Phase 에서도 원장의 전제가 틀렸다. 18 은 **네 축 중 셋이 오진**이었고, 19 는 원장 그대로였다.
+
+| 축 | 원장이 적은 것 | 실측 | 판정 |
+|---|---|---|---|
+| 18 `worker/` 미검사 | "73파일 전부 미검사" | 파일 수는 **309**. 그리고 `scripts/verify-worker-no-undef.mjs` 가 이미 `deploy:critical`·`check:critical`·`pr-ci.yml:900` 에 배선돼 돌고 있었다 | 오진. 이미 덮여 있다 |
+| 18 `tsconfig` 로 JS 검사 | "include 를 넓히면 된다" | `allowJs` 는 있고 `checkJs` 가 없다. worker/ 하나만 `checkJs` 로 켜 보니 **2,734 에러**. 전역 타입 검사는 이번 Phase 범위로 불가능하다 | C급 아님. 넓히는 게 답이 아니다 |
+| 18 `next.config.mjs` 무시 | "`ignoreBuildErrors: true` 가 구멍" | typecheck·lint 는 `fast` lane 의 `ci:fast` 가 **따로** 돌린다. 빌드 단계 무시는 중복 판정 제거이지 구멍이 아니다 | 의도된 계약. 건드리지 않는다 |
+| 18 `eslint --quiet` | "warn 전부 비가시" | 비가시는 맞지만 **잠겨 있다** — `scripts/deploy-safe.mjs:1248` 이 `--quiet` 가 빠지거나 `--max-warnings=0` 이 붙으면 릴리스를 실패시킨다(`:702` 가 인자를 만든다). 현재 에러 0 / warn 793 | 의도된 계약. 풀려면 793건을 먼저 처리해야 한다 = 별도 과제 |
+| 18 진짜 사각지대 | (없음) | `lib/` 89파일. `next lint` **대상 디렉터리**에는 있지만 `.eslintrc.json` 이 `next/*` 만 extend 해 `no-undef` 가 프로젝트 전역에서 꺼져 있고, `.js`/`.mjs` 라 tsc 도 안 본다. 그 안에 `lib/tarot/{mindscan-reading,love-reading-llm}.mjs`(유료 LLM)·`lib/payment/*` 가 있다 | 실제 구멍. 기존 가드를 표면 테이블로 넓혀 수정 |
+| 18 기존 가드의 fail-open | (없음) | 문법이 깨진 파일은 `no-undef` 메시지를 만들지 않는다 → `message.fatal` 을 안 세면 **"위반 0" 으로 통과**한다. 검사되지 않은 것과 통과한 것이 구분되지 않았다 | 실제 구멍(코딩 원칙 10). 같은 커밋에서 수정 |
+| 19 `skipped` 구멍 | "`classify` 오분류가 초록불과 구분되지 않는다" | 원장 그대로. 모든 lane 의 실행 조건이 `needs.classify.outputs.runs_X == 'true'` 라, `classify` 가 **성공하면서 출력을 비우면**(출력 키 오타·step id 드리프트·`GITHUB_OUTPUT` 쓰기 실패) 4개 lane 이 전부 skip 되고, 룰셋의 유일한 필수 체크가 **검사 0건으로 초록**이 된다 | 실제 구멍. 수정 |
+
+### 무엇을 고쳤나
+
+- **19 (`53536305b`)**: `ci-required` 의 인라인 bash 루프("failure 가 아니면 통과")를 `scripts/verify-ci-required-lanes.mjs` 로 교체했다. 판정은 **선언 대 실행 대조**다 — `classify` 가 내보낸 `runs_*` 가 티어 매핑과 맞는지, 그리고 `runs_X=true` 인 lane 이 실제로 `success` 인지·`false` 인 lane 이 실제로 `skipped` 인지를 본다. 티어→lane 매핑은 `scripts/resolve-ci-tier.mjs` 의 `TIERS` 를 **export 해서 읽는다**(거기서 다시 적으면 고치려던 드리프트를 재현한다). 자기검사 17케이스를 CI 안에서 먼저 돌린 뒤 실판정한다. `if: always()` 와 `needs:` 목록은 `scripts/verify-worker-single-deploy-guard.mjs:335-338` 이 단언하므로 그대로 뒀다.
+- **18 (`ea63cd451`)**: `verify-worker-no-undef.mjs` 를 `SURFACES` 테이블(`worker` / `lib`)로 넓히고, 표면마다 **필요한 전역만** 줬다(`lib` 추가분은 `window`·`document` + CJS 3종뿐 — 넉넉히 주면 오타가 전역 이름과 겹칠 때 조용히 통과한다). 같은 커밋에서 `message.fatal` 을 위반으로 센다. 파일명은 **바꾸지 않았다** — 배선 3곳이 경로 모양에 묶여 있다. 결과 390파일 0위반.
+- 변이 검증: 19 는 3/3 탐지(빈 출력 전부 skip · 티어↔runs 불일치 · `classify` 성공 검사 제거), 18 은 2/2 탐지(`lib/tarot/mindscan-reading.mjs` 에 미선언 식별자 주입 · 문법 파괴). 변이 C(`classify !== "success"` 제거)는 처음에 16케이스를 **전부 통과했다** — 문서 전용 PR 에서 `verify:doc-freshness`(= `runs_fast != 'true'` 일 때만 `classify` 안에서 돈다)가 실패하면 선언과 실행이 완벽히 일치한 채로 `classify` 만 빨간 시나리오가 실재한다. 그 케이스를 17번째로 추가해 탐지시켰다.
+
+### 안 한 것 — 후속 과제
+
+- `scripts/` no-undef: 750위반. 전부 `page.evaluate()` 본문의 브라우저 전역이다(Playwright 스크립트가 노드 파일 안에 브라우저 코드를 문자열로 들고 있다). node+browser 합집합 전역으로 한 표면 더 추가하면 깨끗해질 가능성이 높다 — 실제 결함 없음.
+- `js/` no-undef: 480위반 / 120이름. 112종은 크로스-`<script>` 전역이라 정상이고, "어디에도 선언 없음"으로 뜬 8종도 전수 확인 결과 **전부 오탐**이었다 — `CURRENT_AGE` 는 `js/saju-engine.js:2586` 의 다중 선언자 `var`, `G_JONG`·`G_JOHU`·`G_NATAL`·`G_BAZI` 는 `js/saju-engine-continuation.js:110` 의 암묵 전역 할당(읽기는 `window.G_*`), 나머지 `google`·`Chart`·`NodeFilter` 는 외부/브라우저 전역이다. 🔴 **프로덕션 결함은 0건**. 이 표면을 가드로 덮으려면 파일 간 최상위 선언을 모으는 패스가 필요하다.
+- `**/*.ts` include 가 `.d.mts` 6개를 안 잡는다. 선언 파일이라 피해가 작다.
+
+🔴 교훈: 원장의 "전부 미검사"는 **가드 배선을 안 본 판정**이었다. 사각지대를 찾을 때는 `tsconfig`·`next lint` 설정만 보지 말고 `verify-guard-wiring.mjs --report` 로 **이미 도는 가드가 무엇을 덮는지** 먼저 본다. 그리고 새 가드를 만들기 전에 **기존 가드를 넓힐 수 있는지** 본다 — 파일명이 배선에 묶인 레포에서는 그게 유일하게 안전한 확장 방향이다.
 
 ## 측정 방법 재현
 
