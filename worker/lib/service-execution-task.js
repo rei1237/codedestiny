@@ -11,6 +11,8 @@ const DEFAULT_LOCK_SECONDS = 45;
 const DEFAULT_RETENTION_DAYS = 14;
 const DEFAULT_SOFT_ABANDON_GRACE_SECONDS = 900;
 const REFUND_LOCK_SECONDS = 90;
+/** 승인이 끝나 환불 대상이 되는 Payment 상태. "paid" 는 V2(orders.js markOrderPaid)의 종착 상태다. */
+const REFUNDABLE_PAYMENT_STATUSES = new Set(["paid", "success", "fulfilled"]);
 const PAID_SERVICE_DELIVERY_STATUSES = Object.freeze({
   PAYMENT_PENDING: "payment_pending",
   PAID: "paid",
@@ -1043,7 +1045,10 @@ async function runPaymentCancel(env, paymentRef = {}, reason, execution = {}) {
   if (String(payment.status || "") === "cancelled" || String(payment.status || "") === "refunded") {
     return { cancelled: true, idempotent: true };
   }
-  if (String(payment.status || "") !== "success" && String(payment.status || "") !== "fulfilled") {
+  // 🔴 "paid" 를 빼면 **V2 카드 결제 전부**가 자동 환불에서 조용히 빠진다. V2 의 승인 종착 상태는
+  // orders.js markOrderPaid 가 쓰는 status:"paid"(orderState:"PAID_VERIFIED") 이고, 같은 Payment
+  // 컬렉션을 여기서 읽는다. success·fulfilled 는 구 경로의 종착 상태라 둘 다 유효하다.
+  if (!REFUNDABLE_PAYMENT_STATUSES.has(String(payment.status || ""))) {
     return { cancelled: false, skipped: true, reason: "PAYMENT_NOT_SUCCESS" };
   }
 
