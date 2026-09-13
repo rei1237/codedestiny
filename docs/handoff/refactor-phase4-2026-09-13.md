@@ -81,6 +81,11 @@ TTL 을 `0` 으로 바꿔도 시계가 안 움직이는 테스트에서는 `now 
 머지 전에 겹침을 확인했다: 그쪽 13커밋이 건드린 `__tests__/ui/` 파일 2개는
 share 축이고, 내 writer 4개 파일·`docs/refactor/` 와는 **교집합 0**이다.
 
+작업 워크트리 `phase4-permission-20260913-112733` 은 제거했다(공유 `node_modules` junction 을
+먼저 끊고 지웠다 — 그냥 지우면 공유 `node_modules` 가 딸려 간다). 브랜치
+`wt/phase4-permission-20260913-112733` 은 **남겨 뒀다**: origin/main 에 아직 안 올라간
+커밋이라 복구 지점으로 쓴다. push 후에 `git branch -d` 로 지우면 된다.
+
 ## 검증
 
 - `node --test __tests__/ui/permission-writer-divergence.behavior.test.js` → **4/4**
