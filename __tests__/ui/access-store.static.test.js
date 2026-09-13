@@ -252,8 +252,7 @@ test("a final 401 is classified as authentication failure without erasing the la
 // 그 키가 confirmedUnlocks 에 영원히 남았다. 서버는 회수를 별도 신호로 보내지 않으므로
 // (revokedFeatureIds 는 워커에 생산자가 없다) 그 덧쓰기는 회수를 영구히 무효로 만들었다.
 // 이제 권위 스냅샷은 치환이다. 치환을 덧쓰기로 되돌리면 :269 가 곧바로 실패한다.
-// revokedFeatureIds 분기 자체는 아래 세 번째 스냅샷이 계속 지킨다(생산자가 없어도 지우지 않는다).
-test("an authoritative snapshot replaces the confirmed set, and an explicit versioned revoke still works", () => {
+test("an authoritative snapshot replaces the confirmed set and ignores unsupported revoke hints", () => {
   const store = loadStore(async () => ({ ok: false, status: 503, json: async () => ({ ok: false }) }));
   store.applyAccessStateSnapshot({
     userId: "user-1",
@@ -281,21 +280,19 @@ test("an authoritative snapshot replaces the confirmed set, and an explicit vers
   assert.deepEqual(Object.keys(store.getSnapshot().confirmedUnlocks).sort(), ["section_compat"]);
   assert.notEqual(first, store.getSnapshot());
 
-  // revokedFeatureIds 분기는 생산자가 없어도 남겨 둔다(원칙 6·9).
-  // 🔴 다만 이 스냅샷은 이제 분기를 독립적으로 검증하지 못한다 — 치환만으로도 같은 결과가
-  // 나오기 때문이다. 정본 집합에 **들어 있는** 키를 revoked 로 빼 보면 :680 의
-  // persistentUnlocks = copyMap(unlocks) 가 그 키를 되살려 분기가 실효를 잃는다(실측).
-  // 생산자가 없어 지금 새는 곳은 없고, 고치는 것은 D2 범위 밖이라 별 변경으로 남긴다.
+  // Unsupported hints must not split the confirmed and persistent sets.
   store.applyAccessStateSnapshot({
     userId: "user-1",
     currentProfileId: "profile-1",
     unlockedFeatureIds: ["section_compat"],
-    revokedFeatureIds: ["section_summary"],
+    revokedFeatureIds: ["section_compat"],
     version: "v2",
     completeness: "full",
     authority: "server",
   }, { userId: "user-1", profileId: "profile-1" });
   assert.equal(store.isUnlocked("section_summary"), false);
+  assert.equal(store.isUnlocked("section_compat"), true);
+  assert.deepEqual(Object.keys(store.getSnapshot().confirmedUnlocks), ["section_compat"]);
 });
 
 // 🔴 D2 치환의 fail-closed 짝. 치환은 권위 페이로드에만 걸린다 — degraded·부분 응답은 완전

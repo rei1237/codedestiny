@@ -224,7 +224,7 @@ state.persistentUnlocks = authoritativeFull ? copyMap(unlocks) : copyMap(merged)
 무해해지고 `:654` 의 치환이 실효를 얻는다.
 - **fail-closed 방향**(원칙 10): `authoritativeFull` 이 아니면 **절대 치환하지 않는다.**
   degraded-200 보호(`payloadCarriesUnlockAuthority :545-553`)는 그대로다.
-- `revokedFeatureIds` 분기는 **남긴다.** 생산자가 없다는 이유로 지우는 것은 별 변경이다(원칙 6·9).
+- `revokedFeatureIds` 분기는 2026-09-14 별도 정리에서 제거한다. 서버 생산자가 없고 권위 집합 치환과 충돌하므로 회수는 완전 응답의 `unlockedFeatureIds`에서 빠지는 것으로만 판정한다.
 
 **D3 — 원장은 답이 아니라 대기 버퍼다.** `app/_lib/use-content-unlock.ts:66` 의
 `next[key] = snapshotIncludesFeature(...) || ledger[key] === true` 에서 `confirmed` 모드를 뺀다.
@@ -272,12 +272,14 @@ React 는 access-store 에 `authFetch` 를 요청 어댑터로 꽂는다(`app/pr
 `unlockedFeatureIds`(소비자 30곳)는 **그대로 둔다**:
 
 ```
-unlockedFeatures: [{ featureKey, source, grantType, passId, expiresAt, grantedAt }]
+unlockedFeatureGrants: [{ featureKey, source, grantType, passId, expiresAt, grantedAt }]
 ```
 
-그러면 W1 × W2 가 데이터 수준에서 닫힌다. 이용권으로 열린 해금은 `source:'PASS'` + `passId` 를 들고
-있으므로 이용권이 끝나면 그 항목만 집합에서 빠진다 — `isUnlocked=true` 인데 `coversNow=false` 인
-상태가 성립할 수 없게 된다. 서버만 바뀌므로 동결 파일과 무관하다.
+2026-09-14 정정: 현재 서버의 `unlockedFeatureGrants` 구현을 정본으로 사용한다.
+`unlockedFeatures`와 `unlockedFeatureIds`는 기존 소비자와 동결 타입이 읽는 문자열 배열 그대로 유지한다.
+PASS는 구매 수단이며 해금의 만료 조건 자체가 아니다. 엔타이틀먼트에 실제 `expiresAt`이 있을 때만
+그 만료를 전달하고, 이용권 종료를 구매 해금의 만료로 추론하지 않는다. 따라서 `isUnlocked=true`와
+`coversNow=false`가 함께 성립할 수 있다. 새 필드 추가와 기존 문자열 계약 보존을 각각 검증한다.
 🔴 **D6 은 D1~D5 와 독립이고 더 크다. 순서상 맨 뒤에 둔다.**
 
 ### 왜 동결 파일을 건드리지 않아도 되는가

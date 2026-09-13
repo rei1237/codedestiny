@@ -756,14 +756,6 @@
     var merged = authoritativeFull ? copyMap(unlocks) : copyMap(state.persistentUnlocks);
     Object.keys(unlocks).forEach(function (key) { merged[key] = true; });
     Object.keys(state.confirmedUnlocks).forEach(function (key) { merged[key] = true; });
-    if (authoritativeFull && source.version && Array.isArray(source.revokedFeatureIds)) {
-      source.revokedFeatureIds.forEach(function (rawKey) {
-        var revokedKey = String(rawKey || '').trim();
-        if (!revokedKey) return;
-        delete state.confirmedUnlocks[revokedKey];
-        delete merged[revokedKey];
-      });
-    }
     Object.keys(state.optimistic).forEach(function (key) {
       if (state.optimistic[key] && state.optimistic[key].expiresAt > Date.now()) merged[key] = true;
     });
