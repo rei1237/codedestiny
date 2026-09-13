@@ -2490,15 +2490,6 @@ async function handleCheck() {
   });
 }
 
-async function handleConsume(auth) {
-  return json({
-    message: "Fortune reading is currently free. No coins were deducted.",
-    requiredPoints: 0,
-    isFree: true,
-    user: userPayload(auth),
-  });
-}
-
 const BALANCE_ROUTE_USER_PROJECTION = {
   _id: 1,
   points: 1,
@@ -6716,7 +6707,6 @@ export async function handleFortuneRoutes(request, env, ctx = null) {
     trace.dbConnected = true;
 
     if (method === "POST" && path === "/pig-coin/refund") return await handlePigCoinRefund(request, auth);
-    if (method === "POST" && path === "/consume") return await handleConsume(auth);
     if (method === "POST" && path === "/pig-coin/charge-simulate") return await handleChargeSimulate(request, env, auth);
     if (method === "POST" && path === "/pig-coin/profile-subscription/start-service") return await handleStartService(request, auth);
     if (method === "POST" && path === "/pig-coin/share-reward") return await handleShareReward(request, auth);
