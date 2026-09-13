@@ -205,5 +205,11 @@ When a new stale reference or document conflict is found:
 - **채택한 작업 규칙**: **중복된 판정을 없애는 변경은 한다. 파일을 옮기는 변경은 하지 않는다.** 판정에 정본이 아예 없을 때만 모듈 하나를 새로 **추가**한다(추가는 가드를 깨지 않는다). 정본이 있으면 호출부를 그쪽으로 돌린다.
 - **정본 위치**: 원장은 [`docs/refactor/`](refactor/README.md) 4종. `ARCHITECTURE.md` 는 탐색 지도로 그대로 유지한다(대체 관계가 아니다).
 
+## 2026-09-13 VVIP 회당결제 가격 충돌 해소 — 주석 ₩50,000 vs 정본 ₩30,000
+
+- **충돌**: `worker/lib/nakshatra-paid-access.js:4` 주석이 `/api/nakshatra-premium/vvip-codex` 를 **₩50,000** 이라 적었다. 정본은 전부 **₩30,000** 이다 — `worker/lib/paid-feature-registry.js:235`(`cost: 300 / 30000`), 라우트 `coinPrice: 300`, `VvipClient.tsx` `AMOUNT_KRW = 30000`, 가드 `scripts/verify-nakshatra-premium.mjs:515`.
+- **해소**: 주석을 ₩30,000 으로 고쳤다. 값 사본이 아니라 설명문이므로 코드 동작은 바뀌지 않는다. 승격 절차와 실측 근거는 [`docs/handoff/per-use-enforce-stage2-2026-09-13.md`](handoff/per-use-enforce-stage2-2026-09-13.md).
+- **함께 기록한 미해결**: 같은 파일이 설명하는 나크샤트라 3종은 아직 `PER_USE_ENFORCE = false`(관측 전용)라 `requireAuth` 만으로 본문이 나간다. 켜지 못하는 이유는 1단계 종료 조건인 프로덕션 로그 표본을 로컬에서 확인할 수 없기 때문이다(증빙이 `console.info` 뿐). 코드는 바꾸지 않았다.
+
 ## 2026-09-08 사용자 전달 방식 변경 (역사 — 2026-09-12 절로 대체)
 PR 생성 후 필수 검사와 최신 base 충돌을 확인하고 에이전트가 안전하게 머지한다. 스테이징에서 Pages·Worker 배포 SHA 및 읽기 전용 핵심 응답을 확인한다. 과거 사용자 수동 머지·머지 후 배포 미확인 조항보다 이 지시가 우선한다. 프로덕션 승격은 여전히 사용자의 명시적인 1회 승인 때만 진행한다. branch protection을 우회하지 않으며 실패·필수 승인 대기는 보고한다.

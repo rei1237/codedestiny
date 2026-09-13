@@ -1,7 +1,7 @@
 // 회당 결제 라우트 — 서버측 결제 증빙 검증(공용).
 //
 // 대상: /api/nakshatra/compat(₩10,000) · /api/nakshatra-premium/muhurta(₩5,000)
-//       /api/nakshatra-premium/vvip-codex(₩50,000)
+//       /api/nakshatra-premium/vvip-codex(₩30,000)
 //       /api/fortune/guardian/generate(연이 운명 상담 ₩5,000, 무료 소진 이후)
 //       /api/fusion-fortune/generate[/stream](초융합 운세 ₩30,000)
 // 나크샤트라 3종은 지금도 관측 전용(PER_USE_ENFORCE=false)이지만, 연이·초융합 두 상담은
