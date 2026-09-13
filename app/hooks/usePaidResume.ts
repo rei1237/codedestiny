@@ -55,26 +55,30 @@ export function usePaidResume(kind: string, run: PaidResumeRunner, options: { le
 
   useEffect(() => {
     if (!kind) return undefined;
-    // 🔴 해제 API 가 없다(registerPaidResumeHandler 만 있다) — 언마운트 뒤에도 레지스트리에는
-    //    이 클로저가 남으므로, 죽은 화면이 재개를 삼키지 않게 alive 로 즉시 false 를 돌린다.
+    // Remove this screen's handlers on unmount so recovery waits for the next
+    // screen to mount instead of immediately invoking an inactive closure.
     let alive = true;
+    const registrations: Array<{ kind: string; handler: (descriptor: PaidResumeDescriptor, grant: PaidResumeGrant | null) => boolean | Promise<boolean> }> = [];
     try {
       const kinds = Array.from(new Set([kind, ...(options.legacyKinds || [])].filter(Boolean)));
       for (const resumeKind of kinds) {
-        checkoutEntry.registerPaidResumeHandler(resumeKind, (descriptor, grant) => {
+        const handler = (descriptor: PaidResumeDescriptor, grant: PaidResumeGrant | null) => {
           if (!alive) return false;
           const args =
             descriptor && descriptor.args && typeof descriptor.args === "object"
               ? (descriptor.args as PaidResumeArgs)
               : {};
           return runRef.current(args, grant || null);
-        });
+        };
+        checkoutEntry.registerPaidResumeHandler(resumeKind, handler);
+        registrations.push({ kind: resumeKind, handler });
       }
     } catch {
       /* 등록 실패는 재개 포기로만 이어진다 — 정상 인페이지 결제 흐름은 그대로다. */
     }
     return () => {
       alive = false;
+      registrations.forEach(({ kind: resumeKind, handler }) => checkoutEntry.unregisterPaidResumeHandler(resumeKind, handler));
     };
   }, [kind, options.legacyKinds]);
 

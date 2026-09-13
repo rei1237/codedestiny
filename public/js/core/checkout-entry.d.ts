@@ -407,6 +407,10 @@ declare const checkoutEntry: {
     kind: string,
     handler: (descriptor: PaidResumeDescriptor, grant: PaidResumeGrant | null) => unknown,
   ): boolean;
+  unregisterPaidResumeHandler(
+    kind: string,
+    handler: (descriptor: PaidResumeDescriptor, grant: PaidResumeGrant | null) => unknown,
+  ): boolean;
   /**
    * 서술자에 맞는 핸들러를 실행한다.
    *

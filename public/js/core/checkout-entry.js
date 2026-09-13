@@ -1374,6 +1374,16 @@
     return true;
   }
 
+  // Unmount cleanup must not remove a newer screen's handler for the same kind.
+  function unregisterPaidResumeHandler(kind, handler) {
+    var win = runtimeWindow();
+    var registry = win && win[RESUME_HANDLER_KEY];
+    var key = text(kind);
+    if (!registry || registry[key] !== handler) return false;
+    delete registry[key];
+    return true;
+  }
+
   /**
    * 서술자에 맞는 핸들러를 실행한다.
    *
@@ -1824,6 +1834,7 @@
     peekPaidGrantReceipt: peekPaidGrantReceipt,
     consumePaidGrantReceipt: consumePaidGrantReceipt,
     registerPaidResumeHandler: registerPaidResumeHandler,
+    unregisterPaidResumeHandler: unregisterPaidResumeHandler,
     runPaidResume: runPaidResume,
     buildDirectPayMethodStepHtml: buildDirectPayMethodStepHtml,
     setSelectedDirectPayMethod: setSelectedDirectPayMethod,

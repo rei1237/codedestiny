@@ -226,6 +226,25 @@ test("같은 문서의 중복 resume는 하나의 실행에 합류한다", async
   } finally { window.close(); }
 });
 
+test("route unmount removes only its own handler and resume waits for the next screen", async () => {
+  const { window } = boot({ url: 'https://code-destiny.com/', ticket: null });
+  try {
+    const api = window.__cdCheckoutEntry;
+    const old = () => false;
+    let executions = 0;
+    const current = () => { executions++; return true; };
+    api.registerPaidResumeHandler('route-return', old);
+    assert.equal(api.unregisterPaidResumeHandler('route-return', old), true);
+    const pending = api.runPaidResume({ kind: 'route-return', action: '', args: {} }, { merchantUid: 'route-order' });
+    window.setTimeout(() => api.registerPaidResumeHandler('route-return', current), 20);
+    assert.equal(await pending, true);
+    assert.equal(executions, 1);
+    assert.equal(api.unregisterPaidResumeHandler('route-return', old), false);
+    assert.equal(await api.runPaidResume({ kind: 'route-return', action: '', args: {} }, { merchantUid: 'second-order' }), true);
+    assert.equal(executions, 2);
+  } finally { window.close(); }
+});
+
 test("승인 복귀(재개 서술자 없음): 미완료 티켓·URL 보존 → 지속 카드·카드 강조·이벤트", async () => {
   const { window, calls } = boot({
     url: "https://code-destiny.com/?portone_redirect=1&paymentId=ord_1&transactionType=PAYMENT&txId=tx_1&keep=1#tab",
