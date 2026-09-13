@@ -21,6 +21,9 @@
  *   ③ 기본 TTL(표에 없는 종류)이 양쪽에서 같다
  *   ④ React `CacheKind` 유니온이 실제 두 표가 쓰는 종류 집합과 일치한다
  *   ⑤ 모르는 경로는 양쪽 다 "캐시하지 않음"으로 떨어진다(셸 `''` / React `null`)
+ *   ⑥ 설치 가드가 **양쪽 플래그를 다 본다**(D5.2). 두 구현이 같은 문서에 실리면 `window.fetch` 가
+ *     2중으로 감싸져 TTL·in-flight 합류·무효화가 두 겹이 된다. 지금은 문서가 갈려 있어 발생하지
+ *     않지만, "지금은 안 일어난다"는 가드를 빼는 이유가 못 된다(원칙 10).
  *
  * fail-closed 설계(코딩 원칙 10):
  *   - 인라인 블록·함수 4개 중 하나라도 못 찾으면 통과가 아니라 실패다. 정규식이 리팩터링에
@@ -32,8 +35,6 @@
  * 2차 대상(이번 범위 아님 — Phase 4 설계 D5.3):
  *   - 경로 B(`/api/billing/unlock-status`)의 층 차이. 셸에만 10초 API 결과 캐시
  *     (`getApiResultCacheTtl`)가 한 층 더 있다. 경로 A 수렴과 독립이라 이번엔 고치지 않는다.
- *   - 설치 가드 플래그 상호 확인(D5.2, 커밋 2). 셸 `__cdUserAccessSessionCacheInstalled` 와 React
- *     `__cdUserAccessFetchCacheInstalled` 가 서로를 보지 않아 같은 문서에 둘 다 실리면 2중 래핑된다.
  */
 import { readFileSync } from "node:fs";
 import path from "node:path";
@@ -204,6 +205,17 @@ check(
   "기본 분기가 캐시 종류를 돌려주면 미분류 경로가 조용히 캐시된다",
 );
 
+/* ── ⑥ 설치 가드 상호 확인 ──────────────────────────────────────────────── */
+const INSTALL_FLAGS = ["__cdUserAccessSessionCacheInstalled", "__cdUserAccessFetchCacheInstalled"];
+const shellInstallGuard = /if\s*\(([^)]*)\)\s*return\s*;/.exec(shellBlock)?.[1];
+if (shellInstallGuard === undefined) fatal(`${SHELL_FILE} 인라인 블록에서 설치 가드(첫 early return)를 찾지 못했다`);
+const reactInstallBody = functionBody(reactSource, /export function installUserAccessFetchCache\s*\(/, `React ${REACT_FILE} installUserAccessFetchCache()`);
+const reactInstallGuard = [...reactInstallBody.matchAll(/if\s*\(([^)]*)\)\s*return\s*;/g)].map(([, condition]) => condition).join(" || ");
+for (const flag of INSTALL_FLAGS) {
+  check(`셸 설치 가드가 ${flag} 를 본다`, shellInstallGuard.includes(flag), "상대 구현이 이미 fetch 를 감쌌는지 보지 않으면 2중 래핑된다");
+  check(`React 설치 가드가 ${flag} 를 본다`, reactInstallGuard.includes(flag), "상대 구현이 이미 fetch 를 감쌌는지 보지 않으면 2중 래핑된다");
+}
+
 function report() {
   if (failures.length) {
     console.error(`\n[실패] 세션 캐시 계약 검증 ${failures.length}건`);
@@ -216,7 +228,8 @@ function report() {
     `[통과] 세션 캐시 계약 검증 — 엔드포인트 ${shellEndpoints.size}개(셸) ↔ ${reactEndpoints.size}개(React),`
     + ` 셸 전용 ${SHELL_ONLY_ENDPOINTS.size}개 선언, 공통 캐시 종류 ${commonKinds.length}종 유효 TTL 일치`
     + `(${commonKinds.map((kind) => `${kind}=${shellTtl.table.has(kind) ? shellTtl.table.get(kind) : shellTtl.fallback}ms`).join(" · ")}),`
-    + ` 기본 ${shellTtl.fallback}ms, CacheKind 유니온 ${declaredKinds.length}종 정합\n`,
+    + ` 기본 ${shellTtl.fallback}ms, CacheKind 유니온 ${declaredKinds.length}종 정합,`
+    + ` 설치 가드 2곳 × 플래그 ${INSTALL_FLAGS.length}개 상호 확인\n`,
   );
 }
 

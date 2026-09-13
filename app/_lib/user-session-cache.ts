@@ -68,6 +68,8 @@ export type UserAccessSnapshot = {
 
 type RuntimeWindow = Window & {
   __cdUserAccessFetchCacheInstalled?: boolean;
+  // 정적 셸 index.html 의 인라인 세션 캐시가 세우는 플래그. 아래 설치 가드가 이것도 본다.
+  __cdUserAccessSessionCacheInstalled?: boolean;
   __cdUserAccessNativeFetch?: typeof window.fetch;
   CodeDestinyUserAccessCache?: {
     getUserAccessSnapshot: typeof getUserAccessSnapshot;
@@ -552,7 +554,11 @@ export function useRequireAccess() {
 export function installUserAccessFetchCache() {
   if (typeof window === "undefined") return;
   const runtimeWindow = window as RuntimeWindow;
-  if (runtimeWindow.__cdUserAccessFetchCacheInstalled) return;
+  // 🔴 셸 인라인 세션 캐시(index.html <script id="cd-user-access-session-cache-*">)가 이미
+  // window.fetch 를 감쌌다면 여기서 또 감싸지 않는다 — 2중 래핑이면 TTL·in-flight 합류·무효화가
+  // 두 겹이 돼 같은 호출이 서로 다른 신선도를 받는다. 셸 쪽도 대칭으로 이 플래그를 본다.
+  // 대조 가드: scripts/verify-session-cache-contract.mjs
+  if (runtimeWindow.__cdUserAccessFetchCacheInstalled || runtimeWindow.__cdUserAccessSessionCacheInstalled) return;
   const nativeFetch = runtimeWindow.fetch.bind(window);
   runtimeWindow.__cdUserAccessNativeFetch = nativeFetch;
   runtimeWindow.__cdUserAccessFetchCacheInstalled = true;
