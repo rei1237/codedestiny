@@ -9,13 +9,13 @@
 | 0 | 감사 문서 + 가드 shadow 배선 + guardian 가드 현행화 | 20 | **완료 (2026-09-13)** — `517939421` · `ecc17b406` · `9163a7dac` + 이 문서 커밋 |
 | 1 | C급 중복 수렴: 환산 상수 5벌 → 정본 1개 (원화 포맷·`normalizeGender`·`Asia/Seoul` 은 재분류) | 16, 17 | **완료 (2026-09-13)** — `dc93b4545` · `6559cb245` · `827248162` + 이 문서 커밋 |
 | 2 | LLM 경계 닫기: 실호출 차단을 설정으로 + mock 게이트 정본 수렴 | 10, 11 | **부분 완료 (2026-09-13)** — `817161297` · `85fa2d10a` + 이 문서 커밋. 우회 2곳은 RED 선보고 대기 |
-| 3 | 안전망 보강: `tsconfig` 범위·eslint 가시화·CI `skipped` 구멍 | 18, 19 | 대기 |
+| 3 | 안전망 보강: `tsconfig` 범위·eslint 가시화·CI `skipped` 구멍 | 18, 19 | **완료 (2026-09-13)** — `53536305b` · `ea63cd451`. 네 축 중 셋은 오진이었고 진짜 사각지대는 `lib/` 였다 |
 | 4 | 권한 판정 단일화: writer 4개 → 서버 SoT 하나에 묻기 | 3, 4, 5, 6, 15 | 대기 |
 | 5 | 정적 셸 추출: `js/inline/` 패턴으로 12,721줄 블록 단계 분리 | 1 | 대기 |
 | 6 | repository 계층: projection·모델 접근 수렴 | 7, 8, 9 | 대기 |
 | 7 | 엔진 단일화: characterization 고정 후 계산·표현 분리 | 2 | 대기 |
 | 8 | 결제 스택 수렴: 상태기·resume·환불 경로 | 12, 13, 14 | 대기 |
-| 9 | cleanup + 최종 구조 검증 + shadow→차단 승격 | — | 대기 |
+| 9 | cleanup + 최종 구조 검증 | — | 대기 (shadow→차단 승격은 2026-09-13 에 먼저 닫았다) |
 
 ## 순서 근거
 
@@ -69,15 +69,25 @@
 
 CLAUDE.md: "CI 선택 실행은 10회 push 비교 전까지 shadow다. 기존 검사를 삭제하지 않는다." 차단 게이트에 바로 넣으면 오탐 하나가 main 을 세운다. 오탐 여부는 관측으로만 안다.
 
-### shadow → 차단 승격 조건
+### shadow → 차단 승격 조건 — **충족·완료 (2026-09-13)**
 
-- main push **10회** 이상 관측 (관측시작일 **2026-09-13**, 대상 41개)
-- 그 기간 오탐 0
-- **사용자의 명시적 승인** (게이트 추가는 승인 사항 — CLAUDE.md CI gate scope)
+- main push **10회** 이상 관측 (관측시작일 **2026-09-13**, 대상 41개) → **15런 관측**
+- 그 기간 오탐 0 → **15런 × 41스텝 = 615건 전부 `success`**
+- **사용자의 명시적 승인** (게이트 추가는 승인 사항 — CLAUDE.md CI gate scope) → **2026-09-13 승인**
 
-Phase 9 에서 제안한다. 승격 제안 시 관측시작일과 관측 횟수를 함께 보고한다.
+Phase 9 를 기다리지 않고 닫았다. 41개는 `.github/workflows/pr-ci.yml` 의 `guards` lane(= `ci-required`
+aggregate 의 `needs`)으로 옮겼고 `guards-shadow.yml` 은 삭제했다. `SHADOW_OBSERVING` 은 **빈 채로
+유지**한다 — 버킷과 양방향 축은 다음 관측 때 다시 쓴다.
 
-관측 집계: `gh run list --workflow=guards-shadow.yml -R <repo>` → `gh run view <id> --json jobs` 의 `steps[].conclusion`.
+승격과 함께 닫은 사각지대: `guards` lane 은 `shouldRunStaticGuards` 로 평문 문서 전용 push 에서
+skip 되는데, 41개 중 2개가 **루트 계약 문서**를 읽는다(`verify:payment-policy-md` →
+`PAYMENT_POLICY.md`, `verify:mobile-entry-actions` → `MOBILE_FEATURE_REGISTRY.md`). shadow 는 매
+push 돌았으므로 그냥 옮기면 가격 정본만 고친 push 에서 조용히 꺼진다. 루트 `.md` 를 평문 문서
+분류에서 뺐다(`scripts/resolve-ci-tier.mjs`, 자기검사 3케이스 추가).
+
+관측 집계(다음 관측 때 재사용): `gh run list --workflow=<파일> -R <repo>` → `gh run view <id> --json jobs`
+의 `steps[].conclusion`. 🔴 잡 레벨 `conclusion` 은 근거가 못 된다 — `continue-on-error` 때문에
+스텝이 전부 실패해도 잡은 `success` 다.
 
 ## Phase 1 의 내용 (2026-09-13)
 

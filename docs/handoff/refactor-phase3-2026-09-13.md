@@ -1,7 +1,7 @@
 ---
-status: active
+status: done
 updated: 2026-09-13
-next: Phase 4(권한·세션 계층 — TOP 3·4·5·6·15). 그 전에 🔴 shadow 41개 차단 승격 결정이 사용자 승인만 남아 있다(아래 "올려야 할 결정").
+next: 후속은 docs/handoff/shadow-guard-promotion-2026-09-13.md 로 넘어갔다. 이 문서의 "올려야 할 결정"(shadow 41개 승격)은 2026-09-13 에 승인·완료됐다.
 ---
 
 # 점진 구조 개선 Phase 3 인수인계

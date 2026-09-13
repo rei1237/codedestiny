@@ -170,53 +170,14 @@ const UNWIRED_BY_DESIGN = [
  * 문서가 틀린 것이다. 차단 승격은 사용자 승인 사항이다(CLAUDE.md CI gate scope).
  */
 const SHADOW_OBSERVING = [
-  // 🔴 이 목록은 .github/workflows/guards-shadow.yml 의 스텝과 **1:1** 이다. 한쪽만 바꾸면
-  //    아래 두 축 중 하나가 실패한다. 항목을 넣을 때 사유와 관측시작일(YYYY-MM-DD)을 함께 적는다.
+  // 🔴 지금 비어 있는 것이 정상 상태다. 관측 중인 검증기가 없다는 뜻이며, 이 버킷의 기계
+  //    (auditShadowObservation 의 양방향 축)는 그대로 둔다 — 다음 관측 때 다시 쓴다.
   //
-  // ── 2026-09-13 이관분. 전원 로컬 실측 통과(mock 네트워크 가드 on, 실 LLM·실결제 0건)를 확인하고
-  //    비차단 관측으로 올렸다. 실패 3개는 UNWIRED_BY_DESIGN 에 그대로 남겼다 — 통과하지 않는 것을
-  //    관측에 넣으면 10회 관측의 오탐 0 기준이 처음부터 무의미해진다.
-  ["verify:payment-service-boundary", "shadow 관측(비차단) — 결제 경계 정적 검사 — UI 가 결제 판정을 직접 재구현하는지 본다", "2026-09-13"],
-  ["verify:payment-choice-single-instance", "shadow 관측(비차단) — 결제창 단일 인스턴스 — 루트 셸과 public 미러가 같은 결제창을 쓰는지 본다", "2026-09-13"],
-  ["verify:pass-check-retry", "shadow 관측(비차단) — 이용권 재검사 재시도 계약 — 재시도가 requestId 를 새로 만들지 않는다(멱등)", "2026-09-13"],
-  ["verify:payment-policy-md", "shadow 관측(비차단) — 결제 정책 문서 ↔ 레지스트리 정합", "2026-09-13"],
-  ["verify:market-policy-registry", "shadow 관측(비차단) — 시장(스토어)별 정책 레지스트리 정합", "2026-09-13"],
-  ["verify:app-no-portone", "shadow 관측(비차단) — 앱 PortOne 차단 — build:mobile:app 이 파일 경로로 직접 부르지만 그 경로는 게이트에 없다", "2026-09-13"],
-  ["verify:auth-public-origin", "shadow 관측(비차단) — OAuth 콜백 origin 고정", "2026-09-13"],
-  ["verify:password-policy", "shadow 관측(비차단) — 비밀번호 정책 — 시드에 평문 비밀번호가 되살아나는지 본다", "2026-09-13"],
-  ["verify:admin-feedback-bug-reward", "shadow 관측(비차단) — 관리자 버그 제보 보상 라우트 계약", "2026-09-13"],
-  ["verify:route-await-dispatch", "shadow 관측(비차단) — 라우트 await 디스패치 — 누락되면 응답이 조용히 빈다", "2026-09-13"],
-  ["verify:llm-client-timeout-budget", "shadow 관측(비차단) — LLM 타임아웃 예산(정적)", "2026-09-13"],
-  ["verify:guardian-fortune-failure", "shadow 관측(비차단) — 수호신 상담 실패 계약(정적) — 2026-09-13 에 정책 정본 상수를 읽도록 고쳐 초록이 됐다", "2026-09-13"],
-  ["verify:cf:migration", "shadow 관측(비차단) — Worker 런타임 호환 + 필수 파일 존재 — 이름은 '이전 준비도'지만 Node 전용 API 반입을 막는 살아있는 검사다", "2026-09-13"],
-  ["verify:profile-client-first", "shadow 관측(비차단) — 프로필 클라이언트 우선 로드", "2026-09-13"],
-  ["verify:profile-new-user", "shadow 관측(비차단) — 신규 사용자 프로필 초기화 — 저장 실패 안내가 에러코드 노출이 아닌지 본다", "2026-09-13"],
-  ["verify:profile-card-level", "shadow 관측(비차단) — 프로필 카드 등급 표시 + 루트·public 사본 동일", "2026-09-13"],
-  ["verify:auth-card-theme", "shadow 관측(비차단) — 로그인 카드 테마 대비 — 표면·텍스트 동시 정의", "2026-09-13"],
-  ["verify:hero-contrast", "shadow 관측(비차단) — 히어로 대비 3:1 — 반쪽 오버라이드 검출", "2026-09-13"],
-  ["verify:rpt-preview-cta", "shadow 관측(비차단) — 리포트 프리뷰 CTA — 타일 클릭이 결제로 직행하지 않는다", "2026-09-13"],
-  ["verify:sun-recovery-copy", "shadow 관측(비차단) — 복구 안내 문구 커버리지·폴백", "2026-09-13"],
-  ["verify:feature-marketing-schema", "shadow 관측(비차단) — 기능 마케팅 카피 스키마 — 가짜 결과 예시 0", "2026-09-13"],
-  ["verify:static-asset-cache-keys", "shadow 관측(비차단) — 정적 자산 캐시 키 ↔ 참조 정합", "2026-09-13"],
-  ["verify:i18n-no-hardcoded-korean", "shadow 관측(비차단) — 하드코딩 한국어 스캔(증가 추세 리포트 겸 가드)", "2026-09-13"],
-  ["verify:physiognomy-report", "shadow 관측(비차단) — 관상 리포트 섹션 파서 — 무중복·프리미엄 게이트 등록", "2026-09-13"],
-  ["verify:physiognomy-scoring", "shadow 관측(비차단) — 관상 점수 결정성(in-sample 분포)", "2026-09-13"],
-  ["verify:animal-totem-render", "shadow 관측(비차단) — 동물 토템 렌더", "2026-09-13"],
-  ["verify:past-life-face", "shadow 관측(비차단) — 전생 얼굴 조합 고유성·결정성", "2026-09-13"],
-  ["verify:numerology-tarot-flow", "shadow 관측(비차단) — 수비학 타로 플로우 — 결제는 한 지점", "2026-09-13"],
-  ["verify:tarot-love-flow", "shadow 관측(비차단) — 타로 연애 즉시 플로우", "2026-09-13"],
-  ["verify:tarot-topic-lock", "shadow 관측(비차단) — 타로 주제 고정 — 질문 주제와 답 주제 일치", "2026-09-13"],
-  ["verify:love-compat", "shadow 관측(비차단) — 궁합 결정성 + 사주 경로 일치", "2026-09-13"],
-  ["verify:ziwei-island", "shadow 관측(비차단) — 자미두수 청사진 결정성·배타성·서명", "2026-09-13"],
-  ["verify:destiny-compass", "shadow 관측(비차단) — 운명 나침반 결정성 — 난수·현재시각 미사용", "2026-09-13"],
-  ["verify:pet-saju", "shadow 관측(비차단) — 반려동물 사주 전수 180케이스 결정성·무료/유료 경계", "2026-09-13"],
-  ["verify:rpg-phase9", "shadow 관측(비차단) — RPG 페이즈9 계약(worker·모델·셸 마커)", "2026-09-13"],
-  ["verify:fusion-fortune-reopen", "shadow 관측(비차단) — 융합 운세 재열람 — 멱등 키·프라이버시 경계·상한", "2026-09-13"],
-  ["verify:fusion-fortune-pdf", "shadow 관측(비차단) — 초융합 PDF 문서 구성 — 본문 누락·빈 장·개인정보", "2026-09-13"],
-  ["verify:cms-registry", "shadow 관측(비차단) — CMS 네임스페이스 레지스트리", "2026-09-13"],
-  ["verify:mobile-entry-actions", "shadow 관측(비차단) — 모바일 진입 액션 배선", "2026-09-13"],
-  ["verify:mobile-pricing-parity", "shadow 관측(비차단) — 모바일 가격 표기 ↔ 레지스트리 정합", "2026-09-13"],
-  ["verify:mobile-bottom-nav-sync", "shadow 관측(비차단) — 모바일 하단 내비 ↔ 셸 7벌·로케일 라벨 동기화", "2026-09-13"],
+  //    2026-09-13: 여기 있던 41개를 차단 게이트로 승격했다. main push 15런 × 41스텝 = 615건
+  //    전부 success · 오탐 0(gh run 의 steps[].conclusion 집계)으로 phase-plan.md 의 승격 조건
+  //    (10회 이상 관측 + 오탐 0 + 사용자 승인)을 충족했고 사용자 승인을 받았다. 41개는
+  //    .github/workflows/pr-ci.yml 의 guards lane 으로 옮겼고 guards-shadow.yml 은 삭제했다.
+  //    그래서 이들은 이제 UNWIRED_BY_DESIGN 도 SHADOW_OBSERVING 도 아닌 일반 배선 축이 센다.
 ];
 
 // ─────────────────────────────────────────────────────────────── 그래프

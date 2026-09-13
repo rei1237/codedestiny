@@ -25,7 +25,7 @@
 | 17 | 범용 유틸 중복 | `normalizeGender` 31벌, `Asia/Seoul` 하드코딩 **179**파일(121 은 글롭 범위가 달랐다), Julian day 9벌, `iana-offset` 정본 importer 6 vs 경쟁 파서 4 | **C급 오분류** — 아래 참조. Phase 1 에서 하지 않는다 |
 | 18 | 타입·린트 사각지대 | 실측 2026-09-13: `worker/` 는 73 이 아니라 **309**파일이고 `verify:worker-no-undef` 로 **이미 덮여 있었다**. 진짜 사각지대는 `lib/`(89파일, 유료 LLM·결제 경로 포함) — `next lint` 대상이지만 `no-undef` 가 꺼져 있고 `checkJs` 가 없어 tsc 도 안 본다. `next.config.mjs`·`--quiet` 는 **의도된 계약**, 아래 참조 | 부분 해소 (`ea63cd451`) — `lib/` 그물 신설·fail-open 제거. `scripts/`·`js/` 는 후속 |
 | 19 | 필수 CI 가 `skipped` 를 통과로 인정 | `.github/workflows/pr-ci.yml:969-972` `ci-required` 가 `if: always()` + `needs:[classify,fast,guards,build,critical]` → `classify` 오분류가 초록불과 구분되지 않는다 | 해소 (`53536305b`) — 선언(`runs_*`)과 실행(`result`) 대조로 교체, 변이 3/3 탐지 |
-| 20 | 가드 44개가 "배선 후보(미승인)"로 아무것도 지키지 않음 | `scripts/verify-guard-wiring.mjs` `UNWIRED_BY_DESIGN`. 2026-09-13 전수 실측: **41개 통과 / 3개 실패** — 통과분을 안 돌리는 것은 순수 손실 | 부분 해소 (`9163a7dac`) — 41개는 `SHADOW_OBSERVING` 에서 비차단 관측 중, 차단 승격은 Phase 9 |
+| 20 | 가드 44개가 "배선 후보(미승인)"로 아무것도 지키지 않음 | `scripts/verify-guard-wiring.mjs` `UNWIRED_BY_DESIGN`. 2026-09-13 전수 실측: **41개 통과 / 3개 실패** — 통과분을 안 돌리는 것은 순수 손실 | **해소 (2026-09-13)** — 41개를 `pr-ci.yml` guards lane 으로 차단 승격(15런 × 41스텝 오탐 0 + 사용자 승인). 남은 3개는 지금도 실패 상태라 `UNWIRED_BY_DESIGN` 유지 — 배선 전에 원인부터 고쳐야 한다 |
 
 ## 16·17 재측정 (2026-09-13, Phase 1)
 
