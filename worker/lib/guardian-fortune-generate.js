@@ -254,9 +254,12 @@ export async function generateGuardianFortuneRequest({
       now,
       snapshot: reservation.source === "paid" ? null : (committed.committed || null),
     });
+    // 🔴 공유 스냅샷은 **무료 결과 전용**이다(2026-09-13 정책). 결제분 본문은 공개 URL 로
+    // 새어 나가면 안 되므로 클라이언트를 믿지 않고 토큰 자체를 발급하지 않는다 — 토큰이
+    // 없으면 POST /guardian/share 가 통과할 방법이 없다(서버가 정본).
     let shareDraftToken;
     const shareEnv = contextOptions?.env || {};
-    if (!contextOptions?.disableShare && isGuardianFortuneShareEnabled(shareEnv)) {
+    if (!contextOptions?.disableShare && reservation.source !== "paid" && isGuardianFortuneShareEnabled(shareEnv)) {
       try {
         shareDraftToken = await createGuardianFortuneShareDraftToken({
           env: shareEnv,

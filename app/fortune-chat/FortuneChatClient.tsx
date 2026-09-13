@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { PriceBadge } from "@/app/components/PriceBadge";
 import { PersonaAvatar } from "./PersonaAvatar";
+import { GuardianShareButton } from "./GuardianShareButton";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { useCoinGate } from "@/app/hooks/useCoinGate";
 import { usePaidResume } from "@/app/hooks/usePaidResume";
@@ -306,6 +307,8 @@ export default function FortuneChatClient() {
   const [birthOpen, setBirthOpen] = useState(false);
   /** 상담자가 제안한 다음 질문. 채팅이 한 턴으로 끝나지 않게 하는 동력이다. */
   const [followUps, setFollowUps] = useState<string[]>([]);
+  // 서버가 무료 생성분에만 실어 보내는 공유 초안 토큰. 유료 결과에는 아예 오지 않는다.
+  const [shareDraftToken, setShareDraftToken] = useState("");
   const birthTouchedRef = useRef(false);
   const timelineRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -504,6 +507,9 @@ export default function FortuneChatClient() {
     // 왕복이 한 번 더 늘고(현재 프로덕션에서 Mongo 조회 1건 ≈ 5초), 그 요청이 12초 op
     // 상한에 걸리면 상담은 성공했는데 화면만 실패로 보인다.
     if (attempt.payload.usage) setUsage(attempt.payload.usage);
+    // 유료 생성분에는 토큰이 없다(worker/lib/guardian-fortune-generate.js). 그때는 빈 문자열이
+    // 들어가 공유 버튼이 사라지므로, 유료 본문은 어떤 경로로도 공개 스냅샷이 되지 않는다.
+    setShareDraftToken(typeof attempt.payload.shareDraftToken === "string" ? attempt.payload.shareDraftToken : "");
     return true;
   }, [append]);
 
@@ -547,7 +553,7 @@ export default function FortuneChatClient() {
       return;
     }
 
-    setBusy(true); setError(""); setNotice("");
+    setBusy(true); setError(""); setNotice(""); setShareDraftToken("");
     const label = concern || topic;
     const userMessageId = id();
     append([{ id: userMessageId, speaker: "user", text: label }], topic);
@@ -679,6 +685,7 @@ export default function FortuneChatClient() {
           {message.kind === "cta" && <div className={styles.actions} data-cd-cross-sell="/fortune-chat">{isInternalPath(message.ctaHref) ? <a href={message.ctaHref}>이 상담 보러 가기 <span aria-hidden>→</span></a> : null}<button type="button" onClick={beginFusion}>초융합 심층 리딩 이어가기 <span aria-hidden>→</span></button><button type="button" onClick={() => setMessages((current) => current.filter((item) => item.id !== message.id))}>여기까지 볼게요</button></div>}
         </div>
       </article>)}
+      {shareDraftToken && !busy && !isPaying && <GuardianShareButton apiBase={apiBase} token={shareDraftToken} />}
       {(busy || isPaying) && <article className={`${styles.message} ${styles.assistant}`}><PersonaAvatar persona={character} mood="think" size="sm" decorative /><p className={styles.typing}><i /><i /><i /><span>{busyLabel}</span></p></article>}
       {notice && <p className={styles.ticketStatus} role="status">{notice}</p>}
     </div>

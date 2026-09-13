@@ -204,6 +204,42 @@ describe("Guardian Fortune mock generate controller", () => {
     expect(response.usage.dailyFreeRemaining).toBe(0);
   });
 
+  // 🔴 공유 스냅샷은 무료 결과 전용이다. 결제분에도 초안 토큰이 나가면 유료 본문이 공개 URL 로
+  // 굳어 버린다 — 클라이언트 분기로는 못 막는다(토큰만 있으면 POST /guardian/share 가 통과).
+  it("issues a share draft token for free results but never for a paid generation", async () => {
+    const shareEnv = { ENABLE_GUARDIAN_FORTUNE_SHARE: "true", GUARDIAN_FORTUNE_SHARE_SECRET: "test-share-secret" };
+    const free = await generateGuardianFortuneRequest({
+      input,
+      userId: "user-share-free",
+      requestId: "generate-share-free-1",
+      dateKey: "2026-08-02",
+      store: createMemoryGuardianFortuneStore(),
+      now: NOW,
+      contextBuilder: successfulContextBuilder,
+      mockGenerator: async () => ({ result, usedFallback: false }),
+      contextOptions: { env: shareEnv },
+    });
+    expect(free).toMatchObject({ ok: true, generationSource: "daily_free" });
+    expect(typeof free.shareDraftToken).toBe("string");
+
+    const paid = await generateGuardianFortuneRequest({
+      input,
+      userId: "user-share-paid",
+      requestId: "generate-share-paid-1",
+      dateKey: "2026-08-02",
+      store: createMemoryGuardianFortuneStore({
+        daily: { "user-share-paid:2026-08-02": { userId: "user-share-paid", dateKey: "2026-08-02", freeLimit: 1, freeUsed: 1, reserved: 0 } },
+      }),
+      resolvePaidAccess: async () => ({ ok: true }),
+      now: NOW,
+      contextBuilder: successfulContextBuilder,
+      mockGenerator: async () => ({ result, usedFallback: false }),
+      contextOptions: { env: shareEnv },
+    });
+    expect(paid).toMatchObject({ ok: true, generationSource: "paid" });
+    expect(paid.shareDraftToken).toBeUndefined();
+  });
+
   it("does not call the context or mock provider when the payment is missing", async () => {
     const store = createMemoryGuardianFortuneStore({
       daily: { "user-blocked:2026-08-02": { userId: "user-blocked", dateKey: "2026-08-02", freeLimit: 1, freeUsed: 1, reserved: 0 } },
