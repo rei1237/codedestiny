@@ -357,6 +357,7 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
       valuePoints: ["하루의 감정 흐름 확인", "관계 주의점 점검", "실행 타이밍 조절"],
       cta: { label: "자미두수로 더 깊게 보기", href: "/ziwei" },
       internalLinks: [
+        { href: "/fortune", label: "기간별 별자리·띠 운세 보기" },
         { href: "/sukuyo", label: "숙요점으로 관계 보기" },
         { href: "/insights", label: "운세 인사이트 읽기" },
       ],
@@ -377,6 +378,7 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
       valuePoints: ["一日の感情の流れを確認", "関係の注意点を点検", "行動タイミングを調整"],
       cta: { label: "紫微斗数でもっと深く見る", href: "/ziwei/chart/?lang=ja" },
       internalLinks: [
+        { href: "/ja/fortune", label: "期間別の星座・十二支運勢を見る" },
         { href: "/ja/sukuyo", label: "宿曜で関係を見る" },
         { href: "/ja/insights", label: "運勢インサイトを読む" },
       ],
@@ -397,6 +399,7 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
       valuePoints: ["确认一天的情绪流向", "检查关系注意点", "调整行动时机"],
       cta: { label: "用紫微斗数深入查看", href: "/ziwei/chart/?lang=zh" },
       internalLinks: [
+        { href: "/zh/fortune", label: "查看按期间整理的星座与生肖运势" },
         { href: "/zh/sukuyo", label: "用宿曜查看关系" },
         { href: "/zh/insights", label: "阅读运势洞察" },
       ],
@@ -417,6 +420,7 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
       valuePoints: ["確認一天的情緒流向", "檢查關係注意點", "調整行動時機"],
       cta: { label: "用紫微斗數深入查看", href: "/ziwei/chart/?lang=zh-tw" },
       internalLinks: [
+        { href: "/zh-tw/fortune", label: "查看依期間整理的星座與生肖運勢" },
         { href: "/zh-tw/sukuyo", label: "用宿曜查看關係" },
         { href: "/zh-tw/insights", label: "閱讀運勢洞察" },
       ],
@@ -437,6 +441,7 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
       valuePoints: ["Read the emotional tone", "Check relationship cautions", "Adjust timing before action"],
       cta: { label: "Go Deeper with Zi Wei", href: "/ziwei/chart/?lang=en" },
       internalLinks: [
+        { href: "/en/fortune", label: "Browse Zodiac Fortunes by Period" },
         { href: "/en/sukuyo", label: "Read Relationships with Sukuyo" },
         { href: "/en/insights", label: "Read Fortune Insights" },
       ],
