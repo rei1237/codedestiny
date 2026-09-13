@@ -27,6 +27,7 @@ import { classifyFile, riskOf, requiresDeepVerification } from "./lib/change-ris
 import { lintTargets } from "./lib/lint-targets.mjs";
 import { assertWorkerBaseIsFresh } from "./lib/worker-deploy-base-guard.mjs";
 import { assertProductionDeployIsCi } from "./lib/production-deploy-guard.mjs";
+import { assertWorkerBindingBudget } from "./lib/worker-binding-budget.mjs";
 
 const root = process.cwd();
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
@@ -779,6 +780,9 @@ async function deployPages(value, branch, production) {
   return { id: deployment?.id || "", url, branch, message };
 }
 async function uploadWorker(value) {
+  const secrets = await cfFetch(apiBase() + "/accounts/" + process.env.CLOUDFLARE_ACCOUNT_ID + "/workers/scripts/" + encodeURIComponent(value.cf.worker) + "/secrets");
+  const budget = assertWorkerBindingBudget(fs.readFileSync(path.join(root, target.workerConfig), "utf8"), secrets);
+  console.log(`[deploy-safe] Worker text bindings: ${budget.total}/128 (${budget.remaining} spare).`);
   const alias = "preview-" + value.git.head.slice(0, 12);
   const text = capture("Worker preview version upload", npxCommand(), wrangler(["versions", "upload", "--config", target.workerConfig, "--name", value.cf.worker, "--tag", alias, "--preview-alias", alias, "--message", deployLabel(value.git, "preview"), "--var", "COMMIT_SHA:" + value.git.head]), { env: envForChecks() });
   const versionId = lastUuid(text);
