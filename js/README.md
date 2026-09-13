@@ -12,7 +12,6 @@ core/
 ├── index-inline-saju.js         → 사주 계산 번들
 └── index-inline-tarot.js        → 타로 번들
 
-kill-switch.js                  → 🛑 긴급 중단 신호
 psycho-dream-analyzer-*.js      → 꿈 해몽 분석 엔진
 sibyl-system.js                 → 시빌라 시스템
 ziwei-book.js                   → 자미두수 계산

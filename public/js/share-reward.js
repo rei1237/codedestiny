@@ -1,121 +1,15 @@
 /* ═══════════════════════════════════════════════════════════════════════
-   카카오톡 공유 보상 시스템  —  share-reward.js
+   공유 래퍼  —  share-reward.js
    ─────────────────────────────────────────────────────────────────────
-   • 공유 성공 시 이벤트 보상 자동 반영
-   • 하루 3회 한도 (localStorage 기반 선행 체크 + 서버 이중 검증)
-   • 같은 contentId 당일 재공유 시 보상 없음
-   • 비로그인: 공유는 허용, 보상은 안내 토스트 표시
+   • 파일명과 shareWithReward 라는 이름은 호출부 13곳(js/share.js, HwatuFortune.js)
+     호환을 위해 유지한다. 폴백 정의가 레포에 없어 무가드로 불린다.
+   • 코인 공유 보상은 폐지됐다. 서버는 항상 410 POINT_REWARD_DISABLED 이고
+     클라이언트는 보상 요청·잔액 갱신·localStorage 한도 기록을 모두 하지 않는다.
+   • 남은 책임은 두 가지뿐: 공유 함수를 실행하고, 완료 토스트를 띄운다.
    ═══════════════════════════════════════════════════════════════════════ */
 
 (function (global) {
   'use strict';
-
-  /* ── 상수 ─────────────────────────────────────────────────────────── */
-  var REWARD_AMOUNT       = 10;
-  var DAILY_LIMIT         = 3;
-  var STORAGE_KEY_PREFIX  = 'cd_share_reward_';
-  var LS_AUTH_TOKEN_KEY   = 'fortune_auth_token';
-  var LS_AUTH_USER_KEY    = 'fortune_auth_user';
-  var SHARE_REWARD_COPY = {
-    ko: { networkError: '네트워크 오류가 발생했습니다.' },
-    en: { networkError: 'A network error occurred.' },
-    ja: { networkError: 'ネットワークエラーが発生しました。' },
-    zh: { networkError: '发生网络错误。' }
-  };
-
-  function getShareRewardLocale() {
-    try {
-      var cookieMatch = document.cookie.match(/(?:^|;\s*)(?:cd_locale|NEXT_LOCALE|lang)=([^;]+)/);
-      var raw = cookieMatch ? decodeURIComponent(cookieMatch[1] || '') : '';
-      if (!raw && localStorage) raw = localStorage.getItem('cd_lang') || localStorage.getItem('cd_locale') || localStorage.getItem('codeDestinyLocale') || localStorage.getItem('lang') || '';
-      raw = String(raw || '').toLowerCase();
-      if (raw.indexOf('ja') === 0) return 'ja';
-      if (raw.indexOf('zh') === 0) return 'zh';
-      if (raw.indexOf('en') === 0) return 'en';
-    } catch (_) {}
-    return 'ko';
-  }
-
-  function getShareRewardCopy() {
-    return SHARE_REWARD_COPY[getShareRewardLocale()] || SHARE_REWARD_COPY.ko;
-  }
-
-  /* ── KST 날짜 키 (YYYYMMDD) ────────────────────────────────────────  */
-  function _kstDateKey() {
-    var kst = new Date(Date.now() + 9 * 3600 * 1000);
-    return kst.toISOString().slice(0, 10).replace(/-/g, '');
-  }
-
-  /* ══════════════════════════════════════════════════════════════════
-     localStorage 중복 방지 유틸
-     저장 형식: { count: N, contentIds: ["saju", "tarot", ...] }
-  ══════════════════════════════════════════════════════════════════ */
-
-  function _readRecord() {
-    try {
-      var raw = localStorage.getItem(STORAGE_KEY_PREFIX + _kstDateKey());
-      var parsed = raw ? JSON.parse(raw) : null;
-      if (parsed && typeof parsed === 'object') {
-        return {
-          count:      Number(parsed.count || 0),
-          contentIds: Array.isArray(parsed.contentIds) ? parsed.contentIds : [],
-        };
-      }
-    } catch (_e) {}
-    return { count: 0, contentIds: [] };
-  }
-
-  function _writeRecord(record) {
-    try {
-      localStorage.setItem(
-        STORAGE_KEY_PREFIX + _kstDateKey(),
-        JSON.stringify({ count: record.count, contentIds: record.contentIds }),
-      );
-      _pruneOldRecords();
-    } catch (_e) {}
-  }
-
-  /** 오늘 날짜 이전 보상 기록 자동 정리 */
-  function _pruneOldRecords() {
-    try {
-      var today = _kstDateKey();
-      var toDelete = [];
-      for (var i = 0; i < localStorage.length; i++) {
-        var k = localStorage.key(i);
-        if (k && k.indexOf(STORAGE_KEY_PREFIX) === 0 && k.slice(STORAGE_KEY_PREFIX.length) !== today) {
-          toDelete.push(k);
-        }
-      }
-      toDelete.forEach(function (k) { try { localStorage.removeItem(k); } catch (_e) {} });
-    } catch (_e) {}
-  }
-
-  /**
-   * 오늘 보상 횟수를 반환합니다.
-   * @returns {number}
-   */
-  function getShareRewardUsedToday() {
-    return _readRecord().count;
-  }
-
-  /**
-   * 특정 contentId가 오늘 이미 보상 지급 대상인지 확인합니다.
-   * @param {string} contentId
-   * @returns {boolean}
-   */
-  function isShareRewardContentUsed(contentId) {
-    return _readRecord().contentIds.indexOf(String(contentId)) !== -1;
-  }
-
-  /** 서버 지급 성공 후 클라이언트 기록에 반영합니다. */
-  function _markUsed(contentId) {
-    var record = _readRecord();
-    record.count += 1;
-    if (record.contentIds.indexOf(String(contentId)) === -1) {
-      record.contentIds.push(String(contentId));
-    }
-    _writeRecord(record);
-  }
 
   /* ══════════════════════════════════════════════════════════════════
      토스트 UI
@@ -172,138 +66,30 @@
   }
 
   /* ══════════════════════════════════════════════════════════════════
-     인증 / 잔액 유틸
-  ══════════════════════════════════════════════════════════════════ */
-
-  function _isLoggedIn() {
-    try { return !!(localStorage.getItem(LS_AUTH_TOKEN_KEY) || ''); } catch (_e) { return false; }
-  }
-
-  function _getToken() {
-    try { return localStorage.getItem(LS_AUTH_TOKEN_KEY) || ''; } catch (_e) { return ''; }
-  }
-
-  function _getApiBase() {
-    /* index.html의 getApiBaseUrl()이 있으면 사용, 없으면 빈 문자열 (same-origin) */
-    return (typeof getApiBaseUrl === 'function') ? getApiBaseUrl() : '';
-  }
-
-  /** fortune_auth_user.points를 갱신하고 잔액 뱃지 UI를 업데이트합니다. */
-  function _applyNewPoints(points) {
-    var n = Number(points || 0);
-    /* 1) localStorage 동기화 */
-    try {
-      var raw  = localStorage.getItem(LS_AUTH_USER_KEY);
-      var user = (raw ? JSON.parse(raw) : null) || {};
-      user.points = n;
-      localStorage.setItem(LS_AUTH_USER_KEY, JSON.stringify(user));
-    } catch (_e) {}
-    /* 2) 전역 badge 갱신 (index.html IIFE 내 userBalance / updateBadge) */
-    try {
-      if (typeof userBalance !== 'undefined') userBalance = n;
-      if (typeof updateBadge === 'function') updateBadge();
-    } catch (_e) {}
-    /* 3) DOM 직접 갱신 fallback */
-    try {
-      var el = document.getElementById('goldenGrainBalanceText');
-      if (el) el.textContent = '보유 혜택 ' + n.toLocaleString('ko-KR');
-    } catch (_e) {}
-  }
-
-  /* ══════════════════════════════════════════════════════════════════
-     서버 보상 요청
-  ══════════════════════════════════════════════════════════════════ */
-
-  function _requestReward(contentId, onSuccess, onError) {
-    void contentId;
-    void onSuccess;
-    onError(410, { code: 'POINT_REWARD_DISABLED', message: '기존 코인 공유 보상은 더 이상 사용하지 않습니다.' });
-  }
-
-  /* ══════════════════════════════════════════════════════════════════
      메인 공개 API
   ══════════════════════════════════════════════════════════════════ */
 
   /**
-   * 카카오톡 공유 실행 후 보상을 처리하는 래퍼 함수.
+   * 공유를 실행하고 완료 토스트를 띄우는 래퍼 함수.
    *
    * @param {Function} shareFn   - 실제 공유를 수행하는 함수 (동기)
-   * @param {string}   contentId - 콘텐츠 식별자
-   *    예: 'saju' | 'tarot' | 'dream-tarot' | 'reunion' | 'zodiac'
-   *        | 'astro' | 'sukuyo' | 'ziwei' | 'destiny-flower'
-   *        | 'hwatu' | 'stonehenge' | 'secret-house' | 'poker'
+   * @param {string}   contentId - 콘텐츠 식별자. 보상 폐지로 더 이상 쓰이지 않으나
+   *                               호출부 13곳의 시그니처 호환을 위해 남긴다.
    *
    * @example
    *   shareWithReward(function() { Kakao.Share.sendDefault({...}); }, 'tarot');
    */
   function shareWithReward(shareFn, contentId) {
-    var cid = String(contentId || 'default').trim();
+    void contentId;
 
-    /* ── 1. 공유 실행 (보상과 무관하게 항상 실행) ── */
+    /* 공유 실행 */
     try { shareFn(); } catch (e) { console.warn('[share-reward] shareFn threw:', e); }
 
-    // Legacy coin rewards are retired. Keep sharing intact without calling
-    // the old point-grant endpoint or mutating a coin balance.
     setTimeout(function () { showShareRewardToast('공유가 완료되었습니다.'); }, 700);
-    return;
-
-    /* ── 2. 비로그인: 안내 토스트만 표시 ── */
-    if (!_isLoggedIn()) {
-      setTimeout(function () {
-        showShareRewardToast('로그인하면 보상을 받을 수 있어요 🐷');
-      }, 700);
-      return;
-    }
-
-    /* ── 3. 클라이언트 선행 중복 체크 (빠른 UX, 서버가 2차 검증) ── */
-    var record = _readRecord();
-
-    if (record.count >= DAILY_LIMIT) {
-      setTimeout(function () { showShareRewardToast('오늘 보상은 모두 받았어요 🌸'); }, 700);
-      return;
-    }
-
-    if (record.contentIds.indexOf(cid) !== -1) {
-      setTimeout(function () { showShareRewardToast('이미 오늘 공유한 콘텐츠예요'); }, 700);
-      return;
-    }
-
-    /* ── 4. 서버 보상 요청 (공유 딜레이 후 실행) ── */
-    setTimeout(function () {
-      _requestReward(
-        cid,
-        /* onSuccess */ function (data) {
-          var newPoints  = data.user && data.user.points;
-          var usedToday  = Number(data.usedToday  || record.count + 1);
-          var limitPerDay = Number(data.limitPerDay || DAILY_LIMIT);
-          _markUsed(cid);
-          if (typeof newPoints === 'number') _applyNewPoints(newPoints);
-          showShareRewardToast(
-            '공유 보상 반영! (오늘 ' + usedToday + '/' + limitPerDay + '회)',
-          );
-        },
-        /* onError */ function (status, data) {
-          if (status === 429) {
-            _markUsed(cid);
-            showShareRewardToast('오늘 보상은 모두 받았어요 🌸');
-          } else if (status === 409) {
-            _markUsed(cid);
-            showShareRewardToast('이미 오늘 공유한 콘텐츠예요');
-          } else if (status === 401) {
-            showShareRewardToast('로그인하면 보상을 받을 수 있어요 🐷');
-          } else {
-            /* 네트워크 오류 등: 조용히 실패 (공유 자체는 성공) */
-            console.warn('[share-reward] reward error', status, data);
-          }
-        },
-      );
-    }, 900);
   }
 
   /* ── 전역 노출 ── */
-  global.shareWithReward          = shareWithReward;
-  global.showShareRewardToast     = showShareRewardToast;
-  global.getShareRewardUsedToday  = getShareRewardUsedToday;
-  global.isShareRewardContentUsed = isShareRewardContentUsed;
+  global.shareWithReward      = shareWithReward;
+  global.showShareRewardToast = showShareRewardToast;
 
 }(typeof window !== 'undefined' ? window : this));
