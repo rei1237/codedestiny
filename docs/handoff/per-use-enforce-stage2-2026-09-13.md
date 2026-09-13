@@ -1,5 +1,5 @@
 ---
-status: open
+status: blocked
 updated: 2026-09-13
 next: 프로덕션 워커 로그 표본 확보가 선행 조건. 그 전에는 코드를 켜지 않는다.
 ---
