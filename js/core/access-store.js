@@ -844,10 +844,20 @@
       attempt: Number(attempt || 0),
     });
     var epoch = bootEpoch;
+    /* 🔴 강제 갱신은 헤더로 번역해야 실효가 있다. 여기서 만드는 force 는 access-store 자기 캐시만
+       비운다 — 그 위에 서버 스냅샷 캐시 60s(worker/lib/access-state-cache.js)와 런타임 fetch 캐시
+       60s(셸 index.html · React app/_lib/user-session-cache.ts)가 더 있고, 두 층을 뚫는 레버는
+       x-code-destiny-cache-refresh: 1 하나뿐이다. 이 헤더를 안 실었기 때문에 회수가 소비자에게
+       닿기까지 60+60+60 초가 걸렸다(Phase 4 D4 실측).
+       cache:'no-store' 는 브라우저 HTTP 캐시에만 걸리고 두 층 어디에도 닿지 않는다.
+       🔴 force 일 때만 싣는다. 상시 ensureLoaded 까지 실으면 서버 캐시가 통째로 죽어
+       요청마다 인증 + ContentEntitlement 조회 2왕복이 난다. */
+    var requestHeaders = { Accept: 'application/json' };
+    if (options && options.force === true) requestHeaders['x-code-destiny-cache-refresh'] = '1';
     var request = requestJson(query, {
       credentials: 'include',
       cache: 'no-store',
-      headers: { Accept: 'application/json' },
+      headers: requestHeaders,
       signal: controller ? controller.signal : undefined
     }).then(function (response) {
         var payload = response.payload || {};

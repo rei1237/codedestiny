@@ -167,16 +167,20 @@ function accessState({ unlocked, tier = "free", passExpiresAt = null, revoked = 
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 1) W4 가 W1 의 강제 재검증을 삼킨다 — 같은 코드가 런타임에 따라 다른 답을 낸다.
+// 1) W4 가 W1 의 강제 재검증을 삼켰다 — **Phase 4 커밋 3(D4)에서 수렴됨.**
 //
 // access-store 는 재검증을 `revalidate()`(내부 force)와 HTTP `cache:'no-store'` 로 표현한다.
 // 그런데 user-session-cache 의 몽키패치가 뚫리는 조건은 오직 헤더 하나
-// (user-session-cache.ts:87 CACHE_REFRESH_HEADER)이고, access-store 는 그 헤더를 싣지 않는다.
+// (user-session-cache.ts:89 CACHE_REFRESH_HEADER)인데, 예전 access-store 는 그 헤더를 싣지 않았다.
 // 그래서 서버가 권한을 회수해도 React 는 accessState TTL 60초(user-session-cache.ts:256) 동안
-// 옛 답을 그대로 받는다. 셸에는 몽키패치가 설치되지 않으므로(app/providers/UserSessionProvider.tsx)
-// 같은 access-store.js 가 그 자리에서 회수를 반영한다.
+// 옛 답을 그대로 받았고, 몽키패치를 안 태운 셸은 같은 access-store.js 로 그 자리에서 회수를 반영해
+// **같은 코드가 런타임에 따라 다른 답**을 냈다.
+//
+// 🔴 단언은 지우지 않고 방향만 뒤집었다(Phase 4 커밋 3). access-store.js startFetch 가 force 일 때
+// x-code-destiny-cache-refresh: 1 을 싣는 한 두 런타임의 답은 같다. 헤더를 다시 떼면 아래 두 줄이
+// 곧바로 실패한다 — 수렴이 되돌아가는 것을 이 테스트가 다시 잡는다.
 // ─────────────────────────────────────────────────────────────────────────────
-test("서버가 권한을 회수하면 셸은 즉시 잠그지만 React 는 60초 동안 열어 둔다 (W1 × W4)", async () => {
+test("서버가 권한을 회수하면 셸과 React 가 같은 순간에 잠근다 (W1 × W4)", async () => {
   async function runtime(installFetchCache) {
     let revoked = false;
     const runner = boot({
@@ -205,9 +209,10 @@ test("서버가 권한을 회수하면 셸은 즉시 잠그지만 React 는 60�
   assert.equal(shell.rightAfterRevoke, false, "셸은 회수를 즉시 반영해야 합니다");
   assert.equal(shell.hitsAfterRevoke, 2, "셸의 revalidate 는 서버에 닿아야 합니다");
 
-  // 🔴 재현된 엇갈림: 같은 사용자·같은 기능·같은 access-store.js·같은 revalidate() 호출인데 답이 다르다.
-  assert.equal(react.rightAfterRevoke, true, "몽키패치가 강제 재검증을 삼키는 현상이 사라졌다면 수렴된 것입니다");
-  assert.equal(react.hitsAfterRevoke, 1, "React 의 두 번째 revalidate 는 서버에 닿지 않는다(60초 캐시 히트)");
+  // 🔴 수렴 단언(뒤집기 전: true / 1). 같은 사용자·같은 기능·같은 access-store.js·같은 revalidate()
+  // 호출이면 런타임이 달라도 답이 같아야 한다. 헤더를 떼면 여기서 문다.
+  assert.equal(react.rightAfterRevoke, false, "React 도 강제 재검증에서 회수를 즉시 반영해야 합니다 — 실패하면 startFetch 의 x-code-destiny-cache-refresh 가 빠진 것입니다");
+  assert.equal(react.hitsAfterRevoke, 2, "React 의 두 번째 revalidate 도 서버에 닿아야 합니다(몽키패치 60초 캐시를 헤더로 뚫는다)");
 
   // 짝 단언: 지연은 유한해야 한다. TTL 이 늘거나 무효화가 빠지면 여기서 문다.
   assert.equal(shell.afterTtl, false, "TTL 이 지난 뒤에는 셸이 잠겨 있어야 합니다");
