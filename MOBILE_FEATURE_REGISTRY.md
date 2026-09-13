@@ -32,7 +32,7 @@
 | VVIP 꿀단지 30일 | Moonlight Pass 카드 | `/points?plan=vvip`, 인페이지 CTA | 30일 59,000원, 10,000원 이하 | VVIP 서고와 혼동 가능 | 결제 상태/월정석 잔량 조회 | 이용권과 VVIP 기능 서고 구분 |
 | Code Destiny Family 30일 | Moonlight Pass 카드 | `/points?plan=family`, 인페이지 CTA | 30일 149,000원, 모든 유료 기능 | 설명이 길고 고가 플랜 정보가 큼 | 결제 상태/월정석 잔량 조회 | 상세는 `/points`로 분리 |
 | 월정석 잔량 | 포인트/이용권 페이지 | `/points`, billing status | 유료/잔량 | 홈에서 노출되면 복잡함 | `/api/billing/balance` 계열 | 홈에서는 요약만, 상세는 `/points` |
-| 카카오 공유 보상 | 공유 이벤트 후 보상 | share reward action/API | 무료 보상 | 사용 조건을 홈에서 설명하면 길어짐 | share reward script | 결과 공유 후 안내 |
+| ~~카카오 공유 보상~~ (폐지) | — | 폐지. `/api/fortune/pig-coin/share-reward` 는 항상 410 `POINT_REWARD_DISABLED` | — | — | — | 공유 자체는 유지, 보상 없이 완료 토스트만 |
 | 단건 결제 | 유료 카드/프리뷰/결제 모달 | direct KRW payment | 유료 | 프리뷰와 결제 CTA가 길어짐 | 결제 provider/API | 카드 preview 후 결제 sheet |
 | 잠금 해제 | 잠금 카드, `unlockPremiumFeature` | 인페이지/worker unlock | 유료/이용권 가능 | 잠금 뱃지가 많아 시각 피로 | 권한/해금 조회 API | 한 컬렉션만 열어 잠금 노출 축소 |
 | 운명의 찻집 | VVIP 대표 상담 카드, 모바일 허브 | `/fortune-tea-house` | 타로 5,000원, 사주 10,000원, 궁합 20,000원 | 홈 카드 설명이 길어짐 | 별도 route 자산 | 모바일 대표 CTA 유지 |

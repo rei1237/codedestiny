@@ -1327,12 +1327,6 @@
     "ja": "すべての反復実行に失敗しました。",
     "zh-CN": "所有迭代执行均失败。"
   },
-  "moduleCopy.shareReward.networkError": {
-    "ko": "네트워크 오류가 발생했습니다.",
-    "en": "A network error occurred.",
-    "ja": "ネットワークエラーが発生しました。",
-    "zh-CN": "发生网络错误。"
-  },
   "moduleCopy.tarotLove.krw": {
     "ko": "원",
     "en": " KRW",

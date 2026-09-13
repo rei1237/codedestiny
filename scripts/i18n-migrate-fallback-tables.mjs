@@ -37,7 +37,6 @@ const MODULE_SLUG = {
   "js/compat-llm-prompts.js": "compatPrompt",
   "js/fate-scroll-reveal.js": "fateScrollReveal",
   "js/fate-scroll-top.js": "fateScrollTop",
-  "js/share-reward.js": "shareReward",
   "js/services/sajuWorkerServiceAdvanced.js": "sajuWorkerAdvanced",
   "js/mobile-interaction-patch.js": "mobilePatch",
 };

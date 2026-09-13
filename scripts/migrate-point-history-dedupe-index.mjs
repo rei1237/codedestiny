@@ -1,9 +1,13 @@
-// Adds the partial-unique index on PointHistory.dedupeKey that backs the share-reward
-// idempotency guard (worker/routes/fortune.js handleShareReward). Safe to re-run.
+// Adds the partial-unique index on PointHistory.dedupeKey. Safe to re-run.
 //
-// The index is partial (dedupeKey must be a non-empty string), so legacy share_reward
-// documents — which have no dedupeKey — are excluded and cannot cause a build conflict.
-// It only enforces "one grant per (user, contentId, KST-day)" for newly written rows.
+// The original caller — handleShareReward's "one grant per (user, contentId, KST-day)"
+// guard — was retired; that route now returns 410 POINT_REWARD_DISABLED. The index is
+// kept: __tests__/ui/drop-unused-index-safety.static.test.js:73 forbids dropping
+// dedupeKey_1, and scripts/migrations/20260812-normalize-legacy-points.mjs writes a
+// fixed dedupeKey so re-running it cannot double-write.
+//
+// The index is partial (dedupeKey must be a non-empty string), so the many rows with
+// no dedupeKey are excluded and cannot cause a build conflict.
 //
 //   node scripts/migrate-point-history-dedupe-index.mjs
 import { config } from "dotenv";
