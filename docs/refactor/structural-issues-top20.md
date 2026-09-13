@@ -8,10 +8,10 @@
 |---|---|---|---|
 | 1 | 38,517줄 수작업 `index.html` 이 production `/` — 인라인 스크립트 21,803줄, 단일 블록 12,721줄 | 120일 커밋 24%(1,525/6,436), 렌더링 테스트 0, 가드 61개가 텍스트로만 읽음 | 미해소 (Phase 5) |
 | 2 | 사주 엔진 5벌이 한 생일에 다른 답을 낼 수 있다 | `js/saju-engine.js:5072`, `app/saju/animal-destiny/engine/localSajuCalculator.ts`, `worker/lib/destiny-bias-engine.js:936`, `life-book-ai-saju.js:723`, `saju-snapshot-from-birth.js:56` | 미해소 (Phase 7) |
-| 3 | 이용권 판정 3벌이 하드코딩돼 있고 값이 불일치 | `worker/lib/profile-limits.js:97,115`(정본) vs `app/_lib/billing-client.ts:569,579,587`(월한도·familyQuota 없음) vs `js/core/pass-verdict.js:51,55` | 미해소 (Phase 4) |
-| 4 | 권한 상태 writer 4개 × TTL 4종 → 결제한 잠금이 화면마다 보였다 안 보임 | `access-store.js:14`(24h grace), `user-session-cache.ts:202-207`, `optimistic-unlock-ledger.ts:16`, 서버 | 미해소 (Phase 4) |
-| 5 | `window.fetch` 몽키패치 | `app/_lib/user-session-cache.ts:556-557,619` → `js/**` 의 raw fetch 전부가 모르는 캐시로 우회된다 | 미해소 (Phase 4) |
-| 6 | `/api/auth/me` 를 독립 시계 3개가 호출(8s / 30s / 30·15·2s) | 계약은 1회(`docs/DEBUGGING_GUIDE.md:204-221`), 실측 5회(`scripts/verify-entry-fanout.mjs`) | 미해소 (Phase 4) |
+| 3 | 이용권 판정 3벌이 하드코딩돼 있고 값이 불일치 | 실측 2026-09-13: **값 불일치는 없다.** 세 사본 전부 `scripts/verify-pass-tier-policy.mjs:219-252` 가 서버 정본(`PASS_LIMITS`·`MONTHLY_PASS_LIMITS`)을 **import 해서** 대조하고, 그 가드는 `check:critical`·`deploy:critical` 차단 경로다. 변이 2/2 탐지 | **오진 (2026-09-13 재측정)** — 아래 참조. 남은 것은 죽은 4번째 판정 하나 |
+| 4 | 권한 상태 writer 4개 × TTL 4종 → 결제한 잠금이 화면마다 보였다 안 보임 | 실측 2026-09-13: TTL 은 4종이 아니라 **9종** — `js/core/access-store.js:14-16`(60s·30m·24h), `app/_lib/optimistic-unlock-ledger.ts:17-18`(72h·10m), `app/_lib/user-session-cache.ts:90`(180s), `js/core/pass-verdict.js:26-46`(60s·5m·24h·35d) | 미해소 (Phase 4) — 원장보다 크다 |
+| 5 | `window.fetch` 몽키패치 | 실측 2026-09-13: 실재한다(`app/_lib/user-session-cache.ts:552-619`, `resolveCacheKind` 의 엔드포인트 8개를 가로챈다). 단 설치처는 **React 뿐**(`app/providers/UserSessionProvider.tsx:13`) — 정적 셸은 설치하지 않는다 | 미해소 (Phase 4) — 원장의 "`js/**` 전부"는 정정, 아래 참조 |
+| 6 | `/api/auth/me` 를 독립 시계 3개가 호출(8s / 30s / 30·15·2s) | 실측 2026-09-13: 인증 폴링 `setInterval` 은 **1개**(`app/_lib/auth-store.ts:704` `SESSION_HEARTBEAT_INTERVAL_MS`). `verify:entry-fanout` 의 "[6] 세션 검증 단일화 — force 합류 + 공유 세션 시계"가 셸 7종·클라 2종에서 PASS | **해소로 재판정 (2026-09-13)** — 아래 참조 |
 | 7 | repository 계층 부재 | worker 69파일에 인라인 모델 접근 ~681곳. 동일 30필드 projection 이 `worker/routes/profile.js` 945·1024·1057·1245·1391·1427 에 6번 | 미해소 (Phase 6) |
 | 8 | `worker/routes/fortune.js` 6,915줄이 결제·권한·인증·Mongo·LLM·프롬프트·엔진을 융합 | 손으로 만든 402 응답 ~20개 | 미해소 (Phase 6) |
 | 9 | AI 상담 라우트 8개 17,805줄이 각자 전 과정을 재구현 | 공용 `permission-service.js`·`payment-service.js` import **0** | 미해소 (Phase 6) |
@@ -20,7 +20,7 @@
 | 12 | 결제 스택 2개를 body-sniffing 으로 중개, PortOne 로더 3개 경쟁, 환불 경로 4개, identity 2개 | `worker/index.js:1327-1448`; `index.html:22061`, `js/destiny-profile.js:3968`, `lib/payment/portone.ts:294` | 미해소 (Phase 8) |
 | 13 | 주문 상태기 정본 외 병렬 status enum 6개 이상 | 정본 `worker/payments/orders.js:35`; 경쟁 `worker/lib/models.js:315,316,462,732,738,772,781,821` | 미해소 (Phase 8) |
 | 14 | resume 영속 스키마 3개 | `checkout-entry.js:154,1549`, `app/_lib/paid-attempt-session.ts:42`, `access-store.js:10` | 미해소 (Phase 8) |
-| 15 | fetch 래퍼 5개 + 재시도·서킷브레이커 정책 4종, API base 재도출 ~20곳, 기본 origin 4개 | `http-client.ts`, `auth-client.ts:570`, `billing-client.ts:1916,1971`, `service-read-client.ts`, `access-store.js:258` | 미해소 (Phase 4) |
+| 15 | fetch 래퍼 5개 + 재시도·서킷브레이커 정책 4종, API base 재도출 ~20곳, 기본 origin 4개 | 경로 정정 2026-09-13: `lib/http-client.ts` 가 아니라 **`app/_lib/http-client.ts`** 다. 재시도 언급 수는 `auth-client.ts` 8 · `billing-client.ts` 18 · `service-read-client.ts` 8 · `access-store.js` 1 · `http-client.ts` **0** | 미해소 (Phase 4) |
 | 16 | 동일 상수 재선언 | `KRW_PER_COIN` 이 3곳이 아니라 **5곳**(정본 `billing-policy.js:1`, 복사 `profile-limits.js:9`·`coin-pricing.ts:3`, 가드 내 하드코딩 `verify-payment-policy-md.mjs:12`·`verify-krw-copy-canonical.mjs:60`). pass 가격은 **이미 묶여 있었다** | 해소 (`dc93b4545`·`6559cb245`·`827248162`) — 원화 **포맷** 인라인은 이관, 아래 참조 |
 | 17 | 범용 유틸 중복 | `normalizeGender` 31벌, `Asia/Seoul` 하드코딩 **179**파일(121 은 글롭 범위가 달랐다), Julian day 9벌, `iana-offset` 정본 importer 6 vs 경쟁 파서 4 | **C급 오분류** — 아래 참조. Phase 1 에서 하지 않는다 |
 | 18 | 타입·린트 사각지대 | 실측 2026-09-13: `worker/` 는 73 이 아니라 **309**파일이고 `verify:worker-no-undef` 로 **이미 덮여 있었다**. 진짜 사각지대는 `lib/`(89파일, 유료 LLM·결제 경로 포함) — `next lint` 대상이지만 `no-undef` 가 꺼져 있고 `checkJs` 가 없어 tsc 도 안 본다. `next.config.mjs`·`--quiet` 는 **의도된 계약**, 아래 참조 | 부분 해소 (`ea63cd451`) — `lib/` 그물 신설·fail-open 제거. `scripts/`·`js/` 는 후속 |
@@ -99,6 +99,42 @@
 - `**/*.ts` include 가 `.d.mts` 6개를 안 잡는다. 선언 파일이라 피해가 작다.
 
 🔴 교훈: 원장의 "전부 미검사"는 **가드 배선을 안 본 판정**이었다. 사각지대를 찾을 때는 `tsconfig`·`next lint` 설정만 보지 말고 `verify-guard-wiring.mjs --report` 로 **이미 도는 가드가 무엇을 덮는지** 먼저 본다. 그리고 새 가드를 만들기 전에 **기존 가드를 넓힐 수 있는지** 본다 — 파일명이 배선에 묶인 레포에서는 그게 유일하게 안전한 확장 방향이다.
+
+## 3·4·5·6·15 재측정 (2026-09-13, Phase 4 착수 전)
+
+네 번째 Phase 에서도 같은 결과다 — **다섯 행 중 둘이 이미 닫혀 있었다.** Phase 4 는 코드를 한 줄도
+쓰기 전에 40% 작아졌다.
+
+| 축 | 원장이 적은 것 | 실측 | 판정 |
+|---|---|---|---|
+| 3 판정 3벌 | "하드코딩돼 있고 **값이 불일치**" | 하드코딩은 맞다. 불일치는 **아니다** — `scripts/verify-pass-tier-policy.mjs` 가 `worker/lib/profile-limits.js` 의 `PASS_LIMITS`·`MONTHLY_PASS_LIMITS` 를 **import** 해서(:32-36) 사본 3개를 전부 대조한다: pass-verdict(:219-232) · billing-client(:234-242) · 셸 goldenPackages(:244-252). `check:critical`·`deploy:critical` 차단 경로 | 오진. 구조적으로 묶여 있다 |
+| 3 변이 검증 | — | `pass-verdict.js` 와 `billing-client.ts` 의 vvip 를 **동시에** 200→210 으로 틀었더니 가드가 `실패 2건` 으로 둘 다 지목 | **2/2 탐지.** 도는 가드가 아니라 무는 가드다 |
+| 3 남은 것 | (없음) | `app/_lib/billing-client.ts:579` `maxCoinCoveredForPlan` 은 **월 이용 한도를 모르는** 4번째 판정이다. 그런데 유일한 호출부가 `:3734` `debugAccessDecision` 이고, 그 반환값은 `debugEntitlement()` 로그로만 쓰인다(:3739-3740, `NODE_ENV !== production` 에서만 출력). 게이트가 아니다 | **죽은 판정.** 값은 가드가 묶고 있으나, `export` 라 누가 배선하면 월 한도 없는 게이트가 된다 |
+| 4 writer·TTL | "writer 4개 × TTL **4종**" | writer 4개는 맞다. TTL 은 **9종**이다 — access-store 60s/30m/24h · optimistic-unlock-ledger 72h/10m · user-session-cache 180s · pass-verdict 60s/5m/24h/35d | 실재. **원장보다 크다** |
+| 5 몽키패치 | "`js/**` 의 raw fetch **전부**가 우회된다" | 패치는 실재한다(`installUserAccessFetchCache`, 엔드포인트 8개). 그런데 설치 호출부는 `app/providers/UserSessionProvider.tsx:13` 과 `user-session-cache.ts:421` **둘 다 React** 다. 정적 셸(`index.html`)은 설치하지 않는다 | 실재하되 **범위가 다르다.** 아래 참조 |
+| 6 시계 3개 | "8s / 30s / 30·15·2s, 실측 5회" | 인증 폴링 `setInterval` 은 `app/_lib/auth-store.ts:704` **하나**뿐이다(나머지 `setInterval` 4개는 결제 팝업 폴링·애니메이션 타이머로 `/api/auth/me` 와 무관). 원장이 지목한 계측기 `verify:entry-fanout` 자신이 지금 PASS 이고, 그 안에 "[6] 세션 검증 단일화 — force 합류 + 공유 세션 시계" 축이 셸 7종·클라 2종으로 들어 있다 | **해소로 재판정** |
+| 15 래퍼 5개 | "`lib/http-client.ts`" | 그 경로에 파일이 **없다**. 실제 경로는 `app/_lib/http-client.ts` | 실재, 경로만 정정 |
+
+### 5 는 왜 "범위가 다르다" 인가
+
+몽키패치를 React 만 설치한다는 사실은 문제를 줄이는 게 아니라 **모양을 바꾼다.** `js/core/*.js` 는
+classic script 라 정적 셸과 React 양쪽에서 로드된다(`app/layout.js:182` 가 `pass-verdict.js` 를
+`beforeInteractive` 로 싣는다). 즉 **같은 파일의 같은 `fetch` 호출이** 셸에서는 순수 네트워크로,
+React 페이지에서는 캐시·단일비행·게스트 응답 위조(`guardedGuestAuthResponse`, :576-578)를 거쳐
+나간다. 원장이 적은 "`js/**` 가 모르는 캐시로 우회된다"는 **React 페이지에 한정해서 참**이고,
+진짜 위험은 우회 자체가 아니라 **런타임에 따라 같은 코드가 다른 답을 받는 것**이다.
+
+### 3 을 닫으려면
+
+값 대조는 이미 끝났다. 남은 건 `decidePaidFeatureAccess`/`maxCoinCoveredForPlan` 제거인데,
+`app/_lib/billing-client.ts` 는 **동결 파일**이라 `config/payment-freeze.json` 절차를 따라야 하고,
+`export` 를 지우는 일이라 코딩 원칙 9(소스·테스트·verify 3면 확인)의 대상이다. 값이 틀어질 위험은
+없으므로 **급하지 않다** — 삭제는 별도 변경으로 다룬다(CLAUDE.md 절대규칙 6).
+
+🔴 교훈(16·17 · 10·11 · 18·19 와 같다, 네 번 연속이다): 원장의 "N벌·불일치"는 **가설**이다.
+이번에는 특히 **"하드코딩 사본이 있다" 와 "값이 불일치한다" 가 다른 주장**이라는 점이 드러났다 —
+사본이 셋이어도 가드가 정본을 import 해서 대조하면 드리프트는 일어나지 않는다. Phase 를 시작할 때
+그 행만 다시 재보고, 다르면 이 표에 적는다.
 
 ## 측정 방법 재현
 
