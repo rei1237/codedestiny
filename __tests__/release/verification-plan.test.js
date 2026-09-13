@@ -8,6 +8,23 @@ const scripts = JSON.parse(readFileSync('package.json', 'utf8')).scripts;
 const load = () => import('../../scripts/lib/verification-plan.mjs');
 const input = (files, complete = true) => ({ files, complete, baseSha: 'a'.repeat(40), headSha: 'b'.repeat(40), errors: complete ? [] : ['Missing base'] });
 
+test('payment, access, resume and paid service changes select the CI suite exactly once', async () => {
+  const { createVerificationPlan } = await load();
+  for (const file of ['js/core/access-store.js', 'public/js/core/access-store.js', 'worker/payments/confirm.js', 'app/hooks/usePaidResume.ts', 'src/features/master-love-codex/MasterLoveCodexPage.tsx', 'scripts/run-paid-gate-suite.mjs']) {
+    const plan = createVerificationPlan(input([file]), { scripts });
+    assert.equal(plan.steps.filter(step => step.file === 'scripts/run-paid-gate-suite.mjs').length, 1, file);
+  }
+  assert.equal(createVerificationPlan(input(['styles/site.css']), { scripts }).steps.some(step => step.file === 'scripts/run-paid-gate-suite.mjs'), false);
+});
+
+test('local paid selection reads the CI paths and rejects a malformed contract', async () => {
+  const { needsPaidGateSuite } = await import('../../scripts/resolve-paid-gate-scope.mjs');
+  const workflow = 'on:\n  push:\n    paths:\n      - "features/new-paid/**"\n';
+  assert.equal(needsPaidGateSuite(['features/new-paid/screen.tsx'], workflow), true);
+  assert.equal(needsPaidGateSuite(['styles/site.css'], workflow), false);
+  assert.throws(() => needsPaidGateSuite(['styles/site.css'], 'on: push'), /paths/);
+});
+
 for (const [name, files, tier, builds] of [
   ['documentation', ['docs/context/payment-gating.md'], 'fast', [false, false]],
   ['presentation CSS', ['styles/site.css'], 'fast', [false, false]],

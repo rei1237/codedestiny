@@ -1,6 +1,7 @@
 import { spawnSync } from "node:child_process";
 import { riskOf, requiresDeepVerification } from "./change-risk.mjs";
 import { NODE_TEST_PATTERNS, JEST_BASE_ARGS } from "./mock-test-config.mjs";
+import { needsPaidGateSuite } from "../resolve-paid-gate-scope.mjs";
 
 // Include both rename endpoints and deleted paths when assessing callers.
 export function parseChangeRecords(output) {
@@ -185,6 +186,7 @@ export function createVerificationPlan(changes, { profile = "fast", skipBuild = 
     worker: needsBuild && (both || profile === "worker" || files.some((file) => /^worker\//.test(file))),
   };
   const steps = [];
+  const paidGates = failClosed || sourceRemoval || forceCritical || ["payment", "all"].includes(profile) || needsPaidGateSuite(riskPaths);
   const add = (step) => {
     const key = JSON.stringify(step);
     if (!steps.some((item) => JSON.stringify(item) === key)) steps.push(step);
@@ -192,6 +194,7 @@ export function createVerificationPlan(changes, { profile = "fast", skipBuild = 
   const npm = (name) => add({ kind: "npm", name, args: [] });
   add({ kind: "whitespace" });
   npm("verify:doc-freshness");
+  if (paidGates) add({ kind: "node", file: "scripts/run-paid-gate-suite.mjs", args: [] });
   if (profile === "all") add({ kind: "ci-static-guards" });
   if (!docsOnly) {
     add({ kind: "lint-changed" });

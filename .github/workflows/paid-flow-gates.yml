@@ -332,7 +332,7 @@ on:
       - "app/master-love-codex/**"
       # 마스터 인연의 서는 결제 상수를 app/ 이 아니라 feature 모듈에 둔다. 가드가 그 파일을
       # 열어 Offer 의 featureKey 와 대조하므로 트리거에도 있어야 한다(CLAUDE.md 원칙 10).
-      - "src/features/master-love-codex/constants.ts"
+      - "src/features/master-love-codex/**"
       - "scripts/run-paid-gate-suite.mjs"
       # 🔴 이 게이트의 **판정기 자신**이다(2026-09-06). scope 잡이 resolve-paid-gate-scope.mjs 를
       #    실행하고, 그것이 change-risk.mjs 의 requiresDeepVerification 을 불러 run 여부를 정한다.

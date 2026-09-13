@@ -26,6 +26,7 @@
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 import { requiresDeepVerification } from "./lib/change-risk.mjs";
 
 const WORKFLOW = ".github/workflows/paid-flow-gates.yml";
@@ -267,6 +268,14 @@ function git(args) {
 /** 워크플로 YAML 의 `paths:` 목록을 그대로 읽어 온다(목록 중복 정의 금지). */
 function readTriggerGlobs() {
   return parseTriggerGlobs(fs.readFileSync(WORKFLOW, "utf8"), WORKFLOW);
+}
+
+// Working-tree plans have no committed diff to inspect. Use the CI path contract
+// conservatively, including generated mirrors, without maintaining a second list.
+export function needsPaidGateSuite(files, workflowText) {
+  const globs = workflowText === undefined ? readTriggerGlobs() : parseTriggerGlobs(workflowText, WORKFLOW);
+  const patterns = globs.map(globToRegExp);
+  return requiresDeepVerification(files).required || files.some(file => patterns.some(pattern => pattern.test(file)));
 }
 
 /**
@@ -538,6 +547,7 @@ function selfTest() {
   return failed ? 1 : 0;
 }
 
+if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
 if (process.argv.includes("--self-test")) {
   process.exitCode = selfTest();
 } else {
@@ -551,4 +561,5 @@ if (process.argv.includes("--self-test")) {
   if (process.env.GITHUB_OUTPUT) {
     fs.appendFileSync(process.env.GITHUB_OUTPUT, `run=${verdict.run}\n`);
   }
+}
 }
