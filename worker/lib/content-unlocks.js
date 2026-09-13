@@ -610,7 +610,8 @@ export async function getUnlockedContentSnapshot({
   }
 
   const docs = await ContentEntitlement.find(query)
-    .select("featureKey contentKey contentId serviceKey scope profileId source grantType grantedAt unlockedAt expiresAt updatedAt")
+    // passId 는 access-state 가 해금마다 근거를 싣는 데 쓴다(Phase 4 D6, worker/lib/access-state.js).
+    .select("featureKey contentKey contentId serviceKey scope profileId source grantType passId grantedAt unlockedAt expiresAt updatedAt")
     .lean();
   const normalizedProfileId = cleanKey(profileId, 100);
   const applicableDocs = includeAllProfiles

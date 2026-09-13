@@ -48,6 +48,7 @@
   var requestAdapter = null;
   var syncChannel = null;
   var snapshotCache = null;
+  var snapshotCacheExpiresAt = 0;
   var state = createState('');
 
   function createState(key) {
@@ -58,6 +59,7 @@
       serviceKeys: DEFAULT_SERVICE_KEYS.slice(),
       persistentUnlocks: Object.create(null),
       confirmedUnlocks: Object.create(null),
+      unlockGrants: Object.create(null),
       optimistic: Object.create(null),
       membership: null,
       entitlementSnapshot: null,
@@ -77,6 +79,62 @@
     if (!value || typeof value !== 'object') return result;
     Object.keys(value).forEach(function (key) {
       if (value[key]) result[normalizeFeatureKey(key)] = true;
+    });
+    return result;
+  }
+
+  /* 🔴 해금의 근거(Phase 4 D6). 서버가 해금마다 source·grantType·passId·expiresAt 를 실어 주면
+     (worker/lib/access-state.js buildUnlockGrants) 여기서 featureKey → 만료 시각(ms)으로 접어 둔다.
+
+     쓰는 곳은 단 하나 — **만료가 명시되고 이미 지난** 해금을 읽기 시점에 빼는 것이다. 캐시된
+     스냅샷은 서버가 이미 아는 만료보다 오래 살기 때문에(GRACE_TTL_MS 24시간), 근거 없이는 그
+     창 안에서 끝난 해금이 계속 열려 있다.
+
+     🔴 방향은 fail-open 이다. 근거가 없거나(옛 서버·계정 배열 폴백) 만료가 없으면 아무것도 빼지
+     않는다. 이용권으로 산 해금은 이용권이 끝나도 남는 것이 옳다 — source: PASS 생산자 4곳이
+     expiresAt 을 주지 않는다(실측 2026-09-13). 여기서 이용권 만료를 해금 만료로 읽으면 산 사람이
+     잠긴다. */
+  function extractUnlockGrants(source) {
+    var result = Object.create(null);
+    var lists = [
+      source && source.unlockedFeatureGrants,
+      source && source.entitlementSnapshot && source.entitlementSnapshot.unlockedFeatureGrants
+    ];
+    lists.forEach(function (list) {
+      if (!Array.isArray(list)) return;
+      list.forEach(function (entry) {
+        if (!entry || typeof entry !== 'object') return;
+        var key = normalizeFeatureKey(entry.featureKey);
+        if (!key) return;
+        var expiresAtMs = entry.expiresAt ? Date.parse(String(entry.expiresAt)) : 0;
+        var grant = {
+          source: String(entry.source || ''),
+          grantType: String(entry.grantType || ''),
+          passId: String(entry.passId || ''),
+          expiresAt: Number.isFinite(expiresAtMs) ? expiresAtMs : 0
+        };
+        /* 같은 키에 근거가 둘이면 만료 없는 쪽이 이긴다 — 서버 집계와 같은 규칙이다. */
+        var existing = result[key];
+        if (existing) {
+          if (existing.expiresAt === 0) return;
+          if (grant.expiresAt !== 0 && grant.expiresAt <= existing.expiresAt) return;
+        }
+        result[key] = grant;
+      });
+    });
+    return result;
+  }
+
+  function isUnlockGrantExpired(key) {
+    var grant = state.unlockGrants[key];
+    return Boolean(grant && grant.expiresAt && grant.expiresAt <= Date.now());
+  }
+
+  /** 만료가 명시된 해금을 뺀 사본. 스냅샷·전역 맵·isUnlocked 가 같은 규칙으로 답하게 한다. */
+  function withoutExpiredGrants(map) {
+    var result = Object.create(null);
+    Object.keys(map || {}).forEach(function (key) {
+      if (map[key] && !isUnlockGrantExpired(key)) result[key] = true;
     });
     return result;
   }
@@ -285,9 +343,11 @@
   function syncLegacyFeatureMap() {
     var next = Object.create(null);
     Object.keys(state.persistentUnlocks).forEach(function (key) {
+      if (isUnlockGrantExpired(key)) return;
       next[CONTENT_KEY_TO_FEATURE_KEY[key] || key] = true;
     });
     Object.keys(state.confirmedUnlocks).forEach(function (key) {
+      if (isUnlockGrantExpired(key)) return;
       next[CONTENT_KEY_TO_FEATURE_KEY[key] || key] = true;
     });
     Object.keys(state.optimistic).forEach(function (key) {
@@ -310,6 +370,7 @@
           userId: state.userId,
           persistentUnlocks: state.persistentUnlocks,
           confirmedUnlocks: state.confirmedUnlocks,
+          unlockGrants: state.unlockGrants,
           optimistic: state.optimistic,
           membership: state.membership,
           entitlementSnapshot: state.entitlementSnapshot,
@@ -401,6 +462,10 @@
     if (restored) {
       state.persistentUnlocks = cacheExpired ? Object.create(null) : copyMap(restored.persistentUnlocks);
       state.confirmedUnlocks = restoredConfirmed;
+      /* 근거는 집합과 같은 수명을 갖는다. 없으면 비운다 — 빈 근거는 아무것도 빼지 않는다(fail-open). */
+      state.unlockGrants = !cacheExpired && restored.unlockGrants && typeof restored.unlockGrants === 'object'
+        ? copyObject(restored.unlockGrants) || Object.create(null)
+        : Object.create(null);
       state.optimistic = !cacheExpired && restored.optimistic && typeof restored.optimistic === 'object' ? restored.optimistic : Object.create(null);
       state.membership = cacheExpired ? readMembershipSnapshot(userId) : copyObject(restored.membership) || readMembershipSnapshot(userId);
       state.entitlementSnapshot = cacheExpired ? null : copyObject(restored.entitlementSnapshot);
@@ -657,6 +722,15 @@
     var authority = String(source.authority || source.entitlementSnapshot && source.entitlementSnapshot.authority || '').toLowerCase();
     var authoritativeFull = source.degraded !== true && completeness === 'full' && authority === 'server';
     var unlocks = extractUnlockMap(source, { authoritative: authoritativeFull });
+    /* 🔴 근거도 집합과 같은 규칙으로 다룬다 (Phase 4 D6). 권위 페이로드면 **치환**이다 —
+       서버가 더 이상 싣지 않는 근거는 사라져야 한다. 권위가 아니면 덧쓰기만 한다: degraded
+       응답은 완전 집합이 아니므로 치환하면 알고 있던 만료를 잃는다. */
+    var incomingGrants = extractUnlockGrants(source);
+    if (authoritativeFull) {
+      state.unlockGrants = incomingGrants;
+    } else {
+      Object.keys(incomingGrants).forEach(function (key) { state.unlockGrants[key] = incomingGrants[key]; });
+    }
     state.profileId = profileId;
     state.userId = sourceUserId;
     state.serviceKeys = context.serviceKeys.slice();
@@ -974,14 +1048,34 @@
     });
   }
 
+  /** 스냅샷에 담긴 해금 중 **가장 먼저 끝나는** 근거의 시각. 0 이면 시간으로는 안 바뀐다. */
+  function nextGrantExpiryAt() {
+    var soonest = 0;
+    var now = Date.now();
+    Object.keys(state.unlockGrants).forEach(function (key) {
+      var expiresAt = state.unlockGrants[key] && state.unlockGrants[key].expiresAt;
+      if (!expiresAt || expiresAt <= now) return;
+      if (!soonest || expiresAt < soonest) soonest = expiresAt;
+    });
+    return soonest;
+  }
+
   function getSnapshot() {
-    if (snapshotCache) return snapshotCache;
+    /* 🔴 스냅샷 메모는 시간을 타야 한다 (Phase 4 D6). 해금이 만료되는 순간 아무도 notify 를
+       부르지 않으므로, 만료 시각이 지나면 메모를 버리고 다시 만든다. 그러지 않으면 같은 순간에
+       셸(isUnlocked, 읽기 시점 판정)과 React(이 스냅샷)의 답이 갈린다. */
+    if (snapshotCache && (!snapshotCacheExpiresAt || snapshotCacheExpiresAt > Date.now())) return snapshotCache;
+    snapshotCacheExpiresAt = nextGrantExpiryAt();
     snapshotCache = {
       cacheKey: state.cacheKey,
       profileId: state.profileId,
       userId: state.userId,
-      persistentUnlocks: copyMap(state.persistentUnlocks),
-      confirmedUnlocks: copyMap(state.confirmedUnlocks),
+      /* 🔴 만료된 근거를 가진 해금은 스냅샷에서도 빠진다 (Phase 4 D6) — React 의 합류
+         (use-content-unlock.ts snapshotIncludesFeature)가 이 두 맵을 직접 읽으므로, 여기서
+         빼지 않으면 같은 순간에 셸(isUnlocked)과 React 의 답이 갈린다. */
+      persistentUnlocks: withoutExpiredGrants(state.persistentUnlocks),
+      confirmedUnlocks: withoutExpiredGrants(state.confirmedUnlocks),
+      unlockGrants: copyObject(state.unlockGrants) || {},
       optimistic: copyObject(state.optimistic) || {},
       membership: copyObject(state.membership),
       entitlementSnapshot: copyObject(state.entitlementSnapshot),
@@ -999,8 +1093,11 @@
 
   function isUnlocked(featureKey) {
     var key = normalizeFeatureKey(featureKey);
-    return Boolean(state.confirmedUnlocks[key] || state.persistentUnlocks[key]
-      || state.optimistic[key] && state.optimistic[key].expiresAt > Date.now());
+    /* 낙관 해금이 먼저다 — 방금 결제한 창은 근거가 아직 서버에 없다. */
+    if (state.optimistic[key] && state.optimistic[key].expiresAt > Date.now()) return true;
+    /* 🔴 서버가 실어 준 만료가 지났으면 캐시가 아무리 열려 있어도 잠긴다 (Phase 4 D6). */
+    if (isUnlockGrantExpired(key)) return false;
+    return Boolean(state.confirmedUnlocks[key] || state.persistentUnlocks[key]);
   }
 
   function getEffectiveTier() {

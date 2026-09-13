@@ -158,8 +158,12 @@ function boot({ storage = new Map(), startedAt = T0, respond, installFetchCache 
   };
 }
 
-/** /api/me/access-state 응답 정본 모양. authoritative(full+server)여야 회수까지 반영된다. */
-function accessState({ unlocked, tier = "free", passExpiresAt = null, revoked = null, version = 1 }) {
+/**
+ * /api/me/access-state 응답 정본 모양. authoritative(full+server)여야 회수까지 반영된다.
+ * grants 는 Phase 4 D6 의 해금 근거(worker/lib/access-state.js buildUnlockGrants)다 — 넘기지
+ * 않으면 근거 없는 옛 서버 응답이고, 그때는 아무 해금도 빠지지 않아야 한다(fail-open).
+ */
+function accessState({ unlocked, tier = "free", passExpiresAt = null, revoked = null, version = 1, grants = null }) {
   return {
     ok: true,
     userId: USER_ID,
@@ -168,12 +172,14 @@ function accessState({ unlocked, tier = "free", passExpiresAt = null, revoked = 
     authority: "server",
     version,
     unlockedFeatureIds: unlocked ? [FEATURE_KEY] : [],
+    ...(grants ? { unlockedFeatureGrants: grants } : {}),
     ...(revoked ? { revokedFeatureIds: revoked } : {}),
     entitlementSnapshot: {
       tier,
       completeness: "full",
       authority: "server",
       activePasses: passExpiresAt ? [{ expiresAt: passExpiresAt }] : [],
+      ...(grants ? { unlockedFeatureGrants: grants } : {}),
     },
   };
 }
@@ -310,14 +316,36 @@ test("degraded 200 응답은 원장의 낙관 기여를 막지 않는다 (W1 × 
 // 3) 이용권이 끝난 사용자에게 한 화면이 세 가지 답을 갖는다.
 //
 // 이용권으로 열린 기능인지 단건 결제로 산 기능인지 구분하는 provenance 가 unlockedFeatureIds 에
-// 없다. 그래서 이용권 만료 후에도 access-store 의 해금 목록은 그대로 남는다.
+// 없었다. 그래서 이용권 만료 후에도 access-store 의 해금 목록은 그대로 남는다.
 // 반대편 두 판정은 만료를 각자 두 겹으로 안다: getEffectiveTier(access-store.js:968-971)가 만료일을
 // 직접 보고, pass-verdict 는 만료 스냅샷을 readSnapshot 에서 폐기하며(pass-verdict.js:186) 설령
 // 남더라도 stale 판정이 coversNow 를 막는다(:503). 실측 변이 결과 세 경로가 모두 독립으로 문다.
+//
+// 🔴 Phase 4 커밋 7(D6)에서 이 자리의 단언은 **방향이 갈라졌다.** 계획서는 "source:'PASS' 해금은
+// 이용권이 끝나면 집합에서 빠진다"고 적었지만 실측은 반대다 — PASS 해금 생산자 4곳
+// (worker/routes/billing.js:3671·3930·6714, worker/lib/access-control.js:79)은 expiresAt 을 주지
+// 않는다. 이용권으로 **결제만 한** 영구 해금이라 이용권이 끝나도 남는 것이 옳다. 그래서:
+//   · 근거에 만료가 없는 해금 → 이용권이 끝나도 열려 있다(아래 첫 단언, 뒤집지 않는다).
+//   · 근거에 만료가 실린 해금 → 그 시각에 세 답이 함께 잠긴다(아래 둘째 시나리오, 새 단언).
+// 만료를 지어내면 산 사람이 잠기고, 만료를 무시하면 캐시 창(GRACE_TTL_MS 24시간) 동안 끝난
+// 해금이 계속 열린다. 두 단언이 그 두 방향을 각각 문다.
 // ─────────────────────────────────────────────────────────────────────────────
 test("이용권 만료 직후 isUnlocked·getEffectiveTier·pass-verdict 가 서로 다른 답을 낸다 (W1 × W2)", () => {
   const passExpiresAt = new Date(T0 + 2 * HOUR_MS).toISOString();
-  const payload = accessState({ unlocked: true, tier: "standard", passExpiresAt });
+  // 이용권으로 결제한 영구 해금의 실제 모양 — source: PASS + passId 는 있고 expiresAt 은 없다.
+  const payload = accessState({
+    unlocked: true,
+    tier: "standard",
+    passExpiresAt,
+    grants: [{
+      featureKey: FEATURE_KEY,
+      source: "PASS",
+      grantType: "permanent_unlock",
+      passId: "membership:standard:req-1",
+      expiresAt: null,
+      grantedAt: new Date(T0).toISOString(),
+    }],
+  });
   const runner = boot({ respond: () => payload });
 
   runner.store.applyAccessStateSnapshot(payload, { profileId: PROFILE_ID });
@@ -339,13 +367,59 @@ test("이용권 만료 직후 isUnlocked·getEffectiveTier·pass-verdict 가 서
   runner.advance(3 * HOUR_MS); // 이용권 만료 1시간 후
   const after = ask();
 
-  // 🔴 재현된 엇갈림: 같은 사용자·같은 기능·같은 순간에 세 답이 갈린다.
-  assert.equal(after.unlocked, true, "해금 목록은 이용권 만료를 모른다");
+  // 🔴 뒤집지 않는 단언(D6 이 근거로 못 박은 자리). 세 답이 갈리는 것이 여기서는 옳다 —
+  // 이용권은 "지금 결제를 커버하는가"를 말하고, 해금은 "이미 산 것"을 말한다.
+  assert.equal(after.unlocked, true, "이용권으로 산 영구 해금을 이용권 만료로 회수하면 산 콘텐츠가 사라집니다");
   assert.equal(after.tier, "free", "등급 판정은 만료를 안다");
   assert.equal(after.verdict.coversNow, false, "이용권 커버 판정은 만료를 안다");
 
   // 짝 단언: 만료를 '미보유 확정'으로 오독하면 안 된다. 확정 거부는 서버만 내릴 수 있다.
   assert.equal(after.verdict.cannotCover, false, "만료는 서버 재확인 대상이지 결제창 직행 근거가 아닙니다");
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 3-b) 만료가 실린 해금은 캐시 창 안에서도 제 시각에 잠긴다 (W1 × W2, D6 의 무는 쪽).
+//
+// ContentEntitlement 는 expiresAt 을 들 수 있고(worker/lib/content-unlocks.js:475·512), 조회는
+// 아직 안 지난 것만 준다(activeExpiryClause :87-89). 그 만료가 payload 에서 지워지면
+// 클라이언트는 캐시(GRACE_TTL_MS 24시간) 동안 끝난 해금을 계속 연다 — 서버는 이미 아는데
+// 물어보기 전까지 모른다. D6 의 근거가 그 창을 닫는다.
+//
+// 🔴 새 단언이다(뒤집기 아님). 오늘 해금 생산자는 전부 expiresAt: null 을 주므로 이 경로는
+// 지금 프로덕션 데이터에서는 비어 있다 — 그래서 **만료를 지어내는 구현**(예: 이용권 만료를
+// 해금 만료로 읽기)과 **만료를 무시하는 구현**을 동시에 물도록 위 3)과 짝으로 둔다.
+// ─────────────────────────────────────────────────────────────────────────────
+test("만료가 실린 해금은 서버에 다시 묻지 않아도 그 시각에 잠긴다 (W1 × W2)", async () => {
+  const unlockExpiresAt = new Date(T0 + 2 * HOUR_MS).toISOString();
+  const runner = boot({
+    respond: () => accessState({
+      unlocked: true,
+      grants: [{
+        featureKey: FEATURE_KEY,
+        source: "ADMIN",
+        grantType: "timeboxed_unlock",
+        passId: "",
+        expiresAt: unlockExpiresAt,
+        grantedAt: new Date(T0).toISOString(),
+      }],
+    }),
+  });
+
+  await runner.store.ensureLoaded({ userId: USER_ID, profileId: PROFILE_ID, authenticated: true, force: true });
+  assert.equal(runner.store.isUnlocked(FEATURE_KEY), true, "만료 전에는 열려 있어야 합니다");
+  assert.equal(runner.reactAnswer(FEATURE_KEY), true, "만료 전 React 도 같은 답이어야 합니다");
+
+  runner.advance(3 * HOUR_MS); // 해금 만료 1시간 후 — 서버에는 다시 묻지 않는다
+
+  assert.equal(runner.serverHits.length, 1, "이 구간에서 새 요청은 없어야 합니다 — 캐시만으로 판정합니다");
+  assert.equal(runner.store.isUnlocked(FEATURE_KEY), false, "끝난 해금이 캐시 창 동안 열려 있으면 유료 콘텐츠가 샙니다");
+  assert.equal(runner.reactAnswer(FEATURE_KEY), false, "같은 순간 React 가 다른 답을 내면 화면마다 권한이 갈립니다");
+
+  // 짝 단언: 근거가 없는 응답(옛 서버·계정 배열 폴백)에서는 아무것도 빼지 않는다.
+  const noGrants = boot({ respond: () => accessState({ unlocked: true }) });
+  await noGrants.store.ensureLoaded({ userId: USER_ID, profileId: PROFILE_ID, authenticated: true, force: true });
+  noGrants.advance(365 * 24 * HOUR_MS);
+  assert.equal(noGrants.store.isUnlocked(FEATURE_KEY), true, "근거가 없다고 해금을 빼면 산 사람이 잠깁니다");
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

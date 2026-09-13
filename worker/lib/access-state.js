@@ -79,6 +79,51 @@ function buildPassUsage(profileSubscription = {}, rawTier = "") {
   };
 }
 
+/**
+ * 🔴 해금마다 **무엇으로·언제까지** 열렸는지를 싣는다 (Phase 4 D6). 평탄화된 문자열 배열은
+ * "열렸다"만 말하고 근거를 지운다 — ContentEntitlement 는 source·grantType·passId·expiresAt 를
+ * 들고 있는데(worker/lib/content-unlocks.js:612-614) API 경계에서 featureKey 만 남는다.
+ * 그래서 클라이언트는 스냅샷을 캐시로 들고 있는 동안 **서버가 이미 아는 만료**를 볼 수 없다.
+ *
+ * 🔴 추가 전용이다. `unlockedFeatureIds`·`unlockedFeatures` 는 문자열 배열 그대로 둔다 —
+ * worker/lib/permission-service.js:14, js/core/access-store.js:472, index.html 14곳이 문자열로
+ * 읽는다(전수 grep 2026-09-13). 그 자리를 객체 배열로 바꾸면 전부 조용히 "해금 없음"으로 읽어
+ * 산 사람이 잠긴다.
+ *
+ * 🔴 이용권으로 **결제만 한** 해금은 이용권이 끝나도 남는다. source: PASS 생산자 4곳
+ * (routes/billing.js:3671·3930·6714, lib/access-control.js:79)은 expiresAt 을 주지 않는다(실측).
+ * 그러므로 여기서 만료를 지어내지 않는다 — 문서가 실제로 들고 있을 때만 싣는다. 같은 featureKey
+ * 에 문서가 여럿이면 **만료 없는 쪽이 이긴다**(fail-open): 하나라도 영구면 그 해금은 영구다.
+ */
+function buildUnlockGrants(contentState = {}, unlockedFeatureIds = []) {
+  const docs = Array.isArray(contentState?.docs) ? contentState.docs : [];
+  const allowed = new Set(unlockedFeatureIds);
+  const byFeatureKey = new Map();
+  for (const doc of docs) {
+    const rawKey = String(doc?.featureKey || "").trim();
+    const featureKey = normalizePaidFeatureKey(rawKey) || rawKey;
+    if (!featureKey || !allowed.has(featureKey)) continue;
+    const entry = {
+      featureKey,
+      source: String(doc?.source || "").trim().toUpperCase(),
+      grantType: String(doc?.grantType || "").trim(),
+      passId: String(doc?.passId || "").trim(),
+      expiresAt: normalizeIsoDate(doc?.expiresAt) || null,
+      grantedAt: normalizeIsoDate(doc?.grantedAt || doc?.unlockedAt) || null,
+    };
+    const existing = byFeatureKey.get(featureKey);
+    if (!existing) {
+      byFeatureKey.set(featureKey, entry);
+      continue;
+    }
+    if (existing.expiresAt === null) continue;
+    if (entry.expiresAt === null || Date.parse(entry.expiresAt) > Date.parse(existing.expiresAt)) {
+      byFeatureKey.set(featureKey, entry);
+    }
+  }
+  return Array.from(byFeatureKey.values());
+}
+
 function buildMonthlyBalance(profileSubscription = {}, nowMs = Date.now()) {
   const lotsState = ensureLotsForBalance(profileSubscription || {}, nowMs);
   return {
@@ -146,6 +191,7 @@ export function buildAccessState({
       ]
       : resolvedUnlockedFeatureIds,
   );
+  const unlockedFeatureGrants = buildUnlockGrants(contentState, unlockedFeatureIds);
   const normalizedContentKeys = normalizeStringArray([
     ...unlockedContentKeys,
     ...(Array.isArray(contentState?.contentKeys) ? contentState.contentKeys : []),
@@ -195,6 +241,7 @@ export function buildAccessState({
     activePasses,
     passUsage,
     unlockedFeatureIds,
+    unlockedFeatureGrants,
     monthlyBalance,
     profileEntitlements,
     ownedProductIds,
@@ -235,6 +282,7 @@ export function buildAccessState({
     profileId: currentProfileId,
     unlockedFeatureIds,
     unlockedFeatures: unlockedFeatureIds,
+    unlockedFeatureGrants,
     unlockMap,
     lockMap,
     profileEntitlements,
