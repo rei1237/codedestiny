@@ -36,6 +36,8 @@ import { getPassTierLabel } from "@/lib/payment/pass-eligibility";
 
 type PaymentLoadingVariant = NonNullable<PaymentLoadingProps["variant"]>;
 
+const GIFT_PROMO_LINE = "소중한 사람에게 선물해보세요";
+
 /* ══════════════════════════════════════════════════════════════════
    타입 정의
 ══════════════════════════════════════════════════════════════════ */
@@ -2116,7 +2118,11 @@ function SubscriptionSection({
                     ? copy.purchasePass(theme.icon)
                     : copy.purchasePass(theme.icon)}
               </button>
-              <button type="button" onClick={() => onGift(plan)} disabled={isProcessing} className="mt-2 min-h-11 w-full rounded-xl border border-current px-3 py-2 text-sm font-bold disabled:opacity-50">선물하기</button>
+              <p className="mt-2 flex items-center justify-center gap-1 text-center text-[11px] font-bold opacity-80">
+                <ShopPigImage className="h-4 w-4 object-contain" />
+                {GIFT_PROMO_LINE}
+              </p>
+              <button type="button" onClick={() => onGift(plan)} disabled={isProcessing} className="mt-1 min-h-11 w-full rounded-xl border border-current px-3 py-2 text-sm font-bold disabled:opacity-50">🎁 선물하기</button>
 
               {lowerTierBlocked && (
                 <p className="mt-2 text-[11px] font-semibold text-violet-700">
@@ -2793,7 +2799,11 @@ function MoonlightShopPlans({
                   >
                     {isCurrentActive ? "연장하기 →" : lowerTierBlocked ? copy.lowerTierBlocked : "구매하기 →"}
                   </button>
-              <button type="button" onClick={() => onGift(plan)} disabled={isProcessing} className="mt-2 min-h-11 w-full rounded-xl border border-current px-3 py-2 text-sm font-bold disabled:opacity-50">선물하기</button>
+              <p className="mt-2 flex items-center justify-center gap-1 text-center text-[11px] font-bold text-[color:var(--moon-mist)]">
+                <ShopPigImage className="h-4 w-4 object-contain" />
+                {GIFT_PROMO_LINE}
+              </p>
+              <button type="button" onClick={() => onGift(plan)} disabled={isProcessing} className="mt-1 min-h-11 w-full rounded-xl border border-current px-3 py-2 text-sm font-bold disabled:opacity-50">🎁 선물하기</button>
                   {lowerTierBlocked ? (
                     <p className="text-right text-xs font-bold text-[color:var(--moon-mist)]">{copy.lowerTierBlockedHelp}</p>
                   ) : null}
