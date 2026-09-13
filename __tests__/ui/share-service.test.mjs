@@ -7,7 +7,7 @@ test('share URL drops birth, question, payment and hash data; rejects foreign or
   assert.throws(() => publicShareUrl('https://example.com/private'));
   assert.throws(() => publicShareUrl('javascript:alert(1)'));
   const id = 'gf_' + 'a'.repeat(24);
-  assert.equal(publicShareUrl('/fortune/share/?id=' + id + '&name=private'), 'https://code-destiny.com/fortune/share/?id=' + id);
+  assert.equal(publicShareUrl('/fortune/share/?shareId=' + id + '&name=private'), 'https://code-destiny.com/fortune/share/?shareId=' + id);
 });
 test('native cancellation is distinct from failure and never silently copies', async () => {
   for (const [name, status] of [['AbortError', 'cancelled'], ['NotAllowedError', 'failed']]) {

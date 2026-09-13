@@ -8,10 +8,10 @@ export function publicShareUrl(value, origin = 'https://code-destiny.com') {
   const url = new URL(value, base);
   if (!['https:', 'http:'].includes(url.protocol) || url.origin !== base.origin) throw new Error('UNSAFE_SHARE_URL');
   // Never propagate birth/profile/payment/query text from the current location.
-  const id = url.searchParams.get('id');
+  const id = url.searchParams.get('shareId');
   url.search = '';
   url.hash = '';
-  if (url.pathname.replace(/\/$/, '') === '/fortune/share' && /^gf_[A-Za-z0-9_-]{24,80}$/.test(id || '')) url.searchParams.set('id', id);
+  if (url.pathname.replace(/\/$/, '') === '/fortune/share' && /^gf_[A-Za-z0-9_-]{24,80}$/.test(id || '')) url.searchParams.set('shareId', id);
   return url.toString();
 }
 

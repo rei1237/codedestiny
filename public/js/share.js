@@ -1,7 +1,7 @@
 /* ─── 공유하기 함수 ─── */
 const SHARE_TEXT_TRANSLATIONS = {
   ko: {
-    "share.001": "🐷 꿀꿀 만세력",
+    "share.001": "🐷 꿀꿀 운세",
     "share.002": "🐷 연이의 꿀꿀 타로",
     "share.003": "✨ 점성술 코즈믹 차트",
     "share.004": "무료 기본 숙요점 결과",
@@ -464,7 +464,7 @@ if (typeof window !== 'undefined') {
 function getShareText(){
   var name=USER_NAME||'사용자';
   var base=cdBuildShareUrl('saju');
-  return name+'님의 사주 분석 결과를 확인해보세요! 🐷✨\n꿀꿀 만세력\n'+base;
+  return name+'님의 사주 분석 결과를 확인해보세요! 🐷✨\n꿀꿀 운세\n'+base;
 }
 function showToast(msg){
   var t=document.getElementById('shareToast');
