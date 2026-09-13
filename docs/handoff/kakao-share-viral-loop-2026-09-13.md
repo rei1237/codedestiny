@@ -1,3 +1,9 @@
+---
+status: active
+updated: 2026-09-13
+next: 워크트리 kakao-share-phase5-20260913-125400 에서 Phase 5 를 이어간다 — 첫 할 일은 코드가 아니라 "정적 셸에는 비로그인 카카오 JS 키를 얻을 길이 없다" 를 사용자에게 보고하고 A/B/C 중 하나를 받는 것이다.
+---
+
 # 카카오 공유 바이럴 루프 복구 — Phase 0~4 완료, Phase 5 착수 직전
 
 작성 2026-09-13. 계획 정본은 `C:\Users\user\.claude\plans\majestic-tickling-plum.md`(7개 Phase).

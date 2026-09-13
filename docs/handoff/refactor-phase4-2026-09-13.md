@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: active
 updated: 2026-09-13
 next: **수렴 설계도 끝났다.** 다음 세션은 docs/refactor/phase-plan.md 의 "Phase 4 의 내용 (2026-09-13) — 수렴 설계"를 읽고 **커밋 1(세션 캐시 계약 가드 신설, GREEN)** 부터 구현한다. 이 문서는 그 앞 단계(보호 테스트)의 기록이며, 아래 "설계 완료" 절이 무엇이 바뀌었는지 적는다.
 ---
