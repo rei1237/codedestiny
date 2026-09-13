@@ -10,7 +10,7 @@
 | 2 | 사주 엔진 5벌이 한 생일에 다른 답을 낼 수 있다 | `js/saju-engine.js:5072`, `app/saju/animal-destiny/engine/localSajuCalculator.ts`, `worker/lib/destiny-bias-engine.js:936`, `life-book-ai-saju.js:723`, `saju-snapshot-from-birth.js:56` | 미해소 (Phase 7) |
 | 3 | 이용권 판정 3벌이 하드코딩돼 있고 값이 불일치 | 실측 2026-09-13: **값 불일치는 없다.** 세 사본 전부 `scripts/verify-pass-tier-policy.mjs:219-252` 가 서버 정본(`PASS_LIMITS`·`MONTHLY_PASS_LIMITS`)을 **import 해서** 대조하고, 그 가드는 `check:critical`·`deploy:critical` 차단 경로다. 변이 2/2 탐지 | **오진 (2026-09-13 재측정)** — 아래 참조. 남은 것은 죽은 4번째 판정 하나 |
 | 4 | 권한 상태 writer 4개 × TTL 4종 → 결제한 잠금이 화면마다 보였다 안 보임 | 실측 2026-09-13: TTL 은 4종이 아니라 **9종** — `js/core/access-store.js:14-16`(60s·30m·24h), `app/_lib/optimistic-unlock-ledger.ts:17-18`(72h·10m), `app/_lib/user-session-cache.ts:90`(180s), `js/core/pass-verdict.js:26-46`(60s·5m·24h·35d). **엇갈림 4종을 실행으로 재현**(`__tests__/ui/permission-writer-divergence.behavior.test.js`, 변이 5/5 탐지) | **실재 확정 (Phase 4)** — 재현됨, 수렴 대상. 아래 참조 |
-| 5 | `window.fetch` 몽키패치 | 실측 2026-09-13: 실재한다(`app/_lib/user-session-cache.ts:552-619`, `resolveCacheKind` 의 엔드포인트 8개를 가로챈다). 단 설치처는 **React 뿐**(`app/providers/UserSessionProvider.tsx:13`) — 정적 셸은 설치하지 않는다 | 미해소 (Phase 4) — 원장의 "`js/**` 전부"는 정정, 아래 참조 |
+| 5 | `window.fetch` 몽키패치 | 실측 2026-09-13: 실재한다(`app/_lib/user-session-cache.ts:552-619`). **재정정(설계 단계 실측)**: 셸도 설치한다 — `index.html:74` `cd-user-access-session-cache-v20260703`. 구현이 **두 벌**이고 TTL 은 **이미 동일**하다(`index.html:267-277` ↔ `user-session-cache.ts:255-261`). 갈리는 것은 TTL 이 아니라 캐시를 뚫는 헤더의 유무다 | 미해소 (Phase 4) — 원장의 "`js/**` 전부"·"React 뿐" 둘 다 정정, 아래 참조 |
 | 6 | `/api/auth/me` 를 독립 시계 3개가 호출(8s / 30s / 30·15·2s) | 실측 2026-09-13: 인증 폴링 `setInterval` 은 **1개**(`app/_lib/auth-store.ts:704` `SESSION_HEARTBEAT_INTERVAL_MS`). `verify:entry-fanout` 의 "[6] 세션 검증 단일화 — force 합류 + 공유 세션 시계"가 셸 7종·클라 2종에서 PASS | **해소로 재판정 (2026-09-13)** — 아래 참조 |
 | 7 | repository 계층 부재 | worker 69파일에 인라인 모델 접근 ~681곳. 동일 30필드 projection 이 `worker/routes/profile.js` 945·1024·1057·1245·1391·1427 에 6번 | 미해소 (Phase 6) |
 | 8 | `worker/routes/fortune.js` 6,915줄이 결제·권한·인증·Mongo·LLM·프롬프트·엔진을 융합 | 손으로 만든 402 응답 ~20개 | 미해소 (Phase 6) |
@@ -111,7 +111,7 @@
 | 3 변이 검증 | — | `pass-verdict.js` 와 `billing-client.ts` 의 vvip 를 **동시에** 200→210 으로 틀었더니 가드가 `실패 2건` 으로 둘 다 지목 | **2/2 탐지.** 도는 가드가 아니라 무는 가드다 |
 | 3 남은 것 | (없음) | `app/_lib/billing-client.ts:579` `maxCoinCoveredForPlan` 은 **월 이용 한도를 모르는** 4번째 판정이다. 그런데 유일한 호출부가 `:3734` `debugAccessDecision` 이고, 그 반환값은 `debugEntitlement()` 로그로만 쓰인다(:3739-3740, `NODE_ENV !== production` 에서만 출력). 게이트가 아니다 | **죽은 판정.** 값은 가드가 묶고 있으나, `export` 라 누가 배선하면 월 한도 없는 게이트가 된다 |
 | 4 writer·TTL | "writer 4개 × TTL **4종**" | writer 4개는 맞다. TTL 은 **9종**이다 — access-store 60s/30m/24h · optimistic-unlock-ledger 72h/10m · user-session-cache 180s · pass-verdict 60s/5m/24h/35d | 실재. **원장보다 크다.** 보호 테스트로 엇갈림 4종 재현 완료, 아래 참조 |
-| 5 몽키패치 | "`js/**` 의 raw fetch **전부**가 우회된다" | 패치는 실재한다(`installUserAccessFetchCache`, 엔드포인트 8개). 그런데 설치 호출부는 `app/providers/UserSessionProvider.tsx:13` 과 `user-session-cache.ts:421` **둘 다 React** 다. 정적 셸(`index.html`)은 설치하지 않는다 | 실재하되 **범위가 다르다.** 아래 참조 |
+| 5 몽키패치 | "`js/**` 의 raw fetch **전부**가 우회된다" | 패치는 실재한다(`installUserAccessFetchCache`). React 설치처는 `app/providers/UserSessionProvider.tsx:13`·`user-session-cache.ts:421`. 🔴 **2026-09-13 재정정**: "정적 셸은 설치하지 않는다"는 **틀렸다** — `index.html:74` 가 `window.fetch` 를 감싼다. 설치 가드 플래그도 서로 다르다(`__cdUserAccessSessionCacheInstalled` ↔ `__cdUserAccessFetchCacheInstalled`) | 실재하되 **범위가 다르다.** 아래 참조 |
 | 6 시계 3개 | "8s / 30s / 30·15·2s, 실측 5회" | 인증 폴링 `setInterval` 은 `app/_lib/auth-store.ts:704` **하나**뿐이다(나머지 `setInterval` 4개는 결제 팝업 폴링·애니메이션 타이머로 `/api/auth/me` 와 무관). 원장이 지목한 계측기 `verify:entry-fanout` 자신이 지금 PASS 이고, 그 안에 "[6] 세션 검증 단일화 — force 합류 + 공유 세션 시계" 축이 셸 7종·클라 2종으로 들어 있다 | **해소로 재판정** |
 | 15 래퍼 5개 | "`lib/http-client.ts`" | 그 경로에 파일이 **없다**. 실제 경로는 `app/_lib/http-client.ts` | 실재, 경로만 정정 |
 
@@ -153,14 +153,28 @@ W1 × W4 축은 TOP 4 의 몸통인 동시에 **TOP 5 그 자체**다. 원장은
 한 사건이다 — 몽키패치(5)가 있고 없고에 따라 같은 `access-store.js` 의 같은 호출이 다른 답을 받는
 것(4)이 곧 "런타임에 따라 답이 갈린다"다. 수렴 설계는 두 행을 같이 다뤄야 한다.
 
-### 5 는 왜 "범위가 다르다" 인가
+### 5 는 왜 "범위가 다르다" 인가 — 🔴 2026-09-13 재정정
 
-몽키패치를 React 만 설치한다는 사실은 문제를 줄이는 게 아니라 **모양을 바꾼다.** `js/core/*.js` 는
-classic script 라 정적 셸과 React 양쪽에서 로드된다(`app/layout.js:182` 가 `pass-verdict.js` 를
-`beforeInteractive` 로 싣는다). 즉 **같은 파일의 같은 `fetch` 호출이** 셸에서는 순수 네트워크로,
-React 페이지에서는 캐시·단일비행·게스트 응답 위조(`guardedGuestAuthResponse`, :576-578)를 거쳐
-나간다. 원장이 적은 "`js/**` 가 모르는 캐시로 우회된다"는 **React 페이지에 한정해서 참**이고,
-진짜 위험은 우회 자체가 아니라 **런타임에 따라 같은 코드가 다른 답을 받는 것**이다.
+**"셸은 몽키패치를 설치하지 않는다"는 틀렸다.** 설계 단계 실측에서 셸도 설치한다는 것이 확인됐다 —
+`index.html:74` `<script id="cd-user-access-session-cache-v20260703">` 가 `window.fetch` 를 감싼다.
+즉 **한 벌 + 없음이 아니라 두 벌**이다. 그리고 두 벌의 TTL 은 **이미 통일돼 있다**(셸 `:267-277` 이
+"React `getCacheTtlMs` 와 동일 값으로 통일"이라 적고 실제로 같다).
+
+그래서 "런타임에 따라 답이 갈린다"의 원인은 캐시의 유무도 TTL 도 아니다. 둘이다:
+
+1. **경로 A(`/api/me/access-state`)는 헤더 부재.** 두 캐시를 뚫는 유일한 열쇠
+   `x-code-destiny-cache-refresh` 를 셸 세션 캐시(`index.html:389-392`)와 React
+   (`user-session-cache.ts:424`)는 보내는데, **`access-store` 는 한 번도 보내지 않는다**
+   (`access-store.js:849` 는 `Accept` 만 싣는다). React 는 access-store 에 `authFetch` 를 어댑터로
+   꽂지만(`app/providers/UnlockProvider.tsx:85`) `/api/me/access-state` 는
+   `isAuthoritativeAuthPath`(`auth-client.ts:267-273`)가 아니라 거기서도 헤더가 안 붙는다.
+2. **경로 B(`/api/billing/unlock-status`)는 층 수 차이.** 셸에만 10초 API 결과 캐시가 하나 더 있다
+   (`index.html` `getApiResultCacheTtl`).
+
+`js/core/*.js` 가 양쪽 런타임에서 로드되는 것(`app/layout.js:182`·`:187`)은 그대로 사실이다. 진짜
+위험도 그대로다 — **런타임에 따라 같은 코드가 다른 답을 받는 것.** 바뀐 것은 그 원인의 이름이다.
+
+수렴 설계(D1~D6·커밋 7단계)는 [phase-plan.md 의 "Phase 4 의 내용"](phase-plan.md#phase-4-의-내용-2026-09-13--수렴-설계)에 있다.
 
 ### 3 을 닫으려면
 

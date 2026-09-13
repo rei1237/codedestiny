@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-09-13
-next: Phase 4 의 다음 단계는 **TOP 4 수렴 설계**다. 보호 테스트는 끝났다(`__tests__/ui/permission-writer-divergence.behavior.test.js`, 4/4 · 변이 5/5). 이 문서의 "다음 세션이 할 일"부터 읽는다. 계획 정본은 docs/refactor/phase-plan.md.
+next: **수렴 설계도 끝났다.** 다음 세션은 docs/refactor/phase-plan.md 의 "Phase 4 의 내용 (2026-09-13) — 수렴 설계"를 읽고 **커밋 1(세션 캐시 계약 가드 신설, GREEN)** 부터 구현한다. 이 문서는 그 앞 단계(보호 테스트)의 기록이며, 아래 "설계 완료" 절이 무엇이 바뀌었는지 적는다.
 ---
 
 # Phase 4 — 권한·세션 계층 (TOP 4·5·15)
@@ -95,6 +95,35 @@ share 축이고, 내 writer 4개 파일·`docs/refactor/` 와는 **교집합 0**
 - 테스트 배선은 불필요하다. `jest.config.cjs:45` 가 `__tests__/ui/` 를 제외하고,
   `scripts/lib/mock-test-config.mjs` 의 `NODE_TEST_PATTERNS` 가 `__tests__/ui/*.test.js`
   를 자동으로 집는다 → `npm run test:node` 가 이미 돌린다.
+
+## 설계 완료 (2026-09-13, 같은 날 후속 세션)
+
+아래 "다음 세션이 할 일" 1·2번(TOP 4 수렴 설계 + TOP 5 를 같은 설계 안에서)은 **끝났다.**
+정본은 [phase-plan.md 의 "Phase 4 의 내용"](../refactor/phase-plan.md#phase-4-의-내용-2026-09-13--수렴-설계)
+— D1~D6 결정과 커밋 7단계, 변이 계획, 위험·롤백이 거기 있다. 프로덕션 코드는 여전히 0줄이다.
+
+설계 도중 **원장·이 문서와 다른 실측 5건**이 나왔다(원장 행도 같이 고쳤다):
+
+| 기존 기록 | 실측 |
+|---|---|
+| TOP 5: "몽키패치는 React 만 설치한다" | **셸도 설치한다** — `index.html:74`. 구현이 두 벌이다 |
+| 두 캐시 TTL 이 엇갈린다 | **이미 동일하다** — 셸 `:267-277` ↔ `user-session-cache.ts:255-261` |
+| `revokedFeatureIds` 로 회수한다 | **생산자가 레포에 없다.** 회수는 권위 집합 **치환**으로 해야 한다 |
+| access-store 가 60초를 쥔다 | 신선도 사다리는 **6층**. 위에 서버 캐시 60s/stale 30m 가 더 있다 |
+| access-store 가 재검증한다 | **아니다.** `startFetch:849` 는 `Accept` 만 싣는다 — 캐시를 뚫지 않는다 |
+
+두 가지가 이 문서의 판단을 뒤집는다:
+
+1. **동결 파일을 건드리지 않는다.** 소비자 30여 곳이 모두 `isUnlocked()` 하나를 부르므로 수렴을 그
+   함수 **안쪽**에서 하면 `billing-client.ts`·`useCoinGate.ts` 는 한 줄도 안 바뀐다.
+   `config/payment-freeze.json` 절차가 필요 없다. (아래 3번 항목의 전제가 사라졌다.)
+2. **보호 테스트는 한 커밋에서 뒤집히지 않는다.** 커밋이 7개로 갈리므로 단언은 그 동작을 바꾸는
+   커밋에서 각각 뒤집는다 — "커밋 시점 main 은 항상 실행 가능"이라 빨간 커밋을 남길 수 없다.
+   (아래 4번 항목의 "수렴 커밋" 단수 표현을 정정한다.)
+
+TOP 4 의 뿌리도 이름이 바뀌었다: **writer 가 4개라는 사실이 아니라**, 한 writer 안에서
+`access-store.js:638`(덧쓰기되는 `confirmedUnlocks`)과 `:654`(치환되는 `persistentUnlocks`)를
+`isUnlocked` 가 OR 하는 것이다. 그래서 치환이 무효고, 죽은 `revokedFeatureIds` 분기가 생겼다.
 
 ## 다음 세션이 할 일
 
