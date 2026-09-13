@@ -200,6 +200,7 @@
     "audit:legacy-password-hashes": "node scripts/audit-legacy-pbkdf2-hashes.mjs",
     "verify:phone-encryption": "node scripts/verify-phone-encryption.mjs",
     "verify:signup-phone-required": "node scripts/verify-signup-phone-required.mjs",
+    "verify:session-cache-contract": "node scripts/verify-session-cache-contract.mjs",
     "verify:payment-concurrency-guards": "node scripts/verify-payment-concurrency-guards.mjs",
     "check:quick": "node scripts/check-changed.mjs",
     "worktree:unmerged": "node scripts/unmerged-work-status.mjs",
