@@ -15,6 +15,13 @@ function toLocale(value: string): FortuneLocale | null {
   if (!LOCALE_PARAMS.includes(value)) return null;
   return normalizeFortuneLocale(value === "zh" ? "zh-CN" : value === "zh-tw" ? "zh-TW" : value);
 }
+function signPageTitle(name: string, period: FortunePeriodId, locale: FortuneLocale): string {
+  const label = periodTitle(period, locale);
+  if (locale === "ja") return `${name}の${label}運勢 | Code Destiny`;
+  if (locale === "zh-CN") return `${name}${label}运势 | Code Destiny`;
+  if (locale === "zh-TW") return `${name}${label}運勢 | Code Destiny`;
+  return `${name} ${label} Fortune | Code Destiny`;
+}
 function signDescription(name: string, period: FortunePeriodId, locale: FortuneLocale): string {
   const label = periodLabel(period, locale);
   if (locale === "ja") return `${name}の${label}を、総合運・恋愛運・金運・健康運・仕事運の流れから読み解きます。日柱・月柱・節気・月の位置をもとにした計算根拠と、現実的な行動のヒントも確認できます。`;
@@ -34,7 +41,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const profile = getSignProfile(sign);
   if (!locale || !period || !profile) return {};
   const name = signName(profile.id, locale);
-  const title = `${name} ${periodTitle(period, locale)} ${FORTUNE_COPY[locale].fortune} | Code Destiny`;
+  const title = signPageTitle(name, period, locale);
   const description = signDescription(name, period, locale);
   const base = `/fortune/${period}/${profile.id}`;
   return buildSeoMetadata({ path: `/${prefix(locale)}${base}`, title, description, keywords: [name, periodLabel(period, locale), FORTUNE_COPY[locale].fortune], ogType: "article", hreflang: { ko: base, en: `/en${base}`, ja: `/ja${base}`, "zh-CN": `/zh${base}`, "zh-TW": `/zh-tw${base}` } });
@@ -52,7 +59,7 @@ export default async function LocalizedSignFortunePage({ params }: { params: Pro
   const profile = getLocalizedProfile(sourceProfile, locale);
   const name = signName(profile.id, locale);
   const path = `/${prefix(locale)}/fortune/${period}/${profile.id}`;
-  const title = `${name} ${periodTitle(period, locale)} ${FORTUNE_COPY[locale].fortune} | Code Destiny`;
+  const title = signPageTitle(name, period, locale);
   const description = signDescription(name, period, locale);
   const faqs = buildPeriodFaqs(profile, period, locale);
   return <>
