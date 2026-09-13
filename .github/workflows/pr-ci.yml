@@ -973,6 +973,21 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+      # 🔴 판정을 여기 인라인 bash 로 두면 그 판정 자체를 테스트할 방법이 없다. 예전 버전은
+      # `skipped` 를 무조건 통과로 쳤는데, 모든 lane 의 실행 조건이
+      # `needs.classify.outputs.runs_* == 'true'` 라서 classify 가 **성공하면서 출력만 비우면**
+      # 네 lane 이 전부 skipped 가 되고 이 필수 체크가 검사 0건으로 초록불이 됐다.
+      # scripts/verify-ci-required-lanes.mjs 는 --self-test 를 갖고 티어 정본(TIERS)을 직접
+      # 읽어 대조하므로 체크아웃이 필요하다.
+      - name: Checkout PR head
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      # 의존성이 없는 순수 모듈이라 npm ci 를 돌리지 않는다(classify 잡과 같은 이유).
       - name: Require every executed CI lane to succeed
         env:
           CLASSIFY_RESULT: ${{ needs.classify.result }}
@@ -980,13 +995,13 @@ jobs:
           GUARDS_RESULT: ${{ needs.guards.result }}
           BUILD_RESULT: ${{ needs.build.result }}
           CRITICAL_RESULT: ${{ needs.critical.result }}
+          TIER: ${{ needs.classify.outputs.tier }}
+          RUNS_FAST: ${{ needs.classify.outputs.runs_fast }}
+          RUNS_GUARDS: ${{ needs.classify.outputs.runs_guards }}
+          RUNS_BUILD: ${{ needs.classify.outputs.runs_build }}
+          RUNS_CRITICAL: ${{ needs.classify.outputs.runs_critical }}
         run: |
           set -euo pipefail
-          for result in "$CLASSIFY_RESULT" "$FAST_RESULT" "$GUARDS_RESULT" "$BUILD_RESULT" "$CRITICAL_RESULT"; do
-            if [ "$result" != "success" ] && [ "$result" != "skipped" ]; then
-              echo "::error::필수 CI lane 이 성공 또는 정상 skip 상태가 아닙니다: $result"
-              exit 1
-            fi
-          done
-          echo "모든 필수 CI lane 이 성공했습니다."
+          npm run verify:ci-required-lanes -- --self-test
+          npm run verify:ci-required-lanes
 

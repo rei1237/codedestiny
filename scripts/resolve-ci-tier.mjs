@@ -30,7 +30,13 @@ import { spawnSync } from "node:child_process";
 import { appendFileSync } from "node:fs";
 import { riskOf, requiresDeepVerification } from "./lib/change-risk.mjs";
 
-const TIERS = {
+/**
+ * 티어 → 어느 lane 이 도는가. **이 매핑의 정본은 여기 하나다.**
+ * `ci-required` 게이트(scripts/verify-ci-required-lanes.mjs)도 이것을 읽어 classify 가 내보낸
+ * runs_build/runs_critical 이 티어와 맞는지 대조한다 — 거기서 값을 다시 적으면 고치려던
+ * 드리프트를 그대로 재현하게 된다.
+ */
+export const TIERS = {
   fast: { runsBuild: false, runsCritical: false, label: "Fast" },
   standard: { runsBuild: true, runsCritical: false, label: "Standard" },
   critical: { runsBuild: true, runsCritical: true, label: "Critical" },

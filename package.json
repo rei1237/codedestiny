@@ -249,6 +249,7 @@
     "verify:merge-landed": "node scripts/verify-merge-landed.mjs",
     "verify:merge-landed-test": "node scripts/verify-merge-landed.mjs --self-test",
     "verify:ci-tier": "node scripts/resolve-ci-tier.mjs --self-test",
+    "verify:ci-required-lanes": "node scripts/verify-ci-required-lanes.mjs",
     "ci:tier": "node scripts/resolve-ci-tier.mjs",
     "verify:llm-token-usage": "node --experimental-strip-types --no-warnings scripts/verify-llm-token-usage.mjs",
     "verify:astrology-sectioned": "node --experimental-strip-types --no-warnings scripts/verify-astrology-sectioned-generation.mjs",
