@@ -5,6 +5,7 @@ import { findMoonstoneSpendEvidence } from "./moonstone-spend-proof.js";
 import { cancelPortOnePayment } from "./portone.js";
 import { revokePaymentContentAccess } from "./content-unlocks.js";
 import { invalidateAccessStateCacheForUser } from "./access-state-cache.js";
+import { inspectCheckpointBeforeTimeoutRefund } from "./checkpoint-refund-guard.js";
 
 const DEFAULT_TIMEOUT_SECONDS = 600;
 const DEFAULT_LOCK_SECONDS = 45;
@@ -1145,6 +1146,19 @@ async function settleExecutionById(env, executionId, reasonCode, reasonMessage) 
   }
 
   const reason = normalizeReason(reasonCode, reasonMessage);
+  if (reason.code === "timeout_auto_refund") {
+    const checkpoint = await inspectCheckpointBeforeTimeoutRefund(execution);
+    if (["completed", "recoverable", "unknown"].includes(checkpoint)) {
+      const now = nowDate();
+      const fields = checkpoint === "completed"
+        ? { status: "success", premiumStatus: "completed", deliveryStatus: "delivered", completedAt: now, deliveredAt: now }
+        : { nextRetryAt: new Date(now.getTime() + DEFAULT_TIMEOUT_SECONDS * 1000) };
+      const updated = await withMongoRetry(env, () => ServiceExecutionTransaction.findOneAndUpdate({ _id: execution._id, status: "pending", "lock.token": execution.lock?.token || "" }, {
+        $set: { ...fields, "lock.token": "", "lock.until": null },
+      }, { returnDocument: "after" }).lean(), { retries: 0 });
+      return { ok: Boolean(updated), status: updated?.status || "pending", checkpoint };
+    }
+  }
   const requestId = execution.executionKey || String(execution._id);
   const refundIdempotencyKey = buildRefundIdempotencyKey(execution);
   const claimNow = nowDate();
