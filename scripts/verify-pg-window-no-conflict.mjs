@@ -31,6 +31,7 @@ import { JSDOM, VirtualConsole } from "jsdom";
 import { sliceFunction, stripComments } from "./lib/js-source-slice.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const runtimeWindows = new Set();
 // 순서는 실제 독립 정적 페이지의 로드 순서다(__tests__/ui/payment-service.static.test.js 가 강제).
 // payment-service.js 가 빠지면 게이트가 결제 경계 대신 폴백으로 새어 이 가드가 헛돈다.
 const RUNTIME_FILES = [
@@ -88,6 +89,7 @@ function bootRuntime({ routes = {}, portOne, checkoutDelayMs = 5 } = {}) {
     virtualConsole,
   });
   const { window } = dom;
+  runtimeWindows.add(window);
 
   window.fetch = async (url, init) => {
     const href = String(url || "");
@@ -156,6 +158,11 @@ async function check(label, fn) {
   } catch (error) {
     failures.push(`${label}\n      ${String(error && error.message || error).split("\n")[0]}`);
     console.log(`  ✗ ${label}`);
+  } finally {
+    // Real runtime intervals keep Node alive after assertions have passed.
+    // Dispose each isolated browser, including when its assertion fails.
+    for (const window of runtimeWindows) window.close();
+    runtimeWindows.clear();
   }
 }
 
