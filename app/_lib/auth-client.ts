@@ -524,6 +524,18 @@ function withCallerAbort<T>(promise: Promise<T>, signal?: AbortSignal): Promise<
   });
 }
 
+// LLM 생성은 서버의 제한된 실행(최대 85초)과 저장 응답을 기다린다.
+// 일반 조회·인증·결제 API의 짧은 장애 감지 시간은 유지한다.
+function authRequestTimeoutMs(request: Request) {
+  if (request.method.toUpperCase() !== "POST") return AUTH_FETCH_TIMEOUT_MS;
+  const path = new URL(request.url).pathname.replace(/\/$/, "");
+  const reportRoute = /^\/api\/(?:life-book-ai|love-secret-ai|new-year-ai|karma-destiny-ai|astrology-ai|vedic-ai|ziwei-ai|ziwei-island-ai|ziwei-deep-report|sukuyo-compatibility-ai|nakshatra-ai|neo-operation-room|master-love-codex|destiny-compass-ai|pet-saju-ai|fusion-fortune)\/(?:start|generate|generate-batch|message|refine)(?:\/stream)?$/.test(path);
+  const fortuneRoute = /^\/api\/fortune\/(?:(?:saju|ziwei|sukuyo|astrology|vedic)\/(?:ai-prompt|question-prompt)|saju-ai-consultation\/create|vedic\/prashna\/generate|guardian\/(?:generate|chat))$/.test(path);
+  const otherRoute = /^\/api\/(?:destiny-compass-ai\/report(?:\/continue)?|pet-saju-ai\/(?:report|compat)|fortune-tea-house\/consult|tarot\/(?:oracle-consultation|ijik-reading|crystal-soul|mindscan|reading|love-reading|numerology-reading))$/.test(path);
+  const additionalRoute = /^\/api\/(?:oracle\/geomancy|celestial-harmony|dream\/(?:psycho-analysis|dream-tarot|dream-prompt|prompt-maker|tarot-consult))$/.test(path);
+  return reportRoute || fortuneRoute || otherRoute || additionalRoute ? 95000 : AUTH_FETCH_TIMEOUT_MS;
+}
+
 // 호출부가 자기 signal 을 준 경우(취소 제어를 이미 쥐고 있는 경우)에는 건드리지 않는다.
 // 그 외에만 상한을 걸어 hang 을 실제로 끊는다.
 async function fetchAuthRequest(request: Request, callerControlsAbort: boolean) {
@@ -537,7 +549,7 @@ async function fetchAuthRequest(request: Request, callerControlsAbort: boolean) 
     } catch (e) {
       void e;
     }
-  }, AUTH_FETCH_TIMEOUT_MS);
+  }, authRequestTimeoutMs(request));
   try {
     return await fetch(request, { signal: controller.signal });
   } finally {
