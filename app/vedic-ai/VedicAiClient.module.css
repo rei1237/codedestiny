@@ -612,6 +612,21 @@
   font-size: 0.78rem;
 }
 
+.resumeStatus {
+  display: grid;
+  justify-items: start;
+  gap: 12px;
+  margin-bottom: 24px;
+  padding: 20px;
+  border: 1px solid rgba(246, 214, 126, 0.25);
+  border-radius: 12px;
+  line-height: 1.7;
+  word-break: keep-all;
+}
+
+.resumeStatus h2 { margin: 0; font-size: 20px; }
+.resumeStatus p { margin: 0; }
+
 .emptyState {
   position: relative;
   display: grid;

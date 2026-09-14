@@ -2,6 +2,7 @@
 
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
 import Link from "next/link";
 import { CalendarDays, Clock3, Compass, Download, Loader2, MapPin, Moon, Sparkles, Star } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
@@ -85,6 +86,7 @@ type EnsureAccessResult =
   | { ok: false; reason: "INVALID_INPUT"; message: string };
 type StartResult = {
   ok?: boolean;
+  retryable?: boolean;
   reason?: string;
   message?: string;
   sessionId?: string;
@@ -2239,18 +2241,34 @@ function sleep(ms: number) {
 const RESULT_POLL_BACKOFF_MS = [700, 3000, 5000, 8000];
 const RESULT_POLL_MAX_ATTEMPTS = 40;
 
-async function pollVedicResult(sessionId: string): Promise<StartResult> {
+export async function pollVedicResult(sessionId: string, isCurrent = () => true, onPartial?: (consultation: Consultation) => void): Promise<StartResult> {
   for (let attempt = 0; attempt < RESULT_POLL_MAX_ATTEMPTS; attempt += 1) {
     await sleep(RESULT_POLL_BACKOFF_MS[Math.min(attempt, RESULT_POLL_BACKOFF_MS.length - 1)]);
+    if (!isCurrent()) return { ok: false, reason: "GENERATION_PAUSED" };
     let response: Response;
     try {
       response = await authFetch(`/api/vedic-ai/result?id=${encodeURIComponent(sessionId)}`, { method: "GET" }, { retryOn401: false });
     } catch {
       continue;
     }
-    if (response.status === 202) continue;
+    if (!isCurrent()) return { ok: false, reason: "GENERATION_PAUSED" };
+    if (response.status === 202) {
+      const partial = await response.json().catch(() => ({}));
+      if (!isCurrent()) return { ok: false, reason: "GENERATION_PAUSED" };
+      if (partial.consultation) onPartial?.(partial.consultation);
+      if (typeof document !== "undefined" && document.visibilityState === "hidden") return { ok: false, reason: "GENERATION_PAUSED" };
+      const resumed = await authFetch("/api/vedic-ai/start", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ resumeSessionId: sessionId }) });
+      const data = await resumed.json().catch(() => ({}));
+      if (!isCurrent()) return { ok: false, reason: "GENERATION_PAUSED" };
+      if (data.consultation) onPartial?.(data.consultation);
+      if (resumed.status === 202 || (resumed.status === 503 && data.retryable)) continue;
+      if (!resumed.ok || data.ok === false) throw new Error(data.reason || "SERVER_ERROR");
+      return data;
+    }
     if (response.status === 429) throw new Error("SERVER_ERROR");
     const data = (await response.json().catch(() => ({}))) as StartResult;
+    if (!isCurrent()) return { ok: false, reason: "GENERATION_PAUSED" };
+    if (response.status === 503 && data.retryable) continue;
     if (!response.ok) throw new Error(toText(data.reason) || "SERVER_ERROR");
     return data;
   }
@@ -2771,11 +2789,13 @@ export function StructuredReadingResult({
   chart,
   name,
   basis = null,
+  completed = true,
 }: {
   reading: { scores: Record<string, unknown>; sections: Record<string, unknown> };
   chart: Record<string, unknown>;
   name: string;
   basis?: AnalysisBasis | null;
+  completed?: boolean;
 }) {
   const copy = useVedicAiCopy();
   const lagna = chartPoint(chart, "lagna");
@@ -2825,7 +2845,7 @@ export function StructuredReadingResult({
           <p>{copy.jyotishEyebrow}</p>
           <h2>{copy.resultTitle(name || copy.defaultConsultantName)}</h2>
         </div>
-        <button type="button" className={styles.pdfButton} onClick={() => void handlePdfDownload()} disabled={isExportingPdf} aria-label={copy.pdfButtonAriaLabel}>
+        <button type="button" className={styles.pdfButton} onClick={() => void handlePdfDownload()} disabled={isExportingPdf || !completed} aria-label={copy.pdfButtonAriaLabel}>
           {isExportingPdf ? <Loader2 className={styles.spin} size={16} aria-hidden="true" /> : <Download size={16} aria-hidden="true" />}
           <span>{isExportingPdf ? copy.pdfButtonSaving : copy.pdfButtonIdle}</span>
         </button>
@@ -2944,6 +2964,8 @@ export default function VedicAiClient() {
   // 결제 리다이렉트·폴링 중 현재 UI 언어가 바뀌어도 같은 요청의 생성 언어는 고정한다.
   const requestLocaleRef = useRef<RuntimeLocale | "">("");
   const pendingAccessRef = useRef<PendingAccess | null>(null);
+  const [resumeEpoch, setResumeEpoch] = useState(0);
+  const captureOwner = usePaidDeliveryScope(() => { setConsultation(null); setBasis(null); setPhase("idle"); pendingAccessRef.current = null; requestIdRef.current = ""; setResumeEpoch(value => value + 1); });
   const submitBusyRef = useRef(false);
   const { seed: profileSeed, seedVersion, reload: reloadProfileSeed } = useAiProfileSeed();
   const formTouchedRef = useRef(false);
@@ -2961,24 +2983,36 @@ export default function VedicAiClient() {
     });
   }
 
-  // 재열람: 완료된 상담은 ?cid=로 다시 열 수 있다 (결제 없이 조회만)
+  async function resumeSavedConsultation(sessionId: string) {
+    const isCurrent = captureOwner();
+    setPhase("start");
+    try {
+      const result = await pollVedicResult(sessionId, isCurrent, value => { setConsultation(value); rememberConsultationUrl(value.id); });
+      if (isCurrent() && result.consultation) setConsultation(result.consultation);
+      return isCurrent() && result.consultation?.status === "completed";
+    } finally { if (isCurrent()) setPhase("idle"); }
+  }
+
   useEffect(() => {
-    const cid = new URLSearchParams(window.location.search).get("cid");
-    if (!cid) return;
     let cancelled = false;
-    (async () => {
+    const isCurrent = captureOwner();
+    const resume = async () => {
+      if (submitBusyRef.current || document.visibilityState === "hidden") return;
       try {
-        const response = await authFetch(`/api/vedic-ai/result?id=${encodeURIComponent(cid)}`);
-        const data = await response.json().catch(() => ({}));
-        if (!cancelled && data?.ok && data.consultation) setConsultation(data.consultation as Consultation);
-      } catch {
-        // 재열람 실패는 조용히 무시 — 새 상담은 그대로 시작할 수 있다
-      }
-    })();
-    return () => {
-      cancelled = true;
+        const response = await authFetch("/api/vedic-ai/result");
+        const data = await response.json();
+        if (cancelled || !isCurrent() || !response.ok || submitBusyRef.current) return;
+        const cid = data.pendingSessionId || new URLSearchParams(window.location.search).get("cid");
+        if (!cid) return;
+        await resumeSavedConsultation(cid);
+      } catch { /* 원래 서버 기록은 다음 온라인·계정 복귀 때 재개한다. */ }
     };
-  }, []);
+    void resume();
+    window.addEventListener("online", resume);
+    document.addEventListener("visibilitychange", resume);
+    return () => { cancelled = true; window.removeEventListener("online", resume); document.removeEventListener("visibilitychange", resume); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resumeEpoch, captureOwner]);
 
   function rememberConsultationUrl(id: string) {
     if (!id || typeof window === "undefined") return;
@@ -3059,6 +3093,7 @@ export default function VedicAiClient() {
     formOverride?: FormState,
     localeOverride?: RuntimeLocale,
   ) {
+    const isCurrent = captureOwner();
     const source = formOverride || form;
     const requestLocale = normalizeLocale(localeOverride || requestLocaleRef.current || detectLocale());
     setPhase("start");
@@ -3067,33 +3102,36 @@ export default function VedicAiClient() {
     // 근거 계산은 이용권 확인·결제를 통과한 뒤에만 시작한다 — 확인 단계에서 라그나·나크샤트라가
     // 먼저 노출되면 "확인도 전에 결과를 만든다"로 읽히고, 결제 전 계산값이 새어 나간다.
     // 순수 계산이라 기다리지 않고 병렬로 받는다(실패하면 null이라 생성 흐름을 막지 않는다).
-    void fetchAnalysisBasis("/api/vedic-ai/basis", buildPayload(source, requestId, requestLocale)).then(setBasis);
+    void fetchAnalysisBasis("/api/vedic-ai/basis", buildPayload(source, requestId, requestLocale)).then(value => { if (isCurrent()) setBasis(value); });
     const { status, data } = await postJson<StartResult>(
       "/api/vedic-ai/start",
       { ...buildPayload(source, requestId, requestLocale), ...access, idempotencyKey: requestId },
       requestId,
     );
-    if (data.ok && data.consultation) {
+    if (!isCurrent()) return false;
+    if (data.ok && data.consultation?.status === "completed") {
       setConsultation(data.consultation);
       rememberConsultationUrl(data.consultation.id);
       setError("");
       setNotice("");
       requestIdRef.current = "";
       pendingAccessRef.current = null;
-      return;
+      return true;
     }
     if (status === 202 && data.sessionId) {
       // 생성이 진행 중(중복 제출 등) — 결과 엔드포인트를 폴링해 완료까지 수렴시킨다.
       setNotice(copy.sessionPendingNotice);
-      const resolved = await pollVedicResult(data.sessionId);
-      if (resolved.ok && resolved.consultation) {
+      if (data.consultation) { setConsultation(data.consultation); rememberConsultationUrl(data.consultation.id); }
+      const resolved = await pollVedicResult(data.sessionId, isCurrent, setConsultation);
+      if (!isCurrent() || resolved.reason === "GENERATION_PAUSED") return false;
+      if (resolved.ok && resolved.consultation?.status === "completed") {
         setConsultation(resolved.consultation);
         rememberConsultationUrl(resolved.consultation.id);
         setError("");
         setNotice("");
         requestIdRef.current = "";
         pendingAccessRef.current = null;
-        return;
+        return true;
       }
       throw new Error(toText(resolved.reason) || "SERVER_ERROR");
     }
@@ -3118,8 +3156,7 @@ export default function VedicAiClient() {
     try {
       const access = extractPayment(grant?.payload, requestId);
       pendingAccessRef.current = { requestId, access, paymentWasRequired: true };
-      await startConsultation(requestId, access, true, restoredForm, restoredLocale);
-      return true;
+      return await startConsultation(requestId, access, true, restoredForm, restoredLocale);
     } catch (caught) {
       const code = caught instanceof Error ? caught.message : "SERVER_ERROR";
       setError(copy.errorText[code] || copy.errorText.SERVER_ERROR);
@@ -3132,6 +3169,7 @@ export default function VedicAiClient() {
 
   async function handleSubmit() {
     if (busy || submitBusyRef.current) return;
+    if (consultation && consultation.status !== "completed") { await resumeSavedConsultation(consultation.id); return; }
     if (validationMessage) {
       setError(validationMessage);
       setNotice("");
@@ -3402,7 +3440,7 @@ export default function VedicAiClient() {
           {/* 생성 대기 화면은 이용권 확인·결제를 통과한 뒤에만 띄운다.
               확인 단계에 띄우면 "확인도 전에 결과를 만든다"로 읽히고,
               결제 단계에 띄우면 결제창 뒤에 대기 UI가 깔려 결제 흐름을 가린다. */}
-          {phase === "start" && <CosmosLoadingScreen fallbackText={phaseText || copy.cosmosFallbackText} basis={basis} />}
+          {phase === "start" && !consultation && <CosmosLoadingScreen fallbackText={phaseText || copy.cosmosFallbackText} basis={basis} />}
 
           {!consultation ? (
             <div className={styles.emptyState}>
@@ -3417,7 +3455,7 @@ export default function VedicAiClient() {
           ) : (
             <>
               <div className={styles.summaryHeader}>
-                <span>{copy.summaryHeading}</span>
+                <span>{consultation.status === "completed" ? copy.summaryHeading : "저장된 분석을 읽으며 기다려 주세요"}</span>
               </div>
               <div className={`${styles.summaryGrid} ${styles.revealItem}`} style={{ animationDelay: "0ms" }}>
                 <article><span>{copy.lagnaBilingual}</span><strong>{summary.lagna || toText(lagna.signKo || lagna.sign) || copy.birthTimeRequiredFallback}</strong></article>
@@ -3450,6 +3488,7 @@ export default function VedicAiClient() {
                   if (structured) {
                     return (
                       <StructuredReadingResult
+                        completed={consultation.status === "completed"}
                         key={`${message.role}-${index}`}
                         reading={structured}
                         chart={chart}

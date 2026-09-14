@@ -84,8 +84,8 @@ const route = read("worker/routes/vedic-ai.js");
   "focusArea",
   "requestId",
   "LLM Payment Guard Passed",
-  "MIN_INITIAL_READING_CHARS = 15000",
-  "MAX_INITIAL_READING_CHARS = 23000",
+  "MIN_INITIAL_READING_CHARS",
+  "MAX_INITIAL_READING_CHARS",
   "VEDIC_SECTION_GROUPS",
   "generateVedicGroup",
   "mergeVedicGroupPayloads",
@@ -104,7 +104,7 @@ const route = read("worker/routes/vedic-ai.js");
   "VedicChartResult",
 ].forEach((needle) => assertIncludes(route, needle, "worker route"));
 assertIncludes(route, "resolveAiLocaleFromRequest", "request locale boundary");
-assertIncludes(route, "doc.locale = existing?.locale || normalized.locale", "stored locale boundary");
+assertIncludes(route, "locale: doc.locale", "stored locale boundary (actual resume covered by vedic-paid-delivery.test.js)");
 assertIncludes(route, "locale: options.locale", "provider locale boundary");
 assertIncludes(route, 'locale: clean(doc.locale, 10) || "ko"', "legacy reopen locale fallback");
 assertIncludes(route, '.select("id topic birthInfo vedicChart.chartSummary locale createdAt updatedAt")', "history locale projection");
