@@ -8,7 +8,9 @@ if (!["localhost", "127.0.0.1"].includes(new URL(origin).hostname)) throw new Er
 const chapters = MASTER_LOVE_CODEX_CHAPTERS.map(chapter => ({ ...chapter, ok: true,
   body: `## ${chapter.title}\n\n${"서로의 기대를 구체적인 말로 확인하고, 대화할 시간을 합의해 보세요.\n\n".repeat(40)}`,
   content: { narration: "검증용 상담 도입입니다.", keySentence: "기대한 행동을 구체적으로 말해 보세요.", insight: "서로 다른 대화의 속도를 조율하는 장면입니다.",
-    evidence: [{ label: "일간", system: "사주", explanation: "검증용 근거 설명입니다." }], actions: ["대화 시간을 정해 보세요.", "원하는 행동을 말해 보세요."] },
+    evidence: [{ label: "일간", system: "사주", explanation: "검증용 근거 설명입니다." }],
+    crossChecks: [{ id: "cross.context", status: "pending", explanation: "두 체계의 직접 비교 근거가 부족해 판단을 보류합니다." }],
+    actions: ["대화 시간을 정해 보세요.", "원하는 행동을 말해 보세요."] },
 }));
 const book = { ok: true, sessionId: "reader-mock", mode: "solo", status: "completed", accessType: "paid", chapters,
   birthInfo: { name: "검증", gender: "female", birthDate: "1993-05-14", birthTime: "07:20", calendarType: "solar" },
@@ -50,6 +52,8 @@ try {
       await chapter.locator("details").last().locator("summary").click();
     }
     assert.ok(await chapter.locator("details").last().getAttribute("open") !== null);
+    assert.equal(await chapter.locator('[data-cross-status="pending"]').count(), 1);
+    if (width === 390 && process.env.CODEX_READER_SCREENSHOT) await page.screenshot({ path: process.env.CODEX_READER_SCREENSHOT });
     const size = await page.evaluate(() => ({ overflow: document.documentElement.scrollWidth > innerWidth,
       small: [...document.querySelectorAll("nav button, nav summary, [data-codex-chapter] summary")]
         .filter(element => element.getBoundingClientRect().height > 0 && element.getBoundingClientRect().height < 44).length }));

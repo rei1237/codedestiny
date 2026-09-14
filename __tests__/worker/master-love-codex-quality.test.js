@@ -10,6 +10,15 @@ const fixture = chapter => ({
   actions: ["대화할 시간을 합의해 보세요.", "기대한 행동을 구체적으로 말해 보세요."], bridge: "다음 장의 주제",
 });
 
+test("codex rejects unsupported calendar inputs before normalizing them", () => {
+  const birthInfo = { birthDate: "1990-05-12", birthTime: "09:30", gender: "female", calendarType: "solar" };
+  expect(utils.normalizeInput({ birthInfo }).ok).toBe(true);
+  for (const change of [{ calendarType: "julian" }, { birthDate: "1990-05-12junk" }, { isLeapMonth: true }]) {
+    expect(utils.normalizeInput({ birthInfo: { ...birthInfo, ...change } }).ok).toBe(false);
+    expect(utils.normalizeInput({ birthInfo, partnerInfo: { ...birthInfo, ...change } }).ok).toBe(false);
+  }
+});
+
 for (const mode of ["solo", "compat"]) {
   const def = utils.resolveMode(mode);
   test(`${mode} staging book keeps the complete result contract with explicit fixture labels`, () => {

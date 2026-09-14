@@ -11,7 +11,7 @@ function runFunction(file, name, state) {
   const fn = ast.statements.find(node => ts.isFunctionDeclaration(node) && node.name?.text === name);
   assert.ok(fn, name);
   const context = vm.createContext(state);
-  vm.runInContext(fn.getText(ast), context);
+  vm.runInContext(fn.getText(ast).replace(/^export\s+/, ""), context);
   return context[name];
 }
 
@@ -57,3 +57,39 @@ test("partial human design result is returned on re-entry without generating or 
   });
   assert.equal((await generate({}, {})).status, "partial");
 });
+
+for (const mode of ["solo", "compat"]) {
+  test(`codex ${mode} resumes saved chapters after storage failure and rereads all 20`, async () => {
+    const chapters = Array.from({ length: 20 }, (_, i) => ({ id: String(i + 1) }));
+    let stored = { id: "book", userId: "owner", mode, chapters: [], status: "generating" };
+    let failSave = true;
+    const model = {
+      findOne: () => ({ lean: async () => structuredClone(stored) }),
+      updateOne: async (_filter, update) => {
+        if (update.$set.chapters && failSave) { failSave = false; throw new Error("storage unavailable"); }
+        stored = { ...stored, ...update.$set };
+        return { matchedCount: 1 };
+      },
+    };
+    const wave = runFunction("worker/routes/master-love-codex.js", "runCodexWave", {
+      clean: value => String(value || ""), resolveMode: () => ({ mode, chapters }),
+      MasterLoveCodexSession: model, CHAPTER_BATCH_SIZE: 3, CHAPTER_CONCURRENCY: 3,
+      buildMemory: () => "", runWithConcurrency: (items, _count, fn) => Promise.all(items.map(fn)),
+      recoverCodexSession: async () => ({ session: stored }),
+      planBatchCommit: results => results.slice(0, results.findIndex(item => item.status !== "ok") < 0 ? results.length : results.findIndex(item => item.status !== "ok")),
+      refundSessionPassIfNeeded: async () => {}, refundSessionBillingIfNeeded: async () => {},
+      console: { error() {}, warn() {} },
+    });
+    const generateChapter = async (_env, { chapter }) => ({ status: "ok", chapter: { ...chapter, ok: true, chars: 2500, body: "stored body" } });
+    const run = () => wave({}, { sessionId: "book", userId: "owner", doc: structuredClone(stored), lockToken: "mock-lock", dependencies: { generateChapter } });
+    assert.equal((await run()).outcome, "failed");
+    assert.equal(stored.chapters.length, 0);
+    assert.notEqual(stored.status, "completed");
+    for (let i = 0; i < 7; i++) await run();
+    const reopened = await model.findOne().lean();
+    assert.equal(reopened.status, "completed");
+    assert.deepEqual(reopened.chapters.map(item => item.id), chapters.map(item => item.id));
+    assert.equal(reopened.totalCharCount, 50000);
+    assert.equal((await run()).outcome, "completed");
+  });
+}

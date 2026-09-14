@@ -207,6 +207,12 @@ function hasPartnerSignal(src) {
  */
 function normalizeInput(body = {}) {
   const src = asObject(body.birthInfo || body);
+  const validCalendarInput = person => (!clean(person.calendarType)
+    || ["solar", "lunar"].includes(clean(person.calendarType).toLowerCase()))
+    && /^\d{4}-\d{2}-\d{2}$/.test(clean(person.birthDate))
+    && (!(person.isLeapMonth === true || person.isLeapMonth === "true")
+      || clean(person.calendarType).toLowerCase() === "lunar");
+  if (!validCalendarInput(src)) return { ok: false, message: MESSAGES.invalidInput };
   const birthInfo = normalizePerson(src);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(birthInfo.birthDate)) return { ok: false, message: MESSAGES.invalidInput };
   if (!birthInfo.gender) return { ok: false, message: "성별을 선택해 주세요." };
@@ -215,6 +221,7 @@ function normalizeInput(body = {}) {
   }
 
   const partnerSrc = asObject(body.partnerInfo || body.partner || src.partnerInfo);
+  if (clean(partnerSrc.birthDate) && !validCalendarInput(partnerSrc)) return { ok: false, message: MESSAGES.invalidInput };
   if (clean(partnerSrc.birthDate) && !hasPartnerSignal(partnerSrc)) {
     return { ok: false, message: "상대의 생년월일을 확인해 주세요." };
   }
@@ -593,6 +600,7 @@ function normalizeChapterContent(parsed, fallbackBody = "") {
         label,
         evidenceId: text(entry.evidenceId, 120),
         subject: text(entry.subject, 16),
+        period: text(entry.period, 32),
         system: entry.system === "saju" ? "사주" : entry.system === "ziwei" ? "자미두수" : text(entry.system, 32),
         explanation: text(entry.explanation, 180),
       };
