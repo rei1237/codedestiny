@@ -80,7 +80,7 @@ async function bootstrap(request, env) {
 }
 export async function handleFortuneChatRoutes(request, env) {
   const path = getRoutePath(request, "/api/fortune-chat");
-  if (request.method === "GET" && path === "/bootstrap") return bootstrap(request, env);
+  if (request.method === "GET" && path === "/bootstrap") return await bootstrap(request, env);
   if (request.method === "POST" && path === "/merge-anonymous") {
     const who = await identity(request, env);
     if (!who.userId) return notFound();
