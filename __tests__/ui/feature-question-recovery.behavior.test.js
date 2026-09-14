@@ -10,6 +10,13 @@ function fixture(){const events={},store=new Map(),calls=[],shown=[];let owner='
 const partial={status:202,payload:{ok:true,status:'partial',saved:false,featureKey:'astrology_ai_prompt_generator',resultId:'paid-narrative:original',resumeBody:{resumeResultId:'paid-narrative:original'},retryable:true}};
 const complete={status:200,payload:{...partial.payload,status:'completed',saved:true,resultText:'마지막 문장까지 저장되었습니다.'}};
 async function settle(){for(let i=0;i<30;i++)await new Promise(resolve=>setImmediate(resolve));}
+test('subscription refresh keeps pending recovery and retries alive',async()=>{
+ const f=fixture();f.queue([complete]);f.ctx._cdMountQuestionRecovery('astrology',f.options);await settle();
+ for(const fn of f.events['cd:auth-changed']||[])fn({detail:{source:'subscription-sync'}});
+ assert.equal(f.shown.at(-1).saved,true);
+ let attempts=0;await f.ctx._cdRetryTransientPost(()=>{attempts++;for(const fn of f.events['cd:auth-changed']||[])fn({detail:{source:'membership-cache'}});return attempts===1?partial:complete;});
+ assert.equal(attempts,2);
+});
 test('partial and transient storage failure continue the same call until completed',async()=>{const f=fixture(),replies=[partial,{status:503,payload:{retryable:true}},complete];let calls=0;const result=await f.ctx._cdRetryTransientPost(()=>{calls++;return replies.shift();});assert.equal(calls,3);assert.equal(result.payload.saved,true);assert.equal(f.store.get('cd.question.result:user-1:astrology'),'paid-narrative:original');});
 test('exhausted partial is not UI success',async()=>{const f=fixture();const result=await f.ctx._cdRetryTransientPost(()=>({...partial,payload:{...partial.payload,retryable:false}}));assert.equal(result.ok,false);assert.equal(result.status,503);});
 test('account change discards an in-flight completed reply',async()=>{const f=fixture();let resolve;const result=f.ctx._cdRetryTransientPost(()=>new Promise(done=>{resolve=done;}));await Promise.resolve();await Promise.resolve();f.setOwner('user-2');resolve(complete);await assert.rejects(result,/계정/);assert.equal(f.store.size,0);});

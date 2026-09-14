@@ -511,12 +511,15 @@ const yogaGuruRouteSource = readFileSync(resolve(root, "worker/routes/yoga-guru.
 const accessControlSource = readFileSync(resolve(root, "worker/lib/access-control.js"), "utf8");
 const geomancyClientSource = readFileSync(resolve(root, "public/geomancy-oracle-v4.html"), "utf8");
 const yogaClientSource = readFileSync(resolve(root, "public/yoga-guru.html"), "utf8");
+const narrativeDeliverySource = readFileSync(resolve(root, "worker/lib/paid-narrative-delivery.js"), "utf8");
+assertBefore(narrativeDeliverySource, "await verify(original)", "await seed(original)", "shared delivery verifies payment before preparing generation");
+assertBefore(narrativeDeliverySource, "await verify(original)", "callGeminiJsonWithRetry(env", "shared delivery verifies payment before provider calls");
 const oracleHandlerSource = oracleRouteSource.slice(oracleRouteSource.indexOf("export async function handleOracleRoutes"));
-assertBefore(oracleHandlerSource, "requireAuth(request, env)", "buildGeomancyOracle(env, payload)", "oracle verifies auth before generating");
-assertBefore(oracleHandlerSource, "requirePremiumReportAccess(", "buildGeomancyOracle(env, payload)", "oracle verifies payment before generating");
+assertBefore(oracleHandlerSource, "requireAuth(request, env)", "runPaidNarrativeDelivery(", "oracle verifies auth before generating");
+assertBefore(oracleHandlerSource, "requirePremiumReportAccess(", "seed:", "oracle verifies payment before generating");
 const yogaHandlerSource = yogaGuruRouteSource.slice(yogaGuruRouteSource.indexOf("async function handleGenerateYogaCourse"));
-assertBefore(yogaHandlerSource, "requireAuth(request, env)", "callGeminiText", "yoga-guru verifies auth before Gemini");
-assertBefore(yogaHandlerSource, "requirePremiumReportAccess(", "callGeminiText", "yoga-guru verifies payment before Gemini");
+assertBefore(yogaHandlerSource, "requireAuth(request,env)", "runPaidNarrativeDelivery(", "yoga-guru verifies auth before Gemini");
+assertBefore(yogaHandlerSource, "requirePremiumReportAccess(", "seed:", "yoga-guru verifies payment before Gemini");
 assertContains(accessControlSource, 'reportType === "geomancyOracle"', "access-control has geomancy payment rule");
 assertContains(accessControlSource, 'reportType === "yogaGuruCourse"', "access-control has yoga payment rule");
 // 배열은 리포트타입이 늘어날 수 있으므로 리터럴 전체가 아니라 필수 항목 포함 여부로 본다.

@@ -7237,7 +7237,9 @@ function _cdMountQuestionRecovery(kind, options) {
   if (!owner) return;
   var key = 'cd.question.result:' + owner + ':' + kind;
   function active() { return !stopped && owner === _cdQuestionOwner() && options.attached(); }
-  function stop() {
+  function stop(event) {
+    var source = event && event.detail && event.detail.source;
+    if (source === 'subscription-sync' || source === 'membership-cache') return;
     stopped = true;
     window.removeEventListener('online', recover);
     document.removeEventListener('visibilitychange', recover);
@@ -7301,7 +7303,11 @@ function _cdRetryTransientPost(fetchFn, opts) {
   var baseDelayMs = o.baseDelayMs || 900;
   var waves = 0;
   var cancelled = false;
-  function cancel() { cancelled = true; }
+  function cancel(event) {
+    var source = event && event.detail && event.detail.source;
+    if (source === 'subscription-sync' || source === 'membership-cache') return;
+    cancelled = true;
+  }
   if (typeof window !== 'undefined' && window.addEventListener) window.addEventListener('cd:auth-changed', cancel);
   function attempt(n) {
     return Promise.resolve().then(function() {
