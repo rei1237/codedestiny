@@ -5,6 +5,9 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import Image from "next/image";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
+import { getAuthState, refreshAuth, useAuthStore } from "@/app/_lib/auth-store";
+import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
+import { readIslandDelivery, writeIslandDelivery, clearIslandDelivery, runIslandDelivery } from "@/lib/island-paid-delivery.js";
 import { authFetch } from "@/app/_lib/auth-client";
 import { isRetriableResultPollFailure, runAccessCheckWithTransientRetry } from "@/app/_lib/consultationResultPolling";
 import {
@@ -300,9 +303,9 @@ const ERROR_TEXT: Record<string, string> = {
 
 type ApiResult = {
   ok?: boolean; reason?: string; message?: string; accessToken?: string; accessType?: string;
-  sessionId?: string; status?: string; paymentPayload?: unknown;
+  sessionId?: string; resultId?: string; status?: string; retryable?: boolean; resumeBody?: Record<string, unknown>; paymentPayload?: unknown;
   consultation?: {
-    id: string; palaceKey: string; palaceTitle: string; sectionKeys: string[];
+    id: string; status?: string; saved?: boolean; completedParts?: string[]; totalParts?: number; palaceKey: string; palaceTitle: string; sectionKeys: string[];
     result?: { meta?: Record<string, unknown>; sections?: Record<string, { title?: string; body?: string }> } | null;
     topic?: string; userQuestion?: string;
   };
@@ -388,6 +391,37 @@ export default function IslandConsultClient() {
   const [result, setResult] = useState<ApiResult["consultation"] | null>(null);
   const [birthEditing, setBirthEditing] = useState(false);
   const busyRef = useRef(false);
+  const [pendingConsult, setPendingConsult] = useState(false);
+  const { user: deliveryUser } = useAuthStore();
+  const deliveryOwner = String(deliveryUser?.id || deliveryUser?.userId || deliveryUser?._id || deliveryUser?.uid || "");
+  const captureDelivery = usePaidDeliveryScope(() => { setResult(null); setError(""); setNotice(""); setPendingConsult(false); setPhase("hub"); busyRef.current = false; });
+  const recoverRef = useRef<() => Promise<void>>(async () => {});
+  const restoredReadingKey = useRef("");
+  useEffect(() => {
+    if (!deliveryOwner || !result?.id) return;
+    const key = `cdIslandReading:${encodeURIComponent(deliveryOwner)}:${encodeURIComponent(result.id)}`;
+    let saved = "";
+    try { saved = localStorage.getItem(key) || ""; } catch { /* Reader still works without local storage. */ }
+    if (restoredReadingKey.current !== key) {
+      const target = saved ? document.getElementById(saved) : null;
+      if (saved && !target) return; // The saved chapter may belong to the next generation wave.
+      target?.scrollIntoView({ block: "start" });
+      restoredReadingKey.current = key;
+    }
+    if (typeof IntersectionObserver === "undefined") return;
+    const observer = new IntersectionObserver(entries => {
+      const entry = entries.filter(item => item.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
+      if (entry) try { localStorage.setItem(key, entry.target.id); } catch { /* Optional reading position. */ }
+    }, { rootMargin: "-15% 0px -65% 0px", threshold: 0 });
+    document.querySelectorAll("[data-ic-pdf-section]").forEach(section => observer.observe(section));
+    return () => observer.disconnect();
+  }, [deliveryOwner, result?.id, result?.completedParts?.length]);
+  useEffect(() => { void refreshAuth({ silent: true }).catch(() => {}); }, []);
+  useEffect(() => {
+    const resume = () => { if (document.visibilityState !== "hidden" && navigator.onLine !== false) void recoverRef.current(); };
+    resume(); window.addEventListener("online", resume); document.addEventListener("visibilitychange", resume);
+    return () => { window.removeEventListener("online", resume); document.removeEventListener("visibilitychange", resume); };
+  }, [deliveryOwner]);
   const formTouchedRef = useRef(false);
   const seedAppliedRef = useRef(false);
 
@@ -626,35 +660,66 @@ export default function IslandConsultClient() {
 
   function pickPalace(p: Palace) { setPalace(p); setError(""); setPhase("form"); }
 
-  async function pollResult(sessionId: string): Promise<ApiResult> {
-    const backoff = [700, 3000, 5000, 8000];
-    for (let attempt = 0; attempt < 60; attempt += 1) {
-      await sleep(backoff[Math.min(attempt, backoff.length - 1)]);
-      let response: Response;
-      try { response = await authFetch(`${RESULT}?id=${encodeURIComponent(sessionId)}`, { method: "GET" }, { retryOn401: false }); }
-      catch { continue; }
-      if (response.status === 202) continue;
-      const data = (await response.json().catch(() => ({}))) as ApiResult;
-      if (isRetriableResultPollFailure(response.status, data)) continue;
-      if (!response.ok) throw new Error(mapError(data, response.status));
-      return data;
-    }
-    throw new Error("상담 생성이 평소보다 오래 걸리고 있어요. 페이지를 닫지 말고 잠시 후 다시 시도해 주세요.");
+  function currentOwner() {
+    const user = getAuthState().user;
+    return String(user?.id || user?.userId || user?._id || user?.uid || "");
   }
-
+  function displayDelivery(data: ApiResult) {
+    if (!data.consultation) return;
+    setResult(data.consultation);
+    setPalace(PALACES.find(p => p.name === data.consultation?.palaceKey) || null);
+    setPhase("ready");
+    setNotice(data.consultation.status === "completed" ? "" : `상담 ${data.consultation.completedParts?.length || 0}/${data.consultation.totalParts || 0} 부분을 저장했어요.`);
+  }
   async function generate(idempotencyKey: string, payload: Record<string, unknown>, extra: Record<string, unknown>) {
-    setPhase("reading");
+    const active = captureDelivery();
+    const owner = currentOwner();
+    setPendingConsult(true); setPhase(previous => previous === "ready" ? "ready" : "reading"); setError("");
     releasePaidFeatureGate(idempotencyKey);
-    setNotice(`${palace?.name}의 별을 읽고 있어요…`);
-    const { status, data } = await postJson<ApiResult>(GENERATE, { ...payload, ...extra, idempotencyKey }, idempotencyKey);
-    if (data.ok && data.consultation) { setResult(data.consultation); setPhase("ready"); setNotice(""); return; }
-    if (status === 202 && data.sessionId) {
-      const resolved = await pollResult(data.sessionId);
-      if (resolved.ok && resolved.consultation) { setResult(resolved.consultation); setPhase("ready"); setNotice(""); return; }
-      throw new Error(mapError(resolved, 0));
-    }
-    throw new Error(mapError(data, status));
+    setNotice("궁의 별을 읽고 있어요… 완료된 부분부터 보여 드릴게요.");
+    const complete = await runIslandDelivery({ idempotencyKey, payload, extra }, {
+      post: (body: Record<string, unknown>) => postJson<ApiResult>(GENERATE, body, idempotencyKey),
+      persist: (record: unknown) => { if (active()) writeIslandDelivery(owner, record, localStorage); },
+      display: displayDelivery, active,
+      visible: () => document.visibilityState !== "hidden" && navigator.onLine !== false,
+      wait: sleep,
+    });
+    if (!active()) return false;
+    if (complete) { clearIslandDelivery(owner, localStorage); setPendingConsult(false); return true; }
+    setNotice("저장된 부분은 보존했어요. 같은 상담을 이어서 생성할 수 있어요.");
+    return false;
   }
+  async function recoverConsult() {
+    const owner = currentOwner();
+    if (!owner || busyRef.current) return;
+    const active = captureDelivery();
+    busyRef.current = true;
+    try {
+      let record = readIslandDelivery(owner, localStorage);
+      const explicitId = new URLSearchParams(window.location.search).get("sessionId");
+      const id = explicitId || record?.payload?.resumeSessionId;
+      const response = await authFetch(id ? `${RESULT}?id=${encodeURIComponent(id)}` : `${RESULT}?pending=1`, { method: "GET" }, { retryOn401: false });
+      const data = await response.json() as ApiResult;
+      if (!active()) return;
+      if (!response.ok) throw new Error(mapError(data, response.status));
+      displayDelivery(data);
+      if (data.consultation?.status === "completed") {
+        if (record?.payload?.resumeSessionId === data.consultation.id) clearIslandDelivery(owner, localStorage);
+        setPendingConsult(false); return;
+      }
+      if (data.resumeBody) {
+        record = { idempotencyKey: String(data.resumeBody.idempotencyKey), payload: data.resumeBody, extra: record?.extra || {} };
+        writeIslandDelivery(owner, record, localStorage);
+      }
+      if (!record) return;
+      setPendingConsult(true);
+      if (data.retryable === false) { setError("상담 내역 확인이 필요해요. 저장된 부분은 아래에서 읽을 수 있어요."); return; }
+      await generate(record.idempotencyKey, record.payload, record.extra || {});
+    } catch (err) {
+      if (active()) { setError(err instanceof Error ? err.message : "상담을 다시 불러오지 못했어요."); setNotice(""); }
+    } finally { if (active()) busyRef.current = false; }
+  }
+  recoverRef.current = recoverConsult;
 
   /* 결제 후 자동 재개(심층 상담) — 결제창 뒤의 generate 가 리다이렉트로 죽는 자리다.
      🔴 여기는 서버에 결제 증빙을 다시 실어야 하는 유형이다(없으면 402) — 인페이지 경로의
@@ -666,27 +731,30 @@ export default function IslandConsultClient() {
     if (!payload || !idempotencyKey || busyRef.current) return false;
     const restoredPalace = PALACES.find((p) => p.name === String(args.palaceKey || ""));
     if (restoredPalace) { setPalace(restoredPalace); setPhase("form"); }
+    const active = captureDelivery();
     busyRef.current = true;
     try {
-      await generate(
+      const completed = await generate(
         idempotencyKey,
         payload,
         extractPayment({ payload: grant?.payload || null, transactionId: grant?.merchantUid || "" }, idempotencyKey),
       );
-      return true;
+      return completed;
     } catch (err) {
+      if (!active()) return false;
       setError(err instanceof Error ? err.message : ERROR_TEXT.SERVER_ERROR);
       setNotice("");
-      setPhase("form");
+      setPhase(previous => previous === "ready" ? "ready" : "reading");
       return false;
     } finally {
-      busyRef.current = false;
+      if (active()) busyRef.current = false;
     }
   });
 
   async function startConsult(e: FormEvent) {
     e.preventDefault();
     if (busyRef.current || !palace) return;
+    const active = captureDelivery();
     setError("");
     if (!/^\d{4}-\d{2}-\d{2}$/.test(form.birthDate)) { setError("생년월일을 확인해 주세요."); return; }
     if (!form.gender) { setError("성별을 선택해 주세요."); return; }
@@ -715,6 +783,7 @@ export default function IslandConsultClient() {
         () => postJson<ApiResult>(PREPARE, payload, idempotencyKey),
         { onRetry: () => setNotice("연결이 잠시 불안정해요. 이용권을 다시 확인하는 중이에요.") },
       );
+      if (!active()) return;
       if (data.ok) {
         completePaidFeatureGateCheck({ featureKey: FEATURE_KEY, requestId: idempotencyKey, title: "이용권 확인 완료", reason: FEATURE_REASON, paymentMode: "MEMBERSHIP_PASS", message: "확인이 끝났어요. 궁의 별을 읽어 드릴게요." });
         await generate(idempotencyKey, payload, { accessToken: data.accessToken, accessType: data.accessType });
@@ -735,6 +804,7 @@ export default function IslandConsultClient() {
           palaceKey: palace.name,
         }),
       });
+      if (!active()) return;
       if (!isPaymentGranted(gate)) {
         const code = String((gate as { error?: { code?: string } }).error?.code || "").toUpperCase();
         if (code === "AUTH_REQUIRED" || code === "LOGIN_REQUIRED") throw new Error(ERROR_TEXT.LOGIN_REQUIRED);
@@ -743,12 +813,13 @@ export default function IslandConsultClient() {
       }
       await generate(idempotencyKey, payload, extractPayment(gate, idempotencyKey));
     } catch (err) {
+      if (!active()) return;
       if (gateStarted) releasePaidFeatureGate(idempotencyKey);
       setError(err instanceof Error ? err.message : ERROR_TEXT.SERVER_ERROR);
       setNotice("");
-      setPhase("form");
+      setPhase(previous => previous === "ready" ? "ready" : "form");
     } finally {
-      busyRef.current = false;
+      if (active()) busyRef.current = false;
     }
   }
 
@@ -870,6 +941,11 @@ export default function IslandConsultClient() {
         </div>
       </header>
 
+      {pendingConsult && <div className="ic-result" role="status">
+        <p>{notice || "생성 중인 상담을 보존하고 있어요."}</p>
+        {error && <p className="ic-err" role="alert">{error}</p>}
+        <button type="button" className="ic-back-btn" onClick={() => void recoverConsult()}>이어서 생성하기</button>
+      </div>}
       {phase === "hub" && (
         <ul className="ic-grid" aria-label={copy.palaceGridAria}>
           {PALACES.map((p) => (
@@ -886,7 +962,7 @@ export default function IslandConsultClient() {
         </ul>
       )}
 
-      {phase === "form" && palace && (
+      {phase === "form" && palace && !pendingConsult && (
         <div className="ic-stack">
           <div className="ic-picked"><PalaceBadge palace={palace} size="small" /> <strong>{palace.name}</strong> · {palace.title} <button type="button" className="ic-change" onClick={() => { setPhase("hub"); setPalace(null); }}>다른 궁</button></div>
 
@@ -950,23 +1026,24 @@ export default function IslandConsultClient() {
       )}
 
       {phase === "ready" && result && (
-        <article className="ic-result">
+        <article className="ic-result" data-delivery-status={result.status || "completed"}>
           <div className="ic-result__hero"><Image src={CONSULT_READING} alt={copy.resultHeroAlt} width={720} height={720} loading="lazy" /></div>
           <div className="ic-result__heading"><PalaceBadge palace={PALACES.find((p) => p.name === result.palaceKey) || PALACES[0]} size="result" /><div><p className="ic-result__eyebrow">당신의 궁이 보내온 편지</p><h2 className="ic-result__title">{result.palaceKey} · {result.palaceTitle}</h2></div></div>
           {result.result?.meta?.daeun ? <p className="ic-result__meta">{toText(result.result.meta.daeun)}</p> : null}
+          <nav aria-label="상담 목차">{(result.sectionKeys || []).map(key => <a className="ic-back-btn" key={key} href={`#island-section-${key}`}>{result.result?.sections?.[key]?.title || key}</a>)}</nav>
           {(result.sectionKeys || []).map((key) => {
             const sec = result.result?.sections?.[key];
             if (!sec || !sec.body) return null;
             return (
-              <section key={key} className="ic-sec" data-ic-pdf-section>
+              <section key={key} id={`island-section-${key}`} className="ic-sec" data-ic-pdf-section>
                 <h3>{sec.title || key}</h3>
                 {String(sec.body).split(/\n{2,}|\n/).filter(Boolean).map((para, i) => <p key={i}>{para}</p>)}
               </section>
             );
           })}
           <div className="ic-result__foot">
-            <button type="button" className="ic-back-btn" onClick={saveConsultPdf} disabled={consultPdfBusy}>{consultPdfBusy ? "PDF 만드는 중…" : "📄 PDF로 소장하기"}</button>
-            <button type="button" className="ic-back-btn" onClick={() => { setResult(null); setPhase("hub"); setPalace(null); }}>다른 궁도 상담하기</button>
+            <button type="button" className="ic-back-btn" onClick={saveConsultPdf} disabled={consultPdfBusy || pendingConsult}>{consultPdfBusy ? "PDF 만드는 중…" : "📄 PDF로 소장하기"}</button>
+            <button type="button" className="ic-back-btn" disabled={pendingConsult} onClick={() => { setResult(null); setPhase("hub"); setPalace(null); }}>다른 궁도 상담하기</button>
             <a className="ic-back" href="/destiny-island">← 운명의 섬으로</a>
           </div>
           {consultPdfError && <p className="ic-err" role="alert">{consultPdfError}</p>}
@@ -1063,7 +1140,7 @@ const CSS = `
 .ic-result{max-width:680px;margin:0 auto;background:rgba(255,255,255,.8);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.75);border-radius:22px;padding:22px;box-shadow:0 16px 44px rgba(70,48,130,.22)}
 .ic-result__title{font-family:'CodeDestinyDisplay','Mulmaru',serif;font-size:1.4rem;color:#2a1f5e;margin-bottom:4px}
 .ic-result__meta{color:#6a4fb0;font-size:.86rem;margin-bottom:14px}
-.ic-sec{margin-bottom:18px}
+.ic-result nav{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}.ic-sec{margin-bottom:18px;scroll-margin-top:64px}
 .ic-sec h3{font-family:'CodeDestinyDisplay','Mulmaru',serif;font-size:1.08rem;color:#7a4fc0;margin-bottom:6px}
 .ic-sec p{font-size:.96rem;line-height:1.85;color:#332b5e;margin-bottom:8px;word-break:keep-all;overflow-wrap:anywhere}
 .ic-result__foot{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px}

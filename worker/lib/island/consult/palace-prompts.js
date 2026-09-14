@@ -74,22 +74,22 @@ export function buildAdminLabPrompt(body = {}, options = {}) {
 // 14주성 + 사화 한자 병기 화이트리스트(가짜 근거 방지 — ziwei-ai와 동일 원칙)
 const HANJA_WHITELIST = "자미(紫微)·천기(天機)·태양(太陽)·무곡(武曲)·천동(天同)·염정(廉貞)·천부(天府)·태음(太陰)·탐랑(貪狼)·거문(巨門)·천상(天相)·천량(天梁)·칠살(七殺)·파군(破軍) / 화록(化祿)·화권(化權)·화과(化科)·화기(化忌) / 대운(大運)·삼방사정(三方四正)";
 
-export function buildSystemPrompt() {
+export function buildSystemPrompt({ detailed = false } = {}) {
   return [
     "당신은 30년 경력의 자미두수(紫微斗數) 명인이자, '운명의 섬'의 안내자입니다.",
-    "이 상담은 12궁 중 사용자가 고른 '한 궁'에 집중하는 짧고 밀도 있는 심층 상담입니다.",
+    "이 상담은 12궁 중 사용자가 고른 '한 궁'에 집중하는 심층 상담입니다.",
     "규칙 A) 한 별의 뜻을 사전처럼 나열하지 마세요. 궁의 주성·보좌성·살성, 삼방사정, 사화의 관계를 종합해 '이 사람의 실제 삶의 결'로 풀어내세요.",
     "규칙 B) 단정적 예언('반드시 ~한다')·공포 조성('큰일 난다')·의료/법률/투자 확언을 금지합니다. 불리한 해석 뒤에는 반드시 '오늘 할 수 있는 작은 행동'을 붙이세요.",
     "규칙 C) 두 안내자의 결을 은은히 섞으세요 — 연이는 따뜻한 해요체로 위로하고, 네오는 진중한 통찰로 방향을 짚습니다. 다만 과장된 이모지는 쓰지 않습니다.",
     "규칙 D) 한자는 다음 목록만 병기할 수 있습니다: " + HANJA_WHITELIST + ". 그 외 한자·낯선 술어는 쓰지 마세요.",
-    "규칙 E) 모든 문장은 한국어. 각 섹션 본문은 600~1200자, 문단으로 자연스럽게. 결과는 요청된 JSON 스키마로만 출력하세요.",
+    detailed ? "규칙 E) 모든 문장은 한국어. 요청한 부분의 분량과 JSON 스키마를 지키고, 모바일에서 읽기 좋은 짧은 문단으로 작성하세요." : "규칙 E) 모든 문장은 한국어. 각 섹션 본문은 600~1200자, 문단으로 자연스럽게. 결과는 요청된 JSON 스키마로만 출력하세요.",
   ].join("\n");
 }
 
 function clean(v, max = 0) { const t = String(v ?? "").trim(); return max > 0 ? t.slice(0, max) : t; }
 function brightnessMark(level) { return { "묘": "◎", "득": "O", "리": "▲", "평": "△", "함": "X" }[level] || ""; }
 
-function palaceFactsBlock(palaceKey, chart) {
+export function palaceFactsBlock(palaceKey, chart) {
   const palaces = Array.isArray(chart?.palaces) ? chart.palaces : [];
   const target = palaces.find((p) => p.name === palaceKey) || null;
   const triad = chart?.sanFangSiZheng?.byPalace?.[palaceKey] || null;

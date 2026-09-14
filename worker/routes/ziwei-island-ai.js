@@ -22,7 +22,9 @@ import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { calculateZiweiAiChart } from "../lib/ziwei-ai-chart.js";
 import { stripEmptyParens } from "../lib/ziwei-hanja.js";
-import { buildPalaceFirstPrompt, buildSystemPrompt, getPalaceConfig, isValidPalace } from "../lib/island/consult/palace-prompts.js";
+import { buildSystemPrompt, getPalaceConfig, isValidPalace } from "../lib/island/consult/palace-prompts.js";
+import { palaceParts, palaceEvidence, palacePartPrompt, validPalacePart, palaceResult } from "../lib/island/consult/palace-delivery.js";
+import { isPaidResultRevoked } from "../lib/paid-result-revocation.js";
 
 // ── 상품 상수(ziwei-ai와 유일하게 다른 부분) ──
 const SERVICE_KEY = "ziwei-island-ai";
@@ -32,7 +34,7 @@ const ACCESS_TOKEN_TTL = "45m";
 const ORDER_NAME = "운명의 섬 12궁 심층 상담";
 const COIN_PRICE = 200;
 const AMOUNT_KRW = 20000;
-const PALACE_CONSULT_MAX_OUTPUT_TOKENS = 8000;
+const PALACE_CONSULT_MAX_OUTPUT_TOKENS = 10000;
 
 const GEMINI_ENV_KEYS = ["GEMINIF_API_KEY", "GEMINI_API_KEY", "GOOGLE_GEMINI_API_KEY"];
 
@@ -396,8 +398,7 @@ async function applyUsageOnce({ userId, sessionId, accessType, paymentId, pricin
   const existing = await ZiweiAiConsultation.findOne({ id: sessionId }).select("usageAppliedAt").lean();
   if (existing?.usageAppliedAt) return true;
   const tokenAccessType = normalizeConsultAccessType(accessType);
-  if (prepaid && tokenAccessType !== "pass") { await ZiweiAiConsultation.updateOne({ id: sessionId, usageAppliedAt: null }, { $set: { usageAppliedAt: new Date() } }); return true; }
-  if (tokenAccessType === "subscription") {
+  if (!prepaid && tokenAccessType === "subscription") {
     const error = new Error("A Payment Service access grant is required for monthly usage.");
     error.code = "PAYMENT_ACCESS_GRANT_REQUIRED";
     throw error;
@@ -420,9 +421,11 @@ async function applyUsageOnce({ userId, sessionId, accessType, paymentId, pricin
     }
   }
   if (tokenAccessType === "paid" && paymentId) {
-    await Payment.updateOne({ userId, featureKey: FEATURE_KEY, merchantUid: paymentId }, { $set: { status: "fulfilled", orderState: "UNLOCKED", reportId: sessionId, sessionId, "pricingSnapshot.sessionId": sessionId, "pricingSnapshot.usageAppliedAt": new Date().toISOString() } }).catch(() => {});
+    await Payment.updateOne({ userId, featureKey: FEATURE_KEY, merchantUid: paymentId }, { $set: { status: "fulfilled", orderState: "UNLOCKED", reportId: sessionId, sessionId, "pricingSnapshot.sessionId": sessionId, "pricingSnapshot.usageAppliedAt": new Date().toISOString() } });
   }
   await ZiweiAiConsultation.updateOne({ id: sessionId, usageAppliedAt: null }, { $set: { usageAppliedAt: new Date() } });
+  const confirmed = await ZiweiAiConsultation.findOne({ id: sessionId, userId }).select("usageAppliedAt").lean();
+  if (!confirmed?.usageAppliedAt) throw storageUnavailable(sessionId);
   return true;
 }
 async function restorePrepaidAccessOnFailure({ userId, access = {}, idempotencyKey = "", pricing = getPricing(), error = null }) {
@@ -484,10 +487,17 @@ function publicConsultation(doc) {
   return {
     ok: true,
     sessionId: clean(doc.id),
+    resultId: clean(doc.id),
+    status: clean(doc.status),
+    retryable: doc.status !== "completed" && doc.llmMeta?.exhausted !== true,
+    resumeBody: doc.status !== "completed" ? { ...(doc.llmMeta?.input || { palaceKey: doc.palaceKey, birthInfo: doc.birthInfo, userQuestion: doc.userQuestion }), idempotencyKey: doc.idempotencyKey, resumeSessionId: doc.id } : undefined,
     consultation: {
       id: clean(doc.id),
       accessType: clean(doc.accessType),
       status: clean(doc.status),
+      saved: doc.status === "completed",
+      completedParts: Object.keys(doc.llmMeta?.parts || {}),
+      totalParts: palaceParts(doc.palaceKey).length,
       palaceKey: clean(doc.palaceKey, 20),
       palaceTitle: clean(getPalaceConfig(doc.palaceKey)?.title, 40),
       sectionKeys: Array.isArray(doc.sectionKeys) ? doc.sectionKeys : [],
@@ -532,10 +542,11 @@ function normalizePalaceInput(body = {}) {
 
 async function generatePalaceText(env, prompt, options = {}) {
   const cache = { store: createLlmCacheStore(env), deterministic: true, ttlSeconds: 30 * 24 * 60 * 60, keyExtra: "ziwei-island-v1" };
-  const timeoutMs = clampSyncLlmTimeoutMs(Number(env?.ZIWEI_ISLAND_TIMEOUT_MS) || 120000);
+  const timeoutMs = Math.min(45000, clampSyncLlmTimeoutMs(Number(env?.ZIWEI_ISLAND_TIMEOUT_MS) || 45000));
   const baseTokens = options.maxOutputTokens || PALACE_CONSULT_MAX_OUTPUT_TOKENS;
   const ai = await callGeminiJsonWithRetry(env, prompt, {
-    systemPrompt: buildSystemPrompt(), taskType: "fortune", temperature: 0.72, timeoutMs, cache, attempts: 2,
+    systemPrompt: buildSystemPrompt({ detailed: true }), taskType: "fortune", temperature: 0.72, timeoutMs, cache, attempts: 1, fallbackToWorkersAI: false,
+    logContext: { sectionGroup: options.partId },
     baseTokens, capTokens: Math.round(baseTokens * 1.3), responseMimeType: "application/json", fallbackMinChars: 600,
   });
   const provider = clean(ai?.provider || ai?.model || "gemini");
@@ -571,7 +582,7 @@ async function handleEnsureAccess(request, env, route = "/api/ziwei-island-ai/pr
   const user = await withMongoRetry(env, () => loadBillingUser(auth.userId, env));
   if (!user) return loginRequired();
   const access = await withMongoRetry(env, () => resolveServerAccess({ auth, user, pricing, idempotencyKey, inputHash: normalized.inputHash }));
-  if (access.ok) {
+  if (access.ok && access.accessType !== "subscription") {
     return json({ ok: true, accessToken: await createAccessToken(env, { userId: auth.userId, accessType: normalizeConsultAccessType(access.accessType) || access.accessType, idempotencyKey, inputHash: normalized.inputHash, paymentId: access.paymentId || "" }), accessType: normalizeConsultAccessType(access.accessType) || access.accessType });
   }
   if (access.reason === "INVALID_INPUT") return invalidInput(access.message, 409);
@@ -589,7 +600,8 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
     }
     const accessType = normalizeConsultAccessType(payload.accessType);
     if (!isAllowedConsultTokenAccessType(payload.accessType)) return { ok: false, reason: "PAYMENT_REQUIRED" };
-    return { ok: true, accessType, paymentId: clean(payload.paymentId, 160) };
+    if (accessType !== "subscription") return { ok: true, accessType, paymentId: clean(payload.paymentId, 160) };
+    // A balance-only token is not a spend receipt. Confirm the original monthly ledger below.
   }
   const paymentId = clean(body?.paymentId || body?.merchantUid || body?.merchant_uid, 160);
   if (paymentId) {
@@ -603,75 +615,153 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
   return { ok: false, reason: "PAYMENT_REQUIRED" };
 }
 
-// ── /start(=/generate) : 동기 생성 ──
-async function handleStart(request, env, route = "/api/ziwei-island-ai/generate") {
+function storageUnavailable(resultId) {
+  return Object.assign(new Error("Result storage unavailable"), { code: "RESULT_STORAGE_UNAVAILABLE", resultId });
+}
+function storageResponse(resultId) {
+  return json({ ok: false, retryable: true, reason: "RESULT_STORAGE_UNAVAILABLE", resultId, sessionId: resultId,
+    message: "상담 저장을 확인하지 못했어요. 같은 상담을 이어서 확인해 주세요." }, { status: 503 });
+}
+function revokedResponse() {
+  return json({ ok: false, retryable: false, reason: "PAYMENT_REVOKED", message: "취소·환불된 상담은 이어서 생성할 수 없어요." }, { status: 403 });
+}
+async function revoked(doc) {
+  return isPaidResultRevoked(doc.userId, FEATURE_KEY, [doc.idempotencyKey, doc.paymentId, doc.llmMeta?.access?.evidenceId, doc.llmMeta?.access?.purchaseId]);
+}
+async function saveIsland(filter, fields) {
+  try {
+    const written = await ZiweiAiConsultation.findOneAndUpdate(filter, { $set: fields }, { new: true }).lean();
+    if (!written) throw storageUnavailable(filter.id);
+    const confirmed = await ZiweiAiConsultation.findOne({ id: filter.id, userId: filter.userId, serviceType: FEATURE_KEY }).lean();
+    if (!confirmed || Object.entries(fields).some(([key, value]) => JSON.stringify(confirmed[key]) !== JSON.stringify(value))) throw storageUnavailable(filter.id);
+    return confirmed;
+  } catch { throw storageUnavailable(filter.id); }
+}
+function pending(doc) {
+  return json(publicConsultation(doc), { status: 202, headers: { "Retry-After": "3" } });
+}
+
+// Each request does one bounded wave. The saved request, chart and payment evidence own every retry.
+async function handleStart(request, env) {
   const body = await readJson(request);
-  const idempotencyKey = readIdempotencyKey(request, body);
-  const normalized = normalizePalaceInput(body);
-  if (!normalized.ok) return invalidInput(normalized.message);
-  if (idempotencyKey.length < 12) return invalidInput("요청 키가 누락되었습니다. 화면을 새로고침한 뒤 다시 시도해 주세요.");
   const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
   if (!auth) return loginRequired();
-  await connectDb(env);
-  const pricing = getPricing();
-  const access = await resolveStartAccess({ request, env, auth, body, normalized, pricing, idempotencyKey });
-  if (!access.ok) {
-    if (access.reason === "LOGIN_REQUIRED") return loginRequired();
-    if (access.reason === "INVALID_INPUT") return invalidInput(access.message, 409);
-    return paymentVerifyFailed();
-  }
-  const existing = await withMongoRetry(env, () => ZiweiAiConsultation.findOne({ userId: clean(auth.userId), idempotencyKey }).lean());
-  if (existing && clean(existing.inputHash) !== normalized.inputHash) return invalidInput("같은 요청 키로 다른 상담 정보를 사용할 수 없습니다.", 409);
-  if (existing?.status === "completed") return json(publicConsultation(existing));
-  if (existing?.status === "generating" && Date.now() - new Date(existing.updatedAt || existing.createdAt).getTime() < 300000) {
-    return json({ ok: true, sessionId: existing.id, status: "generating", message: "궁의 별을 읽고 있어요" }, { status: 202 });
-  }
-  let chart;
-  try { chart = calculateZiweiAiChart(normalized.input, { year: new Date().getFullYear() }); }
-  catch (error) { await restorePrepaidAccessOnFailure({ userId: auth.userId, access, idempotencyKey, pricing, error }); return calculationFailed(); }
-
-  const sessionId = existing?.id || `zwisl_${clean(auth.userId).slice(-8)}_${Date.now().toString(36)}_${randomToken(8)}`;
-  const now = new Date();
-  const seed = {
-    id: sessionId, userId: clean(auth.userId), birthInfo: normalized.input.birthInfo, topic: normalized.input.topic, userQuestion: normalized.input.userQuestion,
-    ziweiChart: chart, serviceType: FEATURE_KEY, palaceKey: normalized.input.palaceKey, sectionKeys: normalized.input.sectionKeys,
-    accessType: access.accessType, paymentId: clean(access.paymentId, 160), messages: [], idempotencyKey, inputHash: normalized.inputHash, status: "generating", generationError: null,
-  };
-  if (existing) await ZiweiAiConsultation.updateOne({ id: existing.id }, { $set: { ...seed, updatedAt: now } });
-  else {
-    try { await ZiweiAiConsultation.create(seed); }
-    catch (error) {
-      if (error?.code === 11000) {
-        const duplicate = await ZiweiAiConsultation.findOne({ userId: clean(auth.userId), idempotencyKey }).lean();
-        if (duplicate?.status === "completed") return json(publicConsultation(duplicate));
-        return json({ ok: true, sessionId: duplicate?.id || sessionId, status: "generating", message: "궁의 별을 읽고 있어요" }, { status: 202 });
+  const userId = clean(auth.userId);
+  const resumeId = clean(body.resumeSessionId, 120);
+  let idempotencyKey = readIdempotencyKey(request, body);
+  let resultId = resumeId || `zwisl_${sha256(`${userId}:${idempotencyKey}`).slice(0, 36)}`;
+  let filter;
+  try {
+    await connectDb(env);
+    let doc = await ZiweiAiConsultation.findOne({ userId, serviceType: FEATURE_KEY,
+      ...(resumeId ? { id: resumeId } : { idempotencyKey }) }).lean();
+    // A failed initial insert may already have returned its deterministic result id to the client.
+    // Only the same owner + original request can retry that insert, with the original input still required.
+    if (resumeId && !doc && resumeId !== `zwisl_${sha256(`${userId}:${idempotencyKey}`).slice(0, 36)}`) return notFound();
+    if (doc && idempotencyKey && idempotencyKey !== doc.idempotencyKey) return invalidInput("원래 상담 요청 키가 필요합니다.", 409);
+    idempotencyKey = doc?.idempotencyKey || idempotencyKey;
+    if (idempotencyKey.length < 12) return invalidInput("요청 키가 누락되었습니다.");
+    const storedInput = doc?.llmMeta?.input || (doc ? { palaceKey: doc.palaceKey, birthInfo: doc.birthInfo, userQuestion: doc.userQuestion } : body);
+    const normalized = normalizePalaceInput(body.birthInfo || body.birthDate ? body : storedInput);
+    if (!normalized.ok) return invalidInput(normalized.message);
+    if (doc && doc.inputHash !== normalized.inputHash) return invalidInput("같은 요청 키로 다른 상담 정보를 사용할 수 없습니다.", 409);
+    resultId = doc?.id || resultId;
+    if (await revoked(doc || { userId, idempotencyKey, paymentId: body.paymentId })) return revokedResponse();
+    if (doc?.status === "completed") return json(publicConsultation(doc));
+    if (doc?.status === "generation_failed") return json({ ok: false, retryable: false, reason: "GENERATION_FAILED", resultId, message: MESSAGES.llmFailed }, { status: 409 });
+    const pricing = getPricing();
+    let access = doc?.llmMeta?.access;
+    if (!access) {
+      access = await resolveStartAccess({ request, env, auth, body, normalized, pricing, idempotencyKey });
+      if (!access.ok) {
+        if (access.reason === "LOGIN_REQUIRED") return loginRequired();
+        if (access.reason === "INVALID_INPUT") return invalidInput(access.message, 409);
+        return paymentVerifyFailed();
       }
-      throw error;
     }
+    const input = doc?.llmMeta?.input || normalized.input;
+    let chart = doc?.llmMeta?.chart || doc?.ziweiChart;
+    if (!chart) {
+      try { chart = calculateZiweiAiChart(input, { year: new Date().getFullYear() }); }
+      catch (error) { await restorePrepaidAccessOnFailure({ userId, access, idempotencyKey, pricing, error }); return calculationFailed(); }
+    }
+    const owner = { id: resultId, userId, serviceType: FEATURE_KEY };
+    if (!doc) {
+      try {
+        await ZiweiAiConsultation.create({ ...owner, ...input, ziweiChart: chart, accessType: access.accessType,
+          paymentId: clean(access.paymentId, 160), idempotencyKey, inputHash: normalized.inputHash,
+          status: "generating", messages: [], generationLease: "", llmMeta: { version: 2, input, chart, access, parts: {}, attempts: {} } });
+      } catch (error) {
+        if (error?.code !== 11000) throw storageUnavailable(resultId);
+      }
+      doc = await ZiweiAiConsultation.findOne(owner).lean();
+      if (!doc || doc.inputHash !== normalized.inputHash) throw storageUnavailable(resultId);
+    }
+    const lease = randomToken(24);
+    const claimed = await ZiweiAiConsultation.findOneAndUpdate({ ...owner, status: { $nin: ["completed", "generation_failed"] },
+      $or: [{ generationLease: "" }, { generationLease: { $exists: false } }, { updatedAt: { $lt: new Date(Date.now() - 120000) } }] },
+      { $set: { generationLease: lease } }, { new: true }).lean();
+    if (!claimed) {
+      const current = await ZiweiAiConsultation.findOne(owner).lean();
+      if (!current) throw storageUnavailable(resultId);
+      return current.status === "completed" ? json(publicConsultation(current)) : pending(current);
+    }
+    filter = { ...owner, generationLease: lease, status: { $nin: ["completed", "generation_failed"] } };
+    let meta = { ...claimed.llmMeta, version: 2, input, chart, access, parts: { ...claimed.llmMeta?.parts }, attempts: { ...claimed.llmMeta?.attempts }, invalidAttempts: { ...claimed.llmMeta?.invalidAttempts } };
+    // Read back the lease and original snapshot before any provider or consumption call.
+    doc = await saveIsland(filter, { llmMeta: meta, generationLease: lease });
+    const specs = palaceParts(input.palaceKey);
+    const evidence = palaceEvidence(input.palaceKey, chart);
+    const missing = specs.filter(part => !meta.parts[part.id]);
+    const wave = missing.filter(part => (meta.attempts[part.id] || 0) < 3).slice(0, 4);
+    if (wave.length) {
+      for (const part of wave) meta.attempts[part.id] = (meta.attempts[part.id] || 0) + 1;
+      doc = await saveIsland(filter, { llmMeta: meta });
+      let queue = Promise.resolve();
+      const outcomes = await Promise.allSettled(wave.map(async part => {
+        let value;
+        try {
+          const generated = await generatePalaceText(env, palacePartPrompt(input, chart, part, meta.attempts[part.id]), { partId: part.id });
+          value = parseSections(generated.text);
+        } catch { return; }
+        // Serialize the writes, not the provider calls; each finished part becomes durable immediately.
+        const persist = async () => {
+          if (!validPalacePart(value, part, evidence, meta.parts)) {
+            meta = { ...meta, invalidAttempts: { ...meta.invalidAttempts, [part.id]: (meta.invalidAttempts[part.id] || 0) + 1 } };
+            doc = await saveIsland(filter, { llmMeta: meta });
+            return;
+          }
+          meta = { ...meta, parts: { ...meta.parts, [part.id]: value } };
+          doc = await saveIsland(filter, { status: "partial", llmMeta: meta,
+            messages: [{ role: "assistant", content: JSON.stringify(palaceResult(input, chart, meta.parts)) }] });
+        };
+        queue = queue.then(persist, persist);
+        await queue;
+      }));
+      if (outcomes.some(outcome => outcome.status === "rejected")) throw storageUnavailable(resultId);
+    }
+    const incomplete = specs.filter(part => !meta.parts[part.id]);
+    if (incomplete.length) {
+      meta = { ...meta, exhausted: incomplete.some(part => (meta.attempts[part.id] || 0) >= 3) };
+      // Refund only a confirmed empty quality failure. Lost provider/checkpoint responses are uncertain.
+      if (meta.exhausted && !Object.keys(meta.parts).length && Object.entries(meta.attempts).every(([key, count]) => meta.invalidAttempts[key] === count)) {
+        doc = await saveIsland(filter, { status: "generation_failed", generationLease: "", llmMeta: meta });
+        await restorePrepaidAccessOnFailure({ userId, access, idempotencyKey, pricing, error: new Error("LLM quality failed") });
+        return json({ ok: false, retryable: false, reason: "LLM_ERROR", resultId, message: MESSAGES.llmFailed }, { status: 503 });
+      }
+      doc = await saveIsland(filter, { status: Object.keys(meta.parts).length ? "partial" : "generating", llmMeta: meta });
+      return pending(doc);
+    }
+    doc = await saveIsland(filter, { status: "delivery_pending", llmMeta: meta });
+    if (await revoked(doc)) return revokedResponse();
+    await applyUsageOnce({ userId, sessionId: resultId, accessType: access.accessType, paymentId: access.paymentId || "", pricing, prepaid: access.prepaid === true, requestId: idempotencyKey });
+    if (await revoked(doc)) return revokedResponse();
+    doc = await saveIsland(filter, { status: "completed", generationLease: "", llmMeta: { ...meta, completedAt: new Date().toISOString() }, generationError: null });
+    return json(publicConsultation(doc));
+  } catch { return storageResponse(resultId); }
+  finally {
+    if (filter) await ZiweiAiConsultation.updateOne(filter, { $set: { generationLease: "" } }).catch(() => {});
   }
-
-  const runGeneration = async () => {
-    try {
-      const { prompt } = buildPalaceFirstPrompt(normalized.input.palaceKey, normalized.input, chart);
-      const generated = await generatePalaceText(env, prompt, { minLength: 300, maxOutputTokens: PALACE_CONSULT_MAX_OUTPUT_TOKENS });
-      await applyUsageOnce({ userId: auth.userId, sessionId, accessType: access.accessType, paymentId: access.paymentId || "", pricing, prepaid: access.prepaid === true, requestId: idempotencyKey });
-      const firstUserMessage = normalized.input.userQuestion || normalized.input.topic;
-      const completed = await ZiweiAiConsultation.findOneAndUpdate(
-        { id: sessionId },
-        { $set: { status: "completed", messages: [{ role: "user", content: firstUserMessage, createdAt: now }, { role: "assistant", content: generated.text, createdAt: new Date() }], llmMeta: { provider: generated.provider, model: generated.model, completedAt: new Date().toISOString() }, generationError: null } },
-        { new: true },
-      ).lean();
-      logZiweiIsland("Generate Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
-      return completed;
-    } catch (error) {
-      const restored = await restorePrepaidAccessOnFailure({ userId: auth.userId, access, idempotencyKey, pricing, error });
-      logZiweiIsland("Refund Or Restore", { ...safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env, error }), restored }, restored ? "info" : "warn");
-      await ZiweiAiConsultation.updateOne({ id: sessionId }, { $set: { status: "generation_failed", generationError: { code: clean(error?.code || "LLM_GENERATION_FAILED", 80), message: clean(error?.message || error, 500), at: new Date().toISOString() } } }).catch(() => {});
-      throw error;
-    }
-  };
-  try { return json(publicConsultation(await runGeneration())); }
-  catch { return json({ ok: false, reason: "LLM_ERROR", message: MESSAGES.llmFailed }, { status: 503 }); }
 }
 
 // ── /result 폴링 ──
@@ -683,6 +773,13 @@ async function handleResult(request, env) {
   const url = new URL(request.url);
   const sessionId = clean(url.searchParams.get("id") || url.searchParams.get("sessionId"), 120);
   await connectDb(env);
+  if (!sessionId && url.searchParams.get("pending") === "1") {
+    const stored = await ZiweiAiConsultation.findOne({ userId: clean(auth.userId), serviceType: FEATURE_KEY,
+      status: { $in: ["generating", "partial", "delivery_pending"] } }).sort({ createdAt: -1 }).lean();
+    if (!stored) return json({ ok: true, consultation: null });
+    if (await revoked(stored)) return revokedResponse();
+    return pending(stored);
+  }
   if (!sessionId) {
     const rows = await ZiweiAiConsultation.find({ userId: clean(auth.userId), serviceType: FEATURE_KEY, status: "completed" })
       // createdAt 정렬은 기존 {userId,createdAt:-1} 인덱스를 그대로 탄다. updatedAt 에는 인덱스가
@@ -692,7 +789,8 @@ async function handleResult(request, env) {
   }
   const consultation = await ZiweiAiConsultation.findOne({ id: sessionId, userId: clean(auth.userId), serviceType: FEATURE_KEY }).lean();
   if (!consultation) return notFound();
-  if (consultation.status === "generating") return json({ ok: true, sessionId: consultation.id, status: "generating", message: "궁의 별을 읽고 있어요" }, { status: 202, headers: { "Retry-After": "3" } });
+  if (await revoked(consultation)) return revokedResponse();
+  if (["generating", "partial", "delivery_pending"].includes(consultation.status)) return pending(consultation);
   if (consultation.status !== "completed") return json({ ok: false, reason: "GENERATION_FAILED", message: MESSAGES.llmFailed }, { status: 409 });
   return json(publicConsultation(consultation));
 }
