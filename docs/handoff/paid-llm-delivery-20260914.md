@@ -1,12 +1,42 @@
 ---
-status: active
+status: handoff
 updated: 2026-09-15
-next: "연애 6카드 main CI 확인 후 꿀편지/fortune 잔여 실제 LLM 경로를 점검·수정한다."
+next: "최신 체크포인트를 읽고 main/CI 확인 후 꿀편지 저장·차감 유실 mock부터 재개한다."
 ---
 
 # 유료 LLM 결과 전달 후속 인수인계
 
 
+
+## 최신 체크포인트 — 사용자 요청으로 세션 인수인계 (2026-09-15)
+
+**이 절과 바로 아래 최신 기능별 기록을 우선한다. 뒤쪽 최초 조사·옛 남은 작업·옛 CI 실패 기록은 당시 이력이며 현재 미완료 목록이 아니다.**
+
+- 마지막 구현: `982b2a813d26ddf9546dc581a6cb168dd9cef9c5` (`fix(tarot): deliver paid love reading with saved progress`), main push 완료. 공식 PR CI `34901003368`은 타입/빌드/정적 성공, Critical의 옛 locale 문자열 검사 1건 실패(3487건 성공)였다. `27b9abbaa33bd64e183f597c2588feb0069df41a`에서 변수명 문자열 단언을 순수 locale 문맥 검사와 실제 라우트의 외국어 본문 저장·렌더·재열람 검사로 교체했다. 해당 선택 Jest 54건 통과. 후속 PR CI `34901581659`는 Build, Critical, Static, Typecheck/lint, CI required 모두 성공 확인했다. 이전 `28e78bfe4fdbee7e89c0c9f364803a33f1fa1a86` / CI `34899595899` 성공 확인.
+- 사용자 우선순위: 모든 실제 LLM 상품에서 결제 이후 생성이 끊기지 않게 짧은 요청으로 자동 이어가기 → 정상 부분 확정 저장 → 모바일에서 마지막 본문 전달. 기존 더 큰 분량은 줄이지 않는다. 상세 유료 본문 최소 20,000자, 짧은 후속 대화·정해진 시간의 요가·카드 연결문은 각 기능 계약 유지. 기존 완료 구매 결과에 새 분량 기준을 소급하지 않는다.
+- 구현/선택 검사/main CI로 전달한 범위는 아래 기능별 기록에 있다: 사주 질문·연애 비책·인생의 책/총운·신년, 심화 자미두수 PDF·초융합·숙요 궁합·점성술·베다·일반 자미두수·카르마·네오·나크샤트라·마스터 코덱스·휴먼 디자인·운명의 지도·운명의 섬·작명·셀레스티얼·관계 경계·반려동물·동물·꿈·지오맨시·요가·찻집·오라클·마인드스캔. 연애 6카드는 이번 구현. **모든 SKU와 모든 짧은 대화 경로 완료를 뜻하지 않는다.**
+- 이번 연애 단위 이후 코드 수정은 시작하지 않았다. 꿀편지와 fortune 잔여 경로는 아래 읽기 조사만 수행했다. 인수인계 문서 외 미커밋 작업이 없는 상태에서 전달한다. 본 세션의 loopback mock 프리뷰 프로세스는 종료했으며 3106/3107/3108 listen 없음도 확인했다. TEMP 합성 fixture/스크린샷은 보조 자료이며 재현에 필요한 저장소 테스트는 커밋했다.
+
+### 다음 세션 시작점과 남은 위험
+
+1. **꿀편지** — `worker/routes/fortune-tea-house.js`의 `generateHoneyLetter`, `handleHoneyLetter`, `refundHoneyLetterSpend`; 실제 회귀 하네스 `__tests__/worker/fortune-tea-house-honey-drops.test.js`. 짧은 800~1200자 후속 편지이며 상세 2만자 기준 대상이 아니다. 현재 2회×22초 호출, TTL 없는 honeyLetterLock, LLM 후 wallet 차감→spend ledger→최종 result 저장 순서. 최종 저장 예외가 generation_failed로 섞이며 차감 응답 유실/중단 후 중복 소비·영구 lock 위험이 남는다. 먼저 실제 라우트 mock으로 재현하고, 생성문 선보존·잠금 만료·원래 증빙·차감 멱등성·저장 불확실성 분리를 설계한다. 기존 ‘최종 저장 실패가 확정되면 꿀방울 환급’ 테스트/정책을 유지한다. 불확실한 저장/차감 응답에 추정 환불을 추가하지 않는다. 새 영수증 저장 구조는 아직 구현/확정하지 않았다.
+2. **fortune 질문형 API** — `worker/routes/fortune.js`의 `runFeatureAiConsultation`, `handleAstrologyAIPrompt`, `handleVedicAIPrompt`, `handleZiweiAIPrompt`, `handleSukuyoAIPrompt`. 현재 단일 긴 결과+이어쓰기 뒤 200/400자 문턱만으로 성공할 수 있고 별도 결과 저장 없이 반환하는 경로가 남아 있다. 실제 활성 호출: `js/saju-engine.js`의 `/api/fortune/astrology/ai-prompt`, `/api/fortune/ziwei/ai-prompt`; `js/saju-engine-tarot-sukuyo-quantum.js`의 `/api/fortune/sukuyo/ai-prompt`. 베다 실제 호출부는 더 추적해야 한다. 이미 수정한 각 체계의 ‘전체 상세 리포트’ API와 혼동하지 말고 상품 registry/가격/유료 재개 kind를 대조한다. 질문형이라고 임의로 2만자 예외로 정하지 말고 판매 계약/사용자 요구와 맞춘다.
+3. **전체 실제 LLM 목록 대조** — guardian/fortune-chat/prashna/generate, 손금 vision 등 간접 호출과 카르마 등 짧은 후속 대화의 긴 시간 예산을 조사한다. 무료·결정론 타로 draw/reading/연운/숫자/이직/crystal-soul에 LLM을 새로 넣지 않는다. 기존 조사 표는 시작점일 뿐 SKU 전수 완료표가 아니다.
+4. **남은 검증 한계** — 실 LLM 의미 품질, 자연어의 모든 계산 모순 검출, 실 PG/실기기 결제 앱 복귀/운영 DB/배포는 미검증. background Worker를 신설한 것이 아니므로 장기 오프라인에는 저장 후 사용자 복귀가 필요하다. 최신 pending/계정별 로컬 ID 복구이며 모든 과거 결과의 새 목록을 만든 것은 아니다. 기능별 과거 미완료 스냅샷/결제 복귀 입력 부재의 제한은 각 절을 확인한다.
+
+### 이어받을 실행 규칙
+
+- main/동시 편집 상태와 원격을 먼저 확인한다. 다른 변경은 보존하고 명시한 파일만 stage한다. 혼자면 main 직접, 동시 세션일 때만 저장소의 safe-worktree 규칙. 브랜치/PR은 만들지 않는다.
+- 실제 라우트 mock + 외부 fetch 차단. 실 제공자·실결제·운영 DB fallback 금지. 재개는 같은 사용자/결과/원래 requestId·증빙·언어·계산 입력, 취소/환불 확인, 추가 소비 없음. 202 부분/503 저장 실패를 완료로 처리하지 않는다.
+- `npm run check:fast -- --plan` 후 관련 targeted 검사. 전체 로컬 lint/typecheck/test/build 반복 금지. 검증 단위 commit→push origin main→PR CI의 CI required 성공 확인. staging/배포 검증은 하지 않는다.
+- 정적 JS cache hash는 import 단계마다 전파된다. 이번에는 순차 sync 후 고정점까지 확인해야 했다. `node scripts/sync-legacy-static-to-public.mjs`, 필요한 sitemap 생성, 커밋 후 깨끗한 트리에서 `node scripts/verify-public-mirror-fresh.mjs` 통과를 확인한다. 진단 실패를 숨기거나 generator 계약을 약화하지 않는다.
+- 컨텍스트가 길어지면 진행 기능을 검증 가능한 단위에서 마감하고 새 기능에 착수하지 않는다. 실제 변경/테스트 수/CI/남은 위험/작업 트리/정확한 다음 행동을 두 문서의 최상단에 기록한다. 최종 전달에는 두 파일명 코드 블록, 절대 링크, 실제 SHA와 경로가 든 재개 명령을 제공한다. 문서가 commit/push/CI를 대체하지 않는다.
+
+### 복사할 최신 재개 지시
+
+```text
+D:\Development\code-destiny에서 D:\Development\code-destiny\docs\handoff\paid-llm-delivery-20260914.md와 D:\Development\code-destiny\docs\handoff\paid-llm-delivery-findings-20260914.md의 최상단 최신 체크포인트를 먼저 읽어라. 마지막 코드·검사 커밋 27b9abbaa33bd64e183f597c2588feb0069df41a(구현 982b2a813d26ddf9546dc581a6cb168dd9cef9c5)가 main에 포함됐는지와 최신 main CI, 동시 편집·미커밋 상태를 확인하고 기존 변경을 보존하라. 꿀편지의 저장 예외/차감 응답 유실 mock 재현부터 시작하고 fortune ai-prompt 잔여 실제 호출부를 이어 점검하라. 가격·환불 정책과 이미 충분히 긴 본문은 유지하며 결제 후 생성·저장·모바일 전달을 우선하라. 실 LLM·실결제·운영 DB·배포 없이 실제 라우트 mock으로 검증하고 검증 단위만 commit/push/main CI 확인하라. 컨텍스트가 길어지면 새 기능을 시작하지 말고 검증된 단위에서 두 문서와 다음 재개 명령을 갱신하라.
+```
 
 ## 연애 6카드: 결제 후 같은 요청으로 끊김 없이 연속 생성 (2026-09-15)
 
@@ -14,7 +44,7 @@ next: "연애 6카드 main CI 확인 후 꿀편지/fortune 잔여 실제 LLM 경
 - 기존 6카드/방향/위치 계산과 가격·이용권·월정석·단건 결제를 유지한다. 기존 실행 컬렉션에서 21부분(하한 합계 26,400자)을 요청당 4부분 병렬·45초·부분당 누적 3회로 생성한다. 필수 부분/본문 20,000자/근거 해시/반복 검사/최종 저장 재조회 후만 완료한다. 정상 부분은 재사용하고 제공자 fallback·잘린 응답·짧은 기본 해석 완료를 허용하지 않는다.
 - POST love-reading 및 GET love-result에서 소유권·원래 증빙·취소/환불을 재확인한다. 202는 다음 요청으로 자동 연결하고 저장 장애는 503 RESULT_STORAGE_UNAVAILABLE이다. 정적/React 클라이언트는 계정별 원래 입력·결과 ID를 보존하며 저장 장애에 결제창을 다시 열지 않는다. 정적 모달은 서버 복구, 화면/네트워크 복귀, 목차·읽던 스크롤·긴 본문 줄바꿈을 제공한다.
 - 저장/전송 장애는 환불하지 않는다. 기존 정적 화면의 생성 실패 환불은 서버가 누적 생성 한도 도달을 확정하고 원래 차감 transactionId가 있을 때만 동일 환불 요청 ID로 실행한다. 모바일 복귀에서 원래 차감 ID가 없는 경우 자동 환불을 새로 추정하지 않는다.
-- 실제 라우트 30건 및 timeout 보호 27건 통과(임시 합성 preview fixture 포함 실행 58건 중 fixture는 제거). 3결제, 저장 throw/null/확인 유실, 부분 재사용, 누락/짧음/잘림/중단/mock/해시 불일치, 동시 요청·계정·증빙 거부·3회 한도를 검증했다. 실제 정적 JS/jsdom 검사는 즉시 카드, 결제 전 호출 0, 동일 ID, 202/503 재개, 재열람, 확정 실패 환불, 계정 전환을 검사한다. 외부 fetch/제공자/DB/결제는 mock이다.
+- 실제 라우트 30건 및 timeout 보호 27건, 총 57건 통과(임시 합성 preview fixture 제거 후 최종 재확인). 3결제, 저장 throw/null/확인 유실, 부분 재사용, 누락/짧음/잘림/중단/mock/해시 불일치, 동시 요청·계정·증빙 거부·3회 한도를 검증했다. 실제 정적 JS/jsdom 검사는 즉시 카드, 결제 전 호출 0, 동일 ID, 202/503 재개, 재열람, 확정 실패 환불, 계정 전환을 검사한다. 외부 fetch/제공자/DB/결제는 mock이다.
 - 정본 index.html 모달 DOM·CSS·실제 JS를 격리 브라우저에 올려 390/1280px에서 서버 pending → 원래 결과 ID POST 1회 → 마지막 본문 → 새로고침 재열람 통과, 페이지 오류/가로 넘침 0. TEMP/love-partial-* 및 love-ending-*는 합성 본문이다. 전체 메인 셸/실기기/실 PG/실 LLM/운영 DB/배포 검증은 아니다.
 - check:fast -- --plan critical, 선택 ai-consultation-flows 20.3초, resilience 918, worker-security 및 paid-resume React 41/정적 47/kind 44 통과, 변경 lint 오류 0. 전체 로컬 검사는 반복하지 않는다. 정적 미러/사이트맵을 갱신하고 main CI는 push 후 확인한다.
 - 마인드스캔 4c55의 정적 검사는 공유 접근 함수의 선택적 다섯 번째 인수를 오탐했다. 28e78bfe4fdbee7e89c0c9f364803a33f1fa1a86에서 AST로 필수 인수와 선택 인수 계약을 검사하도록 수정했으며 공식 main CI 34899595899 성공이다.
@@ -501,6 +531,4 @@ gh run list --branch main --workflow pr-ci.yml --limit 3
 
 ## 복사할 재개 지시
 
-```text
-D:\Development\code-destiny에서 D:\Development\code-destiny\docs\handoff\paid-llm-delivery-20260914.md와 연결된 조사 문서를 읽어라. 마지막 찻집 구현 커밋은 dd01ead6fc290d2a320bd8a82681aeb9ea87f4a2다. 먼저 main 상태와 해당 구현이 포함된 최신 push의 CI를 확인하고 기존 변경을 보존하라. 찻집 서버 저장/복구 및 계정별 화면 재개는 mock으로 구현·검증됐으며, 남은 타 기능의 P1 저장 경로는 새 요청 범위에 맞춰 선택하라. 실 LLM·실결제·운영 DB 호출 없이 mock으로 검증하라.
-```
+최상단 최신 체크포인트의 명령을 사용한다. 아래 최초 찻집 작업의 다음 행동은 역사적 기록이며 현재 목록은 최상단을 따른다.
