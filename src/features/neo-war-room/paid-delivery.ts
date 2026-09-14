@@ -1,14 +1,16 @@
 import { authFetch } from "@/app/_lib/auth-client";
 
-export async function receiveNeoBriefing<T extends { ok?: boolean; sessionId?: string; status?: string }>(
+export async function receiveNeoBriefing<T extends { ok?: boolean; sessionId?: string; status?: string; refinementStatus?: string }>(
   resultId: string,
   onProgress: (data: T) => void,
   isCurrent: () => boolean,
   accessToken = "",
+  phase: "briefing" | "refinement" = "briefing",
 ): Promise<T> {
   let failures = 0;
   const headers: Record<string, string> = { Accept: "application/json" };
   if (accessToken) headers["x-neo-operation-room-access-token"] = accessToken;
+  const completed = (data: T) => data.status === "completed" && (phase === "briefing" || data.refinementStatus === "completed");
   for (let wave = 0; wave < 48; wave += 1) {
     if (!isCurrent()) throw new Error("ACCOUNT_CHANGED");
     if (String(document.visibilityState) === "hidden" || !navigator.onLine) throw new Error("GENERATION_PENDING");
@@ -16,12 +18,13 @@ export async function receiveNeoBriefing<T extends { ok?: boolean; sessionId?: s
       let response = await authFetch(`/api/neo-operation-room/result${resultId ? `?attemptId=${encodeURIComponent(resultId)}` : ""}`, { headers });
       let data = await response.json();
       if (!isCurrent()) throw new Error("ACCOUNT_CHANGED");
-      if (response.ok && data.ok && data.status === "completed") return data as T;
-      if (response.status === 202 && data.sessionId) {
+      if (response.ok && data.ok && completed(data)) return data as T;
+      if (phase === "refinement" && data.refinementStatus === "generation_failed") throw new Error("LLM_ERROR");
+      if ((response.status === 202 || (phase === "refinement" && data.refinementStatus === "generating")) && data.sessionId) {
         resultId = data.sessionId;
         onProgress(data as T);
         if (String(document.visibilityState) === "hidden" || !navigator.onLine) throw new Error("GENERATION_PENDING");
-        response = await authFetch("/api/neo-operation-room/start", {
+        response = await authFetch(`/api/neo-operation-room/${phase === "refinement" ? "refine" : "start"}`, {
           method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sessionId: resultId }),
         });
         data = await response.json();
@@ -29,7 +32,7 @@ export async function receiveNeoBriefing<T extends { ok?: boolean; sessionId?: s
         if (response.ok && data.ok) {
           onProgress(data as T);
           failures = 0;
-          if (data.status === "completed") return data as T;
+          if (completed(data)) return data as T;
         }
       }
       if (!response.ok) {

@@ -203,9 +203,6 @@ const API_ENDPOINTS = {
   refine: "/api/neo-operation-room/refine",
   result: "/api/neo-operation-room/result",
 } as const;
-const PENDING_RESULT_POLL_INTERVAL_MS = 4000;
-// 백그라운드 14챕터 생성(최악 ~3분)을 덮도록 4s×60=240s 예산. CF rate-limit(10s당 100회) 여유 안.
-const PENDING_RESULT_POLL_MAX_ATTEMPTS = 60;
 const BRIEFING_SEAL_DELAY_MS = 1200;
 const BRIEFING_REVEAL_STEP_COUNT = 8;
 const BRIEFING_REVEAL_INTERVAL_MS = 1500;
@@ -2195,35 +2192,10 @@ export default function NeoOperationRoomPage() {
   // 쓰고 있는데 클라이언트만 실패로 끝나, 사용자는 "재시도를 계속해야 나온다"를 겪는다. 1차 브리핑은
   // pollPendingBriefing 이 이 구멍을 막아 왔고 2차만 단발 fetch 였다 — 같은 예산·같은 종료 조건으로 맞춘다.
   async function pollPendingRefinedOrder(resultId: string) {
-    for (let attempt = 0; attempt < PENDING_RESULT_POLL_MAX_ATTEMPTS; attempt += 1) {
-      await new Promise((resolve) => window.setTimeout(resolve, PENDING_RESULT_POLL_INTERVAL_MS));
-      try {
-        const response = await authFetch(`${API_ENDPOINTS.result}?attemptId=${encodeURIComponent(resultId)}`, {
-          headers: { Accept: "application/json" },
-        });
-        const data = (await response.json().catch(() => ({}))) as NeoSession & {
-          refinementStatus?: string;
-          refinementError?: { code?: string };
-          reason?: string;
-          retryable?: boolean;
-        };
-        if (data.ok && data.refinedOrder) {
-          completeWithSession(data);
-          setStatusMessage(paidGateCopy.refinedArrivedMessage);
-          return;
-        }
-        // 서버가 실패를 확정해 기록했으면 더 기다릴 이유가 없다. DB 일시 장애와 LLM 실패는 구분해 안내한다.
-        if (toText(data.refinementStatus) === "generation_failed") {
-          throw new Error(toText(data.refinementError?.code) === "DB_DEGRADED" ? "TEMPORARY_UNAVAILABLE" : "LLM_ERROR");
-        }
-        if (isRetriableResultPollFailure(response.status, data)) continue;
-        if (response.status === 401) throw new Error("LOGIN_REQUIRED");
-        // 그 외(아직 refinedOrder 가 안 붙은 200 등)는 계속 폴링한다.
-      } catch (caught) {
-        if (caught instanceof Error && ["LLM_ERROR", "TEMPORARY_UNAVAILABLE", "LOGIN_REQUIRED"].includes(caught.message)) throw caught;
-      }
-    }
-    throw new Error("GENERATION_PENDING");
+    const isCurrent = captureOwner();
+    const data = await receiveNeoBriefing<NeoSession>(resultId, () => {}, isCurrent, "", "refinement");
+    if (!isCurrent()) throw new Error("ACCOUNT_CHANGED");
+    completeWithSession(data); setStatusMessage(paidGateCopy.refinedArrivedMessage);
   }
 
   /**
@@ -2292,6 +2264,7 @@ export default function NeoOperationRoomPage() {
   }
 
   async function handleRefineSubmit() {
+    const isCurrent = captureOwner();
     if (!sessionId || !briefing) {
       setRefinePhase("failed");
       setRefineError(paidGateCopy.refineMissingBriefingError);
@@ -2325,6 +2298,7 @@ export default function NeoOperationRoomPage() {
         // 응답 자체를 못 받았다(네트워크·엣지 컷). 서버는 계속 쓰고 있을 수 있으니 폴링으로 수렴한다.
         response = null;
       }
+      if (!isCurrent()) return;
       if (response && (data as NeoSession).ok && (data as NeoSession).refinedOrder) {
         completeWithSession(data as NeoSession);
         setStatusMessage(paidGateCopy.refinedArrivedMessage);
@@ -2338,6 +2312,7 @@ export default function NeoOperationRoomPage() {
       }
       await pollPendingRefinedOrder(sessionId);
     } catch (caught) {
+      if (!isCurrent()) return;
       const code = caught instanceof Error ? caught.message : "SERVER_ERROR";
       setRefinePhase("failed");
       setStatusMessage("");
