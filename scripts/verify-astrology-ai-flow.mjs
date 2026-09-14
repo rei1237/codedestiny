@@ -27,11 +27,11 @@ const completeMockConsultation = [
   "주요 각도와 원소와 모드 균형은 반복되는 선택 패턴을 더 선명하게 드러냅니다.",
   "하우스와 현재 트랜짓의 시기감은 이번 달의 타이밍을 부드럽게 가리킵니다.",
   "상담 주제별 선택 기준과 실천 루틴은 2주 안에 점검할 작은 행동으로 이어집니다.",
-].join(" ").repeat(80);
+].join(" ").repeat(140);
 const expertMockMarkers = ["상승궁", "수성", "금성", "화성", "목성", "토성", "주요 각도", "원소", "모드", "하우스", "트랜짓", "선택 기준", "실천 루틴"];
-assert(countMeaningfulChars(shortMockConsultation) < 10000, "short mock consultation must fail the total-length quality gate");
-assert(countMeaningfulChars(completeMockConsultation) >= 10000, "complete mock consultation must pass the total-length quality gate");
-assert(countMeaningfulChars(completeMockConsultation) <= 20000, "complete mock consultation must stay within the upper-length quality gate");
+assert(countMeaningfulChars(shortMockConsultation) < 20000, "short mock consultation must fail the total-length quality gate");
+assert(countMeaningfulChars(completeMockConsultation) >= 20000, "complete mock consultation must pass the total-length quality gate");
+assert(countMeaningfulChars(completeMockConsultation) <= 32000, "complete mock consultation must stay within the upper-length quality gate");
 for (const marker of expertMockMarkers) {
   assert(completeMockConsultation.includes(marker), `complete mock consultation missing expert marker: ${marker}`);
 }
@@ -70,8 +70,8 @@ assert(route.includes("getSwissWesternChart"), "Swiss western chart calculator m
 assert(route.includes("callGeminiText"), "LLM generation missing");
 assert(route.includes("applyUsageOnce"), "usage finalization missing");
 assert(route.includes("idempotencyKey"), "idempotency handling missing");
-assert(route.includes("ASTROLOGY_AI_MIN_RESULT_CHARS = 15000"), "minimum total result character gate missing");
-assert(route.includes("ASTROLOGY_AI_MAX_RESULT_CHARS = 26000"), "maximum total result character gate missing");
+assert(route.includes("ASTROLOGY_AI_MIN_RESULT_CHARS = 20000"), "minimum total result character gate missing");
+assert(route.includes("ASTROLOGY_AI_MAX_RESULT_CHARS = 32000"), "maximum total result character gate missing");
 assert(route.includes("countConsultationChars"), "result character counter missing");
 assert(route.includes("buildConsultationExpansionPrompt"), "short result expansion prompt missing");
 assert(route.includes("buildConsultationCondensePrompt"), "long result condense prompt missing");
