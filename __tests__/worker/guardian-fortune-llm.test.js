@@ -102,3 +102,14 @@ describe("Guardian Fortune guarded LLM", () => {
     expect(result.result).toBeDefined();
   });
 });
+
+it('paid single-attempt mode rejects short text before deterministic enrichment',async()=>{
+ const provider=jest.fn(async()=>({ok:true,text:JSON.stringify({title:'상담',openingLine:'짧은 원문',coreReading:'이 원문을 템플릿으로 늘려 판매하면 안 됩니다.'})}));
+ const result=await generateGuardianFortuneWithRealLLM({input:guardianFortuneLlmInput,context:makeGuardianFortuneContext(),env:{...realEnv,GUARDIAN_FORTUNE_LLM_MAX_RETRIES:'1'},userId:'fixture-user',singleAttempt:true,providerCall:provider,metricSink:()=>{}});
+ expect(result).toMatchObject({deliverable:false,errorCode:'PAID_RESULT_INCOMPLETE'});expect(provider).toHaveBeenCalledTimes(1);
+});
+it('paid delivery bounds retries to one provider call per request',async()=>{
+ const provider=jest.fn(async()=>({ok:false,status:503,error:'temporary'}));
+ await generateGuardianFortuneWithRealLLM({input:guardianFortuneLlmInput,context:makeGuardianFortuneContext(),env:{...realEnv,GUARDIAN_FORTUNE_LLM_MAX_RETRIES:'1'},userId:'fixture-user',singleAttempt:true,providerCall:provider,metricSink:()=>{}});
+ expect(provider).toHaveBeenCalledTimes(1);expect(provider.mock.calls[0][2].timeoutMs).toBeLessThanOrEqual(45000);
+});

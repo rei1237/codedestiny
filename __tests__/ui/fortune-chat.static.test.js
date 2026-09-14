@@ -121,7 +121,7 @@ test("a locale switch cancels an in-flight answer and rejects any late payload",
   assert.match(client, /localeRequestEpochRef/);
   assert.match(client, /activeReadingRef\.current\?\.controller\.abort\(\)/);
   assert.match(client, /localeRequestEpochRef\.current !== localeEpoch/);
-  assert.match(client, /toAiLocale\(detectLocale\(\)\) !== aiLocale/);
+  assert.match(client, /active: \(\) => localeRequestEpochRef\.current === localeEpoch && toAiLocale\(detectLocale\(\)\) === aiLocale/);
   assert.match(client, /if \(attempt\.stale\)/);
   assert.match(client, /getFortuneChatCopy\(getCurrentLoadingLocale\(\)\)\.localeChanged/);
 });

@@ -5,6 +5,7 @@ import {
   buildFallbackGuardianFortuneResult,
   parseGuardianFortuneLLMResponse,
   validateAndNormalizeGuardianFortuneResult,
+  countGuardianFortuneVisibleTextLength,
 } from "./guardian-fortune-result.js";
 import { generateGuardianFortuneWithMockLLM } from "./guardian-fortune-mock.js";
 import { GUARDIAN_FORTUNE_RESULT_LENGTH } from "./guardian-fortune-runtime-contract.js";
@@ -92,6 +93,7 @@ export async function generateGuardianFortuneWithRealLLM({
   env = {},
   providerCall = callGeminiText,
   metricSink,
+  singleAttempt = false,
 } = {}) {
   assertGuardianFortuneRealLLMAllowed({ env, userId });
   const config = getGuardianFortuneLLMConfig(env);
@@ -101,7 +103,7 @@ export async function generateGuardianFortuneWithRealLLM({
     providerCall,
     env,
     prompt,
-    maxRetries: config.maxRetries,
+    maxRetries: singleAttempt ? 0 : config.maxRetries,
     options: {
       locale: toAiLocale(input.locale),
       systemPrompt: prompt.systemPrompt,
@@ -143,7 +145,7 @@ export async function generateGuardianFortuneWithRealLLM({
     generationSource: safeMetricText(generationSource, 40),
   };
 
-  if (!providerResult?.ok || typeof providerResult.text !== "string") {
+  if (!providerResult?.ok || providerResult.truncated || typeof providerResult.text !== "string") {
     const result = buildValidatedFallback({ input, context, reason: resultErrorCode(providerResult) });
     const deliverable = Boolean(result);
     emitMetric({ ...baseMetric, success: deliverable, fallbackUsed: deliverable, errorCode: resultErrorCode(providerResult) }, metricSink);
@@ -165,6 +167,11 @@ export async function generateGuardianFortuneWithRealLLM({
   }
 
   const validated = validateAndNormalizeGuardianFortuneResult({ parsed: parsed.value, input, context });
+  if (singleAttempt && (countGuardianFortuneVisibleTextLength(parsed.value) < GUARDIAN_FORTUNE_RESULT_LENGTH.min
+    || !Array.isArray(parsed.value.evidenceLines) || parsed.value.evidenceLines.length < 3
+    || !Array.isArray(parsed.value.followUpQuestions) || parsed.value.followUpQuestions.length !== 3)) {
+    return { usedFallback: false, deliverable: false, errorCode: 'PAID_RESULT_INCOMPLETE', usage };
+  }
   if (!validated.ok) {
     const result = buildValidatedFallback({ input, context, reason: validated.errorCode });
     const deliverable = Boolean(result);
@@ -173,7 +180,7 @@ export async function generateGuardianFortuneWithRealLLM({
   }
 
   emitMetric({ ...baseMetric, success: true, fallbackUsed: false }, metricSink);
-  return { result: validated.value, usedFallback: false, deliverable: true, issues: validated.issues, usage };
+  return { result: validated.value, usedFallback: false, deliverable: true, isMock: Boolean(providerResult.isMock || /mock/i.test(`${providerResult.provider || ''} ${providerResult.model || ''}`)), issues: validated.issues, usage };
 }
 
 export async function generateGuardianFortuneWithConfiguredLLM(args = {}) {
