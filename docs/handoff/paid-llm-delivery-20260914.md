@@ -1,12 +1,31 @@
 ---
 status: active
 updated: 2026-09-15
-next: "최신 체크포인트를 읽고 main/CI 확인 후 꿀편지 저장·차감 유실 mock부터 재개한다."
+next: "꿀편지 최신 체크포인트와 main/CI를 확인하고 fortune ai-prompt 활성 질문형 경로를 mock 점검한다."
 ---
 
 # 유료 LLM 결과 전달 후속 인수인계
 
 
+
+## 최신 체크포인트 — 꿀편지 저장·차감 응답 유실 복구 (2026-09-15)
+
+이 절이 아래 이전 체크포인트의 꿀편지 미구현 기록보다 우선한다. 전체 유료 LLM 후속 작업은 계속 active다.
+
+- 시작 상태: main=origin/main=`78bc7db802027f66049028d6fe4f1f5e48c4f382`, 미커밋 없음. 앱 목록에서 현재 작업만 활성 상태였고 다른 워크트리는 보존했다. 기준 PR CI `34902890907`의 CI required는 success(문서 변경이라 타입/critical/build는 skipped). 이전 구현 CI 성공과 구분한다.
+- 구현 커밋: `0d7a23b9c4c3fa560ede8930fc89886540d03d8f` (`fix(tea-house): recover interrupted honey letter delivery`). 이번 코드와 후속 사이트맵·문서를 함께 push한 뒤 공식 main CI를 확인한다. 수동 배포·스테이징 확인은 하지 않는다.
+- 실제 라우트에서 저장 전 예외·저장 후 응답 유실·지갑 차감 응답 유실을 주입해 기존 502 generation_failed 오분류를 재현했다. 생성문을 차감 전에 기존 결과 문서의 honeyLetterDelivery에 저장·재조회한다. 지갑 잔액과 결과 ID 해시별 소비 증빙을 같은 지갑 문서에서 원자적으로 갱신한다. 원래 생성문·멱등키·차감 토큰을 유지하므로 새 클라이언트 키나 LLM 설정이 없는 재요청에서도 추가 차감·재생성 없이 전달한다.
+- 새 잠금은 120초 만료와 요청별 소유 토큰을 쓴다. 오래된 요청은 새 소유자의 저장·잠금을 바꾸지 못한다. 저장/차감/원장 응답 유실은 503 RESULT_STORAGE_UNAVAILABLE이며 추정 환불을 하지 않는다. 최종 저장이 자기 잠금 아래 실제 미반영으로 확정된 경우의 기존 꿀방울 10개 환급은 유지한다. 환급 의도를 먼저 저장하고 잔액·환급 상태도 원자적으로 바꿔 환급 응답 유실을 멱등 복구한다.
+- 모바일 결과는 서버 honeyLetterPending을 복원하고 잔액 0에서도 ‘같은 편지 다시 확인하기’를 제공한다. 1/45/125초의 한정된 자동 확인과 온라인/화면 복귀로 이어받는다. 계정·결과 전환 및 unmount 이후 응답은 폐기한다. 새 결제창을 열지 않는다. 꿀편지 POST도 기존 생성용 authFetch 95초 예산으로 분류했다. 800~1200자 후속 편지 계약과 기존 2회×22초 제공자 호출 예산은 유지한다.
+- 잘못된 ‘꿀방울은 그대로’ 단정을 전달 확인/재시도 안내로 바꾸고 재개 버튼을 12개 언어 저작본·실제 사전에 반영했다. API/지갑 내부 복구 필드가 추가됐으며 가격·이용권·월정석·단건 결제·기존 확정 실패 환급 의미, 인증 정책, LLM 해석 체계는 유지한다.
+- 검증: 찻집 Jest 6스위트/116건, 클라이언트 복구·95초 제한 Node 25건, 기존 찻집 복구·i18n Node 15건 통과. 기존 숙요 mock 하네스가 Swiss 천문 파일을 외부에서 읽으려던 경계도 달 황경 fixture로 대체했으며 외부 fetch는 계속 금지다. ai-consultation-flows, worker-no-undef, Mongo query shapes(939쿼리/위반 0), 대상 ESLint 오류 0(기존 경고 21), Impeccable detector [] 확인. check:fast -- --plan은 critical이며 전체 로컬 lint/typecheck/test/build 반복 금지에 따라 관련 선택 검사만 실행했다. sitemap:generate로 URL 1264개와 생성 원장을 갱신했다.
+- 화면: 실제 TeaHouseResultSheet와 CSS를 esbuild로 묶고 auth/API만 mock한 loopback Playwright에서 390/1280px 모두 503→온라인 복귀→같은 ID POST→마지막 문장→새로고침 재열람 통과. 잔액 0 재개 버튼 활성, 페이지 오류/가로 넘침 0. 합성 이미지/프리뷰는 TEMP/honey-delivery-preview, 하네스는 TEMP/honey-delivery-preview.cjs. 프로세스는 종료했다. 전체 Next 셸·실기기·실 LLM·PG·운영 DB·배포 증거가 아니다.
+
+### 남은 작업과 다음 실행
+
+1. 이전 버전의 만료값 없는 honeyLetterLock 또는 지갑 영수증 없이 옛 spend 원장만 남은 결과는 소비 여부를 추정해 자동 해제/차감하지 않는다. 운영 증거 조회·마이그레이션은 이번 승인 범위 밖이며 미실행이다. 새 흐름의 잠금 만료·중복 소비 방지와 구분한다. 지갑의 결과별 소비 증빙은 보존되며 장기 보관 규모 검토는 남아 있다.
+2. 다음은 fortune.js의 runFeatureAiConsultation / handleAstrologyAIPrompt / handleVedicAIPrompt / handleZiweiAIPrompt / handleSukuyoAIPrompt이다. 아래 기존 조사와 실제 정적 JS 호출부, registry/가격/유료 재개 kind를 대조해 활성 질문형 상품의 생성·저장·모바일 전달을 mock 검증한다. 이미 보강한 상세 리포트 API와 혼동하거나 질문형이라는 이유로 임의 분량 예외를 만들지 않는다.
+3. guardian/fortune-chat/prashna/손금 vision/짧은 후속 대화 등 실제 LLM SKU 전수 대조와 실 LLM 의미 품질·실기기 전달은 여전히 미완료다. 무료 결정론 상품에 LLM을 새로 추가하지 않는다.
 
 ## 최신 체크포인트 — 사용자 요청으로 세션 인수인계 (2026-09-15)
 
