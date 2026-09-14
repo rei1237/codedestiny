@@ -1,5 +1,6 @@
 import { fusionLocaleLengthScale, fusionExpertEvidenceReady, FUSION_EXPERT_VERSION, validFusionSignals, buildFusionEvidenceCrossCheck, fusionInputIdentity, fusionCheckpointMatches } from "./fusion-expert-contract.js";
 import { FusionFortuneGenerationAttempt } from "./models.js";
+import { countPaidReportBodyChars, PAID_REPORT_MIN_BODY_CHARS } from "./paid-report-quality.js";
 import { mongoose } from "./db.js";
 import {
   buildFusionSectionGroupPrompt,
@@ -469,6 +470,16 @@ export function countFusionFortuneVisibleText(result = {}) {
   const verdict = result.finalVerdict || {};
   return [result.title, result.openingMessage, result.executiveSummary,
     verdict.headline, verdict.rationale, ...(verdict.systemVerdicts || []).map((item) => item?.note), ...(verdict.doNow || []), ...(verdict.avoid || []), ...SECTION_KEYS.flatMap((key) => [result[key]?.title, result[key]?.content, ...(result[key]?.keyPoints || [])]), result.timingAndAction?.title, result.timingAndAction?.content, ...(result.timingAndAction?.luckyActions || []), ...(result.timingAndAction?.cautionPatterns || []), result.closingMessage].join(" ").length;
+}
+
+/** Completion floor excludes display headings, navigation, markup and whitespace. */
+export function countFusionReportBodyChars(result = {}) {
+  const verdict = result.finalVerdict || {};
+  return countPaidReportBodyChars([result.openingMessage, result.executiveSummary,
+    ...SECTION_KEYS.flatMap(key => [result[key]?.content, ...(result[key]?.keyPoints || [])]),
+    result.timingAndAction?.content, ...(result.timingAndAction?.luckyActions || []), ...(result.timingAndAction?.cautionPatterns || []),
+    verdict.rationale, ...(verdict.systemVerdicts || []).map(item => item?.note), ...(verdict.doNow || []), ...(verdict.avoid || []), result.closingMessage,
+  ].filter(Boolean).join("\n\n"));
 }
 
 function hasRepeatedLongSentence(result = {}) {
@@ -1016,6 +1027,9 @@ export async function generateFusionFortuneWithRealLLM({
   };
   const groupTimeoutMs = fusionGroupTimeoutMs(env);
   const runGroup = async (group, { attempts = FUSION_GROUP_ATTEMPTS, timeoutMs = groupTimeoutMs, extraInstruction = "", progress = composeProgress, persist = true } = {}) => {
+    if (group.stage === 2 && prior.deliveryRepairGroups?.includes(group.id) && countFusionReportBodyChars(prior) < PAID_REPORT_MIN_BODY_CHARS) {
+      extraInstruction += `\n전체 본문이 제목·목차·기호·공백 제외 ${PAID_REPORT_MIN_BODY_CHARS}자에 미달합니다. 기존 여섯 체계 해석은 보존합니다. 이 묶음의 기존 분량 범위 안에서 계산 근거, 서로 다른 조건, 실제 행동의 예시를 구체화하세요. 반복 문장이나 일반론으로 채우지 마세요.`;
+    }
     // 🔴 데드라인을 그룹 호출 **안에서** 강제한다. 예전에는 1차 병렬이 예산을 전혀 보지 않고
     //    attempts×timeoutMs(최악 110초)를 다 쓴 뒤에야 다음 물결에서 남은 예산을 확인했다.
     //    컨텍스트 빌드(6개 계산기)까지 같은 120초 예산을 소모하므로, 그대로면 Cloudflare 엣지
@@ -1364,6 +1378,14 @@ export async function generateFusionFortuneRequest({ input = {}, userId = "", re
     if (generated?.result && normalized.contextVersion === 2) {
       generated.result = withMetadata(generated.result);
       generated.result.expertMeta = { ...generated.result.expertMeta, pendingStage: stageNumber === 1 && generated.deliverable ? 2 : stageNumber, complete: stageNumber === 2 && generated.deliverable === true };
+    }
+
+    if (stageNumber === 2 && generated?.result && countFusionReportBodyChars(generated.result) < PAID_REPORT_MIN_BODY_CHARS) {
+      generated.deliverable = false;
+      generated.result.deliveryRepairGroups = fusionGroupsForStage(2).map(group => group.id);
+      if (generated.result.expertMeta) generated.result.expertMeta.complete = false;
+    } else if (generated?.result) {
+      delete generated.result.deliveryRepairGroups;
     }
 
     generationSourceForLog = generated?.generationSource || "";

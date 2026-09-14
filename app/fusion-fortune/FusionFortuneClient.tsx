@@ -2103,6 +2103,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
   /** 보관본 — 재열람 목록과 지금 화면에 열린 보관본 id. */
   const [recentList, setRecentList] = useState<FusionRecentItem[]>([]);
   const [openedConsultationId, setOpenedConsultationId] = useState("");
+  const [readingRequestId, setReadingRequestId] = useState("");
   const [reopeningId, setReopeningId] = useState("");
   /** PDF 캡처 중에는 접힌 섹션을 전부 펼치고 애니메이션을 끈다(백지 PDF 방지). */
   const [exporting, setExporting] = useState(false);
@@ -2115,6 +2116,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
     paidRequestIdRef.current = ""; paidRequestBodyRef.current = null;
     autoResumeRef.current = false;
     setResultState(null); setOpenedConsultationId(""); setOpenedSummary(null); setRecentList([]);
+    setReadingRequestId("");
     setLoading(false); setPendingPaidRequest(false); setStageTwoFailed(false); setFailure(null); setNotice("");
     setOwnerEpoch(value => value + 1);
   });
@@ -2227,6 +2229,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
 
   /** 보관본 하나를 화면에 올린다. 재열람(?cid=)과 결제 키 회수가 같은 모양이어야 한다. */
   const applyOpenedConsultation = useCallback((consultation: OpenedConsultation) => {
+    setReadingRequestId(consultation.requestId || consultation.id);
     setResult(consultation.result);
     // 재열람 PDF 의 표지는 폼이 아니라 보관본의 요약에서 온다 — 새 탭에서 열면 폼이 비어 있다.
     setOpenedSummary(consultation.inputSummary || null);
@@ -2516,6 +2519,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
    * 2단계 실패는 실패 카드가 아니라 "이어서 생성" 버튼이다 — 1단계는 서버에 저장돼 있고 결제 증빙도 남는다.
    */
   const runGeneration = async (requestId: string, requestBody: FusionRequestBody, startStage: 1 | 2, fortuneChatSessionId: string) => {
+    setReadingRequestId(requestId);
     requestAbortRef.current?.abort();
     const controller = new AbortController();
     requestAbortRef.current = controller;
@@ -3102,7 +3106,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
           </div>
         </li>}
       </ol>
-      {result && <FusionResultRail result={result} generating={loading} exporting={exporting} onOpenSection={(key) => setOpenSection(key)} scopeRef={threadRef} />}
+      {result && <FusionResultRail result={result} generating={loading} exporting={exporting} onOpenSection={(key) => setOpenSection(key)} scopeRef={threadRef} storageKey={deliveryOwnerId && readingRequestId ? `cdFusionReading:${encodeURIComponent(deliveryOwnerId)}:${encodeURIComponent(readingRequestId)}` : ""} />}
       </div>
 
       {(loading || result) && <footer className="relative grid gap-3 border-t border-white/[0.07] px-4 pb-[calc(4.5rem+env(safe-area-inset-bottom))] pt-5 sm:flex sm:flex-wrap sm:px-9 lg:pb-5">

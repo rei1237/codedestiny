@@ -72,7 +72,7 @@ beforeAll(async()=>{
 afterAll(()=>{globalThis.fetch=originalFetch;jest.restoreAllMocks()});
 beforeEach(()=>{docs=[];fault=null;lostConfirmation=false;paymentChecks=[];revoked=false;store.attempts.clear();accessType='pass'});
 function request(stage=1){return new Request('https://example.test/api/fusion-fortune/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({requestId:'paid-original',birthDate:'1995-04-18',birthTime:'08:30',stage})})}
-const sections=Object.fromEntries(['saju','ziwei','vedic','sukuyo','astrology','tarot'].map(key=>[`${key}Section`,{title:key,content:'계산 근거에 따른 생활 패턴을 설명합니다. '.repeat(25),keyPoints:[]} ]));
+const sections=Object.fromEntries(['saju','ziwei','vedic','sukuyo','astrology','tarot'].map(key=>[`${key}Section`,{title:key,content:'계산 근거에 따른 생활 패턴을 설명합니다. '.repeat(240),keyPoints:[]} ]));
 for(const kind of ['pass','monthly','single'])describe(kind,()=>{
  beforeEach(()=>{accessType=kind});
  it('checkpoints partial output, resumes the same paid stage, and commits only after verified delivery',async()=>{
@@ -115,6 +115,15 @@ for(const kind of ['pass','monthly','single'])describe(kind,()=>{
   expect(response.status).toBe(202);const payload=await response.json();
   expect(payload.consultation.requestId).toBe('paid-original');expect(payload.consultation.id).not.toBe('private-other');
   expect(payload.consultation.resumeBody.birthDate).toBe('1995-04-18');
+ });
+ it('keeps short second-stage output pending and reuses the first-stage report',async()=>{
+  const initial=Object.fromEntries(Object.entries(sections).map(([key,value])=>[key,{...value,content:value.content.slice(0,500)}]));
+  generator=async()=>({result:initial,deliverable:true,qualityTier:'partial'});await route(request(),ENV);
+  generator=async({priorResult})=>({result:{...priorResult,title:'short',executiveSummary:'too short'},deliverable:true,qualityTier:'full'});
+  const short=await route(request(2),ENV);expect(short.status).toBe(202);expect(await short.json()).toMatchObject({status:'partial',nextStage:2});
+  expect(docs[0].result.deliveryRepairGroups).toEqual(['integration','action','verdict']);
+  generator=async({priorResult})=>{expect(priorResult.deliveryRepairGroups).toHaveLength(3);return {result:{...sections,executiveSummary:'complete'},deliverable:true,qualityTier:'full'}};
+  const final=await route(request(2),ENV);expect(final.status).toBe(200);expect(docs[0].result.deliveryRepairGroups).toBeUndefined();
  });
  it('rejects refunded proof before providers',async()=>{revoked=true;generator=()=>{throw Error('provider must not run')};const response=await route(request(),ENV);expect(response.status).toBe(403);expect(paymentChecks).toHaveLength(0)});
  it('preserves pending output when revocation is detected just before completion',async()=>{

@@ -7,6 +7,7 @@ import {
   buildFusionFortuneStatus,
   collectFusionEvidenceTokens,
   countFusionFortuneVisibleText,
+  countFusionReportBodyChars,
   createMemoryFusionFortuneStore,
   generateFusionFortuneRequest,
   generateFusionFortuneWithMockLLM,
@@ -794,4 +795,23 @@ describe("saved calculation snapshot and same-stage progress", () => {
     expect(result).toMatchObject({ ok: false, status: 503, reason: "RESULT_STORAGE_UNAVAILABLE", resultId: "snapshot-storage-failure" });
     expect(generate).not.toHaveBeenCalled();
   });
+});
+
+ it('counts exactly 19,999/20,000 body characters while excluding all display headings',()=>{
+  const result={title:'title'.repeat(500),executiveSummary:'가'.repeat(19999),integratedReading:{title:'# title',content:'**소제목**\n# 목차\n[항목](#section)'}};
+  expect(countFusionReportBodyChars(result)).toBe(19999);
+  result.executiveSummary+='나';expect(countFusionReportBodyChars(result)).toBe(20000);
+ });
+
+it('repairs only second-stage groups when the saved report misses the body floor',async()=>{
+ const calls=Object.fromEntries(['saju','ziwei','vedic','sukuyo','astrology','tarot'].map(key=>[key,0]));
+ const {context}=await buildFusionFortuneContext(input,{adapters:fusionAdapters(calls)});
+ const prior=Object.assign({},...FUSION_SECTION_GROUP_SPECS.map(group=>buildFusionGroupPayload(group,context.tarotSpread.cards)));
+ for(const key of ['saju','ziwei','vedic','sukuyo','astrology','tarot'])prior[`${key}Section`].content=prior[`${key}Section`].content.slice(0,500);
+ prior.deliveryRepairGroups=['integration','action','verdict'];
+ const invoked=[];
+ const providerCall=async(_env,prompt,options)=>{const group=FUSION_SECTION_GROUP_SPECS.find(item=>item.id===options.logContext.sectionGroup);invoked.push(group.id);expect(prompt).toContain('제목·목차·기호·공백 제외');return {ok:true,provider:'gemini',text:JSON.stringify(buildFusionGroupPayload(group,context.tarotSpread.cards))}};
+ const result=await generateFusionFortuneWithRealLLM({input,context,stage:2,priorResult:prior,providerCall,env:{ENABLE_FUSION_FORTUNE_REAL_LLM:'true',ALLOW_FUSION_FORTUNE_REAL_LLM:'true',GEMINIF_API_KEY:'mock-only'}});
+ expect([...new Set(invoked)].sort()).toEqual(['action','integration','verdict']);
+ expect(result.result.sajuSection).toEqual(prior.sajuSection);
 });

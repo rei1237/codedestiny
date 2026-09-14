@@ -9,7 +9,7 @@
  * 화면 밖 높이가 contain-intrinsic-size(420px)로 잡혀 높이 기반 진행률이 튄다.
  */
 
-import { useCallback, useEffect, useMemo, useState, type RefObject } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import { SECTION_KEYS, SECTION_SYSTEM_KEYS, type Result } from "../fusion-thread";
 import { countResultChars, countSectionChars, countTimingChars, countVerdictChars } from "./reading";
 import { useFusionSharedCopy } from "./copy";
@@ -30,9 +30,10 @@ export type FusionToc = {
   navigate: (item: Pick<TocItem, "key" | "collapsible">) => void;
 };
 
-export function useFusionToc(result: Result, scopeRef: RefObject<HTMLElement | null>, onOpenSection: (key: string) => void): FusionToc {
+export function useFusionToc(result: Result, scopeRef: RefObject<HTMLElement | null>, onOpenSection: (key: string) => void, storageKey = ""): FusionToc {
   const copy = useFusionSharedCopy();
   const [activeKey, setActiveKey] = useState("");
+  const restoredKey = useRef("");
 
   const items = useMemo<TocItem[]>(() => {
     const list: TocItem[] = [{ key: "opening", label: copy.openingShortLabel, chars: (result.openingMessage || "").length, systemKey: "fusion", collapsible: false }];
@@ -72,11 +73,17 @@ export function useFusionToc(result: Result, scopeRef: RefObject<HTMLElement | n
         if (entry.isIntersecting) visible.add(key); else visible.delete(key);
       }
       const first = anchors.find((anchor) => visible.has(anchor.getAttribute("data-fusion-toc") || ""));
-      if (first) setActiveKey(first.getAttribute("data-fusion-toc") || "");
+      if (first) {
+        const key = first.getAttribute("data-fusion-toc") || "";
+        setActiveKey(key);
+        if (storageKey && restoredKey.current === storageKey) {
+          try { localStorage.setItem(storageKey, key); } catch { /* Reading remains available without browser storage. */ }
+        }
+      }
     }, { rootMargin: "-10% 0px -60% 0px", threshold: 0 });
     anchors.forEach((anchor) => observer.observe(anchor));
     return () => observer.disconnect();
-  }, [scopeRef, items]);
+  }, [scopeRef, items, storageKey]);
 
   const navigate = useCallback((item: Pick<TocItem, "key" | "collapsible">) => {
     if (item.collapsible) onOpenSection(item.key);
@@ -84,6 +91,16 @@ export function useFusionToc(result: Result, scopeRef: RefObject<HTMLElement | n
     // 접힌 섹션은 펼침이 렌더된 뒤에 위치가 정해진다 — 한 프레임 뒤에 이동한다.
     requestAnimationFrame(() => document.getElementById(`fusion-toc-${item.key}`)?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" }));
   }, [onOpenSection]);
+
+  useEffect(() => {
+    if (!storageKey || restoredKey.current === storageKey) return;
+    let key = "";
+    try { key = localStorage.getItem(storageKey) || ""; } catch { /* No saved position. */ }
+    const item = items.find(entry => entry.key === key);
+    if (key && !item) return; // A saved later chapter may still be generating.
+    restoredKey.current = storageKey;
+    if (item) navigate(item);
+  }, [items, navigate, storageKey]);
 
   return { items, pending, totalChars, activeKey, activeIndex, progress, navigate };
 }

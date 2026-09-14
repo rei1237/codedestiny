@@ -16,7 +16,7 @@ import { readingMinutes } from "./_lib/reading";
 import { useFusionToc } from "./_lib/toc";
 import { useFusionSharedCopy } from "./_lib/copy";
 
-export function FusionResultRail({ result, generating, exporting, onOpenSection, scopeRef }: {
+export function FusionResultRail({ result, generating, exporting, onOpenSection, scopeRef, storageKey = "" }: {
   result: Result;
   /** 1단계만 도착했고 2단계 스트림이 도는 중. 차례 아래에 "2단계" 그룹이 붙는다. */
   generating: boolean;
@@ -24,9 +24,10 @@ export function FusionResultRail({ result, generating, exporting, onOpenSection,
   exporting: boolean;
   onOpenSection: (key: string) => void;
   scopeRef: RefObject<HTMLElement | null>;
+  storageKey?: string;
 }) {
   const copy = useFusionSharedCopy();
-  const toc = useFusionToc(result, scopeRef, onOpenSection);
+  const toc = useFusionToc(result, scopeRef, onOpenSection, storageKey);
 
   return <>
     <FusionResultDock toc={toc} generating={generating} exporting={exporting} hasVerdict={Boolean(result.finalVerdict)} />

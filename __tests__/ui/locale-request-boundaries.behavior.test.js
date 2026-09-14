@@ -74,6 +74,7 @@ function fusionFixture() {
     currentFusionOwner: () => owner,
     document: { visibilityState: 'visible' }, navigator: { onLine: true },
     autoRetryRef: { current: { requestId: '', count: 0 } }, setResumeEpoch() {},
+    setReadingRequestId() {},
     apiBase: '', copy: {}, initialStageStates: () => ({}),
     recoveredStageRef: { current: 1 },
     requestAbortRef: { current: null }, capAbortedRef: { current: false }, autoResumeRef: { current: false },
