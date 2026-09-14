@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
@@ -48,8 +49,7 @@ const LOVE_SECRET_AI_REPAIR_TIMEOUT_MS = 24000;
 const LOVE_SECRET_AI_REPAIR_MIN_REMAINING_MS = 22000;
 // handleStart 진입 시각 기준 총예산. 인증·DB 변동분을 LLM 예산이 흡수한다.
 const LOVE_SECRET_AI_LLM_DEADLINE_MS = 86000;
-// 6개 중 이만큼만 살아 있으면 degraded 로 전달한다(사용자는 이미 결제했다).
-const LOVE_SECRET_AI_MIN_USABLE_GROUPS = 4;
+const LOVE_SECRET_AI_MIN_USABLE_GROUPS = LOVE_SECRET_AI_GROUPS.length;
 // 생성이 요청 안에서 끝나므로 엣지 컷보다 오래된 "generating"은 진행이 아니라 잘린 시체다.
 const LOVE_SECRET_AI_GENERATING_FRESH_MS = EDGE_RESPONSE_DEADLINE_MS + 20000;
 const ACCESS_TOKEN_TYPE = "love-secret-ai-access";
@@ -842,7 +842,18 @@ async function generateFirstConsultation(env, input, sajuResult, logContext = {}
     : LOVE_SECRET_AI_GROUP_TIMEOUT_MS;
 
   // Wave 1 — 6개 그룹 동시 생성. 벽시계 = 합계가 아니라 최댓값.
-  let results = await Promise.all(LOVE_SECRET_AI_GROUPS.map((group) => generateLoveSecretGroup(env, {
+  let results = LOVE_SECRET_AI_GROUPS.map(group => options.savedGroups?.find(row => row.key === group.key) || { key: group.key, ok: false, sections: [], extras: {}, chars: 0 });
+  const checkpointed = typeof options.onCheckpoint === "function";
+  let selected = LOVE_SECRET_AI_GROUPS;
+  if (checkpointed) {
+    const priorQuality = validateLoveSecretConsultation(assembleLoveSecretConsultation(results, { input, sajuResult }), { sajuResult, groundingTerms: buildLoveSecretGroundingTerms(sajuResult) });
+    const repairKeys = mapLoveSecretIssuesToGroups(priorQuality, results);
+    const key = results.find(row => !row.ok)?.key || [...repairKeys.keys()][0];
+    selected = LOVE_SECRET_AI_GROUPS.filter(group => group.key === key);
+    if (selected.length) await options.onReserve(selected[0].key);
+  }
+  const produced = await Promise.all(selected.map(async (group) => {
+    const row = await generateLoveSecretGroup(env, {
     input,
     sajuResult,
     group,
@@ -850,7 +861,11 @@ async function generateFirstConsultation(env, input, sajuResult, logContext = {}
     cache,
     timeoutMs: budgetedTimeout(groupTimeoutCap),
     logContext,
-  })));
+    });
+    if (checkpointed) await options.onCheckpoint(row);
+    return row;
+  }));
+  results = results.map(row => produced.find(item => item.key === row.key) || row);
 
   const groundingTerms = buildLoveSecretGroundingTerms(sajuResult);
   let assembled = assembleLoveSecretConsultation(results, { input, sajuResult });
@@ -858,13 +873,14 @@ async function generateFirstConsultation(env, input, sajuResult, logContext = {}
 
   // Wave 2 — 책임 그룹만 다시 쓴다(전체 재생성 금지).
   const targets = mapLoveSecretIssuesToGroups(quality, results);
+  if (checkpointed) for (const key of targets.keys()) if (!selected.some(group => group.key === key)) targets.delete(key);
   if (targets.size && budgetedTimeout(LOVE_SECRET_AI_REPAIR_TIMEOUT_MS) > 0) {
     logLoveSecretAi("Group Repair", { ...logContext, issues: quality.issues, targets: [...targets.keys()] }, "warn");
-    const repaired = await Promise.all([...targets.entries()].map(([key, repairLines]) => {
+    const repaired = await Promise.all([...targets.entries()].map(async ([key, repairLines]) => {
       const group = LOVE_SECRET_AI_GROUPS.find((item) => item.key === key);
       const previousResult = results.find((item) => item.key === key) || null;
       if (!group) return Promise.resolve(null);
-      return generateLoveSecretGroup(env, {
+      const row = await generateLoveSecretGroup(env, {
         input,
         sajuResult,
         group,
@@ -875,6 +891,8 @@ async function generateFirstConsultation(env, input, sajuResult, logContext = {}
         repairLines,
         previousResult,
       });
+      if (checkpointed && row.ok) await options.onCheckpoint(row);
+      return row;
     }));
 
     const candidateResults = results.map((result) => {
@@ -907,7 +925,9 @@ async function generateFirstConsultation(env, input, sajuResult, logContext = {}
     residualIssues: quality.issues,
   });
 
-  if (usableGroups < LOVE_SECRET_AI_MIN_USABLE_GROUPS || !renderable) {
+  const completionIssues = quality.issues.filter(issue => !/^TOTAL_(BELOW|ABOVE)_TARGET:/.test(issue));
+  const complete = usableGroups === LOVE_SECRET_AI_MIN_USABLE_GROUPS && renderable && completionIssues.length === 0;
+  if (!checkpointed && !complete) {
     const error = new Error(`love secret generation incomplete (groups ${usableGroups}/${results.length}, chars ${totalChars})`);
     error.code = "LLM_GENERATION_FAILED";
     throw error;
@@ -919,6 +939,8 @@ async function generateFirstConsultation(env, input, sajuResult, logContext = {}
 
   return {
     ...assembled,
+    complete,
+    savedGroups: results,
     degraded: usableGroups < results.length,
     provider: results.find((result) => result.ok)?.provider || "",
     model: results.find((result) => result.ok)?.model || "",
@@ -1097,7 +1119,11 @@ async function restoreBillingGateAccessOnFailure({ userId, access = {}, idempote
 
 function publicSession(doc) {
   const raw = typeof doc?.toObject === "function" ? doc.toObject() : doc;
-  const meta = raw?.llmMeta || {};
+  const storedMeta = raw?.llmMeta || {};
+  const meta = !["generating", "partial", "delivery_pending"].includes(raw?.status) ? storedMeta : {
+    ...storedMeta,
+    sections: (storedMeta.delivery?.groups || []).filter(row => row.ok).flatMap(row => row.sections || []),
+  };
   return {
     ok: true,
     id: clean(raw?.id),
@@ -1106,6 +1132,10 @@ function publicSession(doc) {
     requestId: clean(raw?.idempotencyKey, 180),
     accessType: clean(raw?.accessType),
     status: clean(raw?.status),
+    saved: clean(raw?.status) === "completed",
+    retryable: ["partial", "delivery_pending", "generating"].includes(raw?.status),
+    resumeSessionId: clean(raw?.id),
+    completedGroups: (meta.delivery?.groups || []).filter(row => row.ok).map(row => row.key),
     myInfo: raw?.myInfo || null,
     partnerInfo: raw?.partnerInfo || null,
     relationshipStatus: clean(raw?.relationshipStatus, 80),
@@ -1307,8 +1337,19 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
     if (clean(payload.userId) !== clean(auth.userId) || clean(payload.idempotencyKey) !== idempotencyKey || clean(payload.inputHash) !== normalized.inputHash) {
       return { ok: false, reason: "INVALID_INPUT", message: "상담 접근 정보가 현재 입력값과 일치하지 않습니다." };
     }
-    return { ok: true, accessType: clean(payload.accessType), paymentId: clean(payload.paymentId, 160) };
+    body = { ...body, paymentId: clean(payload.paymentId, 160) || body.paymentId };
   }
+
+  const ids = collectBillingEvidenceIds({ ...body, idempotencyKey });
+  const [revokedExecution, revokedPayment, refundedPoints] = await Promise.all([
+    PaidExecutionRecord.findOne({ userId: clean(auth.userId), featureId: FEATURE_KEY,
+      status: { $in: ["cancelled", "refunded", "canceled"] }, $or: buildPaidExecutionEvidenceQuery(ids) }).lean(),
+    Payment.findOne({ userId: clean(auth.userId), featureKey: FEATURE_KEY,
+      status: { $in: ["cancelled", "refunded", "canceled", "CANCELLED", "REFUNDED"] }, $or: buildPaymentEvidenceQuery(ids) }).lean(),
+    PointHistory.findOne({ userId: clean(auth.userId), featureKey: FEATURE_KEY,
+      "metadata.monthlyCreditRefundedForLoveSecretAiFailure": true, $or: buildPointHistoryEvidenceQuery(ids) }).lean(),
+  ]);
+  if (revokedExecution || revokedPayment || refundedPoints) return { ok: false, reason: "PAYMENT_REQUIRED" };
 
   const billingEvidence = await withMongoRetry(env, () => resolveBillingUsageEvidence(env, auth, body));
   if (billingEvidence?.ok) return billingEvidence;
@@ -1318,11 +1359,52 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
   return withMongoRetry(env, () => resolveServerAccess({ auth, user, pricing, idempotencyKey, inputHash: normalized.inputHash, paymentId: paymentIdFromBillingBody(body) }));
 }
 
+async function saveLoveSecretCheckpoint(userId, id, delivery) {
+  try {
+    const saved = await LoveSecretAiConsultation.findOneAndUpdate(
+      { id, userId: clean(userId), status: "generating", "llmMeta.delivery.lease": delivery.lease },
+      { $set: { "llmMeta.delivery": delivery } }, { new: true },
+    ).lean();
+    const confirmed = saved && await LoveSecretAiConsultation.findOne({ id, userId: clean(userId) }).lean();
+    if (!confirmed || JSON.stringify(confirmed.llmMeta?.delivery) !== JSON.stringify(delivery)) throw resultStorageUnavailable(id);
+    return confirmed;
+  } catch { throw resultStorageUnavailable(id); }
+}
+
+async function confirmLoveSecretDelivery(userId, pending) {
+  try {
+    const saved = await LoveSecretAiConsultation.findOneAndUpdate(
+      { id: pending.id, userId: clean(userId), status: "delivery_pending", "llmMeta.delivery.lease": pending.llmMeta?.delivery?.lease },
+      { $set: { status: "completed" } }, { new: true },
+    ).lean();
+    if (!saved) throw resultStorageUnavailable(pending.id);
+    const confirmed = await LoveSecretAiConsultation.findOne({ id: pending.id, userId: clean(userId) }).lean();
+    const contents = doc => JSON.stringify((doc?.messages || []).map(message => [message.role, message.content]));
+    if (confirmed?.status !== "completed" || contents(confirmed) !== contents(pending)) throw resultStorageUnavailable(pending.id);
+    await applyUsageOnce({ sessionId: pending.id }).catch(error => console.warn("[love-secret-ai] usage marker delayed", clean(error?.message)));
+    return confirmed;
+  } catch { throw resultStorageUnavailable(pending.id); }
+}
+
 async function handleStart(request, env, route = "/api/love-secret-ai/generate", ctx) {
   // 총예산의 기준점. 인증·DB 지연이 LLM 예산에 더해지는 게 아니라 흡수되도록 진입 즉시 찍는다.
   const requestStartedAt = Date.now();
   logLoveSecretAi("LLM Generate Start", safeLogPayload({ route, env }));
-  const body = await readJson(request);
+  let body = await readJson(request);
+  if (body?.resumeSessionId) {
+    const resumeAuth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+    if (!resumeAuth) return loginRequired();
+    await connectDb(env);
+    const saved = await LoveSecretAiConsultation.findOne({ id: clean(body.resumeSessionId), userId: clean(resumeAuth.userId) }).lean();
+    if (!saved) return invalidInput("저장된 상담을 찾을 수 없습니다.", 404);
+    if (saved.status === "completed") return json(publicSession(saved));
+    if (!saved.llmMeta?.delivery?.resumeBody) return invalidInput("원래 상담 요청으로 다시 시도해 주세요.", 409);
+    body = { ...saved.llmMeta.delivery.resumeBody, idempotencyKey: saved.idempotencyKey, requestId: saved.idempotencyKey };
+    delete body.accessToken;
+    const headers = new Headers(request.headers);
+    headers.delete("x-love-secret-ai-access-token");
+    request = new Request(request.url, { method: "POST", headers, body: JSON.stringify(body) });
+  }
   const idempotencyKey = readIdempotencyKey(request, body);
   logLoveSecretAi("LLM Payload Received", safeLogPayload({ route, requestId: idempotencyKey, body, env }));
   const normalized = normalizeRequestBody(body);
@@ -1353,6 +1435,10 @@ async function handleStart(request, env, route = "/api/love-secret-ai/generate",
     return invalidInput("같은 요청 키로 다른 상담 정보를 사용할 수 없습니다.", 409);
   }
   if (existing?.status === "completed") return json(publicSession(existing));
+  if (existing?.status === "delivery_pending") {
+    const confirmed = await confirmLoveSecretDelivery(auth.userId, existing);
+    return json(publicSession(confirmed));
+  }
   // 생성은 이 요청 안에서 끝난다. 엣지 컷 + 마진보다 오래된 "generating"은 진행 중이 아니라
   // 잘려 죽은 세션이므로 재시도를 막지 않는다(예전 360초 창은 4분간 재시도를 봉쇄했다).
   if (existing?.status === "generating" && Date.now() - new Date(existing.updatedAt || existing.createdAt).getTime() < LOVE_SECRET_AI_GENERATING_FRESH_MS) {
@@ -1362,7 +1448,7 @@ async function handleStart(request, env, route = "/api/love-secret-ai/generate",
   let sajuResult;
   try {
     logLoveSecretAi("Fortune Data Start", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
-    sajuResult = calculateLoveSecretAiSaju(normalized);
+    sajuResult = existing?.sajuResult || calculateLoveSecretAiSaju(normalized);
     // 6개 그룹 프롬프트 전부에 같은 문자열로 들어가는 계산 확정값(병렬 생성물의 일관성 앵커).
     sajuResult.facts = buildLoveSecretGroundingFacts(sajuResult);
     logLoveSecretAi("Fortune Data Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
@@ -1400,18 +1486,30 @@ async function handleStart(request, env, route = "/api/love-secret-ai/generate",
     paymentId: clean(access.paymentId, 160),
     keywords: [],
     strategy: "",
-    messages: [],
+    messages: existing?.messages || [],
     idempotencyKey,
     inputHash: normalized.inputHash,
     status: "generating",
     generationError: null,
+    llmMeta: {
+      ...(existing?.llmMeta || {}),
+      delivery: {
+        ...(existing?.llmMeta?.delivery || {}),
+        lease: globalThis.crypto.randomUUID(),
+        resumeBody: existing?.llmMeta?.delivery?.resumeBody || { ...body, accessToken: undefined, paymentId: body.paymentId || access.paymentId },
+        groups: existing?.llmMeta?.delivery?.groups || [],
+        attempts: existing?.llmMeta?.delivery?.attempts || {},
+      },
+    },
   };
 
   if (existing) {
-    await LoveSecretAiConsultation.updateOne(
-      { id: existing.id },
+    const claimed = await LoveSecretAiConsultation.findOneAndUpdate(
+      { id: existing.id, userId: clean(auth.userId), status: existing.status, updatedAt: existing.updatedAt },
       { $set: { ...seed, updatedAt: now } },
-    );
+      { new: true },
+    ).lean();
+    if (!claimed) return json({ ok: true, sessionId, status: "generating", retryable: true }, { status: 202 });
   } else {
     try {
       await LoveSecretAiConsultation.create(seed);
@@ -1432,12 +1530,26 @@ async function handleStart(request, env, route = "/api/love-secret-ai/generate",
     const logContext = safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env });
     const generated = await generateFirstConsultation(env, normalized.input, sajuResult, logContext, {
       deadlineAt: requestStartedAt + LOVE_SECRET_AI_LLM_DEADLINE_MS,
+      savedGroups: seed.llmMeta.delivery.groups,
+      onReserve: async (key) => {
+        const attempts = seed.llmMeta.delivery.attempts;
+        if ((attempts[key] || 0) >= 4) throw Object.assign(new Error("보완 호출 한도에 도달했습니다."), { code: "LLM_GENERATION_FAILED" });
+        attempts[key] = (attempts[key] || 0) + 2;
+        await saveLoveSecretCheckpoint(auth.userId, sessionId, seed.llmMeta.delivery);
+      },
+      onCheckpoint: async (row) => {
+        const groups = seed.llmMeta.delivery.groups;
+        const index = groups.findIndex(item => item.key === row.key);
+        if (index < 0) groups.push(row);
+        else if (row.ok || !groups[index].ok) groups[index] = row;
+        await saveLoveSecretCheckpoint(auth.userId, sessionId, seed.llmMeta.delivery);
+      },
     });
     const completed = await LoveSecretAiConsultation.findOneAndUpdate(
-      { id: sessionId },
+      { id: sessionId, userId: clean(auth.userId), status: "generating", "llmMeta.delivery.lease": seed.llmMeta.delivery.lease },
       {
         $set: {
-          status: "completed",
+          status: generated.complete ? "delivery_pending" : "partial",
           degraded: Boolean(generated.degraded),
           keywords: generated.keywords,
           strategy: generated.strategy,
@@ -1450,6 +1562,7 @@ async function handleStart(request, env, route = "/api/love-secret-ai/generate",
             { role: "assistant", content: generated.answer, createdAt: new Date() },
           ],
           llmMeta: {
+            delivery: seed.llmMeta.delivery,
             provider: generated.provider,
             model: generated.model,
             completedAt: new Date().toISOString(),
@@ -1467,32 +1580,34 @@ async function handleStart(request, env, route = "/api/love-secret-ai/generate",
         },
       },
       { new: true },
-    ).lean();
-    await applyUsageOnce({
-      userId: auth.userId,
-      sessionId,
-      accessType: access.accessType,
-      accessSource: access.accessSource || "",
-      paymentId: clean(access.paymentId, 160),
-      pricing,
-    });
-    const finalDoc = await LoveSecretAiConsultation.findOne({ id: sessionId }).lean();
+    ).lean().catch(() => { throw resultStorageUnavailable(sessionId); });
+    if (!completed) throw resultStorageUnavailable(sessionId);
+    const finalAccess = await resolveStartAccess({ request, env, auth, body, normalized, pricing, idempotencyKey })
+      .catch(() => { throw resultStorageUnavailable(sessionId); });
+    if (!finalAccess.ok) return paymentVerifyFailed();
+    const finalDoc = generated.complete
+      ? await confirmLoveSecretDelivery(auth.userId, completed)
+      : await LoveSecretAiConsultation.findOne({ id: sessionId, userId: clean(auth.userId) }).lean().catch(() => { throw resultStorageUnavailable(sessionId); });
+    if (!finalDoc || finalDoc.status !== (generated.complete ? "completed" : "partial")) throw resultStorageUnavailable(sessionId);
     logLoveSecretAi("LLM Generate Success", {
       ...logContext,
       providerReason: generated.provider || generated.model || "real_llm_success",
       provider: generated.provider,
       model: generated.model,
     });
-    return json(publicSession(finalDoc || completed));
+    return json(publicSession(finalDoc), { status: generated.complete ? 200 : 202 });
   } catch (error) {
+    if (error?.code === "RESULT_STORAGE_UNAVAILABLE") return json(resultStorageFailurePayload(error), { status: 503 });
     logLoveSecretAi("LLM Error", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env, error }), "error");
+    const owned = await LoveSecretAiConsultation.findOne({ id: sessionId, userId: clean(auth.userId), status: "generating", "llmMeta.delivery.lease": seed.llmMeta.delivery.lease }).lean();
+    if (!owned) return json(resultStorageFailurePayload(resultStorageUnavailable(sessionId)), { status: 503 });
     const restored = await restoreBillingGateAccessOnFailure({ userId: auth.userId, access, idempotencyKey, pricing, error }).catch((restoreError) => ({ restored: false, error: clean(restoreError?.message || restoreError, 300) }));
     logLoveSecretAi("LLM Refund Or Restore", {
       ...safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }),
       restored,
     }, restored?.restored || restored?.refunded ? "info" : "warn");
     await LoveSecretAiConsultation.updateOne(
-      { id: sessionId },
+      { id: sessionId, userId: clean(auth.userId), status: "generating", "llmMeta.delivery.lease": seed.llmMeta.delivery.lease },
       {
         $set: {
           status: "generation_failed",
@@ -1530,7 +1645,6 @@ async function handleResult(request, env, pathId = "") {
       return clean(item, 180);
     }
   }).filter(Boolean))];
-  if (!ids.length) return invalidInput("저장된 연애 비책 상담 결과를 찾을 수 없습니다.", 404);
 
   // 폴링은 이미 인가된 세션의 결과 조회다. 인증 판정에서 일시적 DB 장애가 나면 하드 503으로 끊지 말고
   // 재시도 가능하다는 신호를 실어 보내 클라가 폴링을 이어가게 한다(nakshatra/neo와 동일한 완충).
@@ -1554,18 +1668,26 @@ async function handleResult(request, env, pathId = "") {
   });
   const consultation = await LoveSecretAiConsultation.findOne({
     userId: clean(auth.userId),
-    $or: or,
-  }).lean();
+    ...(or.length ? { $or: or } : {}),
+  }).sort({ createdAt: -1 }).lean();
   if (!consultation) {
     return json({ ok: false, reason: "RESULT_NOT_FOUND", message: "저장된 연애 비책 상담 결과를 찾을 수 없습니다." }, { status: 404 });
   }
+  if (consultation.status !== "completed" && consultation.llmMeta?.delivery?.resumeBody) {
+    const originalBody = consultation.llmMeta.delivery.resumeBody;
+    const access = await resolveStartAccess({ request, env, auth, body: originalBody, normalized: normalizeRequestBody(originalBody), pricing: getPricing(), idempotencyKey: consultation.idempotencyKey });
+    if (!access.ok) return paymentVerifyFailed();
+  }
+  if (consultation.status === "delivery_pending") return json({ ...resultStorageFailurePayload(resultStorageUnavailable(consultation.id)), sessionId: consultation.id, requestId: consultation.idempotencyKey, status: "delivery_pending" }, { status: 503 });
+  if (consultation.status === "partial") return json(publicSession(consultation), { status: 202 });
   if (consultation.status === "generating") {
     return json({
+      ...publicSession(consultation),
       ok: true,
       sessionId: clean(consultation.id),
       attemptId: clean(consultation.attemptId, 180),
       requestId: clean(consultation.idempotencyKey, 180),
-      status: "generating",
+      status: Date.now() - new Date(consultation.updatedAt || consultation.createdAt).getTime() >= LOVE_SECRET_AI_GENERATING_FRESH_MS ? "partial" : "generating",
       message: "두 사람의 마음의 온도를 읽고 있습니다.",
     }, { status: 202 });
   }
@@ -1644,6 +1766,7 @@ export async function handleLoveSecretAiRoutes(request, env = {}, ctx) {
     return methodNotAllowed();
   } catch (error) {
     console.error("[love-secret-ai]", clean(error?.code || error?.message || error, 500));
+    if (error?.code === "RESULT_STORAGE_UNAVAILABLE") return json(resultStorageFailurePayload(error), { status: 503 });
     // 풀 초기화 버스트/인증 조회 중 일시 DB 장애는 재시도 신호와 함께 503으로 — 하드 500 방지.
     if (isTransientMongoError(error) || isAuthDbInfraError(error)) {
       return json({

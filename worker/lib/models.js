@@ -1148,7 +1148,7 @@ const loveSecretAiConsultationSchema = new mongoose.Schema({
   attemptId: { type: String, default: "", trim: true, maxlength: 180, index: true },
   idempotencyKey: { type: String, required: true, trim: true, maxlength: 180, index: true },
   inputHash: { type: String, required: true, trim: true, maxlength: 80, index: true },
-  status: { type: String, enum: ["generating", "completed", "generation_failed"], default: "generating", index: true },
+  status: { type: String, enum: ["generating", "partial", "delivery_pending", "completed", "generation_failed"], default: "generating", index: true },
   // 섹션 그룹 일부가 실패한 채 전달된 상담. 운영이 찾아볼 수 있게 남긴다(자동 재생성은 하지 않는다).
   degraded: { type: Boolean, default: false },
   usageAppliedAt: { type: Date, default: null },

@@ -1,4 +1,5 @@
 import { salvageTruncatedJsonObject } from "../../lib/llm-text.js";
+import { countPaidReportBodyChars, hasRepeatedReportPassage } from "./paid-report-quality.js";
 import { buildLoveSecretGroupFacts, compactSajuForFollowUp } from "./love-secret-ai-facts.js";
 
 const FORBIDDEN_RESULT_PATTERNS = Object.freeze([
@@ -37,7 +38,7 @@ const UNSAFE_ADVICE_PATTERNS = Object.freeze([
 //    부분 성공 결과가 결제 후 하드 실패로 뒤집힌다.
 export const LOVE_SECRET_AI_TARGET_MIN_TOTAL_BODY_CHARS = 30000;
 export const LOVE_SECRET_AI_TARGET_MAX_TOTAL_BODY_CHARS = 39000;
-export const LOVE_SECRET_AI_MIN_TOTAL_BODY_CHARS = 18000;
+export const LOVE_SECRET_AI_MIN_TOTAL_BODY_CHARS = 20000;
 export const LOVE_SECRET_AI_MAX_TOTAL_BODY_CHARS = 44000;
 const LOVE_SECRET_AI_PARSE_TEXT_MAX_CHARS = 44000;
 
@@ -391,7 +392,7 @@ function normalizeSectionList(value, limit = 14) {
 
 function countSectionBodyChars(sections = []) {
   return Array.isArray(sections)
-    ? sections.reduce((sum, section) => sum + clean(section?.body).length, 0)
+    ? sections.reduce((sum, section) => sum + countPaidReportBodyChars(section?.body), 0)
     : 0;
 }
 
@@ -400,7 +401,7 @@ export function countLoveSecretConsultationBodyChars(result = {}) {
   if (pdfChars > 0) return pdfChars;
   const sectionChars = countSectionBodyChars(result.sections);
   if (sectionChars > 0) return sectionChars;
-  return clean(result.answer).length;
+  return countPaidReportBodyChars(result.answer);
 }
 
 function normalizeReading(parsed = {}) {
@@ -584,6 +585,9 @@ export function parseLoveSecretGroupResponse(text, group) {
   const trimmed = sections.map((section) => ({ title: section.title, body: trimToLastCompleteSentence(section.body) }));
   const chars = countSectionBodyChars(trimmed);
   const issues = scanConsultationTextIssues(trimmed.map((section) => section.body).join("\n"));
+  const sectionFloor = Math.ceil(LOVE_SECRET_AI_GROUP_MIN_CHARS * 0.7 / Math.max(1, titles.length));
+  const requiredSectionsPresent = titles.every(title => trimmed.some(section => section.title === title && countPaidReportBodyChars(section.body) >= sectionFloor));
+  if (!requiredSectionsPresent) issues.push("REQUIRED_SECTIONS_INCOMPLETE");
 
   const extras = {};
   if (parsed && typeof parsed === "object") {
@@ -610,7 +614,7 @@ export function parseLoveSecretGroupResponse(text, group) {
     });
   }
 
-  return { ...base, ok: true, sections: trimmed, extras, chars, issues };
+  return { ...base, ok: requiredSectionsPresent && issues.length === 0, sections: trimmed, extras, chars, issues };
 }
 
 /** 그룹 제목 범위 안에서만 프로즈를 쪼갠다(전역 15섹션 폴백의 그룹 스코프 버전). */
@@ -714,6 +718,7 @@ const DATE_PATTERN = /\b(20\d{2})-(\d{2})-(\d{2})\b/g;
 export function validateLoveSecretConsultation(result = {}, context = {}) {
   const { sajuResult = {}, groundingTerms = [] } = context;
   const issues = [...validateLoveSecretGrounding(result, groundingTerms)];
+  if (hasRepeatedReportPassage((result.sections || []).map(section => section.body).join("\n"))) issues.push("REPEATED_PASSAGE");
   const fullText = [result.answer, ...(result.sections || []).map((section) => section.body)].join("\n");
 
   issues.push(...scanConsultationTextIssues(fullText));
@@ -740,8 +745,7 @@ export function validateLoveSecretConsultation(result = {}, context = {}) {
   }
 
   const totalChars = countLoveSecretConsultationBodyChars(result);
-  if (totalChars < LOVE_SECRET_AI_TARGET_MIN_TOTAL_BODY_CHARS) issues.push(`TOTAL_BELOW_TARGET:${totalChars}`);
-  if (totalChars > LOVE_SECRET_AI_TARGET_MAX_TOTAL_BODY_CHARS) issues.push(`TOTAL_ABOVE_TARGET:${totalChars}`);
+  if (totalChars < LOVE_SECRET_AI_MIN_TOTAL_BODY_CHARS) issues.push(`TOTAL_BELOW_TARGET:${totalChars}`);
 
   (result.groupStatus || []).forEach((status) => {
     if (!status.ok) {
@@ -770,6 +774,12 @@ export function mapLoveSecretIssuesToGroups(quality = {}, groupResults = []) {
   const textOf = (result) => (result?.sections || []).map((section) => section.body).join("\n");
 
   issues.forEach((issue) => {
+    if (issue === "REPEATED_PASSAGE") {
+      const repeated = groupResults.filter(result => result?.ok && hasRepeatedReportPassage(textOf(result)));
+      (repeated.length ? repeated : groupResults.filter(result => result?.ok).slice(-1))
+        .forEach(result => push(result.key, "반복 문장을 제거하고 해당 계산 근거에 맞는 고유한 사례와 행동 조언으로 보완하세요."));
+      return;
+    }
     if (issue.startsWith("GROUNDING_TERMS")) {
       // 근거를 전혀 안 쓴 그룹만 지목한다(전체 블랭킷 금지).
       groupResults.filter((result) => result?.ok && !/일간|오행|십성|용신|대운|세운|신살/.test(textOf(result)))
@@ -809,6 +819,7 @@ export function mapLoveSecretIssuesToGroups(quality = {}, groupResults = []) {
       return;
     }
     if (issue.startsWith("TOTAL_BELOW_TARGET")) {
+      if (groupResults.some(result => !result?.ok)) return;
       // 자기 최소치에 못 미친 그룹만(전부가 아니라).
       groupResults.filter((result) => result?.ok && result.chars < LOVE_SECRET_AI_GROUP_MIN_CHARS)
         .forEach((result) => push(result.key, `이 부분을 ${LOVE_SECRET_AI_GROUP_MIN_CHARS}~${LOVE_SECRET_AI_GROUP_MAX_CHARS}자로 채워 다시 쓰세요.`));

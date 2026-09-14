@@ -229,7 +229,12 @@ const fixtureSajuResult = {
   calendar: calendarA,
 };
 const groundingParagraph = "일간 임수의 결로 보면 지금 관계는 확인보다 유지가 먼저입니다. 십성 비견이 두터워 스스로 결론을 내려는 습관이 강하고, 용신 목이 닿는 자리에서 관계가 부드러워집니다. 대운의 흐름이 표현을 밖으로 밀어 주고, 세운이 겹치는 구간에서는 속도를 늦추는 편이 낫습니다. 신살 도화가 시선을 모으므로 관심과 애정을 구분해야 합니다. ";
-const groupBody = (chars) => groundingParagraph.repeat(Math.ceil(chars / groundingParagraph.length)).slice(0, chars);
+let passageId = 0;
+const groupBody = (chars) => {
+  let text = "";
+  while (text.length < chars) text += groundingParagraph.replace(/([^.!?]+)([.!?])/g, (_match, sentence, end) => `${sentence} 사례 ${++passageId}${end}`);
+  return text.slice(0, chars);
+};
 
 function buildGroupPayload(group, { short = false } = {}) {
   const perSection = Math.floor((short ? 600 : 5400) / group.sections.length);

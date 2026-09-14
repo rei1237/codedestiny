@@ -1,4 +1,5 @@
 "use client";
+import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
@@ -638,9 +639,12 @@ type Consultation = {
   ok?: boolean;
   id?: string;
   sessionId?: string;
+  resultId?: string;
   attemptId?: string;
   requestId?: string;
   status?: string;
+  saved?: boolean;
+  completedGroups?: string[];
   accessType?: string;
   myInfo?: PersonInfo | null;
   partnerInfo?: PersonInfo | null;
@@ -838,16 +842,21 @@ export default function LoveSecretAiResultClient() {
   const [exportMode, setExportMode] = useState<"idle" | "pdf">("idle");
   const shareRef = useRef<HTMLDivElement | null>(null);
   const progressRef = useRef<HTMLDivElement | null>(null);
+  const [reloadEpoch, setReloadEpoch] = useState(0);
+  const captureDeliveryScope = usePaidDeliveryScope(() => {
+    setConsultation(null); setPending(false); setReloadEpoch(value => value + 1);
+  });
 
   useEffect(() => {
     let alive = true;
     let timer = 0;
     let attempts = 0;
+    let resumes = 0;
+    const isCurrent = captureDeliveryScope();
     // 생성은 요청 안에서 끝나지만(최대 ~90초) 네트워크·재시도 여지를 두고 상한을 넉넉히 잡는다.
     // 2.5s 간격이라 CF rate-limit(10초당 100회)에는 여유가 크다.
     const maxAttempts = 140;
     async function loadResult() {
-      setLoading(true);
       setError("");
       try {
         const previewState = readDevPreviewState();
@@ -855,9 +864,32 @@ export default function LoveSecretAiResultClient() {
           ? buildDevPreviewResponse(buildLoveSecretPreviewPayload(previewState), previewState === "failed" ? 503 : 200)
           : await authFetch(buildResultEndpoint());
         const payload = await response.json().catch(() => ({})) as Consultation;
+        if (!alive || !isCurrent()) return;
+        const resumeId = payload.sessionId || payload.resultId;
+        if ((payload.status === "partial" || payload.reason === "RESULT_STORAGE_UNAVAILABLE") && resumeId) {
+          if (payload.status === "partial") setConsultation(payload);
+          setPending(true); setLoading(false);
+          if (!document.hidden && resumes < 8) {
+            resumes += 1;
+            const resumed = await authFetch("/api/love-secret-ai/generate", {
+              method: "POST", headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ resumeSessionId: resumeId }),
+            });
+            if (!alive || !isCurrent()) return;
+            const next = await resumed.json().catch(() => ({})) as Consultation;
+            if (!alive || !isCurrent()) return;
+            if (!resumed.ok) throw new Error(next.message || copy.loadResultFailedError);
+            if (next.status === "completed" && next.saved === true) {
+              setConsultation(next); setPending(false); return;
+            }
+            if (next.status === "partial") setConsultation(next);
+            timer = window.setTimeout(loadResult, 500);
+          }
+          return;
+        }
         // 일시적 DB/인증 장애(503·retryable)는 202와 동일하게 재폴링해 자가 복구한다(하드 종료 금지).
         if (response.status === 202 || isRetriableResultPollFailure(response.status, payload)) {
-          if (!alive) return;
+          if (!alive || !isCurrent()) return;
           attempts += 1;
           if (attempts >= maxAttempts) {
             setPending(false);
@@ -870,25 +902,28 @@ export default function LoveSecretAiResultClient() {
           return;
         }
         if (!response.ok || payload?.ok === false) throw new Error(toText(payload?.message) || copy.loadResultFailedError);
-        if (alive) {
+        if (alive && isCurrent()) {
           setConsultation(payload);
           setPending(false);
         }
       } catch (caught) {
-        if (alive) setError(friendlyErrorMessage(caught, copy.loadResultFailedError));
+        if (alive && isCurrent()) setError(friendlyErrorMessage(caught, copy.loadResultFailedError));
       } finally {
-        if (alive) setLoading(false);
+        if (alive && isCurrent()) setLoading(false);
       }
     }
     void loadResult();
+    const onVisible = () => { if (!document.hidden && alive && isCurrent()) setReloadEpoch(value => value + 1); };
+    document.addEventListener("visibilitychange", onVisible);
     return () => {
       alive = false;
       if (timer) window.clearTimeout(timer);
+      document.removeEventListener("visibilitychange", onVisible);
     };
     // 마운트 시 1회만 로드한다; 로딩 중 로케일이 바뀌어도 진행 중인 폴링을 재시작하지 않는다
     // (copy.* 는 에러 메시지 문구일 뿐 재요청 트리거가 아니다).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [reloadEpoch]);
 
   // 스크롤 진행률은 리렌더 없이 DOM 에 직접 쓴다(스크롤 프레임마다 setState 하면 결과 전체가 다시 그려진다).
   useEffect(() => {
@@ -1105,6 +1140,14 @@ export default function LoveSecretAiResultClient() {
           </div>
         )}
 
+        {!loading && consultation?.status === "partial" && (
+          <div role="status" className="mb-4 rounded-2xl border border-[var(--ls-line)] p-4 text-[var(--ls-text)]">
+            <p>{consultation.completedGroups?.length || 0} / 6</p>
+            <button type="button" onClick={() => setReloadEpoch(value => value + 1)} className={`${theme.focusRing} mt-2 min-h-11 rounded-full px-4 font-bold`}>
+              {copy.retryCheckLabel}
+            </button>
+          </div>
+        )}
         {!loading && consultation && (
           <LoveSecretResultPageContent
             consultation={consultation}

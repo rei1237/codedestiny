@@ -1,4 +1,6 @@
 "use client";
+import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
+import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import {
@@ -233,7 +235,7 @@ const LOVE_SECRET_CLIENT_EN: LoveSecretClientCopy = {
   promiseCardHeading: "What This Reading Covers",
   promiseCardFooter: "Interpreted only from your calculated chart and day pillars. No baseless claims or invented dates.",
   generatingCardHeading: "Reading the Temperature of Your Heart",
-  generatingCardSubtext: "Usually finishes within about 90 seconds. Please don't close this window and wait a moment.",
+  generatingCardSubtext: "Each finished section is saved as the rest of your reading is prepared.",
   heroTitle: "Love Strategy AI",
   heroSubtitle: "A Love Consultant Just for You",
   heroDescription: "We read your birth chart together with love psychology to point out exactly what to do today and what to hold off on.",
@@ -342,7 +344,7 @@ const LOVE_SECRET_CLIENT_COPY: Partial<Record<LoadingLocale, LoveSecretClientCop
     promiseCardHeading: "상담에서 읽어 드리는 것",
     promiseCardFooter: "계산된 명식과 일진 안에서만 해석합니다. 근거 없는 단정이나 지어낸 날짜는 쓰지 않습니다.",
     generatingCardHeading: "마음의 온도를 읽는 중입니다",
-    generatingCardSubtext: "보통 1분 30초 안에 끝나요. 창을 닫지 말고 잠시만 기다려 주세요.",
+    generatingCardSubtext: "완료된 부분부터 저장하며 나머지 상담을 이어서 작성하고 있어요.",
     heroTitle: "연애 비책 AI",
     heroSubtitle: "당신만을 위한 연애 컨설턴트",
     heroDescription: "사주 명식과 연애 심리를 함께 읽어, 오늘 무엇을 하고 무엇을 미뤄야 하는지까지 짚어 드립니다.",
@@ -450,7 +452,7 @@ const LOVE_SECRET_CLIENT_COPY: Partial<Record<LoadingLocale, LoveSecretClientCop
     promiseCardHeading: "相談で読み解く内容",
     promiseCardFooter: "計算された命式と日辰の範囲内でのみ解釈します。根拠のない断定や作られた日付は使いません。",
     generatingCardHeading: "心の温度を読み取っています",
-    generatingCardSubtext: "通常1分30秒以内に終わります。ウィンドウを閉じずにしばらくお待ちください。",
+    generatingCardSubtext: "完成した部分から保存し、残りの鑑定を続けて作成しています。",
     heroTitle: "恋愛秘策AI",
     heroSubtitle: "あなただけの恋愛コンサルタント",
     heroDescription: "四柱命式と恋愛心理を合わせて読み解き、今日すべきことと控えるべきことまで示します。",
@@ -557,7 +559,7 @@ const LOVE_SECRET_CLIENT_COPY: Partial<Record<LoadingLocale, LoveSecretClientCop
     promiseCardHeading: "咨询将为您解读的内容",
     promiseCardFooter: "仅在推算出的命盘与日辰范围内进行解读，不使用无依据的断言或虚构的日期。",
     generatingCardHeading: "正在解读您的心意温度",
-    generatingCardSubtext: "通常在1分30秒内完成，请不要关闭窗口，稍候片刻。",
+    generatingCardSubtext: "已完成的部分会先保存，其余解读将继续生成。",
     heroTitle: "恋爱秘诀AI",
     heroSubtitle: "专属于您的恋爱顾问",
     heroDescription: "结合四柱命盘与恋爱心理，为您指出今天该做什么、该搁置什么。",
@@ -664,7 +666,7 @@ const LOVE_SECRET_CLIENT_COPY: Partial<Record<LoadingLocale, LoveSecretClientCop
     promiseCardHeading: "諮詢將為您解讀的內容",
     promiseCardFooter: "僅在推算出的命盤與日辰範圍內進行解讀，不使用無依據的斷言或虛構的日期。",
     generatingCardHeading: "正在解讀您的心意溫度",
-    generatingCardSubtext: "通常在1分30秒內完成，請不要關閉視窗，稍候片刻。",
+    generatingCardSubtext: "已完成的部分會先儲存，其餘解讀將繼續生成。",
     heroTitle: "戀愛秘訣AI",
     heroSubtitle: "專屬於您的戀愛顧問",
     heroDescription: "結合四柱命盤與戀愛心理，為您指出今天該做什麼、該擱置什麼。",
@@ -778,7 +780,7 @@ const LOVE_SECRET_CLIENT_COPY: Partial<Record<LoadingLocale, LoveSecretClientCop
     promiseCardHeading: "Những điều buổi tư vấn sẽ đọc cho bạn",
     promiseCardFooter: "Chỉ diễn giải trong phạm vi lá số và nhật thần đã tính toán. Không đưa ra khẳng định vô căn cứ hay ngày tháng bịa đặt.",
     generatingCardHeading: "Đang đọc nhiệt độ trong lòng bạn",
-    generatingCardSubtext: "Thường hoàn tất trong khoảng 90 giây. Vui lòng đừng đóng cửa sổ này và chờ một chút.",
+    generatingCardSubtext: "Các phần đã hoàn thành được lưu trong khi phần tư vấn còn lại tiếp tục được tạo.",
     heroTitle: "Bí Quyết Tình Yêu AI",
     heroSubtitle: "Một Chuyên Gia Tư Vấn Tình Yêu Chỉ Dành Cho Bạn",
     heroDescription: "Chúng tôi đọc lá số Tứ Trụ cùng với tâm lý tình yêu để chỉ rõ những gì nên làm và nên hoãn lại hôm nay.",
@@ -887,7 +889,7 @@ const LOVE_SECRET_CLIENT_COPY: Partial<Record<LoadingLocale, LoveSecretClientCop
     promiseCardHeading: "परामर्श में क्या पढ़ा जाएगा",
     promiseCardFooter: "केवल गणना की गई कुंडली और तिथियों के भीतर ही व्याख्या की जाती है। बिना आधार के दावे या गढ़ी गई तारीखों का उपयोग नहीं किया जाता।",
     generatingCardHeading: "आपके मन का तापमान पढ़ा जा रहा है",
-    generatingCardSubtext: "आमतौर पर लगभग 90 सेकंड में पूरा होता है। कृपया विंडो बंद न करें और थोड़ी देर प्रतीक्षा करें।",
+    generatingCardSubtext: "पूरा हुआ हर भाग सहेजा जाता है और शेष परामर्श तैयार किया जाता है।",
     heroTitle: "लव सीक्रेट AI",
     heroSubtitle: "केवल आपके लिए एक प्रेम सलाहकार",
     heroDescription: "हम जन्म कुंडली को प्रेम मनोविज्ञान के साथ मिलाकर पढ़ते हैं, ताकि आज क्या करना है और क्या टालना है, यह भी बता सकें।",
@@ -1001,7 +1003,7 @@ const LOVE_SECRET_CLIENT_COPY: Partial<Record<LoadingLocale, LoveSecretClientCop
     promiseCardHeading: "Lo que esta consulta te revelará",
     promiseCardFooter: "Interpretado solo a partir de tu carta calculada y los pilares del día. Sin afirmaciones infundadas ni fechas inventadas.",
     generatingCardHeading: "Leyendo la temperatura de tu corazón",
-    generatingCardSubtext: "Generalmente termina en unos 90 segundos. No cierres esta ventana y espera un momento.",
+    generatingCardSubtext: "Cada sección terminada se guarda mientras se prepara el resto de la lectura.",
     heroTitle: "Secreto del Amor IA",
     heroSubtitle: "Un consultor amoroso solo para ti",
     heroDescription: "Leemos tu carta natal junto con la psicología amorosa para señalar exactamente qué hacer hoy y qué posponer.",
@@ -1115,7 +1117,7 @@ const LOVE_SECRET_CLIENT_COPY: Partial<Record<LoadingLocale, LoveSecretClientCop
     promiseCardHeading: "Ce que cette consultation vous révélera",
     promiseCardFooter: "Interprété uniquement à partir de votre thème calculé et des piliers du jour. Aucune affirmation infondée ni date inventée.",
     generatingCardHeading: "Lecture de la température de votre cœur",
-    generatingCardSubtext: "Se termine généralement en environ 90 secondes. Ne fermez pas cette fenêtre et patientez un instant.",
+    generatingCardSubtext: "Chaque partie terminée est enregistrée pendant la préparation de la suite.",
     heroTitle: "Secret de l'Amour IA",
     heroSubtitle: "Un consultant amoureux rien que pour vous",
     heroDescription: "Nous lisons votre thème natal avec la psychologie amoureuse pour indiquer exactement quoi faire aujourd'hui et quoi remettre à plus tard.",
@@ -1229,7 +1231,7 @@ const LOVE_SECRET_CLIENT_COPY: Partial<Record<LoadingLocale, LoveSecretClientCop
     promiseCardHeading: "Was diese Beratung für Sie liest",
     promiseCardFooter: "Nur innerhalb Ihres berechneten Charts und der Tagessäulen interpretiert. Keine unbegründeten Behauptungen oder erfundenen Daten.",
     generatingCardHeading: "Die Temperatur Ihres Herzens wird gelesen",
-    generatingCardSubtext: "Dauert normalerweise etwa 90 Sekunden. Bitte schließen Sie dieses Fenster nicht und warten Sie einen Moment.",
+    generatingCardSubtext: "Fertige Abschnitte werden gespeichert, während der Rest der Deutung entsteht.",
     heroTitle: "Liebesgeheimnis KI",
     heroSubtitle: "Ein Liebesberater nur für Sie",
     heroDescription: "Wir lesen Ihr Geburtshoroskop zusammen mit der Liebespsychologie, um genau zu zeigen, was heute zu tun und was aufzuschieben ist.",
@@ -1343,7 +1345,7 @@ const LOVE_SECRET_CLIENT_COPY: Partial<Record<LoadingLocale, LoveSecretClientCop
     promiseCardHeading: "Wat dit consult voor je leest",
     promiseCardFooter: "Alleen geïnterpreteerd binnen je berekende horoscoop en dagpilaren. Geen ongefundeerde beweringen of verzonnen data.",
     generatingCardHeading: "De temperatuur van je hart wordt gelezen",
-    generatingCardSubtext: "Duurt meestal ongeveer 90 seconden. Sluit dit venster niet en wacht even.",
+    generatingCardSubtext: "Voltooide delen worden opgeslagen terwijl de rest van de duiding wordt voorbereid.",
     heroTitle: "Liefdesgeheim AI",
     heroSubtitle: "Een liefdesadviseur alleen voor jou",
     heroDescription: "We lezen je geboortehoroscoop samen met liefdespsychologie om precies aan te geven wat je vandaag moet doen en wat je moet uitstellen.",
@@ -1457,7 +1459,7 @@ const LOVE_SECRET_CLIENT_COPY: Partial<Record<LoadingLocale, LoveSecretClientCop
     promiseCardHeading: "Perkara yang akan dibaca dalam perundingan ini",
     promiseCardFooter: "Ditafsirkan hanya dalam carta yang dikira dan tiang hari. Tiada dakwaan tanpa asas atau tarikh rekaan.",
     generatingCardHeading: "Membaca suhu hati anda",
-    generatingCardSubtext: "Biasanya selesai dalam kira-kira 90 saat. Jangan tutup tetingkap ini dan tunggu sebentar.",
+    generatingCardSubtext: "Bahagian yang siap disimpan sementara baki bacaan terus disediakan.",
     heroTitle: "AI Rahsia Cinta",
     heroSubtitle: "Perunding Cinta Khusus Untuk Anda",
     heroDescription: "Kami membaca carta kelahiran anda bersama psikologi percintaan untuk menunjukkan dengan tepat apa yang perlu dilakukan hari ini dan apa yang perlu ditangguhkan.",
@@ -1542,8 +1544,12 @@ type EnsureAccessResult =
 type ConsultationResult = {
   ok: boolean;
   sessionId?: string;
+  requestId?: string;
   accessType?: AccessType;
   status?: string;
+  saved?: boolean;
+  resumeSessionId?: string;
+  completedGroups?: string[];
   keywords?: string[];
   strategy?: string;
   sections?: ResultSection[];
@@ -1882,6 +1888,27 @@ export default function LoveSecretAiPage() {
   const idempotencyKeyRef = useRef(createIdempotencyKey());
   const { seed: profileSeed, seedVersion, reload: reloadProfileSeed } = useAiProfileSeed();
   const formTouchedRef = useRef(false);
+  const pendingGenerationRef = useRef<{ payload: Record<string, unknown>; key: string; access: Record<string, unknown> } | null>(null);
+  const [discoveryEpoch, setDiscoveryEpoch] = useState(0);
+  const captureDeliveryScope = usePaidDeliveryScope(() => {
+    setResultUrl(""); setResultOpenMessage(""); setPhase("idle");
+    pendingGenerationRef.current = null;
+    setDiscoveryEpoch(value => value + 1);
+    startLockRef.current = false;
+  });
+
+  useEffect(() => {
+    let alive = true;
+    const isCurrent = captureDeliveryScope();
+    void getJson<ConsultationResult>("/api/love-secret-ai/result").then(({ payload }) => {
+      if (!alive || !isCurrent() || startLockRef.current || !payload.sessionId) return;
+      setResultUrl(buildResultUrl({ sessionId: payload.sessionId }));
+      if (["partial", "generating", "delivery_pending"].includes(payload.status || "")) {
+        pendingGenerationRef.current = { payload: { resumeSessionId: payload.sessionId }, key: payload.requestId || payload.sessionId, access: {} };
+      }
+    }).catch(() => {});
+    return () => { alive = false; };
+  }, [captureDeliveryScope, discoveryEpoch]);
 
   // 서버에서 프로필 카드가 뒤늦게 도착해도, 사용자가 입력을 시작하기 전이라면 폼에 반영
   useEffect(() => {
@@ -2022,13 +2049,16 @@ export default function LoveSecretAiPage() {
   }
 
   async function pollResult(requestId: string) {
+    const isCurrent = captureDeliveryScope();
     const attemptId = activeAttemptId();
     const query = new URLSearchParams({ requestId });
     if (attemptId) query.set("attemptId", attemptId);
     for (let count = 0; count < 35; count += 1) {
       await new Promise((resolve) => window.setTimeout(resolve, count < 5 ? 1300 : 2200));
+      if (!isCurrent()) return { ok: false } as ConsultationResult;
       const { response, payload } = await getJson<ConsultationResult>(`/api/love-secret-ai/result?${query.toString()}`);
-      if (response.status === 202) continue;
+      if (!isCurrent()) return { ok: false } as ConsultationResult;
+      if (response.status === 202 && payload.status !== "partial") continue;
       if (payload?.ok && payload.sessionId) return payload;
       if (!response.ok || payload?.ok === false) throw new Error(payload?.message || copy.errorMessages.llmError);
     }
@@ -2036,27 +2066,38 @@ export default function LoveSecretAiPage() {
   }
 
   async function startConsultation(
-    payload: ReturnType<typeof buildPayload>,
+    payload: Record<string, unknown>,
     idempotencyKey: string,
     access: Record<string, unknown>,
   ) {
+    const isCurrent = captureDeliveryScope();
+    pendingGenerationRef.current = { payload, key: idempotencyKey, access };
     setPhase("generating");
     // 다음 화면(생성 중 상태)이 마운트되는 시점 — 게이트 오버레이 hold를 해제한다.
     releasePaidFeatureGate(idempotencyKey);
     setProgressIndex(0);
     markPaidAttemptGenerationStarted("love_secret_ai_generate_start");
     const attemptId = activeAttemptId();
-    const { payload: result } = await postJson<ConsultationResult>("/api/love-secret-ai/generate", {
+    let { payload: result } = await postJson<ConsultationResult>("/api/love-secret-ai/generate", {
       ...payload,
       ...access,
       attemptId: attemptId || payload.attemptId,
     }, idempotencyKey);
+    if (!isCurrent()) return false;
 
-    const completed = result.ok && Array.isArray(result.messages) && result.messages.length
-      ? result
-      : result.ok && result.status === "generating"
-        ? await pollResult(idempotencyKey)
-        : null;
+    for (let cycle = 0; cycle < 8; cycle += 1) {
+      if (result.status === "completed" && result.saved === true) break;
+      if (result.status === "generating") result = await pollResult(result.sessionId || idempotencyKey);
+      if (!isCurrent()) return false;
+      if (result.status !== "partial" || !result.sessionId) break;
+      setProgress(Math.min(90, Math.round((result.completedGroups?.length || 0) / 6 * 90)));
+      const partialUrl = buildResultUrl({ sessionId: result.sessionId, requestId: idempotencyKey, pending: true });
+      setResultUrl(partialUrl);
+      if (document.hidden) break;
+      ({ payload: result } = await postJson<ConsultationResult>("/api/love-secret-ai/generate", { resumeSessionId: result.sessionId }, idempotencyKey));
+      if (!isCurrent()) return false;
+    }
+    const completed = result.status === "completed" && result.saved === true ? result : null;
 
     if (completed?.ok && completed.sessionId) {
       const url = buildResultUrl({ sessionId: completed.sessionId, attemptId: attemptId || undefined });
@@ -2065,8 +2106,9 @@ export default function LoveSecretAiPage() {
       setError("");
       setPhase("ready");
       markPaidAttemptGenerationCompleted();
+      pendingGenerationRef.current = null;
       moveResultWindow(url);
-      return;
+      return true;
     }
 
     if (result.reason === "PAYMENT_VERIFY_FAILED") throw new Error(copy.errorMessages.paymentVerifyFailed);
@@ -2077,6 +2119,7 @@ export default function LoveSecretAiPage() {
   // 모바일 PortOne 리다이렉트로 handleSubmit 의 await 가 죽은 뒤, 복귀한 새 문서에서 생성을 이어받는다.
   // 🔴 게이트를 다시 타지 않고 게이트 없는 코어(startConsultation)를 원래 idempotencyKey 로 부른다.
   const buildResume = usePaidResume(SERVICE_TYPE, async (args, grant) => {
+    const isCurrent = captureDeliveryScope();
     const idempotencyKey = typeof args.idempotencyKey === "string" ? args.idempotencyKey : "";
     const payload = unpackPaidResumeArg<ReturnType<typeof buildPayload>>(args.payload);
     if (!idempotencyKey || !payload) return false;
@@ -2086,22 +2129,31 @@ export default function LoveSecretAiPage() {
     setNotice("");
     setProgressIndex(0);
     try {
-      await startConsultation(payload, idempotencyKey, extractPayment(grant?.payload, idempotencyKey));
-      return true;
+      return await startConsultation(payload, idempotencyKey, extractPayment(grant?.payload, idempotencyKey));
     } catch (caught) {
+      if (!isCurrent()) return false;
       const message = caught instanceof TypeError ? copy.errorMessages.networkError : caught instanceof Error ? caught.message : copy.errorMessages.serverError;
       markPaidAttemptFailed(message || "love_secret_ai_generate_failed");
       setError(message || copy.errorMessages.serverError);
       setPhase("error");
       return false;
     } finally {
-      startLockRef.current = false;
+      if (isCurrent()) startLockRef.current = false;
     }
   });
 
   async function handleSubmit(event?: FormEvent<HTMLFormElement>) {
     event?.preventDefault();
     if (startLockRef.current || busy) return;
+    const isCurrent = captureDeliveryScope();
+    const pendingGeneration = pendingGenerationRef.current;
+    if (pendingGeneration) {
+      startLockRef.current = true;
+      try { await startConsultation(pendingGeneration.payload, pendingGeneration.key, pendingGeneration.access); }
+      catch (caught) { if (isCurrent()) { setError(friendlyErrorMessage(caught, copy.errorMessages.serverError)); setPhase("error"); } }
+      finally { if (isCurrent()) startLockRef.current = false; }
+      return;
+    }
     const validationMessage = validateForm();
     if (validationMessage) {
       setNotice("");
@@ -2151,6 +2203,7 @@ export default function LoveSecretAiPage() {
 
     try {
       const { payload: access } = await postJson<EnsureAccessResult>("/api/love-secret-ai/prepare", payload, idempotencyKey);
+      if (!isCurrent()) return;
       if (access.ok) {
         completePaidFeatureGateCheck({
           featureKey: SERVICE_TYPE,
@@ -2176,11 +2229,13 @@ export default function LoveSecretAiPage() {
           idempotencyKey,
           payload: packPaidResumeArg(payload),
         }));
+        if (!isCurrent()) return;
         await startConsultation(buildPayload(form, idempotencyKey), idempotencyKey, payment);
         return;
       }
       throw new Error(("message" in access && access.message) || copy.errorMessages.serverError);
     } catch (caught) {
+      if (!isCurrent()) return;
       const message = caught instanceof TypeError ? copy.errorMessages.networkError : caught instanceof Error ? caught.message : copy.errorMessages.serverError;
       const paymentCancelled = message === copy.errorMessages.paymentCancelled;
       markPaidAttemptFailed(message || "love_secret_ai_generate_failed");
@@ -2197,7 +2252,7 @@ export default function LoveSecretAiPage() {
       });
       setResultOpenMessage(copy.resultFailedSubmit);
     } finally {
-      startLockRef.current = false;
+      if (isCurrent()) startLockRef.current = false;
     }
   }
 
