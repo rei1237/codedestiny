@@ -120,6 +120,8 @@ function resumeFixture(target) {
     setResumeError: (value) => { if (value) events.push(["resumeError", value]); },
     setSession: () => {},
     stoppedRef: { current: false },
+    captureOwner: () => () => true,
+    document: { hidden: false }, navigator: { onLine: true },
     runCodexBatches: async (options) => { events.push(["loop", options.sessionId, options.accessToken]); return {}; },
   });
   vm.runInContext(extract(RESULT_CLIENT, "resume"), context);
@@ -141,4 +143,14 @@ test("토큰이 없으면 이어쓰기를 걸지 않는다 — 서버가 허가�
   await context.run({ sessionId: "book-4", status: "generating", accessToken: "", chapters: [] });
 
   assert.deepEqual(events, []);
+});
+
+test("네트워크 단절 뒤 같은 책을 조회해 완료 확인을 흡수한다", async () => {
+ const {context,calls}=loopFixture({generate:async()=>{throw new TypeError('network')},session:async()=>({status:200,data:{ok:true,status:'completed',chapters:chaptersOfLength(20)}})});
+ const result=await context.run({sessionId:'original-book',accessToken:'original-token',seed:{status:'generating',chapters:chaptersOfLength(20)},errorText:ERROR_TEXT});
+ assert.equal(result.status,'completed');assert.deepEqual(calls,[['generate','original-token'],['session','original-book']]);
+});
+test("소유자가 변경되면 늦은 생성 결과를 화면에 반영하지 않는다",async()=>{
+ let stopped=false;const {context}=loopFixture({generate:async()=>{stopped=true;return{status:200,data:{ok:true,done:true,chapters:chaptersOfLength(20)}}}});
+ let shown=0;await context.run({sessionId:'original',accessToken:'token',seed:{status:'generating',chapters:[]},errorText:ERROR_TEXT,shouldStop:()=>stopped,onProgress:()=>shown++});assert.equal(shown,0);
 });

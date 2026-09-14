@@ -10,6 +10,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
 import { authFetch } from "@/app/_lib/auth-client";
 import { isRetriableResultPollFailure } from "@/app/_lib/consultationResultPolling";
 // 🔴 이어쓰기 루프의 정본. 진입 화면(MasterLoveCodexPage)과 **같은 함수**를 쓴다 — 여기에
@@ -76,9 +77,16 @@ export default function MasterLoveCodexResultClient() {
   const resumeStartedForRef = useRef("");
   /** 화면을 떠나면 루프를 멈춘다 — 언마운트 뒤 setState 와 유령 /generate 왕복을 남기지 않는다. */
   const stoppedRef = useRef(false);
+  const [accountEpoch, setAccountEpoch] = useState(0);
+  const captureOwner = usePaidDeliveryScope(() => {
+    stoppedRef.current = true; resumeStartedForRef.current = "";
+    setSession(null); setError(""); setResumeError(""); setResuming(false); setLoading(true);
+    setAccountEpoch(value => value + 1);
+  });
 
   const load = useCallback(async () => {
     if (typeof window === "undefined") return;
+    const isCurrent = captureOwner();
     const sessionId = new URLSearchParams(window.location.search).get("sessionId") || "";
     if (!sessionId) {
       setError(copy.resultMissingSessionIdError);
@@ -91,6 +99,7 @@ export default function MasterLoveCodexResultClient() {
         credentials: "include",
       });
       const payload = await response.json().catch(() => ({}));
+      if (!isCurrent()) return;
       if (!response.ok || !payload?.ok) {
         if (isRetriableResultPollFailure(response.status, payload)) {
           setError(copy.resultUnstableRefreshError);
@@ -118,13 +127,13 @@ export default function MasterLoveCodexResultClient() {
         birthInfo: payload.birthInfo || null,
       });
     } catch {
-      setError(copy.errorText.NETWORK_ERROR);
+      if (isCurrent()) setError(copy.errorText.NETWORK_ERROR);
     } finally {
-      setLoading(false);
+      if (isCurrent()) setLoading(false);
     }
-  }, [copy]);
+  }, [captureOwner, copy]);
 
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => { void load(); }, [load, accountEpoch]);
   useEffect(() => () => { stoppedRef.current = true; }, []);
 
   /**
@@ -135,6 +144,7 @@ export default function MasterLoveCodexResultClient() {
    * 반복됐다. 여기서 이으면 사용자가 실제로 머무는 읽기 화면이 완성을 책임진다.
    */
   const resume = useCallback(async (target: SessionState) => {
+    const isCurrent = captureOwner();
     const accessToken = String(target.accessToken || "");
     // 토큰이 없으면 서버가 이 세션을 이 문서에 이어쓰도록 허가하지 않은 것이다 — 링크로 돌려보낸다.
     if (!accessToken) return;
@@ -146,8 +156,9 @@ export default function MasterLoveCodexResultClient() {
         accessToken,
         seed: { sessionId: target.sessionId, status: target.status, accessToken, chapters: target.chapters },
         errorText: copy.errorText,
-        shouldStop: () => stoppedRef.current,
+        shouldStop: () => stoppedRef.current || !isCurrent() || document.hidden || !navigator.onLine,
         onProgress: (next) => {
+          if (!isCurrent()) return;
           setSession((current) => (current ? {
             ...current,
             status: String(next.status || current.status),
@@ -159,16 +170,16 @@ export default function MasterLoveCodexResultClient() {
         },
       });
       // 마지막 배치 응답에는 loveDna·글자수 같은 마무리 필드가 아직 없을 수 있다. 완성본을 한 번 다시 읽는다.
-      if (!stoppedRef.current) await load();
+      if (!stoppedRef.current && isCurrent()) await load();
     } catch (caught) {
-      if (stoppedRef.current) return;
+      if (stoppedRef.current || !isCurrent()) return;
       setResumeError(caught instanceof TypeError
         ? copy.errorText.NETWORK_ERROR
         : caught instanceof Error ? caught.message : copy.errorText.SERVER_ERROR);
     } finally {
-      if (!stoppedRef.current) setResuming(false);
+      if (!stoppedRef.current && isCurrent()) setResuming(false);
     }
-  }, [copy, load]);
+  }, [captureOwner, copy, load]);
 
   useEffect(() => {
     if (!session || session.status === "completed" || !session.accessToken) return;
@@ -183,6 +194,13 @@ export default function MasterLoveCodexResultClient() {
     stoppedRef.current = false;
     void resume(session);
   }, [session, resuming, resume]);
+
+  useEffect(() => {
+    const recover = () => { if (!document.hidden && navigator.onLine) retryResume(); };
+    window.addEventListener("online", recover);
+    document.addEventListener("visibilitychange", recover);
+    return () => { window.removeEventListener("online", recover); document.removeEventListener("visibilitychange", recover); };
+  }, [retryResume]);
 
   // 봉인을 여는 동안부터 본문까지 같은 트랙이 이어지도록, 프래그먼트의 첫 자식으로 둔다.
   // (열지 못한 경우에는 붙이지 않는다 — 오류 화면에는 음악을 얹지 않는다.)
@@ -262,6 +280,7 @@ export default function MasterLoveCodexResultClient() {
         </div>
       ) : null}
       <CodexReader
+        completed={session.status === "completed"}
         chapters={session.chapters}
         loveDna={session.loveDna}
         name={session.birthInfo?.name || ""}

@@ -40,7 +40,7 @@ describe("buildAbandonedFilter", () => {
   test("미완 상태 · 방치 시간 · 락 free · 이용권 미환급을 모두 요구한다", () => {
     const now = Date.UTC(2026, 8, 13, 0, 0, 0);
     const filter = buildAbandonedFilter(now);
-    expect(filter.status).toEqual({ $in: ["generating", "generation_failed"] });
+    expect(filter.status).toEqual({ $in: ["generating", "delivery_pending", "generation_failed"] });
     expect(filter.updatedAt.$lt.getTime()).toBe(now - ABANDONED_AFTER_MS);
     // 🔴 환급이 끝난 세션을 되살리면 값을 돌려주고도 책을 내주게 된다.
     expect(filter["passRefund.refundedAt"]).toEqual({ $exists: false });

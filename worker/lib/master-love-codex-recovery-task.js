@@ -48,7 +48,7 @@ const TASK_BUDGET_MS = 4 * 60 * 1000;
 /** 버려진 미완성 세션 후보. 락이 비어 있는 것만 고른다(라우트 필터와 같은 형태). */
 export function buildAbandonedFilter(now) {
   return {
-    status: { $in: ["generating", "generation_failed"] },
+    status: { $in: ["generating", "delivery_pending", "generation_failed"] },
     updatedAt: { $lt: new Date(now - ABANDONED_AFTER_MS) },
     // 환급이 끝난 세션은 이미 값이 돌아간 것이다 — 공짜로 완성시키지 않는다.
     // 🔴 코인·월정석은 돌려줘도 세션 자체는 멀쩡해서 recoverCodexSession 이 막지 못한다

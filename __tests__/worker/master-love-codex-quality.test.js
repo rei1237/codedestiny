@@ -136,3 +136,10 @@ test("compatibility prompt preserves the calculated direction without modifying 
   expect(buildCodexEditorialContract({ minChars: 2600 }, compatibility)).toContain("끌림의 세기: 사주 낮음, 명반 낮음");
   expect(JSON.stringify(compatibility)).toBe(before);
 });
+
+test("paid delivery can limit structured generation to one provider call", async () => {
+  const chapter = utils.resolveMode("solo").chapters[0];
+  const call = jest.fn().mockResolvedValue({ text: '{}' });
+  await expect(generateCodexChapterResponse(call, "prompt", { chapter, maxAttempts: 1 })).rejects.toThrow("LLM_OUTPUT_TOO_SHORT");
+  expect(call).toHaveBeenCalledTimes(1);
+});

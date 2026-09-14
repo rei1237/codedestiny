@@ -1172,6 +1172,7 @@ const masterLoveCodexChapterSchema = new mongoose.Schema({
   symbol: { type: String, default: "", trim: true, maxlength: 8 },
   title: { type: String, required: true, trim: true, maxlength: 160 },
   body: { type: String, required: true, trim: true, maxlength: 16000 },
+  content: { type: mongoose.Schema.Types.Mixed, default: null },
   chars: { type: Number, default: 0 },
   provider: { type: String, default: "", trim: true, maxlength: 40 },
   ok: { type: Boolean, default: true },
@@ -1217,13 +1218,14 @@ const masterLoveCodexSchema = new mongoose.Schema({
   chapters: { type: [masterLoveCodexChapterSchema], default: [] },
   loveDna: { type: mongoose.Schema.Types.Mixed, default: null },
   generationProgress: { type: mongoose.Schema.Types.Mixed, default: null },
+  deliveryMeta: { type: mongoose.Schema.Types.Mixed, default: null },
   totalCharCount: { type: Number, default: 0 },
   accessType: { type: String, enum: ["pass", "paid", "monthly_credit", "membership_credit", "subscription", "admin"], required: true },
   paymentId: { type: String, default: "", trim: true, maxlength: 160 },
   billingRequestId: { type: String, default: "", trim: true, maxlength: 180 },
   idempotencyKey: { type: String, required: true, trim: true, maxlength: 180 },
   inputHash: { type: String, required: true, trim: true, maxlength: 80 },
-  status: { type: String, enum: ["generating", "completed", "generation_failed"], default: "generating" },
+  status: { type: String, enum: ["generating", "delivery_pending", "completed", "generation_failed"], default: "generating" },
   // 이용권 커버로 monthlySpendCoin 이 차감된 건만 채워진다(covered && !replayed && budgetApplies).
   // 챕터가 하나도 커밋되기 전에 생성이 실패하면 되돌린다 — refundedAt 이 멱등 마커.
   passRefund: { type: mongoose.Schema.Types.Mixed, default: null },

@@ -53,6 +53,7 @@ interface CodexReaderProps {
   mode?: CodexActMode;
   /** paid / pass / monthly_credit / admin — 리포트 표식의 금액 표기를 가른다 */
   accessType?: string;
+  completed?: boolean;
 }
 
 function safeFilePart(value: string, fallback: string) {
@@ -71,6 +72,7 @@ export default function CodexReader({
   sessionId,
   mode = "solo",
   accessType = "",
+  completed = true,
 }: CodexReaderProps) {
   const locale = useMasterLoveCodexLocale();
   const copy = useMasterLoveCodexCopy();
@@ -172,6 +174,7 @@ export default function CodexReader({
 
   const handlePdfDownload = useCallback(async () => {
     if (pdfLoading) return;
+    if (!completed) return;
     setPdfLoading(true);
     setError("");
     // 아직 스크롤로 도달하지 않은 장은 opacity 0 이라 그대로 찍으면 백지가 된다.
@@ -198,7 +201,7 @@ export default function CodexReader({
       setIsExporting(false);
       setPdfLoading(false);
     }
-  }, [birthLine, bookTitle, loveDna?.typeName, name, ordered.length, pdfLoading, copy]);
+  }, [completed, birthLine, bookTitle, loveDna?.typeName, name, ordered.length, pdfLoading, copy]);
 
   if (!decrypted) {
     return (
@@ -291,19 +294,19 @@ export default function CodexReader({
         {loveDna ? <CodexLoveDnaPanel loveDna={loveDna} forceVisible={isExporting} /> : null}
 
         {/* 마무리 카드 — 문서 div 안 마지막. 아래 CodexSeal 은 다음 화면 CTA 라 밖에 둔다 */}
-        <CodexReportOutro
+        {completed && <CodexReportOutro
           mode={mode}
           accessType={accessType}
           chapterCount={ordered.length}
           totalCharCount={totalCharCount}
           forceVisible={isExporting}
-        />
+        />}
       </div>
 
       {/* 소장 */}
       <div className={`${styles.measure} pb-4 text-center`}>
         <CodexReveal forceVisible={isExporting}>
-          <button type="button" onClick={() => void handlePdfDownload()} disabled={pdfLoading} className={styles.cta}>
+          <button type="button" onClick={() => void handlePdfDownload()} disabled={pdfLoading || !completed} className={styles.cta}>
             {pdfLoading ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Download className="h-4 w-4" aria-hidden="true" />}
             {pdfLoading ? copy.pdfBindingLabel : copy.pdfDownloadButton}
           </button>

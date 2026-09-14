@@ -113,9 +113,9 @@ export function parseChapterJson(text) {
 }
 
 /** Two bounded provider attempts cover malformed JSON and incomplete content too. */
-export async function generateCodexChapterResponse(call, prompt, { chapter, metricDefs, evidenceContract = null, deadlineAt = Infinity, minBudgetMs = 1000, options = {} }) {
+export async function generateCodexChapterResponse(call, prompt, { chapter, metricDefs, evidenceContract = null, deadlineAt = Infinity, minBudgetMs = 1000, maxAttempts = 2, options = {} }) {
   let failure;
-  for (let attempt = 0; attempt < 2; attempt += 1) {
+  for (let attempt = 0; attempt < Math.min(2, Math.max(1, maxAttempts)); attempt += 1) {
     const remaining = deadlineAt - Date.now();
     if (remaining < minBudgetMs) throw failure || new Error("GENERATION_BUDGET_EXCEEDED");
     const instruction = attempt ? `\n[재작성] 이전 응답은 ${failure?.message || "INVALID_OUTPUT"} 기준을 통과하지 못했다. JSON 문자열을 올바르게 닫고, body의 최소 분량과 필수 필드를 지켜 완성된 새 응답을 작성하라.` : "";

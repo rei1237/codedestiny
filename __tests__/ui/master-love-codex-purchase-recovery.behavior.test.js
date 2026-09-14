@@ -22,6 +22,7 @@ const purchase = { orderId: "paid-order", featureKey: "master-love-codex", reque
 function fixture({ ready = true, expired = false } = {}) {
   const events = [];
   const state = {
+    captureOwner: () => () => true,
     busyRef: { current: false }, chargedRef: { current: false }, idempotencyRef: { current: "" }, recoveredPurchaseRef: { current: null },
     setRecovering() {}, setError(value) { if (value) events.push(["error", value]); },
     setPhase(value) { events.push(["phase", value]); }, setBirth() {}, EMPTY_CODEX_PARTNER: {},

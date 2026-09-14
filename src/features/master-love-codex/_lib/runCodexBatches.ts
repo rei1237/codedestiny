@@ -125,7 +125,9 @@ export async function runCodexBatches({
   while (!(current.done || String(current.status) === "completed")) {
     if (shouldStop?.()) return current;
     if (batches >= MAX_BATCHES) throw new Error(errorText.GENERATION_BUDGET_EXCEEDED);
-    const { status, data } = await postCodexJson("/api/master-love-codex/generate", { sessionId, accessToken: token });
+    const { status, data } = await postCodexJson("/api/master-love-codex/generate", { sessionId, accessToken: token })
+      .catch(() => ({ status: 503, data: { ok: false, retryable: true, reason: "NETWORK_ERROR" } as CodexSessionPayload }));
+    if (shouldStop?.()) return current;
 
     if (!data?.ok) {
       // 일시적 실패(409 재기동 대기 · 503 예산 초과/DB 블립 · 엣지 컷)는 종료 사유가 아니다.
@@ -139,9 +141,11 @@ export async function runCodexBatches({
         // 🔴 백오프 뒤에 곧장 /generate 를 또 치지 않고 세션을 한 번 읽는다. 409
         //    GENERATION_IN_PROGRESS 는 서버 회수 크론이 락을 쥔 **정상 상태**이기도 해서,
         //    그 사이 늘어난 장을 흡수하지 않으면 화면이 멈춘 것처럼 보이고 정체 예산만 탄다.
-        const polled = await fetchCodexSession(sessionId);
+        if (shouldStop?.()) return current;
+        const polled = await fetchCodexSession(sessionId).catch(() => ({ status: 503, data: null }));
+        if (shouldStop?.()) return current;
         const chapters = Array.isArray(polled.data?.chapters) ? polled.data.chapters : [];
-        if (polled.data?.ok && chapters.length > written) {
+        if (polled.data?.ok && (chapters.length > written || polled.data.status === "completed" || polled.data.done)) {
           written = chapters.length;
           current = polled.data;
           if (polled.data.accessToken) token = polled.data.accessToken;
@@ -164,7 +168,7 @@ export async function runCodexBatches({
     onProgress?.(data);
     // 서버는 1장 이상 커밋하거나 503 을 준다. 진행 없는 200 이 이어지면 그건 무한루프다.
     if (chapters.length > written) { written = chapters.length; noProgress = 0; } else { noProgress += 1; }
-    if (noProgress >= MAX_NO_PROGRESS_BATCHES) throw new Error(errorText.GENERATION_BUDGET_EXCEEDED);
+    if (!(current.done || current.status === "completed") && noProgress >= MAX_NO_PROGRESS_BATCHES) throw new Error(errorText.GENERATION_BUDGET_EXCEEDED);
   }
   return current;
 }

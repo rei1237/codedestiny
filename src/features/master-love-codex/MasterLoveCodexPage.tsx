@@ -15,6 +15,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
 import { authFetch } from "@/app/_lib/auth-client";
 import { usePaidResume, packPaidResumeArg, unpackPaidResumeArg, type PaidResumeArgs, type PaidResumeGrant } from "@/app/hooks/usePaidResume";
 import {
@@ -200,6 +201,13 @@ export default function MasterLoveCodexPage() {
   const [storedPurchases, setStoredPurchases] = useState<RecoverablePurchase[]>([]);
   const recoveredPurchaseRef = useRef<RecoverablePurchase | null>(null);
   const [recovering, setRecovering] = useState(false);
+  const captureOwner = usePaidDeliveryScope(() => {
+    handedOffRef.current = true; busyRef.current = false;
+    idempotencyRef.current = ""; sessionIdRef.current = ""; chargedRef.current = false;
+    pendingResumeRef.current = null; lastTokenRef.current = ""; lastSessionRef.current = {};
+    recoveredPurchaseRef.current = null; generationStartedRef.current = false;
+    setChapters([]); setStoredSessions([]); setStoredPurchases([]); setPhase("landing");
+  });
 
   useEffect(() => {
     let active = true;
@@ -296,7 +304,9 @@ export default function MasterLoveCodexPage() {
 
     // 읽기는 몰입 전용 라우트에서 한다 — 그쪽은 사이트맵에 없어 서버 렌더 설명 하한(1,800자)
     // 대상이 아니고, 따라서 코덱스 아래에 아무 설명도 남지 않는다.
+    const isCurrent = captureOwner();
     const handOff = () => {
+      if (!isCurrent()) return;
       if (handedOffRef.current) return;
       handedOffRef.current = true;
       router.replace(`/master-love-codex/result?sessionId=${encodeURIComponent(startSessionId)}`);
@@ -309,7 +319,7 @@ export default function MasterLoveCodexPage() {
       errorText,
       // 🔴 핸드오프 뒤에는 이 화면의 루프를 멈춘다. 결과 페이지가 같은 세션을 이어쓰므로,
       //    두 루프가 함께 돌면 서버 배치 락을 서로 뺏어 409 만 주고받는다.
-      shouldStop: () => handedOffRef.current,
+      shouldStop: () => handedOffRef.current || !isCurrent(),
       onProgress: (session) => {
         setChapters(Array.isArray(session.chapters) ? session.chapters : []);
         if (session.accessToken) lastTokenRef.current = session.accessToken;
@@ -322,7 +332,7 @@ export default function MasterLoveCodexPage() {
     });
     // 씨앗이 이미 완성본이었으면 onProgress 가 한 번도 불리지 않는다 — 그때도 결과로 넘긴다.
     handOff();
-  }, [router, errorText]);
+  }, [captureOwner, router, errorText]);
 
   /**
    * 결제 후 자동 재개 — 모바일 PortOne 은 상위 프레임을 리다이렉트하므로 startCodex 의 await 가
@@ -334,6 +344,7 @@ export default function MasterLoveCodexPage() {
    * 같은 멱등키로 다시 나가므로 이중 차감이 아니다.
    */
   const resumePaidCodex = useCallback(async (args: PaidResumeArgs, grant: PaidResumeGrant | null) => {
+    const isCurrent = captureOwner();
     if (busyRef.current) return false;
     const restored = unpackPaidResumeArg<Record<string, unknown>>(args.payload);
     const idempotencyKey = toText(args.idempotencyKey);
@@ -349,21 +360,23 @@ export default function MasterLoveCodexPage() {
     try {
       const startBody = { ...restored, ...extractPayment(grant, idempotencyKey) };
       const started = await postJson("/api/master-love-codex/start", startBody, idempotencyKey);
+      if (!isCurrent()) return false;
       if (!started.data?.ok || !started.data.sessionId) throw new Error(mapError(started.data, started.status, errorText));
       sessionIdRef.current = started.data.sessionId;
       pendingResumeRef.current = null;
       setChapters(Array.isArray(started.data.chapters) ? started.data.chapters : []);
       await runBatches(started.data.sessionId, toText(started.data.accessToken), started.data);
-      return true;
+      return isCurrent() && lastSessionRef.current.status === "completed";
     } catch (caught) {
+      if (!isCurrent()) return false;
       setGenerationError(caught instanceof TypeError
         ? errorText.NETWORK_ERROR
         : caught instanceof Error ? caught.message : errorText.SERVER_ERROR);
       return false;
     } finally {
-      busyRef.current = false;
+      if (isCurrent()) busyRef.current = false;
     }
-  }, [runBatches, errorText]);
+  }, [captureOwner, runBatches, errorText]);
   const buildResume = usePaidResume(MASTER_LOVE_CODEX_RESUME_KIND, resumePaidCodex);
 
   /** 생성만 다시 돈다 — 결제·ensure-access 를 재실행하지 않으므로 이중 결제 위험이 없다. */
@@ -387,6 +400,7 @@ export default function MasterLoveCodexPage() {
   }, [runBatches, errorText, resumePaidCodex]);
 
   const recoverStoredSession = async (sessionId: string) => {
+    const isCurrent = captureOwner();
     if (busyRef.current) return;
     busyRef.current = true;
     setRecovering(true);
@@ -394,6 +408,7 @@ export default function MasterLoveCodexPage() {
     try {
       const response = await authFetch(`/api/master-love-codex/session?sessionId=${encodeURIComponent(sessionId)}`, { cache: "no-store" });
       const data: RestorableSessionPayload = await response.json();
+      if (!isCurrent()) return;
       if (!response.ok || !data.ok) throw new Error(mapError(data, response.status, errorText));
       if (data.status === "completed") {
         router.push(`/master-love-codex/result?sessionId=${encodeURIComponent(sessionId)}`);
@@ -403,30 +418,35 @@ export default function MasterLoveCodexPage() {
       setAccessType(data.accessType || "");
       await runBatches(sessionId, data.accessToken || "", data);
     } catch (caught) {
+      if (!isCurrent()) return;
       setError(caught instanceof Error ? caught.message : errorText.SERVER_ERROR);
     } finally {
-      busyRef.current = false;
-      setRecovering(false);
+      if (isCurrent()) { busyRef.current = false; setRecovering(false); }
     }
   };
 
   const recoverStoredPurchase = async (purchase: RecoverablePurchase) => {
+    const isCurrent = captureOwner();
     if (busyRef.current) return;
     busyRef.current = true;
     setRecovering(true);
     setError("");
     try {
       const confirmed = await postJson("/api/payments/confirm", { merchantUid: purchase.orderId });
+      if (!isCurrent()) return;
       if (confirmed.status >= 400) throw new Error(mapError(confirmed.data, confirmed.status, errorText));
       const statusResponse = await authFetch(`/api/payments/orders/${encodeURIComponent(purchase.orderId)}/status`, { cache: "no-store" });
       const status = await statusResponse.json();
+      if (!isCurrent()) return;
       if (!statusResponse.ok || !status.verified || !status.serviceReady) throw new Error(copy.gateAlreadyPaidMessage);
       recoveredPurchaseRef.current = purchase;
       chargedRef.current = true;
       idempotencyRef.current = purchase.requestId || purchase.orderId;
       const response = await authFetch(`/api/payments/orders/${encodeURIComponent(purchase.orderId)}/resume`, { cache: "no-store" });
+      if (!isCurrent()) return;
       if (!response.ok) throw new Error(errorText.SERVER_ERROR);
       const resume = await response.json();
+      if (!isCurrent()) return;
       const args = asRecord(asRecord(asRecord(resume.context).resume).args);
       const input = unpackPaidResumeArg<Record<string, unknown>>(args.payload);
       if (!input) {
@@ -436,13 +456,14 @@ export default function MasterLoveCodexPage() {
         return;
       }
       const started = await postJson("/api/master-love-codex/start", { ...input, paymentId: purchase.orderId }, idempotencyRef.current);
+      if (!isCurrent()) return;
       if (!started.data?.ok || !started.data.sessionId) throw new Error(mapError(started.data, started.status, errorText));
       await runBatches(started.data.sessionId, toText(started.data.accessToken), started.data);
     } catch (caught) {
+      if (!isCurrent()) return;
       setError(caught instanceof Error ? caught.message : errorText.SERVER_ERROR);
     } finally {
-      busyRef.current = false;
-      setRecovering(false);
+      if (isCurrent()) { busyRef.current = false; setRecovering(false); }
     }
   };
 
@@ -452,6 +473,7 @@ export default function MasterLoveCodexPage() {
   }, [router]);
 
   async function startCodex() {
+    const isCurrent = captureOwner();
     if (busyRef.current) return;
     if (!birth.birthDate || !birth.gender || (!birth.birthTime && !birth.birthTimeUnknown)) {
       setError(errorText.INVALID_INPUT);
@@ -504,7 +526,8 @@ export default function MasterLoveCodexPage() {
         const purchase = recoveredPurchaseRef.current;
         if (purchase.featureKey !== gateBilling.featureKey) throw new Error(errorText.INVALID_INPUT);
         const started = await postJson("/api/master-love-codex/start", { ...payload, paymentId: purchase.orderId }, idempotencyKey);
-        if (!started.data?.ok || !started.data.sessionId) throw new Error(mapError(started.data, started.status, errorText));
+        if (!isCurrent()) return;
+      if (!started.data?.ok || !started.data.sessionId) throw new Error(mapError(started.data, started.status, errorText));
         await runBatches(started.data.sessionId, toText(started.data.accessToken), started.data);
         return;
       }
@@ -521,6 +544,7 @@ export default function MasterLoveCodexPage() {
       holdPaidFeatureGateOpen({ requestId: idempotencyKey, maxMs: 8000 });
 
       const ensure = await postJson("/api/master-love-codex/ensure-access", payload, idempotencyKey);
+      if (!isCurrent()) return;
       let startBody: Record<string, unknown> = { ...payload };
 
       if (ensure.data?.ok) {
@@ -550,6 +574,7 @@ export default function MasterLoveCodexPage() {
           ...buildBillingGateInput(asRecord(ensure.data.paymentPayload), idempotencyKey, gateBilling),
           resume: buildResume({ idempotencyKey, payload: packPaidResumeArg(payload) }),
         });
+        if (!isCurrent()) return;
         if (!isPaymentGranted(gate)) {
           const code = String((gate as { error?: { code?: string } })?.error?.code || "").toUpperCase();
           if (code === "AUTH_REQUIRED" || code === "LOGIN_REQUIRED") throw new Error(errorText.LOGIN_REQUIRED);
@@ -564,12 +589,14 @@ export default function MasterLoveCodexPage() {
 
       releasePaidFeatureGate(idempotencyKey);
       const started = await postJson("/api/master-love-codex/start", startBody, idempotencyKey);
+      if (!isCurrent()) return;
       if (!started.data?.ok || !started.data.sessionId) throw new Error(mapError(started.data, started.status, errorText));
 
       sessionIdRef.current = started.data.sessionId;
       setChapters(Array.isArray(started.data.chapters) ? started.data.chapters : []);
       await runBatches(started.data.sessionId, toText(started.data.accessToken), started.data);
     } catch (caught) {
+      if (!isCurrent()) return;
       const message = caught instanceof TypeError
         ? errorText.NETWORK_ERROR
         : caught instanceof Error ? caught.message : errorText.SERVER_ERROR;

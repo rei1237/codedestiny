@@ -155,10 +155,17 @@ assert(
   /if \(!chargedRef\.current\) idempotencyRef\.current = ""/.test(pageSource),
   `${pageFile}: idempotencyRef 초기화는 chargedRef 가드 안에 있어야 합니다(결제 후 새 키로 재시도하면 이중 결제)`,
 );
-assert(
-  !/^\s*idempotencyRef\.current = "";/m.test(pageSource),
-  `${pageFile}: 가드 없는 idempotencyRef.current = "" 가 남아 있으면 결제 후 재시도가 이중 결제됩니다`,
-);
+const resetAst = ts.createSourceFile(pageFile, pageSource, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+let unsafeReset = false;
+function inspectRequestReset(node, accountChange = false, unpaid = false) {
+  const ownerScope = accountChange || (ts.isCallExpression(node) && node.expression.getText(resetAst) === "usePaidDeliveryScope");
+  const unpaidScope = unpaid || (ts.isIfStatement(node) && node.expression.getText(resetAst) === "!chargedRef.current");
+  if (ts.isBinaryExpression(node) && node.left.getText(resetAst) === "idempotencyRef.current" && node.right.getText(resetAst) === '""'
+      && !ownerScope && !unpaidScope) unsafeReset = true;
+  ts.forEachChild(node, child => inspectRequestReset(child, ownerScope, unpaidScope));
+}
+inspectRequestReset(resetAst);
+assert(!unsafeReset, `${pageFile}: 요청 키는 미결제 분기나 계정 변경에서만 비울 수 있습니다`);
 
 // 생년 프리필은 입력 컴포넌트가 담당한다(공용 훅 재사용 — 조회 로직 중복 구현 금지).
 const birthGateFile = "src/features/master-love-codex/components/CodexBirthGate.tsx";
@@ -393,8 +400,8 @@ assert(
   `${routeFile}: 예산 초과로 못 쓴 장은 저장하지 말고 앞쪽 연속분만 커밋해야 합니다(planBatchCommit)`,
 );
 assert(
-  routeSource.includes("GENERATION_BUDGET_EXCEEDED"),
-  `${routeFile}: 한 장도 못 쓴 배치는 retryable 503 으로 돌려야 클라가 백오프 재시도합니다`,
+  routeSource.includes("SERVICE_GENERATION_FAILED") && routeSource.includes("RESULT_STORAGE_UNAVAILABLE"),
+  `${routeFile}: 생성 실패와 저장 실패를 분리하고 기존 요청으로 재시도해야 합니다`,
 );
 // 일시적 DB 블립이 하드 500 으로 굳으면 "생성 실패"가 확정돼 재시도 경로가 사라진다.
 assert(
@@ -452,15 +459,10 @@ assert(
   !navigatesFromCatch,
   `${pageFile}: 실패 catch 에서 결과 페이지로 자동 이동하면 미완성 책이 완성본처럼 열립니다(재시도 수단도 사라집니다)`,
 );
-// 🔴 2026-07-30 판단 반전 — Workers AI 폴백을 켠 상태로 유지한다.
-//  이전 가드는 "장문이 잘린다"며 폴백을 금지했다. 그 판단은 폐기된 8B 모델
-//  (@cf/meta/llama-3.1-8b-instruct, 2026-05-30 폐기) 기준이었고, 지금 기본 폴백은
-//  llama-3.3-70b-instruct-fp8-fast 다. 무엇보다 비교 대상이 잘못됐다 — 폴백을 끄면
-//  Gemini 장애 시 독자가 받는 건 짧은 장이 아니라 fallbackChapterBody() 사과 문구다.
-//  (실제로 Gemini 크레딧 소진 429 상황에서 결제한 책 20장이 전부 사과문으로 나갔다.)
+// 요청 상한 안에서 한 제공자 호출만 수행한다. 실패 안내문은 완료 챕터로 인정하지 않는다.
 assert(
-  !/fallbackToWorkersAI\s*:\s*false/.test(routeSource),
-  `${routeFile}: Workers AI 폴백을 끄면 Gemini 장애 시 결제한 책 20장이 전부 사과 문구로 나갑니다`,
+  /fallbackToWorkersAI\s*:\s*false/.test(routeSource) && routeSource.includes("maxAttempts: 1"),
+  `${routeFile}: 유료 장문 호출은 한 번의 제한된 제공자 실행 뒤 서버에 남은 장을 재개해야 합니다`,
 );
 // Workers AI(env.AI.run)는 responseMimeType 을 받지 않아 JSON 앞뒤에 잡음이 섞인다.
 // JSON.parse 를 그대로 쓰면 DNA 챕터가 폴백 문구로 떨어진다.

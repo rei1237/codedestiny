@@ -18,6 +18,8 @@
  * ═══════════════════════════════════════════════════════════════════════════
  */
 
+import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
+import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
 import { createHash } from "node:crypto";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
@@ -103,7 +105,7 @@ const KNOWN_FEATURE_KEYS = Object.freeze([FEATURE_KEY, COMPAT_FEATURE_KEY]);
 
 const CHAPTER_CONCURRENCY = 4; // Gemini 병렬 상한(레이트리밋·subrequest 안전)
 const CHAPTER_BATCH_SIZE = CHAPTER_CONCURRENCY; // 한 요청 = 1 동시성 웨이브 → 엣지 100초 컷 회피
-const CHAPTER_TIMEOUT_MS = 60000;
+const CHAPTER_TIMEOUT_MS = 45000;
 
 /**
  * 🔴 배치 1회의 벽시계 상한. 이 예산이 없으면 요청이 엣지 컷(100초)에 잘려
@@ -672,8 +674,8 @@ async function generateChapter(env, {
       // 🔴 시간 예산은 timeoutMs 가 아니라 timeoutMs × attempts 다. 3시도는 예산을 혼자 다 먹는다.
       const raced = await withDeadline(generateCodexChapterResponse(
         (text, options) => callGeminiJsonWithRetry(env, text, options), prompt,
-        { chapter, metricDefs: modeDef.dnaMetrics, evidenceContract, deadlineAt, minBudgetMs: CHAPTER_MIN_BUDGET_MS,
-          options: { temperature: 0.6, timeoutMs, cache } },
+        { chapter, metricDefs: modeDef.dnaMetrics, evidenceContract, deadlineAt, minBudgetMs: CHAPTER_MIN_BUDGET_MS, maxAttempts: 1,
+          options: { temperature: 0.6, timeoutMs, cache, fallbackToWorkersAI: false } },
       ), deadlineAt);
       if (raced.deferred) return { status: "deferred", chapter: null, loveDna: null };
       if (raced.error) throw raced.error;
@@ -691,6 +693,7 @@ async function generateChapter(env, {
     const raced = await withDeadline(callGeminiText(env, prompt, {
       maxOutputTokens: 8000,
       temperature: 0.72,
+      fallbackToWorkersAI: false,
       timeoutMs,
       cache,
     }), deadlineAt);
@@ -767,14 +770,14 @@ async function sessionWithAccessToken(env, doc) {
   }, { $set: {
     resultId: doc.id, status: doc.status === "completed" ? "completed" : "generating",
     ...(doc.status === "completed" ? { completedAt: doc.updatedAt, consumedAt: doc.updatedAt } : {}),
-  } });
+  } }).catch(error => console.warn("[master-love-codex] usage record", clean(error?.message, 120)));
   return json({
     ...publicSession(doc),
     done: doc.status === "completed",
     accessToken: await createAccessToken(env, {
       userId: doc.userId, accessType: doc.accessType, sessionId: doc.id,
     }, sessionMode(doc)),
-  });
+  }, { status: doc.status === "completed" ? 200 : 202 });
 }
 
 function handlePlan(request) {
@@ -989,7 +992,11 @@ async function handleStart(request, env) {
     inputHash: normalized.inputHash,
     status: "generating",
     passRefund: access.passRefund || null,
-  } }, { upsert: true, new: true }).lean();
+  } }, { upsert: true, new: true }).lean().catch(() => { throw resultStorageUnavailable(sessionId); });
+
+  if (!doc) throw resultStorageUnavailable(sessionId);
+  const confirmed = await MasterLoveCodexSession.findOne({ id: sessionId, userId: clean(auth.userId) }).lean().catch(() => { throw resultStorageUnavailable(sessionId); });
+  if (!confirmed || confirmed.inputHash !== doc.inputHash) throw resultStorageUnavailable(sessionId);
 
   if (doc.inputHash !== normalized.inputHash || sessionMode(doc) !== normalized.mode) {
     return json({ ok: false, reason: "PURCHASE_RUN_MISMATCH", message: "구매한 회차와 입력이 일치하지 않습니다." }, { status: 409 });
@@ -1019,7 +1026,7 @@ export async function acquireBatchLock(sessionId, userId) {
     {
       id: sessionId,
       userId,
-      status: { $in: ["generating", "generation_failed"] },
+      status: { $in: ["generating", "delivery_pending", "generation_failed"] },
       $or: [
         { "generationProgress.lockedAt": { $exists: false } },
         { "generationProgress.lockedAt": null },
@@ -1203,6 +1210,7 @@ async function handleGenerate(request, env, dependencies = {}) {
     case "completed":
     case "committed": return sessionWithAccessToken(env, wave.session);
     case "lock_lost": return json({ ok: false, reason: "GENERATION_IN_PROGRESS", retryable: true, message: MESSAGES.busy }, { status: 409 });
+    case "storage_failed": return json(resultStorageFailurePayload(resultStorageUnavailable(sessionId)), { status: 503 });
     case "stalled": return json({
       ok: false,
       reason: wave.reason,
@@ -1224,90 +1232,91 @@ async function handleGenerate(request, env, dependencies = {}) {
  *    갈래들이 모두 담당한다.
  * 🔴 진행 위치의 정본은 언제나 서버의 existingChapters 다 — 호출자가 준 값을 믿지 않는다.
  */
+async function saveCodexDelivery(filter, fields, sessionId) {
+  try {
+    const saved = await MasterLoveCodexSession.updateOne(filter, { $set: fields });
+    if (!saved?.matchedCount) throw resultStorageUnavailable(sessionId);
+    const current = await MasterLoveCodexSession.findOne({ id: sessionId, userId: filter.userId }).lean();
+    const matchesSaved = (expected, actual) => {
+      if (expected instanceof Date) return new Date(actual).getTime() === expected.getTime();
+      if (Array.isArray(expected)) return Array.isArray(actual) && expected.length === actual.length && expected.every((value, index) => matchesSaved(value, actual[index]));
+      if (expected && typeof expected === "object") return Boolean(actual) && Object.keys(expected).every(key => matchesSaved(expected[key], actual[key]));
+      return expected === actual;
+    };
+    if (!current || Object.keys(fields).some(key => !matchesSaved(fields[key], current[key]))) throw resultStorageUnavailable(sessionId);
+    return current;
+  } catch { throw resultStorageUnavailable(sessionId); }
+}
+
 export async function runCodexWave(env, { sessionId, userId, doc, lockToken, dependencies = {}, deadlineAt }) {
   const ownerId = clean(userId);
-  const lockFilter = { id: sessionId, userId: ownerId, "generationProgress.lockToken": lockToken };
+  const lockFilter = { id: sessionId, userId: ownerId, "generationProgress.lockToken": lockToken, status: { $ne: "completed" } };
   const modeDef = resolveMode(doc.mode);
-  const existingChapters = Array.isArray(doc.chapters) ? doc.chapters.slice() : [];
-  const startIndex = existingChapters.length; // 서버가 진행 위치의 정본이다(클라이언트 값 미신뢰)
-  const slice = modeDef.chapters.slice(startIndex, startIndex + CHAPTER_BATCH_SIZE);
-
-  if (!slice.length) {
-    await MasterLoveCodexSession.updateOne(
-      lockFilter,
-      { $set: { status: "completed", "generationProgress.lockedAt": null, "generationProgress.lockToken": "" } },
-    );
-    const finished = await MasterLoveCodexSession.findOne({ id: sessionId }).lean();
-    return { outcome: "completed", session: finished };
-  }
-
+  let current = doc;
   try {
-    const memory = buildMemory(existingChapters);
-    const results = await runWithConcurrency(slice, CHAPTER_CONCURRENCY, (chapter) => (dependencies.generateChapter || generateChapter)(env, {
-      mode: modeDef.mode,
-      saju: doc.sajuResult,
-      ziweiChart: doc.ziweiChart,
-      partnerSaju: doc.partnerSajuResult,
-      partnerZiweiChart: doc.partnerZiweiChart,
-      compatibility: doc.compatibility,
-      birthInfo: doc.birthInfo,
-      partnerInfo: doc.partnerInfo,
-      chapter,
-      prologueChoice: clean(doc.prologueChoice),
-      memory,
-      deadlineAt,
-    }));
-
-    const stillAuthorized = await recoverCodexSession({ userId: ownerId, sessionId });
-    if (!stillAuthorized || stillAuthorized.denied) {
-      await MasterLoveCodexSession.updateOne(lockFilter, { $set: { "generationProgress.lockedAt": null, "generationProgress.lockToken": "" } });
-      return { outcome: "denied" };
-    }
-    // 예산 초과로 못 쓴 장이 나오면 그 앞까지만 커밋한다(챕터는 연속이어야 한다).
-    const committed = planBatchCommit(results);
-    if (!committed.length) {
-      const reason = results.some(result => result?.status === "fallback") ? "SERVICE_GENERATION_FAILED" : "GENERATION_BUDGET_EXCEEDED";
-      await MasterLoveCodexSession.updateOne(
-        lockFilter,
-        { $set: { status: "generation_failed", generationError: { code: reason, at: new Date() }, "generationProgress.lockedAt": null, "generationProgress.lockToken": "" } },
-      ).catch(() => {});
-      console.warn("[master-love-codex] generation retry", { sessionId, reason, startIndex });
-      await refundSessionPassIfNeeded(sessionId, ownerId, doc, existingChapters, dependencies);
-      await refundSessionBillingIfNeeded(env, sessionId, ownerId, doc, existingChapters, dependencies);
+    const byId = new Map([...(doc.chapters || []), ...(doc.deliveryMeta?.savedChapters || [])]
+      .filter(chapter => chapter.ok !== false && modeDef.chapters.some(spec => spec.id === chapter.id && chapter.body?.length >= (spec.minChars || 2400)))
+      .map(chapter => [chapter.id, chapter]));
+    const missing = modeDef.chapters.filter(chapter => !byId.has(chapter.id)).slice(0, CHAPTER_BATCH_SIZE);
+    const attempts = { ...doc.deliveryMeta?.attempts };
+    const exhausted = missing.filter(chapter => Number(attempts[chapter.id] || 0) >= 3);
+    if (exhausted.length) {
+      if (exhausted.some(chapter => Number(doc.deliveryMeta?.failures?.[chapter.id] || 0) < 3)) throw resultStorageUnavailable(sessionId);
+      const reason = "SERVICE_GENERATION_FAILED";
+      current = await saveCodexDelivery(lockFilter, { status: "generation_failed", generationError: { code: reason, at: new Date() } }, sessionId);
+      await refundSessionPassIfNeeded(sessionId, ownerId, current, [...byId.values()], dependencies);
+      await refundSessionBillingIfNeeded(env, sessionId, ownerId, current, [...byId.values()], dependencies);
       return { outcome: "stalled", reason };
     }
-
-    const newChapters = committed.map((result) => result.chapter);
-    const loveDna = committed.map((result) => result.loveDna).find(Boolean) || null;
-    const merged = [...existingChapters, ...newChapters];
-    const totalCharCount = merged.reduce((sum, chapter) => sum + Number(chapter.chars || 0), 0);
-    const done = merged.length >= modeDef.chapters.length;
-
-    const saved = await MasterLoveCodexSession.updateOne(lockFilter, {
-      $set: {
-        chapters: merged,
-        totalCharCount,
-        generationError: null,
-        status: done ? "completed" : "generating",
-        ...(loveDna ? { loveDna } : {}),
-        generationProgress: { completed: merged.length, total: modeDef.chapters.length, lockedAt: null, lockToken: "" },
-      },
-    });
-
-    // 락을 뺏겼다는 뜻이다 — 다른 주체가 같은 구간을 이미 커밋했으니 여기서는 아무것도 덮어쓰지 않는다.
-    if (!saved.matchedCount) return { outcome: "lock_lost" };
-
-    const updated = await MasterLoveCodexSession.findOne({ id: sessionId }).lean();
-    return { outcome: "committed", session: updated, done };
+    if (missing.length) {
+      missing.forEach(chapter => { attempts[chapter.id] = Number(attempts[chapter.id] || 0) + 1; });
+      current = await saveCodexDelivery(lockFilter, { deliveryMeta: { ...current.deliveryMeta, attempts } }, sessionId);
+      const memory = buildMemory([...byId.values()]);
+      let queue = Promise.resolve();
+      const outcomes = await Promise.allSettled(missing.map(async chapter => {
+        let result;
+        try { result = await (dependencies.generateChapter || generateChapter)(env, {
+          mode: modeDef.mode, saju: doc.sajuResult, ziweiChart: doc.ziweiChart,
+          partnerSaju: doc.partnerSajuResult, partnerZiweiChart: doc.partnerZiweiChart, compatibility: doc.compatibility,
+          birthInfo: doc.birthInfo, partnerInfo: doc.partnerInfo, chapter, prologueChoice: clean(doc.prologueChoice), memory, deadlineAt,
+        }); } catch { result = { status: "fallback" }; }
+        const write = queue.catch(() => {}).then(async () => {
+          const failures = { ...current.deliveryMeta?.failures };
+          const valid = result?.status === "ok" && result.chapter?.id === chapter.id && result.chapter.ok
+            && result.chapter.body?.length >= (chapter.minChars || 2400)
+            && !hasRepeatedReportPassage([...byId.values()].map(row => row.body).concat(result.chapter.body).join("\n"));
+          if (valid) byId.set(chapter.id, result.chapter);
+          else if (result?.status !== "deferred") failures[chapter.id] = Number(failures[chapter.id] || 0) + 1;
+          const savedChapters = modeDef.chapters.map(spec => byId.get(spec.id)).filter(Boolean);
+          const chapters = [];
+          for (const spec of modeDef.chapters) { if (!byId.has(spec.id)) break; chapters.push(byId.get(spec.id)); }
+          const fields = { deliveryMeta: { ...current.deliveryMeta, savedChapters, attempts, failures }, chapters,
+            totalCharCount: chapters.reduce((sum, row) => sum + Number(row.chars || row.body.length), 0),
+            generationProgress: { ...current.generationProgress, completed: savedChapters.length, total: modeDef.chapters.length },
+            ...(result?.loveDna && valid ? { loveDna: result.loveDna } : {}),
+          };
+          current = await saveCodexDelivery(lockFilter, fields, sessionId);
+        }); queue = write; await write;
+      }));
+      const failure = outcomes.find(outcome => outcome.status === "rejected");
+      if (failure) throw failure.reason;
+    }
+    if (modeDef.chapters.some(chapter => !byId.has(chapter.id))) return { outcome: "committed", session: current, done: false };
+    const chapters = modeDef.chapters.map(chapter => byId.get(chapter.id));
+    const body = chapters.map(chapter => chapter.body).join("\n");
+    if (countPaidReportBodyChars(body) < 20000 || hasRepeatedReportPassage(body)) return { outcome: "stalled", reason: "SERVICE_GENERATION_FAILED" };
+    if (current.status !== "delivery_pending") current = await saveCodexDelivery(lockFilter, { status: "delivery_pending", chapters }, sessionId);
+    const authorized = await recoverCodexSession({ userId: ownerId, sessionId });
+    if (!authorized || authorized.denied) return { outcome: "denied" };
+    current = await saveCodexDelivery(lockFilter, { status: "completed", generationError: null,
+      generationProgress: { completed: chapters.length, total: chapters.length, lockedAt: null, lockToken: "" } }, sessionId);
+    return { outcome: "completed", session: current, done: true };
   } catch (error) {
-    console.error("[master-love-codex] generate", clean(error?.message, 300));
-    await MasterLoveCodexSession.updateOne(
-      lockFilter,
-      { $set: { status: "generation_failed", "generationProgress.lockedAt": null, "generationProgress.lockToken": "" } },
-    ).catch(() => {});
-    await refundSessionPassIfNeeded(sessionId, ownerId, doc, existingChapters, dependencies);
-    await refundSessionBillingIfNeeded(env, sessionId, ownerId, doc, existingChapters, dependencies);
-    return { outcome: "failed" };
+    // 모델/저장 예외를 생성 실패 환불로 보내지 않는다.
+    console.warn("[master-love-codex] delivery", clean(error?.message, 160));
+    return { outcome: "storage_failed" };
+  } finally {
+    await MasterLoveCodexSession.updateOne(lockFilter, { $set: { "generationProgress.lockedAt": null, "generationProgress.lockToken": "" } }).catch(() => {});
   }
 }
 
@@ -1330,7 +1339,7 @@ async function handleSessions(request, env) {
   const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
   if (!auth) return loginRequired();
   await connectDb(env);
-  const docs = await MasterLoveCodexSession.find({ userId: clean(auth.userId), status: { $in: ["generating", "generation_failed", "completed"] } })
+  const docs = await MasterLoveCodexSession.find({ userId: clean(auth.userId), status: { $in: ["generating", "delivery_pending", "generation_failed", "completed"] } })
     .sort({ createdAt: -1 }).limit(20).select("id mode status createdAt").lean();
   return json({ ok: true, sessions: docs.map(doc => ({ sessionId: doc.id, mode: sessionMode(doc), status: doc.status, createdAt: doc.createdAt })) });
 }
@@ -1349,6 +1358,7 @@ export async function handleMasterLoveCodexRoutes(request, env = {}, dependencie
     return methodNotAllowed();
   } catch (error) {
     console.error("[master-love-codex]", clean(error?.code || error?.message || error, 300));
+    if (error?.code === "RESULT_STORAGE_UNAVAILABLE") return json(resultStorageFailurePayload(error), { status: 503 });
     // 네 핸들러 모두 surfaceDbInfraError:true 로 인증 DB 장애를 throw 시킨다. 그걸 여기서
     // 하드 500 으로 굳히면 일시적 블립이 "생성 실패"로 확정되어 클라가 재시도하지 못한다.
     // (ziwei-ai.js 등 14개 라우트가 쓰는 것과 같은 판정을 재사용한다.)
