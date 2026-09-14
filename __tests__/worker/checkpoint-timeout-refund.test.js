@@ -63,3 +63,7 @@ test('an already-started refund is never changed back into a delivered execution
  report.status='completed';execution.refundStatus='pending';expect(await inspect(execution)).toBe('unmanaged');
  expect(queries).toHaveLength(0);
 });
+test('celestial card checkpoints in the execution collection remain recoverable',async()=>{
+ execution.featureKey='tarot-celestial-harmony';execution.metadata={celestialDelivery:{delivery:{parts:{0:{archetypeReading:'saved'}}}}};
+ expect(await inspect(execution)).toBe('recoverable');expect(queries).toHaveLength(0);
+});

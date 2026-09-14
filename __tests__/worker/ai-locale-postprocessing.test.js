@@ -44,10 +44,9 @@ describe("locale postprocessing without Korean padding (pure fixtures, no provid
 
   it("does not pad foreign results with Korean deterministic fallbacks", () => {
     const pet = readFileSync(resolve(process.cwd(), "worker/routes/pet-saju-ai.js"), "utf8");
-    const celestial = readFileSync(resolve(process.cwd(), "worker/routes/celestial-harmony.js"), "utf8");
     const yoga = readFileSync(resolve(process.cwd(), "worker/routes/yoga-guru.js"), "utf8");
     const tarot = readFileSync(resolve(process.cwd(), "worker/routes/tarot.js"), "utf8");
-    for (const source of [pet, celestial, yoga]) {
+    for (const source of [pet, yoga]) {
       expect(source).toMatch(/AI_LOCALE_RESULT_INCOMPLETE/);
       expect(source).toMatch(/getAmbientAiLocale/);
     }

@@ -894,6 +894,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
               <span style="font-size:.72rem;color:rgba(255,255,255,.64);">11행성 심층 리딩 <strong style="color:rgba(253,230,138,.95);">10,000원</strong> · 별빛 통합 오라클이 열립니다.</span>
             </div>
             <div id="premiumStatusText" style="font-size:.78rem;color:rgba(255,255,255,.78);line-height:1.5;">행성 자리를 먼저 펼친 뒤, 별빛 통합 오라클을 열 수 있습니다.</div>
+            <button id="resumeStoredReading" type="button" class="cosmic-btn cosmic-btn--read" hidden>저장된 리딩 이어서 열기</button>
             <div class="premium-steps" id="premiumSteps">
               <div class="premium-step" data-step="draw"><div class="premium-step__k">1단계</div><div class="premium-step__v">카드 배치</div></div>
               <div class="premium-step" data-step="payment"><div class="premium-step__k">2단계</div><div class="premium-step__v">결제 확인</div></div>
@@ -964,6 +965,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
 
   </main>
 
+  <script src="/js/core/celestial-paid-reader.js"></script>
   <script>
   (function () {
     'use strict';
@@ -1005,7 +1007,13 @@ button,input,select,textarea{font-family:var(--font-body)!important}
     var $goldSec=$('goldSec'),$goldCon=$('goldCon');
     var $premiumChip=$('premiumChip'),$premiumStatusText=$('premiumStatusText'),$premiumSteps=$('premiumSteps');
 
-    var STORAGE_NS='cd:celestial:harmony:';
+    var STORAGE_NS='cd:celestial:harmony:v2:';
+    var deliveryAccount='', deliveryEpoch=0, savedResumeBody=null;
+    function readDeliveryAccount(){try{var user=JSON.parse(localStorage.getItem('fortune_auth_user')||'null');return clean(user&&(user.id||user.userId||user._id||user.uid));}catch(_){return '';}}
+    function sessionNamespace(){return deliveryAccount ? STORAGE_NS+encodeURIComponent(deliveryAccount)+':' : '';}
+    function accountChanged(){var next=readDeliveryAccount();if(next===deliveryAccount)return;deliveryAccount=next;deliveryEpoch++;savedResumeBody=null;hasAccess=false;hasCompletedResult=false;recoverablePaymentSession=false;paymentInFlight=false;spread=[];currentReportId='';currentTransactionId='';currentRequestId='';currentSessionId='';currentAccessGrant=null;currentConsume=null;currentPremiumToken='';$resSec.style.display='none';$resCon.innerHTML='';$goldSec.style.display='none';$goldCon.innerHTML='';$boardSec.style.display='none';$board.innerHTML='';setLoading(false,'');updateReadButtonState();}
+    window.addEventListener('cd:auth-changed',accountChanged);
+    window.addEventListener('storage',function(event){if(event.key==='fortune_auth_user')accountChanged();});
     var FEATURE_KEY='tarot-celestial-harmony';
     var COIN_COST=100;
     var spread=[];
@@ -1024,8 +1032,6 @@ button,input,select,textarea{font-family:var(--font-body)!important}
     var paymentInFlight=false;
     var selectedCardIdx=-1;
     var lastTapAt=0;
-    var localReadingUsed=false;
-    var localReadingReason='';
     // 이용권(pass)·월정석 커버로 거래ID 없이 승인된 경우를 기억한다(서버가 최종 판정자, 여기선 결과 표시용 증빙).
     var currentAccessType='';
 
@@ -1132,261 +1138,6 @@ button,input,select,textarea{font-family:var(--font-body)!important}
       var matrix = s.insightMatrix && typeof s.insightMatrix==='object' ? s.insightMatrix : {};
       if(!clean(matrix.love) || !clean(matrix.work) || !clean(matrix.money) || !clean(matrix.health)) return { ok:false, reason:'summary-insightMatrix' };
       return { ok:true };
-    }
-
-    function buildCelestialLocalReading(context){
-      var deck = MAJOR.length ? MAJOR : [{ n:'Mystery', en:'Mystery', r:'0' }];
-      var spreadSeed = Array.isArray(spread) ? spread.slice(0, 11) : [];
-      var phases = ['opening gate','resonance check','field alignment','decision bridge','nadir to ascendant','inner release','structure weaving','clarity loop','deeper reflection','moonlit correction','full integration'];
-      var layerOrder = ['harmony','wisdom','courage','healing','discipline','clarity','transition','focus','integration','surrender','growth'];
-      var toneOrder = ['constructive expansion','quiet calibration','reality anchoring','protective restraint','ritual rhythm','compassionate precision','symbolic timing','ethical action','long-wave discipline','sacred patience','full-body coherence'];
-      var orientationSeed = ['upright','reversed'];
-
-      var planetGuide = {
-        sun: { signal:'의식의 중심을 열고 통합으로 이동', tone:'자기 주체성 안에 감정을 수용하는 힘', focus:'목표와 리듬 정렬', caution:'열정의 추진이 방향성보다 앞서는 순간' },
-        moon: { signal:'무의식의 물결을 읽는 창', tone:'감각을 문장으로 정리해 통제권을 회복', focus:'직감-사실 균형', caution:'불분명함을 회피로 바꾸는 습관' },
-        mercury: { signal:'의사소통과 해석의 회로', tone:'분석보다 순서를 먼저 정렬', focus:'핵심 메시지 추출', caution:'세부 과잉으로 흐름을 끊는 충동' },
-        venus: { signal:'가치와 애정의 질서', tone:'관계에서 선택의 호흡을 만들기', focus:'경계와 공감 동시 적용', caution:'비교와 집착이 생명력을 줄이는 패턴' },
-        mars: { signal:'의지와 결단의 불꽃', tone:'행동 전 1회 멈춤을 통해 정밀화', focus:'실행 타이밍 선택', caution:'반응 속도가 전략을 잠식하는 순간' },
-        jupiter: { signal:'확장의 신뢰 기반', tone:'지속 가능한 성장을 위한 규칙 구성', focus:'비전의 지표화', caution:'확신을 고정관념으로 바꾸는 과잉 낙관' },
-        saturn: { signal:'한계를 구조로 바꾸는 관문', tone:'현실과 의지의 계단식 배치', focus:'약속의 실행성', caution:'두려움이 통제를 정당화하는 단계' },
-        uranus: { signal:'예상 밖 전환의 신호', tone:'변화를 허용하고 분산 리스크를 축소', focus:'새 질서의 즉흥 배치', caution:'파열을 미화해 책임을 미루는 과잉 도약' },
-        neptune: { signal:'상징과 신비의 경계', tone:'환상을 해석하고 행동으로 접목', focus:'의미 정렬', caution:'이상화로 결단을 연기하는 순간' },
-        pluto: { signal:'근원 정화의 지점', tone:'파괴 후 결속으로의 전환', focus:'숨겨진 의도 드러내기', caution:'통제 욕망이 반복 고착을 만드는 패턴' },
-        chiron: { signal:'상처를 기술로 바꾸는 다리', tone:'상처 재해석을 실천 루틴으로 전환', focus:'연민 기반의 규율', caution:'과거 실패를 현재 의사결정의 기준으로 고정' }
-      };
-
-      var cardGuide = {
-        thefool: { core:['순간의 용기','새로운 문턱의 진입','부재를 통과하는 선택'], shadow:['성급한 낙관','준비 누락'], lesson:['우선순위 1개로 행동 시작'], practice:['24시간 동안 감정 흐름 기록'], integration:['계획을 짧게 쪼개 1차 실행'] },
-        fool: { core:['순간의 용기','새로운 문턱의 진입','부재를 통과하는 선택'], shadow:['성급한 낙관','준비 누락'], lesson:['우선순위 1개로 행동 시작'], practice:['24시간 동안 감정 흐름 기록'], integration:['계획을 짧게 쪼개 1차 실행'] },
-        themagician: { core:['잠재력의 결속','의도와 표현의 일치','도구의 실천화'], shadow:['지식 과신','실행 지연'], lesson:['작은 약속으로 실력 검증'], practice:['오늘 단일 약속 1건만 이행'], integration:['행동 전 목적을 한 줄 확정'] },
-        magician: { core:['잠재력의 결속','의도와 표현의 일치','도구의 실천화'], shadow:['지식 과신','실행 지연'], lesson:['작은 약속으로 실력 검증'], practice:['오늘 단일 약속 1건만 이행'], integration:['행동 전 목적을 한 줄 확정'] },
-        thehighpriestess: { core:['무의식의 안내','침묵에서 정리된 통찰','직감의 번역'], shadow:['정보 회피','감정 누락'], lesson:['질문 3개를 적고 답을 기다림'], practice:['직감 일지 5분 작성'], integration:['결과보다 신호를 먼저 듣기'] },
-        highpriestess: { core:['무의식의 안내','침묵에서 정리된 통찰','직감의 번역'], shadow:['정보 회피','감정 누락'], lesson:['질문 3개를 적고 답을 기다림'], practice:['직감 일지 5분 작성'], integration:['결과보다 신호를 먼저 듣기'] },
-        theempress: { core:['생성의 확장','돌봄의 경계 관리','관계의 생생함 보존'], shadow:['과보호','과잉 동정'], lesson:['돌보되 상대의 선택권 보존'], practice:['감사 메시지 1개 보내기'], integration:['공유 방식과 경계 기준 합의'] },
-        empress: { core:['생성의 확장','돌봄의 경계 관리','관계의 생생함 보존'], shadow:['과보호','과잉 동정'], lesson:['돌보되 상대의 선택권 보존'], practice:['감사 메시지 1개 보내기'], integration:['공유 방식과 경계 기준 합의'] },
-        theemperor: { core:['구조의 안정','결정의 책임성','실행의 일관성'], shadow:['권위 집중','융통성 상실'], lesson:['규칙을 3개로 단축'], practice:['오늘 꼭 지킬 기준 3개 적기'], integration:['변경 가능 항목과 불변 항목 분리'] },
-        emperor: { core:['구조의 안정','결정의 책임성','실행의 일관성'], shadow:['권위 집중','융통성 상실'], lesson:['규칙을 3개로 단축'], practice:['오늘 꼭 지킬 기준 3개 적기'], integration:['변경 가능 항목과 불변 항목 분리'] },
-        thehierophant: { core:['가치의 전승','의미의 정교화','의식의 정렬'], shadow:['무비판적 추종','형식주의'], lesson:['기준의 출처를 점검'], practice:['가치관 한 줄 선언'], integration:['정기 점검 루틴 1개 고정'] },
-        hierophant: { core:['가치의 전승','의미의 정교화','의식의 정렬'], shadow:['무비판적 추종','형식주의'], lesson:['기준의 출처를 점검'], practice:['가치관 한 줄 선언'], integration:['정기 점검 루틴 1개 고정'] },
-        thelovers: { core:['연결과 선택의 통합','관계와 기준의 동시 조율','갈림길의 동의'], shadow:['이상화','회피성 선택'], lesson:['결정 이유를 한 문장으로 표기'], practice:['좋음/않음 1줄 체크'], integration:['선택 대가를 인정하고 유지'] },
-        lovers: { core:['연결과 선택의 통합','관계와 기준의 동시 조율','갈림길의 동의'], shadow:['이상화','회피성 선택'], lesson:['결정 이유를 한 문장으로 표기'], practice:['좋음/않음 1줄 체크'], integration:['선택 대가를 인정하고 유지'] },
-        thechariot: { core:['방향 전환','전략적 이동','자기 추진력'], shadow:['속도 과신','통제 욕구'], lesson:['한 번에 하나의 방향만 추진'], practice:['우선순위 1개 고정'], integration:['출발 전에 도착 조건 정의'] },
-        chariot: { core:['방향 전환','전략적 이동','자기 추진력'], shadow:['속도 과신','통제 욕구'], lesson:['한 번에 하나의 방향만 추진'], practice:['우선순위 1개 고정'], integration:['출발 전에 도착 조건 정의'] },
-        strength: { core:['부드러운 결기','내적 힘의 정렬','두려움의 순화'], shadow:['억압적 단련','표면적 단호함'], lesson:['감정의 이름을 말하고 호흡 조절'], practice:['긴장 징후 1개 기록'], integration:['반응보다 응답을 택하기'] },
-        thehermit: { core:['고독 속 정밀판단','핵심 추출','내면 탐색'], shadow:['고립 강화','의사소통 단절'], lesson:['고요한 시간에 기준 정리'], practice:['중요 문장 1개만 작성'], integration:['행동 제안 1개로 복귀'] },
-        hermit: { core:['고독 속 정밀판단','핵심 추출','내면 탐색'], shadow:['고립 강화','의사소통 단절'], lesson:['고요한 시간에 기준 정리'], practice:['중요 문장 1개만 작성'], integration:['행동 제안 1개로 복귀'] },
-        wheeloffortune: { core:['주기적 전환','운동의 리듬','의존성 이탈'], shadow:['무의미한 반복','운명 과대평가'], lesson:['반복 패턴 3개 기록'], practice:['반복되는 습관 1개 즉시 중단'], integration:['새 루틴으로 대체'] },
-        wheeloffortune: { core:['주기적 전환','운동의 리듬','의존성 이탈'], shadow:['무의미한 반복','운명 과대평가'], lesson:['반복 패턴 3개 기록'], practice:['반복되는 습관 1개 즉시 중단'], integration:['새 루틴으로 대체'] },
-        wheel: { core:['주기적 전환','운동의 리듬','의존성 이탈'], shadow:['무의미한 반복','운명 과대평가'], lesson:['반복 패턴 3개 기록'], practice:['반복되는 습관 1개 즉시 중단'], integration:['새 루틴으로 대체'] },
-        justice: { core:['균형의 복구','결단의 정밀성','책임의 명확화'], shadow:['완벽한 균형 강박','자기비난'], lesson:['판단 기준을 한 줄로'], practice:['기준의 근거 1개 남기기'], integration:['회고에서 수정 항목 1개만 반영'] },
-        thehangedman: { core:['일시 정지의 가르침','거리두기','시점의 전환'], shadow:['회피성 멈춤','의심의 순환'], lesson:['중단 이유를 문장화'], practice:['잠정 정지 조건 정의'], integration:['새 시점에서 1회 재판단'] },
-        hangedman: { core:['일시 정지의 가르침','거리두기','시점의 전환'], shadow:['회피성 멈춤','의심의 순환'], lesson:['중단 이유를 문장화'], practice:['잠정 정지 조건 정의'], integration:['새 시점에서 1회 재판단'] },
-        death: { core:['필요 없는 마무리','변환의 통로','재시작 허가'], shadow:['상실 과도반응','집착 지속'], lesson:['불필요한 1개 정리'], practice:['정리할 대상 즉시 1개 처리'], integration:['새로운 배치로 이전'] },
-        temperance: { core:['균형 조정','절도 있는 통합','속도 조절'], shadow:['우유부단한 타협','에너지 과소 사용'], lesson:['조정 기준 점검'], practice:['수면/수분/휴식 1개 확인'], integration:['과유불급 규칙 유지'] },
-        thedevil: { core:['유혹의 구조','의존 해독','진짜 욕구 분리'], shadow:['탈출 지연','습관 결박'], lesson:['유혹 조건 분리'], practice:['유혹 트리거 1개 기록'], integration:['대체 행동 즉시 실행'] },
-        devil: { core:['유혹의 구조','의존 해독','진짜 욕구 분리'], shadow:['탈출 지연','습관 결박'], lesson:['유혹 조건 분리'], practice:['유혹 트리거 1개 기록'], integration:['대체 행동 즉시 실행'] },
-        thetower: { core:['예상 불가한 붕괴','우선순위 재편','재설계 동력'], shadow:['혼란 확산','자기비난'], lesson:['대응 순서 3단계 지정'], practice:['붕괴 후 즉시 점검 1단계'], integration:['회복 계획을 문서화'] },
-        tower: { core:['예상 불가한 붕괴','우선순위 재편','재설계 동력'], shadow:['혼란 확산','자기비난'], lesson:['대응 순서 3단계 지정'], practice:['붕괴 후 즉시 점검 1단계'], integration:['회복 계획을 문서화'] },
-        thestar: { core:['회복의 시야','신뢰의 축적','희망의 실천'], shadow:['허무한 이상화','동기 이탈'], lesson:['작은 회복 루틴 고정'], practice:['회복 지표 3개 체크'], integration:['기록 기반 진척 확인'] },
-        star: { core:['회복의 시야','신뢰의 축적','희망의 실천'], shadow:['허무한 이상화','동기 이탈'], lesson:['작은 회복 루틴 고정'], practice:['회복 지표 3개 체크'], integration:['기록 기반 진척 확인'] },
-        themoon: { core:['심리의 파도','모순 수용','상징의 정화'], shadow:['불명료 지속','감정 과부하'], lesson:['감정 라벨 3개 분류'], practice:['불안 루틴 5분 정리'], integration:['감정 표현을 관찰문으로 전환'] },
-        moon: { core:['심리의 파도','모순 수용','상징의 정화'], shadow:['불명료 지속','감정 과부하'], lesson:['감정 라벨 3개 분류'], practice:['불안 루틴 5분 정리'], integration:['감정 표현을 관찰문으로 전환'] },
-        thesun: { core:['회복의 빛','자기 승인','기대의 현실화'], shadow:['성과 집착','성과 공포'], lesson:['성과를 수치와 습관으로 환산'], practice:['오늘 핵심 성과 1개 기록'], integration:['성공보다 지속으로 보정'] },
-        sun: { core:['회복의 빛','자기 승인','기대의 현실화'], shadow:['성과 집착','성과 공포'], lesson:['성과를 수치와 습관으로 환산'], practice:['오늘 핵심 성과 1개 기록'], integration:['성공보다 지속으로 보정'] },
-        judgement: { core:['재평가와 재출발','낡은 판단 정리','최종 조합'], shadow:['과거 평가 과잉','완곡 회피'], lesson:['지난 기록을 현재 기준으로 재라벨'], practice:['재시작 선언 한 줄'], integration:['연기된 약속 재조정'] },
-        world: { core:['완결과 확장','전체성 회복','새 질서'], shadow:['완성 집착','다음 단계 회피'], lesson:['완료 기준을 공개 점검'], practice:['완료 항목 1회 점검'], integration:['다음 단계 질문 1개 설정'] },
-        planet: { core:['외적 환경 신호','구조의 압력감지','현실 동기화'], shadow:['환경 탓 정당화','과도한 비교'], lesson:['통제 가능한 항목 먼저 정리'], practice:['현재 선택 영향도 맵'], integration:['실행 가능한 대체안 1개 마련'] }
-      };
-
-      var cardGuideByR = {
-        '0': 'fool', i: 'magician', ii: 'highpriestess', iii: 'empress', iv: 'emperor', v: 'hierophant', vi: 'lovers',
-        vii: 'chariot', viii: 'strength', ix: 'hermit', x: 'wheeloffortune', xi: 'justice', xii: 'hangedman', xiii: 'death',
-        xiv: 'temperance', xv: 'devil', xvi: 'tower', xvii: 'star', xviii: 'moon', xix: 'sun', xx: 'judgement', xxi: 'world'
-      };
-
-      function normalizeKey(value){
-        return clean(value).toLowerCase().replace(/[^a-z0-9]/g, '');
-      }
-
-      function pick(arr, idx, fallback){
-        if(!Array.isArray(arr) || !arr.length) return fallback;
-        var i = ((idx % arr.length) + arr.length) % arr.length;
-        return clean(arr[i]) || fallback;
-      }
-
-      function normalizeGuide(card){
-        var byR = cardGuideByR[normalizeKey(card && card.r || '')] || cardGuideByR[normalizeKey((card && card.r || '').toUpperCase())] || null;
-        if(byR && cardGuide[byR]) return cardGuide[byR];
-        var en = normalizeKey(card && card.en || '');
-        var enNoThe = en.indexOf('the') === 0 ? en.substring(3) : en;
-        return cardGuide[en] || cardGuide[enNoThe] || cardGuide[normalizeKey(card && card.n || '')] || cardGuide.planet;
-      }
-
-      if(!spreadSeed.length){
-        spreadSeed = PLANETS.map(function(pl, idx){
-          return {
-            planet: pl,
-            tarot: deck[idx] || deck[0],
-            orientation: orientationSeed[idx % orientationSeed.length]
-          };
-        });
-      }
-
-      while(spreadSeed.length < 11){
-        var fill = spreadSeed[spreadSeed.length % (spreadSeed.length || 1)] || {};
-        spreadSeed.push({
-          planet: fill.planet || { name:'Planet ' + (spreadSeed.length + 1), en:'Planet', key:'planet-' + (spreadSeed.length + 1), symbol:'✶', question:'Observe rhythm before action.', energy:'quiet synthesis' },
-          tarot: deck[spreadSeed.length % deck.length] || deck[0],
-          orientation: orientationSeed[spreadSeed.length % orientationSeed.length]
-        });
-      }
-
-      if(spreadSeed.length > 11) spreadSeed = spreadSeed.slice(0, 11);
-
-      localReadingUsed = true;
-      localReadingReason = clean(context || 'local');
-
-      var cards = spreadSeed.map(function(sp, idx){
-        var p = sp.planet || {};
-        var t = sp.tarot || {};
-        var orientation = sp.orientation === 'reversed' ? 'reversed' : 'upright';
-        var guide = normalizeGuide(t) || cardGuide.planet;
-        var cardNameKo = clean(t.n) || clean(p.name) || 'Celestial Card';
-        var cardNameEn = clean(t.en) || cardNameKo;
-        var planetName = clean(p.name) || ('Planet ' + (idx + 1));
-        var planetEn = clean(p.en) || ('planet ' + (idx + 1));
-        var symbol = clean(p.symbol) || '✶';
-        var key = clean(p.key) || ('planet-' + (idx + 1));
-        var layer = layerOrder[idx] || layerOrder[0];
-        var phase = phases[idx] || phases[phases.length - 1];
-        var tone = toneOrder[idx] || toneOrder[toneOrder.length - 1];
-        var planet = planetGuide[normalizeKey(key)] || planetGuide[normalizeKey(planetEn)] || { signal:'운명의 파형 정렬', tone:'리듬 회복', focus:'현재의 선택 정돈', caution:'내적 균형 상실' };
-        var questionHint = clean(sp.planet && sp.planet.question) || ('이 자리는 ' + planetName + '와 카드의 정합을 요구하는 구간입니다.');
-        var alignmentHint = clean(sp.planet && sp.planet.energy) || ('현재 에너지: ' + tone);
-        var orientationLabel = orientation === 'upright' ? '정방향' : '역방향';
-
-        return {
-          planetKo: planetName,
-          planetEn: planetEn,
-          planetSymbol: symbol,
-          planetTitle: (planetName + ' — ' + questionHint).replace(/\s+/g, ' '),
-          planetId: key,
-          layer: layer,
-          orientation: orientation,
-          cardNameKo: cardNameKo,
-          cardNameEn: cardNameEn,
-          cardMeaning: cardNameKo + ' ' + orientationLabel + '은 ' + phase + '의 하늘에서 ' + guide.core[0] + '을 먼저 울립니다. ' + guide.core[1] + '와 ' + guide.core[2] + '가 ' + alignmentHint + '의 빛과 만나며, 질문 \"' + questionHint + '\" 앞에서 오늘 필요한 선택의 방향을 밝힙니다.',
-          planetMeaning: planetName + '의 자리는 ' + planet.signal + '을 부드럽게 드러냅니다. ' + planet.tone + '의 리듬을 따라 ' + planet.focus + '를 붙잡으면 ' + guide.core[1] + '이 현실의 작은 행동으로 내려옵니다.',
-          archetypeReading: (planetName + '은(는) ' + guide.core[0] + '의 원형을 깨웁니다. ' + guide.core[1] + '이 지나치게 커지면 ' + planet.caution + '이 그림자로 떠오를 수 있으니, ' + guide.lesson[0] + '을 오늘의 균형추로 삼으세요.'),
-          consciousMessage: planet.focus + '을 정면으로 바라볼 때입니다. ' + guide.lesson[0] + '를 중심에 두고 ' + guide.practice[0] + '. ' + planet.focus + '은(는) ' + guide.core[0] + '을 현실에 고정하는 작은 등불입니다.',
-          unconsciousPattern: orientation === 'upright'
-            ? ('무의식은 안정이 급해 보일수록 ' + guide.shadow[0] + '로 반응합니다. ' + guide.shadow[1] + '가 나타나면 신호 해석이 지연됩니다.')
-            : ('무의식은 역방향에서 ' + guide.shadow[1] + '으로 과거 반복을 소환합니다. ' + guide.shadow[0] + '을 먼저 분리하면 판단이 복구됩니다.'),
-          shadowWarning: '주의 신호는 ' + planet.caution + '입니다. ' + guide.shadow[0] + ', ' + guide.shadow[1] + '가 동시에 강화되면 판단이 가짜 확신으로 잠길 수 있습니다.',
-          soulLesson: '오늘의 핵심 교훈은 ' + guide.lesson[0] + '입니다. ' + guide.lesson[0] + '과 ' + planet.focus + '이 만날 때 이 행성의 카드는 ' + guide.core[0] + '을 현실의 언어로 바꿉니다.',
-          integrationPractice: '1) ' + guide.practice[0] + '\n2) ' + guide.practice[1] + '\n3) ' + guide.practice[2] + '\n4) 현재 질문에 대한 핵심 한 줄 선언을 밤에 1회 반복',
-          tarotKeywords: [cardNameKo, cardNameEn, layer, tone, phase, guide.core[0]],
-          planetKeywords: [planetName, key, symbol, alignmentHint, planet.signal]
-        };
-      });
-
-      var strengths = [];
-      var shadows = [];
-      var practices = [];
-      var layerCount = {};
-      var planetCount = {};
-
-      cards.forEach(function(item, idx){
-        strengths.push((item.planetKo || ('Planet ' + (idx + 1))) + ' / ' + (item.cardNameKo || 'Card'));
-        shadows.push(item.shadowWarning || '');
-        practices.push(item.integrationPractice || '');
-        layerCount[item.layer] = (layerCount[item.layer] || 0) + 1;
-        planetCount[item.planetId] = (planetCount[item.planetId] || 0) + 1;
-      });
-
-      var dominantLayer = layerOrder[0];
-      var dominantLayerScore = -1;
-      Object.keys(layerCount).forEach(function(keyName){
-        if(layerCount[keyName] > dominantLayerScore){
-          dominantLayerScore = layerCount[keyName];
-          dominantLayer = keyName;
-        }
-      });
-
-      // 카드 루프 안의 지역 변수 tone은 여기서 보이지 않는다 — 첫 카드에 기록된 톤을 요약 톤으로 쓴다.
-      var dominantTone = clean((((cards[0] || {}).tarotKeywords) || [])[3]) || toneOrder[0];
-      var dominantPlanet = strengths[0] || 'alignment flow';
-      var strongestPlanetCount = -1;
-      Object.keys(planetCount).forEach(function(k){
-        if(planetCount[k] > strongestPlanetCount){
-          strongestPlanetCount = planetCount[k];
-          dominantPlanet = pick([k], 0, dominantPlanet);
-        }
-      });
-
-      var deepestShadow = shadows[0] || '반복 반응이 판단을 잠식하는 그림자 패턴';
-      for(var s = 1; s < shadows.length; s++){
-        if(clean(shadows[s]).length > clean(deepestShadow).length) deepestShadow = shadows[s];
-      }
-
-      var openingCard = cards[0] || {};
-      var closingCard = cards[cards.length - 1] || {};
-      var oracle = '첫 장 ' + (openingCard.planetKo || '초기 신호') + '에서 시작한 선율을 마지막 장 ' + (closingCard.planetKo || '종결 신호') + '에서 정돈하면, 11장의 의미가 하나의 별자리처럼 이어집니다. 각 카드는 따로 떨어진 답이 아니라 행성의 질문과 방향이 만난 오늘의 오라클입니다.';
-      var insightMatrix = {
-        love: '감정 관계는 즉시 반응보다 경계 기반의 공유가 안정적입니다. 현재 ' + cards[0].planetKo + ' 기조로 상대의 필요와 나의 기준을 1줄씩 분리하세요.',
-        work: '성과는 빠른 판단보다 반복 가능성으로 상승합니다. ' + cards[3].planetKo + '의 규칙으로 업무 우선순위를 압축해 진행하세요.',
-        money: '지출/투자 결정을 동일 프레임으로 묶으세요. ' + cards[5].planetKo + '의 현실 감각으로 금전 패턴을 기록하고 조절하세요.',
-        health: '회복은 수면·수분·호흡의 기본 축이 먼저입니다. ' + cards[2].planetKo + '의 조화 신호에 맞춰 하루 3요소를 규칙화하세요.'
-      };
-      var closingFortune = {
-        title: '오늘의 별빛 운세',
-        overall: '오늘의 별빛은 ' + (openingCard.planetKo || '첫 행성') + '의 문에서 열리고 ' + (closingCard.planetKo || '마지막 행성') + '의 자리에서 차분히 정돈됩니다. 지금 운의 흐름은 빠른 확정보다 흩어진 마음을 한곳으로 모을 때 강해집니다. 가장 오래 미뤄 둔 감정 반응을 부드럽게 알아차리면, 막혀 있던 선택지가 다시 보이기 시작합니다. 오늘은 큰 결론보다 작은 약속 하나를 끝까지 지킬 때 선율이 현실로 내려옵니다.',
-        love: insightMatrix.love + ' 마음을 시험하기보다 필요한 감정을 짧고 따뜻하게 전할 때 인연의 결이 안정됩니다.',
-        work: insightMatrix.work + ' 오늘은 가장 부담스러운 일 하나를 작게 나누어 시작하면 성과의 문이 다시 열립니다.',
-        money: insightMatrix.money + ' 큰 선택보다 작은 지출 패턴을 알아차릴 때 재물의 흐름이 단단해집니다.',
-        health: insightMatrix.health + ' 단순한 회복 루틴이 전체 운의 균형을 다시 세웁니다.'
-      };
-
-      return {
-        cards: cards,
-        summary: {
-          overallTheme: '전체 배열은 ' + strengths.join(', ') + '의 흐름을 따라 ' + dominantLayer + '의 하늘을 통과합니다. 지금 가장 강한 리듬은 ' + dominantTone + '이며, 질문의 핵심은 흩어진 카드의 목소리를 오늘 지킬 수 있는 한 문장으로 모으는 것입니다.',
-          strongestPlanetSignal: '가장 크게 울리는 행성: ' + dominantPlanet,
-          deepestShadow: deepestShadow,
-          soulLesson: '오늘은 ‘실행 가능한 하나’를 기준으로 리듬을 재설정하세요. 감정의 파동을 기록하고, 판단 이전에 3초의 멈춤을 넣으면 카드의 상호작용이 선명해집니다.',
-          integrationPath: cards[0].planetKo + '의 질문에서 출발해, ' + cards[5].planetKo + '의 그림자를 살피고, ' + cards[10].planetKo + '의 통합으로 3일 동안 작은 선택을 반복하세요.',
-          dominantLayer: dominantLayer,
-          dominantSuit: 'major arcana',
-          majorArcanaRatio: '11/11 cards',
-          finalOracle: oracle,
-          planetHighlights: strengths.slice(0, 6),
-          practices: practices.slice(0, 6),
-          ritualPlan: [
-            'Day 1: ' + cards[0].planetKo + '의 신호로 핵심 약속 1개를 문장화하고 즉시 실행',
-            'Day 2: ' + cards[4].planetKo + '의 패턴을 점검해 유사 반응 1개를 제거',
-            'Day 3: ' + cards[10].planetKo + ' 정합으로 실패 규칙 1개를 폐기하고 대체 행동 1개 반영'
-          ],
-          insightMatrix: insightMatrix,
-          closingFortune: closingFortune
-        },
-        payment: {
-          featureKey: FEATURE_KEY,
-          reportType: 'celestialHarmony',
-          reportId: currentReportId,
-          transactionId: currentTransactionId,
-          requestId: currentRequestId,
-          sessionId: currentSessionId,
-          reportSessionId: currentSessionId,
-          purchaseId: currentTransactionId,
-          cost: COIN_COST,
-          premiumAccessToken: currentPremiumToken || readPremiumToken()
-        },
-        fallback: {
-          source: localReadingReason,
-          used: true
-        }
-      };
     }
 
     function normalizeClosingFortune(summary){
@@ -1603,6 +1354,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
         'premium ready': '리딩 준비',
         'premium active': '결제 확인',
         'premium paid': '오라클 생성',
+        'premium generating': '리딩 작성 중',
         'premium complete': '리딩 완성',
         'premium locked': '결제 필요',
         'premium recover': '리딩 복구',
@@ -1617,15 +1369,15 @@ button,input,select,textarea{font-family:var(--font-body)!important}
 
     function persistSession(payload){
       try{
-        var key = STORAGE_NS + (payload.reportId || payload.transactionId || 'last');
+        var ns=sessionNamespace();if(!ns)return;var key = ns + (payload.reportId || payload.transactionId || 'last');
         localStorage.setItem(key, JSON.stringify(payload));
-        localStorage.setItem(STORAGE_NS + 'last', key);
+        localStorage.setItem(ns + 'last', key);
       }catch(_){ }
     }
 
     function restoreSession(){
       try{
-        var key = localStorage.getItem(STORAGE_NS + 'last') || '';
+        var ns=sessionNamespace();if(!ns)return null;var key = localStorage.getItem(ns + 'last') || '';if(key&&!key.startsWith(ns))return null;
         if(!key) return null;
         var raw = localStorage.getItem(key) || '';
         if(!raw) return null;
@@ -2053,8 +1805,6 @@ button,input,select,textarea{font-family:var(--font-body)!important}
     }
 
     async function callGenerate(reportId, transactionId, restored, paymentInfo){
-      localReadingUsed = false;
-      localReadingReason = '';
       var cards=buildCardsPayload();
       var premiumToken = clean((paymentInfo && paymentInfo.premiumAccessToken) || currentPremiumToken || readPremiumToken());
       if(premiumToken) persistPremiumToken(premiumToken);
@@ -2111,30 +1861,19 @@ button,input,select,textarea{font-family:var(--font-body)!important}
         authTokenMasked: maskToken(readAuthToken()),
         premiumTokenMasked: maskToken(premiumToken)
       });
-      var res=await fetch('/api/celestial-harmony',{
-        method:'POST',
-        headers:headers,
-        credentials:'include',
-        body:JSON.stringify(requestPayload)
+      return await continueCelestialDelivery(savedResumeBody || requestPayload);
+    }
+
+    async function continueCelestialDelivery(initial){
+      var owner=deliveryAccount,epoch=deliveryEpoch;
+      return window.CDCelestialPaidReader.run(initial,{
+        active:function(){return Boolean(owner)&&owner===deliveryAccount&&epoch===deliveryEpoch;},
+        visible:function(){return document.visibilityState!=='hidden'&&navigator.onLine!==false;},
+        wait:function(ms){return new Promise(function(resolve){setTimeout(resolve,ms);});},
+        persist:function(body){savedResumeBody=body;try{localStorage.setItem(sessionNamespace()+'resume',JSON.stringify(body));}catch(_){}},
+        show:function(result,_complete,data){renderResults(result);updatePremiumStatus('premium generating',(data.completedParts||[]).length+'/12 부분 저장 · 이어서 작성 중입니다.','generate',['draw','payment']);},
+        post:async function(body){var controller=new AbortController(),timer=setTimeout(function(){controller.abort();},90000);try{var response=await fetch('/api/celestial-harmony',{method:'POST',credentials:'include',headers:buildAuthHeaders(),body:JSON.stringify(body),signal:controller.signal});return {status:response.status,data:await response.json()};}finally{clearTimeout(timer);}}
       });
-      var payload={};
-      try{payload=await res.json();}catch(_){payload={};}
-      console.log('[CelestialHarmony][Generate] response', { status: res.status, payload: payload });
-      if(!res.ok || !payload || payload.ok===false || !payload.result){
-        localReadingUsed = true;
-        localReadingReason = 'api-error';
-        return buildCelestialLocalReading('generate-api-error');
-      }
-      var schema = validateReadingSchema(payload.result);
-      if(!schema.ok){
-        console.error('[CelestialHarmony][Generate] schema invalid', { reason: schema.reason, payload: payload.result });
-        localReadingUsed = true;
-        localReadingReason = 'schema-invalid';
-        return buildCelestialLocalReading('generate-schema-invalid');
-      }
-      localReadingUsed = false;
-      localReadingReason = '';
-      return sanitizeReadingResult(payload.result);
     }
 
     async function restoreFromApi(reportId, transactionId){
@@ -2162,9 +1901,10 @@ button,input,select,textarea{font-family:var(--font-body)!important}
         if(!res.ok) return null;
         var payload=await res.json();
         console.log('[CelestialHarmony][Restore] response', { status: res.status, ok: Boolean(payload && payload.ok), hasResult: Boolean(payload && payload.result) });
+        if(res.status===202&&payload.resumeBody){if(payload.result){renderResults(payload.result);updatePremiumStatus('premium generating',(payload.completedParts||[]).length+'/12 부분 저장 · 이어서 작성 중입니다.','generate',['draw','payment']);}return await continueCelestialDelivery(payload.resumeBody);}
         if(payload&&payload.ok&&payload.result){
           if(validateReadingSchema(payload.result).ok && hasPaymentProof(payload.result.payment || payload.result)) return sanitizeReadingResult(payload.result);
-          if(Array.isArray(spread) && spread.length>=11 && activeAccessHasProof()) return buildCelestialLocalReading('restore-schema-fallback');
+          return null;
           console.error('[CelestialHarmony][Generate] error', { message:'restore schema invalid', result:payload.result });
           return null;
         }
@@ -2181,6 +1921,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
     async function runReadingFlowCore(resumeGate){
       if(!spread.length || paymentInFlight) return false;
       if(!resumeGate && $read.disabled) return false;
+      var readingOwner=deliveryAccount,readingEpoch=deliveryEpoch;
       paymentInFlight = true;
       updateReadButtonState();
       if(!currentSessionId && currentReportId) currentSessionId='celestial-harmony:'+currentReportId;
@@ -2204,6 +1945,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
 
         if(!hasAccess || resumeGate){
           var gate = resumeGate || await callCoinGate(currentReportId);
+          if(readingOwner!==deliveryAccount||readingEpoch!==deliveryEpoch)return false;
           currentTransactionId = gate.transactionId || currentTransactionId;
           if(gate.purchaseId && !currentTransactionId) currentTransactionId = gate.purchaseId;
           currentReportId = gate.reportId || currentReportId;
@@ -2246,12 +1988,9 @@ button,input,select,textarea{font-family:var(--font-body)!important}
         renderSummary(reading);
         renderResults(reading);
         hasCompletedResult = true;
+        savedResumeBody=null;try{localStorage.removeItem(sessionNamespace()+'resume');}catch(_){}
         recoverablePaymentSession = false;
-        if(localReadingUsed){
-          updatePremiumStatus('premium complete','리딩이 완성되었습니다. 11개 행성 결과를 아래에서 확인하세요.','complete',['draw','payment','generate','complete']);
-        }else{
-          updatePremiumStatus('premium complete','결제된 리딩 결과를 복구했습니다.','complete',['draw','payment','generate','complete']);
-        }
+        updatePremiumStatus('premium complete','11개 행성의 리딩이 완성되었습니다.','complete',['draw','payment','generate','complete']);
         persistSession({
           reportId:currentReportId,
           transactionId:currentTransactionId,
@@ -2270,6 +2009,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
         setTimeout(function(){$goldSec.scrollIntoView({behavior:'smooth'});},100);
         return true;
       }catch(err){
+        if(readingOwner!==deliveryAccount||readingEpoch!==deliveryEpoch)return false;
         console.error('[CelestialHarmony][Generate] error', err && err.payload ? { status:err.status, error:err.message, payload:err.payload } : err);
         var status = Number(err && err.status || 0);
         var code = clean((err && err.code) || (err && err.payload && err.payload.code) || '');
@@ -2322,37 +2062,6 @@ button,input,select,textarea{font-family:var(--font-body)!important}
             }
           } catch (_) { }
         }
-        if(hasAccess && !hasCompletedResult){
-          try {
-            var fallback = buildCelestialLocalReading('run-catch-fallback');
-            if(Array.isArray(fallback && fallback.cards) && fallback.cards.length===11){
-              renderResults(fallback);
-              renderSummary(fallback);
-              hasCompletedResult = true;
-              recoverablePaymentSession = false;
-              updatePremiumStatus('premium complete','리딩이 완성되었습니다. 결과를 확인하세요.','complete',['draw','payment','generate','complete']);
-              persistSession({
-                reportId:currentReportId,
-                transactionId:currentTransactionId,
-                requestId:currentRequestId,
-                sessionId:currentSessionId,
-                premiumAccessToken:currentPremiumToken,
-                accessGrant:currentAccessGrant,
-                consume:currentConsume,
-                paid:true,
-                reading:fallback,
-                cards:buildCardsPayload(),
-                spread:spread,
-                goldenCard:goldenCard
-              });
-              setLoading(false,'');
-              return true;
-            }
-          } catch (fallbackError) {
-            // 마지막 안전망이 조용히 죽으면 "결제했는데 결과가 없다"로 끝난다 — 원인을 남긴다.
-            console.error('[CelestialHarmony][Fallback] local reading failed', fallbackError);
-          }
-        }
         recoverablePaymentSession = Boolean(hasAccess);
         setLoading(false,'');
         if(code==='SCHEMA_INVALID'){
@@ -2362,10 +2071,12 @@ button,input,select,textarea{font-family:var(--font-body)!important}
         }
         return false;
       }finally{
+        if(readingOwner===deliveryAccount&&readingEpoch===deliveryEpoch){
         paymentInFlight = false;
         // 어떤 경로로 끝나든 오버레이·스크롤 락은 반드시 해제한다(잠금 상태로 남으면 페이지가 죽는다).
         setLoading(false,'');
         updateReadButtonState();
+        }
       }
     }
 
@@ -2381,7 +2092,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
       // args 에는 원시값만 살아남는다(checkout-entry 의 sanitizePaidResumeDescriptor).
       // 🔴 action 은 비운다 — 이 파일은 셸에 상주해 복귀 시점에 핸들러가 이미 등록돼 있고,
       //    딥링크로 또 열면 이중 이동으로 재개가 날아간다.
-      return { kind: CELESTIAL_RESUME_KIND, action: '', args: { reportId: report, requestId: request } };
+      return { kind: CELESTIAL_RESUME_KIND, action: '', args: { reportId: report, requestId: request, spread: JSON.stringify(spread), goldenCard: JSON.stringify(goldenCard) } };
     }
 
     /* 인페이지 경로에서 callCoinGate 가 돌려주던 것과 **같은 모양**을 만든다 — 아래 흐름이 읽는 자리가
@@ -2411,6 +2122,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
       // 🔴 유효성 판정을 전역 대입보다 앞에 둔다 — 식별자나 카드가 없으면 생성 요청이 빈손으로 나간다.
       // false 를 돌려주면 복귀 처리가 '지금 열기' 카드로 떨어뜨린다(영수증이 남아 재클릭은 무료다).
       if(!reportId || !requestId) return false;
+      try{if(typeof args.spread==='string'){var originalSpread=JSON.parse(args.spread);if(Array.isArray(originalSpread)&&originalSpread.length===11){spread=originalSpread;goldenCard=JSON.parse(args.goldenCard||'null');}}}catch(_){}
       if(!Array.isArray(spread) || spread.length!==11) return false;
       var gate = buildCelestialResumeGate(grant, reportId, requestId);
       if(!gate) return false;
@@ -2431,6 +2143,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
 
     $draw.addEventListener('click',function(){
       if(paymentInFlight) return;
+      savedResumeBody=null;
       var deck=shuffle(MAJOR);
       spread=PLANETS.map(function(pl,i){
         return { planet:pl, tarot:deck[i], orientation:(Math.random()>0.5?'upright':'reversed') };
@@ -2515,7 +2228,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
 
     $reset.addEventListener('click',function(){
       if(paymentInFlight) return;
-      spread=[];goldenCard=null;
+      spread=[];goldenCard=null;savedResumeBody=null;
       currentReportId='';
       currentTransactionId='';
       currentPremiumToken='';
@@ -2538,11 +2251,36 @@ button,input,select,textarea{font-family:var(--font-body)!important}
       updatePremiumStatus('premium idle','새로운 카드 배열을 준비했습니다. 다시 카드를 펼쳐 주세요.','draw',[]);
     });
 
+    var deliveryRecoveryRunning=false;
+    $('resumeStoredReading').addEventListener('click',function(){void recoverCelestialAfterReturn();});
+    async function recoverCelestialAfterReturn(){
+      if(!deliveryAccount||deliveryRecoveryRunning||paymentInFlight||document.visibilityState==='hidden'||navigator.onLine===false)return false;
+      deliveryRecoveryRunning=true;$('resumeStoredReading').hidden=true;var owner=deliveryAccount,epoch=deliveryEpoch;
+      try{var lookup=savedResumeBody&&savedResumeBody.resumeResultId?'resumeResultId='+encodeURIComponent(savedResumeBody.resumeResultId):'pending=1';var response=await fetch('/api/celestial-harmony?'+lookup,{credentials:'include',headers:buildAuthHeaders()});var data=await response.json();if(owner!==deliveryAccount||epoch!==deliveryEpoch)return false;
+        if(response.status!==202&&!(response.status===200&&data.ok&&data.result))return false;
+        if(response.status===202&&data.result){renderResults(data.result);updatePremiumStatus('premium generating',(data.completedParts||[]).length+'/12 부분 저장 · 이어서 작성 중입니다.','generate',['draw','payment']);}
+        var recovered=response.status===200?data.result:await continueCelestialDelivery(data.resumeBody);if(owner!==deliveryAccount||epoch!==deliveryEpoch)return false;
+        renderResults(recovered);renderSummary(recovered);hasAccess=true;hasCompletedResult=true;recoverablePaymentSession=false;savedResumeBody=null;
+        currentReportId=clean(recovered.payment&&recovered.payment.reportId);currentRequestId=clean(recovered.payment&&recovered.payment.requestId);currentSessionId=clean(recovered.payment&&recovered.payment.sessionId);
+        persistSession({reportId:currentReportId,requestId:currentRequestId,sessionId:currentSessionId,transactionId:clean(recovered.payment&&recovered.payment.transactionId),reading:recovered,paid:true});
+        localStorage.removeItem(sessionNamespace()+'resume');updatePremiumStatus('premium complete','저장된 리딩 결과를 복구했습니다.','complete',['draw','payment','generate','complete']);return true;
+      }catch(error){if(owner===deliveryAccount&&epoch===deliveryEpoch){$('resumeStoredReading').hidden=false;updatePremiumStatus('premium recover','저장된 부분을 보존했습니다. 같은 결과를 이어서 열 수 있습니다.','generate',['draw','payment']);}return false;}
+      finally{deliveryRecoveryRunning=false;}
+    }
+    window.addEventListener('online',function(){void recoverCelestialAfterReturn();});
+    document.addEventListener('visibilitychange',function(){void recoverCelestialAfterReturn();});
+
     (async function bootstrapRestore(){
+      deliveryAccount=readDeliveryAccount();var bootstrapEpoch=deliveryEpoch;
+      try{var authResponse=await fetch('/api/auth/me',{credentials:'include',headers:buildAuthHeaders()});var authData=await authResponse.json();if(bootstrapEpoch!==deliveryEpoch)return;if(authResponse.status===401){deliveryAccount='';return;}if(authResponse.ok&&authData.user)deliveryAccount=clean(authData.user.id||authData.user.userId||authData.user._id||authData.user.uid);}catch(_){}
+      if(!deliveryAccount)return;
+      try{savedResumeBody=JSON.parse(localStorage.getItem(sessionNamespace()+'resume')||'null');}catch(_){}
+      if(await recoverCelestialAfterReturn())return;
       var saved = restoreSession();
       var url = new URL(location.href);
-      var qReport = clean(url.searchParams.get('reportId')||'');
-      var qTx = clean(url.searchParams.get('transactionId')||'');
+      var legacyIds=null;try{var legacyKey=localStorage.getItem('cd:celestial:harmony:last');if(legacyKey&&legacyKey.startsWith('cd:celestial:harmony:')){var legacy=JSON.parse(localStorage.getItem(legacyKey)||'null');if(legacy)legacyIds={reportId:legacy.reportId,transactionId:legacy.transactionId};}}catch(_){}
+      var qReport = clean(url.searchParams.get('reportId')||(saved&&saved.reportId)||(legacyIds&&legacyIds.reportId)||'');
+      var qTx = clean(url.searchParams.get('transactionId')||(saved&&saved.transactionId)||(legacyIds&&legacyIds.transactionId)||'');
       var savedHasAccess = false;
       var savedHasResult = false;
 
@@ -2572,31 +2310,14 @@ button,input,select,textarea{font-family:var(--font-body)!important}
           hasAccess ? 'generate' : 'payment',
           hasAccess ? ['draw','payment'] : ['draw']
         );
-        if(savedHasResult){
-          renderResults(saved.reading);
-          renderSummary(saved.reading);
-          hasCompletedResult = true;
-          recoverablePaymentSession = false;
-          updatePremiumStatus('premium complete','저장된 리딩 결과를 복구했습니다.','complete',['draw','payment','generate','complete']);
-        } else if(saved.reading){
-          $resSec.style.display='none';
-          $resCon.innerHTML='';
-          $goldSec.style.display='none';
-          $goldCon.innerHTML='';
-          persistSession({
-            reportId:currentReportId,
-            transactionId:currentTransactionId,
-            requestId:currentRequestId,
-            sessionId:currentSessionId,
-            paid:false,
-            cards:buildCardsPayload(),
-            spread:spread,
-            goldenCard:goldenCard
-          });
-        }
+        // Reopening a cached paid body still requires the server's owner/revocation check.
+        hasCompletedResult=false;
+
       }
 
+      var restoreOwner=deliveryAccount,restoreEpoch=deliveryEpoch;
       var remote = await restoreFromApi(qReport || currentReportId, qTx || currentTransactionId);
+      if(restoreOwner!==deliveryAccount||restoreEpoch!==deliveryEpoch)return;
       if(remote){
         renderResults(remote);
         renderSummary(remote);

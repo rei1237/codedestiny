@@ -1,24 +1,25 @@
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson, cookieValue } from "../lib/http.js";
+import { runCelestialDelivery, restoreCelestialDelivery } from "../lib/celestial-delivery-store.js";
 import { requireAuth } from "../lib/auth.js";
 import { requirePremiumReportAccess } from "../lib/access-control.js";
-import { callGeminiText } from "../lib/gemini.js";
-import { createLlmCacheStore } from "../lib/llm-cache-store.js";
+
+
 import { connectDb } from "../lib/db.js";
 import { ServiceExecutionTransaction } from "../lib/models.js";
 import { withPdfFastDbEnv } from "../lib/pdf-runtime.js";
-import { getAmbientAiLocale } from "../lib/ai-locale-context.js";
+
 import {
   buildCelestialMelodyReading,
   CELESTIAL_MELODY_INTERPRETATION_ORDER,
   CELESTIAL_MELODY_PROMPT_PREMISE,
-  persistCelestialSession,
-  restorePaidCelestialSession,
-  sanitizeCelestialMelodyText,
+
+
+
 } from "../../lib/tarot/celestial-melody-reading.mjs";
 
-const SESSION_CACHE = new Map();
-const SESSION_CACHE_TTL_MS = 1000 * 60 * 60 * 12;
-const SESSION_CACHE_MAX_ENTRIES = 256;
+
+
+
 const CELESTIAL_FEATURE_KEY = "tarot-celestial-harmony";
 const CELESTIAL_REPORT_TYPE = "celestialHarmony";
 const CELESTIAL_COST = 100;
@@ -26,35 +27,6 @@ const CELESTIAL_RESULT_VERSION = "20260605-worker-llm-v1";
 
 function text(value) {
   return String(value || "").trim();
-}
-
-function cacheSet(key, value) {
-  const token = text(key);
-  if (!token || !value) return;
-  const now = Date.now();
-  SESSION_CACHE.set(token, { value, savedAt: now });
-  // 만료 삭제가 읽기 경로에만 있어, 다시 조회되지 않는 세션 토큰은 영영 남았다.
-  // 쓰기마다 만료분을 걷고 그래도 넘치면 오래된 것부터 버린다.
-  for (const [cachedToken, hit] of SESSION_CACHE) {
-    if (now - Number(hit.savedAt || 0) > SESSION_CACHE_TTL_MS) SESSION_CACHE.delete(cachedToken);
-  }
-  while (SESSION_CACHE.size > SESSION_CACHE_MAX_ENTRIES) {
-    const oldestToken = SESSION_CACHE.keys().next().value;
-    if (oldestToken === undefined) break;
-    SESSION_CACHE.delete(oldestToken);
-  }
-}
-
-function cacheGet(key) {
-  const token = text(key);
-  if (!token) return null;
-  const hit = SESSION_CACHE.get(token);
-  if (!hit) return null;
-  if (Date.now() - Number(hit.savedAt || 0) > SESSION_CACHE_TTL_MS) {
-    SESSION_CACHE.delete(token);
-    return null;
-  }
-  return hit.value;
 }
 
 function extractPaymentEvidence(body = {}) {
@@ -86,20 +58,6 @@ function extractPaymentEvidence(body = {}) {
 function toStringArray(value, fallback = []) {
   if (!Array.isArray(value)) return fallback.slice();
   return value.map((item) => text(item)).filter(Boolean);
-}
-
-function firstEnvText(env = {}, keys = []) {
-  for (const key of keys) {
-    const value = text(env?.[key]);
-    if (value) return value;
-  }
-  return "";
-}
-
-function boundedNumber(value, fallback, min, max) {
-  const number = Number(value);
-  if (!Number.isFinite(number)) return fallback;
-  return Math.min(Math.max(number, min), max);
 }
 
 function toIso(value) {
@@ -230,61 +188,6 @@ function normalizeResultSchema(result = {}, options = {}) {
       version: text(result?.meta?.version || CELESTIAL_RESULT_VERSION),
     },
   };
-}
-
-async function writeCelestialArchive(env, userId, bindings, result) {
-  const reportId = text(bindings?.reportId);
-  const transactionId = text(bindings?.transactionId);
-  const requestId = text(bindings?.requestId);
-  const sessionId = text(bindings?.sessionId || bindings?.reportSessionId);
-  const purchaseId = text(bindings?.purchaseId);
-  const executionKey = text(`celestial-harmony:${reportId || requestId || transactionId || sessionId || Date.now().toString(36)}`);
-  const now = new Date();
-  await connectDb(env);
-
-  await ServiceExecutionTransaction.findOneAndUpdate(
-    { userId, executionKey },
-    {
-      $set: {
-        reportType: CELESTIAL_REPORT_TYPE,
-        reportId,
-        sessionId,
-        paymentSessionId: sessionId,
-        coinTransactionId: transactionId,
-        idempotencyKey: requestId,
-        featureKey: CELESTIAL_FEATURE_KEY,
-        cost: CELESTIAL_COST,
-        sourceTransactionId: transactionId || purchaseId,
-        status: "success",
-        premiumStatus: "completed",
-        reasonCode: "",
-        reasonMessage: "",
-        completedAt: now,
-        generationCompletedAt: now,
-        timeoutAt: new Date(now.getTime() + 1000 * 60 * 60 * 24 * 90),
-        nextRetryAt: now,
-        metadata: {
-          source: "celestial-harmony.report",
-          bindings: {
-            reportId,
-            transactionId,
-            requestId,
-            sessionId,
-            purchaseId,
-          },
-          result,
-          archive: result,
-        },
-      },
-      $setOnInsert: {
-        coinAmount: CELESTIAL_COST,
-        maxRetries: 1,
-        retryCount: 0,
-        retentionUntil: new Date(now.getTime() + 1000 * 60 * 60 * 24 * 90),
-      },
-    },
-    { upsert: true, returnDocument: "after" },
-  ).lean();
 }
 
 async function readCelestialArchive(env, userId, bindings = {}) {
@@ -478,384 +381,14 @@ function buildCelestialHarmonyPrompt(reading = {}, goldenCard = null) {
   ].join("\n");
 }
 
-function extractJsonObject(raw) {
-  const source = text(raw);
-  if (!source) return null;
-  const fenced = source.match(/```(?:json)?\s*([\s\S]*?)```/i);
-  const candidates = fenced ? [fenced[1], source] : [source];
-  for (const candidate of candidates) {
-    const trimmed = text(candidate);
-    try {
-      return JSON.parse(trimmed);
-    } catch (_) {
-      let start = -1;
-      let depth = 0;
-      let inString = false;
-      let escape = false;
-      for (let i = 0; i < trimmed.length; i += 1) {
-        const ch = trimmed[i];
-        if (inString) {
-          if (escape) {
-            escape = false;
-          } else if (ch === "\\") {
-            escape = true;
-          } else if (ch === "\"") {
-            inString = false;
-          }
-          continue;
-        }
-        if (ch === "\"") {
-          inString = true;
-          continue;
-        }
-        if (ch === "{") {
-          if (depth === 0) start = i;
-          depth += 1;
-        } else if (ch === "}") {
-          depth -= 1;
-          if (depth === 0 && start >= 0) {
-            const slice = trimmed.slice(start, i + 1);
-            try {
-              return JSON.parse(slice);
-            } catch (_) {
-              start = -1;
-            }
-          }
-        }
-      }
-    }
-  }
-  return null;
-}
-
-function preferText(value, fallback, minLength = 1) {
-  const candidate = sanitizeCelestialMelodyText(value);
-  if (candidate.length >= minLength) return candidate;
-  return text(fallback);
-}
-
-function preferTextWithFallback(value, fallback, minLength = 1, field = "") {
-  const candidate = sanitizeCelestialMelodyText(value);
-  if (candidate.length >= minLength) {
-    return { value: candidate, fallbackUsed: false };
-  }
-  return { value: text(fallback), fallbackUsed: Boolean(field) };
-}
-
-function preferArray(value, fallback = []) {
-  const arr = toStringArray(value, []);
-  if (arr.length) return arr;
-  return toStringArray(fallback, []);
-}
-
-function mergeAiCard(baseCard = {}, aiCard = {}) {
-  const src = aiCard && typeof aiCard === "object" ? aiCard : {};
-  const fallbackFields = [];
-  const pickField = (field, minLength) => {
-    const picked = preferTextWithFallback(src[field], baseCard[field], minLength, field);
-    if (picked.fallbackUsed) fallbackFields.push(field);
-    return picked.value;
-  };
-
-  return {
-    ...baseCard,
-    order: Number(baseCard.order || 0),
-    planetId: text(baseCard.planetId),
-    planetKo: text(baseCard.planetKo),
-    planetEn: text(baseCard.planetEn),
-    planetSymbol: text(baseCard.planetSymbol),
-    planetTitle: text(baseCard.planetTitle),
-    layer: text(baseCard.layer),
-    orientation: text(baseCard.orientation || "upright").toLowerCase() === "reversed" ? "reversed" : "upright",
-    cardNameKo: text(baseCard.cardNameKo),
-    cardNameEn: text(baseCard.cardNameEn),
-    tarotKeywords: preferArray(src.tarotKeywords, baseCard.tarotKeywords),
-    planetKeywords: preferArray(src.planetKeywords, baseCard.planetKeywords),
-    cardMeaning: pickField("cardMeaning", 20),
-    planetMeaning: pickField("planetMeaning", 20),
-    archetypeReading: pickField("archetypeReading", 120),
-    consciousMessage: pickField("consciousMessage", 90),
-    unconsciousPattern: pickField("unconsciousPattern", 90),
-    shadowWarning: pickField("shadowWarning", 90),
-    soulLesson: pickField("soulLesson", 90),
-    integrationPractice: pickField("integrationPractice", 90),
-    _aiFallbackFields: fallbackFields,
-  };
-}
-
-function mergeAiSummary(baseSummary = {}, aiSummary = {}) {
-  const src = aiSummary && typeof aiSummary === "object" ? aiSummary : {};
-  const baseMatrix = baseSummary.insightMatrix && typeof baseSummary.insightMatrix === "object" ? baseSummary.insightMatrix : {};
-  const srcMatrix = src.insightMatrix && typeof src.insightMatrix === "object" ? src.insightMatrix : {};
-  return {
-    ...baseSummary,
-    overallTheme: preferText(src.overallTheme, baseSummary.overallTheme, 350),
-    strongestPlanetSignal: preferText(src.strongestPlanetSignal, baseSummary.strongestPlanetSignal, 30),
-    deepestShadow: preferText(src.deepestShadow, baseSummary.deepestShadow, 40),
-    soulLesson: preferText(src.soulLesson, baseSummary.soulLesson, 40),
-    integrationPath: preferText(src.integrationPath, baseSummary.integrationPath, 40),
-    dominantLayer: text(src.dominantLayer || baseSummary.dominantLayer),
-    dominantSuit: text(src.dominantSuit || baseSummary.dominantSuit),
-    majorArcanaRatio: text(src.majorArcanaRatio || baseSummary.majorArcanaRatio),
-    planetHighlights: preferArray(src.planetHighlights, baseSummary.planetHighlights),
-    practices: preferArray(src.practices, baseSummary.practices),
-    ritualPlan: preferArray(src.ritualPlan, baseSummary.ritualPlan),
-    finalOracle: preferText(src.finalOracle, baseSummary.finalOracle, 120),
-    insightMatrix: {
-      love: preferText(srcMatrix.love, baseMatrix.love, 40),
-      work: preferText(srcMatrix.work, baseMatrix.work, 40),
-      money: preferText(srcMatrix.money, baseMatrix.money, 40),
-      health: preferText(srcMatrix.health, baseMatrix.health, 40),
-    },
-    closingFortune: normalizeClosingFortune(src.closingFortune, baseSummary.closingFortune),
-  };
-}
-
-function normalizeAiReadingCandidate(candidate, baseReading, model = "", provider = "") {
-  const root = candidate && typeof candidate === "object" ? candidate : {};
-  const src = root.result && typeof root.result === "object"
-    ? root.result
-    : root.reading && typeof root.reading === "object"
-      ? root.reading
-      : root;
-  const srcCards = Array.isArray(src.cards) ? src.cards : [];
-  const cards = (Array.isArray(baseReading.cards) ? baseReading.cards : []).map((baseCard, idx) => mergeAiCard(baseCard, srcCards[idx] || {}));
-  if (cards.length !== 11) return null;
-
-  const aiPartialFallbackFields = cards.flatMap((card) => (
-    Array.isArray(card._aiFallbackFields) && card._aiFallbackFields.length
-      ? card._aiFallbackFields.map((field) => String(card.order || "?") + ":" + field)
-      : []
-  ));
-  const cleanedCards = cards.map(({ _aiFallbackFields, ...card }) => card);
-
-  return {
-    ...baseReading,
-    spreadName: text(src.spreadName || baseReading.spreadName || "천체의 선율 타로"),
-    generatedAt: text(src.generatedAt || baseReading.generatedAt || toIso(Date.now())),
-    cards: cleanedCards,
-    summary: mergeAiSummary(baseReading.summary || {}, src.summary || {}),
-    payment: baseReading.payment || {},
-    meta: {
-      ...(baseReading.meta && typeof baseReading.meta === "object" ? baseReading.meta : {}),
-      ...(src.meta && typeof src.meta === "object" ? src.meta : {}),
-      apiUsed: true,
-      aiSchema: "celestial-harmony-json-v1",
-      aiModel: model,
-      aiProvider: provider,
-      aiPartialFallbackFields,
-    },
-  };
-}
-
-async function enrichCelestialReading(env, reading, goldenCard) {
-  const prompt = buildCelestialHarmonyPrompt(reading, goldenCard);
-
-  const ai = await callGeminiText(env, prompt, {
-    model: firstEnvText(env, ["CELESTIAL_HARMONY_GEMINI_MODEL", "GEMINI_MODEL", "PREMIUM_GEMINI_MODEL"]),
-    temperature: boundedNumber(env.CELESTIAL_HARMONY_TEMPERATURE, 0.68, 0.2, 1),
-    // 11카드 구조화 JSON(~1.2만~2만자, 한국어 1자≈1~1.5토큰) — 구 기본 10000은 상시 잘려
-    // AI 보강이 침묵 폴백(json_parse_failed)으로 빠졌다.
-    maxOutputTokens: boundedNumber(env.CELESTIAL_HARMONY_MAX_OUTPUT_TOKENS, 24000, 4096, 32000),
-    timeoutMs: boundedNumber(env.CELESTIAL_HARMONY_PROVIDER_TIMEOUT_MS, 35000, 5000, 90000),
-    // 🔴 게이트가 없으면 짧은 폴백 JSON이 부분 파싱돼 base 필드로 11카드를 채우고도
-    // apiUsed:true 로 나간다(= 거의 0% AI 콘텐츠가 "AI 보강됨"으로 표시). 목표 분량
-    // 하한 12,000자 × 0.4. 미달이면 아래 !ai.ok 경로로 내려가 정직한 로컬 리딩
-    // (apiUsed:false + aiFallbackReason)이 대신한다.
-    fallbackMinChars: 4800,
-    // 결정적 입력(출생차트+카드) → 캐시 + in-flight dedup으로 중복 과금 방지
-    cache: {
-      store: createLlmCacheStore(env),
-      deterministic: true,
-      ttlSeconds: 30 * 24 * 60 * 60,
-      keyExtra: "celestial-harmony-v1",
-    },
-  });
-
-  if (!ai.ok) {
-    return {
-      used: false,
-      message: ai.message || "",
-      result: {
-        ...reading,
-        meta: {
-          ...(reading.meta && typeof reading.meta === "object" ? reading.meta : {}),
-          apiUsed: false,
-          aiSchema: "celestial-harmony-local-fallback",
-          aiFallbackReason: text(ai.message || ai.error || "llm_failed"),
-        },
-      },
-    };
-  }
-
-  const parsed = extractJsonObject(ai.text);
-  const provider = text(ai.provider || "gemini");
-  const merged = parsed ? normalizeAiReadingCandidate(parsed, reading, text(ai.model), provider) : null;
-  if (merged) return { used: true, result: merged, model: text(ai.model), provider };
-
-  return {
-    used: false,
-    message: parsed ? "schema_invalid" : "json_parse_failed",
-    result: {
-      ...reading,
-      meta: {
-        ...(reading.meta && typeof reading.meta === "object" ? reading.meta : {}),
-        apiUsed: false,
-        aiSchema: "celestial-harmony-local-fallback",
-        aiModel: text(ai.model),
-        aiProvider: provider,
-        aiFallbackReason: parsed ? "schema_invalid" : "json_parse_failed",
-      },
-    },
-    model: text(ai.model),
-    provider,
-  };
-}
-
 async function handleGenerate(request, env) {
-  let auth;
-  try {
-    auth = await requireAuth(request, env);
-  } catch (error) {
-    if (Number(error?.status) === 401) {
-      return json({ ok: false, code: "UNAUTHORIZED", message: "로그인 후 천체의 선율 타로를 이용해 주세요." }, { status: 401 });
-    }
-    throw error;
-  }
-
-  const body = await readJson(request);
-  const cards = Array.isArray(body?.cards) ? body.cards : [];
-  const paymentEvidence = extractPaymentEvidence(body);
-  const reportId = paymentEvidence.reportId;
-  const transactionId = paymentEvidence.transactionId;
-  const requestId = paymentEvidence.requestId || text(body?.requestId || body?.payment?.requestId);
-  const sessionId = paymentEvidence.sessionId || text(body?.sessionId || body?.reportSessionId || body?.payment?.sessionId || body?.payment?.reportSessionId);
-  const restoredFromPaidSession = Boolean(body?.restoredFromPaidSession || body?.payment?.restoredFromPaidSession);
-  const premiumAccessToken = text(
-    request.headers.get("x-premium-access-token")
-    || body?.premiumAccessToken
-    || body?._premiumAccessToken
-    || cookieValue(request, "cd_premium_access")
-    || "",
-  );
-
-  const access = await verifyCelestialAccess({
-    request,
-    env,
-    auth,
-    body,
-    reportId,
-    transactionId,
-    premiumAccessToken,
-  });
-  if (!access?.ok) {
-    const status = Number(access?.status || 402);
-    return json({
-      ok: false,
-      code: access?.code || (status === 401 ? "UNAUTHORIZED" : "PAYMENT_REQUIRED"),
-      message: status === 401 ? "로그인 후 천체의 선율 타로를 이용해 주세요." : "결제 확인이 필요합니다.",
-      detail: {
-        reason: text(access?.reason || access?.code || ""),
-        accessType: text(access?.accessType || ""),
-        requiredFeatureKey: CELESTIAL_FEATURE_KEY,
-        reportType: CELESTIAL_REPORT_TYPE,
-      },
-    }, { status });
-  }
-
-  if (!cards.length) {
-    const fromDb = await readCelestialArchive(env, auth.userId, { reportId, transactionId, requestId, sessionId });
-    const restored = fromDb || restorePaidCelestialSession(reportId || transactionId || requestId || sessionId);
-    if (restored) {
-      return json({ ok: true, source: "restored", result: restored });
-    }
-    return json({ ok: false, message: "카드 데이터가 필요합니다." }, { status: 400 });
-  }
-
-  const local = buildCelestialMelodyReading({
-    cards,
-    payment: {
-      coinCharged: Boolean(body?.coinCharged !== false || access?.accessType),
-      transactionId,
-      reportId,
-      requestId,
-      sessionId,
-      reportSessionId: sessionId,
-      featureKey: CELESTIAL_FEATURE_KEY,
-      reportType: CELESTIAL_REPORT_TYPE,
-      cost: CELESTIAL_COST,
-      purchaseId: text(body?.purchaseId || paymentEvidence.purchaseId || transactionId),
-      restoredFromPaidSession,
-      accessType: text(access?.accessType),
-      apiUsed: false,
-    },
-    version: CELESTIAL_RESULT_VERSION,
-  });
-
-  const reading = local.reading;
-  const ai = await enrichCelestialReading(env, reading, body?.goldenCard || null);
-  const locale = getAmbientAiLocale() || "ko";
-  if (locale !== "ko" && (!ai.used || (ai.result?.meta?.aiPartialFallbackFields || []).length)) {
-    return json({ ok: false, code: "AI_LOCALE_RESULT_INCOMPLETE", message: "Generated reading is incomplete for the selected language." }, { status: 502 });
-  }
-  const enrichedReading = ai.used && ai.result ? ai.result : reading;
-
-  const normalized = normalizeResultSchema(enrichedReading, {
-    seedCards: cards,
-    payment: {
-      reportId,
-      transactionId,
-      requestId,
-      sessionId,
-      reportSessionId: sessionId,
-      featureKey: CELESTIAL_FEATURE_KEY,
-      reportType: CELESTIAL_REPORT_TYPE,
-      cost: CELESTIAL_COST,
-      accessType: text(access?.accessType || ""),
-      purchaseId: text(body?.purchaseId || paymentEvidence.purchaseId || transactionId),
-    },
-  });
-
-  if (!Array.isArray(normalized.cards) || normalized.cards.length !== 11) {
-    return json({
-      ok: false,
-      code: "RESULT_SCHEMA_INVALID",
-      message: "리딩 결과 형식이 올바르지 않습니다. 관리자 확인이 필요합니다.",
-      detail: { reason: "cards-length" },
-    }, { status: 500 });
-  }
-
-  if (reportId) cacheSet(`report:${reportId}`, normalized);
-  if (transactionId) cacheSet(`tx:${transactionId}`, normalized);
-  if (requestId) cacheSet(`req:${requestId}`, normalized);
-  if (sessionId) cacheSet(`session:${sessionId}`, normalized);
-
-  // Browser local restore helper (no-op on worker runtime).
-  persistCelestialSession(normalized);
-
-  let archiveSaved = true;
-  let archiveWarning = "";
-  try {
-    await writeCelestialArchive(env, auth.userId, {
-      reportId,
-      transactionId,
-      requestId,
-      sessionId,
-      reportSessionId: sessionId,
-      purchaseId: text(body?.purchaseId || paymentEvidence.purchaseId || transactionId),
-    }, normalized);
-  } catch (archiveError) {
-    archiveSaved = false;
-    archiveWarning = text(archiveError?.message || "archive-save-failed");
-  }
-
-  return json({
-    ok: true,
-    source: ai.used ? `local+${text(ai.provider || "workers-ai")}` : "local",
-    quality: local.quality,
-    archiveSaved,
-    archiveWarning: archiveSaved ? "" : archiveWarning,
-    result: normalized,
+  const auth=await requireAuth(request,env);
+  const body=await readJson(request);
+  return runCelestialDelivery(request,env,auth,body,{
+    verify: original => verifyCelestialAccess({request,env,auth,body:original,reportId:original.reportId,transactionId:original.transactionId}),
+    legacy: original => readCelestialArchive(env,auth.userId,original),
+    buildReading: (original,access) => buildCelestialMelodyReading({cards:original.cards,payment:{...original.payment,...extractPaymentEvidence(original),coinCharged:true,accessType:access.accessType},version:CELESTIAL_RESULT_VERSION}).reading,
+    buildPrompt: buildCelestialHarmonyPrompt,
   });
 }
 
@@ -875,6 +408,11 @@ async function handleRestore(request, env) {
     }
     throw error;
   }
+
+  const checkpoint=await restoreCelestialDelivery(env,auth,{reportId,transactionId,requestId,sessionId,resumeResultId:url.searchParams.get("resumeResultId"),pending:url.searchParams.get("pending")==="1"},
+    original=>verifyCelestialAccess({request,env,auth,body:original,reportId:original.reportId,transactionId:original.transactionId}));
+  if(checkpoint)return checkpoint;
+  if(url.searchParams.get("pending")==="1")return json({ok:true,result:null});
 
   const access = await verifyCelestialAccess({
     request,
@@ -920,14 +458,7 @@ async function handleRestore(request, env) {
     }, { status });
   }
 
-  const byReport = reportId ? cacheGet(`report:${reportId}`) : null;
-  const byTx = !byReport && transactionId ? cacheGet(`tx:${transactionId}`) : null;
-  const byRequest = !byReport && !byTx && requestId ? cacheGet(`req:${requestId}`) : null;
-  const bySession = !byReport && !byTx && !byRequest && sessionId ? cacheGet(`session:${sessionId}`) : null;
-  const byDb = !byReport && !byTx && !byRequest && !bySession
-    ? await readCelestialArchive(env, auth.userId, { reportId, transactionId, requestId, sessionId })
-    : null;
-  const restored = byReport || byTx || byRequest || bySession || byDb || restorePaidCelestialSession(reportId || transactionId || requestId || sessionId);
+  const restored = await readCelestialArchive(env, auth.userId, { reportId, transactionId, requestId, sessionId });
 
   if (!restored) {
     return json({ ok: false, code: "REPORT_NOT_FOUND", message: "복구 가능한 리딩이 없습니다." }, { status: 404 });
@@ -960,6 +491,7 @@ export async function handleCelestialHarmonyRoutes(request, env = {}) {
     if (method === "GET") return await handleRestore(request, env);
     return await handleGenerate(request, env);
   } catch (error) {
+    if(error?.code === "RESULT_STORAGE_UNAVAILABLE")return json({ok:false,retryable:true,reason:error.code,resultId:error.resultId},{status:503});
     return handleRouteError(error);
   }
 }
