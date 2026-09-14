@@ -1848,9 +1848,8 @@ fusionFortuneGenerationAttemptSchema.index({ expiresAt: 1 }, { expireAfterSecond
 // 초융합 상담 보관본 — 위 attempt(10분 TTL 중복요청 락)와는 목적이 다르다. 여기에는 TTL 이 없다.
 // 3만원짜리 결과가 새로고침 한 번에 사라지던 것을 막고 재열람·PDF 를 가능하게 한다.
 //
-// 🔴 프라이버시 경계: 생년월일·생시·출생지·고민 원문은 저장하지 않는다
-//    (worker/lib/fusion-fortune.js 의 buildFusionFortuneContext 가 지키는 것과 같은 선).
-//    화면에 다시 보여 줄 결과 본문과, 목록에서 구분할 최소 정보만 남긴다.
+// 최초 입력과 계산 근거는 비공개 generationSnapshot에 보존한다.
+// 인증된 소유자 재개에만 사용하고 목록에는 최소 요약만 노출한다.
 const fusionFortuneConsultationSchema = new mongoose.Schema({
   id: { type: String, required: true, unique: true, trim: true, maxlength: 120, index: true },
   userId: { type: String, required: true, trim: true },
@@ -1866,6 +1865,7 @@ const fusionFortuneConsultationSchema = new mongoose.Schema({
     birthPlaceKnown: { type: Boolean, default: false },
   },
   // 클라이언트가 스트림에서 받는 것과 같은 구조. 재열람 시 그대로 돌려줘 렌더 경로를 하나로 유지한다.
+  generationSnapshot: { type: mongoose.Schema.Types.Mixed, default: null },
   result: { type: mongoose.Schema.Types.Mixed, required: true },
   visibleTextLength: { type: Number, default: 0 },
   generationSource: { type: String, default: "", trim: true, maxlength: 40 },
@@ -1878,6 +1878,7 @@ const fusionFortuneConsultationSchema = new mongoose.Schema({
   // 옛 보관본에는 없으므로 기본값은 완료본(2)이다.
   stage: { type: Number, default: 2 },
   featureKey: { type: String, default: "fusion-fortune-consultation", trim: true, maxlength: 80 },
+  nextStage: { type: Number, default: null },
   accessType: { type: String, default: "paid", trim: true, maxlength: 40 },
   llmMeta: { type: mongoose.Schema.Types.Mixed, default: null },
 }, { timestamps: true, collection: "fusionFortuneConsultations" });

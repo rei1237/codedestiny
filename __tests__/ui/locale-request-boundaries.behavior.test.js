@@ -95,6 +95,30 @@ test('fusion drops late stage completion and preserves the paid request', async 
   assert.equal(calls, 1); assert.equal(f.applied.length, 0);
   assert.equal(f.receipts.some(([id]) => id === ''), false);
 });
+
+test('fusion resumes the unfinished stage with the original paid request until delivery', async () => {
+  const f = fusionFixture(), calls = [];
+  f.ctx.runStage = async (stage, id, body) => {
+    calls.push({ stage, id, body });
+    return calls.length === 1
+      ? { result: { text: 'saved first group' }, status: 'partial', nextStage: 1 }
+      : calls.length === 2
+        ? { result: { text: 'six systems saved' }, status: 'partial', nextStage: 2 }
+        : { result: { text: 'completed report' }, status: 'completed', fusionStatus: {} };
+  };
+  assert.equal(await f.run('paid-1', { birthDate: '2000-01-01' }, 1, ''), true);
+  assert.deepEqual(calls.map(call => call.stage), [1, 1, 2]);
+  assert.ok(calls.every(call => call.id === 'paid-1' && call.body.birthDate === '2000-01-01'));
+  assert.equal(f.receipts.filter(([id]) => id === '').length, 1);
+});
+
+test('fusion bounds partial waves and keeps the receipt when no report is completed', async () => {
+  const f = fusionFixture(); let calls = 0;
+  f.ctx.runStage = async () => { calls++; return { result: { text: 'saved partial' }, status: 'partial', nextStage: 1 }; };
+  assert.equal(await f.run('paid-1', {}, 1, ''), false);
+  assert.equal(calls, 12);
+  assert.equal(f.receipts.some(([id]) => id === ''), false);
+});
 test('fusion drops recovery result after a locale switch and does not clear receipt', async () => {
   const f = fusionFixture(), recovery = deferred();
   f.ctx.runStage = async () => { throw new Error('stream disconnected'); };

@@ -762,3 +762,26 @@ describe("Fusion Fortune per-use billing and mock generation", () => {
     expect(spread.cards.every((card) => /^major_[a-z_]+$/.test(card.cardId) && card.name && card.positionKey)).toBe(true);
   });
 });
+
+describe("saved calculation snapshot and same-stage progress", () => {
+  it("reuses the original input and calculated context after partial delivery", async () => {
+    const build = jest.fn(contextBuilder), store = emptyStore(); let snapshot;
+    const partial = { sajuSection: { content: "saved analysis" } };
+    const first = await generateFusionFortuneRequest({ input, userId: "user", requestId: "snapshot-resume", store, resolvePaidAccess: paidAccess, contextBuilder: build,
+      onSnapshot: async value => { snapshot = value; }, generator: async () => ({ result: partial, deliverable: false, generationSource: "gemini_partial" }) });
+    expect(first).toMatchObject({ ok: true, status: 202, nextStage: 1, stageStatus: "partial" });
+    expect(store.attempts.get("snapshot-resume").status).toBe("released");
+    const generate = jest.fn(generateFusionFortuneWithMockLLM);
+    const resumed = await generateFusionFortuneRequest({ input: { ...input, birthDate: "2000-01-01", topic: "changed" }, userId: "user", requestId: "snapshot-resume", store, resolvePaidAccess: paidAccess, contextBuilder: build, priorSnapshot: snapshot, priorResult: first.result, generator: generate });
+    expect(resumed.ok).toBe(true); expect(resumed.nextStage).toBe(2); expect(build).toHaveBeenCalledTimes(1);
+    expect(generate.mock.calls[0][0].input.birthDate).toBe(input.birthDate);
+    expect(generate.mock.calls[0][0].context).toEqual(snapshot.context);
+  });
+  it("preparation storage failure prevents any provider call", async () => {
+    const generate = jest.fn();
+    const result = await generateFusionFortuneRequest({ input, userId: "user", requestId: "snapshot-storage-failure", store: emptyStore(), resolvePaidAccess: paidAccess, contextBuilder,
+      onSnapshot: async () => { throw Object.assign(Error("storage"), { code: "RESULT_STORAGE_UNAVAILABLE" }); }, generator: generate });
+    expect(result).toMatchObject({ ok: false, status: 503, reason: "RESULT_STORAGE_UNAVAILABLE", resultId: "snapshot-storage-failure" });
+    expect(generate).not.toHaveBeenCalled();
+  });
+});

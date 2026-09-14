@@ -974,6 +974,7 @@ export async function generateFusionFortuneWithRealLLM({
   priorResult = null,
   priorGenerationSource = "",
   onCheckpoint,
+  onAttempt,
 } = {}) {
   if (!isFusionFortuneRealLlmAllowed(env)) {
     const error = new Error("FUSION_REAL_LLM_NOT_ALLOWED");
@@ -1035,6 +1036,7 @@ export async function generateFusionFortuneWithRealLLM({
     const clampedTimeoutMs = Math.max(1000, Math.min(timeoutMs, remainingBeforeCall - FUSION_TAIL_RESERVE_MS));
     if (context.version === FUSION_EXPERT_VERSION && group.stage === 1) await emitFusionFortuneStage(onStage, group.id, { phase: "analysis_start", status: "running" });
     const groupPrompt = buildFusionSectionGroupPrompt({ context, group, priorSections: prior, extraInstruction });
+    if (typeof onAttempt === "function") await onAttempt(group.id);
     providerCalls += 1;
     let response;
     try {
@@ -1290,10 +1292,11 @@ export async function buildFusionFortuneStatus({ userId = "", enabled = true } =
  * STAGE_ONE_MISSING(409, retryable) 로 돌려보내 클라이언트가 1단계부터 다시 잇게 한다.
  * 결제 증빙은 두 단계 모두 같은 requestId 로 조회만 한다(재과금·쓰기 없음).
  */
-export async function generateFusionFortuneRequest({ input = {}, userId = "", requestId, dateKey, store, resolvePaidAccess, now = new Date(), contextBuilder = buildFusionFortuneContext, generator = generateFusionFortuneWithConfiguredLLM, env = {}, onStage, abortSignal, onDelivery, onCheckpoint, stage = 1, priorResult = null, priorGenerationSource = "" } = {}) {
+export async function generateFusionFortuneRequest({ input = {}, userId = "", requestId, dateKey, store, resolvePaidAccess, now = new Date(), contextBuilder = buildFusionFortuneContext, generator = generateFusionFortuneWithConfiguredLLM, env = {}, onStage, abortSignal, onDelivery, onCheckpoint, stage = 1, priorResult = null, priorGenerationSource = "", priorSnapshot = null, onSnapshot, onAttempt } = {}) {
   if (!text(userId)) return { ok: false, status: 401, error: FUSION_FORTUNE_ERROR_CODES.AUTH_REQUIRED, message: "로그인이 필요합니다." };
   const stageNumber = Number(stage) || 1;
   if (stageNumber !== 1 && stageNumber !== 2) return { ok: false, status: 400, error: FUSION_FORTUNE_ERROR_CODES.INVALID_INPUT, message: "입력 정보를 확인해 주세요." };
+  if (priorSnapshot?.input && priorSnapshot.requestId === String(requestId)) input = priorSnapshot.input;
   let normalized; try { normalized = normalizeFusionFortuneInput(input); } catch { return { ok: false, status: 400, error: FUSION_FORTUNE_ERROR_CODES.INVALID_INPUT, message: "입력 정보를 확인해 주세요." }; }
   if (normalized.contextVersion === 2 && (!normalized.birthTime || normalized.birthTimeUnknown || !normalized.birthPlace || !/^([01]\d|2[0-3]):[0-5]\d$/.test(normalized.birthTime))) {
     return { ok: false, status: 400, error: FUSION_FORTUNE_ERROR_CODES.INVALID_INPUT };
@@ -1338,17 +1341,18 @@ export async function generateFusionFortuneRequest({ input = {}, userId = "", re
   let generationSourceForLog = "";
   try {
     throwIfFusionFortuneAborted(abortSignal);
-    const calculationDate = priorResult?.expertMeta?.calculatedAt ? new Date(priorResult.expertMeta.calculatedAt) : now;
-    const contextResult = await contextBuilder(normalized, { now: calculationDate, env, onStage, ...(normalized.contextVersion === 2 ? { tarotSeed: `${userId}:${safeId}` } : {}) });
+    const calculationDate = priorSnapshot?.calculatedAt ? new Date(priorSnapshot.calculatedAt) : priorResult?.expertMeta?.calculatedAt ? new Date(priorResult.expertMeta.calculatedAt) : now;
+    const contextResult = priorSnapshot?.context ? { ok: true, context: priorSnapshot.context } : await contextBuilder(normalized, { now: calculationDate, env, onStage, ...(normalized.contextVersion === 2 ? { tarotSeed: `${userId}:${safeId}` } : {}) });
     if (!contextResult?.ok) throw Object.assign(new Error("context"), { code: FUSION_FORTUNE_ERROR_CODES.CONTEXT_FAILED });
+    if (!priorSnapshot?.context && typeof onSnapshot === "function") await onSnapshot({ requestId: safeId, input: normalized, context: contextResult.context, calculatedAt: calculationDate.toISOString() });
     throwIfFusionFortuneAborted(abortSignal);
     // 🔴 데드라인 시계를 요청 시작 시점(결제 증빙 직후)으로 고정해 넘긴다. 컨텍스트 빌드(6개
     //    계산기)가 LLM 그룹보다 먼저 같은 120초 예산을 소모하므로, 생성기가 시계를 새로 시작하면
     //    컨텍스트 시간이 예산에 안 잡혀 Cloudflare 엣지 한도(~100s)를 넘겨 요청이 도중에 죽는다.
     const expertMeta = { version: FUSION_EXPERT_VERSION, calculationVersion: FUSION_EXPERT_VERSION, promptVersion: FUSION_EXPERT_VERSION, identity, locale: normalized.locale, calculatedAt: calculationDate.toISOString(), pendingStage: stageNumber, complete: false };
     const withMetadata = (value) => normalized.contextVersion === 2 ? { ...value, expertMeta: { ...expertMeta, systems: Object.fromEntries(["saju", "ziwei", "vedic", "sukuyo", "astrology", "tarot"].map((system) => [system, { calculation: "complete", analysis: validFusionSignals(value?.[`${system}Section`], system, contextResult.context) ? "complete" : "pending" }])) }, tarotCards: contextResult.context.tarotSpread?.cards || [] } : value;
-    const generated = await generator({ input: normalized, context: contextResult.context, env, requestId: safeId, userId, onStage, now: calculationDate, abortSignal, deadlineStartAt: startedAt, stage: stageNumber, priorResult, priorGenerationSource,
-      onCheckpoint: typeof onCheckpoint === "function" ? (value) => onCheckpoint({ requestId: safeId, result: withMetadata(value), generationSource: "gemini_partial", qualityTier: "partial", stage: stageNumber, status: "partial" }) : undefined,
+    const generated = await generator({ input: normalized, context: contextResult.context, onAttempt, env, requestId: safeId, userId, onStage, now: calculationDate, abortSignal, deadlineStartAt: startedAt, stage: stageNumber, priorResult, priorGenerationSource,
+      onCheckpoint: typeof onCheckpoint === "function" ? (value) => onCheckpoint({ requestId: safeId, result: withMetadata(value), generationSource: "gemini_partial", qualityTier: "partial", stage: stageNumber, nextStage: stageNumber, status: "partial" }) : undefined,
     });
     if (generated?.result && normalized.contextVersion === 2) {
       generated.result = withMetadata(generated.result);
@@ -1357,6 +1361,11 @@ export async function generateFusionFortuneRequest({ input = {}, userId = "", re
 
     generationSourceForLog = generated?.generationSource || "";
     const result = generated?.result && generated?.deliverable !== undefined ? generated.result : generated;
+    if (generated?.deliverable === false && result) {
+      if (typeof onDelivery === "function") await onDelivery({ requestId: safeId, result, generationSource: generated?.generationSource || "gemini_partial", qualityTier: "partial", stage: stageNumber, status: "partial", nextStage: stageNumber });
+      await store.release(reservation, now).catch(() => {});
+      return { ok: true, status: 202, requestId: safeId, stage: stageNumber, nextStage: stageNumber, stageStatus: "partial", result, retryable: true, qualityTier: "partial", generationSource: generated?.generationSource || "gemini_partial" };
+    }
     if (generated?.deliverable === false || !result) throw Object.assign(new Error("generation"), { code: FUSION_FORTUNE_ERROR_CODES.GENERATION_FAILED, issues: generated?.qualityIssues });
     // 생성기가 이미 등급을 냈으면 그 판정을 쓴다 — 같은 결과를 두 번 재는 것은 비용일 뿐이고,
     // 두 호출이 서로 다른 답을 내면 배달 직전에 이유 없이 죽는다(중첩 사전검사).
@@ -1377,7 +1386,7 @@ export async function generateFusionFortuneRequest({ input = {}, userId = "", re
     //    것을 안 만들게 하는 장치이지, 이미 만든 것을 버리는 장치가 아니다.
     //    (2026-09-03 사고: 배달 직전·직후 두 곳의 취소 검사가 완성품을 버리고 있었다.)
     if (typeof onDelivery === "function") {
-      await onDelivery({ requestId: safeId, result: delivery.value, generationSource: generated?.generationSource || "mock", qualityTier: delivery.tier, qualityNotice: delivery.qualityNotice, stage: stageNumber, status: stageStatus });
+      await onDelivery({ requestId: safeId, result: delivery.value, generationSource: generated?.generationSource || "mock", qualityTier: delivery.tier, qualityNotice: delivery.qualityNotice, stage: stageNumber, nextStage: stageNumber === 1 ? 2 : null, status: stageStatus });
     }
     const commitResult = await store.commit(reservation, now);
     if (!commitResult) {
@@ -1395,7 +1404,7 @@ export async function generateFusionFortuneRequest({ input = {}, userId = "", re
       nextAction: "generate",
       message: "초융합 운세 결과가 완성되었어요.",
     }));
-    return { ok: true, status: 200, requestId: safeId, stage: stageNumber, stageStatus, result: delivery.value, fusionStatus: status, generationSource: generated?.generationSource || "mock", providerCalls: count(generated?.providerCalls) || undefined, qualityTier: delivery.tier, qualityNotice: delivery.qualityNotice };
+    return { ok: true, status: 200, requestId: safeId, stage: stageNumber, nextStage: stageNumber === 1 ? 2 : null, stageStatus, result: delivery.value, fusionStatus: status, generationSource: generated?.generationSource || "mock", providerCalls: count(generated?.providerCalls) || undefined, qualityTier: delivery.tier, qualityNotice: delivery.qualityNotice };
   } catch (error) {
     if (!committed) await store.release(reservation, now).catch(() => {});
     const code = error?.code || FUSION_FORTUNE_ERROR_CODES.GENERATION_FAILED;

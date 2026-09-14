@@ -42,6 +42,8 @@ beforeAll(async () => {
       getOptionalUserFromRequest: async () => ({ userId: "user-1" }),
     })),
     jest.unstable_mockModule("../../worker/lib/fusion-fortune-consultation.js", () => ({
+      reserveFusionGroupAttempt: async () => 1,
+      saveFusionGenerationSnapshot: async snapshot => snapshot,
       saveFusionFortuneConsultation: async () => {
         if (storageMode === "throw") throw new Error("mock storage unavailable");
         return storageMode === "null" ? "" : "saved-id";
@@ -110,7 +112,7 @@ describe("Fusion Fortune SSE stream termination", () => {
     generateImpl = async ({ onDelivery, stage, requestId }) => {
       stages.push(stage);
       await onDelivery({ requestId, stage, result: { title: "저장된 분석" } });
-      return { ok: true, requestId, stage, stageStatus: "partial" };
+      return { ok: true, requestId, stage, nextStage: 2, stageStatus: "partial" };
     };
     const response = await handleFusionFortuneRoutes(new Request("https://example.test/api/fusion-fortune/generate", {
       method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ requestId: "original-paid-id" }),

@@ -165,7 +165,7 @@ function FieldSystems({ field, copy }: { field: keyof typeof FIELD_SYSTEMS; copy
   );
 }
 
-type OpenedConsultation = { id: string; result: Result; qualityTier?: string; qualityNotice?: string; inputSummary?: { topic?: string; nickname?: string }; status?: string; stage?: number };
+type OpenedConsultation = { requestId?: string; resumeBody?: FusionRequestBody; nextStage?: number; id: string; result: Result; qualityTier?: string; qualityNotice?: string; inputSummary?: { topic?: string; nickname?: string }; status?: string; stage?: number };
 
 async function parseJson<T>(response: Response, copy: FusionFortuneCopy): Promise<T> {
   if (!response.headers.get("content-type")?.includes("application/json")) throw new Error(copy.serverResponseInvalidMessage);
@@ -2227,21 +2227,22 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
       const payload = await parseJson<{ ok?: boolean; consultation?: OpenedConsultation }>(response, copy);
       if (!scope.isCurrent()) return "stale";
       if (!payload.ok || !payload.consultation?.result) return false;
-      recoveredStageRef.current = payload.consultation.result.expertMeta?.pendingStage || 2;
+      recoveredStageRef.current = payload.consultation.nextStage === 1 ? 1 : payload.consultation.result.expertMeta?.pendingStage || 2;
+      if (payload.consultation.resumeBody) rememberPaidRequest(requestId, payload.consultation.resumeBody);
       applyOpenedConsultation(payload.consultation);
       // 1단계만 저장된 보관본이면 화면에는 올리되 완성으로 치지 않는다 — 호출자가 2단계를 이어 간다.
       return payload.consultation.status === "partial" ? "partial" : "completed";
     } catch {
       return scope.isCurrent() ? false : "stale";
     }
-  }, [apiBase, copy, applyOpenedConsultation, captureLocaleScope]);
+  }, [apiBase, copy, applyOpenedConsultation, captureLocaleScope, rememberPaidRequest]);
 
   // 새로고침으로 돌아온 결제 요청은 서버에 남은 것부터 본다 — 완성본이면 열고 영수증을 소진,
   // 1단계만 있으면 2단계를 자동으로 이어 간다. 없으면(404) 기존 "이어서 받기" 흐름 그대로다.
   useEffect(() => {
     if (!pendingPaidRequest || loading || autoResumeRef.current) return;
     const stored = readFusionPaidRequest();
-    if (!stored?.body) return;
+    if (!stored?.requestId) return;
     autoResumeRef.current = true;
     const body = stored.body;
     void (async () => {
@@ -2252,7 +2253,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
         void loadRecentList();
         rememberPaidRequest("");
       } else if (recovered === "partial") {
-        await runGenerationRef.current?.(stored.requestId, body, recoveredStageRef.current, "");
+        await runGenerationRef.current?.(stored.requestId, paidRequestBodyRef.current || body || {}, recoveredStageRef.current, "");
       }
     })();
   }, [pendingPaidRequest, loading, recoverPaidResult, loadRecentList, rememberPaidRequest, copy.resultCompletedNotice]);
@@ -2461,7 +2462,8 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
       //    결제의 질문이 통째로 사라진다.
       rememberPaidRequest(requestId, requestBody);
       let payload: Record<string, unknown> = {};
-      for (let stage = startStage; stage <= 2; stage += 1) {
+      let stage: 1 | 2 = startStage;
+      for (let wave = 0; wave < 12; wave += 1) {
         reachedStage = stage as 1 | 2;
         recoveredStageRef.current = reachedStage;
         if (stage === 2) { setComposeProgress(null); setStageStates((current) => ({ ...current, fusion: "active" })); }
@@ -2471,12 +2473,13 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
         if (!isCurrent()) return false;
         const stageResult = payload.result as Result | undefined;
         if (!stageResult) throw new Error(String(payload.message || copy.resultGenerationFailedMessage));
-        if (stage === 1 && payload.status === "partial") {
-          // 여섯 체계 섹션을 먼저 보여 준다. 종합·판정은 다음 단계가 채운다.
-          setResult(stageResult);
-          setNotice(copy.stageOnePartialNotice);
-        }
+        setResult(stageResult);
+        if (payload.status === "completed" || (stage === 2 && payload.status !== "partial")) break;
+        setNotice(copy.stageOnePartialNotice);
+        stage = payload.nextStage === 1 ? 1 : payload.nextStage === 2 ? 2 : stage === 1 ? 2 : stage;
+        recoveredStageRef.current = stage;
       }
+      if (payload.status === "partial") { setStageTwoFailed(true); return false; }
       const streamResult = payload.result as Result | undefined;
       const fusionStatus = payload.fusionStatus as Status | undefined;
       if (!streamResult || !fusionStatus) throw new Error(String(payload.message || copy.resultGenerationFailedMessage));
@@ -2593,8 +2596,13 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
   const continueGeneration = async () => {
     const stored = readFusionPaidRequest();
     const requestId = paidRequestIdRef.current || stored?.requestId || "";
-    const requestBody = paidRequestBodyRef.current || stored?.body || null;
-    if (!requestId || !requestBody) { formRef.current?.requestSubmit(); return; }
+    let requestBody = paidRequestBodyRef.current || stored?.body || null;
+    if (!requestId) { setFailure({ message: copy.storedResultLoadFailedMessage, retryable: false }); return; }
+    if (!requestBody) {
+      const recovered = await recoverPaidResult(requestId);
+      if (recovered === "completed" || recovered === "stale") return;
+      requestBody = paidRequestBodyRef.current || {};
+    }
     setError(""); setNotice(""); setFailure(null);
     await runGeneration(requestId, requestBody, recoveredStageRef.current, new URLSearchParams(window.location.search).get("fortuneChatSession") || "");
   };

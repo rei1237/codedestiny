@@ -14,12 +14,15 @@ import {
   FUSION_FORTUNE_ERROR_CODES,
   FUSION_FORTUNE_PAID_FEATURE_KEY,
   FUSION_GENERATION_DEADLINE_MS,
+  hasFusionStageOneResult,
 } from "../lib/fusion-fortune.js";
 import {
   getFusionFortuneConsultation,
   getFusionFortuneConsultationByRequestId,
   listFusionFortuneConsultations,
   saveFusionFortuneConsultation,
+  saveFusionGenerationSnapshot,
+  reserveFusionGroupAttempt,
 } from "../lib/fusion-fortune-consultation.js";
 import { FEATURE_KEY_PRICE_TABLE } from "../lib/paid-feature-registry.js";
 import { logPerUsePaymentProof, verifyPerUsePayment } from "../lib/nakshatra-paid-access.js";
@@ -114,6 +117,7 @@ async function persistFusionDelivery({ userId, input, delivery }) {
       qualityTier: delivery?.qualityTier,
       qualityNotice: delivery?.qualityNotice,
       stage: delivery?.stage,
+      nextStage: delivery?.nextStage,
     });
     if (!id) throw resultStorageUnavailable(delivery?.requestId);
     return id;
@@ -128,14 +132,14 @@ async function persistFusionDelivery({ userId, input, delivery }) {
 
 /**
  * 2단계 생성의 앞 결과. 같은 requestId 로 저장된 1단계 보관본(partial)을 읽는다.
- * 조회 실패는 null 로 흡수한다 — 생성기가 STAGE_ONE_MISSING(409, retryable) 로 1단계부터 다시 하게 한다.
+ * 조회 장애는 저장 장애로 반환해 이미 생성한 계산과 본문을 다시 만들지 않는다.
  */
 async function loadFusionPriorConsultation({ userId, requestId }) {
   try {
     return await getFusionFortuneConsultationByRequestId({ userId, requestId });
   } catch (error) {
     console.warn("[fusion-fortune-prior-load-failed]", { requestId: String(requestId || "").slice(0, 120), message: String(error?.message || "").slice(0, 200) });
-    return null;
+    throw resultStorageUnavailable(requestId);
   }
 }
 
@@ -145,8 +149,12 @@ function respondFusionConsultation(consultation) {
   }
   return respond({
     ok: true,
+    status: consultation.status === "partial" ? 202 : 200,
     consultation: {
       id: consultation.id,
+      requestId: consultation.idempotencyKey,
+      resumeBody: consultation.status !== "completed" ? consultation.generationSnapshot?.input : undefined,
+      nextStage: consultation.nextStage || consultation.result?.expertMeta?.pendingStage || (hasFusionStageOneResult(consultation.result) ? 2 : 1),
       title: consultation.title || "",
       result: consultation.result,
       inputSummary: consultation.inputSummary || {},
@@ -298,6 +306,9 @@ async function handleFusionFortuneStreamRoute(request, env, ctx) {
         stage: streamStage,
         priorResult: priorConsultation?.result || null,
         priorGenerationSource: priorConsultation?.generationSource || "",
+        priorSnapshot: priorConsultation?.generationSnapshot || null,
+        onSnapshot: snapshot => saveFusionGenerationSnapshot({ ...snapshot, userId: String(auth.userId) }),
+        onAttempt: groupId => reserveFusionGroupAttempt({ userId: String(auth.userId), requestId: streamRequestId, groupId }),
         onStage: (stage) => writeFusionFortuneSse(writer, "stage", stage),
 
         // 저장을 배달보다 **먼저** 한다. 마지막 write 직전 연결이 끊겨도 결과는 남아
@@ -337,6 +348,7 @@ async function handleFusionFortuneStreamRoute(request, env, ctx) {
         // 1단계면 partial — 클라이언트가 같은 requestId 로 stage 2 를 이어서 요청한다.
         stage: Number(result.stage) || streamStage,
         status: result.stageStatus || "completed",
+        nextStage: result.nextStage,
         // 클라이언트가 저장된 결과의 ?cid= 딥링크를 남기는 데 쓴다.
         consultationId,
         qualityTier: result.qualityTier || undefined,
@@ -403,6 +415,9 @@ export async function handleFusionFortuneRoutes(request, env, ctx = null) {
           stage,
           priorResult: prior?.result || null,
           priorGenerationSource: prior?.generationSource || "",
+          priorSnapshot: prior?.generationSnapshot || null,
+          onSnapshot: snapshot => saveFusionGenerationSnapshot({ ...snapshot, userId: String(auth.userId) }),
+          onAttempt: groupId => reserveFusionGroupAttempt({ userId: String(auth.userId), requestId, groupId }),
           onCheckpoint: async (delivery) => {
             const id = await persistFusionDelivery({ userId: String(auth.userId), input: body, delivery });
             if (!id) throw new Error("FUSION_CHECKPOINT_SAVE_FAILED");
@@ -414,7 +429,7 @@ export async function handleFusionFortuneRoutes(request, env, ctx = null) {
         if (!result?.ok) return respond(result);
         prior = { result: result.result, generationSource: result.generationSource };
       }
-      return json({ ...result, consultationId, nextStage: result.stage === 1 ? 2 : null, status: result.stageStatus || "completed" }, { status: result.stage === 1 ? 202 : 200 });
+      return json({ ...result, consultationId, nextStage: result.nextStage, status: result.stageStatus || "completed" }, { status: result.stageStatus === "partial" ? 202 : 200 });
     }
 
     if (method === "POST" && path === "/generate/stream") {

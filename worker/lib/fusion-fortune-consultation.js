@@ -1,14 +1,15 @@
 // 초융합 상담 보관본 — 저장·조회.
 //
 // 왜 있는가: 초융합은 3만원짜리 단발 리딩인데 결과가 어디에도 남지 않아 새로고침 한 번에
-// 사라졌다. 여기서 완성된 결과만 보관해 재열람과 PDF 를 가능하게 한다.
+// 사라졌다. 생성 중인 결과도 보관해 재개와 완료 후 재열람을 가능하게 한다.
 //
 // 🔴 이 모듈은 결제를 판정하지 않는다. 저장은 이미 결제·검증이 끝난 결과에만 일어나고,
 //    조회는 userId 가 일치하는 본인 결과만 돌려준다(재열람에 추가 결제 없음).
 //
-// 🔴 프라이버시 경계: 생년월일·생시·출생지 좌표·고민 원문은 저장하지 않는다.
-//    목록에서 구분할 최소 정보(주제·닉네임·생시 아는지 여부)와 결과 본문만 남긴다.
+// 재개용 최초 입력·계산값은 소유자에게 묶인 비공개 snapshot에 보존한다.
+// 목록에는 원문·계산값을 노출하지 않고 주제·닉네임 등 최소 정보만 반환한다.
 
+import { resultStorageUnavailable } from "./result-storage.js";
 import { FusionFortuneConsultation } from "./models.js";
 import { countFusionFortuneVisibleText } from "./fusion-fortune.js";
 
@@ -32,7 +33,7 @@ function newConsultationId() {
  *
  * @returns {{ ok: true, doc: object } | { ok: false, reason: string }}
  */
-export function buildFusionConsultationDoc({ requestId, userId, input = {}, result, generationSource = "", llmMeta = null, qualityTier = "", qualityNotice = "", stage = 2 } = {}) {
+export function buildFusionConsultationDoc({ requestId, userId, input = {}, result, generationSource = "", llmMeta = null, qualityTier = "", qualityNotice = "", stage = 2, nextStage = null } = {}) {
   if (!text(userId, 120)) return { ok: false, reason: "missing_user" };
   if (!text(requestId, 180)) return { ok: false, reason: "missing_request_id" };
   if (!result || typeof result !== "object" || Array.isArray(result)) return { ok: false, reason: "missing_result" };
@@ -80,6 +81,7 @@ export function buildFusionConsultationDoc({ requestId, userId, input = {}, resu
       // 옛 보관본(stage 필드 없음)은 응답 기본값이 completed/2 로 읽는다.
       status: Number(stage) === 1 || result.expertMeta?.complete === false || qualityTier === "partial" ? "partial" : "completed",
       stage: Number(stage) === 1 ? 1 : 2,
+      nextStage: nextStage === 1 || nextStage === 2 ? nextStage : null,
       llmMeta: llmMeta && typeof llmMeta === "object" ? llmMeta : null,
     },
   };
@@ -109,6 +111,44 @@ export async function saveFusionFortuneConsultation(payload) {
   const confirmed = await FusionFortuneConsultation.findOne({ userId, idempotencyKey }).lean();
   if (!confirmed || confirmed.status !== rest.status || JSON.stringify(confirmed.result) !== JSON.stringify(rest.result)) return "";
   return text(confirmed.id, 120);
+}
+
+/** Private, owner-bound resume input and calculated context. Never included in lists. */
+export async function saveFusionGenerationSnapshot({ userId, requestId, input, context, calculatedAt }) {
+  try {
+    const owner = text(userId, 120), key = text(requestId, 180);
+    if (!owner || !key || !context || JSON.stringify({ input, context }).length > 1000000) throw resultStorageUnavailable(key);
+    const existing = await FusionFortuneConsultation.findOne({ userId: owner, idempotencyKey: key }).lean();
+    if (existing?.generationSnapshot?.context || existing?.status === "completed") return existing.generationSnapshot;
+    const snapshot = { input, context, calculatedAt, requestId: key, attempts: {} };
+    const saved = await FusionFortuneConsultation.findOneAndUpdate(
+      { userId: owner, idempotencyKey: key, generationSnapshot: null, status: { $ne: "completed" } },
+      { $set: { generationSnapshot: snapshot }, $setOnInsert: { id: newConsultationId(), userId: owner, idempotencyKey: key, result: {}, status: "partial", stage: 1, qualityTier: "partial" } },
+      { upsert: true, new: true, setDefaultsOnInsert: true },
+    ).lean();
+    if (!saved?.id) throw resultStorageUnavailable(key);
+    const confirmed = await FusionFortuneConsultation.findOne({ userId: owner, idempotencyKey: key }).lean();
+    if (JSON.stringify(confirmed?.generationSnapshot) !== JSON.stringify(snapshot)) throw resultStorageUnavailable(key);
+    return confirmed.generationSnapshot;
+  } catch { throw resultStorageUnavailable(requestId); }
+}
+
+/** Reserve a provider call before starting it; lost responses never reset its budget. */
+export async function reserveFusionGroupAttempt({ userId, requestId, groupId }) {
+  const owner = text(userId, 120), key = text(requestId, 180);
+  if (!/^[a-zA-Z0-9_-]{1,60}$/.test(String(groupId))) throw resultStorageUnavailable(key);
+  const field = `generationSnapshot.attempts.${groupId}`;
+  try {
+    const reserved = await FusionFortuneConsultation.findOneAndUpdate({ userId: owner, idempotencyKey: key, status: { $ne: "completed" },
+      "generationSnapshot.context": { $exists: true }, $or: [{ [field]: { $exists: false } }, { [field]: { $lt: 3 } }] },
+      { $inc: { [field]: 1 } }, { new: true }).lean();
+    const attempt = Number(reserved?.generationSnapshot?.attempts?.[groupId]);
+    if (!attempt || attempt > 3) throw resultStorageUnavailable(key);
+    const confirmed = await FusionFortuneConsultation.findOne({ userId: owner, idempotencyKey: key }).lean();
+    const confirmedAttempt = Number(confirmed?.generationSnapshot?.attempts?.[groupId]);
+    if (!Number.isFinite(confirmedAttempt) || confirmedAttempt < attempt) throw resultStorageUnavailable(key);
+    return attempt;
+  } catch { throw resultStorageUnavailable(key); }
 }
 
 /** 단건 조회 — 본인 결과만. 없으면 null. */
