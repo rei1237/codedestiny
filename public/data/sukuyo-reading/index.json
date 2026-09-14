@@ -1,5 +1,19 @@
 [
   {
+    "slug": "sukuyo-antai",
+    "title": "업태관계(業胎關係) 가이드 — 업·태 방향과 거리 분류 읽는 법",
+    "description": "숙요점에서 업(業)과 태(胎)라는 관계 표지를 어떻게 읽는지, 거리 분류와 방향성을 실제 관계의 대화·경계 질문에 연결해 정리했습니다.",
+    "href": "/insights/sukuyo-antai/",
+    "body": "sukuyo-antai-ac56ed71e000.json"
+  },
+  {
+    "slug": "sukuyo-ankai",
+    "title": "안괴관계(安壞關係) 가이드 — 안·괴 방향과 거리 분류 읽는 법",
+    "description": "숙요점의 안(安)·괴(壞) 관계 표지를 결과 예측이 아닌 대화와 경계의 질문으로 읽는 법을 정리했습니다. 연애·가족·일과 거리 분류의 한계도 함께 설명합니다.",
+    "href": "/insights/sukuyo-ankai/",
+    "body": "sukuyo-ankai-85416236c8fb.json"
+  },
+  {
     "slug": "sukuyo-compatibility-guide",
     "title": "숙요점 궁합 보는 법 — 영친·업태·안괴 관계를 읽는 순서",
     "description": "숙요점 궁합은 좋고 나쁨을 가리는 도구가 아니라 관계의 성격과 방향을 이해하는 지도입니다. 영친·업태·안괴·명·성위·우쇠 6유형의 핵심 특징과 연애·결혼 궁합에서 진짜 중요한 것을 정리했습니다.",
@@ -117,20 +131,6 @@
     "description": "영친관계는 숙요점 6유형 궁합 가운데 가장 안정적이고 이상적인 인연으로 꼽힙니다. 영(榮)과 친(親)의 의미, 연애·결혼·친구·직장·사업별 특징과 오래 유지하는 법을 정리했습니다.",
     "href": "/insights/sukuyo-eishin/",
     "body": "sukuyo-eishin-e35ed70b9ce2.json"
-  },
-  {
-    "slug": "sukuyo-antai",
-    "title": "업태관계(業胎關係) 완전 가이드 — 함께 성장하며 완성해 가는 인연",
-    "description": "업태관계는 숙요점에서 서로의 부족한 부분을 비추며 함께 성장하는 관계입니다. 업(業)과 태(胎)의 역할, 연애·결혼·가족·직장·사업에서의 특징과 근·중·원거리별 차이를 정리했습니다.",
-    "href": "/insights/sukuyo-antai/",
-    "body": "sukuyo-antai-0c7318eb0286.json"
-  },
-  {
-    "slug": "sukuyo-ankai",
-    "title": "안괴관계(安壞關係) 완전 가이드 — 숙요점에서 가장 강렬하고 운명적인 인연",
-    "description": "안괴관계는 강한 끌림과 변화의 충격이 공존하는 숙요점의 대표 관계입니다. 안(安)·괴(壞)의 역할부터 연애·결혼·가족·직장·사업·거리별 해석, 흔한 오해와 FAQ까지 총정리했습니다.",
-    "href": "/insights/sukuyo-ankai/",
-    "body": "sukuyo-ankai-6deb21444e1f.json"
   },
   {
     "slug": "sukuyo-useo",
