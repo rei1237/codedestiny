@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <title>Divya Yoga — Sacred Practice Portal</title>
+<script src="/js/core/paid-narrative-reader.js"></script>
 <script src="/js/core/standalone-ai-locale.js?v=20260909-1"></script>
 <script src="/js/inline/api-base-init.js" defer></script>
 <script src="/js/core/pass-verdict.js?v=build-17db4d49a2c4"></script>
@@ -761,7 +762,7 @@
   }
 
   /* === COURSE OUTPUT === */
-  .course-output { display: none; }
+  .course-output { display: none; overflow-wrap: anywhere; }
   .course-output.active { display: block; }
 
   .course-hero {
@@ -836,6 +837,7 @@
   }
 
   .step-card {
+    scroll-margin-top: 88px;
     position: relative;
     background:
       radial-gradient(ellipse 72% 56% at 50% -12%, rgba(245,224,144,0.1), transparent 66%),
@@ -1453,6 +1455,8 @@ function _captureYogaEvidence(transactionId, payload) {
 }
 
 async function _consumeMeditationCoin(cost, reason, resume) {
+  const billingOwner=yogaOwner,billingEpoch=yogaEpoch;
+  const billingActive=()=>billingOwner===yogaAccount()&&billingEpoch===yogaEpoch;
   if (_isAdminMeditationSession()) return true;
 
   if (typeof window._cdCoinGatePerUse !== 'function') {
@@ -1460,7 +1464,7 @@ async function _consumeMeditationCoin(cost, reason, resume) {
     return false;
   }
 
-  var requestId = 'yoga:' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
+  var requestId = yogaSaved.requestId;
   // 환불 플로우가 참조하는 마지막 거래 id와 로컬 잔액 스냅샷만 최신화한다(피드백 UI는 공유 게이트 담당).
   function syncYogaBilling(payload, txId) {
     var source = payload && typeof payload === 'object' ? payload : {};
@@ -1483,7 +1487,8 @@ async function _consumeMeditationCoin(cost, reason, resume) {
     function done(v) { if (!settled) { settled = true; resolve(v); } }
     try {
       var gateResult = window._cdCoinGatePerUse(cost, reason, function (transactionId, payload) {
-        _captureYogaEvidence(transactionId, payload);
+        if(!billingActive()){done(false);return;}
+        _captureYogaEvidence(transactionId, payload);yogaPayEvidence.requestId=requestId;
         syncYogaBilling(payload, transactionId);
         done(true);
       }, function () {
@@ -1499,8 +1504,8 @@ async function _consumeMeditationCoin(cost, reason, resume) {
       });
       if (gateResult && typeof gateResult.then === 'function') {
         gateResult.then(function (result) {
-          if (result && result.status === 'granted') {
-            _captureYogaEvidence(result.transactionId, result.payload || result);
+          if (billingActive() && result && result.status === 'granted') {
+            _captureYogaEvidence(result.transactionId, result.payload || result);yogaPayEvidence.requestId=requestId;
             syncYogaBilling(result.payload || result, result.transactionId);
             done(true);
           } else {
@@ -2059,7 +2064,31 @@ const loadingMessages = [
   "WEAVING YOUR SPIRITUAL JOURNEY"
 ];
 
+let yogaOwner='',yogaEpoch=0,yogaSaved=null,yogaFlight=null,yogaLatest=null,yogaPaying=false;
+function yogaAccount(){try{const u=JSON.parse(localStorage.getItem('fortune_auth_user')||'null');return String(u?._id||u?.id||u?.userId||'');}catch(_){return '';}}
+function storeYoga(){if(yogaOwner&&yogaOwner===yogaAccount())try{localStorage.setItem('cd:yoga:v2:'+yogaOwner,JSON.stringify(yogaSaved));}catch(_){}}
+function parkYogaMusic(){const panel=document.getElementById('musicPanel'),home=document.getElementById('musicPanelHome');if(panel&&home)home.appendChild(panel);}
+function syncYogaOwner(){const owner=yogaAccount();if(owner!==yogaOwner){yogaOwner=owner;yogaEpoch++;yogaFlight=null;yogaLatest=null;yogaSaved=null;try{yogaSaved=JSON.parse(localStorage.getItem('cd:yoga:v2:'+owner)||'null');}catch(_){}
+ stopTypingFlow();stopGeneratedMusic();parkYogaMusic();document.getElementById('yogaDeliveryProgress')?.remove();document.getElementById('courseOutput').textContent='';document.getElementById('courseOutput').classList.remove('active');document.getElementById('moodInput').value='';document.getElementById('loadingState').classList.remove('active');document.getElementById('inputSection').style.display='block';}return owner;}
+function yogaProgress(text,retry){let host=document.getElementById('yogaDeliveryProgress');if(!host){host=document.createElement('div');host.id='yogaDeliveryProgress';document.getElementById('courseOutput').before(host);}host.textContent='';const p=document.createElement('p');p.setAttribute('role','status');p.textContent=text;host.appendChild(p);
+ if(retry){const button=document.createElement('button');button.type='button';button.className='invoke-btn';button.textContent='저장된 코스 이어서 확인';button.onclick=recoverYoga;host.appendChild(button);}}
+async function yogaRequest(body){const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),body?90000:22000);const headers={'Content-Type':'application/json','x-code-destiny-locale':window.cdStandaloneAiLocale.current()};const token=localStorage.getItem('fortune_auth_token');if(token)headers.Authorization='Bearer '+token;
+ const base=resolveApiBase();try{const response=await fetch(base+'/api/yoga-guru'+(body?'':'/result'+(yogaSaved?.resultId?'?resultId='+encodeURIComponent(yogaSaved.resultId):'')),{method:body?'POST':'GET',credentials:'include',headers,signal:controller.signal,body:body?JSON.stringify(body):undefined});return {status:response.status,payload:await response.json()};}finally{clearTimeout(timer);}}
+function showYogaDelivery(data){yogaLatest=data;yogaSaved={...yogaSaved,resultId:data.resultId,requestId:data.requestId,body:data.status==='completed'?null:data.resumeBody};storeYoga();document.getElementById('inputSection').style.display='none';document.getElementById('loadingState').classList.remove('active');
+ if(data.status==='completed'){renderCourse(data);const cards=document.querySelectorAll('#courseOutput .step-card');cards.forEach((card,i)=>{card.querySelector('.step-header')?.addEventListener('click',()=>{yogaSaved.step=i;storeYoga();});});if(Number.isInteger(yogaSaved.step)&&cards[yogaSaved.step]){cards[yogaSaved.step].classList.add('expanded');cards[yogaSaved.step].scrollIntoView({block:'start'});}}
+ yogaProgress(data.status==='completed'?'저장된 수련 코스입니다.':'코스를 생성하고 있어요. 같은 요청을 이어서 확인합니다.',false);}
+function runSavedYoga(body){if(yogaFlight)return yogaFlight;const owner=yogaOwner,epoch=yogaEpoch;const active=()=>Boolean(owner)&&owner===yogaAccount()&&epoch===yogaEpoch;if(!active())return Promise.resolve(false);
+ const flight=(async()=>{try{return await window.CDPaidNarrativeReader.run(body,{active,visible:()=>document.visibilityState!=='hidden'&&navigator.onLine!==false,post:yogaRequest,get:()=>yogaRequest(),wait:ms=>new Promise(resolve=>setTimeout(resolve,ms)),persist:(body,resultId)=>{yogaSaved={...yogaSaved,body,resultId};storeYoga();},show:showYogaDelivery});}
+ catch(error){if(active()){document.getElementById('loadingState').classList.remove('active');yogaProgress(error.message,yogaLatest?.retryable!==false);}return false;}
+ finally{if(yogaFlight===flight){yogaFlight=null;if(active()&&yogaSaved?.body)yogaProgress('저장된 요청을 보존했어요. 같은 코스를 이어서 확인해 주세요.',yogaLatest?.retryable!==false);}}})();yogaFlight=flight;return flight;}
+function recoverYoga(){if(!syncYogaOwner())return Promise.resolve(false);return runSavedYoga(yogaSaved?.body);}
+window.addEventListener('load',()=>recoverYoga());window.addEventListener('online',()=>recoverYoga());window.addEventListener('cd:auth-changed',()=>recoverYoga());window.addEventListener('storage',event=>{if(['fortune_auth_user','fortune_auth_token'].includes(event.key))recoverYoga();});document.addEventListener('visibilitychange',()=>{if(document.visibilityState!=='hidden')recoverYoga();});
+
 async function invokeGuru() {
+  if(!syncYogaOwner()){alert('로그인 후 이용해 주세요.');return false;}
+  if(yogaPaying)return false;
+  if(yogaFlight)return yogaFlight;
+  if(yogaSaved?.body)return recoverYoga();
   const invokeBtn = document.getElementById('invokeBtn');
   const mood = document.getElementById('moodInput').value.trim();
   if (!mood) {
@@ -2071,58 +2100,28 @@ async function invokeGuru() {
     return;
   }
 
-  const sessionCost = Number(selectedDuration) >= 60 ? 50 : 30;
-  const paid = await _consumeMeditationCoin(sessionCost, 'openYogaGuru ' + selectedDuration + '분 코스',
-    buildYogaResumeDescriptor(mood, selectedDuration));
-  if (!paid) return;
-
-  await invokeGuruCore(mood, selectedDuration);
+  const pickedDuration=selectedDuration;
+  yogaSaved={requestId:'yoga:'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,9)};
+  const billingEpoch=yogaEpoch;
+  const sessionCost = Number(pickedDuration) >= 60 ? 50 : 30;
+  yogaPaying=true;if(invokeBtn)invokeBtn.disabled=true;
+  try{
+    const paid=await _consumeMeditationCoin(sessionCost,'openYogaGuru '+pickedDuration+'분 코스',buildYogaResumeDescriptor(mood,pickedDuration));
+    if(!paid||billingEpoch!==yogaEpoch)return false;
+    return await invokeGuruCore(mood,pickedDuration);
+  }finally{yogaPaying=false;if(invokeBtn)invokeBtn.disabled=false;}
 }
 
 /* 🔴 결제 게이트가 없는 코어다. 재개 핸들러는 이쪽을 부른다 — 게이트를 다시 타는 invokeGuru 를
    부르면 이미 낸 결제가 또 일어난다(배선 레시피 4번). */
 async function invokeGuruCore(mood, duration) {
-  const invokeBtn = document.getElementById('invokeBtn');
-  const sessionCost = Number(duration) >= 60 ? 50 : 30;
-  document.getElementById('errorBox').classList.remove('active');
-  document.getElementById('inputSection').style.display = 'none';
-  document.getElementById('loadingState').classList.add('active');
-  if (invokeBtn) invokeBtn.disabled = true;
-
-  // Cycle loading messages
-  let msgIdx = 0;
-  const msgInterval = setInterval(() => {
-    msgIdx = (msgIdx + 1) % loadingMessages.length;
-    document.getElementById('loadingText').textContent = loadingMessages[msgIdx];
-  }, 2500);
-
-  const systemPrompt = buildSystemPrompt();
-  const userPrompt = buildUserPrompt(mood, duration);
-
-  try {
-    const data = await invokeYogaGuruApi(systemPrompt, userPrompt);
-    const courseData = normalizeCoursePayload(data);
-
-    clearInterval(msgInterval);
-    renderCourse(courseData);
-    return true;
-  } catch (err) {
-    var refunded = await _refundMeditationCoinForApiFailure(sessionCost, _cdYogaLastTx, duration + 'm');
-    if (refunded) {
-      _cdYogaLastTx = '';
-      window.alert('요가 코스 생성 실패로 결제 처리분이 자동 환불 확인 대상입니다.');
-    }
-    clearInterval(msgInterval);
-    document.getElementById('loadingState').classList.remove('active');
-    document.getElementById('inputSection').style.display = 'block';
-    document.getElementById('errorBox').classList.add('active');
-    document.getElementById('errorDetail').textContent = (err && err.name === 'AbortError')
-      ? '요가 코스 엔진 응답이 지연되어 시간 초과되었습니다. 잠시 후 다시 시도해주세요.'
-      : (err && err.message ? err.message : '알 수 없는 오류가 발생했습니다.');
-    return false;
-  } finally {
-    if (invokeBtn) invokeBtn.disabled = false;
-  }
+  if(!syncYogaOwner())return false;
+  if(yogaSaved?.body||yogaSaved?.resultId)return recoverYoga();
+  if(!yogaSaved?.requestId)yogaSaved={requestId:yogaPayEvidence.requestId};
+  if(!yogaSaved.requestId)return false;
+  yogaSaved.body=Object.assign({systemPrompt:buildSystemPrompt(),userPrompt:buildUserPrompt(mood,duration),duration},yogaPayEvidence,{requestId:yogaSaved.requestId});
+  storeYoga();document.getElementById('inputSection').style.display='none';document.getElementById('loadingState').classList.add('active');
+  return runSavedYoga(yogaSaved.body);
 }
 
 /* ── 결제 후 자동 재개(모바일 리다이렉트 복귀) ────────────────────────────
@@ -2137,7 +2136,7 @@ function buildYogaResumeDescriptor(mood, duration) {
   // args 에는 원시값만 살아남는다(checkout-entry 의 sanitizePaidResumeDescriptor).
   // 🔴 action 은 비운다 — 이 파일은 셸에 상주해 복귀 시점에 핸들러가 이미 등록돼 있고,
   //    딥링크로 또 열면 이중 이동으로 재개가 날아간다.
-  return { kind: YOGA_RESUME_KIND, action: '', args: { mood: asked, duration: picked } };
+  return { kind: YOGA_RESUME_KIND, action: '', args: { mood: asked, duration: picked, requestId:yogaSaved.requestId } };
 }
 
 function runYogaResume(descriptor, grant) {
@@ -2147,7 +2146,10 @@ function runYogaResume(descriptor, grant) {
   // 🔴 유효성 판정을 전역 대입보다 앞에 둔다 — 길이가 없으면 프롬프트가 반쪽으로 나간다.
   // false 를 돌려주면 복귀 처리가 '지금 열기' 카드로 떨어뜨린다(영수증이 남아 재클릭은 무료다).
   if (!asked || !Number.isFinite(picked) || picked <= 0) return false;
-  if (!grant) return false;
+  if (!grant || !syncYogaOwner()) return false;
+  const originalId=args.requestId||grant.requestId;
+  if(yogaSaved?.requestId===originalId)return recoverYoga();
+  yogaSaved={requestId:originalId};
 
   // 인페이지 경로와 **같은 조립기**를 쓴다(원칙 6) — 서버가 읽는 키가 갈라지지 않는다.
   _captureYogaEvidence(grant.merchantUid || grant.requestId, grant.payload || {});
@@ -2222,42 +2224,7 @@ async function postYogaGuruOnce(url, payload, timeoutMs) {
   }
 }
 
-async function invokeYogaGuruApi(systemPrompt, userPrompt) {
-  const apiBase = resolveApiBase();
-  const candidates = [`${apiBase}/api/yoga-guru`, '/api/yoga-guru'];
-  const endpointList = [...new Set(candidates.map((x) => String(x || '').replace(/\/$/, '')))].filter(Boolean);
-
-  const payload = Object.assign({ systemPrompt, userPrompt }, yogaPayEvidence || {});
-  const maxAttempts = 3;
-  let lastErr = null;
-
-  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
-    const timeoutMs = 22000 + (attempt * 7000);
-
-    for (const endpoint of endpointList) {
-      try {
-        return await postYogaGuruOnce(endpoint, payload, timeoutMs);
-      } catch (err) {
-        lastErr = err;
-        if (err && err.status === 404) continue;
-        if (err && err.retryable === false) throw err;
-      }
-    }
-
-    if (attempt < maxAttempts) {
-      const backoffMs = 500 * (2 ** (attempt - 1)) + Math.floor(Math.random() * 240);
-      await sleep(backoffMs);
-    }
-  }
-
-  if (lastErr && lastErr.status === 404) {
-    throw new Error('요가 코스 API 경로를 찾지 못했습니다. 배포 환경에서 /api/yoga-guru 라우트를 확인해주세요.');
-  }
-  if (lastErr && lastErr.name === 'AbortError') {
-    throw new Error('요가 코스 엔진 응답이 지연되어 시간 초과되었습니다. 잠시 후 다시 시도해주세요.');
-  }
-  throw (lastErr || new Error('요가 코스 API 호출에 실패했습니다.'));
-}
+async function invokeYogaGuruApi(){return recoverYoga();}
 
 function extractJsonText(raw) {
   const text = String(raw || '').trim();
@@ -2361,6 +2328,7 @@ const typeKo = {
 };
 
 function renderCourse(data) {
+  parkYogaMusic();
   const meta = data.course_metadata;
   const durationMin = Number(meta?.duration_min || selectedDuration || 30);
   const steps = Array.isArray(data.sequence) ? data.sequence : [];
@@ -2474,9 +2442,9 @@ function renderCourse(data) {
   if (musicPanel && dock) {
     dock.appendChild(musicPanel);
     musicPanel.classList.add('mini-top');
-    musicPanel.classList.add('open');
+    musicPanel.classList.remove('open');
     const toggleBtn = document.getElementById('musicToggleBtn');
-    if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'true');
+    if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'false');
   }
 
   typingLines = buildTypingLines(data);
@@ -2512,7 +2480,7 @@ function toggleStep(card) {
 }
 
 function restartJourney() {
-  stopTypingFlow();
+  stopTypingFlow();parkYogaMusic();
   document.getElementById('courseOutput').classList.remove('active');
   document.getElementById('courseOutput').innerHTML = '';
 

@@ -43,13 +43,8 @@ describe("locale postprocessing without Korean padding (pure fixtures, no provid
   });
 
   it("does not pad foreign results with Korean deterministic fallbacks", () => {
-    const yoga = readFileSync(resolve(process.cwd(), "worker/routes/yoga-guru.js"), "utf8");
     const tarot = readFileSync(resolve(process.cwd(), "worker/routes/tarot.js"), "utf8");
-    // Pet original-locale resume is exercised by the actual paid route regression.
-    for (const source of [yoga]) {
-      expect(source).toMatch(/AI_LOCALE_RESULT_INCOMPLETE/);
-      expect(source).toMatch(/getAmbientAiLocale/);
-    }
+    // Pet and Yoga original-locale delivery are exercised by their actual paid route regressions.
     expect(tarot).toMatch(/normalizeLoveReadingPayload\(payload\?\.reading, payload\?\.cards \|\| \[\], loveLocale\)/);
   });
 });
